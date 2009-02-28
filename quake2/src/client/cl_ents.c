@@ -34,162 +34,7 @@ int	vidref_val;
 FRAME PARSING
 
 =========================================================================
-*/
-
-#if 0
-
-typedef struct
-{
-	int		modelindex;
-	int		num; // entity number
-	int		effects;
-	vec3_t	origin;
-	vec3_t	oldorigin;
-	vec3_t	angles;
-	qboolean present;
-} projectile_t;
-
-#define	MAX_PROJECTILES	64
-projectile_t	cl_projectiles[MAX_PROJECTILES];
-
-void CL_ClearProjectiles (void)
-{
-	int i;
-
-	for (i = 0; i < MAX_PROJECTILES; i++) {
-//		if (cl_projectiles[i].present)
-//			Com_DPrintf("PROJ: %d CLEARED\n", cl_projectiles[i].num);
-		cl_projectiles[i].present = false;
-	}
-}
-
-/*
-=====================
-CL_ParseProjectiles
-
-Flechettes are passed as efficient temporary entities
-=====================
-*/
-void CL_ParseProjectiles (void)
-{
-	int		i, c, j;
-	byte	bits[8];
-	byte	b;
-	projectile_t	pr;
-	int lastempty = -1;
-	qboolean old = false;
-
-	c = MSG_ReadByte (&net_message);
-	for (i=0 ; i<c ; i++)
-	{
-		bits[0] = MSG_ReadByte (&net_message);
-		bits[1] = MSG_ReadByte (&net_message);
-		bits[2] = MSG_ReadByte (&net_message);
-		bits[3] = MSG_ReadByte (&net_message);
-		bits[4] = MSG_ReadByte (&net_message);
-		pr.origin[0] = ( ( bits[0] + ((bits[1]&15)<<8) ) <<1) - 4096;
-		pr.origin[1] = ( ( (bits[1]>>4) + (bits[2]<<4) ) <<1) - 4096;
-		pr.origin[2] = ( ( bits[3] + ((bits[4]&15)<<8) ) <<1) - 4096;
-		VectorCopy(pr.origin, pr.oldorigin);
-
-		if (bits[4] & 64)
-			pr.effects = EF_BLASTER;
-		else
-			pr.effects = 0;
-
-		if (bits[4] & 128) {
-			old = true;
-			bits[0] = MSG_ReadByte (&net_message);
-			bits[1] = MSG_ReadByte (&net_message);
-			bits[2] = MSG_ReadByte (&net_message);
-			bits[3] = MSG_ReadByte (&net_message);
-			bits[4] = MSG_ReadByte (&net_message);
-			pr.oldorigin[0] = ( ( bits[0] + ((bits[1]&15)<<8) ) <<1) - 4096;
-			pr.oldorigin[1] = ( ( (bits[1]>>4) + (bits[2]<<4) ) <<1) - 4096;
-			pr.oldorigin[2] = ( ( bits[3] + ((bits[4]&15)<<8) ) <<1) - 4096;
-		}
-
-		bits[0] = MSG_ReadByte (&net_message);
-		bits[1] = MSG_ReadByte (&net_message);
-		bits[2] = MSG_ReadByte (&net_message);
-
-		pr.angles[0] = 360*bits[0]/256;
-		pr.angles[1] = 360*bits[1]/256;
-		pr.modelindex = bits[2];
-
-		b = MSG_ReadByte (&net_message);
-		pr.num = (b & 0x7f);
-		if (b & 128) // extra entity number byte
-			pr.num |= (MSG_ReadByte (&net_message) << 7);
-
-		pr.present = true;
-
-		// find if this projectile already exists from previous frame 
-		for (j = 0; j < MAX_PROJECTILES; j++) {
-			if (cl_projectiles[j].modelindex) {
-				if (cl_projectiles[j].num == pr.num) {
-					// already present, set up oldorigin for interpolation
-					if (!old)
-						VectorCopy(cl_projectiles[j].origin, pr.oldorigin);
-					cl_projectiles[j] = pr;
-					break;
-				}
-			} else
-				lastempty = j;
-		}
-
-		// not present previous frame, add it
-		if (j == MAX_PROJECTILES) {
-			if (lastempty != -1) {
-				cl_projectiles[lastempty] = pr;
-			}
-		}
-	}
-}
-
-/*
-=============
-CL_LinkProjectiles
-
-=============
-*/
-void CL_AddProjectiles (void)
-{
-	int		i, j;
-	projectile_t	*pr;
-	entity_t		ent;
-
-	memset (&ent, 0, sizeof(ent));
-
-	for (i=0, pr=cl_projectiles ; i < MAX_PROJECTILES ; i++, pr++)
-	{
-		// grab an entity to fill in
-		if (pr->modelindex < 1)
-			continue;
-		if (!pr->present) {
-			pr->modelindex = 0;
-			continue; // not present this frame (it was in the previous frame)
-		}
-
-		ent.model = cl.model_draw[pr->modelindex];
-
-		// interpolate origin
-		for (j=0 ; j<3 ; j++)
-		{
-			ent.origin[j] = ent.oldorigin[j] = pr->oldorigin[j] + cl.lerpfrac * 
-				(pr->origin[j] - pr->oldorigin[j]);
-
-		}
-
-		if (pr->effects & EF_BLASTER)
-			CL_BlasterTrail (pr->oldorigin, ent.origin);
-		V_AddLight (pr->origin, 200, 1, 1, 0);
-
-		VectorCopy (pr->angles, ent.angles);
-		V_AddEntity (&ent);
-	}
-}
-#endif
+*/ 
 
 /*
 =================
@@ -287,6 +132,16 @@ void CL_ParseDelta (entity_state_t *from, entity_state_t *to, int number, int bi
 	else if (bits & U_RENDERFX16)
 		to->renderfx = MSG_ReadShort(&net_message);
 
+	if (bits & U_MODEL) {
+		if (to->modelindex == 1 && !to->renderfx & RF_BEAM)
+			Com_Printf ("WARNING: Entity %d sent modelindex 1!!\n", number);
+	}
+
+	if (number < 40) {
+		if (to->modelindex2 == 1)
+			Com_Printf ("HAX\n");
+	}
+
 	if (bits & U_ORIGIN1)
 		to->origin[0] = MSG_ReadCoord (&net_message);
 	if (bits & U_ORIGIN2)
@@ -342,12 +197,12 @@ void CL_DeltaEntity (frame_t *frame, int newnum, entity_state_t *old, int bits)
 		|| state->modelindex2 != ent->current.modelindex2
 		|| state->modelindex3 != ent->current.modelindex3
 		|| state->modelindex4 != ent->current.modelindex4
-		|| abs(state->origin[0] - ent->current.origin[0]) > 512
-		|| abs(state->origin[1] - ent->current.origin[1]) > 512
-		|| abs(state->origin[2] - ent->current.origin[2]) > 512
 		|| state->event == EV_PLAYER_TELEPORT
 		|| state->event == EV_OTHER_TELEPORT
-		)
+		|| abs((int)(state->origin[0] - ent->current.origin[0])) > 512
+		|| abs((int)(state->origin[1] - ent->current.origin[1])) > 512
+		|| abs((int)(state->origin[2] - ent->current.origin[2])) > 512 
+	   )
 	{
 		ent->serverframe = -99;
 	}
@@ -387,7 +242,7 @@ rest of the data stream.
 */
 void CL_ParsePacketEntities (frame_t *oldframe, frame_t *newframe)
 {
-	int			newnum;
+	unsigned int	newnum;
 	unsigned		bits;
 	entity_state_t	*oldstate = NULL;
 	int			oldindex, oldnum;
@@ -505,8 +360,6 @@ void CL_ParsePacketEntities (frame_t *oldframe, frame_t *newframe)
 	}
 }
 
-
-
 /*
 ===================
 CL_ParsePlayerstate
@@ -573,9 +426,9 @@ void CL_ParsePlayerstate (frame_t *oldframe, frame_t *newframe)
 	//
 	if (flags & PS_VIEWOFFSET)
 	{
-		state->viewoffset[0] = MSG_ReadChar (&net_message) * 0.25;
-		state->viewoffset[1] = MSG_ReadChar (&net_message) * 0.25;
-		state->viewoffset[2] = MSG_ReadChar (&net_message) * 0.25;
+		state->viewoffset[0] = MSG_ReadChar (&net_message) * 0.25f;
+		state->viewoffset[1] = MSG_ReadChar (&net_message) * 0.25f;
+		state->viewoffset[2] = MSG_ReadChar (&net_message) * 0.25f;
 	}
 
 	if (flags & PS_VIEWANGLES)
@@ -587,9 +440,9 @@ void CL_ParsePlayerstate (frame_t *oldframe, frame_t *newframe)
 
 	if (flags & PS_KICKANGLES)
 	{
-		state->kick_angles[0] = MSG_ReadChar (&net_message) * 0.25;
-		state->kick_angles[1] = MSG_ReadChar (&net_message) * 0.25;
-		state->kick_angles[2] = MSG_ReadChar (&net_message) * 0.25;
+		state->kick_angles[0] = MSG_ReadChar (&net_message) * 0.25f;
+		state->kick_angles[1] = MSG_ReadChar (&net_message) * 0.25f;
+		state->kick_angles[2] = MSG_ReadChar (&net_message) * 0.25f;
 	}
 
 	if (flags & PS_WEAPONINDEX)
@@ -600,24 +453,24 @@ void CL_ParsePlayerstate (frame_t *oldframe, frame_t *newframe)
 	if (flags & PS_WEAPONFRAME)
 	{
 		state->gunframe = MSG_ReadByte (&net_message);
-		state->gunoffset[0] = MSG_ReadChar (&net_message)*0.25;
-		state->gunoffset[1] = MSG_ReadChar (&net_message)*0.25;
-		state->gunoffset[2] = MSG_ReadChar (&net_message)*0.25;
-		state->gunangles[0] = MSG_ReadChar (&net_message)*0.25;
-		state->gunangles[1] = MSG_ReadChar (&net_message)*0.25;
-		state->gunangles[2] = MSG_ReadChar (&net_message)*0.25;
+		state->gunoffset[0] = MSG_ReadChar (&net_message)*0.25f;
+		state->gunoffset[1] = MSG_ReadChar (&net_message)*0.25f;
+		state->gunoffset[2] = MSG_ReadChar (&net_message)*0.25f;
+		state->gunangles[0] = MSG_ReadChar (&net_message)*0.25f;
+		state->gunangles[1] = MSG_ReadChar (&net_message)*0.25f;
+		state->gunangles[2] = MSG_ReadChar (&net_message)*0.25f;
 	}
 
 	if (flags & PS_BLEND)
 	{
-		state->blend[0] = MSG_ReadByte (&net_message)/255.0;
-		state->blend[1] = MSG_ReadByte (&net_message)/255.0;
-		state->blend[2] = MSG_ReadByte (&net_message)/255.0;
-		state->blend[3] = MSG_ReadByte (&net_message)/255.0;
+		state->blend[0] = MSG_ReadByte (&net_message)/255.0f;
+		state->blend[1] = MSG_ReadByte (&net_message)/255.0f;
+		state->blend[2] = MSG_ReadByte (&net_message)/255.0f;
+		state->blend[3] = MSG_ReadByte (&net_message)/255.0f;
 	}
 
 	if (flags & PS_FOV)
-		state->fov = MSG_ReadByte (&net_message);
+		state->fov = (float)MSG_ReadByte (&net_message);
 
 	if (flags & PS_RDFLAGS)
 		state->rdflags = MSG_ReadByte (&net_message);
@@ -628,7 +481,6 @@ void CL_ParsePlayerstate (frame_t *oldframe, frame_t *newframe)
 		if (statbits & (1<<i) )
 			state->stats[i] = MSG_ReadShort(&net_message);
 }
-
 
 /*
 ==================
@@ -647,26 +499,11 @@ void CL_FireEntityEvents (frame_t *frame)
 		s1 = &cl_parse_entities[num];
 		if (s1->event)
 			CL_EntityEvent (s1);
-#ifdef QMAX
-		//add stains if moving...
-		if (s1->origin[0]!=s1->old_origin[0]||
-			s1->origin[1]!=s1->old_origin[1]||
-			s1->origin[2]!=s1->old_origin[2])
-		{
-			if (s1->effects & EF_GIB)
-				re.AddStain(s1->origin, 25, 0, -200 ,-200);
-			if (s1->effects & EF_GREENGIB)
-				re.AddStain(s1->origin, 25, -200, 0, -200);
 
-		}
-#endif
-
-		// EF_TELEPORTER acts like an event, but is not cleared each frame
 		if (s1->effects & EF_TELEPORTER)
 			CL_TeleporterParticles (s1);
 	}
 }
-
 
 /*
 ================
@@ -680,10 +517,6 @@ void CL_ParseFrame (void)
 	frame_t		*old;
 
 	memset (&cl.frame, 0, sizeof(cl.frame));
-
-#if 0
-	CL_ClearProjectiles(); // clear projectiles for new frame
-#endif
 
 	cl.frame.serverframe = MSG_ReadLong (&net_message);
 	cl.frame.deltaframe = MSG_ReadLong (&net_message);
@@ -741,20 +574,15 @@ void CL_ParseFrame (void)
 	cmd = MSG_ReadByte (&net_message);
 	SHOWNET(svc_strings[cmd]);
 	if (cmd != svc_playerinfo)
-		Com_Error (ERR_DROP, "CL_ParseFrame: not playerinfo");
+		Com_Error (ERR_DROP, "CL_ParseFrame: 0x%X not playerinfo", cmd);
 	CL_ParsePlayerstate (old, &cl.frame);
 
 	// read packet entities
 	cmd = MSG_ReadByte (&net_message);
 	SHOWNET(svc_strings[cmd]);
 	if (cmd != svc_packetentities)
-		Com_Error (ERR_DROP, "CL_ParseFrame: not packetentities");
+		Com_Error (ERR_DROP, "CL_ParseFrame: 0x%X not packetentities", cmd);
 	CL_ParsePacketEntities (old, &cl.frame);
-
-#if 0
-	if (cmd == svc_packetentities2)
-		CL_ParseProjectiles();
-#endif
 
 	// save the frame off in the backup array for later delta comparisons
 	cl.frames[cl.frame.serverframe & UPDATE_MASK] = cl.frame;
@@ -766,19 +594,21 @@ void CL_ParseFrame (void)
 		{
 			cls.state = ca_active;
 			cl.force_refdef = true;
-			cl.predicted_origin[0] = cl.frame.playerstate.pmove.origin[0]*0.125;
-			cl.predicted_origin[1] = cl.frame.playerstate.pmove.origin[1]*0.125;
-			cl.predicted_origin[2] = cl.frame.playerstate.pmove.origin[2]*0.125;
+			cl.predicted_origin[0] = cl.frame.playerstate.pmove.origin[0]*0.125f;
+			cl.predicted_origin[1] = cl.frame.playerstate.pmove.origin[1]*0.125f;
+			cl.predicted_origin[2] = cl.frame.playerstate.pmove.origin[2]*0.125f;
 			VectorCopy (cl.frame.playerstate.viewangles, cl.predicted_angles);
 			if (cls.disable_servercount != cl.servercount
 				&& cl.refresh_prepped)
 				SCR_EndLoadingPlaque ();	// get rid of loading plaque
+			 cl.sound_prepped = true;
 		}
-		cl.sound_prepped = true;	// can start mixing ambient sounds
 	
 		// fire entity events
 		CL_FireEntityEvents (&cl.frame);
-		CL_CheckPredictionError ();
+		
+        if (!(!cl_predict->value || (cl.frame.playerstate.pmove.pm_flags & PMF_NO_PREDICTION)))
+			CL_CheckPredictionError();
 	}
 }
 
@@ -841,6 +671,7 @@ struct model_s *S_RegisterSexedModel (entity_state_t *ent, char *base)
 // PMM - used in shell code 
 extern int Developer_searchpath (int who);
 // pmm
+
 /*
 ===============
 CL_AddPacketEntities
@@ -849,7 +680,7 @@ CL_AddPacketEntities
 */
 void CL_AddPacketEntities (frame_t *frame)
 {
-	entity_t			ent;
+	entity_t			ent = {0};
 	entity_state_t		*s1;
 	float				autorotate;
 	int					i;
@@ -860,12 +691,10 @@ void CL_AddPacketEntities (frame_t *frame)
 	unsigned int		effects, renderfx;
 
 	// bonus items rotate at a fixed rate
-	autorotate = anglemod(cl.time/10);
+	autorotate = anglemod(cl.time*0.1f);
 
 	// brush models can auto animate their frames
 	autoanim = 2*cl.time/1000;
-
-	memset (&ent, 0, sizeof(ent));
 
 	for (pnum = 0 ; pnum<frame->num_entities ; pnum++)
 	{
@@ -902,8 +731,8 @@ void CL_AddPacketEntities (frame_t *frame)
 			effects |= EF_COLOR_SHELL;
 			renderfx |= RF_SHELL_BLUE;
 		}
-//======
-// PMM
+		//======
+		// PMM
 		if (effects & EF_DOUBLE)
 		{
 			effects &= ~EF_DOUBLE;
@@ -917,10 +746,10 @@ void CL_AddPacketEntities (frame_t *frame)
 			effects |= EF_COLOR_SHELL;
 			renderfx |= RF_SHELL_HALF_DAM;
 		}
-// pmm
-//======
+		// pmm
+		//======
 		ent.oldframe = cent->prev.frame;
-		ent.backlerp = 1.0 - cl.lerpfrac;
+		ent.backlerp = 1.0f - cl.lerpfrac;
 
 		if (renderfx & (RF_FRAMELERP|RF_BEAM))
 		{	// step origin discretely, because the frames
@@ -942,7 +771,7 @@ void CL_AddPacketEntities (frame_t *frame)
 		// tweak the color of beams
 		if ( renderfx & RF_BEAM )
 		{	// the four beam colors are encoded in 32 bits of skinnum (hack)
-			ent.alpha = 0.30;
+			ent.alpha = 0.30f;
 			ent.skinnum = (s1->skinnum >> ((rand() % 4)*8)) & 0xff;
 			ent.model = NULL;
 		}
@@ -961,8 +790,8 @@ void CL_AddPacketEntities (frame_t *frame)
 					ent.model = cl.baseclientinfo.model;
 				}
 
-//============
-//PGM
+				//============
+				//PGM
 				if (renderfx & RF_USE_DISGUISE)
 				{
 					if(!strncmp((char *)ent.skin, "players/male", 12))
@@ -981,8 +810,8 @@ void CL_AddPacketEntities (frame_t *frame)
 						ent.model = re.RegisterModel ("players/cyborg/tris.md2");
 					}
 				}
-//PGM
-//============
+				//PGM
+				//============
 			}
 			else
 			{
@@ -993,8 +822,8 @@ void CL_AddPacketEntities (frame_t *frame)
 		}
 
 		// only used for black hole model right now, FIXME: do better
-		if (renderfx == RF_TRANSLUCENT)
-			ent.alpha = 0.70;
+		if (renderfx & RF_TRANSLUCENT && !(renderfx & RF_BEAM)) 
+			ent.alpha = 0.70f;
 
 		// render effects (fullbright, translucent, etc)
 		if ((effects & EF_COLOR_SHELL))
@@ -1042,13 +871,13 @@ void CL_AddPacketEntities (frame_t *frame)
 			// FIXME: still pass to refresh
 
 			if (effects & EF_FLAG1)
-				V_AddLight (ent.origin, 225, 1.0, 0.1, 0.1);
+				V_AddLight (ent.origin, 225, 1.0, 0.1f, 0.1f);
 			else if (effects & EF_FLAG2)
-				V_AddLight (ent.origin, 225, 0.1, 0.1, 1.0);
+				V_AddLight (ent.origin, 225, 0.1f, 0.1f, 1.0);
 			else if (effects & EF_TAGTRAIL)						//PGM
-				V_AddLight (ent.origin, 225, 1.0, 1.0, 0.0);	//PGM
+				V_AddLight (ent.origin, 225, 1.0, 1.0, 0.0f);	//PGM
 			else if (effects & EF_TRACKERTRAIL)					//PGM
-				V_AddLight (ent.origin, 225, -1.0, -1.0, -1.0);	//PGM
+				V_AddLight (ent.origin, 225, -1.0f, -1.0f, -1.0f);	//PGM
 
 			continue;
 		}
@@ -1060,14 +889,14 @@ void CL_AddPacketEntities (frame_t *frame)
 		if (effects & EF_BFG)
 		{
 			ent.flags |= RF_TRANSLUCENT;
-			ent.alpha = 0.30;
+			ent.alpha = 0.30f;
 		}
 
 		// RAFAEL
 		if (effects & EF_PLASMA)
 		{
 			ent.flags |= RF_TRANSLUCENT;
-			ent.alpha = 0.6;
+			ent.alpha = 0.6f;
 		}
 
 		if (effects & EF_SPHERETRANS)
@@ -1075,11 +904,11 @@ void CL_AddPacketEntities (frame_t *frame)
 			ent.flags |= RF_TRANSLUCENT;
 			// PMM - *sigh*  yet more EF overloading
 			if (effects & EF_TRACKERTRAIL)
-				ent.alpha = 0.6;
+				ent.alpha = 0.6f;
 			else
-				ent.alpha = 0.3;
+				ent.alpha = 0.3f;
 		}
-//pmm
+		//pmm
 
 		// add to refresh list
 		V_AddEntity (&ent);
@@ -1088,47 +917,41 @@ void CL_AddPacketEntities (frame_t *frame)
 		// color shells generate a seperate entity for the main model
 		if (effects & EF_COLOR_SHELL)
 		{
-			// PMM - at this point, all of the shells have been handled
-			// if we're in the rogue pack, set up the custom mixing, otherwise just
-			// keep going
-//			if(Developer_searchpath(2) == 2)
-//			{
-				// all of the solo colors are fine.  we need to catch any of the combinations that look bad
-				// (double & half) and turn them into the appropriate color, and make double/quad something special
-				if (renderfx & RF_SHELL_HALF_DAM)
+			// all of the solo colors are fine.  we need to catch any of the combinations that look bad
+			// (double & half) and turn them into the appropriate color, and make double/quad something special
+			if (renderfx & RF_SHELL_HALF_DAM)
+			{
+				if(Developer_searchpath(2) == 2)
 				{
-					if(Developer_searchpath(2) == 2)
-					{
-						// ditch the half damage shell if any of red, blue, or double are on
-						if (renderfx & (RF_SHELL_RED|RF_SHELL_BLUE|RF_SHELL_DOUBLE))
-							renderfx &= ~RF_SHELL_HALF_DAM;
-					}
+					// ditch the half damage shell if any of red, blue, or double are on
+					if (renderfx & (RF_SHELL_RED|RF_SHELL_BLUE|RF_SHELL_DOUBLE))
+						renderfx &= ~RF_SHELL_HALF_DAM;
 				}
+			}
 
-				if (renderfx & RF_SHELL_DOUBLE)
+			if (renderfx & RF_SHELL_DOUBLE)
+			{
+				if(Developer_searchpath(2) == 2)
 				{
-					if(Developer_searchpath(2) == 2)
-					{
-						// lose the yellow shell if we have a red, blue, or green shell
-						if (renderfx & (RF_SHELL_RED|RF_SHELL_BLUE|RF_SHELL_GREEN))
-							renderfx &= ~RF_SHELL_DOUBLE;
-						// if we have a red shell, turn it to purple by adding blue
-						if (renderfx & RF_SHELL_RED)
-							renderfx |= RF_SHELL_BLUE;
-						// if we have a blue shell (and not a red shell), turn it to cyan by adding green
-						else if (renderfx & RF_SHELL_BLUE) {
-							// go to green if it's on already, otherwise do cyan (flash green)
-							if (renderfx & RF_SHELL_GREEN)
-								renderfx &= ~RF_SHELL_BLUE;
-							else
-								renderfx |= RF_SHELL_GREEN;
-						}
+					// lose the yellow shell if we have a red, blue, or green shell
+					if (renderfx & (RF_SHELL_RED|RF_SHELL_BLUE|RF_SHELL_GREEN))
+						renderfx &= ~RF_SHELL_DOUBLE;
+					// if we have a red shell, turn it to purple by adding blue
+					if (renderfx & RF_SHELL_RED)
+						renderfx |= RF_SHELL_BLUE;
+					// if we have a blue shell (and not a red shell), turn it to cyan by adding green
+					else if (renderfx & RF_SHELL_BLUE) {
+						// go to green if it's on already, otherwise do cyan (flash green)
+						if (renderfx & RF_SHELL_GREEN)
+							renderfx &= ~RF_SHELL_BLUE;
+						else
+							renderfx |= RF_SHELL_GREEN;
 					}
 				}
-//			}
+			}
 			// pmm
 			ent.flags = renderfx | RF_TRANSLUCENT;
-			ent.alpha = 0.30;
+			ent.alpha = 0.30f;
 			V_AddEntity (&ent);
 		}
 
@@ -1161,7 +984,7 @@ void CL_AddPacketEntities (frame_t *frame)
 			// replaces the previous version which used the high bit on modelindex2 to determine transparency
 			if (!Q_strcasecmp (cl.configstrings[CS_MODELS+(s1->modelindex2)], "models/items/shell/tris.md2"))
 			{
-				ent.alpha = 0.32;
+				ent.alpha = 0.32f;
 				ent.flags = RF_TRANSLUCENT;
 			}
 			// pmm
@@ -1190,7 +1013,7 @@ void CL_AddPacketEntities (frame_t *frame)
 			ent.oldframe = 0;
 			ent.frame = 0;
 			ent.flags |= (RF_TRANSLUCENT | RF_SHELL_GREEN);
-			ent.alpha = 0.30;
+			ent.alpha = 0.30f;
 			V_AddEntity (&ent);
 		}
 
@@ -1200,14 +1023,13 @@ void CL_AddPacketEntities (frame_t *frame)
 			if (effects & EF_ROCKET)
 			{
 				CL_RocketTrail (cent->lerp_origin, ent.origin, cent);
-				V_AddLight (ent.origin, 200, 1, 1, 0);
+				V_AddLight (ent.origin, 200, 1, 0.25f, 0);
 			}
 			// PGM - Do not reorder EF_BLASTER and EF_HYPERBLASTER. 
 			// EF_BLASTER | EF_TRACKER is a special case for EF_BLASTER2... Cheese!
 			else if (effects & EF_BLASTER)
 			{
-//				CL_BlasterTrail (cent->lerp_origin, ent.origin);
-//PGM
+				//PGM
 				if (effects & EF_TRACKER)	// lame... problematic?
 				{
 					CL_BlasterTrail2 (cent->lerp_origin, ent.origin);
@@ -1218,7 +1040,7 @@ void CL_AddPacketEntities (frame_t *frame)
 					CL_BlasterTrail (cent->lerp_origin, ent.origin);
 					V_AddLight (ent.origin, 200, 1, 1, 0);
 				}
-//PGM
+				//PGM
 			}
 			else if (effects & EF_HYPERBLASTER)
 			{
@@ -1260,20 +1082,20 @@ void CL_AddPacketEntities (frame_t *frame)
 				ent.origin[2] += 32;
 				CL_TrapParticles (&ent);
 				i = (rand()%100) + 100;
-				V_AddLight (ent.origin, i, 1, 0.8, 0.1);
+				V_AddLight (ent.origin, i, 1, 0.8f, 0.1);
 			}
 			else if (effects & EF_FLAG1)
 			{
 				CL_FlagTrail (cent->lerp_origin, ent.origin, 242);
-				V_AddLight (ent.origin, 225, 1, 0.1, 0.1);
+				V_AddLight (ent.origin, 225, 1, 0.1f, 0.1f);
 			}
 			else if (effects & EF_FLAG2)
 			{
 				CL_FlagTrail (cent->lerp_origin, ent.origin, 115);
-				V_AddLight (ent.origin, 225, 0.1, 0.1, 1);
+				V_AddLight (ent.origin, 225, 0.1f, 0.1f, 1);
 			}
-//======
-//ROGUE
+			//======
+			//ROGUE
 			else if (effects & EF_TAGTRAIL)
 			{
 				CL_TagTrail (cent->lerp_origin, ent.origin, 220);
@@ -1285,12 +1107,12 @@ void CL_AddPacketEntities (frame_t *frame)
 				{
 					float intensity;
 
-					intensity = 50 + (500 * (sin(cl.time/500.0) + 1.0));
+					intensity = 50 + (500 * ((float)sin(cl.time/500.0f) + 1.0f));
 					// FIXME - check out this effect in rendition
 					if(vidref_val == VIDREF_GL)
 						V_AddLight (ent.origin, intensity, -1.0, -1.0, -1.0);
 					else
-						V_AddLight (ent.origin, -1.0 * intensity, 1.0, 1.0, 1.0);
+						V_AddLight (ent.origin, -1.0f * intensity, 1.0, 1.0, 1.0);
 					}
 				else
 				{
@@ -1307,13 +1129,8 @@ void CL_AddPacketEntities (frame_t *frame)
 				else
 					V_AddLight (ent.origin, -200, 1, 1, 1);
 			}
-//ROGUE
-//======
-			// RAFAEL
-			else if (effects & EF_GREENGIB)
-			{
-			  //CL_DiminishingTrail (cent->lerp_origin, ent.origin, cent, effects);				
-			}
+			//ROGUE
+			//======
 			// RAFAEL
 			else if (effects & EF_IONRIPPER)
 			{
@@ -1340,8 +1157,6 @@ void CL_AddPacketEntities (frame_t *frame)
 	}
 }
 
-
-
 /*
 ==============
 CL_AddViewWeapon
@@ -1349,7 +1164,7 @@ CL_AddViewWeapon
 */
 void CL_AddViewWeapon (player_state_t *ps, player_state_t *ops)
 {
-	entity_t	gun;		// view model
+	entity_t	gun  = {0};		// view model
 	int			i;
 
 	// allow the gun to be completely removed
@@ -1359,8 +1174,6 @@ void CL_AddViewWeapon (player_state_t *ps, player_state_t *ops)
 	// don't draw gun if in wide angle view
 	if (ps->fov > 90)
 		return;
-
-	memset (&gun, 0, sizeof(gun));
 
 	if (gun_model)
 		gun.model = gun_model;	// development tool
@@ -1393,11 +1206,10 @@ void CL_AddViewWeapon (player_state_t *ps, player_state_t *ops)
 	}
 
 	gun.flags = RF_MINLIGHT | RF_DEPTHHACK | RF_WEAPONMODEL;
-	gun.backlerp = 1.0 - cl.lerpfrac;
+	gun.backlerp = 1.0f - cl.lerpfrac;
 	VectorCopy (gun.origin, gun.oldorigin);	// don't lerp at all
 	V_AddEntity (&gun);
 }
-
 
 /*
 ===============
@@ -1436,7 +1248,7 @@ void CL_CalcViewValues (void)
 	{	// use predicted values
 		unsigned	delta;
 
-		backlerp = 1.0 - lerp;
+		backlerp = 1.0f - lerp;
 		for (i=0 ; i<3 ; i++)
 		{
 			cl.refdef.vieworg[i] = cl.predicted_origin[i] + ops->viewoffset[i] 
@@ -1512,23 +1324,14 @@ void CL_AddEntities (void)
 		cl.lerpfrac = 0;
 	}
 	else
-		cl.lerpfrac = 1.0 - (cl.frame.servertime - cl.time) * 0.01;
+		cl.lerpfrac = 1.0 - (cl.frame.servertime - cl.time) * 0.01f;
 
 	if (cl_timedemo->value)
 		cl.lerpfrac = 1.0;
 
-//	CL_AddPacketEntities (&cl.frame);
-//	CL_AddTEnts ();
-//	CL_AddParticles ();
-//	CL_AddDLights ();
-//	CL_AddLightStyles ();
-
 	CL_CalcViewValues ();
 	// PMM - moved this here so the heat beam has the right values for the vieworg, and can lock the beam to the gun
 	CL_AddPacketEntities (&cl.frame);
-#if 0
-	CL_AddProjectiles ();
-#endif
 	CL_AddTEnts ();
 	CL_AddParticles ();
 	CL_AddDLights ();
@@ -1552,6 +1355,4 @@ void CL_GetEntitySoundOrigin (int ent, vec3_t org)
 		Com_Error (ERR_DROP, "CL_GetEntitySoundOrigin: bad ent");
 	old = &cl_entities[ent];
 	VectorCopy (old->lerp_origin, org);
-
-	// FIXME: bmodel issues...
 }
