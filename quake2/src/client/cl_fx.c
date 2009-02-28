@@ -24,18 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 void CL_LogoutEffect (vec3_t org, int type);
 void CL_ItemRespawnParticles (vec3_t org);
 
-#ifdef QMAX
-void addParticleLight (cparticle_t *p,
-		       float light, float lightvel,
-		       float lcol0, float lcol1, float lcol2);
-void CL_ParticleBulletDecal (vec3_t org, vec3_t dir, float size);
-void CL_ItemRespawnParticles (vec3_t org);
-
-void CL_GunSmokeEffect (vec3_t org, vec3_t dir);
-
-trace_t CL_Trace (vec3_t start, vec3_t end, float size, int contentmask);
-#endif
-
 static vec3_t avelocities [NUMVERTEXNORMALS];
 
 extern	struct model_s	*cl_mod_smoke;
@@ -63,89 +51,6 @@ cparticle_t	*active_particles, *free_particles;
 cparticle_t	particles[MAX_PARTICLES];
 
 int			cl_numparticles = MAX_PARTICLES;
-
-#ifdef QMAX
-cparticle_t *setupParticle (
-			float angle0,		float angle1,		float angle2,
-			float org0,			float org1,			float org2,
-			float vel0,			float vel1,			float vel2,
-			float accel0,		float accel1,		float accel2,
-			float color0,		float color1,		float color2,
-			float colorvel0,	float colorvel1,	float colorvel2,
-			float alpha,		float alphavel,
-			float size,			float sizevel,			
-			int	image,
-			int flags,
-			void (*think)(cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, float *size, int *image, float *time),
-			qboolean thinknext)
-{
-	int j;
-	cparticle_t	*p = NULL;
-
-	if (!free_particles)
-		return NULL;
-	p = free_particles;
-	free_particles = p->next;
-	p->next = active_particles;
-	active_particles = p;
-
-	p->start = p->time = cl.time;
-
-	p->angle[0]=angle0;
-	p->angle[1]=angle1;
-	p->angle[2]=angle2;
-
-	p->org[0]=org0;
-	p->org[1]=org1;
-	p->org[2]=org2;
-
-	p->vel[0]=vel0;
-	p->vel[1]=vel1;
-	p->vel[2]=vel2;
-
-	p->accel[0]=accel0;
-	p->accel[1]=accel1;
-	p->accel[2]=accel2;
-
-	p->color[0]=color0;
-	p->color[1]=color1;
-	p->color[2]=color2;
-
-	p->colorvel[0]=colorvel0;
-	p->colorvel[1]=colorvel1;
-	p->colorvel[2]=colorvel2;
-
-	p->alpha=alpha;
-	p->alphavel=alphavel;
-	p->size=size;
-	p->sizevel=sizevel;
-
-	p->image=image;
-	p->flags=flags;
-
-	p->src_ent=0;
-	p->dst_ent=0;
-
-	if (think)
-		p->think=think;
-	else
-		p->think=NULL;
-	p->thinknext=thinknext;
-
-	for (j=0;j<P_LIGHTS_MAX;j++)
-	{
-		cplight_t *plight = &p->lights[j];
-		plight->isactive = false;
-		plight->light = 0;
-		plight->lightvel = 0;
-		plight->lightcol[0] = 0;
-		plight->lightcol[1] = 0;
-		plight->lightcol[2] = 0;
-	}
-
-	return p;
-}
-#endif
 
 /*
 ================
@@ -251,7 +156,7 @@ cdlight_t *CL_AllocDlight (int key)
 	int		i;
 	cdlight_t	*dl;
 
-// first look for an exact key match
+	// first look for an exact key match
 	if (key)
 	{
 		dl = cl_dlights;
@@ -266,7 +171,7 @@ cdlight_t *CL_AllocDlight (int key)
 		}
 	}
 
-// then look for anything else
+	// then look for anything else
 	dl = cl_dlights;
 	for (i=0 ; i<MAX_DLIGHTS ; i++, dl++)
 	{
@@ -474,8 +379,8 @@ void CL_ParseMuzzleFlash (void)
 		S_StartSound (NULL, i, CHAN_WEAPON, S_RegisterSound("weapons/rippfire.wav"), volume, ATTN_NORM, 0);
 		break;
 
-// ======================
-// PGM
+	// ======================
+	// PGM
 	case MZ_ETF_RIFLE:
 		dl->color[0] = 0.9;dl->color[1] = 0.7;dl->color[2] = 0;
 		S_StartSound (NULL, i, CHAN_WEAPON, S_RegisterSound("weapons/nail1.wav"), volume, ATTN_NORM, 0);
@@ -487,7 +392,6 @@ void CL_ParseMuzzleFlash (void)
 	case MZ_HEATBEAM:
 		dl->color[0] = 1;dl->color[1] = 1;dl->color[2] = 0;
 		dl->die = cl.time + 100;
-//		S_StartSound (NULL, i, CHAN_WEAPON, S_RegisterSound("weapons/bfg__l1a.wav"), volume, ATTN_NORM, 0);
 		break;
 	case MZ_BLASTER2:
 		dl->color[0] = 0;dl->color[1] = 1;dl->color[2] = 0;
@@ -515,8 +419,8 @@ void CL_ParseMuzzleFlash (void)
 		dl->color[0] = 0;dl->color[1] = 1;dl->color[2] = 1;
 		dl->die = cl.time + 100;
 		break;
-// PGM
-// ======================
+	// PGM
+	// ======================
 	}
 }
 
@@ -732,9 +636,6 @@ void CL_ParseMuzzleFlash2 (void)
 	case MZ2_BOSS2_ROCKET_3:
 	case MZ2_BOSS2_ROCKET_4:
 	case MZ2_CARRIER_ROCKET_1:
-//	case MZ2_CARRIER_ROCKET_2:
-//	case MZ2_CARRIER_ROCKET_3:
-//	case MZ2_CARRIER_ROCKET_4:
 		dl->color[0] = 1;dl->color[1] = 0.5;dl->color[2] = 0.2;
 		S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("tank/rocket.wav"), 1, ATTN_NORM, 0);
 		break;
@@ -755,10 +656,9 @@ void CL_ParseMuzzleFlash2 (void)
 		dl->color[0] = 0.5;dl->color[1] = 0.5;dl->color[2] = 1.0;
 		break;
 
-// --- Xian's shit starts ---
+	// --- Xian's shit starts ---
 	case MZ2_MAKRON_BFG:
 		dl->color[0] = 0.5;dl->color[1] = 1 ;dl->color[2] = 0.5;
-		//S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound("makron/bfg_fire.wav"), 1, ATTN_NORM, 0);
 		break;
 
 	case MZ2_MAKRON_BLASTER_1:
@@ -823,8 +723,8 @@ void CL_ParseMuzzleFlash2 (void)
 		CL_SmokeAndFlash(origin);
 		break;
 
-// ======
-// ROGUE
+	// ======
+	// ROGUE
 	case MZ2_STALKER_BLASTER:
 	case MZ2_DAEDALUS_BLASTER:
 	case MZ2_MEDIC_BLASTER_2:
@@ -894,11 +794,10 @@ void CL_ParseMuzzleFlash2 (void)
 		dl->color[0] = 1;dl->color[1] = 1;dl->color[2] = 0;
 		dl->die = cl.time + 200;
 		break;
-// ROGUE
-// ======
+	// ROGUE
+	// ======
 
-// --- Xian's shit ends ---
-
+	// --- Xian's shit ends ---
 	}
 }
 
@@ -916,8 +815,8 @@ void CL_AddDLights (void)
 
 	dl = cl_dlights;
 
-//=====
-//PGM
+	//=====
+	//PGM
 	if(vidref_val == VIDREF_GL)
 	{
 		for (i=0 ; i<MAX_DLIGHTS ; i++, dl++)
@@ -947,11 +846,9 @@ void CL_AddDLights (void)
 				dl->color[0], dl->color[1], dl->color[2]);
 		}
 	}
-//PGM
-//=====
+	//PGM
+	//=====
 }
-
-
 
 /*
 ==============================================================
@@ -960,28 +857,6 @@ PARTICLE MANAGEMENT
 
 ==============================================================
 */
-
-/*
-// THIS HAS BEEN RELOCATED TO CLIENT.H
-typedef struct particle_s
-{
-	struct particle_s	*next;
-
-	float		time;
-
-	vec3_t		org;
-	vec3_t		vel;
-	vec3_t		accel;
-	float		color;
-	float		colorvel;
-	float		alpha;
-	float		alphavel;
-} cparticle_t;
-
-
-#define	PARTICLE_GRAVITY	40
-*/
-
 
 /*
 ===============
@@ -1024,13 +899,7 @@ void CL_ParticleEffect (vec3_t org, vec3_t dir, int color, int count)
 		active_particles = p;
 
 		p->time = cl.time;
-#ifdef QMAX
-		p->color[0] = color + (rand()&7);
-		p->color[1] = color + (rand()&7);
-		p->color[2] = color + (rand()&7);
-#else
 		p->color = color + (rand()&7);
-#endif
 		d = rand()&31;
 		for (j=0 ; j<3 ; j++)
 		{
@@ -1068,13 +937,7 @@ void CL_ParticleEffect2 (vec3_t org, vec3_t dir, int color, int count)
 		active_particles = p;
 
 		p->time = cl.time;
-#ifdef QMAX
-		p->color[0] = color;
-		p->color[1] = color;
-		p->color[2] = color;
-#else
 		p->color = color;
-#endif
 
 		d = rand()&7;
 		for (j=0 ; j<3 ; j++)
@@ -1114,13 +977,7 @@ void CL_ParticleEffect3 (vec3_t org, vec3_t dir, int color, int count)
 		active_particles = p;
 
 		p->time = cl.time;
-#ifdef QMAX
-		p->color[0] = color;
-		p->color[1] = color;
-		p->color[2] = color;
-#else
 		p->color = color;
-#endif
 
 		d = rand()&7;
 		for (j=0 ; j<3 ; j++)
@@ -1157,13 +1014,7 @@ void CL_TeleporterParticles (entity_state_t *ent)
 		active_particles = p;
 
 		p->time = cl.time;
-#ifdef QMAX
-		p->color[0] = 0xdb;
-		p->color[1] = 0xdb;
-		p->color[2] = 0xdb;
-#else
 		p->color = 0xdb;
-#endif
 
 		for (j=0 ; j<2 ; j++)
 		{
@@ -1205,14 +1056,12 @@ void CL_LogoutEffect (vec3_t org, int type)
 
 		p->time = cl.time;
 
-#ifndef QMAX
 		if (type == MZ_LOGIN)
 			p->color = 0xd0 + (rand()&7);	// green
 		else if (type == MZ_LOGOUT)
 			p->color = 0x40 + (rand()&7);	// red
 		else
 			p->color = 0xe0 + (rand()&7);	// yellow
-#endif
 
 		p->org[0] = org[0] - 16 + frand()*32;
 		p->org[1] = org[1] - 16 + frand()*32;
@@ -1251,9 +1100,7 @@ void CL_ItemRespawnParticles (vec3_t org)
 		active_particles = p;
 
 		p->time = cl.time;
-#ifndef QMAX
 		p->color = 0xd4 + (rand()&3);	// green
-#endif
 		p->org[0] = org[0] + crand()*8;
 		p->org[1] = org[1] + crand()*8;
 		p->org[2] = org[2] + crand()*8;
@@ -1327,9 +1174,7 @@ void CL_BigTeleportParticles (vec3_t org)
 		active_particles = p;
 
 		p->time = cl.time;
-#ifndef QMAX
 		p->color = colortable[rand()&3];
-#endif
 		angle = M_PI*2*(rand()&1023)/1023.0;
 		dist = rand()&31;
 		p->org[0] = org[0] + cos(angle)*dist;
@@ -1375,9 +1220,7 @@ void CL_BlasterParticles (vec3_t org, vec3_t dir)
 		active_particles = p;
 
 		p->time = cl.time;
-#ifndef QMAX
 		p->color = 0xe0 + (rand()&7);
-#endif
 		d = rand()&15;
 		for (j=0 ; j<3 ; j++)
 		{
@@ -1433,9 +1276,7 @@ void CL_BlasterTrail (vec3_t start, vec3_t end)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (0.3+frand()*0.2);
-#ifndef QMAX
 		p->color = 0xe0;
-#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand();
@@ -1485,9 +1326,7 @@ void CL_QuadTrail (vec3_t start, vec3_t end)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (0.8+frand()*0.2);
-#ifndef QMAX		
 		p->color = 115;
-#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand()*16;
@@ -1505,11 +1344,7 @@ CL_FlagTrail
 
 ===============
 */
-#ifdef QMAX
 void CL_FlagTrail (vec3_t start, vec3_t end, boolean isred)
-#else
-void CL_FlagTrail (vec3_t start, vec3_t end, float color)
-#endif
 {
 	vec3_t		move;
 	vec3_t		vec;
@@ -1541,9 +1376,7 @@ void CL_FlagTrail (vec3_t start, vec3_t end, float color)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (0.8+frand()*0.2);
-#ifndef QMAX
 		p->color = color;
-#endif		
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand()*16;
@@ -1617,9 +1450,7 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags)
 			{
 				p->alpha = 1.0;
 				p->alphavel = -1.0 / (1+frand()*0.4);
-#ifndef QMAX
 				p->color = 0xe8 + (rand()&7);
-#endif
 				for (j=0 ; j<3 ; j++)
 				{
 					p->org[j] = move[j] + crand()*orgscale;
@@ -1632,9 +1463,7 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags)
 			{
 				p->alpha = 1.0;
 				p->alphavel = -1.0 / (1+frand()*0.4);
-#ifndef QMAX
 				p->color = 0xdb + (rand()&7);
-#endif
 				for (j=0; j< 3; j++)
 				{
 					p->org[j] = move[j] + crand()*orgscale;
@@ -1647,9 +1476,7 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags)
 			{
 				p->alpha = 1.0;
 				p->alphavel = -1.0 / (1+frand()*0.2);
-#ifndef QMAX
 				p->color = 4 + (rand()&7);
-#endif
 				for (j=0 ; j<3 ; j++)
 				{
 					p->org[j] = move[j] + crand()*orgscale;
@@ -1727,9 +1554,7 @@ void CL_RocketTrail (vec3_t start, vec3_t end, centity_t *old)
 
 			p->alpha = 1.0;
 			p->alphavel = -1.0 / (1+frand()*0.2);
-#ifndef QMAX
 			p->color = 0xdc + (rand()&3);
-#endif
 			for (j=0 ; j<3 ; j++)
 			{
 				p->org[j] = move[j] + crand()*5;
@@ -1789,9 +1614,7 @@ void CL_RailTrail (vec3_t start, vec3_t end)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (1+frand()*0.2);
-#ifndef QMAX		
 		p->color = clr + (rand()&7);
-#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + dir[j]*3;
@@ -1821,9 +1644,7 @@ void CL_RailTrail (vec3_t start, vec3_t end)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (0.6+frand()*0.2);
-#ifndef QMAX
 		p->color = 0x0 + (rand()&15);
-#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand()*3;
@@ -1873,9 +1694,7 @@ void CL_IonripperTrail (vec3_t start, vec3_t ent)
 		p->time = cl.time;
 		p->alpha = 0.5;
 		p->alphavel = -1.0 / (0.3 + frand() * 0.2);
-#ifndef QMAX
 		p->color = 0xe4 + (rand()&3);
-#endif
 		for (j=0; j<3; j++)
 		{
 			p->org[j] = move[j];
@@ -1937,9 +1756,7 @@ void CL_BubbleTrail (vec3_t start, vec3_t end)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (1+frand()*0.2);
-#ifndef QMAX
 		p->color = 4 + (rand()&7);
-#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand()*2;
@@ -2014,10 +1831,8 @@ void CL_FlyParticles (vec3_t origin, int count)
 		VectorClear (p->vel);
 		VectorClear (p->accel);
 
-#ifndef QMAX
 		p->color = 0;
 		p->colorvel = 0;
-#endif
 		p->alpha = 1;
 		p->alphavel = -100;
 	}
@@ -2116,10 +1931,8 @@ void CL_BfgParticles (entity_t *ent)
 
 		VectorSubtract (p->org, ent->origin, v);
 		dist = VectorLength(v) / 90.0;
-#ifndef QMAX
 		p->color = floor (0xd0 + dist * 7);
 		p->colorvel = 0;
-#endif
 		p->alpha = 1.0 - dist;
 		p->alphavel = -100;
 	}
@@ -2171,9 +1984,7 @@ void CL_TrapParticles (entity_t *ent)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (0.3+frand()*0.2);
-#ifndef QMAX
 		p->color = 0xe0;
-#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand();
@@ -2211,9 +2022,7 @@ void CL_TrapParticles (entity_t *ent)
 				active_particles = p;
 
 				p->time = cl.time;
-#ifndef QMAX
 				p->color = 0xe0 + (rand()&3);
-#endif
 				p->alpha = 1.0;
 				p->alphavel = -1.0 / (0.3 + (rand()&7) * 0.02);
 				
@@ -2257,9 +2066,7 @@ void CL_BFGExplosionParticles (vec3_t org)
 		active_particles = p;
 
 		p->time = cl.time;
-#ifndef QMAX
 		p->color = 0xd0 + (rand()&7);
-#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = org[j] + ((rand()%32)-16);
@@ -2300,9 +2107,7 @@ void CL_TeleportParticles (vec3_t org)
 				active_particles = p;
 
 				p->time = cl.time;
-#ifndef QMAX
 				p->color = 7 + (rand()&7);
-#endif
 				p->alpha = 1.0;
 				p->alphavel = -1.0 / (0.3 + (rand()&7) * 0.02);
 				
@@ -2374,9 +2179,7 @@ void CL_AddParticles (void)
 
 		if (alpha > 1.0)
 			alpha = 1;
-#ifndef QMAX
 		color = p->color;
-#endif
 		time2 = time*time;
 
 		org[0] = p->org[0] + p->vel[0]*time + p->accel[0]*time2;
@@ -2435,7 +2238,6 @@ void CL_EntityEvent (entity_state_t *ent)
 	}
 }
 
-
 /*
 ==============
 CL_ClearEffects
@@ -2449,231 +2251,3 @@ void CL_ClearEffects (void)
 	CL_ClearLightStyles ();
 }
 
-
-#ifdef QMAX
-extern	struct model_s	*cl_mod_smoke;
-extern	struct model_s	*cl_mod_flash;
-
-//here i convert old 256 color to RGB -- hax0r l337
-const byte default_pal[768] =
-{
-0,0,0,15,15,15,31,31,31,47,47,47,63,63,63,75,75,75,91,91,91,107,107,107,123,123,123,139,139,139,155,155,155,171,171,171,187,187,187,203,203,203,219,219,219,235,235,235,99,75,35,91,67,31,83,63,31,79,59,27,71,55,27,63,47,
-23,59,43,23,51,39,19,47,35,19,43,31,19,39,27,15,35,23,15,27,19,11,23,15,11,19,15,7,15,11,7,95,95,111,91,91,103,91,83,95,87,79,91,83,75,83,79,71,75,71,63,67,63,59,59,59,55,55,51,47,47,47,43,43,39,
-39,39,35,35,35,27,27,27,23,23,23,19,19,19,143,119,83,123,99,67,115,91,59,103,79,47,207,151,75,167,123,59,139,103,47,111,83,39,235,159,39,203,139,35,175,119,31,147,99,27,119,79,23,91,59,15,63,39,11,35,23,7,167,59,43,
-159,47,35,151,43,27,139,39,19,127,31,15,115,23,11,103,23,7,87,19,0,75,15,0,67,15,0,59,15,0,51,11,0,43,11,0,35,11,0,27,7,0,19,7,0,123,95,75,115,87,67,107,83,63,103,79,59,95,71,55,87,67,51,83,63,
-47,75,55,43,67,51,39,63,47,35,55,39,27,47,35,23,39,27,19,31,23,15,23,15,11,15,11,7,111,59,23,95,55,23,83,47,23,67,43,23,55,35,19,39,27,15,27,19,11,15,11,7,179,91,79,191,123,111,203,155,147,215,187,183,203,
-215,223,179,199,211,159,183,195,135,167,183,115,151,167,91,135,155,71,119,139,47,103,127,23,83,111,19,75,103,15,67,91,11,63,83,7,55,75,7,47,63,7,39,51,0,31,43,0,23,31,0,15,19,0,7,11,0,0,0,139,87,87,131,79,79,
-123,71,71,115,67,67,107,59,59,99,51,51,91,47,47,87,43,43,75,35,35,63,31,31,51,27,27,43,19,19,31,15,15,19,11,11,11,7,7,0,0,0,151,159,123,143,151,115,135,139,107,127,131,99,119,123,95,115,115,87,107,107,79,99,99,
-71,91,91,67,79,79,59,67,67,51,55,55,43,47,47,35,35,35,27,23,23,19,15,15,11,159,75,63,147,67,55,139,59,47,127,55,39,119,47,35,107,43,27,99,35,23,87,31,19,79,27,15,67,23,11,55,19,11,43,15,7,31,11,7,23,
-7,0,11,0,0,0,0,0,119,123,207,111,115,195,103,107,183,99,99,167,91,91,155,83,87,143,75,79,127,71,71,115,63,63,103,55,55,87,47,47,75,39,39,63,35,31,47,27,23,35,19,15,23,11,7,7,155,171,123,143,159,111,135,151,99,
-123,139,87,115,131,75,103,119,67,95,111,59,87,103,51,75,91,39,63,79,27,55,67,19,47,59,11,35,47,7,27,35,0,19,23,0,11,15,0,0,255,0,35,231,15,63,211,27,83,187,39,95,167,47,95,143,51,95,123,51,255,255,255,255,255,
-211,255,255,167,255,255,127,255,255,83,255,255,39,255,235,31,255,215,23,255,191,15,255,171,7,255,147,0,239,127,0,227,107,0,211,87,0,199,71,0,183,59,0,171,43,0,155,31,0,143,23,0,127,15,0,115,7,0,95,0,0,71,0,0,47,
-0,0,27,0,0,239,0,0,55,55,255,255,0,0,0,0,255,43,43,35,27,27,23,19,19,15,235,151,127,195,115,83,159,87,51,123,63,27,235,211,199,199,171,155,167,139,119,135,107,87,159,91,83
-};
-
-//this initializes all particle images - mods play with this...
-void SetParticleImages (void)
-{
-	//tgas
-	re.SetParticlePicture(particle_generic,		"particles/basic.tga");
-	re.SetParticlePicture(particle_smoke,		"particles/smoke.tga");
-	re.SetParticlePicture(particle_blood,		"particles/blood.tga");
-	re.SetParticlePicture(particle_blooddrop,	"particles/blood_drop.tga");
-	re.SetParticlePicture(particle_blooddrip,	"particles/blood_drip.tga");
-	re.SetParticlePicture(particle_redblood,	"particles/blood_red.tga");
-	re.SetParticlePicture(particle_bubble,		"particles/bubble.tga");
-	re.SetParticlePicture(particle_lensflare,	"particles/lensflare.tga");
-	re.SetParticlePicture(particle_inferno,		"particles/inferno.tga");
-	re.SetParticlePicture(particle_footprint,	"particles/footprint.tga");
-	re.SetParticlePicture(particle_blaster,		"particles/blaster.tga");
-
-	//jpgs
-	re.SetParticlePicture(particle_shield,		"particles/shield.jpg");
-	re.SetParticlePicture(particle_beam,		"particles/beam.jpg");
-	re.SetParticlePicture(particle_lightning,	"particles/lightning.jpg");
-	re.SetParticlePicture(particle_lightflare,	"particles/lightflare.jpg");
-
-	//animations
-		//explosion
-		re.SetParticlePicture(particle_rexplosion1,	"particles/r_explod_1.tga");
-		re.SetParticlePicture(particle_rexplosion2,	"particles/r_explod_2.tga");
-		re.SetParticlePicture(particle_rexplosion3,	"particles/r_explod_3.tga");
-		re.SetParticlePicture(particle_rexplosion4,	"particles/r_explod_4.tga");
-		re.SetParticlePicture(particle_rexplosion5,	"particles/r_explod_5.tga");
-		re.SetParticlePicture(particle_rexplosion6,	"particles/r_explod_6.tga");
-		re.SetParticlePicture(particle_rexplosion7,	"particles/r_explod_7.tga");
-		
-		re.SetParticlePicture(particle_dexplosion1,	"particles/d_explod_1.tga");
-		re.SetParticlePicture(particle_dexplosion2,	"particles/d_explod_2.tga");
-		re.SetParticlePicture(particle_dexplosion3,	"particles/d_explod_3.tga");
-
-}
-
-/*
-===============
-CL_Explosion_Particle
-
-BOOM!
-===============
-*/
-
-void pExplosionThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, float *size, int *image, float *time)
-{
-
-	if (*alpha>.85)
-		*image = particle_rexplosion1;
-	else if (*alpha>.7)
-		*image = particle_rexplosion2;
-	else if (*alpha>.5)
-		*image = particle_rexplosion3;
-	else if (*alpha>.4)
-		*image = particle_rexplosion4;
-	else if (*alpha>.25)
-		*image = particle_rexplosion5;
-	else if (*alpha>.1)
-		*image = particle_rexplosion6;
-	else 
-		*image = particle_rexplosion7;
-
-	*alpha *= 3.0;
-
-	if (*alpha > 1.0)
-		*alpha = 1;
-
-	p->thinknext = true;
-}
-
-#define EXPLODESTAININTESITY 75
-void CL_Explosion_Particle (vec3_t org, float size, qboolean large, qboolean rocket)
-{
-	cparticle_t *p;
-
-	if (large)
-	{	
-		if (size)
-		{
-			re.AddStain(org, size, -EXPLODESTAININTESITY,-EXPLODESTAININTESITY,-EXPLODESTAININTESITY);
-		}
-		else
-		{
-			if (rocket)
-				re.AddStain(org, 45, -EXPLODESTAININTESITY,-EXPLODESTAININTESITY,-EXPLODESTAININTESITY);
-			else
-				re.AddStain(org, 65, -EXPLODESTAININTESITY,-EXPLODESTAININTESITY,-EXPLODESTAININTESITY);
-		}
-
-		p = setupParticle (
-					0,		0,		0,
-					org[0],	org[1],	org[2],
-					0,		0,		0,
-					0,		0,		0,
-					255,	255,	255,
-					0,		0,		0,
-					1,		(0.5+random()*0.5) * (rocket)? -2 : -1.5,
-					(size!=0)?size:(150-(!rocket)?75:0),	0,			
-					particle_rexplosion1, //whatever :p
-					PART_DEPTHHACK_SHORT,
-					pExplosionThink, true);
-
-		if (p)
-		{	//smooth color blend :D
-			float lightsize = (large)? 1.0 : 0.75;
-
-			addParticleLight (p,
-						lightsize*250, 0,
-						1, 1, 1);
-			addParticleLight (p,
-						lightsize*265, 0,
-						1, 0.75, 0);
-			addParticleLight (p,
-						lightsize*285, 0,
-						1, 0.25, 0);
-			addParticleLight (p,
-						lightsize*300, 0,
-						1, 0, 0);
-		}
-	}
-/*	else //volumizers
-	{
-		setupParticle (
-					0,		0,		0,
-					org[0],	org[1],	org[2],
-					0,		0,		0,
-					0,		0,		0,
-					255,	175,	100,
-					0,		0,		0,
-					1,		1 * (rocket)? -1.5 : -1.25,
-					(size!=0)?size:(150-(!rocket)?75:0), 0,			
-					particle_inferno,
-					0,
-					NULL,0);
-	}*/
-}
-
-void addParticleLight (cparticle_t *p,
-				  float light, float lightvel,
-				  float lcol0, float lcol1, float lcol2)
-{
-	int i;
-
-	for (i=0; i<P_LIGHTS_MAX; i++)
-	{
-		cplight_t *plight = &p->lights[i];
-		if (!plight->isactive)
-		{
-			plight->isactive = true;
-			plight->light = light;
-			plight->lightvel = lightvel;
-			plight->lightcol[0] = lcol0;
-			plight->lightcol[1] = lcol1;
-			plight->lightcol[2] = lcol2;
-			return;
-		}
-	}
-}
-
-/*
-===============
-CL_BlasterParticles
-
-Wall impact puffs
-===============
-*/
-#define pBlasterMaxSize 5
-void pBlasterThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, float *size, int *image, float *time)
-{
-	int i;
-	vec3_t len;
-	VectorSubtract(p->angle, org, len);
-	
-	*size *= (float)(pBlasterMaxSize/VectorLength(len)) * 1.0/((4-*size));
-	if (*size > pBlasterMaxSize)
-		*size = pBlasterMaxSize;
-	
-	p->thinknext = true;
-}
-
-void CL_BlasterParticlesMax (vec3_t org, vec3_t dir, int count)
-{
-	int			i;
-	float		d;
-	float speed = .75;
-
-	for (i=0 ; i<count ; i++)
-	{
-		d = rand()&5;
-		setupParticle (
-			org[0],	org[1],	org[2],
-			org[0]+((rand()&5)-2)+d*dir[0],	org[1]+((rand()&5)-2)+d*dir[1],	org[2]+((rand()&5)-2)+d*dir[2],
-			(dir[0]*75 + crand()*20)*speed,	(dir[1]*75 + crand()*20)*speed,	(dir[2]*75 + crand()*20)*speed,
-			0,		0,		0,
-			255,		150,		50,
-			0,	-90,	-30,
-			1,		-1.0 / (0.5 + frand()*0.3),
-			4,			-1,			
-			particle_generic,
-			PART_GRAVITY,
-			pBlasterThink,true);
-	}
-}
-#endif
