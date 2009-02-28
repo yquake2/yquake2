@@ -610,7 +610,6 @@ void SCR_PlayCinematic (char *arg)
 	FS_FOpenFile (name, &cl.cinematic_file);
 	if (!cl.cinematic_file)
 	{
-//		Com_Error (ERR_DROP, "Cinematic %s not found.\n", name);
 		SCR_FinishCinematic ();
 		cl.cinematictime = 0;	// done
 		return;
