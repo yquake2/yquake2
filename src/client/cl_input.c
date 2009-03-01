@@ -198,6 +198,13 @@ float CL_KeyState (kbutton_t *key)
 		key->downtime = sys_frame_time;
 	}
 
+#if 0
+	if (msec)
+	{
+		Com_Printf ("%i ", msec);
+	}
+#endif
+
 	val = (float)msec / frame_msec;
 	if (val < 0)
 		val = 0;
@@ -226,68 +233,80 @@ cvar_t	*cl_anglespeedkey;
 
 /*
 ================
+CL_AdjustAngles
+
+Moves the local angle positions
+================
+*/
+void CL_AdjustAngles (void)
+{
+	float	speed;
+	float	up, down;
+	
+	if (in_speed.state & 1)
+		speed = cls.frametime * cl_anglespeedkey->value;
+	else
+		speed = cls.frametime;
+
+	if (!(in_strafe.state & 1))
+	{
+		cl.viewangles[YAW] -= speed*cl_yawspeed->value*CL_KeyState (&in_right);
+		cl.viewangles[YAW] += speed*cl_yawspeed->value*CL_KeyState (&in_left);
+	}
+	if (in_klook.state & 1)
+	{
+		cl.viewangles[PITCH] -= speed*cl_pitchspeed->value * CL_KeyState (&in_forward);
+		cl.viewangles[PITCH] += speed*cl_pitchspeed->value * CL_KeyState (&in_back);
+	}
+	
+	up = CL_KeyState (&in_lookup);
+	down = CL_KeyState(&in_lookdown);
+	
+	cl.viewangles[PITCH] -= speed*cl_pitchspeed->value * up;
+	cl.viewangles[PITCH] += speed*cl_pitchspeed->value * down;
+}
+
+/*
+================
 CL_BaseMove
 
-Applies keyboard input to usercmd
+Send the intended movement message to the server
 ================
 */
 void CL_BaseMove (usercmd_t *cmd)
 {	
-	int i;
-	float	tspeed;
-	float	mspeed;
+	CL_AdjustAngles ();
 	
-	//adjust for turning speed
-	if (in_speed.state & 1)
-		tspeed = cls.frametime * cl_anglespeedkey->value;
-	else
-		tspeed = cls.frametime;
+	memset (cmd, 0, sizeof(*cmd));
 	
-	//adjust for running speed
-	if ( (in_speed.state & 1) ^ (int)(cl_run->value) )
-		mspeed = 2;
-	else
-		mspeed = 1;
-	
-	//handle left/right on keyboard
-	i = cls.netchan.outgoing_sequence & (CMD_BACKUP-1);
-	cmd = &cl.cmds[i];
-	cl.cmd_time[i] = cls.realtime;	// for netgraph ping calculation
-	
+	VectorCopy (cl.viewangles, cmd->angles);
 	if (in_strafe.state & 1)
-	{	// keyboard strafe
-		cmd->sidemove += mspeed * cl_sidespeed->value * CL_KeyState (&in_right);
-		cmd->sidemove -= mspeed * cl_sidespeed->value * CL_KeyState (&in_left);
+	{
+		cmd->sidemove += cl_sidespeed->value * CL_KeyState (&in_right);
+		cmd->sidemove -= cl_sidespeed->value * CL_KeyState (&in_left);
 	}
-	else
-	{	// keyboard turn
-		cl.viewangles[YAW] -= tspeed*cl_yawspeed->value*CL_KeyState (&in_right);
-		cl.viewangles[YAW] += tspeed*cl_yawspeed->value*CL_KeyState (&in_left);
+
+	cmd->sidemove += cl_sidespeed->value * CL_KeyState (&in_moveright);
+	cmd->sidemove -= cl_sidespeed->value * CL_KeyState (&in_moveleft);
+
+	cmd->upmove += cl_upspeed->value * CL_KeyState (&in_up);
+	cmd->upmove -= cl_upspeed->value * CL_KeyState (&in_down);
+
+	if (! (in_klook.state & 1) )
+	{	
+		cmd->forwardmove += cl_forwardspeed->value * CL_KeyState (&in_forward);
+		cmd->forwardmove -= cl_forwardspeed->value * CL_KeyState (&in_back);
 	}	
 
-	//handle foward/back on keyboard
-	if (in_klook.state & 1)
-	{	// keyboard look
-		cl.viewangles[PITCH] -= tspeed*cl_pitchspeed->value * CL_KeyState (&in_forward);
-		cl.viewangles[PITCH] += tspeed*cl_pitchspeed->value * CL_KeyState (&in_back);
+//
+// adjust for speed key / running
+//
+	if ( (in_speed.state & 1) ^ (int)(cl_run->value) )
+	{
+		cmd->forwardmove *= 2;
+		cmd->sidemove *= 2;
+		cmd->upmove *= 2;
 	}	
-	else
-	{	// keyboard move front/back
-		cmd->forwardmove += mspeed * cl_forwardspeed->value * CL_KeyState (&in_forward);
-		cmd->forwardmove -= mspeed * cl_forwardspeed->value * CL_KeyState (&in_back);
-	}	
-	
-	// keyboard look up/down
-	cl.viewangles[PITCH] -= tspeed*cl_pitchspeed->value * CL_KeyState(&in_lookup);
-	cl.viewangles[PITCH] += tspeed*cl_pitchspeed->value * CL_KeyState(&in_lookdown);
-	
-	// keyboard strafe left/right
-	cmd->sidemove += mspeed * cl_sidespeed->value * CL_KeyState (&in_moveright);
-	cmd->sidemove -= mspeed * cl_sidespeed->value * CL_KeyState (&in_moveleft);
-
-	// keyboard jump/crouch
-	cmd->upmove += mspeed * cl_upspeed->value * CL_KeyState (&in_up);
-	cmd->upmove -= mspeed * cl_upspeed->value * CL_KeyState (&in_down);
 }
 
 void CL_ClampPitch (void)
@@ -309,61 +328,23 @@ void CL_ClampPitch (void)
 		cl.viewangles[PITCH] = -89 - pitch;
 }
 
-// CL_InitCmd
-inline void CL_InitCmd (void)
+/*
+==============
+CL_FinishMove
+==============
+*/
+void CL_FinishMove (usercmd_t *cmd)
 {
-	usercmd_t *cmd = &cl.cmds[ cls.netchan.outgoing_sequence & (CMD_BACKUP-1) ];
+	int		ms;
+	int		i;
 
-	// init the current cmd buffer
-	memset(cmd, 0, sizeof(struct usercmd_s) );
-}
-	
-// CL_RefreshCmd
-void CL_RefreshCmd (void)
-{	
-	int i, ms;
-	usercmd_t *cmd = &cl.cmds[ cls.netchan.outgoing_sequence & (CMD_BACKUP-1) ];
-
-	//get delta for this sample.
-	frame_msec = sys_frame_time - old_sys_frame_time;	
-
-	// bounds checking
-	if (frame_msec < 1)
-		return;
-	if (frame_msec > 1000)
-		frame_msec = 500;
-
-	// get basic movement from keyboard
-	CL_BaseMove (cmd);
-
-	// allow mice or other external controllers to add to the move
-	IN_Move (cmd);
-
-	// update cmd viewangles for CL_PredictMove
-	CL_ClampPitch ();
-	for (i=0 ; i<3 ; i++)
-		cmd->angles[i] = ANGLE2SHORT(cl.viewangles[i]);
-
-	// update cmd->msec for CL_PredictMove
-	ms = cls.frametime * 1000;
-	if (ms > 250)
-		ms = 100;
-	cmd->msec = ms;
-
-	//update counter
-	old_sys_frame_time = sys_frame_time;
-}
-
-// CL_FinalizeCmd
-void CL_FinalizeCmd (void)
-{
-	usercmd_t *cmd = &cl.cmds[ cls.netchan.outgoing_sequence & (CMD_BACKUP-1) ];
-
-	//set any button hits that occured since last frame
+//
+// figure button bits
+//	
 	if ( in_attack.state & 3 )
 		cmd->buttons |= BUTTON_ATTACK;
 	in_attack.state &= ~2;
-
+	
 	if (in_use.state & 3)
 		cmd->buttons |= BUTTON_USE;
 	in_use.state &= ~2;
@@ -371,11 +352,51 @@ void CL_FinalizeCmd (void)
 	if (anykeydown && cls.key_dest == key_game)
 		cmd->buttons |= BUTTON_ANY;
 
+	// send milliseconds of time to apply the move
+	ms = cls.frametime * 1000;
+	if (ms > 250)
+		ms = 100;		// time was unreasonable
+	cmd->msec = ms;
+
+	CL_ClampPitch ();
+	for (i=0 ; i<3 ; i++)
+		cmd->angles[i] = ANGLE2SHORT(cl.viewangles[i]);
+
 	cmd->impulse = in_impulse;
 	in_impulse = 0;
 
-	// set the ambient light level at the player's current position
+// send the ambient light level at the player's current position
 	cmd->lightlevel = (byte)cl_lightlevel->value;
+}
+
+/*
+=================
+CL_CreateCmd
+=================
+*/
+usercmd_t CL_CreateCmd (void)
+{
+	usercmd_t	cmd;
+
+	frame_msec = sys_frame_time - old_sys_frame_time;
+	if (frame_msec < 1)
+		frame_msec = 1;
+	if (frame_msec > 200)
+		frame_msec = 200;
+	
+	// get basic movement from keyboard
+	CL_BaseMove (&cmd);
+
+	// allow mice or other external controllers to add to the move
+	IN_Move (&cmd);
+
+	CL_FinishMove (&cmd);
+
+	old_sys_frame_time = sys_frame_time;
+
+//cmd.impulse = cls.framecount;
+
+	return cmd;
 }
 
 
@@ -428,6 +449,8 @@ void CL_InitInput (void)
 	cl_nodelta = Cvar_Get ("cl_nodelta", "0", 0);
 }
 
+
+
 /*
 =================
 CL_SendCmd
@@ -442,29 +465,27 @@ void CL_SendCmd (void)
 	usercmd_t	nullcmd;
 	int			checksumIndex;
 
+	// build a command even if not connected
+
+	// save this command off for prediction
+	i = cls.netchan.outgoing_sequence & (CMD_BACKUP-1);
+	cmd = &cl.cmds[i];
+	cl.cmd_time[i] = cls.realtime;	// for netgraph ping calculation
+
+	*cmd = CL_CreateCmd ();
+
+	cl.cmd = *cmd;
+
 	if (cls.state == ca_disconnected || cls.state == ca_connecting)
 		return;
 
 	if ( cls.state == ca_connected)
 	{
-		if (cls.netchan.message.cursize	|| curtime - cls.netchan.last_sent > 1000 ) {
-	 		memset (&buf, 0, sizeof(buf));
-			Com_DPrintf ("connected: flushing netchan (len=%d, %s)\n", cls.netchan.message.cursize, cls.netchan.message.data);
+		if (cls.netchan.message.cursize	|| curtime - cls.netchan.last_sent > 1000 )
 			Netchan_Transmit (&cls.netchan, 0, buf.data);	
-		}
 		return;
 	}
 
-	i = cls.netchan.outgoing_sequence & (CMD_BACKUP-1);
-	cmd = &cl.cmds[i];
-	cl.cmd_time[i] = cls.realtime;	// for netgraph ping calculation
-
-	//jec - prepare the pending user command for sending.
-	CL_FinalizeCmd();
-
-	cl.cmd = *cmd;
-
-	// send a userinfo update if needed
 	// send a userinfo update if needed
 	if (userinfo_modified)
 	{
@@ -482,6 +503,7 @@ void CL_SendCmd (void)
 		SCR_FinishCinematic ();
 	}
 
+	// begin a client move command
 	MSG_WriteByte (&buf, clc_move);
 
 	// save the position for a checksum byte
@@ -490,9 +512,6 @@ void CL_SendCmd (void)
 
 	// let the server know what the last frame we
 	// got was, so the next message can be delta compressed
-
-	//r1: after a vid_restart memory locations of models changes! all existing ents
-	//need to be re-sent so the client updates its model to the new memory location.
 	if (cl_nodelta->value || !cl.frame.valid || cls.demowaiting)
 		MSG_WriteLong (&buf, -1);	// no compression
 	else
@@ -524,7 +543,6 @@ void CL_SendCmd (void)
 	// deliver the message
 	//
 	Netchan_Transmit (&cls.netchan, buf.cursize, buf.data);	
-	CL_InitCmd(); //jec - init the next usercmd buffer.
 }
 
 
