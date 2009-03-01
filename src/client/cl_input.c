@@ -198,13 +198,6 @@ float CL_KeyState (kbutton_t *key)
 		key->downtime = sys_frame_time;
 	}
 
-#if 0
-	if (msec)
-	{
-		Com_Printf ("%i ", msec);
-	}
-#endif
-
 	val = (float)msec / frame_msec;
 	if (val < 0)
 		val = 0;
@@ -298,9 +291,9 @@ void CL_BaseMove (usercmd_t *cmd)
 		cmd->forwardmove -= cl_forwardspeed->value * CL_KeyState (&in_back);
 	}	
 
-//
-// adjust for speed key / running
-//
+	//
+	// adjust for speed key / running
+	//
 	if ( (in_speed.state & 1) ^ (int)(cl_run->value) )
 	{
 		cmd->forwardmove *= 2;
@@ -338,9 +331,9 @@ void CL_FinishMove (usercmd_t *cmd)
 	int		ms;
 	int		i;
 
-//
-// figure button bits
-//	
+	//
+	// figure button bits
+	//	
 	if ( in_attack.state & 3 )
 		cmd->buttons |= BUTTON_ATTACK;
 	in_attack.state &= ~2;
@@ -365,7 +358,7 @@ void CL_FinishMove (usercmd_t *cmd)
 	cmd->impulse = in_impulse;
 	in_impulse = 0;
 
-// send the ambient light level at the player's current position
+	// send the ambient light level at the player's current position
 	cmd->lightlevel = (byte)cl_lightlevel->value;
 }
 
@@ -393,8 +386,6 @@ usercmd_t CL_CreateCmd (void)
 	CL_FinishMove (&cmd);
 
 	old_sys_frame_time = sys_frame_time;
-
-//cmd.impulse = cls.framecount;
 
 	return cmd;
 }
