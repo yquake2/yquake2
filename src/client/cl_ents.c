@@ -132,16 +132,6 @@ void CL_ParseDelta (entity_state_t *from, entity_state_t *to, int number, int bi
 	else if (bits & U_RENDERFX16)
 		to->renderfx = MSG_ReadShort(&net_message);
 
-	if (bits & U_MODEL) {
-		if (to->modelindex == 1 && !to->renderfx & RF_BEAM)
-			Com_Printf ("WARNING: Entity %d sent modelindex 1!!\n", number);
-	}
-
-	if (number < 40) {
-		if (to->modelindex2 == 1)
-			Com_Printf ("HAX\n");
-	}
-
 	if (bits & U_ORIGIN1)
 		to->origin[0] = MSG_ReadCoord (&net_message);
 	if (bits & U_ORIGIN2)
@@ -871,11 +861,11 @@ void CL_AddPacketEntities (frame_t *frame)
 			// FIXME: still pass to refresh
 
 			if (effects & EF_FLAG1)
-				V_AddLight (ent.origin, 225, 1.0, 0.1f, 0.1f);
+				V_AddLight (ent.origin, 225, 1.0f, 0.1f, 0.1f);
 			else if (effects & EF_FLAG2)
-				V_AddLight (ent.origin, 225, 0.1f, 0.1f, 1.0);
+				V_AddLight (ent.origin, 225, 0.1f, 0.1f, 1.0f);
 			else if (effects & EF_TAGTRAIL)						//PGM
-				V_AddLight (ent.origin, 225, 1.0, 1.0, 0.0f);	//PGM
+				V_AddLight (ent.origin, 225, 1.0f, 1.0f, 0.0f);	//PGM
 			else if (effects & EF_TRACKERTRAIL)					//PGM
 				V_AddLight (ent.origin, 225, -1.0f, -1.0f, -1.0f);	//PGM
 
@@ -1082,7 +1072,7 @@ void CL_AddPacketEntities (frame_t *frame)
 				ent.origin[2] += 32;
 				CL_TrapParticles (&ent);
 				i = (rand()%100) + 100;
-				V_AddLight (ent.origin, i, 1, 0.8f, 0.1);
+				V_AddLight (ent.origin, i, 1, 0.8f, 0.1f);
 			}
 			else if (effects & EF_FLAG1)
 			{
@@ -1112,7 +1102,7 @@ void CL_AddPacketEntities (frame_t *frame)
 					if(vidref_val == VIDREF_GL)
 						V_AddLight (ent.origin, intensity, -1.0, -1.0, -1.0);
 					else
-						V_AddLight (ent.origin, -1.0f * intensity, 1.0, 1.0, 1.0);
+						V_AddLight (ent.origin, -1.0f * intensity, 1.0f, 1.0f, 1.0f);
 					}
 				else
 				{
@@ -1164,7 +1154,7 @@ CL_AddViewWeapon
 */
 void CL_AddViewWeapon (player_state_t *ps, player_state_t *ops)
 {
-	entity_t	gun  = {0};		// view model
+	entity_t	gun = {0};		// view model
 	int			i;
 
 	// allow the gun to be completely removed

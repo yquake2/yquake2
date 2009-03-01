@@ -466,7 +466,7 @@ void CL_BubbleTrail (vec3_t start, vec3_t end);
 #ifdef QMAX
 void CL_FlagTrail (vec3_t start, vec3_t end, qboolean isred);
 #else
-void CL_FlagTrail (vec3_t start, vec3_t end, float color);
+void CL_FlagTrail (vec3_t start, vec3_t end, int color);
 #endif
 
 // RAFAEL
