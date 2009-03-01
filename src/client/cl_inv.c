@@ -40,21 +40,17 @@ void CL_ParseInventory (void)
 Inv_DrawString
 ================
 */
-void Inv_DrawString (int x, int y, char *string)
+static void Inv_DrawString (int x, int y, char *string)
 {
 	while (*string)
 	{
-#ifdef QMAX
-	  re.DrawChar (x, y, *string, 256);
-#else
 	  re.DrawChar (x, y, *string);
-#endif
 		x+=8;
 		string++;
 	}
 }
 
-void SetStringHighBit (char *s)
+static void SetStringHighBit (char *s)
 {
 	while (*s)
 		*s++ |= 128;
@@ -75,7 +71,7 @@ void CL_DrawInventory (void)
 	char	string[1024];
 	int		x, y;
 	char	binding[1024];
-	char	*bind;
+	const char	*bind;
 	int		selected;
 	int		top;
 
@@ -134,11 +130,7 @@ void CL_DrawInventory (void)
 		else	// draw a blinky cursor by the selected item
 		{
 			if ( (int)(cls.realtime*10) & 1)
-#ifdef QMAX
-				re.DrawChar (x-8, y, 15, 256);
-#else
 				re.DrawChar (x-8, y, 15);
-#endif
 		}
 		Inv_DrawString (x, y, string);
 		y += 8;
@@ -146,5 +138,4 @@ void CL_DrawInventory (void)
 
 
 }
-
 
