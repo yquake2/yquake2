@@ -734,11 +734,6 @@ void CL_ParseServerMessage (void)
 			s = MSG_ReadString (&net_message);
 			Com_DPrintf ("stufftext: %s\n", s);
 			Cbuf_AddText (s);
-
-			if (!cl.attractloop || !strcmp(s, "precache\n"))
-				Cbuf_AddText (s);
-			else
-				Com_DPrintf ("WARNING: Demo tried to execute command, ignored.\n");
 			break;
 			
 		case svc_serverdata:
