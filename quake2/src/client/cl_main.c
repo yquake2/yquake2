@@ -17,6 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+
 // cl_main.c  -- client main loop
 
 #include "client.h"
@@ -44,25 +45,9 @@ cvar_t	*cl_autoskins;
 cvar_t	*cl_footsteps;
 cvar_t	*cl_timeout;
 cvar_t	*cl_predict;
-//cvar_t	*cl_minfps;
 cvar_t	*cl_maxfps;
 cvar_t	*cl_drawfps;
 cvar_t	*cl_gun;
-#ifdef QMAX
-cvar_t	*cl_blood;
-
-cvar_t	*cl_railred;
-cvar_t	*cl_railgreen;
-cvar_t	*cl_railblue;
-cvar_t	*cl_railtype;
-
-cvar_t	*cl_3dcam;
-cvar_t	*cl_3dcam_angle;
-cvar_t	*cl_3dcam_chase;
-cvar_t	*cl_3dcam_dist;
-cvar_t	*cl_3dcam_alpha;
-cvar_t	*cl_3dcam_adjust;
-#endif
 cvar_t	*cl_add_particles;
 cvar_t	*cl_add_lights;
 cvar_t	*cl_add_entities;
@@ -475,7 +460,6 @@ void CL_CheckForResend (void)
 		// we don't need a challenge on the localhost
 		CL_SendConnectPacket ();
 		return;
-//		cls.connect_time = -99999;	// CL_CheckForResend() will fire immediately
 	}
 
 	// resend if we haven't gotten a reply yet
@@ -613,7 +597,7 @@ void CL_ClearState (void)
 	CL_ClearEffects ();
 	CL_ClearTEnts ();
 
-// wipe the entire cl structure
+	// wipe the entire cl structure
 	memset (&cl, 0, sizeof(cl));
 	memset (&cl_entities, 0, sizeof(cl_entities));
 
@@ -662,9 +646,9 @@ void CL_Disconnect (void)
 	// send a disconnect message to the server
 	final[0] = clc_stringcmd;
 	strcpy ((char *)final+1, "disconnect");
-	Netchan_Transmit (&cls.netchan, strlen((char *)final), final);
-	Netchan_Transmit (&cls.netchan, strlen((char *)final), final);
-	Netchan_Transmit (&cls.netchan, strlen((char *)final), final);
+	Netchan_Transmit (&cls.netchan, strlen((const char *)final), final);
+	Netchan_Transmit (&cls.netchan, strlen((const char *)final), final);
+	Netchan_Transmit (&cls.netchan, strlen((const char *)final), final);
 
 	CL_ClearState ();
 
@@ -834,12 +818,6 @@ void CL_PingServers_f (void)
 		adr.type = NA_BROADCAST;
 		adr.port = BigShort(PORT_SERVER);
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
-#ifdef HAVE_IPV6
-                Com_Printf ("pinging multicast...\n");
-		adr.type = NA_MULTICAST6;
-		adr.port = BigShort(PORT_SERVER);
-		Netchan_OutOfBandPrint (NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
-#endif                
 	}
 
 	noipx = Cvar_Get ("noipx", "0", CVAR_NOSET);
@@ -892,7 +870,6 @@ void CL_Skins_f (void)
 		CL_ParseClientinfo (i);
 	}
 }
-
 
 /*
 =================
@@ -1012,7 +989,6 @@ void CL_ReadPackets (void)
 {
 	while (NET_GetPacket (NS_CLIENT, &net_from, &net_message))
 	{
-//	Com_Printf ("packet\n");
 		//
 		// remote command packet
 		//
@@ -1150,7 +1126,7 @@ void CL_RequestNextDownload (void)
 	if (!allow_download->value && precache_check < ENV_CNT)
 		precache_check = ENV_CNT;
 
-//ZOID
+	//ZOID
 	if (precache_check == CS_MODELS) { // confirm map
 		precache_check = CS_MODELS+2; // 0 isn't used
 		if (allow_download_maps->value)
@@ -1336,7 +1312,7 @@ void CL_RequestNextDownload (void)
 
 		CM_LoadMap (cl.configstrings[CS_MODELS+1], true, &map_checksum);
 
-		if (map_checksum != atoi(cl.configstrings[CS_MAPCHECKSUM])) {
+		if (map_checksum != strtoul(cl.configstrings[CS_MAPCHECKSUM], NULL, 10)) {
 			Com_Error (ERR_DROP, "Local map version differs from server: %i != '%s'\n",
 				map_checksum, cl.configstrings[CS_MAPCHECKSUM]);
 			return;
@@ -1384,7 +1360,7 @@ void CL_RequestNextDownload (void)
 		precache_check = TEXTURE_CNT+999;
 	}
 
-//ZOID
+	//ZOID
 	CL_RegisterSounds ();
 	CL_PrepRefresh ();
 
@@ -1444,9 +1420,9 @@ void CL_InitLocal (void)
 	adr7 = Cvar_Get( "adr7", "", CVAR_ARCHIVE );
 	adr8 = Cvar_Get( "adr8", "", CVAR_ARCHIVE );
 
-//
-// register our variables
-//
+	//
+	// register our variables
+	//
 	cl_stereo_separation = Cvar_Get( "cl_stereo_separation", "0.4", CVAR_ARCHIVE );
 	cl_stereo = Cvar_Get( "cl_stereo", "0", 0 );
 
@@ -1459,27 +1435,8 @@ void CL_InitLocal (void)
 	cl_noskins = Cvar_Get ("cl_noskins", "0", 0);
 	cl_autoskins = Cvar_Get ("cl_autoskins", "0", 0);
 	cl_predict = Cvar_Get ("cl_predict", "1", 0);
-//	cl_minfps = Cvar_Get ("cl_minfps", "5", 0);
 	cl_maxfps = Cvar_Get ("cl_maxfps", "90", 0);
 	cl_drawfps = Cvar_Get("cl_drawfps","0",CVAR_ARCHIVE); // FPS hack
-
-#ifdef QMAX
-	cl_blood = Cvar_Get ("cl_blood", "1", 0);
-	
-	//psychospaz -- railgun fun
-	cl_railred = Cvar_Get ("cl_railred", "20", CVAR_ARCHIVE);
-	cl_railgreen = Cvar_Get ("cl_railgreen", "50", CVAR_ARCHIVE);
-	cl_railblue = Cvar_Get ("cl_railblue", "175", CVAR_ARCHIVE);
-	cl_railtype = Cvar_Get ("cl_railtype", "1", CVAR_ARCHIVE);
-	//3d camera
-	cl_3dcam = Cvar_Get ("cl_3dcam", "0", CVAR_ARCHIVE);
-	cl_3dcam_angle = Cvar_Get ("cl_3dcam_angle", "0", CVAR_ARCHIVE);
-	cl_3dcam_dist = Cvar_Get ("cl_3dcam_dist", "50", CVAR_ARCHIVE);
-	cl_3dcam_alpha = Cvar_Get ("cl_3dcam_alpha", "1", CVAR_ARCHIVE);
-	cl_3dcam_chase = Cvar_Get ("cl_3dcam_chase", "1", CVAR_ARCHIVE);
-	cl_3dcam_adjust = Cvar_Get ("cl_3dcam_adjust", "1", CVAR_ARCHIVE);
-	//cl_playermodel_default = Cvar_Get ("cl_playermodel_default", DEFAULTSKIN, CVAR_USERINFO);
-#endif
 
 	cl_upspeed = Cvar_Get ("cl_upspeed", "200", 0);
 	cl_forwardspeed = Cvar_Get ("cl_forwardspeed", "200", 0);
@@ -1552,8 +1509,6 @@ void CL_InitLocal (void)
 
 	Cmd_AddCommand ("rcon", CL_Rcon_f);
 
-// 	Cmd_AddCommand ("packet", CL_Packet_f); // this is dangerous to leave in
-
 	Cmd_AddCommand ("setenv", CL_Setenv_f );
 
 	Cmd_AddCommand ("precache", CL_Precache_f);
@@ -1586,8 +1541,6 @@ void CL_InitLocal (void)
 	Cmd_AddCommand ("weapnext", NULL);
 	Cmd_AddCommand ("weapprev", NULL);
 }
-
-
 
 /*
 ===============
@@ -1744,13 +1697,8 @@ void CL_Frame (int msec)
 	cls.realtime = curtime;
 
 	extratime = 0;
-#if 0
-	if (cls.frametime > (1.0 / cl_minfps->value))
-		cls.frametime = (1.0 / cl_minfps->value);
-#else
 	if (cls.frametime > (1.0 / 5))
 		cls.frametime = (1.0 / 5);
-#endif
 
 	// if in the debugger last frame, don't timeout
 	if (msec > 5000)
@@ -1828,7 +1776,7 @@ void CL_Init (void)
 	// all archived variables will now be loaded
 
 	Con_Init ();	
-#if defined __linux__ || defined __FreeBSD__ || defined __sgi
+#if defined __linux__ || defined __FreeBSD__
 	S_Init ();	
 	VID_Init ();
 #else
@@ -1883,5 +1831,4 @@ void CL_Shutdown(void)
 	IN_Shutdown ();
 	VID_Shutdown();
 }
-
 
