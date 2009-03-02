@@ -577,8 +577,11 @@ void Con_DrawConsole (float frac)
 	int				lines;
 	char			version[24];
 	char			dlbar[1024];
+    char			timebuf[20];
+	char			tmpbuf[24];
+
 	time_t			t;
-	struct tm		*today;
+    struct tm		*today;
 
 	lines = viddef.height * frac;
 	if (lines <= 0)
@@ -591,16 +594,18 @@ void Con_DrawConsole (float frac)
 	re.DrawStretchPic (0, -viddef.height+lines, viddef.width, viddef.height, "conback");
 	SCR_AddDirtyPoint (0,0);
 	SCR_AddDirtyPoint (viddef.width-1,lines-1);
+ 
+	Com_sprintf (version, sizeof(version), "Quake2 v%4.2f",VERSION);
+	for (x=0 ; x<12 ; x++)
+		re.DrawChar (viddef.width-153+x*8, lines-35, 128 + version[x] );
 
-	i = Com_sprintf (version, sizeof(version), "r1q2 v%s", VERSION); 
-	for (x=0 ; x<i ; x++) 
-		 re.DrawChar (viddef.width-90+x*8, lines-14, 128 + version[x] );
-
-	t = time (NULL);
+    t = time(NULL);
 	today = localtime(&t);
-	i = strftime (version, sizeof(version), "%H:%M:%S", today);
-	for (x=0 ; x<i ; x++)
-		re.DrawChar (viddef.width-66+x*8, lines-22, 128 + version[x] );
+	strftime (timebuf, sizeof(timebuf), "%H:%M:%S", today);
+
+	Com_sprintf (tmpbuf, sizeof(tmpbuf), "Time %s",timebuf);
+	for (x=0 ; x<13 ; x++)
+		re.DrawChar (viddef.width-150+x*8, lines-25, 128 + tmpbuf[x] );
 
 	// draw the text
 	con.vislines = lines;
