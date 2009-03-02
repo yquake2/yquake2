@@ -59,7 +59,7 @@ void CL_CheckPredictionError (void)
 
 		// save for error itnerpolation
 		for (i=0 ; i<3 ; i++)
-			cl.prediction_error[i] = delta[i]*0.125;
+			cl.prediction_error[i] = delta[i]*0.125f;
 	}
 }
 
@@ -106,10 +106,10 @@ void CL_ClipMoveToEntities ( vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end,
 			zd = 8*((ent->solid>>5) & 31);
 			zu = 8*((ent->solid>>10) & 63) - 32;
 
-			bmins[0] = bmins[1] = -x;
-			bmaxs[0] = bmaxs[1] = x;
-			bmins[2] = -zd;
-			bmaxs[2] = zu;
+			bmins[0] = bmins[1] = -(float)x;
+			bmaxs[0] = bmaxs[1] = (float)x;
+			bmins[2] = -(float)zd;
+			bmaxs[2] = (float)zu;
 
 			headnode = CM_HeadnodeForBox (bmins, bmaxs);
 			angles = vec3_origin;	// boxes don't rotate
@@ -234,7 +234,6 @@ void CL_PredictMovement (void)
 	}
 
 	// copy current state to pmove
-	memset (&pm, 0, sizeof(pm));
 	pm.trace = CL_PMTrace;
 	pm.pointcontents = CL_PMpointcontents;
 
@@ -242,9 +241,10 @@ void CL_PredictMovement (void)
 
 	pm.s = cl.frame.playerstate.pmove;
 
-//	SCR_DebugGraph (current - ack - 1, 0);
-
 	frame = 0;
+
+	VectorSet (pm.mins, -16, -16, -24);
+	VectorSet (pm.maxs,  16,  16, 32);
 
 	// run frames
 	while (++ack < current)
@@ -264,15 +264,15 @@ void CL_PredictMovement (void)
 	step = pm.s.origin[2] - oldz;
 	if (step > 63 && step < 160 && (pm.s.pm_flags & PMF_ON_GROUND) )
 	{
-		cl.predicted_step = step * 0.125;
+		cl.predicted_step = step * 0.125f;
 		cl.predicted_step_time = cls.realtime - cls.frametime * 500;
 	}
 
 
 	// copy results out for rendering
-	cl.predicted_origin[0] = pm.s.origin[0]*0.125;
-	cl.predicted_origin[1] = pm.s.origin[1]*0.125;
-	cl.predicted_origin[2] = pm.s.origin[2]*0.125;
+	cl.predicted_origin[0] = pm.s.origin[0]*0.125f;
+	cl.predicted_origin[1] = pm.s.origin[1]*0.125f;
+	cl.predicted_origin[2] = pm.s.origin[2]*0.125f;
 
 	VectorCopy (pm.viewangles, cl.predicted_angles);
 }
