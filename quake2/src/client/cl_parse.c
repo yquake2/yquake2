@@ -97,12 +97,10 @@ qboolean	CL_CheckOrDownloadFile (char *filename)
 	COM_StripExtension (cls.downloadname, cls.downloadtempname);
 	strcat (cls.downloadtempname, ".tmp");
 
-//ZOID
+	//ZOID
 	// check to see if we already have a tmp for this file, if so, try to resume
 	// open the file if not opened yet
 	CL_DownloadFileName(name, sizeof(name), cls.downloadtempname);
-
-//	FS_CreatePath (name);
 
 	fp = fopen (name, "r+b");
 	if (fp) { // it exists
@@ -249,15 +247,6 @@ void CL_ParseDownload (void)
 	if (percent != 100)
 	{
 		// request next block
-// change display routines by zoid
-#if 0
-		Com_Printf (".");
-		if (10*(percent/10) != cls.downloadpercent)
-		{
-			cls.downloadpercent = 10*(percent/10);
-			Com_Printf ("%i%%", cls.downloadpercent);
-		}
-#endif
 		cls.downloadpercent = percent;
 
 		MSG_WriteByte (&cls.netchan.message, clc_stringcmd);
@@ -267,8 +256,6 @@ void CL_ParseDownload (void)
 	{
 		char	oldn[MAX_OSPATH];
 		char	newn[MAX_OSPATH];
-
-//		Com_Printf ("100%%\n");
 
 		fclose (cls.download);
 
@@ -309,13 +296,13 @@ void CL_ParseServerData (void)
 	int		i;
 	
 	Com_DPrintf ("Serverdata packet received.\n");
-//
-// wipe the client_state_t struct
-//
+	//
+	// wipe the client_state_t struct
+	//
 	CL_ClearState ();
 	cls.state = ca_connected;
 
-// parse protocol version number
+	// parse protocol version number
 	i = MSG_ReadLong (&net_message);
 	cls.serverProtocol = i;
 
@@ -409,10 +396,10 @@ void CL_LoadClientinfo (clientinfo_t *ci, char *s)
 
 	if (cl_noskins->value || *s == 0)
 	{
-		Com_sprintf (model_filename, sizeof(model_filename), "players/male/tris.md2");
-		Com_sprintf (weapon_filename, sizeof(weapon_filename), "players/male/weapon.md2");
-		Com_sprintf (skin_filename, sizeof(skin_filename), "players/male/grunt.pcx");
-		Com_sprintf (ci->iconname, sizeof(ci->iconname), "/players/male/grunt_i.pcx");
+		strcpy (model_filename, "players/male/tris.md2");
+		strcpy (weapon_filename, "players/male/weapon.md2");
+		strcpy (skin_filename, "players/male/grunt.pcx");
+		strcpy (ci->iconname, "/players/male/grunt_i.pcx");
 		ci->model = re.RegisterModel (model_filename);
 		memset(ci->weaponmodel, 0, sizeof(ci->weaponmodel));
 		ci->weaponmodel[0] = re.RegisterModel (weapon_filename);
@@ -605,17 +592,17 @@ void CL_ParseStartSoundPacket(void)
 	sound_num = MSG_ReadByte (&net_message);
 
     if (flags & SND_VOLUME)
-		volume = MSG_ReadByte (&net_message) / 255.0;
+		volume = MSG_ReadByte (&net_message) / 255.0f;
 	else
 		volume = DEFAULT_SOUND_PACKET_VOLUME;
 	
     if (flags & SND_ATTENUATION)
-		attenuation = MSG_ReadByte (&net_message) / 64.0;
+		attenuation = MSG_ReadByte (&net_message) / 64.0f;
 	else
 		attenuation = DEFAULT_SOUND_PACKET_ATTENUATION;	
 
     if (flags & SND_OFFSET)
-		ofs = MSG_ReadByte (&net_message) / 1000.0;
+		ofs = MSG_ReadByte (&net_message) / 1000.0f;
 	else
 		ofs = 0;
 
@@ -667,18 +654,18 @@ void CL_ParseServerMessage (void)
 	char		*s;
 	int			i;
 
-//
-// if recording demos, copy the message out
-//
+	//
+	// if recording demos, copy the message out
+	//
 	if (cl_shownet->value == 1)
 		Com_Printf ("%i ",net_message.cursize);
 	else if (cl_shownet->value >= 2)
 		Com_Printf ("------------------\n");
 
 
-//
-// parse the message
-//
+	//
+	// parse the message
+	//
 	while (1)
 	{
 		if (net_message.readcount > net_message.cursize)
@@ -703,7 +690,7 @@ void CL_ParseServerMessage (void)
 				SHOWNET(svc_strings[cmd]);
 		}
 	
-	// other commands
+		// other commands
 		switch (cmd)
 		{
 		default:
@@ -711,7 +698,6 @@ void CL_ParseServerMessage (void)
 			break;
 			
 		case svc_nop:
-//			Com_Printf ("svc_nop\n");
 			break;
 			
 		case svc_disconnect:
@@ -748,6 +734,11 @@ void CL_ParseServerMessage (void)
 			s = MSG_ReadString (&net_message);
 			Com_DPrintf ("stufftext: %s\n", s);
 			Cbuf_AddText (s);
+
+			if (!cl.attractloop || !strcmp(s, "precache\n"))
+				Cbuf_AddText (s);
+			else
+				Com_DPrintf ("WARNING: Demo tried to execute command, ignored.\n");
 			break;
 			
 		case svc_serverdata:
