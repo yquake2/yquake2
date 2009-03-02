@@ -780,7 +780,7 @@ void Key_Event (int key, qboolean down, unsigned time)
 		shift_down = down;
 
 	// console key is hardcoded, so the user can never unbind it
-	if (key == '`' || key == '~')
+	if (key == '^' || key == '~')
 	{
 		if (!down)
 			return;
