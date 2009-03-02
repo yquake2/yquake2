@@ -96,6 +96,7 @@ struct sfx_s	*cl_sfx_rockexp;
 struct sfx_s	*cl_sfx_grenexp;
 struct sfx_s	*cl_sfx_watrexp;
 // RAFAEL
+struct sfx_s	*cl_sfx_plasexp;
 struct sfx_s	*cl_sfx_footsteps[4];
 
 struct model_s	*cl_mod_explode;
@@ -108,12 +109,14 @@ struct model_s	*cl_mod_explo4;
 struct model_s	*cl_mod_bfg_explo;
 struct model_s	*cl_mod_powerscreen;
 // RAFAEL
+struct model_s	*cl_mod_plasmaexplo;
 
 //ROGUE
 struct sfx_s	*cl_sfx_lightning;
 struct sfx_s	*cl_sfx_disrexp;
 struct model_s	*cl_mod_lightning;
 struct model_s	*cl_mod_heatbeam;
+struct model_s	*cl_mod_monster_heatbeam;
 struct model_s	*cl_mod_explo4_big;
 
 //ROGUE
@@ -173,6 +176,29 @@ void CL_RegisterTEntModels (void)
 	cl_mod_explo4 = re.RegisterModel ("models/objects/r_explode/tris.md2");
 	cl_mod_bfg_explo = re.RegisterModel ("sprites/s_bfg2.sp2");
 	cl_mod_powerscreen = re.RegisterModel ("models/items/armor/effect/tris.md2");
+
+	re.RegisterModel ("models/objects/laser/tris.md2");
+	re.RegisterModel ("models/objects/grenade2/tris.md2");
+	re.RegisterModel ("models/weapons/v_machn/tris.md2");
+	re.RegisterModel ("models/weapons/v_handgr/tris.md2");
+	re.RegisterModel ("models/weapons/v_shotg2/tris.md2");
+	re.RegisterModel ("models/objects/gibs/bone/tris.md2");
+	re.RegisterModel ("models/objects/gibs/sm_meat/tris.md2");
+	re.RegisterModel ("models/objects/gibs/bone2/tris.md2");
+	// RAFAEL
+	// re.RegisterModel ("models/objects/blaser/tris.md2");
+
+	re.RegisterPic ("w_machinegun");
+	re.RegisterPic ("a_bullets");
+	re.RegisterPic ("i_health");
+	re.RegisterPic ("a_grenades");
+
+	//ROGUE
+	cl_mod_explo4_big = re.RegisterModel ("models/objects/r_explode2/tris.md2");
+	cl_mod_lightning = re.RegisterModel ("models/proj/lightning/tris.md2");
+	cl_mod_heatbeam = re.RegisterModel ("models/proj/beam/tris.md2");
+	cl_mod_monster_heatbeam = re.RegisterModel ("models/proj/widowbeam/tris.md2");
+	//ROGUE 
 }	
 
 /*
@@ -384,30 +410,19 @@ void CL_ParsePlayerBeam (struct model_s *model)
 	int		i;
 	
 	ent = MSG_ReadShort (&net_message);
-	
+
 	MSG_ReadPos (&net_message, start);
 	MSG_ReadPos (&net_message, end);
 	// PMM - network optimization
-
-        if (!cl_mod_heatbeam)
-                cl_mod_heatbeam = re.RegisterModel ("models/proj/beam/tris.md2");
-
-        model = cl_mod_heatbeam;
-
-        if (tempent == TE_HEATBEAM)
-        {
-	    VectorSet(offset, 2, 7, -3);
-	else if (tempent == TE_MONSTER_HEATBEAM)
+	if (model == cl_mod_heatbeam)
+		VectorSet(offset, 2, 7, -3);
+	else if (model == cl_mod_monster_heatbeam)
 	{
 		model = cl_mod_heatbeam;
 		VectorSet(offset, 0, 0, 0);
 	}
 	else
 		MSG_ReadPos (&net_message, offset);
-
-        if (!model)
-                return;
-	
 
 	// override any beam with the same entity
 	// PMM - For player beams, we only want one per player (entity) so..
@@ -440,7 +455,7 @@ void CL_ParsePlayerBeam (struct model_s *model)
 		}
 	}
 	Com_Printf ("beam list overflow!\n");	
-	return ent;
+	return;
 }
 //rogue
 
@@ -855,7 +870,7 @@ void CL_ParseTEnt (void)
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
 		ex->ent.flags = RF_FULLBRIGHT|RF_NOSHADOW;
-		ex->start = cl.frame.servertime - 100f;
+		ex->start = cl.frame.servertime - 100.0f;
 		ex->light = 350;
 		ex->lightcolor[0] = 1.0;
 		ex->lightcolor[1] = 0.5;
@@ -864,11 +879,7 @@ void CL_ParseTEnt (void)
 		if (type != TE_EXPLOSION1_BIG)				// PMM
 			ex->ent.model = cl_mod_explo4;			// PMM
 		else
-		{
-		    if (!cl_mod_explo4_big)
-			cl_mod_explo4_big = re.RegisterModel ("models/objects/r_explode2/tris.md2");
-		    ex->ent.model = cl_mod_explo4_big;
-		}
+			ex->ent.model = cl_mod_explo4_big;
 		if (frand() < 0.5)
 			ex->baseframe = 15;
 		ex->frames = 15;
@@ -914,7 +925,7 @@ void CL_ParseTEnt (void)
 
 	case TE_PARASITE_ATTACK:
 	case TE_MEDIC_CABLE_ATTACK:
-		ent = CL_ParseBeam (cl_mod_parasite_segment);
+		CL_ParseBeam (cl_mod_parasite_segment);
 		break;
 
 	case TE_BOSSTPORT:			// boss teleporting to station
@@ -1001,7 +1012,7 @@ void CL_ParseTEnt (void)
 		else // flechette
 			ex->ent.skinnum = 2;
 
-		ex->start = cl.frame.servertime - 100f;
+		ex->start = cl.frame.servertime - 100.0f;
 		ex->light = 150;
 		// PMM
 		if (type == TE_BLASTER2)
@@ -1019,9 +1030,6 @@ void CL_ParseTEnt (void)
 
 
 	case TE_LIGHTNING:
-                if (!cl_mod_lightning)
-                        cl_mod_lightning = re.RegisterModel ("models/proj/lightning/tris.md2");
-		
 	  ent = CL_ParseLightning (cl_mod_lightning);
 		S_StartSound (NULL, ent, CHAN_WEAPON, cl_sfx_lightning, 1, ATTN_NORM, 0);
 		break;
@@ -1039,7 +1047,7 @@ void CL_ParseTEnt (void)
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
 		ex->ent.flags = RF_FULLBRIGHT|RF_NOSHADOW;
-		ex->start = cl.frame.servertime - 100f;
+		ex->start = cl.frame.servertime - 100.0f;
 		ex->light = 350;
 		ex->lightcolor[0] = 1.0;
 		ex->lightcolor[1] = 0.5;
