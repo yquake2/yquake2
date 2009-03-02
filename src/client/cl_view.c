@@ -87,7 +87,7 @@ V_AddParticle
 
 =====================
 */
-void V_AddParticle (vec3_t org, int color, float alpha)
+void V_AddParticle (vec3_t org, unsigned int color, float alpha)
 {
 	particle_t	*p;
 
@@ -155,9 +155,9 @@ void V_TestParticles (void)
 	r_numparticles = MAX_PARTICLES;
 	for (i=0 ; i<r_numparticles ; i++)
 	{
-		d = i*0.25;
-		r = 4*((i&7)-3.5);
-		u = 4*(((i>>3)&7)-3.5);
+		d = i*0.25f;
+		r = 4*((i&7)-3.5f);
+		u = 4*(((i>>3)&7)-3.5f);
 		p = &r_particles[i];
 
 		for (j=0 ; j<3 ; j++)
@@ -221,15 +221,15 @@ void V_TestLights (void)
 	{
 		dl = &r_dlights[i];
 
-		r = 64 * ( (i%4) - 1.5 );
-		f = 64 * (i/4) + 128;
+		r = 64 * ( (i%4) - 1.5f );
+		f = 64 * (i/4.0f) + 128;
 
 		for (j=0 ; j<3 ; j++)
 			dl->origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j]*f +
 			cl.v_right[j]*r;
-		dl->color[0] = ((i%6)+1) & 1;
-		dl->color[1] = (((i%6)+1) & 2)>>1;
-		dl->color[2] = (((i%6)+1) & 4)>>2;
+		dl->color[0] = (float)(((i%6)+1) & 1);
+		dl->color[1] = (float)((((i%6)+1) & 2)>>1);
+		dl->color[2] = (float)((((i%6)+1) & 4)>>2);
 		dl->intensity = 200;
 	}
 }
@@ -333,7 +333,7 @@ void CL_PrepRefresh (void)
 	// set sky textures and speed
 	Com_Printf ("sky\r", i); 
 	SCR_UpdateScreen ();
-	rotate = atof (cl.configstrings[CS_SKYROTATE]);
+	rotate = (float)atof (cl.configstrings[CS_SKYROTATE]);
 	sscanf (cl.configstrings[CS_SKYAXIS], "%f %f %f", 
 		&axis[0], &axis[1], &axis[2]);
 	re.SetSky (cl.configstrings[CS_SKY], rotate, axis);
@@ -371,9 +371,9 @@ float CalcFov (float fov_x, float width, float height)
 	if (fov_x < 1 || fov_x > 179)
 		Com_Error (ERR_DROP, "Bad fov: %f", fov_x);
 
-	x = width/tan(fov_x/360*M_PI);
+	x = width/ (float)tan(fov_x/360*M_PI);
 
-	a = atan (height/x);
+	a = (float)atan(height/x);
 
 	a = a*360/M_PI;
 
@@ -515,8 +515,8 @@ void V_RenderView( float stereo_separation )
 		cl.refdef.y = scr_vrect.y;
 		cl.refdef.width = scr_vrect.width;
 		cl.refdef.height = scr_vrect.height;
-		cl.refdef.fov_y = CalcFov (cl.refdef.fov_x, cl.refdef.width, cl.refdef.height);
-		cl.refdef.time = cl.time*0.001;
+		cl.refdef.fov_y = CalcFov (cl.refdef.fov_x, (float)cl.refdef.width, (float)cl.refdef.height);
+		cl.refdef.time = cl.time*0.001f;
 
 		cl.refdef.areabits = cl.frame.areabits;
 
