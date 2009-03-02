@@ -49,7 +49,6 @@ cvar_t		*scr_conspeed;
 cvar_t		*scr_centertime;
 cvar_t		*scr_showturtle;
 cvar_t		*scr_showpause;
-cvar_t		*scr_printspeed;
 
 cvar_t		*scr_netgraph;
 cvar_t		*scr_timegraph;
@@ -112,7 +111,7 @@ void CL_AddNetgraph (void)
 	ping /= 30;
 	if (ping > 30)
 		ping = 30;
-	SCR_DebugGraph (ping, 0xd0);
+	SCR_DebugGraph ((float)ping, 0xd0);
 }
 
 
@@ -123,7 +122,7 @@ typedef struct
 } graphsamp_t;
 
 static	int			current;
-static	graphsamp_t	values[1024];
+static	graphsamp_t	values[2024];
 
 /*
 ==============
@@ -132,8 +131,8 @@ SCR_DebugGraph
 */
 void SCR_DebugGraph (float value, int color)
 {
-	values[current&1023].value = value;
-	values[current&1023].color = color;
+	values[current&2023].value = value;
+	values[current&2023].color = color;
 	current++;
 }
 
@@ -346,7 +345,7 @@ Keybinding command
 */
 void SCR_SizeUp_f (void)
 {
-	Cvar_SetValue ("viewsize",scr_viewsize->value+10);
+	Cvar_SetValue ("viewsize",(float)scr_viewsize->value+10);
 }
 
 
@@ -359,7 +358,7 @@ Keybinding command
 */
 void SCR_SizeDown_f (void)
 {
-	Cvar_SetValue ("viewsize",scr_viewsize->value-10);
+	Cvar_SetValue ("viewsize",(float)scr_viewsize->value-10);
 }
 
 /*
@@ -380,14 +379,14 @@ void SCR_Sky_f (void)
 		return;
 	}
 	if (Cmd_Argc() > 2)
-		rotate = atof(Cmd_Argv(2));
+		rotate = (float)atof(Cmd_Argv(2));
 	else
 		rotate = 0;
 	if (Cmd_Argc() == 6)
 	{
-		axis[0] = atof(Cmd_Argv(3));
-		axis[1] = atof(Cmd_Argv(4));
-		axis[2] = atof(Cmd_Argv(5));
+		axis[0] = (float)atof(Cmd_Argv(3));
+		axis[1] = (float)atof(Cmd_Argv(4));
+		axis[2] = (float)atof(Cmd_Argv(5));
 	}
 	else
 	{
@@ -413,7 +412,6 @@ void SCR_Init (void)
 	scr_showturtle = Cvar_Get ("scr_showturtle", "0", 0);
 	scr_showpause = Cvar_Get ("scr_showpause", "1", 0);
 	scr_centertime = Cvar_Get ("scr_centertime", "2.5", 0);
-	scr_printspeed = Cvar_Get ("scr_printspeed", "8", 0);
 	scr_netgraph = Cvar_Get ("netgraph", "0", 0);
 	scr_timegraph = Cvar_Get ("timegraph", "0", 0);
 	scr_debuggraph = Cvar_Get ("debuggraph", "0", 0);
@@ -632,19 +630,22 @@ void SCR_TimeRefresh_f (void)
 
 	if (Cmd_Argc() == 2)
 	{	// run without page flipping
-		re.BeginFrame( 0 );
-		for (i=0 ; i<128 ; i++)
-		{
-			cl.refdef.viewangles[1] = i/128.0*360.0;
-			re.RenderFrame (&cl.refdef);
-		}
-		re.EndFrame();
+               int j;
+               for (j = 0; j < 1000; j++) {
+                        re.BeginFrame( 0 );
+                        for (i=0 ; i<128 ; i++)
+                        {
+                                cl.refdef.viewangles[1] = i/128.0f*360.0f;
+                                re.RenderFrame (&cl.refdef);
+                        }
+                        re.EndFrame();
+	       }
 	}
 	else
 	{
 		for (i=0 ; i<128 ; i++)
 		{
-			cl.refdef.viewangles[1] = i/128.0*360.0;
+			cl.refdef.viewangles[1] = i/128.0f*360.0f;
 
 			re.BeginFrame( 0 );
 			re.RenderFrame (&cl.refdef);
@@ -653,7 +654,7 @@ void SCR_TimeRefresh_f (void)
 	}
 
 	stop = Sys_Milliseconds ();
-	time = (stop-start)/1000.0;
+	time = (stop-start)/1000.0f;
 	Com_Printf ("%f seconds (%f fps)\n", time, 128/time);
 }
 
@@ -727,7 +728,7 @@ void SCR_TileClear (void)
 	scr_dirty.y2 = -9999;
 
 	// don't bother with anything convered by the console)
-	top = scr_con_current*viddef.height;
+	top = (int)(scr_con_current*viddef.height);
 	if (top >= clear.y1)
 		clear.y1 = top;
 
@@ -883,7 +884,7 @@ void SCR_DrawField (int x, int y, int color, int width, int value)
 	SCR_AddDirtyPoint (x+width*CHAR_WIDTH+2, y+23);
 
 	Com_sprintf (num, sizeof(num), "%i", value);
-	l = strlen(num);
+	l = (int)strlen(num);
 	if (l > width)
 		l = width;
 	x += 2 + CHAR_WIDTH*(width - l);
@@ -1001,6 +1002,13 @@ void SCR_ExecuteLayoutString (char *s)
 		{	// draw a pic from a stat number
 			token = COM_Parse (&s);
 			value = cl.frame.playerstate.stats[atoi(token)];
+                        index = atoi(token);
+
+                        if (index < 0 || index >= sizeof(cl.frame.playerstate.stats))
+                                Com_Error (ERR_DROP, "bad stats index %d (0x%x)", index, index);
+
+                        value = cl.frame.playerstate.stats[index];
+			
 			if (value >= MAX_IMAGES)
 				Com_Error (ERR_DROP, "Pic >= MAX_IMAGES");
 			if (cl.configstrings[CS_IMAGES+value])
@@ -1090,7 +1098,7 @@ void SCR_ExecuteLayoutString (char *s)
 			token = COM_Parse (&s);
 			SCR_AddDirtyPoint (x, y);
 			SCR_AddDirtyPoint (x+23, y+23);
-			re.DrawPic (x, y, token);
+			re.DrawPic (x, y, (char *)token);
 			continue;
 		}
 
@@ -1332,8 +1340,6 @@ void SCR_UpdateScreen (void)
 		      cl.cinematicpalette_active = false;
 		    }
 		  M_Draw ();
-		  //				re.EndFrame();
-		  //				return;
 		}
 	      else if (cls.key_dest == key_console)
 		{
@@ -1343,14 +1349,10 @@ void SCR_UpdateScreen (void)
 		      cl.cinematicpalette_active = false;
 		    }
 		  SCR_DrawConsole ();
-		  //				re.EndFrame();
-		  //				return;
 		}
 	      else
 		{
 		  SCR_DrawCinematic();
-		  //				re.EndFrame();
-		  //				return;
 		}
 	    }
 	  else 
