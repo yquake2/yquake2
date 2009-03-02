@@ -592,7 +592,7 @@ void Con_DrawConsole (float frac)
 	SCR_AddDirtyPoint (0,0);
 	SCR_AddDirtyPoint (viddef.width-1,lines-1);
 
-	Com_sprintf (version, sizeof(version), "r1q2 v%s", VERSION); 
+	i = Com_sprintf (version, sizeof(version), "r1q2 v%s", VERSION); 
 	for (x=0 ; x<i ; x++) 
 		 re.DrawChar (viddef.width-90+x*8, lines-14, 128 + version[x] );
 
