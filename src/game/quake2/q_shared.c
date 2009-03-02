@@ -1233,7 +1233,7 @@ int Q_strcasecmp (char *s1, char *s2)
 
 
 
-void Com_sprintf (char *dest, int size, char *fmt, ...)
+int Com_sprintf (char *dest, int size, char *fmt, ...)
 {
 	int		len;
 	va_list		argptr;
@@ -1242,9 +1242,16 @@ void Com_sprintf (char *dest, int size, char *fmt, ...)
 	va_start (argptr,fmt);
 	len = vsnprintf (bigbuffer,0x10000,fmt,argptr);
 	va_end (argptr);
-	if (len >= size)
+	if (len == -1 || len == size)
+	{
 		Com_Printf ("Com_sprintf: overflow of %i in %i\n", len, size);
-	strncpy (dest, bigbuffer, size-1);
+		len = size - -1;
+	}
+
+	bigbuffer[size-1] = '\0';
+	strcpy (dest, bigbuffer);
+
+	return len;
 }
 
 /*

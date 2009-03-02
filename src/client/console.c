@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // console.c
 
 #include "client.h"
+#include <time.h>
 
 console_t	con;
 
@@ -36,11 +37,7 @@ void DrawString (int x, int y, char *s)
 {
 	while (*s)
 	{
-#ifdef QMAX
-		re.DrawChar (x, y, *s, 1);
-#else
 		re.DrawChar (x, y, *s);
-#endif
 		x+=8;
 		s++;
 	}
@@ -50,11 +47,7 @@ void DrawAltString (int x, int y, char *s)
 {
 	while (*s)
 	{
-#ifdef QMAX
-		re.DrawChar (x, y, *s ^ 0x80, 1);
-#else
 		re.DrawChar (x, y, *s ^ 0x80);
-#endif
 		x+=8;
 		s++;
 	}
@@ -78,7 +71,8 @@ void Con_ToggleConsole_f (void)
 
 	if (cl.attractloop)
 	{
-		Cbuf_AddText ("killserver\n");
+		cl.attractloop = false;
+		Cmd_ExecuteString ("disconnect\n");
 		return;
 	}
 
@@ -317,9 +311,9 @@ void Con_Init (void)
 	
 	Com_Printf ("Console initialized.\n");
 
-//
-// register our commands
-//
+	//
+	// register our commands
+	//
 	con_notifytime = Cvar_Get ("con_notifytime", "3", 0);
 
 	Cmd_AddCommand ("toggleconsole", Con_ToggleConsole_f);
@@ -476,28 +470,24 @@ void Con_DrawInput (void)
 
 	text = key_lines[edit_line];
 	
-// add the cursor frame
+	// add the cursor frame
 	text[key_linepos] = 10+((int)(cls.realtime>>8)&1);
 	
-// fill out remainder with spaces
+	// fill out remainder with spaces
 	for (i=key_linepos+1 ; i< con.linewidth ; i++)
 		text[i] = ' ';
 		
-//	prestep if horizontally scrolling
+	//	prestep if horizontally scrolling
 	if (key_linepos >= con.linewidth)
 		text += 1 + key_linepos - con.linewidth;
 		
-// draw it
+	// draw it
 	y = con.vislines-16;
 
 	for (i=0 ; i<con.linewidth ; i++)
-#ifdef QMAX
-	  re.DrawChar ( (i+1)<<3, con.vislines - 22, text[i], 1);
-#else
 	re.DrawChar ( (i+1)<<3, con.vislines - 22, text[i]);
-#endif
 
-// remove cursor
+	// remove cursor
 	key_lines[edit_line][key_linepos] = 0;
 }
 
@@ -532,11 +522,7 @@ void Con_DrawNotify (void)
 		text = con.text + (i % con.totallines)*con.linewidth;
 		
 		for (x = 0 ; x < con.linewidth ; x++)
-#ifdef QMAX
-		  re.DrawChar ( (x+1)<<3, v, text[x], 1);
-#else
 		  re.DrawChar ( (x+1)<<3, v, text[x]);
-#endif
 
 		v += 8;
 	}
@@ -561,18 +547,10 @@ void Con_DrawNotify (void)
 		x = 0;
 		while(s[x])
 		{
-#ifdef QMAX
-			re.DrawChar ( (x+skip)<<3, v, s[x], 1);
-#else
 			re.DrawChar ( (x+skip)<<3, v, s[x]);
-#endif
 			x++;
 		}
-#ifdef QMAX
-		re.DrawChar ( (x+skip)<<3, v, 10+((cls.realtime>>8)&1), 1);
-#else	
 		re.DrawChar ( (x+skip)<<3, v, 10+((cls.realtime>>8)&1));
-#endif
 		v += 8;
 	}
 	
@@ -597,8 +575,10 @@ void Con_DrawConsole (float frac)
 	char			*text;
 	int				row;
 	int				lines;
-	char			version[64];
+	char			version[24];
 	char			dlbar[1024];
+	time_t			t;
+	struct tm		*today;
 
 	lines = viddef.height * frac;
 	if (lines <= 0)
@@ -607,46 +587,34 @@ void Con_DrawConsole (float frac)
 	if (lines > viddef.height)
 		lines = viddef.height;
 
-// draw the background
-#ifdef QMAX
-	re.DrawStretchPic (0, -viddef.height+lines, viddef.width, viddef.height, "conback", 1);
-#else
+	// draw the background
 	re.DrawStretchPic (0, -viddef.height+lines, viddef.width, viddef.height, "conback");
-#endif
 	SCR_AddDirtyPoint (0,0);
 	SCR_AddDirtyPoint (viddef.width-1,lines-1);
 
-	Com_sprintf (version, sizeof(version), "v%4.2f", VERSION);
-	for (x=0 ; x<5 ; x++)
-#ifdef QMAX
-		re.DrawChar (viddef.width-44+x*8, lines-12, 128+version[x],1);
-#else
-		re.DrawChar (viddef.width-44+x*8, lines-12, 128 + version[x] );
-#endif
+	Com_sprintf (version, sizeof(version), "r1q2 v%s", VERSION); 
+	for (x=0 ; x<i ; x++) 
+		 re.DrawChar (viddef.width-90+x*8, lines-14, 128 + version[x] );
 
-// draw the text
+	t = time (NULL);
+	today = localtime(&t);
+	i = strftime (version, sizeof(version), "%H:%M:%S", today);
+	for (x=0 ; x<i ; x++)
+		re.DrawChar (viddef.width-66+x*8, lines-22, 128 + version[x] );
+
+	// draw the text
 	con.vislines = lines;
 	
-#if 0
-	rows = (lines-8)>>3;		// rows of text to draw
-
-	y = lines - 24;
-#else
 	rows = (lines-22)>>3;		// rows of text to draw
 
 	y = lines - 30;
-#endif
 
-// draw from the bottom up
+	// draw from the bottom up
 	if (con.display != con.current)
 	{
 	// draw arrows to show the buffer is backscrolled
 		for (x=0 ; x<con.linewidth ; x+=4)
-#ifdef QMAX
-			re.DrawChar ( (x+1)<<3, y, '^', 1);
-#else
 			re.DrawChar ( (x+1)<<3, y, '^');
-#endif			
 		y -= 8;
 		rows--;
 	}
@@ -662,14 +630,10 @@ void Con_DrawConsole (float frac)
 		text = con.text + (row % con.totallines)*con.linewidth;
 
 		for (x=0 ; x<con.linewidth ; x++)
-#ifdef QMAX
-			re.DrawChar ( (x+1)<<3, y, text[x], 1);
-#else
 			re.DrawChar ( (x+1)<<3, y, text[x]);
-#endif
 	}
 
-//ZOID
+	//ZOID
 	// draw the download bar
 	// figure out width
 	if (cls.download) {
@@ -710,15 +674,11 @@ void Con_DrawConsole (float frac)
 		// draw it
 		y = con.vislines-12;
 		for (i = 0; i < strlen(dlbar); i++)
-#ifdef QMAX
-			re.DrawChar ( (i+1)<<3, y, dlbar[i], 1);
-#else
 			re.DrawChar ( (i+1)<<3, y, dlbar[i]);
-#endif
 	}
-//ZOID
+	//ZOID
 
-// draw the input prompt, user text, and cursor if desired
+	// draw the input prompt, user text, and cursor if desired
 	Con_DrawInput ();
 }
 
