@@ -40,11 +40,11 @@ typedef struct
 
 
 
-#define	MAX_EXPLOSIONS	32
+#define	MAX_EXPLOSIONS	64
 explosion_t	cl_explosions[MAX_EXPLOSIONS];
 
 
-#define	MAX_BEAMS	32
+#define	MAX_BEAMS	64
 typedef struct
 {
 	int		entity;
@@ -59,7 +59,7 @@ beam_t		cl_beams[MAX_BEAMS];
 beam_t		cl_playerbeams[MAX_BEAMS];
 
 
-#define	MAX_LASERS	32
+#define	MAX_LASERS	64
 typedef struct
 {
 	entity_t	ent;
@@ -75,27 +75,14 @@ cl_sustain_t	cl_sustains[MAX_SUSTAINS];
 extern void CL_TeleportParticles (vec3_t org);
 //PGM
 
-#ifdef QMAX
-void CL_BloodHit (vec3_t org, vec3_t dir);
-void CL_BlasterParticles (vec3_t org, vec3_t dir, int count);
-void CL_ParticleEffectSparks (vec3_t org, vec3_t dir, vec3_t color, int count);
-#else
 void CL_BlasterParticles (vec3_t org, vec3_t dir);
-#endif
 void CL_BFGExplosionParticles (vec3_t org);
 // RAFAEL
 void CL_BlueBlasterParticles (vec3_t org, vec3_t dir);
 
-#ifdef QMAX
-void CL_Explosion_Particle (vec3_t org, float scale, qboolean large, qboolean rocket);
-//void CL_ExplosionParticles (vec3_t org, float alpha);
-void CL_ExplosionParticles (vec3_t org);
-#define EXPLOSION_PARTICLES(x) CL_ExplosionParticles((x));
-#else
 void CL_ExplosionParticles (vec3_t org);
 void CL_Explosion_Particle (vec3_t org, float size, qboolean large, qboolean rocket);
 #define EXPLOSION_PARTICLES(x) CL_ExplosionParticles((x));
-#endif
 
 struct sfx_s	*cl_sfx_ric1;
 struct sfx_s	*cl_sfx_ric2;
@@ -109,7 +96,6 @@ struct sfx_s	*cl_sfx_rockexp;
 struct sfx_s	*cl_sfx_grenexp;
 struct sfx_s	*cl_sfx_watrexp;
 // RAFAEL
-struct sfx_s	*cl_sfx_plasexp;
 struct sfx_s	*cl_sfx_footsteps[4];
 
 struct model_s	*cl_mod_explode;
@@ -122,14 +108,12 @@ struct model_s	*cl_mod_explo4;
 struct model_s	*cl_mod_bfg_explo;
 struct model_s	*cl_mod_powerscreen;
 // RAFAEL
-struct model_s	*cl_mod_plasmaexplo;
 
 //ROGUE
 struct sfx_s	*cl_sfx_lightning;
 struct sfx_s	*cl_sfx_disrexp;
 struct model_s	*cl_mod_lightning;
 struct model_s	*cl_mod_heatbeam;
-struct model_s	*cl_mod_monster_heatbeam;
 struct model_s	*cl_mod_explo4_big;
 
 //ROGUE
@@ -144,8 +128,6 @@ void CL_RegisterTEntSounds (void)
 	char	name[MAX_QPATH];
 
 	// PMM - version stuff
-//	Com_Printf ("%s\n", ROGUE_VERSION_STRING);
-	// PMM
 	cl_sfx_ric1 = S_RegisterSound ("world/ric1.wav");
 	cl_sfx_ric2 = S_RegisterSound ("world/ric2.wav");
 	cl_sfx_ric3 = S_RegisterSound ("world/ric3.wav");
@@ -158,7 +140,6 @@ void CL_RegisterTEntSounds (void)
 	cl_sfx_grenexp = S_RegisterSound ("weapons/grenlx1a.wav");
 	cl_sfx_watrexp = S_RegisterSound ("weapons/xpld_wat.wav");
 	// RAFAEL
-	// cl_sfx_plasexp = S_RegisterSound ("weapons/plasexpl.wav");
 	S_RegisterSound ("player/land1.wav");
 
 	S_RegisterSound ("player/fall2.wav");
@@ -170,14 +151,10 @@ void CL_RegisterTEntSounds (void)
 		cl_sfx_footsteps[i] = S_RegisterSound (name);
 	}
 
-//PGM
+	//PGM
 	cl_sfx_lightning = S_RegisterSound ("weapons/tesla.wav");
 	cl_sfx_disrexp = S_RegisterSound ("weapons/disrupthit.wav");
-	// version stuff
-//	sprintf (name, "weapons/sound%d.wav", ROGUE_VERSION_ID);
-//	if (name[0] == 'w')
-//		name[0] = 'W';
-//PGM
+	//PGM
 }	
 
 /*
@@ -196,29 +173,6 @@ void CL_RegisterTEntModels (void)
 	cl_mod_explo4 = re.RegisterModel ("models/objects/r_explode/tris.md2");
 	cl_mod_bfg_explo = re.RegisterModel ("sprites/s_bfg2.sp2");
 	cl_mod_powerscreen = re.RegisterModel ("models/items/armor/effect/tris.md2");
-
-re.RegisterModel ("models/objects/laser/tris.md2");
-re.RegisterModel ("models/objects/grenade2/tris.md2");
-re.RegisterModel ("models/weapons/v_machn/tris.md2");
-re.RegisterModel ("models/weapons/v_handgr/tris.md2");
-re.RegisterModel ("models/weapons/v_shotg2/tris.md2");
-re.RegisterModel ("models/objects/gibs/bone/tris.md2");
-re.RegisterModel ("models/objects/gibs/sm_meat/tris.md2");
-re.RegisterModel ("models/objects/gibs/bone2/tris.md2");
-// RAFAEL
-// re.RegisterModel ("models/objects/blaser/tris.md2");
-
-re.RegisterPic ("w_machinegun");
-re.RegisterPic ("a_bullets");
-re.RegisterPic ("i_health");
-re.RegisterPic ("a_grenades");
-
-//ROGUE
-	cl_mod_explo4_big = re.RegisterModel ("models/objects/r_explode2/tris.md2");
-	cl_mod_lightning = re.RegisterModel ("models/proj/lightning/tris.md2");
-	cl_mod_heatbeam = re.RegisterModel ("models/proj/beam/tris.md2");
-	cl_mod_monster_heatbeam = re.RegisterModel ("models/proj/widowbeam/tris.md2");
-//ROGUE
 }	
 
 /*
@@ -232,24 +186,11 @@ void CL_ClearTEnts (void)
 	memset (cl_explosions, 0, sizeof(cl_explosions));
 	memset (cl_lasers, 0, sizeof(cl_lasers));
 
-//ROGUE
+	//ROGUE
 	memset (cl_playerbeams, 0, sizeof(cl_playerbeams));
 	memset (cl_sustains, 0, sizeof(cl_sustains));
-//ROGUE
+	//ROGUE
 }
-
-#ifdef QMAX
-#define EXP_DIST 10
-void CL_R_Explode_SP (vec3_t origin)
-{
-  CL_Explosion_Particle (origin, 0, true, true);
-}
-
-void CL_G_Explode_SP (vec3_t origin)
-{
-  CL_Explosion_Particle (origin, 0, true, false);
-}
-#endif
 
 /*
 =================
@@ -259,7 +200,7 @@ CL_AllocExplosion
 explosion_t *CL_AllocExplosion (void)
 {
 	int		i;
-	int		time;
+	float		time;
 	int		index;
 	
 	for (i=0 ; i<MAX_EXPLOSIONS ; i++)
@@ -270,8 +211,8 @@ explosion_t *CL_AllocExplosion (void)
 			return &cl_explosions[i];
 		}
 	}
-// find the oldest explosion
-	time = cl.time;
+	// find the oldest explosion
+	time = (float)cl.time;
 	index = 0;
 
 	for (i=0 ; i<MAX_EXPLOSIONS ; i++)
@@ -298,7 +239,7 @@ void CL_SmokeAndFlash(vec3_t origin)
 	ex->type = ex_misc;
 	ex->frames = 4;
 	ex->ent.flags = RF_TRANSLUCENT;
-	ex->start = cl.frame.servertime - 100;
+	ex->start = cl.frame.servertime - 100.0f;
 	ex->ent.model = cl_mod_smoke;
 
 	ex = CL_AllocExplosion ();
@@ -306,7 +247,7 @@ void CL_SmokeAndFlash(vec3_t origin)
 	ex->type = ex_flash;
 	ex->ent.flags = RF_FULLBRIGHT;
 	ex->frames = 2;
-	ex->start = cl.frame.servertime - 100;
+	ex->start = cl.frame.servertime - 100.0f;
 	ex->ent.model = cl_mod_flash;
 }
 
@@ -335,7 +276,7 @@ void CL_ParseParticles (void)
 CL_ParseBeam
 =================
 */
-int CL_ParseBeam (struct model_s *model)
+void CL_ParseBeam (struct model_s *model)
 {
 	int		ent;
 	vec3_t	start, end;
@@ -347,7 +288,7 @@ int CL_ParseBeam (struct model_s *model)
 	MSG_ReadPos (&net_message, start);
 	MSG_ReadPos (&net_message, end);
 
-// override any beam with the same entity
+	// override any beam with the same entity
 	for (i=0, b=cl_beams ; i< MAX_BEAMS ; i++, b++)
 		if (b->entity == ent)
 		{
@@ -357,10 +298,10 @@ int CL_ParseBeam (struct model_s *model)
 			VectorCopy (start, b->start);
 			VectorCopy (end, b->end);
 			VectorClear (b->offset);
-			return ent;
+			return;
 		}
 
-// find a free beam
+	// find a free beam
 	for (i=0, b=cl_beams ; i< MAX_BEAMS ; i++, b++)
 	{
 		if (!b->model || b->endtime < cl.time)
@@ -371,11 +312,11 @@ int CL_ParseBeam (struct model_s *model)
 			VectorCopy (start, b->start);
 			VectorCopy (end, b->end);
 			VectorClear (b->offset);
-			return ent;
+			return;
 		}
 	}
 	Com_Printf ("beam list overflow!\n");	
-	return ent;
+	return;
 }
 
 /*
@@ -383,7 +324,7 @@ int CL_ParseBeam (struct model_s *model)
 CL_ParseBeam2
 =================
 */
-int CL_ParseBeam2 (struct model_s *model)
+void CL_ParseBeam2 (struct model_s *model)
 {
 	int		ent;
 	vec3_t	start, end, offset;
@@ -396,10 +337,8 @@ int CL_ParseBeam2 (struct model_s *model)
 	MSG_ReadPos (&net_message, end);
 	MSG_ReadPos (&net_message, offset);
 
-//	Com_Printf ("end- %f %f %f\n", end[0], end[1], end[2]);
 
-// override any beam with the same entity
-
+	// override any beam with the same entity
 	for (i=0, b=cl_beams ; i< MAX_BEAMS ; i++, b++)
 		if (b->entity == ent)
 		{
@@ -409,10 +348,10 @@ int CL_ParseBeam2 (struct model_s *model)
 			VectorCopy (start, b->start);
 			VectorCopy (end, b->end);
 			VectorCopy (offset, b->offset);
-			return ent;
+			return;
 		}
 
-// find a free beam
+	// find a free beam
 	for (i=0, b=cl_beams ; i< MAX_BEAMS ; i++, b++)
 	{
 		if (!b->model || b->endtime < cl.time)
@@ -423,11 +362,11 @@ int CL_ParseBeam2 (struct model_s *model)
 			VectorCopy (start, b->start);
 			VectorCopy (end, b->end);
 			VectorCopy (offset, b->offset);
-			return ent;
+			return;
 		}
 	}
 	Com_Printf ("beam list overflow!\n");	
-	return ent;
+	return;
 }
 
 // ROGUE
@@ -437,7 +376,7 @@ CL_ParsePlayerBeam
   - adds to the cl_playerbeam array instead of the cl_beams array
 =================
 */
-int CL_ParsePlayerBeam (struct model_s *model)
+void CL_ParsePlayerBeam (struct model_s *model)
 {
 	int		ent;
 	vec3_t	start, end, offset;
@@ -449,9 +388,16 @@ int CL_ParsePlayerBeam (struct model_s *model)
 	MSG_ReadPos (&net_message, start);
 	MSG_ReadPos (&net_message, end);
 	// PMM - network optimization
-	if (model == cl_mod_heatbeam)
-		VectorSet(offset, 2, 7, -3);
-	else if (model == cl_mod_monster_heatbeam)
+
+        if (!cl_mod_heatbeam)
+                cl_mod_heatbeam = re.RegisterModel ("models/proj/beam/tris.md2");
+
+        model = cl_mod_heatbeam;
+
+        if (tempent == TE_HEATBEAM)
+        {
+	    VectorSet(offset, 2, 7, -3);
+	else if (tempent == TE_MONSTER_HEATBEAM)
 	{
 		model = cl_mod_heatbeam;
 		VectorSet(offset, 0, 0, 0);
@@ -459,10 +405,12 @@ int CL_ParsePlayerBeam (struct model_s *model)
 	else
 		MSG_ReadPos (&net_message, offset);
 
-//	Com_Printf ("end- %f %f %f\n", end[0], end[1], end[2]);
+        if (!model)
+                return;
+	
 
-// override any beam with the same entity
-// PMM - For player beams, we only want one per player (entity) so..
+	// override any beam with the same entity
+	// PMM - For player beams, we only want one per player (entity) so..
 	for (i=0, b=cl_playerbeams ; i< MAX_BEAMS ; i++, b++)
 	{
 		if (b->entity == ent)
@@ -473,11 +421,11 @@ int CL_ParsePlayerBeam (struct model_s *model)
 			VectorCopy (start, b->start);
 			VectorCopy (end, b->end);
 			VectorCopy (offset, b->offset);
-			return ent;
+			return;
 		}
 	}
 
-// find a free beam
+	// find a free beam
 	for (i=0, b=cl_playerbeams ; i< MAX_BEAMS ; i++, b++)
 	{
 		if (!b->model || b->endtime < cl.time)
@@ -488,7 +436,7 @@ int CL_ParsePlayerBeam (struct model_s *model)
 			VectorCopy (start, b->start);
 			VectorCopy (end, b->end);
 			VectorCopy (offset, b->offset);
-			return ent;
+			return;
 		}
 	}
 	Com_Printf ("beam list overflow!\n");	
@@ -514,11 +462,10 @@ int CL_ParseLightning (struct model_s *model)
 	MSG_ReadPos (&net_message, start);
 	MSG_ReadPos (&net_message, end);
 
-// override any beam with the same source AND destination entities
+	// override any beam with the same source AND destination entities
 	for (i=0, b=cl_beams ; i< MAX_BEAMS ; i++, b++)
 		if (b->entity == srcEnt && b->dest_entity == destEnt)
 		{
-//			Com_Printf("%d: OVERRIDE  %d -> %d\n", cl.time, srcEnt, destEnt);
 			b->entity = srcEnt;
 			b->dest_entity = destEnt;
 			b->model = model;
@@ -529,12 +476,11 @@ int CL_ParseLightning (struct model_s *model)
 			return srcEnt;
 		}
 
-// find a free beam
+	// find a free beam
 	for (i=0, b=cl_beams ; i< MAX_BEAMS ; i++, b++)
 	{
 		if (!b->model || b->endtime < cl.time)
 		{
-//			Com_Printf("%d: NORMAL  %d -> %d\n", cl.time, srcEnt, destEnt);
 			b->entity = srcEnt;
 			b->dest_entity = destEnt;
 			b->model = model;
@@ -571,7 +517,7 @@ void CL_ParseLaser (int colors)
 			l->ent.flags = RF_TRANSLUCENT | RF_BEAM;
 			VectorCopy (start, l->ent.origin);
 			VectorCopy (end, l->ent.oldorigin);
-			l->ent.alpha = 0.30;
+			l->ent.alpha = 0.30f;
 			l->ent.skinnum = (colors >> ((rand() % 4)*8)) & 0xff;
 			l->ent.model = NULL;
 			l->ent.frame = 4;
@@ -581,23 +527,6 @@ void CL_ParseLaser (int colors)
 	}
 }
 
-#ifdef QMAX
-void CL_GunSmokeEffect (vec3_t org, vec3_t dir)
-{
-	vec3_t		velocity, origin;
-	int			j;
-
-	for (j=0 ; j<3 ; j++)
-	{
-		origin[j] = org[j] + dir[j]*10;
-		velocity[j] = 10*dir[j];
-	}
-	velocity[2] = 10;
-
-	CL_ParticleSmokeEffect (origin, velocity, 0, 10, 10);
-
-}
-#endif
 //=============
 //ROGUE
 void CL_ParseSteam (void)
@@ -613,7 +542,6 @@ void CL_ParseSteam (void)
 	id = MSG_ReadShort (&net_message);		// an id of -1 is an instant effect
 	if (id != -1) // sustains
 	{
-//			Com_Printf ("Sustain effect id %d\n", id);
 		free_sustain = NULL;
 		for (i=0, s=cl_sustains; i<MAX_SUSTAINS; i++, s++)
 		{
@@ -639,7 +567,6 @@ void CL_ParseSteam (void)
 		}
 		else
 		{
-//				Com_Printf ("No free sustains!\n");
 			// FIXME - read the stuff anyway
 			cnt = MSG_ReadByte (&net_message);
 			MSG_ReadPos (&net_message, pos);
@@ -658,7 +585,6 @@ void CL_ParseSteam (void)
 		magnitude = MSG_ReadShort (&net_message);
 		color = r & 0xff;
 		CL_ParticleSteamEffect (pos, dir, color, cnt, magnitude);
-//		S_StartSound (pos,  0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
 	}
 }
 
@@ -755,11 +681,7 @@ void CL_ParseTEnt (void)
 	case TE_BLOOD:			// bullet hitting flesh
 		MSG_ReadPos (&net_message, pos);
 		MSG_ReadDir (&net_message, dir);
-#ifdef QMAX
-		CL_BloodHit (pos, dir);
-#else
 		CL_ParticleEffect (pos, dir, 0xe8, 60);
-#endif
 		break;
 
 	case TE_GUNSHOT:			// bullet hitting wall
@@ -767,28 +689,13 @@ void CL_ParseTEnt (void)
 	case TE_BULLET_SPARKS:
 		MSG_ReadPos (&net_message, pos);
 		MSG_ReadDir (&net_message, dir);
-#ifdef QMAX
-		if (type != TE_SPARKS)
-		{
-			CL_GunSmokeEffect (pos, dir);
-			re.AddStain(pos, 5, -175, -175, -175);
-		}
-
-		if (type == TE_BULLET_SPARKS)
-		{
-		  VectorScale(dir, 1.1, dir);
-		}
-#else
 		if (type == TE_GUNSHOT)
 			CL_ParticleEffect (pos, dir, 0, 40);
 		else
 			CL_ParticleEffect (pos, dir, 0xe0, 6);
-#endif
 		if (type != TE_SPARKS)
 		{
-#ifndef QMAX
 			CL_SmokeAndFlash(pos);
-#endif			
 			// impact sound
 			cnt = rand()&15;
 			if (cnt == 1)
@@ -798,13 +705,6 @@ void CL_ParseTEnt (void)
 			else if (cnt == 3)
 				S_StartSound (pos, 0, 0, cl_sfx_ric3, 1, ATTN_NORM, 0);
 		}
-#ifdef QMAX
-		//adding sparks
-		{
-		  vec3_t color = { 255, 125, 10 };
-		  CL_ParticleEffectSparks (pos, dir, color, (type == TE_GUNSHOT)? 5 : 10);
-		}
-#endif
 		break;
 		
 	case TE_SCREEN_SPARKS:
@@ -822,17 +722,8 @@ void CL_ParseTEnt (void)
 	case TE_SHOTGUN:			// bullet hitting wall
 		MSG_ReadPos (&net_message, pos);
 		MSG_ReadDir (&net_message, dir);
-#ifdef QMAX
-		CL_GunSmokeEffect (pos, dir);
-		{
-			vec3_t color = { 200, 100, 10 };
-			CL_ParticleEffectSparks (pos, dir, color, 8);
-		}
-		re.AddStain(pos, 7, -175, -175, -175);
-#else
 		CL_ParticleEffect (pos, dir, 0, 20);
 		CL_SmokeAndFlash(pos);
-#endif		
 		break;
 
 	case TE_SPLASH:			// bullet hitting water
@@ -870,27 +761,20 @@ void CL_ParseTEnt (void)
 	case TE_BLUEHYPERBLASTER:
 		MSG_ReadPos (&net_message, pos);
 		MSG_ReadPos (&net_message, dir);
-#ifdef QMAX
-		CL_BlasterParticles (pos, dir, 40);
-#else
 		CL_BlasterParticles (pos, dir);
-#endif
 		break;
 
 	case TE_BLASTER:			// blaster hitting wall
 		MSG_ReadPos (&net_message, pos);
 		MSG_ReadDir (&net_message, dir);
-#ifdef QMAX
-		CL_BlasterParticles (pos, dir, 40);
-#else		
 		CL_BlasterParticles (pos, dir);
 
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.origin);
-		ex->ent.angles[0] = acos(dir[2])/M_PI*180;
-	// PMM - fixed to correct for pitch of 0
+		ex->ent.angles[0] = (float)acos(dir[2])/M_PI*180;
+		// PMM - fixed to correct for pitch of 0
 		if (dir[0])
-			ex->ent.angles[1] = atan2(dir[1], dir[0])/M_PI*180;
+			ex->ent.angles[1] = (float)atan2(dir[1], dir[0])/M_PI*180;
 		else if (dir[1] > 0)
 			ex->ent.angles[1] = 90;
 		else if (dir[1] < 0)
@@ -899,14 +783,13 @@ void CL_ParseTEnt (void)
 			ex->ent.angles[1] = 0;
 
 		ex->type = ex_misc;
-		ex->ent.flags = RF_FULLBRIGHT|RF_TRANSLUCENT;
-		ex->start = cl.frame.servertime - 100;
+		ex->ent.flags = 0.3;
+		ex->start = cl.frame.servertime - 100.0f;
 		ex->light = 150;
 		ex->lightcolor[0] = 1;
 		ex->lightcolor[1] = 1;
 		ex->ent.model = cl_mod_explode;
 		ex->frames = 4;
-#endif
 		S_StartSound (pos,  0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
 		break;
 		
@@ -921,19 +804,11 @@ void CL_ParseTEnt (void)
 	case TE_GRENADE_EXPLOSION:
 	case TE_GRENADE_EXPLOSION_WATER:
 		MSG_ReadPos (&net_message, pos);
-#ifdef QMAX
-		CL_G_Explode_SP(pos);
-
-		//		if (type!=TE_GRENADE_EXPLOSION_WATER)
-		//	CL_Radius_Explode_SP(pos, 1.25);
-		//		CL_ExplosionParticles (pos,1.25);
-		CL_ExplosionParticles (pos);
-#else
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
 		ex->ent.flags = RF_FULLBRIGHT|RF_NOSHADOW;
-		ex->start = cl.frame.servertime - 100;
+		ex->start = cl.frame.servertime - 100.0f;
 		ex->light = 350;
 		ex->lightcolor[0] = 1.0;
 		ex->lightcolor[1] = 0.5;
@@ -941,9 +816,8 @@ void CL_ParseTEnt (void)
 		ex->ent.model = cl_mod_explo4;
 		ex->frames = 19;
 		ex->baseframe = 30;
-		ex->ent.angles[1] = rand() % 360;
+		ex->ent.angles[1] = (float)(rand() % 360);
 		EXPLOSION_PARTICLES (pos);
-#endif
 		if (type == TE_GRENADE_EXPLOSION_WATER)
 			S_StartSound (pos, 0, 0, cl_sfx_watrexp, 1, ATTN_NORM, 0);
 		else
@@ -953,92 +827,53 @@ void CL_ParseTEnt (void)
 	// RAFAEL
 	case TE_PLASMA_EXPLOSION:
 		MSG_ReadPos (&net_message, pos);
-#ifdef QMAX
-		CL_R_Explode_SP(pos);
-//		CL_ExplosionParticles (pos, 1);
-//		CL_ExplosionParticles (pos);
-
-#else
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
 		ex->ent.flags = RF_FULLBRIGHT|RF_NOSHADOW;
-		ex->start = cl.frame.servertime - 100;
+		ex->start = cl.frame.servertime - 100.0f;
 		ex->light = 350;
 		ex->lightcolor[0] = 1.0; 
 		ex->lightcolor[1] = 0.5;
 		ex->lightcolor[2] = 0.5;
-		ex->ent.angles[1] = rand() % 360;
+		ex->ent.angles[1] = (float)(rand() % 360);
 		ex->ent.model = cl_mod_explo4;
 		if (frand() < 0.5)
 			ex->baseframe = 15;
 		ex->frames = 15;
 		EXPLOSION_PARTICLES (pos);
-#endif
 		S_StartSound (pos, 0, 0, cl_sfx_rockexp, 1, ATTN_NORM, 0);
 		break;
 	
 	case TE_EXPLOSION1_BIG:
-#ifdef QMAX	
-	  // PMM
-		MSG_ReadPos (&net_message, pos);
-		//		/*
-//		if (modType("dday"))
-//		{
-//			CL_Explosion_Particle (pos, 250, true, true);
-//			CL_ExplosionParticles (pos, 5);
-//			CL_Radius_Explode_SP(pos, 5);
-//		}
-//		else
-//		{
-			CL_Explosion_Particle (pos, 100, true, true);
-			//CL_ExplosionParticles (pos, 2);
-			CL_ExplosionParticles (pos);
-//			CL_Radius_Explode_SP(pos, 2);
-//		}
-		S_StartSound (pos, 0, 0, cl_sfx_rockexp, 1, ATTN_NORM, 0);
-		break;
-#endif
 	case TE_EXPLOSION1_NP:						// PMM
-#ifdef QMAX
-	  MSG_ReadPos (&net_message, pos); 
-	  CL_Explosion_Particle (pos, 50, true, true);
-	  CL_ExplosionParticles (pos);
-//	  CL_ExplosionParticles (pos, 0.6666666);
-//	  CL_Radius_Explode_SP(pos, 0.6666666);
-	  
-	  S_StartSound (pos, 0, 0, cl_sfx_grenexp, 1, ATTN_NORM, 0);
-	  break;
-#endif
 	case TE_EXPLOSION1:
 	case TE_ROCKET_EXPLOSION:
 	case TE_ROCKET_EXPLOSION_WATER:
 		MSG_ReadPos (&net_message, pos);
-#ifdef QMAX
-		CL_R_Explode_SP(pos);
-		//		CL_ExplosionParticles (pos, 1);	
-		CL_ExplosionParticles (pos);	
-#else
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
 		ex->ent.flags = RF_FULLBRIGHT|RF_NOSHADOW;
-		ex->start = cl.frame.servertime - 100;
+		ex->start = cl.frame.servertime - 100f;
 		ex->light = 350;
 		ex->lightcolor[0] = 1.0;
 		ex->lightcolor[1] = 0.5;
 		ex->lightcolor[2] = 0.5;
-		ex->ent.angles[1] = rand() % 360;
+		ex->ent.angles[1] = (float)(rand() % 360);
 		if (type != TE_EXPLOSION1_BIG)				// PMM
 			ex->ent.model = cl_mod_explo4;			// PMM
 		else
-			ex->ent.model = cl_mod_explo4_big;
+		{
+		    if (!cl_mod_explo4_big)
+			cl_mod_explo4_big = re.RegisterModel ("models/objects/r_explode2/tris.md2");
+		    ex->ent.model = cl_mod_explo4_big;
+		}
 		if (frand() < 0.5)
 			ex->baseframe = 15;
 		ex->frames = 15;
 		if ((type != TE_EXPLOSION1_BIG) && (type != TE_EXPLOSION1_NP))		// PMM
 			EXPLOSION_PARTICLES (pos);									// PMM
-#endif
 		if (type == TE_ROCKET_EXPLOSION_WATER)
 			S_StartSound (pos, 0, 0, cl_sfx_watrexp, 1, ATTN_NORM, 0);
 		else
@@ -1051,14 +886,14 @@ void CL_ParseTEnt (void)
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
 		ex->ent.flags = RF_FULLBRIGHT|RF_NOSHADOW;
-		ex->start = cl.frame.servertime - 100;
+		ex->start = cl.frame.servertime - 100.0f;
 		ex->light = 350;
 		ex->lightcolor[0] = 0.0;
 		ex->lightcolor[1] = 1.0;
 		ex->lightcolor[2] = 0.0;
 		ex->ent.model = cl_mod_bfg_explo;
 		ex->ent.flags |= RF_TRANSLUCENT;
-		ex->ent.alpha = 0.30;
+		ex->ent.alpha = 0.30f;
 		ex->frames = 4;
 		break;
 
@@ -1089,7 +924,7 @@ void CL_ParseTEnt (void)
 		break;
 
 	case TE_GRAPPLE_CABLE:
-		ent = CL_ParseBeam2 (cl_mod_grapple_cable);
+		CL_ParseBeam2 (cl_mod_grapple_cable);
 		break;
 
 	// RAFAEL
@@ -1106,11 +941,11 @@ void CL_ParseTEnt (void)
 		// note to self
 		// we need a better no draw flag
 		ex->ent.flags = RF_BEAM;
-		ex->start = cl.frame.servertime - 0.1;
-		ex->light = 100 + (rand()%75);
-		ex->lightcolor[0] = 1.0;
-		ex->lightcolor[1] = 1.0;
-		ex->lightcolor[2] = 0.3;
+		ex->start = cl.frame.servertime - 0.1f;
+		ex->light = 100 + (float)(rand()%75);
+		ex->lightcolor[0] = 1.0f;
+		ex->lightcolor[1] = 1.0f;
+		ex->lightcolor[2] = 0.3f;
 		ex->ent.model = cl_mod_flash;
 		ex->frames = 2;
 		break;
@@ -1130,8 +965,8 @@ void CL_ParseTEnt (void)
 		CL_ParticleEffect3 (pos, dir, color, cnt);
 		break;
 
-//=============
-//PGM
+		//=============
+		//PGM
 		// PMM -following code integrated for flechette (different color)
 	case TE_BLASTER2:			// green blaster hitting wall
 	case TE_FLECHETTE:			// flechette
@@ -1146,10 +981,10 @@ void CL_ParseTEnt (void)
 
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.origin);
-		ex->ent.angles[0] = acos(dir[2])/M_PI*180;
-	// PMM - fixed to correct for pitch of 0
+		ex->ent.angles[0] = (float)acos(dir[2])/M_PI*180;
+		// PMM - fixed to correct for pitch of 0
 		if (dir[0])
-			ex->ent.angles[1] = atan2(dir[1], dir[0])/M_PI*180;
+			ex->ent.angles[1] = (float)atan2(dir[1], dir[0])/M_PI*180;
 		else if (dir[1] > 0)
 			ex->ent.angles[1] = 90;
 		else if (dir[1] < 0)
@@ -1166,16 +1001,16 @@ void CL_ParseTEnt (void)
 		else // flechette
 			ex->ent.skinnum = 2;
 
-		ex->start = cl.frame.servertime - 100;
+		ex->start = cl.frame.servertime - 100f;
 		ex->light = 150;
 		// PMM
 		if (type == TE_BLASTER2)
 			ex->lightcolor[1] = 1;
 		else // flechette
 		{
-			ex->lightcolor[0] = 0.19;
-			ex->lightcolor[1] = 0.41;
-			ex->lightcolor[2] = 0.75;
+			ex->lightcolor[0] = 0.19f;
+			ex->lightcolor[1] = 0.41f;
+			ex->lightcolor[2] = 0.75f;
 		}
 		ex->ent.model = cl_mod_explode;
 		ex->frames = 4;
@@ -1184,11 +1019,10 @@ void CL_ParseTEnt (void)
 
 
 	case TE_LIGHTNING:
-#ifdef QMAX
-	  ent = CL_ParseLightning (10);
-#else
+                if (!cl_mod_lightning)
+                        cl_mod_lightning = re.RegisterModel ("models/proj/lightning/tris.md2");
+		
 	  ent = CL_ParseLightning (cl_mod_lightning);
-#endif
 		S_StartSound (NULL, ent, CHAN_WEAPON, cl_sfx_lightning, 1, ATTN_NORM, 0);
 		break;
 
@@ -1205,7 +1039,7 @@ void CL_ParseTEnt (void)
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
 		ex->ent.flags = RF_FULLBRIGHT|RF_NOSHADOW;
-		ex->start = cl.frame.servertime - 100;
+		ex->start = cl.frame.servertime - 100f;
 		ex->light = 350;
 		ex->lightcolor[0] = 1.0;
 		ex->lightcolor[1] = 0.5;
@@ -1235,20 +1069,17 @@ void CL_ParseTEnt (void)
 		break;
 
 	case TE_HEATBEAM:
-		ent = CL_ParsePlayerBeam (cl_mod_heatbeam);
+		CL_ParsePlayerBeam (cl_mod_heatbeam);
 		break;
 
 	case TE_MONSTER_HEATBEAM:
-		ent = CL_ParsePlayerBeam (cl_mod_monster_heatbeam);
+		CL_ParsePlayerBeam (cl_mod_monster_heatbeam);
 		break;
 
 	case TE_HEATBEAM_SPARKS:
-//		cnt = MSG_ReadByte (&net_message);
 		cnt = 50;
 		MSG_ReadPos (&net_message, pos);
 		MSG_ReadDir (&net_message, dir);
-//		r = MSG_ReadByte (&net_message);
-//		magnitude = MSG_ReadShort (&net_message);
 		r = 8;
 		magnitude = 60;
 		color = r & 0xff;
@@ -1257,13 +1088,9 @@ void CL_ParseTEnt (void)
 		break;
 	
 	case TE_HEATBEAM_STEAM:
-//		cnt = MSG_ReadByte (&net_message);
 		cnt = 20;
 		MSG_ReadPos (&net_message, pos);
 		MSG_ReadDir (&net_message, dir);
-//		r = MSG_ReadByte (&net_message);
-//		magnitude = MSG_ReadShort (&net_message);
-//		color = r & 0xff;
 		color = 0xe0;
 		magnitude = 60;
 		CL_ParticleSteamEffect (pos, dir, color, cnt, magnitude);
@@ -1275,11 +1102,9 @@ void CL_ParseTEnt (void)
 		break;
 
 	case TE_BUBBLETRAIL2:
-//		cnt = MSG_ReadByte (&net_message);
-		cnt = 8;
 		MSG_ReadPos (&net_message, pos);
 		MSG_ReadPos (&net_message, pos2);
-		CL_BubbleTrail2 (pos, pos2, cnt);
+		CL_BubbleTrail2 (pos, pos2, 8);
 		S_StartSound (pos,  0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
 		break;
 
@@ -1298,9 +1123,7 @@ void CL_ParseTEnt (void)
 	case TE_ELECTRIC_SPARKS:
 		MSG_ReadPos (&net_message, pos);
 		MSG_ReadDir (&net_message, dir);
-//		CL_ParticleEffect (pos, dir, 109, 40);
 		CL_ParticleEffect (pos, dir, 0x75, 40);
-		//FIXME : replace or remove this sound
 		S_StartSound (pos, 0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
 		break;
 
@@ -1308,7 +1131,6 @@ void CL_ParseTEnt (void)
 		MSG_ReadPos (&net_message, pos);
 		CL_ColorFlash (pos, 0, 150, -1, -1, -1);
 		CL_ColorExplosionParticles (pos, 0, 1);
-//		CL_Tracker_Explode (pos);
 		S_StartSound (pos, 0, 0, cl_sfx_disrexp, 1, ATTN_NORM, 0);
 		break;
 
@@ -1330,156 +1152,8 @@ void CL_ParseTEnt (void)
 		MSG_ReadPos (&net_message, pos);
 		CL_WidowSplash (pos);
 		break;
-#if 0
-	//NEW CUSTOM TEMP EVENTS
-
-	case TE_LIGHTNINGFLARE: //-psychospaz
-		{
-			int num, entity;
-
-			entity = MSG_ReadShort (&net_message);
-			num = MSG_ReadShort (&net_message);
-			MSG_ReadPos (&net_message, pos);
-
-			//double up for opacity endurance
-			CL_LightningFlare(pos, entity, 2*num);
-			CL_LightningFlare(pos, entity, 2*num+1);
-		}
-		break;	
-	case TE_SMOKEPUFF: //hahaha server declared stains biotch - psychospaz
-		{
-			float size;
-
-			MSG_ReadPos (&net_message, pos);
-			MSG_ReadPos (&net_message, dir);
-			size = MSG_ReadFloat(&net_message);
-
-			CL_ParticleSmokeEffect (pos, dir, size);
-		}
-		break;
-	case TE_STAIN: //hahaha server declared stains biotch - psychospaz
-		{
-			float intens;
-			int i, color[3];
-
-			MSG_ReadPos (&net_message, pos);
-			intens = MSG_ReadFloat(&net_message);
-			for (i=0;i<3;i++)
-				color[i] = -MSG_ReadByte(&net_message);
-
-			re.AddStain(pos,	intens,
-								color[0],
-								color[1],
-								color[2]);
-		}
-		break;
-	case TE_FOOTPRINT:
-		{
-			float size;
-			vec3_t color, angle;
-
-			MSG_ReadPos (&net_message, pos);
-			MSG_ReadPos (&net_message, dir);
-			MSG_ReadPos (&net_message, color);
-			size = MSG_ReadFloat(&net_message);
-
-			angle[0] = anglemod(dir[0] + 180);
-			angle[1] = anglemod(dir[1]);
-			angle[2] = anglemod(dir[2]);
-
-			CL_ParticleFootPrint (pos, angle, size, color);
-		}
-		break;
-	case TE_FLAMEBURST:
-		{
-			float size;
-
-			MSG_ReadPos (&net_message, pos);
-			size = MSG_ReadFloat(&net_message);
-
-			CL_FlameBurst (pos, size);
-		}
-		break;
-	case TE_LASERSTUN:
-		{
-			int i;
-			float	size;
-			vec3_t	color;
-
-			MSG_ReadPos (&net_message, pos);
-			MSG_ReadPos (&net_message, dir);
-			size = MSG_ReadFloat(&net_message);
-			for (i=0;i<3;i++)
-				color[i] = (float)MSG_ReadByte(&net_message);
-
-			CL_LaserStun (pos, dir, color, size);
-		}
-		break;
-	case TE_STUNBLAST:
-		{
-			int i;
-			float	size;
-			vec3_t	color;
-
-			MSG_ReadPos (&net_message, pos);
-			size = MSG_ReadFloat(&net_message);
-			for (i=0;i<3;i++)
-				color[i] = (float)MSG_ReadByte(&net_message);
-
-			CL_StunBlast (pos, color, size);
-		}
-		break;
-	case TE_DISRUPTOR_EXPLOSION:
-		{
-			float	size;
-
-			MSG_ReadPos (&net_message, pos);
-			size = MSG_ReadFloat(&net_message);
-
-			CL_Disruptor_Explosion_Particle (pos, size);
-
-			S_StartSound (pos, 0, 0, cl_sfx_rockexp, 1, ATTN_NORM, 0);
-		}
-		break;
-	case TE_DISINTEGRATE:
-		{
-			ent = MSG_ReadByte(&net_message);
-			MSG_ReadPos (&net_message, pos);
-			CL_Disintegrate (pos, ent);
-		}
-		break;
-	case TE_LENSFLARE:
-		{
-			float size, time;
-
-			MSG_ReadPos (&net_message, pos);
-			MSG_ReadPos (&net_message, dir);
-			size = MSG_ReadFloat (&net_message);
-			time = MSG_ReadFloat (&net_message);
-
-			CL_LensFlare(pos, dir, size, time);
-		}
-		break;	
-	case TE_WEATHERFX:
-		{
-			vec3_t color;
-			int   type;
-			float size, time;
-
-			MSG_ReadPos (&net_message, pos);
-			MSG_ReadPos (&net_message, dir);
-			MSG_ReadPos (&net_message, color);
-			type = MSG_ReadByte (&net_message);
-			size = MSG_ReadFloat (&net_message);
-			time = MSG_ReadFloat (&net_message);
-
-			CL_WeatherFx(pos, dir, color, type, size, time);
-		}
-		break;	
-
-#endif
-//PGM
-//==============
+		//PGM
+		//==============
 
 	default:
 		Com_Error (ERR_DROP, "CL_ParseTEnt: bad type");
@@ -1503,7 +1177,7 @@ void CL_AddBeams (void)
 	float		len, steps;
 	float		model_length;
 	
-// update beams
+	// update beams
 	for (i=0, b=cl_beams ; i< MAX_BEAMS ; i++, b++)
 	{
 		if (!b->model || b->endtime < cl.time)
@@ -1517,7 +1191,7 @@ void CL_AddBeams (void)
 		}
 		VectorAdd (b->start, b->offset, org);
 
-	// calculate pitch and yaw
+		// calculate pitch and yaw
 		VectorSubtract (b->end, org, dist);
 
 		if (dist[1] == 0 && dist[0] == 0)
@@ -1530,9 +1204,9 @@ void CL_AddBeams (void)
 		}
 		else
 		{
-	// PMM - fixed to correct for pitch of 0
+		    // PMM - fixed to correct for pitch of 0
 			if (dist[0])
-				yaw = (atan2(dist[1], dist[0]) * 180 / M_PI);
+				yaw = ((float)atan2(dist[1], dist[0]) * 180 / M_PI);
 			else if (dist[1] > 0)
 				yaw = 90;
 			else
@@ -1540,13 +1214,13 @@ void CL_AddBeams (void)
 			if (yaw < 0)
 				yaw += 360;
 	
-			forward = sqrt (dist[0]*dist[0] + dist[1]*dist[1]);
-			pitch = (atan2(dist[2], forward) * -180.0 / M_PI);
+			forward = (float)sqrt (dist[0]*dist[0] + dist[1]*dist[1]);
+			pitch = ((float)atan2(dist[2], forward) * -180.0 / M_PI);
 			if (pitch < 0)
 				pitch += 360.0;
 		}
 
-	// add new entities for the beams
+		// add new entities for the beams
 		d = VectorNormalize(dist);
 
 		memset (&ent, 0, sizeof(ent));
@@ -1559,7 +1233,7 @@ void CL_AddBeams (void)
 		{
 			model_length = 30.0;
 		}
-		steps = ceil(d/model_length);
+		steps = (float)ceil(d/model_length);
 		len = (d-model_length)/(steps-1);
 
 		// PMM - special case for lightning model .. if the real length is shorter than the model,
@@ -1567,17 +1241,12 @@ void CL_AddBeams (void)
 		// through the tesla mine (instead it goes through the target)
 		if ((b->model == cl_mod_lightning) && (d <= model_length))
 		{
-//			Com_Printf ("special case\n");
 			VectorCopy (b->end, ent.origin);
-			// offset to push beam outside of tesla model (negative because dist is from end to start
-			// for this beam)
-//			for (j=0 ; j<3 ; j++)
-//				ent.origin[j] -= dist[j]*10.0;
 			ent.model = b->model;
 			ent.flags = RF_FULLBRIGHT;
 			ent.angles[0] = pitch;
 			ent.angles[1] = yaw;
-			ent.angles[2] = rand()%360;
+			ent.angles[2] = (float)(rand()%360);
 			V_AddEntity (&ent);			
 			return;
 		}
@@ -1589,17 +1258,16 @@ void CL_AddBeams (void)
 			{
 				ent.flags = RF_FULLBRIGHT;
 				ent.angles[0] = -pitch;
-				ent.angles[1] = yaw + 180.0;
-				ent.angles[2] = rand()%360;
+				ent.angles[1] = yaw + 180.0f;
+				ent.angles[2] = (float)(rand()%360);
 			}
 			else
 			{
 				ent.angles[0] = pitch;
 				ent.angles[1] = yaw;
-				ent.angles[2] = rand()%360;
+				ent.angles[2] = (float)(rand()%360);
 			}
 			
-//			Com_Printf("B: %d -> %d\n", b->entity, b->dest_entity);
 			V_AddEntity (&ent);
 
 			for (j=0 ; j<3 ; j++)
@@ -1608,20 +1276,6 @@ void CL_AddBeams (void)
 		}
 	}
 }
-
-
-/*
-//				Com_Printf ("Endpoint:  %f %f %f\n", b->end[0], b->end[1], b->end[2]);
-//				Com_Printf ("Pred View Angles:  %f %f %f\n", cl.predicted_angles[0], cl.predicted_angles[1], cl.predicted_angles[2]);
-//				Com_Printf ("Act View Angles: %f %f %f\n", cl.refdef.viewangles[0], cl.refdef.viewangles[1], cl.refdef.viewangles[2]);
-//				VectorCopy (cl.predicted_origin, b->start);
-//				b->start[2] += 22;	// adjust for view height
-//				if (fabs(cl.refdef.vieworg[2] - b->start[2]) >= 10) {
-//					b->start[2] = cl.refdef.vieworg[2];
-//				}
-
-//				Com_Printf ("Time:  %d %d %f\n", cl.time, cls.realtime, cls.frametime);
-*/
 
 extern cvar_t *hand;
 
@@ -1650,7 +1304,7 @@ void CL_AddPlayerBeams (void)
 
 	framenum = 0;
 	
-//PMM
+	//PMM
 	if (hand)
 	{
 		if (hand->value == 2)
@@ -1664,9 +1318,9 @@ void CL_AddPlayerBeams (void)
 	{
 		hand_multiplier = 1;
 	}
-//PMM
+	//PMM
 
-// update beams
+	// update beams
 	for (i=0, b=cl_playerbeams ; i< MAX_BEAMS ; i++, b++)
 	{
 		vec3_t		f,r,u;
@@ -1718,10 +1372,10 @@ void CL_AddPlayerBeams (void)
 			VectorAdd (b->start, b->offset, org);
 		}
 
-	// calculate pitch and yaw
+		// calculate pitch and yaw
 		VectorSubtract (b->end, org, dist);
 
-//PMM
+		//PMM
 		if(cl_mod_heatbeam && (b->model == cl_mod_heatbeam) && (b->entity == cl.playernum+1))
 		{
 			vec_t len;
@@ -1735,7 +1389,7 @@ void CL_AddPlayerBeams (void)
 				VectorMA (org, -1, cl.v_up, org);
 			}
 		}
-//PMM
+		//PMM
 
 		if (dist[1] == 0 && dist[0] == 0)
 		{
@@ -1747,9 +1401,9 @@ void CL_AddPlayerBeams (void)
 		}
 		else
 		{
-	// PMM - fixed to correct for pitch of 0
+		    // PMM - fixed to correct for pitch of 0
 			if (dist[0])
-				yaw = (atan2(dist[1], dist[0]) * 180 / M_PI);
+				yaw = ((float)atan2(dist[1], dist[0]) * 180 / M_PI);
 			else if (dist[1] > 0)
 				yaw = 90;
 			else
@@ -1758,7 +1412,7 @@ void CL_AddPlayerBeams (void)
 				yaw += 360;
 	
 			forward = sqrt (dist[0]*dist[0] + dist[1]*dist[1]);
-			pitch = (atan2(dist[2], forward) * -180.0 / M_PI);
+			pitch = ((float)atan2(dist[2], forward) * -180.0 / M_PI);
 			if (pitch < 0)
 				pitch += 360.0;
 		}
@@ -1768,11 +1422,9 @@ void CL_AddPlayerBeams (void)
 			if (b->entity != cl.playernum+1)
 			{
 				framenum = 2;
-//				Com_Printf ("Third person\n");
 				ent.angles[0] = -pitch;
-				ent.angles[1] = yaw + 180.0;
+				ent.angles[1] = yaw + 180.0f;
 				ent.angles[2] = 0;
-//				Com_Printf ("%f %f - %f %f %f\n", -pitch, yaw+180.0, b->offset[0], b->offset[1], b->offset[2]);
 				AngleVectors(ent.angles, f, r, u);
 					
 				// if it's a non-origin offset, it's a player, so use the hardcoded player offset
@@ -1800,7 +1452,7 @@ void CL_AddPlayerBeams (void)
 			CL_Heatbeam (org, dist);
 		}
 
-	// add new entities for the beams
+		// add new entities for the beams
 		d = VectorNormalize(dist);
 
 		memset (&ent, 0, sizeof(ent));
@@ -1825,17 +1477,12 @@ void CL_AddPlayerBeams (void)
 		// through the tesla mine (instead it goes through the target)
 		if ((b->model == cl_mod_lightning) && (d <= model_length))
 		{
-//			Com_Printf ("special case\n");
 			VectorCopy (b->end, ent.origin);
-			// offset to push beam outside of tesla model (negative because dist is from end to start
-			// for this beam)
-//			for (j=0 ; j<3 ; j++)
-//				ent.origin[j] -= dist[j]*10.0;
 			ent.model = b->model;
 			ent.flags = RF_FULLBRIGHT;
 			ent.angles[0] = pitch;
 			ent.angles[1] = yaw;
-			ent.angles[2] = rand()%360;
+			ent.angles[2] = (float)(rand()%360);
 			V_AddEntity (&ent);			
 			return;
 		}
@@ -1845,30 +1492,26 @@ void CL_AddPlayerBeams (void)
 			ent.model = b->model;
 			if(cl_mod_heatbeam && (b->model == cl_mod_heatbeam))
 			{
-//				ent.flags = RF_FULLBRIGHT|RF_TRANSLUCENT;
-//				ent.alpha = 0.3;
 				ent.flags = RF_FULLBRIGHT;
 				ent.angles[0] = -pitch;
-				ent.angles[1] = yaw + 180.0;
-				ent.angles[2] = (cl.time) % 360;
-//				ent.angles[2] = rand()%360;
+				ent.angles[1] = yaw + 180.0f;
+				ent.angles[2] = (float)((cl.time) % 360);
 				ent.frame = framenum;
 			}
 			else if (b->model == cl_mod_lightning)
 			{
 				ent.flags = RF_FULLBRIGHT;
 				ent.angles[0] = -pitch;
-				ent.angles[1] = yaw + 180.0;
-				ent.angles[2] = rand()%360;
+				ent.angles[1] = yaw + 180.0f;
+				ent.angles[2] = (float)(rand()%360);
 			}
 			else
 			{
 				ent.angles[0] = pitch;
 				ent.angles[1] = yaw;
-				ent.angles[2] = rand()%360;
+				ent.angles[2] = (float)(rand()%360);
 			}
 			
-//			Com_Printf("B: %d -> %d\n", b->entity, b->dest_entity);
 			V_AddEntity (&ent);
 
 			for (j=0 ; j<3 ; j++)
@@ -1898,7 +1541,7 @@ void CL_AddExplosions (void)
 		if (ex->type == ex_free)
 			continue;
 		frac = (cl.time - ex->start)/100.0;
-		f = floor(frac);
+		f = (int)floor(frac);
 
 		ent = &ex->ent;
 
@@ -1914,7 +1557,7 @@ void CL_AddExplosions (void)
 				ex->type = ex_free;
 				break;
 			}
-			ent->alpha = 1.0 - frac/(ex->frames-1);
+			ent->alpha = 1.0f - frac/(ex->frames-1);
 			break;
 		case ex_flash:
 			if (f >= 1)
@@ -1931,7 +1574,7 @@ void CL_AddExplosions (void)
 				break;
 			}
 
-			ent->alpha = (16.0 - (float)f)/16.0;
+			ent->alpha = (16.0f - (float)f)/16.0f;
 
 			if (f < 10)
 			{
@@ -1977,7 +1620,7 @@ void CL_AddExplosions (void)
 			f = 0;
 		ent->frame = ex->baseframe + f + 1;
 		ent->oldframe = ex->baseframe + f;
-		ent->backlerp = 1.0 - cl.lerpfrac;
+		ent->backlerp = 1.0f - cl.lerpfrac;
 
 		V_AddEntity (ent);
 	}
@@ -2012,7 +1655,6 @@ void CL_ProcessSustain ()
 		if (s->id) {
 			if ((s->endtime >= cl.time) && (cl.time >= s->nextthink))
 			{
-//				Com_Printf ("think %d %d %d\n", cl.time, s->nextthink, s->thinkinterval);
 				s->think (s);
 			}
 			else if (s->endtime < cl.time)
@@ -2029,10 +1671,8 @@ CL_AddTEnts
 void CL_AddTEnts (void)
 {
 	CL_AddBeams ();
-	// PMM - draw plasma beams
 	CL_AddPlayerBeams ();
 	CL_AddExplosions ();
 	CL_AddLasers ();
-	// PMM - set up sustain
 	CL_ProcessSustain();
 }
