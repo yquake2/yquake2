@@ -609,7 +609,7 @@ void V_AddEntity (entity_t *ent);
 #ifdef QMAX
 void V_AddParticle (vec3_t org, vec3_t angle, vec3_t color, float alpha, float size, int image, int flags);
 #else
-void V_AddParticle (vec3_t org, int color, float alpha);
+void V_AddParticle (vec3_t org, unsigned int color, float alpha);
 #endif
 void V_AddLight (vec3_t org, float intensity, float r, float g, float b);
 void V_AddLightStyle (int style, float r, float g, float b);
