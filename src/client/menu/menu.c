@@ -21,8 +21,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef _WIN32
 #include <io.h>
 #endif
-#include "client.h"
-#include "../client/qmenu.h"
+#include "../header/client.h"
+#include "qmenu.h"
 
 static int	m_main_cursor;
 

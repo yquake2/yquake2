@@ -89,6 +89,13 @@ all: client
 client:
 	@-mkdir -p build \
 		build/client \
+		build/client/console \
+		build/client/input \
+		build/client/menu \
+		build/client/sound \
+		build/common \
+		build/game \
+		build/posix \
 		build/server
 	$(MAKE) build/client/quake2	
 
@@ -111,40 +118,40 @@ QUAKE2_OBJS = \
 	build/client/cl_scrn.o \
 	build/client/cl_view.o \
 	build/client/cl_newfx.o \
-	build/client/console.o \
-	build/client/keys.o \
-	build/client/menu.o \
-	build/client/qmenu.o \
-	build/client/snd_dma.o \
-	build/client/snd_mem.o \
-	build/client/snd_mix.o \
-	build/client/cmd.o \
-	build/client/cmodel.o \
-	build/client/common.o \
-	build/client/crc.o \
-	build/client/cvar.o \
-	build/client/files.o \
-	build/client/md4.o \
-	build/client/net_chan.o \
-	build/client/pmove.o \
-	build/client/m_flash.o \
-	build/client/q_shared.o \
-	build/client/sv_ccmds.o \
-	build/client/sv_ents.o \
-	build/client/sv_game.o \
-	build/client/sv_init.o \
-	build/client/sv_main.o \
-	build/client/sv_send.o \
-	build/client/sv_user.o \
-	build/client/sv_world.o \
-	build/client/cd_sdl.o \
-	build/client/glob.o \
-	build/client/net_udp.o \
-	build/client/q_shlinux.o \
-	build/client/snd_sdl.o \
-	build/client/sys_linux.o \
-	build/client/vid_menu.o \
-	build/client/vid_so.o 
+	build/client/console/console.o \
+	build/client/input/keys.o \
+	build/client/menu/menu.o \
+	build/client/menu/qmenu.o \
+	build/client/sound/snd_dma.o \
+	build/client/sound/snd_mem.o \
+	build/client/sound/snd_mix.o \
+	build/common/cmd.o \
+	build/common/cmodel.o \
+	build/common/common.o \
+	build/common/crc.o \
+	build/common/cvar.o \
+	build/common/files.o \
+	build/common/md4.o \
+	build/common/net_chan.o \
+	build/common/pmove.o \
+	build/game/m_flash.o \
+	build/game/q_shared.o \
+	build/server/sv_ccmds.o \
+	build/server/sv_ents.o \
+	build/server/sv_game.o \
+	build/server/sv_init.o \
+	build/server/sv_main.o \
+	build/server/sv_send.o \
+	build/server/sv_user.o \
+	build/server/sv_world.o \
+	build/posix/cd_sdl.o \
+	build/posix/glob.o \
+	build/posix/net_udp.o \
+	build/posix/q_shlinux.o \
+	build/posix/snd_sdl.o \
+	build/posix/sys_linux.o \
+	build/posix/vid_menu.o \
+	build/posix/vid_so.o 
 
 build/client/quake2 : $(QUAKE2_OBJS)
 	$(CC) $(CFLAGS) -o $@ $(QUAKE2_OBJS) $(LDFLAGS) $(SDLLDFLAGS)
@@ -185,105 +192,105 @@ build/client/cl_view.o :    src/client/cl_view.c
 build/client/cl_newfx.o :   src/client/cl_newfx.c
 	$(CC) $(CFLAGS) -o $@ -c $<  
 
-build/client/console.o :    src/client/console.c
+build/client/console/console.o :    src/client/console/console.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/keys.o :       src/client/keys.c
+build/client/input/keys.o :       src/client/input/keys.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/menu.o :       src/client/menu.c
+build/client/menu/menu.o :       src/client/menu/menu.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/qmenu.o :      src/client/qmenu.c
+build/client/menu/qmenu.o :      src/client/menu/qmenu.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/snd_dma.o :    src/client/snd_dma.c
+build/client/sound/snd_dma.o :    src/client/sound/snd_dma.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/snd_mem.o :    src/client/snd_mem.c
+build/client/sound/snd_mem.o :    src/client/sound/snd_mem.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/snd_mix.o :    src/client/snd_mix.c
+build/client/sound/snd_mix.o :    src/client/sound/snd_mix.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/cmd.o :        src/common/cmd.c
+build/common/cmd.o :        src/common/cmd.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/cmodel.o :     src/common/cmodel.c
+build/common/cmodel.o :     src/common/cmodel.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/common.o :     src/common/common.c
+build/common/common.o :     src/common/common.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/crc.o :        src/common/crc.c
+build/common/crc.o :        src/common/crc.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/cvar.o :       src/common/cvar.c
+build/common/cvar.o :       src/common/cvar.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/files.o :      src/common/files.c
+build/common/files.o :      src/common/files.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/md4.o :        src/common/md4.c
+build/common/md4.o :        src/common/md4.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/net_chan.o :   src/common/net_chan.c
+build/common/net_chan.o :   src/common/net_chan.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/pmove.o :      src/common/pmove.c
+build/common/pmove.o :      src/common/pmove.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
  
-build/client/m_flash.o :    src/game/quake2/m_flash.c
+build/game/m_flash.o :    src/game/quake2/m_flash.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
  
-build/client/q_shared.o :   src/game/quake2/q_shared.c
+build/game/q_shared.o :   src/game/quake2/q_shared.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/sv_ccmds.o :   src/server/sv_ccmds.c
+build/server/sv_ccmds.o :   src/server/sv_ccmds.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/sv_ents.o :    src/server/sv_ents.c
+build/server/sv_ents.o :    src/server/sv_ents.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/sv_game.o :    src/server/sv_game.c
+build/server/sv_game.o :    src/server/sv_game.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/sv_init.o :    src/server/sv_init.c
+build/server/sv_init.o :    src/server/sv_init.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/sv_main.o :    src/server/sv_main.c
+build/server/sv_main.o :    src/server/sv_main.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/sv_send.o :    src/server/sv_send.c
+build/server/sv_send.o :    src/server/sv_send.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/sv_user.o :    src/server/sv_user.c
+build/server/sv_user.o :    src/server/sv_user.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/sv_world.o :   src/server/sv_world.c
+build/server/sv_world.o :   src/server/sv_world.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
  
-build/client/cd_sdl.o :     src/platforms/posix/cd_sdl.c
+build/posix/cd_sdl.o :     src/platforms/posix/cd_sdl.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(SDLCFLAGS)
  
-build/client/glob.o :       src/platforms/posix/glob.c
+build/posix/glob.o :       src/platforms/posix/glob.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/net_udp.o :   src/platforms/posix/net_udp.c
+build/posix/net_udp.o :   src/platforms/posix/net_udp.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
  
-build/client/q_shlinux.o :  src/platforms/posix/q_shlinux.c
+build/posix/q_shlinux.o :  src/platforms/posix/q_shlinux.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/snd_sdl.o :    src/platforms/posix/snd_sdl.c
+build/posix/snd_sdl.o :    src/platforms/posix/snd_sdl.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(SDLCFLAGS)
  
-build/client/sys_linux.o :  src/platforms/posix/sys_linux.c
+build/posix/sys_linux.o :  src/platforms/posix/sys_linux.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
  
-build/client/vid_menu.o :   src/platforms/posix/vid_menu.c
+build/posix/vid_menu.o :   src/platforms/posix/vid_menu.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
-build/client/vid_so.o :     src/platforms/posix/vid_so.c
+build/posix/vid_so.o :     src/platforms/posix/vid_so.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
