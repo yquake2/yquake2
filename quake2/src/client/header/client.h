@@ -35,14 +35,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <ctype.h>
 
 #include "ref.h"
-
 #include "vid.h"
 #include "screen.h"
-#include "sound.h"
-#include "input.h"
-#include "keys.h"
-#include "console.h"
-#include "cdaudio.h"
+
+#include "../sound/sound.h"
+#include "../input/input.h"
+#include "../input/keys.h"
+#include "../console/console.h"
+#include "../sound/cdaudio.h"
 
 //=============================================================================
 
