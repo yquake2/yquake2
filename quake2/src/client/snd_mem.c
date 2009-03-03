@@ -37,7 +37,8 @@ void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data)
 	int		srcsample;
 	float	stepscale;
 	int		i;
-	int		sample, samplefrac, fracstep;
+	int		sample;
+	unsigned int samplefrac, fracstep;
 	sfxcache_t	*sc;
 	
 	sc = sfx->cache;
@@ -46,10 +47,10 @@ void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data)
 
 	stepscale = (float)inrate / dma.speed;	// this is usually 0.5, 1, or 2
 
-	outcount = sc->length / stepscale;
+	outcount = (int)(sc->length / stepscale);
 	sc->length = outcount;
 	if (sc->loopstart != -1)
-		sc->loopstart = sc->loopstart / stepscale;
+		sc->loopstart = (int)(sc->loopstart / stepscale);
 
 	sc->speed = dma.speed;
 	if (s_loadas8bit->value)
@@ -58,20 +59,20 @@ void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data)
 		sc->width = inwidth;
 	sc->stereo = 0;
 
-// resample / decimate to the current source rate
+	// resample / decimate to the current source rate
 
 	if (stepscale == 1 && inwidth == 1 && sc->width == 1)
 	{
-// fast special case
+		// fast special case
 		for (i=0 ; i<outcount ; i++)
 			((signed char *)sc->data)[i]
 			= (int)( (unsigned char)(data[i]) - 128);
 	}
 	else
 	{
-// general case
+		// general case
 		samplefrac = 0;
-		fracstep = stepscale*256;
+		fracstep = (int)(stepscale*256);
 		for (i=0 ; i<outcount ; i++)
 		{
 			srcsample = samplefrac >> 8;
@@ -109,13 +110,12 @@ sfxcache_t *S_LoadSound (sfx_t *s)
 	if (s->name[0] == '*')
 		return NULL;
 
-// see if still in memory
+	// see if still in memory
 	sc = s->cache;
 	if (sc)
 		return sc;
 
-//Com_Printf ("S_LoadSound: %x\n", (int)stackbuf);
-// load it in
+	// load it in
 	if (s->truename)
 		name = s->truename;
 	else
@@ -126,12 +126,11 @@ sfxcache_t *S_LoadSound (sfx_t *s)
 	else
 		Com_sprintf (namebuffer, sizeof(namebuffer), "sound/%s", name);
 
-//	Com_Printf ("loading %s\n",namebuffer);
-
 	size = FS_LoadFile (namebuffer, (void **)&data);
 
 	if (!data)
 	{
+		s->cache = NULL;
 		Com_DPrintf ("Couldn't load %s\n", namebuffer);
 		return NULL;
 	}
@@ -145,7 +144,14 @@ sfxcache_t *S_LoadSound (sfx_t *s)
 	}
 
 	stepscale = (float)info.rate / dma.speed;	
-	len = info.samples / stepscale;
+	len = (int)(info.samples / stepscale);
+
+   	if (info.samples == 0 || len == 0)
+   	{
+   		Com_Printf ("WARNING: Zero length sound encountered: %s\n", s->name);
+   		FS_FreeFile (data);
+   		return NULL;
+   	} 
 
 	len = len * info.width * info.channels;
 
@@ -169,8 +175,6 @@ sfxcache_t *S_LoadSound (sfx_t *s)
 	return sc;
 }
 
-
-
 /*
 ===============================================================================
 
@@ -178,7 +182,6 @@ WAV loading
 
 ===============================================================================
 */
-
 
 byte	*data_p;
 byte 	*iff_end;
@@ -226,11 +229,9 @@ void FindNextChunk(char *name)
 			data_p = NULL;
 			return;
 		}
-//		if (iff_chunk_len > 1024*1024)
-//			Sys_Error ("FindNextChunk: %i length is past the 1 meg sanity limit", iff_chunk_len);
 		data_p -= 8;
 		last_chunk = data_p + 8 + ( (iff_chunk_len + 1) & ~1 );
-		if (!strncmp((char *)data_p, name, 4))
+		if (!strncmp((const char *)data_p, name, 4))
 			return;
 	}
 }
@@ -240,7 +241,6 @@ void FindChunk(char *name)
 	last_chunk = iff_data;
 	FindNextChunk (name);
 }
-
 
 void DumpChunks(void)
 {
@@ -253,7 +253,7 @@ void DumpChunks(void)
 		memcpy (str, data_p, 4);
 		data_p += 4;
 		iff_chunk_len = GetLittleLong();
-		Com_Printf ("0x%x : %s (%d)\n", (int)(data_p - 4), str, iff_chunk_len);
+		Com_Printf ("0x%x : %s (%d)\n", data_p - 4, str, iff_chunk_len);
 		data_p += (iff_chunk_len + 1) & ~1;
 	} while (data_p < iff_end);
 }
@@ -278,17 +278,16 @@ wavinfo_t GetWavinfo (char *name, byte *wav, int wavlength)
 	iff_data = wav;
 	iff_end = wav + wavlength;
 
-// find "RIFF" chunk
+	// find "RIFF" chunk
 	FindChunk("RIFF");
-	if (!(data_p && !strncmp((char *)data_p+8, "WAVE", 4)))
+	if (!(data_p && !strncmp((const char *)data_p+8, "WAVE", 4)))
 	{
 		Com_Printf("Missing RIFF/WAVE chunks\n");
 		return info;
 	}
 
-// get "fmt " chunk
+	// get "fmt " chunk
 	iff_data = data_p + 12;
-// DumpChunks ();
 
 	FindChunk("fmt ");
 	if (!data_p)
@@ -309,31 +308,29 @@ wavinfo_t GetWavinfo (char *name, byte *wav, int wavlength)
 	data_p += 4+2;
 	info.width = GetLittleShort() / 8;
 
-// get cue chunk
+	// get cue chunk
 	FindChunk("cue ");
 	if (data_p)
 	{
 		data_p += 32;
 		info.loopstart = GetLittleLong();
-//		Com_Printf("loopstart=%d\n", sfx->loopstart);
 
-	// if the next chunk is a LIST chunk, look for a cue length marker
+		// if the next chunk is a LIST chunk, look for a cue length marker
 		FindNextChunk ("LIST");
 		if (data_p)
 		{
-			if (!strncmp ((char *)data_p + 28, "mark", 4))
+			if (!strncmp ((const char *)data_p + 28, "mark", 4))
 			{	// this is not a proper parse, but it works with cooledit...
 				data_p += 24;
 				i = GetLittleLong ();	// samples in loop
 				info.samples = info.loopstart + i;
-//				Com_Printf("looped length: %i\n", i);
 			}
 		}
 	}
 	else
 		info.loopstart = -1;
 
-// find data chunk
+	// find data chunk
 	FindChunk("data");
 	if (!data_p)
 	{
