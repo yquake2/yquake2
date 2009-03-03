@@ -129,7 +129,6 @@ static void PerformMD4(const unsigned char *buf, int length, uint32_t *digest)
 	
 	DoMD4();
 
-#if 1
 	digest[ 0] = (A & 0x000000FF) >> 0;
 	digest[ 1] = (A & 0x0000FF00) >> 8;
 	digest[ 2] = (A & 0x00FF0000) >> 16;
@@ -146,12 +145,6 @@ static void PerformMD4(const unsigned char *buf, int length, uint32_t *digest)
 	digest[13] = (D & 0x0000FF00) >> 8;
 	digest[14] = (D & 0x00FF0000) >> 16;
 	digest[15] = (D & 0xFF000000) >> 24;
-#else
-	digest[0] = SWAPLSB(A);
-	digest[1] = SWAPLSB(B);
-	digest[2] = SWAPLSB(C);
-	digest[3] = SWAPLSB(D);
-#endif
 	
 	A = AA = 0;
 	B = BB = 0;

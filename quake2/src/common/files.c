@@ -20,16 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "qcommon.h"
 
-// define this to dissalow any data but the demo pak file
-//#define	NO_ADDONS
 
 // if a packfile directory differs from this, it is assumed to be hacked
 // Full version
 #define	PAK0_CHECKSUM	0x40e614e0
-// Demo
-//#define	PAK0_CHECKSUM	0xb2c6d7ea
-// OEM
-//#define	PAK0_CHECKSUM	0x78e135c
 
 /*
 =============================================================================
@@ -86,12 +80,22 @@ searchpath_t	*fs_base_searchpaths;	// without gamedirs
 
 /*
 
-All of Quake's data access is through a hierchal file system, but the contents of the file system can be transparently merged from several sources.
+All of Quake's data access is through a hierchal file system, but the
+contents of the file system can be transparently merged from several
+sources.
 
-The "base directory" is the path to the directory holding the quake.exe and all game directories.  The sys_* files pass this to host_init in quakeparms_t->basedir.  This can be overridden with the "-basedir" command line parm to allow code debugging in a different directory.  The base directory is
-only used during filesystem initialization.
+The "base directory" is the path to the directory holding the quake.exe
+and all game directories.  The sys_* files pass this to host_init in
+quakeparms_t->basedir.  This can be overridden with the "-basedir"
+command line parm to allow code debugging in a different directory.  The
+base directory is only used during filesystem initialization.
 
-The "game directory" is the first tree on the search path and directory that all generated files (savegames, screenshots, demos, config files) will be saved to.  This can be overridden with the "-game" command line parameter.  The game directory can never be changed while quake is executing.  This is a precacution against having a malicious server instruct clients to write files over areas they shouldn't.
+The "game directory" is the first tree on the search path and directory
+that all generated files (savegames, screenshots, demos, config files)
+will be saved to.  This can be overridden with the "-game" command line
+parameter.  The game directory can never be changed while quake is
+executing.  This is a precacution against having a malicious server
+instruct clients to write files over areas they shouldn't.
 
 */
 
@@ -161,7 +165,6 @@ int	Developer_searchpath (int who)
 	
 	int		ch;
 	// PMM - warning removal
-//	char	*start;
 	searchpath_t	*search;
 	
 	if (who == 1) // xatrix
@@ -176,15 +179,6 @@ int	Developer_searchpath (int who)
 
 		if (strstr (search->filename, "rogue"))
 			return 2;
-/*
-		start = strchr (search->filename, ch);
-
-		if (start == NULL)
-			continue;
-
-		if (strcmp (start ,"xatrix") == 0)
-			return (1);
-*/
 	}
 	return (0);
 
@@ -202,7 +196,6 @@ a seperate file.
 ===========
 */
 int file_from_pak = 0;
-#ifndef NO_ADDONS
 int FS_FOpenFile (char *filename, FILE **file)
 {
 	searchpath_t	*search;
@@ -229,9 +222,9 @@ int FS_FOpenFile (char *filename, FILE **file)
 		}
 	}
 
-//
-// search through the path, one element at a time
-//
+	//
+	// search through the path, one element at a time
+	//
 	for (search = fs_searchpaths ; search ; search = search->next)
 	{
 	// is the element a pak file?
@@ -254,7 +247,7 @@ int FS_FOpenFile (char *filename, FILE **file)
 		}
 		else
 		{		
-	// check a file in the directory tree
+			// check a file in the directory tree
 			
 			Com_sprintf (netpath, sizeof(netpath), "%s/%s",search->filename, filename);
 			
@@ -274,65 +267,6 @@ int FS_FOpenFile (char *filename, FILE **file)
 	*file = NULL;
 	return -1;
 }
-
-#else
-
-// this is just for demos to prevent add on hacking
-
-int FS_FOpenFile (char *filename, FILE **file)
-{
-	searchpath_t	*search;
-	char			netpath[MAX_OSPATH];
-	pack_t			*pak;
-	int				i;
-
-	file_from_pak = 0;
-
-	// get config from directory, everything else from pak
-	if (!strcmp(filename, "config.cfg") || !strncmp(filename, "players/", 8))
-	{
-		Com_sprintf (netpath, sizeof(netpath), "%s/%s",FS_Gamedir(), filename);
-		
-		*file = fopen (netpath, "rb");
-		if (!*file)
-			return -1;
-		
-		Com_DPrintf ("FindFile: %s\n",netpath);
-
-		return FS_filelength (*file);
-	}
-
-	for (search = fs_searchpaths ; search ; search = search->next)
-		if (search->pack)
-			break;
-	if (!search)
-	{
-		*file = NULL;
-		return -1;
-	}
-
-	pak = search->pack;
-	for (i=0 ; i<pak->numfiles ; i++)
-		if (!Q_strcasecmp (pak->files[i].name, filename))
-		{	// found it!
-			file_from_pak = 1;
-			Com_DPrintf ("PackFile: %s : %s\n",pak->filename, filename);
-		// open a new file on the pakfile
-			*file = fopen (pak->filename, "rb");
-			if (!*file)
-				Com_Error (ERR_FATAL, "Couldn't reopen %s", pak->filename);	
-			fseek (*file, pak->files[i].filepos, SEEK_SET);
-			return pak->files[i].filelen;
-		}
-	
-	Com_DPrintf ("FindFile: can't find %s\n", filename);
-	
-	*file = NULL;
-	return -1;
-}
-
-#endif
-
 
 /*
 =================
@@ -399,7 +333,7 @@ int FS_LoadFile (char *path, void **buffer)
 
 	buf = NULL;	// quiet compiler warning
 
-// look for it in the filesystem or pack files
+	// look for it in the filesystem or pack files
 	len = FS_FOpenFile (path, &h);
 	if (!h)
 	{
@@ -476,14 +410,10 @@ pack_t *FS_LoadPackFile (char *packfile)
 	fseek (packhandle, header.dirofs, SEEK_SET);
 	fread (info, 1, header.dirlen, packhandle);
 
-// crc the directory to check for modifications
+	// crc the directory to check for modifications
 	checksum = Com_BlockChecksum ((void *)info, header.dirlen);
 
-#ifdef NO_ADDONS
-	if (checksum != PAK0_CHECKSUM)
-		return NULL;
-#endif
-// parse the directory
+	// parse the directory
 	for (i=0 ; i<numpackfiles ; i++)
 	{
 		strcpy (newfiles[i].name, info[i].name);
@@ -541,14 +471,6 @@ void FS_AddGameDirectory (char *dir)
 	  search->next = fs_searchpaths;
 	  fs_searchpaths = search;		
 	}
-#ifdef QMAX
-	Com_sprintf (pakfile, sizeof(pakfile), "%s/maxpak.pak", dir);
-	pak = FS_LoadPackFile (pakfile);
-	search = Z_Malloc (sizeof(searchpath_t));
-	search->pack = pak;
-	search->next = fs_searchpaths;
-	fs_searchpaths = search;
-#endif
 }
 
 /*
