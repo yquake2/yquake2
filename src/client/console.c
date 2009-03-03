@@ -71,8 +71,7 @@ void Con_ToggleConsole_f (void)
 
 	if (cl.attractloop)
 	{
-		cl.attractloop = false;
-		Cmd_ExecuteString ("disconnect\n");
+		Cbuf_AddText("killserver\n");
 		return;
 	}
 
@@ -575,9 +574,9 @@ void Con_DrawConsole (float frac)
 	char			*text;
 	int				row;
 	int				lines;
-	char			version[24];
+	char			version[48];
 	char			dlbar[1024];
-    char			timebuf[20];
+    char			timebuf[21];
 	char			tmpbuf[24];
 
 	time_t			t;
@@ -595,17 +594,17 @@ void Con_DrawConsole (float frac)
 	SCR_AddDirtyPoint (0,0);
 	SCR_AddDirtyPoint (viddef.width-1,lines-1);
  
-	Com_sprintf (version, sizeof(version), "Quake2 v%4.2f",VERSION);
-	for (x=0 ; x<12 ; x++)
-		re.DrawChar (viddef.width-153+x*8, lines-35, 128 + version[x] );
+	Com_sprintf (version, sizeof(version), "Yamagi Quake II v%4.2f",VERSION);
+	for (x=0 ; x<21 ; x++)
+		re.DrawChar (viddef.width-173+x*8, lines-35, 128 + version[x] );
 
     t = time(NULL);
 	today = localtime(&t);
-	strftime (timebuf, sizeof(timebuf), "%H:%M:%S", today);
+	strftime (timebuf, sizeof(timebuf), "%H:%M:%S - %m/%d/%Y", today);
 
-	Com_sprintf (tmpbuf, sizeof(tmpbuf), "Time %s",timebuf);
-	for (x=0 ; x<13 ; x++)
-		re.DrawChar (viddef.width-150+x*8, lines-25, 128 + tmpbuf[x] );
+	Com_sprintf (tmpbuf, sizeof(tmpbuf), "%s",timebuf);
+	for (x=0 ; x<21 ; x++)
+		re.DrawChar (viddef.width-173+x*8, lines-25, 128 + tmpbuf[x] );
 
 	// draw the text
 	con.vislines = lines;
