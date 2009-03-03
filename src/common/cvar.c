@@ -44,7 +44,7 @@ static qboolean Cvar_InfoValidate (char *s)
 Cvar_FindVar
 ============
 */
-static cvar_t *Cvar_FindVar (char *var_name)
+static cvar_t *Cvar_FindVar (const char *var_name)
 {
 	cvar_t	*var;
 	
@@ -76,7 +76,7 @@ float Cvar_VariableValue (char *var_name)
 Cvar_VariableString
 ============
 */
-char *Cvar_VariableString (char *var_name)
+const char *Cvar_VariableString (const char *var_name)
 {
 	cvar_t *var;
 	
@@ -97,7 +97,7 @@ char *Cvar_CompleteVariable (char *partial)
 	cvar_t		*cvar;
 	int			len;
 	
-	len = strlen(partial);
+	len = (int)strlen(partial);
 	
 	if (!len)
 		return NULL;
@@ -225,7 +225,8 @@ cvar_t *Cvar_Set2 (char *var_name, char *value, qboolean force)
 			else
 			{
 				var->string = CopyString(value);
-				var->value = atof (var->string);
+				var->value = (float)atof (var->string);
+
 				if (!strcmp(var->name, "game"))
 				{
 					FS_SetGamedir (var->string);
@@ -303,7 +304,8 @@ cvar_t *Cvar_FullSet (char *var_name, char *value, int flags)
 	Z_Free (var->string);	// free the old value string
 	
 	var->string = CopyString(value);
-	var->value = atof (var->string);
+	var->value = (float)atof (var->string);
+
 	var->flags = flags;
 
 	return var;
@@ -345,6 +347,7 @@ void Cvar_GetLatchedVars (void)
 		var->string = var->latched_string;
 		var->latched_string = NULL;
 		var->value = atof(var->string);
+		
 		if (!strcmp(var->name, "game"))
 		{
 			FS_SetGamedir (var->string);
@@ -364,12 +367,12 @@ qboolean Cvar_Command (void)
 {
 	cvar_t			*v;
 
-// check variables
+	// check variables
 	v = Cvar_FindVar (Cmd_Argv(0));
 	if (!v)
 		return false;
 		
-// perform a variable print or set
+	// perform a variable print or set
 	if (Cmd_Argc() == 1)
 	{
 		Com_Printf ("\"%s\" is \"%s\"\n", v->name, v->string);
