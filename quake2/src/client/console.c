@@ -576,8 +576,8 @@ void Con_DrawConsole (float frac)
 	int				lines;
 	char			version[48];
 	char			dlbar[1024];
-    char			timebuf[21];
-	char			tmpbuf[24];
+    char			timebuf[48];
+	char			tmpbuf[48];
 
 	time_t			t;
     struct tm		*today;
