@@ -116,7 +116,7 @@ void Cbuf_InsertText (char *text)
 	char	*temp;
 	int		templen;
 
-// copy off any commands still remaining in the exec buffer
+	// copy off any commands still remaining in the exec buffer
 	templen = cmd_text.cursize;
 	if (templen)
 	{
@@ -127,10 +127,10 @@ void Cbuf_InsertText (char *text)
 	else
 		temp = NULL;	// shut up compiler
 		
-// add the entire text of the file
+	// add the entire text of the file
 	Cbuf_AddText (text);
 	
-// add the copied off data
+	// add the copied off data
 	if (templen)
 	{
 		SZ_Write (&cmd_text, temp, templen);
@@ -202,7 +202,7 @@ void Cbuf_Execute (void)
 
 	while (cmd_text.cursize)
 	{
-// find a \n or ; line break
+		// find a \n or ; line break
 		text = (char *)cmd_text.data;
 
 		quotes = 0;
@@ -220,9 +220,9 @@ void Cbuf_Execute (void)
 		memcpy (line, text, i);
 		line[i] = 0;
 		
-// delete the text from the command buffer and move remaining commands down
-// this is necessary because commands (exec, alias) can insert data at the
-// beginning of the text buffer
+		// delete the text from the command buffer and move remaining commands down
+		// this is necessary because commands (exec, alias) can insert data at the
+		// beginning of the text buffer
 
 		if (i == cmd_text.cursize)
 			cmd_text.cursize = 0;
@@ -233,7 +233,7 @@ void Cbuf_Execute (void)
 			memmove (text, text+i, cmd_text.cursize);
 		}
 
-// execute the command line
+		// execute the command line
 		Cmd_ExecuteString (line);
 		
 		if (cmd_wait)
@@ -301,7 +301,7 @@ qboolean Cbuf_AddLateCommands (void)
 	int		argc;
 	qboolean	ret;
 
-// build the combined string to parse from
+	// build the combined string to parse from
 	s = 0;
 	argc = COM_Argc();
 	for (i=1 ; i<argc ; i++)
@@ -320,7 +320,7 @@ qboolean Cbuf_AddLateCommands (void)
 			strcat (text, " ");
 	}
 	
-// pull out the commands
+	// pull out the commands
 	build = Z_Malloc (s+1);
 	build[0] = 0;
 	
@@ -462,7 +462,7 @@ void Cmd_Alias_f (void)
 	}
 	strcpy (a->name, s);	
 
-// copy the rest of the command line
+	// copy the rest of the command line
 	cmd[0] = 0;		// start out with a null string
 	c = Cmd_Argc();
 	for (i=2 ; i< c ; i++)
@@ -620,9 +620,9 @@ $Cvars will be expanded unless they are in a quoted token
 void Cmd_TokenizeString (char *text, qboolean macroExpand)
 {
 	int		i;
-	char	*com_token;
+	const char	*com_token;
 
-// clear the args from the last string
+	// clear the args from the last string
 	for (i=0 ; i<cmd_argc ; i++)
 		Z_Free (cmd_argv[i]);
 		
@@ -637,7 +637,7 @@ void Cmd_TokenizeString (char *text, qboolean macroExpand)
 
 	while (1)
 	{
-// skip whitespace up to a /n
+		// skip whitespace up to a /n
 		while (*text && *text <= ' ' && *text != '\n')
 		{
 			text++;
@@ -692,14 +692,13 @@ void	Cmd_AddCommand (char *cmd_name, xcommand_t function)
 {
 	cmd_function_t	*cmd;
 	
-// fail if the command is a variable name
+	// fail if the command is a variable name
 	if (Cvar_VariableString(cmd_name)[0])
 	{
-		Com_Printf ("Cmd_AddCommand: %s already defined as a var\n", cmd_name);
-		return;
+		Cmd_RemoveCommand (cmd_name);
 	}
 	
-// fail if the command already exists
+	// fail if the command already exists
 	for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
 	{
 		if (!strcmp (cmd_name, cmd->name))
@@ -780,7 +779,7 @@ char *Cmd_CompleteCommand (char *partial)
 	if (!len)
 		return NULL;
 		
-// check for exact match
+	// check for exact match
 	for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
 		if (!strcmp (partial,cmd->name))
 			return cmd->name;
@@ -788,7 +787,7 @@ char *Cmd_CompleteCommand (char *partial)
 		if (!strcmp (partial, a->name))
 			return a->name;
 
-// check for partial match
+	// check for partial match
 	for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
 		if (!strncmp (partial,cmd->name, len))
 			return cmd->name;
@@ -880,9 +879,9 @@ Cmd_Init
 */
 void Cmd_Init (void)
 {
-//
-// register our commands
-//
+	//
+	// register our commands
+	//
 	Cmd_AddCommand ("cmdlist",Cmd_List_f);
 	Cmd_AddCommand ("exec",Cmd_Exec_f);
 	Cmd_AddCommand ("echo",Cmd_Echo_f);
