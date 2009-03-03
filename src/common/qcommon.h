@@ -22,52 +22,32 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "../game/quake2/q_shared.h"
 
-
-#define	VERSION		3.21
-
+#define	VERSION		0.01
 #define	BASEDIRNAME	"baseq2"
 
 #ifdef WIN32
-
-#ifdef NDEBUG
-#define BUILDSTRING "Win32 RELEASE"
-#else
-#define BUILDSTRING "Win32 DEBUG"
-#endif
-
-#ifdef _M_IX86
-#define	CPUSTRING	"x86"
-#elif defined _M_ALPHA
-#define	CPUSTRING	"AXP"
-#endif
-
-#elif defined __linux__ || defined __FreeBSD__
-
+#define BUILDSTRING "Windows"
+#elif defined __linux__ 
 #define BUILDSTRING "Linux"
+#elif defined __FreeBSD__
+#define BUILDSTRING "FreeBSD"
+#endif
 
 #ifdef __i386__
 #define CPUSTRING "i386"
-#elif defined __alpha__
-#define CPUSTRING "axp"
+#elif defined __x86_64__
+#define CPUSTRING "amd64"
 #else
 #define CPUSTRING "Unknown"
 #endif
 
-#elif defined __sun__
-
+#if defined __sun__
 #define BUILDSTRING "Solaris"
-
 #ifdef __i386__
 #define CPUSTRING "i386"
 #else
 #define CPUSTRING "sparc"
 #endif
-
-#else	// !WIN32
-
-#define BUILDSTRING "NON-WIN32"
-#define	CPUSTRING	"NON-WIN32"
-
 #endif
 
 //============================================================================
@@ -527,24 +507,14 @@ NET
 #define	MAX_MSGLEN		1400		// max length of a message
 #define	PACKET_HEADER	10			// two ints and a short
 
-#ifdef HAVE_IPV6
-typedef enum {NA_LOOPBACK, NA_BROADCAST, NA_IP, NA_IPX, NA_BROADCAST_IPX, NA_IP6, NA_MULTICAST6} netadrtype_t;
-#else
 typedef enum {NA_LOOPBACK, NA_BROADCAST, NA_IP, NA_IPX, NA_BROADCAST_IPX} netadrtype_t;
-#endif
 
 typedef enum {NS_CLIENT, NS_SERVER} netsrc_t;
 
 typedef struct
 {
 	netadrtype_t	type;
-#ifdef HAVE_IPV6
-        /* TODO. Use sockaddr_storage instead. */
-        byte	ip[16];
-        unsigned int scope_id;
-#else
 	byte	ip[4];
-#endif    
 	byte	ipx[10];
 
 	unsigned short	port;
@@ -585,7 +555,7 @@ typedef struct
 	netadr_t	remote_address;
 	int			qport;				// qport value to write when transmitting
 
-// sequencing variables
+	// sequencing variables
 	int			incoming_sequence;
 	int			incoming_acknowledged;
 	int			incoming_reliable_acknowledged;	// single bit
@@ -596,11 +566,11 @@ typedef struct
 	int			reliable_sequence;			// single bit
 	int			last_reliable_sequence;		// sequence number of last send
 
-// reliable staging and holding areas
+	// reliable staging and holding areas
 	sizebuf_t	message;		// writing buffer to send to server
 	byte		message_buf[MAX_MSGLEN-16];		// leave space for header
 
-// message is copied to this buffer when it is first transfered
+	// message is copied to this buffer when it is first transfered
 	int			reliable_length;
 	byte		reliable_buf[MAX_MSGLEN-16];	// unacked reliable message
 } netchan_t;

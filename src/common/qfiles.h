@@ -416,7 +416,7 @@ typedef struct
 	short		numedges;	
 	short		texinfo;
 
-// lighting info
+	// lighting info
 	byte		styles[MAXLIGHTMAPS];
 	int			lightofs;		// start of [numstyles*surfsize] samples
 } dface_t;
@@ -453,7 +453,6 @@ typedef struct
 
 #define	ANGLE_UP	-1
 #define	ANGLE_DOWN	-2
-
 
 // the visibility lump consists of a header with a count, then
 // byte offsets for the PVS and PHS of each cluster, then the raw
