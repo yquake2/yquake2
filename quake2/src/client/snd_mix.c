@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "client.h"
 #include "snd_loc.h"
 
-#define	PAINTBUFFER_SIZE	2048
+#define	PAINTBUFFER_SIZE	8192
 portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE];
 int		snd_scaletable[32][256];
 int 	*snd_p, snd_linear_count, snd_vol;
@@ -115,7 +115,7 @@ void S_TransferStereo16 (unsigned long *pbuf, int endtime)
 
 	while (lpaintedtime < endtime)
 	{
-	// handle recirculating buffer issues
+		// handle recirculating buffer issues
 		lpos = lpaintedtime & ((dma.samples>>1)-1);
 
 		snd_out = (short *) pbuf + (lpos<<1);
@@ -126,7 +126,7 @@ void S_TransferStereo16 (unsigned long *pbuf, int endtime)
 
 		snd_linear_count <<= 1;
 
-	// write a linear blast of samples
+		// write a linear blast of samples
 		S_WriteLinearBlastStereo16 ();
 
 		snd_p += snd_linear_count;
@@ -154,13 +154,21 @@ void S_TransferPaintBuffer(int endtime)
 
 	if (s_testsound->value)
 	{
+		static float x = 0.05;
+		static float y = 0.0001;
 		int		i;
 		int		count;
+
+		x += y;
+		if (x > 0.15)
+			y = -0.0001;
+		else if (x < 0.0005)
+			y = 0.0001;
 
 		// write a fixed sine wave
 		count = (endtime - paintedtime);
 		for (i=0 ; i<count ; i++)
-			paintbuffer[i].left = paintbuffer[i].right = sin((paintedtime+i)*0.1)*20000*256;
+			paintbuffer[i].left = paintbuffer[i].right = (int)((float)sin((paintedtime+i)*0.1f)*20000*256);
 	}
 
 
@@ -232,7 +240,6 @@ void S_PaintChannels(int endtime)
 
 	snd_vol = s_volume->value*256;
 
-//Com_Printf ("%i to %i\n", paintedtime, endtime);
 	while (paintedtime < endtime)
 	{
 	// if paintbuffer is smaller than DMA buffer
@@ -257,10 +264,9 @@ void S_PaintChannels(int endtime)
 			break;
 		}
 
-	// clear the paint buffer
+		// clear the paint buffer
 		if (s_rawend < paintedtime)
 		{
-//			Com_Printf ("clear\n");
 			memset(paintbuffer, 0, (end - paintedtime) * sizeof(portable_samplepair_t));
 		}
 		else
@@ -275,10 +281,6 @@ void S_PaintChannels(int endtime)
 				s = i&(MAX_RAW_SAMPLES-1);
 				paintbuffer[i-paintedtime] = s_rawsamples[s];
 			}
-//		if (i != end)
-//			Com_Printf ("partial stream\n");
-//		else
-//			Com_Printf ("full stream\n");
 			for ( ; i<end ; i++)
 			{
 				paintbuffer[i-paintedtime].left =
@@ -287,7 +289,7 @@ void S_PaintChannels(int endtime)
 		}
 
 
-	// paint in the channels.
+		// paint in the channels.
 		ch = channels;
 		for (i=0; i<MAX_CHANNELS ; i++, ch++)
 		{
@@ -319,7 +321,7 @@ void S_PaintChannels(int endtime)
 					ltime += count;
 				}
 
-			// if at end of loop, restart
+				// if at end of loop, restart
 				if (ltime >= ch->end)
 				{
 					if (ch->autosound)
@@ -341,7 +343,7 @@ void S_PaintChannels(int endtime)
 															  
 		}
 
-	// transfer out according to DMA format
+		// transfer out according to DMA format
 		S_TransferPaintBuffer(end);
 		paintedtime = end;
 	}
@@ -355,7 +357,7 @@ void S_InitScaletable (void)
 	s_volume->modified = false;
 	for (i=0 ; i<32 ; i++)
 	{
-		scale = i * 8 * 256 * s_volume->value;
+		scale = (int)(i * 8 * 256 * s_volume->value);
 		for (j=0 ; j<256 ; j++)
 			snd_scaletable[i][j] = ((signed char)j) * scale;
 	}
@@ -382,7 +384,7 @@ void S_PaintChannelFrom8 (channel_t *ch, sfxcache_t *sc, int count, int offset)
 	//as it would always be zero.
 	lscale = snd_scaletable[ ch->leftvol >> 3];
 	rscale = snd_scaletable[ ch->rightvol >> 3];
-	sfx = (signed char *)sc->data + ch->pos;
+	sfx = sc->data + ch->pos;
 
 	samp = &paintbuffer[offset];
 
