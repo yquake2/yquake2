@@ -382,7 +382,7 @@ channel_t *S_PickChannel(int entnum, int entchannel)
 	if (entchannel<0)
 		Com_Error (ERR_DROP, "S_PickChannel: entchannel<0");
 
-// Check for replacement sound, or find the best one to replace
+	// Check for replacement sound, or find the best one to replace
     first_to_die = -1;
     life_left = 0x7fffffff;
     for (ch_idx=0 ; ch_idx < MAX_CHANNELS ; ch_idx++)
@@ -435,7 +435,7 @@ void S_SpatializeOrigin (vec3_t origin, float master_vol, float dist_mult, int *
 		return;
 	}
 
-// calculate stereo seperation and distance attenuation
+	// calculate stereo seperation and distance attenuation
 	VectorSubtract(origin, listener_origin, source_vec);
 
 	dist = VectorNormalize(source_vec);
@@ -448,17 +448,17 @@ void S_SpatializeOrigin (vec3_t origin, float master_vol, float dist_mult, int *
 
 	if (dma.channels == 1 || !dist_mult)
 	{ // no attenuation = no spatialization
-		rscale = 1.0;
-		lscale = 1.0;
+		rscale = 1.0f;
+		lscale = 1.0f;
 	}
 	else
 	{
-		rscale = 0.5 * (1.0 + dot);
-		lscale = 0.5*(1.0 - dot);
+		rscale = 0.5f * (1.0f + dot);
+		lscale = 0.5f * (1.0f - dot);
 	}
 
 	// add in distance effect
-	scale = (1.0 - dist) * rscale;
+	scale = (1.0f - dist) * rscale;
 	*right_vol = (int) (master_vol * scale);
 	if (*right_vol < 0)
 		*right_vol = 0;
@@ -493,7 +493,7 @@ void S_Spatialize(channel_t *ch)
 	else
 		CL_GetEntitySoundOrigin (ch->entnum, origin);
 
-	S_SpatializeOrigin (origin, ch->master_vol, ch->dist_mult, &ch->leftvol, &ch->rightvol);
+	S_SpatializeOrigin (origin, (float)ch->master_vol, ch->dist_mult, &ch->leftvol, &ch->rightvol);
 }           
 
 
@@ -564,9 +564,9 @@ void S_IssuePlaysound (playsound_t *ps)
 
 	// spatialize
 	if (ps->attenuation == ATTN_STATIC)
-		ch->dist_mult = ps->attenuation * 0.001;
+		ch->dist_mult = ps->attenuation * 0.001f;
 	else
-		ch->dist_mult = ps->attenuation * 0.0005;
+		ch->dist_mult = ps->attenuation * 0.0005f;
 	ch->master_vol = ps->volume;
 	ch->entnum = ps->entnum;
 	ch->entchannel = ps->entchannel;
@@ -695,16 +695,16 @@ void S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx, float f
 	ps->sfx = sfx;
 
 	// drift s_beginofs
-	start = cl.frame.servertime * 0.001 * dma.speed + s_beginofs;
+	start = (int)(cl.frame.servertime * 0.001f * dma.speed + s_beginofs);
 	if (start < paintedtime)
 	{
 		start = paintedtime;
-		s_beginofs = start - (cl.frame.servertime * 0.001 * dma.speed);
+		s_beginofs = (int)(start - (cl.frame.servertime * 0.001f * dma.speed));
 	}
-	else if (start > paintedtime + 0.3 * dma.speed)
+	else if (start > paintedtime + 0.3f * dma.speed)
 	{
-		start = paintedtime + 0.1 * dma.speed;
-		s_beginofs = start - (cl.frame.servertime * 0.001 * dma.speed);
+		start = (int)(paintedtime + 0.1f * dma.speed);
+		s_beginofs = (int)(start - (cl.frame.servertime * 0.001f * dma.speed));
 	}
 	else
 	{
@@ -714,7 +714,7 @@ void S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx, float f
 	if (!timeofs)
 		ps->begin = paintedtime;
 	else
-		ps->begin = start + timeofs * dma.speed;
+		ps->begin = (int)(start + timeofs * dma.speed);
 
 	// sort into the pending sound list
 	for (sort = s_pendingplays.next ; 
@@ -870,7 +870,7 @@ void S_AddLoopSounds (void)
 		ent = &cl_parse_entities[num];
 
 		// find the total contribution of all sounds of this type
-		S_SpatializeOrigin (ent->origin, 255.0, SOUND_LOOPATTENUATE,
+		S_SpatializeOrigin (ent->origin, 255.0f, SOUND_LOOPATTENUATE,
 			&left_total, &right_total);
 		for (j=i+1 ; j<cl.frame.num_entities ; j++)
 		{
@@ -881,7 +881,7 @@ void S_AddLoopSounds (void)
 			num = (cl.frame.parse_entities + j)&(MAX_PARSE_ENTITIES-1);
 			ent = &cl_parse_entities[num];
 
-			S_SpatializeOrigin (ent->origin, 255.0, SOUND_LOOPATTENUATE, 
+			S_SpatializeOrigin (ent->origin, 255.0f, SOUND_LOOPATTENUATE, 
 				&left, &right);
 			left_total += left;
 			right_total += right;
@@ -948,7 +948,6 @@ void S_RawSamples (int samples, int rate, int width, int channels, byte *data)
 		s_rawend = paintedtime;
 	scale = (float)rate / dma.speed;
 
-//Com_Printf ("%i < %i < %i\n", soundtime, paintedtime, s_rawend);
 	if (channels == 2 && width == 2)
 	{
 		if (scale == 1.0)
@@ -967,7 +966,7 @@ void S_RawSamples (int samples, int rate, int width, int channels, byte *data)
 		{
 			for (i=0 ; ; i++)
 			{
-				src = i*scale;
+				src = (int)(i*scale);
 				if (src >= samples)
 					break;
 				dst = s_rawend&(MAX_RAW_SAMPLES-1);
@@ -983,7 +982,7 @@ void S_RawSamples (int samples, int rate, int width, int channels, byte *data)
 	{
 		for (i=0 ; ; i++)
 		{
-			src = i*scale;
+			src = (int)(i*scale);
 			if (src >= samples)
 				break;
 			dst = s_rawend&(MAX_RAW_SAMPLES-1);
@@ -998,7 +997,7 @@ void S_RawSamples (int samples, int rate, int width, int channels, byte *data)
 	{
 		for (i=0 ; ; i++)
 		{
-			src = i*scale;
+			src = (int)(i*scale);
 			if (src >= samples)
 				break;
 			dst = s_rawend&(MAX_RAW_SAMPLES-1);
@@ -1013,7 +1012,7 @@ void S_RawSamples (int samples, int rate, int width, int channels, byte *data)
 	{
 		for (i=0 ; ; i++)
 		{
-			src = i*scale;
+			src = (int)(i*scale);
 			if (src >= samples)
 				break;
 			dst = s_rawend&(MAX_RAW_SAMPLES-1);
@@ -1103,7 +1102,7 @@ void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 		Com_Printf ("----(%i)---- painted: %i\n", total, paintedtime);
 	}
 
-// mix some sound
+	// mix some sound
 	S_Update_();
 }
 
@@ -1116,8 +1115,8 @@ void GetSoundtime(void)
 	
 	fullsamples = dma.samples / dma.channels;
 
-// it is possible to miscount buffers if it has wrapped twice between
-// calls to S_Update.  Oh well.
+	// it is possible to miscount buffers if it has wrapped twice between
+	// calls to S_Update.  Oh well.
 	samplepos = SNDDMA_GetDMAPos();
 
 	if (samplepos < oldsamplepos)
@@ -1150,19 +1149,18 @@ void S_Update_(void)
 	if (!dma.buffer)
 		return;
 
-// Updates DMA time
+	// Updates DMA time
 	GetSoundtime();
 
-// check to make sure that we haven't overshot
+	// check to make sure that we haven't overshot
 	if (paintedtime < soundtime)
 	{
 		Com_DPrintf ("S_Update_ : overflow\n");
 		paintedtime = soundtime;
 	}
 
-// mix ahead of current position
-	endtime = soundtime + s_mixahead->value * dma.speed;
-//endtime = (soundtime + 4096) & ~4095;
+	// mix ahead of current position
+	endtime = (int)(soundtime + s_mixahead->value * dma.speed);
 
 	// mix to an even submission block size
 	endtime = (endtime + dma.submission_chunk-1)
@@ -1195,11 +1193,11 @@ void S_Play(void)
 	{
 		if (!strrchr(Cmd_Argv(i), '.'))
 		{
-			strcpy(name, Cmd_Argv(i));
+			strncpy(name, Cmd_Argv(i), sizeof(name)-5); 
 			strcat(name, ".wav");
 		}
 		else
-			strcpy(name, Cmd_Argv(i));
+			strncpy(name, Cmd_Argv(i), sizeof(name)-1);
 		sfx = S_RegisterSound(name);
 		S_StartSound(NULL, cl.playernum+1, 0, sfx, 1.0, 1.0, 0);
 		i++;
