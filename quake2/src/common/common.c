@@ -241,6 +241,7 @@ void Com_Error (int code, char *fmt, ...)
 	}
 
 	Sys_Error ("%s", msg);
+	recursive = false;
 }
 
 
@@ -310,10 +311,8 @@ void MSG_WriteChar (sizebuf_t *sb, int c)
 {
 	byte	*buf;
 	
-#ifdef PARANOID
 	if (c < -128 || c > 127)
 		Com_Error (ERR_FATAL, "MSG_WriteChar: range error");
-#endif
 
 	buf = SZ_GetSpace (sb, 1);
 	buf[0] = c;
@@ -323,10 +322,8 @@ void MSG_WriteByte (sizebuf_t *sb, int c)
 {
 	byte	*buf;
 	
-#ifdef PARANOID
 	if (c < 0 || c > 255)
 		Com_Error (ERR_FATAL, "MSG_WriteByte: range error");
-#endif
 
 	buf = SZ_GetSpace (sb, 1);
 	buf[0] = c;
@@ -336,10 +333,8 @@ void MSG_WriteShort (sizebuf_t *sb, int c)
 {
 	byte	*buf;
 	
-#ifdef PARANOID
 	if (c < ((short)0x8000) || c > (short)0x7fff)
 		Com_Error (ERR_FATAL, "MSG_WriteShort: range error");
-#endif
 
 	buf = SZ_GetSpace (sb, 2);
 	buf[0] = c&0xff;
@@ -377,7 +372,7 @@ void MSG_WriteString (sizebuf_t *sb, char *s)
 	if (!s)
 		SZ_Write (sb, "", 1);
 	else
-		SZ_Write (sb, s, strlen(s)+1);
+		SZ_Write (sb, s, (int)strlen(s)+1);
 }
 
 void MSG_WriteCoord (sizebuf_t *sb, float f)
@@ -693,7 +688,6 @@ void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *
 		MSG_WriteShort (msg, to->solid);
 }
 
-
 //============================================================
 
 //
@@ -831,19 +825,19 @@ char *MSG_ReadStringLine (sizebuf_t *msg_read)
 
 float MSG_ReadCoord (sizebuf_t *msg_read)
 {
-	return MSG_ReadShort(msg_read) * (1.0/8);
+	return MSG_ReadShort(msg_read) * (0.125f);
 }
 
 void MSG_ReadPos (sizebuf_t *msg_read, vec3_t pos)
 {
-	pos[0] = MSG_ReadShort(msg_read) * (1.0/8);
-	pos[1] = MSG_ReadShort(msg_read) * (1.0/8);
-	pos[2] = MSG_ReadShort(msg_read) * (1.0/8);
+	pos[0] = MSG_ReadShort(msg_read) * (0.125f);
+	pos[1] = MSG_ReadShort(msg_read) * (0.125f);
+	pos[2] = MSG_ReadShort(msg_read) * (0.125f);
 }
 
 float MSG_ReadAngle (sizebuf_t *msg_read)
 {
-	return MSG_ReadChar(msg_read) * (360.0/256);
+	return MSG_ReadChar(msg_read) * 1.40625f;
 }
 
 float MSG_ReadAngle16 (sizebuf_t *msg_read)
@@ -859,7 +853,7 @@ void MSG_ReadDeltaUsercmd (sizebuf_t *msg_read, usercmd_t *from, usercmd_t *move
 
 	bits = MSG_ReadByte (msg_read);
 		
-// read current angles
+	// read current angles
 	if (bits & CM_ANGLE1)
 		move->angles[0] = MSG_ReadShort (msg_read);
 	if (bits & CM_ANGLE2)
@@ -867,7 +861,7 @@ void MSG_ReadDeltaUsercmd (sizebuf_t *msg_read, usercmd_t *from, usercmd_t *move
 	if (bits & CM_ANGLE3)
 		move->angles[2] = MSG_ReadShort (msg_read);
 		
-// read movement
+	// read movement
 	if (bits & CM_FORWARD)
 		move->forwardmove = MSG_ReadShort (msg_read);
 	if (bits & CM_SIDE)
@@ -875,17 +869,17 @@ void MSG_ReadDeltaUsercmd (sizebuf_t *msg_read, usercmd_t *from, usercmd_t *move
 	if (bits & CM_UP)
 		move->upmove = MSG_ReadShort (msg_read);
 	
-// read buttons
+	// read buttons
 	if (bits & CM_BUTTONS)
 		move->buttons = MSG_ReadByte (msg_read);
 
 	if (bits & CM_IMPULSE)
 		move->impulse = MSG_ReadByte (msg_read);
 
-// read time to run command
+	// read time to run command
 	move->msec = MSG_ReadByte (msg_read);
 
-// read the light level
+	// read the light level
 	move->lightlevel = MSG_ReadByte (msg_read);
 }
 
@@ -926,9 +920,9 @@ void *SZ_GetSpace (sizebuf_t *buf, int length)
 		if (length > buf->maxsize)
 			Com_Error (ERR_FATAL, "SZ_GetSpace: %i is > full buffer size", length);
 			
-		Com_Printf ("SZ_GetSpace: overflow\n");
 		SZ_Clear (buf); 
 		buf->overflowed = true;
+		Com_Printf ("SZ_GetSpace: overflow\n");
 	}
 
 	data = buf->data + buf->cursize;
@@ -946,7 +940,7 @@ void SZ_Print (sizebuf_t *buf, char *data)
 {
 	int		len;
 	
-	len = strlen(data)+1;
+	len = (int)strlen(data)+1;
 
 	if (buf->cursize)
 	{
@@ -1058,7 +1052,7 @@ char *CopyString (char *in)
 {
 	char	*out;
 	
-	out = Z_Malloc (strlen(in)+1);
+	out = Z_Malloc ((int)strlen(in)+1);
 	strcpy (out, in);
 	return out;
 }
@@ -1211,7 +1205,6 @@ void *Z_TagMalloc (int size, int tag)
 	z_chain.next->prev = z;
 	z_chain.next = z;
 
-	/*	printf( "returning pointer: %p\n", (z+1) );*/
 	return (void *)(z+1);
 }
 
@@ -1227,62 +1220,6 @@ void *Z_Malloc (int size)
 
 
 //============================================================================
-
-
-/*
-====================
-COM_BlockSequenceCheckByte
-
-For proxy protecting
-
-// THIS IS MASSIVELY BROKEN!  CHALLENGE MAY BE NEGATIVE
-// DON'T USE THIS FUNCTION!!!!!
-
-====================
-*/
-byte	COM_BlockSequenceCheckByte (byte *base, int length, int sequence, int challenge)
-{
-	Sys_Error("COM_BlockSequenceCheckByte called\n");
-
-#if 0
-	int		checksum;
-	byte	buf[68];
-	byte	*p;
-	float temp;
-	byte c;
-
-	temp = bytedirs[(sequence/3) % NUMVERTEXNORMALS][sequence % 3];
-	temp = LittleFloat(temp);
-	p = ((byte *)&temp);
-
-	if (length > 60)
-		length = 60;
-	memcpy (buf, base, length);
-
-	buf[length] = (sequence & 0xff) ^ p[0];
-	buf[length+1] = p[1];
-	buf[length+2] = ((sequence>>8) & 0xff) ^ p[2];
-	buf[length+3] = p[3];
-
-	temp = bytedirs[((sequence+challenge)/3) % NUMVERTEXNORMALS][(sequence+challenge) % 3];
-	temp = LittleFloat(temp);
-	p = ((byte *)&temp);
-
-	buf[length+4] = (sequence & 0xff) ^ p[3];
-	buf[length+5] = (challenge & 0xff) ^ p[2];
-	buf[length+6] = ((sequence>>8) & 0xff) ^ p[1];
-	buf[length+7] = ((challenge >> 7) & 0xff) ^ p[0];
-
-	length += 8;
-
-	checksum = LittleLong(Com_BlockChecksum (buf, length));
-
-	checksum &= 0xff;
-
-	return checksum;
-#endif
-	return 0;
-}
 
 static byte chktbl[1024] = {
 0x84, 0x47, 0x51, 0xc1, 0x93, 0x22, 0x21, 0x24, 0x2f, 0x66, 0x60, 0x4d, 0xb0, 0x7c, 0xda,
@@ -1360,12 +1297,12 @@ For proxy protecting
 */
 byte	COM_BlockSequenceCRCByte (byte *base, int length, int sequence)
 {
-	int		n;
-	byte	*p;
-	int		x;
-	byte chkb[60 + 4];
-	unsigned short crc;
-
+	int				n;
+	int				x;
+	byte			*p;
+	byte			chkb[60 + 4];
+	unsigned short	crc;
+	byte			r; 
 
 	if (sequence < 0)
 		Sys_Error("sequence < 0, this shouldn't happen\n");
@@ -1388,9 +1325,9 @@ byte	COM_BlockSequenceCRCByte (byte *base, int length, int sequence)
 	for (x=0, n=0; n<length; n++)
 		x += chkb[n];
 
-	crc = (crc ^ x) & 0xff;
+	r = (crc ^ x) & 0xff;
 
-	return crc;
+	return r;
 }
 
 //========================================================
@@ -1524,7 +1461,9 @@ Qcommon_Frame
 void Qcommon_Frame (int msec)
 {
 	char	*s;
-	int		time_before, time_between, time_after;
+	int		time_before = 0;
+	int		time_between = 0;
+	int		time_after;
 
 	if (setjmp (abortframe) )
 		return;			// an ERR_DROP was thrown
