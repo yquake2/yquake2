@@ -81,14 +81,6 @@ enum QKEYS {
 	K_MOUSE3		= 202,
 	K_MOUSE4		= 241,
 	K_MOUSE5		= 242,
-	
-//
-// joystick buttons
-//
-	K_JOY1			= 203,
-	K_JOY2			= 204,
-	K_JOY3			= 205,
-	K_JOY4			= 206,
 
 //
 // aux keys are for multi-buttoned joysticks to generate so they can use
@@ -141,6 +133,7 @@ extern	int		key_repeats[K_LAST];
 extern	int	anykeydown;
 extern char chat_buffer[];
 extern	int chat_bufferlen;
+extern	int	chat_cursorpos;
 extern	qboolean	chat_team;
 
 void Key_Event (int key, qboolean down, unsigned time);
