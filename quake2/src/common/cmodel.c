@@ -475,7 +475,6 @@ CMod_LoadAreaPortals
 */
 void CMod_LoadAreaPortals (lump_t *l)
 {
-	int			i;
 	dareaportal_t		*out;
 	dareaportal_t 	*in;
 	int			count;
@@ -491,11 +490,7 @@ void CMod_LoadAreaPortals (lump_t *l)
 	out = map_areaportals;
 	numareaportals = count;
 
-	for ( i=0 ; i<count ; i++, in++, out++)
-	{
-		out->portalnum = LittleLong (in->portalnum);
-		out->otherarea = LittleLong (in->otherarea);
-	}
+	memcpy (out, in, sizeof(dareaportal_t)*count);
 }
 
 /*
@@ -505,8 +500,6 @@ CMod_LoadVisibility
 */
 void CMod_LoadVisibility (lump_t *l)
 {
-	int		i;
-
 	numvisibility = l->filelen;
 	if (l->filelen > MAX_MAP_VISIBILITY)
 		Com_Error (ERR_DROP, "Map has too large visibility lump");
@@ -514,11 +507,6 @@ void CMod_LoadVisibility (lump_t *l)
 	memcpy (map_visibility, cmod_base + l->fileofs, l->filelen);
 
 	map_vis->numclusters = LittleLong (map_vis->numclusters);
-	for (i=0 ; i<map_vis->numclusters ; i++)
-	{
-		map_vis->bitofs[i][0] = LittleLong (map_vis->bitofs[i][0]);
-		map_vis->bitofs[i][1] = LittleLong (map_vis->bitofs[i][1]);
-	}
 }
 
 
@@ -590,7 +578,21 @@ cmodel_t *CM_LoadMap (char *name, qboolean clientload, unsigned *checksum)
 	//
 	length = FS_LoadFile (name, (void **)&buf);
 	if (!buf)
+	{
 		Com_Error (ERR_DROP, "Couldn't load %s", name);
+	}
+	else
+	{
+			Com_Printf ("WARNING: Map not found, connecting in null map mode!\n");
+			numleafs = 1;
+			numclusters = 1;
+			numareas = 1;
+			*checksum = 0;
+
+			//!!!
+			strcpy (name, "");
+			return &map_cmodels[0];
+	}
 
 	last_checksum = LittleLong (Com_BlockChecksum (buf, length));
 	*checksum = last_checksum;
@@ -856,7 +858,6 @@ void CM_BoxLeafnums_r (int nodenum)
 		{
 			if (leaf_count >= leaf_maxcount)
 			{
-//				Com_Printf ("CM_BoxLeafnums_r: overflow\n");
 				return;
 			}
 			leaf_list[leaf_count++] = -1 - nodenum;
@@ -865,7 +866,6 @@ void CM_BoxLeafnums_r (int nodenum)
 	
 		node = &map_nodes[nodenum];
 		plane = node->plane;
-//		s = BoxOnPlaneSide (leaf_mins, leaf_maxs, plane);
 		s = BOX_ON_PLANE_SIDE(leaf_mins, leaf_maxs, plane);
 		if (s == 1)
 			nodenum = node->children[0];
@@ -971,7 +971,7 @@ BOX TRACING
 */
 
 // 1/32 epsilon to keep floating point happy
-#define	DIST_EPSILON	(0.03125)
+#define	DIST_EPSILON	(0.03125f)
 
 vec3_t	trace_start, trace_end;
 vec3_t	trace_mins, trace_maxs;
@@ -1266,17 +1266,10 @@ void CM_RecursiveHullCheck (int num, float p1f, float p2f, vec3_t p1, vec3_t p2)
 		if (trace_ispoint)
 			offset = 0;
 		else
-			offset = fabs(trace_extents[0]*plane->normal[0]) +
-				fabs(trace_extents[1]*plane->normal[1]) +
-				fabs(trace_extents[2]*plane->normal[2]);
+			offset = (float)fabs(trace_extents[0]*plane->normal[0]) +
+				(float)fabs(trace_extents[1]*plane->normal[1]) +
+				(float)fabs(trace_extents[2]*plane->normal[2]);
 	}
-
-
-#if 0
-CM_RecursiveHullCheck (node->children[0], p1f, p2f, p1, p2);
-CM_RecursiveHullCheck (node->children[1], p1f, p2f, p1, p2);
-return;
-#endif
 
 	// see which sides we need to consider
 	if (t1 >= offset && t2 >= offset)
@@ -1293,7 +1286,7 @@ return;
 	// put the crosspoint DIST_EPSILON pixels on the near side
 	if (t1 < t2)
 	{
-		idist = 1.0/(t1-t2);
+		idist = 1.0f/(t1-t2);
 		side = 1;
 		frac2 = (t1 + offset + DIST_EPSILON)*idist;
 		frac = (t1 - offset + DIST_EPSILON)*idist;
@@ -1443,10 +1436,6 @@ Handles offseting and rotation of the end points for moving and
 rotating entities
 ==================
 */
-#ifdef _WIN32
-#pragma optimize( "", off )
-#endif
-
 
 trace_t		CM_TransformedBoxTrace (vec3_t start, vec3_t end,
 						  vec3_t mins, vec3_t maxs,
@@ -1507,12 +1496,6 @@ trace_t		CM_TransformedBoxTrace (vec3_t start, vec3_t end,
 
 	return trace;
 }
-
-#ifdef _WIN32
-#pragma optimize( "", on )
-#endif
-
-
 
 /*
 ===============================================================================
