@@ -31,7 +31,7 @@ FIXME: this use of "area" is different from the bsp file use
 */
 
 // FIXME: remove this mess!
-#define	STRUCT_FROM_LINK(l,t,m) ((t *)((byte *)l - (int)&(((t *)NULL)->m)))
+#define	STRUCT_FROM_LINK(l,t,m) ((t *)((byte *)l - (byte*)&(((t *)NULL)->m)))
 
 #define	EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l,edict_t,area)
 
