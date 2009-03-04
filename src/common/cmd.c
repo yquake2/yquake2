@@ -853,7 +853,9 @@ void	Cmd_ExecuteString (char *text)
 		return;
 
 	// send it as a server command if we are connected
+#ifndef DEDICATED_ONLY
 	Cmd_ForwardToServer ();
+#endif
 }
 
 /*

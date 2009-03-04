@@ -43,7 +43,9 @@ cvar_t	*modder;
 cvar_t	*timescale;
 cvar_t	*fixedtime;
 cvar_t	*logfile_active;	// 1 = buffer log, 2 = flush after each print
+#ifndef DEDICATED_ONLY
 cvar_t	*showtrace;
+#endif
 cvar_t	*dedicated;
 
 FILE	*logfile;
@@ -119,8 +121,10 @@ void Com_Printf (char *fmt, ...)
 		return;
 	}
 
+#ifndef DEDICATED_ONLY 
 	Con_Print (msg);
-		
+#endif
+
 	// also echo to debugging console
 	Sys_ConsoleOutput (msg);
 
@@ -216,7 +220,9 @@ void Com_Error (int code, char *fmt, ...)
 	
 	if (code == ERR_DISCONNECT)
 	{
+#ifndef DEDICATED_ONLY
 		CL_Drop ();
+#endif
 		recursive = false;
 		longjmp (abortframe, -1);
 	}
@@ -224,14 +230,18 @@ void Com_Error (int code, char *fmt, ...)
 	{
 		Com_Printf ("********************\nERROR: %s\n********************\n", msg);
 		SV_Shutdown (va("Server crashed: %s\n", msg), false);
+#ifndef DEDICATED_ONLY 
 		CL_Drop ();
+#endif
 		recursive = false;
 		longjmp (abortframe, -1);
 	}
 	else
 	{
 		SV_Shutdown (va("Server fatal crashed: %s\n", msg), false);
+#ifndef DEDICATED_ONLY 
 		CL_Shutdown ();
+#endif 
 	}
 
 	if (logfile)
@@ -256,8 +266,9 @@ do the apropriate things.
 void Com_Quit (void)
 {
 	SV_Shutdown ("Server quit\n", false);
+#ifndef DEDICATED_ONLY 
 	CL_Shutdown ();
-
+#endif
 	if (logfile)
 	{
 		fclose (logfile);
@@ -1404,7 +1415,9 @@ void Qcommon_Init (int argc, char **argv)
 	timescale = Cvar_Get ("timescale", "1", 0);
 	fixedtime = Cvar_Get ("fixedtime", "0", 0);
 	logfile_active = Cvar_Get ("logfile", "0", 0);
+#ifndef DEDICATED_ONLY 
 	showtrace = Cvar_Get ("showtrace", "0", 0);
+#endif
 #ifdef DEDICATED_ONLY
 	dedicated = Cvar_Get ("dedicated", "1", CVAR_NOSET);
 #else
@@ -1424,7 +1437,9 @@ void Qcommon_Init (int argc, char **argv)
 	Netchan_Init ();
 
 	SV_Init ();
+#ifdef DEDICATED_ONLY 	
 	CL_Init ();
+#endif
 
 	// add + commands from command line
 	if (!Cbuf_AddLateCommands ())
@@ -1435,11 +1450,13 @@ void Qcommon_Init (int argc, char **argv)
 			Cbuf_AddText ("dedicated_start\n");
 		Cbuf_Execute ();
 	}
+#ifndef DEDICATED_ONLY	
 	else
 	{	// the user asked for something explicit
 		// so drop the loading plaque
 		SCR_EndLoadingPlaque ();
 	}
+#endif
 
 	Com_Printf ("====== Quake2 Initialized ======\n\n");	
 }
@@ -1452,9 +1469,12 @@ Qcommon_Frame
 void Qcommon_Frame (int msec)
 {
 	char	*s;
+
+#ifndef DEDICATED_ONLY	
 	int		time_before = 0;
 	int		time_between = 0;
 	int		time_after;
+#endif
 
 	if (setjmp (abortframe) )
 		return;			// an ERR_DROP was thrown
@@ -1511,11 +1531,14 @@ void Qcommon_Frame (int msec)
 	} while (s);
 	Cbuf_Execute ();
 
+#ifndef DEDICATED_ONLY 	
 	if (host_speeds->value)
 		time_before = Sys_Milliseconds ();
+#endif
 
 	SV_Frame (msec);
 
+#ifndef DEDICATED_ONLY	
 	if (host_speeds->value)
 		time_between = Sys_Milliseconds ();		
 
@@ -1538,7 +1561,8 @@ void Qcommon_Frame (int msec)
 		cl -= rf;
 		Com_Printf ("all:%3i sv:%3i gm:%3i cl:%3i rf:%3i\n",
 			all, sv, gm, cl, rf);
-	}	
+	}
+#endif
 }
 
 /*
