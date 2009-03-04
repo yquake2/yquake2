@@ -512,7 +512,7 @@ void SV_GameMap_f (void)
 	}
 	else
 	{	// save the map just exited
-		if (!strstr (map, ".") && !strstr (map, "$")) 
+		if (sv.state == ss_game)
 		{
 			// clear all the client inuse flags before saving so that
 			// when the level is re-entered, the clients will spawn
