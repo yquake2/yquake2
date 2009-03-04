@@ -84,7 +84,9 @@ void Sys_Printf (char *fmt, ...)
 
 void Sys_Quit (void)
 {
+#ifndef DEDICATED_ONLY
 	CL_Shutdown ();
+#endif
 	Qcommon_Shutdown ();
 	fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
 	_exit(0);
@@ -102,7 +104,9 @@ void Sys_Error (char *error, ...)
 	// change stdin to non blocking
 	fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
 
+#ifndef DEDICATED_ONLY
 	CL_Shutdown ();
+#endif
 	Qcommon_Shutdown ();
     
 	va_start (argptr,error);
