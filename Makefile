@@ -92,7 +92,7 @@ SDLLDFLAGS=$(shell sdl-config --libs)
 
 # Targets
 
-all: client
+all: client dedicated_server
 
 client:
 	@-mkdir -p build \
@@ -107,18 +107,21 @@ client:
 		build/posix/glob \
 		build/posix/sdl \
 		build/posix/vid \
-		build/server
-	$(MAKE) build/client/quake2	
+		build/server \
+		release
+	$(MAKE) release/quake2	
 
 dedicated_server:
 	@-mkdir -p build \
 		build/dedicated_server \
 		build/dedicated_server_common \
-		build/dedicated_server_posix 
-	$(MAKE) build/dedicated_server/q2ded
+		build/dedicated_server_posix \
+		build/dedicated_server_posix/glob \
+		release
+	$(MAKE) release/q2ded
 
 clean:
-	@-rm -Rf build
+	@-rm -Rf build release
 
 # ----------
 
@@ -222,10 +225,10 @@ DEDICATED_SERVER_COMMON_OBJS = \
 
 # Dedicated server POSIX platform objects
 DEDICATED_SERVER_POSIX_OBJS = \
-	build/dedicated_server_posix/glob.o \
-	build/dedicated_server_posix/net_udp.o \
+	build/dedicated_server_posix/glob/glob.o \
+	build/dedicated_server_posix/network.o \
 	build/dedicated_server_posix/posix.o \
-	build/dedicated_server_posix/sys_linux.o
+	build/dedicated_server_posix/system.o
  
 # ----------
 
@@ -410,25 +413,25 @@ build/dedicated_server/sv_world.o :   		src/server/sv_world.c
 # ---------
  
 # Dedicated server common build
-build/dedicated_server_common/cmd.o :        src/common/cmd.c
+build/dedicated_server_common/cmd.o :       src/common/cmd.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/cmodel.o :     src/common/cmodel.c
+build/dedicated_server_common/cmodel.o :    src/common/cmodel.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/common.o :     src/common/common.c
+build/dedicated_server_common/common.o :    src/common/common.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/crc.o :        src/common/crc.c
+build/dedicated_server_common/crc.o :       src/common/crc.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/cvar.o :       src/common/cvar.c
+build/dedicated_server_common/cvar.o :      src/common/cvar.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/files.o :      src/common/files.c
+build/dedicated_server_common/files.o :     src/common/files.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/md4.o :        src/common/md4.c
+build/dedicated_server_common/md4.o :       src/common/md4.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 build/dedicated_server_common/net_chan.o :  src/common/net_chan.c
@@ -440,28 +443,28 @@ build/dedicated_server_common/pmove.o :     src/common/pmove.c
 # ----------
 
 # Dedicated server POSIX build
-build/dedicated_server_posix/glob.o :       src/platforms/posix/glob.c
+build/dedicated_server_posix/glob/glob.o :	src/platforms/posix/glob/glob.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_posix/net_udp.o :   	src/platforms/posix/net_udp.c
+build/dedicated_server_posix/network.o :   	src/platforms/posix/network.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
-build/dedicated_server_posix/q_shlinux.o :  src/platforms/posix/q_shlinux.c
+build/dedicated_server_posix/posix.o :  	src/platforms/posix/posix.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_posix/sys_linux.o :  src/platforms/posix/sys_linux.c
+build/dedicated_server_posix/system.o :  	src/platforms/posix/system.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 # ----------
   
 #  The client
-build/client/quake2 : $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
+release/quake2 : $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
     $(SERVER_OBJS) $(POSIX_OBJS)
 	$(CC) $(CFLAGS_CLIENT) -o $@ $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
 		$(SERVER_OBJS) $(POSIX_OBJS) $(LDFLAGS) $(SDLLDFLAGS)
 
 # Dedicated Server
-build/dedicated_server/q2ded : $(DEDICATED_SERVER_OBJS) $(DEDICATED_SERVER_COMMON_OBJS) \
+release/q2ded : $(DEDICATED_SERVER_OBJS) $(DEDICATED_SERVER_COMMON_OBJS) \
 	$(GAME_ABI_OBJS) $(DEDICATED_SERVER_POSIX_OBJS)
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ $(DEDICATED_SERVER_OBJS) \
 		$(DEDICATED_SERVER_COMMON_OBJS) $(GAME_ABI_OBJS) \
