@@ -170,10 +170,9 @@ void PF_setmodel (edict_t *ent, char *name)
 
 	i = SV_ModelIndex (name);
 		
-//	ent->model = name;
 	ent->s.modelindex = i;
 
-// if it is an inline model, get the size information for it
+	// if it is an inline model, get the size information for it
 	if (name[0] == '*')
 	{
 		mod = CM_InlineModel (name);
