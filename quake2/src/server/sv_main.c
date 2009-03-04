@@ -707,8 +707,10 @@ SV_RunGameFrame
 */
 void SV_RunGameFrame (void)
 {
+#ifndef DEDICATED_ONLY
 	if (host_speeds->value)
 		time_before_game = Sys_Milliseconds ();
+#endif
 
 	// we always need to bump framenum, even if we
 	// don't run the world, otherwise the delta
@@ -731,9 +733,10 @@ void SV_RunGameFrame (void)
 		}
 	}
 
+#ifndef DEDICATED_ONLY 
 	if (host_speeds->value)
 		time_after_game = Sys_Milliseconds ();
-
+#endif
 }
 
 /*
@@ -744,7 +747,9 @@ SV_Frame
 */
 void SV_Frame (int msec)
 {
+#ifndef DEDICATED_ONLY 
 	time_before_game = time_after_game = 0;
+#endif
 
 	// if server is not active, do nothing
 	if (!svs.initialized)
