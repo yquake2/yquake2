@@ -587,9 +587,11 @@ void FS_SetGamedir (char *dir)
 	//
 	// flush all data, so it will be forced to reload
 	//
+
+#ifndef DEDICATED_ONLY
 	if (dedicated && !dedicated->value)
 		Cbuf_AddText ("vid_restart\nsnd_restart\n");
-
+#endif
 
 	// now add new entries for 
 	if (!strcmp(dir,BASEDIRNAME) || (*dir == 0))
