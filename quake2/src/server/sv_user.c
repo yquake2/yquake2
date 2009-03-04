@@ -57,7 +57,7 @@ This will be sent on the initial connection and upon each server load.
 */
 void SV_New_f (void)
 {
-	char		*gamedir;
+	static char	*gamedir;
 	int			playernum;
 	edict_t		*ent;
 
@@ -80,7 +80,7 @@ void SV_New_f (void)
 	// serverdata needs to go over for all types of servers
 	// to make sure the protocol is right, and to set the gamedir
 	//
-	gamedir = Cvar_VariableString ("gamedir");
+	gamedir = (char *)Cvar_VariableString ("gamedir");
 
 	// send the serverdata
 	MSG_WriteByte (&sv_client->netchan.message, svc_serverdata);
@@ -317,7 +317,7 @@ void SV_BeginDownload_f(void)
 
 	// hacked by zoid to allow more conrol over download
 	// first off, no .. or global allow check
-	if (strstr (name, "..") || !allow_download->value
+	if (strstr (name, "..") || strstr (name, "\\") || !allow_download->value
 		// leading dot is no good
 		|| *name == '.' 
 		// leading slash bad as well, must be in subdir
@@ -404,7 +404,7 @@ void SV_ShowServerinfo_f (void)
 
 void SV_Nextserver (void)
 {
-	char	*v;
+	const char	*v;
 
 	//ZOID, ss_pic can be nextserver'd in coop mode
 	if (sv.state == ss_game || (sv.state == ss_pic && !Cvar_VariableValue("coop")))
@@ -416,7 +416,7 @@ void SV_Nextserver (void)
 		Cbuf_AddText ("killserver\n");
 	else
 	{
-		Cbuf_AddText (v);
+		Cbuf_AddText ((char *)v);
 		Cbuf_AddText ("\n");
 	}
 	Cvar_Set ("nextserver","");
@@ -487,8 +487,6 @@ void SV_ExecuteUserCommand (char *s)
 	Cmd_TokenizeString(s, false);
 	sv_player = sv_client->edict;
 
-//	SV_BeginRedirect (RD_CLIENT);
-
 	for (u=ucmds ; u->name ; u++)
 		if (!strcmp (Cmd_Argv(0), u->name) )
 		{
@@ -498,8 +496,6 @@ void SV_ExecuteUserCommand (char *s)
 
 	if (!u->name && sv.state == ss_game)
 		ge->ClientCommand (sv_player);
-
-//	SV_EndRedirect ();
 }
 
 /*
@@ -525,8 +521,6 @@ void SV_ClientThink (client_t *cl, usercmd_t *cmd)
 
 	ge->ClientThink (cl->edict, cmd);
 }
-
-
 
 #define	MAX_STRINGCMDS	8
 /*
@@ -631,10 +625,6 @@ void SV_ExecuteClientMessage (client_t *cl)
 				net_drop = cl->netchan.dropped;
 				if (net_drop < 20)
 				{
-
-//if (net_drop > 2)
-
-//	Com_Printf ("drop %i\n", net_drop);
 					while (net_drop > 2)
 					{
 						SV_ClientThink (cl, &cl->lastcmd);
