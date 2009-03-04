@@ -117,7 +117,7 @@ char	*SV_StatusString (void)
 
 	strcpy (status, Cvar_Serverinfo());
 	strcat (status, "\n");
-	statusLength = strlen(status);
+	statusLength = (int)strlen(status);
 
 	for (i=0 ; i<maxclients->value ; i++)
 	{
@@ -126,7 +126,7 @@ char	*SV_StatusString (void)
 		{
 			Com_sprintf (player, sizeof(player), "%i %i \"%s\"\n", 
 				cl->edict->client->ps.stats[STAT_FRAGS], cl->ping, cl->name);
-			playerLength = strlen(player);
+			playerLength = (int)strlen(player);
 			if (statusLength + playerLength >= sizeof(status) )
 				break;		// can't hold any more
 			strcpy (status + statusLength, player);
@@ -147,11 +147,6 @@ Responds with all the info that qplug or qspy can see
 void SVC_Status (void)
 {
 	Netchan_OutOfBandPrint (NS_SERVER, net_from, "print\n%s", SV_StatusString());
-#if 0
-	Com_BeginRedirect (RD_PACKET, sv_outputbuf, SV_OUTPUTBUF_LENGTH, SV_FlushRedirect);
-	Com_Printf (SV_StatusString());
-	Com_EndRedirect ();
-#endif
 }
 
 /*
@@ -336,7 +331,7 @@ void SVC_DirectConnect (void)
 	// if there is already a slot for this ip, reuse it
 	for (i=0,cl=svs.clients ; i<maxclients->value ; i++,cl++)
 	{
-		if (cl->state == cs_free)
+		if (cl->state < cs_connected) 
 			continue;
 		if (NET_CompareBaseAdr (adr, cl->netchan.remote_address)
 			&& ( cl->netchan.qport == qport 
@@ -530,13 +525,6 @@ void SV_CalcPings (void)
 		if (cl->state != cs_spawned )
 			continue;
 
-#if 0
-		if (cl->lastframe > 0)
-			cl->frame_latency[sv.framenum&(LATENCY_COUNTS-1)] = sv.framenum - cl->lastframe + 1;
-		else
-			cl->frame_latency[sv.framenum&(LATENCY_COUNTS-1)] = 0;
-#endif
-
 		total = 0;
 		count = 0;
 		for (j=0 ; j<LATENCY_COUNTS ; j++)
@@ -550,11 +538,7 @@ void SV_CalcPings (void)
 		if (!count)
 			cl->ping = 0;
 		else
-#if 0
-			cl->ping = total*100/count - 100;
-#else
 			cl->ping = total / count;
-#endif
 
 		// let the game dll know about the ping
 		cl->edict->client->ping = cl->ping;
@@ -636,7 +620,8 @@ void SV_ReadPackets (void)
 				if (cl->state != cs_zombie)
 				{
 					cl->lastmessage = svs.realtime;	// don't timeout
-					SV_ExecuteClientMessage (cl);
+					if (!(sv.demofile && sv.state == ss_demo))
+						SV_ExecuteClientMessage (cl);
 				}
 			}
 			break;
@@ -977,8 +962,6 @@ void SV_Init (void)
 	sv_airaccelerate = Cvar_Get("sv_airaccelerate", "0", CVAR_LATCH);
 
 	public_server = Cvar_Get ("public", "0", 0);
-
-	sv_reconnect_limit = Cvar_Get ("sv_reconnect_limit", "3", CVAR_ARCHIVE);
 
 	SZ_Init (&net_message, net_message_buffer, sizeof(net_message_buffer));
 }
