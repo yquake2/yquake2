@@ -192,7 +192,7 @@ CopyFile
 void CopyFile (char *src, char *dst)
 {
 	FILE	*f1, *f2;
-	int		l;
+	size_t		l;
 	byte	buffer[65536];
 
 	Com_DPrintf ("CopyFile (%s, %s)\n", src, dst);
@@ -228,7 +228,7 @@ SV_CopySaveGame
 void SV_CopySaveGame (char *src, char *dst)
 {
 	char	name[MAX_OSPATH], name2[MAX_OSPATH];
-	int		l, len;
+	size_t 	l, len;
 	char	*found;
 
 	Com_DPrintf("SV_CopySaveGame(%s, %s)\n", src, dst);
@@ -449,11 +449,7 @@ void SV_ReadServerFile (void)
 	ge->ReadGame (name);
 }
 
-
 //=========================================================
-
-
-
 
 /*
 ==================
@@ -464,6 +460,11 @@ Puts the server in demo mode on a specific map/cinematic
 */
 void SV_DemoMap_f (void)
 {
+	if (Cmd_Argc() != 2)
+	{
+		Com_Printf ("USAGE: demomap <demoname.dm2>\n");
+		return;
+	}  
 	SV_Map (true, Cmd_Argv(1), false );
 }
 
@@ -511,7 +512,7 @@ void SV_GameMap_f (void)
 	}
 	else
 	{	// save the map just exited
-		if (sv.state == ss_game)
+		if (!strstr (map, ".") && !strstr (map, "$")) 
 		{
 			// clear all the client inuse flags before saving so that
 			// when the level is re-entered, the clients will spawn
@@ -559,11 +560,22 @@ void SV_Map_f (void)
 	char	*map;
 	char	expanded[MAX_QPATH];
 
+	if (Cmd_Argc() != 2) {
+		Com_Printf ("USAGE: map <mapname>\n");
+		return;
+	}   
+
+	if (sv.state == ss_game) {
+ 		Com_Printf ("Warning, using 'map' will reset the game. Perhaps you should use 'gamemap'.\n");
+ 		return;
+ 	} 
+
 	// if not a pcx, demo, or cinematic, check to make sure the level exists
 	map = Cmd_Argv(1);
-	if (!strstr (map, "."))
+	if (!strstr (map, ".") && !strstr (map, "$") && *map != '*')
 	{
 		Com_sprintf (expanded, sizeof(expanded), "maps/%s.bsp", map);
+
 		if (FS_LoadFile (expanded, NULL) == -1)
 		{
 			Com_Printf ("Can't find %s\n", expanded);
@@ -583,7 +595,6 @@ void SV_Map_f (void)
 
 =====================================================================
 */
-
 
 /*
 ==============
@@ -629,8 +640,6 @@ void SV_Loadgame_f (void)
 	sv.state = ss_dead;		// don't save current level when changing
 	SV_Map (false, svs.mapcmd, true);
 }
-
-
 
 /*
 ==============
@@ -720,7 +729,9 @@ void SV_Kick_f (void)
 	if (!SV_SetPlayer ())
 		return;
 
-	SV_BroadcastPrintf (PRINT_HIGH, "%s was kicked\n", sv_client->name);
+	if (sv_client->state == cs_spawned && *sv_client->name)
+		SV_BroadcastPrintf (PRINT_HIGH, "%s was kicked\n", sv_client->name);
+
 	// print directly, because the dropped client won't get the
 	// SV_BroadcastPrintf message
 	SV_ClientPrintf (sv_client, PRINT_HIGH, "You were kicked from the game\n");
@@ -753,7 +764,7 @@ void SV_Status_f (void)
 	{
 		if (!cl->state)
 			continue;
-		Com_Printf ("%3i ", i);
+		Com_Printf ("%2i ", i);
 		Com_Printf ("%5i ", cl->edict->client->ps.stats[STAT_FRAGS]);
 
 		if (cl->state == cs_connected)
@@ -800,6 +811,11 @@ void SV_ConSay_f(void)
 
 	if (Cmd_Argc () < 2)
 		return;
+
+	if (!svs.initialized) {
+		Com_Printf ("No server running.\n");
+		return;
+	}  
 
 	strcpy (text, "console: ");
 	p = Cmd_Args();
@@ -855,6 +871,12 @@ Examine all a users info strings
 */
 void SV_DumpUser_f (void)
 {
+	if (!svs.initialized)
+	{
+		Com_Printf ("No server running.\n");
+		return;
+	}
+
 	if (Cmd_Argc() != 2)
 	{
 		Com_Printf ("Usage: info <userid>\n");
@@ -905,6 +927,12 @@ void SV_ServerRecord_f (void)
 		return;
 	}
 
+	if (strstr (Cmd_Argv(1), "..") || strstr (Cmd_Argv(1), "/") || strstr (Cmd_Argv(1), "\\") )
+	{
+		Com_Printf ("Illegal filename.\n");
+		return;
+	}  
+
 	//
 	// open the demo file
 	//
@@ -937,7 +965,7 @@ void SV_ServerRecord_f (void)
 	MSG_WriteLong (&buf, svs.spawncount);
 	// 2 means server demo
 	MSG_WriteByte (&buf, 2);	// demos are always attract loops
-	MSG_WriteString (&buf, Cvar_VariableString ("gamedir"));
+	MSG_WriteString (&buf, (char *)Cvar_VariableString ("gamedir"));
 	MSG_WriteShort (&buf, -1);
 	// send full levelname
 	MSG_WriteString (&buf, sv.configstrings[CS_NAME]);
@@ -948,6 +976,11 @@ void SV_ServerRecord_f (void)
 			MSG_WriteByte (&buf, svc_configstring);
 			MSG_WriteShort (&buf, i);
 			MSG_WriteString (&buf, sv.configstrings[i]);
+			if (buf.cursize + 67 >= buf.maxsize) {
+				Com_Printf ("not enough buffer space available.\n");
+				fclose (svs.demofile);
+				return;
+			} 
 		}
 
 	// write it to the demo file
@@ -993,7 +1026,7 @@ void SV_KillServer_f (void)
 	if (!svs.initialized)
 		return;
 	SV_Shutdown ("Server was killed.\n", false);
-	NET_Config ( false );	// close network sockets
+	NET_Config ( false );	// close network sockets 
 }
 
 /*
