@@ -1512,6 +1512,7 @@ void Qcommon_Frame (int msec)
 			msec = 1;
 	}
 
+#ifndef DEDICATED_ONLY
 	if (showtrace->value)
 	{
 		extern	int c_traces, c_brush_traces;
@@ -1522,6 +1523,7 @@ void Qcommon_Frame (int msec)
 		c_brush_traces = 0;
 		c_pointcontents = 0;
 	}
+#endif
 
 	do
 	{
