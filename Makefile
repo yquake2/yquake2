@@ -106,6 +106,7 @@ client:
 		build/posix \
 		build/posix/glob \
 		build/posix/sdl \
+		build/posix/vid \
 		build/server
 	$(MAKE) build/client/quake2	
 
@@ -184,12 +185,12 @@ POSIX_OBJS = \
  	build/posix/network.o \
 	build/posix/posix.o \
 	build/posix/system.o \
-	build/posix/vid_menu.o \
-	build/posix/vid_so.o \
     build/posix/glob/glob.o \
 	build/posix/sdl/cd.o \
-	build/posix/sdl/sound.o
-
+	build/posix/sdl/sound.o \
+ 	build/posix/vid/menu.o \
+	build/posix/vid/refresher.o
+ 
 # ----------
 
 # Dedicated server object
@@ -364,12 +365,6 @@ build/posix/posix.o :	  			src/platforms/posix/posix.c
 build/posix/system.o :  			src/platforms/posix/system.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
-build/posix/vid_menu.o :   			src/platforms/posix/vid_menu.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
-
-build/posix/vid_so.o :     			src/platforms/posix/vid_so.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
-
 build/posix/glob/glob.o :  			src/platforms/posix/glob/glob.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
@@ -378,6 +373,12 @@ build/posix/sdl/cd.o :     			src/platforms/posix/sdl/cd.c
 
 build/posix/sdl/sound.o :  			src/platforms/posix/sdl/sound.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< $(SDLCFLAGS)
+
+build/posix/vid/menu.o :   			src/platforms/posix/vid/menu.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+
+build/posix/vid/refresher.o :     	src/platforms/posix/vid/refresher.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
 # ----------
  
