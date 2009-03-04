@@ -46,11 +46,10 @@ int SV_FindIndex (char *name, int start, int max, qboolean create)
 	if (i == max)
 		Com_Error (ERR_DROP, "*Index: overflow");
 
-	strncpy (sv.configstrings[start+i], name, sizeof(sv.configstrings[i]));
+	strncpy (sv.configstrings[start+i], name, sizeof(sv.configstrings[i]-1));
 
 	if (sv.state != ss_loading)
 	{	// send the update to everyone
-		SZ_Clear (&sv.multicast);
 		MSG_WriteChar (&sv.multicast, svc_configstring);
 		MSG_WriteShort (&sv.multicast, start+i);
 		MSG_WriteString (&sv.multicast, name);
@@ -233,7 +232,7 @@ void SV_SpawnServer (char *server, char *spawnpoint, server_state_t serverstate,
 		sv.models[1] = CM_LoadMap (sv.configstrings[CS_MODELS+1], false, &checksum);
 	}
 	Com_sprintf (sv.configstrings[CS_MAPCHECKSUM],sizeof(sv.configstrings[CS_MAPCHECKSUM]),
-		"%i", checksum);
+		"%u", checksum);
 
 	//
 	// clear physics interaction links
@@ -262,6 +261,10 @@ void SV_SpawnServer (char *server, char *spawnpoint, server_state_t serverstate,
 	// run two frames to allow everything to settle
 	ge->RunFrame ();
 	ge->RunFrame ();
+
+	//verify game didn't clobber important stuff
+	if ((int)checksum != atoi(sv.configstrings[CS_MAPCHECKSUM]))
+		Com_Error (ERR_DROP, "Game DLL corrupted server configstrings"); 
 
 	// all precaches are complete
 	sv.state = serverstate;
@@ -297,13 +300,14 @@ void SV_InitGame (void)
 		// cause any connected clients to reconnect
 		SV_Shutdown ("Server restarted\n", true);
 	}
+#ifndef DEDICATED_ONLY
 	else
 	{
 		// make sure the client is down
 		CL_Drop ();
 		SCR_BeginLoadingPlaque ();
 	}
-
+#endif
 	// get any latched variable changes (maxclients, etc)
 	Cvar_GetLatchedVars ();
 
@@ -335,18 +339,10 @@ void SV_InitGame (void)
 	{
 		if (maxclients->value <= 1 || maxclients->value > 4)
 			Cvar_FullSet ("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
-#ifdef COPYPROTECT
-		if (!sv.attractloop && !dedicated->value)
-			Sys_CopyProtect ();
-#endif
 	}
 	else	// non-deathmatch, non-coop is one player
 	{
 		Cvar_FullSet ("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
-#ifdef COPYPROTECT
-		if (!sv.attractloop)
-			Sys_CopyProtect ();
-#endif
 	}
 
 	svs.spawncount = rand();
@@ -431,30 +427,38 @@ void SV_Map (qboolean attractloop, char *levelstring, qboolean loadgame)
 
 	// skip the end-of-unit flag if necessary
 	if (level[0] == '*')
-		strcpy (level, level+1);
+		memmove (level, level+1, strlen(level)+1);
 
 	l = strlen(level);
 	if (l > 4 && !strcmp (level+l-4, ".cin") )
 	{
+#ifndef DEDICATED_ONLY 
 		SCR_BeginLoadingPlaque ();			// for local system
+#endif
 		SV_BroadcastCommand ("changing\n");
 		SV_SpawnServer (level, spawnpoint, ss_cinematic, attractloop, loadgame);
 	}
 	else if (l > 4 && !strcmp (level+l-4, ".dm2") )
 	{
+#ifndef DEDICATED_ONLY
 		SCR_BeginLoadingPlaque ();			// for local system
+#endif
 		SV_BroadcastCommand ("changing\n");
 		SV_SpawnServer (level, spawnpoint, ss_demo, attractloop, loadgame);
 	}
 	else if (l > 4 && !strcmp (level+l-4, ".pcx") )
 	{
+#ifndef DEDICATED_ONLY
 		SCR_BeginLoadingPlaque ();			// for local system
+#endif
 		SV_BroadcastCommand ("changing\n");
 		SV_SpawnServer (level, spawnpoint, ss_pic, attractloop, loadgame);
 	}
 	else
 	{
+#ifndef DEDICATED_ONLY
 		SCR_BeginLoadingPlaque ();			// for local system
+#endif
 		SV_BroadcastCommand ("changing\n");
 		SV_SendClientMessages ();
 		SV_SpawnServer (level, spawnpoint, ss_game, attractloop, loadgame);
