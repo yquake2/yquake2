@@ -182,7 +182,7 @@ SERVER_OBJS = \
 # POSIX platform objects
 POSIX_OBJS = \
  	build/posix/net_udp.o \
-	build/posix/q_shlinux.o \
+	build/posix/posix.o \
 	build/posix/sys_linux.o \
 	build/posix/vid_menu.o \
 	build/posix/vid_so.o \
@@ -223,7 +223,7 @@ DEDICATED_SERVER_COMMON_OBJS = \
 DEDICATED_SERVER_POSIX_OBJS = \
 	build/dedicated_server_posix/glob.o \
 	build/dedicated_server_posix/net_udp.o \
-	build/dedicated_server_posix/q_shlinux.o \
+	build/dedicated_server_posix/posix.o \
 	build/dedicated_server_posix/sys_linux.o
  
 # ----------
@@ -358,7 +358,7 @@ build/server/sv_world.o :   		src/server/sv_world.c
 build/posix/net_udp.o :   			src/platforms/posix/net_udp.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
-build/posix/q_shlinux.o :  			src/platforms/posix/q_shlinux.c
+build/posix/posix.o :	  			src/platforms/posix/posix.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/posix/sys_linux.o :  			src/platforms/posix/sys_linux.c
