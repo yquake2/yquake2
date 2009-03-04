@@ -50,18 +50,26 @@ endif
 CC = gcc
 
 ifeq ($(ARCH),i386)
-CFLAGS= -O2 -ffast-math -funroll-loops -falign-loops=2 \
+CFLAGS_BASE = -O2 -ffast-math -funroll-loops -falign-loops=2 \
 		-falign-jumps=2 -falign-functions=2 -fno-strict-aliasing \
 		-Wall -pipe
 endif
 
 ifeq ($(ARCH),x86_64)
-CFLAGS = -O2 -ffast-math -funroll-loops -fomit-frame-pointer \
+CFLAGS_BASE = -O2 -ffast-math -funroll-loops -fomit-frame-pointer \
 	   	 -fexpensive-optimizations -fno-strict-aliasing \
 		 -Wall -pipe
 endif
 
+# SDL
 SDLCFLAGS = $(shell sdl-config --cflags)
+
+# Client
+CFLAGS_CLIENT = $(CFLAGS_BASE)
+
+# Dedicated Server
+CFLAGS_DEDICATED_SERVER = $(CFLAGS_BASE)
+CFLAGS_DEDICATED_SERVER += -DDEDICATED_ONLY
 
 # ----------
 
@@ -98,6 +106,13 @@ client:
 		build/posix \
 		build/server
 	$(MAKE) build/client/quake2	
+
+dedicated_server:
+	@-mkdir -p build \
+		build/dedicated_server \
+		build/dedicated_server_common \
+		build/dedicated_server_posix 
+	$(MAKE) build/dedicated_server/q2ded
 
 clean:
 	@-rm -Rf build
@@ -139,7 +154,7 @@ COMMON_OBJS = \
 	build/common/md4.o \
 	build/common/net_chan.o \
 	build/common/pmove.o 
-
+ 
 # ----------
 
 # Game ABI objets
@@ -162,6 +177,7 @@ SERVER_OBJS = \
 
 # ---------
 
+# POSIX platform objects
 POSIX_OBJS = \
 	build/posix/cd_sdl.o \
 	build/posix/glob.o \
@@ -174,162 +190,292 @@ POSIX_OBJS = \
 
 # ----------
 
+# Dedicated server object
+DEDICATED_SERVER_OBJS = \
+	build/dedicated_server/sv_ccmds.o \
+	build/dedicated_server/sv_ents.o \
+	build/dedicated_server/sv_game.o \
+	build/dedicated_server/sv_init.o \
+	build/dedicated_server/sv_main.o \
+	build/dedicated_server/sv_send.o \
+	build/dedicated_server/sv_user.o \
+	build/dedicated_server/sv_world.o
+
+# ----------
+
+# Dedicated server common objects
+DEDICATED_SERVER_COMMON_OBJS = \
+	build/dedicated_server_common/cmd.o \
+	build/dedicated_server_common/cmodel.o \
+	build/dedicated_server_common/common.o \
+	build/dedicated_server_common/crc.o \
+	build/dedicated_server_common/cvar.o \
+	build/dedicated_server_common/files.o \
+	build/dedicated_server_common/md4.o \
+	build/dedicated_server_common/net_chan.o \
+	build/dedicated_server_common/pmove.o 
+
+# ----------
+
+# Dedicated server POSIX platform objects
+DEDICATED_SERVER_POSIX_OBJS = \
+	build/dedicated_server_posix/cd_sdl.o \
+	build/dedicated_server_posix/glob.o \
+	build/dedicated_server_posix/net_udp.o \
+	build/dedicated_server_posix/q_shlinux.o \
+	build/dedicated_server_posix/snd_sdl.o \
+	build/dedicated_server_posix/sys_linux.o \
+	build/dedicated_server_posix/vid_menu.o \
+	build/dedicated_server_posix/vid_so.o
+ 
+# ----------
+
 # Client build
 build/client/cl_cin.o :     		src/client/cl_cin.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_ents.o :    		src/client/cl_ents.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_fx.o :      		src/client/cl_fx.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_input.o :   		src/client/cl_input.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_inv.o :     		src/client/cl_inv.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_main.o :    		src/client/cl_main.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_parse.o :   		src/client/cl_parse.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_pred.o :    		src/client/cl_pred.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_tent.o :    		src/client/cl_tent.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_scrn.o :    		src/client/cl_scrn.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_view.o :    		src/client/cl_view.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_newfx.o :   		src/client/cl_newfx.c
-	$(CC) $(CFLAGS) -o $@ -c $<  
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<  
 
 build/client/console/console.o :	src/client/console/console.c
-	$(CC) $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
 build/client/input/keys.o :			src/client/input/keys.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/menu/menu.o :			src/client/menu/menu.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/menu/qmenu.o :			src/client/menu/qmenu.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/sound/snd_dma.o :		src/client/sound/snd_dma.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/sound/snd_mem.o :		src/client/sound/snd_mem.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/sound/snd_mix.o :		src/client/sound/snd_mix.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 # ---------
 
 # Common build
 build/common/cmd.o :		        src/common/cmd.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
 build/common/cmodel.o :     		src/common/cmodel.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
 build/common/common.o :     		src/common/common.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
 build/common/crc.o :        		src/common/crc.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
 build/common/cvar.o :       		src/common/cvar.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/common/files.o :      		src/common/files.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/common/md4.o :        		src/common/md4.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/common/net_chan.o :   		src/common/net_chan.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/common/pmove.o :      		src/common/pmove.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 # ----------
 
 # Game ABI build
 build/gameabi/m_flash.o :  			src/game/quake2/m_flash.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
 build/gameabi/q_shared.o : 			src/game/quake2/q_shared.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 # ---------
 
 # Server build
 build/server/sv_ccmds.o :			src/server/sv_ccmds.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/server/sv_ents.o :			src/server/sv_ents.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/server/sv_game.o :    		src/server/sv_game.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/server/sv_init.o :    		src/server/sv_init.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/server/sv_main.o :    		src/server/sv_main.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/server/sv_send.o :    		src/server/sv_send.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/server/sv_user.o :    		src/server/sv_user.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/server/sv_world.o :   		src/server/sv_world.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 # ----------
 
 # POSIX build
 build/posix/cd_sdl.o :     			src/platforms/posix/cd_sdl.c
-	$(CC) $(CFLAGS) -o $@ -c $< $(SDLCFLAGS)
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< $(SDLCFLAGS)
  
 build/posix/glob.o :       			src/platforms/posix/glob.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/posix/net_udp.o :   			src/platforms/posix/net_udp.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
 build/posix/q_shlinux.o :  			src/platforms/posix/q_shlinux.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/posix/snd_sdl.o :    			src/platforms/posix/snd_sdl.c
-	$(CC) $(CFLAGS) -o $@ -c $< $(SDLCFLAGS)
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< $(SDLCFLAGS)
  
 build/posix/sys_linux.o :  			src/platforms/posix/sys_linux.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
 build/posix/vid_menu.o :   			src/platforms/posix/vid_menu.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/posix/vid_so.o :     			src/platforms/posix/vid_so.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+
+# ----------
+ 
+# Dedicated server build
+build/dedicated_server/sv_ccmds.o :			src/server/sv_ccmds.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server/sv_ents.o :			src/server/sv_ents.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server/sv_game.o :    		src/server/sv_game.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server/sv_init.o :    		src/server/sv_init.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server/sv_main.o :    		src/server/sv_main.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server/sv_send.o :    		src/server/sv_send.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server/sv_user.o :    		src/server/sv_user.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server/sv_world.o :   		src/server/sv_world.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+# ---------
+ 
+# Dedicated server dedicated_server_common build
+build/dedicated_server_common/cmd.o :        src/common/cmd.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/cmodel.o :     src/common/cmodel.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/common.o :     src/common/common.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/crc.o :        src/common/crc.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/cvar.o :       src/common/cvar.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/files.o :      src/common/files.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/md4.o :        src/common/md4.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/net_chan.o :  src/common/net_chan.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/pmove.o :     src/common/pmove.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 # ----------
 
+# POSIX build
+build/dedicated_server_posix/cd_sdl.o :     src/platforms/posix/cd_sdl.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< $(SDLCFLAGS)
+ 
+build/dedicated_server_posix/glob.o :       src/platforms/posix/glob.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_posix/net_udp.o :   	src/platforms/posix/net_udp.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+ 
+build/dedicated_server_posix/q_shlinux.o :  src/platforms/posix/q_shlinux.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_posix/snd_sdl.o :    src/platforms/posix/snd_sdl.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< $(SDLCFLAGS)
+ 
+build/dedicated_server_posix/sys_linux.o :  src/platforms/posix/sys_linux.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+ 
+build/dedicated_server_posix/vid_menu.o :   src/platforms/posix/vid_menu.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_posix/vid_so.o :     src/platforms/posix/vid_so.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+# ----------
+  
 #  The client
 build/client/quake2 : $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
     $(SERVER_OBJS) $(POSIX_OBJS)
-	$(CC) $(CFLAGS) -o $@ $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
+	$(CC) $(CFLAGS_CLIENT) -o $@ $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
 		$(SERVER_OBJS) $(POSIX_OBJS) $(LDFLAGS) $(SDLLDFLAGS)
- 
+
+# Dedicated Server
+build/dedicated_server/q2ded : $(DEDICATED_SERVER_OBJS) $(DEDICATED_SERVER_COMMON_OBJS) \
+	$(GAME_ABI_OBJS) $(DEDICATED_SERVER_POSIX_OBJS)
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ $(DEDICATED_SERVER_OBJS) \
+		$(DEDICATED_SERVER_COMMON_OBJS) $(GAME_ABI_OBJS) \
+		$(DEDICATED_SERVER_POSIX_OBJS) $(LDFLAGS)
