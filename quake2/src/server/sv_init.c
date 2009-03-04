@@ -46,7 +46,7 @@ int SV_FindIndex (char *name, int start, int max, qboolean create)
 	if (i == max)
 		Com_Error (ERR_DROP, "*Index: overflow");
 
-	strncpy (sv.configstrings[start+i], name, sizeof(sv.configstrings[i]-1));
+	strncpy (sv.configstrings[start+i], name, sizeof(sv.configstrings[i]));
 
 	if (sv.state != ss_loading)
 	{	// send the update to everyone
