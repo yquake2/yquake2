@@ -219,14 +219,10 @@ DEDICATED_SERVER_COMMON_OBJS = \
 
 # Dedicated server POSIX platform objects
 DEDICATED_SERVER_POSIX_OBJS = \
-	build/dedicated_server_posix/cd_sdl.o \
 	build/dedicated_server_posix/glob.o \
 	build/dedicated_server_posix/net_udp.o \
 	build/dedicated_server_posix/q_shlinux.o \
-	build/dedicated_server_posix/snd_sdl.o \
-	build/dedicated_server_posix/sys_linux.o \
-	build/dedicated_server_posix/vid_menu.o \
-	build/dedicated_server_posix/vid_so.o
+	build/dedicated_server_posix/sys_linux.o
  
 # ----------
 
@@ -410,7 +406,7 @@ build/dedicated_server/sv_world.o :   		src/server/sv_world.c
 
 # ---------
  
-# Dedicated server dedicated_server_common build
+# Dedicated server common build
 build/dedicated_server_common/cmd.o :        src/common/cmd.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
@@ -440,10 +436,7 @@ build/dedicated_server_common/pmove.o :     src/common/pmove.c
 
 # ----------
 
-# POSIX build
-build/dedicated_server_posix/cd_sdl.o :     src/platforms/posix/cd_sdl.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< $(SDLCFLAGS)
- 
+# Dedicated server POSIX build
 build/dedicated_server_posix/glob.o :       src/platforms/posix/glob.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
@@ -453,16 +446,7 @@ build/dedicated_server_posix/net_udp.o :   	src/platforms/posix/net_udp.c
 build/dedicated_server_posix/q_shlinux.o :  src/platforms/posix/q_shlinux.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_posix/snd_sdl.o :    src/platforms/posix/snd_sdl.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< $(SDLCFLAGS)
- 
 build/dedicated_server_posix/sys_linux.o :  src/platforms/posix/sys_linux.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
- 
-build/dedicated_server_posix/vid_menu.o :   src/platforms/posix/vid_menu.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
-
-build/dedicated_server_posix/vid_so.o :     src/platforms/posix/vid_so.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 # ----------

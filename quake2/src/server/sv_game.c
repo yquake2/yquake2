@@ -319,7 +319,9 @@ SV_InitGameProgs
 Init the game subsystem for a new map
 ===============
 */
+#ifndef DEDICATED_ONLY
 void SCR_DebugGraph (float value, int color);
+#endif
 
 void SV_InitGameProgs (void)
 {
@@ -380,7 +382,10 @@ void SV_InitGameProgs (void)
 	import.args = Cmd_Args;
 	import.AddCommandString = Cbuf_AddText;
 
+#ifndef DEDICATED_ONLY
 	import.DebugGraph = SCR_DebugGraph;
+#endif
+	
 	import.SetAreaPortalState = CM_SetAreaPortalState;
 	import.AreasConnected = CM_AreasConnected;
 

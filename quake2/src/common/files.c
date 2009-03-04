@@ -301,7 +301,9 @@ void FS_Read (void *buffer, int len, FILE *f)
 			if (!tries)
 			{
 				tries = 1;
+#ifndef DEDICATED_ONLY
 				CDAudio_Stop();
+#endif
 			}
 			else
 				Com_Error (ERR_FATAL, "FS_Read: 0 bytes read");
