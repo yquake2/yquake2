@@ -286,9 +286,6 @@ void SV_StartSound (vec3_t origin, edict_t *entity, int channel,
 	if (attenuation < 0 || attenuation > 4)
 		Com_Error (ERR_FATAL, "SV_StartSound: attenuation = %f", attenuation);
 
-//	if (channel < 0 || channel > 15)
-//		Com_Error (ERR_FATAL, "SV_StartSound: channel = %i", channel);
-
 	if (timeofs < 0 || timeofs > 0.255)
 		Com_Error (ERR_FATAL, "SV_StartSound: timeofs = %f", timeofs);
 
@@ -330,7 +327,7 @@ void SV_StartSound (vec3_t origin, edict_t *entity, int channel,
 		if (entity->solid == SOLID_BSP)
 		{
 			for (i=0 ; i<3 ; i++)
-				origin_v[i] = entity->s.origin[i]+0.5*(entity->mins[i]+entity->maxs[i]);
+				origin_v[i] = entity->s.origin[i]+0.5f*(entity->mins[i]+entity->maxs[i]);
 		}
 		else
 		{
@@ -345,9 +342,16 @@ void SV_StartSound (vec3_t origin, edict_t *entity, int channel,
 	if (flags & SND_VOLUME)
 		MSG_WriteByte (&sv.multicast, volume*255);
 	if (flags & SND_ATTENUATION)
-		MSG_WriteByte (&sv.multicast, attenuation*64);
-	if (flags & SND_OFFSET)
-		MSG_WriteByte (&sv.multicast, timeofs*1000);
+		if (flags & SND_OFFSET)
+		{
+				if (attenuation >= 4.0)
+				{
+					Com_Printf ("GAME ERROR: Sound %s with bad attenuation %f, fixed.\n", sv.configstrings[CS_SOUNDS+soundindex], attenuation);
+					attenuation = 3.984375;
+				}
+				MSG_WriteByte (&sv.multicast, (int)(attenuation*64));
+			}
+	MSG_WriteByte (&sv.multicast, (int)(timeofs*1000));
 
 	if (flags & SND_ENT)
 		MSG_WriteShort (&sv.multicast, sendchan);
@@ -493,12 +497,12 @@ void SV_SendClientMessages (void)
 	client_t	*c;
 	int			msglen;
 	byte		msgbuf[MAX_MSGLEN];
-	int			r;
+	size_t			r;
 
 	msglen = 0;
 
 	// read the next demo message if needed
-	if (sv.state == ss_demo && sv.demofile)
+	if (sv.demofile && sv.state == ss_demo) 
 	{
 		if (sv_paused->value)
 			msglen = 0;
@@ -558,7 +562,7 @@ void SV_SendClientMessages (void)
 		}
 		else
 		{
-	// just update reliable	if needed
+			// just update reliable	if needed
 			if (c->netchan.message.cursize	|| curtime - c->netchan.last_sent > 1000 )
 				Netchan_Transmit (&c->netchan, 0, NULL);
 		}
