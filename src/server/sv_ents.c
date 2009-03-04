@@ -28,93 +28,6 @@ Encode a client frame onto the network channel
 =============================================================================
 */
 
-#if 0
-
-// because there can be a lot of projectiles, there is a special
-// network protocol for them
-#define	MAX_PROJECTILES		64
-edict_t	*projectiles[MAX_PROJECTILES];
-int		numprojs;
-cvar_t  *sv_projectiles;
-
-qboolean SV_AddProjectileUpdate (edict_t *ent)
-{
-	if (!sv_projectiles)
-		sv_projectiles = Cvar_Get("sv_projectiles", "1", 0);
-
-	if (!sv_projectiles->value)
-		return false;
-
-	if (!(ent->svflags & SVF_PROJECTILE))
-		return false;
-	if (numprojs == MAX_PROJECTILES)
-		return true;
-
-	projectiles[numprojs++] = ent;
-	return true;
-}
-
-void SV_EmitProjectileUpdate (sizebuf_t *msg)
-{
-	byte	bits[16];	// [modelindex] [48 bits] xyz p y 12 12 12 8 8 [entitynum] [e2]
-	int		n, i;
-	edict_t	*ent;
-	int		x, y, z, p, yaw;
-	int len;
-
-	if (!numprojs)
-		return;
-
-	MSG_WriteByte (msg, numprojs);
-
-	for (n=0 ; n<numprojs ; n++)
-	{
-		ent = projectiles[n];
-		x = (int)(ent->s.origin[0]+4096)>>1;
-		y = (int)(ent->s.origin[1]+4096)>>1;
-		z = (int)(ent->s.origin[2]+4096)>>1;
-		p = (int)(256*ent->s.angles[0]/360)&255;
-		yaw = (int)(256*ent->s.angles[1]/360)&255;
-
-		len = 0;
-		bits[len++] = x;
-		bits[len++] = (x>>8) | (y<<4);
-		bits[len++] = (y>>4);
-		bits[len++] = z;
-		bits[len++] = (z>>8);
-		if (ent->s.effects & EF_BLASTER)
-			bits[len-1] |= 64;
-
-		if (ent->s.old_origin[0] != ent->s.origin[0] ||
-			ent->s.old_origin[1] != ent->s.origin[1] ||
-			ent->s.old_origin[2] != ent->s.origin[2]) {
-			bits[len-1] |= 128;
-			x = (int)(ent->s.old_origin[0]+4096)>>1;
-			y = (int)(ent->s.old_origin[1]+4096)>>1;
-			z = (int)(ent->s.old_origin[2]+4096)>>1;
-			bits[len++] = x;
-			bits[len++] = (x>>8) | (y<<4);
-			bits[len++] = (y>>4);
-			bits[len++] = z;
-			bits[len++] = (z>>8);
-		}
-
-		bits[len++] = p;
-		bits[len++] = yaw;
-		bits[len++] = ent->s.modelindex;
-
-		bits[len++] = (ent->s.number & 0x7f);
-		if (ent->s.number > 255) {
-			bits[len-1] |= 128;
-			bits[len++] = (ent->s.number >> 7);
-		}
-
-		for (i=0 ; i<len ; i++)
-			MSG_WriteByte (msg, bits[i]);
-	}
-}
-#endif
-
 /*
 =============
 SV_EmitPacketEntities
@@ -130,12 +43,7 @@ void SV_EmitPacketEntities (client_frame_t *from, client_frame_t *to, sizebuf_t 
 	int		from_num_entities;
 	int		bits;
 
-#if 0
-	if (numprojs)
-		MSG_WriteByte (msg, svc_packetentities2);
-	else
-#endif
-		MSG_WriteByte (msg, svc_packetentities);
+	MSG_WriteByte (msg, svc_packetentities);
 
 	if (!from)
 		from_num_entities = 0;
@@ -148,6 +56,9 @@ void SV_EmitPacketEntities (client_frame_t *from, client_frame_t *to, sizebuf_t 
 	oldent = NULL;
 	while (newindex < to->num_entities || oldindex < from_num_entities)
 	{
+		if (msg->cursize > MAX_MSGLEN - 150) 
+			break;
+		
 		if (newindex >= to->num_entities)
 			newnum = 9999;
 		else
@@ -204,14 +115,7 @@ void SV_EmitPacketEntities (client_frame_t *from, client_frame_t *to, sizebuf_t 
 	}
 
 	MSG_WriteShort (msg, 0);	// end of packetentities
-
-#if 0
-	if (numprojs)
-		SV_EmitProjectileUpdate(msg);
-#endif
 }
-
-
 
 /*
 =============
@@ -348,23 +252,23 @@ void SV_WritePlayerstateToClient (client_frame_t *from, client_frame_t *to, size
 	//
 	if (pflags & PS_VIEWOFFSET)
 	{
-		MSG_WriteChar (msg, ps->viewoffset[0]*4);
-		MSG_WriteChar (msg, ps->viewoffset[1]*4);
-		MSG_WriteChar (msg, ps->viewoffset[2]*4);
+		MSG_WriteChar (msg, (int)ps->viewoffset[0]*4);
+		MSG_WriteChar (msg, (int)ps->viewoffset[1]*4);
+		MSG_WriteChar (msg, (int)ps->viewoffset[2]*4);
 	}
 
 	if (pflags & PS_VIEWANGLES)
 	{
-		MSG_WriteAngle16 (msg, ps->viewangles[0]);
-		MSG_WriteAngle16 (msg, ps->viewangles[1]);
-		MSG_WriteAngle16 (msg, ps->viewangles[2]);
+		MSG_WriteAngle16 (msg, (int)ps->viewangles[0]);
+		MSG_WriteAngle16 (msg, (int)ps->viewangles[1]);
+		MSG_WriteAngle16 (msg, (int)ps->viewangles[2]);
 	}
 
 	if (pflags & PS_KICKANGLES)
 	{
-		MSG_WriteChar (msg, ps->kick_angles[0]*4);
-		MSG_WriteChar (msg, ps->kick_angles[1]*4);
-		MSG_WriteChar (msg, ps->kick_angles[2]*4);
+		MSG_WriteChar (msg, (int)ps->kick_angles[0]*4);
+		MSG_WriteChar (msg, (int)ps->kick_angles[1]*4);
+		MSG_WriteChar (msg, (int)ps->kick_angles[2]*4);
 	}
 
 	if (pflags & PS_WEAPONINDEX)
@@ -375,20 +279,20 @@ void SV_WritePlayerstateToClient (client_frame_t *from, client_frame_t *to, size
 	if (pflags & PS_WEAPONFRAME)
 	{
 		MSG_WriteByte (msg, ps->gunframe);
-		MSG_WriteChar (msg, ps->gunoffset[0]*4);
-		MSG_WriteChar (msg, ps->gunoffset[1]*4);
-		MSG_WriteChar (msg, ps->gunoffset[2]*4);
-		MSG_WriteChar (msg, ps->gunangles[0]*4);
-		MSG_WriteChar (msg, ps->gunangles[1]*4);
-		MSG_WriteChar (msg, ps->gunangles[2]*4);
+		MSG_WriteChar (msg, (int)ps->gunoffset[0]*4);
+		MSG_WriteChar (msg, (int)ps->gunoffset[1]*4);
+		MSG_WriteChar (msg, (int)ps->gunoffset[2]*4);
+		MSG_WriteChar (msg, (int)ps->gunangles[0]*4);
+		MSG_WriteChar (msg, (int)ps->gunangles[1]*4);
+		MSG_WriteChar (msg, (int)ps->gunangles[2]*4);
 	}
 
 	if (pflags & PS_BLEND)
 	{
-		MSG_WriteByte (msg, ps->blend[0]*255);
-		MSG_WriteByte (msg, ps->blend[1]*255);
-		MSG_WriteByte (msg, ps->blend[2]*255);
-		MSG_WriteByte (msg, ps->blend[3]*255);
+		MSG_WriteByte (msg, (int)ps->blend[0]*255);
+		MSG_WriteByte (msg, (int)ps->blend[1]*255);
+		MSG_WriteByte (msg, (int)ps->blend[2]*255);
+		MSG_WriteByte (msg, (int)ps->blend[3]*255);
 	}
 	if (pflags & PS_FOV)
 		MSG_WriteByte (msg, ps->fov);
@@ -406,7 +310,6 @@ void SV_WritePlayerstateToClient (client_frame_t *from, client_frame_t *to, size
 			MSG_WriteShort (msg, ps->stats[i]);
 }
 
-
 /*
 ==================
 SV_WriteFrameToClient
@@ -417,7 +320,6 @@ void SV_WriteFrameToClient (client_t *client, sizebuf_t *msg)
 	client_frame_t		*frame, *oldframe;
 	int					lastframe;
 
-//Com_Printf ("%i -> %i\n", client->lastframe, sv.framenum);
 	// this is the frame we are creating
 	frame = &client->frames[sv.framenum & UPDATE_MASK];
 
@@ -428,7 +330,6 @@ void SV_WriteFrameToClient (client_t *client, sizebuf_t *msg)
 	}
 	else if (sv.framenum - client->lastframe >= (UPDATE_BACKUP - 3) )
 	{	// client hasn't gotten a good message through in a long time
-//		Com_Printf ("%s: Delta request from out-of-date packet.\n", client->name);
 		oldframe = NULL;
 		lastframe = -1;
 	}
@@ -540,10 +441,6 @@ void SV_BuildClientFrame (client_t *client)
 	if (!clent->client)
 		return;		// not in game yet
 
-#if 0
-	numprojs = 0; // no projectiles yet
-#endif
-
 	// this is the frame we are creating
 	frame = &client->frames[sv.framenum & UPDATE_MASK];
 
@@ -609,12 +506,7 @@ void SV_BuildClientFrame (client_t *client)
 			{
 				// FIXME: if an ent has a model and a sound, but isn't
 				// in the PVS, only the PHS, clear the model
-				if (ent->s.sound)
-				{
-					bitvector = fatpvs;	//clientphs;
-				}
-				else
-					bitvector = fatpvs;
+   				bitvector = fatpvs;
 
 				if (ent->num_clusters == -1)
 				{	// too many leafs for individual check, go by headnode
@@ -646,11 +538,6 @@ void SV_BuildClientFrame (client_t *client)
 				}
 			}
 		}
-
-#if 0
-		if (SV_AddProjectileUpdate(ent))
-			continue; // added as a special projectile
-#endif
 
 		// add it to the circular client_entities array
 		state = &svs.client_entities[svs.next_client_entities%svs.num_client_entities];
