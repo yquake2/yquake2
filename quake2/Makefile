@@ -104,6 +104,8 @@ client:
 		build/common \
 		build/gameabi \
 		build/posix \
+		build/posix/glob \
+		build/posix/sdl \
 		build/server
 	$(MAKE) build/client/quake2	
 
@@ -179,14 +181,14 @@ SERVER_OBJS = \
 
 # POSIX platform objects
 POSIX_OBJS = \
-	build/posix/cd_sdl.o \
-	build/posix/glob.o \
-	build/posix/net_udp.o \
+ 	build/posix/net_udp.o \
 	build/posix/q_shlinux.o \
-	build/posix/snd_sdl.o \
 	build/posix/sys_linux.o \
 	build/posix/vid_menu.o \
-	build/posix/vid_so.o 
+	build/posix/vid_so.o \
+    build/posix/glob/glob.o \
+	build/posix/sdl/cd.o \
+	build/posix/sdl/sound.o
 
 # ----------
 
@@ -353,21 +355,12 @@ build/server/sv_world.o :   		src/server/sv_world.c
 # ----------
 
 # POSIX build
-build/posix/cd_sdl.o :     			src/platforms/posix/cd_sdl.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< $(SDLCFLAGS)
- 
-build/posix/glob.o :       			src/platforms/posix/glob.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
-
 build/posix/net_udp.o :   			src/platforms/posix/net_udp.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
 build/posix/q_shlinux.o :  			src/platforms/posix/q_shlinux.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/posix/snd_sdl.o :    			src/platforms/posix/snd_sdl.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< $(SDLCFLAGS)
- 
 build/posix/sys_linux.o :  			src/platforms/posix/sys_linux.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
@@ -377,6 +370,15 @@ build/posix/vid_menu.o :   			src/platforms/posix/vid_menu.c
 build/posix/vid_so.o :     			src/platforms/posix/vid_so.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
+build/posix/glob/glob.o :  			src/platforms/posix/glob/glob.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+
+build/posix/sdl/cd.o :     			src/platforms/posix/sdl/cd.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< $(SDLCFLAGS)
+
+build/posix/sdl/sound.o :  			src/platforms/posix/sdl/sound.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< $(SDLCFLAGS)
+ 
 # ----------
  
 # Dedicated server build

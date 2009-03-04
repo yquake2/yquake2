@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 #include "SDL.h"
-#include "../../client/header/client.h"
+#include "../../../client/header/client.h"
 
 static qboolean cdValid = false;
 static qboolean initialized = false;
@@ -105,7 +105,6 @@ void CDAudio_RandomPlay(void)
     return;
 
   //create array of available audio tracknumbers
-
   for (; i < cd_id->numtracks; i++)
     {
       track_bools[i] = cd_id->track[i].type == SDL_AUDIO_TRACK;
