@@ -578,21 +578,7 @@ cmodel_t *CM_LoadMap (char *name, qboolean clientload, unsigned *checksum)
 	//
 	length = FS_LoadFile (name, (void **)&buf);
 	if (!buf)
-	{
 		Com_Error (ERR_DROP, "Couldn't load %s", name);
-	}
-	else
-	{
-			Com_Printf ("WARNING: Map not found, connecting in null map mode!\n");
-			numleafs = 1;
-			numclusters = 1;
-			numareas = 1;
-			*checksum = 0;
-
-			//!!!
-			strcpy (name, "");
-			return &map_cmodels[0];
-	}
 
 	last_checksum = LittleLong (Com_BlockChecksum (buf, length));
 	*checksum = last_checksum;
