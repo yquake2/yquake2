@@ -17,7 +17,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// net_wins.c
 
 #include "../../common/qcommon.h"
 
@@ -31,10 +30,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/uio.h>
 #include <errno.h>
 #include <arpa/inet.h>
-
-#ifdef NeXT
-#include <libc.h>
-#endif
 
 netadr_t	net_local_adr;
 
@@ -89,7 +84,6 @@ void SockadrToNetadr (struct sockaddr_in *s, netadr_t *a)
 	a->port = s->sin_port;
 	a->type = NA_IP;
 }
-
 
 qboolean	NET_CompareAdr (netadr_t a, netadr_t b)
 {
@@ -382,11 +376,7 @@ void NET_SendPacket (netsrc_t sock, int length, void *data, netadr_t to)
 	}
 }
 
-
 //=============================================================================
-
-
-
 
 /*
 ====================
