@@ -30,8 +30,6 @@ FIXME: this use of "area" is different from the bsp file use
 ===============================================================================
 */
 
-// (type *)STRUCT_FROM_LINK(link_t *link, type, member)
-// ent = STRUCT_FROM_LINK(link,entity_t,order)
 // FIXME: remove this mess!
 #define	STRUCT_FROM_LINK(l,t,m) ((t *)((byte *)l - (int)&(((t *)0)->m)))
 
@@ -112,7 +110,7 @@ areanode_t *SV_CreateAreaNode (int depth, vec3_t mins, vec3_t maxs)
 	else
 		anode->axis = 1;
 	
-	anode->dist = 0.5 * (maxs[anode->axis] + mins[anode->axis]);
+	anode->dist = 0.5f * (maxs[anode->axis] + mins[anode->axis]);
 	VectorCopy (mins, mins1);	
 	VectorCopy (mins, mins2);	
 	VectorCopy (maxs, maxs1);	
@@ -187,21 +185,21 @@ void SV_LinkEdict (edict_t *ent)
 	// encode the size into the entity_state for client prediction
 	if (ent->solid == SOLID_BBOX && !(ent->svflags & SVF_DEADMONSTER))
 	{	// assume that x/y are equal and symetric
-		i = ent->maxs[0]/8;
+		i = (int)ent->maxs[0]/8;
 		if (i<1)
 			i = 1;
 		if (i>31)
 			i = 31;
 
 		// z is not symetric
-		j = (-ent->mins[2])/8;
+		j = (int)(-ent->mins[2])/8;
 		if (j<1)
 			j = 1;
 		if (j>31)
 			j = 31;
 
 		// and z maxs can be negative...
-		k = (ent->maxs[2]+32)/8;
+		k = (int)(ent->maxs[2]+32)/8;
 		if (k<1)
 			k = 1;
 		if (k>63)
@@ -226,10 +224,10 @@ void SV_LinkEdict (edict_t *ent)
 		max = 0;
 		for (i=0 ; i<3 ; i++)
 		{
-			v =fabs( ent->mins[i]);
+			v = (float)fabs( ent->mins[i]);
 			if (v > max)
 				max = v;
-			v =fabs( ent->maxs[i]);
+			v = (float)fabs( ent->maxs[i]);
 			if (v > max)
 				max = v;
 		}
@@ -254,7 +252,7 @@ void SV_LinkEdict (edict_t *ent)
 	ent->absmax[1] += 1;
 	ent->absmax[2] += 1;
 
-// link to PVS leafs
+	// link to PVS leafs
 	ent->num_clusters = 0;
 	ent->areanum = 0;
 	ent->areanum2 = 0;
@@ -322,7 +320,7 @@ void SV_LinkEdict (edict_t *ent)
 	if (ent->solid == SOLID_NOT)
 		return;
 
-// find the first node that the ent's box crosses
+	// find the first node that the ent's box crosses
 	node = sv_areanodes;
 	while (1)
 	{
@@ -341,7 +339,6 @@ void SV_LinkEdict (edict_t *ent)
 		InsertLinkBefore (&ent->area, &node->trigger_edicts);
 	else
 		InsertLinkBefore (&ent->area, &node->solid_edicts);
-
 }
 
 
@@ -368,7 +365,7 @@ void SV_AreaEdicts_r (areanode_t *node)
 	for (l=start->next  ; l != start ; l = next)
 	{
 		next = l->next;
-		check = EDICT_FROM_AREA(l);
+		check = (EDICT_FROM_AREA(l));
 
 		if (check->solid == SOLID_NOT)
 			continue;		// deactivated
@@ -489,7 +486,7 @@ int SV_HullForEntity (edict_t *ent)
 {
 	cmodel_t	*model;
 
-// decide which clipping hull to use, based on the size
+	// decide which clipping hull to use, based on the size
 	if (ent->solid == SOLID_BSP)
 	{	// explicit hulls in the BSP model
 		model = sv.models[ ent->s.modelindex ];
@@ -588,11 +585,6 @@ SV_TraceBounds
 */
 void SV_TraceBounds (vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, vec3_t boxmins, vec3_t boxmaxs)
 {
-#if 0
-// debug to test against everything
-boxmins[0] = boxmins[1] = boxmins[2] = -9999;
-boxmaxs[0] = boxmaxs[1] = boxmaxs[2] = 9999;
-#else
 	int		i;
 	
 	for (i=0 ; i<3 ; i++)
@@ -608,7 +600,6 @@ boxmaxs[0] = boxmaxs[1] = boxmaxs[2] = 9999;
 			boxmaxs[i] = start[i] + maxs[i] + 1;
 		}
 	}
-#endif
 }
 
 /*
