@@ -574,7 +574,7 @@ char *Cmd_MacroExpandString (char *text)
 		if (!start)
 			continue;
 	
-		token = Cvar_VariableString (token);
+		token = (char *)Cvar_VariableString (token);
 
 		j = strlen(token);
 		len += j;

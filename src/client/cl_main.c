@@ -832,7 +832,7 @@ void CL_PingServers_f (void)
 	for (i=0 ; i<16 ; i++)
 	{
 		Com_sprintf (name, sizeof(name), "adr%i", i);
-		adrstring = Cvar_VariableString (name);
+		adrstring = (char *) Cvar_VariableString (name);
 		if (!adrstring || !adrstring[0])
 			continue;
 
