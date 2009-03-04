@@ -342,16 +342,9 @@ void SV_StartSound (vec3_t origin, edict_t *entity, int channel,
 	if (flags & SND_VOLUME)
 		MSG_WriteByte (&sv.multicast, volume*255);
 	if (flags & SND_ATTENUATION)
-		if (flags & SND_OFFSET)
-		{
-				if (attenuation >= 4.0)
-				{
-					Com_Printf ("GAME ERROR: Sound %s with bad attenuation %f, fixed.\n", sv.configstrings[CS_SOUNDS+soundindex], attenuation);
-					attenuation = 3.984375;
-				}
-				MSG_WriteByte (&sv.multicast, (int)(attenuation*64));
-			}
-	MSG_WriteByte (&sv.multicast, (int)(timeofs*1000));
+		MSG_WriteByte (&sv.multicast, attenuation*64);
+	if (flags & SND_OFFSET)
+		MSG_WriteByte (&sv.multicast, timeofs*1000);
 
 	if (flags & SND_ENT)
 		MSG_WriteShort (&sv.multicast, sendchan);
