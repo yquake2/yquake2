@@ -27,9 +27,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <unistd.h>
 #include <errno.h>
 
-#include "../../client/header/client.h"
+#include "../../../client/header/client.h"
 
-#include "rw_linux.h"
+#include "../posix.h"
 
 // Structure containing functions exported from refresh DLL
 refexport_t	re;
@@ -251,17 +251,7 @@ qboolean VID_LoadRefresh( char *name )
 	    strstr(fn, "glx") == NULL &&
 	    strstr(fn, "softsdl") == NULL &&
 	    strstr(fn, "sdlgl") == NULL) { // softx doesn't require root	
-#if 0
-		if (st.st_uid != 0) {
-			Com_Printf( "LoadLibrary(\"%s\") failed: ref is not owned by root\n", name);
-			return false;
-		}
-		if ((st.st_mode & 0777) & ~0700) {
-			Com_Printf( "LoadLibrary(\"%s\") failed: invalid permissions, must be 700 for security considerations\n", name);
-			return false;
-		}
-#endif
-	} else {
+   } else {
 		// softx requires we give up root now
 		setreuid(getuid(), getuid());
 		setegid(getgid());
@@ -291,10 +281,6 @@ qboolean VID_LoadRefresh( char *name )
 	ri.Vid_GetModeInfo = VID_GetModeInfo;
 	ri.Vid_MenuInit = VID_MenuInit;
 	ri.Vid_NewWindow = VID_NewWindow;
-
-	#ifdef QMAX
-	ri.SetParticlePics = SetParticleImages;
-	#endif
 
 	if ( ( GetRefAPI = (void *) dlsym( reflib_library, "GetRefAPI" ) ) == 0 )
 		Com_Error( ERR_FATAL, "dlsym failed on %s", name );
@@ -335,22 +321,10 @@ qboolean VID_LoadRefresh( char *name )
 	}
 
 	/* Init KBD */
-#if 1
 	if ((KBD_Init_fp = dlsym(reflib_library, "KBD_Init")) == NULL ||
 		(KBD_Update_fp = dlsym(reflib_library, "KBD_Update")) == NULL ||
 		(KBD_Close_fp = dlsym(reflib_library, "KBD_Close")) == NULL)
 		Sys_Error("No KBD functions in REF.\n");
-#else
-	{
-		void KBD_Init(void);
-		void KBD_Update(void);
-		void KBD_Close(void);
-
-		KBD_Init_fp = KBD_Init;
-		KBD_Update_fp = KBD_Update;
-		KBD_Close_fp = KBD_Close;
-	}
-#endif
 	KBD_Init_fp(Do_Key_Event);
 
 	Key_ClearStates();
@@ -398,10 +372,10 @@ void VID_CheckChanges (void)
 		{
 			if ( strcmp (vid_ref->string, "soft") == 0 ||
 				strcmp (vid_ref->string, "softx") == 0 ) {
-Com_Printf("Refresh failed\n");
+				Com_Printf("Refresh failed\n");
 				sw_mode = Cvar_Get( "sw_mode", "0", 0 );
 				if (sw_mode->value != 0) {
-Com_Printf("Trying mode 0\n");
+					Com_Printf("Trying mode 0\n");
 					Cvar_SetValue("sw_mode", 0);
 					if ( !VID_LoadRefresh( name ) )
 						Com_Error (ERR_FATAL, "Couldn't fall back to software refresh!");
@@ -568,3 +542,4 @@ char *Sys_GetClipboardData(void)
 	else
 		return NULL;
 }
+
