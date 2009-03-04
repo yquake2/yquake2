@@ -1344,8 +1344,10 @@ float	crand(void)
 	return (rand()&32767)* (2.0/32767) - 1;
 }
 
+#ifndef DEDICATED_ONLY
 void Key_Init (void);
 void SCR_EndLoadingPlaque (void);
+#endif
 
 /*
 =============
@@ -1385,7 +1387,9 @@ void Qcommon_Init (int argc, char **argv)
 	Cmd_Init ();
 	Cvar_Init ();
 
+#ifndef DEDICATED_ONLY
 	Key_Init ();
+#endif
 
 	// we need to add the early commands twice, because
 	// a basedir or cddir needs to be set before execing
@@ -1437,7 +1441,7 @@ void Qcommon_Init (int argc, char **argv)
 	Netchan_Init ();
 
 	SV_Init ();
-#ifdef DEDICATED_ONLY 	
+#ifndef DEDICATED_ONLY 	
 	CL_Init ();
 #endif
 
