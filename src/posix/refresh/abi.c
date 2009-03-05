@@ -18,11 +18,7 @@
 		Boston, MA  02111-1307, USA
 */
 
-#ifdef OPENGL
 #include "../../refresh/header/local.h"
-#else
-#include "../ref_soft/r_local.h"
-#endif
 
 #include "../../client/input/keys.h"
 #include "../posix.h"

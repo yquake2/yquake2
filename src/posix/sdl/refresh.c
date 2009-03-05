@@ -40,17 +40,9 @@
 #include <sys/mman.h>
 
 #include "SDL.h"
-
-#ifdef OPENGL
 #include <GL/gl.h>
-#endif
-
-#ifdef OPENGL
 #include "../../refresh/header/local.h"
 #include "../refresh/glwindow.h"
-#else
-#include "../ref_soft/r_local.h"
-#endif
 
 #include "../../client/input/keys.h"
 #include "../posix.h"
@@ -62,10 +54,6 @@ static qboolean                 X11_active = false;
 qboolean have_stencil = false;
 
 static SDL_Surface *surface;
-
-#ifndef OPENGL
-static unsigned int sdl_palettemode;
-#endif
 
 struct
 {
@@ -79,10 +67,8 @@ int config_notify=0;
 int config_notify_width;
 int config_notify_height;
 
-#ifdef OPENGL
 glwstate_t glw_state;
 static cvar_t *use_stencil;
-#endif
 						      
 // Console variables that we need to access from this module
 
@@ -100,15 +86,6 @@ int mx, my, mouse_buttonstate;
 static float old_windowed_mouse;
 
 static cvar_t	*_windowed_mouse;
-
-/************************
- * Joystick
- ************************/
-#ifdef Joystick
-static SDL_Joystick *joy;
-static int joy_oldbuttonstate;
-static int joy_numbuttons;
-#endif
 
 void RW_IN_PlatformInit() {
   _windowed_mouse = ri.Cvar_Get ("_windowed_mouse", "0", CVAR_ARCHIVE);
@@ -328,9 +305,6 @@ int SWimp_Init( void *hInstance, void *wndProc )
   return true;
 }
 
-
-
-#ifdef OPENGL
 void *GLimp_GetProcAddress(const char *func)
 {
 	return SDL_GL_GetProcAddress(func);
@@ -340,7 +314,6 @@ int GLimp_Init( void *hInstance, void *wndProc )
 {
   return SWimp_Init(hInstance, wndProc);
 }
-#endif
 
 static void SetSDLIcon()
 {
@@ -386,64 +359,6 @@ static void SetSDLIcon()
 ** The necessary width and height parameters are grabbed from
 ** vid.width and vid.height.
 */
-#ifndef OPENGL
-static qboolean SWimp_InitGraphics( qboolean fullscreen )
-{
-	const SDL_VideoInfo *vinfo;
-	int flags;
-
-	/* Just toggle fullscreen if that's all that has been changed */	
-	if (surface && (surface->w == vid.width) && (surface->h == vid.height)) {
-		int isfullscreen = (surface->flags & SDL_FULLSCREEN) ? 1 : 0;
-		if (fullscreen != isfullscreen)
-			SDL_WM_ToggleFullScreen(surface);
-	
-		isfullscreen = (surface->flags & SDL_FULLSCREEN) ? 1 : 0;
-		if (fullscreen == isfullscreen)
-			return true;
-	}
-	
-	srandom(getpid());
-
-	// free resources in use
-	if (surface)
-		SDL_FreeSurface(surface);
-
-	// let the sound and input subsystems know about the new window
-	ri.Vid_NewWindow (vid.width, vid.height);
-
-	/* 
-	Okay, I am going to query SDL for the "best" pixel format.
-	If the depth is not 8, use SetPalette with logical pal, 
-	else use SetColors.
-	
-	Hopefully this works all the time.
-	*/
-	vinfo = SDL_GetVideoInfo();
-	sdl_palettemode = (vinfo->vfmt->BitsPerPixel == 8) ? (SDL_PHYSPAL|SDL_LOGPAL) : SDL_LOGPAL;
-	flags = /*SDL_DOUBLEBUF|*/SDL_SWSURFACE|SDL_HWPALETTE;
-	if (fullscreen)
-		flags |= SDL_FULLSCREEN;
-	
-	SetSDLIcon(); /* currently uses q2icon.xbm data */
-	
-	if ((surface = SDL_SetVideoMode(vid.width, vid.height, 8, flags)) == NULL) {
-		Sys_Error("(SOFTSDL) SDL SetVideoMode failed: %s\n", SDL_GetError());
-		return false;
-	}
-	
-	SDL_WM_SetCaption("Quake II", "Quake II");
-
-	SDL_ShowCursor(0);
-
-	vid.rowbytes = surface->pitch;
-	vid.buffer = surface->pixels;
-
-	X11_active = true;
-
-	return true;
-}
-#else
 static qboolean GLimp_InitGraphics( qboolean fullscreen )
 {
 	int flags;
@@ -511,13 +426,10 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 
 	return true;
 }
-#endif
 
-#ifdef OPENGL
 void GLimp_BeginFrame( float camera_seperation )
 {
 }
-#endif
 
 /*
 ** SWimp_EndFrame
@@ -526,48 +438,14 @@ void GLimp_BeginFrame( float camera_seperation )
 ** front buffer.  In the Win32 case it uses BitBlt or BltFast depending
 ** on whether we're using DIB sections/GDI or DDRAW.
 */
-
-#ifndef OPENGL
-void SWimp_EndFrame (void)
-{
-	/* SDL_Flip(surface); */
-	SDL_UpdateRect(surface, 0, 0, 0, 0);
-}
-#else
 void GLimp_EndFrame (void)
 {
 	SDL_GL_SwapBuffers();
 }
-#endif
 
 /*
 ** SWimp_SetMode
 */
-#ifndef OPENGL
-rserr_t SWimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
-{
-	rserr_t retval = rserr_ok;
-
-	ri.Con_Printf (PRINT_ALL, "setting mode %d:", mode );
-
-	if ( !ri.Vid_GetModeInfo( pwidth, pheight, mode ) )
-	{
-		ri.Con_Printf( PRINT_ALL, " invalid mode\n" );
-		return rserr_invalid_mode;
-	}
-
-	ri.Con_Printf( PRINT_ALL, " %d %d\n", *pwidth, *pheight);
-
-	if ( !SWimp_InitGraphics( fullscreen ) ) {
-		// failed to set a valid mode in windowed mode
-		return rserr_invalid_mode;
-	}
-
-	R_GammaCorrectAndSetPalette( ( const unsigned char * ) d_8to24table );
-
-	return retval;
-}
-#else
 int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 {
 	ri.Con_Printf (PRINT_ALL, "setting mode %d:", mode );
@@ -587,7 +465,6 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 
 	return rserr_ok;
 }
-#endif
 
 /*
 ** SWimp_SetPalette
@@ -596,28 +473,6 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 ** to use the existing palette.  The palette is expected to be in
 ** a padded 4-byte xRGB format.
 */
-#ifndef OPENGL
-void SWimp_SetPalette( const unsigned char *palette )
-{
-	SDL_Color colors[256];
-	
-	int i;
-
-	if (!X11_active)
-		return;
-
-	if ( !palette )
-	        palette = ( const unsigned char * ) sw_state.currentpalette;
- 
-	for (i = 0; i < 256; i++) {
-		colors[i].r = palette[i*4+0];
-		colors[i].g = palette[i*4+1];
-		colors[i].b = palette[i*4+2];
-	}
-
-	SDL_SetPalette(surface, sdl_palettemode, colors, 0, 256);
-}
-#endif
 
 /*
 ** SWimp_Shutdown
@@ -640,25 +495,17 @@ void SWimp_Shutdown( void )
 	X11_active = false;
 }
 
-#ifdef OPENGL
 void GLimp_Shutdown( void )
 {
 	SWimp_Shutdown();
 }
-#endif
 
 /*
 ** SWimp_AppActivate
 */
-#ifndef OPENGL
-void SWimp_AppActivate( qboolean active )
-{
-}
-#else
 void GLimp_AppActivate( qboolean active )
 {
 }
-#endif
 
 //===============================================================================
 
@@ -759,7 +606,6 @@ void KBD_Close(void)
 	memset(keyq, 0, sizeof(keyq));
 }
 
-#ifdef OPENGL
 void Fake_glColorTableEXT( GLenum target, GLenum internalformat,
                              GLsizei width, GLenum format, GLenum type,
                              const GLvoid *table )
@@ -775,4 +621,4 @@ void Fake_glColorTableEXT( GLenum target, GLenum internalformat,
 		temptable[i][3] = 255;
 	}
 }
-#endif
+
