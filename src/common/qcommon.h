@@ -25,9 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define	VERSION		0.50
 #define	BASEDIRNAME	"baseq2"
 
-#ifdef WIN32
-#define BUILDSTRING "Windows"
-#elif defined __linux__ 
+#if defined __linux__ 
 #define BUILDSTRING "Linux"
 #elif defined __FreeBSD__
 #define BUILDSTRING "FreeBSD"

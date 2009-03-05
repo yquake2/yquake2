@@ -78,12 +78,11 @@ qboolean	CL_CheckOrDownloadFile (char *filename)
 		return true;
 	}
 
-#ifndef _WIN32
 	// fix backslashes
 	while ((ptr=strchr(filename,'\\'))) {
 	  *ptr = '/';
 	}
-#endif
+
 	if (FS_LoadFile (filename, NULL) != -1)
 	{	// it exists, no need to download
 		return true;

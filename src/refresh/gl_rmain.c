@@ -938,11 +938,7 @@ void R_Register( void )
 	gl_flashblend = ri.Cvar_Get ("gl_flashblend", "0", 0);
 	gl_playermip = ri.Cvar_Get ("gl_playermip", "0", 0);
 	gl_monolightmap = ri.Cvar_Get( "gl_monolightmap", "0", 0 );
-#ifdef _WIN32
-	gl_driver = ri.Cvar_Get( "gl_driver", "opengl32", CVAR_ARCHIVE );
-#else
 	gl_driver = ri.Cvar_Get( "gl_driver", "libGL.so", CVAR_ARCHIVE );
-#endif	
 	gl_texturemode = ri.Cvar_Get( "gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE );
 	gl_texturealphamode = ri.Cvar_Get( "gl_texturealphamode", "default", CVAR_ARCHIVE );
 	gl_texturesolidmode = ri.Cvar_Get( "gl_texturesolidmode", "default", CVAR_ARCHIVE );
@@ -983,14 +979,6 @@ qboolean R_SetMode (void)
 	rserr_t err;
 	qboolean fullscreen;
 
-#ifdef _WIN32
-	if ( vid_fullscreen->modified && !gl_config.allow_cds )
-	{
-		ri.Con_Printf( PRINT_ALL, "R_SetMode() - CDS not allowed with this driver\n" );
-		ri.Cvar_SetValue( "vid_fullscreen", !vid_fullscreen->value );
-		vid_fullscreen->modified = false;
-	}
-#endif
 	fullscreen = vid_fullscreen->value;
 
 	vid_fullscreen->modified = false;
@@ -1169,12 +1157,6 @@ int R_Init( void *hinstance, void *hWnd )
 		gl_config.allow_cds = true;
 	}
 
-#ifdef _WIN32
-	if ( gl_config.allow_cds )
-		ri.Con_Printf( PRINT_ALL, "...allowing CDS\n" );
-	else
-		ri.Con_Printf( PRINT_ALL, "...disabling CDS\n" );
-#endif
 	/*
 	** grab extensions
 	*/
@@ -1189,18 +1171,6 @@ int R_Init( void *hinstance, void *hWnd )
 	{
 		ri.Con_Printf( PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n" );
 	}
-
-#ifdef _WIN32
-	if ( strstr( gl_config.extensions_string, "WGL_EXT_swap_control" ) )
-	{
-		qwglSwapIntervalEXT = ( BOOL (WINAPI *)(int)) qwglGetProcAddress( "wglSwapIntervalEXT" );
-		ri.Con_Printf( PRINT_ALL, "...enabling WGL_EXT_swap_control\n" );
-	}
-	else
-	{
-		ri.Con_Printf( PRINT_ALL, "...WGL_EXT_swap_control not found\n" );
-	}
-#endif
 
 	if ( strstr( gl_config.extensions_string, "GL_EXT_point_parameters" ) )
 	{
