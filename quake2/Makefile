@@ -75,7 +75,7 @@ CFLAGS_DEDICATED_SERVER += -DDEDICATED_ONLY -Werror
 # OpenGL refresher
 CFLAGS_OPENGL = $(CFLAGS_BASE)
 CFLAGS_OPENGL += -I/usr/include -I/usr/local/include -I/usr/X11R6/include
-CFLAGS_OPENGL += -DOPENGL -DBROKEN_GL -fPIC -Werror
+CFLAGS_OPENGL += -DBROKEN_GL -fPIC -Werror
 
 # ----------
 
