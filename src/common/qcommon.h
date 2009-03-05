@@ -39,15 +39,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define CPUSTRING "Unknown"
 #endif
 
-#if defined __sun__
-#define BUILDSTRING "Solaris"
-#ifdef __i386__
-#define CPUSTRING "i386"
-#else
-#define CPUSTRING "sparc"
-#endif
-#endif
-
 //============================================================================
 
 typedef struct sizebuf_s
