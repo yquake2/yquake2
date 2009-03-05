@@ -42,7 +42,6 @@ char *ClientTeam (edict_t *ent)
 		return value;
 	}
 
-	// if ((int)(dmflags->value) & DF_SKINTEAMS)
 	return ++p;
 }
 
@@ -991,3 +990,4 @@ void ClientCommand (edict_t *ent)
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }
+
