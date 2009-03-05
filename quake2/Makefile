@@ -132,6 +132,7 @@ dedicated_server:
 ref_gl :
 	@-mkdir -p build \
 		build/ref_gl \
+		build/ref_gl_game \
 		build/ref_gl_posix \
 		release
 	$(MAKE) release/ref_gl.so
@@ -260,6 +261,12 @@ OPENGL_OBJS = \
 	build/ref_gl/gl_rsurf.o \
 	build/ref_gl/gl_warp.o 		 
 
+# ----------
+
+# OpenGL Game ABI
+OPENGL_GAME_OBJS = \
+	build/ref_gl_game/q_shared.o
+ 
 # ----------
 
 # OpenGL refresher POSIX platform object
@@ -523,6 +530,11 @@ build/ref_gl/gl_rsurf.o:   					src/refresh/opengl/gl_rsurf.c
 
 build/ref_gl/gl_warp.o:						src/refresh/opengl/gl_warp.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+
+# ----------
+
+build/ref_gl_game/q_shared.o:				src/game/quake2/q_shared.c
+	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
   
 # ----------
 
@@ -538,7 +550,7 @@ build/ref_gl_posix/qgl.o:					src/platforms/posix/refresh/opengl/qgl.c
  
 build/ref_gl_posix/refresh.o:				src/platforms/posix/sdl/refresh.c
 	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
- 
+
 # ----------
   
 #  The client
@@ -555,7 +567,7 @@ release/q2ded : $(DEDICATED_SERVER_OBJS) $(DEDICATED_SERVER_COMMON_OBJS) \
 		$(DEDICATED_SERVER_POSIX_OBJS) $(LDFLAGS)
 
 # OpenGL refresher
-release/ref_gl.so : $(OPENGL_OBJS) $(OPENGL_POSIX_OBJS)
+release/ref_gl.so : $(OPENGL_OBJS) $(OPENGL_POSIX_OBJS) $(OPENGL_GAME_OBJS)
 	$(CC) $(CFLAGS_OPENGL) -o $@ $(OPENGL_OBJS) $(OPENGL_POSIX_OBJS) \
 		$(LDFLAGS) $(SDLLDFLAGS) $(OPENGLLDFLAGS)
 
