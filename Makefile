@@ -29,7 +29,7 @@ OSTYPE := $(shell uname -s)
 
 ifneq ($(OSTYPE),Linux)
 ifneq ($(OSTYPE),FreeBSD)
-$(error $(OSTYPE) is currently not supported by this Makefile.)
+$(error $(OSTYPE) is currently not supported by this Client.)
 endif
 endif
 
@@ -77,6 +77,10 @@ CFLAGS_OPENGL = $(CFLAGS_BASE)
 CFLAGS_OPENGL += -I/usr/include -I/usr/local/include -I/usr/X11R6/include
 CFLAGS_OPENGL += -DBROKEN_GL -fPIC -Werror
 
+# Game
+CFLAGS_GAME = $(CFLAGS_BASE)
+CFLAGS_GAME += -fPIC
+
 # ----------
 
 # The linker and linkerflags
@@ -97,11 +101,14 @@ SDLLDFLAGS=$(shell sdl-config --libs)
 # OpenGL
 OPENGLLDFLAGS = -L/usr/lib -L/usr/local/lib -shared
 
+# Game
+GAMELDFLAGS = -shared
+
 # ----------
 
 # Targets
 
-all: client dedicated_server ref_gl
+all: client dedicated_server ref_gl baseq2
 
 client:
 	@-mkdir -p build \
@@ -129,13 +136,20 @@ dedicated_server:
 		release
 	$(MAKE) release/q2ded
 
-ref_gl :
+ref_gl:
 	@-mkdir -p build \
 		build/ref_gl \
 		build/ref_gl_game \
 		build/ref_gl_posix \
 		release
 	$(MAKE) release/ref_gl.so
+
+baseq2:
+	@-mkdir -p build \
+		build/baseq2 \
+		release \
+		release/baseq2
+	$(MAKE) release/baseq2/game.so
 
 clean:
 	@-rm -Rf build release
@@ -276,6 +290,59 @@ OPENGL_POSIX_OBJS = \
 	build/ref_gl_posix/posix.o \
 	build/ref_gl_posix/qgl.o \
 	build/ref_gl_posix/refresh.o
+
+# ----------
+
+# Quake II object
+BASEQ2_OBJS = \
+    build/baseq2/g_ai.o \
+	build/baseq2/g_chase.o \
+	build/baseq2/g_cmds.o \
+	build/baseq2/g_combat.o \
+	build/baseq2/g_func.o \
+	build/baseq2/g_items.o \
+	build/baseq2/g_main.o \
+	build/baseq2/g_misc.o \
+	build/baseq2/g_monster.o \
+	build/baseq2/g_phys.o \
+	build/baseq2/g_save.o \
+	build/baseq2/g_spawn.o \
+	build/baseq2/g_svcmds.o \
+	build/baseq2/g_target.o \
+	build/baseq2/g_trigger.o \
+	build/baseq2/g_turret.o \
+	build/baseq2/g_utils.o \
+	build/baseq2/g_weapon.o \
+	build/baseq2/m_actor.o \
+	build/baseq2/m_berserk.o \
+	build/baseq2/m_boss2.o \
+	build/baseq2/m_boss3.o \
+	build/baseq2/m_boss31.o \
+	build/baseq2/m_boss32.o \
+	build/baseq2/m_brain.o \
+	build/baseq2/m_chick.o \
+	build/baseq2/m_flash.o \
+	build/baseq2/m_flipper.o \
+	build/baseq2/m_float.o \
+	build/baseq2/m_flyer.o \
+	build/baseq2/m_gladiator.o \
+	build/baseq2/m_gunner.o \
+	build/baseq2/m_hover.o \
+	build/baseq2/m_infantry.o \
+	build/baseq2/m_insane.o \
+	build/baseq2/m_medic.o \
+	build/baseq2/m_move.o \
+	build/baseq2/m_mutant.o \
+	build/baseq2/m_parasite.o \
+	build/baseq2/m_soldier.o \
+	build/baseq2/m_supertank.o \
+	build/baseq2/m_tank.o \
+	build/baseq2/p_client.o \
+	build/baseq2/p_hud.o \
+	build/baseq2/p_trail.o \
+	build/baseq2/p_view.o \
+	build/baseq2/p_weapon.o \
+	build/baseq2/q_shared.o 
 
 # ----------
 
@@ -556,6 +623,153 @@ build/ref_gl_posix/refresh.o:				src/posix/sdl/refresh.c
 	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
 
 # ----------
+
+# Quake II build
+build/baseq2/g_ai.o:					src/game/quake2/g_ai.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_chase.o:					src/game/quake2/g_chase.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_cmds.o:					src/game/quake2/g_cmds.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_combat.o:   				src/game/quake2/g_combat.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_func.o:					src/game/quake2/g_func.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_items.o:					src/game/quake2/g_items.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_main.o:					src/game/quake2/g_main.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_misc.o:					src/game/quake2/g_misc.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_monster.o:  				src/game/quake2/g_monster.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_phys.o:					src/game/quake2/g_phys.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_save.o:					src/game/quake2/g_save.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_spawn.o:					src/game/quake2/g_spawn.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_svcmds.o:   				src/game/quake2/g_svcmds.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_target.o:   				src/game/quake2/g_target.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_trigger.o:  				src/game/quake2/g_trigger.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_turret.o:   				src/game/quake2/g_turret.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_utils.o:					src/game/quake2/g_utils.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/g_weapon.o:  				src/game/quake2/g_weapon.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_actor.o:					src/game/quake2/m_actor.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_berserk.o:		   		src/game/quake2/m_berserk.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_boss2.o:					src/game/quake2/m_boss2.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_boss3.o:					src/game/quake2/m_boss3.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_boss31.o:		   		src/game/quake2/m_boss31.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_boss32.o:		   		src/game/quake2/m_boss32.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_brain.o:			 	  	src/game/quake2/m_brain.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $< 
+
+build/baseq2/m_chick.o:					src/game/quake2/m_chick.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_flash.o:					src/game/quake2/m_flash.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_flipper.o:		   		src/game/quake2/m_flipper.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_float.o:					src/game/quake2/m_float.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_flyer.o:					src/game/quake2/m_flyer.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_gladiator.o:		   		src/game/quake2/m_gladiator.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_gunner.o:		   		src/game/quake2/m_gunner.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $< 
+
+build/baseq2/m_hover.o:			   		src/game/quake2/m_hover.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_infantry.o:		   		src/game/quake2/m_infantry.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_insane.o:		   		src/game/quake2/m_insane.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_medic.o:					src/game/quake2/m_medic.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_move.o:					src/game/quake2/m_move.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_mutant.o:		   		src/game/quake2/m_mutant.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_parasite.o:		   		src/game/quake2/m_parasite.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $< 
+
+build/baseq2/m_soldier.o:		   		src/game/quake2/m_soldier.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_supertank.o:		   		src/game/quake2/m_supertank.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/m_tank.o:					src/game/quake2/m_tank.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/p_client.o:   				src/game/quake2/p_client.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/p_hud.o:					src/game/quake2/p_hud.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/p_trail.o:					src/game/quake2/p_trail.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/p_view.o:					src/game/quake2/p_view.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $< 
+
+build/baseq2/p_weapon.o:   				src/game/quake2/p_weapon.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+
+build/baseq2/q_shared.o:   				src/game/quake2/q_shared.c
+	$(CC) $(CFLAGS_GAME) -o $@ -c $<
+ 
+# ----------
   
 #  The client
 release/quake2 : $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
@@ -574,4 +788,8 @@ release/q2ded : $(DEDICATED_SERVER_OBJS) $(DEDICATED_SERVER_COMMON_OBJS) \
 release/ref_gl.so : $(OPENGL_OBJS) $(OPENGL_POSIX_OBJS) $(OPENGL_GAME_OBJS)
 	$(CC) $(CFLAGS_OPENGL) -o $@ $(OPENGL_OBJS) $(OPENGL_POSIX_OBJS) \
 		$(OPENGL_GAME_OBJS) $(LDFLAGS) $(SDLLDFLAGS) $(OPENGLLDFLAGS)
+
+# Quake II
+release/baseq2/game.so : $(BASEQ2_OBJS)
+	$(CC) $(CFLAGS_GAME) -o $@ $(BASEQ2_OBJS) $(LDFLAGS) $(GAMELDFLAGS)
 
