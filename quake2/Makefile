@@ -406,55 +406,55 @@ build/server/sv_world.o :   		src/server/sv_world.c
 # ----------
 
 # POSIX build
-build/posix/network.o : 			src/platforms/posix/network.c
+build/posix/network.o : 			src/posix/network.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
-build/posix/posix.o :	  			src/platforms/posix/posix.c
+build/posix/posix.o :	  			src/posix/posix.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/posix/system.o :  			src/platforms/posix/system.c
+build/posix/system.o :  			src/posix/system.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
-build/posix/glob/glob.o :  			src/platforms/posix/glob/glob.c
+build/posix/glob/glob.o :  			src/posix/glob/glob.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/posix/sdl/cd.o :     			src/platforms/posix/sdl/cd.c
+build/posix/sdl/cd.o :     			src/posix/sdl/cd.c
 	$(CC) $(CFLAGS_CLIENT) $(SDLCFLAGS) -o $@ -c $<
 
-build/posix/sdl/sound.o :  			src/platforms/posix/sdl/sound.c
+build/posix/sdl/sound.o :  			src/posix/sdl/sound.c
 	$(CC) $(CFLAGS_CLIENT) $(SDLCFLAGS) -o $@ -c $<
 
-build/posix/vid/menu.o :   			src/platforms/posix/vid/menu.c
+build/posix/vid/menu.o :   			src/posix/vid/menu.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/posix/vid/refresh.o :     	src/platforms/posix/vid/refresh.c
+build/posix/vid/refresh.o :     	src/posix/vid/refresh.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
 # ----------
  
 # Dedicated server build
-build/dedicated_server/sv_ccmds.o :			src/server/sv_ccmds.c
+build/dedicated_server/sv_ccmds.o :	src/server/sv_ccmds.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server/sv_ents.o :			src/server/sv_ents.c
+build/dedicated_server/sv_ents.o : 	src/server/sv_ents.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server/sv_game.o :    		src/server/sv_game.c
+build/dedicated_server/sv_game.o : 	src/server/sv_game.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server/sv_init.o :    		src/server/sv_init.c
+build/dedicated_server/sv_init.o : 	src/server/sv_init.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server/sv_main.o :    		src/server/sv_main.c
+build/dedicated_server/sv_main.o : 	src/server/sv_main.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server/sv_send.o :    		src/server/sv_send.c
+build/dedicated_server/sv_send.o : 	src/server/sv_send.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server/sv_user.o :    		src/server/sv_user.c
+build/dedicated_server/sv_user.o : 	src/server/sv_user.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server/sv_world.o :   		src/server/sv_world.c
+build/dedicated_server/sv_world.o :	src/server/sv_world.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 # ---------
@@ -490,46 +490,46 @@ build/dedicated_server_common/pmove.o :     src/common/pmove.c
 # ----------
 
 # Dedicated server POSIX build
-build/dedicated_server_posix/glob/glob.o :	src/platforms/posix/glob/glob.c
+build/dedicated_server_posix/glob/glob.o :	src/posix/glob/glob.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_posix/network.o :   	src/platforms/posix/network.c
+build/dedicated_server_posix/network.o :   	src/posix/network.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
-build/dedicated_server_posix/posix.o :  	src/platforms/posix/posix.c
+build/dedicated_server_posix/posix.o :  	src/posix/posix.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_posix/system.o :  	src/platforms/posix/system.c
+build/dedicated_server_posix/system.o :  	src/posix/system.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 # ----------
 
 # OpenGL refresher build
-build/ref_gl/gl_draw.o:						src/refresh/opengl/gl_draw.c
+build/ref_gl/gl_draw.o:						src/refresh/gl_draw.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
-build/ref_gl/gl_image.o:					src/refresh/opengl/gl_image.c
+build/ref_gl/gl_image.o:					src/refresh/gl_image.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
   
-build/ref_gl/gl_light.o:					src/refresh/opengl/gl_light.c
+build/ref_gl/gl_light.o:					src/refresh/gl_light.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
   
-build/ref_gl/gl_mesh.o:						src/refresh/opengl/gl_mesh.c
+build/ref_gl/gl_mesh.o:						src/refresh/gl_mesh.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
   
-build/ref_gl/gl_model.o:   					src/refresh/opengl/gl_model.c
+build/ref_gl/gl_model.o:   					src/refresh/gl_model.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
   
-build/ref_gl/gl_rmain.o:   					src/refresh/opengl/gl_rmain.c
+build/ref_gl/gl_rmain.o:   					src/refresh/gl_rmain.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
   
-build/ref_gl/gl_rmisc.o:   					src/refresh/opengl/gl_rmisc.c
+build/ref_gl/gl_rmisc.o:   					src/refresh/gl_rmisc.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
-build/ref_gl/gl_rsurf.o:   					src/refresh/opengl/gl_rsurf.c
+build/ref_gl/gl_rsurf.o:   					src/refresh/gl_rsurf.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
-build/ref_gl/gl_warp.o:						src/refresh/opengl/gl_warp.c
+build/ref_gl/gl_warp.o:						src/refresh/gl_warp.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
 # ----------
@@ -540,19 +540,19 @@ build/ref_gl_game/q_shared.o:				src/game/quake2/q_shared.c
 # ----------
 
 # OpenGL refresher POSIX build
-build/ref_gl_posix/abi.o:					src/platforms/posix/refresh/abi.c
+build/ref_gl_posix/abi.o:					src/posix/refresh/abi.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
  
-build/ref_gl_posix/glob.o:					src/platforms/posix/glob/glob.c
+build/ref_gl_posix/glob.o:					src/posix/glob/glob.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
-build/ref_gl_posix/posix.o:					src/platforms/posix/posix.c
+build/ref_gl_posix/posix.o:					src/posix/posix.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
-build/ref_gl_posix/qgl.o:					src/platforms/posix/refresh/opengl/qgl.c
+build/ref_gl_posix/qgl.o:					src/posix/refresh/qgl.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
  
-build/ref_gl_posix/refresh.o:				src/platforms/posix/sdl/refresh.c
+build/ref_gl_posix/refresh.o:				src/posix/sdl/refresh.c
 	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
 
 # ----------
