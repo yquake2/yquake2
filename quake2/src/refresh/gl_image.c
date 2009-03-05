@@ -1344,12 +1344,10 @@ image_t	*GL_FindImage (char *name, imagetype_t type)
 	if (len<5)
 		return NULL;	//	ri.Sys_Error (ERR_DROP, "GL_FindImage: bad name: %s", name);
 
-#ifndef _WIN32
 	// fix backslashes
 	while ((ptr=strchr(name,'\\'))) {
 	  *ptr = '/';
 	}
-#endif
 
 	// look for it
 	for (i=0, image=gltextures ; i<numgltextures ; i++,image++)

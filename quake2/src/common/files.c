@@ -484,7 +484,6 @@ Use ~/.quake2/dir as fs_gamedir
 */
 void FS_AddHomeAsGameDirectory (char *dir)
 {
-#ifndef _WIN32
 	char gdir[MAX_OSPATH];
 	char *homedir=getenv("HOME");
 	if(homedir)
@@ -501,7 +500,6 @@ void FS_AddHomeAsGameDirectory (char *dir)
 		
 		FS_AddGameDirectory (gdir);
 	}
-#endif
 }
 
 /*
@@ -692,9 +690,6 @@ char **FS_ListFiles( char *findname, int *numfiles, unsigned musthave, unsigned 
 		if ( s[strlen(s)-1] != '.' )
 		{
 			list[nfiles] = strdup( s );
-#ifdef _WIN32
-			strlwr( list[nfiles] );
-#endif
 			nfiles++;
 		}
 		s = Sys_FindNext( musthave, canthave );

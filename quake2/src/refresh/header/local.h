@@ -20,10 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#ifdef _WIN32
-#  include <windows.h>
-#endif
-
 #include <stdio.h>
 #include <ctype.h>
 
@@ -34,9 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <math.h>
 
-#ifndef _WIN32
 char *strlwr (char *s);
-#endif
 
 #include "../../client/header/ref.h"
 
