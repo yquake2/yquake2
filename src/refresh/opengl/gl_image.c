@@ -202,9 +202,7 @@ gltmode_t gl_solid_modes[] = {
 	{"GL_RGB5", GL_RGB5},
 	{"GL_RGB4", GL_RGB4},
 	{"GL_R3_G3_B2", GL_R3_G3_B2},
-#ifdef GL_RGB2_EXT
 	{"GL_RGB2", GL_RGB2_EXT},
-#endif
 };
 
 #define NUM_GL_SOLID_MODES (sizeof(gl_solid_modes) / sizeof (gltmode_t))
@@ -402,7 +400,6 @@ int Scrap_AllocBlock (int w, int h, int *x, int *y)
 	}
 
 	return -1;
-//	Sys_Error ("Scrap_AllocBlock: full");
 }
 
 int	scrap_uploads;
@@ -788,9 +785,6 @@ void R_FloodFillSkin( byte *skin, int skinwidth, int skinheight )
 		filledcolor = 0;
 		// attempt to find opaque black
 		for (i = 0; i < 256; ++i)
-			/* if (d_8to24table[i] == (255 << 0)) // alpha 1.0
-			 * ENDIAN problem, fix by xvi
-			 */
 			if (LittleLong(d_8to24table[i]) == (255 << 0)) // alpha 1.0
 			{
 				filledcolor = i;
@@ -801,7 +795,6 @@ void R_FloodFillSkin( byte *skin, int skinwidth, int skinheight )
 	// can't fill to filled color or to transparent color (used as visited marker)
 	if ((fillcolor == filledcolor) || (fillcolor == 255))
 	{
-		//printf( "not filling skin from %d to %d\n", fillcolor, filledcolor );
 		return;
 	}
 
@@ -1042,19 +1035,6 @@ qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 	    comp = samples;
 	}
 
-#if 0
-	if (mipmap)
-		gluBuild2DMipmaps (GL_TEXTURE_2D, samples, width, height, GL_RGBA, GL_UNSIGNED_BYTE, trans);
-	else if (scaled_width == width && scaled_height == height)
-		qglTexImage2D (GL_TEXTURE_2D, 0, comp, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, trans);
-	else
-	{
-		gluScaleImage (GL_RGBA, width, height, GL_UNSIGNED_BYTE, trans,
-			scaled_width, scaled_height, GL_UNSIGNED_BYTE, scaled);
-		qglTexImage2D (GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
-	}
-#else
-
 	if (scaled_width == width && scaled_height == height)
 	{
 		if (!mipmap)
@@ -1141,8 +1121,6 @@ qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 		}
 	}
 done: ;
-#endif
-
 
 	if (mipmap)
 	{
@@ -1164,22 +1142,6 @@ GL_Upload8
 
 Returns has_alpha
 ===============
-*/
-/*
-static qboolean IsPowerOf2( int value )
-{
-	int i = 1;
-
-
-	while ( 1 )
-	{
-		if ( value == i )
-			return true;
-		if ( i > value )
-			return false;
-		i <<= 1;
-	}
-}
 */
 
 qboolean GL_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky )
@@ -1256,11 +1218,6 @@ image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 {
 	image_t		*image;
 	int			i;
-#ifdef RETEX
-  miptex_t 	*mt;
-  int 		len;
-  char 		s[128];
-#endif
 
 	// find a free image_t
 	for (i=0, image=gltextures ; i<numgltextures ; i++,image++)
@@ -1284,23 +1241,6 @@ image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	image->width = width;
 	image->height = height;
 	image->type = type;
-
-#ifdef RETEX
-  len = strlen(name);
-  strcpy(s,name);
-  
-  if (!strcmp(s+len-4, ".tga") || !strcmp(s+len-4, ".jpg") || !strcmp(s+len-4, ".png"))
-    {
-      s[len-3] = 'w';	s[len-2] = 'a';	s[len-1] = 'l';
-      ri.FS_LoadFile (s, (void **)&mt);	//load .wal file
-      
-      if (mt) {
-	image->width = LittleLong (mt->width);
-	image->height = LittleLong (mt->height);
-	ri.FS_FreeFile ((void *)mt);
-      }
-    }
-#endif
 
 	if (type == it_skin && bits == 8)
 		R_FloodFillSkin(pic, width, height);

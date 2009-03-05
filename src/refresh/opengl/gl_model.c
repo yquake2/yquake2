@@ -536,8 +536,6 @@ void CalcSurfaceExtents (msurface_t *s)
 		s->texturemins[i] = bmins[i] * 16;
 		s->extents[i] = (bmaxs[i] - bmins[i]) * 16;
 
-//		if ( !(tex->flags & TEX_SPECIAL) && s->extents[i] > 512 /* 256 */ )
-//			ri.Sys_Error (ERR_DROP, "Bad surface extents");
 	}
 }
 
@@ -594,7 +592,7 @@ void Mod_LoadFaces (lump_t *l)
 
 		CalcSurfaceExtents (out);
 				
-	// lighting info
+		// lighting info
 
 		for (i=0 ; i<MAXLIGHTMAPS ; i++)
 			out->styles[i] = in->styles[i];
@@ -604,7 +602,7 @@ void Mod_LoadFaces (lump_t *l)
 		else
 			out->samples = loadmodel->lightdata + i;
 		
-	// set the drawing flags
+		// set the drawing flags
 		
 		if (out->texinfo->flags & SURF_WARP)
 		{
@@ -702,7 +700,6 @@ void Mod_LoadLeafs (lump_t *l)
 	dleaf_t 	*in;
 	mleaf_t 	*out;
 	int			i, j, count, p;
-//	glpoly_t	*poly;
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
@@ -730,19 +727,6 @@ void Mod_LoadLeafs (lump_t *l)
 		out->firstmarksurface = loadmodel->marksurfaces +
 			LittleShort(in->firstleafface);
 		out->nummarksurfaces = LittleShort(in->numleaffaces);
-		
-		// gl underwater warp
-#if 0
-		if (out->contents & (CONTENTS_WATER|CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_THINWATER) )
-		{
-			for (j=0 ; j<out->nummarksurfaces ; j++)
-			{
-				out->firstmarksurface[j]->flags |= SURF_UNDERWATER;
-				for (poly = out->firstmarksurface[j]->polys ; poly ; poly=poly->next)
-					poly->flags |= SURF_UNDERWATER;
-			}
-		}
-#endif
 	}	
 }
 
@@ -862,14 +846,13 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer)
 	if (i != BSPVERSION)
 		ri.Sys_Error (ERR_DROP, "Mod_LoadBrushModel: %s has wrong version number (%i should be %i)", mod->name, i, BSPVERSION);
 
-// swap all the lumps
+	// swap all the lumps
 	mod_base = (byte *)header;
 
 	for (i=0 ; i<sizeof(dheader_t)/4 ; i++)
 		((int *)header)[i] = LittleLong ( ((int *)header)[i]);
 
-// load into heap
-	
+	// load into heap
 	Mod_LoadVertexes (&header->lumps[LUMP_VERTEXES]);
 	Mod_LoadEdges (&header->lumps[LUMP_EDGES]);
 	Mod_LoadSurfedges (&header->lumps[LUMP_SURFEDGES]);
@@ -884,9 +867,9 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer)
 	Mod_LoadSubmodels (&header->lumps[LUMP_MODELS]);
 	mod->numframes = 2;		// regular and alternate animation
 	
-//
-// set up the submodels
-//
+	//
+	// set up the submodels
+	//
 	for (i=0 ; i<mod->numsubmodels ; i++)
 	{
 		model_t	*starmod;
@@ -968,9 +951,9 @@ void Mod_LoadAliasModel (model_t *mod, void *buffer)
 	if (pheader->num_frames <= 0)
 		ri.Sys_Error (ERR_DROP, "model %s has no frames", mod->name);
 
-//
-// load base s and t vertices (not used in gl version)
-//
+	//
+	// load base s and t vertices (not used in gl version)
+	//
 	pinst = (dstvert_t *) ((byte *)pinmodel + pheader->ofs_st);
 	poutst = (dstvert_t *) ((byte *)pheader + pheader->ofs_st);
 
@@ -980,9 +963,9 @@ void Mod_LoadAliasModel (model_t *mod, void *buffer)
 		poutst[i].t = LittleShort (pinst[i].t);
 	}
 
-//
-// load triangle lists
-//
+	//
+	// load triangle lists
+	//
 	pintri = (dtriangle_t *) ((byte *)pinmodel + pheader->ofs_tris);
 	pouttri = (dtriangle_t *) ((byte *)pheader + pheader->ofs_tris);
 
@@ -995,9 +978,9 @@ void Mod_LoadAliasModel (model_t *mod, void *buffer)
 		}
 	}
 
-//
-// load the frames
-//
+	//
+	// load the frames
+	//
 	for (i=0 ; i<pheader->num_frames ; i++)
 	{
 		pinframe = (daliasframe_t *) ((byte *)pinmodel 
@@ -1153,9 +1136,9 @@ struct model_s *R_RegisterModel (char *name)
 			pheader = (dmdl_t *)mod->extradata;
 			for (i=0 ; i<pheader->num_skins ; i++)
 				mod->skins[i] = GL_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME, it_skin);
-//PGM
+			//PGM
 			mod->numframes = pheader->num_frames;
-//PGM
+			//PGM
 		}
 		else if (mod->type == mod_brush)
 		{
@@ -1221,3 +1204,4 @@ void Mod_FreeAll (void)
 			Mod_Free (&mod_known[i]);
 	}
 }
+

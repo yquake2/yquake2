@@ -114,9 +114,6 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 
 	order = (int *)((byte *)paliashdr + paliashdr->ofs_glcmds);
 
-//	glTranslatef (frame->translate[0], frame->translate[1], frame->translate[2]);
-//	glScalef (frame->scale[0], frame->scale[1], frame->scale[2]);
-
 	if (currententity->flags & RF_TRANSLUCENT)
 		alpha = currententity->alpha;
 	else
@@ -160,7 +157,6 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 		qglEnableClientState( GL_VERTEX_ARRAY );
 		qglVertexPointer( 3, GL_FLOAT, 16, s_lerped );	// padded for SIMD
 
-//		if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE ) )
 		// PMM - added double damage shell
 		if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM) )
 		{
@@ -225,10 +221,6 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 
 					order += 3;
 
-					// normals and vertexes come from the frame list
-//					l = shadedots[verts[index_xyz].lightnormalindex];
-					
-//					qglColor4f (l* shadelight[0], l*shadelight[1], l*shadelight[2], alpha);
 					qglArrayElement( index_xyz );
 
 				} while (--count);
@@ -290,14 +282,12 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 		}
 	}
 
-//	if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE ) )
 	// PMM - added double damage shell
 	if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM) )
 		qglEnable( GL_TEXTURE_2D );
 }
 
 
-#if 1
 /*
 =============
 GL_DrawAliasShadow
@@ -352,24 +342,14 @@ void GL_DrawAliasShadow (dmdl_t *paliashdr, int posenum)
 		do
 		{
 			// normals and vertexes come from the frame list
-/*
-			point[0] = verts[order[2]].v[0] * frame->scale[0] + frame->translate[0];
-			point[1] = verts[order[2]].v[1] * frame->scale[1] + frame->translate[1];
-			point[2] = verts[order[2]].v[2] * frame->scale[2] + frame->translate[2];
-*/
-
 			memcpy( point, s_lerped[order[2]], sizeof( point )  );
 
 			point[0] -= shadevector[0]*(point[2]+lheight);
 			point[1] -= shadevector[1]*(point[2]+lheight);
 			point[2] = height;
-//			height -= 0.001;
 			qglVertex3fv (point);
 
 			order += 3;
-
-//			verts++;
-
 		} while (--count);
 
 		qglEnd ();
@@ -379,8 +359,6 @@ void GL_DrawAliasShadow (dmdl_t *paliashdr, int posenum)
 	if (have_stencil && gl_stencilshadow->value)
 		qglDisable(GL_STENCIL_TEST);
 }
-
-#endif
 
 /*
 ** R_CullAliasModel
@@ -580,70 +558,6 @@ void R_DrawAliasModel (entity_t *e)
 		if ( currententity->flags & RF_SHELL_BLUE )
 			shadelight[2] = 1.0;
 	}
-/*
-		// PMM -special case for godmode
-		if ( (currententity->flags & RF_SHELL_RED) &&
-			(currententity->flags & RF_SHELL_BLUE) &&
-			(currententity->flags & RF_SHELL_GREEN) )
-		{
-			for (i=0 ; i<3 ; i++)
-				shadelight[i] = 1.0;
-		}
-		else if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_BLUE | RF_SHELL_DOUBLE ) )
-		{
-			VectorClear (shadelight);
-
-			if ( currententity->flags & RF_SHELL_RED )
-			{
-				shadelight[0] = 1.0;
-				if (currententity->flags & (RF_SHELL_BLUE|RF_SHELL_DOUBLE) )
-					shadelight[2] = 1.0;
-			}
-			else if ( currententity->flags & RF_SHELL_BLUE )
-			{
-				if ( currententity->flags & RF_SHELL_DOUBLE )
-				{
-					shadelight[1] = 1.0;
-					shadelight[2] = 1.0;
-				}
-				else
-				{
-					shadelight[2] = 1.0;
-				}
-			}
-			else if ( currententity->flags & RF_SHELL_DOUBLE )
-			{
-				shadelight[0] = 0.9;
-				shadelight[1] = 0.7;
-			}
-		}
-		else if ( currententity->flags & ( RF_SHELL_HALF_DAM | RF_SHELL_GREEN ) )
-		{
-			VectorClear (shadelight);
-			// PMM - new colors
-			if ( currententity->flags & RF_SHELL_HALF_DAM )
-			{
-				shadelight[0] = 0.56;
-				shadelight[1] = 0.59;
-				shadelight[2] = 0.45;
-			}
-			if ( currententity->flags & RF_SHELL_GREEN )
-			{
-				shadelight[1] = 1.0;
-			}
-		}
-	}
-			//PMM - ok, now flatten these down to range from 0 to 1.0.
-	//		max_shell_val = max(shadelight[0], max(shadelight[1], shadelight[2]));
-	//		if (max_shell_val > 0)
-	//		{
-	//			for (i=0; i<3; i++)
-	//			{
-	//				shadelight[i] = shadelight[i] / max_shell_val;
-	//			}
-	//		}
-	// pmm
-*/
 	else if ( currententity->flags & RF_FULLBRIGHT )
 	{
 		for (i=0 ; i<3 ; i++)
@@ -719,16 +633,16 @@ void R_DrawAliasModel (entity_t *e)
 		}
 	}
 
-// =================
-// PGM	ir goggles color override
+	// =================
+	// PGM	ir goggles color override
 	if ( r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags & RF_IR_VISIBLE)
 	{
 		shadelight[0] = 1.0;
 		shadelight[1] = 0.0;
 		shadelight[2] = 0.0;
 	}
-// PGM	
-// =================
+	// PGM	
+	// =================
 
 	shadedots = r_avertexnormal_dots[((int)(currententity->angles[1] * (SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1)];
 	
@@ -825,21 +739,6 @@ void R_DrawAliasModel (entity_t *e)
 
 	qglPopMatrix ();
 
-#if 0
-	qglDisable( GL_CULL_FACE );
-	qglPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-	qglDisable( GL_TEXTURE_2D );
-	qglBegin( GL_TRIANGLE_STRIP );
-	for ( i = 0; i < 8; i++ )
-	{
-		qglVertex3fv( bbox[i] );
-	}
-	qglEnd();
-	qglEnable( GL_TEXTURE_2D );
-	qglPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-	qglEnable( GL_CULL_FACE );
-#endif
-
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
 	{
 		qglMatrixMode( GL_PROJECTION );
@@ -856,7 +755,6 @@ void R_DrawAliasModel (entity_t *e)
 	if (currententity->flags & RF_DEPTHHACK)
 		qglDepthRange (gldepthmin, gldepthmax);
 
-//#if 1
 	if (gl_shadows->value && 
 		!(currententity->flags & (RF_TRANSLUCENT|RF_WEAPONMODEL|RF_NOSHADOW))) {
 		qglPushMatrix ();
@@ -873,7 +771,6 @@ void R_DrawAliasModel (entity_t *e)
 		qglDisable (GL_BLEND);
 		qglPopMatrix ();
 	}
-//#endif
 	qglColor4f (1,1,1,1);
 }
 

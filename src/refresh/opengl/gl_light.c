@@ -43,14 +43,6 @@ void R_RenderDlight (dlight_t *light)
 	rad = light->intensity * 0.35;
 
 	VectorSubtract (light->origin, r_origin, v);
-#if 0
-	// FIXME?
-	if (VectorLength (v) < rad)
-	{	// view is inside the dlight
-		V_AddBlend (light->color[0], light->color[1], light->color[2], light->intensity * 0.0003, v_blend);
-		return;
-	}
-#endif
 
 	qglBegin (GL_TRIANGLE_FAN);
 	qglColor3f (light->color[0]*0.2, light->color[1]*0.2, light->color[2]*0.2);
@@ -139,7 +131,7 @@ void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 		return;
 	}
 		
-// mark the polygons
+	// mark the polygons
 	surf = r_worldmodel->surfaces + node->firstsurface;
 	for (i=0 ; i<node->numsurfaces ; i++, surf++)
 	{
@@ -206,9 +198,9 @@ int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	if (node->contents != -1)
 		return -1;		// didn't hit anything
 	
-// calculate mid point
+	// calculate mid point
 
-// FIXME: optimize for axial
+	// FIXME: optimize for axial
 	plane = node->plane;
 	front = DotProduct (start, plane->normal) - plane->dist;
 	back = DotProduct (end, plane->normal) - plane->dist;
@@ -222,7 +214,7 @@ int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	mid[1] = start[1] + (end[1] - start[1])*frac;
 	mid[2] = start[2] + (end[2] - start[2])*frac;
 	
-// go down front side	
+	// go down front side	
 	r = RecursiveLightPoint (node->children[side], start, mid);
 	if (r >= 0)
 		return r;		// hit something
@@ -230,7 +222,7 @@ int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	if ( (back < 0) == side )
 		return -1;		// didn't hit anuthing
 		
-// check for impact on this node
+	// check for impact on this node
 	VectorCopy (mid, lightspot);
 	lightplane = plane;
 
@@ -286,7 +278,7 @@ int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 		return 1;
 	}
 
-// go down back side
+	// go down back side
 	return RecursiveLightPoint (node->children[!side], mid, end);
 }
 
@@ -473,7 +465,7 @@ void R_BuildLightMap (msurface_t *surf, byte *dest, int stride)
 	if (size > (sizeof(s_blocklights)>>4) )
 		ri.Sys_Error (ERR_DROP, "Bad s_blocklights size");
 
-// set to full bright if no light data
+	// set to full bright if no light data
 	if (!surf->samples)
 	{
 		int maps;
@@ -569,11 +561,11 @@ void R_BuildLightMap (msurface_t *surf, byte *dest, int stride)
 		}
 	}
 
-// add all the dynamic lights
+	// add all the dynamic lights
 	if (surf->dlightframe == r_framecount)
 		R_AddDynamicLights (surf);
 
-// put into texture format
+	// put into texture format
 store:
 	stride -= (smax<<2);
 	bl = s_blocklights;
