@@ -411,10 +411,10 @@ build/posix/glob/glob.o :  			src/platforms/posix/glob/glob.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/posix/sdl/cd.o :     			src/platforms/posix/sdl/cd.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< $(SDLCFLAGS)
+	$(CC) $(CFLAGS_CLIENT) $(SDLCFLAGS) -o $@ -c $<
 
 build/posix/sdl/sound.o :  			src/platforms/posix/sdl/sound.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< $(SDLCFLAGS)
+	$(CC) $(CFLAGS_CLIENT) $(SDLCFLAGS) -o $@ -c $<
 
 build/posix/vid/menu.o :   			src/platforms/posix/vid/menu.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
