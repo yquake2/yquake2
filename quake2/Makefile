@@ -66,10 +66,11 @@ SDLCFLAGS = $(shell sdl-config --cflags)
 
 # Client
 CFLAGS_CLIENT = $(CFLAGS_BASE)
+CFLAGS_CLIENT += -Werror
 
 # Dedicated Server
 CFLAGS_DEDICATED_SERVER = $(CFLAGS_BASE)
-CFLAGS_DEDICATED_SERVER += -DDEDICATED_ONLY
+CFLAGS_DEDICATED_SERVER += -DDEDICATED_ONLY -Werror
 
 # ----------
 
@@ -192,7 +193,7 @@ POSIX_OBJS = \
 	build/posix/sdl/cd.o \
 	build/posix/sdl/sound.o \
  	build/posix/vid/menu.o \
-	build/posix/vid/refresher.o
+	build/posix/vid/refresh.o
  
 # ----------
 
@@ -380,7 +381,7 @@ build/posix/sdl/sound.o :  			src/platforms/posix/sdl/sound.c
 build/posix/vid/menu.o :   			src/platforms/posix/vid/menu.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/posix/vid/refresher.o :     	src/platforms/posix/vid/refresher.c
+build/posix/vid/refresh.o :     	src/platforms/posix/vid/refresh.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
 # ----------
