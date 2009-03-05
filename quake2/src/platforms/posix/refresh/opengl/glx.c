@@ -42,12 +42,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef Joystick
 #include <fcntl.h>
 #endif
-#include "../ref_gl/gl_local.h"
+#include "../../../../refresh/opengl/header/local.h"
 
-#include "../client/keys.h"
+#include "../../../../client/input/keys.h"
 
-#include "../linux/rw_linux.h"
-#include "../linux/glw_linux.h"
+#include "../../posix.h"
+#include "glwindow.h"
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>

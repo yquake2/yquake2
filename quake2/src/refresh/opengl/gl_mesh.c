@@ -21,7 +21,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "gl_local.h"
+#include "header/local.h"
 
 /*
 =============================================================
@@ -34,7 +34,7 @@
 #define NUMVERTEXNORMALS	162
 
 float	r_avertexnormals[NUMVERTEXNORMALS][3] = {
-#include "anorms.h"
+#include "constants/anorms.h"
 };
 
 typedef float vec4_t[4];
@@ -48,7 +48,7 @@ float	shadelight[3];
 // precalculated dot products for quantized angles
 #define SHADEDOT_QUANT 16
 float	r_avertexnormal_dots[SHADEDOT_QUANT][256] =
-#include "anormtab.h"
+#include "constants/anormtab.h"
 ;
 
 float	*shadedots = r_avertexnormal_dots[0];

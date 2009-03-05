@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // gl_warp.c -- sky and water polygons
 
-#include "gl_local.h"
+#include "header/local.h"
 
 extern	model_t	*loadmodel;
 
@@ -197,7 +197,7 @@ void GL_SubdivideSurface (msurface_t *fa)
 // speed up sin calculations - Ed
 float	r_turbsin[] =
 {
-	#include "warpsin.h"
+	#include "constants/warpsin.h"
 };
 #define TURBSCALE (256.0 / (2 * M_PI))
 

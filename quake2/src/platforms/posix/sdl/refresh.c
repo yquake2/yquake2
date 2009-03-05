@@ -26,14 +26,14 @@
 #endif
 
 #ifdef OPENGL
-#include "../ref_gl/gl_local.h"
-#include "../linux/glw_linux.h"
+#include "../../../refresh/opengl/header/local.h"
+#include "../refresh/opengl/glwindow.h"
 #else
 #include "../ref_soft/r_local.h"
 #endif
 
-#include "../client/keys.h"
-#include "rw_linux.h"
+#include "../../../client/input/keys.h"
+#include "../posix.h"
 
 #ifdef Joystick
 #include "joystick.h"
@@ -474,7 +474,7 @@ int GLimp_Init( void *hInstance, void *wndProc )
 
 static void SetSDLIcon()
 {
-#include "q2icon.xbm"
+#include "../refresh/opengl/q2icon.xbm"
 	SDL_Surface *icon;
 	SDL_Color color;
 	Uint8 *ptr;

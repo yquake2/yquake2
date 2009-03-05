@@ -75,6 +75,7 @@ CFLAGS_DEDICATED_SERVER += -DDEDICATED_ONLY -Werror
 # OpenGL refresher
 CFLAGS_OPENGL = $(CFLAGS_BASE)
 CFLAGS_OPENGL += -I/usr/include -I/usr/local/include -I/usr/X11R6/include
+CFLAGS_OPENGL += -DOPENGL -fPIC
 
 # ----------
 
@@ -94,7 +95,7 @@ endif
 SDLLDFLAGS=$(shell sdl-config --libs)
 
 # OpenGL
-OPENGLLDFLAGS = -lGL
+OPENGLLDFLAGS = -L/usr/lib -L/usr/local/lib -lGL -shared
 
 # ----------
 
@@ -131,7 +132,8 @@ dedicated_server:
 ref_gl :
 	@-mkdir -p build \
 		build/ref_gl \
-		build/ref_gl_posix
+		build/ref_gl_posix \
+		release
 	$(MAKE) release/ref_gl.so
 
 clean:
@@ -262,8 +264,9 @@ OPENGL_OBJS = \
 
 # OpenGL refresher POSIX platform object
 OPENGL_POSIX_OBJS = \
-	build/ref_gl_posix/glx.o \
+	build/ref_gl_posix/glob.o \
 	build/ref_gl_posix/posix.o \
+	build/ref_gl_posix/qgl.o \
 	build/ref_gl_posix/refresh.o
 
 # ----------
@@ -524,14 +527,17 @@ build/ref_gl/gl_warp.o:						src/refresh/opengl/gl_warp.c
 # ----------
 
 # OpenGL refresher POSIX build
-build/ref_gl_posix/glx.o:					src/platform/posix/refresh/opengl/glx.c
+build/ref_gl_posix/glob.o:					src/platforms/posix/glob/glob.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
-build/ref_gl_posix/posix.o:					src/platform/posix/posix.c
+build/ref_gl_posix/posix.o:					src/platforms/posix/posix.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+
+build/ref_gl_posix/qgl.o:					src/platforms/posix/refresh/opengl/qgl.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
  
-build/ref_gl_posix/refresh.o:				src/platform/posix/sdl/refresh.c
-	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+build/ref_gl_posix/refresh.o:				src/platforms/posix/sdl/refresh.c
+	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
  
 # ----------
   

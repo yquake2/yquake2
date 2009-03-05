@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // GL_RSURF.C: surface-related refresh code
 #include <assert.h>
 
-#include "gl_local.h"
+#include "header/local.h"
 
 static vec3_t	modelorg;		// relative to viewpoint
 
