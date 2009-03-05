@@ -17,9 +17,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// GL_RSURF.C: surface-related refresh code
-#include <assert.h>
 
+#include <assert.h>
 #include "header/local.h"
 
 static vec3_t	modelorg;		// relative to viewpoint
@@ -96,81 +95,6 @@ image_t *R_TextureAnimation (mtexinfo_t *tex)
 
 	return tex->image;
 }
-
-#if 0
-/*
-=================
-WaterWarpPolyVerts
-
-Mangles the x and y coordinates in a copy of the poly
-so that any drawing routine can be water warped
-=================
-*/
-glpoly_t *WaterWarpPolyVerts (glpoly_t *p)
-{
-	int		i;
-	float	*v, *nv;
-	static byte	buffer[1024];
-	glpoly_t *out;
-
-	out = (glpoly_t *)buffer;
-
-	out->numverts = p->numverts;
-	v = p->verts[0];
-	nv = out->verts[0];
-	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE, nv+=VERTEXSIZE)
-	{
-		nv[0] = v[0] + 4*sin(v[1]*0.05+r_newrefdef.time)*sin(v[2]*0.05+r_newrefdef.time);
-		nv[1] = v[1] + 4*sin(v[0]*0.05+r_newrefdef.time)*sin(v[2]*0.05+r_newrefdef.time);
-
-		nv[2] = v[2];
-		nv[3] = v[3];
-		nv[4] = v[4];
-		nv[5] = v[5];
-		nv[6] = v[6];
-	}
-
-	return out;
-}
-
-/*
-================
-DrawGLWaterPoly
-
-Warp the vertex coordinates
-================
-*/
-void DrawGLWaterPoly (glpoly_t *p)
-{
-	int		i;
-	float	*v;
-
-	p = WaterWarpPolyVerts (p);
-	qglBegin (GL_TRIANGLE_FAN);
-	v = p->verts[0];
-	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
-	{
-		qglTexCoord2f (v[3], v[4]);
-		qglVertex3fv (v);
-	}
-	qglEnd ();
-}
-void DrawGLWaterPolyLightmap (glpoly_t *p)
-{
-	int		i;
-	float	*v;
-
-	p = WaterWarpPolyVerts (p);
-	qglBegin (GL_TRIANGLE_FAN);
-	v = p->verts[0];
-	for (i=0 ; i<p->numverts ; i++, v+= VERTEXSIZE)
-	{
-		qglTexCoord2f (v[5], v[6]);
-		qglVertex3fv (v);
-	}
-	qglEnd ();
-}
-#endif
 
 /*
 ================
@@ -514,14 +438,14 @@ void R_RenderBrushPoly (msurface_t *fa)
 		GL_TexEnv( GL_REPLACE );
 	}
 
-//======
-//PGM
+	//======
+	//PGM
 	if(fa->texinfo->flags & SURF_FLOWING)
 		DrawGLFlowingPoly (fa);
 	else
 		DrawGLPoly (fa->polys);
-//PGM
-//======
+	//PGM
+	//======
 
 	/*
 	** check for lightmap modification
@@ -647,8 +571,6 @@ void DrawTextureChains (void)
 
 	c_visible_textures = 0;
 
-//	GL_TexEnv( GL_REPLACE );
-
 	if ( !qglSelectTextureSGIS && !qglActiveTextureARB )
 	{
 		for ( i = 0, image=gltextures ; i<numgltextures ; i++,image++)
@@ -700,7 +622,6 @@ void DrawTextureChains (void)
 
 			image->texturechain = NULL;
 		}
-//		GL_EnableMultitexture( true );
 	}
 
 	GL_TexEnv( GL_REPLACE );
@@ -784,8 +705,8 @@ dynamic:
 		GL_MBind( QGL_TEXTURE0, image->texnum );
 		GL_MBind( QGL_TEXTURE1, gl_state.lightmap_textures + lmtex );
 
-//==========
-//PGM
+		//==========
+		//PGM
 		if (surf->texinfo->flags & SURF_FLOWING)
 		{
 			float scroll;
@@ -822,8 +743,8 @@ dynamic:
 				qglEnd ();
 			}
 		}
-//PGM
-//==========
+		//PGM
+		//==========
 	}
 	else
 	{
@@ -832,8 +753,8 @@ dynamic:
 		GL_MBind( QGL_TEXTURE0, image->texnum );
 		GL_MBind( QGL_TEXTURE1, gl_state.lightmap_textures + lmtex );
 
-//==========
-//PGM
+		//==========
+		//PGM
 		if (surf->texinfo->flags & SURF_FLOWING)
 		{
 			float scroll;
@@ -857,8 +778,8 @@ dynamic:
 		}
 		else
 		{
-//PGM
-//==========
+			//PGM
+			//==========
 			for ( p = surf->polys; p; p = p->chain )
 			{
 				v = p->verts[0];
@@ -871,11 +792,11 @@ dynamic:
 				}
 				qglEnd ();
 			}
-//==========
-//PGM
+			//==========
+			//PGM
 		}
-//PGM
-//==========
+		//PGM
+		//==========
 	}
 }
 
@@ -921,7 +842,7 @@ void R_DrawInlineBModel (void)
 
 		dot = DotProduct (modelorg, pplane->normal) - pplane->dist;
 
-	// draw the polygon
+		// draw the polygon
 		if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
 			(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
 		{
@@ -1057,7 +978,7 @@ void R_RecursiveWorldNode (mnode_t *node)
 	if (R_CullBox (node->minmaxs, node->minmaxs+3))
 		return;
 	
-// if a leaf node, draw stuff
+	// if a leaf node, draw stuff
 	if (node->contents != -1)
 	{
 		pleaf = (mleaf_t *)node;
@@ -1084,9 +1005,8 @@ void R_RecursiveWorldNode (mnode_t *node)
 		return;
 	}
 
-// node is just a decision point, so go down the apropriate sides
-
-// find which side of the node we are on
+	// node is just a decision point, so go down the apropriate sides
+	// find which side of the node we are on
 	plane = node->plane;
 
 	switch (plane->type)
@@ -1116,7 +1036,7 @@ void R_RecursiveWorldNode (mnode_t *node)
 		sidebit = SURF_PLANEBACK;
 	}
 
-// recurse down the children, front side first
+	// recurse down the children, front side first
 	R_RecursiveWorldNode (node->children[side]);
 
 	// draw stuff
@@ -1157,42 +1077,6 @@ void R_RecursiveWorldNode (mnode_t *node)
 
 	// recurse down the back side
 	R_RecursiveWorldNode (node->children[!side]);
-/*
-	for ( ; c ; c--, surf++)
-	{
-		if (surf->visframe != r_framecount)
-			continue;
-
-		if ( (surf->flags & SURF_PLANEBACK) != sidebit )
-			continue;		// wrong side
-
-		if (surf->texinfo->flags & SURF_SKY)
-		{	// just adds to visible sky bounds
-			R_AddSkySurface (surf);
-		}
-		else if (surf->texinfo->flags & (SURF_TRANS33|SURF_TRANS66))
-		{	// add to the translucent chain
-//			surf->texturechain = alpha_surfaces;
-//			alpha_surfaces = surf;
-		}
-		else
-		{
-			if ( qglMTexCoord2fSGIS && !( surf->flags & SURF_DRAWTURB ) )
-			{
-				GL_RenderLightmappedPoly( surf );
-			}
-			else
-			{
-				// the polygon is visible, so add it to the texture
-				// sorted chain
-				// FIXME: this is a hack for animation
-				image = R_TextureAnimation (surf->texinfo);
-				surf->texturechain = image->texturechain;
-				image->texturechain = surf;
-			}
-		}
-	}
-*/
 }
 
 
@@ -1329,23 +1213,6 @@ void R_MarkLeaves (void)
 			} while (node);
 		}
 	}
-
-#if 0
-	for (i=0 ; i<r_worldmodel->vis->numclusters ; i++)
-	{
-		if (vis[i>>3] & (1<<(i&7)))
-		{
-			node = (mnode_t *)&r_worldmodel->leafs[i];	// FIXME: cluster
-			do
-			{
-				if (node->visframe == r_visframecount)
-					break;
-				node->visframe = r_visframecount;
-				node = node->parent;
-			} while (node);
-		}
-	}
-#endif
 }
 
 
@@ -1464,7 +1331,7 @@ void GL_BuildPolygonFromSurface(msurface_t *fa)
 	glpoly_t	*poly;
 	vec3_t		total;
 
-// reconstruct the polygon
+	// reconstruct the polygon
 	pedges = currentmodel->edges;
 	lnumverts = fa->numedges;
 	vertpage = 0;
@@ -1598,8 +1465,6 @@ void GL_BeginBuildingLightmaps (model_t *m)
 	if (!gl_state.lightmap_textures)
 	{
 		gl_state.lightmap_textures	= TEXNUM_LIGHTMAPS;
-//		gl_state.lightmap_textures	= gl_state.texture_extension_number;
-//		gl_state.texture_extension_number = gl_state.lightmap_textures + MAX_LIGHTMAPS;
 	}
 
 	gl_lms.current_lightmap_texture = 1;

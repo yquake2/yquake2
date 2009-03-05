@@ -36,8 +36,6 @@ BRUSH MODELS
 
 //
 // in memory representation
-//
-// !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct
 {
 	vec3_t		position;
@@ -53,11 +51,9 @@ typedef struct
 	int			firstface, numfaces;
 } mmodel_t;
 
-
 #define	SIDE_FRONT	0
 #define	SIDE_BACK	1
 #define	SIDE_ON		2
-
 
 #define	SURF_PLANEBACK		2
 #define	SURF_DRAWSKY		4
@@ -65,7 +61,6 @@ typedef struct
 #define SURF_DRAWBACKGROUND	0x40
 #define SURF_UNDERWATER		0x80
 
-// !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct
 {
 	unsigned short	v[2];
@@ -114,7 +109,7 @@ typedef struct msurface_s
 
 	mtexinfo_t	*texinfo;
 	
-// lighting info
+	// lighting info
 	int			dlightframe;
 	int			dlightbits;
 
@@ -126,7 +121,7 @@ typedef struct msurface_s
 
 typedef struct mnode_s
 {
-// common with leaf
+	// common with leaf
 	int			contents;		// -1, to differentiate from leafs
 	int			visframe;		// node needs to be traversed if current
 	
@@ -134,7 +129,7 @@ typedef struct mnode_s
 
 	struct mnode_s	*parent;
 
-// node specific
+	// node specific
 	cplane_t	*plane;
 	struct mnode_s	*children[2];	
 
@@ -146,7 +141,7 @@ typedef struct mnode_s
 
 typedef struct mleaf_s
 {
-// common with node
+	// common with node
 	int			contents;		// wil be a negative contents number
 	int			visframe;		// node needs to be traversed if current
 
@@ -154,7 +149,7 @@ typedef struct mleaf_s
 
 	struct mnode_s	*parent;
 
-// leaf specific
+	// leaf specific
 	int			cluster;
 	int			area;
 
@@ -182,21 +177,21 @@ typedef struct model_s
 	
 	int			flags;
 
-//
-// volume occupied by the model graphics
-//		
+	//
+	// volume occupied by the model graphics
+	//		
 	vec3_t		mins, maxs;
 	float		radius;
 
-//
-// solid volume for clipping 
-//
+	//
+	// solid volume for clipping 
+	//
 	qboolean	clipbox;
 	vec3_t		clipmins, clipmaxs;
 
-//
-// brush model
-//
+	//
+	// brush model
+	//
 	int			firstmodelsurface, nummodelsurfaces;
 	int			lightmap;		// only for submodels
 

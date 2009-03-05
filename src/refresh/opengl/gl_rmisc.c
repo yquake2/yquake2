@@ -109,9 +109,9 @@ void GL_ScreenShot_f (void)
 	Com_sprintf (checkname, sizeof(checkname), "%s/scrnshot", ri.FS_Gamedir());
 	Sys_Mkdir (checkname);
 
-// 
-// find a file name to save it to 
-// 
+	// 
+	// find a file name to save it to 
+	// 
 	strcpy(picname,"quake00.tga");
 
 	for (i=0 ; i<=99 ; i++) 
@@ -244,3 +244,4 @@ void GL_UpdateSwapInterval( void )
 		}
 	}
 }
+
