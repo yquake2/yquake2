@@ -95,7 +95,7 @@ endif
 SDLLDFLAGS=$(shell sdl-config --libs)
 
 # OpenGL
-OPENGLLDFLAGS = -L/usr/lib -L/usr/local/lib -lGL -shared
+OPENGLLDFLAGS = -L/usr/lib -L/usr/local/lib -shared
 
 # ----------
 
