@@ -271,6 +271,7 @@ OPENGL_GAME_OBJS = \
 
 # OpenGL refresher POSIX platform object
 OPENGL_POSIX_OBJS = \
+	build/ref_gl_posix/abi.o \
 	build/ref_gl_posix/glob.o \
 	build/ref_gl_posix/posix.o \
 	build/ref_gl_posix/qgl.o \
@@ -539,6 +540,9 @@ build/ref_gl_game/q_shared.o:				src/game/quake2/q_shared.c
 # ----------
 
 # OpenGL refresher POSIX build
+build/ref_gl_posix/abi.o:					src/platforms/posix/refresh/abi.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+ 
 build/ref_gl_posix/glob.o:					src/platforms/posix/glob/glob.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
