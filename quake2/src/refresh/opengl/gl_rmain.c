@@ -1293,6 +1293,7 @@ int R_Init( void *hinstance, void *hWnd )
 
 	if ( strstr( gl_config.extensions_string, "GL_EXT_point_parameters" ) )
 	{
+#ifndef BROKEN_GL
 		if ( gl_ext_pointparameters->value )
 		{
 			qglPointParameterfEXT = ( void (APIENTRY *)( GLenum, GLfloat ) ) qwglGetProcAddress( "glPointParameterfEXT" );
@@ -1303,6 +1304,9 @@ int R_Init( void *hinstance, void *hWnd )
 		{
 			ri.Con_Printf( PRINT_ALL, "...ignoring GL_EXT_point_parameters\n" );
 		}
+#else
+			ri.Con_Printf( PRINT_ALL, "...ignoring GL_EXT_point_parameters\n" );
+#endif
 	}
 	else
 	{
@@ -1350,6 +1354,7 @@ int R_Init( void *hinstance, void *hWnd )
 
 	if ( strstr( gl_config.extensions_string, "GL_ARB_multitexture" ) )
 	{
+#ifndef BROKEN_GL
 		if ( gl_ext_multitexture->value )
 		{
 			ri.Con_Printf( PRINT_ALL, "...using GL_ARB_multitexture\n" );
@@ -1363,6 +1368,9 @@ int R_Init( void *hinstance, void *hWnd )
 		{
 			ri.Con_Printf( PRINT_ALL, "...ignoring GL_ARB_multitexture\n" );
 		}
+#else
+			ri.Con_Printf( PRINT_ALL, "...ignoring GL_ARB_multitexture\n" );
+#endif
 	}
 	else
 	{
