@@ -474,7 +474,7 @@ int GLimp_Init( void *hInstance, void *wndProc )
 
 static void SetSDLIcon()
 {
-#include "../refresh/opengl/q2icon.xbm"
+#include "../refresh/icon/q2icon.xbm"
 	SDL_Surface *icon;
 	SDL_Color color;
 	Uint8 *ptr;
