@@ -38,7 +38,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 char *strlwr (char *s);
 #endif
 
-#include "../../../client/header/ref.h"
+#include "../../client/header/ref.h"
 
 #include "qgl.h"
 

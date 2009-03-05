@@ -46,13 +46,13 @@
 #endif
 
 #ifdef OPENGL
-#include "../../../refresh/opengl/header/local.h"
-#include "../refresh/opengl/glwindow.h"
+#include "../../refresh/header/local.h"
+#include "../refresh/glwindow.h"
 #else
 #include "../ref_soft/r_local.h"
 #endif
 
-#include "../../../client/input/keys.h"
+#include "../../client/input/keys.h"
 #include "../posix.h"
 
 /*****************************************************************************/
@@ -344,7 +344,7 @@ int GLimp_Init( void *hInstance, void *wndProc )
 
 static void SetSDLIcon()
 {
-#include "../refresh/icon/q2icon.xbm"
+#include "../refresh/q2icon.xbm"
 	SDL_Surface *icon;
 	SDL_Color color;
 	Uint8 *ptr;

@@ -1,5 +1,5 @@
-#include "../../../client/header/client.h"
-#include "../../../client/menu/qmenu.h"
+#include "../../client/header/client.h"
+#include "../../client/menu/qmenu.h"
 
 /*
 ====================================================================

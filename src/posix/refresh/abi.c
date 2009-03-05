@@ -19,12 +19,12 @@
 */
 
 #ifdef OPENGL
-#include "../../../refresh/opengl/header/local.h"
+#include "../../refresh/header/local.h"
 #else
 #include "../ref_soft/r_local.h"
 #endif
 
-#include "../../../client/input/keys.h"
+#include "../../client/input/keys.h"
 #include "../posix.h"
 
 static qboolean	mlooking;
