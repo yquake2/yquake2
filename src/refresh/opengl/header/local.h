@@ -42,7 +42,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 char *strlwr (char *s);
 #endif
 
-#include "../client/ref.h"
+#include "../../../client/header/ref.h"
 
 #include "qgl.h"
 
@@ -125,7 +125,7 @@ typedef enum
 	rserr_unknown
 } rserr_t;
 
-#include "gl_model.h"
+#include "model.h"
 
 void GL_BeginRendering (int *x, int *y, int *width, int *height);
 void GL_EndRendering (void);
