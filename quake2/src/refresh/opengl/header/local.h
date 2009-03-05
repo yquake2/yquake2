@@ -28,14 +28,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <ctype.h>
 
 #include <GL/gl.h>
-#ifndef SOLARIS
-//#include <GL/glxext.h>
-#else
-#include <GL/glu.h>
 #ifndef GL_COLOR_INDEX8_EXT
 #define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX
 #endif
-#endif
+
 #include <math.h>
 
 #ifndef _WIN32
@@ -67,7 +63,6 @@ typedef struct
 #endif
 
 extern	viddef_t	vid;
-
 
 /*
 
@@ -142,11 +137,8 @@ typedef struct
 	float	r, g, b;
 } glvert_t;
 
-
 #define	MAX_LBM_HEIGHT		480
-
 #define BACKFACE_EPSILON	0.01
-
 
 //====================================================
 
@@ -306,16 +298,6 @@ void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
 void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
 
-#if 0
-short LittleShort (short l);
-short BigShort (short l);
-int	LittleLong (int l);
-float LittleFloat (float f);
-
-char	*va(char *format, ...);
-// does a varargs printf into a temp buffer
-#endif
-
 void COM_StripExtension (char *in, char *out);
 
 void	Draw_GetPicSize (int *w, int *h, char *name);
@@ -448,7 +430,6 @@ IMPORTED FUNCTIONS
 */
 
 extern	refimport_t	ri;
-
 
 /*
 ====================================================================

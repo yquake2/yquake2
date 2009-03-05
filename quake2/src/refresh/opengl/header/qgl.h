@@ -17,6 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+
 /*
 ** QGL.H
 */
@@ -29,9 +30,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #include <GL/gl.h>
-#ifndef SOLARIS
-//#include <GL/glext.h>
-#endif
 
 qboolean QGL_Init( const char *dllname );
 void     QGL_Shutdown( void );
@@ -428,18 +426,14 @@ extern BOOL ( WINAPI * qwglSetDeviceGammaRampEXT ) ( const unsigned char *pRed, 
 
 #endif
 
-#ifdef __linux__
-
+#if defined __linux__ || defined __FreeBSD__
 // local function in dll
 extern void *qwglGetProcAddress(char *symbol);
-
-extern void (*qgl3DfxSetPaletteEXT)(GLuint *);
 
 // 3dfxSetPaletteEXT shunt
 void Fake_glColorTableEXT( GLenum target, GLenum internalformat,
                              GLsizei width, GLenum format, GLenum type,
                              const GLvoid *table );
-
 #endif // linux
 
 /* deprecated */
