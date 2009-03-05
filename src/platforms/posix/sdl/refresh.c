@@ -1,4 +1,24 @@
 /*
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+	See the GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to:
+
+		Free Software Foundation, Inc.
+		59 Temple Place - Suite 330
+		Boston, MA  02111-1307, USA
+*/ 
+
+/*
 ** RW_SDL.C
 **
 ** This file contains ALL Linux specific stuff having to do with the
@@ -34,10 +54,6 @@
 
 #include "../../../client/input/keys.h"
 #include "../posix.h"
-
-#ifdef Joystick
-#include "joystick.h"
-#endif
 
 /*****************************************************************************/
 
@@ -98,90 +114,12 @@ void RW_IN_PlatformInit() {
   _windowed_mouse = ri.Cvar_Get ("_windowed_mouse", "0", CVAR_ARCHIVE);
 }
 
-#ifdef Joystick
-qboolean CloseJoystick(void) {
-  if (joy) {
-    SDL_JoystickClose(joy);
-    joy = NULL;
-  }
-  return true;
-}
-
-void PlatformJoyCommands(int *axis_vals, int *axis_map) {
-  int i;
-  int key_index;
-  in_state_t *in_state = getState();
-  if (joy) {
-    for (i=0 ; i < joy_numbuttons ; i++) {
-      if ( SDL_JoystickGetButton(joy, i) && joy_oldbuttonstate!=i ) {
-	key_index = (i < 4) ? K_JOY1 : K_AUX1;
-	in_state->Key_Event_fp (key_index + i, true);
-	joy_oldbuttonstate = i;
-      }
-      
-      if ( !SDL_JoystickGetButton(joy, i) && joy_oldbuttonstate!=i ) {
-	key_index = (i < 4) ? K_JOY1 : K_AUX1;
-	in_state->Key_Event_fp (key_index + i, false);
-	joy_oldbuttonstate = i;
-      }
-    }
-    for (i=0;i<6;i++) {
-      axis_vals[axis_map[i]] = (int)SDL_JoystickGetAxis(joy, i);
-    }
-  }
-}
-#endif
-
-
-#if 0
-static void IN_DeactivateMouse( void ) 
-{ 
-  if (!mouse_avail)
-    return;
-  
-  if (mouse_active) {
-    /* uninstall_grabs(); */
-    mouse_active = false;
-  }
-}
-
-static void IN_ActivateMouse( void ) 
-{
-  if (!mouse_avail)
-    return;
-  
-  if (!mouse_active) {
-    mx = my = 0; // don't spazz
-    /* install_grabs(); */
-    mouse_active = true;
-  }
-}
-#endif
-
 void RW_IN_Activate(qboolean active)
 {
   mx = my = 0;
-#if 0
-  if (active || vidmode_active)
-    IN_ActivateMouse();
-  else
-    IN_DeactivateMouse();
-#endif		
 }
 
 /*****************************************************************************/
-
-#if 0 /* SDL parachute should catch everything... */
-// ========================================================================
-// Tragic death handler
-// ========================================================================
-
-void TragicDeath(int signal_num)
-{
-  /* SDL_Quit(); */
-  Sys_Error("This death brought to you by the number %d\n", signal_num);
-}
-#endif
 
 int XLateKey(unsigned int keysym)
 {
@@ -309,22 +247,7 @@ void GetEvent(SDL_Event *event)
 	  break;
 	case SDL_MOUSEBUTTONUP:
 	  break;
-#ifdef Joystick
-	case SDL_JOYBUTTONDOWN:
-	  keyq[keyq_head].key = 
-	    ((((SDL_JoyButtonEvent*)event)->button < 4)?K_JOY1:K_AUX1)+
-	    ((SDL_JoyButtonEvent*)event)->button;
-	  keyq[keyq_head].down = true;
-	  keyq_head = (keyq_head+1)&63;
-	  break;
-	case SDL_JOYBUTTONUP:
-	  keyq[keyq_head].key = 
-	    ((((SDL_JoyButtonEvent*)event)->button < 4)?K_JOY1:K_AUX1)+
-	    ((SDL_JoyButtonEvent*)event)->button;
-	  keyq[keyq_head].down = false;
-	  keyq_head = (keyq_head+1)&63;
-	  break;
-#endif
+
 	case SDL_KEYDOWN:
 	  if ( (KeyStates[SDLK_LALT] || KeyStates[SDLK_RALT]) &&
 	       (event->key.keysym.sym == SDLK_RETURN) ) {
@@ -347,10 +270,6 @@ void GetEvent(SDL_Event *event)
 	  if ( (KeyStates[SDLK_LCTRL] || KeyStates[SDLK_RCTRL]) &&
 	       (event->key.keysym.sym == SDLK_g) ) {
 	    SDL_GrabMode gm = SDL_WM_GrabInput(SDL_GRAB_QUERY);
-	    /*	
-	      SDL_WM_GrabInput((gm == SDL_GRAB_ON) ? SDL_GRAB_OFF : SDL_GRAB_ON);
-	      gm = SDL_WM_GrabInput(SDL_GRAB_QUERY);
-	    */	
 	    ri.Cvar_SetValue( "_windowed_mouse", (gm == SDL_GRAB_ON) ? /*1*/ 0 : /*0*/ 1 );
 	    
 	    break; /* ignore this key */
@@ -384,43 +303,6 @@ void GetEvent(SDL_Event *event)
 
 }
 
-#ifdef Joystick
-qboolean OpenJoystick(cvar_t *joy_dev) {
-  int num_joysticks, i;
-  joy = NULL;
-
-  if (!(SDL_INIT_JOYSTICK&SDL_WasInit(SDL_INIT_JOYSTICK))) {
-    ri.Con_Printf(PRINT_ALL, "SDL Joystick not initialized, trying to init...\n");
-    SDL_Init(SDL_INIT_JOYSTICK);
-  }
-  ri.Con_Printf(PRINT_ALL, "Trying to start-up joystick...\n");
-  if ((num_joysticks=SDL_NumJoysticks())) {
-    for(i=0;i<num_joysticks;i++) {
-      ri.Con_Printf(PRINT_ALL, "Trying joystick [%s]\n", 
-		    SDL_JoystickName(i));
-      if (!SDL_JoystickOpened(i)) {
-	joy = SDL_JoystickOpen(i);
-	if (joy) {
-	  ri.Con_Printf(PRINT_ALL, "Joytick activated.\n");
-	  joy_numbuttons = SDL_JoystickNumButtons(joy);
-	  break;
-	}
-      }
-    }
-    if (!joy) {
-      ri.Con_Printf(PRINT_ALL, "Failed to open any joysticks\n");
-      return false;
-    }
-  }
-  else {
-    ri.Con_Printf(PRINT_ALL, "No joysticks available\n");
-    return false;
-  }
-  return true;
-}
-#endif
-
-
 /*****************************************************************************/
 
 /*
@@ -442,19 +324,7 @@ int SWimp_Init( void *hInstance, void *wndProc )
       return false;
     }
   }
-  
-  //	SDL_EnableKeyRepeat(0, SDL_DEFAULT_REPEAT_INTERVAL);
-  
-  // catch signals so i can turn on auto-repeat
-#if 0
-  {
-    struct sigaction sa;
-    sigaction(SIGINT, 0, &sa);
-    sa.sa_handler = TragicDeath;
-    sigaction(SIGINT, &sa, 0);
-    sigaction(SIGTERM, &sa, 0);
-  }
-#endif
+
   return true;
 }
 
@@ -542,13 +412,13 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
 	// let the sound and input subsystems know about the new window
 	ri.Vid_NewWindow (vid.width, vid.height);
 
-/* 
+	/* 
 	Okay, I am going to query SDL for the "best" pixel format.
 	If the depth is not 8, use SetPalette with logical pal, 
 	else use SetColors.
 	
 	Hopefully this works all the time.
-*/
+	*/
 	vinfo = SDL_GetVideoInfo();
 	sdl_palettemode = (vinfo->vfmt->BitsPerPixel == 8) ? (SDL_PHYSPAL|SDL_LOGPAL) : SDL_LOGPAL;
 	flags = /*SDL_DOUBLEBUF|*/SDL_SWSURFACE|SDL_HWPALETTE;
@@ -570,8 +440,6 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
 	vid.buffer = surface->pixels;
 
 	X11_active = true;
-
-	
 
 	return true;
 }
@@ -808,9 +676,6 @@ void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
 
 	addr = (startaddr & ~(psize-1)) - psize;
 
-//	fprintf(stderr, "writable code %lx(%lx)-%lx, length=%lx\n", startaddr,
-//			addr, startaddr+length, length);
-
 	r = mprotect((char*)addr, length + startaddr - addr + psize, 7);
 
 	if (r < 0)
@@ -894,7 +759,6 @@ void KBD_Close(void)
 	memset(keyq, 0, sizeof(keyq));
 }
 
-
 #ifdef OPENGL
 void Fake_glColorTableEXT( GLenum target, GLenum internalformat,
                              GLsizei width, GLenum format, GLenum type,
@@ -910,6 +774,5 @@ void Fake_glColorTableEXT( GLenum target, GLenum internalformat,
 		temptable[i][0] = *intbl++;
 		temptable[i][3] = 255;
 	}
-	qgl3DfxSetPaletteEXT((GLuint *)temptable);
 }
 #endif

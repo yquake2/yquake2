@@ -32,7 +32,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <dlfcn.h>
 
-
 void ( APIENTRY * qglAccum )(GLenum op, GLfloat value);
 void ( APIENTRY * qglAlphaFunc )(GLenum func, GLclampf ref);
 GLboolean ( APIENTRY * qglAreTexturesResident )(GLsizei n, const GLuint *textures, GLboolean *residences);
@@ -2979,7 +2978,6 @@ void *qwglGetProcAddress(char *symbol)
 ** might be.
 ** 
 */
-
 qboolean QGL_Init( const char *dllname )
 {
 	// update 3Dfx gamma irrespective of underlying DLL
@@ -3002,9 +3000,6 @@ qboolean QGL_Init( const char *dllname )
 		char	fn[MAX_OSPATH];
 		char	*path;
 
-//		ri.Con_Printf(PRINT_ALL, "QGL_Init: Can't load %s from /etc/ld.so.conf: %s\n", 
-//				dllname, dlerror());
-
 		// try basedir next
 		path = ri.Cvar_Get ("basedir", ".", CVAR_NOSET)->string;
 		
@@ -3019,15 +3014,6 @@ qboolean QGL_Init( const char *dllname )
 		Com_Printf ("Using %s for OpenGL...", dllname);
 	}
 
-#ifdef USE_GLU
-	if ( (dlopen( "libGLU.so", RTLD_LAZY ) ) == 0 )
-	{
-	  ri.Con_Printf( PRINT_ALL, "%s\n", dlerror() );
-	  return false;
-	} else {
-	  Com_Printf ("Opened GLU sucessfully OpenGLU...", dllname);
-	}
-#endif
 	qglAccum                     = dllAccum = GPA( "glAccum" );
 	qglAlphaFunc                 = dllAlphaFunc = GPA( "glAlphaFunc" );
 	qglAreTexturesResident       = dllAreTexturesResident = GPA( "glAreTexturesResident" );
@@ -4078,10 +4064,8 @@ void GLimp_EnableLogging( qboolean enable )
 	}
 }
 
-
 void GLimp_LogNewFrame( void )
 {
 	fprintf( glw_state.log_fp, "*** R_BeginFrame ***\n" );
 }
-
 
