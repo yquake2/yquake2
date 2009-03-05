@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// r_main.c
+
 #include "header/local.h"
 
 void R_Clear (void);
@@ -191,31 +191,12 @@ void R_DrawSpriteModel (entity_t *e)
 
 	// don't even bother culling, because it's just a single
 	// polygon without a surface cache
-
 	psprite = (dsprite_t *)currentmodel->extradata;
 
-#if 0
-	if (e->frame < 0 || e->frame >= psprite->numframes)
-	{
-		ri.Con_Printf (PRINT_ALL, "no such sprite frame %i\n", e->frame);
-		e->frame = 0;
-	}
-#endif
 	e->frame %= psprite->numframes;
 
 	frame = &psprite->frames[e->frame];
 
-#if 0
-	if (psprite->type == SPR_ORIENTED)
-	{	// bullet marks on walls
-	vec3_t		v_forward, v_right, v_up;
-
-	AngleVectors (currententity->angles, v_forward, v_right, v_up);
-		up = v_up;
-		right = v_right;
-	}
-	else
-#endif
 	{	// normal sprite
 		up = vup;
 		right = vright;
@@ -567,24 +548,6 @@ void R_SetFrustum (void)
 {
 	int		i;
 
-#if 0
-	/*
-	** this code is wrong, since it presume a 90 degree FOV both in the
-	** horizontal and vertical plane
-	*/
-	// front side is visible
-	VectorAdd (vpn, vright, frustum[0].normal);
-	VectorSubtract (vpn, vright, frustum[1].normal);
-	VectorAdd (vpn, vup, frustum[2].normal);
-	VectorSubtract (vpn, vup, frustum[3].normal);
-
-	// we theoretically don't need to normalize these vectors, but I do it
-	// anyway so that debugging is a little easier
-	VectorNormalize( frustum[0].normal );
-	VectorNormalize( frustum[1].normal );
-	VectorNormalize( frustum[2].normal );
-	VectorNormalize( frustum[3].normal );
-#else
 	// rotate VPN right by FOV_X/2 degrees
 	RotatePointAroundVector( frustum[0].normal, vup, vpn, -(90-r_newrefdef.fov_x / 2 ) );
 	// rotate VPN left by FOV_X/2 degrees
@@ -593,7 +556,6 @@ void R_SetFrustum (void)
 	RotatePointAroundVector( frustum[2].normal, vright, vpn, 90-r_newrefdef.fov_y / 2 );
 	// rotate VPN down by FOV_X/2 degrees
 	RotatePointAroundVector( frustum[3].normal, vright, vpn, -( 90 - r_newrefdef.fov_y / 2 ) );
-#endif
 
 	for (i=0 ; i<4 ; i++)
 	{
@@ -617,12 +579,12 @@ void R_SetupFrame (void)
 
 	r_framecount++;
 
-// build the transformation matrix for the given view angles
+	// build the transformation matrix for the given view angles
 	VectorCopy (r_newrefdef.vieworg, r_origin);
 
 	AngleVectors (r_newrefdef.viewangles, vpn, vright, vup);
 
-// current viewcluster
+	// current viewcluster
 	if ( !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
 	{
 		r_oldviewcluster = r_viewcluster;
@@ -720,7 +682,6 @@ void R_SetupGL (void)
 	// set up projection matrix
 	//
     screenaspect = (float)r_newrefdef.width/r_newrefdef.height;
-//	yfov = 2*atan((float)r_newrefdef.height/r_newrefdef.width)*180/M_PI;
 	qglMatrixMode(GL_PROJECTION);
     qglLoadIdentity ();
     MYgluPerspective (r_newrefdef.fov_y,  screenaspect,  4,  4096);
@@ -736,9 +697,6 @@ void R_SetupGL (void)
     qglRotatef (-r_newrefdef.viewangles[0],  0, 1, 0);
     qglRotatef (-r_newrefdef.viewangles[1],  0, 0, 1);
     qglTranslatef (-r_newrefdef.vieworg[0],  -r_newrefdef.vieworg[1],  -r_newrefdef.vieworg[2]);
-
-//	if ( gl_state.camera_separation != 0 && gl_state.stereo_enabled )
-//		qglTranslatef ( gl_state.camera_separation, 0, 0 );
 
 	qglGetFloatv (GL_MODELVIEW_MATRIX, r_world_matrix);
 
@@ -884,49 +842,6 @@ void	R_SetGL2D (void)
 	qglEnable (GL_ALPHA_TEST);
 	qglColor4f (1,1,1,1);
 }
-
-#if 0 // Not used.
-static void GL_DrawColoredStereoLinePair( float r, float g, float b, float y )
-{
-	qglColor3f( r, g, b );
-	qglVertex2f( 0, y );
-	qglVertex2f( vid.width, y );
-	qglColor3f( 0, 0, 0 );
-	qglVertex2f( 0, y + 1 );
-	qglVertex2f( vid.width, y + 1 );
-}
-
-static void GL_DrawStereoPattern( void )
-{
-	int i;
-
-	if ( !( gl_config.renderer & GL_RENDERER_INTERGRAPH ) )
-		return;
-
-	if ( !gl_state.stereo_enabled )
-		return;
-
-	R_SetGL2D();
-
-	qglDrawBuffer( GL_BACK_LEFT );
-
-	for ( i = 0; i < 20; i++ )
-	{
-		qglBegin( GL_LINES );
-			GL_DrawColoredStereoLinePair( 1, 0, 0, 0 );
-			GL_DrawColoredStereoLinePair( 1, 0, 0, 2 );
-			GL_DrawColoredStereoLinePair( 1, 0, 0, 4 );
-			GL_DrawColoredStereoLinePair( 1, 0, 0, 6 );
-			GL_DrawColoredStereoLinePair( 0, 1, 0, 8 );
-			GL_DrawColoredStereoLinePair( 1, 1, 0, 10);
-			GL_DrawColoredStereoLinePair( 1, 1, 0, 12);
-			GL_DrawColoredStereoLinePair( 0, 1, 0, 14);
-		qglEnd();
-		
-		GLimp_EndFrame();
-	}
-}
-#endif
 
 /*
 ====================
@@ -1236,10 +1151,6 @@ int R_Init( void *hinstance, void *hWnd )
 		ri.Cvar_Set( "scr_drawall", "0" );
 	}
 
-#if 0 && defined(__linux__)
-	ri.Cvar_SetValue( "gl_finish", 1 );
-#endif
-
 	// MCD has buffering issues
 	if ( gl_config.renderer == GL_RENDERER_MCD )
 	{
@@ -1313,26 +1224,6 @@ int R_Init( void *hinstance, void *hWnd )
 		ri.Con_Printf( PRINT_ALL, "...GL_EXT_point_parameters not found\n" );
 	}
 
-#ifdef __linux__
-	if ( strstr( gl_config.extensions_string, "3DFX_set_global_palette" ))
-	{
-		if ( gl_ext_palettedtexture->value )
-		{
-			ri.Con_Printf( PRINT_ALL, "...using 3DFX_set_global_palette\n" );
-			qgl3DfxSetPaletteEXT = ( void ( APIENTRY * ) (GLuint *) )qwglGetProcAddress( "gl3DfxSetPaletteEXT" );
-			qglColorTableEXT = Fake_glColorTableEXT;
-		}
-		else
-		{
-			ri.Con_Printf( PRINT_ALL, "...ignoring 3DFX_set_global_palette\n" );
-		}
-	}
-	else
-	{
-		ri.Con_Printf( PRINT_ALL, "...3DFX_set_global_palette not found\n" );
-	}
-#endif
-
 	if ( !qglColorTableEXT &&
 		strstr( gl_config.extensions_string, "GL_EXT_paletted_texture" ) && 
 		strstr( gl_config.extensions_string, "GL_EXT_shared_texture_palette" ) )
@@ -1402,13 +1293,6 @@ int R_Init( void *hinstance, void *hWnd )
 	}
 
 	GL_SetDefaultState();
-
-	/*
-	** draw our stereo patterns
-	*/
-#if 0 // commented out until H3D pays us the money they owe us
-	GL_DrawStereoPattern();
-#endif
 
 	GL_InitImages ();
 	Mod_Init ();
@@ -1774,5 +1658,5 @@ void Com_Printf (char *fmt, ...)
 
 	ri.Con_Printf (PRINT_ALL, "%s", text);
 }
-
 #endif
+
