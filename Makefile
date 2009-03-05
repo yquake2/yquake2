@@ -72,6 +72,10 @@ CFLAGS_CLIENT += -Werror
 CFLAGS_DEDICATED_SERVER = $(CFLAGS_BASE)
 CFLAGS_DEDICATED_SERVER += -DDEDICATED_ONLY -Werror
 
+# OpenGL refresher
+CFLAGS_OPENGL = $(CFLAGS_BASE)
+CFLAGS_OPENGL += -I/usr/include -I/usr/local/include -I/usr/X11R6/include
+
 # ----------
 
 # The linker and linkerflags
@@ -88,6 +92,9 @@ endif
 
 # SDL
 SDLLDFLAGS=$(shell sdl-config --libs)
+
+# OpenGL
+OPENGLLDFLAGS = -lGL
 
 # ----------
 
@@ -120,6 +127,12 @@ dedicated_server:
 		build/dedicated_server_posix/glob \
 		release
 	$(MAKE) release/q2ded
+
+ref_gl :
+	@-mkdir -p build \
+		build/ref_gl \
+		build/ref_gl_posix
+	$(MAKE) release/ref_gl.so
 
 clean:
 	@-rm -Rf build release
@@ -231,6 +244,28 @@ DEDICATED_SERVER_POSIX_OBJS = \
 	build/dedicated_server_posix/posix.o \
 	build/dedicated_server_posix/system.o
  
+# ----------
+
+# OpenGL refresher objects
+OPENGL_OBJS = \
+	build/ref_gl/gl_draw.o \
+	build/ref_gl/gl_image.o \
+	build/ref_gl/gl_light.o \
+	build/ref_gl/gl_mesh.o \
+	build/ref_gl/gl_model.o \
+	build/ref_gl/gl_rmain.o \
+	build/ref_gl/gl_rmisc.o \
+	build/ref_gl/gl_rsurf.o \
+	build/ref_gl/gl_warp.o 		 
+
+# ----------
+
+# OpenGL refresher POSIX platform object
+OPENGL_POSIX_OBJS = \
+	build/ref_gl_posix/glx.o \
+	build/ref_gl_posix/posix.o \
+	build/ref_gl_posix/refresh.o
+
 # ----------
 
 # Client build
@@ -457,6 +492,48 @@ build/dedicated_server_posix/system.o :  	src/platforms/posix/system.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 # ----------
+
+# OpenGL refresher build
+build/ref_gl/gl_draw.o:						src/refresh/opengl/gl_draw.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+
+build/ref_gl/gl_image.o:					src/refresh/opengl/gl_image.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+  
+build/ref_gl/gl_light.o:					src/refresh/opengl/gl_light.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+  
+build/ref_gl/gl_mesh.o:						src/refresh/opengl/gl_mesh.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+  
+build/ref_gl/gl_model.o:   					src/refresh/opengl/gl_model.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+  
+build/ref_gl/gl_rmain.o:   					src/refresh/opengl/gl_rmain.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+  
+build/ref_gl/gl_rmisc.o:   					src/refresh/opengl/gl_rmisc.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+
+build/ref_gl/gl_rsurf.o:   					src/refresh/opengl/gl_rsurf.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+
+build/ref_gl/gl_warp.o:						src/refresh/opengl/gl_warp.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+  
+# ----------
+
+# OpenGL refresher POSIX build
+build/ref_gl_posix/glx.o:					src/platform/posix/refresh/opengl/glx.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+
+build/ref_gl_posix/posix.o:					src/platform/posix/posix.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+ 
+build/ref_gl_posix/refresh.o:				src/platform/posix/sdl/refresh.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+ 
+# ----------
   
 #  The client
 release/quake2 : $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
@@ -470,3 +547,9 @@ release/q2ded : $(DEDICATED_SERVER_OBJS) $(DEDICATED_SERVER_COMMON_OBJS) \
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ $(DEDICATED_SERVER_OBJS) \
 		$(DEDICATED_SERVER_COMMON_OBJS) $(GAME_ABI_OBJS) \
 		$(DEDICATED_SERVER_POSIX_OBJS) $(LDFLAGS)
+
+# OpenGL refresher
+release/ref_gl.so : $(OPENGL_OBJS) $(OPENGL_POSIX_OBJS)
+	$(CC) $(CFLAGS_OPENGL) -o $@ $(OPENGL_OBJS) $(OPENGL_POSIX_OBJS) \
+		$(LDFLAGS) $(SDLLDFLAGS) $(OPENGLLDFLAGS)
+
