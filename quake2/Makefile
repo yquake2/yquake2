@@ -534,7 +534,7 @@ build/ref_gl/gl_warp.o:						src/refresh/opengl/gl_warp.c
 # ----------
 
 build/ref_gl_game/q_shared.o:				src/game/quake2/q_shared.c
-	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
   
 # ----------
 
@@ -569,5 +569,5 @@ release/q2ded : $(DEDICATED_SERVER_OBJS) $(DEDICATED_SERVER_COMMON_OBJS) \
 # OpenGL refresher
 release/ref_gl.so : $(OPENGL_OBJS) $(OPENGL_POSIX_OBJS) $(OPENGL_GAME_OBJS)
 	$(CC) $(CFLAGS_OPENGL) -o $@ $(OPENGL_OBJS) $(OPENGL_POSIX_OBJS) \
-		$(LDFLAGS) $(SDLLDFLAGS) $(OPENGLLDFLAGS)
+		$(OPENGL_GAME_OBJS) $(LDFLAGS) $(SDLLDFLAGS) $(OPENGLLDFLAGS)
 
