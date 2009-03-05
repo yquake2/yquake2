@@ -18,7 +18,8 @@ are present on this system
 static char *refs[NUMBER_OF_REFS+1] = { 0 };
 
 /* make all these have illegal values, as they will be redefined */
-static int REF_SDLGL   = NUMBER_OF_REFS;
+static int REF_GL      = NUMBER_OF_REFS;
+
 static int GL_REF_START = NUMBER_OF_REFS;
 
 typedef struct
@@ -30,7 +31,7 @@ typedef struct
 
 static const ref_t possible_refs[NUMBER_OF_REFS] =
 {
-	{ "[SDL OpenGL    ]", "gl",   &REF_SDLGL   }
+	{ "[OpenGL        ]", "gl",     &REF_GL     },
 };
 
 /*
@@ -108,10 +109,22 @@ static void ScreenSizeCallback( void *s )
 
 static void BrightnessCallback( void *s )
 {
+	menuslider_s *slider = ( menuslider_s * ) s;
+
 	if ( s_current_menu_index == 0)
 		s_brightness_slider[1].curvalue = s_brightness_slider[0].curvalue;
 	else
 		s_brightness_slider[0].curvalue = s_brightness_slider[1].curvalue;
+
+	if ( strcasecmp( vid_ref->string, "soft" ) == 0 ||
+		 strcasecmp( vid_ref->string, "softx" ) == 0 ||
+		 strcasecmp( vid_ref->string, "softsdl" ) == 0 ||
+		 strcasecmp( vid_ref->string, "glx" ) == 0 )
+	{
+		float gamma = ( 0.8 - ( slider->curvalue/10.0 - 0.5 ) ) + 0.5;
+
+		Cvar_SetValue( "vid_gamma", gamma );
+	}
 }
 
 static void ResetDefaults( void *unused )
@@ -150,11 +163,11 @@ static void ApplyChanges( void *unused )
 	** and not #DEFINE's (constants)
 	*/
 	ref = s_ref_list[s_current_menu_index].curvalue;
-	if ( ref == REF_SDLGL )
+	if ( ref == REF_GL )
 	{
 		Cvar_Set( "vid_ref", "gl" );
 		// below is wrong if we use different libs for different GL reflibs
-		Cvar_Get( "gl_driver", "libGL.so.1", CVAR_ARCHIVE ); // ??? create if it doesn't exist
+		Cvar_Get( "gl_driver", "libGL.so.1", CVAR_ARCHIVE ); // ??? create if it doesn't exit
 		if (gl_driver->modified)
 			vid_ref->modified = true;
 	}
@@ -201,7 +214,8 @@ void VID_MenuInit( void )
 	};
 
 	/* make sure these are invalided before showing the menu again */
-	REF_SDLGL   = NUMBER_OF_REFS;
+	REF_GL     = NUMBER_OF_REFS;
+
 	GL_REF_START = NUMBER_OF_REFS;
 
 	/* now test to see which ref's are present */
@@ -222,7 +236,7 @@ void VID_MenuInit( void )
 			** GL ref has been found; this will change if more software
 			** modes are added to the possible_ref's array
 			*/
-			if ( i == 3 )
+			if ( i == 0 )
 				GL_REF_START = counter;
 
 			counter++;
@@ -260,7 +274,7 @@ void VID_MenuInit( void )
 	if ( strcmp( vid_ref->string, "gl" ) == 0 )
 	{
 		s_current_menu_index = OPENGL_MENU;
-		s_ref_list[s_current_menu_index].curvalue = REF_SDLGL;
+		s_ref_list[s_current_menu_index].curvalue = REF_GL;
 	}
 
 	s_software_menu.x = viddef.width * 0.50;
