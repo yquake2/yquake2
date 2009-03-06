@@ -336,7 +336,7 @@ void gunner_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 {
 	int		n;
 
-// check for gib
+	// check for gib
 	if (self->health <= self->gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
@@ -352,7 +352,7 @@ void gunner_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
+	// regular death
 	gi.sound (self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
@@ -459,7 +459,7 @@ void GunnerGrenade (edict_t *self)
 		flash_number = MZ2_GUNNER_GRENADE_2;
 	else if (self->s.frame == FRAME_attak111)
 		flash_number = MZ2_GUNNER_GRENADE_3;
-	else // (self->s.frame == FRAME_attak114)
+	else 
 		flash_number = MZ2_GUNNER_GRENADE_4;
 
 	AngleVectors (self->s.angles, forward, right, NULL);
@@ -473,16 +473,6 @@ void GunnerGrenade (edict_t *self)
 
 mframe_t gunner_frames_attack_chain [] =
 {
-	/*
-	{ai_charge, 0, NULL},
-	{ai_charge, 0, NULL},
-	{ai_charge, 0, NULL},
-	{ai_charge, 0, NULL},
-	{ai_charge, 0, NULL},
-	{ai_charge, 0, NULL},
-	{ai_charge, 0, NULL},
-	{ai_charge, 0, NULL},
-	*/
 	{ai_charge, 0, gunner_opengun},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -626,3 +616,4 @@ void SP_monster_gunner (edict_t *self)
 
 	walkmonster_start (self);
 }
+

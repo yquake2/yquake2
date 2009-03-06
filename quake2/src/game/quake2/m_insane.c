@@ -478,9 +478,6 @@ void insane_pain (edict_t *self, edict_t *other, float kick, int damage)
 {
 	int	l,r;
 
-//	if (self->health < (self->max_health / 2))
-//		self->s.skinnum = 1;
-
 	if (level.time < self->pain_debounce_time)
 		return;
 
@@ -523,7 +520,6 @@ void insane_onground (edict_t *self)
 
 void insane_checkdown (edict_t *self)
 {
-//	if ( (self->s.frame == FRAME_stand94) || (self->s.frame == FRAME_stand65) )
 	if (self->spawnflags & 32)				// Always stand
 		return;
 	if (random() < 0.3)
@@ -622,8 +618,6 @@ void insane_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 */
 void SP_misc_insane (edict_t *self)
 {
-//	static int skin = 0;	//@@
-
 	if (deathmatch->value)
 	{
 		G_FreeEdict (self);
@@ -665,12 +659,6 @@ void SP_misc_insane (edict_t *self)
 	self->monsterinfo.sight = NULL;
 	self->monsterinfo.aiflags |= AI_GOOD_GUY;
 
-//@@
-//	self->s.skinnum = skin;
-//	skin++;
-//	if (skin > 12)
-//		skin = 0;
-
 	gi.linkentity (self);
 
 	if (self->spawnflags & 16)				// Stand Ground
@@ -693,3 +681,4 @@ void SP_misc_insane (edict_t *self)
 		self->s.skinnum = rand()%3;
 	}
 }
+

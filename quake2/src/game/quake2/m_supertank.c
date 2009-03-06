@@ -503,7 +503,7 @@ void supertankRocket (edict_t *self)
 		flash_number = MZ2_SUPERTANK_ROCKET_1;
 	else if (self->s.frame == FRAME_attak2_11)
 		flash_number = MZ2_SUPERTANK_ROCKET_2;
-	else // (self->s.frame == FRAME_attak2_14)
+	else 
 		flash_number = MZ2_SUPERTANK_ROCKET_3;
 
 	AngleVectors (self->s.angles, forward, right, NULL);
@@ -552,15 +552,9 @@ void supertank_attack(edict_t *self)
 {
 	vec3_t	vec;
 	float	range;
-	//float	r;
 
 	VectorSubtract (self->enemy->s.origin, self->s.origin, vec);
 	range = VectorLength (vec);
-
-	//r = random();
-
-	// Attack 1 == Chaingun
-	// Attack 2 == Rocket Launcher
 
 	if (range <= 160)
 	{
@@ -684,7 +678,6 @@ void SP_monster_supertank (edict_t *self)
 	sound_search1 = gi.soundindex ("bosstank/btkunqv1.wav");
 	sound_search2 = gi.soundindex ("bosstank/btkunqv2.wav");
 
-//	self->s.sound = gi.soundindex ("bosstank/btkengn1.wav");
 	tread_sound = gi.soundindex ("bosstank/btkengn1.wav");
 
 	self->movetype = MOVETYPE_STEP;
@@ -715,3 +708,4 @@ void SP_monster_supertank (edict_t *self)
 
 	walkmonster_start(self);
 }
+

@@ -380,6 +380,8 @@ void G_SetStats (edict_t *ent)
 	int			index, cells;
 	int			power_armor_type;
 
+        cells = 0;
+
 	//
 	// health
 	//

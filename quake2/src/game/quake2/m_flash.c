@@ -486,3 +486,4 @@ vec3_t monster_flash_offset [] =
 // end of table
 	{ 0.0, 0.0, 0.0 }
 };
+

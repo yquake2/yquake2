@@ -695,7 +695,7 @@ void makron_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
+	// regular death
 	gi.sound (self, CHAN_VOICE, sound_death, 1, ATTN_NONE, 0);
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
@@ -753,7 +753,7 @@ qboolean Makron_CheckAttack (edict_t *self)
 		return true;
 	}
 	
-// missile attack
+	// missile attack
 	if (!self->monsterinfo.attack)
 		return false;
 		
@@ -862,7 +862,6 @@ void SP_monster_makron (edict_t *self)
 
 	gi.linkentity (self);
 	
-//	self->monsterinfo.currentmove = &makron_move_stand;
 	self->monsterinfo.currentmove = &makron_move_sight;
 	self->monsterinfo.scale = MODEL_SCALE;
 
@@ -913,3 +912,4 @@ void MakronToss (edict_t *self)
 	ent->target = self->target;
 	VectorCopy (self->s.origin, ent->s.origin);
 }
+

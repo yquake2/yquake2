@@ -29,7 +29,7 @@ OSTYPE := $(shell uname -s)
 
 ifneq ($(OSTYPE),Linux)
 ifneq ($(OSTYPE),FreeBSD)
-$(error $(OSTYPE) is currently not supported by this Client.)
+#$(error $(OSTYPE) is currently not supported by this Client.)
 endif
 endif
 

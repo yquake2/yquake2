@@ -20,18 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 	
 // q_shared.h -- included first by ALL program modules
 
-#ifdef _WIN32
-// unknown pragmas are SUPPOSED to be ignored, but....
-#pragma warning(disable : 4244)     // MIPS
-#pragma warning(disable : 4136)     // X86
-#pragma warning(disable : 4051)     // ALPHA
-
-#pragma warning(disable : 4018)     // signed/unsigned mismatch
-#pragma warning(disable : 4305)		// truncation from const double to float
-
-#define vsnprintf _vsnprintf
-#endif
-
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -39,18 +27,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-
-#if (defined _M_IX86 || defined __i386__) && !defined C_ONLY && !defined __sun__
-#define id386	1
-#else
-#define id386	0
-#endif
-
-#if defined _M_ALPHA && !defined C_ONLY
-#define idaxp	1
-#else
-#define idaxp	0
-#endif
 
 typedef unsigned char 		byte;
 typedef enum {false, true}	qboolean;
@@ -146,11 +122,7 @@ extern vec3_t vec3_origin;
 // microsoft's fabs seems to be ungodly slow...
 //float Q_fabs (float f);
 //#define	fabs(f) Q_fabs(f)
-#if defined _WIN32 && !defined C_ONLY
-extern long Q_ftol( float f );
-#else
 #define Q_ftol( f ) ( long ) (f)
-#endif
 
 #define DotProduct(x,y)			(x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
 #define VectorSubtract(a,b,c)		(c[0]=a[0]-b[0],c[1]=a[1]-b[1],c[2]=a[2]-b[2])
@@ -380,11 +352,6 @@ COLLISION DETECTION
 #define	SURF_TRANS66	0x20
 #define	SURF_FLOWING	0x40	// scroll towards angle
 #define	SURF_NODRAW		0x80	// don't bother referencing the texture
-
-#ifdef QMAX
-#define	SURF_WAVES_1	0x100
-#define	SURF_WAVES_2	0x200
-#endif
 
 // content masks
 #define	MASK_ALL				(-1)
@@ -631,15 +598,6 @@ typedef struct
 #define	RF_SHELL_HALF_DAM	0x00020000
 #define RF_USE_DISGUISE		0x00040000
 //ROGUE
-
-#ifdef QMAX
-  #define RF_TRANS_ADDITIVE	8192
-  #define RF_MIRRORMODEL		0x00004000
-
-  #define	RF2_NOSHADOW		0x00000001		//no shadow..
-  #define RF2_FORCE_SHADOW	0x00000002		//forced shadow...
-  #define RF2_CAMERAMODEL		0x00000004
-#endif
 
 // player_state_t->refdef flags
 #define	RDF_UNDERWATER		1		// warp the screen as apropriate
@@ -962,7 +920,7 @@ typedef enum
 	TE_BLUEHYPERBLASTER,
 	TE_PLASMA_EXPLOSION,
 	TE_TUNNEL_SPARKS,
-//ROGUE
+	//ROGUE
 	TE_BLASTER2,
 	TE_RAILTRAIL2,
 	TE_FLAME,
@@ -989,7 +947,7 @@ typedef enum
 	TE_EXPLOSION1_BIG,
 	TE_EXPLOSION1_NP,
 	TE_FLECHETTE
-//ROGUE
+	    //ROGUE
 } temp_event_t;
 
 #define SPLASH_UNKNOWN		0
@@ -1071,36 +1029,6 @@ typedef enum
 #define DF_NO_NUKES			0x00080000
 #define DF_NO_SPHERES		0x00100000
 //ROGUE
-
-/*
-ROGUE - VERSIONS
-1234	08/13/1998		Activision
-1235	08/14/1998		Id Software
-1236	08/15/1998		Steve Tietze
-1237	08/15/1998		Phil Dobranski
-1238	08/15/1998		John Sheley
-1239	08/17/1998		Barrett Alexander
-1230	08/17/1998		Brandon Fish
-1245	08/17/1998		Don MacAskill
-1246	08/17/1998		David "Zoid" Kirsch
-1247	08/17/1998		Manu Smith
-1248	08/17/1998		Geoff Scully
-1249	08/17/1998		Andy Van Fossen
-1240	08/20/1998		Activision Build 2
-1256	08/20/1998		Ranger Clan
-1257	08/20/1998		Ensemble Studios
-1258	08/21/1998		Robert Duffy
-1259	08/21/1998		Stephen Seachord
-1250	08/21/1998		Stephen Heaslip
-1267	08/21/1998		Samir Sandesara
-1268	08/21/1998		Oliver Wyman
-1269	08/21/1998		Steven Marchegiano
-1260	08/21/1998		Build #2 for Nihilistic
-1278	08/21/1998		Build #2 for Ensemble
-
-9999	08/20/1998		Internal Use
-*/
-#define ROGUE_VERSION_ID		1278
 
 #define ROGUE_VERSION_STRING	"08/21/1998 Beta 2 for Ensemble"
 
@@ -1239,3 +1167,4 @@ extern int vidref_val;
  */
 size_t verify_fread( void *, size_t, size_t, FILE * );
 size_t verify_fwrite( void *, size_t, size_t, FILE * );
+

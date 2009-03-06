@@ -228,7 +228,7 @@ void SV_CalcViewOffset (edict_t *ent)
 	vec3_t		v;
 
 
-//===================================
+	//===================================
 
 	// base angles
 	angles = ent->client->ps.kick_angles;
@@ -289,7 +289,7 @@ void SV_CalcViewOffset (edict_t *ent)
 		angles[ROLL] += delta;
 	}
 
-//===================================
+	//===================================
 
 	// base origin
 
@@ -377,7 +377,6 @@ void SV_CalcGunOffset (edict_t *ent)
 
 	// gun height
 	VectorClear (ent->client->ps.gunoffset);
-//	ent->ps->gunorigin[2] += bob;
 
 	// gun_x / gun_y / gun_z are development tools
 	for (i=0 ; i<3 ; i++)

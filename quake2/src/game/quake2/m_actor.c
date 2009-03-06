@@ -238,7 +238,6 @@ void actor_pain (edict_t *self, edict_t *other, float kick, int damage)
 		return;
 
 	self->pain_debounce_time = level.time + 3;
-//	gi.sound (self, CHAN_VOICE, actor.sound_pain, 1, ATTN_NORM, 0);
 
 	if ((other->client) && (random() < 0.4))
 	{
@@ -340,10 +339,9 @@ void actor_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 {
 	int		n;
 
-// check for gib
+	// check for gib
 	if (self->health <= -80)
 	{
-//		gi.sound (self, CHAN_VOICE, actor.sound_gib, 1, ATTN_NORM, 0);
 		for (n= 0; n < 2; n++)
 			ThrowGib (self, "models/objects/gibs/bone/tris.md2", damage, GIB_ORGANIC);
 		for (n= 0; n < 4; n++)
@@ -356,8 +354,7 @@ void actor_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
-//	gi.sound (self, CHAN_VOICE, actor.sound_die, 1, ATTN_NORM, 0);
+	// regular death
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
 
@@ -607,3 +604,4 @@ void SP_target_actor (edict_t *self)
 
 	gi.linkentity (self);
 }
+

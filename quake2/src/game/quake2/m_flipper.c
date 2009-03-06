@@ -333,7 +333,7 @@ void flipper_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int dama
 {
 	int		n;
 
-// check for gib
+	// check for gib
 	if (self->health <= self->gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
@@ -349,7 +349,7 @@ void flipper_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int dama
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
+	// regular death
 	gi.sound (self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
@@ -401,3 +401,4 @@ void SP_monster_flipper (edict_t *self)
 
 	swimmonster_start (self);
 }
+

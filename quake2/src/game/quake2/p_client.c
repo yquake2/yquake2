@@ -55,7 +55,6 @@ static void SP_FixCoopSpots (edict_t *self)
 		{
 			if ((!self->targetname) || Q_stricmp(self->targetname, spot->targetname) != 0)
 			{
-//				gi.dprintf("FixCoopSpots changed %s at %s targetname from %s to %s\n", self->classname, vtos(self->s.origin), self->targetname, spot->targetname);
 				self->targetname = spot->targetname;
 			}
 			return;
@@ -517,7 +516,6 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 
 	self->maxs[2] = -8;
 
-//	self->solid = SOLID_NOT;
 	self->svflags |= SVF_DEADMONSTER;
 
 	if (!self->deadflag)
@@ -1125,17 +1123,10 @@ void PutClientInServer (edict_t *ent)
 	}
 	else if (coop->value)
 	{
-//		int			n;
 		char		userinfo[MAX_INFO_STRING];
 
 		resp = client->resp;
 		memcpy (userinfo, client->pers.userinfo, sizeof(userinfo));
-		// this is kind of ugly, but it's how we want to handle keys in coop
-//		for (n = 0; n < game.num_items; n++)
-//		{
-//			if (itemlist[n].flags & IT_KEY)
-//				resp.coop_respawn.inventory[n] = client->pers.inventory[n];
-//		}
 		resp.coop_respawn.game_helpchanged = client->pers.game_helpchanged;
 		resp.coop_respawn.helpchanged = client->pers.helpchanged;
 		client->pers = resp.coop_respawn;
@@ -1178,7 +1169,7 @@ void PutClientInServer (edict_t *ent)
 	ent->waterlevel = 0;
 	ent->watertype = 0;
 	ent->flags &= ~FL_NO_KNOCKBACK;
-	ent->svflags &= ~SVF_DEADMONSTER;
+	ent->svflags &= 0;
 
 	VectorCopy (mins, ent->mins);
 	VectorCopy (maxs, ent->maxs);
@@ -1631,7 +1622,6 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		if (memcmp(&client->old_pmove, &pm.s, sizeof(pm.s)))
 		{
 			pm.snapinitial = true;
-	//		gi.dprintf ("pmove changed!\n");
 		}
 
 		pm.cmd = *ucmd;
@@ -1813,3 +1803,4 @@ void ClientBeginServerFrame (edict_t *ent)
 
 	client->latched_buttons = 0;
 }
+

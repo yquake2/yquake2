@@ -49,7 +49,6 @@ void floater_idle (edict_t *self)
 }
 
 
-//void floater_stand1 (edict_t *self);
 void floater_dead (edict_t *self);
 void floater_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
 void floater_run (edict_t *self);
@@ -532,7 +531,6 @@ void floater_zap (edict_t *self)
 	//FIXME use a flash and replace these two lines with the commented one
 	VectorSet (offset, 18.5, -0.9, 10);
 	G_ProjectSource (self->s.origin, offset, forward, right, origin);
-//	G_ProjectSource (self->s.origin, monster_flash_offset[flash_number], forward, right, origin);
 
 	gi.sound (self, CHAN_WEAPON, sound_attack2, 1, ATTN_NORM, 0);
 
@@ -644,7 +642,6 @@ void SP_monster_floater (edict_t *self)
 	self->monsterinfo.stand = floater_stand;
 	self->monsterinfo.walk = floater_walk;
 	self->monsterinfo.run = floater_run;
-//	self->monsterinfo.dodge = floater_dodge;
 	self->monsterinfo.attack = floater_attack;
 	self->monsterinfo.melee = floater_melee;
 	self->monsterinfo.sight = floater_sight;
@@ -661,3 +658,4 @@ void SP_monster_floater (edict_t *self)
 
 	flymonster_start (self);
 }
+
