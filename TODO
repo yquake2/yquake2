@@ -1,0 +1,12 @@
+Kleine TODO-Liste:
+- Version und Identifikationsstring des
+  Renderers anpassen
+- Fehlerhafte Makros in g_local.h
+- QMAX nochmal sauber entfernen
+- WIN32 und sun aus dem Game entfernen
+- CTF, Rogue, Xatrix einfügen
+- g_save in rogue und xatrix anpassen
+- Im Spiel g_* und p_* gegen R1Q2 abgleichen
+- Nightmare im Menü freischalten
+- Spwanflags auch für Coop per Menü anpassbar machen
+
