@@ -661,3 +661,4 @@ void SP_monster_mutant (edict_t *self)
 	self->monsterinfo.scale = MODEL_SCALE;
 	walkmonster_start (self);
 }
+

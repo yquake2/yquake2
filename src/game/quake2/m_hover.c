@@ -542,7 +542,7 @@ void hover_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 {
 	int		n;
 
-// check for gib
+	// check for gib
 	if (self->health <= self->gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
@@ -558,7 +558,7 @@ void hover_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
+	// regular death
 	if (random() < 0.5)
 		gi.sound (self, CHAN_VOICE, sound_death1, 1, ATTN_NORM, 0);
 	else
@@ -606,7 +606,6 @@ void SP_monster_hover (edict_t *self)
 	self->monsterinfo.stand = hover_stand;
 	self->monsterinfo.walk = hover_walk;
 	self->monsterinfo.run = hover_run;
-//	self->monsterinfo.dodge = hover_dodge;
 	self->monsterinfo.attack = hover_start_attack;
 	self->monsterinfo.sight = hover_sight;
 	self->monsterinfo.search = hover_search;
@@ -618,3 +617,4 @@ void SP_monster_hover (edict_t *self)
 
 	flymonster_start (self);
 }
+

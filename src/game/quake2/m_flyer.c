@@ -478,9 +478,6 @@ mmove_t flyer_move_loop_melee = {FRAME_attak107, FRAME_attak118, flyer_frames_lo
 
 void flyer_loop_melee (edict_t *self)
 {
-/*	if (random() <= 0.5)	
-		self->monsterinfo.currentmove = &flyer_move_attack1;
-	else */
 	self->monsterinfo.currentmove = &flyer_move_loop_melee;
 }
 
@@ -488,9 +485,6 @@ void flyer_loop_melee (edict_t *self)
 
 void flyer_attack (edict_t *self)
 {
-/*	if (random() <= 0.5)	
-		self->monsterinfo.currentmove = &flyer_move_attack1;
-	else */
 	self->monsterinfo.currentmove = &flyer_move_attack2;
 }
 
@@ -512,8 +506,6 @@ void flyer_nextmove (edict_t *self)
 
 void flyer_melee (edict_t *self)
 {
-//	flyer.nextmove = ACTION_attack1;
-//	self->monsterinfo.currentmove = &flyer_move_stop;
 	self->monsterinfo.currentmove = &flyer_move_start_melee;
 }
 
@@ -624,3 +616,4 @@ void SP_monster_flyer (edict_t *self)
 
 	flymonster_start (self);
 }
+

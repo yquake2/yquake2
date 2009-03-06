@@ -354,7 +354,7 @@ void chick_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 {
 	int		n;
 
-// check for gib
+	// check for gib
 	if (self->health <= self->gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
@@ -370,7 +370,7 @@ void chick_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
+	// regular death
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
 
@@ -677,3 +677,4 @@ void SP_monster_chick (edict_t *self)
 
 	walkmonster_start (self);
 }
+

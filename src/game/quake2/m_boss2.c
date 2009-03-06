@@ -61,7 +61,6 @@ void Boss2Rocket (edict_t *self)
 
 	AngleVectors (self->s.angles, forward, right, NULL);
 
-//1
 	G_ProjectSource (self->s.origin, monster_flash_offset[MZ2_BOSS2_ROCKET_1], forward, right, start);
 	VectorCopy (self->enemy->s.origin, vec);
 	vec[2] += self->enemy->viewheight;
@@ -69,7 +68,6 @@ void Boss2Rocket (edict_t *self)
 	VectorNormalize (dir);
 	monster_fire_rocket (self, start, dir, 50, 500, MZ2_BOSS2_ROCKET_1);
 
-//2
 	G_ProjectSource (self->s.origin, monster_flash_offset[MZ2_BOSS2_ROCKET_2], forward, right, start);
 	VectorCopy (self->enemy->s.origin, vec);
 	vec[2] += self->enemy->viewheight;
@@ -77,7 +75,6 @@ void Boss2Rocket (edict_t *self)
 	VectorNormalize (dir);
 	monster_fire_rocket (self, start, dir, 50, 500, MZ2_BOSS2_ROCKET_2);
 
-//3
 	G_ProjectSource (self->s.origin, monster_flash_offset[MZ2_BOSS2_ROCKET_3], forward, right, start);
 	VectorCopy (self->enemy->s.origin, vec);
 	vec[2] += self->enemy->viewheight;
@@ -85,7 +82,6 @@ void Boss2Rocket (edict_t *self)
 	VectorNormalize (dir);
 	monster_fire_rocket (self, start, dir, 50, 500, MZ2_BOSS2_ROCKET_3);
 
-//4
 	G_ProjectSource (self->s.origin, monster_flash_offset[MZ2_BOSS2_ROCKET_4], forward, right, start);
 	VectorCopy (self->enemy->s.origin, vec);
 	vec[2] += self->enemy->viewheight;
@@ -129,24 +125,7 @@ void boss2_firebullet_left (edict_t *self)
 
 void Boss2MachineGun (edict_t *self)
 {
-/*	vec3_t	forward, right;
-	vec3_t	start;
-	vec3_t	dir;
-	vec3_t	vec;
-	int		flash_number;
-
-	AngleVectors (self->s.angles, forward, right, NULL);
-
-	flash_number = MZ2_BOSS2_MACHINEGUN_1 + (self->s.frame - FRAME_attack10);
-	G_ProjectSource (self->s.origin, monster_flash_offset[flash_number], forward, right, start);
-
-	VectorCopy (self->enemy->s.origin, vec);
-	vec[2] += self->enemy->viewheight;
-	VectorSubtract (vec, start, dir);
-	VectorNormalize (dir);
-	monster_fire_bullet (self, start, dir, 3, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
-*/
-	boss2_firebullet_left(self);
+        boss2_firebullet_left(self);
 	boss2_firebullet_right(self);
 }	
 
@@ -476,7 +455,7 @@ void boss2_pain (edict_t *self, edict_t *other, float kick, int damage)
 		return;
 
 	self->pain_debounce_time = level.time + 3;
-// American wanted these at no attenuation
+	// American wanted these at no attenuation
 	if (damage < 10)
 	{
 		gi.sound (self, CHAN_VOICE, sound_pain3, 1, ATTN_NONE, 0);
@@ -511,30 +490,6 @@ void boss2_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 	self->takedamage = DAMAGE_NO;
 	self->count = 0;
 	self->monsterinfo.currentmove = &boss2_move_death;
-#if 0
-	int		n;
-
-	self->s.sound = 0;
-	// check for gib
-	if (self->health <= self->gib_health)
-	{
-		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
-		for (n= 0; n < 2; n++)
-			ThrowGib (self, "models/objects/gibs/bone/tris.md2", damage, GIB_ORGANIC);
-		for (n= 0; n < 4; n++)
-			ThrowGib (self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
-		ThrowHead (self, "models/objects/gibs/head2/tris.md2", damage, GIB_ORGANIC);
-		self->deadflag = DEAD_DEAD;
-		return;
-	}
-
-	if (self->deadflag == DEAD_DEAD)
-		return;
-
-	self->deadflag = DEAD_DEAD;
-	self->takedamage = DAMAGE_YES;
-	self->monsterinfo.currentmove = &boss2_move_death;
-#endif
 }
 
 qboolean Boss2_CheckAttack (edict_t *self)
@@ -549,7 +504,7 @@ qboolean Boss2_CheckAttack (edict_t *self)
 
 	if (self->enemy->health > 0)
 	{
-	// see if any entities are in the way of the shot
+		// see if any entities are in the way of the shot
 		VectorCopy (self->s.origin, spot1);
 		spot1[2] += self->viewheight;
 		VectorCopy (self->enemy->s.origin, spot2);
@@ -580,7 +535,7 @@ qboolean Boss2_CheckAttack (edict_t *self)
 		return true;
 	}
 	
-// missile attack
+	// missile attack
 	if (!self->monsterinfo.attack)
 		return false;
 		
@@ -677,3 +632,4 @@ void SP_monster_boss2 (edict_t *self)
 
 	flymonster_start (self);
 }
+

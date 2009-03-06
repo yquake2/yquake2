@@ -309,7 +309,7 @@ void gladiator_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int da
 {
 	int		n;
 
-// check for gib
+	// check for gib
 	if (self->health <= self->gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
@@ -325,7 +325,7 @@ void gladiator_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int da
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
+	// regular death
 	gi.sound (self, CHAN_VOICE, sound_die, 1, ATTN_NORM, 0);
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
@@ -385,3 +385,4 @@ void SP_monster_gladiator (edict_t *self)
 
 	walkmonster_start (self);
 }
+

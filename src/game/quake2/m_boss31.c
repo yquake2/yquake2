@@ -487,15 +487,7 @@ void jorgBFG (edict_t *self)
 	VectorSubtract (vec, start, dir);
 	VectorNormalize (dir);
 	gi.sound (self, CHAN_VOICE, sound_attack2, 1, ATTN_NORM, 0);
-	/*void monster_fire_bfg (edict_t *self, 
-							 vec3_t start, 
-							 vec3_t aimdir, 
-							 int damage, 
-							 int speed, 
-							 int kick, 
-							 float damage_radius, 
-							 int flashtype)*/
-	monster_fire_bfg (self, start, dir, 50, 300, 100, 200, MZ2_JORG_BFG_1);
+        monster_fire_bfg (self, start, dir, 50, 300, 100, 200, MZ2_JORG_BFG_1);
 }	
 
 void jorg_firebullet_right (edict_t *self)
@@ -559,30 +551,6 @@ void jorg_attack(edict_t *self)
 
 void jorg_dead (edict_t *self)
 {
-#if 0
-	edict_t	*tempent;
-	/*
-	VectorSet (self->mins, -16, -16, -24);
-	VectorSet (self->maxs, 16, 16, -8);
-	*/
-	
-	// Jorg is on modelindex2. Do not clear him.
-	VectorSet (self->mins, -60, -60, 0);
-	VectorSet (self->maxs, 60, 60, 72);
-	self->movetype = MOVETYPE_TOSS;
-	self->nextthink = 0;
-	gi.linkentity (self);
-
-	tempent = G_Spawn();
-	VectorCopy (self->s.origin, tempent->s.origin);
-	VectorCopy (self->s.angles, tempent->s.angles);
-	tempent->killtarget = self->killtarget;
-	tempent->target = self->target;
-	tempent->activator = self->enemy;
-	self->killtarget = 0;
-	self->target = 0;
-	SP_monster_makron (tempent);
-#endif
 }
 
 
@@ -608,7 +576,7 @@ qboolean Jorg_CheckAttack (edict_t *self)
 
 	if (self->enemy->health > 0)
 	{
-	// see if any entities are in the way of the shot
+		// see if any entities are in the way of the shot
 		VectorCopy (self->s.origin, spot1);
 		spot1[2] += self->viewheight;
 		VectorCopy (self->enemy->s.origin, spot2);
@@ -639,7 +607,7 @@ qboolean Jorg_CheckAttack (edict_t *self)
 		return true;
 	}
 	
-// missile attack
+	// missile attack
 	if (!self->monsterinfo.attack)
 		return false;
 		
@@ -747,3 +715,4 @@ void SP_monster_jorg (edict_t *self)
 
 	walkmonster_start(self);
 }
+

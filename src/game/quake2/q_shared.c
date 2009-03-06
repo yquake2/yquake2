@@ -25,10 +25,6 @@ vec3_t vec3_origin = {0,0,0};
 
 //============================================================================
 
-#ifdef _WIN32
-#pragma optimize( "", off )
-#endif
-
 void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees )
 {
 	float	m[3][3];
@@ -83,12 +79,6 @@ void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, 
 		dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
 	}
 }
-
-#ifdef _WIN32
-#pragma optimize( "", on )
-#endif
-
-
 
 void AngleVectors (vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 {
@@ -250,29 +240,10 @@ void R_ConcatTransforms (float in1[3][4], float in2[3][4], float out[3][4])
 
 float Q_fabs (float f)
 {
-#if 0
-	if (f >= 0)
-		return f;
-	return -f;
-#else
 	int tmp = * ( int * ) &f;
 	tmp &= 0x7FFFFFFF;
 	return * ( float * ) &tmp;
-#endif
 }
-
-#if defined _M_IX86 && !defined C_ONLY
-#pragma warning (disable:4035)
-__declspec( naked ) long Q_ftol( float f )
-{
-	static int tmp;
-	__asm fld dword ptr [esp+4]
-	__asm fistp tmp
-	__asm mov eax, tmp
-	__asm ret
-}
-#pragma warning (default:4035)
-#endif
 
 /*
 ===============
@@ -292,12 +263,6 @@ float LerpAngle (float a2, float a1, float frac)
 
 float	anglemod(float a)
 {
-#if 0
-	if (a >= 0)
-		a -= 360*(int)(a/360);
-	else
-		a += 360*( 1 + (int)(-a/360) );
-#endif
 	a = (360.0/65536) * ((int)(a*(65536/360.0)) & 65535);
 	return a;
 }
@@ -345,13 +310,12 @@ BoxOnPlaneSide
 Returns 1, 2, or 1 + 2
 ==================
 */
-#if !id386 || defined __linux__ || defined __FreeBSD__ || defined __sun__
 int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 {
 	float	dist1, dist2;
 	int		sides;
 
-// fast axial cases
+	// fast axial cases
 	if (p->type < 3)
 	{
 		if (p->dist <= emins[p->type])
@@ -361,42 +325,42 @@ int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 		return 3;
 	}
 	
-// general case
+	// general case
 	switch (p->signbits)
 	{
-	case 0:
-dist1 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
-dist2 = p->normal[0]*emins[0] + p->normal[1]*emins[1] + p->normal[2]*emins[2];
+	    case 0:
+		dist1 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
+		dist2 = p->normal[0]*emins[0] + p->normal[1]*emins[1] + p->normal[2]*emins[2];
 		break;
-	case 1:
-dist1 = p->normal[0]*emins[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
-dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emins[1] + p->normal[2]*emins[2];
+	    case 1:
+		dist1 = p->normal[0]*emins[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
+		dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emins[1] + p->normal[2]*emins[2];
 		break;
-	case 2:
-dist1 = p->normal[0]*emaxs[0] + p->normal[1]*emins[1] + p->normal[2]*emaxs[2];
-dist2 = p->normal[0]*emins[0] + p->normal[1]*emaxs[1] + p->normal[2]*emins[2];
+	    case 2:
+		dist1 = p->normal[0]*emaxs[0] + p->normal[1]*emins[1] + p->normal[2]*emaxs[2];
+		dist2 = p->normal[0]*emins[0] + p->normal[1]*emaxs[1] + p->normal[2]*emins[2];
 		break;
-	case 3:
-dist1 = p->normal[0]*emins[0] + p->normal[1]*emins[1] + p->normal[2]*emaxs[2];
-dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emins[2];
+	    case 3:
+		dist1 = p->normal[0]*emins[0] + p->normal[1]*emins[1] + p->normal[2]*emaxs[2];
+		dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emins[2];
 		break;
-	case 4:
-dist1 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emins[2];
-dist2 = p->normal[0]*emins[0] + p->normal[1]*emins[1] + p->normal[2]*emaxs[2];
+	    case 4:
+		dist1 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emins[2];
+		dist2 = p->normal[0]*emins[0] + p->normal[1]*emins[1] + p->normal[2]*emaxs[2];
 		break;
-	case 5:
-dist1 = p->normal[0]*emins[0] + p->normal[1]*emaxs[1] + p->normal[2]*emins[2];
-dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emins[1] + p->normal[2]*emaxs[2];
+	    case 5:
+		dist1 = p->normal[0]*emins[0] + p->normal[1]*emaxs[1] + p->normal[2]*emins[2];
+		dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emins[1] + p->normal[2]*emaxs[2];
 		break;
-	case 6:
-dist1 = p->normal[0]*emaxs[0] + p->normal[1]*emins[1] + p->normal[2]*emins[2];
-dist2 = p->normal[0]*emins[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
+	    case 6:
+		dist1 = p->normal[0]*emaxs[0] + p->normal[1]*emins[1] + p->normal[2]*emins[2];
+		dist2 = p->normal[0]*emins[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
 		break;
-	case 7:
-dist1 = p->normal[0]*emins[0] + p->normal[1]*emins[1] + p->normal[2]*emins[2];
-dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
+	    case 7:
+		dist1 = p->normal[0]*emins[0] + p->normal[1]*emins[1] + p->normal[2]*emins[2];
+		dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
 		break;
-	default:
+	    default:
 		dist1 = dist2 = 0;		// shut up compiler
 		assert( 0 );
 		break;
@@ -412,240 +376,6 @@ dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
 
 	return sides;
 }
-#else
-#pragma warning( disable: 4035 )
-
-__declspec( naked ) int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
-{
-	static int bops_initialized;
-	static int Ljmptab[8];
-
-	__asm {
-
-		push ebx
-			
-		cmp bops_initialized, 1
-		je  initialized
-		mov bops_initialized, 1
-		
-		mov Ljmptab[0*4], offset Lcase0
-		mov Ljmptab[1*4], offset Lcase1
-		mov Ljmptab[2*4], offset Lcase2
-		mov Ljmptab[3*4], offset Lcase3
-		mov Ljmptab[4*4], offset Lcase4
-		mov Ljmptab[5*4], offset Lcase5
-		mov Ljmptab[6*4], offset Lcase6
-		mov Ljmptab[7*4], offset Lcase7
-			
-initialized:
-
-		mov edx,ds:dword ptr[4+12+esp]
-		mov ecx,ds:dword ptr[4+4+esp]
-		xor eax,eax
-		mov ebx,ds:dword ptr[4+8+esp]
-		mov al,ds:byte ptr[17+edx]
-		cmp al,8
-		jge Lerror
-		fld ds:dword ptr[0+edx]
-		fld st(0)
-		jmp dword ptr[Ljmptab+eax*4]
-Lcase0:
-		fmul ds:dword ptr[ebx]
-		fld ds:dword ptr[0+4+edx]
-		fxch st(2)
-		fmul ds:dword ptr[ecx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[4+ebx]
-		fld ds:dword ptr[0+8+edx]
-		fxch st(2)
-		fmul ds:dword ptr[4+ecx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[8+ebx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul ds:dword ptr[8+ecx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase1:
-		fmul ds:dword ptr[ecx]
-		fld ds:dword ptr[0+4+edx]
-		fxch st(2)
-		fmul ds:dword ptr[ebx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[4+ebx]
-		fld ds:dword ptr[0+8+edx]
-		fxch st(2)
-		fmul ds:dword ptr[4+ecx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[8+ebx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul ds:dword ptr[8+ecx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase2:
-		fmul ds:dword ptr[ebx]
-		fld ds:dword ptr[0+4+edx]
-		fxch st(2)
-		fmul ds:dword ptr[ecx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[4+ecx]
-		fld ds:dword ptr[0+8+edx]
-		fxch st(2)
-		fmul ds:dword ptr[4+ebx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[8+ebx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul ds:dword ptr[8+ecx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase3:
-		fmul ds:dword ptr[ecx]
-		fld ds:dword ptr[0+4+edx]
-		fxch st(2)
-		fmul ds:dword ptr[ebx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[4+ecx]
-		fld ds:dword ptr[0+8+edx]
-		fxch st(2)
-		fmul ds:dword ptr[4+ebx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[8+ebx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul ds:dword ptr[8+ecx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase4:
-		fmul ds:dword ptr[ebx]
-		fld ds:dword ptr[0+4+edx]
-		fxch st(2)
-		fmul ds:dword ptr[ecx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[4+ebx]
-		fld ds:dword ptr[0+8+edx]
-		fxch st(2)
-		fmul ds:dword ptr[4+ecx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[8+ecx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul ds:dword ptr[8+ebx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase5:
-		fmul ds:dword ptr[ecx]
-		fld ds:dword ptr[0+4+edx]
-		fxch st(2)
-		fmul ds:dword ptr[ebx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[4+ebx]
-		fld ds:dword ptr[0+8+edx]
-		fxch st(2)
-		fmul ds:dword ptr[4+ecx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[8+ecx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul ds:dword ptr[8+ebx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase6:
-		fmul ds:dword ptr[ebx]
-		fld ds:dword ptr[0+4+edx]
-		fxch st(2)
-		fmul ds:dword ptr[ecx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[4+ecx]
-		fld ds:dword ptr[0+8+edx]
-		fxch st(2)
-		fmul ds:dword ptr[4+ebx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[8+ecx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul ds:dword ptr[8+ebx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-		jmp LSetSides
-Lcase7:
-		fmul ds:dword ptr[ecx]
-		fld ds:dword ptr[0+4+edx]
-		fxch st(2)
-		fmul ds:dword ptr[ebx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[4+ecx]
-		fld ds:dword ptr[0+8+edx]
-		fxch st(2)
-		fmul ds:dword ptr[4+ebx]
-		fxch st(2)
-		fld st(0)
-		fmul ds:dword ptr[8+ecx]
-		fxch st(5)
-		faddp st(3),st(0)
-		fmul ds:dword ptr[8+ebx]
-		fxch st(1)
-		faddp st(3),st(0)
-		fxch st(3)
-		faddp st(2),st(0)
-LSetSides:
-		faddp st(2),st(0)
-		fcomp ds:dword ptr[12+edx]
-		xor ecx,ecx
-		fnstsw ax
-		fcomp ds:dword ptr[12+edx]
-		and ah,1
-		xor ah,1
-		add cl,ah
-		fnstsw ax
-		and ah,1
-		add ah,ah
-		add cl,ah
-		pop ebx
-		mov eax,ecx
-		ret
-Lerror:
-		int 3
-	}
-}
-#pragma warning( default: 4035 )
-#endif
 
 void ClearBounds (vec3_t mins, vec3_t maxs)
 {
@@ -907,10 +637,10 @@ COM_DefaultExtension
 void COM_DefaultExtension (char *path, char *extension)
 {
 	char    *src;
-//
-// if path doesn't have a .EXT, append extension
-// (extension should include the .)
-//
+	//
+	// if path doesn't have a .EXT, append extension
+	// (extension should include the .)
+	//
 	src = path + strlen(path) - 1;
 
 	while (*src != '/' && src != path)
@@ -1012,7 +742,7 @@ void Swap_Init (void)
 {
 	byte	swaptest[2] = {1,0};
 
-// set the byte swapping variables in a portable manner	
+	// set the byte swapping variables in a portable manner	
 	if ( *(short *)swaptest == 1)
 	{
 		bigendien = false;
@@ -1085,7 +815,7 @@ char *COM_Parse (char **data_p)
 		return "";
 	}
 		
-// skip whitespace
+	// skip whitespace
 skipwhite:
 	while ( (c = *data) <= ' ')
 	{
@@ -1097,7 +827,7 @@ skipwhite:
 		data++;
 	}
 	
-// skip // comments
+	// skip // comments
 	if (c=='/' && data[1] == '/')
 	{
 		while (*data && *data != '\n')
@@ -1105,7 +835,7 @@ skipwhite:
 		goto skipwhite;
 	}
 
-// handle quoted strings specially
+	// handle quoted strings specially
 	if (c == '\"')
 	{
 		data++;
@@ -1126,7 +856,7 @@ skipwhite:
 		}
 	}
 
-// parse a regular word
+	// parse a regular word
 	do
 	{
 		if (len < MAX_TOKEN_CHARS)
@@ -1140,7 +870,6 @@ skipwhite:
 
 	if (len == MAX_TOKEN_CHARS)
 	{
-//		Com_Printf ("Token exceeded %i chars, discarded.\n", MAX_TOKEN_CHARS);
 		len = 0;
 	}
 	com_token[len] = 0;
@@ -1178,24 +907,10 @@ void Com_PageInMemory (byte *buffer, int size)
 
 /* PATCH: matt */
 /* use our own strncasecmp instead of this implementation */
-#ifdef sun
-
-#define Q_strncasecmp(s1, s2, n) (strncasecmp(s1, s2, n))
-
-int Q_stricmp (char *s1, char *s2) {
-        return strcasecmp(s1, s2);
-}
-
-#else
-
 // FIXME: replace all Q_stricmp with Q_strcasecmp
 int Q_stricmp (char *s1, char *s2)
 {
-#if defined(WIN32)
-	return _stricmp (s1, s2);
-#else
 	return strcasecmp (s1, s2);
-#endif
 }
 
 
@@ -1224,7 +939,6 @@ int Q_strncasecmp (char *s1, char *s2, int n)
 	
 	return 0;		// strings are equal
 }
-#endif
 
 int Q_strcasecmp (char *s1, char *s2)
 {
@@ -1314,7 +1028,6 @@ void Info_RemoveKey (char *s, char *key)
 
 	if (strstr (key, "\\"))
 	{
-//		Com_Printf ("Can't use a key with a \\\n");
 		return;
 	}
 
@@ -1425,7 +1138,4 @@ void Info_SetValueForKey (char *s, char *key, char *value)
 	}
 	*s = 0;
 }
-
-//====================================================================
-
 

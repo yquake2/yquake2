@@ -340,7 +340,7 @@ void TankBlaster (edict_t *self)
 		flash_number = MZ2_TANK_BLASTER_1;
 	else if (self->s.frame == FRAME_attak113)
 		flash_number = MZ2_TANK_BLASTER_2;
-	else // (self->s.frame == FRAME_attak116)
+	else
 		flash_number = MZ2_TANK_BLASTER_3;
 
 	AngleVectors (self->s.angles, forward, right, NULL);
@@ -370,7 +370,7 @@ void TankRocket (edict_t *self)
 		flash_number = MZ2_TANK_ROCKET_1;
 	else if (self->s.frame == FRAME_attak327)
 		flash_number = MZ2_TANK_ROCKET_2;
-	else // (self->s.frame == FRAME_attak330)
+	else 
 		flash_number = MZ2_TANK_ROCKET_3;
 
 	AngleVectors (self->s.angles, forward, right, NULL);
@@ -754,7 +754,7 @@ void tank_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage,
 {
 	int		n;
 
-// check for gib
+	// check for gib
 	if (self->health <= self->gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
@@ -771,7 +771,7 @@ void tank_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage,
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
+	// regular death
 	gi.sound (self, CHAN_VOICE, sound_die, 1, ATTN_NORM, 0);
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
@@ -854,3 +854,4 @@ void SP_monster_tank (edict_t *self)
 	if (strcmp(self->classname, "monster_tank_commander") == 0)
 		self->s.skinnum = 2;
 }
+

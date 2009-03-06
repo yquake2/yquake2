@@ -174,69 +174,10 @@ mframe_t brain_frames_walk1 [] =
 };
 mmove_t brain_move_walk1 = {FRAME_walk101, FRAME_walk111, brain_frames_walk1, NULL};
 
-// walk2 is FUBAR, do not use
-#if 0
-void brain_walk2_cycle (edict_t *self)
-{
-	if (random() > 0.1)
-		self->monsterinfo.nextframe = FRAME_walk220;
-}
-
-mframe_t brain_frames_walk2 [] =
-{
-	{ai_walk,	3,	NULL},
-	{ai_walk,	-2,	NULL},
-	{ai_walk,	-4,	NULL},
-	{ai_walk,	-3,	NULL},
-	{ai_walk,	0,	NULL},
-	{ai_walk,	1,	NULL},
-	{ai_walk,	12,	NULL},
-	{ai_walk,	0,	NULL},
-	{ai_walk,	-3,	NULL},
-	{ai_walk,	0,	NULL},
-
-	{ai_walk,	-2,	NULL},
-	{ai_walk,	0,	NULL},
-	{ai_walk,	0,	NULL},
-	{ai_walk,	1,	NULL},
-	{ai_walk,	0,	NULL},
-	{ai_walk,	0,	NULL},
-	{ai_walk,	0,	NULL},
-	{ai_walk,	0,	NULL},
-	{ai_walk,	0,	NULL},
-	{ai_walk,	10,	NULL},		// Cycle Start
-
-	{ai_walk,	-1,	NULL},
-	{ai_walk,	7,	NULL},
-	{ai_walk,	0,	NULL},
-	{ai_walk,	3,	NULL},
-	{ai_walk,	-3,	NULL},
-	{ai_walk,	2,	NULL},
-	{ai_walk,	4,	NULL},
-	{ai_walk,	-3,	NULL},
-	{ai_walk,	2,	NULL},
-	{ai_walk,	0,	NULL},
-
-	{ai_walk,	4,	brain_walk2_cycle},
-	{ai_walk,	-1,	NULL},
-	{ai_walk,	-1,	NULL},
-	{ai_walk,	-8,	NULL},		
-	{ai_walk,	0,	NULL},
-	{ai_walk,	1,	NULL},
-	{ai_walk,	5,	NULL},
-	{ai_walk,	2,	NULL},
-	{ai_walk,	-1,	NULL},
-	{ai_walk,	-5,	NULL}
-};
-mmove_t brain_move_walk2 = {FRAME_walk201, FRAME_walk240, brain_frames_walk2, NULL};
-#endif
 
 void brain_walk (edict_t *self)
 {
-//	if (random() <= 0.5)
 		self->monsterinfo.currentmove = &brain_move_walk1;
-//	else
-//		self->monsterinfo.currentmove = &brain_move_walk2;
 }
 
 
@@ -590,7 +531,7 @@ void brain_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 	self->s.effects = 0;
 	self->monsterinfo.power_armor_type = POWER_ARMOR_NONE;
 
-// check for gib
+	// check for gib
 	if (self->health <= self->gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
@@ -606,7 +547,7 @@ void brain_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
+	// regular death
 	gi.sound (self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
@@ -658,7 +599,6 @@ void SP_monster_brain (edict_t *self)
 	self->monsterinfo.walk = brain_walk;
 	self->monsterinfo.run = brain_run;
 	self->monsterinfo.dodge = brain_dodge;
-//	self->monsterinfo.attack = brain_attack;
 	self->monsterinfo.melee = brain_melee;
 	self->monsterinfo.sight = brain_sight;
 	self->monsterinfo.search = brain_search;
@@ -674,3 +614,4 @@ void SP_monster_brain (edict_t *self)
 
 	walkmonster_start (self);
 }
+
