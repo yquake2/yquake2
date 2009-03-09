@@ -1971,7 +1971,7 @@ void Game_MenuInit( void )
 	s_hardp_game_action.generic.flags  = QMF_LEFT_JUSTIFY;
 	s_hardp_game_action.generic.x		= 0;
 	s_hardp_game_action.generic.y		= 30;
-	s_hardp_game_action.generic.name	= "hard+";
+	s_hardp_game_action.generic.name	= "nightmare";
 	s_hardp_game_action.generic.callback = HardpGameFunc;
  
 	s_blankline.generic.type = MTYPE_SEPARATOR;
@@ -2390,8 +2390,6 @@ static menulist_s	s_rules_box;
 
 static void DMOptionsFunc( void *self )
 {
-	if (s_rules_box.curvalue == 1)
-		return;
 	M_Menu_DMOptions_f();
 }
 
@@ -2402,13 +2400,6 @@ static void RulesChangeFunc ( void *self )
 	{
 		s_maxclients_field.generic.statusbar = NULL;
 		s_startserver_dmoptions_action.generic.statusbar = NULL;
-	}
-	else if(s_rules_box.curvalue == 1)		// coop				// PGM
-	{
-		s_maxclients_field.generic.statusbar = "4 maximum for cooperative";
-		if (atoi(s_maxclients_field.buffer) > 4)
-			strcpy( s_maxclients_field.buffer, "4" );
-		s_startserver_dmoptions_action.generic.statusbar = "N/A for cooperative";
 	}
 	//=====
 	//PGM

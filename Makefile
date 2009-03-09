@@ -52,13 +52,13 @@ CC = gcc
 ifeq ($(ARCH),i386)
 CFLAGS_BASE = -O2 -ffast-math -funroll-loops -falign-loops=2 \
 		-falign-jumps=2 -falign-functions=2 -fno-strict-aliasing \
-		-Wall -pipe
+		-Wall -pipe -g -mmmx  -msse  -msse2 -msse3 -m3dnow
 endif
 
 ifeq ($(ARCH),x86_64)
 CFLAGS_BASE = -O2 -ffast-math -funroll-loops -fomit-frame-pointer \
 	   	 -fexpensive-optimizations -fno-strict-aliasing \
-		 -Wall -pipe
+		 -Wall -pipe -g -mmmx  -msse  -msse2 -msse3 -m3dnow
 endif
 
 # SDL
@@ -66,7 +66,7 @@ SDLCFLAGS = $(shell sdl-config --cflags)
 
 # Client
 CFLAGS_CLIENT = $(CFLAGS_BASE)
-CFLAGS_CLIENT += -Werror -g
+CFLAGS_CLIENT += -Werror 
 
 # Dedicated Server
 CFLAGS_DEDICATED_SERVER = $(CFLAGS_BASE)
