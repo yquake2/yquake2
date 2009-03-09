@@ -316,7 +316,7 @@ void ED_CallSpawn (edict_t *ent)
 ED_NewString
 =============
 */
-char *ED_NewString (char *string)
+char *ED_NewString (const char *string)
 {
 	char	*newb, *new_p;
 	int		i,l;
@@ -352,7 +352,7 @@ Takes a key/value pair and sets the binary values
 in an edict
 ===============
 */
-void ED_ParseField (char *key, char *value, edict_t *ent)
+void ED_ParseField (const char *key, const char *value, edict_t *ent)
 {
 	field_t	*f;
 	byte	*b;
@@ -414,7 +414,7 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 {
 	qboolean	init;
 	char		keyname[256];
-	char		*com_token;
+	const char	*com_token;
 
 	init = false;
 	memset (&st, 0, sizeof(st));
@@ -516,11 +516,11 @@ Creates a server's entity / program execution context by
 parsing textual entity definitions out of an ent file.
 ==============
 */
-void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
+void SpawnEntities (const char *mapname, char *entities, const char *spawnpoint)
 {
 	edict_t		*ent;
 	int			inhibit;
-	char		*com_token;
+	const char	*com_token;
 	int			i;
 	float		skill_level;
 

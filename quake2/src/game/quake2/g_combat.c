@@ -180,6 +180,8 @@ static int CheckPowerArmor (edict_t *ent, vec3_t point, vec3_t normal, int damag
 	if (!damage)
 		return 0;
 
+    index = 0;
+
 	client = ent->client;
 
 	if (dflags & DAMAGE_NO_ARMOR)
@@ -205,6 +207,7 @@ static int CheckPowerArmor (edict_t *ent, vec3_t point, vec3_t normal, int damag
 
 	if (power_armor_type == POWER_ARMOR_NONE)
 		return 0;
+
 	if (!power)
 		return 0;
 
