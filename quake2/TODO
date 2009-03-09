@@ -1,9 +1,3 @@
-Kleine TODO-Liste:
-- Version und Identifikationsstring des
-  Renderers anpassen
-- QMAX nochmal sauber entfernen
-- WIN32 und sun aus dem Game entfernen
-- CTF, Rogue, Xatrix einfügen
 - Nightmare im Menü freischalten
 - Spwanflags auch für Coop per Menü anpassbar machen
 
