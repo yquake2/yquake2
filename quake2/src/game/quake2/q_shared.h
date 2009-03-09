@@ -188,7 +188,7 @@ void COM_FileBase (char *in, char *out);
 void COM_FilePath (const char *in, char *out);
 void COM_DefaultExtension (char *path, const char *extension);
 
-const char *COM_Parse (char **data_p);
+char *COM_Parse (char **data_p);
 // data is an in/out parm, returns a parsed out token
 
 void Com_sprintf (char *dest, int size, char *fmt, ...);

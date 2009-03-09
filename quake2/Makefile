@@ -79,7 +79,7 @@ CFLAGS_OPENGL += -DBROKEN_GL -fPIC -Werror
 
 # Game
 CFLAGS_GAME = $(CFLAGS_BASE)
-CFLAGS_GAME += -fPIC
+CFLAGS_GAME += -fPIC -Werror
 
 # ----------
 
@@ -99,7 +99,7 @@ endif
 SDLLDFLAGS=$(shell sdl-config --libs)
 
 # OpenGL
-OPENGLLDFLAGS = -L/usr/lib -L/usr/local/lib -shared
+OPENGLLDFLAGS = -shared
 
 # Game
 GAMELDFLAGS = -shared
