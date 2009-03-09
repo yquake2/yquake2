@@ -34,7 +34,7 @@ qboolean CanDamage (edict_t *targ, edict_t *inflictor)
 	vec3_t	dest;
 	trace_t	trace;
 
-// bmodels need special checking because their origin is 0,0,0
+	// bmodels need special checking because their origin is 0,0,0
 	if (targ->movetype == MOVETYPE_PUSH)
 	{
 		VectorAdd (targ->absmin, targ->absmax, dest);
@@ -98,7 +98,6 @@ void Killed (edict_t *targ, edict_t *inflictor, edict_t *attacker, int damage, v
 
 	if ((targ->svflags & SVF_MONSTER) && (targ->deadflag != DEAD_DEAD))
 	{
-//		targ->svflags |= SVF_DEADMONSTER;	// now treat as a different content type
 		if (!(targ->monsterinfo.aiflags & AI_GOOD_GUY))
 		{
 			level.killed_monsters++;
@@ -137,7 +136,6 @@ void SpawnDamage (int type, vec3_t origin, vec3_t normal, int damage)
 		damage = 255;
 	gi.WriteByte (svc_temp_entity);
 	gi.WriteByte (type);
-//	gi.WriteByte (damage);
 	gi.WritePosition (origin);
 	gi.WriteDir (normal);
 	gi.multicast (origin, MULTICAST_PVS);
@@ -360,15 +358,14 @@ void M_ReactToDamage (edict_t *targ, edict_t *attacker)
 
 qboolean CheckTeamDamage (edict_t *targ, edict_t *attacker)
 {
-//ZOID
+	//ZOID
 	if (ctf->value && targ->client && attacker->client)
 		if (targ->client->resp.ctf_team == attacker->client->resp.ctf_team &&
-			targ != attacker)
+				targ != attacker)
 			return true;
-//ZOID
+	//ZOID
 
-		//FIXME make the next line real and uncomment this block
-		// if ((ability to damage a teammate == OFF) && (targ's team == attacker's team))
+	//FIXME make the next line real and uncomment this block
 	return false;
 }
 
@@ -416,19 +413,19 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 
 	VectorNormalize(dir);
 
-// bonus damage for suprising a monster
+	// bonus damage for suprising a monster
 	if (!(dflags & DAMAGE_RADIUS) && (targ->svflags & SVF_MONSTER) && (attacker->client) && (!targ->enemy) && (targ->health > 0))
 		damage *= 2;
 
-//ZOID
-//strength tech
+	//ZOID
+	//strength tech
 	damage = CTFApplyStrength(attacker, damage);
-//ZOID
+	//ZOID
 
 	if (targ->flags & FL_NO_KNOCKBACK)
 		knockback = 0;
 
-// figure momentum add
+	// figure momentum add
 	if (!(dflags & DAMAGE_NO_KNOCKBACK))
 	{
 		if ((knockback) && (targ->movetype != MOVETYPE_NONE) && (targ->movetype != MOVETYPE_BOUNCE) && (targ->movetype != MOVETYPE_PUSH) && (targ->movetype != MOVETYPE_STOP))
@@ -473,17 +470,17 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 		save = damage;
 	}
 
-//ZOID
-//team armor protect
+	//ZOID
+	//team armor protect
 	if (ctf->value && targ->client && attacker->client &&
-		targ->client->resp.ctf_team == attacker->client->resp.ctf_team &&
-		targ != attacker && ((int)dmflags->value & DF_ARMOR_PROTECT)) {
+			targ->client->resp.ctf_team == attacker->client->resp.ctf_team &&
+			targ != attacker && ((int)dmflags->value & DF_ARMOR_PROTECT)) {
 		psave = asave = 0;
 	} else {
-//ZOID
+		//ZOID
 		psave = CheckPowerArmor (targ, point, normal, take, dflags);
 		take -= psave;
-	
+
 		asave = CheckArmor (targ, point, normal, take, te_sparks, dflags);
 		take -= asave;
 	}
@@ -491,20 +488,20 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	//treat cheat/powerup savings the same as armor
 	asave += save;
 
-//ZOID
-//resistance tech
+	//ZOID
+	//resistance tech
 	take = CTFApplyResistance(targ, take);
-//ZOID
+	//ZOID
 
 	// team damage avoidance
 	if (!(dflags & DAMAGE_NO_PROTECTION) && CheckTeamDamage (targ, attacker))
 		return;
 
-//ZOID
+	//ZOID
 	CTFCheckHurtCarrier(targ, attacker);
-//ZOID
+	//ZOID
 
-// do the damage
+	// do the damage
 	if (take)
 	{
 		if ((targ->svflags & SVF_MONSTER) || (client))
@@ -595,3 +592,4 @@ void T_RadiusDamage (edict_t *inflictor, edict_t *attacker, float damage, edict_
 		}
 	}
 }
+

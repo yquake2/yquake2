@@ -126,15 +126,15 @@ void DoRespawn (edict_t *ent)
 
 		master = ent->teammaster;
 
-//ZOID
-//in ctf, when we are weapons stay, only the master of a team of weapons
-//is spawned
+		//ZOID
+		//in ctf, when we are weapons stay, only the master of a team of weapons
+		//is spawned
 		if (ctf->value &&
-			((int)dmflags->value & DF_WEAPONS_STAY) &&
-			master->item && (master->item->flags & IT_WEAPON))
+				((int)dmflags->value & DF_WEAPONS_STAY) &&
+				master->item && (master->item->flags & IT_WEAPON))
 			ent = master;
 		else {
-//ZOID
+			//ZOID
 
 			for (count = 0, ent = master; ent; ent = ent->chain, count++)
 				;
@@ -384,7 +384,6 @@ void Use_Breather (edict_t *ent, gitem_t *item)
 	else
 		ent->client->breather_framenum = level.framenum + 300;
 
-//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
 }
 
 //======================================================================
@@ -399,7 +398,6 @@ void Use_Envirosuit (edict_t *ent, gitem_t *item)
 	else
 		ent->client->enviro_framenum = level.framenum + 300;
 
-//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
 }
 
 //======================================================================
@@ -424,8 +422,6 @@ void	Use_Silencer (edict_t *ent, gitem_t *item)
 	ent->client->pers.inventory[ITEM_INDEX(item)]--;
 	ValidateSelectedItem (ent);
 	ent->client->silencer_shots += 30;
-
-//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
 }
 
 //======================================================================
@@ -542,9 +538,9 @@ void Drop_Ammo (edict_t *ent, gitem_t *item)
 void MegaHealth_think (edict_t *self)
 {
 	if (self->owner->health > self->owner->max_health
-//ZOID
-		&& !CTFHasRegeneration(self->owner)
-//ZOID
+			//ZOID
+			&& !CTFHasRegeneration(self->owner)
+			//ZOID
 		)
 	{
 		self->nextthink = level.time + 1;
@@ -564,17 +560,17 @@ qboolean Pickup_Health (edict_t *ent, edict_t *other)
 		if (other->health >= other->max_health)
 			return false;
 
-//ZOID
+	//ZOID
 	if (other->health >= 250 && ent->count > 25)
 		return false;
-//ZOID
+	//ZOID
 
 	other->health += ent->count;
 
-//ZOID
+	//ZOID
 	if (other->health > 250 && ent->count > 25)
 		other->health = 250;
-//ZOID
+	//ZOID
 
 	if (!(ent->style & HEALTH_IGNORE_MAX))
 	{
@@ -582,11 +578,11 @@ qboolean Pickup_Health (edict_t *ent, edict_t *other)
 			other->health = other->max_health;
 	}
 
-//ZOID
+	//ZOID
 	if ((ent->style & HEALTH_TIMED)
-		&& !CTFHasRegeneration(other)
-//ZOID
-	)
+			&& !CTFHasRegeneration(other)
+			//ZOID
+	   )
 	{
 		ent->think = MegaHealth_think;
 		ent->nextthink = level.time + 5;
@@ -1142,15 +1138,15 @@ void SpawnItem (edict_t *ent, gitem_t *item)
 		item->drop = NULL;
 	}
 
-//ZOID
-//Don't spawn the flags unless enabled
+	//ZOID
+	//Don't spawn the flags unless enabled
 	if (!ctf->value &&
-		(strcmp(ent->classname, "item_flag_team1") == 0 ||
-		strcmp(ent->classname, "item_flag_team2") == 0)) {
+			(strcmp(ent->classname, "item_flag_team1") == 0 ||
+			 strcmp(ent->classname, "item_flag_team2") == 0)) {
 		G_FreeEdict(ent);
 		return;
 	}
-//ZOID
+	//ZOID
 
 	ent->item = item;
 	ent->nextthink = level.time + 2 * FRAMETIME;    // items start after other solids
@@ -1160,13 +1156,13 @@ void SpawnItem (edict_t *ent, gitem_t *item)
 	if (ent->model)
 		gi.modelindex (ent->model);
 
-//ZOID
-//flags are server animated and have special handling
+	//ZOID
+	//flags are server animated and have special handling
 	if (strcmp(ent->classname, "item_flag_team1") == 0 ||
-		strcmp(ent->classname, "item_flag_team2") == 0) {
+			strcmp(ent->classname, "item_flag_team2") == 0) {
 		ent->think = CTFFlagSetup;
 	}
-//ZOID
+	//ZOID
 
 }
 
@@ -2444,3 +2440,4 @@ void SetItemNames (void)
 	power_screen_index = ITEM_INDEX(FindItem("Power Screen"));
 	power_shield_index = ITEM_INDEX(FindItem("Power Shield"));
 }
+

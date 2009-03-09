@@ -291,14 +291,14 @@ void CheckDMRules (void)
 	if (!deathmatch->value)
 		return;
 
-//ZOID
+	//ZOID
 	if (ctf->value && CTFCheckRules()) {
 		EndDMLevel ();
 		return;
 	}
 	if (CTFInMatch())
 		return; // no checking in match mode
-//ZOID
+	//ZOID
 
 	if (timelimit->value)
 	{

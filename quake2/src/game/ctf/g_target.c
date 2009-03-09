@@ -807,3 +807,4 @@ void SP_target_earthquake (edict_t *self)
 
 	self->noise_index = gi.soundindex ("world/quake.wav");
 }
+

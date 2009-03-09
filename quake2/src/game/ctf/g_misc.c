@@ -308,18 +308,18 @@ void ThrowDebris (edict_t *self, char *modelname, float speed, vec3_t origin)
 
 void BecomeExplosion1 (edict_t *self)
 {
-//ZOID
+	//ZOID
 	//flags are important
 	if (strcmp(self->classname, "item_flag_team1") == 0) {
 		CTFResetFlag(CTF_TEAM1); // this will free self!
 		gi.bprintf(PRINT_HIGH, "The %s flag has returned!\n",
-			CTFTeamName(CTF_TEAM1));
+				CTFTeamName(CTF_TEAM1));
 		return;
 	}
 	if (strcmp(self->classname, "item_flag_team2") == 0) {
 		CTFResetFlag(CTF_TEAM2); // this will free self!
 		gi.bprintf(PRINT_HIGH, "The %s flag has returned!\n",
-			CTFTeamName(CTF_TEAM1));
+				CTFTeamName(CTF_TEAM1));
 		return;
 	}
 	// techs are important too
@@ -327,7 +327,7 @@ void BecomeExplosion1 (edict_t *self)
 		CTFRespawnTech(self); // this frees self!
 		return;
 	}
-//ZOID
+	//ZOID
 
 	gi.WriteByte (svc_temp_entity);
 	gi.WriteByte (TE_EXPLOSION1);
@@ -510,9 +510,7 @@ static int robotron[4];
 void TH_viewthing(edict_t *ent)
 {
 	ent->s.frame = (ent->s.frame + 1) % 7;
-//	ent->s.frame = (ent->s.frame + 1) % 9;
 	ent->nextthink = level.time + FRAMETIME;
-//	return;
 
 	if (ent->spawnflags)
 	{
@@ -533,7 +531,6 @@ void SP_viewthing(edict_t *ent)
 	ent->s.renderfx = RF_FRAMELERP;
 	VectorSet (ent->mins, -16, -16, -24);
 	VectorSet (ent->maxs, 16, 16, 32);
-//	ent->s.modelindex = gi.modelindex ("models/player_y/tris.md2");
 	ent->s.modelindex = gi.modelindex ("models/objects/banner/tris.md2");
 	gi.linkentity (ent);
 	ent->nextthink = level.time + 0.5;
@@ -659,7 +656,6 @@ void SP_func_wall (edict_t *self)
 	// it must be TRIGGER_SPAWN
 	if (!(self->spawnflags & 1))
 	{
-//		gi.dprintf("func_wall missing TRIGGER_SPAWN\n");
 		self->spawnflags |= 1;
 	}
 
@@ -1049,12 +1045,6 @@ void SP_misc_explobox (edict_t *self)
 
 void misc_blackhole_use (edict_t *ent, edict_t *other, edict_t *activator)
 {
-	/*
-	gi.WriteByte (svc_temp_entity);
-	gi.WriteByte (TE_BOSSTPORT);
-	gi.WritePosition (ent->s.origin);
-	gi.multicast (ent->s.origin, MULTICAST_PVS);
-	*/
 	G_FreeEdict (ent);
 }
 
@@ -1823,9 +1813,9 @@ void teleporter_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_
 		return;
 	}
 
-//ZOID
+	//ZOID
 	CTFPlayerResetGrapple(other);
-//ZOID
+	//ZOID
 
 	// unlink to make sure it can't possibly interfere with KillBox
 	gi.unlinkentity (other);
@@ -1901,7 +1891,6 @@ void SP_misc_teleporter_dest (edict_t *ent)
 	gi.setmodel (ent, "models/objects/dmspot/tris.md2");
 	ent->s.skinnum = 0;
 	ent->solid = SOLID_BBOX;
-//	ent->s.effects |= EF_FLIES;
 	VectorSet (ent->mins, -32, -32, -24);
 	VectorSet (ent->maxs, 32, 32, -16);
 	gi.linkentity (ent);

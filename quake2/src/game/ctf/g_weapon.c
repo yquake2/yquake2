@@ -695,7 +695,6 @@ void fire_rail (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick
 	gi.WritePosition (start);
 	gi.WritePosition (tr.endpos);
 	gi.multicast (self->s.origin, MULTICAST_PHS);
-//	gi.multicast (start, MULTICAST_PHS);
 	if (water)
 	{
 		gi.WriteByte (svc_temp_entity);
@@ -829,13 +828,13 @@ void bfg_think (edict_t *self)
 		if (!(ent->svflags & SVF_MONSTER) && (!ent->client) && (strcmp(ent->classname, "misc_explobox") != 0))
 			continue;
 
-//ZOID
+		//ZOID
 		//don't target players in CTF
 		if (ctf->value && ent->client &&
-			self->owner->client &&
-			ent->client->resp.ctf_team == self->owner->client->resp.ctf_team)
+				self->owner->client &&
+				ent->client->resp.ctf_team == self->owner->client->resp.ctf_team)
 			continue;
-//ZOID
+		//ZOID
 
 		VectorMA (ent->absmin, 0.5, ent->size, point);
 
@@ -919,3 +918,4 @@ void fire_bfg (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, f
 
 	gi.linkentity (bfg);
 }
+

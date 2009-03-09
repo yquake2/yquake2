@@ -510,10 +510,10 @@ extern	int	meansOfDeath;
 
 extern	edict_t			*g_edicts;
 
-#define	FOFS(x) (int)&(((edict_t *)0)->x)
-#define	STOFS(x) (int)&(((spawn_temp_t *)0)->x)
-#define	LLOFS(x) (int)&(((level_locals_t *)0)->x)
-#define	CLOFS(x) (int)&(((gclient_t *)0)->x)
+#define	FOFS(x) (size_t)&(((edict_t *)0)->x)
+#define	STOFS(x) (size_t)&(((spawn_temp_t *)0)->x)
+#define	LLOFS(x) (size_t)&(((level_locals_t *)0)->x)
+#define	CLOFS(x) (size_t)&(((gclient_t *)0)->x)
 
 #define random()	((rand () & 0x7fff) / ((float)0x7fff))
 #define crandom()	(2.0 * (random() - 0.5))
@@ -871,7 +871,7 @@ typedef struct
 	client_persistant_t	coop_respawn;	// what to set client->pers to on a respawn
 	int			enterframe;			// level.framenum the client entered the game
 	int			score;				// frags, etc
-//ZOID
+	//ZOID
 	int			ctf_team;			// CTF team
 	int			ctf_state;
 	float		ctf_lasthurtcarrier;
@@ -884,7 +884,7 @@ typedef struct
 	qboolean	ready;
 	qboolean	admin;
 	struct ghost_s *ghost; // for ghost codes
-//ZOID
+	//ZOID
 	vec3_t		cmd_angles;			// angles sent over in the last command
 	int			game_helpchanged;
 	int			helpchanged;
@@ -904,10 +904,10 @@ struct gclient_s
 	pmove_state_t		old_pmove;	// for detecting out-of-pmove changes
 
 	qboolean	showscores;			// set layout stat
-//ZOID
+	//ZOID
 	qboolean	inmenu;				// in menu
 	pmenuhnd_t	*menu;				// current menu
-//ZOID
+	//ZOID
 	qboolean	showinventory;		// set layout stat
 	qboolean	showhelp;
 	qboolean	showhelpicon;
@@ -976,7 +976,7 @@ struct gclient_s
 
 	float		respawn_time;		// can respawn when time > this
 
-//ZOID
+	//ZOID
 	void		*ctf_grapple;		// entity of grapple
 	int			ctf_grapplestate;		// true if pulling
 	float		ctf_grapplereleasetime;	// time of grapple release
@@ -987,7 +987,7 @@ struct gclient_s
 	qboolean	update_chase;
 	float		menutime;			// time to update menu
 	qboolean	menudirty;
-//ZOID
+	//ZOID
 };
 
 

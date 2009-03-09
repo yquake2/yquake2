@@ -42,7 +42,6 @@ char *ClientTeam (edict_t *ent)
 		return value;
 	}
 
-	// if ((int)(dmflags->value) & DF_SKINTEAMS)
 	return ++p;
 }
 
@@ -71,7 +70,7 @@ void SelectNextItem (edict_t *ent, int itflags)
 
 	cl = ent->client;
 
-//ZOID
+	//ZOID
 	if (cl->menu) {
 		PMenu_Next(ent);
 		return;
@@ -79,7 +78,7 @@ void SelectNextItem (edict_t *ent, int itflags)
 		ChaseNext(ent);
 		return;
 	}
-//ZOID
+	//ZOID
 
 	// scan  for the next valid one
 	for (i=1 ; i<=MAX_ITEMS ; i++)
@@ -108,7 +107,7 @@ void SelectPrevItem (edict_t *ent, int itflags)
 
 	cl = ent->client;
 
-//ZOID
+	//ZOID
 	if (cl->menu) {
 		PMenu_Prev(ent);
 		return;
@@ -116,7 +115,7 @@ void SelectPrevItem (edict_t *ent, int itflags)
 		ChasePrev(ent);
 		return;
 	}
-//ZOID
+	//ZOID
 
 	// scan  for the next valid one
 	for (i=1 ; i<=MAX_ITEMS ; i++)
@@ -445,12 +444,12 @@ void Cmd_Drop_f (edict_t *ent)
 	gitem_t		*it;
 	char		*s;
 
-//ZOID--special case for tech powerups
+	//ZOID--special case for tech powerups
 	if (Q_stricmp(gi.args(), "tech") == 0 && (it = CTFWhat_Tech(ent)) != NULL) {
 		it->drop (ent, it);
 		return;
 	}
-//ZOID
+	//ZOID
 
 	s = gi.args();
 	it = FindItem (s);
@@ -490,13 +489,13 @@ void Cmd_Inven_f (edict_t *ent)
 	cl->showscores = false;
 	cl->showhelp = false;
 
-//ZOID
+	//ZOID
 	if (ent->client->menu) {
 		PMenu_Close(ent);
 		ent->client->update_chase = true;
 		return;
 	}
-//ZOID
+	//ZOID
 
 	if (cl->showinventory)
 	{
@@ -504,12 +503,12 @@ void Cmd_Inven_f (edict_t *ent)
 		return;
 	}
 
-//ZOID
+	//ZOID
 	if (ctf->value && cl->resp.ctf_team == CTF_NOTEAM) {
 		CTFOpenJoinMenu(ent);
 		return;
 	}
-//ZOID
+	//ZOID
 
 	cl->showinventory = true;
 
@@ -530,12 +529,12 @@ void Cmd_InvUse_f (edict_t *ent)
 {
 	gitem_t		*it;
 
-//ZOID
+	//ZOID
 	if (ent->client->menu) {
 		PMenu_Select(ent);
 		return;
 	}
-//ZOID
+	//ZOID
 
 	ValidateSelectedItem (ent);
 
@@ -705,10 +704,10 @@ Cmd_Kill_f
 */
 void Cmd_Kill_f (edict_t *ent)
 {
-//ZOID
+	//ZOID
 	if (ent->solid == SOLID_NOT)
 		return;
-//ZOID
+	//ZOID
 
 	if((level.time - ent->client->respawn_time) < 5)
 		return;
@@ -728,11 +727,11 @@ void Cmd_PutAway_f (edict_t *ent)
 	ent->client->showscores = false;
 	ent->client->showhelp = false;
 	ent->client->showinventory = false;
-//ZOID
+	//ZOID
 	if (ent->client->menu)
 		PMenu_Close(ent);
 	ent->client->update_chase = true;
-//ZOID
+	//ZOID
 }
 
 
@@ -1031,7 +1030,7 @@ void ClientCommand (edict_t *ent)
 		Cmd_PutAway_f (ent);
 	else if (Q_stricmp (cmd, "wave") == 0)
 		Cmd_Wave_f (ent);
-//ZOID
+	//ZOID
 	else if (Q_stricmp (cmd, "team") == 0)
 	{
 		CTFTeam_f (ent);
@@ -1060,7 +1059,8 @@ void ClientCommand (edict_t *ent)
 	} else if (Q_stricmp(cmd, "observer") == 0) {
 		CTFObserver(ent);
 	}
-//ZOID
+	//ZOID
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }
+
