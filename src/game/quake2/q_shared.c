@@ -374,6 +374,12 @@ int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 	return sides;
 }
 
+void ClearBounds (vec3_t mins, vec3_t maxs)
+ {
+ 	mins[0] = mins[1] = mins[2] = 99999;
+ 	maxs[0] = maxs[1] = maxs[2] = -99999;
+	}
+
 void AddPointToBounds (vec3_t v, vec3_t mins, vec3_t maxs)
 {
 	int		i;
@@ -437,6 +443,13 @@ vec_t VectorNormalize2 (vec3_t v, vec3_t out)
 
 }
 
+void VectorMA (vec3_t veca, float scale, vec3_t vecb, vec3_t vecc)
+{
+ 	vecc[0] = veca[0] + scale*vecb[0];
+ 	vecc[1] = veca[1] + scale*vecb[1];
+ 	vecc[2] = veca[2] + scale*vecb[2];
+} 
+
 vec_t _DotProduct (vec3_t v1, vec3_t v2)
 {
 	return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
@@ -463,6 +476,13 @@ void _VectorCopy (vec3_t in, vec3_t out)
 	out[2] = in[2];
 }
 
+void CrossProduct (vec3_t v1, vec3_t v2, vec3_t cross)
+{
+ 	cross[0] = v1[1]*v2[2] - v1[2]*v2[1];
+ 	cross[1] = v1[2]*v2[0] - v1[0]*v2[2];
+ 	cross[2] = v1[0]*v2[1] - v1[1]*v2[0];
+} 
+
 double sqrt(double x);
 
 vec_t VectorLength(vec3_t v)
@@ -478,13 +498,19 @@ vec_t VectorLength(vec3_t v)
 	return length;
 }
 
+void VectorInverse (vec3_t v)
+{
+	v[0] = -v[0];
+	v[1] = -v[1];
+	v[2] = -v[2];
+}
+
 void VectorScale (vec3_t in, vec_t scale, vec3_t out)
 {
 	out[0] = in[0]*scale;
 	out[1] = in[1]*scale;
 	out[2] = in[2]*scale;
 }
-
 
 int Q_log2(int val)
 {
@@ -768,7 +794,7 @@ COM_Parse
 Parse a token out of a string
 ==============
 */
-const char *COM_Parse (char **data_p)
+char *COM_Parse (char **data_p)
 {
 	int		c;
 	int		len;
