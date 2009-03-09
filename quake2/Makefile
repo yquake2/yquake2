@@ -66,7 +66,7 @@ SDLCFLAGS = $(shell sdl-config --cflags)
 
 # Client
 CFLAGS_CLIENT = $(CFLAGS_BASE)
-CFLAGS_CLIENT += -Werror
+CFLAGS_CLIENT += -Werror -g
 
 # Dedicated Server
 CFLAGS_DEDICATED_SERVER = $(CFLAGS_BASE)
