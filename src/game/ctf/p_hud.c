@@ -78,10 +78,10 @@ void BeginIntermission (edict_t *targ)
 	if (level.intermissiontime)
 		return;		// allready activated
 
-//ZOID
+	//ZOID
 	if (deathmatch->value && ctf->value)
 		CTFCalcScores();
-//ZOID
+	//ZOID
 
 	game.autosaved = false;
 
@@ -181,12 +181,12 @@ void DeathmatchScoreboardMessage (edict_t *ent, edict_t *killer)
 	edict_t		*cl_ent;
 	char	*tag;
 
-//ZOID
+	//ZOID
 	if (ctf->value) {
 		CTFScoreboardMessage (ent, killer);
 		return;
 	}
-//ZOID
+	//ZOID
 
 	// sort the clients by score
 	total = 0;
@@ -289,10 +289,10 @@ void Cmd_Score_f (edict_t *ent)
 {
 	ent->client->showinventory = false;
 	ent->client->showhelp = false;
-//ZOID
+	//ZOID
 	if (ent->client->menu)
 		PMenu_Close(ent);
-//ZOID
+	//ZOID
 
 	if (!deathmatch->value && !coop->value)
 		return;
@@ -539,8 +539,8 @@ void G_SetStats (edict_t *ent)
 	else
 		ent->client->ps.stats[STAT_HELPICON] = 0;
 
-//ZOID
+	//ZOID
 	SetCTFStats(ent);
-//ZOID
+	//ZOID
 }
 

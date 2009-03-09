@@ -155,3 +155,4 @@ void ChasePrev(edict_t *ent)
 	ent->client->chase_target = e;
 	ent->client->update_chase = true;
 }
+

@@ -259,10 +259,6 @@ static edict_t *loc_findradius (edict_t *from, vec3_t org, float rad)
 	{
 		if (!from->inuse)
 			continue;
-#if 0
-		if (from->solid == SOLID_NOT)
-			continue;
-#endif
 		for (j=0 ; j<3 ; j++)
 			eorg[j] = org[j] - (from->s.origin[j] + (from->mins[j] + from->maxs[j])*0.5);
 		if (VectorLength(eorg) > rad)
@@ -300,7 +296,7 @@ static qboolean loc_CanSee (edict_t *targ, edict_t *inflictor)
 	int i;
 	vec3_t viewpoint;
 
-// bmodels need special checking because their origin is 0,0,0
+	// bmodels need special checking because their origin is 0,0,0
 	if (targ->movetype == MOVETYPE_PUSH)
 		return false; // bmodels not supported
 
@@ -441,7 +437,6 @@ void CTFAssignSkin(edict_t *ent, char *s)
 			va("%s\\%s", ent->client->pers.netname, s) );
 		break;
 	}
-//	gi.cprintf(ent, PRINT_HIGH, "You have been assigned to %s team.\n", ent->client->pers.netname);
 }
 
 void CTFAssignTeam(gclient_t *who)
@@ -636,9 +631,7 @@ void CTFFragBonuses(edict_t *targ, edict_t *inflictor, edict_t *attacker)
 	}
 
 	// flag and flag carrier area defense bonuses
-
 	// we have to find the flag and carrier entities
-
 	// find the flag
 	switch (attacker->client->resp.ctf_team) {
 	case CTF_TEAM1:
@@ -1343,46 +1336,15 @@ void CTFGrappleDrawCable(edict_t *self)
 	if (distance < 64)
 		return;
 
-#if 0
-	if (distance > 256)
-		return;
-
-	// check for min/max pitch
-	vectoangles (dir, angles);
-	if (angles[0] < -180)
-		angles[0] += 360;
-	if (fabs(angles[0]) > 45)
-		return;
-
-	trace_t	tr; //!!
-
-	tr = gi.trace (start, NULL, NULL, self->s.origin, self, MASK_SHOT);
-	if (tr.ent != self) {
-		CTFResetGrapple(self);
-		return;
-	}
-#endif
-
 	// adjust start for beam origin being in middle of a segment
-//	VectorMA (start, 8, f, start);
-
 	VectorCopy (self->s.origin, end);
-	// adjust end z for end spot since the monster is currently dead
-//	end[2] = self->absmin[2] + self->size[2] / 2;
 
 	gi.WriteByte (svc_temp_entity);
-#if 1 //def USE_GRAPPLE_CABLE
 	gi.WriteByte (TE_GRAPPLE_CABLE);
 	gi.WriteShort (self->owner - g_edicts);
 	gi.WritePosition (self->owner->s.origin);
 	gi.WritePosition (end);
 	gi.WritePosition (offset);
-#else
-	gi.WriteByte (TE_MEDIC_CABLE_ATTACK);
-	gi.WriteShort (self - g_edicts);
-	gi.WritePosition (end);
-	gi.WritePosition (start);
-#endif
 	gi.multicast (self->s.origin, MULTICAST_PVS);
 }
 
@@ -1485,11 +1447,8 @@ void CTFFireGrapple (edict_t *self, vec3_t start, vec3_t dir, int damage, int sp
 	VectorClear (grapple->mins);
 	VectorClear (grapple->maxs);
 	grapple->s.modelindex = gi.modelindex ("models/weapons/grapple/hook/tris.md2");
-//	grapple->s.sound = gi.soundindex ("misc/lasfly.wav");
 	grapple->owner = self;
 	grapple->touch = CTFGrappleTouch;
-//	grapple->nextthink = level.time + FRAMETIME;
-//	grapple->think = CTFGrappleThink;
 	grapple->dmg = damage;
 	self->client->ctf_grapple = grapple;
 	self->client->ctf_grapplestate = CTF_GRAPPLE_STATE_FLY; // we're firing, not on hook
@@ -1514,7 +1473,6 @@ void CTFGrappleFire (edict_t *ent, vec3_t g_offset, int damage, int effect)
 		return; // it's already out
 
 	AngleVectors (ent->client->v_angle, forward, right, NULL);
-//	VectorSet(offset, 24, 16, ent->viewheight-8+2);
 	VectorSet(offset, 24, 8, ent->viewheight-8+2);
 	VectorAdd (offset, g_offset, offset);
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
@@ -1527,15 +1485,6 @@ void CTFGrappleFire (edict_t *ent, vec3_t g_offset, int damage, int effect)
 
 	gi.sound (ent, CHAN_RELIABLE+CHAN_WEAPON, gi.soundindex("weapons/grapple/grfire.wav"), volume, ATTN_NORM, 0);
 	CTFFireGrapple (ent, start, forward, damage, CTF_GRAPPLE_SPEED, effect);
-
-#if 0
-	// send muzzle flash
-	gi.WriteByte (svc_muzzleflash);
-	gi.WriteShort (ent-g_edicts);
-	gi.WriteByte (MZ_BLASTER);
-	gi.multicast (ent->s.origin, MULTICAST_PVS);
-#endif
-
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 }
 
@@ -1625,7 +1574,6 @@ void CTFTeam_f (edict_t *ent)
 		return;
 	}
 
-////
 	ent->svflags = 0;
 	ent->flags &= ~FL_GODMODE;
 	ent->client->resp.ctf_team = desired_team;
@@ -1731,33 +1679,13 @@ void CTFScoreboardMessage (edict_t *ent, edict_t *killer)
 		if (i >= total[0] && i >= total[1])
 			break; // we're done
 
-#if 0 //ndef NEW_SCORE
-		// set up y
-		sprintf(entry, "yv %d ", 42 + i * 8);
-		if (maxsize - len > strlen(entry)) {
-			strcat(string, entry);
-			len = strlen(string);
-		}
-#else
 		*entry = 0;
-#endif
 
 		// left side
 		if (i < total[0]) {
 			cl = &game.clients[sorted[0][i]];
 			cl_ent = g_edicts + 1 + sorted[0][i];
 
-#if 0 //ndef NEW_SCORE
-			sprintf(entry+strlen(entry),
-			"xv 0 %s \"%3d %3d %-12.12s\" ",
-			(cl_ent == ent) ? "string2" : "string",
-			cl->resp.score, 
-			(cl->ping > 999) ? 999 : cl->ping, 
-			cl->pers.netname);
-
-			if (cl_ent->client->pers.inventory[ITEM_INDEX(flag2_item)])
-				strcat(entry, "xv 56 picn sbfctf2 ");
-#else
 			sprintf(entry+strlen(entry),
 				"ctf 0 %d %d %d %d ",
 				42 + i * 8,
@@ -1768,7 +1696,6 @@ void CTFScoreboardMessage (edict_t *ent, edict_t *killer)
 			if (cl_ent->client->pers.inventory[ITEM_INDEX(flag2_item)])
 				sprintf(entry + strlen(entry), "xv 56 yv %d picn sbfctf2 ",
 					42 + i * 8);
-#endif
 
 			if (maxsize - len > strlen(entry)) {
 				strcat(string, entry);
@@ -1782,19 +1709,6 @@ void CTFScoreboardMessage (edict_t *ent, edict_t *killer)
 			cl = &game.clients[sorted[1][i]];
 			cl_ent = g_edicts + 1 + sorted[1][i];
 
-#if 0 //ndef NEW_SCORE
-			sprintf(entry+strlen(entry),
-			"xv 160 %s \"%3d %3d %-12.12s\" ",
-			(cl_ent == ent) ? "string2" : "string",
-			cl->resp.score, 
-			(cl->ping > 999) ? 999 : cl->ping, 
-			cl->pers.netname);
-
-			if (cl_ent->client->pers.inventory[ITEM_INDEX(flag1_item)])
-				strcat(entry, "xv 216 picn sbfctf1 ");
-
-#else
-
 			sprintf(entry+strlen(entry),
 				"ctf 160 %d %d %d %d ",
 				42 + i * 8,
@@ -1805,7 +1719,6 @@ void CTFScoreboardMessage (edict_t *ent, edict_t *killer)
 			if (cl_ent->client->pers.inventory[ITEM_INDEX(flag1_item)])
 				sprintf(entry + strlen(entry), "xv 216 yv %d picn sbfctf1 ",
 					42 + i * 8);
-#endif
 			if (maxsize - len > strlen(entry)) {
 				strcat(string, entry);
 				len = strlen(string);
@@ -3530,16 +3443,15 @@ static void old_teleporter_touch (edict_t *self, edict_t *other, cplane_t *plane
 		return;
 	}
 
-//ZOID
+	//ZOID
 	CTFPlayerResetGrapple(other);
-//ZOID
+	//ZOID
 
 	// unlink to make sure it can't possibly interfere with KillBox
 	gi.unlinkentity (other);
 
 	VectorCopy (dest->s.origin, other->s.origin);
 	VectorCopy (dest->s.origin, other->s.old_origin);
-//	other->s.origin[2] += 10;
 
 	// clear the velocity and hold them in place briefly
 	VectorClear (other->velocity);
@@ -3958,9 +3870,6 @@ void CTFOpenAdminMenu(edict_t *ent)
 	}
 
 
-//	if (ent->client->menu)
-//		PMenu_Close(ent->client->menu);
-
 	PMenu_Open(ent, adminmenu, -1, sizeof(adminmenu) / sizeof(pmenu_t), NULL);
 }
 
@@ -4063,22 +3972,6 @@ void CTFPlayerList(edict_t *ent)
 	char st[80];
 	char text[1400];
 	edict_t *e2;
-
-#if 0
-	*text = 0;
-	if (ctfgame.match == MATCH_SETUP) {
-		for (i = 1; i <= maxclients->value; i++) {
-			e2 = g_edicts + i;
-			if (!e2->inuse)
-				continue;
-			if (!e2->client->resp.ready && e2->client->resp.ctf_team != CTF_NOTEAM) {
-				sprintf(st, "%s is not ready.\n", e2->client->pers.netname);
-				if (strlen(text) + strlen(st) < sizeof(text) - 50)
-					strcat(text, st);
-			}
-		}
-	}
-#endif
 
 	// number, name, connect time, ping, score, admin
 

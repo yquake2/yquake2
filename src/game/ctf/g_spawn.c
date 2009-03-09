@@ -155,10 +155,10 @@ spawn_t	spawns[] = {
 	{"info_player_deathmatch", SP_info_player_deathmatch},
 	{"info_player_coop", SP_info_player_coop},
 	{"info_player_intermission", SP_info_player_intermission},
-//ZOID
+	//ZOID
 	{"info_player_team1", SP_info_player_team1},
 	{"info_player_team2", SP_info_player_team2},
-//ZOID
+	//ZOID
 
 	{"func_plat", SP_func_plat},
 	{"func_button", SP_func_button},
@@ -202,9 +202,6 @@ spawn_t	spawns[] = {
 	{"target_crosslevel_target", SP_target_crosslevel_target},
 	{"target_laser", SP_target_laser},
 	{"target_help", SP_target_help},
-#if 0 // remove monster code
-	{"target_actor", SP_target_actor},
-#endif
 	{"target_lightramp", SP_target_lightramp},
 	{"target_earthquake", SP_target_earthquake},
 	{"target_character", SP_target_character},
@@ -224,66 +221,28 @@ spawn_t	spawns[] = {
 
 	{"misc_explobox", SP_misc_explobox},
 	{"misc_banner", SP_misc_banner},
-//ZOID
+	//ZOID
 	{"misc_ctf_banner", SP_misc_ctf_banner},
 	{"misc_ctf_small_banner", SP_misc_ctf_small_banner},
-//ZOID
+	//ZOID
 	{"misc_satellite_dish", SP_misc_satellite_dish},
-#if 0 // remove monster code
-	{"misc_actor", SP_misc_actor},
-#endif
 	{"misc_gib_arm", SP_misc_gib_arm},
 	{"misc_gib_leg", SP_misc_gib_leg},
 	{"misc_gib_head", SP_misc_gib_head},
-#if 0 // remove monster code
-	{"misc_insane", SP_misc_insane},
-#endif
-	{"misc_deadsoldier", SP_misc_deadsoldier},
 	{"misc_viper", SP_misc_viper},
 	{"misc_viper_bomb", SP_misc_viper_bomb},
 	{"misc_bigviper", SP_misc_bigviper},
 	{"misc_strogg_ship", SP_misc_strogg_ship},
 	{"misc_teleporter", SP_misc_teleporter},
 	{"misc_teleporter_dest", SP_misc_teleporter_dest},
-//ZOID
+	//ZOID
 	{"trigger_teleport", SP_trigger_teleport},
 	{"info_teleport_destination", SP_info_teleport_destination},
-//ZOID
+	//ZOID
 	{"misc_blackhole", SP_misc_blackhole},
 	{"misc_eastertank", SP_misc_eastertank},
 	{"misc_easterchick", SP_misc_easterchick},
 	{"misc_easterchick2", SP_misc_easterchick2},
-
-#if 0 // remove monster code
-	{"monster_berserk", SP_monster_berserk},
-	{"monster_gladiator", SP_monster_gladiator},
-	{"monster_gunner", SP_monster_gunner},
-	{"monster_infantry", SP_monster_infantry},
-	{"monster_soldier_light", SP_monster_soldier_light},
-	{"monster_soldier", SP_monster_soldier},
-	{"monster_soldier_ss", SP_monster_soldier_ss},
-	{"monster_tank", SP_monster_tank},
-	{"monster_tank_commander", SP_monster_tank},
-	{"monster_medic", SP_monster_medic},
-	{"monster_flipper", SP_monster_flipper},
-	{"monster_chick", SP_monster_chick},
-	{"monster_parasite", SP_monster_parasite},
-	{"monster_flyer", SP_monster_flyer},
-	{"monster_brain", SP_monster_brain},
-	{"monster_floater", SP_monster_floater},
-	{"monster_hover", SP_monster_hover},
-	{"monster_mutant", SP_monster_mutant},
-	{"monster_supertank", SP_monster_supertank},
-	{"monster_boss2", SP_monster_boss2},
-	{"monster_boss3_stand", SP_monster_boss3_stand},
-	{"monster_jorg", SP_monster_jorg},
-
-	{"monster_commander_body", SP_monster_commander_body},
-
-	{"turret_breach", SP_turret_breach},
-	{"turret_base", SP_turret_base},
-	{"turret_driver", SP_turret_driver},
-#endif
 
 	{NULL, NULL}
 };
@@ -442,10 +401,10 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 	init = false;
 	memset (&st, 0, sizeof(st));
 
-// go through all the dictionary pairs
+	// go through all the dictionary pairs
 	while (1)
 	{	
-	// parse key
+		// parse key
 		com_token = COM_Parse (&data);
 		if (com_token[0] == '}')
 			break;
@@ -454,7 +413,7 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 
 		strncpy (keyname, com_token, sizeof(keyname)-1);
 		
-	// parse value	
+		// parse value	
 		com_token = COM_Parse (&data);
 		if (!data)
 			gi.error ("ED_ParseEntity: EOF without closing brace");
@@ -464,8 +423,8 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 
 		init = true;	
 
-	// keynames with a leading underscore are used for utility comments,
-	// and are immediately discarded by quake
+		// keynames with a leading underscore are used for utility comments,
+		// and are immediately discarded by quake
 		if (keyname[0] == '_')
 			continue;
 
@@ -572,7 +531,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 	ent = NULL;
 	inhibit = 0;
 
-// parse ents
+	// parse ents
 	while (1)
 	{
 		// parse the opening brace	
@@ -630,36 +589,13 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 	PlayerTrail_Init ();
 
-//ZOID
+	//ZOID
 	CTFSpawn();
-//ZOID
+	//ZOID
 }
 
 
 //===================================================================
-
-#if 0
-	// cursor positioning
-	xl <value>
-	xr <value>
-	yb <value>
-	yt <value>
-	xv <value>
-	yv <value>
-
-	// drawing
-	statpic <name>
-	pic <stat>
-	num <fieldwidth> <stat>
-	string <stat>
-
-	// control
-	if <stat>
-	ifeq <stat> <value>
-	ifbit <stat> <value>
-	endif
-
-#endif
 
 char *single_statusbar = 
 "yb	-24 "
@@ -837,12 +773,12 @@ void SP_worldspawn (edict_t *ent)
 
 	// status bar program
 	if (deathmatch->value)
-//ZOID
+		//ZOID
 		if (ctf->value) {
 			gi.configstring (CS_STATUSBAR, ctf_statusbar);
 			CTFPrecache();
 		} else
-//ZOID
+			//ZOID
 			gi.configstring (CS_STATUSBAR, dm_statusbar);
 	else
 		gi.configstring (CS_STATUSBAR, single_statusbar);
@@ -943,9 +879,9 @@ void SP_worldspawn (edict_t *ent)
 	gi.modelindex ("models/objects/gibs/skull/tris.md2");
 	gi.modelindex ("models/objects/gibs/head2/tris.md2");
 
-//
-// Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
-//
+	//
+	// Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
+	//
 
 	// 0 normal
 	gi.configstring(CS_LIGHTS+0, "m");

@@ -79,7 +79,7 @@ CFLAGS_OPENGL += -DBROKEN_GL -fPIC -Werror
 
 # Game
 CFLAGS_GAME = $(CFLAGS_BASE)
-CFLAGS_GAME += -fPIC
+CFLAGS_GAME += -fPIC -Werror
 
 # ----------
 
@@ -108,7 +108,7 @@ GAMELDFLAGS = -shared
 
 # Targets
 
-all: client dedicated_server ref_gl baseq2
+all: client dedicated_server ref_gl baseq2 ctf
 
 client:
 	@-mkdir -p build \
