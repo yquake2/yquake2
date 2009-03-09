@@ -66,10 +66,10 @@ void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, 
 	memset( zrot, 0, sizeof( zrot ) );
 	zrot[0][0] = zrot[1][1] = zrot[2][2] = 1.0F;
 
-	zrot[0][0] = cos( DEG2RAD( degrees ) );
-	zrot[0][1] = sin( DEG2RAD( degrees ) );
-	zrot[1][0] = -sin( DEG2RAD( degrees ) );
-	zrot[1][1] = cos( DEG2RAD( degrees ) );
+	zrot[0][0] = (float)cos( DEG2RAD( degrees ) );
+	zrot[0][1] = (float)sin( DEG2RAD( degrees ) );
+	zrot[1][0] = (float)-sin( DEG2RAD( degrees ) );
+	zrot[1][1] = (float)cos( DEG2RAD( degrees ) );
 
 	R_ConcatRotations( m, zrot, tmpmat );
 	R_ConcatRotations( tmpmat, im, rot );
@@ -87,14 +87,14 @@ void AngleVectors (vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 	// static to help MS compiler fp bugs
 
 	angle = angles[YAW] * (M_PI*2 / 360);
-	sy = sin(angle);
-	cy = cos(angle);
+	sy = (float)sin(angle);
+	cy = (float)cos(angle);
 	angle = angles[PITCH] * (M_PI*2 / 360);
-	sp = sin(angle);
-	cp = cos(angle);
+	sp = (float)sin(angle);
+	cp = (float)cos(angle);
 	angle = angles[ROLL] * (M_PI*2 / 360);
-	sr = sin(angle);
-	cr = cos(angle);
+	sr = (float)sin(angle);
+	cr = (float)cos(angle);
 
 	if (forward)
 	{
@@ -154,7 +154,7 @@ void PerpendicularVector( vec3_t dst, const vec3_t src )
 		if ( fabs( src[i] ) < minelem )
 		{
 			pos = i;
-			minelem = fabs( src[i] );
+			minelem = (float)fabs( src[i] );
 		}
 	}
 	tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
@@ -362,7 +362,6 @@ int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 		break;
 	    default:
 		dist1 = dist2 = 0;		// shut up compiler
-		assert( 0 );
 		break;
 	}
 
@@ -372,15 +371,7 @@ int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 	if (dist2 < p->dist)
 		sides |= 2;
 
-	assert( sides != 0 );
-
 	return sides;
-}
-
-void ClearBounds (vec3_t mins, vec3_t maxs)
-{
-	mins[0] = mins[1] = mins[2] = 99999;
-	maxs[0] = maxs[1] = maxs[2] = -99999;
 }
 
 void AddPointToBounds (vec3_t v, vec3_t mins, vec3_t maxs)
@@ -413,7 +404,7 @@ vec_t VectorNormalize (vec3_t v)
 	float	length, ilength;
 
 	length = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
-	length = sqrt (length);		// FIXME
+	length = (float)sqrt (length);		// FIXME
 
 	if (length)
 	{
@@ -432,7 +423,7 @@ vec_t VectorNormalize2 (vec3_t v, vec3_t out)
 	float	length, ilength;
 
 	length = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
-	length = sqrt (length);		// FIXME
+	length = (float)sqrt (length);		// FIXME
 
 	if (length)
 	{
@@ -445,14 +436,6 @@ vec_t VectorNormalize2 (vec3_t v, vec3_t out)
 	return length;
 
 }
-
-void VectorMA (vec3_t veca, float scale, vec3_t vecb, vec3_t vecc)
-{
-	vecc[0] = veca[0] + scale*vecb[0];
-	vecc[1] = veca[1] + scale*vecb[1];
-	vecc[2] = veca[2] + scale*vecb[2];
-}
-
 
 vec_t _DotProduct (vec3_t v1, vec3_t v2)
 {
@@ -480,13 +463,6 @@ void _VectorCopy (vec3_t in, vec3_t out)
 	out[2] = in[2];
 }
 
-void CrossProduct (vec3_t v1, vec3_t v2, vec3_t cross)
-{
-	cross[0] = v1[1]*v2[2] - v1[2]*v2[1];
-	cross[1] = v1[2]*v2[0] - v1[0]*v2[2];
-	cross[2] = v1[0]*v2[1] - v1[1]*v2[0];
-}
-
 double sqrt(double x);
 
 vec_t VectorLength(vec3_t v)
@@ -497,16 +473,9 @@ vec_t VectorLength(vec3_t v)
 	length = 0;
 	for (i=0 ; i< 3 ; i++)
 		length += v[i]*v[i];
-	length = sqrt (length);		// FIXME
+	length = (float)sqrt (length);		// FIXME
 
 	return length;
-}
-
-void VectorInverse (vec3_t v)
-{
-	v[0] = -v[0];
-	v[1] = -v[1];
-	v[2] = -v[2];
 }
 
 void VectorScale (vec3_t in, vec_t scale, vec3_t out)
@@ -615,9 +584,9 @@ COM_FilePath
 Returns the path up to, but not including the last /
 ============
 */
-void COM_FilePath (char *in, char *out)
+void COM_FilePath (const char *in, char *out)
 {
-	char *s;
+	const char *s;
 	
 	s = in + strlen(in) - 1;
 	
@@ -634,7 +603,7 @@ void COM_FilePath (char *in, char *out)
 COM_DefaultExtension
 ==================
 */
-void COM_DefaultExtension (char *path, char *extension)
+void COM_DefaultExtension (char *path, const char *extension)
 {
 	char    *src;
 	//
@@ -799,7 +768,7 @@ COM_Parse
 Parse a token out of a string
 ==============
 */
-char *COM_Parse (char **data_p)
+const char *COM_Parse (char **data_p)
 {
 	int		c;
 	int		len;
@@ -908,7 +877,7 @@ void Com_PageInMemory (byte *buffer, int size)
 /* PATCH: matt */
 /* use our own strncasecmp instead of this implementation */
 // FIXME: replace all Q_stricmp with Q_strcasecmp
-int Q_stricmp (char *s1, char *s2)
+int Q_stricmp (const char *s1, const char *s2)
 {
 	return strcasecmp (s1, s2);
 }
@@ -956,9 +925,13 @@ void Com_sprintf (char *dest, int size, char *fmt, ...)
 	va_start (argptr,fmt);
 	len = vsnprintf (bigbuffer,0x10000,fmt,argptr);
 	va_end (argptr);
-	if (len >= size)
-		Com_Printf ("Com_sprintf: overflow of %i in %i\n", len, size);
-	strncpy (dest, bigbuffer, size-1);
+	if (len >= size || len == size)
+	{
+		Com_Printf ("Com_sprintf: overflow\n");
+		len = size-1;
+	}
+	bigbuffer[size-1] = '\0';
+	strcpy (dest, bigbuffer);
 }
 
 /*
