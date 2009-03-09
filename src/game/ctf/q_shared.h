@@ -558,24 +558,6 @@ typedef struct
 #define EF_TRACKERTRAIL		0x80000000
 //ROGUE
 
-#ifdef QMAX
-#define PART_GRAVITY	1
-#define PART_SPARK		2
-#define PART_ANGLED		4
-#define PART_DIRECTION	8
-#define PART_TRANS		16
-#define PART_SHADED		32
-#define PART_LIGHTNING	64
-#define PART_BEAM		128
-#define PART_LENSFLARE	256
-#define PART_DEPTHHACK_SHORT	512
-#define PART_DEPTHHACK_MID		1024
-#define PART_DEPTHHACK_LONG		2048
-
-//combo flags
-#define PART_DEPTHHACK	(PART_DEPTHHACK_SHORT|PART_DEPTHHACK_MID|PART_DEPTHHACK_LONG)
-#endif
-
 // entity_state_t->renderfx flags
 #define	RF_MINLIGHT			1		// allways have some light (viewmodel)
 #define	RF_VIEWERMODEL		2		// don't draw through eyes, only mirrors
