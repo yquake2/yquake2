@@ -20,17 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 	
 // q_shared.h -- included first by ALL program modules
 
-#ifdef _WIN32
-// unknown pragmas are SUPPOSED to be ignored, but....
-#pragma warning(disable : 4244)     // MIPS
-#pragma warning(disable : 4136)     // X86
-#pragma warning(disable : 4051)     // ALPHA
-
-#pragma warning(disable : 4018)     // signed/unsigned mismatch
-#pragma warning(disable : 4305)		// truncation from const double to float
-
-#endif
-
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -38,18 +27,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-
-#if (defined _M_IX86 || defined __i386__) && !defined C_ONLY && !defined __sun__
-#define id386	1
-#else
-#define id386	0
-#endif
-
-#if defined _M_ALPHA && !defined C_ONLY
-#define idaxp	1
-#else
-#define idaxp	0
-#endif
 
 typedef unsigned char 		byte;
 typedef enum {false, true}	qboolean;
@@ -145,19 +122,15 @@ extern vec3_t vec3_origin;
 // microsoft's fabs seems to be ungodly slow...
 //float Q_fabs (float f);
 //#define	fabs(f) Q_fabs(f)
-#if !defined C_ONLY && !defined __linux__ && !defined __FreeBSD__ && !defined __sgi
-extern long Q_ftol( float f );
-#else
 #define Q_ftol( f ) ( long ) (f)
-#endif
 
 #define DotProduct(x,y)			(x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
-#define VectorSubtract(a,b,c)	(c[0]=a[0]-b[0],c[1]=a[1]-b[1],c[2]=a[2]-b[2])
+#define VectorSubtract(a,b,c)		(c[0]=a[0]-b[0],c[1]=a[1]-b[1],c[2]=a[2]-b[2])
 #define VectorAdd(a,b,c)		(c[0]=a[0]+b[0],c[1]=a[1]+b[1],c[2]=a[2]+b[2])
 #define VectorCopy(a,b)			(b[0]=a[0],b[1]=a[1],b[2]=a[2])
 #define VectorClear(a)			(a[0]=a[1]=a[2]=0)
 #define VectorNegate(a,b)		(b[0]=-a[0],b[1]=-a[1],b[2]=-a[2])
-#define VectorSet(v, x, y, z)	(v[0]=(x), v[1]=(y), v[2]=(z))
+#define VectorSet(v, x, y, z)		(v[0]=(x), v[1]=(y), v[2]=(z))
 
 void VectorMA (vec3_t veca, float scale, vec3_t vecb, vec3_t vecc);
 
@@ -212,8 +185,8 @@ void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, 
 char *COM_SkipPath (char *pathname);
 void COM_StripExtension (char *in, char *out);
 void COM_FileBase (char *in, char *out);
-void COM_FilePath (char *in, char *out);
-void COM_DefaultExtension (char *path, char *extension);
+void COM_FilePath (const char *in, char *out);
+void COM_DefaultExtension (char *path, const char *extension);
 
 char *COM_Parse (char **data_p);
 // data is an in/out parm, returns a parsed out token
@@ -225,7 +198,7 @@ void Com_PageInMemory (byte *buffer, int size);
 //=============================================
 
 // portable case insensitive compare
-int Q_stricmp (char *s1, char *s2);
+int Q_stricmp (const char *s1, const char *s2);
 int Q_strcasecmp (char *s1, char *s2);
 int Q_strncasecmp (char *s1, char *s2, int n);
 
@@ -379,8 +352,6 @@ COLLISION DETECTION
 #define	SURF_TRANS66	0x20
 #define	SURF_FLOWING	0x40	// scroll towards angle
 #define	SURF_NODRAW		0x80	// don't bother referencing the texture
-
-
 
 // content masks
 #define	MASK_ALL				(-1)
@@ -587,6 +558,24 @@ typedef struct
 #define EF_TRACKERTRAIL		0x80000000
 //ROGUE
 
+#ifdef QMAX
+#define PART_GRAVITY	1
+#define PART_SPARK		2
+#define PART_ANGLED		4
+#define PART_DIRECTION	8
+#define PART_TRANS		16
+#define PART_SHADED		32
+#define PART_LIGHTNING	64
+#define PART_BEAM		128
+#define PART_LENSFLARE	256
+#define PART_DEPTHHACK_SHORT	512
+#define PART_DEPTHHACK_MID		1024
+#define PART_DEPTHHACK_LONG		2048
+
+//combo flags
+#define PART_DEPTHHACK	(PART_DEPTHHACK_SHORT|PART_DEPTHHACK_MID|PART_DEPTHHACK_LONG)
+#endif
+
 // entity_state_t->renderfx flags
 #define	RF_MINLIGHT			1		// allways have some light (viewmodel)
 #define	RF_VIEWERMODEL		2		// don't draw through eyes, only mirrors
@@ -601,6 +590,7 @@ typedef struct
 #define RF_SHELL_RED		1024
 #define	RF_SHELL_GREEN		2048
 #define RF_SHELL_BLUE		4096
+#define RF_NOSHADOW		8192	/* don't draw a shadow */
 
 //ROGUE
 #define RF_IR_VISIBLE		0x00008000		// 32768
@@ -930,7 +920,7 @@ typedef enum
 	TE_BLUEHYPERBLASTER,
 	TE_PLASMA_EXPLOSION,
 	TE_TUNNEL_SPARKS,
-//ROGUE
+	//ROGUE
 	TE_BLASTER2,
 	TE_RAILTRAIL2,
 	TE_FLAME,
@@ -957,7 +947,7 @@ typedef enum
 	TE_EXPLOSION1_BIG,
 	TE_EXPLOSION1_NP,
 	TE_FLECHETTE
-//ROGUE
+	    //ROGUE
 } temp_event_t;
 
 #define SPLASH_UNKNOWN		0
@@ -1039,36 +1029,6 @@ typedef enum
 #define DF_NO_NUKES			0x00080000
 #define DF_NO_SPHERES		0x00100000
 //ROGUE
-
-/*
-ROGUE - VERSIONS
-1234	08/13/1998		Activision
-1235	08/14/1998		Id Software
-1236	08/15/1998		Steve Tietze
-1237	08/15/1998		Phil Dobranski
-1238	08/15/1998		John Sheley
-1239	08/17/1998		Barrett Alexander
-1230	08/17/1998		Brandon Fish
-1245	08/17/1998		Don MacAskill
-1246	08/17/1998		David "Zoid" Kirsch
-1247	08/17/1998		Manu Smith
-1248	08/17/1998		Geoff Scully
-1249	08/17/1998		Andy Van Fossen
-1240	08/20/1998		Activision Build 2
-1256	08/20/1998		Ranger Clan
-1257	08/20/1998		Ensemble Studios
-1258	08/21/1998		Robert Duffy
-1259	08/21/1998		Stephen Seachord
-1250	08/21/1998		Stephen Heaslip
-1267	08/21/1998		Samir Sandesara
-1268	08/21/1998		Oliver Wyman
-1269	08/21/1998		Steven Marchegiano
-1260	08/21/1998		Build #2 for Nihilistic
-1278	08/21/1998		Build #2 for Ensemble
-
-9999	08/20/1998		Internal Use
-*/
-#define ROGUE_VERSION_ID		1278
 
 #define ROGUE_VERSION_STRING	"08/21/1998 Beta 2 for Ensemble"
 
@@ -1198,3 +1158,13 @@ typedef struct
 extern int vidref_val;
 // PGM
 // ==================
+
+
+/*
+ * PATCH: eliasm
+ *
+ * Error-safe versions of fread and fwrite
+ */
+size_t verify_fread( void *, size_t, size_t, FILE * );
+size_t verify_fwrite( void *, size_t, size_t, FILE * );
+
