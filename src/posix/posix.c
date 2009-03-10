@@ -25,6 +25,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <ctype.h>
 #include <dirent.h>
 #include <unistd.h>
+
+#if defined(__linux__)
+#define __USE_GNU
+#endif
+
 #include <sys/mman.h>
 #include <sys/time.h>
 
