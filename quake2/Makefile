@@ -52,21 +52,25 @@ CC = gcc
 ifeq ($(ARCH),i386)
 CFLAGS_BASE = -O2 -ffast-math -funroll-loops -falign-loops=2 \
 		-falign-jumps=2 -falign-functions=2 -fno-strict-aliasing \
-		-Wall -pipe -g -mmmx  -msse  -msse2 -msse3 -m3dnow
+		-Wall -pipe -g
 endif
 
 ifeq ($(ARCH),x86_64)
 CFLAGS_BASE = -O2 -ffast-math -funroll-loops -fomit-frame-pointer \
 	   	 -fexpensive-optimizations -fno-strict-aliasing \
-		 -Wall -pipe -g -mmmx  -msse  -msse2 -msse3 -m3dnow
+		 -Wall -pipe -g
 endif
+
+# Optimizations
+#   ~25% - 30% perfomance gain, but may not
+#   work on all CPUs. Adjust to your needs
+# CFLAFS_BASE += -mmmx  -msse  -msse2 -msse3 -m3dnow 
 
 # SDL
 SDLCFLAGS = $(shell sdl-config --cflags)
 
 # Client
 CFLAGS_CLIENT = $(CFLAGS_BASE)
-CFLAGS_CLIENT += -Werror 
 
 # Dedicated Server
 CFLAGS_DEDICATED_SERVER = $(CFLAGS_BASE)
@@ -75,11 +79,20 @@ CFLAGS_DEDICATED_SERVER += -DDEDICATED_ONLY -Werror
 # OpenGL refresher
 CFLAGS_OPENGL = $(CFLAGS_BASE)
 CFLAGS_OPENGL += -I/usr/include -I/usr/local/include -I/usr/X11R6/include
-CFLAGS_OPENGL += -DBROKEN_GL -fPIC -Werror
+CFLAGS_OPENGL += -fPIC
+
+# This disables the use of
+#  - GL_EXT_point_parameters
+#  - GL_ARB_multitexture
+#  - GL_SGIS_multitexture
+# Neccecery for some broken Mesa-Drivers like
+# xf86-video-radeonhd (crash) or xf86-video-ati
+# (very slow, ~20FPS)
+CFLAGS_OPENGL += -DBROKEN_GL
 
 # Game
 CFLAGS_GAME = $(CFLAGS_BASE)
-CFLAGS_GAME += -fPIC -Werror
+CFLAGS_GAME += -fPIC
 
 # ----------
 
