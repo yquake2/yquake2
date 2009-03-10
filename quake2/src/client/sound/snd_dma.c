@@ -116,6 +116,7 @@ S_Init
 void S_Init (void)
 {
 	cvar_t	*cv;
+	s_pendingplays.next = NULL;
 
 	Com_Printf("\n------- sound initialization -------\n");
 
@@ -715,6 +716,12 @@ void S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx, float f
 		ps->begin = paintedtime;
 	else
 		ps->begin = (int)(start + timeofs * dma.speed);
+
+    if(s_pendingplays.next == NULL)
+	{
+		s_pendingplays = *ps;
+		return;
+	}
 
 	// sort into the pending sound list
 	for (sort = s_pendingplays.next ; 
