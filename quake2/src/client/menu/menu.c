@@ -3420,7 +3420,7 @@ static qboolean PlayerConfig_ScanDirectories( void )
 	char findname[1024];
 	char scratch[1024];
 	int ndirs = 0, npms = 0;
-	char **dirnames;
+	char **dirnames = NULL;
 	char *path = NULL;
 	int i;
 
