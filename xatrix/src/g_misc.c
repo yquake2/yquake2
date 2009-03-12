@@ -108,41 +108,6 @@ void gib_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf
 	}
 }
 
-// RAFAEL 24-APR-98
-// removed acid damage
-#if 0
-// RAFAEL
-void gib_touchacid (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
-{
-	vec3_t normal_angles, right;
-
-	if (other->takedamage)
-	{
-		T_Damage (other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
-		G_FreeEdict (self);
-	}
-
-	if (!self->groundentity)
-		return;
-
-	if (plane)
-	{
-		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/fhit3.wav"), 1, ATTN_NORM, 0);
-
-		vectoangles (plane->normal, normal_angles);
-		AngleVectors (normal_angles, NULL, right, NULL);
-		vectoangles (right, self->s.angles);
-
-		if (self->s.modelindex == sm_meat_index)
-		{
-			self->s.frame++;
-			self->think = gib_think;
-			self->nextthink = level.time + FRAMETIME;
-		}
-	}
-}
-#endif
-
 void gib_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point)
 {
 	G_FreeEdict (self);
@@ -150,7 +115,7 @@ void gib_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, 
 
 void ThrowGib (edict_t *self, char *gibname, int damage, int type)
 {
-	edict_t *gib;
+  edict_t *gib;
 	vec3_t	vd;
 	vec3_t	origin;
 	vec3_t	size;
@@ -173,14 +138,14 @@ void ThrowGib (edict_t *self, char *gibname, int damage, int type)
 
 	if (type == GIB_ORGANIC)
 	{
-		gib->movetype = MOVETYPE_TOSS;
-		gib->touch = gib_touch;
-		vscale = 0.5;
+	  gib->movetype = MOVETYPE_TOSS;
+	  gib->touch = gib_touch;
+	  vscale = 0.5;
 	}
 	else
 	{
-		gib->movetype = MOVETYPE_BOUNCE;
-		vscale = 1.0;
+	  gib->movetype = MOVETYPE_BOUNCE;
+	  vscale = 1.0;
 	}
 
 	VelocityForDamage (damage, vd);
@@ -195,8 +160,6 @@ void ThrowGib (edict_t *self, char *gibname, int damage, int type)
 
 	gi.linkentity (gib);
 }
-
-
 
 void ThrowHead (edict_t *self, char *gibname, int damage, int type)
 {
@@ -614,7 +577,7 @@ void SP_point_combat (edict_t *self)
 	VectorSet (self->maxs, 8, 8, 16);
 	self->svflags = SVF_NOCLIENT;
 	gi.linkentity (self);
-};
+}
 
 
 /*QUAKED viewthing (0 .5 .8) (-8 -8 -8) (8 8 8)
@@ -649,7 +612,7 @@ Used as a positional target for spotlights, etc.
 void SP_info_null (edict_t *self)
 {
 	G_FreeEdict (self);
-};
+}
 
 
 /*QUAKED info_notnull (0 0.5 0) (-4 -4 -4) (4 4 4)
@@ -659,7 +622,7 @@ void SP_info_notnull (edict_t *self)
 {
 	VectorCopy (self->s.origin, self->absmin);
 	VectorCopy (self->s.origin, self->absmax);
-};
+}
 
 
 /*QUAKED light (0 1 0) (-8 -8 -8) (8 8 8) START_OFF
@@ -760,7 +723,6 @@ void SP_func_wall (edict_t *self)
 	// it must be TRIGGER_SPAWN
 	if (!(self->spawnflags & 1))
 	{
-//		gi.dprintf("func_wall missing TRIGGER_SPAWN\n");
 		self->spawnflags |= 1;
 	}
 
@@ -1536,7 +1498,6 @@ void misc_viper_bomb_use (edict_t *self, edict_t *other, edict_t *activator)
 	VectorCopy (viper->moveinfo.dir, self->moveinfo.dir);
 }
 
-
 void SP_misc_viper_bomb (edict_t *self)
 {
 	self->movetype = MOVETYPE_NONE;
@@ -1573,7 +1534,6 @@ void misc_viper_missile_use (edict_t *self, edict_t *other, edict_t *activator)
 	self->enemy = G_Find (NULL, FOFS(targetname), self->target);
 	
 	VectorCopy (self->enemy->s.origin, vec);
-	vec[2] + 16;
 	
 	VectorCopy (self->s.origin, start);
 	VectorSubtract (vec, start, dir);
@@ -2065,7 +2025,9 @@ void teleporter_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_
 
 	// set angles
 	for (i=0 ; i<3 ; i++)
+	{
 		other->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(dest->s.angles[i] - other->client->resp.cmd_angles[i]);
+	}
 
 	VectorClear (other->s.angles);
 	VectorClear (other->client->ps.viewangles);
@@ -2121,7 +2083,6 @@ void SP_misc_teleporter_dest (edict_t *ent)
 	gi.setmodel (ent, "models/objects/dmspot/tris.md2");
 	ent->s.skinnum = 0;
 	ent->solid = SOLID_BBOX;
-//	ent->s.effects |= EF_FLIES;
 	VectorSet (ent->mins, -32, -32, -24);
 	VectorSet (ent->maxs, 32, 32, -16);
 	gi.linkentity (ent);
