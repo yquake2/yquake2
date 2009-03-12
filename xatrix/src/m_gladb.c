@@ -45,13 +45,13 @@ void gladb_cleaver_swing (edict_t *self)
 
 mframe_t gladb_frames_stand [] =
 {
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL}
 };
 mmove_t gladb_move_stand = {FRAME_stand1, FRAME_stand7, gladb_frames_stand, NULL};
 
@@ -63,22 +63,22 @@ void gladb_stand (edict_t *self)
 
 mframe_t gladb_frames_walk [] =
 {
-	ai_walk, 15, NULL,
-	ai_walk, 7,  NULL,
-	ai_walk, 6,  NULL,
-	ai_walk, 5,  NULL,
-	ai_walk, 2,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 2,  NULL,
-	ai_walk, 8,  NULL,
-	ai_walk, 12, NULL,
-	ai_walk, 8,  NULL,
-	ai_walk, 5,  NULL,
-	ai_walk, 5,  NULL,
-	ai_walk, 2,  NULL,
-	ai_walk, 2,  NULL,
-	ai_walk, 1,  NULL,
-	ai_walk, 8,  NULL
+	{ai_walk, 15, NULL},
+	{ai_walk, 7,  NULL},
+	{ai_walk, 6,  NULL},
+	{ai_walk, 5,  NULL},
+	{ai_walk, 2,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 2,  NULL},
+	{ai_walk, 8,  NULL},
+	{ai_walk, 12, NULL},
+	{ai_walk, 8,  NULL},
+	{ai_walk, 5,  NULL},
+	{ai_walk, 5,  NULL},
+	{ai_walk, 2,  NULL},
+	{ai_walk, 2,  NULL},
+	{ai_walk, 1,  NULL},
+	{ai_walk, 8,  NULL}
 };
 mmove_t gladb_move_walk = {FRAME_walk1, FRAME_walk16, gladb_frames_walk, NULL};
 
@@ -90,12 +90,12 @@ void gladb_walk (edict_t *self)
 
 mframe_t gladb_frames_run [] =
 {
-	ai_run, 23,	NULL,
-	ai_run, 14,	NULL,
-	ai_run, 14,	NULL,
-	ai_run, 21,	NULL,
-	ai_run, 12,	NULL,
-	ai_run, 13,	NULL
+	{ai_run, 23,	NULL},
+	{ai_run, 14,	NULL},
+	{ai_run, 14,	NULL},
+	{ai_run, 21,	NULL},
+	{ai_run, 12,	NULL},
+	{ai_run, 13,	NULL}
 };
 mmove_t gladb_move_run = {FRAME_run1, FRAME_run6, gladb_frames_run, NULL};
 
@@ -121,23 +121,23 @@ void GladbMelee (edict_t *self)
 
 mframe_t gladb_frames_attack_melee [] =
 {
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, gladb_cleaver_swing,
-	ai_charge, 0, NULL,
-	ai_charge, 0, GladbMelee,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, gladb_cleaver_swing,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, GladbMelee,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, gladb_cleaver_swing},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, GladbMelee},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, gladb_cleaver_swing},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, GladbMelee},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL}
 };
 mmove_t gladb_move_attack_melee = {FRAME_melee1, FRAME_melee17, gladb_frames_attack_melee, gladb_run};
 
@@ -171,15 +171,15 @@ void gladbGun_check (edict_t *self)
 
 mframe_t gladb_frames_attack_gun [] =
 {
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, gladbGun,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, gladbGun,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, gladbGun_check
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, gladbGun},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, gladbGun},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, gladbGun_check}
 };
 mmove_t gladb_move_attack_gun = {FRAME_attack1, FRAME_attack9, gladb_frames_attack_gun, gladb_run};
 
@@ -204,24 +204,24 @@ void gladb_attack(edict_t *self)
 
 mframe_t gladb_frames_pain [] =
 {
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL}
 };
 mmove_t gladb_move_pain = {FRAME_pain1, FRAME_pain6, gladb_frames_pain, gladb_run};
 
 mframe_t gladb_frames_pain_air [] =
 {
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL}
 };
 mmove_t gladb_move_pain_air = {FRAME_painup1, FRAME_painup7, gladb_frames_pain_air, gladb_run};
 
@@ -265,28 +265,28 @@ void gladb_dead (edict_t *self)
 
 mframe_t gladb_frames_death [] =
 {
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL}
 };
 mmove_t gladb_move_death = {FRAME_death1, FRAME_death22, gladb_frames_death, gladb_dead};
 

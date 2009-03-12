@@ -55,3 +55,4 @@ void SP_monster_boss3_stand (edict_t *self)
 	self->nextthink = level.time + FRAMETIME;
 	gi.linkentity (self);
 }
+

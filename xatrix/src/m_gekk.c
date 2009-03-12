@@ -232,59 +232,59 @@ void ai_stand2 (edict_t *self, float dist)
 
 mframe_t gekk_frames_stand [] =
 {
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,		// 10
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},		// 10
 
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,		// 20
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},		// 20
 
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,		// 30
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},		// 30
 
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
 	
-	ai_stand2, 0, gekk_check_underwater,
+	{ai_stand2, 0, gekk_check_underwater},
 };
 mmove_t gekk_move_stand = {FRAME_stand_01, FRAME_stand_39, gekk_frames_stand, NULL};
 
 mframe_t gekk_frames_standunderwater[] =
 {
-	ai_stand2, 0, NULL,	
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
+	{ai_stand2, 0, NULL},	
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
 	
-	ai_stand2, 0, gekk_check_underwater
+	{ai_stand2, 0, gekk_check_underwater}
 };
 
 mmove_t gekk_move_standunderwater = {FRAME_amb_01, FRAME_amb_04, gekk_frames_standunderwater, NULL};
@@ -298,62 +298,58 @@ void gekk_swim_loop (edict_t *self)
 
 mframe_t gekk_frames_swim [] =
 {
-	ai_run, 16, NULL,	
-	ai_run, 16, NULL,
-	ai_run, 16, NULL,
+	{ai_run, 16, NULL},	
+	{ai_run, 16, NULL},
+	{ai_run, 16, NULL},
 	
-	ai_run, 16, gekk_swim
+	{ai_run, 16, gekk_swim}
 };
 mmove_t gekk_move_swim_loop = {FRAME_amb_01, FRAME_amb_04, gekk_frames_swim, gekk_swim_loop};
 
 mframe_t gekk_frames_swim_start [] =
 {
-	ai_run, 14, NULL,
-	ai_run, 14, NULL,
-	ai_run, 14, NULL,
-	ai_run, 14, NULL,
-	ai_run, 16, NULL,
-	ai_run, 16, NULL,
-	ai_run, 16, NULL,
-	ai_run, 18, NULL,
-	ai_run, 18, gekk_hit_left,
-	ai_run, 18, NULL,
+	{ai_run, 14, NULL},
+	{ai_run, 14, NULL},
+	{ai_run, 14, NULL},
+	{ai_run, 14, NULL},
+	{ai_run, 16, NULL},
+	{ai_run, 16, NULL},
+	{ai_run, 16, NULL},
+	{ai_run, 18, NULL},
+	{ai_run, 18, gekk_hit_left},
+	{ai_run, 18, NULL},
 	
-	ai_run, 20, NULL,
-	ai_run, 20, NULL,
-	ai_run, 22, NULL,
-	ai_run, 22, NULL,
-	ai_run, 24, gekk_hit_right,
-	ai_run, 24, NULL,
-	ai_run, 26, NULL,
-	ai_run, 26, NULL,
-	ai_run, 24, NULL,
-	ai_run, 24, NULL,
+	{ai_run, 20, NULL},
+	{ai_run, 20, NULL},
+	{ai_run, 22, NULL},
+	{ai_run, 22, NULL},
+	{ai_run, 24, gekk_hit_right},
+	{ai_run, 24, NULL},
+	{ai_run, 26, NULL},
+	{ai_run, 26, NULL},
+	{ai_run, 24, NULL},
+	{ai_run, 24, NULL},
 	
-	ai_run, 22, gekk_bite,
-	ai_run, 22, NULL,
-	ai_run, 22, NULL,
-	ai_run, 22, NULL,
-	ai_run, 22, NULL,
-	ai_run, 22, NULL,
-	ai_run, 22, NULL,
-	ai_run, 22, NULL,
-	ai_run, 18, NULL,
-	ai_run, 18, NULL,
+	{ai_run, 22, gekk_bite},
+	{ai_run, 22, NULL},
+	{ai_run, 22, NULL},
+	{ai_run, 22, NULL},
+	{ai_run, 22, NULL},
+	{ai_run, 22, NULL},
+	{ai_run, 22, NULL},
+	{ai_run, 22, NULL},
+	{ai_run, 18, NULL},
+	{ai_run, 18, NULL},
 
-	ai_run, 18, NULL,
-	ai_run, 18, NULL
+	{ai_run, 18, NULL},
+	{ai_run, 18, NULL}
 };
 mmove_t gekk_move_swim_start = {FRAME_swim_01, FRAME_swim_32, gekk_frames_swim_start, gekk_swim_loop};
 
 void gekk_swim (edict_t *self)
 {
-	
-	if (gekk_checkattack)
-		if (!self->enemy->waterlevel && random() > 0.7)
-			water_to_land (self);
-	else
-		self->monsterinfo.currentmove = &gekk_move_swim_start;
+	if (!self->enemy->waterlevel && random() > 0.7)
+		water_to_land (self);
 }
 
 
@@ -382,82 +378,82 @@ void gekk_idle_loop (edict_t *self)
 
 mframe_t gekk_frames_idle [] =
 {
-	ai_stand2, 0, gekk_search,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,		
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,		
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
+	{ai_stand2, 0, gekk_search},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},		
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},		
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
 	
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,		
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,		
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},		
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},		
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
 	
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,		
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,		
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, NULL,
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},		
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},		
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, NULL},
 	
-	ai_stand2, 0, NULL,
-	ai_stand2, 0, gekk_idle_loop
+	{ai_stand2, 0, NULL},
+	{ai_stand2, 0, gekk_idle_loop}
 };
 mmove_t gekk_move_idle = {FRAME_idle_01, FRAME_idle_32, gekk_frames_idle, gekk_stand};
 mmove_t gekk_move_idle2 = {FRAME_idle_01, FRAME_idle_32, gekk_frames_idle, gekk_face};
 
 mframe_t gekk_frames_idle2 [] =
 {
-	ai_move, 0, gekk_search,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,		
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,		
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
+	{ai_move, 0, gekk_search},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},		
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},		
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
 	
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,		
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,		
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},		
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},		
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
 	
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,		
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,		
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},		
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},		
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
 	
-	ai_move, 0, NULL,
-	ai_move, 0, gekk_idle_loop
+	{ai_move, 0, NULL},
+	{ai_move, 0, gekk_idle_loop}
 };
 mmove_t gekk_move_chant = {FRAME_idle_01, FRAME_idle_32, gekk_frames_idle2, gekk_chant};
 
@@ -479,12 +475,12 @@ void gekk_idle (edict_t *self)
 void gekk_walk (edict_t *self);
 mframe_t gekk_frames_walk[] = 
 {
- ai_walk,   3.849, gekk_check_underwater, // frame 0
- ai_walk,  19.606, NULL, // frame 1
- ai_walk,  25.583, NULL, // frame 2
- ai_walk,  34.625, gekk_step, // frame 3
- ai_walk,  27.365, NULL, // frame 4
- ai_walk,  28.480, NULL, // frame 5
+ {ai_walk,   3.849, gekk_check_underwater}, // frame 0
+ {ai_walk,  19.606, NULL}, // frame 1
+ {ai_walk,  25.583, NULL}, // frame 2
+ {ai_walk,  34.625, gekk_step}, // frame 3
+ {ai_walk,  27.365, NULL}, // frame 4
+ {ai_walk,  28.480, NULL}, // frame 5
 };
 
 mmove_t gekk_move_walk = {FRAME_run_01, FRAME_run_06, gekk_frames_walk, NULL};
@@ -530,19 +526,19 @@ void gekk_run (edict_t *self)
 }
 mframe_t gekk_frames_run[] = 
 {
- ai_run,   3.849, gekk_check_underwater, // frame 0
- ai_run,  19.606, NULL, // frame 1
- ai_run,  25.583, NULL, // frame 2
- ai_run,  34.625, gekk_step, // frame 3
- ai_run,  27.365, NULL, // frame 4
- ai_run,  28.480, NULL, // frame 5
+ {ai_run,   3.849, gekk_check_underwater}, // frame 0
+ {ai_run,  19.606, NULL}, // frame 1
+ {ai_run,  25.583, NULL}, // frame 2
+ {ai_run,  34.625, gekk_step}, // frame 3
+ {ai_run,  27.365, NULL}, // frame 4
+ {ai_run,  28.480, NULL}, // frame 5
 };
 mmove_t gekk_move_run = {FRAME_run_01, FRAME_run_06, gekk_frames_run, NULL};
 
 mframe_t gekk_frames_run_st[] = 
 {
- ai_run,   0.212, NULL, // frame 0
- ai_run,  19.753, NULL, // frame 1
+	{ai_run,   0.212, NULL}, // frame 0
+	{ai_run,  19.753, NULL}, // frame 1
 };
 mmove_t gekk_move_run_start = {FRAME_stand_01, FRAME_stand_02, gekk_frames_run_st, gekk_run};
 
@@ -692,49 +688,47 @@ void reloogie (edict_t *self)
 
 mframe_t gekk_frames_spit [] =
 {
- ai_charge,   0.000, NULL, 
- ai_charge,   0.000, NULL, 
- ai_charge,   0.000, NULL, 
- ai_charge,   0.000, NULL, 
- ai_charge,   0.000, NULL, 
+ {ai_charge,   0.000, NULL}, 
+ {ai_charge,   0.000, NULL}, 
+ {ai_charge,   0.000, NULL}, 
+ {ai_charge,   0.000, NULL}, 
+ {ai_charge,   0.000, NULL}, 
  
- ai_charge,   0.000, loogie, 
- ai_charge,   0.000, reloogie 
+ {ai_charge,   0.000, loogie}, 
+ {ai_charge,   0.000, reloogie} 
 };
 mmove_t gekk_move_spit = {FRAME_spit_01, FRAME_spit_07, gekk_frames_spit, gekk_run_start};
 
 
 mframe_t gekk_frames_attack1 [] =
 {
-	ai_charge,   0, NULL, 
-	ai_charge,   0, NULL, 
-	ai_charge,   0, NULL, 
+	{ai_charge,   0, NULL}, 
+	{ai_charge,   0, NULL}, 
+	{ai_charge,   0, NULL}, 
 	
-	ai_charge,   0, gekk_hit_left, 
-	ai_charge,   0, NULL, 
-	ai_charge,   0, NULL, 
+	{ai_charge,   0, gekk_hit_left}, 
+	{ai_charge,   0, NULL}, 
+	{ai_charge,   0, NULL}, 
 	
-	ai_charge,   0, NULL, 
-	ai_charge,   0, NULL, 
-	ai_charge,   0, gekk_check_refire 
-		
+	{ai_charge,   0, NULL}, 
+	{ai_charge,   0, NULL}, 
+	{ai_charge,   0, gekk_check_refire}
 };
 mmove_t gekk_move_attack1 = {FRAME_clawatk3_01, FRAME_clawatk3_09, gekk_frames_attack1, gekk_run_start};
 
 mframe_t gekk_frames_attack2[] = 
 {
- ai_charge,   0.000, NULL, 
- ai_charge,   0.000, NULL, 
- ai_charge,   0.000, gekk_hit_left, 
+ {ai_charge,   0.000, NULL}, 
+ {ai_charge,   0.000, NULL}, 
+ {ai_charge,   0.000, gekk_hit_left}, 
  
- ai_charge,   0.000, NULL, 
- ai_charge,   0.000, NULL, 
- ai_charge,   0.000, gekk_hit_right, 
+ {ai_charge,   0.000, NULL}, 
+ {ai_charge,   0.000, NULL}, 
+ {ai_charge,   0.000, gekk_hit_right}, 
  
- ai_charge,   0.000, NULL, 
- ai_charge,   0.000, NULL, 
- ai_charge,   0.000, gekk_check_refire 
- 
+ {ai_charge,   0.000, NULL}, 
+ {ai_charge,   0.000, NULL}, 
+ {ai_charge,   0.000, gekk_check_refire} 
 };
 mmove_t gekk_move_attack2 = {FRAME_clawatk5_01, FRAME_clawatk5_09, gekk_frames_attack2, gekk_run_start};
 
@@ -748,52 +742,52 @@ void gekk_check_underwater (edict_t *self)
 
 mframe_t gekk_frames_leapatk[] = 
 {
- ai_charge,   0.000, NULL, // frame 0
- ai_charge,  -0.387, NULL, // frame 1
- ai_charge,  -1.113, NULL, // frame 2
- ai_charge,  -0.237, NULL, // frame 3
- ai_charge,   6.720, gekk_jump_takeoff, // frame 4  last frame on ground
- ai_charge,   6.414, NULL, // frame 5  leaves ground
- ai_charge,   0.163, NULL, // frame 6
- ai_charge,  28.316, NULL, // frame 7
- ai_charge,  24.198, NULL, // frame 8
- ai_charge,  31.742, NULL, // frame 9
- ai_charge,  35.977, gekk_check_landing, // frame 10  last frame in air
- ai_charge,  12.303, gekk_stop_skid, // frame 11  feet back on ground
- ai_charge,  20.122, gekk_stop_skid, // frame 12
- ai_charge,  -1.042, gekk_stop_skid, // frame 13
- ai_charge,   2.556, gekk_stop_skid, // frame 14
- ai_charge,   0.544, gekk_stop_skid, // frame 15
- ai_charge,   1.862, gekk_stop_skid, // frame 16
- ai_charge,   1.224, gekk_stop_skid, // frame 17
+ {ai_charge,   0.000, NULL}, // frame 0
+ {ai_charge,  -0.387, NULL}, // frame 1
+ {ai_charge,  -1.113, NULL}, // frame 2
+ {ai_charge,  -0.237, NULL}, // frame 3
+ {ai_charge,   6.720, gekk_jump_takeoff}, // frame 4  last frame on ground
+ {ai_charge,   6.414, NULL}, // frame 5  leaves ground
+ {ai_charge,   0.163, NULL}, // frame 6
+ {ai_charge,  28.316, NULL}, // frame 7
+ {ai_charge,  24.198, NULL}, // frame 8
+ {ai_charge,  31.742, NULL}, // frame 9
+ {ai_charge,  35.977, gekk_check_landing}, // frame 10  last frame in air
+ {ai_charge,  12.303, gekk_stop_skid}, // frame 11  feet back on ground
+ {ai_charge,  20.122, gekk_stop_skid}, // frame 12
+ {ai_charge,  -1.042, gekk_stop_skid}, // frame 13
+ {ai_charge,   2.556, gekk_stop_skid}, // frame 14
+ {ai_charge,   0.544, gekk_stop_skid}, // frame 15
+ {ai_charge,   1.862, gekk_stop_skid}, // frame 16
+ {ai_charge,   1.224, gekk_stop_skid}, // frame 17
 
- ai_charge,  -0.457, gekk_check_underwater, // frame 18
+ {ai_charge,  -0.457, gekk_check_underwater}, // frame 18
 };
 mmove_t gekk_move_leapatk = {FRAME_leapatk_01, FRAME_leapatk_19, gekk_frames_leapatk, gekk_run_start};
 
 
 mframe_t gekk_frames_leapatk2[] = 
 {
- ai_charge,   0.000, NULL, // frame 0
- ai_charge,  -0.387, NULL, // frame 1
- ai_charge,  -1.113, NULL, // frame 2
- ai_charge,  -0.237, NULL, // frame 3
- ai_charge,   6.720, gekk_jump_takeoff2, // frame 4  last frame on ground
- ai_charge,   6.414, NULL, // frame 5  leaves ground
- ai_charge,   0.163, NULL, // frame 6
- ai_charge,  28.316, NULL, // frame 7
- ai_charge,  24.198, NULL, // frame 8
- ai_charge,  31.742, NULL, // frame 9
- ai_charge,  35.977, gekk_check_landing, // frame 10  last frame in air
- ai_charge,  12.303, gekk_stop_skid, // frame 11  feet back on ground
- ai_charge,  20.122, gekk_stop_skid, // frame 12
- ai_charge,  -1.042, gekk_stop_skid, // frame 13
- ai_charge,   2.556, gekk_stop_skid, // frame 14
- ai_charge,   0.544, gekk_stop_skid, // frame 15
- ai_charge,   1.862, gekk_stop_skid, // frame 16
- ai_charge,   1.224, gekk_stop_skid, // frame 17
+ {ai_charge,   0.000, NULL}, // frame 0
+ {ai_charge,  -0.387, NULL}, // frame 1
+ {ai_charge,  -1.113, NULL}, // frame 2
+ {ai_charge,  -0.237, NULL}, // frame 3
+ {ai_charge,   6.720, gekk_jump_takeoff2}, // frame 4  last frame on ground
+ {ai_charge,   6.414, NULL}, // frame 5  leaves ground
+ {ai_charge,   0.163, NULL}, // frame 6
+ {ai_charge,  28.316, NULL}, // frame 7
+ {ai_charge,  24.198, NULL}, // frame 8
+ {ai_charge,  31.742, NULL}, // frame 9
+ {ai_charge,  35.977, gekk_check_landing}, // frame 10  last frame in air
+ {ai_charge,  12.303, gekk_stop_skid}, // frame 11  feet back on ground
+ {ai_charge,  20.122, gekk_stop_skid}, // frame 12
+ {ai_charge,  -1.042, gekk_stop_skid}, // frame 13
+ {ai_charge,   2.556, gekk_stop_skid}, // frame 14
+ {ai_charge,   0.544, gekk_stop_skid}, // frame 15
+ {ai_charge,   1.862, gekk_stop_skid}, // frame 16
+ {ai_charge,   1.224, gekk_stop_skid}, // frame 17
  
- ai_charge,  -0.457, gekk_check_underwater, // frame 18
+ {ai_charge,  -0.457, gekk_check_underwater}, // frame 18
 };
 mmove_t gekk_move_leapatk2 = {FRAME_leapatk_01, FRAME_leapatk_19, gekk_frames_leapatk2, gekk_run_start};
 
@@ -816,30 +810,29 @@ void gekk_preattack (edict_t *self)
 
 mframe_t gekk_frames_attack [] =
 {
-	ai_charge, 16,	gekk_preattack,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	gekk_bite,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	gekk_bite,
+	{ai_charge, 16,	gekk_preattack},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	gekk_bite},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	gekk_bite},
 	
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	gekk_hit_left,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	NULL,
-	ai_charge, 16,	gekk_hit_right,
-	ai_charge, 16,	NULL,
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	gekk_hit_left},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	NULL},
+	{ai_charge, 16,	gekk_hit_right},
+	{ai_charge, 16,	NULL},
 
-	ai_charge, 16,	NULL
-		
+	{ai_charge, 16,	NULL}
 };
 mmove_t gekk_move_attack = {FRAME_attack_01, FRAME_attack_21, gekk_frames_attack, gekk_run_start};
 
@@ -860,16 +853,13 @@ void gekk_melee (edict_t *self)
 			self->monsterinfo.currentmove = &gekk_move_attack1;
 		else 
 			self->monsterinfo.currentmove = &gekk_move_attack2;
-		
 	}
-
 }
 
 
 //
 // ATTACK
 //
-
 void gekk_jump_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
 	if (self->health <= 0)
@@ -1000,9 +990,6 @@ void gekk_jump (edict_t *self)
 	}
 	else
 	{
-		//if (random() > 0.8 && self->health < self->max_health)
-		//	self->monsterinfo.currentmove = &gekk_move_idle2;
-		//else
 		{
 			if (random() > 0.5 && (range (self, self->enemy) >= RANGE_NEAR))
 				self->monsterinfo.currentmove = &gekk_move_spit;
@@ -1010,7 +997,7 @@ void gekk_jump (edict_t *self)
 				self->monsterinfo.currentmove = &gekk_move_spit;
 			else
 				self->monsterinfo.currentmove = &gekk_move_leapatk;
-			
+
 		}
 	}
 }
@@ -1021,48 +1008,48 @@ void gekk_jump (edict_t *self)
 
 mframe_t gekk_frames_pain[] = 
 {
-	ai_move,   0.000, NULL, // frame 0
-	ai_move,   0.000, NULL, // frame 1
-	ai_move,   0.000, NULL, // frame 2
-	ai_move,   0.000, NULL, // frame 3
-	ai_move,   0.000, NULL, // frame 4
-	ai_move,   0.000, NULL, // frame 5
+	{ai_move,   0.000, NULL}, // frame 0
+	{ai_move,   0.000, NULL}, // frame 1
+	{ai_move,   0.000, NULL}, // frame 2
+	{ai_move,   0.000, NULL}, // frame 3
+	{ai_move,   0.000, NULL}, // frame 4
+	{ai_move,   0.000, NULL}, // frame 5
 };
 mmove_t gekk_move_pain = {FRAME_pain_01, FRAME_pain_06, gekk_frames_pain, gekk_run_start};
 
 mframe_t gekk_frames_pain1[] = 
 {
- ai_move,   0.000, NULL, // frame 0
- ai_move,   0.000, NULL, // frame 1
- ai_move,   0.000, NULL, // frame 2
- ai_move,   0.000, NULL, // frame 3
- ai_move,   0.000, NULL, // frame 4
- ai_move,   0.000, NULL, // frame 5
- ai_move,   0.000, NULL, // frame 6
- ai_move,   0.000, NULL, // frame 7
- ai_move,   0.000, NULL, // frame 8
- ai_move,   0.000, NULL, // frame 9
+ {ai_move,   0.000, NULL}, // frame 0
+ {ai_move,   0.000, NULL}, // frame 1
+ {ai_move,   0.000, NULL}, // frame 2
+ {ai_move,   0.000, NULL}, // frame 3
+ {ai_move,   0.000, NULL}, // frame 4
+ {ai_move,   0.000, NULL}, // frame 5
+ {ai_move,   0.000, NULL}, // frame 6
+ {ai_move,   0.000, NULL}, // frame 7
+ {ai_move,   0.000, NULL}, // frame 8
+ {ai_move,   0.000, NULL}, // frame 9
  
- ai_move,   0.000, gekk_check_underwater 
+ {ai_move,   0.000, gekk_check_underwater} 
 };
 mmove_t gekk_move_pain1 = {FRAME_pain3_01, FRAME_pain3_11, gekk_frames_pain1, gekk_run_start};
 
 mframe_t gekk_frames_pain2[] = 
 {
- ai_move,   0.000, NULL, // frame 0
- ai_move,   0.000, NULL, // frame 1
- ai_move,   0.000, NULL, // frame 2
- ai_move,   0.000, NULL, // frame 3
- ai_move,   0.000, NULL, // frame 4
- ai_move,   0.000, NULL, // frame 5
- ai_move,   0.000, NULL, // frame 6
- ai_move,   0.000, NULL, // frame 7
- ai_move,   0.000, NULL, // frame 8
- ai_move,   0.000, NULL, // frame 9
+ {ai_move,   0.000, NULL}, // frame 0
+ {ai_move,   0.000, NULL}, // frame 1
+ {ai_move,   0.000, NULL}, // frame 2
+ {ai_move,   0.000, NULL}, // frame 3
+ {ai_move,   0.000, NULL}, // frame 4
+ {ai_move,   0.000, NULL}, // frame 5
+ {ai_move,   0.000, NULL}, // frame 6
+ {ai_move,   0.000, NULL}, // frame 7
+ {ai_move,   0.000, NULL}, // frame 8
+ {ai_move,   0.000, NULL}, // frame 9
  
- ai_move,   0.000, NULL, // frame 10
- ai_move,   0.000, NULL, // frame 11
- ai_move,   0.000, gekk_check_underwater, 
+ {ai_move,   0.000, NULL}, // frame 10
+ {ai_move,   0.000, NULL}, // frame 11
+ {ai_move,   0.000, gekk_check_underwater}, 
 };
 mmove_t gekk_move_pain2 = {FRAME_pain4_01, FRAME_pain4_13, gekk_frames_pain2, gekk_run_start};
 
@@ -1161,120 +1148,118 @@ void isgibfest (edict_t *self)
 
 mframe_t gekk_frames_death1[] =
 {
-
-	ai_move,  -5.151, NULL, // frame 0
-	ai_move, -12.223, NULL, // frame 1
-	ai_move, -11.484, NULL, // frame 2
-	ai_move, -17.952, NULL, // frame 3
-	ai_move,  -6.953, NULL, // frame 4
-	ai_move,  -7.393, NULL, // frame 5
-	ai_move, -10.713, NULL, // frame 6
-	ai_move, -17.464, NULL, // frame 7
-	ai_move, -11.678, NULL, // frame 8
-	ai_move, -11.678, NULL  // frame 9
+	{ai_move,  -5.151, NULL}, // frame 0
+	{ai_move, -12.223, NULL}, // frame 1
+	{ai_move, -11.484, NULL}, // frame 2
+	{ai_move, -17.952, NULL}, // frame 3
+	{ai_move,  -6.953, NULL}, // frame 4
+	{ai_move,  -7.393, NULL}, // frame 5
+	{ai_move, -10.713, NULL}, // frame 6
+	{ai_move, -17.464, NULL}, // frame 7
+	{ai_move, -11.678, NULL}, // frame 8
+	{ai_move, -11.678, NULL}  // frame 9
 };
 mmove_t gekk_move_death1 = {FRAME_death1_01, FRAME_death1_10, gekk_frames_death1, gekk_dead};
 
 mframe_t gekk_frames_death3[] =
 {
-	ai_move,   0.000, NULL, // frame 0
-	ai_move,   0.022, NULL, // frame 1
-	ai_move,   0.169, NULL, // frame 2
-	ai_move,  -0.710, NULL, // frame 3
-	ai_move, -13.446, NULL, // frame 4
-	ai_move,  -7.654, isgibfest, // frame 5
-	ai_move, -31.951, NULL, // frame 6
-	
+	{ai_move,   0.000, NULL}, // frame 0
+	{ai_move,   0.022, NULL}, // frame 1
+	{ai_move,   0.169, NULL}, // frame 2
+	{ai_move,  -0.710, NULL}, // frame 3
+	{ai_move, -13.446, NULL}, // frame 4
+	{ai_move,  -7.654, isgibfest}, // frame 5
+	{ai_move, -31.951, NULL}, // frame 6
 };
 mmove_t gekk_move_death3 = {FRAME_death3_01, FRAME_death3_07, gekk_frames_death3, gekk_dead};
 
 mframe_t gekk_frames_death4[] = 
 {
- ai_move,   5.103, NULL, // frame 0
- ai_move,  -4.808, NULL, // frame 1
- ai_move, -10.509, NULL, // frame 2
- ai_move,  -9.899, NULL, // frame 3
- ai_move,   4.033, isgibfest, // frame 4
- ai_move,  -5.197, NULL, // frame 5
- ai_move,  -0.919, NULL, // frame 6
- ai_move,  -8.821, NULL, // frame 7
- ai_move,  -5.626, NULL, // frame 8
- ai_move,  -8.865, isgibfest, // frame 9
- ai_move,  -0.845, NULL, // frame 10
- ai_move,   1.986, NULL, // frame 11
- ai_move,   0.170, NULL, // frame 12
- ai_move,   1.339, isgibfest, // frame 13
- ai_move,  -0.922, NULL, // frame 14
- ai_move,   0.818, NULL, // frame 15
- ai_move,  -1.288, NULL, // frame 16
- ai_move,  -1.408, isgibfest, // frame 17
- ai_move,  -7.787, NULL, // frame 18
- ai_move,  -3.995, NULL, // frame 19
- ai_move,  -4.604, NULL, // frame 20
- ai_move,  -1.715, isgibfest, // frame 21
- ai_move,  -0.564, NULL, // frame 22
- ai_move,  -0.597, NULL, // frame 23
- ai_move,   0.074, NULL, // frame 24
- ai_move,  -0.309, isgibfest, // frame 25
- ai_move,  -0.395, NULL, // frame 26
- ai_move,  -0.501, NULL, // frame 27
- ai_move,  -0.325, NULL, // frame 28
- ai_move,  -0.931, isgibfest, // frame 29
- ai_move,  -1.433, NULL, // frame 30
- ai_move,  -1.626, NULL, // frame 31
- ai_move,   4.680, NULL, // frame 32
- ai_move,   0.560, NULL, // frame 33
- ai_move,  -0.549, gekk_gibfest // frame 34
+ {ai_move,   5.103, NULL}, // frame 0
+ {ai_move,  -4.808, NULL}, // frame 1
+ {ai_move, -10.509, NULL}, // frame 2
+ {ai_move,  -9.899, NULL}, // frame 3
+ {ai_move,   4.033, isgibfest}, // frame 4
+ {ai_move,  -5.197, NULL}, // frame 5
+ {ai_move,  -0.919, NULL}, // frame 6
+ {ai_move,  -8.821, NULL}, // frame 7
+ {ai_move,  -5.626, NULL}, // frame 8
+ {ai_move,  -8.865, isgibfest}, // frame 9
+ {ai_move,  -0.845, NULL}, // frame 10
+ {ai_move,   1.986, NULL}, // frame 11
+ {ai_move,   0.170, NULL}, // frame 12
+ {ai_move,   1.339, isgibfest}, // frame 13
+ {ai_move,  -0.922, NULL}, // frame 14
+ {ai_move,   0.818, NULL}, // frame 15
+ {ai_move,  -1.288, NULL}, // frame 16
+ {ai_move,  -1.408, isgibfest}, // frame 17
+ {ai_move,  -7.787, NULL}, // frame 18
+ {ai_move,  -3.995, NULL}, // frame 19
+ {ai_move,  -4.604, NULL}, // frame 20
+ {ai_move,  -1.715, isgibfest}, // frame 21
+ {ai_move,  -0.564, NULL}, // frame 22
+ {ai_move,  -0.597, NULL}, // frame 23
+ {ai_move,   0.074, NULL}, // frame 24
+ {ai_move,  -0.309, isgibfest}, // frame 25
+ {ai_move,  -0.395, NULL}, // frame 26
+ {ai_move,  -0.501, NULL}, // frame 27
+ {ai_move,  -0.325, NULL}, // frame 28
+ {ai_move,  -0.931, isgibfest}, // frame 29
+ {ai_move,  -1.433, NULL}, // frame 30
+ {ai_move,  -1.626, NULL}, // frame 31
+ {ai_move,   4.680, NULL}, // frame 32
+ {ai_move,   0.560, NULL}, // frame 33
+ {ai_move,  -0.549, gekk_gibfest} // frame 34
 };
 mmove_t gekk_move_death4 = {FRAME_death4_01, FRAME_death4_35, gekk_frames_death4, gekk_dead};
 
 mframe_t gekk_frames_wdeath[] = 
 {
-	 ai_move,   0.000, NULL, // frame 0
-	 ai_move,   0.000, NULL, // frame 1
-	 ai_move,   0.000, NULL, // frame 2
-	 ai_move,   0.000, NULL, // frame 3
-	 ai_move,   0.000, NULL, // frame 4
-	 ai_move,   0.000, NULL, // frame 5
-	 ai_move,   0.000, NULL, // frame 6
-	 ai_move,   0.000, NULL, // frame 7
-	 ai_move,   0.000, NULL, // frame 8
-	 ai_move,   0.000, NULL, // frame 9
-	 ai_move,   0.000, NULL, // frame 10
-	 ai_move,   0.000, NULL, // frame 11
-	 ai_move,   0.000, NULL, // frame 12
-	 ai_move,   0.000, NULL, // frame 13
-	 ai_move,   0.000, NULL, // frame 14
-	 ai_move,   0.000, NULL, // frame 15
-	 ai_move,   0.000, NULL, // frame 16
-	 ai_move,   0.000, NULL, // frame 17
-	 ai_move,   0.000, NULL, // frame 18
-	 ai_move,   0.000, NULL, // frame 19
-	 ai_move,   0.000, NULL, // frame 20
-	 ai_move,   0.000, NULL, // frame 21
-	 ai_move,   0.000, NULL, // frame 22
-	 ai_move,   0.000, NULL, // frame 23
-	 ai_move,   0.000, NULL, // frame 24
-	 ai_move,   0.000, NULL, // frame 25
-	 ai_move,   0.000, NULL, // frame 26
-	 ai_move,   0.000, NULL, // frame 27
-	 ai_move,   0.000, NULL, // frame 28
-	 ai_move,   0.000, NULL, // frame 29
-	 ai_move,   0.000, NULL, // frame 30
-	 ai_move,   0.000, NULL, // frame 31
-	 ai_move,   0.000, NULL, // frame 32
-	 ai_move,   0.000, NULL, // frame 33
-	 ai_move,   0.000, NULL, // frame 34
-	 ai_move,   0.000, NULL, // frame 35
-	 ai_move,   0.000, NULL, // frame 36
-	 ai_move,   0.000, NULL, // frame 37
-	 ai_move,   0.000, NULL, // frame 38
-	 ai_move,   0.000, NULL, // frame 39
-	 ai_move,   0.000, NULL, // frame 40
-	 ai_move,   0.000, NULL, // frame 41
-	 ai_move,   0.000, NULL, // frame 42
-	 ai_move,   0.000, NULL, // frame 43
-	 ai_move,   0.000, NULL  // frame 44
+	 {ai_move,   0.000, NULL}, // frame 0
+	 {ai_move,   0.000, NULL}, // frame 1
+	 {ai_move,   0.000, NULL}, // frame 2
+	 {ai_move,   0.000, NULL}, // frame 3
+	 {ai_move,   0.000, NULL}, // frame 4
+	 {ai_move,   0.000, NULL}, // frame 5
+	 {ai_move,   0.000, NULL}, // frame 6
+	 {ai_move,   0.000, NULL}, // frame 7
+	 {ai_move,   0.000, NULL}, // frame 8
+	 {ai_move,   0.000, NULL}, // frame 9
+	 {ai_move,   0.000, NULL}, // frame 10
+	 {ai_move,   0.000, NULL}, // frame 11
+	 {ai_move,   0.000, NULL}, // frame 12
+	 {ai_move,   0.000, NULL}, // frame 13
+	 {ai_move,   0.000, NULL}, // frame 14
+	 {ai_move,   0.000, NULL}, // frame 15
+	 {ai_move,   0.000, NULL}, // frame 16
+	 {ai_move,   0.000, NULL}, // frame 17
+	 {ai_move,   0.000, NULL}, // frame 18
+	 {ai_move,   0.000, NULL}, // frame 19
+	 {ai_move,   0.000, NULL}, // frame 20
+	 {ai_move,   0.000, NULL}, // frame 21
+	 {ai_move,   0.000, NULL}, // frame 22
+	 {ai_move,   0.000, NULL}, // frame 23
+	 {ai_move,   0.000, NULL}, // frame 24
+	 {ai_move,   0.000, NULL}, // frame 25
+	 {ai_move,   0.000, NULL}, // frame 26
+	 {ai_move,   0.000, NULL}, // frame 27
+	 {ai_move,   0.000, NULL}, // frame 28
+	 {ai_move,   0.000, NULL}, // frame 29
+	 {ai_move,   0.000, NULL}, // frame 30
+	 {ai_move,   0.000, NULL}, // frame 31
+	 {ai_move,   0.000, NULL}, // frame 32
+	 {ai_move,   0.000, NULL}, // frame 33
+	 {ai_move,   0.000, NULL}, // frame 34
+	 {ai_move,   0.000, NULL}, // frame 35
+	 {ai_move,   0.000, NULL}, // frame 36
+	 {ai_move,   0.000, NULL}, // frame 37
+	 {ai_move,   0.000, NULL}, // frame 38
+	 {ai_move,   0.000, NULL}, // frame 39
+	 {ai_move,   0.000, NULL}, // frame 40
+	 {ai_move,   0.000, NULL}, // frame 41
+	 {ai_move,   0.000, NULL}, // frame 42
+	 {ai_move,   0.000, NULL}, // frame 43
+	 {ai_move,   0.000, NULL}  // frame 44
 };
 mmove_t gekk_move_wdeath = {FRAME_wdeath_01, FRAME_wdeath_45, gekk_frames_wdeath, gekk_dead};
 
@@ -1320,11 +1305,8 @@ void gekk_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage,
 			self->monsterinfo.currentmove = &gekk_move_death3;
 		else
 			self->monsterinfo.currentmove = &gekk_move_death4;
-
 	}
-	
 }
-
 
 /*
 	duck
@@ -1359,40 +1341,37 @@ void gekk_duck_hold (edict_t *self)
 
 mframe_t gekk_frames_lduck[] = 
 {
- ai_move,   0.000, NULL, // frame 0
- ai_move,   0.000, NULL, // frame 1
- ai_move,   0.000, NULL, // frame 2
- ai_move,   0.000, NULL, // frame 3
- ai_move,   0.000, NULL, // frame 4
- ai_move,   0.000, NULL, // frame 5
- ai_move,   0.000, NULL, // frame 6
- ai_move,   0.000, NULL, // frame 7
- ai_move,   0.000, NULL, // frame 8
- ai_move,   0.000, NULL, // frame 9
- 
- ai_move,   0.000, NULL, // frame 10
- ai_move,   0.000, NULL, // frame 11
- ai_move,   0.000, NULL  // frame 12
- 
+ {ai_move,   0.000, NULL}, // frame 0
+ {ai_move,   0.000, NULL}, // frame 1
+ {ai_move,   0.000, NULL}, // frame 2
+ {ai_move,   0.000, NULL}, // frame 3
+ {ai_move,   0.000, NULL}, // frame 4
+ {ai_move,   0.000, NULL}, // frame 5
+ {ai_move,   0.000, NULL}, // frame 6
+ {ai_move,   0.000, NULL}, // frame 7
+ {ai_move,   0.000, NULL}, // frame 8
+ {ai_move,   0.000, NULL}, // frame 9
+ {ai_move,   0.000, NULL}, // frame 10
+ {ai_move,   0.000, NULL}, // frame 11
+ {ai_move,   0.000, NULL}  // frame 12
 };
 mmove_t gekk_move_lduck = {FRAME_lduck_01, FRAME_lduck_13, gekk_frames_lduck, gekk_run_start};
 
 mframe_t gekk_frames_rduck[] = 
 {
- ai_move,   0.000, NULL, // frame 0
- ai_move,   0.000, NULL, // frame 1
- ai_move,   0.000, NULL, // frame 2
- ai_move,   0.000, NULL, // frame 3
- ai_move,   0.000, NULL, // frame 4
- ai_move,   0.000, NULL, // frame 5
- ai_move,   0.000, NULL, // frame 6
- ai_move,   0.000, NULL, // frame 7
- ai_move,   0.000, NULL, // frame 8
- ai_move,   0.000, NULL, // frame 9
- ai_move,   0.000, NULL, // frame 10
- ai_move,   0.000, NULL, // frame 11
- ai_move,   0.000, NULL // frame 12
- 
+ {ai_move,   0.000, NULL}, // frame 0
+ {ai_move,   0.000, NULL}, // frame 1
+ {ai_move,   0.000, NULL}, // frame 2
+ {ai_move,   0.000, NULL}, // frame 3
+ {ai_move,   0.000, NULL}, // frame 4
+ {ai_move,   0.000, NULL}, // frame 5
+ {ai_move,   0.000, NULL}, // frame 6
+ {ai_move,   0.000, NULL}, // frame 7
+ {ai_move,   0.000, NULL}, // frame 8
+ {ai_move,   0.000, NULL}, // frame 9
+ {ai_move,   0.000, NULL}, // frame 10
+ {ai_move,   0.000, NULL}, // frame 11
+ {ai_move,   0.000, NULL} // frame 12
 };
 mmove_t gekk_move_rduck = {FRAME_rduck_01, FRAME_rduck_13, gekk_frames_rduck, gekk_run_start};
 
@@ -1554,7 +1533,6 @@ void SP_monster_gekk (edict_t *self)
 	
 }
 
-
 void water_to_land (edict_t *self)
 {
 	self->flags &= ~FL_SWIM;
@@ -1578,3 +1556,4 @@ void land_to_water (edict_t *self)
 	VectorSet (self->mins, -24, -24, -24);
 	VectorSet (self->maxs, 24, 24, 16);
 }
+
