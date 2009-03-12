@@ -239,7 +239,7 @@ void plat_CalcAcceleratedMove(moveinfo_t *moveinfo)
 	}
 
 	moveinfo->decel_distance = decel_dist;
-};
+}
 
 void plat_Accelerate (moveinfo_t *moveinfo)
 {
@@ -310,7 +310,7 @@ void plat_Accelerate (moveinfo_t *moveinfo)
 
 	// we are at constant velocity (move_speed)
 	return;
-};
+}
 
 void Think_AccelMove (edict_t *ent)
 {
@@ -434,9 +434,9 @@ void plat_spawn_inside_trigger (edict_t *ent)
 	edict_t	*trigger;
 	vec3_t	tmin, tmax;
 
-//
-// middle trigger
-//	
+	//
+	// middle trigger
+	//	
 	trigger = G_Spawn();
 	trigger->touch = Touch_Plat_Center;
 	trigger->movetype = MOVETYPE_NONE;
@@ -626,8 +626,6 @@ void SP_func_rotating (edict_t *ent)
 		ent->speed = 100;
 	if (!ent->dmg)
 		ent->dmg = 2;
-
-//	ent->moveinfo.sound_middle = "doors/hydro1.wav";
 
 	ent->use = rotating_use;
 	if (ent->dmg)
@@ -956,7 +954,7 @@ void door_use (edict_t *self, edict_t *other, edict_t *activator)
 		ent->touch = NULL;
 		door_go_up (ent, activator);
 	}
-};
+}
 
 void Touch_DoorTrigger (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
@@ -1074,8 +1072,8 @@ void door_blocked  (edict_t *self, edict_t *other)
 		return;
 
 
-// if a door has a negative wait, it would never come back if blocked,
-// so let it just squash the object to death real fast
+	// if a door has a negative wait, it would never come back if blocked,
+	// so let it just squash the object to death real fast
 	if (self->moveinfo.wait >= 0)
 	{
 		if (self->moveinfo.state == STATE_DOWN)
@@ -1517,7 +1515,6 @@ void train_next (edict_t *self)
 again:
 	if (!self->target)
 	{
-//		gi.dprintf ("train_next: no next target\n");
 		return;
 	}
 
@@ -1683,7 +1680,6 @@ void trigger_elevator_use (edict_t *self, edict_t *other, edict_t *activator)
 
 	if (self->movetarget->nextthink)
 	{
-//		gi.dprintf("elevator busy\n");
 		return;
 	}
 

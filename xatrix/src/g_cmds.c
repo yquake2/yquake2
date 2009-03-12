@@ -23,7 +23,6 @@ char *ClientTeam (edict_t *ent)
 		return value;
 	}
 
-	// if ((int)(dmflags->value) & DF_SKINTEAMS)
 	return ++p;
 }
 
@@ -139,7 +138,7 @@ void Cmd_Give_f (edict_t *ent)
 	qboolean	give_all;
 	edict_t		*it_ent;
 
-	if (deathmatch->value && !sv_cheats->value)
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -290,7 +289,7 @@ void Cmd_God_f (edict_t *ent)
 {
 	char	*msg;
 
-	if (deathmatch->value && !sv_cheats->value)
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -319,7 +318,7 @@ void Cmd_Notarget_f (edict_t *ent)
 {
 	char	*msg;
 
-	if (deathmatch->value && !sv_cheats->value)
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -346,7 +345,7 @@ void Cmd_Noclip_f (edict_t *ent)
 {
 	char	*msg;
 
-	if (deathmatch->value && !sv_cheats->value)
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -374,7 +373,6 @@ Cmd_Use_f
 Use an inventory item
 ==================
 */
-
 void Cmd_Use_f (edict_t *ent)
 {
 	int			index;
@@ -393,7 +391,6 @@ void Cmd_Use_f (edict_t *ent)
 		gi.cprintf (ent, PRINT_HIGH, "Item is not usable.\n");
 		return;
 	}
-
 	index = ITEM_INDEX(it);
 	if (!ent->client->pers.inventory[index])
 	{
@@ -455,7 +452,6 @@ void Cmd_Drop_f (edict_t *ent)
 		gi.cprintf (ent, PRINT_HIGH, "Item is not dropable.\n");
 		return;
 	}
-
 	index = ITEM_INDEX(it);
 	if (!ent->client->pers.inventory[index])
 	{
@@ -554,7 +550,6 @@ void Cmd_InvUse_f (edict_t *ent)
 Cmd_WeapPrev_f
 =================
 */
-
 void Cmd_WeapPrev_f (edict_t *ent)
 {
 	gclient_t	*cl;
@@ -591,7 +586,6 @@ void Cmd_WeapPrev_f (edict_t *ent)
 Cmd_WeapNext_f
 =================
 */
-#if 0
 void Cmd_WeapNext_f (edict_t *ent)
 {
 	gclient_t	*cl;
@@ -610,38 +604,6 @@ void Cmd_WeapNext_f (edict_t *ent)
 	for (i=1 ; i<=MAX_ITEMS ; i++)
 	{
 		index = (selected_weapon + MAX_ITEMS - i)%MAX_ITEMS;
-		if (!cl->pers.inventory[index])
-			continue;
-		it = &itemlist[index];
-		if (!it->use)
-			continue;
-		if (! (it->flags & IT_WEAPON) )
-			continue;
-		it->use (ent, it);
-		if (cl->pers.weapon == it)
-			return;	// successful
-	}
-}
-#endif
-void Cmd_WeapNext_f (edict_t *ent)
-{
-	gclient_t	*cl;
-	int			i, index;
-	gitem_t		*it;
-	int			selected_weapon;
-
-	cl = ent->client;
-
-	if (!cl->pers.weapon)
-		return;
-
-	selected_weapon = ITEM_INDEX(cl->pers.weapon);
-
-	// scan  for the next valid one
-	for (i=1 ; i<=MAX_ITEMS ; i++)
-	{
-		index = (selected_weapon + MAX_ITEMS - i)%MAX_ITEMS;
-		
 		if (!cl->pers.inventory[index])
 			continue;
 		it = &itemlist[index];
@@ -715,7 +677,8 @@ Cmd_Kill_f
 */
 void Cmd_Kill_f (edict_t *ent)
 {
-	if((level.time - ent->client->respawn_time) < 5)
+	if((level.time - ent->client->respawn_time) < 5 || 
+	   (ent->client->resp.spectator))
 		return;
 	ent->flags &= ~FL_GODMODE;
 	ent->health = 0;
@@ -956,7 +919,7 @@ void Cmd_PlayerList_f(edict_t *ent)
 			e2->client->ping,
 			e2->client->resp.score,
 			e2->client->pers.netname,
-			e2->client->pers.spectator ? " (spectator)" : "");
+			e2->client->resp.spectator ? " (spectator)" : "");
 		if (strlen(text) + strlen(st) > sizeof(text) - 50) {
 			sprintf(text+strlen(text), "And more...\n");
 			gi.cprintf(ent, PRINT_HIGH, "%s", text);
@@ -1058,3 +1021,4 @@ void ClientCommand (edict_t *ent)
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }
+
