@@ -34,7 +34,7 @@ static void SP_FixCoopSpots (edict_t *self)
 		VectorSubtract(self->s.origin, spot->s.origin, d);
 		if (VectorLength(d) < 384)
 		{
-			if ((!self->targetname) || stricmp(self->targetname, spot->targetname) != 0)
+			if ((!self->targetname) || Q_stricmp(self->targetname, spot->targetname) != 0)
 			{
 //				gi.dprintf("FixCoopSpots changed %s at %s targetname from %s to %s\n", self->classname, vtos(self->s.origin), self->targetname, spot->targetname);
 				self->targetname = spot->targetname;
@@ -52,7 +52,7 @@ static void SP_CreateCoopSpots (edict_t *self)
 {
 	edict_t	*spot;
 
-	if(stricmp(level.mapname, "security") == 0)
+	if(Q_stricmp(level.mapname, "security") == 0)
 	{
 		spot = G_Spawn();
 		spot->classname = "info_player_coop";
@@ -90,7 +90,7 @@ void SP_info_player_start(edict_t *self)
 {
 	if (!coop->value)
 		return;
-	if(stricmp(level.mapname, "security") == 0)
+	if(Q_stricmp(level.mapname, "security") == 0)
 	{
 		// invoke one of our gross, ugly, disgusting hacks
 		self->think = SP_CreateCoopSpots;
@@ -123,20 +123,20 @@ void SP_info_player_coop(edict_t *self)
 		return;
 	}
 
-	if((stricmp(level.mapname, "jail2") == 0)   ||
-	   (stricmp(level.mapname, "jail4") == 0)   ||
-	   (stricmp(level.mapname, "mine1") == 0)   ||
-	   (stricmp(level.mapname, "mine2") == 0)   ||
-	   (stricmp(level.mapname, "mine3") == 0)   ||
-	   (stricmp(level.mapname, "mine4") == 0)   ||
-	   (stricmp(level.mapname, "lab") == 0)     ||
-	   (stricmp(level.mapname, "boss1") == 0)   ||
-	   (stricmp(level.mapname, "fact3") == 0)   ||
-	   (stricmp(level.mapname, "biggun") == 0)  ||
-	   (stricmp(level.mapname, "space") == 0)   ||
-	   (stricmp(level.mapname, "command") == 0) ||
-	   (stricmp(level.mapname, "power2") == 0) ||
-	   (stricmp(level.mapname, "strike") == 0))
+	if((Q_stricmp(level.mapname, "jail2") == 0)   ||
+	   (Q_stricmp(level.mapname, "jail4") == 0)   ||
+	   (Q_stricmp(level.mapname, "mine1") == 0)   ||
+	   (Q_stricmp(level.mapname, "mine2") == 0)   ||
+	   (Q_stricmp(level.mapname, "mine3") == 0)   ||
+	   (Q_stricmp(level.mapname, "mine4") == 0)   ||
+	   (Q_stricmp(level.mapname, "lab") == 0)     ||
+	   (Q_stricmp(level.mapname, "boss1") == 0)   ||
+	   (Q_stricmp(level.mapname, "fact3") == 0)   ||
+	   (Q_stricmp(level.mapname, "biggun") == 0)  ||
+	   (Q_stricmp(level.mapname, "space") == 0)   ||
+	   (Q_stricmp(level.mapname, "command") == 0) ||
+	   (Q_stricmp(level.mapname, "power2") == 0) ||
+	   (Q_stricmp(level.mapname, "strike") == 0))
 	{
 		// invoke one of our gross, ugly, disgusting hacks
 		self->think = SP_FixCoopSpots;
@@ -541,7 +541,6 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 
 	self->maxs[2] = -8;
 
-//	self->solid = SOLID_NOT;
 	self->svflags |= SVF_DEADMONSTER;
 
 	if (!self->deadflag)
@@ -634,8 +633,6 @@ but is called after each death and level change in deathmatch
 void InitClientPersistant (gclient_t *client)
 {
 	gitem_t		*item;
-
-//	gi.dprintf("InitClientPersistant()\n");
 
 	memset (&client->pers, 0, sizeof(client->pers));
 
@@ -1158,17 +1155,10 @@ void PutClientInServer (edict_t *ent)
 	}
 	else if (coop->value)
 	{
-//		int			n;
 		char		userinfo[MAX_INFO_STRING];
 
 		resp = client->resp;
 		memcpy (userinfo, client->pers.userinfo, sizeof(userinfo));
-		// this is kind of ugly, but it's how we want to handle keys in coop
-//		for (n = 0; n < game.num_items; n++)
-//		{
-//			if (itemlist[n].flags & IT_KEY)
-//				resp.coop_respawn.inventory[n] = client->pers.inventory[n];
-//		}
 		resp.coop_respawn.game_helpchanged = client->pers.game_helpchanged;
 		resp.coop_respawn.helpchanged = client->pers.helpchanged;
 		client->pers = resp.coop_respawn;
@@ -1211,7 +1201,7 @@ void PutClientInServer (edict_t *ent)
 	ent->waterlevel = 0;
 	ent->watertype = 0;
 	ent->flags &= ~FL_NO_KNOCKBACK;
-	ent->svflags &= ~SVF_DEADMONSTER;
+	ent->svflags = 0;
 
 	VectorCopy (mins, ent->mins);
 	VectorCopy (maxs, ent->maxs);
@@ -1241,9 +1231,12 @@ void PutClientInServer (edict_t *ent)
 
 	// clear entity state values
 	ent->s.effects = 0;
-	ent->s.skinnum = ent - g_edicts - 1;
 	ent->s.modelindex = 255;		// will use the skin specified model
 	ent->s.modelindex2 = 255;		// custom gun model
+	// sknum is player num and weapon number
+	// weapon number will be added in changeweapon
+	ent->s.skinnum = ent - g_edicts - 1;
+
 	ent->s.frame = 0;
 	VectorCopy (spawn_origin, ent->s.origin);
 	ent->s.origin[2] += 1;	// make sure off ground
@@ -1251,7 +1244,9 @@ void PutClientInServer (edict_t *ent)
 
 	// set the delta angle
 	for (i=0 ; i<3 ; i++)
+	{
 		client->ps.pmove.delta_angles[i] = ANGLE2SHORT(spawn_angles[i] - client->resp.cmd_angles[i]);
+	}
 
 	ent->s.angles[PITCH] = 0;
 	ent->s.angles[YAW] = spawn_angles[YAW];
@@ -1265,7 +1260,6 @@ void PutClientInServer (edict_t *ent)
 
 		client->resp.spectator = true;
 
-
 		ent->movetype = MOVETYPE_NOCLIP;
 		ent->solid = SOLID_NOT;
 		ent->svflags |= SVF_NOCLIENT;
@@ -1273,9 +1267,7 @@ void PutClientInServer (edict_t *ent)
 		gi.linkentity (ent);
 		return;
 	} else
-
 		client->resp.spectator = false;
-
 
 	if (!KillBox (ent))
 	{	// could't spawn in?
@@ -1417,7 +1409,6 @@ void ClientUserinfoChanged (edict_t *ent, char *userinfo)
 	// set spectator
 	s = Info_ValueForKey (userinfo, "spectator");
 	// spectators are only supported in deathmatch
-
 	if (deathmatch->value && *s && strcmp(s, "0"))
 		ent->client->pers.spectator = true;
 	else
@@ -1511,6 +1502,7 @@ qboolean ClientConnect (edict_t *ent, char *userinfo)
 		}
 	}
 
+
 	// they can connect
 	ent->client = game.clients + (ent - g_edicts - 1);
 
@@ -1523,7 +1515,6 @@ qboolean ClientConnect (edict_t *ent, char *userinfo)
 		if (!game.autosaved || !ent->client->pers.weapon)
 			InitClientPersistant (ent->client);
 	}
-
 
 	ClientUserinfoChanged (ent, userinfo);
 
@@ -1663,7 +1654,6 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		if (memcmp(&client->old_pmove, &pm.s, sizeof(pm.s)))
 		{
 			pm.snapinitial = true;
-	//		gi.dprintf ("pmove changed!\n");
 		}
 
 		pm.cmd = *ucmd;
@@ -1734,8 +1724,8 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 				continue;
 			other->touch (other, ent, NULL, NULL);
 		}
-	}
 
+	}
 
 	client->oldbuttons = client->buttons;
 	client->buttons = ucmd->buttons;
@@ -1805,22 +1795,14 @@ void ClientBeginServerFrame (edict_t *ent)
 	client = ent->client;
 
 	if (deathmatch->value &&
-
 		client->pers.spectator != client->resp.spectator &&
-
 		(level.time - client->respawn_time) >= 5) {
-
 		spectator_respawn(ent);
-
 		return;
-
 	}
-
-
 
 	// run weapon animations if it hasn't been done by a ucmd_t
 	if (!client->weapon_thunk && !client->resp.spectator)
-
 		Think_Weapon (ent);
 	else
 		client->weapon_thunk = false;
@@ -1853,3 +1835,4 @@ void ClientBeginServerFrame (edict_t *ent)
 
 	client->latched_buttons = 0;
 }
+

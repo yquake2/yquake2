@@ -455,6 +455,11 @@ void Weapon_Generic (edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST,
 {
 	int		n;
 
+	if(ent->deadflag || ent->s.modelindex != 255) // VWep animations screw up corpses
+	{
+		return;
+	}
+
 	if (ent->client->weaponstate == WEAPON_DROPPING)
 	{
 		if (ent->client->ps.gunframe == FRAME_DEACTIVATE_LAST)
@@ -638,6 +643,11 @@ void weapon_grenade_fire (edict_t *ent, qboolean held)
 		ent->client->pers.inventory[ent->client->ammo_index]--;
 
 	ent->client->grenade_time = level.time + 1.0;
+
+	if(ent->deadflag || ent->s.modelindex != 255) // VWep animations screw up corpses
+	{
+		return;
+	}
 
 	if (ent->health <= 0)
 		return;
@@ -879,7 +889,6 @@ void Weapon_RocketLauncher (edict_t *ent)
 		
 
 }
-
 
 /*
 ======================================================================
@@ -1637,7 +1646,6 @@ void weapon_phalanx_fire (edict_t *ent)
 	vec3_t		forward, right, up;
 	vec3_t		offset;
 	vec3_t		v;
-	int			kick = 12;
 	int			damage;
 	float		damage_radius;
 	int			radius_damage;
@@ -1863,3 +1871,4 @@ void Weapon_Trap (edict_t *ent)
 		}
 	}
 }
+

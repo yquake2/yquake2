@@ -209,7 +209,7 @@ void SV_CalcViewOffset (edict_t *ent)
 	vec3_t		v;
 
 
-//===================================
+	//===================================
 
 	// base angles
 	angles = ent->client->ps.kick_angles;
@@ -270,7 +270,7 @@ void SV_CalcViewOffset (edict_t *ent)
 		angles[ROLL] += delta;
 	}
 
-//===================================
+	//===================================
 
 	// base origin
 
@@ -358,7 +358,6 @@ void SV_CalcGunOffset (edict_t *ent)
 
 	// gun height
 	VectorClear (ent->client->ps.gunoffset);
-//	ent->ps->gunorigin[2] += bob;
 
 	// gun_x / gun_y / gun_z are development tools
 	for (i=0 ; i<3 ; i++)
@@ -771,7 +770,6 @@ void G_SetClientEffects (edict_t *ent)
 		if (remaining > 30 || (remaining & 4) )
 			ent->s.effects |= EF_QUAD;
 	}
-
 	
 	if (ent->client->invincible_framenum > level.framenum)
 	{
