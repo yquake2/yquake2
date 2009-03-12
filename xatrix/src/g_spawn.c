@@ -345,7 +345,7 @@ void ED_CallSpawn (edict_t *ent)
 ED_NewString
 =============
 */
-char *ED_NewString (char *string)
+char *ED_NewString (const char *string)
 {
 	char	*newb, *new_p;
 	int		i,l;
@@ -384,7 +384,7 @@ Takes a key/value pair and sets the binary values
 in an edict
 ===============
 */
-void ED_ParseField (char *key, char *value, edict_t *ent)
+void ED_ParseField (const char *key, const char *value, edict_t *ent)
 {
 	field_t	*f;
 	byte	*b;
@@ -425,6 +425,8 @@ void ED_ParseField (char *key, char *value, edict_t *ent)
 				break;
 			case F_IGNORE:
 				break;
+			default:
+				break;
 			}
 			return;
 		}
@@ -444,15 +446,15 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 {
 	qboolean	init;
 	char		keyname[256];
-	char		*com_token;
+	const char	*com_token;
 
 	init = false;
 	memset (&st, 0, sizeof(st));
 
-// go through all the dictionary pairs
+	// go through all the dictionary pairs
 	while (1)
 	{	
-	// parse key
+		// parse key
 		com_token = COM_Parse (&data);
 		if (com_token[0] == '}')
 			break;
@@ -461,7 +463,7 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 
 		strncpy (keyname, com_token, sizeof(keyname)-1);
 		
-	// parse value	
+		// parse value	
 		com_token = COM_Parse (&data);
 		if (!data)
 			gi.error ("ED_ParseEntity: EOF without closing brace");
@@ -471,8 +473,8 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 
 		init = true;	
 
-	// keynames with a leading underscore are used for utility comments,
-	// and are immediately discarded by quake
+		// keynames with a leading underscore are used for utility comments,
+		// and are immediately discarded by quake
 		if (keyname[0] == '_')
 			continue;
 
@@ -546,11 +548,11 @@ Creates a server's entity / program execution context by
 parsing textual entity definitions out of an ent file.
 ==============
 */
-void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
+void SpawnEntities (const char *mapname, char *entities, const char *spawnpoint)
 {
 	edict_t		*ent;
 	int			inhibit;
-	char		*com_token;
+	const char	*com_token;
 	int			i;
 	float		skill_level;
 
@@ -596,7 +598,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 		entities = ED_ParseEdict (entities, ent);
 
 		// yet another map hack
-		if (!stricmp(level.mapname, "command") && !stricmp(ent->classname, "trigger_once") && !stricmp(ent->model, "*27"))
+		if (!Q_stricmp(level.mapname, "command") && !Q_stricmp(ent->classname, "trigger_once") && !Q_stricmp(ent->model, "*27"))
 			ent->spawnflags &= ~SPAWNFLAG_NOT_HARD;
 
 		// remove things (except the world) from different skill levels or deathmatch
@@ -633,16 +635,6 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 	gi.dprintf ("%i entities inhibited\n", inhibit);
 
-#ifdef DEBUG
-	i = 1;
-	ent = EDICT_NUM(i);
-	while (i < globals.num_edicts) {
-		if (ent->inuse != 0 || ent->inuse != 1)
-			Com_DPrintf("Invalid entity %d\n", i);
-		i++, ent++;
-	}
-#endif
-
 	G_FindTeams ();
 
 	PlayerTrail_Init ();
@@ -650,29 +642,6 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 
 //===================================================================
-
-#if 0
-	// cursor positioning
-	xl <value>
-	xr <value>
-	yb <value>
-	yt <value>
-	xv <value>
-	yv <value>
-
-	// drawing
-	statpic <name>
-	pic <stat>
-	num <fieldwidth> <stat>
-	string <stat>
-
-	// control
-	if <stat>
-	ifeq <stat> <value>
-	ifbit <stat> <value>
-	endif
-
-#endif
 
 char *single_statusbar = 
 "yb	-24 "
@@ -972,9 +941,9 @@ void SP_worldspawn (edict_t *ent)
 	gi.modelindex ("models/objects/gibs/skull/tris.md2");
 	gi.modelindex ("models/objects/gibs/head2/tris.md2");
 
-//
-// Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
-//
+	//
+	// Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
+	//
 
 	// 0 normal
 	gi.configstring(CS_LIGHTS+0, "m");

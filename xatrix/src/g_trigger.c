@@ -367,7 +367,7 @@ trigger_push
 
 ==============================================================================
 */
-#if 0
+
 #define PUSH_ONCE		1
 
 static int windsound;
@@ -397,52 +397,10 @@ void trigger_push_touch (edict_t *self, edict_t *other, cplane_t *plane, csurfac
 		G_FreeEdict (self);
 }
 
-void SP_trigger_push (edict_t *self)
-{
-	InitTrigger (self);
-	windsound = gi.soundindex ("misc/windfly.wav");
-	self->touch = trigger_push_touch;
-	if (!self->speed)
-		self->speed = 1000;
-	gi.linkentity (self);
-}
-#endif
-
-// RAFAEL
-#define PUSH_ONCE  1
-
-static int windsound;
-
-void trigger_push_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
-{
-	if (strcmp(other->classname, "grenade") == 0)
-	{
-		VectorScale (self->movedir, self->speed * 10, other->velocity);
-	}
-	else if (other->health > 0)
-	{	
-		VectorScale (self->movedir, self->speed * 10, other->velocity);
-
-		if (other->client)
-		{
-			// don't take falling damage immediately from this
-			VectorCopy (other->velocity, other->client->oldvelocity);
-			if (other->fly_sound_debounce_time < level.time)
-			{
-				other->fly_sound_debounce_time = level.time + 1.5;
-				gi.sound (other, CHAN_AUTO, windsound, 1, ATTN_NORM, 0);
-			}
-		}
-	}
-	if (self->spawnflags & PUSH_ONCE)
-	G_FreeEdict (self);
-}
-
 
 /*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE PUSH_PLUS PUSH_RAMP
 Pushes the player
-"speed"  defaults to 1000
-"wait"  defaults to 10 must use PUSH_PLUS  used for on
+"speed"		defaults to 1000
 */
 
 void trigger_push_active (edict_t *self);
@@ -664,7 +622,7 @@ void trigger_monsterjump_touch (edict_t *self, edict_t *other, cplane_t *plane, 
 	if ( !(other->svflags & SVF_MONSTER))
 		return;
 
-// set XY even if not on ground, so the jump will clear lips
+	// set XY even if not on ground, so the jump will clear lips
 	other->velocity[0] = self->movedir[0] * self->speed;
 	other->velocity[1] = self->movedir[1] * self->speed;
 	

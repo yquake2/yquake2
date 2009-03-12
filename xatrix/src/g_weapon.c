@@ -311,11 +311,7 @@ void blaster_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *
 	else
 	{
 		gi.WriteByte (svc_temp_entity);
-		// RAFAEL
-		//if (self->s.effects & TE_BLUEHYPERBLASTER)
-		//	gi.WriteByte (TE_BLUEHYPERBLASTER);
-		//else
-			gi.WriteByte (TE_BLASTER);
+		gi.WriteByte (TE_BLASTER);
 		gi.WritePosition (self->s.origin);
 		if (!plane)
 			gi.WriteDir (vec3_origin);
@@ -688,7 +684,7 @@ void fire_rail (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick
 	vec3_t		end;
 	trace_t		tr;
 	edict_t		*ignore;
-	int			mask;
+	int		mask;
 	qboolean	water;
 
 	VectorMA (start, 8192, aimdir, end);
@@ -696,29 +692,28 @@ void fire_rail (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick
 	ignore = self;
 	water = false;
 	mask = MASK_SHOT|CONTENTS_SLIME|CONTENTS_LAVA;
-	while (ignore)
-	{
-		tr = gi.trace (from, NULL, NULL, end, ignore, mask);
-
-		if (tr.contents & (CONTENTS_SLIME|CONTENTS_LAVA))
-		{
-			mask &= ~(CONTENTS_SLIME|CONTENTS_LAVA);
-			water = true;
-		}
-		else
-		{
-			//ZOID--added so rail goes through SOLID_BBOX entities (gibs, etc)
-			if ((tr.ent->svflags & SVF_MONSTER) || (tr.ent->client) ||
-				(tr.ent->solid == SOLID_BBOX))
-				ignore = tr.ent;
-			else
-				ignore = NULL;
-
-			if ((tr.ent != self) && (tr.ent->takedamage))
-				T_Damage (tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, 0, MOD_RAILGUN);
-		}
-
-		VectorCopy (tr.endpos, from);
+	while (ignore) {
+	  tr = gi.trace (from, NULL, NULL, end, ignore, mask);
+	  
+	  if (tr.contents & (CONTENTS_SLIME|CONTENTS_LAVA)) {
+	    mask &= ~(CONTENTS_SLIME|CONTENTS_LAVA);
+	    water = true;
+	  }
+	  else {
+	    //ZOID--added so rail goes through SOLID_BBOX entities (gibs, etc)
+	    if ((tr.ent->svflags & SVF_MONSTER) || (tr.ent->client) ||
+		(tr.ent->solid == SOLID_BBOX))
+	      ignore = tr.ent;
+	    else
+	      ignore = NULL;
+	    
+	    if ((tr.ent != self) && (tr.ent->takedamage))
+	      T_Damage (tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, 0, MOD_RAILGUN);
+	    else
+	      ignore = NULL;
+	  }
+	  
+	  VectorCopy (tr.endpos, from);
 	}
 
 	// send gun puff / flash
@@ -727,7 +722,6 @@ void fire_rail (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick
 	gi.WritePosition (start);
 	gi.WritePosition (tr.endpos);
 	gi.multicast (self->s.origin, MULTICAST_PHS);
-//	gi.multicast (start, MULTICAST_PHS);
 	if (water)
 	{
 		gi.WriteByte (svc_temp_entity);
@@ -950,7 +944,6 @@ void fire_bfg (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, f
 /*
 	fire_ionripper
 */
-
 void ionripper_sparks (edict_t *self)
 {
 	gi.WriteByte (svc_temp_entity);
@@ -1043,8 +1036,6 @@ void fire_ionripper (edict_t *self, vec3_t start, vec3_t dir, int damage, int sp
 /*
 fire_heat
 */
-
-
 void heat_think (edict_t *self)
 {
 	edict_t		*target = NULL;
@@ -1071,23 +1062,6 @@ void heat_think (edict_t *self)
 		if (!visible (self, target))
 			continue;
 		
-		// if we need to reduce the tracking cone
-		/*
-		{
-			vec3_t	vec;
-			float	dot;
-			vec3_t	forward;
-	
-			AngleVectors (self->s.angles, forward, NULL, NULL);
-			VectorSubtract (target->s.origin, self->s.origin, vec);
-			VectorNormalize (vec);
-			dot = DotProduct (vec, forward);
-	
-			if (dot > 0.6)
-				continue;
-		}
-		*/
-
 		if (!infront (self, target))
 			continue;
 
@@ -1158,7 +1132,6 @@ void fire_heat (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, 
 /*
 	fire_plasma
 */
-
 void plasma_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
 	vec3_t		origin;
@@ -1457,8 +1430,6 @@ void fire_trap (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int spee
 	trap->movetype = MOVETYPE_BOUNCE;
 	trap->clipmask = MASK_SHOT;
 	trap->solid = SOLID_BBOX;
-//	VectorClear (trap->mins);
-//	VectorClear (trap->maxs);
 	VectorSet (trap->mins, -4, -4, 0);
 	VectorSet (trap->maxs, 4, 4, 8);
 	trap->s.modelindex = gi.modelindex ("models/weapons/z_trap/tris.md2");

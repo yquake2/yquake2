@@ -411,3 +411,4 @@ void SP_turret_driver (edict_t *self)
 
 	gi.linkentity (self);
 }
+
