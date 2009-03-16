@@ -475,7 +475,17 @@ qboolean SV_Push (edict_t *pusher, vec3_t move, vec3_t amove)
 			VectorSubtract (check->s.origin, pusher->s.origin, org);
 			org2[0] = DotProduct (org, forward);
 			org2[1] = -DotProduct (org, right);
-			org2[2] = DotProduct (org, up);
+
+			Com_Printf("%i\n", pusher->s.number);
+
+			if (((pusher->s.number == 285) &&
+					(Q_strcasecmp(level.mapname, "xcompnd2") == 0)) ||
+					((pusher->s.number == 520) &&
+					(Q_strcasecmp(level.mapname, "xsewer2") == 0)))
+				org2[2] = DotProduct (org, up) + 2;
+			else
+				org2[2] = DotProduct (org, up);
+
 			VectorSubtract (org2, org, move2);
 			VectorAdd (check->s.origin, move2, check->s.origin);
 
