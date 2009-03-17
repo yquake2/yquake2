@@ -476,8 +476,8 @@ qboolean SV_Push (edict_t *pusher, vec3_t move, vec3_t amove)
 			org2[0] = DotProduct (org, forward);
 			org2[1] = -DotProduct (org, right);
 
-			Com_Printf("%i\n", pusher->s.number);
-
+            // Quirk for blocking Elevators when running
+			// under amd64
 			if (((pusher->s.number == 285) &&
 					(Q_strcasecmp(level.mapname, "xcompnd2") == 0)) ||
 					((pusher->s.number == 520) &&
