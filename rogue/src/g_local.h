@@ -21,15 +21,8 @@
 
 //==================================================================
 
-#ifndef _WIN32
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
-#ifdef __sun__
-#define _isnan(a) (NaN((a)))
-#else
-#define _isnan(a) (isnan(a))
-#endif
-#endif
 
 //==================================================================
 
@@ -495,9 +488,8 @@ typedef struct
 	int			power_armor_type;
 	int			power_armor_power;
 
-//ROGUE
+	//ROGUE
 	qboolean	(*blocked)(edict_t *self, float dist);
-//	edict_t		*last_hint;			// last hint_path the monster touched
 	float		last_hint_time;		// last time the monster checked for hintpaths.
 	edict_t		*goal_hint;			// which hint_path we're trying to get to
 	int			medicTries;
@@ -506,9 +498,6 @@ typedef struct
 	void		(*duck)(edict_t *self, float eta);
 	void		(*unduck)(edict_t *self);
 	void		(*sidestep)(edict_t *self);
-	//  while abort_duck would be nice, only monsters which duck but don't sidestep would use it .. only the brain
-	//  not really worth it.  sidestep is an implied abort_duck
-//	void		(*abort_duck)(edict_t *self);
 	float		base_height;
 	float		next_duck_time;
 	float		duck_wait_time;
@@ -526,7 +515,7 @@ typedef struct
 	float		quad_framenum;
 	float		invincible_framenum;
 	float		double_framenum;
-//ROGUE
+	//ROGUE
 } monsterinfo_t;
 
 // ROGUE
@@ -612,10 +601,10 @@ extern	int	meansOfDeath;
 
 extern	edict_t			*g_edicts;
 
-#define	FOFS(x) (int)&(((edict_t *)0)->x)
-#define	STOFS(x) (int)&(((spawn_temp_t *)0)->x)
-#define	LLOFS(x) (int)&(((level_locals_t *)0)->x)
-#define	CLOFS(x) (int)&(((gclient_t *)0)->x)
+#define	FOFS(x) (size_t)&(((edict_t *)NULL)->x)
+#define	STOFS(x) (size_t)&(((spawn_temp_t *)NULL)->x)
+#define	LLOFS(x) (size_t)&(((level_locals_t *)NULL)->x)
+#define	CLOFS(x) (size_t)&(((gclient_t *)NULL)->x)
 
 #define random()	((rand () & 0x7fff) / ((float)0x7fff))
 #define crandom()	(2.0 * (random() - 0.5))
@@ -969,7 +958,6 @@ void GetChaseTarget(edict_t *ent);
 // g_newweap.c
 //
 //extern float nuke_framenum;
-
 void fire_flechette (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, int kick);
 void fire_prox (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed);		
 void fire_nuke (edict_t *self, vec3_t start, vec3_t aimdir, int speed);		
@@ -1215,7 +1203,6 @@ struct gclient_s
 //ROGUE
 	float		double_framenum;
 	float		ir_framenum;
-//	float		torch_framenum;
 	float		nuke_framenum;
 	float		tracker_pain_framenum;
 
@@ -1373,8 +1360,8 @@ struct edict_s
 	moveinfo_t		moveinfo;
 	monsterinfo_t	monsterinfo;
 
-//=========
-//ROGUE
+	//=========
+	//ROGUE
 	int			plat2flags;
 	vec3_t		offset;
 	vec3_t		gravityVector;
@@ -1385,8 +1372,8 @@ struct edict_s
 	int			hint_chain_id;
 	// FIXME - debug help!
 	float		lastMoveTime;
-//ROGUE
-//=========
+	//ROGUE
+	//=========
 };
 
 //=============
@@ -1441,12 +1428,4 @@ int  DBall_ChangeKnockback (edict_t *targ, edict_t *attacker, int knockback, int
 int  DBall_ChangeDamage (edict_t *targ, edict_t *attacker, int damage, int mod);
 void DBall_PostInitSetup (void);
 int  DBall_CheckDMRules (void);
-//void Tag_PlayerDeath (edict_t *targ, edict_t *inflictor, edict_t *attacker);
-//void Tag_Score (edict_t *attacker, edict_t *victim, int scoreChange);
-//void Tag_PlayerEffects (edict_t *ent);
-//void Tag_DogTag (edict_t *ent, edict_t *killer, char **pic);
-//void Tag_PlayerDisconnect (edict_t *ent);
-//int  Tag_ChangeDamage (edict_t *targ, edict_t *attacker, int damage);
 
-//ROGUE
-//============
