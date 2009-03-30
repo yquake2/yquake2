@@ -8,8 +8,6 @@
 #  - SDL OpenGL-Renderer (ref_gl.so)                     #
 #  - games:                                              #
 #    - Quake II (quake2)                                 #
-#    - Quake II - The Reckoning (xatrix)                 #
-#    - Quake II - Ground Zero (rogue)                    #
 #    - Quake II - Threewave Capture The Flag (ctf)       #
 #                                                        #
 # Dependencies:                                          #
