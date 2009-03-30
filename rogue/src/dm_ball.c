@@ -53,7 +53,6 @@ int DBall_CheckDMRules (void)
 }
 
 //==================
-//==================
 void DBall_ClientBegin (edict_t *ent)
 {
 	int			team1, team2, unassigned;
@@ -109,7 +108,6 @@ void DBall_ClientBegin (edict_t *ent)
 }
 
 //==================
-//==================
 void DBall_SelectSpawnPoint (edict_t *ent, vec3_t origin, vec3_t angles)
 {
 	edict_t	*bestspot;
@@ -154,7 +152,6 @@ void DBall_SelectSpawnPoint (edict_t *ent, vec3_t origin, vec3_t angles)
 }
 
 //==================
-//==================
 void DBall_GameInit (void)
 {
 	// we don't want a minimum speed for friction to take effect.
@@ -172,14 +169,13 @@ void DBall_GameInit (void)
 }
 
 //==================
-//==================
 void DBall_PostInitSetup (void)
 {
 	edict_t		*e;
 
 	e=NULL;
 	// turn teleporter destinations nonsolid.
-	while(e = G_Find (e, FOFS(classname), "misc_teleporter_dest"))
+	while(e = G_Find(e, FOFS(classname), "misc_teleporter_dest"))
 	{
 		e->solid = SOLID_NOT;
 		gi.linkentity (e);
@@ -214,7 +210,6 @@ int DBall_ChangeDamage (edict_t *targ, edict_t *attacker, int damage, int mod)
 	return damage;
 }
 
-//==================
 //==================
 int DBall_ChangeKnockback (edict_t *targ, edict_t *attacker, int knockback, int mod)
 {
@@ -271,7 +266,6 @@ int DBall_ChangeKnockback (edict_t *targ, edict_t *attacker, int knockback, int 
 		}
 	}
 
-//	gi.dprintf("mod: %d    knockback: %d\n", mod, knockback);
 	return knockback;
 }
 
@@ -355,7 +349,6 @@ void DBall_GoalTouch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t
 // **************************
 // Ball
 // **************************
-
 edict_t *PickBallStart (edict_t *ent)
 {
 	int		which, current;
@@ -416,8 +409,6 @@ void DBall_BallPain (edict_t *self, edict_t *other, float kick, int damage)
 {
 	self->enemy = other;
 	self->health = self->max_health;
-//	if(other->classname)
-//		gi.dprintf("hurt by %s -- %d\n", other->classname, self->health);
 }
 
 void DBall_BallDie (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point)
@@ -434,7 +425,6 @@ void DBall_BallDie (edict_t *self, edict_t *inflictor, edict_t *attacker, int da
 
 	// make it invisible and desolid until respawn time
 	self->solid = SOLID_NOT;
-//	self->s.modelindex = 0;
 	self->think = DBall_BallRespawn;
 	self->nextthink = level.time + 2;
 	gi.linkentity(self);
@@ -529,7 +519,6 @@ void SP_dm_dball_ball (edict_t *self)
 	}
 
 	dball_ball_entity = self;
-//	VectorCopy (self->s.origin, dball_ball_startpt);
 
 	self->s.modelindex = gi.modelindex ("models/objects/dball/tris.md2");
 	VectorSet (self->mins, -32, -32, -32);
@@ -676,3 +665,4 @@ void SP_dm_dball_goal (edict_t *self)
 	gi.linkentity (self);
 
 }
+
