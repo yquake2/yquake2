@@ -1,21 +1,5 @@
 # ------------------------------------------------------ #
-# Makefile for the "Yamagi Quake 2 Client"               #
-#                                                        #
-# Just type "make" to compile the                        #
-#  - SDL Client (quake2)                                 #
-#  - Server (quake2ded)                                  #
-#  - SDL Software-Renderer (ref_soft.so)                 #
-#  - SDL OpenGL-Renderer (ref_gl.so)                     #
-#  - games:                                              #
-#    - Quake II (quake2)                                 #
-#    - Quake II - The Reckoning (xatrix)                 #
-#    - Quake II - Ground Zero (rogue)                    #
-#    - Quake II - Threewave Capture The Flag (ctf)       #
-#                                                        #
-# Dependencies:                                          #
-#  - SDL 1.2                                             #
-#  - libX11                                              #
-#  - libGL                                               #
+# Makefile for the "The Reckoning" missionpack           #
 #                                                        #
 # Platforms:                                             #
 #  - Linux                                               #
@@ -96,7 +80,7 @@ clean:
 
 # ----------
 
-# Xatrix II object
+# Quake II - The Reckoning Object
 XATRIX_OBJS = \
     build/g_ai.o \
 	build/g_chase.o \
