@@ -1557,7 +1557,6 @@ void tesla_lava (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 
 	if (plane->normal)
 	{
-		VectorMA (ent->s.origin, -20.0, plane->normal, land_point);
 		if (gi.pointcontents (land_point) & (CONTENTS_SLIME|CONTENTS_LAVA))
 		{
 			tesla_blow (ent);
