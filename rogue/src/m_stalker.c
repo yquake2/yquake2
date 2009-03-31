@@ -39,7 +39,6 @@ extern qboolean SV_PointCloseEnough (edict_t *ent, vec3_t goal, float dist);
 extern void drawbbox(edict_t *self);
 
 //=========================
-//=========================
 qboolean stalker_ok_to_transition (edict_t *self)
 {
 	trace_t		trace;
@@ -82,7 +81,6 @@ qboolean stalker_ok_to_transition (edict_t *self)
 				return false;
 		}
 	}
-//	gi.dprintf("stalker_check_pt: main check ok\n");
 
 	end_height = trace.endpos[2];
 
@@ -95,7 +93,6 @@ qboolean stalker_ok_to_transition (edict_t *self)
 	trace = gi.trace( start, vec3_origin, vec3_origin, pt, self, MASK_MONSTERSOLID);
 	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 	{
-//		gi.dprintf("stalker_check_pt: absmin/absmin failed\n");
 		return false;
 	}
 	if(abs(end_height + margin - trace.endpos[2]) > 8)
@@ -108,7 +105,6 @@ qboolean stalker_ok_to_transition (edict_t *self)
 	trace = gi.trace( start, vec3_origin, vec3_origin, pt, self, MASK_MONSTERSOLID);
 	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 	{
-//		gi.dprintf("stalker_check_pt: absmax/absmin failed\n");
 		return false;
 	}
 	if(abs(end_height + margin - trace.endpos[2]) > 8)
@@ -121,7 +117,6 @@ qboolean stalker_ok_to_transition (edict_t *self)
 	trace = gi.trace( start, vec3_origin, vec3_origin, pt, self, MASK_MONSTERSOLID);
 	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 	{
-//		gi.dprintf("stalker_check_pt: absmax/absmax failed\n");
 		return false;
 	}
 	if(abs(end_height + margin - trace.endpos[2]) > 8)
@@ -134,7 +129,6 @@ qboolean stalker_ok_to_transition (edict_t *self)
 	trace = gi.trace( start, vec3_origin, vec3_origin, pt, self, MASK_MONSTERSOLID);
 	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 	{
-//		gi.dprintf("stalker_check_pt: absmin/absmax failed\n");
 		return false;
 	}
 	if(abs(end_height + margin - trace.endpos[2]) > 8)
@@ -143,7 +137,6 @@ qboolean stalker_ok_to_transition (edict_t *self)
 	return true;
 }
 
-//=========================
 //=========================
 void stalker_sight (edict_t *self, edict_t *other)
 {
@@ -161,51 +154,51 @@ void stalker_idle_noise (edict_t *self)
 
 mframe_t stalker_frames_idle [] =
 {
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, stalker_idle_noise,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, stalker_idle_noise},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL
+	{ai_stand, 0, NULL}
 };
 mmove_t stalker_move_idle = {FRAME_idle01, FRAME_idle21, stalker_frames_idle, stalker_stand};
 
 mframe_t stalker_frames_idle2 [] =
 {
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL}
 };
 mmove_t stalker_move_idle2 = {FRAME_idle201, FRAME_idle213, stalker_frames_idle2, stalker_stand};
 
@@ -223,31 +216,31 @@ void stalker_idle (edict_t *self)
 
 mframe_t stalker_frames_stand [] =
 {
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, stalker_idle_noise,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, stalker_idle_noise},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL
+	{ai_stand, 0, NULL}
 };
 mmove_t	stalker_move_stand = {FRAME_idle01, FRAME_idle21, stalker_frames_stand, stalker_stand};
 
@@ -265,15 +258,10 @@ void stalker_stand (edict_t *self)
 
 mframe_t stalker_frames_run [] =
 {
-	ai_run, 13, NULL,
-	ai_run, 17, NULL,
-	ai_run, 21, NULL,
-	ai_run, 18, NULL
-
-/*	ai_run, 15, NULL,
-	ai_run, 20, NULL,
-	ai_run, 18, NULL,
-	ai_run, 14, NULL*/
+	{ai_run, 13, NULL},
+	{ai_run, 17, NULL},
+	{ai_run, 21, NULL},
+	{ai_run, 18, NULL}
 };
 mmove_t stalker_move_run = {FRAME_run01, FRAME_run04, stalker_frames_run, NULL};
 
@@ -292,21 +280,20 @@ void stalker_run (edict_t *self)
 
 mframe_t stalker_frames_walk [] =
 {
-	ai_walk, 4, NULL,
-	ai_walk, 6, NULL,
-	ai_walk, 8, NULL,
-	ai_walk, 5, NULL,
+	{ai_walk, 4, NULL},
+	{ai_walk, 6, NULL},
+	{ai_walk, 8, NULL},
+	{ai_walk, 5, NULL},
 
-	ai_walk, 4, NULL,
-	ai_walk, 6, NULL,
-	ai_walk, 8, NULL,
-	ai_walk, 4, NULL
+	{ai_walk, 4, NULL},
+	{ai_walk, 6, NULL},
+	{ai_walk, 8, NULL},
+	{ai_walk, 4, NULL}
 };
 mmove_t stalker_move_walk = {FRAME_walk01, FRAME_walk08, stalker_frames_walk, stalker_walk};
 
 void stalker_walk (edict_t *self)
 {
-//	gi.dprintf("stalker_walk\n");
 	self->monsterinfo.currentmove = &stalker_move_walk;
 }
 
@@ -315,10 +302,10 @@ void stalker_walk (edict_t *self)
 // ******************
 mframe_t stalker_frames_reactivate [] = 
 {
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL}
 };
 mmove_t stalker_move_false_death_end = { FRAME_reactive01, FRAME_reactive04, stalker_frames_reactivate, stalker_run };
 
@@ -337,8 +324,6 @@ void stalker_heal (edict_t *self)
 	else
 		self->health++;
 
-//	gi.dprintf("stalker_heal: %d\n", self->health);
-
 	if(self->health > (self->max_health/2))
 		self->s.skinnum = 0;
 
@@ -351,17 +336,17 @@ void stalker_heal (edict_t *self)
 
 mframe_t stalker_frames_false_death [] =
 {
-	ai_move, 0, stalker_heal,
-	ai_move, 0, stalker_heal,
-	ai_move, 0, stalker_heal,
-	ai_move, 0, stalker_heal,
-	ai_move, 0, stalker_heal,
+	{ai_move, 0, stalker_heal},
+	{ai_move, 0, stalker_heal},
+	{ai_move, 0, stalker_heal},
+	{ai_move, 0, stalker_heal},
+	{ai_move, 0, stalker_heal},
 
-	ai_move, 0, stalker_heal,
-	ai_move, 0, stalker_heal,
-	ai_move, 0, stalker_heal,
-	ai_move, 0, stalker_heal,
-	ai_move, 0, stalker_heal
+	{ai_move, 0, stalker_heal},
+	{ai_move, 0, stalker_heal},
+	{ai_move, 0, stalker_heal},
+	{ai_move, 0, stalker_heal},
+	{ai_move, 0, stalker_heal}
 };
 mmove_t stalker_move_false_death = {FRAME_twitch01, FRAME_twitch10, stalker_frames_false_death, stalker_false_death};
 
@@ -372,16 +357,16 @@ void stalker_false_death (edict_t *self)
 
 mframe_t stalker_frames_false_death_start [] =
 {
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
 
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
 };
 mmove_t stalker_move_false_death_start = {FRAME_death01, FRAME_death09, stalker_frames_false_death_start, stalker_false_death};
 
@@ -401,10 +386,10 @@ void stalker_false_death_start (edict_t *self)
 
 mframe_t stalker_frames_pain [] =
 {
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0, NULL
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0, NULL}
 };
 mmove_t stalker_move_pain = {FRAME_pain01, FRAME_pain04, stalker_frames_pain, stalker_run};
 
@@ -420,9 +405,6 @@ void stalker_pain (edict_t *self, edict_t *other, float kick, int damage)
 
 	if (skill->value == 3)
 		return;		// no pain anims in nightmare
-
-//	if (self->monsterinfo.aiflags & AI_DODGING)
-//		monster_done_dodge (self);
 
 	if (self->groundentity == NULL)
 		return;
@@ -444,7 +426,6 @@ void stalker_pain (edict_t *self, edict_t *other, float kick, int damage)
 		{
 			if( !STALKER_ON_CEILING(self) || stalker_ok_to_transition(self) )
 			{
-//				gi.dprintf("starting false death sequence\n");
 				stalker_false_death_start(self);
 				return;
 			}
@@ -456,7 +437,6 @@ void stalker_pain (edict_t *self, edict_t *other, float kick, int damage)
 
 	self->pain_debounce_time = level.time + 3;
 
-//	gi.dprintf("stalker_pain\n");
 	if (damage > 10)		// don't react unless the damage was significant
 	{
 		// stalker should dodge jump periodically to help avoid damage.
@@ -473,9 +453,6 @@ void stalker_pain (edict_t *self, edict_t *other, float kick, int damage)
 // ******************
 // STALKER ATTACK
 // ******************
-
-//extern qboolean infront (edict_t *self, edict_t *other);
-
 void stalker_shoot_attack (edict_t *self)
 {
 	vec3_t	offset, start, f, r, dir;
@@ -497,10 +474,6 @@ void stalker_shoot_attack (edict_t *self)
 			stalker_jump_straightup (self);
 	}
 
-	// FIXME -- keep this but use a custom one
-//	if (!infront(self, self->enemy))
-//		return;
-
 	AngleVectors (self->s.angles, f, r, NULL);
 	VectorSet (offset, 24, 0, 6);
 	G_ProjectSource (self->s.origin, offset, f, r, start);
@@ -519,25 +492,20 @@ void stalker_shoot_attack (edict_t *self)
 	trace = gi.trace(start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
 	if(trace.ent == self->enemy || trace.ent == world)
 		monster_fire_blaster2(self, start, dir, 15, 800, MZ2_STALKER_BLASTER, EF_BLASTER);
-//	else
-//		gi.dprintf("blocked by entity %s\n", trace.ent->classname);
 }
 
 void stalker_shoot_attack2 (edict_t *self)
 {
-//	if (random() < (0.4+(float)skill->value))
-//		stalker_shoot_attack (self);
-
 	if (random() < (0.4 + (0.1 * (float)skill->value)))
 		stalker_shoot_attack (self);
 }
 
 mframe_t stalker_frames_shoot [] =
 {
-	ai_charge, 13, NULL,
-	ai_charge, 17, stalker_shoot_attack,
-	ai_charge, 21, NULL,
-	ai_charge, 18, stalker_shoot_attack2
+	{ai_charge, 13, NULL},
+	{ai_charge, 17, stalker_shoot_attack},
+	{ai_charge, 21, NULL},
+	{ai_charge, 18, stalker_shoot_attack2}
 };
 mmove_t stalker_move_shoot = {FRAME_run01, FRAME_run04, stalker_frames_shoot, stalker_run};
 
@@ -570,33 +538,35 @@ void stalker_swing_attack (edict_t *self)
 
 	VectorSet (aim, MELEE_DISTANCE, 0, 0);
 	if (fire_hit (self, aim, (5 + (rand() % 5)), 50))
+	{
 		if (self->s.frame < FRAME_attack08)
 			gi.sound (self, CHAN_WEAPON, sound_punch_hit2, 1, ATTN_NORM, 0);
 		else
 			gi.sound (self, CHAN_WEAPON, sound_punch_hit1, 1, ATTN_NORM, 0);
+	}
 }
 
 mframe_t stalker_frames_swing_l [] =
 {
-	ai_charge, 2, NULL,
-	ai_charge, 4, NULL,
-	ai_charge, 6, NULL,
-	ai_charge, 10, NULL,
+	{ai_charge, 2, NULL},
+	{ai_charge, 4, NULL},
+	{ai_charge, 6, NULL},
+	{ai_charge, 10, NULL},
 
-	ai_charge, 5, stalker_swing_attack,
-	ai_charge, 5, NULL,
-	ai_charge, 5, NULL,
-	ai_charge, 5, NULL  // stalker_swing_check_l
+	{ai_charge, 5, stalker_swing_attack},
+	{ai_charge, 5, NULL},
+	{ai_charge, 5, NULL},
+	{ai_charge, 5, NULL}  // stalker_swing_check_l
 };
 mmove_t stalker_move_swing_l = {FRAME_attack01, FRAME_attack08, stalker_frames_swing_l, stalker_run};
 
 mframe_t stalker_frames_swing_r [] =
 {
-	ai_charge, 4, NULL,
-	ai_charge, 6, NULL,
-	ai_charge, 6, stalker_swing_attack,
-	ai_charge, 10, NULL,
-	ai_charge, 5, NULL	// stalker_swing_check_r
+	{ai_charge, 4, NULL},
+	{ai_charge, 6, NULL},
+	{ai_charge, 6, stalker_swing_attack},
+	{ai_charge, 10, NULL},
+	{ai_charge, 5, NULL}	// stalker_swing_check_r
 };
 mmove_t stalker_move_swing_r = {FRAME_attack11, FRAME_attack15, stalker_frames_swing_r, stalker_run};
 
@@ -653,7 +623,6 @@ void calcJumpAngle(vec3_t start, vec3_t end, float velocity, vec3_t angles)
 		one = l * FAUX_GRAVITY * (cosU * cosU);
 		one = one / (velocity * velocity);
 		one = one - (float)sin(U);
-	//	one = ((l * FAUX_GRAVITY * (cosU * cosU)) / (velocity * velocity)) - (float)sin(U);
 		angles[0] = (float)asin(one);
 		if(_isnan(angles[0]))
 			angles[2] = 1.0;
@@ -692,13 +661,11 @@ int stalker_check_lz (edict_t *self, edict_t *target, vec3_t dest)
 
 	if( (gi.pointcontents (dest) & MASK_WATER) || (target->waterlevel))
 	{
-//		gi.dprintf ("you won't make me jump in water!\n");
 		return false;
 	}
 
 	if( !target->groundentity )
 	{
-//		gi.dprintf( "I'll wait until you land..\n");
 		return false;
 	}
 
@@ -776,7 +743,6 @@ int stalker_do_pounce(edict_t *self, vec3_t dest)
 	trace = gi.trace (self->s.origin, vec3_origin, vec3_origin, dest, self, MASK_MONSTERSOLID);
 	if((trace.fraction < 1) && (trace.ent != self->enemy))
 	{
-//		gi.dprintf("prefer high jump angle\n");
 		preferHighJump = 1; 
 	}
 
@@ -797,9 +763,6 @@ int stalker_do_pounce(edict_t *self, vec3_t dest)
 
 		VectorScale( forward, velocity * cos(DEG2RAD(jumpAngles[0])), self->velocity);
 		self->velocity[2] = velocity * sin(DEG2RAD(jumpAngles[0])) + (0.5 * sv_gravity->value * FRAMETIME);
-//		gi.dprintf("  pouncing! %0.1f,%0.1f (%0.1f)  --> %0.1f, %0.1f, %0.1f\n", 
-//				jumpAngles[0], jumpAngles[1], jumpAngles[0],
-//				self->velocity[0], self->velocity[1], self->velocity[2]);
 		return 1;
 	}
 
@@ -810,13 +773,9 @@ int stalker_do_pounce(edict_t *self, vec3_t dest)
 
 		VectorScale( forward, velocity * cos(DEG2RAD(jumpAngles[1])), self->velocity);
 		self->velocity[2] = velocity * sin(DEG2RAD(jumpAngles[1])) + (0.5 * sv_gravity->value * FRAMETIME);
-//		gi.dprintf("  pouncing! %0.1f,%0.1f (%0.1f)  --> %0.1f, %0.1f, %0.1f\n", 
-//				jumpAngles[0], jumpAngles[1], jumpAngles[1],
-//				self->velocity[0], self->velocity[1], self->velocity[2]);
 		return 1;
 	}
 
-//	gi.dprintf("  nan\n");
 	return 0;
 }
 
@@ -836,7 +795,6 @@ void stalker_jump_straightup (edict_t *self)
 	{
 		if(stalker_ok_to_transition(self))
 		{
-//			gi.dprintf("falling off ceiling %d\n", self->health);
 			self->gravityVector[2] = -1;
 			self->s.angles[2] += 180.0;
 			if(self->s.angles[2] > 360.0)
@@ -851,7 +809,6 @@ void stalker_jump_straightup (edict_t *self)
 		self->velocity[2] += -400 * self->gravityVector[2];
 		if(stalker_ok_to_transition(self))
 		{
-//			gi.dprintf("falling TO ceiling %d\n", self->health);
 			self->gravityVector[2] = 1;
 			self->s.angles[2] = 180.0;
 			self->groundentity = NULL;
@@ -861,10 +818,10 @@ void stalker_jump_straightup (edict_t *self)
 
 mframe_t stalker_frames_jump_straightup [] =
 {
-	ai_move, 1,  stalker_jump_straightup,
-	ai_move, 1,  stalker_jump_wait_land,
-	ai_move, -1, NULL,
-	ai_move, -1, NULL
+	{ai_move, 1,  stalker_jump_straightup},
+	{ai_move, 1,  stalker_jump_wait_land},
+	{ai_move, -1, NULL},
+	{ai_move, -1, NULL}
 };
 
 mmove_t	stalker_move_jump_straightup = {FRAME_jump04, FRAME_jump07, stalker_frames_jump_straightup, stalker_run};
@@ -880,10 +837,10 @@ void stalker_dodge_jump (edict_t *self)
 
 mframe_t stalker_frames_dodge_run [] =
 {
-	ai_run, 13, NULL,
-	ai_run, 17, NULL,
-	ai_run, 21, NULL,
-	ai_run, 18, monster_done_dodge
+	{ai_run, 13, NULL},
+	{ai_run, 17, NULL},
+	{ai_run, 21, NULL},
+	{ai_run, 18, monster_done_dodge}
 };
 mmove_t stalker_move_dodge_run = {FRAME_run01, FRAME_run04, stalker_frames_dodge_run, NULL};
 
@@ -914,7 +871,6 @@ void stalker_dodge (edict_t *self, edict_t *attacker, float eta, trace_t *tr)
 // ******************
 
 //===================
-//===================
 void stalker_jump_down (edict_t *self)
 {
 	vec3_t	forward,up;
@@ -927,7 +883,6 @@ void stalker_jump_down (edict_t *self)
 }
 
 //===================
-//===================
 void stalker_jump_up (edict_t *self)
 {
 	vec3_t	forward,up;
@@ -939,7 +894,6 @@ void stalker_jump_up (edict_t *self)
 	VectorMA(self->velocity, 450, up, self->velocity);
 }
 
-//===================
 //===================
 void stalker_jump_wait_land (edict_t *self)
 {
@@ -969,27 +923,27 @@ void stalker_jump_wait_land (edict_t *self)
 
 mframe_t stalker_frames_jump_up [] =
 {
-	ai_move, -8, NULL,
-	ai_move, -8, NULL,
-	ai_move, -8, NULL,
-	ai_move, -8, NULL,
+	{ai_move, -8, NULL},
+	{ai_move, -8, NULL},
+	{ai_move, -8, NULL},
+	{ai_move, -8, NULL},
 
-	ai_move, 0, stalker_jump_up,
-	ai_move, 0, stalker_jump_wait_land,
-	ai_move, 0, NULL
+	{ai_move, 0, stalker_jump_up},
+	{ai_move, 0, stalker_jump_wait_land},
+	{ai_move, 0, NULL}
 };
 mmove_t stalker_move_jump_up = { FRAME_jump01, FRAME_jump07, stalker_frames_jump_up, stalker_run };
 
 mframe_t stalker_frames_jump_down [] =
 {
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
 	
-	ai_move, 0, stalker_jump_down,
-	ai_move, 0, stalker_jump_wait_land,
-	ai_move, 0, NULL
+	{ai_move, 0, stalker_jump_down},
+	{ai_move, 0, stalker_jump_wait_land},
+	{ai_move, 0, NULL}
 };
 mmove_t stalker_move_jump_down = { FRAME_jump01, FRAME_jump07, stalker_frames_jump_down, stalker_run };
 
@@ -1004,12 +958,10 @@ void stalker_jump (edict_t *self)
 
 	if(self->enemy->s.origin[2] >= self->s.origin[2])
 	{
-//		gi.dprintf("stalker_jump_up\n");
 		self->monsterinfo.currentmove = &stalker_move_jump_up;
 	}
 	else
 	{
-//		gi.dprintf("stalker_jump_down\n");
 		self->monsterinfo.currentmove = &stalker_move_jump_down;
 	}
 }
@@ -1023,7 +975,6 @@ qboolean stalker_blocked (edict_t *self, float dist)
 {
 	qboolean	onCeiling;
 
-//	gi.dprintf("stalker_blocked\n");
 	if(!has_valid_enemy(self))
 		return false;
 
@@ -1035,20 +986,17 @@ qboolean stalker_blocked (edict_t *self, float dist)
 	{
 		if(blocked_checkshot(self, 0.25 + (0.05 * skill->value) ))
 		{
-//			gi.dprintf("blocked: shooting\n");
 			return true;
 		}
 
 		if(visible (self, self->enemy))
 		{
-//			gi.dprintf("blocked: jumping at player!\n");
 			stalker_do_pounce(self, self->enemy->s.origin);
 			return true;
 		}
 
 		if(blocked_checkjump (self, dist, 256, 68))
 		{
-//			gi.dprintf("blocked: jumping up/down\n");
 			stalker_jump (self);
 			return true;
 		}
@@ -1060,7 +1008,6 @@ qboolean stalker_blocked (edict_t *self, float dist)
 	{
 		if(blocked_checkshot(self, 0.25 + (0.05 * skill->value) ))
 		{
-//			gi.dprintf("blocked: shooting\n");
 			return true;
 		}	
 		else if(stalker_ok_to_transition(self))
@@ -1071,11 +1018,8 @@ qboolean stalker_blocked (edict_t *self, float dist)
 				self->s.angles[2] -= 360.0;
 			self->groundentity = NULL;
 			
-//			gi.dprintf("falling off ceiling\n");
 			return true;
 		}
-//		else
-//			gi.dprintf("Not OK to fall!\n");
 	}
 
 	return false;
@@ -1093,22 +1037,21 @@ void stalker_dead (edict_t *self)
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
 	gi.linkentity (self);
-//	drawbbox(self);
 }
 
 mframe_t stalker_frames_death [] =
 {
-	ai_move, 0,	 NULL,
-	ai_move, -5,	 NULL,
-	ai_move, -10,	 NULL,
-	ai_move, -20,	 NULL,
+	{ai_move, 0,	 NULL},
+	{ai_move, -5,	 NULL},
+	{ai_move, -10,	 NULL},
+	{ai_move, -20,	 NULL},
 	
-	ai_move, -10,	 NULL,
-	ai_move, -10,	 NULL,
-	ai_move, -5,	 NULL,
-	ai_move, -5,	 NULL,
+	{ai_move, -10,	 NULL},
+	{ai_move, -10,	 NULL},
+	{ai_move, -5,	 NULL},
+	{ai_move, -5,	 NULL},
 
-	ai_move, 0,	 NULL
+	{ai_move, 0,	 NULL}
 };
 mmove_t stalker_move_death = {FRAME_death01, FRAME_death09, stalker_frames_death, stalker_dead};
 
@@ -1116,14 +1059,12 @@ void stalker_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int dama
 {
 	int		n;
 
-//	gi.dprintf("stalker_die: %d\n", self->health);
-
-// dude bit it, make him fall!
+	// dude bit it, make him fall!
 	self->movetype = MOVETYPE_TOSS;
 	self->s.angles[2] = 0;
 	VectorSet(self->gravityVector, 0, 0, -1);
 
-// check for gib
+	// check for gib
 	if (self->health <= self->gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
@@ -1139,7 +1080,7 @@ void stalker_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int dama
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
+	// regular death
 	gi.sound (self, CHAN_VOICE, sound_die, 1, ATTN_NORM, 0);
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
@@ -1212,3 +1153,4 @@ void SP_monster_stalker (edict_t *self)
 
 	walkmonster_start (self);
 }
+
