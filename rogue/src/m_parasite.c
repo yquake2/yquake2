@@ -275,7 +275,8 @@ void parasite_pain (edict_t *self, edict_t *other, float kick, int damage)
 }
 
 
-static qboolean parasite_drain_attack_ok (vec3_t start, vec3_t end)
+//static qboolean parasite_drain_attack_ok (vec3_t start, vec3_t end)
+qboolean parasite_drain_attack_ok (vec3_t start, vec3_t end)
 {
 	vec3_t	dir, angles;
 
@@ -417,6 +418,144 @@ void parasite_attack (edict_t *self)
 }
 
 
+//================
+//ROGUE
+void parasite_jump_down (edict_t *self)
+{
+	vec3_t	forward,up;
+
+	monster_jump_start (self);
+
+	AngleVectors (self->s.angles, forward, NULL, up);
+	VectorMA(self->velocity, 100, forward, self->velocity);
+	VectorMA(self->velocity, 300, up, self->velocity);
+}
+
+void parasite_jump_up (edict_t *self)
+{
+	vec3_t	forward,up;
+
+	monster_jump_start (self);
+
+	AngleVectors (self->s.angles, forward, NULL, up);
+	VectorMA(self->velocity, 200, forward, self->velocity);
+	VectorMA(self->velocity, 450, up, self->velocity);
+}
+
+void parasite_jump_wait_land (edict_t *self)
+{
+	if(self->groundentity == NULL)
+	{
+		self->monsterinfo.nextframe = self->s.frame;
+
+		if(monster_jump_finished (self))
+			self->monsterinfo.nextframe = self->s.frame + 1;
+	}
+	else 
+		self->monsterinfo.nextframe = self->s.frame + 1;
+}
+
+mframe_t parasite_frames_jump_up [] =
+{
+	ai_move, -8, NULL,
+	ai_move, -8, NULL,
+	ai_move, -8, NULL,
+	ai_move, -8, parasite_jump_up,
+	ai_move, 0, NULL,
+	ai_move, 0, NULL,
+	ai_move, 0, parasite_jump_wait_land,
+	ai_move, 0, NULL
+};
+mmove_t parasite_move_jump_up = { FRAME_jump01, FRAME_jump08, parasite_frames_jump_up, parasite_run };
+
+mframe_t parasite_frames_jump_down [] =
+{
+	ai_move, 0, NULL,
+	ai_move, 0, NULL,
+	ai_move, 0, NULL,
+	ai_move, 0, parasite_jump_down,
+	ai_move, 0, NULL,
+	ai_move, 0, NULL,
+	ai_move, 0, parasite_jump_wait_land,
+	ai_move, 0, NULL
+};
+mmove_t parasite_move_jump_down = { FRAME_jump01, FRAME_jump08, parasite_frames_jump_down, parasite_run };
+
+void parasite_jump (edict_t *self)
+{
+	if(!self->enemy)
+		return;
+
+	if(self->enemy->s.origin[2] > self->s.origin[2])
+		self->monsterinfo.currentmove = &parasite_move_jump_up;
+	else
+		self->monsterinfo.currentmove = &parasite_move_jump_down;
+}
+
+/*
+===
+Blocked
+===
+*/
+qboolean parasite_blocked (edict_t *self, float dist)
+{
+	if(blocked_checkshot (self, 0.25 + (0.05 * skill->value) ))
+		return true;
+
+	if(blocked_checkjump (self, dist, 256, 68))
+	{
+		parasite_jump (self);
+		return true;
+	}
+
+	if(blocked_checkplat (self, dist))
+		return true;
+}
+//ROGUE
+//================
+
+
+qboolean parasite_checkattack (edict_t *self)
+{
+	vec3_t	f, r, offset, start, end;
+	trace_t	tr;
+	qboolean retval;
+
+	retval = M_CheckAttack (self);
+
+	if (!retval)
+		return false;
+
+	AngleVectors (self->s.angles, f, r, NULL);
+	VectorSet (offset, 24, 0, 6);
+	G_ProjectSource (self->s.origin, offset, f, r, start);
+
+	VectorCopy (self->enemy->s.origin, end);
+	if (!parasite_drain_attack_ok(start, end))
+	{
+		end[2] = self->enemy->s.origin[2] + self->enemy->maxs[2] - 8;
+		if (!parasite_drain_attack_ok(start, end))
+		{
+			end[2] = self->enemy->s.origin[2] + self->enemy->mins[2] + 8;
+			if (!parasite_drain_attack_ok(start, end))
+				return false;
+		}
+	}
+	VectorCopy (self->enemy->s.origin, end);
+
+	tr = gi.trace (start, NULL, NULL, end, self, MASK_SHOT);
+	if (tr.ent != self->enemy)
+	{
+		self->monsterinfo.aiflags |= AI_BLOCKED;
+		
+		if(self->monsterinfo.attack)
+			self->monsterinfo.attack(self);
+		
+		self->monsterinfo.aiflags &= ~AI_BLOCKED;
+		return true;
+	}
+}
+
 
 /*
 ===
@@ -520,6 +659,8 @@ void SP_monster_parasite (edict_t *self)
 	self->monsterinfo.attack = parasite_attack;
 	self->monsterinfo.sight = parasite_sight;
 	self->monsterinfo.idle = parasite_idle;
+	self->monsterinfo.blocked = parasite_blocked;		// PGM
+	self->monsterinfo.checkattack = parasite_checkattack;
 
 	gi.linkentity (self);
 

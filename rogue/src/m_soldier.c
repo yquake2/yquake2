@@ -692,7 +692,7 @@ mframe_t soldier_frames_attack3 [] =
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, soldier_attack3_refire},
-	{ai_charge, 0, soldier_duck_up},
+	{ai_charge, 0, monster_duck_up},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL}
 };
@@ -744,20 +744,20 @@ void soldier_attack6_refire (edict_t *self)
 
 mframe_t soldier_frames_attack6 [] =
 {
-	{ai_charge, 10, NULL},
-	{ai_charge,  4, NULL},
-	{ai_charge, 12, NULL},
-	{ai_charge, 11, soldier_fire8},
-	{ai_charge, 13, NULL},
-	{ai_charge, 18, NULL},
-	{ai_charge, 15, NULL},
-	{ai_charge, 14, NULL},
-	{ai_charge, 11, NULL},
-	{ai_charge,  8, NULL},
-	{ai_charge, 11, NULL},
-	{ai_charge, 12, NULL},
-	{ai_charge, 12, NULL},
-	{ai_charge, 17, soldier_attack6_refire}
+	{ai_run, 10, soldier_start_charge},
+	{ai_run,  4, NULL},
+	{ai_run, 12, soldier_fire8},
+	{ai_run, 11, NULL},
+	{ai_run, 13, monster_done_dodge},
+	{ai_run, 18, NULL},
+	{ai_run, 15, NULL},
+	{ai_run, 14, NULL},
+	{ai_run, 11, NULL},
+	{ai_run,  8, NULL},
+	{ai_run, 11, NULL},
+	{ai_run, 12, NULL},
+	{ai_run, 12, NULL},
+	{ai_run, 17, soldier_attack6_refire}
 };
 mmove_t soldier_move_attack6 = {FRAME_runs01, FRAME_runs14, soldier_frames_attack6, soldier_run};
 
