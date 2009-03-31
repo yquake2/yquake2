@@ -252,10 +252,6 @@ qboolean Pickup_Bandolier (edict_t *ent, edict_t *other)
 	//PMM
 	if (other->client->pers.max_flechettes < 250)
 		other->client->pers.max_flechettes = 250;
-#ifndef KILL_DISRUPTOR
-	if (other->client->pers.max_rounds < 150)
-		other->client->pers.max_rounds = 150;
-#endif
 	//pmm
 
 	item = FindItem("Bullets");
@@ -302,10 +298,6 @@ qboolean Pickup_Pack (edict_t *ent, edict_t *other)
 	//PMM
 	if (other->client->pers.max_flechettes < 200)
 		other->client->pers.max_flechettes = 200;
-#ifndef KILL_DISRUPTOR
-	if (other->client->pers.max_rounds < 200)
-		other->client->pers.max_rounds = 200;
-#endif
 	//pmm
 
 	item = FindItem("Bullets");
@@ -370,17 +362,7 @@ qboolean Pickup_Pack (edict_t *ent, edict_t *other)
 		if (other->client->pers.inventory[index] > other->client->pers.max_flechettes)
 			other->client->pers.inventory[index] = other->client->pers.max_flechettes;
 	}
-#ifndef KILL_DISRUPTOR
-	item = FindItem("Rounds");
-	if (item)
-	{
-		index = ITEM_INDEX(item);
-		other->client->pers.inventory[index] += item->quantity;
-		if (other->client->pers.inventory[index] > other->client->pers.max_rounds)
-			other->client->pers.inventory[index] = other->client->pers.max_rounds;
-	}
-#endif
-//pmm
+	//pmm
 	if (!(ent->spawnflags & DROPPED_ITEM) && (deathmatch->value))
 		SetRespawn (ent, ent->item->quantity);
 
@@ -724,10 +706,6 @@ qboolean Add_Ammo (edict_t *ent, gitem_t *item, int count)
 		max = ent->client->pers.max_prox;
 	else if (item->tag == AMMO_TESLA)
 		max = ent->client->pers.max_tesla;
-#ifndef KILL_DISRUPTOR
-	else if (item->tag == AMMO_DISRUPTOR)
-		max = ent->client->pers.max_rounds;
-#endif
 	// ROGUE
 	else
 	{
@@ -1365,13 +1343,11 @@ be on an entity that hasn't spawned yet.
 */
 void SpawnItem (edict_t *ent, gitem_t *item)
 {
-#if KILL_DISRUPTOR
 	if ((!strcmp(ent->classname, "ammo_disruptor")) || (!strcmp(ent->classname, "weapon_disintegrator")))
 	{
 		G_FreeEdict (ent);
 		return;
 	}
-#endif
 	if (ent->spawnflags > 1)		// PGM
 	{
 		if (strcmp(ent->classname, "key_power_cube") != 0)
@@ -2035,11 +2011,7 @@ always owned, never in the world
 		0,													// number of digits for statusbar
 		1,													// amount used / contained
 		"Rounds",											// ammo type used 
-#ifdef KILL_DISRUPTOR
 		IT_NOT_GIVEABLE,
-#else
-		IT_WEAPON,											// inventory flags
-#endif
 		WEAP_DISRUPTOR,										// visible weapon
 		NULL,												// info (void *)
 		1,													// tag
@@ -2278,18 +2250,10 @@ always owned, never in the world
 		3,
 		15,
 		NULL,
-#ifdef KILL_DISRUPTOR
 		IT_NOT_GIVEABLE,
-#else
-		IT_AMMO,											// inventory flags
-#endif
 		0,
 		NULL,
-#ifdef KILL_DISRUPTOR
 		0,
-#else
-		AMMO_DISRUPTOR,
-#endif
 	},
 // ROGUE AMMO
 // =======================================

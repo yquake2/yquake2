@@ -34,14 +34,7 @@ qboolean M_CheckBottom (edict_t *ent)
 	// the corners must be within 16 of the midpoint
 
 	//PGM
-#ifdef ROGUE_GRAVITY
-	// FIXME - this will only handle 0,0,1 and 0,0,-1 gravity vectors
 	start[2] = mins[2] - 1;
-	if(ent->gravityVector[2] > 0)
-		start[2] = maxs[2] + 1;
-#else
-	start[2] = mins[2] - 1;
-#endif
 	//PGM
 
 	for	(x=0 ; x<=1 ; x++)
@@ -68,20 +61,7 @@ realcheck:
 	start[1] = stop[1] = (mins[1] + maxs[1])*0.5;
 
 	//PGM
-#ifdef ROGUE_GRAVITY
-	if(ent->gravityVector[2] < 0)
-	{
-		start[2] = mins[2];
-		stop[2] = start[2] - STEPSIZE - STEPSIZE;
-	}
-	else
-	{
-		start[2] = maxs[2];
-		stop[2] = start[2] + STEPSIZE + STEPSIZE;
-	}
-#else
 	stop[2] = start[2] - 2*STEPSIZE;
-#endif
 	//PGM
 
 	trace = gi.trace (start, vec3_origin, vec3_origin, stop, ent, MASK_MONSTERSOLID);
@@ -100,28 +80,10 @@ realcheck:
 			trace = gi.trace (start, vec3_origin, vec3_origin, stop, ent, MASK_MONSTERSOLID);
 
 			//PGM
-#ifdef ROGUE_GRAVITY
-			// FIXME - this will only handle 0,0,1 and 0,0,-1 gravity vectors
-			if(ent->gravityVector[2] > 0)
-			{
-				if (trace.fraction != 1.0 && trace.endpos[2] < bottom)
-					bottom = trace.endpos[2];
-				if (trace.fraction == 1.0 || trace.endpos[2] - mid > STEPSIZE)
-					return false;
-			}
-			else
-			{
-				if (trace.fraction != 1.0 && trace.endpos[2] > bottom)
-					bottom = trace.endpos[2];
-				if (trace.fraction == 1.0 || mid - trace.endpos[2] > STEPSIZE)
-					return false;
-			}
-#else
 			if (trace.fraction != 1.0 && trace.endpos[2] > bottom)
 				bottom = trace.endpos[2];
 			if (trace.fraction == 1.0 || mid - trace.endpos[2] > STEPSIZE)
 				return false;
-#endif
 			//PGM
 		}
 
@@ -329,15 +291,9 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 		stepsize = 1;
 
 	//PGM
-#ifdef ROGUE_GRAVITY
-	// trace from 1 stepsize gravityUp to 2 stepsize gravityDown.
-	VectorMA(neworg, -1 * stepsize, ent->gravityVector, neworg);
-	VectorMA(neworg, 2 * stepsize, ent->gravityVector, end);
-#else
 	neworg[2] += stepsize;
 	VectorCopy (neworg, end);
 	end[2] -= stepsize*2;
-#endif
 	//PGM
 
 	trace = gi.trace (neworg, ent->mins, ent->maxs, end, ent, MASK_MONSTERSOLID);
@@ -358,18 +314,9 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 	if (ent->waterlevel == 0)
 	{
 		//PGM
-#ifdef ROGUE_GRAVITY
-		test[0] = trace.endpos[0];
-		test[1] = trace.endpos[1];
-		if(ent->gravityVector[2] > 0)
-			test[2] = trace.endpos[2] + ent->maxs[2] - 1;	
-		else
-			test[2] = trace.endpos[2] + ent->mins[2] + 1;
-#else
 		test[0] = trace.endpos[0];
 		test[1] = trace.endpos[1];
 		test[2] = trace.endpos[2] + ent->mins[2] + 1;	
-#endif
 		//PGM
 
 		contents = gi.pointcontents(test);

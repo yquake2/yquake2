@@ -302,19 +302,7 @@ SV_AddGravity
 */
 void SV_AddGravity (edict_t *ent)
 {
-#ifdef ROGUE_GRAVITY
-	if(ent->gravityVector[2] > 0)
-	{
-		VectorMA(ent->velocity,
-				 ent->gravity * sv_gravity->value * FRAMETIME,
-				 ent->gravityVector,
-				 ent->velocity);
-	}
-	else
-		ent->velocity[2] -= ent->gravity * sv_gravity->value * FRAMETIME;
-#else
 	ent->velocity[2] -= ent->gravity * sv_gravity->value * FRAMETIME;
-#endif
 }
 
 /*
@@ -601,11 +589,6 @@ void SV_Physics_Pusher (edict_t *ent)
 		// otherwise, just stay in place until the obstacle is gone
 		if (part->blocked)
 			part->blocked (part, obstacle);
-#if 0
-		// if the pushed entity went away and the pusher is still there
-		if (!obstacle->inuse && part->inuse)
-			goto retry;
-#endif
 	}
 	else
 	{

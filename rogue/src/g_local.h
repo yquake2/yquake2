@@ -32,7 +32,6 @@
 #define	FALL_TIME		0.3
 
 // ROGUE- id killed this weapon
-#define	KILL_DISRUPTOR	1
 // rogue
 
 // edict->spawnflags
@@ -104,12 +103,7 @@ typedef enum
 	//ROGUE
 	AMMO_FLECHETTES,
 	AMMO_TESLA,
-#ifdef KILL_DISRUPTOR
 	AMMO_PROX
-#else
-	AMMO_PROX,
-	AMMO_DISRUPTOR
-#endif
 } ammo_t;
 
 
@@ -1097,9 +1091,7 @@ typedef struct
 	int			max_prox;
 	int			max_mines;
 	int			max_flechettes;
-#ifndef KILL_DISRUPTOR
 	int			max_rounds;
-#endif
 //ROGUE
 //=========
 } client_persistant_t;

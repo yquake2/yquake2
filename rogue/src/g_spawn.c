@@ -347,14 +347,6 @@ void ED_CallSpawn (edict_t *ent)
 		return;
 	}
 
-	//PGM - do this before calling the spawn function so it can be overridden.
-#ifdef ROGUE_GRAVITY
-	ent->gravityVector[0] =  0.0;
-	ent->gravityVector[1] =  0.0;
-	ent->gravityVector[2] = -1.0;
-#endif
-	//PGM
-
 	// FIXME - PMM classnames hack
 	if (!strcmp(ent->classname, "weapon_nailgun"))
 		ent->classname = (FindItem("ETF Rifle"))->classname;
@@ -765,29 +757,12 @@ void SpawnEntities (const char *mapname, char *entities, const char *spawnpoint)
 			ent->spawnflags &= ~(SPAWNFLAG_NOT_EASY|SPAWNFLAG_NOT_MEDIUM|SPAWNFLAG_NOT_HARD|SPAWNFLAG_NOT_COOP|SPAWNFLAG_NOT_DEATHMATCH);
 		}
 
-		//PGM - do this before calling the spawn function so it can be overridden.
-#ifdef ROGUE_GRAVITY
-		ent->gravityVector[0] =  0.0;
-		ent->gravityVector[1] =  0.0;
-		ent->gravityVector[2] = -1.0;
-#endif
-		//PGM
 		ED_CallSpawn (ent);
 
 		ent->s.renderfx |= RF_IR_VISIBLE;		//PGM
 	}	
 
 	gi.dprintf ("%i entities inhibited\n", inhibit);
-
-#ifdef DEBUG
-	i = 1;
-	ent = EDICT_NUM(i);
-	while (i < globals.num_edicts) {
-		if (ent->inuse != 0 || ent->inuse != 1)
-			Com_DPrintf("Invalid entity %d\n", i);
-		i++, ent++;
-	}
-#endif
 
 	G_FindTeams ();
 
@@ -1368,16 +1343,7 @@ qboolean CheckGroundSpawnPoint (vec3_t origin, vec3_t entMins, vec3_t entMaxs, f
 
 
 		// first, do the easy flat check
-		//
-#ifdef ROGUE_GRAVITY
-		// FIXME - this will only handle 0,0,1 and 0,0,-1 gravity vectors
-		if(gravity > 0)
-			start[2] = maxs[2] + 1;
-		else
-			start[2] = mins[2] - 1;
-#else
 		start[2] = mins[2] - 1;
-#endif
 		for	(x=0 ; x<=1 ; x++)
 		{
 			for	(y=0 ; y<=1 ; y++)
@@ -1406,23 +1372,8 @@ realcheck:
 			return false;
 		mid = bottom = tr.endpos[2];
 
-#ifdef ROGUE_GRAVITY
-		if(gravity < 0)
-		{
-			start[2] = mins[2];
-			stop[2] = start[2] - STEPSIZE - STEPSIZE;
-			mid = bottom = tr.endpos[2] + entMins[2];
-		}
-		else
-		{
-			start[2] = maxs[2];
-			stop[2] = start[2] + STEPSIZE + STEPSIZE;
-			mid = bottom = tr.endpos[2] - entMaxs[2];
-		}
-#else
 		stop[2] = start[2] - 2*STEPSIZE;
 		mid = bottom = tr.endpos[2] + entMins[2];
-#endif
 
 		for	(x=0 ; x<=1 ; x++)
 			for	(y=0 ; y<=1 ; y++)
@@ -1440,34 +1391,12 @@ realcheck:
 				tr = gi.trace (start, vec3_origin, vec3_origin, stop, NULL, MASK_MONSTERSOLID);
 
 				//PGM
-#ifdef ROGUE_GRAVITY
-// FIXME - this will only handle 0,0,1 and 0,0,-1 gravity vectors
-				if(gravity > 0)
-				{
-					if (tr.fraction != 1.0 && tr.endpos[2] < bottom)
-						bottom = tr.endpos[2];
-					if (tr.fraction == 1.0 || tr.endpos[2] - mid > STEPSIZE)
-					{
-						return false;
-					}
-				}
-				else
-				{
-					if (tr.fraction != 1.0 && tr.endpos[2] > bottom)
-						bottom = tr.endpos[2];
-					if (tr.fraction == 1.0 || mid - tr.endpos[2] > STEPSIZE)
-					{
-						return false;
-					}
-				}
-#else
 				if (tr.fraction != 1.0 && tr.endpos[2] > bottom)
 					bottom = tr.endpos[2];
 				if (tr.fraction == 1.0 || mid - tr.endpos[2] > STEPSIZE)
 					{
 						return false;
 					}
-#endif
 			}
 
 		return true;		// we can land on it, it's ok
