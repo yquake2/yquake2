@@ -211,16 +211,16 @@ void DeathmatchScoreboardMessage (edict_t *ent, edict_t *killer)
 		else
 			tag = NULL;
 
-//===============
-//ROGUE
+		//===============
+		//ROGUE
 		// allow new DM games to override the tag picture
 		if (gamerules && gamerules->value)
 		{
 			if(DMGame.DogTag)
 				DMGame.DogTag(cl_ent, killer, &tag);
 		}
-//ROGUE
-//===============
+		//ROGUE
+		//===============
 
 		if (tag)
 		{
@@ -449,13 +449,13 @@ void G_SetStats (edict_t *ent)
 		ent->client->ps.stats[STAT_TIMER_ICON] = gi.imageindex ("p_quad");
 		ent->client->ps.stats[STAT_TIMER] = (ent->client->quad_framenum - level.framenum)/10;
 	}
-// PMM
+	// PMM
 	else if (ent->client->double_framenum > level.framenum)
 	{
 		ent->client->ps.stats[STAT_TIMER_ICON] = gi.imageindex ("p_double");
 		ent->client->ps.stats[STAT_TIMER] = (ent->client->double_framenum - level.framenum)/10;
 	}
-// PMM
+	// PMM
 	else if (ent->client->invincible_framenum > level.framenum)
 	{
 		ent->client->ps.stats[STAT_TIMER_ICON] = gi.imageindex ("p_invulnerability");
@@ -471,7 +471,7 @@ void G_SetStats (edict_t *ent)
 		ent->client->ps.stats[STAT_TIMER_ICON] = gi.imageindex ("p_rebreather");
 		ent->client->ps.stats[STAT_TIMER] = (ent->client->breather_framenum - level.framenum)/10;
 	}
-// PGM
+	// PGM
 	else if (ent->client->owned_sphere)
 	{
 		if(ent->client->owned_sphere->spawnflags == 1)			// defender
@@ -490,7 +490,7 @@ void G_SetStats (edict_t *ent)
 		ent->client->ps.stats[STAT_TIMER_ICON] = gi.imageindex ("p_ir");
 		ent->client->ps.stats[STAT_TIMER] = (ent->client->ir_framenum - level.framenum)/10;
 	}
-// PGM
+	// PGM
 	else
 	{
 		ent->client->ps.stats[STAT_TIMER_ICON] = 0;

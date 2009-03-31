@@ -30,7 +30,6 @@ void hunter_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *s
 // *************************
 
 // =================
-// =================
 void sphere_think_explode (edict_t *self)
 {
 	if(self->owner && self->owner->client && !(self->spawnflags & SPHERE_DOPPLEGANGER))
@@ -45,9 +44,6 @@ void sphere_think_explode (edict_t *self)
 // =================
 void sphere_explode (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point)
 {
-//	if(self->owner && self->owner->client)
-//		gi.cprintf(self->owner, PRINT_HIGH, "Sphere timed out\n");
-//	gi.dprintf("player died, blowing up\n");
 	sphere_think_explode (self);
 }
 
@@ -58,7 +54,6 @@ void sphere_if_idle_die (edict_t *self, edict_t *inflictor, edict_t *attacker, i
 {
 	if(!self->enemy)
 	{
-//		gi.dprintf("player died, blowing up\n");
 		sphere_think_explode(self);
 	}
 }
@@ -68,7 +63,6 @@ void sphere_if_idle_die (edict_t *self, edict_t *inflictor, edict_t *attacker, i
 // *************************
 
 // =================
-// =================
 void sphere_fly (edict_t *self)
 {
 	vec3_t	dest;
@@ -76,7 +70,6 @@ void sphere_fly (edict_t *self)
 
 	if(level.time >= self->wait)
 	{
-//		gi.dprintf("fly: timed out\n");
 		sphere_think_explode(self);
 		return;
 	}
@@ -98,7 +91,6 @@ void sphere_fly (edict_t *self)
 	VectorScale (dir, 5, self->velocity);
 }
 
-// =================
 // =================
 void sphere_chase (edict_t *self, int stupidChase)
 {
@@ -178,7 +170,6 @@ void sphere_chase (edict_t *self, int stupidChase)
 // *************************
 
 // =================
-// =================
 void sphere_fire (edict_t *self, edict_t *enemy)
 {
 	vec3_t	dest;
@@ -203,7 +194,6 @@ void sphere_fire (edict_t *self, edict_t *enemy)
 	self->nextthink = self->wait;
 }
 
-// =================
 // =================
 void sphere_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf, int mod)
 {
@@ -245,7 +235,6 @@ void sphere_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *s
 }
 
 // =================
-// =================
 void vengeance_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
 	if(self->spawnflags & SPHERE_DOPPLEGANGER)
@@ -254,7 +243,6 @@ void vengeance_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t
 		sphere_touch (self, other, plane, surf, MOD_VENGEANCE_SPHERE);
 }
 
-// =================
 // =================
 void hunter_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
@@ -282,7 +270,6 @@ void hunter_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *s
 		sphere_touch (self, other, plane, surf, MOD_HUNTER_SPHERE);
 }
 
-// =================
 // =================
 void defender_shoot (edict_t *self, edict_t *enemy)
 {
@@ -316,7 +303,6 @@ void defender_shoot (edict_t *self, edict_t *enemy)
 // *************************
 
 // =================
-// =================
 void body_gib (edict_t *self)
 {
 	int		n;
@@ -327,7 +313,6 @@ void body_gib (edict_t *self)
 	ThrowGib (self, "models/objects/gibs/skull/tris.md2", 50, GIB_ORGANIC);
 }
 
-// =================
 // =================
 void hunter_pain (edict_t *self, edict_t *other, float kick, int damage)
 {
@@ -348,8 +333,6 @@ void hunter_pain (edict_t *self, edict_t *other, float kick, int damage)
 		//PMM
 		if(other == owner)
 		{
-//			if ((g_showlogic) && (g_showlogic->value))
-//				gi.dprintf ("hunter: won't get mad at my owner!\n");
 			return;
 		}
 		//pmm
@@ -365,9 +348,6 @@ void hunter_pain (edict_t *self, edict_t *other, float kick, int damage)
 	self->s.effects |= EF_BLASTER | EF_TRACKER;
 	self->touch = hunter_touch;
 	self->enemy = other;
-
-//	if(g_showlogic && g_showlogic->value)
-//		gi.dprintf("hunter_pain: mad at %s\n", other->classname);
 
 	// if we're not owned by a player, no sam raimi
 	// if we're spawned by a doppleganger, no sam raimi
@@ -411,13 +391,9 @@ void hunter_pain (edict_t *self, edict_t *other, float kick, int damage)
 			gi.linkentity(owner);
 
 			// PMM - set bounding box so we don't clip out of world
-//			VectorSet(self->mins, -5, -5, -5);
-//			VectorSet(self->maxs, 5, 5, 5);
 			self->solid = SOLID_BBOX;
 			gi.linkentity (self);
 		}
-//		else
-//			gi.dprintf("too close for sam raimi cam\n");
 	}
 }
 
@@ -428,8 +404,6 @@ void defender_pain (edict_t *self, edict_t *other, float kick, int damage)
 	//PMM
 	if(other == self->owner)
 	{
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf ("defender: won't get mad at my owner!\n");
 		return;
 	}
 	//pmm
@@ -451,8 +425,6 @@ void vengeance_pain (edict_t *self, edict_t *other, float kick, int damage)
 		//PMM
 		if(other == self->owner)
 		{
-	//		if ((g_showlogic) && (g_showlogic->value))
-	//			gi.dprintf ("vengeance: won't get mad at my owner!\n");
 			return;
 		}
 		//pmm
@@ -474,12 +446,10 @@ void vengeance_pain (edict_t *self, edict_t *other, float kick, int damage)
 // *************************
 
 // ===================
-// ===================
 void defender_think (edict_t *self)
 {
 	if(!self->owner)
 	{
-//		gi.dprintf("think: no owner\n");
 		G_FreeEdict(self);
 		return;
 	}
@@ -497,12 +467,6 @@ void defender_think (edict_t *self)
 		return;
 	}
 
-//	if(level.time - self->timestamp > 1)
-//	{
-//		gi.sound (self, CHAN_VOICE, gi.soundindex ("powerup/dsphere.wav"), 0.6, ATTN_NORM, 0);
-//		self->timestamp = level.time;
-//	}
-
 	self->s.frame++;
 	if(self->s.frame>19)
 		self->s.frame = 0;
@@ -511,17 +475,11 @@ void defender_think (edict_t *self)
 	{
 		if(self->enemy->health > 0)
 		{
-//			gi.dprintf( "shooting at %s\n", self->enemy->classname);
 			defender_shoot (self, self->enemy);
 		}
 		else
 			self->enemy = NULL;
 	}
-//	else
-//	{
-//		self->ideal_yaw+=3;
-//		M_ChangeYaw (self);
-//	}
 
 	sphere_fly (self);
 
@@ -546,7 +504,6 @@ void hunter_think (edict_t *self)
 	owner = self->owner;
 	if(!owner && !(self->spawnflags & SPHERE_DOPPLEGANGER))
 	{
-//		gi.dprintf("think: no owner\n");
 		G_FreeEdict(self);
 		return;
 	}
@@ -562,12 +519,6 @@ void hunter_think (edict_t *self)
 
 	M_ChangeYaw(self);
 
-//	if(level.time - self->timestamp > 1)
-//	{
-//		gi.sound (self, CHAN_VOICE, gi.soundindex ("powerup/hsphere.wav"), 0.5, ATTN_NORM, 0);
-//		self->timestamp = level.time;
-//	}
-
 	if(self->enemy)
 	{
 		sphere_chase (self, 0);
@@ -578,17 +529,10 @@ void hunter_think (edict_t *self)
 			if(self->inuse)
 			{
 				owner->movetype = MOVETYPE_FLYMISSILE;
-//				VectorCopy(self->s.angles, owner->s.angles);
-//				VectorCopy(self->s.angles, owner->client->v_angle);
 				LookAtKiller (owner, self, self->enemy);
-//				owner->viewheight = 22;
-
-//				owner->client->v_angle[YAW]+=5;
 				// owner is flying with us, move him too
 				owner->movetype = MOVETYPE_FLYMISSILE;
 				owner->viewheight = self->s.origin[2] - owner->s.origin[2];
-//				VectorCopy(self->s.angles, owner->s.angles);
-//				VectorCopy(self->s.angles, owner->client->v_angle);
 				VectorCopy(self->s.origin, owner->s.origin);
 				VectorCopy(self->velocity, owner->velocity);
 				VectorClear(owner->mins);
@@ -605,8 +549,6 @@ void hunter_think (edict_t *self)
 	}
 	else 
 	{
-//		self->ideal_yaw+=3;
-//		M_ChangeYaw (self);
 		sphere_fly (self);
 	}
 
@@ -627,20 +569,12 @@ void vengeance_think (edict_t *self)
 
 	if(!(self->owner) && !(self->spawnflags & SPHERE_DOPPLEGANGER))
 	{
-//		gi.dprintf("think: no owner\n");
 		G_FreeEdict(self);
 		return;
 	}
 
-//	if(level.time - self->timestamp > 1)
-//	{
-//		gi.sound (self, CHAN_VOICE, gi.soundindex ("powerup/vsphere.wav"), 0.5, ATTN_NORM, 0);
-//		self->timestamp = level.time;
-//	}
-
 	if(self->enemy)
 	{
-//		sphere_fire (self, self->owner->enemy);
 		sphere_chase (self, 1);
 	}
 	else
@@ -687,7 +621,6 @@ edict_t *Sphere_Spawn (edict_t *owner, int spawnflags)
 		case SPHERE_DEFENDER:
 			sphere->s.modelindex = gi.modelindex("models/items/defender/tris.md2");
 			// PMM - this doesn't work, causes problems with other stuff
-//			sphere->s.modelindex2 = gi.modelindex("models/items/shell/tris.md2") | 0x80;
 			sphere->s.modelindex2 = gi.modelindex("models/items/shell/tris.md2");
 			sphere->s.sound = gi.soundindex ("spheres/d_idle.wav");
 			sphere->pain = defender_pain;
@@ -787,3 +720,4 @@ void Vengeance_Launch (edict_t *self)
 	sphere = Sphere_Spawn (self, SPHERE_VENGEANCE);	
 	Own_Sphere (self, sphere);
 }
+

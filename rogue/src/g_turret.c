@@ -494,7 +494,6 @@ void turret_brain_think (edict_t *self)
 }
 
 // =================
-// =================
 void turret_brain_link (edict_t *self)
 {
 	vec3_t	vec;
@@ -534,14 +533,12 @@ void turret_brain_link (edict_t *self)
 }
 
 // =================
-// =================
 void turret_brain_deactivate (edict_t *self, edict_t *other, edict_t *activator)
 {
 	self->think = NULL;
 	self->nextthink = 0;
 }
 
-// =================
 // =================
 void turret_brain_activate (edict_t *self, edict_t *other, edict_t *activator)
 {
@@ -601,3 +598,4 @@ void SP_turret_invisible_brain (edict_t *self)
 
 // ROGUE
 //============
+

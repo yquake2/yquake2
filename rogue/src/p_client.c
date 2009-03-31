@@ -256,6 +256,8 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 			case MOD_TRIGGER_HURT:
 				message = "was in the wrong place";
 				break;
+			default:
+				break;
 		}
 		if (attacker == self)
 		{
@@ -387,8 +389,8 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 				message2 = "'s personal space";
 				break;
 
-//===============
-//ROGUE
+			//===============
+			//ROGUE
 			case MOD_CHAINFIST:
 				message = "was shredded by";
 				message2 = "'s ripsaw";
@@ -444,13 +446,15 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 				message = "was hunted down by";
 				message2 = "'s doppleganger";
 				break;
-//ROGUE
-//===============
+			default:
+				break;
+			//ROGUE
+			//===============
 			}
 			if (message)
 			{
 				gi.bprintf (PRINT_MEDIUM,"%s %s %s%s\n", self->client->pers.netname, message, attacker->client->pers.netname, message2);
-//ROGUE
+				//ROGUE
 				if (gamerules && gamerules->value)
 				{
 					if(DMGame.Score)
@@ -462,7 +466,7 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 					}
 					return;
 				}
-//ROGUE
+				//ROGUE
 
 				if (deathmatch->value)
 				{
@@ -478,18 +482,9 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 
 	gi.bprintf (PRINT_MEDIUM,"%s died.\n", self->client->pers.netname);
 
-//ROGUE
-//	if (g_showlogic && g_showlogic->value)
-//	{
-//		if (mod == MOD_UNKNOWN)
-//			gi.dprintf ("Player killed by MOD_UNKNOWN\n");
-//		else
-//			gi.dprintf ("Player killed by undefined mod %d\n", mod);
-//	}
-//ROGUE
 
 	if (deathmatch->value)
-//ROGUE
+	//ROGUE
 	{
 		if (gamerules && gamerules->value)
 		{
@@ -502,8 +497,7 @@ void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
 		else
 			self->client->resp.score--;
 	}
-//ROGUE
-
+	//ROGUE
 }
 
 
@@ -614,7 +608,6 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 
 	self->maxs[2] = -8;
 
-//	self->solid = SOLID_NOT;
 	self->svflags |= SVF_DEADMONSTER;
 
 	if (!self->deadflag)
@@ -650,8 +643,8 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 	self->client->enviro_framenum = 0;
 	self->flags &= ~FL_POWER_ARMOR;
 
-//==============
-// ROGUE stuff
+	//==============
+	// ROGUE stuff
 	self->client->double_framenum = 0;
 
 	// if there's a sphere around, let it know the player died.
@@ -682,8 +675,8 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 	if ((self->health < -80) && (meansOfDeath == MOD_NUKE))
 		self->flags |= FL_NOGIB;
 
-// ROGUE
-//==============
+	// ROGUE
+	//==============
 
 	if (self->health < -40)
 	{
@@ -783,7 +776,7 @@ void InitClientPersistant (gclient_t *client)
 	client->pers.max_cells		= 200;
 	client->pers.max_slugs		= 50;
 
-//ROGUE
+	//ROGUE
 	// FIXME - give these real numbers....
 	client->pers.max_prox		= 50;
 	client->pers.max_tesla		= 50;
@@ -791,7 +784,7 @@ void InitClientPersistant (gclient_t *client)
 #ifndef KILL_DISRUPTOR
 	client->pers.max_rounds     = 100;
 #endif
-//ROGUE
+	//ROGUE
 
 	client->pers.connected = true;
 }
@@ -1045,7 +1038,7 @@ edict_t *SelectLavaCoopSpawnPoint (edict_t *ent)
 	// find all the lava spawn points and store them in spawnPoints[]
 	spot = NULL;
 	numPoints = 0;
-	while(spot = G_Find (spot, FOFS(classname), "info_player_coop_lava"))
+	while((spot = (G_Find (spot, FOFS(classname), "info_player_coop_lava"))))
 	{
 		if(numPoints == 64)
 			break;
@@ -1092,11 +1085,11 @@ edict_t *SelectCoopSpawnPoint (edict_t *ent)
 	edict_t	*spot = NULL;
 	char	*target;
 
-//ROGUE
+	//ROGUE
 	// rogue hack, but not too gross...
 	if (!Q_stricmp(level.mapname, "rmine2p") || !Q_stricmp(level.mapname, "rmine2"))
 		return SelectLavaCoopSpawnPoint (ent);
-//ROGUE
+	//ROGUE
 
 	index = ent->client - game.clients;
 
@@ -1401,17 +1394,10 @@ void PutClientInServer (edict_t *ent)
 	}
 	else if (coop->value)
 	{
-//		int			n;
 		char		userinfo[MAX_INFO_STRING];
 
 		resp = client->resp;
 		memcpy (userinfo, client->pers.userinfo, sizeof(userinfo));
-		// this is kind of ugly, but it's how we want to handle keys in coop
-//		for (n = 0; n < game.num_items; n++)
-//		{
-//			if (itemlist[n].flags & IT_KEY)
-//				resp.coop_respawn.inventory[n] = client->pers.inventory[n];
-//		}
 		resp.coop_respawn.game_helpchanged = client->pers.game_helpchanged;
 		resp.coop_respawn.helpchanged = client->pers.helpchanged;
 		client->pers = resp.coop_respawn;
@@ -1454,9 +1440,7 @@ void PutClientInServer (edict_t *ent)
 	ent->waterlevel = 0;
 	ent->watertype = 0;
 	ent->flags &= ~FL_NO_KNOCKBACK;
-	ent->svflags &= ~SVF_DEADMONSTER;
-
-	ent->flags &= ~FL_SAM_RAIMI;		// PGM - turn off sam raimi flag
+	ent->svflags = 0;
 
 	VectorCopy (mins, ent->mins);
 	VectorCopy (maxs, ent->maxs);
@@ -1482,12 +1466,12 @@ void PutClientInServer (edict_t *ent)
 			client->ps.fov = 160;
 	}
 
-//PGM
+	//PGM
 	if (client->pers.weapon)
 		client->ps.gunindex = gi.modelindex(client->pers.weapon->view_model);
 	else 
 		client->ps.gunindex = 0;
-//PGM
+	//PGM
 
 	// clear entity state values
 	ent->s.effects = 0;
@@ -1692,7 +1676,6 @@ void ClientUserinfoChanged (edict_t *ent, char *userinfo)
 	// set spectator
 	s = Info_ValueForKey (userinfo, "spectator");
 	// spectators are only supported in deathmatch
-	// if (deathmatch->value && strcmp(s, "0"))
 	if (deathmatch->value && *s && strcmp(s, "0"))
 		ent->client->pers.spectator = true;
 	else
@@ -1758,7 +1741,6 @@ qboolean ClientConnect (edict_t *ent, char *userinfo)
 
 	// check for a spectator
 	value = Info_ValueForKey (userinfo, "spectator");
-//	if (deathmatch->value && strcmp(value, "0"))
 	if (deathmatch->value && *value && strcmp(value, "0"))
 	{
 		int i, numspec;
@@ -1837,8 +1819,8 @@ void ClientDisconnect (edict_t *ent)
 
 	gi.bprintf (PRINT_HIGH, "%s disconnected\n", ent->client->pers.netname);
 
-//============
-//ROGUE
+	//============
+	//ROGUE
 	// make sure no trackers are still hurting us.
 	if(ent->client->tracker_pain_framenum)
 		RemoveAttackingPainDaemons (ent);
@@ -1855,8 +1837,8 @@ void ClientDisconnect (edict_t *ent)
 		if(DMGame.PlayerDisconnect)
 			DMGame.PlayerDisconnect(ent);
 	}
-//ROGUE
-//============
+	//ROGUE
+	//============
 
 	// send effect
 	gi.WriteByte (svc_muzzleflash);
@@ -1957,10 +1939,9 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		else
 			client->ps.pmove.pm_type = PM_NORMAL;
 
-	//PGM	trigger_gravity support
-	//	client->ps.pmove.gravity = sv_gravity->value;
+		//PGM	trigger_gravity support
 		client->ps.pmove.gravity = sv_gravity->value * ent->gravity;
-	//PGM
+		//PGM
 		pm.s = client->ps.pmove;
 
 		for (i=0 ; i<3 ; i++)
@@ -1972,7 +1953,6 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		if (memcmp(&client->old_pmove, &pm.s, sizeof(pm.s)))
 		{
 			pm.snapinitial = true;
-	//		gi.dprintf ("pmove changed!\n");
 		}
 
 		pm.cmd = *ucmd;
@@ -2006,12 +1986,12 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 			PlayerNoise(ent, ent->s.origin, PNOISE_SELF);
 		}
 
-	//ROGUE sam raimi cam support
+		//ROGUE sam raimi cam support
 		if(ent->flags & FL_SAM_RAIMI)
 			ent->viewheight = 8;
 		else
 			ent->viewheight = pm.viewheight;
-	//ROGUE
+		//ROGUE
 
 		ent->waterlevel = pm.waterlevel;
 		ent->watertype = pm.watertype;
@@ -2033,9 +2013,9 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 
 		gi.linkentity (ent);
 
-	//PGM trigger_gravity support
+		//PGM trigger_gravity support
 		ent->gravity = 1.0;
-	//PGM
+		//PGM
 		if (ent->movetype != MOVETYPE_NOCLIP)
 			G_TouchTriggers (ent);
 
@@ -2195,3 +2175,4 @@ void RemoveAttackingPainDaemons (edict_t *self)
 	if(self->client)
 		self->client->tracker_pain_framenum = 0;
 }
+

@@ -156,7 +156,6 @@ void SP_dm_dball_team2_start (edict_t *self);
 void SP_dm_dball_ball_start (edict_t *self);
 void SP_dm_dball_speed_change (edict_t *self);
 void SP_monster_kamikaze (edict_t *self);
-//void SP_monster_chick2 (edict_t *self);
 void SP_turret_invisible_brain (edict_t *self);
 void SP_xatrix_item (edict_t *self);
 void SP_misc_nuke_core (edict_t *self);
@@ -283,8 +282,8 @@ spawn_t	spawns[] = {
 	{"turret_base", SP_turret_base},
 	{"turret_driver", SP_turret_driver},
 
-//==============
-//ROGUE
+	//==============
+	//ROGUE
 	{"func_plat2", SP_func_plat2},
 	{"func_door_secret2", SP_func_door_secret2},
 	{"func_force_wall", SP_func_force_wall},
@@ -296,7 +295,6 @@ spawn_t	spawns[] = {
 	{"monster_turret", SP_monster_turret},
 	{"target_steam", SP_target_steam},
 	{"target_anger", SP_target_anger},
-//	{"target_spawn", SP_target_spawn},
 	{"target_killplayers", SP_target_killplayers},
 	// PMM - experiment
 	{"target_blacklight", SP_target_blacklight},
@@ -316,7 +314,6 @@ spawn_t	spawns[] = {
 	{"dm_dball_ball_start", SP_dm_dball_ball_start},
 	{"dm_dball_speed_change", SP_dm_dball_speed_change},
 	{"monster_kamikaze", SP_monster_kamikaze},
-//	{"monster_chick2", SP_monster_chick2},
 	{"turret_invisible_brain", SP_turret_invisible_brain},
 	{"misc_nuke_core", SP_misc_nuke_core},
 
@@ -325,8 +322,8 @@ spawn_t	spawns[] = {
 	{"item_quadfire", SP_xatrix_item},
 	{"weapon_boomer", SP_xatrix_item},
 	{"weapon_phalanx", SP_xatrix_item},
-//ROGUE
-//==============
+	//ROGUE
+	//==============
 
 	{NULL, NULL}
 };
@@ -350,13 +347,13 @@ void ED_CallSpawn (edict_t *ent)
 		return;
 	}
 
-//PGM - do this before calling the spawn function so it can be overridden.
+	//PGM - do this before calling the spawn function so it can be overridden.
 #ifdef ROGUE_GRAVITY
 	ent->gravityVector[0] =  0.0;
 	ent->gravityVector[1] =  0.0;
 	ent->gravityVector[2] = -1.0;
 #endif
-//PGM
+	//PGM
 
 	// FIXME - PMM classnames hack
 	if (!strcmp(ent->classname, "weapon_nailgun"))
@@ -396,7 +393,7 @@ void ED_CallSpawn (edict_t *ent)
 ED_NewString
 =============
 */
-char *ED_NewString (char *string)
+char *ED_NewString (const char *string)
 {
 	char	*newb, *new_p;
 	int		i,l;
@@ -435,7 +432,7 @@ Takes a key/value pair and sets the binary values
 in an edict
 ===============
 */
-void ED_ParseField (char *key, char *value, edict_t *ent)
+void ED_ParseField (const char *key, const char *value, edict_t *ent)
 {
 	field_t	*f;
 	byte	*b;
@@ -444,7 +441,7 @@ void ED_ParseField (char *key, char *value, edict_t *ent)
 
 	for (f=fields ; f->name ; f++)
 	{
-		if (!(f->flags & FFL_NOSPAWN) && !Q_stricmp(f->name, key))
+		if (!(f->flags & FFL_NOSPAWN) && !Q_strcasecmp(f->name, (char *)key))
 		{	// found it
 			if (f->flags & FFL_SPAWNTEMP)
 				b = (byte *)&st;
@@ -476,6 +473,8 @@ void ED_ParseField (char *key, char *value, edict_t *ent)
 				break;
 			case F_IGNORE:
 				break;
+			default:
+				break;
 			}
 			return;
 		}
@@ -495,15 +494,15 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 {
 	qboolean	init;
 	char		keyname[256];
-	char		*com_token;
+	const char	*com_token;
 
 	init = false;
 	memset (&st, 0, sizeof(st));
 
-// go through all the dictionary pairs
+	// go through all the dictionary pairs
 	while (1)
 	{	
-	// parse key
+		// parse key
 		com_token = COM_Parse (&data);
 		if (com_token[0] == '}')
 			break;
@@ -512,7 +511,7 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 
 		strncpy (keyname, com_token, sizeof(keyname)-1);
 		
-	// parse value	
+		// parse value	
 		com_token = COM_Parse (&data);
 		if (!data)
 			gi.error ("ED_ParseEntity: EOF without closing brace");
@@ -522,8 +521,8 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 
 		init = true;	
 
-	// keynames with a leading underscore are used for utility comments,
-	// and are immediately discarded by quake
+		// keynames with a leading underscore are used for utility comments,
+		// and are immediately discarded by quake
 		if (keyname[0] == '_')
 			continue;
 
@@ -649,11 +648,11 @@ Creates a server's entity / program execution context by
 parsing textual entity definitions out of an ent file.
 ==============
 */
-void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
+void SpawnEntities (const char *mapname, char *entities, const char *spawnpoint)
 {
 	edict_t		*ent;
 	int			inhibit;
-	char		*com_token;
+	const char	*com_token;
 	int			i;
 	float		skill_level;
 
@@ -751,7 +750,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 			}
 			else
 			{
-				if ( /*((coop->value) && (ent->spawnflags & SPAWNFLAG_NOT_COOP)) || */ 
+				if ( /* ((coop->value) && (ent->spawnflags & SPAWNFLAG_NOT_COOP)) || */
 					((skill->value == 0) && (ent->spawnflags & SPAWNFLAG_NOT_EASY)) ||
 					((skill->value == 1) && (ent->spawnflags & SPAWNFLAG_NOT_MEDIUM)) ||
 					(((skill->value == 2) || (skill->value == 3)) && (ent->spawnflags & SPAWNFLAG_NOT_HARD))
@@ -766,13 +765,13 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 			ent->spawnflags &= ~(SPAWNFLAG_NOT_EASY|SPAWNFLAG_NOT_MEDIUM|SPAWNFLAG_NOT_HARD|SPAWNFLAG_NOT_COOP|SPAWNFLAG_NOT_DEATHMATCH);
 		}
 
-//PGM - do this before calling the spawn function so it can be overridden.
+		//PGM - do this before calling the spawn function so it can be overridden.
 #ifdef ROGUE_GRAVITY
 		ent->gravityVector[0] =  0.0;
 		ent->gravityVector[1] =  0.0;
 		ent->gravityVector[2] = -1.0;
 #endif
-//PGM
+		//PGM
 		ED_CallSpawn (ent);
 
 		ent->s.renderfx |= RF_IR_VISIBLE;		//PGM
@@ -794,7 +793,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 	PlayerTrail_Init ();
 
-//ROGUE
+	//ROGUE
 	if(deathmatch->value)
 	{
 		if(randomrespawn && randomrespawn->value)
@@ -804,42 +803,19 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 	{
 		InitHintPaths();		// if there aren't hintpaths on this map, enable quick aborts
 	}
-//ROGUE
+	//ROGUE
 
-// ROGUE	-- allow dm games to do init stuff right before game starts.
+	// ROGUE	-- allow dm games to do init stuff right before game starts.
 	if(deathmatch->value && gamerules && gamerules->value)
 	{
 		if(DMGame.PostInitSetup)
 			DMGame.PostInitSetup ();
 	}
-// ROGUE
+	// ROGUE
 }
 
 
 //===================================================================
-
-#if 0
-	// cursor positioning
-	xl <value>
-	xr <value>
-	yb <value>
-	yt <value>
-	xv <value>
-	yv <value>
-
-	// drawing
-	statpic <name>
-	pic <stat>
-	num <fieldwidth> <stat>
-	string <stat>
-
-	// control
-	if <stat>
-	ifeq <stat> <value>
-	ifbit <stat> <value>
-	endif
-
-#endif
 
 char *single_statusbar = 
 "yb	-24 "
@@ -1145,9 +1121,9 @@ void SP_worldspawn (edict_t *ent)
 	gi.modelindex ("models/objects/gibs/skull/tris.md2");
 	gi.modelindex ("models/objects/gibs/head2/tris.md2");
 
-//
-// Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
-//
+	//
+	// Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
+	//
 
 	// 0 normal
 	gi.configstring(CS_LIGHTS+0, "m");
@@ -1255,13 +1231,7 @@ edict_t *CreateFlyMonster (vec3_t origin, vec3_t angles, vec3_t mins, vec3_t max
 
 edict_t *CreateGroundMonster (vec3_t origin, vec3_t angles, vec3_t entMins, vec3_t entMaxs, char *classname, int height)
 {
-//	trace_t		tr;
 	edict_t		*newEnt;
-//	vec3_t		start, stop;
-//	int			failure = 0;
-//	vec3_t		mins, maxs;
-//	int			x, y;	
-//	float		mid, bottom;
 	vec3_t		mins, maxs;
 
 	// if they don't provide us a bounding box, figure it out
@@ -1302,36 +1272,16 @@ qboolean FindSpawnPoint (vec3_t startpoint, vec3_t mins, vec3_t maxs, vec3_t spa
 	tr = gi.trace (startpoint, mins, maxs, startpoint, NULL, MASK_MONSTERSOLID|CONTENTS_PLAYERCLIP);
 	if((tr.startsolid || tr.allsolid) || (tr.ent != world))
 	{
-//		if ( ((tr.ent->svflags & SVF_MONSTER) && (tr.ent->health <= 0)) ||
-//			 (tr.ent->svflags & SVF_DAMAGEABLE) )
-//		{
-//			T_Damage (tr.ent, self, self, vec3_origin, self->enemy->s.origin,
-//						pain_normal, hurt, 0, 0, MOD_UNKNOWN);
-
 		VectorCopy (startpoint, top);
 		top[2] += maxMoveUp;
-/*
-		gi.WriteByte (svc_temp_entity);
-		gi.WriteByte (TE_DEBUGTRAIL);
-		gi.WritePosition (top);
-		gi.WritePosition (startpoint);
-		gi.multicast (startpoint, MULTICAST_ALL);	
-*/
+
 		tr = gi.trace (top, mins, maxs, startpoint, NULL, MASK_MONSTERSOLID);
 		if (tr.startsolid || tr.allsolid)
 		{
-//			if ((g_showlogic) && (g_showlogic->value))
-//				if (tr.ent)
-//					gi.dprintf("FindSpawnPoint: failed to find a point -- blocked by %s\n", tr.ent->classname);
-//				else
-//					gi.dprintf("FindSpawnPoint: failed to find a point\n");
-
 			return false;
 		} 
 		else
 		{
-//			if ((g_showlogic) && (g_showlogic->value))
-//				gi.dprintf ("FindSpawnPoint: %s -> %s\n", vtos (startpoint), vtos (tr.endpos));
 			VectorCopy (tr.endpos, spawnpoint);
 			return true;
 		}
@@ -1365,14 +1315,10 @@ qboolean CheckSpawnPoint (vec3_t origin, vec3_t mins, vec3_t maxs)
 	tr = gi.trace (origin, mins, maxs, origin, NULL, MASK_MONSTERSOLID);
 	if(tr.startsolid || tr.allsolid)
 	{
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf("createmonster in wall. removing\n");
 		return false;
 	}
 	if (tr.ent != world)
 	{
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf("createmonster in entity %s\n", tr.ent->classname);
 		return false;
 	}	
 	return true;
@@ -1392,7 +1338,6 @@ qboolean CheckGroundSpawnPoint (vec3_t origin, vec3_t entMins, vec3_t entMaxs, f
 {
 	trace_t		tr;
 	vec3_t		start, stop;
-	int			failure = 0;
 	vec3_t		mins, maxs;
 	int			x, y;	
 	float		mid, bottom;
@@ -1405,14 +1350,6 @@ qboolean CheckGroundSpawnPoint (vec3_t origin, vec3_t entMins, vec3_t entMaxs, f
 	VectorCopy (origin, stop);
 	// FIXME - gravity vector
 	stop[2] = origin[2] + entMins[2] - height;
-
-	/*
-	gi.WriteByte (svc_temp_entity);
-	gi.WriteByte (TE_DEBUGTRAIL);
-	gi.WritePosition (origin);
-	gi.WritePosition (stop);
-	gi.multicast (start, MULTICAST_ALL);
-	*/
 
 	tr = gi.trace (origin, entMins, entMaxs, stop, NULL, MASK_MONSTERSOLID | MASK_WATER);
 	// it's not going to be all solid or start solid, since that's checked above
@@ -1502,7 +1439,7 @@ realcheck:
 				*/
 				tr = gi.trace (start, vec3_origin, vec3_origin, stop, NULL, MASK_MONSTERSOLID);
 
-//PGM
+				//PGM
 #ifdef ROGUE_GRAVITY
 // FIXME - this will only handle 0,0,1 and 0,0,-1 gravity vectors
 				if(gravity > 0)
@@ -1511,8 +1448,6 @@ realcheck:
 						bottom = tr.endpos[2];
 					if (tr.fraction == 1.0 || tr.endpos[2] - mid > STEPSIZE)
 					{
-//						if ((g_showlogic) && (g_showlogic->value))
-//							gi.dprintf ("spawn - rejecting due to uneven ground\n");
 						return false;
 					}
 				}
@@ -1522,8 +1457,6 @@ realcheck:
 						bottom = tr.endpos[2];
 					if (tr.fraction == 1.0 || mid - tr.endpos[2] > STEPSIZE)
 					{
-//						if ((g_showlogic) && (g_showlogic->value))
-//							gi.dprintf ("spawn - rejecting due to uneven ground\n");
 						return false;
 					}
 				}
@@ -1542,16 +1475,6 @@ realcheck:
 
 	// otherwise, it's either water (bad) or not there (too far)
 	// if we're here, it's bad below
-//	if ((g_showlogic) && (g_showlogic->value))
-//	{
-//		if (tr.fraction < 1)
-//			if ((g_showlogic) && (g_showlogic->value))
-//				gi.dprintf("groundmonster would fall into water/slime/lava\n");
-//		else
-//			if ((g_showlogic) && (g_showlogic->value))
-//				gi.dprintf("groundmonster would fall too far\n");
-//	}
-
 	return false;
 }
 
@@ -1626,7 +1549,6 @@ void SpawnGrow_Spawn (vec3_t startpos, int size)
 			ent->s.angles[2] = rand()%360;
 	}
 	ent->solid = SOLID_NOT;
-//	ent->s.renderfx = RF_FULLBRIGHT | RF_IR_VISIBLE;
 	ent->s.renderfx = RF_IR_VISIBLE;
 	ent->movetype = MOVETYPE_NONE;
 	ent->classname = "spawngro";
@@ -1738,7 +1660,6 @@ void widowlegs_think (edict_t *self)
 		gi.WriteByte (TE_EXPLOSION1);
 		gi.WritePosition (point);
 		gi.multicast (point, MULTICAST_ALL);
-//		ThrowSmallStuff (self, point);
 
 		VectorSet (offset, -12.67, -4.39, 15.68);
 		G_ProjectSource2 (self->s.origin, offset, f, r, u, point);
@@ -1746,7 +1667,6 @@ void widowlegs_think (edict_t *self)
 		gi.WriteByte (TE_EXPLOSION1);
 		gi.WritePosition (point);
 		gi.multicast (point, MULTICAST_ALL);
-//		ThrowSmallStuff (self, point);
 
 		self->nextthink = level.time + FRAMETIME;
 		return;
@@ -1772,3 +1692,4 @@ void Widowlegs_Spawn (vec3_t startpos, vec3_t angles)
 	ent->nextthink = level.time + FRAMETIME;
 	gi.linkentity (ent);
 }
+

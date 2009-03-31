@@ -344,7 +344,7 @@ void SV_CalcGunOffset (edict_t *ent)
 	//ROGUE - heatbeam shouldn't bob so the beam looks right
 	if (ent->client->pers.weapon != heatbeam)
 	{
-	// ROGUE
+		// ROGUE
 		// gun angles from bobbing
 		ent->client->ps.gunangles[ROLL] = xyspeed * bobfracsin * 0.005;
 		ent->client->ps.gunangles[YAW] = xyspeed * bobfracsin * 0.01;
@@ -383,7 +383,6 @@ void SV_CalcGunOffset (edict_t *ent)
 
 	// gun height
 	VectorClear (ent->client->ps.gunoffset);
-//	ent->ps->gunorigin[2] += bob;
 
 	// gun_x / gun_y / gun_z are development tools
 	for (i=0 ; i<3 ; i++)
@@ -489,7 +488,7 @@ void SV_CalcBlend (edict_t *ent)
 			SV_AddBlend (0.4, 1, 0.4, 0.04, ent->client->ps.blend);
 	}
 
-//PGM
+	//PGM
 	if(ent->client->nuke_framenum > level.framenum)
 	{
 		float brightness;
@@ -511,7 +510,7 @@ void SV_CalcBlend (edict_t *ent)
 	{
 		ent->client->ps.rdflags &= ~RDF_IRGOGGLES;
 	}
-//PGM
+	//PGM
 
 	// add for damage
 	if (ent->client->damage_alpha > 0)
@@ -788,7 +787,6 @@ void G_SetClientEffects (edict_t *ent)
 	int		remaining;
 
 	ent->s.effects = 0;
-//	ent->s.renderfx = 0;
 
 	// PGM - player is always ir visible, even dead.
 	ent->s.renderfx = RF_IR_VISIBLE;
@@ -796,8 +794,8 @@ void G_SetClientEffects (edict_t *ent)
 	if (ent->health <= 0 || level.intermissiontime)
 		return;
 
-//=========
-//PGM
+	//=========
+	//PGM
 	if(ent->flags & FL_DISGUISED)
 		ent->s.renderfx |= RF_USE_DISGUISE;
 
@@ -806,8 +804,8 @@ void G_SetClientEffects (edict_t *ent)
 		if(DMGame.PlayerEffects)
 			DMGame.PlayerEffects(ent);
 	}
-//PGM
-//=========
+	//PGM
+	//=========
 
 	if (ent->powerarmor_time > level.time)
 	{
@@ -830,8 +828,8 @@ void G_SetClientEffects (edict_t *ent)
 			ent->s.effects |= EF_QUAD;
 	}
 
-//=======
-//ROGUE
+	//=======
+	//ROGUE
 	if (ent->client->double_framenum > level.framenum)
 	{
 		remaining = ent->client->double_framenum - level.framenum;
@@ -846,8 +844,8 @@ void G_SetClientEffects (edict_t *ent)
 	{
 		ent->s.effects |= EF_TRACKERTRAIL;
 	}
-//ROGUE
-//=======
+	//ROGUE
+	//=======
 
 	if (ent->client->invincible_framenum > level.framenum)
 	{
@@ -862,19 +860,6 @@ void G_SetClientEffects (edict_t *ent)
 		ent->s.effects |= EF_COLOR_SHELL;
 		ent->s.renderfx |= (RF_SHELL_RED|RF_SHELL_GREEN|RF_SHELL_BLUE);
 	}
-
-//PGM
-/*
-	if (ent->client->torch_framenum > level.framenum)
-	{
-		gi.WriteByte (svc_temp_entity);
-		gi.WriteByte (TE_FLASHLIGHT);
-		gi.WritePosition (ent->s.origin);
-		gi.WriteShort (ent - g_edicts);
-		gi.multicast (ent->s.origin, MULTICAST_PVS);
-	}
-*/
-//PGM
 }
 
 

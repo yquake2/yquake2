@@ -520,14 +520,14 @@ void target_laser_think (edict_t *self)
 	VectorMA (start, 2048, self->movedir, end);
 	while(1)
 	{
-//======
-// PGM
+		//======
+		// PGM
 		if(self->spawnflags & LASER_STOPWINDOW)
 			tr = gi.trace (start, NULL, NULL, end, ignore, MASK_SHOT);
 		else
 			tr = gi.trace (start, NULL, NULL, end, ignore, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_DEADMONSTER);
-// PGM
-//======
+		// PGM
+		//======
 
 		if (!tr.ent)
 			break;
@@ -537,7 +537,6 @@ void target_laser_think (edict_t *self)
 			T_Damage (tr.ent, self, self->activator, self->movedir, tr.endpos, vec3_origin, self->dmg, 1, DAMAGE_ENERGY, MOD_TARGET_LASER);
 
 		// if we hit something that's not a monster or player or is immune to lasers, we're done
-//		if (!(tr.ent->svflags & SVF_MONSTER) && (!tr.ent->client))
 		//PMM added SVF_DAMAGEABLE
 		if (!(tr.ent->svflags & SVF_MONSTER) && (!tr.ent->client) && !(tr.ent->svflags & SVF_DAMAGEABLE))
 		{
@@ -794,11 +793,6 @@ void target_earthquake_think (edict_t *self)
 
 void target_earthquake_use (edict_t *self, edict_t *other, edict_t *activator)
 {
-	// PGM
-//	if(g_showlogic && g_showlogic->value)
-//		gi.dprintf("earthquake: %0.1f\n", self->speed);
-	// PGM
-
 	self->timestamp = level.time + self->count;
 	self->nextthink = level.time + FRAMETIME;
 	self->activator = activator;

@@ -83,7 +83,7 @@ field_t fields[] = {
 	{"pausetime", STOFS(pausetime), F_FLOAT, FFL_SPAWNTEMP},
 	{"item", STOFS(item), F_LSTRING, FFL_SPAWNTEMP},
 
-//need for item field in edict struct, FFL_SPAWNTEMP item will be skipped on saves
+	//need for item field in edict struct, FFL_SPAWNTEMP item will be skipped on saves
 	{"item", FOFS(item), F_ITEM},
 
 	{"gravity", STOFS(gravity), F_LSTRING, FFL_SPAWNTEMP},
@@ -171,12 +171,12 @@ void InitGame (void)
 
 	sv_stopspeed = gi.cvar ("sv_stopspeed", "100", 0);		// PGM - was #define in g_phys.c
 
-//ROGUE
+	//ROGUE
 	g_showlogic = gi.cvar ("g_showlogic", "0", 0);
 	huntercam = gi.cvar ("huntercam", "1", CVAR_SERVERINFO|CVAR_LATCH);
 	strong_mines = gi.cvar ("strong_mines", "0", 0);
 	randomrespawn = gi.cvar ("randomrespawn", "0", 0);
-//ROGUE
+	//ROGUE
 
 	// noset vars
 	dedicated = gi.cvar ("dedicated", "0", CVAR_NOSET);
@@ -236,14 +236,14 @@ void InitGame (void)
 	game.clients = gi.TagMalloc (game.maxclients * sizeof(game.clients[0]), TAG_GAME);
 	globals.num_edicts = game.maxclients+1;
 
-//======
-//ROGUE
+	//======
+	//ROGUE
 	if(gamerules)
 	{
 		InitGameRules();	// if there are game rules to set up, do so now.
 	}
-//ROGUE
-//======
+	//ROGUE
+	//======
 }
 
 //=========================================================
@@ -339,6 +339,8 @@ void WriteField2 (FILE *f, field_t *field, byte *base)
 			fwrite (*(char **)p, len, 1, f);
 		}
 		break;
+	default:
+		break;
 	}
 }
 
@@ -367,7 +369,11 @@ void ReadField (FILE *f, field_t *field, byte *base)
 			*(char **)p = NULL;
 		else
 		{
-			*(char **)p = gi.TagMalloc (len, TAG_LEVEL);
+			/* 
+			  SBF: FIXME - 32 extra bytes alloc'd since the saved 
+			  string might not be long enough
+			 */
+			*(char **)p = gi.TagMalloc (32+len, TAG_LEVEL);
 			fread (*(char **)p, len, 1, f);
 		}
 		break;
@@ -482,7 +488,7 @@ A single player death will automatically restore from the
 last save position.
 ============
 */
-void WriteGame (char *filename, qboolean autosave)
+void WriteGame (const char *filename, qboolean autosave)
 {
 	FILE	*f;
 	int		i;
@@ -509,7 +515,7 @@ void WriteGame (char *filename, qboolean autosave)
 	fclose (f);
 }
 
-void ReadGame (char *filename)
+void ReadGame (const char *filename)
 {
 	FILE	*f;
 	int		i;
@@ -650,7 +656,7 @@ WriteLevel
 
 =================
 */
-void WriteLevel (char *filename)
+void WriteLevel (const char *filename)
 {
 	int		i;
 	edict_t	*ent;
@@ -704,7 +710,7 @@ calling ReadLevel.
 No clients are connected yet.
 =================
 */
-void ReadLevel (char *filename)
+void ReadLevel (const char *filename)
 {
 	int		entnum;
 	FILE	*f;
@@ -734,15 +740,7 @@ void ReadLevel (char *filename)
 
 	// check function pointer base address
 	fread (&base, sizeof(base), 1, f);
-#ifdef _WIN32
-	if (base != (void *)InitGame)
-	{
-		fclose (f);
-		gi.error ("ReadLevel: function pointers have moved");
-	}
-#else
 	gi.dprintf("Function offsets %d\n", ((byte *)base) - ((byte *)InitGame));
-#endif
 
 	// load the level locals
 	ReadLevelLocals (f);
@@ -770,10 +768,6 @@ void ReadLevel (char *filename)
 
 	fclose (f);
 
-	// PMM - rebuild the hint path chains
-//	InitHintPaths();
-	// pmm
-
 	// mark all clients as unconnected
 	for (i=0 ; i<maxclients->value ; i++)
 	{
@@ -796,3 +790,4 @@ void ReadLevel (char *filename)
 				ent->nextthink = level.time + ent->delay;
 	}
 }
+

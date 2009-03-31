@@ -125,3 +125,4 @@ edict_t *PlayerTrail_LastSpot (void)
 {
 	return trail[PREV(trail_head)];
 }
+

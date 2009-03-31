@@ -601,8 +601,7 @@ void SP_trigger_gravity (edict_t *self)
 
 	InitTrigger (self);
 
-//PGM
-//	self->gravity = atoi(st.gravity);
+	//PGM
 	self->gravity = atof(st.gravity);
 
 	if(self->spawnflags & 1)				// TOGGLE
@@ -615,7 +614,7 @@ void SP_trigger_gravity (edict_t *self)
 	}
 
 	self->touch = trigger_gravity_touch;
-//PGM
+	//PGM
 
 	gi.linkentity (self);
 }
@@ -644,7 +643,7 @@ void trigger_monsterjump_touch (edict_t *self, edict_t *other, cplane_t *plane, 
 	if ( !(other->svflags & SVF_MONSTER))
 		return;
 
-// set XY even if not on ground, so the jump will clear lips
+	// set XY even if not on ground, so the jump will clear lips
 	other->velocity[0] = self->movedir[0] * self->speed;
 	other->velocity[1] = self->movedir[1] * self->speed;
 	
