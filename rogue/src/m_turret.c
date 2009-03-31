@@ -40,8 +40,6 @@ void TurretAim(edict_t *self)
 	float	move, idealPitch, idealYaw, current, speed;
 	int		orientation;
 
-// gi.dprintf("turret_aim: %d %d\n", self->s.frame, self->monsterinfo.nextframe);
-
 	if(!self->enemy || self->enemy == world)
 	{
 		if(!FindTarget (self))
@@ -102,7 +100,6 @@ void TurretAim(edict_t *self)
 				idealPitch = -185;
 			break;
 		case 0:				// +X		pitch: 0 to -90, -270 to -360 (or 0 to 90)
-//gi.dprintf("idealpitch %0.1f  idealyaw %0.1f\n", idealPitch, idealYaw);
 			if(idealPitch < -180)
 				idealPitch += 360;
 
@@ -111,7 +108,6 @@ void TurretAim(edict_t *self)
 			else if(idealPitch < -85)
 				idealPitch = -85;
 
-//gi.dprintf("idealpitch %0.1f  idealyaw %0.1f\n", idealPitch, idealYaw);
 							//			yaw: 270 to 360, 0 to 90
 							//			yaw: -90 to 90 (270-360 == -90-0)
 			if(idealYaw > 180)
@@ -120,7 +116,6 @@ void TurretAim(edict_t *self)
 				idealYaw = 85;
 			else if(idealYaw < -85)
 				idealYaw = -85;
-//gi.dprintf("idealpitch %0.1f  idealyaw %0.1f\n", idealPitch, idealYaw);
 			break;
 		case 90:			// +Y	pitch: 0 to 90, -270 to -360 (or 0 to 90)
 			if(idealPitch < -180)
@@ -217,15 +212,11 @@ void TurretAim(edict_t *self)
 	{
 		move = idealYaw - current;
 
-//		while(move >= 360)
-//			move -= 360;
 		if (move >= 180)
 		{
 			move = move - 360;
 		}
 
-//		while(move <= -360)
-//			move += 360;
 		if (move <= -180)
 		{
 			move = move + 360;
@@ -257,8 +248,8 @@ void turret_search (edict_t *self)
 
 mframe_t turret_frames_stand [] =
 {
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL}
 };
 mmove_t turret_move_stand = {FRAME_stand01, FRAME_stand02, turret_frames_stand, NULL};
 
@@ -270,15 +261,15 @@ void turret_stand (edict_t *self)
 
 mframe_t turret_frames_ready_gun [] =
 {
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 	
-	ai_stand, 0, NULL
+	{ai_stand, 0, NULL}
 };
 mmove_t turret_move_ready_gun = { FRAME_active01, FRAME_run01, turret_frames_ready_gun, turret_run };
 
@@ -289,8 +280,8 @@ void turret_ready_gun (edict_t *self)
 
 mframe_t turret_frames_seek [] =
 {
-	ai_walk, 0, TurretAim,
-	ai_walk, 0, TurretAim
+	{ai_walk, 0, TurretAim},
+	{ai_walk, 0, TurretAim}
 };
 mmove_t turret_move_seek = {FRAME_run01, FRAME_run02, turret_frames_seek, NULL};
 
@@ -305,8 +296,8 @@ void turret_walk (edict_t *self)
 
 mframe_t turret_frames_run [] =
 {
-	ai_run, 0, TurretAim,
-	ai_run, 0, TurretAim
+	{ai_run, 0, TurretAim},
+	{ai_run, 0, TurretAim}
 };
 mmove_t turret_move_run = {FRAME_run01, FRAME_run02, turret_frames_run, turret_run};
 
@@ -331,7 +322,7 @@ void TurretFire (edict_t *self)
 	vec3_t	start, end, dir;
 	float	time, dist, chance;
 	trace_t	trace;
-	int		rocketSpeed;
+	int		rocketSpeed = 0;
 
 	TurretAim(self);
 
@@ -344,7 +335,6 @@ void TurretFire (edict_t *self)
 	chance = DotProduct(dir, forward);
 	if(chance < 0.98)
 	{
-//		gi.dprintf("off-angle\n");
 		return;
 	}
 
@@ -431,7 +421,7 @@ void TurretFireBlind (edict_t *self)
 	vec3_t	forward;
 	vec3_t	start, end, dir;
 	float	dist, chance;
-	int		rocketSpeed;
+	int		rocketSpeed = 0;
 
 	TurretAim(self);
 
@@ -444,7 +434,6 @@ void TurretFireBlind (edict_t *self)
 	chance = DotProduct(dir, forward);
 	if(chance < 0.98)
 	{
-//		gi.dprintf("off-angle\n");
 		return;
 	}
 
@@ -483,10 +472,10 @@ void TurretFireBlind (edict_t *self)
 
 mframe_t turret_frames_fire [] =
 {
-	ai_run,   0, TurretFire,
-	ai_run,   0, TurretAim,
-	ai_run,   0, TurretAim,
-	ai_run,   0, TurretAim
+	{ai_run,   0, TurretFire},
+	{ai_run,   0, TurretAim},
+	{ai_run,   0, TurretAim},
+	{ai_run,   0, TurretAim}
 };
 mmove_t turret_move_fire = {FRAME_pow01, FRAME_pow04, turret_frames_fire, turret_run};
 
@@ -495,10 +484,10 @@ mmove_t turret_move_fire = {FRAME_pow01, FRAME_pow04, turret_frames_fire, turret
 // the blind frames need to aim first
 mframe_t turret_frames_fire_blind [] =
 {
-	ai_run,   0, TurretAim,
-	ai_run,   0, TurretAim,
-	ai_run,   0, TurretAim,
-	ai_run,   0, TurretFireBlind
+	{ai_run,   0, TurretAim},
+	{ai_run,   0, TurretAim},
+	{ai_run,   0, TurretAim},
+	{ai_run,   0, TurretFireBlind}
 };
 mmove_t turret_move_fire_blind = {FRAME_pow01, FRAME_pow04, turret_frames_fire_blind, turret_run};
 //pmm
@@ -858,7 +847,6 @@ qboolean turret_checkattack (edict_t *self)
 	if ( ((random () < chance) && (visible(self, self->enemy))) || (self->enemy->solid == SOLID_NOT))
 	{
 		self->monsterinfo.attack_state = AS_MISSILE;
-//		self->monsterinfo.attack_finished = level.time + 0.3 + 2*random();
 		self->monsterinfo.attack_finished = level.time + nexttime;
 		return true;
 	}
@@ -890,13 +878,6 @@ void SP_monster_turret (edict_t *self)
 		return;
 	}
 
-	// VERSIONING
-//	if (g_showlogic && g_showlogic->value)
-//		gi.dprintf ("%s\n", ROGUE_VERSION_STRING);
-
-//	self->plat2flags = ROGUE_VERSION_ID;
-	// versions
-
 	// pre-caches
 	gi.soundindex ("world/dr_short.wav");
 	gi.modelindex ("models/objects/debris1/tris.md2");
@@ -922,9 +903,6 @@ void SP_monster_turret (edict_t *self)
 	if(!(self->spawnflags & SPAWN_WEAPONCHOICE))
 	{
 		self->spawnflags |= SPAWN_BLASTER;
-//		self->spawnflags |= SPAWN_MACHINEGUN;
-//		self->spawnflags |= SPAWN_ROCKET;
-//		self->spawnflags |= SPAWN_HEATBEAM;
 	}
 
 	if(self->spawnflags & SPAWN_HEATBEAM)
@@ -990,7 +968,6 @@ void SP_monster_turret (edict_t *self)
 	{
 		if(!self->targetname)
 		{
-//			gi.dprintf("Wall Unit Turret without targetname! %s\n", vtos(self->s.origin));
 			G_FreeEdict(self);
 			return;
 		}
@@ -1036,3 +1013,4 @@ void SP_monster_turret (edict_t *self)
 	if(self->spawnflags & (SPAWN_ROCKET|SPAWN_BLASTER))
 		self->monsterinfo.blindfire = true;
 }
+

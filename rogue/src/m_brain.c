@@ -47,38 +47,38 @@ void brain_dead (edict_t *self);
 
 mframe_t brain_frames_stand [] =
 {
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
 
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
 
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL}
 };
 mmove_t brain_move_stand = {FRAME_stand01, FRAME_stand30, brain_frames_stand, NULL};
 
@@ -94,38 +94,38 @@ void brain_stand (edict_t *self)
 
 mframe_t brain_frames_idle [] =
 {
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
 
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
 
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL,
-	ai_stand,	0,	NULL
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL},
+	{ai_stand,	0,	NULL}
 };
 mmove_t brain_move_idle = {FRAME_stand31, FRAME_stand60, brain_frames_idle, brain_stand};
 
@@ -141,256 +141,134 @@ void brain_idle (edict_t *self)
 //
 mframe_t brain_frames_walk1 [] =
 {
-	ai_walk,	7,	NULL,
-	ai_walk,	2,	NULL,
-	ai_walk,	3,	NULL,
-	ai_walk,	3,	NULL,
-	ai_walk,	1,	NULL,
-	ai_walk,	0,	NULL,
-	ai_walk,	0,	NULL,
-	ai_walk,	9,	NULL,
-	ai_walk,	-4,	NULL,
-	ai_walk,	-1,	NULL,
-	ai_walk,	2,	NULL
+	{ai_walk,	7,	NULL},
+	{ai_walk,	2,	NULL},
+	{ai_walk,	3,	NULL},
+	{ai_walk,	3,	NULL},
+	{ai_walk,	1,	NULL},
+	{ai_walk,	0,	NULL},
+	{ai_walk,	0,	NULL},
+	{ai_walk,	9,	NULL},
+	{ai_walk,	-4,	NULL},
+	{ai_walk,	-1,	NULL},
+	{ai_walk,	2,	NULL}
 };
 mmove_t brain_move_walk1 = {FRAME_walk101, FRAME_walk111, brain_frames_walk1, NULL};
 
-// walk2 is FUBAR, do not use
-#if 0
-void brain_walk2_cycle (edict_t *self)
-{
-	if (random() > 0.1)
-		self->monsterinfo.nextframe = FRAME_walk220;
-}
-
-mframe_t brain_frames_walk2 [] =
-{
-	ai_walk,	3,	NULL,
-	ai_walk,	-2,	NULL,
-	ai_walk,	-4,	NULL,
-	ai_walk,	-3,	NULL,
-	ai_walk,	0,	NULL,
-	ai_walk,	1,	NULL,
-	ai_walk,	12,	NULL,
-	ai_walk,	0,	NULL,
-	ai_walk,	-3,	NULL,
-	ai_walk,	0,	NULL,
-
-	ai_walk,	-2,	NULL,
-	ai_walk,	0,	NULL,
-	ai_walk,	0,	NULL,
-	ai_walk,	1,	NULL,
-	ai_walk,	0,	NULL,
-	ai_walk,	0,	NULL,
-	ai_walk,	0,	NULL,
-	ai_walk,	0,	NULL,
-	ai_walk,	0,	NULL,
-	ai_walk,	10,	NULL,		// Cycle Start
-
-	ai_walk,	-1,	NULL,
-	ai_walk,	7,	NULL,
-	ai_walk,	0,	NULL,
-	ai_walk,	3,	NULL,
-	ai_walk,	-3,	NULL,
-	ai_walk,	2,	NULL,
-	ai_walk,	4,	NULL,
-	ai_walk,	-3,	NULL,
-	ai_walk,	2,	NULL,
-	ai_walk,	0,	NULL,
-
-	ai_walk,	4,	brain_walk2_cycle,
-	ai_walk,	-1,	NULL,
-	ai_walk,	-1,	NULL,
-	ai_walk,	-8,	NULL,		
-	ai_walk,	0,	NULL,
-	ai_walk,	1,	NULL,
-	ai_walk,	5,	NULL,
-	ai_walk,	2,	NULL,
-	ai_walk,	-1,	NULL,
-	ai_walk,	-5,	NULL
-};
-mmove_t brain_move_walk2 = {FRAME_walk201, FRAME_walk240, brain_frames_walk2, NULL};
-#endif
-
 void brain_walk (edict_t *self)
 {
-//	if (random() <= 0.5)
 		self->monsterinfo.currentmove = &brain_move_walk1;
-//	else
-//		self->monsterinfo.currentmove = &brain_move_walk2;
 }
 
 
 
 mframe_t brain_frames_defense [] =
 {
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL}
 };
 mmove_t brain_move_defense = {FRAME_defens01, FRAME_defens08, brain_frames_defense, NULL};
 
 mframe_t brain_frames_pain3 [] =
 {
-	ai_move,	-2,	NULL,
-	ai_move,	2,	NULL,
-	ai_move,	1,	NULL,
-	ai_move,	3,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	-4,	NULL
+	{ai_move,	-2,	NULL},
+	{ai_move,	2,	NULL},
+	{ai_move,	1,	NULL},
+	{ai_move,	3,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	-4,	NULL}
 };
 mmove_t brain_move_pain3 = {FRAME_pain301, FRAME_pain306, brain_frames_pain3, brain_run};
 
 mframe_t brain_frames_pain2 [] =
 {
-	ai_move,	-2,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	3,	NULL,
-	ai_move,	1,	NULL,
-	ai_move,	-2,	NULL
+	{ai_move,	-2,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	3,	NULL},
+	{ai_move,	1,	NULL},
+	{ai_move,	-2,	NULL}
 };
 mmove_t brain_move_pain2 = {FRAME_pain201, FRAME_pain208, brain_frames_pain2, brain_run};
 
 mframe_t brain_frames_pain1 [] =
 {
-	ai_move,	-6,	NULL,
-	ai_move,	-2,	NULL,
-	ai_move,	-6,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	2,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	2,	NULL,
-	ai_move,	1,	NULL,
-	ai_move,	7,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	3,	NULL,
-	ai_move,	-1,	NULL
+	{ai_move,	-6,	NULL},
+	{ai_move,	-2,	NULL},
+	{ai_move,	-6,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	2,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	2,	NULL},
+	{ai_move,	1,	NULL},
+	{ai_move,	7,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	3,	NULL},
+	{ai_move,	-1,	NULL}
 };
 mmove_t brain_move_pain1 = {FRAME_pain101, FRAME_pain121, brain_frames_pain1, brain_run};
 
 mframe_t brain_frames_duck [] =
 {
-	ai_move,	0,	NULL,
-	ai_move,	-2,	monster_duck_down,
-	ai_move,	17,	monster_duck_hold,
-	ai_move,	-3,	NULL,
-	ai_move,	-1,	monster_duck_up,
-	ai_move,	-5,	NULL,
-	ai_move,	-6,	NULL,
-	ai_move,	-6,	NULL
+	{ai_move,	0,	NULL},
+	{ai_move,	-2,	monster_duck_down},
+	{ai_move,	17,	monster_duck_hold},
+	{ai_move,	-3,	NULL},
+	{ai_move,	-1,	monster_duck_up},
+	{ai_move,	-5,	NULL},
+	{ai_move,	-6,	NULL},
+	{ai_move,	-6,	NULL}
 };
 mmove_t brain_move_duck = {FRAME_duck01, FRAME_duck08, brain_frames_duck, brain_run};
 
-/*
-void brain_dodge (edict_t *self, edict_t *attacker, float eta, trace_t *tr)
-{
-	//========
-	//PMM - new dodge code
-	float	r;
-	float	height;
-
-	if (!self->enemy)
-	{
-		self->enemy = attacker;
-		FoundTarget (self);
-	}
-
-	// PMM - don't bother if it's going to hit anyway; fix for weird in-your-face etas (I was
-	// seeing numbers like 13 and 14)
-	if ((eta < 0.1) || (eta > 5))
-		return;
-
-	r = random();
-	if (r > (0.25*((skill->value)+1)))
-		return;
-
-	if (self->monsterinfo.aiflags & AI_DODGING)
-	{
-		height = self->absmax[2];
-	}
-	else
-	{
-		height = self->absmax[2]-32-1;  // the -1 is because the absmax is s.origin + maxs + 1
-	}
-
-	// check to see if it makes sense to duck
-	if (tr->endpos[2] <= height)
-	{
-		// if it doesn't sense to duck, try to strafe and shoot
-		// FIXME - this guy is so slow, it's not worth it
-
-		//vec3_t forward,right,up,diff;
-
-		monster_done_dodge (self);
-		return;
-	}
-
-	if (skill->value == 0)
-	{
-		self->monsterinfo.currentmove = &brain_move_duck;
-		// PMM - stupid dodge
-		self->monsterinfo.duck_wait_time = level.time + eta + 1;
-		self->monsterinfo.aiflags |= AI_DODGING;
-		return;
-	}
-
-	self->monsterinfo.currentmove = &brain_move_duck;
-	self->monsterinfo.duck_wait_time = level.time + eta + (0.1 * (3 - skill->value));
-	self->monsterinfo.aiflags |= AI_DODGING;
-	return;
-	//============
-	//PMM
-}
-*/
-
 mframe_t brain_frames_death2 [] =
 {
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	9,	NULL,
-	ai_move,	0,	NULL
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	9,	NULL},
+	{ai_move,	0,	NULL}
 };
 mmove_t brain_move_death2 = {FRAME_death201, FRAME_death205, brain_frames_death2, brain_dead};
 
 mframe_t brain_frames_death1 [] =
 {
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	-2,	NULL,
-	ai_move,	9,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	-2,	NULL},
+	{ai_move,	9,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL}
 };
 mmove_t brain_move_death1 = {FRAME_death101, FRAME_death118, brain_frames_death1, brain_dead};
 
@@ -429,24 +307,24 @@ void brain_hit_left (edict_t *self)
 
 mframe_t brain_frames_attack1 [] =
 {
-	ai_charge,	8,	NULL,
-	ai_charge,	3,	NULL,
-	ai_charge,	5,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	-3,	brain_swing_right,
-	ai_charge,	0,	NULL,
-	ai_charge,	-5,	NULL,
-	ai_charge,	-7,	brain_hit_right,
-	ai_charge,	0,	NULL,
-	ai_charge,	6,	brain_swing_left,
-	ai_charge,	1,	NULL,
-	ai_charge,	2,	brain_hit_left,
-	ai_charge,	-3,	NULL,
-	ai_charge,	6,	NULL,
-	ai_charge,	-1,	NULL,
-	ai_charge,	-3,	NULL,
-	ai_charge,	2,	NULL,
-	ai_charge,	-11,NULL
+	{ai_charge,	8,	NULL},
+	{ai_charge,	3,	NULL},
+	{ai_charge,	5,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	-3,	brain_swing_right},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	-5,	NULL},
+	{ai_charge,	-7,	brain_hit_right},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	6,	brain_swing_left},
+	{ai_charge,	1,	NULL},
+	{ai_charge,	2,	brain_hit_left},
+	{ai_charge,	-3,	NULL},
+	{ai_charge,	6,	NULL},
+	{ai_charge,	-1,	NULL},
+	{ai_charge,	-3,	NULL},
+	{ai_charge,	2,	NULL},
+	{ai_charge,	-11,NULL}
 };
 mmove_t brain_move_attack1 = {FRAME_attak101, FRAME_attak118, brain_frames_attack1, brain_run};
 
@@ -479,23 +357,23 @@ void brain_chest_closed (edict_t *self)
 
 mframe_t brain_frames_attack2 [] =
 {
-	ai_charge,	5,	NULL,
-	ai_charge,	-4,	NULL,
-	ai_charge,	-4,	NULL,
-	ai_charge,	-3,	NULL,
-	ai_charge,	0,	brain_chest_open,
-	ai_charge,	0,	NULL,
-	ai_charge,	13,	brain_tentacle_attack,
-	ai_charge,	0,	NULL,
-	ai_charge,	2,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	-9,	brain_chest_closed,
-	ai_charge,	0,	NULL,
-	ai_charge,	4,	NULL,
-	ai_charge,	3,	NULL,
-	ai_charge,	2,	NULL,
-	ai_charge,	-3,	NULL,
-	ai_charge,	-6,	NULL
+	{ai_charge,	5,	NULL},
+	{ai_charge,	-4,	NULL},
+	{ai_charge,	-4,	NULL},
+	{ai_charge,	-3,	NULL},
+	{ai_charge,	0,	brain_chest_open},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	13,	brain_tentacle_attack},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	2,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	-9,	brain_chest_closed},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	4,	NULL},
+	{ai_charge,	3,	NULL},
+	{ai_charge,	2,	NULL},
+	{ai_charge,	-3,	NULL},
+	{ai_charge,	-6,	NULL}
 };
 mmove_t brain_move_attack2 = {FRAME_attak201, FRAME_attak217, brain_frames_attack2, brain_run};
 
@@ -514,17 +392,17 @@ void brain_melee(edict_t *self)
 
 mframe_t brain_frames_run [] =
 {
-	ai_run,	9,	NULL,
-	ai_run,	2,	NULL,
-	ai_run,	3,	NULL,
-	ai_run,	3,	NULL,
-	ai_run,	1,	NULL,
-	ai_run,	0,	NULL,
-	ai_run,	0,	NULL,
-	ai_run,	10,	NULL,
-	ai_run,	-4,	NULL,
-	ai_run,	-1,	NULL,
-	ai_run,	2,	NULL
+	{ai_run,	9,	NULL},
+	{ai_run,	2,	NULL},
+	{ai_run,	3,	NULL},
+	{ai_run,	3,	NULL},
+	{ai_run,	1,	NULL},
+	{ai_run,	0,	NULL},
+	{ai_run,	0,	NULL},
+	{ai_run,	10,	NULL},
+	{ai_run,	-4,	NULL},
+	{ai_run,	-1,	NULL},
+	{ai_run,	2,	NULL}
 };
 mmove_t brain_move_run = {FRAME_walk101, FRAME_walk111, brain_frames_run, NULL};
 

@@ -58,151 +58,87 @@ void soldier_stand (edict_t *self);
 
 mframe_t soldier_frames_stand1 [] =
 {
-	ai_stand, 0, soldier_idle,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, soldier_idle},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL}
 };
 mmove_t soldier_move_stand1 = {FRAME_stand101, FRAME_stand130, soldier_frames_stand1, soldier_stand};
 
 mframe_t soldier_frames_stand3 [] =
 {
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, soldier_cock,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, soldier_cock},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL}
 };
 mmove_t soldier_move_stand3 = {FRAME_stand301, FRAME_stand339, soldier_frames_stand3, soldier_stand};
-
-#if 0
-mframe_t soldier_frames_stand4 [] =
-{
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 4, NULL,
-	ai_stand, 1, NULL,
-	ai_stand, -1, NULL,
-	ai_stand, -2, NULL,
-
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL
-};
-mmove_t soldier_move_stand4 = {FRAME_stand401, FRAME_stand452, soldier_frames_stand4, NULL};
-#endif
 
 void soldier_stand (edict_t *self)
 {
@@ -225,54 +161,54 @@ void soldier_walk1_random (edict_t *self)
 
 mframe_t soldier_frames_walk1 [] =
 {
-	ai_walk, 3,  NULL,
-	ai_walk, 6,  NULL,
-	ai_walk, 2,  NULL,
-	ai_walk, 2,  NULL,
-	ai_walk, 2,  NULL,
-	ai_walk, 1,  NULL,
-	ai_walk, 6,  NULL,
-	ai_walk, 5,  NULL,
-	ai_walk, 3,  NULL,
-	ai_walk, -1, soldier_walk1_random,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL,
-	ai_walk, 0,  NULL
+	{ai_walk, 3,  NULL},
+	{ai_walk, 6,  NULL},
+	{ai_walk, 2,  NULL},
+	{ai_walk, 2,  NULL},
+	{ai_walk, 2,  NULL},
+	{ai_walk, 1,  NULL},
+	{ai_walk, 6,  NULL},
+	{ai_walk, 5,  NULL},
+	{ai_walk, 3,  NULL},
+	{ai_walk, -1, soldier_walk1_random},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL},
+	{ai_walk, 0,  NULL}
 };
 mmove_t soldier_move_walk1 = {FRAME_walk101, FRAME_walk133, soldier_frames_walk1, NULL};
 
 mframe_t soldier_frames_walk2 [] =
 {
-	ai_walk, 4,  NULL,
-	ai_walk, 4,  NULL,
-	ai_walk, 9,  NULL,
-	ai_walk, 8,  NULL,
-	ai_walk, 5,  NULL,
-	ai_walk, 1,  NULL,
-	ai_walk, 3,  NULL,
-	ai_walk, 7,  NULL,
-	ai_walk, 6,  NULL,
-	ai_walk, 7,  NULL
+	{ai_walk, 4,  NULL},
+	{ai_walk, 4,  NULL},
+	{ai_walk, 9,  NULL},
+	{ai_walk, 8,  NULL},
+	{ai_walk, 5,  NULL},
+	{ai_walk, 1,  NULL},
+	{ai_walk, 3,  NULL},
+	{ai_walk, 7,  NULL},
+	{ai_walk, 6,  NULL},
+	{ai_walk, 7,  NULL}
 };
 mmove_t soldier_move_walk2 = {FRAME_walk209, FRAME_walk218, soldier_frames_walk2, NULL};
 
@@ -293,8 +229,8 @@ void soldier_run (edict_t *self);
 
 mframe_t soldier_frames_start_run [] =
 {
-	ai_run, 7,  NULL,
-	ai_run, 5,  NULL
+	{ai_run, 7,  NULL},
+	{ai_run, 5,  NULL}
 };
 mmove_t soldier_move_start_run = {FRAME_run01, FRAME_run02, soldier_frames_start_run, soldier_run};
 
@@ -310,12 +246,12 @@ void soldier_fire_run (edict_t *self) {
 
 mframe_t soldier_frames_run [] =
 {
-	ai_run, 10, NULL,
-	ai_run, 11, monster_done_dodge,
-	ai_run, 11, NULL,
-	ai_run, 16, NULL,
-	ai_run, 10, NULL,
-	ai_run, 15, monster_done_dodge
+	{ai_run, 10, NULL},
+	{ai_run, 11, NULL},
+	{ai_run, 11, NULL},
+	{ai_run, 16, NULL},
+	{ai_run, 10, NULL},
+	{ai_run, 15, NULL}
 };
 
 mmove_t soldier_move_run = {FRAME_run03, FRAME_run08, soldier_frames_run, NULL};
@@ -349,68 +285,68 @@ void soldier_run (edict_t *self)
 
 mframe_t soldier_frames_pain1 [] =
 {
-	ai_move, -3, NULL,
-	ai_move, 4,  NULL,
-	ai_move, 1,  NULL,
-	ai_move, 1,  NULL,
-	ai_move, 0,  NULL
+	{ai_move, -3, NULL},
+	{ai_move, 4,  NULL},
+	{ai_move, 1,  NULL},
+	{ai_move, 1,  NULL},
+	{ai_move, 0,  NULL}
 };
 mmove_t soldier_move_pain1 = {FRAME_pain101, FRAME_pain105, soldier_frames_pain1, soldier_run};
 
 mframe_t soldier_frames_pain2 [] =
 {
-	ai_move, -13, NULL,
-	ai_move, -1,  NULL,
-	ai_move, 2,   NULL,
-	ai_move, 4,   NULL,
-	ai_move, 2,   NULL,
-	ai_move, 3,   NULL,
-	ai_move, 2,   NULL
+	{ai_move, -13, NULL},
+	{ai_move, -1,  NULL},
+	{ai_move, 2,   NULL},
+	{ai_move, 4,   NULL},
+	{ai_move, 2,   NULL},
+	{ai_move, 3,   NULL},
+	{ai_move, 2,   NULL}
 };
 mmove_t soldier_move_pain2 = {FRAME_pain201, FRAME_pain207, soldier_frames_pain2, soldier_run};
 
 mframe_t soldier_frames_pain3 [] =
 {
-	ai_move, -8, NULL,
-	ai_move, 10, NULL,
-	ai_move, -4, NULL,
-	ai_move, -1, NULL,
-	ai_move, -3, NULL,
-	ai_move, 0,  NULL,
-	ai_move, 3,  NULL,
-	ai_move, 0,  NULL,
-	ai_move, 0,  NULL,
-	ai_move, 0,  NULL,
-	ai_move, 0,  NULL,
-	ai_move, 1,  NULL,
-	ai_move, 0,  NULL,
-	ai_move, 1,  NULL,
-	ai_move, 2,  NULL,
-	ai_move, 4,  NULL,
-	ai_move, 3,  NULL,
-	ai_move, 2,  NULL
+	{ai_move, -8, NULL},
+	{ai_move, 10, NULL},
+	{ai_move, -4, NULL},
+	{ai_move, -1, NULL},
+	{ai_move, -3, NULL},
+	{ai_move, 0,  NULL},
+	{ai_move, 3,  NULL},
+	{ai_move, 0,  NULL},
+	{ai_move, 0,  NULL},
+	{ai_move, 0,  NULL},
+	{ai_move, 0,  NULL},
+	{ai_move, 1,  NULL},
+	{ai_move, 0,  NULL},
+	{ai_move, 1,  NULL},
+	{ai_move, 2,  NULL},
+	{ai_move, 4,  NULL},
+	{ai_move, 3,  NULL},
+	{ai_move, 2,  NULL}
 };
 mmove_t soldier_move_pain3 = {FRAME_pain301, FRAME_pain318, soldier_frames_pain3, soldier_run};
 
 mframe_t soldier_frames_pain4 [] =
 {
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, -10, NULL,
-	ai_move, -6,  NULL,
-	ai_move, 8,   NULL,
-	ai_move, 4,   NULL,
-	ai_move, 1,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 2,   NULL,
-	ai_move, 5,   NULL,
-	ai_move, 2,   NULL,
-	ai_move, -1,  NULL,
-	ai_move, -1,  NULL,
-	ai_move, 3,   NULL,
-	ai_move, 2,   NULL,
-	ai_move, 0,   NULL
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, -10, NULL},
+	{ai_move, -6,  NULL},
+	{ai_move, 8,   NULL},
+	{ai_move, 4,   NULL},
+	{ai_move, 1,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 2,   NULL},
+	{ai_move, 5,   NULL},
+	{ai_move, 2,   NULL},
+	{ai_move, -1,  NULL},
+	{ai_move, -1,  NULL},
+	{ai_move, 3,   NULL},
+	{ai_move, 2,   NULL},
+	{ai_move, 0,   NULL}
 };
 mmove_t soldier_move_pain4 = {FRAME_pain401, FRAME_pain417, soldier_frames_pain4, soldier_run};
 
@@ -457,7 +393,6 @@ void soldier_pain (edict_t *self, edict_t *other, float kick, int damage)
 		if (self->monsterinfo.aiflags & AI_DUCKED)
 			monster_duck_up(self);
 		self->monsterinfo.currentmove = &soldier_move_pain4;
-//		self->monsterinfo.pausetime = 0;
 		return;
 	}
 
@@ -476,7 +411,6 @@ void soldier_pain (edict_t *self, edict_t *other, float kick, int damage)
 	// PMM - clear duck flag
 	if (self->monsterinfo.aiflags & AI_DUCKED)
 		monster_duck_up(self);
-//	self->monsterinfo.pausetime = 0;
 
 }
 
@@ -554,15 +488,8 @@ void soldier_fire (edict_t *self, int in_flash_number)
 			//gi.dprintf ("Dot Product:  %f", DotProduct (aim_norm, forward));
 			if (angle < 0.9)  // ~25 degree angle
 			{
-//				if(g_showlogic && g_showlogic->value)
-//					gi.dprintf (" not firing due to bad dotprod %f\n", angle);
 				return;
 			}
-//			else
-//			{
-//				if(g_showlogic && g_showlogic->value)
-//					gi.dprintf (" firing:  dotprod = %f\n", angle);
-//			}
 		}
 		//-PMM
 #endif
@@ -592,8 +519,6 @@ void soldier_fire (edict_t *self, int in_flash_number)
 		tr = gi.trace (start, NULL, NULL, aim_good, self, MASK_SHOT);
 		if ((tr.ent != self->enemy) && (tr.ent != world))
 		{
-//			if(g_showlogic && g_showlogic->value)
-//				gi.dprintf ("infantry shot aborted due to bad target\n");
 			return;
 		}
 	}
@@ -670,18 +595,18 @@ void soldier_attack1_refire2 (edict_t *self)
 
 mframe_t soldier_frames_attack1 [] =
 {
-	ai_charge, 0,  NULL,
-	ai_charge, 0,  NULL,
-	ai_charge, 0,  soldier_fire1,
-	ai_charge, 0,  NULL,
-	ai_charge, 0,  NULL,
-	ai_charge, 0,  soldier_attack1_refire1,
-	ai_charge, 0,  NULL,
-	ai_charge, 0,  soldier_cock,
-	ai_charge, 0,  soldier_attack1_refire2,
-	ai_charge, 0,  NULL,
-	ai_charge, 0,  NULL,
-	ai_charge, 0,  NULL
+	{ai_charge, 0,  NULL},
+	{ai_charge, 0,  NULL},
+	{ai_charge, 0,  soldier_fire1},
+	{ai_charge, 0,  NULL},
+	{ai_charge, 0,  NULL},
+	{ai_charge, 0,  soldier_attack1_refire1},
+	{ai_charge, 0,  NULL},
+	{ai_charge, 0,  soldier_cock},
+	{ai_charge, 0,  soldier_attack1_refire2},
+	{ai_charge, 0,  NULL},
+	{ai_charge, 0,  NULL},
+	{ai_charge, 0,  NULL}
 };
 mmove_t soldier_move_attack1 = {FRAME_attak101, FRAME_attak112, soldier_frames_attack1, soldier_run};
 
@@ -726,58 +651,27 @@ void soldier_attack2_refire2 (edict_t *self)
 
 mframe_t soldier_frames_attack2 [] =
 {
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, soldier_fire2,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, soldier_attack2_refire1,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, soldier_cock,
-	ai_charge, 0, NULL,
-	ai_charge, 0, soldier_attack2_refire2,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, soldier_fire2},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, soldier_attack2_refire1},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, soldier_cock},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, soldier_attack2_refire2},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL}
 };
 mmove_t soldier_move_attack2 = {FRAME_attak201, FRAME_attak218, soldier_frames_attack2, soldier_run};
 
-// ATTACK3 (duck and shoot)
-/*
-void soldier_duck_down (edict_t *self)
-{
-	if ((g_showlogic) && (g_showlogic->value))
-		gi.dprintf ("duck down - %d!\n", self->s.frame);
-
-	self->monsterinfo.aiflags |= AI_DUCKED;
-//	self->maxs[2] -= 32;
-	self->maxs[2] =  self->monsterinfo.base_height - 32;
-	self->takedamage = DAMAGE_YES;
-	if (self->monsterinfo.duck_wait_time < level.time)
-	{
-		if ((g_showlogic) && (g_showlogic->value))
-			gi.dprintf ("soldier duck with no time!\n");
-		self->monsterinfo.duck_wait_time = level.time + 1;
-	}
-	gi.linkentity (self);
-}
-
-void soldier_duck_up (edict_t *self)
-{
-	if ((g_showlogic) && (g_showlogic->value))
-		gi.dprintf ("duck up - %d!\n", self->s.frame);
-	self->monsterinfo.aiflags &= ~AI_DUCKED;
-//	self->maxs[2] += 32;
-	self->maxs[2] = self->monsterinfo.base_height;
-	self->takedamage = DAMAGE_AIM;
-	gi.linkentity (self);
-}
-*/
 void soldier_fire3 (edict_t *self)
 {
 	monster_duck_down (self);
@@ -792,15 +686,15 @@ void soldier_attack3_refire (edict_t *self)
 
 mframe_t soldier_frames_attack3 [] =
 {
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, soldier_fire3,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, soldier_attack3_refire,
-	ai_charge, 0, monster_duck_up,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, soldier_fire3},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, soldier_attack3_refire},
+	{ai_charge, 0, soldier_duck_up},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL}
 };
 mmove_t soldier_move_attack3 = {FRAME_attak301, FRAME_attak309, soldier_frames_attack3, soldier_run};
 
@@ -809,66 +703,24 @@ mmove_t soldier_move_attack3 = {FRAME_attak301, FRAME_attak309, soldier_frames_a
 void soldier_fire4 (edict_t *self)
 {
 	soldier_fire (self, 3);
-//
-//	if (self->enemy->health <= 0)
-//		return;
-//
-//	if ( ((skill->value == 3) && (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE) )
-//		self->monsterinfo.nextframe = FRAME_attak402;
 }
 
 mframe_t soldier_frames_attack4 [] =
 {
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, soldier_fire4,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, soldier_fire4},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL}
 };
 mmove_t soldier_move_attack4 = {FRAME_attak401, FRAME_attak406, soldier_frames_attack4, soldier_run};
-
-#if 0
-// ATTACK5 (prone)
-
-void soldier_fire5 (edict_t *self)
-{
-	soldier_fire (self, 4);
-}
-
-void soldier_attack5_refire (edict_t *self)
-{
-	if (!self->enemy)
-		return;
-
-	if (self->enemy->health <= 0)
-		return;
-
-	if ( ((skill->value == 3) && (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE) )
-		self->monsterinfo.nextframe = FRAME_attak505;
-}
-
-mframe_t soldier_frames_attack5 [] =
-{
-	ai_charge, 8, NULL,
-	ai_charge, 8, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, soldier_fire5,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, soldier_attack5_refire
-};
-mmove_t soldier_move_attack5 = {FRAME_attak501, FRAME_attak508, soldier_frames_attack5, soldier_run};
-#endif
 
 // ATTACK6 (run & shoot)
 
 void soldier_fire8 (edict_t *self)
 {
 	soldier_fire (self, -7);
-//	self->monsterinfo.aiflags |= AI_HOLD_FRAME;
-//	self->monsterinfo.pausetime = level.time + 1000000;
 }
 
 void soldier_attack6_refire (edict_t *self)
@@ -883,7 +735,6 @@ void soldier_attack6_refire (edict_t *self)
 	if (self->enemy->health <= 0)
 		return;
 
-//	if (range(self, self->enemy) < RANGE_MID)
 	if (range(self, self->enemy) < RANGE_NEAR)
 		return;
 
@@ -893,22 +744,20 @@ void soldier_attack6_refire (edict_t *self)
 
 mframe_t soldier_frames_attack6 [] =
 {
-//	PMM
-//	ai_run, 10, NULL,
-	ai_run, 10, soldier_start_charge,
-	ai_run,  4, NULL,
-	ai_run, 12, soldier_fire8,
-	ai_run, 11, NULL,
-	ai_run, 13, monster_done_dodge,
-	ai_run, 18, NULL,
-	ai_run, 15, NULL,
-	ai_run, 14, NULL,
-	ai_run, 11, NULL,
-	ai_run,  8, NULL,
-	ai_run, 11, NULL,
-	ai_run, 12, NULL,
-	ai_run, 12, NULL,
-	ai_run, 17, soldier_attack6_refire
+	{ai_charge, 10, NULL},
+	{ai_charge,  4, NULL},
+	{ai_charge, 12, NULL},
+	{ai_charge, 11, soldier_fire8},
+	{ai_charge, 13, NULL},
+	{ai_charge, 18, NULL},
+	{ai_charge, 15, NULL},
+	{ai_charge, 14, NULL},
+	{ai_charge, 11, NULL},
+	{ai_charge,  8, NULL},
+	{ai_charge, 11, NULL},
+	{ai_charge, 12, NULL},
+	{ai_charge, 12, NULL},
+	{ai_charge, 17, soldier_attack6_refire}
 };
 mmove_t soldier_move_attack6 = {FRAME_runs01, FRAME_runs14, soldier_frames_attack6, soldier_run};
 
@@ -941,8 +790,6 @@ void soldier_attack(edict_t *self)
 		// don't shoot if the dice say not to
 		if (r > chance)
 		{
-//			if ((g_showlogic) && (g_showlogic->value))
-//				gi.dprintf ("blindfire - NO SHOT\n");
 			return;
 		}
 
@@ -953,9 +800,6 @@ void soldier_attack(edict_t *self)
 		return;
 	}
 	// pmm
-
-// PMM - added this so the soldiers now run toward you and shoot instead of just stopping and shooting
-//	if ((range(self, self->enemy) >= RANGE_MID) && (r < (skill->value*0.25) && (self->s.skinnum <= 3)))
 
 	r = random();
 
@@ -994,10 +838,9 @@ void soldier_sight(edict_t *self, edict_t *other)
 	else
 		gi.sound (self, CHAN_VOICE, sound_sight2, 1, ATTN_NORM, 0);
 
-//	if ((skill->value > 0) && (self->enemy) && (range(self, self->enemy) >= RANGE_MID))
 	if ((skill->value > 0) && (self->enemy) && (range(self, self->enemy) >= RANGE_NEAR))
 	{
-//	PMM - don't let machinegunners run & shoot
+		//	PMM - don't let machinegunners run & shoot
 		if ((random() > 0.75) && (self->s.skinnum <= 3))
 			self->monsterinfo.currentmove = &soldier_move_attack6;
 	}
@@ -1006,166 +849,16 @@ void soldier_sight(edict_t *self, edict_t *other)
 //
 // DUCK
 //
-/*
-void soldier_duck_hold (edict_t *self)
-{
-	if (level.time >= self->monsterinfo.duck_wait_time)
-		self->monsterinfo.aiflags &= ~AI_HOLD_FRAME;
-	else
-		self->monsterinfo.aiflags |= AI_HOLD_FRAME;
-}
-*/
 mframe_t soldier_frames_duck [] =
 {
-	ai_move, 5, monster_duck_down,
-	ai_move, -1, monster_duck_hold,
-	ai_move, 1,  NULL,
-	ai_move, 0,  monster_duck_up,
-	ai_move, 5,  NULL
+	{ai_move, 5, monster_duck_down},
+	{ai_move, -1, monster_duck_hold},
+	{ai_move, 1,  NULL},
+	{ai_move, 0,  monster_duck_up},
+	{ai_move, 5,  NULL}
 };
 mmove_t soldier_move_duck = {FRAME_duck01, FRAME_duck05, soldier_frames_duck, soldier_run};
 
-/*
-void soldier_dodge (edict_t *self, edict_t *attacker, float eta, trace_t *tr)
-{
-//===========
-//PMM - rogue rewrite of dodge code.
-// lots o' changes in here.  Basically, they now check the tr and see if ducking would help,
-// and if it doesn't, they dodge like mad
-	float	r = random();
-	float	height;
-
-	if ((g_showlogic) && (g_showlogic->value))
-	{
-		if (self->monsterinfo.aiflags & AI_DODGING)
-			gi.dprintf ("dodging - ");
-		if (self->monsterinfo.aiflags & AI_DUCKED)
-			gi.dprintf ("ducked - ");
-	}
-	if (!self->enemy)
-	{
-		self->enemy = attacker;
-		FoundTarget (self);
-	}
-
-	// PMM - don't bother if it's going to hit anyway; fix for weird in-your-face etas (I was
-	// seeing numbers like 13 and 14)
-	if ((eta < 0.1) || (eta > 5))
-	{
-		if ((g_showlogic) && (g_showlogic->value))
-			gi.dprintf ("timeout\n");
-		return;
-	}
-
-	// skill level determination..
-	if (r > (0.25*((skill->value)+1)))
-	{
-		if ((g_showlogic) && (g_showlogic->value))
-			gi.dprintf ("skillout\n");
-		return;
-	}
-
-	// stop charging, since we're going to dodge (somehow) instead
-	soldier_stop_charge (self);
-
-	height = self->absmax[2]-32-1;  // the -1 is because the absmax is s.origin + maxs + 1
-
-	// if we're ducking already, or the shot is at our knees
-	if ((tr->endpos[2] <= height) || (self->monsterinfo.aiflags & AI_DUCKED))
-	{
-		vec3_t right, diff;
-
-		// if we're already dodging, just finish the sequence, i.e. don't do anything else
-		if (self->monsterinfo.aiflags & AI_DODGING)
-		{
-			if ((g_showlogic) && (g_showlogic->value))
-				gi.dprintf ("already dodging\n");
-			return;
-		}
-
-		AngleVectors (self->s.angles, NULL, right, NULL);
-		VectorSubtract (tr->endpos, self->s.origin, diff);
-
-		if (DotProduct (right, diff) < 0)
-		{
-			self->monsterinfo.lefty = 1;
-//			gi.dprintf ("left\n");
-		} else {
-//			gi.dprintf ("right\n");
-		}
-		// if it doesn't sense to duck, try to strafe and shoot
-		// we don't want the machine gun guys running & shooting (looks bad)
-
-		// if we are currently ducked, unduck
-		if (self->monsterinfo.aiflags & AI_DUCKED)
-		{
-			if ((g_showlogic) && (g_showlogic->value))
-				gi.dprintf ("unducking - ");
-			soldier_duck_up(self);
-		}
-
-		self->monsterinfo.aiflags |= AI_DODGING;
-		self->monsterinfo.attack_state = AS_SLIDING;
-
-		if (self->s.skinnum <= 3)
-		{
-			if ((g_showlogic) && (g_showlogic->value))
-				gi.dprintf ("shooting back!\n");
-			self->monsterinfo.currentmove = &soldier_move_attack6;
-		}
-		else
-		{
-			if ((g_showlogic) && (g_showlogic->value))
-				gi.dprintf ("strafing away!\n");
-			self->monsterinfo.currentmove = &soldier_move_start_run;
-		}
-		return;
-	}
-
-	// if we're here, we're ducking, so clear the dodge bit if it's set
-
-	if ((g_showlogic) && (g_showlogic->value))
-		gi.dprintf ("ducking!\n");
-	if (skill->value == 0)
-	{
-		// set this prematurely; it doesn't hurt, and prevents extra iterations
-		self->monsterinfo.aiflags |= AI_DUCKED;
-		monster_done_dodge (self);
-		self->monsterinfo.currentmove = &soldier_move_duck;
-		// PMM - stupid dodge
-		self->monsterinfo.duck_wait_time = level.time + eta + 1;
-		return;
-	}
-// PMM - since we're only ducking some of the time, this needs to be moved down below
-//	self->monsterinfo.duck_wait_time = level.time + eta + 0.3;
-
-	r = random();
-
-	// set this prematurely; it doesn't hurt, and prevents extra iterations
-	self->monsterinfo.aiflags |= AI_DUCKED;
-	monster_done_dodge (self);
-
-	if (r > (skill->value * 0.33))
-	{
-		self->monsterinfo.currentmove = &soldier_move_duck;
-		self->monsterinfo.duck_wait_time = level.time + eta + (0.1 * (3 - skill->value));
-		// has to be done immediately otherwise he can get stuck
-		soldier_duck_down(self);
-	}
-	else
-	{
-		// has to be done immediately otherwise he can get stuck
-		soldier_duck_down(self);
-		self->monsterinfo.duck_wait_time = level.time + eta + 1;
-		self->monsterinfo.currentmove = &soldier_move_attack3;
-		self->monsterinfo.nextframe = FRAME_attak301;
-	}
-	return;
-//PMM
-//===========
-
-}
-*/
 // pmm - blocking code
 
 qboolean soldier_blocked (edict_t *self, float dist)
@@ -1176,12 +869,6 @@ qboolean soldier_blocked (edict_t *self, float dist)
 
 	if(blocked_checkshot (self, 0.25 + (0.05 * skill->value) ))
 		return true;
-
-//	if(blocked_checkjump (self, dist, 192, 40))
-//	{
-//		soldier_jump(self);
-//		return true;
-//	}
 
 	if(blocked_checkplat (self, dist))
 		return true;
@@ -1248,252 +935,252 @@ void soldier_dead2 (edict_t *self)
 
 mframe_t soldier_frames_death1 [] =
 {
-	ai_move, 0,   NULL,
-	ai_move, -10, NULL,
-	ai_move, -10, NULL,
-	ai_move, -10, NULL,
-	ai_move, -5,  NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, -10, NULL},
+	{ai_move, -10, NULL},
+	{ai_move, -10, NULL},
+	{ai_move, -5,  NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   soldier_fire6,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   soldier_fire7,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   soldier_fire6},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   soldier_fire7},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL}
 };
 mmove_t soldier_move_death1 = {FRAME_death101, FRAME_death136, soldier_frames_death1, soldier_dead};
 
 mframe_t soldier_frames_death2 [] =
 {
-	ai_move, -5,  NULL,
-	ai_move, -5,  NULL,
-	ai_move, -5,  NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, -5,  NULL},
+	{ai_move, -5,  NULL},
+	{ai_move, -5,  NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL}
 };
 mmove_t soldier_move_death2 = {FRAME_death201, FRAME_death235, soldier_frames_death2, soldier_dead};
 
 mframe_t soldier_frames_death3 [] =
 {
-	ai_move, -5,  NULL,
-	ai_move, -5,  NULL,
-	ai_move, -5,  NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, -5,  NULL},
+	{ai_move, -5,  NULL},
+	{ai_move, -5,  NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 };
 mmove_t soldier_move_death3 = {FRAME_death301, FRAME_death345, soldier_frames_death3, soldier_dead};
 
 mframe_t soldier_frames_death4 [] =
 {
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL}
 };
 // PMM -changed to soldier_dead2 to get a larger bounding box
 mmove_t soldier_move_death4 = {FRAME_death401, FRAME_death453, soldier_frames_death4, soldier_dead2};
 
 mframe_t soldier_frames_death5 [] =
 {
-	ai_move, -5,  NULL,
-	ai_move, -5,  NULL,
-	ai_move, -5,  NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, -5,  NULL},
+	{ai_move, -5,  NULL},
+	{ai_move, -5,  NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
 
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL}
 };
 mmove_t soldier_move_death5 = {FRAME_death501, FRAME_death524, soldier_frames_death5, soldier_dead};
 
 mframe_t soldier_frames_death6 [] =
 {
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL,
-	ai_move, 0,   NULL
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL},
+	{ai_move, 0,   NULL}
 };
 mmove_t soldier_move_death6 = {FRAME_death601, FRAME_death610, soldier_frames_death6, soldier_dead};
 
@@ -1501,7 +1188,7 @@ void soldier_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int dama
 {
 	int		n;
 
-// check for gib
+	// check for gib
 	if (self->health <= self->gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
@@ -1516,7 +1203,7 @@ void soldier_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int dama
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
+	// regular death
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
 	self->s.skinnum |= 1;
@@ -1556,15 +1243,11 @@ void soldier_sidestep (edict_t *self)
 {
 	if (self->s.skinnum <= 3)
 	{
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf ("shooting back!\n");
 		if (self->monsterinfo.currentmove != &soldier_move_attack6)
 			self->monsterinfo.currentmove = &soldier_move_attack6;
 	}
 	else
 	{
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf ("strafing away!\n");
 		if (self->monsterinfo.currentmove != &soldier_move_start_run)
 			self->monsterinfo.currentmove = &soldier_move_start_run;
 	}
@@ -1609,38 +1292,38 @@ void soldier_blind (edict_t *self);
 
 mframe_t soldier_frames_blind [] =
 {
-	ai_move, 0, soldier_idle,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
+	{ai_move, 0, soldier_idle},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
 
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
 
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL}
 };
 mmove_t soldier_move_blind = {FRAME_stand101, FRAME_stand130, soldier_frames_blind, soldier_blind};
 
@@ -1659,9 +1342,6 @@ void SP_monster_soldier_x (edict_t *self)
 {
 
 	self->s.modelindex = gi.modelindex ("models/monsters/soldier/tris.md2");
-	//PMM
-//	self->s.effects |= EF_SPLATTER;
-	//PMM
 	self->monsterinfo.scale = MODEL_SCALE;
 	VectorSet (self->mins, -16, -16, -24);
 	VectorSet (self->maxs, 16, 16, 32);
@@ -1686,8 +1366,8 @@ void SP_monster_soldier_x (edict_t *self)
 	self->monsterinfo.melee = NULL;
 	self->monsterinfo.sight = soldier_sight;
 
-//=====
-//ROGUE
+	//=====
+	//ROGUE
 	self->monsterinfo.blocked = soldier_blocked;
 	self->monsterinfo.duck = soldier_duck;
 	self->monsterinfo.unduck = monster_duck_up;
@@ -1695,8 +1375,8 @@ void SP_monster_soldier_x (edict_t *self)
 
 	if(self->spawnflags & 8)	// blind
 		self->monsterinfo.stand = soldier_blind;
-//ROGUE
-//=====
+	//ROGUE
+	//=====
 
 	gi.linkentity (self);
 
@@ -1779,3 +1459,4 @@ void SP_monster_soldier_ss (edict_t *self)
 	self->health = 40;
 	self->gib_health = -30;
 }
+

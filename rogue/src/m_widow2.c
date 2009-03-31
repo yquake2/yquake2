@@ -20,7 +20,6 @@ static int	sound_pain2;
 static int	sound_pain3;
 static int	sound_death;
 static int	sound_search1;
-static int	sound_disrupt;
 static int	sound_tentacles_retract;
 
 // sqrt(64*64*2) + sqrt(28*28*2) => 130.1
@@ -135,27 +134,9 @@ void Widow2Beam (edict_t *self)
 
 		AngleVectors (vec, forward, NULL, NULL);
 		monster_fire_heat (self, start, forward, vec3_origin, 10, 50, flashnum);
-/*
-		if (self->s.frame == FRAME_spawn04)
-		{
-			VectorMA (start, 1024, forward, debugend);
-
-			gi.WriteByte (svc_temp_entity);
-			gi.WriteByte (TE_DEBUGTRAIL);
-			gi.WritePosition (start);
-			gi.WritePosition (debugend);
-			gi.multicast (start, MULTICAST_ALL);
-
-			drawbbox (self);
-			self->monsterinfo.aiflags |= AI_HOLD_FRAME|AI_MANUAL_STEERING;
-		}
-*/
 	}
 	else
 	{
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf ("bad fire frame for widow2 beam -- tell me you saw this!\n");
-
 		Widow2SaveBeamTarget(self);
 		G_ProjectSource (self->s.origin, monster_flash_offset[MZ2_WIDOW2_BEAMER_1], forward, right, start);
 
@@ -192,8 +173,6 @@ void Widow2Spawn (edict_t *self)
 
 			self->monsterinfo.monster_used++;
 			ent->monsterinfo.commander = self;
-//			if ((g_showlogic) && (g_showlogic->value))
-//				gi.dprintf ("widow: post-spawn : %d slots left\n", SELF_SLOTS_LEFT);
 
 			ent->nextthink = level.time;
 			ent->think (ent);
@@ -215,27 +194,15 @@ void Widow2Spawn (edict_t *self)
 						designated_enemy = PickCoopTarget(ent);
 						if (designated_enemy)
 						{
-//							if ((g_showlogic) && (g_showlogic->value))
-//							{
-//								gi.dprintf ("PickCoopTarget returned a %s - ", designated_enemy->classname);
-//								if (designated_enemy->client)
-//									gi.dprintf ("with name %s\n", designated_enemy->client->pers.netname);
-//								else
-//									gi.dprintf ("NOT A CLIENT\n");
-//							}
 						}
 						else
 						{
-//							if ((g_showlogic) && (g_showlogic->value))
-//								gi.dprintf ("pick coop failed, using my current enemy\n");
 							designated_enemy = self->enemy;
 						}
 					}
 				}
 				else
 				{
-//					if ((g_showlogic) && (g_showlogic->value))
-//						gi.dprintf ("pick coop failed, using my current enemy\n");
 					designated_enemy = self->enemy;
 				}
 			}
@@ -277,48 +244,45 @@ void widow2_ready_spawn (edict_t *self)
 
 mframe_t widow2_frames_stand [] =
 {
-//	ai_stand, 0, drawbbox
-	ai_stand, 0, NULL
+	{ai_stand, 0, NULL}
 };
 mmove_t	widow2_move_stand = {FRAME_blackwidow3, FRAME_blackwidow3, widow2_frames_stand, NULL};
 
 mframe_t widow2_frames_walk [] =
 {
-//	ai_walk,	9.01,	drawbbox,
-	ai_walk,	9.01,	NULL,
-	ai_walk,	7.55,	NULL,
-	ai_walk,	7.01,	NULL,
-	ai_walk,	6.66,	NULL,
-	ai_walk,	6.20,	NULL,
-	ai_walk,	5.78,	NULL,
-	ai_walk,	7.25,	NULL,
-	ai_walk,	8.37,	NULL,
-	ai_walk,	10.41,	NULL
+	{ai_walk,	9.01,	NULL},
+	{ai_walk,	7.55,	NULL},
+	{ai_walk,	7.01,	NULL},
+	{ai_walk,	6.66,	NULL},
+	{ai_walk,	6.20,	NULL},
+	{ai_walk,	5.78,	NULL},
+	{ai_walk,	7.25,	NULL},
+	{ai_walk,	8.37,	NULL},
+	{ai_walk,	10.41,	NULL}
 };
 mmove_t widow2_move_walk = {FRAME_walk01, FRAME_walk09, widow2_frames_walk, NULL};
 
 
 mframe_t widow2_frames_run [] =
 {
-//	ai_run,	9.01,	drawbbox,
-	ai_run,	9.01,	NULL,
-	ai_run,	7.55,	NULL,
-	ai_run,	7.01,	NULL,
-	ai_run,	6.66,	NULL,
-	ai_run,	6.20,	NULL,
-	ai_run,	5.78,	NULL,
-	ai_run,	7.25,	NULL,
-	ai_run,	8.37,	NULL,
-	ai_run,	10.41,	NULL
+	{ai_run,	9.01,	NULL},
+	{ai_run,	7.55,	NULL},
+	{ai_run,	7.01,	NULL},
+	{ai_run,	6.66,	NULL},
+	{ai_run,	6.20,	NULL},
+	{ai_run,	5.78,	NULL},
+	{ai_run,	7.25,	NULL},
+	{ai_run,	8.37,	NULL},
+	{ai_run,	10.41,	NULL}
 };
 mmove_t widow2_move_run = {FRAME_walk01, FRAME_walk09, widow2_frames_run, NULL};
 
 mframe_t widow2_frames_attack_pre_beam [] =
 {
-	ai_charge,	4,	NULL,
-	ai_charge,	4,	NULL,
-	ai_charge,	4,	NULL,
-	ai_charge,	4,	widow2_attack_beam
+	{ai_charge,	4,	NULL},
+	{ai_charge,	4,	NULL},
+	{ai_charge,	4,	NULL},
+	{ai_charge,	4,	widow2_attack_beam}
 };
 mmove_t widow2_move_attack_pre_beam = {FRAME_fireb01, FRAME_fireb04, widow2_frames_attack_pre_beam, NULL};
 
@@ -326,19 +290,19 @@ mmove_t widow2_move_attack_pre_beam = {FRAME_fireb01, FRAME_fireb04, widow2_fram
 // Loop this
 mframe_t widow2_frames_attack_beam [] =
 {
-	ai_charge,	0,	Widow2Beam,
-	ai_charge,	0,	Widow2Beam,
-	ai_charge,	0,	Widow2Beam,
-	ai_charge,	0,	Widow2Beam,
-	ai_charge,	0,	widow2_reattack_beam
+	{ai_charge,	0,	Widow2Beam},
+	{ai_charge,	0,	Widow2Beam},
+	{ai_charge,	0,	Widow2Beam},
+	{ai_charge,	0,	Widow2Beam},
+	{ai_charge,	0,	widow2_reattack_beam}
 };
 mmove_t widow2_move_attack_beam = {FRAME_fireb05, FRAME_fireb09, widow2_frames_attack_beam, NULL};
 
 mframe_t widow2_frames_attack_post_beam [] =
 {
-	ai_charge,	4,	NULL,
-	ai_charge,	4,	NULL,
-	ai_charge,	4,	NULL
+	{ai_charge,	4,	NULL},
+	{ai_charge,	4,	NULL},
+	{ai_charge,	4,	NULL}
 };
 mmove_t widow2_move_attack_post_beam = {FRAME_fireb06, FRAME_fireb07, widow2_frames_attack_post_beam, widow2_run};
 
@@ -358,9 +322,6 @@ void WidowDisrupt (edict_t *self)
 
 	if (len < 30)
 	{
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf ("target locked - dist %2.2f\n", len);
-		// calc direction to where we targeted
 		VectorSubtract (self->pos1, start, dir);
 		VectorNormalize (dir);
 
@@ -368,13 +329,7 @@ void WidowDisrupt (edict_t *self)
 	}
 	else
 	{
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf ("target missed - dist %2.2f\n", len);
-
 		PredictAim (self->enemy, start, 1200, true, 0, dir, NULL);
-
-//		VectorSubtract (self->enemy->s.origin, start, dir);
-//		VectorNormalize (dir);
 		monster_fire_tracker(self, start, dir, 20, 1200, NULL, MZ2_WIDOW_DISRUPTOR);
 	}
 }
@@ -402,13 +357,13 @@ void widow2_disrupt_reattack (edict_t *self)
 
 mframe_t widow2_frames_attack_disrupt [] =
 {
-	ai_charge, 2, NULL,
-	ai_charge, 2, NULL,
-	ai_charge, 2, Widow2SaveDisruptLoc,
-	ai_charge, -20, WidowDisrupt,
-	ai_charge, 2, NULL,
-	ai_charge, 2, NULL,
-	ai_charge, 2, widow2_disrupt_reattack
+	{ai_charge, 2, NULL},
+	{ai_charge, 2, NULL},
+	{ai_charge, 2, Widow2SaveDisruptLoc},
+	{ai_charge, -20, WidowDisrupt},
+	{ai_charge, 2, NULL},
+	{ai_charge, 2, NULL},
+	{ai_charge, 2, widow2_disrupt_reattack}
 };
 mmove_t widow2_move_attack_disrupt = {FRAME_firea01, FRAME_firea07, widow2_frames_attack_disrupt, widow2_run};
 
@@ -439,24 +394,24 @@ void Widow2StartSweep (edict_t *self)
 
 mframe_t widow2_frames_spawn [] =
 {
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	widow_start_spawn,
-	ai_charge,	0,	Widow2Beam,
-	ai_charge,	0,	Widow2Beam,				//5
-	ai_charge,	0,	Widow2Beam,
-	ai_charge,	0,	Widow2Beam,
-	ai_charge,	0,	Widow2Beam,
-	ai_charge,	0,	Widow2Beam,
-	ai_charge,	0,	widow2_ready_spawn,				//10
-	ai_charge,	0,	Widow2Beam,
-	ai_charge,	0,	Widow2Beam,
-	ai_charge,	0,	Widow2Beam,
-	ai_charge,	0,	widow2_spawn_check,
-	ai_charge,	0,	NULL,				//15
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	widow2_reattack_beam
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	widow_start_spawn},
+	{ai_charge,	0,	Widow2Beam},
+	{ai_charge,	0,	Widow2Beam},				//5
+	{ai_charge,	0,	Widow2Beam},
+	{ai_charge,	0,	Widow2Beam},
+	{ai_charge,	0,	Widow2Beam},
+	{ai_charge,	0,	Widow2Beam},
+	{ai_charge,	0,	widow2_ready_spawn},				//10
+	{ai_charge,	0,	Widow2Beam},
+	{ai_charge,	0,	Widow2Beam},
+	{ai_charge,	0,	Widow2Beam},
+	{ai_charge,	0,	widow2_spawn_check},
+	{ai_charge,	0,	NULL},				//15
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	widow2_reattack_beam}
 };
 mmove_t widow2_move_spawn = {FRAME_spawn01, FRAME_spawn18, widow2_frames_spawn, NULL};
 
@@ -543,7 +498,6 @@ void Widow2TonguePull (edict_t *self)
 	{
 		self->enemy->s.origin[2] += 1;
 		self->enemy->groundentity = NULL;
-		// interesting, you don't have to relink the player
 	}
 	
 	VectorSubtract (self->s.origin, self->enemy->s.origin, vec);
@@ -594,81 +548,81 @@ void Widow2Toss (edict_t *self)
 
 mframe_t widow2_frames_tongs [] =
 {
-	ai_charge,	0,	Widow2Tongue,
-	ai_charge,	0,	Widow2Tongue,
-	ai_charge,	0,	Widow2Tongue,
-	ai_charge,	0,	Widow2TonguePull,
-	ai_charge,	0,	Widow2TonguePull,				//5
-	ai_charge,	0,	Widow2TonguePull,
-	ai_charge,	0,	Widow2Crunch,
-	ai_charge,	0,	Widow2Toss
+	{ai_charge,	0,	Widow2Tongue},
+	{ai_charge,	0,	Widow2Tongue},
+	{ai_charge,	0,	Widow2Tongue},
+	{ai_charge,	0,	Widow2TonguePull},
+	{ai_charge,	0,	Widow2TonguePull},				//5
+	{ai_charge,	0,	Widow2TonguePull},
+	{ai_charge,	0,	Widow2Crunch},
+	{ai_charge,	0,	Widow2Toss}
 };
 mmove_t widow2_move_tongs = {FRAME_tongs01, FRAME_tongs08, widow2_frames_tongs, widow2_run};
 
 mframe_t widow2_frames_pain [] =
 {
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL}
 };
 mmove_t widow2_move_pain = {FRAME_pain01, FRAME_pain05, widow2_frames_pain, widow2_run};
 
 mframe_t widow2_frames_death [] =
 {
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	WidowExplosion1,	// 3 boom
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,				// 5
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	WidowExplosion1},	// 3 boom
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},				// 5
 
-	ai_move,	0,	WidowExplosion2,	// 6 boom
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,				// 10
+	{ai_move,	0,	WidowExplosion2},	// 6 boom
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},				// 10
 
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,				// 12
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,				// 15
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},				// 12
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},				// 15
 
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	WidowExplosion3,	// 18
-	ai_move,	0,	NULL,				// 19
-	ai_move,	0,	NULL,				// 20
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	WidowExplosion3},	// 18
+	{ai_move,	0,	NULL},				// 19
+	{ai_move,	0,	NULL},				// 20
 
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	WidowExplosion4,	// 25
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	WidowExplosion4},	// 25
 
-	ai_move,	0,	NULL,				// 26
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	WidowExplosion5,
-	ai_move,	0,	WidowExplosionLeg,	// 30
+	{ai_move,	0,	NULL},				// 26
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	WidowExplosion5},
+	{ai_move,	0,	WidowExplosionLeg},	// 30
 
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	WidowExplosion6,
-	ai_move,	0,	NULL,				// 35
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	WidowExplosion6},
+	{ai_move,	0,	NULL},				// 35
 
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	WidowExplosion7,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,				// 40
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	WidowExplosion7},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},				// 40
 
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	WidowExplode		// 44
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	WidowExplode}		// 44
 };
 mmove_t widow2_move_death = {FRAME_death01, FRAME_death44, widow2_frames_death, NULL};
 
@@ -678,36 +632,36 @@ void widow2_finaldeath (edict_t *self);
 
 mframe_t widow2_frames_dead [] =
 {
-	ai_move,	0,	widow2_start_searching,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
+	{ai_move,	0,	widow2_start_searching},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
 
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
 
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	widow2_keep_searching
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	widow2_keep_searching}
 };
 mmove_t widow2_move_dead = {FRAME_dthsrh01, FRAME_dthsrh15, widow2_frames_dead, NULL};
 
 mframe_t widow2_frames_really_dead [] =
 {
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
 
-	ai_move,	0,	NULL,
-	ai_move,	0,	widow2_finaldeath
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	widow2_finaldeath}
 };
 mmove_t widow2_move_really_dead = {FRAME_dthsrh16, FRAME_dthsrh22, widow2_frames_really_dead, NULL};
 
@@ -734,7 +688,6 @@ void widow2_finaldeath (edict_t *self)
 	VectorSet (self->mins, -70, -70, 0);
 	VectorSet (self->maxs, 70, 70, 80);
 	self->movetype = MOVETYPE_TOSS;
-//	self->svflags |= SVF_DEADMONSTER;
 	self->takedamage = DAMAGE_YES;
 	self->nextthink = 0;
 	gi.linkentity (self);
@@ -742,14 +695,12 @@ void widow2_finaldeath (edict_t *self)
 
 void widow2_stand (edict_t *self)
 {
-//	gi.dprintf ("widow2 stand\n");
 	self->monsterinfo.currentmove = &widow2_move_stand;
 }
 
 void widow2_run (edict_t *self)
 {
 
-//	gi.dprintf ("widow2 run - %2.2f - %s \n", level.time, self->enemy->classname);
 	self->monsterinfo.aiflags &= ~AI_HOLD_FRAME;
 
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
@@ -779,8 +730,6 @@ void widow2_attack (edict_t *self)
 		self->monsterinfo.aiflags &= ~AI_BLOCKED;
 	}
 
-//	gi.dprintf ("widow2 attack\n");
-	
 	if (!self->enemy)
 		return;
 
@@ -822,7 +771,6 @@ void widow2_attack (edict_t *self)
 				self->monsterinfo.currentmove = &widow2_move_attack_pre_beam;
 			else if ((luck <= 0.7) && !(level.time < self->monsterinfo.attack_finished))
 			{
-//				gi.sound (self, CHAN_WEAPON, sound_disrupt, 1, ATTN_NORM, 0);
 				self->monsterinfo.currentmove = &widow2_move_attack_disrupt;
 			}
 			else
@@ -834,7 +782,6 @@ void widow2_attack (edict_t *self)
 				self->monsterinfo.currentmove = &widow2_move_attack_pre_beam;
 			else
 			{
-//				gi.sound (self, CHAN_WEAPON, sound_disrupt, 1, ATTN_NORM, 0);
 				self->monsterinfo.currentmove = &widow2_move_attack_disrupt;
 			}
 		}
@@ -850,7 +797,6 @@ void widow2_attack (edict_t *self)
 				self->monsterinfo.currentmove = &widow2_move_spawn;
 			else
 			{
-//				gi.sound (self, CHAN_WEAPON, sound_disrupt, 1, ATTN_NORM, 0);
 				self->monsterinfo.currentmove = &widow2_move_attack_disrupt;
 			}
 		}
@@ -860,7 +806,6 @@ void widow2_attack (edict_t *self)
 				self->monsterinfo.currentmove = &widow2_move_attack_pre_beam;
 			else
 			{
-//				gi.sound (self, CHAN_WEAPON, sound_disrupt, 1, ATTN_NORM, 0);
 				self->monsterinfo.currentmove = &widow2_move_attack_disrupt;
 			}
 		}
@@ -898,7 +843,6 @@ void widow2_pain (edict_t *self, edict_t *other, float kick, int damage)
 	if (skill->value == 3)
 		return;		// no pain anims in nightmare
 
-//	gi.dprintf ("widow2 pain\n");
 	if (level.time < self->pain_debounce_time)
 		return;
 
@@ -956,7 +900,7 @@ void widow2_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 	int n;
 	int	clipped;
 
-// check for gib
+	// check for gib
 	if (self->health <= self->gib_health)
 	{
 		clipped = min (damage, 100);
@@ -1004,7 +948,7 @@ qboolean Widow2_CheckAttack (edict_t *self)
 {
 	vec3_t		spot1, spot2;
 	vec3_t		temp;
-	float		chance;
+	float		chance = 0;
 	trace_t		tr;
 	qboolean	enemy_infront;
 	int			enemy_range;
@@ -1026,7 +970,7 @@ qboolean Widow2_CheckAttack (edict_t *self)
 
 	if (self->enemy->health > 0)
 	{
-	// see if any entities are in the way of the shot
+		// see if any entities are in the way of the shot
 		VectorCopy (self->s.origin, spot1);
 		spot1[2] += self->viewheight;
 		VectorCopy (self->enemy->s.origin, spot2);
@@ -1108,7 +1052,6 @@ qboolean Widow2_CheckAttack (edict_t *self)
 	if ((random () < chance) || (self->enemy->solid == SOLID_NOT))
 	{
 		self->monsterinfo.attack_state = AS_MISSILE;
-//		self->monsterinfo.attack_finished = level.time + 1.0 + 2*random();
 		return true;
 	}
 
@@ -1161,10 +1104,7 @@ void SP_monster_widow2 (edict_t *self)
 	sound_pain3 = gi.soundindex ("widow/bw2pain3.wav");
 	sound_death = gi.soundindex ("widow/death.wav");
 	sound_search1 = gi.soundindex ("bosshovr/bhvunqv1.wav");
-//	sound_disrupt = gi.soundindex ("gladiator/railgun.wav");
 	sound_tentacles_retract = gi.soundindex ("brain/brnatck3.wav");
-
-//	self->s.sound = gi.soundindex ("bosshovr/bhvengn1.wav");
 
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
@@ -1175,16 +1115,10 @@ void SP_monster_widow2 (edict_t *self)
 	self->health = 2000 + 800 + 1000*(skill->value);
 	if (coop->value)
 		self->health += 500*(skill->value);
-//	self->health = 1;
 	self->gib_health = -900;
 	self->mass = 2500;
 
-/*	if (skill->value == 2)
-	{
-		self->monsterinfo.power_armor_type = POWER_ARMOR_SHIELD;
-		self->monsterinfo.power_armor_power = 500;
-	}
-	else */if (skill->value == 3)
+	if (skill->value == 3)
 	{
 		self->monsterinfo.power_armor_type = POWER_ARMOR_SHIELD;
 		self->monsterinfo.power_armor_power = 750;
@@ -1237,20 +1171,6 @@ void widow_gib_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t
 
 	if (self->plat2flags)
 		gi.sound (self, CHAN_VOICE, self->plat2flags, 1, ATTN_NORM, 0);
-/*
-	if (plane)
-	{
-		if (plane->normal[2] < -0.8)
-		{
-			gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/fhit3.wav"), 1, ATTN_NORM, 0);
-		}
-		
-		//vectoangles (plane->normal, normal_angles);
-		//AngleVectors (normal_angles, NULL, right, NULL);
-		//vectoangles (right, self->s.angles);
-		//VectorClear (self->avelocity);
-	}
-*/
 }
 
 void ThrowWidowGib (edict_t *self, char *gibname, int damage, int type)
@@ -1372,9 +1292,6 @@ void ThrowWidowGibReal (edict_t *self, char *gibname, int damage, int type, vec3
 		gib->avelocity[2] = random()*600;
 	}
 
-//	gib->think = G_FreeEdict;
-//	gib->nextthink = level.time + 10 + random()*10;
-
 	gi.linkentity (gib);
 }
 
@@ -1403,13 +1320,6 @@ void BloodFountain (edict_t *self, int number, vec3_t startpos, int damage)
 		VectorMA (self->velocity, 1.0, vd, velocity);
 		velocity[0] *= 2;
 		velocity[1] *= 2;
-
-//		gi.WriteByte (svc_temp_entity);
-//		gi.WriteByte (TE_BLOOD_FOUNTAIN);
-//		gi.WritePosition (origin);
-//		gi.WritePosition (velocity);
-//		gi.WriteShort (50);
-//		gi.multicast (self->s.origin, MULTICAST_ALL);
 	}
 }
 
@@ -1449,9 +1359,6 @@ void WidowExplode (edict_t *self)
 	int		n;
 
 	self->think = WidowExplode;
-//	gi.dprintf ("count = %d\n");
-
-//redo:
 	VectorCopy (self->s.origin, org);
 	org[2] += 24 + (rand()&15);
 	if (self->count < 8)
@@ -1524,8 +1431,6 @@ void WidowExplode (edict_t *self)
 			ThrowWidowGib (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC);
 		for (n= 0; n < 2; n++)
 			ThrowWidowGib (self, "models/objects/gibs/sm_metal/tris.md2", 400, GIB_METALLIC);
-//		ThrowGib (self, "models/objects/gibs/chest/tris.md2", 1000, GIB_ORGANIC);
-//		ThrowHead (self, "models/objects/gibs/gear/tris.md2", 1000, GIB_METALLIC);
 		self->deadflag = DEAD_DEAD;
 		self->think = monster_think;
 		self->nextthink = level.time + 0.1;
@@ -1540,11 +1445,9 @@ void WidowExplode (edict_t *self)
 		gi.WriteByte (TE_EXPLOSION1_BIG);
 		gi.WritePosition (org);
 		gi.multicast (self->s.origin, MULTICAST_ALL);
-//		goto redo;
 	} 
 	else
 	{
-		// else
 		gi.WriteByte (svc_temp_entity);
 		if (self->count %2)
 			gi.WriteByte (TE_EXPLOSION1);
@@ -1563,7 +1466,6 @@ void WidowExplosion1 (edict_t *self)
 	vec3_t	f,r,u, startpoint;
 	vec3_t	offset = {23.74, -37.67, 76.96};
 
-//	gi.dprintf ("1\n");
 	AngleVectors (self->s.angles, f, r, u);
 	G_ProjectSource2 (self->s.origin, offset, f, r, u, startpoint);
 
@@ -1585,8 +1487,6 @@ void WidowExplosion2 (edict_t *self)
 	int		n;
 	vec3_t	f,r,u, startpoint;
 	vec3_t	offset = {-20.49, 36.92, 73.52};
-
-//	gi.dprintf ("2\n");
 
 	AngleVectors (self->s.angles, f, r, u);
 	G_ProjectSource2 (self->s.origin, offset, f, r, u, startpoint);
@@ -1610,8 +1510,6 @@ void WidowExplosion3 (edict_t *self)
 	vec3_t	f,r,u, startpoint;
 	vec3_t	offset = {2.11, 0.05, 92.20};
 
-//	gi.dprintf ("3\n");
-
 	AngleVectors (self->s.angles, f, r, u);
 	G_ProjectSource2 (self->s.origin, offset, f, r, u, startpoint);
 
@@ -1633,8 +1531,6 @@ void WidowExplosion4 (edict_t *self)
 	int		n;
 	vec3_t	f,r,u, startpoint;
 	vec3_t	offset = {-28.04, -35.57, -77.56};
-
-//	gi.dprintf ("4\n");
 
 	AngleVectors (self->s.angles, f, r, u);
 	G_ProjectSource2 (self->s.origin, offset, f, r, u, startpoint);
@@ -1658,8 +1554,6 @@ void WidowExplosion5 (edict_t *self)
 	vec3_t	f,r,u, startpoint;
 	vec3_t	offset = {-20.11, -1.11, 40.76};
 
-//	gi.dprintf ("5\n");
-
 	AngleVectors (self->s.angles, f, r, u);
 	G_ProjectSource2 (self->s.origin, offset, f, r, u, startpoint);
 
@@ -1681,8 +1575,6 @@ void WidowExplosion6 (edict_t *self)
 	int		n;
 	vec3_t	f,r,u, startpoint;
 	vec3_t	offset = {-20.11, -1.11, 40.76};
-
-	//gi.dprintf ("6\n");
 
 	AngleVectors (self->s.angles, f, r, u);
 	G_ProjectSource2 (self->s.origin, offset, f, r, u, startpoint);
@@ -1706,8 +1598,6 @@ void WidowExplosion7 (edict_t *self)
 	vec3_t	f,r,u, startpoint;
 	vec3_t	offset = {-20.11, -1.11, 40.76};
 
-	//gi.dprintf ("7\n");
-
 	AngleVectors (self->s.angles, f, r, u);
 	G_ProjectSource2 (self->s.origin, offset, f, r, u, startpoint);
 
@@ -1726,12 +1616,9 @@ void WidowExplosion7 (edict_t *self)
 
 void WidowExplosionLeg (edict_t *self)
 {
-//	int		n;
 	vec3_t	f,r,u, startpoint;
 	vec3_t	offset1 = {-31.89, -47.86, 67.02};
 	vec3_t	offset2 = {-44.9, -82.14, 54.72};
-
-	//gi.dprintf ("Leg\n");
 
 	AngleVectors (self->s.angles, f, r, u);
 	G_ProjectSource2 (self->s.origin, offset1, f, r, u, startpoint);
@@ -1779,7 +1666,6 @@ void ThrowArm1 (edict_t *self)
 
 void ThrowArm2 (edict_t *self)
 {
-//	int		n;
 	vec3_t	f,r,u, startpoint;
 	vec3_t	offset1 = {65.76, 17.52, 7.56};
 
@@ -1790,3 +1676,4 @@ void ThrowArm2 (edict_t *self)
 		gi.soundindex ("misc/fhit3.wav"), false);
 	ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
 }
+

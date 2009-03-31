@@ -30,7 +30,6 @@ void floater_idle (edict_t *self)
 }
 
 
-//void floater_stand1 (edict_t *self);
 void floater_dead (edict_t *self);
 void floater_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
 void floater_run (edict_t *self);
@@ -45,9 +44,6 @@ void floater_fire_blaster (edict_t *self)
 	vec3_t	end;
 	vec3_t	dir;
 	int		effect;
-
-	if(!self->enemy || !self->enemy->inuse)		//PGM
-		return;									//PGM
 
 	if ((self->s.frame == FRAME_attak104) || (self->s.frame == FRAME_attak107))
 		effect = EF_HYPERBLASTER;
@@ -66,115 +62,115 @@ void floater_fire_blaster (edict_t *self)
 
 mframe_t floater_frames_stand1 [] =
 {
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL}
 };
 mmove_t	floater_move_stand1 = {FRAME_stand101, FRAME_stand152, floater_frames_stand1, NULL};
 
 mframe_t floater_frames_stand2 [] =
 {
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL}
 };
 mmove_t	floater_move_stand2 = {FRAME_stand201, FRAME_stand252, floater_frames_stand2, NULL};
 
@@ -188,318 +184,298 @@ void floater_stand (edict_t *self)
 
 mframe_t floater_frames_activate [] =
 {
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL,	
-	ai_move,	0,	NULL
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL},	
+	{ai_move,	0,	NULL}
 };
 mmove_t floater_move_activate = {FRAME_actvat01, FRAME_actvat31, floater_frames_activate, NULL};
 
 mframe_t floater_frames_attack1 [] =
 {
-	ai_charge,	0,	NULL,			// Blaster attack
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	floater_fire_blaster,			// BOOM (0, -25.8, 32.5)	-- LOOP Starts
-	ai_charge,	0,	floater_fire_blaster,
-	ai_charge,	0,	floater_fire_blaster,
-	ai_charge,	0,	floater_fire_blaster,
-	ai_charge,	0,	floater_fire_blaster,
-	ai_charge,	0,	floater_fire_blaster,
-	ai_charge,	0,	floater_fire_blaster,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL			//							-- LOOP Ends
+	{ai_charge,	0,	NULL},			// Blaster attack
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	floater_fire_blaster},			// BOOM (0, -25.8, 32.5)	-- LOOP Starts
+	{ai_charge,	0,	floater_fire_blaster},
+	{ai_charge,	0,	floater_fire_blaster},
+	{ai_charge,	0,	floater_fire_blaster},
+	{ai_charge,	0,	floater_fire_blaster},
+	{ai_charge,	0,	floater_fire_blaster},
+	{ai_charge,	0,	floater_fire_blaster},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL}			//							-- LOOP Ends
 };
 mmove_t floater_move_attack1 = {FRAME_attak101, FRAME_attak114, floater_frames_attack1, floater_run};
 
-// PMM - circle strafe frames
-mframe_t floater_frames_attack1a [] =
-{
-	ai_charge,	10,	NULL,			// Blaster attack
-	ai_charge,	10,	NULL,
-	ai_charge,	10,	NULL,
-	ai_charge,	10,	floater_fire_blaster,			// BOOM (0, -25.8, 32.5)	-- LOOP Starts
-	ai_charge,	10,	floater_fire_blaster,
-	ai_charge,	10,	floater_fire_blaster,
-	ai_charge,	10,	floater_fire_blaster,
-	ai_charge,	10,	floater_fire_blaster,
-	ai_charge,	10,	floater_fire_blaster,
-	ai_charge,	10,	floater_fire_blaster,
-	ai_charge,	10,	NULL,
-	ai_charge,	10,	NULL,
-	ai_charge,	10,	NULL,
-	ai_charge,	10,	NULL			//							-- LOOP Ends
-};
-mmove_t floater_move_attack1a = {FRAME_attak101, FRAME_attak114, floater_frames_attack1a, floater_run};
-//pmm
 mframe_t floater_frames_attack2 [] =
 {
-	ai_charge,	0,	NULL,			// Claws
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	floater_wham,			// WHAM (0, -45, 29.6)		-- LOOP Starts
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,			//							-- LOOP Ends
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL
+	{ai_charge,	0,	NULL},			// Claws
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	floater_wham},			// WHAM (0, -45, 29}.6)		-- LOOP Starts
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},			//							-- LOOP Ends
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL}
 };
 mmove_t floater_move_attack2 = {FRAME_attak201, FRAME_attak225, floater_frames_attack2, floater_run};
 
 mframe_t floater_frames_attack3 [] =
 {
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	floater_zap,		//								-- LOOP Starts
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,		//								-- LOOP Ends
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL,
-	ai_charge,	0,	NULL
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	floater_zap},		//								-- LOOP Starts
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},		//								-- LOOP Ends
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL},
+	{ai_charge,	0,	NULL}
 };
 mmove_t floater_move_attack3 = {FRAME_attak301, FRAME_attak334, floater_frames_attack3, floater_run};
 
 mframe_t floater_frames_death [] =
 {
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL}
 };
 mmove_t floater_move_death = {FRAME_death01, FRAME_death13, floater_frames_death, floater_dead};
 
 mframe_t floater_frames_pain1 [] =
 {
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL}
 };
 mmove_t floater_move_pain1 = {FRAME_pain101, FRAME_pain107, floater_frames_pain1, floater_run};
 
 mframe_t floater_frames_pain2 [] =
 {
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL}
 };
 mmove_t floater_move_pain2 = {FRAME_pain201, FRAME_pain208, floater_frames_pain2, floater_run};
 
 mframe_t floater_frames_pain3 [] =
 {
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL,
-	ai_move,	0,	NULL
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL},
+	{ai_move,	0,	NULL}
 };
 mmove_t floater_move_pain3 = {FRAME_pain301, FRAME_pain312, floater_frames_pain3, floater_run};
 
 mframe_t floater_frames_walk [] =
 {
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL,
-	ai_walk, 5, NULL
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL},
+	{ai_walk, 5, NULL}
 };
 mmove_t	floater_move_walk = {FRAME_stand101, FRAME_stand152, floater_frames_walk, NULL};
 
 mframe_t floater_frames_run [] =
 {
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL,
-	ai_run, 13, NULL
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL},
+	{ai_run, 13, NULL}
 };
 mmove_t	floater_move_run = {FRAME_stand101, FRAME_stand152, floater_frames_run, NULL};
 
@@ -536,7 +512,6 @@ void floater_zap (edict_t *self)
 	//FIXME use a flash and replace these two lines with the commented one
 	VectorSet (offset, 18.5, -0.9, 10);
 	G_ProjectSource (self->s.origin, offset, forward, right, origin);
-//	G_ProjectSource (self->s.origin, monster_flash_offset[flash_number], forward, right, origin);
 
 	gi.sound (self, CHAN_WEAPON, sound_attack2, 1, ATTN_NORM, 0);
 
@@ -554,31 +529,7 @@ void floater_zap (edict_t *self)
 
 void floater_attack(edict_t *self)
 {
-	float chance;
-/*	if (random() <= 0.5)	
-		self->monsterinfo.currentmove = &flyer_move_attack1;
-	else */
-	// 0% chance of circle in easy
-	// 50% chance in normal
-	// 75% chance in hard
-	// 86.67% chance in nightmare
-	if (!skill->value)
-		chance = 0;
-	else
-		chance = 1.0 - (0.5/(float)(skill->value));
-
-	if (random() > chance)
-	{
-		self->monsterinfo.attack_state = AS_STRAIGHT;
-		self->monsterinfo.currentmove = &floater_move_attack1;
-	}
-	else // circle strafe
-	{
-		if (random () <= 0.5) // switch directions
-			self->monsterinfo.lefty = 1 - self->monsterinfo.lefty;
-		self->monsterinfo.attack_state = AS_SLIDING;
-		self->monsterinfo.currentmove = &floater_move_attack1a;
-	}
+	self->monsterinfo.currentmove = &floater_move_attack1;
 }
 
 
@@ -634,18 +585,6 @@ void floater_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int dama
 	BecomeExplosion1(self);
 }
 
-//===========
-//PGM
-qboolean floater_blocked (edict_t *self, float dist)
-{
-	if(blocked_checkshot (self, 0.25 + (0.05 * skill->value) ))
-		return true;
-
-	return false;
-}
-//PGM
-//===========
-
 /*QUAKED monster_floater (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
 */
 void SP_monster_floater (edict_t *self)
@@ -684,12 +623,10 @@ void SP_monster_floater (edict_t *self)
 	self->monsterinfo.stand = floater_stand;
 	self->monsterinfo.walk = floater_walk;
 	self->monsterinfo.run = floater_run;
-//	self->monsterinfo.dodge = floater_dodge;
 	self->monsterinfo.attack = floater_attack;
 	self->monsterinfo.melee = floater_melee;
 	self->monsterinfo.sight = floater_sight;
 	self->monsterinfo.idle = floater_idle;
-	self->monsterinfo.blocked = floater_blocked;		// PGM
 
 	gi.linkentity (self);
 
@@ -702,3 +639,4 @@ void SP_monster_floater (edict_t *self)
 
 	flymonster_start (self);
 }
+
