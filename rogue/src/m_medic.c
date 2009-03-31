@@ -733,7 +733,7 @@ void SP_monster_medic (edict_t *self)
 	self->monsterinfo.stand = medic_stand;
 	self->monsterinfo.walk = medic_walk;
 	self->monsterinfo.run = medic_run;
-	self->monsterinfo.dodge = medic_dodge;
+	self->monsterinfo.dodge = (void *)medic_dodge;
 	self->monsterinfo.attack = medic_attack;
 	self->monsterinfo.melee = NULL;
 	self->monsterinfo.sight = medic_sight;

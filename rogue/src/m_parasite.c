@@ -457,27 +457,27 @@ void parasite_jump_wait_land (edict_t *self)
 
 mframe_t parasite_frames_jump_up [] =
 {
-	ai_move, -8, NULL,
-	ai_move, -8, NULL,
-	ai_move, -8, NULL,
-	ai_move, -8, parasite_jump_up,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, parasite_jump_wait_land,
-	ai_move, 0, NULL
+	{ai_move, -8, NULL},
+	{ai_move, -8, NULL},
+	{ai_move, -8, NULL},
+	{ai_move, -8, parasite_jump_up},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, parasite_jump_wait_land},
+	{ai_move, 0, NULL}
 };
 mmove_t parasite_move_jump_up = { FRAME_jump01, FRAME_jump08, parasite_frames_jump_up, parasite_run };
 
 mframe_t parasite_frames_jump_down [] =
 {
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, parasite_jump_down,
-	ai_move, 0, NULL,
-	ai_move, 0, NULL,
-	ai_move, 0, parasite_jump_wait_land,
-	ai_move, 0, NULL
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, parasite_jump_down},
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL},
+	{ai_move, 0, parasite_jump_wait_land},
+	{ai_move, 0, NULL}
 };
 mmove_t parasite_move_jump_down = { FRAME_jump01, FRAME_jump08, parasite_frames_jump_down, parasite_run };
 
@@ -510,6 +510,7 @@ qboolean parasite_blocked (edict_t *self, float dist)
 
 	if(blocked_checkplat (self, dist))
 		return true;
+	return false;
 }
 //ROGUE
 //================
@@ -554,6 +555,7 @@ qboolean parasite_checkattack (edict_t *self)
 		self->monsterinfo.aiflags &= ~AI_BLOCKED;
 		return true;
 	}
+	return false;
 }
 
 

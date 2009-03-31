@@ -700,8 +700,6 @@ int flyer_blocked (edict_t *self, float dist)
 				!strcmp(self->monsterinfo.commander->classname, "monster_carrier"))
 			{
 				self->monsterinfo.commander->monsterinfo.monster_slots++;
-//				if ((g_showlogic) && (g_showlogic->value))
-//					gi.dprintf ("suicide blocked, exploding.  %d slots left\n", self->monsterinfo.commander->monsterinfo.monster_slots);
 			}
 
 			VectorMA (self->s.origin, -0.02, self->velocity, origin);
@@ -770,7 +768,7 @@ void SP_monster_flyer (edict_t *self)
 	self->monsterinfo.melee = flyer_melee;
 	self->monsterinfo.sight = flyer_sight;
 	self->monsterinfo.idle = flyer_idle;
-	self->monsterinfo.blocked = flyer_blocked;
+	self->monsterinfo.blocked = (void *)flyer_blocked;
 
 	gi.linkentity (self);
 
@@ -825,7 +823,7 @@ void SP_monster_kamikaze (edict_t *self)
 	self->monsterinfo.sight = flyer_sight;
 	self->monsterinfo.idle = flyer_idle;
 
-	self->monsterinfo.blocked = flyer_blocked;
+	self->monsterinfo.blocked = (void *)flyer_blocked;
 
 	gi.linkentity (self);
 

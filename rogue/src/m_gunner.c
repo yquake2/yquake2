@@ -584,7 +584,7 @@ void SP_monster_gunner (edict_t *self)
 	self->monsterinfo.stand = gunner_stand;
 	self->monsterinfo.walk = gunner_walk;
 	self->monsterinfo.run = gunner_run;
-	self->monsterinfo.dodge = gunner_dodge;
+	self->monsterinfo.dodge = (void *)gunner_dodge;
 	self->monsterinfo.attack = gunner_attack;
 	self->monsterinfo.melee = NULL;
 	self->monsterinfo.sight = gunner_sight;

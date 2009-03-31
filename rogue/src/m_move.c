@@ -29,11 +29,11 @@ qboolean M_CheckBottom (edict_t *ent)
 	VectorAdd (ent->s.origin, ent->mins, mins);
 	VectorAdd (ent->s.origin, ent->maxs, maxs);
 
-// if all of the points under the corners are solid world, don't bother
-// with the tougher checks
-// the corners must be within 16 of the midpoint
+	// if all of the points under the corners are solid world, don't bother
+	// with the tougher checks
+	// the corners must be within 16 of the midpoint
 
-//PGM
+	//PGM
 #ifdef ROGUE_GRAVITY
 	// FIXME - this will only handle 0,0,1 and 0,0,-1 gravity vectors
 	start[2] = mins[2] - 1;
@@ -42,7 +42,7 @@ qboolean M_CheckBottom (edict_t *ent)
 #else
 	start[2] = mins[2] - 1;
 #endif
-//PGM
+	//PGM
 
 	for	(x=0 ; x<=1 ; x++)
 		for	(y=0 ; y<=1 ; y++)
@@ -58,16 +58,16 @@ qboolean M_CheckBottom (edict_t *ent)
 
 realcheck:
 	c_no++;
-//
-// check it for real...
-//
+	//
+	// check it for real...
+	//
 	start[2] = mins[2];
 	
-// the midpoint must be within 16 of the bottom
+	// the midpoint must be within 16 of the bottom
 	start[0] = stop[0] = (mins[0] + maxs[0])*0.5;
 	start[1] = stop[1] = (mins[1] + maxs[1])*0.5;
 
-//PGM
+	//PGM
 #ifdef ROGUE_GRAVITY
 	if(ent->gravityVector[2] < 0)
 	{
@@ -82,7 +82,7 @@ realcheck:
 #else
 	stop[2] = start[2] - 2*STEPSIZE;
 #endif
-//PGM
+	//PGM
 
 	trace = gi.trace (start, vec3_origin, vec3_origin, stop, ent, MASK_MONSTERSOLID);
 
@@ -90,7 +90,7 @@ realcheck:
 		return false;
 	mid = bottom = trace.endpos[2];
 	
-// the corners must be within 16 of the midpoint	
+	// the corners must be within 16 of the midpoint	
 	for	(x=0 ; x<=1 ; x++)
 		for	(y=0 ; y<=1 ; y++)
 		{
@@ -99,7 +99,7 @@ realcheck:
 			
 			trace = gi.trace (start, vec3_origin, vec3_origin, stop, ent, MASK_MONSTERSOLID);
 
-//PGM
+			//PGM
 #ifdef ROGUE_GRAVITY
 			// FIXME - this will only handle 0,0,1 and 0,0,-1 gravity vectors
 			if(ent->gravityVector[2] > 0)
@@ -122,7 +122,7 @@ realcheck:
 			if (trace.fraction == 1.0 || mid - trace.endpos[2] > STEPSIZE)
 				return false;
 #endif
-//PGM
+			//PGM
 		}
 
 	c_yes++;
@@ -155,16 +155,6 @@ qboolean IsBadAhead (edict_t *self, edict_t *bad, vec3_t move)
 		return true;
 
 	return false;
-/*
-	if(DotProduct(forward, dir) > 0)
-	{
-//		gi.dprintf ("bad ahead...\n");
-		return true;
-	}
-
-//	gi.dprintf ("bad behind...\n");
-	return false;
-	*/
 }
 // ROGUE
 //============
@@ -190,11 +180,11 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 	float		stepsize;
 	vec3_t		test;
 	int			contents;
-	edict_t		*current_bad;		// PGM
+	edict_t		*current_bad = NULL;		// PGM
 	float		minheight;			// pmm
 
-//======
-//PGM
+	//======
+	//PGM
 
 	// PMM - who cares about bad areas if you're dead?
 	if (ent->health > 0)
@@ -217,29 +207,21 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 			ent->bad_area = NULL;
 			if(ent->oldenemy)// && ent->bad_area->owner == ent->enemy)
 			{
-	//			gi.dprintf("resuming being pissed at %s\n", ent->oldenemy->classname);
 				ent->enemy = ent->oldenemy;
 				ent->goalentity = ent->oldenemy;
 				FoundTarget(ent);
-	// FIXME - remove this when ready!!!
-//	if (ent->lastMoveTime == level.time)
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf ("Duplicate move detected for %s, please tell programmers!\n", ent->classname);
-//	ent->lastMoveTime = level.time;
-	// FIXME
-
 				return true;
 			}
 		}
 	}
-//PGM
-//======
+	//PGM
+	//======
 
-// try the move	
+	// try the move	
 	VectorCopy (ent->s.origin, oldorg);
 	VectorAdd (ent->s.origin, move, neworg);
 
-// flying monsters don't step up
+	// flying monsters don't step up
 	if ( ent->flags & (FL_SWIM | FL_FLY) )
 	{
 	// try one move with vertical motion, then one without
@@ -260,9 +242,8 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 						minheight = 104;
 					else
 						minheight = 40;
-//					if (dz > 40)
 					if (dz > minheight)
-//	pmm		
+						//	pmm		
 						neworg[2] -= 8;
 					if (!((ent->flags & FL_SWIM) && (ent->waterlevel < 2)))
 						if (dz < (minheight - 10))
@@ -311,17 +292,14 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 				}
 			}
 
-//			if (trace.fraction == 1)
-
 			// PMM - changed above to this
 			if ((trace.fraction == 1) && (!trace.allsolid) && (!trace.startsolid))
 			{
 				VectorCopy (trace.endpos, ent->s.origin);
-//=====
-//PGM				
+				//=====
+				//PGM				
 				if(!current_bad && CheckForBadArea(ent))
 				{
-//						gi.dprintf("Oooh! Bad Area!\n");
 					VectorCopy (oldorg, ent->s.origin);
 				}
 				else
@@ -331,17 +309,10 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 						gi.linkentity (ent);
 						G_TouchTriggers (ent);
 					}
-	// FIXME - remove this when ready!!!
-//	if (ent->lastMoveTime == level.time)
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf ("Duplicate move detected for %s, please tell programmers!\n", ent->classname);
-//	ent->lastMoveTime = level.time;
-	// FIXME
-
 					return true;
 				}
-//PGM
-//=====
+				//PGM
+				//=====
 			}
 			
 			if (!ent->enemy)
@@ -351,13 +322,13 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 		return false;
 	}
 
-// push down from a step height above the wished position
+	// push down from a step height above the wished position
 	if (!(ent->monsterinfo.aiflags & AI_NOSTEP))
 		stepsize = STEPSIZE;
 	else
 		stepsize = 1;
 
-//PGM
+	//PGM
 #ifdef ROGUE_GRAVITY
 	// trace from 1 stepsize gravityUp to 2 stepsize gravityDown.
 	VectorMA(neworg, -1 * stepsize, ent->gravityVector, neworg);
@@ -367,7 +338,7 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 	VectorCopy (neworg, end);
 	end[2] -= stepsize*2;
 #endif
-//PGM
+	//PGM
 
 	trace = gi.trace (neworg, ent->mins, ent->maxs, end, ent, MASK_MONSTERSOLID);
 
@@ -386,7 +357,7 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 	// don't go in to water
 	if (ent->waterlevel == 0)
 	{
-//PGM
+		//PGM
 #ifdef ROGUE_GRAVITY
 		test[0] = trace.endpos[0];
 		test[1] = trace.endpos[1];
@@ -399,7 +370,7 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 		test[1] = trace.endpos[1];
 		test[2] = trace.endpos[2] + ent->mins[2] + 1;	
 #endif
-//PGM
+		//PGM
 
 		contents = gi.pointcontents(test);
 
@@ -409,7 +380,7 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 
 	if (trace.fraction == 1)
 	{
-	// if monster had the ground pulled out, go ahead and fall
+		// if monster had the ground pulled out, go ahead and fall
 		if ( ent->flags & FL_PARTIALGROUND )
 		{
 			VectorAdd (ent->s.origin, move, ent->s.origin);
@@ -419,23 +390,17 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 				G_TouchTriggers (ent);
 			}
 			ent->groundentity = NULL;
-	// FIXME - remove this when ready!!!
-//	if (ent->lastMoveTime == level.time)
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf ("Duplicate move detected for %s, please tell programmers!\n", ent->classname);
-//	ent->lastMoveTime = level.time;
-	// FIXME
-
+	
 			return true;
 		}
 	
 		return false;		// walked off an edge
 	}
 
-// check point traces down for dangling corners
+	// check point traces down for dangling corners
 	VectorCopy (trace.endpos, ent->s.origin);
 
-//PGM
+	//PGM
 	// PMM - don't bother with bad areas if we're dead
 	if (ent->health > 0)
 	{
@@ -445,61 +410,40 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 		{
 			if (new_bad->owner)
 			{
-//				if ((g_showlogic) && (g_showlogic->value))
-//					gi.dprintf("Blocked -");
 				if (!strcmp(new_bad->owner->classname, "tesla"))
 				{
-//					if ((g_showlogic) && (g_showlogic->value))
-//						gi.dprintf ("it's a tesla -");
 					if ((!(ent->enemy)) || (!(ent->enemy->inuse)))
 					{
-//						if ((g_showlogic) && (g_showlogic->value))
-//							gi.dprintf ("I don't have a valid enemy, attacking tesla!\n");
 						TargetTesla (ent, new_bad->owner);
 						ent->monsterinfo.aiflags |= AI_BLOCKED;
 					}
 					else if (!strcmp(ent->enemy->classname, "telsa"))
 					{
-//						if ((g_showlogic) && (g_showlogic->value))
-//							gi.dprintf ("but we're already mad at a tesla\n");
 					}
 					else if ((ent->enemy) && (ent->enemy->client))
 					{
-//						if ((g_showlogic) && (g_showlogic->value))
-//							gi.dprintf ("we have a player enemy -");
 						if (visible(ent, ent->enemy))
 						{
-//							if ((g_showlogic) && (g_showlogic->value))
-//								gi.dprintf ("we can see him -");
 						}
 						else
 						{
-//							if ((g_showlogic) && (g_showlogic->value))
-//								gi.dprintf ("can't see him, kill the tesla! -");
 							TargetTesla (ent, new_bad->owner);
 							ent->monsterinfo.aiflags |= AI_BLOCKED;
 						}
 					}
 					else
 					{
-//						if ((g_showlogic) && (g_showlogic->value))
-//							gi.dprintf ("the enemy isn't a player, killing tesla -");
 						TargetTesla (ent, new_bad->owner);
 						ent->monsterinfo.aiflags |= AI_BLOCKED;
 					}
 				}
-//				else if ((g_showlogic) && (g_showlogic->value))
-//				{
-//					gi.dprintf(" by non-tesla bad area!");
-//				}
 			}
-//			gi.dprintf ("\n");
 
 			VectorCopy (oldorg, ent->s.origin);
 			return false;
 		}
 	}
-//PGM
+	//PGM
 
 	if (!M_CheckBottom (ent))
 	{
@@ -511,13 +455,6 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 				gi.linkentity (ent);
 				G_TouchTriggers (ent);
 			}
-	// FIXME - remove this when ready!!!
-//	if (ent->lastMoveTime == level.time)
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf ("Duplicate move detected for %s, please tell programmers!\n", ent->classname);
-//	ent->lastMoveTime = level.time;
-	// FIXME
-
 			return true;
 		}
 		VectorCopy (oldorg, ent->s.origin);
@@ -531,19 +468,11 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 	ent->groundentity = trace.ent;
 	ent->groundentity_linkcount = trace.ent->linkcount;
 
-// the move is ok
 	if (relink)
 	{
 		gi.linkentity (ent);
 		G_TouchTriggers (ent);
 	}
-	// FIXME - remove this when ready!!!
-//	if (ent->lastMoveTime == level.time)
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf ("Duplicate move detected for %s, please tell programmers!\n", ent->classname);
-//	ent->lastMoveTime = level.time;
-	// FIXME
-
 	return true;
 }
 
@@ -691,7 +620,7 @@ void SV_NewChaseDir (edict_t *actor, edict_t *enemy, float dist)
 	else
 		d[2]= DI_NODIR;
 
-// try direct route
+	// try direct route
 	if (d[1] != DI_NODIR && d[2] != DI_NODIR)
 	{
 		if (d[1] == 0)
@@ -703,7 +632,7 @@ void SV_NewChaseDir (edict_t *actor, edict_t *enemy, float dist)
 			return;
 	}
 
-// try other directions
+	// try other directions
 	if ( ((rand()&3) & 1) ||  abs(deltay)>abs(deltax))
 	{
 		tdir=d[1];
@@ -719,7 +648,7 @@ void SV_NewChaseDir (edict_t *actor, edict_t *enemy, float dist)
 	&& SV_StepDirection(actor, d[2], dist))
 			return;
 
-//ROGUE
+	//ROGUE
 	if(actor->monsterinfo.blocked)
 	{
 		if ((actor->inuse) && (actor->health > 0))
@@ -728,9 +657,7 @@ void SV_NewChaseDir (edict_t *actor, edict_t *enemy, float dist)
 				return;
 		}
 	}
-//ROGUE
-
-/* there is no direct path to the player, so pick another direction */
+	//ROGUE
 
 	if (olddir!=DI_NODIR && SV_StepDirection(actor, olddir, dist))
 			return;
@@ -753,8 +680,8 @@ void SV_NewChaseDir (edict_t *actor, edict_t *enemy, float dist)
 
 	actor->ideal_yaw = olddir;		// can't move
 
-// if a bridge was pulled out from underneath a monster, it may not have
-// a valid standing position at all
+	// if a bridge was pulled out from underneath a monster, it may not have
+	// a valid standing position at all
 
 	if (!M_CheckBottom (actor))
 		SV_FixCheckBottom (actor);
@@ -794,19 +721,14 @@ void M_MoveToGoal (edict_t *ent, float dist)
 	if (!ent->groundentity && !(ent->flags & (FL_FLY|FL_SWIM)))
 		return;
 
-// if the next step hits the enemy, return immediately
+	// if the next step hits the enemy, return immediately
 	if (ent->enemy &&  SV_CloseEnough (ent, ent->enemy, dist) )
 		return;
 
-// bump around...
-//	if ( (rand()&3)==1 || !SV_StepDirection (ent, ent->ideal_yaw, dist))
-// PMM - charging monsters (AI_CHARGING) don't deflect unless they have to
 	if ( (((rand()&3)==1) && !(ent->monsterinfo.aiflags & AI_CHARGING)) || !SV_StepDirection (ent, ent->ideal_yaw, dist))
 	{
 		if (ent->monsterinfo.aiflags & AI_BLOCKED)
 		{
-//			if ((g_showlogic) && (g_showlogic->value))
-//				gi.dprintf ("tesla attack detected, not changing direction!\n");
 			ent->monsterinfo.aiflags &= ~AI_BLOCKED;
 			return;
 		}
@@ -841,5 +763,5 @@ qboolean M_walkmove (edict_t *ent, float yaw, float dist)
 	ent->monsterinfo.aiflags &= ~AI_BLOCKED;
 	return retval;
 	// pmm
-	//return SV_movestep(ent, move, true);
 }
+
