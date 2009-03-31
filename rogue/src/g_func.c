@@ -62,11 +62,6 @@ void plat2_kill_danger_area (edict_t *ent);
 #define DOOR_TOGGLE			32
 #define DOOR_X_AXIS			64
 #define DOOR_Y_AXIS			128
-// !easy					256
-// !med						512
-// !hard					1024
-// !dm						2048
-// !coop					4096
 #define DOOR_INACTIVE		8192
 
 //
@@ -178,14 +173,14 @@ void AngleMove_Begin (edict_t *ent)
 	float	traveltime;
 	float	frames;
 
-//PGM		accelerate as needed
+	//PGM		accelerate as needed
 	if(ent->moveinfo.speed < ent->speed)
 	{
 		ent->moveinfo.speed += ent->accel;
 		if(ent->moveinfo.speed > ent->speed)
 			ent->moveinfo.speed = ent->speed;
 	}
-//PGM
+	//PGM
 
 	// set destdelta to the vector needed to move
 	if (ent->moveinfo.state == STATE_UP)
@@ -210,7 +205,7 @@ void AngleMove_Begin (edict_t *ent)
 	// scale the destdelta vector by the time spent traveling to get velocity
 	VectorScale (destdelta, 1.0 / traveltime, ent->avelocity);
 
-//PGM
+	//PGM
 	// if we're done accelerating, act as a normal rotation
 	if(ent->moveinfo.speed >= ent->speed)
 	{
@@ -223,7 +218,7 @@ void AngleMove_Begin (edict_t *ent)
 		ent->nextthink = level.time + FRAMETIME;
 		ent->think = AngleMove_Begin;
 	}
-//PGM
+	//PGM
 }
 
 void AngleMove_Calc (edict_t *ent, void(*func)(edict_t*))
@@ -231,11 +226,11 @@ void AngleMove_Calc (edict_t *ent, void(*func)(edict_t*))
 	VectorClear (ent->avelocity);
 	ent->moveinfo.endfunc = func;
 
-//PGM
+	//PGM
 	// if we're supposed to accelerate, this will tell anglemove_begin to do so
 	if(ent->accel != ent->speed)
 		ent->moveinfo.speed = 0;
-//PGM
+	//PGM
 
 	if (level.current_entity == ((ent->flags & FL_TEAMSLAVE) ? ent->teammaster : ent))
 	{
@@ -285,7 +280,7 @@ void plat_CalcAcceleratedMove(moveinfo_t *moveinfo)
 	}
 
 	moveinfo->decel_distance = decel_dist;
-};
+}
 
 void plat_Accelerate (moveinfo_t *moveinfo)
 {
@@ -356,14 +351,12 @@ void plat_Accelerate (moveinfo_t *moveinfo)
 
 	// we are at constant velocity (move_speed)
 	return;
-};
+}
 
 void Think_AccelMove (edict_t *ent)
 {
 	ent->moveinfo.remaining_distance -= ent->moveinfo.current_speed;
 
-	// PGM 04/21/98  - this should fix sthoms' sinking drop pod. Hopefully it wont break stuff.
-//	if (ent->moveinfo.current_speed == 0)		// starting or blocked
 		plat_CalcAcceleratedMove(&ent->moveinfo);
 
 	plat_Accelerate (&ent->moveinfo);
@@ -448,13 +441,13 @@ void plat_blocked (edict_t *self, edict_t *other)
 		return;
 	}
 
-//PGM
+	//PGM
 	// gib dead things
 	if(other->health < 1)
 	{
 		T_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, 100, 1, 0, MOD_CRUSH);
 	}
-//PGM
+	//PGM
 
 	T_Damage (other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 
@@ -467,8 +460,8 @@ void plat_blocked (edict_t *self, edict_t *other)
 
 void Use_Plat (edict_t *ent, edict_t *other, edict_t *activator)
 { 
-//======
-//ROGUE
+	//======
+	//ROGUE
 	// if a monster is using us, then allow the activity when stopped.
 	if (other->svflags & SVF_MONSTER)
 	{
@@ -479,8 +472,8 @@ void Use_Plat (edict_t *ent, edict_t *other, edict_t *activator)
 
 		return;
 	}
-//ROGUE
-//======
+	//ROGUE
+	//======
 
 	if (ent->think)
 		return;		// already down
@@ -504,15 +497,14 @@ void Touch_Plat_Center (edict_t *ent, edict_t *other, cplane_t *plane, csurface_
 }
 
 // PGM - plat2's change the trigger field
-//void plat_spawn_inside_trigger (edict_t *ent)
 edict_t *plat_spawn_inside_trigger (edict_t *ent)
 {
 	edict_t	*trigger;
 	vec3_t	tmin, tmax;
 
-//
-// middle trigger
-//	
+	//
+	// middle trigger
+	//	
 	trigger = G_Spawn();
 	trigger->touch = Touch_Plat_Center;
 	trigger->movetype = MOVETYPE_NONE;
@@ -848,11 +840,6 @@ void plat2_operate (edict_t *ent, edict_t *other)
 void Touch_Plat_Center2 (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
 	// this requires monsters to actively trigger plats, not just step on them.
-
-	//FIXME - commented out for E3
-	//if (!other->client)
-	//	return;
-		
 	if (other->health <= 0)
 		return;
 
@@ -907,7 +894,6 @@ void Use_Plat2 (edict_t *ent, edict_t *other, edict_t *activator)
 		{
 			if (trigger->enemy == ent)
 			{
-//				Touch_Plat_Center2 (trigger, activator, NULL, NULL);
 				plat2_operate (trigger, activator);
 				return;
 			}
@@ -918,9 +904,6 @@ void Use_Plat2 (edict_t *ent, edict_t *other, edict_t *activator)
 void plat2_activate (edict_t *ent, edict_t *other, edict_t *activator)
 {
 	edict_t *trigger;
-
-//	if(ent->targetname)
-//		ent->targetname[0] = 0;
 
 	ent->use = Use_Plat2;
 
@@ -997,9 +980,6 @@ void SP_func_plat2 (edict_t *ent)
 	//PMM Added to kill things it's being blocked by 
 	if (!ent->dmg)
 		ent->dmg = 2;
-
-//	if (!st.lip)
-//		st.lip = 8;
 
 	// pos1 is the top position, pos2 is the bottom
 	VectorCopy (ent->s.origin, ent->pos1);
@@ -1134,7 +1114,7 @@ void rotating_use (edict_t *self, edict_t *other, edict_t *activator)
 	if (!VectorCompare (self->avelocity, vec3_origin))
 	{
 		self->s.sound = 0;
-//PGM
+		//PGM
 		if(self->spawnflags & 8192)	// Decelerate
 			rotating_decel (self);
 		else
@@ -1143,12 +1123,12 @@ void rotating_use (edict_t *self, edict_t *other, edict_t *activator)
 			G_UseTargets (self, self);
 			self->touch = NULL;
 		}
-//PGM
+		//PGM
 	}
 	else
 	{
 		self->s.sound = self->moveinfo.sound_middle;
-//PGM
+		//PGM
 		if(self->spawnflags & 8192)	// accelerate
 			rotating_accel (self);
 		else
@@ -1158,7 +1138,7 @@ void rotating_use (edict_t *self, edict_t *other, edict_t *activator)
 		}
 		if (self->spawnflags & 16)
 			self->touch = rotating_touch;
-//PGM
+		//PGM
 	}
 }
 
@@ -1188,8 +1168,6 @@ void SP_func_rotating (edict_t *ent)
 	if (!ent->dmg)
 		ent->dmg = 2;
 
-//	ent->moveinfo.sound_middle = "doors/hydro1.wav";
-
 	ent->use = rotating_use;
 	if (ent->dmg)
 		ent->blocked = rotating_blocked;
@@ -1202,7 +1180,7 @@ void SP_func_rotating (edict_t *ent)
 	if (ent->spawnflags & 128)
 		ent->s.effects |= EF_ANIM_ALLFAST;
 
-//PGM
+	//PGM
 	if(ent->spawnflags & 8192)	// Accelerate / Decelerate
 	{
 		if(!ent->accel)
@@ -1215,7 +1193,7 @@ void SP_func_rotating (edict_t *ent)
 		else if (ent->decel > ent->speed)
 			ent->decel = ent->speed;
 	}
-//PGM
+	//PGM
 
 	gi.setmodel (ent, ent->model);
 	gi.linkentity (ent);
@@ -1618,7 +1596,7 @@ void door_use (edict_t *self, edict_t *other, edict_t *activator)
 		}
 	}
 
-//PGM
+	//PGM
 	// smart water is different
 	VectorAdd(self->mins, self->maxs, center);
 	VectorScale(center, 0.5, center);
@@ -1630,7 +1608,7 @@ void door_use (edict_t *self, edict_t *other, edict_t *activator)
 		smart_water_go_up (self);
 		return;
 	}
-//PGM
+	//PGM
 
 	// trigger all paired doors
 	for (ent = self ; ent ; ent = ent->teamchain)
@@ -1639,7 +1617,7 @@ void door_use (edict_t *self, edict_t *other, edict_t *activator)
 		ent->touch = NULL;
 		door_go_up (ent, activator);
 	}
-};
+}
 
 void Touch_DoorTrigger (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
@@ -1757,8 +1735,8 @@ void door_blocked  (edict_t *self, edict_t *other)
 		return;
 
 
-// if a door has a negative wait, it would never come back if blocked,
-// so let it just squash the object to death real fast
+	// if a door has a negative wait, it would never come back if blocked,
+	// so let it just squash the object to death real fast
 	if (self->moveinfo.wait >= 0)
 	{
 		if (self->moveinfo.state == STATE_DOWN)
@@ -2044,7 +2022,7 @@ void SP_func_door_rotating (edict_t *ent)
 	else
 		ent->think = Think_SpawnDoorTrigger;
 
-//PGM
+	//PGM
 	if (ent->spawnflags & DOOR_INACTIVE)
 	{
 		ent->takedamage = DAMAGE_NO;
@@ -2053,7 +2031,7 @@ void SP_func_door_rotating (edict_t *ent)
 		ent->nextthink = 0;
 		ent->use = Door_Activate;
 	}
-//PGM
+	//PGM
 }
 
 void smart_water_blocked (edict_t *self, edict_t *other)
@@ -2232,10 +2210,7 @@ void train_wait (edict_t *self)
 		}
 		else if (self->spawnflags & TRAIN_TOGGLE)  // && wait < 0
 		{
-			// PMM - clear target_ent, let train_next get called when we get used
-//			train_next (self);
 			self->target_ent = NULL;
-			// pmm
 			self->spawnflags &= ~TRAIN_START_ON;
 			VectorClear (self->velocity);
 			self->nextthink = 0;
@@ -2271,7 +2246,6 @@ void train_next (edict_t *self)
 again:
 	if (!self->target)
 	{
-//		gi.dprintf ("train_next: no next target\n");
 		return;
 	}
 
@@ -2334,7 +2308,7 @@ again:
 	Move_Calc (self, dest, train_wait);
 	self->spawnflags |= TRAIN_START_ON;
 	
-//PGM
+	//PGM
 	if(self->team)
 	{
 		edict_t *e;
@@ -2357,7 +2331,7 @@ again:
 		}
 	
 	}
-//PGM
+	//PGM
 }
 
 void train_resume (edict_t *self)
@@ -2479,7 +2453,6 @@ void trigger_elevator_use (edict_t *self, edict_t *other, edict_t *activator)
 
 	if (self->movetarget->nextthink)
 	{
-//		gi.dprintf("elevator busy\n");
 		return;
 	}
 

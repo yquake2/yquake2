@@ -33,17 +33,7 @@ void InitGameRules(void)
 				DMGame.PlayerDisconnect = Tag_PlayerDisconnect;
 				DMGame.ChangeDamage = Tag_ChangeDamage;
 				break;
-/*
-			case RDM_DEATHBALL:
-				DMGame.GameInit = DBall_GameInit;
-				DMGame.ChangeKnockback = DBall_ChangeKnockback;
-				DMGame.ChangeDamage = DBall_ChangeDamage;
-				DMGame.ClientBegin = DBall_ClientBegin;
-				DMGame.SelectSpawnPoint = DBall_SelectSpawnPoint;
-				DMGame.PostInitSetup = DBall_PostInitSetup;
-				DMGame.CheckDMRules = DBall_CheckDMRules;
-				break;
-*/
+
 			// reset gamerules if it's not a valid number
 			default:
 				gamerules->value = 0;
@@ -56,7 +46,6 @@ void InitGameRules(void)
 		DMGame.GameInit();
 }
 
-//=================
 //=================
 #define IT_TYPE_MASK	(IT_WEAPON|IT_AMMO|IT_POWERUP|IT_ARMOR|IT_KEY)
 
@@ -195,7 +184,6 @@ char *FindSubstituteItem (edict_t *ent)
 }
 
 //=================
-//=================
 edict_t *DoRandomRespawn (edict_t *ent)
 {
 	edict_t *newEnt;
@@ -223,7 +211,6 @@ edict_t *DoRandomRespawn (edict_t *ent)
 	return newEnt;
 }
 
-//=================
 //=================
 void PrecacheForRandomRespawn (void)
 {
@@ -268,15 +255,11 @@ void doppleganger_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int
 			sphere = Sphere_Spawn (self, SPHERE_HUNTER | SPHERE_DOPPLEGANGER);
 			sphere->pain(sphere, attacker, 0, 0);
 		}
-		else //if(dist > 256)
+		else 
 		{
 			sphere = Sphere_Spawn (self, SPHERE_VENGEANCE | SPHERE_DOPPLEGANGER);
 			sphere->pain(sphere, attacker, 0, 0);
 		}
-//		else
-//		{
-//			T_RadiusClassDamage (self, self->teammaster, 175, "doppleganger", 384, MOD_DOPPLE_EXPLODE);
-//		}
 	}
 
 	if(self->teamchain)
@@ -291,8 +274,6 @@ void doppleganger_pain (edict_t *self, edict_t *other, float kick, int damage)
 
 void doppleganger_timeout (edict_t *self)
 {
-//	T_RadiusClassDamage (self, self->teammaster, 140, "doppleganger", 256, MOD_DOPPLE_EXPLODE);
-
 	if(self->teamchain)
 		BecomeExplosion1(self->teamchain);
 	BecomeExplosion1(self);
@@ -346,7 +327,6 @@ void fire_doppleganger (edict_t *ent, vec3_t start, vec3_t aimdir)
 	base->s.angles[PITCH]=0;
 	VectorSet (base->mins, -16, -16, -24);
 	VectorSet (base->maxs, 16, 16, 32);
-//	base->s.modelindex = gi.modelindex ("models/objects/dopplebase/tris.md2");
 	base->s.modelindex = 0;
 	base->teammaster = ent;
 	base->svflags |= SVF_DAMAGEABLE;
@@ -368,7 +348,6 @@ void fire_doppleganger (edict_t *ent, vec3_t start, vec3_t aimdir)
 	body->s = ent->s;
 	body->s.sound = 0;
 	body->s.event = 0;
-//	body->s.modelindex2 = 0;		// no attached items (CTF flag, etc)
 	body->s.number = number;
 	body->yaw_speed = 30;
 	body->ideal_yaw = 0;

@@ -129,8 +129,8 @@ void DoRespawn (edict_t *ent)
 			;
 	}
 
-//=====
-//ROGUE
+	//=====
+	//ROGUE
 	if(randomrespawn && randomrespawn->value)
 	{
 		edict_t *newEnt;
@@ -145,8 +145,8 @@ void DoRespawn (edict_t *ent)
 			ent = newEnt;
 		}
 	}
-//ROGUE
-//=====
+	//ROGUE
+	//=====
 
 	ent->svflags &= ~SVF_NOCLIENT;
 	ent->solid = SOLID_TRIGGER;
@@ -190,12 +190,12 @@ qboolean Pickup_Powerup (edict_t *ent, edict_t *other)
 		{
 			if ((ent->item->use == Use_Quad) && (ent->spawnflags & DROPPED_PLAYER_ITEM))
 				quad_drop_timeout_hack = (ent->nextthink - level.time) / FRAMETIME;
-//PGM
+			//PGM
 			if(ent->item->use)
 				ent->item->use (other, ent->item);
 			else
 				gi.dprintf("Powerup has no use function!\n");
-//PGM
+			//PGM
 		}
 	}
 
@@ -361,7 +361,7 @@ qboolean Pickup_Pack (edict_t *ent, edict_t *other)
 		if (other->client->pers.inventory[index] > other->client->pers.max_slugs)
 			other->client->pers.inventory[index] = other->client->pers.max_slugs;
 	}
-//PMM
+	//PMM
 	item = FindItem("Flechettes");
 	if (item)
 	{
@@ -392,11 +392,7 @@ qboolean Pickup_Nuke (edict_t *ent, edict_t *other)
 {
 	int		quantity;
 
-//	if (!deathmatch->value)
-//		return;
 	quantity = other->client->pers.inventory[ITEM_INDEX(ent->item)];
-//	if ((skill->value == 1 && quantity >= 2) || (skill->value >= 2 && quantity >= 1))
-//		return false;
 
 	if (quantity >= 1)
 		return false;
@@ -442,13 +438,6 @@ void Use_Double (edict_t *ent, gitem_t *item)
 
 	gi.sound(ent, CHAN_ITEM, gi.soundindex("misc/ddamage1.wav"), 1, ATTN_NORM, 0);
 }
-
-/*
-void Use_Torch (edict_t *ent, gitem_t *item)
-{
-	ent->client->torch_framenum = level.framenum + 600;
-}
-*/
 
 void Use_Compass (edict_t *ent, gitem_t *item)
 {
@@ -528,7 +517,6 @@ qboolean Pickup_Sphere (edict_t *ent, edict_t *other)
 
 	if(other->client && other->client->owned_sphere)
 	{
-//		gi.cprintf(other, PRINT_HIGH, "Only one sphere to a customer!\n");
 		return false;
 	}
 
@@ -547,12 +535,12 @@ qboolean Pickup_Sphere (edict_t *ent, edict_t *other)
 			SetRespawn (ent, ent->item->quantity);
 		if (((int)dmflags->value & DF_INSTANT_ITEMS))
 		{
-//PGM
+			//PGM
 			if(ent->item->use)
 				ent->item->use (other, ent->item);
 			else
 				gi.dprintf("Powerup has no use function!\n");
-//PGM
+			//PGM
 		}
 	}
 
@@ -643,8 +631,6 @@ void Use_Breather (edict_t *ent, gitem_t *item)
 		ent->client->breather_framenum += 300;
 	else
 		ent->client->breather_framenum = level.framenum + 300;
-
-//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
 }
 
 //======================================================================
@@ -658,8 +644,6 @@ void Use_Envirosuit (edict_t *ent, gitem_t *item)
 		ent->client->enviro_framenum += 300;
 	else
 		ent->client->enviro_framenum = level.framenum + 300;
-
-//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
 }
 
 //======================================================================
@@ -684,8 +668,6 @@ void	Use_Silencer (edict_t *ent, gitem_t *item)
 	ent->client->pers.inventory[ITEM_INDEX(item)]--;
 	ValidateSelectedItem (ent);
 	ent->client->silencer_shots += 30;
-
-//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
 }
 
 //======================================================================
@@ -735,9 +717,7 @@ qboolean Add_Ammo (edict_t *ent, gitem_t *item, int count)
 		max = ent->client->pers.max_cells;
 	else if (item->tag == AMMO_SLUGS)
 		max = ent->client->pers.max_slugs;
-// ROGUE
-//	else if (item->tag == AMMO_MINES)
-//		max = ent->client->pers.max_mines;
+	// ROGUE
 	else if (item->tag == AMMO_FLECHETTES)
 		max = ent->client->pers.max_flechettes;
 	else if (item->tag == AMMO_PROX)
@@ -748,7 +728,7 @@ qboolean Add_Ammo (edict_t *ent, gitem_t *item, int count)
 	else if (item->tag == AMMO_DISRUPTOR)
 		max = ent->client->pers.max_rounds;
 #endif
-// ROGUE
+	// ROGUE
 	else
 	{
 		gi.dprintf("undefined ammo type\n");
@@ -852,18 +832,6 @@ qboolean Pickup_Health (edict_t *ent, edict_t *other)
 			return false;
 
 	other->health += ent->count;
-
-	// PMM - health sound fix
-	/*
-	if (ent->count == 2)
-		ent->item->pickup_sound = "items/s_health.wav";
-	else if (ent->count == 10)
-		ent->item->pickup_sound = "items/n_health.wav";
-	else if (ent->count == 25)
-		ent->item->pickup_sound = "items/l_health.wav";
-	else // (ent->count == 100)
-		ent->item->pickup_sound = "items/m_health.wav";
-	*/
 
 	if (!(ent->style & HEALTH_IGNORE_MAX))
 	{
@@ -1404,12 +1372,6 @@ void SpawnItem (edict_t *ent, gitem_t *item)
 		return;
 	}
 #endif
-
-// PGM - since the item may be freed by the following rules, go ahead
-//		 and move the precache until AFTER the following rules have been checked.
-//		 keep an eye on this.
-//	PrecacheItem (item);
-
 	if (ent->spawnflags > 1)		// PGM
 	{
 		if (strcmp(ent->classname, "key_power_cube") != 0)
@@ -1469,8 +1431,8 @@ void SpawnItem (edict_t *ent, gitem_t *item)
 			}
 		}
 
-//==========
-//ROGUE
+		//==========
+		//ROGUE
 		if ( (int)dmflags->value & DF_NO_MINES )
 		{
 			if ( !strcmp(ent->classname, "ammo_prox") || 
@@ -1496,13 +1458,13 @@ void SpawnItem (edict_t *ent, gitem_t *item)
 				return;
 			}
 		}
-//ROGUE
-//==========
+		//ROGUE
+		//==========
 
 	}
-//==========
-//ROGUE
-// DM only items
+	//==========
+	//ROGUE
+	// DM only items
 	if (!deathmatch->value)
 	{
 		if (item->pickup == Pickup_Doppleganger || item->pickup == Pickup_Nuke)
@@ -1516,12 +1478,12 @@ void SpawnItem (edict_t *ent, gitem_t *item)
 			return;
 		}
 	}
-//ROGUE
-//==========
+	//ROGUE
+	//==========
 
-//PGM 
+	//PGM 
 	PrecacheItem (item);		
-//PGM
+	//PGM
 
 	if (coop->value && (strcmp(ent->classname, "key_power_cube") == 0))
 	{
@@ -2263,7 +2225,6 @@ always owned, never in the world
 		Drop_Ammo,
 		Weapon_Tesla,					// PGM
 		"misc/am_pkup.wav",
-//		"models/weapons/g_tesla/tris.md2", 0,
 		"models/ammo/am_tesl/tris.md2", 0,
 		"models/weapons/v_tesla/tris.md2",
 		"a_tesla",
@@ -3166,7 +3127,7 @@ void SP_xatrix_item (edict_t *self)
 {
 	gitem_t	*item;
 	int		i;
-	char	*spawnClass;
+	char	*spawnClass = NULL;
 
 	if(!self->classname)
 		return;
@@ -3207,3 +3168,4 @@ void SP_xatrix_item (edict_t *self)
 }
 //ROGUE
 //===============
+

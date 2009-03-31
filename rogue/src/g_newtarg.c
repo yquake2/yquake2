@@ -39,10 +39,12 @@ void use_target_steam (edict_t *self, edict_t *other, edict_t *activator)
 	// automagically set wait from func_timer unless they set it already, or
 	// default to 1000 if not called by a func_timer (eek!)
 	if (!self->wait)
+	{
 		if (other)
 			self->wait = other->wait * 1000;
 		else
 			self->wait = 1000;
+	}
 
 	if (self->enemy)
 	{
@@ -161,8 +163,6 @@ void target_anger_use (edict_t *self, edict_t *other, edict_t *activator)
 				{
 					if (t->health < 0)
 					{
-//						if ((g_showlogic) && (g_showlogic->value))
-//							gi.dprintf ("target_anger with dead monster!\n");
 						return;
 					}
 					t->enemy = target;
@@ -326,7 +326,6 @@ void orb_think (edict_t *self)
 	self->s.angles[0] = rand()%360;
 	self->s.angles[1] = rand()%360;
 	self->s.angles[2] = rand()%360;
-//	self->s.effects |= (EF_TRACKERTRAIL|EF_DOUBLE);
 	self->nextthink = level.time + 0.1;
 }
 
@@ -341,7 +340,6 @@ void SP_target_orb(edict_t *ent)
 	VectorClear (ent->mins);
 	VectorClear (ent->maxs);
 
-//	ent->s.effects |= EF_TRACKERTRAIL;
 	ent->think = orb_think;
 	ent->nextthink = level.time + 0.1;
 	ent->s.modelindex = gi.modelindex ("models/items/spawngro2/tris.md2");

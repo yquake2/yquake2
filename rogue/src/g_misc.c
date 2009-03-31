@@ -470,7 +470,7 @@ void SP_point_combat (edict_t *self)
 	VectorSet (self->maxs, 8, 8, 16);
 	self->svflags = SVF_NOCLIENT;
 	gi.linkentity (self);
-};
+}
 
 
 /*QUAKED viewthing (0 .5 .8) (-8 -8 -8) (8 8 8)
@@ -505,7 +505,7 @@ Used as a positional target for spotlights, etc.
 void SP_info_null (edict_t *self)
 {
 	G_FreeEdict (self);
-};
+}
 
 
 /*QUAKED info_notnull (0 0.5 0) (-4 -4 -4) (4 4 4)
@@ -515,7 +515,7 @@ void SP_info_notnull (edict_t *self)
 {
 	VectorCopy (self->s.origin, self->absmin);
 	VectorCopy (self->s.origin, self->absmax);
-};
+}
 
 
 /*QUAKED light (0 1 0) (-8 -8 -8) (8 8 8) START_OFF
@@ -616,7 +616,6 @@ void SP_func_wall (edict_t *self)
 	// it must be TRIGGER_SPAWN
 	if (!(self->spawnflags & 1))
 	{
-//		gi.dprintf("func_wall missing TRIGGER_SPAWN\n");
 		self->spawnflags |= 1;
 	}
 
@@ -792,9 +791,6 @@ void func_explosive_explode (edict_t *self, edict_t *inflictor, edict_t *attacke
 	// PMM - if we're part of a train, clean ourselves out of it
 	if (self->flags & FL_TEAMSLAVE)
 	{
-//		if ((g_showlogic) && (g_showlogic->value))
-//			gi.dprintf ("Removing func_explosive from train!\n");
-
 		if (self->teammaster)
 		{
 			master = self->teammaster;
@@ -808,18 +804,8 @@ void func_explosive_explode (edict_t *self, edict_t *inflictor, edict_t *attacke
 						done = true;
 					}
 					master = master->teamchain;
-					if (!master)
-					{
-//						if ((g_showlogic) && (g_showlogic->value))
-//							gi.dprintf ("Couldn't find myself in master's chain, ignoring!\n");
-					}
 				}
 			}
-		}
-		else
-		{
-//			if ((g_showlogic) && (g_showlogic->value))
-//				gi.dprintf ("No master to free myself from, ignoring!\n");
 		}
 	}
 
@@ -854,24 +840,11 @@ void func_explosive_activate(edict_t *self, edict_t *other, edict_t *activator)
 			approved = 1;
 	}
 
-	if (!approved)
-	{
-//		gi.dprintf("func_explosive_activate: incorrect activator\n");
-		return;
-	}
-
-	// PMM - according to mappers, they don't need separate cases for blowupable and triggerable
-//	if (self->target)
-//	{
-		self->use = func_explosive_use;
-//	}
-//	else
-//	{
-		if (!self->health)
-			self->health = 100;
-		self->die = func_explosive_explode;
-		self->takedamage = DAMAGE_YES;
-//	}
+	self->use = func_explosive_use;
+	if (!self->health)
+		self->health = 100;
+	self->die = func_explosive_explode;
+	self->takedamage = DAMAGE_YES;
 }
 //PGM
 
@@ -905,14 +878,14 @@ void SP_func_explosive (edict_t *self)
 		self->solid = SOLID_NOT;
 		self->use = func_explosive_spawn;
 	}
-//PGM
+	//PGM
 	else if(self->spawnflags & 8)
 	{
 		self->solid = SOLID_BSP;
 		if(self->targetname)
 			self->use = func_explosive_activate;
 	}
-//PGM
+	//PGM
 	else
 	{
 		self->solid = SOLID_BSP;
@@ -925,9 +898,9 @@ void SP_func_explosive (edict_t *self)
 	if (self->spawnflags & 4)
 		self->s.effects |= EF_ANIM_ALLFAST;
 
-//PGM
+	//PGM
 	if ((self->use != func_explosive_use) && (self->use != func_explosive_activate))
-//PGM
+   	//PGM
 	{
 		if (!self->health)
 			self->health = 100;
@@ -1101,10 +1074,10 @@ void SP_misc_explobox (edict_t *self)
 
 	self->touch = barrel_touch;
 
-//PGM - change so barrels will think and hence, blow up
+	//PGM - change so barrels will think and hence, blow up
 	self->think = barrel_start;
 	self->nextthink = level.time + 2 * FRAMETIME;
-//PGM
+	//PGM
 
 	gi.linkentity (self);
 }
@@ -1968,7 +1941,6 @@ void SP_misc_teleporter_dest (edict_t *ent)
 	gi.setmodel (ent, "models/objects/dmspot/tris.md2");
 	ent->s.skinnum = 0;
 	ent->solid = SOLID_BBOX;
-//	ent->s.effects |= EF_FLIES;
 	VectorSet (ent->mins, -32, -32, -24);
 	VectorSet (ent->maxs, 32, 32, -16);
 	gi.linkentity (ent);

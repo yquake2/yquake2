@@ -139,7 +139,7 @@ void Cmd_Give_f (edict_t *ent)
 	qboolean	give_all;
 	edict_t		*it_ent;
 
-	if (deathmatch->value && !sv_cheats->value)
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -258,13 +258,13 @@ void Cmd_Give_f (edict_t *ent)
 		return;
 	}
 
-//ROGUE
+	//ROGUE
 	if (it->flags & IT_NOT_GIVEABLE)		
 	{
 		gi.dprintf ("item cannot be given\n");
 		return;							
 	}
-//ROGUE
+	//ROGUE
 
 	index = ITEM_INDEX(it);
 
@@ -304,7 +304,7 @@ void Cmd_God_f (edict_t *ent)
 {
 	char	*msg;
 
-	if (deathmatch->value && !sv_cheats->value)
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -333,7 +333,7 @@ void Cmd_Notarget_f (edict_t *ent)
 {
 	char	*msg;
 
-	if (deathmatch->value && !sv_cheats->value)
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -360,7 +360,7 @@ void Cmd_Noclip_f (edict_t *ent)
 {
 	char	*msg;
 
-	if (deathmatch->value && !sv_cheats->value)
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -533,7 +533,6 @@ void Cmd_WeapPrev_f (edict_t *ent)
 	for (i=1 ; i<=MAX_ITEMS ; i++)
 	{
 		// PMM - prevent scrolling through ALL weapons
-//		index = (selected_weapon + i)%MAX_ITEMS;
 		index = (selected_weapon + MAX_ITEMS - i)%MAX_ITEMS;
 		if (!cl->pers.inventory[index])
 			continue;
@@ -544,8 +543,6 @@ void Cmd_WeapPrev_f (edict_t *ent)
 			continue;
 		it->use (ent, it);
 		// PMM - prevent scrolling through ALL weapons
-//		if (cl->pers.weapon == it)
-//			return;	// successful
 		if (cl->newweapon == it)
 			return;
 	}
@@ -574,7 +571,6 @@ void Cmd_WeapNext_f (edict_t *ent)
 	for (i=1 ; i<=MAX_ITEMS ; i++)
 	{
 		// PMM - prevent scrolling through ALL weapons
-//		index = (selected_weapon + MAX_ITEMS - i)%MAX_ITEMS;
 		index = (selected_weapon + i)%MAX_ITEMS;
 		if (!cl->pers.inventory[index])
 			continue;
@@ -585,8 +581,6 @@ void Cmd_WeapNext_f (edict_t *ent)
 			continue;
 		it->use (ent, it);
 		// PMM - prevent scrolling through ALL weapons
-//		if (cl->pers.weapon == it)
-//			return;	// successful
 		if (cl->newweapon == it)
 			return;
 	}
@@ -658,7 +652,7 @@ void Cmd_Kill_f (edict_t *ent)
 	ent->health = 0;
 	meansOfDeath = MOD_SUICIDE;
 
-//ROGUE
+	//ROGUE
 	// make sure no trackers are still hurting us.
 	if(ent->client->tracker_pain_framenum)
 		RemoveAttackingPainDaemons (ent);
@@ -668,7 +662,7 @@ void Cmd_Kill_f (edict_t *ent)
 		G_FreeEdict(ent->client->owned_sphere);
 		ent->client->owned_sphere = NULL;
 	}
-//ROGUE
+	//ROGUE
 
 	player_die (ent, ent, ent, 100000, vec3_origin);
 }
@@ -1034,3 +1028,4 @@ void ClientCommand (edict_t *ent)
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }
+

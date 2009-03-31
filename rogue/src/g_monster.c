@@ -120,13 +120,13 @@ void monster_fire_bfg (edict_t *self, vec3_t start, vec3_t aimdir, int damage, i
 // Monster utility functions
 //
 
-void M_FliesOff (edict_t *self)
+static void M_FliesOff (edict_t *self)
 {
 	self->s.effects &= ~EF_FLIES;
 	self->s.sound = 0;
 }
 
-void M_FliesOn (edict_t *self)
+static void M_FliesOn (edict_t *self)
 {
 	if (self->waterlevel)
 		return;
@@ -211,10 +211,6 @@ void M_CheckGround (edict_t *ent)
 	}
 #endif
 
-//	ent->groundentity = trace.ent;
-//	ent->groundentity_linkcount = trace.ent->linkcount;
-//	if (!trace.startsolid && !trace.allsolid)
-//		VectorCopy (trace.endpos, ent->s.origin);
 	if (!trace.startsolid && !trace.allsolid)
 	{
 		VectorCopy (trace.endpos, ent->s.origin);
@@ -230,9 +226,9 @@ void M_CatagorizePosition (edict_t *ent)
 	vec3_t		point;
 	int			cont;
 
-//
-// get waterlevel
-//
+	//
+	// get waterlevel
+	//
 	point[0] = ent->s.origin[0];
 	point[1] = ent->s.origin[1];
 	point[2] = ent->s.origin[2] + ent->mins[2] + 1;	
@@ -446,54 +442,6 @@ void M_SetEffects (edict_t *ent)
 	}
 	else
 		ent->s.effects &= ~EF_PENT;
-
-	// PMM
-	// PMM - testing
-//	ent->s.effects |= EF_COLOR_SHELL;
-//	ent->s.renderfx |= RF_SHELL_HALF_DAM;
-/*
-	if (fmod (level.time, 4.0) > 2.0)
-	{
-		gi.dprintf ("invulnerable ");
-		ent->s.renderfx |= RF_SHELL_RED;
-	}
-	else
-		ent->s.renderfx &= ~RF_SHELL_RED;
-
-	if (fmod (level.time, 8.0) > 4.0)
-	{
-		gi.dprintf ("shield ");
-		ent->s.renderfx |= RF_SHELL_GREEN;
-	}
-	else
-		ent->s.renderfx &= ~RF_SHELL_GREEN;
-
-	if (fmod (level.time, 16.0) > 8.0)
-	{
-		gi.dprintf ("quad ");
-		ent->s.renderfx |= RF_SHELL_BLUE;\
-	}
-	else
-		ent->s.renderfx &= ~RF_SHELL_BLUE;
-
-	if (fmod (level.time, 32.0) > 16.0)
-	{
-		gi.dprintf ("double ");
-		ent->s.renderfx |= RF_SHELL_DOUBLE;
-	}
-	else
-		ent->s.renderfx &= ~RF_SHELL_DOUBLE;
-
-	if (fmod (level.time, 64.0) > 32.0)
-	{
-		gi.dprintf ("half ");
-		ent->s.renderfx |= RF_SHELL_HALF_DAM;
-	}
-	else
-		ent->s.renderfx &= ~RF_SHELL_HALF_DAM;
-
-	gi.dprintf ("\n");
-*/
 }
 
 
@@ -546,10 +494,12 @@ void M_MoveFrame (edict_t *self)
 	index = self->s.frame - move->firstframe;
 
 	if (move->frame[index].aifunc)
+	{
 		if (!(self->monsterinfo.aiflags & AI_HOLD_FRAME))
 			move->frame[index].aifunc (self, move->frame[index].dist * self->monsterinfo.scale);
 		else
 			move->frame[index].aifunc (self, 0);
+	}
 
 	if (move->frame[index].thinkfunc)
 		move->frame[index].thinkfunc (self);
@@ -688,7 +638,6 @@ qboolean monster_start (edict_t *self)
 	{
 		self->spawnflags &= ~4;
 		self->spawnflags |= 1;
-//		gi.dprintf("fixed spawnflags on %s at %s\n", self->classname, vtos(self->s.origin));
 	}
 
 	if ((!(self->monsterinfo.aiflags & AI_GOOD_GUY)) && (!(self->monsterinfo.aiflags & AI_DO_NOT_COUNT)))
@@ -951,12 +900,8 @@ void stationarymonster_start_go (edict_t *self)
 {
 // PGM - only turrets use this, so remove the error message. They're supposed to be in solid.
 
-//	if (!M_walkmove (self, 0, 0))
-//		gi.dprintf ("%s in solid at %s\n", self->classname, vtos(self->s.origin));
-	
 	if (!self->yaw_speed)
 		self->yaw_speed = 20;
-//	self->viewheight = 25;
 
 	monster_start_go (self);
 
@@ -977,3 +922,4 @@ void monster_done_dodge (edict_t *self)
 	self->monsterinfo.aiflags &= ~AI_DODGING;
 }
 //ROGUE
+

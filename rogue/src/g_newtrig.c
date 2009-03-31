@@ -36,7 +36,7 @@ void trigger_teleport_touch(edict_t *self, edict_t *other, cplane_t *plane, csur
 	edict_t *dest;
 	int		i;
 
-	if(/*(self->spawnflags & TELEPORT_PLAYER_ONLY) &&*/ !(other->client))
+	if(!(other->client))
 		return;
 
 	if(self->delay)
@@ -69,7 +69,6 @@ void trigger_teleport_touch(edict_t *self, edict_t *other, cplane_t *plane, csur
 		other->client->ps.pmove.pm_flags |= PMF_TIME_TELEPORT;
 
 		// draw the teleport splash at source and on the player
-//		self->s.event = EV_PLAYER_TELEPORT;
 		other->s.event = EV_PLAYER_TELEPORT;
 
 		// set angles
@@ -115,7 +114,6 @@ void SP_trigger_teleport(edict_t *self)
 
 	self->solid = SOLID_TRIGGER;
 	self->movetype = MOVETYPE_NONE;
-//	self->flags |= FL_NOCLIENT;
 
 	if (!VectorCompare(self->s.angles, vec3_origin))
 		G_SetMovedir (self->s.angles, self->movedir);
@@ -174,3 +172,4 @@ void SP_trigger_disguise (edict_t *self)
 	gi.linkentity(self);
 
 }
+

@@ -31,7 +31,6 @@ void fd_secret_use (edict_t *self, edict_t *other, edict_t *activator)
 {
 	edict_t *ent;
 
-//	gi.dprintf("fd_secret_use\n");
 	if (self->flags & FL_TEAMSLAVE)
 		return;
 
@@ -43,7 +42,6 @@ void fd_secret_use (edict_t *self, edict_t *other, edict_t *activator)
 
 void fd_secret_killed (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point)
 {
-//	gi.dprintf("fd_secret_killed\n");
 	self->health = self->max_health;
 	self->takedamage = DAMAGE_NO;
 
@@ -56,7 +54,6 @@ void fd_secret_killed (edict_t *self, edict_t *inflictor, edict_t *attacker, int
 // Wait after first movement...
 void fd_secret_move1(edict_t *self) 
 {
-//	gi.dprintf("fd_secret_move1\n");
 	self->nextthink = level.time + 1.0;
 	self->think = fd_secret_move2;
 }
@@ -64,14 +61,12 @@ void fd_secret_move1(edict_t *self)
 // Start moving sideways w/sound...
 void fd_secret_move2(edict_t *self)
 {
-//	gi.dprintf("fd_secret_move2\n");
 	Move_Calc(self, self->moveinfo.end_origin, fd_secret_move3);
 }
 
 // Wait here until time to go back...
 void fd_secret_move3(edict_t *self)
 {
-//	gi.dprintf("fd_secret_move3\n");
 	if (!(self->spawnflags & SEC_OPEN_ONCE))
 	{
 		self->nextthink = level.time + self->wait;
@@ -82,27 +77,23 @@ void fd_secret_move3(edict_t *self)
 // Move backward...
 void fd_secret_move4(edict_t *self)
 {
-//	gi.dprintf("fd_secret_move4\n");
 	Move_Calc(self, self->moveinfo.start_origin, fd_secret_move5);          
 }
 
 // Wait 1 second...
 void fd_secret_move5(edict_t *self)
 {
-//	gi.dprintf("fd_secret_move5\n");
 	self->nextthink = level.time + 1.0;
 	self->think = fd_secret_move6;
 }
 
 void fd_secret_move6(edict_t *self)
 {
-//	gi.dprintf("fd_secret_move6\n");
 	Move_Calc(self, self->move_origin, fd_secret_done);
 }
 
 void fd_secret_done(edict_t *self)
 {
-//	gi.dprintf("fd_secret_done\n");
 	if (!self->targetname || self->spawnflags & SEC_YES_SHOOT)
 	{
 		self->health = 1;
@@ -115,11 +106,6 @@ void secret_blocked(edict_t *self, edict_t *other)
 {
 	if (!(self->flags & FL_TEAMSLAVE))
 		T_Damage (other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 0, 0, MOD_CRUSH);
-
-//	if (time < self->attack_finished)
-//		return;
-//	self->attack_finished = time + 0.5;
-//	T_Damage (other, self, self, self->dmg);
 }
 
 /*
@@ -145,8 +131,6 @@ void secret_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *su
 	if (self->message)
 	{
 		gi.centerprintf (other, self->message);
-//		fixme - put this sound back??
-//		gi.sound (other, CHAN_BODY, "misc/talk.wav", 1, ATTN_NORM);
 	}
 }
 
@@ -172,7 +156,7 @@ dmg  = damage to inflict when blocked (2 default)
 void SP_func_door_secret2 (edict_t *ent)
 {
 	vec3_t	forward,right,up;
-	float	lrSize, fbSize;
+	float	lrSize = 0, fbSize = 0;
 
 	ent->moveinfo.sound_start = gi.soundindex  ("doors/dr1_strt.wav");
 	ent->moveinfo.sound_middle = gi.soundindex  ("doors/dr1_mid.wav");
@@ -345,3 +329,4 @@ void SP_func_force_wall(edict_t *ent)
 	
 	gi.linkentity(ent);
 }
+
