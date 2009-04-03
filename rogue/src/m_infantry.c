@@ -466,21 +466,21 @@ void infantry_fire_prep (edict_t *self)
 
 mframe_t infantry_frames_attack1 [] =
 {
-	{ai_charge, 4,  NULL},
-	{ai_charge, -1, NULL},
-	{ai_charge, -1, NULL},
-	{ai_charge, 0,  infantry_cock_gun},
-	{ai_charge, -1, NULL},
-	{ai_charge, 1,  NULL},
-	{ai_charge, 1,  NULL},
-	{ai_charge, 2,  NULL},
-	{ai_charge, -2, NULL},
-	{ai_charge, -3, NULL},
-	{ai_charge, 1,  infantry_fire},
-	{ai_charge, 5,  NULL},
-	{ai_charge, -1, NULL},
-	{ai_charge, -2, NULL},
-	{ai_charge, -3, NULL}
+	{ai_charge, -3, NULL},					//101
+	{ai_charge, -2, NULL},					//102
+	{ai_charge, -1, infantry_fire_prep},	//103
+	{ai_charge, 5,  infantry_fire},		//104
+	{ai_charge, 1,  NULL},					//105
+	{ai_charge, -3, NULL},					//106
+	{ai_charge, -2, NULL},					//107
+	{ai_charge, 2,  infantry_cock_gun},		//108
+	{ai_charge, 1,  NULL},					//109
+	{ai_charge, 1,  NULL},					//110
+	{ai_charge, -1, NULL},					//111
+	{ai_charge, 0,  NULL},					//112
+	{ai_charge, -1, NULL},					//113
+	{ai_charge, -1, NULL},					//114
+	{ai_charge, 4,  NULL}						//115
 };
 mmove_t infantry_move_attack1 = {FRAME_attak101, FRAME_attak115, infantry_frames_attack1, infantry_run};
 
