@@ -162,25 +162,38 @@ void M_CheckGround (edict_t *ent)
 	if (ent->flags & (FL_SWIM|FL_FLY))
 		return;
 
-	if (ent->velocity[2] > 100)
+	if ((ent->velocity[2] * ent->gravityVector[2]) < -100)		// PGM
 	{
 		ent->groundentity = NULL;
 		return;
 	}
 
-// if the hull point one-quarter unit down is solid the entity is on ground
+	// if the hull point one-quarter unit down is solid the entity is on ground
 	point[0] = ent->s.origin[0];
 	point[1] = ent->s.origin[1];
-	point[2] = ent->s.origin[2] - 0.25;
+	point[2] = ent->s.origin[2] + (0.25 * ent->gravityVector[2]);	//PGM
 
 	trace = gi.trace (ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_MONSTERSOLID);
 
 	// check steepness
-	if ( trace.plane.normal[2] < 0.7 && !trace.startsolid)
+	//PGM
+	if ( ent->gravityVector[2] < 0)		// normal gravity
 	{
-		ent->groundentity = NULL;
-		return;
+		if ( trace.plane.normal[2] < 0.7 && !trace.startsolid)
+		{
+			ent->groundentity = NULL;
+			return;
+		}
 	}
+	else								// inverted gravity
+	{
+		if ( trace.plane.normal[2] > -0.7 && !trace.startsolid)
+		{
+			ent->groundentity = NULL;
+			return;
+		}
+	}
+//PGM
 
 	if (!trace.startsolid && !trace.allsolid)
 	{
@@ -324,9 +337,19 @@ void M_droptofloor (edict_t *ent)
 	vec3_t		end;
 	trace_t		trace;
 
-	ent->s.origin[2] += 1;
-	VectorCopy (ent->s.origin, end);
-	end[2] -= 256;
+	//PGM
+	if(ent->gravityVector[2] < 0)
+	{
+		ent->s.origin[2] += 1;
+		VectorCopy (ent->s.origin, end);
+		end[2] -= 256;
+	}
+	else
+	{
+		ent->s.origin[2] -= 1;
+		VectorCopy (ent->s.origin, end);
+		end[2] += 256;
+	}
 
 	trace = gi.trace (ent->s.origin, ent->mins, ent->maxs, end, ent, MASK_MONSTERSOLID);
 

@@ -525,6 +525,12 @@ void G_InitEdict (edict_t *e)
 	e->classname = "noclass";
 	e->gravity = 1.0;
 	e->s.number = e - g_edicts;
+
+	//PGM - do this before calling the spawn function so it can be overridden.
+	e->gravityVector[0] =  0.0;
+	e->gravityVector[1] =  0.0;
+	e->gravityVector[2] = -1.0;
+	//PGM
 }
 
 /*

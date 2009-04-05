@@ -1371,8 +1371,6 @@ struct edict_s
 
 //=============
 //ROGUE
-#define ROGUE_GRAVITY	1
-
 #define SPHERE_DEFENDER			0x0001
 #define SPHERE_HUNTER			0x0002
 #define SPHERE_VENGEANCE		0x0004

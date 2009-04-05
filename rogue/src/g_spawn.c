@@ -347,6 +347,12 @@ void ED_CallSpawn (edict_t *ent)
 		return;
 	}
 
+	//PGM - do this before calling the spawn function so it can be overridden.
+	ent->gravityVector[0] =  0.0;
+	ent->gravityVector[1] =  0.0;
+	ent->gravityVector[2] = -1.0;
+	//PGM
+
 	// FIXME - PMM classnames hack
 	if (!strcmp(ent->classname, "weapon_nailgun"))
 		ent->classname = (FindItem("ETF Rifle"))->classname;
@@ -757,6 +763,11 @@ void SpawnEntities (const char *mapname, char *entities, const char *spawnpoint)
 			ent->spawnflags &= ~(SPAWNFLAG_NOT_EASY|SPAWNFLAG_NOT_MEDIUM|SPAWNFLAG_NOT_HARD|SPAWNFLAG_NOT_COOP|SPAWNFLAG_NOT_DEATHMATCH);
 		}
 
+		//PGM - do this before calling the spawn function so it can be overridden.
+		ent->gravityVector[0] =  0.0;
+		ent->gravityVector[1] =  0.0;
+		ent->gravityVector[2] = -1.0;
+		//PGM
 		ED_CallSpawn (ent);
 
 		ent->s.renderfx |= RF_IR_VISIBLE;		//PGM
@@ -1343,7 +1354,12 @@ qboolean CheckGroundSpawnPoint (vec3_t origin, vec3_t entMins, vec3_t entMaxs, f
 
 
 		// first, do the easy flat check
-		start[2] = mins[2] - 1;
+		//
+		// FIXME - this will only handle 0,0,1 and 0,0,-1 gravity vectors
+		if(gravity > 0)
+			start[2] = maxs[2] + 1;
+		else
+			start[2] = mins[2] - 1;
 		for	(x=0 ; x<=1 ; x++)
 		{
 			for	(y=0 ; y<=1 ; y++)
@@ -1372,8 +1388,18 @@ realcheck:
 			return false;
 		mid = bottom = tr.endpos[2];
 
-		stop[2] = start[2] - 2*STEPSIZE;
-		mid = bottom = tr.endpos[2] + entMins[2];
+		if(gravity < 0)
+		{
+			start[2] = mins[2];
+			stop[2] = start[2] - STEPSIZE - STEPSIZE;
+			mid = bottom = tr.endpos[2] + entMins[2];
+		}
+		else
+		{
+			start[2] = maxs[2];
+			stop[2] = start[2] + STEPSIZE + STEPSIZE;
+			mid = bottom = tr.endpos[2] - entMaxs[2];
+		}
 
 		for	(x=0 ; x<=1 ; x++)
 			for	(y=0 ; y<=1 ; y++)
@@ -1381,22 +1407,28 @@ realcheck:
 				start[0] = stop[0] = x ? maxs[0] : mins[0];
 				start[1] = stop[1] = y ? maxs[1] : mins[1];
 				
-				/*
-				gi.WriteByte (svc_temp_entity);
-				gi.WriteByte (TE_DEBUGTRAIL);
-				gi.WritePosition (start);
-				gi.WritePosition (stop);
-				gi.multicast (start, MULTICAST_ALL);	
-				*/
 				tr = gi.trace (start, vec3_origin, vec3_origin, stop, NULL, MASK_MONSTERSOLID);
 
 				//PGM
-				if (tr.fraction != 1.0 && tr.endpos[2] > bottom)
-					bottom = tr.endpos[2];
-				if (tr.fraction == 1.0 || mid - tr.endpos[2] > STEPSIZE)
+				// FIXME - this will only handle 0,0,1 and 0,0,-1 gravity vectors
+				if(gravity > 0)
+				{
+					if (tr.fraction != 1.0 && tr.endpos[2] < bottom)
+						bottom = tr.endpos[2];
+					if (tr.fraction == 1.0 || tr.endpos[2] - mid > STEPSIZE)
 					{
 						return false;
 					}
+				}
+				else
+				{
+					if (tr.fraction != 1.0 && tr.endpos[2] > bottom)
+						bottom = tr.endpos[2];
+					if (tr.fraction == 1.0 || mid - tr.endpos[2] > STEPSIZE)
+					{
+						return false;
+					}
+				}
 			}
 
 		return true;		// we can land on it, it's ok

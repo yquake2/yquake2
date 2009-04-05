@@ -34,7 +34,10 @@ qboolean M_CheckBottom (edict_t *ent)
 	// the corners must be within 16 of the midpoint
 
 	//PGM
+	// FIXME - this will only handle 0,0,1 and 0,0,-1 gravity vectors
 	start[2] = mins[2] - 1;
+	if(ent->gravityVector[2] > 0)
+		start[2] = maxs[2] + 1;
 	//PGM
 
 	for	(x=0 ; x<=1 ; x++)
@@ -61,7 +64,16 @@ realcheck:
 	start[1] = stop[1] = (mins[1] + maxs[1])*0.5;
 
 	//PGM
-	stop[2] = start[2] - 2*STEPSIZE;
+	if(ent->gravityVector[2] < 0)
+	{
+		start[2] = mins[2];
+		stop[2] = start[2] - STEPSIZE - STEPSIZE;
+	}
+	else
+	{
+		start[2] = maxs[2];
+		stop[2] = start[2] + STEPSIZE + STEPSIZE;
+	}
 	//PGM
 
 	trace = gi.trace (start, vec3_origin, vec3_origin, stop, ent, MASK_MONSTERSOLID);
@@ -80,10 +92,21 @@ realcheck:
 			trace = gi.trace (start, vec3_origin, vec3_origin, stop, ent, MASK_MONSTERSOLID);
 
 			//PGM
-			if (trace.fraction != 1.0 && trace.endpos[2] > bottom)
-				bottom = trace.endpos[2];
-			if (trace.fraction == 1.0 || mid - trace.endpos[2] > STEPSIZE)
-				return false;
+			// FIXME - this will only handle 0,0,1 and 0,0,-1 gravity vectors
+			if(ent->gravityVector[2] > 0)
+			{
+				if (trace.fraction != 1.0 && trace.endpos[2] < bottom)
+					bottom = trace.endpos[2];
+				if (trace.fraction == 1.0 || trace.endpos[2] - mid > STEPSIZE)
+					return false;
+			}
+			else
+			{
+				if (trace.fraction != 1.0 && trace.endpos[2] > bottom)
+					bottom = trace.endpos[2];
+				if (trace.fraction == 1.0 || mid - trace.endpos[2] > STEPSIZE)
+					return false;
+			}
 			//PGM
 		}
 
@@ -291,9 +314,9 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 		stepsize = 1;
 
 	//PGM
-	neworg[2] += stepsize;
-	VectorCopy (neworg, end);
-	end[2] -= stepsize*2;
+	// trace from 1 stepsize gravityUp to 2 stepsize gravityDown.
+	VectorMA(neworg, -1 * stepsize, ent->gravityVector, neworg);
+	VectorMA(neworg, 2 * stepsize, ent->gravityVector, end);
 	//PGM
 
 	trace = gi.trace (neworg, ent->mins, ent->maxs, end, ent, MASK_MONSTERSOLID);
@@ -316,7 +339,10 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 		//PGM
 		test[0] = trace.endpos[0];
 		test[1] = trace.endpos[1];
-		test[2] = trace.endpos[2] + ent->mins[2] + 1;	
+		if(ent->gravityVector[2] > 0)
+			test[2] = trace.endpos[2] + ent->maxs[2] - 1;	
+		else
+			test[2] = trace.endpos[2] + ent->mins[2] + 1;
 		//PGM
 
 		contents = gi.pointcontents(test);
