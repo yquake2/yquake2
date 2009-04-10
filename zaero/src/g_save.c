@@ -1,13 +1,8 @@
-
 #include "g_local.h"
 
-#if defined(_DEBUG) && defined(_Z_TESTMODE)
+#define Function(f) {#f, f}
 
-void InitTestWeapon(void);
-void InitTestItem(void);
-
-#endif
-
+mmove_t mmove_reloc;
 
 field_t fields[] = {
 	{"classname", FOFS(classname), F_LSTRING},
@@ -70,83 +65,33 @@ field_t fields[] = {
 	{"maxyaw", STOFS(maxyaw), F_FLOAT, FFL_SPAWNTEMP},
 	{"minpitch", STOFS(minpitch), F_FLOAT, FFL_SPAWNTEMP},
 	{"maxpitch", STOFS(maxpitch), F_FLOAT, FFL_SPAWNTEMP},
-	{"nextmap", STOFS(nextmap), F_LSTRING, FFL_SPAWNTEMP}
-};
-
-// -------- just for savegames ----------
-// all pointer fields should be listed here, or savegames
-// won't work properly (they will crash and burn).
-// this wasn't just tacked on to the fields array, because
-// these don't need names, we wouldn't want map fields using
-// some of these, and if one were accidentally present twice
-// it would double swizzle (fuck) the pointer.
-
-field_t		savefields[] =
-{
-	{"", FOFS(classname), F_LSTRING},
-	{"", FOFS(target), F_LSTRING},
-	{"", FOFS(targetname), F_LSTRING},
-	{"", FOFS(killtarget), F_LSTRING},
-	{"", FOFS(team), F_LSTRING},
-	{"", FOFS(pathtarget), F_LSTRING},
-	{"", FOFS(deathtarget), F_LSTRING},
-	{"", FOFS(combattarget), F_LSTRING},
-	{"", FOFS(model), F_LSTRING},
-	{"", FOFS(model2), F_LSTRING},
-	{"", FOFS(model3), F_LSTRING},
-	{"", FOFS(model4), F_LSTRING},
-	{"", FOFS(map), F_LSTRING},
-	{"", FOFS(message), F_LSTRING},
-
-	{"", FOFS(client), F_CLIENT},
-	{"", FOFS(item), F_ITEM},
-
-	{"", FOFS(goalentity), F_EDICT},
-	{"", FOFS(movetarget), F_EDICT},
-	{"", FOFS(enemy), F_EDICT},
-	{"", FOFS(oldenemy), F_EDICT},
-	{"", FOFS(activator), F_EDICT},
-	{"", FOFS(groundentity), F_EDICT},
-	{"", FOFS(teamchain), F_EDICT},
-	{"", FOFS(teammaster), F_EDICT},
-	{"", FOFS(owner), F_EDICT},
-	{"", FOFS(mynoise), F_EDICT},
-	{"", FOFS(mynoise2), F_EDICT},
-	{"", FOFS(target_ent), F_EDICT},
-	{"", FOFS(chain), F_EDICT},
+	{"nextmap", STOFS(nextmap), F_LSTRING, FFL_SPAWNTEMP},
 	
-	// evolve
-	{"", FOFS(laser), F_EDICT},
-	{"", FOFS(zRaduisList), F_EDICT},
-	{"", FOFS(zSchoolChain), F_EDICT},
-	{"", FOFS(rideWith[0]), F_EDICT},
-	{"", FOFS(rideWith[1]), F_EDICT},
-	{"", FOFS(mteam), F_LSTRING},
-	{NULL, 0, F_INT}
+	{0, 0, 0, 0}
 };
 
 field_t		levelfields[] =
 {
-	{"", LLOFS(changemap), F_LSTRING},
-
-	{"", LLOFS(sight_client), F_EDICT},
-	{"", LLOFS(sight_entity), F_EDICT},
-	{"", LLOFS(sound_entity), F_EDICT},
-	{"", LLOFS(sound2_entity), F_EDICT},
+	{"changemap", LLOFS(changemap), F_LSTRING},
+                   
+	{"sight_client", LLOFS(sight_client), F_EDICT},
+	{"sight_entity", LLOFS(sight_entity), F_EDICT},
+	{"sound_entity", LLOFS(sound_entity), F_EDICT},
+	{"sound2_entity", LLOFS(sound2_entity), F_EDICT},
 
 	{NULL, 0, F_INT}
 };
 
 field_t		clientfields[] =
 {
-	{"", CLOFS(pers.weapon), F_ITEM},
-	{"", CLOFS(pers.lastweapon), F_ITEM},
-	{"", CLOFS(pers.lastweapon2), F_ITEM},
-	{"", CLOFS(newweapon), F_ITEM},
+	{"pers.weapon", CLOFS(pers.weapon), F_ITEM},
+	{"pers.lastweapon", CLOFS(pers.lastweapon), F_ITEM},
+	{"pers.lastweapon2", CLOFS(pers.lastweapon2), F_ITEM},
+	{"newweapon", CLOFS(newweapon), F_ITEM},
 
 	// evolve
-	{"", CLOFS(zCameraTrack), F_EDICT},
-	{"", CLOFS(zCameraLocalEntity), F_EDICT},
+	{"zCameraTrack", CLOFS(zCameraTrack), F_EDICT},
+	{"zCameraLocalEntitiy", CLOFS(zCameraLocalEntity), F_EDICT},
 
 	{NULL, 0, F_INT}
 };
@@ -204,22 +149,9 @@ void InitGame (void)
 	bob_roll = gi.cvar ("bob_roll", "0.002", 0);
 
 	gamedir = gi.cvar ("gamedir", "baseq2", CVAR_SERVERINFO);
-#ifdef CACHE_SOUND
-	printSoundRejects = gi.cvar("printsoundrejects", "0", CVAR_SERVERINFO);
-#endif
 
 	// items
 	InitItems ();
-
-#if defined(_DEBUG) && defined(_Z_TESTMODE)
-
-	gi.dprintf ("==== InitTestWeapon ====\n");
-	InitTestWeapon();
-
-	gi.dprintf ("==== InitTestItem ====\n");
-	InitTestItem();
-
-#endif
 
 	Com_sprintf (game.helpmessage1, sizeof(game.helpmessage1), "");
 
@@ -247,6 +179,9 @@ void WriteField1 (FILE *f, field_t *field, byte *base)
 	void		*p;
 	int			len;
 	int			index;
+
+	if (field->flags & FFL_SPAWNTEMP)
+		return;
 
 	p = (void *)(base + field->ofs);
 	switch (field->type)
@@ -288,15 +223,37 @@ void WriteField1 (FILE *f, field_t *field, byte *base)
 		*(int *)p = index;
 		break;
 
+	//relative to code segment
+	case F_FUNCTION:
+		if (*(byte **)p == NULL)
+			index = 0;
+		else
+			index = *(byte **)p - ((byte *)InitGame);
+		*(int *)p = index;
+		break;
+
+	//relative to data segment
+	case F_MMOVE:
+		if (*(byte **)p == NULL)
+			index = 0;
+		else
+			index = *(byte **)p - (byte *)&mmove_reloc;
+		*(int *)p = index;
+		break;
+
 	default:
 		gi.error ("WriteEdict: unknown field type");
 	}
 }
 
+
 void WriteField2 (FILE *f, field_t *field, byte *base)
 {
 	int			len;
 	void		*p;
+
+	if (field->flags & FFL_SPAWNTEMP)
+		return;
 
 	p = (void *)(base + field->ofs);
 	switch (field->type)
@@ -309,6 +266,8 @@ void WriteField2 (FILE *f, field_t *field, byte *base)
 			fwrite (*(char **)p, len, 1, f);
 		}
 		break;
+	default:
+		break;
 	}
 }
 
@@ -317,6 +276,9 @@ void ReadField (FILE *f, field_t *field, byte *base)
 	void		*p;
 	int			len;
 	int			index;
+
+	if (field->flags & FFL_SPAWNTEMP)
+		return;
 
 	p = (void *)(base + field->ofs);
 	switch (field->type)
@@ -334,17 +296,11 @@ void ReadField (FILE *f, field_t *field, byte *base)
 			*(char **)p = NULL;
 		else
 		{
-			*(char **)p = gi.TagMalloc (len, TAG_LEVEL);
-			fread (*(char **)p, len, 1, f);
-		}
-		break;
-	case F_GSTRING:
-		len = *(int *)p;
-		if (!len)
-			*(char **)p = NULL;
-		else
-		{
-			*(char **)p = gi.TagMalloc (len, TAG_GAME);
+			/* 
+			  SBF: FIXME - 32 extra bytes alloc'd since the saved 
+			  string might not be long enough
+			 */
+			*(char **)p = gi.TagMalloc (32+len, TAG_LEVEL);
 			fread (*(char **)p, len, 1, f);
 		}
 		break;
@@ -368,6 +324,24 @@ void ReadField (FILE *f, field_t *field, byte *base)
 			*(gitem_t **)p = NULL;
 		else
 			*(gitem_t **)p = &itemlist[index];
+		break;
+
+	//relative to code segment
+	case F_FUNCTION:
+		index = *(int *)p;
+		if ( index == 0 )
+			*(byte **)p = NULL;
+		else
+			*(byte **)p = ((byte *)InitGame) + index;
+		break;
+
+	//relative to data segment
+	case F_MMOVE:
+		index = *(int *)p;
+		if (index == 0)
+			*(byte **)p = NULL;
+		else
+			*(byte **)p = (byte *)&mmove_reloc + index;
 		break;
 
 	default:
@@ -441,7 +415,7 @@ A single player death will automatically restore from the
 last save position.
 ============
 */
-void WriteGame (char *filename, qboolean autosave)
+void WriteGame (const char *filename, qboolean autosave)
 {
 	FILE	*f;
 	int		i;
@@ -468,16 +442,14 @@ void WriteGame (char *filename, qboolean autosave)
 	fclose (f);
 }
 
-void ReadGame (char *filename)
+void ReadGame (const char *filename)
 {
 	FILE	*f;
 	int		i;
 	char	str[16];
 
 	gi.FreeTags (TAG_GAME);
-#ifdef CACHE_SOUND
-	initSoundList();
-#endif
+
 	f = fopen (filename, "rb");
 	if (!f)
 		gi.error ("Couldn't open %s", filename);
@@ -503,7 +475,6 @@ void ReadGame (char *filename)
 //==========================================================
 
 
-
 /*
 ==============
 WriteEdict
@@ -516,15 +487,11 @@ void WriteEdict (FILE *f, edict_t *ent)
 	field_t		*field;
 	edict_t		temp;
 
-	if (Q_stricmp(ent->classname, "misc_viper") == 0)
-	{
-		temp = *ent;
-	}
 	// all of the ints, floats, and vectors stay as they are
 	temp = *ent;
 
 	// change the pointers to lengths or indexes
-	for (field=savefields ; field->name ; field++)
+	for (field=fields ; field->name ; field++)
 	{
 		WriteField1 (f, field, (byte *)&temp);
 	}
@@ -533,7 +500,7 @@ void WriteEdict (FILE *f, edict_t *ent)
 	fwrite (&temp, sizeof(temp), 1, f);
 
 	// now write any allocated data following the edict
-	for (field=savefields ; field->name ; field++)
+	for (field=fields ; field->name ; field++)
 	{
 		WriteField2 (f, field, (byte *)ent);
 	}
@@ -570,7 +537,6 @@ void WriteLevelLocals (FILE *f)
 	}
 }
 
-
 /*
 ==============
 ReadEdict
@@ -584,7 +550,7 @@ void ReadEdict (FILE *f, edict_t *ent)
 
 	fread (ent, sizeof(*ent), 1, f);
 
-	for (field=savefields ; field->name ; field++)
+	for (field=fields ; field->name ; field++)
 	{
 		ReadField (f, field, (byte *)ent);
 	}
@@ -609,17 +575,13 @@ void ReadLevelLocals (FILE *f)
 	}
 }
 
-//==========================================================
-
-
-
 /*
 =================
 WriteLevel
 
 =================
 */
-void WriteLevel (char *filename)
+void WriteLevel (const char *filename)
 {
 	int		i;
 	edict_t	*ent;
@@ -654,8 +616,6 @@ void WriteLevel (char *filename)
 	fwrite (&i, sizeof(i), 1, f);
 
 	fclose (f);
-
-  // write out zaero between level 
 }
 
 
@@ -663,7 +623,7 @@ void WriteLevel (char *filename)
 =================
 ReadLevel
 
-SpawnEntities will already have been called on the
+SpawnEntities will allready have been called on the
 level the same way it was when the level was saved.
 
 That is necessary to get the baselines
@@ -675,7 +635,7 @@ calling ReadLevel.
 No clients are connected yet.
 =================
 */
-void ReadLevel (char *filename)
+void ReadLevel (const char *filename)
 {
 	int		entnum;
 	FILE	*f;
@@ -690,9 +650,7 @@ void ReadLevel (char *filename)
 	// free any dynamic memory allocated by loading the level
 	// base state
 	gi.FreeTags (TAG_LEVEL);
-#ifdef CACHE_SOUND
-	initSoundList();
-#endif
+
 	// wipe all the entities
 	memset (g_edicts, 0, game.maxentities*sizeof(g_edicts[0]));
 	globals.num_edicts = maxclients->value+1;
@@ -707,11 +665,7 @@ void ReadLevel (char *filename)
 
 	// check function pointer base address
 	fread (&base, sizeof(base), 1, f);
-	if (base != (void *)InitGame)
-	{
-		fclose (f);
-		gi.error ("ReadLevel: function pointers have moved");
-	}
+	gi.dprintf("Function offsets %d\n", ((byte *)base) - ((byte *)InitGame));
 
 	// load the level locals
 	ReadLevelLocals (f);
