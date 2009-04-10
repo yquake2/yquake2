@@ -7,7 +7,6 @@
 qboolean	is_quad;
 byte		is_silenced;
 
-
 void playQuadSound(edict_t *ent)
 {
 	if (ent->client->quad_framenum > level.framenum)
@@ -472,13 +471,6 @@ void Weapon_Generic (edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST,
 		{
 			if (ent->client->ps.gunframe == fire_frames[n])
 			{
-#if 0
-				// TODO move to each of weapon firing functions so that the quad
-				// sound is only played when we actually want it to, instead of
-				// every firing frame
-				if (ent->client->quad_framenum > level.framenum)
-					gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage3.wav"), 1, ATTN_NORM, 0);
-#endif
 				fire (ent);
 				break;
 			}
@@ -658,14 +650,14 @@ void weapon_grenadelauncher_fire (edict_t *ent)
 	int		damage;
 	float	radius;
 
-  if(GetItemByIndex(ent->client->ammo_index)->tag == AMMO_GRENADES)
-  {
-    damage = 120;
-  }
-  else
-  {
-    damage = 300;
-  }
+	if(GetItemByIndex(ent->client->ammo_index)->tag == AMMO_GRENADES)
+	{
+		damage = 120;
+	}
+	else
+	{
+		damage = 300;
+	}
 
 	radius = damage+40;
 	if (is_quad)
@@ -738,10 +730,10 @@ void Weapon_RocketLauncher_Fire (edict_t *ent)
 	VectorSet(offset, 8, 8, ent->viewheight-8);
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
 
-  if(EMPNukeCheck(ent, start))
-  {
+	if(EMPNukeCheck(ent, start))
+	{
 		gi.sound (ent, CHAN_AUTO, gi.soundindex("items/empnuke/emp_missfire.wav"), 1, ATTN_NORM, 0);
-  }
+	}
 	else
 	{
 		if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
@@ -1089,8 +1081,8 @@ void Chaingun_Fire (edict_t *ent)
 		ent->client->kick_angles[i] = crandom() * 0.7;
 	}
 
-  if(EMPNukeCheck(ent, ent->s.origin))
-  {
+	if(EMPNukeCheck(ent, ent->s.origin))
+	{
 		gi.sound (ent, CHAN_AUTO, gi.soundindex("items/empnuke/emp_missfire.wav"), 1, ATTN_NORM, 0);
 		return;
 	}
@@ -1108,7 +1100,7 @@ void Chaingun_Fire (edict_t *ent)
 		P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
 
 		fire_bullet (ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_CHAINGUN);
-  }
+	}
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -1299,11 +1291,11 @@ void weapon_railgun_fire (edict_t *ent)
 
 	ent->client->ps.gunframe++;
 
-  if(EMPNukeCheck(ent, start))
-  {
+	if(EMPNukeCheck(ent, start))
+	{
 		gi.sound (ent, CHAN_AUTO, gi.soundindex("items/empnuke/emp_missfire.wav"), 1, ATTN_NORM, 0);
-    return;
-  }
+		return;
+	}
 
 	if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
 		ent->client->pers.inventory[ent->client->ammo_index]--;
@@ -1358,11 +1350,11 @@ void weapon_bfg_fire (edict_t *ent)
 		ent->flags &= ~FL_BFGMISSFIRE;
 	}
 
-  if(!(ent->flags & FL_BFGMISSFIRE) && EMPNukeCheck(ent, start))
-  {
+	if(!(ent->flags & FL_BFGMISSFIRE) && EMPNukeCheck(ent, start))
+	{
 		ent->flags |= FL_BFGMISSFIRE;
 		gi.sound (ent, CHAN_AUTO, gi.soundindex("items/empnuke/emp_missfire.wav"), 1, ATTN_NORM, 0);
-  }
+	}
 
 	if(ent->flags & FL_BFGMISSFIRE)
 	{
@@ -1427,5 +1419,3 @@ void Weapon_BFG (edict_t *ent)
 	Weapon_Generic (ent, 8, 32, 55, 58, pause_frames, fire_frames, weapon_bfg_fire);
 }
 
-
-//======================================================================

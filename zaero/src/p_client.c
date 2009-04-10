@@ -37,7 +37,6 @@ static void SP_FixCoopSpots (edict_t *self)
 		{
 			if ((!self->targetname) || Q_stricmp(self->targetname, spot->targetname) != 0)
 			{
-//				gi.dprintf("FixCoopSpots changed %s at %s targetname from %s to %s\n", self->classname, vtos(self->s.origin), self->targetname, spot->targetname);
 				self->targetname = spot->targetname;
 			}
 			return;
@@ -57,7 +56,7 @@ static void SP_CreateCoopSpots (edict_t *self)
 	{
 		spot = G_Spawn();
 		spot->classname = "info_player_coop";
-    spot->spawnflags2 = 0;
+		spot->spawnflags2 = 0;
 		spot->s.origin[0] = 188 - 64;
 		spot->s.origin[1] = -164;
 		spot->s.origin[2] = 80;
@@ -66,7 +65,7 @@ static void SP_CreateCoopSpots (edict_t *self)
 
 		spot = G_Spawn();
 		spot->classname = "info_player_coop";
-    spot->spawnflags2 = 0;
+		spot->spawnflags2 = 0;
 		spot->s.origin[0] = 188 + 64;
 		spot->s.origin[1] = -164;
 		spot->s.origin[2] = 80;
@@ -75,7 +74,7 @@ static void SP_CreateCoopSpots (edict_t *self)
 
 		spot = G_Spawn();
 		spot->classname = "info_player_coop";
-    spot->spawnflags2 = 0;
+		spot->spawnflags2 = 0;
 		spot->s.origin[0] = 188 + 128;
 		spot->s.origin[1] = -164;
 		spot->s.origin[2] = 80;
@@ -190,32 +189,32 @@ struct monsterObit {
 	char *message;
 } obits[] = 
 {
-	"monster_soldier", "%s was slaughtered by a Shotgun Guard.\n",
-	"monster_soldier_light", "%s was exterminated by a Light Guard.\n",
-	"monster_soldier_ss", "%s was eradicated by a Machinegun Guard.\n",
-	"monster_tank", "%s felt the pain of a Tank.\n",
-	"monster_tank_commander", "%s was annihilated by a Tank Commander.\n",
-	"monster_hound", "%s was leg humped to death by a Hound.\n",
-	"monster_handler", "%s was ravished by an Enforcer.\n",
-	"monster_infantry", "%s was obliterated by an Enforcer.\n",
-	"monster_sentien", "%s was lobotomized by a badass Sentien.\n",
-	"monster_zboss", "%s was killed by a big, bad MOFO.\n",
-	"monster_gunner", "A Gunner went medievil on %s's ass.\n",
-	"monster_berserk", "%s was shattered by a Berserker.  TRESPASSA!\n",
-	"monster_chick", "%s was bitch slapped by an Iron Maiden.\n",
-	"monster_parasite", "%s was sucked by a Parasite.\n",
-	"monster_mutant", "%s was demolished by a Mutant.\n",
-	"monster_flyer", "%s was killed by a Flyer.\n",
-	"monster_hover", "%s was waxed out by an Icarus.\n",
-	"monster_medic", "%s overdosed on Medics\n",
-	"monster_floater", "%s was tweaked by a Technician.\n",
-	"monster_flipper", "%s was killed by a Barracuda Shark.\n",
-	"monster_gladiator", "%s was made into swiss cheese by a Gladiator.\n",
-	"monster_brain", "%s was scanned by a Brain.\n",
-	"monster_supertank", "%s was stomped by a Super Tank.\n",
-	"monster_boss2", "%s was killed by some flying boss thingy.\n",
-	"monster_jorg", "%s was assassinated by a Jorg.\n",
-	NULL, NULL
+	{"monster_soldier", "%s was slaughtered by a Shotgun Guard.\n"},
+	{"monster_soldier_light", "%s was exterminated by a Light Guard.\n"},
+	{"monster_soldier_ss", "%s was eradicated by a Machinegun Guard.\n"},
+	{"monster_tank", "%s felt the pain of a Tank.\n"},
+	{"monster_tank_commander", "%s was annihilated by a Tank Commander.\n"},
+	{"monster_hound", "%s was leg humped to death by a Hound.\n"},
+	{"monster_handler", "%s was ravished by an Enforcer.\n"},
+	{"monster_infantry", "%s was obliterated by an Enforcer.\n"},
+	{"monster_sentien", "%s was lobotomized by a badass Sentien.\n"},
+	{"monster_zboss", "%s was killed by a big, bad MOFO.\n"},
+	{"monster_gunner", "A Gunner went medievil on %s's ass.\n"},
+	{"monster_berserk", "%s was shattered by a Berserker.  TRESPASSA!\n"},
+	{"monster_chick", "%s was bitch slapped by an Iron Maiden.\n"},
+	{"monster_parasite", "%s was sucked by a Parasite.\n"},
+	{"monster_mutant", "%s was demolished by a Mutant.\n"},
+	{"monster_flyer", "%s was killed by a Flyer.\n"},
+	{"monster_hover", "%s was waxed out by an Icarus.\n"},
+	{"monster_medic", "%s overdosed on Medics\n"},
+	{"monster_floater", "%s was tweaked by a Technician.\n"},
+	{"monster_flipper", "%s was killed by a Barracuda Shark.\n"},
+	{"monster_gladiator", "%s was made into swiss cheese by a Gladiator.\n"},
+	{"monster_brain", "%s was scanned by a Brain.\n"},
+	{"monster_supertank", "%s was stomped by a Super Tank.\n"},
+	{"monster_boss2", "%s was killed by some flying boss thingy.\n"},
+	{"monster_jorg", "%s was assassinated by a Jorg.\n"},
+	{NULL, NULL}
 };
 
 void ClientObituary (edict_t *self, edict_t *inflictor, edict_t *attacker)
@@ -478,11 +477,6 @@ void TossClientWeapon (edict_t *self)
 	if (item && (strcmp (item->pickup_name, "Blaster") == 0))
 		item = NULL;
 
-#if defined(_DEBUG) && defined(_Z_TESTMODE)
-	if (item && (strcmp (item->pickup_name, "Line Draw") == 0))
-		item = NULL;
-#endif
-
 	if (!((int)(dmflags->value) & DF_QUAD_DROP))
 		quad = false;
 	else
@@ -575,7 +569,6 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 
 	self->maxs[2] = -8;
 
-//	self->solid = SOLID_NOT;
 	self->svflags |= SVF_DEADMONSTER;
 
 	if (!self->deadflag)
@@ -662,9 +655,6 @@ void InitClientPersistant (gclient_t *client)
 
 	memset (&client->pers, 0, sizeof(client->pers));
 
-#if defined(_DEBUG) && defined(_Z_TESTMODE)
-	client->pers.inventory[ITEM_INDEX(FindItem("Line Draw"))] = 1;
-#endif
 	item = FindItem("Push");
 	client->pers.inventory[ITEM_INDEX(item)] = 1;
 	
@@ -1054,7 +1044,10 @@ void respawn (edict_t *self)
 {
 	if (deathmatch->value || coop->value)
 	{
-		CopyToBodyQue (self);
+		// spectator's don't leave bodies
+		if (self->movetype != MOVETYPE_NOCLIP)
+			CopyToBodyQue (self);
+		self->svflags &= ~SVF_NOCLIENT;
 		PutClientInServer (self);
 
 		// add a teleportation effect
@@ -1086,8 +1079,8 @@ a deathmatch.
 */
 void PutClientInServer (edict_t *ent)
 {
-	  vec3_t	mins = {-16, -16, -24};
-	  vec3_t	maxs = {16, 16, 32};
+	vec3_t	mins = {-16, -16, -24};
+	vec3_t	maxs = {16, 16, 32};
 	int		index;
 	vec3_t	spawn_origin, spawn_angles;
 	gclient_t	*client;
@@ -1177,7 +1170,7 @@ void PutClientInServer (edict_t *ent)
 	ent->waterlevel = 0;
 	ent->watertype = 0;
 	ent->flags &= ~FL_NO_KNOCKBACK;
-	ent->svflags &= ~SVF_DEADMONSTER;
+	ent->svflags = 0;
 
 	VectorCopy (mins, ent->mins);
 	VectorCopy (maxs, ent->maxs);
@@ -1217,7 +1210,9 @@ void PutClientInServer (edict_t *ent)
 
 	// set the delta angle
 	for (i=0 ; i<3 ; i++)
+	{
 		client->ps.pmove.delta_angles[i] = ANGLE2SHORT(spawn_angles[i] - client->resp.cmd_angles[i]);
+	}
 
 	ent->s.angles[PITCH] = 0;
 	ent->s.angles[YAW] = spawn_angles[YAW];
@@ -1358,7 +1353,7 @@ void ClientUserinfoChanged (edict_t *ent, char *userinfo)
 	// set skin
 	s = Info_ValueForKey (userinfo, "skin");
 
-  zCam_SetLocalCopy(ent, s);
+	zCam_SetLocalCopy(ent, s);
 
 	playernum = ent-g_edicts-1;
 
@@ -1440,6 +1435,7 @@ qboolean ClientConnect (edict_t *ent, char *userinfo)
 	if (game.maxclients > 1)
 		gi.dprintf ("%s connected\n", ent->client->pers.netname);
 
+	ent->svflags = 0; // make sure we start with known default
 	ent->client->pers.connected = true;
 	return true;
 }
@@ -1510,15 +1506,6 @@ void PrintPmove (pmove_t *pm)
 	Com_Printf ("sv %3i:%i %i\n", pm->cmd.impulse, c1, c2);
 }
 
-
-#if defined(_DEBUG) && defined(_Z_TESTMODE)
-
-extern edict_t *testItemDroped;
-extern qboolean testitemOriginMove;
-
-#endif
-
-
 /*
 ==============
 ClientThink
@@ -1533,24 +1520,6 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	edict_t	*other;
 	int		i, j;
 	pmove_t	pm;
-
-#if defined(_DEBUG) && defined(_Z_TESTMODE)
-
-  if(testitemOriginMove && testItemDroped)
-  {
-    if(ucmd->forwardmove > 0)
-    {
-      testItemDroped->s.origin[2]++;
-    }
-    else if(ucmd->forwardmove < 0)
-    {
-      testItemDroped->s.origin[2]--;
-    }
-
-    return;
-  }
-
-#endif
 
 	level.current_entity = ent;
 	client = ent->client;
@@ -1597,7 +1566,6 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	if (memcmp(&client->old_pmove, &pm.s, sizeof(pm.s)))
 	{
 		pm.snapinitial = true;
-//		gi.dprintf ("pmove changed!\n");
 	}
 
 	pm.cmd = *ucmd;
@@ -1750,3 +1718,4 @@ void ClientBeginServerFrame (edict_t *ent)
 
 	client->latched_buttons = 0;
 }
+

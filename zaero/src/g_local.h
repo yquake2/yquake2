@@ -23,9 +23,6 @@
 #define Z_MALLOC(size)	gi.TagMalloc(size, TAG_GAME)
 #define Z_FREE(block)	gi.TagFree(block)
 
-// Zaero includes
-#include "z_debug.h"
-
 // the "gamename" client command will print this plus compile date
 #define	GAMEVERSION	"Zaero 1.1"
 
