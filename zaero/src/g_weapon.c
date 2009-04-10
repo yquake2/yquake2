@@ -322,11 +322,6 @@ void blaster_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *
 	if (other == self->owner)
 		return;
 
-//  if(other->owner == self->owner && strcmp(other->classname, "PlasmaShield") == 0)
-//  {
-//    return;
-//  }
-
 	if (surf && (surf->flags & SURF_SKY))
 	{
 		G_FreeEdict (self);
@@ -389,8 +384,6 @@ void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int spee
 		bolt->spawnflags = 1;
 	gi.linkentity (bolt);
 
-//	if (self->client)
-//		check_dodge (self, bolt->s.origin, dir, speed);
 
 	tr = gi.trace (self->s.origin, NULL, NULL, bolt->s.origin, bolt, MASK_SHOT);
 	if (tr.fraction < 1.0)
@@ -467,11 +460,6 @@ static void Grenade_Touch (edict_t *ent, edict_t *other, cplane_t *plane, csurfa
 {
 	if (other == ent->owner)
 		return;
-
-//  if(other->owner == ent->owner && strcmp(other->classname, "PlasmaShield") == 0)
-//  {
-//    return;
-//  }
 
 	if (surf && (surf->flags & SURF_SKY))
 	{
@@ -582,37 +570,6 @@ void fire_grenade2 (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int 
 fire_rocket
 =================
 */
-
-#ifdef _SHANETEST
-
-void animrocket(edict_t *ent)
-{
-  ent->s.frame++;
-
-  if((ent->s.frame % 2) == 0)
-    ent->s.skinnum++;
-
-  if(ent->s.frame > 12)
-  {
-	  gi.WriteByte (svc_temp_entity);
-	  if (ent->waterlevel)
-		  gi.WriteByte (TE_ROCKET_EXPLOSION_WATER);
-	  else
-		  gi.WriteByte (TE_ROCKET_EXPLOSION);
-	  gi.WritePosition (ent->s.origin);
-	  gi.multicast (ent->s.origin, MULTICAST_PHS);
-
-	  G_FreeEdict (ent);
-  }
-  else
-  {
-    ent->nextthink = level.time + FRAMETIME;
-  }
-}
-
-#endif
-
-
 void rocket_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
 	vec3_t		origin;
@@ -620,11 +577,6 @@ void rocket_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *su
 
 	if (other == ent->owner)
 		return;
-
-//  if(other->owner == ent->owner && strcmp(other->classname, "PlasmaShield") == 0)
-//  {
-//    return;
-//  }
 
 	if (surf && (surf->flags & SURF_SKY))
 	{
@@ -658,24 +610,6 @@ void rocket_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *su
 
 	T_RadiusDamage(ent, ent->owner, ent->radius_dmg, other, ent->dmg_radius, MOD_R_SPLASH);
 
-#ifdef _SHANETEST
-
-	VectorClear (ent->velocity);
-	ent->movetype = 0;
-	ent->clipmask = 0;
-	ent->solid = 0;
-	ent->s.effects = 0;
-//  ent->s.renderfx = RF_TRANSLUCENT | RF_FULLBRIGHT;
-  ent->s.renderfx = RF_TRANSLUCENT | RF_FULLBRIGHT;
-	ent->s.modelindex = gi.modelindex ("models/objects/r_explode/tris.md2");
-	ent->touch = NULL;
-  ent->nextthink = level.time + FRAMETIME;
-	ent->think = animrocket;
-	ent->s.sound = 0;
-	VectorCopy (origin, ent->s.origin);
-
-#else
-
 	gi.WriteByte (svc_temp_entity);
 	if (ent->waterlevel)
 		gi.WriteByte (TE_ROCKET_EXPLOSION_WATER);
@@ -685,8 +619,6 @@ void rocket_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *su
 	gi.multicast (ent->s.origin, MULTICAST_PHS);
 
 	G_FreeEdict (ent);
-
-#endif
 }
 
 void fire_rocket (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, float damage_radius, int radius_damage)
@@ -770,7 +702,6 @@ void fire_rail (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick
 	gi.WritePosition (start);
 	gi.WritePosition (tr.endpos);
 	gi.multicast (self->s.origin, MULTICAST_PHS);
-//	gi.multicast (start, MULTICAST_PHS);
 	if (water)
 	{
 		gi.WriteByte (svc_temp_entity);
@@ -840,11 +771,6 @@ void bfg_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf
 {
 	if (other == self->owner)
 		return;
-
-//  if(other->owner == self->owner && strcmp(other->classname, "PlasmaShield") == 0)
-//  {
-//    return;
-//  }
 
 	if (surf && (surf->flags & SURF_SKY))
 	{
@@ -993,3 +919,4 @@ void fire_bfg (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, f
 
 	gi.linkentity (bfg);
 }
+

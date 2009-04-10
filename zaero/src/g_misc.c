@@ -354,11 +354,11 @@ void path_corner_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface
 
 	if (self->wait)
 	{
-    if(other->goalentity)
-    {
-		  VectorSubtract (other->goalentity->s.origin, other->s.origin, v);
-		  other->ideal_yaw = vectoyaw (v);
-    }
+		if(other->goalentity)
+		{
+			VectorSubtract (other->goalentity->s.origin, other->s.origin, v);
+			other->ideal_yaw = vectoyaw (v);
+		}
 
 		other->monsterinfo.pausetime = level.time + self->wait;
 		other->monsterinfo.stand (other);
@@ -465,7 +465,7 @@ void SP_point_combat (edict_t *self)
 	VectorSet (self->maxs, 8, 8, 16);
 	self->svflags = SVF_NOCLIENT;
 	gi.linkentity (self);
-};
+}
 
 
 /*QUAKED viewthing (0 .5 .8) (-8 -8 -8) (8 8 8)
@@ -500,7 +500,7 @@ Used as a positional target for spotlights, etc.
 void SP_info_null (edict_t *self)
 {
 	G_FreeEdict (self);
-};
+}
 
 
 /*QUAKED info_notnull (0 0.5 0) (-4 -4 -4) (4 4 4)
@@ -510,7 +510,7 @@ void SP_info_notnull (edict_t *self)
 {
 	VectorCopy (self->s.origin, self->absmin);
 	VectorCopy (self->s.origin, self->absmax);
-};
+}
 
 
 /*QUAKED light (0 1 0) (-8 -8 -8) (8 8 8) START_OFF
@@ -611,7 +611,6 @@ void SP_func_wall (edict_t *self)
 	// it must be TRIGGER_SPAWN
 	if (!(self->spawnflags & 1))
 	{
-//		gi.dprintf("func_wall missing TRIGGER_SPAWN\n");
 		self->spawnflags |= 1;
 	}
 
@@ -1294,44 +1293,44 @@ void SP_misc_viper (edict_t *ent)
 
 	ent->movetype = MOVETYPE_PUSH;
 
-  if (ent->spawnflags & 2)
+	if (ent->spawnflags & 2)
 	{
-	  ent->solid = SOLID_BBOX;
-  }
-  else
-  {
-	  ent->solid = SOLID_NOT;
-  }
-
-  if(ent->model)
-  {
-	  ent->s.modelindex = gi.modelindex (ent->model);
-  }
-  else
-  {
-	  ent->s.modelindex = gi.modelindex ("models/ships/viper/tris.md2");
-  }
-
-  if(ent->model2)
-  {
-	  ent->s.modelindex2 = gi.modelindex (ent->model2);
-  }
-
-  if(ent->model3)
-  {
-	  ent->s.modelindex3 = gi.modelindex (ent->model3);
-  }
-
-  if(ent->model4)
-  {
-	  ent->s.modelindex4 = gi.modelindex (ent->model4);
-  }
-
-  if (!(ent->spawnflags & 4))
+		ent->solid = SOLID_BBOX;
+	}
+	else
 	{
-	  VectorSet (ent->mins, -16, -16, 0);
-	  VectorSet (ent->maxs, 16, 16, 32);
-  }
+		ent->solid = SOLID_NOT;
+	}
+
+	if(ent->model)
+	{
+		ent->s.modelindex = gi.modelindex (ent->model);
+	}
+	else
+	{
+		ent->s.modelindex = gi.modelindex ("models/ships/viper/tris.md2");
+	}
+
+	if(ent->model2)
+	{
+		ent->s.modelindex2 = gi.modelindex (ent->model2);
+	}
+
+	if(ent->model3)
+	{
+		ent->s.modelindex3 = gi.modelindex (ent->model3);
+	}
+
+	if(ent->model4)
+	{
+		ent->s.modelindex4 = gi.modelindex (ent->model4);
+	}
+
+	if (!(ent->spawnflags & 4))
+	{
+		VectorSet (ent->mins, -16, -16, 0);
+		VectorSet (ent->maxs, 16, 16, 32);
+	}
 
 	ent->think = func_train_find;
 	ent->nextthink = level.time + FRAMETIME;
@@ -1845,7 +1844,9 @@ void teleporter_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_
 
 	// set angles
 	for (i=0 ; i<3 ; i++)
+	{
 		other->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(dest->s.angles[i] - other->client->resp.cmd_angles[i]);
+	}
 
 	VectorClear (other->s.angles);
 	VectorClear (other->client->ps.viewangles);
@@ -1901,7 +1902,6 @@ void SP_misc_teleporter_dest (edict_t *ent)
 	gi.setmodel (ent, "models/objects/dmspot/tris.md2");
 	ent->s.skinnum = 0;
 	ent->solid = SOLID_BBOX;
-//	ent->s.effects |= EF_FLIES;
 	VectorSet (ent->mins, -32, -32, -24);
 	VectorSet (ent->maxs, 32, 32, -16);
 	gi.linkentity (ent);

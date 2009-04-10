@@ -73,7 +73,7 @@ void SP_target_speaker (edict_t *ent)
 	else
 		strncpy (buffer, st.noise, sizeof(buffer));
 	ent->noise_index = gi.soundindex (buffer);
-	
+
 	if (!ent->volume)
 		ent->volume = 1.0;
 
@@ -436,11 +436,11 @@ void use_target_blaster (edict_t *self, edict_t *other, edict_t *activator)
 {
 	int effect;
 
-  if(EMPNukeCheck(self, self->s.origin))
-  {
+	if(EMPNukeCheck(self, self->s.origin))
+	{
 		gi.sound (self, CHAN_AUTO, gi.soundindex("items/empnuke/emp_missfire.wav"), 1, ATTN_NORM, 0);
-    return;
-  }
+		return;
+	}
 
 	if (self->spawnflags & 2)
 		effect = 0;
@@ -832,3 +832,4 @@ void SP_target_earthquake (edict_t *self)
 
 	self->noise_index = gi.soundindex ("world/quake.wav");
 }
+

@@ -68,11 +68,11 @@ void turret_breach_fire (edict_t *self)
 	VectorMA (start, self->move_origin[1], r, start);
 	VectorMA (start, self->move_origin[2], u, start);
 
-  if(EMPNukeCheck(self, start))
-  {
+	if(EMPNukeCheck(self, start))
+	{
 		gi.sound (self, CHAN_AUTO, gi.soundindex("items/empnuke/emp_missfire.wav"), 1, ATTN_NORM, 0);
-    return;
-  }
+		return;
+	}
 
 	damage = 100 + random() * 50;
 	speed = 550 + 50 * skill->value;
@@ -420,3 +420,4 @@ void SP_turret_driver (edict_t *self)
 
 	gi.linkentity (self);
 }
+

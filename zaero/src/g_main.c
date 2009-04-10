@@ -45,11 +45,6 @@ cvar_t  *gamedir;
 
 cvar_t	*sv_cheats;
 
-#ifdef CACHE_SOUND
-cvar_t *printSoundRejects;
-int internalSoundIndex(char *name);
-int	(*actual_soundindex) (char *name);
-#endif
 
 void SpawnEntities (char *mapname, char *entities, char *spawnpoint);
 void ClientThink (edict_t *ent, usercmd_t *cmd);
@@ -91,10 +86,6 @@ and global variables
 game_export_t *GetGameAPI (game_import_t *import)
 {
 	gi = *import;
-#ifdef CACHE_SOUND
-	actual_soundindex = gi.soundindex;
-	gi.soundindex = internalSoundIndex;
-#endif
 	globals.apiversion = GAME_API_VERSION;
 	globals.Init = InitGame;
 	globals.Shutdown = ShutdownGame;

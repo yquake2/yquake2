@@ -155,9 +155,9 @@ void G_UseTargets (edict_t *ent, edict_t *activator)
 {
 	edict_t		*t;
 
-//
-// check for a delay
-//
+	//
+	// check for a delay
+	//
 	if (ent->delay)
 	{
 	// create a temp object to fire at a later time
@@ -175,10 +175,10 @@ void G_UseTargets (edict_t *ent, edict_t *activator)
 	}
 	
 	
-//
-// print the message
-//
-	if ((ent->message) && (activator) && !(activator->svflags & SVF_MONSTER))
+	//
+	// print the message
+	//
+	if ((ent->message) && !(activator->svflags & SVF_MONSTER))
 	{
 		gi.centerprintf (activator, "%s", ent->message);
 		if (ent->noise_index)
@@ -187,9 +187,9 @@ void G_UseTargets (edict_t *ent, edict_t *activator)
 			gi.sound (activator, CHAN_AUTO, gi.soundindex ("misc/talk1.wav"), 1, ATTN_NORM, 0);
 	}
 
-//
-// kill killtargets
-//
+	//
+	// kill killtargets
+	//
 	if (ent->killtarget)
 	{
 		t = NULL;
@@ -204,9 +204,9 @@ void G_UseTargets (edict_t *ent, edict_t *activator)
 		}
 	}
 
-//
-// fire targets
-//
+	//
+	// fire targets
+	//
 	if (ent->target)
 	{
 		t = NULL;
@@ -315,8 +315,14 @@ float vectoyaw (vec3_t vec)
 {
 	float	yaw;
 	
-	if (vec[YAW] == 0 && vec[PITCH] == 0)
+	if (/*vec[YAW] == 0 &&*/ vec[PITCH] == 0) 
+	{
 		yaw = 0;
+		if (vec[YAW] > 0)
+			yaw = 90;
+		else if (vec[YAW] < 0)
+			yaw = -90;
+	} 
 	else
 	{
 		yaw = (int) (atan2(vec[YAW], vec[PITCH]) * 180 / M_PI);
@@ -343,7 +349,12 @@ void vectoangles (vec3_t value1, vec3_t angles)
 	}
 	else
 	{
-		yaw = (int) (atan2(value1[1], value1[0]) * 180 / M_PI);
+		if (value1[0])
+			yaw = (int) (atan2(value1[1], value1[0]) * 180 / M_PI);
+		else if (value1[1] > 0)
+			yaw = 90;
+		else
+			yaw = -90;
 		if (yaw < 0)
 			yaw += 360;
 
@@ -425,7 +436,6 @@ void G_FreeEdict (edict_t *ed)
 
 	if ((ed - g_edicts) <= (maxclients->value + BODY_QUEUE_SIZE))
 	{
-//		gi.dprintf("tried to free special edict\n");
 		return;
 	}
 
@@ -433,7 +443,7 @@ void G_FreeEdict (edict_t *ed)
 	ed->classname = "freed";
 	ed->freetime = level.time;
 	ed->inuse = false;
-  ed->nextthink = 0;    // just in case freed before a nextthink...
+	ed->nextthink = 0;    // just in case freed before a nextthink...
 }
 
 
@@ -498,9 +508,6 @@ void	G_TouchSolids (edict_t *ent)
 	}
 }
 
-
-
-
 /*
 ==============================================================================
 
@@ -538,8 +545,6 @@ qboolean KillBox (edict_t *ent)
 	return true;		// all clear
 }
 
-
-
 /*
 =================
 MonsterKillBox
@@ -571,8 +576,6 @@ qboolean MonsterKillBox (edict_t *ent)
 
 	return true;		// all clear
 }
-
-
 
 /*
 =================
@@ -611,3 +614,4 @@ qboolean MonsterPlayerKillBox (edict_t *ent)
 
 	return true;		// all clear
 }
+

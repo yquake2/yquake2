@@ -267,7 +267,7 @@ spawn_t	spawns[] = {
 	{"turret_base", SP_turret_base},
 	{"turret_driver", SP_turret_driver},
 
-// evolve map entities
+	// evolve map entities
 	{"sound_echo", SP_sound_echo},
 	{"misc_ired", SP_misc_lasertripbomb},
 	{"trigger_laser", SP_trigger_laser},
@@ -279,7 +279,7 @@ spawn_t	spawns[] = {
 	{"monster_handler", SP_monster_handler},
 	{"misc_commdish", SP_misc_commdish},
 
-// mirror level's 
+	// mirror level's 
 	{"load_mirrorlevel", SP_load_mirrorlevel},
 
 	{"misc_crate", SP_misc_crate},
@@ -341,7 +341,7 @@ void ED_CallSpawn (edict_t *ent)
 ED_NewString
 =============
 */
-char *ED_NewString (char *string)
+char *ED_NewString (const char *string)
 {
 	char	*newb, *new_p;
 	int		i,l;
@@ -369,9 +369,6 @@ char *ED_NewString (char *string)
 	return newb;
 }
 
-
-
-
 /*
 ===============
 ED_ParseField
@@ -380,7 +377,7 @@ Takes a key/value pair and sets the binary values
 in an edict
 ===============
 */
-void ED_ParseField (char *key, char *value, edict_t *ent)
+void ED_ParseField (const char *key, const char *value, edict_t *ent)
 {
 	field_t	*f;
 	byte	*b;
@@ -421,6 +418,8 @@ void ED_ParseField (char *key, char *value, edict_t *ent)
 				break;
 			case F_IGNORE:
 				break;
+			default:
+				break;
 			}
 			return;
 		}
@@ -440,15 +439,15 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 {
 	qboolean	init;
 	char		keyname[256];
-	char		*com_token;
+	const char	*com_token;
 
 	init = false;
 	memset (&st, 0, sizeof(st));
 
-// go through all the dictionary pairs
+	// go through all the dictionary pairs
 	while (1)
 	{	
-	// parse key
+		// parse key
 		com_token = COM_Parse (&data);
 		if (com_token[0] == '}')
 			break;
@@ -457,7 +456,7 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 
 		strncpy (keyname, com_token, sizeof(keyname)-1);
 		
-	// parse value	
+		// parse value	
 		com_token = COM_Parse (&data);
 		if (!data)
 			gi.error ("ED_ParseEntity: EOF without closing brace");
@@ -467,8 +466,8 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 
 		init = true;	
 
-	// keynames with a leading underscore are used for utility comments,
-	// and are immediately discarded by quake
+		// keynames with a leading underscore are used for utility comments,
+		// and are immediately discarded by quake
 		if (keyname[0] == '_')
 			continue;
 
@@ -544,11 +543,11 @@ Creates a server's entity / program execution context by
 parsing textual entity definitions out of an ent file.
 ==============
 */
-void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
+void SpawnEntities (const char *mapname, char *entities, const char *spawnpoint)
 {
 	edict_t		*ent;
 	int			inhibit;
-	char		*com_token;
+	const char	*com_token;
 	int			i;
 	float		skill_level;
 	int oldmaxent;
@@ -564,9 +563,6 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 	SaveClientData ();
 
 	gi.FreeTags (TAG_LEVEL);
-#ifdef CACHE_SOUND
-	initSoundList();
-#endif
 
 	memset (&level, 0, sizeof(level));
 	memset (g_edicts, 0, game.maxentities * sizeof (g_edicts[0]));
@@ -580,8 +576,8 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 	ent = NULL;
 	inhibit = 0;
-	
-// parse ents
+
+	// parse ents
 	while (1)
 	{
 		// parse the opening brace	
@@ -602,7 +598,6 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 		if (!Q_stricmp(level.mapname, "command") && !Q_stricmp(ent->classname, "trigger_once") && !Q_stricmp(ent->model, "*27"))
 			ent->spawnflags &= ~SPAWNFLAG_NOT_HARD;
 
-
 		// remove things (except the world) from different skill levels or deathmatch
 		if (ent != g_edicts)
 		{
@@ -618,7 +613,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 			else
 			{
 				if (((!coop->value) && (ent->spawnflags2 & SPAWNFLAG2_NOT_SINGLE)) ||
-          ((coop->value) && (ent->spawnflags2 & SPAWNFLAG2_NOT_COOP)) ||
+						((coop->value) && (ent->spawnflags2 & SPAWNFLAG2_NOT_COOP)) ||
 					((skill->value == 0) && (ent->spawnflags & SPAWNFLAG_NOT_EASY)) ||
 					((skill->value == 1) && (ent->spawnflags & SPAWNFLAG_NOT_MEDIUM)) ||
 					(((skill->value == 2) || (skill->value == 3)) && (ent->spawnflags & SPAWNFLAG_NOT_HARD))
@@ -640,9 +635,6 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 	gi.dprintf("%i entities created\n", globals.num_edicts);
 	gi.dprintf ("%i entities inhibited\n", inhibit);
-#ifdef CACHE_SOUND
-	printSoundNum();
-#endif
 
 	G_FindTeams ();
 
@@ -653,30 +645,6 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 
 //===================================================================
-
-#if 0
-	// cursor positioning
-	xl <value>
-	xr <value>
-	yb <value>
-	yt <value>
-	xv <value>
-	yv <value>
-
-	// drawing
-	statpic <name>
-	pic <stat>
-	picn <name>
-	num <fieldwidth> <stat>
-	string <stat>
-
-	// control
-	if <stat>
-	ifeq <stat> <value>
-	ifbit <stat> <value>
-	endif
-
-#endif
 
 char *single_statusbar = 
 "yb	-24 "
@@ -897,12 +865,8 @@ void SP_worldspawn (edict_t *ent)
 
 	snd_fry = gi.soundindex ("player/fry.wav");	// standing in lava / slime
 
-#ifndef CACHE_SOUND
 	PrecacheItem (FindItem ("Blaster"));
-#else
-	precacheAllItems();
-#endif
-	
+
 	gi.soundindex ("player/lava1.wav");
 	gi.soundindex ("player/lava2.wav");
 
@@ -965,9 +929,9 @@ void SP_worldspawn (edict_t *ent)
 	gi.modelindex ("models/objects/gibs/skull/tris.md2");
 	gi.modelindex ("models/objects/gibs/head2/tris.md2");
 
-//
-// Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
-//
+	//
+	// Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
+	//
 
 	// 0 normal
 	gi.configstring(CS_LIGHTS+0, "m");
