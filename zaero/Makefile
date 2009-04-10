@@ -138,6 +138,7 @@ ZAERO_OBJS = \
 	build/z_frames.o \
 	build/z_handler.o \
 	build/z_hound.o \
+	build/z_item.o \
 	build/z_list.o \
 	build/z_mtest.o \
 	build/z_sentien.o \
