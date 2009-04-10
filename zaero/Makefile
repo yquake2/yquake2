@@ -134,12 +134,10 @@ ZAERO_OBJS = \
 	build/z_anim.o \
 	build/z_boss.o \
 	build/z_camera.o \
-	build/z_debug.o \
 	build/z_frames.o \
 	build/z_handler.o \
 	build/z_hound.o \
 	build/z_item.o \
-	build/z_list.o \
 	build/z_mtest.o \
 	build/z_sentien.o \
 	build/z_spawn.o \
@@ -305,9 +303,6 @@ build/z_boss.o:		   			src/z_boss.c
 build/z_camera.o:	   			src/z_camera.c
 	$(CC) $(CFLAGS) -o $@ -c $<
  
-build/z_debug.o:      			src/z_debug.c
-	$(CC) $(CFLAGS) -o $@ -c $<
-
 build/z_frames.o:      			src/z_frames.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
@@ -320,9 +315,6 @@ build/z_hound.o:      			src/z_hound.c
 build/z_item.o:      			src/z_item.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-build/z_list.o:      			src/z_list.c
-	$(CC) $(CFLAGS) -o $@ -c $<
- 
 build/z_mtest.o:      			src/z_mtest.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
