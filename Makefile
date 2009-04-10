@@ -239,6 +239,7 @@ POSIX_OBJS = \
 	build/posix/system.o \
     build/posix/glob/glob.o \
  	build/posix/vid/menu.o \
+	build/posix/vid/refresh.o
  
 # ----------
 
