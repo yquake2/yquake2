@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //define	PARANOID			// speed sapping error checking
 
 #include "../common/qcommon.h"
-#include "../game/quake2/game.h"
+#include "../game/baseq2/game.h"
 
 //=============================================================================
 
