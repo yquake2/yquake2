@@ -46,16 +46,6 @@ void Action_Push(edict_t *ent);
 void Use_PlasmaShield (edict_t *ent, gitem_t *item);
 
 
-#if defined(_DEBUG) && defined(_Z_TESTMODE)
-
-void Weapon_LineDraw (edict_t *ent);
-void Weapon_Test (edict_t *ent);
-
-qboolean Pickup_TestItem (edict_t *ent, edict_t *other);
-void Drop_TestItem (edict_t *ent, gitem_t *item);
-
-#endif
-
 //======================================================================
 
 /*
@@ -435,8 +425,6 @@ void Use_Breather (edict_t *ent, gitem_t *item)
 		ent->client->breather_framenum += 300;
 	else
 		ent->client->breather_framenum = level.framenum + 300;
-
-//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
 }
 
 //======================================================================
@@ -450,8 +438,6 @@ void Use_Envirosuit (edict_t *ent, gitem_t *item)
 		ent->client->enviro_framenum += 300;
 	else
 		ent->client->enviro_framenum = level.framenum + 300;
-
-//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
 }
 
 //======================================================================
@@ -476,8 +462,6 @@ void	Use_Silencer (edict_t *ent, gitem_t *item)
 	ent->client->pers.inventory[ITEM_INDEX(item)]--;
 	ValidateSelectedItem (ent);
 	ent->client->silencer_shots += 30;
-
-//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage.wav"), 1, ATTN_NORM, 0);
 }
 
 //======================================================================
@@ -527,7 +511,6 @@ qboolean Add_Ammo (edict_t *ent, gitem_t *item, int count)
 		max = ent->client->pers.max_cells;
 	else if (item->tag == AMMO_SLUGS)
 		max = ent->client->pers.max_slugs;
-// [evolve
 	else if (item->tag == AMMO_LASERTRIPBOMB)
 		max = ent->client->pers.max_tbombs;
 	else if (item->tag == AMMO_FLARES)
@@ -538,7 +521,6 @@ qboolean Add_Ammo (edict_t *ent, gitem_t *item, int count)
 		max = ent->client->pers.max_a2k;
 	else if (item->tag == AMMO_PLASMASHIELD)
 		max = ent->client->pers.max_plasmashield;
-// evolve]
 	else
 		return false;
 
@@ -571,15 +553,15 @@ qboolean Pickup_Ammo (edict_t *ent, edict_t *other)
 
 	oldcount = other->client->pers.inventory[ITEM_INDEX(ent->item)];
   
-  if(ent->spawnflags & 0x08)
-  {
-    if(oldcount >= count)
-    {
-      return false;
-    }
+	if(ent->spawnflags & 0x08)
+	{
+		if(oldcount >= count)
+		{
+			return false;
+		}
 
-    count -= oldcount;
-  }
+		count -= oldcount;
+	}
 
 	if (!Add_Ammo (other, ent->item, count))
 		return false;
@@ -973,7 +955,7 @@ void Touch_Item (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 
 //======================================================================
 
-void drop_temp_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
+static void drop_temp_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
 	if (other == ent->owner)
 		return;
@@ -981,7 +963,7 @@ void drop_temp_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t 
 	Touch_Item (ent, other, plane, surf);
 }
 
-void drop_make_touchable (edict_t *ent)
+static void drop_make_touchable (edict_t *ent)
 {
 	ent->touch = Touch_Item;
 	if (deathmatch->value)
@@ -1288,7 +1270,7 @@ gitem_t	itemlist[] =
 		NULL
 	},	// leave index 0 alone
 
- 	//
+	//
 	// ARMOR
 	//
 
@@ -1495,7 +1477,7 @@ always owned, never in the world
 		NULL,
 		0,
 /* precache */ "weapons/blastf1a.wav misc/lasfly.wav"
-    },
+	},
 
 /*QUAKED weapon_shotgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
@@ -1539,7 +1521,7 @@ always owned, never in the world
 		NULL,
 		0,
 /* precache */ "weapons/sshotf1b.wav"
-    },
+	},
 
 /*QUAKED weapon_machinegun (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
@@ -1600,7 +1582,6 @@ always owned, never in the world
 /* pickup */	"Grenades",
 /* width */		3,
 		5,
-//		"grenades",
 		"Grenades",
 		IT_AMMO|IT_WEAPON,
 		NULL,
@@ -1984,8 +1965,6 @@ always owned, never in the world
 /* precache */ "items/empnuke/emp_trg.wav"  //items/empnuke/emp_act.wav items/empnuke/emp_spin.wav items/empnuke/emp_idle.wav 
 	},
 
-// EVOLVE]
-
 	//
 	// POWERUP ITEMS
 	//
@@ -2233,7 +2212,7 @@ gives +1 to maximum health
 		NULL,
 		0,
 /* precache */ ""
-	}, 
+	},
 
 	//
 	// KEYS
@@ -2602,80 +2581,6 @@ security pass for the security level
 /* precache */ ""
 	},
 
-#if defined(_DEBUG) && defined(_Z_TESTMODE)
-
-/* weapon_ldraw (.3 .3 1) (-16 -16 -16) (16 16 16)
-always owned, never in the world
-*/
-	{
-		"weapon_linedraw", 
-		NULL,
-		Use_Weapon,
-		NULL,
-		Weapon_LineDraw,
-		"misc/w_pkup.wav",
-		NULL, 0,
-		"models/weapons/v_blast/tris.md2",
-/* icon */		"w_blaster",
-/* pickup */	"Line Draw",
-		0,
-		0,
-		NULL,
-		IT_WEAPON,
-		NULL,
-		0,
-/* precache */ "weapons/blastf1a.wav misc/lasfly.wav"
-	},
-
-
-/* weapon_testweapon (.3 .3 1) (-16 -16 -16) (16 16 16)
-loaded from weapon.cfg
-*/
-	{
-		"weapon_test", 
-		Pickup_Weapon,
-		Use_Weapon,
-		Drop_Weapon,
-		Weapon_Test,
-		"misc/w_pkup.wav",
-		"models/weapons/v_blast/tris.md2", EF_ROTATE,
-		"models/weapons/v_blast/tris.md2",
-/* icon */		"w_blaster",
-/* pickup */	"Test",
-		0,
-		0,
-		"Shells",
-		IT_WEAPON,
-		NULL,
-		0,
-/* precache */ "weapons/blastf1a.wav misc/lasfly.wav"
-	},
-
-
-/* weapon_testitem (.3 .3 1) (-16 -16 -16) (16 16 16)
-loaded from item.cfg
-*/
-	{
-		"item_test", 
-		Pickup_TestItem,
-		NULL,
-		Drop_TestItem,
-		NULL,
-		"misc/w_pkup.wav",
-		"models/weapons/v_blast/tris.md2", 0,
-		"models/weapons/v_blast/tris.md2",
-/* icon */		"w_blaster",
-/* pickup */	"Test",
-		0,
-		0,
-		NULL,
-		0,
-		NULL,
-		0,
-/* precache */ "weapons/blastf1a.wav misc/lasfly.wav"
-	},
-#endif
-
 	// end of list marker
 	{NULL}
 };
@@ -2779,3 +2684,4 @@ void SetItemNames (void)
 	power_screen_index = ITEM_INDEX(FindItem("Power Screen"));
 	power_shield_index = ITEM_INDEX(FindItem("Power Shield"));
 }
+

@@ -1,6 +1,7 @@
 #include "g_local.h"
 #include "m_player.h"
 
+
 char *ClientTeam (edict_t *ent)
 {
 	char		*p;
@@ -22,7 +23,6 @@ char *ClientTeam (edict_t *ent)
 		return value;
 	}
 
-	// if ((int)(dmflags->value) & DF_SKINTEAMS)
 	return ++p;
 }
 
@@ -314,7 +314,7 @@ void Cmd_God_f (edict_t *ent)
 {
 	char	*msg;
 
-	if (deathmatch->value && !sv_cheats->value)
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -343,7 +343,7 @@ void Cmd_Notarget_f (edict_t *ent)
 {
 	char	*msg;
 
-	if (deathmatch->value && !sv_cheats->value)
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -370,7 +370,7 @@ void Cmd_Noclip_f (edict_t *ent)
 {
 	char	*msg;
 
-	if (deathmatch->value && !sv_cheats->value)
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -398,16 +398,16 @@ struct altsel_s
 } alternates[] = 
 {
 	{0}, // filler
-	{2,"Blaster", "Flare Gun"},
-	{1,"Shotgun"},
-	{1,"Super Shotgun"},
-	{1,"Machinegun"},
-	{1,"Chaingun"},
-	{1,"Grenade Launcher"},
-	{1,"Rocket Launcher"},
-	{1,"HyperBlaster"},
-	{2,"Railgun", "Sniper Rifle"},
-	{2,"BFG10K", "Sonic Cannon"}
+	{2,{"Blaster", "Flare Gun"}},
+	{1,{"Shotgun"}},
+	{1,{"Super Shotgun"}},
+	{1,{"Machinegun"}},
+	{1,{"Chaingun"}},
+	{1,{"Grenade Launcher"}},
+	{1,{"Rocket Launcher"}},
+	{1,{"HyperBlaster"}},
+	{2,{"Railgun", "Sniper Rifle"}},
+	{2,{"BFG10K", "Sonic Cannon"}}
 };
 
 qboolean tryUse(edict_t *ent, char *s)
@@ -455,7 +455,6 @@ void findNext(edict_t *ent, struct altsel_s *ptr, int offset)
 
 void altSelect(edict_t *ent, int num)
 {
-	int index = 0;
 	int offset = -1;
 	int i = 0;
 	struct altsel_s *ptr = NULL;
@@ -485,7 +484,7 @@ void altSelect(edict_t *ent, int num)
 		offset = 0;
 	else
 	{
-		offset = ((++offset) % ptr->num);
+		offset = ((offset + 1) % (ptr->num));
 	}
 	
 	// now select this offset
@@ -539,8 +538,6 @@ void Cmd_Use_f (edict_t *ent)
 }
 
 
-
-
 /*
 ==================
 Cmd_Drop_f
@@ -556,7 +553,6 @@ void Cmd_Drop_f (edict_t *ent)
 
 	s = gi.args();
 	it = FindItem (s);
-
 	if (!it)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "unknown item: %s\n", s);
@@ -587,7 +583,7 @@ void Cmd_Inven_f (edict_t *ent)
 {
 	int			i;
 	gclient_t	*cl;
-	
+
 	cl = ent->client;
 
 	cl->showscores = false;
@@ -665,7 +661,6 @@ void Cmd_WeapPrev_f (edict_t *ent)
 	for (i=1 ; i<=MAX_ITEMS ; i++)
 	{
 		index = (selected_weapon + MAX_ITEMS - i)%MAX_ITEMS;
-//		index = (selected_weapon + i)%MAX_ITEMS;
 		if (!cl->pers.inventory[index])
 			continue;
 		it = &itemlist[index];
@@ -676,7 +671,6 @@ void Cmd_WeapPrev_f (edict_t *ent)
 		if (! (it->flags & IT_WEAPON) )
 			continue;
 		it->use (ent, it);
-//		if (cl->pers.weapon == it)
 		if (cl->newweapon == it)
 			return;	// successful
 	}
@@ -693,7 +687,7 @@ void Cmd_WeapNext_f (edict_t *ent)
 	int			i, index;
 	gitem_t		*it;
 	int			selected_weapon;
-	
+
 	cl = ent->client;
 
 	if (!cl->pers.weapon)
@@ -705,7 +699,6 @@ void Cmd_WeapNext_f (edict_t *ent)
 	for (i=1 ; i<=MAX_ITEMS ; i++)
 	{
 		index = (selected_weapon + i)%MAX_ITEMS;
-//		index = (selected_weapon + MAX_ITEMS - i)%MAX_ITEMS;
 		if (!cl->pers.inventory[index])
 			continue;
 		it = &itemlist[index];
@@ -716,7 +709,6 @@ void Cmd_WeapNext_f (edict_t *ent)
 		if (! (it->flags & IT_WEAPON) )
 			continue;
 		it->use (ent, it);
-//		if (cl->pers.weapon == it)
 		if (cl->newweapon == it)
 			return;	// successful
 	}
@@ -1050,7 +1042,7 @@ void ClientCommand (edict_t *ent)
 		Cmd_Help_f (ent);
 		return;
 	}
-  
+
 	if (level.intermissiontime)
 		return;
 
@@ -1128,3 +1120,4 @@ void ClientCommand (edict_t *ent)
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }
+

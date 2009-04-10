@@ -1,6 +1,7 @@
 // g_local.h -- local definitions for game module
 
 #include "q_shared.h"
+#include "z_anim.h"
 
 // define GAME_INCLUDE so that game.h does not define the
 // short, server-visible gclient_t and edict_t structures,
@@ -24,9 +25,6 @@
 
 // Zaero includes
 #include "z_debug.h"
-#ifdef CACHE_SOUND
-#include "z_list.h"
-#endif
 
 // the "gamename" client command will print this plus compile date
 #define	GAMEVERSION	"Zaero 1.1"
@@ -123,51 +121,51 @@ typedef enum
 
 
 //deadflag
-#define DEAD_NO					  0
+#define DEAD_NO					0
 #define DEAD_DYING				1
-#define DEAD_DEAD				  2
-#define DEAD_RESPAWNABLE	3
+#define DEAD_DEAD				2
+#define DEAD_RESPAWNABLE		3
 
 //range
 #define RANGE_MELEE				0
 #define RANGE_NEAR				1
-#define RANGE_MID				  2
-#define RANGE_FAR				  3
+#define RANGE_MID				2
+#define RANGE_FAR				3
 
 //gib types
 #define GIB_ORGANIC				0
 #define GIB_METALLIC			1
 
 //monster ai flags
-#define AI_STAND_GROUND					0x00000001
-#define AI_TEMP_STAND_GROUND		0x00000002
-#define AI_SOUND_TARGET					0x00000004
-#define AI_LOST_SIGHT						0x00000008
-#define AI_PURSUIT_LAST_SEEN		0x00000010
-#define AI_PURSUE_NEXT					0x00000020
-#define AI_PURSUE_TEMP					0x00000040
-#define AI_HOLD_FRAME						0x00000080
-#define AI_GOOD_GUY							0x00000100
-#define AI_BRUTAL								0x00000200
-#define AI_NOSTEP								0x00000400
-#define AI_DUCKED								0x00000800
-#define AI_COMBAT_POINT					0x00001000
-#define AI_MEDIC								0x00002000
-#define AI_RESURRECTING					0x00004000
-#define AI_SCHOOLING  					0x00008000
-#define AI_REDUCEDDAMAGE				0x00010000
-#define AI_SCHOOLINGTURNING			0x00020000
+#define AI_STAND_GROUND			0x00000001
+#define AI_TEMP_STAND_GROUND	0x00000002
+#define AI_SOUND_TARGET			0x00000004
+#define AI_LOST_SIGHT			0x00000008
+#define AI_PURSUIT_LAST_SEEN	0x00000010
+#define AI_PURSUE_NEXT			0x00000020
+#define AI_PURSUE_TEMP			0x00000040
+#define AI_HOLD_FRAME			0x00000080
+#define AI_GOOD_GUY				0x00000100
+#define AI_BRUTAL				0x00000200
+#define AI_NOSTEP				0x00000400
+#define AI_DUCKED				0x00000800
+#define AI_COMBAT_POINT			0x00001000
+#define AI_MEDIC				0x00002000
+#define AI_RESURRECTING			0x00004000
+#define AI_SCHOOLING  			0x00008000
+#define AI_REDUCEDDAMAGE		0x00010000
+#define AI_SCHOOLINGTURNING		0x00020000
 #define AI_SCHOOLINGTURNINGFAST 0x00040000
-#define AI_DODGETIMEOUT					0x00080000
-#define AI_JUMPING							0x00100000
-#define AI_MONREDUCEDDAMAGE			0x00200000
-#define AI_ONESHOTTARGET				0x00400000
+#define AI_DODGETIMEOUT			0x00080000
+#define AI_JUMPING				0x00100000
+#define AI_MONREDUCEDDAMAGE		0x00200000
+#define AI_ONESHOTTARGET		0x00400000
 
 
 //monster attack state
 #define AS_STRAIGHT				1
 #define AS_SLIDING				2
-#define	AS_MELEE				  3
+#define	AS_MELEE				3
 #define	AS_MISSILE				4
 #define AS_FLY_STRAFE			5
 
@@ -480,12 +478,12 @@ typedef struct
 	float flyStrafePitch;
 	float flyStrafeTimeout;
 
-  //schooling info
-  float zSchoolSightRadius;
-  float zSchoolMaxSpeed, zSchoolMinSpeed;
-  float zSpeedStandMax, zSpeedWalkMax;
-  float zSchoolDecayRate, zSchoolMinimumDistance;
-  int   zSchoolFlags;
+	//schooling info
+	float zSchoolSightRadius;
+	float zSchoolMaxSpeed, zSchoolMinSpeed;
+	float zSpeedStandMax, zSpeedWalkMax;
+	float zSchoolDecayRate, zSchoolMinimumDistance;
+	int   zSchoolFlags;
 
 	float reducedDamageAmount;
 
@@ -511,47 +509,47 @@ extern	int	body_armor_index;
 
 
 // means of death
-#define MOD_UNKNOWN			    0
-#define MOD_BLASTER			    1
-#define MOD_SHOTGUN			    2
-#define MOD_SSHOTGUN		    3
-#define MOD_MACHINEGUN		  4
-#define MOD_CHAINGUN		    5
-#define MOD_GRENADE			    6
-#define MOD_G_SPLASH		    7
-#define MOD_ROCKET			    8
-#define MOD_R_SPLASH		    9
-#define MOD_HYPERBLASTER	  10
-#define MOD_RAILGUN			    11
-#define MOD_BFG_LASER		    12
-#define MOD_BFG_BLAST		    13
-#define MOD_BFG_EFFECT		  14
-#define MOD_HANDGRENADE		  15
-#define MOD_HG_SPLASH		    16
-#define MOD_WATER			      17
-#define MOD_SLIME			      18
-#define MOD_LAVA			      19
-#define MOD_CRUSH			      20
-#define MOD_TELEFRAG		    21
-#define MOD_FALLING			    22
-#define MOD_SUICIDE			    23
-#define MOD_HELD_GRENADE	  24
-#define MOD_EXPLOSIVE		    25
-#define MOD_BARREL			    26
-#define MOD_BOMB			      27
-#define MOD_EXIT			      28
-#define MOD_SPLASH			    29
-#define MOD_TARGET_LASER	  30
-#define MOD_TRIGGER_HURT	  31
-#define MOD_HIT				      32
+#define MOD_UNKNOWN			0
+#define MOD_BLASTER			1
+#define MOD_SHOTGUN			2
+#define MOD_SSHOTGUN		3
+#define MOD_MACHINEGUN		4
+#define MOD_CHAINGUN		5
+#define MOD_GRENADE			6
+#define MOD_G_SPLASH		7
+#define MOD_ROCKET			8
+#define MOD_R_SPLASH		9
+#define MOD_HYPERBLASTER	10
+#define MOD_RAILGUN			11
+#define MOD_BFG_LASER		12
+#define MOD_BFG_BLAST		13
+#define MOD_BFG_EFFECT		14
+#define MOD_HANDGRENADE		15
+#define MOD_HG_SPLASH		16
+#define MOD_WATER			17
+#define MOD_SLIME			18
+#define MOD_LAVA			19
+#define MOD_CRUSH			20
+#define MOD_TELEFRAG		21
+#define MOD_FALLING			22
+#define MOD_SUICIDE			23
+#define MOD_HELD_GRENADE	24
+#define MOD_EXPLOSIVE		25
+#define MOD_BARREL			26
+#define MOD_BOMB			27
+#define MOD_EXIT			28
+#define MOD_SPLASH			29
+#define MOD_TARGET_LASER	30
+#define MOD_TRIGGER_HURT	31
+#define MOD_HIT				32
 #define MOD_TARGET_BLASTER	33
-#define MOD_SNIPERRIFLE		  34
-#define MOD_TRIPBOMB		    35
-#define MOD_FLARE			      36
-#define MOD_A2K				      37
+#define MOD_SNIPERRIFLE 	  34
+#define MOD_TRIPBOMB	      35
+#define MOD_FLARE		      36
+#define MOD_A2K			      37
 #define MOD_SONICCANNON		  38
 #define MOD_AUTOCANNON		  39
-#define MOD_GL_POLYBLEND	40
+#define MOD_GL_POLYBLEND   	  40
 #define MOD_FRIENDLY_FIRE	  0x8000000
 
 extern	int	meansOfDeath;
@@ -600,9 +598,6 @@ extern	cvar_t  *gamedir;
 extern	cvar_t	*grenadeammotype;
 extern	cvar_t	*grenadeammo;
 extern	cvar_t	*bettyammo;
-#ifdef CACHE_SOUND
-extern cvar_t *printSoundRejects;
-#endif
 
 #define world	(&g_edicts[0])
 
@@ -714,11 +709,11 @@ void T_RadiusDamage (edict_t *inflictor, edict_t *attacker, float damage, edict_
 void T_RadiusDamagePosition (vec3_t origin, edict_t *inflictor, edict_t *attacker, float damage, edict_t *ignore, float radius, int mod);
 
 // damage flags
-#define DAMAGE_RADIUS			    0x00000001	// damage was indirect
-#define DAMAGE_NO_ARMOR			  0x00000002	// armour does not protect from this damage
-#define DAMAGE_ENERGY			    0x00000004	// damage is from an energy based weapon
+#define DAMAGE_RADIUS			0x00000001	// damage was indirect
+#define DAMAGE_NO_ARMOR			0x00000002	// armour does not protect from this damage
+#define DAMAGE_ENERGY			0x00000004	// damage is from an energy based weapon
 #define DAMAGE_NO_KNOCKBACK		0x00000008	// do not affect velocity, just view angles
-#define DAMAGE_BULLET			    0x00000010  // damage is from a bullet (used for ricochets)
+#define DAMAGE_BULLET			0x00000010  // damage is from a bullet (used for ricochets)
 #define DAMAGE_NO_PROTECTION	0x00000020  // armor, shields, invulnerability, and godmode have no effect
 #define DAMAGE_ARMORMOSTLY    0x00000040  // reduces the armor more than the health
 
@@ -803,7 +798,6 @@ edict_t *PlayerTrail_PickFirst (edict_t *self);
 edict_t *PlayerTrail_PickNext (edict_t *self);
 edict_t	*PlayerTrail_LastSpot (void);
 
-
 //
 // g_client.c
 //
@@ -825,6 +819,7 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 // g_svcmds.c
 //
 void	ServerCommand (void);
+qboolean SV_FilterPacket (char *from);
 
 //
 // p_view.c
@@ -862,24 +857,6 @@ void G_RunEntity (edict_t *ent);
 //
 void SaveClientData (void);
 void FetchClientEntData (edict_t *ent);
-
-
-#if defined(_DEBUG) && defined(_Z_TESTMODE)
-
-//
-// z_mtest.c
-//
-void Cmd_TestItem (edict_t *ent);
-
-#endif
-
-//
-// z_trigger.c
-//
-#ifdef CACHE_SOUND
-void printSoundNum();
-void initSoundList();
-#endif
 
 //
 // z_item.c
@@ -1049,10 +1026,6 @@ struct gclient_s
 	float		pickup_msg_time;
 
 	float		respawn_time;		// can respawn when time > this
-
-#if defined(_DEBUG) && defined(_Z_TESTMODE)
-	struct edict_s *lineDraw;
-#endif
 
 	// used for blinding
 	int flashTime;
@@ -1239,11 +1212,6 @@ struct edict_s
 
 	float weaponsound_time;
 
-#if defined(_DEBUG) && defined(_Z_TESTMODE)
-	//can't teach an old dog new tricks
-	void *extra_data;
-#endif
-
 	// schooling info
 	edict_t *zRaduisList, *zSchoolChain;
 	float zDistance;
@@ -1272,10 +1240,7 @@ struct edict_s
   int bossFireCount;
 };
 
-//zaero debug includes (need type info)
-#include "z_frames.h"
-#include "z_anim.h"
-
 // Zaero dmflags
 #define ZDM_NO_GL_POLYBLEND_DAMAGE	1
 #define ZDM_ZAERO_ITEMS				2
+

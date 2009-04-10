@@ -396,7 +396,7 @@ void FoundTarget (edict_t *self)
 		return;
 	}
 
-  // set monster ideal_yaw to point to the combat point
+	// set monster ideal_yaw to point to the combat point
 	VectorSubtract (self->goalentity->s.origin, self->s.origin, v);
 	self->ideal_yaw = vectoyaw(v);
 
@@ -452,12 +452,12 @@ qboolean FindTarget (edict_t *self)
 	if (self->monsterinfo.aiflags & AI_COMBAT_POINT)
 		return false;
 
-// if the first spawnflag bit is set, the monster will only wake up on
-// really seeing the player, not another monster getting angry or hearing
-// something
+	// if the first spawnflag bit is set, the monster will only wake up on
+	// really seeing the player, not another monster getting angry or hearing
+	// something
 
-// revised behavior so they will wake up if they "see" a player make a noise
-// but not weapon impact/explosion noises
+	// revised behavior so they will wake up if they "see" a player make a noise
+	// but not weapon impact/explosion noises
 
 	heardit = false;
 	if ((level.sight_entity_framenum >= (level.framenum - 1)) && !(self->spawnflags & 1) )
@@ -518,8 +518,6 @@ qboolean FindTarget (edict_t *self)
 
 		if (r == RANGE_FAR)
 			return false;
-
-// this is where we would check invisibility
 
 		// is client in an spot too dark to be seen?
 		if (client->light_level <= 5)
@@ -597,9 +595,9 @@ qboolean FindTarget (edict_t *self)
 		self->enemy = client;
 	}
 
-//
-// got one
-//
+	//
+	// got one
+	//
 	FoundTarget (self);
 
 	if (!(self->monsterinfo.aiflags & AI_SOUND_TARGET) && (self->monsterinfo.sight))
@@ -664,7 +662,7 @@ qboolean M_CheckAttack (edict_t *self)
 		return true;
 	}
 	
-// missile attack
+	// missile attack
 	if (!self->monsterinfo.attack)
 		return false;
 		
@@ -756,7 +754,7 @@ void ai_run_missile(edict_t *self)
 		self->monsterinfo.attack (self);
 		self->monsterinfo.attack_state = AS_STRAIGHT;
 	}
-};
+}
 
 
 /*
@@ -824,7 +822,7 @@ qboolean ai_checkattack (edict_t *self, float dist)
 	vec3_t		temp;
 	qboolean	hesDeadJim;
 
-// this causes monsters to run blindly to the combat point w/o firing
+	// this causes monsters to run blindly to the combat point w/o firing
 	if (self->goalentity)
 	{
 		if (self->monsterinfo.aiflags & AI_COMBAT_POINT)
@@ -834,11 +832,12 @@ qboolean ai_checkattack (edict_t *self, float dist)
 		{
 			if ((level.time - self->enemy->teleport_time) > 5.0)
 			{
-				if (self->goalentity == self->enemy)
+				if (self->goalentity == self->enemy) {
 					if (self->movetarget)
 						self->goalentity = self->movetarget;
 					else
 						self->goalentity = NULL;
+				}
 				self->monsterinfo.aiflags &= ~AI_SOUND_TARGET;
 				if (self->monsterinfo.aiflags & AI_TEMP_STAND_GROUND)
 					self->monsterinfo.aiflags &= ~(AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
@@ -853,7 +852,7 @@ qboolean ai_checkattack (edict_t *self, float dist)
 
 	enemy_vis = false;
 
-// see if the enemy is dead
+	// see if the enemy is dead
 	hesDeadJim = false;
 	if ((!self->enemy) || (!self->enemy->inuse))
 	{
@@ -884,7 +883,7 @@ qboolean ai_checkattack (edict_t *self, float dist)
 	if (hesDeadJim)
 	{
 		self->enemy = NULL;
-	// FIXME: look all around for other targets
+		// FIXME: look all around for other targets
 		if (self->oldenemy && self->oldenemy->health > 0)
 		{
 			self->enemy = self->oldenemy;
@@ -913,7 +912,7 @@ qboolean ai_checkattack (edict_t *self, float dist)
 
 	self->show_hostile = level.time + 1;		// wake up other monsters
 
-// check knowledge of enemy
+	// check knowledge of enemy
 	enemy_vis = visible(self, self->enemy);
 	if (enemy_vis)
 	{
@@ -921,20 +920,12 @@ qboolean ai_checkattack (edict_t *self, float dist)
 		VectorCopy (self->enemy->s.origin, self->monsterinfo.last_sighting);
 	}
 
-// look for other coop players here
-//	if (coop && self->monsterinfo.search_time < level.time)
-//	{
-//		if (FindTarget (self))
-//			return true;
-//	}
-
 	enemy_infront = infront(self, self->enemy);
 	enemy_range = range(self, self->enemy);
 	VectorSubtract (self->enemy->s.origin, self->s.origin, temp);
 	enemy_yaw = vectoyaw(temp);
 
 
-	// JDC self->ideal_yaw = enemy_yaw;
 	if (self->monsterinfo.attack_state == AS_MISSILE)
 	{
 		ai_run_missile (self);
@@ -945,7 +936,7 @@ qboolean ai_checkattack (edict_t *self, float dist)
 		ai_run_melee (self);
 		return true;
 	}
-	
+
 	// if enemy is not currently visible, we will never attack
 	if (!enemy_vis)
 		return false;
@@ -1005,14 +996,8 @@ void ai_run (edict_t *self, float dist)
 
 	if (self->monsterinfo.attack_state == AS_FLY_STRAFE)
 	{
-		if (self->monsterinfo.flyStrafeTimeout < level.time)
-			self->monsterinfo.attack_state == AS_STRAIGHT;
-		else
-		{
-			ai_fly_strafe(self, dist);
-			//if (random() < 0.5) 
-				return;
-		}
+		ai_fly_strafe(self, dist);
+		return;
 	}
 
 	if (ai_checkattack (self, dist))
@@ -1026,8 +1011,6 @@ void ai_run (edict_t *self, float dist)
 
 	if (enemy_vis)
 	{
-//		if (self.aiflags & AI_LOST_SIGHT)
-//			dprint("regained sight\n");
 		M_MoveToGoal (self, dist);
 		self->monsterinfo.aiflags &= ~AI_LOST_SIGHT;
 		VectorCopy (self->enemy->s.origin, self->monsterinfo.last_sighting);
@@ -1035,18 +1018,10 @@ void ai_run (edict_t *self, float dist)
 		return;
 	}
 
-	// coop will change to another enemy if visible
-	if (coop->value)
-	{	// FIXME: insane guys get mad with this, which causes crashes!
-		if (FindTarget (self))
-			return;
-	}
-
 	if ((self->monsterinfo.search_time) && (level.time > (self->monsterinfo.search_time + 20)))
 	{
 		M_MoveToGoal (self, dist);
 		self->monsterinfo.search_time = 0;
-//		dprint("search timeout\n");
 		return;
 	}
 
@@ -1059,7 +1034,6 @@ void ai_run (edict_t *self, float dist)
 	if (!(self->monsterinfo.aiflags & AI_LOST_SIGHT))
 	{
 		// just lost sight of the player, decide where to go first
-//		dprint("lost sight of player, last seen at "); dprint(vtos(self.last_sighting)); dprint("\n");
 		self->monsterinfo.aiflags |= (AI_LOST_SIGHT | AI_PURSUIT_LAST_SEEN);
 		self->monsterinfo.aiflags &= ~(AI_PURSUE_NEXT | AI_PURSUE_TEMP);
 		new = true;
@@ -1068,14 +1042,12 @@ void ai_run (edict_t *self, float dist)
 	if (self->monsterinfo.aiflags & AI_PURSUE_NEXT)
 	{
 		self->monsterinfo.aiflags &= ~AI_PURSUE_NEXT;
-//		dprint("reached current goal: "); dprint(vtos(self.origin)); dprint(" "); dprint(vtos(self.last_sighting)); dprint(" "); dprint(ftos(vlen(self.origin - self.last_sighting))); dprint("\n");
 
 		// give ourself more time since we got this far
 		self->monsterinfo.search_time = level.time + 5;
 
 		if (self->monsterinfo.aiflags & AI_PURSUE_TEMP)
 		{
-//			dprint("was temp goal; retrying original\n");
 			self->monsterinfo.aiflags &= ~AI_PURSUE_TEMP;
 			marker = NULL;
 			VectorCopy (self->monsterinfo.saved_goal, self->monsterinfo.last_sighting);
@@ -1096,9 +1068,6 @@ void ai_run (edict_t *self, float dist)
 			VectorCopy (marker->s.origin, self->monsterinfo.last_sighting);
 			self->monsterinfo.trail_time = marker->timestamp;
 			self->s.angles[YAW] = self->ideal_yaw = marker->s.angles[YAW];
-//			dprint("heading is "); dprint(ftos(self.ideal_yaw)); dprint("\n");
-
-//			debug_drawline(self.origin, self.last_sighting, 52);
 			new = true;
 		}
 	}
@@ -1115,8 +1084,6 @@ void ai_run (edict_t *self, float dist)
 
 	if (new)
 	{
-//		gi.dprintf("checking for course correction\n");
-
 		tr = gi.trace(self->s.origin, self->mins, self->maxs, self->monsterinfo.last_sighting, self, MASK_PLAYERSOLID);
 		if (tr.fraction < 1)
 		{
@@ -1144,7 +1111,6 @@ void ai_run (edict_t *self, float dist)
 				{
 					VectorSet(v, d2 * left * 0.5, -16, 0);
 					G_ProjectSource (self->s.origin, v, v_forward, v_right, left_target);
-//					gi.dprintf("incomplete path, go part way and adjust again\n");
 				}
 				VectorCopy (self->monsterinfo.last_sighting, self->monsterinfo.saved_goal);
 				self->monsterinfo.aiflags |= AI_PURSUE_TEMP;
@@ -1152,8 +1118,6 @@ void ai_run (edict_t *self, float dist)
 				VectorCopy (left_target, self->monsterinfo.last_sighting);
 				VectorSubtract (self->goalentity->s.origin, self->s.origin, v);
 				self->s.angles[YAW] = self->ideal_yaw = vectoyaw(v);
-//				gi.dprintf("adjusted left\n");
-//				debug_drawline(self.origin, self.last_sighting, 152);
 			}
 			else if (right >= center && right > left)
 			{
@@ -1161,7 +1125,6 @@ void ai_run (edict_t *self, float dist)
 				{
 					VectorSet(v, d2 * right * 0.5, 16, 0);
 					G_ProjectSource (self->s.origin, v, v_forward, v_right, right_target);
-//					gi.dprintf("incomplete path, go part way and adjust again\n");
 				}
 				VectorCopy (self->monsterinfo.last_sighting, self->monsterinfo.saved_goal);
 				self->monsterinfo.aiflags |= AI_PURSUE_TEMP;
@@ -1169,11 +1132,8 @@ void ai_run (edict_t *self, float dist)
 				VectorCopy (right_target, self->monsterinfo.last_sighting);
 				VectorSubtract (self->goalentity->s.origin, self->s.origin, v);
 				self->s.angles[YAW] = self->ideal_yaw = vectoyaw(v);
-//				gi.dprintf("adjusted right\n");
-//				debug_drawline(self.origin, self.last_sighting, 152);
 			}
 		}
-//		else gi.dprintf("course was fine\n");
 	}
 
 	M_MoveToGoal (self, dist);
@@ -1183,3 +1143,4 @@ void ai_run (edict_t *self, float dist)
 	if (self)
 		self->goalentity = save;
 }
+
