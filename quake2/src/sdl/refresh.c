@@ -45,7 +45,7 @@
 #include "../posix/refresh/glwindow.h"
 
 #include "../client/input/keys.h"
-#include "../posix.h"
+#include "../posix/posix.h"
 
 /*****************************************************************************/
 
@@ -317,7 +317,7 @@ int GLimp_Init( void *hInstance, void *wndProc )
 
 static void SetSDLIcon()
 {
-#include "../refresh/q2icon.xbm"
+#include "../posix/refresh/q2icon.xbm"
 	SDL_Surface *icon;
 	SDL_Color color;
 	Uint8 *ptr;
