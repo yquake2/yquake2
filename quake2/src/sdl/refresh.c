@@ -41,10 +41,10 @@
 
 #include "SDL.h"
 #include <GL/gl.h>
-#include "../../refresh/header/local.h"
-#include "../refresh/glwindow.h"
+#include "../refresh/header/local.h"
+#include "../posix/refresh/glwindow.h"
 
-#include "../../client/input/keys.h"
+#include "../client/input/keys.h"
 #include "../posix.h"
 
 /*****************************************************************************/

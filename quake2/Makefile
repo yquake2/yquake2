@@ -132,8 +132,8 @@ client:
 		build/gameabi \
 		build/posix \
 		build/posix/glob \
-		build/posix/sdl \
 		build/posix/vid \
+		build/sdl \
 		build/server \
 		release
 	$(MAKE) release/quake2	
@@ -238,11 +238,15 @@ POSIX_OBJS = \
 	build/posix/posix.o \
 	build/posix/system.o \
     build/posix/glob/glob.o \
-	build/posix/sdl/cd.o \
-	build/posix/sdl/sound.o \
  	build/posix/vid/menu.o \
-	build/posix/vid/refresh.o
  
+# ----------
+
+# SDL Objects
+SDL_OBJS= \
+	build/sdl/cd.o \
+	build/sdl/sound.o
+
 # ----------
 
 # Dedicated server object
@@ -534,18 +538,20 @@ build/posix/system.o :  			src/posix/system.c
 build/posix/glob/glob.o :  			src/posix/glob/glob.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/posix/sdl/cd.o :     			src/posix/sdl/cd.c
-	$(CC) $(CFLAGS_CLIENT) $(SDLCFLAGS) -o $@ -c $<
-
-build/posix/sdl/sound.o :  			src/posix/sdl/sound.c
-	$(CC) $(CFLAGS_CLIENT) $(SDLCFLAGS) -o $@ -c $<
-
 build/posix/vid/menu.o :   			src/posix/vid/menu.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/posix/vid/refresh.o :     	src/posix/vid/refresh.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
- 
+
+# ----------
+
+build/sdl/cd.o :     				src/sdl/cd.c
+	$(CC) $(CFLAGS_CLIENT) $(SDLCFLAGS) -o $@ -c $<
+
+build/sdl/sound.o : 	 			src/sdl/sound.c
+	$(CC) $(CFLAGS_CLIENT) $(SDLCFLAGS) -o $@ -c $<  
+
 # ----------
  
 # Dedicated server build
@@ -668,7 +674,7 @@ build/ref_gl_posix/posix.o:					src/posix/posix.c
 build/ref_gl_posix/qgl.o:					src/posix/refresh/qgl.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
  
-build/ref_gl_posix/refresh.o:				src/posix/sdl/refresh.c
+build/ref_gl_posix/refresh.o:				src/sdl/refresh.c
 	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
 
 # ----------
@@ -902,9 +908,9 @@ build/ctf/q_shared.o:  				src/game/ctf/q_shared.c
   
 #  The client
 release/quake2 : $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
-    $(SERVER_OBJS) $(POSIX_OBJS)
+    $(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS)
 	$(CC) $(CFLAGS_CLIENT) -o $@ $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
-		$(SERVER_OBJS) $(POSIX_OBJS) $(LDFLAGS) $(SDLLDFLAGS)
+		$(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS) $(LDFLAGS) $(SDLLDFLAGS)
 
 # Dedicated Server
 release/q2ded : $(DEDICATED_SERVER_OBJS) $(DEDICATED_SERVER_COMMON_OBJS) \
