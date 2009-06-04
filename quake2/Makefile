@@ -25,12 +25,6 @@
 # Check the OS type
 OSTYPE := $(shell uname -s)
 
-ifneq ($(OSTYPE),Linux)
-ifneq ($(OSTYPE),FreeBSD)
-#$(error $(OSTYPE) is currently not supported by this Client.)
-endif
-endif
-
 # ----------
 
 ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/amd64/x86_64/)
