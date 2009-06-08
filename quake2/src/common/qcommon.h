@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "../game/baseq2/q_shared.h"
 
-#define	VERSION		1.03
+#define	VERSION		1.04
 #define	BASEDIRNAME	"baseq2"
 
 #if defined __linux__ 
