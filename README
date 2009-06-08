@@ -1,0 +1,12 @@
+This is the Yamagi Quake II Client, an enhanced Version of id Software's
+legendary Quake II. Main focus is single player, the gameplay is
+unchanged but many bugs were fixed. This code should run under any POSIX
+compliant operating system, just type "make" oder "gmake" to compile.
+Remeber, you'll need a working SDL installation!
+
+This code is based upon Icculus Quake II, which is based upon id
+Software's original code drop. It's released under the terms of the GPL
+version 2. You can read the licence under 
+http://www.gnu.org/licenses/gpl-2.0.html#TOC1
+
+For more information visit http://www.yamagi.org/quake2
