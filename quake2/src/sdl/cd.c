@@ -201,6 +201,8 @@ void CDAudio_Resume()
 
 void CDAudio_Update()
 {
+	static int cnt=0;
+	
 	if(!cd_id || !enabled) return;
 	if(cd_volume && cd_volume->value != cdvolume)
 	{
@@ -217,18 +219,21 @@ void CDAudio_Update()
 		cdvolume = cd_volume->value;
 		return;
 	}
-	
-	if(cd_nocd->value)
-	{
-		CDAudio_Stop();
-		return;
-	}
-	
-	if(playLooping && 
-	   (SDL_CDStatus(cd_id) != CD_PLAYING) && 
-	   (SDL_CDStatus(cd_id) != CD_PAUSED))
-	{
-		CDAudio_Play(lastTrack,true);
+	// this causes too much overhead to be executed every frame
+	if(++cnt == 16) {
+		cnt=0;
+		if(cd_nocd->value)
+		{
+			CDAudio_Stop();
+			return;
+		}
+		
+		if(playLooping && 
+		   (SDL_CDStatus(cd_id) != CD_PLAYING) && 
+		   (SDL_CDStatus(cd_id) != CD_PAUSED))
+		{
+			CDAudio_Play(lastTrack,true);
+		}
 	}
 }
 
