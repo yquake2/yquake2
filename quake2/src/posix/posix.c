@@ -158,6 +158,23 @@ void Sys_Mkdir (char *path)
     mkdir (path, 0777);
 }
 
+void
+Sys_Rmdir(char *path)
+{
+	rmdir(path);
+} 
+
+char *
+Sys_GetCurrentDirectory(void)
+{
+	static char	dir[MAX_OSPATH];
+
+	if (!getcwd(dir, sizeof(dir)))
+		Sys_Error("Couldn't get current working directory");
+
+	return dir;
+}
+
 char *strlwr (char *s)
 {
 	char *p = s;

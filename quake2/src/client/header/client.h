@@ -43,6 +43,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "../input/keys.h"
 #include "../console/console.h"
 #include "../sound/cdaudio.h"
+#include "../sound/snd_ogg.h"
 
 //=============================================================================
 

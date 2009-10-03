@@ -355,6 +355,17 @@ void CL_PrepRefresh (void)
 	}
 	else{
 	    CDAudio_Play (atoi(cl.configstrings[CS_CDTRACK]), true);
+
+		/* OGG/Vorbis */
+		if (atoi(cl.configstrings[CS_CDTRACK]) < 10)
+		{
+			char tmp[2] = "0";
+			OGG_ParseCmd(strcat(tmp, cl.configstrings[CS_CDTRACK]));
+		}
+		else
+		{
+			OGG_ParseCmd(cl.configstrings[CS_CDTRACK]);
+		}
 	  }
 }
 

@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "../header/client.h"
 #include "snd_loc.h"
+#include "snd_ogg.h"
 
 void S_Play(void);
 void S_SoundList(void);
@@ -137,6 +138,8 @@ void S_Init (void)
 		Cmd_AddCommand("stopsound", S_StopAllSounds);
 		Cmd_AddCommand("soundlist", S_SoundList);
 		Cmd_AddCommand("soundinfo", S_SoundInfo_f);
+		Cmd_AddCommand("ogg_init", OGG_Init);
+		Cmd_AddCommand("ogg_shutdown", OGG_Shutdown);
 
 		if (!SNDDMA_Init())
 			return;
@@ -152,6 +155,8 @@ void S_Init (void)
 		Com_Printf ("sound sampling rate: %i\n", dma.speed);
 
 		S_StopAllSounds ();
+
+		OGG_Init();
 	}
 
 	Com_Printf("------------------------------------\n");
@@ -169,6 +174,11 @@ void S_Shutdown(void)
 
 	if (!sound_started)
 		return;
+
+	OGG_Shutdown();
+
+   	Cmd_RemoveCommand("ogg_init");
+	Cmd_RemoveCommand("ogg_shutdown"); 
 
 	SNDDMA_Shutdown();
 
@@ -621,11 +631,11 @@ struct sfx_s *S_RegisterSexedSound (entity_state_t *ent, char *base)
 	if (!sfx)
 	{
 		// no, so see if it exists
-		FS_FOpenFile (&sexedFilename[1], &f);
+		FS_FOpenFile (&sexedFilename[1], (fileHandle_t *)&f, FS_READ);
 		if (f)
 		{
 			// yes, close the file and register it
-			FS_FCloseFile (f);
+			FS_FCloseFile ((size_t)f);
 			sfx = S_RegisterSound (sexedFilename);
 		}
 		else
@@ -1111,6 +1121,9 @@ void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 
 	// mix some sound
 	S_Update_();
+
+	/* stream music */
+	OGG_Stream();
 }
 
 void GetSoundtime(void)

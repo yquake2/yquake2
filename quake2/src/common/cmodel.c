@@ -1708,7 +1708,7 @@ and recalculates the area connections
 */
 void	CM_ReadPortalState (FILE *f)
 {
-	FS_Read (portalopen, sizeof(portalopen), f);
+	FS_Read (portalopen, sizeof(portalopen), (size_t)f);
 	FloodAreaConnections ();
 }
 
