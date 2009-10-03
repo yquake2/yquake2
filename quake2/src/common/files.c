@@ -1414,13 +1414,8 @@ FS_SetGamedir(char *dir)
 		Cvar_FullSet("gamedir", dir, CVAR_SERVERINFO | CVAR_NOSET);
 		if (fs_cddir->string[0] == '\0')
 			FS_AddGameDirectory(va("%s/%s", fs_cddir->string, dir));
-#ifdef LIBDIR
-		FS_AddGameDirectory(va("%s/%s", LIBDIR, dir));
-#endif
 		FS_AddGameDirectory(va("%s/%s", fs_basedir->string, dir));
-#ifdef DATADIR
 		FS_AddHomeAsGameDirectory(dir);
-#endif
 	}
 }
 
@@ -1744,11 +1739,7 @@ FS_InitFilesystem(void)
 	/*
 	 * basedir <path> Allows the game to run from outside the data tree.
 	 */
-#ifdef DATADIR
-	fs_basedir = Cvar_Get("basedir", DATADIR, CVAR_NOSET);
-#else
 	fs_basedir = Cvar_Get("basedir", ".", CVAR_NOSET);
-#endif
 
 	/*
 	 * cddir <path> Logically concatenates the cddir after the basedir to
@@ -1768,13 +1759,8 @@ FS_InitFilesystem(void)
 	fs_homepath = Cvar_Get("homepath", Sys_GetCurrentDirectory(), CVAR_NOSET);
 
 	/* Add baseq2 to search path. */
-#ifdef LIBDIR
-	FS_AddGameDirectory(va("%s/" BASEDIRNAME, LIBDIR));
-#endif
 	FS_AddGameDirectory(va("%s/" BASEDIRNAME, fs_basedir->string));
-#ifdef DATADIR
 	FS_AddHomeAsGameDirectory(BASEDIRNAME);
-#endif
 
 	/* Any set gamedirs will be freed up to here. */
 	fs_baseSearchPaths = fs_searchPaths;
