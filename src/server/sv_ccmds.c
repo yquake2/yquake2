@@ -317,7 +317,7 @@ void SV_ReadLevelFile (void)
 		Com_Printf ("Failed to open %s\n", name);
 		return;
 	}
-	FS_Read (sv.configstrings, sizeof(sv.configstrings), f);
+	FS_Read (sv.configstrings, sizeof(sv.configstrings), (size_t)f);
 	CM_ReadPortalState (f);
 	fclose (f);
 
@@ -421,10 +421,10 @@ void SV_ReadServerFile (void)
 		return;
 	}
 	// read the comment field
-	FS_Read (comment, sizeof(comment), f);
+	FS_Read (comment, sizeof(comment), (size_t)f);
 
 	// read the mapcmd
-	FS_Read (mapcmd, sizeof(mapcmd), f);
+	FS_Read (mapcmd, sizeof(mapcmd), (size_t)f);
 
 	// read all CVAR_LATCH cvars
 	// these will be things like coop, skill, deathmatch, etc
@@ -432,7 +432,7 @@ void SV_ReadServerFile (void)
 	{
 		if (!fread (name, 1, sizeof(name), f))
 			break;
-		FS_Read (string, sizeof(string), f);
+		FS_Read (string, sizeof(string), (size_t)f);
 		Com_DPrintf ("Set %s = %s\n", name, string);
 		Cvar_ForceSet (name, string);
 	}

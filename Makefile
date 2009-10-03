@@ -58,6 +58,9 @@ endif
 #   work on all CPUs. Adjust to your needs
 # CFLAFS_BASE += -mmmx  -msse  -msse2 -msse3 -m3dnow 
 
+# OGG/Vorbis
+OGGCFLAGS = -I/usr/include -I/usr/local/include
+
 # SDL
 SDLCFLAGS = $(shell sdl-config --cflags)
 
@@ -100,8 +103,14 @@ ifeq ($(OSTYPE),FreeBSD)
 LDFLAGS=-lm
 endif 
 
+# OGG/Vorbis
+OGGLDFLAGS = -lvorbis -lvorbisfile -logg
+
 # SDL
 SDLLDFLAGS=$(shell sdl-config --libs)
+
+# ZLib
+ZLDFLAGS = -lz
 
 # OpenGL
 OPENGLLDFLAGS = -shared
@@ -129,6 +138,7 @@ client:
 		build/posix/vid \
 		build/sdl \
 		build/server \
+		build/unzip \
 		release
 	$(MAKE) release/quake2	
 
@@ -188,7 +198,8 @@ CLIENT_OBJS = \
 	build/client/menu/qmenu.o \
 	build/client/sound/snd_dma.o \
 	build/client/sound/snd_mem.o \
-	build/client/sound/snd_mix.o
+	build/client/sound/snd_mix.o \
+	build/client/sound/snd_ogg.o
 
 # ---------
 
@@ -204,6 +215,13 @@ COMMON_OBJS = \
 	build/common/net_chan.o \
 	build/common/pmove.o 
  
+# ----------
+
+# Unzip Object
+UNZIP_OBJ = \
+	build/unzip/ioapi.o \
+	build/unzip/unzip.o
+
 # ----------
 
 # Game ABI objets
@@ -452,6 +470,9 @@ build/client/sound/snd_mem.o :		src/client/sound/snd_mem.c
 build/client/sound/snd_mix.o :		src/client/sound/snd_mix.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
+build/client/sound/snd_ogg.o :		src/client/sound/snd_ogg.c
+	$(CC) $(CFLAGS_CLIENT) $(OGGCFLAGS) -o $@ -c $< 
+ 
 # ---------
 
 # Common build
@@ -481,6 +502,14 @@ build/common/net_chan.o :   		src/common/net_chan.c
 
 build/common/pmove.o :      		src/common/pmove.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+
+# ----------
+
+build/unzip/ioapi.o :   	   		src/unzip/ioapi.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+
+build/unzip/unzip.o :	      		src/unzip/unzip.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
 # ----------
 
@@ -903,16 +932,17 @@ build/ctf/q_shared.o:  				src/game/ctf/q_shared.c
   
 #  The client
 release/quake2 : $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
-    $(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS)
+    $(UNZIP_OBJ) $(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS)
 	$(CC) $(CFLAGS_CLIENT) -o $@ $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
-		$(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS) $(LDFLAGS) $(SDLLDFLAGS)
+		$(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS) $(UNZIP_OBJ) $(LDFLAGS) \
+		$(SDLLDFLAGS) $(OGGLDFLAGS) $(ZLDFLAGS)
 
 # Dedicated Server
 release/q2ded : $(DEDICATED_SERVER_OBJS) $(DEDICATED_SERVER_COMMON_OBJS) \
-	$(GAME_ABI_OBJS) $(DEDICATED_SERVER_POSIX_OBJS)
+	$(GAME_ABI_OBJS) $(DEDICATED_SERVER_POSIX_OBJS) $(UNZIP_OBJ)
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ $(DEDICATED_SERVER_OBJS) \
-		$(DEDICATED_SERVER_COMMON_OBJS) $(GAME_ABI_OBJS) \
-		$(DEDICATED_SERVER_POSIX_OBJS) $(LDFLAGS)
+		$(DEDICATED_SERVER_COMMON_OBJS) $(GAME_ABI_OBJS) $(UNZIP_OBJ)\
+		$(DEDICATED_SERVER_POSIX_OBJS) $(LDFLAGS) $(ZLDFLAGS)
 
 # OpenGL refresher
 release/ref_gl.so : $(OPENGL_OBJS) $(OPENGL_POSIX_OBJS) $(OPENGL_GAME_OBJS)
