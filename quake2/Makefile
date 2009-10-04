@@ -4,7 +4,6 @@
 # Just type "make" to compile the                        #
 #  - SDL Client (quake2)                                 #
 #  - Server (quake2ded)                                  #
-#  - SDL Software-Renderer (ref_soft.so)                 #
 #  - SDL OpenGL-Renderer (ref_gl.so)                     #
 #  - games:                                              #
 #    - Quake II (quake2)                                 #
@@ -14,6 +13,9 @@
 #  - SDL 1.2                                             #
 #  - libX11                                              #
 #  - libGL                                               #
+#  - libvorbis                                           #
+#  - libogg                                              #
+#  - zlib                                                #
 #                                                        #
 # Platforms:                                             #
 #  - Linux                                               #
