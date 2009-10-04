@@ -1,13 +1,222 @@
+                   * ****************************** *
+                   *        Yamagi Quake II         *
+                   *  http://www.yamagi.org/quake2  *
+                   * ****************************** *
+                   
+===============================================================================
+
 This is the Yamagi Quake II Client, an enhanced Version of id Software's
 legendary Quake II. Main focus is single player, the gameplay is
 unchanged but many bugs were fixed. This code should run under any POSIX
 compliant operating system, just type "make" oder "gmake" to compile.
-Remeber, you'll need a working SDL installation and the OpenGL system
-headers!
 
-This code is based upon Icculus Quake II, which is based upon id
-Software's original code drop. It's released under the terms of the GPL
-version 2. You can read the licence under 
-http://www.gnu.org/licenses/gpl-2.0.html#TOC1
+This code is based upon Icculus Quake II, which itself is based upon id
+Software's original code drop. Additional code and patches by many
+contributers were used. It's released under the terms of the GPL version
+2. You can read the whole licence under http://www.gnu.org/
 
-For more information visit http://www.yamagi.org/quake2
+===============================================================================
+
+Content of this file:
+--------------------
+ 1. Installation
+   1.1 Retail version
+   1.2 Demo version
+   1.3 Dependencies
+   1.4 Compiling
+ 
+ 2. OGG/Vorbis playback
+   2.1 Setup for the original soundtrack
+   2.2 Setup for other music and playlists
+   2.3 Manual control
+   2.4 Console variables
+
+ 3. Widescreen setup
+
+ 4. Bugreports
+===============================================================================
+
+1. Installation
+==============
+Note: If you're using Debian Linux or a derived Distribution like
+Ubuntu, you probably want to use the packages that are linked in the
+Download section at http://www.yamagi.org/quake2. They'll even assist
+you in installing the game data.
+
+1.1 Retail version:
+-------------------
+If you own Quake II, first get the official point release to Quake II
+3.20: http://www.quake.de/index.php?action=fileinfo&q=q2&element=21
+
+Create a new directory "quake2/" and extract the just file you just
+downloaded into it. Even if the file extension is ".exe" it's just a
+normal zip file. Now delete the following files and directories:
+- 3.20_Changes.txt 
+- index.html 
+- quake2.exe 
+- ref_gl.dll 
+- ref_soft.dll 
+- baseq2/gamex86.dll 
+- baseq2/maps.lst 
+- ctf/ctf2.ico 
+- ctf/gamex86.dll 
+- ctf/readme.txt 
+- ctf/server.cfg 
+- DOCS/ 
+- xatrix/gamex86.dll 
+- rogue/gamex86.dll
+
+Now put the Quake II CD-ROM into your cd drive and copy the file
+"pak0.pak" and the directory "video/" to the baseq2-directory of your
+installation.
+
+1.2 Demo version:
+-----------------
+If you haven't got Quake II, try the demo version. Get it here: 
+ftp://ftp.fu-berlin.de/pc/msdos/games/idgames/idstuff/quake2/q2-314-demo-x86.exe
+
+Create a new quake2/ directory with a baseq2/ sub-directory and put the
+pak0.pak and the players/ sub-directory you can find within the unzipped
+files (in Install/Data/baseq2/) in your baseq2-directory.  No patching
+is needed for the demo, in fact it would break it.
+
+1.3 Dependencies:
+-----------------
+ - X11 Windows System with development headers
+ - OpenGL system headers (Mesa3D, nVidia, fglrx, etc.)
+ - libvorbis with development headers
+ - libogg with development headers
+ - ZLib
+ - SDL with development headers and sdl-config(1)
+
+1.4 Compiling:
+--------------
+After you have set up the game data (from the full version or the
+demo), you have to compile the Yamagi Quake II client. Just extract the
+source, change into the new created directory and type "make" (Linux) or
+"gmake" (FreeBSD). After the compilation finished copy the following
+files out of release/ to your installation directory preserving the
+directory structure:
+- q2ded 
+- quake2 
+- ref_gl.so 
+- baseq2/game.so 
+- ctf/game.so (not for the demo version)
+
+You should now be ready to start your brand new Quake II. Have fun.
+
+===============================================================================
+
+2. OGG/Vorbis playback
+======================
+Since most modern CD-ROM and DVD drives don't have an analog audio
+output and most sound codecs don't have the appropriate input header,
+it's no longer possible to play Quake II with the original Audio-CD for
+background music. Therefor OGG/Vorbis playback has been added to Yamagi
+Quake II. It can play the original soundtrack, like if the CD is in the
+drive or customized playlists.
+
+2.1 Setup for the original soundtrack:
+--------------------------------------
+Put your Quake II CD-ROM in your drive, start your favorite CD extractor
+and rip the audiotracks into OGG/Vorbis files. These files must be named
+after their track number. Remember! Since the first track on the CD ist
+"data", the first audio track is number 2! If everything is done
+correct, you should have: 02.ogg, 03.ogg, ..., 11.ogg Put these files
+under baseq2/music, start Quake II, enter the "Options" menu and set
+"OGG music" to enabled. "CD music" will be automaticly disabled. Quake
+II will now play the OGG/Vorbis files instead of the Audio-CD.
+
+2.2 Setup for other music and playlists:
+----------------------------------------
+You can put normal OGG/Vorbis files into baseq2/music or your_mod/music.
+If shuffle is enabled, Quake II will shuffle through all files.
+Otherwise it will loop through the track associated with the map.
+Therefor playlists can be used. Just put the filenames into
+music/playlists (a plain text file) and start the game. For manuell
+control there are some CVar. Remember, these are only available, if "OGG
+music" is enabled!
+
+2.3 Manual control:
+-------------------
+- ogg_play {file | #n | ? | >n | <n}
+ Play a file, the argument can be one of:
+  * A file in "music", without the path and ".ogg" extension.
+  * A # followed by a number, to play the Nth file in the playlist.
+  * A ? which indicates to play a random file.
+  * A > which indicates to advance N positions (defaults to 1).
+  * A < which indicates to go back N positions (defaults to 1). 
+
+- ogg_stop
+ Stop playing the current file
+
+- ogg_pause
+ Pause the current file
+
+- ogg_resume
+ Resume the current file.
+
+- ogg_seek {n | >n | <n}
+ Go to a determinated position of the file in seconds, the argument can be
+ one of the following:
+  * n, which indicates to go to the nth position.
+  * >n, which indicates to advance n positions.
+  * <n, which indicates to go back n positions.
+ You can use "ogg_seek >0" and "ogg_seek <0" to get the current position
+ without changing it.
+
+- ogg_status
+ Display status (if playing a file, if paused, if stopped, etc.).
+
+2.4 Console variables:
+----------------------
+- ogg_enable {0 | 1}
+ Enable the Ogg Vorbis subsystem when in "1". Defaults to "0".
+
+- ogg_playlist {name}
+ Use "name" as a list of files instead of listing the contents of "music". 
+ Note that the files must be in "music" and follow ogg_play's syntax for 
+ files. Defaults to "playlist".
+
+- ogg_sequence {next | prev | random | loop | none}
+ When a file ends, start playing another one, depending on the value:
+  * next: play the next file.
+  * prev: play the previous file.
+  * random: play a random file.
+  * loop: play the same file again.
+  * none: stop playing.
+ Defaults to "next".
+
+- ogg_volume
+ Volume of the music from 0 to 2. Defaults to "0.7". 
+
+===============================================================================
+
+3. Widescreen
+=============
+
+===============================================================================
+
+4. Bugreports
+=============
+Something is not working as expected? An elevator is broken? An enemy
+doesn't move? Or the whole game is just crashing? Just drop me an e-mail
+to quake2@yamagi.org. Please include a problem description and - if
+possible - a screenshot of the problematic situation and the name of the
+problematic map. But first, read this little FAQ:
+
+My sound is not working!
+ - Most reported sound problems exist between keyboard and chair. Please
+   make sure, the the correct SDL sound backend is installed and
+   configured! Does the sound work in other SDL games? Does your setup
+   support at least five virtual channels? In most cases it's better to
+   not use sound servers like Pulseaudio but the plain sound system
+   like OSS or ALSA with libalsa instead.
+
+My OpenGL is not working!
+ - Make sure, that OpenGL is working in other games. Use "glxinfo" and
+   "glxgears" to make sure, that hardware rendering ist available.
+   Otherwise, fix your setup. If reporting OpenGL bugs please include a
+   copy of your xorg.conf (if available) and the Xorg.0.log.
+
+===============================================================================
