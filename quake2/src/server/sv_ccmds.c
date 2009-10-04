@@ -319,7 +319,7 @@ void SV_ReadLevelFile (void)
 	}
 	FS_Read (sv.configstrings, sizeof(sv.configstrings), (size_t)f);
 	CM_ReadPortalState (f);
-	fclose (f);
+	FS_FCloseFile (f);
 
 	Com_sprintf (name, sizeof(name), "%s/save/current/%s.sav", FS_Gamedir(), sv.name);
 	ge->ReadLevel (name);
@@ -430,7 +430,7 @@ void SV_ReadServerFile (void)
 	// these will be things like coop, skill, deathmatch, etc
 	while (1)
 	{
-		if (!fread (name, 1, sizeof(name), f))
+		if (!FS_Read (name, 1, sizeof(name), f))
 			break;
 		FS_Read (string, sizeof(string), (size_t)f);
 		Com_DPrintf ("Set %s = %s\n", name, string);
