@@ -2137,7 +2137,7 @@ static void Create_Savestrings (void)
 	for (i=0 ; i<MAX_SAVEGAMES ; i++)
 	{
 		Com_sprintf (name, sizeof(name), "%s/save/save%i/server.ssv", FS_Gamedir(), i);
-		f = fopen (name, "rb");
+		FS_FOpenFile(name, (fileHandle_t *)&f, FS_READ); 
 		if (!f)
 		{
 			strcpy (m_savestrings[i], "<EMPTY>");
