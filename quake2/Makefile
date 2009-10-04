@@ -44,7 +44,7 @@ CC = gcc
 ifeq ($(ARCH),i386)
 CFLAGS_BASE = -O2 -ffast-math -funroll-loops -falign-loops=2 \
 		-falign-jumps=2 -falign-functions=2 -fno-strict-aliasing \
-		-Wall -pipe -g
+		-fomit-frame-pointer -Wall -pipe -g
 endif
 
 ifeq ($(ARCH),x86_64)
@@ -62,7 +62,7 @@ endif
 OGGCFLAGS = -I/usr/include -I/usr/local/include
 
 # SDL
-SDLCFLAGS = $(shell sdl-config --cflags)
+SDLCFLAGS := $(shell sdl-config --cflags)
 
 # Client
 CFLAGS_CLIENT = $(CFLAGS_BASE)
@@ -75,15 +75,6 @@ CFLAGS_DEDICATED_SERVER += -DDEDICATED_ONLY
 CFLAGS_OPENGL = $(CFLAGS_BASE)
 CFLAGS_OPENGL += -I/usr/include -I/usr/local/include -I/usr/X11R6/include
 CFLAGS_OPENGL += -fPIC
-
-# This disables the use of
-#  - GL_EXT_point_parameters
-#  - GL_ARB_multitexture
-#  - GL_SGIS_multitexture
-# Neccecery for some broken Mesa-Drivers like
-# xf86-video-radeonhd (crash) or xf86-video-ati
-# (very slow, ~20FPS)
-CFLAGS_OPENGL += -DBROKEN_GL
 
 # Game
 CFLAGS_GAME = $(CFLAGS_BASE)
@@ -107,10 +98,10 @@ endif
 OGGLDFLAGS = -lvorbis -lvorbisfile -logg
 
 # SDL
-SDLLDFLAGS=$(shell sdl-config --libs)
+SDLLDFLAGS := $(shell sdl-config --libs)
 
 # ZLib
-ZLDFLAGS = -lz
+ZLIBLDFLAGS = -lz
 
 # OpenGL
 OPENGLLDFLAGS = -shared
@@ -935,14 +926,14 @@ release/quake2 : $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
     $(UNZIP_OBJ) $(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS)
 	$(CC) $(CFLAGS_CLIENT) -o $@ $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
 		$(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS) $(UNZIP_OBJ) $(LDFLAGS) \
-		$(SDLLDFLAGS) $(OGGLDFLAGS) $(ZLDFLAGS)
+		$(SDLLDFLAGS) $(OGGLDFLAGS) $(ZLIBLDFLAGS)
 
 # Dedicated Server
 release/q2ded : $(DEDICATED_SERVER_OBJS) $(DEDICATED_SERVER_COMMON_OBJS) \
 	$(GAME_ABI_OBJS) $(DEDICATED_SERVER_POSIX_OBJS) $(UNZIP_OBJ)
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ $(DEDICATED_SERVER_OBJS) \
 		$(DEDICATED_SERVER_COMMON_OBJS) $(GAME_ABI_OBJS) $(UNZIP_OBJ)\
-		$(DEDICATED_SERVER_POSIX_OBJS) $(LDFLAGS) $(ZLDFLAGS)
+		$(DEDICATED_SERVER_POSIX_OBJS) $(LDFLAGS) $(ZLIBLDFLAGS)
 
 # OpenGL refresher
 release/ref_gl.so : $(OPENGL_OBJS) $(OPENGL_POSIX_OBJS) $(OPENGL_GAME_OBJS)
