@@ -1174,7 +1174,6 @@ int R_Init( void *hinstance, void *hWnd )
 
 	if ( strstr( gl_config.extensions_string, "GL_EXT_point_parameters" ) )
 	{
-#ifndef BROKEN_GL
 		if ( gl_ext_pointparameters->value )
 		{
 			qglPointParameterfEXT = ( void (APIENTRY *)( GLenum, GLfloat ) ) qwglGetProcAddress( "glPointParameterfEXT" );
@@ -1185,9 +1184,6 @@ int R_Init( void *hinstance, void *hWnd )
 		{
 			ri.Con_Printf( PRINT_ALL, "...ignoring GL_EXT_point_parameters\n" );
 		}
-#else
-			ri.Con_Printf( PRINT_ALL, "...ignoring GL_EXT_point_parameters\n" );
-#endif
 	}
 	else
 	{
