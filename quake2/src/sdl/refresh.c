@@ -350,6 +350,31 @@ static void SetSDLIcon()
 }
 
 /*
+ * * UpdateHardwareGamma *
+ *
+ * We are using gamma relative to the desktop, so that we can share it * with
+ * software renderer and don't require to change desktop gamma * to match
+ * hardware gamma image brightness. It seems that Quake 3 is * using the
+ * opposite approach, but it has no software renderer after * all.
+ */
+void
+UpdateHardwareGamma(void)
+{
+	float g = (1.3 - vid_gamma->value + 1);
+	g = (g > 1 ? g : 1);
+	
+	SDL_SetGamma(g, g, g);
+}
+
+void 
+SetSDLGamma(void)
+{
+	gl_state.hwgamma = true;
+	vid_gamma->modified = true;
+	ri.Con_Printf(PRINT_ALL, "Using hardware gamma\n");
+}  
+
+/*
 ** SWimp_InitGraphics
 **
 ** This initializes the software refresh's implementation specific
@@ -423,6 +448,7 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	SDL_ShowCursor(0);
 
 	X11_active = true;
+    SetSDLGamma();
 
 	return true;
 }
@@ -481,7 +507,7 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 ** DIBs or DDRAW surfaces as appropriate.
 */
 
-void SWimp_Shutdown( void )
+void GLimp_Shutdown( void )
 {
 	if (surface)
 		SDL_FreeSurface(surface);
@@ -491,13 +517,9 @@ void SWimp_Shutdown( void )
 		SDL_Quit();
 	else
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
-		
+	
+	gl_state.hwgamma = false;
 	X11_active = false;
-}
-
-void GLimp_Shutdown( void )
-{
-	SWimp_Shutdown();
 }
 
 /*
