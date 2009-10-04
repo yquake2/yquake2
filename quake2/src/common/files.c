@@ -670,7 +670,6 @@ FS_FRead(void *buffer, int size, int count, fileHandle_t f)
 					tried = true;
 				} else {
 					/* Already tried once. */
-					Com_Printf("FS_FRead: 0 bytes read from '%s'.\n", handle->name);
 					return (size - remaining);
 				}
 			} else if (r == -1)

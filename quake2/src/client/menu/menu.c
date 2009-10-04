@@ -2131,7 +2131,7 @@ qboolean	m_savevalid[MAX_SAVEGAMES];
 static void Create_Savestrings (void)
 {
 	int		i;
-	FILE	*f;
+	fileHandle_t	*f;
 	char	name[MAX_OSPATH];
 
 	for (i=0 ; i<MAX_SAVEGAMES ; i++)
