@@ -34,6 +34,9 @@ Content of this file:
  3. Widescreen setup
 
  4. Bugreports
+
+ 5. FAQ
+
 ===============================================================================
 
 1. Installation
@@ -194,6 +197,10 @@ music" is enabled!
 
 3. Widescreen
 =============
+Yamagi Quake II has full support for widescreen setups. Just select your
+favorite resolution and start a game. Now you'll need to adjust the fiel
+of view. Open the console with pressing "^" or "~" and set the fov cvar.
+Default is 90, I suggest 100 for 16:10 screens and 105 for 16:9.
 
 ===============================================================================
 
@@ -218,5 +225,29 @@ My OpenGL is not working!
    "glxgears" to make sure, that hardware rendering ist available.
    Otherwise, fix your setup. If reporting OpenGL bugs please include a
    copy of your xorg.conf (if available) and the Xorg.0.log.
+
+===============================================================================
+
+5. FAQ
+======
+
+How do I open the console?
+ - Press "^" or "~", depending on your keyboard layout.
+
+How do I get the frame counter?
+ - Set cl_drawfps to 1
+
+How do I make a benchmark?
+ - Set timedemo to 1 and play a demo.
+
+How do I play demos?
+ - "demomap name.dm2". Remember, the extension .dm2 is important!
+
+How do I record a demo?
+ - "record name" and "stop" to stop.
+
+When playing in window mode my is locked onto the window. Can I change
+that, e.g. that Quake II is behaving like a normal window?
+ - Set "_windowed_mouse" to 0.
 
 ===============================================================================
