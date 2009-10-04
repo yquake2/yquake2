@@ -378,12 +378,6 @@ extern	void ( APIENTRY * qglColorTableEXT)( GLenum, GLenum, GLsizei, GLenum, GLe
 extern	void ( APIENTRY * qglLockArraysEXT) (int , int);
 extern	void ( APIENTRY * qglUnlockArraysEXT) (void);
 
-extern	void ( APIENTRY * qglMTexCoord2fSGIS)( GLenum, GLfloat, GLfloat );
-extern	void ( APIENTRY * qglSelectTextureSGIS)( GLenum );
-
-extern	void ( APIENTRY * qglActiveTextureARB)( GLenum );
-extern	void ( APIENTRY * qglClientActiveTextureARB)( GLenum );
-
 #if defined __linux__ || defined __FreeBSD__
 // local function in dll
 extern void *qwglGetProcAddress(char *symbol);
