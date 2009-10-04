@@ -18,21 +18,6 @@
 		Boston, MA  02111-1307, USA
 */ 
 
-/*
-** RW_SDL.C
-**
-** This file contains ALL Linux specific stuff having to do with the
-** software refresh.  When a port is being made the following functions
-** must be implemented by the port:
-**
-** SWimp_EndFrame
-** SWimp_Init
-** SWimp_InitGraphics
-** SWimp_SetPalette
-** SWimp_Shutdown
-** SWimp_SwitchFullscreen
-*/
-
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -70,7 +55,6 @@ int config_notify_height;
 glwstate_t glw_state;
 static cvar_t *use_stencil;
 						      
-// Console variables that we need to access from this module
 
 /*****************************************************************************/
 /* MOUSE                                                                     */
@@ -81,14 +65,11 @@ static cvar_t *use_stencil;
 qboolean mouse_active;
 int mx, my, mouse_buttonstate;
 
-// this is inside the renderer shared lib, so these are called from vid_so
-
 static float old_windowed_mouse;
-
 static cvar_t	*_windowed_mouse;
 
 void RW_IN_PlatformInit() {
-  _windowed_mouse = ri.Cvar_Get ("_windowed_mouse", "0", CVAR_ARCHIVE);
+  _windowed_mouse = ri.Cvar_Get ("_windowed_mouse", "1", CVAR_ARCHIVE);
 }
 
 void RW_IN_Activate(qboolean active)
@@ -176,10 +157,9 @@ int XLateKey(unsigned int keysym)
   case SDLK_KP_MINUS:		key = K_KP_MINUS; break;
   case SDLK_KP_DIVIDE:		key = K_KP_SLASH; break;
     
-    /* suggestions on how to handle this better would be appreciated */
   case SDLK_WORLD_7:		key = '`'; break;
     
-  default: /* assuming that the other sdl keys are mapped to ascii */
+  default: 
     if (keysym < 128)
       key = keysym;
     break;
@@ -239,17 +219,17 @@ void GetEvent(SDL_Event *event)
 	    }
 	    
 	    fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", 0 );
-	    fullscreen->modified = false; /* we just changed it with SDL. */
+	    fullscreen->modified = false; 
 	    
-	    break; /* ignore this key */
+	    break;
 	  }
 	  
 	  if ( (KeyStates[SDLK_LCTRL] || KeyStates[SDLK_RCTRL]) &&
 	       (event->key.keysym.sym == SDLK_g) ) {
 	    SDL_GrabMode gm = SDL_WM_GrabInput(SDL_GRAB_QUERY);
-	    ri.Cvar_SetValue( "_windowed_mouse", (gm == SDL_GRAB_ON) ? /*1*/ 0 : /*0*/ 1 );
+	    ri.Cvar_SetValue( "_windowed_mouse", (gm == SDL_GRAB_ON) ? 1 : 0 );
 	    
-	    break; /* ignore this key */
+	    break; 
 	  }
 	  
 	  KeyStates[event->key.keysym.sym] = 1;
@@ -282,12 +262,6 @@ void GetEvent(SDL_Event *event)
 
 /*****************************************************************************/
 
-/*
-** SWimp_Init
-**
-** This routine is responsible for initializing the implementation
-** specific stuff in a software rendering subsystem.
-*/
 int SWimp_Init( void *hInstance, void *wndProc )
 {
   if (SDL_WasInit(SDL_INIT_AUDIO|SDL_INIT_CDROM|SDL_INIT_VIDEO) == 0) {
@@ -325,13 +299,13 @@ static void SetSDLIcon()
 
 	icon = SDL_CreateRGBSurface(SDL_SWSURFACE, q2icon_width, q2icon_height, 8, 0, 0, 0, 0);
 	if (icon == NULL)
-		return; /* oh well... */
+		return; 
 	SDL_SetColorKey(icon, SDL_SRCCOLORKEY, 0);
 
 	color.r = 255;
 	color.g = 255;
 	color.b = 255;
-	SDL_SetColors(icon, &color, 0, 1); /* just in case */
+	SDL_SetColors(icon, &color, 0, 1);
 	color.r = 0;
 	color.g = 16;
 	color.b = 0;
@@ -349,14 +323,6 @@ static void SetSDLIcon()
 	SDL_FreeSurface(icon);
 }
 
-/*
- * * UpdateHardwareGamma *
- *
- * We are using gamma relative to the desktop, so that we can share it * with
- * software renderer and don't require to change desktop gamma * to match
- * hardware gamma image brightness. It seems that Quake 3 is * using the
- * opposite approach, but it has no software renderer after * all.
- */
 void
 UpdateHardwareGamma(void)
 {
@@ -374,21 +340,11 @@ SetSDLGamma(void)
 	ri.Con_Printf(PRINT_ALL, "Using hardware gamma\n");
 }  
 
-/*
-** SWimp_InitGraphics
-**
-** This initializes the software refresh's implementation specific
-** graphics subsystem.  In the case of Windows it creates DIB or
-** DDRAW surfaces.
-**
-** The necessary width and height parameters are grabbed from
-** vid.width and vid.height.
-*/
+
 static qboolean GLimp_InitGraphics( qboolean fullscreen )
 {
 	int flags;
 	
-	/* Just toggle fullscreen if that's all that has been changed */
 	if (surface && (surface->w == vid.width) && (surface->h == vid.height)) {
 		int isfullscreen = (surface->flags & SDL_FULLSCREEN) ? 1 : 0;
 		if (fullscreen != isfullscreen)
@@ -401,11 +357,9 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	
 	srandom(getpid());
 
-	// free resources in use
 	if (surface)
 		SDL_FreeSurface(surface);
 
-	// let the sound and input subsystems know about the new window
 	ri.Vid_NewWindow (vid.width, vid.height);
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
@@ -421,14 +375,13 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	if (fullscreen)
 		flags |= SDL_FULLSCREEN;
 	
-	SetSDLIcon(); /* currently uses q2icon.xbm data */
+	SetSDLIcon();
 	
 	if ((surface = SDL_SetVideoMode(vid.width, vid.height, 0, flags)) == NULL) {
 		Sys_Error("(SDLGL) SDL SetVideoMode failed: %s\n", SDL_GetError());
 		return false;
 	}
 
-	// stencilbuffer shadows
  	if (use_stencil) {
 	  int stencil_bits;
 	  
@@ -457,21 +410,12 @@ void GLimp_BeginFrame( float camera_seperation )
 {
 }
 
-/*
-** SWimp_EndFrame
-**
-** This does an implementation specific copy from the backbuffer to the
-** front buffer.  In the Win32 case it uses BitBlt or BltFast depending
-** on whether we're using DIB sections/GDI or DDRAW.
-*/
 void GLimp_EndFrame (void)
 {
 	SDL_GL_SwapBuffers();
 }
 
-/*
-** SWimp_SetMode
-*/
+
 int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 {
 	ri.Con_Printf (PRINT_ALL, "setting mode %d:", mode );
@@ -485,27 +429,12 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	ri.Con_Printf( PRINT_ALL, " %d %d\n", *pwidth, *pheight);
 
 	if ( !GLimp_InitGraphics( fullscreen ) ) {
-		// failed to set a valid mode in windowed mode
 		return rserr_invalid_mode;
 	}
 
 	return rserr_ok;
 }
 
-/*
-** SWimp_SetPalette
-**
-** System specific palette setting routine.  A NULL palette means
-** to use the existing palette.  The palette is expected to be in
-** a padded 4-byte xRGB format.
-*/
-
-/*
-** SWimp_Shutdown
-**
-** System specific graphics subsystem shutdown routine.  Destroys
-** DIBs or DDRAW surfaces as appropriate.
-*/
 
 void GLimp_Shutdown( void )
 {
@@ -522,9 +451,6 @@ void GLimp_Shutdown( void )
 	X11_active = false;
 }
 
-/*
-** SWimp_AppActivate
-*/
 void GLimp_AppActivate( qboolean active )
 {
 }
@@ -575,7 +501,6 @@ void KBD_Update(void)
   
   KBD_Update_Flag = 1;
   
-  // get events from x server
   if (X11_active)
     {
       int bstate;
@@ -589,9 +514,9 @@ void KBD_Update(void)
       bstate = SDL_GetMouseState(NULL, NULL);
       if (SDL_BUTTON(1) & bstate)
 	mouse_buttonstate |= (1 << 0);
-      if (SDL_BUTTON(3) & bstate) /* quake2 has the right button be mouse2 */
+      if (SDL_BUTTON(3) & bstate) 
 	mouse_buttonstate |= (1 << 1);
-      if (SDL_BUTTON(2) & bstate) /* quake2 has the middle button be mouse3 */
+      if (SDL_BUTTON(2) & bstate) 
 	mouse_buttonstate |= (1 << 2);
       if (SDL_BUTTON(6) & bstate)
 	mouse_buttonstate |= (1 << 3);
@@ -603,10 +528,8 @@ void KBD_Update(void)
 	old_windowed_mouse = _windowed_mouse->value;
 	
 	if (!_windowed_mouse->value) {
-	  /* ungrab the pointer */
 	  SDL_WM_GrabInput(SDL_GRAB_OFF);
 	} else {
-	  /* grab the pointer */
 	  SDL_WM_GrabInput(SDL_GRAB_ON);
 	}
       }			
