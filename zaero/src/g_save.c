@@ -6,16 +6,11 @@ mmove_t mmove_reloc;
 
 field_t fields[] = {
 	{"classname", FOFS(classname), F_LSTRING},
-	{"origin", FOFS(s.origin), F_VECTOR},
 	{"model", FOFS(model), F_LSTRING},
-	{"model2", FOFS(model2), F_LSTRING},
-	{"model3", FOFS(model3), F_LSTRING},
-	{"model4", FOFS(model4), F_LSTRING},
 	{"spawnflags", FOFS(spawnflags), F_INT},
 	{"speed", FOFS(speed), F_FLOAT},
 	{"accel", FOFS(accel), F_FLOAT},
 	{"decel", FOFS(decel), F_FLOAT},
-	{"aspeed", FOFS(aspeed), F_FLOAT},
 	{"target", FOFS(target), F_LSTRING},
 	{"targetname", FOFS(targetname), F_LSTRING},
 	{"pathtarget", FOFS(pathtarget), F_LSTRING},
@@ -35,17 +30,24 @@ field_t fields[] = {
 	{"sounds", FOFS(sounds), F_INT},
 	{"light", 0, F_IGNORE},
 	{"dmg", FOFS(dmg), F_INT},
-	{"angles", FOFS(s.angles), F_VECTOR},
-	{"angle", FOFS(s.angles), F_ANGLEHACK},
-	{"mangle", FOFS(mangle), F_VECTOR},
 	{"mass", FOFS(mass), F_INT},
 	{"volume", FOFS(volume), F_FLOAT},
 	{"attenuation", FOFS(attenuation), F_FLOAT},
 	{"map", FOFS(map), F_LSTRING},
+	{"origin", FOFS(s.origin), F_VECTOR},
+	{"angles", FOFS(s.angles), F_VECTOR},
+	{"angle", FOFS(s.angles), F_ANGLEHACK},
+
+	// Knightmare- hack for setting alpha, allows mappers to specify
+	// an entity's alpha value with the key "salpha"
+#ifdef KMQUAKE2_ENGINE_MOD
+	{"salpha", FOFS(s.alpha), F_FLOAT},
+#endif
+
+	// zaero
+	{"mangle", FOFS(mangle), F_VECTOR},
 	{"active", FOFS(active), F_INT},
 	{"spawnflags2", FOFS(spawnflags2), F_INT},
-	{"mins", FOFS(mins), F_VECTOR},
-	{"maxs", FOFS(maxs), F_VECTOR},
 	{"mteam", FOFS(mteam), F_LSTRING},
 	{"mirrortarget", 0, F_IGNORE},
 	{"mirrorlevelsave", 0, F_IGNORE},
@@ -57,6 +59,10 @@ field_t fields[] = {
 	{"noise", STOFS(noise), F_LSTRING, FFL_SPAWNTEMP},
 	{"pausetime", STOFS(pausetime), F_FLOAT, FFL_SPAWNTEMP},
 	{"item", STOFS(item), F_LSTRING, FFL_SPAWNTEMP},
+	
+	//need for item field in edict struct, FFL_SPAWNTEMP item will be skipped on saves
+	{"item", FOFS(item), F_ITEM},
+	
 	{"gravity", STOFS(gravity), F_LSTRING, FFL_SPAWNTEMP},
 	{"sky", STOFS(sky), F_LSTRING, FFL_SPAWNTEMP},
 	{"skyrotate", STOFS(skyrotate), F_FLOAT, FFL_SPAWNTEMP},
@@ -90,8 +96,8 @@ field_t		clientfields[] =
 	{"newweapon", CLOFS(newweapon), F_ITEM},
 
 	// evolve
-	{"zCameraTrack", CLOFS(zCameraTrack), F_EDICT},
-	{"zCameraLocalEntitiy", CLOFS(zCameraLocalEntity), F_EDICT},
+	{"", CLOFS(zCameraTrack), F_EDICT},
+	{"", CLOFS(zCameraLocalEntity), F_EDICT},
 
 	{NULL, 0, F_INT}
 };
@@ -107,69 +113,78 @@ is loaded.
 */
 void InitGame (void)
 {
-	gi.dprintf ("==== InitGame ====\n");
+  gi.dprintf ("==== InitGame ====\n");
 
-	gun_x = gi.cvar ("gun_x", "0", 0);
-	gun_y = gi.cvar ("gun_y", "0", 0);
-	gun_z = gi.cvar ("gun_z", "0", 0);
+  gun_x = gi.cvar ("gun_x", "0", 0);
+  gun_y = gi.cvar ("gun_y", "0", 0);
+  gun_z = gi.cvar ("gun_z", "0", 0);
 
-	//FIXME: sv_ prefix is wrong for these
-	sv_rollspeed = gi.cvar ("sv_rollspeed", "200", 0);
-	sv_rollangle = gi.cvar ("sv_rollangle", "2", 0);
-	sv_maxvelocity = gi.cvar ("sv_maxvelocity", "2000", 0);
-	sv_gravity = gi.cvar ("sv_gravity", "800", 0);
+  //FIXME: sv_ prefix is wrong for these
+  sv_rollspeed = gi.cvar ("sv_rollspeed", "200", 0);
+  sv_rollangle = gi.cvar ("sv_rollangle", "2", 0);
+  sv_maxvelocity = gi.cvar ("sv_maxvelocity", "2000", 0);
+  sv_gravity = gi.cvar ("sv_gravity", "800", 0);
 
-	// noset vars
-	dedicated = gi.cvar ("dedicated", "0", CVAR_NOSET);
+  // noset vars
+  dedicated = gi.cvar ("dedicated", "0", CVAR_NOSET);
 
-	// latched vars
-	sv_cheats = gi.cvar ("cheats", "0", CVAR_SERVERINFO|CVAR_LATCH);
-	gi.cvar ("gamename", GAMEVERSION , CVAR_SERVERINFO | CVAR_LATCH);
-	gi.cvar ("gamedate", __DATE__ , CVAR_SERVERINFO | CVAR_LATCH);
+  // latched vars
+  sv_cheats = gi.cvar ("cheats", "0", CVAR_SERVERINFO|CVAR_LATCH);
+  gi.cvar ("gamename", GAMEVERSION , CVAR_SERVERINFO | CVAR_LATCH);
+  gi.cvar ("gamedate", __DATE__ , CVAR_SERVERINFO | CVAR_LATCH);
 
-	maxclients = gi.cvar ("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
-	deathmatch = gi.cvar ("deathmatch", "0", CVAR_LATCH);
-	coop = gi.cvar ("coop", "0", CVAR_LATCH);
-	skill = gi.cvar ("skill", "1", CVAR_LATCH);
-	maxentities = gi.cvar ("maxentities", "1024", CVAR_LATCH);
+  maxclients = gi.cvar ("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
+  //maxspectators = gi.cvar ("maxspectators", "4", CVAR_SERVERINFO);
+  deathmatch = gi.cvar ("deathmatch", "0", CVAR_LATCH);
+  coop = gi.cvar ("coop", "0", CVAR_LATCH);
+  skill = gi.cvar ("skill", "1", CVAR_LATCH);
 
-	// change anytime vars
-	dmflags = gi.cvar ("dmflags", "0", CVAR_SERVERINFO);
-	zdmflags = gi.cvar ("zdmflags", "0", CVAR_SERVERINFO);
-	fraglimit = gi.cvar ("fraglimit", "0", CVAR_SERVERINFO);
-	timelimit = gi.cvar ("timelimit", "0", CVAR_SERVERINFO);
-	password = gi.cvar ("password", "", CVAR_USERINFO);
+	//Knightmare- increase maxentities
+	//maxentities = gi.cvar ("maxentities", "1024", CVAR_LATCH);
+	maxentities = gi.cvar ("maxentities", va("%i",MAX_EDICTS), CVAR_LATCH);
 
-	g_select_empty = gi.cvar ("g_select_empty", "0", CVAR_ARCHIVE);
+  // change anytime vars
+  dmflags = gi.cvar ("dmflags", "0", CVAR_SERVERINFO);
+  fraglimit = gi.cvar ("fraglimit", "0", CVAR_SERVERINFO);
+  timelimit = gi.cvar ("timelimit", "0", CVAR_SERVERINFO);
+  password = gi.cvar ("password", "", CVAR_USERINFO);
+  //spectator_password = gi.cvar ("spectator_password", "", CVAR_USERINFO);
+  //needpass = gi.cvar ("needpass", "0", CVAR_SERVERINFO);
+  //filterban = gi.cvar ("filterban", "1", 0);
 
-	run_pitch = gi.cvar ("run_pitch", "0.002", 0);
-	run_roll = gi.cvar ("run_roll", "0.005", 0);
-	bob_up  = gi.cvar ("bob_up", "0.005", 0);
-	bob_pitch = gi.cvar ("bob_pitch", "0.002", 0);
-	bob_roll = gi.cvar ("bob_roll", "0.002", 0);
+  g_select_empty = gi.cvar ("g_select_empty", "0", CVAR_ARCHIVE);
 
-	gamedir = gi.cvar ("gamedir", "baseq2", CVAR_SERVERINFO);
+  run_pitch = gi.cvar ("run_pitch", "0.002", 0);
+  run_roll = gi.cvar ("run_roll", "0.005", 0);
+  bob_up  = gi.cvar ("bob_up", "0.005", 0);
+  bob_pitch = gi.cvar ("bob_pitch", "0.002", 0);
+  bob_roll = gi.cvar ("bob_roll", "0.002", 0);
 
-	// items
-	InitItems ();
+  // flood control
+  //flood_msgs = gi.cvar ("flood_msgs", "4", 0);
+  //flood_persecond = gi.cvar ("flood_persecond", "4", 0);
+  //flood_waitdelay = gi.cvar ("flood_waitdelay", "10", 0);
 
-	Com_sprintf (game.helpmessage1, sizeof(game.helpmessage1), "");
+  // dm map list
+  //sv_maplist = gi.cvar ("sv_maplist", "", 0);
 
-	Com_sprintf (game.helpmessage2, sizeof(game.helpmessage2), "");
+  // items
+  InitItems ();
 
-	// initialize all entities for this game
-	game.maxentities = maxentities->value;
-	g_edicts =  gi.TagMalloc (game.maxentities * sizeof(g_edicts[0]), TAG_GAME);
-	globals.edicts = g_edicts;
-	globals.max_edicts = game.maxentities;
+  Com_sprintf (game.helpmessage1, sizeof(game.helpmessage1), "");
 
-	// initialize all clients for this game
-	game.maxclients = maxclients->value;
-	game.clients = gi.TagMalloc (game.maxclients * sizeof(game.clients[0]), TAG_GAME);
-	globals.num_edicts = game.maxclients+1;
+  Com_sprintf (game.helpmessage2, sizeof(game.helpmessage2), "");
 
-	// get at the gl_polyblend client variable
-	gi.cvar("gl_polyblend", "1", CVAR_USERINFO);
+  // initialize all entities for this game
+  game.maxentities = maxentities->value;
+  g_edicts =  gi.TagMalloc (game.maxentities * sizeof(g_edicts[0]), TAG_GAME);
+  globals.edicts = g_edicts;
+  globals.max_edicts = game.maxentities;
+
+  // initialize all clients for this game
+  game.maxclients = maxclients->value;
+  game.clients = gi.TagMalloc (game.maxclients * sizeof(game.clients[0]), TAG_GAME);
+  globals.num_edicts = game.maxclients+1;
 }
 
 //=========================================================
@@ -487,23 +502,24 @@ void WriteEdict (FILE *f, edict_t *ent)
 	field_t		*field;
 	edict_t		temp;
 
-	// all of the ints, floats, and vectors stay as they are
-	temp = *ent;
+  // all of the ints, floats, and vectors stay as they are
+  temp = *ent;
 
-	// change the pointers to lengths or indexes
-	for (field=fields ; field->name ; field++)
-	{
-		WriteField1 (f, field, (byte *)&temp);
-	}
+  // change the pointers to lengths or indexes
+  for (field=fields ; field->name ; field++)
+  {
+    WriteField1 (f, field, (byte *)&temp);
+  }
 
-	// write the block
-	fwrite (&temp, sizeof(temp), 1, f);
+  // write the block
+  fwrite (&temp, sizeof(temp), 1, f);
 
-	// now write any allocated data following the edict
-	for (field=fields ; field->name ; field++)
-	{
-		WriteField2 (f, field, (byte *)ent);
-	}
+  // now write any allocated data following the edict
+  for (field=fields ; field->name ; field++)
+  {
+    WriteField2 (f, field, (byte *)ent);
+  }
+
 }
 
 /*
@@ -637,82 +653,90 @@ No clients are connected yet.
 */
 void ReadLevel (const char *filename)
 {
-	int		entnum;
-	FILE	*f;
-	int		i;
-	void	*base;
-	edict_t	*ent;
+  int    entnum;
+  FILE  *f;
+  int    i;
+  void  *base;
+  edict_t  *ent;
 
-	f = fopen (filename, "rb");
-	if (!f)
-		gi.error ("Couldn't open %s", filename);
+  f = fopen (filename, "rb");
+  if (!f)
+    gi.error ("Couldn't open %s", filename);
 
-	// free any dynamic memory allocated by loading the level
-	// base state
-	gi.FreeTags (TAG_LEVEL);
+  // free any dynamic memory allocated by loading the level
+  // base state
+  gi.FreeTags (TAG_LEVEL);
 
-	// wipe all the entities
-	memset (g_edicts, 0, game.maxentities*sizeof(g_edicts[0]));
-	globals.num_edicts = maxclients->value+1;
+  // wipe all the entities
+  memset (g_edicts, 0, game.maxentities*sizeof(g_edicts[0]));
+  globals.num_edicts = maxclients->value+1;
 
-	// check edict size
-	fread (&i, sizeof(i), 1, f);
-	if (i != sizeof(edict_t))
-	{
-		fclose (f);
-		gi.error ("ReadLevel: mismatched edict size");
-	}
+  // check edict size
+  fread (&i, sizeof(i), 1, f);
+  if (i != sizeof(edict_t))
+  {
+    fclose (f);
+    gi.error ("ReadLevel: mismatched edict size");
+  }
 
-	// check function pointer base address
-	fread (&base, sizeof(base), 1, f);
-	gi.dprintf("Function offsets %d\n", ((byte *)base) - ((byte *)InitGame));
+  // check function pointer base address
+  fread (&base, sizeof(base), 1, f);
+/*#ifdef _WIN32
+  if (base != (void *)InitGame)
+  {
+    fclose (f);
+    gi.error ("ReadLevel: function pointers have moved");
+  }
+#else
+  gi.dprintf("Function offsets %d\n", ((byte *)base) - ((byte *)InitGame));
+#endif*/
 
-	// load the level locals
-	ReadLevelLocals (f);
+  // load the level locals
+  ReadLevelLocals (f);
 
-	// load all the entities
-	while (1)
-	{
-		if (fread (&entnum, sizeof(entnum), 1, f) != 1)
-		{
-			fclose (f);
-			gi.error ("ReadLevel: failed to read entnum");
-		}
-		if (entnum == -1)
-			break;
-		if (entnum >= globals.num_edicts)
-			globals.num_edicts = entnum+1;
+  // load all the entities
+  while (1)
+  {
+    if (fread (&entnum, sizeof(entnum), 1, f) != 1)
+    {
+      fclose (f);
+      gi.error ("ReadLevel: failed to read entnum");
+    }
+    if (entnum == -1)
+      break;
+    if (entnum >= globals.num_edicts)
+      globals.num_edicts = entnum+1;
 
-		ent = &g_edicts[entnum];
-		ReadEdict (f, ent);
+    ent = &g_edicts[entnum];
+    ReadEdict (f, ent);
 
-		// let the server rebuild world links for this ent
-		memset (&ent->area, 0, sizeof(ent->area));
-		gi.linkentity (ent);
-	}
+    // let the server rebuild world links for this ent
+    memset (&ent->area, 0, sizeof(ent->area));
+    gi.linkentity (ent);
+  }
 
-	fclose (f);
+  fclose (f);
 
-	// mark all clients as unconnected
-	for (i=0 ; i<maxclients->value ; i++)
-	{
-		ent = &g_edicts[i+1];
-		ent->client = game.clients + i;
-		ent->client->pers.connected = false;
-	}
+  // mark all clients as unconnected
+  for (i=0 ; i<maxclients->value ; i++)
+  {
+    ent = &g_edicts[i+1];
+    ent->client = game.clients + i;
+    ent->client->pers.connected = false;
+  }
 
-	// do any load time things at this point
-	for (i=0 ; i<globals.num_edicts ; i++)
-	{
-		ent = &g_edicts[i];
+  // do any load time things at this point
+  for (i=0 ; i<globals.num_edicts ; i++)
+  {
+    ent = &g_edicts[i];
 
-		if (!ent->inuse)
-			continue;
+    if (!ent->inuse)
+      continue;
 
-		// fire any cross-level triggers
-		if (ent->classname)
-			if (strcmp(ent->classname, "target_crosslevel_target") == 0)
-				ent->nextthink = level.time + ent->delay;
-	}
+    // fire any cross-level triggers
+    if (ent->classname)
+      if (strcmp(ent->classname, "target_crosslevel_target") == 0)
+        ent->nextthink = level.time + ent->delay;
+  }
 }
 
