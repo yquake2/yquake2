@@ -1430,7 +1430,7 @@ void CL_InitLocal (void)
 	cl_add_lights = Cvar_Get ("cl_lights", "1", 0);
 	cl_add_particles = Cvar_Get ("cl_particles", "1", 0);
 	cl_add_entities = Cvar_Get ("cl_entities", "1", 0);
-	cl_gun = Cvar_Get ("cl_gun", "1", 0);
+	cl_gun = Cvar_Get ("cl_gun", "2", CVAR_ARCHIVE);
 	cl_footsteps = Cvar_Get ("cl_footsteps", "1", 0);
 	cl_noskins = Cvar_Get ("cl_noskins", "0", 0);
 	cl_autoskins = Cvar_Get ("cl_autoskins", "0", 0);
