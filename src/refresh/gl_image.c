@@ -44,29 +44,6 @@ int		gl_tex_alpha_format = 4;
 int		gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int		gl_filter_max = GL_LINEAR;
 
-void GL_SetTexturePalette( unsigned palette[256] )
-{
-	int i;
-	unsigned char temptable[768];
-
-	if ( qglColorTableEXT && gl_ext_palettedtexture->value )
-	{
-		for ( i = 0; i < 256; i++ )
-		{
-			temptable[i*3+0] = ( palette[i] >> 0 ) & 0xff;
-			temptable[i*3+1] = ( palette[i] >> 8 ) & 0xff;
-			temptable[i*3+2] = ( palette[i] >> 16 ) & 0xff;
-		}
-
-		qglColorTableEXT( GL_SHARED_TEXTURE_PALETTE_EXT,
-						   GL_RGB,
-						   256,
-						   GL_RGB,
-						   GL_UNSIGNED_BYTE,
-						   temptable );
-	}
-}
-
 void GL_TexEnv( GLenum mode )
 {
 	static int lastmodes[2] = { -1, -1 };
@@ -983,24 +960,7 @@ qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 	{
 		if (!mipmap)
 		{
-			if ( qglColorTableEXT && gl_ext_palettedtexture->value && samples == gl_solid_format )
-			{
-				uploaded_paletted = true;
-				GL_BuildPalettedTexture( paletted_texture, ( unsigned char * ) data, scaled_width, scaled_height );
-				qglTexImage2D( GL_TEXTURE_2D,
-							  0,
-							  GL_COLOR_INDEX8_EXT,
-							  scaled_width,
-							  scaled_height,
-							  0,
-							  GL_COLOR_INDEX,
-							  GL_UNSIGNED_BYTE,
-							  paletted_texture );
-			}
-			else
-			{
-				qglTexImage2D (GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			}
+			qglTexImage2D (GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			goto done;
 		}
 		memcpy (scaled, data, width*height*4);
@@ -1009,25 +969,7 @@ qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 		GL_ResampleTexture (data, width, height, scaled, scaled_width, scaled_height);
 
 	GL_LightScaleTexture (scaled, scaled_width, scaled_height, !mipmap );
-
-	if ( qglColorTableEXT && gl_ext_palettedtexture->value && ( samples == gl_solid_format ) )
-	{
-		uploaded_paletted = true;
-		GL_BuildPalettedTexture( paletted_texture, ( unsigned char * ) scaled, scaled_width, scaled_height );
-		qglTexImage2D( GL_TEXTURE_2D,
-					  0,
-					  GL_COLOR_INDEX8_EXT,
-					  scaled_width,
-					  scaled_height,
-					  0,
-					  GL_COLOR_INDEX,
-					  GL_UNSIGNED_BYTE,
-					  paletted_texture );
-	}
-	else
-	{
-		qglTexImage2D( GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled );
-	}
+	qglTexImage2D( GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled );
 
 	if (mipmap)
 	{
@@ -1044,24 +986,7 @@ qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 			if (scaled_height < 1)
 				scaled_height = 1;
 			miplevel++;
-			if ( qglColorTableEXT && gl_ext_palettedtexture->value && samples == gl_solid_format )
-			{
-				uploaded_paletted = true;
-				GL_BuildPalettedTexture( paletted_texture, ( unsigned char * ) scaled, scaled_width, scaled_height );
-				qglTexImage2D( GL_TEXTURE_2D,
-							  miplevel,
-							  GL_COLOR_INDEX8_EXT,
-							  scaled_width,
-							  scaled_height,
-							  0,
-							  GL_COLOR_INDEX,
-							  GL_UNSIGNED_BYTE,
-							  paletted_texture );
-			}
-			else
-			{
-				qglTexImage2D (GL_TEXTURE_2D, miplevel, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
-			}
+			qglTexImage2D (GL_TEXTURE_2D, miplevel, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
 		}
 	}
 done: ;
@@ -1099,55 +1024,33 @@ qboolean GL_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboole
 	if (s > sizeof(trans)/4)
 		ri.Sys_Error (ERR_DROP, "GL_Upload8: too large");
 
-	if ( qglColorTableEXT && 
-		 gl_ext_palettedtexture->value && 
-		 is_sky )
+	for (i=0 ; i<s ; i++)
 	{
-		qglTexImage2D( GL_TEXTURE_2D,
-					  0,
-					  GL_COLOR_INDEX8_EXT,
-					  width,
-					  height,
-					  0,
-					  GL_COLOR_INDEX,
-					  GL_UNSIGNED_BYTE,
-					  data );
+		p = data[i];
+		trans[i] = d_8to24table[p];
 
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
-		
-		return false; // SBF: FIXME - what is the correct return value?
-	}
-	else
-	{
-		for (i=0 ; i<s ; i++)
-		{
-			p = data[i];
-			trans[i] = d_8to24table[p];
-
-			if (p == 255)
-			{	// transparent, so scan around for another color
-				// to avoid alpha fringes
-				// FIXME: do a full flood fill so mips work...
-				if (i > width && data[i-width] != 255)
-					p = data[i-width];
-				else if (i < s-width && data[i+width] != 255)
-					p = data[i+width];
-				else if (i > 0 && data[i-1] != 255)
-					p = data[i-1];
-				else if (i < s-1 && data[i+1] != 255)
-					p = data[i+1];
-				else
-					p = 0;
-				// copy rgb components
-				((byte *)&trans[i])[0] = ((byte *)&d_8to24table[p])[0];
-				((byte *)&trans[i])[1] = ((byte *)&d_8to24table[p])[1];
-				((byte *)&trans[i])[2] = ((byte *)&d_8to24table[p])[2];
-			}
+		if (p == 255)
+		{	// transparent, so scan around for another color
+			// to avoid alpha fringes
+			// FIXME: do a full flood fill so mips work...
+			if (i > width && data[i-width] != 255)
+				p = data[i-width];
+			else if (i < s-width && data[i+width] != 255)
+				p = data[i+width];
+			else if (i > 0 && data[i-1] != 255)
+				p = data[i-1];
+			else if (i < s-1 && data[i+1] != 255)
+				p = data[i+1];
+			else
+				p = 0;
+			// copy rgb components
+			((byte *)&trans[i])[0] = ((byte *)&d_8to24table[p])[0];
+			((byte *)&trans[i])[1] = ((byte *)&d_8to24table[p])[1];
+			((byte *)&trans[i])[2] = ((byte *)&d_8to24table[p])[2];
 		}
-
-		return GL_Upload32 (trans, width, height, mipmap);
 	}
+
+	return GL_Upload32 (trans, width, height, mipmap);
 }
 
 
