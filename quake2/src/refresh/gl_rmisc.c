@@ -219,13 +219,6 @@ void GL_SetDefaultState( void )
 		qglPointParameterfvEXT( GL_DISTANCE_ATTENUATION_EXT, attenuations );
 	}
 
-	if ( qglColorTableEXT && gl_ext_palettedtexture->value )
-	{
-		qglEnable( GL_SHARED_TEXTURE_PALETTE_EXT );
-
-		GL_SetTexturePalette( d_8to24table );
-	}
-
 	GL_UpdateSwapInterval();
 }
 
