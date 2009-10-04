@@ -115,7 +115,7 @@ You should now be ready to start your brand new Quake II. Have fun.
 Since most modern CD-ROM and DVD drives don't have an analog audio
 output and most sound codecs don't have the appropriate input header,
 it's no longer possible to play Quake II with the original Audio-CD for
-background music. Therefor OGG/Vorbis playback has been added to Yamagi
+background music. Therefore OGG/Vorbis playback has been added to Yamagi
 Quake II. It can play the original soundtrack, like if the CD is in the
 drive or customized playlists.
 
@@ -135,7 +135,7 @@ II will now play the OGG/Vorbis files instead of the Audio-CD.
 You can put normal OGG/Vorbis files into baseq2/music or your_mod/music.
 If shuffle is enabled, Quake II will shuffle through all files.
 Otherwise it will loop through the track associated with the map.
-Therefor playlists can be used. Just put the filenames into
+Therefore playlists can be used. Just put the filenames into
 music/playlists (a plain text file) and start the game. For manuell
 control there are some CVar. Remember, these are only available, if "OGG
 music" is enabled!
