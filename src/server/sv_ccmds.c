@@ -303,23 +303,24 @@ SV_ReadLevelFile
 
 ==============
 */
+void		CM_ReadPortalState(fileHandle_t f);
 void SV_ReadLevelFile (void)
 {
 	char	name[MAX_OSPATH];
-	FILE	*f;
+	fileHandle_t	f;
 
 	Com_DPrintf("SV_ReadLevelFile()\n");
 
-	Com_sprintf (name, sizeof(name), "%s/save/current/%s.sv2", FS_Gamedir(), sv.name);
+	Com_sprintf (name, sizeof(name), "save/current/%s.sv2", sv.name);
 	FS_FOpenFile(name, &f, FS_READ);
 	if (!f)
 	{
 		Com_Printf ("Failed to open %s\n", name);
 		return;
 	}
-	FS_Read (sv.configstrings, sizeof(sv.configstrings), (size_t)f);
+	FS_Read (sv.configstrings, sizeof(sv.configstrings), f);
 	CM_ReadPortalState (f);
-	FS_FCloseFile ((size_t)f);
+	FS_FCloseFile (f);
 
 	Com_sprintf (name, sizeof(name), "%s/save/current/%s.sav", FS_Gamedir(), sv.name);
 	ge->ReadLevel (name);
@@ -406,14 +407,14 @@ SV_ReadServerFile
 */
 void SV_ReadServerFile (void)
 {
-	FILE	*f;
+	fileHandle_t	f;
 	char	name[MAX_OSPATH], string[128];
 	char	comment[32];
 	char	mapcmd[MAX_TOKEN_CHARS];
 
 	Com_DPrintf("SV_ReadServerFile()\n");
 
-	Com_sprintf (name, sizeof(name), "%s/save/current/server.ssv", FS_Gamedir());
+	Com_sprintf (name, sizeof(name), "save/current/server.ssv");
 	FS_FOpenFile(name, &f, FS_READ); 
 	if (!f)
 	{
@@ -421,23 +422,23 @@ void SV_ReadServerFile (void)
 		return;
 	}
 	// read the comment field
-	FS_Read (comment, sizeof(comment), (size_t)f);
+	FS_Read (comment, sizeof(comment), f);
 
 	// read the mapcmd
-	FS_Read (mapcmd, sizeof(mapcmd), (size_t)f);
+	FS_Read (mapcmd, sizeof(mapcmd), f);
 
 	// read all CVAR_LATCH cvars
 	// these will be things like coop, skill, deathmatch, etc
 	while (1)
 	{
-		if (!FS_FRead (name, 1, sizeof(name), (size_t)f))
+		if (!FS_FRead (name, 1, sizeof(name), f))
 			break;
-		FS_Read (string, sizeof(string), (size_t)f);
+		FS_Read (string, sizeof(string), f);
 		Com_DPrintf ("Set %s = %s\n", name, string);
 		Cvar_ForceSet (name, string);
 	}
 
-	fclose (f);
+	FS_FCloseFile(f);
 
 	// start a new game fresh with new cvars
 	SV_InitGame ();
