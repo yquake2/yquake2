@@ -392,8 +392,6 @@ qboolean OGG_Open(ogg_seek_t type, int offset)
 	ogg_curfile = pos;
 	ogg_status = PLAY;
 
-	Com_Printf("Playing file %d '%s'\n", pos, ogg_filelist[pos]);
-
 	return (true);
 }
 
