@@ -125,10 +125,14 @@ Put your Quake II CD-ROM in your drive, start your favorite CD extractor
 and rip the audiotracks into OGG/Vorbis files. These files must be named
 after their track number. Remember! Since the first track on the CD ist
 "data", the first audio track is number 2! If everything is done
-correct, you should have: 02.ogg, 03.ogg, ..., 11.ogg Put these files
-under baseq2/music, start Quake II, enter the "Options" menu and set
-"OGG music" to enabled. "CD music" will be automaticly disabled. Quake
-II will now play the OGG/Vorbis files instead of the Audio-CD.
+correct, you should have: 02.ogg, 03.ogg, ..., 11.ogg. Alternatively you
+can use a script provided by caedes, which can be found in the folder
+"tools". It needs cdparanoia an oggenc, it should work with the main
+game and both addons.
+Put these files under baseq2/music, start Quake II, enter the "Options"
+menu and set "OGG music" to enabled. "CD music" will be automaticly
+disabled. Quake II will now play the OGG/Vorbis files instead of the
+Audio-CD.
 
 2.2 Setup for other music and playlists:
 ----------------------------------------
