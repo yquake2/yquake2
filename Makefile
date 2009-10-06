@@ -58,7 +58,10 @@ endif
 # Optimizations
 #   ~25% - 30% perfomance gain, but may not
 #   work on all CPUs. Adjust to your needs
-# CFLAFS_BASE += -mmmx  -msse  -msse2 -msse3 -m3dnow 
+# CFLAGS_BASE += -mmmx  -msse  -msse2 -msse3 -m3dnow 
+
+# Uncomment this if your Mesa3D is broken
+# CFLAGS_BASE += -DBROKEN_MESA
 
 # OGG/Vorbis
 OGGCFLAGS = -I/usr/include -I/usr/local/include
