@@ -4,25 +4,10 @@
 #define Z_RADUISLISTSIZE	2000
 
 
-
 void ai_run_melee(edict_t *self);
 qboolean FindTarget (edict_t *self);
 qboolean SV_StepDirection (edict_t *ent, float yaw, float dist);
 void SV_NewChaseDir (edict_t *actor, vec3_t eOrigin, float dist);
-#if 0
-void z_aiMoveTo(edict_t *self, float dist)
-{
-	// sanity check
-	if (!(self->monsterinfo.scriptState & MSS_AIMOVETO))
-		return;
-#if 0
-	if (!SV_StepDirection (self, self->ideal_yaw, dist))
-	{
-		SV_NewChaseDir (self, self->monsterinfo.aiMoveTo, dist);
-	}
-#endif
-}
-#endif
 
 
 /*
@@ -38,7 +23,8 @@ void zCreateRaduisList(edict_t *self)
   vec3_t vec;
 
 	if(self->zRaduisList)
-  { // already created for this think, don't bother doing it again...
+  { 
+    // already created for this think, don't bother doing it again...
   	return;
   }
 
@@ -146,9 +132,8 @@ int zFindRoamYaw(edict_t *self, float distcheck)
       while(tr.fraction < 1.0 && maxtrys)
       {
   	    // blocked, change ideal yaw...
-	      self->ideal_yaw = vectoyaw(forward);
+	    self->ideal_yaw = vectoyaw(forward);
    	    self->ideal_yaw = self->ideal_yaw + (random() * dir);
-    //   	self->ideal_yaw = self->ideal_yaw + (-45 +  (random() * 90));
 
     	  angles[YAW] = anglemod (self->ideal_yaw);
 	      AngleVectors (angles, forward, NULL, NULL);
@@ -181,13 +166,13 @@ int zSchoolMonsters(edict_t *self, float dist, int runStyle, float *currentSpeed
 
   maxInsight = zSchoolAllVisiable(self);
 
-	// If you're not out in front
+  // If you're not out in front
   if(maxInsight > 0)
   {
   	float totalSpeed;
     float totalBearing;
     float distanceToNearest, distanceToLeader, dist;
-    edict_t *nearestEntity, *list;
+    edict_t *nearestEntity = 0, *list;
     vec3_t vec;
 
     totalSpeed = 0;
@@ -198,12 +183,12 @@ int zSchoolMonsters(edict_t *self, float dist, int runStyle, float *currentSpeed
 
     while(list)
     {
-			// Gather data on those you see
-    	totalSpeed += list->speed;
-      totalBearing += anglemod(list->s.angles[YAW]);
+		// Gather data on those you see
+		totalSpeed += list->speed;
+		totalBearing += anglemod(list->s.angles[YAW]);
 
-		  VectorSubtract(self->s.origin, list->s.origin, vec);
-		  dist = VectorLength(vec);
+		VectorSubtract(self->s.origin, list->s.origin, vec);
+		dist = VectorLength(vec);
 
       if(dist < distanceToNearest)
       {
@@ -238,7 +223,8 @@ int zSchoolMonsters(edict_t *self, float dist, int runStyle, float *currentSpeed
 
   }
   else
-  {	//You are in front, so slow down a bit
+  {	
+	  //You are in front, so slow down a bit
    	edict_t *head;
 
     self->speed = (self->speed * self->monsterinfo.zSchoolDecayRate);
@@ -261,11 +247,6 @@ int zSchoolMonsters(edict_t *self, float dist, int runStyle, float *currentSpeed
       head = head->zRaduisList;
     }
   }
-
-//  if(self.rm_schoolFlags & 1)
-//  { // check to see is I keep away from "other" entities...
-//    zSchoolCheckForOtherEntities(checkOtherRaduis);
-//  }
 
   if(self->speed > self->monsterinfo.zSchoolMaxSpeed)
   {
@@ -366,11 +347,7 @@ void ai_schoolStand (edict_t *self, float dist)
   // do the normal stand stuff
   if (dist)
 		M_walkmove (self, self->ideal_yaw, dist);
-//		M_walkmove (self, self->ideal_yaw, dist * speed);
 }
-
-
-
 
 
 /*
@@ -415,9 +392,7 @@ void ai_schoolRun (edict_t *self, float dist)
 
   // do the normal run stuff
   SV_StepDirection (self, self->ideal_yaw, dist);
-//  SV_StepDirection (self, self->ideal_yaw, dist * speed);
 }
-
 
 
 /*
@@ -462,10 +437,8 @@ void ai_schoolWalk (edict_t *self, float dist)
 
   // do the normal walk stuff
   SV_StepDirection (self, self->ideal_yaw, dist);
-//  SV_StepDirection (self, self->ideal_yaw, dist * speed);
 }
   
-
 
 /*
 =============
@@ -477,15 +450,6 @@ Use this call with a distnace of 0 to replace ai_face
 */
 void ai_schoolCharge (edict_t *self, float dist)
 {
-/*
-  if(!(self->monsterinfo.aiflags & AI_SCHOOLING))
-  {
-    ai_charge(self, dist);
-    return;
-  }
-*/
   ai_charge(self, dist);
 }
-
-
 

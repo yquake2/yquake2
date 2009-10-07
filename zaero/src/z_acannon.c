@@ -62,7 +62,7 @@ ac_anim_t acFiringFrames[5] =
 	// dummy
 	{
 		0,
-		{ true, false, -1 }
+		{ { true, false, -1 } }
 	},
 
 	// chaingun
@@ -700,10 +700,7 @@ void monster_autocannon_deactivate(edict_t *self)
 		self->s.frame < acDeactEnd[self->style])
 	{
 		self->chain->s.sound = 0;
-		if (self->s.frame == acDeactStart[self->style])
-		{
-			//gi.sound(self, CHAN_VOICE, gi.soundindex("objects/acannon/ac_away.wav"), 1, ATTN_NORM, 0);
-		}
+
 		// continue
 		self->s.frame++;
 		self->chain->s.frame++;
@@ -801,8 +798,6 @@ void SP_monster_autocannon(edict_t *self)
 	// precache some sounds and models
 	gi.soundindex("objects/acannon/ac_idle.wav");
 	gi.soundindex("objects/acannon/ac_act.wav");
-	//gi.soundindex("objects/acannon/ac_out.wav");
-	//gi.soundindex("objects/acannon/ac_away.wav");
 	gi.modelindex("models/objects/rocket/tris.md2");
 	gi.modelindex("models/objects/laser/tris.md2");
 
@@ -873,7 +868,6 @@ void SP_monster_autocannon(edict_t *self)
 	self->seq = 0;
 	if (st.lip)
 		self->monsterinfo.linkcount = (st.lip > 0 ? st.lip : 0);
-	//self->svflags = SVF_MONSTER;
 
 	// default health
 	if (!self->health)
@@ -917,3 +911,4 @@ void SP_monster_autocannon_floor(edict_t *self)
 	// call the other one
 	SP_monster_autocannon(self);
 }
+

@@ -386,8 +386,6 @@ void calculate_buffer_actuals(anim_data_t *data)
    {
       data->actual_sequence = data->monster_sequences[data->current_sequence - 1];
       data->actual_sequence_idx = data->current_frame;
-      /*data->actual_frame %= actual_sequence->lastframe -
-                            actual_sequence->firstframe + 1;*/
    }
    else
    {
