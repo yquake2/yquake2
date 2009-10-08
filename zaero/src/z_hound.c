@@ -43,26 +43,26 @@ void hound_sight (edict_t *self, edict_t *other)
 
 mframe_t hound_frames_stand1 [] =
 {
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,  // 10
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},  // 10
 
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL}
 };
 mmove_t hound_stand1 = {FRAME_stand1start, FRAME_stand1end, hound_frames_stand1, hound_stand};
 
@@ -70,29 +70,29 @@ mmove_t hound_stand1 = {FRAME_stand1start, FRAME_stand1end, hound_frames_stand1,
 
 mframe_t hound_frames_stand2 [] =
 {
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL, // 10
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL}, // 10
 
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL,
-	ai_schoolStand, 0, NULL, // 20
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL},
+	{ai_schoolStand, 0, NULL}, // 20
 
-	ai_schoolStand, 0, NULL
+	{ai_schoolStand, 0, NULL}
 };
 mmove_t hound_stand2 = {FRAME_stand2start, FRAME_stand2end, hound_frames_stand2, hound_stand};
 
@@ -117,13 +117,13 @@ void hound_stand (edict_t *self)
 
 mframe_t hound_frames_run [] =
 {
-	ai_schoolRun, 60, NULL,
-	ai_schoolRun, 60, NULL,
-	ai_schoolRun, 40, NULL,
-	ai_schoolRun, 30, NULL,
-	ai_schoolRun, 30, NULL,
-	ai_schoolRun, 30, NULL,
-	ai_schoolRun, 40, NULL
+	{ai_schoolRun, 60, NULL},
+	{ai_schoolRun, 60, NULL},
+	{ai_schoolRun, 40, NULL},
+	{ai_schoolRun, 30, NULL},
+	{ai_schoolRun, 30, NULL},
+	{ai_schoolRun, 30, NULL},
+	{ai_schoolRun, 40, NULL}
 };
 mmove_t hound_move_run = {FRAME_runStart, FRAME_runEnd, hound_frames_run, NULL};
 
@@ -143,14 +143,14 @@ void hound_run (edict_t *self)
 
 mframe_t hound_frames_walk [] =
 {
-	ai_schoolWalk,  7, NULL,
-	ai_schoolWalk,  7, NULL,
-	ai_schoolWalk,  7, NULL,
-	ai_schoolWalk,  7, NULL,
-	ai_schoolWalk,  7, NULL,
-	ai_schoolWalk,  7, NULL,
-	ai_schoolWalk,  7, NULL,
-	ai_schoolWalk,  7, NULL
+	{ai_schoolWalk,  7, NULL},
+	{ai_schoolWalk,  7, NULL},
+	{ai_schoolWalk,  7, NULL},
+	{ai_schoolWalk,  7, NULL},
+	{ai_schoolWalk,  7, NULL},
+	{ai_schoolWalk,  7, NULL},
+	{ai_schoolWalk,  7, NULL},
+	{ai_schoolWalk,  7, NULL}
 };
 mmove_t hound_move_walk = {FRAME_walkStart, FRAME_walkEnd, hound_frames_walk, hound_walk};
 
@@ -168,23 +168,23 @@ void hound_walk (edict_t *self)
 
 mframe_t hound_frames_pain1 [] =
 {
-	ai_move, 6,	NULL,
-	ai_move, 16, NULL,
-	ai_move, -6, NULL,
-	ai_move, -7, NULL,
+	{ai_move, 6,	NULL},
+	{ai_move, 16, NULL},
+	{ai_move, -6, NULL},
+	{ai_move, -7, NULL},
 };
 mmove_t hound_move_pain1 = {FRAME_pain1Start, FRAME_pain1End, hound_frames_pain1, hound_run};
 
 mframe_t hound_frames_pain2 [] =
 {
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 6,	NULL,
-	ai_move, 16, NULL,
-	ai_move, -6, NULL,
-	ai_move, -7, NULL,
-	ai_move, 0,	NULL,
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 6,	NULL},
+	{ai_move, 16, NULL},
+	{ai_move, -6, NULL},
+	{ai_move, -7, NULL},
+	{ai_move, 0,	NULL},
 };
 mmove_t hound_move_pain2 = {FRAME_pain2Start, FRAME_pain2End, hound_frames_pain2, hound_run};
 
@@ -241,29 +241,29 @@ void hound_bite2 (edict_t *self)
 
 mframe_t hound_frames_attack1 [] =
 {
-	ai_schoolCharge, 0,	hound_launch,
-	ai_schoolCharge, 0,	NULL,
-	ai_schoolCharge, 0,	hound_bite,
-	ai_schoolCharge, 0,	hound_bite2
+	{ai_schoolCharge, 0,	hound_launch},
+	{ai_schoolCharge, 0,	NULL},
+	{ai_schoolCharge, 0,	hound_bite},
+	{ai_schoolCharge, 0,	hound_bite2}
 };
 mmove_t hound_move_attack1 = {FRAME_attack1Start, FRAME_attack1End, hound_frames_attack1, hound_run};
 
 
 mframe_t hound_frames_attack2 [] =
 {
-	ai_schoolCharge, 0,	hound_launch,
-	ai_schoolCharge, 0,	NULL,
-	ai_schoolCharge, 0,	NULL,
-	ai_schoolCharge, 0,	NULL,
-	ai_schoolCharge, 0,	NULL,
-	ai_schoolCharge, 0,	NULL,
-	ai_schoolCharge, 0,	NULL,
-	ai_schoolCharge, 0,	NULL,
-	ai_schoolCharge, 0,	hound_bite,
-	ai_schoolCharge, 0,	hound_bite2,
-	ai_schoolCharge, 0,	hound_bite2,
-	ai_schoolCharge, 0,	hound_bite2,
-	ai_schoolCharge, 0,	NULL,
+	{ai_schoolCharge, 0,	hound_launch},
+	{ai_schoolCharge, 0,	NULL},
+	{ai_schoolCharge, 0,	NULL},
+	{ai_schoolCharge, 0,	NULL},
+	{ai_schoolCharge, 0,	NULL},
+	{ai_schoolCharge, 0,	NULL},
+	{ai_schoolCharge, 0,	NULL},
+	{ai_schoolCharge, 0,	NULL},
+	{ai_schoolCharge, 0,	hound_bite},
+	{ai_schoolCharge, 0,	hound_bite2},
+	{ai_schoolCharge, 0,	hound_bite2},
+	{ai_schoolCharge, 0,	hound_bite2},
+	{ai_schoolCharge, 0,	NULL},
 };
 mmove_t hound_move_attack2 = {FRAME_attack2Start, FRAME_attack2End, hound_frames_attack2, hound_run};
 
@@ -280,13 +280,9 @@ void hound_attack (edict_t *self)
   }
 }
 
-
-
 //
 // ATTACK
 //
-
-
 void hound_jump_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
 	if (self->health <= 0)
@@ -376,13 +372,13 @@ void hound_check_landing2 (edict_t *self)
 
 mframe_t hound_frames_handlerjump [] =
 {
-	ai_charge,  0,	NULL,
-	ai_charge,  20,	hound_jump_takeoff,
-	ai_move,  40,	NULL,
-	ai_move,  30,	hound_check_landing2,
-	ai_move,   0,	NULL,
-	ai_move,  0,	NULL,
-	ai_move,  0,	NULL,
+	{ai_charge,  0,	NULL},
+	{ai_charge,  20,	hound_jump_takeoff},
+	{ai_move,  40,	NULL},
+	{ai_move,  30,	hound_check_landing2},
+	{ai_move,   0,	NULL},
+	{ai_move,  0,	NULL},
+	{ai_move,  0,	NULL},
 };
 
 
@@ -392,13 +388,13 @@ mmove_t hound_move_handlerjump = {FRAME_hattack1Sep, FRAME_hattack1End, hound_fr
 
 mframe_t hound_frames_jump [] =
 {
-	ai_charge,	 20,	NULL,
-	ai_charge,	20,	hound_jump_takeoff,
-	ai_move,	40,	NULL,
-	ai_move,	30,	hound_check_landing,
-	ai_move,	 0,	NULL,
-	ai_move,	 0,	NULL,
-	ai_move,	 0,	NULL
+	{ai_charge,	 20,	NULL},
+	{ai_charge,	20,	hound_jump_takeoff},
+	{ai_move,	40,	NULL},
+	{ai_move,	30,	hound_check_landing},
+	{ai_move,	 0,	NULL},
+	{ai_move,	 0,	NULL},
+	{ai_move,	 0,	NULL}
 };
 mmove_t hound_move_jump = {FRAME_leapStart, FRAME_leapEnd, hound_frames_jump, hound_run};
 
@@ -407,14 +403,11 @@ void hound_jump (edict_t *self)
 	self->monsterinfo.currentmove = &hound_move_jump;
 }
 
-
 /*
 === 
 attack check routines
 ===
 */
-
-
 
 qboolean hound_check_melee (edict_t *self)
 {
@@ -466,7 +459,6 @@ qboolean hound_checkattack (edict_t *self)
 	if (hound_check_jump(self))
 	{
 		self->monsterinfo.attack_state = AS_MISSILE;
-		// FIXME play a jump sound here
 		return true;
 	}
 
@@ -492,18 +484,18 @@ void hound_dead (edict_t *self)
 
 mframe_t hound_frames_death [] =
 {
-	ai_move, 0,	 NULL,
-	ai_move, 0,	 NULL,
-	ai_move, 0,	 NULL,
-	ai_move, 0,	 NULL,
-	ai_move, 0,	 NULL,
-	ai_move, 0,	 NULL,
-	ai_move, 0,	 NULL,
-	ai_move, 0,	 NULL,
-	ai_move, 0,	 NULL,
-	ai_move, 0,	 NULL,
-	ai_move, 0,	 NULL,
-	ai_move, 0,	 NULL
+	{ai_move, 0,	 NULL},
+	{ai_move, 0,	 NULL},
+	{ai_move, 0,	 NULL},
+	{ai_move, 0,	 NULL},
+	{ai_move, 0,	 NULL},
+	{ai_move, 0,	 NULL},
+	{ai_move, 0,	 NULL},
+	{ai_move, 0,	 NULL},
+	{ai_move, 0,	 NULL},
+	{ai_move, 0,	 NULL},
+	{ai_move, 0,	 NULL},
+	{ai_move, 0,	 NULL}
 };
 mmove_t hound_move_death = {FRAME_die1Start, FRAME_die1End, hound_frames_death, hound_dead};
 
@@ -511,7 +503,7 @@ void hound_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 {
 	int		n;
 
-// check for gib
+	// check for gib
 	if (self->health <= self->gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
@@ -527,7 +519,7 @@ void hound_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
+	// regular death
 	gi.sound (self, CHAN_VOICE, sound_die, 1, ATTN_NORM, 0);
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
@@ -620,8 +612,6 @@ void hound_createHound(edict_t *self, float healthPercent)
 	
 	hound = G_Spawn();
 	
-	//*hound = *self;
-	
 	hound->s.modelindex = gi.modelindex ("models/monsters/guard/hound/tris.md2");
 	VectorSet (hound->mins, -16, -16, -24);
 	VectorSet (hound->maxs, 16, 16, 24);
@@ -663,12 +653,10 @@ void hound_createHound(edict_t *self, float healthPercent)
 	hound->think = monster_think;
 	hound->nextthink = level.time + FRAMETIME;
 
-	//monster_start(hound);
-
 	gi.linkentity (hound);
 
-  // move the fucker now!!!
-  ai_move (hound, 20);
+	// move the fucker now!!!
+	ai_move (hound, 20);
 }
 
 

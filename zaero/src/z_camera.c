@@ -110,15 +110,8 @@ char *getSkinName(char *s, char *buffer)
 
 void zCam_SetLocalCopy(struct edict_s *player, char *s)
 {
-//  char model[255];
-
   if(player->client->zCameraLocalEntity)
   {
-/*
-    player->client->zCameraLocalEntity->s.modelindex = gi.modelindex(getSkinModel(s, model));
-    player->client->zCameraLocalEntity->s.renderfx |= RF_CUSTOMSKIN;
-    player->client->zCameraLocalEntity->s.skinnum = gi.imageindex(getSkinName(s, model));
-*/
     player->client->zCameraLocalEntity->s.modelindex = gi.modelindex("models/objects/gibs/head2/tris.md2");
   }
 }

@@ -10,8 +10,6 @@ handler handler
 #include "z_handler.h"
 
 
-
-
 void handler_standWhatNext (edict_t *self);
 void handler_standSitWhatNext (edict_t *self);
 void handler_stand (edict_t *self);
@@ -23,10 +21,6 @@ void hound_sight (edict_t *self, edict_t *other);
 void infantry_sight (edict_t *self, edict_t *other);
 
 static int	sound_attack;
-static int	sound_scratch;
-static int	sound_sitdown;
-static int	sound_standup;
-
 
 void handler_sight (edict_t *self, edict_t *other)
 {
@@ -38,175 +32,160 @@ void handler_sight (edict_t *self, edict_t *other)
 // STAND
 //
 
-
-
 mframe_t handler_frames_stand1 [] =
 {
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL
+	{ai_stand, 0, NULL}
 };
 mmove_t handler_stand1 = {FRAME_stand1start, FRAME_stand1end, handler_frames_stand1, handler_standSitWhatNext};
 
-
 void handler_scratch(edict_t *self)
 {
-//	gi.sound (self, CHAN_VOICE, sound_scratch, 1, ATTN_NORM, 0);
 }
-
-
 
 mframe_t handler_frames_stand2 [] =
 {
-	ai_stand, 0, handler_scratch,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, handler_scratch},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 };
 mmove_t handler_stand2 = {FRAME_stand2start, FRAME_stand2end, handler_frames_stand2, handler_standSitWhatNext};
 
-
-
-
 mframe_t handler_frames_stand3 [] =
 {
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 };
 mmove_t handler_stand3 = {FRAME_stand3start, FRAME_stand3end, handler_frames_stand3, handler_standWhatNext};
 
 
 void handler_standup(edict_t *self)
 {
-//	gi.sound (self, CHAN_VOICE, sound_standup, 1, ATTN_NORM, 0);
 }
-
 
 mframe_t handler_frames_stand4 [] =
 {
-	ai_stand, 0, handler_standup,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, handler_standup},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
 };
 mmove_t handler_stand4 = {FRAME_stand4start, FRAME_stand4end, handler_frames_stand4, handler_standWhatNext};
 
-
-
 void handler_sitdown(edict_t *self)
 {
-//	gi.sound (self, CHAN_VOICE, sound_sitdown, 1, ATTN_NORM, 0);
 }
-
 
 mframe_t handler_frames_stand5 [] =
 {
-	ai_stand, 0, handler_sitdown,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, handler_sitdown},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 };
 mmove_t handler_stand5 = {FRAME_stand5start, FRAME_stand5end, handler_frames_stand5, handler_standSitWhatNext};
 
@@ -255,8 +234,6 @@ void handler_standSitWhatNext (edict_t *self)
 
 void handler_stand (edict_t *self)
 {
-	float r = random();
-
 	if(self->monsterinfo.currentmove != &handler_stand1 &&
 				self->monsterinfo.currentmove != &handler_stand2 &&
         self->monsterinfo.currentmove != &handler_stand3 &&
@@ -269,17 +246,13 @@ void handler_stand (edict_t *self)
 
 
 
-
 //
 // PAIN
 //
 
 void handler_pain (edict_t *self, edict_t *other, float kick, int damage)
 {
-//	if (self->health < (self->max_health / 2))
-//		self->s.skinnum = 1;
 }
-
 
 //
 // ATTACK and MELEE
@@ -330,26 +303,26 @@ void StartCount(edict_t *self)
 
 mframe_t handler_frames_attack1 [] =
 {
-	ai_run, 0, StartCount,
-	ai_run, 0, CheckForEnemy,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
+	{ai_run, 0, StartCount},
+	{ai_run, 0, CheckForEnemy},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
 
-	ai_charge, 0, NULL,
-	ai_charge, 0, NULL,
-	ai_charge, 0, CheckIdleLoop,
-	ai_charge, 0, NULL,
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, NULL},
+	{ai_charge, 0, CheckIdleLoop},
+	{ai_charge, 0, NULL},
 
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	handler_createHound,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	handler_createHound},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
 };
 mmove_t handler_move_attack1 = {FRAME_attack1Start, FRAME_attack1End, handler_frames_attack1, handler_ConvertToInfantry};
 
@@ -362,10 +335,6 @@ void handler_attack (edict_t *self)
 
 	self->powerarmor_time = 0;
 }
-
-
-
-
 
 /*
 ===
@@ -401,15 +370,9 @@ void SP_monster_hound_precache();
 
 void SP_monster_handler_precache(void)
 {
-	//SP_monster_infantry_precache();
 	SP_monster_hound_precache();
 
 	sound_attack = gi.soundindex("monsters/guard/hhattack.wav");
-/*
-	sound_scratch = gi.soundindex("monsters/guard/hhscratch.wav");
-	sound_sitdown = gi.soundindex("monsters/guard/hhsitdown.wav");
-	sound_standup = gi.soundindex("monsters/guard/hhstandup.wav");
-*/
 }
 
 
@@ -472,3 +435,4 @@ Z = -24  to 8
 
 	walkmonster_start (self);
 }
+

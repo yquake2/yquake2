@@ -229,11 +229,6 @@ void Use_Visor (edict_t *ent, gitem_t *item)
 }
 
 
-
-
-
-
-
 /*
 =================
 EMP Nuke
@@ -287,7 +282,6 @@ void Weapon_EMPNuke (edict_t *ent)
 
 void empnukeFinish(edict_t	*ent)
 {
-//  gi.sound(ent, CHAN_VOICE, gi.soundindex("items/empnuke/empdie.wav"), 1, ATTN_NORM, 0);
   G_FreeEdict(ent);
 }
 
@@ -304,8 +298,6 @@ void empBlastAnim(edict_t	*ent)
     ent->s.frame = 0;
     ent->s.skinnum = 0;
 
-//    ent->s.sound = gi.soundindex ("items/empnuke/empactive.wav");
-
     ent->think = empnukeFinish;
     ent->nextthink = level.time + 30;
   }
@@ -320,7 +312,6 @@ void fire_empnuke(edict_t	*ent, vec3_t center, int radius)
 {
 	edict_t	*empnuke;
 
-//  gi.sound(ent, CHAN_VOICE, gi.soundindex("items/empnuke/empfire.wav"), 1, ATTN_NORM, 0);
 	gi.sound(ent, CHAN_VOICE, gi.soundindex("items/empnuke/emp_trg.wav"), 1, ATTN_NORM, 0);
 
 	empnuke = G_Spawn();
@@ -328,21 +319,13 @@ void fire_empnuke(edict_t	*ent, vec3_t center, int radius)
 	empnuke->dmg = radius;
 	VectorCopy(center, empnuke->s.origin);
 	empnuke->classname = "EMPNukeCenter";
-///	empnuke->svflags |= SVF_NOCLIENT;
 	empnuke->movetype = MOVETYPE_NONE;
 	empnuke->s.modelindex = gi.modelindex("models/objects/b_explode/tris.md2");
 	empnuke->s.skinnum = 0;
-//  empnuke->s.renderfx = RF_TRANSLUCENT | RF_FULLBRIGHT;
-//  empnuke->s.renderfx = RF_TRANSLUCENT;
 
 	empnuke->think = empBlastAnim;
 	empnuke->nextthink = level.time + FRAMETIME;
-
-//  empnuke->think = G_FreeEdict;
-//  empnuke->nextthink = level.time + 30;
 	gi.linkentity (empnuke);
-
-//  gi.sound(empnuke, CHAN_VOICE, gi.soundindex("items/empnuke/emp_exp.wav"), 1, ATTN_NORM, 0);
 }
 
 
@@ -367,15 +350,11 @@ qboolean EMPNukeCheck(edict_t	*ent, vec3_t pos)
   return false;
 }
   
-
-
 /*
 =================
 Plasma Shield
 =================
 */
-
-
 
 void PlasmaShield_die (edict_t *self)
 {
@@ -419,7 +398,6 @@ void Use_PlasmaShield (edict_t *ent, gitem_t *item)
 	}
 
 	PlasmaShield = G_Spawn();
-//	PlasmaShield->owner = ent;
 	PlasmaShield->classname = "PlasmaShield";
 	PlasmaShield->movetype = MOVETYPE_PUSH;
 	PlasmaShield->solid = SOLID_BBOX;
@@ -432,7 +410,6 @@ void Use_PlasmaShield (edict_t *ent, gitem_t *item)
 
 	VectorMA (ent->s.origin, 50, forward, PlasmaShield->s.origin);
 
-  // fuge the bbox
   VectorScale(forward, 10, frontbottomleft);
   VectorMA(frontbottomleft, -30, right, frontbottomleft);
   VectorMA(frontbottomleft, -30, up, frontbottomleft);
@@ -509,10 +486,6 @@ void SP_misc_crate_small(edict_t *self)
 	setupCrate(self);
 }
 
-/*******************************************
-	func_barrier
-*/
-
 qboolean thruBarrier(edict_t *targ, edict_t *inflictor)
 {
 	trace_t tr;
@@ -534,8 +507,8 @@ qboolean thruBarrier(edict_t *targ, edict_t *inflictor)
 
 		e = tr.ent;
 	}
+	return true;
 }
-
 
 void barrier_think(edict_t *self)
 {
@@ -592,9 +565,6 @@ void SP_func_barrier(edict_t *self)
 	gi.linkentity(self);
 }
 
-/*********************************************
-	misc_seat
-*/
 void SP_misc_seat(edict_t *self)
 {
 	self->s.modelindex = gi.modelindex("models/objects/seat/tris.md2");
@@ -604,3 +574,4 @@ void SP_misc_seat(edict_t *self)
 	// make this pushable
 	setupCrate(self);
 }
+
