@@ -200,11 +200,6 @@ void SP_trigger_laser(edict_t *self)
 	gi.linkentity (self);
 }
 
-
-
-
-
-
 /*QUAKED misc_commdish (0 .5 .8) (-16 -16 0) (16 16 40)
 */
 
@@ -254,3 +249,4 @@ void SP_misc_commdish (edict_t *self)
 
 	gi.linkentity (self);
 }
+

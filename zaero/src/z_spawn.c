@@ -6,7 +6,6 @@ edict_t *FindZSpawn(int i)
 {
 	edict_t *oldSpot = NULL;
 	edict_t *spot = NULL;
-	//int i = rand() % 16;
 
 	while(i)
 	{
@@ -140,3 +139,4 @@ void Z_SpawnDMItems()
 	}
 	gi.dprintf ("%i Zaero entities added\n", added);
 }
+

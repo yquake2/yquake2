@@ -161,9 +161,6 @@ void tripbomb_laser_think (edict_t *self)
 
 	if (level.time > self->timeout)
 	{
-		// play a sound
-		//gi.sound(self, CHAN_VOICE, gi.soundindex("weapons/ired/las_trig.wav"), 1, ATTN_NORM, 0);
-		
 		// blow up
 		self->chain->think = TripBomb_Explode;
 		self->chain->nextthink = level.time + FRAMETIME;
@@ -174,7 +171,6 @@ void tripbomb_laser_think (edict_t *self)
 	// randomly phase out or EMPNuke is in effect
 	if (EMPNukeCheck(self, self->s.origin) || random() < 0.1)
 	{
-		self->svflags != SVF_NOCLIENT;
 		return;
 	}
 
@@ -205,9 +201,6 @@ void tripbomb_laser_think (edict_t *self)
 	}
 	else if (VectorLength(delta) > 1.0)
 	{
-		// play a sound
-		//gi.sound(self, CHAN_VOICE, gi.soundindex("weapons/ired/las_trig.wav"), 1, ATTN_NORM, 0);
-		
 		// blow up
 		self->chain->think = TripBomb_Explode;
 		self->chain->nextthink = level.time + FRAMETIME;
@@ -225,7 +218,6 @@ void tripbomb_laser_on (edict_t *self)
 	// play a sound
 	gi.sound(self, CHAN_VOICE, gi.soundindex("weapons/ired/las_arm.wav"), 1, ATTN_NORM, 0);
 	tripbomb_laser_think(self);
-	//gi.positioned_sound(self->s.old_origin, self, CHAN_AUTO, gi.soundindex("weapons/ired/las_tink.wav"), 1, ATTN_NORM, 0);
 }
 
 void create_tripbomb_laser(edict_t *bomb)
@@ -277,9 +269,6 @@ void turnOffGlow(edict_t *self)
 
 void tripbomb_pain(edict_t *self, edict_t *other, float kick, int damage)
 {
-	// play the green glow sound
-	//gi.sound(self, CHAN_VOICE, gi.soundindex("weapons/ired/las_glow.wav"), 1, ATTN_NORM, 0);
-
 	// turn on the glow
 	self->damage_debounce_time = level.time + 0.2;
 
@@ -373,7 +362,6 @@ qboolean fire_lasertripbomb(edict_t *self, vec3_t start, vec3_t dir, float timer
 	vec3_t endPos;
 	vec3_t _dir;
 	edict_t *bomb = NULL;
-	edict_t *laser = NULL;
 
 	VectorScale(dir, 64, _dir);
 	VectorAdd(start, _dir, endPos);
@@ -383,19 +371,16 @@ qboolean fire_lasertripbomb(edict_t *self, vec3_t start, vec3_t dir, float timer
 	if (tr.fraction == 1.0)
 	{
 		// not close enough
-		//gi.cprintf(self, PRINT_HIGH, "Not close enough to a wall");
 		return false;
 	}
 
 	if (Q_stricmp(tr.ent->classname, "worldspawn") != 0)
 	{
-		//gi.cprintf(self, PRINT_HIGH, "Hit something other than a wall");
 		return false;
 	}
 
 	// create the bomb
 	bomb = G_Spawn();
-	//VectorCopy(tr.endpos, bomb->s.origin);
 	VectorMA(tr.endpos, 3, tr.plane.normal, bomb->s.origin);
 	vectoangles(tr.plane.normal, bomb->s.angles);
 	bomb->owner = self;
@@ -474,8 +459,6 @@ void Weapon_LaserTripBomb(edict_t *ent)
 	const int idleFirst = 16;
 	const int idleLast = 43;
 	const int fireFirst = 7;
-	const int fireLast = 15;
-	const int activateFirst = 0;
 	const int activateLast = 6;
 	
 	if (ent->client->weaponstate == WEAPON_DROPPING)
@@ -551,16 +534,13 @@ void Weapon_LaserTripBomb(edict_t *ent)
 				return;
 			}
 
-			if (pause_frames)
+			int n = 0;
+			for (n = 0; pause_frames[n]; n++)
 			{
-				int n = 0;
-				for (n = 0; pause_frames[n]; n++)
+				if (ent->client->ps.gunframe == pause_frames[n])
 				{
-					if (ent->client->ps.gunframe == pause_frames[n])
-					{
-						if (rand()&15)
-							return;
-					}
+					if (rand()&15)
+						return;
 				}
 			}
 
@@ -594,9 +574,6 @@ void SP_misc_lasertripbomb(edict_t *bomb)
 	// precache
 	gi.soundindex("weapons/ired/las_set.wav");
 	gi.soundindex("weapons/ired/las_arm.wav");
-	//gi.soundindex("weapons/ired/las_tink.wav");
-	//gi.soundindex("weapons/ired/las_trig.wav");
-	//gi.soundindex("weapons/ired/las_glow.wav");
 	gi.modelindex("models/objects/shrapnel/tris.md2");
 	gi.modelindex("models/objects/ired/tris.md2");
 
@@ -745,9 +722,6 @@ void weapon_sc_fire (edict_t *ent)
 	}
 }
 
-
-
-
 void Weapon_SonicCannon (edict_t *ent)
 {
 	static int	pause_frames[] = {32, 42, 52, 0};
@@ -789,8 +763,6 @@ void Weapon_SonicCannon (edict_t *ent)
   Weapon_Generic (ent, 6, 22, 52, 57, pause_frames, fire_frames, weapon_sc_fire);
 }
 
-
-
 void SpawnDamage (int type, vec3_t origin, vec3_t normal, int damage);
 
 void fire_sconnanEffects (edict_t *self)
@@ -818,8 +790,6 @@ void fire_sconnanEffects (edict_t *self)
   SpawnDamage(TE_SHIELD_SPARKS, end, v, 0);
 }
 
-
-
 void scexplode_think(edict_t *self)
 {
   gi.WriteByte (svc_temp_entity);
@@ -829,7 +799,6 @@ void scexplode_think(edict_t *self)
 
 	G_FreeEdict (self);
 }
-
 
 void fire_sconnan (edict_t *self)
 {
@@ -896,9 +865,6 @@ void fire_sconnan (edict_t *self)
 	playQuadSound(self);
 }
 
-
-
-
 /*
 	Flares
 */
@@ -928,8 +894,6 @@ void flare_flash(edict_t *ent)
 			continue;
 		if (!visible(ent, target))
 			continue;
-		//if (!infront(target, ent))
-		//	continue;
 
 		// what's the distance, so that closer get's more
 		VectorSubtract(ent->s.origin, target->s.origin, delta);
@@ -973,10 +937,6 @@ void flare_flash(edict_t *ent)
 
 void flare_think(edict_t *self)
 {
-	edict_t *target = NULL;
-	edict_t *closestEnt = NULL;
-	float closestDist = 0.0;
-
 	// on our last leg?
 	if (level.time > self->timeout)
 	{
@@ -1303,8 +1263,6 @@ void Weapon_SniperRifle(edict_t *ent)
 				gi.modelindex("models/weapons/v_sniper/scope/tris.md2") );
 			
 		ent->client->ps.fov = (deathmatch->value ? dmFov : spFov);
-		//if (ent->client->quad_framenum > level.framenum)
-		//	gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage3.wav"), 1, ATTN_NORM, 0);
 
 		// fire
 		weapon_sniperrifle_fire(ent);
@@ -1375,10 +1333,7 @@ void weapon_a2k_fire (edict_t *ent)
 		ent->client->pers.inventory[ent->client->ammo_index]--;
 		ent->client->ps.gunframe++;
 		
-		// start scream sound
-		//ent->client->weapon_sound = gi.soundindex("weapons/a2k/countdn.wav");
 		gi.sound(ent, CHAN_WEAPON, gi.soundindex("weapons/a2k/countdn.wav"), 1, ATTN_NORM, 0);
-		//gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/a2k/ak_trig.wav"), 1, ATTN_NORM, 0);
 
 		// play quad sound
 		playQuadSound(ent);
@@ -1389,7 +1344,6 @@ void weapon_a2k_fire (edict_t *ent)
 		edict_t *exp = NULL;
 		float damage = 2500;
 		float dmg_radius = 512;
-		edict_t *e = NULL;
 		// play quad sound
 		playQuadSound(ent);
 		if (is_quad)
@@ -1457,7 +1411,6 @@ qboolean push_hit (edict_t *self, vec3_t start, vec3_t aim, int damage, int kick
 	trace_t tr;
 	vec3_t end;
 	vec3_t v;
-	edict_t *e = NULL;
 
 	//see if enemy is in range
 	VectorMA(start, 64, aim, end);
@@ -1476,7 +1429,6 @@ qboolean push_hit (edict_t *self, vec3_t start, vec3_t aim, int damage, int kick
 		VectorSubtract (v, start, v);
 		VectorNormalize (v);
 		VectorMA (tr.ent->velocity, kick, v, tr.ent->velocity);
-		//tr.ent->velocity[2] = 48;
 		if (tr.ent->velocity[2] > 0)
 			tr.ent->groundentity = NULL;
 	}
@@ -1505,8 +1457,6 @@ void Action_Push (edict_t *ent)
 {
 	if (ent->client->ps.gunframe == 0)
 	{
-		// play grunt sound
-		//gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/push/grunt.wav"), 1, ATTN_NORM, 0);
 		ent->client->ps.gunframe++;
 	}
 	else if (ent->client->ps.gunframe == 4)
