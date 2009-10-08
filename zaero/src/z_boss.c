@@ -80,79 +80,75 @@ void possibleBossTaunt(edict_t *self)
 // STAND
 //
 
-
 mframe_t zboss_frames_stand1 [] =
 {
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,  // 9
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},  // 9
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,  // 19
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},  // 19
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,  // 29
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},  // 29
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
 };
 mmove_t zboss_stand1 = {FRAME_stand1start, FRAME_stand1end, zboss_frames_stand1, zboss_stand};
 
-
-
-
 mframe_t zboss_frames_stand2 [] =
 {
-	ai_stand, 0, NULL, // 32
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL, // 41
+	{ai_stand, 0, NULL}, // 32
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL}, // 41
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL, // 51
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL}, // 51
 
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL,
-	ai_stand, 0, NULL	 // 56
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL},
+	{ai_stand, 0, NULL}	 // 56
 };
 mmove_t zboss_stand2 = {FRAME_stand2start, FRAME_stand2end, zboss_frames_stand2, zboss_stand};
 
@@ -171,21 +167,20 @@ void zboss_standidle (edict_t *self)
   }
 }
 
-
 // 
 // Post WALK/RUN leading into ilde.
 //
 
 mframe_t zboss_frames_postwalk [] =
 {
-	ai_walk,  3, NULL, // 177
-	ai_walk,  3, NULL,
-	ai_walk,  3, NULL,
-	ai_walk,  3, NULL,
-	ai_walk,  3, NULL,
-	ai_walk,  3, NULL,
-	ai_walk,  3, NULL,
-	ai_walk,  3, NULL, // 184
+	{ai_walk,  3, NULL}, // 177
+	{ai_walk,  3, NULL},
+	{ai_walk,  3, NULL},
+	{ai_walk,  3, NULL},
+	{ai_walk,  3, NULL},
+	{ai_walk,  3, NULL},
+	{ai_walk,  3, NULL},
+	{ai_walk,  3, NULL}, // 184
 };
 mmove_t zboss_move_postwalk = {FRAME_postWalkStart, FRAME_postWalkEnd, zboss_frames_postwalk, zboss_standidle};
 
@@ -195,48 +190,42 @@ void zboss_postWalkRun (edict_t *self)
 	self->monsterinfo.currentmove = &zboss_move_postwalk;
 }
 
-
-
 //
 // WALK
 //
 
 mframe_t zboss_frames_prewalk [] =
 {
-	ai_walk,  3, NULL, //154
-	ai_walk,  3, NULL,
-	ai_walk,  3, NULL,
-	ai_walk,  3, NULL,
-	ai_walk,  3, NULL,
-	ai_walk,  3, NULL,
-	ai_walk,  3, NULL, // 160
+	{ai_walk,  3, NULL}, //154
+	{ai_walk,  3, NULL},
+	{ai_walk,  3, NULL},
+	{ai_walk,  3, NULL},
+	{ai_walk,  3, NULL},
+	{ai_walk,  3, NULL},
+	{ai_walk,  3, NULL}, // 160
 };
 mmove_t zboss_move_prewalk = {FRAME_preWalkStart, FRAME_preWalkEnd, zboss_frames_prewalk, zboss_walk2};
 
-
-
 mframe_t zboss_frames_walk [] =
 {
-	ai_walk,  2, NULL,	//161
-	ai_walk,  3, NULL,
-	ai_walk,  3, NULL,
-	ai_walk,  4, NULL,
-	ai_walk,  4, NULL,
-	ai_walk,  4, NULL,
-	ai_walk,  4, NULL,
-	ai_walk,  3, zboss_walksound,
-	ai_walk,  4, NULL,
-	ai_walk,  4, NULL,	// 170
-	ai_walk,  4, NULL,
-	ai_walk,  4, NULL,
-	ai_walk,  3, NULL,	
-	ai_walk,  2, NULL,
-	ai_walk,  2, NULL,
-	ai_walk,  3, zboss_walksound,						// 176
+	{ai_walk,  2, NULL},	//161
+	{ai_walk,  3, NULL},
+	{ai_walk,  3, NULL},
+	{ai_walk,  4, NULL},
+	{ai_walk,  4, NULL},
+	{ai_walk,  4, NULL},
+	{ai_walk,  4, NULL},
+	{ai_walk,  3, zboss_walksound},
+	{ai_walk,  4, NULL},
+	{ai_walk,  4, NULL},	// 170
+	{ai_walk,  4, NULL},
+	{ai_walk,  4, NULL},
+	{ai_walk,  3, NULL},	
+	{ai_walk,  2, NULL},
+	{ai_walk,  2, NULL},
+	{ai_walk,  3, zboss_walksound},						// 176
 };
 mmove_t zboss_move_walk = {FRAME_walkStart, FRAME_walkEnd, zboss_frames_walk, zboss_walk2};
-
-
 
 void zboss_walk (edict_t *self)
 {
@@ -248,47 +237,42 @@ void zboss_walk2(edict_t *self)
 	self->monsterinfo.currentmove = &zboss_move_walk;
 }
 
-
-
 //
 // RUN
 //
 
-
 mframe_t zboss_frames_prerun [] =
 {
-	ai_run,  3, NULL, //154
-	ai_run,  3, NULL,
-	ai_run,  3, NULL,
-	ai_run,  3, NULL,
-	ai_run,  3, NULL,
-	ai_run,  3, NULL,
-	ai_run,  3, NULL, // 160
+	{ai_run,  3, NULL}, //154
+	{ai_run,  3, NULL},
+	{ai_run,  3, NULL},
+	{ai_run,  3, NULL},
+	{ai_run,  3, NULL},
+	{ai_run,  3, NULL},
+	{ai_run,  3, NULL}, // 160
 };
 mmove_t zboss_move_prerun = {FRAME_preWalkStart, FRAME_preWalkEnd, zboss_frames_prerun, zboss_run2};
 
-
 mframe_t zboss_frames_run [] =
 {
-	ai_run,  2, NULL,	//161
-	ai_run,  3, NULL,
-	ai_run,  3, NULL,
-	ai_run,  4, NULL,
-	ai_run,  4, NULL,
-	ai_run,  4, NULL,
-	ai_run,  4, NULL,
-	ai_run,  3, zboss_walksound,
-	ai_run,  4, NULL,
-	ai_run,  4, NULL,	// 170
-	ai_run,  4, NULL,
-	ai_run,  4, NULL,
-	ai_run,  3, NULL,	
-	ai_run,  2, NULL,
-	ai_run,  2, NULL,
-	ai_run,  3, zboss_walksound,						// 176
+	{ai_run,  2, NULL},	//161
+	{ai_run,  3, NULL},
+	{ai_run,  3, NULL},
+	{ai_run,  4, NULL},
+	{ai_run,  4, NULL},
+	{ai_run,  4, NULL},
+	{ai_run,  4, NULL},
+	{ai_run,  3, zboss_walksound},
+	{ai_run,  4, NULL},
+	{ai_run,  4, NULL},	// 170
+	{ai_run,  4, NULL},
+	{ai_run,  4, NULL},
+	{ai_run,  3, NULL},	
+	{ai_run,  2, NULL},
+	{ai_run,  2, NULL},
+	{ai_run,  3, zboss_walksound},						// 176
 };
 mmove_t zboss_move_run = {FRAME_walkStart, FRAME_walkEnd, zboss_frames_run, NULL};
-
 
 void zboss_run (edict_t *self)
 {
@@ -298,7 +282,6 @@ void zboss_run (edict_t *self)
 		self->monsterinfo.currentmove = &zboss_move_prerun;
 }
 
-
 void zboss_run2 (edict_t *self)
 {
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
@@ -306,7 +289,6 @@ void zboss_run2 (edict_t *self)
 	else
 		self->monsterinfo.currentmove = &zboss_move_run;
 }
-
 
 //
 // main stand function
@@ -326,71 +308,59 @@ void zboss_stand (edict_t *self)
 	}
 }
 
-
-
-
-
 //
 // PAIN
 //
 
-
 mframe_t zboss_frames_pain1 [] =
 {
-	ai_move, 0,	NULL,	 // 185
-	ai_move, 0, NULL,
-	ai_move, 0, NULL	 // 187
+	{ai_move, 0, NULL},	 // 185
+	{ai_move, 0, NULL},
+	{ai_move, 0, NULL}	 // 187
 };
 mmove_t zboss_move_pain1 = {FRAME_pain1Start, FRAME_pain1End, zboss_frames_pain1, zboss_run};
 
-
-
 mframe_t zboss_frames_pain2 [] =
 {
-	ai_move, 0,	NULL,	 // 188
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL	 // 192
+	{ai_move, 0,	NULL},	 // 188
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL}	 // 192
 };
 mmove_t zboss_move_pain2 = {FRAME_pain2Start, FRAME_pain2End, zboss_frames_pain2, zboss_run};
 
-
-
 mframe_t zboss_frames_pain3 [] =
 {
-	ai_move, 0,	NULL,	// 193
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,	// 202
+	{ai_move, 0,	NULL},	// 193
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},	// 202
 
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,	// 212
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},	// 212
 
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL // 217
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL} // 217
 };
 mmove_t zboss_move_pain3 = {FRAME_pain3Start, FRAME_pain3End, zboss_frames_pain3, zboss_run};
-
-
-
 
 void zboss_pain (edict_t *self, edict_t *other, float kick, int damage)
 {
@@ -460,7 +430,6 @@ void zboss_pain (edict_t *self, edict_t *other, float kick, int damage)
 	self->bossFireCount++;
 	self->bossFireTimeout = level.time + 1;
 
-
 	if(self->health < (self->max_health / 4) && self->zDistance < level.time)
 	{
 		fire_empnuke(self, self->s.origin, 1024);
@@ -498,30 +467,25 @@ void zboss_pain (edict_t *self, edict_t *other, float kick, int damage)
 // MELEE
 //
 
-
 void zboss_swing (edict_t *self)
 {
 	static	vec3_t	aim = {MELEE_DISTANCE, 0, -24};
 	fire_hit (self, aim, (15 + (rand() % 6)), 800);
 }
 
-
 mframe_t zboss_frames_attack2c [] =
 {
-	ai_charge, 0,	NULL,						// 110
-	ai_charge, 0,	zboss_swing,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	possibleBossTaunt,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	zboss_swing,
-	ai_charge, 0,	NULL						// 118
+	{ai_charge, 0,	NULL},						// 110
+	{ai_charge, 0,	zboss_swing},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	possibleBossTaunt},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	zboss_swing},
+	{ai_charge, 0,	NULL}						// 118
 };
 mmove_t zboss_move_attack2c = {FRAME_attack2cStart, FRAME_attack2cEnd, zboss_frames_attack2c, zboss_posthook};
-
-
-
 
 void zboss_melee2 (edict_t *self)
 {
@@ -529,24 +493,20 @@ void zboss_melee2 (edict_t *self)
 	gi.sound (self, CHAN_WEAPON, sound_swing, 1, ATTN_NORM, 0);
 }
 
-
 mframe_t zboss_frames_premelee [] =
 {
-	ai_charge, 0,	NULL,	// 57
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	possibleBossTaunt,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,	// 66
+	{ai_charge, 0,	NULL},	// 57
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	possibleBossTaunt},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},	// 66
 };
 mmove_t zboss_move_premelee = {FRAME_preHookStart, FRAME_preHookEnd, zboss_frames_premelee, zboss_melee2 };
-
-// todo, pickup player, and throw...
-
 
 void zboss_melee (edict_t *self)
 {
@@ -554,30 +514,22 @@ void zboss_melee (edict_t *self)
 	self->monsterinfo.currentmove = &zboss_move_premelee;
 }
 
-
-
 //
 // ATTACK
 //
-
-
-
-
-// Rocket / Hook
-
 
 
 // Rocket attack
 
 mframe_t zboss_frames_attack1b [] =
 {
-	ai_charge, 0,	NULL,	// 92
-	ai_charge, 0,	NULL,		 
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL	// 98
+	{ai_charge, 0,	NULL},	// 92
+	{ai_charge, 0,	NULL},		 
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL}	// 98
 };
 mmove_t zboss_move_attack1b = {FRAME_attack1bStart, FRAME_attack1bEnd, zboss_frames_attack1b, zboss_chooseNextAttack };
 
@@ -599,8 +551,6 @@ static vec3_t	rocketoffset[]	=
 	{-5, -48, 29},
 	{-5, -48, 29},
 };
-
-
 
 void FireFlare(edict_t *self)
 {
@@ -638,8 +588,6 @@ void FireFlare(edict_t *self)
 	gi.sound(self, CHAN_WEAPON, gi.soundindex("weapons/flare/shoot.wav"), 1, ATTN_NORM, 0);
 }
 
-
-
 void FireRocket(edict_t *self)
 {
 	vec3_t	forward, right;
@@ -669,8 +617,6 @@ void FireRocket(edict_t *self)
 	VectorSubtract (vec, start, dir);
 	VectorNormalize (dir);
 
-	
-//  ANIM_AIM(self, dir);
 	fire_rocket (self, start, dir, 70, 500, 70+20, 70);
 
 	gi.WriteByte (svc_muzzleflash2);
@@ -679,43 +625,33 @@ void FireRocket(edict_t *self)
 	gi.multicast (start, MULTICAST_PVS);
 }
 
-
-
-
-
 mframe_t zboss_frames_attack1a [] =
 {
-	ai_charge, 0,	FireFlare,	 // 71
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	FireRocket,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	FireRocket,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	FireRocket,
-	ai_charge, 0,	possibleBossTaunt,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	FireFlare,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	FireRocket,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	FireRocket,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,				 // 91
+	{ai_charge, 0,	FireFlare},	 // 71
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	FireRocket},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	FireRocket},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	FireRocket},
+	{ai_charge, 0,	possibleBossTaunt},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	FireFlare},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	FireRocket},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	FireRocket},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},				 // 91
 };
 mmove_t zboss_move_attack1a = {FRAME_attack1aStart, FRAME_attack1aEnd, zboss_frames_attack1a, zboss_reloadRockets };
 
-
-
-
-
-
 // hook
-
 
 void zboss_reelInGraaple2(edict_t *self)
 {
@@ -753,15 +689,13 @@ void zboss_reelInGraaple2(edict_t *self)
 	}
 }
 
-
 mframe_t zboss_frames_attack2b [] =
 {
-	ai_charge, 0,	NULL,		 // 107
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL		 // 109
+	{ai_charge, 0,	NULL},		 // 107
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL}		 // 109
 };
 mmove_t zboss_move_attack2b = {FRAME_attack2bStart, FRAME_attack2bEnd, zboss_frames_attack2b, zboss_reelInGraaple2 };
-
 
 void HookDragThink (edict_t *self)
 {
@@ -769,7 +703,6 @@ void HookDragThink (edict_t *self)
 	float length, speed;
 	vec3_t	hookoffset	= {-5, -24, 34};
 	vec3_t	forward, right;
-	vec3_t  offset = {0, 0, 0};
 
 	if(self->enemy && self->enemy->health > 0)
 	{
@@ -785,16 +718,7 @@ void HookDragThink (edict_t *self)
 	VectorSubtract (vec, self->s.origin, dir);
 	speed = VectorLength (dir);
 	VectorNormalize (dir);
-/*
-	if(speed > 1000)
-	{
-		speed = 1000;
-	}
-	else if(speed < 500)
-	{
-		speed = (speed * 2) + 100;
-	}
-*/
+
 	speed = 1000;
 	VectorScale (dir, speed, self->velocity);
 
@@ -805,18 +729,10 @@ void HookDragThink (edict_t *self)
 	}
 
 	gi.WriteByte (svc_temp_entity);
-#if 0 //def USE_GRAPPLE_CABLE
-	gi.WriteByte (TE_GRAPPLE_CABLE);
-	gi.WriteShort (self - g_edicts);
-	gi.WritePosition (self->s.origin);
-	gi.WritePosition (vec);
-	gi.WritePosition (offset);
-#else
 	gi.WriteByte (TE_MEDIC_CABLE_ATTACK);
 	gi.WriteShort (self - g_edicts);
 	gi.WritePosition (self->s.origin);
 	gi.WritePosition (vec);
-#endif
 	gi.multicast (self->s.origin, MULTICAST_PVS);
 
 	self->nextthink = level.time + FRAMETIME;
@@ -852,7 +768,6 @@ void HookThink(edict_t *self)
 	vec3_t	vec;
 	vec3_t	hookoffset	= {-3, -24, 34};
 	vec3_t	forward, right;
-	vec3_t  offset = {0, 0, 0};
 
 	if(self->powerarmor_time < level.time)
 	{
@@ -868,23 +783,14 @@ void HookThink(edict_t *self)
 	G_ProjectSource(self->owner->s.origin, hookoffset, forward, right, vec);
 
 	gi.WriteByte (svc_temp_entity);
-#if 0 //def USE_GRAPPLE_CABLE
-	gi.WriteByte (TE_GRAPPLE_CABLE);
-	gi.WriteShort (self - g_edicts);
-	gi.WritePosition (self->s.origin);
-	gi.WritePosition (vec);
-	gi.WritePosition (offset);
-#else
 	gi.WriteByte (TE_MEDIC_CABLE_ATTACK);
 	gi.WriteShort (self - g_edicts);
 	gi.WritePosition (self->s.origin);
 	gi.WritePosition (vec);
-#endif
 	gi.multicast (self->s.origin, MULTICAST_PVS);
 
 	self->nextthink = level.time + FRAMETIME;
 }
-
 
 void FireHook(edict_t *self)
 {
@@ -935,49 +841,39 @@ void FireHook(edict_t *self)
 	gi.linkentity (hook);
 }
 
-
 void zboss_reelInGraaple(edict_t *self)
 {
 	self->monsterinfo.currentmove = &zboss_move_attack2b;
 }
 
-
 mframe_t zboss_frames_attack2a [] =
 {
-	ai_charge, 0,	NULL,			 // 99
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	possibleBossTaunt,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	FireHook,	 // 104
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,			 // 106
+	{ai_charge, 0,	NULL},			 // 99
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	possibleBossTaunt},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	FireHook},	 // 104
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},			 // 106
 };
 mmove_t zboss_move_attack2a = {FRAME_attack2aStart, FRAME_attack2aEnd, zboss_frames_attack2a, zboss_reelInGraaple };
 
-
-
-
-
 mframe_t zboss_frames_posthook [] =
 {
-	ai_charge, 0,	NULL,	 // 136
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,	 // 141
+	{ai_charge, 0,	NULL},	 // 136
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},	 // 141
 };
 mmove_t zboss_move_posthook = {FRAME_postHookStart, FRAME_postHookEnd, zboss_frames_posthook, zboss_run };
-
 
 void zboss_posthook(edict_t *self)
 {
 	self->monsterinfo.currentmove = &zboss_move_posthook;
 }
-
-
-
 
 void zboss_chooseHookRocket(edict_t *self)
 {
@@ -991,28 +887,22 @@ void zboss_chooseHookRocket(edict_t *self)
 	}
 }
 
-
 mframe_t zboss_frames_prehook [] =
 {
-	ai_charge, 0,	NULL,	// 57
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,	// 66
+	{ai_charge, 0,	NULL},	// 57
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},	// 66
 };
 mmove_t zboss_move_prehook = {FRAME_preHookStart, FRAME_preHookEnd, zboss_frames_prehook, zboss_chooseHookRocket };
 
-
-
-
-
 // Plasma Cannon
-
 
 void PlasmaballBlastAnim(edict_t	*ent)
 {
@@ -1029,7 +919,6 @@ void PlasmaballBlastAnim(edict_t	*ent)
     ent->nextthink = level.time + FRAMETIME;
   }
 }
-
 
 void Plasmaball_Explode (edict_t *ent)
 {
@@ -1058,15 +947,12 @@ void Plasmaball_Explode (edict_t *ent)
 	ent->s.effects &= ~EF_BFG & ~EF_ANIM_ALLFAST;
 	ent->s.frame = 0;
 	ent->s.skinnum = 6;
-//  ent->s.renderfx = RF_TRANSLUCENT | RF_FULLBRIGHT;
-//  ent->s.renderfx = RF_TRANSLUCENT;
 
 	gi.sound (ent, CHAN_AUTO, sound_plamsaballexplode, 1, ATTN_NORM, 0);
 
 	ent->think = PlasmaballBlastAnim;
 	ent->nextthink = level.time + FRAMETIME;
 }
-
 
 static void Plasmaball_Touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
@@ -1082,7 +968,6 @@ static void Plasmaball_Touch (edict_t *ent, edict_t *other, cplane_t *plane, csu
 	ent->enemy = other;
 	Plasmaball_Explode (ent);
 }
-
 
 void fire_plasmaCannon (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, float timer, float damage_radius, float distance)
 {
@@ -1120,7 +1005,6 @@ void fire_plasmaCannon (edict_t *self, vec3_t start, vec3_t aimdir, int damage, 
 }
 
 
-
 static vec3_t cannonoffset[]	= 
 {
 	{-19, -44, 30},
@@ -1131,7 +1015,6 @@ static vec3_t cannonoffset[]	=
 	{  6, -36, 34},
 	{  6, -36, 34},
 };
-
 
 void FireCannon(edict_t *self)
 {
@@ -1178,7 +1061,6 @@ void FireCannon(edict_t *self)
 		distance = 700;
 	}
 	
-//  ANIM_AIM(self, dir);
 	if(skill->value < 2)
 	{
 		fire_plasmaCannon (self, start, dir, 90, 700, 2.5, 90+40, distance);
@@ -1193,24 +1075,22 @@ void FireCannon(edict_t *self)
 	}
 }
 
-
-
 mframe_t zboss_frames_attack3 [] =
 {
-	ai_charge, 0,	FireCannon,	// 119
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	FireCannon,	// 121
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	FireCannon,	// 123
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	FireCannon,	// 125
-	ai_charge, 0,	possibleBossTaunt,
-	ai_charge, 0,	FireCannon,	// 127
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	FireCannon,	// 129
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	FireCannon,	// 131
-	ai_charge, 0,	NULL,				// 132
+	{ai_charge, 0,	FireCannon},	// 119
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	FireCannon},	// 121
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	FireCannon},	// 123
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	FireCannon},	// 125
+	{ai_charge, 0,	possibleBossTaunt},
+	{ai_charge, 0,	FireCannon},	// 127
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	FireCannon},	// 129
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	FireCannon},	// 131
+	{ai_charge, 0,	NULL},				// 132
 };
 mmove_t zboss_move_attack3 = {FRAME_attack3Start, FRAME_attack3End, zboss_frames_attack3, zboss_chooseNextAttack };
 
@@ -1219,32 +1099,26 @@ void zboss_fireCannons(edict_t *self)
 {
 	self->monsterinfo.currentmove = &zboss_move_attack3;
 
-//	self->seq = (random() > 0.5);
 	self->seq = 0;
 	self->timeout = 150;
 }
 
-
 mframe_t zboss_frames_precannon [] =
 {
-	ai_charge, 0,	NULL,	// 67
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,	// 70
+	{ai_charge, 0,	NULL},	// 67
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},	// 70
 };
 mmove_t zboss_move_precannon = {FRAME_preCannonStart, FRAME_preCannonEnd, zboss_frames_precannon, zboss_fireCannons };
 
-
-
-
 mframe_t zboss_frames_postcannon [] =
 {
-	ai_charge, 0,	NULL,	// 133
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,	// 135
+	{ai_charge, 0,	NULL},	// 133
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},	// 135
 };
 mmove_t zboss_move_postcannon = {FRAME_postCannonStart, FRAME_postCannonEnd, zboss_frames_postcannon, zboss_run };
-
 
 
 void zboss_postcannon(edict_t *self)
@@ -1252,37 +1126,30 @@ void zboss_postcannon(edict_t *self)
 	self->monsterinfo.currentmove = &zboss_move_postcannon;
 }
 
-
-
-
 // switching in mid attack...
-
 
 mframe_t zboss_frames_h2c [] =
 {
-	ai_charge, 0,	NULL,	// 142
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,	// 147
+	{ai_charge, 0,	NULL},	// 142
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},	// 147
 };
 mmove_t zboss_move_h2c = {FRAME_attackH2CStart, FRAME_attackH2CEnd, zboss_frames_h2c, zboss_fireCannons };
 
 
 mframe_t zboss_frames_c2h [] =
 {
-	ai_charge, 0,	NULL,	// 148
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	possibleBossTaunt,
-	ai_charge, 0,	NULL,
-	ai_charge, 0,	NULL,	// 153
+	{ai_charge, 0,	NULL},	// 148
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	possibleBossTaunt},
+	{ai_charge, 0,	NULL},
+	{ai_charge, 0,	NULL},	// 153
 };
 mmove_t zboss_move_c2h = {FRAME_attackC2HStart, FRAME_attackC2HEnd, zboss_frames_c2h, zboss_chooseHookRocket };
-
-
-
 
 void zboss_chooseNextAttack(edict_t *self)
 {
@@ -1334,8 +1201,6 @@ void zboss_chooseNextAttack(edict_t *self)
 }
 
 
-
-
 void zboss_attack (edict_t *self)
 {
 	if (self->enemy == NULL)
@@ -1353,10 +1218,6 @@ void zboss_attack (edict_t *self)
 	}
 }
 
-
-
-
-
 /*
 ===
 Death Stuff Starts
@@ -1373,33 +1234,30 @@ void zboss_dead (edict_t *self)
 	gi.linkentity (self);
 }
 
-
 mframe_t zboss_frames_death1 [] =
 {
-	ai_move, 0,	NULL,	// 218
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,	// 227
+	{ai_move, 0,	NULL},	// 218
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},	// 227
 
-	ai_move, 0,	NULL, // 228
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,	// 236
+	{ai_move, 0,	NULL}, // 228
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},	// 236
 };
 mmove_t zboss_move_death1 = {FRAME_die1Start, FRAME_die1End, zboss_frames_death1, zboss_dead};
-
-
 
 void FireDeadRocket1(edict_t *self)
 {
@@ -1418,7 +1276,6 @@ void FireDeadRocket1(edict_t *self)
 	gi.WriteByte (MZ2_BOSS2_ROCKET_1);
 	gi.multicast (start, MULTICAST_PVS);
 }
-
 
 void FireDeadRocket2(edict_t *self)
 {
@@ -1439,7 +1296,6 @@ void FireDeadRocket2(edict_t *self)
 	gi.multicast (start, MULTICAST_PVS);
 }
 
-
 void FireDeadRocket3(edict_t *self)
 {
 	vec3_t	forward, right, up;
@@ -1458,8 +1314,6 @@ void FireDeadRocket3(edict_t *self)
 	gi.multicast (start, MULTICAST_PVS);
 }
 
-
-
 void FireDeadRocket4(edict_t *self)
 {
 	vec3_t	forward, right, up;
@@ -1477,7 +1331,6 @@ void FireDeadRocket4(edict_t *self)
 	gi.WriteByte (MZ2_BOSS2_ROCKET_1);
 	gi.multicast (start, MULTICAST_PVS);
 }
-
 
 void FireDeadRocket5(edict_t *self)
 {
@@ -1518,7 +1371,6 @@ void FireDeadRocket6(edict_t *self)
 	gi.multicast (start, MULTICAST_PVS);
 }
 
-
 void FireDeadRocket7(edict_t *self)
 {
 	vec3_t	forward, right, up;
@@ -1557,7 +1409,6 @@ void FireDeadCannon1(edict_t *self)
 	gi.multicast (start, MULTICAST_PVS);
 }
 
-
 void FireDeadCannon2(edict_t *self)
 {
 	vec3_t	forward, right;
@@ -1576,7 +1427,6 @@ void FireDeadCannon2(edict_t *self)
 	gi.multicast (start, MULTICAST_PVS);
 }
 
-
 void FireDeadCannon3(edict_t *self)
 {
 	vec3_t	forward, right;
@@ -1594,8 +1444,6 @@ void FireDeadCannon3(edict_t *self)
 	gi.WriteByte (MZ2_GUNNER_GRENADE_1);
 	gi.multicast (start, MULTICAST_PVS);
 }
-
-
 
 void DeadHookTouch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
@@ -1654,62 +1502,59 @@ void FireDeadGrapple(edict_t *self)
 	gi.linkentity (hook);
 }
 
-
-
 mframe_t zboss_frames_death2 [] =
 {
-	ai_move, 0,	NULL,							// 237
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,							// 246
+	{ai_move, 0,	NULL},							// 237
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},							// 246
 
-	ai_move, 0,	NULL,							// 247
-	ai_move, 0,	NULL,
-	ai_move, 0,	FireDeadRocket1,	// 249
-	ai_move, 0,	FireDeadRocket2,	// 250
-	ai_move, 0,	FireDeadRocket3,	// 251
-	ai_move, 0,	FireDeadRocket4,	// 252
-	ai_move, 0,	FireDeadRocket5,	// 253
-	ai_move, 0,	FireDeadRocket6,	// 254
-	ai_move, 0,	FireDeadRocket7,	// 255
-	ai_move, 0,	NULL,						  // 256
+	{ai_move, 0,	NULL},							// 247
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	FireDeadRocket1},	// 249
+	{ai_move, 0,	FireDeadRocket2},	// 250
+	{ai_move, 0,	FireDeadRocket3},	// 251
+	{ai_move, 0,	FireDeadRocket4},	// 252
+	{ai_move, 0,	FireDeadRocket5},	// 253
+	{ai_move, 0,	FireDeadRocket6},	// 254
+	{ai_move, 0,	FireDeadRocket7},	// 255
+	{ai_move, 0,	NULL},						  // 256
 
-	ai_move, 0,	FireDeadCannon1,  // 257
-	ai_move, 0,	FireDeadCannon2,	// 258
-	ai_move, 0,	NULL,	
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,	
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	FireDeadCannon3,	// 264
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,							// 266
+	{ai_move, 0,	FireDeadCannon1},  // 257
+	{ai_move, 0,	FireDeadCannon2},	// 258
+	{ai_move, 0,	NULL},	
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},	
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	FireDeadCannon3},	// 264
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},							// 266
 
-	ai_move, 0,	NULL,							// 267
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,							// 276
+	{ai_move, 0,	NULL},							// 267
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},							// 276
 
-	ai_move, 0,	NULL,							// 277
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	NULL,
-	ai_move, 0,	FireDeadGrapple,	// 281
+	{ai_move, 0,	NULL},							// 277
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	NULL},
+	{ai_move, 0,	FireDeadGrapple},	// 281
 };
 mmove_t zboss_move_death2 = {FRAME_die2Start, FRAME_die2End, zboss_frames_death2, zboss_dead};
-
 
 void zboss_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point)
 {
@@ -1721,7 +1566,6 @@ void zboss_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 		self->laser = NULL;
 	}
 
-// check for gib
 	if (self->health <= self->gib_health)
 	{
 		self->s.modelindex2 = 0;
@@ -1740,7 +1584,6 @@ void zboss_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 	if (self->deadflag == DEAD_DEAD)
 		return;
 
-// regular death
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
 
@@ -1763,7 +1606,6 @@ void zboss_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 End Death Stuff
 ===
 */
-
 void SP_monster_zboss_precache(void)
 {
 	sound_pain1 = gi.soundindex ("monsters/bossz/bpain1.wav");	
@@ -1789,7 +1631,6 @@ void SP_monster_zboss_precache(void)
 	sound_taunt2 = gi.soundindex("monsters/bossz/btaunt2.wav");
 	sound_taunt3 = gi.soundindex("monsters/bossz/btaunt3.wav");
 }
-
 
 /*QUAKED monster_zboss (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
 */
@@ -1857,8 +1698,6 @@ void SP_monster_zboss (edict_t *self)
 	walkmonster_start (self);
 }
 
-
-
 /*QUAKED target_zboss_target 
 */
 
@@ -1877,7 +1716,6 @@ void trigger_zboss (edict_t *self, edict_t *other, edict_t *activator)
   }
 }
 
-
 void SP_target_zboss_target(edict_t *self)
 {
 	if(!self->target)
@@ -1895,3 +1733,4 @@ void SP_target_zboss_target(edict_t *self)
 
 	gi.linkentity (self);
 }
+
