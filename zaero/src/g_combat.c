@@ -252,7 +252,7 @@ static int CheckPowerArmor (edict_t *ent, vec3_t point, vec3_t normal, int damag
 
 	if (client)
 		client->pers.inventory[index] -= power_used;
-	else
+	else if (ent->svflags & SVF_MONSTER)
 		ent->monsterinfo.power_armor_power -= power_used;
 	return save;
 }
@@ -521,8 +521,10 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 			SpawnDamage (te_sparks, point, normal, take);
 
 
-		targ->health = targ->health - take;
-			
+		if (targ->takedamage != DAMAGE_IMMORTAL)
+			targ->health = targ->health - take;
+
+		// kill the entity
 		if (targ->health <= 0)
 		{
 			if ((targ->svflags & SVF_MONSTER) || (client))
