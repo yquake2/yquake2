@@ -1061,7 +1061,7 @@ static void ControlsSetMenuItemValues( void )
 	s_options_oggvolume_box.curvalue 		= Cvar_VariableValue("ogg_enable");
 
 	cvar_t *ogg;
-	ogg = Cvar_Get("ogg_sequence", "1", CVAR_ARCHIVE);
+	ogg = Cvar_Get("ogg_sequence", "loop", CVAR_ARCHIVE);
 	if(!strcmp(ogg->string, "random"))
 		s_options_cdshuffle_box.curvalue	= 1;
 	else
