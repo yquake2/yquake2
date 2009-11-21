@@ -936,7 +936,7 @@ void R_Register( void )
 	gl_flashblend = ri.Cvar_Get ("gl_flashblend", "0", 0);
 	gl_playermip = ri.Cvar_Get ("gl_playermip", "0", 0);
 	gl_monolightmap = ri.Cvar_Get( "gl_monolightmap", "0", 0 );
-	gl_driver = ri.Cvar_Get( "gl_driver", "libGL.so", CVAR_ARCHIVE );
+	gl_driver = ri.Cvar_Get( "gl_driver", "libGL.so.1", CVAR_ARCHIVE );
 	gl_texturemode = ri.Cvar_Get( "gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE );
 	gl_texturealphamode = ri.Cvar_Get( "gl_texturealphamode", "default", CVAR_ARCHIVE );
 	gl_texturesolidmode = ri.Cvar_Get( "gl_texturesolidmode", "default", CVAR_ARCHIVE );

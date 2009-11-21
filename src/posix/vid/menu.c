@@ -246,7 +246,7 @@ void VID_MenuInit( void )
 	refs[counter] = (char*) 0;
 
 	if ( !gl_driver )
-		gl_driver = Cvar_Get( "gl_driver", "libGL.so", 0 );
+		gl_driver = Cvar_Get( "gl_driver", "libGL.so.1", 0 );
 	if ( !gl_picmip )
 		gl_picmip = Cvar_Get( "gl_picmip", "0", 0 );
 	if ( !gl_mode )
