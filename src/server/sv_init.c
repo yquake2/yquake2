@@ -278,6 +278,7 @@ void SV_SpawnServer (char *server, char *spawnpoint, server_state_t serverstate,
 
 	// set serverinfo variable
 	Cvar_FullSet ("mapname", sv.name, CVAR_SERVERINFO | CVAR_NOSET);
+Cvar_SetValue("_windowed_mouse", 1); 
 
 	Com_Printf ("-------------------------------------\n");
 }

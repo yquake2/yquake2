@@ -502,6 +502,7 @@ void SCR_RunConsole (void)
 	
 	if (scr_conlines < scr_con_current)
 	{
+		Cvar_SetValue("_windowed_mouse", 1);
 		scr_con_current -= scr_conspeed->value*cls.frametime;
 		if (scr_conlines > scr_con_current)
 			scr_con_current = scr_conlines;
@@ -509,6 +510,7 @@ void SCR_RunConsole (void)
 	}
 	else if (scr_conlines > scr_con_current)
 	{
+		Cvar_SetValue("_windowed_mouse", 0);
 		scr_con_current += scr_conspeed->value*cls.frametime;
 		if (scr_conlines < scr_con_current)
 			scr_con_current = scr_conlines;
