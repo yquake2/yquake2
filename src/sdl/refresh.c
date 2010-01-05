@@ -69,7 +69,7 @@ static float old_windowed_mouse;
 static cvar_t	*_windowed_mouse;
 
 void RW_IN_PlatformInit() {
-  _windowed_mouse = ri.Cvar_Get ("_windowed_mouse", "1", 0);
+  _windowed_mouse = ri.Cvar_Get ("_windowed_mouse", "1", CVAR_ARCHIVE);
 }
 
 void RW_IN_Activate(qboolean active)
