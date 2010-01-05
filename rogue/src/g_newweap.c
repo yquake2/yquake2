@@ -313,6 +313,7 @@ void prox_land (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 
 	if (plane->normal)
 	{
+		VectorMA (ent->s.origin, -11.0, plane->normal, land_point);
 		if (gi.pointcontents (land_point) & (CONTENTS_SLIME|CONTENTS_LAVA))
 		{
 			Prox_Explode (ent);
