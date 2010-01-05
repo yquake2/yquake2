@@ -311,9 +311,9 @@ void prox_land (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 		return;
 	}
 
-	if (plane->normal)
+	if (plane->normal != 0)
 	{
-		VectorMA (ent->s.origin, -11.0, plane->normal, land_point);
+		VectorMA (ent->s.origin, -10.0, plane->normal, land_point);
 		if (gi.pointcontents (land_point) & (CONTENTS_SLIME|CONTENTS_LAVA))
 		{
 			Prox_Explode (ent);
@@ -1555,8 +1555,9 @@ void tesla_lava (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf
 {
 	vec3_t	land_point;
 
-	if (plane->normal)
+	if (plane->normal != 0)
 	{
+		VectorMA (ent->s.origin, -20.0, plane->normal, land_point);
 		if (gi.pointcontents (land_point) & (CONTENTS_SLIME|CONTENTS_LAVA))
 		{
 			tesla_blow (ent);
