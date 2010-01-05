@@ -252,7 +252,7 @@ How do I record a demo?
 
 When playing in window mode my is locked onto the window. Can I change
 that, e.g. that Quake II is behaving like a normal window?
- - Set "_windowed_mouse" to 0.
+ - Open the console with pressing ~ or ^
 
 Hey, the game renders unplayable slow but my OpenGL is working?!
  - If you're using Mesa 7.0, 7.1, 7.2 or 7.3 thats a known bug of
