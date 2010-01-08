@@ -964,13 +964,6 @@ void R_Register( void )
 	vid_ref = ri.Cvar_Get( "vid_ref", "soft", CVAR_ARCHIVE );
 	
 	gl_customwidth = ri.Cvar_Get ("gl_customwidth",  "1024", CVAR_ARCHIVE);
-:q
-
-
-
-:q
-q
-sa
 	gl_customheight = ri.Cvar_Get ("gl_customheight", "768", CVAR_ARCHIVE);
 
 	ri.Cmd_AddCommand( "imagelist", GL_ImageList_f );
