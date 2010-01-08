@@ -71,14 +71,14 @@ void Con_ToggleConsole_f (void)
 
 	if (cl.attractloop)
 	{
-		Cvar_SetValue("_windowed_mouse", 0);
+		Cvar_SetValue("windowed_mouse", 0);
 		Cbuf_AddText("killserver\n");
 		return;
 	}
 
 	if (cls.state == ca_disconnected)
 	{	// start the demo loop again
-		Cvar_SetValue("_windowed_mouse", 1);
+		Cvar_SetValue("windowed_mouse", 1);
 		Cbuf_AddText ("d1\n");
 		return;
 	}
