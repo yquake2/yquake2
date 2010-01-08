@@ -65,6 +65,7 @@ MENU INTERACTION
 */
 #define SOFTWARE_MENU 0
 #define OPENGL_MENU   1
+#define CUSTOM_MODE   20
 
 static menuframework_s  s_software_menu;
 static menuframework_s	s_opengl_menu;
@@ -154,9 +155,19 @@ static void ApplyChanges( void *unused )
 	Cvar_SetValue( "gl_picmip", 3 - s_tq_slider.curvalue );
 	Cvar_SetValue( "vid_fullscreen", s_fs_box[s_current_menu_index].curvalue );
 	Cvar_SetValue( "gl_ext_palettedtexture", s_paletted_texture_box.curvalue );
-	Cvar_SetValue( "sw_mode", s_mode_list[SOFTWARE_MENU].curvalue );
-	Cvar_SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue );
-	Cvar_SetValue( "_windowed_mouse", s_windowed_mouse.curvalue);
+
+	/* custom mode */
+	if (s_mode_list[OPENGL_MENU].curvalue != CUSTOM_MODE)
+	{
+		printf("DEBUG: %i\n", s_mode_list[OPENGL_MENU].curvalue);
+		Cvar_SetValue( "sw_mode", s_mode_list[SOFTWARE_MENU].curvalue );
+		Cvar_SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue );
+	}
+	else
+	{
+		Cvar_SetValue( "sw_mode", -1 );
+		Cvar_SetValue( "gl_mode", -1 );
+	}	
 
 	/*
 	** must use an if here (instead of a switch), since the REF_'s are now variables
@@ -204,6 +215,7 @@ void VID_MenuInit( void )
  		"[1280 800 ]",
  		"[1680 1050]",
  		"[1920 1200]",
+		"[Custom   ]",
 		0
 	};
 	static const char *yesno_names[] =
@@ -262,8 +274,17 @@ void VID_MenuInit( void )
 	if ( !_windowed_mouse)
 		_windowed_mouse = Cvar_Get( "_windowed_mouse", "1", CVAR_ARCHIVE );
 
-	s_mode_list[SOFTWARE_MENU].curvalue = sw_mode->value;
-	s_mode_list[OPENGL_MENU].curvalue = gl_mode->value;
+	/* custom mode */
+	if (gl_mode->value >= 1.0)
+	{
+		s_mode_list[SOFTWARE_MENU].curvalue = sw_mode->value;
+		s_mode_list[OPENGL_MENU].curvalue = gl_mode->value;
+	}
+	else
+	{
+ 		s_mode_list[SOFTWARE_MENU].curvalue = CUSTOM_MODE;
+		s_mode_list[OPENGL_MENU].curvalue = CUSTOM_MODE;
+	}
 
 	if ( !scr_viewsize )
 		scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
