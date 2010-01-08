@@ -419,8 +419,10 @@ void GLimp_EndFrame (void)
 int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 {
 	ri.Con_Printf (PRINT_ALL, "setting mode %d:", mode );
-
-	if ( !ri.Vid_GetModeInfo( pwidth, pheight, mode ) )
+	
+	// mode -1 is not in the vid mode table - so we keep the values in pwidth 
+	// and pheight and don't even try to look up the mode info
+	if ( mode != -1 && !ri.Vid_GetModeInfo( pwidth, pheight, mode ) )
 	{
 		ri.Con_Printf( PRINT_ALL, " invalid mode\n" );
 		return rserr_invalid_mode;
