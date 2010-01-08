@@ -106,6 +106,10 @@ cvar_t	*gl_lightmap;
 cvar_t	*gl_shadows;
 cvar_t * gl_stencilshadow;
 cvar_t	*gl_mode;
+
+cvar_t	*gl_customwidth;
+cvar_t	*gl_customheight;
+
 cvar_t	*gl_dynamic;
 cvar_t  *gl_monolightmap;
 cvar_t	*gl_modulate;
@@ -958,6 +962,9 @@ void R_Register( void )
 	vid_fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", CVAR_ARCHIVE );
 	vid_gamma = ri.Cvar_Get( "vid_gamma", "1.0", CVAR_ARCHIVE );
 	vid_ref = ri.Cvar_Get( "vid_ref", "soft", CVAR_ARCHIVE );
+	
+	gl_customwidth = ri.Cvar_Get ("gl_customwidth",  "1024", CVAR_ARCHIVE);
+	gl_customheight = ri.Cvar_Get ("gl_customheight", "768", CVAR_ARCHIVE);
 
 	ri.Cmd_AddCommand( "imagelist", GL_ImageList_f );
 	ri.Cmd_AddCommand( "screenshot", GL_ScreenShot_f );
@@ -979,10 +986,18 @@ qboolean R_SetMode (void)
 
 	vid_fullscreen->modified = false;
 	gl_mode->modified = false;
+	
+	// a bit hackish approach to enable custom resolutions:
+	// Glimp_SetMode needs these values set for mode -1
+	vid.width = gl_customwidth->value;
+	vid.height = gl_customheight->value;
 
 	if ( ( err = GLimp_SetMode( &vid.width, &vid.height, gl_mode->value, fullscreen ) ) == rserr_ok )
 	{
-		gl_state.prev_mode = gl_mode->value;
+		if(gl_mode->value == -1)
+			gl_state.prev_mode = 3; // safe default for custom mode
+		else
+			gl_state.prev_mode = gl_mode->value;
 	}
 	else
 	{
