@@ -236,7 +236,8 @@ My OpenGL is not working!
 ======
 
 How do I open the console?
- - Press "^" or "~", depending on your keyboard layout.
+ - Press "^" or "~", depending on your keyboard layout. If you want
+   Quake II to never grap the mouse set "windowed_mouse_always" to 1.
 
 How do I get the frame counter?
  - Set cl_drawfps to 1

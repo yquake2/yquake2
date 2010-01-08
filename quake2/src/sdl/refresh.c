@@ -67,9 +67,11 @@ int mx, my, mouse_buttonstate;
 
 static float old_windowed_mouse;
 static cvar_t	*windowed_mouse;
+static cvar_t   *windowed_mouse_always;
 
 void RW_IN_PlatformInit() {
   windowed_mouse = ri.Cvar_Get ("windowed_mouse", "1", CVAR_ARCHIVE);
+  windowed_mouse_always = ri.Cvar_Get ("windowed_mouse_always", "1", CVAR_ARCHIVE);
 }
 
 void RW_IN_Activate(qboolean active)
@@ -504,44 +506,51 @@ void KBD_Update(void)
   KBD_Update_Flag = 1;
   
   if (X11_active)
-    {
-      int bstate;
-      
-      while (SDL_PollEvent(&event))
-	GetEvent(&event);
-      
-      if (!mx && !my)
-	SDL_GetRelativeMouseState(&mx, &my);
-      mouse_buttonstate = 0;
-      bstate = SDL_GetMouseState(NULL, NULL);
-      if (SDL_BUTTON(1) & bstate)
-	mouse_buttonstate |= (1 << 0);
-      if (SDL_BUTTON(3) & bstate) 
-	mouse_buttonstate |= (1 << 1);
-      if (SDL_BUTTON(2) & bstate) 
-	mouse_buttonstate |= (1 << 2);
-      if (SDL_BUTTON(6) & bstate)
-	mouse_buttonstate |= (1 << 3);
-      if (SDL_BUTTON(7) & bstate)
-	mouse_buttonstate |= (1 << 4);
-      
-      
-      if (old_windowed_mouse != windowed_mouse->value) {
-	old_windowed_mouse = windowed_mouse->value;
-	
-	if (!windowed_mouse->value) {
-	  SDL_WM_GrabInput(SDL_GRAB_OFF);
-	} else {
-	  SDL_WM_GrabInput(SDL_GRAB_ON);
-	}
-      }			
-      while (keyq_head != keyq_tail)
-	{
-	  in_state->Key_Event_fp(keyq[keyq_tail].key, keyq[keyq_tail].down);
-	  keyq_tail = (keyq_tail + 1) & 63;
-	}
-    }
-  
+  {
+	  int bstate;
+
+	  while (SDL_PollEvent(&event))
+		  GetEvent(&event);
+
+	  if (!mx && !my)
+		  SDL_GetRelativeMouseState(&mx, &my);
+	  mouse_buttonstate = 0;
+	  bstate = SDL_GetMouseState(NULL, NULL);
+	  if (SDL_BUTTON(1) & bstate)
+		  mouse_buttonstate |= (1 << 0);
+	  if (SDL_BUTTON(3) & bstate) 
+		  mouse_buttonstate |= (1 << 1);
+	  if (SDL_BUTTON(2) & bstate) 
+		  mouse_buttonstate |= (1 << 2);
+	  if (SDL_BUTTON(6) & bstate)
+		  mouse_buttonstate |= (1 << 3);
+	  if (SDL_BUTTON(7) & bstate)
+		  mouse_buttonstate |= (1 << 4);
+
+	  if (windowed_mouse_always->value == 1)
+	  {
+		  if (old_windowed_mouse != windowed_mouse->value) {
+			  old_windowed_mouse = windowed_mouse->value;
+
+			  if (!windowed_mouse->value) {
+				  SDL_WM_GrabInput(SDL_GRAB_OFF);
+			  } else {
+				  SDL_WM_GrabInput(SDL_GRAB_ON);
+			  }
+		  }
+	  }
+	  else
+	  {
+		  SDL_WM_GrabInput(SDL_GRAB_OFF);
+	  }
+
+	  while (keyq_head != keyq_tail)
+	  {
+		  in_state->Key_Event_fp(keyq[keyq_tail].key, keyq[keyq_tail].down);
+		  keyq_tail = (keyq_tail + 1) & 63;
+	  }
+  }
+
   KBD_Update_Flag = 0;
 }
 
