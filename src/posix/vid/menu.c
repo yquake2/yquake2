@@ -51,7 +51,7 @@ static cvar_t *gl_ext_palettedtexture;
 static cvar_t *sw_mode;
 static cvar_t *sw_stipplealpha;
 
-static cvar_t *_windowed_mouse;
+static cvar_t *windowed_mouse;
 
 extern void M_ForceMenuOff( void );
 extern qboolean VID_CheckRefExists( const char *name );
@@ -269,8 +269,8 @@ void VID_MenuInit( void )
 	if ( !sw_stipplealpha )
 		sw_stipplealpha = Cvar_Get( "sw_stipplealpha", "0", CVAR_ARCHIVE );
 
-	if ( !_windowed_mouse)
-		_windowed_mouse = Cvar_Get( "_windowed_mouse", "1", CVAR_ARCHIVE );
+	if ( !windowed_mouse)
+		windowed_mouse = Cvar_Get( "windowed_mouse", "1", CVAR_ARCHIVE );
 
 	/* custom mode */
 	if (gl_mode->value >= 1.0)
@@ -362,7 +362,7 @@ void VID_MenuInit( void )
 	s_windowed_mouse.generic.x  = 0;
 	s_windowed_mouse.generic.y  = 72;
 	s_windowed_mouse.generic.name   = "windowed mouse";
-	s_windowed_mouse.curvalue = _windowed_mouse->value;
+	s_windowed_mouse.curvalue = windowed_mouse->value;
 	s_windowed_mouse.itemnames = yesno_names;
 
 	s_tq_slider.generic.type	= MTYPE_SLIDER;

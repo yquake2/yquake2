@@ -66,10 +66,10 @@ qboolean mouse_active;
 int mx, my, mouse_buttonstate;
 
 static float old_windowed_mouse;
-static cvar_t	*_windowed_mouse;
+static cvar_t	*windowed_mouse;
 
 void RW_IN_PlatformInit() {
-  _windowed_mouse = ri.Cvar_Get ("_windowed_mouse", "1", CVAR_ARCHIVE);
+  windowed_mouse = ri.Cvar_Get ("windowed_mouse", "1", CVAR_ARCHIVE);
 }
 
 void RW_IN_Activate(qboolean active)
@@ -227,7 +227,7 @@ void GetEvent(SDL_Event *event)
 	  if ( (KeyStates[SDLK_LCTRL] || KeyStates[SDLK_RCTRL]) &&
 	       (event->key.keysym.sym == SDLK_g) ) {
 	    SDL_GrabMode gm = SDL_WM_GrabInput(SDL_GRAB_QUERY);
-	    ri.Cvar_SetValue( "_windowed_mouse", (gm == SDL_GRAB_ON) ? 1 : 0 );
+	    ri.Cvar_SetValue( "windowed_mouse", (gm == SDL_GRAB_ON) ? 1 : 0 );
 	    
 	    break; 
 	  }
@@ -526,10 +526,10 @@ void KBD_Update(void)
 	mouse_buttonstate |= (1 << 4);
       
       
-      if (old_windowed_mouse != _windowed_mouse->value) {
-	old_windowed_mouse = _windowed_mouse->value;
+      if (old_windowed_mouse != windowed_mouse->value) {
+	old_windowed_mouse = windowed_mouse->value;
 	
-	if (!_windowed_mouse->value) {
+	if (!windowed_mouse->value) {
 	  SDL_WM_GrabInput(SDL_GRAB_OFF);
 	} else {
 	  SDL_WM_GrabInput(SDL_GRAB_ON);
