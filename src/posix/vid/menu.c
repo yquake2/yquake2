@@ -160,12 +160,10 @@ static void ApplyChanges( void *unused )
 	if (s_mode_list[OPENGL_MENU].curvalue != CUSTOM_MODE)
 	{
 		printf("DEBUG: %i\n", s_mode_list[OPENGL_MENU].curvalue);
-		Cvar_SetValue( "sw_mode", s_mode_list[SOFTWARE_MENU].curvalue );
 		Cvar_SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue );
 	}
 	else
 	{
-		Cvar_SetValue( "sw_mode", -1 );
 		Cvar_SetValue( "gl_mode", -1 );
 	}	
 
@@ -198,23 +196,23 @@ void VID_MenuInit( void )
 		"[320 240  ]",
 		"[400 300  ]",
 		"[512 384  ]",
+		"[640 400  ]",
 		"[640 480  ]",
+ 		"[800 500  ]",
 		"[800 600  ]",
 		"[960 720  ]",
+		"[1024 480 ]",
+ 		"[1024 640 ]",
 		"[1024 768 ]",
+		"[1152 768 ]",
 		"[1152 864 ]",
+ 		"[1280 800 ]",
+		"[1280 854 ]",
 		"[1280 1024]",
 		"[1600 1200]",
-		"[2048 1536]",
-		"[1024 480 ]", /* sony vaio pocketbook */
-		"[1152 768 ]", /* Apple TiBook */
-		"[1280 854 ]", /* apple TiBook */
-		"[640 400  ]", /* generic 16:10 widescreen resolutions */
- 		"[800 500  ]", /* as found on many modern notebooks    */
- 		"[1024 640 ]",
- 		"[1280 800 ]",
  		"[1680 1050]",
  		"[1920 1200]",
+		"[2048 1536]",
 		"[Custom   ]",
 		0
 	};
@@ -277,12 +275,10 @@ void VID_MenuInit( void )
 	/* custom mode */
 	if (gl_mode->value >= 1.0)
 	{
-		s_mode_list[SOFTWARE_MENU].curvalue = sw_mode->value;
 		s_mode_list[OPENGL_MENU].curvalue = gl_mode->value;
 	}
 	else
 	{
- 		s_mode_list[SOFTWARE_MENU].curvalue = CUSTOM_MODE;
 		s_mode_list[OPENGL_MENU].curvalue = CUSTOM_MODE;
 	}
 
