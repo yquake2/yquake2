@@ -261,4 +261,9 @@ Hey, the game renders unplayable slow but my OpenGL is working?!
    that's not possible, open the Makefile in your favorite editor,
    uncomment line 64 and rebuild.
 
+How do I set a custom resolution?
+ - Set gl_customwidth and gl_customheight to the desired values. Change
+   gl_mode to -1 or enter the "Video" menu and select "Custom" as
+   video mode.
+
 ===============================================================================
