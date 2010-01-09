@@ -71,7 +71,7 @@ static cvar_t   *windowed_mouse_always;
 
 void RW_IN_PlatformInit() {
   windowed_mouse = ri.Cvar_Get ("windowed_mouse", "1", CVAR_ARCHIVE);
-  windowed_mouse_always = ri.Cvar_Get ("windowed_mouse_always", "1", CVAR_ARCHIVE);
+  windowed_mouse_always = ri.Cvar_Get ("windowed_mouse_always", "2", CVAR_ARCHIVE);
 }
 
 void RW_IN_Activate(qboolean active)
@@ -527,7 +527,7 @@ void KBD_Update(void)
 	  if (SDL_BUTTON(7) & bstate)
 		  mouse_buttonstate |= (1 << 4);
 
-	  if (windowed_mouse_always->value == 1)
+	  if (windowed_mouse_always->value == 2)
 	  {
 		  if (old_windowed_mouse != windowed_mouse->value) {
 			  old_windowed_mouse = windowed_mouse->value;
@@ -538,6 +538,10 @@ void KBD_Update(void)
 				  SDL_WM_GrabInput(SDL_GRAB_ON);
 			  }
 		  }
+	  }
+	  else if (windowed_mouse_always->value == 1)
+	  {
+		  SDL_WM_GrabInput(SDL_GRAB_ON);
 	  }
 	  else
 	  {
