@@ -271,8 +271,9 @@ How do I set a custom resolution?
 
 Okay, my sound is messed up. What should I do?
  - Remove all sound servers like pulseaudio oder phonon and make sure
-   you sound setup supports at least 5 virtual channels. If that doesn't
-   help create an file named ~/.asoundrc with this content:
+   you sound setup supports at least 5 virtual channels. If you're using
+   ALSA and that doesn't help create an file named ~/.asoundrc with this 
+   content:
 
    pcm.!default { 
    type hw 
