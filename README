@@ -222,7 +222,8 @@ My sound is not working!
    configured! Does the sound work in other SDL games? Does your setup
    support at least five virtual channels? In most cases it's better to
    not use sound servers like Pulseaudio but the plain sound system
-   like OSS or ALSA with libalsa instead.
+   like OSS or ALSA with libalsa instead. Also see below the FAQ "Okay,
+   my sound is messed up. What should I do?"
 
 My OpenGL is not working!
  - Make sure, that OpenGL is working in other games. Use "glxinfo" and
