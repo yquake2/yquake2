@@ -236,10 +236,7 @@ My OpenGL is not working!
 ======
 
 How do I open the console?
- - Press "^" or "~", depending on your keyboard layout. If you want
-   Quake II to never grap the mouse set "windowed_mouse_always" to 0, if
-   Quake II should never release the mouse set 0, for releasing the
-   mouse when open the console set to 2. The default is 2.
+ - Press "^" or "~", depending on your keyboard layout. 
 
 How do I get the frame counter?
  - Set cl_drawfps to 1
@@ -255,7 +252,10 @@ How do I record a demo?
 
 When playing in window mode my is locked onto the window. Can I change
 that, e.g. that Quake II is behaving like a normal window?
- - Open the console with pressing ~ or ^
+ - Open the console with pressing ~ or ^. If you want Quake II to never 
+   grap the mouse set "windowed_mouse_always" to 0, if Quake II should 
+   never release the mouse set 0, for releasing the mouse when open the 
+   console set to 2. The default is 2.
 
 Hey, the game renders unplayable slow but my OpenGL is working?!
  - If you're using Mesa 7.0, 7.1, 7.2 or 7.3 thats a known bug of
@@ -267,5 +267,20 @@ How do I set a custom resolution?
  - Set gl_customwidth and gl_customheight to the desired values. Change
    gl_mode to -1 or enter the "Video" menu and select "Custom" as
    video mode.
+
+Okay, my sound is messed up. What should I do?
+ - Remove all sound servers like pulseaudio oder phonon and make sure
+   you sound setup supports at least 5 virtual channels. If that doesn't
+   help create an file named ~/.asoundrc with this content:
+
+   pcm.!default { 
+   type hw 
+   card 0 
+   } 
+
+   ctl.!default { 
+   type hw 
+   card 0 
+   }
 
 ===============================================================================
