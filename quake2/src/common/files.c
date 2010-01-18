@@ -1207,12 +1207,21 @@ FS_AddGameDirectory(const char *dir)
 void
 FS_AddHomeAsGameDirectory(char *dir)
 {
-	char		gdir[MAX_OSPATH];	/* Game directory. */
-	char           *homedir;		/* Home directory. */
+	char gdir[MAX_OSPATH];
+	char *homedir=getenv("HOME");
+	if(homedir)
+	{
+		int len = snprintf(gdir,sizeof(gdir),"%s/.quake2/%s/", homedir, dir);
+		Com_Printf("using %s for writing\n",gdir);
+		FS_CreatePath (gdir);
 
-	if ((homedir = getenv("HOME")) != NULL) {
-		Com_sprintf(gdir, sizeof(gdir), "%s/.quake2/%s", homedir, dir);
-		FS_AddGameDirectory(gdir);
+		if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/'))
+			gdir[len-1] = 0;
+
+		strncpy(fs_gamedir,gdir,sizeof(fs_gamedir)-1);
+		fs_gamedir[sizeof(fs_gamedir)-1] = 0;
+		
+		FS_AddGameDirectory (gdir);
 	}
 }
 
