@@ -44,21 +44,14 @@ endif
 CC = gcc
 
 ifeq ($(ARCH),i386)
-CFLAGS_BASE = -O2 -ffast-math -funroll-loops -falign-loops=2 \
-		-falign-jumps=2 -falign-functions=2 -fno-strict-aliasing \
-		-fomit-frame-pointer -Wall -pipe -g
+CFLAGS_BASE = -O2  -fno-strict-aliasing -fomit-frame-pointer \
+		 -fstack-protector -Wall -pipe -g
 endif
 
 ifeq ($(ARCH),x86_64)
-CFLAGS_BASE = -O2 -ffast-math -funroll-loops -fomit-frame-pointer \
-	   	 -fexpensive-optimizations -fno-strict-aliasing \
-		 -Wall -pipe -g
+CFLAGS_BASE = -O2 -fomit-frame-pointer -fno-strict-aliasing \
+		 -fstack-protector -Wall -pipe -g
 endif
-
-# Optimizations
-#   ~25% - 30% perfomance gain, but may not
-#   work on all CPUs. Adjust to your needs
-# CFLAGS_BASE += -mmmx  -msse  -msse2 -msse3 -m3dnow 
 
 # Uncomment this if your Mesa3D is broken
 # CFLAGS_BASE += -DBROKEN_MESA
