@@ -30,7 +30,7 @@
  * =============================================================================
  */
 
-#define MAX_HANDLES	256
+#define MAX_HANDLES	1024
 #define MAX_READ	0x10000
 #define MAX_WRITE	0x10000
 #define MAX_FIND_FILES	0x04000
@@ -313,7 +313,9 @@ fsHandle_t     *
 FS_GetFileByHandle(fileHandle_t f)
 {
 	if (f <= 0 || f > MAX_HANDLES)
+	{
 		Com_Error(ERR_DROP, "FS_GetFileByHandle: out of range");
+	}
 
 	return (&fs_handles[f - 1]);
 }
