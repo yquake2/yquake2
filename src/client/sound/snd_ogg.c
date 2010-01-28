@@ -635,7 +635,9 @@ Parse play controls.
 */
 void OGG_ParseCmd(char *arg)
 {
-	int n;
+	int n; 
+	cvar_t *ogg_enable;
+	ogg_enable = Cvar_Get ("ogg_enable", "0", CVAR_ARCHIVE);  
 
 	switch (arg[0]) {
 	case '#':
@@ -658,7 +660,8 @@ void OGG_ParseCmd(char *arg)
 			OGG_Open(REL, -1);
 		break;
 	default:
-		OGG_OpenName(arg);
+		if (ogg_enable->value != 0)
+			OGG_OpenName(arg);
 		break;
 	}
 }
