@@ -599,7 +599,6 @@ mmove_t soldier_move_attack3 = {FRAME_attak301, FRAME_attak309, soldier_frames_a
 void soldier_fire4 (edict_t *self)
 {
 	soldier_fire (self, 3);
-     	self->monsterinfo.nextframe = FRAME_attak402;
 }
 
 mframe_t soldier_frames_attack4 [] =
