@@ -27,16 +27,14 @@ endif
 
 CC = gcc
 
-ifeq ($(ARCH),i386)
-CFLAGS = -O2 -ffast-math -funroll-loops -falign-loops=2 \
-		-falign-jumps=2 -falign-functions=2 -fno-strict-aliasing \
-		-Wall -pipe -fPIC -g
+ifeq ($(ARCH),i386) 
+CFLAGS = -O2 -fomit-frame-pointer -fno-strict-aliasing \
+	   	 -fstack-protector -Wall -pipe -fPIC -g 
 endif
 
 ifeq ($(ARCH),x86_64)
-CFLAGS = -O2 -ffast-math -funroll-loops -fomit-frame-pointer \
-	   	 -fexpensive-optimizations -fno-strict-aliasing \
-		 -Wall -pipe -fPIC -g
+CFLAGS = -O2 -fomit-frame-pointer -fno-strict-aliasing \
+	   	 -fstack-protector -Wall -pipe -fPIC -g
 endif
 
 # Optimizations
