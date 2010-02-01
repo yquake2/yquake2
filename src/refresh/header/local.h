@@ -36,7 +36,7 @@ char *strlwr (char *s);
 
 #include "qgl.h"
 
-#define	REF_VERSION	"OpenGL 1.0"
+#define	REF_VERSION	"OpenGL 1.4"
 
 // up / down
 #define	PITCH	0
