@@ -72,7 +72,7 @@ void RW_IN_Init(in_state_t *in_state_p)
   m_filter = ri.Cvar_Get ("m_filter", "0", 0);
   in_mouse = ri.Cvar_Get ("in_mouse", "0", CVAR_ARCHIVE);
     
-  freelook = ri.Cvar_Get( "freelook", "0", 0 );
+  freelook = ri.Cvar_Get( "freelook", "1", 0 );
   lookstrafe = ri.Cvar_Get ("lookstrafe", "0", 0);
   sensitivity = ri.Cvar_Get ("sensitivity", "3", 0);
   exponential_speedup = ri.Cvar_Get("exponential_speedup", "0", 
