@@ -139,7 +139,7 @@ const char *Default_MenuKey( menuframework_s *m, int key )
 {
 	const char *sound = NULL;
 	menucommon_s *item;
-
+    
 	if ( m )
 	{
 		if ( ( item = Menu_ItemAtCursor( m ) ) != 0 )
@@ -1188,7 +1188,7 @@ static void UpdateOGGVolumeFunc( void *unused )
 	  OGG_Stop();
 	  if (atoi(cl.configstrings[CS_CDTRACK]) < 10)
 	  {
-		  char tmp[2] = "0";
+		  char tmp[3] = "0";
 		  OGG_ParseCmd(strcat(tmp, cl.configstrings[CS_CDTRACK]));
 	  }
 	  else
