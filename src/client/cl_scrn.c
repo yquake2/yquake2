@@ -577,6 +577,7 @@ void SCR_BeginLoadingPlaque (void)
 	else
 		scr_draw_loading = 1;
 	SCR_UpdateScreen ();
+	SCR_StopCinematic();
 	cls.disable_screen = Sys_Milliseconds ();
 	cls.disable_servercount = cl.servercount;
 }
