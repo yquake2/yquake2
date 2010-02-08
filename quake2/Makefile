@@ -54,7 +54,7 @@ CFLAGS_BASE = -O2 -fomit-frame-pointer -fno-strict-aliasing \
 endif
 
 # Uncomment this if your Mesa3D is broken
-# CFLAGS_BASE += -DBROKEN_MESA
+CFLAGS_BASE += -DBROKEN_MESA
 
 # OGG/Vorbis
 OGGCFLAGS = -I/usr/include -I/usr/local/include
