@@ -258,11 +258,13 @@ that, e.g. that Quake II is behaving like a normal window?
    never release the mouse set 1, for releasing the mouse when open the 
    console set to 2. The default is 2.
 
-Hey, the game renders unplayable slow but my OpenGL is working?!
- - If you're using Mesa 7.0, 7.1, 7.2 or 7.3 thats a known bug of
-   Mesa3D. It's fixed in 7.4 and above. Please update your Mesa3D. If
-   that's not possible, open the Makefile in your favorite editor,
-   uncomment line 57 and rebuild.
+Hey, why is Quake II so slow?
+ - Because of some bugs in Mesa3Ds implementation of GL_EXT_point_
+   parameters Quake II doesn't use this OpenGL command, resulting
+   in the loss of about 50FPS on a GeForce 7950GT. If you've got a
+   better OpenGL implementation (a bug fixed version of Mesa3D, the
+   nVidia driver or ATi fglrx) you can enable this command by
+   uncommenting line line 57 of the Makefile. 
 
 How do I set a custom resolution?
  - Set gl_customwidth and gl_customheight to the desired values. Change
@@ -284,5 +286,15 @@ Okay, my sound is messed up. What should I do?
    type hw 
    card 0 
    }
+
+Why keeps Quake II crashing with "buffer overflow detected" on 
+Ubuntu 9.10?
+ - That's a false positive originating in a bug in Ubuntu 9.10. That
+   problem seems only to occure on Intel GMA graphic prozessors. One 
+   possible work arround is building Quake II with less optimizations. 
+   This will cost about 25% performance but given that Quake II runs 
+   with more than 250FPS on nearly every machine that's acceptable. In
+   the Makefile search for "CFLAGS_BASE" and change "-O2" to "-O" in both
+   lines.
 
 ===============================================================================
