@@ -359,7 +359,7 @@ void CL_PrepRefresh (void)
 		/* OGG/Vorbis */
 		if (atoi(cl.configstrings[CS_CDTRACK]) < 10)
 		{
-			char tmp[2] = "0";
+			char tmp[3] = "0";
 			OGG_ParseCmd(strcat(tmp, cl.configstrings[CS_CDTRACK]));
 		}
 		else
