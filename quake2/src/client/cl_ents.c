@@ -784,20 +784,23 @@ void CL_AddPacketEntities (frame_t *frame)
 				//PGM
 				if (renderfx & RF_USE_DISGUISE)
 				{
-					if(!strncmp((char *)ent.skin, "players/male", 12))
+					if (ent.skin != NULL)
 					{
-						ent.skin = re.RegisterSkin ("players/male/disguise.pcx");
-						ent.model = re.RegisterModel ("players/male/tris.md2");
-					}
-					else if(!strncmp((char *)ent.skin, "players/female", 14))
-					{
-						ent.skin = re.RegisterSkin ("players/female/disguise.pcx");
-						ent.model = re.RegisterModel ("players/female/tris.md2");
-					}
-					else if(!strncmp((char *)ent.skin, "players/cyborg", 14))
-					{
-						ent.skin = re.RegisterSkin ("players/cyborg/disguise.pcx");
-						ent.model = re.RegisterModel ("players/cyborg/tris.md2");
+						if(!strncmp((char *)ent.skin, "players/male", 12))
+						{
+							ent.skin = re.RegisterSkin ("players/male/disguise.pcx");
+							ent.model = re.RegisterModel ("players/male/tris.md2");
+						}
+						else if(!strncmp((char *)ent.skin, "players/female", 14))
+						{
+							ent.skin = re.RegisterSkin ("players/female/disguise.pcx");
+							ent.model = re.RegisterModel ("players/female/tris.md2");
+						}
+						else if(!strncmp((char *)ent.skin, "players/cyborg", 14))
+						{
+							ent.skin = re.RegisterSkin ("players/cyborg/disguise.pcx");
+							ent.model = re.RegisterModel ("players/cyborg/tris.md2");
+						}
 					}
 				}
 				//PGM
