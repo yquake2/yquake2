@@ -45,12 +45,12 @@ CC = gcc
 
 ifeq ($(ARCH),i386)
 CFLAGS_BASE = -O2  -fno-strict-aliasing -fomit-frame-pointer \
-		 -fstack-protector -Wall -pipe -g
+		 -fstack-protector-all -Wall -pipe -g
 endif
 
 ifeq ($(ARCH),x86_64)
 CFLAGS_BASE = -O2 -fomit-frame-pointer -fno-strict-aliasing \
-		 -fstack-protector -Wall -pipe -g
+		 -fstack-protector-all -Wall -pipe -g
 endif
 
 # Uncomment this if your Mesa3D is broken
