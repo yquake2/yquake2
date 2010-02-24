@@ -233,6 +233,12 @@ My OpenGL is not working!
    Otherwise, fix your setup. If reporting OpenGL bugs please include a
    copy of your xorg.conf (if available) and the Xorg.0.log.
 
+The game is crashing!
+ - Make sure that your kit is complete. Missing files will crash Quake
+   II on random occasions and will produce strange backtraces! This just
+   wastes my time, so please check first and report then!
+
+
 ===============================================================================
 
 5. FAQ
