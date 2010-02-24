@@ -49,7 +49,9 @@ you in installing the game data.
 1.1 Retail version:
 -------------------
 If you own Quake II, first get the official point release to Quake II
-3.20: http://www.quake.de/index.php?action=fileinfo&q=q2&element=21
+3.20: http://www.quake.de/index.php?action=fileinfo&q=q2&element=21 Use
+this and only this file! Unofficial "linux pointreleases" or something
+like that will not work and crash your game!
 
 Create a new directory "quake2/" and extract the just file you just
 downloaded into it. Even if the file extension is ".exe" it's just a
@@ -287,14 +289,13 @@ Okay, my sound is messed up. What should I do?
    card 0 
    }
 
-Why keeps Quake II crashing with "buffer overflow detected" on 
-Ubuntu 9.10?
- - That's a false positive originating in a bug in Ubuntu 9.10. That
-   problem seems only to occure on Intel GMA graphic prozessors. One 
-   possible work arround is building Quake II with less optimizations. 
-   This will cost about 25% performance but given that Quake II runs 
-   with more than 250FPS on nearly every machine that's acceptable. In
-   the Makefile search for "CFLAGS_BASE" and change "-O2" to "-O" in both
-   lines.
+Hey, my screensaver crashes Quake II or I expire strange crashes after a
+fixed amount of time!
+ - This is a known bug in some linux distributions. See this Ubuntu
+   bugreport: 
+   https://bugs.launchpad.net/ubuntu/+source/gnome-screensaver/+bug/32457
+   As a work around use the startscript in tools/quake-start.sh It
+   deactivates the screensaver before starting Quake II and reenables it
+   after exiting the game.
 
 ===============================================================================
