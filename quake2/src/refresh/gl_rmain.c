@@ -110,6 +110,8 @@ cvar_t	*gl_mode;
 cvar_t	*gl_customwidth;
 cvar_t	*gl_customheight;
 
+cvar_t	*gl_ext_pointparameters_broken;
+
 cvar_t	*gl_dynamic;
 cvar_t  *gl_monolightmap;
 cvar_t	*gl_modulate;
@@ -966,6 +968,8 @@ void R_Register( void )
 	gl_customwidth = ri.Cvar_Get ("gl_customwidth",  "1024", CVAR_ARCHIVE);
 	gl_customheight = ri.Cvar_Get ("gl_customheight", "768", CVAR_ARCHIVE);
 
+	gl_ext_pointparameters_broken = ri.Cvar_Get ("gl_ext_pointparameters_broken", "0", CVAR_ARCHIVE);
+
 	ri.Cmd_AddCommand( "imagelist", GL_ImageList_f );
 	ri.Cmd_AddCommand( "screenshot", GL_ScreenShot_f );
 	ri.Cmd_AddCommand( "modellist", Mod_Modellist_f );
@@ -1183,25 +1187,30 @@ int R_Init( void *hinstance, void *hWnd )
 		ri.Con_Printf( PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n" );
 	}
 
-#ifndef BROKEN_MESA
-	if ( strstr( gl_config.extensions_string, "GL_EXT_point_parameters" ) )
+	if ( gl_ext_pointparameters_broken->value != 1 )
 	{
-		if ( gl_ext_pointparameters->value )
+		if ( strstr( gl_config.extensions_string, "GL_EXT_point_parameters" ) )
 		{
-			qglPointParameterfEXT = ( void (APIENTRY *)( GLenum, GLfloat ) ) qwglGetProcAddress( "glPointParameterfEXT" );
-			qglPointParameterfvEXT = ( void (APIENTRY *)( GLenum, const GLfloat * ) ) qwglGetProcAddress( "glPointParameterfvEXT" );
-			ri.Con_Printf( PRINT_ALL, "...using GL_EXT_point_parameters\n" );
+			if ( gl_ext_pointparameters->value )
+			{
+				qglPointParameterfEXT = ( void (APIENTRY *)( GLenum, GLfloat ) ) qwglGetProcAddress( "glPointParameterfEXT" );
+				qglPointParameterfvEXT = ( void (APIENTRY *)( GLenum, const GLfloat * ) ) qwglGetProcAddress( "glPointParameterfvEXT" );
+				ri.Con_Printf( PRINT_ALL, "...using GL_EXT_point_parameters\n" );
+			}
+			else
+			{
+				ri.Con_Printf( PRINT_ALL, "...ignoring GL_EXT_point_parameters\n" );
+			}
 		}
 		else
 		{
-			ri.Con_Printf( PRINT_ALL, "...ignoring GL_EXT_point_parameters\n" );
+			ri.Con_Printf( PRINT_ALL, "...GL_EXT_point_parameters not found\n" );
 		}
 	}
 	else
 	{
-		ri.Con_Printf( PRINT_ALL, "...GL_EXT_point_parameters not found\n" );
+			ri.Con_Printf( PRINT_ALL, "GL_EXT_point_parameters disabled\n" );
 	}
-#endif
 
 	GL_SetDefaultState();
 
