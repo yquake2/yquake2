@@ -307,9 +307,9 @@ void OGG_LoadPlaylist(char *playlist)
 	}
 
 	/* Count the files in playlist. */
-	for (ptr = strtok((char *)buffer, "\n");
+	for (ptr = strsep((char **) &buffer, "\n");
 	    ptr != NULL;
-	    ptr = strtok(NULL, "\n")) {
+	    ptr = strsep(NULL, "\n")) {
 		if ((byte *)ptr != buffer)
 			ptr[-1] = '\n';
 		if (OGG_Check(va("%s/%s", OGG_DIR, ptr)))
@@ -320,9 +320,9 @@ void OGG_LoadPlaylist(char *playlist)
 	ogg_filelist = malloc(sizeof(char *) * ogg_numfiles);
 
 	i = 0;
-	for (ptr = strtok((char *)buffer, "\n");
+	for (ptr = strsep((char **) &buffer, "\n");
 	    ptr != NULL;
-	    ptr = strtok(NULL, "\n"))
+	    ptr = strsep(NULL, "\n"))
 		if (OGG_Check(va("%s/%s", OGG_DIR, ptr)))
 			ogg_filelist[i++] = strdup(va("%s/%s", OGG_DIR, ptr));
 
