@@ -1656,8 +1656,6 @@ void CL_BubbleTrail (vec3_t start, vec3_t end) {
 	}
 }
 
-
-#define	BEAMLENGTH			16
 void CL_FlyParticles (vec3_t origin, int count) {
 	int			i;
 	cparticle_t	*p;
@@ -1705,9 +1703,9 @@ void CL_FlyParticles (vec3_t origin, int count) {
 		p->time = time;
 
 		dist = (float)sin(ltime + i)*64;
-		p->org[0] = origin[0] + bytedirs[i][0]*dist + forward[0]*BEAMLENGTH;
-		p->org[1] = origin[1] + bytedirs[i][1]*dist + forward[1]*BEAMLENGTH;
-		p->org[2] = origin[2] + bytedirs[i][2]*dist + forward[2]*BEAMLENGTH;
+		p->org[0] = origin[0] + bytedirs[i][0]*dist + forward[0] * 16;
+		p->org[1] = origin[1] + bytedirs[i][1]*dist + forward[1] * 16;
+		p->org[2] = origin[2] + bytedirs[i][2]*dist + forward[2] * 16;
 
 		VectorClear (p->vel);
 		VectorClear (p->accel);
@@ -1750,7 +1748,6 @@ void CL_FlyEffect (centity_t *ent, vec3_t origin) {
 	CL_FlyParticles (origin, count);
 }
 
-#define	BEAMLENGTH			16
 void CL_BfgParticles (entity_t *ent) {
 	int			i;
 	cparticle_t	*p;
@@ -1795,9 +1792,9 @@ void CL_BfgParticles (entity_t *ent) {
 		p->time = time;
 
 		dist = (float)sin(ltime + i)*64;
-		p->org[0] = ent->origin[0] + bytedirs[i][0]*dist + forward[0]*BEAMLENGTH;
-		p->org[1] = ent->origin[1] + bytedirs[i][1]*dist + forward[1]*BEAMLENGTH;
-		p->org[2] = ent->origin[2] + bytedirs[i][2]*dist + forward[2]*BEAMLENGTH;
+		p->org[0] = ent->origin[0] + bytedirs[i][0]*dist + forward[0] * 16;
+		p->org[1] = ent->origin[1] + bytedirs[i][1]*dist + forward[1] * 16;
+		p->org[2] = ent->origin[2] + bytedirs[i][2]*dist + forward[2] * 16;
 
 		VectorClear (p->vel);
 		VectorClear (p->accel);
