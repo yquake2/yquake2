@@ -1334,6 +1334,16 @@ byte	COM_BlockSequenceCRCByte (byte *base, int length, int sequence)
 
 //========================================================
 
+float	frand(void)
+{
+	return (rand()&32767)* (1.0/32767);
+}
+
+float	crand(void)
+{
+	return (rand()&32767)* (2.0/32767) - 1;
+}
+
 #ifndef DEDICATED_ONLY
 void Key_Init (void);
 void SCR_EndLoadingPlaque (void);
@@ -1366,9 +1376,6 @@ void Qcommon_Init (int argc, char **argv)
 		Sys_Error ("Error during initialization");
 
 	z_chain.next = z_chain.prev = &z_chain;
-
-	/* seed the PRNG */
-	ini_rand (5489U);
 
 	// prepare enough of the subsystems to handle
 	// cvar and command buffer management
