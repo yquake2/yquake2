@@ -248,7 +248,7 @@ void Key_Console (int key)
 		{
 			int i;
 
-			strtok( cbd, "\n\r\b" );
+			strsep( &cbd, "\n\r\b" );
 
 			i = (int)strlen( cbd );
 			if ( i + key_linepos >= MAXCMDLINE - 1)

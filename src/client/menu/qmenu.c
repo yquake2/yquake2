@@ -198,7 +198,7 @@ qboolean Field_Key( menufield_s *f, int key )
 		
 		if ( ( cbd = Sys_GetClipboardData() ) != 0 )
 		{
-			strtok( cbd, "\n\r\b" );
+			strsep( &cbd, "\n\r\b" );
 
 			strncpy( f->buffer, cbd, f->length - 1 );
 			f->cursor = (int)strlen( f->buffer );
