@@ -199,7 +199,8 @@ COMMON_OBJS = \
 	build/common/files.o \
 	build/common/md4.o \
 	build/common/net_chan.o \
-	build/common/pmove.o 
+	build/common/pmove.o \
+	build/common/rand.o
  
 # ----------
 
@@ -271,7 +272,8 @@ DEDICATED_SERVER_COMMON_OBJS = \
 	build/dedicated_server_common/files.o \
 	build/dedicated_server_common/md4.o \
 	build/dedicated_server_common/net_chan.o \
-	build/dedicated_server_common/pmove.o 
+	build/dedicated_server_common/pmove.o \
+	build/dedicated_server_common/rand.o
 
 # ----------
 
@@ -489,6 +491,9 @@ build/common/net_chan.o :   		src/common/net_chan.c
 build/common/pmove.o :      		src/common/pmove.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
+build/common/rand.o :      			src/common/rand.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<  
+
 # ----------
 
 build/unzip/ioapi.o :   	   		src/unzip/ioapi.c
@@ -617,6 +622,9 @@ build/dedicated_server_common/net_chan.o :  src/common/net_chan.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 build/dedicated_server_common/pmove.o :     src/common/pmove.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/rand.o :      src/common/rand.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 # ----------

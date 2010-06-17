@@ -835,5 +835,13 @@ void SV_Init (void);
 void SV_Shutdown (char *finalmsg, qboolean reconnect);
 void SV_Frame (int msec);
 
+typedef struct
+{
+	int count;
+	unsigned int cnst [ 2 ], vec [ 624 ];
+} rand_work_t; 
 
+extern rand_work_t rand_work;
+void   ini_rand (unsigned int u);
+int mtrand (void);
 
