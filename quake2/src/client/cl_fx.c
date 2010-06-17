@@ -909,7 +909,7 @@ void CL_ParticleEffect2 (vec3_t org, vec3_t dir, int color, int count) {
 		active_particles = p;
 
 		p->time = time;
-		p->color = color + (rand()&7);
+		p->color = color + (mtrand()&7);
 
 		d = (float)(mtrand()&7);
 
@@ -1924,8 +1924,8 @@ void CL_BFGExplosionParticles (vec3_t org) {
 		p->color = 0xd0 + (mtrand()&7);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = org[j] + ((rand()%32)-16);
-			p->vel[j] = (rand()%384)-192;
+			p->org[j] = org[j] + crand() * 16;
+			p->vel[j] = crand() * 192; 
 		}
 
 		p->accel[0] = p->accel[1] = 0;

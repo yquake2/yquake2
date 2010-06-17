@@ -31,6 +31,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 typedef unsigned char 		byte;
 typedef enum {false, true}	qboolean;
 
+//32 bit float precision caps this to 0.00000000023283064f which gives max result of .99999998407391880
+#define	random()	((mtrand() * 0.00000000023283064f))
+
+
+#define	frand()		(random())
+#define	crand()		(((int)mtrand() - 0x7FFFFFFF) * 0.000000000465661287307739257812f)
 
 #ifndef NULL
 #define NULL ((void *)0)
