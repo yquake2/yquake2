@@ -265,109 +265,23 @@ Huff1Decompress(cblock_t in) {
 	while (count) {
 		inbyte = *input++;
 
-		if (nodenum < 256) {
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
+		int i = 0;
 
-			if (!--count)
-				break;
+		for (i = 0; i < 8; i++) {
+			if (nodenum < 256) {
+				hnodes = hnodesbase + (nodenum << 9);
+				*out_p++ = nodenum;
 
-			nodenum = cin.numhnodes1[nodenum];
+				if (!--count)
+					break;
+
+				nodenum = cin.numhnodes1[nodenum];
+			}
+
+			nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
+			inbyte >>= 1;
+
 		}
-
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-
-		if (nodenum < 256) {
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-
-			if (!--count)
-				break;
-
-			nodenum = cin.numhnodes1[nodenum];
-		}
-
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-
-		if (nodenum < 256) {
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-
-			if (!--count)
-				break;
-
-			nodenum = cin.numhnodes1[nodenum];
-		}
-
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-
-		if (nodenum < 256) {
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-
-			if (!--count)
-				break;
-
-			nodenum = cin.numhnodes1[nodenum];
-		}
-
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-
-		if (nodenum < 256) {
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-
-			if (!--count)
-				break;
-
-			nodenum = cin.numhnodes1[nodenum];
-		}
-
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-
-		if (nodenum < 256) {
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-
-			if (!--count)
-				break;
-
-			nodenum = cin.numhnodes1[nodenum];
-		}
-
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-
-		if (nodenum < 256) {
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-
-			if (!--count)
-				break;
-
-			nodenum = cin.numhnodes1[nodenum];
-		}
-
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
-
-		if (nodenum < 256) {
-			hnodes = hnodesbase + (nodenum << 9);
-			*out_p++ = nodenum;
-
-			if (!--count)
-				break;
-
-			nodenum = cin.numhnodes1[nodenum];
-		}
-
-		nodenum = hnodes[nodenum * 2 + (inbyte & 1)];
-		inbyte >>= 1;
 	}
 
 	if (input - in.data != in.count && input - in.data != in.count + 1) {
