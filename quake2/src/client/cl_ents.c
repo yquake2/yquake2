@@ -484,9 +484,9 @@ void CL_ParseFrame (void) {
 	 * message
 	 */
 	if (cl.frame.deltaframe <= 0) {
-		cl.frame.valid = true;		/* uncompressed frame */
+		cl.frame.valid = true; /* uncompressed frame */
 		old = NULL;
-		cls.demowaiting = false;	/* we can start recording now */
+		cls.demowaiting = false; /* we can start recording now */
 
 	} else {
 		old = &cl.frames[cl.frame.deltaframe & UPDATE_MASK];
@@ -505,7 +505,7 @@ void CL_ParseFrame (void) {
 			Com_Printf ("Delta parse_entities too old.\n");
 
 		} else
-			cl.frame.valid = true;	/* valid delta parse */
+			cl.frame.valid = true; /* valid delta parse */
 	}
 
 	/* clamp time */
@@ -1229,3 +1229,4 @@ void CL_GetEntitySoundOrigin (int ent, vec3_t org) {
 	old = &cl_entities[ent];
 	VectorCopy (old->lerp_origin, org);
 }
+
