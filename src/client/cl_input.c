@@ -16,6 +16,12 @@
  * this program; if not, write to the Free Software Foundation, Inc., 59
  * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
+ * =======================================================================
+ *
+ * This file implements the input handling like mouse 
+ * events and keyboard strokes.
+ * 
+ * =======================================================================
  */
 
 #include "header/client.h"
@@ -551,3 +557,4 @@ void CL_SendCmd (void) {
 	/* deliver the message */
 	Netchan_Transmit (&cls.netchan, buf.cursize, buf.data);
 }
+
