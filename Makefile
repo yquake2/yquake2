@@ -178,7 +178,7 @@ CLIENT_OBJS = \
 	build/client/cl_parse.o \
 	build/client/cl_particles.o \
 	build/client/cl_prediction.o \
-	build/client/cl_tent.o \
+	build/client/cl_tempentities.o \
 	build/client/cl_screen.o \
 	build/client/cl_view.o \
 	build/client/console/console.o \
@@ -438,7 +438,7 @@ build/client/cl_particles.o :  		src/client/cl_particles.c
 build/client/cl_prediction.o :		src/client/cl_prediction.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/client/cl_tent.o :    		src/client/cl_tent.c
+build/client/cl_tempentities.o :	src/client/cl_tempentities.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_screen.o :    		src/client/cl_screen.c
