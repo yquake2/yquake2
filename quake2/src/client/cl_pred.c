@@ -16,6 +16,12 @@
  * this program; if not, write to the Free Software Foundation, Inc., 59
  * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
+ * =======================================================================
+ *
+ * This file implements interpolation between two frames. This is used
+ * to smooth down network play
+ *
+ * =======================================================================
  */
 
 #include "header/client.h"
@@ -167,7 +173,6 @@ int		CL_PMpointcontents (vec3_t point) {
 	return contents;
 }
 
-
 /*
  * Sets cl.predicted_origin and cl.predicted_angles
  */
@@ -248,3 +253,4 @@ void CL_PredictMovement (void) {
 
 	VectorCopy (pm.viewangles, cl.predicted_angles);
 }
+
