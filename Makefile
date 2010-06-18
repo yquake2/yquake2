@@ -167,8 +167,8 @@ clean:
 # Client object
 CLIENT_OBJS = \
 	build/client/cl_cin.o \
+	build/client/cl_effects.o \
 	build/client/cl_entities.o \
-	build/client/cl_fx.o \
 	build/client/cl_input.o \
 	build/client/cl_inv.o \
 	build/client/cl_lights.o \
@@ -404,10 +404,10 @@ CTF_OBJS = \
 build/client/cl_cin.o :     		src/client/cl_cin.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/client/cl_entities.o :   		src/client/cl_entities.c
+build/client/cl_effects.o :      		src/client/cl_effects.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
-
-build/client/cl_fx.o :      		src/client/cl_fx.c
+ 
+build/client/cl_entities.o :   		src/client/cl_entities.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_input.o :   		src/client/cl_input.c
