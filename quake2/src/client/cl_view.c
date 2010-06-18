@@ -16,9 +16,16 @@
  * this program; if not, write to the Free Software Foundation, Inc., 59
  * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
+ *  =======================================================================
+ *
+ * This file implements the camera, e.g the player's view
+ *
+ * =======================================================================
  */
 
 #include "header/client.h"
+
+void SCR_DrawCrosshair (void);
 
 /* development tools for weapons */
 int				gun_frame;
@@ -355,32 +362,6 @@ void V_Gun_Model_f (void) {
 	gun_model = re.RegisterModel (name);
 }
 
-void SCR_DrawCrosshair (void) {
-	if (!crosshair->value)
-		return;
-
-	if (crosshair->modified) {
-		crosshair->modified = false;
-		SCR_TouchPics ();
-	}
-
-	if (crosshair_scale->modified) {
-		crosshair_scale->modified=false;
-
-		if (crosshair_scale->value>5)
-			Cvar_SetValue("crosshair_scale", 5);
-
-		else if (crosshair_scale->value<0.25)
-			Cvar_SetValue("crosshair_scale", 0.25);
-	}
-
-	if (!crosshair_pic[0])
-		return;
-
-	re.DrawPic (scr_vrect.x + ((scr_vrect.width - crosshair_width)>>1)
-	            , scr_vrect.y + ((scr_vrect.height - crosshair_height)>>1), crosshair_pic);
-}
-
 void V_RenderView( float stereo_separation ) {
 	extern int entitycmpfnc( const entity_t *, const entity_t * );
 
@@ -515,3 +496,4 @@ void V_Init (void) {
 
 	cl_stats = Cvar_Get ("cl_stats", "0", 0);
 }
+
