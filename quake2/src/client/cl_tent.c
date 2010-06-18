@@ -16,6 +16,11 @@
  * this program; if not, write to the Free Software Foundation, Inc., 59
  * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
+ * =======================================================================
+ *
+ * This file implements all temporary (dynamic created) entities
+ *
+ * =======================================================================
  */
 
 #include "header/client.h"
@@ -36,9 +41,10 @@ typedef struct {
 } explosion_t;
 
 #define	MAX_EXPLOSIONS	64
-explosion_t	cl_explosions[MAX_EXPLOSIONS];
-
 #define	MAX_BEAMS	64
+#define	MAX_LASERS	64
+
+explosion_t	cl_explosions[MAX_EXPLOSIONS];
 
 typedef struct {
 	int		entity;
@@ -52,7 +58,6 @@ typedef struct {
 beam_t		cl_beams[MAX_BEAMS];
 beam_t		cl_playerbeams[MAX_BEAMS];
 
-#define	MAX_LASERS	64
 typedef struct {
 	entity_t	ent;
 	int			endtime;
@@ -1546,3 +1551,4 @@ void CL_AddTEnts (void) {
 	CL_AddLasers ();
 	CL_ProcessSustain();
 }
+

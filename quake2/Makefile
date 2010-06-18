@@ -179,7 +179,7 @@ CLIENT_OBJS = \
 	build/client/cl_particles.o \
 	build/client/cl_prediction.o \
 	build/client/cl_tent.o \
-	build/client/cl_scrn.o \
+	build/client/cl_screen.o \
 	build/client/cl_view.o \
 	build/client/console/console.o \
 	build/client/input/keys.o \
@@ -441,7 +441,7 @@ build/client/cl_prediction.o :		src/client/cl_prediction.c
 build/client/cl_tent.o :    		src/client/cl_tent.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/client/cl_scrn.o :    		src/client/cl_scrn.c
+build/client/cl_screen.o :    		src/client/cl_screen.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_view.o :    		src/client/cl_view.c
