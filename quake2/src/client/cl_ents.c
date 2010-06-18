@@ -22,8 +22,8 @@
 
 extern	struct model_s	*cl_mod_powerscreen;
 int	vidref_val;
-
 int	bitcounts[32]; /* just for protocol profiling */
+
 int CL_ParseEntityBits (unsigned *bits) {
 	unsigned	b, total;
 	int			i;
