@@ -418,12 +418,6 @@ int precache_model_skin;
 
 byte *precache_model;
 
-#define PLAYER_MULT 5
-
-/* ENV_CNT is map load, ENV_CNT+1 is first env map */
-#define ENV_CNT (CS_PLAYERSKINS + MAX_CLIENTS * PLAYER_MULT)
-#define TEXTURE_CNT (ENV_CNT+13)
-
 /*
  * The server will send this command right
  * before allowing the client into the server
@@ -840,3 +834,4 @@ void CL_Shutdown(void)
 	IN_Shutdown ();
 	VID_Shutdown();
 }
+
