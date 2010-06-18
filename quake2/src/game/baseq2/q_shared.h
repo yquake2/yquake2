@@ -155,6 +155,7 @@ void R_ConcatRotations (float in1[3][3], float in2[3][3], float out[3][3]);
 void R_ConcatTransforms (float in1[3][4], float in2[3][4], float out[3][4]);
 
 void AngleVectors (vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
+void AngleVectors2 (vec3_t value1, vec3_t angles);
 int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *plane);
 float	anglemod(float a);
 float LerpAngle (float a1, float a2, float frac);

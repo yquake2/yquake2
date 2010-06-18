@@ -201,3 +201,42 @@ void CL_AddParticles (void) {
 	active_particles = active;
 }
 
+void CL_GenericParticleEffect (vec3_t org, vec3_t dir, int color, int count, int numcolors, int dirspread, float alphavel) {
+	int			i, j;
+	cparticle_t	*p;
+	float		d;
+	float		time;
+	time = (float)cl.time;
+
+	for (i=0 ; i<count ; i++) {
+		if (!free_particles)
+			return;
+
+		p = free_particles;
+		free_particles = p->next;
+		p->next = active_particles;
+		active_particles = p;
+
+		p->time = time;
+
+		if (numcolors > 1)
+			p->color = color + (rand() & numcolors);
+
+		else
+			p->color = color;
+
+		d = (float)(rand() & dirspread);
+
+		for (j=0 ; j<3 ; j++) {
+			p->org[j] = org[j] + ((rand()&7)-4) + d*dir[j];
+			p->vel[j] = crand()*20;
+		}
+
+		p->accel[0] = p->accel[1] = 0;
+		p->accel[2] = -PARTICLE_GRAVITY;
+		p->alpha = 1.0;
+
+		p->alphavel = -1.0f / (0.5f + frand()*alphavel);
+	}
+}
+
