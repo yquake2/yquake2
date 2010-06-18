@@ -1122,24 +1122,9 @@ void SCR_UpdateScreen (void) {
 	if (!scr_initialized || !con.initialized)
 		return; /* not initialized yet */
 
-	/* range check cl_camera_separation so we
-	   don't inadvertently fry someone's brain */
-	if ( cl_stereo_separation->value > 1.0 )
-		Cvar_SetValue( "cl_stereo_separation", 1.0 );
-
-	else if ( cl_stereo_separation->value < 0 )
-		Cvar_SetValue( "cl_stereo_separation", 0.0 );
-
-	if ( cl_stereo->value ) {
-		numframes = 2;
-		separation[0] = -cl_stereo_separation->value / 2;
-		separation[1] =  cl_stereo_separation->value / 2;
-
-	} else {
-		separation[0] = 0;
-		separation[1] = 0;
-		numframes = 1;
-	}
+	separation[0] = 0;
+	separation[1] = 0;
+	numframes = 1;
 
 	for ( i = 0; i < numframes; i++ ) {
 		re.BeginFrame( separation[i] );
