@@ -171,6 +171,7 @@ CLIENT_OBJS = \
 	build/client/cl_fx.o \
 	build/client/cl_input.o \
 	build/client/cl_inv.o \
+	build/client/cl_lights.o \
 	build/client/cl_main.o \
 	build/client/cl_parse.o \
 	build/client/cl_pred.o \
@@ -414,6 +415,9 @@ build/client/cl_input.o :   		src/client/cl_input.c
 build/client/cl_inv.o :     		src/client/cl_inv.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
+build/client/cl_lights.o :     		src/client/cl_lights.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+ 
 build/client/cl_main.o :    		src/client/cl_main.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
