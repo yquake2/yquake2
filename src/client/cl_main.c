@@ -907,19 +907,6 @@ void CL_ConnectionlessPacket (void)
 	Com_Printf ("Unknown command.\n");
 }
 
-
-/*
- * A vain attempt to help bad TCP stacks that cause problems
- * when they overflow. Is this still needed?
-*/
-void CL_DumpPackets (void)
-{
-	while (NET_GetPacket (NS_CLIENT, &net_from, &net_message))
-	{
-		Com_Printf ("dumnping a packet\n");
-	}
-}
-
 void CL_ReadPackets (void)
 {
 	while (NET_GetPacket (NS_CLIENT, &net_from, &net_message))
