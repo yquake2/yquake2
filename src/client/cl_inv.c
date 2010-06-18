@@ -16,6 +16,11 @@
  * this program; if not, write to the Free Software Foundation, Inc., 59
  * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
+ * =======================================================================
+ *
+ * This file implements the inventory screen
+ *
+ * =======================================================================
  */
 
 #include "header/client.h"
@@ -135,3 +140,4 @@ void CL_DrawInventory (void)
 		y += 8;
 	}
 }
+
