@@ -171,7 +171,7 @@ CLIENT_OBJS = \
 	build/client/cl_effects.o \
 	build/client/cl_entities.o \
 	build/client/cl_input.o \
-	build/client/cl_inv.o \
+	build/client/cl_inventory.o \
 	build/client/cl_lights.o \
 	build/client/cl_main.o \
 	build/client/cl_network.o \
@@ -417,7 +417,7 @@ build/client/cl_entities.o :   		src/client/cl_entities.c
 build/client/cl_input.o :   		src/client/cl_input.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/client/cl_inv.o :     		src/client/cl_inv.c
+build/client/cl_inventory.o : 		src/client/cl_inventory.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_lights.o :     		src/client/cl_lights.c
