@@ -200,6 +200,9 @@ SmallestNode1(int numhnodes) {
 	return bestnode;
 }
 
+/*
+ * Reads the 64k counts table and initializes the node trees
+ */
 void
 Huff1TableInit(void) {
 	int		prev;
@@ -406,6 +409,10 @@ SCR_RunCinematic(void) {
 	}
 }
 
+/*
+ * Returns true if a cinematic is active, meaning the 
+ * view rendering should be skipped
+ */
 qboolean
 SCR_DrawCinematic(void) {
 	if (cl.cinematictime <= 0) {
