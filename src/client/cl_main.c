@@ -15,7 +15,13 @@
  * You should have received a copy of the GNU General Public License along with
  * this program; if not, write to the Free Software Foundation, Inc., 59
  * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * 
+ * =======================================================================
  *
+ * This is the clients main loop as well as some miscelangelous 
+ * utility and support functions
+ *
+ * ======================================================================= 
  */
 
 #include "header/client.h"
@@ -31,9 +37,6 @@ cvar_t	*adr5;
 cvar_t	*adr6;
 cvar_t	*adr7;
 cvar_t	*adr8;
-
-cvar_t	*cl_stereo_separation;
-cvar_t	*cl_stereo;
 
 cvar_t	*rcon_client_password;
 cvar_t	*rcon_address;
@@ -1409,9 +1412,6 @@ void CL_InitLocal (void)
 	adr8 = Cvar_Get( "adr8", "", CVAR_ARCHIVE );
 
 	/* register our variables */
-	cl_stereo_separation = Cvar_Get( "cl_stereo_separation", "0.4", CVAR_ARCHIVE );
-	cl_stereo = Cvar_Get( "cl_stereo", "0", 0 );
-
 	cl_add_blend = Cvar_Get ("cl_blend", "1", 0);
 	cl_add_lights = Cvar_Get ("cl_lights", "1", 0);
 	cl_add_particles = Cvar_Get ("cl_particles", "1", 0);
