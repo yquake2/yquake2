@@ -16,6 +16,12 @@
  * this program; if not, write to the Free Software Foundation, Inc., 59
  * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
+ * =======================================================================
+ *
+ * This file implements the 2D stuff. For example the HUD and
+ * the networkgraph.
+ *
+ * =======================================================================
  */
 
 #include "header/client.h"
@@ -28,7 +34,6 @@ qboolean	scr_initialized; /* ready to draw */
 int			scr_draw_loading;
 
 vrect_t		scr_vrect; /* position of render window on screen */
-
 
 cvar_t		*scr_viewsize;
 cvar_t		*scr_conspeed;
@@ -194,7 +199,6 @@ void SCR_CenterPrint (char *str) {
 	Com_Printf("\n\n\35\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\36\37\n\n");
 	Con_ClearNotify ();
 }
-
 
 void SCR_DrawCenterString (void) {
 	char	*start;
@@ -633,7 +637,6 @@ void SCR_TileClear (void) {
 	}
 
 }
-
 
 #define STAT_MINUS	10
 char	*sb_nums[2][11] = {
@@ -1212,3 +1215,4 @@ void SCR_UpdateScreen (void) {
 	}
 	re.EndFrame();
 }
+
