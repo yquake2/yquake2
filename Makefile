@@ -174,6 +174,7 @@ CLIENT_OBJS = \
 	build/client/cl_lights.o \
 	build/client/cl_main.o \
 	build/client/cl_parse.o \
+	build/client/cl_particles.o \
 	build/client/cl_pred.o \
 	build/client/cl_tent.o \
 	build/client/cl_scrn.o \
@@ -423,7 +424,10 @@ build/client/cl_main.o :    		src/client/cl_main.c
 
 build/client/cl_parse.o :   		src/client/cl_parse.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
-
+ 
+build/client/cl_particles.o :  		src/client/cl_particles.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+ 
 build/client/cl_pred.o :    		src/client/cl_pred.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
