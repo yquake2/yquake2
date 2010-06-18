@@ -177,7 +177,7 @@ CLIENT_OBJS = \
 	build/client/cl_network.o \
 	build/client/cl_parse.o \
 	build/client/cl_particles.o \
-	build/client/cl_pred.o \
+	build/client/cl_prediction.o \
 	build/client/cl_tent.o \
 	build/client/cl_scrn.o \
 	build/client/cl_view.o \
@@ -435,7 +435,7 @@ build/client/cl_parse.o :   		src/client/cl_parse.c
 build/client/cl_particles.o :  		src/client/cl_particles.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
-build/client/cl_pred.o :    		src/client/cl_pred.c
+build/client/cl_prediction.o :		src/client/cl_prediction.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/cl_tent.o :    		src/client/cl_tent.c
