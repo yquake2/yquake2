@@ -73,6 +73,9 @@ void CL_RegisterSounds (void) {
 	S_EndRegistration ();
 }
 
+/*
+ * Returns the entity number and the header bits
+ */
 int CL_ParseEntityBits (unsigned *bits) {
 	unsigned	b, total;
 	int			i;
@@ -111,6 +114,9 @@ int CL_ParseEntityBits (unsigned *bits) {
 	return number;
 }
 
+/*
+ * Can go from either a baseline or a previous packet_entity
+ */
 void CL_ParseDelta (entity_state_t *from, entity_state_t *to, int number, int bits) {
 	/* set everything to the state we are delta'ing from */
 	*to = *from;

@@ -245,6 +245,10 @@ void IN_Impulse (void) {
 	in_impulse=atoi(Cmd_Argv(1));
 }
 
+/*
+ * Returns the fraction of the frame that
+ * the key was down
+ */
 float CL_KeyState (kbutton_t *key) {
 	float		val;
 	int			msec;

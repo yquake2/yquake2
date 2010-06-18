@@ -497,7 +497,7 @@ void CL_ConnectionlessPacket (void)
 	char	*c;
 
 	MSG_BeginReading (&net_message);
-	MSG_ReadLong (&net_message);
+	MSG_ReadLong (&net_message); // skip the -1
 
 	s = MSG_ReadStringLine (&net_message);
 
@@ -610,7 +610,7 @@ void CL_ReadPackets (void)
 		}
 
 		if (!Netchan_Process(&cls.netchan, &net_message))
-			continue;
+			continue; /* wasn't accepted for some reason */
 
 		CL_ParseServerMessage ();
 	}

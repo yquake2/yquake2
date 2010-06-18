@@ -866,6 +866,9 @@ void CL_BigTeleportParticles (vec3_t org) {
 	}
 }
 
+/*
+ *  Wall impact puffs
+ */
 void CL_BlasterParticles (vec3_t org, vec3_t dir) {
 	int			i, j;
 	cparticle_t	*p;
