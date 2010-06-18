@@ -167,6 +167,7 @@ clean:
 # Client object
 CLIENT_OBJS = \
 	build/client/cl_cin.o \
+	build/client/cl_download.o \
 	build/client/cl_effects.o \
 	build/client/cl_entities.o \
 	build/client/cl_input.o \
@@ -404,6 +405,9 @@ CTF_OBJS = \
 # Client build
 build/client/cl_cin.o :     		src/client/cl_cin.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+
+build/client/cl_download.o :   		src/client/cl_download.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
 build/client/cl_effects.o :      		src/client/cl_effects.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 

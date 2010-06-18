@@ -27,10 +27,10 @@
 
 void CL_ParseStatusMessage (void);
 
-cvar_t	*msg;
-cvar_t	*rcon_client_password;
-cvar_t	*rcon_address;
-cvar_t	*cl_timeout;
+extern cvar_t	*msg;
+extern cvar_t	*rcon_client_password;
+extern cvar_t	*rcon_address;
+extern cvar_t	*cl_timeout;
 
 /*
  * adds the current command line as a clc_stringcmd to the client
