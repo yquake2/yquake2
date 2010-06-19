@@ -29,7 +29,7 @@
 #include "../refresh/header/local.h"
 #include "../posix/refresh/glwindow.h"
 
-#include "../client/input/keys.h"
+#include "../client/input/header/keyboard.h"
 #include "../posix/posix.h"
 
 /*****************************************************************************/
