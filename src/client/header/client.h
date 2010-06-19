@@ -38,9 +38,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "vid.h"
 #include "screen.h"
 
-#include "../sound/header/sound.h"
-#include "../input/input.h"
-#include "../input/keys.h"
+#include "../input/header/input.h"
+#include "../input/header/keyboard.h"
 #include "../console/console.h"
 #include "../sound/header/cdaudio.h"
 #include "../sound/header/sound.h"

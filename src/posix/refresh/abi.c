@@ -20,7 +20,7 @@
 
 #include "../../refresh/header/local.h"
 
-#include "../../client/input/keys.h"
+#include "../../client/input/header/keyboard.h"
 #include "../posix.h"
 
 static qboolean	mlooking;
