@@ -27,7 +27,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "../header/client.h"
-#include "qmenu.h"
+#include "header/qmenu.h"
 
 static void	 Action_DoEnter( menuaction_s *a );
 static void	 Action_Draw( menuaction_s *a );
