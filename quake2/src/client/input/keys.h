@@ -1,39 +1,43 @@
 /*
-Copyright (C) 1997-2001 Id Software, Inc.
+ * Copyright (C) 1997-2001 Id Software, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
+ *
+ * =======================================================================
+ *
+ * The header file for the upper level key event processing
+ *
+ * =======================================================================
+ */
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
-
-//
-// these are the key numbers that should be passed to Key_Event
-//
+/* these are the key numbers that should be passed to Key_Event
+   they must be mached by the low level key event processing! */
 enum QKEYS {
 	K_TAB			= 9,
 	K_ENTER			= 13,
 	K_ESCAPE		= 27,
 	K_SPACE			= 32,
 
-// normal keys should be passed as lowercased ascii
-
+	/* normal keys should be passed as lowercased ascii */
 	K_BACKSPACE		= 127,
 	K_UPARROW		= 128,
 	K_DOWNARROW		= 129,
 	K_LEFTARROW		= 130,
-	K_RIGHTARROW		= 131,
+	K_RIGHTARROW	= 131,
 
 	K_ALT			= 132,
 	K_CTRL			= 133,
@@ -58,13 +62,13 @@ enum QKEYS {
 	K_END			= 152,
 
 	K_KP_HOME		= 160,
-	K_KP_UPARROW		= 161,
+	K_KP_UPARROW	= 161,
 	K_KP_PGUP		= 162,
-	K_KP_LEFTARROW		= 163,
+	K_KP_LEFTARROW	= 163,
 	K_KP_5			= 164,
-	K_KP_RIGHTARROW		= 165,
+	K_KP_RIGHTARROW	= 165,
 	K_KP_END		= 166,
-	K_KP_DOWNARROW		= 167,
+	K_KP_DOWNARROW	= 167,
 	K_KP_PGDN		= 168,
 	K_KP_ENTER		= 169,
 	K_KP_INS		= 170,
@@ -73,19 +77,15 @@ enum QKEYS {
 	K_KP_MINUS		= 173,
 	K_KP_PLUS		= 174,
 
-//
-// mouse buttons generate virtual keys
-//
+	/* mouse buttons generate virtual keys */
 	K_MOUSE1		= 200,
 	K_MOUSE2		= 201,
 	K_MOUSE3		= 202,
 	K_MOUSE4		= 241,
 	K_MOUSE5		= 242,
 
-//
-// aux keys are for multi-buttoned joysticks to generate so they can use
-// the normal binding process
-//
+	/* aux keys are for multi-buttoned joysticks to 
+	   generate so they can use the normal binding process. */
 	K_AUX1			= 207,
 	K_AUX2			= 208,
 	K_AUX3			= 209,
@@ -119,7 +119,7 @@ enum QKEYS {
 	K_AUX31			= 237,
 	K_AUX32			= 238,
 
-	K_MWHEELDOWN		= 239,
+	K_MWHEELDOWN	= 239,
 	K_MWHEELUP		= 240,
 
 	K_PAUSE			= 255,
@@ -128,13 +128,12 @@ enum QKEYS {
 };
 
 extern char		*keybindings[K_LAST];
-extern	int		key_repeats[K_LAST];
-
-extern	int	anykeydown;
-extern char chat_buffer[];
-extern	int chat_bufferlen;
-extern	int	chat_cursorpos;
-extern	qboolean	chat_team;
+extern int		key_repeats[K_LAST];
+extern int		anykeydown;
+extern char		chat_buffer[];
+extern int		chat_bufferlen;
+extern int		chat_cursorpos;
+extern qboolean	chat_team;
 
 void Key_Event (int key, qboolean down, unsigned time);
 void Key_Init (void);
@@ -142,4 +141,3 @@ void Key_WriteBindings (FILE *f);
 void Key_SetBinding (int keynum, char *binding);
 void Key_ClearStates (void);
 int Key_GetKey (void);
-
