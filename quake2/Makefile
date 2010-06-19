@@ -182,7 +182,7 @@ CLIENT_OBJS = \
 	build/client/cl_screen.o \
 	build/client/cl_view.o \
 	build/client/console/console.o \
-	build/client/input/keys.o \
+	build/client/input/keyboard.o \
 	build/client/menu/menu.o \
 	build/client/menu/qmenu.o \
 	build/client/sound/snd_dma.o \
@@ -451,7 +451,7 @@ build/client/cl_view.o :    		src/client/cl_view.c
 build/client/console/console.o :	src/client/console/console.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
-build/client/input/keys.o :			src/client/input/keys.c
+build/client/input/keyboard.o :		src/client/input/keyboard.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/menu/menu.o :			src/client/menu/menu.c
