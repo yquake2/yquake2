@@ -28,7 +28,7 @@
 #include "SDL.h"
 
 #include "../client/header/client.h"
-#include "../client/sound/snd_local.h"
+#include "../client/sound/header/local.h"
 
 static int  snd_inited;
 static dma_t *shm;
