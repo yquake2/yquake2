@@ -38,12 +38,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "vid.h"
 #include "screen.h"
 
-#include "../sound/sound.h"
+#include "../sound/header/sound.h"
 #include "../input/input.h"
 #include "../input/keys.h"
 #include "../console/console.h"
-#include "../sound/cdaudio.h"
-#include "../sound/snd_ogg.h"
+#include "../sound/header/cdaudio.h"
+#include "../sound/header/sound.h"
+#include "../sound/header/vorbis.h"
 
 //=============================================================================
 
