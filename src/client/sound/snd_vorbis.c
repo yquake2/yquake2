@@ -33,7 +33,7 @@
 #include <vorbis/vorbisfile.h>
 
 #include "../header/client.h"
-#include "snd_local.h"
+#include "header/local.h"
 #include "header/vorbis.h"
 
 extern int	sound_started; /* Sound initialization flag. */

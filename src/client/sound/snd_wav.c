@@ -25,7 +25,7 @@
  */
 
 #include "../header/client.h"
-#include "snd_local.h"
+#include "header/local.h"
 
 byte	*data_p;
 byte 	*iff_end;
