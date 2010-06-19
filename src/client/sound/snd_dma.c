@@ -190,7 +190,7 @@ void S_Shutdown(void) {
 }
 
 /*
- * Returns the name of sound
+ * Returns the name of a sound
  */
 sfx_t *S_FindName (char *name, qboolean create) {
 	int		i;
@@ -296,7 +296,7 @@ void S_EndRegistration (void) {
 		if (sfx->registration_sequence != s_registration_sequence) {
 			/* don't need this sound */
 			if (sfx->cache)	/* it is possible to have a leftover */
-				Z_Free (sfx->cache);	/* from a server that didn't finish loading */
+				Z_Free (sfx->cache); /* from a server that didn't finish loading */
 
 			memset (sfx, 0, sizeof(*sfx));
 
@@ -383,9 +383,9 @@ void S_SpatializeOrigin (vec3_t origin, float master_vol, float dist_mult, int *
 	dist -= SOUND_FULLVOLUME;
 
 	if (dist < 0)
-		dist = 0;			/* close enough to be at full volume */
+		dist = 0; /* close enough to be at full volume */
 
-	dist *= dist_mult;		/* different attenuation levels */
+	dist *= dist_mult; /* different attenuation levels */
 
 	dot = DotProduct(listener_right, source_vec);
 
@@ -796,7 +796,7 @@ void S_AddLoopSounds (void) {
 
 		ch->leftvol = left_total;
 		ch->rightvol = right_total;
-		ch->autosound = true;	/* remove next frame */
+		ch->autosound = true; /* remove next frame */
 		ch->sfx = sfx;
 
 		/* Sometimes, the sc->length argument can become 0,
@@ -952,7 +952,7 @@ void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up) {
 			continue;
 		}
 
-		S_Spatialize(ch);         /* respatialize channel */
+		S_Spatialize(ch); /* respatialize channel */
 
 		if (!ch->leftvol && !ch->rightvol) {
 			memset (ch, 0, sizeof(*ch));
@@ -1107,3 +1107,4 @@ void S_SoundList(void) {
 
 	Com_Printf ("Total resident: %i\n", total);
 }
+
