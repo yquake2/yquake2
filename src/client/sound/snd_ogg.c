@@ -34,7 +34,7 @@
 
 #include "../header/client.h"
 #include "snd_local.h"
-#include "snd_ogg.h"
+#include "header/vorbis.h"
 
 extern int	sound_started; /* Sound initialization flag. */
 extern cvar_t	*fs_basedir; /* Path to "music". */

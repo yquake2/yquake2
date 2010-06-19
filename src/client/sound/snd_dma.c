@@ -29,7 +29,7 @@
 
 #include "../header/client.h"
 #include "snd_local.h"
-#include "snd_ogg.h"
+#include "header/vorbis.h"
 
 void S_Play(void);
 void S_SoundList(void);
