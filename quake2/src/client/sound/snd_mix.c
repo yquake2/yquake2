@@ -27,7 +27,7 @@
  */
 
 #include "../header/client.h"
-#include "snd_loc.h"
+#include "snd_local.h"
 
 #define PAINTBUFFER_SIZE 8192
 
