@@ -188,7 +188,8 @@ CLIENT_OBJS = \
 	build/client/sound/snd_dma.o \
 	build/client/sound/snd_mem.o \
 	build/client/sound/snd_mix.o \
-	build/client/sound/snd_ogg.o
+	build/client/sound/snd_ogg.o \
+	build/client/sound/snd_wav.o
 
 # ---------
 
@@ -469,6 +470,9 @@ build/client/sound/snd_mix.o :		src/client/sound/snd_mix.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/sound/snd_ogg.o :		src/client/sound/snd_ogg.c
+	$(CC) $(CFLAGS_CLIENT) $(OGGCFLAGS) -o $@ -c $< 
+
+build/client/sound/snd_wav.o :		src/client/sound/snd_wav.c
 	$(CC) $(CFLAGS_CLIENT) $(OGGCFLAGS) -o $@ -c $< 
  
 # ---------
