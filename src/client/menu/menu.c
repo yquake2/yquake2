@@ -31,7 +31,7 @@
 
 #include <ctype.h>
 #include "../header/client.h"
-#include "qmenu.h"
+#include "header/qmenu.h"
 
 static int	m_main_cursor;
 
