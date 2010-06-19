@@ -28,7 +28,7 @@
  */
 
 #include "../header/client.h"
-#include "snd_loc.h"
+#include "snd_local.h"
 
 int cache_full_cycle;
 byte *S_Alloc (int size);

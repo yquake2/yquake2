@@ -28,7 +28,7 @@
  */
 
 #include "../header/client.h"
-#include "snd_loc.h"
+#include "snd_local.h"
 #include "snd_ogg.h"
 
 void S_Play(void);
