@@ -38,7 +38,7 @@ extern	struct model_s	*cl_mod_flash;
 
 extern cparticle_t	*active_particles, *free_particles;
 
-void CL_ParseMuzzleFlash (void) {
+void CL_AddMuzzleFlash (void) {
 	vec3_t		fv, rv;
 	cdlight_t	*dl;
 	int			i, weapon;
@@ -50,7 +50,7 @@ void CL_ParseMuzzleFlash (void) {
 	i = MSG_ReadShort (&net_message);
 
 	if (i < 1 || i >= MAX_EDICTS)
-		Com_Error (ERR_DROP, "CL_ParseMuzzleFlash: bad entity");
+		Com_Error (ERR_DROP, "CL_AddMuzzleFlash: bad entity");
 
 	weapon = MSG_ReadByte (&net_message);
 	silenced = weapon & MZ_SILENCED;
@@ -271,7 +271,7 @@ void CL_ParseMuzzleFlash (void) {
 	}
 }
 
-void CL_ParseMuzzleFlash2 (void) {
+void CL_AddMuzzleFlash2 (void) {
 	int			ent;
 	vec3_t		origin;
 	unsigned	flash_number;
@@ -282,12 +282,12 @@ void CL_ParseMuzzleFlash2 (void) {
 	ent = MSG_ReadShort (&net_message);
 
 	if (ent < 1 || ent >= MAX_EDICTS)
-		Com_Error (ERR_DROP, "CL_ParseMuzzleFlash2: bad entity");
+		Com_Error (ERR_DROP, "CL_AddMuzzleFlash2: bad entity");
 
 	flash_number = MSG_ReadByte (&net_message);
 
 	if (flash_number > 210)
-		Com_Error (ERR_DROP, "CL_ParseMuzzleFlash2: bad offset");
+		Com_Error (ERR_DROP, "CL_AddMuzzleFlash2: bad offset");
 
 	/* locate the origin */
 	AngleVectors (cl_entities[ent].current.angles, forward, right, NULL);

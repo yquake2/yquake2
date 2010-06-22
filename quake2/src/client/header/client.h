@@ -389,8 +389,8 @@ void CL_ParseFrame (void);
 
 void CL_ParseTEnt (void);
 void CL_ParseConfigString (void);
-void CL_ParseMuzzleFlash (void);
-void CL_ParseMuzzleFlash2 (void);
+void CL_AddMuzzleFlash (void);
+void CL_AddMuzzleFlash2 (void);
 void SmokeAndFlash(vec3_t origin);
 
 void CL_SetLightstyle (int i);
