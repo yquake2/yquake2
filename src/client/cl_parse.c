@@ -1036,11 +1036,11 @@ void CL_ParseServerMessage (void) {
 				break;
 
 			case svc_muzzleflash:
-				CL_ParseMuzzleFlash ();
+				CL_AddMuzzleFlash ();
 				break;
 
 			case svc_muzzleflash2:
-				CL_ParseMuzzleFlash2 ();
+				CL_AddMuzzleFlash2 ();
 				break;
 
 			case svc_download:
