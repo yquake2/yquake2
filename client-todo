@@ -4,8 +4,6 @@ netgraph funktioniert nicht
 
 brauchbare netzwerkvoreinstellungen
 
-ParseMuzzleFlash zu AddMuzzleFlash umbenennen
-
 Dateiheader formatieren
 
 client.h aufräumen und alle prototypen in sourcedateien entfernen
