@@ -30,6 +30,19 @@
 #define INT int
 #endif
 
+#define MAX_CLIENTWEAPONMODELS 20
+#define	CMD_BACKUP 4 /* allow a lot of command backups for very fast systems */
+
+/* the cl_parse_entities must be large enough to hold UPDATE_BACKUP frames of
+   entities, so that when a delta compressed message arives from the server
+   it can be un-deltad from the original */
+#define	MAX_PARSE_ENTITIES	1024 
+
+#define MAX_SUSTAINS		32
+#define	PARTICLE_GRAVITY 40
+#define BLASTER_PARTICLE_COLOR 0xe0
+#define INSTANT_PARTICLE -10000.0  
+
 #include <math.h>
 #include <string.h>
 #include <stdarg.h>
@@ -74,8 +87,6 @@ typedef struct
 	int			fly_stoptime;
 } centity_t;
 
-#define MAX_CLIENTWEAPONMODELS 20
-
 typedef struct
 {
 	char	name[MAX_QPATH];
@@ -94,11 +105,8 @@ typedef struct
 extern char cl_weaponmodels[MAX_CLIENTWEAPONMODELS][MAX_QPATH];
 extern int num_cl_weaponmodels;
 
-#define	CMD_BACKUP 4 /* allow a lot of command backups for very fast systems */
-
 /* the client_state_t structure is wiped
    completely at every server map change */
-
 typedef struct
 {
 	int			timeoutcount;
@@ -291,12 +299,7 @@ typedef struct
 extern	centity_t	cl_entities[MAX_EDICTS];
 extern	cdlight_t	cl_dlights[MAX_DLIGHTS];
 
-/* the cl_parse_entities must be large enough to hold UPDATE_BACKUP frames of
-   entities, so that when a delta compressed message arives from the server
-   it can be un-deltad from the original */
-#define	MAX_PARSE_ENTITIES	1024
 extern	entity_state_t	cl_parse_entities[MAX_PARSE_ENTITIES];
-
 
 extern	netadr_t	net_from;
 extern	sizebuf_t	net_message;
@@ -322,7 +325,6 @@ typedef struct cl_sustain
 	void		(*think)(struct cl_sustain *self);
 } cl_sustain_t;
 
-#define MAX_SUSTAINS		32
 void CL_ParticleSteamEffect2(cl_sustain_t *self);
 
 void CL_TeleporterParticles (entity_state_t *ent);
@@ -347,11 +349,6 @@ typedef struct particle_s
 	float		alpha;
 	float		alphavel;
 } cparticle_t;
-
-
-#define	PARTICLE_GRAVITY 40
-#define BLASTER_PARTICLE_COLOR 0xe0
-#define INSTANT_PARTICLE -10000.0
 
 void CL_ClearEffects (void);
 void CL_ClearTEnts (void);
@@ -407,7 +404,6 @@ void CL_AddDLights (void);
 void CL_AddTEnts (void);
 void CL_AddLightStyles (void);
 
-
 void CL_PrepRefresh (void);
 void CL_RegisterSounds (void);
 
@@ -416,7 +412,6 @@ void CL_Quit_f (void);
 void IN_Accumulate (void);
 
 void CL_ParseLayout (void);
-
 
 extern	refexport_t	re;
 
@@ -513,3 +508,4 @@ void CL_KeyInventory (int key);
 void CL_DrawInventory (void);
 
 void CL_PredictMovement (void);
+
