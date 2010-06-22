@@ -1,6 +1,3 @@
-
-//psychospaz's particle system
-
 typedef enum
 {
 	particle_generic,
