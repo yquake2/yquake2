@@ -67,7 +67,7 @@ void (*RW_IN_Commands_fp)(void);
 void (*RW_IN_Move_fp)(usercmd_t *cmd);
 void (*RW_IN_Frame_fp)(void);
 
-void Real_IN_Init (void);
+void IN_Init (void);
 
 /** CLIPBOARD *************************************************************/
 
@@ -311,7 +311,7 @@ qboolean VID_LoadRefresh( char *name )
 	/* this one is optional */
 	RW_Sys_GetClipboardData_fp = dlsym(reflib_library, "RW_Sys_GetClipboardData");
 	
-	Real_IN_Init();
+	IN_Init();
 
 	if ( re.Init( 0, 0 ) == -1 )
 	{
@@ -458,15 +458,7 @@ qboolean VID_CheckRefExists (const char *ref)
 /* INPUT                                                                     */
 /*****************************************************************************/
 
-cvar_t	*in_joystick;
-
-// This is fake, it's acutally done by the Refresh load
 void IN_Init (void)
-{
-	in_joystick	= Cvar_Get ("in_joystick", "0", CVAR_ARCHIVE);
-}
-
-void Real_IN_Init (void)
 {
 	if (RW_IN_Init_fp)
 		RW_IN_Init_fp(&in_state);

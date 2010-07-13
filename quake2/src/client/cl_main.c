@@ -806,8 +806,6 @@ void CL_Init (void)
 
 	CL_InitLocal ();
 
-	IN_Init ();
-
 	FS_ExecAutoexec ();
 
 	Cbuf_Execute ();

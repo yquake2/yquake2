@@ -25,7 +25,6 @@
  * =======================================================================
  */
 
-void IN_Init (void);
 void IN_Shutdown (void);
 
 /* oportunity for devices to stick commands on the script buffer */
