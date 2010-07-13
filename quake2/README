@@ -304,4 +304,11 @@ fixed amount of time!
    deactivates the screensaver before starting Quake II and reenables it
    after exiting the game.
 
+I hate direct mouse input. I think in the third millenium a mouse filter
+is a must for every game!
+ - Quake II was the last big shooter which was released without a mouse
+   filter. In fact with version 3.14 a mouse filter was added but it was
+   just broken. We fixed it, just type "m_filter 1" in the console and
+   you're done.
+
 ===============================================================================
