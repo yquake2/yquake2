@@ -31,7 +31,7 @@
 #endif
 
 #define MAX_CLIENTWEAPONMODELS 20
-#define	CMD_BACKUP 128 /* allow a lot of command backups for very fast systems */
+#define	CMD_BACKUP 256 /* allow a lot of command backups for very fast systems */
 
 /* the cl_parse_entities must be large enough to hold UPDATE_BACKUP frames of
    entities, so that when a delta compressed message arives from the server
