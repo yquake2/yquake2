@@ -818,6 +818,9 @@ void S_AddLoopSounds (void) {
 
 /*
  * Cinematic streaming and voice over network
+ * This could be used for chat over network, but that
+ * would be terrible slow. Still we can not remove this 
+ * as it's used by taunts and maybe some mods out there
  */
 void S_RawSamples (int samples, int rate, int width, int channels, byte *data) {
 	int		i;
