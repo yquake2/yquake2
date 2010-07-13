@@ -24,6 +24,9 @@
  * =======================================================================
  */
 
+#ifndef CL_SOUND_LOCAL_H
+#define CL_SOUND_LOCAL_H
+
 typedef struct {
 	int		left;
 	int		right;
@@ -142,4 +145,6 @@ channel_t *S_PickChannel(int entnum, int entchannel);
 
 /* spatializes a channel */
 void S_Spatialize(channel_t *ch);
+
+#endif
 

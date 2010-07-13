@@ -24,6 +24,9 @@
  * =======================================================================
  */
 
+#ifndef CL_INPUT_KEYBOARD_H
+#define CL_INPUT_KEYBOARD_H
+
 /* these are the key numbers that should be passed to Key_Event
    they must be mached by the low level key event processing! */
 enum QKEYS {
@@ -141,4 +144,6 @@ void Key_WriteBindings (FILE *f);
 void Key_SetBinding (int keynum, char *binding);
 void Key_ClearStates (void);
 int Key_GetKey (void);
+
+#endif
 

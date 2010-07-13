@@ -24,6 +24,9 @@
  * =======================================================================
  */
 
+#ifndef CL_CONSOLE_CONSOLE_H
+#define CL_CONSOLE_CONSOLE_H
+
 #define		NUM_CON_TIMES 4
 #define		CON_TEXTSIZE	32768
 
@@ -59,4 +62,6 @@ void Con_Clear_f (void);
 void Con_DrawNotify (void);
 void Con_ClearNotify (void);
 void Con_ToggleConsole_f (void);
+
+#endif
 

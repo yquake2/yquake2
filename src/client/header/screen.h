@@ -24,6 +24,9 @@
  * =======================================================================
  */
 
+#ifndef CL_SCREEN_H
+#define CL_SCREEN_H
+
 void	SCR_Init(void);
 
 void	SCR_UpdateScreen(void);
@@ -61,4 +64,6 @@ qboolean SCR_DrawCinematic(void);
 void SCR_RunCinematic(void);
 void SCR_StopCinematic(void);
 void SCR_FinishCinematic(void);
+
+#endif
 

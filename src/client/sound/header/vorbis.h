@@ -22,8 +22,8 @@
  * =======================================================================
  */
 
-#ifndef _SND_OGG_H_
-#define _SND_OGG_H_
+#ifndef CL_SOUND_VORBIS_H
+#define CL_SOUND_VORBIS_H
 
 #define OGG_DIR "music"
 
