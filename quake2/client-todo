@@ -4,16 +4,8 @@ netgraph funktioniert nicht
 
 brauchbare netzwerkvoreinstellungen
 
-Dateiheader formatieren
-
 client.h aufräumen und alle prototypen in sourcedateien entfernen
-
-reste vom joystick raus oder den joystick in SDL neuschreiben.
-aber ist das überhaupt nötig? ich kenne niemanden, der Q2 mit
-einem joystick spielt
 
 Yamagi-Q2 credits ins menü
 
 header guards!
-
-leerzeilen am ende jeder datei (hilft alten compilern und einiges IDEs)
