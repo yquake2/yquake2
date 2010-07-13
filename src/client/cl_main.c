@@ -472,7 +472,7 @@ void CL_InitLocal (void)
 	cl_noskins = Cvar_Get ("cl_noskins", "0", 0);
 	cl_autoskins = Cvar_Get ("cl_autoskins", "0", 0);
 	cl_predict = Cvar_Get ("cl_predict", "1", 0);
-	cl_maxfps = Cvar_Get ("cl_maxfps", "90", 0);
+	cl_maxfps = Cvar_Get ("cl_maxfps", "60", 0);
 	cl_drawfps = Cvar_Get("cl_drawfps","0",CVAR_ARCHIVE);
 
 	cl_upspeed = Cvar_Get ("cl_upspeed", "200", 0);
@@ -510,7 +510,7 @@ void CL_InitLocal (void)
 	info_spectator = Cvar_Get ("spectator", "0", CVAR_USERINFO);
 	name = Cvar_Get ("name", "unnamed", CVAR_USERINFO | CVAR_ARCHIVE);
 	skin = Cvar_Get ("skin", "male/grunt", CVAR_USERINFO | CVAR_ARCHIVE);
-	rate = Cvar_Get ("rate", "25000", CVAR_USERINFO | CVAR_ARCHIVE);
+	rate = Cvar_Get ("rate", "8000", CVAR_USERINFO | CVAR_ARCHIVE);
 	msg = Cvar_Get ("msg", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 	hand = Cvar_Get ("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	fov = Cvar_Get ("fov", "90", CVAR_USERINFO | CVAR_ARCHIVE);
