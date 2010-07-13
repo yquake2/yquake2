@@ -67,7 +67,7 @@ int			paintedtime;
 sfx_t		known_sfx[MAX_SFX];
 int			num_sfx;
 
-#define		MAX_PLAYSOUNDS	128
+#define		MAX_PLAYSOUNDS	256
 playsound_t	s_playsounds[MAX_PLAYSOUNDS];
 playsound_t	s_freeplays;
 playsound_t	s_pendingplays;
