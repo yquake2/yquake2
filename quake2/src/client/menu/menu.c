@@ -1163,8 +1163,6 @@ static void UpdateSoundQualityFunc( void *unused ) {
 		Cvar_SetValue( "s_loadas8bit", true );
 	}
 
-	Cvar_SetValue( "s_primary", (float)s_options_compatibility_list.curvalue );
-
 	M_DrawTextBox( 8, 120 - 48, 36, 3 );
 	M_Print( 16 + 16, 120 - 48 + 8,  "Restarting the sound system. This" );
 	M_Print( 16 + 16, 120 - 48 + 16, "could take up to a minute, so" );
@@ -1269,7 +1267,6 @@ static void Options_MenuInit( void ) {
 	s_options_compatibility_list.generic.name	= "sound compatibility";
 	s_options_compatibility_list.generic.callback = UpdateSoundQualityFunc;
 	s_options_compatibility_list.itemnames		= compatibility_items;
-	s_options_compatibility_list.curvalue		= Cvar_VariableValue( "s_primary" );
 
 	s_options_sensitivity_slider.generic.type	= MTYPE_SLIDER;
 	s_options_sensitivity_slider.generic.x		= 0;

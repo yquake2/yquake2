@@ -80,7 +80,6 @@ cvar_t		*s_loadas8bit;
 cvar_t		*s_khz;
 cvar_t		*s_show;
 cvar_t		*s_mixahead;
-cvar_t		*s_primary;
 
 int						s_rawend;
 portable_samplepair_t	s_rawsamples[MAX_RAW_SAMPLES];
@@ -121,7 +120,6 @@ void S_Init (void) {
 		s_mixahead = Cvar_Get ("s_mixahead", "0.2", CVAR_ARCHIVE);
 		s_show = Cvar_Get ("s_show", "0", 0);
 		s_testsound = Cvar_Get ("s_testsound", "0", 0);
-		s_primary = Cvar_Get ("s_primary", "0", CVAR_ARCHIVE);
 
 		Cmd_AddCommand("play", S_Play);
 		Cmd_AddCommand("stopsound", S_StopAllSounds);
