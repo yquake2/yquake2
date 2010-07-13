@@ -24,6 +24,9 @@
  * =======================================================================
  */
 
+#ifndef CL_VID_H
+#define CL_VID_H
+
 typedef struct vrect_s {
 	int				x,y,width,height;
 } vrect_t;
@@ -42,4 +45,6 @@ void	VID_CheckChanges(void);
 void	VID_MenuInit(void);
 void	VID_MenuDraw(void);
 const char *VID_MenuKey(int);
+
+#endif
 

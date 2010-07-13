@@ -24,8 +24,8 @@
  * =======================================================================
  */
 
-#ifndef __QMENU_H__
-#define __QMENU_H__
+#ifndef CL_MENU_QMENU_H
+#define CL_MENU_QMENU_H
 
 #define MAXMENUITEMS		64
 

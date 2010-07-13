@@ -24,8 +24,8 @@
  * =======================================================================
  */
 
-#ifndef __REF_H
-#define __REF_H
+#ifndef CL_REF_H
+#define CL_REF_H
 
 #include "../../common/qcommon.h"
 

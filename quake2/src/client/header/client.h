@@ -24,6 +24,9 @@
  * =======================================================================
  */
 
+#ifndef CL_CLIENT_H
+#define CL_CLIENT_H
+
 #ifdef __x86_64__
 #define INT long int
 #else
@@ -508,4 +511,6 @@ void CL_KeyInventory (int key);
 void CL_DrawInventory (void);
 
 void CL_PredictMovement (void);
+
+#endif
 
