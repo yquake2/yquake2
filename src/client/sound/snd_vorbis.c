@@ -12,18 +12,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+ * USA.
  *
  * =======================================================================
  *
  * This file implements an interface to libvorbis for decoding
- * OGG/Vorbis files. Strongly spoken this file isn't part of the
- * sound system but part of the main client. It justs converts
- * Vorbis streams into normal, raw Wave stream which are injected
- * into snd_mem.c as if they were normal wave files. At this moment
- * only background music playback and in theory .cin movie file
- * playback is supported.
+ * OGG/Vorbis files. Strongly spoken this file isn't part of the sound
+ * system but part of the main client. It justs converts Vorbis streams
+ * into normal, raw Wave stream which are injected into snd_mem.c as if
+ * they were normal wave files. At this moment only background music
+ * playback and in theory .cin movie file playback is supported.
  *
  * =======================================================================
  */
@@ -705,3 +704,4 @@ void OGG_StatusCmd(void) {
 			break;
 	}
 }
+

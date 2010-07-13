@@ -14,13 +14,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+ * USA.
  *
  * =======================================================================
  *
- * Public header for the sound system. This is included in the
- * main client source and in the low level sound backend.
+ * Public header for the sound system. This is included in the main
+ * client source and in the low level sound backend.
  *
  * =======================================================================
  */
@@ -46,3 +46,4 @@ struct sfx_s *S_FindName (char *name, qboolean create);
 /* the sound code makes callbacks to the client for entitiy position
    information, so entities can be dynamically re-spatialized */
 void CL_GetEntitySoundOrigin (int ent, vec3_t org);
+

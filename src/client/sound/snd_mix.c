@@ -14,14 +14,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+ * USA.
  *
  * =======================================================================
  *
  * This code mixes two or more sound samples into one. It also
- * implements sample rate changing and per channel extraction.
- * It's called by the upper level sound framework, snd_dma.c
+ * implements sample rate changing and per channel extraction.  It's
+ * called by the upper level sound framework, snd_dma.c
  *
  * =======================================================================
  */
@@ -361,3 +361,4 @@ void S_PaintChannelFrom16 (channel_t *ch, sfxcache_t *sc, int count, int offset)
 
 	ch->pos += count;
 }
+

@@ -14,17 +14,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+ * USA.
  *
  * =======================================================================
  *
- * This file implements the non generic part of the menu system,
- * e.g. the menu shown to the player. Beware! This code is very
- * fragile and should only be touched with great care and exessive
- * testing. Otherwise strange things and hard to track down bugs
- * can occure. In a better world someone would rewrite this file to
- * something more like Quake III Team Arena.
+ * This file implements the non generic part of the menu system, e.g.
+ * the menu shown to the player. Beware! This code is very fragile and
+ * should only be touched with great care and exessive testing.
+ * Otherwise strange things and hard to track down bugs can occure. In a
+ * better world someone would rewrite this file to something more like
+ * Quake III Team Arena.
  *
  * =======================================================================
  */
@@ -3744,3 +3744,4 @@ void M_Keydown (int key) {
 		if ( ( s = m_keyfunc( key ) ) != 0 )
 			S_StartLocalSound( ( char * ) s );
 }
+
