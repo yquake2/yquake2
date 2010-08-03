@@ -195,10 +195,14 @@ CLIENT_OBJS = \
 
 # Common objects
 COMMON_OBJS = \
+	build/common/cm_areaportals.o \
+	build/common/cm_box.o \
+	build/common/cm_boxtracing.o \
+	build/common/cm_bsp.o \
+	build/common/cm_vis.o \
 	build/common/co_cmdexecution.o \
 	build/common/co_cmdparser.o \
 	build/common/co_cmdscript.o \
-	build/common/cmodel.o \
 	build/common/common.o \
 	build/common/crc.o \
 	build/common/cvar.o \
@@ -269,10 +273,14 @@ DEDICATED_SERVER_OBJS = \
 
 # Dedicated server common objects
 DEDICATED_SERVER_COMMON_OBJS = \
+    build/dedicated_server_common/cm_areaportals.o \
+	build/dedicated_server_common/cm_box.o \
+	build/dedicated_server_common/cm_boxtracing.o \
+	build/dedicated_server_common/cm_bsp.o \
+	build/dedicated_server_common/cm_vis.o \
 	build/dedicated_server_common/co_cmdexecution.o \
 	build/dedicated_server_common/co_cmdparser.o \
 	build/dedicated_server_common/co_cmdscript.o \
-	build/dedicated_server_common/cmodel.o \
 	build/dedicated_server_common/common.o \
 	build/dedicated_server_common/crc.o \
 	build/dedicated_server_common/cvar.o \
@@ -481,17 +489,32 @@ build/client/sound/snd_wav.o :		src/client/sound/snd_wav.c
  
 # ---------
 
-# Common build
+# Common build 
+build/common/cm_areaportals.o : 	src/common/cm_areaportals.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+	
+build/common/cm_box.o :     		src/common/cm_box.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+  
+build/common/cm_boxtracing.o : 		src/common/cm_boxtracing.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+
+build/common/cm_bsp.o :        		src/common/cm_bsp.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+
+build/common/cm_vis.o :        		src/common/cm_vis.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+
+build/common/cm_.o :     			src/common/cm_.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+                    
 build/common/co_cmdexecution.o :    src/common/co_cmdexecution.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
-build/common/co_cmdparser.o :    src/common/co_cmdparser.c
+build/common/co_cmdparser.o :    	src/common/co_cmdparser.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
   
-build/common/co_cmdscript.o :    src/common/co_cmdscript.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
- 
-build/common/cmodel.o :     		src/common/cmodel.c
+build/common/co_cmdscript.o :    	src/common/co_cmdscript.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
 build/common/common.o :     		src/common/common.c
@@ -617,38 +640,51 @@ build/dedicated_server/sv_world.o :	src/server/sv_world.c
 
 # ---------
  
-# Dedicated server common build
+# Dedicated server common build     
+
+build/dedicated_server_common/cm_areaportals.o :    src/common/cm_areaportals.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/cm_box.o :    		src/common/cm_box.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/cm_boxtracing.o :		src/common/cm_boxtracing.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/cm_bsp.o :    		src/common/cm_bsp.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/cm_vis.o :    		src/common/cm_vis.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+ 
 build/dedicated_server_common/co_cmdexecution.o :	src/common/co_cmdexecution.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
-build/dedicated_server_common/co_cmdparser.o :	src/common/co_cmdparser.c
+build/dedicated_server_common/co_cmdparser.o :		src/common/co_cmdparser.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/co_cmdscript.o :	src/common/co_cmdscript.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
- 
-build/dedicated_server_common/cmodel.o :    src/common/cmodel.c
+build/dedicated_server_common/co_cmdscript.o :		src/common/co_cmdscript.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/common.o :    src/common/common.c
+build/dedicated_server_common/common.o :    		src/common/common.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/crc.o :       src/common/crc.c
+build/dedicated_server_common/crc.o :       		src/common/crc.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/cvar.o :      src/common/cvar.c
+build/dedicated_server_common/cvar.o :      		src/common/cvar.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/files.o :     src/common/files.c
+build/dedicated_server_common/files.o :     		src/common/files.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/md4.o :       src/common/md4.c
+build/dedicated_server_common/md4.o :       		src/common/md4.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/net_chan.o :  src/common/net_chan.c
+build/dedicated_server_common/net_chan.o :  		src/common/net_chan.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/pmove.o :     src/common/pmove.c
+build/dedicated_server_common/pmove.o :     		src/common/pmove.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 # ----------

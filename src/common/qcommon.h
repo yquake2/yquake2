@@ -20,6 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // qcommon.h -- definitions common between client and server, but not game.dll
 
+#ifndef CM_QCOMMON_H
+#define CM_QCOMMON_H
+
 #include "../game/baseq2/q_shared.h"
 
 #define	VERSION		2.11
@@ -836,4 +839,4 @@ void SV_Shutdown (char *finalmsg, qboolean reconnect);
 void SV_Frame (int msec);
 
 
-
+#endif
