@@ -200,9 +200,9 @@ COMMON_OBJS = \
 	build/common/cm_boxtracing.o \
 	build/common/cm_bsp.o \
 	build/common/cm_vis.o \
-	build/common/co_cmdexecution.o \
-	build/common/co_cmdparser.o \
-	build/common/co_cmdscript.o \
+	build/common/cmd_execution.o \
+	build/common/cmd_parser.o \
+	build/common/cmd_script.o \
 	build/common/common.o \
 	build/common/crc.o \
 	build/common/cvar.o \
@@ -278,9 +278,9 @@ DEDICATED_SERVER_COMMON_OBJS = \
 	build/dedicated_server_common/cm_boxtracing.o \
 	build/dedicated_server_common/cm_bsp.o \
 	build/dedicated_server_common/cm_vis.o \
-	build/dedicated_server_common/co_cmdexecution.o \
-	build/dedicated_server_common/co_cmdparser.o \
-	build/dedicated_server_common/co_cmdscript.o \
+	build/dedicated_server_common/cmd_execution.o \
+	build/dedicated_server_common/cmd_parser.o \
+	build/dedicated_server_common/cmd_script.o \
 	build/dedicated_server_common/common.o \
 	build/dedicated_server_common/crc.o \
 	build/dedicated_server_common/cvar.o \
@@ -508,13 +508,13 @@ build/common/cm_vis.o :        		src/common/cm_vis.c
 build/common/cm_.o :     			src/common/cm_.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
                     
-build/common/co_cmdexecution.o :    src/common/co_cmdexecution.c
+build/common/cmd_execution.o :    	src/common/cmd_execution.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
-build/common/co_cmdparser.o :    	src/common/co_cmdparser.c
+build/common/cmd_parser.o :    		src/common/cmd_parser.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
   
-build/common/co_cmdscript.o :    	src/common/co_cmdscript.c
+build/common/cmd_script.o :    		src/common/cmd_script.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
 build/common/common.o :     		src/common/common.c
@@ -657,13 +657,13 @@ build/dedicated_server_common/cm_bsp.o :    		src/common/cm_bsp.c
 build/dedicated_server_common/cm_vis.o :    		src/common/cm_vis.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
-build/dedicated_server_common/co_cmdexecution.o :	src/common/co_cmdexecution.c
+build/dedicated_server_common/cmd_execution.o :		src/common/cmd_execution.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
-build/dedicated_server_common/co_cmdparser.o :		src/common/co_cmdparser.c
+build/dedicated_server_common/cmd_parser.o :		src/common/cmd_parser.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/co_cmdscript.o :		src/common/co_cmdscript.c
+build/dedicated_server_common/cmd_script.o :		src/common/cmd_script.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 build/dedicated_server_common/common.o :    		src/common/common.c
