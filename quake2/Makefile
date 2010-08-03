@@ -195,7 +195,9 @@ CLIENT_OBJS = \
 
 # Common objects
 COMMON_OBJS = \
-	build/common/cmd.o \
+	build/common/co_cmdexecution.o \
+	build/common/co_cmdparser.o \
+	build/common/co_cmdscript.o \
 	build/common/cmodel.o \
 	build/common/common.o \
 	build/common/crc.o \
@@ -267,7 +269,9 @@ DEDICATED_SERVER_OBJS = \
 
 # Dedicated server common objects
 DEDICATED_SERVER_COMMON_OBJS = \
-	build/dedicated_server_common/cmd.o \
+	build/dedicated_server_common/co_cmdexecution.o \
+	build/dedicated_server_common/co_cmdparser.o \
+	build/dedicated_server_common/co_cmdscript.o \
 	build/dedicated_server_common/cmodel.o \
 	build/dedicated_server_common/common.o \
 	build/dedicated_server_common/crc.o \
@@ -478,9 +482,15 @@ build/client/sound/snd_wav.o :		src/client/sound/snd_wav.c
 # ---------
 
 # Common build
-build/common/cmd.o :		        src/common/cmd.c
+build/common/co_cmdexecution.o :    src/common/co_cmdexecution.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
+build/common/co_cmdparser.o :    src/common/co_cmdparser.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+  
+build/common/co_cmdscript.o :    src/common/co_cmdscript.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+ 
 build/common/cmodel.o :     		src/common/cmodel.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
@@ -608,9 +618,15 @@ build/dedicated_server/sv_world.o :	src/server/sv_world.c
 # ---------
  
 # Dedicated server common build
-build/dedicated_server_common/cmd.o :       src/common/cmd.c
+build/dedicated_server_common/co_cmdexecution.o :	src/common/co_cmdexecution.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+ 
+build/dedicated_server_common/co_cmdparser.o :	src/common/co_cmdparser.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
+build/dedicated_server_common/co_cmdscript.o :	src/common/co_cmdscript.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+ 
 build/dedicated_server_common/cmodel.o :    src/common/cmodel.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
