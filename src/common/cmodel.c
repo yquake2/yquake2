@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 typedef struct
 {
 	cplane_t	*plane;
-	int			children[2];		// negative numbers are leafs
+	int			children[2];	/* negative numbers are leafs */
 } cnode_t;
 
 typedef struct
@@ -47,14 +47,14 @@ typedef struct
 	int			contents;
 	int			numsides;
 	int			firstbrushside;
-	int			checkcount;		// to avoid repeated testings
+	int			checkcount;		/* to avoid repeated testings */
 } cbrush_t;
 
 typedef struct
 {
 	int		numareaportals;
 	int		firstareaportal;
-	int		floodnum;			// if two areas have equal floodnums, they are connected
+	int		floodnum;			/* if two areas have equal floodnums, they are connected */
 	int		floodvalid;
 } carea_t;
 
@@ -69,12 +69,12 @@ int			numtexinfo;
 mapsurface_t	map_surfaces[MAX_MAP_TEXINFO];
 
 int			numplanes;
-cplane_t	map_planes[MAX_MAP_PLANES+6];		// extra for box hull
+cplane_t	map_planes[MAX_MAP_PLANES+6];		/* extra for box hull */
 
 int			numnodes;
-cnode_t		map_nodes[MAX_MAP_NODES+6];		// extra for box hull
+cnode_t		map_nodes[MAX_MAP_NODES+6];		/* extra for box hull */
 
-int			numleafs = 1;	// allow leaf funcs to be called without a map
+int			numleafs = 1;	/* allow leaf funcs to be called without a map */
 cleaf_t		map_leafs[MAX_MAP_LEAFS];
 int			emptyleaf, solidleaf;
 
@@ -119,21 +119,10 @@ int		c_pointcontents;
 int		c_traces, c_brush_traces;
 #endif
 
-/*
-===============================================================================
-
-					MAP LOADING
-
-===============================================================================
-*/
+/* MAP LOADING */
 
 byte	*cmod_base;
 
-/*
-=================
-CMod_LoadSubmodels
-=================
-*/
 void CMod_LoadSubmodels (lump_t *l)
 {
 	dmodel_t	*in;
@@ -157,7 +146,7 @@ void CMod_LoadSubmodels (lump_t *l)
 		out = &map_cmodels[i];
 
 		for (j=0 ; j<3 ; j++)
-		{	// spread the mins / maxs by a pixel
+		{	/* spread the mins / maxs by a pixel */
 			out->mins[j] = LittleFloat (in->mins[j]) - 1;
 			out->maxs[j] = LittleFloat (in->maxs[j]) + 1;
 			out->origin[j] = LittleFloat (in->origin[j]);
@@ -166,12 +155,6 @@ void CMod_LoadSubmodels (lump_t *l)
 	}
 }
 
-
-/*
-=================
-CMod_LoadSurfaces
-=================
-*/
 void CMod_LoadSurfaces (lump_t *l)
 {
 	texinfo_t	*in;
@@ -199,13 +182,6 @@ void CMod_LoadSurfaces (lump_t *l)
 	}
 }
 
-
-/*
-=================
-CMod_LoadNodes
-
-=================
-*/
 void CMod_LoadNodes (lump_t *l)
 {
 	dnode_t		*in;
@@ -239,12 +215,6 @@ void CMod_LoadNodes (lump_t *l)
 
 }
 
-/*
-=================
-CMod_LoadBrushes
-
-=================
-*/
 void CMod_LoadBrushes (lump_t *l)
 {
 	dbrush_t	*in;
@@ -272,11 +242,6 @@ void CMod_LoadBrushes (lump_t *l)
 
 }
 
-/*
-=================
-CMod_LoadLeafs
-=================
-*/
 void CMod_LoadLeafs (lump_t *l)
 {
 	int			i;
@@ -291,7 +256,7 @@ void CMod_LoadLeafs (lump_t *l)
 
 	if (count < 1)
 		Com_Error (ERR_DROP, "Map with no leafs");
-	// need to save space for box planes
+	/* need to save space for box planes */
 	if (count > MAX_MAP_PLANES)
 		Com_Error (ERR_DROP, "Map has too many planes");
 
@@ -327,11 +292,6 @@ void CMod_LoadLeafs (lump_t *l)
 		Com_Error (ERR_DROP, "Map does not have an empty leaf");
 }
 
-/*
-=================
-CMod_LoadPlanes
-=================
-*/
 void CMod_LoadPlanes (lump_t *l)
 {
 	int			i, j;
@@ -347,7 +307,7 @@ void CMod_LoadPlanes (lump_t *l)
 
 	if (count < 1)
 		Com_Error (ERR_DROP, "Map with no planes");
-	// need to save space for box planes
+	/* need to save space for box planes */
 	if (count > MAX_MAP_PLANES)
 		Com_Error (ERR_DROP, "Map has too many planes");
 
@@ -370,11 +330,6 @@ void CMod_LoadPlanes (lump_t *l)
 	}
 }
 
-/*
-=================
-CMod_LoadLeafBrushes
-=================
-*/
 void CMod_LoadLeafBrushes (lump_t *l)
 {
 	int			i;
@@ -389,7 +344,7 @@ void CMod_LoadLeafBrushes (lump_t *l)
 
 	if (count < 1)
 		Com_Error (ERR_DROP, "Map with no planes");
-	// need to save space for box planes
+	/* need to save space for box planes */
 	if (count > MAX_MAP_LEAFBRUSHES)
 		Com_Error (ERR_DROP, "Map has too many leafbrushes");
 
@@ -400,11 +355,6 @@ void CMod_LoadLeafBrushes (lump_t *l)
 		*out = LittleShort (*in);
 }
 
-/*
-=================
-CMod_LoadBrushSides
-=================
-*/
 void CMod_LoadBrushSides (lump_t *l)
 {
 	int			i, j;
@@ -418,7 +368,7 @@ void CMod_LoadBrushSides (lump_t *l)
 		Com_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size");
 	count = l->filelen / sizeof(*in);
 
-	// need to save space for box planes
+	/* need to save space for box planes */
 	if (count > MAX_MAP_BRUSHSIDES)
 		Com_Error (ERR_DROP, "Map has too many planes");
 
@@ -436,11 +386,6 @@ void CMod_LoadBrushSides (lump_t *l)
 	}
 }
 
-/*
-=================
-CMod_LoadAreas
-=================
-*/
 void CMod_LoadAreas (lump_t *l)
 {
 	int			i;
@@ -468,11 +413,6 @@ void CMod_LoadAreas (lump_t *l)
 	}
 }
 
-/*
-=================
-CMod_LoadAreaPortals
-=================
-*/
 void CMod_LoadAreaPortals (lump_t *l)
 {
 	dareaportal_t		*out;
@@ -493,11 +433,6 @@ void CMod_LoadAreaPortals (lump_t *l)
 	memcpy (out, in, sizeof(dareaportal_t)*count);
 }
 
-/*
-=================
-CMod_LoadVisibility
-=================
-*/
 void CMod_LoadVisibility (lump_t *l)
 {
 	numvisibility = l->filelen;
@@ -509,12 +444,6 @@ void CMod_LoadVisibility (lump_t *l)
 	map_vis->numclusters = LittleLong (map_vis->numclusters);
 }
 
-
-/*
-=================
-CMod_LoadEntityString
-=================
-*/
 void CMod_LoadEntityString (lump_t *l)
 {
 	numentitychars = l->filelen;
@@ -524,15 +453,9 @@ void CMod_LoadEntityString (lump_t *l)
 	memcpy (map_entitystring, cmod_base + l->fileofs, l->filelen);
 }
 
-
-
 /*
-==================
-CM_LoadMap
-
-Loads in the map and all submodels
-==================
-*/
+ * Loads in the map and all submodels
+ */
 cmodel_t *CM_LoadMap (char *name, qboolean clientload, unsigned *checksum)
 {
 	unsigned		*buf;
@@ -551,10 +474,10 @@ cmodel_t *CM_LoadMap (char *name, qboolean clientload, unsigned *checksum)
 			memset (portalopen, 0, sizeof(portalopen));
 			FloodAreaConnections ();
 		}
-		return &map_cmodels[0];		// still have the right version
+		return &map_cmodels[0];		/* still have the right version */
 	}
 
-	// free old stuff
+	/* free old stuff */
 	numplanes = 0;
 	numnodes = 0;
 	numleafs = 0;
@@ -570,12 +493,9 @@ cmodel_t *CM_LoadMap (char *name, qboolean clientload, unsigned *checksum)
 		numclusters = 1;
 		numareas = 1;
 		*checksum = 0;
-		return &map_cmodels[0];			// cinematic servers won't have anything at all
+		return &map_cmodels[0];			/* cinematic servers won't have anything at all */
 	}
 
-	//
-	// load the file
-	//
 	length = FS_LoadFile (name, (void **)&buf);
 	if (!buf)
 		Com_Error (ERR_DROP, "Couldn't load %s", name);
@@ -593,7 +513,7 @@ cmodel_t *CM_LoadMap (char *name, qboolean clientload, unsigned *checksum)
 
 	cmod_base = (byte *)buf;
 
-	// load into heap
+	/* load into heap */
 	CMod_LoadSurfaces (&header.lumps[LUMP_TEXINFO]);
 	CMod_LoadLeafs (&header.lumps[LUMP_LEAFS]);
 	CMod_LoadLeafBrushes (&header.lumps[LUMP_LEAFBRUSHES]);
@@ -619,11 +539,6 @@ cmodel_t *CM_LoadMap (char *name, qboolean clientload, unsigned *checksum)
 	return &map_cmodels[0];
 }
 
-/*
-==================
-CM_InlineModel
-==================
-*/
 cmodel_t	*CM_InlineModel (char *name)
 {
 	int		num;
@@ -682,13 +597,9 @@ cbrush_t	*box_brush;
 cleaf_t		*box_leaf;
 
 /*
-===================
-CM_InitBoxHull
-
-Set up the planes and nodes so that the six floats of a bounding box
-can just be stored out and get a proper clipping hull structure.
-===================
-*/
+ * Set up the planes and nodes so that the six floats of a bounding box
+ * can just be stored out and get a proper clipping hull structure.
+ */
 void CM_InitBoxHull (void)
 {
 	int			i;
@@ -722,12 +633,12 @@ void CM_InitBoxHull (void)
 	{
 		side = i&1;
 
-		// brush sides
+		/* brush sides */
 		s = &map_brushsides[numbrushsides+i];
 		s->plane = 	map_planes + (numplanes+i*2+side);
 		s->surface = &nullsurface;
 
-		// nodes
+		/* nodes */
 		c = &map_nodes[box_headnode+i];
 		c->plane = map_planes + (numplanes+i*2);
 		c->children[side] = -1 - emptyleaf;
@@ -736,7 +647,7 @@ void CM_InitBoxHull (void)
 		else
 			c->children[side^1] = -1 - numleafs;
 
-		// planes
+		/* planes */
 		p = &box_planes[i*2];
 		p->type = i>>1;
 		p->signbits = 0;
@@ -751,15 +662,10 @@ void CM_InitBoxHull (void)
 	}	
 }
 
-
 /*
-===================
-CM_HeadnodeForBox
-
-To keep everything totally uniform, bounding boxes are turned into small
-BSP trees instead of being compared directly.
-===================
-*/
+ * To keep everything totally uniform, bounding boxes are turned into
+ * small BSP trees instead of being compared directly.
+ */
 int	CM_HeadnodeForBox (vec3_t mins, vec3_t maxs)
 {
 	box_planes[0].dist = maxs[0];
@@ -778,13 +684,6 @@ int	CM_HeadnodeForBox (vec3_t mins, vec3_t maxs)
 	return box_headnode;
 }
 
-
-/*
-==================
-CM_PointLeafnum_r
-
-==================
-*/
 int CM_PointLeafnum_r (vec3_t p, int num)
 {
 	float		d;
@@ -807,7 +706,7 @@ int CM_PointLeafnum_r (vec3_t p, int num)
 	}
 
 #ifndef DEDICATED_ONLY	
-	c_pointcontents++;		// optimize counter
+	c_pointcontents++;		/* optimize counter */
 #endif
 
 	return -1 - num;
@@ -816,19 +715,13 @@ int CM_PointLeafnum_r (vec3_t p, int num)
 int CM_PointLeafnum (vec3_t p)
 {
 	if (!numplanes)
-		return 0;		// sound may call this without map loaded
+		return 0;		/* sound may call this without map loaded */
 	return CM_PointLeafnum_r (p, 0);
 }
 
-
-
 /*
-=============
-CM_BoxLeafnums
-
-Fills in a list of all the leafs touched
-=============
-*/
+ * Fills in a list of all the leafs touched
+ */
 int		leaf_count, leaf_maxcount;
 int		*leaf_list;
 float	*leaf_mins, *leaf_maxs;
@@ -860,7 +753,7 @@ void CM_BoxLeafnums_r (int nodenum)
 		else if (s == 2)
 			nodenum = node->children[1];
 		else
-		{	// go down both
+		{	/* go down both */
 			if (leaf_topnode == -1)
 				leaf_topnode = nodenum;
 			CM_BoxLeafnums_r (node->children[0]);
@@ -894,19 +787,11 @@ int	CM_BoxLeafnums (vec3_t mins, vec3_t maxs, int *list, int listsize, int *topn
 		listsize, map_cmodels[0].headnode, topnode);
 }
 
-
-
-/*
-==================
-CM_PointContents
-
-==================
-*/
 int CM_PointContents (vec3_t p, int headnode)
 {
 	int		l;
 
-	if (!numnodes)	// map not loaded
+	if (!numnodes)	/* map not loaded */
 		return 0;
 
 	l = CM_PointLeafnum_r (p, headnode);
@@ -915,13 +800,9 @@ int CM_PointContents (vec3_t p, int headnode)
 }
 
 /*
-==================
-CM_TransformedPointContents
-
-Handles offseting and rotation of the end points for moving and
-rotating entities
-==================
-*/
+ * Handles offseting and rotation of the end points for moving and
+ * rotating entities
+ */
 int	CM_TransformedPointContents (vec3_t p, int headnode, vec3_t origin, vec3_t angles)
 {
 	vec3_t		p_l;
@@ -929,10 +810,10 @@ int	CM_TransformedPointContents (vec3_t p, int headnode, vec3_t origin, vec3_t a
 	vec3_t		forward, right, up;
 	int			l;
 
-	// subtract origin offset
+	/* subtract origin offset */
 	VectorSubtract (p, origin, p_l);
 
-	// rotate start and end into the models frame of reference
+	/* rotate start and end into the models frame of reference */
 	if (headnode != box_headnode && 
 	(angles[0] || angles[1] || angles[2]) )
 	{
