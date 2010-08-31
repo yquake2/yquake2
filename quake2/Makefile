@@ -214,7 +214,8 @@ COMMON_OBJS = \
 	build/common/msg_read.o \
 	build/common/net_chan.o \
 	build/common/pmove.o \
-	build/common/szone.o
+	build/common/szone.o \
+	build/common/zone.o
  
 # ----------
 
@@ -297,7 +298,8 @@ DEDICATED_SERVER_COMMON_OBJS = \
 	build/dedicated_server_common/msg_read.o \
 	build/dedicated_server_common/net_chan.o \
 	build/dedicated_server_common/pmove.o \
-	build/dedicated_server_common/szone.o
+	build/dedicated_server_common/szone.o \
+	build/dedicated_server_common/zone.o
 
 # ----------
 
@@ -563,6 +565,9 @@ build/common/pmove.o :      		src/common/pmove.c
 build/common/szone.o :      		src/common/szone.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
   
+build/common/zone.o :	      		src/common/zone.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+    
 # ----------
 
 build/unzip/ioapi.o :   	   		src/unzip/ioapi.c
@@ -725,6 +730,9 @@ build/dedicated_server_common/pmove.o :     		src/common/pmove.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
 build/dedicated_server_common/szone.o :	    		src/common/szone.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+  
+build/dedicated_server_common/zone.o :	    		src/common/zone.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
 # ----------
