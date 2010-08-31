@@ -22,16 +22,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <setjmp.h>
 
 #define	MAXPRINTMSG	4096
-
 #define MAX_NUM_ARGVS	50
-
 
 int		com_argc;
 char	*com_argv[MAX_NUM_ARGVS+1];
-
 int		realtime;
-
-jmp_buf abortframe;		// an ERR_DROP occured, exit the entire frame
+jmp_buf abortframe;	/* an ERR_DROP occured, exit the entire frame */
 
 
 FILE	*log_stats_file;
@@ -42,7 +38,7 @@ cvar_t	*developer;
 cvar_t	*modder;
 cvar_t	*timescale;
 cvar_t	*fixedtime;
-cvar_t	*logfile_active;	// 1 = buffer log, 2 = flush after each print
+cvar_t	*logfile_active; /* 1 = buffer log, 2 = flush after each print */
 #ifndef DEDICATED_ONLY
 cvar_t	*showtrace;
 #endif
@@ -52,7 +48,7 @@ FILE	*logfile;
 
 int			server_state;
 
-// host_speeds times
+/* host_speeds times */
 int		time_before_game;
 int		time_after_game;
 int		time_before_ref;
@@ -94,13 +90,9 @@ void Com_EndRedirect (void)
 }
 
 /*
-=============
-Com_Printf
-
-Both client and server can use this, and it will output
-to the apropriate place.
-=============
-*/
+ * Both client and server can use this, and it will output
+ * to the apropriate place.
+ */
 void Com_Printf (char *fmt, ...)
 {
 	va_list		argptr;
@@ -125,10 +117,10 @@ void Com_Printf (char *fmt, ...)
 	Con_Print (msg);
 #endif
 
-	// also echo to debugging console
+	/* also echo to debugging console */
 	Sys_ConsoleOutput (msg);
 
-	// logfile
+	/* logfile */
 	if (logfile_active && logfile_active->value)
 	{
 		char	name[MAX_QPATH];
@@ -144,25 +136,20 @@ void Com_Printf (char *fmt, ...)
 		if (logfile)
 			fprintf (logfile, "%s", msg);
 		if (logfile_active->value > 1)
-			fflush (logfile);		// force it to save every time
+			fflush (logfile); /* force it to save every time */
 	}
 }
 
-
 /*
-================
-Com_DPrintf
-
-A Com_Printf that only shows up if the "developer" cvar is set
-================
-*/
+ * A Com_Printf that only shows up if the "developer" cvar is set
+ */
 void Com_DPrintf (char *fmt, ...)
 {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
 		
 	if (!developer || !developer->value)
-		return;			// don't confuse non-developers with techie stuff...
+		return;	/* don't confuse non-developers with techie stuff... */
 
 	va_start (argptr,fmt);
 	vsnprintf (msg,MAXPRINTMSG,fmt,argptr);
@@ -171,15 +158,10 @@ void Com_DPrintf (char *fmt, ...)
 	Com_Printf ("%s", msg);
 }
 
-
 /*
-================
-Com_MDPrintf
-
-A Com_Printf that only shows up when either the "modder" or "developer"
-cvars is set
-================
-*/
+ * A Com_Printf that only shows up when either the "modder" or "developer"
+ * cvars is set
+ */
 void Com_MDPrintf (char *fmt, ...)
 {
 	va_list argptr;
@@ -195,15 +177,10 @@ void Com_MDPrintf (char *fmt, ...)
 	Com_Printf("%s", msg);
 }
 
-
 /*
-=============
-Com_Error
-
-Both client and server can use this, and it will
-do the apropriate things.
-=============
-*/
+ * Both client and server can use this, and it will
+ * do the apropriate things.
+ */
 void Com_Error (int code, char *fmt, ...)
 {
 	va_list		argptr;
@@ -254,15 +231,10 @@ void Com_Error (int code, char *fmt, ...)
 	recursive = false;
 }
 
-
 /*
-=============
-Com_Quit
-
-Both client and server can use this, and it will
-do the apropriate things.
-=============
-*/
+ * Both client and server can use this, and it will
+ * do the apropriate things.
+ */
 void Com_Quit (void)
 {
 	SV_Shutdown ("Server quit\n", false);
@@ -278,22 +250,11 @@ void Com_Quit (void)
 	Sys_Quit ();
 }
 
-
-/*
-==================
-Com_ServerState
-==================
-*/
 int Com_ServerState (void)
 {
 	return server_state;
 }
 
-/*
-==================
-Com_SetServerState
-==================
-*/
 void Com_SetServerState (int state)
 {
 	server_state = state;
@@ -312,172 +273,168 @@ Handles byte ordering and avoids alignment errors
 vec3_t	bytedirs[NUMVERTEXNORMALS] =
 {
 	{-0.525731, 0.000000, 0.850651}, 
-{-0.442863, 0.238856, 0.864188}, 
-{-0.295242, 0.000000, 0.955423}, 
-{-0.309017, 0.500000, 0.809017}, 
-{-0.162460, 0.262866, 0.951056}, 
-{0.000000, 0.000000, 1.000000}, 
-{0.000000, 0.850651, 0.525731}, 
-{-0.147621, 0.716567, 0.681718}, 
-{0.147621, 0.716567, 0.681718}, 
-{0.000000, 0.525731, 0.850651}, 
-{0.309017, 0.500000, 0.809017}, 
-{0.525731, 0.000000, 0.850651}, 
-{0.295242, 0.000000, 0.955423}, 
-{0.442863, 0.238856, 0.864188}, 
-{0.162460, 0.262866, 0.951056}, 
-{-0.681718, 0.147621, 0.716567}, 
-{-0.809017, 0.309017, 0.500000}, 
-{-0.587785, 0.425325, 0.688191}, 
-{-0.850651, 0.525731, 0.000000}, 
-{-0.864188, 0.442863, 0.238856}, 
-{-0.716567, 0.681718, 0.147621}, 
-{-0.688191, 0.587785, 0.425325}, 
-{-0.500000, 0.809017, 0.309017}, 
-{-0.238856, 0.864188, 0.442863}, 
-{-0.425325, 0.688191, 0.587785}, 
-{-0.716567, 0.681718, -0.147621}, 
-{-0.500000, 0.809017, -0.309017}, 
-{-0.525731, 0.850651, 0.000000}, 
-{0.000000, 0.850651, -0.525731}, 
-{-0.238856, 0.864188, -0.442863}, 
-{0.000000, 0.955423, -0.295242}, 
-{-0.262866, 0.951056, -0.162460}, 
-{0.000000, 1.000000, 0.000000}, 
-{0.000000, 0.955423, 0.295242}, 
-{-0.262866, 0.951056, 0.162460}, 
-{0.238856, 0.864188, 0.442863}, 
-{0.262866, 0.951056, 0.162460}, 
-{0.500000, 0.809017, 0.309017}, 
-{0.238856, 0.864188, -0.442863}, 
-{0.262866, 0.951056, -0.162460}, 
-{0.500000, 0.809017, -0.309017}, 
-{0.850651, 0.525731, 0.000000}, 
-{0.716567, 0.681718, 0.147621}, 
-{0.716567, 0.681718, -0.147621}, 
-{0.525731, 0.850651, 0.000000}, 
-{0.425325, 0.688191, 0.587785}, 
-{0.864188, 0.442863, 0.238856}, 
-{0.688191, 0.587785, 0.425325}, 
-{0.809017, 0.309017, 0.500000}, 
-{0.681718, 0.147621, 0.716567}, 
-{0.587785, 0.425325, 0.688191}, 
-{0.955423, 0.295242, 0.000000}, 
-{1.000000, 0.000000, 0.000000}, 
-{0.951056, 0.162460, 0.262866}, 
-{0.850651, -0.525731, 0.000000}, 
-{0.955423, -0.295242, 0.000000}, 
-{0.864188, -0.442863, 0.238856}, 
-{0.951056, -0.162460, 0.262866}, 
-{0.809017, -0.309017, 0.500000}, 
-{0.681718, -0.147621, 0.716567}, 
-{0.850651, 0.000000, 0.525731}, 
-{0.864188, 0.442863, -0.238856}, 
-{0.809017, 0.309017, -0.500000}, 
-{0.951056, 0.162460, -0.262866}, 
-{0.525731, 0.000000, -0.850651}, 
-{0.681718, 0.147621, -0.716567}, 
-{0.681718, -0.147621, -0.716567}, 
-{0.850651, 0.000000, -0.525731}, 
-{0.809017, -0.309017, -0.500000}, 
-{0.864188, -0.442863, -0.238856}, 
-{0.951056, -0.162460, -0.262866}, 
-{0.147621, 0.716567, -0.681718}, 
-{0.309017, 0.500000, -0.809017}, 
-{0.425325, 0.688191, -0.587785}, 
-{0.442863, 0.238856, -0.864188}, 
-{0.587785, 0.425325, -0.688191}, 
-{0.688191, 0.587785, -0.425325}, 
-{-0.147621, 0.716567, -0.681718}, 
-{-0.309017, 0.500000, -0.809017}, 
-{0.000000, 0.525731, -0.850651}, 
-{-0.525731, 0.000000, -0.850651}, 
-{-0.442863, 0.238856, -0.864188}, 
-{-0.295242, 0.000000, -0.955423}, 
-{-0.162460, 0.262866, -0.951056}, 
-{0.000000, 0.000000, -1.000000}, 
-{0.295242, 0.000000, -0.955423}, 
-{0.162460, 0.262866, -0.951056}, 
-{-0.442863, -0.238856, -0.864188}, 
-{-0.309017, -0.500000, -0.809017}, 
-{-0.162460, -0.262866, -0.951056}, 
-{0.000000, -0.850651, -0.525731}, 
-{-0.147621, -0.716567, -0.681718}, 
-{0.147621, -0.716567, -0.681718}, 
-{0.000000, -0.525731, -0.850651}, 
-{0.309017, -0.500000, -0.809017}, 
-{0.442863, -0.238856, -0.864188}, 
-{0.162460, -0.262866, -0.951056}, 
-{0.238856, -0.864188, -0.442863}, 
-{0.500000, -0.809017, -0.309017}, 
-{0.425325, -0.688191, -0.587785}, 
-{0.716567, -0.681718, -0.147621}, 
-{0.688191, -0.587785, -0.425325}, 
-{0.587785, -0.425325, -0.688191}, 
-{0.000000, -0.955423, -0.295242}, 
-{0.000000, -1.000000, 0.000000}, 
-{0.262866, -0.951056, -0.162460}, 
-{0.000000, -0.850651, 0.525731}, 
-{0.000000, -0.955423, 0.295242}, 
-{0.238856, -0.864188, 0.442863}, 
-{0.262866, -0.951056, 0.162460}, 
-{0.500000, -0.809017, 0.309017}, 
-{0.716567, -0.681718, 0.147621}, 
-{0.525731, -0.850651, 0.000000}, 
-{-0.238856, -0.864188, -0.442863}, 
-{-0.500000, -0.809017, -0.309017}, 
-{-0.262866, -0.951056, -0.162460}, 
-{-0.850651, -0.525731, 0.000000}, 
-{-0.716567, -0.681718, -0.147621}, 
-{-0.716567, -0.681718, 0.147621}, 
-{-0.525731, -0.850651, 0.000000}, 
-{-0.500000, -0.809017, 0.309017}, 
-{-0.238856, -0.864188, 0.442863}, 
-{-0.262866, -0.951056, 0.162460}, 
-{-0.864188, -0.442863, 0.238856}, 
-{-0.809017, -0.309017, 0.500000}, 
-{-0.688191, -0.587785, 0.425325}, 
-{-0.681718, -0.147621, 0.716567}, 
-{-0.442863, -0.238856, 0.864188}, 
-{-0.587785, -0.425325, 0.688191}, 
-{-0.309017, -0.500000, 0.809017}, 
-{-0.147621, -0.716567, 0.681718}, 
-{-0.425325, -0.688191, 0.587785}, 
-{-0.162460, -0.262866, 0.951056}, 
-{0.442863, -0.238856, 0.864188}, 
-{0.162460, -0.262866, 0.951056}, 
-{0.309017, -0.500000, 0.809017}, 
-{0.147621, -0.716567, 0.681718}, 
-{0.000000, -0.525731, 0.850651}, 
-{0.425325, -0.688191, 0.587785}, 
-{0.587785, -0.425325, 0.688191}, 
-{0.688191, -0.587785, 0.425325}, 
-{-0.955423, 0.295242, 0.000000}, 
-{-0.951056, 0.162460, 0.262866}, 
-{-1.000000, 0.000000, 0.000000}, 
-{-0.850651, 0.000000, 0.525731}, 
-{-0.955423, -0.295242, 0.000000}, 
-{-0.951056, -0.162460, 0.262866}, 
-{-0.864188, 0.442863, -0.238856}, 
-{-0.951056, 0.162460, -0.262866}, 
-{-0.809017, 0.309017, -0.500000}, 
-{-0.864188, -0.442863, -0.238856}, 
-{-0.951056, -0.162460, -0.262866}, 
-{-0.809017, -0.309017, -0.500000}, 
-{-0.681718, 0.147621, -0.716567}, 
-{-0.681718, -0.147621, -0.716567}, 
-{-0.850651, 0.000000, -0.525731}, 
-{-0.688191, 0.587785, -0.425325}, 
-{-0.587785, 0.425325, -0.688191}, 
-{-0.425325, 0.688191, -0.587785}, 
-{-0.425325, -0.688191, -0.587785}, 
-{-0.587785, -0.425325, -0.688191}, 
-{-0.688191, -0.587785, -0.425325}
+	{-0.442863, 0.238856, 0.864188}, 
+	{-0.295242, 0.000000, 0.955423}, 
+	{-0.309017, 0.500000, 0.809017}, 
+	{-0.162460, 0.262866, 0.951056}, 
+	{0.000000, 0.000000, 1.000000}, 
+	{0.000000, 0.850651, 0.525731}, 
+	{-0.147621, 0.716567, 0.681718}, 
+	{0.147621, 0.716567, 0.681718}, 
+	{0.000000, 0.525731, 0.850651}, 
+	{0.309017, 0.500000, 0.809017}, 
+	{0.525731, 0.000000, 0.850651}, 
+	{0.295242, 0.000000, 0.955423}, 
+	{0.442863, 0.238856, 0.864188}, 
+	{0.162460, 0.262866, 0.951056}, 
+	{-0.681718, 0.147621, 0.716567}, 
+	{-0.809017, 0.309017, 0.500000}, 
+	{-0.587785, 0.425325, 0.688191}, 
+	{-0.850651, 0.525731, 0.000000}, 
+	{-0.864188, 0.442863, 0.238856}, 
+	{-0.716567, 0.681718, 0.147621}, 
+	{-0.688191, 0.587785, 0.425325}, 
+	{-0.500000, 0.809017, 0.309017}, 
+	{-0.238856, 0.864188, 0.442863}, 
+	{-0.425325, 0.688191, 0.587785}, 
+	{-0.716567, 0.681718, -0.147621}, 
+	{-0.500000, 0.809017, -0.309017}, 
+	{-0.525731, 0.850651, 0.000000}, 
+	{0.000000, 0.850651, -0.525731}, 
+	{-0.238856, 0.864188, -0.442863}, 
+	{0.000000, 0.955423, -0.295242}, 
+	{-0.262866, 0.951056, -0.162460}, 
+	{0.000000, 1.000000, 0.000000}, 
+	{0.000000, 0.955423, 0.295242}, 
+	{-0.262866, 0.951056, 0.162460}, 
+	{0.238856, 0.864188, 0.442863}, 
+	{0.262866, 0.951056, 0.162460}, 
+	{0.500000, 0.809017, 0.309017}, 
+	{0.238856, 0.864188, -0.442863}, 
+	{0.262866, 0.951056, -0.162460}, 
+	{0.500000, 0.809017, -0.309017}, 
+	{0.850651, 0.525731, 0.000000}, 
+	{0.716567, 0.681718, 0.147621}, 
+	{0.716567, 0.681718, -0.147621}, 
+	{0.525731, 0.850651, 0.000000}, 
+	{0.425325, 0.688191, 0.587785}, 
+	{0.864188, 0.442863, 0.238856}, 
+	{0.688191, 0.587785, 0.425325}, 
+	{0.809017, 0.309017, 0.500000}, 
+	{0.681718, 0.147621, 0.716567}, 
+	{0.587785, 0.425325, 0.688191}, 
+	{0.955423, 0.295242, 0.000000}, 
+	{1.000000, 0.000000, 0.000000}, 
+	{0.951056, 0.162460, 0.262866}, 
+	{0.850651, -0.525731, 0.000000}, 
+	{0.955423, -0.295242, 0.000000}, 
+	{0.864188, -0.442863, 0.238856}, 
+	{0.951056, -0.162460, 0.262866}, 
+	{0.809017, -0.309017, 0.500000}, 
+	{0.681718, -0.147621, 0.716567}, 
+	{0.850651, 0.000000, 0.525731}, 
+	{0.864188, 0.442863, -0.238856}, 
+	{0.809017, 0.309017, -0.500000}, 
+	{0.951056, 0.162460, -0.262866}, 
+	{0.525731, 0.000000, -0.850651}, 
+	{0.681718, 0.147621, -0.716567}, 
+	{0.681718, -0.147621, -0.716567}, 
+	{0.850651, 0.000000, -0.525731}, 
+	{0.809017, -0.309017, -0.500000}, 
+	{0.864188, -0.442863, -0.238856}, 
+	{0.951056, -0.162460, -0.262866}, 
+	{0.147621, 0.716567, -0.681718}, 
+	{0.309017, 0.500000, -0.809017}, 
+	{0.425325, 0.688191, -0.587785}, 
+	{0.442863, 0.238856, -0.864188}, 
+	{0.587785, 0.425325, -0.688191}, 
+	{0.688191, 0.587785, -0.425325}, 
+	{-0.147621, 0.716567, -0.681718}, 
+	{-0.309017, 0.500000, -0.809017}, 
+	{0.000000, 0.525731, -0.850651}, 
+	{-0.525731, 0.000000, -0.850651}, 
+	{-0.442863, 0.238856, -0.864188}, 
+	{-0.295242, 0.000000, -0.955423}, 
+	{-0.162460, 0.262866, -0.951056}, 
+	{0.000000, 0.000000, -1.000000}, 
+	{0.295242, 0.000000, -0.955423}, 
+	{0.162460, 0.262866, -0.951056}, 
+	{-0.442863, -0.238856, -0.864188}, 
+	{-0.309017, -0.500000, -0.809017}, 
+	{-0.162460, -0.262866, -0.951056}, 
+	{0.000000, -0.850651, -0.525731}, 
+	{-0.147621, -0.716567, -0.681718}, 
+	{0.147621, -0.716567, -0.681718}, 
+	{0.000000, -0.525731, -0.850651}, 
+	{0.309017, -0.500000, -0.809017}, 
+	{0.442863, -0.238856, -0.864188}, 
+	{0.162460, -0.262866, -0.951056}, 
+	{0.238856, -0.864188, -0.442863}, 
+	{0.500000, -0.809017, -0.309017}, 
+	{0.425325, -0.688191, -0.587785}, 
+	{0.716567, -0.681718, -0.147621}, 
+	{0.688191, -0.587785, -0.425325}, 
+	{0.587785, -0.425325, -0.688191}, 
+	{0.000000, -0.955423, -0.295242}, 
+	{0.000000, -1.000000, 0.000000}, 
+	{0.262866, -0.951056, -0.162460}, 
+	{0.000000, -0.850651, 0.525731}, 
+	{0.000000, -0.955423, 0.295242}, 
+	{0.238856, -0.864188, 0.442863}, 
+	{0.262866, -0.951056, 0.162460}, 
+	{0.500000, -0.809017, 0.309017}, 
+	{0.716567, -0.681718, 0.147621}, 
+	{0.525731, -0.850651, 0.000000}, 
+	{-0.238856, -0.864188, -0.442863}, 
+	{-0.500000, -0.809017, -0.309017}, 
+	{-0.262866, -0.951056, -0.162460}, 
+	{-0.850651, -0.525731, 0.000000}, 
+	{-0.716567, -0.681718, -0.147621}, 
+	{-0.716567, -0.681718, 0.147621}, 
+	{-0.525731, -0.850651, 0.000000}, 
+	{-0.500000, -0.809017, 0.309017}, 
+	{-0.238856, -0.864188, 0.442863}, 
+	{-0.262866, -0.951056, 0.162460}, 
+	{-0.864188, -0.442863, 0.238856}, 
+	{-0.809017, -0.309017, 0.500000}, 
+	{-0.688191, -0.587785, 0.425325}, 
+	{-0.681718, -0.147621, 0.716567}, 
+	{-0.442863, -0.238856, 0.864188}, 
+	{-0.587785, -0.425325, 0.688191}, 
+	{-0.309017, -0.500000, 0.809017}, 
+	{-0.147621, -0.716567, 0.681718}, 
+	{-0.425325, -0.688191, 0.587785}, 
+	{-0.162460, -0.262866, 0.951056}, 
+	{0.442863, -0.238856, 0.864188}, 
+	{0.162460, -0.262866, 0.951056}, 
+	{0.309017, -0.500000, 0.809017}, 
+	{0.147621, -0.716567, 0.681718}, 
+	{0.000000, -0.525731, 0.850651}, 
+	{0.425325, -0.688191, 0.587785}, 
+	{0.587785, -0.425325, 0.688191}, 
+	{0.688191, -0.587785, 0.425325}, 
+	{-0.955423, 0.295242, 0.000000}, 
+	{-0.951056, 0.162460, 0.262866}, 
+	{-1.000000, 0.000000, 0.000000}, 
+	{-0.850651, 0.000000, 0.525731}, 
+	{-0.955423, -0.295242, 0.000000}, 
+	{-0.951056, -0.162460, 0.262866}, 
+	{-0.864188, 0.442863, -0.238856}, 
+	{-0.951056, 0.162460, -0.262866}, 
+	{-0.809017, 0.309017, -0.500000}, 
+	{-0.864188, -0.442863, -0.238856}, 
+	{-0.951056, -0.162460, -0.262866}, 
+	{-0.809017, -0.309017, -0.500000}, 
+	{-0.681718, 0.147621, -0.716567}, 
+	{-0.681718, -0.147621, -0.716567}, 
+	{-0.850651, 0.000000, -0.525731}, 
+	{-0.688191, 0.587785, -0.425325}, 
+	{-0.587785, 0.425325, -0.688191}, 
+	{-0.425325, 0.688191, -0.587785}, 
+	{-0.425325, -0.688191, -0.587785}, 
+	{-0.587785, -0.425325, -0.688191}, 
+	{-0.688191, -0.587785, -0.425325}
 };
-
-//
-// writing functions
-//
 
 void MSG_WriteChar (sizebuf_t *sb, int c)
 {
@@ -565,9 +522,7 @@ void MSG_WriteDeltaUsercmd (sizebuf_t *buf, usercmd_t *from, usercmd_t *cmd)
 {
 	int		bits;
 
-//
-// send the movement message
-//
+	/* Movement messages */
 	bits = 0;
 	if (cmd->angles[0] != from->angles[0])
 		bits |= CM_ANGLE1;
@@ -611,7 +566,6 @@ void MSG_WriteDeltaUsercmd (sizebuf_t *buf, usercmd_t *from, usercmd_t *cmd)
 	MSG_WriteByte (buf, cmd->lightlevel);
 }
 
-
 void MSG_WriteDir (sizebuf_t *sb, vec3_t dir)
 {
 	int		i, best;
@@ -637,7 +591,6 @@ void MSG_WriteDir (sizebuf_t *sb, vec3_t dir)
 	MSG_WriteByte (sb, best);
 }
 
-
 void MSG_ReadDir (sizebuf_t *sb, vec3_t dir)
 {
 	int		b;
@@ -650,12 +603,8 @@ void MSG_ReadDir (sizebuf_t *sb, vec3_t dir)
 
 
 /*
-==================
-MSG_WriteDeltaEntity
-
-Writes part of a packetentities message.
-Can delta from either a baseline or a previous packet_entity
-==================
+ * Writes part of a packetentities message.
+ * Can delta from either a baseline or a previous packet_entity
 */
 void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *msg, qboolean force, qboolean newentity)
 {
@@ -666,11 +615,11 @@ void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *
 	if (to->number >= MAX_EDICTS)
 		Com_Error (ERR_FATAL, "Entity number >= MAX_EDICTS");
 
-// send an update
+	/* send an update */
 	bits = 0;
 
 	if (to->number >= 256)
-		bits |= U_NUMBER16;		// number8 is implicit otherwise
+		bits |= U_NUMBER16; /* number8 is implicit otherwise */
 
 	if (to->origin[0] != from->origin[0])
 		bits |= U_ORIGIN1;
@@ -727,7 +676,7 @@ void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *
 	if ( to->solid != from->solid )
 		bits |= U_SOLID;
 
-	// event is not delta compressed, just 0 compressed
+	/* event is not delta compressed, just 0 compressed */
 	if ( to->event  )
 		bits |= U_EVENT;
 	
@@ -746,13 +695,9 @@ void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *
 	if (newentity || (to->renderfx & RF_BEAM))
 		bits |= U_OLDORIGIN;
 
-	//
-	// write the message
-	//
+	/* write the message */
 	if (!bits && !force)
-		return;		// nothing to send!
-
-	//----------
+		return; /* nothing to send! */
 
 	if (bits & 0xff000000)
 		bits |= U_MOREBITS3 | U_MOREBITS2 | U_MOREBITS1;
@@ -779,8 +724,6 @@ void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *
 		MSG_WriteByte (msg,	(bits>>8)&255 );
 	}
 
-	//----------
-
 	if (bits & U_NUMBER16)
 		MSG_WriteShort (msg, to->number);
 	else
@@ -800,13 +743,12 @@ void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *
 	if (bits & U_FRAME16)
 		MSG_WriteShort (msg, to->frame);
 
-	if ((bits & U_SKIN8) && (bits & U_SKIN16))		//used for laser colors
+	if ((bits & U_SKIN8) && (bits & U_SKIN16)) /*used for laser colors */
 		MSG_WriteLong (msg, to->skinnum);
 	else if (bits & U_SKIN8)
 		MSG_WriteByte (msg, to->skinnum);
 	else if (bits & U_SKIN16)
 		MSG_WriteShort (msg, to->skinnum);
-
 
 	if ( (bits & (U_EFFECTS8|U_EFFECTS16)) == (U_EFFECTS8|U_EFFECTS16) )
 		MSG_WriteLong (msg, to->effects);
@@ -862,7 +804,6 @@ void MSG_BeginReading (sizebuf_t *msg)
 	msg->readcount = 0;
 }
 
-// returns -1 if no more characters are available
 int MSG_ReadChar (sizebuf_t *msg_read)
 {
 	int	c;
@@ -1016,7 +957,7 @@ void MSG_ReadDeltaUsercmd (sizebuf_t *msg_read, usercmd_t *from, usercmd_t *move
 
 	bits = MSG_ReadByte (msg_read);
 		
-	// read current angles
+	/* read current angles */
 	if (bits & CM_ANGLE1)
 		move->angles[0] = MSG_ReadShort (msg_read);
 	if (bits & CM_ANGLE2)
@@ -1024,7 +965,7 @@ void MSG_ReadDeltaUsercmd (sizebuf_t *msg_read, usercmd_t *from, usercmd_t *move
 	if (bits & CM_ANGLE3)
 		move->angles[2] = MSG_ReadShort (msg_read);
 		
-	// read movement
+	/* read movement */
 	if (bits & CM_FORWARD)
 		move->forwardmove = MSG_ReadShort (msg_read);
 	if (bits & CM_SIDE)
@@ -1032,20 +973,19 @@ void MSG_ReadDeltaUsercmd (sizebuf_t *msg_read, usercmd_t *from, usercmd_t *move
 	if (bits & CM_UP)
 		move->upmove = MSG_ReadShort (msg_read);
 	
-	// read buttons
+	/* read buttons */
 	if (bits & CM_BUTTONS)
 		move->buttons = MSG_ReadByte (msg_read);
 
 	if (bits & CM_IMPULSE)
 		move->impulse = MSG_ReadByte (msg_read);
 
-	// read time to run command
+	/* read time to run command */
 	move->msec = MSG_ReadByte (msg_read);
 
-	// read the light level
+	/* read the light level */
 	move->lightlevel = MSG_ReadByte (msg_read);
 }
-
 
 void MSG_ReadData (sizebuf_t *msg_read, void *data, int len)
 {
@@ -1108,9 +1048,9 @@ void SZ_Print (sizebuf_t *buf, char *data)
 	if (buf->cursize)
 	{
 		if (buf->data[buf->cursize-1])
-			memcpy ((byte *)SZ_GetSpace(buf, len),data,len); // no trailing 0
+			memcpy ((byte *)SZ_GetSpace(buf, len),data,len); /* no trailing 0 */
 		else
-			memcpy ((byte *)SZ_GetSpace(buf, len-1)-1,data,len); // write over trailing 0
+			memcpy ((byte *)SZ_GetSpace(buf, len-1)-1,data,len); /* write over trailing 0 */
 	}
 	else
 		memcpy ((byte *)SZ_GetSpace(buf, len),data,len);
@@ -1121,13 +1061,9 @@ void SZ_Print (sizebuf_t *buf, char *data)
 
 
 /*
-================
-COM_CheckParm
-
-Returns the position (1 to argc-1) in the program's argument list
-where the given parameter apears, or 0 if not present
-================
-*/
+ * Returns the position (1 to argc-1) in the program's argument list
+ * where the given parameter apears, or 0 if not present
+ */
 int COM_CheckParm (char *parm)
 {
 	int		i;
@@ -1160,12 +1096,6 @@ void COM_ClearArgv (int arg)
 	com_argv[arg] = "";
 }
 
-
-/*
-================
-COM_InitArgv
-================
-*/
 void COM_InitArgv (int argc, char **argv)
 {
 	int		i;
@@ -1183,12 +1113,8 @@ void COM_InitArgv (int argc, char **argv)
 }
 
 /*
-================
-COM_AddParm
-
-Adds the given string at the end of the current argument list
-================
-*/
+ * Adds the given string at the end of the current argument list
+ */
 void COM_AddParm (char *parm)
 {
 	if (com_argc == MAX_NUM_ARGVS)
@@ -1196,10 +1122,6 @@ void COM_AddParm (char *parm)
 	com_argv[com_argc++] = parm;
 }
 
-
-
-
-/// just for debugging
 int	memsearch (byte *start, int count, int search)
 {
 	int		i;
@@ -1219,8 +1141,6 @@ char *CopyString (char *in)
 	strcpy (out, in);
 	return out;
 }
-
-
 
 void Info_Print (char *s)
 {
@@ -1283,18 +1203,13 @@ typedef struct zhead_s
 {
 	struct zhead_s	*prev, *next;
 	short	magic;
-	short	tag;			// for group free
+	short	tag; /* for group free */
 	int		size;
 } zhead_t;
 
 zhead_t		z_chain;
 int		z_count, z_bytes;
 
-/*
-========================
-Z_Free
-========================
-*/
 void Z_Free (void *ptr)
 {
 	zhead_t	*z;
@@ -1315,22 +1230,11 @@ void Z_Free (void *ptr)
 	free (z);
 }
 
-
-/*
-========================
-Z_Stats_f
-========================
-*/
 void Z_Stats_f (void)
 {
 	Com_Printf ("%i bytes in %i blocks\n", z_bytes, z_count);
 }
 
-/*
-========================
-Z_FreeTags
-========================
-*/
 void Z_FreeTags (int tag)
 {
 	zhead_t	*z, *next;
@@ -1343,11 +1247,6 @@ void Z_FreeTags (int tag)
 	}
 }
 
-/*
-========================
-Z_TagMalloc
-========================
-*/
 void *Z_TagMalloc (int size, int tag)
 {
 	zhead_t	*z;
@@ -1371,18 +1270,10 @@ void *Z_TagMalloc (int size, int tag)
 	return (void *)(z+1);
 }
 
-/*
-========================
-Z_Malloc
-========================
-*/
 void *Z_Malloc (int size)
 {
 	return Z_TagMalloc (size, 0);
 }
-
-
-//============================================================================
 
 static byte chktbl[1024] = {
 0x84, 0x47, 0x51, 0xc1, 0x93, 0x22, 0x21, 0x24, 0x2f, 0x66, 0x60, 0x4d, 0xb0, 0x7c, 0xda,
@@ -1452,12 +1343,8 @@ static byte chktbl[1024] = {
 };
 
 /*
-====================
-COM_BlockSequenceCRCByte
-
-For proxy protecting
-====================
-*/
+ * For proxy protecting
+ */
 byte	COM_BlockSequenceCRCByte (byte *base, int length, int sequence)
 {
 	int				n;
@@ -1493,8 +1380,6 @@ byte	COM_BlockSequenceCRCByte (byte *base, int length, int sequence)
 	return r;
 }
 
-//========================================================
-
 float	frand(void)
 {
 	return (rand()&32767)* (1.0/32767);
@@ -1511,24 +1396,14 @@ void SCR_EndLoadingPlaque (void);
 #endif
 
 /*
-=============
-Com_Error_f
-
-Just throw a fatal error to
-test error shutdown procedures
-=============
-*/
+ * Just throw a fatal error to
+ * test error shutdown procedures
+ */
 void Com_Error_f (void)
 {
 	Com_Error (ERR_FATAL, "%s", Cmd_Argv(1));
 }
 
-
-/*
-=================
-Qcommon_Init
-=================
-*/
 void Qcommon_Init (int argc, char **argv)
 {
 	char	*s;
@@ -1538,8 +1413,8 @@ void Qcommon_Init (int argc, char **argv)
 
 	z_chain.next = z_chain.prev = &z_chain;
 
-	// prepare enough of the subsystems to handle
-	// cvar and command buffer management
+	/* prepare enough of the subsystems to handle
+	   cvar and command buffer management */
 	COM_InitArgv (argc, argv);
 
 	Swap_Init ();
@@ -1552,10 +1427,10 @@ void Qcommon_Init (int argc, char **argv)
 	Key_Init ();
 #endif
 
-	// we need to add the early commands twice, because
-	// a basedir or cddir needs to be set before execing
-	// config files, but we want other parms to override
-	// the settings of the config files
+	/* we need to add the early commands twice, because
+	   a basedir or cddir needs to be set before execing
+	   config files, but we want other parms to override
+	   the settings of the config files */
 	Cbuf_AddEarlyCommands (false);
 	Cbuf_Execute ();
 
@@ -1567,9 +1442,7 @@ void Qcommon_Init (int argc, char **argv)
 	Cbuf_AddEarlyCommands (true);
 	Cbuf_Execute ();
 
-	//
-	// init commands and vars
-	//
+	/* init commands and vars */
     Cmd_AddCommand ("z_stats", Z_Stats_f);
     Cmd_AddCommand ("error", Com_Error_f);
 
@@ -1606,9 +1479,9 @@ void Qcommon_Init (int argc, char **argv)
 	CL_Init ();
 #endif
 
-	// add + commands from command line
+	/* add + commands from command line */
 	if (!Cbuf_AddLateCommands ())
-	{	// if the user didn't give any commands, run default action
+	{	/* if the user didn't give any commands, run default action */
 		if (!dedicated->value)
 			Cbuf_AddText ("d1\n");
 		else
@@ -1617,8 +1490,8 @@ void Qcommon_Init (int argc, char **argv)
 	}
 #ifndef DEDICATED_ONLY	
 	else
-	{	// the user asked for something explicit
-		// so drop the loading plaque
+	{	/* the user asked for something explicit
+		   so drop the loading plaque */
 		SCR_EndLoadingPlaque ();
 	}
 #endif
@@ -1626,11 +1499,6 @@ void Qcommon_Init (int argc, char **argv)
 	Com_Printf ("====== Quake2 Initialized ======\n\n");	
 }
 
-/*
-=================
-Qcommon_Frame
-=================
-*/
 void Qcommon_Frame (int msec)
 {
 	char	*s;
@@ -1642,7 +1510,7 @@ void Qcommon_Frame (int msec)
 #endif
 
 	if (setjmp (abortframe) )
-		return;			// an ERR_DROP was thrown
+		return; /* an ERR_DROP was thrown */
 
 	if ( log_stats->modified )
 	{
@@ -1732,11 +1600,6 @@ void Qcommon_Frame (int msec)
 #endif
 }
 
-/*
-=================
-Qcommon_Shutdown
-=================
-*/
 void Qcommon_Shutdown (void)
 {
 }

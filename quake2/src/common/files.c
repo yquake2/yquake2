@@ -22,27 +22,17 @@
 #include "../posix/glob/glob.h"
 #include "../unzip/unzip.h"
 
-/*
- * ============================================================================
- *
- * QUAKE FILESYSTEM
- *
- * =============================================================================
- */
-
 #define MAX_HANDLES	512
 #define MAX_READ	0x10000
 #define MAX_WRITE	0x10000
 #define MAX_FIND_FILES	0x04000
 #define MAX_PAKS	100
 
-/* Berserk's pk3 file support. */
-
 typedef struct {
 	char		name[MAX_QPATH];
 	fsMode_t	mode;
-	FILE           *file;	/* Only one will be used. */
-	unzFile        *zip;	/* (file or zip) */
+	FILE           *file; /* Only one will be used. */
+	unzFile        *zip; /* (file or zip) */
 } fsHandle_t;
 
 typedef struct fsLink_s {
@@ -55,7 +45,7 @@ typedef struct fsLink_s {
 typedef struct {
 	char		name[MAX_QPATH];
 	int		size;
-	int		offset;		/* Ignored in PK3 files. */
+	int		offset;	/* Ignored in PK3 files. */
 } fsPackFile_t;
 
 typedef struct {
@@ -67,8 +57,8 @@ typedef struct {
 } fsPack_t;
 
 typedef struct fsSearchPath_s {
-	char		path[MAX_OSPATH];	/* Only one used. */
-	fsPack_t       *pack;			/* (path or pack) */
+	char		path[MAX_OSPATH]; /* Only one used. */
+	fsPack_t       *pack; /* (path or pack) */
 	struct fsSearchPath_s *next;
 } fsSearchPath_t;
 
@@ -87,7 +77,8 @@ fsLink_t       *fs_links;
 fsSearchPath_t *fs_searchPaths;
 fsSearchPath_t *fs_baseSearchPaths;
 
-fsPackTypes_t	fs_packtypes[] = {	/* Pack formats / suffixes. */	
+/* Pack formats / suffixes. */	
+fsPackTypes_t	fs_packtypes[] = { 
 	{"pak", PAK}, 
 	{"pk2", PK3}, 
 	{"pk3", PK3}, 
@@ -103,7 +94,7 @@ static qboolean	fs_fileInPack;
 /* Set by FS_FOpenFile. */
 int		file_from_pak = 0;
 int		file_from_pk3 = 0;
-char		file_from_pk3_name[MAX_QPATH];
+char	file_from_pk3_name[MAX_QPATH];
 
 cvar_t         *fs_homepath;
 cvar_t         *fs_basedir;
@@ -135,16 +126,12 @@ char           *Sys_GetCurrentDirectory(void);
  */
 
 /*
- * =================
- * Com_FilePath
- *
  * Returns the path up to, but not including the last '/'.
- * =================
  */
 void
 Com_FilePath(const char *path, char *dst, int dstSize)
 {
-	char           *pos;	/* Position of the last '/'. */
+	char *pos; /* Position of the last '/'. */
 
 	if ((pos = strrchr(path, '/')) != NULL) {
 		pos--;
@@ -159,16 +146,11 @@ Com_FilePath(const char *path, char *dst, int dstSize)
 		strncpy(dst, path, dstSize);
 }
 
-/*
- * ================= 
- * FS_FileLength 
- * =================
- */
 int
 FS_FileLength(FILE * f)
 {
-	int		pos;	/* Current position. */
-	int		end;	/* End of file. */
+	int		pos; /* Current position. */
+	int		end; /* End of file. */
 
 	pos = ftell(f);
 	fseek(f, 0, SEEK_END);
@@ -179,17 +161,13 @@ FS_FileLength(FILE * f)
 }
 
 /*
- * ============
- * FS_CreatePath
- *
  * Creates any directories needed to store the given filename.
- * ============
  */
 void
 FS_CreatePath(char *path)
 {
-	char           *cur;	/* Current '/'. */
-	char           *old;	/* Old '/'. */
+	char           *cur; /* Current '/'. */
+	char           *old; /* Old '/'. */
 
 	FS_DPrintf("FS_CreatePath(%s)\n", path);
 
@@ -209,11 +187,6 @@ FS_CreatePath(char *path)
 	}
 }
 
-/*
- * ================= 
- * FS_DPrintf 
- * =================
- */
 void
 FS_DPrintf(const char *format,...)
 {
@@ -236,13 +209,6 @@ FS_Gamedir(void)
 	return (fs_gamedir);
 }
 
-/*
- * =================
- * FS_DeletePath
- *
- * TODO: delete tree contents.
- * =================
- */
 void
 FS_DeletePath(char *path)
 {
@@ -252,11 +218,7 @@ FS_DeletePath(char *path)
 }
 
 /*
- * ================= 
- * FS_FileForHandle
- *
  * Returns a FILE * for a fileHandle_t. 
- * =================
  */
 FILE           *
 FS_FileForHandle(fileHandle_t f)
@@ -275,11 +237,7 @@ FS_FileForHandle(fileHandle_t f)
 }
 
 /*
- * ================= 
- * FS_HandleForFile
- *
  * Finds a free fileHandle_t. 
- * =================
  */
 fsHandle_t     *
 FS_HandleForFile(const char *path, fileHandle_t * f)
@@ -303,11 +261,7 @@ FS_HandleForFile(const char *path, fileHandle_t * f)
 }
 
 /*
- * ================= 
- * FS_GetFileByHandle
- *
  * Returns a fsHandle_t * for the given fileHandle_t. 
- * =================
  */
 fsHandle_t     *
 FS_GetFileByHandle(fileHandle_t f)
@@ -324,11 +278,7 @@ FS_GetFileByHandle(fileHandle_t f)
 }
 
 /*
- * ================= 
- * FS_FOpenFileAppend
- *
  * Returns file size or -1 on error. 
- * =================
  */
 int
 FS_FOpenFileAppend(fsHandle_t * handle)
@@ -352,11 +302,7 @@ FS_FOpenFileAppend(fsHandle_t * handle)
 }
 
 /*
- * ================= 
- * FS_FOpenFileWrite
- *
  * Always returns 0 or -1 on error. 
- * =================
  */
 int
 FS_FOpenFileWrite(fsHandle_t * handle)
@@ -379,12 +325,8 @@ FS_FOpenFileWrite(fsHandle_t * handle)
 }
 
 /*
- * ================= 
- * FS_FOpenFileRead
- *
  * Returns file size or -1 if not found. Can open separate files as well as
  * files inside pack files (both PAK and PK3). 
- * =================
  */
 int
 FS_FOpenFileRead(fsHandle_t * handle)
@@ -394,7 +336,6 @@ FS_FOpenFileRead(fsHandle_t * handle)
 	fsSearchPath_t *search;
 	fsPack_t       *pack;
 
-	/* Knightmare - hack global vars for autodownloads. */
 	file_from_pak = 0;
 	file_from_pk3 = 0;
 
@@ -478,11 +419,7 @@ FS_FOpenFileRead(fsHandle_t * handle)
 }
 
 /*
- * ============== 
- * FS_FCloseFile
- *
  * Other dll's can't just call fclose() on files returned by FS_FOpenFile.
- * ==============
  */
 void
 FS_FCloseFile(fileHandle_t f)
@@ -505,12 +442,11 @@ Developer_searchpath(int who)
 {
 	int		ch;
 
-	/* PMM - warning removal. */
 	fsSearchPath_t *search;
 
-	if (who == 1)		/* xatrix */
+	if (who == 1) /* xatrix */
 		ch = 'x';
-	else if (who == 2)
+	else if (who == 2) /* rogue */
 		ch = 'r';
 
 	for (search = fs_searchPaths; search; search = search->next) {
@@ -518,10 +454,6 @@ Developer_searchpath(int who)
 			return (1);
 		if (strstr(search->path, "rogue"))
 			return (2);
-
-		/*
-		 * if (strstr (search->path, "dday")) return (3);
-		 */
 	}
 
 	return (0);
@@ -530,7 +462,6 @@ Developer_searchpath(int who)
 qboolean
 modType(char *name)
 {
-	/* PMM - warning removal. */
 	fsSearchPath_t *search;
 
 	for (search = fs_searchPaths; search; search = search->next) {
@@ -542,12 +473,8 @@ modType(char *name)
 }
 
 /*
- * =========== 
- * FS_FOpenFile
- *
  * Finds the file in the search path. Returns filesize and an open FILE *. Used
  * for streaming data out of either a pak file or a seperate file.
- * ===========
  */
 int
 FS_FOpenFile(const char *name, fileHandle_t * f, fsMode_t mode)
@@ -586,20 +513,16 @@ FS_FOpenFile(const char *name, fileHandle_t * f, fsMode_t mode)
 }
 
 /*
- * ================= 
- * FS_ReadFile
- *
  * Properly handles partial reads. 
- * =================
  */
 int
 FS_Read(void *buffer, int size, fileHandle_t f)
 {
-	qboolean	tried = false;	/* Tried to read from a CD. */
-	byte           *buf;		/* Buffer. */
-	int		r;		/* Numbre of bytes read. */
-	int		remaining;	/* Remaining bytes. */
-	fsHandle_t     *handle;		/* File handle. */
+	qboolean	tried = false; /* Tried to read from a CD. */
+	byte    *buf; /* Buffer. */
+	int		r; /* Number of bytes read. */
+	int		remaining;/* Remaining bytes. */
+	fsHandle_t     *handle; /* File handle. */
 
 	handle = FS_GetFileByHandle(f);
 
@@ -635,12 +558,8 @@ FS_Read(void *buffer, int size, fileHandle_t f)
 }
 
 /*
- * ================= 
- * FS_FRead
- *
  * Properly handles partial reads of size up to count times. No error if it
  * can't read. 
- * =================
  */
 int
 FS_FRead(void *buffer, int size, int count, fileHandle_t f)
@@ -690,11 +609,7 @@ FS_FRead(void *buffer, int size, int count, fileHandle_t f)
 }
 
 /*
- * ================= 
- * FS_Write
- *
  * Properly handles partial writes. 
- * =================
  */
 int
 FS_Write(const void *buffer, int size, fileHandle_t f)
@@ -732,11 +647,6 @@ FS_Write(const void *buffer, int size, fileHandle_t f)
 	return (size);
 }
 
-/*
- * ================= 
- * FS_FTell 
- * =================
- */
 int
 FS_FTell(fileHandle_t f)
 {
@@ -753,11 +663,7 @@ FS_FTell(fileHandle_t f)
 }
 
 /*
- * =================
- * FS_ListPak
- *
  * Generates a listing of the contents of a pak file.
- * =================
  */
 char **
 FS_ListPak(char *find, int *num)
@@ -805,11 +711,6 @@ FS_ListPak(char *find, int *num)
 	return (list);
 }
 
-/*
- * ================= 
- * FS_Seek 
- * =================
- */
 void
 FS_Seek(fileHandle_t f, int offset, fsOrigin_t origin)
 {
@@ -872,11 +773,7 @@ FS_Seek(fileHandle_t f, int offset, fsOrigin_t origin)
 }
 
 /*
- * =================
- * FS_Tell
- *
  * Returns -1 if an error occurs.
- * =================
  */
 int
 FS_Tell(fileHandle_t f)
@@ -893,11 +790,6 @@ FS_Tell(fileHandle_t f)
 	return (-1);
 }
 
-/*
- * ================= 
- * FS_FileExists 
- * ================
- */
 qboolean
 FS_FileExists(char *path)
 {
@@ -912,11 +804,6 @@ FS_FileExists(char *path)
 	return (false);
 }
 
-/*
- * ================= 
- * FS_RenameFile 
- * =================
- */
 void
 FS_RenameFile(const char *oldPath, const char *newPath)
 {
@@ -926,11 +813,6 @@ FS_RenameFile(const char *oldPath, const char *newPath)
 		FS_DPrintf("FS_RenameFile: failed to rename '%s' to '%s'.\n", oldPath, newPath);
 }
 
-/*
- * ================= 
- * FS_DeleteFile 
- * =================
- */
 void
 FS_DeleteFile(const char *path)
 {
@@ -972,11 +854,6 @@ FS_LoadFile(char *path, void **buffer)
 	return (size);
 }
 
-/*
- * ============= 
- * FS_FreeFile 
- * =============
- */
 void
 FS_FreeFile(void *buffer)
 {
@@ -988,8 +865,6 @@ FS_FreeFile(void *buffer)
 }
 
 /*
- * FS_LoadPAK
- *
  * Takes an explicit (not game tree related) path to a pak file.
  *
  * Loads the header and directory, adding the files at the beginning of the
@@ -1049,14 +924,10 @@ FS_LoadPAK(const char *packPath)
 }
 
 /*
- * =================
- * FS_LoadPK3
- *
  * Takes an explicit (not game tree related) path to a pack file.
  *
  * Loads the header and directory, adding the files at the beginning of the list
  * so they override previous pack files.
- * =================
  */
 fsPack_t       *
 FS_LoadPK3(const char *packPath)
@@ -1112,14 +983,10 @@ FS_LoadPK3(const char *packPath)
 }
 
 /*
- * ================ FS_AddGameDirectory
- *
  * Adds the directory to the head of the path, then loads and adds pak1.pak
  * pak2.pak ...
  *
  * Extended all functionality to include Quake III .pk3
- *
- * ================
  */
 void
 FS_AddGameDirectory(const char *dir)
@@ -1203,11 +1070,7 @@ FS_AddGameDirectory(const char *dir)
 }
 
 /*
- * ================
- * FS_AddHomeAsGameDirectory
- *
  * Use ~/.quake2/dir as fs_gamedir.
- * ================
  */
 void
 FS_AddHomeAsGameDirectory(char *dir)
@@ -1231,11 +1094,7 @@ FS_AddHomeAsGameDirectory(char *dir)
 }
 
 /*
- * =================
- * FS_NextPath
- *
  * Allows enumerating all of the directories in the search path.
- * =================
  */
 char *
 FS_NextPath(char *prevPath)
@@ -1260,11 +1119,6 @@ FS_NextPath(char *prevPath)
 	return (NULL);
 }
 
-/*
- * ================= 
- * FS_Path_f 
- * =================
- */
 void
 FS_Path_f(void)
 {
@@ -1297,11 +1151,6 @@ FS_Path_f(void)
 	Com_Printf("%i files in PAK/PK2/PK3/ZIP files.\n", totalFiles);
 }
 
-/*
- * =================
- * FS_Startup
- * =================
- */
 void
 FS_Startup(void)
 {
@@ -1352,11 +1201,6 @@ FS_Startup(void)
 	FS_Path_f();
 }
 
-/*
- * ============= 
- * FS_ExecAutoexec 
- * =============
- */
 void
 FS_ExecAutoexec(void)
 {
@@ -1377,11 +1221,7 @@ FS_ExecAutoexec(void)
 }
 
 /*
- * ================
- * FS_SetGamedir
- *
  * Sets the gamedir and path to a different directory.
- * ================
  */
 void
 FS_SetGamedir(char *dir)
@@ -1433,11 +1273,7 @@ FS_SetGamedir(char *dir)
 }
 
 /*
- * ================
- * FS_Link_f
- *
  * Creates a filelink_t.
- * ================
  */
 void
 FS_Link_f(void)
@@ -1476,11 +1312,7 @@ FS_Link_f(void)
 }
 
 /*
- * FS_ListFiles
- *
  * Create a list of files that match a criteria.
- *
- * NEW: free the list after using it with FS_FreeList() to avoid memory leaks.
  */
 char **
 FS_ListFiles(char *findname, int *numfiles, unsigned musthave, unsigned canthave)
@@ -1528,14 +1360,10 @@ FS_ListFiles(char *findname, int *numfiles, unsigned musthave, unsigned canthave
 }
 
 /*
- * CompareAttributesPack
- *
  * Compare file attributes (musthave and canthave) in packed files. If
  * "output" is not NULL, "size" is greater than zero and the file matches the
  * attributes then a copy of the matching string will be placed there (with
  * SFF_SUBDIR it changes).
- *
- * Returns a boolean value, true if the attributes match the file.
  */
 qboolean
 ComparePackFiles(const char *findname, const char *name,
@@ -1577,10 +1405,7 @@ ComparePackFiles(const char *findname, const char *name,
 }
 
 /*
- * FS_ListFiles2
- *
  * Create a list of files that match a criteria.
- *
  * Searchs are relative to the game directory and use all the search paths
  * including .pak and .pk3 files.
  */
@@ -1681,8 +1506,6 @@ FS_ListFiles2(char *findname, int *numfiles, unsigned musthave, unsigned canthav
 }
 
 /*
- * FS_FreeList
- *
  * Free list of files created by FS_ListFiles().
  */
 void
@@ -1697,11 +1520,7 @@ FS_FreeList(char **list, int nfiles)
 }
 
 /*
- * ================
- * FS_Dir_f
- *
  * Directory listing.
- * ================
  */
 void
 FS_Dir_f(void)
@@ -1736,11 +1555,6 @@ FS_Dir_f(void)
 	}
 }
 
-/*
- * ================
- * FS_InitFilesystem
- * ================
- */
 void
 FS_InitFilesystem(void)
 {
@@ -1789,11 +1603,6 @@ FS_InitFilesystem(void)
 	Com_Printf("Using '%s' for writing.\n", fs_gamedir);
 }
 
-/*
- * =================
- * FS_Shutdown
- * =================
- */
 void
 FS_Shutdown(void)
 {
@@ -1833,3 +1642,4 @@ FS_Shutdown(void)
 		fs_searchPaths = next;
 	}
 }
+
