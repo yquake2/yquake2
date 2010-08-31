@@ -203,6 +203,7 @@ COMMON_OBJS = \
 	build/common/cmd_execution.o \
 	build/common/cmd_parser.o \
 	build/common/cmd_script.o \
+	build/common/com_arg.o \
 	build/common/com_clientserver.o \
 	build/common/common.o \
 	build/common/crc.o \
@@ -285,6 +286,7 @@ DEDICATED_SERVER_COMMON_OBJS = \
 	build/dedicated_server_common/cmd_execution.o \
 	build/dedicated_server_common/cmd_parser.o \
 	build/dedicated_server_common/cmd_script.o \
+	build/dedicated_server_common/com_arg.o \
 	build/dedicated_server_common/com_clientserver.o \
 	build/dedicated_server_common/common.o \
 	build/dedicated_server_common/crc.o \
@@ -524,7 +526,10 @@ build/common/cmd_parser.o :    		src/common/cmd_parser.c
   
 build/common/cmd_script.o :    		src/common/cmd_script.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
-
+ 
+build/common/com_arg.o :		 	src/common/com_arg.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+ 
 build/common/com_clientserver.o : 	src/common/com_clientserver.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
  
@@ -685,7 +690,10 @@ build/dedicated_server_common/cmd_parser.o :		src/common/cmd_parser.c
 
 build/dedicated_server_common/cmd_script.o :		src/common/cmd_script.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
-
+ 
+build/dedicated_server_common/com_arg.o :			src/common/com_arg.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+ 
 build/dedicated_server_common/com_clientserver.o :	src/common/com_clientserver.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
