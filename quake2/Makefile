@@ -205,11 +205,11 @@ COMMON_OBJS = \
 	build/common/cmd_script.o \
 	build/common/com_arg.o \
 	build/common/com_clientserver.o \
-	build/common/common.o \
 	build/common/crc.o \
 	build/common/cvar.o \
 	build/common/filesystem.o \
 	build/common/md4.o \
+	build/common/misc.o \
 	build/common/msg_io.o \
 	build/common/msg_read.o \
 	build/common/net_chan.o \
@@ -289,11 +289,11 @@ DEDICATED_SERVER_COMMON_OBJS = \
 	build/dedicated_server_common/cmd_script.o \
 	build/dedicated_server_common/com_arg.o \
 	build/dedicated_server_common/com_clientserver.o \
-	build/dedicated_server_common/common.o \
 	build/dedicated_server_common/crc.o \
 	build/dedicated_server_common/cvar.o \
 	build/dedicated_server_common/filesystem.o \
 	build/dedicated_server_common/md4.o \
+	build/dedicated_server_common/misc.o \
 	build/dedicated_server_common/msg_io.o \
 	build/dedicated_server_common/msg_read.o \
 	build/dedicated_server_common/net_chan.o \
@@ -535,9 +535,6 @@ build/common/com_arg.o :		 	src/common/com_arg.c
 build/common/com_clientserver.o : 	src/common/com_clientserver.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
  
-build/common/common.o :     		src/common/common.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
-
 build/common/crc.o :        		src/common/crc.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
@@ -548,6 +545,9 @@ build/common/filesystem.o :    		src/common/filesystem.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/common/md4.o :        		src/common/md4.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+ 
+build/common/misc.o :        		src/common/misc.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
 build/common/msg_io.o :        		src/common/msg_io.c
@@ -702,9 +702,6 @@ build/dedicated_server_common/com_arg.o :			src/common/com_arg.c
 build/dedicated_server_common/com_clientserver.o :	src/common/com_clientserver.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/common.o :			src/common/common.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
- 
 build/dedicated_server_common/crc.o :       		src/common/crc.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
@@ -715,6 +712,9 @@ build/dedicated_server_common/filesystem.o :   		src/common/filesystem.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 build/dedicated_server_common/md4.o :       		src/common/md4.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+ 
+build/dedicated_server_common/misc.o :       		src/common/misc.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
 build/dedicated_server_common/msg_io.o :       		src/common/msg_io.c
