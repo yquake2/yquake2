@@ -206,7 +206,7 @@ COMMON_OBJS = \
 	build/common/common.o \
 	build/common/crc.o \
 	build/common/cvar.o \
-	build/common/files.o \
+	build/common/filesystem.o \
 	build/common/md4.o \
 	build/common/net_chan.o \
 	build/common/pmove.o 
@@ -284,7 +284,7 @@ DEDICATED_SERVER_COMMON_OBJS = \
 	build/dedicated_server_common/common.o \
 	build/dedicated_server_common/crc.o \
 	build/dedicated_server_common/cvar.o \
-	build/dedicated_server_common/files.o \
+	build/dedicated_server_common/filesystem.o \
 	build/dedicated_server_common/md4.o \
 	build/dedicated_server_common/net_chan.o \
 	build/dedicated_server_common/pmove.o 
@@ -526,7 +526,7 @@ build/common/crc.o :        		src/common/crc.c
 build/common/cvar.o :       		src/common/cvar.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/common/files.o :      		src/common/files.c
+build/common/filesystem.o :    		src/common/filesystem.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/common/md4.o :        		src/common/md4.c
@@ -675,7 +675,7 @@ build/dedicated_server_common/crc.o :       		src/common/crc.c
 build/dedicated_server_common/cvar.o :      		src/common/cvar.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_common/files.o :     		src/common/files.c
+build/dedicated_server_common/filesystem.o :   		src/common/filesystem.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 build/dedicated_server_common/md4.o :       		src/common/md4.c
