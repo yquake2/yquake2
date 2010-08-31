@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define CM_QCOMMON_H
 
 #include "../game/baseq2/q_shared.h"
+#include "header/crc.h"
 
 #define	VERSION		2.99
 #define	BASEDIRNAME	"baseq2"
@@ -128,15 +129,6 @@ char *CopyString (char *in);
 //============================================================================
 
 void Info_Print (char *s);
-
-
-/* crc.h */
-
-void CRC_Init(unsigned short *crcvalue);
-void CRC_ProcessByte(unsigned short *crcvalue, byte data);
-unsigned short CRC_Value(unsigned short crcvalue);
-unsigned short CRC_Block (byte *start, int count);
-
 
 
 /*
