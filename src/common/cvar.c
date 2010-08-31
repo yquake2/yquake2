@@ -23,11 +23,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 cvar_t	*cvar_vars;
 
-/*
-============
-Cvar_InfoValidate
-============
-*/
 static qboolean Cvar_InfoValidate (char *s)
 {
 	if (strstr (s, "\\"))
@@ -39,11 +34,6 @@ static qboolean Cvar_InfoValidate (char *s)
 	return true;
 }
 
-/*
-============
-Cvar_FindVar
-============
-*/
 static cvar_t *Cvar_FindVar (const char *var_name)
 {
 	cvar_t	*var;
@@ -55,11 +45,6 @@ static cvar_t *Cvar_FindVar (const char *var_name)
 	return NULL;
 }
 
-/*
-============
-Cvar_VariableValue
-============
-*/
 float Cvar_VariableValue (char *var_name)
 {
 	cvar_t	*var;
@@ -70,12 +55,6 @@ float Cvar_VariableValue (char *var_name)
 	return atof (var->string);
 }
 
-
-/*
-============
-Cvar_VariableString
-============
-*/
 const char *Cvar_VariableString (const char *var_name)
 {
 	cvar_t *var;
@@ -86,12 +65,6 @@ const char *Cvar_VariableString (const char *var_name)
 	return var->string;
 }
 
-
-/*
-============
-Cvar_CompleteVariable
-============
-*/
 char *Cvar_CompleteVariable (char *partial)
 {
 	cvar_t		*cvar;
@@ -102,12 +75,12 @@ char *Cvar_CompleteVariable (char *partial)
 	if (!len)
 		return NULL;
 		
-	// check exact match
+	/* check exact match */
 	for (cvar=cvar_vars ; cvar ; cvar=cvar->next)
 		if (!strcmp (partial,cvar->name))
 			return cvar->name;
 
-	// check partial match
+	/* check partial match */
 	for (cvar=cvar_vars ; cvar ; cvar=cvar->next)
 		if (!strncmp (partial,cvar->name, len))
 			return cvar->name;
@@ -115,15 +88,10 @@ char *Cvar_CompleteVariable (char *partial)
 	return NULL;
 }
 
-
 /*
-============
-Cvar_Get
-
-If the variable already exists, the value will not be set
-The flags will be or'ed in if the variable exists.
-============
-*/
+ * If the variable already exists, the value will not be set
+ * The flags will be or'ed in if the variable exists.
+ */
 cvar_t *Cvar_Get (char *var_name, char *var_value, int flags)
 {
 	cvar_t	*var;
@@ -162,7 +130,7 @@ cvar_t *Cvar_Get (char *var_name, char *var_value, int flags)
 	var->modified = true;
 	var->value = atof (var->string);
 
-	// link the variable in
+	/* link the variable in */
 	var->next = cvar_vars;
 	cvar_vars = var;
 
@@ -171,18 +139,13 @@ cvar_t *Cvar_Get (char *var_name, char *var_value, int flags)
 	return var;
 }
 
-/*
-============
-Cvar_Set2
-============
-*/
 cvar_t *Cvar_Set2 (char *var_name, char *value, qboolean force)
 {
 	cvar_t	*var;
 
 	var = Cvar_FindVar (var_name);
 	if (!var)
-	{	// create it
+	{
 		return Cvar_Get (var_name, value, 0);
 	}
 
@@ -246,14 +209,14 @@ cvar_t *Cvar_Set2 (char *var_name, char *value, qboolean force)
 	}
 
 	if (!strcmp(value, var->string))
-		return var;		// not changed
+		return var;
 
 	var->modified = true;
 
 	if (var->flags & CVAR_USERINFO)
-		userinfo_modified = true;	// transmit at next oportunity
+		userinfo_modified = true; 
 	
-	Z_Free (var->string);	// free the old value string
+	Z_Free (var->string);
 	
 	var->string = CopyString(value);
 	var->value = atof (var->string);
@@ -261,47 +224,32 @@ cvar_t *Cvar_Set2 (char *var_name, char *value, qboolean force)
 	return var;
 }
 
-/*
-============
-Cvar_ForceSet
-============
-*/
 cvar_t *Cvar_ForceSet (char *var_name, char *value)
 {
 	return Cvar_Set2 (var_name, value, true);
 }
 
-/*
-============
-Cvar_Set
-============
-*/
 cvar_t *Cvar_Set (char *var_name, char *value)
 {
 	return Cvar_Set2 (var_name, value, false);
 }
 
-/*
-============
-Cvar_FullSet
-============
-*/
 cvar_t *Cvar_FullSet (char *var_name, char *value, int flags)
 {
 	cvar_t	*var;
 	
 	var = Cvar_FindVar (var_name);
 	if (!var)
-	{	// create it
+	{ 
 		return Cvar_Get (var_name, value, flags);
 	}
 
 	var->modified = true;
 
 	if (var->flags & CVAR_USERINFO)
-		userinfo_modified = true;	// transmit at next oportunity
+		userinfo_modified = true;
 	
-	Z_Free (var->string);	// free the old value string
+	Z_Free (var->string);
 	
 	var->string = CopyString(value);
 	var->value = (float)atof (var->string);
@@ -311,11 +259,6 @@ cvar_t *Cvar_FullSet (char *var_name, char *value, int flags)
 	return var;
 }
 
-/*
-============
-Cvar_SetValue
-============
-*/
 void Cvar_SetValue (char *var_name, float value)
 {
 	char	val[32];
@@ -329,12 +272,8 @@ void Cvar_SetValue (char *var_name, float value)
 
 
 /*
-============
-Cvar_GetLatchedVars
-
-Any variables with latched values will now be updated
-============
-*/
+ * Any variables with latched values will now be updated
+ */
 void Cvar_GetLatchedVars (void)
 {
 	cvar_t	*var;
@@ -357,22 +296,18 @@ void Cvar_GetLatchedVars (void)
 }
 
 /*
-============
-Cvar_Command
-
-Handles variable inspection and changing from the console
-============
-*/
+ * Handles variable inspection and changing from the console
+ */
 qboolean Cvar_Command (void)
 {
 	cvar_t			*v;
 
-	// check variables
+	/* check variables */
 	v = Cvar_FindVar (Cmd_Argv(0));
 	if (!v)
 		return false;
 		
-	// perform a variable print or set
+	/* perform a variable print or set */
 	if (Cmd_Argc() == 1)
 	{
 		Com_Printf ("\"%s\" is \"%s\"\n", v->name, v->string);
@@ -383,14 +318,9 @@ qboolean Cvar_Command (void)
 	return true;
 }
 
-
 /*
-============
-Cvar_Set_f
-
-Allows setting and defining of arbitrary cvars from console
-============
-*/
+ * Allows setting and defining of arbitrary cvars from console
+ */
 void Cvar_Set_f (void)
 {
 	int		c;
@@ -422,13 +352,9 @@ void Cvar_Set_f (void)
 
 
 /*
-============
-Cvar_WriteVariables
-
-Appends lines containing "set variable value" for all variables
-with the archive flag set to true.
-============
-*/
+ * Appends lines containing "set variable value" for all variables
+ * with the archive flag set to true.
+ */
 void Cvar_WriteVariables (char *path)
 {
 	cvar_t	*var;
@@ -447,12 +373,6 @@ void Cvar_WriteVariables (char *path)
 	fclose (f);
 }
 
-/*
-============
-Cvar_List_f
-
-============
-*/
 void Cvar_List_f (void)
 {
 	cvar_t	*var;
@@ -484,9 +404,7 @@ void Cvar_List_f (void)
 	Com_Printf ("%i cvars\n", i);
 }
 
-
 qboolean userinfo_modified;
-
 
 char	*Cvar_BitInfo (int bit)
 {
@@ -503,25 +421,27 @@ char	*Cvar_BitInfo (int bit)
 	return info;
 }
 
-// returns an info string containing all the CVAR_USERINFO cvars
+/* 
+ * returns an info string containing 
+ * all the CVAR_USERINFO cvars
+ */
 char	*Cvar_Userinfo (void)
 {
 	return Cvar_BitInfo (CVAR_USERINFO);
 }
 
-// returns an info string containing all the CVAR_SERVERINFO cvars
+/* 
+ * returns an info string containing 
+ * all the CVAR_SERVERINFO cvars
+ */
 char	*Cvar_Serverinfo (void)
 {
 	return Cvar_BitInfo (CVAR_SERVERINFO);
 }
 
 /*
-============
-Cvar_Init
-
-Reads in all archived cvars
-============
-*/
+ * Reads in all archived cvars
+ */
 void Cvar_Init (void)
 {
 	Cmd_AddCommand ("set", Cvar_Set_f);
