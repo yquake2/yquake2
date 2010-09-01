@@ -24,8 +24,8 @@
  * =======================================================================
  */
 
-#include "qcommon.h"
-#include "header/cmd.h"
+#include "../qcommon.h"
+#include "../header/cmd.h"
 
 void Cmd_Exec_f (void) {
 	char	*f, *f2;
