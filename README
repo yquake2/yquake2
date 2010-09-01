@@ -269,7 +269,7 @@ that, e.g. that Quake II is behaving like a normal window?
 Hey, why is Quake II so slow?
  - Because of some bugs in Mesa3Ds implementation of GL_EXT_point_
    parameters Quake II doesn't use this OpenGL command, resulting
-   in the loss of about 50FPS on a GeForce 7950GT. If you've got a
+   in the loss of about 50FPS on a Radeon HD4870. If you've got a
    better OpenGL implementation (a bug fixed version of Mesa3D, the
    nVidia driver or ATi fglrx) you can enable this command by
    uncommenting line line 57 of the Makefile. 
@@ -310,5 +310,20 @@ is a must for every game!
    filter. In fact with version 3.14 a mouse filter was added but it was
    just broken. We fixed it, just type "m_filter 1" in the console and
    you're done.
+
+Why is Quake II so dark? This is not Doom 3, dude!
+ - Back in 1997 Quake II did the brightness adjustment with just
+   increasing the brightness of the textures. That was just crap, since
+   the dark areas would stay dark and the bright areas would get too
+   bright. Because of that we added hardware gamma control via SDL to
+   Yamagi Quake II and everyone was happy. But then X.org 7.5 came and
+   something broke down in SDL, X.org or the X.org driver. Hardware
+   gamma wasn't working any more and there was no way how we could fix
+   it. Some weeks later nVidia fixed the problem in their proprietary
+   driver but nothing happend to the free driver stack. So don't blame
+   us, blame X.org, your driver vendor or the SDL guyes. In fact, you've
+   got two choices:
+    1. Get yourself a nVidia card (yes I know...)
+    2. Use xgamma(1) to increase the brightness of the whole desktop.
 
 ===============================================================================
