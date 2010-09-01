@@ -24,7 +24,7 @@
  * =======================================================================
  */   
 
-#include "../qcommon.h"
+#include "../header/common.h"
 
 #define MAX_NUM_ARGVS	50
 

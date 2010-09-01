@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "qcommon.h"
+#include "header/common.h"
 
 cvar_t	*cvar_vars;
 

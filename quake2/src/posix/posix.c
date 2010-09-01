@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "glob/glob.h"
 
-#include "../common/qcommon.h"
+#include "../common/header/common.h"
 
 #if defined(__FreeBSD__)
 #include <machine/param.h>

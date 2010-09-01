@@ -26,7 +26,7 @@
  * =======================================================================
  */  
 
-#include "qcommon.h"
+#include "header/common.h"
 
 #define CRC_INIT_VALUE	0xffff
 #define CRC_XOR_VALUE	0x0000

@@ -27,7 +27,7 @@
 #ifndef CL_REF_H
 #define CL_REF_H
 
-#include "../../common/qcommon.h"
+#include "../../common/header/common.h"
 
 #define	MAX_DLIGHTS		32
 #define	MAX_ENTITIES	128

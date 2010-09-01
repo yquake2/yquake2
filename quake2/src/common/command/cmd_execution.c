@@ -25,7 +25,7 @@
  * =======================================================================
  */                                     
 
-#include "../qcommon.h" 
+#include "../header/common.h" 
 #include "../header/cmd.h"
 
 typedef struct cmd_function_s {
