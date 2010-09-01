@@ -24,7 +24,7 @@
  * =======================================================================
  */  
 
-#include "qcommon.h"
+#include "../qcommon.h"
 
 vec3_t	bytedirs[NUMVERTEXNORMALS] =
 {

@@ -120,6 +120,7 @@ client:
 		build/common \
 		build/common/command \
 		build/common/common \
+		build/common/message \
 		build/common/model \
 		build/gameabi \
 		build/posix \
@@ -137,6 +138,7 @@ dedicated_server:
 		build/dedicated_server_common \
 		build/dedicated_server_common/command \
 		build/dedicated_server_common/common \
+		build/dedicated_server_common/message \
 		build/dedicated_server_common/model \
 		build/dedicated_server_posix \
 		build/dedicated_server_posix/glob \
@@ -206,8 +208,6 @@ COMMON_OBJS = \
 	build/common/filesystem.o \
 	build/common/md4.o \
 	build/common/misc.o \
-	build/common/msg_io.o \
-	build/common/msg_read.o \
 	build/common/netchan.o \
 	build/common/pmove.o \
 	build/common/szone.o \
@@ -217,6 +217,8 @@ COMMON_OBJS = \
 	build/common/command/cmd_script.o \
 	build/common/common/com_arg.o \
 	build/common/common/com_clientserver.o \
+	build/common/message/msg_io.o \
+	build/common/message/msg_read.o \
  	build/common/model/cm_areaportals.o \
 	build/common/model/cm_box.o \
 	build/common/model/cm_boxtracing.o \
@@ -289,8 +291,6 @@ DEDICATED_SERVER_COMMON_OBJS = \
 	build/dedicated_server_common/filesystem.o \
 	build/dedicated_server_common/md4.o \
 	build/dedicated_server_common/misc.o \
-	build/dedicated_server_common/msg_io.o \
-	build/dedicated_server_common/msg_read.o \
 	build/dedicated_server_common/netchan.o \
 	build/dedicated_server_common/pmove.o \
 	build/dedicated_server_common/szone.o \
@@ -300,6 +300,8 @@ DEDICATED_SERVER_COMMON_OBJS = \
 	build/dedicated_server_common/command/cmd_script.o \
 	build/dedicated_server_common/common/com_arg.o \
 	build/dedicated_server_common/common/com_clientserver.o \
+	build/dedicated_server_common/message/msg_io.o \
+	build/dedicated_server_common/message/msg_read.o \
 	build/dedicated_server_common/model/cm_areaportals.o \
 	build/dedicated_server_common/model/cm_box.o \
 	build/dedicated_server_common/model/cm_boxtracing.o \
@@ -521,13 +523,7 @@ build/common/md4.o :        		src/common/md4.c
  
 build/common/misc.o :        		src/common/misc.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
- 
-build/common/msg_io.o :        		src/common/msg_io.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
-  
-build/common/msg_read.o :      		src/common/msg_read.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
- 
+
 build/common/netchan.o :   			src/common/netchan.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
@@ -554,7 +550,13 @@ build/common/common/com_arg.o :				src/common/common/com_arg.c
  
 build/common/common/com_clientserver.o : 	src/common/common/com_clientserver.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
- 
+  
+build/common/message/msg_io.o :     src/common/message/msg_io.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+  
+build/common/message/msg_read.o :   src/common/message/msg_read.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+       
 build/common/model/cm_areaportals.o : 	src/common/model/cm_areaportals.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 	
@@ -687,13 +689,7 @@ build/dedicated_server_common/md4.o :       		src/common/md4.c
  
 build/dedicated_server_common/misc.o :       		src/common/misc.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
- 
-build/dedicated_server_common/msg_io.o :       		src/common/msg_io.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
-  
-build/dedicated_server_common/msg_read.o :     		src/common/msg_read.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
- 
+
 build/dedicated_server_common/netchan.o :  			src/common/netchan.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
@@ -719,6 +715,12 @@ build/dedicated_server_common/common/com_arg.o :	src/common/common/com_arg.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
 build/dedicated_server_common/common/com_clientserver.o :	src/common/common/com_clientserver.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+  
+build/dedicated_server_common/message/msg_io.o :    src/common/message/msg_io.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+  
+build/dedicated_server_common/message/msg_read.o :  src/common/message/msg_read.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
 build/dedicated_server_common/model/cm_areaportals.o :  src/common/model/cm_areaportals.c
