@@ -25,8 +25,8 @@
  * =======================================================================
  */ 
 
-#include "qcommon.h"
-#include "header/cmodel.h"
+#include "../qcommon.h"
+#include "../header/cmodel.h"
 
 extern int	box_headnode;
 
