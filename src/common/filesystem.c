@@ -27,7 +27,7 @@
 
 #include "header/common.h"
 #include "../posix/glob/glob.h"
-#include "../unzip/unzip.h"
+#include "unzip/unzip.h"
 
 #define MAX_HANDLES		512
 #define MAX_READ		0x10000

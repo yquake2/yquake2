@@ -122,6 +122,7 @@ client:
 		build/common/common \
 		build/common/message \
 		build/common/model \
+		build/common/unzip \
 		build/gameabi \
 		build/posix \
 		build/posix/glob \
@@ -140,6 +141,7 @@ dedicated_server:
 		build/dedicated_server_common/common \
 		build/dedicated_server_common/message \
 		build/dedicated_server_common/model \
+		build/dedicated_server_common/unzip \
 		build/dedicated_server_posix \
 		build/dedicated_server_posix/glob \
 		release
@@ -223,13 +225,9 @@ COMMON_OBJS = \
 	build/common/model/cm_box.o \
 	build/common/model/cm_boxtracing.o \
 	build/common/model/cm_bsp.o \
-	build/common/model/cm_vis.o
-# ----------
-
-# Unzip Object
-UNZIP_OBJ = \
-	build/unzip/ioapi.o \
-	build/unzip/unzip.o
+	build/common/model/cm_vis.o \
+	build/common/unzip/ioapi.o \
+	build/common/unzip/unzip.o 
 
 # ----------
 
@@ -306,7 +304,9 @@ DEDICATED_SERVER_COMMON_OBJS = \
 	build/dedicated_server_common/model/cm_box.o \
 	build/dedicated_server_common/model/cm_boxtracing.o \
 	build/dedicated_server_common/model/cm_bsp.o \
-	build/dedicated_server_common/model/cm_vis.o
+	build/dedicated_server_common/model/cm_vis.o \
+	build/dedicated_server_common/unzip/ioapi.o \
+	build/dedicated_server_common/unzip/unzip.o 
 
 # ----------
 
@@ -571,14 +571,12 @@ build/common/model/cm_bsp.o :        	src/common/model/cm_bsp.c
 
 build/common/model/cm_vis.o :        	src/common/model/cm_vis.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<    
-
-# ----------
-
-build/unzip/ioapi.o :   	   		src/unzip/ioapi.c
+ 
+build/common/unzip/ioapi.o :   	   		src/common/unzip/ioapi.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/unzip/unzip.o :	      		src/unzip/unzip.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+build/common/unzip/unzip.o :	      	src/common/unzip/unzip.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<  
 
 # ----------
 
@@ -737,7 +735,12 @@ build/dedicated_server_common/model/cm_bsp.o :    		src/common/model/cm_bsp.c
 
 build/dedicated_server_common/model/cm_vis.o :    		src/common/model/cm_vis.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
- 
+  
+build/dedicated_server_common/unzip/ioapi.o :   	   	src/common/unzip/ioapi.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+
+build/dedicated_server_common/unzip/unzip.o :	      	src/common/unzip/unzip.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 # ----------
 
 # Dedicated server POSIX build
@@ -1037,16 +1040,16 @@ build/ctf/q_shared.o:  				src/game/ctf/q_shared.c
   
 #  The client
 release/quake2 : $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
-    $(UNZIP_OBJ) $(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS)
+    $(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS)
 	$(CC) $(CFLAGS_CLIENT) -o $@ $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
-		$(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS) $(UNZIP_OBJ) $(LDFLAGS) \
+		$(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS) $(LDFLAGS) \
 		$(SDLLDFLAGS) $(OGGLDFLAGS) $(ZLIBLDFLAGS)
 
 # Dedicated Server
 release/q2ded : $(DEDICATED_SERVER_OBJS) $(DEDICATED_SERVER_COMMON_OBJS) \
-	$(GAME_ABI_OBJS) $(DEDICATED_SERVER_POSIX_OBJS) $(UNZIP_OBJ)
+	$(GAME_ABI_OBJS) $(DEDICATED_SERVER_POSIX_OBJS)
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ $(DEDICATED_SERVER_OBJS) \
-		$(DEDICATED_SERVER_COMMON_OBJS) $(GAME_ABI_OBJS) $(UNZIP_OBJ)\
+		$(DEDICATED_SERVER_COMMON_OBJS) $(GAME_ABI_OBJS) \
 		$(DEDICATED_SERVER_POSIX_OBJS) $(LDFLAGS) $(ZLIBLDFLAGS)
 
 # OpenGL refresher
