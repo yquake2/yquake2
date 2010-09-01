@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "qcommon.h"
+#include "../qcommon.h"
 
 void MSG_BeginReading (sizebuf_t *msg)
 {
