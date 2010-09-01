@@ -37,7 +37,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <errno.h>
 #include <dlfcn.h>
 
-#include "../common/qcommon.h"
+#include "../common/header/common.h"
 
 #include "posix.h"
 

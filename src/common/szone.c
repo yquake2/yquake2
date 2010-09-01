@@ -24,7 +24,7 @@
  * =======================================================================
  */  
 
-#include "qcommon.h"
+#include "header/common.h"
 
 void SZ_Init (sizebuf_t *buf, byte *data, int length)
 {

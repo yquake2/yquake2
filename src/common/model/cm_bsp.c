@@ -24,7 +24,7 @@
  * =======================================================================
  */ 
 
-#include "../qcommon.h"
+#include "../header/common.h"
 #include "../header/cmodel.h"
 
 extern dvis_t *map_vis;

@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "../qcommon.h"
+#include "../header/common.h"
 #include "../header/cmd.h"
 
 void Cmd_Exec_f (void) {

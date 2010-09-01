@@ -26,11 +26,11 @@
  * =======================================================================
  */
 
-#ifndef CO_QCOMMON_H
-#define CO_QCOMMON_H
+#ifndef CO_COMMON_H
+#define CO_COMMON_H
 
-#include "../game/baseq2/q_shared.h"
-#include "header/crc.h"
+#include "../../game/baseq2/q_shared.h"
+#include "crc.h"
 
 #define	VERSION		2.99
 #define	BASEDIRNAME	"baseq2"
@@ -538,7 +538,7 @@ qboolean Netchan_CanReliable (netchan_t *chan);
 
 /* CMODEL */
 
-#include "qfiles.h"
+#include "files.h"
 
 cmodel_t	*CM_LoadMap (char *name, qboolean clientload, unsigned *checksum);
 cmodel_t	*CM_InlineModel (char *name);	/* *1, *2, etc */

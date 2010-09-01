@@ -25,7 +25,7 @@
  * =======================================================================
  */
 
-#include "qcommon.h"
+#include "header/common.h"
 #include "../posix/glob/glob.h"
 #include "../unzip/unzip.h"
 

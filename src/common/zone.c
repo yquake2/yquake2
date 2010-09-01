@@ -24,7 +24,7 @@
  * =======================================================================
  */ 
 
-#include "qcommon.h"
+#include "header/common.h"
 #include "header/zone.h"
 
 #define Z_MAGIC 0x1d1d

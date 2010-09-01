@@ -27,7 +27,7 @@
  * =======================================================================
  */ 
 
-#include "../qcommon.h"
+#include "../header/common.h"
 #include "../header/cmd.h"
 
 /*
