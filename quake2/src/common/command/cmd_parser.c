@@ -27,8 +27,8 @@
  * =======================================================================
  */ 
 
-#include "qcommon.h"
-#include "header/cmd.h"
+#include "../qcommon.h"
+#include "../header/cmd.h"
 
 /*
  * Causes execution of the remainder of the command buffer to be delayed

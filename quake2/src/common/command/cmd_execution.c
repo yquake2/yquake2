@@ -25,8 +25,8 @@
  * =======================================================================
  */                                     
 
-#include "qcommon.h" 
-#include "header/cmd.h"
+#include "../qcommon.h" 
+#include "../header/cmd.h"
 
 typedef struct cmd_function_s {
 	struct cmd_function_s	*next;

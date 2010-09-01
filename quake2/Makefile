@@ -118,6 +118,7 @@ client:
 		build/client/menu \
 		build/client/sound \
 		build/common \
+		build/common/command \
 		build/common/model \
 		build/gameabi \
 		build/posix \
@@ -133,6 +134,7 @@ dedicated_server:
 	@-mkdir -p build \
 		build/dedicated_server \
 		build/dedicated_server_common \
+		build/dedicated_server_common/command \
 		build/dedicated_server_common/model \
 		build/dedicated_server_posix \
 		build/dedicated_server_posix/glob \
@@ -197,9 +199,6 @@ CLIENT_OBJS = \
 
 # Common objects
 COMMON_OBJS = \
-	build/common/cmd_execution.o \
-	build/common/cmd_parser.o \
-	build/common/cmd_script.o \
 	build/common/com_arg.o \
 	build/common/com_clientserver.o \
 	build/common/crc.o \
@@ -213,6 +212,9 @@ COMMON_OBJS = \
 	build/common/pmove.o \
 	build/common/szone.o \
 	build/common/zone.o \
+	build/common/command/cmd_execution.o \
+	build/common/command/cmd_parser.o \
+	build/common/command/cmd_script.o \
  	build/common/model/cm_areaportals.o \
 	build/common/model/cm_box.o \
 	build/common/model/cm_boxtracing.o \
@@ -280,9 +282,6 @@ DEDICATED_SERVER_OBJS = \
 
 # Dedicated server common objects
 DEDICATED_SERVER_COMMON_OBJS = \
-	build/dedicated_server_common/cmd_execution.o \
-	build/dedicated_server_common/cmd_parser.o \
-	build/dedicated_server_common/cmd_script.o \
 	build/dedicated_server_common/com_arg.o \
 	build/dedicated_server_common/com_clientserver.o \
 	build/dedicated_server_common/crc.o \
@@ -296,6 +295,9 @@ DEDICATED_SERVER_COMMON_OBJS = \
 	build/dedicated_server_common/pmove.o \
 	build/dedicated_server_common/szone.o \
 	build/dedicated_server_common/zone.o \
+	build/dedicated_server_common/command/cmd_execution.o \
+	build/dedicated_server_common/command/cmd_parser.o \
+	build/dedicated_server_common/command/cmd_script.o \
 	build/dedicated_server_common/model/cm_areaportals.o \
 	build/dedicated_server_common/model/cm_box.o \
 	build/dedicated_server_common/model/cm_boxtracing.o \
@@ -503,15 +505,6 @@ build/client/sound/snd_wav.o :		src/client/sound/snd_wav.c
 # ---------
 
 # Common build 
-build/common/cmd_execution.o :    	src/common/cmd_execution.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
-
-build/common/cmd_parser.o :    		src/common/cmd_parser.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
-  
-build/common/cmd_script.o :    		src/common/cmd_script.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
- 
 build/common/com_arg.o :		 	src/common/com_arg.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
  
@@ -551,6 +544,15 @@ build/common/szone.o :      		src/common/szone.c
 build/common/zone.o :	      		src/common/zone.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
+build/common/command/cmd_execution.o :    	src/common/command/cmd_execution.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+
+build/common/command/cmd_parser.o :    		src/common/command/cmd_parser.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+  
+build/common/command/cmd_script.o :    		src/common/command/cmd_script.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+ 
 build/common/model/cm_areaportals.o : 	src/common/model/cm_areaportals.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 	
@@ -669,15 +671,6 @@ build/dedicated_server/sv_world.o :	src/server/sv_world.c
 # ---------
  
 # Dedicated server common build     
-build/dedicated_server_common/cmd_execution.o :		src/common/cmd_execution.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
- 
-build/dedicated_server_common/cmd_parser.o :		src/common/cmd_parser.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
-
-build/dedicated_server_common/cmd_script.o :		src/common/cmd_script.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
- 
 build/dedicated_server_common/com_arg.o :			src/common/com_arg.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
@@ -717,6 +710,15 @@ build/dedicated_server_common/szone.o :	    		src/common/szone.c
 build/dedicated_server_common/zone.o :	    		src/common/zone.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
+build/dedicated_server_common/command/cmd_execution.o :		src/common/command/cmd_execution.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+ 
+build/dedicated_server_common/command/cmd_parser.o :		src/common/command/cmd_parser.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/command/cmd_script.o :		src/common/command/cmd_script.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+ 
 build/dedicated_server_common/model/cm_areaportals.o :  src/common/model/cm_areaportals.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
@@ -731,7 +733,7 @@ build/dedicated_server_common/model/cm_bsp.o :    		src/common/model/cm_bsp.c
 
 build/dedicated_server_common/model/cm_vis.o :    		src/common/model/cm_vis.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
-
+ 
 # ----------
 
 # Dedicated server POSIX build
