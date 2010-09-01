@@ -24,7 +24,7 @@
  * =======================================================================
  */ 
 
-#include "qcommon.h"
+#include "../qcommon.h"
 #include <stdlib.h>
 #include <setjmp.h>
 

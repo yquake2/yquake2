@@ -119,6 +119,7 @@ client:
 		build/client/sound \
 		build/common \
 		build/common/command \
+		build/common/common \
 		build/common/model \
 		build/gameabi \
 		build/posix \
@@ -135,6 +136,7 @@ dedicated_server:
 		build/dedicated_server \
 		build/dedicated_server_common \
 		build/dedicated_server_common/command \
+		build/dedicated_server_common/common \
 		build/dedicated_server_common/model \
 		build/dedicated_server_posix \
 		build/dedicated_server_posix/glob \
@@ -199,8 +201,6 @@ CLIENT_OBJS = \
 
 # Common objects
 COMMON_OBJS = \
-	build/common/com_arg.o \
-	build/common/com_clientserver.o \
 	build/common/crc.o \
 	build/common/cvar.o \
 	build/common/filesystem.o \
@@ -215,6 +215,8 @@ COMMON_OBJS = \
 	build/common/command/cmd_execution.o \
 	build/common/command/cmd_parser.o \
 	build/common/command/cmd_script.o \
+	build/common/common/com_arg.o \
+	build/common/common/com_clientserver.o \
  	build/common/model/cm_areaportals.o \
 	build/common/model/cm_box.o \
 	build/common/model/cm_boxtracing.o \
@@ -282,8 +284,6 @@ DEDICATED_SERVER_OBJS = \
 
 # Dedicated server common objects
 DEDICATED_SERVER_COMMON_OBJS = \
-	build/dedicated_server_common/com_arg.o \
-	build/dedicated_server_common/com_clientserver.o \
 	build/dedicated_server_common/crc.o \
 	build/dedicated_server_common/cvar.o \
 	build/dedicated_server_common/filesystem.o \
@@ -298,6 +298,8 @@ DEDICATED_SERVER_COMMON_OBJS = \
 	build/dedicated_server_common/command/cmd_execution.o \
 	build/dedicated_server_common/command/cmd_parser.o \
 	build/dedicated_server_common/command/cmd_script.o \
+	build/dedicated_server_common/common/com_arg.o \
+	build/dedicated_server_common/common/com_clientserver.o \
 	build/dedicated_server_common/model/cm_areaportals.o \
 	build/dedicated_server_common/model/cm_box.o \
 	build/dedicated_server_common/model/cm_boxtracing.o \
@@ -505,12 +507,6 @@ build/client/sound/snd_wav.o :		src/client/sound/snd_wav.c
 # ---------
 
 # Common build 
-build/common/com_arg.o :		 	src/common/com_arg.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
- 
-build/common/com_clientserver.o : 	src/common/com_clientserver.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
- 
 build/common/crc.o :        		src/common/crc.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
@@ -551,6 +547,12 @@ build/common/command/cmd_parser.o :    		src/common/command/cmd_parser.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
   
 build/common/command/cmd_script.o :    		src/common/command/cmd_script.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+
+build/common/common/com_arg.o :				src/common/common/com_arg.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
+ 
+build/common/common/com_clientserver.o : 	src/common/common/com_clientserver.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
  
 build/common/model/cm_areaportals.o : 	src/common/model/cm_areaportals.c
@@ -671,12 +673,6 @@ build/dedicated_server/sv_world.o :	src/server/sv_world.c
 # ---------
  
 # Dedicated server common build     
-build/dedicated_server_common/com_arg.o :			src/common/com_arg.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
- 
-build/dedicated_server_common/com_clientserver.o :	src/common/com_clientserver.c
-	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
-
 build/dedicated_server_common/crc.o :       		src/common/crc.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
@@ -717,6 +713,12 @@ build/dedicated_server_common/command/cmd_parser.o :		src/common/command/cmd_par
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 build/dedicated_server_common/command/cmd_script.o :		src/common/command/cmd_script.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+
+build/dedicated_server_common/common/com_arg.o :	src/common/common/com_arg.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+ 
+build/dedicated_server_common/common/com_clientserver.o :	src/common/common/com_clientserver.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
 build/dedicated_server_common/model/cm_areaportals.o :  src/common/model/cm_areaportals.c
