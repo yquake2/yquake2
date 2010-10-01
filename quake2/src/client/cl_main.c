@@ -472,7 +472,7 @@ void CL_InitLocal (void)
 	cl_noskins = Cvar_Get ("cl_noskins", "0", 0);
 	cl_autoskins = Cvar_Get ("cl_autoskins", "0", 0);
 	cl_predict = Cvar_Get ("cl_predict", "1", 0);
-	cl_maxfps = Cvar_Get ("cl_maxfps", "60", 0);
+	cl_maxfps = Cvar_Get ("cl_maxfps", "120", 0);
 	cl_drawfps = Cvar_Get("cl_drawfps","0",CVAR_ARCHIVE);
 
 	cl_upspeed = Cvar_Get ("cl_upspeed", "200", 0);
