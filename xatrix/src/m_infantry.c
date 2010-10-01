@@ -245,7 +245,7 @@ void InfantryMachineGun (edict_t *self)
 	vec3_t	vec;
 	int		flash_number;
 
-	if (self->s.frame == FRAME_attak111)
+	if (self->s.frame == FRAME_attak103)
 	{
 		flash_number = MZ2_INFANTRY_MACHINEGUN_1;
 		AngleVectors (self->s.angles, forward, right, NULL);
@@ -456,13 +456,17 @@ void infantry_dodge (edict_t *self, edict_t *attacker, float eta)
 }
 
 
-void infantry_cock_gun (edict_t *self)
+void infantry_set_firetime (edict_t *self)
 {
 	int		n;
 
-	gi.sound (self, CHAN_WEAPON, sound_weapon_cock, 1, ATTN_NORM, 0);
-	n = (rand() & 15) + 3 + 7;
+	n = (rand() & 15) + 5;
 	self->monsterinfo.pausetime = level.time + n * FRAMETIME;
+}
+
+void infantry_cock_gun (edict_t *self)
+{
+	gi.sound (self, CHAN_WEAPON, sound_weapon_cock, 1, ATTN_NORM, 0);
 }
 
 void infantry_fire (edict_t *self)
@@ -477,21 +481,21 @@ void infantry_fire (edict_t *self)
 
 mframe_t infantry_frames_attack1 [] =
 {
-	{ai_charge, 4,  NULL},
+	{ai_charge, 10, infantry_set_firetime},
+	{ai_charge,  6, NULL},
+	{ai_charge,  0, infantry_fire},
+	{ai_charge,  0, NULL},
+	{ai_charge,  1, NULL},
+	{ai_charge, -7, NULL},
+	{ai_charge, -6, NULL},
 	{ai_charge, -1, NULL},
+	{ai_charge,  0, infantry_cock_gun},
+	{ai_charge,  0, NULL},
+	{ai_charge,  0, NULL},
+	{ai_charge,  0, NULL},
+	{ai_charge,  0, NULL},
 	{ai_charge, -1, NULL},
-	{ai_charge, 0,  infantry_cock_gun},
-	{ai_charge, -1, NULL},
-	{ai_charge, 1,  NULL},
-	{ai_charge, 1,  NULL},
-	{ai_charge, 2,  NULL},
-	{ai_charge, -2, NULL},
-	{ai_charge, -3, NULL},
-	{ai_charge, 1,  infantry_fire},
-	{ai_charge, 5,  NULL},
-	{ai_charge, -1, NULL},
-	{ai_charge, -2, NULL},
-	{ai_charge, -3, NULL}
+	{ai_charge, -1, NULL}
 };
 mmove_t infantry_move_attack1 = {FRAME_attak101, FRAME_attak115, infantry_frames_attack1, infantry_run};
 
