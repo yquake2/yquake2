@@ -105,24 +105,14 @@ void S_TransferPaintBuffer(int endtime) {
 	pbuf = (unsigned long *)dma.buffer;
 
 	if (s_testsound->value) {
-		static float x = 0.05;
-		static float y = 0.0001;
 		int		i;
 		int		count;
 
-		x += y;
-
-		if (x > 0.15)
-			y = -0.0001;
-
-		else if (x < 0.0005)
-			y = 0.0001;
-
-		/* write a fixed sine wave */
+		// write a fixed sine wave
 		count = (endtime - paintedtime);
-
 		for (i=0 ; i<count ; i++)
 			paintbuffer[i].left = paintbuffer[i].right = (int)((float)sin((paintedtime+i)*0.1f)*20000*256);
+   
 	}
 
 	if (dma.samplebits == 16 && dma.channels == 2) {
@@ -185,7 +175,7 @@ void S_PaintChannels(int endtime) {
 	int		ltime, count;
 	playsound_t	*ps;
 
-	snd_vol = s_volume->value*256;
+	snd_vol = (int)(s_volume->value*256);
 
 	while (paintedtime < endtime) {
 		/* if paintbuffer is smaller than DMA buffer */
@@ -195,24 +185,29 @@ void S_PaintChannels(int endtime) {
 			end = paintedtime + PAINTBUFFER_SIZE;
 
 		/* start any playsounds */
-		while (1) {
+		if (endtime - paintedtime > PAINTBUFFER_SIZE)
+			end = paintedtime + PAINTBUFFER_SIZE;
+
+		// start any playsounds
+		for (;;)
+		{
 			ps = s_pendingplays.next;
 
 			if (ps == NULL)
 				break;
 
 			if (ps == &s_pendingplays)
-				break; /* no more pending sounds */
-
-			if (ps->begin <= paintedtime) {
+				break;	// no more pending sounds
+			if (ps->begin <= paintedtime)
+			{
 				S_IssuePlaysound (ps);
 				continue;
 			}
 
 			if (ps->begin < end)
-				end = ps->begin; /* stop here */
-
+				end = ps->begin;		// stop here
 			break;
+		 
 		}
 
 		/* clear the paint buffer */
@@ -232,8 +227,7 @@ void S_PaintChannels(int endtime) {
 			}
 
 			for ( ; i<end ; i++) {
-				paintbuffer[i-paintedtime].left =
-				    paintbuffer[i-paintedtime].right = 0;
+				paintbuffer[i-paintedtime].left = paintbuffer[i-paintedtime].right = 0;
 			}
 		}
 
@@ -298,6 +292,11 @@ void S_PaintChannels(int endtime) {
 void S_InitScaletable (void) {
 	int		i, j;
 	int		scale;
+
+	 if (s_volume->value > 2.0f)
+		Cvar_Set ("s_volume", "2");
+	else if (s_volume->value < 0)
+		Cvar_Set  ("s_volume", "0");
 
 	s_volume->modified = false;
 
