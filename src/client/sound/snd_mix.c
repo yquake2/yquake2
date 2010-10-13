@@ -29,7 +29,7 @@
 #include "../header/client.h"
 #include "header/local.h"
 
-#define PAINTBUFFER_SIZE 8192
+#define PAINTBUFFER_SIZE 2048
 
 portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE];
 int		snd_scaletable[32][256];

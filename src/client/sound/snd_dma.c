@@ -62,11 +62,11 @@ int			paintedtime;
    than could actually be referenced during gameplay,
    because we don't want to free anything until we are
    sure we won't need it. */
-#define		MAX_SFX		(MAX_SOUNDS*3)
+#define		MAX_SFX		(MAX_SOUNDS*2)
 sfx_t		known_sfx[MAX_SFX];
 int			num_sfx;
 
-#define		MAX_PLAYSOUNDS	96
+#define		MAX_PLAYSOUNDS	128
 playsound_t	s_playsounds[MAX_PLAYSOUNDS];
 playsound_t	s_freeplays;
 playsound_t	s_pendingplays;
@@ -432,7 +432,9 @@ playsound_t *S_AllocPlaysound (void) {
 	ps = s_freeplays.next;
 
 	if (ps == &s_freeplays)
+	{
 		return NULL; /* no free playsounds, this results in stuttering an cracking */
+	}
 
 	/* unlink from freelist */
 	ps->prev->next = ps->next;
@@ -648,7 +650,7 @@ void S_StartLocalSound (char *sound) {
 		return;
 	}
 
-	S_StartSound (NULL, cl.playernum+1, 0, sfx, 1, ATTN_NONE, 0);
+	S_StartSound (NULL, cl.playernum+1, 0, sfx, 1, 1, 0);
 }
 
 void S_ClearBuffer (void) {
@@ -668,7 +670,14 @@ void S_ClearBuffer (void) {
 	SNDDMA_BeginPainting ();
 
 	if (dma.buffer) {
-		 memset(dma.buffer, clear, dma.samples * dma.samplebits/8);
+		int		i;
+		unsigned char  *ptr = (unsigned char *)dma.buffer;
+
+		i = dma.samples * dma.samplebits / 8;
+		while (i--) {
+			*ptr = clear;
+			ptr++;
+		}
 	}
 
 	SNDDMA_Submit ();
