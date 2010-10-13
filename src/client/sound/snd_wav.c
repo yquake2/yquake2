@@ -54,14 +54,14 @@ int GetLittleLong(void) {
 void FindNextChunk(char *name) {
 	while (1) {
 		data_p=last_chunk;
+		data_p += 4;
 
-		if (data_p >= iff_end) {
-			/* didn't find the chunk */
+		if (data_p >= iff_end)
+		{
 			data_p = NULL;
 			return;
-		}
+		}   
 
-		data_p += 4;
 		iff_chunk_len = GetLittleLong();
 
 		if (iff_chunk_len < 0) {
@@ -153,7 +153,8 @@ wavinfo_t GetWavinfo (char *name, byte *wav, int wavlength) {
 		FindNextChunk ("LIST");
 
 		if (data_p) {
-			if (!strncmp ((const char *)data_p + 28, "mark", 4)) {
+			if ((data_p - wav) + 32 <= wavlength && !strncmp ((const char *)data_p + 28, "mark", 4))
+			{
 				/* this is not a proper parse, but it works with cooledit... */
 				data_p += 24;
 				i = GetLittleLong (); /* samples in loop */
@@ -182,7 +183,7 @@ wavinfo_t GetWavinfo (char *name, byte *wav, int wavlength) {
 	} else
 		info.samples = samples;
 
-	info.dataofs = data_p - wav;
+	info.dataofs = (int)(data_p - wav);
 
 	return info;
 }

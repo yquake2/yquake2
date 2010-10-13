@@ -30,9 +30,6 @@
 #include "../header/client.h"
 #include "header/local.h"
 
-int cache_full_cycle;
-byte *S_Alloc (int size);
-
 void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data) {
 	int		outcount;
 	int		srcsample;
@@ -50,6 +47,15 @@ void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data) {
 	stepscale = (float)inrate / dma.speed; /* this is usually 0.5, 1, or 2 */
 
 	outcount = (int)(sc->length / stepscale);
+
+    if (outcount == 0)
+	{
+		Com_Printf ("ResampleSfx: Invalid sound file '%s' (zero length)\n", sfx->name);
+		Z_Free (sfx->cache);
+		sfx->cache = NULL;
+		return;
+	}    
+
 	sc->length = outcount;
 
 	if (sc->loopstart != -1)
@@ -154,7 +160,6 @@ sfxcache_t *S_LoadSound (sfx_t *s) {
 	}
 
 	len = len * info.width * info.channels;
-
 	sc = s->cache = Z_Malloc (len + sizeof(sfxcache_t));
 
 	if (!sc) {

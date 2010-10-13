@@ -53,9 +53,9 @@ vec3_t		listener_forward;
 vec3_t		listener_right;
 vec3_t		listener_up;
 
-qboolean	s_registering;
+static qboolean	s_registering;
 
-int			soundtime;
+static int	soundtime;
 int			paintedtime;
 
 /* during registration it is possible to have more sounds
@@ -77,8 +77,8 @@ cvar_t		*s_volume;
 cvar_t		*s_testsound;
 cvar_t		*s_loadas8bit;
 cvar_t		*s_khz;
-cvar_t		*s_show;
 cvar_t		*s_mixahead;
+cvar_t		*s_show;
 
 int						s_rawend;
 portable_samplepair_t	s_rawsamples[MAX_RAW_SAMPLES];
@@ -98,12 +98,11 @@ void S_SoundInfo_f(void) {
 	Com_Printf("%5d samplebits\n", dma.samplebits);
 	Com_Printf("%5d submission_chunk\n", dma.submission_chunk);
 	Com_Printf("%5d speed\n", dma.speed);
-	Com_Printf("0x%x dma buffer\n", dma.buffer);
+	Com_Printf("%p dma buffer\n", dma.buffer);
 }
 
 void S_Init (void) {
 	cvar_t	*cv;
-	s_pendingplays.next = NULL;
 
 	Com_Printf("\n------- sound initialization -------\n");
 
@@ -138,10 +137,9 @@ void S_Init (void) {
 		soundtime = 0;
 		paintedtime = 0;
 
-		Com_Printf ("sound sampling rate: %i\n", dma.speed);
+		Com_Printf ("sound sampling rate: %i\n", dma.speed);                                          
 
 		S_StopAllSounds ();
-
 		OGG_Init();
 	}
 
@@ -158,32 +156,27 @@ void S_Shutdown(void) {
 	if (!sound_started)
 		return;
 
-	OGG_Shutdown();
-
-	Cmd_RemoveCommand("ogg_init");
-	Cmd_RemoveCommand("ogg_shutdown");
-
-	SNDDMA_Shutdown();
-
-	sound_started = 0;
-
-	Cmd_RemoveCommand("play");
-	Cmd_RemoveCommand("stopsound");
-	Cmd_RemoveCommand("soundlist");
-	Cmd_RemoveCommand("soundinfo");
-
-	/* free all sounds */
-	for (i=0, sfx=known_sfx ; i < num_sfx ; i++,sfx++) {
+	// free all sounds
+	for (i=0, sfx=known_sfx ; i < num_sfx ; i++,sfx++)
+	{
 		if (!sfx->name[0])
 			continue;
-
 		if (sfx->cache)
 			Z_Free (sfx->cache);
-
-		memset (sfx, 0, sizeof(*sfx));
 	}
 
+	memset (known_sfx, 0, sizeof(known_sfx));
+
 	num_sfx = 0;
+	sound_started = 0;
+
+	OGG_Shutdown();
+	SNDDMA_Shutdown();
+
+	Cmd_RemoveCommand("soundlist");
+	Cmd_RemoveCommand("soundinfo");
+	Cmd_RemoveCommand("play");
+	Cmd_RemoveCommand("stopsound");  
 }
 
 /*
@@ -222,9 +215,12 @@ sfx_t *S_FindName (char *name, qboolean create) {
 
 		num_sfx++;
 	}
+	
+	if (strlen(name) >= MAX_QPATH-1)
+		Com_Error (ERR_FATAL, "Sound name too long: %s", name);
 
 	sfx = &known_sfx[i];
-	memset (sfx, 0, sizeof(*sfx));
+	sfx->truename = NULL;
 	strcpy (sfx->name, name);
 	sfx->registration_sequence = s_registration_sequence;
 
@@ -252,7 +248,7 @@ sfx_t *S_AliasName (char *aliasname, char *truename) {
 	}
 
 	sfx = &known_sfx[i];
-	memset (sfx, 0, sizeof(*sfx));
+	sfx->cache = NULL;
 	strcpy (sfx->name, aliasname);
 	sfx->registration_sequence = s_registration_sequence;
 	sfx->truename = s;
@@ -291,12 +287,13 @@ void S_EndRegistration (void) {
 			continue;
 
 		if (sfx->registration_sequence != s_registration_sequence) {
-			/* don't need this sound */
-			if (sfx->cache)	/* it is possible to have a leftover */
-				Z_Free (sfx->cache); /* from a server that didn't finish loading */
+			 if (sfx->cache)				// it is possible to have a leftover
+				Z_Free (sfx->cache);	// from a server that didn't finish loading
+			if (sfx->truename)
+				Z_Free (sfx->truename); // memleak fix from echon
 
-			memset (sfx, 0, sizeof(*sfx));
-
+			sfx->cache = NULL;
+			sfx->name[0] = 0;
 		} else {
 			/* make sure it is paged in, this is a relict of the late 90th */
 			if (sfx->cache) {
@@ -483,7 +480,7 @@ void S_IssuePlaysound (playsound_t *ps) {
 	else
 		ch->dist_mult = ps->attenuation * 0.0005f;
 
-	ch->master_vol = ps->volume;
+	ch->master_vol = (int)ps->volume;
 	ch->entnum = ps->entnum;
 	ch->entchannel = ps->entchannel;
 	ch->sfx = ps->sfx;
@@ -503,8 +500,8 @@ void S_IssuePlaysound (playsound_t *ps) {
 struct sfx_s *S_RegisterSexedSound (entity_state_t *ent, char *base) {
 	int				n;
 	char			*p;
+	int				len;
 	struct sfx_s	*sfx;
-	fileHandle_t	*f;
 	char			model[MAX_QPATH];
 	char			sexedFilename[MAX_QPATH];
 	char			maleFilename[MAX_QPATH];
@@ -522,7 +519,7 @@ struct sfx_s *S_RegisterSexedSound (entity_state_t *ent, char *base) {
 			p = strchr(model, '/');
 
 			if (p)
-				*p = 0;
+				p[0] = 0;
 		}
 	}
 
@@ -535,19 +532,22 @@ struct sfx_s *S_RegisterSexedSound (entity_state_t *ent, char *base) {
 	sfx = S_FindName (sexedFilename, false);
 
 	if (!sfx) {
-		/* no, so see if it exists */
-		FS_FOpenFile (&sexedFilename[1], (fileHandle_t *)&f, FS_READ);
-
-		if (f) {
-			/* yes, close the file and register it */
-			FS_FCloseFile ((size_t)f);
+		  // no, so see if it exists
+		//FS_FOpenFile (&sexedFilename[1], &f, false);
+		len = FS_LoadFile (&sexedFilename[1], NULL);
+		if (len != -1)
+		{
+			// yes, close the file and register it
+			//FS_FCloseFile (f);
 			sfx = S_RegisterSound (sexedFilename);
-
-		} else {
-			/* no, revert to the male sound in the pak0.pak */
-			Com_sprintf (maleFilename, sizeof(maleFilename), "player/%s/%s", "male", base+1);
+		}
+		else
+		{
+			// no, revert to the male sound in the pak0.pak
+			Com_sprintf (maleFilename, sizeof(maleFilename), "player/male/%s", base+1);
 			sfx = S_AliasName (sexedFilename, maleFilename);
 		}
+	   
 	}
 
 	return sfx;
@@ -617,14 +617,10 @@ void S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx, float f
 
 	if (!timeofs)
 		ps->begin = paintedtime;
-
 	else
 		ps->begin = (int)(start + timeofs * dma.speed);
 
-	if(s_pendingplays.next == NULL) {
-		s_pendingplays = *ps;
-		return;
-	}
+	 ps->volume = fvol*255;
 
 	/* sort into the pending sound list */
 	for (sort = s_pendingplays.next ;
@@ -652,7 +648,7 @@ void S_StartLocalSound (char *sound) {
 		return;
 	}
 
-	S_StartSound (NULL, cl.playernum+1, 0, sfx, 1, 1, 0);
+	S_StartSound (NULL, cl.playernum+1, 0, sfx, 1, ATTN_NONE, 0);
 }
 
 void S_ClearBuffer (void) {
@@ -672,15 +668,7 @@ void S_ClearBuffer (void) {
 	SNDDMA_BeginPainting ();
 
 	if (dma.buffer) {
-		int i;
-		unsigned char *ptr = (unsigned char *)dma.buffer;
-
-		i = dma.samples * dma.samplebits/8;
-
-		while (i--) {
-			*ptr = clear;
-			ptr++;
-		}
+		 memset(dma.buffer, clear, dma.samples * dma.samplebits/8);
 	}
 
 	SNDDMA_Submit ();
@@ -724,6 +712,7 @@ void S_AddLoopSounds (void) {
 	sfxcache_t	*sc;
 	int			num;
 	entity_state_t	*ent;
+	vec3_t		origin;
 
 	if (cl_paused->value)
 		return;
@@ -757,9 +746,10 @@ void S_AddLoopSounds (void) {
 		num = (cl.frame.parse_entities + i)&(MAX_PARSE_ENTITIES-1);
 		ent = &cl_parse_entities[num];
 
+		CL_GetEntitySoundOrigin(ent->number, origin);
+
 		/* find the total contribution of all sounds of this type */
-		S_SpatializeOrigin (ent->origin, 255.0f, SOUND_LOOPATTENUATE,
-		                    &left_total, &right_total);
+		S_SpatializeOrigin (ent->origin, 255.0f, SOUND_LOOPATTENUATE, &left_total, &right_total);
 
 		for (j=i+1 ; j<cl.frame.num_entities ; j++) {
 			if (sounds[j] != sounds[i])
@@ -915,7 +905,6 @@ void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up) {
 	int			i;
 	int			total;
 	channel_t	*ch;
-	channel_t	*combine;
 
 	if (!sound_started)
 		return;
@@ -924,7 +913,7 @@ void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up) {
 	   out to make sure we aren't looping a dirty
 	   dma buffer while loading */
 	if (cls.disable_screen) {
-		S_ClearBuffer ();
+		S_ClearBuffer();
 		return;
 	}
 
@@ -937,7 +926,6 @@ void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up) {
 	VectorCopy(right, listener_right);
 	VectorCopy(up, listener_up);
 
-	combine = NULL;
 
 	/* update spatialization for dynamic sounds	*/
 	ch = channels;
@@ -976,9 +964,8 @@ void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up) {
 
 		Com_Printf ("----(%i)---- painted: %i\n", total, paintedtime);
 	}
-
-	/* mix some sound */
-	S_Update_();
+ 	/* mix some sound */
+	S_Update_();      
 
 	/* stream music */
 	OGG_Stream();
@@ -1064,8 +1051,15 @@ void S_Play(void) {
 		} else
 			strncpy(name, Cmd_Argv(i), sizeof(name)-1);
 
+         if (strstr(name, "..") || name[0] == '/' || name[0] == '\\') {
+			Com_Printf ("Bad filename %s\n", name);
+			return;
+		}        
+
 		sfx = S_RegisterSound(name);
-		S_StartSound(NULL, cl.playernum+1, 0, sfx, 1.0, 1.0, 0);
+		{
+			S_StartSound(NULL, cl.playernum+1, 0, sfx, 1.0, 1.0, 0);
+		}
 		i++;
 	}
 }
@@ -1075,36 +1069,32 @@ void S_SoundList(void) {
 	sfx_t	*sfx;
 	sfxcache_t	*sc;
 	int		size, total;
+	int		numsounds;
 
 	total = 0;
+	numsounds = 0;
 
-	for (sfx=known_sfx, i=0 ; i<num_sfx ; i++, sfx++) {
-		if (!sfx->registration_sequence)
+	for (sfx=known_sfx, i=0 ; i<num_sfx ; i++, sfx++)
+	{
+		if (!sfx->name[0])
 			continue;
 
 		sc = sfx->cache;
-
-		if (sc) {
+		if (sc)
+		{
 			size = sc->length*sc->width*(sc->stereo+1);
 			total += size;
-
-			if (sc->loopstart >= 0)
-				Com_Printf ("L");
-
-			else
-				Com_Printf (" ");
-
-			Com_Printf("(%2db) %6i : %s\n",sc->width*8,  size, sfx->name);
-
-		} else {
-			if (sfx->name[0] == '*')
-				Com_Printf("  placeholder : %s\n", sfx->name);
-
-			else
-				Com_Printf("  not loaded  : %s\n", sfx->name);
+			Com_Printf("%s(%2db) %8i : %s\n", sc->loopstart != -1 ? "L" : " ", sc->width*8,  size, sfx->name);
 		}
+		else
+		{
+			if (sfx->name[0] == '*')
+				Com_Printf("    placeholder : %s\n", sfx->name);
+			else
+				Com_Printf("    not loaded  : %s\n", sfx->name);
+		}
+		numsounds++;
 	}
-
-	Com_Printf ("Total resident: %i\n", total);
+	Com_Printf ("Total resident: %i bytes (%.2f MB) in %d sounds\n", total, (float)total / 1024 / 1024, numsounds);                                               
 }
 
