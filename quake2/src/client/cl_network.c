@@ -291,6 +291,8 @@ void CL_Disconnect (void)
 	cls.connect_time = 0;
 
 	SCR_StopCinematic ();
+	OGG_Stop();
+	CDAudio_Stop();
 
 	if (cls.demorecording)
 		CL_Stop_f ();
