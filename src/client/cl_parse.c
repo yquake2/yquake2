@@ -838,7 +838,15 @@ void CL_ParseConfigString (void) {
 	else if (i == CS_CDTRACK) {
 		if (cl.refresh_prepped) {
 			CDAudio_Play (atoi(cl.configstrings[CS_CDTRACK]), true);
-			OGG_ResumeCmd();
+
+			/* OGG/Vorbis */
+			if (atoi(cl.configstrings[CS_CDTRACK]) < 10) {
+				char tmp[3] = "0";
+				OGG_ParseCmd(strcat(tmp, cl.configstrings[CS_CDTRACK]));
+
+			} else {
+				OGG_ParseCmd(cl.configstrings[CS_CDTRACK]);
+			}
 		}
 
 	} else if (i >= CS_MODELS && i < CS_MODELS+MAX_MODELS) {
