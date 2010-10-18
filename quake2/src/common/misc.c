@@ -247,7 +247,6 @@ void Qcommon_Init (int argc, char **argv)
 
 	Sys_Init ();
 
-	NET_Init ();
 	Netchan_Init ();
 
 	SV_Init ();
