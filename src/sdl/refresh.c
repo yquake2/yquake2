@@ -30,7 +30,7 @@
 #include "../posix/refresh/glwindow.h"
 
 #include "../client/input/header/keyboard.h"
-#include "../posix/posix.h"
+#include "../posix/header/unix.h"
 
 /*****************************************************************************/
 

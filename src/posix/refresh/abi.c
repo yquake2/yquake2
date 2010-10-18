@@ -21,7 +21,7 @@
 #include "../../refresh/header/local.h"
 
 #include "../../client/input/header/keyboard.h"
-#include "../posix.h"
+#include "../header/unix.h"
 
 static qboolean	mlooking;
 

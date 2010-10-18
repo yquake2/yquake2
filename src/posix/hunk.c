@@ -35,7 +35,6 @@
  #define MAP_ANONYMOUS MAP_ANON
 #endif
 
-
 /* For mremap() */
 #if defined( __linux__ )
  #define __USE_GNU
