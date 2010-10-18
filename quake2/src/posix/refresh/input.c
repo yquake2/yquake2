@@ -17,7 +17,7 @@
  *
  * =======================================================================
  *
- * Plattform dependend input ABI stuff
+ * Plattform dependend input ABI stuff which is needed by the refresher
  *
  * =======================================================================
  */ 
