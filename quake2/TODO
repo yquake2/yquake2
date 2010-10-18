@@ -5,3 +5,9 @@
 - Den Fenstertitel auf "Yamagi Quake II" ändern, ebenso alle Ausgaben
   von "Quake 2" und "Quake II" ändern.
 - Die Makefile sollte komplett neu geschrieben werden.
+
+Unix / SDL:
+- Den Clipboardcode raus, tut eh nicht
+- Input (Mouse und Keyboard) auf dem Renderer-Code rausfrickeln und in
+  zwei SDL-Backend mouse.c und keyboard.c neuschreiben.
+- SDL GL-Backend refresh.c komplett neuschreiben
