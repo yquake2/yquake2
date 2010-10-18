@@ -254,7 +254,7 @@ SERVER_OBJS = \
 # POSIX platform objects
 POSIX_OBJS = \
  	build/posix/network.o \
-	build/posix/posix.o \
+	build/posix/hunk.o \
 	build/posix/system.o \
     build/posix/glob/glob.o \
  	build/posix/vid/menu.o \
@@ -314,7 +314,7 @@ DEDICATED_SERVER_COMMON_OBJS = \
 DEDICATED_SERVER_POSIX_OBJS = \
 	build/dedicated_server_posix/glob/glob.o \
 	build/dedicated_server_posix/network.o \
-	build/dedicated_server_posix/posix.o \
+	build/dedicated_server_posix/hunk.o \
 	build/dedicated_server_posix/system.o
  
 # ----------
@@ -343,7 +343,7 @@ OPENGL_GAME_OBJS = \
 OPENGL_POSIX_OBJS = \
 	build/ref_gl_posix/abi.o \
 	build/ref_gl_posix/glob.o \
-	build/ref_gl_posix/posix.o \
+	build/ref_gl_posix/hunk.o \
 	build/ref_gl_posix/qgl.o \
 	build/ref_gl_posix/refresh.o
 
@@ -620,7 +620,7 @@ build/server/sv_world.o :   		src/server/sv_world.c
 build/posix/network.o : 			src/posix/network.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
-build/posix/posix.o :	  			src/posix/posix.c
+build/posix/hunk.o :	  			src/posix/hunk.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/posix/system.o :  			src/posix/system.c
@@ -750,7 +750,7 @@ build/dedicated_server_posix/glob/glob.o :	src/posix/glob/glob.c
 build/dedicated_server_posix/network.o :   	src/posix/network.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
-build/dedicated_server_posix/posix.o :  	src/posix/posix.c
+build/dedicated_server_posix/hunk.o :	  	src/posix/hunk.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 build/dedicated_server_posix/system.o :  	src/posix/system.c
@@ -800,7 +800,7 @@ build/ref_gl_posix/abi.o:					src/posix/refresh/abi.c
 build/ref_gl_posix/glob.o:					src/posix/glob/glob.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
-build/ref_gl_posix/posix.o:					src/posix/posix.c
+build/ref_gl_posix/hunk.o:					src/posix/hunk.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
 build/ref_gl_posix/qgl.o:					src/posix/refresh/qgl.c
