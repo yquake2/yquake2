@@ -32,7 +32,7 @@
 #include <dlfcn.h>
 
 #include "../../refresh/header/local.h"
-#include "glwindow.h"
+#include "header/glwindow.h"
 
 void ( APIENTRY *qglAccum )( GLenum op, GLfloat value );
 void ( APIENTRY *qglAlphaFunc )( GLenum func, GLclampf ref );

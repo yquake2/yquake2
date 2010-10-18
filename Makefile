@@ -794,7 +794,7 @@ build/ref_gl_game/q_shared.o:				src/game/baseq2/q_shared.c
 # ----------
 
 # OpenGL refresher POSIX build
-build/ref_gl_posix/input.o:					src/posix/refresh/input.c
+build/ref_gl_posix/input.o:					src/posix/qgl/input.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
  
 build/ref_gl_posix/glob.o:					src/posix/glob.c
@@ -803,7 +803,7 @@ build/ref_gl_posix/glob.o:					src/posix/glob.c
 build/ref_gl_posix/hunk.o:					src/posix/hunk.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
-build/ref_gl_posix/qgl.o:					src/posix/refresh/qgl.c
+build/ref_gl_posix/qgl.o:					src/posix/qgl/qgl.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
  
 build/ref_gl_posix/refresh.o:				src/sdl/refresh.c
