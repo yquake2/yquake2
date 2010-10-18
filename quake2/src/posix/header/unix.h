@@ -32,7 +32,6 @@ extern void ( *KBD_Init_fp )( Key_Event_fp_t fp );
 extern void ( *KBD_Close_fp )( void );
 
 void RW_IN_PlatformInit ();
-void RW_IN_Activate ();
 
 #define MOUSE_MAX 3000
 #define MOUSE_MIN 40
