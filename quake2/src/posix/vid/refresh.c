@@ -28,8 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <errno.h>
 
 #include "../../client/header/client.h"
-
-#include "../posix.h"
+#include "../header/unix.h"
 
 // Structure containing functions exported from refresh DLL
 refexport_t	re;

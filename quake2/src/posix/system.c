@@ -45,10 +45,9 @@
 #include <dlfcn.h>
 #include <dirent.h>
 
-#include "glob/glob.h"
+#include "header/glob.h"
 #include "../common/header/common.h"
-
-#include "posix.h"
+#include "header/unix.h"
 
 unsigned sys_frame_time;
 int curtime;
