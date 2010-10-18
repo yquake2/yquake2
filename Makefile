@@ -341,7 +341,7 @@ OPENGL_GAME_OBJS = \
 
 # OpenGL refresher POSIX platform object
 OPENGL_POSIX_OBJS = \
-	build/ref_gl_posix/abi.o \
+	build/ref_gl_posix/input.o \
 	build/ref_gl_posix/glob.o \
 	build/ref_gl_posix/hunk.o \
 	build/ref_gl_posix/qgl.o \
@@ -794,7 +794,7 @@ build/ref_gl_game/q_shared.o:				src/game/baseq2/q_shared.c
 # ----------
 
 # OpenGL refresher POSIX build
-build/ref_gl_posix/abi.o:					src/posix/refresh/abi.c
+build/ref_gl_posix/input.o:					src/posix/refresh/input.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
  
 build/ref_gl_posix/glob.o:					src/posix/glob.c
