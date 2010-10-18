@@ -543,8 +543,6 @@ void CL_ConnectionlessPacket (void)
 			return;
 		}
 
-		Sys_AppActivate ();
-
 		s = MSG_ReadString (&net_message);
 		Cbuf_AddText (s);
 		Cbuf_AddText ("\n");
