@@ -3,8 +3,8 @@
 #                                                        #
 # Just type "make" to compile the                        #
 #  - SDL Client (quake2)                                 #
-#  - Server (quake2ded)                                  #
-#  - SDL OpenGL-Renderer (ref_gl.so)                     #
+#  - Server (q2ded)                                      #
+#  - SDL OpenGL-Refresher (ref_gl.so)                    #
 #  - games:                                              #
 #    - Quake II (quake2)                                 #
 #    - Quake II - Threewave Capture The Flag (ctf)       #
@@ -124,9 +124,8 @@ client:
 		build/common/model \
 		build/common/unzip \
 		build/gameabi \
-		build/posix \
-		build/posix/glob \
-		build/posix/vid \
+		build/unix \
+		build/unix/vid \
 		build/sdl \
 		build/server \
 		build/unzip \
@@ -142,8 +141,7 @@ dedicated_server:
 		build/dedicated_server_common/message \
 		build/dedicated_server_common/model \
 		build/dedicated_server_common/unzip \
-		build/dedicated_server_posix \
-		build/dedicated_server_posix/glob \
+		build/dedicated_server_unix \
 		release
 	$(MAKE) release/q2ded
 
@@ -151,7 +149,7 @@ ref_gl:
 	@-mkdir -p build \
 		build/ref_gl \
 		build/ref_gl_game \
-		build/ref_gl_posix \
+		build/ref_gl_unix \
 		release
 	$(MAKE) release/ref_gl.so
 
@@ -253,12 +251,12 @@ SERVER_OBJS = \
 
 # POSIX platform objects
 POSIX_OBJS = \
- 	build/posix/network.o \
-	build/posix/hunk.o \
-	build/posix/system.o \
-    build/posix/glob.o \
- 	build/posix/vid/menu.o \
-	build/posix/vid/refresh.o
+ 	build/unix/network.o \
+	build/unix/hunk.o \
+	build/unix/system.o \
+    build/unix/glob.o \
+ 	build/unix/vid/menu.o \
+	build/unix/vid/refresh.o
  
 # ----------
 
@@ -312,10 +310,10 @@ DEDICATED_SERVER_COMMON_OBJS = \
 
 # Dedicated server POSIX platform objects
 DEDICATED_SERVER_POSIX_OBJS = \
-	build/dedicated_server_posix/glob.o \
-	build/dedicated_server_posix/network.o \
-	build/dedicated_server_posix/hunk.o \
-	build/dedicated_server_posix/system.o
+	build/dedicated_server_unix/glob.o \
+	build/dedicated_server_unix/network.o \
+	build/dedicated_server_unix/hunk.o \
+	build/dedicated_server_unix/system.o
  
 # ----------
 
@@ -341,11 +339,11 @@ OPENGL_GAME_OBJS = \
 
 # OpenGL refresher POSIX platform object
 OPENGL_POSIX_OBJS = \
-	build/ref_gl_posix/input.o \
-	build/ref_gl_posix/glob.o \
-	build/ref_gl_posix/hunk.o \
-	build/ref_gl_posix/qgl.o \
-	build/ref_gl_posix/refresh.o
+	build/ref_gl_unix/input.o \
+	build/ref_gl_unix/glob.o \
+	build/ref_gl_unix/hunk.o \
+	build/ref_gl_unix/qgl.o \
+	build/ref_gl_unix/refresh.o
 
 # ----------
 
@@ -616,23 +614,23 @@ build/server/sv_world.o :   		src/server/sv_world.c
 
 # ----------
 
-# POSIX build
-build/posix/network.o : 			src/posix/network.c
+# Unix build
+build/unix/network.o : 			src/unix/network.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
-build/posix/hunk.o :	  			src/posix/hunk.c
+build/unix/hunk.o :	  			src/unix/hunk.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/posix/system.o :  			src/posix/system.c
+build/unix/system.o :  			src/unix/system.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
-build/posix/glob.o :  				src/posix/glob.c
+build/unix/glob.o :  			src/unix/glob.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/posix/vid/menu.o :   			src/posix/vid/menu.c
+build/unix/vid/menu.o :   		src/unix/vid/menu.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/posix/vid/refresh.o :     	src/posix/vid/refresh.c
+build/unix/vid/refresh.o :     	src/unix/vid/refresh.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 # ----------
@@ -743,17 +741,17 @@ build/dedicated_server_common/unzip/unzip.o :	      	src/common/unzip/unzip.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 # ----------
 
-# Dedicated server POSIX build
-build/dedicated_server_posix/glob.o :		src/posix/glob.c
+# Dedicated server Unix build
+build/dedicated_server_unix/glob.o :		src/unix/glob.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_posix/network.o :   	src/posix/network.c
+build/dedicated_server_unix/network.o :   	src/unix/network.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
-build/dedicated_server_posix/hunk.o :	  	src/posix/hunk.c
+build/dedicated_server_unix/hunk.o :	  	src/unix/hunk.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
-build/dedicated_server_posix/system.o :  	src/posix/system.c
+build/dedicated_server_unix/system.o :  	src/unix/system.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 # ----------
@@ -793,20 +791,20 @@ build/ref_gl_game/q_shared.o:				src/game/baseq2/q_shared.c
   
 # ----------
 
-# OpenGL refresher POSIX build
-build/ref_gl_posix/input.o:					src/posix/qgl/input.c
+# OpenGL refresher Unix build
+build/ref_gl_unix/input.o:					src/unix/qgl/input.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
  
-build/ref_gl_posix/glob.o:					src/posix/glob.c
+build/ref_gl_unix/glob.o:					src/unix/glob.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
-build/ref_gl_posix/hunk.o:					src/posix/hunk.c
+build/ref_gl_unix/hunk.o:					src/unix/hunk.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
-build/ref_gl_posix/qgl.o:					src/posix/qgl/qgl.c
+build/ref_gl_unix/qgl.o:					src/unix/qgl/qgl.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
  
-build/ref_gl_posix/refresh.o:				src/sdl/refresh.c
+build/ref_gl_unix/refresh.o:				src/sdl/refresh.c
 	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
 
 # ----------

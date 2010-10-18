@@ -26,7 +26,7 @@
  */
 
 #include "header/common.h"
-#include "../posix/header/glob.h"
+#include "../unix/header/glob.h"
 #include "unzip/unzip.h"
 
 #define MAX_HANDLES		512
