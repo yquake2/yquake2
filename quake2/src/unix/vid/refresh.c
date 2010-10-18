@@ -305,10 +305,8 @@ VID_LoadRefresh ( char *name )
 
 	if ( ( ( RW_IN_Init_fp = dlsym( reflib_library, "RW_IN_Init" ) ) == NULL ) ||
 		 ( ( RW_IN_Shutdown_fp = dlsym( reflib_library, "RW_IN_Shutdown" ) ) == NULL ) ||
-		 ( ( RW_IN_Activate_fp = dlsym( reflib_library, "RW_IN_Activate" ) ) == NULL ) ||
 		 ( ( RW_IN_Commands_fp = dlsym( reflib_library, "RW_IN_Commands" ) ) == NULL ) ||
-		 ( ( RW_IN_Move_fp = dlsym( reflib_library, "RW_IN_Move" ) ) == NULL ) ||
-		 ( ( RW_IN_Frame_fp = dlsym( reflib_library, "RW_IN_Frame" ) ) == NULL ) )
+		 ( ( RW_IN_Move_fp = dlsym( reflib_library, "RW_IN_Move" ) ) == NULL ) )
 	{
 		Sys_Error( "No RW_IN functions in REF.\n" );
 	}

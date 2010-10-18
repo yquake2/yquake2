@@ -251,10 +251,11 @@ SERVER_OBJS = \
 
 # POSIX platform objects
 POSIX_OBJS = \
+    build/unix/glob.o \
  	build/unix/network.o \
 	build/unix/hunk.o \
+	build/unix/misc.o \
 	build/unix/system.o \
-    build/unix/glob.o \
  	build/unix/vid/menu.o \
 	build/unix/vid/refresh.o
  
@@ -311,6 +312,7 @@ DEDICATED_SERVER_COMMON_OBJS = \
 # Dedicated server POSIX platform objects
 DEDICATED_SERVER_POSIX_OBJS = \
 	build/dedicated_server_unix/glob.o \
+	build/dedicated_server_unix/misc.o \
 	build/dedicated_server_unix/network.o \
 	build/dedicated_server_unix/hunk.o \
 	build/dedicated_server_unix/system.o
@@ -342,8 +344,9 @@ OPENGL_POSIX_OBJS = \
 	build/ref_gl_unix/input.o \
 	build/ref_gl_unix/glob.o \
 	build/ref_gl_unix/hunk.o \
+	build/ref_gl_unix/misc.o \
 	build/ref_gl_unix/qgl.o \
-	build/ref_gl_unix/refresh.o
+	build/ref_gl_unix/refresh.o 
 
 # ----------
 
@@ -621,6 +624,9 @@ build/unix/network.o : 			src/unix/network.c
 build/unix/hunk.o :	  			src/unix/hunk.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
+build/unix/misc.o :	  			src/unix/misc.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+ 
 build/unix/system.o :  			src/unix/system.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
@@ -745,6 +751,9 @@ build/dedicated_server_common/unzip/unzip.o :	      	src/common/unzip/unzip.c
 build/dedicated_server_unix/glob.o :		src/unix/glob.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
+build/dedicated_server_unix/misc.o :		src/unix/misc.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+    
 build/dedicated_server_unix/network.o :   	src/unix/network.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
  
@@ -800,7 +809,10 @@ build/ref_gl_unix/glob.o:					src/unix/glob.c
 
 build/ref_gl_unix/hunk.o:					src/unix/hunk.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
-
+ 
+build/ref_gl_unix/misc.o:					src/unix/misc.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+      
 build/ref_gl_unix/qgl.o:					src/unix/qgl/qgl.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
  

@@ -39,8 +39,8 @@ static cvar_t *m_yaw;
 static cvar_t *m_pitch;
 static cvar_t *m_forward;
 static cvar_t *freelook;
-static cvar_t   *m_filter;
-static cvar_t   *in_mouse;
+static cvar_t *m_filter;
+static cvar_t *in_mouse;
 
 static int mouse_x, mouse_y;
 static int old_mouse_x, old_mouse_y;
