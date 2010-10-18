@@ -105,8 +105,6 @@ RW_IN_Shutdown ( void )
 {
 	if ( mouse_avail )
 	{
-		RW_IN_Activate( false );
-
 		mouse_avail = false;
 
 		ri.Cmd_RemoveCommand( "+mlook" );
