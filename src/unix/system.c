@@ -58,9 +58,40 @@ static char findpath [ MAX_OSPATH ];
 static char findpattern [ MAX_OSPATH ];
 static DIR  *fdir;
 
-cvar_t *nostdout;
-uid_t saved_euid;
 qboolean stdin_active = true;
+extern cvar_t *nostdout;
+
+static qboolean
+CompareAttributes ( char *path, char *name, unsigned musthave, unsigned canthave )
+{
+	struct stat st;
+	char fn [ MAX_OSPATH ];
+
+	/* . and .. never match */
+	if ( ( strcmp( name, "." ) == 0 ) || ( strcmp( name, ".." ) == 0 ) )
+	{
+		return ( false );
+	}
+
+	return ( true );
+
+	if ( stat( fn, &st ) == -1 )
+	{
+		return ( false ); /* shouldn't happen */
+	}
+
+	if ( ( st.st_mode & S_IFDIR ) && ( canthave & SFF_SUBDIR ) )
+	{
+		return ( false );
+	}
+
+	if ( ( musthave & SFF_SUBDIR ) && !( st.st_mode & S_IFDIR ) )
+	{
+		return ( false );
+	}
+
+	return ( true );
+}
 
 int
 Sys_Milliseconds ( void )
@@ -105,52 +136,6 @@ Sys_GetCurrentDirectory ( void )
 	}
 
 	return ( dir );
-}
-
-char *
-strlwr ( char *s )
-{
-	char *p = s;
-
-	while ( *s )
-	{
-		*s = tolower( *s );
-		s++;
-	}
-
-	return ( p );
-}
-
-static qboolean
-CompareAttributes ( char *path, char *name, unsigned musthave, unsigned canthave )
-{
-	struct stat st;
-	char fn [ MAX_OSPATH ];
-
-	/* . and .. never match */
-	if ( ( strcmp( name, "." ) == 0 ) || ( strcmp( name, ".." ) == 0 ) )
-	{
-		return ( false );
-	}
-
-	return ( true );
-
-	if ( stat( fn, &st ) == -1 )
-	{
-		return ( false ); /* shouldn't happen */
-	}
-
-	if ( ( st.st_mode & S_IFDIR ) && ( canthave & SFF_SUBDIR ) )
-	{
-		return ( false );
-	}
-
-	if ( ( musthave & SFF_SUBDIR ) && !( st.st_mode & S_IFDIR ) )
-	{
-		return ( false );
-	}
-
-	return ( true );
 }
 
 char *
@@ -505,45 +490,5 @@ Sys_SendKeyEvents ( void )
 
 	/* grab frame time */
 	sys_frame_time = Sys_Milliseconds();
-}
-
-int
-main ( int argc, char **argv )
-{
-	int time, oldtime, newtime;
-
-	/* go back to real user for config loads */
-	saved_euid = geteuid();
-	seteuid( getuid() );
-
-	printf( "Quake 2\n" );
-
-	Qcommon_Init( argc, argv );
-
-	fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) | FNDELAY );
-
-	nostdout = Cvar_Get( "nostdout", "0", 0 );
-
-	if ( !nostdout->value )
-	{
-		fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) | FNDELAY );
-	}
-
-	oldtime = Sys_Milliseconds();
-
-	/* The legendary Quake II mainloop */
-	while ( 1 )
-	{
-		/* find time spent rendering last frame */
-		do
-		{
-			newtime = Sys_Milliseconds();
-			time = newtime - oldtime;
-		}
-		while ( time < 1 );
-
-		Qcommon_Frame( time );
-		oldtime = newtime;
-	}
 }
 
