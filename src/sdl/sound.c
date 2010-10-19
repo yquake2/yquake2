@@ -114,7 +114,7 @@ SNDDMA_Init(void)
 	{
 		if (SDL_Init(SDL_INIT_AUDIO) == -1)
 		{
-			Com_Printf ("Couldn't init SDL audio: %s\n", SDL_GetError ());
+			Com_Printf ("Couldn't init SDL audio: %s.\n", SDL_GetError ());
 			return 0;
 		}
 	}
@@ -124,7 +124,7 @@ SNDDMA_Init(void)
 		strcpy(drivername, "(UNKNOW)");
 	}
 
-	Com_Printf("SDL audio driver is \"%s\"\n", drivername);
+	Com_Printf("SDL audio driver is \"%s\".\n", drivername);
 
 	memset(&desired, '\0', sizeof(desired));
 	memset(&optained, '\0', sizeof(optained));
@@ -182,7 +182,7 @@ SNDDMA_Init(void)
 	dmasize = (dmabackend->samples * (dmabackend->samplebits / 8));
 	dmabackend->buffer = calloc(1, dmasize);
 
-	Com_Printf("Starting SDL audio callback...\n");
+	Com_Printf("Starting SDL audio callback.\n");
     SDL_PauseAudio(0);
 
     Com_Printf("SDL audio initialized.\n");

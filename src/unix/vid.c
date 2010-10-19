@@ -232,7 +232,7 @@ VID_LoadRefresh ( char *name )
 		VID_FreeReflib();
 	}
 
-	Com_Printf( "------- Loading %s -------\n", name );
+	Com_Printf( "----- refresher initialization -----\n");
 
 	/* regain root */
 	seteuid( saved_euid );
@@ -327,7 +327,7 @@ VID_LoadRefresh ( char *name )
 	setreuid( getuid(), getuid() );
 	setegid( getgid() );
 
-	Com_Printf( "------------------------------------\n" );
+	Com_Printf( "------------------------------------\n\n" );
 	reflib_active = true;
 	return ( true );
 }

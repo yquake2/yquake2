@@ -275,7 +275,8 @@ void Qcommon_Init (int argc, char **argv)
 
 #endif
 
-	Com_Printf ("====== Quake2 Initialized ======\n\n");
+	Com_Printf ("==== Yamagi Quake II Initialized ====\n\n");
+	Com_Printf ("*************************************\n\n");
 }
 
 void Qcommon_Frame (int msec)

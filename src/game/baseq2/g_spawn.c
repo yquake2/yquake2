@@ -505,7 +505,7 @@ void G_FindTeams (void)
 		}
 	}
 
-	gi.dprintf ("%i teams with %i entities\n", c, c2);
+	gi.dprintf ("%i teams with %i entities.\n", c, c2);
 }
 
 /*
@@ -601,7 +601,7 @@ void SpawnEntities (const char *mapname, char *entities, const char *spawnpoint)
 		ED_CallSpawn (ent);
 	}	
 
-	gi.dprintf ("%i entities inhibited\n", inhibit);
+	gi.dprintf ("%i entities inhibited\n.", inhibit);
 
 	G_FindTeams ();
 

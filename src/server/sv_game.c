@@ -331,6 +331,7 @@ void SV_InitGameProgs (void)
 	if (ge)
 		SV_ShutdownGameProgs ();
 
+	Com_Printf( "-------- game initialization -------\n" );
 
 	// load a new game dll
 	import.multicast = SV_Multicast;
@@ -398,5 +399,7 @@ void SV_InitGameProgs (void)
 		GAME_API_VERSION);
 
 	ge->Init ();
+
+	Com_Printf("------------------------------------\n\n");
 }
 
