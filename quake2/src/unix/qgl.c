@@ -31,7 +31,7 @@
 
 #include <dlfcn.h>
 
-#include "../../refresh/header/local.h"
+#include "../refresh/header/local.h"
 #include "header/glwindow.h"
 
 void ( APIENTRY *qglAccum )( GLenum op, GLfloat value );

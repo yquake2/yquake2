@@ -193,6 +193,7 @@ CLIENT_OBJS = \
 	build/client/input/keyboard.o \
 	build/client/menu/menu.o \
 	build/client/menu/qmenu.o \
+	build/client/menu/videomenu.o \
 	build/client/sound/snd_dma.o \
 	build/client/sound/snd_mem.o \
 	build/client/sound/snd_mix.o \
@@ -256,8 +257,7 @@ POSIX_OBJS = \
 	build/unix/hunk.o \
 	build/unix/misc.o \
 	build/unix/system.o \
- 	build/unix/vid/menu.o \
-	build/unix/vid/refresh.o
+	build/unix/vid.o
  
 # ----------
 
@@ -345,8 +345,8 @@ OPENGL_POSIX_OBJS = \
 	build/ref_gl_unix/glob.o \
 	build/ref_gl_unix/hunk.o \
 	build/ref_gl_unix/misc.o \
-	build/ref_gl_unix/qgl.o \
-	build/ref_gl_unix/refresh.o 
+	build/ref_gl_unix/refresh.o \
+	build/ref_gl_unix/qgl.o
 
 # ----------
 
@@ -492,6 +492,9 @@ build/client/menu/menu.o :			src/client/menu/menu.c
 build/client/menu/qmenu.o :			src/client/menu/qmenu.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
+build/client/menu/videomenu.o :		src/client/menu/videomenu.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+  
 build/client/sound/snd_dma.o :		src/client/sound/snd_dma.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
@@ -633,10 +636,7 @@ build/unix/system.o :  			src/unix/system.c
 build/unix/glob.o :  			src/unix/glob.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
-build/unix/vid/menu.o :   		src/unix/vid/menu.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
-
-build/unix/vid/refresh.o :     	src/unix/vid/refresh.c
+build/unix/vid.o :		     	src/unix/vid.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 # ----------
@@ -810,9 +810,9 @@ build/ref_gl_unix/hunk.o:					src/unix/hunk.c
 build/ref_gl_unix/misc.o:					src/unix/misc.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
       
-build/ref_gl_unix/qgl.o:					src/unix/qgl/qgl.c
+build/ref_gl_unix/qgl.o:					src/unix/qgl.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
- 
+
 build/ref_gl_unix/refresh.o:				src/sdl/refresh.c
 	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
 
