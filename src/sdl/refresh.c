@@ -1,8 +1,3 @@
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/mman.h>
 #include <SDL.h>
 #include <GL/gl.h>
 
@@ -14,7 +9,6 @@
 
 SDL_Surface		*surface;
 glwstate_t		glw_state;
-static cvar_t	*use_stencil;
 qboolean		have_stencil = false;
 
 /*
@@ -38,6 +32,9 @@ int GLimp_Init(void)
 	return true;
 }
 
+/*
+ * Sets the window icon
+ */
 static void SetSDLIcon()
 {
 	SDL_Surface *icon;
@@ -81,6 +78,9 @@ static void SetSDLIcon()
 	SDL_FreeSurface(icon);
 }
 
+/*
+ * Sets the hardware gamma
+ */
 void
 UpdateHardwareGamma(void)
 {
@@ -96,6 +96,9 @@ UpdateHardwareGamma(void)
 	SDL_SetGamma(gamma, gamma, gamma );
 }
 
+/*
+ * Initializes the OpenGL window
+ */
 static qboolean GLimp_InitGraphics( qboolean fullscreen )
 {
 	int flags;
@@ -180,12 +183,17 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	return true;
 }
 
+/*
+ * Swaps the buffers to show the new frame
+ */
 void GLimp_EndFrame (void)
 {
 	SDL_GL_SwapBuffers();
 }
 
-
+/*
+ * Changes the video mode
+ */
 int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 {
 	ri.Con_Printf (PRINT_ALL, "setting mode %d:", mode );
@@ -208,6 +216,9 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	return rserr_ok;
 }
 
+/*
+ * Shuts the SDL render backend down
+ */
 void GLimp_Shutdown( void )
 {
 	if (surface)
