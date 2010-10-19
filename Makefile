@@ -344,7 +344,6 @@ OPENGL_POSIX_OBJS = \
 	build/ref_gl_unix/input.o \
 	build/ref_gl_unix/glob.o \
 	build/ref_gl_unix/hunk.o \
-	build/ref_gl_unix/input2.o \
 	build/ref_gl_unix/misc.o \
 	build/ref_gl_unix/qgl.o \
 	build/ref_gl_unix/refresh.o 
@@ -802,9 +801,6 @@ build/ref_gl_game/q_shared.o:				src/game/baseq2/q_shared.c
 # ----------
 
 # OpenGL refresher Unix build
-build/ref_gl_unix/input.o:					src/unix/qgl/input.c
-	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
- 
 build/ref_gl_unix/glob.o:					src/unix/glob.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
@@ -820,7 +816,7 @@ build/ref_gl_unix/qgl.o:					src/unix/qgl/qgl.c
 build/ref_gl_unix/refresh.o:				src/sdl/refresh.c
 	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
 
-build/ref_gl_unix/input2.o:					src/sdl/input.c
+build/ref_gl_unix/input.o:					src/sdl/input.c
 	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
  
 # ----------
