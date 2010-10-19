@@ -71,8 +71,6 @@ void ( *IN_BackendShutdown_fp )( void );
 void ( *IN_BackendMouseButtons_fp )( void );
 void ( *IN_BackendMove_fp )( usercmd_t *cmd );
 
-void IN_Init ( void );
-
 extern void VID_MenuShutdown ( void );
 
 /* DLL GLUE */
@@ -302,7 +300,10 @@ VID_LoadRefresh ( char *name )
 		Sys_Error( "No input backend init functions in REF.\n" );
 	}
 
-	IN_Init();
+	if ( IN_BackendInit_fp )
+	{
+		IN_BackendInit_fp( &in_state );
+	}  
 
 	if ( re.Init( 0, 0 ) == -1 )
 	{
@@ -435,15 +436,6 @@ VID_CheckRefExists ( const char *ref )
 }
 
 /* INPUT */
-void
-IN_Init ( void )
-{
-	if ( IN_BackendInit_fp )
-	{
-		IN_BackendInit_fp( &in_state );
-	}
-}
-
 void
 IN_Shutdown ( void )
 {
