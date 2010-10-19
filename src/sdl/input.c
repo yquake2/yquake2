@@ -38,7 +38,6 @@ static cvar_t	*windowed_mouse;
 static cvar_t   *windowed_mouse_always;
 static int		mouse_x, mouse_y;
 static int		old_mouse_x, old_mouse_y;
-static qboolean mouse_avail;
 static int		mouse_buttonstate;
 static int		mouse_oldbuttonstate;    
 
@@ -246,7 +245,7 @@ IN_GetEvent(SDL_Event *event)
 			}
 			break;
 
-			/* The user released a key */
+		/* The user released a key */
 		case SDL_KEYUP:
 			if (KeyStates[event->key.keysym.sym]) 
 			{
@@ -449,7 +448,6 @@ IN_BackendInit ( in_state_t *in_state_p )
 	ri.Cmd_AddCommand( "force_centerview", IN_ForceCenterView );
 
 	mouse_x = mouse_y = 0.0;
-	mouse_avail = true;
 
 	/* SDL stuff */
 	SDL_EnableUNICODE( 0 );
@@ -467,14 +465,9 @@ IN_BackendInit ( in_state_t *in_state_p )
 void
 IN_BackendShutdown ( void )
 {
-	if ( mouse_avail )
-	{
-		mouse_avail = false;
-
-		ri.Cmd_RemoveCommand( "+mlook" );
-		ri.Cmd_RemoveCommand( "-mlook" );
-		ri.Cmd_RemoveCommand( "force_centerview" );
-	}
+	ri.Cmd_RemoveCommand( "+mlook" );
+	ri.Cmd_RemoveCommand( "-mlook" );
+	ri.Cmd_RemoveCommand( "force_centerview" );
 }
 
 void
@@ -482,121 +475,115 @@ IN_BackendMouseButtons ( void )
 {
 	int i;
 
-	if ( mouse_avail )
+	IN_GetMouseState( &mouse_x, &mouse_y, &mouse_buttonstate );
+
+	for ( i = 0; i < 3; i++ )
 	{
-		IN_GetMouseState( &mouse_x, &mouse_y, &mouse_buttonstate );
-
-		for ( i = 0; i < 3; i++ )
+		if ( ( mouse_buttonstate & ( 1 << i ) ) && !( mouse_oldbuttonstate & ( 1 << i ) ) )
 		{
-			if ( ( mouse_buttonstate & ( 1 << i ) ) && !( mouse_oldbuttonstate & ( 1 << i ) ) )
-			{
-				in_state->Key_Event_fp( K_MOUSE1 + i, true );
-			}
-
-			if ( !( mouse_buttonstate & ( 1 << i ) ) && ( mouse_oldbuttonstate & ( 1 << i ) ) )
-			{
-				in_state->Key_Event_fp( K_MOUSE1 + i, false );
-			}
+			in_state->Key_Event_fp( K_MOUSE1 + i, true );
 		}
 
-		if ( ( mouse_buttonstate & ( 1 << 3 ) ) && !( mouse_oldbuttonstate & ( 1 << 3 ) ) )
+		if ( !( mouse_buttonstate & ( 1 << i ) ) && ( mouse_oldbuttonstate & ( 1 << i ) ) )
 		{
-			in_state->Key_Event_fp( K_MOUSE4, true );
+			in_state->Key_Event_fp( K_MOUSE1 + i, false );
 		}
-
-		if ( !( mouse_buttonstate & ( 1 << 3 ) ) && ( mouse_oldbuttonstate & ( 1 << 3 ) ) )
-		{
-			in_state->Key_Event_fp( K_MOUSE4, false );
-		}
-
-		if ( ( mouse_buttonstate & ( 1 << 4 ) ) && !( mouse_oldbuttonstate & ( 1 << 4 ) ) )
-		{
-			in_state->Key_Event_fp( K_MOUSE5, true );
-		}
-
-		if ( !( mouse_buttonstate & ( 1 << 4 ) ) && ( mouse_oldbuttonstate & ( 1 << 4 ) ) )
-		{
-			in_state->Key_Event_fp( K_MOUSE5, false );
-		}
-
-		mouse_oldbuttonstate = mouse_buttonstate;
 	}
+
+	if ( ( mouse_buttonstate & ( 1 << 3 ) ) && !( mouse_oldbuttonstate & ( 1 << 3 ) ) )
+	{
+		in_state->Key_Event_fp( K_MOUSE4, true );
+	}
+
+	if ( !( mouse_buttonstate & ( 1 << 3 ) ) && ( mouse_oldbuttonstate & ( 1 << 3 ) ) )
+	{
+		in_state->Key_Event_fp( K_MOUSE4, false );
+	}
+
+	if ( ( mouse_buttonstate & ( 1 << 4 ) ) && !( mouse_oldbuttonstate & ( 1 << 4 ) ) )
+	{
+		in_state->Key_Event_fp( K_MOUSE5, true );
+	}
+
+	if ( !( mouse_buttonstate & ( 1 << 4 ) ) && ( mouse_oldbuttonstate & ( 1 << 4 ) ) )
+	{
+		in_state->Key_Event_fp( K_MOUSE5, false );
+	}
+
+	mouse_oldbuttonstate = mouse_buttonstate;
 }
 
 void
 IN_BackendMove ( usercmd_t *cmd )
 {
-	if ( mouse_avail )
+	IN_GetMouseState( &mouse_x, &mouse_y, &mouse_buttonstate );
+
+	if ( m_filter->value )
 	{
-		IN_GetMouseState( &mouse_x, &mouse_y, &mouse_buttonstate );
+		mouse_x = ( mouse_x + old_mouse_x ) * 0.5;
+		mouse_y = ( mouse_y + old_mouse_y ) * 0.5;
+	}
 
-		if ( m_filter->value )
+	old_mouse_x = mouse_x;
+	old_mouse_y = mouse_y;
+
+	if ( mouse_x || mouse_y )
+	{
+		if ( !exponential_speedup->value )
 		{
-			mouse_x = ( mouse_x + old_mouse_x ) * 0.5;
-			mouse_y = ( mouse_y + old_mouse_y ) * 0.5;
+			mouse_x *= sensitivity->value;
+			mouse_y *= sensitivity->value;
 		}
-
-		old_mouse_x = mouse_x;
-		old_mouse_y = mouse_y;
-
-		if ( mouse_x || mouse_y )
+		else
 		{
-			if ( !exponential_speedup->value )
+			if ( ( mouse_x > MOUSE_MIN ) || ( mouse_y > MOUSE_MIN ) ||
+					( mouse_x < -MOUSE_MIN ) || ( mouse_y < -MOUSE_MIN ) )
 			{
-				mouse_x *= sensitivity->value;
-				mouse_y *= sensitivity->value;
-			}
-			else
-			{
-				if ( ( mouse_x > MOUSE_MIN ) || ( mouse_y > MOUSE_MIN ) ||
-					 ( mouse_x < -MOUSE_MIN ) || ( mouse_y < -MOUSE_MIN ) )
+				mouse_x = ( mouse_x * mouse_x * mouse_x ) / 4;
+				mouse_y = ( mouse_y * mouse_y * mouse_y ) / 4;
+
+				if ( mouse_x > MOUSE_MAX )
 				{
-					mouse_x = ( mouse_x * mouse_x * mouse_x ) / 4;
-					mouse_y = ( mouse_y * mouse_y * mouse_y ) / 4;
+					mouse_x = MOUSE_MAX;
+				}
+				else if ( mouse_x < -MOUSE_MAX )
+				{
+					mouse_x = -MOUSE_MAX;
+				}
 
-					if ( mouse_x > MOUSE_MAX )
-					{
-						mouse_x = MOUSE_MAX;
-					}
-					else if ( mouse_x < -MOUSE_MAX )
-					{
-						mouse_x = -MOUSE_MAX;
-					}
-
-					if ( mouse_y > MOUSE_MAX )
-					{
-						mouse_y = MOUSE_MAX;
-					}
-					else if ( mouse_y < -MOUSE_MAX )
-					{
-						mouse_y = -MOUSE_MAX;
-					}
+				if ( mouse_y > MOUSE_MAX )
+				{
+					mouse_y = MOUSE_MAX;
+				}
+				else if ( mouse_y < -MOUSE_MAX )
+				{
+					mouse_y = -MOUSE_MAX;
 				}
 			}
-
-			/* add mouse X/Y movement to cmd */
-			if ( ( *in_state->in_strafe_state & 1 ) ||
-				 ( lookstrafe->value && mlooking ) )
-			{
-				cmd->sidemove += m_side->value * mouse_x;
-			}
-			else
-			{
-				in_state->viewangles [ YAW ] -= m_yaw->value * mouse_x;
-			}
-
-			if ( ( mlooking || freelook->value ) &&
-				 !( *in_state->in_strafe_state & 1 ) )
-			{
-				in_state->viewangles [ PITCH ] += m_pitch->value * mouse_y;
-			}
-			else
-			{
-				cmd->forwardmove -= m_forward->value * mouse_y;
-			}
-
-			IN_ClearMouseState();
 		}
+
+		/* add mouse X/Y movement to cmd */
+		if ( ( *in_state->in_strafe_state & 1 ) ||
+				( lookstrafe->value && mlooking ) )
+		{
+			cmd->sidemove += m_side->value * mouse_x;
+		}
+		else
+		{
+			in_state->viewangles [ YAW ] -= m_yaw->value * mouse_x;
+		}
+
+		if ( ( mlooking || freelook->value ) &&
+				!( *in_state->in_strafe_state & 1 ) )
+		{
+			in_state->viewangles [ PITCH ] += m_pitch->value * mouse_y;
+		}
+		else
+		{
+			cmd->forwardmove -= m_forward->value * mouse_y;
+		}
+
+		IN_ClearMouseState();
 	}
 }
 
