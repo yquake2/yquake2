@@ -1063,7 +1063,7 @@ int R_Init( void *hinstance, void *hWnd )
 	}
 
 	// initialize OS-specific parts of OpenGL
-	if ( !GLimp_Init( hinstance, hWnd ) )
+	if ( !GLimp_Init() )
 	{
 		QGL_Shutdown();
 		return -1;
@@ -1312,8 +1312,6 @@ void R_BeginFrame( float camera_separation )
 		}
 	}
 
-	GLimp_BeginFrame( camera_separation );
-
 	/*
 	** go into 2D mode
 	*/
@@ -1544,7 +1542,7 @@ refexport_t GetRefAPI (refimport_t rimp )
 	re.BeginFrame = R_BeginFrame;
 	re.EndFrame = GLimp_EndFrame;
 
-	re.AppActivate = GLimp_AppActivate;
+	re.AppActivate = NULL;
 
 	Swap_Init ();
 

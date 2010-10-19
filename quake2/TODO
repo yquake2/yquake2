@@ -6,7 +6,8 @@ Allgemein:
 - Den Fenstertitel auf "Yamagi Quake II" ändern, ebenso alle Ausgaben
   von "Quake 2" und "Quake II" ändern.
 - Die Makefile sollte komplett neu geschrieben werden.
-- Wieso durchläuft der Client seine Shutdown-Rotine doppelt?
+- Wieso durchläuft der Client seine Shutdown-Rotine doppelt? Bekommen
+  wir es evtl hin, das sie auch rekursiv nicht mehr aufgerufen wird?
 - Noch mal uncrustify über client/, common/, unix/ und sdl/
 
 Unix / SDL:
