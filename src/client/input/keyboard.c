@@ -230,32 +230,6 @@ void Key_Console (int key) {
 			break;
 	}
 
-	if ( ( toupper( key ) == 'V' && keydown[K_CTRL] ) ||
-	        ( ( ( key == K_INS ) || ( key == K_KP_INS ) ) && keydown[K_SHIFT] ) ) {
-		char *cbd;
-
-		if ( ( cbd = Sys_GetClipboardData() ) != 0 ) {
-			int i;
-
-			strsep( &cbd, "\n\r\b" );
-
-			i = (int)strlen( cbd );
-
-			if ( i + key_linepos >= MAXCMDLINE - 1)
-				i= MAXCMDLINE - key_linepos - 1;
-
-			if ( i > 0 ) {
-				cbd[i]=0;
-				strcat( key_lines[edit_line], cbd );
-				key_linepos += i;
-			}
-
-			free( cbd );
-		}
-
-		return;
-	}
-
 	if ( key == 'l' ) {
 		if ( keydown[K_CTRL] ) {
 			Cbuf_AddText ("clear\n");
