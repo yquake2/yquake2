@@ -30,14 +30,17 @@
 #include "../client/input/header/keyboard.h"
 #include "../unix/header/unix.h"
 
+#define MOUSE_MAX 3000
+#define MOUSE_MIN 40
+
 static int		old_windowed_mouse;
 static cvar_t	*windowed_mouse;
 static cvar_t   *windowed_mouse_always;
-static int mouse_x, mouse_y;
-static int old_mouse_x, old_mouse_y;
+static int		mouse_x, mouse_y;
+static int		old_mouse_x, old_mouse_y;
 static qboolean mouse_avail;
-static int mouse_buttonstate;
-static int mouse_oldbuttonstate;    
+static int		mouse_buttonstate;
+static int		mouse_oldbuttonstate;    
 
 struct
 {
@@ -52,10 +55,10 @@ int my;
 
 Key_Event_fp_t Key_Event_fp;
 
-extern SDL_Surface *surface; 
-static in_state_t   *in_state;
+extern SDL_Surface	 *surface; 
+static in_state_t    *in_state;
 static unsigned char KeyStates[SDLK_LAST];
-static qboolean mlooking;
+static qboolean		 mlooking;
 
 static cvar_t *sensitivity;
 static cvar_t *exponential_speedup;
@@ -68,8 +71,13 @@ static cvar_t *freelook;
 static cvar_t *m_filter;
 static cvar_t *in_mouse;
 
+/*
+ * This function translates the SDL keycodes
+ * to the internal key representation of the
+ * id Tech 2 engine.
+ */
 int
-RW_IN_TranslateSDLtoQ2Key(unsigned int keysym)
+IN_TranslateSDLtoQ2Key(unsigned int keysym)
 {
     int key = 0;
 
@@ -170,40 +178,11 @@ RW_IN_TranslateSDLtoQ2Key(unsigned int keysym)
     return key;
 }
 
+/*
+ * Input event processing
+ */
 void 
-RW_IN_PlatformInit() 
-{
-	/*if( !SDL_WasInit( SDL_INIT_VIDEO ) )
-    {
-        Com_Error( ERR_FATAL, "RW_IN_PlatformInit called before GLimp_Init( SDL_INIT_VIDEO )\n" );
-        return;
-    } */
-
-	Com_Printf( "\n------- Input Initialization -------\n" );
-   
-	SDL_EnableUNICODE( 0 );
-    SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL );
-
-	windowed_mouse = ri.Cvar_Get ("windowed_mouse", "1", CVAR_ARCHIVE);
-	windowed_mouse_always = ri.Cvar_Get ("windowed_mouse_always", "2", CVAR_ARCHIVE);
-
-	Com_Printf( "\n------------------------------------\n" );
-}
-
-void
-KBD_Init(Key_Event_fp_t fp)
-{
-	Key_Event_fp = fp;
-}
-
-static void
-Force_CenterView_f ( void )
-{
-	in_state->viewangles [ PITCH ] = 0;
-}  
-
-void 
-GetEvent(SDL_Event *event)
+IN_GetEvent(SDL_Event *event)
 {
 	unsigned int key;
 	
@@ -258,7 +237,7 @@ GetEvent(SDL_Event *event)
 			KeyStates[event->key.keysym.sym] = 1;
 	  
 			/* Get the pressed key and add it to the key list */
-			key = RW_IN_TranslateSDLtoQ2Key(event->key.keysym.sym);
+			key = IN_TranslateSDLtoQ2Key(event->key.keysym.sym);
 			if (key) 
 			{
 				keyq[keyq_head].key = key;
@@ -274,7 +253,7 @@ GetEvent(SDL_Event *event)
 				KeyStates[event->key.keysym.sym] = 0;
 
 				/* Get the pressed key and remove it from the key list */
-				key = RW_IN_TranslateSDLtoQ2Key(event->key.keysym.sym);
+				key = IN_TranslateSDLtoQ2Key(event->key.keysym.sym);
 				if (key) 
 				{
 					keyq[keyq_head].key = key;
@@ -286,24 +265,26 @@ GetEvent(SDL_Event *event)
 	}
 }
 
-void KBD_Update(void)
+/*
+ * Updates the state of the input queue
+ */
+void IN_Update(void)
 {
   SDL_Event event;
-  static int KBD_Update_Flag;
+  static int IN_Update_Flag;
   int bstate;
 
   /* Protection against multiple calls */
-  if (KBD_Update_Flag == 1)
+  if (IN_Update_Flag == 1)
   {
     return;
   }
   
-  KBD_Update_Flag = 1;
-  in_state_t *in_state = getState();
+  IN_Update_Flag = 1;
 
   while (SDL_PollEvent(&event))
   {
-	  GetEvent(&event);
+	  IN_GetEvent(&event);
   }
 
   /* Mouse button processing. Button 4 
@@ -373,10 +354,14 @@ void KBD_Update(void)
 	  keyq_tail = (keyq_tail + 1) & 63;
   }
 
-  KBD_Update_Flag = 0;
+  IN_Update_Flag = 0;
 }
 
-void KBD_Close(void)
+/* 
+ * Closes all inputs and clears
+ * the input queue.
+ */
+void IN_Close(void)
 {
 	keyq_head = 0;
 	keyq_tail = 0;
@@ -384,42 +369,66 @@ void KBD_Close(void)
 	memset(keyq, 0, sizeof(keyq));
 }
 
-void getMouse(int *x, int *y, int *state) {
+/*
+ * Gets the mouse state
+ */
+void IN_GetMouseState(int *x, int *y, int *state) {
   *x = mx;
   *y = my;
   *state = mouse_buttonstate;
-}
+} 
 
-void doneMouse() {
-  mx = my = 0;
-}
-
-void RW_IN_Activate(qboolean active)
+/*
+ * Cleares the mouse state
+ */
+void IN_ClearMouseState() 
 {
   mx = my = 0;
 }
-
-in_state_t *
-getState ()
-{
-	return ( in_state );
-}
-
+ 
+/*
+ * Centers the view
+ */
 static void
-RW_IN_MLookDown ( void )
+IN_ForceCenterView ( void )
+{
+	in_state->viewangles [ PITCH ] = 0;
+}  
+
+/*
+ * Look up
+ */
+static void
+IN_MLookDown ( void )
 {
 	mlooking = true;
 }
 
+/*
+ * Look down
+ */
 static void
-RW_IN_MLookUp ( void )
+IN_MLookUp ( void )
 {
 	mlooking = false;
 	in_state->IN_CenterView_fp();
 }
 
+/*
+ * Keyboard initialisation. Called
+ * by the client via function pointer
+ */
 void
-RW_IN_Init ( in_state_t *in_state_p )
+IN_KeyboardInit(Key_Event_fp_t fp)
+{
+	Key_Event_fp = fp;
+}
+
+/*
+ * Initializes the backend
+ */
+void
+IN_BackendInit ( in_state_t *in_state_p )
 {
 	in_state = in_state_p;
 	m_filter = ri.Cvar_Get( "m_filter", "0", 0 );
@@ -435,18 +444,28 @@ RW_IN_Init ( in_state_t *in_state_p )
 	m_forward = ri.Cvar_Get( "m_forward", "1", 0 );
 	m_side = ri.Cvar_Get( "m_side", "0.8", 0 );
 
-	ri.Cmd_AddCommand( "+mlook", RW_IN_MLookDown );
-	ri.Cmd_AddCommand( "-mlook", RW_IN_MLookUp );
-	ri.Cmd_AddCommand( "force_centerview", Force_CenterView_f );
+	ri.Cmd_AddCommand( "+mlook", IN_MLookDown );
+	ri.Cmd_AddCommand( "-mlook", IN_MLookUp );
+	ri.Cmd_AddCommand( "force_centerview", IN_ForceCenterView );
 
 	mouse_x = mouse_y = 0.0;
 	mouse_avail = true;
 
-	RW_IN_PlatformInit();
+	/* SDL stuff */
+	SDL_EnableUNICODE( 0 );
+    SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL );
+
+	windowed_mouse = ri.Cvar_Get ("windowed_mouse", "1", CVAR_ARCHIVE);
+	windowed_mouse_always = ri.Cvar_Get ("windowed_mouse_always", "2", CVAR_ARCHIVE);
+
+	Com_Printf( "Input initialized.\n" );
 }
 
+/*
+ * Shuts the backend down
+ */
 void
-RW_IN_Shutdown ( void )
+IN_BackendShutdown ( void )
 {
 	if ( mouse_avail )
 	{
@@ -459,13 +478,13 @@ RW_IN_Shutdown ( void )
 }
 
 void
-RW_IN_Commands ( void )
+IN_BackendMouseButtons ( void )
 {
 	int i;
 
 	if ( mouse_avail )
 	{
-		getMouse( &mouse_x, &mouse_y, &mouse_buttonstate );
+		IN_GetMouseState( &mouse_x, &mouse_y, &mouse_buttonstate );
 
 		for ( i = 0; i < 3; i++ )
 		{
@@ -505,11 +524,11 @@ RW_IN_Commands ( void )
 }
 
 void
-RW_IN_Move ( usercmd_t *cmd )
+IN_BackendMove ( usercmd_t *cmd )
 {
 	if ( mouse_avail )
 	{
-		getMouse( &mouse_x, &mouse_y, &mouse_buttonstate );
+		IN_GetMouseState( &mouse_x, &mouse_y, &mouse_buttonstate );
 
 		if ( m_filter->value )
 		{
@@ -576,7 +595,7 @@ RW_IN_Move ( usercmd_t *cmd )
 				cmd->forwardmove -= m_forward->value * mouse_y;
 			}
 
-			doneMouse();
+			IN_ClearMouseState();
 		}
 	}
 }
