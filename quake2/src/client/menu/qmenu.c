@@ -184,27 +184,6 @@ qboolean Field_Key( menufield_s *f, int key ) {
 		}
 	}
 
-	/* support pasting from the clipboard */
-	if ( ( toupper( key ) == 'V' && keydown[K_CTRL] ) ||
-	        ( ( ( key == K_INS ) || ( key == K_KP_INS ) ) && keydown[K_SHIFT] ) ) {
-		char *cbd;
-
-		if ( ( cbd = Sys_GetClipboardData() ) != 0 ) {
-			strsep( &cbd, "\n\r\b" );
-
-			strncpy( f->buffer, cbd, f->length - 1 );
-			f->cursor = (int)strlen( f->buffer );
-			f->visible_offset = f->cursor - f->visible_length;
-
-			if ( f->visible_offset < 0 )
-				f->visible_offset = 0;
-
-			free( cbd );
-		}
-
-		return true;
-	}
-
 	switch ( key ) {
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:

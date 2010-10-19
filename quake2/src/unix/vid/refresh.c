@@ -70,12 +70,8 @@ void ( *IN_BackendInit_fp )( in_state_t *in_state_p );
 void ( *IN_BackendShutdown_fp )( void );
 void ( *IN_BackendMouseButtons_fp )( void );
 void ( *IN_BackendMove_fp )( usercmd_t *cmd );
-void ( *RW_IN_Frame_fp )( void );
 
 void IN_Init ( void );
-
-/* CLIPBOARD */
-char *( *RW_Sys_GetClipboardData_fp )(void);
 
 extern void VID_MenuShutdown ( void );
 
@@ -204,8 +200,6 @@ VID_FreeReflib ( void )
 	IN_BackendShutdown_fp = NULL;
 	IN_BackendMouseButtons_fp = NULL;
 	IN_BackendMove_fp = NULL;
-	RW_IN_Frame_fp = NULL;
-	RW_Sys_GetClipboardData_fp = NULL;
 
 	memset( &re, 0, sizeof ( re ) );
 	reflib_library = NULL;
@@ -305,11 +299,8 @@ VID_LoadRefresh ( char *name )
 		 ( ( IN_BackendMouseButtons_fp = dlsym( reflib_library, "IN_BackendMouseButtons" ) ) == NULL ) ||
 		 ( ( IN_BackendMove_fp = dlsym( reflib_library, "IN_BackendMove" ) ) == NULL ) )
 	{
-		Sys_Error( "No RW_IN functions in REF.\n" );
+		Sys_Error( "No input backend init functions in REF.\n" );
 	}
-
-	/* this one is optional */
-	RW_Sys_GetClipboardData_fp = dlsym( reflib_library, "RW_Sys_GetClipboardData" );
 
 	IN_Init();
 
@@ -481,30 +472,8 @@ IN_Move ( usercmd_t *cmd )
 }
 
 void
-IN_Frame ( void )
-{
-	if ( RW_IN_Frame_fp )
-	{
-		RW_IN_Frame_fp();
-	}
-}
-
-void
 Do_Key_Event ( int key, qboolean down )
 {
 	Key_Event( key, down, Sys_Milliseconds() );
-}
-
-char *
-Sys_GetClipboardData ( void )
-{
-	if ( RW_Sys_GetClipboardData_fp )
-	{
-		return ( RW_Sys_GetClipboardData_fp() );
-	}
-	else
-	{
-		return ( NULL );
-	}
 }
 

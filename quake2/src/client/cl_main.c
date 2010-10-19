@@ -696,9 +696,6 @@ void CL_Frame (int msec)
 			return; /* framerate is too high */
 	}
 
-	/* let the mouse activate or deactivate */
-	IN_Frame ();
-
 	/* decide the simulation time */
 	cls.frametime = extratime/1000.0;
 

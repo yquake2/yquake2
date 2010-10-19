@@ -7,7 +7,4 @@
 - Die Makefile sollte komplett neu geschrieben werden.
 
 Unix / SDL:
-- Den Clipboardcode raus, tut eh nicht
-- Input (Mouse und Keyboard) auf dem Renderer-Code rausfrickeln und in
-  zwei SDL-Backend mouse.c und keyboard.c neuschreiben.
 - SDL GL-Backend refresh.c komplett neuschreiben
