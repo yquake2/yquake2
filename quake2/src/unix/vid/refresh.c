@@ -58,20 +58,18 @@ qboolean reflib_active = 0;
 
 #define VID_NUM_MODES ( sizeof ( vid_modes ) / sizeof ( vid_modes [ 0 ] ) )
 
-/* KEYBOARD */
+/* INPUT */
 void Do_Key_Event ( int key, qboolean down );
-void ( *KBD_Update_fp )( void );
-void ( *KBD_Init_fp )( Key_Event_fp_t fp );
-void ( *KBD_Close_fp )( void );
+void ( *IN_Update_fp )( void );
+void ( *IN_KeyboardInit_fp )( Key_Event_fp_t fp );
+void ( *IN_Close_fp )( void );
 
-/* MOUSE */
 in_state_t in_state;
 
-void ( *RW_IN_Init_fp )( in_state_t *in_state_p );
-void ( *RW_IN_Shutdown_fp )( void );
-void ( *RW_IN_Activate_fp )( qboolean active );
-void ( *RW_IN_Commands_fp )( void );
-void ( *RW_IN_Move_fp )( usercmd_t *cmd );
+void ( *IN_BackendInit_fp )( in_state_t *in_state_p );
+void ( *IN_BackendShutdown_fp )( void );
+void ( *IN_BackendMouseButtons_fp )( void );
+void ( *IN_BackendMove_fp )( usercmd_t *cmd );
 void ( *RW_IN_Frame_fp )( void );
 
 void IN_Init ( void );
@@ -186,27 +184,26 @@ VID_FreeReflib ( void )
 {
 	if ( reflib_library )
 	{
-		if ( KBD_Close_fp )
+		if ( IN_Close_fp )
 		{
-			KBD_Close_fp();
+			IN_Close_fp();
 		}
 
-		if ( RW_IN_Shutdown_fp )
+		if ( IN_BackendShutdown_fp )
 		{
-			RW_IN_Shutdown_fp();
+			IN_BackendShutdown_fp();
 		}
 
 		dlclose( reflib_library );
 	}
 
-	KBD_Init_fp = NULL;
-	KBD_Update_fp = NULL;
-	KBD_Close_fp = NULL;
-	RW_IN_Init_fp = NULL;
-	RW_IN_Shutdown_fp = NULL;
-	RW_IN_Activate_fp = NULL;
-	RW_IN_Commands_fp = NULL;
-	RW_IN_Move_fp = NULL;
+	IN_KeyboardInit_fp = NULL;
+	IN_Update_fp = NULL;
+	IN_Close_fp = NULL;
+	IN_BackendInit_fp = NULL;
+	IN_BackendShutdown_fp = NULL;
+	IN_BackendMouseButtons_fp = NULL;
+	IN_BackendMove_fp = NULL;
 	RW_IN_Frame_fp = NULL;
 	RW_Sys_GetClipboardData_fp = NULL;
 
@@ -227,18 +224,18 @@ VID_LoadRefresh ( char *name )
 
 	if ( reflib_active )
 	{
-		if ( KBD_Close_fp )
+		if ( IN_Close_fp )
 		{
-			KBD_Close_fp();
+			IN_Close_fp();
 		}
 
-		if ( RW_IN_Shutdown_fp )
+		if ( IN_BackendShutdown_fp )
 		{
-			RW_IN_Shutdown_fp();
+			IN_BackendShutdown_fp();
 		}
 
-		KBD_Close_fp = NULL;
-		RW_IN_Shutdown_fp = NULL;
+		IN_Close_fp = NULL;
+		IN_BackendShutdown_fp = NULL;
 		re.Shutdown();
 		VID_FreeReflib();
 	}
@@ -303,10 +300,10 @@ VID_LoadRefresh ( char *name )
 	in_state.in_strafe_state = &in_strafe.state;
 	in_state.in_speed_state = &in_speed.state;
 
-	if ( ( ( RW_IN_Init_fp = dlsym( reflib_library, "RW_IN_Init" ) ) == NULL ) ||
-		 ( ( RW_IN_Shutdown_fp = dlsym( reflib_library, "RW_IN_Shutdown" ) ) == NULL ) ||
-		 ( ( RW_IN_Commands_fp = dlsym( reflib_library, "RW_IN_Commands" ) ) == NULL ) ||
-		 ( ( RW_IN_Move_fp = dlsym( reflib_library, "RW_IN_Move" ) ) == NULL ) )
+	if ( ( ( IN_BackendInit_fp = dlsym( reflib_library, "IN_BackendInit" ) ) == NULL ) ||
+		 ( ( IN_BackendShutdown_fp = dlsym( reflib_library, "IN_BackendShutdown" ) ) == NULL ) ||
+		 ( ( IN_BackendMouseButtons_fp = dlsym( reflib_library, "IN_BackendMouseButtons" ) ) == NULL ) ||
+		 ( ( IN_BackendMove_fp = dlsym( reflib_library, "IN_BackendMove" ) ) == NULL ) )
 	{
 		Sys_Error( "No RW_IN functions in REF.\n" );
 	}
@@ -323,15 +320,15 @@ VID_LoadRefresh ( char *name )
 		return ( false );
 	}
 
-	/* Init KBD */
-	if ( ( ( KBD_Init_fp = dlsym( reflib_library, "KBD_Init" ) ) == NULL ) ||
-		 ( ( KBD_Update_fp = dlsym( reflib_library, "KBD_Update" ) ) == NULL ) ||
-		 ( ( KBD_Close_fp = dlsym( reflib_library, "KBD_Close" ) ) == NULL ) )
+	/* Init IN */
+	if ( ( ( IN_KeyboardInit_fp = dlsym( reflib_library, "IN_KeyboardInit" ) ) == NULL ) ||
+		 ( ( IN_Update_fp = dlsym( reflib_library, "IN_Update" ) ) == NULL ) ||
+		 ( ( IN_Close_fp = dlsym( reflib_library, "IN_Close" ) ) == NULL ) )
 	{
 		Sys_Error( "No KBD functions in REF.\n" );
 	}
 
-	KBD_Init_fp( Do_Key_Event );
+	IN_KeyboardInit_fp( Do_Key_Event );
 	Key_ClearStates();
 
 	/* give up root now */
@@ -402,18 +399,18 @@ VID_Shutdown ( void )
 {
 	if ( reflib_active )
 	{
-		if ( KBD_Close_fp )
+		if ( IN_Close_fp )
 		{
-			KBD_Close_fp();
+			IN_Close_fp();
 		}
 
-		if ( RW_IN_Shutdown_fp )
+		if ( IN_BackendShutdown_fp )
 		{
-			RW_IN_Shutdown_fp();
+			IN_BackendShutdown_fp();
 		}
 
-		KBD_Close_fp = NULL;
-		RW_IN_Shutdown_fp = NULL;
+		IN_Close_fp = NULL;
+		IN_BackendShutdown_fp = NULL;
 		re.Shutdown();
 		VID_FreeReflib();
 	}
@@ -450,54 +447,42 @@ VID_CheckRefExists ( const char *ref )
 void
 IN_Init ( void )
 {
-	if ( RW_IN_Init_fp )
+	if ( IN_BackendInit_fp )
 	{
-		RW_IN_Init_fp( &in_state );
+		IN_BackendInit_fp( &in_state );
 	}
 }
 
 void
 IN_Shutdown ( void )
 {
-	if ( RW_IN_Shutdown_fp )
+	if ( IN_BackendShutdown_fp )
 	{
-		RW_IN_Shutdown_fp();
+		IN_BackendShutdown_fp();
 	}
 }
 
 void
 IN_Commands ( void )
 {
-	if ( RW_IN_Commands_fp )
+	if ( IN_BackendMouseButtons_fp )
 	{
-		RW_IN_Commands_fp();
+		IN_BackendMouseButtons_fp();
 	}
 }
 
 void
 IN_Move ( usercmd_t *cmd )
 {
-	if ( RW_IN_Move_fp )
+	if ( IN_BackendMove_fp )
 	{
-		RW_IN_Move_fp( cmd );
+		IN_BackendMove_fp( cmd );
 	}
 }
 
 void
 IN_Frame ( void )
 {
-	if ( RW_IN_Activate_fp )
-	{
-		if ( !cl.refresh_prepped || ( cls.key_dest == key_console ) || ( cls.key_dest == key_menu ) )
-		{
-			RW_IN_Activate_fp( false );
-		}
-		else
-		{
-			RW_IN_Activate_fp( true );
-		}
-	}
-
 	if ( RW_IN_Frame_fp )
 	{
 		RW_IN_Frame_fp();

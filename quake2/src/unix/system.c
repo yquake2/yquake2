@@ -481,9 +481,9 @@ Sys_SendKeyEvents ( void )
 {
 #ifndef DEDICATED_ONLY
 
-	if ( KBD_Update_fp )
+	if ( IN_Update_fp )
 	{
-		KBD_Update_fp();
+		IN_Update_fp();
 	}
 
 #endif

@@ -26,17 +26,7 @@
  */
 
 typedef void ( *Key_Event_fp_t )( int key, qboolean down );
-
-extern void ( *KBD_Update_fp )( void );
-extern void ( *KBD_Init_fp )( Key_Event_fp_t fp );
-extern void ( *KBD_Close_fp )( void );
-
-void RW_IN_PlatformInit ();
-
-#define MOUSE_MAX 3000
-#define MOUSE_MIN 40
-
-void getMouse ( int *x, int *y, int *state );
+extern void ( *IN_Update_fp )( void );
 
 typedef struct in_state
 {
@@ -47,6 +37,4 @@ typedef struct in_state
 	int *in_strafe_state;
 	int *in_speed_state;
 } in_state_t;
-
-in_state_t *getState ();
 
