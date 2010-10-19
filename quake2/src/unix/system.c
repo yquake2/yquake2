@@ -410,7 +410,7 @@ Sys_GetGameAPI ( void *parms )
 		Com_Error( ERR_FATAL, "Sys_GetGameAPI without Sys_UnloadingGame" );
 	}
 
-	Com_Printf( "------- Loading %s -------\n", gamename );
+	Com_Printf( "LoadLibrary(\"%s\")\n", gamename );
 
 	/* now run through the search paths */
 	path = NULL;

@@ -58,7 +58,8 @@ main ( int argc, char **argv )
 	saved_euid = geteuid();
 	seteuid( getuid() );
 
-	printf( "Quake 2\n" );
+	printf( "\nYamagi Quake II v%4.2f\n", VERSION);
+	printf( "=====================\n\n");
 
 	Qcommon_Init( argc, argv );
 

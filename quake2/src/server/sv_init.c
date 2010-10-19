@@ -173,7 +173,7 @@ void SV_SpawnServer (char *server, char *spawnpoint, server_state_t serverstate,
 	if (attractloop)
 		Cvar_Set ("paused", "0");
 
-	Com_Printf ("------- Server Initialization -------\n");
+	Com_Printf ("------- server initialization ------\n");
 
 	Com_DPrintf ("SpawnServer: %s\n",server);
 	if (sv.demofile)
@@ -280,7 +280,7 @@ void SV_SpawnServer (char *server, char *spawnpoint, server_state_t serverstate,
 	Cvar_FullSet ("mapname", sv.name, CVAR_SERVERINFO | CVAR_NOSET);
 	Cvar_SetValue("windowed_mouse", 1); 
 
-	Com_Printf ("-------------------------------------\n");
+	Com_Printf ("-------------------------------------\n\n");
 }
 
 /*

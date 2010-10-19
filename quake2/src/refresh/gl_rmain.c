@@ -1085,6 +1085,7 @@ int R_Init( void *hinstance, void *hWnd )
 	/*
 	** get our various GL strings
 	*/
+	ri.Con_Printf (PRINT_ALL, "\nOpenGL setting:\n", gl_config.vendor_string );
 	gl_config.vendor_string = (char *)qglGetString (GL_VENDOR);
 	ri.Con_Printf (PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string );
 	gl_config.renderer_string = (char *)qglGetString (GL_RENDERER);

@@ -3502,11 +3502,11 @@ QGL_Init ( const char *dllname )
 			return ( false );
 		}
 
-		Com_Printf( "Using %s for OpenGL...", fn );
+		Com_Printf( "Using %s for OpenGL.\n", fn );
 	}
 	else
 	{
-		Com_Printf( "Using %s for OpenGL...", dllname );
+		Com_Printf( "Using %s for OpenGL.\n", dllname );
 	}
 
 	qglAccum                     = dllAccum = GPA( "glAccum" );

@@ -9,6 +9,7 @@ Allgemein:
 - Wieso durchläuft der Client seine Shutdown-Rotine doppelt? Bekommen
   wir es evtl hin, das sie auch rekursiv nicht mehr aufgerufen wird?
 - Noch mal uncrustify über client/, common/, unix/ und sdl/
+- ====InitGame=== in allen Spielen ändern
 
 Unix / SDL:
 - SDL GL-Backend refresh.c komplett neuschreiben

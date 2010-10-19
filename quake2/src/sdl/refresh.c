@@ -49,11 +49,11 @@ int GLimp_Init(void)
 
         if (SDL_Init(SDL_INIT_VIDEO) == -1)
         {
-			ri.Con_Printf( PRINT_ALL, "\nSDL_Init( SDL_INIT_VIDEO ) FAILED (%s)\n", SDL_GetError());
+			ri.Con_Printf( PRINT_ALL, "Couldn't init SDL video: %s.\n", SDL_GetError());
             return false;
         }
 		SDL_VideoDriverName( driverName, sizeof( driverName ) - 1 );
-        ri.Con_Printf( PRINT_ALL, "\nSDL using driver \"%s\"\n", driverName );
+        ri.Con_Printf( PRINT_ALL, "SDL video driver is \"%s\".\n", driverName );
 	}
 
 	return true;
@@ -187,7 +187,7 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	/* Initialize the stencil buffer */
 	if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits)) 
 	{
-		ri.Con_Printf(PRINT_ALL, "I: got %d bits of stencil\n", stencil_bits);
+		ri.Con_Printf(PRINT_ALL, "Got %d bits of stencil\n.", stencil_bits);
 		
 		if (stencil_bits >= 1) 
 		{
@@ -198,8 +198,7 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	/* Initialize hardware gamma */
 	gl_state.hwgamma = true;
 	vid_gamma->modified = true;
-	ri.Con_Printf(PRINT_ALL, "Using hardware gamma\n");
-	ri.Con_Printf(PRINT_ALL, "If this doesn't work your X11 driver is broken!\n");
+	ri.Con_Printf(PRINT_ALL, "Using hardware gamma.\n");
 
 	/* Window title */
 	SDL_WM_SetCaption("Yamagi Quake II", "Yamagi Quake II");
