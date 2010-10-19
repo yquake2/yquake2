@@ -27,7 +27,7 @@
 #include "SDL.h"
 #include <GL/gl.h>
 #include "../refresh/header/local.h"
-#include "../unix/qgl/header/glwindow.h"
+#include "../unix/header/glwindow.h"
 
 #include "../client/input/header/keyboard.h"
 #include "../unix/header/unix.h"
@@ -87,7 +87,7 @@ int GLimp_Init( void *hInstance, void *wndProc )
 
 static void SetSDLIcon()
 {
-#include "../unix/qgl/icon/q2icon.xbm"
+#include "icon/q2icon.xbm"
 	SDL_Surface *icon;
 	SDL_Color color;
 	Uint8 *ptr;
