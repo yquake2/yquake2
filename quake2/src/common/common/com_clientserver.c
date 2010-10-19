@@ -220,16 +220,6 @@ void Com_Error (int code, char *fmt, ...)
 void Com_Quit (void)
 {
 	SV_Shutdown ("Server quit\n", false);
-#ifndef DEDICATED_ONLY
-	CL_Shutdown ();
-#endif
-
-	if (logfile)
-	{
-		fclose (logfile);
-		logfile = NULL;
-	}
-
 	Sys_Quit ();
 }
 

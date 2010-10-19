@@ -60,6 +60,7 @@ static DIR  *fdir;
 
 qboolean stdin_active = true;
 extern cvar_t *nostdout;
+extern FILE	*logfile; 
 
 static qboolean
 CompareAttributes ( char *path, char *name, unsigned musthave, unsigned canthave )
@@ -270,6 +271,13 @@ Sys_Quit ( void )
 #ifndef DEDICATED_ONLY
 	CL_Shutdown();
 #endif
+   
+   	if (logfile)
+	{
+		fclose (logfile);
+		logfile = NULL;
+	}
+
 	Qcommon_Shutdown();
 	fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) & ~FNDELAY );
 	exit( 0 );
