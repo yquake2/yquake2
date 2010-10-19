@@ -1,3 +1,4 @@
+Allgemein:
 - In ALLE startup() und shutdown() Routinen Ausgabe, dass diese
   durchlaufen werden. Siehe dazu auch die entsprechenden Routinen für
   den SDL Sound und OGG/Vorbis.
@@ -5,6 +6,8 @@
 - Den Fenstertitel auf "Yamagi Quake II" ändern, ebenso alle Ausgaben
   von "Quake 2" und "Quake II" ändern.
 - Die Makefile sollte komplett neu geschrieben werden.
+- Wieso durchläuft der Client seine Shutdown-Rotine doppelt?
+- Noch mal uncrustify über client/, common/, unix/ und sdl/
 
 Unix / SDL:
 - SDL GL-Backend refresh.c komplett neuschreiben
