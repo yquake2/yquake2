@@ -407,7 +407,7 @@ void CL_Userinfo_f (void)
  */
 void CL_Snd_Restart_f (void)
 {
-	S_Shutdown ();
+	S_Shutdown();
 	S_Init ();
 	CL_RegisterSounds ();
 }
@@ -827,7 +827,6 @@ void CL_Shutdown(void)
 	CDAudio_Shutdown ();
 	OGG_Stop();
 	S_Shutdown();
-	IN_Shutdown ();
 	VID_Shutdown();
 }
 
