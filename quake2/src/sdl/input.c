@@ -465,11 +465,12 @@ IN_BackendInit ( in_state_t *in_state_p )
 void
 IN_BackendShutdown ( void )
 {
-	ri.Cmd_RemoveCommand( "+mlook" );
-	ri.Cmd_RemoveCommand( "-mlook" );
-	ri.Cmd_RemoveCommand( "force_centerview" );
+	Com_Printf("Input shut down.\n");
 }
 
+/*
+ * Mouse button handling
+ */
 void
 IN_BackendMouseButtons ( void )
 {
@@ -513,6 +514,9 @@ IN_BackendMouseButtons ( void )
 	mouse_oldbuttonstate = mouse_buttonstate;
 }
 
+/*
+ * Move handling
+ */
 void
 IN_BackendMove ( usercmd_t *cmd )
 {
