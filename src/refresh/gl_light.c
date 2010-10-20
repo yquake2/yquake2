@@ -64,6 +64,7 @@ R_RenderDlight ( dlight_t *light )
 	qglEnd();
 }
 
+void
 R_RenderDlights ( void )
 {
 	int i;
@@ -104,6 +105,7 @@ R_MarkLights ( dlight_t *light, int bit, mnode_t *node )
 	float dist;
 	msurface_t  *surf;
 	int i;
+	int sidebit;
 
 	if ( node->contents != -1 )
 	{
@@ -130,6 +132,17 @@ R_MarkLights ( dlight_t *light, int bit, mnode_t *node )
 
 	for ( i = 0; i < node->numsurfaces; i++, surf++ )
 	{
+		dist = DotProduct (light->origin, surf->plane->normal) - surf->plane->dist;
+
+        if (dist >= 0)
+			sidebit = 0;
+		else
+			sidebit = SURF_PLANEBACK;
+
+
+		if ( (surf->flags & SURF_PLANEBACK) != sidebit )
+			continue;
+
 		if ( surf->dlightframe != r_dlightframecount )
 		{
 			surf->dlightbits = 0;
