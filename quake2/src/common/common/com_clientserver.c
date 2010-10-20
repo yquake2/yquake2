@@ -219,6 +219,7 @@ void Com_Error (int code, char *fmt, ...)
  */
 void Com_Quit (void)
 {
+	Com_Printf("\n----------- shutting down ----------\n");
 	SV_Shutdown ("Server quit\n", false);
 	Sys_Quit ();
 }
