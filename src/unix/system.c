@@ -280,6 +280,9 @@ Sys_Quit ( void )
 
 	Qcommon_Shutdown();
 	fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) & ~FNDELAY );
+
+	printf("------------------------------------\n");
+
 	exit( 0 );
 }
 
