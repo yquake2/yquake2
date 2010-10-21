@@ -333,7 +333,8 @@ OPENGL_OBJS = \
 	build/ref_gl/gl_scrap.o \
 	build/ref_gl/gl_warp.o \
 	build/ref_gl/files/pcx.o \
-	build/ref_gl/files/tga.o
+	build/ref_gl/files/tga.o \
+	build/ref_gl/files/wal.o \
 
 # ----------
 
@@ -805,7 +806,10 @@ build/ref_gl/files/pcx.o:					src/refresh/files/pcx.c
  
 build/ref_gl/files/tga.o:					src/refresh/files/tga.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<  
- 
+
+build/ref_gl/files/wal.o:					src/refresh/files/wal.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<  
+   
 # ----------
 
 build/ref_gl_game/q_shared.o:				src/game/baseq2/q_shared.c
