@@ -1,30 +1,39 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or (at
+ * your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
  *
- */
-/* r_light.c */
+ * =======================================================================
+ *
+ * Lightmaps and dynamic lighting
+ *
+ * =======================================================================
+ */  
 
 #include "header/local.h"
 
-int r_dlightframecount;
-
 #define DLIGHT_CUTOFF   64
-
+ 
+int r_dlightframecount;
+vec3_t pointcolor;
+cplane_t *lightplane; /* used as shadow plane */
+vec3_t lightspot;
+static float s_blocklights [ 34 * 34 * 3 ];
+   
 void
 R_RenderDlight ( dlight_t *light )
 {
@@ -177,11 +186,6 @@ R_PushDlights ( void )
 		R_MarkLights( l, 1 << i, r_worldmodel->nodes );
 	}
 }
-
-
-vec3_t pointcolor;
-cplane_t *lightplane; /* used as shadow plane */
-vec3_t lightspot;
 
 int
 RecursiveLightPoint ( mnode_t *node, vec3_t start, vec3_t end )
@@ -356,8 +360,6 @@ R_LightPoint ( vec3_t p, vec3_t color )
 
 	VectorScale( color, gl_modulate->value, color );
 }
-
-static float s_blocklights [ 34 * 34 * 3 ];
 
 void
 R_AddDynamicLights ( msurface_t *surf )
@@ -606,6 +608,7 @@ R_BuildLightMap ( msurface_t *surf, byte *dest, int stride )
 	}
 
 store:
+
 	stride -= ( smax << 2 );
 	bl = s_blocklights;
 
