@@ -1,29 +1,29 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or (at
+ * your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
  *
+ * =======================================================================
+ *
+ * Texture handling
+ *
+ * =======================================================================
  */
 
-/*
-Spalten in:
- - gl_pcx.c
- - gl_tga.c
- - gl_wal.c
-*/
 #include "header/local.h"
 
 image_t gltextures [ MAX_GLTEXTURES ];
@@ -50,6 +50,9 @@ int gl_tex_alpha_format = 4;
 
 int gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int gl_filter_max = GL_LINEAR;
+
+image_t * R_LoadWal ( char *name );
+void LoadTGA ( char *name, byte **pic, int *width, int *height );
 
 typedef struct
 {
@@ -96,7 +99,33 @@ gltmode_t gl_solid_modes[] = {
 };
 
 #define NUM_GL_SOLID_MODES ( sizeof ( gl_solid_modes ) / sizeof ( gltmode_t ) )
- 
+
+typedef struct
+{
+	short x, y;
+} floodfill_t;
+
+/* must be a power of 2 */
+#define FLOODFILL_FIFO_SIZE 0x1000
+#define FLOODFILL_FIFO_MASK ( FLOODFILL_FIFO_SIZE - 1 )
+
+#define FLOODFILL_STEP( off, dx, dy ) \
+	{ \
+		if ( pos [ off ] == fillcolor )	\
+		{ \
+			pos [ off ] = 255; \
+			fifo [ inpt ].x = x + ( dx ), fifo [ inpt ].y = y + ( dy );	\
+			inpt = ( inpt + 1 ) & FLOODFILL_FIFO_MASK; \
+		} \
+		else if ( pos [ off ] != 255 ) \
+		{ \
+			fdc = pos [ off ]; \
+		}												\
+	}
+
+int upload_width, upload_height;
+qboolean uploaded_paletted;
+
 void
 GL_TexEnv ( GLenum mode )
 {
@@ -280,30 +309,6 @@ GL_ImageList_f ( void )
 /*
  * Fill background pixels so mipmapping doesn't have haloes
  */
-
-typedef struct
-{
-	short x, y;
-} floodfill_t;
-
-/* must be a power of 2 */
-#define FLOODFILL_FIFO_SIZE 0x1000
-#define FLOODFILL_FIFO_MASK ( FLOODFILL_FIFO_SIZE - 1 )
-
-#define FLOODFILL_STEP( off, dx, dy ) \
-	{ \
-		if ( pos [ off ] == fillcolor )	\
-		{ \
-			pos [ off ] = 255; \
-			fifo [ inpt ].x = x + ( dx ), fifo [ inpt ].y = y + ( dy );	\
-			inpt = ( inpt + 1 ) & FLOODFILL_FIFO_MASK; \
-		} \
-		else if ( pos [ off ] != 255 ) \
-		{ \
-			fdc = pos [ off ]; \
-		}												\
-	}
-
 void
 R_FloodFillSkin ( byte *skin, int skinwidth, int skinheight )
 {
@@ -507,9 +512,6 @@ GL_BuildPalettedTexture ( unsigned char *paletted_texture, unsigned char *scaled
 	}
 }
 
-int upload_width, upload_height;
-qboolean uploaded_paletted;
-
 qboolean
 GL_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap )
 {
@@ -651,7 +653,7 @@ GL_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap )
 		}
 	}
 
-done:;
+done:
 
 	if ( mipmap )
 	{
@@ -893,7 +895,7 @@ GL_FindImage ( char *name, imagetype_t type )
 	}
 	else if ( !strcmp( name + len - 4, ".wal" ) )
 	{
-		image = GL_LoadWal( name );
+		image = R_LoadWal( name );
 	}
 	else if ( !strcmp( name + len - 4, ".tga" ) )
 	{
