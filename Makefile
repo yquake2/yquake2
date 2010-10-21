@@ -150,6 +150,7 @@ ref_gl:
 		build/ref_gl \
 		build/ref_gl_game \
 		build/ref_gl_unix \
+		build/ref_gl/files \
 		release
 	$(MAKE) release/ref_gl.so
 
@@ -330,7 +331,8 @@ OPENGL_OBJS = \
 	build/ref_gl/gl_rmisc.o \
 	build/ref_gl/gl_rsurf.o \
 	build/ref_gl/gl_scrap.o \
-	build/ref_gl/gl_warp.o 		 
+	build/ref_gl/gl_warp.o \
+	build/ref_gl/files/pcx.o
 
 # ----------
 
@@ -796,6 +798,9 @@ build/ref_gl/gl_scrap.o:   					src/refresh/gl_scrap.c
  
 build/ref_gl/gl_warp.o:						src/refresh/gl_warp.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+
+build/ref_gl/files/pcx.o:					src/refresh/files/pcx.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<  
 
 # ----------
 
