@@ -1,3 +1,8 @@
 Allgemein:
 - Die Makefile sollte komplett neu geschrieben werden.
 - ====InitGame=== in allen Spielen ändern
+
+- Header in unix/ und system/ mit Guards ausstatten
+
+- Dateien im Refresher umbenennen
+- Im Refresher für Funktionen konstant R_* statt GL_*
