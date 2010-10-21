@@ -102,6 +102,10 @@ typedef struct image_s
 
 #define		MAX_GLTEXTURES	1024
 
+#define MAX_SCRAPS      1
+#define BLOCK_WIDTH     256
+#define BLOCK_HEIGHT    256
+
 //===================================================================
 
 typedef enum
@@ -327,6 +331,7 @@ void	GL_FreeUnusedImages (void);
 
 void GL_TextureAlphaMode( char *string );
 void GL_TextureSolidMode( char *string );
+int Scrap_AllocBlock ( int w, int h, int *x, int *y );
 
 /*
 ** GL extension emulation functions
