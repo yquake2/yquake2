@@ -30,6 +30,8 @@ Spalten in:
 image_t gltextures [ MAX_GLTEXTURES ];
 int numgltextures;
 int base_textureid; /* gltextures[i] = base_textureid+i */
+extern qboolean scrap_dirty;
+extern byte scrap_texels [ MAX_SCRAPS ] [ BLOCK_WIDTH * BLOCK_HEIGHT ];
 
 static byte intensitytable [ 256 ];
 static unsigned char gammatable [ 256 ];
@@ -274,84 +276,6 @@ GL_ImageList_f ( void )
 	}
 
 	ri.Con_Printf( PRINT_ALL, "Total texel count (not counting mipmaps): %i\n", texels );
-}
-
-/*
- * scrap allocation
- *
- * Allocate all the little status bar obejcts into a single texture
- * to crutch up inefficient hardware / drivers
- */
-
-#define MAX_SCRAPS      1
-#define BLOCK_WIDTH     256
-#define BLOCK_HEIGHT    256
-
-int scrap_allocated [ MAX_SCRAPS ] [ BLOCK_WIDTH ];
-byte scrap_texels [ MAX_SCRAPS ] [ BLOCK_WIDTH * BLOCK_HEIGHT ];
-qboolean scrap_dirty;
-
-/* returns a texture number and the position inside it */
-int
-Scrap_AllocBlock ( int w, int h, int *x, int *y )
-{
-	int i, j;
-	int best, best2;
-	int texnum;
-
-	for ( texnum = 0; texnum < MAX_SCRAPS; texnum++ )
-	{
-		best = BLOCK_HEIGHT;
-
-		for ( i = 0; i < BLOCK_WIDTH - w; i++ )
-		{
-			best2 = 0;
-
-			for ( j = 0; j < w; j++ )
-			{
-				if ( scrap_allocated [ texnum ] [ i + j ] >= best )
-				{
-					break;
-				}
-
-				if ( scrap_allocated [ texnum ] [ i + j ] > best2 )
-				{
-					best2 = scrap_allocated [ texnum ] [ i + j ];
-				}
-			}
-
-			if ( j == w )
-			{   /* this is a valid spot */
-				*x = i;
-				*y = best = best2;
-			}
-		}
-
-		if ( best + h > BLOCK_HEIGHT )
-		{
-			continue;
-		}
-
-		for ( i = 0; i < w; i++ )
-		{
-			scrap_allocated [ texnum ] [ *x + i ] = best + h;
-		}
-
-		return ( texnum );
-	}
-
-	return ( -1 );
-}
-
-int scrap_uploads;
-
-void
-Scrap_Upload ( void )
-{
-	scrap_uploads++;
-	GL_Bind( TEXNUM_SCRAPS );
-	GL_Upload8( scrap_texels [ 0 ], BLOCK_WIDTH, BLOCK_HEIGHT, false, false );
-	scrap_dirty = false;
 }
 
 void
