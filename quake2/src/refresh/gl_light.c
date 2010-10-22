@@ -188,7 +188,7 @@ R_PushDlights ( void )
 }
 
 int
-RecursiveLightPoint ( mnode_t *node, vec3_t start, vec3_t end )
+R_RecursiveLightPoint ( mnode_t *node, vec3_t start, vec3_t end )
 {
 	float front, back, frac;
 	int side;
@@ -215,7 +215,7 @@ RecursiveLightPoint ( mnode_t *node, vec3_t start, vec3_t end )
 
 	if ( ( back < 0 ) == side )
 	{
-		return ( RecursiveLightPoint( node->children [ side ], start, end ) );
+		return ( R_RecursiveLightPoint( node->children [ side ], start, end ) );
 	}
 
 	frac = front / ( front - back );
@@ -224,7 +224,7 @@ RecursiveLightPoint ( mnode_t *node, vec3_t start, vec3_t end )
 	mid [ 2 ] = start [ 2 ] + ( end [ 2 ] - start [ 2 ] ) * frac;
 
 	/* go down front side */
-	r = RecursiveLightPoint( node->children [ side ], start, mid );
+	r = R_RecursiveLightPoint( node->children [ side ], start, mid );
 
 	if ( r >= 0 )
 	{
@@ -305,7 +305,7 @@ RecursiveLightPoint ( mnode_t *node, vec3_t start, vec3_t end )
 	}
 
 	/* go down back side */
-	return ( RecursiveLightPoint( node->children [ !side ], mid, end ) );
+	return ( R_RecursiveLightPoint( node->children [ !side ], mid, end ) );
 }
 
 void
@@ -329,7 +329,7 @@ R_LightPoint ( vec3_t p, vec3_t color )
 	end [ 1 ] = p [ 1 ];
 	end [ 2 ] = p [ 2 ] - 2048;
 
-	r = RecursiveLightPoint( r_worldmodel->nodes, p, end );
+	r = R_RecursiveLightPoint( r_worldmodel->nodes, p, end );
 
 	if ( r == -1 )
 	{
