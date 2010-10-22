@@ -47,7 +47,7 @@ extern vec3_t lightspot;
 extern qboolean have_stencil;
 
 void
-GL_LerpVerts ( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, float *lerp, float move [ 3 ], float frontv [ 3 ], float backv [ 3 ] )
+R_LerpVerts ( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, float *lerp, float move [ 3 ], float frontv [ 3 ], float backv [ 3 ] )
 {
 	int i;
 
@@ -77,7 +77,7 @@ GL_LerpVerts ( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, 
  * Interpolates between two frames and origins
  */
 void
-GL_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
+R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 {
 	float l;
 	daliasframe_t   *frame, *oldframe;
@@ -141,7 +141,7 @@ GL_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 
 	lerp = s_lerped [ 0 ];
 
-	GL_LerpVerts( paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv );
+	R_LerpVerts( paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv );
 
 	if ( gl_vertex_arrays->value )
 	{
@@ -292,7 +292,7 @@ GL_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 }
 
 void
-GL_DrawAliasShadow ( dmdl_t *paliashdr, int posenum )
+R_DrawAliasShadow ( dmdl_t *paliashdr, int posenum )
 {
 	dtrivertx_t *verts;
 	int     *order;
@@ -767,7 +767,7 @@ R_DrawAliasModel ( entity_t *e )
 		currententity->backlerp = 0;
 	}
 
-	GL_DrawAliasFrameLerp( paliashdr, currententity->backlerp );
+	R_DrawAliasFrameLerp( paliashdr, currententity->backlerp );
 
 	R_TexEnv( GL_REPLACE );
 	qglShadeModel( GL_FLAT );
@@ -804,7 +804,7 @@ R_DrawAliasModel ( entity_t *e )
 		qglDisable( GL_TEXTURE_2D );
 		qglEnable( GL_BLEND );
 		qglColor4f( 0, 0, 0, 0.5 );
-		GL_DrawAliasShadow( paliashdr, currententity->frame );
+		R_DrawAliasShadow( paliashdr, currententity->frame );
 		qglEnable( GL_TEXTURE_2D );
 		qglDisable( GL_BLEND );
 		qglPopMatrix();
