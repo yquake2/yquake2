@@ -88,8 +88,8 @@ void
 Scrap_Upload ( void )
 {
 	scrap_uploads++;
-	GL_Bind( TEXNUM_SCRAPS );
-	GL_Upload8( scrap_texels [ 0 ], BLOCK_WIDTH, BLOCK_HEIGHT, false, false );
+	R_Bind( TEXNUM_SCRAPS );
+	R_Upload8( scrap_texels [ 0 ], BLOCK_WIDTH, BLOCK_HEIGHT, false, false );
 	scrap_dirty = false;
 }
  

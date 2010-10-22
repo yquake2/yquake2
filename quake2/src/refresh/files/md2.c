@@ -27,7 +27,7 @@
 #include "../header/local.h"
 
 void
-Mod_LoadAliasModel ( model_t *mod, void *buffer )
+LoadMD2 ( model_t *mod, void *buffer )
 {
 	int i, j;
 	dmdl_t              *pinmodel, *pheader;

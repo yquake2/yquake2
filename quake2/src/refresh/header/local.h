@@ -238,9 +238,9 @@ extern int c_visible_textures;
 extern float r_world_matrix [ 16 ];
 
 void R_TranslatePlayerSkin ( int playernum );
-void GL_Bind ( int texnum );
-void GL_MBind ( GLenum target, int texnum );
-void GL_TexEnv ( GLenum value );
+void R_Bind ( int texnum );
+void R_MBind ( GLenum target, int texnum );
+void R_TexEnv ( GLenum value );
 
 void R_LightPoint ( vec3_t p, vec3_t color );
 void R_PushDlights ( void );
@@ -294,23 +294,23 @@ void R_SetPalette ( const unsigned char *palette );
 
 int Draw_GetPalette ( void );
 
-void GL_ResampleTexture ( unsigned *in, int inwidth, int inheight, unsigned *out,  int outwidth, int outheight );
+void R_ResampleTexture ( unsigned *in, int inwidth, int inheight, unsigned *out,  int outwidth, int outheight );
 
 struct image_s *R_RegisterSkin ( char *name );
 
 void LoadPCX ( char *filename, byte **pic, byte **palette, int *width, int *height );
-image_t *GL_LoadPic ( char *name, byte *pic, int width, int height, imagetype_t type, int bits );
-image_t *GL_FindImage ( char *name, imagetype_t type );
-void GL_TextureMode ( char *string );
-void GL_ImageList_f ( void );
+image_t *R_LoadPic ( char *name, byte *pic, int width, int height, imagetype_t type, int bits );
+image_t *R_FindImage ( char *name, imagetype_t type );
+void R_TextureMode ( char *string );
+void R_ImageList_f ( void );
 
-void GL_InitImages ( void );
-void GL_ShutdownImages ( void );
+void R_InitImages ( void );
+void R_ShutdownImages ( void );
 
-void GL_FreeUnusedImages ( void );
+void R_FreeUnusedImages ( void );
 
-void GL_TextureAlphaMode ( char *string );
-void GL_TextureSolidMode ( char *string );
+void R_TextureAlphaMode ( char *string );
+void R_TextureSolidMode ( char *string );
 int Scrap_AllocBlock ( int w, int h, int *x, int *y );
 
 /* GL extension emulation functions */

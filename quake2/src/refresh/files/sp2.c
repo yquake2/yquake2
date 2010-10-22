@@ -29,7 +29,7 @@
 extern int modfilelen;
 
 void
-Mod_LoadSpriteModel ( model_t *mod, void *buffer )
+LoadSP2 ( model_t *mod, void *buffer )
 {
 	dsprite_t   *sprin, *sprout;
 	int i;

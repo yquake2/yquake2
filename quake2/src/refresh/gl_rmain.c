@@ -217,9 +217,9 @@ R_DrawSpriteModel ( entity_t *e )
 
 	qglColor4f( 1, 1, 1, alpha );
 
-	GL_Bind( currentmodel->skins [ e->frame ]->texnum );
+	R_Bind( currentmodel->skins [ e->frame ]->texnum );
 
-	GL_TexEnv( GL_MODULATE );
+	R_TexEnv( GL_MODULATE );
 
 	if ( alpha == 1.0 )
 	{
@@ -255,7 +255,7 @@ R_DrawSpriteModel ( entity_t *e )
 	qglEnd();
 
 	qglDisable( GL_ALPHA_TEST );
-	GL_TexEnv( GL_REPLACE );
+	R_TexEnv( GL_REPLACE );
 
 	if ( alpha != 1.0F )
 	{
@@ -421,10 +421,10 @@ GL_DrawParticles ( int num_particles, const particle_t particles[], const unsign
 	float scale;
 	byte color [ 4 ];
 
-	GL_Bind( r_particletexture->texnum );
+	R_Bind( r_particletexture->texnum );
 	qglDepthMask( GL_FALSE ); /* no z buffering */
 	qglEnable( GL_BLEND );
-	GL_TexEnv( GL_MODULATE );
+	R_TexEnv( GL_MODULATE );
 	qglBegin( GL_TRIANGLES );
 
 	VectorScale( vup, 1.5, up );
@@ -469,7 +469,7 @@ GL_DrawParticles ( int num_particles, const particle_t particles[], const unsign
 	qglDisable( GL_BLEND );
 	qglColor4f( 1, 1, 1, 1 );
 	qglDepthMask( 1 ); /* back to normal Z buffering */
-	GL_TexEnv( GL_REPLACE );
+	R_TexEnv( GL_REPLACE );
 }
 
 void
@@ -988,7 +988,7 @@ R_Register ( void )
 	gl_customwidth = ri.Cvar_Get( "gl_customwidth",  "1024", CVAR_ARCHIVE );
 	gl_customheight = ri.Cvar_Get( "gl_customheight", "768", CVAR_ARCHIVE );
 
-	ri.Cmd_AddCommand( "imagelist", GL_ImageList_f );
+	ri.Cmd_AddCommand( "imagelist", R_ImageList_f );
 	ri.Cmd_AddCommand( "screenshot", GL_ScreenShot_f );
 	ri.Cmd_AddCommand( "modellist", Mod_Modellist_f );
 	ri.Cmd_AddCommand( "gl_strings", GL_Strings_f );
@@ -1156,7 +1156,7 @@ R_Init ( void *hinstance, void *hWnd )
 
 	GL_SetDefaultState();
 
-	GL_InitImages();
+	R_InitImages();
 	Mod_Init();
 	R_InitParticleTexture();
 	Draw_InitLocal();
@@ -1181,7 +1181,7 @@ R_Shutdown ( void )
 
 	Mod_FreeAll();
 
-	GL_ShutdownImages();
+	R_ShutdownImages();
 
 	/* shut down OS specific OpenGL stuff like contexts, etc.  */
 	GLimp_Shutdown();
@@ -1261,19 +1261,19 @@ R_BeginFrame ( float camera_separation )
 	/* texturemode stuff */
 	if ( gl_texturemode->modified )
 	{
-		GL_TextureMode( gl_texturemode->string );
+		R_TextureMode( gl_texturemode->string );
 		gl_texturemode->modified = false;
 	}
 
 	if ( gl_texturealphamode->modified )
 	{
-		GL_TextureAlphaMode( gl_texturealphamode->string );
+		R_TextureAlphaMode( gl_texturealphamode->string );
 		gl_texturealphamode->modified = false;
 	}
 
 	if ( gl_texturesolidmode->modified )
 	{
-		GL_TextureSolidMode( gl_texturesolidmode->string );
+		R_TextureSolidMode( gl_texturesolidmode->string );
 		gl_texturesolidmode->modified = false;
 	}
 

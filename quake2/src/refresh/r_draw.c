@@ -36,8 +36,8 @@ void
 Draw_InitLocal ( void )
 {
 	/* load console characters (don't bilerp characters) */
-	draw_chars = GL_FindImage( "pics/conchars.pcx", it_pic );
-	GL_Bind( draw_chars->texnum );
+	draw_chars = R_FindImage( "pics/conchars.pcx", it_pic );
+	R_Bind( draw_chars->texnum );
 	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 }
@@ -72,7 +72,7 @@ Draw_Char ( int x, int y, int num )
 	fcol = col * 0.0625;
 	size = 0.0625;
 
-	GL_Bind( draw_chars->texnum );
+	R_Bind( draw_chars->texnum );
 
 	qglBegin( GL_QUADS );
 	qglTexCoord2f( fcol, frow );
@@ -95,11 +95,11 @@ Draw_FindPic ( char *name )
 	if ( ( name [ 0 ] != '/' ) && ( name [ 0 ] != '\\' ) )
 	{
 		Com_sprintf( fullname, sizeof ( fullname ), "pics/%s.pcx", name );
-		gl = GL_FindImage( fullname, it_pic );
+		gl = R_FindImage( fullname, it_pic );
 	}
 	else
 	{
-		gl = GL_FindImage( name + 1, it_pic );
+		gl = R_FindImage( name + 1, it_pic );
 	}
 
 	return ( gl );
@@ -140,7 +140,7 @@ Draw_StretchPic ( int x, int y, int w, int h, char *pic )
 		Scrap_Upload();
 	}
 
-	GL_Bind( gl->texnum );
+	R_Bind( gl->texnum );
 	qglBegin( GL_QUADS );
 	qglTexCoord2f( gl->sl, gl->tl );
 	qglVertex2f( x, y );
@@ -171,7 +171,7 @@ Draw_Pic ( int x, int y, char *pic )
 		Scrap_Upload();
 	}
 
-	GL_Bind( gl->texnum );
+	R_Bind( gl->texnum );
 	qglBegin( GL_QUADS );
 	qglTexCoord2f( gl->sl, gl->tl );
 	qglVertex2f( x, y );
@@ -202,7 +202,7 @@ Draw_TileClear ( int x, int y, int w, int h, char *pic )
 		return;
 	}
 
-	GL_Bind( image->texnum );
+	R_Bind( image->texnum );
 	qglBegin( GL_QUADS );
 	qglTexCoord2f( x / 64.0, y / 64.0 );
 	qglVertex2f( x, y );
@@ -283,7 +283,7 @@ Draw_StretchRaw ( int x, int y, int w, int h, int cols, int rows, byte *data )
 	int row;
 	float t;
 
-	GL_Bind( 0 );
+	R_Bind( 0 );
 
 	if ( rows <= 256 )
 	{
@@ -373,5 +373,40 @@ Draw_StretchRaw ( int x, int y, int w, int h, int cols, int rows, byte *data )
 	qglTexCoord2f( 1.0 / 512.0, t );
 	qglVertex2f( x, y + h );
 	qglEnd();
+}
+
+int
+Draw_GetPalette ( void )
+{
+	int i;
+	int r, g, b;
+	unsigned v;
+	byte    *pic, *pal;
+	int width, height;
+
+	/* get the palette */
+	LoadPCX( "pics/colormap.pcx", &pic, &pal, &width, &height );
+
+	if ( !pal )
+	{
+		ri.Sys_Error( ERR_FATAL, "Couldn't load pics/colormap.pcx" );
+	}
+
+	for ( i = 0; i < 256; i++ )
+	{
+		r = pal [ i * 3 + 0 ];
+		g = pal [ i * 3 + 1 ];
+		b = pal [ i * 3 + 2 ];
+
+		v = ( 255 << 24 ) + ( r << 0 ) + ( g << 8 ) + ( b << 16 );
+		d_8to24table [ i ] = LittleLong( v );
+	}
+
+	d_8to24table [ 255 ] &= LittleLong( 0xffffff );  /* 255 is transparent */
+
+	free( pic );
+	free( pal );
+
+	return ( 0 );
 }
 
