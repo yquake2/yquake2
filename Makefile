@@ -324,7 +324,7 @@ DEDICATED_SERVER_POSIX_OBJS = \
 OPENGL_OBJS = \
 	build/ref_gl/r_draw.o \
 	build/ref_gl/r_image.o \
-	build/ref_gl/gl_light.o \
+	build/ref_gl/r_light.o \
 	build/ref_gl/gl_mesh.o \
 	build/ref_gl/gl_model.o \
 	build/ref_gl/gl_rmain.o \
@@ -779,7 +779,7 @@ build/ref_gl/r_draw.o:						src/refresh/r_draw.c
 build/ref_gl/r_image.o:						src/refresh/r_image.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
   
-build/ref_gl/gl_light.o:					src/refresh/gl_light.c
+build/ref_gl/r_light.o:						src/refresh/r_light.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
   
 build/ref_gl/gl_mesh.o:						src/refresh/gl_mesh.c

@@ -7,3 +7,6 @@ Allgemein:
 
 - Dateien im Refresher umbenennen
 - Im Refresher für Funktionen konstant R_* statt GL_*
+
+- windowed_mouse sollte kein cvar sein
+- windowed_mouse_always in in_grap umbenennen
