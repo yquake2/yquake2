@@ -1035,11 +1035,6 @@ GL_InitImages ( void )
 		}
 	}
 
-	if ( gl_config.renderer & ( GL_RENDERER_VOODOO | GL_RENDERER_VOODOO2 ) )
-	{
-		g = 1.0F;
-	}
-
 	for ( i = 0; i < 256; i++ )
 	{
 		if ( ( g == 1 ) || gl_state.hwgamma )
