@@ -1,7 +1,7 @@
 #include "../header/local.h"
 
 image_t *
-R_LoadWal ( char *name )
+LoadWal ( char *name )
 {
 	miptex_t    *mt;
 	int width, height, ofs;

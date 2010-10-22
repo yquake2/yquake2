@@ -3,6 +3,7 @@ Allgemein:
 - ====InitGame=== in allen Spielen ändern
 
 - Header in unix/ und system/ mit Guards ausstatten
+- Alle anderen auf Guards prüfen
 
 - Dateien im Refresher umbenennen
 - Im Refresher für Funktionen konstant R_* statt GL_*

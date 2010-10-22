@@ -466,7 +466,7 @@ Mod_LoadTexinfo ( lump_t *l )
 
 		Com_sprintf( name, sizeof ( name ), "textures/%s.wal", in->texture );
 
-		out->image = GL_FindImage( name, it_wall );
+		out->image = R_FindImage( name, it_wall );
 
 		if ( !out->image )
 		{
@@ -988,7 +988,7 @@ R_RegisterModel ( char *name )
 
 			for ( i = 0; i < sprout->numframes; i++ )
 			{
-				mod->skins [ i ] = GL_FindImage( sprout->frames [ i ].name, it_sprite );
+				mod->skins [ i ] = R_FindImage( sprout->frames [ i ].name, it_sprite );
 			}
 		}
 		else if ( mod->type == mod_alias )
@@ -997,7 +997,7 @@ R_RegisterModel ( char *name )
 
 			for ( i = 0; i < pheader->num_skins; i++ )
 			{
-				mod->skins [ i ] = GL_FindImage( (char *) pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin );
+				mod->skins [ i ] = R_FindImage( (char *) pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin );
 			}
 
 			mod->numframes = pheader->num_frames;
@@ -1034,7 +1034,7 @@ R_EndRegistration ( void )
 		}
 	}
 
-	GL_FreeUnusedImages();
+	R_FreeUnusedImages();
 }
 
 void

@@ -663,7 +663,7 @@ R_DrawSkyBox ( void )
 			continue;
 		}
 
-		GL_Bind( sky_images [ skytexorder [ i ] ]->texnum );
+		R_Bind( sky_images [ skytexorder [ i ] ]->texnum );
 
 		qglBegin( GL_QUADS );
 		MakeSkyVec( skymins [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
@@ -690,7 +690,7 @@ R_SetSky ( char *name, float rotate, vec3_t axis )
 	{
 		Com_sprintf( pathname, sizeof ( pathname ), "env/%s%s.tga", skyname, suf [ i ] );
 
-		sky_images [ i ] = GL_FindImage( pathname, it_sky );
+		sky_images [ i ] = R_FindImage( pathname, it_sky );
 
 		if ( !sky_images [ i ] )
 		{

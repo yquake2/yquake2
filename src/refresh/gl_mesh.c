@@ -732,12 +732,12 @@ R_DrawAliasModel ( entity_t *e )
 		skin = r_notexture; /* fallback... */
 	}
 
-	GL_Bind( skin->texnum );
+	R_Bind( skin->texnum );
 
 	/* draw it */
 	qglShadeModel( GL_SMOOTH );
 
-	GL_TexEnv( GL_MODULATE );
+	R_TexEnv( GL_MODULATE );
 
 	if ( currententity->flags & RF_TRANSLUCENT )
 	{
@@ -769,7 +769,7 @@ R_DrawAliasModel ( entity_t *e )
 
 	GL_DrawAliasFrameLerp( paliashdr, currententity->backlerp );
 
-	GL_TexEnv( GL_REPLACE );
+	R_TexEnv( GL_REPLACE );
 	qglShadeModel( GL_FLAT );
 
 	qglPopMatrix();

@@ -60,7 +60,7 @@ R_InitParticleTexture ( void )
 		}
 	}
 
-	r_particletexture = GL_LoadPic( "***particle***", (byte *) data, 8, 8, it_sprite, 32 );
+	r_particletexture = R_LoadPic( "***particle***", (byte *) data, 8, 8, it_sprite, 32 );
 
 	/* also use this for bad textures, but without alpha */
 	for ( x = 0; x < 8; x++ )
@@ -74,7 +74,7 @@ R_InitParticleTexture ( void )
 		}
 	}
 
-	r_notexture = GL_LoadPic( "***r_notexture***", (byte *) data, 8, 8, it_wall, 32 );
+	r_notexture = R_LoadPic( "***r_notexture***", (byte *) data, 8, 8, it_wall, 32 );
 }
 
 void
@@ -171,9 +171,9 @@ GL_SetDefaultState ( void )
 	qglPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 	qglShadeModel( GL_FLAT );
 
-	GL_TextureMode( gl_texturemode->string );
-	GL_TextureAlphaMode( gl_texturealphamode->string );
-	GL_TextureSolidMode( gl_texturesolidmode->string );
+	R_TextureMode( gl_texturemode->string );
+	R_TextureAlphaMode( gl_texturealphamode->string );
+	R_TextureSolidMode( gl_texturesolidmode->string );
 
 	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min );
 	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max );
@@ -183,7 +183,7 @@ GL_SetDefaultState ( void )
 
 	qglBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
-	GL_TexEnv( GL_REPLACE );
+	R_TexEnv( GL_REPLACE );
 
 	if ( qglPointParameterfEXT )
 	{
