@@ -322,7 +322,7 @@ DEDICATED_SERVER_POSIX_OBJS = \
 
 # OpenGL refresher objects
 OPENGL_OBJS = \
-	build/ref_gl/gl_draw.o \
+	build/ref_gl/r_draw.o \
 	build/ref_gl/gl_image.o \
 	build/ref_gl/gl_light.o \
 	build/ref_gl/gl_mesh.o \
@@ -773,7 +773,7 @@ build/dedicated_server_unix/system.o :  	src/unix/system.c
 # ----------
 
 # OpenGL refresher build
-build/ref_gl/gl_draw.o:						src/refresh/gl_draw.c
+build/ref_gl/r_draw.o:						src/refresh/r_draw.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
 build/ref_gl/gl_image.o:					src/refresh/gl_image.c
