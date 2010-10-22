@@ -103,8 +103,8 @@ typedef struct image_s
 #define		MAX_GLTEXTURES	1024
 
 #define MAX_SCRAPS      1
-#define BLOCK_WIDTH     256
-#define BLOCK_HEIGHT    256
+#define BLOCK_WIDTH     128
+#define BLOCK_HEIGHT    128
 
 //===================================================================
 
