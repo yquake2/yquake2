@@ -147,8 +147,7 @@ LoadMD2 ( model_t *mod, void *buffer )
 
 	for ( i = 0; i < pheader->num_skins; i++ )
 	{
-		mod->skins [ i ] = GL_FindImage( (char *) pheader + pheader->ofs_skins + i * MAX_SKINNAME,
-				it_skin );
+		mod->skins [ i ] = R_FindImage( (char *) pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin );
 	}
 
 	mod->mins [ 0 ] = -32;

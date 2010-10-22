@@ -11,7 +11,7 @@ LoadWal ( char *name )
 
 	if ( !mt )
 	{
-		ri.Con_Printf( PRINT_ALL, "GL_LoadWall: can't load %s\n", name );
+		ri.Con_Printf( PRINT_ALL, "LoadWall: can't load %s\n", name );
 		return ( r_notexture );
 	}
 
@@ -19,7 +19,7 @@ LoadWal ( char *name )
 	height = LittleLong( mt->height );
 	ofs = LittleLong( mt->offsets [ 0 ] );
 
-	image = GL_LoadPic( name, (byte *) mt + ofs, width, height, it_wall, 8 );
+	image = R_LoadPic( name, (byte *) mt + ofs, width, height, it_wall, 8 );
 
 	ri.FS_FreeFile( (void *) mt );
 

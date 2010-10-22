@@ -36,9 +36,9 @@ int mod_numknown;
 int registration_sequence;
 byte *mod_base;
 
-void Mod_LoadSpriteModel ( model_t *mod, void *buffer );
+void LoadSP2 ( model_t *mod, void *buffer );
 void Mod_LoadBrushModel ( model_t *mod, void *buffer );
-void Mod_LoadAliasModel ( model_t *mod, void *buffer );
+void LoadMD2 ( model_t *mod, void *buffer );
 model_t *Mod_LoadModel ( model_t *mod, qboolean crash );
 void GL_BuildPolygonFromSurface ( msurface_t *fa );
 void GL_CreateSurfaceLightmap ( msurface_t *surf );
@@ -256,12 +256,12 @@ Mod_ForName ( char *name, qboolean crash )
 	{
 		case IDALIASHEADER:
 			loadmodel->extradata = Hunk_Begin( 0x200000 );
-			Mod_LoadAliasModel( mod, buf );
+			LoadMD2( mod, buf );
 			break;
 
 		case IDSPRITEHEADER:
 			loadmodel->extradata = Hunk_Begin( 0x10000 );
-			Mod_LoadSpriteModel( mod, buf );
+			LoadSP2( mod, buf );
 			break;
 
 		case IDBSPHEADER:
