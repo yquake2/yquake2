@@ -124,7 +124,6 @@ cvar_t  *gl_customwidth;
 cvar_t  *gl_customheight;
 
 cvar_t  *gl_dynamic;
-cvar_t  *gl_monolightmap;
 cvar_t  *gl_modulate;
 cvar_t  *gl_nobind;
 cvar_t  *gl_round_down;
@@ -965,7 +964,6 @@ R_Register ( void )
 	gl_polyblend = ri.Cvar_Get( "gl_polyblend", "1", 0 );
 	gl_flashblend = ri.Cvar_Get( "gl_flashblend", "0", 0 );
 	gl_playermip = ri.Cvar_Get( "gl_playermip", "0", 0 );
-	gl_monolightmap = ri.Cvar_Get( "gl_monolightmap", "0", 0 );
 	gl_driver = ri.Cvar_Get( "gl_driver", "libGL.so.1", CVAR_ARCHIVE );
 	gl_texturemode = ri.Cvar_Get( "gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE );
 	gl_texturealphamode = ri.Cvar_Get( "gl_texturealphamode", "default", CVAR_ARCHIVE );
@@ -1121,11 +1119,6 @@ R_Init ( void *hinstance, void *hWnd )
 	vendor_buffer [ sizeof ( vendor_buffer ) - 1 ] = 0;
 	strlwr( vendor_buffer );
 	
-	if ( toupper( gl_monolightmap->string [ 1 ] ) != 'F' )
-	{
-		ri.Cvar_Set( "gl_monolightmap", "0" );
-	}
-
 	ri.Cvar_Set( "scr_drawall", "0" );
 	gl_config.allow_cds = true;
 
