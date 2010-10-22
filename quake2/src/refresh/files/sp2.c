@@ -61,7 +61,7 @@ LoadSP2 ( model_t *mod, void *buffer )
 		sprout->frames [ i ].origin_x = LittleLong( sprin->frames [ i ].origin_x );
 		sprout->frames [ i ].origin_y = LittleLong( sprin->frames [ i ].origin_y );
 		memcpy( sprout->frames [ i ].name, sprin->frames [ i ].name, MAX_SKINNAME );
-		mod->skins [ i ] = GL_FindImage( sprout->frames [ i ].name,
+		mod->skins [ i ] = R_FindImage( sprout->frames [ i ].name,
 				it_sprite );
 	}
 
