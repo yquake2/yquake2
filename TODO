@@ -5,8 +5,6 @@ Allgemein:
 - Header in unix/ und system/ mit Guards ausstatten
 - Alle anderen auf Guards prüfen
 
-- Dateien im Refresher umbenennen
-- Im Refresher für Funktionen konstant R_* statt GL_*
 - r_* statt gl_* für die CVARs
 
 - windowed_mouse sollte kein cvar sein
