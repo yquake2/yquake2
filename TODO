@@ -6,6 +6,3 @@ Allgemein:
 - Alle anderen auf Guards prüfen
 
 - r_* statt gl_* für die CVARs
-
-- windowed_mouse sollte kein cvar sein
-- windowed_mouse_always in in_grap umbenennen
