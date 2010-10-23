@@ -346,7 +346,7 @@ Mod_LoadVertexes ( lump_t *l )
 }
 
 float
-RadiusFromBounds ( vec3_t mins, vec3_t maxs )
+Mod_RadiusFromBounds ( vec3_t mins, vec3_t maxs )
 {
 	int i;
 	vec3_t corner;
@@ -389,7 +389,7 @@ Mod_LoadSubmodels ( lump_t *l )
 			out->origin [ j ] = LittleFloat( in->origin [ j ] );
 		}
 
-		out->radius = RadiusFromBounds( out->mins, out->maxs );
+		out->radius = Mod_RadiusFromBounds( out->mins, out->maxs );
 		out->headnode = LittleLong( in->headnode );
 		out->firstface = LittleLong( in->firstface );
 		out->numfaces = LittleLong( in->numfaces );
@@ -492,7 +492,7 @@ Mod_LoadTexinfo ( lump_t *l )
  * Fills in s->texturemins[] and s->extents[]
  */
 void
-CalcSurfaceExtents ( msurface_t *s )
+Mod_CalcSurfaceExtents ( msurface_t *s )
 {
 	float mins [ 2 ], maxs [ 2 ], val;
 	int i, j, e;
@@ -599,7 +599,7 @@ Mod_LoadFaces ( lump_t *l )
 
 		out->texinfo = loadmodel->texinfo + ti;
 
-		CalcSurfaceExtents( out );
+		Mod_CalcSurfaceExtents( out );
 
 		/* lighting info */
 		for ( i = 0; i < MAXLIGHTMAPS; i++ )
@@ -939,6 +939,27 @@ Mod_LoadBrushModel ( model_t *mod, void *buffer )
 	}
 }
 
+void
+Mod_Free ( model_t *mod )
+{
+	Hunk_Free( mod->extradata );
+	memset( mod, 0, sizeof ( *mod ) );
+}
+
+void
+Mod_FreeAll ( void )
+{
+	int i;
+
+	for ( i = 0; i < mod_numknown; i++ )
+	{
+		if ( mod_known [ i ].extradatasize )
+		{
+			Mod_Free( &mod_known [ i ] );
+		}
+	}
+}
+ 
 /*
  * Specifies the model that will be used as the world
  */
@@ -1036,25 +1057,4 @@ R_EndRegistration ( void )
 
 	R_FreeUnusedImages();
 }
-
-void
-Mod_Free ( model_t *mod )
-{
-	Hunk_Free( mod->extradata );
-	memset( mod, 0, sizeof ( *mod ) );
-}
-
-void
-Mod_FreeAll ( void )
-{
-	int i;
-
-	for ( i = 0; i < mod_numknown; i++ )
-	{
-		if ( mod_known [ i ].extradatasize )
-		{
-			Mod_Free( &mod_known [ i ] );
-		}
-	}
-}
-
+ 
