@@ -331,7 +331,7 @@ OPENGL_OBJS = \
 	build/ref_gl/r_main.o \
 	build/ref_gl/r_misc.o \
 	build/ref_gl/r_surf.o \
-	build/ref_gl/gl_scrap.o \
+	build/ref_gl/r_scrap.o \
 	build/ref_gl/gl_warp.o \
 	build/ref_gl/files/md2.o \
 	build/ref_gl/files/pcx.o \
@@ -801,7 +801,7 @@ build/ref_gl/r_misc.o:   					src/refresh/r_misc.c
 build/ref_gl/r_surf.o:   					src/refresh/r_surf.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
  
-build/ref_gl/gl_scrap.o:   					src/refresh/gl_scrap.c
+build/ref_gl/r_scrap.o:   					src/refresh/r_scrap.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
  
 build/ref_gl/gl_warp.o:						src/refresh/gl_warp.c
