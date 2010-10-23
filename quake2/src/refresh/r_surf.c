@@ -379,7 +379,7 @@ R_RenderBrushPoly ( msurface_t *fa )
 				gl_state.inverse_intensity,
 				gl_state.inverse_intensity,
 				1.0F );
-		EmitWaterPolys( fa );
+		R_EmitWaterPolys( fa );
 		R_TexEnv( GL_REPLACE );
 
 		return;
@@ -501,7 +501,7 @@ R_DrawAlphaSurfaces ( void )
 
 		if ( s->flags & SURF_DRAWTURB )
 		{
-			EmitWaterPolys( s );
+			R_EmitWaterPolys( s );
 		}
 		else if ( s->texinfo->flags & SURF_FLOWING )
 		{
