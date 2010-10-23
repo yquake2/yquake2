@@ -430,7 +430,7 @@ void
 IN_BackendInit ( in_state_t *in_state_p )
 {
 	in_state = in_state_p;
-	m_filter = ri.Cvar_Get( "m_filter", "0", 0 );
+	m_filter = ri.Cvar_Get( "m_filter", "0", CVAR_ARCHIVE );
 	in_mouse = ri.Cvar_Get( "in_mouse", "0", CVAR_ARCHIVE );
 
 	freelook = ri.Cvar_Get( "freelook", "1", 0 );
@@ -521,11 +521,17 @@ void
 IN_BackendMove ( usercmd_t *cmd )
 {
 	IN_GetMouseState( &mouse_x, &mouse_y, &mouse_buttonstate );
-
+	
 	if ( m_filter->value )
 	{
-		mouse_x = ( mouse_x + old_mouse_x ) * 0.5;
-		mouse_y = ( mouse_y + old_mouse_y ) * 0.5;
+		if ( ( mouse_x > 1 ) || ( mouse_x < -1) )
+		{
+			mouse_x = ( mouse_x + old_mouse_x ) * 0.5;
+		}
+		if ( ( mouse_y > 1 ) || ( mouse_y < -1) )
+		{
+			mouse_y = ( mouse_y + old_mouse_y ) * 0.5;
+		}
 	}
 
 	old_mouse_x = mouse_x;
