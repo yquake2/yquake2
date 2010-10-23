@@ -122,8 +122,8 @@ typedef enum
 void GL_BeginRendering ( int *x, int *y, int *width, int *height );
 void GL_EndRendering ( void );
 
-void GL_SetDefaultState ( void );
-void GL_UpdateSwapInterval ( void );
+void R_SetDefaultState ( void );
+void R_UpdateSwapInterval ( void );
 
 extern float gldepthmin, gldepthmax;
 
@@ -254,7 +254,7 @@ int     R_Init ( void *hinstance, void *hWnd );
 void    R_Shutdown ( void );
 
 void R_RenderView ( refdef_t *fd );
-void GL_ScreenShot_f ( void );
+void R_ScreenShot ( void );
 void R_DrawAliasModel ( entity_t *e );
 void R_DrawBrushModel ( entity_t *e );
 void R_DrawSpriteModel ( entity_t *e );

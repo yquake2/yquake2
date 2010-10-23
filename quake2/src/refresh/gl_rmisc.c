@@ -1,23 +1,28 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or (at
+ * your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
  *
- */
-/* r_misc.c */
+ * =======================================================================
+ *
+ * Misc refresher functions
+ *
+ * =======================================================================
+ */ 
 
 #include "header/local.h"
 
@@ -78,7 +83,7 @@ R_InitParticleTexture ( void )
 }
 
 void
-GL_ScreenShot_f ( void )
+R_ScreenShot ( void )
 {
 	byte        *buffer;
 	char picname [ 80 ];
@@ -144,7 +149,7 @@ GL_ScreenShot_f ( void )
 }
 
 void
-GL_Strings_f ( void )
+R_Strings ( void )
 {
 	ri.Con_Printf( PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string );
 	ri.Con_Printf( PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string );
@@ -153,7 +158,7 @@ GL_Strings_f ( void )
 }
 
 void
-GL_SetDefaultState ( void )
+R_SetDefaultState ( void )
 {
 	qglClearColor( 1, 0, 0.5, 0.5 );
 	qglCullFace( GL_FRONT );
@@ -199,11 +204,11 @@ GL_SetDefaultState ( void )
 		qglPointParameterfvEXT( GL_DISTANCE_ATTENUATION_EXT, attenuations );
 	}
 
-	GL_UpdateSwapInterval();
+	R_UpdateSwapInterval();
 }
 
 void
-GL_UpdateSwapInterval ( void )
+R_UpdateSwapInterval ( void )
 {
 	if ( gl_swapinterval->modified )
 	{
