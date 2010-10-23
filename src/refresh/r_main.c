@@ -71,7 +71,7 @@ int c_brush_polys, c_alias_polys;
 
 float v_blend [ 4 ];            /* final blending color */
 
-void GL_Strings_f ( void );
+void R_Strings ( void );
 
 /* view origin */
 vec3_t vup;
@@ -995,9 +995,9 @@ R_Register ( void )
 	gl_customheight = ri.Cvar_Get( "gl_customheight", "768", CVAR_ARCHIVE );
 
 	ri.Cmd_AddCommand( "imagelist", R_ImageList_f );
-	ri.Cmd_AddCommand( "screenshot", GL_ScreenShot_f );
+	ri.Cmd_AddCommand( "screenshot", R_ScreenShot );
 	ri.Cmd_AddCommand( "modellist", Mod_Modellist_f );
-	ri.Cmd_AddCommand( "gl_strings", GL_Strings_f );
+	ri.Cmd_AddCommand( "gl_strings", R_Strings );
 }
 
 qboolean
@@ -1160,7 +1160,7 @@ R_Init ( void *hinstance, void *hWnd )
 		ri.Con_Printf( PRINT_ALL, "...GL_EXT_point_parameters not found\n" );
 	}
 
-	GL_SetDefaultState();
+	R_SetDefaultState();
 
 	R_InitImages();
 	Mod_Init();
@@ -1284,7 +1284,7 @@ R_BeginFrame ( float camera_separation )
 	}
 
 	/* swapinterval stuff */
-	GL_UpdateSwapInterval();
+	R_UpdateSwapInterval();
 
 	/* clear screen if desired */
 	R_Clear();
