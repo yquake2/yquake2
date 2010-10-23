@@ -40,10 +40,10 @@ void LoadSP2 ( model_t *mod, void *buffer );
 void Mod_LoadBrushModel ( model_t *mod, void *buffer );
 void LoadMD2 ( model_t *mod, void *buffer );
 model_t *Mod_LoadModel ( model_t *mod, qboolean crash );
-void GL_BuildPolygonFromSurface ( msurface_t *fa );
-void GL_CreateSurfaceLightmap ( msurface_t *surf );
-void GL_EndBuildingLightmaps ( void );
-void GL_BeginBuildingLightmaps ( model_t *m );
+void LM_BuildPolygonFromSurface ( msurface_t *fa );
+void LM_CreateSurfaceLightmap ( msurface_t *surf );
+void LM_EndBuildingLightmaps ( void );
+void LM_BeginBuildingLightmaps ( model_t *m );
 
 /* the inline * models from the current map are kept seperate */
 model_t mod_inline [ MAX_MOD_KNOWN ];
@@ -571,7 +571,7 @@ Mod_LoadFaces ( lump_t *l )
 
 	currentmodel = loadmodel;
 
-	GL_BeginBuildingLightmaps( loadmodel );
+	LM_BeginBuildingLightmaps( loadmodel );
 
 	for ( surfnum = 0; surfnum < count; surfnum++, in++, out++ )
 	{
@@ -635,16 +635,16 @@ Mod_LoadFaces ( lump_t *l )
 		/* create lightmaps and polygons */
 		if ( !( out->texinfo->flags & ( SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP ) ) )
 		{
-			GL_CreateSurfaceLightmap( out );
+			LM_CreateSurfaceLightmap( out );
 		}
 
 		if ( !( out->texinfo->flags & SURF_WARP ) )
 		{
-			GL_BuildPolygonFromSurface( out );
+			LM_BuildPolygonFromSurface( out );
 		}
 	}
 
-	GL_EndBuildingLightmaps();
+	LM_EndBuildingLightmaps();
 }
 
 void

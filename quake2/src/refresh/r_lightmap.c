@@ -142,7 +142,7 @@ LM_AllocBlock ( int w, int h, int *x, int *y )
 }
 
 void
-GL_BuildPolygonFromSurface ( msurface_t *fa )
+LM_BuildPolygonFromSurface ( msurface_t *fa )
 {
 	int i, lindex, lnumverts;
 	medge_t     *pedges, *r_pedge;
@@ -213,7 +213,7 @@ GL_BuildPolygonFromSurface ( msurface_t *fa )
 }
 
 void
-GL_CreateSurfaceLightmap ( msurface_t *surf )
+LM_CreateSurfaceLightmap ( msurface_t *surf )
 {
 	int smax, tmax;
 	byte    *base;
@@ -247,7 +247,7 @@ GL_CreateSurfaceLightmap ( msurface_t *surf )
 }
 
 void
-GL_BeginBuildingLightmaps ( model_t *m )
+LM_BeginBuildingLightmaps ( model_t *m )
 {
 	static lightstyle_t lightstyles [ MAX_LIGHTSTYLES ];
 	int i;
@@ -292,7 +292,7 @@ GL_BeginBuildingLightmaps ( model_t *m )
 }
 
 void
-GL_EndBuildingLightmaps ( void )
+LM_EndBuildingLightmaps ( void )
 {
 	LM_UploadBlock( false );
 }
