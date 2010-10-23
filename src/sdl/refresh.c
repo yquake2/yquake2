@@ -187,7 +187,7 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	/* Initialize the stencil buffer */
 	if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits)) 
 	{
-		ri.Con_Printf(PRINT_ALL, "Got %d bits of stencil\n.", stencil_bits);
+		ri.Con_Printf(PRINT_ALL, "Got %d bits of stencil.\n", stencil_bits);
 		
 		if (stencil_bits >= 1) 
 		{
