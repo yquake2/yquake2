@@ -314,7 +314,7 @@ void R_TextureSolidMode ( char *string );
 int Scrap_AllocBlock ( int w, int h, int *x, int *y );
 
 /* GL extension emulation functions */
-void GL_DrawParticles ( int n, const particle_t particles[], const unsigned colortable [ 768 ] );
+void R_DrawParticles2 ( int n, const particle_t particles[], const unsigned colortable [ 768 ] );
 
 /*
 ** GL config stuff

@@ -413,7 +413,7 @@ R_DrawEntitiesOnList ( void )
 }
 
 void
-GL_DrawParticles ( int num_particles, const particle_t particles[], const unsigned colortable [ 768 ] )
+R_DrawParticles2 ( int num_particles, const particle_t particles[], const unsigned colortable [ 768 ] )
 {
 	const particle_t *p;
 	int i;
@@ -508,7 +508,7 @@ R_DrawParticles ( void )
 	}
 	else
 	{
-		GL_DrawParticles( r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table );
+		R_DrawParticles2( r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table );
 	}
 }
 
@@ -553,7 +553,7 @@ R_PolyBlend ( void )
 }
 
 int
-SignbitsForPlane ( cplane_t *out )
+R_SignbitsForPlane ( cplane_t *out )
 {
 	int bits, j;
 
@@ -589,7 +589,7 @@ R_SetFrustum ( void )
 	{
 		frustum [ i ].type = PLANE_ANYZ;
 		frustum [ i ].dist = DotProduct( r_origin, frustum [ i ].normal );
-		frustum [ i ].signbits = SignbitsForPlane( &frustum [ i ] );
+		frustum [ i ].signbits = R_SignbitsForPlane( &frustum [ i ] );
 	}
 }
 
@@ -667,7 +667,7 @@ R_SetupFrame ( void )
 }
 
 void
-MYgluPerspective ( GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar )
+R_MYgluPerspective ( GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar )
 {
 	GLdouble xmin, xmax, ymin, ymax;
 
@@ -704,7 +704,7 @@ R_SetupGL ( void )
 	screenaspect = (float) r_newrefdef.width / r_newrefdef.height;
 	qglMatrixMode( GL_PROJECTION );
 	qglLoadIdentity();
-	MYgluPerspective( r_newrefdef.fov_y,  screenaspect,  4,  4096 );
+	R_MYgluPerspective( r_newrefdef.fov_y,  screenaspect,  4,  4096 );
 
 	qglCullFace( GL_FRONT );
 
@@ -1388,7 +1388,7 @@ R_DrawBeam ( entity_t *e )
 }
 
 refexport_t
-GetRefAPI ( refimport_t rimp )
+R_GetRefAPI ( refimport_t rimp )
 {
 	refexport_t re;
 
