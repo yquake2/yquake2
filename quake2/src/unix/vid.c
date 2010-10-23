@@ -208,7 +208,7 @@ qboolean
 VID_LoadRefresh ( char *name )
 {
 	refimport_t ri;
-	GetRefAPI_t GetRefAPI;
+	R_GetRefAPI_t R_GetRefAPI;
 	char fn [ MAX_OSPATH ];
 	char    *path;
 	struct stat st;
@@ -272,12 +272,12 @@ VID_LoadRefresh ( char *name )
 	ri.Vid_MenuInit = VID_MenuInit;
 	ri.Vid_NewWindow = VID_NewWindow;
 
-	if ( ( GetRefAPI = (void *) dlsym( reflib_library, "GetRefAPI" ) ) == 0 )
+	if ( ( R_GetRefAPI = (void *) dlsym( reflib_library, "R_GetRefAPI" ) ) == 0 )
 	{
 		Com_Error( ERR_FATAL, "dlsym failed on %s", name );
 	}
 
-	re = GetRefAPI( ri );
+	re = R_GetRefAPI( ri );
 
 	if ( re.api_version != API_VERSION )
 	{

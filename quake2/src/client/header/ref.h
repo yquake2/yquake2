@@ -207,7 +207,7 @@ typedef struct {
 } refimport_t;
 
 /* this is the only function actually exported at the linker level */
-typedef	refexport_t	(*GetRefAPI_t)(refimport_t);
+typedef	refexport_t	(*R_GetRefAPI_t)(refimport_t);
 
 #endif
 
