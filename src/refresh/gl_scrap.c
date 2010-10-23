@@ -32,6 +32,8 @@ byte scrap_texels [ MAX_SCRAPS ] [ BLOCK_WIDTH * BLOCK_HEIGHT ];
 qboolean scrap_dirty;
 int scrap_uploads;
 
+qboolean R_Upload8 ( byte *data, int width, int height,  qboolean mipmap, qboolean is_sky );
+
 /* returns a texture number and the position inside it */
 int
 Scrap_AllocBlock ( int w, int h, int *x, int *y )
