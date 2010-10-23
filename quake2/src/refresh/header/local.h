@@ -49,6 +49,11 @@
 #define REF_VERSION			"Yamagi Quake II OpenGL Refresher"
 #define MAX_LBM_HEIGHT      480
 #define BACKFACE_EPSILON    0.01
+#define DYNAMIC_LIGHT_WIDTH  128
+#define DYNAMIC_LIGHT_HEIGHT 128
+#define LIGHTMAP_BYTES 4
+#define MAX_LIGHTMAPS 128
+#define GL_LIGHTMAP_FORMAT GL_RGBA
      
 /* up / down */
 #define PITCH   0
@@ -354,6 +359,20 @@ typedef struct
 	unsigned char originalGreenGammaTable [ 256 ];
 	unsigned char originalBlueGammaTable [ 256 ];
 } glstate_t;
+
+typedef struct
+{
+	int internal_format;
+	int current_lightmap_texture;
+
+	msurface_t  *lightmap_surfaces [ MAX_LIGHTMAPS ];
+
+	int allocated [ BLOCK_WIDTH ];
+
+	/* the lightmap texture data needs to be kept in
+	   main memory so texsubimage can update properly */
+	byte lightmap_buffer [ 4 * BLOCK_WIDTH * BLOCK_HEIGHT ];
+} gllightmapstate_t;
 
 extern glconfig_t gl_config;
 extern glstate_t gl_state;
