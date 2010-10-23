@@ -327,7 +327,7 @@ OPENGL_OBJS = \
 	build/ref_gl/r_light.o \
 	build/ref_gl/r_mesh.o \
 	build/ref_gl/r_model.o \
-	build/ref_gl/gl_rmain.o \
+	build/ref_gl/r_main.o \
 	build/ref_gl/gl_rmisc.o \
 	build/ref_gl/gl_rsurf.o \
 	build/ref_gl/gl_scrap.o \
@@ -788,7 +788,7 @@ build/ref_gl/r_mesh.o:						src/refresh/r_mesh.c
 build/ref_gl/r_model.o:   					src/refresh/r_model.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
   
-build/ref_gl/gl_rmain.o:   					src/refresh/gl_rmain.c
+build/ref_gl/r_main.o:   					src/refresh/r_main.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
   
 build/ref_gl/gl_rmisc.o:   					src/refresh/gl_rmisc.c
