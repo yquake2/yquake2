@@ -31,13 +31,13 @@ extern gllightmapstate_t gl_lms;
 void R_SetCacheState ( msurface_t *surf );
 void R_BuildLightMap ( msurface_t *surf, byte *dest, int stride );
 
-static void
+void
 LM_InitBlock ( void )
 {
 	memset( gl_lms.allocated, 0, sizeof ( gl_lms.allocated ) );
 }
 
-static void
+void
 LM_UploadBlock ( qboolean dynamic )
 {
 	int texture;
@@ -95,7 +95,7 @@ LM_UploadBlock ( qboolean dynamic )
 }
 
 /* returns a texture number and the position inside it */
-static qboolean
+qboolean
 LM_AllocBlock ( int w, int h, int *x, int *y )
 {
 	int i, j;
