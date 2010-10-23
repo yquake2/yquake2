@@ -1,22 +1,28 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or (at
+ * your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
  *
- */
+ * =======================================================================
+ *
+ * Warps. Used on water surfaces und for skybox rotation.
+ *
+ * =======================================================================
+ */    
 
 #include "header/local.h"
 
@@ -76,7 +82,7 @@ float skymins [ 2 ] [ 6 ], skymaxs [ 2 ] [ 6 ];
 float sky_min, sky_max;
                   
 void
-BoundPoly ( int numverts, float *verts, vec3_t mins, vec3_t maxs )
+R_BoundPoly ( int numverts, float *verts, vec3_t mins, vec3_t maxs )
 {
 	int i, j;
 	float   *v;
@@ -103,7 +109,7 @@ BoundPoly ( int numverts, float *verts, vec3_t mins, vec3_t maxs )
 }
 
 void
-SubdividePolygon ( int numverts, float *verts )
+R_SubdividePolygon ( int numverts, float *verts )
 {
 	int i, j, k;
 	vec3_t mins, maxs;
@@ -123,7 +129,7 @@ SubdividePolygon ( int numverts, float *verts )
 		ri.Sys_Error( ERR_DROP, "numverts = %i", numverts );
 	}
 
-	BoundPoly( numverts, verts, mins, maxs );
+	R_BoundPoly( numverts, verts, mins, maxs );
 
 	for ( i = 0; i < 3; i++ )
 	{
@@ -190,8 +196,8 @@ SubdividePolygon ( int numverts, float *verts )
 			}
 		}
 
-		SubdividePolygon( f, front [ 0 ] );
-		SubdividePolygon( b, back [ 0 ] );
+		R_SubdividePolygon( f, front [ 0 ] );
+		R_SubdividePolygon( b, back [ 0 ] );
 		return;
 	}
 
@@ -232,7 +238,7 @@ SubdividePolygon ( int numverts, float *verts )
  * can be done reasonably.
  */
 void
-GL_SubdivideSurface ( msurface_t *fa )
+R_SubdivideSurface ( msurface_t *fa )
 {
 	vec3_t verts [ 64 ];
 	int numverts;
@@ -262,14 +268,14 @@ GL_SubdivideSurface ( msurface_t *fa )
 		numverts++;
 	}
 
-	SubdividePolygon( numverts, verts [ 0 ] );
+	R_SubdividePolygon( numverts, verts [ 0 ] );
 }
 
 /*
  * Does a water warp on the pre-fragmented glpoly_t chain
  */
 void
-EmitWaterPolys ( msurface_t *fa )
+R_EmitWaterPolys ( msurface_t *fa )
 {
 	glpoly_t    *p, *bp;
 	float       *v;
@@ -314,7 +320,7 @@ EmitWaterPolys ( msurface_t *fa )
 }
 
 void
-DrawSkyPolygon ( int nump, vec3_t vecs )
+R_DrawSkyPolygon ( int nump, vec3_t vecs )
 {
 	int i, j;
 	vec3_t v, av;
@@ -434,7 +440,7 @@ DrawSkyPolygon ( int nump, vec3_t vecs )
 }
 
 void
-ClipSkyPolygon ( int nump, vec3_t vecs, int stage )
+R_ClipSkyPolygon ( int nump, vec3_t vecs, int stage )
 {
 	float   *norm;
 	float   *v;
@@ -448,13 +454,13 @@ ClipSkyPolygon ( int nump, vec3_t vecs, int stage )
 
 	if ( nump > MAX_CLIP_VERTS - 2 )
 	{
-		ri.Sys_Error( ERR_DROP, "ClipSkyPolygon: MAX_CLIP_VERTS" );
+		ri.Sys_Error( ERR_DROP, "R_ClipSkyPolygon: MAX_CLIP_VERTS" );
 	}
 
 	if ( stage == 6 )
 	{   
 		/* fully clipped, so draw it */
-		DrawSkyPolygon( nump, vecs );
+		R_DrawSkyPolygon( nump, vecs );
 		return;
 	}
 
@@ -486,7 +492,7 @@ ClipSkyPolygon ( int nump, vec3_t vecs, int stage )
 	if ( !front || !back )
 	{   
 		/* not clipped */
-		ClipSkyPolygon( nump, vecs, stage + 1 );
+		R_ClipSkyPolygon( nump, vecs, stage + 1 );
 		return;
 	}
 
@@ -535,8 +541,8 @@ ClipSkyPolygon ( int nump, vec3_t vecs, int stage )
 	}
 
 	/* continue */
-	ClipSkyPolygon( newc [ 0 ], newv [ 0 ] [ 0 ], stage + 1 );
-	ClipSkyPolygon( newc [ 1 ], newv [ 1 ] [ 0 ], stage + 1 );
+	R_ClipSkyPolygon( newc [ 0 ], newv [ 0 ] [ 0 ], stage + 1 );
+	R_ClipSkyPolygon( newc [ 1 ], newv [ 1 ] [ 0 ], stage + 1 );
 }
 
 void
@@ -554,7 +560,7 @@ R_AddSkySurface ( msurface_t *fa )
 			VectorSubtract( p->verts [ i ], r_origin, verts [ i ] );
 		}
 
-		ClipSkyPolygon( p->numverts, verts [ 0 ], 0 );
+		R_ClipSkyPolygon( p->numverts, verts [ 0 ], 0 );
 	}
 }
 
@@ -571,7 +577,7 @@ R_ClearSkyBox ( void )
 }
 
 void
-MakeSkyVec ( float s, float t, int axis )
+R_MakeSkyVec ( float s, float t, int axis )
 {
 	vec3_t v, b;
 	int j, k;
@@ -666,10 +672,10 @@ R_DrawSkyBox ( void )
 		R_Bind( sky_images [ skytexorder [ i ] ]->texnum );
 
 		qglBegin( GL_QUADS );
-		MakeSkyVec( skymins [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
-		MakeSkyVec( skymins [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
-		MakeSkyVec( skymaxs [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
-		MakeSkyVec( skymaxs [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
+		R_MakeSkyVec( skymins [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
+		R_MakeSkyVec( skymins [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
+		R_MakeSkyVec( skymaxs [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
+		R_MakeSkyVec( skymaxs [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
 		qglEnd();
 	}
 

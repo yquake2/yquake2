@@ -270,13 +270,13 @@ void R_DrawAlphaSurfaces ( void );
 void R_RenderBrushPoly ( msurface_t *fa );
 void R_InitParticleTexture ( void );
 void Draw_InitLocal ( void );
-void GL_SubdivideSurface ( msurface_t *fa );
+void R_SubdivideSurface ( msurface_t *fa );
 qboolean R_CullBox ( vec3_t mins, vec3_t maxs );
 void R_RotateForEntity ( entity_t *e );
 void R_MarkLeaves ( void );
 
 glpoly_t *WaterWarpPolyVerts ( glpoly_t *p );
-void EmitWaterPolys ( msurface_t *fa );
+void R_EmitWaterPolys ( msurface_t *fa );
 void R_AddSkySurface ( msurface_t *fa );
 void R_ClearSkyBox ( void );
 void R_DrawSkyBox ( void );
