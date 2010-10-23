@@ -93,7 +93,7 @@ R_ScreenShot ( void )
 
 	/* create the scrnshots directory if it doesn't exist */
 	Com_sprintf( checkname, sizeof ( checkname ), "%s/scrnshot", ri.FS_Gamedir() );
-	Sys_Mkdir( checkname );
+	ri.Sys_Mkdir( checkname );
 
 	/* find a file name to save it to */
 	strcpy( picname, "quake00.tga" );
