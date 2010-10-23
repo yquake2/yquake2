@@ -35,7 +35,7 @@
 
 static int		old_windowed_mouse;
 static cvar_t	*windowed_mouse;
-static cvar_t   *windowed_mouse_always;
+static cvar_t   *in_grap;
 static int		mouse_x, mouse_y;
 static int		old_mouse_x, old_mouse_y;
 static int		mouse_buttonstate;
@@ -321,7 +321,7 @@ void IN_Update(void)
 
   /* Grab and ungrab the mouse if the
      console is opened */
-  if (windowed_mouse_always->value == 2)
+  if (in_grap->value == 2)
   {
 	  if (old_windowed_mouse != windowed_mouse->value) 
 	  {
@@ -337,7 +337,7 @@ void IN_Update(void)
 		  }
 	  }
   }
-  else if (windowed_mouse_always->value == 1)
+  else if (in_grap->value == 1)
   {
 	  SDL_WM_GrabInput(SDL_GRAB_ON);
   }
@@ -454,7 +454,7 @@ IN_BackendInit ( in_state_t *in_state_p )
     SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL );
 
 	windowed_mouse = ri.Cvar_Get ("windowed_mouse", "1", CVAR_ARCHIVE);
-	windowed_mouse_always = ri.Cvar_Get ("windowed_mouse_always", "2", CVAR_ARCHIVE);
+	in_grap = ri.Cvar_Get ("in_grap", "2", CVAR_ARCHIVE);
 
 	Com_Printf( "Input initialized.\n" );
 }
