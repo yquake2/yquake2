@@ -2,7 +2,13 @@ Allgemein:
 - Die Makefile sollte komplett neu geschrieben werden.
 - ====InitGame=== in allen Spielen ändern
 
+Von Qsrc:
+- cvar liste wie in q3a: http://web.archive.org/web/20061113110329/www.quakesrc.org/tutorials/old/18
+- overbrightbits: http://web.archive.org/web/20061113110425/www.quakesrc.org/tutorials/old/28
+- r_speeds umbauen: http://web.archive.org/web/20061113110521/www.quakesrc.org/tutorials/old/35
+- Konsolentimestamps: http://web.archive.org/web/20061113110534/www.quakesrc.org/tutorials/old/36
+
+
+- Stencil shadows tun nich?
 - Header in unix/ und system/ mit Guards ausstatten
 - Alle anderen auf Guards prüfen
-
-- r_* statt gl_* für die CVARs
