@@ -465,6 +465,9 @@ IN_BackendInit ( in_state_t *in_state_p )
 void
 IN_BackendShutdown ( void )
 {
+	ri.Cmd_RemoveCommand( "+mlook" );
+	ri.Cmd_RemoveCommand( "-mlook" );
+	ri.Cmd_RemoveCommand( "force_centerview" );
 	Com_Printf("Input shut down.\n");
 }
 
