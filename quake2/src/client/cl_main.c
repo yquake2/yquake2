@@ -503,7 +503,7 @@ void CL_InitLocal (void)
 	rcon_client_password = Cvar_Get ("rcon_password", "", 0);
 	rcon_address = Cvar_Get ("rcon_address", "", 0);
 
-	cl_lightlevel = Cvar_Get ("r_lightlevel", "0", 0);
+	cl_lightlevel = Cvar_Get ("gl_lightlevel", "0", 0);
 
 	/* userinfo */
 	info_password = Cvar_Get ("password", "", CVAR_USERINFO);
@@ -612,10 +612,10 @@ cheatvar_t	cheatvars[] =
 {
 	{"timescale", "1"},
 	{"timedemo", "0"},
-	{"r_drawworld", "1"},
+	{"gl_drawworld", "1"},
 	{"cl_testlights", "0"},
-	{"r_fullbright", "0"},
-	{"r_drawflat", "0"},
+	{"gl_fullbright", "0"},
+	{"gl_drawflat", "0"},
 	{"paused", "0"},
 	{"fixedtime", "0"},
 	{"sw_draworder", "0"},

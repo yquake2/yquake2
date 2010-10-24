@@ -89,17 +89,17 @@ int r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 extern qboolean have_stencil;
 unsigned r_rawpalette [ 256 ];
 
-cvar_t  *r_norefresh;
-cvar_t  *r_drawentities;
-cvar_t  *r_drawworld;
-cvar_t  *r_speeds;
-cvar_t  *r_fullbright;
-cvar_t  *r_novis;
-cvar_t  *r_nocull;
-cvar_t  *r_lerpmodels;
+cvar_t  *gl_norefresh;
+cvar_t  *gl_drawentities;
+cvar_t  *gl_drawworld;
+cvar_t  *gl_speeds;
+cvar_t  *gl_fullbright;
+cvar_t  *gl_novis;
+cvar_t  *gl_nocull;
+cvar_t  *gl_lerpmodels;
 cvar_t  *r_lefthand;
 
-cvar_t  *r_lightlevel;
+cvar_t  *gl_lightlevel;
 
 cvar_t  *gl_nosubimage;
 cvar_t  *gl_allow_software;
@@ -162,7 +162,7 @@ R_CullBox ( vec3_t mins, vec3_t maxs )
 {
 	int i;
 
-	if ( r_nocull->value )
+	if ( gl_nocull->value )
 	{
 		return ( false );
 	}
@@ -322,7 +322,7 @@ R_DrawEntitiesOnList ( void )
 {
 	int i;
 
-	if ( !r_drawentities->value )
+	if ( !gl_drawentities->value )
 	{
 		return;
 	}
@@ -806,7 +806,7 @@ R_Flash ( void )
 void
 R_RenderView ( refdef_t *fd )
 {
-	if ( r_norefresh->value )
+	if ( gl_norefresh->value )
 	{
 		return;
 	}
@@ -818,7 +818,7 @@ R_RenderView ( refdef_t *fd )
 		ri.Sys_Error( ERR_DROP, "R_RenderView: NULL worldmodel" );
 	}
 
-	if ( r_speeds->value )
+	if ( gl_speeds->value )
 	{
 		c_brush_polys = 0;
 		c_alias_polys = 0;
@@ -851,7 +851,7 @@ R_RenderView ( refdef_t *fd )
 
 	R_Flash();
 
-	if ( r_speeds->value )
+	if ( gl_speeds->value )
 	{
 		ri.Con_Printf( PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
 				c_brush_polys,
@@ -897,22 +897,22 @@ R_SetLightLevel ( void )
 	{
 		if ( shadelight [ 0 ] > shadelight [ 2 ] )
 		{
-			r_lightlevel->value = 150 * shadelight [ 0 ];
+			gl_lightlevel->value = 150 * shadelight [ 0 ];
 		}
 		else
 		{
-			r_lightlevel->value = 150 * shadelight [ 2 ];
+			gl_lightlevel->value = 150 * shadelight [ 2 ];
 		}
 	}
 	else
 	{
 		if ( shadelight [ 1 ] > shadelight [ 2 ] )
 		{
-			r_lightlevel->value = 150 * shadelight [ 1 ];
+			gl_lightlevel->value = 150 * shadelight [ 1 ];
 		}
 		else
 		{
-			r_lightlevel->value = 150 * shadelight [ 2 ];
+			gl_lightlevel->value = 150 * shadelight [ 2 ];
 		}
 	}
 }
@@ -929,16 +929,16 @@ void
 R_Register ( void )
 {
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
-	r_norefresh = ri.Cvar_Get( "r_norefresh", "0", 0 );
-	r_fullbright = ri.Cvar_Get( "r_fullbright", "0", 0 );
-	r_drawentities = ri.Cvar_Get( "r_drawentities", "1", 0 );
-	r_drawworld = ri.Cvar_Get( "r_drawworld", "1", 0 );
-	r_novis = ri.Cvar_Get( "r_novis", "0", 0 );
-	r_nocull = ri.Cvar_Get( "r_nocull", "0", 0 );
-	r_lerpmodels = ri.Cvar_Get( "r_lerpmodels", "1", 0 );
-	r_speeds = ri.Cvar_Get( "r_speeds", "0", 0 );
+	gl_norefresh = ri.Cvar_Get( "gl_norefresh", "0", 0 );
+	gl_fullbright = ri.Cvar_Get( "gl_fullbright", "0", 0 );
+	gl_drawentities = ri.Cvar_Get( "gl_drawentities", "1", 0 );
+	gl_drawworld = ri.Cvar_Get( "gl_drawworld", "1", 0 );
+	gl_novis = ri.Cvar_Get( "gl_novis", "0", 0 );
+	gl_nocull = ri.Cvar_Get( "gl_nocull", "0", 0 );
+	gl_lerpmodels = ri.Cvar_Get( "gl_lerpmodels", "1", 0 );
+	gl_speeds = ri.Cvar_Get( "gl_speeds", "0", 0 );
 
-	r_lightlevel = ri.Cvar_Get( "r_lightlevel", "0", 0 );
+	gl_lightlevel = ri.Cvar_Get( "gl_lightlevel", "0", 0 );
 
 	gl_nosubimage = ri.Cvar_Get( "gl_nosubimage", "0", 0 );
 	gl_allow_software = ri.Cvar_Get( "gl_allow_software", "0", 0 );

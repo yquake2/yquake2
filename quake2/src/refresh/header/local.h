@@ -162,17 +162,17 @@ extern vec3_t r_origin;
 extern refdef_t r_newrefdef;
 extern int r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
-extern cvar_t  *r_norefresh;
+extern cvar_t  *gl_norefresh;
 extern cvar_t  *r_lefthand;
-extern cvar_t  *r_drawentities;
-extern cvar_t  *r_drawworld;
-extern cvar_t  *r_speeds;
-extern cvar_t  *r_fullbright;
-extern cvar_t  *r_novis;
-extern cvar_t  *r_nocull;
-extern cvar_t  *r_lerpmodels;
+extern cvar_t  *gl_drawentities;
+extern cvar_t  *gl_drawworld;
+extern cvar_t  *gl_speeds;
+extern cvar_t  *gl_fullbright;
+extern cvar_t  *gl_novis;
+extern cvar_t  *gl_nocull;
+extern cvar_t  *gl_lerpmodels;
 
-extern cvar_t  *r_lightlevel;
+extern cvar_t  *gl_lightlevel;
 
 extern cvar_t  *gl_vertex_arrays;
 

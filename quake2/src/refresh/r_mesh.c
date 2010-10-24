@@ -601,22 +601,22 @@ R_DrawAliasModel ( entity_t *e )
 			{
 				if ( shadelight [ 0 ] > shadelight [ 2 ] )
 				{
-					r_lightlevel->value = 150 * shadelight [ 0 ];
+					gl_lightlevel->value = 150 * shadelight [ 0 ];
 				}
 				else
 				{
-					r_lightlevel->value = 150 * shadelight [ 2 ];
+					gl_lightlevel->value = 150 * shadelight [ 2 ];
 				}
 			}
 			else
 			{
 				if ( shadelight [ 1 ] > shadelight [ 2 ] )
 				{
-					r_lightlevel->value = 150 * shadelight [ 1 ];
+					gl_lightlevel->value = 150 * shadelight [ 1 ];
 				}
 				else
 				{
-					r_lightlevel->value = 150 * shadelight [ 2 ];
+					gl_lightlevel->value = 150 * shadelight [ 2 ];
 				}
 			}
 		}
@@ -762,7 +762,7 @@ R_DrawAliasModel ( entity_t *e )
 		currententity->oldframe = 0;
 	}
 
-	if ( !r_lerpmodels->value )
+	if ( !gl_lerpmodels->value )
 	{
 		currententity->backlerp = 0;
 	}
