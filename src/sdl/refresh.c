@@ -33,10 +33,21 @@
 
 /* The window icon */
 #include "icon/q2icon.xbm"
+ 
+/* X.org stuff */
+#include <X11/Xos.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/extensions/xf86vmode.h>
 
 SDL_Surface		*surface;
 glwstate_t		glw_state;
 qboolean		have_stencil = false;
+
+char *displayname = NULL;
+Display *dpy;
+int screen = -1;
+XF86VidModeGamma x11_oldgamma;
 
 /*
  * Initialzes the SDL OpenGL context
@@ -112,15 +123,15 @@ void
 UpdateHardwareGamma(void)
 {
 	float gamma;
+	XF86VidModeGamma x11_gamma;
 
-	gamma = (1.3 - vid_gamma->value + 1);
+	gamma =vid_gamma->value;
 
-	if (gamma < 1)
-	{
-		gamma = 1;
-	}
-	
-	SDL_SetGamma(gamma, gamma, gamma );
+	x11_gamma.red = gamma;
+	x11_gamma.green = gamma;
+	x11_gamma.blue = gamma;
+
+	XF86VidModeSetGamma(dpy, screen, &x11_gamma); 
 }
 
 /*
@@ -196,9 +207,24 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	}
 
 	/* Initialize hardware gamma */
-	gl_state.hwgamma = true;
-	vid_gamma->modified = true;
-	ri.Con_Printf(PRINT_ALL, "Using hardware gamma.\n");
+	if ( ( dpy = XOpenDisplay( displayname ) ) == NULL )
+	{
+		ri.Con_Printf(PRINT_ALL, "Unable to open display.\n");
+	}
+	else
+	{
+		if (screen == -1)
+		{
+			screen = DefaultScreen(dpy);
+		}
+
+		gl_state.hwgamma = true;
+		vid_gamma->modified = true;
+
+        XF86VidModeGetGamma(dpy, screen, &x11_oldgamma);
+
+		ri.Con_Printf(PRINT_ALL, "Using hardware gamma.\n");
+	}
 
 	/* Window title */
 	SDL_WM_SetCaption("Yamagi Quake II", "Yamagi Quake II");
@@ -263,6 +289,11 @@ void GLimp_Shutdown( void )
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	}
 	
+	if (gl_state.hwgamma == true)
+	{
+		XF86VidModeGetGamma(dpy, screen, &x11_oldgamma);
+	}
+
 	gl_state.hwgamma = false;
 }
 
