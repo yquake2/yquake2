@@ -31,9 +31,12 @@
 
 #ifndef APIENTRY
  #define APIENTRY
-#endif 
+#endif
 
 #define GL_SHARED_TEXTURE_PALETTE_EXT       0x81FB
+
+#define GL_TEXTURE0_SGIS 0x835E
+#define GL_TEXTURE1_SGIS 0x835F
 
 qboolean QGL_Init ( const char *dllname );
 void     QGL_Shutdown ( void );
@@ -391,12 +394,19 @@ extern void ( APIENTRY *qglPointParameterfvEXT )( GLenum param, const GLfloat *v
 extern void ( APIENTRY *qglColorTableEXT )( GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid * );
 
 extern void ( APIENTRY *qglLockArraysEXT )( int, int );
+
 extern void ( APIENTRY *qglUnlockArraysEXT )( void );
+extern void ( APIENTRY *qglMTexCoord2fSGIS )( GLenum, GLfloat, GLfloat );
+extern void ( APIENTRY *qglSelectTextureSGIS )( GLenum );
+
+extern void ( APIENTRY *qglActiveTextureARB )( GLenum );
+extern void ( APIENTRY *qglClientActiveTextureARB )( GLenum );
 
 /* local function in dll */
 extern void *qwglGetProcAddress ( char *symbol );
 
 void Fake_glColorTableEXT ( GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const GLvoid *table );
+
 extern int QGL_TEXTURE0, QGL_TEXTURE1;
 
 #endif

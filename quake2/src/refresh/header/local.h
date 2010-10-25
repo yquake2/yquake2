@@ -33,20 +33,20 @@
 #include <GL/gl.h>
 
 #include "../../client/header/ref.h"
-#include "qgl.h"   
+#include "qgl.h"
 
 #ifndef GL_COLOR_INDEX8_EXT
  #define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX
 #endif
- 
+
 #define TEXNUM_LIGHTMAPS    1024
 #define TEXNUM_SCRAPS       1152
 #define TEXNUM_IMAGES       1153
-#define MAX_GLTEXTURES		1024
-#define MAX_SCRAPS			1
-#define BLOCK_WIDTH			128
-#define BLOCK_HEIGHT		128
-#define REF_VERSION			"Yamagi Quake II OpenGL Refresher"
+#define MAX_GLTEXTURES      1024
+#define MAX_SCRAPS          1
+#define BLOCK_WIDTH         128
+#define BLOCK_HEIGHT        128
+#define REF_VERSION         "Yamagi Quake II OpenGL Refresher"
 #define MAX_LBM_HEIGHT      480
 #define BACKFACE_EPSILON    0.01
 #define DYNAMIC_LIGHT_WIDTH  128
@@ -54,7 +54,7 @@
 #define LIGHTMAP_BYTES 4
 #define MAX_LIGHTMAPS 128
 #define GL_LIGHTMAP_FORMAT GL_RGBA
-     
+
 /* up / down */
 #define PITCH   0
 
@@ -75,6 +75,7 @@ typedef struct
 #endif
 
 char *strlwr ( char *s );
+
 extern viddef_t vid;
 
 /*
@@ -246,6 +247,8 @@ void R_TranslatePlayerSkin ( int playernum );
 void R_Bind ( int texnum );
 void R_MBind ( GLenum target, int texnum );
 void R_TexEnv ( GLenum value );
+void R_EnableMultitexture ( qboolean enable );
+void R_SelectTexture ( GLenum );
 
 void R_LightPoint ( vec3_t p, vec3_t color );
 void R_PushDlights ( void );
@@ -254,7 +257,7 @@ extern model_t *r_worldmodel;
 extern unsigned d_8to24table [ 256 ];
 extern int registration_sequence;
 
-void	V_AddBlend ( float r, float g, float b, float a, float *v_blend );
+void    V_AddBlend ( float r, float g, float b, float a, float *v_blend );
 int     R_Init ( void *hinstance, void *hWnd );
 void    R_Shutdown ( void );
 
@@ -370,7 +373,7 @@ typedef struct
 	int allocated [ BLOCK_WIDTH ];
 
 	/* the lightmap texture data needs to be kept in
-	   main memory so texsubimage can update properly */
+	 * main memory so texsubimage can update properly */
 	byte lightmap_buffer [ 4 * BLOCK_WIDTH * BLOCK_HEIGHT ];
 } gllightmapstate_t;
 

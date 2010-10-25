@@ -51,7 +51,7 @@ int gl_tex_alpha_format = 4;
 int gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int gl_filter_max = GL_LINEAR;
 
-image_t * LoadWal ( char *name );
+image_t *LoadWal ( char *name );
 void LoadTGA ( char *name, byte **pic, int *width, int *height );
 int Draw_GetPalette ( void );
 
@@ -128,6 +128,68 @@ int upload_width, upload_height;
 qboolean uploaded_paletted;
 
 void
+R_EnableMultitexture ( qboolean enable )
+{
+	if ( !qglSelectTextureSGIS && !qglActiveTextureARB )
+	{
+		return;
+	}
+
+	if ( enable )
+	{
+		R_SelectTexture( QGL_TEXTURE1 );
+		qglEnable( GL_TEXTURE_2D );
+		R_TexEnv( GL_REPLACE );
+	}
+	else
+	{
+		R_SelectTexture( QGL_TEXTURE1 );
+		qglDisable( GL_TEXTURE_2D );
+		R_TexEnv( GL_REPLACE );
+	}
+
+	R_SelectTexture( QGL_TEXTURE0 );
+	R_TexEnv( GL_REPLACE );
+}
+
+void
+R_SelectTexture ( GLenum texture )
+{
+	int tmu;
+
+	if ( !qglSelectTextureSGIS && !qglActiveTextureARB )
+	{
+		return;
+	}
+
+	if ( texture == QGL_TEXTURE0 )
+	{
+		tmu = 0;
+	}
+	else
+	{
+		tmu = 1;
+	}
+
+	if ( tmu == gl_state.currenttmu )
+	{
+		return;
+	}
+
+	gl_state.currenttmu = tmu;
+
+	if ( qglSelectTextureSGIS )
+	{
+		qglSelectTextureSGIS( texture );
+	}
+	else if ( qglActiveTextureARB )
+	{
+		qglActiveTextureARB( texture );
+		qglClientActiveTextureARB( texture );
+	}
+}
+
+void
 R_TexEnv ( GLenum mode )
 {
 	static int lastmodes [ 2 ] = { -1, -1 };
@@ -161,6 +223,8 @@ R_Bind ( int texnum )
 void
 R_MBind ( GLenum target, int texnum )
 {
+	R_SelectTexture( target );
+
 	if ( target == QGL_TEXTURE0 )
 	{
 		if ( gl_state.currenttextures [ 0 ] == texnum )
@@ -178,7 +242,7 @@ R_MBind ( GLenum target, int texnum )
 
 	R_Bind( texnum );
 }
- 
+
 void
 R_TextureMode ( char *string )
 {
@@ -691,11 +755,11 @@ R_Upload8 ( byte *data, int width, int height,  qboolean mipmap, qboolean is_sky
 	{
 		p = data [ i ];
 		trans [ i ] = d_8to24table [ p ];
-             
+
 		/* transparent, so scan around for another color
-		   to avoid alpha fringes */ 
+		 * to avoid alpha fringes */
 		if ( p == 255 )
-		{   
+		{
 			if ( ( i > width ) && ( data [ i - width ] != 255 ) )
 			{
 				p = data [ i - width ];
@@ -904,7 +968,7 @@ R_FindImage ( char *name, imagetype_t type )
 
 		if ( !pic )
 		{
-			return ( NULL ); 
+			return ( NULL );
 		}
 
 		image = R_LoadPic( name, pic, width, height, type, 32 );
@@ -934,7 +998,7 @@ R_RegisterSkin ( char *name )
 }
 
 /*
- * Any image that was not touched on 
+ * Any image that was not touched on
  * this registration sequence
  * will be freed.
  */
