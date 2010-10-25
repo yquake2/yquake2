@@ -22,7 +22,7 @@
  * Lightmap handling
  *
  * =======================================================================
- */  
+ */
 
 #include "header/local.h"
 
@@ -121,7 +121,7 @@ LM_AllocBlock ( int w, int h, int *x, int *y )
 		}
 
 		if ( j == w )
-		{   
+		{
 			/* this is a valid spot */
 			*x = i;
 			*y = best = best2;
@@ -255,10 +255,13 @@ LM_BeginBuildingLightmaps ( model_t *m )
 
 	memset( gl_lms.allocated, 0, sizeof ( gl_lms.allocated ) );
 
-	r_framecount = 1;/* no dlightcache */
+	r_framecount = 1; /* no dlightcache */
+
+	R_EnableMultitexture( true );
+	R_SelectTexture( QGL_TEXTURE1 );
 
 	/* setup the base lightstyles so the lightmaps won't have to be regenerated
-	   the first time they're seen */
+	 * the first time they're seen */
 	for ( i = 0; i < MAX_LIGHTSTYLES; i++ )
 	{
 		lightstyles [ i ].rgb [ 0 ] = 1;
@@ -295,5 +298,6 @@ void
 LM_EndBuildingLightmaps ( void )
 {
 	LM_UploadBlock( false );
+	R_EnableMultitexture( false );
 }
 

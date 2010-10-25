@@ -22,7 +22,7 @@
  * Refresher setup and main part of the frame generation
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/local.h"
 
@@ -42,7 +42,7 @@ void    Draw_Char ( int x, int y, int c );
 void    Draw_TileClear ( int x, int y, int w, int h, char *name );
 void    Draw_Fill ( int x, int y, int w, int h, int c );
 void    Draw_FadeScreen ( void );
-                                    
+
 viddef_t vid;
 
 refimport_t ri;
@@ -114,6 +114,7 @@ cvar_t  *gl_particle_att_b;
 cvar_t  *gl_particle_att_c;
 
 cvar_t  *gl_ext_swapinterval;
+cvar_t  *gl_ext_multitexture;
 cvar_t  *gl_ext_pointparameters;
 cvar_t  *gl_ext_compiled_vertex_array;
 
@@ -198,14 +199,14 @@ R_DrawSpriteModel ( entity_t *e )
 	dsprite_t       *psprite;
 
 	/* don't even bother culling, because it's just a single
-	   polygon without a surface cache */
+	 * polygon without a surface cache */
 	psprite = (dsprite_t *) currentmodel->extradata;
 
 	e->frame %= psprite->numframes;
 
 	frame = &psprite->frames [ e->frame ];
 
-	{   
+	{
 		/* normal sprite */
 		up = vup;
 		right = vright;
@@ -369,9 +370,9 @@ R_DrawEntitiesOnList ( void )
 		}
 	}
 
-	/* draw transparent entities 
-	  we could sort these if it ever 
-	  becomes a problem... */
+	/* draw transparent entities
+	 * we could sort these if it ever
+	 * becomes a problem... */
 	qglDepthMask( 0 ); /* no z writes */
 
 	for ( i = 0; i < r_newrefdef.num_entities; i++ )
@@ -891,8 +892,8 @@ R_SetLightLevel ( void )
 	/* save off light value for server to look at */
 	R_LightPoint( r_newrefdef.vieworg, shadelight );
 
-	/* pick the greatest component, which should be the same 
-	   as the mono value returned by software */
+	/* pick the greatest component, which should be the same
+	 * as the mono value returned by software */
 	if ( shadelight [ 0 ] > shadelight [ 1 ] )
 	{
 		if ( shadelight [ 0 ] > shadelight [ 2 ] )
@@ -979,6 +980,7 @@ R_Register ( void )
 	gl_vertex_arrays = ri.Cvar_Get( "gl_vertex_arrays", "0", CVAR_ARCHIVE );
 
 	gl_ext_swapinterval = ri.Cvar_Get( "gl_ext_swapinterval", "1", CVAR_ARCHIVE );
+	gl_ext_multitexture = ri.Cvar_Get( "gl_ext_multitexture", "1", CVAR_ARCHIVE );
 	gl_ext_pointparameters = ri.Cvar_Get( "gl_ext_pointparameters", "1", CVAR_ARCHIVE );
 	gl_ext_compiled_vertex_array = ri.Cvar_Get( "gl_ext_compiled_vertex_array", "1", CVAR_ARCHIVE );
 
@@ -1012,7 +1014,7 @@ R_SetMode ( void )
 	gl_mode->modified = false;
 
 	/* a bit hackish approach to enable custom resolutions:
-	   Glimp_SetMode needs these values set for mode -1 */
+	 * Glimp_SetMode needs these values set for mode -1 */
 	vid.width = gl_customwidth->value;
 	vid.height = gl_customheight->value;
 
@@ -1124,7 +1126,7 @@ R_Init ( void *hinstance, void *hWnd )
 	strncpy( vendor_buffer, gl_config.vendor_string, sizeof ( vendor_buffer ) );
 	vendor_buffer [ sizeof ( vendor_buffer ) - 1 ] = 0;
 	strlwr( vendor_buffer );
-	
+
 	ri.Cvar_Set( "scr_drawall", "0" );
 	gl_config.allow_cds = true;
 
@@ -1146,8 +1148,7 @@ R_Init ( void *hinstance, void *hWnd )
 		if ( gl_ext_pointparameters->value )
 		{
 			qglPointParameterfEXT = ( void (APIENTRY *) ( GLenum, GLfloat ) )qwglGetProcAddress( "glPointParameterfEXT" );
-			qglPointParameterfvEXT = ( void (APIENTRY *) ( GLenum, const GLfloat * ) )qwglGetProcAddress(
-					"glPointParameterfvEXT" );
+			qglPointParameterfvEXT = ( void (APIENTRY *) ( GLenum, const GLfloat * ) )qwglGetProcAddress( "glPointParameterfvEXT" );
 			ri.Con_Printf( PRINT_ALL, "...using GL_EXT_point_parameters\n" );
 		}
 		else
@@ -1158,6 +1159,51 @@ R_Init ( void *hinstance, void *hWnd )
 	else
 	{
 		ri.Con_Printf( PRINT_ALL, "...GL_EXT_point_parameters not found\n" );
+	}
+
+	if ( strstr( gl_config.extensions_string, "GL_ARB_multitexture" ) )
+	{
+		if ( gl_ext_multitexture->value )
+		{
+			ri.Con_Printf( PRINT_ALL, "...using GL_ARB_multitexture\n" );
+			qglMTexCoord2fSGIS = (void *) qwglGetProcAddress( "glMultiTexCoord2fARB" );
+			qglActiveTextureARB = (void *) qwglGetProcAddress( "glActiveTextureARB" );
+			qglClientActiveTextureARB = (void *) qwglGetProcAddress( "glClientActiveTextureARB" );
+			QGL_TEXTURE0 = GL_TEXTURE0_ARB;
+			QGL_TEXTURE1 = GL_TEXTURE1_ARB;
+		}
+		else
+		{
+			ri.Con_Printf( PRINT_ALL, "...ignoring GL_ARB_multitexture\n" );
+		}
+	}
+	else
+	{
+		ri.Con_Printf( PRINT_ALL, "...GL_ARB_multitexture not found\n" );
+	}
+
+	if ( strstr( gl_config.extensions_string, "GL_SGIS_multitexture" ) )
+	{
+		if ( qglActiveTextureARB )
+		{
+			ri.Con_Printf( PRINT_ALL, "...GL_SGIS_multitexture deprecated in favor of ARB_multitexture\n" );
+		}
+		else if ( gl_ext_multitexture->value )
+		{
+			ri.Con_Printf( PRINT_ALL, "...using GL_SGIS_multitexture\n" );
+			qglMTexCoord2fSGIS = (void *) qwglGetProcAddress( "glMTexCoord2fSGIS" );
+			qglSelectTextureSGIS = (void *) qwglGetProcAddress( "glSelectTextureSGIS" );
+			QGL_TEXTURE0 = GL_TEXTURE0_SGIS;
+			QGL_TEXTURE1 = GL_TEXTURE1_SGIS;
+		}
+		else
+		{
+			ri.Con_Printf( PRINT_ALL, "...ignoring GL_SGIS_multitexture\n" );
+		}
+	}
+	else
+	{
+		ri.Con_Printf( PRINT_ALL, "...GL_SGIS_multitexture not found\n" );
 	}
 
 	R_SetDefaultState();
@@ -1205,7 +1251,7 @@ R_BeginFrame ( float camera_separation )
 
 	/* change modes if necessary */
 	if ( gl_mode->modified || vid_fullscreen->modified )
-	{   
+	{
 		cvar_t  *ref;
 
 		ref = ri.Cvar_Get( "vid_ref", "gl", 0 );
@@ -1435,9 +1481,9 @@ R_GetRefAPI ( refimport_t rimp )
 	return ( re );
 }
 
-/* 
- * this is only here so the functions in 
- * q_shared.c can link 
+/*
+ * this is only here so the functions in
+ * q_shared.c can link
  */
 void
 Sys_Error ( char *error, ... )
