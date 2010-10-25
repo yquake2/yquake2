@@ -100,6 +100,7 @@ cvar_t  *gl_lerpmodels;
 cvar_t  *r_lefthand;
 
 cvar_t  *gl_lightlevel;
+cvar_t  *gl_overbrightbits;
 
 cvar_t  *gl_nosubimage;
 cvar_t  *gl_allow_software;
@@ -118,6 +119,7 @@ cvar_t  *gl_ext_palettedtexture;
 cvar_t  *gl_ext_multitexture;
 cvar_t  *gl_ext_pointparameters;
 cvar_t  *gl_ext_compiled_vertex_array;
+cvar_t  *gl_ext_mtexcombine;
 
 cvar_t  *gl_log;
 cvar_t  *gl_bitdepth;
@@ -941,6 +943,7 @@ R_Register ( void )
 	gl_speeds = ri.Cvar_Get( "gl_speeds", "0", 0 );
 
 	gl_lightlevel = ri.Cvar_Get( "gl_lightlevel", "0", 0 );
+	gl_overbrightbits = ri.Cvar_Get( "gl_overbrightbits", "2", CVAR_ARCHIVE );
 
 	gl_nosubimage = ri.Cvar_Get( "gl_nosubimage", "0", 0 );
 	gl_allow_software = ri.Cvar_Get( "gl_allow_software", "0", 0 );
@@ -985,6 +988,7 @@ R_Register ( void )
 	gl_ext_multitexture = ri.Cvar_Get( "gl_ext_multitexture", "1", CVAR_ARCHIVE );
 	gl_ext_pointparameters = ri.Cvar_Get( "gl_ext_pointparameters", "1", CVAR_ARCHIVE );
 	gl_ext_compiled_vertex_array = ri.Cvar_Get( "gl_ext_compiled_vertex_array", "1", CVAR_ARCHIVE );
+	gl_ext_mtexcombine = ri.Cvar_Get( "gl_ext_mtexcombine", "1", CVAR_ARCHIVE );
 
 	gl_drawbuffer = ri.Cvar_Get( "gl_drawbuffer", "GL_BACK", 0 );
 	gl_swapinterval = ri.Cvar_Get( "gl_swapinterval", "1", CVAR_ARCHIVE );
@@ -1132,7 +1136,7 @@ R_Init ( void *hinstance, void *hWnd )
 	ri.Cvar_Set( "scr_drawall", "0" );
 	gl_config.allow_cds = true;
 
-	ri.Con_Printf( PRINT_ALL, "\nProbing for OpenGL extensions:\n");
+	ri.Con_Printf( PRINT_ALL, "\n\nProbing for OpenGL extensions:\n" );
 
 	/* grab extensions */
 	if ( strstr( gl_config.extensions_string, "GL_EXT_compiled_vertex_array" ) ||
@@ -1229,6 +1233,45 @@ R_Init ( void *hinstance, void *hWnd )
 	else
 	{
 		ri.Con_Printf( PRINT_ALL, "...GL_SGIS_multitexture not found\n" );
+	}
+
+	gl_config.mtexcombine = false;
+
+	if ( strstr( gl_config.extensions_string, "GL_ARB_texture_env_combine" ) )
+	{
+		if ( gl_ext_mtexcombine->value )
+		{
+			Com_Printf( "...using GL_ARB_texture_env_combine\n" );
+			gl_config.mtexcombine = true;
+		}
+		else
+		{
+			Com_Printf( "...ignoring GL_ARB_texture_env_combine\n" );
+		}
+	}
+	else
+	{
+		Com_Printf( "...GL_ARB_texture_env_combine not found\n" );
+	}
+
+	if ( !gl_config.mtexcombine )
+	{
+		if ( strstr( gl_config.extensions_string, "GL_EXT_texture_env_combine" ) )
+		{
+			if ( gl_ext_mtexcombine->value )
+			{
+				Com_Printf( "...using GL_EXT_texture_env_combine\n" );
+				gl_config.mtexcombine = true;
+			}
+			else
+			{
+				Com_Printf( "...ignoring GL_EXT_texture_env_combine\n" );
+			}
+		}
+		else
+		{
+			Com_Printf( "...GL_EXT_texture_env_combine not found\n" );
+		}
 	}
 
 	R_SetDefaultState();
