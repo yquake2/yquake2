@@ -22,14 +22,14 @@
  * Warps. Used on water surfaces und for skybox rotation.
  *
  * =======================================================================
- */    
+ */
 
 #include "header/local.h"
 
 #define TURBSCALE ( 256.0 / ( 2 * M_PI ) )
 #define SUBDIVIDE_SIZE  64
 #define ON_EPSILON      0.1 /* point on plane side epsilon */
-#define MAX_CLIP_VERTS  64      
+#define MAX_CLIP_VERTS  64
 
 extern model_t *loadmodel;
 char skyname [ MAX_QPATH ];
@@ -40,7 +40,7 @@ msurface_t  *warpface;
 int skytexorder [ 6 ] = { 0, 2, 1, 3, 4, 5 };
 
 /* 3dstudio environment map names */
-char    *suf [ 6 ] = { "rt", "bk", "lf", "ft", "up", "dn" }; 
+char    *suf [ 6 ] = { "rt", "bk", "lf", "ft", "up", "dn" };
 
 float r_turbsin[] = {
 #include "constants/warpsin.h"
@@ -80,7 +80,7 @@ int vec_to_st [ 6 ] [ 3 ] = {
 
 float skymins [ 2 ] [ 6 ], skymaxs [ 2 ] [ 6 ];
 float sky_min, sky_max;
-                  
+
 void
 R_BoundPoly ( int numverts, float *verts, vec3_t mins, vec3_t maxs )
 {
@@ -458,7 +458,7 @@ R_ClipSkyPolygon ( int nump, vec3_t vecs, int stage )
 	}
 
 	if ( stage == 6 )
-	{   
+	{
 		/* fully clipped, so draw it */
 		R_DrawSkyPolygon( nump, vecs );
 		return;
@@ -490,7 +490,7 @@ R_ClipSkyPolygon ( int nump, vec3_t vecs, int stage )
 	}
 
 	if ( !front || !back )
-	{   
+	{
 		/* not clipped */
 		R_ClipSkyPolygon( nump, vecs, stage + 1 );
 		return;
@@ -656,7 +656,7 @@ R_DrawSkyBox ( void )
 	for ( i = 0; i < 6; i++ )
 	{
 		if ( skyrotate )
-		{ 
+		{
 			skymins [ 0 ] [ i ] = -1;
 			skymins [ 1 ] [ i ] = -1;
 			skymaxs [ 0 ] [ i ] = 1;
@@ -694,7 +694,14 @@ R_SetSky ( char *name, float rotate, vec3_t axis )
 
 	for ( i = 0; i < 6; i++ )
 	{
-		Com_sprintf( pathname, sizeof ( pathname ), "env/%s%s.tga", skyname, suf [ i ] );
+		if ( qglColorTableEXT && gl_ext_palettedtexture->value )
+		{
+			Com_sprintf( pathname, sizeof ( pathname ), "env/%s%s.pcx", skyname, suf [ i ] );
+		}
+		else
+		{
+			Com_sprintf( pathname, sizeof ( pathname ), "env/%s%s.tga", skyname, suf [ i ] );
+		}
 
 		sky_images [ i ] = R_FindImage( pathname, it_sky );
 

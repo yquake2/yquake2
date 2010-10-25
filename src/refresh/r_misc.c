@@ -22,7 +22,7 @@
  * Misc refresher functions
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/local.h"
 
@@ -35,7 +35,7 @@ byte dottexture [ 8 ] [ 8 ] = {
 	{ 0, 0, 0, 0, 0, 0, 0, 0 },
 	{ 0, 0, 0, 0, 0, 0, 0, 0 },
 	{ 0, 0, 0, 0, 0, 0, 0, 0 },
-};   
+};
 
 typedef struct _TargaHeader
 {
@@ -45,7 +45,6 @@ typedef struct _TargaHeader
 	unsigned short x_origin, y_origin, width, height;
 	unsigned char pixel_size, attributes;
 } TargaHeader;
-             
 
 void
 R_InitParticleTexture ( void )
@@ -202,6 +201,13 @@ R_SetDefaultState ( void )
 		qglPointParameterfEXT( GL_POINT_SIZE_MIN_EXT, gl_particle_min_size->value );
 		qglPointParameterfEXT( GL_POINT_SIZE_MAX_EXT, gl_particle_max_size->value );
 		qglPointParameterfvEXT( GL_DISTANCE_ATTENUATION_EXT, attenuations );
+	}
+
+	if ( qglColorTableEXT && gl_ext_palettedtexture->value )
+	{
+		qglEnable( GL_SHARED_TEXTURE_PALETTE_EXT );
+
+		R_SetTexturePalette( d_8to24table );
 	}
 
 	R_UpdateSwapInterval();
