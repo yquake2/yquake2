@@ -110,12 +110,12 @@ Hunk_End ( void )
 #endif
 
 #if defined( __linux__ )
-	n = mremap( membase, maxhunksize, curhunksize + sizeof ( int ), 0 );
+	n = (byte *)mremap( membase, maxhunksize, curhunksize + sizeof ( int ), 0 );
 #endif
 
 	if ( n != membase )
 	{
-		Sys_Error( "Hunk_End:  Could not remap virtual block (%d)", errno );
+		Sys_Error( "Hunk_End: Could not remap virtual block (%d)", errno );
 	}
 
 	*( (int *) membase ) = curhunksize + sizeof ( int );
