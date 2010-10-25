@@ -174,6 +174,7 @@ extern cvar_t  *gl_nocull;
 extern cvar_t  *gl_lerpmodels;
 
 extern cvar_t  *gl_lightlevel;
+extern cvar_t  *gl_overbrightbits;
 
 extern cvar_t  *gl_vertex_arrays;
 
@@ -182,6 +183,7 @@ extern cvar_t  *gl_ext_palettedtexture;
 extern cvar_t  *gl_ext_multitexture;
 extern cvar_t  *gl_ext_pointparameters;
 extern cvar_t  *gl_ext_compiled_vertex_array;
+extern cvar_t  *gl_ext_mtexcombine;
 
 extern cvar_t  *gl_particle_min_size;
 extern cvar_t  *gl_particle_max_size;
@@ -340,6 +342,7 @@ typedef struct
 	const char *extensions_string;
 
 	qboolean allow_cds;
+	qboolean mtexcombine;
 } glconfig_t;
 
 typedef struct
