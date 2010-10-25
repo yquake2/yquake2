@@ -1143,14 +1143,7 @@ R_InitImages ( void )
 	registration_sequence = 1;
 
 	/* init intensity conversions */
-	if ( gl_config.mtexcombine )
-	{
-		intensity = ri.Cvar_Get( "intensity", "3", CVAR_ARCHIVE );
-	}
-	else
-	{
-		intensity = ri.Cvar_Get( "intensity", "2", CVAR_ARCHIVE );
-	}
+	intensity = ri.Cvar_Get( "intensity", "2", CVAR_ARCHIVE );
 
 	if ( intensity->value <= 1 )
 	{

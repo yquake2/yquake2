@@ -115,11 +115,8 @@ BrightnessCallback ( void *s )
 		s_brightness_slider [ 0 ].curvalue = s_brightness_slider [ 1 ].curvalue;
 	}
 
-	if ( ( strcasecmp( vid_ref->string, "glx" ) == 0 ) )
-	{
-		float gamma = ( 0.8 - ( slider->curvalue / 10.0 - 0.5 ) ) + 0.5;
-		Cvar_SetValue( "vid_gamma", gamma );
-	}
+    float gamma = slider->curvalue / 10.0;
+	Cvar_SetValue( "vid_gamma", gamma );
 }
 
 static void
@@ -142,7 +139,6 @@ ApplyChanges ( void *unused )
 	/* invert sense so greater = brighter, and scale to a range of 0.5 to 1.3 */
 	gamma = ( 0.8 - ( s_brightness_slider [ s_current_menu_index ].curvalue / 10.0 - 0.5 ) ) + 0.5;
 
-	Cvar_SetValue( "vid_gamma", gamma );
 	Cvar_SetValue( "gl_picmip", 3 - s_tq_slider.curvalue );
 	Cvar_SetValue( "vid_fullscreen", s_fs_box [ s_current_menu_index ].curvalue );
 	Cvar_SetValue( "gl_ext_palettedtexture", s_paletted_texture_box.curvalue );
@@ -329,9 +325,9 @@ VID_MenuInit ( void )
 		s_brightness_slider [ i ].generic.y    = 30;
 		s_brightness_slider [ i ].generic.name = "brightness";
 		s_brightness_slider [ i ].generic.callback = BrightnessCallback;
-		s_brightness_slider [ i ].minvalue = 5;
-		s_brightness_slider [ i ].maxvalue = 13;
-		s_brightness_slider [ i ].curvalue = ( 1.3 - vid_gamma->value + 0.5 ) * 10;
+		s_brightness_slider [ i ].minvalue = 1;
+		s_brightness_slider [ i ].maxvalue = 20;
+		s_brightness_slider [ i ].curvalue = vid_gamma->value * 10;
 
 		s_fs_box [ i ].generic.type = MTYPE_SPINCONTROL;
 		s_fs_box [ i ].generic.x   = 0;

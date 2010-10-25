@@ -60,7 +60,7 @@ OGGCFLAGS = -I/usr/include -I/usr/local/include
 SDLCFLAGS := $(shell sdl-config --cflags)
 
 # Client
-CFLAGS_CLIENT = $(CFLAGS_BASE)
+CFLAGS_CLIENT = $(CFLAGS_BASE) 
 
 # Dedicated Server
 CFLAGS_DEDICATED_SERVER = $(CFLAGS_BASE)
@@ -82,11 +82,13 @@ CFLAGS_GAME += -fPIC
 # Linux
 ifeq ($(OSTYPE),Linux)
 LDFLAGS=-lm -ldl
+X11LDFLAGS=-L/usr/lib -lXxf86vm -lX11 
 endif
 
 # FreeBSD
 ifeq ($(OSTYPE),FreeBSD)
-LDFLAGS=-lm
+LDFLAGS=-L/usr/local/lib -lm -lXxf86vm -lX11 
+X11LDFLAGS=-L/usr/local/lib -lXxf86vm -lX11 
 endif 
 
 # OGG/Vorbis
@@ -1082,7 +1084,7 @@ release/quake2 : $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
     $(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS)
 	$(CC) $(CFLAGS_CLIENT) -o $@ $(CLIENT_OBJS) $(COMMON_OBJS) $(GAME_ABI_OBJS) \
 		$(SERVER_OBJS) $(POSIX_OBJS) $(SDL_OBJS) $(LDFLAGS) \
-		$(SDLLDFLAGS) $(OGGLDFLAGS) $(ZLIBLDFLAGS)
+		$(SDLLDFLAGS) $(OGGLDFLAGS) $(ZLIBLDFLAGS) $(X11LDFLAGS)
 
 # Dedicated Server
 release/q2ded : $(DEDICATED_SERVER_OBJS) $(DEDICATED_SERVER_COMMON_OBJS) \
