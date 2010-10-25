@@ -178,6 +178,7 @@ extern cvar_t  *gl_lightlevel;
 extern cvar_t  *gl_vertex_arrays;
 
 extern cvar_t  *gl_ext_swapinterval;
+extern cvar_t  *gl_ext_palettedtexture;
 extern cvar_t  *gl_ext_multitexture;
 extern cvar_t  *gl_ext_pointparameters;
 extern cvar_t  *gl_ext_compiled_vertex_array;
@@ -311,6 +312,8 @@ image_t *R_LoadPic ( char *name, byte *pic, int width, int height, imagetype_t t
 image_t *R_FindImage ( char *name, imagetype_t type );
 void R_TextureMode ( char *string );
 void R_ImageList_f ( void );
+
+void R_SetTexturePalette ( unsigned palette [ 256 ] );
 
 void R_InitImages ( void );
 void R_ShutdownImages ( void );

@@ -114,6 +114,7 @@ cvar_t  *gl_particle_att_b;
 cvar_t  *gl_particle_att_c;
 
 cvar_t  *gl_ext_swapinterval;
+cvar_t  *gl_ext_palettedtexture;
 cvar_t  *gl_ext_multitexture;
 cvar_t  *gl_ext_pointparameters;
 cvar_t  *gl_ext_compiled_vertex_array;
@@ -980,6 +981,7 @@ R_Register ( void )
 	gl_vertex_arrays = ri.Cvar_Get( "gl_vertex_arrays", "0", CVAR_ARCHIVE );
 
 	gl_ext_swapinterval = ri.Cvar_Get( "gl_ext_swapinterval", "1", CVAR_ARCHIVE );
+	gl_ext_palettedtexture = ri.Cvar_Get( "gl_ext_palettedtexture", "1", CVAR_ARCHIVE );
 	gl_ext_multitexture = ri.Cvar_Get( "gl_ext_multitexture", "1", CVAR_ARCHIVE );
 	gl_ext_pointparameters = ri.Cvar_Get( "gl_ext_pointparameters", "1", CVAR_ARCHIVE );
 	gl_ext_compiled_vertex_array = ri.Cvar_Get( "gl_ext_compiled_vertex_array", "1", CVAR_ARCHIVE );
@@ -1130,6 +1132,8 @@ R_Init ( void *hinstance, void *hWnd )
 	ri.Cvar_Set( "scr_drawall", "0" );
 	gl_config.allow_cds = true;
 
+	ri.Con_Printf( PRINT_ALL, "\nProbing for OpenGL extensions:\n");
+
 	/* grab extensions */
 	if ( strstr( gl_config.extensions_string, "GL_EXT_compiled_vertex_array" ) ||
 		 strstr( gl_config.extensions_string, "GL_SGI_compiled_vertex_array" ) )
@@ -1159,6 +1163,27 @@ R_Init ( void *hinstance, void *hWnd )
 	else
 	{
 		ri.Con_Printf( PRINT_ALL, "...GL_EXT_point_parameters not found\n" );
+	}
+
+	if ( !qglColorTableEXT &&
+		 strstr( gl_config.extensions_string, "GL_EXT_paletted_texture" ) &&
+		 strstr( gl_config.extensions_string, "GL_EXT_shared_texture_palette" ) )
+	{
+		if ( gl_ext_palettedtexture->value )
+		{
+			ri.Con_Printf( PRINT_ALL, "...using GL_EXT_shared_texture_palette\n" );
+			qglColorTableEXT =
+				( void (APIENTRY *) ( GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid * ) )qwglGetProcAddress(
+						"glColorTableEXT" );
+		}
+		else
+		{
+			ri.Con_Printf( PRINT_ALL, "...ignoring GL_EXT_shared_texture_palette\n" );
+		}
+	}
+	else
+	{
+		ri.Con_Printf( PRINT_ALL, "...GL_EXT_shared_texture_palette not found\n" );
 	}
 
 	if ( strstr( gl_config.extensions_string, "GL_ARB_multitexture" ) )
@@ -1363,6 +1388,8 @@ R_SetPalette ( const unsigned char *palette )
 			rp [ i * 4 + 3 ] = 0xff;
 		}
 	}
+
+	R_SetTexturePalette( r_rawpalette );
 
 	qglClearColor( 0, 0, 0, 0 );
 	qglClear( GL_COLOR_BUFFER_BIT );
