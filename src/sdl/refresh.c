@@ -132,6 +132,9 @@ UpdateHardwareGamma(void)
 	x11_gamma.blue = gamma;
 
 	XF86VidModeSetGamma(dpy, screen, &x11_gamma); 
+
+	/* This forces X11 to update the gamma tables */
+	XF86VidModeGetGamma(dpy, screen, &x11_gamma); 
 }
 
 /*
@@ -291,6 +294,9 @@ void GLimp_Shutdown( void )
 	
 	if (gl_state.hwgamma == true)
 	{
+		XF86VidModeSetGamma(dpy, screen, &x11_oldgamma);
+		
+		/* This forces X11 to update the gamma tables */
 		XF86VidModeGetGamma(dpy, screen, &x11_oldgamma);
 	}
 
