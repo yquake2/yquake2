@@ -635,7 +635,7 @@ void G_FindTeams (void)
 
 	G_FixTeams();
 
-	gi.dprintf ("%i teams with %i entities\n", c, c2);
+	gi.dprintf ("%i teams with %i entities.\n", c, c2);
 }
 
 /*
@@ -773,7 +773,7 @@ void SpawnEntities (const char *mapname, char *entities, const char *spawnpoint)
 		ent->s.renderfx |= RF_IR_VISIBLE;		//PGM
 	}	
 
-	gi.dprintf ("%i entities inhibited\n", inhibit);
+	gi.dprintf ("%i entities inhibited.\n", inhibit);
 
 	G_FindTeams ();
 
