@@ -25,6 +25,9 @@
  * =======================================================================
  */
 
+#ifndef UNIX_UNIX_H
+#define UNIX_UNIX_H
+
 typedef void ( *Key_Event_fp_t )( int key, qboolean down );
 extern void ( *IN_Update_fp )( void );
 
@@ -37,4 +40,6 @@ typedef struct in_state
 	int *in_strafe_state;
 	int *in_speed_state;
 } in_state_t;
+
+#endif
 

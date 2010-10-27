@@ -24,4 +24,10 @@
  * =======================================================================
  */ 
 
+#ifndef UNIX_GLOB_H
+#define UNIX_GLOB_H
+
 int glob_match ( char *pattern, char *text );
+
+#endif
+

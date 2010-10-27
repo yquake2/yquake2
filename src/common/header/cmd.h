@@ -24,6 +24,9 @@
  * =======================================================================
  */   
 
+#ifndef CO_CMD_H
+#define CO_CMD_H
+
 #define	MAX_ALIAS_NAME	32 
 #define	ALIAS_LOOP_COUNT 16
 
@@ -42,4 +45,6 @@ void Cmd_Exec_f (void);
 void Cmd_Echo_f (void);
 void Cmd_Alias_f (void);
 void Cmd_Wait_f (void);
+
+#endif
 

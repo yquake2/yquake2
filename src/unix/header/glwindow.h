@@ -24,8 +24,8 @@
  * =======================================================================
  */
 
-#ifndef __GLWINDOW_H__
-#define __GLWINDOW_H__
+#ifndef UNIX_GLWINDOW_H
+#define UNIX_GLWINDOW_H
 
 typedef struct
 {
@@ -36,3 +36,4 @@ typedef struct
 extern glwstate_t glw_state;
 
 #endif
+
