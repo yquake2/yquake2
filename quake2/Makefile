@@ -256,9 +256,9 @@ SERVER_OBJS = \
 # POSIX platform objects
 POSIX_OBJS = \
     build/unix/glob.o \
- 	build/unix/network.o \
 	build/unix/hunk.o \
 	build/unix/misc.o \
+ 	build/unix/network.o \
 	build/unix/system.o \
 	build/unix/vid.o
  
@@ -328,18 +328,18 @@ OPENGL_OBJS = \
 	build/ref_gl/r_image.o \
 	build/ref_gl/r_light.o \
 	build/ref_gl/r_lightmap.o \
-	build/ref_gl/r_mesh.o \
-	build/ref_gl/r_model.o \
 	build/ref_gl/r_main.o \
+	build/ref_gl/r_mesh.o \
 	build/ref_gl/r_misc.o \
-	build/ref_gl/r_surf.o \
+	build/ref_gl/r_model.o \
 	build/ref_gl/r_scrap.o \
+	build/ref_gl/r_surf.o \
 	build/ref_gl/r_warp.o \
 	build/ref_gl/files/md2.o \
 	build/ref_gl/files/pcx.o \
 	build/ref_gl/files/sp2.o \
 	build/ref_gl/files/tga.o \
-	build/ref_gl/files/wal.o \
+	build/ref_gl/files/wal.o
 
 # ----------
 
@@ -451,7 +451,7 @@ build/client/cl_cin.o :     		src/client/cl_cin.c
 build/client/cl_download.o :   		src/client/cl_download.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
-build/client/cl_effects.o :      		src/client/cl_effects.c
+build/client/cl_effects.o :      	src/client/cl_effects.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
 build/client/cl_entities.o :   		src/client/cl_entities.c
@@ -565,10 +565,10 @@ build/common/common/com_arg.o :				src/common/common/com_arg.c
 build/common/common/com_clientserver.o : 	src/common/common/com_clientserver.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
   
-build/common/message/msg_io.o :     src/common/message/msg_io.c
+build/common/message/msg_io.o :     	src/common/message/msg_io.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
   
-build/common/message/msg_read.o :   src/common/message/msg_read.c
+build/common/message/msg_read.o :   	src/common/message/msg_read.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
        
 build/common/model/cm_areaportals.o : 	src/common/model/cm_areaportals.c
@@ -631,7 +631,7 @@ build/server/sv_world.o :   		src/server/sv_world.c
 # ----------
 
 # Unix build
-build/unix/network.o : 			src/unix/network.c
+build/unix/glob.o :  			src/unix/glob.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
 build/unix/hunk.o :	  			src/unix/hunk.c
@@ -639,11 +639,11 @@ build/unix/hunk.o :	  			src/unix/hunk.c
 
 build/unix/misc.o :	  			src/unix/misc.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
- 
-build/unix/system.o :  			src/unix/system.c
+
+build/unix/network.o : 			src/unix/network.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
-build/unix/glob.o :  			src/unix/glob.c
+build/unix/system.o :  			src/unix/system.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/unix/vid.o :		     	src/unix/vid.c
@@ -787,25 +787,25 @@ build/ref_gl/r_light.o:						src/refresh/r_light.c
    
 build/ref_gl/r_lightmap.o:					src/refresh/r_lightmap.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
-    
+   
+build/ref_gl/r_main.o:   					src/refresh/r_main.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+     
 build/ref_gl/r_mesh.o:						src/refresh/r_mesh.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
-  
+ 
+build/ref_gl/r_misc.o:   					src/refresh/r_misc.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+   
 build/ref_gl/r_model.o:   					src/refresh/r_model.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
   
-build/ref_gl/r_main.o:   					src/refresh/r_main.c
-	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
-  
-build/ref_gl/r_misc.o:   					src/refresh/r_misc.c
-	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
-
-build/ref_gl/r_surf.o:   					src/refresh/r_surf.c
-	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
- 
 build/ref_gl/r_scrap.o:   					src/refresh/r_scrap.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
- 
+  
+build/ref_gl/r_surf.o:   					src/refresh/r_surf.c
+	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
+
 build/ref_gl/r_warp.o:						src/refresh/r_warp.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
 
@@ -837,7 +837,10 @@ build/ref_gl_unix/glob.o:					src/unix/glob.c
 
 build/ref_gl_unix/hunk.o:					src/unix/hunk.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
- 
+      
+build/ref_gl_unix/input.o:					src/sdl/input.c
+	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
+  
 build/ref_gl_unix/misc.o:					src/unix/misc.c
 	$(CC) $(CFLAGS_OPENGL) -o $@ -c $<
       
@@ -847,9 +850,6 @@ build/ref_gl_unix/qgl.o:					src/unix/qgl.c
 build/ref_gl_unix/refresh.o:				src/sdl/refresh.c
 	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
 
-build/ref_gl_unix/input.o:					src/sdl/input.c
-	$(CC) $(CFLAGS_OPENGL) $(SDLCFLAGS) -o $@ -c $<
- 
 # ----------
 
 # Quake II build
