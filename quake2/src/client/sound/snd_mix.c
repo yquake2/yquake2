@@ -360,7 +360,7 @@ S_InitScaletable ( void )
 
 		for ( j = 0; j < 256; j++ )
 		{
-			snd_scaletable [ i ] [ j ] = ( (signed char) j ) * scale;
+			snd_scaletable [ i ] [ j ] = ( ( j < 128 ) ? j : j - 0xff ) * scale;
 		}
 	}
 }
