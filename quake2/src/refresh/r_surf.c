@@ -927,6 +927,8 @@ R_DrawBrushModel ( entity_t *e )
 	R_TexEnv( GL_REPLACE );
 	R_SelectTexture( QGL_TEXTURE1 );
 
+	R_DrawInlineBModel();
+
 	if ( !gl_config.mtexcombine )
 	{
 		R_TexEnv( GL_REPLACE );
