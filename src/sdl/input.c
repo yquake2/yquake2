@@ -302,19 +302,23 @@ void IN_Update(void)
   {
 	  mouse_buttonstate |= (1 << 0);
   }
-  else if (SDL_BUTTON(3) & bstate) 
+  
+  if (SDL_BUTTON(3) & bstate) 
   {
 	  mouse_buttonstate |= (1 << 1);
   }
-  else if (SDL_BUTTON(2) & bstate) 
+  
+  if (SDL_BUTTON(2) & bstate) 
   {
 	  mouse_buttonstate |= (1 << 2);
   }
-  else if (SDL_BUTTON(6) & bstate)
+  
+  if (SDL_BUTTON(6) & bstate)
   {
 	  mouse_buttonstate |= (1 << 3);
   }
-  else if (SDL_BUTTON(7) & bstate)
+  
+  if (SDL_BUTTON(7) & bstate)
   {
 	  mouse_buttonstate |= (1 << 4);
   }
