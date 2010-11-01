@@ -502,16 +502,6 @@ SCR_PlayCinematic(char *arg) {
 
 	Huff1TableInit();
 
-	/* switch up to 22 khz sound if necessary */
-	old_khz = Cvar_VariableValue("s_khz");
-
-	if (old_khz != cin.s_rate / 1000) {
-		cin.restart_sound = true;
-		Cvar_SetValue("s_khz", cin.s_rate / 1000);
-		CL_Snd_Restart_f();
-		Cvar_SetValue("s_khz", old_khz);
-	}
-
 	cl.cinematicframe = 0;
 	cin.pic = SCR_ReadNextFrame();
 	cl.cinematictime = Sys_Milliseconds();
