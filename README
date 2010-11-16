@@ -8,14 +8,14 @@
 This is the Yamagi Quake II Client, an enhanced Version of id Software's
 Quake II. Main focus is single player, the gameplay and the graphics are
 unchanged but many bugs were fixed. Other than most other Quake II ports
-Yamagi Quake II is full 64 bit clean thus and works perfekt on modern
-amd64 prozessors and operating system This code should run on most
-unixlike operating system, just type "make" oder "gmake" to compile.
+Yamagi Quake II is full 64 bit clean so it works perfectly on modern amd64 
+processors and operating systems. This code should run on most unix-like 
+operating systems, just type "make" or "gmake" to compile.
 
-This code is based upon Icculus Quake II, which itself is build upon id
+This code is based upon Icculus Quake II, which itself is built upon id
 Software's original code drop. Additional code and patches by many
-contributers were used. It's released under the terms of the GPL version
-2. You can read the whole licence under http://www.gnu.org/.
+contributers were used. It's released under the terms of the GPL version 2. 
+You can read the whole licence under http://www.gnu.org/.
 
 ===============================================================================
 
@@ -55,8 +55,8 @@ you in installing the game data.
 
 1.1 Retail version:
 -------------------
-If you own Quake II, first get the official point release to Quake II
-3.20: ftp://ftp.idsoftware.com/idstuff/quake2/q2-3.20-x86-full-ctf.exe
+If you own Quake II, first get the official point release to Quake II 3.20: 
+ftp://ftp.idsoftware.com/idstuff/quake2/q2-3.20-x86-full-ctf.exe
 Use this and only this file! Unofficial "linux pointreleases" or something
 like that will not work and crash your game!
 
@@ -97,7 +97,7 @@ is needed for the demo, in fact it would break it.
 Due to license issues - Yamagi Quake II is covered by the GPL and the
 addons are under the id Software SDK license - the addons are
 distributed seperatly. You can get them at http://www.yamagi.org/quake2,
-both contains installation instructions. But nevertheless you'll need
+both contain installation instructions. But nevertheless you'll need
 the client and the main game installed for playing them.
 
 1.4 Dependencies:
@@ -157,8 +157,8 @@ You can put normal OGG/Vorbis files into baseq2/music or your_mod/music.
 If shuffle is enabled, Quake II will shuffle through all files.
 Otherwise it will loop through the track associated with the map.
 Therefore playlists can be used. Just put the filenames into
-music/playlists (a plain text file) and start the game. For manuell
-control there are some cvar. Remember, these are only available, if "OGG
+music/playlists (a plain text file) and start the game. For manual
+control there are some cvars. Remember: these are only available, if "OGG
 music" is enabled!
 
 2.3 Manual control:
@@ -218,26 +218,29 @@ music" is enabled!
 
 3. Configuration
 ================
-While configuring Quake II is straight forward some rogue edges can
+While configuring Quake II is straight forward some rough edges can
 arise. Bevor reporting bugs or mailing me please read this section all
 the hints covered in it!
 
-3.1 Widescreen
---------------
-Yamagi Quake II has full support for widescreen setups. Just select your
-favorite resolution and start a game. Now you'll need to adjust the fiel
-of view. Open the console with pressing "^" or "~" and set the fov cvar.
-Default is 90, I suggest 100 for 16:10 screens and 105 for 16:9.
-
-3.2 Video
+3.1 Video
 ---------
 For most people the options in the "Video" menu are sufficent. But there
 are some things that can and in some cases must be tuned via cvars. Here
 the most common questions are answered.
 
+- Yamagi Quake II has full support for widescreen setups. Just select your
+  favorite resolution and start a game. Now you'll need to adjust the field
+  of view. Open the console with pressing "^" or "~" and set the fov cvar.
+  Default is 90, I suggest 100 for 16:10 screens and 105 for 16:9.
+
+- If your resolution is not in the list, it's also possible to set custom 
+  resolutions via the console: Set gl_customwidth and gl_customheight to the 
+  desired values. Change gl_mode to -1 or enter the "Video" menu and select 
+  "Custom" as video mode. 
+
 - Sync problems resulting in tearing and artifacts in the lower half of
-  the screen: These orginiate in the fact, that 1997 the modern LCD flat
-  panel was invented but very expensive and much too slow for gaming.
+  the screen: These orginiate in the fact, that in 1997 the modern LCD flat
+  panel was invented, but very expensive and much too slow for gaming.
   Thus Quake II has problems when played on most flat panel monitors.
   The solution for this problem is simple. Just set "cl_maxfps" to the
   double sync frequenzy of your monitor. For most people this is 60hz *
@@ -256,24 +259,19 @@ the most common questions are answered.
   should be enough for most cases, but some setups require higher
   levels.
 
-- Yamagi Quake II offers a lot of predefined resolutions. But it's also
-  possible to set custom resolutions via the console: Set gl_customwidth 
-  and gl_customheight to the desired values. Change gl_mode to -1 or enter 
-  the "Video" menu and select "Custom" as video mode.          
-
 - Yamagi Quake II offers hardware gamma control in realtime via the
   "Video" menu. If Quake II is still too dark set the "vid_gamma" 
   cvar by hand to values above 1.5.
 
-3.3 Input
+3.2 Input
 ---------
 Quake II had a rather simple input system, even back then in 1997. It
 just mapped Windows 95 mouse events one to one on movements. That was a
 very acurate way to do it, Quake II was - like all other id Software
 games - much more acurate than most games out there. But there were some
-problems. First the mouse inut is dependend on the operation system
+problems. First the mouse inut is dependent on the operation system
 mouse driver. Another operating system or even another mouse and the
-inut changed drasticly. That sucked.
+inut changed drastically. That sucked.
 
 Yamagi Quake II features a from scratch rewritten mouse backend based on
 SDL. It gives you exactly the same mouse behavior, regardless of your
@@ -296,12 +294,12 @@ behavior in all cases. There are some cvar to adjust:
   it's nearly imposible to add modern acceleration to Quake II since
   most of the needed data isn't available to the inut backend.
 
-3.4 Sound
+3.3 Sound
 ---------
 Quake II featured one of the best sound systems of it's time but sadly
-it was totaly broken. Therefor id Software rewrote once, later it was
+it was totaly broken. Therefore id Software rewrote it once, later it was
 rewritten again for the linux port. That fixed most visible problems but
-the code was just crap and broke again as time passed sound on computer
+the code was just crap and broke again as time passed and sound on computer
 evolved. For Yamagi Quake II 3.0 the sound system was overhauled,
 featuring a complete code audit of the upper layers with many bugfixes
 and memory leak plugs. The backend was rewritten from scratch. This
@@ -411,10 +409,9 @@ Are there bots for Quake II?
 
 Okay, Yamagi Quake II is for single player and coop. But what's with us
 deathmatch and / or CTF freaks?
- - Use another client. There are clients out there which offer a far
-   better multiplayer experiences. They're featuring a greatly improved
-   network code and a better client<->server integration. Take a look at
-   EGL, r1q2 or AprQ2. At least r1w2 should work on unixlike operating
-   systems.
+ - Use another client. There are clients out there which offer far better 
+   multiplayer experiences. They're featuring a greatly improved network 
+   code and a better client<->server integration. Take a look at EGL, r1q2 
+   or AprQ2. At least r1q2 should work on unixlike operating systems.
 
 ===============================================================================
