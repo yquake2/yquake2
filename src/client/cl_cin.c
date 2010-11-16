@@ -445,7 +445,6 @@ SCR_PlayCinematic(char *arg) {
 	int		width, height;
 	byte	*palette;
 	char	name[MAX_OSPATH], *dot;
-	int		old_khz;
 
 	/* make sure CD isn't playing music */
 	CDAudio_Stop();
