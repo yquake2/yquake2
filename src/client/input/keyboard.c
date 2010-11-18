@@ -871,7 +871,7 @@ Key_Init ( void )
 void
 Key_Event ( int key, qboolean down, unsigned time )
 {
-	char            *kb;
+	char *kb;
 	char cmd [ 1024 ];
 
 	/* hack for modal presses */
@@ -891,9 +891,6 @@ Key_Event ( int key, qboolean down, unsigned time )
 		key_repeats [ key ]++;
 
 		if ( ( key != K_BACKSPACE ) &&
-			 ( key != K_DEL ) &&
-			 ( key != K_LEFTARROW ) &&
-			 ( key != K_RIGHTARROW ) &&
 			 ( key != K_PAUSE ) &&
 			 ( key != K_PGUP ) &&
 			 ( key != K_KP_PGUP ) &&
