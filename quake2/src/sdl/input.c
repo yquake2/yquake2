@@ -45,7 +45,7 @@ struct
 {
   int key;
   int down;
-} keyq[64];
+} keyq[128];
 
 int keyq_head=0;
 int keyq_tail=0;
@@ -193,19 +193,19 @@ IN_GetEvent(SDL_Event *event)
 			{
 				keyq[keyq_head].key = K_MWHEELUP;
 				keyq[keyq_head].down = true;
-				keyq_head = (keyq_head + 1) & 63;
+				keyq_head = (keyq_head + 1) & 127;
 				keyq[keyq_head].key = K_MWHEELUP;
 				keyq[keyq_head].down = false;
-				keyq_head = (keyq_head + 1) & 63;
+				keyq_head = (keyq_head + 1) & 127;
 			} 
 			else if (event->button.button == 5) 
 			{
 				keyq[keyq_head].key = K_MWHEELDOWN;
 				keyq[keyq_head].down = true;
-				keyq_head = (keyq_head + 1) & 63;
+				keyq_head = (keyq_head + 1) & 127;
 				keyq[keyq_head].key = K_MWHEELDOWN;
 				keyq[keyq_head].down = false;
-				keyq_head = (keyq_head + 1) & 63;
+				keyq_head = (keyq_head + 1) & 127;
 			} 
 			break;
 
@@ -244,7 +244,7 @@ IN_GetEvent(SDL_Event *event)
 			{
 				keyq[keyq_head].key = key;
 				keyq[keyq_head].down = true;
-				keyq_head = (keyq_head + 1) & 63;
+				keyq_head = (keyq_head + 1) & 127;
 			}
 			break;
 
@@ -260,7 +260,7 @@ IN_GetEvent(SDL_Event *event)
 				{
 					keyq[keyq_head].key = key;
 					keyq[keyq_head].down = false;
-					keyq_head = (keyq_head + 1) & 63;
+					keyq_head = (keyq_head + 1) & 127;
 				}
 			}
 			break;
@@ -357,7 +357,7 @@ void IN_Update(void)
   while (keyq_head != keyq_tail)
   {
 	  in_state->Key_Event_fp(keyq[keyq_tail].key, keyq[keyq_tail].down);
-	  keyq_tail = (keyq_tail + 1) & 63;
+	  keyq_tail = (keyq_tail + 1) & 127;
   }
 
   IN_Update_Flag = 0;
