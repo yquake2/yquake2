@@ -209,6 +209,9 @@ IN_GetEvent(SDL_Event *event)
 			} 
 			break;
 
+		case SDL_MOUSEBUTTONUP:
+			break;
+
 		/* The user pressed a button */
 		case SDL_KEYDOWN:
 			/* Fullscreen switch via Alt-Return */
