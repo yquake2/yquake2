@@ -183,6 +183,7 @@ CLIENT_OBJS = \
 	build/client/cl_entities.o \
 	build/client/cl_input.o \
 	build/client/cl_inventory.o \
+	build/client/cl_keyboard.o \
 	build/client/cl_lights.o \
 	build/client/cl_main.o \
 	build/client/cl_network.o \
@@ -193,7 +194,6 @@ CLIENT_OBJS = \
 	build/client/cl_screen.o \
 	build/client/cl_view.o \
 	build/client/console/console.o \
-	build/client/input/keyboard.o \
 	build/client/menu/menu.o \
 	build/client/menu/qmenu.o \
 	build/client/menu/videomenu.o \
@@ -462,7 +462,10 @@ build/client/cl_input.o :   		src/client/cl_input.c
 
 build/client/cl_inventory.o : 		src/client/cl_inventory.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
-
+ 
+build/client/cl_keyboard.o : 		src/client/cl_keyboard.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+ 
 build/client/cl_lights.o :     		src/client/cl_lights.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
  
@@ -492,9 +495,6 @@ build/client/cl_view.o :    		src/client/cl_view.c
 
 build/client/console/console.o :	src/client/console/console.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
-
-build/client/input/keyboard.o :		src/client/input/keyboard.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/client/menu/menu.o :			src/client/menu/menu.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 

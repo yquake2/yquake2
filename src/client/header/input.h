@@ -25,8 +25,8 @@
  * =======================================================================
  */
 
-#ifndef CL_INPUT_INPUT_H
-#define CL_INPUT_INPUT_H
+#ifndef CL_HEADER_INPUT_H
+#define CL_HEADER_INPUT_H
 
 void IN_Shutdown (void);
 

@@ -56,10 +56,10 @@
 #include "ref.h"
 #include "vid.h"
 #include "screen.h"
+#include "input.h"
+#include "keyboard.h"
 
 #include "../console/header/console.h"
-#include "../input/header/input.h"
-#include "../input/header/keyboard.h"
 #include "../sound/header/cdaudio.h"
 #include "../sound/header/sound.h"
 #include "../sound/header/vorbis.h"

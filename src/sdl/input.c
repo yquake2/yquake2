@@ -27,7 +27,7 @@
 
 #include <SDL.h>
 #include "../refresh/header/local.h"
-#include "../client/input/header/keyboard.h"
+#include "../client/header/keyboard.h"
 #include "../unix/header/unix.h"
 
 #define MOUSE_MAX 3000
