@@ -240,7 +240,7 @@ GAME_ABI_OBJS = \
 
 # Server objects
 SERVER_OBJS = \
-	build/server/sv_ccmds.o \
+	build/server/sv_cmd.o \
 	build/server/sv_ents.o \
 	build/server/sv_game.o \
 	build/server/sv_init.o \
@@ -272,7 +272,7 @@ SDL_OBJS= \
 
 # Dedicated server object
 DEDICATED_SERVER_OBJS = \
-	build/dedicated_server/sv_ccmds.o \
+	build/dedicated_server/sv_cmd.o \
 	build/dedicated_server/sv_ents.o \
 	build/dedicated_server/sv_game.o \
 	build/dedicated_server/sv_init.o \
@@ -604,7 +604,7 @@ build/gameabi/q_shared.o : 			src/game/baseq2/q_shared.c
 # ---------
 
 # Server build
-build/server/sv_ccmds.o :			src/server/sv_ccmds.c
+build/server/sv_cmd.o :		 		src/server/sv_cmd.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
 build/server/sv_ents.o :			src/server/sv_ents.c
@@ -663,7 +663,7 @@ build/sdl/sound.o : 	 			src/sdl/sound.c
 # ----------
  
 # Dedicated server build
-build/dedicated_server/sv_ccmds.o :	src/server/sv_ccmds.c
+build/dedicated_server/sv_cmd.o :	src/server/sv_cmd.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
 build/dedicated_server/sv_ents.o : 	src/server/sv_ents.c
