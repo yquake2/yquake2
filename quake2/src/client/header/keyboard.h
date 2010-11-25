@@ -24,8 +24,8 @@
  * =======================================================================
  */
 
-#ifndef CL_INPUT_KEYBOARD_H
-#define CL_INPUT_KEYBOARD_H
+#ifndef CL_HEADER_KEYBOARD_H
+#define CL_HEADER_KEYBOARD_H
 
 /* these are the key numbers that should be passed to Key_Event
    they must be mached by the low level key event processing! */
