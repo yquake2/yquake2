@@ -115,8 +115,6 @@ all: client dedicated_server ref_gl baseq2 ctf
 client:
 	@-mkdir -p build \
 		build/client \
-		build/client/console \
-		build/client/input \
 		build/client/menu \
 		build/client/sound \
 		build/common \
@@ -178,6 +176,7 @@ clean:
 # Client object
 CLIENT_OBJS = \
 	build/client/cl_cin.o \
+	build/client/cl_console.o \
 	build/client/cl_download.o \
 	build/client/cl_effects.o \
 	build/client/cl_entities.o \
@@ -193,7 +192,6 @@ CLIENT_OBJS = \
 	build/client/cl_tempentities.o \
 	build/client/cl_screen.o \
 	build/client/cl_view.o \
-	build/client/console/console.o \
 	build/client/menu/menu.o \
 	build/client/menu/qmenu.o \
 	build/client/menu/videomenu.o \
@@ -448,6 +446,9 @@ CTF_OBJS = \
 build/client/cl_cin.o :     		src/client/cl_cin.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
+build/client/cl_console.o :     	src/client/cl_console.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+  
 build/client/cl_download.o :   		src/client/cl_download.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
@@ -492,9 +493,6 @@ build/client/cl_screen.o :    		src/client/cl_screen.c
 
 build/client/cl_view.o :    		src/client/cl_view.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
-
-build/client/console/console.o :	src/client/console/console.c
-	$(CC) $(CFLAGS_CLIENT) -o $@ -c $<
 
 build/client/menu/menu.o :			src/client/menu/menu.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 

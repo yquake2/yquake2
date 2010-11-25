@@ -58,8 +58,8 @@
 #include "screen.h"
 #include "input.h"
 #include "keyboard.h"
+#include "console.h"
 
-#include "../console/header/console.h"
 #include "../sound/header/cdaudio.h"
 #include "../sound/header/sound.h"
 #include "../sound/header/vorbis.h"

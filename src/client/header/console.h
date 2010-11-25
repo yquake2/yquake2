@@ -24,11 +24,11 @@
  * =======================================================================
  */
 
-#ifndef CL_CONSOLE_CONSOLE_H
-#define CL_CONSOLE_CONSOLE_H
+#ifndef CL_HEADER_CONSOLE_H
+#define CL_HEADER_CONSOLE_H
 
-#define		NUM_CON_TIMES 4
-#define		CON_TEXTSIZE	32768
+#define	NUM_CON_TIMES 4
+#define	CON_TEXTSIZE	32768
 
 typedef struct {
 	qboolean	initialized;

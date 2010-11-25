@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "../header/client.h"
+#include "header/client.h"
 #include <time.h>
 
 console_t	con;
