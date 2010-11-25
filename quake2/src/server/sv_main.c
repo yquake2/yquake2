@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#include "server.h"
+#include "header/server.h"
 
 netadr_t	master_adr[MAX_MASTERS];	// address of group servers
 
