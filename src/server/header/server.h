@@ -247,6 +247,14 @@ void SV_InitGameProgs ( void );
 void SV_ShutdownGameProgs ( void );
 void SV_InitEdict ( edict_t *e );
 
+/* server side savegame stuff */
+void SV_WipeSavegame ( char *savename );
+void SV_CopySaveGame ( char *src, char *dst );
+void SV_WriteLevelFile ( void );
+void SV_WriteServerFile ( qboolean autosave );
+void SV_Loadgame_f ( void );
+void SV_Savegame_f ( void );
+
 /* high level object sorting to reduce interaction tests */
 void SV_ClearWorld ( void );
 
