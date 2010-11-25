@@ -245,6 +245,7 @@ SERVER_OBJS = \
 	build/server/sv_game.o \
 	build/server/sv_init.o \
 	build/server/sv_main.o \
+	build/server/sv_save.o \
 	build/server/sv_send.o \
 	build/server/sv_user.o \
 	build/server/sv_world.o
@@ -276,6 +277,7 @@ DEDICATED_SERVER_OBJS = \
 	build/dedicated_server/sv_game.o \
 	build/dedicated_server/sv_init.o \
 	build/dedicated_server/sv_main.o \
+	build/dedicated_server/sv_save.o \
 	build/dedicated_server/sv_send.o \
 	build/dedicated_server/sv_user.o \
 	build/dedicated_server/sv_world.o
@@ -616,7 +618,10 @@ build/server/sv_init.o :    		src/server/sv_init.c
 
 build/server/sv_main.o :    		src/server/sv_main.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
-
+ 
+build/server/sv_save.o :    		src/server/sv_save.c
+	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
+ 
 build/server/sv_send.o :    		src/server/sv_send.c
 	$(CC) $(CFLAGS_CLIENT) -o $@ -c $< 
 
@@ -672,7 +677,10 @@ build/dedicated_server/sv_init.o : 	src/server/sv_init.c
 
 build/dedicated_server/sv_main.o : 	src/server/sv_main.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
-
+ 
+build/dedicated_server/sv_save.o : 	src/server/sv_save.c
+	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
+ 
 build/dedicated_server/sv_send.o : 	src/server/sv_send.c
 	$(CC) $(CFLAGS_DEDICATED_SERVER) -o $@ -c $< 
 
