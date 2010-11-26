@@ -24,8 +24,14 @@
  * =======================================================================
  */ 
 
-#include <errno.h>
+
+/* For mremap() - must be before sys/mman.h include! */
+#if defined( __linux__ )
+ #define _GNU_SOURCE
+#endif
+
 #include <sys/mman.h>
+#include <errno.h>
 #include <sys/time.h>
 
 #include "../common/header/common.h"
@@ -35,10 +41,6 @@
  #define MAP_ANONYMOUS MAP_ANON
 #endif
 
-/* For mremap() */
-#if defined( __linux__ )
- #define __USE_GNU
-#endif
 
 byte *membase;
 int maxhunksize;
