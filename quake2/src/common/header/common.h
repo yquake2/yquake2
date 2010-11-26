@@ -32,7 +32,7 @@
 #include "../../game/baseq2/q_shared.h"
 #include "crc.h"
 
-#define	VERSION		2.99
+#define	VERSION		3.00
 #define	BASEDIRNAME	"baseq2"
 
 #if defined __linux__
