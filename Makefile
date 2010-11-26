@@ -126,7 +126,8 @@ build/refresher/%.o: %.c
 	@mkdir -p $(@D)
 	@$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
-release/ref_gl.so : INCLUDE += -I/usr/local/include/SDL -I/usr/X11R6/include 
+release/ref_gl.so : INCLUDE += -I/usr/local/include/SDL  \
+							    -I/usr/include/SDL -I/usr/X11R6/include 
 release/ref_gl.so : CFLAGS += -fPIC
 release/ref_gl.so : LDFLAGS += -shared
 	
