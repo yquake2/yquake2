@@ -467,7 +467,7 @@ OGG_OpenName ( char *filename )
 	int i;  /* Loop counter. */
 
 	/* If the track name is '00' stop playback */
-	if (strncmp(filename, "00", sizeof(char) * 3))
+	if (!strncmp(filename, "00", sizeof(char) * 3))
 	{
 		OGG_PauseCmd();
 		return ( false );
