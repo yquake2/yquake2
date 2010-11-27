@@ -263,6 +263,10 @@ the most common questions are answered.
   "Video" menu. If Quake II is still too dark set the "vid_gamma" 
   cvar by hand to values above 1.5.
 
+- Yamagi Quake II can draw shadows. Just set "gl_shadows" to 1. You most
+  likely want to set "gl_stecilshadow" to 1 too. This enables high
+  quality stencil buffer shadows.
+
 3.2 Input
 ---------
 Quake II had a rather simple input system, even back then in 1997. It
