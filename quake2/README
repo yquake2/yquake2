@@ -242,9 +242,8 @@ the most common questions are answered.
   the screen: These orginiate in the fact, that in 1997 the modern LCD flat
   panel was invented, but very expensive and much too slow for gaming.
   Thus Quake II has problems when played on most flat panel monitors.
-  The solution for this problem is simple. Just set "cl_maxfps" to the
-  double sync frequenzy of your monitor. For most people this is 60hz *
-  2 = 120. Now enable the vsync with setting "gl_swapinterval" to 1.
+  The solution for this problem is simple. Just set "cl_maxfps" to about
+  95 FPS. Now enable the vsync with setting "gl_swapinterval" to 1.
   This should supress all of the problems.
 
 - Particle effects are broken. They're very big, very ugly and very
@@ -417,5 +416,12 @@ deathmatch and / or CTF freaks?
    multiplayer experiences. They're featuring a greatly improved network 
    code and a better client<->server integration. Take a look at EGL, r1q2 
    or AprQ2. At least r1q2 should work on unixlike operating systems.
+
+Move movement is fucked up! I can jump much higher and longer as it used
+to be! What's wrong?
+ - You're experiencing the Quake II version of the famous Q3A 125hz bug.
+   When Quake II draws more than about 100 FPS the movement calculations
+   go wrong and you can jump much higher. To solve this set "com_maxfps"
+   to about 95 FPS.
 
 ===============================================================================
