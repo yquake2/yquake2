@@ -421,7 +421,7 @@ Move movement is fucked up! I can jump much higher and longer as it used
 to be! What's wrong?
  - You're experiencing the Quake II version of the famous Q3A 125hz bug.
    When Quake II draws more than about 100 FPS the movement calculations
-   go wrong and you can jump much higher. To solve this set "com_maxfps"
+   go wrong and you can jump much higher. To solve this set "cl_maxfps"
    to about 95 FPS.
 
 ===============================================================================
