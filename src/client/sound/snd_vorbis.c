@@ -40,6 +40,7 @@ extern cvar_t   *fs_basedir; /* Path to "music". */
 
 qboolean	 ogg_first_init = true;    /* First initialization flag. */
 qboolean	 ogg_started = false;    /* Initialization flag. */
+int		 ogg_bigendian = 0;
 byte		 *ogg_buffer; /* File buffer. */
 char		 **ogg_filelist; /* List of Ogg Vorbis files. */
 char		 ovBuf [ 4096 ];     /* Buffer for sound. */
@@ -53,6 +54,7 @@ cvar_t       *ogg_playlist; /* Playlist. */
 cvar_t       *ogg_sequence; /* Sequence play indicator. */
 cvar_t       *ogg_volume; /* Music volume. */
 OggVorbis_File ovFile;  /* Ogg Vorbis file. */
+vorbis_info *ogg_info;  /* Ogg Vorbis file information */
 
 /*
  * Initialize the Ogg Vorbis subsystem.
@@ -76,6 +78,11 @@ OGG_Init ( void )
 	{
 		Com_Printf( "Ogg Vorbis not initializing.\n" );
 		return;
+	}
+
+	if (bigendien == true)
+	{
+		ogg_bigendian = 1;
 	}
 
 	/* Cvars. */
@@ -123,6 +130,7 @@ OGG_Init ( void )
 		srand( time( NULL ) );
 		ogg_buffer = NULL;
 		ogg_curfile = -1;
+		ogg_info = NULL;
 		ogg_status = STOP;
 		ogg_first_init = false;
 	}
@@ -376,7 +384,7 @@ OGG_LoadPlaylist ( char *playlist )
 qboolean
 OGG_Open ( ogg_seek_t type, int offset )
 {
-	int size;      /* File size. */
+	int size;     /* File size. */
 	int pos;      /* Absolute position. */
 	int res;      /* Error indicator. */
 
@@ -446,6 +454,17 @@ OGG_Open ( ogg_seek_t type, int offset )
 	{
 		Com_Printf( "OGG_Open: '%s' is not a valid Ogg Vorbis file (error %i).\n", ogg_filelist [ pos ], res );
 		FS_FreeFile( ogg_buffer );
+		ogg_buffer = NULL;
+		return ( false );
+	}
+
+	ogg_info = ov_info(&ovFile, 0);
+	if (!ogg_info)
+	{
+		Com_Printf( "OGG_Open: Unable to get stream information for %s.\n", ogg_filelist [ pos ] );
+		ov_clear( &ovFile );
+		FS_FreeFile( ogg_buffer );
+		ogg_buffer = NULL;
 		return ( false );
 	}
 
@@ -463,7 +482,7 @@ OGG_Open ( ogg_seek_t type, int offset )
 qboolean
 OGG_OpenName ( char *filename )
 {
-	char    *name;  /* File name. */
+	char *name;  /* File name. */
 	int i;  /* Loop counter. */
 
 	/* If the track name is '00' stop playback */
@@ -504,8 +523,8 @@ OGG_Read ( void )
 	int res;    /* Number of bytes read. */
 
 	/* Read and resample. */
-	res = ov_read( &ovFile, ovBuf, sizeof ( ovBuf ), 0, 2, 1, &ovSection );
-	S_RawSamplesVol( res >> 2, 44100, 2, 2, (byte *) ovBuf, ogg_volume->value );
+	res = ov_read( &ovFile, ovBuf, sizeof ( ovBuf ), ogg_bigendian, OGG_SAMPLEWIDTH, 1, &ovSection );
+	S_RawSamplesVol( res >> ogg_info->channels, ogg_info->rate, OGG_SAMPLEWIDTH, ogg_info->channels, (byte *) ovBuf, ogg_volume->value );
 
 	/* Check for end of file. */
 	if ( res == 0 )
@@ -563,6 +582,7 @@ OGG_Stop ( void )
 
 	ov_clear( &ovFile );
 	ogg_status = STOP;
+	ogg_info = NULL;
 
 	if ( ogg_buffer != NULL )
 	{
