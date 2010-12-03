@@ -644,9 +644,9 @@ S_RawSamplesVol ( int samples, int rate, int width, int channels, byte *data, fl
 			dst = s_rawend & ( MAX_RAW_SAMPLES - 1 );
 			s_rawend++;
 			s_rawsamples [ dst ].left =
-				(int) ( volume * LittleShort( ( (short *) data ) [ src * 2 ] ) ) << 8;
+				(int) ( volume * ( (short *) data ) [ src * 2 ] ) << 8;
 			s_rawsamples [ dst ].right =
-				(int) ( volume * LittleShort( ( (short *) data ) [ src * 2 + 1 ] ) ) << 8;
+				(int) ( volume * ( (short *) data ) [ src * 2 + 1 ] ) << 8;
 		}
 	}
 	else if ( ( channels == 1 ) && ( width == 2 ) )
@@ -663,9 +663,9 @@ S_RawSamplesVol ( int samples, int rate, int width, int channels, byte *data, fl
 			dst = s_rawend & ( MAX_RAW_SAMPLES - 1 );
 			s_rawend++;
 			s_rawsamples [ dst ].left =
-				(int) ( volume * LittleShort( ( (short *) data ) [ src ] ) ) << 8;
+				(int) ( volume * ( (short *) data ) [ src ] ) << 8;
 			s_rawsamples [ dst ].right =
-				(int) ( volume * LittleShort( ( (short *) data ) [ src ] ) ) << 8;
+				(int) ( volume * ( (short *) data ) [ src ] ) << 8;
 		}
 	}
 	else if ( ( channels == 2 ) && ( width == 1 ) )
