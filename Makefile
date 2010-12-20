@@ -6,7 +6,7 @@
 #  - Server (q2ded)                                      #
 #  - SDL OpenGL-Refresher (ref_gl.so)                    #
 #  - games:                                              #
-#    - Quake II (quake2)                                 #
+#    - Quake II (baseq2)                                 #
 #    - Quake II - Threewave Capture The Flag (ctf)       #
 #                                                        #
 # Dependencies:                                          #
@@ -58,7 +58,6 @@ INCLUDE := -I/usr/include
 else ifeq ($(OSTYPE),FreeBSD)
 INCLUDE := -I/usr/local/include
 endif 
- 
 
 # ----------
 
@@ -69,6 +68,11 @@ LDFLAGS := -L/usr/lib -lm -ldl
 else ifeq ($(OSTYPE),FreeBSD)
 LDFLAGS := -L/usr/local/lib -lm
 endif 
+
+# ----------
+
+# Converter rule
+
 
 # ----------
 
