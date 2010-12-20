@@ -350,7 +350,12 @@ SCR_ReadNextFrame(void) {
 
 	FS_Read(samples, count * cin.s_width * cin.s_channels, (size_t)cl.cinematic_file);
 
-	S_RawSamples(count, cin.s_rate, cin.s_width, cin.s_channels, samples);
+	if (cin.s_width == 2) {
+		for (r = 0; r < count * cin.s_channels; r++)
+			((short *) samples)[r] = LittleShort( ((short *) samples)[r] );
+	}
+
+	S_RawSamples(count, cin.s_rate, cin.s_width, cin.s_channels, samples, Cvar_VariableValue("s_volume"));
 
 	in.data = compressed;
 	in.count = size;
