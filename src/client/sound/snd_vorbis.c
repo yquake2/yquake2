@@ -524,7 +524,8 @@ OGG_Read ( void )
 
 	/* Read and resample. */
 	res = ov_read( &ovFile, ovBuf, sizeof ( ovBuf ), ogg_bigendian, OGG_SAMPLEWIDTH, 1, &ovSection );
-	S_RawSamplesVol( res >> ogg_info->channels, ogg_info->rate, OGG_SAMPLEWIDTH, ogg_info->channels, (byte *) ovBuf, ogg_volume->value );
+	S_RawSamples( res / (OGG_SAMPLEWIDTH * ogg_info->channels),
+		      ogg_info->rate, OGG_SAMPLEWIDTH, ogg_info->channels, (byte *) ovBuf, ogg_volume->value );
 
 	/* Check for end of file. */
 	if ( res == 0 )
@@ -605,106 +606,6 @@ OGG_Stream ( void )
 	while ( ogg_status == PLAY && paintedtime + MAX_RAW_SAMPLES - 2048 > s_rawend )
 	{
 		OGG_Read();
-	}
-}
-
-/*
- * Cinematic streaming
- */
-void
-S_RawSamplesVol ( int samples, int rate, int width, int channels, byte *data, float volume )
-{
-	int i;
-	int src, dst;
-	float scale;
-
-	if ( !sound_started )
-	{
-		return;
-	}
-
-	if ( s_rawend < paintedtime )
-	{
-		s_rawend = paintedtime;
-	}
-
-	scale = (float) rate / dma.speed;
-
-	if ( ( channels == 2 ) && ( width == 2 ) )
-	{
-		for ( i = 0; ; i++ )
-		{
-			src = i * scale;
-
-			if ( src >= samples )
-			{
-				break;
-			}
-
-			dst = s_rawend & ( MAX_RAW_SAMPLES - 1 );
-			s_rawend++;
-			s_rawsamples [ dst ].left =
-				(int) ( volume * ( (short *) data ) [ src * 2 ] ) << 8;
-			s_rawsamples [ dst ].right =
-				(int) ( volume * ( (short *) data ) [ src * 2 + 1 ] ) << 8;
-		}
-	}
-	else if ( ( channels == 1 ) && ( width == 2 ) )
-	{
-		for ( i = 0; ; i++ )
-		{
-			src = i * scale;
-
-			if ( src >= samples )
-			{
-				break;
-			}
-
-			dst = s_rawend & ( MAX_RAW_SAMPLES - 1 );
-			s_rawend++;
-			s_rawsamples [ dst ].left =
-				(int) ( volume * ( (short *) data ) [ src ] ) << 8;
-			s_rawsamples [ dst ].right =
-				(int) ( volume * ( (short *) data ) [ src ] ) << 8;
-		}
-	}
-	else if ( ( channels == 2 ) && ( width == 1 ) )
-	{
-		for ( i = 0; ; i++ )
-		{
-			src = i * scale;
-
-			if ( src >= samples )
-			{
-				break;
-			}
-
-			dst = s_rawend & ( MAX_RAW_SAMPLES - 1 );
-			s_rawend++;
-			s_rawsamples [ dst ].left =
-				(int) ( volume * ( (char *) data ) [ src * 2 ] ) << 16;
-			s_rawsamples [ dst ].right =
-				(int) ( volume * ( (char *) data ) [ src * 2 + 1 ] ) << 16;
-		}
-	}
-	else if ( ( channels == 1 ) && ( width == 1 ) )
-	{
-		for ( i = 0; ; i++ )
-		{
-			src = i * scale;
-
-			if ( src >= samples )
-			{
-				break;
-			}
-
-			dst = s_rawend & ( MAX_RAW_SAMPLES - 1 );
-			s_rawend++;
-			s_rawsamples [ dst ].left =
-				(int) ( volume * ( ( (byte *) data ) [ src ] - 128 ) ) << 16;
-			s_rawsamples [ dst ].right =
-				(int) ( volume * ( ( (byte *) data ) [ src ] - 128 ) ) << 16;
-		}
 	}
 }
 
