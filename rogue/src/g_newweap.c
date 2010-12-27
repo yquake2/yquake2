@@ -311,6 +311,9 @@ void prox_land (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 		return;
 	}
 
+	if (plane == NULL)
+		return;
+
 	if (plane->normal != 0)
 	{
 		VectorMA (ent->s.origin, -10.0, plane->normal, land_point);
