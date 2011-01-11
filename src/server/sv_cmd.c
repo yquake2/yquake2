@@ -259,12 +259,6 @@ SV_Map_f ( void )
 		return;
 	}
 
-	if ( sv.state == ss_game )
-	{
-		Com_Printf( "Warning, using 'map' will reset the game. Perhaps you should use 'gamemap'.\n" );
-		return;
-	}
-
 	/* if not a pcx, demo, or cinematic, check to make sure the level exists */
 	map = Cmd_Argv( 1 );
 
