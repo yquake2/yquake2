@@ -97,7 +97,8 @@ SNDDMA_Init(void)
 {
 	char drivername[128];
 	SDL_AudioSpec desired;
-	SDL_AudioSpec optained;
+	SDL_AudioSpec obtained;
+	int tmp, val;
 
 	/* This should never happen,
 	   but this is Quake 2 ... */
@@ -107,8 +108,10 @@ SNDDMA_Init(void)
 	}
 
 	int sndbits = (Cvar_Get("sndbits", "16", CVAR_ARCHIVE))->value;
-	int sndfreq = (Cvar_Get("s_khz", "0", CVAR_ARCHIVE))->value;
+	int sndfreq = (Cvar_Get("s_khz", "44", CVAR_ARCHIVE))->value;
 	int sndchans = (Cvar_Get("sndchannels", "2", CVAR_ARCHIVE))->value;
+
+	Com_Printf("Starting SDL audio callback.\n");
 
 	if (!SDL_WasInit(SDL_INIT_AUDIO))
 	{
@@ -127,7 +130,7 @@ SNDDMA_Init(void)
 	Com_Printf("SDL audio driver is \"%s\".\n", drivername);
 
 	memset(&desired, '\0', sizeof(desired));
-	memset(&optained, '\0', sizeof(optained));
+	memset(&obtained, '\0', sizeof(obtained));
 
 	/* Users are stupid */
 	if ((sndbits != 16) && (sndbits != 8))
@@ -135,7 +138,15 @@ SNDDMA_Init(void)
 		sndbits = 16;
 	}
 
-	if (sndfreq == 22)
+	if (sndfreq == 48)
+	{
+		desired.freq = 48000;
+	}
+	else if (sndfreq == 44)
+	{
+		desired.freq = 44100;
+	}
+	else if (sndfreq == 22)
 	{
 		desired.freq = 22050;
 	}
@@ -154,6 +165,10 @@ SNDDMA_Init(void)
 	{
 		desired.samples = 512;
 	}
+	else if (desired.freq <= 44100)
+	{
+		desired.samples = 1024;
+	}
 	else
 	{
 		desired.samples = 2048;
@@ -163,7 +178,7 @@ SNDDMA_Init(void)
 	desired.callback = sdl_audio_callback;
 
 	/* Okay, let's try our luck */
-	if (SDL_OpenAudio(&desired, &optained) == -1)
+	if (SDL_OpenAudio(&desired, &obtained) == -1)
 	{
 		Com_Printf("SDL_OpenAudio() failed: %s\n", SDL_GetError());
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);
@@ -172,22 +187,32 @@ SNDDMA_Init(void)
 
 	/* This points to the frontend */
 	dmabackend = &dma;
-	
+
 	dmapos = 0;
-	dmabackend->samplebits = optained.format & 0xFF;
-	dmabackend->channels = optained.channels;
-	dmabackend->samples = 32768;
+	dmabackend->samplebits = obtained.format & 0xFF;
+	dmabackend->channels = obtained.channels;
+
+	tmp = (obtained.samples * obtained.channels) * 10;
+	if (tmp & (tmp - 1))
+	{	/* make it a power of two */
+		val = 1;
+		while (val < tmp)
+			val <<= 1;
+
+		tmp = val;
+	}
+	dmabackend->samples = tmp;
+
 	dmabackend->submission_chunk = 1;
-	dmabackend->speed = optained.freq;
+	dmabackend->speed = obtained.freq;
 	dmasize = (dmabackend->samples * (dmabackend->samplebits / 8));
 	dmabackend->buffer = calloc(1, dmasize);
 
-	Com_Printf("Starting SDL audio callback.\n");
-    SDL_PauseAudio(0);
+	SDL_PauseAudio(0);
 
-    Com_Printf("SDL audio initialized.\n");
-    snd_inited = 1;
-    return 1;
+	Com_Printf("SDL audio initialized.\n");
+	snd_inited = 1;
+	return 1;
 }
 
 int
