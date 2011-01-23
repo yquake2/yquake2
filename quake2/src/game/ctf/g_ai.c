@@ -314,8 +314,15 @@ qboolean infront (edict_t *self, edict_t *other)
 	vec3_t	vec;
 	float	dot;
 	vec3_t	forward;
-	
+       
+    if ((self == NULL) || (other == NULL))
+		return false;
+
 	AngleVectors (self->s.angles, forward, NULL, NULL);
+	   
+    if ((self == NULL) || (other == NULL))
+		return false;
+
 	VectorSubtract (other->s.origin, self->s.origin, vec);
 	VectorNormalize (vec);
 	dot = DotProduct (vec, forward);
