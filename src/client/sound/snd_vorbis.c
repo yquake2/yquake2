@@ -29,6 +29,8 @@
 
 #include <sys/time.h>
 #include <errno.h>
+
+#define OV_EXCLUDE_STATIC_CALLBACKS
 #include <vorbis/vorbisfile.h>
 
 #include "../header/client.h"
