@@ -115,6 +115,9 @@ field_t fields[] = {
 	{"maxpitch", STOFS(maxpitch), F_FLOAT, FFL_SPAWNTEMP},
 	{"nextmap", STOFS(nextmap), F_LSTRING, FFL_SPAWNTEMP},
 
+	{"next_grenade", FOFS(next_grenade), F_EDICT, FFL_NOSPAWN},
+	{"prev_grenade", FOFS(prev_grenade), F_EDICT, FFL_NOSPAWN},
+
 	{0, 0, 0, 0}
 
 };

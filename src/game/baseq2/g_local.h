@@ -1106,5 +1106,9 @@ struct edict_s
 	// common data blocks
 	moveinfo_t		moveinfo;
 	monsterinfo_t	monsterinfo;
+
+	// grenate list
+	edict_t		*next_grenade; 
+	edict_t		*prev_grenade;
 };
 
