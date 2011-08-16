@@ -283,7 +283,7 @@ mmove_t gunner_move_pain1 = {FRAME_pain101, FRAME_pain118, gunner_frames_pain1, 
 void gunner_pain (edict_t *self, edict_t *other, float kick, int damage)
 {
 	if (self->health < (self->max_health / 2))
-		self->s.skinnum = 1;
+		self->s.skinnum |= 1;
 
 	if (level.time < self->pain_debounce_time)
 		return;
@@ -296,7 +296,7 @@ void gunner_pain (edict_t *self, edict_t *other, float kick, int damage)
 		gi.sound (self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);
 
 	if (skill->value == 3)
-		return;		// no pain anims in nightmare
+		return;	// no pain anims in nightmare
 
 	if (damage <= 10)
 		self->monsterinfo.currentmove = &gunner_move_pain3;
@@ -321,9 +321,9 @@ mframe_t gunner_frames_death [] =
 	{ai_move, 0,	 NULL},
 	{ai_move, 0,	 NULL},
 	{ai_move, 0,	 NULL},
-	{ai_move, -7, NULL},
-	{ai_move, -3, NULL},
-	{ai_move, -5, NULL},
+	{ai_move, -7,	 NULL},
+	{ai_move, -3,	 NULL},
+	{ai_move, -5,	 NULL},
 	{ai_move, 8,	 NULL},
 	{ai_move, 6,	 NULL},
 	{ai_move, 0,	 NULL},
@@ -335,6 +335,9 @@ mmove_t gunner_move_death = {FRAME_death01, FRAME_death11, gunner_frames_death, 
 void gunner_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point)
 {
 	int		n;
+
+	self->s.skinnum |= 1;
+	self->monsterinfo.power_armor_type = POWER_ARMOR_NONE;
 
 	// check for gib
 	if (self->health <= self->gib_health)
