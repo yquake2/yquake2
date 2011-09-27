@@ -37,6 +37,11 @@ UpdateChaseCam(edict_t *ent)
 	vec3_t oldgoal;
 	vec3_t angles;
 
+	if (!ent)
+	{
+		return;
+	}
+
 	/* is our chase target gone? */
 	if (!ent->client->chase_target->inuse ||
 		ent->client->chase_target->client->resp.spectator)
@@ -148,6 +153,11 @@ ChaseNext(edict_t *ent)
 	int i;
 	edict_t *e;
 
+    if (!ent)
+	{
+		return;
+	}
+
 	if (!ent->client->chase_target)
 	{
 		return;
@@ -188,6 +198,11 @@ ChasePrev(edict_t *ent)
 	int i;
 	edict_t *e;
 
+	if (!ent)
+	{
+		return;
+	}
+
 	if (!ent->client->chase_target)
 	{
 		return;
@@ -227,6 +242,11 @@ GetChaseTarget(edict_t *ent)
 {
 	int i;
 	edict_t *other;
+
+	if (!ent)
+	{
+		return;
+	}
 
 	for (i = 1; i <= maxclients->value; i++)
 	{

@@ -34,7 +34,7 @@ int enemy_range;
 float enemy_yaw;
  
 qboolean FindTarget(edict_t *self);
-qboolean ai_checkattack(edict_t *self, float dist);
+qboolean ai_checkattack(edict_t *self);
 
 /*
  * Called once each frame to set level.sight_client 
@@ -94,6 +94,11 @@ AI_SetSightClient(void)
 void
 ai_move(edict_t *self, float dist)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	M_walkmove(self, self->s.angles[YAW], dist);
 }
 
@@ -108,6 +113,11 @@ void
 ai_stand(edict_t *self, float dist)
 {
 	vec3_t v;
+
+	if (!self)
+	{
+		return;
+	}
 
 	if (dist)
 	{
@@ -130,7 +140,7 @@ ai_stand(edict_t *self, float dist)
 			}
 
 			M_ChangeYaw(self);
-			ai_checkattack(self, 0);
+			ai_checkattack(self);
 		}
 		else
 		{
@@ -172,6 +182,11 @@ ai_stand(edict_t *self, float dist)
 void
 ai_walk(edict_t *self, float dist)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	M_MoveToGoal(self, dist);
 
 	/* check for noticing a player */
@@ -204,6 +219,11 @@ ai_charge(edict_t *self, float dist)
 {
 	vec3_t v;
 
+	if (!self)
+	{
+		return;
+	}
+
 	VectorSubtract(self->enemy->s.origin, self->s.origin, v);
 	self->ideal_yaw = vectoyaw(v);
 	M_ChangeYaw(self);
@@ -222,7 +242,12 @@ ai_charge(edict_t *self, float dist)
  */
 void
 ai_turn(edict_t *self, float dist)
-{
+{   
+	if (!self)
+	{
+		return;
+	}
+
 	if (dist)
 	{
 		M_walkmove(self, self->s.angles[YAW], dist);
@@ -276,6 +301,11 @@ range(edict_t *self, edict_t *other)
 	vec3_t v;
 	float len;
 
+ 	if (!self || !other)
+	{
+		return 0;
+	}
+ 
 	VectorSubtract(self->s.origin, other->s.origin, v);
 	len = VectorLength(v);
 
@@ -370,6 +400,11 @@ HuntTarget(edict_t *self)
 {
 	vec3_t vec;
 
+	if (!self)
+	{
+		return;
+	}
+
 	self->goalentity = self->enemy;
 
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
@@ -393,7 +428,12 @@ HuntTarget(edict_t *self)
 
 void
 FoundTarget(edict_t *self)
-{
+{  
+	if (!self)
+	{
+		return;
+	}
+ 
 	/* let other monsters see this monster for a while */
 	if (self->enemy->client)
 	{
@@ -461,7 +501,12 @@ FindTarget(edict_t *self)
 	edict_t *client;
 	qboolean heardit;
 	int r;
-
+    
+	if (!self)
+	{
+		return false;
+	}
+ 
 	if (self->monsterinfo.aiflags & AI_GOOD_GUY)
 	{
 		return false;
@@ -667,7 +712,12 @@ FindTarget(edict_t *self)
 qboolean
 FacingIdeal(edict_t *self)
 {
-	float delta;
+	float delta;    
+
+	if (!self)
+	{
+		return false;
+	}
 
 	delta = anglemod(self->s.angles[YAW] - self->ideal_yaw);
 
@@ -687,7 +737,12 @@ M_CheckAttack(edict_t *self)
 	vec3_t spot1, spot2;
 	float chance;
 	trace_t tr;
-
+              
+	if (!self)
+	{
+		return false;
+	}
+ 
 	if (self->enemy->health > 0)
 	{
 		/* see if any entities are in the way of the shot */
@@ -808,7 +863,12 @@ M_CheckAttack(edict_t *self)
  */
 void
 ai_run_melee(edict_t *self)
-{
+{                   
+	if (!self)
+	{
+		return;
+	}
+ 
 	self->ideal_yaw = enemy_yaw;
 	M_ChangeYaw(self);
 
@@ -825,7 +885,12 @@ ai_run_melee(edict_t *self)
  */
 void
 ai_run_missile(edict_t *self)
-{
+{                    
+	if (!self)
+	{
+		return;
+	}
+ 
 	self->ideal_yaw = enemy_yaw;
 	M_ChangeYaw(self);
 
@@ -843,7 +908,12 @@ ai_run_missile(edict_t *self)
 void
 ai_run_slide(edict_t *self, float distance)
 {
-	float ofs;
+	float ofs;        
+
+	if (!self)
+	{
+		return;
+	}
 
 	self->ideal_yaw = enemy_yaw;
 	M_ChangeYaw(self);
@@ -872,11 +942,16 @@ ai_run_slide(edict_t *self, float distance)
  * ai_run and ai_stand
  */
 qboolean
-ai_checkattack(edict_t *self, float dist)
+ai_checkattack(edict_t *self)
 {
 	vec3_t temp;
 	qboolean hesDeadJim;
-
+                                   
+	if (!self)
+	{
+		return false;
+	}
+ 
 	/* this causes monsters to run blindly 
 	   to the combat point w/o firing */
 	if (self->goalentity)
@@ -1048,7 +1123,12 @@ ai_run(edict_t *self, float dist)
 	vec3_t v_forward, v_right;
 	float left, center, right;
 	vec3_t left_target, right_target;
-
+ 
+	if (!self)
+	{
+		return;
+	}
+          
 	/* if we're going to a combat point, just proceed */
 	if (self->monsterinfo.aiflags & AI_COMBAT_POINT)
 	{
@@ -1076,7 +1156,7 @@ ai_run(edict_t *self, float dist)
 		}
 	}
 
-	if (ai_checkattack(self, dist))
+	if (ai_checkattack(self))
 	{
 		return;
 	}
@@ -1165,11 +1245,8 @@ ai_run(edict_t *self, float dist)
 
 	if (new)
 	{
-		tr = gi.trace(self->s.origin,
-				self->mins,
-				self->maxs,
-				self->monsterinfo.last_sighting,
-				self,
+		tr = gi.trace(self->s.origin, self->mins, self->maxs,
+				self->monsterinfo.last_sighting, self,
 				MASK_PLAYERSOLID);
 
 		if (tr.fraction < 1)
@@ -1183,22 +1260,14 @@ ai_run(edict_t *self, float dist)
 
 			VectorSet(v, d2, -16, 0);
 			G_ProjectSource(self->s.origin, v, v_forward, v_right, left_target);
-			tr = gi.trace(self->s.origin,
-					self->mins,
-					self->maxs,
-					left_target,
-					self,
-					MASK_PLAYERSOLID);
+			tr = gi.trace(self->s.origin, self->mins, self->maxs, left_target,
+					self, MASK_PLAYERSOLID);
 			left = tr.fraction;
 
 			VectorSet(v, d2, 16, 0);
 			G_ProjectSource(self->s.origin, v, v_forward, v_right, right_target);
-			tr = gi.trace(self->s.origin,
-					self->mins,
-					self->maxs,
-					right_target,
-					self,
-					MASK_PLAYERSOLID);
+			tr = gi.trace(self->s.origin, self->mins, self->maxs, right_target,
+					self, MASK_PLAYERSOLID);
 			right = tr.fraction;
 
 			center = (d1 * center) / d2;
@@ -1225,10 +1294,7 @@ ai_run(edict_t *self, float dist)
 				if (right < 1)
 				{
 					VectorSet(v, d2 * right * 0.5, 16, 0);
-					G_ProjectSource(self->s.origin,
-							v,
-							v_forward,
-							v_right,
+					G_ProjectSource(self->s.origin, v, v_forward, v_right,
 							right_target);
 				}
 
