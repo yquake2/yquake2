@@ -69,6 +69,7 @@ qboolean fire_hit (edict_t *self, vec3_t aim, int damage, int kick)
 	float		range;
 	vec3_t		dir;
 
+	// Lazarus: Paranoia check
 	if(!self->enemy)
 		return false;
 
@@ -399,37 +400,10 @@ void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int spee
 fire_grenade
 =================
 */
-
-static void Grenade_Add_To_Chain (edict_t *grenade)
-{
-	edict_t	*ancestor;
-
-	ancestor = world;
-	while(ancestor->next_grenade && ancestor->next_grenade->inuse)
-		ancestor = ancestor->next_grenade;
-	ancestor->next_grenade = grenade;
-	grenade->prev_grenade = ancestor;
-} 
-
-
-static void Grenade_Remove_From_Chain (edict_t *grenade)
-{
-	if(grenade->prev_grenade)
-	{
-		// "prev_grenade" should always be valid for other than player-thrown
-		// grenades that explode in player's hand
-		grenade->prev_grenade->next_grenade = grenade->next_grenade;
-		if(grenade->next_grenade)
-			grenade->next_grenade->prev_grenade = grenade->prev_grenade;
-	}
-}
-
 static void Grenade_Explode (edict_t *ent)
 {
 	vec3_t		origin;
 	int			mod;
-
-	Grenade_Remove_From_Chain(ent);
 
 	if (ent->owner && ent->owner->client)
 		PlayerNoise(ent->owner, ent->s.origin, PNOISE_IMPACT);
@@ -490,7 +464,6 @@ static void Grenade_Touch (edict_t *ent, edict_t *other, cplane_t *plane, csurfa
 
 	if (surf && (surf->flags & SURF_SKY))
 	{
-		Grenade_Remove_From_Chain (ent);
 		G_FreeEdict (ent);
 		return;
 	}
@@ -545,8 +518,6 @@ void fire_grenade (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int s
 	grenade->dmg_radius = damage_radius;
 	grenade->classname = "grenade";
 
-	Grenade_Add_To_Chain (grenade);
-
 	gi.linkentity (grenade);
 }
 
@@ -590,7 +561,6 @@ void fire_grenade2 (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int 
 	else
 	{
 		gi.sound (self, CHAN_WEAPON, gi.soundindex ("weapons/hgrent1a.wav"), 1, ATTN_NORM, 0);
-		Grenade_Add_To_Chain (grenade);
 		gi.linkentity (grenade);
 	}
 }
