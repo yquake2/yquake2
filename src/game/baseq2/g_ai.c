@@ -308,6 +308,11 @@ visible(edict_t *self, edict_t *other)
 	vec3_t spot2;
 	trace_t trace;
 
+	if (!self || !other)
+	{
+		return false;
+	}
+
 	VectorCopy(self->s.origin, spot1);
 	spot1[2] += self->viewheight;
 	VectorCopy(other->s.origin, spot2);
@@ -333,7 +338,7 @@ infront(edict_t *self, edict_t *other)
 	float dot;
 	vec3_t forward;
 
-	if ((self == NULL) || (other == NULL))
+	if (!self || !other)
 	{
 		return false;
 	}
