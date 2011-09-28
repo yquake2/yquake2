@@ -172,13 +172,8 @@ Killed(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 }
 
 void
-SpawnDamage(int type, vec3_t origin, vec3_t normal, int damage)
+SpawnDamage(int type, vec3_t origin, vec3_t normal)
 {
-	if (damage > 255)
-	{
-		damage = 255;
-	}
-
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(type);
 	gi.WritePosition(origin);
@@ -310,7 +305,7 @@ CheckPowerArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage,
 		save = damage;
 	}
 
-	SpawnDamage(pa_te_type, point, normal, save);
+	SpawnDamage(pa_te_type, point, normal);
 	ent->powerarmor_time = level.time + 0.2;
 
 	power_used = save / damagePerCell;
@@ -387,7 +382,7 @@ CheckArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage,
 	}
 
 	client->pers.inventory[index] -= save;
-	SpawnDamage(te_sparks, point, normal, save);
+	SpawnDamage(te_sparks, point, normal);
 
 	return save;
 }
@@ -396,6 +391,11 @@ void
 M_ReactToDamage(edict_t *targ, edict_t *attacker)
 {
 	if (!targ || !attacker)
+	{
+		return;
+	}
+	
+	if (targ->health <= 0)
 	{
 		return;
 	}
@@ -628,7 +628,7 @@ T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 	{
 		take = 0;
 		save = damage;
-		SpawnDamage(te_sparks, point, normal, save);
+		SpawnDamage(te_sparks, point, normal);
 	}
 
 	/* check for invincibility */
@@ -666,11 +666,11 @@ T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 	{
 		if ((targ->svflags & SVF_MONSTER) || (client))
 		{
-			SpawnDamage(TE_BLOOD, point, normal, take);
+			SpawnDamage(TE_BLOOD, point, normal);
 		}
 		else
 		{
-			SpawnDamage(te_sparks, point, normal, take);
+			SpawnDamage(te_sparks, point, normal);
 		}
 
 		targ->health = targ->health - take;
