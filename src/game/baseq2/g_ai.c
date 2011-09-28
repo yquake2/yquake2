@@ -19,7 +19,7 @@
  *
  * =======================================================================
  *
- * The basic AI functions like enemy detection and so on.
+ * The basic AI functions like enemy detection, attacking and so on.
  *
  * =======================================================================
  */
