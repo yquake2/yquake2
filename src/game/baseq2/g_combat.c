@@ -202,7 +202,7 @@ SpawnDamage(int type, vec3_t origin, vec3_t normal)
  *      DAMAGE_NO_PROTECTION	kills godmode, armor, everything
  */
 
-static int
+int
 CheckPowerArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage,
 		int dflags)
 {
@@ -322,7 +322,7 @@ CheckPowerArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage,
 	return save;
 }
 
-static int
+int
 CheckArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage,
 		int te_sparks, int dflags)
 {

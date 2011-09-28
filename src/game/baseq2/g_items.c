@@ -1244,7 +1244,7 @@ Touch_Item(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurface_
 
 /* ====================================================================== */
 
-static void
+void
 drop_temp_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 {                           
 	if (!ent || !other)
@@ -1264,7 +1264,7 @@ drop_temp_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 	Touch_Item(ent, other, plane, surf);
 }
 
-static void
+void
 drop_make_touchable(edict_t *ent)
 {     
 	if (!ent)
