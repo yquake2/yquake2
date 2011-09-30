@@ -1,2 +1,6 @@
 - Port revision r2486 to r2527 to the addons and ctf
+- Lazarus (e.g. kmq2) has some nice additions and bugfixes
+  to g_phys.c, mainly for bounding box of rotating brushes
+- Lazarus (kmq2) has a fix for the rare "too many gibs" crash
+- Paril has a bugfix to the 125hz bug
 
