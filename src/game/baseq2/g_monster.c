@@ -155,7 +155,7 @@ monster_fire_bfg(edict_t *self, vec3_t start, vec3_t aimdir,
 
 /* Monster utility functions */
 
-static void
+void
 M_FliesOff(edict_t *self)
 {            
 	if (!self)
@@ -167,7 +167,7 @@ M_FliesOff(edict_t *self)
 	self->s.sound = 0;
 }
 
-static void
+void
 M_FliesOn(edict_t *self)
 {             
 	if (!self)
