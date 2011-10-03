@@ -1,3 +1,29 @@
+/*
+ * Copyright (C) 1997-2001 Id Software, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
+ *
+ * =======================================================================
+ *
+ * Interface between client <-> game and client calculations.
+ *
+ * =======================================================================
+ */
+
 #include "g_local.h"
 #include "m_player.h"
 
@@ -15,7 +41,7 @@ void Touch_Item(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
  * spawnpoint target names to the nearest named
  * single player spot.
  */
-static void
+void
 SP_FixCoopSpots(edict_t *self)
 {
 	edict_t *spot;
@@ -63,7 +89,7 @@ SP_FixCoopSpots(edict_t *self)
  * into the map where they should have
  * been
  */
-static void
+void
 SP_CreateCoopSpots(edict_t *self)
 {
 	edict_t *spot;
