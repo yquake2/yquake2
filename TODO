@@ -7,6 +7,7 @@ game.so:
 - Integrate knightmares savegame system
 - Merge CTF with baseq2 (most other sourceports have done this)
 - No bodyqueue in single player
+- Move q_shared.* into src/common?
 
 client:
 - Integrate a signalhandler and print an backtrace with Maxims
