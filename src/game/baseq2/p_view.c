@@ -51,6 +51,11 @@ P_DamageFeedback(edict_t *player)
 	static vec3_t acolor = {1.0, 1.0, 1.0};
 	static vec3_t bcolor = {1.0, 0.0, 0.0};
 
+	if (!player)
+	{
+		return;
+	}
+
 	client = player->client;
 
 	/* flash the backgrounds behind the status numbers */
@@ -378,6 +383,11 @@ SV_CalcGunOffset(edict_t *ent)
 	int i;
 	float delta;
 
+	if (!ent)
+	{
+		return;
+	}
+
 	/* gun angles from bobbing */
 	ent->client->ps.gunangles[ROLL] = xyspeed * bobfracsin * 0.005;
 	ent->client->ps.gunangles[YAW] = xyspeed * bobfracsin * 0.01;
@@ -439,7 +449,12 @@ void
 SV_AddBlend(float r, float g, float b, float a, float *v_blend)
 {
 	float a2, a3;
-
+         
+	if (!v_blend)
+	{
+		return;
+	}
+ 
 	if (a <= 0)
 	{
 		return;
@@ -460,7 +475,12 @@ SV_CalcBlend(edict_t *ent)
 	int contents;
 	vec3_t vieworg;
 	int remaining;
-
+                
+	if (!ent)
+	{
+		return;
+	}
+ 
 	ent->client->ps.blend[0] = ent->client->ps.blend[1] =
 		ent->client->ps.blend[2] = ent->client->ps.blend[3] = 0;
 
@@ -591,7 +611,12 @@ P_FallingDamage(edict_t *ent)
 	float delta;
 	int damage;
 	vec3_t dir;
-
+                 
+	if (!ent)
+	{
+		return;
+	}
+ 
 	if (ent->s.modelindex != 255)
 	{
 		return; /* not in the player model */
@@ -905,9 +930,14 @@ G_SetClientEffects(edict_t *ent)
 {
 	int pa_type;
 	int remaining;
-
+        
+	if (!ent)
+	{
+		return;
+	}
+ 
 	ent->s.effects = 0;
-	ent->s.renderfx = 0;
+	ent->s.renderfx = RF_IR_VISIBLE;
 
 	if ((ent->health <= 0) || level.intermissiontime)
 	{
@@ -959,7 +989,12 @@ G_SetClientEffects(edict_t *ent)
 
 void
 G_SetClientEvent(edict_t *ent)
-{
+{    
+	if (!ent)
+	{
+		return;
+	}
+ 
 	if (ent->s.event)
 	{
 		return;
@@ -978,7 +1013,12 @@ void
 G_SetClientSound(edict_t *ent)
 {
 	char *weap;
-
+    
+	if (!ent)
+	{
+		return;
+	}
+ 
 	if (ent->client->pers.game_helpchanged != game.helpchanged)
 	{
 		ent->client->pers.game_helpchanged = game.helpchanged;
@@ -1030,7 +1070,12 @@ G_SetClientFrame(edict_t *ent)
 {
 	gclient_t *client;
 	qboolean duck, run;
-
+      
+	if (!ent)
+	{
+		return;
+	}
+ 
 	if (ent->s.modelindex != 255)
 	{
 		return; /* not in the player model */
@@ -1162,7 +1207,12 @@ ClientEndServerFrame(edict_t *ent)
 {
 	float bobtime;
 	int i;
-
+      
+	if (!ent)
+	{
+		return;
+	}
+ 
 	current_player = ent;
 	current_client = ent->client;
 
