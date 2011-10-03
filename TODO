@@ -6,6 +6,7 @@ game.so:
 - Paril has a bugfix to the 125hz bug
 - Integrate knightmares savegame system
 - Merge CTF with baseq2 (most other sourceports have done this)
+- No bodyqueue in single player
 
 client:
 - Integrate a signalhandler and print an backtrace with Maxims
