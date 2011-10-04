@@ -739,7 +739,7 @@ T_RadiusDamage(edict_t *inflictor, edict_t *attacker, float damage,
 	vec3_t v;
 	vec3_t dir;
 
-	if (!inflictor || !attacker || !ignore)
+	if (!inflictor || !attacker)
 	{
 		return;
 	}
