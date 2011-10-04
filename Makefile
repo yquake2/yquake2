@@ -181,7 +181,6 @@ BASEQ2_OBJS_ = \
 	src/game/baseq2/g_misc.o \
 	src/game/baseq2/g_monster.o \
 	src/game/baseq2/g_phys.o \
-	src/game/baseq2/g_save.o \
 	src/game/baseq2/g_spawn.o \
 	src/game/baseq2/g_svcmds.o \
 	src/game/baseq2/g_target.o \
@@ -218,7 +217,8 @@ BASEQ2_OBJS_ = \
 	src/game/baseq2/p_trail.o \
 	src/game/baseq2/p_view.o \
 	src/game/baseq2/p_weapon.o \
-	src/game/baseq2/q_shared.o 
+	src/game/baseq2/q_shared.o \
+    src/game/baseq2/savegame/savegame.o	
 
 # Used by the client
 CLIENT_OBJS_ := \
