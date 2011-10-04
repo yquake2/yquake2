@@ -1192,15 +1192,18 @@ SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles)
 void
 InitBodyQue(void)
 {
-	int i;
-	edict_t *ent;
-
-	level.body_que = 0;
-
-	for (i = 0; i < BODY_QUEUE_SIZE; i++)
+	if (deathmatch->value || coop->value)
 	{
-		ent = G_Spawn();
-		ent->classname = "bodyque";
+		int i;
+		edict_t *ent;
+
+		level.body_que = 0;
+
+		for (i = 0; i < BODY_QUEUE_SIZE; i++)
+		{
+			ent = G_Spawn();
+			ent->classname = "bodyque";
+		}
 	}
 }
 
