@@ -743,7 +743,8 @@ WriteGame(const char *filename, qboolean autosave)
 	FILE *f;
 	int i;
 	char str_ver[32];
-	char str_os[32];
+	char str_game[32];
+    char str_os[32];
 	char str_arch[32];
 
 	if (!autosave)
@@ -760,14 +761,17 @@ WriteGame(const char *filename, qboolean autosave)
 
 	/* Savegame identification */
 	memset(str_ver, 0, sizeof(str_ver));
+	memset(str_game, 0, sizeof(str_game));
 	memset(str_os, 0, sizeof(str_os));
 	memset(str_arch, 0, sizeof(str_arch));
 
 	strncpy(str_ver, SAVEGAMEVER, sizeof(str_ver));
+	strncpy(str_game, GAMEVERSION, sizeof(str_game));
 	strncpy(str_os, OS, sizeof(str_os));
     strncpy(str_arch, ARCH, sizeof(str_arch));
 
 	fwrite(str_ver, sizeof(str_ver), 1, f);
+	fwrite(str_game, sizeof(str_game), 1, f);
 	fwrite(str_os, sizeof(str_os), 1, f);
 	fwrite(str_arch, sizeof(str_arch), 1, f);
 
@@ -794,6 +798,7 @@ ReadGame(const char *filename)
 	FILE *f;
 	int i;
 	char str_ver[32];
+	char str_game[32];
 	char str_os[32];
 	char str_arch[32];
 
@@ -808,6 +813,7 @@ ReadGame(const char *filename)
 
 	/* Sanity checks */
 	fread(str_ver, sizeof(str_ver), 1, f);
+	fread(str_game, sizeof(str_game), 1, f);
 	fread(str_os, sizeof(str_os), 1, f);
 	fread(str_arch, sizeof(str_arch), 1, f);
 
@@ -816,11 +822,17 @@ ReadGame(const char *filename)
 		fclose(f);
 		gi.error("Savegame from an incompatible version.\n");
 	}
-	else if (strcmp(str_os, OS))
+	else if (strcmp(str_game, GAMEVERSION))
+	{
+		fclose(f);
+		gi.error("Savegame from an other game.so.\n");
+	}
+ 	else if (strcmp(str_os, OS))
 	{
 		fclose(f);
 		gi.error("Savegame from an other os.\n");
 	}
+ 
  	else if (strcmp(str_arch, ARCH))
 	{
 		fclose(f);
