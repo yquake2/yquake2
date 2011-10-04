@@ -294,7 +294,7 @@ void parasite_pain (edict_t *self, edict_t *other, float kick, int damage)
 }
 
 
-static qboolean parasite_drain_attack_ok (vec3_t start, vec3_t end)
+qboolean parasite_drain_attack_ok (vec3_t start, vec3_t end)
 {
 	vec3_t	dir, angles;
 
