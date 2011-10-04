@@ -1,10 +1,8 @@
 game.so:
 - Lazarus (e.g. kmq2) has some nice additions and bugfixes
   to g_phys.c, mainly for bounding box of rotating brushes
-- Lazarus (kmq2) has a fix for the rare "too many gibs" crash
 - Paril has a bugfix to the 125hz bug
 - Merge CTF with baseq2 (most other sourceports have done this)
-- No bodyqueue in single player
 - Move q_shared.* into src/common?
 
 client:

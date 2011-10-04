@@ -26,6 +26,9 @@
 
 #include "g_local.h"
 
+int	gibsthisframe = 0;
+int lastgibframe = 0;
+
 void
 Use_Areaportal(edict_t *ent, edict_t *other /* unused */, edict_t *activator /* unused */)
 {
@@ -189,6 +192,19 @@ ThrowGib(edict_t *self, char *gibname, int damage, int type)
 	float vscale;
 
 	if (!self || !gibname)
+	{
+		return;
+	}
+
+	if (level.framenum > lastgibframe)
+	{
+		gibsthisframe = 0;
+		lastgibframe = level.framenum;
+	}
+
+	gibsthisframe++;
+	
+	if (gibsthisframe > 20)
 	{
 		return;
 	}
@@ -361,7 +377,20 @@ ThrowDebris(edict_t *self, char *modelname, float speed, vec3_t origin)
 	{
 		return;
 	}
+     
+	if (level.framenum > lastgibframe)
+	{
+		gibsthisframe = 0;
+		lastgibframe = level.framenum;
+	}
 
+	gibsthisframe++;
+	
+	if (gibsthisframe > 20)
+	{
+		return;
+	}
+ 
 	chunk = G_Spawn();
 	VectorCopy(origin, chunk->s.origin);
 	gi.setmodel(chunk, modelname);
