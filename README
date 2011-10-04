@@ -428,4 +428,10 @@ Can I use texture sets with Yamagi Quake 2?
  - No, you can't. Yamagi Quake 2 is dedicated to a game experience like
    in 1997 and thus texture packs are not supported. Use another client.
 
+I'm creating a package or port for my system. Is a system wide install
+possible without patching the source?
+ - Yes. Just set -DSYSTEMWIDE. If you want to change the default
+   directory from /usr/share/games/quake2/, just set -DSYSTEMDIR
+   to the desired path.
+
 ===============================================================================

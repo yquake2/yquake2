@@ -35,6 +35,12 @@
 #define MAX_FIND_FILES	0x04000
 #define MAX_PAKS		100
 
+#ifdef SYSTEMWIDE
+ #ifndef SYSTEMDIR
+  #define SYSTEMDIR "/usr/share/games/quake2/"
+ #endif
+#endif
+
 typedef struct
 {
 	char		name[MAX_QPATH];
@@ -1234,6 +1240,26 @@ FS_AddHomeAsGameDirectory(char *dir)
 	}
 }
 
+#ifdef SYSTEMWIDE
+
+void FS_AddSystemwideGameDirectory(char *dir) 
+{ 
+    char gdir[MAX_OSPATH]; 
+    char *datadir = SYSTEMDIR; 
+	int len = snprintf(gdir, sizeof(gdir), "%s/%s/", datadir, dir); 
+
+    printf("Using %s to fetch paks\n", gdir); 
+ 
+	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/')) 
+	{
+           gdir[len-1] = 0; 
+	}
+         
+	FS_AddGameDirectory (gdir); 
+}
+
+#endif
+
 /*
  * Allows enumerating all of the directories in the search path.
  */
@@ -1438,6 +1464,10 @@ FS_SetGamedir(char *dir)
 
 		if (fs_cddir->string[0] == '\0')
 			FS_AddGameDirectory(va("%s/%s", fs_cddir->string, dir));
+
+#ifdef SYSTEMWIDE
+		FS_AddSystemwideGameDirectory(dir);
+#endif
 
 		FS_AddGameDirectory(va("%s/%s", fs_basedir->string, dir));
 		FS_AddHomeAsGameDirectory(dir);
@@ -1808,6 +1838,10 @@ FS_InitFilesystem(void)
 
 	/* Current directory. */
 	fs_homepath = Cvar_Get("homepath", Sys_GetCurrentDirectory(), CVAR_NOSET);
+
+#ifdef SYSTEMWIDE
+	FS_AddSystemwideGameDirectory(BASEDIRNAME);
+#endif
 
 	/* Add baseq2 to search path. */
 	FS_AddGameDirectory(va("%s/" BASEDIRNAME, fs_basedir->string));

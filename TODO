@@ -5,7 +5,6 @@ game.so:
 client:
 - Integrate a signalhandler and print an backtrace with Maxims
   libexecinfo (only 2 sourcefiles, BSD licensed)
-- Integrate caedes systemwide installation patches
 - Add a optional overwrite for the defaults.cfg
 - Rename the config.cfg to yq2config.cfg for compatiblity with other
   sourceports
