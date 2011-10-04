@@ -383,6 +383,118 @@ SV_AddGravity(edict_t *ent)
 	ent->velocity[2] -= ent->gravity * sv_gravity->value * FRAMETIME;
 }
 
+/*
+ * Returns the actual bounding box of a bmodel. 
+ * This is a big improvement over what q2 normally
+ * does with rotating bmodels - q2 sets absmin, 
+ * absmax to a cube that will completely contain 
+ * the bmodel at *any* rotation on *any* axis, whether
+ * the bmodel can actually rotate to that angle or not.
+ * This leads to a lot of false block tests in SV_Push
+ * if another bmodel is in the vicinity.
+ */
+void
+RealBoundingBox(edict_t *ent, vec3_t mins, vec3_t maxs)
+{
+	vec3_t forward, left, up, f1, l1, u1;
+	vec3_t p[8];
+	int i, j, k, j2, k4;
+
+	for (k = 0; k < 2; k++)
+	{
+		k4 = k * 4;
+
+		if (k)
+		{
+			p[k4][2] = ent->maxs[2];
+		}
+		else
+		{
+			p[k4][2] = ent->mins[2];
+		}
+
+		p[k4 + 1][2] = p[k4][2];
+		p[k4 + 2][2] = p[k4][2];
+		p[k4 + 3][2] = p[k4][2];
+
+		for (j = 0; j < 2; j++)
+		{
+			j2 = j * 2;
+
+			if (j)
+			{
+				p[j2 + k4][1] = ent->maxs[1];
+			}
+			else
+			{
+				p[j2 + k4][1] = ent->mins[1];
+			}
+
+			p[j2 + k4 + 1][1] = p[j2 + k4][1];
+
+			for (i = 0; i < 2; i++)
+			{
+				if (i)
+				{
+					p[i + j2 + k4][0] = ent->maxs[0];
+				}
+				else
+				{
+					p[i + j2 + k4][0] = ent->mins[0];
+				}
+			}
+		}
+	}
+
+	AngleVectors(ent->s.angles, forward, left, up);
+
+	for (i = 0; i < 8; i++)
+	{
+		VectorScale(forward, p[i][0], f1);
+		VectorScale(left, -p[i][1], l1);
+		VectorScale(up, p[i][2], u1);
+		VectorAdd(ent->s.origin, f1, p[i]);
+		VectorAdd(p[i], l1, p[i]);
+		VectorAdd(p[i], u1, p[i]);
+	}
+
+	VectorCopy(p[0], mins);
+	VectorCopy(p[0], maxs);
+
+	for (i = 1; i < 8; i++)
+	{
+		if (mins[0] > p[i][0])
+		{
+			mins[0] = p[i][0];
+		}
+         
+		if (mins[1] > p[i][1])
+		{
+			mins[1] = p[i][1];
+		}    
+		
+		if (mins[2] > p[i][2])
+		{
+			mins[2] = p[i][2];
+		} 
+
+		if (maxs[0] < p[i][0])
+		{
+			maxs[0] = p[i][0];
+		}
+
+ 		if (maxs[1] < p[i][1])
+		{
+			maxs[1] = p[i][1];
+		}
+             
+		if (maxs[2] < p[i][2])
+		{
+			maxs[2] = p[i][2];
+		}
+	}
+}
+
 /* ================================================================== */
 
 /* PUSHMOVE */
@@ -469,6 +581,7 @@ SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
 	vec3_t mins, maxs;
 	pushed_t *p;
 	vec3_t org, org2, move2, forward, right, up;
+	vec3_t realmins, realmaxs;
                     
 	if (!pusher)
 	{
@@ -522,6 +635,10 @@ SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
 	VectorAdd(pusher->s.angles, amove, pusher->s.angles);
 	gi.linkentity(pusher);
 
+	/* Create a real bounding box for 
+	 * rotating brush models. */
+	RealBoundingBox(pusher,realmins,realmaxs);
+
 	/* see if any solid entities 
 	   are inside the final position */
 	check = g_edicts + 1;
@@ -551,12 +668,12 @@ SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
 		if (check->groundentity != pusher)
 		{
 			/* see if the ent needs to be tested */
-			if ((check->absmin[0] >= maxs[0]) ||
-				(check->absmin[1] >= maxs[1]) ||
-				(check->absmin[2] >= maxs[2]) ||
-				(check->absmax[0] <= mins[0]) ||
-				(check->absmax[1] <= mins[1]) ||
-				(check->absmax[2] <= mins[2]))
+			if ((check->absmin[0] >= realmaxs[0]) ||
+				(check->absmin[1] >= realmaxs[1]) ||
+				(check->absmin[2] >= realmaxs[2]) ||
+				(check->absmax[0] <= realmins[0]) ||
+				(check->absmax[1] <= realmins[1]) ||
+				(check->absmax[2] <= realmins[2]))
 			{
 				continue;
 			}
