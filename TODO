@@ -6,7 +6,6 @@ client:
 - Integrate a signalhandler and print an backtrace with Maxims
   libexecinfo (only 2 sourcefiles, BSD licensed)
 - Integrate caedes systemwide installation patches
-- Add extremly high resolutions 
 - Add a optional overwrite for the defaults.cfg
 - Rename the config.cfg to yq2config.cfg for compatiblity with other
   sourceports
@@ -15,8 +14,6 @@ doc:
 - Write a new, much more polished homepage
 - Rework the startup script:
   - Add unclutter
-  - Activate coredumps on linux
-  - Remove linuxisms for FreeBSD
 
 Long term goals:
 - Backport to Windows

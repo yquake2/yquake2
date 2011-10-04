@@ -11,11 +11,24 @@ if [ $(ps auxww | grep gnome-screensaver | wc -l) -gt 0 ]; then
     GSC_PID=$! 
 fi 
 
+# Stop unclutter
+if [ $(ps auxww | grep unclutter | wc -l) -gt 0 ]; then 
+	echo 'inhibiting unclutter'
+	killall -STOP unclutter
+fi
+
 # run quake 2 
-# ./quake2 $* 
+./quake2 $* 
 
 # if gnome-screensaver was running.. 
 if [ $GSC_PID -gt 0 ]; then 
     echo "reactivating gnome screensaver"     
     kill $GSC_PID 
 fi
+
+# Continue unclutter
+if [ $(ps auxww | grep unclutter | wc -l) -gt 0 ]; then 
+	echo 'reactivating unclutter'
+	killall -CONT unclutter
+fi
+ 
