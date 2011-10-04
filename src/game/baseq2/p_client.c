@@ -223,6 +223,10 @@ SP_info_player_coop(edict_t *self)
 void
 SP_info_player_intermission(void)
 {
+	/* Thus function cannot be removed
+	 * since the info_player_intermission
+	 * needs a callback function. Like
+	 * every entity. */
 }
 
 /* ======================================================================= */
@@ -231,8 +235,11 @@ void
 player_pain(edict_t *self /* unused */, edict_t *other /* unused */,
 	   	float kick /* unused */, int damage /* unused */)
 {
-	/* player pain is handled at the end 
-	 * of the frame in P_DamageFeedback */
+	/* Player pain is handled at the end 
+	 * of the frame in P_DamageFeedback.
+	 * This function is still here since 
+	 * the player is an entity and needs
+	 * a pain callback */
 }
 
 qboolean
