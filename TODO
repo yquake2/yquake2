@@ -1,7 +1,4 @@
 game.so:
-- Lazarus (e.g. kmq2) has some nice additions and bugfixes
-  to g_phys.c, mainly for bounding box of rotating brushes
-- Paril has a bugfix to the 125hz bug
 - Merge CTF with baseq2 (most other sourceports have done this)
 - Move q_shared.* into src/common?
 
