@@ -424,4 +424,8 @@ to be! What's wrong?
    go wrong and you can jump much higher. To solve this set "cl_maxfps"
    to about 95 FPS.
 
+Can I use texture sets with Yamagi Quake 2?
+ - No, you can't. Yamagi Quake 2 is dedicated to a game experience like
+   in 1997 and thus texture packs are not supported. Use another client.
+
 ===============================================================================
