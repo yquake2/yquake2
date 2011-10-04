@@ -914,7 +914,6 @@ WriteLevel(const char *filename)
 	int i;
 	edict_t *ent;
 	FILE *f;
-	void *base;
 
 	f = fopen(filename, "wb");
 
@@ -1005,7 +1004,6 @@ ReadLevel(const char *filename)
 	int entnum;
 	FILE *f;
 	int i;
-	void *base;
 	edict_t *ent;
 
 	f = fopen(filename, "rb");
