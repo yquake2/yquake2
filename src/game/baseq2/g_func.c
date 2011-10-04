@@ -857,9 +857,9 @@ rotating_touch(edict_t *self, edict_t *other, cplane_t *plane /* unused */, csur
 }
 
 void
-rotating_use(edict_t *self, edict_t *other, edict_t *activator /* unused */)
+rotating_use(edict_t *self, edict_t *other /* unused */, edict_t *activator /* unused */)
 {   
-	if (!self || !other)
+	if (!self)
 	{
 		return;
 	} 
