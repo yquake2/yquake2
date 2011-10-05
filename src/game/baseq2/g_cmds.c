@@ -103,11 +103,24 @@ SelectNextItem(edict_t *ent, int itflags)
 
 	cl = ent->client;
 
+#ifdef CTF
+	if (cl->menu)
+	{
+		PMenu_Next(ent);
+		return;
+	} 
+	else if (cl->chase_target) 
+	{
+		ChaseNext(ent);
+		return;
+	}
+#else
 	if (cl->chase_target)
 	{
 		ChaseNext(ent);
 		return;
 	}
+#endif
 
 	/* scan  for the next valid one */
 	for (i = 1; i <= MAX_ITEMS; i++)
@@ -152,11 +165,24 @@ SelectPrevItem(edict_t *ent, int itflags)
 
 	cl = ent->client;
 
+#ifdef CTF
+	if (cl->menu) 
+	{
+		PMenu_Prev(ent);
+		return;
+	} 
+	else if (cl->chase_target) 
+	{
+		ChasePrev(ent);
+		return;
+	}
+#else
 	if (cl->chase_target)
 	{
 		ChasePrev(ent);
 		return;
 	}
+#endif
 
 	/* scan for the next valid one */
 	for (i = 1; i <= MAX_ITEMS; i++)
@@ -578,6 +604,16 @@ Cmd_Drop_f(edict_t *ent)
 		return;
 	}
 
+#ifdef CTF
+	/* Special case for the
+	   tech powerup */
+	if (Q_stricmp(gi.args(), "tech") == 0 && (it = CTFWhat_Tech(ent)) != NULL) 
+	{
+		it->drop (ent, it);
+		return;
+	}
+#endif
+
 	s = gi.args();
 	it = FindItem(s);
 
@@ -620,12 +656,28 @@ Cmd_Inven_f(edict_t *ent)
 	cl->showscores = false;
 	cl->showhelp = false;
 
+#ifdef CTF
+	if (ent->client->menu) 
+	{
+		PMenu_Close(ent);
+		ent->client->update_chase = true;
+		return;
+	}
+#endif
+
 	if (cl->showinventory)
 	{
 		cl->showinventory = false;
 		return;
 	}
 
+#ifdef CTF
+	if (ctf->value && cl->resp.ctf_team == CTF_NOTEAM) 
+	{
+		CTFOpenJoinMenu(ent);
+		return;
+	}
+#endif
 	cl->showinventory = true;
 
 	gi.WriteByte(svc_inventory);
@@ -648,6 +700,14 @@ Cmd_InvUse_f(edict_t *ent)
 		return;
 	}
      
+#ifdef CTF
+	if (ent->client->menu) 
+	{
+		PMenu_Select(ent);
+		return;
+	}
+#endif
+
 	ValidateSelectedItem(ent);
 
 	if (ent->client->pers.selected_item == -1)
@@ -666,6 +726,30 @@ Cmd_InvUse_f(edict_t *ent)
 
 	it->use(ent, it);
 }
+
+#ifdef CTF
+
+void 
+Cmd_LastWeap_f (edict_t *ent)
+{
+	gclient_t	*cl;
+
+	if (!ent)
+	{
+		return;
+	}
+
+	cl = ent->client;
+
+	if (!cl->pers.weapon || !cl->pers.lastweapon)
+	{
+		return;
+	}
+
+	cl->pers.lastweapon->use (ent, cl->pers.lastweapon);
+}
+
+#endif
 
 void
 Cmd_WeapPrev_f(edict_t *ent)
@@ -851,6 +935,13 @@ Cmd_Kill_f(edict_t *ent)
 		return;
 	}
      
+#ifdef CTF
+	if (ent->solid == SOLID_NOT)
+	{
+		return;
+	}
+#endif
+
 	if (((level.time - ent->client->respawn_time) < 5) ||
 		(ent->client->resp.spectator))
 	{
@@ -874,6 +965,15 @@ Cmd_PutAway_f(edict_t *ent)
 	ent->client->showscores = false;
 	ent->client->showhelp = false;
 	ent->client->showinventory = false;
+
+#ifdef CTF
+	if (ent->client->menu)
+	{
+		PMenu_Close(ent);
+	}
+
+	ent->client->update_chase = true;
+#endif
 }
 
 int
@@ -1319,6 +1419,60 @@ ClientCommand(edict_t *ent)
 	{
 		Cmd_PlayerList_f(ent);
 	}
+#ifdef CTF
+	else if (Q_stricmp (cmd, "team") == 0)
+	{
+		CTFTeam_f (ent);
+	} 
+	else if (Q_stricmp(cmd, "id") == 0) 
+	{
+		CTFID_f (ent);
+	} 
+	else if (Q_stricmp(cmd, "yes") == 0) 
+	{
+		CTFVoteYes(ent);
+	} 
+	else if (Q_stricmp(cmd, "no") == 0) 
+	{
+		CTFVoteNo(ent);
+	} 
+	else if (Q_stricmp(cmd, "ready") == 0) 
+	{
+		CTFReady(ent);
+	} 
+	else if (Q_stricmp(cmd, "notready") == 0) 
+	{
+		CTFNotReady(ent);
+	} 
+	else if (Q_stricmp(cmd, "ghost") == 0) 
+	{
+		CTFGhost(ent);
+	} 
+	else if (Q_stricmp(cmd, "admin") == 0) 
+	{
+		CTFAdmin(ent);
+	} 
+	else if (Q_stricmp(cmd, "stats") == 0) 
+	{
+		CTFStats(ent);
+	} 
+	else if (Q_stricmp(cmd, "warp") == 0) 
+	{
+		CTFWarp(ent);
+	} 
+	else if (Q_stricmp(cmd, "boot") == 0) 
+	{
+		CTFBoot(ent);
+	} 
+	else if (Q_stricmp(cmd, "playerlist") == 0) 
+	{
+		CTFPlayerList(ent);
+	} 
+	else if (Q_stricmp(cmd, "observer") == 0) 
+	{
+		CTFObserver(ent);
+	}
+#endif
 	else /* anything that doesn't match a command will be a chat */
 	{
 		Cmd_Say_f(ent, false, true);

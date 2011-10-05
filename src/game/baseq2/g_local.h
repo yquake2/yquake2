@@ -32,8 +32,16 @@
 #define GAME_INCLUDE
 #include "game.h"
 
+#ifdef CTF
+#include "p_menu.h"
+#endif
+
 /* the "gameversion" client command will print this plus compile date */
-#define GAMEVERSION "baseq2"
+#ifdef CTF
+ #define GAMEVERSION "ctf"
+#else
+ #define GAMEVERSION "baseq2"
+#endif
 
 /* protocol bytes that can be directly added to messages */
 #define svc_muzzleflash 1
@@ -208,6 +216,9 @@ typedef struct
 #define IT_STAY_COOP 8
 #define IT_KEY 16
 #define IT_POWERUP 32
+#ifdef CTF
+ #define IT_TECH 64
+#endif
 
 /* gitem_t->weapmodel for weapons indicates model index */
 #define WEAP_BLASTER 1
@@ -221,6 +232,9 @@ typedef struct
 #define WEAP_HYPERBLASTER 9
 #define WEAP_RAILGUN 10
 #define WEAP_BFG 11
+#ifdef CTF
+ #define WEAP_GRAPPLE 12
+#endif
 
 typedef struct gitem_s
 {
@@ -494,6 +508,12 @@ extern cvar_t *dmflags;
 extern cvar_t *skill;
 extern cvar_t *fraglimit;
 extern cvar_t *timelimit;
+
+#ifdef CTF
+extern	cvar_t	*capturelimit;
+extern	cvar_t	*instantweap;
+#endif
+
 extern cvar_t *password;
 extern cvar_t *spectator_password;
 extern cvar_t *needpass;
@@ -828,6 +848,22 @@ typedef struct
 	client_persistant_t coop_respawn; /* what to set client->pers to on a respawn */
 	int enterframe; /* level.framenum the client entered the game */
 	int score; /* frags, etc */
+
+#ifdef CTF
+	int	ctf_team; /*CTF team */
+	int	ctf_state;
+	float ctf_lasthurtcarrier;
+	float ctf_lastreturnedflag;
+	float ctf_flagsince;
+	float ctf_lastfraggedcarrier;
+	qboolean id_state;
+	float lastidtime;
+	qboolean voted; /* for elections */
+	qboolean ready;
+	qboolean admin;
+	struct ghost_s *ghost;
+#endif
+
 	vec3_t cmd_angles; /* angles sent over in the last command */
 
 	qboolean spectator; /* client is a spectator */
@@ -847,6 +883,11 @@ struct gclient_s
 	pmove_state_t old_pmove; /* for detecting out-of-pmove changes */
 
 	qboolean showscores; /* set layout stat */
+
+#ifdef CTF
+	qboolean inmenu; /* in menu */
+	pmenuhnd_t *menu; /* current menu */
+#endif
 	qboolean showinventory; /* set layout stat */
 	qboolean showhelp;
 	qboolean showhelpicon;
@@ -914,6 +955,19 @@ struct gclient_s
 	int flood_whenhead; /* head pointer for when said */
 
 	float respawn_time; /* can respawn when time > this */
+
+#ifdef CTF
+	void *ctf_grapple; /* entity of grapple */
+	int	ctf_grapplestate; /* true if pulling */
+	float ctf_grapplereleasetime; /* time of grapple release */
+	float ctf_regentime; /* regen tech */
+	float ctf_techsndtime;
+	float ctf_lasttechmsg;
+	edict_t	*chase_target;
+	qboolean update_chase;
+	float menutime;	/* time to update menu */
+	qboolean menudirty;
+#endif
 
 	edict_t *chase_target; /* player we are chasing */
 	qboolean update_chase; /* need to update chase info? */
@@ -1065,4 +1119,8 @@ struct edict_s
 	moveinfo_t moveinfo;
 	monsterinfo_t monsterinfo;
 };
+
+#ifdef CTF
+ #include "g_ctf.h"
+#endif
 

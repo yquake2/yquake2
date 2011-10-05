@@ -90,6 +90,13 @@ BeginIntermission(edict_t *targ)
 		return; /* already activated */
 	}
 
+#ifdef CTF
+	if (deathmatch->value && ctf->value)
+	{
+		CTFCalcScores();
+	}
+#endif
+
 	game.autosaved = false;
 
 	/* respawn any dead clients */
@@ -213,6 +220,14 @@ DeathmatchScoreboardMessage(edict_t *ent, edict_t *killer)
 		return;
 	}
      
+#ifdef CTF
+	if (ctf->value) 
+	{
+		CTFScoreboardMessage (ent, killer);
+		return;
+	}
+#endif
+
 	/* sort the clients by score */
 	total = 0;
 
@@ -345,6 +360,13 @@ Cmd_Score_f(edict_t *ent)
      
 	ent->client->showinventory = false;
 	ent->client->showhelp = false;
+
+#ifdef CTF
+	if (ent->client->menu)
+	{
+		PMenu_Close(ent);
+	}
+#endif
 
 	if (!deathmatch->value && !coop->value)
 	{
@@ -698,5 +720,9 @@ G_SetSpectatorStats(edict_t *ent)
 	{
 		cl->ps.stats[STAT_CHASE] = 0;
 	}
+
+#ifdef CTF
+	SetCTFStats(ent);
+#endif
 }
 

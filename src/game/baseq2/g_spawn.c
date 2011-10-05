@@ -160,6 +160,11 @@ spawn_t spawns[] = {
 	{"info_player_coop", SP_info_player_coop},
 	{"info_player_intermission", SP_info_player_intermission},
 
+#ifdef CTF
+	{"info_player_team1", SP_info_player_team1},
+	{"info_player_team2", SP_info_player_team2},
+#endif
+
 	{"func_plat", SP_func_plat},
 	{"func_button", SP_func_button},
 	{"func_door", SP_func_door},
@@ -222,6 +227,10 @@ spawn_t spawns[] = {
 
 	{"misc_explobox", SP_misc_explobox},
 	{"misc_banner", SP_misc_banner},
+#ifdef CTF
+	{"misc_ctf_banner", SP_misc_ctf_banner},
+	{"misc_ctf_small_banner", SP_misc_ctf_small_banner},
+#endif
 	{"misc_satellite_dish", SP_misc_satellite_dish},
 	{"misc_actor", SP_misc_actor},
 	{"misc_gib_arm", SP_misc_gib_arm},
@@ -235,11 +244,16 @@ spawn_t spawns[] = {
 	{"misc_strogg_ship", SP_misc_strogg_ship},
 	{"misc_teleporter", SP_misc_teleporter},
 	{"misc_teleporter_dest", SP_misc_teleporter_dest},
+#ifdef CTF
+	{"trigger_teleport", SP_trigger_teleport},
+	{"info_teleport_destination", SP_info_teleport_destination},
+#endif
 	{"misc_blackhole", SP_misc_blackhole},
 	{"misc_eastertank", SP_misc_eastertank},
 	{"misc_easterchick", SP_misc_easterchick},
 	{"misc_easterchick2", SP_misc_easterchick2},
 
+#ifndef CTF
 	{"monster_berserk", SP_monster_berserk},
 	{"monster_gladiator", SP_monster_gladiator},
 	{"monster_gunner", SP_monster_gunner},
@@ -268,6 +282,7 @@ spawn_t spawns[] = {
 	{"turret_breach", SP_turret_breach},
 	{"turret_base", SP_turret_base},
 	{"turret_driver", SP_turret_driver},
+#endif
 
 	{NULL, NULL}
 };
@@ -707,6 +722,10 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 	G_FindTeams();
 
 	PlayerTrail_Init();
+
+#ifdef CTF
+	CTFSpawn();
+#endif
 }
 
 /* =================================================================== */
@@ -917,7 +936,19 @@ SP_worldspawn(edict_t *ent)
 	/* status bar program */
 	if (deathmatch->value)
 	{
+#ifdef CTF
+		if (ctf->value)
+	   	{
+			gi.configstring (CS_STATUSBAR, ctf_statusbar);
+			CTFPrecache();
+		}
+	   	else
+		{
+			gi.configstring (CS_STATUSBAR, dm_statusbar);
+		}
+#else
 		gi.configstring(CS_STATUSBAR, dm_statusbar);
+#endif
 	}
 	else
 	{

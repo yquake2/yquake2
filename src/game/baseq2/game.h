@@ -40,6 +40,10 @@
 #define SVF_DEADMONSTER 0x00000002 /* treat as CONTENTS_DEADMONSTER for collision */
 #define SVF_MONSTER 0x00000004 /* treat as CONTENTS_MONSTER for collision */
 
+#ifdef CTF
+ #define SVF_PROJECTILE	0x00000008
+#endif
+
 #define MAX_ENT_CLUSTERS 16
 
 typedef enum

@@ -421,6 +421,32 @@ BecomeExplosion1(edict_t *self)
 		return;
 	}
 
+#ifdef CTF
+	/* Flags are important! */
+	if (strcmp(self->classname, "item_flag_team1") == 0)
+   	{
+		CTFResetFlag(CTF_TEAM1);
+		gi.bprintf(PRINT_HIGH, "The %s flag has returned!\n",
+				CTFTeamName(CTF_TEAM1));
+		return;
+	}
+
+	if (strcmp(self->classname, "item_flag_team2") == 0) 
+	{
+		CTFResetFlag(CTF_TEAM2);
+		gi.bprintf(PRINT_HIGH, "The %s flag has returned!\n",
+				CTFTeamName(CTF_TEAM1));
+		return;
+	}
+
+	/* techs are important too */
+	if (self->item && (self->item->flags & IT_TECH)) 
+	{
+		CTFRespawnTech(self);
+		return;
+	}
+#endif
+
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_EXPLOSION1);
 	gi.WritePosition(self->s.origin);
@@ -2583,6 +2609,10 @@ teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane /* unused */,
 		gi.dprintf("Couldn't find destination\n");
 		return;
 	}
+
+#ifdef CTF
+	CTFPlayerResetGrapple(other);
+#endif
 
 	/* unlink to make sure it can't possibly interfere with KillBox */
 	gi.unlinkentity(other);

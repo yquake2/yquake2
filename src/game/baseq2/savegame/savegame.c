@@ -215,10 +215,30 @@ InitGame(void)
 	skill = gi.cvar("skill", "1", CVAR_LATCH);
 	maxentities = gi.cvar("maxentities", "1024", CVAR_LATCH);
 
+#ifdef CTF
+	/* This game.so only supports deathmatch */
+	if (!deathmatch->value) 
+	{
+		gi.dprintf("Forcing deathmatch.\n");
+		gi.cvar_set("deathmatch", "1");
+	}
+
+	if (coop->value)
+	{
+		gi.cvar_set("coop", "0");
+	}
+#endif
+
 	/* change anytime vars */
 	dmflags = gi.cvar("dmflags", "0", CVAR_SERVERINFO);
 	fraglimit = gi.cvar("fraglimit", "0", CVAR_SERVERINFO);
 	timelimit = gi.cvar("timelimit", "0", CVAR_SERVERINFO);
+
+#ifdef CTF
+	capturelimit = gi.cvar ("capturelimit", "0", CVAR_SERVERINFO);
+	instantweap = gi.cvar ("instantweap", "0", CVAR_SERVERINFO);
+#endif
+
 	password = gi.cvar("password", "", CVAR_USERINFO);
 	spectator_password = gi.cvar("spectator_password", "", CVAR_USERINFO);
 	needpass = gi.cvar("needpass", "0", CVAR_SERVERINFO);
@@ -254,6 +274,10 @@ InitGame(void)
 	game.maxclients = maxclients->value;
 	game.clients = gi.TagMalloc(game.maxclients * sizeof(game.clients[0]), TAG_GAME);
 	globals.num_edicts = game.maxclients + 1;
+
+#ifdef CTF
+	CTFInit();
+#endif
 }
 
 /* ========================================================= */

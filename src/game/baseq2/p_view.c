@@ -670,6 +670,16 @@ P_FallingDamage(edict_t *ent)
 
 	delta = delta * delta * 0.0001;
 
+#ifdef CTF
+	/* never take damage if just release grapple or on grapple */
+	if (level.time - ent->client->ctf_grapplereleasetime <= FRAMETIME * 2 ||
+			(ent->client->ctf_grapple && 
+			 ent->client->ctf_grapplestate > CTF_GRAPPLE_STATE_FLY))
+	{
+		return;
+	}
+#endif
+
 	/* never take falling damage if completely underwater */
 	if (ent->waterlevel == 3)
 	{
@@ -985,6 +995,10 @@ G_SetClientEffects(edict_t *ent)
 		}
 	}
 
+#ifdef CTF
+	CTFEffects(ent);
+#endif
+
 	if (ent->client->quad_framenum > level.framenum)
 	{
 		remaining = ent->client->quad_framenum - level.framenum;
@@ -1185,6 +1199,23 @@ newanim:
 
 	if (!ent->groundentity)
 	{
+#ifdef CTF
+		if (client->ctf_grapple) 
+		{
+			ent->s.frame = FRAME_stand01;
+			client->anim_end = FRAME_stand40;
+		}
+		else 
+		{
+			client->anim_priority = ANIM_JUMP;
+
+			if (ent->s.frame != FRAME_jump2)
+			{
+				ent->s.frame = FRAME_jump1;
+			}
+			client->anim_end = FRAME_jump2;
+		}
+#else
 		client->anim_priority = ANIM_JUMP;
 
 		if (ent->s.frame != FRAME_jump2)
@@ -1193,6 +1224,7 @@ newanim:
 		}
 
 		client->anim_end = FRAME_jump2;
+#endif
 	}
 	else if (run)
 	{   
@@ -1338,6 +1370,28 @@ ClientEndServerFrame(edict_t *ent)
 	   can be accurately determined */
 	SV_CalcBlend(ent);
 
+#ifdef CTF
+	if (!ent->client->chase_target)
+	{
+		G_SetStats (ent);
+	}
+
+	/* update chasecam follower stats */
+	for (i = 1; i <= maxclients->value; i++) 
+	{
+		edict_t *e = g_edicts + i;
+
+		if (!e->inuse || e->client->chase_target != ent)
+		{
+			continue;
+		}
+
+		memcpy(e->client->ps.stats, ent->client->ps.stats, 
+				sizeof(ent->client->ps.stats));
+		e->client->ps.stats[STAT_LAYOUTS] = 1;
+		break;
+	}
+#else
 	/* chase cam stuff */
 	if (ent->client->resp.spectator)
 	{
@@ -1349,6 +1403,8 @@ ClientEndServerFrame(edict_t *ent)
 	}
 
 	G_CheckChaseStats(ent);
+
+#endif
 
 	G_SetClientEvent(ent);
 
@@ -1368,7 +1424,20 @@ ClientEndServerFrame(edict_t *ent)
 	/* if the scoreboard is up, update it */
 	if (ent->client->showscores && !(level.framenum & 31))
 	{
+#ifdef CTF
+		if (ent->client->menu)
+	   	{
+			PMenu_Do_Update(ent);
+			ent->client->menudirty = false;
+			ent->client->menutime = level.time;
+		} 
+		else
+		{
+			DeathmatchScoreboardMessage (ent, ent->enemy);
+		}
+#else
 		DeathmatchScoreboardMessage(ent, ent->enemy);
+#endif
 		gi.unicast(ent, false);
 	}
 }
