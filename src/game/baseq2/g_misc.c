@@ -526,9 +526,7 @@ path_corner_touch(edict_t *self, edict_t *other, cplane_t *plane /* unused */,
 		v[2] -= other->mins[2];
 		VectorCopy(v, other->s.origin);
 		next = G_PickTarget(next->target);
-#ifndef CTF
 		other->s.event = EV_OTHER_TELEPORT;
-#endif
 	}
 
 	other->goalentity = other->movetarget = next;
@@ -699,19 +697,6 @@ TH_viewthing(edict_t *ent)
      
 	ent->s.frame = (ent->s.frame + 1) % 7;
 	ent->nextthink = level.time + FRAMETIME;
-
-#ifdef CTF
-	static int robotron[4];
-
-	if (ent->spawnflags)
-	{
-		if (ent->s.frame == 0)
-		{
-			ent->spawnflags = (ent->spawnflags + 1) % 4 + 1;
-			ent->s.modelindex = robotron[ent->spawnflags - 1];
-		}
-	}
-#endif
 }
 
 void
@@ -2515,10 +2500,8 @@ func_clock_think(edict_t *self)
 
 		if (!(self->spawnflags & 8))
 		{
-#ifndef CTF
 			self->think = G_FreeEdict;
 			self->nextthink = level.time + 1;
-#endif
 			return;
 		}
 

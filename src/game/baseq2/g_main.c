@@ -234,14 +234,6 @@ EndDMLevel(void)
 		return;
 	}
 
-#ifdef CTF
-	if (*level.forcemap)
-	{
-		BeginIntermission(CreateTargetChangeLevel(level.forcemap));
-		return;
-	}
-#endif
-
 	/* see if it's in the map list */
 	if (*sv_maplist->string)
 	{
@@ -401,30 +393,12 @@ ExitLevel(void)
 	edict_t *ent;
 	char command[256];
 
-#ifndef CTF
 	Com_sprintf(command, sizeof(command), "gamemap \"%s\"\n", level.changemap);
 	gi.AddCommandString(command);
 	level.changemap = NULL;
-#endif
-
 	level.exitintermission = 0;
 	level.intermissiontime = 0;
-
-#ifdef CTF
-	if (CTFNextMap())
-	{
-		return;
-	}
-
-	Com_sprintf(command, sizeof(command), "gamemap \"%s\"\n", level.changemap);
-	gi.AddCommandString(command);
-#endif
-
 	ClientEndServerFrames();
-
-#ifdef CTF
-	level.changemap = NULL;
-#endif
 
 	/* clear some things before going to next level */
 	for (i = 0; i < maxclients->value; i++)

@@ -11,6 +11,7 @@
 #                                                        #
 # Dependencies:                                          #
 #  - SDL 1.2                                             #
+#  - libX11                                              #
 #  - libGL                                               #
 #  - libvorbis                                           #
 #  - libogg                                              #
@@ -51,12 +52,6 @@ CFLAGS := -O2  -fno-strict-aliasing -fomit-frame-pointer\
 
 # ----------
 
-# SDL Flags
-CFSDL := $(shell sdl-config --cflags)
-LDSDL := $(shell sdl-config --libs) 
-
-# ----------
-
 # Base include path.
 ifeq ($(OSTYPE),Linux)
 INCLUDE := -I/usr/include
@@ -73,6 +68,11 @@ LDFLAGS := -L/usr/lib -lm -ldl
 else ifeq ($(OSTYPE),FreeBSD)
 LDFLAGS := -L/usr/local/lib -lm
 endif 
+
+# ----------
+
+# Converter rule
+
 
 # ----------
 
@@ -95,10 +95,12 @@ client:
 build/client/%.o: %.c
 	@echo '===> CC $<'
 	@mkdir -p $(@D)
-	@$(CC) -c $(CFLAGS) $(CFSDL) $(INCLUDE) -o $@ $<
+	@$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
+release/quake2 : INCLUDE += -I/usr/include/SDL -I/usr/local/include/SDL
 release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg -lz \
-							-lXxf86vm -lX11
+							-lXxf86vm -lX11 \
+							$(shell sdl-config --libs)
 # ----------
 
 # The server
@@ -126,9 +128,10 @@ refresher:
 build/refresher/%.o: %.c
 	@echo '===> CC $<'
 	@mkdir -p $(@D)
-	@$(CC) -c $(CFLAGS) $(CFSDL) $(INCLUDE) -o $@ $<
+	@$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
-release/ref_gl.so : INCLUDE += $(shell pkg-config x11 --cflags)
+release/ref_gl.so : INCLUDE += -I/usr/local/include/SDL  \
+							    -I/usr/include/SDL -I/usr/X11R6/include 
 release/ref_gl.so : CFLAGS += -fPIC
 release/ref_gl.so : LDFLAGS += -shared
 	
@@ -161,7 +164,7 @@ build/ctf/%.o: %.c
 	@mkdir -p $(@D)
 	@$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
-release/ctf/game.so : CFLAGS += -fPIC -DCTF
+release/ctf/game.so : CFLAGS += -fPIC
 release/ctf/game.so : LDFLAGS += -shared
                                         
 # ----------
@@ -273,32 +276,32 @@ COMMON_OBJS_ := \
 
 # Used by the ctf game
 CTF_OBJS_ = \
-	src/game/baseq2/g_ai.o \
-	src/game/baseq2/g_chase.o \
-	src/game/baseq2/g_cmds.o \
-	src/game/baseq2/g_combat.o \
-	src/game/baseq2/g_ctf.o \
-	src/game/baseq2/g_func.o \
-	src/game/baseq2/g_items.o \
-	src/game/baseq2/g_main.o \
-	src/game/baseq2/g_misc.o \
-	src/game/baseq2/g_monster.o \
-	src/game/baseq2/g_phys.o \
-	src/game/baseq2/g_spawn.o \
-	src/game/baseq2/g_svcmds.o \
-	src/game/baseq2/g_target.o \
-	src/game/baseq2/g_trigger.o \
-	src/game/baseq2/g_utils.o \
-	src/game/baseq2/g_weapon.o \
-	src/game/baseq2/m_move.o \
-	src/game/baseq2/p_client.o \
-	src/game/baseq2/p_hud.o \
-	src/game/baseq2/p_menu.o \
-	src/game/baseq2/p_trail.o \
-	src/game/baseq2/p_view.o \
-	src/game/baseq2/p_weapon.o \
-	src/game/baseq2/q_shared.o \
-	src/game/baseq2/savegame/savegame.o
+	src/game/ctf/g_ai.o \
+	src/game/ctf/g_chase.o \
+	src/game/ctf/g_cmds.o \
+	src/game/ctf/g_combat.o \
+	src/game/ctf/g_ctf.o \
+	src/game/ctf/g_func.o \
+	src/game/ctf/g_items.o \
+	src/game/ctf/g_main.o \
+	src/game/ctf/g_misc.o \
+	src/game/ctf/g_monster.o \
+	src/game/ctf/g_phys.o \
+	src/game/ctf/g_save.o \
+	src/game/ctf/g_spawn.o \
+	src/game/ctf/g_svcmds.o \
+	src/game/ctf/g_target.o \
+	src/game/ctf/g_trigger.o \
+	src/game/ctf/g_utils.o \
+	src/game/ctf/g_weapon.o \
+	src/game/ctf/m_move.o \
+	src/game/ctf/p_client.o \
+	src/game/ctf/p_hud.o \
+	src/game/ctf/p_menu.o \
+	src/game/ctf/p_trail.o \
+	src/game/ctf/p_view.o \
+	src/game/ctf/p_weapon.o \
+	src/game/ctf/q_shared.o
 
 # Used by the client and the server
 GAME_ABI_OBJS_ := \
@@ -397,7 +400,7 @@ SDL_OPENGL_OBJS = $(patsubst %,build/refresher/%,$(SDL_OPENGL_OBJS_))
 
 BASEQ2_OBJS = $(patsubst %,build/baseq2/%,$(BASEQ2_OBJS_))
 
-CTF_OBJS = $(patsubst %,build/ctf/%,$(CTF_OBJS_))
+CTF_OBJS = $(patsubst %,build/baseq2/%,$(CTF_OBJS_))
 
 # ----------
 
@@ -453,7 +456,7 @@ CTF_DEPS= $(CTF_OBJS:.o=.d)
 release/quake2 : $(CLIENT_OBJS) $(CLIENT_COMMON_OBJS) $(CLIENT_GAME_ABI_OBJS) \
 	$(UNIX_CLIENT_OBJS) $(SDL_OBJS) $(CLIENT_SERVER_OBJS) 
 	@echo '===> LD $@'
-	@$(CC) $(LDFLAGS) $(LDSDL) -o $@ $(CLIENT_OBJS) $(CLIENT_COMMON_OBJS) \
+	@$(CC) $(LDFLAGS) -o $@ $(CLIENT_OBJS) $(CLIENT_COMMON_OBJS) \
 		$(CLIENT_GAME_ABI_OBJS) $(UNIX_CLIENT_OBJS) \
 		$(SDL_OBJS) $(CLIENT_SERVER_OBJS)  
 
@@ -471,7 +474,7 @@ release/ref_gl.so : $(OPENGL_OBJS) $(OPENGL_GAME_ABI_OBJS) \
 	@$(CC) $(LDFLAGS) -o $@  $(OPENGL_OBJS) $(OPENGL_GAME_ABI_OBJS) \
 		$(UNIX_OPENGL_OBJS) $(SDL_OPENGL_OBJS)  
 
-# release/baseq2/game.so
+# release/bsaeq2/game.so
 release/baseq2/game.so : $(BASEQ2_OBJS)
 	@echo '===> LD $@'
 	@$(CC) $(LDFLAGS) -o $@ $(BASEQ2_OBJS) 
@@ -482,4 +485,3 @@ release/ctf/game.so : $(CTF_OBJS)
 	@$(CC) $(LDFLAGS) -o $@ $(CTF_OBJS) 
 	     
 # ----------
-

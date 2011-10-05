@@ -602,9 +602,7 @@ extern void berserk_fidget ( edict_t * self ) ;
 extern void berserk_stand ( edict_t * self ) ;
 extern void berserk_search ( edict_t * self ) ;
 extern void berserk_sight ( edict_t * self , edict_t * other ) ;
-#ifndef CTF
 extern void SP_target_actor ( edict_t * self ) ;
-#endif
 extern void target_actor_touch ( edict_t * self , edict_t * other , cplane_t * plane , csurface_t * surf ) ;
 extern void SP_misc_actor ( edict_t * self ) ;
 extern void actor_use ( edict_t * self , edict_t * other , edict_t * activator ) ;

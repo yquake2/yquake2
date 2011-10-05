@@ -822,7 +822,6 @@ Drop_Ammo(edict_t *ent, gitem_t *item)
 		dropped->count = ent->client->pers.inventory[index];
 	}
 
-#ifndef CTF
 	if (ent->client->pers.weapon &&
 		(ent->client->pers.weapon->tag == AMMO_GRENADES) &&
 		(item->tag == AMMO_GRENADES) &&
@@ -832,7 +831,6 @@ Drop_Ammo(edict_t *ent, gitem_t *item)
 		G_FreeEdict(dropped);
 		return;
 	}
-#endif
 
 	ent->client->pers.inventory[index] -= dropped->count;
 	ValidateSelectedItem(ent);
@@ -1856,33 +1854,6 @@ gitem_t itemlist[] = {
 		0,
 		"misc/power2.wav misc/power1.wav"
 	},
-
-#ifdef CTF
-	/*
-	 * weapon_grapple (.3 .3 1) (-16 -16 -16) (16 16 16)
-	 * always owned, never in the world
-	 */
-	{
-		"weapon_grapple",
-		NULL,
-		Use_Weapon,
-		NULL,
-		CTFWeapon_Grapple,
-		"misc/w_pkup.wav",
-		NULL, 0,
-		"models/weapons/grapple/tris.md2",
-		"w_grapple",
-		"Grapple",
-		0,
-		0,
-		NULL,
-		IT_WEAPON,
-		WEAP_GRAPPLE,
-		NULL,
-		0,
-		"weapons/grapple/grfire.wav weapons/grapple/grpull.wav weapons/grapple/grhang.wav weapons/grapple/grreset.wav weapons/grapple/grhit.wav"
-	},
-#endif
 
 	/* weapon_blaster (.3 .3 1) (-16 -16 -16) (16 16 16)
 	   always owned, never in the world */

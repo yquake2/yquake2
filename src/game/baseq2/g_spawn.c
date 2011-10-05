@@ -207,9 +207,7 @@ spawn_t spawns[] = {
 	{"target_crosslevel_target", SP_target_crosslevel_target},
 	{"target_laser", SP_target_laser},
 	{"target_help", SP_target_help},
-#ifndef CTF
 	{"target_actor", SP_target_actor},
-#endif
 	{"target_lightramp", SP_target_lightramp},
 	{"target_earthquake", SP_target_earthquake},
 	{"target_character", SP_target_character},
@@ -234,15 +232,11 @@ spawn_t spawns[] = {
 	{"misc_ctf_small_banner", SP_misc_ctf_small_banner},
 #endif
 	{"misc_satellite_dish", SP_misc_satellite_dish},
-#ifndef CTF
 	{"misc_actor", SP_misc_actor},
-#endif
 	{"misc_gib_arm", SP_misc_gib_arm},
 	{"misc_gib_leg", SP_misc_gib_leg},
 	{"misc_gib_head", SP_misc_gib_head},
-#ifndef CTF
 	{"misc_insane", SP_misc_insane},
-#endif
 	{"misc_deadsoldier", SP_misc_deadsoldier},
 	{"misc_viper", SP_misc_viper},
 	{"misc_viper_bomb", SP_misc_viper_bomb},
@@ -1026,7 +1020,6 @@ SP_worldspawn(edict_t *ent)
 	gi.modelindex("#w_hyperblaster.md2");
 	gi.modelindex("#w_railgun.md2");
 	gi.modelindex("#w_bfg.md2");
-	gi.modelindex("#w_grapple.md2");
 
 	/* ------------------- */
 

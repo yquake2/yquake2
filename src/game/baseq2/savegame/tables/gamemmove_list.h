@@ -25,8 +25,6 @@
  * =======================================================================
  */ 
 
-#ifndef CTF
-
 {"tank_move_death", &tank_move_death},
 {"tank_move_attack_chain", &tank_move_attack_chain},
 {"tank_move_attack_post_rocket", &tank_move_attack_post_rocket},
@@ -313,7 +311,4 @@
 {"actor_move_run", &actor_move_run},
 {"actor_move_walk", &actor_move_walk},
 {"actor_move_stand", &actor_move_stand},
-
-#endif /* CTF */
-
 {0, 0}

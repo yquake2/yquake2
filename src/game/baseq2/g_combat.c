@@ -288,12 +288,7 @@ CheckPowerArmor(edict_t *ent, vec3_t point, vec3_t normal, int damage,
 	}
 	else
 	{
-#ifdef CTF
-		damagePerCell = 1;
-#else
 		damagePerCell = 2;
-#endif
-
 		pa_te_type = TE_SHIELD_SPARKS;
 		damage = (2 * damage) / 3;
 	}
@@ -466,15 +461,6 @@ M_ReactToDamage(edict_t *targ, edict_t *attacker)
 		(strcmp(attacker->classname, "monster_makron") != 0) &&
 		(strcmp(attacker->classname, "monster_jorg") != 0))
 	{
-#ifdef CTF
-		if (targ->enemy)
-		{
-			if (targ->enemy->client)
-			{
-				targ->oldenemy = targ->enemy;
-			}
-		}     
-#else
 		if (targ->enemy && targ->enemy->client)
 		{
 			targ->oldenemy = targ->enemy;
@@ -494,7 +480,6 @@ M_ReactToDamage(edict_t *targ, edict_t *attacker)
 		{
 			targ->oldenemy = targ->enemy;
 		}
-#endif
 
 		targ->enemy = attacker;
 
@@ -538,7 +523,6 @@ CheckTeamDamage (edict_t *targ, edict_t *attacker)
 		{
 			return true;
 		}
-	}
 #endif
 
 	return false;
@@ -744,14 +728,7 @@ T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 			SpawnDamage(te_sparks, point, normal);
 		}
 
-#ifdef CTF
-		if (!CTFMatchSetup())
-		{
-			targ->health = targ->health - take;
-		} 
-#else
 		targ->health = targ->health - take;
-#endif
 
 		if (targ->health <= 0)
 		{
@@ -782,11 +759,7 @@ T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 	}
 	else if (client)
 	{
-		if (!(targ->flags & FL_GODMODE) && (take)
-#ifdef CTF
-			&& !CTFMatchSetup()
-#endif		
-				)
+		if (!(targ->flags & FL_GODMODE) && (take))
 		{
 			targ->pain(targ, attacker, knockback, take);
 		}

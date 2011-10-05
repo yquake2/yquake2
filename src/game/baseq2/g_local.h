@@ -24,9 +24,6 @@
  * =======================================================================
  */ 
 
-#ifndef G_LOCAL_H
-#define G_LOCAL_H
-
 #include "q_shared.h"
 
 /* define GAME_INCLUDE so that game.h does not define the 
@@ -309,10 +306,6 @@ typedef struct
 	char mapname[MAX_QPATH]; /* the server name (base1, etc) */
 	char nextmap[MAX_QPATH]; /* go here when fraglimit is hit */
 
-#ifdef CTF
-	char forcemap[MAX_QPATH]; /* go here */
-#endif
-
 	/* intermission state */
 	float intermissiontime; /* time the intermission was started */
 	char *changemap;
@@ -494,9 +487,6 @@ extern int snd_fry;
 #define MOD_TRIGGER_HURT 31
 #define MOD_HIT 32
 #define MOD_TARGET_BLASTER 33
-#ifdef CTF
- #define MOD_GRAPPLE	34
-#endif
 #define MOD_FRIENDLY_FIRE 0x8000000
 
 extern int meansOfDeath;
@@ -599,9 +589,6 @@ extern field_t fields[];
 extern gitem_t itemlist[];
 
 /* g_cmds.c */
-#ifdef CTF
-qboolean CheckFlood(edict_t *ent);
-#endif
 void Cmd_Help_f(edict_t *ent);
 void Cmd_Score_f(edict_t *ent);
 
@@ -653,9 +640,6 @@ void vectoangles(vec3_t vec, vec3_t angles);
 /* g_combat.c */
 qboolean OnSameTeam(edict_t *ent1, edict_t *ent2);
 qboolean CanDamage(edict_t *targ, edict_t *inflictor);
-#ifdef CTF
-qboolean CheckTeamDamage (edict_t *targ, edict_t *attacker);
-#endif
 void T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 		vec3_t dir, vec3_t point, vec3_t normal, int damage,
 		int knockback, int dflags, int mod);
@@ -765,9 +749,6 @@ void InitClientPersistant(gclient_t *client);
 void InitClientResp(gclient_t *client);
 void InitBodyQue(void);
 void ClientBeginServerFrame(edict_t *ent);
-#ifdef CTF
-void ClientUserinfoChanged (edict_t *ent, char *userinfo);
-#endif
 
 /* g_player.c */
 void player_pain(edict_t *self, edict_t *other, float kick, int damage);
@@ -791,13 +772,6 @@ void DeathmatchScoreboardMessage(edict_t *client, edict_t *killer);
 
 /* g_pweapon.c */
 void PlayerNoise(edict_t *who, vec3_t where, int type);
-#ifdef CTF
-void P_ProjectSource (gclient_t *client, vec3_t point, vec3_t distance,
-	   	vec3_t forward, vec3_t right, vec3_t result);
-void Weapon_Generic (edict_t *ent, int FRAME_ACTIVATE_LAST, 
-		int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int FRAME_DEACTIVATE_LAST,
-	   	int *pause_frames, int *fire_frames, void (*fire)(edict_t *ent));
-#endif
 
 /* m_move.c */
 qboolean M_CheckBottom(edict_t *ent);
@@ -811,9 +785,6 @@ void G_RunEntity(edict_t *ent);
 /* g_main.c */
 void SaveClientData(void);
 void FetchClientEntData(edict_t *ent);
-#ifdef CTF
-void EndDMLevel (void);
-#endif
 
 /* g_chase.c */
 void UpdateChaseCam(edict_t *ent);
@@ -992,6 +963,8 @@ struct gclient_s
 	float ctf_regentime; /* regen tech */
 	float ctf_techsndtime;
 	float ctf_lasttechmsg;
+	edict_t	*chase_target;
+	qboolean update_chase;
 	float menutime;	/* time to update menu */
 	qboolean menudirty;
 #endif
@@ -1150,6 +1123,4 @@ struct edict_s
 #ifdef CTF
  #include "g_ctf.h"
 #endif
-
-#endif /* G_LOCAL_H */
 

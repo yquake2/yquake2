@@ -1111,60 +1111,14 @@ Cmd_Wave_f(edict_t *ent)
 	}
 }
 
-qboolean
-CheckFlood(edict_t *ent)
-{
-	int i;
-	gclient_t *cl;
-
-	if (!ent)
-	{
-		return false;
-	}
-
-	if (flood_msgs->value)
-	{
-		cl = ent->client;
-
-		if (level.time < cl->flood_locktill)
-		{
-			gi.cprintf(ent, PRINT_HIGH, "You can't talk for %d more seconds\n",
-					(int)(cl->flood_locktill - level.time));
-			return true;
-		}
-
-		i = cl->flood_whenhead - flood_msgs->value + 1;
-
-		if (i < 0)
-		{
-			i = (sizeof(cl->flood_when) / sizeof(cl->flood_when[0])) + i;
-		}
-
-		if (cl->flood_when[i] &&
-			(level.time - cl->flood_when[i] < flood_persecond->value))
-		{
-			cl->flood_locktill = level.time + flood_waitdelay->value;
-			gi.cprintf(ent, PRINT_CHAT,
-					"Flood protection:  You can't talk for %d seconds.\n",
-					(int)flood_waitdelay->value);
-			return true;
-		}
-
-		cl->flood_whenhead = (cl->flood_whenhead + 1) %
-							 (sizeof(cl->flood_when) / sizeof(cl->flood_when[0]));
-		cl->flood_when[cl->flood_whenhead] = level.time;
-	}
-
-	return false;
-} 
-
 void
 Cmd_Say_f(edict_t *ent, qboolean team, qboolean arg0)
 {
-	int j;
+	int i, j;
 	edict_t *other;
 	char *p;
 	char text[2048];
+	gclient_t *cl;
                   
 	if (!ent)
 	{
@@ -1217,9 +1171,37 @@ Cmd_Say_f(edict_t *ent, qboolean team, qboolean arg0)
 
 	strcat(text, "\n");
 
-	if (CheckFlood(ent))
+	if (flood_msgs->value)
 	{
-		return;
+		cl = ent->client;
+
+		if (level.time < cl->flood_locktill)
+		{
+			gi.cprintf(ent, PRINT_HIGH, "You can't talk for %d more seconds\n",
+					(int)(cl->flood_locktill - level.time));
+			return;
+		}
+
+		i = cl->flood_whenhead - flood_msgs->value + 1;
+
+		if (i < 0)
+		{
+			i = (sizeof(cl->flood_when) / sizeof(cl->flood_when[0])) + i;
+		}
+
+		if (cl->flood_when[i] &&
+			(level.time - cl->flood_when[i] < flood_persecond->value))
+		{
+			cl->flood_locktill = level.time + flood_waitdelay->value;
+			gi.cprintf(ent, PRINT_CHAT,
+					"Flood protection:  You can't talk for %d seconds.\n",
+					(int)flood_waitdelay->value);
+			return;
+		}
+
+		cl->flood_whenhead = (cl->flood_whenhead + 1) %
+							 (sizeof(cl->flood_when) / sizeof(cl->flood_when[0]));
+		cl->flood_when[cl->flood_whenhead] = level.time;
 	}
 
 	if (dedicated->value)
@@ -1326,19 +1308,11 @@ ClientCommand(edict_t *ent)
 		return;
 	}
 
-#ifdef CTF
-	if ((Q_stricmp(cmd, "say_team") == 0) || (Q_stricmp(cmd, "steam") == 0))
-	{
-		CTFSay_Team(ent, gi.args());
-		return;
-	} 
-#else
 	if (Q_stricmp(cmd, "say_team") == 0)
 	{
 		Cmd_Say_f(ent, true, false);
 		return;
 	}
-#endif
 
 	if (Q_stricmp(cmd, "score") == 0)
 	{
