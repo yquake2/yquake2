@@ -52,6 +52,12 @@ CFLAGS := -O2  -fno-strict-aliasing -fomit-frame-pointer\
 
 # ----------
 
+# SDL Flags
+CFSDL := $(shell sdl-config --cflags)
+LDSDL := $(shell sdl-config --libs) 
+
+# ----------
+
 # Base include path.
 ifeq ($(OSTYPE),Linux)
 INCLUDE := -I/usr/include
@@ -68,11 +74,6 @@ LDFLAGS := -L/usr/lib -lm -ldl
 else ifeq ($(OSTYPE),FreeBSD)
 LDFLAGS := -L/usr/local/lib -lm
 endif 
-
-# ----------
-
-# Converter rule
-
 
 # ----------
 
@@ -95,12 +96,10 @@ client:
 build/client/%.o: %.c
 	@echo '===> CC $<'
 	@mkdir -p $(@D)
-	@$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+	@$(CC) -c $(CFLAGS) $(CFSDL) $(INCLUDE) -o $@ $<
 
-release/quake2 : INCLUDE += -I/usr/include/SDL -I/usr/local/include/SDL
 release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg -lz \
-							-lXxf86vm -lX11 \
-							$(shell sdl-config --libs)
+							-lXxf86vm -lX11
 # ----------
 
 # The server
@@ -128,10 +127,9 @@ refresher:
 build/refresher/%.o: %.c
 	@echo '===> CC $<'
 	@mkdir -p $(@D)
-	@$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+	@$(CC) -c $(CFLAGS) $(CFSDL) $(INCLUDE) -o $@ $<
 
-release/ref_gl.so : INCLUDE += -I/usr/local/include/SDL  \
-							    -I/usr/include/SDL -I/usr/X11R6/include 
+release/ref_gl.so : INCLUDE += -I/usr/X11R6/include 
 release/ref_gl.so : CFLAGS += -fPIC
 release/ref_gl.so : LDFLAGS += -shared
 	
@@ -456,7 +454,7 @@ CTF_DEPS= $(CTF_OBJS:.o=.d)
 release/quake2 : $(CLIENT_OBJS) $(CLIENT_COMMON_OBJS) $(CLIENT_GAME_ABI_OBJS) \
 	$(UNIX_CLIENT_OBJS) $(SDL_OBJS) $(CLIENT_SERVER_OBJS) 
 	@echo '===> LD $@'
-	@$(CC) $(LDFLAGS) -o $@ $(CLIENT_OBJS) $(CLIENT_COMMON_OBJS) \
+	@$(CC) $(LDFLAGS) $(LDSDL) -o $@ $(CLIENT_OBJS) $(CLIENT_COMMON_OBJS) \
 		$(CLIENT_GAME_ABI_OBJS) $(UNIX_CLIENT_OBJS) \
 		$(SDL_OBJS) $(CLIENT_SERVER_OBJS)  
 
@@ -485,3 +483,4 @@ release/ctf/game.so : $(CTF_OBJS)
 	@$(CC) $(LDFLAGS) -o $@ $(CTF_OBJS) 
 	     
 # ----------
+
