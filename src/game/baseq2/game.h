@@ -34,6 +34,9 @@
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
 
+#ifndef GAME_H
+#define GAME_H
+
 #define GAME_API_VERSION 3
 
 #define SVF_NOCLIENT 0x00000001 /* don't send entity to clients, even if it has effects */
@@ -241,4 +244,6 @@ typedef struct
 } game_export_t;
 
 game_export_t *GetGameApi(game_import_t *import);
+
+#endif /* GAME_H */
 

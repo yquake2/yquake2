@@ -24,6 +24,9 @@
  * =======================================================================
  */ 
 
+#ifndef G_LOCAL_H
+#define G_LOCAL_H
+
 #include "q_shared.h"
 
 /* define GAME_INCLUDE so that game.h does not define the 
@@ -1123,4 +1126,6 @@ struct edict_s
 #ifdef CTF
  #include "g_ctf.h"
 #endif
+
+#endif /* G_LOCAL_H */
 
