@@ -129,7 +129,7 @@ build/refresher/%.o: %.c
 	@mkdir -p $(@D)
 	@$(CC) -c $(CFLAGS) $(CFSDL) $(INCLUDE) -o $@ $<
 
-release/ref_gl.so : INCLUDE += -I/usr/X11R6/include 
+release/ref_gl.so : INCLUDE += $(shell pkg-config x11 --cflags)
 release/ref_gl.so : CFLAGS += -fPIC
 release/ref_gl.so : LDFLAGS += -shared
 	
