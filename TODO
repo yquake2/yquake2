@@ -1,5 +1,4 @@
 game.so:
-- Merge CTF with baseq2 (most other sourceports have done this)
 - Move q_shared.* into src/common?
 
 client:
