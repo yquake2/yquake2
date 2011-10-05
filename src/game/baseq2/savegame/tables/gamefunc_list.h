@@ -25,6 +25,8 @@
  * =======================================================================
  */ 
 
+#ifndef CTF
+
 {"ReadLevel", (byte *)ReadLevel},
 {"ReadLevelLocals", (byte *)ReadLevelLocals},
 {"ReadEdict", (byte *)ReadEdict},
@@ -1053,4 +1055,8 @@
 {"ai_stand", (byte *)ai_stand},
 {"ai_move", (byte *)ai_move},
 {"AI_SetSightClient", (byte *)AI_SetSightClient},
+
+#endif /* CTF */
+
 {0, 0}
+

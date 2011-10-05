@@ -523,6 +523,7 @@ CheckTeamDamage (edict_t *targ, edict_t *attacker)
 		{
 			return true;
 		}
+	}
 #endif
 
 	return false;
