@@ -11,7 +11,6 @@
 #                                                        #
 # Dependencies:                                          #
 #  - SDL 1.2                                             #
-#  - libX11                                              #
 #  - libGL                                               #
 #  - libvorbis                                           #
 #  - libogg                                              #
@@ -398,7 +397,7 @@ SDL_OPENGL_OBJS = $(patsubst %,build/refresher/%,$(SDL_OPENGL_OBJS_))
 
 BASEQ2_OBJS = $(patsubst %,build/baseq2/%,$(BASEQ2_OBJS_))
 
-CTF_OBJS = $(patsubst %,build/baseq2/%,$(CTF_OBJS_))
+CTF_OBJS = $(patsubst %,build/ctf/%,$(CTF_OBJS_))
 
 # ----------
 

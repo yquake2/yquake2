@@ -76,10 +76,12 @@ SV_TestEntityPosition(edict_t *ent)
 
 	if (trace.startsolid)
 	{
+#ifndef CTF
         if ((ent->svflags & SVF_DEADMONSTER) && (trace.ent->client || (trace.ent->svflags & SVF_MONSTER)))
 		{
 			return NULL;
 		}
+#endif
 
 		return g_edicts;
 	}
@@ -526,11 +528,13 @@ retry:
 
 	trace = gi.trace(start, ent->mins, ent->maxs, end, ent, mask);
 
+#ifndef CTF
 	if (trace.startsolid || trace.allsolid)
 	{
 		mask ^= CONTENTS_DEADMONSTER;
 		trace = gi.trace (start, ent->mins, ent->maxs, end, ent, mask);
 	}
+#endif
 
 	VectorCopy(trace.endpos, ent->s.origin);
 	gi.linkentity(ent);
