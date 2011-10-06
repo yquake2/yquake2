@@ -506,29 +506,6 @@ M_ReactToDamage(edict_t *targ, edict_t *attacker)
 	}
 }
 
-
-qboolean 
-CheckTeamDamage (edict_t *targ, edict_t *attacker)
-{
-	if (!targ || !attacker)
-	{
-		return false;
-	}
-
-#ifdef CTF
-	if (ctf->value && targ->client && attacker->client)
-	{
-		if (targ->client->resp.ctf_team == 
-			attacker->client->resp.ctf_team && targ != attacker)
-		{
-			return true;
-		}
-#endif
-
-	return false;
-}
-
-
 void
 T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 		vec3_t dir, vec3_t point, vec3_t normal, int damage,
@@ -604,11 +581,6 @@ T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 		damage *= 2;
 	}
 
-#ifdef CTF
-	/* strength tech */
-	damage = CTFApplyStrength(attacker, damage);
-#endif
-
 	if (targ->flags & FL_NO_KNOCKBACK)
 	{
 		knockback = 0;
@@ -674,47 +646,20 @@ T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 		save = damage;
 	}
 
-#ifdef CTF
-	/* team armor protect */
-	if (ctf->value && targ->client && attacker->client &&
-			targ->client->resp.ctf_team == attacker->client->resp.ctf_team &&
-			targ != attacker && ((int)dmflags->value & DF_ARMOR_PROTECT)) 
-	{
-		psave = asave = 0;
-	} 
-	else 
-	{
-		psave = CheckPowerArmor (targ, point, normal, take, dflags);
-		take -= psave;
-
-		asave = CheckArmor (targ, point, normal, take, te_sparks, dflags);
-		take -= asave;
-	}
-#else
 	psave = CheckPowerArmor(targ, point, normal, take, dflags);
 	take -= psave;
 
 	asave = CheckArmor(targ, point, normal, take, te_sparks, dflags);
 	take -= asave;
-#endif
 
 	/* treat cheat/powerup savings the same as armor */
 	asave += save;
 
-#ifdef CTF
-	/* Resistance tech */
-	take = CTFApplyResistance(targ, take);
-#endif
-
 	/* team damage avoidance */
-	if (!(dflags & DAMAGE_NO_PROTECTION) && CheckTeamDamage (targ, attacker))
+	if ((dflags & DAMAGE_NO_PROTECTION))
 	{
 		return;
 	}
-
-#ifdef CTF
-	CTFCheckHurtCarrier(targ, attacker);
-#endif
 
 	/* do the damage */
 	if (take)

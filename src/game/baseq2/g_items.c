@@ -147,27 +147,6 @@ DoRespawn(edict_t *ent)
 
 		master = ent->teammaster;
 
-#ifdef CTF
-		/* in ctf, when we are weapons stay, only the 
-		   master of a team of weapons is spawned */
-		if (ctf->value && ((int)dmflags->value & DF_WEAPONS_STAY) &&
-				master->item && (master->item->flags & IT_WEAPON))
-		{
-			ent = master;
-		}
-		else 
-		{
-			for (count = 0, ent = master; ent; ent = ent->chain, count++)
-			{
-			}
-
-			choice = rand() % count;
-
-			for (count = 0, ent = master; count < choice; ent = ent->chain, count++)
-			{
-			} 
-		}
-#else
 		for (count = 0, ent = master; ent; ent = ent->chain, count++)
 		{
 		}
@@ -177,7 +156,6 @@ DoRespawn(edict_t *ent)
 		for (count = 0, ent = master; count < choice; ent = ent->chain, count++)
 		{
 		}
-#endif
 	}
 
 	ent->svflags &= ~SVF_NOCLIENT;
@@ -846,11 +824,7 @@ MegaHealth_think(edict_t *self)
 		return;
 	}
 
-	if (self->owner->health > self->owner->max_health
-#ifdef CTF
-			&& !CTFHasRegeneration(self->owner)
-#endif
-			)
+	if (self->owner->health > self->owner->max_health)
 	{
 		self->nextthink = level.time + 1;
 		self->owner->health -= 1;
@@ -883,21 +857,7 @@ Pickup_Health(edict_t *ent, edict_t *other)
 		}
 	}
 
-#ifdef CTF
-	if (other->health >= 250 && ent->count > 25)
-	{
-		return false;
-	}
-#endif
-
 	other->health += ent->count;
-
-#ifdef CTF
-	if (other->health > 250 && ent->count > 25)
-	{
-		other->health = 250;
-	}
-#endif
 
 	if (!(ent->style & HEALTH_IGNORE_MAX))
 	{
@@ -907,11 +867,7 @@ Pickup_Health(edict_t *ent, edict_t *other)
 		}
 	}
 
-	if ((ent->style & HEALTH_TIMED)
-#ifdef CTF
-			&& !CTFHasRegeneration(other)
-#endif
-	   )
+	if (ent->style & HEALTH_TIMED)
 	{
 		ent->think = MegaHealth_think;
 		ent->nextthink = level.time + 5;
@@ -1685,16 +1641,6 @@ SpawnItem(edict_t *ent, gitem_t *item)
 		item->drop = NULL;
 	}
 
-#ifdef CTF
-	/* Don't spawn the flags unless enabled */
-	if (!ctf->value && (strcmp(ent->classname, "item_flag_team1") == 0 ||
-				strcmp(ent->classname, "item_flag_team2") == 0)) 
-	{
-		G_FreeEdict(ent);
-		return;
-	}
-#endif
-
 	ent->item = item;
 	ent->nextthink = level.time + 2 * FRAMETIME; /* items start after other solids */
 	ent->think = droptofloor;
@@ -1705,15 +1651,6 @@ SpawnItem(edict_t *ent, gitem_t *item)
 	{
 		gi.modelindex(ent->model);
 	}
-	
-#ifdef CTF
-	/* flags are server animated */
-	if (strcmp(ent->classname, "item_flag_team1") == 0 ||
-			strcmp(ent->classname, "item_flag_team2") == 0)
-   	{
-		ent->think = CTFFlagSetup;
-	}
-#endif
 }
 
 /* ====================================================================== */
@@ -2634,140 +2571,6 @@ gitem_t itemlist[] = {
 		0,
 		"items/s_health.wav items/n_health.wav items/l_health.wav items/m_health.wav"
 	},
-
-#ifdef CTF
-	/* QUAKED item_flag_team1 (1 0.2 0) (-16 -16 -24) (16 16 32) */
-	{
-		"item_flag_team1",
-		CTFPickup_Flag,
-		NULL,
-		CTFDrop_Flag,
-		NULL,
-		"ctf/flagtk.wav",
-		"players/male/flag1.md2", EF_FLAG1,
-		NULL,
-		"i_ctf1",
-		"Red Flag",
-		2,
-		0,
-		NULL,
-		0,
-		0,
-		NULL,
-		0,
-		"ctf/flagcap.wav"
-	},
-
-	/* QUAKED item_flag_team2 (1 0.2 0) (-16 -16 -24) (16 16 32) */
-	{
-		"item_flag_team2",
-		CTFPickup_Flag,
-		NULL,
-		CTFDrop_Flag,
-		NULL,
-		"ctf/flagtk.wav",
-		"players/male/flag2.md2", EF_FLAG2,
-		NULL,
-		"i_ctf2",
-		"Blue Flag",
-		2,
-		0,
-		NULL,
-		0,
-		0,
-		NULL,
-		0,
-		"ctf/flagcap.wav"
-	},
-
-	/* Resistance Tech */
-	{
-		"item_tech1",
-		CTFPickup_Tech,
-		NULL,
-		CTFDrop_Tech,
-		NULL,
-		"items/pkup.wav",
-		"models/ctf/resistance/tris.md2", EF_ROTATE,
-		NULL,
-		"tech1",
-		"Disruptor Shield",
-		2,
-		0,
-		NULL,
-		IT_TECH,
-		0,
-		NULL,
-		0,
-		"ctf/tech1.wav"
-	},
-
-	/* Strength Tech */
-	{
-		"item_tech2",
-		CTFPickup_Tech,
-		NULL,
-		CTFDrop_Tech,
-		NULL,
-		"items/pkup.wav",
-		"models/ctf/strength/tris.md2", EF_ROTATE,
-		NULL,
-		"tech2",
-		"Power Amplifier",
-		2,
-		0,
-		NULL,
-		IT_TECH,
-		0,
-		NULL,
-		0,
-		"ctf/tech2.wav ctf/tech2x.wav"
-	},
-
-	/* Haste Tech */
-	{
-		"item_tech3",
-		CTFPickup_Tech,
-		NULL,
-		CTFDrop_Tech,
-		NULL,
-		"items/pkup.wav",
-		"models/ctf/haste/tris.md2", EF_ROTATE,
-		NULL,
-		"tech3",
-		"Time Accel",
-		2,
-		0,
-		NULL,
-		IT_TECH,
-		0,
-		NULL,
-		0,
-		"ctf/tech3.wav"
-	},
-
-	/* Regeneration Tech */
-	{
-		"item_tech4",
-		CTFPickup_Tech,
-		NULL,
-		CTFDrop_Tech,
-		NULL,
-		"items/pkup.wav",
-		"models/ctf/regeneration/tris.md2", EF_ROTATE,
-		NULL,
-		"tech4",
-		"AutoDoc",
-		2,
-		0,
-		NULL,
-		IT_TECH,
-		0,
-		NULL,
-		0,
-		"ctf/tech4.wav"
-	},
-#endif
 
 	/* end of list marker */
 	{NULL}

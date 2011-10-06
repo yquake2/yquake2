@@ -44,12 +44,6 @@ cvar_t *dmflags;
 cvar_t *skill;
 cvar_t *fraglimit;
 cvar_t *timelimit;
-
-#ifdef CTF
-cvar_t	*capturelimit;
-cvar_t	*instantweap;
-#endif
-
 cvar_t *password;
 cvar_t *spectator_password;
 cvar_t *needpass;
@@ -341,19 +335,6 @@ CheckDMRules(void)
 	{
 		return;
 	}
-
-#ifdef CTF
-	if (ctf->value && CTFCheckRules()) 
-	{
-		EndDMLevel ();
-		return;
-	}
-	
-	if (CTFInMatch())
-	{
-		return;
-	}
-#endif
 
 	if (timelimit->value)
 	{
