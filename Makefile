@@ -11,7 +11,6 @@
 #                                                        #
 # Dependencies:                                          #
 #  - SDL 1.2                                             #
-#  - libX11                                              #
 #  - libGL                                               #
 #  - libvorbis                                           #
 #  - libogg                                              #
@@ -68,11 +67,6 @@ LDFLAGS := -L/usr/lib -lm -ldl
 else ifeq ($(OSTYPE),FreeBSD)
 LDFLAGS := -L/usr/local/lib -lm
 endif 
-
-# ----------
-
-# Converter rule
-
 
 # ----------
 
@@ -188,36 +182,36 @@ BASEQ2_OBJS_ = \
 	src/game/baseq2/g_turret.o \
 	src/game/baseq2/g_utils.o \
 	src/game/baseq2/g_weapon.o \
-	src/game/baseq2/m_actor.o \
-	src/game/baseq2/m_berserk.o \
-	src/game/baseq2/m_boss2.o \
-	src/game/baseq2/m_boss3.o \
-	src/game/baseq2/m_boss31.o \
-	src/game/baseq2/m_boss32.o \
-	src/game/baseq2/m_brain.o \
-	src/game/baseq2/m_chick.o \
 	src/game/baseq2/m_flash.o \
-	src/game/baseq2/m_flipper.o \
-	src/game/baseq2/m_float.o \
-	src/game/baseq2/m_flyer.o \
-	src/game/baseq2/m_gladiator.o \
-	src/game/baseq2/m_gunner.o \
-	src/game/baseq2/m_hover.o \
-	src/game/baseq2/m_infantry.o \
-	src/game/baseq2/m_insane.o \
-	src/game/baseq2/m_medic.o \
-	src/game/baseq2/m_move.o \
-	src/game/baseq2/m_mutant.o \
-	src/game/baseq2/m_parasite.o \
-	src/game/baseq2/m_soldier.o \
-	src/game/baseq2/m_supertank.o \
-	src/game/baseq2/m_tank.o \
-	src/game/baseq2/p_client.o \
-	src/game/baseq2/p_hud.o \
-	src/game/baseq2/p_trail.o \
-	src/game/baseq2/p_view.o \
-	src/game/baseq2/p_weapon.o \
 	src/game/baseq2/q_shared.o \
+	src/game/baseq2/monster/actor/actor.o \
+	src/game/baseq2/monster/berserker/berserker.o \
+	src/game/baseq2/monster/boss2/boss2.o \
+	src/game/baseq2/monster/boss3/boss3.o \
+	src/game/baseq2/monster/boss3/boss31.o \
+	src/game/baseq2/monster/boss3/boss32.o \
+	src/game/baseq2/monster/brain/brain.o \
+	src/game/baseq2/monster/chick/chick.o \
+	src/game/baseq2/monster/flipper/flipper.o \
+	src/game/baseq2/monster/float/float.o \
+	src/game/baseq2/monster/flyer/flyer.o \
+	src/game/baseq2/monster/gladiator/gladiator.o \
+	src/game/baseq2/monster/gunner/gunner.o \
+	src/game/baseq2/monster/hover/hover.o \
+	src/game/baseq2/monster/infantry/infantry.o \
+	src/game/baseq2/monster/insane/insane.o \
+	src/game/baseq2/monster/medic/medic.o \
+	src/game/baseq2/monster/misc/move.o \
+	src/game/baseq2/monster/mutant/mutant.o \
+	src/game/baseq2/monster/parasite/parasite.o \
+	src/game/baseq2/monster/soldier/soldier.o \
+	src/game/baseq2/monster/supertank/supertank.o \
+	src/game/baseq2/monster/tank/tank.o \
+	src/game/baseq2/player/client.o \
+	src/game/baseq2/player/hud.o \
+	src/game/baseq2/player/trail.o \
+	src/game/baseq2/player/view.o \
+	src/game/baseq2/player/weapon.o \
     src/game/baseq2/savegame/savegame.o	
 
 # Used by the client

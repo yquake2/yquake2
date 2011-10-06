@@ -25,7 +25,7 @@
  */ 
  
 
-#include "g_local.h"
+#include "header/local.h"
 
 #define STOP_EPSILON 0.1
 #define MAX_CLIP_PLANES 5

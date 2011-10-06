@@ -24,7 +24,7 @@
  * =======================================================================
  */ 
 
-#include "g_local.h"
+#include "header/local.h"
 
 /*
  * This is a support routine used when a client is firing

@@ -64,7 +64,7 @@
  * system and architecture are in the hands of the user.
  */
 
-#include "../g_local.h"
+#include "../header/local.h"
 
 /* 
  * When ever the savegame version

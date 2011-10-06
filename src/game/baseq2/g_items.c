@@ -24,7 +24,7 @@
  * =======================================================================
  */  
 
-#include "g_local.h"
+#include "header/local.h"
  
 #define HEALTH_IGNORE_MAX 1
 #define HEALTH_TIMED 2

@@ -24,7 +24,7 @@
  * =======================================================================
  */ 
 
-#include "g_local.h"
+#include "header/local.h"
 
 /*
  * Returns true if the inflictor can 

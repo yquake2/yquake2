@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "g_local.h"
+#include "header/local.h"
 
 int	gibsthisframe = 0;
 int lastgibframe = 0;

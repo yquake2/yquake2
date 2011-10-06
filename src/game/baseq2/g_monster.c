@@ -24,7 +24,7 @@
  * =======================================================================
  */ 
 
-#include "g_local.h"
+#include "header/local.h"
 
 void monster_start_go(edict_t *self);
 
