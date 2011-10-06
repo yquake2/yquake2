@@ -1,5 +1,8 @@
 game.so:
-- Move q_shared.* into src/common?
+- clean up monsters/
+
+ctf:
+- the world model has no clip in spectator mode?!
 
 client:
 - Integrate a signalhandler and print an backtrace with Maxims
@@ -10,8 +13,3 @@ client:
 
 doc:
 - Write a new, much more polished homepage
-- Rework the startup script:
-  - Add unclutter
-
-Long term goals:
-- Backport to Windows
