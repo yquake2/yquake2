@@ -292,10 +292,9 @@ CTF_OBJS_ = \
 	src/game/ctf/p_menu.o \
 	src/game/ctf/p_trail.o \
 	src/game/ctf/p_view.o \
-	src/game/ctf/p_weapon.o \
-	src/game/ctf/q_shared.o
+	src/game/ctf/p_weapon.o 
 
-# Used by the client, the server and the games
+# Used by the client, the server and baseq2
 GAME_ABI_OBJS_ := \
 	src/common/shared/flash.o \
 	src/common/shared/shared.o
@@ -319,8 +318,8 @@ OPENGL_OBJS_ = \
 	src/refresh/files/tga.o \
 	src/refresh/files/wal.o 
 
-# Used by the OpenGL refresher
-OPENGL_GAME_ABI_OBJS_ = \
+# Used by the OpenGL refresher and ctf
+LIGHT_GAME_ABI_OBJS_ = \
 	src/common/shared/shared.o
 
 # Used by the client
@@ -386,14 +385,15 @@ SERVER_GAME_ABI_OBJS = $(patsubst %,build/server/%,$(GAME_ABI_OBJS_))
 UNIX_SERVER_OBJS= $(patsubst %,build/server/%,$(UNIX_SERVER_OBJS_))
 
 OPENGL_OBJS = $(patsubst %,build/refresher/%,$(OPENGL_OBJS_))
-OPENGL_GAME_ABI_OBJS = $(patsubst %,build/refresher/%,$(OPENGL_GAME_ABI_OBJS_))
+OPENGL_GAME_ABI_OBJS = $(patsubst %,build/refresher/%,$(LIGHT_GAME_ABI_OBJS_))
 UNIX_OPENGL_OBJS = $(patsubst %,build/refresher/%,$(UNIX_OPENGL_OBJS_))
 SDL_OPENGL_OBJS = $(patsubst %,build/refresher/%,$(SDL_OPENGL_OBJS_))
 
 BASEQ2_OBJS = $(patsubst %,build/baseq2/%,$(BASEQ2_OBJS_))
 BASEQ2_GAME_ABI_OBJS = $(patsubst %,build/baseq2/%,$(GAME_ABI_OBJS_))
 
-CTF_OBJS = $(patsubst %,build/baseq2/%,$(CTF_OBJS_))
+CTF_OBJS = $(patsubst %,build/ctf/%,$(LIGHT_GAME_ABI_OBJS_))
+CTF_GAME_ABI_OBJS = $(patsubst %,build/ctf/%,$(CTF_OBJS_))
 
 # ----------
 
@@ -419,6 +419,7 @@ BASEQ2_DEPS= $(BASEQ2_OBJS:.o=.d)
 BASEQ2_GAME_ABI_DEPS= $(BASEQ2_GAME_ABI_OBJS:.o=.d) 
 
 CTF_DEPS= $(CTF_OBJS:.o=.d) 
+CTF_GAME_ABI_DEPS= $(CTF_GAME_ABI_OBJS:.o=.d) 
 
 # ----------
 
@@ -444,6 +445,7 @@ CTF_DEPS= $(CTF_OBJS:.o=.d)
 -include $(BASEQ2_GAME_ABI_DEPS)  
 
 -include $(CTF_DEPS)  
+-include $(CTF_GAME_ABI_DEPS)  
 
 # ----------
 
@@ -475,8 +477,8 @@ release/baseq2/game.so : $(BASEQ2_OBJS) $(BASEQ2_GAME_ABI_OBJS)
 	@$(CC) $(LDFLAGS) -o $@ $(BASEQ2_OBJS) $(BASEQ2_GAME_ABI_OBJS)
 
 # release/ctf/game.so
-release/ctf/game.so : $(CTF_OBJS)
+release/ctf/game.so : $(CTF_OBJS) $(CTF_GAME_ABI_OBJS)
 	@echo '===> LD $@'
-	@$(CC) $(LDFLAGS) -o $@ $(CTF_OBJS) 
+	@$(CC) $(LDFLAGS) -o $@ $(CTF_OBJS) $(CTF_GAME_ABI_OBJS) 
 	     
 # ----------
