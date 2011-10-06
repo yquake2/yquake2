@@ -27,7 +27,7 @@
 #ifndef GAME_LOCAL_H
 #define GAME_LOCAL_H
 
-#include "../q_shared.h"
+#include "../../../common/header/shared.h"
 
 /* define GAME_INCLUDE so that game.h does not define the 
    short, server-visible gclient_t and edict_t structures, 

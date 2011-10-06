@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "q_shared.h"
+#include "../header/shared.h"
 
 #define DEG2RAD(a) (a * M_PI) / 180.0F
 

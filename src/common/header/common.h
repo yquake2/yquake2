@@ -29,7 +29,7 @@
 #ifndef CO_COMMON_H
 #define CO_COMMON_H
 
-#include "../../game/baseq2/q_shared.h"
+#include "shared.h"
 #include "crc.h"
 
 #define	VERSION		3.00

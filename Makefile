@@ -182,8 +182,6 @@ BASEQ2_OBJS_ = \
 	src/game/baseq2/g_turret.o \
 	src/game/baseq2/g_utils.o \
 	src/game/baseq2/g_weapon.o \
-	src/game/baseq2/m_flash.o \
-	src/game/baseq2/q_shared.o \
 	src/game/baseq2/monster/actor/actor.o \
 	src/game/baseq2/monster/berserker/berserker.o \
 	src/game/baseq2/monster/boss2/boss2.o \
@@ -297,10 +295,10 @@ CTF_OBJS_ = \
 	src/game/ctf/p_weapon.o \
 	src/game/ctf/q_shared.o
 
-# Used by the client and the server
+# Used by the client, the server and the games
 GAME_ABI_OBJS_ := \
-	src/game/baseq2/m_flash.o \
-	src/game/baseq2/q_shared.o
+	src/common/shared/flash.o \
+	src/common/shared/shared.o
 
 # Used by the OpenGL refresher
 OPENGL_OBJS_ = \
@@ -323,7 +321,7 @@ OPENGL_OBJS_ = \
 
 # Used by the OpenGL refresher
 OPENGL_GAME_ABI_OBJS_ = \
-	src/game/baseq2/q_shared.o
+	src/common/shared/shared.o
 
 # Used by the client
 UNIX_CLIENT_OBJS_ := \
@@ -393,6 +391,7 @@ UNIX_OPENGL_OBJS = $(patsubst %,build/refresher/%,$(UNIX_OPENGL_OBJS_))
 SDL_OPENGL_OBJS = $(patsubst %,build/refresher/%,$(SDL_OPENGL_OBJS_))
 
 BASEQ2_OBJS = $(patsubst %,build/baseq2/%,$(BASEQ2_OBJS_))
+BASEQ2_GAME_ABI_OBJS = $(patsubst %,build/baseq2/%,$(GAME_ABI_OBJS_))
 
 CTF_OBJS = $(patsubst %,build/baseq2/%,$(CTF_OBJS_))
 
@@ -417,6 +416,7 @@ UNIX_OPENGL_DEPS= $(UNIX_OPENGL_OBJS:.o=.d)
 SDL_OPENGL_DEPS= $(SDL_OPENGL_OBJS:.o=.d) 
 
 BASEQ2_DEPS= $(BASEQ2_OBJS:.o=.d) 
+BASEQ2_GAME_ABI_DEPS= $(BASEQ2_GAME_ABI_OBJS:.o=.d) 
 
 CTF_DEPS= $(CTF_OBJS:.o=.d) 
 
@@ -441,6 +441,7 @@ CTF_DEPS= $(CTF_OBJS:.o=.d)
 -include $(SDL_OPENGL_DEPS)  
 
 -include $(BASEQ2_DEPS)  
+-include $(BASEQ2_GAME_ABI_DEPS)  
 
 -include $(CTF_DEPS)  
 
@@ -469,9 +470,9 @@ release/ref_gl.so : $(OPENGL_OBJS) $(OPENGL_GAME_ABI_OBJS) \
 		$(UNIX_OPENGL_OBJS) $(SDL_OPENGL_OBJS)  
 
 # release/bsaeq2/game.so
-release/baseq2/game.so : $(BASEQ2_OBJS)
+release/baseq2/game.so : $(BASEQ2_OBJS) $(BASEQ2_GAME_ABI_OBJS)
 	@echo '===> LD $@'
-	@$(CC) $(LDFLAGS) -o $@ $(BASEQ2_OBJS) 
+	@$(CC) $(LDFLAGS) -o $@ $(BASEQ2_OBJS) $(BASEQ2_GAME_ABI_OBJS)
 
 # release/ctf/game.so
 release/ctf/game.so : $(CTF_OBJS)
