@@ -349,7 +349,7 @@ vec3_t monster_flash_offset[] = {
 	{56, 32, 32},
 	/* MZ2_WIDOW_RAIL					150 */
 	{62, -20, 84},
-	/* MZ2_WIDOW_PLASMABEAM				151	
+	/* MZ2_WIDOW_PLASMABEAM				151	*/
 	{32, 0, 6},
 	/* MZ2_CARRIER_MACHINEGUN_L2		152 */
 	{61, -32, 12},
