@@ -27,6 +27,7 @@ Content of this file:
    1.3 Addons
    1.4 Dependencies
    1.5 Compiling
+   1.6 Default configuration
  
  2. OGG/Vorbis playback
    2.1 Setup for the original soundtrack
@@ -123,6 +124,14 @@ directory structure:
 - baseq2/game.so 
 - ctf/game.so (not for the demo version)
 
+1.6 Default configuration
+-------------------------
+Quake II ships with an old and for today standards "insane" default
+configuration. This is no problem since you can alter everything. To
+make the life easier Yamagi Quake II contains an updated default
+configuration. If you want to use it just copy stuff/yq2.cfg to
+your baseq2/ folder.
+
 You should now be ready to start your brand new Quake II. Have fun.
 
 ===============================================================================
@@ -144,7 +153,7 @@ after their track number. Remember! Since the first track on the CD ist
 "data", the first audio track is number 2! If everything is done
 correct, you should have: 02.ogg, 03.ogg, ..., 11.ogg. Alternatively you
 can use a script provided by caedes, which can be found in the folder
-"tools". It needs cdparanoia and oggenc, it should work with the main
+"stuff/". It needs cdparanoia and oggenc, it should work with the main
 game and both addons.
 Put these files under baseq2/music, start Quake II, enter the "Options"
 menu and set "OGG music" to enabled. "CD music" will be automaticly
@@ -400,7 +409,7 @@ fixed amount of time!
  - This is a known bug in some linux distributions. SDL fails to disable
    the screensaver even if we tell him to do so. See this Ubuntu bugreport: 
    https://bugs.launchpad.net/ubuntu/+source/gnome-screensaver/+bug/32457
-   As a work around use the startscript in tools/quake-start.sh It
+   As a work around use the startscript in stuff/quake-start.sh It
    deactivates the screensaver before starting Quake II and reenables it
    after exiting the game.
 

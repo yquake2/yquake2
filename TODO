@@ -1,4 +1,0 @@
-client:
-- Integrate a signalhandler and print an backtrace with Maxims
-  libexecinfo (only 2 sourcefiles, BSD licensed)
-- Add a optional overwrite for the defaults.cfg
