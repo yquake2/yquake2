@@ -325,7 +325,6 @@ SERVER_OBJS_ := \
 	src/common/model/cm_boxtracing.o \
 	src/common/model/cm_bsp.o \
 	src/common/model/cm_vis.o \
-	src/common/shared/flash.o \
 	src/common/shared/shared.o \
 	src/common/unzip/ioapi.o \
 	src/common/unzip/unzip.o \
