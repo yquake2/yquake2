@@ -182,7 +182,6 @@ BASEQ2_OBJS_ = \
 	src/game/baseq2/g_turret.o \
 	src/game/baseq2/g_utils.o \
 	src/game/baseq2/g_weapon.o \
-	src/game/baseq2/monster/actor/actor.o \
 	src/game/baseq2/monster/berserker/berserker.o \
 	src/game/baseq2/monster/boss2/boss2.o \
 	src/game/baseq2/monster/boss3/boss3.o \
