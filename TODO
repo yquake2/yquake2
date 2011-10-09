@@ -1,15 +1,4 @@
-game.so:
-- clean up monsters/
-
-ctf:
-- the world model has no clip in spectator mode?!
-
 client:
 - Integrate a signalhandler and print an backtrace with Maxims
   libexecinfo (only 2 sourcefiles, BSD licensed)
 - Add a optional overwrite for the defaults.cfg
-- Rename the config.cfg to yq2config.cfg for compatiblity with other
-  sourceports
-
-doc:
-- Write a new, much more polished homepage
