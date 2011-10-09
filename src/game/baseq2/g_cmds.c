@@ -25,7 +25,7 @@
  */ 
 
 #include "header/local.h"
-#include "monster/header/player.h"
+#include "monster/misc/player.h"
 
 char *
 ClientTeam(edict_t *ent)

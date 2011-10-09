@@ -25,7 +25,7 @@
  */ 
 
 #include "../header/local.h"
-#include "../monster/header/player.h"
+#include "../monster/misc/player.h"
 
 static edict_t *current_player;
 static gclient_t *current_client;

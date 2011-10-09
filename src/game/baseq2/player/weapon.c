@@ -25,7 +25,7 @@
  */
 
 #include "../header/local.h"
-#include "../monster/header/player.h"
+#include "../monster/misc/player.h"
  
 #define FRAME_FIRE_FIRST (FRAME_ACTIVATE_LAST + 1)
 #define FRAME_IDLE_FIRST (FRAME_FIRE_LAST + 1)
