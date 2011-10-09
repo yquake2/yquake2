@@ -1226,7 +1226,7 @@ FS_AddHomeAsGameDirectory(char *dir)
 
 	if(homedir)
 	{
-		int len = snprintf(gdir,sizeof(gdir),"%s/.quake2/%s/", homedir, dir);
+		int len = snprintf(gdir,sizeof(gdir),"%s/.yq2/%s/", homedir, dir);
 		Com_Printf("using %s for writing\n",gdir);
 		FS_CreatePath (gdir);
 
