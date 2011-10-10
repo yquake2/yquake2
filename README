@@ -99,7 +99,8 @@ Due to license issues - Yamagi Quake II is covered by the GPL and the
 addons are under the id Software SDK license - the addons are
 distributed seperatly. You can get them at http://www.yamagi.org/quake2,
 both contain installation instructions. But nevertheless you'll need
-the client and the main game installed for playing them.
+the client and the main game installed for playing them. The same goes
+to the "ctf" capture the flag addon.
 
 1.4 Dependencies:
 -----------------
@@ -122,7 +123,6 @@ directory structure:
 - quake2 
 - ref_gl.so 
 - baseq2/game.so 
-- ctf/game.so (not for the demo version)
 
 1.6 Default configuration
 -------------------------
