@@ -39,6 +39,8 @@
 #define BUILDSTRING "Linux"
 #elif defined __FreeBSD__
 #define BUILDSTRING "FreeBSD"
+#else
+#define BUILDSTRING "Unknown"
 #endif
 
 #ifdef __i386__

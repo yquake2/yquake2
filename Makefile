@@ -297,8 +297,9 @@ CLIENT_OBJS_ := \
 	src/unix/hunk.o \
 	src/unix/misc.o \
  	src/unix/network.o \
+ 	src/unix/signalhandler.o \
 	src/unix/system.o \
- 	src/unix/vid.o
+ 	src/unix/vid.o 
 
 # ----------
 
@@ -342,8 +343,9 @@ SERVER_OBJS_ := \
 	src/unix/hunk.o \
 	src/unix/misc.o \
  	src/unix/network.o \
+ 	src/unix/signalhandler.o \
 	src/unix/system.o
-
+ 
 # ----------
 
 # Used by the OpenGL refresher
