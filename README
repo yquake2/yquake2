@@ -89,9 +89,9 @@ If you haven't got Quake II, try the demo version. Get it here:
 ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe
 
 Create a new quake2/ directory with a baseq2/ sub-directory and put the
-pak0.pak and the players/ sub-directory you can find within the unzipped
-files (in Install/Data/baseq2/) in your baseq2-directory. No patching
-is needed for the demo, in fact it would break it.
+pak0.pak and the players/ sub-directory, you can find it within the
+unzipped files (in Install/Data/baseq2/), in your baseq2-directory. No
+patching is needed for the demo, in fact it would break it.
 
 1.3 Addons
 ----------
@@ -149,7 +149,7 @@ drive or customized playlists.
 --------------------------------------
 Put your Quake II CD-ROM in your drive, start your favorite CD extractor
 and rip the audiotracks into OGG/Vorbis files. These files must be named
-after their track number. Remember! Since the first track on the CD ist
+after their track number. Remember! Since the first track on the CD is
 "data", the first audio track is number 2! If everything is done
 correct, you should have: 02.ogg, 03.ogg, ..., 11.ogg. Alternatively you
 can use a script provided by caedes, which can be found in the folder
@@ -166,7 +166,7 @@ You can put normal OGG/Vorbis files into baseq2/music or your_mod/music.
 If shuffle is enabled, Quake II will shuffle through all files.
 Otherwise it will loop through the track associated with the map.
 Therefore playlists can be used. Just put the filenames into
-music/playlists (a plain text file) and start the game. For manual
+music/playlist (a plain text file) and start the game. For manual
 control there are some cvars. Remember: these are only available, if "OGG
 music" is enabled!
 
@@ -228,7 +228,7 @@ music" is enabled!
 3. Configuration
 ================
 While configuring Quake II is straight forward some rough edges can
-arise. Bevor reporting bugs or mailing me please read this section all
+arise. Before reporting bugs or mailing me please read this section all
 the hints covered in it!
 
 3.1 Video
@@ -259,7 +259,7 @@ the most common questions are answered.
   slow? This is the fault of Mesa3D and it's broken point parameters
   OpenGL extensions. The only solution is to disable the extension but
   this'll lower the optical quality of the game. Particles won't be any
-  longer perfext round but'll have eight edges. Set
+  longer perfect round but'll have eight edges. Set
   "gl_ext_pointparameters" to 0.
 
 - The game is bright enough but it's also washed out and dull: You need
@@ -320,13 +320,13 @@ should solve most if not all problems.
 - The earthquake sound sample is distorted
   This is not a fault of the sound code but of the sound sample itself.
   It's mostly made of very low frequency noices and sampled in only
-  22kHz, bringing cheap onboad soundcards to the limit. The only
+  22kHz, bringing cheap onboard soundcards to the limit. The only
   solution would be to change the sample...
 
 - The sound is stuttering and cracking
   This is most likely a problem on your side! First make sure that your
   SDL sound backend is installed proberly. Does the sound work in other
-  SDL games like ioQuake3? If possible remove all sound servers from
+  SDL games like ioquake3? If possible remove all sound servers from
   your stack and use the plain OSS or ALSA via libalsa. If everything
   fails try create an ~/.asoundrc with this contents:
 
@@ -426,12 +426,13 @@ deathmatch and / or CTF freaks?
    code and a better client<->server integration. Take a look at EGL, r1q2 
    or AprQ2. At least r1q2 should work on unixlike operating systems.
 
-Move movement is fucked up! I can jump much higher and longer as it used
+The movement is fucked up! I can jump much higher and longer as it used
 to be! What's wrong?
  - You're experiencing the Quake II version of the famous Q3A 125hz bug.
    When Quake II draws more than about 100 FPS the movement calculations
    go wrong and you can jump much higher. To solve this set "cl_maxfps"
-   to about 95 FPS.
+   to about 95 FPS. And no, we won't fix it since it would be very
+   invasive and most likely break a lot of other things.
 
 Can I use texture sets with Yamagi Quake 2?
  - No, you can't. Yamagi Quake 2 is dedicated to a game experience like
