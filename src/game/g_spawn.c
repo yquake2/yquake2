@@ -662,16 +662,6 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 					continue;
 				}
 			}
-			/* This statement was added by Yamagi. */
-			else if (coop->value)
-			{
-				if ( ent->spawnflags & SPAWNFLAG_NOT_COOP )
-				{
-					G_FreeEdict (ent);
-					inhibit++;
-					continue;
-				}
-			}
 			else
 			{
 				if (((skill->value == 0) &&
