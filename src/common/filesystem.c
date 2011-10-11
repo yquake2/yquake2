@@ -1206,6 +1206,7 @@ FS_AddGameDirectory(const char *dir)
 			if (pack == NULL)
 				continue;
 
+			search = Z_Malloc(sizeof(fsSearchPath_t));
 			search->pack = pack;
 			search->next = fs_searchPaths;
 			fs_searchPaths = search;
