@@ -636,7 +636,7 @@ SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
 	gi.linkentity(pusher);
 
 	/* Create a real bounding box for 
-	 * rotating brush models. */
+	   rotating brush models. */
 	RealBoundingBox(pusher,realmins,realmaxs);
 
 	/* see if any solid entities 
