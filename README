@@ -444,4 +444,13 @@ possible without patching the source?
    directory from /usr/share/games/quake2/, just set -DSYSTEMDIR
    to the desired path.
 
+How do I disable friendly fire in coop mode?
+ - The same way as in team deathmatch. Via the menu select "deathmatch
+   options" and set teamplay to "by skin" or by "by model" and friendly
+   fire to disabled. Make sure, that all players have the same model or
+   skin! If you're using the dedicated server or allready in the game,
+   open the console and type "dmflags 336" für skinbased teamplay and 
+   "dmflags 400" for modelbased teamplay.
+
+
 ===============================================================================
