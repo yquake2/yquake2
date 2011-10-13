@@ -656,7 +656,7 @@ T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 	asave += save;
 
 	/* team damage avoidance */
-	if (!(dflags & DAMAGE_NO_PROTECTION))
+	if (!(dflags & DAMAGE_NO_PROTECTION) && false)
 	{
 		return;
 	}
