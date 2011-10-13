@@ -932,43 +932,46 @@ Key_Event ( int key, qboolean down, unsigned time )
 
 	/* any key during the attract mode will bring up the menu */
 	if ( cl.attractloop && ( cls.key_dest != key_menu ) &&
-		 !( ( key >= K_F1 ) && ( key <= K_F12 ) ) )
+			!( ( key >= K_F1 ) && ( key <= K_F12 ) ) )
 	{
 		key = K_ESCAPE;
 	}
 
 	/* menu key is hardcoded, so the user can never unbind it */
-	if ( key == K_ESCAPE )
+	if (!cls.disable_screen)
 	{
-		if ( !down )
+		if ( key == K_ESCAPE )
 		{
+			if ( !down )
+			{
+				return;
+			}
+
+			if ( cl.frame.playerstate.stats [ STAT_LAYOUTS ] && ( cls.key_dest == key_game ) )
+			{
+				/* put away help computer / inventory */
+				Cbuf_AddText( "cmd putaway\n" );
+				return;
+			}
+
+			switch ( cls.key_dest )
+			{
+				case key_message:
+					Key_Message( key );
+					break;
+				case key_menu:
+					M_Keydown( key );
+					break;
+				case key_game:
+				case key_console:
+					M_Menu_Main_f();
+					break;
+				default:
+					Com_Error( ERR_FATAL, "Bad cls.key_dest" );
+			}
+
 			return;
 		}
-
-		if ( cl.frame.playerstate.stats [ STAT_LAYOUTS ] && ( cls.key_dest == key_game ) )
-		{
-			/* put away help computer / inventory */
-			Cbuf_AddText( "cmd putaway\n" );
-			return;
-		}
-
-		switch ( cls.key_dest )
-		{
-			case key_message:
-				Key_Message( key );
-				break;
-			case key_menu:
-				M_Keydown( key );
-				break;
-			case key_game:
-			case key_console:
-				M_Menu_Main_f();
-				break;
-			default:
-				Com_Error( ERR_FATAL, "Bad cls.key_dest" );
-		}
-
-		return;
 	}
 
 	/* track if any key is down for BUTTON_ANY */
