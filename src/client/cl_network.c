@@ -456,6 +456,11 @@ void CL_PingServers_f (void)
 		adr.type = NA_BROADCAST;
 		adr.port = BigShort(PORT_SERVER);
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
+
+		Com_Printf ("pinging multicast...\n");
+		adr.type = NA_MULTICAST6;
+		adr.port = BigShort(PORT_SERVER);
+		Netchan_OutOfBandPrint (NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
 	}
 
 	noipx = Cvar_Get ("noipx", "0", CVAR_NOSET);

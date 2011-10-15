@@ -456,14 +456,24 @@ extern	qboolean	userinfo_modified;
 #define	MAX_MSGLEN		1400		/* max length of a message */
 #define	PACKET_HEADER	10			/* two ints and a short */
 
-typedef enum {NA_LOOPBACK, NA_BROADCAST, NA_IP, NA_IPX, NA_BROADCAST_IPX} netadrtype_t;
+typedef enum 
+{
+	NA_LOOPBACK, 
+	NA_BROADCAST, 
+	NA_IP, 
+	NA_IPX, 
+	NA_BROADCAST_IPX, 
+	NA_IP6, 
+	NA_MULTICAST6
+} netadrtype_t;
 
 typedef enum {NS_CLIENT, NS_SERVER} netsrc_t;
 
 typedef struct
 {
 	netadrtype_t	type;
-	byte	ip[4];
+	byte	ip[16];
+	unsigned int scope_id;
 	byte	ipx[10];
 
 	unsigned short	port;

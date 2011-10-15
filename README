@@ -452,5 +452,17 @@ How do I disable friendly fire in coop mode?
    open the console and type "dmflags 336" für skinbased teamplay and 
    "dmflags 400" for modelbased teamplay.
 
+Can I connect to an IPv6 server?
+ - Yes, the same way as connecting to an IPv4 server. Since the Quake II
+   console has problems with the characters ":", "[" and "]" we suggest
+   to submit the connection command as command line argument:
+     ./quake2 +connect "[2001:db8::1]"
+   For your server to show up in the server list you need to supply a 
+   multicast interface to both the client and the server:
+     ./q2ded +set multicast eth0
+     ./quake2 +set multicast eth0
+   Normaly the server will listen to all IPv4 and IPv6 addresses. You
+   can bind it to an address with:
+     ./q2ded +set ip "[2001:db8::1]"
 
-===============================================================================
+==============================================================================

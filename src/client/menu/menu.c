@@ -2165,7 +2165,7 @@ void M_AddToServerList (netadr_t adr, char *info) {
 			return;
 
 	local_server_netadr[m_num_servers] = adr;
-	snprintf (local_server_names[m_num_servers], sizeof(local_server_names[m_num_servers])-1, "%d. %s", m_num_servers+1, info);
+	Com_sprintf(local_server_names[m_num_servers], sizeof(local_server_names[0])-1, "%s %s", info, NET_AdrToString(adr));
 	m_num_servers++;
 }
 
