@@ -91,7 +91,7 @@ NetadrToSockadr ( netadr_t *a, struct sockaddr_storage *s )
 
 			if (inet_pton(AF_INET6, QUAKE2MCAST, &s6->sin6_addr.s6_addr) != 1)
 			{
-				Com_Printf("NET_NetadrToSockadr: inet_pton: %s", strerror(errno));
+				Com_Printf("NET_NetadrToSockadr: inet_pton: %s\n", strerror(errno));
 				return;
 			}
 
@@ -673,7 +673,7 @@ NET_SendPacket ( netsrc_t sock, int length, void *data, netadr_t to )
 
 				if (error)
 				{
-					Com_Printf("NET_SendPacket: getnameinfo: %s", gai_strerror(error));
+					Com_Printf("NET_SendPacket: getnameinfo: %s\n", gai_strerror(error));
 					return;
 				}
 
@@ -690,7 +690,7 @@ NET_SendPacket ( netsrc_t sock, int length, void *data, netadr_t to )
 
 				if (error)
 				{
-					Com_Printf("NET_SendPacket: getaddrinfo: %s", gai_strerror(error));
+					Com_Printf("NET_SendPacket: getaddrinfo: %s\n", gai_strerror(error));
 					return;
 				}
 
@@ -898,13 +898,13 @@ NET_Socket ( char *net_interface, int port, netsrc_t type, int family )
 				   Also used in NET_SendPacket() */
 				if ((mreq.ipv6mr_interface = if_nametoindex(multicast_interface)) == 0)
 				{
-					Com_Printf("NET_Socket: invalid interface: %s", multicast_interface);
+					Com_Printf("NET_Socket: invalid interface: %s\n", multicast_interface);
 				}
 
 				if (setsockopt(newsocket, IPPROTO_IPV6, IPV6_MULTICAST_IF,
 							&mreq.ipv6mr_interface, sizeof(mreq.ipv6mr_interface)) < 0)
 				{
-					Com_Printf("NET_Socket: IPV6_MULTICAST_IF: %s", strerror(errno));
+					Com_Printf("NET_Socket: IPV6_MULTICAST_IF: %s\n", strerror(errno));
 				}
 
 				/* Join multicast group ONLY if server */
@@ -912,12 +912,12 @@ NET_Socket ( char *net_interface, int port, netsrc_t type, int family )
 				{
 					if (inet_pton(AF_INET6, QUAKE2MCAST, &mreq.ipv6mr_multiaddr.s6_addr) != 1)
 					{
-						Com_Printf("NET_Socket: inet_pton: %s", strerror(errno));
+						Com_Printf("NET_Socket: inet_pton: %s\n", strerror(errno));
 					}
 
 					if (setsockopt(newsocket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq)) < 0)
 					{
-						Com_Printf("NET_Socket: IPV6_JOIN_GROUP: %s", strerror(errno));
+						Com_Printf("NET_Socket: IPV6_JOIN_GROUP: %s\n", strerror(errno));
 					}
 				}
 			}
