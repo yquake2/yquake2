@@ -851,13 +851,20 @@ NET_Socket ( char *net_interface, int port, netsrc_t type, int family )
 		if (family == AF_INET)
 		{
 			/* make it broadcast capable */
-			if (setsockopt(newsocket, SOL_SOCKET, SO_BROADCAST, (char *)&i,
-						sizeof(i)) == -1)
+			if (setsockopt(newsocket, SOL_SOCKET, SO_BROADCAST, (char *)&i, sizeof(i)) == -1)
 			{
 				Com_Printf("ERROR: NET_Socket: setsockopt SO_BROADCAST:%s\n",
 						NET_ErrorString());
 				return 0;
 			}
+		}
+
+		/* make it reusable */
+		if (setsockopt(newsocket, SOL_SOCKET, SO_REUSEADDR, (char *)&i, sizeof(i)) == -1)
+		{ 
+			Com_Printf("ERROR: NET_Socket: setsockopt SO_REUSEADDR:%s\n",
+						NET_ErrorString());
+				return 0; 
 		}
 
 		if (bind(newsocket, ai->ai_addr, ai->ai_addrlen) < 0)
