@@ -152,6 +152,8 @@ cvar_t  *gl_swapinterval;
 cvar_t  *gl_texturemode;
 cvar_t  *gl_texturealphamode;
 cvar_t  *gl_texturesolidmode;
+cvar_t	*gl_anisotropic;
+cvar_t	*gl_anisotropic_avail;
 cvar_t  *gl_lockpvs;
 
 cvar_t  *vid_fullscreen;
@@ -979,6 +981,8 @@ R_Register ( void )
 	gl_texturemode = ri.Cvar_Get( "gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE );
 	gl_texturealphamode = ri.Cvar_Get( "gl_texturealphamode", "default", CVAR_ARCHIVE );
 	gl_texturesolidmode = ri.Cvar_Get( "gl_texturesolidmode", "default", CVAR_ARCHIVE );
+	gl_anisotropic = ri.Cvar_Get( "gl_anisotropic", "0", CVAR_ARCHIVE );
+	gl_anisotropic_avail = ri.Cvar_Get( "gl_anisotropic_avail", "0", 0 );
 	gl_lockpvs = ri.Cvar_Get( "gl_lockpvs", "0", 0 );
 
 	gl_vertex_arrays = ri.Cvar_Get( "gl_vertex_arrays", "0", CVAR_ARCHIVE );
@@ -1234,6 +1238,23 @@ R_Init ( void *hinstance, void *hWnd )
 	{
 		ri.Con_Printf( PRINT_ALL, "...GL_SGIS_multitexture not found\n" );
 	}
+
+	gl_config.anisotropic = false;
+
+	if ( strstr(gl_config.extensions_string,"GL_EXT_texture_filter_anisotropic") )
+	{
+		ri.Con_Printf (PRINT_ALL,"...using GL_EXT_texture_filter_anisotropic\n" );
+		gl_config.anisotropic = true;
+		qglGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gl_config.max_anisotropy);
+		ri.Cvar_SetValue("gl_anisotropic_avail", gl_config.max_anisotropy);
+	}
+	else
+	{
+		ri.Con_Printf (PRINT_ALL,"..GL_EXT_texture_filter_anisotropic not found\n" );
+		gl_config.anisotropic = false;
+		gl_config.max_anisotropy = 0.0;
+		ri.Cvar_SetValue("gl_anisotropic_avail", 0.0);
+	} 
 
 	gl_config.mtexcombine = false;
 

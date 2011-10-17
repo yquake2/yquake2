@@ -290,6 +290,19 @@ R_TextureMode ( char *string )
 	gl_filter_min = modes [ i ].minimize;
 	gl_filter_max = modes [ i ].maximize;
 
+	/* clamp selected anisotropy */
+	if (gl_config.anisotropic)
+	{
+		if (gl_anisotropic->value > gl_config.max_anisotropy)
+		{
+			ri.Cvar_SetValue("gl_anisotropic", gl_config.max_anisotropy);
+		}
+		else if (gl_anisotropic->value < 1.0)
+		{
+			ri.Cvar_SetValue("gl_anisotropic", 1.0);
+		}
+	}
+
 	/* change all the existing mipmap texture objects */
 	for ( i = 0, glt = gltextures; i < numgltextures; i++, glt++ )
 	{
@@ -298,6 +311,12 @@ R_TextureMode ( char *string )
 			R_Bind( glt->texnum );
 			qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min );
 			qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max );
+
+			 /* Set anisotropic filter if supported and enabled */
+			if (gl_config.anisotropic && gl_anisotropic->value)
+			{
+				qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_anisotropic->value);
+			}
 		}
 	}
 }
@@ -706,15 +725,8 @@ R_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap )
 			{
 				uploaded_paletted = true;
 				R_BuildPalettedTexture( paletted_texture, (unsigned char *) data, scaled_width, scaled_height );
-				qglTexImage2D( GL_TEXTURE_2D,
-						0,
-						GL_COLOR_INDEX8_EXT,
-						scaled_width,
-						scaled_height,
-						0,
-						GL_COLOR_INDEX,
-						GL_UNSIGNED_BYTE,
-						paletted_texture );
+				qglTexImage2D( GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT, scaled_width,
+						scaled_height, 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, paletted_texture );
 			}
 			else
 			{
@@ -737,15 +749,8 @@ R_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap )
 	{
 		uploaded_paletted = true;
 		R_BuildPalettedTexture( paletted_texture, (unsigned char *) scaled, scaled_width, scaled_height );
-		qglTexImage2D( GL_TEXTURE_2D,
-				0,
-				GL_COLOR_INDEX8_EXT,
-				scaled_width,
-				scaled_height,
-				0,
-				GL_COLOR_INDEX,
-				GL_UNSIGNED_BYTE,
-				paletted_texture );
+		qglTexImage2D( GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT, scaled_width, scaled_height,
+				0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, paletted_texture );
 	}
 	else
 	{
@@ -780,15 +785,8 @@ R_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap )
 			{
 				uploaded_paletted = true;
 				R_BuildPalettedTexture( paletted_texture, (unsigned char *) scaled, scaled_width, scaled_height );
-				qglTexImage2D( GL_TEXTURE_2D,
-						miplevel,
-						GL_COLOR_INDEX8_EXT,
-						scaled_width,
-						scaled_height,
-						0,
-						GL_COLOR_INDEX,
-						GL_UNSIGNED_BYTE,
-						paletted_texture );
+				qglTexImage2D( GL_TEXTURE_2D, miplevel, GL_COLOR_INDEX8_EXT, scaled_width, scaled_height,
+						0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, paletted_texture );
 			}
 			else
 			{
@@ -808,6 +806,11 @@ done:
 	{
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max );
+	}
+
+	if (mipmap && gl_config.anisotropic && gl_anisotropic->value)
+	{
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_anisotropic->value);
 	}
 
 	return ( samples == gl_alpha_format );

@@ -275,6 +275,12 @@ the most common questions are answered.
   likely want to set "gl_stecilshadow" to 1 too. This enables high
   quality stencil buffer shadows.
 
+- Yamagi Quake II has support for anisotropic filtering. Activating it 
+  gives a small benefit in texture drawing over large distances. Check
+  "gl_anisotropic_avail" for the maximum amount af filtering supported
+  by your video card and set the desired value "gl_anisotropic". The
+  value must be a power of 4, in most cases 2, 4, 8 or 16.
+
 3.2 Input
 ---------
 Quake II had a rather simple input system, even back then in 1997. It

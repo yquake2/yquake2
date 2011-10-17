@@ -224,6 +224,8 @@ extern cvar_t  *gl_drawbuffer;
 extern cvar_t  *gl_3dlabs_broken;
 extern cvar_t  *gl_driver;
 extern cvar_t  *gl_swapinterval;
+extern cvar_t  *gl_anisotropic;
+extern cvar_t  *gl_anisotropic_avail;
 extern cvar_t  *gl_texturemode;
 extern cvar_t  *gl_texturealphamode;
 extern cvar_t  *gl_texturesolidmode;
@@ -343,6 +345,9 @@ typedef struct
 
 	qboolean allow_cds;
 	qboolean mtexcombine;
+
+	qboolean anisotropic;
+	float max_anisotropy;
 } glconfig_t;
 
 typedef struct
