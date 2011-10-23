@@ -1185,30 +1185,37 @@ SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles)
 		}
 	}
 
-	index = ent->client - game.clients;
-
-	while(counter < 3)
+	/* If we are in coop and we didn't find a coop 
+	   spawnpoint due to map bugs (not correctly
+	   connected or the map was loaded via console
+	   and thus no previously map is known to the
+	   client) use one in 384 units radius. */
+	if (coop->value)
 	{
-		coopspot = G_Find(coopspot, FOFS(classname), "info_player_coop");
+		index = ent->client - game.clients;
 
-		if (!coopspot)
+		while(counter < 3)
 		{
-			break;
-		}
+			coopspot = G_Find(coopspot, FOFS(classname), "info_player_coop");
 
-		VectorSubtract(coopspot->s.origin, spot->s.origin, d);
-
-		if ((VectorLength(d) < 384))
-		{
-			if (index == counter)
+			if (!coopspot)
 			{
-				spot = coopspot;
-				gi.dprintf("gotscha!\n");
 				break;
 			}
-			else
+
+			VectorSubtract(coopspot->s.origin, spot->s.origin, d);
+
+			if ((VectorLength(d) < 384))
 			{
-				counter++;
+				if (index == counter)
+				{
+					spot = coopspot;
+					break;
+				}
+				else
+				{
+					counter++;
+				}
 			}
 		}
 	}
