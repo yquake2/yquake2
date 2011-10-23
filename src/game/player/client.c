@@ -72,8 +72,7 @@ SP_FixCoopSpots(edict_t *self)
 
 		if (VectorLength(d) < 384)
 		{
-			if ((!self->targetname) ||
-				(Q_stricmp(self->targetname, spot->targetname) != 0))
+			if ((!self->targetname) || (Q_stricmp(self->targetname, spot->targetname) != 0))
 			{
 				self->targetname = spot->targetname;
 			}
@@ -1131,6 +1130,10 @@ void
 SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles)
 {
 	edict_t *spot = NULL;
+	edict_t *coopspot = NULL;
+	int index;
+	int counter = 0;
+	vec3_t d;
                    
 	if (!ent)
 	{
@@ -1178,6 +1181,34 @@ SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles)
 			if (!spot)
 			{
 				gi.error("Couldn't find spawn point %s\n", game.spawnpoint);
+			}
+		}
+	}
+
+	index = ent->client - game.clients;
+
+	while(counter < 3)
+	{
+		coopspot = G_Find(coopspot, FOFS(classname), "info_player_coop");
+
+		if (!coopspot)
+		{
+			break;
+		}
+
+		VectorSubtract(coopspot->s.origin, spot->s.origin, d);
+
+		if ((VectorLength(d) < 384))
+		{
+			if (index == counter)
+			{
+				spot = coopspot;
+				gi.dprintf("gotscha!\n");
+				break;
+			}
+			else
+			{
+				counter++;
 			}
 		}
 	}
