@@ -193,6 +193,7 @@
 {"SP_info_player_coop", (byte *)SP_info_player_coop},
 {"SP_info_player_deathmatch", (byte *)SP_info_player_deathmatch},
 {"SP_info_player_start", (byte *)SP_info_player_start},
+{"SP_CreateUnnamedSpawn", (byte *)SP_CreateUnnamedSpawn},
 {"SP_CreateCoopSpots", (byte *)SP_CreateCoopSpots},
 {"SP_FixCoopSpots", (byte *)SP_FixCoopSpots},
 {"SP_monster_tank", (byte *)SP_monster_tank},

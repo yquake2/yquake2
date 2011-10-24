@@ -1732,7 +1732,8 @@ SP_misc_deadsoldier(edict_t *ent)
 	}
      
 	if (deathmatch->value)
-	{   /* auto-remove for deathmatch */
+	{   
+		/* auto-remove for deathmatch */
 		G_FreeEdict(ent);
 		return;
 	}
@@ -1849,12 +1850,7 @@ SP_misc_viper(edict_t *ent)
  */
 void
 SP_misc_bigviper(edict_t *ent)
-{  
-	if (!ent)
-	{
-		return;
-	}
-     
+{
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
 	VectorSet(ent->mins, -176, -120, -24);

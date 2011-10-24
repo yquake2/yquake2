@@ -1378,12 +1378,9 @@ door_go_up(edict_t *self, edict_t *activator)
 	{
 		if (self->moveinfo.sound_start)
 		{
-			gi.sound(self,
-					CHAN_NO_PHS_ADD + CHAN_VOICE,
-					self->moveinfo.sound_start,
-					1,
-					ATTN_STATIC,
-					0);
+			gi.sound(self, CHAN_NO_PHS_ADD + CHAN_VOICE,
+					self->moveinfo.sound_start, 1,
+					ATTN_STATIC, 0);
 		}
 
 		self->s.sound = self->moveinfo.sound_middle;

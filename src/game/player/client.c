@@ -70,7 +70,7 @@ SP_FixCoopSpots(edict_t *self)
 
 		VectorSubtract(self->s.origin, spot->s.origin, d);
 
-		if (VectorLength(d) < 384)
+		if (VectorLength(d) < 550)
 		{
 			if ((!self->targetname) || (Q_stricmp(self->targetname, spot->targetname) != 0))
 			{
@@ -129,6 +129,150 @@ SP_CreateCoopSpots(edict_t *self)
 }
 
 /*
+ * Some maps have no unnamed (e.g. generic)
+ * info_player_start. This is no problem in
+ * normal gameplay, but if the map is loaded
+ * via console there is a huge chance that
+ * the player will spawn in the wrong point.
+ * Therefor create an unnamed info_player_start
+ * at the correct point.
+ */
+void
+SP_CreateUnnamedSpawn(edict_t *self)
+{
+	edict_t *spot;
+
+	if (!self)
+	{
+		return;
+	}
+
+	/* If there is a spawnpoint to use, we
+	   don't need any unnamed spawnpoints */
+	if (Q_stricmp(game.spawnpoint, "") != 0)
+	{
+		return;
+	}
+
+	/* mine1 */
+    if (Q_stricmp(level.mapname, "mine1") == 0)
+	{
+		if (Q_stricmp(self->targetname, "mintro") == 0)
+		{
+			spot = G_Spawn();
+			spot = self;
+			spot->targetname = NULL;
+
+			return;
+		}
+	} 
+
+	/* mine2 */
+    if (Q_stricmp(level.mapname, "mine2") == 0)
+	{
+		if (Q_stricmp(self->targetname, "mine1") == 0)
+		{
+			spot = G_Spawn();
+			spot = self;
+			spot->targetname = NULL;
+
+			return;
+		}
+	}
+
+	/* mine3 */
+    if (Q_stricmp(level.mapname, "mine3") == 0)
+	{
+		if (Q_stricmp(self->targetname, "mine2a") == 0)
+		{
+			spot = G_Spawn();
+			spot = self;
+			spot->targetname = NULL;
+
+			return;
+		}
+	}  
+
+	/* mine4 */
+    if (Q_stricmp(level.mapname, "mine4") == 0)
+	{
+		if (Q_stricmp(self->targetname, "mine3") == 0)
+		{
+			spot = G_Spawn();
+			spot = self;
+			spot->targetname = NULL;
+
+			return;
+		}
+	}
+
+ 	/* power2 */
+    if (Q_stricmp(level.mapname, "power2") == 0)
+	{
+		if (Q_stricmp(self->targetname, "power1") == 0)
+		{
+			spot = G_Spawn();
+			spot = self;
+			spot->targetname = NULL;
+
+			return;
+		}
+	} 
+	
+	/* waste1 */
+    if (Q_stricmp(level.mapname, "waste1") == 0)
+	{
+		if (Q_stricmp(self->targetname, "power2") == 0)
+		{
+			spot = G_Spawn();
+			spot = self;
+			spot->targetname = NULL;
+
+			return;
+		}
+	} 
+	
+	/* waste2 */
+    if (Q_stricmp(level.mapname, "waste2") == 0)
+	{
+		if (Q_stricmp(self->targetname, "waste1") == 0)
+		{
+			spot = G_Spawn();
+			spot = self;
+			spot->targetname = NULL;
+
+			return;
+		}
+	} 
+	
+	/* waste3 */
+    if (Q_stricmp(level.mapname, "waste3") == 0)
+	{
+		if (Q_stricmp(self->targetname, "waste2") == 0)
+		{
+			spot = G_Spawn();
+			spot = self;
+			spot->targetname = NULL;
+
+			return;
+		}
+	} 
+	
+	/* city3 */
+    if (Q_stricmp(level.mapname, "city2") == 0)
+	{
+		if (Q_stricmp(self->targetname, "city2NL") == 0)
+		{
+			spot = G_Spawn();
+			spot = self;
+			spot->targetname = NULL;
+
+			return;
+		}
+	} 
+}
+
+/*
  * QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
  * The normal starting point for a level.
  */
@@ -139,7 +283,11 @@ SP_info_player_start(edict_t *self)
 	{
 		return;
 	}
- 
+
+    /* Call function to hack unnamed spawn points */
+	self->think = SP_CreateUnnamedSpawn;
+	self->nextthink = level.time + FRAMETIME;  
+
 	if (!coop->value)
 	{
 		return;
@@ -194,18 +342,22 @@ SP_info_player_coop(edict_t *self)
 
 	if ((Q_stricmp(level.mapname, "jail2") == 0) ||
 		(Q_stricmp(level.mapname, "jail4") == 0) ||
+		(Q_stricmp(level.mapname, "mintro") == 0) ||
 		(Q_stricmp(level.mapname, "mine1") == 0) ||
 		(Q_stricmp(level.mapname, "mine2") == 0) ||
 		(Q_stricmp(level.mapname, "mine3") == 0) ||
 		(Q_stricmp(level.mapname, "mine4") == 0) ||
 		(Q_stricmp(level.mapname, "lab") == 0) ||
 		(Q_stricmp(level.mapname, "boss1") == 0) ||
+		(Q_stricmp(level.mapname, "fact1") == 0) ||
 		(Q_stricmp(level.mapname, "fact3") == 0) ||
+		(Q_stricmp(level.mapname, "waste1") == 0) || /* really? */
 		(Q_stricmp(level.mapname, "biggun") == 0) ||
 		(Q_stricmp(level.mapname, "space") == 0) ||
 		(Q_stricmp(level.mapname, "command") == 0) ||
 		(Q_stricmp(level.mapname, "power2") == 0) ||
-		(Q_stricmp(level.mapname, "strike") == 0))
+		(Q_stricmp(level.mapname, "strike") == 0) ||
+		(Q_stricmp(level.mapname, "city2") == 0))
 	{
 		/* invoke one of our gross, ugly, disgusting hacks */
 		self->think = SP_FixCoopSpots;
@@ -1189,32 +1341,35 @@ SelectSpawnPoint(edict_t *ent, vec3_t origin, vec3_t angles)
 	   spawnpoint due to map bugs (not correctly
 	   connected or the map was loaded via console
 	   and thus no previously map is known to the
-	   client) use one in 384 units radius. */
+	   client) use one in 550 units radius. */
 	if (coop->value)
 	{
 		index = ent->client - game.clients;
 
-		while(counter < 3)
+		if (Q_stricmp(spot->classname, "info_player_start") == 0 && index != 0)
 		{
-			coopspot = G_Find(coopspot, FOFS(classname), "info_player_coop");
-
-			if (!coopspot)
+			while(counter < 3)
 			{
-				break;
-			}
+				coopspot = G_Find(coopspot, FOFS(classname), "info_player_coop");
 
-			VectorSubtract(coopspot->s.origin, spot->s.origin, d);
-
-			if ((VectorLength(d) < 384))
-			{
-				if (index == counter)
+				if (!coopspot)
 				{
-					spot = coopspot;
 					break;
 				}
-				else
+
+				VectorSubtract(coopspot->s.origin, spot->s.origin, d);
+
+				if ((VectorLength(d) < 550))
 				{
-					counter++;
+					if (index == counter)
+					{
+						spot = coopspot;
+						break;
+					}
+					else
+					{
+						counter++;
+					}
 				}
 			}
 		}

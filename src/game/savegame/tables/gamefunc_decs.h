@@ -193,6 +193,7 @@ extern void SP_info_player_intermission ( void ) ;
 extern void SP_info_player_coop ( edict_t * self ) ;
 extern void SP_info_player_deathmatch ( edict_t * self ) ;
 extern void SP_info_player_start ( edict_t * self ) ;
+extern void SP_CreateUnnamedSpawn( edict_t *self );
 extern void SP_CreateCoopSpots ( edict_t * self ) ;
 extern void SP_FixCoopSpots ( edict_t * self ) ;
 extern void SP_monster_tank ( edict_t * self ) ;
