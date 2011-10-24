@@ -134,22 +134,15 @@ SP_CreateCoopSpots(edict_t *self)
  * normal gameplay, but if the map is loaded
  * via console there is a huge chance that
  * the player will spawn in the wrong point.
- * Therefor create an unnamed info_player_start
+ * Therefore create an unnamed info_player_start
  * at the correct point.
  */
 void
 SP_CreateUnnamedSpawn(edict_t *self)
 {
-	edict_t *spot;
+	edict_t *spot = G_Spawn();
 
 	if (!self)
-	{
-		return;
-	}
-
-	/* If there is a spawnpoint to use, we
-	   don't need any unnamed spawnpoints */
-	if (Q_stricmp(game.spawnpoint, "") != 0)
 	{
 		return;
 	}
@@ -159,8 +152,11 @@ SP_CreateUnnamedSpawn(edict_t *self)
 	{
 		if (Q_stricmp(self->targetname, "mintro") == 0)
 		{
-			spot = G_Spawn();
-			spot = self;
+			spot->classname = self->classname;
+			spot->s.origin[0] = self->s.origin[0];
+			spot->s.origin[1] = self->s.origin[1];
+			spot->s.origin[2] = self->s.origin[2];
+			spot->s.angles[1] = self->s.angles[1];
 			spot->targetname = NULL;
 
 			return;
@@ -171,11 +167,14 @@ SP_CreateUnnamedSpawn(edict_t *self)
     if (Q_stricmp(level.mapname, "mine2") == 0)
 	{
 		if (Q_stricmp(self->targetname, "mine1") == 0)
-		{
-			spot = G_Spawn();
-			spot = self;
+		{    
+			spot->classname = self->classname;
+			spot->s.origin[0] = self->s.origin[0];
+			spot->s.origin[1] = self->s.origin[1];
+			spot->s.origin[2] = self->s.origin[2];
+			spot->s.angles[1] = self->s.angles[1];
 			spot->targetname = NULL;
-
+             
 			return;
 		}
 	}
@@ -184,11 +183,14 @@ SP_CreateUnnamedSpawn(edict_t *self)
     if (Q_stricmp(level.mapname, "mine3") == 0)
 	{
 		if (Q_stricmp(self->targetname, "mine2a") == 0)
-		{
-			spot = G_Spawn();
-			spot = self;
+		{    
+			spot->classname = self->classname;
+			spot->s.origin[0] = self->s.origin[0];
+			spot->s.origin[1] = self->s.origin[1];
+			spot->s.origin[2] = self->s.origin[2];
+			spot->s.angles[1] = self->s.angles[1];
 			spot->targetname = NULL;
-
+             
 			return;
 		}
 	}  
@@ -198,10 +200,13 @@ SP_CreateUnnamedSpawn(edict_t *self)
 	{
 		if (Q_stricmp(self->targetname, "mine3") == 0)
 		{
-			spot = G_Spawn();
-			spot = self;
+			spot->classname = self->classname;
+			spot->s.origin[0] = self->s.origin[0];
+			spot->s.origin[1] = self->s.origin[1];
+			spot->s.origin[2] = self->s.origin[2];
+			spot->s.angles[1] = self->s.angles[1];
 			spot->targetname = NULL;
-
+             
 			return;
 		}
 	}
@@ -210,9 +215,12 @@ SP_CreateUnnamedSpawn(edict_t *self)
     if (Q_stricmp(level.mapname, "power2") == 0)
 	{
 		if (Q_stricmp(self->targetname, "power1") == 0)
-		{
-			spot = G_Spawn();
-			spot = self;
+		{    
+			spot->classname = self->classname;
+			spot->s.origin[0] = self->s.origin[0];
+			spot->s.origin[1] = self->s.origin[1];
+			spot->s.origin[2] = self->s.origin[2];
+			spot->s.angles[1] = self->s.angles[1];
 			spot->targetname = NULL;
 
 			return;
@@ -223,11 +231,14 @@ SP_CreateUnnamedSpawn(edict_t *self)
     if (Q_stricmp(level.mapname, "waste1") == 0)
 	{
 		if (Q_stricmp(self->targetname, "power2") == 0)
-		{
-			spot = G_Spawn();
-			spot = self;
+		{    
+			spot->classname = self->classname;
+			spot->s.origin[0] = self->s.origin[0];
+			spot->s.origin[1] = self->s.origin[1];
+			spot->s.origin[2] = self->s.origin[2];
+			spot->s.angles[1] = self->s.angles[1];
 			spot->targetname = NULL;
-
+             
 			return;
 		}
 	} 
@@ -236,9 +247,12 @@ SP_CreateUnnamedSpawn(edict_t *self)
     if (Q_stricmp(level.mapname, "waste2") == 0)
 	{
 		if (Q_stricmp(self->targetname, "waste1") == 0)
-		{
-			spot = G_Spawn();
-			spot = self;
+		{    
+			spot->classname = self->classname;
+			spot->s.origin[0] = self->s.origin[0];
+			spot->s.origin[1] = self->s.origin[1];
+			spot->s.origin[2] = self->s.origin[2];
+			spot->s.angles[1] = self->s.angles[1];
 			spot->targetname = NULL;
 
 			return;
@@ -249,11 +263,14 @@ SP_CreateUnnamedSpawn(edict_t *self)
     if (Q_stricmp(level.mapname, "waste3") == 0)
 	{
 		if (Q_stricmp(self->targetname, "waste2") == 0)
-		{
-			spot = G_Spawn();
-			spot = self;
+		{     
+			spot->classname = self->classname;
+			spot->s.origin[0] = self->s.origin[0];
+			spot->s.origin[1] = self->s.origin[1];
+			spot->s.origin[2] = self->s.origin[2];
+			spot->s.angles[1] = self->s.angles[1];
 			spot->targetname = NULL;
-
+             
 			return;
 		}
 	} 
@@ -262,9 +279,12 @@ SP_CreateUnnamedSpawn(edict_t *self)
     if (Q_stricmp(level.mapname, "city2") == 0)
 	{
 		if (Q_stricmp(self->targetname, "city2NL") == 0)
-		{
-			spot = G_Spawn();
-			spot = self;
+		{    
+			spot->classname = self->classname;
+			spot->s.origin[0] = self->s.origin[0];
+			spot->s.origin[1] = self->s.origin[1];
+			spot->s.origin[2] = self->s.origin[2];
+			spot->s.angles[1] = self->s.angles[1];
 			spot->targetname = NULL;
 
 			return;
