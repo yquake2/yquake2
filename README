@@ -471,4 +471,8 @@ Can I connect to an IPv6 server?
    can bind it to an address with:
      ./q2ded +set ip "[2001:db8::1]"
 
+Where can I find the configuartion file?
+- It's located at ~/.yq2/game/config.cfg. Replace "game" by the mod
+  name, e.g. "baseq2" for the main game.
+
 ==============================================================================
