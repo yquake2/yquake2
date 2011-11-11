@@ -178,6 +178,16 @@ BeginIntermission(edict_t *targ)
 	VectorCopy(ent->s.origin, level.intermission_origin);
 	VectorCopy(ent->s.angles, level.intermission_angle);
 
+	/* In fact1 the intermission collides
+	   with an area portal, resulting in
+	   clutterings */
+	if (!Q_stricmp(level.mapname, "fact1"))
+	{
+		level.intermission_origin[0] = 1037.0;
+		level.intermission_origin[1] = 1100.0;
+		level.intermission_origin[2] = 222.0;
+	}
+
 	/* move all clients to the intermission point */
 	for (i = 0; i < maxclients->value; i++)
 	{
