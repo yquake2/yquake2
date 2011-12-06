@@ -142,6 +142,7 @@ UpdateHardwareGamma(void)
  */
 static qboolean GLimp_InitGraphics( qboolean fullscreen )
 {
+	int counter = 0;
 	int flags;
 	int stencil_bits;
 	
@@ -192,10 +193,32 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	/* Set the icon */
 	SetSDLIcon();
 	
-	if ((surface = SDL_SetVideoMode(vid.width, vid.height, 0, flags)) == NULL) 
+	while (1)
 	{
-		Sys_Error("(SDLGL) SDL SetVideoMode failed: %s\n", SDL_GetError());
-		return false;
+		if ((surface = SDL_SetVideoMode(vid.width, vid.height, 0, flags)) == NULL) 
+		{   
+		   	if (counter == 1)
+			{
+				Sys_Error(PRINT_ALL, "Failed to revert to gl_mode 4. Exiting...\n");
+				return false;
+			}
+
+			ri.Con_Printf(PRINT_ALL, "SDL SetVideoMode failed: %s\n", SDL_GetError());
+			ri.Con_Printf(PRINT_ALL, "Reverting to gl_mode 4 (640x480) and windowed mode.\n");
+
+			/* Try to recover */
+			ri.Cvar_SetValue("gl_mode", 4);
+			ri.Cvar_SetValue("vid_fullscreen", 0);
+			vid.width = 640;
+			vid.height = 480;
+
+			counter++;
+			continue;
+		}
+		else
+		{
+			break;
+		}
 	}
 
 	/* Initialize the stencil buffer */
