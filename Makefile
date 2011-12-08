@@ -102,6 +102,17 @@ X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
 
 # ----------
 
+# When make is invoked by "make VERBOSE=1" print
+# the compiler and linker commands.
+
+ifdef VERBOSE
+Q :=
+else
+Q := @
+endif 
+
+# ----------
+
 # Builds everything
 all: client server refresher game
 
@@ -110,20 +121,20 @@ all: client server refresher game
 # Cleanup
 clean:
 	@echo "===> CLEAN"
-	@rm -Rf build release
+	${Q}rm -Rf build release
  
 # ----------
 
 # The client 
 client:
 	@echo '===> Building quake2'
-	@mkdir -p release
+	${Q}mkdir -p release
 	$(MAKE) release/quake2     
 
 build/client/%.o: %.c
 	@echo '===> CC $<'
-	@mkdir -p $(@D)
-	@$(CC) -c $(CFLAGS) $(X11CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
+	${Q}mkdir -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(X11CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg -lz
 
@@ -132,13 +143,13 @@ release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg -lz
 # The server
 server:
 	@echo '===> Building q2ded'
-	@mkdir -p release
+	${Q}mkdir -p release
 	$(MAKE) release/q2ded
 
 build/server/%.o: %.c
 	@echo '===> CC $<'
-	@mkdir -p $(@D)
-	@$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+	${Q}mkdir -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 release/q2ded : CFLAGS += -DDEDICATED_ONLY
 release/q2ded : LDFLAGS += -lz
@@ -148,13 +159,13 @@ release/q2ded : LDFLAGS += -lz
 # The refresher
 refresher:
 	@echo '===> Building ref_gl.so'
-	@mkdir -p release
+	${Q}mkdir -p release
 	$(MAKE) release/ref_gl.so
 
 build/refresher/%.o: %.c
 	@echo '===> CC $<'
-	@mkdir -p $(@D)
-	@$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
+	${Q}mkdir -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 release/ref_gl.so : CFLAGS += -fPIC
 release/ref_gl.so : LDFLAGS += -shared
@@ -164,13 +175,13 @@ release/ref_gl.so : LDFLAGS += -shared
 # The baseq2 game
 game:
 	@echo '===> Building baseq2/game.so'
-	@mkdir -p release/baseq2
+	${Q}mkdir -p release/baseq2
 	$(MAKE) release/baseq2/game.so
 
 build/baseq2/%.o: %.c
 	@echo '===> CC $<'
-	@mkdir -p $(@D)
-	@$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+	${Q}mkdir -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 release/baseq2/game.so : CFLAGS += -fPIC
 release/baseq2/game.so : LDFLAGS += -shared
@@ -403,21 +414,21 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 # release/quake2
 release/quake2 : $(CLIENT_OBJS) 
 	@echo '===> LD $@'
-	@$(CC) $(LDFLAGS) $(X11LDFLAGS) $(SDLLDFLAGS) -o $@ $(CLIENT_OBJS)
+	${Q}$(CC) $(LDFLAGS) $(X11LDFLAGS) $(SDLLDFLAGS) -o $@ $(CLIENT_OBJS)
 
 # release/q2ded
 release/q2ded : $(SERVER_OBJS)
 	@echo '===> LD $@'
-	@$(CC) $(LDFLAGS) -o $@ $(SERVER_OBJS)
+	${Q}$(CC) $(LDFLAGS) -o $@ $(SERVER_OBJS)
 
 # release/ref_gl.so
 release/ref_gl.so : $(OPENGL_OBJS)
 	@echo '===> LD $@'
-	@$(CC) $(LDFLAGS) -o $@ $(OPENGL_OBJS) 
+	${Q}$(CC) $(LDFLAGS) -o $@ $(OPENGL_OBJS) 
 
 # release/baseq2/game.so
 release/baseq2/game.so : $(GAME_OBJS)
 	@echo '===> LD $@'
-	@$(CC) $(LDFLAGS) -o $@ $(GAME_OBJS) 
+	${Q}$(CC) $(LDFLAGS) -o $@ $(GAME_OBJS) 
 
 # ----------
