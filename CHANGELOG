@@ -1,0 +1,94 @@
+Quake II 3.00 to 4.00
+- A major rewrite of the savegame system.
+- Add a crash handler, printing a backtrace on Linux platforms.
+- Add support for system wide installations.
+- ctf was moved into a separate download.
+- All open bugs were fixed.
+- Fix spawnpoint selection if single player maps are loaded via console.
+- Rename ~/.quake2 to ~/.yq2 to ease parallel installation with other
+  Quake II clients.
+- The client does no longer crash if the menu is opened while connecting
+  to remote server.
+- The game code received a code audit and major rework.
+
+Quake II 3.00RC2 to 3.00
+- Improve compatiblity with pulseaudio (by Ozkan Sezer)
+
+Quake II 3.00RC1 to 3.00RC2
+- Many improvements to the OGG/Vorbis support. (by Ozkan Sezer)
+- The map command now works even when a server is running.
+
+Quake II 2.11 to 3.00RC1
+- Complete refactoring and code audit of the client, leading
+  to much cleaner and more maintainable code and improved
+  stability.
+- Fixed a wrong cast under linux. This could result in
+  sudden crashes.
+- Reworked the input system.
+- Much improved console tab completion.
+- Better TTY output of the startup and shutdown.
+- More reliable shutdown of the client.
+- Plugged a memory leak in the quake file system.
+- Major rework of the sound system:
+  - A lot of bugfixes for the upper layer.
+  - Simplified code and removed crap from the 90ies.
+  - Rewrote the low level backend from scratch.
+- Major rework of the refresher:
+  - Added multitexturing and paletted textures back (this was
+	requested by many, many people).
+  - Rewrote the SDL backend.
+  - Reimplemented the gamma control using native X11 calls.
+	This should fix the gamma for all setups.
+  - Support for overbright bits.
+- Changed the window title to "Yamagi Quake II". 
+
+Quake II 2.10 to 2.11
+- Fix a bug in the client. This fixes the strange crashes
+  under Ubuntu. (Reported by many, special thanks to jhansonxi
+  for his help)
+- Add a null pointer check in cl_view.c. This fixes a rare
+  case crash in Ground Zero when files are missing. (by Sascha K.)
+- Add a script as possible work around for Ubuntu bug 32452(by caedes)
+
+Quake II 2.10RC3 to 2.10:
+- Fix blending
+
+Quake II 2.10RC2 to 2.10RC3:
+- The refresher uses OpenGL 1.4 not 1.0
+- Saner standard configuration
+- Fix a bug when a video follows a video (like in Ground Zero)
+- Fix a crash when enabling OGG/Vorbis in the menu
+- Fix a crash when changing level after deactivating
+  OGG/Vorbis playback
+- Do not show the gun symbol when fov is bigger than 91 and
+  cl_gun is set to 2
+
+Quake II 2.10RC to 2.10RC2:
+- Fix a problem with machine gun soldiers deadlocking
+- Change CFLAGS to a saner default
+- Quake II now creates ~/.quake2 if it doesn't exist (reported 
+  by N. Tsakiris)
+- Slightly better game performance (~10 FPS)
+
+Quake II 2.00 to 2.10RC:
+- Automagical releases the mouse when the console is opened
+- Increased the maximal amount of file descriptores from 64
+  to 256. This should fix some very rare crashes with 'The
+  Reconing' and possible similar problems with mods. 
+  (reported by E. Müller)
+- Support for custom resolutions (by caedes and Yamagi)
+
+Quake II 1.05 to 2.00:
+- Ogg/Vorbis Support as an optional replacement for the
+  CD playback
+- Support for hardware gamma via SDL
+- Support for grabbing the mouse
+- Some bugfixes
+
+Quake II 1.04 to 1.05:
+- Fix slowdown with CD music under Linux (by caedes) 
+
+Quake II 1.03 to 1.04:
+- Added icon (by caedes)
+- Added README
+- Removed duplicated file
