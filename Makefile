@@ -414,21 +414,21 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 # release/quake2
 release/quake2 : $(CLIENT_OBJS) 
 	@echo '===> LD $@'
-	${Q}$(CC) $(LDFLAGS) $(X11LDFLAGS) $(SDLLDFLAGS) -o $@ $(CLIENT_OBJS)
+	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(X11LDFLAGS) $(SDLLDFLAGS) -o $@
 
 # release/q2ded
 release/q2ded : $(SERVER_OBJS)
 	@echo '===> LD $@'
-	${Q}$(CC) $(LDFLAGS) -o $@ $(SERVER_OBJS)
+	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@
 
 # release/ref_gl.so
 release/ref_gl.so : $(OPENGL_OBJS)
 	@echo '===> LD $@'
-	${Q}$(CC) $(LDFLAGS) -o $@ $(OPENGL_OBJS) 
+	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) -o $@
 
 # release/baseq2/game.so
 release/baseq2/game.so : $(GAME_OBJS)
 	@echo '===> LD $@'
-	${Q}$(CC) $(LDFLAGS) -o $@ $(GAME_OBJS) 
+	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
 
 # ----------
