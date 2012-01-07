@@ -92,5 +92,7 @@ main ( int argc, char **argv )
 		Qcommon_Frame( time );
 		oldtime = newtime;
 	}
+
+	return 0;
 }  
 
