@@ -414,7 +414,7 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 # release/quake2
 release/quake2 : $(CLIENT_OBJS) 
 	@echo '===> LD $@'
-	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(X11LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 
 # release/q2ded
 release/q2ded : $(SERVER_OBJS)
@@ -424,7 +424,7 @@ release/q2ded : $(SERVER_OBJS)
 # release/ref_gl.so
 release/ref_gl.so : $(OPENGL_OBJS)
 	@echo '===> LD $@'
-	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) -o $@
+	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
 
 # release/baseq2/game.so
 release/baseq2/game.so : $(GAME_OBJS)
