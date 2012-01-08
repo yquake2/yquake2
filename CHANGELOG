@@ -1,3 +1,10 @@
+Quake II 4.01 to 4.02
+- Fix a linker problem manifesting only on Ubuntu.
+
+Quake II 4.00 to 4.01
+- Fix a linker problem.
+- Fix a problem with displaying the version number.
+
 Quake II 3.00 to 4.00
 - A major rewrite of the savegame system.
 - Add a crash handler, printing a backtrace on Linux platforms.
