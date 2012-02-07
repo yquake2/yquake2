@@ -1144,7 +1144,7 @@ FS_AddGameDirectory(const char *dir)
 	strncpy(fs_gamedir, dir, sizeof(fs_gamedir));
 
 	/* Create directory if it does not exist. */
-	Sys_Mkdir(fs_gamedir);
+	FS_CreatePath(fs_gamedir);
 
 	/* Add the directory to the search path. */
 	search = Z_Malloc(sizeof(fsSearchPath_t));
@@ -1228,8 +1228,8 @@ FS_AddHomeAsGameDirectory(char *dir)
 	if(homedir)
 	{
 		int len = snprintf(gdir,sizeof(gdir),"%s/.yq2/%s/", homedir, dir);
-		Com_Printf("using %s for writing\n",gdir);
-		FS_CreatePath (gdir);
+
+		FS_CreatePath(gdir);
 
 		if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/'))
 			gdir[len-1] = 0;
@@ -1857,7 +1857,7 @@ FS_InitFilesystem(void)
 		FS_SetGamedir(fs_gamedirvar->string);
 
 	/* Create directory if it does not exist. */
-	Sys_Mkdir(fs_gamedir);
+	FS_CreatePath(fs_gamedir);
 
 	Com_Printf("Using '%s' for writing.\n", fs_gamedir);
 }
