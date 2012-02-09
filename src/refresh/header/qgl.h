@@ -38,6 +38,10 @@
 #define GL_TEXTURE0_SGIS 0x835E
 #define GL_TEXTURE1_SGIS 0x835F
 
+#define GL_POINT_SIZE_MIN_EXT 0x8126
+#define GL_POINT_SIZE_MAX_EXT 0x8127
+#define GL_DISTANCE_ATTENUATION_EXT 0x8129
+
 qboolean QGL_Init ( const char *dllname );
 void     QGL_Shutdown ( void );
 

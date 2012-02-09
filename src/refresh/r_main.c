@@ -503,11 +503,9 @@ R_DrawParticles ( void )
 
 		for ( i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++ )
 		{
-			*(int *) color = d_8to24table [ p->color ];
+			*(int *) color = d_8to24table [ p->color & 0xFF ];
 			color [ 3 ] = p->alpha * 255;
-
 			qglColor4ubv( color );
-
 			qglVertex3fv( p->origin );
 		}
 
