@@ -927,8 +927,6 @@ R_DrawBrushModel ( entity_t *e )
 	R_TexEnv( GL_REPLACE );
 	R_SelectTexture( QGL_TEXTURE1 );
 
-	R_DrawInlineBModel();
-
 	if ( !gl_config.mtexcombine )
 	{
 		R_TexEnv( GL_REPLACE );
@@ -975,6 +973,9 @@ R_DrawBrushModel ( entity_t *e )
 			qglTexEnvi( GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value );
 		}
 	}
+
+	R_DrawInlineBModel();
+	R_EnableMultitexture( false );
 
 	qglPopMatrix();
 }
@@ -1198,7 +1199,6 @@ R_DrawWorld ( void )
 		}
 
 		R_RecursiveWorldNode( r_worldmodel->nodes );
-
 		R_EnableMultitexture( false );
 	}
 	else
