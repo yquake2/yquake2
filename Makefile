@@ -23,10 +23,10 @@
 # Check the OS type
 OSTYPE := $(shell uname -s)
 
-# Some plattforms call it "amd64" and some "x86_64"
+# Some platforms call it "amd64" and some "x86_64"
 ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/amd64/x86_64/)
 
-# Refuse all other plattforms as a firewall against PEBKAC
+# Refuse all other platforms as a firewall against PEBKAC
 # (You'll need some #ifdef for your unsupported  plattform!)
 ifneq ($(ARCH),i386)
 ifneq ($(ARCH),x86_64)
@@ -52,8 +52,8 @@ CC := gcc
 # -fomit-frame-pointer since the framepointer is mostly
 #  useless for debugging Quake II and slows things down.
 #
-# -g to build allways with debug symbols. Please do not
-#  change this, since it's our only chance to debug this
+# -g to build always with debug symbols. Please DO NOT
+#  CHANGE THIS, since it's our only chance to debug this
 #  crap when random crashes happen!
 #
 # -MMD to generate header dependencies.
