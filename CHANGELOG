@@ -3,6 +3,7 @@ Quake II 4.02 to 4.03
   the configuration file and savegames. (reported by Richard Allen)
 - Fix gl_ext_multitexture set to 1 (reported by Richard Allen
   and Lukas Sabota)
+- Print the version number in the window title.
 
 Quake II 4.01 to 4.02
 - Fix a linker problem manifesting only on Ubuntu.

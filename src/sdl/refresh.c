@@ -145,6 +145,7 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	int counter = 0;
 	int flags;
 	int stencil_bits;
+	char title[24];
 	
 	if (surface && (surface->w == vid.width) && (surface->h == vid.height)) 
 	{
@@ -253,7 +254,8 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	}
 
 	/* Window title */
-	SDL_WM_SetCaption("Yamagi Quake II", "Yamagi Quake II");
+	snprintf(title, sizeof(title), "Yamagi Quake II v%4.2f", VERSION);
+	SDL_WM_SetCaption(title, title);
 
 	/* No cursor */
 	SDL_ShowCursor(0);
