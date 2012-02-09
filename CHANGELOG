@@ -1,3 +1,9 @@
+Quake II 4.02 to 4.03
+- Fix a crash when mods tried to create their ~/.yq2/mod directory for 
+  the configuration file and savegames. (reported by Richard Allen)
+- Fix gl_ext_multitexture set to 1 (reported by Richard Allen
+  and Lukas Sabota)
+
 Quake II 4.01 to 4.02
 - Fix a linker problem manifesting only on Ubuntu.
 
@@ -55,7 +61,7 @@ Quake II 2.10 to 2.11
   for his help)
 - Add a null pointer check in cl_view.c. This fixes a rare
   case crash in Ground Zero when files are missing. (by Sascha K.)
-- Add a script as possible work around for Ubuntu bug 32452(by caedes)
+- Add a script as possible work around for Ubuntu bug 32452 (by caedes)
 
 Quake II 2.10RC3 to 2.10:
 - Fix blending
