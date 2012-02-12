@@ -255,12 +255,10 @@ the most common questions are answered.
   95 FPS. Now enable the vsync with setting "gl_swapinterval" to 1.
   This should supress all of the problems.
 
-- Particle effects are broken. They're very big, very ugly and very
-  slow? This is the fault of Mesa3D and it's broken point parameters
-  OpenGL extensions. The only solution is to disable the extension but
-  this'll lower the optical quality of the game. Particles won't be any
-  longer perfect round but'll have eight edges. Set
-  "gl_ext_pointparameters" to 0.
+- Particle effects are broken. They're just squares and not perfectly 
+  round: This is a problem by your graphics driver, not implementing
+  a special filter mode for "points". Set "gl_ext_pointparameters" to 0
+  to get better (but not perfect) particles.
 
 - The game is bright enough but it's also washed out and dull: You need
   more saturation. Just adjust the cvar "intensity". The default 2
@@ -418,12 +416,6 @@ fixed amount of time!
    As a work around use the startscript in stuff/quake-start.sh It
    deactivates the screensaver before starting Quake II and reenables it
    after exiting the game.
-
-Are there bots for Quake II?
- - Yes there are a lot of bots. At least JABot ist known to work with
-   Yamagi Quake II, take a look at http://deponie.yamagi.org/quake2/stuff/ 
-   for the source code. But if you want bots you're most likely a
-   deathmatch player and should maybe look for another client.
 
 Okay, Yamagi Quake II is for single player and coop. But what's with us
 deathmatch and / or CTF freaks?
