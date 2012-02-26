@@ -84,41 +84,9 @@ static void M_Banner( char *name ) {
 	re.DrawPic( viddef.width / 2 - w / 2, viddef.height / 2 - 110, name );
 }
 
-static void M_PushMenu ( void (*draw) (void), const char *(*key) (int k) ) {
-	int		i;
-
-	if (Cvar_VariableValue ("maxclients") == 1
-	        && Com_ServerState ())
-		Cvar_Set ("paused", "1");
-
-	/* if this menu is already present, drop back to that level
-	   to avoid stacking menus by hotkeys */
-	for (i=0 ; i<m_menudepth ; i++)
-		if (m_layers[i].draw == draw &&
-		        m_layers[i].key == key) {
-			m_menudepth = i;
-		}
-
-	if (i == m_menudepth) {
-		if (m_menudepth >= MAX_MENU_DEPTH)
-			Com_Error (ERR_FATAL, "M_PushMenu: MAX_MENU_DEPTH");
-
-		m_layers[m_menudepth].draw = m_drawfunc;
-		m_layers[m_menudepth].key = m_keyfunc;
-		m_menudepth++;
-	}
-
-	m_drawfunc = draw;
-	m_keyfunc = key;
-
-	m_entersound = true;
-
-	cls.key_dest = key_menu;
-}
-
 void M_ForceMenuOff (void) {
-	m_drawfunc = 0;
-	m_keyfunc = 0;
+	m_drawfunc = NULL;
+	m_keyfunc = NULL;
 	cls.key_dest = key_game;
 	m_menudepth = 0;
 	Key_ClearStates ();
@@ -138,6 +106,51 @@ void M_PopMenu (void) {
 
 	if (!m_menudepth)
 		M_ForceMenuOff ();
+}
+
+static void M_PushMenu ( void (*draw) (void), const char *(*key) (int) ) {
+	int		i;
+
+	if (Cvar_VariableValue ("maxclients") == 1
+	        && Com_ServerState ())
+		Cvar_Set ("paused", "1");
+	
+	// if this menu is already open (and on top), close it => toggling behaviour
+	if(m_drawfunc == draw && m_keyfunc == key)
+	{
+		M_PopMenu();
+		return;
+	}
+	
+	/* if this menu is already present, drop back to that level
+	   to avoid stacking menus by hotkeys */
+	
+	for (i=0 ; i<m_menudepth ; i++)
+	{
+		if (m_layers[i].draw == draw &&
+		        m_layers[i].key == key) {
+			break;
+		}
+	}
+	while(i < m_menudepth) { // menu was already opened further down the stack
+		// pop until we are at the point where this menu was opened the last time
+		M_PopMenu(); // decrements m_menudepth
+	}
+
+	if (m_menudepth >= MAX_MENU_DEPTH) {
+		Com_Printf("Too many menus open at the same time,\nclose some before opening another one!\n");
+		return;
+	}
+	m_layers[m_menudepth].draw = m_drawfunc;
+	m_layers[m_menudepth].key = m_keyfunc;
+	m_menudepth++;
+	
+	m_drawfunc = draw;
+	m_keyfunc = key;
+
+	m_entersound = true;
+
+	cls.key_dest = key_menu;
 }
 
 const char *Default_MenuKey( menuframework_s *m, int key ) {
