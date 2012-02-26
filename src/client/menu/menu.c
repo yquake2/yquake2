@@ -108,8 +108,27 @@ void M_PopMenu (void) {
 		M_ForceMenuOff ();
 }
 
+/*
+ * This crappy function maintaines a stack of opened menus.
+ * The steps in this horrible mess are:
+ *
+ * 1. But the game into pause if a menu is opened
+ *
+ * 2. If the requested menu is already open, close it.
+ *
+ * 3. If the requested menu is already open but not
+ *    on top, close all menus above it and the menu
+ *    itself. This is necessary since an instance of
+ *    the reqeuested menu is in flight and will be
+ *    displayed.
+ *
+ * 4. Save the previous menu on top (which was in flight)
+ *    to the stack and make the requested menu the menu in
+ *    flight.
+ */
 static void M_PushMenu ( void (*draw) (void), const char *(*key) (int) ) {
 	int		i;
+	int 	alreadyPresent = 0;
 
 	if (Cvar_VariableValue ("maxclients") == 1
 	        && Com_ServerState ())
@@ -124,16 +143,16 @@ static void M_PushMenu ( void (*draw) (void), const char *(*key) (int) ) {
 	
 	/* if this menu is already present, drop back to that level
 	   to avoid stacking menus by hotkeys */
-	
 	for (i=0 ; i<m_menudepth ; i++)
 	{
 		if (m_layers[i].draw == draw &&
 		        m_layers[i].key == key) {
+			alreadyPresent = 1;
 			break;
 		}
 	}
-	while(i < m_menudepth) { // menu was already opened further down the stack
-		// pop until we are at the point where this menu was opened the last time
+	while(alreadyPresent && i <= m_menudepth) { // menu was already opened further down the stack
+		// pop everything above the old instance of this menu and that instance itself
 		M_PopMenu(); // decrements m_menudepth
 	}
 
@@ -2296,8 +2315,8 @@ static void M_Menu_JoinServer_f (void) {
  * =================
  */
 static menuframework_s s_startserver_menu;
-static char **mapnames;
-static int	  nummaps;
+static char **mapnames = NULL;
+static int	  nummaps = 0;
 
 static menuaction_s	s_startserver_start_action;
 static menuaction_s	s_startserver_dmoptions_action;
@@ -2415,67 +2434,70 @@ static void StartServer_MenuInit( void ) {
 	int i;
 	FILE *fp;
 
-	/* load the list of map names */
-	Com_sprintf( mapsname, sizeof( mapsname ), "%s/maps.lst", FS_Gamedir() );
+	if(mapnames == NULL) { // initialize list of maps once, reuse it afterwards (=> it isn't freed)
+		/* load the list of map names */
+		Com_sprintf( mapsname, sizeof( mapsname ), "%s/maps.lst", FS_Gamedir() );
 
-	if ( ( fp = fopen( mapsname, "rb" ) ) == 0 ) {
-		if ( ( length = FS_LoadFile( "maps.lst", ( void ** ) &buffer ) ) == -1 )
-			Com_Error( ERR_DROP, "couldn't find maps.lst\n" );
+		if ( ( fp = fopen( mapsname, "rb" ) ) == 0 ) {
+			if ( ( length = FS_LoadFile( "maps.lst", ( void ** ) &buffer ) ) == -1 )
+				Com_Error( ERR_DROP, "couldn't find maps.lst\n" );
 
-	} else {
-		fseek(fp, 0, SEEK_END);
-		length = ftell(fp);
-		fseek(fp, 0, SEEK_SET);
-		buffer = malloc( length );
-		fread( buffer, length, 1, fp );
-	}
+		} else {
+			fseek(fp, 0, SEEK_END);
+			length = ftell(fp);
+			fseek(fp, 0, SEEK_SET);
+			buffer = malloc( length );
+			fread( buffer, length, 1, fp );
+		}
 
-	s = buffer;
+		s = buffer;
 
-	i = 0;
+		i = 0;
 
-	while ( i < length ) {
-		if ( s[i] == '\r' )
-			nummaps++;
+		while ( i < length ) {
+			if ( s[i] == '\r' )
+				nummaps++;
 
-		i++;
-	}
+			i++;
+		}
 
-	if ( nummaps == 0 )
-		Com_Error( ERR_DROP, "no maps in maps.lst\n" );
+		if ( nummaps == 0 )
+			Com_Error( ERR_DROP, "no maps in maps.lst\n" );
 
-	mapnames = malloc( sizeof( char * ) * ( nummaps + 1 ) );
-	memset( mapnames, 0, sizeof( char * ) * ( nummaps + 1 ) );
+		mapnames = malloc( sizeof( char * ) * ( nummaps + 1 ) );
+		memset( mapnames, 0, sizeof( char * ) * ( nummaps + 1 ) );
 
-	s = buffer;
+		s = buffer;
 
-	for ( i = 0; i < nummaps; i++ ) {
-		char  shortname[MAX_TOKEN_CHARS];
-		char  longname[MAX_TOKEN_CHARS];
-		char  scratch[200];
-		int		j, l;
+		for ( i = 0; i < nummaps; i++ ) {
+			char  shortname[MAX_TOKEN_CHARS];
+			char  longname[MAX_TOKEN_CHARS];
+			char  scratch[200];
+			int		j, l;
 
-		strcpy( shortname, COM_Parse( &s ) );
-		l = strlen(shortname);
+			strcpy( shortname, COM_Parse( &s ) );
+			l = strlen(shortname);
 
-		for (j=0 ; j<l ; j++)
-			shortname[j] = toupper(shortname[j]);
+			for (j=0 ; j<l ; j++)
+				shortname[j] = toupper(shortname[j]);
 
-		strcpy( longname, COM_Parse( &s ) );
-		Com_sprintf( scratch, sizeof( scratch ), "%s\n%s", longname, shortname );
+			strcpy( longname, COM_Parse( &s ) );
+			Com_sprintf( scratch, sizeof( scratch ), "%s\n%s", longname, shortname );
 
-		mapnames[i] = malloc( strlen( scratch ) + 1 );
-		strcpy( mapnames[i], scratch );
-	}
+			mapnames[i] = malloc( strlen( scratch ) + 1 );
+			strcpy( mapnames[i], scratch );
+		}
 
-	mapnames[nummaps] = 0;
+		mapnames[nummaps] = 0;
 
-	if ( fp != 0 ) {
-		fp = 0;
-		free( buffer );
+		if ( fp != 0 ) {
+			fclose(fp);
+			fp = 0;
+			free( buffer );
 
-	} else {
-		FS_FreeFile( buffer );
+		} else {
+			FS_FreeFile( buffer );
+		}
 	}
 
 	/* initialize the menu stuff */
@@ -2592,20 +2614,6 @@ static void StartServer_MenuDraw(void) {
 }
 
 static const char *StartServer_MenuKey( int key ) {
-	if ( key == K_ESCAPE ) {
-		if ( mapnames ) {
-			int i;
-
-			for ( i = 0; i < nummaps; i++ )
-				free( mapnames[i] );
-
-			free( mapnames );
-		}
-
-		mapnames = 0;
-		nummaps = 0;
-	}
-
 	return Default_MenuKey( &s_startserver_menu, key );
 }
 
