@@ -134,15 +134,16 @@ static void M_PushMenu ( void (*draw) (void), const char *(*key) (int) ) {
 	        && Com_ServerState ())
 		Cvar_Set ("paused", "1");
 	
-	// if this menu is already open (and on top), close it => toggling behaviour
+	/* if this menu is already open (and on top), 
+	   close it => toggling behaviour */
 	if(m_drawfunc == draw && m_keyfunc == key)
 	{
 		M_PopMenu();
 		return;
 	}
 	
-	/* if this menu is already present, drop back to that level
-	   to avoid stacking menus by hotkeys */
+	/* if this menu is already present, drop back to 
+	   that level to avoid stacking menus by hotkeys */
 	for (i=0 ; i<m_menudepth ; i++)
 	{
 		if (m_layers[i].draw == draw &&
@@ -150,14 +151,15 @@ static void M_PushMenu ( void (*draw) (void), const char *(*key) (int) ) {
 			alreadyPresent = 1;
 			break;
 		}
-	}
-	while(alreadyPresent && i <= m_menudepth) { // menu was already opened further down the stack
-		// pop everything above the old instance of this menu and that instance itself
-		M_PopMenu(); // decrements m_menudepth
+	}                                            
+	
+	/* menu was already opened further down the stack */
+	while(alreadyPresent && i <= m_menudepth) { 
+		M_PopMenu(); /* decrements m_menudepth */
 	}
 
 	if (m_menudepth >= MAX_MENU_DEPTH) {
-		Com_Printf("Too many menus open at the same time,\nclose some before opening another one!\n");
+		Com_Printf("Too many open menus!\n");
 		return;
 	}
 	m_layers[m_menudepth].draw = m_drawfunc;
