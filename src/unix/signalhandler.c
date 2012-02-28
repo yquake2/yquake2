@@ -85,8 +85,10 @@ signalhandler(int sig)
 	printf("\nMake sure that you're using the last version. It can\n");
 	printf("be found at http://www.yamagi.org/quake2. If you do send\n");
 	printf("a bug report to quake2@yamagi.org and include this output,\n");
-	printf("detailed condition, reproduction of the issue (if possible)\n");
-	printf("and additional data you think might be useful. Thanks.\n");
+	printf("detailed condition, reproduction of the issue (if possible),\n");
+	printf("the executable (not the start script!) and additional data\n");
+	printf("which you think might be useful. The executable does not\n");
+   	printf("include any private data. Than.\n");
 	printf("\n=======================================================\n\n");
 
 	printBacktrace(sig);
