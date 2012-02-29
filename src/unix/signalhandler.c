@@ -83,7 +83,7 @@ printBacktrace(int sig)
 void
 signalhandler(int sig)
 {
-	printf("\n=======================================================\n\n");
+	printf("\n=======================================================\n");
 	printf("\nYamagi Quake II crashed! This should not happen...\n");
 	printf("\nMake sure that you're using the last version. It can\n");
 	printf("be found at http://www.yamagi.org/quake2. If you do,\n");
