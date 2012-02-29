@@ -100,7 +100,7 @@ signalhandler(int sig)
     printf("      main game)\n\n");
 	printf(" - Any other data which you think might be usefull\n");
 	printf("\nThank you very much for your help, making Yamagi Quake\n");
-	printf("II an even better Quake II source port.\n");
+	printf("II an even better source port. It's much appreciated.\n");
 	printf("\n=======================================================\n\n");
 
 	printBacktrace(sig);
