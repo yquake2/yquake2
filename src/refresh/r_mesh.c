@@ -540,7 +540,7 @@ R_DrawAliasModel ( entity_t *e )
 
 	if ( e->flags & RF_WEAPONMODEL )
 	{
-		if ( r_lefthand->value == 2 )
+		if ( gl_lefthand->value == 2 )
 		{
 			return;
 		}
@@ -686,7 +686,7 @@ R_DrawAliasModel ( entity_t *e )
 		qglDepthRange( gldepthmin, gldepthmin + 0.3 * ( gldepthmax - gldepthmin ) );
 	}
 
-	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
+	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( gl_lefthand->value == 1.0F ) )
 	{
 		extern void R_MYgluPerspective ( GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar );
 
@@ -774,7 +774,7 @@ R_DrawAliasModel ( entity_t *e )
 
 	qglPopMatrix();
 
-	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
+	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( gl_lefthand->value == 1.0F ) )
 	{
 		qglMatrixMode( GL_PROJECTION );
 		qglPopMatrix();

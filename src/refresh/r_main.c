@@ -97,7 +97,7 @@ cvar_t  *gl_fullbright;
 cvar_t  *gl_novis;
 cvar_t  *gl_nocull;
 cvar_t  *gl_lerpmodels;
-cvar_t  *r_lefthand;
+cvar_t  *gl_lefthand;
 cvar_t  *gl_farsee;
 
 cvar_t  *gl_lightlevel;
@@ -937,7 +937,7 @@ R_RenderFrame ( refdef_t *fd )
 void
 R_Register ( void )
 {
-	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
+	gl_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
 	gl_farsee = ri.Cvar_Get( "gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE );
 	gl_norefresh = ri.Cvar_Get( "gl_norefresh", "0", 0 );
 	gl_fullbright = ri.Cvar_Get( "gl_fullbright", "0", 0 );

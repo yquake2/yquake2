@@ -164,7 +164,7 @@ extern refdef_t r_newrefdef;
 extern int r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
 extern cvar_t  *gl_norefresh;
-extern cvar_t  *r_lefthand;
+extern cvar_t  *gl_lefthand;
 extern cvar_t  *gl_farsee;
 extern cvar_t  *gl_drawentities;
 extern cvar_t  *gl_drawworld;
