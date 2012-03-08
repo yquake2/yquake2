@@ -472,4 +472,8 @@ My mod craches at startup.
    the working directory by hand:
      mkdir -p ~/.yq2/$moddir 
 
+Only parts of the maps are rendered!
+ - By default the maximum view distance is 2300 units. You can widen it
+   up to 4096 units by setting "gl_farsee" to "1",
+
 ==============================================================================
