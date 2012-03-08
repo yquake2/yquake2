@@ -460,7 +460,7 @@ IN_BackendInit ( in_state_t *in_state_p )
 	SDL_EnableUNICODE( 0 );
     SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL );
 
-	windowed_mouse = ri.Cvar_Get ("windowed_mouse", "1", CVAR_ARCHIVE);
+	windowed_mouse = ri.Cvar_Get ("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 	in_grab = ri.Cvar_Get ("in_grab", "2", CVAR_ARCHIVE);
 
 	Com_Printf( "Input initialized.\n" );

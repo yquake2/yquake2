@@ -271,7 +271,7 @@ VID_MenuInit ( void )
 
 	if ( !windowed_mouse )
 	{
-		windowed_mouse = Cvar_Get( "windowed_mouse", "1", CVAR_ARCHIVE );
+		windowed_mouse = Cvar_Get( "windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE );
 	}
 
 	/* custom mode */
