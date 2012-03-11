@@ -73,13 +73,28 @@ LoadJPG
 ==============
 */
 image_t *
-LoadJPG (char *filename, int *width, int *height, imagetype_t type)
+LoadJPG (char *oldname, int *width, int *height, imagetype_t type)
 {
 	byte *pic = NULL;
 	struct jpeg_decompress_struct	cinfo;
+	char							filename[256];
 	struct jpeg_error_mgr			jerr;
+	int								len;
 	byte							*rawdata, *rgbadata, *scanline, *p, *q;
 	unsigned int					rawsize, i;
+
+	len = strlen( oldname );
+
+	if ( strcmp( oldname + len - 4, ".jpg" ) )
+	{
+		strncpy(filename, oldname, 256);
+		strncat(filename, ".jpg", 255);
+	}
+	else
+	{
+		strncpy(filename, oldname, 256);
+	}
+
 
 	// Load JPEG file into memory
 	rawsize = ri.FS_LoadFile(filename, (void **)&rawdata);

@@ -36,7 +36,7 @@ typedef struct _TargaHeader
 } TargaHeader;
 
 image_t *
-LoadTGA ( char *name, int *width, int *height, imagetype_t type )
+LoadTGA ( char *oldname, int *width, int *height, imagetype_t type )
 {
 	byte *pic = NULL;
 	int columns, rows, numPixels;
@@ -45,9 +45,24 @@ LoadTGA ( char *name, int *width, int *height, imagetype_t type )
 	byte    *buf_p;
 	byte    *buffer;
 	int length;
+	int len;
 	TargaHeader targa_header;
 	byte            *targa_rgba;
 	byte tmp [ 2 ];
+	char name[256];
+
+	len = strlen( oldname );
+
+	if ( strcmp( oldname + len - 4, ".tga" ) )
+	{
+		strncpy( name, oldname, 256 );
+		strncat(name, ".tga", 255);
+	}
+	else
+	{
+		strncpy( name, oldname, 256 );
+	}
+
 
 	/* load the file */
 	length = ri.FS_LoadFile( name, (void **) &buffer );
@@ -100,6 +115,8 @@ LoadTGA ( char *name, int *width, int *height, imagetype_t type )
 	rows = targa_header.height;
 	numPixels = columns * rows;
 
+	// FIXME Custommaps
+
 	if ( width )
 	{
 		*width = columns;
@@ -109,6 +126,7 @@ LoadTGA ( char *name, int *width, int *height, imagetype_t type )
 	{
 		*height = rows;
 	}
+
 
 	targa_rgba = malloc( numPixels * 4 );
 	pic = targa_rgba;

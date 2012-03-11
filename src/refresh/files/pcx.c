@@ -27,14 +27,28 @@
 #include "../header/local.h"
 
 void
-LoadPCX ( char *filename, byte **pic, byte **palette, int *width, int *height )
+LoadPCX ( char *oldname, byte **pic, byte **palette, int *width, int *height )
 {
 	byte    *raw;
 	pcx_t   *pcx;
 	int x, y;
 	int len;
+	int filelen;
 	int dataByte, runLength;
 	byte    *out, *pix;
+	char filename[256];
+
+	filelen = strlen( oldname );
+
+	if ( strcmp( oldname + filelen - 4, ".pcx" ) )
+	{
+		strncpy(filename, oldname, 256);
+		strncat(filename, ".pcx", 255);
+	}
+	else
+	{
+		strncpy(filename, oldname, 256);
+	}
 
 	*pic = NULL;
 	*palette = NULL;

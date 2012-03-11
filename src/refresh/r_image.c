@@ -1018,12 +1018,16 @@ R_FindImage ( char *name, imagetype_t type )
 	int i, len;
 	byte    *pic, *palette;
 	int width, height;
+	int realwidth, realheight;
 	char *ptr;
+	char namewe[256];
 
 	if ( !name )
 	{
 		return ( NULL );
 	}
+
+	memset(namewe, 0, 256);
 
 	len = strlen( name );
 
@@ -1065,7 +1069,21 @@ R_FindImage ( char *name, imagetype_t type )
 	}
 	else if ( !strcmp( name + len - 4, ".wal" ) )
 	{
-		image = LoadWal( name );
+		/* Remove the extension */
+		memcpy(namewe, name, len - 4);
+
+		GetWalInfo(name, &realwidth, &realheight);
+		image = LoadTGA( namewe, &width, &height, type );
+
+		if( image == NULL )
+		{
+			image = LoadJPG( namewe, &width, &height, type );
+		}
+
+		if( image == NULL)
+		{
+			image = LoadWal( namewe );
+		}
 	}
 	else if ( !strcmp( name + len - 4, ".tga" ) )
 	{

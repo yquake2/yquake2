@@ -1,11 +1,25 @@
 #include "../header/local.h"
 
 image_t *
-LoadWal ( char *name )
+LoadWal ( char *oldname )
 {
 	miptex_t    *mt;
 	int width, height, ofs;
 	image_t     *image;
+	int len;
+	char name[256];
+
+	len = strlen( oldname );
+
+	if ( strcmp( oldname + len - 4, ".wal" ) )
+	{
+		strncpy(name, oldname, 256);
+		strncat(name, ".wal", 255);
+	}
+	else
+	{
+		strncpy(name, oldname, 256);
+	}
 
 	ri.FS_LoadFile( name, (void **) &mt );
 
@@ -24,5 +38,23 @@ LoadWal ( char *name )
 	ri.FS_FreeFile( (void *) mt );
 
 	return ( image );
-}     
+}
+
+qboolean GetWalInfo (char *name, int *width, int *height)
+{
+	miptex_t	*mt;
+
+	ri.FS_LoadFile (name, (void **)&mt);
+
+	if (!mt)
+	{
+		return false;
+	}
+
+	*width = LittleLong (mt->width);
+	*height = LittleLong (mt->height);
+
+	ri.FS_FreeFile ((void *)mt);
+	return true;
+}
 
