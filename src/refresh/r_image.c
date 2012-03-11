@@ -52,7 +52,10 @@ int gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int gl_filter_max = GL_LINEAR;
 
 image_t *LoadWal ( char *name );
-void LoadTGA ( char *name, byte **pic, int *width, int *height );
+image_t *LoadTGA ( char *name, int *width, int *height, imagetype_t type );
+#ifdef WITH_JPEG
+ image_t *LoadJPG (char *filename, int *width, int *height, imagetype_t type);
+#endif
 int Draw_GetPalette ( void );
 
 typedef struct
@@ -1066,14 +1069,11 @@ R_FindImage ( char *name, imagetype_t type )
 	}
 	else if ( !strcmp( name + len - 4, ".tga" ) )
 	{
-		LoadTGA( name, &pic, &width, &height );
-
-		if ( !pic )
-		{
-			return ( NULL );
-		}
-
-		image = R_LoadPic( name, pic, width, height, type, 32 );
+		return LoadTGA( name, &width, &height, type );
+	}
+	else if ( !strcmp( name + len - 4, ".jpg" ) )
+	{
+		return LoadJPG( name, &width, &height, type );
 	}
 	else
 	{

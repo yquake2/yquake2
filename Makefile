@@ -41,6 +41,13 @@ CC := gcc
 
 # ----------
 
+# Options
+
+# Enables .jpg texture support 
+JPEG := 1
+
+# ----------
+
 # Base CFLAGS. 
 #
 # -O2 are enough optimizations.
@@ -169,6 +176,11 @@ build/refresher/%.o: %.c
 
 release/ref_gl.so : CFLAGS += -fPIC
 release/ref_gl.so : LDFLAGS += -shared
+
+ifdef JPEG
+release/ref_gl.so : CFLAGS += -DWITH_JPEG
+release/ref_gl.so : LDFLAGS += -ljpeg
+endif
 	
 # ----------
 
@@ -376,6 +388,7 @@ OPENGL_OBJS_ = \
 	src/refresh/files/pcx.o \
 	src/refresh/files/sp2.o \
 	src/refresh/files/tga.o \
+	src/refresh/files/jpeg.o \
 	src/refresh/files/wal.o \
 	src/sdl/input.o \
 	src/sdl/refresh.o \

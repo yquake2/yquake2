@@ -35,9 +35,10 @@ typedef struct _TargaHeader
 	unsigned char pixel_size, attributes;
 } TargaHeader;
 
-void
-LoadTGA ( char *name, byte **pic, int *width, int *height )
+image_t *
+LoadTGA ( char *name, int *width, int *height, imagetype_t type )
 {
+	byte *pic = NULL;
 	int columns, rows, numPixels;
 	byte    *pixbuf;
 	int row, column;
@@ -48,15 +49,13 @@ LoadTGA ( char *name, byte **pic, int *width, int *height )
 	byte            *targa_rgba;
 	byte tmp [ 2 ];
 
-	*pic = NULL;
-
 	/* load the file */
 	length = ri.FS_LoadFile( name, (void **) &buffer );
 
 	if ( !buffer )
 	{
 		ri.Con_Printf( PRINT_DEVELOPER, "Bad tga file %s\n", name );
-		return;
+		return NULL;
 	}
 
 	buf_p = buffer;
@@ -112,7 +111,7 @@ LoadTGA ( char *name, byte **pic, int *width, int *height )
 	}
 
 	targa_rgba = malloc( numPixels * 4 );
-	*pic = targa_rgba;
+	pic = targa_rgba;
 
 	if ( targa_header.id_length != 0 )
 	{
@@ -271,5 +270,12 @@ LoadTGA ( char *name, byte **pic, int *width, int *height )
 	}
 
 	ri.FS_FreeFile( buffer );
+
+	if ( !pic )
+	{
+		return ( NULL );
+	}
+
+	return R_LoadPic( name, pic, *width, *height, type, 32 );
 }  
 
