@@ -26,6 +26,9 @@
 
 #include "../header/local.h"
 #include <jpeglib.h>
+#include <jerror.h>
+
+void jpeg_memory_src(j_decompress_ptr cinfo, unsigned char *inbuffer, unsigned long insize);
 
 void
 jpg_null(j_decompress_ptr cinfo)
