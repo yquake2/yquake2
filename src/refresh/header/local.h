@@ -200,6 +200,8 @@ extern cvar_t  *gl_mode;
 extern cvar_t  *gl_customwidth;
 extern cvar_t  *gl_customheight;
 
+extern cvar_t  *gl_retexturing;
+
 extern cvar_t  *gl_log;
 extern cvar_t  *gl_lightmap;
 extern cvar_t  *gl_shadows;

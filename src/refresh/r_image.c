@@ -1080,38 +1080,51 @@ R_FindImage ( char *name, imagetype_t type )
 	}
 	else if ( !strcmp( name + len - 4, ".wal" ) )
 	{
-		/* Get size of the original texture */
-		GetWalInfo(name, &realwidth, &realheight);
-
-		/* Try to load a TGA */
-		LoadTGA( namewe, &pic, &width, &height );
-
-		if( !pic )
+		if (gl_retexturing->value)
 		{
-			/* JPEG if no TGA available */
-			LoadJPG( namewe, &pic, &width, &height );
+			/* Get size of the original texture */
+			GetWalInfo(name, &realwidth, &realheight);
+
+			/* Try to load a TGA */
+			LoadTGA( namewe, &pic, &width, &height );
+
+			if( !pic )
+			{
+				/* JPEG if no TGA available */
+				LoadJPG( namewe, &pic, &width, &height );
+			}
+			else
+			{
+				/* Upload TGA */
+				image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
+			}
+
+			if( !pic )
+			{
+				/* WAL of no JPEG available (exists always) */
+				image = LoadWal( namewe );
+			}
+			else
+			{
+				/* Upload JPEG */
+				image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
+			}
+
+			if ( !image )
+			{
+				/* No texture found */
+				return ( NULL );
+			}
 		}
 		else
 		{
-			/* Upload TGA */
-			image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
-		}
+			image = LoadWal( name );
 
-		if( !pic )
-		{
-			/* WAL of no JPEG available (exists always) */
-			image = LoadWal( namewe );
-		}
-		else
-		{
-			/* Upload JPEG */
-			image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
-		}
-
-		if ( !image )
-		{
-			/* No texture found */
-			return ( NULL );
+			if ( !image )
+			{
+				/* No texture found */
+				return ( NULL );
+			}
 		}
 	}
 	else if ( !strcmp( name + len - 4, ".tga" ) )
