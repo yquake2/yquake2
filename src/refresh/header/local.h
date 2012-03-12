@@ -313,7 +313,10 @@ void R_ResampleTexture ( unsigned *in, int inwidth, int inheight, unsigned *out,
 struct image_s *R_RegisterSkin ( char *name );
 
 void LoadPCX ( char *filename, byte **pic, byte **palette, int *width, int *height );
-qboolean GetWalInfo (char *name, int *width, int *height);
+image_t *LoadWal ( char *name );
+void LoadJPG ( char *origname, byte **pic, int *width, int *height );
+void LoadTGA ( char *origname, byte **pic, int *width, int *height );
+qboolean GetWalInfo ( char *name, int *width, int *height );
 image_t *R_LoadPic ( char *name, byte *pic, int width, int height, imagetype_t type, int bits );
 image_t *R_FindImage ( char *name, imagetype_t type );
 void R_TextureMode ( char *string );

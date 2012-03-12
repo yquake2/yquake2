@@ -51,11 +51,6 @@ int gl_tex_alpha_format = 4;
 int gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int gl_filter_max = GL_LINEAR;
 
-image_t *LoadWal ( char *name );
-image_t *LoadTGA ( char *name, int *width, int *height, imagetype_t type );
-#ifdef WITH_JPEG
- image_t *LoadJPG (char *filename, int *width, int *height, imagetype_t type);
-#endif
 int Draw_GetPalette ( void );
 
 typedef struct
@@ -1026,10 +1021,12 @@ R_FindImage ( char *name, imagetype_t type )
 	{
 		return ( NULL );
 	}
-
-	memset(namewe, 0, 256);
-
+                     
 	len = strlen( name );
+
+	/* Remove the extension */
+	memset(namewe, 0, 256);
+	memcpy(namewe, name, len - 4);
 
 	if ( len < 5 )
 	{
@@ -1069,29 +1066,49 @@ R_FindImage ( char *name, imagetype_t type )
 	}
 	else if ( !strcmp( name + len - 4, ".wal" ) )
 	{
-		/* Remove the extension */
-		memcpy(namewe, name, len - 4);
-
+		/* Get size of the original texture */
 		GetWalInfo(name, &realwidth, &realheight);
-		image = LoadTGA( namewe, &width, &height, type );
 
-		if( image == NULL )
+		/* Try to load a TGA */
+		LoadTGA( namewe, &pic, &width, &height );
+
+		if( !pic )
 		{
-			image = LoadJPG( namewe, &width, &height, type );
+			/* JPEG if no TGA available */
+			LoadJPG( namewe, &pic, &width, &height );
+		}
+		else
+		{
+			/* Upload TGA */
+			image = R_LoadPic( name, pic, width, height, type, 32 );
 		}
 
-		if( image == NULL)
+		if( !pic )
 		{
+			/* WAL of no JPEG available (exists always) */
 			image = LoadWal( namewe );
+		}
+		else
+		{
+			/* Upload JPEG */
+			image = R_LoadPic( name, pic, width, height, type, 32 );
+		}
+
+		if ( !image )
+		{
+			/* No texture found */
+			return ( NULL );
 		}
 	}
 	else if ( !strcmp( name + len - 4, ".tga" ) )
 	{
-		return LoadTGA( name, &width, &height, type );
+		LoadTGA( name, &pic, &width, &height );
+		image = R_LoadPic( name, pic, width, height, type, 32 );
 	}
 	else if ( !strcmp( name + len - 4, ".jpg" ) )
 	{
-		return LoadJPG( name, &width, &height, type );
+		LoadJPG( name, &pic, &width, &height );
+		image = R_LoadPic( name, pic, width, height, type, 32 );
 	}
 	else
 	{

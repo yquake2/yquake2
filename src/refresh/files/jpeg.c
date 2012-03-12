@@ -24,8 +24,6 @@
  * =======================================================================
  */
 
-#ifdef WITH_JPEG
-
 #include "../header/local.h"
 #include <jpeglib.h>
 
@@ -55,7 +53,7 @@ void jpg_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
     cinfo->src->bytes_in_buffer -= (size_t) num_bytes;
 }
 
-void jpeg_mem_src (j_decompress_ptr cinfo, byte *mem, int len)
+void jpeg_mem_src (j_decompress_ptr cinfo, unsigned char *mem, unsigned long len)
 {
     cinfo->src = (struct jpeg_source_mgr *)(*cinfo->mem->alloc_small)((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof(struct jpeg_source_mgr));
     cinfo->src->init_source = jpg_null;
@@ -72,10 +70,9 @@ void jpeg_mem_src (j_decompress_ptr cinfo, byte *mem, int len)
 LoadJPG
 ==============
 */
-image_t *
-LoadJPG (char *oldname, int *width, int *height, imagetype_t type)
+void
+LoadJPG (char *origname, byte **pic, int *width, int *height)
 {
-	byte *pic = NULL;
 	struct jpeg_decompress_struct	cinfo;
 	char							filename[256];
 	struct jpeg_error_mgr			jerr;
@@ -83,35 +80,37 @@ LoadJPG (char *oldname, int *width, int *height, imagetype_t type)
 	byte							*rawdata, *rgbadata, *scanline, *p, *q;
 	unsigned int					rawsize, i;
 
-	len = strlen( oldname );
+	/* Add the extension */
+	len = strlen( origname );
 
-	if ( strcmp( oldname + len - 4, ".jpg" ) )
+	if ( strcmp( origname + len - 4, ".jpg" ) )
 	{
-		strncpy(filename, oldname, 256);
+		strncpy(filename, origname, 256);
 		strncat(filename, ".jpg", 255);
 	}
 	else
 	{
-		strncpy(filename, oldname, 256);
+		strncpy(filename, origname, 256);
 	}
 
+	*pic = NULL;
 
 	// Load JPEG file into memory
 	rawsize = ri.FS_LoadFile(filename, (void **)&rawdata);
 
 	if (!rawdata)
-		return NULL;
+		return;
 
 	if (rawsize < 10 || rawdata[6] != 'J' || rawdata[7] != 'F' || rawdata[8] != 'I' || rawdata[9] != 'F')
 	{
 		ri.Con_Printf (PRINT_ALL, "Invalid JPEG header: %s\n", filename);
 		ri.FS_FreeFile(rawdata);
-		return NULL;
+		return;
 	}
 
 	cinfo.err = jpeg_std_error(&jerr);
 	jpeg_create_decompress(&cinfo);
-	jpeg_mem_src(&cinfo, rawdata, rawsize);
+	jpeg_mem_src(&cinfo, (unsigned char *) rawdata, (unsigned long) rawsize);
 	jpeg_read_header(&cinfo, true);
 	jpeg_start_decompress(&cinfo);
 
@@ -120,7 +119,7 @@ LoadJPG (char *oldname, int *width, int *height, imagetype_t type)
 		ri.Con_Printf(PRINT_ALL, "Invalid JPEG colour components\n");
 		jpeg_destroy_decompress(&cinfo);
 		ri.FS_FreeFile(rawdata);
-		return NULL;
+		return;
 	}
 
 	// Allocate Memory for decompressed image
@@ -130,7 +129,7 @@ LoadJPG (char *oldname, int *width, int *height, imagetype_t type)
 		ri.Con_Printf(PRINT_ALL, "Insufficient memory for JPEG buffer\n");
 		jpeg_destroy_decompress(&cinfo);
 		ri.FS_FreeFile(rawdata);
-		return NULL;
+		return;
 	}
 
 	// Pass sizes to output
@@ -145,7 +144,7 @@ LoadJPG (char *oldname, int *width, int *height, imagetype_t type)
 		free (rgbadata);
 		jpeg_destroy_decompress (&cinfo);
 		ri.FS_FreeFile (rawdata);
-		return NULL;
+		return;
 	}
 
 	// Read Scanlines, and expand from RGB to RGBA
@@ -170,14 +169,6 @@ LoadJPG (char *oldname, int *width, int *height, imagetype_t type)
 	jpeg_finish_decompress (&cinfo);
 	jpeg_destroy_decompress (&cinfo);
 
-	pic = rgbadata;
-
-	if ( !pic )
-	{
-		return ( NULL );
-	}
-
-	return R_LoadPic( filename, pic, *width, *height, type, 32 );
+	*pic = rgbadata;
 }
 
-#endif // WITH_JPEG

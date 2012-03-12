@@ -27,7 +27,7 @@
 #include "../header/local.h"
 
 void
-LoadPCX ( char *oldname, byte **pic, byte **palette, int *width, int *height )
+LoadPCX ( char *origname, byte **pic, byte **palette, int *width, int *height )
 {
 	byte    *raw;
 	pcx_t   *pcx;
@@ -38,16 +38,17 @@ LoadPCX ( char *oldname, byte **pic, byte **palette, int *width, int *height )
 	byte    *out, *pix;
 	char filename[256];
 
-	filelen = strlen( oldname );
+	/* Add the extension */
+	filelen = strlen( origname );
 
-	if ( strcmp( oldname + filelen - 4, ".pcx" ) )
+	if ( strcmp( origname + filelen - 4, ".pcx" ) )
 	{
-		strncpy(filename, oldname, 256);
+		strncpy(filename, origname, 256);
 		strncat(filename, ".pcx", 255);
 	}
 	else
 	{
-		strncpy(filename, oldname, 256);
+		strncpy(filename, origname, 256);
 	}
 
 	*pic = NULL;

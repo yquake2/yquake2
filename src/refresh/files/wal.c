@@ -1,7 +1,7 @@
 #include "../header/local.h"
 
 image_t *
-LoadWal ( char *oldname )
+LoadWal ( char *origname )
 {
 	miptex_t    *mt;
 	int width, height, ofs;
@@ -9,16 +9,17 @@ LoadWal ( char *oldname )
 	int len;
 	char name[256];
 
-	len = strlen( oldname );
+	/* Add the extension */
+	len = strlen( origname );
 
-	if ( strcmp( oldname + len - 4, ".wal" ) )
+	if ( strcmp( origname + len - 4, ".wal" ) )
 	{
-		strncpy(name, oldname, 256);
+		strncpy(name, origname, 256);
 		strncat(name, ".wal", 255);
 	}
 	else
 	{
-		strncpy(name, oldname, 256);
+		strncpy(name, origname, 256);
 	}
 
 	ri.FS_LoadFile( name, (void **) &mt );

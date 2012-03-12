@@ -35,10 +35,9 @@ typedef struct _TargaHeader
 	unsigned char pixel_size, attributes;
 } TargaHeader;
 
-image_t *
-LoadTGA ( char *oldname, int *width, int *height, imagetype_t type )
+void
+LoadTGA ( char *origname, byte **pic, int *width, int *height )
 {
-	byte *pic = NULL;
 	int columns, rows, numPixels;
 	byte    *pixbuf;
 	int row, column;
@@ -51,16 +50,17 @@ LoadTGA ( char *oldname, int *width, int *height, imagetype_t type )
 	byte tmp [ 2 ];
 	char name[256];
 
-	len = strlen( oldname );
+	/* Add the extension */
+	len = strlen( origname );
 
-	if ( strcmp( oldname + len - 4, ".tga" ) )
+	if ( strcmp( origname + len - 4, ".tga" ) )
 	{
-		strncpy( name, oldname, 256 );
+		strncpy( name, origname, 256 );
 		strncat(name, ".tga", 255);
 	}
 	else
 	{
-		strncpy( name, oldname, 256 );
+		strncpy( name, origname, 256 );
 	}
 
 
@@ -70,7 +70,7 @@ LoadTGA ( char *oldname, int *width, int *height, imagetype_t type )
 	if ( !buffer )
 	{
 		ri.Con_Printf( PRINT_DEVELOPER, "Bad tga file %s\n", name );
-		return NULL;
+		return;
 	}
 
 	buf_p = buffer;
@@ -115,8 +115,6 @@ LoadTGA ( char *oldname, int *width, int *height, imagetype_t type )
 	rows = targa_header.height;
 	numPixels = columns * rows;
 
-	// FIXME Custommaps
-
 	if ( width )
 	{
 		*width = columns;
@@ -127,9 +125,8 @@ LoadTGA ( char *oldname, int *width, int *height, imagetype_t type )
 		*height = rows;
 	}
 
-
 	targa_rgba = malloc( numPixels * 4 );
-	pic = targa_rgba;
+	*pic = targa_rgba;
 
 	if ( targa_header.id_length != 0 )
 	{
@@ -288,12 +285,5 @@ LoadTGA ( char *oldname, int *width, int *height, imagetype_t type )
 	}
 
 	ri.FS_FreeFile( buffer );
-
-	if ( !pic )
-	{
-		return ( NULL );
-	}
-
-	return R_LoadPic( name, pic, *width, *height, type, 32 );
 }  
 

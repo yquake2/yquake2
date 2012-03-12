@@ -41,13 +41,6 @@ CC := gcc
 
 # ----------
 
-# Options
-
-# Enables .jpg texture support 
-JPEG := 1
-
-# ----------
-
 # Base CFLAGS. 
 #
 # -O2 are enough optimizations.
@@ -175,13 +168,8 @@ build/refresher/%.o: %.c
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 release/ref_gl.so : CFLAGS += -fPIC
-release/ref_gl.so : LDFLAGS += -shared
+release/ref_gl.so : LDFLAGS += -shared -ljpeg
 
-ifdef JPEG
-release/ref_gl.so : CFLAGS += -DWITH_JPEG
-release/ref_gl.so : LDFLAGS += -ljpeg
-endif
-	
 # ----------
 
 # The baseq2 game
