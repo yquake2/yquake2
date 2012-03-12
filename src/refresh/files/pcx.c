@@ -138,7 +138,7 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	ri.FS_FreeFile(pcx);
 }
 
-qboolean
+void
 GetPCXInfo(char *filename, int *width, int *height)
 {
 	pcx_t *pcx;
@@ -148,7 +148,7 @@ GetPCXInfo(char *filename, int *width, int *height)
 
 	if (!raw)
 	{
-		return false;
+		return;
 	}
 
 	pcx = (pcx_t *)raw;
@@ -158,6 +158,6 @@ GetPCXInfo(char *filename, int *width, int *height)
 
 	ri.FS_FreeFile(raw);
 
-	return true;
+	return;
 }
 

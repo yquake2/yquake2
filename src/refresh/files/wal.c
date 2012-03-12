@@ -67,7 +67,7 @@ LoadWal(char *origname)
 	return image;
 }
 
-qboolean
+void
 GetWalInfo(char *name, int *width, int *height)
 {
 	miptex_t *mt;
@@ -76,13 +76,14 @@ GetWalInfo(char *name, int *width, int *height)
 
 	if (!mt)
 	{
-		return false;
+		return;
 	}
 
 	*width = LittleLong(mt->width);
 	*height = LittleLong(mt->height);
 
 	ri.FS_FreeFile((void *)mt);
-	return true;
+
+	return;
 }
 
