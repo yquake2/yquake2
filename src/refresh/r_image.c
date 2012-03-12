@@ -895,7 +895,7 @@ R_Upload8 ( byte *data, int width, int height,  qboolean mipmap, qboolean is_sky
  * This is also used as an entry point for the generated r_notexture
  */
 image_t *
-R_LoadPic ( char *name, byte *pic, int width, int height, imagetype_t type, int bits )
+R_LoadPic ( char *name, byte *pic, int width, int realwidth, int height, int realheight, imagetype_t type, int bits )
 {
 	image_t     *image;
 	int i;
@@ -994,6 +994,20 @@ R_LoadPic ( char *name, byte *pic, int width, int height, imagetype_t type, int 
 		image->upload_width = upload_width; /* after power of 2 and scales */
 		image->upload_height = upload_height;
 		image->paletted = uploaded_paletted;
+
+		if ( realwidth && realheight )
+		{
+			if ( ( realwidth <= image->width ) && ( realheight <= image->height ) )
+			{
+				image->width = realwidth;
+				image->height = realheight;
+			}
+			else
+			{
+				ri.Con_Printf( PRINT_DEVELOPER, "Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n", name, image->width, image->height, realwidth, realheight );
+			}
+		}
+
 		image->sl = 0;
 		image->sh = 1;
 		image->tl = 0;
@@ -1062,7 +1076,7 @@ R_FindImage ( char *name, imagetype_t type )
 			return ( NULL );
 		}
 
-		image = R_LoadPic( name, pic, width, height, type, 8 );
+		image = R_LoadPic( name, pic, width, 0, height, 0, type, 8 );
 	}
 	else if ( !strcmp( name + len - 4, ".wal" ) )
 	{
@@ -1080,7 +1094,7 @@ R_FindImage ( char *name, imagetype_t type )
 		else
 		{
 			/* Upload TGA */
-			image = R_LoadPic( name, pic, width, height, type, 32 );
+			image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
 		}
 
 		if( !pic )
@@ -1091,7 +1105,7 @@ R_FindImage ( char *name, imagetype_t type )
 		else
 		{
 			/* Upload JPEG */
-			image = R_LoadPic( name, pic, width, height, type, 32 );
+			image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
 		}
 
 		if ( !image )
@@ -1103,12 +1117,12 @@ R_FindImage ( char *name, imagetype_t type )
 	else if ( !strcmp( name + len - 4, ".tga" ) )
 	{
 		LoadTGA( name, &pic, &width, &height );
-		image = R_LoadPic( name, pic, width, height, type, 32 );
+		image = R_LoadPic( name, pic, width, realwidth, height, realwidth, type, 32 );
 	}
 	else if ( !strcmp( name + len - 4, ".jpg" ) )
 	{
 		LoadJPG( name, &pic, &width, &height );
-		image = R_LoadPic( name, pic, width, height, type, 32 );
+		image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
 	}
 	else
 	{

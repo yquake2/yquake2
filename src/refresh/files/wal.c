@@ -34,7 +34,7 @@ LoadWal ( char *origname )
 	height = LittleLong( mt->height );
 	ofs = LittleLong( mt->offsets [ 0 ] );
 
-	image = R_LoadPic( name, (byte *) mt + ofs, width, height, it_wall, 8 );
+	image = R_LoadPic( name, (byte *) mt + ofs, width, 0, height, 0, it_wall, 8 );
 
 	ri.FS_FreeFile( (void *) mt );
 
