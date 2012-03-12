@@ -1,10 +1,11 @@
-Quake II 4.03 to 4.04
+Quake II 4.03 to 4.10
 - Change the behavior of hotkey menus to fix some
   strange bugs and memory leaks in the menu system.
 - Add the "gl_farsee" cvar. When set to "1" Quake II
   renders maps up to 4096x4096 units instead of being
   limited to 2300x2300. The default is "0". (by Richard
   Allen)
+- Add support for the high resolution retexturing pack.
 
 Quake II 4.02 to 4.03
 - Fix wrong function call in the Quake II file system.
