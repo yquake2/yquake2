@@ -319,6 +319,7 @@ image_t *LoadWal ( char *name );
 void LoadJPG ( char *origname, byte **pic, int *width, int *height );
 void LoadTGA ( char *origname, byte **pic, int *width, int *height );
 qboolean GetWalInfo ( char *name, int *width, int *height );
+qboolean GetPCXInfo ( char *filename, int *width, int *height );
 image_t *R_LoadPic ( char *name, byte *pic, int width, int realwidth, int height, int realheight, imagetype_t type, int bits );
 image_t *R_FindImage ( char *name, imagetype_t type );
 void R_TextureMode ( char *string );

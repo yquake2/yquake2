@@ -1069,14 +1069,55 @@ R_FindImage ( char *name, imagetype_t type )
 
 	if ( !strcmp( name + len - 4, ".pcx" ) )
 	{
-		LoadPCX( name, &pic, &palette, &width, &height );
-
-		if ( !pic )
+		if (gl_retexturing->value)
 		{
-			return ( NULL );
-		}
+			GetPCXInfo( name, &realwidth, &realheight );
 
-		image = R_LoadPic( name, pic, width, 0, height, 0, type, 8 );
+			/* Try to load a TGA */
+			LoadTGA( namewe, &pic, &width, &height );
+
+			if ( !pic )
+			{
+				/* JPEG if no TGA available */
+				LoadJPG( namewe, &pic, &width, &height);
+			}
+			else
+			{
+				/* Upload TGA */
+				image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
+			}
+
+			if( !pic )
+			{
+				/* PCX if no JPEG available (exists always) */
+				LoadPCX( name, &pic, &palette, &width, &height );
+
+				if ( !pic )
+				{
+					/* No texture found */
+					return ( NULL );
+				}
+
+				/* Upload the PCX */
+				image = R_LoadPic( name, pic, width, 0, height, 0, type, 8 ); 
+			}
+			else
+			{
+				/* Upload JPEG */
+				image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
+			}
+		}
+		else
+		{
+			LoadPCX( name, &pic, &palette, &width, &height );
+
+			if ( !pic )
+			{
+				return ( NULL );
+			}
+
+			image = R_LoadPic( name, pic, width, 0, height, 0, type, 8 );
+		}
 	}
 	else if ( !strcmp( name + len - 4, ".wal" ) )
 	{
