@@ -134,6 +134,8 @@ cvar_t  *gl_mode;
 cvar_t  *gl_customwidth;
 cvar_t  *gl_customheight;
 
+cvar_t	*gl_retexturing;
+
 cvar_t  *gl_dynamic;
 cvar_t  *gl_modulate;
 cvar_t  *gl_nobind;
@@ -1009,6 +1011,8 @@ R_Register ( void )
 
 	gl_customwidth = ri.Cvar_Get( "gl_customwidth",  "1024", CVAR_ARCHIVE );
 	gl_customheight = ri.Cvar_Get( "gl_customheight", "768", CVAR_ARCHIVE );
+
+	gl_retexturing = ri.Cvar_Get( "gl_retexturing", "1", CVAR_ARCHIVE );
 
 	ri.Cmd_AddCommand( "imagelist", R_ImageList_f );
 	ri.Cmd_AddCommand( "screenshot", R_ScreenShot );

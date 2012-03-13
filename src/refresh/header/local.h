@@ -200,6 +200,8 @@ extern cvar_t  *gl_mode;
 extern cvar_t  *gl_customwidth;
 extern cvar_t  *gl_customheight;
 
+extern cvar_t  *gl_retexturing;
+
 extern cvar_t  *gl_log;
 extern cvar_t  *gl_lightmap;
 extern cvar_t  *gl_shadows;
@@ -313,7 +315,12 @@ void R_ResampleTexture ( unsigned *in, int inwidth, int inheight, unsigned *out,
 struct image_s *R_RegisterSkin ( char *name );
 
 void LoadPCX ( char *filename, byte **pic, byte **palette, int *width, int *height );
-image_t *R_LoadPic ( char *name, byte *pic, int width, int height, imagetype_t type, int bits );
+image_t *LoadWal ( char *name );
+void LoadJPG ( char *origname, byte **pic, int *width, int *height );
+void LoadTGA ( char *origname, byte **pic, int *width, int *height );
+void GetWalInfo ( char *name, int *width, int *height );
+void GetPCXInfo ( char *filename, int *width, int *height );
+image_t *R_LoadPic ( char *name, byte *pic, int width, int realwidth, int height, int realheight, imagetype_t type, int bits );
 image_t *R_FindImage ( char *name, imagetype_t type );
 void R_TextureMode ( char *string );
 void R_ImageList_f ( void );

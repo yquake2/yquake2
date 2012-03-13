@@ -279,6 +279,18 @@ the most common questions are answered.
   by your video card and set the desired value "gl_anisotropic". The
   value must be a power of 4, in most cases 2, 4, 8 or 16.
 
+- Yamagi Quake II has support for the high resolution retexturing pack,
+  created by the community. Installation is easy: 
+   1. Download q2_textures.zip and models.zip from
+        http://www-personal.umich.edu/~jimw/q2/
+   2. Extract both files into the baseq2/ directory of your Quake II
+      installation, so that the new directories baseq2/textures/ and
+      baseq2/models/ are created.
+   The retexturing pack is used by default if it's installed. It can
+   be switched of at any time by setting "gl_retexturing" to "1" and
+   execute "vid_restart" after it.
+
+
 3.2 Input
 ---------
 Quake II had a rather simple input system, even back then in 1997. It

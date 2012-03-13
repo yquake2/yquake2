@@ -168,8 +168,8 @@ build/refresher/%.o: %.c
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 release/ref_gl.so : CFLAGS += -fPIC
-release/ref_gl.so : LDFLAGS += -shared
-	
+release/ref_gl.so : LDFLAGS += -shared -ljpeg
+
 # ----------
 
 # The baseq2 game
@@ -376,6 +376,7 @@ OPENGL_OBJS_ = \
 	src/refresh/files/pcx.o \
 	src/refresh/files/sp2.o \
 	src/refresh/files/tga.o \
+	src/refresh/files/jpeg.o \
 	src/refresh/files/wal.o \
 	src/sdl/input.o \
 	src/sdl/refresh.o \
