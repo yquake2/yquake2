@@ -6,6 +6,9 @@ Quake II 4.03 to 4.10
   limited to 2300x2300. The default is "0". (by Richard
   Allen)
 - Add support for the high resolution retexturing pack.
+- Reenable support for gamma via SDL, since the upstream
+  bug was fixed with SDL 1.2.15. Gamma via X11 can be
+  forced by defining X11GAMMA at compile time.
 
 Quake II 4.02 to 4.03
 - Fix wrong function call in the Quake II file system.

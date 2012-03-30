@@ -45,9 +45,12 @@ glwstate_t		glw_state;
 qboolean		have_stencil = false;
 
 char *displayname = NULL;
-Display *dpy;
 int screen = -1;
+
+#ifdef X11GAMMA
+Display *dpy;
 XF86VidModeGamma x11_oldgamma;
+#endif
 
 /*
  * Initialzes the SDL OpenGL context
@@ -119,6 +122,7 @@ static void SetSDLIcon()
 /*
  * Sets the hardware gamma
  */
+#ifdef X11GAMMA
 void
 UpdateHardwareGamma(void)
 {
@@ -136,6 +140,16 @@ UpdateHardwareGamma(void)
 	/* This forces X11 to update the gamma tables */
 	XF86VidModeGetGamma(dpy, screen, &x11_gamma); 
 }
+#else
+void
+UpdateHardwareGamma(void)
+{
+	float gamma;
+
+	gamma = (vid_gamma->value);
+	SDL_SetGamma(gamma, gamma, gamma);
+}
+#endif
 
 /*
  * Initializes the OpenGL window
@@ -193,7 +207,7 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	
 	/* Set the icon */
 	SetSDLIcon();
-	
+
 	while (1)
 	{
 		if ((surface = SDL_SetVideoMode(vid.width, vid.height, 0, flags)) == NULL) 
@@ -234,6 +248,7 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	}
 
 	/* Initialize hardware gamma */
+#ifdef X11GAMMA
 	if ( ( dpy = XOpenDisplay( displayname ) ) == NULL )
 	{
 		ri.Con_Printf(PRINT_ALL, "Unable to open display.\n");
@@ -250,11 +265,16 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 
         XF86VidModeGetGamma(dpy, screen, &x11_oldgamma);
 
-		ri.Con_Printf(PRINT_ALL, "Using hardware gamma.\n");
+		ri.Con_Printf(PRINT_ALL, "Using hardware gamma via X11.\n");
 	}
+#else
+	gl_state.hwgamma = true;
+	vid_gamma->modified = true;
+	ri.Con_Printf(PRINT_ALL, "Using hardware gamma via SDL.\n");
+#endif
 
 	/* Window title */
-	snprintf(title, sizeof(title), "Yamagi Quake II v%4.2f", VERSION);
+	snprintf(title, sizeof(title), "Yamagi Quake II %4.2f", VERSION);
 	SDL_WM_SetCaption(title, title);
 
 	/* No cursor */
@@ -317,6 +337,7 @@ void GLimp_Shutdown( void )
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	}
 	
+#ifdef X11GAMMA
 	if (gl_state.hwgamma == true)
 	{
 		XF86VidModeSetGamma(dpy, screen, &x11_oldgamma);
@@ -324,6 +345,7 @@ void GLimp_Shutdown( void )
 		/* This forces X11 to update the gamma tables */
 		XF86VidModeGetGamma(dpy, screen, &x11_oldgamma);
 	}
+#endif
 
 	gl_state.hwgamma = false;
 }
