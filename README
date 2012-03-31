@@ -6,28 +6,30 @@
 ===============================================================================
 
 This is the Yamagi Quake II Client, an enhanced Version of id Software's
-Quake II. Main focus is single player, the gameplay and the graphics are
-unchanged but many bugs were fixed. Other than most other Quake II ports
-Yamagi Quake II is full 64 bit clean so it works perfectly on modern amd64 
+Quake II. The main focus is single player, the gameplay and the graphics are
+unchanged, but many bugs were fixed. Unlike most other Quake II ports Yamagi
+Quake II is full 64 bit clean so it works perfectly on modern amd64 (x86_64)
 processors and operating systems. This code should run on most unix-like 
-operating systems, just type "make" or "gmake" to compile.
+operating systems (only FreeBSD and Linux are officially supported and tested,
+for other systems you'd at least have to edit the Makefile), just type "make" or
+"gmake" to compile.
 
 This code is based upon Icculus Quake II, which itself is built upon id
-Software's original code drop. Additional code and patches by many
-contributers were used. It's released under the terms of the GPL version 2. 
-You can read the whole licence under http://www.gnu.org/.
+Software's original code drop. Additional code and patches by many contributers
+were used. It's released under the terms of the GPL version 2.  See the LICENSE
+file for further information.
 
 ===============================================================================
 
 Content of this file:
 --------------------
  1. Installation
-   1.1 Retail version
-   1.2 Demo version
-   1.3 Addons
-   1.4 Dependencies
+   1.1 Supported Systems
+   1.2 Retail Version
+   1.3 Demo Version
+   1.4 Addons
    1.5 Compiling
-   1.6 Default configuration
+   1.6 Default Configuration
  
  2. OGG/Vorbis playback
    2.1 Setup for the original soundtrack
@@ -49,23 +51,36 @@ Content of this file:
 
 1. Installation
 ==============
-Note: If you're using Debian Linux or a derived Distribution like
-Ubuntu, you probably want to use the packages that are linked in the
-Download section at http://www.yamagi.org/quake2. They'll even assist
-you in installing the game data.
+Note: If you're using Debian Linux or a derived distribution like Ubuntu, you 
+probably want to use the packages that are linked in the Download section at
+http://www.yamagi.org/quake2/debian.html
+They'll even assist you in installing the game data.
 
-1.1 Retail version:
+1.1 Supported Systems:
+----------------------
+
+Officially, only Linux and FreeBSD on i386 (x86) and amd64 (x86_64) compatible
+CPUs are supported. Other (Unix-like) Operating Systems and hardware 
+architectures are untested and may need small changes, at least in the Makefile.
+
+Yamagi Quake II needs OpenGL 1.1 (better: 1.4) support in hardware and libGL; 
+OpenGL ES will not work.
+
+The only tested compilers are gcc 4.2 (or later) and clang 3.0 (or later).
+
+Patches for other platforms are welcome :-)
+
+1.2 Retail Version:
 -------------------
 If you own Quake II, first get the official point release to Quake II 3.20: 
 ftp://ftp.idsoftware.com/idstuff/quake2/q2-3.20-x86-full-ctf.exe
-Use this and only this file! Unofficial "linux pointreleases" or something
-like that will not work and crash your game!
+Use this and only this file! Unofficial "linux pointreleases" or something like
+that will not work and may crash your game!
 
-Create a new directory "quake2/" and extract the file you just
-downloaded into it. Even if the file extension is ".exe" it's just a
-normal zip file. Now delete the following files and directories:
+Create a new directory "quake2/" and extract (with unzip) the file you just
+downloaded into it. Even if the file extension is ".exe" it's a self-extracting
+zip file. Now delete the following files and directories:
 - 3.20_Changes.txt 
-- index.html 
 - quake2.exe 
 - ref_gl.dll 
 - ref_soft.dll 
@@ -75,136 +90,131 @@ normal zip file. Now delete the following files and directories:
 - ctf/gamex86.dll 
 - ctf/readme.txt 
 - ctf/server.cfg 
-- DOCS/ 
 - xatrix/gamex86.dll 
 - rogue/gamex86.dll
 
-Now put the Quake II CD-ROM into your cd drive and copy the file
-"pak0.pak" and the directory "video/" to the baseq2-directory of your
-installation.
+Now put the Quake II CD-ROM into your cd drive and copy the file "pak0.pak" and 
+the directory "video/" to the "baseq2/" directory of your installation.
 
-1.2 Demo version:
+1.3 Demo Version:
 -----------------
 If you haven't got Quake II, try the demo version. Get it here: 
 ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe
 
-Create a new quake2/ directory with a baseq2/ sub-directory and put the
-pak0.pak and the players/ sub-directory, you can find it within the
-unzipped files (in Install/Data/baseq2/), in your baseq2-directory. No
+Unzip this file (again, it's a self-extracting zip file).
+Create a new "quake2/" directory with a "baseq2/" sub-directory and put the
+"pak0.pak" and the "players/" sub-directory, you can find them within the 
+unzipped files (in Install/Data/baseq2/), in your "baseq2/" directory. No 
 patching is needed for the demo, in fact it would break it.
 
-1.3 Addons
+1.4 Addons
 ----------
 Due to license issues - Yamagi Quake II is covered by the GPL and the
 addons are under the id Software SDK license - the addons are
-distributed seperatly. You can get them at http://www.yamagi.org/quake2,
-both contain installation instructions. But nevertheless you'll need
-the client and the main game installed for playing them. The same goes
-to the "ctf" capture the flag addon.
-
-1.4 Dependencies:
------------------
- - X11 Windows System with development headers
- - OpenGL system headers (Mesa3D, nVidia, fglrx, etc.)
- - libvorbis with development headers
- - libogg with development headers
- - ZLib
- - SDL with development headers and sdl-config(1)
+distributed separately. You can get them at http://www.yamagi.org/quake2,
+both contain installation instructions. But nevertheless you'll need an 
+installation of the full Quake II game with our client for playing them. 
+The same applies to the "ctf" capture the flag addon.
 
 1.5 Compiling:
 --------------
 After you have set up the game data (from the full version or the
-demo), you have to compile the Yamagi Quake II client. Just extract the
-source, change into the new created directory and type "make" (Linux) or
-"gmake" (FreeBSD). After the compilation finished copy the following
-files out of release/ to your installation directory preserving the
-directory structure:
+demo), you have to compile the Yamagi Quake II client.
+
+You will need the following dependencies:
+ - A libGL implementation (Mesa3D, nVidia, AMD Catalyst, etc.)
+ - OpenGL system headers 
+ - libjpeg (6 or 8) 
+ - libogg with development headers
+ - libvorbis with development headers
+ - SDL with development headers and sdl-config(1)
+ - ZLib
+
+Extract the source, change into the new created directory and type "make" 
+(Linux) or "gmake" (FreeBSD). After the compilation finished, copy the following
+files from "release/" to your installation directory preserving the directory
+structure:
 - q2ded 
 - quake2 
 - ref_gl.so 
 - baseq2/game.so 
 
-1.6 Default configuration
+1.6 Default Configuration
 -------------------------
 Quake II ships with an old and for today standards "insane" default
-configuration. This is no problem since you can alter everything. To
-make the life easier Yamagi Quake II contains an updated default
-configuration. If you want to use it just copy stuff/yq2.cfg to
-your baseq2/ folder.
+configuration. This is no problem since you can alter everything. To make your
+life easier Yamagi Quake II contains an updated default configuration. 
+If you want to use it just copy "stuff/yq2.cfg" to your "baseq2/" folder.
 
-You should now be ready to start your brand new Quake II. Have fun.
+Now you are ready to start your brand new Quake II. Have fun.
 
 ===============================================================================
 
 2. OGG/Vorbis playback
 ======================
-Since most modern CD-ROM and DVD drives don't have an analog audio
-output and most sound codecs don't have the appropriate input header,
-it's no longer possible to play Quake II with the original Audio-CD for
-background music. Therefore OGG/Vorbis playback has been added to Yamagi
-Quake II. It can play the original soundtrack, like if the CD is in the
-drive or customized playlists.
+Since most modern CD-ROM and DVD drives don't have an analog audio output and 
+most sound codecs don't have the appropriate input header, it's not possible to
+use CD audio as background music on such systems. Therefore OGG/Vorbis music 
+support has been added to Yamagi Quake II. 
 
 2.1 Setup for the original soundtrack:
 --------------------------------------
-Put your Quake II CD-ROM in your drive, start your favorite CD extractor
-and rip the audiotracks into OGG/Vorbis files. These files must be named
-after their track number. Remember! Since the first track on the CD is
-"data", the first audio track is number 2! If everything is done
-correct, you should have: 02.ogg, 03.ogg, ..., 11.ogg. Alternatively you
-can use a script provided by caedes, which can be found in the folder
-"stuff/". It needs cdparanoia and oggenc, it should work with the main
-game and both addons.
-Put these files under baseq2/music, start Quake II, enter the "Options"
-menu and set "OGG music" to enabled. "CD music" will be automaticly
-disabled. Quake II will now play the OGG/Vorbis files instead of the
-Audio-CD.
+Put your Quake II CD-ROM into your drive, start your favorite CD extractor and 
+rip the audiotracks into OGG/Vorbis files. These files must be named after their
+track number, beginning with 02, because the first track is data.
+If everything is done correct, you should have: 02.ogg, 03.ogg, ..., 11.ogg. 
+Alternatively you can use a script which can be found in the folder "stuff/". 
+It needs cdparanoia and oggenc and should work with the main game and both 
+addons.
+Drop these files in "baseq2/music/", start Quake II, enter the "Options" menu 
+and set "OGG music" to enabled. "CD music" will be automaticly disabled. 
+Quake II will now play the OGG/Vorbis files instead of the Audio-CD.
 
 2.2 Setup for other music and playlists:
 ----------------------------------------
-You can put normal OGG/Vorbis files into baseq2/music or your_mod/music.
-If shuffle is enabled, Quake II will shuffle through all files.
-Otherwise it will loop through the track associated with the map.
-Therefore playlists can be used. Just put the filenames into
-music/playlist (a plain text file) and start the game. For manual
-control there are some cvars. Remember: these are only available, if "OGG
-music" is enabled!
+You can put any OGG/Vorbis files into "baseq2/music/" or "your_mod/music/".
+If shuffle is enabled, Quake II will shuffle through all files, otherwise it 
+will loop through the track associated with the map.
+A playlist is also supported. Just put the filenames into music/playlist 
+(a plain text file) and start the game. 
 
 2.3 Manual control:
 -------------------
+For manual control of ogg playback the following console commands are available:
+
 - ogg_play {file | #n | ? | >n | <n}
- Play a file, the argument can be one of:
+ Play a file, the argument can be one of (n is always a number, e.g. 42):
   * A file in "music", without the path and ".ogg" extension.
-  * A # followed by a number, to play the Nth file in the playlist.
-  * A ? which indicates to play a random file.
-  * A > which indicates to advance N positions (defaults to 1).
-  * A < which indicates to go back N positions (defaults to 1). 
+  * #n to play the n-th file in the playlist.
+  * ? which indicates to play a random file.
+  * >n which indicates to advance n positions (defaults to 1).
+  * <n which indicates to go back n positions (defaults to 1). 
 
 - ogg_stop
- Stop playing the current file
+ Stop playback
 
 - ogg_pause
- Pause the current file
+ Pause playback
 
 - ogg_resume
- Resume the current file.
+ Resume playback
 
 - ogg_seek {n | >n | <n}
- Go to a determinated position of the file in seconds, the argument can be
- one of the following:
-  * n, which indicates to go to the nth position.
-  * >n, which indicates to advance n positions.
-  * <n, which indicates to go back n positions.
- You can use "ogg_seek >0" and "ogg_seek <0" to get the current position
- without changing it.
+ Go to a determinated position of the current file in seconds, the argument can 
+ be one of the following:
+  * n, which indicates to go to the n-th second.
+  * >n, which indicates to advance n seconds.
+  * <n, which indicates to go back n seconds.
+ You can use "ogg_seek >0" and "ogg_seek <0" to get the current position without
+ changing it.
 
 - ogg_status
- Display status (if playing a file, if paused, if stopped, etc.).
+ Display status ("playing a file", "paused", "stopped", etc).
 
 2.4 Console variables:
 ----------------------
 - ogg_enable {0 | 1}
- Enable the Ogg Vorbis subsystem when in "1". Defaults to "0".
+ Enables the Ogg Vorbis subsystem if set to "1". Defaults to "0".
 
 - ogg_playlist {name}
  Use "name" as a list of files instead of listing the contents of "music". 
@@ -218,18 +228,18 @@ music" is enabled!
   * random: play a random file.
   * loop: play the same file again.
   * none: stop playing.
- Defaults to "next".
+ Defaults to "loop".
 
 - ogg_volume
- Volume of the music from 0 to 2. Defaults to "0.7". 
+ Volume of the music between 0 and 2. Defaults to "0.7". 
 
 ===============================================================================
 
 3. Configuration
 ================
-While configuring Quake II is straight forward some rough edges can
-arise. Before reporting bugs or mailing me please read this section all
-the hints covered in it!
+While configuring Quake II is straight forward some rough edges can arise. 
+Before reporting bugs or mailing us please read this section all the hints 
+covered in it!
 
 3.1 Video
 ---------
@@ -240,7 +250,7 @@ the most common questions are answered.
 - Yamagi Quake II has full support for widescreen setups. Just select your
   favorite resolution and start a game. Now you'll need to adjust the field
   of view. Open the console with pressing "^" or "~" and set the fov cvar.
-  Default is 90, I suggest 100 for 16:10 screens and 105 for 16:9.
+  Default is 90, we suggest 100 for 16:10 screens and 105 for 16:9.
 
 - If your resolution is not in the list, it's also possible to set custom 
   resolutions via the console: Set gl_customwidth and gl_customheight to the 
@@ -248,11 +258,11 @@ the most common questions are answered.
   "Custom" as video mode. 
 
 - Sync problems resulting in tearing and artifacts in the lower half of
-  the screen: These orginiate in the fact, that in 1997 the modern LCD flat
-  panel was invented, but very expensive and much too slow for gaming.
+  the screen: These orginiate in the fact, that in 1997 LCD flat panels were not
+  widely used because they were very expensive and much too slow for gaming.
   Thus Quake II has problems when played on most flat panel monitors.
-  The solution for this problem is simple. Just set "cl_maxfps" to about
-  95 FPS. Now enable the vsync with setting "gl_swapinterval" to 1.
+  The solution for this problem is simple: Just set "cl_maxfps" to about
+  95 FPS and enable the vsync by setting "gl_swapinterval" to 1.
   This should supress all of the problems.
 
 - Particle effects are broken. They're just squares and not perfectly 
@@ -263,88 +273,90 @@ the most common questions are answered.
 - The game is bright enough but it's also washed out and dull: You need
   more saturation. Just adjust the cvar "intensity". The default 2
   should be enough for most cases, but some setups require higher
-  levels.
+  levels. 
 
-- Yamagi Quake II offers hardware gamma control in realtime via the
-  "Video" menu. If Quake II is still too dark set the "vid_gamma" 
-  cvar by hand to values above 1.5.
+- If the colors look over-saturated try setting the cvar "intensity" to a lower 
+  value, e.g. 1.
+
+- Yamagi Quake II offers hardware gamma control in realtime in the "Video" menu.
+  If Quake II is still too dark, set the "vid_gamma" cvar by hand to values
+  above 1.5.
 
 - Yamagi Quake II can draw shadows. Just set "gl_shadows" to 1. You most
   likely want to set "gl_stecilshadow" to 1 too. This enables high
   quality stencil buffer shadows.
 
 - Yamagi Quake II has support for anisotropic filtering. Activating it 
-  gives a small benefit in texture drawing over large distances. Check
-  "gl_anisotropic_avail" for the maximum amount af filtering supported
-  by your video card and set the desired value "gl_anisotropic". The
-  value must be a power of 4, in most cases 2, 4, 8 or 16.
+  improves texture drawing over large distances a bit. 
+  Enter "gl_anisotropic_avail" in your console for the maximum amount of 
+  filtering supported by your video card and set the cvar "gl_anisotropic" to 
+  the desired value. It must be a power of 2, in most cases 2, 4, 8 or 16.
 
-- Yamagi Quake II has support for the high resolution retexturing pack,
-  created by the community. Installation is easy: 
-   1. Download q2_textures.zip and models.zip from
+- Yamagi Quake II has support for the high resolution retexturing pack, created 
+  by the community. Installation is easy: 
+   1. Download q2_textures.zip and/or models.zip from
         http://www-personal.umich.edu/~jimw/q2/
-   2. Extract both files into the baseq2/ directory of your Quake II
-      installation, so that the new directories baseq2/textures/ and
-      baseq2/models/ are created.
-   The retexturing pack is used by default if it's installed. It can
-   be switched of at any time by setting "gl_retexturing" to "1" and
-   execute "vid_restart" after it.
+   2. Extract one or both files into the "baseq2/" directory of your Quake II
+      installation, so that the new directories "baseq2/textures/" and/or
+      "baseq2/models/" are created.
+   The retexturing pack is used by default if it's installed. It can be switched
+   off at any time by setting "gl_retexturing" to "0" and executing 
+   "vid_restart" aftwards.
 
 
 3.2 Input
 ---------
-Quake II had a rather simple input system, even back then in 1997. It
-just mapped Windows 95 mouse events one to one on movements. That was a
-very acurate way to do it, Quake II was - like all other id Software
-games - much more acurate than most games out there. But there were some
-problems. First the mouse inut is dependent on the operation system
-mouse driver. Another operating system or even another mouse and the
-inut changed drastically. That sucked.
+Quake II had a rather simple input system, even back in 1997. It just mapped 
+Windows 95 mouse directly on movements. That was a very acurate way to do it,
+Quake II was - like all other id Software games - much more acurate than most 
+games out there. But there were some problems. First the mouse input depends on
+the operation systems mouse driver. Another operating system or even another 
+mouse and the input changed drastically. That sucked.
 
-Yamagi Quake II features a from scratch rewritten mouse backend based on
-SDL. It gives you exactly the same mouse behavior, regardless of your
-operating system or hardware. But sadly it can't emulate the old
-behavior in all cases. There are some cvar to adjust:
+Yamagi Quake II features a from scratch rewritten mouse backend based on SDL. 
+It gives you the same mouse behavior, regardless of your operating system or
+hardware. But sadly it can't emulate the old behavior in all cases. 
 
-- in_mouse -> Set to 0 the mouse is disabled. 
+There are some cvar to adjust:
 
-- sensitivity -> The sensistivity of the mouse. Adjust to your needs,
-  via the cvar or via the "Options" menu.
+- in_mouse -> Set to 0 to disable the mouse.
 
-- in_filter -> A mouse filter. This was added in one of the countless
-  point releases but it was broken. We fixed it. The effect is exaktly
-  the same as in Quake III Arena, instead of using the raw movement
-  signals two of them are combined, filtering vibrations and things like
-  that out.
+- sensitivity -> The sensistivity of the mouse. Adjust to your needs, via the 
+  cvar or via the "Options" menu.
 
-- exponential_speedup -> The mouse acceleration. A very simple aproch,
-  much simpler than modern mouse acceleration. "0" is disabled. Sadly
-  it's nearly imposible to add modern acceleration to Quake II since
-  most of the needed data isn't available to the inut backend.
+- in_filter -> A mouse filter. This was added in one of the countless point
+  releases but it was broken. We fixed it. The effect is the same as in 
+  Quake III Arena, instead of using the raw movement signals, two of them are 
+  combined, filtering vibrations and things like that out.
+
+- exponential_speedup -> "0" is disabled. A very simple approach to mouse 
+  acceleration, much simpler than modern mouse acceleration. Sadly it's nearly 
+  impossible to add modern acceleration to Quake II since most of the needed data
+  isn't available to the input backend.
 
 3.3 Sound
 ---------
-Quake II featured one of the best sound systems of it's time but sadly
-it was totaly broken. Therefore id Software rewrote it once, later it was
-rewritten again for the linux port. That fixed most visible problems but
-the code was just crap and broke again as time passed and sound on computer
-evolved. For Yamagi Quake II 3.0 the sound system was overhauled,
-featuring a complete code audit of the upper layers with many bugfixes
-and memory leak plugs. The backend was rewritten from scratch. This
-should solve most if not all problems.
+Quake II featured one of the best sound systems of it's time but sadly it was 
+totaly broken. Therefore id Software rewrote it once, later it was rewritten
+again for the linux port. That fixed the most visible problems, but the code was
+just crap and broke again as time passed and sound on PCs evolved.
+For Yamagi Quake II 3.0 the sound system was overhauled, featuring a complete
+code audit of the upper layers with many bugfixes and memory leak plugs.
+The backend was rewritten from scratch. This should solve most if not all 
+problems.
 
 - The earthquake sound sample is distorted
   This is not a fault of the sound code but of the sound sample itself.
-  It's mostly made of very low frequency noices and sampled in only
-  22kHz, bringing cheap onboard soundcards to the limit. The only
-  solution would be to change the sample...
+  It's mostly made of very low frequency noices and sampled in only 22kHz, 
+  bringing cheap onboard soundcards to the limit. The only solution would be to
+  change the sample...
 
 - The sound is stuttering and cracking
-  This is most likely a problem on your side! First make sure that your
-  SDL sound backend is installed proberly. Does the sound work in other
-  SDL games like ioquake3? If possible remove all sound servers from
-  your stack and use the plain OSS or ALSA via libalsa. If everything
-  fails try create an ~/.asoundrc with this contents:
+  This is most likely a problem on your side! First make sure that your SDL 
+  sound backend is installed properly. Does the sound work in other SDL games 
+  like ioquake3? If possible remove all sound servers from your stack and use
+  plain OSS or ALSA via libasound. If everything fails try create an ~/.asoundrc
+  with this contents:
 
    pcm.!default { 
    type hw 
@@ -360,38 +372,39 @@ should solve most if not all problems.
 
 4. Bugreports
 =============
-Something is not working as expected? An elevator is broken? An enemy
-doesn't move? Or the whole game is just crashing? Just drop me an e-mail
-to quake2@yamagi.org. Please include a problem description and - if
-possible - a screenshot of the problematic situation and the name of the
-problematic map. But first, read this little FAQ:
+Something is not working as expected? An elevator is broken? An enemy doesn't
+move? Or the whole game is just crashing? Just drop us an e-mail to
+quake2@yamagi.org. Please include a problem description and - if possible - a
+screenshot of the problematic situation and the name of the problematic map.
+In case of crashes, further helpful information (and instructions) are printed
+to stdout (your terminal).
+
+But first, read this little FAQ:
 
 My sound is not working!
- - Most reported sound problems exist between keyboard and chair. Please
-   make sure, the the correct SDL sound backend is installed and
-   configured! Does the sound work in other SDL games? Does your setup
-   support at least five virtual channels? In most cases it's better to
-   not use sound servers like Pulseaudio but the plain sound system
-   like OSS or ALSA with libalsa instead. Also see the "Sound" section
-   in this file!
+ - Most reported sound problems exist between keyboard and chair. Please make
+   sure, the the correct SDL sound backend is installed and configured! 
+   Does the sound work in other SDL games? Does your setup support at least five
+   virtual channels? In most cases it's better to not use sound servers like
+   Pulseaudio but the plain sound system like OSS or ALSA with libasound instead.
+   Also see the "Sound" section in this file!
 
 My OpenGL is not working!
  - Make sure, that OpenGL is working in other games. Use "glxinfo" and
-   "glxgears" to make sure, that hardware rendering ist available.
-   Otherwise, fix your setup. If reporting OpenGL bugs please include a
-   copy of your xorg.conf (if available) and the Xorg.0.log.
+   "glxgears" to make sure, that hardware rendering is available.
+   Otherwise, fix your setup. If reporting OpenGL bugs please include a copy of
+   your xorg.conf (if available) and the Xorg.0.log.
 
 The game is crashing!
- - Make sure that your kit is complete. Missing files will crash Quake
-   II on random occasions and will produce strange backtraces! This just
-   wastes my time, so please check first and report then!
+ - Make sure that your installation is complete. Missing files will crash Quake
+   II on random occasions and will produce strange backtraces! This just wastes
+   our time, so please check first and report then!
 
 Valgrind reports many, many memory leaks!
- - Yeah it does. But they're all false positives due to Quake IIs
-   caching architecture. There some real memory leaks in SDL, Mesa3D,
-   X11 and so on but they're out of my scope. So before reporting memory
-   leaks please read the code, understand the code and be sure that's a
-   real leak!
+ - Yeah it does. But they're usually false positives due to Quake IIs caching
+   architecture. There some real memory leaks in SDL, Mesa3D, X11 and so on but
+   they're out of our scope. So before reporting memory leaks please read the
+   code, understand the code and be sure that's a real leak!
 
 ===============================================================================
 
@@ -408,45 +421,40 @@ How do I make a benchmark?
  - Set timedemo to 1 and play a demo.
 
 How do I play demos?
- - "demomap name.dm2". Remember, the extension .dm2 is important!
+ - "demomap name.dm2". Note that the extension .dm2 is important!
 
 How do I record a demo?
  - "record name" and "stop" to stop.
 
-When playing in window mode my is locked onto the window. Can I change
-that, e.g. that Quake II is behaving like a normal window?
- - Open the console with pressing ~ or ^. If you want Quake II to never 
-   grab the mouse set "in_grab" to 0, if Quake II should never release 
-   the mouse set 1, for releasing the mouse when open the console set 
-   to 2. The default is 2.
+When playing in window mode my cursor is locked onto the window. Can I change
+that, so that Quake II behaves like a normal window?
+ - Open the console by pressing ~ or ^. If you want Quake II to never  grab the 
+   mouse set "in_grab" to 0, if Quake II should never release the mouse set 1, 
+   for releasing the mouse when the console is opened set to 2. The default is 2.
 
-Hey, my screensaver crashes Quake II or I expire strange crashes after a
+Hey, my screensaver crashes Quake II or I experience strange crashes after a
 fixed amount of time!
  - This is a known bug in some linux distributions. SDL fails to disable
    the screensaver even if we tell him to do so. See this Ubuntu bugreport: 
    https://bugs.launchpad.net/ubuntu/+source/gnome-screensaver/+bug/32457
-   As a work around use the startscript in stuff/quake-start.sh It
-   deactivates the screensaver before starting Quake II and reenables it
-   after exiting the game.
+   As a work around use the startscript in stuff/quake-start.sh It deactivates
+   the screensaver before starting Quake II and reenables it after exiting the
+   game.
 
 Okay, Yamagi Quake II is for single player and coop. But what's with us
 deathmatch and / or CTF freaks?
- - Use another client. There are clients out there which offer far better 
-   multiplayer experiences. They're featuring a greatly improved network 
-   code and a better client<->server integration. Take a look at EGL, r1q2 
-   or AprQ2. At least r1q2 should work on unixlike operating systems.
+ - Use another client. There are clients out there which offer far better multi-
+   player experiences. They're featuring greatly improved network code and a 
+   better client<->server integration. Take a look at EGL, r1q2 or AprQ2. At 
+   least r1q2 should work on unixlike operating systems.
 
 The movement is fucked up! I can jump much higher and longer as it used
 to be! What's wrong?
  - You're experiencing the Quake II version of the famous Q3A 125hz bug.
-   When Quake II draws more than about 100 FPS the movement calculations
-   go wrong and you can jump much higher. To solve this set "cl_maxfps"
-   to about 95 FPS. And no, we won't fix it since it would be very
-   invasive and most likely break a lot of other things.
-
-Can I use texture sets with Yamagi Quake 2?
- - No, you can't. Yamagi Quake 2 is dedicated to a game experience like
-   in 1997 and thus texture packs are not supported. Use another client.
+   When Quake II draws more than about 100 FPS the movement calculations go
+   wrong and you can jump much higher. To solve this set "cl_maxfps" to about 
+   95 FPS. And no, we won't fix it since it would be very invasive and most 
+   likely break a lot of other things.
 
 I'm creating a package or port for my system. Is a system wide install
 possible without patching the source?
@@ -455,37 +463,40 @@ possible without patching the source?
    to the desired path.
 
 How do I disable friendly fire in coop mode?
- - The same way as in team deathmatch. Via the menu select "deathmatch
-   options" and set teamplay to "by skin" or by "by model" and friendly
-   fire to disabled. Make sure, that all players have the same model or
-   skin! If you're using the dedicated server or allready in the game,
-   open the console and type "dmflags 336" für skinbased teamplay and 
-   "dmflags 400" for modelbased teamplay.
+ - The same way as in team deathmatch. Via the menu select "deathmatch options" 
+   and set teamplay to "by skin" or by "by model" and friendly fire to disabled.
+   Make sure, that all players have the same model or skin! If you're using the
+   dedicated server or are already in the game, open the console and type
+   "dmflags 336" für skinbased teamplay and  "dmflags 400" for modelbased 
+   teamplay.
 
 Can I connect to an IPv6 server?
- - Yes, the same way as connecting to an IPv4 server. Since the Quake II
-   console has problems with the characters ":", "[" and "]" we suggest
-   to submit the connection command as command line argument:
+ - Yes, the same way as connecting to an IPv4 server. Since the Quake II console
+   has problems with the characters ":", "[" and "]" we suggest to submit the 
+   connection command as command line argument:
      ./quake2 +connect "[2001:db8::1]"
-   For your server to show up in the server list you need to supply a 
-   multicast interface to both the client and the server:
+   If you want to connect to a server with a non-standard port use the following
+   syntax:
+     ./quake2 +connect "[2001:db8::1]:12345"
+   For your server to show up in the server list you need to supply a multicast
+   interface to both the client and the server:
      ./q2ded +set multicast eth0
      ./quake2 +set multicast eth0
-   Normaly the server will listen to all IPv4 and IPv6 addresses. You
-   can bind it to an address with:
+   Normaly the server will listen to all IPv4 and IPv6 addresses. You can bind
+   it to an address with:
      ./q2ded +set ip "[2001:db8::1]"
 
 Where can I find the configuartion file?
- - It's located at ~/.yq2/game/config.cfg. Replace "game" by the mod
-   name, e.g. "baseq2" for the main game.
+ - It's located at ~/.yq2/game/config.cfg. Replace "game" by the mod name, 
+   e.g. "baseq2/" for the main game.
 
-My mod craches at startup.
- - This is known problem, yet to be analyzed. A workaround is to create
-   the working directory by hand:
+My mod crashes at startup.
+ - This is known problem, yet to be analyzed. A workaround is to create the
+   working directory by hand:
      mkdir -p ~/.yq2/$moddir 
 
 Only parts of the maps are rendered!
- - By default the maximum view distance is 2300 units. You can widen it
-   up to 4096 units by setting "gl_farsee" to "1",
+ - By default the maximum view distance is 2300 units. You can widen it up 
+   to 4096 units by setting "gl_farsee" to "1".
 
 ==============================================================================
