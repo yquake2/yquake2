@@ -27,6 +27,9 @@
 #include "../header/client.h"
 #include "header/local.h"
 
+// FIXME: this code is really fucked up, those global variables make me sick.
+// someone should clean this up one day..
+
 byte    *data_p;
 byte    *iff_end;
 byte    *last_chunk;

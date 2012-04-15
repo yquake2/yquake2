@@ -149,10 +149,7 @@ S_LoadSound ( sfx_t *s )
 	if ( name [ 0 ] == '#' )
 	{
 		strcpy( namebuffer, &name [ 1 ] );
-	}
-
-	else
-	{
+	} else {
 		Com_sprintf( namebuffer, sizeof ( namebuffer ), "sound/%s", name );
 	}
 
@@ -199,7 +196,12 @@ S_LoadSound ( sfx_t *s )
 	sc->width = info.width;
 	sc->stereo = info.channels;
 
-	ResampleSfx( s, sc->speed, sc->width, data + info.dataofs );
+#if USE_OPENAL
+	if (sound_started == SS_OAL)
+		sc = AL_UploadSfx(s, &info, data + info.dataofs);
+	else
+#endif
+		ResampleSfx( s, sc->speed, sc->width, data + info.dataofs );
 
 	FS_FreeFile( data );
 

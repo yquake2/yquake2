@@ -37,9 +37,6 @@
 #include "header/local.h"
 #include "header/vorbis.h"
 
-extern int sound_started;  /* Sound initialization flag. */
-extern cvar_t   *fs_basedir; /* Path to "music". */
-
 qboolean	 ogg_first_init = true;    /* First initialization flag. */
 qboolean	 ogg_started = false;    /* Initialization flag. */
 int		 ogg_bigendian = 0;
