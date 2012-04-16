@@ -791,8 +791,8 @@ BigShort(short l)
 
 short
 LittleShort(short l)
-{return 
-	_LittleShort(l); 
+{
+	return _LittleShort(l); 
 }
 
 int
@@ -904,6 +904,9 @@ Swap_Init(void)
 		_BigFloat = FloatNoSwap;
 		_LittleFloat = FloatSwap;
 	}
+
+	if (LittleShort(*(short *)swaptest) != 1)
+		assert("Error in the endian conversion!");
 }
 
 /*

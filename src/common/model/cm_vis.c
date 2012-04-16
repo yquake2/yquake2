@@ -87,7 +87,7 @@ byte *CM_ClusterPVS (int cluster)
 		memset (pvsrow, 0, (numclusters+7)>>3);
 
 	else
-		CM_DecompressVis (map_visibility + map_vis->bitofs[cluster][DVIS_PVS], pvsrow);
+		CM_DecompressVis (map_visibility + LittleLong(map_vis->bitofs[cluster][DVIS_PVS]), pvsrow);
 
 	return pvsrow;
 }
@@ -98,7 +98,7 @@ byte	*CM_ClusterPHS (int cluster)
 		memset (phsrow, 0, (numclusters+7)>>3);
 
 	else
-		CM_DecompressVis (map_visibility + map_vis->bitofs[cluster][DVIS_PHS], phsrow);
+		CM_DecompressVis (map_visibility + LittleLong(map_vis->bitofs[cluster][DVIS_PHS]), phsrow);
 
 	return phsrow;
 }

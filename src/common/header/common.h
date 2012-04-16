@@ -32,7 +32,7 @@
 #include "shared.h"
 #include "crc.h"
 
-#define	VERSION		4.03
+#define	VERSION		4.10
 #define	BASEDIRNAME	"baseq2"
 
 #if defined __linux__
@@ -47,6 +47,8 @@
 #define CPUSTRING "i386"
 #elif defined __x86_64__
 #define CPUSTRING "amd64"
+#elif defined __sparc__
+#define CPUSTRING "sparc64"
 #else
 #define CPUSTRING "Unknown"
 #endif

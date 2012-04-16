@@ -96,6 +96,8 @@
  #define ARCH "i386"
 #elif defined(__x86_64__)
  #define ARCH "amd64"
+#elif defined(__sparc__)
+ #define ARCH "sparc64"
 #else
  #define ARCH "unknown"
 #endif
