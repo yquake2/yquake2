@@ -19,7 +19,8 @@
  *
  * =======================================================================
  *
- * This file implements some misc stuff like the main loop
+ * This file is the starting point of the program and implements 
+ * the main loop
  *
  * =======================================================================
  */

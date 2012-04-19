@@ -308,7 +308,7 @@ CLIENT_OBJS_ := \
 	src/server/sv_world.o \
 	src/unix/glob.o \
 	src/unix/hunk.o \
-	src/unix/misc.o \
+	src/unix/main.o \
  	src/unix/network.o \
  	src/unix/signalhandler.o \
 	src/unix/system.o \
@@ -354,7 +354,7 @@ SERVER_OBJS_ := \
 	src/server/sv_world.o \
 	src/unix/glob.o \
 	src/unix/hunk.o \
-	src/unix/misc.o \
+	src/unix/main.o \
  	src/unix/network.o \
  	src/unix/signalhandler.o \
 	src/unix/system.o
@@ -385,7 +385,7 @@ OPENGL_OBJS_ = \
     src/common/shared/shared.o \
     src/unix/glob.o \
 	src/unix/hunk.o \
-	src/unix/misc.o \
+	src/unix/main.o \
 	src/unix/qgl.o
 
 # ----------
