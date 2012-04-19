@@ -25,7 +25,6 @@
  * =======================================================================
  */
 
-#include <ctype.h>
 #include <fcntl.h>
 #include <locale.h>
 #include <sys/types.h>
@@ -37,20 +36,6 @@
 
 cvar_t *nostdout;
 uid_t saved_euid;
-
-char *
-strlwr ( char *s )
-{
-	char *p = s;
-
-	while ( *s )
-	{
-		*s = tolower( *s );
-		s++;
-	}
-
-	return ( p );
-}
 
 int
 main ( int argc, char **argv )

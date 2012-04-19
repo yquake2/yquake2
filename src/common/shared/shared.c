@@ -24,6 +24,8 @@
  * =======================================================================
  */
 
+#include <ctype.h>
+
 #include "../header/shared.h"
 
 #define DEG2RAD(a) (a * M_PI) / 180.0F
@@ -1112,6 +1114,20 @@ Com_sprintf(char *dest, int size, char *fmt, ...)
 	bigbuffer[size - 1] = '\0';
 	strcpy(dest, bigbuffer);
 }
+
+char *
+strlwr ( char *s )
+{
+	char *p = s;
+
+	while ( *s )
+	{
+		*s = tolower( *s );
+		s++;
+	}
+
+	return ( p );
+} 
 
 /*
  * =====================================================================

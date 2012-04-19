@@ -385,7 +385,6 @@ OPENGL_OBJS_ = \
     src/common/shared/shared.o \
     src/unix/glob.o \
 	src/unix/hunk.o \
-	src/unix/main.o \
 	src/unix/qgl.o
 
 # ----------
