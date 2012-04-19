@@ -12,7 +12,6 @@
 #  - libGL                                               #
 #  - libvorbis                                           #
 #  - libogg                                              #
-#  - X11 (libX11, Xxf86vm)								 #
 #  - zlib                                                #
 #                                                        #
 # Platforms:                                             #
@@ -69,12 +68,6 @@ SDLCFLAGS := $(shell sdl-config --cflags)
 
 # ----------
 
-# Extra CFLAGS for X11
-X11CFLAGS := $(shell pkg-config x11 --cflags)
-X11CFLAGS += $(shell pkg-config xxf86vm --cflags)
-
-# ----------
-
 # Base include path.
 ifeq ($(OSTYPE),Linux)
 INCLUDE := -I/usr/include
@@ -95,12 +88,6 @@ endif
 
 # Extra LDFLAGS for SDL
 SDLLDFLAGS := $(shell sdl-config --libs)
-
-# ----------
-
-# Extra LDFLAGS for X11
-X11LDFLAGS := $(shell pkg-config x11 --libs)
-X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
 
 # ----------
 
@@ -136,7 +123,7 @@ client:
 build/client/%.o: %.c
 	@echo '===> CC $<'
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(X11CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg -lz
 
@@ -426,7 +413,7 @@ release/q2ded : $(SERVER_OBJS)
 # release/ref_gl.so
 release/ref_gl.so : $(OPENGL_OBJS)
 	@echo '===> LD $@'
-	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
+	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) -o $@
 
 # release/baseq2/game.so
 release/baseq2/game.so : $(GAME_OBJS)
