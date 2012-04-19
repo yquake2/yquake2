@@ -895,6 +895,7 @@ Swap_Init(void)
 		_LittleLong = LongNoSwap;
 		_BigFloat = FloatSwap;
 		_LittleFloat = FloatNoSwap;
+		Com_Printf("Byte ordering: little endian\n\n");
 	}
 	else
 	{
@@ -905,6 +906,7 @@ Swap_Init(void)
 		_LittleLong = LongSwap;
 		_BigFloat = FloatNoSwap;
 		_LittleFloat = FloatSwap;
+		Com_Printf("Byte ordering: big endian\n\n");
 	}
 
 	if (LittleShort(*(short *)swaptest) != 1)

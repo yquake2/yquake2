@@ -55,6 +55,9 @@ main ( int argc, char **argv )
 	printf( "\nYamagi Quake II v%4.2f\n", VERSION);
 	printf( "=====================\n\n");
 
+    printf("Platform: %s\n", BUILDSTRING);
+	printf("Architecture: %s\n", CPUSTRING);
+
 	Qcommon_Init( argc, argv );
 
 	fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) | FNDELAY );
