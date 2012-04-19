@@ -26,6 +26,7 @@
 
 #include <ctype.h>
 #include <fcntl.h>
+#include <locale.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -61,6 +62,9 @@ main ( int argc, char **argv )
 	/* go back to real user for config loads */
 	saved_euid = geteuid();
 	seteuid( getuid() );
+
+	/* enforce C locale */
+	setlocale(LC_ALL, "C");
 
 	printf( "\nYamagi Quake II v%4.2f\n", VERSION);
 	printf( "=====================\n\n");
