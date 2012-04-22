@@ -877,7 +877,6 @@ S_ClearBuffer ( void )
 	{
 		clear = 0x80;
 	}
-
 	else
 	{
 		clear = 0;

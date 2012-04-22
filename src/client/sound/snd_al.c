@@ -342,7 +342,7 @@ void AL_Update( void ) {
     }
     */
 
-   // paintedtime = cl.time; // FIXME: this does *not* make music work.
+    paintedtime = cl.time;
 
     // set listener parameters
     qalListener3f( AL_POSITION, AL_UnpackVector( listener_origin ) );
@@ -395,11 +395,6 @@ void AL_Update( void ) {
     S_AL_StreamUpdate();
 
     AL_IssuePlaysounds();
-
-    //paintedtime = <begintime of last pending play>; ??
-    // evtl paintedtime = soundtime falls paintedtime < soundtime - aber soundtime ist eigentlich DMA spezifisch
-    // paintedtime = cl.time; FIXME: das allein reicht nicht damit musik funktioniert
-
 }
 
 /*
