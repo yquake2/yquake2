@@ -145,12 +145,18 @@ S_Init ( void )
 		Cmd_AddCommand( "soundinfo", S_SoundInfo_f );
 		Cmd_AddCommand( "ogg_init", OGG_Init );
 		Cmd_AddCommand( "ogg_shutdown", OGG_Shutdown );
-#if USE_OPENAL
-		// FIXME: cvar for soundsystem to use?
-		if( AL_Init() ) {
+
+#if ! USE_OPENAL
+		cv = Cvar_Get( "s_openal", 0, CVAR_ARCHIVE);
+		if( cv->value ) {
+			Com_Printf("Warning: Ignoring s_openal, as this binary has no OpenAL support!");
+		}
+#else
+		cv = Cvar_Get( "s_openal", 1, CVAR_ARCHIVE);
+		if( cv->value && AL_Init() ) {
 			sound_started = SS_OAL;
 		}
-		else
+		else {
 #endif
 			if ( SNDDMA_Init() )
 			{
@@ -159,6 +165,9 @@ S_Init ( void )
 				sound_started = SS_NOT;
 				return;
 			}
+#if USE_OPENAL
+		} // this is a bit ugly but prevents dangling else problems
+#endif
 
 		num_sfx = 0;
 
