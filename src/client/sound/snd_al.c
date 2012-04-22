@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "../header/client.h"
 #include "header/local.h"
-#include "qal_api.h"
+#include "header/qal_api.h"
 
 // translates from AL coordinate system to quake
 #define AL_UnpackVector(v)  -v[1],v[2],-v[0]
@@ -49,13 +49,13 @@ qboolean AL_Init( void ) {
     int i;
 
     if( !QAL_Init() ) {
-        Com_EPrintf( "OpenAL failed to initialize.\n" );
+        Com_Printf( "ERROR: OpenAL failed to initialize.\n" );
         return false;
     }
 
     // check for linear distance extension
     if( !qalIsExtensionPresent( "AL_EXT_LINEAR_DISTANCE" ) ) {
-        Com_EPrintf( "Required AL_EXT_LINEAR_DISTANCE extension is missing.\n" );
+        Com_Printf( "ERROR: Required AL_EXT_LINEAR_DISTANCE extension is missing.\n" );
         goto fail;
     }
 
@@ -69,7 +69,7 @@ qboolean AL_Init( void ) {
     }
 
     if( i < MIN_CHANNELS ) {
-        Com_EPrintf( "Required at least %d sources, but got %d.\n", MIN_CHANNELS, i );
+        Com_Printf( "ERROR: Required at least %d sources, but got %d.\n", MIN_CHANNELS, i );
         goto fail;
     }
 
@@ -116,7 +116,7 @@ sfxcache_t *AL_UploadSfx( sfx_t *s, wavinfo_t *s_info, byte *data ) {
     }
 
     // allocate placeholder sfxcache
-    sc = s->cache = S_Malloc( sizeof( *sc ) );
+    sc = s->cache = Z_TagMalloc(sizeof(*sc), 0); // FIXME: TAG_SOUND instead of 0 - this possibly leaks!
     sc->length = s_info->samples * 1000 / s_info->rate; // in msec
     sc->loopstart = s_info->loopstart;
     sc->width = s_info->width;
@@ -235,25 +235,25 @@ static void AL_AddLoopSounds( void ) {
     int         num;
     entity_state_t  *ent;
 
-    if( cls.state != ca_active || sv_paused->value || !s_ambient->value ) {
+    if( cls.state != ca_active || !s_ambient->value ) { // FIXME: sv_paused->value ||
         return;
     }
 
     S_BuildSoundList( sounds );
 
-    for( i = 0; i < cl.frame.numEntities; i++ ) {
+    for( i = 0; i < cl.frame.num_entities; i++ ) {
         if (!sounds[i])
             continue;
 
-        sfx = S_SfxForHandle( cl.sound_precache[sounds[i]] );
+        sfx = cl.sound_precache[sounds[i]];
         if (!sfx)
             continue;       // bad sound effect
         sc = sfx->cache;
         if (!sc)
             continue;
 
-        num = ( cl.frame.firstEntity + i ) & (MAX_PARSE_ENTITIES-1);
-        ent = &cl.entityStates[num];
+        num = ( cl.frame.parse_entities + i ) & ( MAX_PARSE_ENTITIES - 1 );
+		ent = &cl_parse_entities [ num ];
 
         ch = AL_FindLoopingSound( ent->number, sfx );
         if( ch ) {
@@ -291,6 +291,34 @@ static void AL_IssuePlaysounds( void ) {
             break;
         S_IssuePlaysound (ps);
     }
+    // TODO: streaming sounds from s_rawsamples, equivalent to code below - see also ioq3's code
+
+#if 0
+    /* clear the paint buffer */
+	if ( s_rawend < paintedtime )
+	{
+		memset( paintbuffer, 0, ( end - paintedtime ) * sizeof ( portable_samplepair_t ) );
+	}
+	else
+	{
+		/* copy from the streaming sound source */
+		int s;
+		int stop;
+
+		stop = ( end < s_rawend ) ? end : s_rawend;
+
+		for ( i = paintedtime; i < stop; i++ )
+		{
+			s = i & ( MAX_RAW_SAMPLES - 1 );
+			paintbuffer [ i - paintedtime ] = s_rawsamples [ s ];
+		}
+
+		for ( ; i < end; i++ )
+		{
+			paintbuffer [ i - paintedtime ].left = paintbuffer [ i - paintedtime ].right = 0;
+		}
+	}
+#endif
 }
 
 void AL_Update( void ) {

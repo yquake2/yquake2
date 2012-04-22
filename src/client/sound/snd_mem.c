@@ -170,31 +170,32 @@ S_LoadSound ( sfx_t *s )
 		FS_FreeFile( data );
 		return ( NULL );
 	}
+	if (sound_started != SS_OAL) {
+		stepscale = (float) info.rate / dma.speed;
+		len = (int) ( info.samples / stepscale );
 
-	stepscale = (float) info.rate / dma.speed;
-	len = (int) ( info.samples / stepscale );
+		if ( ( info.samples == 0 ) || ( len == 0 ) )
+		{
+			Com_Printf( "WARNING: Zero length sound encountered: %s\n", s->name );
+			FS_FreeFile( data );
+			return ( NULL );
+		}
 
-	if ( ( info.samples == 0 ) || ( len == 0 ) )
-	{
-		Com_Printf( "WARNING: Zero length sound encountered: %s\n", s->name );
-		FS_FreeFile( data );
-		return ( NULL );
+		len = len * info.width * info.channels;
+		sc = s->cache = Z_Malloc( len + sizeof ( sfxcache_t ) );
+
+		if ( !sc )
+		{
+			FS_FreeFile( data );
+			return ( NULL );
+		}
+
+		sc->length = info.samples;
+		sc->loopstart = info.loopstart;
+		sc->speed = info.rate;
+		sc->width = info.width;
+		sc->stereo = info.channels;
 	}
-
-	len = len * info.width * info.channels;
-	sc = s->cache = Z_Malloc( len + sizeof ( sfxcache_t ) );
-
-	if ( !sc )
-	{
-		FS_FreeFile( data );
-		return ( NULL );
-	}
-
-	sc->length = info.samples;
-	sc->loopstart = info.loopstart;
-	sc->speed = info.rate;
-	sc->width = info.width;
-	sc->stereo = info.channels;
 
 #if USE_OPENAL
 	if (sound_started == SS_OAL)

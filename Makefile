@@ -134,9 +134,9 @@ client:
 build/client/%.o: %.c
 	@echo '===> CC $<'
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(X11CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(X11CFLAGS) $(SDLCFLAGS) $(INCLUDE) -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"' -o $@ $<
 
-release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg -lz
+release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg -lz -lopenal
 
 # ----------
 
@@ -262,6 +262,8 @@ CLIENT_OBJS_ := \
 	src/client/menu/menu.o \
 	src/client/menu/qmenu.o \
 	src/client/menu/videomenu.o \
+	src/client/sound/qal_api.o \
+	src/client/sound/snd_al.o \
 	src/client/sound/snd_dma.o \
 	src/client/sound/snd_mem.o \
 	src/client/sound/snd_mix.o \

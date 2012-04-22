@@ -216,7 +216,6 @@ S_Shutdown ( void )
 	memset( known_sfx, 0, sizeof ( known_sfx ) );
 
 	num_sfx = 0;
-	sound_started = SS_NOT;
 
 	OGG_Shutdown();
 
@@ -228,6 +227,7 @@ S_Shutdown ( void )
 #endif
 		SNDDMA_Shutdown();
 
+	sound_started = SS_NOT;
 	s_numchannels = 0;
 
 	Cmd_RemoveCommand( "soundlist" );
@@ -983,7 +983,7 @@ S_AddLoopSounds ( void )
 		return;
 	}
 
-	if ( !cl.sound_prepped || !s_ambient->value || sv_paused->value )
+	if ( !cl.sound_prepped || !s_ambient->value ) // FIXME: || sv_paused->value )
 	{
 		return;
 	}
@@ -1101,12 +1101,16 @@ S_RawSamples ( int samples, int rate, int width, int channels, byte *data, float
 		return;
 	}
 
+	// FIXME!!
+	if( sound_started == SS_OAL )
+		return;
+
 	if ( s_rawend < paintedtime )
 	{
 		s_rawend = paintedtime;
 	}
 
-	scale = (float) rate / dma.speed;
+	scale = (float) rate / dma.speed; // FIXME: dma.speed is not available (0) when using openal
 	intVolume = (int) (256 * volume);
 
 	if ( ( channels == 2 ) && ( width == 2 ) )

@@ -20,9 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#include "common.h"
+#include "../../common/header/common.h"
 #include "header/qal_api.h"
 #include <AL/alc.h>
+#include <dlfcn.h>
 
 #define QALC_IMP \
     QAL( LPALCCREATECONTEXT, alcCreateContext ); \
@@ -77,23 +78,26 @@ QALC_IMP
 QAL_IMP
 #undef QAL
 
-    Sys_FreeLibrary( handle );
+    //Sys_FreeLibrary( handle );
+	dlclose(handle);
     handle = NULL;
 
-    al_driver->flags &= ~CVAR_SOUND;
-    al_device->flags &= ~CVAR_SOUND;
+    al_driver->flags &= ~CVAR_ARCHIVE;
+    al_device->flags &= ~CVAR_ARCHIVE;
 }
 
 qboolean QAL_Init( void ) {
-    al_driver = Cvar_Get( "al_driver", DEFAULT_OPENAL_DRIVER, CVAR_SOUND );
-    al_device = Cvar_Get( "al_device", "", CVAR_SOUND );
+	// DEFAULT_OPENAL_DRIVER is a define from the Makefile
+    al_driver = Cvar_Get( "al_driver", DEFAULT_OPENAL_DRIVER, CVAR_ARCHIVE );
+    al_device = Cvar_Get( "al_device", "", CVAR_ARCHIVE );
 
-    Sys_LoadLibrary( al_driver->string, NULL, &handle );
+    handle = dlopen( al_driver->string, RTLD_LAZY );
+    //Sys_LoadLibrary( al_driver->string, NULL, &handle );
     if( !handle ) {
         return false;
     }
 
-#define QAL(type,func)  q##func = Sys_GetProcAddress( handle, #func );
+#define QAL(type,func)  q##func = dlsym( handle, #func );
 QALC_IMP
 QAL_IMP
 #undef QAL
@@ -118,8 +122,8 @@ QAL_IMP
     }
     Com_DPrintf( "ok\n" );
 
-    al_driver->flags |= CVAR_SOUND;
-    al_device->flags |= CVAR_SOUND;
+    al_driver->flags |= CVAR_ARCHIVE;
+    al_device->flags |= CVAR_ARCHIVE;
 
     return true;
 
