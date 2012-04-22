@@ -203,12 +203,6 @@ S_PaintChannels ( int endtime )
 		}
 
 		/* start any playsounds */
-		if ( endtime - paintedtime > PAINTBUFFER_SIZE )
-		{
-			end = paintedtime + PAINTBUFFER_SIZE;
-		}
-
-		/* start any playsounds */
 		for ( ; ; )
 		{
 			ps = s_pendingplays.next;
@@ -258,6 +252,7 @@ S_PaintChannels ( int endtime )
 
 			for ( ; i < end; i++ )
 			{
+				// TODO: this could be done with memset
 				paintbuffer [ i - paintedtime ].left = paintbuffer [ i - paintedtime ].right = 0;
 			}
 		}
