@@ -37,6 +37,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define MIN_CHANNELS 16
 
 qboolean streamPlaying;
+int active_buffers;
+
 static ALuint streamSource;
 
 static ALuint s_srcnums[MAX_CHANNELS-1];
@@ -142,6 +144,7 @@ sfxcache_t *AL_UploadSfx( sfx_t *s, wavinfo_t *s_info, byte *data ) {
     qalGetError();
     qalGenBuffers( 1, &name );
     qalBufferData( name, format, data, size, s_info->rate );
+	active_buffers++;
     if( qalGetError() != AL_NO_ERROR ) {
         // s->error = Q_ERR_LIBRARY_ERROR; FIXME: do I want this info?
         return NULL;
@@ -169,6 +172,7 @@ void AL_DeleteSfx( sfx_t *s ) {
 
     name = sc->bufnum;
     qalDeleteBuffers( 1, &name );
+	active_buffers--;
 }
 
 void AL_StopChannel( channel_t *ch ) {
@@ -444,6 +448,7 @@ static void S_AL_StreamDie( void )
 		ALuint buffer;
 		qalSourceUnqueueBuffers(streamSource, 1, &buffer);
 		qalDeleteBuffers(1, &buffer);
+		active_buffers--;
 	}
 
 	// S_AL_FreeStreamChannel(stream);
@@ -461,6 +466,7 @@ static void S_AL_StreamUpdate( void )
 		ALuint buffer;
 		qalSourceUnqueueBuffers(streamSource, 1, &buffer);
 		qalDeleteBuffers(1, &buffer);
+		active_buffers--;
 	}
 
 	// Start the streamSource playing if necessary
@@ -516,6 +522,7 @@ void AL_RawSamples( int samples, int rate, int width, int channels, byte *data, 
 	// Create a buffer, and stuff the data into it
 	qalGenBuffers(1, &buffer);
 	qalBufferData(buffer, format, (ALvoid *)data, (samples * width * channels), rate);
+	active_buffers++;
 
 	// set volume
 	qalSourcef( streamSource, AL_GAIN, volume );

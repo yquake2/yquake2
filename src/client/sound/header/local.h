@@ -171,6 +171,9 @@ void S_BuildSoundList( int *sounds );
 #define     SOUND_FULLVOLUME    80
 #define     SOUND_LOOPATTENUATE 0.003
 
+// number of buffers in flight (needed for ogg)
+extern int active_buffers;
+
 // for snd_al.c - copied from Q2Pro and adapted
 void AL_SoundInfo( void );
 qboolean AL_Init( void );

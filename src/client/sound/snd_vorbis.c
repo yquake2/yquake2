@@ -602,10 +602,38 @@ OGG_Stream ( void )
 		return;
 	}
 
+#ifdef USE_OPENAL
+	/* 
+	 */
+	if ( ogg_status == PLAY )
+	{
+
+		/* active_buffers are all active OpenAL buffers,
+		   buffering normal sfx _and_ ogg/vorbis samples.
+		   Empirical testing showed that there are most
+		   likly never more than 256 sfx buffers active.
+		   Read ogg samples into buffers until there are
+		   384 active buffers. This keeps at least 128
+		   ogg buffers (128 * 4096 Byte = 512 KByte) in 
+		   the memory. That's about 30 second of music
+		   playback, more than enough to rule out buffer
+		   underruns even at very, very, very low frame
+		   rates. */
+		while ( active_buffers <= 384 )
+		{
+			OGG_Read();
+		}
+	}
+#else
+	/* Read that number samples into the buffer, that 
+	   were played since the last call to this function.
+	   This keeps the buffer at all times at an "optimal"
+	   fill level. */
 	while ( ogg_status == PLAY  && paintedtime + MAX_RAW_SAMPLES - 2048 > s_rawend )
 	{
 		OGG_Read();
 	}
+#endif
 }
 
 /*
