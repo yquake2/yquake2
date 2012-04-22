@@ -1,8 +1,9 @@
 /*
-This Source File was taken from the Q2Pro Port.
+This Source File - except for the last few functions - see the other copyright
+notice further down the - was taken from the Q2Pro Port.
 
 Copyright (C) 2010 skuller.net
-              2012 Some changes by the Yamagi Quake2 developers
+              2012 Some changes by the Yamagi Quake II developers
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -26,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "../header/client.h"
 #include "header/local.h"
 #include "header/qal_api.h"
+#include "header/vorbis.h"
 
 // translates from AL coordinate system to quake
 #define AL_UnpackVector(v)  -v[1],v[2],-v[0]
@@ -34,8 +36,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // OpenAL implementation should support at least this number of sources
 #define MIN_CHANNELS 16
 
-static ALuint s_srcnums[MAX_CHANNELS];
+qboolean streamPlaying;
+static ALuint streamSource;
+
+static ALuint s_srcnums[MAX_CHANNELS-1];
 static int s_framecount;
+
+// Forward Declarations
+static void S_AL_StreamUpdate( void );
+static void S_AL_StreamDie( void );
+// /Forward Declarations
 
 void AL_SoundInfo( void ) {
     Com_Printf( "AL_VENDOR: %s\n", qalGetString( AL_VENDOR ) );
@@ -43,6 +53,18 @@ void AL_SoundInfo( void ) {
     Com_Printf( "AL_VERSION: %s\n", qalGetString( AL_VERSION ) );
     Com_Printf( "AL_EXTENSIONS: %s\n", qalGetString( AL_EXTENSIONS ) );
     Com_Printf( "Number of sources: %d\n", s_numchannels );
+}
+
+static void AL_InitStreamSource() {
+	qalSourcei (streamSource, AL_BUFFER,          0            );
+	qalSourcei (streamSource, AL_LOOPING,         AL_FALSE     );
+	qalSource3f(streamSource, AL_POSITION,        0.0, 0.0, 0.0);
+	qalSource3f(streamSource, AL_VELOCITY,        0.0, 0.0, 0.0);
+	qalSource3f(streamSource, AL_DIRECTION,       0.0, 0.0, 0.0);
+	qalSourcef (streamSource, AL_ROLLOFF_FACTOR,  0.0          );
+	qalSourcei (streamSource, AL_SOURCE_RELATIVE, AL_TRUE      );
+
+	// srcList[cursrc].scaleGain = 0.0f; FIXME - something like that?
 }
 
 qboolean AL_Init( void ) {
@@ -61,19 +83,29 @@ qboolean AL_Init( void ) {
 
     // generate source names
     qalGetError();
-    for( i = 0; i < MAX_CHANNELS; i++ ) {
-        qalGenSources( 1, &s_srcnums[i] );
-        if( qalGetError() != AL_NO_ERROR ) {
-            break;
-        }
-    }
+    qalGenSources( 1, &streamSource );
+    if( qalGetError() != AL_NO_ERROR )
+    {
+    	Com_Printf( "ERROR: Couldn't get a single Source.\n" );
+		goto fail;
 
-    if( i < MIN_CHANNELS ) {
-        Com_Printf( "ERROR: Required at least %d sources, but got %d.\n", MIN_CHANNELS, i );
-        goto fail;
+    } else {
+    	// -1 because we already got one channel for streaming
+    	for( i = 0; i < MAX_CHANNELS - 1; i++ ) {
+			qalGenSources( 1, &s_srcnums[i] );
+			if( qalGetError() != AL_NO_ERROR ) {
+				break;
+			}
+		}
+
+		if( i < MIN_CHANNELS - 1 ) {
+			Com_Printf( "ERROR: Required at least %d sources, but got %d.\n", MIN_CHANNELS, i+1 );
+			goto fail;
+		}
     }
 
     s_numchannels = i;
+    AL_InitStreamSource();
 
     Com_Printf( "OpenAL initialized.\n" );
     return true;
@@ -92,7 +124,7 @@ void AL_Shutdown( void ) {
         memset( s_srcnums, 0, sizeof( s_srcnums ) );
         s_numchannels = 0;
     }
-
+    S_AL_StreamDie();
     QAL_Shutdown();
 }
 
@@ -204,6 +236,8 @@ void AL_StopAllChannels( void ) {
             continue;
         AL_StopChannel( ch );
     }
+    s_rawend = 0;
+    S_AL_StreamDie();
 }
 
 static channel_t *AL_FindLoopingSound( int entnum, sfx_t *sfx ) {
@@ -291,34 +325,6 @@ static void AL_IssuePlaysounds( void ) {
             break;
         S_IssuePlaysound (ps);
     }
-    // TODO: streaming sounds from s_rawsamples, equivalent to code below - see also ioq3's code
-
-#if 0
-    /* clear the paint buffer */
-	if ( s_rawend < paintedtime )
-	{
-		memset( paintbuffer, 0, ( end - paintedtime ) * sizeof ( portable_samplepair_t ) );
-	}
-	else
-	{
-		/* copy from the streaming sound source */
-		int s;
-		int stop;
-
-		stop = ( end < s_rawend ) ? end : s_rawend;
-
-		for ( i = paintedtime; i < stop; i++ )
-		{
-			s = i & ( MAX_RAW_SAMPLES - 1 );
-			paintbuffer [ i - paintedtime ] = s_rawsamples [ s ];
-		}
-
-		for ( ; i < end; i++ )
-		{
-			paintbuffer [ i - paintedtime ].left = paintbuffer [ i - paintedtime ].right = 0;
-		}
-	}
-#endif
 }
 
 void AL_Update( void ) {
@@ -326,13 +332,13 @@ void AL_Update( void ) {
     channel_t   *ch;
     vec_t       orientation[6];
 
-    /*
+    /* FIXME
     if( !s_active ) {
         return;
     }
     */
 
-    paintedtime = cl.time;
+   // paintedtime = cl.time; // FIXME: this does *not* make music work.
 
     // set listener parameters
     qalListener3f( AL_POSITION, AL_UnpackVector( listener_origin ) );
@@ -380,10 +386,156 @@ void AL_Update( void ) {
     // add loopsounds
     AL_AddLoopSounds ();
 
-    // FIXME: About here some ogg vorbis stuff (maybe calling OGG_Stream()
-    //        like in S_Update()) should be done.
+    // add music
+    OGG_Stream();
+    S_AL_StreamUpdate();
 
     AL_IssuePlaysounds();
+
+    //paintedtime = <begintime of last pending play>; ??
+    // evtl paintedtime = soundtime falls paintedtime < soundtime - aber soundtime ist eigentlich DMA spezifisch
+    // paintedtime = cl.time; FIXME: das allein reicht nicht damit musik funktioniert
+
+}
+
+/*
+===========================================================================
+* The remaining functions in this file are from zeq2 who seem to have got
+* them from ioquake3. Adapted for Yamagi Quake II (e.g. we only need one
+* non-spatialized stream)
+*
+* They came with the following copyright notice (modified to make clear
+* that only the rest of this file is affected):
+
+Copyright (C) 1999-2005 Id Software, Inc.
+Copyright (C) 2005 Stuart Dalton (badcdev@gmail.com)
+              2012 Some changes by the Yamagi Quake II developers
+
+The rest of this file is part of Quake III Arena source code.
+
+Quake III Arena source code is free software; you can redistribute it
+and/or modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 of the License,
+or (at your option) any later version.
+
+Quake III Arena source code is distributed in the hope that it will be
+useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Quake III Arena source code; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+===========================================================================
+ */
+
+static void S_AL_StreamDie( void )
+{
+	int		numBuffers;
+
+
+	streamPlaying = false;
+	qalSourceStop(streamSource);
+
+	// Un-queue any buffers, and delete them
+	qalGetSourcei( streamSource, AL_BUFFERS_PROCESSED, &numBuffers );
+	while( numBuffers-- )
+	{
+		ALuint buffer;
+		qalSourceUnqueueBuffers(streamSource, 1, &buffer);
+		qalDeleteBuffers(1, &buffer);
+	}
+
+	// S_AL_FreeStreamChannel(stream);
+}
+
+static void S_AL_StreamUpdate( void )
+{
+	int		numBuffers;
+	ALint	state;
+
+	// Un-queue any buffers, and delete them
+	qalGetSourcei( streamSource, AL_BUFFERS_PROCESSED, &numBuffers );
+	while( numBuffers-- )
+	{
+		ALuint buffer;
+		qalSourceUnqueueBuffers(streamSource, 1, &buffer);
+		qalDeleteBuffers(1, &buffer);
+	}
+
+	// Start the streamSource playing if necessary
+	qalGetSourcei( streamSource, AL_BUFFERS_QUEUED, &numBuffers );
+
+	qalGetSourcei(streamSource, AL_SOURCE_STATE, &state);
+	if(state == AL_STOPPED)
+	{
+		streamPlaying = false;
+
+		// If there are no buffers queued up, release the streamSource
+		//if( !numBuffers )
+		//	S_AL_FreeStreamChannel( stream );
+	}
+
+	if( !streamPlaying && numBuffers )
+	{
+		qalSourcePlay( streamSource );
+		streamPlaying = true;
+	}
+}
+
+static ALuint S_AL_Format(int width, int channels)
+{
+	ALuint format = AL_FORMAT_MONO16;
+
+	// Work out format
+	if(width == 1)
+	{
+		if(channels == 1)
+			format = AL_FORMAT_MONO8;
+		else if(channels == 2)
+			format = AL_FORMAT_STEREO8;
+	}
+	else if(width == 2)
+	{
+		if(channels == 1)
+			format = AL_FORMAT_MONO16;
+		else if(channels == 2)
+			format = AL_FORMAT_STEREO16;
+	}
+
+	return format;
+}
+
+void AL_RawSamples( int samples, int rate, int width, int channels, byte *data, float volume )
+{
+	ALuint buffer;
+	ALuint format;
+
+	format = S_AL_Format( width, channels );
+
+	// Create a buffer, and stuff the data into it
+	qalGenBuffers(1, &buffer);
+	qalBufferData(buffer, format, (ALvoid *)data, (samples * width * channels), rate);
+
+	// set volume
+	qalSourcef( streamSource, AL_GAIN, volume );
+
+	// Shove the data onto the streamSource
+	qalSourceQueueBuffers(streamSource, 1, &buffer);
+
+	// emulate behavior of S_RawSamples for s_rawend
+	s_rawend += samples;
+	/*
+	// get this buffers speed/frequency
+	ALint speed = 0;
+	qalGetBufferi(buffer, AL_FREQUENCY, &speed);
+	// FIXME: the buffers are leaking I think
+	float scale = (float) rate / speed;
+
+	if( samples > 0 && scale >= 0.0f ) {
+		s_rawend += samples/scale;
+	}
+	*/
 }
 
 #endif // USE_OPENAL

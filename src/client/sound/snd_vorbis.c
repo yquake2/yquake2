@@ -602,7 +602,7 @@ OGG_Stream ( void )
 		return;
 	}
 
-	while ( ogg_status == PLAY && paintedtime + MAX_RAW_SAMPLES - 2048 > s_rawend )
+	while ( ogg_status == PLAY  && paintedtime + MAX_RAW_SAMPLES - 2048 > s_rawend )
 	{
 		OGG_Read();
 	}

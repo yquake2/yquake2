@@ -1101,16 +1101,20 @@ S_RawSamples ( int samples, int rate, int width, int channels, byte *data, float
 		return;
 	}
 
-	// FIXME!!
-	if( sound_started == SS_OAL )
-		return;
-
 	if ( s_rawend < paintedtime )
 	{
 		s_rawend = paintedtime;
 	}
 
-	scale = (float) rate / dma.speed; // FIXME: dma.speed is not available (0) when using openal
+#if USE_OPENAL
+	if( sound_started == SS_OAL )
+	{
+		AL_RawSamples(samples, rate, width, channels, data, volume);
+		return;
+	}
+#endif
+
+	scale = (float) rate / dma.speed;
 	intVolume = (int) (256 * volume);
 
 	if ( ( channels == 2 ) && ( width == 2 ) )
@@ -1243,7 +1247,9 @@ S_Update ( vec3_t origin, vec3_t forward, vec3_t right, vec3_t up )
 	 * dma buffer while loading */
 	if ( cls.disable_screen )
 	{
-		S_ClearBuffer();
+		if (sound_started == SS_DMA ) {
+			S_ClearBuffer();
+		}
 		return;
 	}
 
