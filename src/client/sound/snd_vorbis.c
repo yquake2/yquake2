@@ -54,6 +54,7 @@ cvar_t       *ogg_sequence; /* Sequence play indicator. */
 cvar_t       *ogg_volume; /* Music volume. */
 OggVorbis_File ovFile;  /* Ogg Vorbis file. */
 vorbis_info *ogg_info;  /* Ogg Vorbis file information */
+int			 ogg_numbufs; /* Number of buffers for OpenAL */
 
 /*
  * Initialize the Ogg Vorbis subsystem.
@@ -583,6 +584,7 @@ OGG_Stop ( void )
 	ov_clear( &ovFile );
 	ogg_status = STOP;
 	ogg_info = NULL;
+	ogg_numbufs = 0;
 
 	if ( ogg_buffer != NULL )
 	{
@@ -606,24 +608,32 @@ OGG_Stream ( void )
 	if ( ogg_status == PLAY )
 	{
 #ifdef USE_OPENAL
-		if( sound_started == SS_OAL )
+		if ( sound_started == SS_OAL )
 		{
+			/* Calculate the number of buffers used
+			   for storing decoded OGG/Vorbis data.
+			   We take the number of active buffers
+			   at startup (at this point most of the
+			   samples should be precached and loaded
+			   into buffers) and add 24. Empircal
+			   testing showed, that at most times
+			   at least 12 buffers remain available
+			   for OGG/Vorbis, enough for about 0.5
+			   seconds playback. The music won't 
+			   stutter as long as the framerate 
+			   stayes over 3 FPS. */
+			if ( ogg_numbufs == 0 )
+			{
+				ogg_numbufs = active_buffers + 24;
+			}
+
 			/* active_buffers are all active OpenAL buffers,
-			   buffering normal sfx _and_ ogg/vorbis samples.
-			   Empirical testing showed that there are most
-			   likly never more than 256 sfx buffers active.
-			   Read ogg samples into buffers until there are
-			   384 active buffers. This keeps at least 128
-			   ogg buffers (128 * 4096 Byte = 512 KByte) in
-			   the memory. That's about 30 second of music
-			   playback, more than enough to rule out buffer
-			   underruns even at very, very, very low frame
-			   rates. */
-			while ( active_buffers <= 384 )
+			   buffering normal sfx _and_ ogg/vorbis samples. */
+			while ( active_buffers <= ogg_numbufs )
 			{
 				OGG_Read();
 			}
-		} else { // using DMA/SDL
+		} else { /* using DMA/SDL */
 #endif
 			/* Read that number samples into the buffer, that
 			   were played since the last call to this function.
@@ -634,9 +644,9 @@ OGG_Stream ( void )
 				OGG_Read();
 			}
 #ifdef USE_OPENAL
-		} // using DMA/SDL
+		} /* using DMA/SDL */
 #endif
-	} // ogg_status == PLAY
+	} /* ogg_status == PLAY */
 
 }
 
@@ -722,6 +732,7 @@ OGG_PauseCmd ( void )
 	if ( ogg_status == PLAY )
 	{
 		ogg_status = PAUSE;
+		ogg_numbufs = 0;
 	}
 }
 
