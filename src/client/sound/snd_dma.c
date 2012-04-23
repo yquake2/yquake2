@@ -773,7 +773,6 @@ void
 S_StartSound ( vec3_t origin, int entnum, int entchannel, sfx_t *sfx, float fvol, float attenuation, float timeofs )
 {
 	sfxcache_t  *sc;
-	int vol;
 	playsound_t *ps, *sort;
 
 	if ( !sound_started )
@@ -802,8 +801,6 @@ S_StartSound ( vec3_t origin, int entnum, int entchannel, sfx_t *sfx, float fvol
 		return; /* couldn't load the sound's data */
 	}
 
-	vol = fvol * 255;
-
 	/* make the playsound_t */
 	ps = S_AllocPlaysound();
 
@@ -825,15 +822,19 @@ S_StartSound ( vec3_t origin, int entnum, int entchannel, sfx_t *sfx, float fvol
 	ps->entnum = entnum;
 	ps->entchannel = entchannel;
 	ps->attenuation = attenuation;
-	ps->volume = vol;
 	ps->sfx = sfx;
 
 #if USE_OPENAL
 	if( sound_started == SS_OAL ) {
 		ps->begin = paintedtime + timeofs * 1000;
-	} else
+		ps->volume = fvol * 384;
+	} 
+	else
 #endif
+	{
 		ps->begin = DMA_DriftBeginofs(timeofs);
+		ps->volume = fvol * 255;
+	}
 
 	/* sort into the pending sound list */
 	for ( sort = s_pendingplays.next;
