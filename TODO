@@ -1,3 +1,11 @@
 - Dateien neu ordnen (vielleicht besser nach dem Merge...)
 - Das Makro-Gefrickel in qal_api.c ist ja wohl widerlichST.
   Lass uns da lieber ein paar Codeblöcke haben, als DAS DA!
+- Doku anpassen
+- yq2-Lizenzheader und Inhaltsbeschreibungen
+- Den Kram hinter _DEBUG raus oder konsistent mit dem Rest
+  vom Source
+- Die zwei Lizenzheader in snd_al.c sind irgendwie seltsam.
+  Ich habe da grundsätzlich nichts gegen, aber da Anwälte
+  kreativ sein können, sollte man das vielleicht doch noch
+  in 2 Dateien spalten oder so
