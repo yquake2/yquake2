@@ -91,6 +91,7 @@ qboolean QAL_Init( void ) {
     al_driver = Cvar_Get( "al_driver", DEFAULT_OPENAL_DRIVER, CVAR_ARCHIVE );
     al_device = Cvar_Get( "al_device", "", CVAR_ARCHIVE );
 
+	Com_Printf("LoadLibrary(%s)\n", al_driver->string);
     handle = dlopen( al_driver->string, RTLD_LAZY );
     //Sys_LoadLibrary( al_driver->string, NULL, &handle );
     if( !handle ) {
@@ -102,25 +103,25 @@ QALC_IMP
 QAL_IMP
 #undef QAL
 
-    Com_DPrintf( "...opening OpenAL device: " );
+    Com_Printf( "...opening OpenAL device: " );
     device = qalcOpenDevice( al_device->string[0] ? al_device->string : NULL );
     if( !device ) {
         goto fail;
     }
-    Com_DPrintf( "ok\n" );
+    Com_Printf( "ok\n" );
 
-    Com_DPrintf( "...creating OpenAL context: " );
+    Com_Printf( "...creating OpenAL context: " );
     context = qalcCreateContext( device, NULL );
     if( !context ) {
         goto fail;
     }
-    Com_DPrintf( "ok\n" );
+    Com_Printf( "ok\n" );
 
-    Com_DPrintf( "...making context current: " );
+    Com_Printf( "...making context current: " );
     if( !qalcMakeContextCurrent( context ) ) {
         goto fail;
     }
-    Com_DPrintf( "ok\n" );
+    Com_Printf( "ok\n" );
 
     al_driver->flags |= CVAR_ARCHIVE;
     al_device->flags |= CVAR_ARCHIVE;

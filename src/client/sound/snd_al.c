@@ -109,7 +109,8 @@ qboolean AL_Init( void ) {
     s_numchannels = i;
     AL_InitStreamSource();
 
-    Com_Printf( "OpenAL initialized.\n" );
+	Com_Printf("\nOpenAL setting:\n");
+	AL_SoundInfo();
     return true;
 
 fail:

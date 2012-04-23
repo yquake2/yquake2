@@ -166,7 +166,7 @@ S_Init ( void )
 				return;
 			}
 #if USE_OPENAL
-		} // this is a bit ugly but prevents dangling else problems
+		} /* this is a bit ugly but prevents dangling else problems */
 #endif
 
 		num_sfx = 0;
@@ -174,7 +174,14 @@ S_Init ( void )
 		soundtime = 0;
 		paintedtime = 0;
 
-		Com_Printf( "sound sampling rate: %i\n", dma.speed );
+#if USE_OPENAL
+		if(sound_started == SS_DMA) 
+		{
+			Com_Printf( "Sound sampling rate: %i\n", dma.speed );
+		}
+#else
+		Com_Printf( "Sound sampling rate: %i\n", dma.speed );
+#endif
 
 		S_StopAllSounds();
 		OGG_Init();
@@ -825,7 +832,8 @@ S_StartSound ( vec3_t origin, int entnum, int entchannel, sfx_t *sfx, float fvol
 	ps->sfx = sfx;
 
 #if USE_OPENAL
-	if( sound_started == SS_OAL ) {
+	if( sound_started == SS_OAL ) 
+	{
 		ps->begin = paintedtime + timeofs * 1000;
 		ps->volume = fvol * 384;
 	} 
@@ -1175,9 +1183,6 @@ S_RawSamples ( int samples, int rate, int width, int channels, byte *data, float
 
 			dst = s_rawend & ( MAX_RAW_SAMPLES - 1 );
 			s_rawend++;
-		//	s_rawsamples [dst].left = ((char *) data)[src * 2] * intVolume;
-		//	s_rawsamples [dst].right = ((char *) data)[src * 2 + 1] * intVolume;
-		/* the above doesn't work for me with U8, only the unsigned ones below do */
 			s_rawsamples [dst].left = (((byte *) data)[src * 2] - 128) * intVolume;
 			s_rawsamples [dst].right = (((byte *) data)[src * 2 + 1] - 128) * intVolume;
 		}
