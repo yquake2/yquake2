@@ -121,6 +121,8 @@ fail:
 void AL_Shutdown( void ) {
     Com_Printf( "Shutting down OpenAL.\n" );
 
+	qalDeleteSources(1, &streamSource);
+
     if( s_numchannels ) {
         // delete source names
         qalDeleteSources( s_numchannels, s_srcnums );
