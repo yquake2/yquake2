@@ -500,7 +500,7 @@ R_DrawParticles ( void )
 		qglEnable( GL_BLEND );
 		qglDisable( GL_TEXTURE_2D );
 
-		qglPointSize( gl_particle_size->value );
+		qglPointSize( LittleFloat(gl_particle_size->value) );
 
 		qglBegin( GL_POINTS );
 

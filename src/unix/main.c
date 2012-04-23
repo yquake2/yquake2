@@ -19,13 +19,14 @@
  *
  * =======================================================================
  *
- * This file implements some misc stuff like the main loop
+ * This file is the starting point of the program and implements 
+ * the main loop
  *
  * =======================================================================
  */
 
-#include <ctype.h>
 #include <fcntl.h>
+#include <locale.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -35,20 +36,6 @@
 
 cvar_t *nostdout;
 uid_t saved_euid;
-
-char *
-strlwr ( char *s )
-{
-	char *p = s;
-
-	while ( *s )
-	{
-		*s = tolower( *s );
-		s++;
-	}
-
-	return ( p );
-}
 
 int
 main ( int argc, char **argv )
@@ -62,8 +49,14 @@ main ( int argc, char **argv )
 	saved_euid = geteuid();
 	seteuid( getuid() );
 
+	/* enforce C locale */
+	setlocale(LC_ALL, "C");
+
 	printf( "\nYamagi Quake II v%4.2f\n", VERSION);
 	printf( "=====================\n\n");
+
+    printf("Platform: %s\n", BUILDSTRING);
+	printf("Architecture: %s\n", CPUSTRING);
 
 	Qcommon_Init( argc, argv );
 

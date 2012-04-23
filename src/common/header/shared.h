@@ -196,6 +196,8 @@ void Com_sprintf(char *dest, int size, char *fmt, ...);
 
 void Com_PageInMemory(byte *buffer, int size);
 
+char *strlwr ( char *s );
+
 /* ============================================= */
 
 /* portable case insensitive compare */

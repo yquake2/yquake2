@@ -48,8 +48,8 @@ void FloodArea_r (carea_t *area, int floodnum)
 
 	for (i=0 ; i<area->numareaportals ; i++, p++)
 	{
-		if (portalopen[p->portalnum])
-			FloodArea_r (&map_areas[p->otherarea], floodnum);
+		if (portalopen[LittleLong(p->portalnum)])
+			FloodArea_r (&map_areas[LittleLong(p->otherarea)], floodnum);
 	}
 }
 

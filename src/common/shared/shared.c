@@ -24,6 +24,8 @@
  * =======================================================================
  */
 
+#include <ctype.h>
+
 #include "../header/shared.h"
 
 #define DEG2RAD(a) (a * M_PI) / 180.0F
@@ -791,8 +793,8 @@ BigShort(short l)
 
 short
 LittleShort(short l)
-{return 
-	_LittleShort(l); 
+{
+	return _LittleShort(l); 
 }
 
 int
@@ -893,6 +895,7 @@ Swap_Init(void)
 		_LittleLong = LongNoSwap;
 		_BigFloat = FloatSwap;
 		_LittleFloat = FloatNoSwap;
+		Com_Printf("Byte ordering: little endian\n\n");
 	}
 	else
 	{
@@ -903,7 +906,11 @@ Swap_Init(void)
 		_LittleLong = LongSwap;
 		_BigFloat = FloatNoSwap;
 		_LittleFloat = FloatSwap;
+		Com_Printf("Byte ordering: big endian\n\n");
 	}
+
+	if (LittleShort(*(short *)swaptest) != 1)
+		assert("Error in the endian conversion!");
 }
 
 /*
@@ -1109,6 +1116,20 @@ Com_sprintf(char *dest, int size, char *fmt, ...)
 	bigbuffer[size - 1] = '\0';
 	strcpy(dest, bigbuffer);
 }
+
+char *
+strlwr ( char *s )
+{
+	char *p = s;
+
+	while ( *s )
+	{
+		*s = tolower( *s );
+		s++;
+	}
+
+	return ( p );
+} 
 
 /*
  * =====================================================================
