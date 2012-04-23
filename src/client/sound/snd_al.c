@@ -111,6 +111,7 @@ qboolean AL_Init( void ) {
 
 	Com_Printf("\nOpenAL setting:\n");
 	AL_SoundInfo();
+	Com_Printf("\n");
     return true;
 
 fail:
