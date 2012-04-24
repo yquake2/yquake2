@@ -25,8 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef USE_OPENAL
 
 #include "../header/client.h"
+#include "../../unix/header/qal.h"
 #include "header/local.h"
-#include "header/qal_api.h"
 #include "header/vorbis.h"
 
 // translates from AL coordinate system to quake

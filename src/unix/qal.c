@@ -29,13 +29,15 @@
  * =======================================================================
  */
 
+#ifdef USE_OPENAL
+
 #include <dlfcn.h>
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
 
-#include "../../common/header/common.h"
-#include "header/qal_api.h"
+#include "../common/header/common.h"
+#include "header/qal.h"
 
 static ALCcontext *context;
 static ALCdevice *device;
@@ -482,4 +484,6 @@ QAL_Init()
  
     return true;
 }
+
+#endif /* USE_OPENAL */
 

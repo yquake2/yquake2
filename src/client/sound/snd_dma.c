@@ -27,9 +27,9 @@
  */
 
 #include "../header/client.h"
+#include "../../unix/header/qal.h"
 #include "header/local.h"
 #include "header/vorbis.h"
-#include "header/qal_api.h"
 
 void S_Play ( void );
 void S_SoundList ( void );

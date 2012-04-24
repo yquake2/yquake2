@@ -26,6 +26,8 @@
  * =======================================================================
  */
 
+#ifdef USE_OPENAL
+
 #ifndef _QAL_API_H_
 #define _QAL_API_H_
 
@@ -126,4 +128,5 @@ qboolean QAL_Init(void);
 void QAL_Shutdown(void);
 
 #endif /* _QAL_API_H_ */
+#endif /* USE_OPENAL */
 

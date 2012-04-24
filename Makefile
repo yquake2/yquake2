@@ -252,7 +252,6 @@ CLIENT_OBJS_ := \
 	src/client/menu/menu.o \
 	src/client/menu/qmenu.o \
 	src/client/menu/videomenu.o \
-	src/client/sound/qal_api.o \
 	src/client/sound/snd_al.o \
 	src/client/sound/snd_dma.o \
 	src/client/sound/snd_mem.o \
@@ -300,6 +299,7 @@ CLIENT_OBJS_ := \
 	src/unix/hunk.o \
 	src/unix/main.o \
  	src/unix/network.o \
+	src/unix/qal.o \
  	src/unix/signalhandler.o \
 	src/unix/system.o \
  	src/unix/vid.o 
