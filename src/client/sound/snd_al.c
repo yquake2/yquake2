@@ -49,14 +49,6 @@ static void S_AL_StreamUpdate( void );
 static void S_AL_StreamDie( void );
 // /Forward Declarations
 
-void AL_SoundInfo( void ) {
-    Com_Printf( "AL_VENDOR: %s\n", qalGetString( AL_VENDOR ) );
-    Com_Printf( "AL_RENDERER: %s\n", qalGetString( AL_RENDERER ) );
-    Com_Printf( "AL_VERSION: %s\n", qalGetString( AL_VERSION ) );
-    Com_Printf( "AL_EXTENSIONS: %s\n", qalGetString( AL_EXTENSIONS ) );
-    Com_Printf( "Number of sources: %d\n", s_numchannels );
-}
-
 static void AL_InitStreamSource() {
 	qalSourcei (streamSource, AL_BUFFER,          0            );
 	qalSourcei (streamSource, AL_LOOPING,         AL_FALSE     );
@@ -108,10 +100,9 @@ qboolean AL_Init( void ) {
 
     s_numchannels = i;
     AL_InitStreamSource();
+   
+	Com_Printf("Number of OpenAL sources: %d\n\n", s_numchannels);
 
-	Com_Printf("\nOpenAL setting:\n");
-	AL_SoundInfo();
-	Com_Printf("\n");
     return true;
 
 fail:

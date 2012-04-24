@@ -30,7 +30,9 @@
  */
 
 #include <dlfcn.h>
+#include <AL/al.h>
 #include <AL/alc.h>
+#include <AL/alext.h>
 
 #include "../../common/header/common.h"
 #include "header/qal_api.h"
@@ -138,7 +140,58 @@ LPALDOPPLERFACTOR qalDopplerFactor;
 LPALDOPPLERVELOCITY qalDopplerVelocity; 
 LPALSPEEDOFSOUND qalSpeedOfSound;
 LPALDISTANCEMODEL qalDistanceModel;
-   
+
+/* 
+ * Gives information over the OpenAL
+ * implementation and it's state
+ */
+void QAL_SoundInfo() 
+{
+	Com_Printf("OpenAL settings:\n");
+    Com_Printf("AL_VENDOR: %s\n", qalGetString(AL_VENDOR));
+    Com_Printf("AL_RENDERER: %s\n", qalGetString(AL_RENDERER));
+    Com_Printf("AL_VERSION: %s\n", qalGetString(AL_VERSION));
+    Com_Printf("AL_EXTENSIONS: %s\n", qalGetString(AL_EXTENSIONS));
+
+	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT"))
+	{
+		const char *devs = alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
+
+		Com_Printf("\nAvailable OpenAL devices:\n");
+
+		if (devs == NULL)
+		{
+			Com_Printf("- No devices found. Depending on your\n");
+			Com_Printf("  platform this may be expected and\n");
+			Com_Printf("  doesn't indicate a problem!\n");
+		}
+		else
+		{
+			while (devs && *devs)
+			{
+				Com_Printf("- %s\n", devs);
+				devs += strlen(devs) + 1;
+			}
+		}
+	} 
+	 
+   	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT"))
+	{
+		const char *devs = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+    
+		Com_Printf("\nCurrent OpenAL device:\n");
+
+		if (devs == NULL)
+		{
+			Com_Printf("- No OpenAL device in use\n");
+		}
+		else
+		{
+			Com_Printf("- %s\n", devs);
+		}
+	}
+} 
+
 /*
  * Shuts OpenAL down, frees all context and
  * device handles and unloads the shared lib.
@@ -422,6 +475,11 @@ QAL_Init()
 
 	Com_Printf("ok\n");
 
+	/* Print OpenAL informations */
+	Com_Printf("\n");
+	QAL_SoundInfo();
+	Com_Printf("\n");
+ 
     return true;
 }
 

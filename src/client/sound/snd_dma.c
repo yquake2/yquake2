@@ -29,6 +29,7 @@
 #include "../header/client.h"
 #include "header/local.h"
 #include "header/vorbis.h"
+#include "header/qal_api.h"
 
 void S_Play ( void );
 void S_SoundList ( void );
@@ -108,7 +109,8 @@ S_SoundInfo_f ( void )
 	}
 #if USE_OPENAL
 	if(sound_started == SS_OAL) {
-		AL_SoundInfo();
+		QAL_SoundInfo();
+		Com_Printf("\nNumber of sources: %d\n", s_numchannels);
 	} else
 #endif
 		DMA_SoundInfo();
