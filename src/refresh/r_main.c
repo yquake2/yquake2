@@ -1096,6 +1096,19 @@ R_Init ( void *hinstance, void *hWnd )
 		r_turbsin [ j ] *= 0.5;
 	}
 
+	/* Options */
+	Com_Printf("Refresher build options:\n");
+#ifdef RETEXTURE
+	Com_Printf(" + Retexturing support\n");
+#else
+	Com_Printf(" - Retexturing support\n");
+#endif
+#ifdef X11GAMA
+	Com_Printf(" + Gamma via X11\n");
+#else
+	Com_Printf(" - Gamma via X11\n");
+#endif
+
 	ri.Con_Printf( PRINT_ALL, "Refresh: " REF_VERSION "\n" );
 
 	Draw_GetPalette();
