@@ -44,7 +44,7 @@ WITH_X11GAMMA=no
 WITH_ZIP=yes
 
 # ====================================================== #
-#     !!! DO NOT ALTER ANYTHING BELOW THis LINE !!!      #
+#     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
 # ====================================================== #
 
 # Check the OS type
