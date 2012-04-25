@@ -134,7 +134,9 @@ cvar_t  *gl_mode;
 cvar_t  *gl_customwidth;
 cvar_t  *gl_customheight;
 
+#ifdef RETEXTURE
 cvar_t	*gl_retexturing;
+#endif
 
 cvar_t  *gl_dynamic;
 cvar_t  *gl_modulate;
@@ -1012,7 +1014,9 @@ R_Register ( void )
 	gl_customwidth = ri.Cvar_Get( "gl_customwidth",  "1024", CVAR_ARCHIVE );
 	gl_customheight = ri.Cvar_Get( "gl_customheight", "768", CVAR_ARCHIVE );
 
+#ifdef RETEXTURE
 	gl_retexturing = ri.Cvar_Get( "gl_retexturing", "1", CVAR_ARCHIVE );
+#endif
 
 	ri.Cmd_AddCommand( "imagelist", R_ImageList_f );
 	ri.Cmd_AddCommand( "screenshot", R_ScreenShot );

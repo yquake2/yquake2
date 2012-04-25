@@ -200,7 +200,9 @@ extern cvar_t  *gl_mode;
 extern cvar_t  *gl_customwidth;
 extern cvar_t  *gl_customheight;
 
+#ifdef RETEXTURE
 extern cvar_t  *gl_retexturing;
+#endif
 
 extern cvar_t  *gl_log;
 extern cvar_t  *gl_lightmap;
