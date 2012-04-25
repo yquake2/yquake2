@@ -121,7 +121,9 @@ The same applies to the "ctf" capture the flag addon.
 After you have set up the game data (from the full version or the
 demo), you have to compile the Yamagi Quake II client.
 
-You will need the following dependencies:
+You will need the following dependencies (by editing the Makefile
+the requirement of most of this depencenies can be removed, but
+it'll lead to the loss of features):
  - A libGL implementation (Mesa3D, nVidia, AMD Catalyst, etc.)
  - OpenGL system headers 
  - libjpeg (6 or 8) 
