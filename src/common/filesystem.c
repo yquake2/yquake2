@@ -27,7 +27,10 @@
 
 #include "header/common.h"
 #include "../unix/header/glob.h"
+
+#ifdef ZIP
 #include "unzip/unzip.h"
+#endif
 
 #define MAX_HANDLES		512
 #define MAX_READ		0x10000
@@ -46,7 +49,9 @@ typedef struct
 	char		name[MAX_QPATH];
 	fsMode_t	mode;
 	FILE           *file; /* Only one will be used. */
+#ifdef ZIP
 	unzFile        *zip; /* (file or zip) */
+#endif
 } fsHandle_t;
 
 typedef struct fsLink_s
@@ -69,7 +74,9 @@ typedef struct
 	char		name[MAX_OSPATH];
 	int		numFiles;
 	FILE           *pak;
+#ifdef ZIP
 	unzFile        *pk3;
+#endif
 	fsPackFile_t   *files;
 } fsPack_t;
 
@@ -83,7 +90,9 @@ typedef struct fsSearchPath_s
 typedef enum
 {
 	PAK,
+#ifdef ZIP
 	PK3
+#endif
 } fsPackFormat_t;
 
 typedef struct
@@ -101,9 +110,11 @@ fsSearchPath_t *fs_baseSearchPaths;
 fsPackTypes_t	fs_packtypes[] =
 {
 	{"pak", PAK},
+#ifdef ZIP
 	{"pk2", PK3},
 	{"pk3", PK3},
 	{"zip", PK3}
+#endif
 };
 
 char		fs_gamedir[MAX_OSPATH];
@@ -114,8 +125,10 @@ static qboolean	fs_fileInPack;
 
 /* Set by FS_FOpenFile. */
 int		file_from_pak = 0;
+#ifdef ZIP
 int		file_from_pk3 = 0;
 char	file_from_pk3_name[MAX_QPATH];
+#endif
 
 cvar_t         *fs_homepath;
 cvar_t         *fs_basedir;
@@ -262,8 +275,10 @@ FS_FileForHandle(fileHandle_t f)
 
 	handle = FS_GetFileByHandle(f);
 
+#ifdef ZIP
 	if (handle->zip != NULL)
 		Com_Error(ERR_DROP, "FS_FileForHandle: can't get FILE on zip file");
+#endif
 
 	if (handle->file == NULL)
 		Com_Error(ERR_DROP, "FS_FileForHandle: NULL");
@@ -284,7 +299,11 @@ FS_HandleForFile(const char *path, fileHandle_t * f)
 
 	for (i = 0; i < MAX_HANDLES; i++, handle++)
 	{
-		if (handle->file == NULL && handle->zip == NULL)
+		if (handle->file == NULL 
+#ifdef ZIP
+				&& handle->zip == NULL
+#endif
+				)
 		{
 			strncpy(handle->name, path, sizeof(handle->name));
 			*f = i + 1;
@@ -382,7 +401,9 @@ FS_FOpenFileRead(fsHandle_t * handle)
 	fsPack_t       *pack;
 
 	file_from_pak = 0;
+#ifdef ZIP
 	file_from_pk3 = 0;
+#endif
 
 	/* Search through the path, one element at a time. */
 	for (search = fs_searchPaths; search; search = search->next)
@@ -417,6 +438,7 @@ FS_FOpenFileRead(fsHandle_t * handle)
 						}
 					}
 
+#ifdef ZIP
 					else if (pack->pk3)
 					{
 						/* PK3 */
@@ -435,6 +457,7 @@ FS_FOpenFileRead(fsHandle_t * handle)
 							unzClose(handle->zip);
 						}
 					}
+#endif
 
 					Com_Error(ERR_FATAL, "Couldn't reopen '%s'", pack->name);
 				}
@@ -495,11 +518,13 @@ FS_FCloseFile(fileHandle_t f)
 	if (handle->file)
 		fclose(handle->file);
 
+#ifdef ZIP
 	else if (handle->zip)
 	{
 		unzCloseCurrentFile(handle->zip);
 		unzClose(handle->zip);
 	}
+#endif
 
 	memset(handle, 0, sizeof(*handle));
 }
@@ -607,8 +632,10 @@ FS_Read(void *buffer, int size, fileHandle_t f)
 		if (handle->file)
 			r = fread(buf, 1, remaining, handle->file);
 
+#ifdef ZIP
 		else if (handle->zip)
 			r = unzReadCurrentFile(handle->zip, buf, remaining);
+#endif
 
 		else
 			return (0);
@@ -669,8 +696,10 @@ FS_FRead(void *buffer, int size, int count, fileHandle_t f)
 			if (handle->file)
 				r = fread(buf, 1, remaining, handle->file);
 
+#ifdef ZIP
 			else if (handle->zip)
 				r = unzReadCurrentFile(handle->zip, buf, remaining);
+#endif
 
 			else
 				return (0);
@@ -726,8 +755,10 @@ FS_Write(const void *buffer, int size, fileHandle_t f)
 		if (handle->file)
 			w = fwrite(buf, 1, remaining, handle->file);
 
+#ifdef ZIP
 		else if (handle->zip)
 			Com_Error(ERR_FATAL, "FS_Write: can't write to zip file '%s'", handle->name);
+#endif
 
 		else
 			return (0);
@@ -758,8 +789,10 @@ FS_FTell(fileHandle_t f)
 	if (handle->file)
 		return ftell(handle->file);
 
+#ifdef ZIP
 	else if (handle->zip)
 		return unztell(handle->zip);
+#endif
 
 	return 0;
 }
@@ -819,12 +852,14 @@ FS_ListPak(char *find, int *num)
 void
 FS_Seek(fileHandle_t f, int offset, fsOrigin_t origin)
 {
+#ifdef ZIP
 	byte		dummy[0x8000]; /* Dummy buffer to skip bytes. */
 	int			len; /* Length of byte chunk to skip. */
 	int			r; /* Number of bytes read. */
 	int			remaining = 0; /* Remaining bytes to skip. */
-	fsHandle_t	*handle; /* File handle. */
 	unz_file_info	info; /* ZIP information. */
+#endif
+	fsHandle_t	*handle; /* File handle. */
 
 	handle = FS_GetFileByHandle(f);
 
@@ -847,6 +882,7 @@ FS_Seek(fileHandle_t f, int offset, fsOrigin_t origin)
 		}
 	}
 
+#ifdef ZIP
 	else if (handle->zip)
 	{
 		switch (origin)
@@ -886,6 +922,7 @@ FS_Seek(fileHandle_t f, int offset, fsOrigin_t origin)
 			remaining -= r;
 		}
 	}
+#endif
 }
 
 /*
@@ -901,8 +938,10 @@ FS_Tell(fileHandle_t f)
 	if (handle->file)
 		return (ftell(handle->file));
 
+#ifdef ZIP
 	else if (handle->zip)
 		return (unztell(handle->zip));
+#endif
 
 	return (-1);
 }
@@ -1047,7 +1086,9 @@ FS_LoadPAK(const char *packPath)
 	pack = Z_Malloc(sizeof(fsPack_t));
 	strncpy(pack->name, packPath, sizeof(pack->name));
 	pack->pak = handle;
+#ifdef ZIP
 	pack->pk3 = NULL;
+#endif
 	pack->numFiles = numFiles;
 	pack->files = files;
 
@@ -1056,6 +1097,7 @@ FS_LoadPAK(const char *packPath)
 	return (pack);
 }
 
+#ifdef ZIP
 /*
  * Takes an explicit (not game tree related) path to a pack file.
  *
@@ -1121,6 +1163,7 @@ FS_LoadPK3(const char *packPath)
 
 	return (pack);
 }
+#endif
 
 /*
  * Adds the directory to the head of the path, then loads and adds pak1.pak
@@ -1163,9 +1206,11 @@ FS_AddGameDirectory(const char *dir)
 				case PAK:
 					pack = FS_LoadPAK(path);
 					break;
+#ifdef ZIP
 				case PK3:
 					pack = FS_LoadPK3(path);
 					break;
+#endif
 			}
 
 			if (pack == NULL)
@@ -1198,9 +1243,11 @@ FS_AddGameDirectory(const char *dir)
 				case PAK:
 					pack = FS_LoadPAK(list[j]);
 					break;
+#ifdef ZIP
 				case PK3:
 					pack = FS_LoadPK3(list[j]);
 					break;
+#endif
 			}
 
 			if (pack == NULL)
@@ -1315,14 +1362,22 @@ FS_Path_f(void)
 	Com_Printf("\n");
 
 	for (i = 0, handle = fs_handles; i < MAX_HANDLES; i++, handle++)
-		if (handle->file != NULL || handle->zip != NULL)
+		if (handle->file != NULL 
+#ifdef ZIP
+				|| handle->zip != NULL
+#endif
+				)
 			Com_Printf("Handle %i: '%s'.\n", i + 1, handle->name);
 
 	for (i = 0, link = fs_links; link; i++, link = link->next)
 		Com_Printf("Link %i: '%s' -> '%s'.\n", i, link->from, link->to);
 
 	Com_Printf("----------------------\n");
+#ifdef ZIP
 	Com_Printf("%i files in PAK/PK2/PK3/ZIP files.\n", totalFiles);
+#else
+	Com_Printf("%i files in PAK/PK2 files.\n", totalFiles);
+#endif
 }
 
 void
@@ -1354,8 +1409,10 @@ FS_Startup(void)
 				if (pack->pak != NULL)
 					fclose(pack->pak);
 
+#ifdef ZIP
 				if (pack->pk3 != NULL)
 					unzClose(pack->pk3);
+#endif
 
 				Z_Free(pack->files);
 				Z_Free(pack);
@@ -1369,7 +1426,11 @@ FS_Startup(void)
 		/* Close open files for game dir. */
 		for (i = 0; i < MAX_HANDLES; i++)
 			if (strstr(fs_handles[i].name, fs_currentGame) &&
-			        (fs_handles[i].file != NULL || fs_handles[i].zip != NULL))
+			        (fs_handles[i].file != NULL
+#ifdef ZIP
+					 || fs_handles[i].zip != NULL
+#endif
+					 ))
 				FS_FCloseFile(i);
 
 		/* Don't add baseq2 again. */
@@ -1429,8 +1490,10 @@ FS_SetGamedir(char *dir)
 			if (fs_searchPaths->pack->pak)
 				fclose(fs_searchPaths->pack->pak);
 
+#ifdef ZIP
 			if (fs_searchPaths->pack->pk3)
 				unzClose(fs_searchPaths->pack->pk3);
+#endif
 
 			Z_Free(fs_searchPaths->pack->files);
 			Z_Free(fs_searchPaths->pack);
@@ -1444,7 +1507,11 @@ FS_SetGamedir(char *dir)
 	/* Close open files for game dir. */
 	for (i = 0; i < MAX_HANDLES; i++)
 		if (strstr(fs_handles[i].name, dir) &&
-		        (fs_handles[i].file != NULL || fs_handles[i].zip != NULL))
+		        (fs_handles[i].file != NULL 
+#ifdef ZIP
+				 || fs_handles[i].zip != NULL
+#endif
+				 ))
 			FS_FCloseFile(i);
 
 	/* Flush all data, so it will be forced to reload. */
@@ -1881,11 +1948,13 @@ FS_Shutdown(void)
 		if (handle->file != NULL)
 			fclose(handle->file);
 
+#ifdef ZIP
 		if (handle->zip != NULL)
 		{
 			unzCloseCurrentFile(handle->zip);
 			unzClose(handle->zip);
 		}
+#endif
 	}
 
 	/* Free the search paths. */
@@ -1898,8 +1967,10 @@ FS_Shutdown(void)
 			if (pack->pak != NULL)
 				fclose(pack->pak);
 
+#ifdef ZIP
 			if (pack->pk3 != NULL)
 				unzClose(pack->pk3);
+#endif
 
 			Z_Free(pack->files);
 			Z_Free(pack);
