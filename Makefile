@@ -30,6 +30,10 @@ WITH_CDA=yes
 # dependencies to libogg, libvorbis and libvorbisfile.
 WITH_OGG=yes
 
+# Enables the optional OpenAL sound systems. Adds
+# a dependencx to libopenal
+WITH_OPENAL=yes
+
 # Enables retexturing support. Adds a dependency to
 # libjpeg
 WITH_RETEXTURING=yes
@@ -180,6 +184,11 @@ endif
 ifeq ($(WITH_OGG),yes)
 release/quake2 : CFLAGS += -DOGG
 release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg
+endif
+
+ifeq ($(WITH_OPENAL),yes)
+release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
+release/quake2 : LDFLAGS += -lopenal
 endif
 
 ifeq ($(WITH_ZIP),yes)
