@@ -22,6 +22,8 @@
  * =======================================================================
  */
 
+#ifdef OGG
+
 #ifndef CL_SOUND_VORBIS_H
 #define CL_SOUND_VORBIS_H
 
@@ -67,5 +69,6 @@ void		OGG_ResumeCmd(void);
 void		OGG_SeekCmd(void);
 void		OGG_StatusCmd(void);
 
+#endif
 #endif
 

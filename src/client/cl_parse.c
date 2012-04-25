@@ -837,8 +837,11 @@ void CL_ParseConfigString (void) {
 
 	else if (i == CS_CDTRACK) {
 		if (cl.refresh_prepped) {
+#ifdef CDA
 			CDAudio_Play (atoi(cl.configstrings[CS_CDTRACK]), true);
+#endif
 
+#ifdef OGG
 			/* OGG/Vorbis */
 			if (atoi(cl.configstrings[CS_CDTRACK]) < 10) {
 				char tmp[3] = "0";
@@ -847,6 +850,7 @@ void CL_ParseConfigString (void) {
 			} else {
 				OGG_ParseCmd(cl.configstrings[CS_CDTRACK]);
 			}
+#endif
 		}
 
 	} else if (i >= CS_MODELS && i < CS_MODELS+MAX_MODELS) {

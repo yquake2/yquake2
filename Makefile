@@ -7,17 +7,45 @@
 #  - SDL OpenGL-Refresher (ref_gl.so)                    #
 #  - Quake II Game (baseq2)                              #
 #                                                        #
-# Dependencies:                                          #
+# Base dependencies:                                     #
 #  - SDL 1.2                                             #
 #  - libGL                                               #
-#  - libvorbis                                           #
-#  - libogg                                              #
-#  - zlib                                                #
 #                                                        #
 # Platforms:                                             #
 #  - Linux                                               #
 #  - FreeBSD                                             #
 # ------------------------------------------------------ # 
+
+# User configurable options
+# -------------------------
+
+# Enables CD audio playback. CD audio playback is used
+# for the background music and doesn't add any further
+# dependencies. It should work on all platforms where
+# CD playback is supported by SDL.
+WITH_CDA=yes
+
+# Enables OGG/Vorbis support. OGG/Vorbis files can be
+# used as a substitute of CD audio playback. Adds
+# dependencies to libogg, libvorbis and libvorbisfile.
+WITH_OGG=yes
+
+# Enables retexturing support. Adds a dependency to
+# libjpeg
+WITH_RETEXTURING=yes
+
+# Set the gamma via X11 and not via SDL. This works
+# around problems in some SDL version. Adds dependencies
+# to pkg-config, libX11 and libXxf86vm
+WITH_X11GAMMA=no
+
+# Enables opening of ZIP files (also known as .pk3 packs).
+# Adds a dependency to libz
+WITH_ZIP=yes
+
+# ====================================================== #
+#     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
+# ====================================================== #
 
 # Check the OS type
 OSTYPE := $(shell uname -s)
@@ -68,6 +96,16 @@ SDLCFLAGS := $(shell sdl-config --cflags)
 
 # ----------
 
+# Extra CFLAGS for X11	 
+ifeq ($(WITH_X11GAMMA),yes)
+X11CFLAGS := $(shell pkg-config x11 --cflags)	 
+X11CFLAGS += $(shell pkg-config xxf86vm --cflags)
+else
+X11CFLAGS :=
+endif
+
+# ----------
+
 # Base include path.
 ifeq ($(OSTYPE),Linux)
 INCLUDE := -I/usr/include
@@ -88,6 +126,16 @@ endif
 
 # Extra LDFLAGS for SDL
 SDLLDFLAGS := $(shell sdl-config --libs)
+
+# ----------
+
+# Extra LDFLAGS for X11	 
+ifeq ($(WITH_X11GAMMA),yes)
+X11LDFLAGS := $(shell pkg-config x11 --libs)	 
+X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
+else
+X11LDFLAGS :=
+endif
 
 # ----------
 
@@ -125,8 +173,19 @@ build/client/%.o: %.c
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
-release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
-release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg -lz -lopenal
+ifeq ($(WITH_CDA),yes)
+release/quake2 : CFLAGS += -DCDA
+endif
+
+ifeq ($(WITH_OGG),yes)
+release/quake2 : CFLAGS += -DOGG
+release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg
+endif
+
+ifeq ($(WITH_ZIP),yes)
+release/quake2 : CFLAGS += -DZIP
+release/quake2 : LDFLAGS += -lz
+endif
 
 # ----------
 
@@ -144,6 +203,11 @@ build/server/%.o: %.c
 release/q2ded : CFLAGS += -DDEDICATED_ONLY
 release/q2ded : LDFLAGS += -lz
 
+ifeq ($(WITH_ZIP),yes)
+release/q2ded : CFLAGS += -DZIP
+release/q2ded : LDFLAGS += -lz
+endif
+
 # ----------
 
 # The refresher
@@ -155,10 +219,19 @@ refresher:
 build/refresher/%.o: %.c
 	@echo '===> CC $<'
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
 
 release/ref_gl.so : CFLAGS += -fPIC
-release/ref_gl.so : LDFLAGS += -shared -ljpeg
+release/ref_gl.so : LDFLAGS += -shared
+
+ifeq ($(WITH_X11GAMMA),yes)
+release/ref_gl.so : CFLAGS += -DX11GAMMA
+endif
+
+ifeq ($(WITH_RETEXTURING),yes)
+release/ref_gl.so : CFLAGS += -DRETEXTURE
+release/ref_gl.so : LDFLAGS += -ljpeg
+endif
 
 # ----------
 
@@ -416,7 +489,7 @@ release/q2ded : $(SERVER_OBJS)
 # release/ref_gl.so
 release/ref_gl.so : $(OPENGL_OBJS)
 	@echo '===> LD $@'
-	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) -o $@
+	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
 
 # release/baseq2/game.so
 release/baseq2/game.so : $(GAME_OBJS)

@@ -1069,6 +1069,7 @@ R_FindImage ( char *name, imagetype_t type )
 
 	if ( !strcmp( name + len - 4, ".pcx" ) )
 	{
+#ifdef RETEXTURE
 		if (gl_retexturing->value)
 		{
 			GetPCXInfo( name, &realwidth, &realheight );
@@ -1108,6 +1109,7 @@ R_FindImage ( char *name, imagetype_t type )
 			}
 		}
 		else
+#endif
 		{
 			LoadPCX( name, &pic, &palette, &width, &height );
 
@@ -1121,6 +1123,7 @@ R_FindImage ( char *name, imagetype_t type )
 	}
 	else if ( !strcmp( name + len - 4, ".wal" ) )
 	{
+#ifdef RETEXTURE
 		if (gl_retexturing->value)
 		{
 			/* Get size of the original texture */
@@ -1158,6 +1161,7 @@ R_FindImage ( char *name, imagetype_t type )
 			}
 		}
 		else
+#endif
 		{
 			image = LoadWal( name );
 

@@ -145,8 +145,10 @@ S_Init ( void )
 		Cmd_AddCommand( "stopsound", S_StopAllSounds );
 		Cmd_AddCommand( "soundlist", S_SoundList );
 		Cmd_AddCommand( "soundinfo", S_SoundInfo_f );
+#ifdef OGG
 		Cmd_AddCommand( "ogg_init", OGG_Init );
 		Cmd_AddCommand( "ogg_shutdown", OGG_Shutdown );
+#endif
 
 #if ! USE_OPENAL
 		cv = Cvar_Get( "s_openal", "0", CVAR_ARCHIVE);
@@ -186,7 +188,9 @@ S_Init ( void )
 #endif
 
 		S_StopAllSounds();
+#ifdef OGG
 		OGG_Init();
+#endif
 	}
 
 	Com_Printf( "------------------------------------\n\n" );
@@ -235,7 +239,10 @@ S_Shutdown ( void )
 
 	num_sfx = 0;
 
+#ifdef OGG
 	OGG_Shutdown();
+#endif
+	SNDDMA_Shutdown();
 
 #if USE_OPENAL
 	if( sound_started == SS_OAL )
@@ -252,8 +259,10 @@ S_Shutdown ( void )
 	Cmd_RemoveCommand( "soundinfo" );
 	Cmd_RemoveCommand( "play" );
 	Cmd_RemoveCommand( "stopsound" );
+#ifdef OGG
 	Cmd_RemoveCommand( "ogg_init" );
 	Cmd_RemoveCommand( "ogg_shutdown" );
+#endif
 }
 
 /*
@@ -1335,8 +1344,16 @@ S_Update ( vec3_t origin, vec3_t forward, vec3_t right, vec3_t up )
 		Com_Printf( "----(%i)---- painted: %i\n", total, paintedtime );
 	}
          	
+#ifdef OGG
 	/* stream music */
 	OGG_Stream(); 
+#endif
+	
+	/* mix some sound */
+	if ( !sound_started )
+	{
+		return;
+	}
 
 	SNDDMA_BeginPainting();
 
