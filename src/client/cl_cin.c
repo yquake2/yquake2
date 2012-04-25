@@ -453,7 +453,9 @@ SCR_PlayCinematic(char *arg) {
 
 	/* make sure CD isn't playing music */
 	CDAudio_Stop();
+#ifdef OGG
 	OGG_Stop();
+#endif
 
 	cl.cinematicframe = 0;
 	dot = strstr(arg, ".");

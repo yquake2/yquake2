@@ -825,7 +825,9 @@ void CL_Shutdown(void)
 	CL_WriteConfiguration ();
 
 	CDAudio_Shutdown ();
+#ifdef OGG
 	OGG_Stop();
+#endif
 	S_Shutdown();
 	VID_Shutdown();
 }

@@ -131,8 +131,10 @@ S_Init ( void )
 		Cmd_AddCommand( "stopsound", S_StopAllSounds );
 		Cmd_AddCommand( "soundlist", S_SoundList );
 		Cmd_AddCommand( "soundinfo", S_SoundInfo_f );
+#ifdef OGG
 		Cmd_AddCommand( "ogg_init", OGG_Init );
 		Cmd_AddCommand( "ogg_shutdown", OGG_Shutdown );
+#endif
 
 		if ( !SNDDMA_Init() )
 		{
@@ -150,7 +152,9 @@ S_Init ( void )
 		Com_Printf( "sound sampling rate: %i\n", dma.speed );
 
 		S_StopAllSounds();
+#ifdef OGG
 		OGG_Init();
+#endif
 	}
 
 	Com_Printf( "------------------------------------\n\n" );
@@ -189,7 +193,9 @@ S_Shutdown ( void )
 	num_sfx = 0;
 	sound_started = 0;
 
+#ifdef OGG
 	OGG_Shutdown();
+#endif
 	SNDDMA_Shutdown();
 
 	Cmd_RemoveCommand( "soundlist" );
@@ -1229,8 +1235,10 @@ S_Update ( vec3_t origin, vec3_t forward, vec3_t right, vec3_t up )
 		Com_Printf( "----(%i)---- painted: %i\n", total, paintedtime );
 	}
          	
+#ifdef OGG
 	/* stream music */
 	OGG_Stream(); 
+#endif
 	
 	/* mix some sound */
 	if ( !sound_started )

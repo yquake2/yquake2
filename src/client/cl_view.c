@@ -309,6 +309,7 @@ void CL_PrepRefresh (void) {
 	} else {
 		CDAudio_Play (atoi(cl.configstrings[CS_CDTRACK]), true);
 
+#ifdef OGG
 		/* OGG/Vorbis */
 		if (atoi(cl.configstrings[CS_CDTRACK]) < 10) {
 			char tmp[3] = "0";
@@ -317,6 +318,7 @@ void CL_PrepRefresh (void) {
 		} else {
 			OGG_ParseCmd(cl.configstrings[CS_CDTRACK]);
 		}
+#endif
 	}
 }
 

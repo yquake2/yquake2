@@ -27,6 +27,8 @@
  * =======================================================================
  */
 
+#ifdef OGG
+
 #include <sys/time.h>
 #include <errno.h>
 
@@ -786,4 +788,6 @@ OGG_StatusCmd ( void )
 			break;
 	}
 }
+
+# endif /* OGG */
 
