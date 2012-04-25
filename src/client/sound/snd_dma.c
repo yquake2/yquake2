@@ -242,7 +242,6 @@ S_Shutdown ( void )
 #ifdef OGG
 	OGG_Shutdown();
 #endif
-	SNDDMA_Shutdown();
 
 #if USE_OPENAL
 	if( sound_started == SS_OAL )
