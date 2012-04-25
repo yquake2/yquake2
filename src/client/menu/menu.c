@@ -998,8 +998,12 @@ static menulist_s		s_options_lookspring_box;
 static menulist_s		s_options_lookstrafe_box;
 static menulist_s		s_options_crosshair_box;
 static menuslider_s		s_options_sfxvolume_slider;
+#ifdef CDA
 static menulist_s		s_options_cdvolume_box;
+#endif
+#if defined(OGG) || defined(CDA)
 static menulist_s       s_options_cdshuffle_box;
+#endif
 #ifdef OGG
 static menulist_s		s_options_oggvolume_box;
 #endif
@@ -1036,7 +1040,9 @@ static float ClampCvar( float min, float max, float value ) {
 
 static void ControlsSetMenuItemValues( void ) {
 	s_options_sfxvolume_slider.curvalue		= Cvar_VariableValue( "s_volume" ) * 10;
+#ifdef CDA
 	s_options_cdvolume_box.curvalue 		= !Cvar_VariableValue("cd_nocd");
+#endif
 
 #ifdef OGG
 	s_options_oggvolume_box.curvalue 		= Cvar_VariableValue("ogg_enable");
@@ -1095,6 +1101,7 @@ static void UpdateVolumeFunc( void *unused ) {
 	Cvar_SetValue( "s_volume", s_options_sfxvolume_slider.curvalue / 10 );
 }
 
+#if defined(OGG) || defined(CDA)
 static void CDShuffleFunc(void *unused) {
 	Cvar_SetValue("cd_shuffle", s_options_cdshuffle_box.curvalue);
 
@@ -1125,7 +1132,9 @@ static void CDShuffleFunc(void *unused) {
 	}
 #endif
 }
+#endif
 
+#ifdef CDA
 static void UpdateCDVolumeFunc( void *unused ) {
 	Cvar_SetValue( "cd_nocd", (float)!s_options_cdvolume_box.curvalue );
 #ifdef OGG
@@ -1149,14 +1158,19 @@ static void UpdateCDVolumeFunc( void *unused ) {
 		CDAudio_Stop();
 	}
 }
+#endif
 
 #ifdef OGG
 static void UpdateOGGVolumeFunc( void *unused ) {
 	Cvar_SetValue( "ogg_enable", (float)s_options_oggvolume_box.curvalue );
+#ifdef CDA
 	Cvar_SetValue( "cd_nocd", 1 );
+#endif
 
 	if (s_options_oggvolume_box.curvalue) {
+#ifdef CDA
 		CDAudio_Stop();
+#endif
 		OGG_Init();
 		OGG_Stop();
 
@@ -1211,11 +1225,13 @@ static void UpdateSoundQualityFunc( void *unused ) {
 }
 
 static void Options_MenuInit( void ) {
+#ifdef CDA
 	static const char *cd_music_items[] = {
 		"disabled",
 		"enabled",
 		0
 	};
+#endif
 
 #ifdef OGG
 	static const char *ogg_music_items[] = {
@@ -1225,11 +1241,13 @@ static void Options_MenuInit( void ) {
 	};
 #endif
 
+#if defined(OGG) || defined(CDA)
 	static const char *cd_shuffle[] = {
 		"disabled",
 		"enabled",
 		0
 	};
+#endif
 
 	static const char *quality_items[] = {
 		"normal", "high", 0
@@ -1262,7 +1280,8 @@ static void Options_MenuInit( void ) {
 	s_options_sfxvolume_slider.minvalue		= 0;
 	s_options_sfxvolume_slider.maxvalue		= 10;
 	s_options_sfxvolume_slider.curvalue		= Cvar_VariableValue( "s_volume" ) * 10.0f;
-
+                                           
+#ifdef CDA
 	s_options_cdvolume_box.generic.type	= MTYPE_SPINCONTROL;
 	s_options_cdvolume_box.generic.x		= 0;
 	s_options_cdvolume_box.generic.y		= 10;
@@ -1270,6 +1289,7 @@ static void Options_MenuInit( void ) {
 	s_options_cdvolume_box.generic.callback	= UpdateCDVolumeFunc;
 	s_options_cdvolume_box.itemnames		= cd_music_items;
 	s_options_cdvolume_box.curvalue 		= !Cvar_VariableValue("cd_nocd");
+#endif
 
 #ifdef OGG
 	s_options_oggvolume_box.generic.type	= MTYPE_SPINCONTROL;
@@ -1281,6 +1301,7 @@ static void Options_MenuInit( void ) {
 	s_options_oggvolume_box.curvalue 		= Cvar_VariableValue("ogg_enable");
 #endif
 
+#if defined(OGG) || defined(CDA)
 	s_options_cdshuffle_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_cdshuffle_box.generic.x = 0;
 	s_options_cdshuffle_box.generic.y = 30;
@@ -1288,6 +1309,7 @@ static void Options_MenuInit( void ) {
 	s_options_cdshuffle_box.generic.callback = CDShuffleFunc;
 	s_options_cdshuffle_box.itemnames = cd_shuffle;
 	s_options_cdshuffle_box.curvalue = Cvar_VariableValue("cd_shuffle");;
+#endif
 
 	s_options_quality_list.generic.type	= MTYPE_SPINCONTROL;
 	s_options_quality_list.generic.x		= 0;
@@ -1368,11 +1390,15 @@ static void Options_MenuInit( void ) {
 	ControlsSetMenuItemValues();
 
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_sfxvolume_slider );
+#ifdef CDA
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_cdvolume_box );
+#endif
 #ifdef OGG
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_oggvolume_box );
 #endif
+#if defined(OGG) || defined(CDA)
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_cdshuffle_box );
+#endif
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_quality_list );
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_sensitivity_slider );
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_alwaysrun_box );

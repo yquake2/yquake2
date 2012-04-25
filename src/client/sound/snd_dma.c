@@ -202,8 +202,10 @@ S_Shutdown ( void )
 	Cmd_RemoveCommand( "soundinfo" );
 	Cmd_RemoveCommand( "play" );
 	Cmd_RemoveCommand( "stopsound" );
+#ifdef OGG
 	Cmd_RemoveCommand( "ogg_init" );
 	Cmd_RemoveCommand( "ogg_shutdown" );
+#endif
 }
 
 /*

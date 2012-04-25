@@ -302,12 +302,16 @@ void CL_PrepRefresh (void) {
 	cl.refresh_prepped = true;
 	cl.force_refdef = true; /* make sure we have a valid refdef */
 
+#if defined(OGG) || defined(CDA)
 	/* start the cd track */
 	if (Cvar_VariableValue("cd_shuffle")) {
+#ifdef CDA
 		CDAudio_RandomPlay();
-
+#endif
 	} else {
+#ifdef CDA
 		CDAudio_Play (atoi(cl.configstrings[CS_CDTRACK]), true);
+#endif
 
 #ifdef OGG
 		/* OGG/Vorbis */
@@ -320,6 +324,7 @@ void CL_PrepRefresh (void) {
 		}
 #endif
 	}
+#endif
 }
 
 float CalcFov (float fov_x, float width, float height) {

@@ -837,7 +837,9 @@ void CL_ParseConfigString (void) {
 
 	else if (i == CS_CDTRACK) {
 		if (cl.refresh_prepped) {
+#ifdef CDA
 			CDAudio_Play (atoi(cl.configstrings[CS_CDTRACK]), true);
+#endif
 
 #ifdef OGG
 			/* OGG/Vorbis */

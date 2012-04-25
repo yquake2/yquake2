@@ -294,7 +294,9 @@ void CL_Disconnect (void)
 #ifdef OGG
 	OGG_Stop();
 #endif
+#ifdef CDA
 	CDAudio_Stop();
+#endif
 
 	if (cls.demorecording)
 		CL_Stop_f ();
