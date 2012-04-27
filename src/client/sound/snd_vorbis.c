@@ -39,6 +39,10 @@
 #include "header/local.h"
 #include "header/vorbis.h"
 
+#ifdef USE_OPENAL
+void AL_UnqueueRawSamples();
+#endif
+
 qboolean	 ogg_first_init = true;    /* First initialization flag. */
 qboolean	 ogg_started = false;    /* Initialization flag. */
 int		 ogg_bigendian = 0;
@@ -583,6 +587,10 @@ OGG_Stop ( void )
 		return;
 	}
 
+#ifdef USE_OPENAL
+	AL_UnqueueRawSamples();
+#endif
+
 	ov_clear( &ovFile );
 	ogg_status = STOP;
 	ogg_info = NULL;
@@ -617,16 +625,16 @@ OGG_Stream ( void )
 			   We take the number of active buffers
 			   at startup (at this point most of the
 			   samples should be precached and loaded
-			   into buffers) and add 24. Empircal
+			   into buffers) and add 64. Empircal
 			   testing showed, that at most times
-			   at least 12 buffers remain available
-			   for OGG/Vorbis, enough for about 0.5
+			   at least 52 buffers remain available
+			   for OGG/Vorbis, enough for about 3
 			   seconds playback. The music won't 
 			   stutter as long as the framerate 
-			   stayes over 3 FPS. */
+			   stayes over 1 FPS. */
 			if ( ogg_numbufs == 0 )
 			{
-				ogg_numbufs = active_buffers + 24;
+				ogg_numbufs = active_buffers + 64;
 			}
 
 			/* active_buffers are all active OpenAL buffers,

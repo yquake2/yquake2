@@ -585,4 +585,9 @@ void AL_RawSamples( int samples, int rate, int width, int channels, byte *data, 
 	*/
 }
 
+void AL_UnqueueRawSamples()
+{
+	S_AL_StreamDie();
+}
+
 #endif // USE_OPENAL
