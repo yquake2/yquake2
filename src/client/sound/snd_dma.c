@@ -150,12 +150,7 @@ S_Init ( void )
 		Cmd_AddCommand( "ogg_shutdown", OGG_Shutdown );
 #endif
 
-#if ! USE_OPENAL
-		cv = Cvar_Get( "s_openal", "0", CVAR_ARCHIVE);
-		if( cv->value ) {
-			Com_Printf("Warning: Ignoring s_openal, as this binary has no OpenAL support!");
-		}
-#else
+#if USE_OPENAL
 		cv = Cvar_Get( "s_openal", "1", CVAR_ARCHIVE);
 		if( cv->value && AL_Init() ) {
 			sound_started = SS_OAL;
