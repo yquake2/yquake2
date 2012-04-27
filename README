@@ -38,10 +38,11 @@ Content of this file:
    2.4 Console variables
 
  3. Configuration
-   3.1 Widescreen setup
-   3.2 Video
-   3.3 Input
-   3.4 Sound
+   3.1 Video
+   3.2 Input
+   3.3 Sound
+   3.3.1 The classic sound system
+   3.3.2 The OpenAL sound system
 
  4. Bugreports
 
@@ -338,14 +339,23 @@ There are some cvar to adjust:
 
 3.3 Sound
 ---------
-Quake II featured one of the best sound systems of it's time but sadly it was 
-totaly broken. Therefore id Software rewrote it once, later it was rewritten
-again for the linux port. That fixed the most visible problems, but the code was
-just crap and broke again as time passed and sound on PCs evolved.
-For Yamagi Quake II 3.0 the sound system was overhauled, featuring a complete
-code audit of the upper layers with many bugfixes and memory leak plugs.
-The backend was rewritten from scratch. This should solve most if not all 
-problems.
+Quake II featured one of the best sound systems of it's time (for example it had
+support for realtime calculated stereo effects) but sadly it was totaly broken.
+Therefore id Software rewrote it once, later it was rewritten again for the
+linux port. That fixed the most visible problems, but the code was just crap and
+broke again as time passed and sound on PCs evolved. For Yamagi Quake II 3.0 the
+sound system was overhauled, featuring a complete code audit of the upper layers
+with many bugfixes and memory leak plugs. The backend was rewritten from
+scratch. This should solve most if not all problems. Yamagi Quake II 4.20
+featured an optional OpenAL sound system, enabling better stereo calculations
+and even surround support.
+
+3.3.1 The classic sound system
+------------------------------
+This is the original sound implementation, as used in the first release of Quake
+II in 1997. It featured stereo calculations for most samples. It's disabled by
+default and can be reenables by setting "s_openal" to "0", followed by
+"snd_restart. Common problems are:
 
 - The earthquake sound sample is distorted
   This is not a fault of the sound code but of the sound sample itself.
@@ -369,6 +379,28 @@ problems.
    type hw 
    card 0 
    }
+
+3.3.2 The OpenAL sound system
+-----------------------------
+This is a sound system based upon the popular OpenAL audio library. It features
+surround playback which gives a huge improvement in sound quality and gameplay
+experience. It's enables by default, but can be disabled by setting "s_openal"
+to "0", followed by a "snd_restart". To work correctly it's in the need of a
+correctly configured OpenAL! OpenAL is configured in the file ~/.alsoftrc (for
+the openal-soft implementation, other implementations may vary). The most
+important options are:
+
+- channels = surround51 -> Enable 5.1 surround support. Other values are "mono",
+  "stereo", "quad", "surround61" and "surround71".
+
+- stereodup = true -> If set to "true" all raw stereo samples (in Quake II the
+  background music and video sounds) are duplicated behind the listener.
+  Otherwise they're played only through the front speaker.
+
+- resampler = cubic -> Use cubic resampling. While this requires more cpu power
+  than the default linear resamling it's highly recommended since Quake II has
+  several hard to resamples sound effects. Especially the earthquake sound can
+  distort if a low quality resampler is employed!
 
 ===============================================================================
 
