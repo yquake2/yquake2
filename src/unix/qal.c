@@ -142,6 +142,10 @@ LPALDOPPLERFACTOR qalDopplerFactor;
 LPALDOPPLERVELOCITY qalDopplerVelocity; 
 LPALSPEEDOFSOUND qalSpeedOfSound;
 LPALDISTANCEMODEL qalDistanceModel;
+LPALGENFILTERS qalGenFilters;
+LPALFILTERI qalFilteri;
+LPALFILTERF qalFilterf;
+LPALDELETEFILTERS qalDeleteFilters;
 
 /* 
  * Gives information over the OpenAL
@@ -312,6 +316,10 @@ QAL_Shutdown()
 	qalDopplerVelocity = NULL; 
 	qalSpeedOfSound = NULL;
 	qalDistanceModel = NULL;   
+	qalGenFilters = NULL;
+	qalFilteri = NULL;
+	qalFilterf = NULL;
+	qalDeleteFilters = NULL;
 
 	/* Unload the shared lib */
 	dlclose(handle);
@@ -436,6 +444,10 @@ QAL_Init()
 	qalDopplerVelocity = dlsym(handle, "alDopplerVelocity");
 	qalSpeedOfSound = dlsym(handle, "alSpeedOfSound");
 	qalDistanceModel = dlsym(handle, "alDistanceModel");
+	qalGenFilters = dlsym(handle, "alGenFilters");
+	qalFilteri = dlsym(handle, "alFilteri"); 
+	qalFilterf = dlsym(handle, "alFilterf"); 
+	qalDeleteFilters = dlsym(handle, "alDeleteFilters"); 
 
 	/* Open the OpenAL device */
     Com_Printf("...opening OpenAL device:");

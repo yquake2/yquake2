@@ -40,6 +40,7 @@ qboolean streamPlaying;
 int active_buffers;
 
 static ALuint streamSource;
+static ALuint underwaterFilter;
 
 static ALuint s_srcnums[MAX_CHANNELS-1];
 static int s_framecount;
@@ -59,6 +60,31 @@ static void AL_InitStreamSource() {
 	qalSourcei (streamSource, AL_SOURCE_RELATIVE, AL_TRUE      );
 
 	// srcList[cursrc].scaleGain = 0.0f; FIXME - something like that?
+}
+
+static void AL_InitUnderwaterFilter()
+{
+	// Generate a filter
+	qalGenFilters(1, &underwaterFilter);
+
+    if (qalGetError() != AL_NO_ERROR)
+	{
+		Com_Printf("Couldn't generate an OpenAL filter!\n");
+		return;
+	}
+
+	// Low pass filter for underwater effect
+	qalFilteri(underwaterFilter, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+
+    if (qalGetError() != AL_NO_ERROR)
+	{
+		Com_Printf("Low pass filter is not supported!\n");
+		return;
+	}
+
+	// The effect
+	qalFilterf(underwaterFilter, AL_LOWPASS_GAIN, 1.5);
+	qalFilterf(underwaterFilter, AL_LOWPASS_GAINHF, 0.25);
 }
 
 qboolean AL_Init( void ) {
@@ -100,6 +126,7 @@ qboolean AL_Init( void ) {
 
     s_numchannels = i;
     AL_InitStreamSource();
+	AL_InitUnderwaterFilter();
    
 	Com_Printf("Number of OpenAL sources: %d\n\n", s_numchannels);
 
@@ -114,6 +141,7 @@ void AL_Shutdown( void ) {
     Com_Printf( "Shutting down OpenAL.\n" );
 
 	qalDeleteSources(1, &streamSource);
+	qalDeleteFilters(1, &underwaterFilter);
 
     if( s_numchannels ) {
         // delete source names
@@ -390,6 +418,28 @@ void AL_Update( void ) {
     S_AL_StreamUpdate();
 
     AL_IssuePlaysounds();
+}
+ 
+void AL_Underwater()
+{
+	int i;
+
+	// Apply to all sources
+	for (i = 0; i < MAX_CHANNELS - 1; i++) 
+	{
+			qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, underwaterFilter);
+	}
+}
+
+void AL_Overwater()
+{
+	int i;
+
+	// Apply to all sources
+	for (i = 0; i < MAX_CHANNELS - 1; i++) 
+	{
+			qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, 0);
+	}
 }
 
 /*
