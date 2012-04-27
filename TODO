@@ -1,5 +1,3 @@
-- Dateien neu ordnen (vielleicht besser nach dem Merge...)
-- Doku anpassen
 - yq2-Lizenzheader und Inhaltsbeschreibungen
 - Den Kram hinter _DEBUG raus oder konsistent mit dem Rest
   vom Source
