@@ -23,29 +23,29 @@
 # for the background music and doesn't add any further
 # dependencies. It should work on all platforms where
 # CD playback is supported by SDL.
-WITH_CDA=yes
+WITH_CDA:=yes
 
 # Enables OGG/Vorbis support. OGG/Vorbis files can be
 # used as a substitute of CD audio playback. Adds
 # dependencies to libogg, libvorbis and libvorbisfile.
-WITH_OGG=yes
+WITH_OGG:=yes
 
 # Enables the optional OpenAL sound systems. Adds
 # a dependencx to libopenal
-WITH_OPENAL=yes
+WITH_OPENAL:=yes
 
 # Enables retexturing support. Adds a dependency to
 # libjpeg
-WITH_RETEXTURING=yes
+WITH_RETEXTURING:=yes
 
 # Set the gamma via X11 and not via SDL. This works
 # around problems in some SDL version. Adds dependencies
 # to pkg-config, libX11 and libXxf86vm
-WITH_X11GAMMA=no
+WITH_X11GAMMA:=no
 
 # Enables opening of ZIP files (also known as .pk3 packs).
 # Adds a dependency to libz
-WITH_ZIP=yes
+WITH_ZIP:=yes
 
 # ====================================================== #
 #     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #

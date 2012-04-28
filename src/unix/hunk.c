@@ -26,7 +26,7 @@
 
 
 /* For mremap() - must be before sys/mman.h include! */
-#if defined( __linux__ )
+#if defined( __linux__ ) && ! defined( _GNU_SOURCE )
  #define _GNU_SOURCE
 #endif
 
