@@ -1103,7 +1103,7 @@ R_Init ( void *hinstance, void *hWnd )
 #else
 	Com_Printf(" - Retexturing support\n");
 #endif
-#ifdef X11GAMA
+#ifdef X11GAMMA
 	Com_Printf(" + Gamma via X11\n");
 #else
 	Com_Printf(" - Gamma via X11\n");
