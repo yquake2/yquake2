@@ -3499,10 +3499,19 @@ QGL_Init ( const char *dllname )
 		if ( ( glw_state.OpenGLLib = dlopen( fn, RTLD_LAZY ) ) == 0 )
 		{
 			ri.Con_Printf( PRINT_ALL, "%s\n", dlerror() );
-			return ( false );
-		}
+			ri.Con_Printf( PRINT_ALL, "Trying hardcoded default libGL\n" );
+			if ( ( glw_state.OpenGLLib = dlopen( "libGL.so.1", RTLD_LAZY ) ) == 0)
+			{
+				ri.Con_Printf( PRINT_ALL, "%s\n", dlerror() );	
+				return ( false );
+			} else {
+				ri.Cvar_Set("gl_driver", "libGL.so.1");
+				Com_Printf( "Using libGL.so.1 for OpenGL.\n" );
+			}
+		} else {
 
-		Com_Printf( "Using %s for OpenGL.\n", fn );
+			Com_Printf( "Using %s for OpenGL.\n", fn );
+		}
 	}
 	else
 	{
