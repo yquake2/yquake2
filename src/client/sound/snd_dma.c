@@ -1005,7 +1005,7 @@ S_AddLoopSounds ( void )
 		return;
 	}
 
-	if ( !cl.sound_prepped || !s_ambient->value ) // FIXME: || sv_paused->value )
+	if ( !cl.sound_prepped || !s_ambient->value )
 	{
 		return;
 	}

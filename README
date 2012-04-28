@@ -388,14 +388,14 @@ experience. It's enables by default, but can be disabled by setting "s_openal"
 to "0", followed by a "snd_restart". To work correctly it's in the need of a
 correctly configured OpenAL! OpenAL is configured in the file ~/.alsoftrc (for
 the openal-soft implementation, other implementations may vary). The most
-important options are:
+important options (tested with OpenAL Soft 1.14) are:
 
 - channels = surround51 -> Enable 5.1 surround support. Other values are "mono",
   "stereo", "quad", "surround61" and "surround71".
 
 - stereodup = true -> If set to "true" all raw stereo samples (in Quake II the
   background music and video sounds) are duplicated behind the listener.
-  Otherwise they're played only through the front speaker.
+  Otherwise they're played only through the front speakers.
 
 - resampler = cubic -> Use cubic resampling. While this requires more cpu power
   than the default linear resamling it's highly recommended since Quake II has

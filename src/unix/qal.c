@@ -183,7 +183,7 @@ void QAL_SoundInfo()
 	 
    	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT"))
 	{
-		const char *devs = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+		const char *devs = alcGetString(device, ALC_DEVICE_SPECIFIER);
     
 		Com_Printf("\nCurrent OpenAL device:\n");
 

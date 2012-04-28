@@ -1,26 +1,33 @@
 /*
-This Source File - except for the last few functions - see the other copyright
-notice further down the - was taken from the Q2Pro Port.
-
-Copyright (C) 2010 skuller.net
-              2012 Some changes by the Yamagi Quake II developers
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-
-See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+ * Copyright (C) 1997-2005 Id Software, Inc.
+ *           (C) 2010 skuller.net
+ *           (C) 2005 Stuart Dalton (badcdev@gmail.com)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
+ *
+ * =======================================================================
+ *
+ * Most of these functions are from the Q2Pro project, and some are from
+ * zeq2. We adapted them to work with Yamagi Quake II
+ *
+ * This is an OpenAL backend for the Quake II Soundsystem.
+ *
+ * =======================================================================
+ */
 
 #ifdef USE_OPENAL
 
@@ -58,8 +65,6 @@ static void AL_InitStreamSource() {
 	qalSource3f(streamSource, AL_DIRECTION,       0.0, 0.0, 0.0);
 	qalSourcef (streamSource, AL_ROLLOFF_FACTOR,  0.0          );
 	qalSourcei (streamSource, AL_SOURCE_RELATIVE, AL_TRUE      );
-
-	// srcList[cursrc].scaleGain = 0.0f; FIXME - something like that?
 }
 
 static void AL_InitUnderwaterFilter()
@@ -160,7 +165,6 @@ sfxcache_t *AL_UploadSfx( sfx_t *s, wavinfo_t *s_info, byte *data ) {
     ALuint name;
 
     if( !size ) {
-        // s->error = Q_ERR_TOO_FEW; FIXME: do I want this information?
         return NULL;
     }
 
@@ -169,12 +173,11 @@ sfxcache_t *AL_UploadSfx( sfx_t *s, wavinfo_t *s_info, byte *data ) {
     qalBufferData( name, format, data, size, s_info->rate );
 	active_buffers++;
     if( qalGetError() != AL_NO_ERROR ) {
-        // s->error = Q_ERR_LIBRARY_ERROR; FIXME: do I want this info?
         return NULL;
     }
 
     // allocate placeholder sfxcache
-    sc = s->cache = Z_TagMalloc(sizeof(*sc), 0); // FIXME: TAG_SOUND instead of 0 - this possibly leaks!
+    sc = s->cache = Z_TagMalloc(sizeof(*sc), 0);
     sc->length = s_info->samples * 1000 / s_info->rate; // in msec
     sc->loopstart = s_info->loopstart;
     sc->width = s_info->width;
@@ -199,10 +202,9 @@ void AL_DeleteSfx( sfx_t *s ) {
 }
 
 void AL_StopChannel( channel_t *ch ) {
-#ifdef _DEBUG
-    if (s_show->integer > 1)
+
+    if (s_show->value > 1)
         Com_Printf("%s: %s\n", __func__, ch->sfx->name );
-#endif
 
     // stop it
     qalSourceStop( ch->srcnum );
@@ -229,15 +231,12 @@ static void AL_Spatialize( channel_t *ch ) {
 void AL_PlayChannel( channel_t *ch ) {
     sfxcache_t *sc = ch->sfx->cache;
 
-#ifdef _DEBUG
-    if (s_show->integer > 1)
+    if (s_show->value > 1)
         Com_Printf("%s: %s\n", __func__, ch->sfx->name );
-#endif
 
     ch->srcnum = s_srcnums[ch - channels];
     qalGetError();
     qalSourcei( ch->srcnum, AL_BUFFER, sc->bufnum );
-    //qalSourcei( ch->srcnum, AL_LOOPING, sc->loopstart == -1 ? AL_FALSE : AL_TRUE );
     qalSourcei( ch->srcnum, AL_LOOPING, ch->autosound ? AL_TRUE : AL_FALSE );
     qalSourcef( ch->srcnum, AL_GAIN, ch->master_vol );
     qalSourcef( ch->srcnum, AL_REFERENCE_DISTANCE, SOUND_FULLVOLUME );
@@ -296,7 +295,7 @@ static void AL_AddLoopSounds( void ) {
     int         num;
     entity_state_t  *ent;
 
-    if( cls.state != ca_active || !s_ambient->value ) { // FIXME: sv_paused->value ||
+    if( cls.state != ca_active || cl_paused->value || !s_ambient->value ) {
         return;
     }
 
@@ -359,12 +358,6 @@ void AL_Update( void ) {
     channel_t   *ch;
     vec_t       orientation[6];
 
-    /* FIXME
-    if( !s_active ) {
-        return;
-    }
-    */
-
     paintedtime = cl.time;
 
     // set listener parameters
@@ -398,12 +391,9 @@ void AL_Update( void ) {
             }
         }
 
-#ifdef _DEBUG
-        if (s_show->integer) {
+        if (s_show->value) {
             Com_Printf ("%.1f %s\n", ch->master_vol, ch->sfx->name);
-        //    total++;
         }
-#endif
 
         AL_Spatialize(ch);         // respatialize channel
     }
@@ -425,7 +415,7 @@ void AL_Underwater()
 	int i;
 
 	// Apply to all sources
-	for (i = 0; i < MAX_CHANNELS - 1; i++) 
+	for (i = 0; i < s_numchannels; i++)
 	{
 			qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, underwaterFilter);
 	}
@@ -436,47 +426,15 @@ void AL_Overwater()
 	int i;
 
 	// Apply to all sources
-	for (i = 0; i < MAX_CHANNELS - 1; i++) 
+	for (i = 0; i < s_numchannels; i++)
 	{
 			qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, 0);
 	}
 }
 
-/*
-===========================================================================
-* The remaining functions in this file are from zeq2 who seem to have got
-* them from ioquake3. Adapted for Yamagi Quake II (e.g. we only need one
-* non-spatialized stream)
-*
-* They came with the following copyright notice (modified to make clear
-* that only the rest of this file is affected):
-
-Copyright (C) 1999-2005 Id Software, Inc.
-Copyright (C) 2005 Stuart Dalton (badcdev@gmail.com)
-              2012 Some changes by the Yamagi Quake II developers
-
-The rest of this file is part of Quake III Arena source code.
-
-Quake III Arena source code is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
-
-Quake III Arena source code is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-===========================================================================
- */
-
 static void S_AL_StreamDie( void )
 {
 	int		numBuffers;
-
 
 	streamPlaying = false;
 	qalSourceStop(streamSource);
@@ -490,8 +448,6 @@ static void S_AL_StreamDie( void )
 		qalDeleteBuffers(1, &buffer);
 		active_buffers--;
 	}
-
-	// S_AL_FreeStreamChannel(stream);
 }
 
 static void S_AL_StreamUpdate( void )
@@ -516,10 +472,6 @@ static void S_AL_StreamUpdate( void )
 	if(state == AL_STOPPED)
 	{
 		streamPlaying = false;
-
-		// If there are no buffers queued up, release the streamSource
-		//if( !numBuffers )
-		//	S_AL_FreeStreamChannel( stream );
 	}
 
 	if( !streamPlaying && numBuffers )
@@ -572,17 +524,6 @@ void AL_RawSamples( int samples, int rate, int width, int channels, byte *data, 
 
 	// emulate behavior of S_RawSamples for s_rawend
 	s_rawend += samples;
-	/*
-	// get this buffers speed/frequency
-	ALint speed = 0;
-	qalGetBufferi(buffer, AL_FREQUENCY, &speed);
-	// FIXME: the buffers are leaking I think
-	float scale = (float) rate / speed;
-
-	if( samples > 0 && scale >= 0.0f ) {
-		s_rawend += samples/scale;
-	}
-	*/
 }
 
 void AL_UnqueueRawSamples()
