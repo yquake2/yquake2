@@ -50,7 +50,7 @@ main ( int argc, char **argv )
 	seteuid( getuid() );
 
 	/* enforce C locale */
-	setlocale(LC_ALL, "C");
+	setenv("LC_ALL", "C", 1);
 
 	printf( "\nYamagi Quake II v%4.2f\n", VERSION);
 	printf( "=====================\n\n");
