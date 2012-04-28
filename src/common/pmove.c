@@ -27,6 +27,11 @@
 
 #include "header/common.h"
 
+#if !defined(DEDICATED_ONLY) && defined(USE_OPENAL)
+void AL_Underwater();
+void AL_Overwater();
+#endif
+
 #define	STEPSIZE 18
 
 /* all of the locals will be zeroed before each
@@ -1108,6 +1113,10 @@ void PM_ClampAngles (void)
  */
 void Pmove (pmove_t *pmove)
 {
+#if !defined(DEDICATED_ONLY) && defined(USE_OPENAL)
+	static int underwater;
+#endif
+
 	pm = pmove;
 
 	/* clear results */
@@ -1234,6 +1243,20 @@ void Pmove (pmove_t *pmove)
 
 	/* set groundentity, watertype, and waterlevel for final spot */
 	PM_CatagorizePosition ();
+
+#if !defined(DEDICATED_ONLY) && defined(USE_OPENAL)
+	if ((pm->waterlevel == 3) && !underwater)
+	{
+		underwater = 1;
+		AL_Underwater();
+	}
+
+	if ((pm->waterlevel < 3 && underwater))
+	{
+		underwater = 0;
+		AL_Overwater();
+	}
+#endif
 
 	PM_SnapPosition ();
 }

@@ -37,6 +37,10 @@ typedef struct {
 	int 	loopstart;
 	int 	speed; /* not needed, because converted on load? */
 	int 	width;
+#if USE_OPENAL
+    int         size;
+    int         bufnum;
+#endif
 	int 	stereo;
 	byte	data[1]; /* variable sized */
 } sfxcache_t;
@@ -87,6 +91,10 @@ typedef struct {
 	int			master_vol;		/* 0-255 master volume */
 	qboolean	fixed_origin;	/* use origin instead of fetching entnum's origin */
 	qboolean	autosound;		/* from an entity->sound, cleared each frame */
+#if USE_OPENAL
+    int         autoframe;
+    int         srcnum;
+#endif
 } channel_t;
 
 typedef struct {
@@ -98,6 +106,13 @@ typedef struct {
 	int			dataofs; /* chunk starts this many bytes from file start */
 } wavinfo_t;
 
+typedef enum {
+	SS_NOT = 0, // soundsystem not started
+	SS_DMA,     // soundsystem started, using DMA/SDL
+	SS_OAL      // soundsystem started, using OpenAL
+} sndstarted_t;
+
+extern sndstarted_t sound_started;
 
 /* initializes cycling through a DMA
    buffer and returns information on it */
@@ -113,6 +128,7 @@ void	SNDDMA_Submit(void);
 
 #define	MAX_CHANNELS			32
 extern	channel_t   channels[MAX_CHANNELS];
+extern  int         s_numchannels;
 
 extern	int		paintedtime;
 extern	int		s_rawend;
@@ -133,6 +149,7 @@ extern cvar_t	*s_khz;
 extern cvar_t	*s_show;
 extern cvar_t	*s_mixahead;
 extern cvar_t	*s_testsound;
+extern cvar_t   *s_ambient;
 
 wavinfo_t GetWavinfo (char *name, byte *wav, int wavlength);
 void S_InitScaletable (void);
@@ -145,6 +162,30 @@ channel_t *S_PickChannel(int entnum, int entchannel);
 
 /* spatializes a channel */
 void S_Spatialize(channel_t *ch);
+
+void S_BuildSoundList( int *sounds );
+
+#if USE_OPENAL
+// this stuff was taken from Q2Pro
+// only begin attenuating sound volumes when outside the FULLVOLUME range
+#define     SOUND_FULLVOLUME    80
+#define     SOUND_LOOPATTENUATE 0.003
+
+// number of buffers in flight (needed for ogg)
+extern int active_buffers;
+
+// for snd_al.c - copied from Q2Pro and adapted
+void AL_SoundInfo( void );
+qboolean AL_Init( void );
+void AL_Shutdown( void );
+sfxcache_t *AL_UploadSfx( sfx_t *s, wavinfo_t *s_info, byte *data );
+void AL_DeleteSfx( sfx_t *s );
+void AL_StopChannel( channel_t *ch );
+void AL_PlayChannel( channel_t *ch );
+void AL_StopAllChannels( void );
+void AL_Update( void );
+void AL_RawSamples( int samples, int rate, int width, int channels, byte *data, float volume );
+#endif
 
 #endif
 

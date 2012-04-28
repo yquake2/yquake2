@@ -208,6 +208,9 @@ SNDDMA_Init(void)
 	dmasize = (dmabackend->samples * (dmabackend->samplebits / 8));
 	dmabackend->buffer = calloc(1, dmasize);
 
+	s_numchannels = MAX_CHANNELS;
+	S_InitScaletable();
+
 	SDL_PauseAudio(0);
 
 	Com_Printf("SDL audio initialized.\n");

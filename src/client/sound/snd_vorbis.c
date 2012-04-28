@@ -39,8 +39,9 @@
 #include "header/local.h"
 #include "header/vorbis.h"
 
-extern int sound_started;  /* Sound initialization flag. */
-extern cvar_t   *fs_basedir; /* Path to "music". */
+#ifdef USE_OPENAL
+void AL_UnqueueRawSamples();
+#endif
 
 qboolean	 ogg_first_init = true;    /* First initialization flag. */
 qboolean	 ogg_started = false;    /* Initialization flag. */
@@ -59,6 +60,7 @@ cvar_t       *ogg_sequence; /* Sequence play indicator. */
 cvar_t       *ogg_volume; /* Music volume. */
 OggVorbis_File ovFile;  /* Ogg Vorbis file. */
 vorbis_info *ogg_info;  /* Ogg Vorbis file information */
+int			 ogg_numbufs; /* Number of buffers for OpenAL */
 
 /*
  * Initialize the Ogg Vorbis subsystem.
@@ -585,9 +587,14 @@ OGG_Stop ( void )
 		return;
 	}
 
+#ifdef USE_OPENAL
+	AL_UnqueueRawSamples();
+#endif
+
 	ov_clear( &ovFile );
 	ogg_status = STOP;
 	ogg_info = NULL;
+	ogg_numbufs = 0;
 
 	if ( ogg_buffer != NULL )
 	{
@@ -607,10 +614,50 @@ OGG_Stream ( void )
 		return;
 	}
 
-	while ( ogg_status == PLAY && paintedtime + MAX_RAW_SAMPLES - 2048 > s_rawend )
+
+	if ( ogg_status == PLAY )
 	{
-		OGG_Read();
-	}
+#ifdef USE_OPENAL
+		if ( sound_started == SS_OAL )
+		{
+			/* Calculate the number of buffers used
+			   for storing decoded OGG/Vorbis data.
+			   We take the number of active buffers
+			   at startup (at this point most of the
+			   samples should be precached and loaded
+			   into buffers) and add 64. Empircal
+			   testing showed, that at most times
+			   at least 52 buffers remain available
+			   for OGG/Vorbis, enough for about 3
+			   seconds playback. The music won't 
+			   stutter as long as the framerate 
+			   stayes over 1 FPS. */
+			if ( ogg_numbufs == 0 )
+			{
+				ogg_numbufs = active_buffers + 64;
+			}
+
+			/* active_buffers are all active OpenAL buffers,
+			   buffering normal sfx _and_ ogg/vorbis samples. */
+			while ( active_buffers <= ogg_numbufs )
+			{
+				OGG_Read();
+			}
+		} else { /* using DMA/SDL */
+#endif
+			/* Read that number samples into the buffer, that
+			   were played since the last call to this function.
+			   This keeps the buffer at all times at an "optimal"
+			   fill level. */
+			while ( paintedtime + MAX_RAW_SAMPLES - 2048 > s_rawend )
+			{
+				OGG_Read();
+			}
+#ifdef USE_OPENAL
+		} /* using DMA/SDL */
+#endif
+	} /* ogg_status == PLAY */
+
 }
 
 /*
@@ -695,6 +742,7 @@ OGG_PauseCmd ( void )
 	if ( ogg_status == PLAY )
 	{
 		ogg_status = PAUSE;
+		ogg_numbufs = 0;
 	}
 }
 
