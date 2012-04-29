@@ -4,7 +4,7 @@
 GSC_PID=""
 
 # if gnome-screensaver is running in the background..
-if [ $(ps auxww | grep gnome-screensaver | wc -l) -gt 0 ]; then
+if ps auxww | grep -q 'gnome-screensaver'; then
     echo "inhibiting gnome screensaver"
     gnome-screensaver-command -i &
     # save the PID of the last command
@@ -12,7 +12,7 @@ if [ $(ps auxww | grep gnome-screensaver | wc -l) -gt 0 ]; then
 fi
 
 # Stop unclutter
-if [ $(ps auxww | grep unclutter | wc -l) -gt 0 ]; then
+if ps auxww | grep -q 'unclutter'; then
 	echo 'inhibiting unclutter'
 	killall -STOP unclutter
 fi
@@ -30,7 +30,7 @@ if [ -n "$GSC_PID" ]; then
 fi
 
 # Continue unclutter
-if [ $(ps auxww | grep unclutter | wc -l) -gt 0 ]; then
+if ps auxww | grep -q 'unclutter'; then
 	echo 'reactivating unclutter'
 	killall -CONT unclutter
 fi
