@@ -1,9 +1,11 @@
 #!/bin/sh
+set -eu
+
 # simple script that rips CDs to a format useable by Yamagis Quake2 client
 # Needs cdparanoia and oggenc, useable with Quake II and both addons.
 
 # Create directory
-mkdir music
+mkdir -p music
 cd music
 
 # rip all tracks beginning with second one (the first track is data)
