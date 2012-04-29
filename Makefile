@@ -30,8 +30,8 @@ WITH_CDA:=yes
 # dependencies to libogg, libvorbis and libvorbisfile.
 WITH_OGG:=yes
 
-# Enables the optional OpenAL sound systems. Adds
-# a dependencx to libopenal
+# Enables the optional OpenAL sound system.
+# To use it your system needs libopenal.so.1 installed
 WITH_OPENAL:=yes
 
 # Enables retexturing support. Adds a dependency to
@@ -46,6 +46,11 @@ WITH_X11GAMMA:=no
 # Enables opening of ZIP files (also known as .pk3 packs).
 # Adds a dependency to libz
 WITH_ZIP:=yes
+
+# Enable systemwide installation of game assets
+WITH_SYSTEMWIDE:=no
+# this will set the default SYSTEMDIR, a non-empty string would actually be used
+WITH_SYSTEMDIR:=""
 
 # ====================================================== #
 #     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
@@ -92,6 +97,16 @@ CC := gcc
 # -MMD to generate header dependencies.
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 		  -Wall -pipe -g -MMD
+
+# ----------
+
+# Systemwide installation
+ifeq ($(WITH_SYSTEMWIDE),yes)
+CFLAGS += -DSYSTEMWIDE
+ifneq ($(WITH_SYSTEMDIR),"")
+CFLAGS += -DSYSTEMDIR=\"$(WITH_SYSTEMDIR)\"
+endif
+endif
 
 # ----------
 
