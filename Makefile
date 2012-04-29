@@ -31,7 +31,8 @@ WITH_CDA:=yes
 WITH_OGG:=yes
 
 # Enables the optional OpenAL sound system.
-# To use it your system needs libopenal.so.1 installed
+# To use it your system needs libopenal.so.1 (we 
+# recommend openal-soft) installed
 WITH_OPENAL:=yes
 
 # Enables retexturing support. Adds a dependency to
