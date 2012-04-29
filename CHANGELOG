@@ -1,3 +1,13 @@
+Quake II 4.10 to 4.20
+- Add an options framework to allow disabling most
+  option features (OGG/Vorbis, ZIP file loading,
+  OpenAL, etc) at compile time.
+- Integrate OpenAL support, enabling surround sound
+  and better stereo sound calculations.
+- Enforce the "C" locale to prevent libraries like
+  broken LASPA plugins to override it and break
+  printf, scanf, etc.
+
 Quake II 4.03 to 4.10
 - Change the behavior of hotkey menus to fix some
   strange bugs and memory leaks in the menu system.
