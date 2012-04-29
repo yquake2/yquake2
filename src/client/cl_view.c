@@ -504,4 +504,3 @@ void V_Init (void) {
 
 	cl_stats = Cvar_Get ("cl_stats", "0", 0);
 }
-

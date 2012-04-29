@@ -569,4 +569,3 @@ void SpinControl_Draw( menulist_s *s ) {
 		Menu_DrawString( RCOLUMN_OFFSET + s->generic.x + s->generic.parent->x, s->generic.y + s->generic.parent->y + 10, buffer );
 	}
 }
-

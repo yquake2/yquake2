@@ -24,7 +24,7 @@
  * the CCITT standard CRC used by XMODEM.
  *
  * =======================================================================
- */  
+ */
 
 #include "header/common.h"
 

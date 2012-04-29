@@ -40,45 +40,45 @@ static int sound_sight;
 
 void
 gladiator_idle(edict_t *self)
-{ 
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_VOICE, sound_idle, 1, ATTN_IDLE, 0);
 }
 
 void
 gladiator_sight(edict_t *self, edict_t *other /* unused */)
-{ 
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
 }
 
 void
 gladiator_search(edict_t *self)
-{ 
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_VOICE, sound_search, 1, ATTN_NORM, 0);
 }
 
 void
 gladiator_cleaver_swing(edict_t *self)
-{   
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_WEAPON, sound_cleaver_swing, 1, ATTN_NORM, 0);
 }
 
@@ -93,20 +93,20 @@ mframe_t gladiator_frames_stand[] = {
 };
 mmove_t gladiator_move_stand =
 {
-	FRAME_stand1, 
-	FRAME_stand7, 
-	gladiator_frames_stand, 
+	FRAME_stand1,
+	FRAME_stand7,
+	gladiator_frames_stand,
 	NULL
 };
 
 void
 gladiator_stand(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.currentmove = &gladiator_move_stand;
 }
 
@@ -131,20 +131,20 @@ mframe_t gladiator_frames_walk[] = {
 
 mmove_t gladiator_move_walk =
 {
-	FRAME_walk1, 
-	FRAME_walk16, 
-	gladiator_frames_walk, 
+	FRAME_walk1,
+	FRAME_walk16,
+	gladiator_frames_walk,
 	NULL
 };
 
 void
 gladiator_walk(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.currentmove = &gladiator_move_walk;
 }
 
@@ -159,20 +159,20 @@ mframe_t gladiator_frames_run[] = {
 
 mmove_t gladiator_move_run =
 {
-	FRAME_run1, 
-	FRAME_run6, 
-	gladiator_frames_run, 
+	FRAME_run1,
+	FRAME_run6,
+	gladiator_frames_run,
 	NULL
 };
 
 void
 gladiator_run(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
 	{
 		self->monsterinfo.currentmove = &gladiator_move_stand;
@@ -187,17 +187,17 @@ void
 GaldiatorMelee(edict_t *self)
 {
 	vec3_t aim;
-     
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	VectorSet(aim, MELEE_DISTANCE, self->mins[0], -4);
 
 	if (fire_hit(self, aim, (20 + (rand() % 5)), 300))
@@ -232,20 +232,20 @@ mframe_t gladiator_frames_attack_melee[] = {
 
 mmove_t gladiator_move_attack_melee =
 {
-	FRAME_melee1, 
-	FRAME_melee17, 
-	gladiator_frames_attack_melee, 
+	FRAME_melee1,
+	FRAME_melee17,
+	gladiator_frames_attack_melee,
 	gladiator_run
 };
 
 void
 gladiator_melee(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.currentmove = &gladiator_move_attack_melee;
 }
 
@@ -255,12 +255,12 @@ GladiatorGun(edict_t *self)
 	vec3_t start;
 	vec3_t dir;
 	vec3_t forward, right;
-     
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	AngleVectors(self->s.angles, forward, right, NULL);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_GLADIATOR_RAILGUN_1],
 			forward, right, start);
@@ -286,9 +286,9 @@ mframe_t gladiator_frames_attack_gun[] = {
 
 mmove_t gladiator_move_attack_gun =
 {
-	FRAME_attack1, 
-	FRAME_attack9, 
-	gladiator_frames_attack_gun, 
+	FRAME_attack1,
+	FRAME_attack9,
+	gladiator_frames_attack_gun,
 	gladiator_run
 };
 
@@ -297,12 +297,12 @@ gladiator_attack(edict_t *self)
 {
 	float range;
 	vec3_t v;
-     
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	/* a small safe zone */
 	VectorSubtract(self->s.origin, self->enemy->s.origin, v);
 	range = VectorLength(v);
@@ -330,9 +330,9 @@ mframe_t gladiator_frames_pain[] = {
 
 mmove_t gladiator_move_pain =
 {
-	FRAME_pain1, 
-	FRAME_pain6, 
-	gladiator_frames_pain, 
+	FRAME_pain1,
+	FRAME_pain6,
+	gladiator_frames_pain,
 	gladiator_run
 };
 
@@ -348,21 +348,21 @@ mframe_t gladiator_frames_pain_air[] = {
 
 mmove_t gladiator_move_pain_air =
 {
-	FRAME_painup1, 
-	FRAME_painup7, 
-	gladiator_frames_pain_air, 
+	FRAME_painup1,
+	FRAME_painup7,
+	gladiator_frames_pain_air,
 	gladiator_run
 };
 
 void
-gladiator_pain(edict_t *self, edict_t *other /* unused */, 
+gladiator_pain(edict_t *self, edict_t *other /* unused */,
 		float kick /* unused */, int damage)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (self->health < (self->max_health / 2))
 	{
 		self->s.skinnum = 1;
@@ -407,12 +407,12 @@ gladiator_pain(edict_t *self, edict_t *other /* unused */,
 
 void
 gladiator_dead(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	VectorSet(self->mins, -16, -16, -24);
 	VectorSet(self->maxs, 16, 16, -8);
 	self->movetype = MOVETYPE_TOSS;
@@ -448,24 +448,24 @@ mframe_t gladiator_frames_death[] = {
 
 mmove_t gladiator_move_death =
 {
-	FRAME_death1, 
-	FRAME_death22, 
-	gladiator_frames_death, 
+	FRAME_death1,
+	FRAME_death22,
+	gladiator_frames_death,
 	gladiator_dead
 };
 
 void
 gladiator_die(edict_t *self, edict_t *inflictor /* unused */,
-	   	edict_t *attacker /* unused */, int damage /*unused */, 
+	   	edict_t *attacker /* unused */, int damage /*unused */,
 		vec3_t point)
 {
 	int n;
-     
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	/* check for gib */
 	if (self->health <= self->gib_health)
 	{
@@ -507,12 +507,12 @@ gladiator_die(edict_t *self, edict_t *inflictor /* unused */,
  */
 void
 SP_monster_gladiator(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (deathmatch->value)
 	{
 		G_FreeEdict(self);
@@ -559,4 +559,3 @@ SP_monster_gladiator(edict_t *self)
 
 	walkmonster_start(self);
 }
-

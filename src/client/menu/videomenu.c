@@ -154,7 +154,7 @@ ApplyChanges ( void *unused )
 		Cvar_SetValue( "gl_mode", -1 );
 	}
 
-	/* must use an if here (instead of a switch), since the 
+	/* must use an if here (instead of a switch), since the
 	   REF_'s are now variables and not #DEFINE's (constants) */
 	ref = s_ref_list [ s_current_menu_index ].curvalue;
 
@@ -447,4 +447,3 @@ VID_MenuKey ( int key )
 
 	return ( sound );
 }
-

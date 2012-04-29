@@ -206,4 +206,3 @@ GetWavinfo ( char *name, byte *wav, int wavlength )
 
 	return ( info );
 }
-

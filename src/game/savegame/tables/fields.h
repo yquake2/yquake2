@@ -23,7 +23,7 @@
  * Game fields to be saved.
  *
  * =======================================================================
- */ 
+ */
 
 {"classname", FOFS(classname), F_LSTRING},
 {"model", FOFS(model), F_LSTRING},
@@ -105,4 +105,4 @@
 {"minpitch", STOFS(minpitch), F_FLOAT, FFL_SPAWNTEMP},
 {"maxpitch", STOFS(maxpitch), F_FLOAT, FFL_SPAWNTEMP},
 {"nextmap", STOFS(nextmap), F_LSTRING, FFL_SPAWNTEMP},
-{0, 0, 0, 0} 
+{0, 0, 0, 0}

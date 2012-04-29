@@ -23,7 +23,7 @@
  * Pointers to every mmove_t in the game.so.
  *
  * =======================================================================
- */ 
+ */
 
 {"tank_move_death", &tank_move_death},
 {"tank_move_attack_chain", &tank_move_attack_chain},

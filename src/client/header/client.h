@@ -39,12 +39,12 @@
 /* the cl_parse_entities must be large enough to hold UPDATE_BACKUP frames of
    entities, so that when a delta compressed message arives from the server
    it can be un-deltad from the original */
-#define	MAX_PARSE_ENTITIES	1024 
+#define	MAX_PARSE_ENTITIES	1024
 
 #define MAX_SUSTAINS		32
 #define	PARTICLE_GRAVITY 40
 #define BLASTER_PARTICLE_COLOR 0xe0
-#define INSTANT_PARTICLE -10000.0  
+#define INSTANT_PARTICLE -10000.0
 
 #include <math.h>
 #include <string.h>
@@ -222,7 +222,7 @@ typedef struct
 	/* screen rendering information */
 	float		disable_screen; /* showing loading plaque between levels */
 								/* or changing rendering dlls */
-	
+
 	/* if time gets > 30 seconds ahead, break it */
 	int			disable_servercount; /* when we receive a frame and cl.servercount */
 									 /* > cls.disable_servercount, clear disable_screen */
@@ -513,4 +513,3 @@ void CL_DrawInventory (void);
 void CL_PredictMovement (void);
 
 #endif
-

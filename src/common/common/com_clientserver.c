@@ -22,7 +22,7 @@
  * Client / Server interactions
  *
  * =======================================================================
- */ 
+ */
 
 #include "../header/common.h"
 #include <stdlib.h>
@@ -33,7 +33,7 @@
 FILE	*logfile;
 cvar_t	*logfile_active; /* 1 = buffer log, 2 = flush after each print */
 jmp_buf abortframe; /* an ERR_DROP occured, exit the entire frame */
-int		server_state; 
+int		server_state;
 
 static int	rd_target;
 static char	*rd_buffer;
@@ -233,4 +233,3 @@ void Com_SetServerState (int state)
 {
 	server_state = state;
 }
-

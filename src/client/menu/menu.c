@@ -133,16 +133,16 @@ static void M_PushMenu ( void (*draw) (void), const char *(*key) (int) ) {
 	if (Cvar_VariableValue ("maxclients") == 1
 	        && Com_ServerState ())
 		Cvar_Set ("paused", "1");
-	
-	/* if this menu is already open (and on top), 
+
+	/* if this menu is already open (and on top),
 	   close it => toggling behaviour */
 	if(m_drawfunc == draw && m_keyfunc == key)
 	{
 		M_PopMenu();
 		return;
 	}
-	
-	/* if this menu is already present, drop back to 
+
+	/* if this menu is already present, drop back to
 	   that level to avoid stacking menus by hotkeys */
 	for (i=0 ; i<m_menudepth ; i++)
 	{
@@ -151,10 +151,10 @@ static void M_PushMenu ( void (*draw) (void), const char *(*key) (int) ) {
 			alreadyPresent = 1;
 			break;
 		}
-	}                                            
-	
+	}
+
 	/* menu was already opened further down the stack */
-	while(alreadyPresent && i <= m_menudepth) { 
+	while(alreadyPresent && i <= m_menudepth) {
 		M_PopMenu(); /* decrements m_menudepth */
 	}
 
@@ -165,7 +165,7 @@ static void M_PushMenu ( void (*draw) (void), const char *(*key) (int) ) {
 	m_layers[m_menudepth].draw = m_drawfunc;
 	m_layers[m_menudepth].key = m_keyfunc;
 	m_menudepth++;
-	
+
 	m_drawfunc = draw;
 	m_keyfunc = key;
 
@@ -1212,7 +1212,7 @@ static void UpdateSoundQualityFunc( void *unused ) {
 		Cvar_SetValue( "s_khz", 44 );
 		Cvar_SetValue( "s_loadas8bit", false );
 	}
- 
+
 	M_DrawTextBox( 8, 120 - 48, 36, 3 );
 	M_Print( 16 + 16, 120 - 48 + 8,  "Restarting the sound system. This" );
 	M_Print( 16 + 16, 120 - 48 + 16, "could take up to a minute, so" );
@@ -1280,7 +1280,7 @@ static void Options_MenuInit( void ) {
 	s_options_sfxvolume_slider.minvalue		= 0;
 	s_options_sfxvolume_slider.maxvalue		= 10;
 	s_options_sfxvolume_slider.curvalue		= Cvar_VariableValue( "s_volume" ) * 10.0f;
-                                           
+
 #ifdef CDA
 	s_options_cdvolume_box.generic.type	= MTYPE_SPINCONTROL;
 	s_options_cdvolume_box.generic.x		= 0;
@@ -3803,4 +3803,3 @@ void M_Keydown (int key) {
 		if ( ( s = m_keyfunc( key ) ) != 0 )
 			S_StartLocalSound( ( char * ) s );
 }
-

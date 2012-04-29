@@ -278,12 +278,12 @@ ED_CallSpawn(edict_t *ent)
 	spawn_t *s;
 	gitem_t *item;
 	int i;
-       
+
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	if (!ent->classname)
 	{
 		gi.dprintf("ED_CallSpawn: NULL classname\n");
@@ -300,7 +300,7 @@ ED_CallSpawn(edict_t *ent)
 		}
 
 		if (!strcmp(item->classname, ent->classname))
-		{   
+		{
 			/* found it */
 			SpawnItem(ent, item);
 			return;
@@ -311,7 +311,7 @@ ED_CallSpawn(edict_t *ent)
 	for (s = spawns; s->name; s++)
 	{
 		if (!strcmp(s->name, ent->classname))
-		{   
+		{
 			/* found it */
 			s->spawn(ent);
 			return;
@@ -368,16 +368,16 @@ ED_ParseField(const char *key, const char *value, edict_t *ent)
 	byte *b;
 	float v;
 	vec3_t vec;
-     
+
 	if (!key || !value)
 	{
 		return;
 	}
-     
+
 	for (f = fields; f->name; f++)
 	{
 		if (!(f->flags & FFL_NOSPAWN) && !Q_stricmp(f->name, key))
-		{   
+		{
 			/* found it */
 			if (f->flags & FFL_SPAWNTEMP)
 			{
@@ -435,7 +435,7 @@ ED_ParseEdict(char *data, edict_t *ent)
 	qboolean init;
 	char keyname[256];
 	const char *com_token;
-                      
+
 	init = false;
 	memset(&st, 0, sizeof(st));
 
@@ -473,7 +473,7 @@ ED_ParseEdict(char *data, edict_t *ent)
 		init = true;
 
 		/* keynames with a leading underscore are
-		   used for utility comments, and are 
+		   used for utility comments, and are
 		   immediately discarded by quake */
 		if (keyname[0] == '_')
 		{
@@ -572,12 +572,12 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 	const char *com_token;
 	int i;
 	float skill_level;
-     
+
 	if (!mapname || !entities || !spawnpoint)
 	{
 		return;
 	}
-     
+
 	skill_level = floor(skill->value);
 
 	if (skill_level < 0)
@@ -846,12 +846,12 @@ char *dm_statusbar =
  */
 void
 SP_worldspawn(edict_t *ent)
-{          
+{
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	ent->movetype = MOVETYPE_PUSH;
 	ent->solid = SOLID_BSP;
 	ent->inuse = true; /* since the world doesn't use G_Spawn() */
@@ -859,7 +859,7 @@ SP_worldspawn(edict_t *ent)
 
 	/* --------------- */
 
-	/* reserve some spots for dead 
+	/* reserve some spots for dead
 	   player bodies for coop / deathmatch */
 	InitBodyQue();
 
@@ -962,7 +962,7 @@ SP_worldspawn(edict_t *ent)
 	gi.soundindex("*pain100_2.wav");
 
 	/* sexed models you can add more, max 15
-	   THIS ORDER MUST MATCH THE DEFINES IN 
+	   THIS ORDER MUST MATCH THE DEFINES IN
 	   g_local.h  */
 	gi.modelindex("#w_blaster.md2");
 	gi.modelindex("#w_shotgun.md2");
@@ -1008,7 +1008,7 @@ SP_worldspawn(edict_t *ent)
 	gi.modelindex("models/objects/gibs/skull/tris.md2");
 	gi.modelindex("models/objects/gibs/head2/tris.md2");
 
-	/* Setup light animation tables. 'a' 
+	/* Setup light animation tables. 'a'
 	   is total darkness, 'z' is doublebright. */
 
 	/* 0 normal */
@@ -1052,4 +1052,3 @@ SP_worldspawn(edict_t *ent)
 	/* 63 testing */
 	gi.configstring(CS_LIGHTS + 63, "a");
 }
-

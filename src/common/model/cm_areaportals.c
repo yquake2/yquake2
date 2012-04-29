@@ -22,7 +22,7 @@
  * This file implements the the area portals.
  *
  * =======================================================================
- */ 
+ */
 
 #include "../header/common.h"
 #include "../header/cmodel.h"
@@ -185,4 +185,3 @@ qboolean CM_HeadnodeVisible (int nodenum, byte *visbits)
 
 	return CM_HeadnodeVisible(node->children[1], visbits);
 }
-

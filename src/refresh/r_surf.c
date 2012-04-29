@@ -410,7 +410,7 @@ R_RenderBrushPoly ( msurface_t *fa )
 	}
 
 	/* dynamic this frame or dynamic previously */
-	if ( fa->dlightframe == r_framecount ) 
+	if ( fa->dlightframe == r_framecount )
 	{
 	dynamic:
 
@@ -1305,4 +1305,3 @@ R_MarkLeaves ( void )
 		}
 	}
 }
-

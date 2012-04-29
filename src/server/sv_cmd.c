@@ -24,7 +24,7 @@
  * a network / internal communication datagram.
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/server.h"
 
@@ -206,8 +206,8 @@ SV_GameMap_f ( void )
 		/* save the map just exited */
 		if ( sv.state == ss_game )
 		{
-			/* clear all the client inuse flags before saving so that 
-			   when the level is re-entered, the clients will spawn 
+			/* clear all the client inuse flags before saving so that
+			   when the level is re-entered, the clients will spawn
 			   at spawn points instead of occupying body shells */
 			savedInuse = malloc( maxclients->value * sizeof ( qboolean ) );
 
@@ -306,7 +306,7 @@ SV_Kick_f ( void )
 		SV_BroadcastPrintf( PRINT_HIGH, "%s was kicked\n", sv_client->name );
 	}
 
-	/* print directly, because the dropped client won't get the 
+	/* print directly, because the dropped client won't get the
 	   SV_BroadcastPrintf message */
 	SV_ClientPrintf( sv_client, PRINT_HIGH, "You were kicked from the game\n" );
 	SV_DropClient( sv_client );
@@ -638,4 +638,3 @@ SV_InitOperatorCommands ( void )
 
 	Cmd_AddCommand( "sv", SV_ServerCommand_f );
 }
-

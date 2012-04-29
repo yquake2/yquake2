@@ -396,4 +396,3 @@ void Qcommon_Frame (int msec)
 void Qcommon_Shutdown (void)
 {
 }
-

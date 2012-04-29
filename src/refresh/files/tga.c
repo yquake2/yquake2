@@ -433,4 +433,3 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 
 	ri.FS_FreeFile(buffer);
 }
-

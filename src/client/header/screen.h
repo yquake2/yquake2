@@ -66,4 +66,3 @@ void SCR_StopCinematic(void);
 void SCR_FinishCinematic(void);
 
 #endif
-

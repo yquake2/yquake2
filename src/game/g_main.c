@@ -22,7 +22,7 @@
  * Jump in into the game.so and support functions.
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/local.h"
 
@@ -198,11 +198,11 @@ edict_t *
 CreateTargetChangeLevel(char *map)
 {
 	edict_t *ent;
-     
+
 	if (!map)
 	{
 		return NULL;
-	}       
+	}
 
 	ent = G_Spawn();
 	ent->classname = "target_changelevel";
@@ -282,7 +282,7 @@ EndDMLevel(void)
 		ent = G_Find(NULL, FOFS(classname), "target_changelevel");
 
 		if (!ent)
-		{   /* the map designer didn't include a changelevel, 
+		{   /* the map designer didn't include a changelevel,
 			   so create a fake ent that goes back to the same level */
 			BeginIntermission(CreateTargetChangeLevel(level.mapname));
 			return;
@@ -420,7 +420,7 @@ G_RunFrame(void)
 		return;
 	}
 
-	/* treat each object in turn 
+	/* treat each object in turn
 	   even the world gets a chance
 	   to think */
 	ent = &g_edicts[0];
@@ -467,4 +467,3 @@ G_RunFrame(void)
 	/* build the playerstate_t structures for all players */
 	ClientEndServerFrames();
 }
-

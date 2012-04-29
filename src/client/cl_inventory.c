@@ -129,7 +129,7 @@ void CL_DrawInventory (void)
 
 		if (item != selected)
 			SetStringHighBit (string);
-		else 
+		else
 		{
 			/* draw a blinky cursor by the selected item */
 			if ( (int)(cls.realtime*10) & 1)
@@ -141,4 +141,3 @@ void CL_DrawInventory (void)
 		y += 8;
 	}
 }
-

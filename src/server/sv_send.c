@@ -318,7 +318,7 @@ SV_StartSound ( vec3_t origin, edict_t *entity, int channel, int soundindex, flo
 		flags |= SND_ATTENUATION;
 	}
 
-	/* the client doesn't know that bmodels have weird origins 
+	/* the client doesn't know that bmodels have weird origins
 	   the origin can also be explicitly set */
 	if ( ( entity->svflags & SVF_NOCLIENT ) ||
 		 ( entity->solid == SOLID_BSP ) ||
@@ -424,12 +424,12 @@ SV_SendClientDatagram ( client_t *client )
 	SZ_Init( &msg, msg_buf, sizeof ( msg_buf ) );
 	msg.allowoverflow = true;
 
-	/* send over all the relevant entity_state_t 
+	/* send over all the relevant entity_state_t
 	   and the player_state_t */
 	SV_WriteFrameToClient( client, &msg );
 
 	/* copy the accumulated multicast datagram
-	   for this client out to the message 
+	   for this client out to the message
 	   it is necessary for this to be after the WriteEntities
 	   so that entity references will be current */
 	if ( client->datagram.overflowed )
@@ -444,7 +444,7 @@ SV_SendClientDatagram ( client_t *client )
 	SZ_Clear( &client->datagram );
 
 	if ( msg.overflowed )
-	{   
+	{
 		/* must have room left for the packet header */
 		Com_Printf( "WARNING: msg overflowed for %s\n", client->name );
 		SZ_Clear( &msg );
@@ -564,7 +564,7 @@ SV_SendClientMessages ( void )
 			continue;
 		}
 
-		/* if the reliable message overflowed, 
+		/* if the reliable message overflowed,
 		   drop the client */
 		if ( c->netchan.message.overflowed )
 		{
@@ -601,4 +601,3 @@ SV_SendClientMessages ( void )
 		}
 	}
 }
-

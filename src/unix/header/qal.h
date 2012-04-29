@@ -114,7 +114,7 @@ extern LPALFILTERI qalFilteri;
 extern LPALFILTERF qalFilterf;
 extern LPALDELETEFILTERS qalDeleteFilters;
 
-/* 
+/*
  * Gives information over the OpenAL
  * implementation and it's state
  */
@@ -134,4 +134,3 @@ void QAL_Shutdown(void);
 
 #endif /* _QAL_API_H_ */
 #endif /* USE_OPENAL */
-

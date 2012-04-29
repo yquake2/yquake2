@@ -116,7 +116,7 @@ S_TransferPaintBuffer ( int endtime )
 		}
 	}
 }
- 
+
 void
 S_PaintChannelFrom8 ( channel_t *ch, sfxcache_t *sc, int count, int offset )
 {
@@ -179,7 +179,7 @@ S_PaintChannelFrom16 ( channel_t *ch, sfxcache_t *sc, int count, int offset )
 
 	ch->pos += count;
 }
- 
+
 void
 S_PaintChannels ( int endtime )
 {
@@ -359,4 +359,3 @@ S_InitScaletable ( void )
 		}
 	}
 }
-

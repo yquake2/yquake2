@@ -22,7 +22,7 @@
  *
  * Low level, platform depended "qal" API implementation. This files
  * provides functions to load, initialize, shutdown und unload the
- * OpenAL library and connects the "qal" funtion pointers to the 
+ * OpenAL library and connects the "qal" funtion pointers to the
  * OpenAL functions. This source file was taken from Q2Pro and
  * modified by the YQ2 authors.
  *
@@ -48,23 +48,23 @@ static void *handle;
 /* Function pointers for OpenAL management */
 static LPALCCREATECONTEXT qalcCreateContext;
 static LPALCMAKECONTEXTCURRENT qalcMakeContextCurrent;
-static LPALCPROCESSCONTEXT qalcProcessContext; 
-static LPALCSUSPENDCONTEXT qalcSuspendContext; 
-static LPALCDESTROYCONTEXT qalcDestroyContext; 
-static LPALCGETCURRENTCONTEXT qalcGetCurrentContext; 
-static LPALCGETCONTEXTSDEVICE qalcGetContextsDevice; 
-static LPALCOPENDEVICE qalcOpenDevice; 
-static LPALCCLOSEDEVICE qalcCloseDevice; 
-static LPALCGETERROR qalcGetError; 
-static LPALCISEXTENSIONPRESENT qalcIsExtensionPresent; 
-static LPALCGETPROCADDRESS qalcGetProcAddress; 
-static LPALCGETENUMVALUE qalcGetEnumValue; 
-static LPALCGETSTRING qalcGetString; 
-static LPALCGETINTEGERV qalcGetIntegerv; 
-static LPALCCAPTUREOPENDEVICE qalcCaptureOpenDevice; 
-static LPALCCAPTURECLOSEDEVICE qalcCaptureCloseDevice; 
-static LPALCCAPTURESTART qalcCaptureStart; 
-static LPALCCAPTURESTOP qalcCaptureStop; 
+static LPALCPROCESSCONTEXT qalcProcessContext;
+static LPALCSUSPENDCONTEXT qalcSuspendContext;
+static LPALCDESTROYCONTEXT qalcDestroyContext;
+static LPALCGETCURRENTCONTEXT qalcGetCurrentContext;
+static LPALCGETCONTEXTSDEVICE qalcGetContextsDevice;
+static LPALCOPENDEVICE qalcOpenDevice;
+static LPALCCLOSEDEVICE qalcCloseDevice;
+static LPALCGETERROR qalcGetError;
+static LPALCISEXTENSIONPRESENT qalcIsExtensionPresent;
+static LPALCGETPROCADDRESS qalcGetProcAddress;
+static LPALCGETENUMVALUE qalcGetEnumValue;
+static LPALCGETSTRING qalcGetString;
+static LPALCGETINTEGERV qalcGetIntegerv;
+static LPALCCAPTUREOPENDEVICE qalcCaptureOpenDevice;
+static LPALCCAPTURECLOSEDEVICE qalcCaptureCloseDevice;
+static LPALCCAPTURESTART qalcCaptureStart;
+static LPALCCAPTURESTOP qalcCaptureStop;
 static LPALCCAPTURESAMPLES qalcCaptureSamples ;
 
 /* Declaration of function pointers used
@@ -94,7 +94,7 @@ LPALLISTENERIV qalListeneriv;
 LPALGETLISTENERF qalGetListenerf;
 LPALGETLISTENER3F qalGetListener3f;
 LPALGETLISTENERFV qalGetListenerfv;
-LPALGETLISTENERI qalGetListeneri; 
+LPALGETLISTENERI qalGetListeneri;
 LPALGETLISTENER3I qalGetListener3i;
 LPALGETLISTENERIV qalGetListeneriv;
 LPALGENSOURCES qalGenSources;
@@ -124,22 +124,22 @@ LPALSOURCEQUEUEBUFFERS qalSourceQueueBuffers;
 LPALSOURCEUNQUEUEBUFFERS qalSourceUnqueueBuffers;
 LPALGENBUFFERS qalGenBuffers;
 LPALDELETEBUFFERS qalDeleteBuffers;
-LPALISBUFFER qalIsBuffer; 
-LPALBUFFERDATA qalBufferData; 
-LPALBUFFERF qalBufferf; 
-LPALBUFFER3F qalBuffer3f; 
-LPALBUFFERFV qalBufferfv; 
-LPALBUFFERI qalBufferi; 
+LPALISBUFFER qalIsBuffer;
+LPALBUFFERDATA qalBufferData;
+LPALBUFFERF qalBufferf;
+LPALBUFFER3F qalBuffer3f;
+LPALBUFFERFV qalBufferfv;
+LPALBUFFERI qalBufferi;
 LPALBUFFER3I qalBuffer3i;
 LPALBUFFERIV qalBufferiv;
-LPALGETBUFFERF qalGetBufferf; 
+LPALGETBUFFERF qalGetBufferf;
 LPALGETBUFFER3F qalGetBuffer3f;
 LPALGETBUFFERFV qalGetBufferfv;
-LPALGETBUFFERI qalGetBufferi; 
+LPALGETBUFFERI qalGetBufferi;
 LPALGETBUFFER3I qalGetBuffer3i;
-LPALGETBUFFERIV qalGetBufferiv; 
-LPALDOPPLERFACTOR qalDopplerFactor; 
-LPALDOPPLERVELOCITY qalDopplerVelocity; 
+LPALGETBUFFERIV qalGetBufferiv;
+LPALDOPPLERFACTOR qalDopplerFactor;
+LPALDOPPLERVELOCITY qalDopplerVelocity;
 LPALSPEEDOFSOUND qalSpeedOfSound;
 LPALDISTANCEMODEL qalDistanceModel;
 LPALGENFILTERS qalGenFilters;
@@ -147,11 +147,11 @@ LPALFILTERI qalFilteri;
 LPALFILTERF qalFilterf;
 LPALDELETEFILTERS qalDeleteFilters;
 
-/* 
+/*
  * Gives information over the OpenAL
  * implementation and it's state
  */
-void QAL_SoundInfo() 
+void QAL_SoundInfo()
 {
 	Com_Printf("OpenAL settings:\n");
     Com_Printf("AL_VENDOR: %s\n", qalGetString(AL_VENDOR));
@@ -179,12 +179,12 @@ void QAL_SoundInfo()
 				devs += strlen(devs) + 1;
 			}
 		}
-	} 
-	 
+	}
+
    	if (qalcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT"))
 	{
 		const char *devs = qalcGetString(device, ALC_DEVICE_SPECIFIER);
-    
+
 		Com_Printf("\nCurrent OpenAL device:\n");
 
 		if (devs == NULL)
@@ -196,14 +196,14 @@ void QAL_SoundInfo()
 			Com_Printf("- %s\n", devs);
 		}
 	}
-} 
+}
 
 /*
  * Shuts OpenAL down, frees all context and
  * device handles and unloads the shared lib.
  */
-void 
-QAL_Shutdown() 
+void
+QAL_Shutdown()
 {
     if (context)
    	{
@@ -211,8 +211,8 @@ QAL_Shutdown()
         qalcDestroyContext( context );
         context = NULL;
     }
-    
-	if (device) 
+
+	if (device)
 	{
         qalcCloseDevice( device );
         device = NULL;
@@ -222,26 +222,26 @@ QAL_Shutdown()
 	   for OpenAL management calls */
 	qalcCreateContext = NULL;
 	qalcMakeContextCurrent = NULL;
-	qalcProcessContext = NULL; 
-	qalcSuspendContext = NULL; 
-	qalcDestroyContext = NULL; 
-	qalcGetCurrentContext = NULL; 
-	qalcGetContextsDevice = NULL; 
-	qalcOpenDevice = NULL; 
-	qalcCloseDevice = NULL; 
-	qalcGetError = NULL; 
-	qalcIsExtensionPresent = NULL; 
-	qalcGetProcAddress = NULL; 
-	qalcGetEnumValue = NULL; 
-	qalcGetString = NULL; 
-	qalcGetIntegerv = NULL; 
-	qalcCaptureOpenDevice = NULL; 
-	qalcCaptureCloseDevice = NULL; 
-	qalcCaptureStart = NULL; 
-	qalcCaptureStop = NULL; 
-	qalcCaptureSamples = NULL;  
+	qalcProcessContext = NULL;
+	qalcSuspendContext = NULL;
+	qalcDestroyContext = NULL;
+	qalcGetCurrentContext = NULL;
+	qalcGetContextsDevice = NULL;
+	qalcOpenDevice = NULL;
+	qalcCloseDevice = NULL;
+	qalcGetError = NULL;
+	qalcIsExtensionPresent = NULL;
+	qalcGetProcAddress = NULL;
+	qalcGetEnumValue = NULL;
+	qalcGetString = NULL;
+	qalcGetIntegerv = NULL;
+	qalcCaptureOpenDevice = NULL;
+	qalcCaptureCloseDevice = NULL;
+	qalcCaptureStart = NULL;
+	qalcCaptureStop = NULL;
+	qalcCaptureSamples = NULL;
 
-	/* Disconnect OpenAL 
+	/* Disconnect OpenAL
 	 * function pointers */
 	qalEnable = NULL;
 	qalDisable = NULL;
@@ -268,7 +268,7 @@ QAL_Shutdown()
 	qalGetListenerf = NULL;
 	qalGetListener3f = NULL;
 	qalGetListenerfv = NULL;
-	qalGetListeneri = NULL; 
+	qalGetListeneri = NULL;
 	qalGetListener3i = NULL;
 	qalGetListeneriv = NULL;
 	qalGenSources = NULL;
@@ -298,24 +298,24 @@ QAL_Shutdown()
 	qalSourceUnqueueBuffers = NULL;
 	qalGenBuffers = NULL;
 	qalDeleteBuffers = NULL;
-	qalIsBuffer = NULL; 
-	qalBufferData = NULL; 
-	qalBufferf = NULL; 
-	qalBuffer3f = NULL; 
-	qalBufferfv = NULL; 
-	qalBufferi = NULL; 
+	qalIsBuffer = NULL;
+	qalBufferData = NULL;
+	qalBufferf = NULL;
+	qalBuffer3f = NULL;
+	qalBufferfv = NULL;
+	qalBufferi = NULL;
 	qalBuffer3i = NULL;
 	qalBufferiv = NULL;
-	qalGetBufferf = NULL; 
+	qalGetBufferf = NULL;
 	qalGetBuffer3f = NULL;
 	qalGetBufferfv = NULL;
-	qalGetBufferi = NULL; 
+	qalGetBufferi = NULL;
 	qalGetBuffer3i = NULL;
-	qalGetBufferiv = NULL; 
-	qalDopplerFactor = NULL; 
-	qalDopplerVelocity = NULL; 
+	qalGetBufferiv = NULL;
+	qalDopplerFactor = NULL;
+	qalDopplerVelocity = NULL;
 	qalSpeedOfSound = NULL;
-	qalDistanceModel = NULL;   
+	qalDistanceModel = NULL;
 	qalGenFilters = NULL;
 	qalFilteri = NULL;
 	qalFilterf = NULL;
@@ -330,7 +330,7 @@ QAL_Shutdown()
  * Loads the OpenAL shared lib, creates
  * a context and device handle.
  */
-qboolean 
+qboolean
 QAL_Init()
 {
 	/* DEFAULT_OPENAL_DRIVER is defined at compile time via the compiler */
@@ -446,20 +446,20 @@ QAL_Init()
 	qalSpeedOfSound = dlsym(handle, "alSpeedOfSound");
 	qalDistanceModel = dlsym(handle, "alDistanceModel");
 	qalGenFilters = dlsym(handle, "alGenFilters");
-	qalFilteri = dlsym(handle, "alFilteri"); 
-	qalFilterf = dlsym(handle, "alFilterf"); 
-	qalDeleteFilters = dlsym(handle, "alDeleteFilters"); 
+	qalFilteri = dlsym(handle, "alFilteri");
+	qalFilterf = dlsym(handle, "alFilterf");
+	qalDeleteFilters = dlsym(handle, "alDeleteFilters");
 
 	/* Open the OpenAL device */
     Com_Printf("...opening OpenAL device:");
-    
+
 	device = qalcOpenDevice(al_device->string[0] ? al_device->string : NULL);
 
 	if(!device)
 	{
 		Com_DPrintf("failed\n");
 		QAL_Shutdown();
-		return false; 
+		return false;
 	}
 
 	Com_Printf("ok\n");
@@ -473,7 +473,7 @@ QAL_Init()
 	{
 		Com_DPrintf("failed\n");
 		QAL_Shutdown();
-		return false; 
+		return false;
 	}
 
 	Com_Printf("ok\n");
@@ -481,11 +481,11 @@ QAL_Init()
 	/* Set the created context as current context */
 	Com_Printf("...making context current: ");
 
-	if (!qalcMakeContextCurrent(context)) 
+	if (!qalcMakeContextCurrent(context))
 	{
 		Com_DPrintf("failed\n");
 		QAL_Shutdown();
-		return false; 
+		return false;
 	}
 
 	Com_Printf("ok\n");
@@ -494,9 +494,8 @@ QAL_Init()
 	Com_Printf("\n");
 	QAL_SoundInfo();
 	Com_Printf("\n");
- 
+
     return true;
 }
 
 #endif /* USE_OPENAL */
-

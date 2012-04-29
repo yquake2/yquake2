@@ -22,13 +22,13 @@
  * Global string matching
  *
  * =======================================================================
- */ 
+ */
 
 #include <stdio.h>
 #include "header/glob.h"
 
-/* 
- * Like glob_match, but match PATTERN against any final segment of TEXT.  
+/*
+ * Like glob_match, but match PATTERN against any final segment of TEXT.
  */
 static int
 glob_match_after_star ( char *pattern, char *text )
@@ -236,4 +236,3 @@ glob_match ( char *pattern, char *text )
 
 	return ( *t == '\0' );
 }
-

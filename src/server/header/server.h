@@ -22,7 +22,7 @@
  * Main header file for the client
  *
  * =======================================================================
- */  
+ */
 
 #ifndef SV_SERVER_H
 #define SV_SERVER_H
@@ -30,12 +30,12 @@
 #include "../../common/header/common.h"
 #include "../../game/header/game.h"
 
-#define MAX_MASTERS 8 
+#define MAX_MASTERS 8
 #define LATENCY_COUNTS  16
 #define RATE_MESSAGES   10
 
-/* MAX_CHALLENGES is made large to prevent a denial 
-   of service attack that could cycle all of them 
+/* MAX_CHALLENGES is made large to prevent a denial
+   of service attack that could cycle all of them
    out before legitimate users connected */
 #define MAX_CHALLENGES  1024
 
@@ -70,7 +70,7 @@ typedef struct
 	char configstrings [ MAX_CONFIGSTRINGS ] [ MAX_QPATH ];
 	entity_state_t baselines [ MAX_EDICTS ];
 
-	/* the multicast buffer is used to send a message to a set of clients 
+	/* the multicast buffer is used to send a message to a set of clients
 	   it is only used to marshall data until SV_Multicast is called */
 	sizebuf_t multicast;
 	byte multicast_buf [ MAX_MSGLEN ];
@@ -122,7 +122,7 @@ typedef struct client_s
 	char name [ 32 ];                   /* extracted from userinfo, high bits masked */
 	int messagelevel;                   /* for filtering printed messages */
 
-	/* The datagram is written to by sound calls, prints, temp ents, etc. 
+	/* The datagram is written to by sound calls, prints, temp ents, etc.
 	   It can be harmlessly overflowed. */
 	sizebuf_t datagram;
 	byte datagram_buf [ MAX_MSGLEN ];
@@ -267,7 +267,7 @@ void SV_LinkEdict ( edict_t *ent );
 
 /* Needs to be called any time an entity changes origin, mins, maxs,
    or solid.  Automatically unlinks if needed.
-   sets ent->v.absmin and ent->v.absmax 
+   sets ent->v.absmin and ent->v.absmax
    sets ent->leafnums[] for pvs determination even if the entity is not solid */
 int SV_AreaEdicts ( vec3_t mins, vec3_t maxs, edict_t **list, int maxcount, int areatype );
 
@@ -276,4 +276,3 @@ int SV_PointContents ( vec3_t p );
 trace_t SV_Trace ( vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, edict_t *passedict, int contentmask );
 
 #endif
-

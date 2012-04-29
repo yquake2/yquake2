@@ -77,7 +77,7 @@ Quake II 2.11 to 3.00RC1
   - Reimplemented the gamma control using native X11 calls.
 	This should fix the gamma for all setups.
   - Support for overbright bits.
-- Changed the window title to "Yamagi Quake II". 
+- Changed the window title to "Yamagi Quake II".
 
 Quake II 2.10 to 2.11
 - Fix a bug in the client. This fixes the strange crashes
@@ -103,7 +103,7 @@ Quake II 2.10RC2 to 2.10RC3:
 Quake II 2.10RC to 2.10RC2:
 - Fix a problem with machine gun soldiers deadlocking
 - Change CFLAGS to a saner default
-- Quake II now creates ~/.quake2 if it doesn't exist (reported 
+- Quake II now creates ~/.quake2 if it doesn't exist (reported
   by N. Tsakiris)
 - Slightly better game performance (~10 FPS)
 
@@ -111,7 +111,7 @@ Quake II 2.00 to 2.10RC:
 - Automagical releases the mouse when the console is opened
 - Increased the maximal amount of file descriptores from 64
   to 256. This should fix some very rare crashes with 'The
-  Reconing' and possible similar problems with mods. 
+  Reconing' and possible similar problems with mods.
   (reported by E. Müller)
 - Support for custom resolutions (by caedes and Yamagi)
 
@@ -123,7 +123,7 @@ Quake II 1.05 to 2.00:
 - Some bugfixes
 
 Quake II 1.04 to 1.05:
-- Fix slowdown with CD music under Linux (by caedes) 
+- Fix slowdown with CD music under Linux (by caedes)
 
 Quake II 1.03 to 1.04:
 - Added icon (by caedes)

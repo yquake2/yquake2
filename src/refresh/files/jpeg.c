@@ -172,4 +172,3 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 }
 
 #endif /* RETEXTURE */
-

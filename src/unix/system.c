@@ -60,7 +60,7 @@ static DIR  *fdir;
 
 qboolean stdin_active = true;
 extern cvar_t *nostdout;
-extern FILE	*logfile; 
+extern FILE	*logfile;
 
 static qboolean
 CompareAttributes ( char *path, char *name, unsigned musthave, unsigned canthave )
@@ -271,7 +271,7 @@ Sys_Quit ( void )
 #ifndef DEDICATED_ONLY
 	CL_Shutdown();
 #endif
-   
+
    	if (logfile)
 	{
 		fclose (logfile);
@@ -502,4 +502,3 @@ Sys_SendKeyEvents ( void )
 	/* grab frame time */
 	sys_frame_time = Sys_Milliseconds();
 }
-

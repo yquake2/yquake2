@@ -415,7 +415,7 @@ SCR_RunCinematic(void) {
 }
 
 /*
- * Returns true if a cinematic is active, meaning the 
+ * Returns true if a cinematic is active, meaning the
  * view rendering should be skipped
  */
 qboolean
@@ -514,4 +514,3 @@ SCR_PlayCinematic(char *arg) {
 	cin.pic = SCR_ReadNextFrame();
 	cl.cinematictime = Sys_Milliseconds();
 }
-

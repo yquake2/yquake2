@@ -19,7 +19,7 @@
  *
  * =======================================================================
  *
- * This file is the starting point of the program and implements 
+ * This file is the starting point of the program and implements
  * the main loop
  *
  * =======================================================================
@@ -104,5 +104,4 @@ main ( int argc, char **argv )
 	}
 
 	return 0;
-}  
-
+}

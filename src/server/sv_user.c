@@ -70,7 +70,7 @@ SV_New_f ( void )
 		return;
 	}
 
-	/* serverdata needs to go over for all types of servers 
+	/* serverdata needs to go over for all types of servers
 	   to make sure the protocol is right, and to set the gamedir */
 	gamedir = (char *) Cvar_VariableString( "gamedir" );
 
@@ -315,7 +315,7 @@ SV_BeginDownload_f ( void )
 		 || ( ( strncmp( name, "maps/", 6 ) == 0 ) && !allow_download_maps->value )
 		 /* MUST be in a subdirectory */
 		 || !strstr( name, "/" ) )
-	{   
+	{
 		/* don't allow anything with .. path */
 		MSG_WriteByte( &sv_client->netchan.message, svc_download );
 		MSG_WriteShort( &sv_client->netchan.message, -1 );
@@ -637,4 +637,3 @@ SV_ExecuteClientMessage ( client_t *cl )
 		}
 	}
 }
-

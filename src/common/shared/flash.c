@@ -147,7 +147,7 @@ vec3_t monster_flash_offset[] = {
 	{4.6 * 1.15, -16.8 * 1.15, 7.3 * 1.15},
 
 	/* MZ2_CHICK_ROCKET_1				57 */
-	{24.8, -9.0, 39.0}, 
+	{24.8, -9.0, 39.0},
 
 	/* MZ2_FLYER_BLASTER_1				58 */
 	{12.1, 13.4, -14.5},
@@ -359,7 +359,7 @@ vec3_t monster_flash_offset[] = {
 	{17, -62, 91},
 	/* MZ2_WIDOW_RAIL_RIGHT				155 */
 	{68, 12, 86},
-	/* MZ2_WIDOW_BLASTER_SWEEP1			156	*/ 
+	/* MZ2_WIDOW_BLASTER_SWEEP1			156	*/
 	{47.5, 56, 89},
 	/* MZ2_WIDOW_BLASTER_SWEEP2			157 */
 	{54, 52, 91},
@@ -478,4 +478,3 @@ vec3_t monster_flash_offset[] = {
 	/* end of table */
 	{0.0, 0.0, 0.0}
 };
-

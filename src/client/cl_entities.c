@@ -693,4 +693,3 @@ void CL_GetEntitySoundOrigin (int ent, vec3_t org) {
 	old = &cl_entities[ent];
 	VectorCopy (old->lerp_origin, org);
 }
-

@@ -324,8 +324,8 @@ anglemod(float a)
 int i;
 vec3_t corners[2];
 
-/* 
- * This is the slow, general version 
+/*
+ * This is the slow, general version
  */
 int
 BoxOnPlaneSide2(vec3_t emins, vec3_t emaxs, struct cplane_s *p)
@@ -443,7 +443,7 @@ BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 					p->normal[2] * emaxs[2];
 			break;
 		default:
-			dist1 = dist2 = 0; 
+			dist1 = dist2 = 0;
 			break;
 	}
 
@@ -776,7 +776,7 @@ COM_DefaultExtension(char *path, const char *extension)
 
 qboolean bigendien;
 
-/* can't just use function pointers, or dll linkage can 
+/* can't just use function pointers, or dll linkage can
    mess up when qcommon is included in multiple places */
 short (*_BigShort)(short l);
 short (*_LittleShort)(short l);
@@ -788,37 +788,37 @@ float (*_LittleFloat)(float l);
 short
 BigShort(short l)
 {
-	return _BigShort(l); 
+	return _BigShort(l);
 }
 
 short
 LittleShort(short l)
 {
-	return _LittleShort(l); 
+	return _LittleShort(l);
 }
 
 int
 BigLong(int l)
 {
-	return _BigLong(l); 
+	return _BigLong(l);
 }
 
 int
 LittleLong(int l)
 {
-	return _LittleLong(l); 
+	return _LittleLong(l);
 }
 
 float
 BigFloat(float l)
 {
-	return _BigFloat(l); 
+	return _BigFloat(l);
 }
 
 float
 LittleFloat(float l)
 {
-	return _LittleFloat(l); 
+	return _LittleFloat(l);
 }
 
 short
@@ -914,7 +914,7 @@ Swap_Init(void)
 }
 
 /*
- * does a varargs printf into a temp buffer, so I don't 
+ * does a varargs printf into a temp buffer, so I don't
  * need to have varargs versions of all text functions.
  */
 char *
@@ -1129,7 +1129,7 @@ strlwr ( char *s )
 	}
 
 	return ( p );
-} 
+}
 
 /*
  * =====================================================================
@@ -1148,7 +1148,7 @@ char *
 Info_ValueForKey(char *s, char *key)
 {
 	char pkey[512];
-	static char value[2][512]; /* use two buffers so compares 
+	static char value[2][512]; /* use two buffers so compares
 							     work without stomping on each other */
 	static int valueindex;
 	char *o;
@@ -1352,4 +1352,3 @@ Info_SetValueForKey(char *s, char *key, char *value)
 
 	*s = 0;
 }
-

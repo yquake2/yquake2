@@ -95,7 +95,7 @@ signalhandler(int sig)
 	printf("   data. They're necessary to analyze the backtrace:\n\n");
 	printf("    - quake2 (the executable / binary)\n\n");
 	printf("    - ref_gl.so (the renderer)\n\n");
-	printf("    - game.so (the game.so of the mod you were playing\n"); 
+	printf("    - game.so (the game.so of the mod you were playing\n");
 	printf("      when the game crashed. baseq2/game.so for the\n");
     printf("      main game)\n\n");
 	printf(" - Any other data which you think might be usefull\n");
@@ -109,7 +109,7 @@ signalhandler(int sig)
 	signal(SIGSEGV, SIG_DFL);
 	signal(SIGILL, SIG_DFL);
 	signal(SIGFPE, SIG_DFL);
-    signal(SIGABRT, SIG_DFL); 
+    signal(SIGABRT, SIG_DFL);
 
 	/* pass signal to the os */
     raise(sig);
@@ -123,4 +123,3 @@ registerHandler(void)
 	signal(SIGFPE, signalhandler);
     signal(SIGABRT, signalhandler);
 }
-

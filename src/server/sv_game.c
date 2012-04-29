@@ -202,7 +202,7 @@ PF_Configstring ( int index, char *val )
 	strcpy( sv.configstrings [ index ], val );
 
 	if ( sv.state != ss_loading )
-	{   
+	{
 		/* send the update to everyone */
 		SZ_Clear( &sv.multicast );
 		MSG_WriteChar( &sv.multicast, svc_configstring );
@@ -421,4 +421,3 @@ SV_InitGameProgs ( void )
 
 	Com_Printf( "------------------------------------\n\n" );
 }
-

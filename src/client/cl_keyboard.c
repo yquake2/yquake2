@@ -1107,4 +1107,3 @@ Key_GetKey ( void )
 
 	return ( key_waiting );
 }
-

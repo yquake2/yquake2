@@ -22,7 +22,7 @@
  * This file implements loading and parsing of BSP files and trees.
  *
  * =======================================================================
- */ 
+ */
 
 #include "../header/common.h"
 #include "../header/cmodel.h"
@@ -546,5 +546,4 @@ int CM_LeafArea (int leafnum)
 		Com_Error (ERR_DROP, "CM_LeafArea: bad number");
 
 	return map_leafs[leafnum].area;
-} 
-
+}

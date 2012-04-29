@@ -37,7 +37,7 @@
 #define SURF_DRAWBACKGROUND 0x40
 #define SURF_UNDERWATER     0x80
 #define VERTEXSIZE  7
-                
+
 /* in memory representation */
 typedef struct
 {
@@ -231,4 +231,3 @@ void    Mod_FreeAll ( void );
 void    Mod_Free ( model_t *mod );
 
 #endif
-

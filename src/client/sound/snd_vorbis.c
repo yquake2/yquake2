@@ -629,8 +629,8 @@ OGG_Stream ( void )
 			   testing showed, that at most times
 			   at least 52 buffers remain available
 			   for OGG/Vorbis, enough for about 3
-			   seconds playback. The music won't 
-			   stutter as long as the framerate 
+			   seconds playback. The music won't
+			   stutter as long as the framerate
 			   stayes over 1 FPS. */
 			if ( ogg_numbufs == 0 )
 			{
@@ -838,4 +838,3 @@ OGG_StatusCmd ( void )
 }
 
 # endif /* OGG */
-

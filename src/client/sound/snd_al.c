@@ -132,7 +132,7 @@ qboolean AL_Init( void ) {
     s_numchannels = i;
     AL_InitStreamSource();
 	AL_InitUnderwaterFilter();
-   
+
 	Com_Printf("Number of OpenAL sources: %d\n\n", s_numchannels);
 
     return true;
@@ -409,7 +409,7 @@ void AL_Update( void ) {
 
     AL_IssuePlaysounds();
 }
- 
+
 void AL_Underwater()
 {
 	int i;

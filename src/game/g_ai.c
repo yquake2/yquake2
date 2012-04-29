@@ -27,21 +27,21 @@
 #include "header/local.h"
 
 extern cvar_t *maxclients;
- 
+
 qboolean enemy_vis;
 qboolean enemy_infront;
 int enemy_range;
 float enemy_yaw;
- 
+
 qboolean FindTarget(edict_t *self);
 qboolean ai_checkattack(edict_t *self);
 
 /*
- * Called once each frame to set level.sight_client 
+ * Called once each frame to set level.sight_client
  * to the player to be checked for in findtarget.
  * If all clients are either dead or in notarget,
  * sight_client will be null.
- * In coop games, sight_client will cycle 
+ * In coop games, sight_client will cycle
  * between the clients.
  */
 void
@@ -104,9 +104,9 @@ ai_move(edict_t *self, float dist)
 
 /*
  *
- * Used for standing around and looking 
- * for players Distance is for slight 
- * position adjustments needed by the 
+ * Used for standing around and looking
+ * for players Distance is for slight
+ * position adjustments needed by the
  * animations
  */
 void
@@ -235,14 +235,14 @@ ai_charge(edict_t *self, float dist)
 }
 
 /*
- * Don't move, but turn towards 
- * ideal_yaw. Distance is for 
+ * Don't move, but turn towards
+ * ideal_yaw. Distance is for
  * slight position adjustments
  * needed by the animations
  */
 void
 ai_turn(edict_t *self, float dist)
-{   
+{
 	if (!self)
 	{
 		return;
@@ -263,7 +263,7 @@ ai_turn(edict_t *self, float dist)
 
 /* ============================================================================ */
 
-/* 
+/*
  * .enemy
  * Will be world if not currently angry at anyone.
  *
@@ -305,7 +305,7 @@ range(edict_t *self, edict_t *other)
 	{
 		return 0;
 	}
- 
+
 	VectorSubtract(self->s.origin, other->s.origin, v);
 	len = VectorLength(v);
 
@@ -328,7 +328,7 @@ range(edict_t *self, edict_t *other)
 }
 
 /*
- * returns 1 if the entity is visible 
+ * returns 1 if the entity is visible
  * to self, even if not infront
  */
 qboolean
@@ -358,7 +358,7 @@ visible(edict_t *self, edict_t *other)
 }
 
 /*
- * returns 1 if the entity is in 
+ * returns 1 if the entity is in
  * front (in sight) of self
  */
 qboolean
@@ -428,12 +428,12 @@ HuntTarget(edict_t *self)
 
 void
 FoundTarget(edict_t *self)
-{  
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	/* let other monsters see this monster for a while */
 	if (self->enemy->client)
 	{
@@ -485,13 +485,13 @@ FoundTarget(edict_t *self)
  * Returns TRUE if an enemy was sighted
  *
  * When a player fires a missile, the point
- * of impact becomes a fakeplayer so that 
- * monsters that see the impact will respond 
+ * of impact becomes a fakeplayer so that
+ * monsters that see the impact will respond
  * as if they had seen the player.
  *
  * To avoid spending too much time, only
  * a single client (or fakeclient) is
- * checked each frame. This means multi 
+ * checked each frame. This means multi
  * player games will have slightly
  * slower noticing monsters.
  */
@@ -501,12 +501,12 @@ FindTarget(edict_t *self)
 	edict_t *client;
 	qboolean heardit;
 	int r;
-    
+
 	if (!self)
 	{
 		return false;
 	}
- 
+
 	if (self->monsterinfo.aiflags & AI_GOOD_GUY)
 	{
 		return false;
@@ -518,9 +518,9 @@ FindTarget(edict_t *self)
 		return false;
 	}
 
-	/* if the first spawnflag bit is set, the monster 
+	/* if the first spawnflag bit is set, the monster
 	   will only wake up on really seeing the player,
-	   not another monster getting angry or hearing 
+	   not another monster getting angry or hearing
 	   something */
 
 	heardit = false;
@@ -695,7 +695,7 @@ FindTarget(edict_t *self)
 		self->monsterinfo.aiflags |= AI_SOUND_TARGET;
 		self->enemy = client;
 	}
-	
+
 	FoundTarget(self);
 
 	if (!(self->monsterinfo.aiflags & AI_SOUND_TARGET) &&
@@ -712,7 +712,7 @@ FindTarget(edict_t *self)
 qboolean
 FacingIdeal(edict_t *self)
 {
-	float delta;    
+	float delta;
 
 	if (!self)
 	{
@@ -737,12 +737,12 @@ M_CheckAttack(edict_t *self)
 	vec3_t spot1, spot2;
 	float chance;
 	trace_t tr;
-              
+
 	if (!self)
 	{
 		return false;
 	}
- 
+
 	if (self->enemy->health > 0)
 	{
 		/* see if any entities are in the way of the shot */
@@ -852,17 +852,17 @@ M_CheckAttack(edict_t *self)
 }
 
 /*
- * Turn and close until within an 
+ * Turn and close until within an
  * angle to launch a melee attack
  */
 void
 ai_run_melee(edict_t *self)
-{                   
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->ideal_yaw = enemy_yaw;
 	M_ChangeYaw(self);
 
@@ -874,17 +874,17 @@ ai_run_melee(edict_t *self)
 }
 
 /*
- * Turn in place until within an 
+ * Turn in place until within an
  * angle to launch a missile attack
  */
 void
 ai_run_missile(edict_t *self)
-{                    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->ideal_yaw = enemy_yaw;
 	M_ChangeYaw(self);
 
@@ -896,13 +896,13 @@ ai_run_missile(edict_t *self)
 }
 
 /*
- * Strafe sideways, but stay at 
+ * Strafe sideways, but stay at
  * aproximately the same range
  */
 void
 ai_run_slide(edict_t *self, float distance)
 {
-	float ofs;        
+	float ofs;
 
 	if (!self)
 	{
@@ -931,8 +931,8 @@ ai_run_slide(edict_t *self, float distance)
 }
 
 /*
- * Decides if we're going to attack 
- * or do something else used by 
+ * Decides if we're going to attack
+ * or do something else used by
  * ai_run and ai_stand
  */
 qboolean
@@ -940,13 +940,13 @@ ai_checkattack(edict_t *self)
 {
 	vec3_t temp;
 	qboolean hesDeadJim;
-                                   
+
 	if (!self)
 	{
 		return false;
 	}
- 
-	/* this causes monsters to run blindly 
+
+	/* this causes monsters to run blindly
 	   to the combat point w/o firing */
 	if (self->goalentity)
 	{
@@ -1041,9 +1041,9 @@ ai_checkattack(edict_t *self)
 			}
 			else
 			{
-				/* we need the pausetime otherwise the stand code 
-				   will just revert to walking with no target and 
-				   the monsters will wonder around aimlessly trying 
+				/* we need the pausetime otherwise the stand code
+				   will just revert to walking with no target and
+				   the monsters will wonder around aimlessly trying
 				   to hunt the world entity */
 				self->monsterinfo.pausetime = level.time + 100000000;
 				self->monsterinfo.stand(self);
@@ -1053,8 +1053,8 @@ ai_checkattack(edict_t *self)
 		}
 	}
 
-	/* wake up other monsters */ 
-	self->show_hostile = level.time + 1; 
+	/* wake up other monsters */
+	self->show_hostile = level.time + 1;
 
 	/* check knowledge of enemy */
 	enemy_vis = visible(self, self->enemy);
@@ -1101,7 +1101,7 @@ ai_checkattack(edict_t *self)
 }
 
 /*
- * The monster has an enemy 
+ * The monster has an enemy
  * it is trying to kill
  */
 void
@@ -1117,12 +1117,12 @@ ai_run(edict_t *self, float dist)
 	vec3_t v_forward, v_right;
 	float left, center, right;
 	vec3_t left_target, right_target;
- 
+
 	if (!self)
 	{
 		return;
 	}
-          
+
 	/* if we're going to a combat point, just proceed */
 	if (self->monsterinfo.aiflags & AI_COMBAT_POINT)
 	{
@@ -1312,4 +1312,3 @@ ai_run(edict_t *self, float dist)
 		self->goalentity = save;
 	}
 }
-

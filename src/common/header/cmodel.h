@@ -117,9 +117,8 @@ void	FloodAreaConnections (void);
 #ifndef DEDICATED_ONLY
 int		c_pointcontents;
 int		c_traces, c_brush_traces;
-#endif 
+#endif
 
 int CM_BoxLeafnums_headnode (vec3_t mins, vec3_t maxs, int *list, int listsize, int headnode, int *topnode);
 
 #endif
-

@@ -22,7 +22,7 @@
  * The "camera" through which the player looks into the game.
  *
  * =======================================================================
- */ 
+ */
 
 #include "../header/local.h"
 #include "../monster/misc/player.h"
@@ -370,8 +370,8 @@ SV_CalcViewOffset(edict_t *ent)
 	/* add kick offset */
 	VectorAdd(v, ent->client->kick_origin, v);
 
-	/* absolutely bound offsets 
-	   so the view can never be 
+	/* absolutely bound offsets
+	   so the view can never be
 	   outside the player box */
 	if (v[0] < -14)
 	{
@@ -475,12 +475,12 @@ void
 SV_AddBlend(float r, float g, float b, float a, float *v_blend)
 {
 	float a2, a3;
-         
+
 	if (!v_blend)
 	{
 		return;
 	}
- 
+
 	if (a <= 0)
 	{
 		return;
@@ -501,12 +501,12 @@ SV_CalcBlend(edict_t *ent)
 	int contents;
 	vec3_t vieworg;
 	int remaining;
-                
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	ent->client->ps.blend[0] = ent->client->ps.blend[1] =
 		ent->client->ps.blend[2] = ent->client->ps.blend[3] = 0;
 
@@ -637,12 +637,12 @@ P_FallingDamage(edict_t *ent)
 	float delta;
 	int damage;
 	vec3_t dir;
-                 
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (ent->s.modelindex != 255)
 	{
 		return; /* not in the player model */
@@ -810,14 +810,14 @@ P_WorldEffects(void)
 	if ((old_waterlevel == 3) && (waterlevel != 3))
 	{
 		if (current_player->air_finished < level.time)
-		{   
+		{
 			/* gasp for air */
 			gi.sound(current_player, CHAN_VOICE,
 					gi.soundindex("player/gasp1.wav"), 1, ATTN_NORM, 0);
 			PlayerNoise(current_player, current_player->s.origin, PNOISE_SELF);
 		}
 		else if (current_player->air_finished < level.time + 11)
-		{   
+		{
 			/* just break surface */
 			gi.sound(current_player, CHAN_VOICE,
 					gi.soundindex("player/gasp2.wav"), 1, ATTN_NORM, 0);
@@ -854,7 +854,7 @@ P_WorldEffects(void)
 
 		/* if out of air, start drowning */
 		if (current_player->air_finished < level.time)
-		{   
+		{
 			/* drown! */
 			if ((current_player->client->next_drown_time < level.time) &&
 				(current_player->health > 0))
@@ -941,7 +941,7 @@ P_WorldEffects(void)
 		if (current_player->watertype & CONTENTS_SLIME)
 		{
 			if (!envirosuit)
-			{   
+			{
 				/* no damage from slime with envirosuit */
 				T_Damage(current_player, world, world, vec3_origin,
 						current_player->s.origin, vec3_origin,
@@ -956,12 +956,12 @@ G_SetClientEffects(edict_t *ent)
 {
 	int pa_type;
 	int remaining;
-        
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	ent->s.effects = 0;
 	ent->s.renderfx = RF_IR_VISIBLE;
 
@@ -1015,12 +1015,12 @@ G_SetClientEffects(edict_t *ent)
 
 void
 G_SetClientEvent(edict_t *ent)
-{    
+{
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (ent->s.event)
 	{
 		return;
@@ -1039,12 +1039,12 @@ void
 G_SetClientSound(edict_t *ent)
 {
 	char *weap;
-    
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (ent->client->pers.game_helpchanged != game.helpchanged)
 	{
 		ent->client->pers.game_helpchanged = game.helpchanged;
@@ -1096,12 +1096,12 @@ G_SetClientFrame(edict_t *ent)
 {
 	gclient_t *client;
 	qboolean duck, run;
-      
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (ent->s.modelindex != 255)
 	{
 		return; /* not in the player model */
@@ -1152,7 +1152,7 @@ G_SetClientFrame(edict_t *ent)
 		}
 	}
 	else if (ent->s.frame < client->anim_end)
-	{   
+	{
 		/* continue an animation */
 		ent->s.frame++;
 		return;
@@ -1195,7 +1195,7 @@ newanim:
 		client->anim_end = FRAME_jump2;
 	}
 	else if (run)
-	{   
+	{
 		/* running */
 		if (duck)
 		{
@@ -1233,19 +1233,19 @@ ClientEndServerFrame(edict_t *ent)
 {
 	float bobtime;
 	int i;
-      
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	current_player = ent;
 	current_client = ent->client;
 
-	/* If the origin or velocity have changed since ClientThink(), 
-	   update the pmove values. This will happen when the client 
-	   is pushed by a bmodel or kicked by an explosion. 
-	   If it wasn't updated here, the view position would lag a frame 
+	/* If the origin or velocity have changed since ClientThink(),
+	   update the pmove values. This will happen when the client
+	   is pushed by a bmodel or kicked by an explosion.
+	   If it wasn't updated here, the view position would lag a frame
 	   behind the body position when pushed -- "sinking into plats" */
 	for (i = 0; i < 3; i++)
 	{
@@ -1253,7 +1253,7 @@ ClientEndServerFrame(edict_t *ent)
 		current_client->ps.pmove.velocity[i] = ent->velocity[i] * 8.0;
 	}
 
-	/* If the end of unit layout is displayed, don't give 
+	/* If the end of unit layout is displayed, don't give
 	   the player any normal movement attributes */
 	if (level.intermissiontime)
 	{
@@ -1268,7 +1268,7 @@ ClientEndServerFrame(edict_t *ent)
 	/* burn from lava, etc */
 	P_WorldEffects();
 
-	/* set model angles from view angles so other things in 
+	/* set model angles from view angles so other things in
 	   the world can tell which direction you are looking */
 	if (ent->client->v_angle[PITCH] > 180)
 	{
@@ -1283,7 +1283,7 @@ ClientEndServerFrame(edict_t *ent)
 	ent->s.angles[ROLL] = 0;
 	ent->s.angles[ROLL] = SV_CalcRoll(ent->s.angles, ent->velocity) * 4;
 
-	/* calculate speed and cycle to be used for 
+	/* calculate speed and cycle to be used for
 	   all cyclic walking effects */
 	xyspeed = sqrt(
 			ent->velocity[0] * ent->velocity[0] + ent->velocity[1] *
@@ -1295,7 +1295,7 @@ ClientEndServerFrame(edict_t *ent)
 		current_client->bobtime = 0; /* start at beginning of cycle again */
 	}
 	else if (ent->groundentity)
-	{   
+	{
 		/* so bobbing only cycles when on ground */
 		if (xyspeed > 210)
 		{
@@ -1333,7 +1333,7 @@ ClientEndServerFrame(edict_t *ent)
 	/* determine the gun offsets */
 	SV_CalcGunOffset(ent);
 
-	/* determine the full screen color blend 
+	/* determine the full screen color blend
 	   must be after viewoffset, so eye contents
 	   can be accurately determined */
 	SV_CalcBlend(ent);
@@ -1372,4 +1372,3 @@ ClientEndServerFrame(edict_t *ent)
 		gi.unicast(ent, false);
 	}
 }
-

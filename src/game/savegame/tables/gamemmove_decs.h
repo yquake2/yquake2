@@ -24,7 +24,7 @@
  * Prototypes for every mmove_t in the game.so.
  *
  * =======================================================================
- */ 
+ */
 
 extern mmove_t tank_move_death ;
 extern mmove_t tank_move_attack_chain ;

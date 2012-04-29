@@ -307,7 +307,7 @@ VID_LoadRefresh ( char *name )
 	if ( IN_BackendInit_fp )
 	{
 		IN_BackendInit_fp( &in_state );
-	}  
+	}
 
 	if ( re.Init( 0, 0 ) == -1 )
 	{
@@ -472,4 +472,3 @@ Do_Key_Event ( int key, qboolean down )
 {
 	Key_Event( key, down, Sys_Milliseconds() );
 }
-

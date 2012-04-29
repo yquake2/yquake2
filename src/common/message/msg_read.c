@@ -241,4 +241,3 @@ void MSG_ReadData (sizebuf_t *msg_read, void *data, int len)
 	for (i=0 ; i<len ; i++)
 		((byte *)data)[i] = MSG_ReadByte (msg_read);
 }
-

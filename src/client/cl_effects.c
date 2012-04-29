@@ -30,7 +30,7 @@
 void CL_LogoutEffect (vec3_t org, int type);
 void CL_ItemRespawnParticles (vec3_t org);
 void CL_ClearLightStyles (void);
-void CL_ClearDlights (void); 
+void CL_ClearDlights (void);
 void CL_ClearParticles (void);
 
 static vec3_t avelocities [NUMVERTEXNORMALS];
@@ -2600,4 +2600,3 @@ void CL_BlasterTrail2 (vec3_t start, vec3_t end) {
 		VectorAdd (move, vec, move);
 	}
 }
-

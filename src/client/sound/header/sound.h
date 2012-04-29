@@ -51,4 +51,3 @@ struct sfx_s *S_FindName (char *name, qboolean create);
 void CL_GetEntitySoundOrigin (int ent, vec3_t org);
 
 #endif
-

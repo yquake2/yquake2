@@ -39,12 +39,12 @@ G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward,
 }
 
 /*
- * Searches all active entities for the next 
+ * Searches all active entities for the next
  * one that holds the matching string at fieldofs
  * (use the FOFS() macro) in the structure.
  *
  * Searches beginning at the edict after from, or
- * the beginning. If NULL, NULL will be returned 
+ * the beginning. If NULL, NULL will be returned
  * if the end of the list is reached.
  */
 edict_t *
@@ -90,7 +90,7 @@ G_Find(edict_t *from, int fieldofs, char *match)
 }
 
 /*
- * Returns entities that have origins 
+ * Returns entities that have origins
  * within a spherical area
  */
 edict_t *
@@ -144,7 +144,7 @@ findradius(edict_t *from, vec3_t org, float rad)
  * in the structure.
  *
  * Searches beginning at the edict after from,
- * or the beginning. If NULL, NULL will be 
+ * or the beginning. If NULL, NULL will be
  * returned if the end of the list is reached.
  */
 edict_t *
@@ -188,21 +188,21 @@ G_PickTarget(char *targetname)
 
 void
 Think_Delay(edict_t *ent)
-{     
+{
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	G_UseTargets(ent, ent->activator);
 	G_FreeEdict(ent);
 }
 
 /*
- * The global "activator" should be set to 
+ * The global "activator" should be set to
  * the entity that initiated the firing.
  *
- * If self.delay is set, a DelayedUse entity 
+ * If self.delay is set, a DelayedUse entity
  * will be created that will actually do the
  * SUB_UseTargets after that many seconds have passed.
  *
@@ -215,12 +215,12 @@ void
 G_UseTargets(edict_t *ent, edict_t *activator)
 {
 	edict_t *t;
-      
+
 	if (!ent || !activator)
 	{
 		return;
 	}
-     
+
 	/* check for a delay */
 	if (ent->delay)
 	{
@@ -274,7 +274,7 @@ G_UseTargets(edict_t *ent, edict_t *activator)
 			else if (!Q_stricmp(t->classname,"target_goal"))
 			{
 				level.total_goals--;
-				
+
 				if (level.found_goals >= level.total_goals)
 				{
 					gi.configstring (CS_CDTRACK, "0");
@@ -338,8 +338,8 @@ tv(float x, float y, float z)
 	static vec3_t vecs[8];
 	float *v;
 
-	/* use an array so that multiple 
-	   tempvectors won't collide 
+	/* use an array so that multiple
+	   tempvectors won't collide
 	   for a while */
 	v = vecs[index];
 	index = (index + 1) & 7;
@@ -500,11 +500,11 @@ G_InitEdict(edict_t *e)
 
 /*
  * Either finds a free edict, or allocates a
- * new one.  Try to avoid reusing an entity 
- * that was recently freed, because it can 
- * cause the client to think the entity 
+ * new one.  Try to avoid reusing an entity
+ * that was recently freed, because it can
+ * cause the client to think the entity
  * morphed into something else instead of
- * being removed and recreated, which can 
+ * being removed and recreated, which can
  * cause interpolated angles and bad trails.
  */
 edict_t *
@@ -517,9 +517,9 @@ G_Spawn(void)
 
 	for (i = maxclients->value + 1; i < globals.num_edicts; i++, e++)
 	{
-		/* the first couple seconds of 
-		   server time can involve a lot of 
-		   freeing and allocating, so relax 
+		/* the first couple seconds of
+		   server time can involve a lot of
+		   freeing and allocating, so relax
 		   the replacement policy */
 		if (!e->inuse && ((e->freetime < 2) || (level.time - e->freetime > 0.5)))
 		{
@@ -572,12 +572,12 @@ G_TouchTriggers(edict_t *ent)
 {
 	int i, num;
 	edict_t *touch[MAX_EDICTS], *hit;
-                          
+
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	/* dead things don't activate triggers! */
 	if ((ent->client || (ent->svflags & SVF_MONSTER)) && (ent->health <= 0))
 	{
@@ -587,7 +587,7 @@ G_TouchTriggers(edict_t *ent)
 	num = gi.BoxEdicts(ent->absmin, ent->absmax, touch,
 			MAX_EDICTS, AREA_TRIGGERS);
 
-	/* be careful, it is possible to have an entity in this 
+	/* be careful, it is possible to have an entity in this
 	   list removed before we get to it (killtriggered) */
 	for (i = 0; i < num; i++)
 	{
@@ -618,16 +618,16 @@ G_TouchSolids(edict_t *ent)
 {
 	int i, num;
 	edict_t *touch[MAX_EDICTS], *hit;
-                           
+
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	num = gi.BoxEdicts(ent->absmin, ent->absmax, touch,
 			MAX_EDICTS, AREA_SOLID);
 
-	/* be careful, it is possible to have an entity in this 
+	/* be careful, it is possible to have an entity in this
 	   list removed before we get to it (killtriggered) */
 	for (i = 0; i < num; i++)
 	{
@@ -659,12 +659,12 @@ qboolean
 KillBox(edict_t *ent)
 {
 	trace_t tr;
-                            
+
 	if (!ent)
 	{
 		return false;
 	}
-     
+
 	while (1)
 	{
 		tr = gi.trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin,
@@ -688,4 +688,3 @@ KillBox(edict_t *ent)
 
 	return true; /* all clear */
 }
-

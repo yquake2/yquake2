@@ -294,4 +294,3 @@ LM_EndBuildingLightmaps ( void )
 	LM_UploadBlock( false );
 	R_EnableMultitexture( false );
 }
-

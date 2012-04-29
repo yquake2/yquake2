@@ -22,7 +22,7 @@
  * Function prototypes for the Audio-CD playback
  *
  * =======================================================================
- */ 
+ */
 
 #ifdef CDA
 
@@ -39,4 +39,3 @@ void    CDAudio_RandomPlay(void);
 
 #endif
 #endif
-

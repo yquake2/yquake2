@@ -254,4 +254,3 @@ void CL_PredictMovement (void) {
 
 	VectorCopy (pm.viewangles, cl.predicted_angles);
 }
-

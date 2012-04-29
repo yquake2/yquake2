@@ -60,7 +60,7 @@ SV_FindIndex ( char *name, int start, int max, qboolean create )
 	strncpy( sv.configstrings [ start + i ], name, sizeof ( sv.configstrings [ i ] ) );
 
 	if ( sv.state != ss_loading )
-	{   
+	{
 		/* send the update to everyone */
 		MSG_WriteChar( &sv.multicast, svc_configstring );
 		MSG_WriteShort( &sv.multicast, start + i );
@@ -155,7 +155,7 @@ SV_CheckForSavegame ( void )
 	SV_ReadLevelFile();
 
 	if ( !sv.loadgame )
-	{   
+	{
 		/* coming back to a level after being in a different
 		   level, so run it for ten seconds */
 
@@ -248,7 +248,7 @@ SV_SpawnServer ( char *server, char *spawnpoint, server_state_t serverstate, qbo
 	}
 	else
 	{
-		Com_sprintf( sv.configstrings [ CS_MODELS + 1 ], 
+		Com_sprintf( sv.configstrings [ CS_MODELS + 1 ],
 				sizeof ( sv.configstrings [ CS_MODELS + 1 ] ), "maps/%s.bsp", server );
 		sv.models [ 1 ] = CM_LoadMap( sv.configstrings [ CS_MODELS + 1 ], false, &checksum );
 	}
@@ -336,7 +336,7 @@ SV_InitGame ( void )
 		Cvar_FullSet( "coop", "0",  CVAR_SERVERINFO | CVAR_LATCH );
 	}
 
-	/* dedicated servers can't be single player and are usually DM 
+	/* dedicated servers can't be single player and are usually DM
 	   so unless they explicity set coop, force it to deathmatch */
 	if ( dedicated->value )
 	{
@@ -502,4 +502,3 @@ SV_Map ( qboolean attractloop, char *levelstring, qboolean loadgame )
 
 	SV_BroadcastCommand( "reconnect\n" );
 }
-

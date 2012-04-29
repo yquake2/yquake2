@@ -225,4 +225,3 @@ R_UpdateSwapInterval ( void )
 		gl_swapinterval->modified = false;
 	}
 }
-

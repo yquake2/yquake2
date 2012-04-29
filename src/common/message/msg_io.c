@@ -22,7 +22,7 @@
  * Client / Server interactions
  *
  * =======================================================================
- */  
+ */
 
 #include "../header/common.h"
 
@@ -601,4 +601,3 @@ void MSG_WriteDeltaEntity (entity_state_t *from, entity_state_t *to, sizebuf_t *
 	if (bits & U_SOLID)
 		MSG_WriteShort (msg, to->solid);
 }
-

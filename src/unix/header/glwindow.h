@@ -36,4 +36,3 @@ typedef struct
 extern glwstate_t glw_state;
 
 #endif
-

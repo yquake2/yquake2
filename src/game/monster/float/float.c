@@ -37,23 +37,23 @@ static int sound_sight;
 
 void
 floater_sight(edict_t *self, edict_t *other /* unused */)
-{   
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
 }
 
 void
 floater_idle(edict_t *self)
-{ 
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_VOICE, sound_idle, 1, ATTN_IDLE, 0);
 }
 
@@ -72,12 +72,12 @@ floater_fire_blaster(edict_t *self)
 	vec3_t end;
 	vec3_t dir;
 	int effect;
-   
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if ((self->s.frame == FRAME_attak104) || (self->s.frame == FRAME_attak107))
 	{
 		effect = EF_HYPERBLASTER;
@@ -218,20 +218,20 @@ mframe_t floater_frames_stand2[] = {
 
 mmove_t floater_move_stand2 =
 {
-	FRAME_stand201, 
-	FRAME_stand252, 
-	floater_frames_stand2, 
+	FRAME_stand201,
+	FRAME_stand252,
+	floater_frames_stand2,
 	NULL
 };
 
 void
 floater_stand(edict_t *self)
-{   
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (random() <= 0.5)
 	{
 		self->monsterinfo.currentmove = &floater_move_stand1;
@@ -277,9 +277,9 @@ mframe_t floater_frames_activate[] = {
 
 mmove_t floater_move_activate =
 {
-	FRAME_actvat01, 
-	FRAME_actvat31, 
-	floater_frames_activate, 
+	FRAME_actvat01,
+	FRAME_actvat31,
+	floater_frames_activate,
 	NULL
 };
 
@@ -302,9 +302,9 @@ mframe_t floater_frames_attack1[] = {
 
 mmove_t floater_move_attack1 =
 {
-	FRAME_attak101, 
+	FRAME_attak101,
 	FRAME_attak114,
-   	floater_frames_attack1, 
+   	floater_frames_attack1,
 	floater_run
 };
 
@@ -338,9 +338,9 @@ mframe_t floater_frames_attack2[] = {
 
 mmove_t floater_move_attack2 =
 {
-	FRAME_attak201, 
-	FRAME_attak225, 
-	floater_frames_attack2, 
+	FRAME_attak201,
+	FRAME_attak225,
+	floater_frames_attack2,
 	floater_run
 };
 
@@ -406,9 +406,9 @@ mframe_t floater_frames_death[] = {
 
 mmove_t floater_move_death =
 {
-	FRAME_death01, 
-	FRAME_death13, 
-	floater_frames_death, 
+	FRAME_death01,
+	FRAME_death13,
+	floater_frames_death,
 	floater_dead
 };
 
@@ -424,9 +424,9 @@ mframe_t floater_frames_pain1[] = {
 
 mmove_t floater_move_pain1 =
 {
-	FRAME_pain101, 
-	FRAME_pain107, 
-	floater_frames_pain1, 
+	FRAME_pain101,
+	FRAME_pain107,
+	floater_frames_pain1,
 	floater_run
 };
 
@@ -443,9 +443,9 @@ mframe_t floater_frames_pain2[] = {
 
 mmove_t floater_move_pain2 =
 {
-	FRAME_pain201, 
-	FRAME_pain208, 
-	floater_frames_pain2, 
+	FRAME_pain201,
+	FRAME_pain208,
+	floater_frames_pain2,
 	floater_run
 };
 
@@ -466,9 +466,9 @@ mframe_t floater_frames_pain3[] = {
 
 mmove_t floater_move_pain3 =
 {
-	FRAME_pain301, 
-	FRAME_pain312, 
-	floater_frames_pain3, 
+	FRAME_pain301,
+	FRAME_pain312,
+	floater_frames_pain3,
 	floater_run
 };
 
@@ -529,9 +529,9 @@ mframe_t floater_frames_walk[] = {
 
 mmove_t floater_move_walk =
 {
-	FRAME_stand101, 
-	FRAME_stand152, 
-	floater_frames_walk, 
+	FRAME_stand101,
+	FRAME_stand152,
+	floater_frames_walk,
 	NULL
 };
 
@@ -592,20 +592,20 @@ mframe_t floater_frames_run[] = {
 
 mmove_t floater_move_run =
 {
-	FRAME_stand101, 
-	FRAME_stand152, 
-	floater_frames_run, 
+	FRAME_stand101,
+	FRAME_stand152,
+	floater_frames_run,
 	NULL
 };
 
 void
 floater_run(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
 	{
 		self->monsterinfo.currentmove = &floater_move_stand1;
@@ -618,12 +618,12 @@ floater_run(edict_t *self)
 
 void
 floater_walk(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.currentmove = &floater_move_walk;
 }
 
@@ -643,12 +643,12 @@ floater_zap(edict_t *self)
 	vec3_t origin;
 	vec3_t dir;
 	vec3_t offset;
-     
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	VectorSubtract(self->enemy->s.origin, self->s.origin, dir);
 
 	AngleVectors(self->s.angles, forward, right, NULL);
@@ -672,23 +672,23 @@ floater_zap(edict_t *self)
 
 void
 floater_attack(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.currentmove = &floater_move_attack1;
 }
 
 void
 floater_melee(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (random() < 0.5)
 	{
 		self->monsterinfo.currentmove = &floater_move_attack3;
@@ -704,12 +704,12 @@ floater_pain(edict_t *self, edict_t *other /* unused */,
 	   	float kick /* unused */, int damage)
 {
 	int n;
- 
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (self->health < (self->max_health / 2))
 	{
 		self->s.skinnum = 1;
@@ -743,12 +743,12 @@ floater_pain(edict_t *self, edict_t *other /* unused */,
 
 void
 floater_dead(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	VectorSet(self->mins, -16, -16, -24);
 	VectorSet(self->maxs, 16, 16, -8);
 	self->movetype = MOVETYPE_TOSS;
@@ -760,12 +760,12 @@ floater_dead(edict_t *self)
 void
 floater_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /* unused */,
 		int damage /* unused */, vec3_t point /* unused */)
-{ 
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_VOICE, sound_death1, 1, ATTN_NORM, 0);
 	BecomeExplosion1(self);
 }
@@ -775,12 +775,12 @@ floater_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /*
  */
 void
 SP_monster_floater(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (deathmatch->value)
 	{
 		G_FreeEdict(self);
@@ -835,4 +835,3 @@ SP_monster_floater(edict_t *self)
 
 	flymonster_start(self);
 }
-

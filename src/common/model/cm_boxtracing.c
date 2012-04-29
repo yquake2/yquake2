@@ -23,7 +23,7 @@
  * model
  *
  * =======================================================================
- */ 
+ */
 
 #include "../header/common.h"
 #include "../header/cmodel.h"
@@ -76,8 +76,8 @@ void CM_ClipBoxToBrush (vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2,
 
 		if (!trace_ispoint)
 		{
-			/* general box case 
-			   push the plane out 
+			/* general box case
+			   push the plane out
 			   apropriately for mins/maxs */
 			for (j=0 ; j<3 ; j++)
 			{
@@ -547,4 +547,3 @@ trace_t CM_TransformedBoxTrace (vec3_t start, vec3_t end,
 
 	return trace;
 }
-

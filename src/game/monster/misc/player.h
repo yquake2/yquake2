@@ -224,4 +224,3 @@
 #define FRAME_death308 197
 
 #define MODEL_SCALE 1.000000
-

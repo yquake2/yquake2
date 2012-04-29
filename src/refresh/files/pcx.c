@@ -160,4 +160,3 @@ GetPCXInfo(char *filename, int *width, int *height)
 
 	return;
 }
-

@@ -22,7 +22,7 @@
  * Server zone, server side of memory management
  *
  * =======================================================================
- */  
+ */
 
 #include "header/common.h"
 
@@ -85,4 +85,3 @@ void SZ_Print (sizebuf_t *buf, char *data)
 	else
 		memcpy ((byte *)SZ_GetSpace(buf, len),data,len);
 }
-

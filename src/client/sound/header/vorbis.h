@@ -27,8 +27,8 @@
 #ifndef CL_SOUND_VORBIS_H
 #define CL_SOUND_VORBIS_H
 
-/* The OGG codec can return the samples in a number 
-   of different formats, we use the standard signed 
+/* The OGG codec can return the samples in a number
+   of different formats, we use the standard signed
    short format. */
 #define OGG_SAMPLEWIDTH 2
 
@@ -71,4 +71,3 @@ void		OGG_StatusCmd(void);
 
 #endif
 #endif
-

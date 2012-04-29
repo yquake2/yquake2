@@ -157,4 +157,3 @@ LoadMD2 ( model_t *mod, void *buffer )
 	mod->maxs [ 1 ] = 32;
 	mod->maxs [ 2 ] = 32;
 }
-

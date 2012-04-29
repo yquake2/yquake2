@@ -22,7 +22,7 @@
  * Drawing of all images that are not textures
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/local.h"
 
@@ -185,7 +185,7 @@ Draw_Pic ( int x, int y, char *pic )
 }
 
 /*
- * This repeats a 64*64 tile graphic to fill 
+ * This repeats a 64*64 tile graphic to fill
  * the screen around a sized down
  * refresh window.
  */
@@ -409,4 +409,3 @@ Draw_GetPalette ( void )
 
 	return ( 0 );
 }
-

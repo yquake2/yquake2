@@ -211,4 +211,3 @@ typedef struct {
 typedef	refexport_t	(*R_GetRefAPI_t)(refimport_t);
 
 #endif
-

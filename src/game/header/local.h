@@ -22,15 +22,15 @@
  * Main header file for the game module.
  *
  * =======================================================================
- */ 
+ */
 
 #ifndef GAME_LOCAL_H
 #define GAME_LOCAL_H
 
 #include "../../common/header/shared.h"
 
-/* define GAME_INCLUDE so that game.h does not define the 
-   short, server-visible gclient_t and edict_t structures, 
+/* define GAME_INCLUDE so that game.h does not define the
+   short, server-visible gclient_t and edict_t structures,
    because we define the full size ones in this file */
 #define GAME_INCLUDE
 #include "game.h"
@@ -254,19 +254,19 @@ typedef struct gitem_s
 	char *precaches; /* string of all models, sounds, and images this item will use */
 } gitem_t;
 
-/* this structure is left intact through an entire game 
-   it should be initialized at dll load time, and read/written to 
+/* this structure is left intact through an entire game
+   it should be initialized at dll load time, and read/written to
    the server.ssv file for savegames */
 typedef struct
 {
 	char helpmessage1[512];
 	char helpmessage2[512];
-	int helpchanged; /* flash F1 icon if non 0, play sound 
+	int helpchanged; /* flash F1 icon if non 0, play sound
 					    and increment only if 1, 2, or 3 */
 
 	gclient_t *clients; /* [maxclients] */
 
-	/* can't store spawnpoint in level, because 
+	/* can't store spawnpoint in level, because
 	   it would get overwritten by the savegame
 	   restore */
 	char spawnpoint[512]; /* needed for coop respawns */
@@ -284,7 +284,7 @@ typedef struct
 	qboolean autosaved;
 } game_locals_t;
 
-/* this structure is cleared as each map is entered 
+/* this structure is cleared as each map is entered
    it is read/written to the level.sav file for savegames */
 typedef struct
 {
@@ -328,8 +328,8 @@ typedef struct
 	int power_cubes; /* ugly necessity for coop */
 } level_locals_t;
 
-/* spawn_temp_t is only used to hold entity field values that 
-   can be set from the editor, but aren't actualy present 
+/* spawn_temp_t is only used to hold entity field values that
+   can be set from the editor, but aren't actualy present
    in edict_t during gameplay */
 typedef struct
 {
@@ -793,10 +793,10 @@ typedef struct
 	char netname[16];
 	int hand;
 
-	qboolean connected; /* a loadgame will leave valid entities that 
+	qboolean connected; /* a loadgame will leave valid entities that
 						   just don't have a connection yet */
 
-	/* values saved and restored 
+	/* values saved and restored
 	   from edicts when changing levels */
 	int health;
 	int max_health;
@@ -836,7 +836,7 @@ typedef struct
 	qboolean spectator; /* client is a spectator */
 } client_respawn_t;
 
-/* this structure is cleared on each PutClientInServer(), 
+/* this structure is cleared on each PutClientInServer(),
    except for 'client->pers' */
 struct gclient_s
 {
@@ -864,7 +864,7 @@ struct gclient_s
 
 	gitem_t *newweapon;
 
-	/* sum up damage over an entire frame, so 
+	/* sum up damage over an entire frame, so
 	   shotgun blasts give a single big kick */
 	int damage_armor; /* damage absorbed by armor */
 	int damage_parmor; /* damage absorbed by power armor */
@@ -925,8 +925,8 @@ struct gclient_s
 struct edict_s
 {
 	entity_state_t s;
-	struct gclient_s *client; /* NULL if not a player 
-							     the server expects the first part 
+	struct gclient_s *client; /* NULL if not a player
+							     the server expects the first part
 							     of gclient_s to be a player_state_t
 							     but the rest of it is opaque */
 
@@ -984,7 +984,7 @@ struct edict_s
 	vec3_t avelocity;
 	int mass;
 	float air_finished;
-	float gravity; /* per entity gravity multiplier (1.0 is normal) 
+	float gravity; /* per entity gravity multiplier (1.0 is normal)
 				      use for lowgrav artifact, flares */
 
 	edict_t *goalentity;
@@ -995,7 +995,7 @@ struct edict_s
 	float nextthink;
 	void (*prethink)(edict_t *ent);
 	void (*think)(edict_t *self);
-	void (*blocked)(edict_t *self, edict_t *other); 
+	void (*blocked)(edict_t *self, edict_t *other);
 	void (*touch)(edict_t *self, edict_t *other, cplane_t *plane,
 			csurface_t *surf);
 	void (*use)(edict_t *self, edict_t *other, edict_t *activator);
@@ -1070,4 +1070,3 @@ struct edict_s
 };
 
 #endif /* GAME_LOCAL_H */
-

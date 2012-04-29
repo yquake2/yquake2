@@ -22,18 +22,18 @@
  * Lightmaps and dynamic lighting
  *
  * =======================================================================
- */  
+ */
 
 #include "header/local.h"
 
 #define DLIGHT_CUTOFF   64
- 
+
 int r_dlightframecount;
 vec3_t pointcolor;
 cplane_t *lightplane; /* used as shadow plane */
 vec3_t lightspot;
 static float s_blocklights [ 34 * 34 * 3 ];
-   
+
 void
 R_RenderDlight ( dlight_t *light )
 {
@@ -86,7 +86,7 @@ R_RenderDlights ( void )
 
 	/* because the count hasn't advanced yet for this frame */
 	r_dlightframecount = r_framecount + 1;
-	
+
 	qglDepthMask( 0 );
 	qglDisable( GL_TEXTURE_2D );
 	qglShadeModel( GL_SMOOTH );
@@ -177,8 +177,8 @@ R_PushDlights ( void )
 	}
 
 	/* because the count hasn't advanced yet for this frame */
-	r_dlightframecount = r_framecount + 1; 
-	
+	r_dlightframecount = r_framecount + 1;
+
 	l = r_newrefdef.dlights;
 
 	for ( i = 0; i < r_newrefdef.num_dlights; i++, l++ )
@@ -677,4 +677,3 @@ store:
 		}
 	}
 }
-

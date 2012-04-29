@@ -24,11 +24,11 @@
  * the appropriate clients.
  *
  * =======================================================================
- */   
+ */
 
 #include "header/server.h"
 
-byte fatpvs [ 65536 / 8 ]; 
+byte fatpvs [ 65536 / 8 ];
 
 /*
  * Writes a delta update of an entity_state_t list to the message.
@@ -86,11 +86,11 @@ SV_EmitPacketEntities ( client_frame_t *from, client_frame_t *to, sizebuf_t *msg
 		}
 
 		if ( newnum == oldnum )
-		{   
+		{
 			/* delta update from old position
 			   because the force parm is false, this will not result
 			   in any bytes being emited if the entity has not changed at all
-			   note that players are always 'newentities', this updates their oldorigin always 
+			   note that players are always 'newentities', this updates their oldorigin always
 			   and prevents warping */
 			MSG_WriteDeltaEntity( oldent, newent, msg, false, newent->number <= maxclients->value );
 			oldindex++;
@@ -99,7 +99,7 @@ SV_EmitPacketEntities ( client_frame_t *from, client_frame_t *to, sizebuf_t *msg
 		}
 
 		if ( newnum < oldnum )
-		{   
+		{
 			/* this is a new entity, send it from the baseline */
 			MSG_WriteDeltaEntity( &sv.baselines [ newnum ], newent, msg, true, true );
 			newindex++;
@@ -107,7 +107,7 @@ SV_EmitPacketEntities ( client_frame_t *from, client_frame_t *to, sizebuf_t *msg
 		}
 
 		if ( newnum > oldnum )
-		{   
+		{
 			/* the old entity isn't present in the new message */
 			bits = U_REMOVE;
 
@@ -385,13 +385,13 @@ SV_WriteFrameToClient ( client_t *client, sizebuf_t *msg )
 	frame = &client->frames [ sv.framenum & UPDATE_MASK ];
 
 	if ( client->lastframe <= 0 )
-	{   
+	{
 		/* client is asking for a retransmit */
 		oldframe = NULL;
 		lastframe = -1;
 	}
 	else if ( sv.framenum - client->lastframe >= ( UPDATE_BACKUP - 3 ) )
-	{   
+	{
 		/* client hasn't gotten a good message through in a long time */
 		oldframe = NULL;
 		lastframe = -1;
@@ -560,7 +560,7 @@ SV_BuildClientFrame ( client_t *client )
 		{
 			/* check area */
 			if ( !CM_AreasConnected( clientarea, ent->areanum ) )
-			{   
+			{
 				/* doors can legally straddle two areas, so
 				   we may need to check another one */
 				if ( !ent->areanum2 ||
@@ -585,7 +585,7 @@ SV_BuildClientFrame ( client_t *client )
 				bitvector = fatpvs;
 
 				if ( ent->num_clusters == -1 )
-				{   
+				{
 					/* too many leafs for individual check, go by headnode */
 					if ( !CM_HeadnodeVisible( ent->headnode, bitvector ) )
 					{
@@ -614,7 +614,7 @@ SV_BuildClientFrame ( client_t *client )
 				}
 
 				if ( !ent->s.modelindex )
-				{   
+				{
 					/* don't send sounds if they will be attenuated away */
 					vec3_t delta;
 					float len;
@@ -709,4 +709,3 @@ SV_RecordDemoMessage ( void )
 	fwrite( &len, 4, 1, svs.demofile );
 	fwrite( buf.data, buf.cursize, 1, svs.demofile );
 }
-

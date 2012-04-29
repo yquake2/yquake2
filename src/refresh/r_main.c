@@ -1279,7 +1279,7 @@ R_Init ( void *hinstance, void *hWnd )
 		gl_config.anisotropic = false;
 		gl_config.max_anisotropy = 0.0;
 		ri.Cvar_SetValue("gl_anisotropic_avail", 0.0);
-	} 
+	}
 
 	gl_config.mtexcombine = false;
 
@@ -1626,4 +1626,3 @@ Com_Printf ( char *fmt, ... )
 
 	ri.Con_Printf( PRINT_ALL, "%s", text );
 }
-

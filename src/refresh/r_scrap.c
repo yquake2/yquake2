@@ -19,7 +19,7 @@
  *
  * =======================================================================
  *
- * Allocate all the little status bar obejcts into a single texture 
+ * Allocate all the little status bar obejcts into a single texture
  * to crutch up inefficient hardware / drivers.
  *
  * =======================================================================
@@ -94,4 +94,3 @@ Scrap_Upload ( void )
 	R_Upload8( scrap_texels [ 0 ], BLOCK_WIDTH, BLOCK_HEIGHT, false, false );
 	scrap_dirty = false;
 }
- 

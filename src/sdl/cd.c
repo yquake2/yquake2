@@ -517,4 +517,3 @@ CDAudio_Activate ( qboolean active )
 }
 
 #endif /* CDA */
-

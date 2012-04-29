@@ -23,7 +23,7 @@
  * Prototypes for every function in the game.so.
  *
  * =======================================================================
- */ 
+ */
 
 extern void ReadLevel ( const char * filename ) ;
 extern void ReadLevelLocals ( FILE * f ) ;

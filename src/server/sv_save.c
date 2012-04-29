@@ -22,7 +22,7 @@
  * Serverside savegame code.
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/server.h"
 
@@ -246,7 +246,7 @@ SV_WriteServerFile ( qboolean autosave )
 	/* write the mapcmd */
 	fwrite( svs.mapcmd, 1, sizeof ( svs.mapcmd ), f );
 
-	/* write all CVAR_LATCH cvars 
+	/* write all CVAR_LATCH cvars
 	   these will be things like coop, skill, deathmatch, etc */
 	for ( var = cvar_vars; var; var = var->next )
 	{
@@ -302,7 +302,7 @@ SV_ReadServerFile ( void )
 	/* read the mapcmd */
 	FS_Read( mapcmd, sizeof ( mapcmd ), f );
 
-	/* read all CVAR_LATCH cvars 
+	/* read all CVAR_LATCH cvars
 	   these will be things like coop, skill, deathmatch, etc */
 	while ( 1 )
 	{
@@ -326,7 +326,7 @@ SV_ReadServerFile ( void )
 	/* read game state */
 	Com_sprintf( name, sizeof ( name ), "%s/save/current/game.ssv", FS_Gamedir() );
 	ge->ReadGame( name );
-}   
+}
 
 void
 SV_Loadgame_f ( void )
@@ -415,7 +415,7 @@ SV_Savegame_f ( void )
 
 	Com_Printf( "Saving game...\n" );
 
-	/* archive current level, including all client edicts. 
+	/* archive current level, including all client edicts.
 	   when the level is reloaded, they will be shells awaiting
 	   a connecting client */
 	SV_WriteLevelFile();
@@ -428,4 +428,3 @@ SV_Savegame_f ( void )
 
 	Com_Printf( "Done.\n" );
 }
-

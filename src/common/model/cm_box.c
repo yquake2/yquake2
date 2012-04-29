@@ -281,4 +281,3 @@ int	CM_TransformedPointContents (vec3_t p, int headnode, vec3_t origin, vec3_t a
 
 	return map_leafs[l].contents;
 }
-

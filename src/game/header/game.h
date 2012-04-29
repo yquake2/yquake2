@@ -22,14 +22,14 @@
  * Here are the client, server and game are tied together.
  *
  * =======================================================================
- */ 
+ */
 
 /*
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- * 
+ *
  * THIS FILE IS _VERY_ FRAGILE AND THERE'S NOTHING IN IT THAT CAN OR
  * MUST BE CHANGED. IT'S MOST LIKELY A VERY GOOD IDEA TO CLOSE THE
- * EDITOR NOW AND NEVER LOOK BACK. OTHERWISE YOU MAY SCREW UP EVERYTHING! 
+ * EDITOR NOW AND NEVER LOOK BACK. OTHERWISE YOU MAY SCREW UP EVERYTHING!
  *
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  */
@@ -68,7 +68,7 @@ struct gclient_s
 {
 	player_state_t ps;      /* communicated by server to clients */
 	int ping;
-	/* the game dll can add anything it wants 
+	/* the game dll can add anything it wants
 	   after  this point in the structure */
 };
 
@@ -93,7 +93,7 @@ struct edict_s
 	int clipmask;
 	edict_t *owner;
 
-	/* the game dll can add anything it wants 
+	/* the game dll can add anything it wants
 	   after this point in the structure */
 };
 
@@ -114,15 +114,15 @@ typedef struct
 	void (*positioned_sound)(vec3_t origin, edict_t *ent, int channel,
 			int soundinedex, float volume, float attenuation, float timeofs);
 
-	/* config strings hold all the index strings, the lightstyles, 
-	   and misc data like the sky definition and cdtrack. 
-	   All of the current configstrings are sent to clients when 
+	/* config strings hold all the index strings, the lightstyles,
+	   and misc data like the sky definition and cdtrack.
+	   All of the current configstrings are sent to clients when
 	   they connect, and changes are sent to all connected clients. */
 	void (*configstring)(int num, char *string);
 
 	void (*error)(char *fmt, ...);
 
-	/* the *index functions create configstrings 
+	/* the *index functions create configstrings
 	   and some internal server state */
 	int (*modelindex)(char *name);
 	int (*soundindex)(char *name);
@@ -139,8 +139,8 @@ typedef struct
 	void (*SetAreaPortalState)(int portalnum, qboolean open);
 	qboolean (*AreasConnected)(int area1, int area2);
 
-	/* an entity will never be sent to a client or used for collision 
-	   if it is not passed to linkentity. If the size, position, or 
+	/* an entity will never be sent to a client or used for collision
+	   if it is not passed to linkentity. If the size, position, or
 	   solidity changes, it must be relinked. */
 	void (*linkentity)(edict_t *ent);
 	void (*unlinkentity)(edict_t *ent); /* call before removing an interactive edict */
@@ -176,7 +176,7 @@ typedef struct
 	char *(*argv)(int n);
 	char *(*args)(void); /* concatenation of all argv >= 1 */
 
-	/* add commands to the server console as if 
+	/* add commands to the server console as if
 	   they were typed in for map changing, etc */
 	void (*AddCommandString)(char *text);
 
@@ -197,15 +197,15 @@ typedef struct
 	/* each new level entered will cause a call to SpawnEntities */
 	void (*SpawnEntities)(char *mapname, char *entstring, char *spawnpoint);
 
-	/* Read/Write Game is for storing persistant cross level information 
-	   about the world state and the clients. 
+	/* Read/Write Game is for storing persistant cross level information
+	   about the world state and the clients.
 	   WriteGame is called every time a level is exited.
 	   ReadGame is called on a loadgame. */
 	void (*WriteGame)(char *filename, qboolean autosave);
 	void (*ReadGame)(char *filename);
 
-	/* ReadLevel is called after the default 
-	   map information has been loaded with 
+	/* ReadLevel is called after the default
+	   map information has been loaded with
 	   SpawnEntities */
 	void (*WriteLevel)(char *filename);
 	void (*ReadLevel)(char *filename);
@@ -219,7 +219,7 @@ typedef struct
 
 	void (*RunFrame)(void);
 
-	/* ServerCommand will be called when an "sv <command>" 
+	/* ServerCommand will be called when an "sv <command>"
 	   command is issued on the  server console. The game can
 	   issue gi.argc() / gi.argv() commands to get the rest
 	   of the parameters */
@@ -227,8 +227,8 @@ typedef struct
 
 	/* global variables shared between game and server */
 
-	/* The edict array is allocated in the game dll so it 
-	   can vary in size from one game to another. 
+	/* The edict array is allocated in the game dll so it
+	   can vary in size from one game to another.
 	   The size will be fixed when ge->Init() is called */
 	struct edict_s *edicts;
 	int edict_size;
@@ -237,4 +237,3 @@ typedef struct
 } game_export_t;
 
 game_export_t *GetGameApi(game_import_t *import);
-

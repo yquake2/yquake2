@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
  * 02111-1307, USA.
- * 
+ *
  * =======================================================================
  *
  * This file implements the entity and network protocol parsing
@@ -29,7 +29,7 @@
 void CL_DownloadFileName(char *dest, int destlen, char *fn);
 void CL_ParseDownload (void);
 
-int	bitcounts[32]; /* just for protocol profiling */ 
+int	bitcounts[32]; /* just for protocol profiling */
 
 char *svc_strings[256] = {
 	"svc_bad",
@@ -238,8 +238,8 @@ void CL_DeltaEntity (frame_t *frame, int newnum, entity_state_t *old,
 	/* wasn't in last update, so initialize some things */
 	if (ent->serverframe != cl.frame.serverframe - 1) {
 		ent->trailcount = 1024; /* for diminishing rocket / grenade trails */
-		
-		/* duplicate the current state so 
+
+		/* duplicate the current state so
 		 * lerping doesn't hurt anything */
 		ent->prev = *state;
 
@@ -619,7 +619,7 @@ void CL_ParseFrame (void) {
 		if (!(!cl_predict->value || (cl.frame.playerstate.pmove.pm_flags & PMF_NO_PREDICTION)))
 			CL_CheckPredictionError();
 	}
-} 
+}
 
 void CL_ParseServerData (void) {
 	extern cvar_t	*fs_gamedirvar;
@@ -1089,4 +1089,3 @@ void CL_ParseServerMessage (void) {
 		CL_WriteDemoMessage ();
 
 }
-

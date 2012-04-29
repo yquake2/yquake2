@@ -22,13 +22,13 @@
  * This file implements all generic particle stuff
  *
  * =======================================================================
- */ 
+ */
 
-#include "header/client.h" 
+#include "header/client.h"
 
 cparticle_t	*active_particles, *free_particles;
 cparticle_t	particles[MAX_PARTICLES];
-int		cl_numparticles = MAX_PARTICLES; 
+int		cl_numparticles = MAX_PARTICLES;
 
 void CL_ClearParticles (void) {
 	int		i;
@@ -240,4 +240,3 @@ void CL_GenericParticleEffect (vec3_t org, vec3_t dir, int color, int count, int
 		p->alphavel = -1.0f / (0.5f + frand()*alphavel);
 	}
 }
-

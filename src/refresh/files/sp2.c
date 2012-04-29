@@ -22,7 +22,7 @@
  * .sp2 sprites
  *
  * =======================================================================
- */  
+ */
 
 #include "../header/local.h"
 
@@ -66,5 +66,4 @@ LoadSP2 ( model_t *mod, void *buffer )
 	}
 
 	mod->type = mod_sprite;
-} 
-
+}

@@ -22,7 +22,7 @@
  * The player trail, used by monsters to locate the player.
  *
  * =======================================================================
- */ 
+ */
 
 #include "../header/local.h"
 
@@ -36,10 +36,10 @@
  */
 
 #define TRAIL_LENGTH 8
- 
+
 #define NEXT(n) (((n) + 1) & (TRAIL_LENGTH - 1))
 #define PREV(n) (((n) - 1) & (TRAIL_LENGTH - 1))
- 
+
 edict_t *trail[TRAIL_LENGTH];
 int trail_head;
 qboolean trail_active = false;
@@ -101,12 +101,12 @@ PlayerTrail_PickFirst(edict_t *self)
 {
 	int marker;
 	int n;
-                          
+
 	if (!self)
 	{
 		return NULL;
 	}
- 
+
 	if (!trail_active)
 	{
 		return NULL;
@@ -142,12 +142,12 @@ PlayerTrail_PickNext(edict_t *self)
 {
 	int marker;
 	int n;
-                           
+
 	if (!self)
 	{
 		return NULL;
 	}
- 
+
 	if (!trail_active)
 	{
 		return NULL;
@@ -173,4 +173,3 @@ PlayerTrail_LastSpot(void)
 {
 	return trail[PREV(trail_head)];
 }
-

@@ -21,7 +21,7 @@
  *
  * Prototypes witch are shared between the client, the server and the
  * game. This is the main game API, changes here will most likely
- * requiere changes to the game ddl. 
+ * requiere changes to the game ddl.
  *
  * =======================================================================
  */
@@ -458,14 +458,14 @@ extern	qboolean	userinfo_modified;
 #define	MAX_MSGLEN		1400		/* max length of a message */
 #define	PACKET_HEADER	10			/* two ints and a short */
 
-typedef enum 
+typedef enum
 {
-	NA_LOOPBACK, 
-	NA_BROADCAST, 
-	NA_IP, 
-	NA_IPX, 
-	NA_BROADCAST_IPX, 
-	NA_IP6, 
+	NA_LOOPBACK,
+	NA_BROADCAST,
+	NA_IP,
+	NA_IPX,
+	NA_BROADCAST_IPX,
+	NA_IP6,
 	NA_MULTICAST6
 } netadrtype_t;
 

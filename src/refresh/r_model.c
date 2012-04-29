@@ -22,7 +22,7 @@
  * Model loading and caching. Includes the .bsp file format
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/local.h"
 
@@ -97,7 +97,7 @@ Mod_DecompressVis ( byte *in, model_t *model )
 	out = decompressed;
 
 	if ( !in )
-	{   
+	{
 		/* no vis info, so make all visible */
 		while ( row )
 		{
@@ -382,7 +382,7 @@ Mod_LoadSubmodels ( lump_t *l )
 	for ( i = 0; i < count; i++, in++, out++ )
 	{
 		for ( j = 0; j < 3; j++ )
-		{   
+		{
 			/* spread the mins / maxs by a pixel */
 			out->mins [ j ] = LittleFloat( in->mins [ j ] ) - 1;
 			out->maxs [ j ] = LittleFloat( in->maxs [ j ] ) + 1;
@@ -959,7 +959,7 @@ Mod_FreeAll ( void )
 		}
 	}
 }
- 
+
 /*
  * Specifies the model that will be used as the world
  */
@@ -1049,7 +1049,7 @@ R_EndRegistration ( void )
 		}
 
 		if ( mod->registration_sequence != registration_sequence )
-		{  
+		{
 		   	/* don't need this model */
 			Mod_Free( mod );
 		}
@@ -1057,4 +1057,3 @@ R_EndRegistration ( void )
 
 	R_FreeUnusedImages();
 }
- 

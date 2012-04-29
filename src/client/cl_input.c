@@ -21,7 +21,7 @@
  *
  * This file implements the input handling like mouse events and
  * keyboard strokes.
- * 
+ *
  * =======================================================================
  */
 
@@ -562,4 +562,3 @@ void CL_SendCmd (void) {
 	/* deliver the message */
 	Netchan_Transmit (&cls.netchan, buf.cursize, buf.data);
 }
-

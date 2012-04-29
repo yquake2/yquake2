@@ -22,7 +22,7 @@
  * Common argument processing
  *
  * =======================================================================
- */   
+ */
 
 #include "../header/common.h"
 
@@ -169,4 +169,3 @@ void Info_Print (char *s)
 		Com_Printf ("%s\n", value);
 	}
 }
-

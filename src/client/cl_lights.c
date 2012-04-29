@@ -22,7 +22,7 @@
  * This file implements all client side lighting
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/client.h"
 
@@ -32,7 +32,7 @@ typedef struct {
 	float	map[MAX_QPATH];
 } clightstyle_t;
 
-clightstyle_t	cl_lightstyle[MAX_LIGHTSTYLES];    
+clightstyle_t	cl_lightstyle[MAX_LIGHTSTYLES];
 int				lastofs;
 
 void CL_ClearLightStyles (void) {
@@ -190,4 +190,3 @@ void CL_AddDLights (void) {
 		}
 	}
 }
-

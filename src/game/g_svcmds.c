@@ -46,10 +46,10 @@ Svcmd_Test_f(void)
  * removeip <ip>
  *
  * The ip address is specified in dot format, and any unspecified
- * digits will match any value, so you can specify an entire class 
+ * digits will match any value, so you can specify an entire class
  * C network with "addip 192.246.40".
  *
- * Removeip will only remove an address specified exactly the same 
+ * Removeip will only remove an address specified exactly the same
  * way. You cannot addip a subnet, then removeip a single host.
  *
  * listip
@@ -62,7 +62,7 @@ Svcmd_Test_f(void)
  *
  * filterban <0 or 1>
  *  If 1 (the default), then ip addresses matching the current list
- *  will be prohibited from entering the game.This is the default 
+ *  will be prohibited from entering the game.This is the default
  *  setting.
  *  If 0, then only addresses matching the list will be allowed.
  *  This lets you easily set up a private game, or a game that only
@@ -349,4 +349,3 @@ ServerCommand(void)
 		gi.cprintf(NULL, PRINT_HIGH, "Unknown server command \"%s\"\n", cmd);
 	}
 }
-

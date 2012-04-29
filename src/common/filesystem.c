@@ -299,7 +299,7 @@ FS_HandleForFile(const char *path, fileHandle_t * f)
 
 	for (i = 0; i < MAX_HANDLES; i++, handle++)
 	{
-		if (handle->file == NULL 
+		if (handle->file == NULL
 #ifdef ZIP
 				&& handle->zip == NULL
 #endif
@@ -1290,20 +1290,20 @@ FS_AddHomeAsGameDirectory(char *dir)
 
 #ifdef SYSTEMWIDE
 
-void FS_AddSystemwideGameDirectory(char *dir) 
-{ 
-    char gdir[MAX_OSPATH]; 
-    char *datadir = SYSTEMDIR; 
-	int len = snprintf(gdir, sizeof(gdir), "%s/%s/", datadir, dir); 
+void FS_AddSystemwideGameDirectory(char *dir)
+{
+    char gdir[MAX_OSPATH];
+    char *datadir = SYSTEMDIR;
+	int len = snprintf(gdir, sizeof(gdir), "%s/%s/", datadir, dir);
 
-    printf("Using %s to fetch paks\n", gdir); 
- 
-	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/')) 
+    printf("Using %s to fetch paks\n", gdir);
+
+	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/'))
 	{
-           gdir[len-1] = 0; 
+           gdir[len-1] = 0;
 	}
-         
-	FS_AddGameDirectory (gdir); 
+
+	FS_AddGameDirectory (gdir);
 }
 
 #endif
@@ -1362,7 +1362,7 @@ FS_Path_f(void)
 	Com_Printf("\n");
 
 	for (i = 0, handle = fs_handles; i < MAX_HANDLES; i++, handle++)
-		if (handle->file != NULL 
+		if (handle->file != NULL
 #ifdef ZIP
 				|| handle->zip != NULL
 #endif
@@ -1507,7 +1507,7 @@ FS_SetGamedir(char *dir)
 	/* Close open files for game dir. */
 	for (i = 0; i < MAX_HANDLES; i++)
 		if (strstr(fs_handles[i].name, dir) &&
-		        (fs_handles[i].file != NULL 
+		        (fs_handles[i].file != NULL
 #ifdef ZIP
 				 || fs_handles[i].zip != NULL
 #endif

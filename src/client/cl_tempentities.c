@@ -1552,4 +1552,3 @@ void CL_AddTEnts (void) {
 	CL_AddLasers ();
 	CL_ProcessSustain();
 }
-

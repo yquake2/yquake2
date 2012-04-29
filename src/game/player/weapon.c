@@ -26,15 +26,15 @@
 
 #include "../header/local.h"
 #include "../monster/misc/player.h"
- 
+
 #define FRAME_FIRE_FIRST (FRAME_ACTIVATE_LAST + 1)
 #define FRAME_IDLE_FIRST (FRAME_FIRE_LAST + 1)
 #define FRAME_DEACTIVATE_FIRST (FRAME_IDLE_LAST + 1)
- 
+
 #define GRENADE_TIMER 3.0
 #define GRENADE_MINSPEED 400
 #define GRENADE_MAXSPEED 800
- 
+
 static qboolean is_quad;
 static byte is_silenced;
 
@@ -45,12 +45,12 @@ P_ProjectSource(gclient_t *client, vec3_t point, vec3_t distance,
 		vec3_t forward, vec3_t right, vec3_t result)
 {
 	vec3_t _distance;
-       
+
 	if (!client)
 	{
 		return;
 	}
- 
+
 	VectorCopy(distance, _distance);
 
 	if (client->pers.hand == LEFT_HANDED)
@@ -77,12 +77,12 @@ void
 PlayerNoise(edict_t *who, vec3_t where, int type)
 {
 	edict_t *noise;
-        
+
 	if (!who)
 	{
 		return;
 	}
- 
+
 	if (type == PNOISE_WEAPON)
 	{
 		if (who->client->silencer_shots)
@@ -146,12 +146,12 @@ Pickup_Weapon(edict_t *ent, edict_t *other)
 {
 	int index;
 	gitem_t *ammo;
-     
+
 	if (!ent || !other)
 	{
 		return false;
 	}
- 
+
 	index = ITEM_INDEX(ent->item);
 
 	if ((((int)(dmflags->value) & DF_WEAPONS_STAY) || coop->value) &&
@@ -212,19 +212,19 @@ Pickup_Weapon(edict_t *ent, edict_t *other)
 }
 
 /*
- * The old weapon has been dropped all 
+ * The old weapon has been dropped all
  * the way, so make the new one current
  */
 void
 ChangeWeapon(edict_t *ent)
 {
 	int i;
-      
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (ent->client->grenade_time)
 	{
 		ent->client->grenade_time = level.time;
@@ -264,7 +264,7 @@ ChangeWeapon(edict_t *ent)
 	}
 
 	if (!ent->client->pers.weapon)
-	{   
+	{
 		/* dead */
 		ent->client->ps.gunindex = 0;
 		return;
@@ -342,12 +342,12 @@ NoAmmoWeaponChange(edict_t *ent)
  */
 void
 Think_Weapon(edict_t *ent)
-{      
+{
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	/* if just died, put the weapon away */
 	if (ent->health < 1)
 	{
@@ -381,12 +381,12 @@ Use_Weapon(edict_t *ent, gitem_t *item)
 {
 	int ammo_index;
 	gitem_t *ammo_item;
-      
+
 	if (!ent || !item)
 	{
 		return;
 	}
- 
+
 	/* see if we're already using it */
 	if (item == ent->client->pers.weapon)
 	{
@@ -421,12 +421,12 @@ void
 Drop_Weapon(edict_t *ent, gitem_t *item)
 {
 	int index;
-          
+
 	if (!ent || !item)
 	{
 		return;
 	}
- 
+
 	if ((int)(dmflags->value) & DF_WEAPONS_STAY)
 	{
 		return;
@@ -457,12 +457,12 @@ Weapon_Generic(edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST,
 		int *fire_frames, void (*fire)(edict_t *ent))
 {
 	int n;
-       
+
 	if (!ent || !fire_frames || !fire)
 	{
 		return;
 	}
- 
+
 	if (ent->deadflag || (ent->s.modelindex != 255)) /* VWep animations screw up corpses */
 	{
 		return;
@@ -629,7 +629,7 @@ Weapon_Generic(edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST,
 }
 
 /* ====================================================================== */
- 
+
 /* GRENADE */
 
 void
@@ -642,12 +642,12 @@ weapon_grenade_fire(edict_t *ent, qboolean held)
 	float timer;
 	int speed;
 	float radius;
-         
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	radius = damage + 40;
 
 	if (is_quad)
@@ -660,7 +660,7 @@ weapon_grenade_fire(edict_t *ent, qboolean held)
 	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
 
 	timer = ent->client->grenade_time - level.time;
-	speed = GRENADE_MINSPEED + (GRENADE_TIMER - timer) * 
+	speed = GRENADE_MINSPEED + (GRENADE_TIMER - timer) *
 		((GRENADE_MAXSPEED - GRENADE_MINSPEED) / GRENADE_TIMER);
 	fire_grenade2(ent, start, forward, damage, speed, timer, radius, held);
 
@@ -697,12 +697,12 @@ weapon_grenade_fire(edict_t *ent, qboolean held)
 
 void
 Weapon_Grenade(edict_t *ent)
-{       
+{
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if ((ent->client->newweapon) && (ent->client->weaponstate == WEAPON_READY))
 	{
 		ChangeWeapon(ent);
@@ -842,12 +842,12 @@ weapon_grenadelauncher_fire(edict_t *ent)
 	vec3_t start;
 	int damage = 120;
 	float radius;
-     
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	radius = damage + 40;
 
 	if (is_quad)
@@ -890,7 +890,7 @@ Weapon_GrenadeLauncher(edict_t *ent)
 }
 
 /* ====================================================================== */
- 
+
 /* ROCKET */
 
 void
@@ -901,12 +901,12 @@ Weapon_RocketLauncher_Fire(edict_t *ent)
 	int damage;
 	float damage_radius;
 	int radius_damage;
-        
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	damage = 100 + (int)(random() * 20.0);
 	radius_damage = 120;
 	damage_radius = 120;
@@ -963,12 +963,12 @@ Blaster_Fire(edict_t *ent, vec3_t g_offset, int damage,
 	vec3_t forward, right;
 	vec3_t start;
 	vec3_t offset;
-      
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (is_quad)
 	{
 		damage *= 4;
@@ -1006,12 +1006,12 @@ void
 Weapon_Blaster_Fire(edict_t *ent)
 {
 	int damage;
-       
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (deathmatch->value)
 	{
 		damage = 15;
@@ -1030,12 +1030,12 @@ Weapon_Blaster(edict_t *ent)
 {
 	static int pause_frames[] = {19, 32, 0};
 	static int fire_frames[] = {5, 0};
-      
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	Weapon_Generic(ent, 4, 8, 52, 55, pause_frames,
 			fire_frames, Weapon_Blaster_Fire);
 }
@@ -1047,12 +1047,12 @@ Weapon_HyperBlaster_Fire(edict_t *ent)
 	vec3_t offset;
 	int effect;
 	int damage;
-         
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	ent->client->weapon_sound = gi.soundindex("weapons/hyprbl1a.wav");
 
 	if (!(ent->client->buttons & BUTTON_ATTACK))
@@ -1141,12 +1141,12 @@ Weapon_HyperBlaster(edict_t *ent)
 {
 	static int pause_frames[] = {0};
 	static int fire_frames[] = {6, 7, 8, 9, 10, 11, 0};
-         
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	Weapon_Generic(ent, 5, 20, 49, 53, pause_frames,
 			fire_frames, Weapon_HyperBlaster_Fire);
 }
@@ -1165,12 +1165,12 @@ Machinegun_Fire(edict_t *ent)
 	int damage = 8;
 	int kick = 2;
 	vec3_t offset;
-      
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (!(ent->client->buttons & BUTTON_ATTACK))
 	{
 		ent->client->machinegun_shots = 0;
@@ -1267,12 +1267,12 @@ Weapon_Machinegun(edict_t *ent)
 {
 	static int pause_frames[] = {23, 45, 0};
 	static int fire_frames[] = {4, 5, 0};
-         
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	Weapon_Generic(ent, 3, 5, 45, 49, pause_frames,
 			fire_frames, Machinegun_Fire);
 }
@@ -1288,12 +1288,12 @@ Chaingun_Fire(edict_t *ent)
 	vec3_t offset;
 	int damage;
 	int kick = 2;
-      
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (deathmatch->value)
 	{
 		damage = 6;
@@ -1435,12 +1435,12 @@ Weapon_Chaingun(edict_t *ent)
 {
 	static int pause_frames[] = {38, 43, 51, 61, 0};
 	static int fire_frames[] = {5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 0};
-       
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	Weapon_Generic(ent, 4, 31, 61, 64, pause_frames, fire_frames, Chaingun_Fire);
 }
 
@@ -1456,12 +1456,12 @@ weapon_shotgun_fire(edict_t *ent)
 	vec3_t offset;
 	int damage = 4;
 	int kick = 8;
-         
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (ent->client->ps.gunframe == 9)
 	{
 		ent->client->ps.gunframe++;
@@ -1515,12 +1515,12 @@ Weapon_Shotgun(edict_t *ent)
 {
 	static int pause_frames[] = {22, 28, 34, 0};
 	static int fire_frames[] = {8, 9, 0};
-         
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	Weapon_Generic(ent, 7, 18, 36, 39, pause_frames,
 			fire_frames, weapon_shotgun_fire);
 }
@@ -1534,12 +1534,12 @@ weapon_supershotgun_fire(edict_t *ent)
 	vec3_t v;
 	int damage = 6;
 	int kick = 12;
-     
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	AngleVectors(ent->client->v_angle, forward, right, NULL);
 
 	VectorScale(forward, -2, ent->client->kick_origin);
@@ -1587,12 +1587,12 @@ Weapon_SuperShotgun(edict_t *ent)
 {
 	static int pause_frames[] = {29, 42, 57, 0};
 	static int fire_frames[] = {7, 0};
-      
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	Weapon_Generic(ent, 6, 17, 57, 61, pause_frames,
 			fire_frames, weapon_supershotgun_fire);
 }
@@ -1609,14 +1609,14 @@ weapon_railgun_fire(edict_t *ent)
 	vec3_t offset;
 	int damage;
 	int kick;
-      
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (deathmatch->value)
-	{   
+	{
 		/* normal damage is too extreme in dm */
 		damage = 100;
 		kick = 200;
@@ -1662,12 +1662,12 @@ Weapon_Railgun(edict_t *ent)
 {
 	static int pause_frames[] = {56, 0};
 	static int fire_frames[] = {4, 0};
-     
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	Weapon_Generic(ent, 3, 18, 56, 61, pause_frames,
 			fire_frames, weapon_railgun_fire);
 }
@@ -1683,12 +1683,12 @@ weapon_bfg_fire(edict_t *ent)
 	vec3_t forward, right;
 	int damage;
 	float damage_radius = 1000;
-     
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (deathmatch->value)
 	{
 		damage = 200;
@@ -1712,7 +1712,7 @@ weapon_bfg_fire(edict_t *ent)
 		return;
 	}
 
-	/* cells can go down during windup (from power armor hits), so 
+	/* cells can go down during windup (from power armor hits), so
 	   check again and abort firing if we don't have enough now */
 	if (ent->client->pers.inventory[ent->client->ammo_index] < 50)
 	{
@@ -1753,13 +1753,12 @@ Weapon_BFG(edict_t *ent)
 {
 	static int pause_frames[] = {39, 45, 50, 55, 0};
 	static int fire_frames[] = {9, 17, 0};
-     
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	Weapon_Generic(ent, 8, 32, 55, 58, pause_frames,
 			fire_frames, weapon_bfg_fire);
 }
-

@@ -22,7 +22,7 @@
  * Zone malloc. It's just a normal mallic with counter.
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/common.h"
 #include "header/zone.h"
@@ -100,4 +100,3 @@ void *Z_Malloc (int size)
 {
 	return Z_TagMalloc (size, 0);
 }
-

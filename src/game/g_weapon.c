@@ -22,7 +22,7 @@
  * Weapon support functions.
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/local.h"
 
@@ -38,12 +38,12 @@ check_dodge(edict_t *self, vec3_t start, vec3_t dir, int speed)
 	vec3_t v;
 	trace_t tr;
 	float eta;
-          
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	/* easy mode only ducks one quarter the time */
 	if (skill->value == 0)
 	{
@@ -77,12 +77,12 @@ fire_hit(edict_t *self, vec3_t aim, int damage, int kick)
 	vec3_t point;
 	float range;
 	vec3_t dir;
-           
+
 	if (!self)
 	{
 		return false;
 	}
- 
+
 	/* Lazarus: Paranoia check */
 	if (!self->enemy)
 	{
@@ -167,7 +167,7 @@ fire_hit(edict_t *self, vec3_t aim, int damage, int kick)
 }
 
 /*
- * This is an internal support routine 
+ * This is an internal support routine
  * used for bullet/pellet based weapons.
  */
 void
@@ -183,12 +183,12 @@ fire_lead(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick,
 	vec3_t water_start;
 	qboolean water = false;
 	int content_mask = MASK_SHOT | MASK_WATER;
-            
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	tr = gi.trace(self->s.origin, NULL, NULL, start, self, MASK_SHOT);
 
 	if (!(tr.fraction < 1.0))
@@ -301,7 +301,7 @@ fire_lead(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick,
 		}
 	}
 
-	/* if went through water, determine 
+	/* if went through water, determine
 	   where the end and make a bubble trail */
 	if (water)
 	{
@@ -338,18 +338,18 @@ fire_lead(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick,
 void
 fire_bullet(edict_t *self, vec3_t start, vec3_t aimdir, int damage,
 		int kick, int hspread, int vspread, int mod)
-{            
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	fire_lead(self, start, aimdir, damage, kick, TE_GUNSHOT, hspread,
 			vspread, mod);
 }
 
 /*
- * Shoots shotgun pellets. Used 
+ * Shoots shotgun pellets. Used
  * by shotgun and super shotgun.
  */
 void
@@ -357,12 +357,12 @@ fire_shotgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage,
 		int kick, int hspread, int vspread, int count, int mod)
 {
 	int i;
-              
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	for (i = 0; i < count; i++)
 	{
 		fire_lead(self, start, aimdir, damage, kick, TE_SHOTGUN,
@@ -371,20 +371,20 @@ fire_shotgun(edict_t *self, vec3_t start, vec3_t aimdir, int damage,
 }
 
 /*
- * Fires a single blaster bolt.  
+ * Fires a single blaster bolt.
  * Used by the blaster and hyper blaster.
  */
 void
 blaster_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
 	int mod;
-      
+
 	if (!self || !other || !plane || !surf)
 	{
 		G_FreeEdict(self);
 		return;
 	}
- 
+
 	if (other == self->owner)
 	{
 		return;
@@ -442,21 +442,21 @@ fire_blaster(edict_t *self, vec3_t start, vec3_t dir, int damage,
 {
 	edict_t *bolt;
 	trace_t tr;
-                            
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	VectorNormalize(dir);
 
 	bolt = G_Spawn();
 	bolt->svflags = SVF_DEADMONSTER;
 
-	/* yes, I know it looks weird that projectiles are deadmonsters 
-	   what this means is that when prediction is used against the object 
-	   (blaster/hyperblaster shots), the player won't be solid clipped against 
-	   the object.  Right now trying to run into a firing hyperblaster 
+	/* yes, I know it looks weird that projectiles are deadmonsters
+	   what this means is that when prediction is used against the object
+	   (blaster/hyperblaster shots), the player won't be solid clipped against
+	   the object.  Right now trying to run into a firing hyperblaster
 	   is very jerky since you are predicted 'against' the shots. */
 	VectorCopy(start, bolt->s.origin);
 	VectorCopy(start, bolt->s.old_origin);
@@ -504,12 +504,12 @@ Grenade_Explode(edict_t *ent)
 {
 	vec3_t origin;
 	int mod;
-          
+
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	if (ent->owner && ent->owner->client)
 	{
 		PlayerNoise(ent->owner, ent->s.origin, PNOISE_IMPACT);
@@ -589,13 +589,13 @@ Grenade_Explode(edict_t *ent)
 
 void
 Grenade_Touch(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurface_t *surf)
-{                  
+{
 	if (!ent || !other || !surf)
 	{
 		G_FreeEdict(ent);
 		return;
 	}
-     
+
 	if (other == ent->owner)
 	{
 		return;
@@ -642,12 +642,12 @@ fire_grenade(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed,
 	edict_t *grenade;
 	vec3_t dir;
 	vec3_t forward, right, up;
-                                
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	vectoangles(aimdir, dir);
 	AngleVectors(dir, forward, right, up);
 
@@ -682,12 +682,12 @@ fire_grenade2(edict_t *self, vec3_t start, vec3_t aimdir, int damage,
 	edict_t *grenade;
 	vec3_t dir;
 	vec3_t forward, right, up;
-                                 
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	vectoangles(aimdir, dir);
 	AngleVectors(dir, forward, right, up);
 
@@ -740,13 +740,13 @@ rocket_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
 	vec3_t origin;
 	int n;
-       
+
 	if (!ent || !other || !plane || !surf)
 	{
 		G_FreeEdict(ent);
 		return;
 	}
-     
+
 	if (other == ent->owner)
 	{
 		return;
@@ -815,12 +815,12 @@ fire_rocket(edict_t *self, vec3_t start, vec3_t dir, int damage,
 		int speed, float damage_radius, int radius_damage)
 {
 	edict_t *rocket;
-                          
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	rocket = G_Spawn();
 	VectorCopy(start, rocket->s.origin);
 	VectorCopy(dir, rocket->movedir);
@@ -860,12 +860,12 @@ fire_rail(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick)
 	edict_t *ignore;
 	int mask;
 	qboolean water;
-                           
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	VectorMA(start, 8192, aimdir, end);
 	VectorCopy(start, from);
 	ignore = self;
@@ -936,12 +936,12 @@ bfg_explode(edict_t *self)
 	float points;
 	vec3_t v;
 	float dist;
-                            
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (self->s.frame == 0)
 	{
 		/* the BFG effect */
@@ -1000,13 +1000,13 @@ bfg_explode(edict_t *self)
 
 void
 bfg_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
-{                          
+{
 	if (!self || !other || !plane || !surf)
 	{
 		G_FreeEdict(self);
 		return;
 	}
- 
+
 	if (other == self->owner)
 	{
 		return;
@@ -1063,12 +1063,12 @@ bfg_think(edict_t *self)
 	vec3_t end;
 	int dmg;
 	trace_t tr;
- 
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (deathmatch->value)
 	{
 		dmg = 5;
@@ -1162,12 +1162,12 @@ fire_bfg(edict_t *self, vec3_t start, vec3_t dir, int damage,
 		int speed, float damage_radius)
 {
 	edict_t *bfg;
-  
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	bfg = G_Spawn();
 	VectorCopy(start, bfg->s.origin);
 	VectorCopy(dir, bfg->movedir);
@@ -1201,4 +1201,3 @@ fire_bfg(edict_t *self, vec3_t start, vec3_t dir, int damage,
 
 	gi.linkentity(bfg);
 }
-

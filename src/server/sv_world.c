@@ -29,10 +29,10 @@
 #define AREA_DEPTH  4
 #define AREA_NODES  32
 #define MAX_TOTAL_ENT_LEAFS     128
- 
+
 #define STRUCT_FROM_LINK( l, t, m ) ( (t *) ( (byte *) l - (byte *) &( ( (t *) NULL )->m ) ) )
 #define EDICT_FROM_AREA( l ) STRUCT_FROM_LINK( l, edict_t, area )
-    
+
 typedef struct areanode_s
 {
 	int axis; /* -1 = leaf node */
@@ -174,7 +174,7 @@ SV_LinkEdict ( edict_t *ent )
 
 	/* encode the size into the entity_state for client prediction */
 	if ( ( ent->solid == SOLID_BBOX ) && !( ent->svflags & SVF_DEADMONSTER ) )
-	{   
+	{
 		/* assume that x/y are equal and symetric */
 		i = (int) ent->maxs [ 0 ] / 8;
 
@@ -228,7 +228,7 @@ SV_LinkEdict ( edict_t *ent )
 	/* set the abs box */
 	if ( ( ent->solid == SOLID_BSP ) &&
 		 ( ent->s.angles [ 0 ] || ent->s.angles [ 1 ] || ent->s.angles [ 2 ] ) )
-	{   
+	{
 		/* expand for rotation */
 		float max, v;
 		int i;
@@ -290,8 +290,8 @@ SV_LinkEdict ( edict_t *ent )
 		area = CM_LeafArea( leafs [ i ] );
 
 		if ( area )
-		{   
-			/* doors may legally straggle two areas, 
+		{
+			/* doors may legally straggle two areas,
 			   but nothing should evern need more than that */
 			if ( ent->areanum && ( ent->areanum != area ) )
 			{
@@ -311,7 +311,7 @@ SV_LinkEdict ( edict_t *ent )
 	}
 
 	if ( num_leafs >= MAX_TOTAL_ENT_LEAFS )
-	{   
+	{
 		/* assume we missed some leafs, and mark by headnode */
 		ent->num_clusters = -1;
 		ent->headnode = topnode;
@@ -338,7 +338,7 @@ SV_LinkEdict ( edict_t *ent )
 			if ( j == i )
 			{
 				if ( ent->num_clusters == MAX_ENT_CLUSTERS )
-				{   
+				{
 					/* assume we missed some leafs, and mark by headnode */
 					ent->num_clusters = -1;
 					ent->headnode = topnode;
@@ -539,7 +539,7 @@ SV_HullForEntity ( edict_t *ent )
 
 	/* decide which clipping hull to use, based on the size */
 	if ( ent->solid == SOLID_BSP )
-	{   
+	{
 		/* explicit hulls in the BSP model */
 		model = sv.models [ ent->s.modelindex ];
 
@@ -719,4 +719,3 @@ SV_Trace ( vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, edict_t *passedic
 
 	return ( clip.trace );
 }
-

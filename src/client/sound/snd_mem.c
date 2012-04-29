@@ -208,4 +208,3 @@ S_LoadSound ( sfx_t *s )
 
 	return ( sc );
 }
-

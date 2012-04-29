@@ -22,7 +22,7 @@
  * Icarus.
  *
  * =======================================================================
- */ 
+ */
 
 #include "../../header/local.h"
 #include "hover.h"
@@ -39,12 +39,12 @@ static int sound_search2;
 
 void
 hover_sight(edict_t *self, edict_t *other /* unused */)
-{ 
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
 }
 
@@ -106,9 +106,9 @@ mframe_t hover_frames_stand[] = {
 
 mmove_t hover_move_stand =
 {
-	FRAME_stand01, 
-	FRAME_stand30, 
-	hover_frames_stand, 
+	FRAME_stand01,
+	FRAME_stand30,
+	hover_frames_stand,
 	NULL
 };
 
@@ -126,9 +126,9 @@ mframe_t hover_frames_stop1[] = {
 
 mmove_t hover_move_stop1 =
 {
-	FRAME_stop101, 
-	FRAME_stop109, 
-	hover_frames_stop1, 
+	FRAME_stop101,
+	FRAME_stop109,
+	hover_frames_stop1,
 	NULL
 };
 
@@ -145,7 +145,7 @@ mframe_t hover_frames_stop2[] = {
 
 mmove_t hover_move_stop2 =
 {
-	FRAME_stop201, 
+	FRAME_stop201,
 	FRAME_stop208,
    	hover_frames_stop2,
    	NULL
@@ -207,7 +207,7 @@ mframe_t hover_frames_pain3[] = {
 mmove_t hover_move_pain3 =
 {
 	FRAME_pain301,
-   	FRAME_pain309, 
+   	FRAME_pain309,
 	hover_frames_pain3,
    	hover_run
 };
@@ -229,7 +229,7 @@ mframe_t hover_frames_pain2[] = {
 
 mmove_t hover_move_pain2 =
 {
-	FRAME_pain201, 
+	FRAME_pain201,
 	FRAME_pain212,
    	hover_frames_pain2,
    	hover_run
@@ -278,11 +278,11 @@ mframe_t hover_frames_land[] = {
 	{ai_move, 0, NULL}
 };
 
-mmove_t hover_move_land = 
+mmove_t hover_move_land =
 {
-	FRAME_land01, 
-	FRAME_land01, 
-	hover_frames_land, 
+	FRAME_land01,
+	FRAME_land01,
+	hover_frames_land,
 	NULL
 };
 
@@ -326,9 +326,9 @@ mframe_t hover_frames_forward[] = {
 
 mmove_t hover_move_forward =
 {
-	FRAME_forwrd01, 
-	FRAME_forwrd35, 
-	hover_frames_forward, 
+	FRAME_forwrd01,
+	FRAME_forwrd35,
+	hover_frames_forward,
 	NULL
 };
 
@@ -372,9 +372,9 @@ mframe_t hover_frames_walk[] = {
 
 mmove_t hover_move_walk =
 {
-	FRAME_forwrd01, 
-	FRAME_forwrd35, 
-	hover_frames_walk, 
+	FRAME_forwrd01,
+	FRAME_forwrd35,
+	hover_frames_walk,
 	NULL
 };
 
@@ -418,8 +418,8 @@ mframe_t hover_frames_run[] = {
 
 mmove_t hover_move_run =
 {
-	FRAME_forwrd01, 
-	FRAME_forwrd35, 
+	FRAME_forwrd01,
+	FRAME_forwrd35,
 	hover_frames_run,
    	NULL
 };
@@ -476,7 +476,7 @@ mframe_t hover_frames_backward[] = {
 mmove_t hover_move_backward =
 {
 	FRAME_backwd01,
-   	FRAME_backwd24, 
+   	FRAME_backwd24,
 	hover_frames_backward,
    	NULL
 };
@@ -489,9 +489,9 @@ mframe_t hover_frames_start_attack[] = {
 
 mmove_t hover_move_start_attack =
 {
-	FRAME_attak101, 
-	FRAME_attak103, 
-	hover_frames_start_attack, 
+	FRAME_attak101,
+	FRAME_attak103,
+	hover_frames_start_attack,
 	hover_attack
 };
 
@@ -503,9 +503,9 @@ mframe_t hover_frames_attack1[] = {
 
 mmove_t hover_move_attack1 =
 {
-	FRAME_attak104, 
-	FRAME_attak106, 
-	hover_frames_attack1, 
+	FRAME_attak104,
+	FRAME_attak106,
+	hover_frames_attack1,
 	NULL
 };
 
@@ -516,20 +516,20 @@ mframe_t hover_frames_end_attack[] = {
 
 mmove_t hover_move_end_attack =
 {
-	FRAME_attak107, 
-	FRAME_attak108, 
-	hover_frames_end_attack, 
+	FRAME_attak107,
+	FRAME_attak108,
+	hover_frames_end_attack,
 	hover_run
 };
 
 void
 hover_reattack(edict_t *self)
-{ 
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (self->enemy->health > 0)
 	{
 		if (visible(self, self->enemy))
@@ -553,12 +553,12 @@ hover_fire_blaster(edict_t *self)
 	vec3_t end;
 	vec3_t dir;
 	int effect;
-   
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (self->s.frame == FRAME_attak104)
 	{
 		effect = EF_HYPERBLASTER;
@@ -581,23 +581,23 @@ hover_fire_blaster(edict_t *self)
 
 void
 hover_stand(edict_t *self)
-{ 
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.currentmove = &hover_move_stand;
 }
 
 void
 hover_run(edict_t *self)
-{  
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
 	{
 		self->monsterinfo.currentmove = &hover_move_stand;
@@ -610,46 +610,46 @@ hover_run(edict_t *self)
 
 void
 hover_walk(edict_t *self)
-{   
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.currentmove = &hover_move_walk;
 }
 
 void
 hover_start_attack(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.currentmove = &hover_move_start_attack;
 }
 
 void
 hover_attack(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.currentmove = &hover_move_attack1;
 }
 
 void
-hover_pain(edict_t *self, edict_t *other /* unused */, 
+hover_pain(edict_t *self, edict_t *other /* unused */,
 		float kick /* unused */, int damage)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (self->health < (self->max_health / 2))
 	{
 		self->s.skinnum = 1;
@@ -689,12 +689,12 @@ hover_pain(edict_t *self, edict_t *other /* unused */,
 
 void
 hover_deadthink(edict_t *self)
-{ 
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (!self->groundentity && (level.time < self->timestamp))
 	{
 		self->nextthink = level.time + FRAMETIME;
@@ -706,12 +706,12 @@ hover_deadthink(edict_t *self)
 
 void
 hover_dead(edict_t *self)
-{  
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	VectorSet(self->mins, -16, -16, -24);
 	VectorSet(self->maxs, 16, 16, -8);
 	self->movetype = MOVETYPE_TOSS;
@@ -727,12 +727,12 @@ hover_die(edict_t *self, edict_t *inflictor /* unused */,
 		vec3_t point /* unused */)
 {
 	int n;
- 
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	/* check for gib */
 	if (self->health <= self->gib_health)
 	{
@@ -788,12 +788,12 @@ hover_die(edict_t *self, edict_t *inflictor /* unused */,
  */
 void
 SP_monster_hover(edict_t *self)
-{   
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (deathmatch->value)
 	{
 		G_FreeEdict(self);
@@ -839,4 +839,3 @@ SP_monster_hover(edict_t *self)
 
 	flymonster_start(self);
 }
-

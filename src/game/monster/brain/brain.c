@@ -44,23 +44,23 @@ static int sound_melee3;
 
 void
 brain_sight(edict_t *self, edict_t *other /* unused */)
-{ 
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
 }
 
 void
 brain_search(edict_t *self)
-{  
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_VOICE, sound_search, 1, ATTN_NORM, 0);
 }
 
@@ -104,20 +104,20 @@ mframe_t brain_frames_stand[] = {
 
 mmove_t brain_move_stand =
 {
-	FRAME_stand01, 
-	FRAME_stand30, 
-	brain_frames_stand, 
+	FRAME_stand01,
+	FRAME_stand30,
+	brain_frames_stand,
 	NULL
 };
 
 void
 brain_stand(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.currentmove = &brain_move_stand;
 }
 
@@ -158,20 +158,20 @@ mframe_t brain_frames_idle[] = {
 
 mmove_t brain_move_idle =
 {
-	FRAME_stand31, 
-	FRAME_stand60, 
-	brain_frames_idle, 
+	FRAME_stand31,
+	FRAME_stand60,
+	brain_frames_idle,
 	brain_stand
 };
 
 void
 brain_idle(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_AUTO, sound_idle3, 1, ATTN_IDLE, 0);
 	self->monsterinfo.currentmove = &brain_move_idle;
 }
@@ -193,19 +193,19 @@ mframe_t brain_frames_walk1[] = {
 mmove_t brain_move_walk1 =
 {
 	FRAME_walk101,
-   	FRAME_walk111, 
-	brain_frames_walk1, 
+   	FRAME_walk111,
+	brain_frames_walk1,
 	NULL
 };
 
 void
 brain_walk(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.currentmove = &brain_move_walk1;
 }
 
@@ -223,9 +223,9 @@ mframe_t brain_frames_defense[] = {
 
 mmove_t brain_move_defense =
 {
-	FRAME_defens01, 
-	FRAME_defens08, 
-	brain_frames_defense, 
+	FRAME_defens01,
+	FRAME_defens08,
+	brain_frames_defense,
 	NULL
 };
 
@@ -240,9 +240,9 @@ mframe_t brain_frames_pain3[] = {
 
 mmove_t brain_move_pain3 =
 {
-	FRAME_pain301, 
-	FRAME_pain306, 
-	brain_frames_pain3, 
+	FRAME_pain301,
+	FRAME_pain306,
+	brain_frames_pain3,
 	brain_run
 };
 
@@ -291,20 +291,20 @@ mframe_t brain_frames_pain1[] = {
 
 mmove_t brain_move_pain1 =
 {
-	FRAME_pain101, 
-	FRAME_pain121, 
-	brain_frames_pain1, 
+	FRAME_pain101,
+	FRAME_pain121,
+	brain_frames_pain1,
 	brain_run
 };
 
 void
 brain_duck_down(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (self->monsterinfo.aiflags & AI_DUCKED)
 	{
 		return;
@@ -318,12 +318,12 @@ brain_duck_down(edict_t *self)
 
 void
 brain_duck_hold(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (level.time >= self->monsterinfo.pausetime)
 	{
 		self->monsterinfo.aiflags &= ~AI_HOLD_FRAME;
@@ -336,12 +336,12 @@ brain_duck_hold(edict_t *self)
 
 void
 brain_duck_up(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.aiflags &= ~AI_DUCKED;
 	self->maxs[2] += 32;
 	self->takedamage = DAMAGE_AIM;
@@ -369,12 +369,12 @@ mmove_t brain_move_duck =
 
 void
 brain_dodge(edict_t *self, edict_t *attacker, float eta)
-{    
+{
 	if (!self || !attacker)
 	{
 		return;
 	}
- 
+
 	if (random() > 0.25)
 	{
 		return;
@@ -401,7 +401,7 @@ mmove_t brain_move_death2 =
 {
 	FRAME_death201,
    	FRAME_death205,
-   	brain_frames_death2, 
+   	brain_frames_death2,
 	brain_dead
 };
 
@@ -436,12 +436,12 @@ mmove_t brain_move_death1 =
 
 void
 brain_swing_right(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_BODY, sound_melee1, 1, ATTN_NORM, 0);
 }
 
@@ -449,12 +449,12 @@ void
 brain_hit_right(edict_t *self)
 {
 	vec3_t aim;
-      
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	VectorSet(aim, MELEE_DISTANCE, self->maxs[0], 8);
 
 	if (fire_hit(self, aim, (15 + (rand() % 5)), 40))
@@ -465,12 +465,12 @@ brain_hit_right(edict_t *self)
 
 void
 brain_swing_left(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	gi.sound(self, CHAN_BODY, sound_melee2, 1, ATTN_NORM, 0);
 }
 
@@ -478,12 +478,12 @@ void
 brain_hit_left(edict_t *self)
 {
 	vec3_t aim;
-     
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	VectorSet(aim, MELEE_DISTANCE, self->mins[0], 8);
 
 	if (fire_hit(self, aim, (15 + (rand() % 5)), 40))
@@ -515,20 +515,20 @@ mframe_t brain_frames_attack1[] = {
 
 mmove_t brain_move_attack1 =
 {
-	FRAME_attak101, 
-	FRAME_attak118, 
-	brain_frames_attack1, 
+	FRAME_attak101,
+	FRAME_attak118,
+	brain_frames_attack1,
 	brain_run
 };
 
 void
 brain_chest_open(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->spawnflags &= ~65536;
 	self->monsterinfo.power_armor_type = POWER_ARMOR_NONE;
 	gi.sound(self, CHAN_BODY, sound_chest_open, 1, ATTN_NORM, 0);
@@ -538,12 +538,12 @@ void
 brain_tentacle_attack(edict_t *self)
 {
 	vec3_t aim;
-     
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	VectorSet(aim, MELEE_DISTANCE, 0, 8);
 
 	if (fire_hit(self, aim, (10 + (rand() % 5)), -600) && (skill->value > 0))
@@ -556,12 +556,12 @@ brain_tentacle_attack(edict_t *self)
 
 void
 brain_chest_closed(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.power_armor_type = POWER_ARMOR_SCREEN;
 
 	if (self->spawnflags & 65536)
@@ -593,20 +593,20 @@ mframe_t brain_frames_attack2[] = {
 
 mmove_t brain_move_attack2 =
 {
-	FRAME_attak201, 
-	FRAME_attak217, 
-	brain_frames_attack2, 
+	FRAME_attak201,
+	FRAME_attak217,
+	brain_frames_attack2,
 	brain_run
 };
 
 void
 brain_melee(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (random() <= 0.5)
 	{
 		self->monsterinfo.currentmove = &brain_move_attack1;
@@ -631,9 +631,9 @@ mframe_t brain_frames_run[] = {
 	{ai_run, 2, NULL}
 };
 
-mmove_t brain_move_run = 
+mmove_t brain_move_run =
 {
-	FRAME_walk101, 
+	FRAME_walk101,
 	FRAME_walk111,
    	brain_frames_run,
    	NULL
@@ -641,12 +641,12 @@ mmove_t brain_move_run =
 
 void
 brain_run(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->monsterinfo.power_armor_type = POWER_ARMOR_SCREEN;
 
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
@@ -660,16 +660,16 @@ brain_run(edict_t *self)
 }
 
 void
-brain_pain(edict_t *self, edict_t *other /* unused */, 
+brain_pain(edict_t *self, edict_t *other /* unused */,
 		float kick /* unused */, int damage /* unused */)
 {
 	float r;
- 
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (self->health < (self->max_health / 2))
 	{
 		self->s.skinnum = 1;
@@ -708,12 +708,12 @@ brain_pain(edict_t *self, edict_t *other /* unused */,
 
 void
 brain_dead(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	VectorSet(self->mins, -16, -16, -24);
 	VectorSet(self->maxs, 16, 16, -8);
 	self->movetype = MOVETYPE_TOSS;
@@ -727,12 +727,12 @@ brain_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /* u
 		int damage, vec3_t point /* unused */)
 {
 	int n;
-      
+
 	if (!self)
 	{
 		return;
 	}
- 
+
 	self->s.effects = 0;
 	self->monsterinfo.power_armor_type = POWER_ARMOR_NONE;
 
@@ -784,12 +784,12 @@ brain_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /* u
  */
 void
 SP_monster_brain(edict_t *self)
-{    
+{
 	if (!self)
 	{
 		return;
 	}
- 
+
 	if (deathmatch->value)
 	{
 		G_FreeEdict(self);
@@ -843,4 +843,3 @@ SP_monster_brain(edict_t *self)
 
 	walkmonster_start(self);
 }
-

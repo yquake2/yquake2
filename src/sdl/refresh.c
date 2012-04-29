@@ -23,7 +23,7 @@
  * This file implements an OpenGL context via SDL
  *
  * =======================================================================
- */ 
+ */
 
 #include <SDL.h>
 #include <GL/gl.h>
@@ -33,7 +33,7 @@
 
 /* The window icon */
 #include "icon/q2icon.xbm"
- 
+
 /* X.org stuff */
 #include <X11/Xos.h>
 #include <X11/Xlib.h>
@@ -88,31 +88,31 @@ static void SetSDLIcon()
 
 	if (icon == NULL)
 	{
-		return; 
+		return;
 	}
-	
+
 	SDL_SetColorKey(icon, SDL_SRCCOLORKEY, 0);
 
 	color.r = 255;
 	color.g = 255;
 	color.b = 255;
-	
+
 	SDL_SetColors(icon, &color, 0, 1);
-	
+
 	color.r = 0;
 	color.g = 16;
 	color.b = 0;
-	
+
 	SDL_SetColors(icon, &color, 1, 1);
 
 	ptr = (Uint8 *)icon->pixels;
-	
-	for (i = 0; i < sizeof(q2icon_bits); i++) 
+
+	for (i = 0; i < sizeof(q2icon_bits); i++)
 	{
 		for (mask = 1; mask != 0x100; mask <<= 1) {
 			*ptr = (q2icon_bits[i] & mask) ? 1 : 0;
 			ptr++;
-		}		
+		}
 	}
 
 	SDL_WM_SetIcon(icon, NULL);
@@ -135,10 +135,10 @@ UpdateHardwareGamma(void)
 	x11_gamma.green = gamma;
 	x11_gamma.blue = gamma;
 
-	XF86VidModeSetGamma(dpy, screen, &x11_gamma); 
+	XF86VidModeSetGamma(dpy, screen, &x11_gamma);
 
 	/* This forces X11 to update the gamma tables */
-	XF86VidModeGetGamma(dpy, screen, &x11_gamma); 
+	XF86VidModeGetGamma(dpy, screen, &x11_gamma);
 }
 #else
 void
@@ -160,8 +160,8 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	int flags;
 	int stencil_bits;
 	char title[24];
-	
-	if (surface && (surface->w == vid.width) && (surface->h == vid.height)) 
+
+	if (surface && (surface->w == vid.width) && (surface->h == vid.height))
 	{
 		/* Are we running fullscreen? */
 		int isfullscreen = (surface->flags & SDL_FULLSCREEN) ? 1 : 0;
@@ -180,7 +180,7 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 			return true;
 		}
 	}
-	
+
 	/* Is the surface used? */
 	if (surface)
 	{
@@ -196,7 +196,7 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-	
+
 	/* Initiate the flags */
 	flags = SDL_OPENGL;
 
@@ -204,14 +204,14 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	{
 		flags |= SDL_FULLSCREEN;
 	}
-	
+
 	/* Set the icon */
 	SetSDLIcon();
 
 	while (1)
 	{
-		if ((surface = SDL_SetVideoMode(vid.width, vid.height, 0, flags)) == NULL) 
-		{   
+		if ((surface = SDL_SetVideoMode(vid.width, vid.height, 0, flags)) == NULL)
+		{
 		   	if (counter == 1)
 			{
 				Sys_Error(PRINT_ALL, "Failed to revert to gl_mode 4. Exiting...\n");
@@ -237,11 +237,11 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	}
 
 	/* Initialize the stencil buffer */
-	if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits)) 
+	if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits))
 	{
 		ri.Con_Printf(PRINT_ALL, "Got %d bits of stencil.\n", stencil_bits);
-		
-		if (stencil_bits >= 1) 
+
+		if (stencil_bits >= 1)
 		{
 			have_stencil = true;
 		}
@@ -297,8 +297,8 @@ void GLimp_EndFrame (void)
 int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 {
 	ri.Con_Printf (PRINT_ALL, "setting mode %d:", mode );
-	
-	/* mode -1 is not in the vid mode table - so we keep the values in pwidth 
+
+	/* mode -1 is not in the vid mode table - so we keep the values in pwidth
 	   and pheight and don't even try to look up the mode info */
 	if ( mode != -1 && !ri.Vid_GetModeInfo( pwidth, pheight, mode ) )
 	{
@@ -308,7 +308,7 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 
 	ri.Con_Printf( PRINT_ALL, " %d %d\n", *pwidth, *pheight);
 
-	if ( !GLimp_InitGraphics( fullscreen ) ) 
+	if ( !GLimp_InitGraphics( fullscreen ) )
 	{
 		return rserr_invalid_mode;
 	}
@@ -327,7 +327,7 @@ void GLimp_Shutdown( void )
 	}
 
 	surface = NULL;
-	
+
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)
 	{
 		SDL_Quit();
@@ -336,12 +336,12 @@ void GLimp_Shutdown( void )
 	{
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	}
-	
+
 #ifdef X11GAMMA
 	if (gl_state.hwgamma == true)
 	{
 		XF86VidModeSetGamma(dpy, screen, &x11_oldgamma);
-		
+
 		/* This forces X11 to update the gamma tables */
 		XF86VidModeGetGamma(dpy, screen, &x11_oldgamma);
 	}
@@ -349,4 +349,3 @@ void GLimp_Shutdown( void )
 
 	gl_state.hwgamma = false;
 }
-

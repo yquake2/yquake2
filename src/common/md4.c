@@ -1,7 +1,7 @@
 /*
  * Public Domain C source implementation of RFC 1320
  *       -  The MD4 Message-Digest Algorithm  -
- *        
+ *
  *        http://www.faqs.org/rfcs/rfc1320.html
  *                    by Steven Fuller
  */
@@ -207,4 +207,3 @@ unsigned Com_BlockChecksum (void *buffer, int length)
 
 	return val;
 }
-

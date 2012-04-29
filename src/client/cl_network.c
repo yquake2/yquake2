@@ -22,7 +22,7 @@
  * This file implements generic network functions
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/client.h"
 
@@ -61,7 +61,7 @@ void Cmd_ForwardToServer (void)
 		SZ_Print (&cls.netchan.message, Cmd_Args());
 	}
 }
- 
+
 void CL_ForwardToServer_f (void)
 {
 	if (cls.state != ca_connected && cls.state != ca_active)
@@ -641,4 +641,3 @@ void CL_ReadPackets (void)
 		cl.timeoutcount = 0;
 
 }
-

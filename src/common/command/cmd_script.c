@@ -125,4 +125,3 @@ void Cmd_Alias_f (void) {
 
 	a->value = CopyString (cmd);
 }
-

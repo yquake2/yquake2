@@ -32,7 +32,7 @@
 int c_yes, c_no;
 
 /*
- * Returns false if any part of the 
+ * Returns false if any part of the
  * bottom of the entity is off an edge
  * that is not a staircase.
  */
@@ -43,17 +43,17 @@ M_CheckBottom(edict_t *ent)
 	trace_t trace;
 	int x, y;
 	float mid, bottom;
-     
+
 	if (!ent)
 	{
 		return false;
 	}
-     
+
 	VectorAdd(ent->s.origin, ent->mins, mins);
 	VectorAdd(ent->s.origin, ent->maxs, maxs);
 
 	/* if all of the points under the corners are solid
-	   world, don't bother with the tougher checks 
+	   world, don't bother with the tougher checks
 	   the corners must be within 16 of the midpoint */
 	start[2] = mins[2] - 1;
 
@@ -125,7 +125,7 @@ realcheck:
  * Called by monster program code.
  * The move will be adjusted for slopes
  * and stairs, but if the move isn't
- * possible, no move is done, false is 
+ * possible, no move is done, false is
  * returned, and pr_global_struct->trace_normal
  * is set to the normal of the blocking wall
  */
@@ -139,12 +139,12 @@ SV_movestep(edict_t *ent, vec3_t move, qboolean relink)
 	float stepsize;
 	vec3_t test;
 	int contents;
-     
+
 	if (!ent)
 	{
 		return false;
 	}
- 
+
 	/* try the move */
 	VectorCopy(ent->s.origin, oldorg);
 	VectorAdd(ent->s.origin, move, neworg);
@@ -377,17 +377,17 @@ M_ChangeYaw(edict_t *ent)
 	float current;
 	float move;
 	float speed;
-     
+
 	if (!ent)
 	{
 		return;
 	}
- 
+
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	current = anglemod(ent->s.angles[YAW]);
 	ideal = ent->ideal_yaw;
 
@@ -433,7 +433,7 @@ M_ChangeYaw(edict_t *ent)
 }
 
 /*
- * Turns to the movement direction, and 
+ * Turns to the movement direction, and
  * walks the current distance if facing it.
  */
 qboolean
@@ -441,12 +441,12 @@ SV_StepDirection(edict_t *ent, float yaw, float dist)
 {
 	vec3_t move, oldorigin;
 	float delta;
-     
+
 	if (!ent)
 	{
 		return false;
 	}
-     
+
 	ent->ideal_yaw = yaw;
 	M_ChangeYaw(ent);
 
@@ -462,7 +462,7 @@ SV_StepDirection(edict_t *ent, float yaw, float dist)
 		delta = ent->s.angles[YAW] - ent->ideal_yaw;
 
 		if ((delta > 45) && (delta < 315))
-		{       
+		{
 			/* not turned far enough, so don't take the step */
 			VectorCopy(oldorigin, ent->s.origin);
 		}
@@ -479,12 +479,12 @@ SV_StepDirection(edict_t *ent, float yaw, float dist)
 
 void
 SV_FixCheckBottom(edict_t *ent)
-{    
+{
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	ent->flags |= FL_PARTIALGROUND;
 }
 
@@ -494,12 +494,12 @@ SV_NewChaseDir(edict_t *actor, edict_t *enemy, float dist)
 	float deltax, deltay;
 	float d[3];
 	float tdir, olddir, turnaround;
-     
+
 	if (!actor || !enemy)
 	{
 		return;
 	}
-     
+
 	if (!enemy)
 	{
 		return;
@@ -611,7 +611,7 @@ SV_NewChaseDir(edict_t *actor, edict_t *enemy, float dist)
 
 	/* if a bridge was pulled out from underneath
 	   a monster, it may not have a valid standing
-	   position at all */ 
+	   position at all */
 	if (!M_CheckBottom(actor))
 	{
 		SV_FixCheckBottom(actor);
@@ -622,12 +622,12 @@ qboolean
 SV_CloseEnough(edict_t *ent, edict_t *goal, float dist)
 {
 	int i;
-     
+
 	if (!ent || !goal)
 	{
 		return false;
 	}
-     
+
 	for (i = 0; i < 3; i++)
 	{
 		if (goal->absmin[i] > ent->absmax[i] + dist)
@@ -648,12 +648,12 @@ void
 M_MoveToGoal(edict_t *ent, float dist)
 {
 	edict_t *goal;
-     
+
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	goal = ent->goalentity;
 
 	if (!ent->groundentity && !(ent->flags & (FL_FLY | FL_SWIM)))
@@ -681,12 +681,12 @@ qboolean
 M_walkmove(edict_t *ent, float yaw, float dist)
 {
 	vec3_t move;
-     
+
 	if (!ent)
 	{
 		return false;
 	}
-     
+
 	if (!ent->groundentity && !(ent->flags & (FL_FLY | FL_SWIM)))
 	{
 		return false;
@@ -700,4 +700,3 @@ M_walkmove(edict_t *ent, float yaw, float dist)
 
 	return SV_movestep(ent, move, true);
 }
-

@@ -39,7 +39,7 @@ static cvar_t   *in_grab;
 static int		mouse_x, mouse_y;
 static int		old_mouse_x, old_mouse_y;
 static int		mouse_buttonstate;
-static int		mouse_oldbuttonstate;    
+static int		mouse_oldbuttonstate;
 
 struct
 {
@@ -50,11 +50,11 @@ struct
 int keyq_head=0;
 int keyq_tail=0;
 int mx;
-int my; 
+int my;
 
 Key_Event_fp_t Key_Event_fp;
 
-extern SDL_Surface	 *surface; 
+extern SDL_Surface	 *surface;
 static in_state_t    *in_state;
 static unsigned char KeyStates[SDLK_LAST];
 static qboolean		 mlooking;
@@ -180,16 +180,16 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 /*
  * Input event processing
  */
-void 
+void
 IN_GetEvent(SDL_Event *event)
 {
 	unsigned int key;
-	
-	switch(event->type) 
+
+	switch(event->type)
 	{
 		/* The mouse wheel */
 		case SDL_MOUSEBUTTONDOWN:
-			if (event->button.button == 4) 
+			if (event->button.button == 4)
 			{
 				keyq[keyq_head].key = K_MWHEELUP;
 				keyq[keyq_head].down = true;
@@ -197,8 +197,8 @@ IN_GetEvent(SDL_Event *event)
 				keyq[keyq_head].key = K_MWHEELUP;
 				keyq[keyq_head].down = false;
 				keyq_head = (keyq_head + 1) & 127;
-			} 
-			else if (event->button.button == 5) 
+			}
+			else if (event->button.button == 5)
 			{
 				keyq[keyq_head].key = K_MWHEELDOWN;
 				keyq[keyq_head].down = true;
@@ -206,7 +206,7 @@ IN_GetEvent(SDL_Event *event)
 				keyq[keyq_head].key = K_MWHEELDOWN;
 				keyq[keyq_head].down = false;
 				keyq_head = (keyq_head + 1) & 127;
-			} 
+			}
 			break;
 
 		case SDL_MOUSEBUTTONUP:
@@ -215,32 +215,32 @@ IN_GetEvent(SDL_Event *event)
 		/* The user pressed a button */
 		case SDL_KEYDOWN:
 			/* Fullscreen switch via Alt-Return */
-			if ( (KeyStates[SDLK_LALT] || KeyStates[SDLK_RALT]) && (event->key.keysym.sym == SDLK_RETURN) ) 
+			if ( (KeyStates[SDLK_LALT] || KeyStates[SDLK_RALT]) && (event->key.keysym.sym == SDLK_RETURN) )
 			{
 				cvar_t *fullscreen;
 
 				SDL_WM_ToggleFullScreen(surface);
 
-				if (surface->flags & SDL_FULLSCREEN) 
+				if (surface->flags & SDL_FULLSCREEN)
 				{
 					ri.Cvar_SetValue( "vid_fullscreen", 1 );
-				} 
-				else 
+				}
+				else
 				{
 					ri.Cvar_SetValue( "vid_fullscreen", 0 );
 				}
 
 				fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", 0 );
-				fullscreen->modified = false; 
+				fullscreen->modified = false;
 
 				break;
 			}
-	  
+
 			KeyStates[event->key.keysym.sym] = 1;
-	  
+
 			/* Get the pressed key and add it to the key list */
 			key = IN_TranslateSDLtoQ2Key(event->key.keysym.sym);
-			if (key) 
+			if (key)
 			{
 				keyq[keyq_head].key = key;
 				keyq[keyq_head].down = true;
@@ -250,13 +250,13 @@ IN_GetEvent(SDL_Event *event)
 
 		/* The user released a key */
 		case SDL_KEYUP:
-			if (KeyStates[event->key.keysym.sym]) 
+			if (KeyStates[event->key.keysym.sym])
 			{
 				KeyStates[event->key.keysym.sym] = 0;
 
 				/* Get the pressed key and remove it from the key list */
 				key = IN_TranslateSDLtoQ2Key(event->key.keysym.sym);
-				if (key) 
+				if (key)
 				{
 					keyq[keyq_head].key = key;
 					keyq[keyq_head].down = false;
@@ -281,7 +281,7 @@ void IN_Update(void)
   {
     return;
   }
-  
+
   IN_Update_Flag = 1;
 
   while (SDL_PollEvent(&event))
@@ -289,7 +289,7 @@ void IN_Update(void)
 	  IN_GetEvent(&event);
   }
 
-  /* Mouse button processing. Button 4 
+  /* Mouse button processing. Button 4
      and 5 are the mousewheel and thus
      not processed here. */
 
@@ -305,22 +305,22 @@ void IN_Update(void)
   {
 	  mouse_buttonstate |= (1 << 0);
   }
-  
-  if (SDL_BUTTON(3) & bstate) 
+
+  if (SDL_BUTTON(3) & bstate)
   {
 	  mouse_buttonstate |= (1 << 1);
   }
-  
-  if (SDL_BUTTON(2) & bstate) 
+
+  if (SDL_BUTTON(2) & bstate)
   {
 	  mouse_buttonstate |= (1 << 2);
   }
-  
+
   if (SDL_BUTTON(6) & bstate)
   {
 	  mouse_buttonstate |= (1 << 3);
   }
-  
+
   if (SDL_BUTTON(7) & bstate)
   {
 	  mouse_buttonstate |= (1 << 4);
@@ -330,15 +330,15 @@ void IN_Update(void)
      console is opened */
   if (in_grab->value == 2)
   {
-	  if (old_windowed_mouse != windowed_mouse->value) 
+	  if (old_windowed_mouse != windowed_mouse->value)
 	  {
 		  old_windowed_mouse = windowed_mouse->value;
 
-		  if (!windowed_mouse->value) 
+		  if (!windowed_mouse->value)
 		  {
 			  SDL_WM_GrabInput(SDL_GRAB_OFF);
-		  } 
-		  else 
+		  }
+		  else
 		  {
 			  SDL_WM_GrabInput(SDL_GRAB_ON);
 		  }
@@ -363,7 +363,7 @@ void IN_Update(void)
   IN_Update_Flag = 0;
 }
 
-/* 
+/*
  * Closes all inputs and clears
  * the input queue.
  */
@@ -371,7 +371,7 @@ void IN_Close(void)
 {
 	keyq_head = 0;
 	keyq_tail = 0;
-	
+
 	memset(keyq, 0, sizeof(keyq));
 }
 
@@ -382,16 +382,16 @@ void IN_GetMouseState(int *x, int *y, int *state) {
   *x = mx;
   *y = my;
   *state = mouse_buttonstate;
-} 
+}
 
 /*
  * Cleares the mouse state
  */
-void IN_ClearMouseState() 
+void IN_ClearMouseState()
 {
   mx = my = 0;
 }
- 
+
 /*
  * Centers the view
  */
@@ -399,7 +399,7 @@ static void
 IN_ForceCenterView ( void )
 {
 	in_state->viewangles [ PITCH ] = 0;
-}  
+}
 
 /*
  * Look up
@@ -531,7 +531,7 @@ void
 IN_BackendMove ( usercmd_t *cmd )
 {
 	IN_GetMouseState( &mouse_x, &mouse_y, &mouse_buttonstate );
-	
+
 	if ( m_filter->value )
 	{
 		if ( ( mouse_x > 1 ) || ( mouse_x < -1) )
@@ -606,4 +606,3 @@ IN_BackendMove ( usercmd_t *cmd )
 		IN_ClearMouseState();
 	}
 }
-

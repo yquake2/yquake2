@@ -23,7 +23,7 @@
  * Functionpointers to every function in the game.so.
  *
  * =======================================================================
- */ 
+ */
 
 {"ReadLevel", (byte *)ReadLevel},
 {"ReadLevelLocals", (byte *)ReadLevelLocals},

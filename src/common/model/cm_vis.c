@@ -22,14 +22,14 @@
  * This file implements loading an parsing of the vis of a map or model
  *
  * =======================================================================
- */ 
+ */
 
 #include "../header/common.h"
 #include "../header/cmodel.h"
 
 extern int numclusters;
 
-dvis_t *map_vis = (dvis_t *)map_visibility; 
+dvis_t *map_vis = (dvis_t *)map_visibility;
 
 void CM_DecompressVis (byte *in, byte *out)
 {
@@ -102,4 +102,3 @@ byte	*CM_ClusterPHS (int cluster)
 
 	return phsrow;
 }
-

@@ -22,12 +22,12 @@
  * Combat code like damage, death and so on.
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/local.h"
 
 /*
- * Returns true if the inflictor can 
+ * Returns true if the inflictor can
  * directly damage the target.  Used for
  * explosions and melee attacks.
  */
@@ -154,9 +154,9 @@ Killed(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 	}
 
 	if ((targ->movetype == MOVETYPE_PUSH) ||
-		(targ->movetype == MOVETYPE_STOP) || 
+		(targ->movetype == MOVETYPE_STOP) ||
 		(targ->movetype == MOVETYPE_NONE))
-	{       
+	{
 		/* doors, triggers, etc */
 		targ->die(targ, inflictor, attacker, damage, point);
 		return;
@@ -394,7 +394,7 @@ M_ReactToDamage(edict_t *targ, edict_t *attacker)
 	{
 		return;
 	}
-	
+
 	if (targ->health <= 0)
 	{
 		return;
@@ -410,7 +410,7 @@ M_ReactToDamage(edict_t *targ, edict_t *attacker)
 		return;
 	}
 
-	/* if we are a good guy monster and our attacker is a player 
+	/* if we are a good guy monster and our attacker is a player
 	   or another good guy, do not get mad at them */
 	if (targ->monsterinfo.aiflags & AI_GOOD_GUY)
 	{
@@ -420,13 +420,13 @@ M_ReactToDamage(edict_t *targ, edict_t *attacker)
 		}
 	}
 
-	/* if attacker is a client, get mad at 
+	/* if attacker is a client, get mad at
 	   them because he's good and we're not */
 	if (attacker->client)
 	{
 		targ->monsterinfo.aiflags &= ~AI_SOUND_TARGET;
 
-		/* this can only happen in coop (both new and old 
+		/* this can only happen in coop (both new and old
 		   enemies are clients)  only switch if can't see
 		   the current enemy */
 		if (targ->enemy && targ->enemy->client)
@@ -450,7 +450,7 @@ M_ReactToDamage(edict_t *targ, edict_t *attacker)
 		return;
 	}
 
-	/* it's the same base (walk/swim/fly) type and a 
+	/* it's the same base (walk/swim/fly) type and a
 	   different classname and it's not a tank
 	   (they spray too much), get mad at them */
 	if (((targ->flags & (FL_FLY | FL_SWIM)) ==
@@ -528,8 +528,8 @@ T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 		return;
 	}
 
-	/* friendly fire avoidance if enabled you 
-	   can't hurt teammates (but you can hurt 
+	/* friendly fire avoidance if enabled you
+	   can't hurt teammates (but you can hurt
 	   yourself) knockback still occurs */
 	if ((targ != attacker) && ((deathmatch->value &&
 		  ((int)(dmflags->value) & (DF_MODELTEAMS | DF_SKINTEAMS))) ||
@@ -609,7 +609,7 @@ T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 			if (targ->client && (attacker == targ))
 			{
 				/* This allows rocket jumps */
-				VectorScale(dir, 1600.0 * (float)knockback / mass, kvel); 
+				VectorScale(dir, 1600.0 * (float)knockback / mass, kvel);
 			}
 			else
 			{
@@ -717,7 +717,7 @@ T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 		}
 	}
 
-	/* add to the damage inflicted on a player this frame 
+	/* add to the damage inflicted on a player this frame
 	   the total will be turned into screen blends and view
 	   angle kicks at the end of the frame */
 	if (client)
@@ -778,4 +778,3 @@ T_RadiusDamage(edict_t *inflictor, edict_t *attacker, float damage,
 		}
 	}
 }
-

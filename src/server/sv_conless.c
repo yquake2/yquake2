@@ -22,7 +22,7 @@
  * Connectionless server commands.
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/server.h"
 
@@ -264,8 +264,8 @@ SVC_DirectConnect ( void )
 	}
 
 gotnewcl:
-	/* build a new connection 
-	   accept the new client 
+	/* build a new connection
+	   accept the new client
 	   this is the only place a client_t is ever initialized */
 	*newcl = temp;
 	sv_client = newcl;
@@ -423,5 +423,4 @@ SV_ConnectionlessPacket ( void )
 		Com_Printf( "bad connectionless packet from %s:\n%s\n",
 				NET_AdrToString( net_from ), s );
 	}
-}      
-
+}

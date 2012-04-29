@@ -18,13 +18,13 @@
  * 02111-1307, USA.
  *
  * =======================================================================
- * 
+ *
  * This file implements the operating system binding of GL to QGL function
  * pointers.  When doing a port of Quake2 you must implement the following
  * two functions:
  *
  * QGL_Init() - loads libraries, assigns function pointers, etc.
- * QGL_Shutdown() - unloads libraries, NULLs function pointers 
+ * QGL_Shutdown() - unloads libraries, NULLs function pointers
  *
  * =======================================================================
  */
@@ -3502,7 +3502,7 @@ QGL_Init ( const char *dllname )
 			ri.Con_Printf( PRINT_ALL, "Trying hardcoded default libGL\n" );
 			if ( ( glw_state.OpenGLLib = dlopen( "libGL.so.1", RTLD_LAZY ) ) == 0)
 			{
-				ri.Con_Printf( PRINT_ALL, "%s\n", dlerror() );	
+				ri.Con_Printf( PRINT_ALL, "%s\n", dlerror() );
 				return ( false );
 			} else {
 				ri.Cvar_Set("gl_driver", "libGL.so.1");
@@ -4574,4 +4574,3 @@ GLimp_LogNewFrame ( void )
 {
 	fprintf( glw_state.log_fp, "*** R_BeginFrame ***\n" );
 }
-

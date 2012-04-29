@@ -458,4 +458,3 @@ extern int QGL_TEXTURE0, QGL_TEXTURE1;
 #endif
 
 #endif
-

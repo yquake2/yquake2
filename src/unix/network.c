@@ -22,7 +22,7 @@
  * Low level network code, based upon the BSD socket api.
  *
  * =======================================================================
- */ 
+ */
 
 #include "../common/header/common.h"
 
@@ -130,7 +130,7 @@ NetadrToSockadr ( netadr_t *a, struct sockaddr_storage *s )
 				s6->sin6_len = sizeof(struct sockaddr_in6);
 #endif
 
-				/* scope_id is important for 
+				/* scope_id is important for
 				   link-local destination. */
 				s6->sin6_scope_id = a->scope_id;
 			}
@@ -141,7 +141,7 @@ NetadrToSockadr ( netadr_t *a, struct sockaddr_storage *s )
 		case NA_IPX:
 		case NA_BROADCAST_IPX:
 			break;
-	} 
+	}
 }
 
 void
@@ -422,7 +422,7 @@ NET_StringToSockaddr ( char *s, struct sockaddr_storage *sadr )
 			memset(sadr, 0, sizeof(struct sockaddr_storage));
 			memcpy(sadr, resultp->ai_addr, resultp->ai_addrlen);
 			break;
-		
+
 		default:
 			Com_Printf("NET_StringToSockaddr: string %s:\nprotocol family %d not supported\n",
 				s, resultp->ai_family);
@@ -452,7 +452,7 @@ NET_StringToAdr ( char *s, netadr_t *a )
 
 	SockadrToNetadr(&sadr, a);
 
-	return true; 
+	return true;
 }
 
 qboolean
@@ -568,7 +568,7 @@ NET_GetPacket ( netsrc_t sock, netadr_t *net_from, sizebuf_t *net_message )
 		return true;
 	}
 
-	return false; 
+	return false;
 }
 
 void
@@ -596,7 +596,7 @@ NET_SendPacket ( netsrc_t sock, int length, void *data, netadr_t to )
 			}
 
 			break;
-		
+
 		case NA_IP6:
 		case NA_MULTICAST6:
 			net_socket = ip6_sockets[sock];
@@ -608,7 +608,7 @@ NET_SendPacket ( netsrc_t sock, int length, void *data, netadr_t to )
 			}
 
 			break;
-		
+
 		case NA_IPX:
 		case NA_BROADCAST_IPX:
 			net_socket = ipx_sockets[sock];
@@ -619,7 +619,7 @@ NET_SendPacket ( netsrc_t sock, int length, void *data, netadr_t to )
 			}
 
 			break;
-		
+
 		default:
 			Com_Error(ERR_FATAL, "NET_SendPacket: bad address type");
 			return;
@@ -647,7 +647,7 @@ NET_SendPacket ( netsrc_t sock, int length, void *data, netadr_t to )
 	{
 		struct sockaddr_in6 *s6 = (struct sockaddr_in6 *)&addr;
 
-		/* If multicast socket, must specify scope. 
+		/* If multicast socket, must specify scope.
 		   So multicast_interface must be specified */
 		if (IN6_IS_ADDR_MULTICAST(&s6->sin6_addr))
 		{
@@ -745,7 +745,7 @@ NET_OpenIP ( void )
 	{
 		ip_sockets[NS_CLIENT] = NET_Socket(ip->string, PORT_ANY,
 				NS_CLIENT, AF_INET);
-	}   
+	}
 }
 
 /*
@@ -757,7 +757,7 @@ NET_Config ( qboolean multiplayer )
 	int i;
 
 	if (!multiplayer)
-	{   
+	{
 		/* shut down any existing sockets */
 		for (i = 0; i < 2; i++)
 		{
@@ -861,10 +861,10 @@ NET_Socket ( char *net_interface, int port, netsrc_t type, int family )
 
 		/* make it reusable */
 		if (setsockopt(newsocket, SOL_SOCKET, SO_REUSEADDR, (char *)&i, sizeof(i)) == -1)
-		{ 
+		{
 			Com_Printf("ERROR: NET_Socket: setsockopt SO_REUSEADDR:%s\n",
 						NET_ErrorString());
-				return 0; 
+				return 0;
 		}
 
 		if (bind(newsocket, ai->ai_addr, ai->ai_addrlen) < 0)
@@ -950,8 +950,8 @@ NET_ErrorString ( void )
 	return ( strerror( code ) );
 }
 
-/* 
- * sleeps msec or until net socket is ready 
+/*
+ * sleeps msec or until net socket is ready
  */
 void
 NET_Sleep ( int msec )
@@ -979,4 +979,3 @@ NET_Sleep ( int msec )
 	timeout.tv_usec = (msec % 1000) * 1000;
 	select(MAX(ip_sockets[NS_SERVER], ip6_sockets[NS_SERVER]) + 1, &fdset, NULL, NULL, &timeout);
 }
-

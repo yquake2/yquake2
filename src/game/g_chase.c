@@ -263,4 +263,3 @@ GetChaseTarget(edict_t *ent)
 
 	gi.centerprintf(ent, "No other players to chase.");
 }
-

@@ -174,7 +174,7 @@ S_Init ( void )
 		paintedtime = 0;
 
 #if USE_OPENAL
-		if(sound_started == SS_DMA) 
+		if(sound_started == SS_DMA)
 		{
 			Com_Printf( "Sound sampling rate: %i\n", dma.speed );
 		}
@@ -357,7 +357,7 @@ S_AliasName ( char *aliasname, char *truename )
 
 		num_sfx++;
 	}
- 
+
 	sfx = &known_sfx [ i ];
 	sfx->cache = NULL;
 	strcpy( sfx->name, aliasname );
@@ -410,7 +410,7 @@ S_EndRegistration ( void )
 		}
 
 		if ( sfx->registration_sequence != s_registration_sequence )
-		{                                    
+		{
 			/* it is possible to have a leftover */
 			if ( sfx->cache )
 			{
@@ -459,7 +459,7 @@ S_PickChannel ( int entnum, int entchannel )
 	life_left = 0x7fffffff;
 
 	for ( ch_idx = 0; ch_idx < s_numchannels; ch_idx++ )
-	{                                                        
+	{
 		/* channel 0 never overrides */
 		if ( ( entchannel != 0 ) &&
 			 ( channels [ ch_idx ].entnum == entnum ) &&
@@ -837,11 +837,11 @@ S_StartSound ( vec3_t origin, int entnum, int entchannel, sfx_t *sfx, float fvol
 	ps->sfx = sfx;
 
 #if USE_OPENAL
-	if( sound_started == SS_OAL ) 
+	if( sound_started == SS_OAL )
 	{
 		ps->begin = paintedtime + timeofs * 1000;
 		ps->volume = fvol * 384;
-	} 
+	}
 	else
 #endif
 	{
@@ -1243,7 +1243,7 @@ GetSoundtime ( void )
 	oldsamplepos = samplepos;
 	soundtime = buffers * fullsamples + samplepos / dma.channels;
 }
-           
+
 /*
  * Called once each time through the main loop
  */
@@ -1252,9 +1252,9 @@ S_Update ( vec3_t origin, vec3_t forward, vec3_t right, vec3_t up )
 {
 	int i;
 	int total;
-	channel_t   *ch; 
+	channel_t   *ch;
    	unsigned endtime;
-	int samps; 
+	int samps;
 
 	if ( !sound_started )
 	{
@@ -1337,12 +1337,12 @@ S_Update ( vec3_t origin, vec3_t forward, vec3_t right, vec3_t up )
 
 		Com_Printf( "----(%i)---- painted: %i\n", total, paintedtime );
 	}
-         	
+
 #ifdef OGG
 	/* stream music */
-	OGG_Stream(); 
+	OGG_Stream();
 #endif
-	
+
 	/* mix some sound */
 	if ( !sound_started )
 	{
@@ -1467,4 +1467,3 @@ S_SoundList ( void )
 
 	Com_Printf( "Total resident: %i bytes (%.2f MB) in %d sounds\n", total, (float) total / 1024 / 1024, numsounds );
 }
-

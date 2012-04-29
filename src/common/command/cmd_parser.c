@@ -25,7 +25,7 @@
  * subsystem.
  *
  * =======================================================================
- */ 
+ */
 
 #include "../header/common.h"
 #include "../header/cmd.h"
@@ -272,5 +272,4 @@ qboolean Cbuf_AddLateCommands (void) {
 	Z_Free (build);
 
 	return ret;
-} 
-
+}

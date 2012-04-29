@@ -22,7 +22,7 @@
  * Server main function and correspondig stuff
  *
  * =======================================================================
- */  
+ */
 
 #include "header/server.h"
 
@@ -66,7 +66,7 @@ SV_DropClient ( client_t *drop )
 
 	if ( drop->state == cs_spawned )
 	{
-		/* call the prog function for removing a client 
+		/* call the prog function for removing a client
 		   this will remove the body, among other things */
 		ge->ClientDisconnect( drop->edict );
 	}
@@ -210,7 +210,7 @@ SV_ReadPackets ( void )
 			continue;
 		}
 
-		/* read the qport out of the message so we can fix up 
+		/* read the qport out of the message so we can fix up
 		   stupid address translating routers */
 		MSG_BeginReading( &net_message );
 		MSG_ReadLong( &net_message );        /* sequence number */
@@ -242,7 +242,7 @@ SV_ReadPackets ( void )
 			}
 
 			if ( Netchan_Process( &cl->netchan, &net_message ) )
-			{   
+			{
 				/* this is a valid, sequenced packet, so process it */
 				if ( cl->state != cs_zombie )
 				{
@@ -342,8 +342,8 @@ SV_RunGameFrame ( void )
 #endif
 
 	/* we always need to bump framenum, even if we
-	   don't run the world, otherwise the delta 
-	   compression can get confused when a client 
+	   don't run the world, otherwise the delta
+	   compression can get confused when a client
 	   has the "current" frame */
 	sv.framenum++;
 	sv.time = sv.framenum * 100;
@@ -700,4 +700,3 @@ SV_Shutdown ( char *finalmsg, qboolean reconnect )
 
 	memset( &svs, 0, sizeof ( svs ) );
 }
-

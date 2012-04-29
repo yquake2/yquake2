@@ -359,7 +359,7 @@ void Con_CenteredPrint (char *text) {
 }
 
 /*
- * The input line scrolls horizontally if 
+ * The input line scrolls horizontally if
  * typing goes beyond the right edge
  */
 void Con_DrawInput (void) {
@@ -595,4 +595,3 @@ void Con_DrawConsole (float frac) {
 	/* draw the input prompt, user text, and cursor if desired */
 	Con_DrawInput ();
 }
-

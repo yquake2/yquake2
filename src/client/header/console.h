@@ -64,4 +64,3 @@ void Con_ClearNotify (void);
 void Con_ToggleConsole_f (void);
 
 #endif
-

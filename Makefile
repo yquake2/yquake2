@@ -14,7 +14,7 @@
 # Platforms:                                             #
 #  - Linux                                               #
 #  - FreeBSD                                             #
-# ------------------------------------------------------ # 
+# ------------------------------------------------------ #
 
 # User configurable options
 # -------------------------
@@ -80,10 +80,10 @@ CC := gcc
 
 # ----------
 
-# Base CFLAGS. 
+# Base CFLAGS.
 #
 # -O2 are enough optimizations.
-# 
+#
 # -fno-strict-aliasing since the source doesn't comply
 #  with strict aliasing rules and it's next to impossible
 #  to get it there...
@@ -116,9 +116,9 @@ SDLCFLAGS := $(shell sdl-config --cflags)
 
 # ----------
 
-# Extra CFLAGS for X11	 
+# Extra CFLAGS for X11
 ifeq ($(WITH_X11GAMMA),yes)
-X11CFLAGS := $(shell pkg-config x11 --cflags)	 
+X11CFLAGS := $(shell pkg-config x11 --cflags)
 X11CFLAGS += $(shell pkg-config xxf86vm --cflags)
 else
 X11CFLAGS :=
@@ -131,7 +131,7 @@ ifeq ($(OSTYPE),Linux)
 INCLUDE := -I/usr/include
 else ifeq ($(OSTYPE),FreeBSD)
 INCLUDE := -I/usr/local/include
-endif 
+endif
 
 # ----------
 
@@ -140,7 +140,7 @@ ifeq ($(OSTYPE),Linux)
 LDFLAGS := -L/usr/lib -lm -ldl
 else ifeq ($(OSTYPE),FreeBSD)
 LDFLAGS := -L/usr/local/lib -lm
-endif 
+endif
 
 # ----------
 
@@ -149,9 +149,9 @@ SDLLDFLAGS := $(shell sdl-config --libs)
 
 # ----------
 
-# Extra LDFLAGS for X11	 
+# Extra LDFLAGS for X11
 ifeq ($(WITH_X11GAMMA),yes)
-X11LDFLAGS := $(shell pkg-config x11 --libs)	 
+X11LDFLAGS := $(shell pkg-config x11 --libs)
 X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
 else
 X11LDFLAGS :=
@@ -166,7 +166,7 @@ ifdef VERBOSE
 Q :=
 else
 Q := @
-endif 
+endif
 
 # ----------
 
@@ -179,14 +179,14 @@ all: client server refresher game
 clean:
 	@echo "===> CLEAN"
 	${Q}rm -Rf build release
- 
+
 # ----------
 
-# The client 
+# The client
 client:
 	@echo '===> Building quake2'
 	${Q}mkdir -p release
-	$(MAKE) release/quake2     
+	$(MAKE) release/quake2
 
 build/client/%.o: %.c
 	@echo '===> CC $<'
@@ -324,7 +324,7 @@ GAME_OBJS_ = \
 	src/game/player/view.o \
 	src/game/player/weapon.o \
     src/game/savegame/savegame.o
- 
+
 # ----------
 
 # Used by the client
@@ -399,7 +399,7 @@ CLIENT_OBJS_ := \
 	src/unix/qal.o \
  	src/unix/signalhandler.o \
 	src/unix/system.o \
- 	src/unix/vid.o 
+ 	src/unix/vid.o
 
 # ----------
 
@@ -445,7 +445,7 @@ SERVER_OBJS_ := \
  	src/unix/network.o \
  	src/unix/signalhandler.o \
 	src/unix/system.o
- 
+
 # ----------
 
 # Used by the OpenGL refresher
@@ -485,23 +485,23 @@ GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 # ----------
 
 # Generate header dependencies
-CLIENT_DEPS= $(CLIENT_OBJS:.o=.d) 
-SERVER_DEPS= $(SERVER_OBJS:.o=.d) 
-OPENGL_DEPS= $(OPENGL_OBJS:.o=.d) 
-GAME_DEPS= $(GAME_OBJS:.o=.d) 
+CLIENT_DEPS= $(CLIENT_OBJS:.o=.d)
+SERVER_DEPS= $(SERVER_OBJS:.o=.d)
+OPENGL_DEPS= $(OPENGL_OBJS:.o=.d)
+GAME_DEPS= $(GAME_OBJS:.o=.d)
 
 # ----------
 
 # Suck header dependencies in
--include $(CLIENT_DEPS)  
--include $(SERVER_DEPS)  
--include $(OPENGL_DEPS)  
--include $(GAME_DEPS)  
+-include $(CLIENT_DEPS)
+-include $(SERVER_DEPS)
+-include $(OPENGL_DEPS)
+-include $(GAME_DEPS)
 
 # ----------
 
 # release/quake2
-release/quake2 : $(CLIENT_OBJS) 
+release/quake2 : $(CLIENT_OBJS)
 	@echo '===> LD $@'
 	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 

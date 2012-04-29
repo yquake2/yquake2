@@ -188,4 +188,3 @@ void AL_RawSamples( int samples, int rate, int width, int channels, byte *data, 
 #endif
 
 #endif
-

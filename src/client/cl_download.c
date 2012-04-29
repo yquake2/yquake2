@@ -22,15 +22,15 @@
  * This file implements the game media download from the server
  *
  * =======================================================================
- */ 
+ */
 
-#include "header/client.h" 
+#include "header/client.h"
 
 extern	cvar_t *allow_download;
 extern	cvar_t *allow_download_players;
 extern	cvar_t *allow_download_models;
 extern	cvar_t *allow_download_sounds;
-extern	cvar_t *allow_download_maps; 
+extern	cvar_t *allow_download_maps;
 
 extern	int precache_check;
 extern	int precache_spawncount;
@@ -41,11 +41,11 @@ extern	byte *precache_model;
 
 static const char *env_suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 
-#define PLAYER_MULT 5 
+#define PLAYER_MULT 5
 
 /* ENV_CNT is map load, ENV_CNT+1 is first env map */
 #define ENV_CNT (CS_PLAYERSKINS + MAX_CLIENTS * PLAYER_MULT)
-#define TEXTURE_CNT (ENV_CNT+13)   
+#define TEXTURE_CNT (ENV_CNT+13)
 
 void CL_RequestNextDownload (void)
 {
@@ -565,4 +565,3 @@ void CL_ParseDownload (void) {
 		CL_RequestNextDownload ();
 	}
 }
-

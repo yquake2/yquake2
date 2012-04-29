@@ -44,4 +44,3 @@ typedef struct in_state
 void registerHandler(void);
 
 #endif
-

@@ -22,12 +22,12 @@
  * The header for the command processor system
  *
  * =======================================================================
- */   
+ */
 
 #ifndef CO_CMD_H
 #define CO_CMD_H
 
-#define	MAX_ALIAS_NAME	32 
+#define	MAX_ALIAS_NAME	32
 #define	ALIAS_LOOP_COUNT 16
 
 typedef struct cmdalias_s {
@@ -36,7 +36,7 @@ typedef struct cmdalias_s {
 	char	*value;
 } cmdalias_t;
 
-cmdalias_t	*cmd_alias; 
+cmdalias_t	*cmd_alias;
 qboolean	cmd_wait;
 
 int		alias_count; /* for detecting runaway loops */
@@ -47,4 +47,3 @@ void Cmd_Alias_f (void);
 void Cmd_Wait_f (void);
 
 #endif
-
