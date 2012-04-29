@@ -22,7 +22,7 @@ fi
 ulimit -c unlimited
 
 # run quake 2
-./quake2 $*
+./quake2 "$@"
 
 <<<<<<< HEAD
 # if gnome-screensaver was running..
