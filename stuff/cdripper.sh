@@ -18,4 +18,5 @@ done
 # remove .wav files
 rm *.wav
 
-echo -e "\n Ripping done, move music/ directory to /your/path/to/quake2/game/music/"
+echo '
+Ripping done, move music/ directory to /your/path/to/quake2/game/music/'
