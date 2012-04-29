@@ -159,9 +159,9 @@ void QAL_SoundInfo()
     Com_Printf("AL_VERSION: %s\n", qalGetString(AL_VERSION));
     Com_Printf("AL_EXTENSIONS: %s\n", qalGetString(AL_EXTENSIONS));
 
-	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT"))
+	if (qalcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT"))
 	{
-		const char *devs = alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
+		const char *devs = qalcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
 
 		Com_Printf("\nAvailable OpenAL devices:\n");
 
@@ -181,9 +181,9 @@ void QAL_SoundInfo()
 		}
 	} 
 	 
-   	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT"))
+   	if (qalcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT"))
 	{
-		const char *devs = alcGetString(device, ALC_DEVICE_SPECIFIER);
+		const char *devs = qalcGetString(device, ALC_DEVICE_SPECIFIER);
     
 		Com_Printf("\nCurrent OpenAL device:\n");
 
@@ -334,18 +334,19 @@ qboolean
 QAL_Init()
 {
 	/* DEFAULT_OPENAL_DRIVER is defined at compile time via the compiler */
-    al_driver = Cvar_Get( "al_driver", DEFAULT_OPENAL_DRIVER, CVAR_ARCHIVE );
-    al_device = Cvar_Get( "al_device", "", CVAR_ARCHIVE );
+	al_driver = Cvar_Get( "al_driver", DEFAULT_OPENAL_DRIVER, CVAR_ARCHIVE );
+	al_device = Cvar_Get( "al_device", "", CVAR_ARCHIVE );
 
 	Com_Printf("LoadLibrary(%s)\n", al_driver->string);
 
 	/* Load the library */
-    handle = dlopen( al_driver->string, RTLD_LAZY );
+	handle = dlopen( al_driver->string, RTLD_LAZY );
 
-    if (!handle)
-   	{
-        return false;
-    }
+	if (!handle)
+	{
+		Com_Printf("Loading %s failed! Disabling OpenAL.\n", al_driver->string);
+		return false;
+	}
 
 	/* Connect function pointers to management functions */
 	qalcCreateContext = dlsym(handle, "alcCreateContext");

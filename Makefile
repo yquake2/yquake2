@@ -188,7 +188,6 @@ endif
 
 ifeq ($(WITH_OPENAL),yes)
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
-release/quake2 : LDFLAGS += -lopenal
 endif
 
 ifeq ($(WITH_ZIP),yes)
