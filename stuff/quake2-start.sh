@@ -1,4 +1,5 @@
 #!/bin/sh
+set -eu
 
 # PID of "gnome-screensaver-command -i" (if used)
 GSC_PID=""
