@@ -9,10 +9,10 @@ cd music
 # rip all tracks beginning with second one (the first track is data)
 cdparanoia -B "2-"
 
-# could certainly be more elegant..
-for i in "02" "03" "04" "05" "06" "07" "08" "09" "10" "11"
-do
-    oggenc -q 6 -o $i.ogg track$i.cdda.wav
+for I in track*.cdda.wav; do
+    NUM="${I#track}"
+    NUM="${NUM%.cdda.wav}"
+    oggenc -q 6 -o "$NUM.ogg" "$I"
 done
 
 # remove .wav files
