@@ -75,11 +75,6 @@ endif
 
 # ----------
 
-# The compiler
-CC := gcc
-
-# ----------
-
 # Base CFLAGS.
 #
 # -O2 are enough optimizations.
