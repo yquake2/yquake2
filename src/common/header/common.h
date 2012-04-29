@@ -32,7 +32,7 @@
 #include "shared.h"
 #include "crc.h"
 
-#define	VERSION		4.10
+#define	VERSION		4.20
 #define	BASEDIRNAME	"baseq2"
 
 #if defined __linux__
