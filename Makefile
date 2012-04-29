@@ -65,12 +65,8 @@ ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/amd64/x86_64/)
 
 # Refuse all other platforms as a firewall against PEBKAC
 # (You'll need some #ifdef for your unsupported  plattform!)
-ifneq ($(ARCH),i386)
-ifneq ($(ARCH),x86_64)
-ifneq ($(ARCH),sparc64)
+ifeq ($(findstring $(ARCH), i386 x86_64 sparc64),)
 $(error arch $(ARCH) is currently not supported)
-endif
-endif
 endif
 
 # ----------
