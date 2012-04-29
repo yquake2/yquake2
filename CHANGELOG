@@ -5,7 +5,7 @@ Quake II 4.10 to 4.20
 - Integrate OpenAL support, enabling surround sound
   and better stereo sound calculations.
 - Enforce the "C" locale to prevent libraries like
-  broken LASPA plugins to override it and break
+  broken LADSPA plugins to override it and break
   printf, scanf, etc.
 
 Quake II 4.03 to 4.10

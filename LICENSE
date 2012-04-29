@@ -12,11 +12,15 @@ covered by the same GPLv2 license as Quake II itself:
 - r1q2
 - QuDoS
 - KMQuake2
+- Q2Pro
+- zeq2
 
 The following code is used in library form and thus not part of Yamagi
 Quake II:
 
+- libjpeg
 - libogg
+- libopenal
 - libvorbis
 - libz
 - libsdl
