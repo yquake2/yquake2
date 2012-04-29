@@ -1,6 +1,7 @@
                    * ****************************** *
                    *        Yamagi Quake II         *
                    *  http://www.yamagi.org/quake2  *
+                   *    http://github.com/yquake2   *
                    * ****************************** *
                    
 ===============================================================================
@@ -59,17 +60,14 @@ They'll even assist you in installing the game data.
 
 1.1 Supported Systems:
 ----------------------
-
 Officially, only Linux and FreeBSD on i386 (x86) and amd64 (x86_64) compatible
 CPUs are supported. Other (Unix-like) Operating Systems and hardware 
 architectures are untested and may need small changes, at least in the Makefile.
-
 Yamagi Quake II needs OpenGL 1.1 (better: 1.4) support in hardware and libGL; 
-OpenGL ES will not work.
+OpenGL ES will not work yet. It's in progress. The only tested compilers are gcc
+ 4.2 (or later) and clang 3.0 (or later).
 
-The only tested compilers are gcc 4.2 (or later) and clang 3.0 (or later).
-
-Patches for other platforms are welcome :-)
+Patches (or better Github pull request) for other platforms are welcome :-)
 
 1.2 Retail Version:
 -------------------
@@ -407,11 +405,11 @@ important options (tested with OpenAL Soft 1.14) are:
 4. Bugreports
 =============
 Something is not working as expected? An elevator is broken? An enemy doesn't
-move? Or the whole game is just crashing? Just drop us an e-mail to
-quake2@yamagi.org. Please include a problem description and - if possible - a
-screenshot of the problematic situation and the name of the problematic map.
-In case of crashes, further helpful information (and instructions) are printed
-to stdout (your terminal).
+move? Or the whole game is just crashing? Just open an issue at
+https://github.com/yquake2/yquake2. Please include a problem description and 
+- if possible - a screenshot of the problematic situation and the name of the 
+problematic map. In case of crashes, further helpful information (and 
+instructions) are printed to stdout (your terminal).
 
 But first, read this little FAQ:
 
