@@ -17,6 +17,9 @@ if [ $(ps auxww | grep unclutter | wc -l) -gt 0 ]; then
 	killall -STOP unclutter
 fi
 
+# enable core dumps
+ulimit -c unlimited
+
 # run quake 2 
 ./quake2 $* 
 
