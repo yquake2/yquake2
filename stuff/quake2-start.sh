@@ -1,14 +1,14 @@
 #!/bin/sh
 
 # PID of "gnome-screensaver-command -i" (if used)
-GSC_PID=0
+GSC_PID=""
 
 # if gnome-screensaver is running in the background..
 if [ $(ps auxww | grep gnome-screensaver | wc -l) -gt 0 ]; then
     echo "inhibiting gnome screensaver"
     gnome-screensaver-command -i &
     # save the PID of the last command
-    GSC_PID=$!
+    GSC_PID="$!"
 fi
 
 # Stop unclutter
@@ -24,9 +24,9 @@ ulimit -c unlimited
 ./quake2 $*
 
 # if gnome-screensaver was running..
-if [ $GSC_PID -gt 0 ]; then
+if [ -n "$GSC_PID" ]; then
     echo "reactivating gnome screensaver"
-    kill $GSC_PID
+    kill "$GSC_PID"
 fi
 
 # Continue unclutter
