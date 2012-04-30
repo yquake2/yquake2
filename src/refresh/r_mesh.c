@@ -294,23 +294,14 @@ R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 void
 R_DrawAliasShadow ( dmdl_t *paliashdr, int posenum )
 {
-	dtrivertx_t *verts;
 	int     *order;
 	vec3_t point;
 	float height, lheight;
 	int count;
-	daliasframe_t   *frame;
 
 	lheight = currententity->origin [ 2 ] - lightspot [ 2 ];
-
-	frame = (daliasframe_t *) ( (byte *) paliashdr + paliashdr->ofs_frames
-								+ currententity->frame * paliashdr->framesize );
-	verts = frame->verts;
-
 	height = 0;
-
 	order = (int *) ( (byte *) paliashdr + paliashdr->ofs_glcmds );
-
 	height = -lheight + 0.1f;
 
 	/* stencilbuffer shadows */

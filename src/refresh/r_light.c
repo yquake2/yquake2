@@ -315,7 +315,6 @@ R_LightPoint ( vec3_t p, vec3_t color )
 	float r;
 	int lnum;
 	dlight_t    *dl;
-	float light;
 	vec3_t dist;
 	float add;
 
@@ -341,7 +340,6 @@ R_LightPoint ( vec3_t p, vec3_t color )
 	}
 
 	/* add dynamic lights */
-	light = 0;
 	dl = r_newrefdef.dlights;
 
 	for ( lnum = 0; lnum < r_newrefdef.num_dlights; lnum++, dl++ )
@@ -477,7 +475,6 @@ R_BuildLightMap ( msurface_t *surf, byte *dest, int stride )
 	float scale [ 4 ];
 	int nummaps;
 	float       *bl;
-	lightstyle_t    *style;
 
 	if ( surf->texinfo->flags & ( SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP ) )
 	{
@@ -496,17 +493,9 @@ R_BuildLightMap ( msurface_t *surf, byte *dest, int stride )
 	/* set to full bright if no light data */
 	if ( !surf->samples )
 	{
-		int maps;
-
 		for ( i = 0; i < size * 3; i++ )
 		{
 			s_blocklights [ i ] = 255;
-		}
-
-		for ( maps = 0; maps < MAXLIGHTMAPS && surf->styles [ maps ] != 255;
-			  maps++ )
-		{
-			style = &r_newrefdef.lightstyles [ surf->styles [ maps ] ];
 		}
 
 		goto store;

@@ -726,16 +726,10 @@ jorg_firebullet(edict_t *self)
 void
 jorg_attack(edict_t *self)
 {
-	vec3_t vec;
-	float range;
-
 	if (!self)
 	{
 		return;
 	}
-
-	VectorSubtract(self->enemy->s.origin, self->s.origin, vec);
-	range = VectorLength(vec);
 
 	if (random() <= 0.75)
 	{

@@ -629,24 +629,9 @@ SP_target_spawner(edict_t *self)
 void
 use_target_blaster(edict_t *self, edict_t *other /* unused */, edict_t *activator /* unused */)
 {
-	int effect;
-
 	if (!self)
 	{
 		return;
-	}
-
-	if (self->spawnflags & 2)
-	{
-		effect = 0;
-	}
-	else if (self->spawnflags & 1)
-	{
-		effect = EF_HYPERBLASTER;
-	}
-	else
-	{
-		effect = EF_BLASTER;
 	}
 
 	fire_blaster(self, self->s.origin, self->movedir, self->dmg,

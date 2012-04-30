@@ -269,7 +269,6 @@ NET_BaseAdrToString(netadr_t a)
 	static char s[64], tmp[64];
 	struct sockaddr_storage ss;
 	struct sockaddr_in6 *s6;
-	int flags;
 
 	switch (a.type)
 	{
@@ -308,15 +307,12 @@ NET_BaseAdrToString(netadr_t a)
 				memcpy(&s6->sin6_addr, a.ip, sizeof(struct in6_addr));
 			}
 
-			flags = NI_NUMERICHOST;
-
 #ifdef __FreeBSD__
-			if (getnameinfo((struct sockaddr *)&ss, ss.ss_len, s, sizeof(s),
-						NULL, 0, NI_NUMERICHOST))
+			socklen_t const salen = ss.ss_len;
 #else
-			if (getnameinfo((struct sockaddr *)&ss, sizeof(ss), s, sizeof(s),
-						NULL, 0, NI_NUMERICHOST))
+			socklen_t const salen = sizeof(ss);
 #endif
+			if (getnameinfo((struct sockaddr*)&ss, salen, s, sizeof(s), NULL, 0, NI_NUMERICHOST))
 			{
 				Com_sprintf(s, sizeof(s), "<invalid>");
 			}

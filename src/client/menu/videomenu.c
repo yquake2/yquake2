@@ -128,16 +128,12 @@ ResetDefaults ( void *unused )
 static void
 ApplyChanges ( void *unused )
 {
-	float gamma;
 	int ref;
 
 	/* make values consistent */
 	s_fs_box [ !s_current_menu_index ].curvalue = s_fs_box [ s_current_menu_index ].curvalue;
 	s_brightness_slider [ !s_current_menu_index ].curvalue = s_brightness_slider [ s_current_menu_index ].curvalue;
 	s_ref_list [ !s_current_menu_index ].curvalue = s_ref_list [ s_current_menu_index ].curvalue;
-
-	/* invert sense so greater = brighter, and scale to a range of 0.5 to 1.3 */
-	gamma = ( 0.8 - ( s_brightness_slider [ s_current_menu_index ].curvalue / 10.0 - 0.5 ) ) + 0.5;
 
 	Cvar_SetValue( "gl_picmip", 3 - s_tq_slider.curvalue );
 	Cvar_SetValue( "vid_fullscreen", s_fs_box [ s_current_menu_index ].curvalue );

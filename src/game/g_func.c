@@ -571,10 +571,7 @@ plat_blocked(edict_t *self, edict_t *other)
 		if (other)
 		{
 			/* Hack for entity without it's origin near the model */
-			vec3_t save;
-			VectorCopy(other->s.origin,save);
 			VectorMA (other->absmin, 0.5, other->size, other->s.origin);
-
 			BecomeExplosion1(other);
 		}
 
@@ -1608,10 +1605,7 @@ door_blocked(edict_t *self, edict_t *other)
 		if (other)
 		{
 			/* Hack for entitiy without their origin near the model */
-			vec3_t save;
-			VectorCopy(other->s.origin,save);
 			VectorMA (other->absmin, 0.5, other->size, other->s.origin);
-
 			BecomeExplosion1(other);
 		}
 
@@ -2136,10 +2130,7 @@ train_blocked(edict_t *self, edict_t *other)
 		if (other)
 		{
 			/* Hack for entity without an origin near the model */
-			vec3_t save;
-			VectorCopy(other->s.origin,save);
 			VectorMA (other->absmin, 0.5, other->size, other->s.origin);
-
 			BecomeExplosion1(other);
 		}
 
@@ -2836,10 +2827,7 @@ door_secret_blocked(edict_t *self, edict_t *other)
 		if (other)
 		{
 			/* Hack for entities without their origin near the model */
-			vec3_t save;
-			VectorCopy(other->s.origin,save);
 			VectorMA (other->absmin, 0.5, other->size, other->s.origin);
-
 			BecomeExplosion1(other);
 		}
 

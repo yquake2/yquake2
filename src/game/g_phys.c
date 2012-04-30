@@ -578,7 +578,6 @@ SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
 {
 	int i, e;
 	edict_t *check, *block;
-	vec3_t mins, maxs;
 	pushed_t *p;
 	vec3_t org, org2, move2, forward, right, up;
 	vec3_t realmins, realmaxs;
@@ -605,13 +604,6 @@ SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
 		}
 
 		move[i] = 0.125 * (int)temp;
-	}
-
-	/* find the bounding box */
-	for (i = 0; i < 3; i++)
-	{
-		mins[i] = pusher->absmin[i] + move[i];
-		maxs[i] = pusher->absmax[i] + move[i];
 	}
 
 	/* we need this for pushing things later */

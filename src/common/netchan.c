@@ -273,7 +273,6 @@ qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg)
 {
 	unsigned	sequence, sequence_ack;
 	unsigned	reliable_ack, reliable_message;
-	int			qport;
 
 	/* get sequence numbers */
 	MSG_BeginReading (msg);
@@ -282,7 +281,7 @@ qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg)
 
 	/* read the qport if we are a server */
 	if (chan->sock == NS_SERVER)
-		qport = MSG_ReadShort (msg);
+		(void)MSG_ReadShort(msg);
 
 	reliable_message = sequence >> 31;
 	reliable_ack = sequence_ack >> 31;

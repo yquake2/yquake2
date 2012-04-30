@@ -532,15 +532,7 @@ FS_FCloseFile(fileHandle_t f)
 int
 Developer_searchpath(int who)
 {
-	int		ch;
-
 	fsSearchPath_t *search;
-
-	if (who == 1) /* xatrix */
-		ch = 'x';
-
-	else if (who == 2) /* rogue */
-		ch = 'r';
 
 	for (search = fs_searchPaths; search; search = search->next)
 	{
