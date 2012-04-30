@@ -24,15 +24,6 @@ ulimit -c unlimited
 # run quake 2
 ./quake2 "$@"
 
-<<<<<<< HEAD
-# if gnome-screensaver was running..
-if [ -n "$GSC_PID" ]; then
-    echo "reactivating gnome screensaver"
-    kill "$GSC_PID"
-fi
-
-=======
->>>>>>> f3edcfc... Reactivate gnome-screensaver and unclutter in the reverse order they are deactivated.
 # Continue unclutter
 if ps auxww | grep -q 'unclutter'; then
 	echo 'reactivating unclutter'
