@@ -31,7 +31,7 @@ if ps auxww | grep -q 'unclutter'; then
 fi
 
 # if gnome-screensaver was running..
-if [ $GSC_PID -gt 0 ]; then
+if [ -n "$GSC_PID" ]; then
     echo "reactivating gnome screensaver"
-    kill $GSC_PID
+    kill "$GSC_PID"
 fi
