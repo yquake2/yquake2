@@ -531,4 +531,11 @@ Only parts of the maps are rendered!
  - By default the maximum view distance is 2300 units. You can widen it up
    to 4096 units by setting "gl_farsee" to "1".
 
+Why has Yamagi Quake II no support for joysticks?
+ - Because nobody has implemented it yet and egoshooters like Quake II
+   are no really meant to be played with joysticks, gamepads or anything
+   like that. If you really need joystick support you can use a joystick
+   to keyboard translator like joytran: 
+     http://chiselapp.com/user/beyert/repository/joytran/index
+
 ==============================================================================
