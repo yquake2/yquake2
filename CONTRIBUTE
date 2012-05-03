@@ -1,0 +1,119 @@
+                       * ****************************** * 
+                       *        Yamagi Quake II         *
+                       *  http://www.yamagi.org/quake2  *
+                       *    http://github.com/yquake2   *
+                       * ****************************** *
+                                    
+								    TODO List
+
+=============================================================================== 
+
+This is a list of features that are currently not implemented in Yamagi Quake
+II, but would be nice to have. If you have some freetime to spare, fun coding or
+just want to contribute something, this list has some suggestions. All tasks
+need strong C knowledge, the necessary amount of understandig of the Quake II
+source code or external ABIs differs between the tasks.
+
+Some hints:
+- Sign up for a Github account and fork our yquake2 repository. This allows 
+  the easy integration of upstream changes into your branch and sending of
+  pull requests. You'll get a wiki and a bugtracker for free.
+- To contribute your changes back into the main project send pull requests
+  via Github. It's much easier to review and merge pull requests than patches.
+  Please send only pull reqeuests from a distinct branch at not from your
+  "master" branch!
+- Quake II has a very fragile and broken codebase. Even after years of cleanup
+  it's still a disaster. Therefore: 
+  - Do only one change at a time!
+  - Test after each change (play at least through base1.bsp)
+  - Commit early and commit often to create a fine grained history.
+    This helps "git bisect" to find bugs and errors.
+  - Do not try to clean up things or even rewrite code that you do not
+    understand to 110%! Even small behavioral changes can introduce 
+    gameplay changes and trigger new bugs! Especially everything that
+    depends on map data (e.g. path finding or collision detection) is
+    very likely to break in interesting ways!
+- Do not add new dependencies. If you must add a new one contact the Yamagi
+  Quake II developers prior to it! Everything that adds dependencies should
+  be hided behint preprocessor macros.
+- If your changes change the gameplay experience, make them optional by
+  introducing a new cvar. 
+- Linux is not the only operating system out there. All changes should be
+  portable to other platform (writing pure ANSI-C or C99 is recommended but
+  not always applicable).
+- x86 ist not the only CPU architecture. All changes should be done in pure
+  C (e.g. no inline assembler) and in an endianess independed way.
+- gcc is not the only compiler. Test your changes with clang.
+
+=============================================================================== 
+
+1. Port Yamagi Quake II to Microsoft Windows
+
+Difficulty: Hard
+Knowledge: Microsoft Windows, good understanding of the Quake II source,
+           SDL-ABI, experience with 64 bit problems
+
+While Quake II was released on Microsoft Windows, support for the plattform was
+removed in the early stages of Yamagi Quake II. Looking back this was a bad
+decision. Goal of this project is a backport to Microsoft Windows. This
+requieres at least three steps:
+1. Import the platform specific stuff for Windows from Icculus Q2, clean it up
+   and bring it to feature parity with the Unix stuff in src/unix. The nativ
+   sound, render and input backends should be replaced by the SDL backends in
+   src/sdl.
+2. Go through the source and remove all unixisms.
+3. Since Windows 64 has another binary model than all unixoid platform there
+   will most likely new 64 bit problems. Identify and resolve these.
+
+=============================================================================== 
+
+2. Port Yamagi Quake II to new unixoid platforms (DragonflyBSD, NetBSD, OpenBSD
+   (Open)Solaris, etc.)
+
+Difficulty: Medium
+Knowledge: Good knowledge of the target platform
+
+Yamagi Quake II runs fine on Linux and FreeBSD. Due to it's very low hardware
+requirements it's an ideal game for platforms without good 3D acceleration.
+Ports to new unixoid operating systems should be easy. In most cases only some
+#ifdef need to be added and the Makefile integration written.
+
+=============================================================================== 
+
+3. Source code cleanup
+
+Difficulty: Hard
+Knowledge: Good knowledge of the Yamagi Quake II source
+
+While the Yamagi Quake II source code was cleaned a few times there is still
+much left to do. Someone need to go through the source, read and audit it. Dead
+code should be removed, inefficient functions rewritten and bugs resolved. This
+can be done at one module (e.g. client, server, refresher, game, etc) at a time.
+
+=============================================================================== 
+
+4. Addon cleanup
+
+Difficulty: Medium
+Knowledge: How to debug hard to read code
+
+While the baseq2 game modul was cleaned up and made more robust by adding
+hundreds of sanity checks both addons (xatrix and rogue) still require a lot
+of work. Go through the code, read it and understand it. Remove bugs, and add
+the missing sanity checks. Test (e.g. play) and add implement map quirks.
+Especially the coop-support of both addons is still fragile at best.
+
+=============================================================================== 
+
+5. Finish the port of Zaero
+
+Difficulty: Hard
+Knowledge: How to work with broken code
+
+Zaero is an unofficial but popular addon to Quake II. It was release as
+freeware. The Yamagi Quake II did an inital port, but it's unfinished and
+still buggy. Grab the source (take a look at our Github organization), clean
+it and debug it. Zaero will need some extensive testing, have fun while
+playing :)
+
+=============================================================================== 
