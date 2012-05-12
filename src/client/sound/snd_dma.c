@@ -965,6 +965,10 @@ void S_BuildSoundList( int *sounds ) {
 
     for ( i = 0; i < cl.frame.num_entities; i++ )
 	{
+		if (i >= MAX_EDICTS) {
+			break;
+		}
+
 		num = ( cl.frame.parse_entities + i ) & ( MAX_PARSE_ENTITIES - 1 );
 		ent = &cl_parse_entities [ num ];
 		if( s_ambient->value == 2 && !ent->modelindex ) {
