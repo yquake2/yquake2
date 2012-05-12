@@ -51,7 +51,7 @@ Some hints:
 
 Difficulty: Hard
 Knowledge: Microsoft Windows, good understanding of the Quake II source,
-           SDL-ABI, experience with 64 bit problems
+           SDL-ABI, (experience with 64 bit problems)
 
 While Quake II was released on Microsoft Windows, support for the plattform was
 removed in the early stages of Yamagi Quake II. Looking back this was a bad
@@ -62,6 +62,10 @@ requieres at least three steps:
    sound, render and input backends should be replaced by the SDL backends in
    src/sdl.
 2. Go through the source and remove all unixisms.
+
+And optional (Win64 support isn't required since 32 bit binaries are
+working nice, but it be would nice to have):
+
 3. Since Windows 64 has another binary model than all unixoid platform there
    will most likely new 64 bit problems. Identify and resolve these.
 
