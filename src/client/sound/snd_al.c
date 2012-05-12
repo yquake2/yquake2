@@ -392,7 +392,7 @@ void AL_Update( void ) {
         }
 
         if (s_show->value) {
-            Com_Printf ("%.1f %s\n", ch->master_vol, ch->sfx->name);
+            Com_Printf ("%3i %s\n", ch->master_vol, ch->sfx->name);
         }
 
         AL_Spatialize(ch); // respatialize channel
