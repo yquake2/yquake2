@@ -288,7 +288,7 @@ static channel_t *AL_FindLoopingSound( int entnum, sfx_t *sfx ) {
 
 static void AL_AddLoopSounds( void ) {
     int         i;
-    int         sounds[64]; // 64 is MAX_PACKET_ENTITIES in YQ2 (there's no define for it, though :/)
+    int         sounds[MAX_EDICTS];
     channel_t   *ch;
     sfx_t       *sfx;
     sfxcache_t  *sc;
@@ -395,7 +395,7 @@ void AL_Update( void ) {
             Com_Printf ("%.1f %s\n", ch->master_vol, ch->sfx->name);
         }
 
-        AL_Spatialize(ch);         // respatialize channel
+        AL_Spatialize(ch); // respatialize channel
     }
 
     s_framecount++;
