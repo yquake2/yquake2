@@ -121,3 +121,19 @@ it and debug it. Zaero will need some extensive testing, have fun while
 playing :)
 
 =============================================================================== 
+
+6. Port Quake II to various consoles (especially the Nintendo Wii)
+
+Difficulty: Hard
+Knowledge: How to port games to the console, Knowledge of the platform
+           dependent parts of the Yamagi Quake II source
+
+Game consoles are popular and having Quake II on them is a often
+requested feature. Porting Yamagi Quake II to the XBOX 360 isn't
+necessary, since an official port (by id Software / Bethesda) was
+included in Quake IV for the XBOX 360. A port to the Playstation 3
+would be nice but most likely it's impossible due to the DRM. But
+a port to the Wii should be feasible and support for the several
+open source or alternative consoles straight forward.
+
+===============================================================================
