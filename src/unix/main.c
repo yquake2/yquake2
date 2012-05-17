@@ -66,6 +66,11 @@ main ( int argc, char **argv )
 #else
 	printf(" - OGG/Vorbis\n");
 #endif
+#ifdef USE_OPENAL
+	printf(" + OpenAL audio\n");
+#else
+	printf(" - OpenAL audio\n");
+#endif
 #ifdef ZIP
 	printf(" + Zip file support\n");
 #else
