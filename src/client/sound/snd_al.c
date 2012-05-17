@@ -413,6 +413,9 @@ void AL_Update( void ) {
 void AL_Underwater()
 {
 	int i;
+	if(sound_started != SS_OAL) {
+		return;
+	}
 
 	// Apply to all sources
 	for (i = 0; i < s_numchannels; i++)
