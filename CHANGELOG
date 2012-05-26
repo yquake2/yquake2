@@ -1,3 +1,8 @@
+Quake II 4.20 to 4.21
+- Fix several segfaults with OpenAL. (by Joran)
+- Add a file CONTRIBUTE.
+- Some minor changes to the Makefile.
+
 Quake II 4.10 to 4.20
 - Add an options framework to allow disabling most
   option features (OGG/Vorbis, ZIP file loading,
