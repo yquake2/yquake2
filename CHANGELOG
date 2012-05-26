@@ -1,5 +1,6 @@
 Quake II 4.20 to 4.21
-- Fix several segfaults with OpenAL. (by Joran)
+- Fix several segfaults with OpenAL. (reported by 
+  Joran and mxmvasilyev0)
 - Add a file CONTRIBUTE.
 - Some minor changes to the Makefile.
 
