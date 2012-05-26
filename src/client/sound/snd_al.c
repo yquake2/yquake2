@@ -145,6 +145,8 @@ fail:
 void AL_Shutdown( void ) {
     Com_Printf( "Shutting down OpenAL.\n" );
 
+    S_AL_StreamDie();
+
 	qalDeleteSources(1, &streamSource);
 	qalDeleteFilters(1, &underwaterFilter);
 
@@ -154,7 +156,6 @@ void AL_Shutdown( void ) {
         memset( s_srcnums, 0, sizeof( s_srcnums ) );
         s_numchannels = 0;
     }
-    S_AL_StreamDie();
     QAL_Shutdown();
 }
 
