@@ -444,7 +444,7 @@ static void S_AL_StreamDie( void )
 	qalSourceStop(streamSource);
 
 	// Un-queue any buffers, and delete them
-	qalGetSourcei( streamSource, AL_BUFFERS_PROCESSED, &numBuffers );
+	qalGetSourcei( streamSource, AL_BUFFERS_QUEUED, &numBuffers );
 	while( numBuffers-- )
 	{
 		ALuint buffer;
