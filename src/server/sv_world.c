@@ -467,19 +467,25 @@ SV_AreaEdicts ( vec3_t mins, vec3_t maxs, edict_t **list, int maxcount, int area
 	area_mins = mins;
 	area_maxs = maxs;
 	area_list = list;
-	area_count = 0;
 	area_maxcount = maxcount;
 	area_type = areatype;
+	area_count = 0;
 
 	SV_AreaEdicts_r( sv_areanodes );
 
+ 	area_mins = 0;
+	area_maxs = 0;
+	area_list = 0;
+	area_maxcount = 0;
+	area_type = 0; 
+	
 	return ( area_count );
 }
 
 int
 SV_PointContents ( vec3_t p )
 {
-	edict_t     *touch [ MAX_EDICTS ], *hit;
+	edict_t *touch [ MAX_EDICTS ], *hit;
 	int i, num;
 	int contents, c2;
 	int headnode;
