@@ -294,13 +294,12 @@ R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 void
 R_DrawAliasShadow ( dmdl_t *paliashdr, int posenum )
 {
-	int     *order;
+	int *order;
 	vec3_t point;
-	float height, lheight;
+	float height = 0, lheight;
 	int count;
 
 	lheight = currententity->origin [ 2 ] - lightspot [ 2 ];
-	height = 0;
 	order = (int *) ( (byte *) paliashdr + paliashdr->ofs_glcmds );
 	height = -lheight + 0.1f;
 

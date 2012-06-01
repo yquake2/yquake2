@@ -511,7 +511,6 @@ R_ResampleTexture ( unsigned *in, int inwidth, int inheight, unsigned *out,  int
 	{
 		inrow = in + inwidth * (int) ( ( i + 0.25 ) * inheight / outheight );
 		inrow2 = in + inwidth * (int) ( ( i + 0.75 ) * inheight / outheight );
-		frac = fracstep >> 1;
 
 		for ( j = 0; j < outwidth; j++ )
 		{
@@ -1085,7 +1084,7 @@ R_FindImage ( char *name, imagetype_t type )
 			else
 			{
 				/* Upload TGA */
-				image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
+				R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
 			}
 
 			if( !pic )
@@ -1104,7 +1103,7 @@ R_FindImage ( char *name, imagetype_t type )
 			}
 			else
 			{
-				/* Upload JPEG */
+				/* Upload JPEG or TGA */
 				image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
 			}
 		}
@@ -1140,7 +1139,7 @@ R_FindImage ( char *name, imagetype_t type )
 			else
 			{
 				/* Upload TGA */
-				image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
+				R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
 			}
 
 			if( !pic )
@@ -1150,7 +1149,7 @@ R_FindImage ( char *name, imagetype_t type )
 			}
 			else
 			{
-				/* Upload JPEG */
+				/* Upload JPEG or TGA */
 				image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
 			}
 

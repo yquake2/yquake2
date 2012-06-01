@@ -149,9 +149,9 @@ SV_BroadcastCommand ( char *fmt, ... )
 void
 SV_Multicast ( vec3_t origin, multicast_t to )
 {
-	client_t    *client;
-	byte        *mask;
-	int leafnum, cluster;
+	client_t *client;
+	byte *mask;
+	int leafnum = 0, cluster;
 	int j;
 	qboolean reliable;
 	int area1, area2;
@@ -165,7 +165,6 @@ SV_Multicast ( vec3_t origin, multicast_t to )
 	}
 	else
 	{
-		leafnum = 0; /* just to avoid compiler warnings */
 		area1 = 0;
 	}
 
@@ -180,7 +179,6 @@ SV_Multicast ( vec3_t origin, multicast_t to )
 		case MULTICAST_ALL_R:
 			reliable = true; /* intentional fallthrough */
 		case MULTICAST_ALL:
-			leafnum = 0;
 			mask = NULL;
 			break;
 

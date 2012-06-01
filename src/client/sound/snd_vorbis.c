@@ -391,10 +391,8 @@ qboolean
 OGG_Open ( ogg_seek_t type, int offset )
 {
 	int size;     /* File size. */
-	int pos;      /* Absolute position. */
+	int pos = -1;      /* Absolute position. */
 	int res;      /* Error indicator. */
-
-	pos = -1;
 
 	switch ( type )
 	{

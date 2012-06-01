@@ -1419,7 +1419,6 @@ void CL_FlyParticles (vec3_t origin, int count) {
 		angle = ltime * avelocities[i][1];
 		sp = (float)sin(angle);
 		cp = (float)cos(angle);
-		angle = ltime * avelocities[i][2];
 
 		forward[0] = cp*cy;
 		forward[1] = cp*sy;
@@ -1508,7 +1507,6 @@ void CL_BfgParticles (entity_t *ent) {
 		angle = ltime * avelocities[i][1];
 		sp = (float)sin(angle);
 		cp = (float)cos(angle);
-		angle = ltime * avelocities[i][2];
 
 		forward[0] = cp*cy;
 		forward[1] = cp*sy;

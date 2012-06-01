@@ -721,7 +721,6 @@ void DrawHUDString (char *string, int x, int y, int centerwidth, int xor) {
 
 		if (*string) {
 			string++; /* skip the \n */
-			x = margin;
 			y += 8;
 		}
 	}
@@ -805,7 +804,6 @@ void SCR_ExecuteLayoutString (char *s) {
 
 	x = 0;
 	y = 0;
-	width = 3;
 
 	while (s) {
 		token = COM_Parse (&s);
@@ -849,7 +847,6 @@ void SCR_ExecuteLayoutString (char *s) {
 		if (!strcmp(token, "pic")) {
 			/* draw a pic from a stat number */
 			token = COM_Parse (&s);
-			value = cl.frame.playerstate.stats[atoi(token)];
 			index = atoi(token);
 
 			if (index < 0 || index >= sizeof(cl.frame.playerstate.stats))

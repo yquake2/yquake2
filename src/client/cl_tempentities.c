@@ -478,12 +478,12 @@ void CL_ParseSteam (void) {
 			s->nextthink = cl.time;
 
 		} else {
-			cnt = MSG_ReadByte (&net_message);
+			MSG_ReadByte (&net_message);
 			MSG_ReadPos (&net_message, pos);
 			MSG_ReadDir (&net_message, dir);
-			r = MSG_ReadByte (&net_message);
-			magnitude = MSG_ReadShort (&net_message);
-			magnitude = MSG_ReadLong (&net_message); /* really interval */
+			MSG_ReadByte (&net_message);
+			MSG_ReadShort (&net_message);
+			MSG_ReadLong (&net_message); /* really interval */
 		}
 
 	} else {
