@@ -1026,7 +1026,7 @@ R_FindImage ( char *name, imagetype_t type )
 	int i, len;
 	byte    *pic, *palette;
 	int width, height;
-	int realwidth, realheight;
+	int realwidth = 0, realheight = 0;
 	char *ptr;
 	char namewe[256];
 
