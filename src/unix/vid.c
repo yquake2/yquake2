@@ -215,7 +215,6 @@ VID_LoadRefresh ( char *name )
 	char fn [ MAX_OSPATH ];
 	char    *path;
 	struct stat st;
-	extern uid_t saved_euid;
 
 	if ( reflib_active )
 	{
@@ -237,11 +236,7 @@ VID_LoadRefresh ( char *name )
 
 	Com_Printf( "----- refresher initialization -----\n");
 
-	/* regain root */
-	seteuid( saved_euid );
-
 	path = Cvar_Get( "basedir", ".", CVAR_NOSET )->string;
-
 	snprintf( fn, MAX_OSPATH, "%s/%s", path, name );
 
 	if ( stat( fn, &st ) == -1 )
@@ -326,10 +321,6 @@ VID_LoadRefresh ( char *name )
 
 	IN_KeyboardInit_fp( Do_Key_Event );
 	Key_ClearStates();
-
-	/* give up root now */
-	setreuid( getuid(), getuid() );
-	setegid( getgid() );
 
 	Com_Printf( "------------------------------------\n\n" );
 	reflib_active = true;
