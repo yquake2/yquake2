@@ -45,7 +45,7 @@ boss2_search(edict_t *self)
 		return;
 	}
 
-	if (random() < 0.5)
+	if (randk() < 0.5)
 	{
 		gi.sound(self, CHAN_VOICE, sound_search1, 1, ATTN_NONE, 0);
 	}
@@ -549,7 +549,7 @@ boss2_attack(edict_t *self)
 	}
 	else
 	{
-		if (random() <= 0.6)
+		if (randk() <= 0.6)
 		{
 			self->monsterinfo.currentmove = &boss2_move_attack_pre_mg;
 		}
@@ -581,7 +581,7 @@ boss2_reattack_mg(edict_t *self)
 
 	if (infront(self, self->enemy))
 	{
-		if (random() <= 0.7)
+		if (randk() <= 0.7)
 		{
 			self->monsterinfo.currentmove = &boss2_move_attack_mg;
 		}
@@ -759,16 +759,16 @@ Boss2_CheckAttack(edict_t *self)
 		return false;
 	}
 
-	if (random() < chance)
+	if (randk() < chance)
 	{
 		self->monsterinfo.attack_state = AS_MISSILE;
-		self->monsterinfo.attack_finished = level.time + 2 * random();
+		self->monsterinfo.attack_finished = level.time + 2 * randk();
 		return true;
 	}
 
 	if (self->flags & FL_FLY)
 	{
-		if (random() < 0.3)
+		if (randk() < 0.3)
 		{
 			self->monsterinfo.attack_state = AS_SLIDING;
 		}

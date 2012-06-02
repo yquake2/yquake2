@@ -396,7 +396,7 @@ tank_pain(edict_t *self, edict_t *other /* other */,
 
 	if (damage <= 30)
 	{
-		if (random() > 0.2)
+		if (randk() > 0.2)
 		{
 			return;
 		}
@@ -649,7 +649,7 @@ tank_reattack_blaster(edict_t *self)
 		{
 			if (self->enemy->health > 0)
 			{
-				if (random() <= 0.6)
+				if (randk() <= 0.6)
 				{
 					self->monsterinfo.currentmove = &tank_move_reattack_blast;
 					return;
@@ -867,7 +867,7 @@ tank_refire_rocket(edict_t *self)
 		{
 			if (visible(self, self->enemy))
 			{
-				if (random() <= 0.4)
+				if (randk() <= 0.4)
 				{
 					self->monsterinfo.currentmove =
 						&tank_move_attack_fire_rocket;
@@ -913,7 +913,7 @@ tank_attack(edict_t *self)
 	VectorSubtract(self->enemy->s.origin, self->s.origin, vec);
 	range = VectorLength(vec);
 
-	r = random();
+	r = randk();
 
 	if (range <= 125)
 	{

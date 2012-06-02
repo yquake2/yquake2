@@ -133,7 +133,7 @@ turret_breach_fire(edict_t *self)
 	VectorMA(start, self->move_origin[1], r, start);
 	VectorMA(start, self->move_origin[2], u, start);
 
-	damage = 100 + random() * 50;
+	damage = 100 + randk() * 50;
 	speed = 550 + 50 * skill->value;
 	fire_rocket(self->teammaster->owner, start, f, damage, speed, 150, damage);
 	gi.positioned_sound(start, self, CHAN_WEAPON,

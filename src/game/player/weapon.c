@@ -907,7 +907,7 @@ Weapon_RocketLauncher_Fire(edict_t *ent)
 		return;
 	}
 
-	damage = 100 + (int)(random() * 20.0);
+	damage = 100 + (int)(randk() * 20.0);
 	radius_damage = 120;
 	damage_radius = 120;
 
@@ -1210,11 +1210,11 @@ Machinegun_Fire(edict_t *ent)
 
 	for (i = 1; i < 3; i++)
 	{
-		ent->client->kick_origin[i] = crandom() * 0.35;
-		ent->client->kick_angles[i] = crandom() * 0.7;
+		ent->client->kick_origin[i] = crandk() * 0.35;
+		ent->client->kick_angles[i] = crandk() * 0.7;
 	}
 
-	ent->client->kick_origin[0] = crandom() * 0.35;
+	ent->client->kick_origin[0] = crandk() * 0.35;
 	ent->client->kick_angles[0] = ent->client->machinegun_shots * -1.5;
 
 	/* raise the gun as it is firing */
@@ -1252,12 +1252,12 @@ Machinegun_Fire(edict_t *ent)
 
 	if (ent->client->ps.pmove.pm_flags & PMF_DUCKED)
 	{
-		ent->s.frame = FRAME_crattak1 - (int)(random() + 0.25);
+		ent->s.frame = FRAME_crattak1 - (int)(randk() + 0.25);
 		ent->client->anim_end = FRAME_crattak9;
 	}
 	else
 	{
-		ent->s.frame = FRAME_attack1 - (int)(random() + 0.25);
+		ent->s.frame = FRAME_attack1 - (int)(randk() + 0.25);
 		ent->client->anim_end = FRAME_attack8;
 	}
 }
@@ -1397,16 +1397,16 @@ Chaingun_Fire(edict_t *ent)
 
 	for (i = 0; i < 3; i++)
 	{
-		ent->client->kick_origin[i] = crandom() * 0.35;
-		ent->client->kick_angles[i] = crandom() * 0.7;
+		ent->client->kick_origin[i] = crandk() * 0.35;
+		ent->client->kick_angles[i] = crandk() * 0.7;
 	}
 
 	for (i = 0; i < shots; i++)
 	{
 		/* get start / end positions */
 		AngleVectors(ent->client->v_angle, forward, right, up);
-		r = 7 + crandom() * 4;
-		u = crandom() * 4;
+		r = 7 + crandk() * 4;
+		u = crandk() * 4;
 		VectorSet(offset, 0, r, u + ent->viewheight - 8);
 		P_ProjectSource(ent->client, ent->s.origin, offset,
 				forward, right, start);
@@ -1731,7 +1731,7 @@ weapon_bfg_fire(edict_t *ent)
 
 	/* make a big pitch kick with an inverse fall */
 	ent->client->v_dmg_pitch = -40;
-	ent->client->v_dmg_roll = crandom() * 8;
+	ent->client->v_dmg_roll = crandk() * 8;
 	ent->client->v_dmg_time = level.time + DAMAGE_TIME;
 
 	VectorSet(offset, 8, 8, ent->viewheight - 8);

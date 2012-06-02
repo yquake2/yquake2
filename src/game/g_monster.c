@@ -199,13 +199,13 @@ M_FlyCheck(edict_t *self)
 		return;
 	}
 
-	if (random() > 0.5)
+	if (randk() > 0.5)
 	{
 		return;
 	}
 
 	self->think = M_FliesOn;
-	self->nextthink = level.time + 5 + 10 * random();
+	self->nextthink = level.time + 5 + 10 * randk();
 }
 
 void
@@ -415,7 +415,7 @@ M_WorldEffects(edict_t *ent)
 		{
 			if (ent->watertype & CONTENTS_LAVA)
 			{
-				if (random() <= 0.5)
+				if (randk() <= 0.5)
 				{
 					gi.sound(ent, CHAN_BODY, gi.soundindex(
 									"player/lava1.wav"), 1, ATTN_NORM, 0);

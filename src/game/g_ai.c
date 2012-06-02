@@ -167,11 +167,11 @@ ai_stand(edict_t *self, float dist)
 		if (self->monsterinfo.idle_time)
 		{
 			self->monsterinfo.idle(self);
-			self->monsterinfo.idle_time = level.time + 15 + random() * 15;
+			self->monsterinfo.idle_time = level.time + 15 + randk() * 15;
 		}
 		else
 		{
-			self->monsterinfo.idle_time = level.time + random() * 15;
+			self->monsterinfo.idle_time = level.time + randk() * 15;
 		}
 	}
 }
@@ -200,11 +200,11 @@ ai_walk(edict_t *self, float dist)
 		if (self->monsterinfo.idle_time)
 		{
 			self->monsterinfo.search(self);
-			self->monsterinfo.idle_time = level.time + 15 + random() * 15;
+			self->monsterinfo.idle_time = level.time + 15 + randk() * 15;
 		}
 		else
 		{
-			self->monsterinfo.idle_time = level.time + random() * 15;
+			self->monsterinfo.idle_time = level.time + randk() * 15;
 		}
 	}
 }
@@ -829,16 +829,16 @@ M_CheckAttack(edict_t *self)
 		chance *= 2;
 	}
 
-	if (random() < chance)
+	if (randk() < chance)
 	{
 		self->monsterinfo.attack_state = AS_MISSILE;
-		self->monsterinfo.attack_finished = level.time + 2 * random();
+		self->monsterinfo.attack_finished = level.time + 2 * randk();
 		return true;
 	}
 
 	if (self->flags & FL_FLY)
 	{
-		if (random() < 0.3)
+		if (randk() < 0.3)
 		{
 			self->monsterinfo.attack_state = AS_SLIDING;
 		}
