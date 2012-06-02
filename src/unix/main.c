@@ -35,7 +35,6 @@
 #include "header/unix.h"
 
 cvar_t *nostdout;
-uid_t saved_euid;
 
 int
 main ( int argc, char **argv )
