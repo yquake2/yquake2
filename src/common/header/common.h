@@ -757,4 +757,8 @@ void SV_Init (void);
 void SV_Shutdown (char *finalmsg, qboolean reconnect);
 void SV_Frame (int msec);
 
+/* Random number generator */
+int  randk(void);
+void randk_seed(void);
+
 #endif

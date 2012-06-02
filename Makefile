@@ -353,6 +353,7 @@ CLIENT_OBJS_ := \
 	src/common/misc.o \
 	src/common/netchan.o \
 	src/common/pmove.o \
+	src/common/rand.o \
 	src/common/szone.o \
 	src/common/zone.o \
 	src/common/command/cmd_execution.o \
@@ -403,6 +404,7 @@ SERVER_OBJS_ := \
 	src/common/misc.o \
 	src/common/netchan.o \
 	src/common/pmove.o \
+	src/common/rand.o \
 	src/common/szone.o \
 	src/common/zone.o \
 	src/common/command/cmd_execution.o \
