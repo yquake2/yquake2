@@ -793,13 +793,13 @@ OGG_SeekCmd ( void )
 	switch ( Cmd_Argv( 1 ) [ 0 ] )
 	{
 		case '>':
-			OGG_Seek( REL, atof( Cmd_Argv( 1 ) + 1 ) );
+			OGG_Seek( REL, strtod( Cmd_Argv( 1 ) + 1 , (char **)NULL ) );
 			break;
 		case '<':
-			OGG_Seek( REL, -atof( Cmd_Argv( 1 ) + 1 ) );
+			OGG_Seek( REL, -strtod( Cmd_Argv( 1 ) + 1, (char **)NULL ) );
 			break;
 		default:
-			OGG_Seek( ABS, atof( Cmd_Argv( 1 ) ) );
+			OGG_Seek( ABS, strtod( Cmd_Argv( 1 ), (char **)NULL ) );
 			break;
 	}
 }
