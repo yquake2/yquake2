@@ -156,6 +156,9 @@ void CM_ClipBoxToBrush (vec3_t mins, vec3_t maxs, vec3_t p1, vec3_t p2,
 			if (enterfrac < 0)
 				enterfrac = 0;
 
+			if (clipplane == NULL)
+				Com_Error(ERR_FATAL, "clipplane was NULL!\n");
+
 			trace->fraction = enterfrac;
 			trace->plane = *clipplane;
 			trace->surface = &(leadside->surface->c);
