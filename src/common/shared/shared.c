@@ -1110,7 +1110,9 @@ Com_sprintf(char *dest, int size, char *fmt, ...)
 	if ((len >= size) || (len == size))
 	{
 		Com_Printf("Com_sprintf: overflow\n");
-		len = size - 1;
+
+		dest = NULL;
+		return;
 	}
 
 	bigbuffer[size - 1] = '\0';
