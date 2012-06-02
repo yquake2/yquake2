@@ -216,7 +216,7 @@ void CL_PredictMovement (void) {
 	/* copy current state to pmove */
 	pm.trace = CL_PMTrace;
 	pm.pointcontents = CL_PMpointcontents;
-	pm_airaccelerate = atof(cl.configstrings[CS_AIRACCEL]);
+	pm_airaccelerate = strtod(cl.configstrings[CS_AIRACCEL], (char **)NULL);
 	pm.s = cl.frame.playerstate.pmove;
 
 	VectorSet (pm.mins, -16, -16, -24);

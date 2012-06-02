@@ -312,15 +312,15 @@ void SCR_Sky_f (void) {
 	}
 
 	if (Cmd_Argc() > 2)
-		rotate = (float)atof(Cmd_Argv(2));
+		rotate = (float)strtod(Cmd_Argv(2), (char **)NULL);
 
 	else
 		rotate = 0;
 
 	if (Cmd_Argc() == 6) {
-		axis[0] = (float)atof(Cmd_Argv(3));
-		axis[1] = (float)atof(Cmd_Argv(4));
-		axis[2] = (float)atof(Cmd_Argv(5));
+		axis[0] = (float)strtod(Cmd_Argv(3), (char **)NULL);
+		axis[1] = (float)strtod(Cmd_Argv(4), (char **)NULL);
+		axis[2] = (float)strtod(Cmd_Argv(5), (char **)NULL);
 
 	} else {
 		axis[0] = 0;
