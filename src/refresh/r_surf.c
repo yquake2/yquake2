@@ -1208,10 +1208,10 @@ R_DrawWorld ( void )
 
 	R_DrawTextureChains();
 	R_BlendLightmaps();
-
 	R_DrawSkyBox();
-
 	R_DrawTriangleOutlines();
+
+	currententity = NULL;
 }
 
 /*
