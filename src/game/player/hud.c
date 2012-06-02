@@ -461,15 +461,13 @@ void
 G_SetStats(edict_t *ent)
 {
 	gitem_t *item;
-	int index, cells;
+	int index, cells = 0;
 	int power_armor_type;
 
 	if (!ent)
 	{
 		return;
 	}
-
-	cells = 0;
 
 	/* health */
 	ent->client->ps.stats[STAT_HEALTH_ICON] = level.pic_health;
@@ -488,8 +486,6 @@ G_SetStats(edict_t *ent)
 		ent->client->ps.stats[STAT_AMMO] =
 			ent->client->pers.inventory[ent->client->ammo_index];
 	}
-
-	cells = 0;
 
 	/* armor */
 	power_armor_type = PowerArmorType(ent);
