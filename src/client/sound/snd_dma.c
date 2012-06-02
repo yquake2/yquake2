@@ -1014,6 +1014,7 @@ S_AddLoopSounds ( void )
 		return;
 	}
 
+    memset(&sounds, 0, sizeof(int) * MAX_EDICTS);
 	S_BuildSoundList( sounds );
 
 	for ( i = 0; i < cl.frame.num_entities; i++ )
