@@ -25,7 +25,7 @@ static int j;
 static uint64_t carry;
 static uint64_t xs;
 static uint64_t cng;
-
+  
 uint64_t
 B64MWC(void)
 {
@@ -36,7 +36,7 @@ B64MWC(void)
 	t = (x << 28) + carry;
 	carry = (x >> 36) - (t < x);
 	return QARY[j] = t - x;
-}
+} 
 
 /* 
  * Generate a pseudorandom 
@@ -47,7 +47,30 @@ randk(void)
 {
 	return (int)KISS;
 }
- 
+
+/*
+ * Generate a pseudorandom
+ * signed float between 
+ * 0 and 1.
+ */
+float
+frandk(void)
+{
+	return (randk()&32767)* (1.0/32767);
+}
+
+/* Generate a pseudorandom
+ * float between -1 and 1.
+ */
+float
+crandk(void)
+{
+	return (randk()&32767)* (2.0/32767) - 1;
+}
+
+/*
+ * Seeds the PRNG
+ */
 void
 randk_seed(void)
 {
