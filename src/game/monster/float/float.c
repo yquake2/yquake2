@@ -633,7 +633,7 @@ floater_wham(edict_t *self)
 	static vec3_t aim = {MELEE_DISTANCE, 0, 0};
 
 	gi.sound(self, CHAN_WEAPON, sound_attack3, 1, ATTN_NORM, 0);
-	fire_hit(self, aim, 5 + rand() % 6, -50);
+	fire_hit(self, aim, 5 + randk() % 6, -50);
 }
 
 void
@@ -666,7 +666,7 @@ floater_zap(edict_t *self)
 	gi.multicast(origin, MULTICAST_PVS);
 
 	T_Damage(self->enemy, self, self, dir, self->enemy->s.origin,
-			vec3_origin, 5 + rand() % 6, -10, DAMAGE_ENERGY,
+			vec3_origin, 5 + randk() % 6, -10, DAMAGE_ENERGY,
 			MOD_UNKNOWN);
 }
 
@@ -727,7 +727,7 @@ floater_pain(edict_t *self, edict_t *other /* unused */,
 		return; /* no pain anims in nightmare */
 	}
 
-	n = (rand() + 1) % 3;
+	n = (randk() + 1) % 3;
 
 	if (n == 0)
 	{

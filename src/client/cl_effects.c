@@ -66,10 +66,10 @@ void CL_AddMuzzleFlash (void) {
 	VectorMA (dl->origin, 16, rv, dl->origin);
 
 	if (silenced)
-		dl->radius = 100.0f + (rand()&31);
+		dl->radius = 100.0f + (randk()&31);
 
 	else
-		dl->radius = 200.0f + (rand()&31);
+		dl->radius = 200.0f + (randk()&31);
 
 	dl->minlight = 32;
 	dl->die = cl.time;
@@ -103,7 +103,7 @@ void CL_AddMuzzleFlash (void) {
 			dl->color[0] = 1;
 			dl->color[1] = 1;
 			dl->color[2] = 0;
-			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (rand() % 5) + 1);
+			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (randk() % 5) + 1);
 			S_StartSound (NULL, i, CHAN_WEAPON, S_RegisterSound(soundname), volume, ATTN_NORM, 0);
 			break;
 		case MZ_SHOTGUN:
@@ -120,35 +120,35 @@ void CL_AddMuzzleFlash (void) {
 			S_StartSound (NULL, i, CHAN_WEAPON, S_RegisterSound("weapons/sshotf1b.wav"), volume, ATTN_NORM, 0);
 			break;
 		case MZ_CHAINGUN1:
-			dl->radius = 200.0f + (rand()&31);
+			dl->radius = 200.0f + (randk()&31);
 			dl->color[0] = 1;
 			dl->color[1] = 0.25;
 			dl->color[2] = 0;
-			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (rand() % 5) + 1);
+			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (randk() % 5) + 1);
 			S_StartSound (NULL, i, CHAN_WEAPON, S_RegisterSound(soundname), volume, ATTN_NORM, 0);
 			break;
 		case MZ_CHAINGUN2:
-			dl->radius = 225.0f + (rand()&31);
+			dl->radius = 225.0f + (randk()&31);
 			dl->color[0] = 1;
 			dl->color[1] = 0.5;
 			dl->color[2] = 0;
 			dl->die = cl.time  + 0.1; /* long delay */
-			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (rand() % 5) + 1);
+			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (randk() % 5) + 1);
 			S_StartSound (NULL, i, CHAN_WEAPON, S_RegisterSound(soundname), volume, ATTN_NORM, 0);
-			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (rand() % 5) + 1);
+			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (randk() % 5) + 1);
 			S_StartSound (NULL, i, CHAN_WEAPON, S_RegisterSound(soundname), volume, ATTN_NORM, 0.05);
 			break;
 		case MZ_CHAINGUN3:
-			dl->radius = 250.0f + (rand()&31);
+			dl->radius = 250.0f + (randk()&31);
 			dl->color[0] = 1;
 			dl->color[1] = 1;
 			dl->color[2] = 0;
 			dl->die = cl.time  + 0.1; /* long delay */
-			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (rand() % 5) + 1);
+			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (randk() % 5) + 1);
 			S_StartSound (NULL, i, CHAN_WEAPON, S_RegisterSound(soundname), volume, ATTN_NORM, 0);
-			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (rand() % 5) + 1);
+			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (randk() % 5) + 1);
 			S_StartSound (NULL, i, CHAN_WEAPON, S_RegisterSound(soundname), volume, ATTN_NORM, 0.033f);
-			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (rand() % 5) + 1);
+			Com_sprintf(soundname, sizeof(soundname), "weapons/machgf%lub.wav", (randk() % 5) + 1);
 			S_StartSound (NULL, i, CHAN_WEAPON, S_RegisterSound(soundname), volume, ATTN_NORM, 0.066f);
 			break;
 		case MZ_RAILGUN:
@@ -298,7 +298,7 @@ void CL_AddMuzzleFlash2 (void) {
 
 	dl = CL_AllocDlight (ent);
 	VectorCopy (origin,  dl->origin);
-	dl->radius = 200.0f + (rand()&31);
+	dl->radius = 200.0f + (randk()&31);
 	dl->minlight = 32;
 	dl->die = cl.time;
 
@@ -481,7 +481,7 @@ void CL_AddMuzzleFlash2 (void) {
 			dl->color[2] = 0;
 			CL_ParticleEffect (origin, vec3_origin, 0, 40);
 			CL_SmokeAndFlash(origin);
-			Com_sprintf(soundname, sizeof(soundname), "tank/tnkatk2%c.wav", 'a' + (char) (rand() % 5));
+			Com_sprintf(soundname, sizeof(soundname), "tank/tnkatk2%c.wav", 'a' + (char) (randk() % 5));
 			S_StartSound (NULL, ent, CHAN_WEAPON, S_RegisterSound(soundname), 1, ATTN_NORM, 0);
 			break;
 
@@ -681,7 +681,7 @@ void CL_AddMuzzleFlash2 (void) {
 		case MZ2_WIDOW2_BEAM_SWEEP_9:
 		case MZ2_WIDOW2_BEAM_SWEEP_10:
 		case MZ2_WIDOW2_BEAM_SWEEP_11:
-			dl->radius = 300.0f + (rand()&100);
+			dl->radius = 300.0f + (randk()&100);
 			dl->color[0] = 1;
 			dl->color[1] = 1;
 			dl->color[2] = 0;
@@ -709,12 +709,12 @@ void CL_TeleporterParticles (entity_state_t *ent) {
 		p->color = 0xdb;
 
 		for (j=0 ; j<2 ; j++) {
-			p->org[j] = ent->origin[j] - 16 + (rand()&31);
-			p->vel[j] = crand()*14;
+			p->org[j] = ent->origin[j] - 16 + (randk()&31);
+			p->vel[j] = crandk()*14;
 		}
 
-		p->org[2] = ent->origin[2] - 8 + (rand()&7);
-		p->vel[2] = 80 + (rand()&7);
+		p->org[2] = ent->origin[2] - 8 + (randk()&7);
+		p->vel[2] = 80 + (randk()&7);
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY;
@@ -742,26 +742,26 @@ void CL_LogoutEffect (vec3_t org, int type) {
 		p->time = time;
 
 		if (type == MZ_LOGIN)
-			p->color = 0xd0 + (rand()&7);
+			p->color = 0xd0 + (randk()&7);
 
 		else if (type == MZ_LOGOUT)
-			p->color = 0x40 + (rand()&7);
+			p->color = 0x40 + (randk()&7);
 
 		else
-			p->color = 0xe0 + (rand()&7);
+			p->color = 0xe0 + (randk()&7);
 
-		p->org[0] = org[0] - 16 + frand()*32;
-		p->org[1] = org[1] - 16 + frand()*32;
-		p->org[2] = org[2] - 24 + frand()*56;
+		p->org[0] = org[0] - 16 + frandk()*32;
+		p->org[1] = org[1] - 16 + frandk()*32;
+		p->org[2] = org[2] - 24 + frandk()*56;
 
 		for (j=0 ; j<3 ; j++)
-			p->vel[j] = crand()*20;
+			p->vel[j] = crandk()*20;
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY;
 		p->alpha = 1.0;
 
-		p->alphavel = -1.0 / (1.0 + frand()*0.3);
+		p->alphavel = -1.0 / (1.0 + frandk()*0.3);
 	}
 }
 
@@ -781,19 +781,19 @@ void CL_ItemRespawnParticles (vec3_t org) {
 		active_particles = p;
 
 		p->time = time;
-		p->color = 0xd4 + (rand()&3);
-		p->org[0] = org[0] + crand()*8;
-		p->org[1] = org[1] + crand()*8;
-		p->org[2] = org[2] + crand()*8;
+		p->color = 0xd4 + (randk()&3);
+		p->org[0] = org[0] + crandk()*8;
+		p->org[1] = org[1] + crandk()*8;
+		p->org[2] = org[2] + crandk()*8;
 
 		for (j=0 ; j<3 ; j++)
-			p->vel[j] = crand()*8;
+			p->vel[j] = crandk()*8;
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY*0.2;
 		p->alpha = 1.0;
 
-		p->alphavel = -1.0f / (1.0f + frand()*0.3f);
+		p->alphavel = -1.0f / (1.0f + frandk()*0.3f);
 	}
 }
 
@@ -813,18 +813,18 @@ void CL_ExplosionParticles (vec3_t org) {
 		active_particles = p;
 
 		p->time = time;
-		p->color = 0xe0 + (rand()&7);
+		p->color = 0xe0 + (randk()&7);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = org[j] + ((rand()%32)-16);
-			p->vel[j] = (rand()%384)-192;
+			p->org[j] = org[j] + ((randk()%32)-16);
+			p->vel[j] = (randk()%384)-192;
 		}
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY;
 		p->alpha = 1.0;
 
-		p->alphavel = -0.8f / (0.5f + frand()*0.3f);
+		p->alphavel = -0.8f / (0.5f + frandk()*0.3f);
 	}
 }
 
@@ -846,24 +846,24 @@ void CL_BigTeleportParticles (vec3_t org) {
 		active_particles = p;
 
 		p->time = time;
-		p->color = colortable[rand()&3];
+		p->color = colortable[randk()&3];
 
-		angle = M_PI*2*(rand()&1023)/1023.0f;
-		dist = (float)(rand()&31);
+		angle = M_PI*2*(randk()&1023)/1023.0f;
+		dist = (float)(randk()&31);
 		p->org[0] = org[0] + (float)cos(angle)*dist;
-		p->vel[0] = (float)cos(angle)*(70+(rand()&63));
+		p->vel[0] = (float)cos(angle)*(70+(randk()&63));
 		p->accel[0] = -(float)cos(angle)*100;
 
 		p->org[1] = org[1] + (float)sin(angle)*dist;
-		p->vel[1] = (float)sin(angle)*(70+(rand()&63));
+		p->vel[1] = (float)sin(angle)*(70+(randk()&63));
 		p->accel[1] = -(float)sin(angle)*100;
 
-		p->org[2] = org[2] + 8 + (rand()%90);
-		p->vel[2] = -100 + (rand()&31);
+		p->org[2] = org[2] + 8 + (randk()%90);
+		p->vel[2] = -100 + (randk()&31);
 		p->accel[2] = PARTICLE_GRAVITY*4;
 		p->alpha = 1.0;
 
-		p->alphavel = -0.3f / (0.5f + frand()*0.3f);
+		p->alphavel = -0.3f / (0.5f + frandk()*0.3f);
 	}
 }
 
@@ -890,19 +890,19 @@ void CL_BlasterParticles (vec3_t org, vec3_t dir) {
 		active_particles = p;
 
 		p->time = time;
-		p->color = 0xe0 + (rand()&7);
-		d = rand()&15;
+		p->color = 0xe0 + (randk()&7);
+		d = randk()&15;
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = org[j] + ((rand()&7)-4) + d*dir[j];
-			p->vel[j] = dir[j] * 30 + crand()*40;
+			p->org[j] = org[j] + ((randk()&7)-4) + d*dir[j];
+			p->vel[j] = dir[j] * 30 + crandk()*40;
 		}
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY;
 		p->alpha = 1.0;
 
-		p->alphavel = -1.0f / (0.5f + frand()*0.3f);
+		p->alphavel = -1.0f / (0.5f + frandk()*0.3f);
 	}
 }
 
@@ -938,12 +938,12 @@ void CL_BlasterTrail (vec3_t start, vec3_t end) {
 		p->time = time;
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0f / (0.3f+frand()*0.2f);
+		p->alphavel = -1.0f / (0.3f+frandk()*0.2f);
 		p->color = 0xe0;
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = move[j] + crand();
-			p->vel[j] = crand()*5;
+			p->org[j] = move[j] + crandk();
+			p->vel[j] = crandk()*5;
 			p->accel[j] = 0;
 		}
 
@@ -983,12 +983,12 @@ void CL_QuadTrail (vec3_t start, vec3_t end) {
 		p->time = time;
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0f / (0.8f+frand()*0.2f);
+		p->alphavel = -1.0f / (0.8f+frandk()*0.2f);
 		p->color = 115;
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = move[j] + crand()*16;
-			p->vel[j] = crand()*5;
+			p->org[j] = move[j] + crandk()*16;
+			p->vel[j] = crandk()*5;
 			p->accel[j] = 0;
 		}
 
@@ -1028,12 +1028,12 @@ void CL_FlagTrail (vec3_t start, vec3_t end, int color) {
 		p->time = time;
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0f / (0.8f+frand()*0.2f);
+		p->alphavel = -1.0f / (0.8f+frandk()*0.2f);
 		p->color = color;
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = move[j] + crand()*16;
-			p->vel[j] = crand()*5;
+			p->org[j] = move[j] + crandk()*16;
+			p->vel[j] = crandk()*5;
 			p->accel[j] = 0;
 		}
 
@@ -1080,7 +1080,7 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags) {
 			return;
 
 		/* drop less particles as it flies */
-		if ((rand()&1023) < old->trailcount) {
+		if ((randk()&1023) < old->trailcount) {
 			p = free_particles;
 			free_particles = p->next;
 			p->next = active_particles;
@@ -1091,12 +1091,12 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags) {
 
 			if (flags & EF_GIB) {
 				p->alpha = 1.0;
-				p->alphavel = -1.0f / (1+frand()*0.4f);
-				p->color = 0xe8 + (rand()&7);
+				p->alphavel = -1.0f / (1+frandk()*0.4f);
+				p->color = 0xe8 + (randk()&7);
 
 				for (j=0 ; j<3 ; j++) {
-					p->org[j] = move[j] + crand()*orgscale;
-					p->vel[j] = crand()*velscale;
+					p->org[j] = move[j] + crandk()*orgscale;
+					p->vel[j] = crandk()*velscale;
 					p->accel[j] = 0;
 				}
 
@@ -1104,12 +1104,12 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags) {
 
 			} else if (flags & EF_GREENGIB) {
 				p->alpha = 1.0;
-				p->alphavel = -1.0f / (1+frand()*0.4f);
-				p->color = 0xdb + (rand()&7);
+				p->alphavel = -1.0f / (1+frandk()*0.4f);
+				p->color = 0xdb + (randk()&7);
 
 				for (j=0; j< 3; j++) {
-					p->org[j] = move[j] + crand()*orgscale;
-					p->vel[j] = crand()*velscale;
+					p->org[j] = move[j] + crandk()*orgscale;
+					p->vel[j] = crandk()*velscale;
 					p->accel[j] = 0;
 				}
 
@@ -1117,12 +1117,12 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags) {
 
 			} else {
 				p->alpha = 1.0;
-				p->alphavel = -1.0f / (1+frand()*0.2f);
-				p->color = 4 + (rand()&7);
+				p->alphavel = -1.0f / (1+frandk()*0.2f);
+				p->color = 4 + (randk()&7);
 
 				for (j=0 ; j<3 ; j++) {
-					p->org[j] = move[j] + crand()*orgscale;
-					p->vel[j] = crand()*velscale;
+					p->org[j] = move[j] + crandk()*orgscale;
+					p->vel[j] = crandk()*velscale;
 				}
 
 				p->accel[2] = 20;
@@ -1180,7 +1180,7 @@ void CL_RocketTrail (vec3_t start, vec3_t end, centity_t *old) {
 		if (!free_particles)
 			return;
 
-		if ( (rand()&7) == 0) {
+		if ( (randk()&7) == 0) {
 			p = free_particles;
 			free_particles = p->next;
 			p->next = active_particles;
@@ -1190,12 +1190,12 @@ void CL_RocketTrail (vec3_t start, vec3_t end, centity_t *old) {
 			p->time = time;
 
 			p->alpha = 1.0;
-			p->alphavel = -1.0f / (1+frand()*0.2f);
-			p->color = 0xdc + (rand()&3);
+			p->alphavel = -1.0f / (1+frandk()*0.2f);
+			p->color = 0xdc + (randk()&3);
 
 			for (j=0 ; j<3 ; j++) {
-				p->org[j] = move[j] + crand()*5;
-				p->vel[j] = crand()*20;
+				p->org[j] = move[j] + crandk()*5;
+				p->vel[j] = crandk()*20;
 			}
 
 			p->accel[2] = -PARTICLE_GRAVITY;
@@ -1246,8 +1246,8 @@ void CL_RailTrail (vec3_t start, vec3_t end) {
 		VectorMA (dir, s, up, dir);
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0f / (1+frand()*0.2f);
-		p->color = clr + (rand()&7);
+		p->alphavel = -1.0f / (1+frandk()*0.2f);
+		p->color = clr + (randk()&7);
 
 		for (j=0 ; j<3 ; j++) {
 			p->org[j] = move[j] + dir[j]*3;
@@ -1276,12 +1276,12 @@ void CL_RailTrail (vec3_t start, vec3_t end) {
 		VectorClear (p->accel);
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0f / (0.6f+frand()*0.2f);
-		p->color = 0x0 + (rand()&15);
+		p->alphavel = -1.0f / (0.6f+frandk()*0.2f);
+		p->color = 0x0 + (randk()&15);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = move[j] + crand()*3;
-			p->vel[j] = crand()*3;
+			p->org[j] = move[j] + crandk()*3;
+			p->vel[j] = crandk()*3;
 			p->accel[j] = 0;
 		}
 
@@ -1321,8 +1321,8 @@ void CL_IonripperTrail (vec3_t start, vec3_t ent) {
 
 		p->time = time;
 		p->alpha = 0.5;
-		p->alphavel = -1.0f / (0.3f + frand() * 0.2f);
-		p->color = 0xe4 + (rand()&3);
+		p->alphavel = -1.0f / (0.3f + frandk() * 0.2f);
+		p->color = 0xe4 + (randk()&3);
 
 		for (j=0; j<3; j++) {
 			p->org[j] = move[j];
@@ -1375,12 +1375,12 @@ void CL_BubbleTrail (vec3_t start, vec3_t end) {
 		p->time = time;
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0f / (1+frand()*0.2f);
-		p->color = 4 + (rand()&7);
+		p->alphavel = -1.0f / (1+frandk()*0.2f);
+		p->color = 4 + (randk()&7);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = move[j] + crand()*2;
-			p->vel[j] = crand()*5;
+			p->org[j] = move[j] + crandk()*2;
+			p->vel[j] = crandk()*5;
 		}
 
 		p->vel[2] += 6;
@@ -1406,7 +1406,7 @@ void CL_FlyParticles (vec3_t origin, int count) {
 
 	if (!avelocities[0][0]) {
 		for (i=0 ; i<NUMVERTEXNORMALS*3 ; i++)
-			avelocities[0][i] = (rand()&255) * 0.01f;
+			avelocities[0][i] = (randk()&255) * 0.01f;
 	}
 
 
@@ -1495,7 +1495,7 @@ void CL_BfgParticles (entity_t *ent) {
 
 	if (!avelocities[0][0]) {
 		for (i=0 ; i<NUMVERTEXNORMALS*3 ; i++)
-			avelocities[0][i] = (rand()&255) * 0.01f;
+			avelocities[0][i] = (randk()&255) * 0.01f;
 	}
 
 	ltime = time / 1000.0;
@@ -1578,12 +1578,12 @@ void CL_TrapParticles (entity_t *ent) {
 		p->time = time;
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0f / (0.3f+frand()*0.2f);
+		p->alphavel = -1.0f / (0.3f+frandk()*0.2f);
 		p->color = 0xe0;
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = move[j] + crand();
-			p->vel[j] = crand()*15;
+			p->org[j] = move[j] + crandk();
+			p->vel[j] = crandk()*15;
 			p->accel[j] = 0;
 		}
 
@@ -1614,20 +1614,20 @@ void CL_TrapParticles (entity_t *ent) {
 					active_particles = p;
 
 					p->time = time;
-					p->color = 0xe0 + (rand()&3);
+					p->color = 0xe0 + (randk()&3);
 					p->alpha = 1.0;
-					p->alphavel = -1.0f / (0.3f + (rand()&7) * 0.02f);
+					p->alphavel = -1.0f / (0.3f + (randk()&7) * 0.02f);
 
-					p->org[0] = org[0] + i + ((rand()&23) * crand());
-					p->org[1] = org[1] + j + ((rand()&23) * crand());
-					p->org[2] = org[2] + k + ((rand()&23) * crand());
+					p->org[0] = org[0] + i + ((randk()&23) * crandk());
+					p->org[1] = org[1] + j + ((randk()&23) * crandk());
+					p->org[2] = org[2] + k + ((randk()&23) * crandk());
 
 					dir[0] = j * 8.0f;
 					dir[1] = i * 8.0f;
 					dir[2] = k * 8.0f;
 
 					VectorNormalize (dir);
-					vel = (float)(50 + (rand()&63));
+					vel = (float)(50 + (randk()&63));
 					VectorScale (dir, vel, p->vel);
 
 					p->accel[0] = p->accel[1] = 0;
@@ -1652,18 +1652,18 @@ void CL_BFGExplosionParticles (vec3_t org) {
 		active_particles = p;
 
 		p->time = time;
-		p->color = 0xd0 + (rand()&7);
+		p->color = 0xd0 + (randk()&7);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = org[j] + ((rand()%32)-16);
-			p->vel[j] = (rand()%384)-192;
+			p->org[j] = org[j] + ((randk()%32)-16);
+			p->vel[j] = (randk()%384)-192;
 		}
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY;
 		p->alpha = 1.0;
 
-		p->alphavel = -0.8f / (0.5f + frand()*0.3f);
+		p->alphavel = -0.8f / (0.5f + frandk()*0.3f);
 	}
 }
 
@@ -1687,20 +1687,20 @@ void CL_TeleportParticles (vec3_t org) {
 				active_particles = p;
 
 				p->time = time;
-				p->color = 7 + (rand()&7);
+				p->color = 7 + (randk()&7);
 				p->alpha = 1.0;
-				p->alphavel = -1.0f / (0.3f + (rand()&7) * 0.02f);
+				p->alphavel = -1.0f / (0.3f + (randk()&7) * 0.02f);
 
-				p->org[0] = org[0] + i + (rand()&3);
-				p->org[1] = org[1] + j + (rand()&3);
-				p->org[2] = org[2] + k + (rand()&3);
+				p->org[0] = org[0] + i + (randk()&3);
+				p->org[1] = org[1] + j + (randk()&3);
+				p->org[2] = org[2] + k + (randk()&3);
 
 				dir[0] = j*8.0f;
 				dir[1] = i*8.0f;
 				dir[2] = k*8.0f;
 
 				VectorNormalize (dir);
-				vel = (float)(50 + (rand()&63));
+				vel = (float)(50 + (randk()&63));
 				VectorScale (dir, vel, p->vel);
 
 				p->accel[0] = p->accel[1] = 0;
@@ -1727,7 +1727,7 @@ void CL_EntityEvent (entity_state_t *ent) {
 		case EV_FOOTSTEP:
 
 			if (cl_footsteps->value)
-				S_StartSound (NULL, ent->number, CHAN_BODY, cl_sfx_footsteps[rand()&3], 1, ATTN_NORM, 0);
+				S_StartSound (NULL, ent->number, CHAN_BODY, cl_sfx_footsteps[randk()&3], 1, ATTN_NORM, 0);
 
 			break;
 		case EV_FALLSHORT:
@@ -1815,7 +1815,7 @@ void CL_DebugTrail (vec3_t start, vec3_t end) {
 		VectorClear (p->vel);
 		p->alpha = 1.0;
 		p->alphavel = -0.1f;
-		p->color = 0x74 + (rand()&7);
+		p->color = 0x74 + (randk()&7);
 		VectorCopy (move, p->org);
 		VectorAdd (move, vec, move);
 	}
@@ -1852,15 +1852,15 @@ void CL_SmokeTrail (vec3_t start, vec3_t end, int colorStart, int colorRun, int 
 		p->time = time;
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0f / (1+frand()*0.5f);
-		p->color = colorStart + (float)(rand() % colorRun);
+		p->alphavel = -1.0f / (1+frandk()*0.5f);
+		p->color = colorStart + (float)(randk() % colorRun);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = move[j] + crand()*3;
+			p->org[j] = move[j] + crandk()*3;
 			p->accel[j] = 0;
 		}
 
-		p->vel[2] = 20 + crand()*5;
+		p->vel[2] = 20 + crandk()*5;
 
 		VectorAdd (move, vec, move);
 	}
@@ -1888,7 +1888,7 @@ void CL_ForceWall (vec3_t start, vec3_t end, int color8) {
 		if (!free_particles)
 			return;
 
-		if (frand() > 0.3) {
+		if (frandk() > 0.3) {
 			p = free_particles;
 			free_particles = p->next;
 			p->next = active_particles;
@@ -1898,17 +1898,17 @@ void CL_ForceWall (vec3_t start, vec3_t end, int color8) {
 			p->time = time;
 
 			p->alpha = 1.0;
-			p->alphavel =  -1.0f / (3.0+frand()*0.5f);
+			p->alphavel =  -1.0f / (3.0+frandk()*0.5f);
 			p->color = color8;
 
 			for (j=0 ; j<3 ; j++) {
-				p->org[j] = move[j] + crand()*3;
+				p->org[j] = move[j] + crandk()*3;
 				p->accel[j] = 0;
 			}
 
 			p->vel[0] = 0;
 			p->vel[1] = 0;
-			p->vel[2] = -40 - (crand()*10);
+			p->vel[2] = -40 - (crandk()*10);
 		}
 
 		VectorAdd (move, vec, move);
@@ -1947,12 +1947,12 @@ void CL_BubbleTrail2 (vec3_t start, vec3_t end, int dist) {
 		p->time = time;
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0f / (1+frand()*0.1f);
-		p->color = 4 + (rand()&7);
+		p->alphavel = -1.0f / (1+frandk()*0.1f);
+		p->color = 4 + (randk()&7);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = move[j] + crand()*2;
-			p->vel[j] = crand()*10;
+			p->org[j] = move[j] + crandk()*2;
+			p->vel[j] = crandk()*10;
 		}
 
 		p->org[2] -= 4;
@@ -2035,7 +2035,7 @@ void CL_Heatbeam (vec3_t start, vec3_t forward) {
 
 			p->alpha = 0.5;
 			p->alphavel = -1000.0;
-			p->color = 223 - (rand()&7);
+			p->color = 223 - (randk()&7);
 
 			for (j=0 ; j<3 ; j++) {
 				p->org[j] = move[j] + dir[j]*3;
@@ -2069,23 +2069,23 @@ void CL_ParticleSteamEffect (vec3_t org, vec3_t dir, int color, int count, int m
 		active_particles = p;
 
 		p->time = time;
-		p->color = color + (rand()&7);
+		p->color = color + (randk()&7);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = org[j] + magnitude*0.1f*crand();
+			p->org[j] = org[j] + magnitude*0.1f*crandk();
 		}
 
 		VectorScale (dir, magnitude, p->vel);
-		d = crand()*magnitude/3;
+		d = crandk()*magnitude/3;
 		VectorMA (p->vel, d, r, p->vel);
-		d = crand()*magnitude/3;
+		d = crandk()*magnitude/3;
 		VectorMA (p->vel, d, u, p->vel);
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY/2;
 		p->alpha = 1.0;
 
-		p->alphavel = -1.0f / (0.5f + frand()*0.3f);
+		p->alphavel = -1.0f / (0.5f + frandk()*0.3f);
 	}
 }
 
@@ -2109,23 +2109,23 @@ void CL_ParticleSteamEffect2 (cl_sustain_t *self) {
 		active_particles = p;
 
 		p->time = cl.time;
-		p->color = self->color + (rand()&7);
+		p->color = self->color + (randk()&7);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = self->org[j] + self->magnitude*0.1*crand();
+			p->org[j] = self->org[j] + self->magnitude*0.1*crandk();
 		}
 
 		VectorScale (dir, self->magnitude, p->vel);
-		d = crand()*self->magnitude/3;
+		d = crandk()*self->magnitude/3;
 		VectorMA (p->vel, d, r, p->vel);
-		d = crand()*self->magnitude/3;
+		d = crandk()*self->magnitude/3;
 		VectorMA (p->vel, d, u, p->vel);
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY/2;
 		p->alpha = 1.0;
 
-		p->alphavel = -1.0 / (0.5 + frand()*0.3);
+		p->alphavel = -1.0 / (0.5 + frandk()*0.3);
 	}
 
 	self->nextthink += self->thinkinterval;
@@ -2208,9 +2208,9 @@ void CL_Tracker_Shell(vec3_t origin) {
 		p->alpha = 1.0;
 		p->alphavel = INSTANT_PARTICLE;
 		p->color = 0;
-		dir[0] = crand();
-		dir[1] = crand();
-		dir[2] = crand();
+		dir[0] = crandk();
+		dir[1] = crandk();
+		dir[2] = crandk();
 		VectorNormalize(dir);
 
 		VectorMA(origin, 40, dir, p->org);
@@ -2240,9 +2240,9 @@ void CL_MonsterPlasma_Shell(vec3_t origin) {
 		p->alpha = 1.0;
 		p->alphavel = INSTANT_PARTICLE;
 		p->color = 0xe0;
-		dir[0] = crand();
-		dir[1] = crand();
-		dir[2] = crand();
+		dir[0] = crandk();
+		dir[1] = crandk();
+		dir[2] = crandk();
 		VectorNormalize(dir);
 
 		VectorMA(origin, 10, dir, p->org);
@@ -2274,10 +2274,10 @@ void CL_Widowbeamout (cl_sustain_t *self) {
 
 		p->alpha = 1.0;
 		p->alphavel = INSTANT_PARTICLE;
-		p->color = colortable[rand()&3];
-		dir[0] = crand();
-		dir[1] = crand();
-		dir[2] = crand();
+		p->color = colortable[randk()&3];
+		dir[0] = crandk();
+		dir[1] = crandk();
+		dir[2] = crandk();
 		VectorNormalize(dir);
 
 		VectorMA(self->org, (45.0 * ratio), dir, p->org);
@@ -2309,10 +2309,10 @@ void CL_Nukeblast (cl_sustain_t *self) {
 
 		p->alpha = 1.0;
 		p->alphavel = INSTANT_PARTICLE;
-		p->color = colortable[rand()&3];
-		dir[0] = crand();
-		dir[1] = crand();
-		dir[2] = crand();
+		p->color = colortable[randk()&3];
+		dir[0] = crandk();
+		dir[1] = crandk();
+		dir[2] = crandk();
 		VectorNormalize(dir);
 
 		VectorMA(self->org, (200.0 * ratio), dir, p->org);
@@ -2338,10 +2338,10 @@ void CL_WidowSplash (vec3_t org) {
 		active_particles = p;
 
 		p->time = time;
-		p->color = colortable[rand()&3];
-		dir[0] = crand();
-		dir[1] = crand();
-		dir[2] = crand();
+		p->color = colortable[randk()&3];
+		dir[0] = crandk();
+		dir[1] = crandk();
+		dir[2] = crandk();
 		VectorNormalize(dir);
 		VectorMA(org, 45.0, dir, p->org);
 		VectorMA(vec3_origin, 40.0, dir, p->vel);
@@ -2349,7 +2349,7 @@ void CL_WidowSplash (vec3_t org) {
 		p->accel[0] = p->accel[1] = 0;
 		p->alpha = 1.0;
 
-		p->alphavel = -0.8f / (0.5f + frand()*0.3f);
+		p->alphavel = -0.8f / (0.5f + frandk()*0.3f);
 	}
 
 }
@@ -2377,9 +2377,9 @@ void CL_Tracker_Explode(vec3_t	origin) {
 		p->alpha = 1.0;
 		p->alphavel = -1.0;
 		p->color = 0;
-		dir[0] = crand();
-		dir[1] = crand();
-		dir[2] = crand();
+		dir[0] = crandk();
+		dir[1] = crandk();
+		dir[2] = crandk();
 		VectorNormalize(dir);
 		VectorScale(dir, -1, backdir);
 
@@ -2422,12 +2422,12 @@ void CL_TagTrail (vec3_t start, vec3_t end, int color) {
 		p->time = time;
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0f / (0.8f+frand()*0.2f);
+		p->alphavel = -1.0f / (0.8f+frandk()*0.2f);
 		p->color = color;
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = move[j] + crand()*16;
-			p->vel[j] = crand()*5;
+			p->org[j] = move[j] + crandk()*16;
+			p->vel[j] = crandk()*5;
 			p->accel[j] = 0;
 		}
 
@@ -2453,18 +2453,18 @@ void CL_ColorExplosionParticles (vec3_t org, int color, int run) {
 		active_particles = p;
 
 		p->time = time;
-		p->color = color + (rand() % run);
+		p->color = color + (randk() % run);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = org[j] + ((rand()%32)-16);
-			p->vel[j] = (rand()%256)-128;
+			p->org[j] = org[j] + ((randk()%32)-16);
+			p->vel[j] = (randk()%256)-128;
 		}
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY;
 		p->alpha = 1.0;
 
-		p->alphavel = -0.4f / (0.6f + frand()*0.2f);
+		p->alphavel = -0.4f / (0.6f + frandk()*0.2f);
 	}
 }
 
@@ -2492,22 +2492,22 @@ void CL_ParticleSmokeEffect (vec3_t org, vec3_t dir, int color, int count, int m
 		active_particles = p;
 
 		p->time = time;
-		p->color = color + (rand()&7);
+		p->color = color + (randk()&7);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = org[j] + magnitude*0.1f*crand();
+			p->org[j] = org[j] + magnitude*0.1f*crandk();
 		}
 
 		VectorScale (dir, magnitude, p->vel);
-		d = crand()*magnitude/3;
+		d = crandk()*magnitude/3;
 		VectorMA (p->vel, d, r, p->vel);
-		d = crand()*magnitude/3;
+		d = crandk()*magnitude/3;
 		VectorMA (p->vel, d, u, p->vel);
 
 		p->accel[0] = p->accel[1] = p->accel[2] = 0;
 		p->alpha = 1.0;
 
-		p->alphavel = -1.0f / (0.5f + frand()*0.3f);
+		p->alphavel = -1.0f / (0.5f + frandk()*0.3f);
 	}
 }
 
@@ -2535,19 +2535,19 @@ void CL_BlasterParticles2 (vec3_t org, vec3_t dir, unsigned int color) {
 		active_particles = p;
 
 		p->time = time;
-		p->color = color + (rand()&7);
-		d = (float)(rand()&15);
+		p->color = color + (randk()&7);
+		d = (float)(randk()&15);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = org[j] + ((rand()&7)-4) + d*dir[j];
-			p->vel[j] = dir[j] * 30 + crand()*40;
+			p->org[j] = org[j] + ((randk()&7)-4) + d*dir[j];
+			p->vel[j] = dir[j] * 30 + crandk()*40;
 		}
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY;
 		p->alpha = 1.0;
 
-		p->alphavel = -1.0f / (0.5f + frand()*0.3f);
+		p->alphavel = -1.0f / (0.5f + frandk()*0.3f);
 	}
 }
 
@@ -2587,11 +2587,11 @@ void CL_BlasterTrail2 (vec3_t start, vec3_t end) {
 		p->time = time;
 
 		p->alpha = 1.0;
-		p->alphavel = -1.0f / (float)(0.3f+frand()*0.2f);
+		p->alphavel = -1.0f / (float)(0.3f+frandk()*0.2f);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = move[j] + crand();
-			p->vel[j] = crand()*5;
+			p->org[j] = move[j] + crandk();
+			p->vel[j] = crandk()*5;
 			p->accel[j] = 0;
 		}
 

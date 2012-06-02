@@ -149,7 +149,7 @@ CDAudio_RandomPlay ( void )
 	{
 		do
 		{
-			f = ( (float) rand() ) / ( (float) RAND_MAX + 1.0 );
+			f = ( (float) randk() ) / ( (float) RAND_MAX + 1.0 );
 			track = (int) ( cd_id->numtracks  * f );
 		}
 		while ( !track_bools [ track ] );

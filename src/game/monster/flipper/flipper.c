@@ -339,7 +339,7 @@ flipper_pain(edict_t *self, edict_t *other /* unused */,
 		return; /* no pain anims in nightmare */
 	}
 
-	n = (rand() + 1) % 2;
+	n = (randk() + 1) % 2;
 
 	if (n == 0)
 	{

@@ -398,7 +398,7 @@ gunner_pain(edict_t *self, edict_t *other /* unused */,
 
 	self->pain_debounce_time = level.time + 3;
 
-	if (rand() & 1)
+	if (randk() & 1)
 	{
 		gi.sound(self, CHAN_VOICE, sound_pain, 1, ATTN_NORM, 0);
 	}

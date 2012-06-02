@@ -57,19 +57,19 @@ void CL_ParticleEffect (vec3_t org, vec3_t dir, int color, int count) {
 		active_particles = p;
 
 		p->time = cl.time;
-		p->color = color + (rand()&7);
-		d = rand()&31;
+		p->color = color + (randk()&7);
+		d = randk()&31;
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = org[j] + ((rand()&7)-4) + d*dir[j];
-			p->vel[j] = crand()*20;
+			p->org[j] = org[j] + ((randk()&7)-4) + d*dir[j];
+			p->vel[j] = crandk()*20;
 		}
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY+0.2f;
 		p->alpha = 1.0;
 
-		p->alphavel = -1.0 / (0.5 + frand()*0.3);
+		p->alphavel = -1.0 / (0.5 + frandk()*0.3);
 	}
 }
 
@@ -90,20 +90,20 @@ void CL_ParticleEffect2 (vec3_t org, vec3_t dir, int color, int count) {
 		active_particles = p;
 
 		p->time = time;
-		p->color = color + (rand()&7);
+		p->color = color + (randk()&7);
 
-		d = rand()&7;
+		d = randk()&7;
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = org[j] + ((rand()&7)-4) + d*dir[j];
-			p->vel[j] = crand()*20;
+			p->org[j] = org[j] + ((randk()&7)-4) + d*dir[j];
+			p->vel[j] = crandk()*20;
 		}
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY;
 		p->alpha = 1.0;
 
-		p->alphavel = -1.0f / (0.5f + frand()*0.3f);
+		p->alphavel = -1.0f / (0.5f + frandk()*0.3f);
 	}
 }
 
@@ -126,18 +126,18 @@ void CL_ParticleEffect3 (vec3_t org, vec3_t dir, int color, int count) {
 		p->time = time;
 		p->color = color;
 
-		d = rand()&7;
+		d = randk()&7;
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = org[j] + ((rand()&7)-4) + d*dir[j];
-			p->vel[j] = crand()*20;
+			p->org[j] = org[j] + ((randk()&7)-4) + d*dir[j];
+			p->vel[j] = crandk()*20;
 		}
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = PARTICLE_GRAVITY;
 		p->alpha = 1.0;
 
-		p->alphavel = -1.0f / (0.5f + frand()*0.3f);
+		p->alphavel = -1.0f / (0.5f + frandk()*0.3f);
 	}
 }
 
@@ -221,22 +221,22 @@ void CL_GenericParticleEffect (vec3_t org, vec3_t dir, int color, int count, int
 		p->time = time;
 
 		if (numcolors > 1)
-			p->color = color + (rand() & numcolors);
+			p->color = color + (randk() & numcolors);
 
 		else
 			p->color = color;
 
-		d = (float)(rand() & dirspread);
+		d = (float)(randk() & dirspread);
 
 		for (j=0 ; j<3 ; j++) {
-			p->org[j] = org[j] + ((rand()&7)-4) + d*dir[j];
-			p->vel[j] = crand()*20;
+			p->org[j] = org[j] + ((randk()&7)-4) + d*dir[j];
+			p->vel[j] = crandk()*20;
 		}
 
 		p->accel[0] = p->accel[1] = 0;
 		p->accel[2] = -PARTICLE_GRAVITY;
 		p->alpha = 1.0;
 
-		p->alphavel = -1.0f / (0.5f + frand()*alphavel);
+		p->alphavel = -1.0f / (0.5f + frandk()*alphavel);
 	}
 }

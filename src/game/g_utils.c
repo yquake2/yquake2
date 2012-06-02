@@ -183,7 +183,7 @@ G_PickTarget(char *targetname)
 		return NULL;
 	}
 
-	return choice[rand() % num_choices];
+	return choice[randk() % num_choices];
 }
 
 void

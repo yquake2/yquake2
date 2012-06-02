@@ -487,7 +487,7 @@ extern edict_t *g_edicts;
 #define LLOFS(x) (size_t)&(((level_locals_t *)NULL)->x)
 #define CLOFS(x) (size_t)&(((gclient_t *)NULL)->x)
 
-#define random() ((rand() & 0x7fff) / ((float)0x7fff))
+#define random() ((randk() & 0x7fff) / ((float)0x7fff))
 #define crandom() (2.0 * (random() - 0.5))
 
 extern cvar_t *maxentities;
