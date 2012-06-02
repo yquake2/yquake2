@@ -959,7 +959,7 @@ player_die(edict_t *self, edict_t *inflictor, edict_t *attacker,
 			}
 
 			gi.sound(self, CHAN_VOICE, gi.soundindex(va("*death%i.wav",
-							(rand() % 4) + 1)), 1, ATTN_NORM, 0);
+							(randk() % 4) + 1)), 1, ATTN_NORM, 0);
 		}
 	}
 
@@ -1174,7 +1174,7 @@ SelectRandomDeathmatchSpawnPoint(void)
 		}
 	}
 
-	selection = rand() % count;
+	selection = randk() % count;
 
 	spot = NULL;
 

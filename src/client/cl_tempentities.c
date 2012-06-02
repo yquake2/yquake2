@@ -434,7 +434,7 @@ void CL_ParseLaser (int colors) {
 			VectorCopy (start, l->ent.origin);
 			VectorCopy (end, l->ent.oldorigin);
 			l->ent.alpha = 0.30f;
-			l->ent.skinnum = (colors >> ((rand() % 4)*8)) & 0xff;
+			l->ent.skinnum = (colors >> ((randk() % 4)*8)) & 0xff;
 			l->ent.model = NULL;
 			l->ent.frame = 4;
 			l->endtime = cl.time + 100;
@@ -592,7 +592,7 @@ void CL_ParseTEnt (void) {
 			if (type != TE_SPARKS) {
 				CL_SmokeAndFlash(pos);
 				/* impact sound */
-				cnt = rand()&15;
+				cnt = randk()&15;
 
 				if (cnt == 1)
 					S_StartSound (pos, 0, 0, cl_sfx_ric1, 1, ATTN_NORM, 0);
@@ -642,7 +642,7 @@ void CL_ParseTEnt (void) {
 			CL_ParticleEffect (pos, dir, color, cnt);
 
 			if (r == SPLASH_SPARKS) {
-				r = rand() & 3;
+				r = randk() & 3;
 
 				if (r == 0)
 					S_StartSound (pos, 0, 0, cl_sfx_spark5, 1, ATTN_STATIC, 0);
@@ -725,7 +725,7 @@ void CL_ParseTEnt (void) {
 			ex->ent.model = cl_mod_explo4;
 			ex->frames = 19;
 			ex->baseframe = 30;
-			ex->ent.angles[1] = (float)(rand() % 360);
+			ex->ent.angles[1] = (float)(randk() % 360);
 			EXPLOSION_PARTICLES (pos);
 
 			if (type == TE_GRENADE_EXPLOSION_WATER)
@@ -747,10 +747,10 @@ void CL_ParseTEnt (void) {
 			ex->lightcolor[0] = 1.0;
 			ex->lightcolor[1] = 0.5;
 			ex->lightcolor[2] = 0.5;
-			ex->ent.angles[1] = (float)(rand() % 360);
+			ex->ent.angles[1] = (float)(randk() % 360);
 			ex->ent.model = cl_mod_explo4;
 
-			if (frand() < 0.5)
+			if (frandk() < 0.5)
 				ex->baseframe = 15;
 
 			ex->frames = 15;
@@ -773,7 +773,7 @@ void CL_ParseTEnt (void) {
 			ex->lightcolor[0] = 1.0;
 			ex->lightcolor[1] = 0.5;
 			ex->lightcolor[2] = 0.5;
-			ex->ent.angles[1] = (float)(rand() % 360);
+			ex->ent.angles[1] = (float)(randk() % 360);
 
 			if (type != TE_EXPLOSION1_BIG)
 				ex->ent.model = cl_mod_explo4;
@@ -781,7 +781,7 @@ void CL_ParseTEnt (void) {
 			else
 				ex->ent.model = cl_mod_explo4_big;
 
-			if (frand() < 0.5)
+			if (frandk() < 0.5)
 				ex->baseframe = 15;
 
 			ex->frames = 15;
@@ -856,7 +856,7 @@ void CL_ParseTEnt (void) {
 			ex->type = ex_flash;
 			ex->ent.flags = RF_BEAM;
 			ex->start = cl.frame.servertime - 0.1f;
-			ex->light = 100 + (float)(rand()%75);
+			ex->light = 100 + (float)(randk()%75);
 			ex->lightcolor[0] = 1.0f;
 			ex->lightcolor[1] = 1.0f;
 			ex->lightcolor[2] = 0.3f;
@@ -956,10 +956,10 @@ void CL_ParseTEnt (void) {
 			ex->lightcolor[0] = 1.0;
 			ex->lightcolor[1] = 0.5;
 			ex->lightcolor[2] = 0.5;
-			ex->ent.angles[1] = rand() % 360;
+			ex->ent.angles[1] = randk() % 360;
 			ex->ent.model = cl_mod_explo4;
 
-			if (frand() < 0.5)
+			if (frandk() < 0.5)
 				ex->baseframe = 15;
 
 			ex->frames = 15;
@@ -1158,7 +1158,7 @@ void CL_AddBeams (void) {
 			ent.flags = RF_FULLBRIGHT;
 			ent.angles[0] = pitch;
 			ent.angles[1] = yaw;
-			ent.angles[2] = (float)(rand()%360);
+			ent.angles[2] = (float)(randk()%360);
 			V_AddEntity (&ent);
 			return;
 		}
@@ -1171,12 +1171,12 @@ void CL_AddBeams (void) {
 				ent.flags = RF_FULLBRIGHT;
 				ent.angles[0] = -pitch;
 				ent.angles[1] = yaw + 180.0f;
-				ent.angles[2] = (float)(rand()%360);
+				ent.angles[2] = (float)(randk()%360);
 
 			} else {
 				ent.angles[0] = pitch;
 				ent.angles[1] = yaw;
-				ent.angles[2] = (float)(rand()%360);
+				ent.angles[2] = (float)(randk()%360);
 			}
 
 			V_AddEntity (&ent);
@@ -1377,7 +1377,7 @@ void CL_AddPlayerBeams (void) {
 			ent.flags = RF_FULLBRIGHT;
 			ent.angles[0] = pitch;
 			ent.angles[1] = yaw;
-			ent.angles[2] = (float)(rand()%360);
+			ent.angles[2] = (float)(randk()%360);
 			V_AddEntity (&ent);
 			return;
 		}
@@ -1397,12 +1397,12 @@ void CL_AddPlayerBeams (void) {
 				ent.flags = RF_FULLBRIGHT;
 				ent.angles[0] = -pitch;
 				ent.angles[1] = yaw + 180.0f;
-				ent.angles[2] = (float)(rand()%360);
+				ent.angles[2] = (float)(randk()%360);
 
 			} else {
 				ent.angles[0] = pitch;
 				ent.angles[1] = yaw;
-				ent.angles[2] = (float)(rand()%360);
+				ent.angles[2] = (float)(randk()%360);
 			}
 
 			V_AddEntity (&ent);

@@ -153,7 +153,7 @@ P_DamageFeedback(edict_t *player)
 		!(player->flags & FL_GODMODE) &&
 		(client->invincible_framenum <= level.framenum))
 	{
-		r = 1 + (rand() & 1);
+		r = 1 + (randk() & 1);
 		player->pain_debounce_time = level.time + 0.7;
 
 		if (player->health < 25)
@@ -875,7 +875,7 @@ P_WorldEffects(void)
 					gi.sound(current_player, CHAN_VOICE,
 							gi.soundindex("player/drown1.wav"), 1, ATTN_NORM, 0);
 				}
-				else if (rand() & 1)
+				else if (randk() & 1)
 				{
 					gi.sound(current_player, CHAN_VOICE,
 							gi.soundindex("*gurp1.wav"), 1, ATTN_NORM, 0);
@@ -910,7 +910,7 @@ P_WorldEffects(void)
 				(current_player->pain_debounce_time <= level.time) &&
 				(current_client->invincible_framenum < level.framenum))
 			{
-				if (rand() & 1)
+				if (randk() & 1)
 				{
 					gi.sound(current_player, CHAN_VOICE,
 							gi.soundindex("player/burn1.wav"), 1, ATTN_NORM, 0);

@@ -779,7 +779,7 @@ rocket_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 			if ((surf) && !(surf->flags &
 				  (SURF_WARP | SURF_TRANS33 | SURF_TRANS66 | SURF_FLOWING)))
 			{
-				n = rand() % 5;
+				n = randk() % 5;
 
 				while (n--)
 				{

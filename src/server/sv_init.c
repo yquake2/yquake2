@@ -370,7 +370,7 @@ SV_InitGame ( void )
 		Cvar_FullSet( "maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH );
 	}
 
-	svs.spawncount = rand();
+	svs.spawncount = randk();
 	svs.clients = Z_Malloc( sizeof ( client_t ) * maxclients->value );
 	svs.num_client_entities = maxclients->value * UPDATE_BACKUP * 64;
 	svs.client_entities = Z_Malloc( sizeof ( entity_state_t ) * svs.num_client_entities );

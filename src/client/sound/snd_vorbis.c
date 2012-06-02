@@ -133,7 +133,6 @@ OGG_Init ( void )
 	/* Initialize variables. */
 	if ( ogg_first_init )
 	{
-		srand( time( NULL ) );
 		ogg_buffer = NULL;
 		ogg_curfile = -1;
 		ogg_info = NULL;
@@ -559,7 +558,7 @@ OGG_Sequence ( void )
 
 	else if ( strcmp( ogg_sequence->string, "random" ) == 0 )
 	{
-		OGG_Open( ABS, rand() % ogg_numfiles );
+		OGG_Open( ABS, randk() % ogg_numfiles );
 	}
 
 	else if ( strcmp( ogg_sequence->string, "loop" ) == 0 )
@@ -694,7 +693,7 @@ OGG_ParseCmd ( char *arg )
 			OGG_Open( ABS, n );
 			break;
 		case '?':
-			OGG_Open( ABS, rand() % ogg_numfiles );
+			OGG_Open( ABS, randk() % ogg_numfiles );
 			break;
 		case '>':
 

@@ -151,7 +151,7 @@ DoRespawn(edict_t *ent)
 		{
 		}
 
-		choice = rand() % count;
+		choice = randk() % count;
 
 		for (count = 0, ent = master; count < choice; ent = ent->chain, count++)
 		{
@@ -1301,13 +1301,13 @@ Drop_Item(edict_t *ent, gitem_t *item)
 	dropped->s.effects = item->world_model_flags;
 	dropped->s.renderfx = RF_GLOW;
 
-	if (rand() > 0.5)
+	if (randk() > 0.5)
 	{
-		dropped->s.angles[1] += rand()*45;
+		dropped->s.angles[1] += randk()*45;
 	}
 	else
 	{
-		dropped->s.angles[1] -= rand()*45;
+		dropped->s.angles[1] -= randk()*45;
 	}
 
 	VectorSet (dropped->mins, -16, -16, -16);

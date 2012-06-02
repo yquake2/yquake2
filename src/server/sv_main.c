@@ -391,7 +391,7 @@ SV_Frame ( int msec )
 	svs.realtime += msec;
 
 	/* keep the random time dependent */
-	rand();
+	randk();
 
 	/* check timeouts */
 	SV_CheckTimeouts();

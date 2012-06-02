@@ -162,7 +162,7 @@ BeginIntermission(edict_t *targ)
 	else
 	{
 		/* chose one of four spots */
-		i = rand() & 3;
+		i = randk() & 3;
 
 		while (i--)
 		{
