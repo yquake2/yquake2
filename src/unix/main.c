@@ -45,9 +45,28 @@ main ( int argc, char **argv )
     /* register signal handler */
 	registerHandler();
 
-	/* go back to real user for config loads */
-	saved_euid = geteuid();
-	seteuid( getuid() );
+	/* Prevent running Quake II as root. Only very mad
+	   minded or stupid people even think about it. :) */
+	if (getuid() == 0)
+	{
+		printf("Quake II shouldn't be run as root! Backing out to save your ass. If\n");
+		printf("you really know what you're doing, edit src/unix/main.c and remove\n");
+		printf("this check. But don't complain if Quake II eats your dog afterwards!\n");
+
+		return 1;
+	}
+
+	/* Enforce the real UID to
+	   prevent setuid crap */
+	if (getuid() != geteuid())
+	{
+		printf("The effective UID is not the real UID! Your binary is probably marked\n");
+		printf("'setuid'. That is not good idea, please fix it :) If you really know\n");
+		printf("what you're doin edit src/unix/main.c and remove this check. Don't\n"); 
+		printf("complain if Quake II eats your dog afterwards!\n");
+
+		return 1;
+	}
 
 	/* enforce C locale */
 	setenv("LC_ALL", "C", 1);
