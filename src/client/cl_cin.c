@@ -338,7 +338,7 @@ SCR_ReadNextFrame(void) {
 	FS_Read(&size, 4, (size_t)cl.cinematic_file);
 	size = LittleLong(size);
 
-	if (size > sizeof(compressed) || size < 1)
+	if ((unsigned long)size > sizeof(compressed) || size < 1)
 		Com_Error(ERR_DROP, "Bad compressed frame size");
 
 	FS_Read(compressed, size, (size_t)cl.cinematic_file);
