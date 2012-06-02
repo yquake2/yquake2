@@ -269,6 +269,7 @@ release/baseq2/game.so : LDFLAGS += -shared
 # Used by the game
 GAME_OBJS_ = \
 	src/common/shared/flash.o \
+	src/common/shared/rand.o \
 	src/common/shared/shared.o \
     src/game/g_ai.o \
 	src/game/g_chase.o \
@@ -353,7 +354,6 @@ CLIENT_OBJS_ := \
 	src/common/misc.o \
 	src/common/netchan.o \
 	src/common/pmove.o \
-	src/common/rand.o \
 	src/common/szone.o \
 	src/common/zone.o \
 	src/common/command/cmd_execution.o \
@@ -369,6 +369,7 @@ CLIENT_OBJS_ := \
 	src/common/model/cm_bsp.o \
 	src/common/model/cm_vis.o \
 	src/common/shared/flash.o \
+	src/common/shared/rand.o \
 	src/common/shared/shared.o \
 	src/common/unzip/ioapi.o \
 	src/common/unzip/unzip.o \
@@ -404,7 +405,6 @@ SERVER_OBJS_ := \
 	src/common/misc.o \
 	src/common/netchan.o \
 	src/common/pmove.o \
-	src/common/rand.o \
 	src/common/szone.o \
 	src/common/zone.o \
 	src/common/command/cmd_execution.o \
@@ -419,6 +419,7 @@ SERVER_OBJS_ := \
 	src/common/model/cm_boxtracing.o \
 	src/common/model/cm_bsp.o \
 	src/common/model/cm_vis.o \
+	src/common/shared/rand.o \
 	src/common/shared/shared.o \
 	src/common/unzip/ioapi.o \
 	src/common/unzip/unzip.o \
