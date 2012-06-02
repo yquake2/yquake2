@@ -79,7 +79,11 @@ main ( int argc, char **argv )
 
     printf("Platform: %s\n", BUILDSTRING);
 	printf("Architecture: %s\n", CPUSTRING);
+	
+	/* Seed PRNG */
+	randk_seed();
 
+	/* Initialze the game */
 	Qcommon_Init( argc, argv );
 
 	fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) | FNDELAY );
