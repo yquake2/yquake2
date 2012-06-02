@@ -301,7 +301,7 @@ VID_LoadRefresh ( char *name )
 		 ( ( IN_BackendMouseButtons_fp = dlsym( reflib_library, "IN_BackendMouseButtons" ) ) == NULL ) ||
 		 ( ( IN_BackendMove_fp = dlsym( reflib_library, "IN_BackendMove" ) ) == NULL ) )
 	{
-		Sys_Error( "No input backend init functions in REF.\n" );
+		Com_Error( ERR_FATAL, "No input backend init functions in REF.\n" );
 	}
 
 	if ( IN_BackendInit_fp )
@@ -321,7 +321,7 @@ VID_LoadRefresh ( char *name )
 		 ( ( IN_Update_fp = dlsym( reflib_library, "IN_Update" ) ) == NULL ) ||
 		 ( ( IN_Close_fp = dlsym( reflib_library, "IN_Close" ) ) == NULL ) )
 	{
-		Sys_Error( "No keyboard input functions in REF.\n" );
+		Com_Error( ERR_FATAL, "No keyboard input functions in REF.\n" );
 	}
 
 	IN_KeyboardInit_fp( Do_Key_Event );
