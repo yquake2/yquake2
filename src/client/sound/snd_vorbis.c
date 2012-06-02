@@ -690,7 +690,7 @@ OGG_ParseCmd ( char *arg )
 	switch ( arg [ 0 ] )
 	{
 		case '#':
-			n = atoi( arg + 1 ) - 1;
+			n = (int)strtol( arg + 1, (char **)NULL, 10) - 1;
 			OGG_Open( ABS, n );
 			break;
 		case '?':
@@ -700,7 +700,7 @@ OGG_ParseCmd ( char *arg )
 
 			if ( strlen( arg ) > 1 )
 			{
-				OGG_Open( REL, atoi( arg + 1 ) );
+				OGG_Open( REL, (int)strtol( arg + 1, (char **)NULL, 10 ) );
 			}
 
 			else
@@ -713,7 +713,7 @@ OGG_ParseCmd ( char *arg )
 
 			if ( strlen( arg ) > 1 )
 			{
-				OGG_Open( REL, -atoi( arg + 1 ) );
+				OGG_Open( REL, -(int)strtol( arg + 1, (char **)NULL, 10 ) );
 			}
 
 			else

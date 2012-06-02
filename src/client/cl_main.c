@@ -438,7 +438,7 @@ void CL_Precache_f (void)
 
 	precache_check = CS_MODELS;
 
-	precache_spawncount = atoi(Cmd_Argv(1));
+	precache_spawncount = (int)strtol(Cmd_Argv(1), (char **)NULL, 10);
 	precache_model = 0;
 	precache_model_skin = 0;
 

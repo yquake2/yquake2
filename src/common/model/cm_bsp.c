@@ -501,7 +501,7 @@ cmodel_t *CM_InlineModel (char *name)
 	if (!name || name[0] != '*')
 		Com_Error (ERR_DROP, "CM_InlineModel: bad name");
 
-	num = atoi (name+1);
+	num = (int)strtol(name+1, (char **)NULL, 10);
 
 	if (num < 1 || num >= numcmodels)
 		Com_Error (ERR_DROP, "CM_InlineModel: bad number");

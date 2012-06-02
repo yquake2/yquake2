@@ -104,7 +104,7 @@ SV_SetPlayer ( void )
 	/* numeric values are just slot numbers */
 	if ( ( s [ 0 ] >= '0' ) && ( s [ 0 ] <= '9' ) )
 	{
-		idnum = atoi( Cmd_Argv( 1 ) );
+		idnum = (int)strtol( Cmd_Argv( 1 ), (char **)NULL, 10 );
 
 		if ( ( idnum < 0 ) || ( idnum >= maxclients->value ) )
 		{
