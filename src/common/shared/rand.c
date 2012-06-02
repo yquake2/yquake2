@@ -40,12 +40,17 @@ B64MWC(void)
 
 /* 
  * Generate a pseudorandom 
- * signed integer. 
+ * integer >0. 
  */
 int
 randk(void)
 {
-	return (int)KISS;
+	int r;
+
+	r = (int)KISS;
+	r = (r < 0) ? (r * -1) : r;
+
+	return r;
 }
 
 /*
