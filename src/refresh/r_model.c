@@ -190,7 +190,7 @@ Mod_ForName ( char *name, qboolean crash )
 	/* inline models are grabbed only from worldmodel */
 	if ( name [ 0 ] == '*' )
 	{
-		i = atoi( name + 1 );
+		i = (int)strtol( name + 1, (char **)NULL, 10 );
 
 		if ( ( i < 1 ) || !r_worldmodel || ( i >= r_worldmodel->numsubmodels ) )
 		{

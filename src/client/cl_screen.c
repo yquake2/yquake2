@@ -810,44 +810,44 @@ void SCR_ExecuteLayoutString (char *s) {
 
 		if (!strcmp(token, "xl")) {
 			token = COM_Parse (&s);
-			x = atoi(token);
+			x = (int)strtol(token, (char **)NULL, 10);
 			continue;
 		}
 
 		if (!strcmp(token, "xr")) {
 			token = COM_Parse (&s);
-			x = viddef.width + atoi(token);
+			x = viddef.width + (int)strtol(token, (char **)NULL, 10);
 			continue;
 		}
 
 		if (!strcmp(token, "xv")) {
 			token = COM_Parse (&s);
-			x = viddef.width/2 - 160 + atoi(token);
+			x = viddef.width/2 - 160 + (int)strtol(token, (char **)NULL, 10);
 			continue;
 		}
 
 		if (!strcmp(token, "yt")) {
 			token = COM_Parse (&s);
-			y = atoi(token);
+			y = (int)strtol(token, (char **)NULL, 10);
 			continue;
 		}
 
 		if (!strcmp(token, "yb")) {
 			token = COM_Parse (&s);
-			y = viddef.height + atoi(token);
+			y = viddef.height + (int)strtol(token, (char **)NULL, 10);
 			continue;
 		}
 
 		if (!strcmp(token, "yv")) {
 			token = COM_Parse (&s);
-			y = viddef.height/2 - 120 + atoi(token);
+			y = viddef.height/2 - 120 + (int)strtol(token, (char **)NULL, 10);
 			continue;
 		}
 
 		if (!strcmp(token, "pic")) {
 			/* draw a pic from a stat number */
 			token = COM_Parse (&s);
-			index = atoi(token);
+			index = (int)strtol(token, (char **)NULL, 10);
 
 			if (index < 0 || index >= sizeof(cl.frame.playerstate.stats))
 				Com_Error (ERR_DROP, "bad stats index %d (0x%x)", index, index);
@@ -871,14 +871,14 @@ void SCR_ExecuteLayoutString (char *s) {
 			int		score, ping, time;
 
 			token = COM_Parse (&s);
-			x = viddef.width/2 - 160 + atoi(token);
+			x = viddef.width/2 - 160 + (int)strtol(token, (char **)NULL, 10);
 			token = COM_Parse (&s);
-			y = viddef.height/2 - 120 + atoi(token);
+			y = viddef.height/2 - 120 + (int)strtol(token, (char **)NULL, 10);
 			SCR_AddDirtyPoint (x, y);
 			SCR_AddDirtyPoint (x+159, y+31);
 
 			token = COM_Parse (&s);
-			value = atoi(token);
+			value = (int)strtol(token, (char **)NULL, 10);
 
 			if (value >= MAX_CLIENTS || value < 0)
 				Com_Error (ERR_DROP, "client >= MAX_CLIENTS");
@@ -886,13 +886,13 @@ void SCR_ExecuteLayoutString (char *s) {
 			ci = &cl.clientinfo[value];
 
 			token = COM_Parse (&s);
-			score = atoi(token);
+			score = (int)strtol(token, (char **)NULL, 10);
 
 			token = COM_Parse (&s);
-			ping = atoi(token);
+			ping = (int)strtol(token, (char **)NULL, 10);
 
 			token = COM_Parse (&s);
-			time = atoi(token);
+			time = (int)strtol(token, (char **)NULL, 10);
 
 			DrawAltString (x+32, y, ci->name);
 			DrawString (x+32, y+8,  "Score: ");
@@ -913,14 +913,14 @@ void SCR_ExecuteLayoutString (char *s) {
 			char	block[80];
 
 			token = COM_Parse (&s);
-			x = viddef.width/2 - 160 + atoi(token);
+			x = viddef.width/2 - 160 + (int)strtol(token, (char **)NULL, 10);
 			token = COM_Parse (&s);
-			y = viddef.height/2 - 120 + atoi(token);
+			y = viddef.height/2 - 120 + (int)strtol(token, (char **)NULL, 10);
 			SCR_AddDirtyPoint (x, y);
 			SCR_AddDirtyPoint (x+159, y+31);
 
 			token = COM_Parse (&s);
-			value = atoi(token);
+			value = (int)strtol(token, (char **)NULL, 10);
 
 			if (value >= MAX_CLIENTS || value < 0)
 				Com_Error (ERR_DROP, "client >= MAX_CLIENTS");
@@ -928,10 +928,10 @@ void SCR_ExecuteLayoutString (char *s) {
 			ci = &cl.clientinfo[value];
 
 			token = COM_Parse (&s);
-			score = atoi(token);
+			score = (int)strtol(token, (char **)NULL, 10);
 
 			token = COM_Parse (&s);
-			ping = atoi(token);
+			ping = (int)strtol(token, (char **)NULL, 10);
 
 			if (ping > 999)
 				ping = 999;
@@ -959,9 +959,9 @@ void SCR_ExecuteLayoutString (char *s) {
 		if (!strcmp(token, "num")) {
 			/* draw a number */
 			token = COM_Parse (&s);
-			width = atoi(token);
+			width = (int)strtol(token, (char **)NULL, 10);
 			token = COM_Parse (&s);
-			value = cl.frame.playerstate.stats[atoi(token)];
+			value = cl.frame.playerstate.stats[(int)strtol(token, (char **)NULL, 10)];
 			SCR_DrawField (x, y, 0, width, value);
 			continue;
 		}
@@ -1033,7 +1033,7 @@ void SCR_ExecuteLayoutString (char *s) {
 
 		if (!strcmp(token, "stat_string")) {
 			token = COM_Parse (&s);
-			index = atoi(token);
+			index = (int)strtol(token, (char **)NULL, 10);
 
 			if (index < 0 || index >= MAX_CONFIGSTRINGS)
 				Com_Error (ERR_DROP, "Bad stat_string index");
@@ -1074,7 +1074,7 @@ void SCR_ExecuteLayoutString (char *s) {
 		if (!strcmp(token, "if")) {
 			/* draw a number */
 			token = COM_Parse (&s);
-			value = cl.frame.playerstate.stats[atoi(token)];
+			value = cl.frame.playerstate.stats[(int)strtol(token, (char **)NULL, 10)];
 
 			if (!value) {
 				/* skip to endif */

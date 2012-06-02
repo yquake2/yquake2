@@ -785,7 +785,7 @@ SP_trigger_gravity(edict_t *self)
 	}
 
 	InitTrigger(self);
-	self->gravity = atoi(st.gravity);
+	self->gravity = (int)strtol(st.gravity, (char **)NULL, 10);
 	self->touch = trigger_gravity_touch;
 }
 

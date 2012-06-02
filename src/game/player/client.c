@@ -1742,7 +1742,7 @@ PutClientInServer(edict_t *ent)
 	}
 	else
 	{
-		client->ps.fov = atoi(Info_ValueForKey(client->pers.userinfo, "fov"));
+		client->ps.fov = (int)strtol(Info_ValueForKey(client->pers.userinfo, "fov"), (char **)NULL, 10);
 
 		if (client->ps.fov < 1)
 		{
@@ -1978,7 +1978,7 @@ ClientUserinfoChanged(edict_t *ent, char *userinfo)
 	}
 	else
 	{
-		ent->client->ps.fov = atoi(Info_ValueForKey(userinfo, "fov"));
+		ent->client->ps.fov = (int)strtol(Info_ValueForKey(userinfo, "fov"), (char **)NULL, 10);
 
 		if (ent->client->ps.fov < 1)
 		{
@@ -1995,7 +1995,7 @@ ClientUserinfoChanged(edict_t *ent, char *userinfo)
 
 	if (strlen(s))
 	{
-		ent->client->pers.hand = atoi(s);
+		ent->client->pers.hand = (int)strtol(s, (char **)NULL, 10);
 	}
 
 	/* save off the userinfo in case we want to check something later */

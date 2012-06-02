@@ -278,7 +278,7 @@ SV_SpawnServer ( char *server, char *spawnpoint, server_state_t serverstate, qbo
 	ge->RunFrame();
 
 	/* verify game didn't clobber important stuff */
-	if ( (int) checksum != atoi( sv.configstrings [ CS_MAPCHECKSUM ] ) )
+	if ( (int) checksum != (int)strtol( sv.configstrings [ CS_MAPCHECKSUM ], (char **)NULL, 10 ) )
 	{
 		Com_Error( ERR_DROP, "Game DLL corrupted server configstrings" );
 	}

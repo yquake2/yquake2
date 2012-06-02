@@ -124,14 +124,14 @@ SV_Configstrings_f ( void )
 	}
 
 	/* handle the case of a level changing while a client was connecting */
-	if ( atoi( Cmd_Argv( 1 ) ) != svs.spawncount )
+	if ( (int)strtol( Cmd_Argv( 1 ), (char **)NULL, 10 ) != svs.spawncount )
 	{
 		Com_Printf( "SV_Configstrings_f from different level\n" );
 		SV_New_f();
 		return;
 	}
 
-	start = atoi( Cmd_Argv( 2 ) );
+	start = (int)strtol( Cmd_Argv( 2 ), (char **)NULL, 10 );
 
 	/* write a packet full of data */
 	while ( sv_client->netchan.message.cursize < MAX_MSGLEN / 2 && start < MAX_CONFIGSTRINGS )
@@ -175,14 +175,14 @@ SV_Baselines_f ( void )
 	}
 
 	/* handle the case of a level changing while a client was connecting */
-	if ( atoi( Cmd_Argv( 1 ) ) != svs.spawncount )
+	if ( (int)strtol( Cmd_Argv( 1 ), (char **)NULL, 10 ) != svs.spawncount )
 	{
 		Com_Printf( "SV_Baselines_f from different level\n" );
 		SV_New_f();
 		return;
 	}
 
-	start = atoi( Cmd_Argv( 2 ) );
+	start = (int)strtol( Cmd_Argv( 2 ), (char **)NULL, 10 );
 
 	memset( &nullstate, 0, sizeof ( nullstate ) );
 
@@ -220,7 +220,7 @@ SV_Begin_f ( void )
 	Com_DPrintf( "Begin() from %s\n", sv_client->name );
 
 	/* handle the case of a level changing while a client was connecting */
-	if ( atoi( Cmd_Argv( 1 ) ) != svs.spawncount )
+	if ( (int)strtol( Cmd_Argv( 1 ), (char **)NULL, 10 ) != svs.spawncount )
 	{
 		Com_Printf( "SV_Begin_f from different level\n" );
 		SV_New_f();
@@ -295,7 +295,7 @@ SV_BeginDownload_f ( void )
 
 	if ( Cmd_Argc() > 2 )
 	{
-		offset = atoi( Cmd_Argv( 2 ) ); /* downloaded offset */
+		offset = (int)strtol( Cmd_Argv( 2 ), (char **)NULL, 10 ); /* downloaded offset */
 	}
 
 	/* hacked by zoid to allow more conrol over download
@@ -407,7 +407,7 @@ SV_Nextserver ( void )
 void
 SV_Nextserver_f ( void )
 {
-	if ( atoi( Cmd_Argv( 1 ) ) != svs.spawncount )
+	if ( (int)strtol( Cmd_Argv( 1 ), (char **)NULL, 10 ) != svs.spawncount )
 	{
 		Com_DPrintf( "Nextserver() from wrong level, from %s\n", sv_client->name );
 		return; /* leftover from last server */
