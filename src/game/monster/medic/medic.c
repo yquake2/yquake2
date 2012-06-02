@@ -435,7 +435,7 @@ medic_pain(edict_t *self, edict_t *other /* unused */,
 		return; /* no pain anims in nightmare */
 	}
 
-	if (random() < 0.5)
+	if (randk() < 0.5)
 	{
 		self->monsterinfo.currentmove = &medic_move_pain1;
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
@@ -681,7 +681,7 @@ mmove_t medic_move_duck =
 void
 medic_dodge(edict_t *self, edict_t *attacker, float eta)
 {
-	if (random() > 0.25)
+	if (randk() > 0.25)
 	{
 		return;
 	}
@@ -731,7 +731,7 @@ medic_continue(edict_t *self)
 
 	if (visible(self, self->enemy))
 	{
-		if (random() <= 0.95)
+		if (randk() <= 0.95)
 		{
 			self->monsterinfo.currentmove = &medic_move_attackHyperBlaster;
 		}

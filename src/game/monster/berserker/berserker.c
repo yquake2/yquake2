@@ -128,7 +128,7 @@ berserk_fidget(edict_t *self)
 		return;
 	}
 
-	if (random() > 0.15)
+	if (randk() > 0.15)
 	{
 		return;
 	}
@@ -407,7 +407,7 @@ berserk_pain(edict_t *self, edict_t *other /* unused */,
 		return; /* no pain anims in nightmare */
 	}
 
-	if ((damage < 20) || (random() < 0.5))
+	if ((damage < 20) || (randk() < 0.5))
 	{
 		self->monsterinfo.currentmove = &berserk_move_pain1;
 	}

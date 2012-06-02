@@ -62,7 +62,7 @@ makron_taunt(edict_t *self)
 		return;
 	}
 
-	r = random();
+	r = randk();
 
 	if (r <= 0.3)
 	{
@@ -741,7 +741,7 @@ makron_pain(edict_t *self, edict_t *other /* unused */,
 	/* Lessen the chance of him going into his pain frames */
 	if (damage <= 25)
 	{
-		if (random() < 0.2)
+		if (randk() < 0.2)
 		{
 			return;
 		}
@@ -768,13 +768,13 @@ makron_pain(edict_t *self, edict_t *other /* unused */,
 	{
 		if (damage <= 150)
 		{
-			if (random() <= 0.45)
+			if (randk() <= 0.45)
 			{
 				gi.sound(self, CHAN_VOICE, sound_pain6, 1, ATTN_NONE, 0);
 				self->monsterinfo.currentmove = &makron_move_pain6;
 			}
 			else
-			if (random() <= 0.35)
+			if (randk() <= 0.35)
 			{
 				gi.sound(self, CHAN_VOICE, sound_pain6, 1, ATTN_NONE, 0);
 				self->monsterinfo.currentmove = &makron_move_pain6;
@@ -804,7 +804,7 @@ makron_attack(edict_t *self)
 		return;
 	}
 
-	r = random();
+	r = randk();
 
 	if (r <= 0.3)
 	{
@@ -1026,16 +1026,16 @@ Makron_CheckAttack(edict_t *self)
 		return false;
 	}
 
-	if (random() < chance)
+	if (randk() < chance)
 	{
 		self->monsterinfo.attack_state = AS_MISSILE;
-		self->monsterinfo.attack_finished = level.time + 2 * random();
+		self->monsterinfo.attack_finished = level.time + 2 * randk();
 		return true;
 	}
 
 	if (self->flags & FL_FLY)
 	{
-		if (random() < 0.3)
+		if (randk() < 0.3)
 		{
 			self->monsterinfo.attack_state = AS_SLIDING;
 		}

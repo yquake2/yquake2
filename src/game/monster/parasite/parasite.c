@@ -195,7 +195,7 @@ parasite_refidget(edict_t *self)
 		return;
 	}
 
-	if (random() <= 0.8)
+	if (randk() <= 0.8)
 	{
 		self->monsterinfo.currentmove = &parasite_move_fidget;
 	}
@@ -457,7 +457,7 @@ parasite_pain(edict_t *self, edict_t *other /* unused */,
 		return; /* no pain anims in nightmare */
 	}
 
-	if (random() < 0.5)
+	if (randk() < 0.5)
 	{
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 	}

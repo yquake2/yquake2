@@ -375,7 +375,7 @@ brain_dodge(edict_t *self, edict_t *attacker, float eta)
 		return;
 	}
 
-	if (random() > 0.25)
+	if (randk() > 0.25)
 	{
 		return;
 	}
@@ -607,7 +607,7 @@ brain_melee(edict_t *self)
 		return;
 	}
 
-	if (random() <= 0.5)
+	if (randk() <= 0.5)
 	{
 		self->monsterinfo.currentmove = &brain_move_attack1;
 	}
@@ -687,7 +687,7 @@ brain_pain(edict_t *self, edict_t *other /* unused */,
 		return; /* no pain anims in nightmare */
 	}
 
-	r = random();
+	r = randk();
 
 	if (r < 0.33)
 	{
@@ -769,7 +769,7 @@ brain_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /* u
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
 
-	if (random() <= 0.5)
+	if (randk() <= 0.5)
 	{
 		self->monsterinfo.currentmove = &brain_move_death1;
 	}
