@@ -40,6 +40,7 @@
 
 #define MAX_NUM_ARGVS 128
 
+int curtime;
 int starttime;
 qboolean ActiveApp;
 qboolean Minimized;
@@ -483,6 +484,27 @@ ParseCommandLine(LPSTR lpCmdLine)
 		}
 	}
 }
+
+/* ======================================================================= */
+
+int
+Sys_Milliseconds(void)
+{
+	static int base;
+	static qboolean initialized = false;
+
+	if (!initialized)
+	{   /* let base retain 16 bits of effectively random data */
+		base = timeGetTime() & 0xffff0000;
+		initialized = true;
+	}
+
+	curtime = timeGetTime() - base;
+
+	return curtime;
+} 
+
+/* ======================================================================= */
 
 /*
  * Windows main function. Containts the 
