@@ -489,6 +489,7 @@ ifeq ($(OSTYPE), Windows)
 SERVER_OBJS_ += \
 	src/windows/conproc.o \
 	src/windows/mem.o \
+	src/windows/network.o \
 	src/windows/system.o	
 else
 SERVER_OBJS_ += \
