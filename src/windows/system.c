@@ -638,6 +638,19 @@ Sys_Mkdir(char *path)
 	_mkdir(path);
 }
 
+char *
+Sys_GetCurrentDirectory(void)
+{
+	static char dir[MAX_OSPATH];
+
+	if (!_getcwd(dir, sizeof(dir)))
+	{
+		Sys_Error("Couldn't get current working directory");
+	}
+
+	return dir;
+}
+
 /* ======================================================================= */
 
 /*
