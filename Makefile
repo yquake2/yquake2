@@ -61,13 +61,13 @@ WITH_SYSTEMDIR:=""
 
 # Detect the OS
 ifdef SystemRoot
-OS ?= Windows
+OSTYPE := Windows
 else
 OSTYPE := $(shell uname -s)
 endif
 
 # Detect the architecture
-ifeq ($(OS), Windows)
+ifeq ($(OSTYPE), Windows)
 # At this time only i386 is supported on Windows
 ARCH := i386
 else
@@ -115,7 +115,7 @@ endif
 # ----------
 
 # Extra CFLAGS for SDL
-ifeq ($(OS), Windows)
+ifeq ($(OSTYPE), Windows)
 SDLCFLAGS := $(shell sdl-config.exe --cflags)
 else
 SDLCFLAGS := $(shell sdl-config --cflags)
@@ -124,7 +124,7 @@ endif
 # ----------
 
 # Extra CFLAGS for X11
-ifneq ($(OS), Windows)
+ifneq ($(OSTYPE), Windows)
 ifeq ($(WITH_X11GAMMA),yes)
 X11CFLAGS := $(shell pkg-config x11 --cflags)
 X11CFLAGS += $(shell pkg-config xxf86vm --cflags)
@@ -157,7 +157,7 @@ endif
 # ----------
 
 # Extra LDFLAGS for SDL
-ifeq ($(OS), Windows)
+ifeq ($(OSTYPE), Windows)
 SDLLDFLAGS := $(shell sdl-config.exe --libs)
 else
 SDLLDFLAGS := $(shell sdl-config --libs)
@@ -166,7 +166,7 @@ endif
 # ----------
 
 # Extra LDFLAGS for X11
-ifneq ($(OS), Windows)
+ifneq ($(OSTYPE), Windows)
 ifeq ($(WITH_X11GAMMA),yes)
 X11LDFLAGS := $(shell pkg-config x11 --libs)
 X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
@@ -191,7 +191,7 @@ endif
 # ----------
 
 # Builds everything
-ifeq ($(OS), Windows)
+ifeq ($(OSTYPE), Windows)
 all: server
 else
 all: client server refresher game
@@ -200,7 +200,7 @@ endif
 # ----------
 
 # Cleanup
-ifeq ($(OS), Windows)
+ifeq ($(OSTYPE), Windows)
 clean:
 	@echo "===> CLEAN"
 	@-rmdir /S /Q release build 
@@ -244,15 +244,27 @@ endif
 # ----------
 
 # The server
+ifeq ($(OSTYPE), Windows)
 server:
-	@echo '===> Building q2ded'
+	@echo "===> Building q2ded"
+	${Q}mkdir.exe -p release
+	$(MAKE) release/q2ded
+
+build/server/%.o: %.c
+	@echo "===> CC $<"
+	${Q}mkdir.exe -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+else
+server:
+	@echo "===> Building q2ded"
 	${Q}mkdir -p release
 	$(MAKE) release/q2ded
 
 build/server/%.o: %.c
-	@echo '===> CC $<'
+	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $< 
+endif
 
 release/q2ded : CFLAGS += -DDEDICATED_ONLY
 release/q2ded : LDFLAGS += -lz
@@ -473,7 +485,7 @@ SERVER_OBJS_ := \
 	src/server/sv_user.o \
 	src/server/sv_world.o
 
-ifeq ($(OS), Windows)
+ifeq ($(OSTYPE), Windows)
 SERVER_OBJS_ += \
 	src/windows/conproc.o \
 	src/windows/system.o	
@@ -547,9 +559,9 @@ release/quake2 : $(CLIENT_OBJS)
 	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 
 # release/q2ded
-ifeq ($(OS), Windows)
+ifeq ($(OSTYPE), Windows)
 release/q2ded : $(SERVER_OBJS)
-	@echo '===> LD $@.exe'
+	@echo "===> LD $@.exe"
 	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@.exe
 else
 release/q2ded : $(SERVER_OBJS)
