@@ -152,6 +152,8 @@ ifeq ($(OSTYPE),Linux)
 LDFLAGS := -L/usr/lib -lm -ldl
 else ifeq ($(OSTYPE),FreeBSD)
 LDFLAGS := -L/usr/local/lib -lm
+else ifeq ($(OSTYPE),Windows)
+LDFLAGS := -lws2_32 -lwinmm
 endif
 
 # ----------
