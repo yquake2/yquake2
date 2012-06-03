@@ -24,8 +24,9 @@
  * =======================================================================
  */
 
-#include <stdio.h>
+#include <ctype.h>
 #include <process.h>
+#include <stdio.h>
 #include <windows.h>
 #include "header/conproc.h"
 
@@ -83,11 +84,11 @@ CCheckParm(char *parm)
 void
 InitConProc(int argc, char **argv)
 {
-	unsigned threadAddr;
-	HANDLE hFile;
-	HANDLE heventParent;
-	HANDLE heventChild;
+	HANDLE hFile = NULL;
+	HANDLE heventParent = NULL;
+	HANDLE heventChild = NULL;
 	int t;
+	unsigned int threadAddr;
 
 	ccom_argc = argc;
 	ccom_argv = argv;
