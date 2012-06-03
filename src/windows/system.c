@@ -67,7 +67,10 @@ Sys_Error(char *error, ...)
 	va_list argptr;
 	char text[1024];
 
+#ifndef DEDICATED_ONLY
 	CL_Shutdown();
+#endif
+	
 	Qcommon_Shutdown();
 
 	va_start(argptr, error);
@@ -92,7 +95,10 @@ Sys_Quit(void)
 {
 	timeEndPeriod(1);
 
+#ifndef DEDICATED_ONLY
 	CL_Shutdown();
+#endif
+
 	Qcommon_Shutdown();
 	CloseHandle(qwclsemaphore);
 
