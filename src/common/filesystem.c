@@ -421,7 +421,7 @@ FS_FOpenFileRead(fsHandle_t * handle)
 					{
 						/* PAK */
 						file_from_pak = 1;
-						handle->file = fopen(pack->name, "r");
+						handle->file = fopen(pack->name, "rb");
 
 						if (handle->file)
 						{
@@ -461,12 +461,12 @@ FS_FOpenFileRead(fsHandle_t * handle)
 			/* Search in a directory tree. */
 			Com_sprintf(path, sizeof(path), "%s/%s", search->path, handle->name);
 
-			handle->file = fopen(path, "r");
+			handle->file = fopen(path, "rb");
 
 			if (!handle->file)
 			{
 				strlwr(path);
-				handle->file = fopen(path, "r");
+				handle->file = fopen(path, "rb");
 			}
 
 			if (!handle->file)
@@ -1030,7 +1030,7 @@ FS_LoadPAK(const char *packPath)
 	dpackheader_t	header; /* PAK file header. */
 	dpackfile_t		info[MAX_FILES_IN_PACK]; /* PAK info. */
 
-	handle = fopen(packPath, "r");
+	handle = fopen(packPath, "rb");
 
 	if (handle == NULL)
 		return (NULL);
