@@ -214,10 +214,7 @@ Sys_Init(void)
 
 	if (dedicated->value)
 	{
-		if (!AllocConsole())
-		{
-			Sys_Error("Couldn't create dedicated server console");
-		}
+		AllocConsole();
 
 		hinput = GetStdHandle(STD_INPUT_HANDLE);
 		houtput = GetStdHandle(STD_OUTPUT_HANDLE);
