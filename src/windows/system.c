@@ -35,8 +35,8 @@
 
 #include "../common/header/common.h"
 #include "header/conproc.h"
-#include "resource.h"
-#include "winquake.h"
+#include "header/resource.h"
+#include "header/winquake.h"
 
 #define MAX_NUM_ARGVS 128
 
