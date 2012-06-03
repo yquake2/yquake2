@@ -18,4 +18,20 @@ Windows Port TODO
 - The Makefile needs some love. '' cannot be used as quotation
   marks under Windows and shouled be changed to "".
 - Ensure that all new headers have header guards.
+- Replace atoi(), atol() and atof() in Windows code.
+- Replace rand() with randk() in Windows code.
 
+The big plan:
+ 1. Get the dedicated server build
+ 2. Get the game build
+ 3. Be able to connect to a windows dedicated server
+ 4. Get the client build
+ 5. Get the refresher build
+ 6. Be able to start the client and watch the demo loop
+ 7. Bugsfix until the game can be played through
+ 8. Finish remaining TODOs
+ 9. Release CFT
+
+Thinks that would be nice to have (after the CFT):
+- Remove IPX
+- Add IPv6
