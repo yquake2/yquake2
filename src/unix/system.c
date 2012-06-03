@@ -120,12 +120,6 @@ Sys_Mkdir ( char *path )
 	mkdir( path, 0755 );
 }
 
-void
-Sys_Rmdir ( char *path )
-{
-	rmdir( path );
-}
-
 char *
 Sys_GetCurrentDirectory ( void )
 {

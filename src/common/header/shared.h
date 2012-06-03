@@ -249,7 +249,6 @@ extern int curtime; /* time returned by last Sys_Milliseconds */
 
 int Sys_Milliseconds(void);
 void Sys_Mkdir(char *path);
-void Sys_Rmdir(char *path);
 char *strlwr(char *s);
 
 /* large block stack allocation routines */
