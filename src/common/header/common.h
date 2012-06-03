@@ -730,6 +730,7 @@ void SCR_DebugGraph (float value, int color);
 
 /* NON-PORTABLE SYSTEM SERVICES */
 
+void	Sys_Init (void);
 void	Sys_UnloadGame (void);
 void	*Sys_GetGameAPI (void *parms);
 
