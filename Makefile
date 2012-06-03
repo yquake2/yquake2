@@ -4,7 +4,7 @@
 # Just type "make" to compile the                        #
 #  - SDL Client (quake2)                                 #
 #  - Server (q2ded)                                      #
-#  - SDL OpenGL-Refresher (ref_gl.so)                    #
+#  - SDL OpenGL-Refresher (ref_gl.so or ref_gl.dll)      #
 #  - Quake II Game (baseq2)                              #
 #                                                        #
 # Base dependencies:                                     #
@@ -14,6 +14,7 @@
 # Platforms:                                             #
 #  - Linux                                               #
 #  - FreeBSD                                             #
+#  - Windows                                             #
 # ------------------------------------------------------ #
 
 # User configurable options
@@ -41,7 +42,8 @@ WITH_RETEXTURING:=yes
 
 # Set the gamma via X11 and not via SDL. This works
 # around problems in some SDL version. Adds dependencies
-# to pkg-config, libX11 and libXxf86vm
+# to pkg-config, libX11 and libXxf86vm. Unsupported in
+# Windows.
 WITH_X11GAMMA:=no
 
 # Enables opening of ZIP files (also known as .pk3 packs).
@@ -57,11 +59,21 @@ WITH_SYSTEMDIR:=""
 #     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
 # ====================================================== #
 
-# Check the OS type
+# Detect the OS
+ifdef SystemRoot
+OS ?= Windows
+else
 OSTYPE := $(shell uname -s)
+endif
 
+# Detect the architecture
+ifeq ($(OS), Windows)
+# At this time only i386 is supported on Windows
+ARCH := i386
+else
 # Some platforms call it "amd64" and some "x86_64"
 ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/amd64/x86_64/)
+endif
 
 # Refuse all other platforms as a firewall against PEBKAC
 # (You'll need some #ifdef for your unsupported  plattform!)
@@ -103,17 +115,26 @@ endif
 # ----------
 
 # Extra CFLAGS for SDL
+ifeq ($(OS), Windows)
+SDLCFLAGS := $(shell sdl-config.exe --cflags)
+else
 SDLCFLAGS := $(shell sdl-config --cflags)
+endif
 
 # ----------
 
 # Extra CFLAGS for X11
+ifneq ($(OS), Windows)
 ifeq ($(WITH_X11GAMMA),yes)
 X11CFLAGS := $(shell pkg-config x11 --cflags)
 X11CFLAGS += $(shell pkg-config xxf86vm --cflags)
 else
 X11CFLAGS :=
 endif
+else
+X11CFLAGS :=
+endif
+
 
 # ----------
 
@@ -136,14 +157,22 @@ endif
 # ----------
 
 # Extra LDFLAGS for SDL
+ifeq ($(OS), Windows)
+SDLLDFLAGS := $(shell sdl-config.exe --libs)
+else
 SDLLDFLAGS := $(shell sdl-config --libs)
+endif
 
 # ----------
 
 # Extra LDFLAGS for X11
+ifneq ($(OS), Windows)
 ifeq ($(WITH_X11GAMMA),yes)
 X11LDFLAGS := $(shell pkg-config x11 --libs)
 X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
+else
+X11LDFLAGS :=
+endif
 else
 X11LDFLAGS :=
 endif
@@ -162,14 +191,24 @@ endif
 # ----------
 
 # Builds everything
+ifeq ($(OS), Windows)
+all: server
+else
 all: client server refresher game
+endif
 
 # ----------
 
 # Cleanup
+ifeq ($(OS), Windows)
+clean:
+	@echo "===> CLEAN"
+	@-rmdir /S /Q release build 
+else
 clean:
 	@echo "===> CLEAN"
 	${Q}rm -Rf build release
+endif
 
 # ----------
 
@@ -432,13 +471,19 @@ SERVER_OBJS_ := \
 	src/server/sv_save.o \
 	src/server/sv_send.o \
 	src/server/sv_user.o \
-	src/server/sv_world.o \
+	src/server/sv_world.o
+
+ifeq ($(OS), Windows)
+SERVER_OBJS_ += 
+else
+SERVER_OBJS_ += \
 	src/unix/glob.o \
 	src/unix/hunk.o \
 	src/unix/main.o \
  	src/unix/network.o \
  	src/unix/signalhandler.o \
 	src/unix/system.o
+endif
 
 # ----------
 
@@ -500,9 +545,15 @@ release/quake2 : $(CLIENT_OBJS)
 	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 
 # release/q2ded
+ifeq ($(OS), Windows)
+release/q2ded : $(SERVER_OBJS)
+	@echo '===> LD $@.exe'
+	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@.exe
+else
 release/q2ded : $(SERVER_OBJS)
 	@echo '===> LD $@'
 	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@
+endif
 
 # release/ref_gl.so
 release/ref_gl.so : $(OPENGL_OBJS)
