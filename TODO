@@ -22,6 +22,8 @@ Windows Port TODO
 - Replace rand() with randk() in Windows code.
 - Implement Sys_AppActivate() as soon as cl_hwnd is
   ported to Yamagi Quake II.
+- Check of "rb" is the correct mode to open files in
+  filesystem.c
 
 The big plan:
  1. Get the dedicated server builded (03/06/12)
