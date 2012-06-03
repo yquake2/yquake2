@@ -648,7 +648,6 @@ qboolean	FS_FileExists(char *path);
 void		FS_CopyFile(const char *srcPath, const char *dstPath);
 void		FS_RenameFile(const char *oldPath, const char *newPath);
 void		FS_DeleteFile(const char *path);
-void		FS_DeletePath(char *path);
 int			FS_GetFileList(const char *path, const char *extension, char *buffer, int size, fsSearchType_t searchType);
 char		**FS_ListPak(char *find, int *num);	/* Knighmare- pak list function */
 char		**FS_ListFiles(char *findname, int *numfiles, unsigned musthave, unsigned canthave);

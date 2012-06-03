@@ -257,14 +257,6 @@ FS_Gamedir(void)
 	return (fs_gamedir);
 }
 
-void
-FS_DeletePath(char *path)
-{
-	FS_DPrintf("FS_DeletePath(%s)\n", path);
-
-	Sys_Rmdir(path);
-}
-
 /*
  * Returns a FILE * for a fileHandle_t.
  */
