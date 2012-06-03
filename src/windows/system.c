@@ -226,8 +226,8 @@ char *
 Sys_ConsoleInput(void)
 {
 	INPUT_RECORD recs[1024];
-	int dummy;
-	int ch, numread, numevents;
+	int ch;
+   	DWORD dummy, numread, numevents;
 
 	if (!dedicated || !dedicated->value)
 	{
@@ -310,8 +310,8 @@ Sys_ConsoleInput(void)
 void
 Sys_ConsoleOutput(char *string)
 {
-	int dummy;
 	char text[256];
+	DWORD dummy;
 
 	if (!dedicated || !dedicated->value)
 	{
@@ -411,7 +411,6 @@ Sys_GetGameAPI(void *parms)
 	const char *gamename = "game.dll";
 	char name[MAX_OSPATH];
 	char *path = NULL;
-	char cwd[MAX_OSPATH];
 
 	if (game_library)
 	{
