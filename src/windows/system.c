@@ -392,8 +392,10 @@ Sys_GetClipboardData(void)
 void
 Sys_AppActivate(void)
 {
+	/*
 	ShowWindow(cl_hwnd, SW_RESTORE);
 	SetForegroundWindow(cl_hwnd);
+	*/
 }
 
 /* ================================================================ */
