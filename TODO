@@ -20,6 +20,8 @@ Windows Port TODO
 - Ensure that all new headers have header guards.
 - Replace atoi(), atol() and atof() in Windows code.
 - Replace rand() with randk() in Windows code.
+- Implement Sys_AppActivate() as soon as cl_hwnd is
+  ported to Yamagi Quake II.
 
 The big plan:
  1. Get the dedicated server build
