@@ -474,7 +474,9 @@ SERVER_OBJS_ := \
 	src/server/sv_world.o
 
 ifeq ($(OS), Windows)
-SERVER_OBJS_ += 
+SERVER_OBJS_ += \
+	src/windows/conproc.o \
+	src/windows/system.o	
 else
 SERVER_OBJS_ += \
 	src/unix/glob.o \

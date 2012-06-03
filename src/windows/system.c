@@ -34,7 +34,7 @@
 #include <conio.h>
 
 #include "../common/header/common.h"
-#include "conproc.h"
+#include "header/conproc.h"
 #include "resource.h"
 #include "winquake.h"
 
