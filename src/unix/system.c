@@ -45,8 +45,8 @@
 #include <dlfcn.h>
 #include <dirent.h>
 
-#include "header/glob.h"
 #include "../common/header/common.h"
+#include "../common/header/glob.h"
 #include "header/unix.h"
 
 unsigned sys_frame_time;

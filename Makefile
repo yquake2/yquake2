@@ -403,6 +403,7 @@ CLIENT_OBJS_ := \
 	src/common/crc.o \
 	src/common/cvar.o \
 	src/common/filesystem.o \
+	src/common/glob.o \
 	src/common/md4.o \
 	src/common/misc.o \
 	src/common/netchan.o \
@@ -438,7 +439,6 @@ CLIENT_OBJS_ := \
 	src/server/sv_send.o \
 	src/server/sv_user.o \
 	src/server/sv_world.o \
-	src/unix/glob.o \
 	src/unix/hunk.o \
 	src/unix/main.o \
  	src/unix/network.o \
@@ -454,6 +454,7 @@ SERVER_OBJS_ := \
 	src/common/crc.o \
 	src/common/cvar.o \
 	src/common/filesystem.o \
+	src/common/glob.o \
 	src/common/md4.o \
 	src/common/misc.o \
 	src/common/netchan.o \
@@ -495,7 +496,6 @@ SERVER_OBJS_ += \
 	src/windows/system.o	
 else
 SERVER_OBJS_ += \
-	src/unix/glob.o \
 	src/unix/hunk.o \
 	src/unix/main.o \
  	src/unix/network.o \
@@ -526,8 +526,8 @@ OPENGL_OBJS_ = \
 	src/refresh/files/wal.o \
 	src/sdl/input.o \
 	src/sdl/refresh.o \
+    src/common/glob.o \
     src/common/shared/shared.o \
-    src/unix/glob.o \
 	src/unix/hunk.o \
 	src/unix/qgl.o
 
