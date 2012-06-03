@@ -41,7 +41,7 @@
 #define MAX_NUM_ARGVS 128
 
 int starttime;
-int ActiveApp;
+qboolean ActiveApp;
 qboolean Minimized;
 
 static HANDLE hinput, houtput;
@@ -561,7 +561,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		}
 		while (time < 1);
 
-		_controlfp(_PC_24, _MCW_PC);
+		/*_controlfp(_PC_24, _MCW_PC); */
 		Qcommon_Frame(time);
 
 		oldtime = newtime;
