@@ -26,7 +26,7 @@
  */
 
 #include "header/common.h"
-#include "../unix/header/glob.h"
+#include "../common/header/glob.h"
 
 #ifdef ZIP
 #include "unzip/unzip.h"
