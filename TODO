@@ -17,4 +17,5 @@ Windows Port TODO
   the Windows buildin "mkdir" can be used.
 - The Makefile needs some love. '' cannot be used as quotation
   marks under Windows and shouled be changed to "".
+- Ensure that all new headers have header guards.
 
