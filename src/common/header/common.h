@@ -481,6 +481,7 @@ typedef struct
 	unsigned short	port;
 } netadr_t;
 
+void		NET_Init (void);
 void		NET_Shutdown (void);
 
 void		NET_Config (qboolean multiplayer);
