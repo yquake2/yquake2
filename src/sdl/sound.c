@@ -30,7 +30,12 @@
  * =======================================================================
  */
 
+#ifdef _WIN32
+#include <SDL/SDL.h>
+#else
 #include <SDL.h>
+#endif
+
 #include "../client/header/client.h"
 #include "../client/sound/header/local.h"
 

@@ -162,7 +162,7 @@ endif
 
 # Extra LDFLAGS for SDL
 ifeq ($(OSTYPE), Windows)
-SDLLDFLAGS := $(shell sdl-config.exe --libs)
+SDLLDFLAGS := -lSDL
 else
 SDLLDFLAGS := $(shell sdl-config --libs)
 endif
@@ -234,7 +234,7 @@ endif
 
 ifeq ($(WITH_OGG),yes)
 release/quake2.exe : CFLAGS += -DOGG
-release/quake2.exe : LDFLAGS += -lvorbis -lvorbisfile -logg
+release/quake2.exe : LDFLAGS += -lvorbisfile -lvorbis -logg
 endif
 
 ifeq ($(WITH_OPENAL),yes)
