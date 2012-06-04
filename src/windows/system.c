@@ -340,19 +340,14 @@ Sys_ConsoleOutput(char *string)
 void
 Sys_SendKeyEvents(void)
 {
-	MSG msg;
+#ifndef DEDICATED_ONLY
 
-	while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
+	if ( IN_Update_fp )
 	{
-		if (!GetMessage(&msg, NULL, 0, 0))
-		{
-			Sys_Quit();
-		}
-
-		sys_msg_time = msg.time;
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
+		IN_Update_fp();
 	}
+
+#endif
 
 	/* grab frame time */
 	sys_frame_time = timeGetTime();

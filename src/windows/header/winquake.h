@@ -36,7 +36,8 @@ extern qboolean ActiveApp, Minimized;
 extern int window_center_x, window_center_y;
 extern RECT window_rect;
 
-typedef void ( *Key_Event_fp_t )( int key, qboolean down );
+typedef void (*Key_Event_fp_t)(int key, qboolean down);
+extern void (*IN_Update_fp)(void);
 
 typedef struct in_state
 {
