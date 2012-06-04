@@ -666,6 +666,9 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	/* Make the current instance global */
 	global_hInstance = hInstance;
 
+	/* Seed PRNG */
+	randk_seed();
+
 	/* Parse the command line arguments */
 	ParseCommandLine(lpCmdLine);
 
