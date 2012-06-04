@@ -363,7 +363,7 @@ VID_LoadRefresh(char *name)
 	ri.Vid_MenuInit = VID_MenuInit;
 	ri.Vid_NewWindow = VID_NewWindow;
 
-	if ((GetRefAPI = (void *)GetProcAddress(reflib_library, "GetRefAPI")) == 0)
+	if ((GetRefAPI = (void *)GetProcAddress(reflib_library, "R_GetRefAPI")) == 0)
 	{
 		Com_Error(ERR_FATAL, "GetProcAddress failed on %s", name);
 	}
@@ -394,6 +394,7 @@ VID_LoadRefresh(char *name)
 	if (re.Init(global_hInstance, 0) == -1)
 	{
 		re.Shutdown();
+		Com_Error(ERR_FATAL, "re.Init() failed");
 		VID_FreeReflib();
 		return false;
 	}
