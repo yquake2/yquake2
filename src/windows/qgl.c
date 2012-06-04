@@ -3683,13 +3683,13 @@ QGL_Init(const char *dllname)
 {
 	if ((glw_state.hinstOpenGL = LoadLibrary(dllname)) == 0)
 	{
-		char *buf = NULL;
+		ri.Con_Printf(PRINT_ALL, "Couldn't load %s, trying hardcoded default opengl32.dll\n", dllname);
 
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-				NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-				(LPTSTR)&buf, 0, NULL);
-		ri.Con_Printf(PRINT_ALL, "%s\n", buf);
-		return false;
+		if ((glw_state.hinstOpenGL = LoadLibrary("opengl32.dll")) == 0)
+		{
+			ri.Con_Printf(PRINT_ALL, "Couldn't load opengl32.dll\n");
+			return false;
+		}
 	}
 
 	gl_config.allow_cds = true;
