@@ -33,9 +33,18 @@ extern HWND cl_hwnd;
 
 extern qboolean ActiveApp, Minimized;
 
-void IN_Activate(qboolean active);
-void IN_MouseEvent(int mstate);
-
 extern int window_center_x, window_center_y;
 extern RECT window_rect;
+
+typedef void ( *Key_Event_fp_t )( int key, qboolean down );
+
+typedef struct in_state
+{
+	/* Pointers to functions back in client, set by vid_so */
+	void ( *IN_CenterView_fp )( void );
+	Key_Event_fp_t Key_Event_fp;
+	vec_t *viewangles;
+	int *in_strafe_state;
+	int *in_speed_state;
+} in_state_t;
 

@@ -499,7 +499,8 @@ CLIENT_OBJS_ += \
  	src/windows/conproc.o \
 	src/windows/mem.o \
 	src/windows/network.o \
-	src/windows/system.o	 
+	src/windows/system.o \
+    src/windows/vid.o	
 else
 CLIENT_OBJS_ += \
 	src/unix/hunk.o \
