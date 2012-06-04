@@ -25,7 +25,12 @@
  * =======================================================================
  */
 
+#ifdef _WIN32
+#include <SDL/SDL.h>
+#else
 #include <SDL.h>
+#endif
+
 #include "../refresh/header/local.h"
 #include "../client/header/keyboard.h"
 #include "../unix/header/unix.h"
