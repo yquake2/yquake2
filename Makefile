@@ -619,7 +619,8 @@ OPENGL_OBJS_ = \
 
 ifeq ($(OSTYPE), Windows)
 OPENGL_OBJS_ += \
-	src/windows/mem.o
+	src/windows/mem.o \
+	src/windows/qgl.o
 else
 OPENGL_OBJS_ += \
 	src/unix/hunk.o \
