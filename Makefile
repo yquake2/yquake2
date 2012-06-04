@@ -194,7 +194,7 @@ endif
 
 # Builds everything
 ifeq ($(OSTYPE), Windows)
-all: server
+all: server game
 else
 all: client server refresher game
 endif
@@ -250,12 +250,20 @@ ifeq ($(OSTYPE), Windows)
 server:
 	@echo "===> Building q2ded"
 	${Q}mkdir.exe -p release
-	$(MAKE) release/q2ded
+	$(MAKE) release/q2ded.exe
 
 build/server/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir.exe -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+
+release/q2ded.exe : CFLAGS += -DDEDICATED_ONLY
+release/q2ded.exe : LDFLAGS += -lz
+
+ifeq ($(WITH_ZIP),yes)
+release/q2ded.exe : CFLAGS += -DZIP
+release/q2ded.exe : LDFLAGS += -lz
+endif
 else
 server:
 	@echo "===> Building q2ded"
@@ -266,7 +274,6 @@ build/server/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $< 
-endif
 
 release/q2ded : CFLAGS += -DDEDICATED_ONLY
 release/q2ded : LDFLAGS += -lz
@@ -274,6 +281,7 @@ release/q2ded : LDFLAGS += -lz
 ifeq ($(WITH_ZIP),yes)
 release/q2ded : CFLAGS += -DZIP
 release/q2ded : LDFLAGS += -lz
+endif
 endif
 
 # ----------
@@ -304,19 +312,33 @@ endif
 # ----------
 
 # The baseq2 game
+ifeq ($(OSTYPE), Windows)
 game:
-	@echo '===> Building baseq2/game.so'
+	@echo "===> Building baseq2/game.dll"
+	${Q}mkdir.exe -p release/baseq2
+	$(MAKE) release/baseq2/game.dll
+
+build/baseq2/%.o: %.c
+	@echo "===> CC $<"
+	${Q}mkdir.exe -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+
+release/baseq2/game.dll : LDFLAGS += -shared
+else
+game:
+	@echo "===> Building baseq2/game.so"
 	${Q}mkdir -p release/baseq2
 	$(MAKE) release/baseq2/game.so
 
 build/baseq2/%.o: %.c
-	@echo '===> CC $<'
+	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 release/baseq2/game.so : CFLAGS += -fPIC
 release/baseq2/game.so : LDFLAGS += -shared
-
+endif
+ 
 # ----------
 
 # Used by the game
@@ -564,9 +586,9 @@ release/quake2 : $(CLIENT_OBJS)
 
 # release/q2ded
 ifeq ($(OSTYPE), Windows)
-release/q2ded : $(SERVER_OBJS)
+release/q2ded.exe : $(SERVER_OBJS)
 	@echo "===> LD $@.exe"
-	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@.exe
+	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@
 else
 release/q2ded : $(SERVER_OBJS)
 	@echo '===> LD $@'
@@ -579,8 +601,14 @@ release/ref_gl.so : $(OPENGL_OBJS)
 	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
 
 # release/baseq2/game.so
-release/baseq2/game.so : $(GAME_OBJS)
-	@echo '===> LD $@'
+ifeq ($(OSTYPE), Windows)
+release/baseq2/game.dll : $(GAME_OBJS)
+	@echo "===> LD $@"
 	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
-
+else
+release/baseq2/game.so : $(GAME_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
+endif
+ 
 # ----------
