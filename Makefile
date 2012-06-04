@@ -38,7 +38,7 @@ WITH_OPENAL:=no
 
 # Enables retexturing support. Adds a dependency to
 # libjpeg
-WITH_RETEXTURING:=yes
+WITH_RETEXTURING:=no
 
 # Set the gamma via X11 and not via SDL. This works
 # around problems in some SDL version. Adds dependencies
@@ -330,15 +330,15 @@ build/refresher/%.o: %.c
 	${Q}mkdir.exe -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
 
-release/ref_gl.so : LDFLAGS += -shared
+release/ref_gl.dll : LDFLAGS += -shared
 
 ifeq ($(WITH_X11GAMMA),yes)
-release/ref_gl.so : CFLAGS += -DX11GAMMA
+release/ref_gl.dll : CFLAGS += -DX11GAMMA
 endif
 
 ifeq ($(WITH_RETEXTURING),yes)
-release/ref_gl.so : CFLAGS += -DRETEXTURE
-release/ref_gl.so : LDFLAGS += -ljpeg
+release/ref_gl.dll : CFLAGS += -DRETEXTURE
+release/ref_gl.dll : LDFLAGS += -ljpeg
 endif
 else
 refresher:
@@ -678,7 +678,7 @@ endif
 ifeq ($(OSTYPE), Windows)
 release/ref_gl.dll : $(OPENGL_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
+	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
 release/ref_gl.so : $(OPENGL_OBJS)
 	@echo "===> LD $@"
