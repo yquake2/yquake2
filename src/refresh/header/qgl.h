@@ -27,6 +27,10 @@
 #ifndef REF_QGL_H
 #define REF_QGL_H
 
+#ifdef _WIN32
+ #include <windows.h>
+#endif 
+
 #include <GL/gl.h>
 
 #ifndef APIENTRY
