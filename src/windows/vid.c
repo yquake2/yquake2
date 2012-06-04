@@ -391,6 +391,11 @@ VID_LoadRefresh(char *name)
 		Com_Error(ERR_FATAL, "No input backend init functions in REF.\n");
 	}
 
+	if (IN_BackendInit_fp)
+	{
+		IN_BackendInit_fp( &in_state );
+	}
+
 	if (re.Init(global_hInstance, 0) == -1)
 	{
 		re.Shutdown();
