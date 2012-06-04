@@ -94,7 +94,9 @@ gltmode_t gl_solid_modes[] = {
 	{ "GL_RGB5", GL_RGB5 },
 	{ "GL_RGB4", GL_RGB4 },
 	{ "GL_R3_G3_B2", GL_R3_G3_B2 },
+#ifdef GL_RGB2_EXT
 	{ "GL_RGB2", GL_RGB2_EXT },
+#endif
 };
 
 #define NUM_GL_SOLID_MODES ( sizeof ( gl_solid_modes ) / sizeof ( gltmode_t ) )
