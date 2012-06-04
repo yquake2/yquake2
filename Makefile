@@ -118,7 +118,7 @@ endif
 
 # Extra CFLAGS for SDL
 ifeq ($(OSTYPE), Windows)
-SDLCFLAGS := $(shell sdl-config.exe --cflags)
+SDLCFLAGS :=
 else
 SDLCFLAGS := $(shell sdl-config --cflags)
 endif
@@ -196,7 +196,7 @@ endif
 
 # Builds everything
 ifeq ($(OSTYPE), Windows)
-all: server game
+all: client server game
 else
 all: client server refresher game
 endif
