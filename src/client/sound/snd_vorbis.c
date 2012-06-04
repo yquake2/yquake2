@@ -351,7 +351,7 @@ OGG_LoadPlaylist ( char *playlist )
 	}
 
 	/* Count the files in playlist. */
-	for ( ptr = strsep( (char **) &buffer, "\n" ); ptr != NULL; ptr = strsep( NULL, "\n" ) )
+	for ( ptr = strtok( (char *)buffer, "\n" ); ptr != NULL; ptr = strtok( NULL, "\n" ) )
 	{
 		if ( (byte *) ptr != buffer )
 		{
@@ -369,9 +369,9 @@ OGG_LoadPlaylist ( char *playlist )
 
 	i = 0;
 
-	for ( ptr = strsep( (char **) &buffer, "\n" );
+	for ( ptr = strtok( (char *) buffer, "\n" );
 		  ptr != NULL;
-		  ptr = strsep( NULL, "\n" ) )
+		  ptr = strtok( NULL, "\n" ) )
 	{
 		if ( OGG_Check( va( "%s/%s", OGG_DIR, ptr ) ) )
 		{
