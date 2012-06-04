@@ -319,13 +319,35 @@ endif
 # ----------
 
 # The refresher
+ifeq ($(OSTYPE), Windows)
 refresher:
-	@echo '===> Building ref_gl.so'
+	@echo "===> Building ref_gl.dll"
+	${Q}mkdir.exe -p release
+	$(MAKE) release/ref_gl.dll
+
+build/refresher/%.o: %.c
+	@echo "===> CC $<"
+	${Q}mkdir.exe -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
+
+release/ref_gl.so : LDFLAGS += -shared
+
+ifeq ($(WITH_X11GAMMA),yes)
+release/ref_gl.so : CFLAGS += -DX11GAMMA
+endif
+
+ifeq ($(WITH_RETEXTURING),yes)
+release/ref_gl.so : CFLAGS += -DRETEXTURE
+release/ref_gl.so : LDFLAGS += -ljpeg
+endif
+else
+refresher:
+	@echo "===> Building ref_gl.so"
 	${Q}mkdir -p release
 	$(MAKE) release/ref_gl.so
 
 build/refresher/%.o: %.c
-	@echo '===> CC $<'
+	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
 
@@ -340,7 +362,8 @@ ifeq ($(WITH_RETEXTURING),yes)
 release/ref_gl.so : CFLAGS += -DRETEXTURE
 release/ref_gl.so : LDFLAGS += -ljpeg
 endif
-
+endif
+ 
 # ----------
 
 # The baseq2 game
@@ -592,9 +615,16 @@ OPENGL_OBJS_ = \
 	src/sdl/input.o \
 	src/sdl/refresh.o \
     src/common/glob.o \
-    src/common/shared/shared.o \
+    src/common/shared/shared.o
+
+ifeq ($(OSTYPE), Windows)
+OPENGL_OBJS_ += \
+	src/windows/mem.o
+else
+OPENGL_OBJS_ += \
 	src/unix/hunk.o \
 	src/unix/qgl.o
+endif
 
 # ----------
 
@@ -640,15 +670,21 @@ release/q2ded.exe : $(SERVER_OBJS)
 	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@
 else
 release/q2ded : $(SERVER_OBJS)
-	@echo '===> LD $@'
+	@echo "===> LD $@"
 	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@
 endif
 
 # release/ref_gl.so
-release/ref_gl.so : $(OPENGL_OBJS)
-	@echo '===> LD $@'
+ifeq ($(OSTYPE), Windows)
+release/ref_gl.dll : $(OPENGL_OBJS)
+	@echo "===> LD $@"
 	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
-
+else
+release/ref_gl.so : $(OPENGL_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
+endif
+ 
 # release/baseq2/game.so
 ifeq ($(OSTYPE), Windows)
 release/baseq2/game.dll : $(GAME_OBJS)
