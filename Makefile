@@ -34,7 +34,7 @@ WITH_OGG:=yes
 # Enables the optional OpenAL sound system.
 # To use it your system needs libopenal.so.1 (we 
 # recommend openal-soft) installed
-WITH_OPENAL:=yes
+WITH_OPENAL:=no
 
 # Enables retexturing support. Adds a dependency to
 # libjpeg
@@ -52,7 +52,9 @@ WITH_ZIP:=yes
 
 # Enable systemwide installation of game assets
 WITH_SYSTEMWIDE:=no
-# this will set the default SYSTEMDIR, a non-empty string would actually be used
+
+# This will set the default SYSTEMDIR, a non-empty string 
+# would actually be used
 WITH_SYSTEMDIR:=""
 
 # ====================================================== #
@@ -215,13 +217,42 @@ endif
 # ----------
 
 # The client
+ifeq ($(OSTYPE), Windows)
 client:
-	@echo '===> Building quake2'
+	@echo "===> Building quake2.exe"
+	${Q}mkdir.exe -p release
+	$(MAKE) release/quake2.exe
+
+build/client/%.o: %.c
+	@echo "===> CC $<"
+	${Q}mkdir.exe -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
+
+ifeq ($(WITH_CDA),yes)
+release/quake2.exe : CFLAGS += -DCDA
+endif
+
+ifeq ($(WITH_OGG),yes)
+release/quake2.exe : CFLAGS += -DOGG
+release/quake2.exe : LDFLAGS += -lvorbis -lvorbisfile -logg
+endif
+
+ifeq ($(WITH_OPENAL),yes)
+release/quake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
+endif
+
+ifeq ($(WITH_ZIP),yes)
+release/quake2.exe : CFLAGS += -DZIP
+release/quake2.exe : LDFLAGS += -lz
+endif
+else
+client:
+	@echo "===> Building quake2"
 	${Q}mkdir -p release
 	$(MAKE) release/quake2
 
 build/client/%.o: %.c
-	@echo '===> CC $<'
+	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
@@ -242,7 +273,8 @@ ifeq ($(WITH_ZIP),yes)
 release/quake2 : CFLAGS += -DZIP
 release/quake2 : LDFLAGS += -lz
 endif
-
+endif
+ 
 # ----------
 
 # The server
@@ -460,7 +492,16 @@ CLIENT_OBJS_ := \
 	src/server/sv_save.o \
 	src/server/sv_send.o \
 	src/server/sv_user.o \
-	src/server/sv_world.o \
+	src/server/sv_world.o
+
+ifeq ($(OSTYPE), Windows)
+CLIENT_OBJS_ += \
+ 	src/windows/conproc.o \
+	src/windows/mem.o \
+	src/windows/network.o \
+	src/windows/system.o	 
+else
+CLIENT_OBJS_ += \
 	src/unix/hunk.o \
 	src/unix/main.o \
  	src/unix/network.o \
@@ -468,6 +509,7 @@ CLIENT_OBJS_ := \
  	src/unix/signalhandler.o \
 	src/unix/system.o \
  	src/unix/vid.o
+endif
 
 # ----------
 
@@ -580,10 +622,16 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 # ----------
 
 # release/quake2
-release/quake2 : $(CLIENT_OBJS)
-	@echo '===> LD $@'
+ifeq ($(OSTYPE), Windows)
+release/quake2.exe : $(CLIENT_OBJS)
+	@echo "===> LD $@"
 	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
-
+else
+release/quake2 : $(CLIENT_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+endif
+ 
 # release/q2ded
 ifeq ($(OSTYPE), Windows)
 release/q2ded.exe : $(SERVER_OBJS)
