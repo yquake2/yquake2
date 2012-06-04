@@ -619,6 +619,7 @@ OPENGL_OBJS_ += \
 	src/windows/qgl.o
 else
 OPENGL_OBJS_ += \
+    src/common/shared/shared.o \
 	src/unix/hunk.o \
 	src/unix/qgl.o
 endif
