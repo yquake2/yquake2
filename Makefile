@@ -195,11 +195,7 @@ endif
 # ----------
 
 # Builds everything
-ifeq ($(OSTYPE), Windows)
-all: client server game
-else
 all: client server refresher game
-endif
 
 # ----------
 
