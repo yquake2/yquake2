@@ -146,7 +146,10 @@ void Cbuf_Execute (void) {
 			if (text[i] == '\n')
 				break;
 		}
-
+           
+		if( i > sizeof( line ) - 1 ) {
+		  i = sizeof( line ) - 1;
+		}
 
 		memcpy (line, text, i);
 		line[i] = 0;
