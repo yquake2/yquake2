@@ -2,8 +2,6 @@ Windows Port TODO
 -----------------
 
 - Check WITH_SYSTEMWIDE
-- Does the alt-tab handling on windows really work?
-  And do we need it?
 - Does anisotropic filtering work under Windows?
 - Remove leftovers from the softrenderer.
 

@@ -43,8 +43,6 @@
  * exported from refresh DLL */
 refexport_t re;
 
-cvar_t *win_noalttab;
-
 /* Console variables that we need to access from this module */
 cvar_t *vid_gamma;
 cvar_t *vid_ref;                /* Name of Refresh DLL loaded */
@@ -57,7 +55,6 @@ viddef_t viddef;                   /* global video state; used by other modules 
 HINSTANCE reflib_library;          /* Handle to refresh DLL */
 qboolean reflib_active = 0;
 HWND cl_hwnd;                      /* Main window handle for life of program */
-static qboolean s_alttab_disabled;
 extern unsigned sys_msg_time;
 in_state_t in_state;
 
@@ -85,28 +82,6 @@ void
 Do_Key_Event(int key, qboolean down)
 {
 	Key_Event(key, down, Sys_Milliseconds());
-}
-
-static void
-WIN_DisableAltTab(void)
-{
-	if (s_alttab_disabled)
-	{
-		return;
-	}
-
-	s_alttab_disabled = true;
-}
-
-static void
-WIN_EnableAltTab(void)
-{
-	if (s_alttab_disabled)
-	{
-		UnregisterHotKey(0, 0);
-		UnregisterHotKey(0, 1);
-		s_alttab_disabled = false;
-	}
 }
 
 /* ========================================================================== */
@@ -150,44 +125,6 @@ VID_Error(int err_level, char *fmt, ...)
 }
 
 /* ========================================================================== */
-
-void
-AppActivate(BOOL fActive, BOOL minimize)
-{
-	Minimized = minimize;
-
-	Key_ClearStates();
-
-	/* we don't want to act like we're active if we're minimized */
-	if (fActive && !Minimized)
-	{
-		ActiveApp = true;
-	}
-	else
-	{
-		ActiveApp = false;
-	}
-
-	/* minimize/restore mouse-capture on demand */
-	if (!ActiveApp)
-	{
-		CDAudio_Activate(false);
-
-		if (win_noalttab->value)
-		{
-			WIN_EnableAltTab();
-		}
-	}
-	else
-	{
-		CDAudio_Activate(true);
-
-		if (win_noalttab->value)
-		{
-			WIN_DisableAltTab();
-		}
-	}
-}
 
 /*
  * Console command to re-start the video mode and refresh DLL. We do this
@@ -431,20 +368,6 @@ VID_CheckChanges(void)
 {
 	char name[100];
 
-	if (win_noalttab->modified)
-	{
-		if (win_noalttab->value)
-		{
-			WIN_DisableAltTab();
-		}
-		else
-		{
-			WIN_EnableAltTab();
-		}
-
-		win_noalttab->modified = false;
-	}
-
 	if (vid_ref->modified)
 	{
 		cl.force_refdef = true; /* can't use a paused refdef */
@@ -479,7 +402,6 @@ VID_Init(void)
 	vid_ypos = Cvar_Get("vid_ypos", "22", CVAR_ARCHIVE);
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = Cvar_Get("vid_gamma", "1", CVAR_ARCHIVE);
-	win_noalttab = Cvar_Get("win_noalttab", "0", CVAR_ARCHIVE);
 
 	/* Add some console commands that we want to handle */
 	Cmd_AddCommand("vid_restart", VID_Restart_f);
