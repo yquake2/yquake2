@@ -2,12 +2,6 @@ Windows Port TODO
 -----------------
 
 - Check WITH_SYSTEMWIDE
-- Check if we really need all the stuff in winquake.h
-- Due to a bug in MinGW the _controlfp() option defines _PC_24
-  and _MCW_PC are not available. While Quake II may work without
-  them, we should try to find a workaround. See:
-  http://mingw-users.1079350.n2.nabble.com/MinGW-missing-
-  controlfp-and-related-defines-Looks-like-not-td7278570.html
 - Currently the Makefiles needs a special "mkdir.exe" which 
   supports the -p option. We need a better aproach so that 
   the Windows buildin "mkdir" can be used.

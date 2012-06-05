@@ -28,6 +28,19 @@
 
 #define WINDOW_STYLE (WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE)
 
+#ifndef _PC_24
+ #define _PC_24 0x00020000
+#endif
+
+#ifndef _MCW_PC
+ #define _MCW_PC 0x00030000
+#endif
+
+/* This is a hack to work around a missing MinGW prototype */
+#ifndef _controlfp
+unsigned int _controlfp(unsigned int new, unsigned int mask);
+#endif
+
 extern HINSTANCE global_hInstance;
 extern HWND cl_hwnd;
 
