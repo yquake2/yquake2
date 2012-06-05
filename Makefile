@@ -32,9 +32,10 @@ WITH_CDA:=yes
 WITH_OGG:=yes
 
 # Enables the optional OpenAL sound system.
-# To use it your system needs libopenal.so.1 (we 
-# recommend openal-soft) installed
-WITH_OPENAL:=no
+# To use it your system needs libopenal.so.1
+# or openal32.dll (we recommend openal-soft) 
+# installed
+WITH_OPENAL:=yes
 
 # Enables retexturing support. Adds a dependency to
 # libjpeg
@@ -234,7 +235,7 @@ release/quake2.exe : LDFLAGS += -lvorbisfile -lvorbis -logg
 endif
 
 ifeq ($(WITH_OPENAL),yes)
-release/quake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
+release/quake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"'
 endif
 
 ifeq ($(WITH_ZIP),yes)
@@ -518,6 +519,7 @@ CLIENT_OBJS_ += \
  	src/windows/conproc.o \
 	src/windows/mem.o \
 	src/windows/network.o \
+	src/windows/qal.o \
 	src/windows/system.o \
     src/windows/vid.o	
 else

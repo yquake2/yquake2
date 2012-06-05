@@ -24,7 +24,6 @@ Windows Port TODO
   ported to Yamagi Quake II.
 - Check of "rb" is the correct mode to open files in
   filesystem.c
-- Port OpenAL to Windows.
 - Does the alt-tab handling on windows really work?
   And do we need it?
 - Is AppActivate() really necessary?
