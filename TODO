@@ -2,11 +2,6 @@ Windows Port TODO
 -----------------
 
 - Check WITH_SYSTEMWIDE
-- Currently the Makefiles needs a special "mkdir.exe" which 
-  supports the -p option. We need a better aproach so that 
-  the Windows buildin "mkdir" can be used.
-- The Makefile needs some love. '' cannot be used as quotation
-  marks under Windows and shouled be changed to "".
 - Ensure that all new headers have header guards.
 - Replace atoi(), atol() and atof() in Windows code.
 - Replace rand() with randk() in Windows code.

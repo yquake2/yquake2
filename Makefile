@@ -14,7 +14,7 @@
 # Platforms:                                             #
 #  - Linux                                               #
 #  - FreeBSD                                             #
-#  - Windows                                             #
+#  - Windows (MinGW)                                     #
 # ------------------------------------------------------ #
 
 # User configurable options
@@ -37,17 +37,17 @@ WITH_OGG:=yes
 # installed
 WITH_OPENAL:=yes
 
-# Enables retexturing support. Adds a dependency to
-# libjpeg
+# Enables retexturing support. Adds 
+# a dependency to libjpeg
 WITH_RETEXTURING:=yes
 
 # Set the gamma via X11 and not via SDL. This works
 # around problems in some SDL version. Adds dependencies
-# to pkg-config, libX11 and libXxf86vm. Unsupported in
+# to pkg-config, libX11 and libXxf86vm. Unsupported on
 # Windows.
 WITH_X11GAMMA:=no
 
-# Enables opening of ZIP files (also known as .pk3 packs).
+# Enables opening of ZIP files (also known as .pk3 paks).
 # Adds a dependency to libz
 WITH_ZIP:=yes
 
@@ -118,9 +118,7 @@ endif
 # ----------
 
 # Extra CFLAGS for SDL
-ifeq ($(OSTYPE), Windows)
-SDLCFLAGS :=
-else
+ifneq ($(OSTYPE), Windows)
 SDLCFLAGS := $(shell sdl-config --cflags)
 endif
 
@@ -131,13 +129,8 @@ ifneq ($(OSTYPE), Windows)
 ifeq ($(WITH_X11GAMMA),yes)
 X11CFLAGS := $(shell pkg-config x11 --cflags)
 X11CFLAGS += $(shell pkg-config xxf86vm --cflags)
-else
-X11CFLAGS :=
 endif
-else
-X11CFLAGS :=
 endif
-
 
 # ----------
 
@@ -175,11 +168,7 @@ ifneq ($(OSTYPE), Windows)
 ifeq ($(WITH_X11GAMMA),yes)
 X11LDFLAGS := $(shell pkg-config x11 --libs)
 X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
-else
-X11LDFLAGS :=
 endif
-else
-X11LDFLAGS :=
 endif
 
 # ----------
@@ -217,12 +206,12 @@ endif
 ifeq ($(OSTYPE), Windows)
 client:
 	@echo "===> Building quake2.exe"
-	${Q}mkdir.exe -p release
+	${Q}stuff/misc/mkdir.exe -p release
 	$(MAKE) release/quake2.exe
 
 build/client/%.o: %.c
 	@echo "===> CC $<"
-	${Q}mkdir.exe -p $(@D)
+	${Q}stuff/misc/mkdir.exe -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 ifeq ($(WITH_CDA),yes)
@@ -278,12 +267,12 @@ endif
 ifeq ($(OSTYPE), Windows)
 server:
 	@echo "===> Building q2ded"
-	${Q}mkdir.exe -p release
+	${Q}stuff/misc/mkdir.exe -p release
 	$(MAKE) release/q2ded.exe
 
 build/server/%.o: %.c
 	@echo "===> CC $<"
-	${Q}mkdir.exe -p $(@D)
+	${Q}stuff/misc/mkdir.exe -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 release/q2ded.exe : CFLAGS += -DDEDICATED_ONLY
@@ -319,19 +308,15 @@ endif
 ifeq ($(OSTYPE), Windows)
 refresher:
 	@echo "===> Building ref_gl.dll"
-	${Q}mkdir.exe -p release
+	${Q}stuff/misc/mkdir.exe -p release
 	$(MAKE) release/ref_gl.dll
 
 build/refresher/%.o: %.c
 	@echo "===> CC $<"
-	${Q}mkdir.exe -p $(@D)
+	${Q}stuff/misc/mkdir.exe -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
 
 release/ref_gl.dll : LDFLAGS += -shared
-
-ifeq ($(WITH_X11GAMMA),yes)
-release/ref_gl.dll : CFLAGS += -DX11GAMMA
-endif
 
 ifeq ($(WITH_RETEXTURING),yes)
 release/ref_gl.dll : CFLAGS += -DRETEXTURE
@@ -367,12 +352,12 @@ endif
 ifeq ($(OSTYPE), Windows)
 game:
 	@echo "===> Building baseq2/game.dll"
-	${Q}mkdir.exe -p release/baseq2
+	${Q}stuff/misc/mkdir.exe -p release/baseq2
 	$(MAKE) release/baseq2/game.dll
 
 build/baseq2/%.o: %.c
 	@echo "===> CC $<"
-	${Q}mkdir.exe -p $(@D)
+	${Q}stuff/misc/mkdir.exe -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 release/baseq2/game.dll : LDFLAGS += -shared
