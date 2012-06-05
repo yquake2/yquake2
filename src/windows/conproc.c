@@ -98,7 +98,7 @@ InitConProc(int argc, char **argv)
 	{
 		if (t < argc)
 		{
-			hFile = (HANDLE)atoi(ccom_argv[t + 1]);
+			hFile = (HANDLE)(int)strtol(ccom_argv[t + 1], (char **)NULL, 10);
 		}
 	}
 
@@ -106,7 +106,7 @@ InitConProc(int argc, char **argv)
 	{
 		if (t < argc)
 		{
-			heventParent = (HANDLE)atoi(ccom_argv[t + 1]);
+			heventParent = (HANDLE)(int)strtol(ccom_argv[t + 1], (char **)NULL, 10);
 		}
 	}
 
@@ -114,7 +114,7 @@ InitConProc(int argc, char **argv)
 	{
 		if (t < argc)
 		{
-			heventChild = (HANDLE)atoi(ccom_argv[t + 1]);
+			heventChild = (HANDLE)(int)strtol(ccom_argv[t + 1], (char **)NULL, 10);
 		}
 	}
 

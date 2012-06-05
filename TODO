@@ -2,15 +2,8 @@ Windows Port TODO
 -----------------
 
 - Check WITH_SYSTEMWIDE
-- Replace atoi(), atol() and atof() in Windows code.
-- Replace rand() with randk() in Windows code.
-- Implement Sys_AppActivate() as soon as cl_hwnd is
-  ported to Yamagi Quake II.
-- Check of "rb" is the correct mode to open files in
-  filesystem.c
 - Does the alt-tab handling on windows really work?
   And do we need it?
-- Is AppActivate() really necessary?
 - Does anisotropic filtering work under Windows?
 - Remove leftovers from the softrenderer.
 

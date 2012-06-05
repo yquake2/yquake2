@@ -261,7 +261,7 @@ NET_StringToSockaddr(char *s, struct sockaddr *sadr)
 			{
 				*colon = 0;
 				((struct sockaddr_in *)sadr)->sin_port =
-					htons((short)atoi(colon + 1));
+					htons((short)(int)strtol(colon + 1, (char **)NULL, 10));
 			}
 		}
 
