@@ -24,6 +24,9 @@
  * =======================================================================
  */ 
 
+#ifndef WIN_WINQUAKE_H
+#define WIN_WINQUAKE_H
+
 #include <windows.h>
 
 #define WINDOW_STYLE (WS_OVERLAPPED | WS_BORDER | WS_CAPTION | WS_VISIBLE)
@@ -61,4 +64,6 @@ typedef struct in_state
 	int *in_strafe_state;
 	int *in_speed_state;
 } in_state_t;
+
+#endif
 

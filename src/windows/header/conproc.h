@@ -24,6 +24,11 @@
  * =======================================================================
  */
 
+#ifndef WIN_CONPROC_H
+#define WIN_CONPROC_H
+
 void InitConProc(int argc, char **argv);
 void DeinitConProc(void);
+
+#endif
 

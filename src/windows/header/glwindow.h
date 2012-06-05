@@ -24,8 +24,8 @@
  * =======================================================================
  */ 
 
-#ifndef __GLW_WIN_H__
-#define __GLW_WIN_H__
+#ifndef WIN_GLW_WIN_H__
+#define WIN_GLW_WIN_H__
 
 typedef struct
 {

@@ -28,8 +28,8 @@
 
 #ifdef USE_OPENAL
 
-#ifndef _QAL_API_H_
-#define _QAL_API_H_
+#ifndef WIN_QAL_API_H_
+#define WIN_QAL_API_H_
 
 #include <AL/al.h>
 #include <AL/efx.h>
@@ -132,5 +132,5 @@ qboolean QAL_Init(void);
  */
 void QAL_Shutdown(void);
 
-#endif /* _QAL_API_H_ */
+#endif /* WIN_QAL_API_H_ */
 #endif /* USE_OPENAL */

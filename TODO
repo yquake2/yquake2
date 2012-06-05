@@ -2,7 +2,6 @@ Windows Port TODO
 -----------------
 
 - Check WITH_SYSTEMWIDE
-- Ensure that all new headers have header guards.
 - Replace atoi(), atol() and atof() in Windows code.
 - Replace rand() with randk() in Windows code.
 - Implement Sys_AppActivate() as soon as cl_hwnd is
