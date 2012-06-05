@@ -40,10 +40,11 @@
 #include "../client/sound/header/local.h"
 
 /* Global stuff */
-int snd_inited = 0;
+int    snd_inited = 0;
 static int dmapos = 0;
 static int dmasize = 0;
 static dma_t *dmabackend;
+cvar_t *s_sdldriver;
 
 /* The callback */
 static void
@@ -101,6 +102,7 @@ qboolean
 SNDDMA_Init(void)
 {
 	char drivername[128];
+	char reqdriver[128];
 	SDL_AudioSpec desired;
 	SDL_AudioSpec obtained;
 	int tmp, val;
@@ -115,6 +117,17 @@ SNDDMA_Init(void)
 	int sndbits = (Cvar_Get("sndbits", "16", CVAR_ARCHIVE))->value;
 	int sndfreq = (Cvar_Get("s_khz", "44", CVAR_ARCHIVE))->value;
 	int sndchans = (Cvar_Get("sndchannels", "2", CVAR_ARCHIVE))->value;
+
+#ifdef _WIN32
+	s_sdldriver = (Cvar_Get("s_sdldriver", "dsound", CVAR_ARCHIVE));
+#elif __linux__
+	s_sdldriver = (Cvar_Get("s_sdldriver", "alsa", CVAR_ARCHIVE));
+#else
+	s_sdldriver = (Cvar_Get("s_sdldriver", "dsp", CVAR_ARCHIVE));
+#endif
+
+	snprintf(reqdriver, sizeof(drivername), "%s=%s", "SDL_AUDIODRIVER", s_sdldriver->string);
+	putenv(reqdriver);
 
 	Com_Printf("Starting SDL audio callback.\n");
 
