@@ -231,6 +231,8 @@ ifeq ($(WITH_ZIP),yes)
 release/quake2.exe : CFLAGS += -DZIP
 release/quake2.exe : LDFLAGS += -lz
 endif
+
+release/quake2.exe : LDFLAGS += -mwindows
 else
 client:
 	@echo "===> Building quake2"
