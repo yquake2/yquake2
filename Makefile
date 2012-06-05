@@ -39,7 +39,7 @@ WITH_OPENAL:=yes
 
 # Enables retexturing support. Adds a dependency to
 # libjpeg
-WITH_RETEXTURING:=no
+WITH_RETEXTURING:=yes
 
 # Set the gamma via X11 and not via SDL. This works
 # around problems in some SDL version. Adds dependencies
