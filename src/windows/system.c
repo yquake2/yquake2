@@ -356,17 +356,6 @@ Sys_SendKeyEvents(void)
 /* ================================================================ */
 
 void
-Sys_AppActivate(void)
-{
-	/*
-	ShowWindow(cl_hwnd, SW_RESTORE);
-	SetForegroundWindow(cl_hwnd);
-	*/
-}
-
-/* ================================================================ */
-
-void
 Sys_UnloadGame(void)
 {
 	if (!FreeLibrary(game_library))
