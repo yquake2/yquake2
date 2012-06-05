@@ -1285,7 +1285,7 @@ FS_AddHomeAsGameDirectory(char *dir)
 	}
 
 	len = snprintf(gdir, sizeof(gdir), "%s%s%s/", profile, 
-				   "/AppData/Local/YamagiQ2/", dir);
+				   "/Documents/YamagiQ2/", dir);
 #else
 	char *homedir = getenv("HOME");
 	
