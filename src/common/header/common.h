@@ -739,7 +739,6 @@ void	Sys_ConsoleOutput (char *string);
 void	Sys_SendKeyEvents (void);
 void	Sys_Error (char *error, ...);
 void	Sys_Quit (void);
-char	*Sys_GetClipboardData( void );
 
 /* CLIENT / SERVER SYSTEMS */
 

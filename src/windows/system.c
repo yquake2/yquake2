@@ -353,32 +353,6 @@ Sys_SendKeyEvents(void)
 	sys_frame_time = timeGetTime();
 }
 
-char *
-Sys_GetClipboardData(void)
-{
-	char *data = NULL;
-	char *cliptext;
-
-	if (OpenClipboard(NULL) != 0)
-	{
-		HANDLE hClipboardData;
-
-		if ((hClipboardData = GetClipboardData(CF_TEXT)) != 0)
-		{
-			if ((cliptext = GlobalLock(hClipboardData)) != 0)
-			{
-				data = malloc(GlobalSize(hClipboardData) + 1);
-				strcpy(data, cliptext);
-				GlobalUnlock(hClipboardData);
-			}
-		}
-
-		CloseClipboard();
-	}
-
-	return data;
-}
-
 /* ================================================================ */
 
 void

@@ -2,7 +2,6 @@ Windows Port TODO
 -----------------
 
 - Check WITH_SYSTEMWIDE
-- Is Sys_GetClipboardData() really usefull?
 - Call Sys_AppActivate() in cl_main.c? (otherwise remove it)
 - Is Sys_GetGameAPI() correct?
 - Add platform defines for Windows in common/ and game/
