@@ -39,6 +39,8 @@
 #define BUILDSTRING "Linux"
 #elif defined __FreeBSD__
 #define BUILDSTRING "FreeBSD"
+#elif defined _WIN32
+#define BUILDSTRING "Windows"
 #else
 #define BUILDSTRING "Unknown"
 #endif
