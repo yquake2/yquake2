@@ -55,8 +55,9 @@ WITH_ZIP:=yes
 WITH_SYSTEMWIDE:=no
 
 # This will set the default SYSTEMDIR, a non-empty string 
-# would actually be used
-WITH_SYSTEMDIR:=""
+# would actually be used. On Windows normals slashes (/)
+# instead of backslashed (\) should be used!
+WITH_SYSTEMDIR:=
 
 # ====================================================== #
 #     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
