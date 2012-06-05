@@ -232,7 +232,7 @@ FS_CreatePath(char *path)
 
 		old = cur;
 		cur = strchr(old + 1, '/');
-	}
+	} 
 }
 
 void
@@ -1254,22 +1254,59 @@ void
 FS_AddHomeAsGameDirectory(char *dir)
 {
 	char gdir[MAX_OSPATH];
-	char *homedir=getenv("HOME");
+	int len;
+		
+#ifdef _WIN32
+	char *cur;
+	char *old;
+	char *profile = getenv("USERPROFILE");
 
-	if(homedir)
+	if (!profile)
 	{
-		int len = snprintf(gdir,sizeof(gdir),"%s/.yq2/%s/", homedir, dir);
-
-		FS_CreatePath(gdir);
-
-		if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/'))
-			gdir[len-1] = 0;
-
-		strncpy(fs_gamedir,gdir,sizeof(fs_gamedir)-1);
-		fs_gamedir[sizeof(fs_gamedir)-1] = 0;
-
-		FS_AddGameDirectory (gdir);
+		return;
 	}
+
+	cur = old = profile;
+
+	/* Replace backslashes by slashes */
+	if (strstr(cur, "\\") != NULL)
+	{
+		while (cur != NULL)
+		{
+			if ((cur - old) > 1)
+			{
+				*cur = '/';
+
+			}
+
+			old = cur;
+			cur = strchr(old + 1, '\\');  
+		}
+	}
+
+	len = snprintf(gdir, sizeof(gdir), "%s%s%s/", profile, 
+				   "/AppData/Local/YamagiQ2/", dir);
+#else
+	char *homedir = getenv("HOME");
+	
+	if (!homedir)
+	{
+		return;
+	}
+
+	len = snprintf(gdir, sizeof(gdir), "%s/.yq2/%s/", homedir, dir);
+#endif
+
+
+	FS_CreatePath(gdir);
+
+	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/'))
+		gdir[len-1] = 0;
+
+	strncpy(fs_gamedir,gdir,sizeof(fs_gamedir)-1);
+	fs_gamedir[sizeof(fs_gamedir)-1] = 0;
+
+	FS_AddGameDirectory (gdir);
 }
 
 #ifdef SYSTEMWIDE
