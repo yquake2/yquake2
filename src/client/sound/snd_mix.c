@@ -39,6 +39,9 @@ short *snd_out;
 void
 S_TransferPaintBuffer(int endtime)
 {
+	int i;
+	int lpos;
+	int ls_paintedtime;
 	int out_idx;
 	int count;
 	int out_mask;
@@ -59,61 +62,121 @@ S_TransferPaintBuffer(int endtime)
 
 		for (i = 0; i < count; i++)
 		{
-			paintbuffer[i].left = paintbuffer[i].right = 
+			paintbuffer[i].left = paintbuffer[i].right =
 				(int)((float)sin((paintedtime + i) * 0.1f) * 20000 * 256);
 		}
 	}
 
-	p = (int *)paintbuffer;
-	count = (endtime - paintedtime) * dma.channels;
-	out_mask = dma.samples - 1;
-	out_idx = paintedtime * dma.channels & out_mask;
-	step = 3 - dma.channels;
-
-	if (dma.samplebits == 16)
+	if ((dma.samplebits == 16) && (dma.channels == 2))
 	{
-		short *out = (short *)pbuf;
+		snd_p = (int *)paintbuffer;
+		ls_paintedtime = paintedtime;
 
-		while (count--)
+		while (ls_paintedtime < endtime)
 		{
-			val = *p >> 8;
-			p += step;
+			lpos = ls_paintedtime & ((dma.samples >> 1) - 1);
 
-			if (val > 0x7fff)
+			snd_out = (short *)pbuf + (lpos << 1);
+
+			snd_linear_count = (dma.samples >> 1) - lpos;
+
+			if (ls_paintedtime + snd_linear_count > endtime)
 			{
-				val = 0x7fff;
+				snd_linear_count = endtime - ls_paintedtime;
 			}
 
-			else if (val < (short)0x8000)
+			snd_linear_count <<= 1;
+
+			for (i = 0; i < snd_linear_count; i += 2)
 			{
-				val = (short)0x8000;
+				val = snd_p[i] >> 8;
+
+				if (val > 0x7fff)
+				{
+					snd_out[i] = 0x7fff;
+				}
+				else if (val < -32768)
+				{
+					snd_out[i] = -32768;
+				}
+				else
+				{
+					snd_out[i] = val;
+				}
+
+				val = snd_p[i + 1] >> 8;
+
+				if (val > 0x7fff)
+				{
+					snd_out[i + 1] = 0x7fff;
+				}
+				else if (val < -32768)
+				{
+					snd_out[i + 1] = -32768;
+				}
+				else
+				{
+					snd_out[i + 1] = val;
+				}
 			}
 
-			out[out_idx] = val;
-			out_idx = (out_idx + 1) & out_mask;
+			snd_p += snd_linear_count;
+			ls_paintedtime += (snd_linear_count >> 1);
 		}
 	}
-	else if (dma.samplebits == 8)
+	else
 	{
-		unsigned char *out = (unsigned char *)pbuf;
+		p = (int *)paintbuffer;
+		count = (endtime - paintedtime) * dma.channels;
+		out_mask = dma.samples - 1;
+		out_idx = paintedtime * dma.channels & out_mask;
+		step = 3 - dma.channels;
 
-		while (count--)
+		if (dma.samplebits == 16)
 		{
-			val = *p >> 8;
-			p += step;
+			short *out = (short *)pbuf;
 
-			if (val > 0x7fff)
+			while (count--)
 			{
-				val = 0x7fff;
-			}
+				val = *p >> 8;
+				p += step;
 
-			else if (val < (short)0x8000)
+				if (val > 0x7fff)
+				{
+					val = 0x7fff;
+				}
+
+				else if (val < -32768)
+				{
+					val = -32768;
+				}
+
+				out[out_idx] = val;
+				out_idx = (out_idx + 1) & out_mask;
+			}
+		}
+		else if (dma.samplebits == 8)
+		{
+			unsigned char *out = (unsigned char *)pbuf;
+
+			while (count--)
 			{
-				val = (short)0x8000;
-			}
+				val = *p >> 8;
+				p += step;
 
-			out[out_idx] = (val >> 8) + 128;
-			out_idx = (out_idx + 1) & out_mask;
+				if (val > 0x7fff)
+				{
+					val = 0x7fff;
+				}
+
+				else if (val < -32768)
+				{
+					val = -32768;
+				}
+
+				out[out_idx] = (val >> 8) + 128;
+				out_idx = (out_idx + 1) & out_mask;
+			}
 		}
 	}
 }
