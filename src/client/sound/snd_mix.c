@@ -254,9 +254,8 @@ S_PaintChannels(int endtime)
 
 			for ( ; i < end; i++)
 			{
-				/* TODO: this could be done with memset */
-				paintbuffer[i - paintedtime].left =
-					paintbuffer[i - paintedtime].right = 0;
+				memset(&paintbuffer[i - paintedtime], 0,
+				   sizeof(paintbuffer[i - paintedtime]));
 			}
 		}
 
