@@ -935,13 +935,8 @@ logBindTexture(GLenum target, GLuint texture)
 }
 
 static void APIENTRY
-logBitmap(GLsizei width,
-		GLsizei height,
-		GLfloat xorig,
-		GLfloat yorig,
-		GLfloat xmove,
-		GLfloat ymove,
-		const GLubyte *bitmap)
+logBitmap(GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig,
+		GLfloat xmove, GLfloat ymove, const GLubyte *bitmap)
 {
 	fprintf(glw_state.log_fp, "glBitmap\n");
 	dllBitmap(width, height, xorig, yorig, xmove, ymove, bitmap);
@@ -3673,8 +3668,8 @@ QGL_Shutdown(void)
 
 /*
  * This is responsible for binding our qgl function pointers to
- * the appropriate GL stuff.  In Windows this means doing a
- * LoadLibrary and a bunch of calls to GetProcAddress.  On other
+ * the appropriate GL stuff. In Windows this means doing a
+ * LoadLibrary and a bunch of calls to GetProcAddress. On other
  * operating systems we need to do the right thing, whatever that
  * might be.
  */
