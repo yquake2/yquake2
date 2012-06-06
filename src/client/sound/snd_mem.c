@@ -19,8 +19,9 @@
  *
  * =======================================================================
  *
- * The sound caching. This file contains support functions for loading
- * the sound samples into the memory.
+ * The sound caching. This file contains support functions for
+ * processing the soundsamples, load them into the memory and
+ * provide them to the SDL or OpenAL sound backend.
  *
  * =======================================================================
  */
@@ -29,7 +30,7 @@
 #include "header/local.h"
 
 void
-ResampleSfx ( sfx_t *sfx, int inrate, int inwidth, byte *data )
+ResampleSfx(sfx_t *sfx, int inrate, int inwidth, byte *data)
 {
 	int outcount;
 	int srcsample;
@@ -37,37 +38,38 @@ ResampleSfx ( sfx_t *sfx, int inrate, int inwidth, byte *data )
 	int i;
 	int sample;
 	unsigned int samplefrac, fracstep;
-	sfxcache_t  *sc;
+	sfxcache_t *sc;
 
 	sc = sfx->cache;
 
-	if ( !sc )
+	if (!sc)
 	{
 		return;
 	}
 
-	stepscale = (float) inrate / dma.speed; /* this is usually 0.5, 1, or 2 */
+	stepscale = (float)inrate / dma.speed; /* this is usually 0.5, 1, or 2 */
 
-	outcount = (int) ( sc->length / stepscale );
+	outcount = (int)(sc->length / stepscale);
 
-	if ( outcount == 0 )
+	if (outcount == 0)
 	{
-		Com_Printf( "ResampleSfx: Invalid sound file '%s' (zero length)\n", sfx->name );
-		Z_Free( sfx->cache );
+		Com_Printf("ResampleSfx: Invalid sound file '%s' (zero length)\n",
+				sfx->name);
+		Z_Free(sfx->cache);
 		sfx->cache = NULL;
 		return;
 	}
 
 	sc->length = outcount;
 
-	if ( sc->loopstart != -1 )
+	if (sc->loopstart != -1)
 	{
-		sc->loopstart = (int) ( sc->loopstart / stepscale );
+		sc->loopstart = (int)(sc->loopstart / stepscale);
 	}
 
 	sc->speed = dma.speed;
 
-	if ( s_loadas8bit->value )
+	if (s_loadas8bit->value)
 	{
 		sc->width = 1;
 	}
@@ -81,62 +83,62 @@ ResampleSfx ( sfx_t *sfx, int inrate, int inwidth, byte *data )
 
 	/* resample / decimate to the current source rate */
 	samplefrac = 0;
-	fracstep = (int) ( stepscale * 256 );
+	fracstep = (int)(stepscale * 256);
 
-	for ( i = 0; i < outcount; i++ )
+	for (i = 0; i < outcount; i++)
 	{
 		srcsample = samplefrac >> 8;
 		samplefrac += fracstep;
 
-		if ( inwidth == 2 )
+		if (inwidth == 2)
 		{
-			sample = LittleShort( ( (short *) data ) [ srcsample ] );
+			sample = LittleShort(((short *)data)[srcsample]);
 		}
 
 		else
 		{
-			sample = (int) ( (unsigned char) ( data [ srcsample ] ) - 128 ) << 8;
+			sample = (int)((unsigned char)(data[srcsample]) - 128) << 8;
 		}
 
-		if ( sc->width == 2 )
+		if (sc->width == 2)
 		{
-			( (short *) sc->data ) [ i ] = sample;
+			((short *)sc->data)[i] = sample;
 		}
 
 		else
 		{
-			( (signed char *) sc->data ) [ i ] = sample >> 8;
+			((signed char *)sc->data)[i] = sample >> 8;
 		}
 	}
 }
 
 sfxcache_t *
-S_LoadSound ( sfx_t *s )
+S_LoadSound(sfx_t *s)
 {
-	char namebuffer [ MAX_QPATH ];
-	byte    *data;
+	char namebuffer[MAX_QPATH];
+	byte *data;
 	wavinfo_t info;
 	int len;
 	float stepscale;
-	sfxcache_t  *sc;
+	sfxcache_t *sc;
 	int size;
-	char    *name;
+	char *name;
 
-	if ( s->name [ 0 ] == '*' )
+	if (s->name[0] == '*')
 	{
-		return ( NULL );
+		return NULL;
 	}
 
 	/* see if still in memory */
 	sc = s->cache;
 
-	if ( sc )
+	if (sc)
 	{
-		return ( sc );
+		return sc;
 	}
 
 	/* load it in */
-	if ( s->truename )
+	if (s->truename)
 	{
 		name = s->truename;
 	}
@@ -146,48 +148,52 @@ S_LoadSound ( sfx_t *s )
 		name = s->name;
 	}
 
-	if ( name [ 0 ] == '#' )
+	if (name[0] == '#')
 	{
-		strcpy( namebuffer, &name [ 1 ] );
-	} else {
-		Com_sprintf( namebuffer, sizeof ( namebuffer ), "sound/%s", name );
+		strcpy(namebuffer, &name[1]);
+	}
+	else
+	{
+		Com_sprintf(namebuffer, sizeof(namebuffer), "sound/%s", name);
 	}
 
-	size = FS_LoadFile( namebuffer, (void **) &data );
+	size = FS_LoadFile(namebuffer, (void **)&data);
 
-	if ( !data )
+	if (!data)
 	{
 		s->cache = NULL;
-		Com_DPrintf( "Couldn't load %s\n", namebuffer );
-		return ( NULL );
+		Com_DPrintf("Couldn't load %s\n", namebuffer);
+		return NULL;
 	}
 
-	info = GetWavinfo( s->name, data, size );
+	info = GetWavinfo(s->name, data, size);
 
-	if ( info.channels != 1 )
+	if (info.channels != 1)
 	{
-		Com_Printf( "%s is a stereo sample\n", s->name );
-		FS_FreeFile( data );
-		return ( NULL );
+		Com_Printf("%s is a stereo sample\n", s->name);
+		FS_FreeFile(data);
+		return NULL;
 	}
-	if (sound_started != SS_OAL) {
-		stepscale = (float) info.rate / dma.speed;
-		len = (int) ( info.samples / stepscale );
 
-		if ( ( info.samples == 0 ) || ( len == 0 ) )
+	if (sound_started != SS_OAL)
+	{
+		stepscale = (float)info.rate / dma.speed;
+		len = (int)(info.samples / stepscale);
+
+		if ((info.samples == 0) || (len == 0))
 		{
-			Com_Printf( "WARNING: Zero length sound encountered: %s\n", s->name );
-			FS_FreeFile( data );
-			return ( NULL );
+			Com_Printf("WARNING: Zero length sound encountered: %s\n", s->name);
+			FS_FreeFile(data);
+			return NULL;
 		}
 
 		len = len * info.width * info.channels;
-		sc = s->cache = Z_Malloc( len + sizeof ( sfxcache_t ) );
+		sc = s->cache = Z_Malloc(len + sizeof(sfxcache_t));
 
-		if ( !sc )
+		if (!sc)
 		{
-			FS_FreeFile( data );
-			return ( NULL );
+			FS_FreeFile(data);
+			return NULL;
 		}
 
 		sc->length = info.samples;
@@ -199,12 +205,17 @@ S_LoadSound ( sfx_t *s )
 
 #if USE_OPENAL
 	if (sound_started == SS_OAL)
+	{
 		sc = AL_UploadSfx(s, &info, data + info.dataofs);
+	}
 	else
 #endif
-		ResampleSfx( s, sc->speed, sc->width, data + info.dataofs );
+	{
+		ResampleSfx(s, sc->speed, sc->width, data + info.dataofs);
+	}
 
-	FS_FreeFile( data );
+	FS_FreeFile(data);
 
-	return ( sc );
+	return sc;
 }
+
