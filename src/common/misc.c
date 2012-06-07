@@ -28,24 +28,23 @@
 #include "header/zone.h"
 #include <setjmp.h>
 
-FILE	*log_stats_file;
-cvar_t	*host_speeds;
-cvar_t	*log_stats;
-cvar_t	*developer;
-cvar_t	*modder;
-cvar_t	*timescale;
-cvar_t	*fixedtime;
+FILE *log_stats_file;
+cvar_t *host_speeds;
+cvar_t *log_stats;
+cvar_t *developer;
+cvar_t *modder;
+cvar_t *timescale;
+cvar_t *fixedtime;
 #ifndef DEDICATED_ONLY
-cvar_t	*showtrace;
+cvar_t *showtrace;
 #endif
-cvar_t	*dedicated;
+cvar_t *dedicated;
 
-extern cvar_t	*logfile_active;
-extern jmp_buf  abortframe; /* an ERR_DROP occured, exit the entire frame */
-extern zhead_t	z_chain;
+extern cvar_t *logfile_active;
+extern jmp_buf abortframe; /* an ERR_DROP occured, exit the entire frame */
+extern zhead_t z_chain;
 
-static byte chktbl[1024] =
-{
+static byte chktbl[1024] = {
 	0x84, 0x47, 0x51, 0xc1, 0x93, 0x22, 0x21, 0x24, 0x2f, 0x66, 0x60, 0x4d, 0xb0, 0x7c, 0xda,
 	0x88, 0x54, 0x15, 0x2b, 0xc6, 0x6c, 0x89, 0xc5, 0x9d, 0x48, 0xee, 0xe6, 0x8a, 0xb5, 0xf4,
 	0xcb, 0xfb, 0xf1, 0x0c, 0x2e, 0xa0, 0xd7, 0xc9, 0x1f, 0xd6, 0x06, 0x9a, 0x09, 0x41, 0x54,
@@ -113,44 +112,51 @@ static byte chktbl[1024] =
 };
 
 /* host_speeds times */
-int		time_before_game;
-int		time_after_game;
-int		time_before_ref;
-int		time_after_ref;
+int time_before_game;
+int time_after_game;
+int time_before_ref;
+int time_after_ref;
 
 /*
  * For proxy protecting
  */
-byte	COM_BlockSequenceCRCByte (byte *base, int length, int sequence)
+byte
+COM_BlockSequenceCRCByte(byte *base, int length, int sequence)
 {
-	int				n;
-	int				x;
-	byte			*p;
-	byte			chkb[60 + 4];
-	unsigned short	crc;
-	byte			r;
+	int n;
+	int x;
+	byte *p;
+	byte chkb[60 + 4];
+	unsigned short crc;
+	byte r;
 
 	if (sequence < 0)
+	{
 		Sys_Error("sequence < 0, this shouldn't happen\n");
+	}
 
 	p = chktbl + (sequence % (sizeof(chktbl) - 4));
 
 	if (length > 60)
+	{
 		length = 60;
+	}
 
-	memcpy (chkb, base, length);
+	memcpy(chkb, base, length);
 
 	chkb[length] = p[0];
-	chkb[length+1] = p[1];
-	chkb[length+2] = p[2];
-	chkb[length+3] = p[3];
+	chkb[length + 1] = p[1];
+	chkb[length + 2] = p[2];
+	chkb[length + 3] = p[3];
 
 	length += 4;
 
 	crc = CRC_Block(chkb, length);
 
-	for (x=0, n=0; n<length; n++)
+	for (x = 0, n = 0; n < length; n++)
+	{
 		x += chkb[n];
+	}
 
 	r = (crc ^ x) & 0xff;
 
@@ -158,219 +164,234 @@ byte	COM_BlockSequenceCRCByte (byte *base, int length, int sequence)
 }
 
 #ifndef DEDICATED_ONLY
-void Key_Init (void);
-void SCR_EndLoadingPlaque (void);
+void Key_Init(void);
+void SCR_EndLoadingPlaque(void);
 #endif
 
 /*
  * Just throw a fatal error to
  * test error shutdown procedures
  */
-void Com_Error_f (void)
+void
+Com_Error_f(void)
 {
-	Com_Error (ERR_FATAL, "%s", Cmd_Argv(1));
+	Com_Error(ERR_FATAL, "%s", Cmd_Argv(1));
 }
 
-void Qcommon_Init (int argc, char **argv)
+void
+Qcommon_Init(int argc, char **argv)
 {
-	char	*s;
+	char *s;
 
-	if (setjmp (abortframe) )
-		Sys_Error ("Error during initialization");
+	if (setjmp(abortframe))
+	{
+		Sys_Error("Error during initialization");
+	}
 
 	z_chain.next = z_chain.prev = &z_chain;
 
 	/* prepare enough of the subsystems to handle
 	   cvar and command buffer management */
-	COM_InitArgv (argc, argv);
+	COM_InitArgv(argc, argv);
 
-	Swap_Init ();
-	Cbuf_Init ();
+	Swap_Init();
+	Cbuf_Init();
 
-	Cmd_Init ();
-	Cvar_Init ();
+	Cmd_Init();
+	Cvar_Init();
 
 #ifndef DEDICATED_ONLY
-	Key_Init ();
+	Key_Init();
 #endif
 
 	/* we need to add the early commands twice, because
 	   a basedir or cddir needs to be set before execing
 	   config files, but we want other parms to override
 	   the settings of the config files */
-	Cbuf_AddEarlyCommands (false);
-	Cbuf_Execute ();
+	Cbuf_AddEarlyCommands(false);
+	Cbuf_Execute();
 
-	FS_InitFilesystem ();
+	FS_InitFilesystem();
 
-	Cbuf_AddText ("exec default.cfg\n");
-	Cbuf_AddText ("exec yq2.cfg\n");
-	Cbuf_AddText ("exec config.cfg\n");
+	Cbuf_AddText("exec default.cfg\n");
+	Cbuf_AddText("exec yq2.cfg\n");
+	Cbuf_AddText("exec config.cfg\n");
 
-	Cbuf_AddEarlyCommands (true);
-	Cbuf_Execute ();
+	Cbuf_AddEarlyCommands(true);
+	Cbuf_Execute();
 
 	/* init commands and vars */
-	Cmd_AddCommand ("z_stats", Z_Stats_f);
-	Cmd_AddCommand ("error", Com_Error_f);
+	Cmd_AddCommand("z_stats", Z_Stats_f);
+	Cmd_AddCommand("error", Com_Error_f);
 
-	host_speeds = Cvar_Get ("host_speeds", "0", 0);
-	log_stats = Cvar_Get ("log_stats", "0", 0);
-	developer = Cvar_Get ("developer", "0", 0);
-	modder = Cvar_Get ("modder", "0", 0);
-	timescale = Cvar_Get ("timescale", "1", 0);
-	fixedtime = Cvar_Get ("fixedtime", "0", 0);
-	logfile_active = Cvar_Get ("logfile", "0", 0);
+	host_speeds = Cvar_Get("host_speeds", "0", 0);
+	log_stats = Cvar_Get("log_stats", "0", 0);
+	developer = Cvar_Get("developer", "0", 0);
+	modder = Cvar_Get("modder", "0", 0);
+	timescale = Cvar_Get("timescale", "1", 0);
+	fixedtime = Cvar_Get("fixedtime", "0", 0);
+	logfile_active = Cvar_Get("logfile", "0", 0);
 #ifndef DEDICATED_ONLY
-	showtrace = Cvar_Get ("showtrace", "0", 0);
+	showtrace = Cvar_Get("showtrace", "0", 0);
 #endif
+
 #ifdef DEDICATED_ONLY
-	dedicated = Cvar_Get ("dedicated", "1", CVAR_NOSET);
+	dedicated = Cvar_Get("dedicated", "1", CVAR_NOSET);
 #else
-	dedicated = Cvar_Get ("dedicated", "0", CVAR_NOSET);
+	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET);
 #endif
 
 	s = va("%4.2f %s %s %s", VERSION, CPUSTRING, __DATE__, BUILDSTRING);
-	Cvar_Get ("version", s, CVAR_SERVERINFO|CVAR_NOSET);
+	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
 	if (dedicated->value)
-		Cmd_AddCommand ("quit", Com_Quit);
+	{
+		Cmd_AddCommand("quit", Com_Quit);
+	}
 
 	Sys_Init();
 	NET_Init();
-	Netchan_Init ();
-	SV_Init ();
+	Netchan_Init();
+	SV_Init();
 #ifndef DEDICATED_ONLY
-	CL_Init ();
+	CL_Init();
 #endif
 
 	/* add + commands from command line */
-	if (!Cbuf_AddLateCommands ())
+	if (!Cbuf_AddLateCommands())
 	{
 		/* if the user didn't give any commands, run default action */
 		if (!dedicated->value)
-			Cbuf_AddText ("d1\n");
-
+		{
+			Cbuf_AddText("d1\n");
+		}
 		else
-			Cbuf_AddText ("dedicated_start\n");
+		{
+			Cbuf_AddText("dedicated_start\n");
+		}
 
-		Cbuf_Execute ();
+		Cbuf_Execute();
 	}
-
 #ifndef DEDICATED_ONLY
-
 	else
 	{
 		/* the user asked for something explicit
 		   so drop the loading plaque */
-		SCR_EndLoadingPlaque ();
+		SCR_EndLoadingPlaque();
 	}
-
 #endif
 
-	Com_Printf ("==== Yamagi Quake II Initialized ====\n\n");
-	Com_Printf ("*************************************\n\n");
+	Com_Printf("==== Yamagi Quake II Initialized ====\n\n");
+	Com_Printf("*************************************\n\n");
 }
 
-void Qcommon_Frame (int msec)
+void
+Qcommon_Frame(int msec)
 {
-	char	*s;
+	char *s;
 
 #ifndef DEDICATED_ONLY
-	int		time_before = 0;
-	int		time_between = 0;
-	int		time_after;
+	int time_before = 0;
+	int time_between = 0;
+	int time_after;
 #endif
 
-	if (setjmp (abortframe) )
+	if (setjmp(abortframe))
+	{
 		return; /* an ERR_DROP was thrown */
+	}
 
-	if ( log_stats->modified )
+	if (log_stats->modified)
 	{
 		log_stats->modified = false;
 
-		if ( log_stats->value )
+		if (log_stats->value)
 		{
-			if ( log_stats_file )
+			if (log_stats_file)
 			{
-				fclose( log_stats_file );
+				fclose(log_stats_file);
 				log_stats_file = 0;
 			}
 
-			log_stats_file = fopen( "stats.log", "w" );
+			log_stats_file = fopen("stats.log", "w");
 
-			if ( log_stats_file )
-				fprintf( log_stats_file, "entities,dlights,parts,frame time\n" );
+			if (log_stats_file)
+			{
+				fprintf(log_stats_file, "entities,dlights,parts,frame time\n");
+			}
 		}
-
 		else
 		{
-			if ( log_stats_file )
+			if (log_stats_file)
 			{
-				fclose( log_stats_file );
+				fclose(log_stats_file);
 				log_stats_file = 0;
 			}
 		}
 	}
 
 	if (fixedtime->value)
+	{
 		msec = fixedtime->value;
-
+	}
 	else if (timescale->value)
 	{
 		msec *= timescale->value;
 
 		if (msec < 1)
+		{
 			msec = 1;
+		}
 	}
 
 #ifndef DEDICATED_ONLY
-
 	if (showtrace->value)
 	{
-		extern	int c_traces, c_brush_traces;
-		extern	int	c_pointcontents;
+		extern int c_traces, c_brush_traces;
+		extern int c_pointcontents;
 
-		Com_Printf ("%4i traces  %4i points\n", c_traces, c_pointcontents);
+		Com_Printf("%4i traces  %4i points\n", c_traces, c_pointcontents);
 		c_traces = 0;
 		c_brush_traces = 0;
 		c_pointcontents = 0;
 	}
-
 #endif
 
 	do
 	{
-		s = Sys_ConsoleInput ();
+		s = Sys_ConsoleInput();
 
 		if (s)
-			Cbuf_AddText (va("%s\n",s));
+		{
+			Cbuf_AddText(va("%s\n", s));
+		}
 	}
 	while (s);
 
-	Cbuf_Execute ();
+	Cbuf_Execute();
 
 #ifndef DEDICATED_ONLY
-
 	if (host_speeds->value)
-		time_before = Sys_Milliseconds ();
-
+	{
+		time_before = Sys_Milliseconds();
+	}
 #endif
 
-	SV_Frame (msec);
+	SV_Frame(msec);
 
 #ifndef DEDICATED_ONLY
-
 	if (host_speeds->value)
-		time_between = Sys_Milliseconds ();
+	{
+		time_between = Sys_Milliseconds();
+	}
 
-	CL_Frame (msec);
+	CL_Frame(msec);
 
 	if (host_speeds->value)
 	{
-		int			all, sv, gm, cl, rf;
+		int all, sv, gm, cl, rf;
 
-		time_after = Sys_Milliseconds ();
+		time_after = Sys_Milliseconds();
 		all = time_after - time_before;
 		sv = time_between - time_before;
 		cl = time_after - time_between;
@@ -378,13 +399,14 @@ void Qcommon_Frame (int msec)
 		rf = time_after_ref - time_before_ref;
 		sv -= gm;
 		cl -= rf;
-		Com_Printf ("all:%3i sv:%3i gm:%3i cl:%3i rf:%3i\n",
-		            all, sv, gm, cl, rf);
+		Com_Printf("all:%3i sv:%3i gm:%3i cl:%3i rf:%3i\n",
+				all, sv, gm, cl, rf);
 	}
-
 #endif
 }
 
-void Qcommon_Shutdown (void)
+void
+Qcommon_Shutdown(void)
 {
 }
+
