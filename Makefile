@@ -470,13 +470,12 @@ CLIENT_OBJS_ := \
 	src/common/filesystem.o \
 	src/common/glob.o \
 	src/common/md4.o \
+	src/common/movemsg.o \
 	src/common/misc.o \
 	src/common/netchan.o \
 	src/common/pmove.o \
 	src/common/szone.o \
 	src/common/zone.o \
-	src/common/message/msg_io.o \
-	src/common/message/msg_read.o \
  	src/common/model/cm_areaportals.o \
 	src/common/model/cm_box.o \
 	src/common/model/cm_boxtracing.o \
@@ -532,12 +531,11 @@ SERVER_OBJS_ := \
 	src/common/glob.o \
 	src/common/md4.o \
 	src/common/misc.o \
+	src/common/movemsg.o \
 	src/common/netchan.o \
 	src/common/pmove.o \
 	src/common/szone.o \
 	src/common/zone.o \
-	src/common/message/msg_io.o \
-	src/common/message/msg_read.o \
  	src/common/model/cm_areaportals.o \
 	src/common/model/cm_box.o \
 	src/common/model/cm_boxtracing.o \
