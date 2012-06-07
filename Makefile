@@ -464,6 +464,7 @@ CLIENT_OBJS_ := \
 	src/client/sound/snd_wav.o \
 	src/common/argproc.o \
 	src/common/clientserver.o \
+	src/common/collision.o \
 	src/common/crc.o \
 	src/common/cmdparser.o \
 	src/common/cvar.o \
@@ -476,11 +477,6 @@ CLIENT_OBJS_ := \
 	src/common/pmove.o \
 	src/common/szone.o \
 	src/common/zone.o \
- 	src/common/model/cm_areaportals.o \
-	src/common/model/cm_box.o \
-	src/common/model/cm_boxtracing.o \
-	src/common/model/cm_bsp.o \
-	src/common/model/cm_vis.o \
 	src/common/shared/flash.o \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o \
@@ -524,6 +520,7 @@ endif
 SERVER_OBJS_ := \
 	src/common/argproc.o \
 	src/common/clientserver.o \
+	src/common/collision.o \
 	src/common/crc.o \
 	src/common/cmdparser.o \
 	src/common/cvar.o \
@@ -536,11 +533,6 @@ SERVER_OBJS_ := \
 	src/common/pmove.o \
 	src/common/szone.o \
 	src/common/zone.o \
- 	src/common/model/cm_areaportals.o \
-	src/common/model/cm_box.o \
-	src/common/model/cm_boxtracing.o \
-	src/common/model/cm_bsp.o \
-	src/common/model/cm_vis.o \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o \
 	src/common/unzip/ioapi.o \
