@@ -463,6 +463,7 @@ CLIENT_OBJS_ := \
 	src/client/sound/snd_vorbis.o \
 	src/client/sound/snd_wav.o \
 	src/common/crc.o \
+	src/common/cmdparser.o \
 	src/common/cvar.o \
 	src/common/filesystem.o \
 	src/common/glob.o \
@@ -472,9 +473,6 @@ CLIENT_OBJS_ := \
 	src/common/pmove.o \
 	src/common/szone.o \
 	src/common/zone.o \
-	src/common/command/cmd_execution.o \
-	src/common/command/cmd_parser.o \
-	src/common/command/cmd_script.o \
 	src/common/common/com_arg.o \
 	src/common/common/com_clientserver.o \
 	src/common/message/msg_io.o \
@@ -526,6 +524,7 @@ endif
 # Used by the server
 SERVER_OBJS_ := \
 	src/common/crc.o \
+	src/common/cmdparser.o \
 	src/common/cvar.o \
 	src/common/filesystem.o \
 	src/common/glob.o \
@@ -535,9 +534,6 @@ SERVER_OBJS_ := \
 	src/common/pmove.o \
 	src/common/szone.o \
 	src/common/zone.o \
-	src/common/command/cmd_execution.o \
-	src/common/command/cmd_parser.o \
-	src/common/command/cmd_script.o \
 	src/common/common/com_arg.o \
 	src/common/common/com_clientserver.o \
 	src/common/message/msg_io.o \
