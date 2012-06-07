@@ -462,6 +462,8 @@ CLIENT_OBJS_ := \
 	src/client/sound/snd_mix.o \
 	src/client/sound/snd_vorbis.o \
 	src/client/sound/snd_wav.o \
+	src/common/argproc.o \
+	src/common/clientserver.o \
 	src/common/crc.o \
 	src/common/cmdparser.o \
 	src/common/cvar.o \
@@ -473,8 +475,6 @@ CLIENT_OBJS_ := \
 	src/common/pmove.o \
 	src/common/szone.o \
 	src/common/zone.o \
-	src/common/common/com_arg.o \
-	src/common/common/com_clientserver.o \
 	src/common/message/msg_io.o \
 	src/common/message/msg_read.o \
  	src/common/model/cm_areaportals.o \
@@ -523,6 +523,8 @@ endif
 
 # Used by the server
 SERVER_OBJS_ := \
+	src/common/argproc.o \
+	src/common/clientserver.o \
 	src/common/crc.o \
 	src/common/cmdparser.o \
 	src/common/cvar.o \
@@ -534,8 +536,6 @@ SERVER_OBJS_ := \
 	src/common/pmove.o \
 	src/common/szone.o \
 	src/common/zone.o \
-	src/common/common/com_arg.o \
-	src/common/common/com_clientserver.o \
 	src/common/message/msg_io.o \
 	src/common/message/msg_read.o \
  	src/common/model/cm_areaportals.o \
