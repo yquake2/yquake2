@@ -37,11 +37,11 @@
 cvar_t *nostdout;
 
 int
-main ( int argc, char **argv )
+main(int argc, char **argv)
 {
 	int time, oldtime, newtime;
 
-    /* register signal handler */
+	/* register signal handler */
 	registerHandler();
 
 	/* Prevent running Quake II as root. Only very mad
@@ -61,7 +61,7 @@ main ( int argc, char **argv )
 	{
 		printf("The effective UID is not the real UID! Your binary is probably marked\n");
 		printf("'setuid'. That is not good idea, please fix it :) If you really know\n");
-		printf("what you're doin edit src/unix/main.c and remove this check. Don't\n"); 
+		printf("what you're doin edit src/unix/main.c and remove this check. Don't\n");
 		printf("complain if Quake II eats your dog afterwards!\n");
 
 		return 1;
@@ -70,8 +70,8 @@ main ( int argc, char **argv )
 	/* enforce C locale */
 	setenv("LC_ALL", "C", 1);
 
-	printf( "\nYamagi Quake II v%4.2f\n", VERSION);
-	printf( "=====================\n\n");
+	printf("\nYamagi Quake II v%4.2f\n", VERSION);
+	printf("=====================\n\n");
 
 	printf("Client build options:\n");
 #ifdef CDA
@@ -95,28 +95,28 @@ main ( int argc, char **argv )
 	printf(" - Zip file support\n");
 #endif
 
-    printf("Platform: %s\n", BUILDSTRING);
+	printf("Platform: %s\n", BUILDSTRING);
 	printf("Architecture: %s\n", CPUSTRING);
-	
+
 	/* Seed PRNG */
 	randk_seed();
 
 	/* Initialze the game */
-	Qcommon_Init( argc, argv );
+	Qcommon_Init(argc, argv);
 
-	fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) | FNDELAY );
+	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) | FNDELAY);
 
-	nostdout = Cvar_Get( "nostdout", "0", 0 );
+	nostdout = Cvar_Get("nostdout", "0", 0);
 
-	if ( !nostdout->value )
+	if (!nostdout->value)
 	{
-		fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) | FNDELAY );
+		fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) | FNDELAY);
 	}
 
 	oldtime = Sys_Milliseconds();
 
 	/* The legendary Quake II mainloop */
-	while ( 1 )
+	while (1)
 	{
 		/* find time spent rendering last frame */
 		do
@@ -124,11 +124,12 @@ main ( int argc, char **argv )
 			newtime = Sys_Milliseconds();
 			time = newtime - oldtime;
 		}
-		while ( time < 1 );
+		while (time < 1);
 
-		Qcommon_Frame( time );
+		Qcommon_Frame(time);
 		oldtime = newtime;
 	}
 
 	return 0;
 }
+

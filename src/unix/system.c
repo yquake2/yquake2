@@ -53,346 +53,346 @@ unsigned sys_frame_time;
 int curtime;
 static void *game_library;
 
-static char findbase [ MAX_OSPATH ];
-static char findpath [ MAX_OSPATH ];
-static char findpattern [ MAX_OSPATH ];
-static DIR  *fdir;
+static char findbase[MAX_OSPATH];
+static char findpath[MAX_OSPATH];
+static char findpattern[MAX_OSPATH];
+static DIR *fdir;
 
 qboolean stdin_active = true;
 extern cvar_t *nostdout;
-extern FILE	*logfile;
+extern FILE *logfile;
 
 static qboolean
-CompareAttributes ( char *path, char *name, unsigned musthave, unsigned canthave )
+CompareAttributes(char *path, char *name, unsigned musthave, unsigned canthave)
 {
 	struct stat st;
-	char fn [ MAX_OSPATH ];
+	char fn[MAX_OSPATH];
 
 	/* . and .. never match */
-	if ( ( strcmp( name, "." ) == 0 ) || ( strcmp( name, ".." ) == 0 ) )
+	if ((strcmp(name, ".") == 0) || (strcmp(name, "..") == 0))
 	{
-		return ( false );
+		return false;
 	}
 
-	return ( true );
+	return true;
 
-	if ( stat( fn, &st ) == -1 )
+	if (stat(fn, &st) == -1)
 	{
-		return ( false ); /* shouldn't happen */
+		return false; /* shouldn't happen */
 	}
 
-	if ( ( st.st_mode & S_IFDIR ) && ( canthave & SFF_SUBDIR ) )
+	if ((st.st_mode & S_IFDIR) && (canthave & SFF_SUBDIR))
 	{
-		return ( false );
+		return false;
 	}
 
-	if ( ( musthave & SFF_SUBDIR ) && !( st.st_mode & S_IFDIR ) )
+	if ((musthave & SFF_SUBDIR) && !(st.st_mode & S_IFDIR))
 	{
-		return ( false );
+		return false;
 	}
 
-	return ( true );
+	return true;
 }
 
 void
-Sys_Init ( void )
+Sys_Init(void)
 {
 }
 
 int
-Sys_Milliseconds ( void )
+Sys_Milliseconds(void)
 {
 	struct timeval tp;
 	struct timezone tzp;
 	static int secbase;
 
-	gettimeofday( &tp, &tzp );
+	gettimeofday(&tp, &tzp);
 
-	if ( !secbase )
+	if (!secbase)
 	{
 		secbase = tp.tv_sec;
-		return ( tp.tv_usec / 1000 );
+		return tp.tv_usec / 1000;
 	}
 
-	curtime = ( tp.tv_sec - secbase ) * 1000 + tp.tv_usec / 1000;
+	curtime = (tp.tv_sec - secbase) * 1000 + tp.tv_usec / 1000;
 
-	return ( curtime );
+	return curtime;
 }
 
 void
-Sys_Mkdir ( char *path )
+Sys_Mkdir(char *path)
 {
-	mkdir( path, 0755 );
+	mkdir(path, 0755);
 }
 
 char *
-Sys_GetCurrentDirectory ( void )
+Sys_GetCurrentDirectory(void)
 {
-	static char dir [ MAX_OSPATH ];
+	static char dir[MAX_OSPATH];
 
-	if ( !getcwd( dir, sizeof ( dir ) ) )
+	if (!getcwd(dir, sizeof(dir)))
 	{
-		Sys_Error( "Couldn't get current working directory" );
+		Sys_Error("Couldn't get current working directory");
 	}
 
-	return ( dir );
+	return dir;
 }
 
 char *
-Sys_FindFirst ( char *path, unsigned musthave, unsigned canhave )
+Sys_FindFirst(char *path, unsigned musthave, unsigned canhave)
 {
 	struct dirent *d;
 	char *p;
 
-	if ( fdir )
+	if (fdir)
 	{
-		Sys_Error( "Sys_BeginFind without close" );
+		Sys_Error("Sys_BeginFind without close");
 	}
 
-	strcpy( findbase, path );
+	strcpy(findbase, path);
 
-	if ( ( p = strrchr( findbase, '/' ) ) != NULL )
+	if ((p = strrchr(findbase, '/')) != NULL)
 	{
 		*p = 0;
-		strcpy( findpattern, p + 1 );
+		strcpy(findpattern, p + 1);
 	}
 	else
 	{
-		strcpy( findpattern, "*" );
+		strcpy(findpattern, "*");
 	}
 
-	if ( strcmp( findpattern, "*.*" ) == 0 )
+	if (strcmp(findpattern, "*.*") == 0)
 	{
-		strcpy( findpattern, "*" );
+		strcpy(findpattern, "*");
 	}
 
-	if ( ( fdir = opendir( findbase ) ) == NULL )
+	if ((fdir = opendir(findbase)) == NULL)
 	{
-		return ( NULL );
+		return NULL;
 	}
 
-	while ( ( d = readdir( fdir ) ) != NULL )
+	while ((d = readdir(fdir)) != NULL)
 	{
-		if ( !*findpattern || glob_match( findpattern, d->d_name ) )
+		if (!*findpattern || glob_match(findpattern, d->d_name))
 		{
-			if ( CompareAttributes( findbase, d->d_name, musthave, canhave ) )
+			if (CompareAttributes(findbase, d->d_name, musthave, canhave))
 			{
-				sprintf( findpath, "%s/%s", findbase, d->d_name );
-				return ( findpath );
+				sprintf(findpath, "%s/%s", findbase, d->d_name);
+				return findpath;
 			}
 		}
 	}
 
-	return ( NULL );
+	return NULL;
 }
 
 char *
-Sys_FindNext ( unsigned musthave, unsigned canhave )
+Sys_FindNext(unsigned musthave, unsigned canhave)
 {
 	struct dirent *d;
 
-	if ( fdir == NULL )
+	if (fdir == NULL)
 	{
-		return ( NULL );
+		return NULL;
 	}
 
-	while ( ( d = readdir( fdir ) ) != NULL )
+	while ((d = readdir(fdir)) != NULL)
 	{
-		if ( !*findpattern || glob_match( findpattern, d->d_name ) )
+		if (!*findpattern || glob_match(findpattern, d->d_name))
 		{
-			if ( CompareAttributes( findbase, d->d_name, musthave, canhave ) )
+			if (CompareAttributes(findbase, d->d_name, musthave, canhave))
 			{
-				sprintf( findpath, "%s/%s", findbase, d->d_name );
-				return ( findpath );
+				sprintf(findpath, "%s/%s", findbase, d->d_name);
+				return findpath;
 			}
 		}
 	}
 
-	return ( NULL );
+	return NULL;
 }
 
 void
-Sys_FindClose ( void )
+Sys_FindClose(void)
 {
-	if ( fdir != NULL )
+	if (fdir != NULL)
 	{
-		closedir( fdir );
+		closedir(fdir);
 	}
 
 	fdir = NULL;
 }
 
 void
-Sys_ConsoleOutput ( char *string )
+Sys_ConsoleOutput(char *string)
 {
-	if ( nostdout && nostdout->value )
+	if (nostdout && nostdout->value)
 	{
 		return;
 	}
 
-	fputs( string, stdout );
+	fputs(string, stdout);
 }
 
 void
-Sys_Printf ( char *fmt, ... )
+Sys_Printf(char *fmt, ...)
 {
 	va_list argptr;
-	char text [ 1024 ];
-	unsigned char   *p;
+	char text[1024];
+	unsigned char *p;
 
-	va_start( argptr, fmt );
-	vsnprintf( text, 1024, fmt, argptr );
-	va_end( argptr );
+	va_start(argptr, fmt);
+	vsnprintf(text, 1024, fmt, argptr);
+	va_end(argptr);
 
-	if ( nostdout && nostdout->value )
+	if (nostdout && nostdout->value)
 	{
 		return;
 	}
 
-	for ( p = (unsigned char *) text; *p; p++ )
+	for (p = (unsigned char *)text; *p; p++)
 	{
 		*p &= 0x7f;
 
-		if ( ( ( *p > 128 ) || ( *p < 32 ) ) && ( *p != 10 ) && ( *p != 13 ) && ( *p != 9 ) )
+		if (((*p > 128) || (*p < 32)) && (*p != 10) && (*p != 13) && (*p != 9))
 		{
-			printf( "[%02x]", *p );
+			printf("[%02x]", *p);
 		}
 		else
 		{
-			putc( *p, stdout );
+			putc(*p, stdout);
 		}
 	}
 }
 
 void
-Sys_Quit ( void )
+Sys_Quit(void)
 {
 #ifndef DEDICATED_ONLY
 	CL_Shutdown();
 #endif
 
-   	if (logfile)
+	if (logfile)
 	{
-		fclose (logfile);
+		fclose(logfile);
 		logfile = NULL;
 	}
 
 	Qcommon_Shutdown();
-	fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) & ~FNDELAY );
+	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) & ~FNDELAY);
 
 	printf("------------------------------------\n");
 
-	exit( 0 );
+	exit(0);
 }
 
 void
-Sys_Error ( char *error, ... )
+Sys_Error(char *error, ...)
 {
 	va_list argptr;
-	char string [ 1024 ];
+	char string[1024];
 
 	/* change stdin to non blocking */
-	fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) & ~FNDELAY );
+	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) & ~FNDELAY);
 
 #ifndef DEDICATED_ONLY
 	CL_Shutdown();
 #endif
 	Qcommon_Shutdown();
 
-	va_start( argptr, error );
-	vsnprintf( string, 1024, error, argptr );
-	va_end( argptr );
-	fprintf( stderr, "Error: %s\n", string );
+	va_start(argptr, error);
+	vsnprintf(string, 1024, error, argptr);
+	va_end(argptr);
+	fprintf(stderr, "Error: %s\n", string);
 
-	exit( 1 );
+	exit(1);
 }
 
 void
-Sys_Warn ( char *warning, ... )
+Sys_Warn(char *warning, ...)
 {
 	va_list argptr;
-	char string [ 1024 ];
+	char string[1024];
 
-	va_start( argptr, warning );
-	vsnprintf( string, 1024, warning, argptr );
-	va_end( argptr );
-	fprintf( stderr, "Warning: %s", string );
+	va_start(argptr, warning);
+	vsnprintf(string, 1024, warning, argptr);
+	va_end(argptr);
+	fprintf(stderr, "Warning: %s", string);
 }
 
 /*
  * returns -1 if not present
  */
 int
-Sys_FileTime ( char *path )
+Sys_FileTime(char *path)
 {
 	struct  stat buf;
 
-	if ( stat( path, &buf ) == -1 )
+	if (stat(path, &buf) == -1)
 	{
-		return ( -1 );
+		return -1;
 	}
 
-	return ( buf.st_mtime );
+	return buf.st_mtime;
 }
 
 void
-floating_point_exception_handler ( int whatever )
+floating_point_exception_handler(int whatever)
 {
-	signal( SIGFPE, floating_point_exception_handler );
+	signal(SIGFPE, floating_point_exception_handler);
 }
 
 char *
-Sys_ConsoleInput ( void )
+Sys_ConsoleInput(void)
 {
-	static char text [ 256 ];
+	static char text[256];
 	int len;
 	fd_set fdset;
 	struct timeval timeout;
 
-	if ( !dedicated || !dedicated->value )
+	if (!dedicated || !dedicated->value)
 	{
-		return ( NULL );
+		return NULL;
 	}
 
-	if ( !stdin_active )
+	if (!stdin_active)
 	{
-		return ( NULL );
+		return NULL;
 	}
 
-	FD_ZERO( &fdset );
-	FD_SET( 0, &fdset ); /* stdin */
+	FD_ZERO(&fdset);
+	FD_SET(0, &fdset); /* stdin */
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 0;
 
-	if ( ( select( 1, &fdset, NULL, NULL, &timeout ) == -1 ) || !FD_ISSET( 0, &fdset ) )
+	if ((select(1, &fdset, NULL, NULL, &timeout) == -1) || !FD_ISSET(0, &fdset))
 	{
-		return ( NULL );
+		return NULL;
 	}
 
-	len = read( 0, text, sizeof ( text ) );
+	len = read(0, text, sizeof(text));
 
-	if ( len == 0 ) /* eof! */
+	if (len == 0)   /* eof! */
 	{
 		stdin_active = false;
-		return ( NULL );
+		return NULL;
 	}
 
-	if ( len < 1 )
+	if (len < 1)
 	{
-		return ( NULL );
+		return NULL;
 	}
 
-	text [ len - 1 ] = 0; /* rip off the /n and terminate */
+	text[len - 1] = 0; /* rip off the /n and terminate */
 
-	return ( text );
+	return text;
 }
 
 void
-Sys_UnloadGame ( void )
+Sys_UnloadGame(void)
 {
-	if ( game_library )
+	if (game_library)
 	{
-		dlclose( game_library );
+		dlclose(game_library);
 	}
 
 	game_library = NULL;
@@ -402,65 +402,65 @@ Sys_UnloadGame ( void )
  * Loads the game dll
  */
 void *
-Sys_GetGameAPI ( void *parms )
+Sys_GetGameAPI(void *parms)
 {
-	void    *( *GetGameAPI )(void *);
+	void *(*GetGameAPI)(void *);
 
-	FILE    *fp;
-	char name [ MAX_OSPATH ];
-	char    *path;
-	char    *str_p;
+	FILE *fp;
+	char name[MAX_OSPATH];
+	char *path;
+	char *str_p;
 	const char *gamename = "game.so";
 
-	setreuid( getuid(), getuid() );
-	setegid( getgid() );
+	setreuid(getuid(), getuid());
+	setegid(getgid());
 
-	if ( game_library )
+	if (game_library)
 	{
-		Com_Error( ERR_FATAL, "Sys_GetGameAPI without Sys_UnloadingGame" );
+		Com_Error(ERR_FATAL, "Sys_GetGameAPI without Sys_UnloadingGame");
 	}
 
-	Com_Printf( "LoadLibrary(\"%s\")\n", gamename );
+	Com_Printf("LoadLibrary(\"%s\")\n", gamename);
 
 	/* now run through the search paths */
 	path = NULL;
 
-	while ( 1 )
+	while (1)
 	{
-		path = FS_NextPath( path );
+		path = FS_NextPath(path);
 
-		if ( !path )
+		if (!path)
 		{
-			return ( NULL ); /* couldn't find one anywhere */
+			return NULL;     /* couldn't find one anywhere */
 		}
 
-		snprintf( name, MAX_OSPATH, "%s/%s", path, gamename );
+		snprintf(name, MAX_OSPATH, "%s/%s", path, gamename);
 
 		/* skip it if it just doesn't exist */
-		fp = fopen( name, "rb" );
+		fp = fopen(name, "rb");
 
-		if ( fp == NULL )
+		if (fp == NULL)
 		{
 			continue;
 		}
 
-		fclose( fp );
+		fclose(fp);
 
-		game_library = dlopen( name, RTLD_NOW );
+		game_library = dlopen(name, RTLD_NOW);
 
-		if ( game_library )
+		if (game_library)
 		{
-			Com_MDPrintf( "LoadLibrary (%s)\n", name );
+			Com_MDPrintf("LoadLibrary (%s)\n", name);
 			break;
 		}
 		else
 		{
-			Com_Printf( "LoadLibrary (%s):", name );
+			Com_Printf("LoadLibrary (%s):", name);
 
-			path = (char *) dlerror();
-			str_p = strchr( path, ':' ); /* skip the path (already shown) */
+			path = (char *)dlerror();
+			str_p = strchr(path, ':');   /* skip the path (already shown) */
 
-			if ( str_p == NULL )
+			if (str_p == NULL)
 			{
 				str_p = path;
 			}
@@ -469,35 +469,34 @@ Sys_GetGameAPI ( void *parms )
 				str_p++;
 			}
 
-			Com_Printf( "%s\n", str_p );
+			Com_Printf("%s\n", str_p);
 
-			return ( NULL );
+			return NULL;
 		}
 	}
 
-	GetGameAPI = (void *) dlsym( game_library, "GetGameAPI" );
+	GetGameAPI = (void *)dlsym(game_library, "GetGameAPI");
 
-	if ( !GetGameAPI )
+	if (!GetGameAPI)
 	{
 		Sys_UnloadGame();
-		return ( NULL );
+		return NULL;
 	}
 
-	return ( GetGameAPI( parms ) );
+	return GetGameAPI(parms);
 }
 
 void
-Sys_SendKeyEvents ( void )
+Sys_SendKeyEvents(void)
 {
 #ifndef DEDICATED_ONLY
-
-	if ( IN_Update_fp )
+	if (IN_Update_fp)
 	{
 		IN_Update_fp();
 	}
-
 #endif
 
 	/* grab frame time */
 	sys_frame_time = Sys_Milliseconds();
 }
+

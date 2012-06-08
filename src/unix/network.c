@@ -40,33 +40,33 @@
 
 netadr_t net_local_adr;
 
-#define LOOPBACK		0x7f000001
-#define MAX_LOOPBACK    4
-#define QUAKE2MCAST		"ff12::666"
+#define LOOPBACK 0x7f000001
+#define MAX_LOOPBACK 4
+#define QUAKE2MCAST "ff12::666"
 
 typedef struct
 {
-	byte data [ MAX_MSGLEN ];
+	byte data[MAX_MSGLEN];
 	int datalen;
 } loopmsg_t;
 
 typedef struct
 {
-	loopmsg_t msgs [ MAX_LOOPBACK ];
+	loopmsg_t msgs[MAX_LOOPBACK];
 	int get, send;
 } loopback_t;
 
-loopback_t loopbacks [ 2 ];
-int ip_sockets [ 2 ];
+loopback_t loopbacks[2];
+int ip_sockets[2];
 int ip6_sockets[2];
-int ipx_sockets [ 2 ];
+int ipx_sockets[2];
 char *multicast_interface = NULL;
 
 int NET_Socket(char *net_interface, int port, netsrc_t type, int family);
-char *NET_ErrorString ( void );
+char *NET_ErrorString(void);
 
 void
-NetadrToSockadr ( netadr_t *a, struct sockaddr_storage *s )
+NetadrToSockadr(netadr_t *a, struct sockaddr_storage *s)
 {
 	struct sockaddr_in6 *s6;
 
@@ -91,7 +91,8 @@ NetadrToSockadr ( netadr_t *a, struct sockaddr_storage *s )
 
 			if (inet_pton(AF_INET6, QUAKE2MCAST, &s6->sin6_addr.s6_addr) != 1)
 			{
-				Com_Printf("NET_NetadrToSockadr: inet_pton: %s\n", strerror(errno));
+				Com_Printf("NET_NetadrToSockadr: inet_pton: %s\n",
+						strerror(errno));
 				return;
 			}
 
@@ -102,12 +103,13 @@ NetadrToSockadr ( netadr_t *a, struct sockaddr_storage *s )
 #endif
 
 			/* scope_id is important for
-			   link-local destination.*/
+			 * link-local destination.*/
 			s6->sin6_scope_id = a->scope_id;
 
 			break;
 
 		case NA_IP6:
+
 			if (IN6_IS_ADDR_V4MAPPED((struct in6_addr *)a->ip))
 			{
 #ifdef __FreeBSD__
@@ -115,8 +117,8 @@ NetadrToSockadr ( netadr_t *a, struct sockaddr_storage *s )
 #endif
 				s->ss_family = AF_INET;
 				memcpy(&((struct sockaddr_in *)s)->sin_addr,
-					   &((struct in6_addr *)a->ip)->s6_addr[12],
-					   sizeof(struct in_addr));
+						&((struct in6_addr *)a->ip)->s6_addr[12],
+						sizeof(struct in_addr));
 				((struct sockaddr_in *)s)->sin_port = a->port;
 			}
 			else
@@ -131,7 +133,7 @@ NetadrToSockadr ( netadr_t *a, struct sockaddr_storage *s )
 #endif
 
 				/* scope_id is important for
-				   link-local destination. */
+				 * link-local destination. */
 				s6->sin6_scope_id = a->scope_id;
 			}
 
@@ -145,9 +147,9 @@ NetadrToSockadr ( netadr_t *a, struct sockaddr_storage *s )
 }
 
 void
-SockadrToNetadr ( struct sockaddr_storage *s, netadr_t *a )
+SockadrToNetadr(struct sockaddr_storage *s, netadr_t *a)
 {
-		struct sockaddr_in6 *s6;
+	struct sockaddr_in6 *s6;
 
 	if (s->ss_family == AF_INET)
 	{
@@ -181,12 +183,12 @@ SockadrToNetadr ( struct sockaddr_storage *s, netadr_t *a )
 }
 
 void
-NET_Init ( )
+NET_Init()
 {
 }
 
 qboolean
-NET_CompareAdr ( netadr_t a, netadr_t b )
+NET_CompareAdr(netadr_t a, netadr_t b)
 {
 	if (a.type != b.type)
 	{
@@ -222,7 +224,7 @@ NET_CompareAdr ( netadr_t a, netadr_t b )
  * Compares without the port
  */
 qboolean
-NET_CompareBaseAdr ( netadr_t a, netadr_t b )
+NET_CompareBaseAdr(netadr_t a, netadr_t b)
 {
 	if (a.type != b.type)
 	{
@@ -317,7 +319,9 @@ NET_BaseAdrToString(netadr_t a)
 #else
 			socklen_t const salen = sizeof(ss);
 #endif
-			if (getnameinfo((struct sockaddr*)&ss, salen, s, sizeof(s), NULL, 0, NI_NUMERICHOST))
+
+			if (getnameinfo((struct sockaddr *)&ss, salen, s, sizeof(s), NULL,
+						0, NI_NUMERICHOST))
 			{
 				Com_sprintf(s, sizeof(s), "<invalid>");
 			}
@@ -325,7 +329,8 @@ NET_BaseAdrToString(netadr_t a)
 			else
 			{
 				if ((a.type == NA_MULTICAST6) ||
-					IN6_IS_ADDR_LINKLOCAL(&((struct sockaddr_in6 *)&ss)-> sin6_addr))
+					IN6_IS_ADDR_LINKLOCAL(&((struct sockaddr_in6 *)&ss)->
+								sin6_addr))
 				{
 					/* If the address is multicast (link) or a
 					   link-local, need to carry the scope. The string
@@ -349,7 +354,7 @@ NET_BaseAdrToString(netadr_t a)
 }
 
 char *
-NET_AdrToString ( netadr_t a )
+NET_AdrToString(netadr_t a)
 {
 	static char s[64];
 	const char *base;
@@ -361,7 +366,7 @@ NET_AdrToString ( netadr_t a )
 }
 
 qboolean
-NET_StringToSockaddr ( char *s, struct sockaddr_storage *sadr )
+NET_StringToSockaddr(char *s, struct sockaddr_storage *sadr)
 {
 	char copy[128];
 	char *addrs, *space;
@@ -406,7 +411,8 @@ NET_StringToSockaddr ( char *s, struct sockaddr_storage *sadr )
 	if ((err = getaddrinfo(addrs, ports, &hints, &resultp)))
 	{
 		/* Error */
-		Com_Printf("NET_StringToSockaddr: string %s:\n%s\n", s, gai_strerror(err));
+		Com_Printf("NET_StringToSockaddr: string %s:\n%s\n", s,
+				gai_strerror(err));
 		return 0;
 	}
 
@@ -434,7 +440,7 @@ NET_StringToSockaddr ( char *s, struct sockaddr_storage *sadr )
 }
 
 qboolean
-NET_StringToAdr ( char *s, netadr_t *a )
+NET_StringToAdr(char *s, netadr_t *a)
 {
 	struct sockaddr_storage sadr;
 
@@ -457,55 +463,55 @@ NET_StringToAdr ( char *s, netadr_t *a )
 }
 
 qboolean
-NET_IsLocalAddress ( netadr_t adr )
+NET_IsLocalAddress(netadr_t adr)
 {
-	return ( NET_CompareAdr( adr, net_local_adr ) );
+	return NET_CompareAdr(adr, net_local_adr);
 }
 
 qboolean
-NET_GetLoopPacket ( netsrc_t sock, netadr_t *net_from, sizebuf_t *net_message )
+NET_GetLoopPacket(netsrc_t sock, netadr_t *net_from, sizebuf_t *net_message)
 {
 	int i;
-	loopback_t  *loop;
+	loopback_t *loop;
 
-	loop = &loopbacks [ sock ];
+	loop = &loopbacks[sock];
 
-	if ( loop->send - loop->get > MAX_LOOPBACK )
+	if (loop->send - loop->get > MAX_LOOPBACK)
 	{
 		loop->get = loop->send - MAX_LOOPBACK;
 	}
 
-	if ( loop->get >= loop->send )
+	if (loop->get >= loop->send)
 	{
-		return ( false );
+		return false;
 	}
 
-	i = loop->get & ( MAX_LOOPBACK - 1 );
+	i = loop->get & (MAX_LOOPBACK - 1);
 	loop->get++;
 
-	memcpy( net_message->data, loop->msgs [ i ].data, loop->msgs [ i ].datalen );
-	net_message->cursize = loop->msgs [ i ].datalen;
+	memcpy(net_message->data, loop->msgs[i].data, loop->msgs[i].datalen);
+	net_message->cursize = loop->msgs[i].datalen;
 	*net_from = net_local_adr;
-	return ( true );
+	return true;
 }
 
 void
-NET_SendLoopPacket ( netsrc_t sock, int length, void *data, netadr_t to )
+NET_SendLoopPacket(netsrc_t sock, int length, void *data, netadr_t to)
 {
 	int i;
-	loopback_t  *loop;
+	loopback_t *loop;
 
-	loop = &loopbacks [ sock ^ 1 ];
+	loop = &loopbacks[sock ^ 1];
 
-	i = loop->send & ( MAX_LOOPBACK - 1 );
+	i = loop->send & (MAX_LOOPBACK - 1);
 	loop->send++;
 
-	memcpy( loop->msgs [ i ].data, data, length );
-	loop->msgs [ i ].datalen = length;
+	memcpy(loop->msgs[i].data, data, length);
+	loop->msgs[i].datalen = length;
 }
 
 qboolean
-NET_GetPacket ( netsrc_t sock, netadr_t *net_from, sizebuf_t *net_message )
+NET_GetPacket(netsrc_t sock, netadr_t *net_from, sizebuf_t *net_message)
 {
 	int ret;
 	struct sockaddr_storage from;
@@ -573,7 +579,7 @@ NET_GetPacket ( netsrc_t sock, netadr_t *net_from, sizebuf_t *net_message )
 }
 
 void
-NET_SendPacket ( netsrc_t sock, int length, void *data, netadr_t to )
+NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 {
 	int ret;
 	struct sockaddr_storage addr;
@@ -668,13 +674,15 @@ NET_SendPacket ( netsrc_t sock, int length, void *data, netadr_t to )
 				error = getnameinfo((struct sockaddr *)s6, s6->sin6_len, tmp,
 						sizeof(tmp), NULL, 0, NI_NUMERICHOST);
 #else
-				error = getnameinfo((struct sockaddr *)s6, sizeof(struct sockaddr_in6),
+				error = getnameinfo((struct sockaddr *)s6,
+							sizeof(struct sockaddr_in6),
 							tmp, sizeof(tmp), NULL, 0, NI_NUMERICHOST);
 #endif
 
 				if (error)
 				{
-					Com_Printf("NET_SendPacket: getnameinfo: %s\n", gai_strerror(error));
+					Com_Printf("NET_SendPacket: getnameinfo: %s\n",
+							gai_strerror(error));
 					return;
 				}
 
@@ -691,7 +699,8 @@ NET_SendPacket ( netsrc_t sock, int length, void *data, netadr_t to )
 
 				if (error)
 				{
-					Com_Printf("NET_SendPacket: getaddrinfo: %s\n", gai_strerror(error));
+					Com_Printf("NET_SendPacket: getaddrinfo: %s\n",
+							gai_strerror(error));
 					return;
 				}
 
@@ -707,7 +716,12 @@ NET_SendPacket ( netsrc_t sock, int length, void *data, netadr_t to )
 		}
 	}
 
-	ret = sendto(net_socket, data, length, 0, (struct sockaddr *)&addr, addr_size);
+	ret = sendto(net_socket,
+			data,
+			length,
+			0,
+			(struct sockaddr *)&addr,
+			addr_size);
 
 	if (ret == -1)
 	{
@@ -717,7 +731,7 @@ NET_SendPacket ( netsrc_t sock, int length, void *data, netadr_t to )
 }
 
 void
-NET_OpenIP ( void )
+NET_OpenIP(void)
 {
 	cvar_t *port, *ip;
 
@@ -753,7 +767,7 @@ NET_OpenIP ( void )
  * A single player game will only use the loopback code
  */
 void
-NET_Config ( qboolean multiplayer )
+NET_Config(qboolean multiplayer)
 {
 	int i;
 
@@ -791,7 +805,7 @@ NET_Config ( qboolean multiplayer )
 /* =================================================================== */
 
 int
-NET_Socket ( char *net_interface, int port, netsrc_t type, int family )
+NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 {
 	char Buf[BUFSIZ], *Host, *Service;
 	int newsocket, Error;
@@ -836,7 +850,8 @@ NET_Socket ( char *net_interface, int port, netsrc_t type, int family )
 
 	for (ai = res; ai != NULL; ai = ai->ai_next)
 	{
-		if ((newsocket = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == -1)
+		if ((newsocket =
+				 socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == -1)
 		{
 			Com_Printf("NET_Socket: socket: %s\n", strerror(errno));
 			continue;
@@ -852,7 +867,8 @@ NET_Socket ( char *net_interface, int port, netsrc_t type, int family )
 		if (family == AF_INET)
 		{
 			/* make it broadcast capable */
-			if (setsockopt(newsocket, SOL_SOCKET, SO_BROADCAST, (char *)&i, sizeof(i)) == -1)
+			if (setsockopt(newsocket, SOL_SOCKET, SO_BROADCAST, (char *)&i,
+						sizeof(i)) == -1)
 			{
 				Com_Printf("ERROR: NET_Socket: setsockopt SO_BROADCAST:%s\n",
 						NET_ErrorString());
@@ -861,11 +877,12 @@ NET_Socket ( char *net_interface, int port, netsrc_t type, int family )
 		}
 
 		/* make it reusable */
-		if (setsockopt(newsocket, SOL_SOCKET, SO_REUSEADDR, (char *)&i, sizeof(i)) == -1)
+		if (setsockopt(newsocket, SOL_SOCKET, SO_REUSEADDR, (char *)&i,
+					sizeof(i)) == -1)
 		{
 			Com_Printf("ERROR: NET_Socket: setsockopt SO_REUSEADDR:%s\n",
-						NET_ErrorString());
-				return 0;
+					NET_ErrorString());
+			return 0;
 		}
 
 		if (bind(newsocket, ai->ai_addr, ai->ai_addrlen) < 0)
@@ -895,37 +912,47 @@ NET_Socket ( char *net_interface, int port, netsrc_t type, int family )
 			break;
 
 		case AF_INET6:
+
 			/* Multicast outgoing interface is specified for
 			   client and server (+set multicast <ifname>) */
 			mcast = Cvar_Get("multicast", "NULL", CVAR_NOSET);
-			multicast_interface = (strcmp(mcast->string, "NULL") ? mcast->string : NULL);
+			multicast_interface =
+				(strcmp(mcast->string, "NULL") ? mcast->string : NULL);
 
 			if (multicast_interface != NULL)
 			{
 				/* multicast_interface is a global variable.
 				   Also used in NET_SendPacket() */
-				if ((mreq.ipv6mr_interface = if_nametoindex(multicast_interface)) == 0)
+				if ((mreq.ipv6mr_interface =
+						 if_nametoindex(multicast_interface)) == 0)
 				{
-					Com_Printf("NET_Socket: invalid interface: %s\n", multicast_interface);
+					Com_Printf("NET_Socket: invalid interface: %s\n",
+							multicast_interface);
 				}
 
 				if (setsockopt(newsocket, IPPROTO_IPV6, IPV6_MULTICAST_IF,
-							&mreq.ipv6mr_interface, sizeof(mreq.ipv6mr_interface)) < 0)
+							&mreq.ipv6mr_interface,
+							sizeof(mreq.ipv6mr_interface)) < 0)
 				{
-					Com_Printf("NET_Socket: IPV6_MULTICAST_IF: %s\n", strerror(errno));
+					Com_Printf("NET_Socket: IPV6_MULTICAST_IF: %s\n",
+							strerror(errno));
 				}
 
 				/* Join multicast group ONLY if server */
 				if (type == NS_SERVER)
 				{
-					if (inet_pton(AF_INET6, QUAKE2MCAST, &mreq.ipv6mr_multiaddr.s6_addr) != 1)
+					if (inet_pton(AF_INET6, QUAKE2MCAST,
+								&mreq.ipv6mr_multiaddr.s6_addr) != 1)
 					{
-						Com_Printf("NET_Socket: inet_pton: %s\n", strerror(errno));
+						Com_Printf("NET_Socket: inet_pton: %s\n",
+								strerror(errno));
 					}
 
-					if (setsockopt(newsocket, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq)) < 0)
+					if (setsockopt(newsocket, IPPROTO_IPV6, IPV6_JOIN_GROUP,
+								&mreq, sizeof(mreq)) < 0)
 					{
-						Com_Printf("NET_Socket: IPV6_JOIN_GROUP: %s\n", strerror(errno));
+						Com_Printf("NET_Socket: IPV6_JOIN_GROUP: %s\n",
+								strerror(errno));
 					}
 				}
 			}
@@ -937,32 +964,33 @@ NET_Socket ( char *net_interface, int port, netsrc_t type, int family )
 }
 
 void
-NET_Shutdown ( void )
+NET_Shutdown(void)
 {
-	NET_Config( false ); /* close sockets */
+	NET_Config(false); /* close sockets */
 }
 
 char *
-NET_ErrorString ( void )
+NET_ErrorString(void)
 {
 	int code;
 
 	code = errno;
-	return ( strerror( code ) );
+	return strerror(code);
 }
 
 /*
  * sleeps msec or until net socket is ready
  */
 void
-NET_Sleep ( int msec )
+NET_Sleep(int msec)
 {
 	struct timeval timeout;
 	fd_set fdset;
 	extern cvar_t *dedicated;
 	extern qboolean stdin_active;
 
-	if ((!ip_sockets[NS_SERVER] && !ip6_sockets[NS_SERVER]) || (dedicated && !dedicated->value))
+	if ((!ip_sockets[NS_SERVER] &&
+		 !ip6_sockets[NS_SERVER]) || (dedicated && !dedicated->value))
 	{
 		return; /* we're not a server, just run full speed */
 	}
@@ -978,5 +1006,7 @@ NET_Sleep ( int msec )
 	FD_SET(ip6_sockets[NS_SERVER], &fdset); /* IPv6 network socket */
 	timeout.tv_sec = msec / 1000;
 	timeout.tv_usec = (msec % 1000) * 1000;
-	select(MAX(ip_sockets[NS_SERVER], ip6_sockets[NS_SERVER]) + 1, &fdset, NULL, NULL, &timeout);
+	select(MAX(ip_sockets[NS_SERVER],
+					ip6_sockets[NS_SERVER]) + 1, &fdset, NULL, NULL, &timeout);
 }
+
