@@ -204,9 +204,9 @@ Sys_Init(void)
 	   limit Yamagi Quake II to Windows XP and
 	   above. Testing older version would be a
 	   PITA. */
-	if (!(vinfo.dwMajorVersion > 5) || 
+	if (!((vinfo.dwMajorVersion > 5) || 
 		  ((vinfo.dwMajorVersion == 5) &&
-		   (vinfo.dwMinorVersion >= 1)))
+		   (vinfo.dwMinorVersion >= 1))))
 	{
 		Sys_Error("Yamagi Quake II needs Windows XP or higher!\n");
 	}
