@@ -55,6 +55,12 @@
 #define CPUSTRING "Unknown"
 #endif
 
+#ifdef _WIN32
+#define CFGDIR "YamagiQ2"
+#else
+#define CFGDIR ".yq2"
+#endif
+
 /* ================================================================== */
 
 typedef struct sizebuf_s
@@ -741,6 +747,7 @@ void	Sys_ConsoleOutput (char *string);
 void	Sys_SendKeyEvents (void);
 void	Sys_Error (char *error, ...);
 void	Sys_Quit (void);
+char	*Sys_GetHomeDir(void);
 
 /* CLIENT / SERVER SYSTEMS */
 

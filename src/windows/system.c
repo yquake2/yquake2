@@ -32,6 +32,7 @@
 #include <direct.h>
 #include <io.h>
 #include <conio.h>
+#include <shlobj.h>
 
 #include "../common/header/common.h"
 #include "header/conproc.h"
@@ -604,6 +605,39 @@ Sys_GetCurrentDirectory(void)
 	}
 
 	return dir;
+}
+
+char *
+Sys_GetHomeDir(void)
+{
+	char *old;
+	char *cur;
+	static char gdir[MAX_OSPATH];
+	TCHAR profile[MAX_OSPATH];
+
+    SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, profile);
+
+	/* Replace backslashes by slashes */
+	cur = old = profile;
+
+	if (strstr(cur, "\\") != NULL)
+	{
+		while (cur != NULL)
+		{
+			if ((cur - old) > 1)
+			{
+				*cur = '/';
+
+			}
+
+			old = cur;
+			cur = strchr(old + 1, '\\');  
+		}
+	}
+
+	snprintf(gdir, sizeof(gdir), "%s/%s/", profile, CFGDIR);
+
+	return gdir;
 }
 
 /* ======================================================================= */
