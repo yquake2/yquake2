@@ -25,16 +25,16 @@
  * =======================================================================
  */
 
-#ifdef _WIN32
-#include <SDL/SDL.h>
-#else
-#include <SDL.h>
-#endif
-
+#include "../refresh/header/local.h"
 #include <GL/gl.h>
 
-#include "../refresh/header/local.h"
+#ifdef _WIN32
+#include <SDL/SDL.h>
+#include "../windows/header/glwindow.h"
+#else
+#include <SDL.h>
 #include "../unix/header/glwindow.h"
+#endif
 
 /* The window icon */
 #include "icon/q2icon.xbm"
