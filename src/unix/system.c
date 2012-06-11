@@ -500,3 +500,21 @@ Sys_SendKeyEvents(void)
 	sys_frame_time = Sys_Milliseconds();
 }
 
+char *
+Sys_GetHomeDir(void)
+{
+	static char gdir[MAX_OSPATH];
+	char *home;
+   
+	home = getenv("HOME");
+
+	if (!home)
+	{
+		return NULL;
+	}
+
+	snprintf(gdir, sizeof(gdir), "%s/%s/", home, CFGDIR);
+
+	return gdir;
+}
+

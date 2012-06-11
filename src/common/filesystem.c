@@ -1357,49 +1357,18 @@ FS_AddGameDirectory(const char *dir)
 void
 FS_AddHomeAsGameDirectory(char *dir)
 {
+	char *home;
 	char gdir[MAX_OSPATH];
-	int len;
+	size_t len;
 
-#ifdef _WIN32
-	char *cur;
-	char *old;
-	char *profile = getenv("USERPROFILE");
+	home = Sys_GetHomeDir();
 
-	if (!profile)
+	if (home == NULL)
 	{
 		return;
 	}
 
-	cur = old = profile;
-
-	/* Replace backslashes with slashes */
-	if (strstr(cur, "\\") != NULL)
-	{
-		while (cur != NULL)
-		{
-			if ((cur - old) > 1)
-			{
-				*cur = '/';
-			}
-
-			old = cur;
-			cur = strchr(old + 1, '\\');
-		}
-	}
-
-	len = snprintf(gdir, sizeof(gdir), "%s%s%s/", profile,
-			"/Documents/YamagiQ2/", dir);
-#else
-	char *homedir = getenv("HOME");
-
-	if (!homedir)
-	{
-		return;
-	}
-
-	len = snprintf(gdir, sizeof(gdir), "%s/.yq2/%s/", homedir, dir);
-#endif
-
+    len = snprintf(gdir, sizeof(gdir), "%s%s/", home, dir);
 	FS_CreatePath(gdir);
 
 	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len - 1] == '/'))

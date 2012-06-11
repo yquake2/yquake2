@@ -27,6 +27,8 @@
 #ifndef WIN_GLW_WIN_H__
 #define WIN_GLW_WIN_H__
 
+#include <windows.h>
+
 typedef struct
 {
 	HINSTANCE hInstance;

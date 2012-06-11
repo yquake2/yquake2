@@ -185,8 +185,24 @@ endif
 
 # ----------
 
+# Phony targets
+.PHONY : all client game icon refresher server
+
+# ----------
+
 # Builds everything
 all: client server refresher game
+
+# ----------
+
+# Special target to compile
+# the icon on Windows
+ifeq ($(OSTYPE), Windows)
+icon:
+	@echo "===> WR build/icon/icon.res"
+	${Q}stuff/misc/mkdir -p build/icon
+	${Q}windres stuff\icon\icon.rc -O COFF -o build\icon\icon.res
+endif
 
 # ----------
 
@@ -627,9 +643,9 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 
 # release/quake2
 ifeq ($(OSTYPE), Windows)
-release/quake2.exe : $(CLIENT_OBJS)
+release/quake2.exe : $(CLIENT_OBJS) icon
 	@echo "===> LD $@"
-	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
 release/quake2 : $(CLIENT_OBJS)
 	@echo "===> LD $@"
@@ -638,9 +654,9 @@ endif
  
 # release/q2ded
 ifeq ($(OSTYPE), Windows)
-release/q2ded.exe : $(SERVER_OBJS)
+release/q2ded.exe : $(SERVER_OBJS) icon
 	@echo "===> LD $@.exe"
-	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@
+	${Q}$(CC) build/icon/icon.res $(SERVER_OBJS) $(LDFLAGS) -o $@
 else
 release/q2ded : $(SERVER_OBJS)
 	@echo "===> LD $@"
