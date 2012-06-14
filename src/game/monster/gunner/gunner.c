@@ -153,7 +153,7 @@ gunner_fidget(edict_t *self)
 		return;
 	}
 
-	if (randk() <= 0.05)
+	if (random() <= 0.05)
 	{
 		self->monsterinfo.currentmove = &gunner_move_fidget;
 	}
@@ -531,7 +531,7 @@ gunner_duck_down(edict_t *self)
 
 	if (skill->value >= 2)
 	{
-		if (randk() > 0.5)
+		if (random() > 0.5)
 		{
 			GunnerGrenade(self);
 		}
@@ -602,7 +602,7 @@ gunner_dodge(edict_t *self, edict_t *attacker, float eta /* unused */)
 		return;
 	}
 
-	if (randk() > 0.25)
+	if (random() > 0.25)
 	{
 		return;
 	}
@@ -798,7 +798,7 @@ gunner_attack(edict_t *self)
 	}
 	else
 	{
-		if (randk() <= 0.5)
+		if (random() <= 0.5)
 		{
 			self->monsterinfo.currentmove = &gunner_move_attack_grenade;
 		}
@@ -832,7 +832,7 @@ gunner_refire_chain(edict_t *self)
 	{
 		if (visible(self, self->enemy))
 		{
-			if (randk() <= 0.5)
+			if (random() <= 0.5)
 			{
 				self->monsterinfo.currentmove = &gunner_move_fire_chain;
 				return;

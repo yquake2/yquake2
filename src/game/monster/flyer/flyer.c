@@ -734,7 +734,7 @@ flyer_check_melee(edict_t *self)
 
 	if (range(self, self->enemy) == RANGE_MELEE)
 	{
-		if (randk() <= 0.8)
+		if (random() <= 0.8)
 		{
 			self->monsterinfo.currentmove = &flyer_move_loop_melee;
 		}

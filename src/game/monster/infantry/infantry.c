@@ -628,7 +628,7 @@ infantry_dodge(edict_t *self, edict_t *attacker, float eta /* unused */)
 		return;
 	}
 
-	if (randk() > 0.25)
+	if (random() > 0.25)
 	{
 		return;
 	}
