@@ -1174,8 +1174,8 @@ target_earthquake_think(edict_t *self)
 		}
 
 		e->groundentity = NULL;
-		e->velocity[0] += crandk() * 150;
-		e->velocity[1] += crandk() * 150;
+		e->velocity[0] += crandom() * 150;
+		e->velocity[1] += crandom() * 150;
 		e->velocity[2] = self->speed * (100.0 / e->mass);
 	}
 

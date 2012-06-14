@@ -59,7 +59,7 @@ ChickMoan(edict_t *self)
 		return;
 	}
 
-	if (randk() < 0.5)
+	if (random() < 0.5)
 	{
 		gi.sound(self, CHAN_VOICE, sound_idle1, 1, ATTN_IDLE, 0);
 	}
@@ -123,7 +123,7 @@ chick_fidget(edict_t *self)
 		return;
 	}
 
-	if (randk() <= 0.3)
+	if (random() <= 0.3)
 	{
 		self->monsterinfo.currentmove = &chick_move_fidget;
 	}
@@ -367,7 +367,7 @@ chick_pain(edict_t *self, edict_t *other /* unused */,
 
 	self->pain_debounce_time = level.time + 3;
 
-	r = randk();
+	r = random();
 
 	if (r < 0.33)
 	{
@@ -610,7 +610,7 @@ chick_dodge(edict_t *self, edict_t *attacker, float eta /* unused */)
 		return;
 	}
 
-	if (randk() > 0.25)
+	if (random() > 0.25)
 	{
 		return;
 	}
@@ -763,7 +763,7 @@ chick_rerocket(edict_t *self)
 		{
 			if (visible(self, self->enemy))
 			{
-				if (randk() <= 0.6)
+				if (random() <= 0.6)
 				{
 					self->monsterinfo.currentmove = &chick_move_attack1;
 					return;
@@ -833,7 +833,7 @@ chick_reslash(edict_t *self)
 	{
 		if (range(self, self->enemy) == RANGE_MELEE)
 		{
-			if (randk() <= 0.9)
+			if (random() <= 0.9)
 			{
 				self->monsterinfo.currentmove = &chick_move_slash;
 				return;

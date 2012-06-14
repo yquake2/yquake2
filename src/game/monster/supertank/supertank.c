@@ -59,7 +59,7 @@ supertank_search(edict_t *self)
 		return;
 	}
 
-	if (randk() < 0.5)
+	if (random() < 0.5)
 	{
 		gi.sound(self, CHAN_VOICE, sound_search1, 1, ATTN_NORM, 0);
 	}
@@ -566,7 +566,7 @@ supertank_reattack1(edict_t *self)
 
 	if (visible(self, self->enemy))
 	{
-		if (randk() < 0.9)
+		if (random() < 0.9)
 		{
 			self->monsterinfo.currentmove = &supertank_move_attack1;
 		}
@@ -603,7 +603,7 @@ supertank_pain(edict_t *self, edict_t *other /* unused */,
 	/* Lessen the chance of him going into his pain frames */
 	if (damage <= 25)
 	{
-		if (randk() < 0.2)
+		if (random() < 0.2)
 		{
 			return;
 		}
@@ -741,7 +741,7 @@ supertank_attack(edict_t *self)
 	else
 	{
 		/* fire rockets more often at distance */
-		if (randk() < 0.3)
+		if (random() < 0.3)
 		{
 			self->monsterinfo.currentmove = &supertank_move_attack1;
 		}

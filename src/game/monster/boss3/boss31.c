@@ -58,7 +58,7 @@ jorg_search(edict_t *self)
 		return;
 	}
 
-	r = randk();
+	r = random();
 
 	if (r <= 0.3)
 	{
@@ -524,7 +524,7 @@ jorg_reattack1(edict_t *self)
 
 	if (visible(self, self->enemy))
 	{
-		if (randk() < 0.9)
+		if (random() < 0.9)
 		{
 			self->monsterinfo.currentmove = &jorg_move_attack1;
 		}
@@ -577,7 +577,7 @@ jorg_pain(edict_t *self, edict_t *other /* unused */,
 	   pain frames if he takes little damage */
 	if (damage <= 40)
 	{
-		if (randk() <= 0.6)
+		if (random() <= 0.6)
 		{
 			return;
 		}
@@ -587,7 +587,7 @@ jorg_pain(edict_t *self, edict_t *other /* unused */,
 	   lessen the chance of him going into pain */
 	if ((self->s.frame >= FRAME_attak101) && (self->s.frame <= FRAME_attak108))
 	{
-		if (randk() <= 0.005)
+		if (random() <= 0.005)
 		{
 			return;
 		}
@@ -595,7 +595,7 @@ jorg_pain(edict_t *self, edict_t *other /* unused */,
 
 	if ((self->s.frame >= FRAME_attak109) && (self->s.frame <= FRAME_attak114))
 	{
-		if (randk() <= 0.00005)
+		if (random() <= 0.00005)
 		{
 			return;
 		}
@@ -603,7 +603,7 @@ jorg_pain(edict_t *self, edict_t *other /* unused */,
 
 	if ((self->s.frame >= FRAME_attak201) && (self->s.frame <= FRAME_attak208))
 	{
-		if (randk() <= 0.005)
+		if (random() <= 0.005)
 		{
 			return;
 		}
@@ -628,7 +628,7 @@ jorg_pain(edict_t *self, edict_t *other /* unused */,
 	}
 	else
 	{
-		if (randk() <= 0.3)
+		if (random() <= 0.3)
 		{
 			gi.sound(self, CHAN_VOICE, sound_pain3, 1, ATTN_NORM, 0);
 			self->monsterinfo.currentmove = &jorg_move_pain3;
@@ -731,7 +731,7 @@ jorg_attack(edict_t *self)
 		return;
 	}
 
-	if (randk() <= 0.75)
+	if (random() <= 0.75)
 	{
 		gi.sound(self, CHAN_VOICE, sound_attack1, 1, ATTN_NORM, 0);
 		self->s.sound = gi.soundindex("boss3/w_loop.wav");
@@ -859,16 +859,16 @@ Jorg_CheckAttack(edict_t *self)
 		return false;
 	}
 
-	if (randk() < chance)
+	if (random() < chance)
 	{
 		self->monsterinfo.attack_state = AS_MISSILE;
-		self->monsterinfo.attack_finished = level.time + 2 * randk();
+		self->monsterinfo.attack_finished = level.time + 2 * random();
 		return true;
 	}
 
 	if (self->flags & FL_FLY)
 	{
-		if (randk() < 0.3)
+		if (random() < 0.3)
 		{
 			self->monsterinfo.attack_state = AS_SLIDING;
 		}

@@ -567,7 +567,7 @@ insane_cross(edict_t *self)
 		return;
 	}
 
-	if (randk() < 0.8)
+	if (random() < 0.8)
 	{
 		self->monsterinfo.currentmove = &insane_move_cross;
 	}
@@ -599,7 +599,7 @@ insane_walk(edict_t *self)
 		self->monsterinfo.currentmove = &insane_move_crawl;
 	}
 	else
-	if (randk() <= 0.5)
+	if (random() <= 0.5)
 	{
 		self->monsterinfo.currentmove = &insane_move_walk_normal;
 	}
@@ -632,7 +632,7 @@ insane_run(edict_t *self)
 	}
 	else
 
-	if (randk() <= 0.5) /* Else, mix it up */
+	if (random() <= 0.5) /* Else, mix it up */
 	{
 		self->monsterinfo.currentmove = &insane_move_run_normal;
 	}
@@ -731,9 +731,9 @@ insane_checkdown(edict_t *self)
 		return;
 	}
 
-	if (randk() < 0.3)
+	if (random() < 0.3)
 	{
-		if (randk() < 0.5)
+		if (random() < 0.5)
 		{
 			self->monsterinfo.currentmove = &insane_move_uptodown;
 		}
@@ -758,7 +758,7 @@ insane_checkup(edict_t *self)
 		return;
 	}
 
-	if (randk() < 0.5)
+	if (random() < 0.5)
 	{
 		self->monsterinfo.currentmove = &insane_move_downtoup;
 	}
@@ -783,7 +783,7 @@ insane_stand(edict_t *self)
 		self->monsterinfo.currentmove = &insane_move_down;
 	}
 	else
-	if (randk() < 0.5)
+	if (random() < 0.5)
 	{
 		self->monsterinfo.currentmove = &insane_move_stand_normal;
 	}

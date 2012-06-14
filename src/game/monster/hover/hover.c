@@ -52,7 +52,7 @@ void
 hover_search(edict_t *self)
 
 {
-	if (randk() < 0.5)
+	if (random() < 0.5)
 	{
 		gi.sound(self, CHAN_VOICE, sound_search1, 1, ATTN_NORM, 0);
 	}
@@ -534,7 +534,7 @@ hover_reattack(edict_t *self)
 	{
 		if (visible(self, self->enemy))
 		{
-			if (randk() <= 0.6)
+			if (random() <= 0.6)
 			{
 				self->monsterinfo.currentmove = &hover_move_attack1;
 				return;
@@ -669,7 +669,7 @@ hover_pain(edict_t *self, edict_t *other /* unused */,
 
 	if (damage <= 25)
 	{
-		if (randk() < 0.5)
+		if (random() < 0.5)
 		{
 			gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 			self->monsterinfo.currentmove = &hover_move_pain3;
@@ -769,7 +769,7 @@ hover_die(edict_t *self, edict_t *inflictor /* unused */,
 	}
 
 	/* regular death */
-	if (randk() < 0.5)
+	if (random() < 0.5)
 	{
 		gi.sound(self, CHAN_VOICE, sound_death1, 1, ATTN_NORM, 0);
 	}
