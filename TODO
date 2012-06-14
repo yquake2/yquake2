@@ -1,8 +1,9 @@
 Long term TODO list for Quake II on Windows
 -------------------------------------------
 
-1. Test various windows version. At least:
-   - Windows XP [done]
+1. Test various windows version in different
+   localizations. At least:
+   - Windows XP [done]          
    - Windows XP 64
    - Windows 2003
    - Windows Vista 
@@ -16,13 +17,14 @@ Long term TODO list for Quake II on Windows
    is no easy way to work around this, we can neither call
    the sound system more often nor generate more sound per
    call. The short term solution is to force the DirectX 5
-   bases "dsound" driver. But "dsound" is unavailable for
+   based "dsound" driver. But "dsound" is unavailable for
    64 bit applications on 64 bit Windows and on Windows 8.
    SDL 2.0 has the new DirectX 8 based "directsound" driver
    but that would require a port of Yamagi Quake II to the
    still unstable SDL 2.0. Another soultion would be a 
    custom SDL.dll with the new driver backported to SDL
-   1.2.15.
+   1.2.15. Be aware, that this problem only affects the
+   SDL sound-backend and not the default OpenAL backend!
 
 3. The keyboard layout issue:
    SDL 1.2 has a bug which results in untranslated keycodes
@@ -69,7 +71,7 @@ Long term TODO list for Quake II on Windows
    it may be worth to take a deeper look into this.
 
 6. The CR-LF issue:
-   At the moment all files habe LF line endings, which are
+   At the moment all files have LF line endings, which are
    incompatible with most Windows software. This isn't a
    problem for the code itself (at least with MinGW), but
    for the documentation. A possible solution is to use git
