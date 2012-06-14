@@ -180,7 +180,7 @@ mutant_idle_loop(edict_t *self)
 		return;
 	}
 
-	if (randk() < 0.75)
+	if (random() < 0.75)
 	{
 		self->monsterinfo.nextframe = FRAME_stand155;
 	}
@@ -377,7 +377,7 @@ mutant_check_refire(edict_t *self)
 	}
 
 	if (((skill->value == 3) &&
-		 (randk() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
+		 (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
 	{
 		self->monsterinfo.nextframe = FRAME_attack09;
 	}
@@ -438,7 +438,7 @@ mutant_jump_touch(edict_t *self, edict_t *other,
 			VectorCopy(self->velocity, normal);
 			VectorNormalize(normal);
 			VectorMA(self->s.origin, self->maxs[0], normal, point);
-			damage = 40 + 10 * randk();
+			damage = 40 + 10 * random();
 			T_Damage(other, self, self, self->velocity, point,
 					normal, damage, damage, 0, MOD_UNKNOWN);
 		}
@@ -584,7 +584,7 @@ mutant_check_jump(edict_t *self)
 
 	if (distance > 100)
 	{
-		if (randk() < 0.9)
+		if (random() < 0.9)
 		{
 			return false;
 		}
@@ -699,7 +699,7 @@ mutant_pain(edict_t *self, edict_t *other /* unused */,
 		return; /* no pain anims in nightmare */
 	}
 
-	r = randk();
+	r = random();
 
 	if (r < 0.33)
 	{
@@ -820,7 +820,7 @@ mutant_die(edict_t *self, edict_t *inflictor /* unused */,
 	self->takedamage = DAMAGE_YES;
 	self->s.skinnum = 1;
 
-	if (randk() < 0.5)
+	if (random() < 0.5)
 	{
 		self->monsterinfo.currentmove = &mutant_move_death1;
 	}

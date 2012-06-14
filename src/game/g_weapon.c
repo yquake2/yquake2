@@ -47,7 +47,7 @@ check_dodge(edict_t *self, vec3_t start, vec3_t dir, int speed)
 	/* easy mode only ducks one quarter the time */
 	if (skill->value == 0)
 	{
-		if (randk() > 0.25)
+		if (random() > 0.25)
 		{
 			return;
 		}
@@ -196,8 +196,8 @@ fire_lead(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick,
 		vectoangles(aimdir, dir);
 		AngleVectors(dir, forward, right, up);
 
-		r = crandk() * hspread;
-		u = crandk() * vspread;
+		r = crandom() * hspread;
+		u = crandom() * vspread;
 		VectorMA(start, 8192, forward, end);
 		VectorMA(end, r, right, end);
 		VectorMA(end, u, up, end);
@@ -260,8 +260,8 @@ fire_lead(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick,
 				VectorSubtract(end, start, dir);
 				vectoangles(dir, dir);
 				AngleVectors(dir, forward, right, up);
-				r = crandk() * hspread * 2;
-				u = crandk() * vspread * 2;
+				r = crandom() * hspread * 2;
+				u = crandom() * vspread * 2;
 				VectorMA(water_start, 8192, forward, end);
 				VectorMA(end, r, right, end);
 				VectorMA(end, u, up, end);
@@ -611,7 +611,7 @@ Grenade_Touch(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurfa
 	{
 		if (ent->spawnflags & 1)
 		{
-			if (randk() > 0.5)
+			if (random() > 0.5)
 			{
 				gi.sound(ent, CHAN_VOICE, gi.soundindex(
 								"weapons/hgrenb1a.wav"), 1, ATTN_NORM, 0);
@@ -654,8 +654,8 @@ fire_grenade(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed,
 	grenade = G_Spawn();
 	VectorCopy(start, grenade->s.origin);
 	VectorScale(aimdir, speed, grenade->velocity);
-	VectorMA(grenade->velocity, 200 + crandk() * 10.0, up, grenade->velocity);
-	VectorMA(grenade->velocity, crandk() * 10.0, right, grenade->velocity);
+	VectorMA(grenade->velocity, 200 + crandom() * 10.0, up, grenade->velocity);
+	VectorMA(grenade->velocity, crandom() * 10.0, right, grenade->velocity);
 	VectorSet(grenade->avelocity, 300, 300, 300);
 	grenade->movetype = MOVETYPE_BOUNCE;
 	grenade->clipmask = MASK_SHOT;
@@ -694,8 +694,8 @@ fire_grenade2(edict_t *self, vec3_t start, vec3_t aimdir, int damage,
 	grenade = G_Spawn();
 	VectorCopy(start, grenade->s.origin);
 	VectorScale(aimdir, speed, grenade->velocity);
-	VectorMA(grenade->velocity, 200 + crandk() * 10.0, up, grenade->velocity);
-	VectorMA(grenade->velocity, crandk() * 10.0, right, grenade->velocity);
+	VectorMA(grenade->velocity, 200 + crandom() * 10.0, up, grenade->velocity);
+	VectorMA(grenade->velocity, crandom() * 10.0, right, grenade->velocity);
 	VectorSet(grenade->avelocity, 300, 300, 300);
 	grenade->movetype = MOVETYPE_BOUNCE;
 	grenade->clipmask = MASK_SHOT;

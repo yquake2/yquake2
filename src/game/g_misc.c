@@ -65,9 +65,9 @@ SP_func_areaportal(edict_t *ent)
 void
 VelocityForDamage(int damage, vec3_t v)
 {
-	v[0] = 100.0 * crandk();
-	v[1] = 100.0 * crandk();
-	v[2] = 200.0 + 100.0 * randk();
+	v[0] = 100.0 * crandom();
+	v[1] = 100.0 * crandom();
+	v[2] = 200.0 + 100.0 * random();
 
 	if (damage < 50)
 	{
@@ -131,7 +131,7 @@ gib_think(edict_t *self)
 	if (self->s.frame == 10)
 	{
 		self->think = G_FreeEdict;
-		self->nextthink = level.time + 8 + randk() * 10;
+		self->nextthink = level.time + 8 + random() * 10;
 	}
 }
 
@@ -213,9 +213,9 @@ ThrowGib(edict_t *self, char *gibname, int damage, int type)
 
 	VectorScale(self->size, 0.5, size);
 	VectorAdd(self->absmin, size, origin);
-	gib->s.origin[0] = origin[0] + crandk() * size[0];
-	gib->s.origin[1] = origin[1] + crandk() * size[1];
-	gib->s.origin[2] = origin[2] + crandk() * size[2];
+	gib->s.origin[0] = origin[0] + crandom() * size[0];
+	gib->s.origin[1] = origin[1] + crandom() * size[1];
+	gib->s.origin[2] = origin[2] + crandom() * size[2];
 
 	gi.setmodel(gib, gibname);
 	gib->solid = SOLID_NOT;
@@ -239,12 +239,12 @@ ThrowGib(edict_t *self, char *gibname, int damage, int type)
 	VelocityForDamage(damage, vd);
 	VectorMA(self->velocity, vscale, vd, gib->velocity);
 	ClipGibVelocity(gib);
-	gib->avelocity[0] = randk() * 600;
-	gib->avelocity[1] = randk() * 600;
-	gib->avelocity[2] = randk() * 600;
+	gib->avelocity[0] = random() * 600;
+	gib->avelocity[1] = random() * 600;
+	gib->avelocity[2] = random() * 600;
 
 	gib->think = G_FreeEdict;
-	gib->nextthink = level.time + 10 + randk() * 10;
+	gib->nextthink = level.time + 10 + random() * 10;
 
 	gi.linkentity(gib);
 }
@@ -293,10 +293,10 @@ ThrowHead(edict_t *self, char *gibname, int damage, int type)
 	VectorMA(self->velocity, vscale, vd, self->velocity);
 	ClipGibVelocity(self);
 
-	self->avelocity[YAW] = crandk() * 600;
+	self->avelocity[YAW] = crandom() * 600;
 
 	self->think = G_FreeEdict;
-	self->nextthink = level.time + 10 + randk() * 10;
+	self->nextthink = level.time + 10 + random() * 10;
 
 	gi.linkentity(self);
 }
@@ -394,17 +394,17 @@ ThrowDebris(edict_t *self, char *modelname, float speed, vec3_t origin)
 	chunk = G_Spawn();
 	VectorCopy(origin, chunk->s.origin);
 	gi.setmodel(chunk, modelname);
-	v[0] = 100 * crandk();
-	v[1] = 100 * crandk();
-	v[2] = 100 + 100 * crandk();
+	v[0] = 100 * crandom();
+	v[1] = 100 * crandom();
+	v[2] = 100 + 100 * crandom();
 	VectorMA(self->velocity, speed, v, chunk->velocity);
 	chunk->movetype = MOVETYPE_BOUNCE;
 	chunk->solid = SOLID_NOT;
-	chunk->avelocity[0] = randk() * 600;
-	chunk->avelocity[1] = randk() * 600;
-	chunk->avelocity[2] = randk() * 600;
+	chunk->avelocity[0] = random() * 600;
+	chunk->avelocity[1] = random() * 600;
+	chunk->avelocity[2] = random() * 600;
 	chunk->think = G_FreeEdict;
-	chunk->nextthink = level.time + 5 + randk() * 5;
+	chunk->nextthink = level.time + 5 + random() * 5;
 	chunk->s.frame = 0;
 	chunk->flags = 0;
 	chunk->classname = "debris";
@@ -1076,9 +1076,9 @@ func_explosive_explode(edict_t *self, edict_t *inflictor, edict_t *attacker,
 
 		while (count--)
 		{
-			chunkorigin[0] = origin[0] + crandk() * size[0];
-			chunkorigin[1] = origin[1] + crandk() * size[1];
-			chunkorigin[2] = origin[2] + crandk() * size[2];
+			chunkorigin[0] = origin[0] + crandom() * size[0];
+			chunkorigin[1] = origin[1] + crandom() * size[1];
+			chunkorigin[2] = origin[2] + crandom() * size[2];
 			ThrowDebris(self, "models/objects/debris1/tris.md2", 1, chunkorigin);
 		}
 	}
@@ -1093,9 +1093,9 @@ func_explosive_explode(edict_t *self, edict_t *inflictor, edict_t *attacker,
 
 	while (count--)
 	{
-		chunkorigin[0] = origin[0] + crandk() * size[0];
-		chunkorigin[1] = origin[1] + crandk() * size[1];
-		chunkorigin[2] = origin[2] + crandk() * size[2];
+		chunkorigin[0] = origin[0] + crandom() * size[0];
+		chunkorigin[1] = origin[1] + crandom() * size[1];
+		chunkorigin[2] = origin[2] + crandom() * size[2];
 		ThrowDebris(self, "models/objects/debris2/tris.md2", 2, chunkorigin);
 	}
 
@@ -1237,13 +1237,13 @@ barrel_explode(edict_t *self)
 
 	/* a few big chunks */
 	spd = 1.5 * (float)self->dmg / 200.0;
-	org[0] = self->s.origin[0] + crandk() * self->size[0];
-	org[1] = self->s.origin[1] + crandk() * self->size[1];
-	org[2] = self->s.origin[2] + crandk() * self->size[2];
+	org[0] = self->s.origin[0] + crandom() * self->size[0];
+	org[1] = self->s.origin[1] + crandom() * self->size[1];
+	org[2] = self->s.origin[2] + crandom() * self->size[2];
 	ThrowDebris(self, "models/objects/debris1/tris.md2", spd, org);
-	org[0] = self->s.origin[0] + crandk() * self->size[0];
-	org[1] = self->s.origin[1] + crandk() * self->size[1];
-	org[2] = self->s.origin[2] + crandk() * self->size[2];
+	org[0] = self->s.origin[0] + crandom() * self->size[0];
+	org[1] = self->s.origin[1] + crandom() * self->size[1];
+	org[2] = self->s.origin[2] + crandom() * self->size[2];
 	ThrowDebris(self, "models/objects/debris1/tris.md2", spd, org);
 
 	/* bottom corners */
@@ -1263,37 +1263,37 @@ barrel_explode(edict_t *self)
 
 	/* a bunch of little chunks */
 	spd = 2 * self->dmg / 200;
-	org[0] = self->s.origin[0] + crandk() * self->size[0];
-	org[1] = self->s.origin[1] + crandk() * self->size[1];
-	org[2] = self->s.origin[2] + crandk() * self->size[2];
+	org[0] = self->s.origin[0] + crandom() * self->size[0];
+	org[1] = self->s.origin[1] + crandom() * self->size[1];
+	org[2] = self->s.origin[2] + crandom() * self->size[2];
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org[0] = self->s.origin[0] + crandk() * self->size[0];
-	org[1] = self->s.origin[1] + crandk() * self->size[1];
-	org[2] = self->s.origin[2] + crandk() * self->size[2];
+	org[0] = self->s.origin[0] + crandom() * self->size[0];
+	org[1] = self->s.origin[1] + crandom() * self->size[1];
+	org[2] = self->s.origin[2] + crandom() * self->size[2];
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org[0] = self->s.origin[0] + crandk() * self->size[0];
-	org[1] = self->s.origin[1] + crandk() * self->size[1];
-	org[2] = self->s.origin[2] + crandk() * self->size[2];
+	org[0] = self->s.origin[0] + crandom() * self->size[0];
+	org[1] = self->s.origin[1] + crandom() * self->size[1];
+	org[2] = self->s.origin[2] + crandom() * self->size[2];
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org[0] = self->s.origin[0] + crandk() * self->size[0];
-	org[1] = self->s.origin[1] + crandk() * self->size[1];
-	org[2] = self->s.origin[2] + crandk() * self->size[2];
+	org[0] = self->s.origin[0] + crandom() * self->size[0];
+	org[1] = self->s.origin[1] + crandom() * self->size[1];
+	org[2] = self->s.origin[2] + crandom() * self->size[2];
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org[0] = self->s.origin[0] + crandk() * self->size[0];
-	org[1] = self->s.origin[1] + crandk() * self->size[1];
-	org[2] = self->s.origin[2] + crandk() * self->size[2];
+	org[0] = self->s.origin[0] + crandom() * self->size[0];
+	org[1] = self->s.origin[1] + crandom() * self->size[1];
+	org[2] = self->s.origin[2] + crandom() * self->size[2];
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org[0] = self->s.origin[0] + crandk() * self->size[0];
-	org[1] = self->s.origin[1] + crandk() * self->size[1];
-	org[2] = self->s.origin[2] + crandk() * self->size[2];
+	org[0] = self->s.origin[0] + crandom() * self->size[0];
+	org[1] = self->s.origin[1] + crandom() * self->size[1];
+	org[2] = self->s.origin[2] + crandom() * self->size[2];
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org[0] = self->s.origin[0] + crandk() * self->size[0];
-	org[1] = self->s.origin[1] + crandk() * self->size[1];
-	org[2] = self->s.origin[2] + crandk() * self->size[2];
+	org[0] = self->s.origin[0] + crandom() * self->size[0];
+	org[1] = self->s.origin[1] + crandom() * self->size[1];
+	org[2] = self->s.origin[2] + crandom() * self->size[2];
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org[0] = self->s.origin[0] + crandk() * self->size[0];
-	org[1] = self->s.origin[1] + crandk() * self->size[1];
-	org[2] = self->s.origin[2] + crandk() * self->size[2];
+	org[0] = self->s.origin[0] + crandom() * self->size[0];
+	org[1] = self->s.origin[1] + crandom() * self->size[1];
+	org[2] = self->s.origin[2] + crandom() * self->size[2];
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
 
 	VectorCopy(save, self->s.origin);
@@ -2134,9 +2134,9 @@ SP_misc_gib_arm(edict_t *ent)
 	ent->movetype = MOVETYPE_TOSS;
 	ent->svflags |= SVF_MONSTER;
 	ent->deadflag = DEAD_DEAD;
-	ent->avelocity[0] = randk() * 200;
-	ent->avelocity[1] = randk() * 200;
-	ent->avelocity[2] = randk() * 200;
+	ent->avelocity[0] = random() * 200;
+	ent->avelocity[1] = random() * 200;
+	ent->avelocity[2] = random() * 200;
 	ent->think = G_FreeEdict;
 	ent->nextthink = level.time + 30;
 	gi.linkentity(ent);
@@ -2162,9 +2162,9 @@ SP_misc_gib_leg(edict_t *ent)
 	ent->movetype = MOVETYPE_TOSS;
 	ent->svflags |= SVF_MONSTER;
 	ent->deadflag = DEAD_DEAD;
-	ent->avelocity[0] = randk() * 200;
-	ent->avelocity[1] = randk() * 200;
-	ent->avelocity[2] = randk() * 200;
+	ent->avelocity[0] = random() * 200;
+	ent->avelocity[1] = random() * 200;
+	ent->avelocity[2] = random() * 200;
 	ent->think = G_FreeEdict;
 	ent->nextthink = level.time + 30;
 	gi.linkentity(ent);
@@ -2190,9 +2190,9 @@ SP_misc_gib_head(edict_t *ent)
 	ent->movetype = MOVETYPE_TOSS;
 	ent->svflags |= SVF_MONSTER;
 	ent->deadflag = DEAD_DEAD;
-	ent->avelocity[0] = randk() * 200;
-	ent->avelocity[1] = randk() * 200;
-	ent->avelocity[2] = randk() * 200;
+	ent->avelocity[0] = random() * 200;
+	ent->avelocity[1] = random() * 200;
+	ent->avelocity[2] = random() * 200;
 	ent->think = G_FreeEdict;
 	ent->nextthink = level.time + 30;
 	gi.linkentity(ent);

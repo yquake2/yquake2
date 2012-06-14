@@ -550,6 +550,11 @@ AL_Overwater()
 {
 	int i;
 
+	if (sound_started != SS_OAL) 
+	{
+		return;
+	}
+
 	/* Apply to all sources */
 	for (i = 0; i < s_numchannels; i++)
 	{

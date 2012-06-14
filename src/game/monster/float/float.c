@@ -232,7 +232,7 @@ floater_stand(edict_t *self)
 		return;
 	}
 
-	if (randk() <= 0.5)
+	if (random() <= 0.5)
 	{
 		self->monsterinfo.currentmove = &floater_move_stand1;
 	}
@@ -689,7 +689,7 @@ floater_melee(edict_t *self)
 		return;
 	}
 
-	if (randk() < 0.5)
+	if (random() < 0.5)
 	{
 		self->monsterinfo.currentmove = &floater_move_attack3;
 	}
@@ -822,7 +822,7 @@ SP_monster_floater(edict_t *self)
 
 	gi.linkentity(self);
 
-	if (randk() <= 0.5)
+	if (random() <= 0.5)
 	{
 		self->monsterinfo.currentmove = &floater_move_stand1;
 	}

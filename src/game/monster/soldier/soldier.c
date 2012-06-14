@@ -48,7 +48,7 @@ soldier_idle(edict_t *self)
 		return;
 	}
 
-	if (randk() > 0.8)
+	if (random() > 0.8)
 	{
 		gi.sound(self, CHAN_VOICE, sound_idle, 1, ATTN_IDLE, 0);
 	}
@@ -179,7 +179,7 @@ soldier_stand(edict_t *self)
 	}
 
 	if ((self->monsterinfo.currentmove == &soldier_move_stand3) ||
-		(randk() < 0.8))
+		(random() < 0.8))
 	{
 		self->monsterinfo.currentmove = &soldier_move_stand1;
 	}
@@ -197,7 +197,7 @@ soldier_walk1_random(edict_t *self)
 		return;
 	}
 
-	if (randk() > 0.1)
+	if (random() > 0.1)
 	{
 		self->monsterinfo.nextframe = FRAME_walk101;
 	}
@@ -276,7 +276,7 @@ soldier_walk(edict_t *self)
 		return;
 	}
 
-	if (randk() < 0.5)
+	if (random() < 0.5)
 	{
 		self->monsterinfo.currentmove = &soldier_move_walk1;
 	}
@@ -493,7 +493,7 @@ soldier_pain(edict_t *self, edict_t *other /* unused */,
 		return; /* no pain anims in nightmare */
 	}
 
-	r = randk();
+	r = random();
 
 	if (r < 0.33)
 	{
@@ -590,8 +590,8 @@ soldier_fire(edict_t *self, int flash_number)
 		vectoangles(aim, dir);
 		AngleVectors(dir, forward, right, up);
 
-		r = crandk() * 1000;
-		u = crandk() * 500;
+		r = crandom() * 1000;
+		u = crandom() * 500;
 		VectorMA(start, 8192, forward, end);
 		VectorMA(end, r, right, end);
 		VectorMA(end, u, up, end);
@@ -663,7 +663,7 @@ soldier_attack1_refire1(edict_t *self)
 	}
 
 	if (((skill->value == 3) &&
-		 (randk() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
+		 (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
 	{
 		self->monsterinfo.nextframe = FRAME_attak102;
 	}
@@ -692,7 +692,7 @@ soldier_attack1_refire2(edict_t *self)
 	}
 
 	if (((skill->value == 3) &&
-		 (randk() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
+		 (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
 	{
 		self->monsterinfo.nextframe = FRAME_attak102;
 	}
@@ -752,7 +752,7 @@ soldier_attack2_refire1(edict_t *self)
 	}
 
 	if (((skill->value == 3) &&
-		 (randk() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
+		 (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
 	{
 		self->monsterinfo.nextframe = FRAME_attak204;
 	}
@@ -781,7 +781,7 @@ soldier_attack2_refire2(edict_t *self)
 	}
 
 	if (((skill->value == 3) &&
-		 (randk() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
+		 (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
 	{
 		self->monsterinfo.nextframe = FRAME_attak204;
 	}
@@ -997,7 +997,7 @@ soldier_attack(edict_t *self)
 
 	if (self->s.skinnum < 4)
 	{
-		if (randk() < 0.5)
+		if (random() < 0.5)
 		{
 			self->monsterinfo.currentmove = &soldier_move_attack1;
 		}
@@ -1020,7 +1020,7 @@ soldier_sight(edict_t *self, edict_t *other /* unused */)
 		return;
 	}
 
-	if (randk() < 0.5)
+	if (random() < 0.5)
 	{
 		gi.sound(self, CHAN_VOICE, sound_sight1, 1, ATTN_NORM, 0);
 	}
@@ -1031,7 +1031,7 @@ soldier_sight(edict_t *self, edict_t *other /* unused */)
 
 	if ((skill->value > 0) && (range(self, self->enemy) >= RANGE_MID))
 	{
-		if (randk() > 0.5)
+		if (random() > 0.5)
 		{
 			self->monsterinfo.currentmove = &soldier_move_attack6;
 		}
@@ -1082,7 +1082,7 @@ soldier_dodge(edict_t *self, edict_t *attacker, float eta)
 		return;
 	}
 
-	r = randk();
+	r = random();
 
 	if (r > 0.25)
 	{
@@ -1101,7 +1101,7 @@ soldier_dodge(edict_t *self, edict_t *attacker, float eta)
 	}
 
 	self->monsterinfo.pausetime = level.time + eta + 0.3;
-	r = randk();
+	r = random();
 
 	if (skill->value == 1)
 	{
