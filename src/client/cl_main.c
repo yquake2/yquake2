@@ -578,7 +578,7 @@ void CL_InitLocal (void)
 void CL_WriteConfiguration (void)
 {
 	FILE	*f;
-	char	path[MAX_QPATH];
+	char	path[MAX_OSPATH];
 
 	if (cls.state == ca_uninitialized)
 		return;

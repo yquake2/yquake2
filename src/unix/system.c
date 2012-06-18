@@ -45,8 +45,8 @@
 #include <dlfcn.h>
 #include <dirent.h>
 
-#include "header/glob.h"
 #include "../common/header/common.h"
+#include "../common/header/glob.h"
 #include "header/unix.h"
 
 unsigned sys_frame_time;
@@ -94,6 +94,11 @@ CompareAttributes ( char *path, char *name, unsigned musthave, unsigned canthave
 	return ( true );
 }
 
+void
+Sys_Init ( void )
+{
+}
+
 int
 Sys_Milliseconds ( void )
 {
@@ -118,12 +123,6 @@ void
 Sys_Mkdir ( char *path )
 {
 	mkdir( path, 0755 );
-}
-
-void
-Sys_Rmdir ( char *path )
-{
-	rmdir( path );
 }
 
 char *
@@ -502,3 +501,22 @@ Sys_SendKeyEvents ( void )
 	/* grab frame time */
 	sys_frame_time = Sys_Milliseconds();
 }
+
+char *
+Sys_GetHomeDir(void)
+{
+	static char gdir[MAX_OSPATH];
+	char *home;
+   
+	home = getenv("HOME");
+
+	if (!home)
+	{
+		return NULL;
+	}
+
+	snprintf(gdir, sizeof(gdir), "%s/%s/", home, CFGDIR);
+
+	return gdir;
+}
+

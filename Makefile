@@ -4,7 +4,7 @@
 # Just type "make" to compile the                        #
 #  - SDL Client (quake2)                                 #
 #  - Server (q2ded)                                      #
-#  - SDL OpenGL-Refresher (ref_gl.so)                    #
+#  - SDL OpenGL-Refresher (ref_gl.so or ref_gl.dll)      #
 #  - Quake II Game (baseq2)                              #
 #                                                        #
 # Base dependencies:                                     #
@@ -14,6 +14,7 @@
 # Platforms:                                             #
 #  - Linux                                               #
 #  - FreeBSD                                             #
+#  - Windows (MinGW)                                     #
 # ------------------------------------------------------ #
 
 # User configurable options
@@ -31,37 +32,52 @@ WITH_CDA:=yes
 WITH_OGG:=yes
 
 # Enables the optional OpenAL sound system.
-# To use it your system needs libopenal.so.1 (we 
-# recommend openal-soft) installed
+# To use it your system needs libopenal.so.1
+# or openal32.dll (we recommend openal-soft) 
+# installed
 WITH_OPENAL:=yes
 
-# Enables retexturing support. Adds a dependency to
-# libjpeg
+# Enables retexturing support. Adds 
+# a dependency to libjpeg
 WITH_RETEXTURING:=yes
 
 # Set the gamma via X11 and not via SDL. This works
 # around problems in some SDL version. Adds dependencies
-# to pkg-config, libX11 and libXxf86vm
+# to pkg-config, libX11 and libXxf86vm. Unsupported on
+# Windows.
 WITH_X11GAMMA:=no
 
-# Enables opening of ZIP files (also known as .pk3 packs).
+# Enables opening of ZIP files (also known as .pk3 paks).
 # Adds a dependency to libz
 WITH_ZIP:=yes
 
 # Enable systemwide installation of game assets
 WITH_SYSTEMWIDE:=no
-# this will set the default SYSTEMDIR, a non-empty string would actually be used
-WITH_SYSTEMDIR:=""
+
+# This will set the default SYSTEMDIR, a non-empty string 
+# would actually be used. On Windows normals slashes (/)
+# instead of backslashed (\) should be used!
+WITH_SYSTEMDIR:=
 
 # ====================================================== #
 #     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
 # ====================================================== #
 
-# Check the OS type
+# Detect the OS
+ifdef SystemRoot
+OSTYPE := Windows
+else
 OSTYPE := $(shell uname -s)
+endif
 
+# Detect the architecture
+ifeq ($(OSTYPE), Windows)
+# At this time only i386 is supported on Windows
+ARCH := i386
+else
 # Some platforms call it "amd64" and some "x86_64"
 ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/amd64/x86_64/)
+endif
 
 # Refuse all other platforms as a firewall against PEBKAC
 # (You'll need some #ifdef for your unsupported  plattform!)
@@ -103,16 +119,18 @@ endif
 # ----------
 
 # Extra CFLAGS for SDL
+ifneq ($(OSTYPE), Windows)
 SDLCFLAGS := $(shell sdl-config --cflags)
+endif
 
 # ----------
 
 # Extra CFLAGS for X11
+ifneq ($(OSTYPE), Windows)
 ifeq ($(WITH_X11GAMMA),yes)
 X11CFLAGS := $(shell pkg-config x11 --cflags)
 X11CFLAGS += $(shell pkg-config xxf86vm --cflags)
-else
-X11CFLAGS :=
+endif
 endif
 
 # ----------
@@ -131,21 +149,27 @@ ifeq ($(OSTYPE),Linux)
 LDFLAGS := -L/usr/lib -lm -ldl
 else ifeq ($(OSTYPE),FreeBSD)
 LDFLAGS := -L/usr/local/lib -lm
+else ifeq ($(OSTYPE),Windows)
+LDFLAGS := -lws2_32 -lwinmm
 endif
 
 # ----------
 
 # Extra LDFLAGS for SDL
+ifeq ($(OSTYPE), Windows)
+SDLLDFLAGS := -lSDL
+else
 SDLLDFLAGS := $(shell sdl-config --libs)
+endif
 
 # ----------
 
 # Extra LDFLAGS for X11
+ifneq ($(OSTYPE), Windows)
 ifeq ($(WITH_X11GAMMA),yes)
 X11LDFLAGS := $(shell pkg-config x11 --libs)
 X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
-else
-X11LDFLAGS :=
+endif
 endif
 
 # ----------
@@ -161,26 +185,79 @@ endif
 
 # ----------
 
+# Phony targets
+.PHONY : all client game icon refresher server
+
+# ----------
+
 # Builds everything
 all: client server refresher game
 
 # ----------
 
+# Special target to compile
+# the icon on Windows
+ifeq ($(OSTYPE), Windows)
+icon:
+	@echo "===> WR build/icon/icon.res"
+	${Q}stuff/misc/mkdir -p build/icon
+	${Q}windres stuff\icon\icon.rc -O COFF -o build\icon\icon.res
+endif
+
+# ----------
+
 # Cleanup
+ifeq ($(OSTYPE), Windows)
+clean:
+	@echo "===> CLEAN"
+	@-rmdir /S /Q release build 
+else
 clean:
 	@echo "===> CLEAN"
 	${Q}rm -Rf build release
+endif
 
 # ----------
 
 # The client
+ifeq ($(OSTYPE), Windows)
 client:
-	@echo '===> Building quake2'
+	@echo "===> Building quake2.exe"
+	${Q}stuff/misc/mkdir.exe -p release
+	$(MAKE) release/quake2.exe
+
+build/client/%.o: %.c
+	@echo "===> CC $<"
+	${Q}stuff/misc/mkdir.exe -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
+
+ifeq ($(WITH_CDA),yes)
+release/quake2.exe : CFLAGS += -DCDA
+endif
+
+ifeq ($(WITH_OGG),yes)
+release/quake2.exe : CFLAGS += -DOGG
+release/quake2.exe : LDFLAGS += -lvorbisfile -lvorbis -logg
+endif
+
+ifeq ($(WITH_OPENAL),yes)
+release/quake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"'
+endif
+
+ifeq ($(WITH_ZIP),yes)
+release/quake2.exe : CFLAGS += -DZIP
+release/quake2.exe : LDFLAGS += -lz
+endif
+
+release/quake2.exe : LDFLAGS += -mwindows
+else
+client:
+	@echo "===> Building quake2"
 	${Q}mkdir -p release
 	$(MAKE) release/quake2
 
 build/client/%.o: %.c
-	@echo '===> CC $<'
+	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
@@ -201,19 +278,39 @@ ifeq ($(WITH_ZIP),yes)
 release/quake2 : CFLAGS += -DZIP
 release/quake2 : LDFLAGS += -lz
 endif
-
+endif
+ 
 # ----------
 
 # The server
+ifeq ($(OSTYPE), Windows)
 server:
-	@echo '===> Building q2ded'
+	@echo "===> Building q2ded"
+	${Q}stuff/misc/mkdir.exe -p release
+	$(MAKE) release/q2ded.exe
+
+build/server/%.o: %.c
+	@echo "===> CC $<"
+	${Q}stuff/misc/mkdir.exe -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+
+release/q2ded.exe : CFLAGS += -DDEDICATED_ONLY
+release/q2ded.exe : LDFLAGS += -lz
+
+ifeq ($(WITH_ZIP),yes)
+release/q2ded.exe : CFLAGS += -DZIP
+release/q2ded.exe : LDFLAGS += -lz
+endif
+else
+server:
+	@echo "===> Building q2ded"
 	${Q}mkdir -p release
 	$(MAKE) release/q2ded
 
 build/server/%.o: %.c
-	@echo '===> CC $<'
+	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $< 
 
 release/q2ded : CFLAGS += -DDEDICATED_ONLY
 release/q2ded : LDFLAGS += -lz
@@ -222,17 +319,36 @@ ifeq ($(WITH_ZIP),yes)
 release/q2ded : CFLAGS += -DZIP
 release/q2ded : LDFLAGS += -lz
 endif
+endif
 
 # ----------
 
 # The refresher
+ifeq ($(OSTYPE), Windows)
 refresher:
-	@echo '===> Building ref_gl.so'
+	@echo "===> Building ref_gl.dll"
+	${Q}stuff/misc/mkdir.exe -p release
+	$(MAKE) release/ref_gl.dll
+
+build/refresher/%.o: %.c
+	@echo "===> CC $<"
+	${Q}stuff/misc/mkdir.exe -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
+
+release/ref_gl.dll : LDFLAGS += -shared
+
+ifeq ($(WITH_RETEXTURING),yes)
+release/ref_gl.dll : CFLAGS += -DRETEXTURE
+release/ref_gl.dll : LDFLAGS += -ljpeg
+endif
+else
+refresher:
+	@echo "===> Building ref_gl.so"
 	${Q}mkdir -p release
 	$(MAKE) release/ref_gl.so
 
 build/refresher/%.o: %.c
-	@echo '===> CC $<'
+	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
 
@@ -247,23 +363,38 @@ ifeq ($(WITH_RETEXTURING),yes)
 release/ref_gl.so : CFLAGS += -DRETEXTURE
 release/ref_gl.so : LDFLAGS += -ljpeg
 endif
-
+endif
+ 
 # ----------
 
 # The baseq2 game
+ifeq ($(OSTYPE), Windows)
 game:
-	@echo '===> Building baseq2/game.so'
+	@echo "===> Building baseq2/game.dll"
+	${Q}stuff/misc/mkdir.exe -p release/baseq2
+	$(MAKE) release/baseq2/game.dll
+
+build/baseq2/%.o: %.c
+	@echo "===> CC $<"
+	${Q}stuff/misc/mkdir.exe -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+
+release/baseq2/game.dll : LDFLAGS += -shared
+else
+game:
+	@echo "===> Building baseq2/game.so"
 	${Q}mkdir -p release/baseq2
 	$(MAKE) release/baseq2/game.so
 
 build/baseq2/%.o: %.c
-	@echo '===> CC $<'
+	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 release/baseq2/game.so : CFLAGS += -fPIC
 release/baseq2/game.so : LDFLAGS += -shared
-
+endif
+ 
 # ----------
 
 # Used by the game
@@ -350,6 +481,7 @@ CLIENT_OBJS_ := \
 	src/common/crc.o \
 	src/common/cvar.o \
 	src/common/filesystem.o \
+	src/common/glob.o \
 	src/common/md4.o \
 	src/common/misc.o \
 	src/common/netchan.o \
@@ -384,8 +516,18 @@ CLIENT_OBJS_ := \
 	src/server/sv_save.o \
 	src/server/sv_send.o \
 	src/server/sv_user.o \
-	src/server/sv_world.o \
-	src/unix/glob.o \
+	src/server/sv_world.o
+
+ifeq ($(OSTYPE), Windows)
+CLIENT_OBJS_ += \
+ 	src/windows/conproc.o \
+	src/windows/mem.o \
+	src/windows/network.o \
+	src/windows/qal.o \
+	src/windows/system.o \
+    src/windows/vid.o	
+else
+CLIENT_OBJS_ += \
 	src/unix/hunk.o \
 	src/unix/main.o \
  	src/unix/network.o \
@@ -393,6 +535,7 @@ CLIENT_OBJS_ := \
  	src/unix/signalhandler.o \
 	src/unix/system.o \
  	src/unix/vid.o
+endif
 
 # ----------
 
@@ -401,6 +544,7 @@ SERVER_OBJS_ := \
 	src/common/crc.o \
 	src/common/cvar.o \
 	src/common/filesystem.o \
+	src/common/glob.o \
 	src/common/md4.o \
 	src/common/misc.o \
 	src/common/netchan.o \
@@ -432,13 +576,22 @@ SERVER_OBJS_ := \
 	src/server/sv_save.o \
 	src/server/sv_send.o \
 	src/server/sv_user.o \
-	src/server/sv_world.o \
-	src/unix/glob.o \
+	src/server/sv_world.o
+
+ifeq ($(OSTYPE), Windows)
+SERVER_OBJS_ += \
+	src/windows/conproc.o \
+	src/windows/mem.o \
+	src/windows/network.o \
+	src/windows/system.o	
+else
+SERVER_OBJS_ += \
 	src/unix/hunk.o \
 	src/unix/main.o \
  	src/unix/network.o \
  	src/unix/signalhandler.o \
 	src/unix/system.o
+endif
 
 # ----------
 
@@ -463,10 +616,18 @@ OPENGL_OBJS_ = \
 	src/refresh/files/wal.o \
 	src/sdl/input.o \
 	src/sdl/refresh.o \
-    src/common/shared/shared.o \
-    src/unix/glob.o \
+    src/common/glob.o \
+    src/common/shared/shared.o
+
+ifeq ($(OSTYPE), Windows)
+OPENGL_OBJS_ += \
+	src/windows/mem.o \
+	src/windows/qgl.o
+else
+OPENGL_OBJS_ += \
 	src/unix/hunk.o \
 	src/unix/qgl.o
+endif
 
 # ----------
 
@@ -495,23 +656,47 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 # ----------
 
 # release/quake2
+ifeq ($(OSTYPE), Windows)
+release/quake2.exe : $(CLIENT_OBJS) icon
+	@echo "===> LD $@"
+	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+else
 release/quake2 : $(CLIENT_OBJS)
-	@echo '===> LD $@'
+	@echo "===> LD $@"
 	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
-
+endif
+ 
 # release/q2ded
+ifeq ($(OSTYPE), Windows)
+release/q2ded.exe : $(SERVER_OBJS) icon
+	@echo "===> LD $@.exe"
+	${Q}$(CC) build/icon/icon.res $(SERVER_OBJS) $(LDFLAGS) -o $@
+else
 release/q2ded : $(SERVER_OBJS)
-	@echo '===> LD $@'
+	@echo "===> LD $@"
 	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@
+endif
 
 # release/ref_gl.so
+ifeq ($(OSTYPE), Windows)
+release/ref_gl.dll : $(OPENGL_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+else
 release/ref_gl.so : $(OPENGL_OBJS)
-	@echo '===> LD $@'
+	@echo "===> LD $@"
 	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
-
+endif
+ 
 # release/baseq2/game.so
-release/baseq2/game.so : $(GAME_OBJS)
-	@echo '===> LD $@'
+ifeq ($(OSTYPE), Windows)
+release/baseq2/game.dll : $(GAME_OBJS)
+	@echo "===> LD $@"
 	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
-
+else
+release/baseq2/game.so : $(GAME_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
+endif
+ 
 # ----------

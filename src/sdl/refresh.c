@@ -25,20 +25,27 @@
  * =======================================================================
  */
 
-#include <SDL.h>
+#include "../refresh/header/local.h"
 #include <GL/gl.h>
 
-#include "../refresh/header/local.h"
+#ifdef _WIN32
+#include <SDL/SDL.h>
+#include "../windows/header/glwindow.h"
+#else
+#include <SDL.h>
 #include "../unix/header/glwindow.h"
+#endif
 
 /* The window icon */
 #include "icon/q2icon.xbm"
 
 /* X.org stuff */
+#ifdef X11GAMMA
 #include <X11/Xos.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/xf86vmode.h>
+#endif
 
 SDL_Surface		*surface;
 glwstate_t		glw_state;

@@ -28,7 +28,13 @@
 #ifdef CDA
 
 #include <stdio.h>
+
+#ifdef _WIN32
+#include "SDL/SDL.h"
+#else
 #include "SDL.h"
+#endif
+
 #include "../client/header/client.h"
 
 static qboolean cdValid = false;

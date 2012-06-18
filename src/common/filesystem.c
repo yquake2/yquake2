@@ -26,7 +26,7 @@
  */
 
 #include "header/common.h"
-#include "../unix/header/glob.h"
+#include "../common/header/glob.h"
 
 #ifdef ZIP
 #include "unzip/unzip.h"
@@ -232,7 +232,7 @@ FS_CreatePath(char *path)
 
 		old = cur;
 		cur = strchr(old + 1, '/');
-	}
+	} 
 }
 
 void
@@ -255,14 +255,6 @@ char *
 FS_Gamedir(void)
 {
 	return (fs_gamedir);
-}
-
-void
-FS_DeletePath(char *path)
-{
-	FS_DPrintf("FS_DeletePath(%s)\n", path);
-
-	Sys_Rmdir(path);
 }
 
 /*
@@ -429,7 +421,7 @@ FS_FOpenFileRead(fsHandle_t * handle)
 					{
 						/* PAK */
 						file_from_pak = 1;
-						handle->file = fopen(pack->name, "r");
+						handle->file = fopen(pack->name, "rb");
 
 						if (handle->file)
 						{
@@ -469,12 +461,12 @@ FS_FOpenFileRead(fsHandle_t * handle)
 			/* Search in a directory tree. */
 			Com_sprintf(path, sizeof(path), "%s/%s", search->path, handle->name);
 
-			handle->file = fopen(path, "r");
+			handle->file = fopen(path, "rb");
 
 			if (!handle->file)
 			{
 				strlwr(path);
-				handle->file = fopen(path, "r");
+				handle->file = fopen(path, "rb");
 			}
 
 			if (!handle->file)
@@ -1038,7 +1030,7 @@ FS_LoadPAK(const char *packPath)
 	dpackheader_t	header; /* PAK file header. */
 	dpackfile_t		info[MAX_FILES_IN_PACK]; /* PAK info. */
 
-	handle = fopen(packPath, "r");
+	handle = fopen(packPath, "rb");
 
 	if (handle == NULL)
 		return (NULL);
@@ -1261,23 +1253,27 @@ FS_AddGameDirectory(const char *dir)
 void
 FS_AddHomeAsGameDirectory(char *dir)
 {
+	char *home;
 	char gdir[MAX_OSPATH];
-	char *homedir=getenv("HOME");
+	size_t len;
 
-	if(homedir)
+	home = Sys_GetHomeDir();
+
+	if (home == NULL)
 	{
-		int len = snprintf(gdir,sizeof(gdir),"%s/.yq2/%s/", homedir, dir);
-
-		FS_CreatePath(gdir);
-
-		if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/'))
-			gdir[len-1] = 0;
-
-		strncpy(fs_gamedir,gdir,sizeof(fs_gamedir)-1);
-		fs_gamedir[sizeof(fs_gamedir)-1] = 0;
-
-		FS_AddGameDirectory (gdir);
+		return;
 	}
+
+    len = snprintf(gdir, sizeof(gdir), "%s%s/", home, dir);
+	FS_CreatePath(gdir);
+
+	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/'))
+		gdir[len-1] = 0;
+
+	strncpy(fs_gamedir,gdir,sizeof(fs_gamedir)-1);
+	fs_gamedir[sizeof(fs_gamedir)-1] = 0;
+
+	FS_AddGameDirectory (gdir);
 }
 
 #ifdef SYSTEMWIDE

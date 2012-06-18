@@ -39,6 +39,8 @@
 #define BUILDSTRING "Linux"
 #elif defined __FreeBSD__
 #define BUILDSTRING "FreeBSD"
+#elif defined _WIN32
+#define BUILDSTRING "Windows"
 #else
 #define BUILDSTRING "Unknown"
 #endif
@@ -51,6 +53,12 @@
 #define CPUSTRING "sparc64"
 #else
 #define CPUSTRING "Unknown"
+#endif
+
+#ifdef _WIN32
+#define CFGDIR "YamagiQ2"
+#else
+#define CFGDIR ".yq2"
 #endif
 
 /* ================================================================== */
@@ -481,6 +489,7 @@ typedef struct
 	unsigned short	port;
 } netadr_t;
 
+void		NET_Init (void);
 void		NET_Shutdown (void);
 
 void		NET_Config (qboolean multiplayer);
@@ -648,7 +657,6 @@ qboolean	FS_FileExists(char *path);
 void		FS_CopyFile(const char *srcPath, const char *dstPath);
 void		FS_RenameFile(const char *oldPath, const char *newPath);
 void		FS_DeleteFile(const char *path);
-void		FS_DeletePath(char *path);
 int			FS_GetFileList(const char *path, const char *extension, char *buffer, int size, fsSearchType_t searchType);
 char		**FS_ListPak(char *find, int *num);	/* Knighmare- pak list function */
 char		**FS_ListFiles(char *findname, int *numfiles, unsigned musthave, unsigned canthave);
@@ -730,6 +738,7 @@ void SCR_DebugGraph (float value, int color);
 
 /* NON-PORTABLE SYSTEM SERVICES */
 
+void	Sys_Init (void);
 void	Sys_UnloadGame (void);
 void	*Sys_GetGameAPI (void *parms);
 
@@ -738,8 +747,7 @@ void	Sys_ConsoleOutput (char *string);
 void	Sys_SendKeyEvents (void);
 void	Sys_Error (char *error, ...);
 void	Sys_Quit (void);
-char	*Sys_GetClipboardData( void );
-void	Sys_CopyProtect (void);
+char	*Sys_GetHomeDir(void);
 
 /* CLIENT / SERVER SYSTEMS */
 

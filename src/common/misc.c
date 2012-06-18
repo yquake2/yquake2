@@ -236,6 +236,8 @@ void Qcommon_Init (int argc, char **argv)
 	if (dedicated->value)
 		Cmd_AddCommand ("quit", Com_Quit);
 
+	Sys_Init();
+	NET_Init();
 	Netchan_Init ();
 	SV_Init ();
 #ifndef DEDICATED_ONLY

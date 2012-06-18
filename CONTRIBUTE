@@ -47,27 +47,19 @@ Some hints:
 
 =============================================================================== 
 
-1. Port Yamagi Quake II to Microsoft Windows
+1. Port Yamagi Quake II to Mac OS X
 
-Difficulty: Hard
-Knowledge: Microsoft Windows, good understanding of the Quake II source,
-           SDL-ABI, (experience with 64 bit problems)
+Difficulty: Medium
+Knowledge: Mac OS X API, good knowledge of src/unix/
 
-While Quake II was released on Microsoft Windows, support for the plattform was
-removed in the early stages of Yamagi Quake II. Looking back this was a bad
-decision. Goal of this project is a backport to Microsoft Windows. This
-requieres at least three steps:
-1. Import the platform specific stuff for Windows from Icculus Q2, clean it up
-   and bring it to feature parity with the Unix stuff in src/unix. The nativ
-   sound, render and input backends should be replaced by the SDL backends in
-   src/sdl.
-2. Go through the source and remove all unixisms.
-
-And optional (Win64 support isn't required since 32 bit binaries are
-working nice, but it be would nice to have):
-
-3. Since Windows 64 has another binary model than all unixoid platform there
-   will most likely new 64 bit problems. Identify and resolve these.
+A port to Mac OS X is a frequently requested feature but can't be done
+by the Yamagi Quake II developers due to the lack of hardware. Since Mac
+OS X is just another unixoid platform porting the game should be easy,
+the most notable difference to FreeBSD and Linux is the MACH-O binary
+format. So at least all calls to dlopen(), dlsym() and dlclose() must be
+replaced by the corresponding Mac OS X functions. All other platform
+dependend stuff should be hidden by SDL, but there may be some SDL bugs
+on OS X.
 
 =============================================================================== 
 
@@ -102,7 +94,7 @@ Difficulty: Medium
 Knowledge: How to debug hard to read code
 
 While the baseq2 game modul was cleaned up and made more robust by adding
-hundreds of sanity checks both addons (xatrix and rogue) still require a lot
+hundreds of sanity checks, both addons (xatrix and rogue) still require a lot
 of work. Go through the code, read it and understand it. Remove bugs, and add
 the missing sanity checks. Test (e.g. play) and add implement map quirks.
 Especially the coop-support of both addons is still fragile at best.
@@ -115,10 +107,10 @@ Difficulty: Hard
 Knowledge: How to work with broken code
 
 Zaero is an unofficial but popular addon to Quake II. It was release as
-freeware. The Yamagi Quake II did an inital port, but it's unfinished and
-still buggy. Grab the source (take a look at our Github organization), clean
-it and debug it. Zaero will need some extensive testing, have fun while
-playing :)
+freeware. The Yamagi Quake II developers did an inital port, but it's
+unfinished and still buggy. Grab the source (take a look at our Github
+organization), clean it and debug it. Zaero will need some extensive
+testing, have fun while playing. :)
 
 =============================================================================== 
 

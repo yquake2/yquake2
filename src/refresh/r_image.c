@@ -94,7 +94,9 @@ gltmode_t gl_solid_modes[] = {
 	{ "GL_RGB5", GL_RGB5 },
 	{ "GL_RGB4", GL_RGB4 },
 	{ "GL_R3_G3_B2", GL_R3_G3_B2 },
+#ifdef GL_RGB2_EXT
 	{ "GL_RGB2", GL_RGB2_EXT },
+#endif
 };
 
 #define NUM_GL_SOLID_MODES ( sizeof ( gl_solid_modes ) / sizeof ( gltmode_t ) )
@@ -1026,9 +1028,12 @@ R_FindImage ( char *name, imagetype_t type )
 	int i, len;
 	byte    *pic, *palette;
 	int width, height;
-	int realwidth = 0, realheight = 0;
 	char *ptr;
 	char namewe[256];
+
+#ifdef RETEXTURE 
+	int realwidth = 0, realheight = 0;
+#endif
 
 	if ( !name )
 	{
@@ -1171,6 +1176,7 @@ R_FindImage ( char *name, imagetype_t type )
 			}
 		}
 	}
+#ifdef RETEXTURE
 	else if ( !strcmp( name + len - 4, ".tga" ) )
 	{
 		LoadTGA( name, &pic, &width, &height );
@@ -1181,6 +1187,7 @@ R_FindImage ( char *name, imagetype_t type )
 		LoadJPG( name, &pic, &width, &height );
 		image = R_LoadPic( name, pic, width, realwidth, height, realheight, type, 32 );
 	}
+#endif
 	else
 	{
 		return ( NULL );

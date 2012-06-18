@@ -53,7 +53,12 @@ typedef enum {false, true}  qboolean;
 #define MAX_TOKEN_CHARS 128         /* max length of an individual token */
 
 #define MAX_QPATH 64                /* max length of a quake game pathname */
+
+#ifdef _WIN32
+#define MAX_OSPATH 256              /* max length of a filesystem pathname */
+#else
 #define MAX_OSPATH 128              /* max length of a filesystem pathname */
+#endif
 
 /* */
 /* per-level limits */
@@ -249,7 +254,6 @@ extern int curtime; /* time returned by last Sys_Milliseconds */
 
 int Sys_Milliseconds(void);
 void Sys_Mkdir(char *path);
-void Sys_Rmdir(char *path);
 char *strlwr(char *s);
 
 /* large block stack allocation routines */
