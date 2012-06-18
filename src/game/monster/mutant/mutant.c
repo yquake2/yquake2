@@ -51,7 +51,7 @@ mutant_step(edict_t *self)
 		return;
 	}
 
-	n = (rand() + 1) % 3;
+	n = (randk() + 1) % 3;
 
 	if (n == 0)
 	{
@@ -331,7 +331,7 @@ mutant_hit_left(edict_t *self)
 
 	VectorSet(aim, MELEE_DISTANCE, self->mins[0], 8);
 
-	if (fire_hit(self, aim, (10 + (rand() % 5)), 100))
+	if (fire_hit(self, aim, (10 + (randk() % 5)), 100))
 	{
 		gi.sound(self, CHAN_WEAPON, sound_hit, 1, ATTN_NORM, 0);
 	}
@@ -353,7 +353,7 @@ mutant_hit_right(edict_t *self)
 
 	VectorSet(aim, MELEE_DISTANCE, self->maxs[0], 8);
 
-	if (fire_hit(self, aim, (10 + (rand() % 5)), 100))
+	if (fire_hit(self, aim, (10 + (randk() % 5)), 100))
 	{
 		gi.sound(self, CHAN_WEAPON, sound_hit2, 1, ATTN_NORM, 0);
 	}

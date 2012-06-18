@@ -49,7 +49,7 @@ static const char *env_suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 
 void CL_RequestNextDownload (void)
 {
-	unsigned	map_checksum; /* for detecting cheater maps */
+	unsigned int map_checksum; /* for detecting cheater maps */
 	char fn[MAX_OSPATH];
 	dmdl_t *pheader;
 
@@ -313,7 +313,7 @@ void CL_RequestNextDownload (void)
 
 		CM_LoadMap (cl.configstrings[CS_MODELS+1], true, &map_checksum);
 
-		if (map_checksum != atoi(cl.configstrings[CS_MAPCHECKSUM]))
+		if (map_checksum != (int)strtol(cl.configstrings[CS_MAPCHECKSUM], (char **)NULL, 10))
 		{
 			Com_Error (ERR_DROP, "Local map version differs from server: %i != '%s'\n",
 			           map_checksum, cl.configstrings[CS_MAPCHECKSUM]);

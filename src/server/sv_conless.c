@@ -64,7 +64,7 @@ SVC_Info ( void )
 		return; /* ignore in single player */
 	}
 
-	version = atoi( Cmd_Argv( 1 ) );
+	version = (int)strtol( Cmd_Argv( 1 ), (char **)NULL, 10 );
 
 	if ( version != PROTOCOL_VERSION )
 	{
@@ -132,7 +132,7 @@ SVC_GetChallenge ( void )
 	if ( i == MAX_CHALLENGES )
 	{
 		/* overwrite the oldest */
-		svs.challenges [ oldest ].challenge = rand() & 0x7fff;
+		svs.challenges [ oldest ].challenge = randk() & 0x7fff;
 		svs.challenges [ oldest ].adr = net_from;
 		svs.challenges [ oldest ].time = curtime;
 		i = oldest;
@@ -163,7 +163,7 @@ SVC_DirectConnect ( void )
 
 	Com_DPrintf( "SVC_DirectConnect ()\n" );
 
-	version = atoi( Cmd_Argv( 1 ) );
+	version = (int)strtol( Cmd_Argv( 1 ), (char **)NULL, 10 );
 
 	if ( version != PROTOCOL_VERSION )
 	{
@@ -172,9 +172,9 @@ SVC_DirectConnect ( void )
 		return;
 	}
 
-	qport = atoi( Cmd_Argv( 2 ) );
+	qport = (int)strtol( Cmd_Argv( 2 ), (char **)NULL, 10 );
 
-	challenge = atoi( Cmd_Argv( 3 ) );
+	challenge = (int)strtol( Cmd_Argv( 3 ), (char **)NULL, 10 );
 
 	strncpy( userinfo, Cmd_Argv( 4 ), sizeof ( userinfo ) - 1 );
 	userinfo [ sizeof ( userinfo ) - 1 ] = 0;

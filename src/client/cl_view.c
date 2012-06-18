@@ -286,7 +286,7 @@ void CL_PrepRefresh (void) {
 	/* set sky textures and speed */
 	Com_Printf ("sky\r", i);
 	SCR_UpdateScreen ();
-	rotate = (float)atof (cl.configstrings[CS_SKYROTATE]);
+	rotate = (float)strtod(cl.configstrings[CS_SKYROTATE], (char **)NULL);
 	sscanf (cl.configstrings[CS_SKYAXIS], "%f %f %f",
 	        &axis[0], &axis[1], &axis[2]);
 	re.SetSky (cl.configstrings[CS_SKY], rotate, axis);
@@ -310,12 +310,12 @@ void CL_PrepRefresh (void) {
 #endif
 	} else {
 #ifdef CDA
-		CDAudio_Play (atoi(cl.configstrings[CS_CDTRACK]), true);
+		CDAudio_Play ((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10), true);
 #endif
 
 #ifdef OGG
 		/* OGG/Vorbis */
-		if (atoi(cl.configstrings[CS_CDTRACK]) < 10) {
+		if ((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10) < 10) {
 			char tmp[3] = "0";
 			OGG_ParseCmd(strcat(tmp, cl.configstrings[CS_CDTRACK]));
 

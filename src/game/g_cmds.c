@@ -249,7 +249,7 @@ Cmd_Give_f(edict_t *ent)
 	{
 		if (gi.argc() == 3)
 		{
-			ent->health = atoi(gi.argv(2));
+			ent->health = (int)strtol(gi.argv(2), (char **)NULL, 10);
 		}
 		else
 		{
@@ -399,7 +399,7 @@ Cmd_Give_f(edict_t *ent)
 	{
 		if (gi.argc() == 3)
 		{
-			ent->client->pers.inventory[index] = atoi(gi.argv(2));
+			ent->client->pers.inventory[index] = (int)strtol(gi.argv(2), (char **)NULL, 10);
 		}
 		else
 		{
@@ -965,7 +965,7 @@ Cmd_Wave_f(edict_t *ent)
 		return;
 	}
 
-	i = atoi(gi.argv(1));
+	i = (int)strtol(gi.argv(1), (char **)NULL, 10);
 
 	/* can't wave when ducked */
 	if (ent->client->ps.pmove.pm_flags & PMF_DUCKED)

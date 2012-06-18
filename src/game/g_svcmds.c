@@ -115,7 +115,7 @@ StringToFilter(char *s, ipfilter_t *f)
 		}
 
 		num[j] = 0;
-		b[i] = atoi(num);
+		b[i] = (int)strtol(num, (char **)NULL, 10);
 
 		if (b[i] != 0)
 		{

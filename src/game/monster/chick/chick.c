@@ -518,7 +518,7 @@ chick_die(edict_t *self, edict_t *inflictor /* unused */,
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
 
-	n = rand() % 2;
+	n = randk() % 2;
 
 	if (n == 0)
 	{
@@ -635,7 +635,7 @@ ChickSlash(edict_t *self)
 
 	VectorSet(aim, MELEE_DISTANCE, self->mins[0], 10);
 	gi.sound(self, CHAN_WEAPON, sound_melee_swing, 1, ATTN_NORM, 0);
-	fire_hit(self, aim, (10 + (rand() % 6)), 100);
+	fire_hit(self, aim, (10 + (randk() % 6)), 100);
 }
 
 void

@@ -1121,7 +1121,7 @@ static void CDShuffleFunc(void *unused) {
 		Cvar_Set("ogg_sequence", "loop");
 
 		if(ogg->value) {
-			if (atoi(cl.configstrings[CS_CDTRACK]) < 10) {
+			if ((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10) < 10) {
 				char tmp[2] = "0";
 				OGG_ParseCmd(strcat(tmp, cl.configstrings[CS_CDTRACK]));
 
@@ -1151,7 +1151,7 @@ static void UpdateCDVolumeFunc( void *unused ) {
 			CDAudio_RandomPlay();
 
 		} else {
-			CDAudio_Play(atoi(cl.configstrings[CS_CDTRACK]), true);
+			CDAudio_Play((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10), true);
 		}
 
 	} else {
@@ -1174,7 +1174,7 @@ static void UpdateOGGVolumeFunc( void *unused ) {
 		OGG_Init();
 		OGG_Stop();
 
-		if (atoi(cl.configstrings[CS_CDTRACK]) < 10) {
+		if ((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10) < 10) {
 			char tmp[3] = "0";
 			OGG_ParseCmd(strcat(tmp, cl.configstrings[CS_CDTRACK]));
 
@@ -2401,9 +2401,9 @@ static void StartServerActionFunc( void *self ) {
 
 	strcpy( startmap, strchr( mapnames[s_startmap_list.curvalue], '\n' ) + 1 );
 
-	maxclients  = (float)atof( s_maxclients_field.buffer );
-	timelimit	= (float)atof( s_timelimit_field.buffer );
-	fraglimit	= (float)atof( s_fraglimit_field.buffer );
+	maxclients  = (float)strtod( s_maxclients_field.buffer, (char **)NULL );
+	timelimit	= (float)strtod( s_timelimit_field.buffer, (char **)NULL );
+	fraglimit	= (float)strtod( s_fraglimit_field.buffer, (char **)NULL );
 
 	Cvar_SetValue( "maxclients", ClampCvar( 0, maxclients, maxclients ) );
 	Cvar_SetValue ("timelimit", ClampCvar( 0, timelimit, timelimit ) );

@@ -391,7 +391,7 @@ SV_Frame ( int msec )
 	svs.realtime += msec;
 
 	/* keep the random time dependent */
-	rand();
+	randk();
 
 	/* check timeouts */
 	SV_CheckTimeouts();
@@ -546,7 +546,7 @@ SV_UserinfoChanged ( client_t *cl )
 
 	if ( strlen( val ) )
 	{
-		i = atoi( val );
+		i = (int)strtol( val, (char **)NULL, 10 );
 		cl->rate = i;
 
 		if ( cl->rate < 100 )
@@ -569,7 +569,7 @@ SV_UserinfoChanged ( client_t *cl )
 
 	if ( strlen( val ) )
 	{
-		cl->messagelevel = atoi( val );
+		cl->messagelevel = (int)strtol( val, (char **)NULL, 10 );
 	}
 }
 

@@ -576,7 +576,7 @@ void CL_ConnectionlessPacket (void)
 	/* challenge from the server we are connecting to */
 	if (!strcmp(c, "challenge"))
 	{
-		cls.challenge = atoi(Cmd_Argv(1));
+		cls.challenge = (int)strtol(Cmd_Argv(1), (char **)NULL, 10);
 		CL_SendConnectPacket ();
 		return;
 	}

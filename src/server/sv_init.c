@@ -278,7 +278,7 @@ SV_SpawnServer ( char *server, char *spawnpoint, server_state_t serverstate, qbo
 	ge->RunFrame();
 
 	/* verify game didn't clobber important stuff */
-	if ( (int) checksum != atoi( sv.configstrings [ CS_MAPCHECKSUM ] ) )
+	if ( (int) checksum != (int)strtol( sv.configstrings [ CS_MAPCHECKSUM ], (char **)NULL, 10 ) )
 	{
 		Com_Error( ERR_DROP, "Game DLL corrupted server configstrings" );
 	}
@@ -370,7 +370,7 @@ SV_InitGame ( void )
 		Cvar_FullSet( "maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH );
 	}
 
-	svs.spawncount = rand();
+	svs.spawncount = randk();
 	svs.clients = Z_Malloc( sizeof ( client_t ) * maxclients->value );
 	svs.num_client_entities = maxclients->value * UPDATE_BACKUP * 64;
 	svs.client_entities = Z_Malloc( sizeof ( entity_state_t ) * svs.num_client_entities );

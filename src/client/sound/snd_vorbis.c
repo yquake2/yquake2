@@ -133,7 +133,6 @@ OGG_Init ( void )
 	/* Initialize variables. */
 	if ( ogg_first_init )
 	{
-		srand( time( NULL ) );
 		ogg_buffer = NULL;
 		ogg_curfile = -1;
 		ogg_info = NULL;
@@ -559,7 +558,7 @@ OGG_Sequence ( void )
 
 	else if ( strcmp( ogg_sequence->string, "random" ) == 0 )
 	{
-		OGG_Open( ABS, rand() % ogg_numfiles );
+		OGG_Open( ABS, randk() % ogg_numfiles );
 	}
 
 	else if ( strcmp( ogg_sequence->string, "loop" ) == 0 )
@@ -690,17 +689,17 @@ OGG_ParseCmd ( char *arg )
 	switch ( arg [ 0 ] )
 	{
 		case '#':
-			n = atoi( arg + 1 ) - 1;
+			n = (int)strtol( arg + 1, (char **)NULL, 10) - 1;
 			OGG_Open( ABS, n );
 			break;
 		case '?':
-			OGG_Open( ABS, rand() % ogg_numfiles );
+			OGG_Open( ABS, randk() % ogg_numfiles );
 			break;
 		case '>':
 
 			if ( strlen( arg ) > 1 )
 			{
-				OGG_Open( REL, atoi( arg + 1 ) );
+				OGG_Open( REL, (int)strtol( arg + 1, (char **)NULL, 10 ) );
 			}
 
 			else
@@ -713,7 +712,7 @@ OGG_ParseCmd ( char *arg )
 
 			if ( strlen( arg ) > 1 )
 			{
-				OGG_Open( REL, -atoi( arg + 1 ) );
+				OGG_Open( REL, -(int)strtol( arg + 1, (char **)NULL, 10 ) );
 			}
 
 			else
@@ -793,13 +792,13 @@ OGG_SeekCmd ( void )
 	switch ( Cmd_Argv( 1 ) [ 0 ] )
 	{
 		case '>':
-			OGG_Seek( REL, atof( Cmd_Argv( 1 ) + 1 ) );
+			OGG_Seek( REL, strtod( Cmd_Argv( 1 ) + 1 , (char **)NULL ) );
 			break;
 		case '<':
-			OGG_Seek( REL, -atof( Cmd_Argv( 1 ) + 1 ) );
+			OGG_Seek( REL, -strtod( Cmd_Argv( 1 ) + 1, (char **)NULL ) );
 			break;
 		default:
-			OGG_Seek( ABS, atof( Cmd_Argv( 1 ) ) );
+			OGG_Seek( ABS, strtod( Cmd_Argv( 1 ), (char **)NULL ) );
 			break;
 	}
 }

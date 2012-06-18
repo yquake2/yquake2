@@ -838,12 +838,12 @@ void CL_ParseConfigString (void) {
 	else if (i == CS_CDTRACK) {
 		if (cl.refresh_prepped) {
 #ifdef CDA
-			CDAudio_Play (atoi(cl.configstrings[CS_CDTRACK]), true);
+			CDAudio_Play ((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10), true);
 #endif
 
 #ifdef OGG
 			/* OGG/Vorbis */
-			if (atoi(cl.configstrings[CS_CDTRACK]) < 10) {
+			if ((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10) < 10) {
 				char tmp[3] = "0";
 				OGG_ParseCmd(strcat(tmp, cl.configstrings[CS_CDTRACK]));
 

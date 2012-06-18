@@ -215,7 +215,6 @@ VID_LoadRefresh ( char *name )
 	char fn [ MAX_OSPATH ];
 	char    *path;
 	struct stat st;
-	extern uid_t saved_euid;
 
 	if ( reflib_active )
 	{
@@ -237,11 +236,7 @@ VID_LoadRefresh ( char *name )
 
 	Com_Printf( "----- refresher initialization -----\n");
 
-	/* regain root */
-	seteuid( saved_euid );
-
 	path = Cvar_Get( "basedir", ".", CVAR_NOSET )->string;
-
 	snprintf( fn, MAX_OSPATH, "%s/%s", path, name );
 
 	if ( stat( fn, &st ) == -1 )
@@ -301,7 +296,7 @@ VID_LoadRefresh ( char *name )
 		 ( ( IN_BackendMouseButtons_fp = dlsym( reflib_library, "IN_BackendMouseButtons" ) ) == NULL ) ||
 		 ( ( IN_BackendMove_fp = dlsym( reflib_library, "IN_BackendMove" ) ) == NULL ) )
 	{
-		Sys_Error( "No input backend init functions in REF.\n" );
+		Com_Error( ERR_FATAL, "No input backend init functions in REF.\n" );
 	}
 
 	if ( IN_BackendInit_fp )
@@ -321,15 +316,11 @@ VID_LoadRefresh ( char *name )
 		 ( ( IN_Update_fp = dlsym( reflib_library, "IN_Update" ) ) == NULL ) ||
 		 ( ( IN_Close_fp = dlsym( reflib_library, "IN_Close" ) ) == NULL ) )
 	{
-		Sys_Error( "No keyboard input functions in REF.\n" );
+		Com_Error( ERR_FATAL, "No keyboard input functions in REF.\n" );
 	}
 
 	IN_KeyboardInit_fp( Do_Key_Event );
 	Key_ClearStates();
-
-	/* give up root now */
-	setreuid( getuid(), getuid() );
-	setegid( getgid() );
 
 	Com_Printf( "------------------------------------\n\n" );
 	reflib_active = true;
