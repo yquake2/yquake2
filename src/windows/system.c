@@ -674,6 +674,27 @@ Sys_GetHomeDir(void)
 	return gdir;
 }
 
+void
+Sys_RedirectStdout(void)
+{
+	char *home;
+	char path_stdout[MAX_OSPATH];
+	char path_stderr[MAX_OSPATH];
+
+	home = Sys_GetHomeDir();
+
+	if (home == NULL)
+	{
+		return;
+	}
+
+	snprintf(path_stdout, sizeof(path_stdout), "%s/%s", home, "stdout.txt");
+	snprintf(path_stderr, sizeof(path_stderr), "%s/%s", home, "stderr.txt");
+
+	freopen(path_stdout, "w", stdout);
+	freopen(path_stderr, "w", stderr);
+}
+
 /* ======================================================================= */
 
 /*
@@ -696,6 +717,9 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	/* Make the current instance global */
 	global_hInstance = hInstance;
+
+	/* Redirect stdout and stderr into a file */
+	Sys_RedirectStdout();
 
 	/* Seed PRNG */
 	randk_seed();
