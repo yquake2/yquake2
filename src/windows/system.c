@@ -94,6 +94,10 @@ Sys_Error(char *error, ...)
 	/* shut down QHOST hooks if necessary */
 	DeinitConProc();
 
+	/* Close stdout and stderr */
+	fclose(stdout);
+	fclose(stderr);
+
 	exit(1);
 }
 
@@ -116,6 +120,10 @@ Sys_Quit(void)
 
 	/* shut down QHOST hooks if necessary */
 	DeinitConProc();
+
+	/* Close stdout and stderr */
+	fclose(stdout);
+	fclose(stderr);
 
 	exit(0);
 }
