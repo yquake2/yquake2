@@ -220,7 +220,7 @@ void Qcommon_Init (int argc, char **argv)
 	modder = Cvar_Get ("modder", "0", 0);
 	timescale = Cvar_Get ("timescale", "1", 0);
 	fixedtime = Cvar_Get ("fixedtime", "0", 0);
-	logfile_active = Cvar_Get ("logfile", "0", 0);
+	logfile_active = Cvar_Get ("logfile", "1", CVAR_ARCHIVE);
 #ifndef DEDICATED_ONLY
 	showtrace = Cvar_Get ("showtrace", "0", 0);
 #endif
