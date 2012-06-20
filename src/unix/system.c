@@ -59,7 +59,6 @@ static char findpattern [ MAX_OSPATH ];
 static DIR  *fdir;
 
 qboolean stdin_active = true;
-extern cvar_t *nostdout;
 extern FILE	*logfile;
 
 static qboolean
@@ -225,12 +224,7 @@ Sys_FindClose ( void )
 void
 Sys_ConsoleOutput ( char *string )
 {
-	if ( nostdout && nostdout->value )
-	{
-		return;
-	}
-
-	fputs( string, stdout );
+	fputs(string, stdout);
 }
 
 void
@@ -244,12 +238,7 @@ Sys_Printf ( char *fmt, ... )
 	vsnprintf( text, 1024, fmt, argptr );
 	va_end( argptr );
 
-	if ( nostdout && nostdout->value )
-	{
-		return;
-	}
-
-	for ( p = (unsigned char *) text; *p; p++ )
+	for (p = (unsigned char *)text; *p; p++)
 	{
 		*p &= 0x7f;
 

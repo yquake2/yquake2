@@ -34,8 +34,6 @@
 #include "../common/header/common.h"
 #include "header/unix.h"
 
-cvar_t *nostdout;
-
 int
 main ( int argc, char **argv )
 {
@@ -104,14 +102,8 @@ main ( int argc, char **argv )
 	/* Initialze the game */
 	Qcommon_Init( argc, argv );
 
-	fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) | FNDELAY );
-
-	nostdout = Cvar_Get( "nostdout", "0", 0 );
-
-	if ( !nostdout->value )
-	{
-		fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) | FNDELAY );
-	}
+	/* Do not delay reads on stdin*/
+	fcntl(fileno(stdin), F_SETFL, fcntl(fileno(stdin), F_GETFL, NULL) | FNDELAY);
 
 	oldtime = Sys_Milliseconds();
 
