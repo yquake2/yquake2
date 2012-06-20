@@ -83,7 +83,10 @@ Sys_Error(char *error, ...)
 	vsprintf(text, error, argptr);
 	va_end(argptr);
 
+#ifndef DEDICATED_ONLY
 	fprintf(stderr, "Error: %s\n", text);
+#endif
+
 	MessageBox(NULL, text, "Error", 0 /* MB_OK */);
 
 	if (qwclsemaphore)
@@ -95,8 +98,10 @@ Sys_Error(char *error, ...)
 	DeinitConProc();
 
 	/* Close stdout and stderr */
+#ifndef DEDICATED_ONLY
 	fclose(stdout);
 	fclose(stderr);
+#endif
 
 	exit(1);
 }
@@ -122,8 +127,10 @@ Sys_Quit(void)
 	DeinitConProc();
 
 	/* Close stdout and stderr */
+#ifndef DEDICATED_ONLY
 	fclose(stdout);
 	fclose(stderr);
+#endif
 
 	exit(0);
 }
@@ -692,6 +699,11 @@ Sys_RedirectStdout(void)
 	char path_stdout[MAX_OSPATH];
 	char path_stderr[MAX_OSPATH];
 
+	if (dedicated && dedicated->value)
+	{
+		return;
+	}
+
 	home = Sys_GetHomeDir();
 
 	if (home == NULL)
@@ -730,7 +742,9 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	global_hInstance = hInstance;
 
 	/* Redirect stdout and stderr into a file */
+#ifndef DEDICATED_ONLY
 	Sys_RedirectStdout();
+#endif
 
 	/* Seed PRNG */
 	randk_seed();
