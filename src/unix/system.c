@@ -270,18 +270,6 @@ Sys_Error ( char *error, ... )
 	exit( 1 );
 }
 
-void
-Sys_Warn ( char *warning, ... )
-{
-	va_list argptr;
-	char string [ 1024 ];
-
-	va_start( argptr, warning );
-	vsnprintf( string, 1024, warning, argptr );
-	va_end( argptr );
-	fprintf( stderr, "Warning: %s", string );
-}
-
 /*
  * returns -1 if not present
  */
