@@ -746,6 +746,36 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	Sys_RedirectStdout();
 #endif
 
+	printf("Yamagi Quake II v%4.2f\n", VERSION);
+	printf("=====================\n\n");
+
+#ifndef DEDICATED_ONLY
+	printf("Client build options:\n");
+#ifdef CDA
+	printf(" + CD audio\n");
+#else
+	printf(" - CD audio\n");
+#endif
+#ifdef OGG
+	printf(" + OGG/Vorbis\n");
+#else
+	printf(" - OGG/Vorbis\n");
+#endif
+#ifdef USE_OPENAL
+	printf(" + OpenAL audio\n");
+#else
+	printf(" - OpenAL audio\n");
+#endif
+#ifdef ZIP
+	printf(" + Zip file support\n");
+#else
+	printf(" - Zip file support\n");
+#endif
+#endif
+
+	printf("Platform: %s\n", BUILDSTRING);
+	printf("Architecture: %s\n", CPUSTRING);
+
 	/* Seed PRNG */
 	randk_seed();
 
