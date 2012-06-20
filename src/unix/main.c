@@ -71,6 +71,7 @@ main ( int argc, char **argv )
 	printf( "\nYamagi Quake II v%4.2f\n", VERSION);
 	printf( "=====================\n\n");
 
+#ifndef DEDICATED_ONLY
 	printf("Client build options:\n");
 #ifdef CDA
 	printf(" + CD audio\n");
@@ -91,6 +92,7 @@ main ( int argc, char **argv )
 	printf(" + Zip file support\n");
 #else
 	printf(" - Zip file support\n");
+#endif
 #endif
 
     printf("Platform: %s\n", BUILDSTRING);
