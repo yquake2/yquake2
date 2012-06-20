@@ -42,19 +42,7 @@ Long term TODO list for Quake II on Windows
    implementation is rather invasive into the console
    subsystem and I don't think that it's worth the efford.
 
-4. The unicode issue:
-   Quake II only allows ASCII characters, internally all
-   characters are represented as "char". But Windows uses
-   unicode quite often. This may lead to problems. The big
-   question is: "What happens, if the path to the home dir
-   contains unicode characters?" At what can we do to prevent
-   problems without rewriting the whole game to be unicode
-   aware? This may be a problem on Linux and FreeBSD too,
-   but at least on FreeBSD unicode characters in the user-
-   name are a bad idea and for things to work correctly
-   the homedir-name should be the same as the username...
-
-5. The debug / stdout issue:
+4. The debug / stdout issue:
    At the moment no stdout is readable on windows, the only
    way is to scroll in the console. This is a problem, because
    without the game output problems are hard to debug. Enabling
@@ -70,7 +58,7 @@ Long term TODO list for Quake II on Windows
    While I'm not sure that gdb can read Windows crashdumps,
    it may be worth to take a deeper look into this.
 
-6. The CR-LF issue:
+5. The CR-LF issue:
    At the moment all files have LF line endings, which are
    incompatible with most Windows software. This isn't a
    problem for the code itself (at least with MinGW), but

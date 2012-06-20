@@ -610,12 +610,46 @@ Sys_GetCurrentDirectory(void)
 char *
 Sys_GetHomeDir(void)
 {
-	char *old;
 	char *cur;
+	char *old;
+	char profile[MAX_PATH];
+	int len;
 	static char gdir[MAX_OSPATH];
-	TCHAR profile[MAX_OSPATH];
+	WCHAR sprofile[MAX_PATH];
+	WCHAR uprofile[MAX_PATH];
 
-    SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, profile);
+	/* The following lines implement a horrible
+	   hack to connect the UTF-16 WinAPI to the
+	   ASCII Quake II. While this should work in
+	   most cases, it'll fail if the "Windows to
+	   DOS filename translation" is switched off.
+	   In that case the function will return NULL
+	   and no homedir is used. */
+
+	/* Get the path to "My Documents" directory */
+	SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, 0, uprofile);
+
+	/* Create a UTF-16 DOS path */
+    len = GetShortPathNameW(uprofile, sprofile, sizeof(sprofile));
+
+	if (len == 0)
+	{
+		return NULL;
+	}
+
+	/* Since the DOS path contains no UTF-16 characters, just convert it to ASCII */
+	WideCharToMultiByte(CP_ACP, 0, sprofile, -1, profile, sizeof(profile), NULL, NULL);
+
+	if (len == 0)
+	{
+		return NULL;
+	}
+
+	/* Check if path is too long */
+    if ((len + strlen(CFGDIR) -1) >= 256)
+	{
+		return NULL;
+	}
 
 	/* Replace backslashes by slashes */
 	cur = old = profile;
