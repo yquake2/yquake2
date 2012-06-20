@@ -83,6 +83,7 @@ Sys_Error(char *error, ...)
 	vsprintf(text, error, argptr);
 	va_end(argptr);
 
+	fprintf(stderr, "Error: %s\n", text);
 	MessageBox(NULL, text, "Error", 0 /* MB_OK */);
 
 	if (qwclsemaphore)
@@ -318,23 +319,25 @@ Sys_ConsoleOutput(char *string)
 
 	if (!dedicated || !dedicated->value)
 	{
-		return;
+		fputs(string, stdout);
 	}
-
-	if (console_textlen)
+	else
 	{
-		text[0] = '\r';
-		memset(&text[1], ' ', console_textlen);
-		text[console_textlen + 1] = '\r';
-		text[console_textlen + 2] = 0;
-		WriteFile(houtput, text, console_textlen + 2, &dummy, NULL);
-	}
+		if (console_textlen)
+		{
+			text[0] = '\r';
+			memset(&text[1], ' ', console_textlen);
+			text[console_textlen + 1] = '\r';
+			text[console_textlen + 2] = 0;
+			WriteFile(houtput, text, console_textlen + 2, &dummy, NULL);
+		}
 
-	WriteFile(houtput, string, strlen(string), &dummy, NULL);
+		WriteFile(houtput, string, strlen(string), &dummy, NULL);
 
-	if (console_textlen)
-	{
-		WriteFile(houtput, console_text, console_textlen, &dummy, NULL);
+		if (console_textlen)
+		{
+			WriteFile(houtput, console_text, console_textlen, &dummy, NULL);
+		}
 	}
 }
 
