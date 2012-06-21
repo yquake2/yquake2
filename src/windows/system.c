@@ -695,7 +695,9 @@ Sys_GetHomeDir(void)
 void
 Sys_RedirectStdout(void)
 {
+	char *cur;
 	char *home;
+	char *old;
 	char path_stdout[MAX_OSPATH];
 	char path_stderr[MAX_OSPATH];
 
@@ -709,6 +711,21 @@ Sys_RedirectStdout(void)
 	if (home == NULL)
 	{
 		return;
+	}
+
+	cur = old = home;
+
+	while (cur != NULL)
+	{
+		if ((cur - old) > 1)
+		{
+			*cur = '\0';
+			Sys_Mkdir(home);
+			*cur = '/';
+		}
+
+		old = cur;
+		cur = strchr(old + 1, '/');
 	}
 
 	snprintf(path_stdout, sizeof(path_stdout), "%s/%s", home, "stdout.txt");
