@@ -35,7 +35,6 @@
 #include <shlobj.h>
 
 #include "../common/header/common.h"
-#include "header/conproc.h"
 #include "header/resource.h"
 #include "header/winquake.h"
 
@@ -94,9 +93,6 @@ Sys_Error(char *error, ...)
 		CloseHandle(qwclsemaphore);
 	}
 
-	/* shut down QHOST hooks if necessary */
-	DeinitConProc();
-
 	/* Close stdout and stderr */
 #ifndef DEDICATED_ONLY
 	fclose(stdout);
@@ -122,9 +118,6 @@ Sys_Quit(void)
 	{
 		FreeConsole();
 	}
-
-	/* shut down QHOST hooks if necessary */
-	DeinitConProc();
 
 	/* Close stdout and stderr */
 #ifndef DEDICATED_ONLY
@@ -184,9 +177,6 @@ Sys_Init(void)
 
 		hinput = GetStdHandle(STD_INPUT_HANDLE);
 		houtput = GetStdHandle(STD_OUTPUT_HANDLE);
-
-		/* let QHOST hook in */
-		InitConProc(argc, argv);
 	}
 }
 

@@ -520,7 +520,6 @@ CLIENT_OBJS_ := \
 
 ifeq ($(OSTYPE), Windows)
 CLIENT_OBJS_ += \
- 	src/windows/conproc.o \
 	src/windows/mem.o \
 	src/windows/network.o \
 	src/windows/qal.o \
@@ -580,7 +579,6 @@ SERVER_OBJS_ := \
 
 ifeq ($(OSTYPE), Windows)
 SERVER_OBJS_ += \
-	src/windows/conproc.o \
 	src/windows/mem.o \
 	src/windows/network.o \
 	src/windows/system.o	
