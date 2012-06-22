@@ -153,57 +153,6 @@ WinError(void)
 
 /* ================================================================ */
 
-char *
-Sys_ScanForCD(void)
-{
-	static char cddir[MAX_OSPATH];
-	static qboolean done;
-
-	char drive[4];
-	FILE *f;
-	char test[MAX_QPATH];
-
-	if (done) /* don't re-check */
-	{
-		return cddir;
-	}
-
-	/* no abort/retry/fail errors */
-	SetErrorMode(SEM_FAILCRITICALERRORS);
-
-	drive[0] = 'c';
-	drive[1] = ':';
-	drive[2] = '\\';
-	drive[3] = 0;
-
-	done = true;
-
-	/* scan the drives */
-	for (drive[0] = 'c'; drive[0] <= 'z'; drive[0]++)
-	{
-		/* where activision put the stuff... */
-		sprintf(cddir, "%sinstall\\data", drive);
-		sprintf(test, "%sinstall\\data\\quake2.exe", drive);
-		f = fopen(test, "r");
-
-		if (f)
-		{
-			fclose(f);
-
-			if (GetDriveType(drive) == DRIVE_CDROM)
-			{
-				return cddir;
-			}
-		}
-	}
-
-	cddir[0] = 0;
-
-	return NULL;
-}
-
-/* ================================================================ */
-
 void
 Sys_Init(void)
 {
@@ -747,7 +696,6 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 {
 	MSG msg;
 	int time, oldtime, newtime;
-	char *cddir;
 
 	/* Previous instances do not exist in Win32 */
 	if (hPrevInstance)
@@ -798,30 +746,6 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	/* Parse the command line arguments */
 	ParseCommandLine(lpCmdLine);
-
-	/* Search the CD (for partial installations) */
-	cddir = Sys_ScanForCD();
-
-	if (cddir && (argc < MAX_NUM_ARGVS - 3))
-	{
-		int i;
-
-		/* don't override a cddir on the command line */
-		for (i = 0; i < argc; i++)
-		{
-			if (!strcmp(argv[i], "cddir"))
-			{
-				break;
-			}
-		}
-
-		if (i == argc)
-		{
-			argv[argc++] = "+set";
-			argv[argc++] = "cddir";
-			argv[argc++] = cddir;
-		}
-	}
 
 	/* Call the initialization code */
 	Qcommon_Init(argc, argv);
