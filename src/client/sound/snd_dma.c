@@ -945,7 +945,7 @@ S_ClearBuffer(void)
 	if (dma.buffer)
 	{
 		int i;
-		unsigned char *ptr = (unsigned char *)dma.buffer;
+		unsigned char *ptr = dma.buffer;
 
 		i = dma.samples * dma.samplebits / 8;
 

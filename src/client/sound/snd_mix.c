@@ -48,9 +48,9 @@ S_TransferPaintBuffer(int endtime)
 	int *p;
 	int step;
 	int val;
-	unsigned long *pbuf;
+	unsigned char *pbuf;
 
-	pbuf = (unsigned long *)dma.buffer;
+	pbuf = dma.buffer;
 
 	if (s_testsound->value)
 	{

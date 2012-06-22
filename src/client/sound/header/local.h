@@ -79,7 +79,7 @@ typedef struct
 	int samplepos;        /* in mono samples */
 	int samplebits;
 	int speed;
-	byte *buffer;
+	unsigned char *buffer;
 } dma_t;
 
 typedef struct
