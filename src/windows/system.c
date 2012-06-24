@@ -603,7 +603,7 @@ Sys_GetHomeDir(void)
 	}
 
 	/* Check if path is too long */
-    if ((len + strlen(CFGDIR) -1) >= 256)
+    if ((len + strlen(CFGDIR) + 3) >= 256)
 	{
 		return NULL;
 	}
