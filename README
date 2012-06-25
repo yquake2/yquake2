@@ -180,7 +180,7 @@ ftp://ftp.idsoftware.com/idstuff/quake2/q2-3.20-x86-full-ctf.exe
 Use this and only this file! Unofficial pointreleases or something like
 that will not work and may crash your game!
 
-Extract the file into a new directory (we recommend quake2\) and delete 
+Extract the file into a new directory (we recommend quake2\) and remove
 the following files and directories:
 - 3.20_Changes.txt
 - quake2.exe
@@ -205,7 +205,7 @@ If you haven't got Quake II, try the demo version. Get it here:
 ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe
 
 Extract this file into a new directory and delete everything but
-"baseq2\pak0.pk2" and the "baseq2\video\" directory. No patching 
+"baseq2\pak0.pak" and the "baseq2\video\" directory. No patching 
 is needed for the demo, in fact it would break it.
 
 2.4 Addons
@@ -227,7 +227,7 @@ directory structure.
 2.6 Compiling
 -------------
 Compiling Yamagi Quake II from source is unnecessary as long as you will not
-use the github version or want to develop on Windows. If you relly want to
+use the github version or want to develop on Windows. If you really want to
 compile Yamagi Quake II by yourself follow these steps:
 
 1. Grab a copy of Nuwens MinGW distribution from http://nuwen.net/mingw.html
