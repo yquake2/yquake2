@@ -328,7 +328,6 @@ void *
 Sys_GetGameAPI(void *parms)
 {
 	void *(*GetGameAPI)(void *);
-	const char *gamename = "game.dll";
 	char name[MAX_OSPATH];
 	char *path = NULL;
 
@@ -349,7 +348,8 @@ Sys_GetGameAPI(void *parms)
 			return NULL; /* couldn't find one anywhere */
 		}
 
-		Com_sprintf(name, sizeof(name), "%s/%s", path, gamename);
+		/* Try game.dll */
+		Com_sprintf(name, sizeof(name), "%s/%s", path, "game.dll");
 		game_library = LoadLibrary(name);
 
 		if (game_library)
@@ -357,6 +357,16 @@ Sys_GetGameAPI(void *parms)
 			Com_DPrintf("LoadLibrary (%s)\n", name);
 			break;
 		}
+
+		/* Try gamex86.dll as fallback */
+ 		Com_sprintf(name, sizeof(name), "%s/%s", path, "gamex86.dll");
+		game_library = LoadLibrary(name);
+
+		if (game_library)
+		{
+			Com_DPrintf("LoadLibrary (%s)\n", name);
+			break;
+		}    
 	}
 
 	GetGameAPI = (void *)GetProcAddress(game_library, "GetGameAPI");
