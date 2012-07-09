@@ -653,4 +653,9 @@ Why has Yamagi Quake II no support for joysticks?
    to keyboard translator like joytran (for FreeBSD and Linux): 
      http://chiselapp.com/user/beyert/repository/joytran/index
 
+What is yq2.cfg for?
+ - yq2.cfg is an alternate startup script, used to override some bad
+   decisions in the original defaults.cfg. Please do not alter it,
+   unless you know what you're doing! It may beak the game!
+
 ==============================================================================
