@@ -45,69 +45,70 @@
 refexport_t re;
 
 /* Console variables that we need to access from this module */
-cvar_t      *vid_gamma;
-cvar_t      *vid_ref;           /* Name of Refresh DLL loaded */
-cvar_t      *vid_xpos;          /* X coordinate of window position */
-cvar_t      *vid_ypos;          /* Y coordinate of window position */
-cvar_t      *vid_fullscreen;
+cvar_t *vid_gamma;
+cvar_t *vid_ref;                /* Name of Refresh DLL loaded */
+cvar_t *vid_xpos;               /* X coordinate of window position */
+cvar_t *vid_ypos;               /* Y coordinate of window position */
+cvar_t *vid_fullscreen;
 
 /* Global variables used internally by this module */
 viddef_t viddef;                /* global video state; used by other modules */
-void        *reflib_library;    /* Handle to refresh DLL */
+void *reflib_library;           /* Handle to refresh DLL */
 qboolean reflib_active = 0;
 
-#define VID_NUM_MODES ( sizeof ( vid_modes ) / sizeof ( vid_modes [ 0 ] ) )
+#define VID_NUM_MODES (sizeof(vid_modes) / sizeof(vid_modes[0]))
 
 /* INPUT */
-void Do_Key_Event ( int key, qboolean down );
-void ( *IN_Update_fp )( void );
-void ( *IN_KeyboardInit_fp )( Key_Event_fp_t fp );
-void ( *IN_Close_fp )( void );
+void Do_Key_Event(int key, qboolean down);
+
+void (*IN_Update_fp)(void);
+void (*IN_KeyboardInit_fp)(Key_Event_fp_t fp);
+void (*IN_Close_fp)(void);
 
 in_state_t in_state;
 
-void ( *IN_BackendInit_fp )( in_state_t *in_state_p );
-void ( *IN_BackendShutdown_fp )( void );
-void ( *IN_BackendMouseButtons_fp )( void );
-void ( *IN_BackendMove_fp )( usercmd_t *cmd );
+void (*IN_BackendInit_fp)(in_state_t *in_state_p);
+void (*IN_BackendShutdown_fp)(void);
+void (*IN_BackendMouseButtons_fp)(void);
+void (*IN_BackendMove_fp)(usercmd_t *cmd);
 
-extern void VID_MenuShutdown ( void );
+extern void VID_MenuShutdown(void);
 
 /* DLL GLUE */
 
 #define MAXPRINTMSG 4096
 
 void
-VID_Printf ( int print_level, char *fmt, ... )
+VID_Printf(int print_level, char *fmt, ...)
 {
 	va_list argptr;
-	char msg [ MAXPRINTMSG ];
+	char msg[MAXPRINTMSG];
 
-	va_start( argptr, fmt );
-	vsnprintf( msg, MAXPRINTMSG, fmt, argptr );
-	va_end( argptr );
+	va_start(argptr, fmt);
+	vsnprintf(msg, MAXPRINTMSG, fmt, argptr);
+	va_end(argptr);
 
-	if ( print_level == PRINT_ALL )
+	if (print_level == PRINT_ALL)
 	{
-		Com_Printf( "%s", msg );
+		Com_Printf("%s", msg);
 	}
 	else
 	{
-		Com_DPrintf( "%s", msg );
+		Com_DPrintf("%s", msg);
 	}
 }
 
 void
-VID_Error ( int err_level, char *fmt, ... )
+VID_Error(int err_level, char *fmt, ...)
 {
 	va_list argptr;
-	char msg [ MAXPRINTMSG ];
+	char msg[MAXPRINTMSG];
 
-	va_start( argptr, fmt );
-	vsnprintf( msg, MAXPRINTMSG, fmt, argptr );
-	va_end( argptr );
+	va_start(argptr, fmt);
+	vsnprintf(msg, MAXPRINTMSG, fmt, argptr);
+	va_end(argptr);
 
-	Com_Error( err_level, "%s", msg );
+	Com_Error(err_level, "%s", msg);
 }
 
 /*
@@ -116,7 +117,7 @@ VID_Error ( int err_level, char *fmt, ... )
  * cause the entire video mode and refresh DLL to be reset on the next frame.
  */
 void
-VID_Restart_f ( void )
+VID_Restart_f(void)
 {
 	vid_ref->modified = true;
 }
@@ -130,68 +131,68 @@ typedef struct vidmode_s
 
 /* This must be the same as in menu.c! */
 vidmode_t vid_modes[] = {
-	{ "Mode 0: 320x240",   320, 240,   0 },
-	{ "Mode 1: 400x300",   400, 300,   1 },
-	{ "Mode 2: 512x384",   512, 384,   2 },
-	{ "Mode 3: 640x400",   640, 400,   3 },
-	{ "Mode 4: 640x480",   640, 480,   4 },
-	{ "Mode 5: 800x500",   800, 500,   5 },
-	{ "Mode 6: 800x600",   800, 600,   6 },
-	{ "Mode 7: 960x720",   960, 720,   7 },
-	{ "Mode 8: 1024x480",  1024,  480, 8 },
-	{ "Mode 9: 1024x640",  1024,  640, 9 },
-	{ "Mode 10: 1024x768", 1024, 768,  10 },
-	{ "Mode 11: 1152x768", 1152,  768, 11 },
-	{ "Mode 12: 1152x864", 1152, 864,  12 },
-	{ "Mode 13: 1280x800", 1280,  800, 13 },
-	{ "Mode 14: 1280x854", 1280,  854, 14 },
-	{ "Mode 15: 1280x960", 1280,  860, 15 },
-	{ "Mode 16: 1280x1024", 1280, 1024, 16 },
-	{ "Mode 17: 1440x900",	1440, 900,	17 },
-	{ "Mode 18: 1600x1200", 1600, 1200, 18 },
-	{ "Mode 19: 1680x1050", 1680, 1050, 19 },
-	{ "Mode 20: 1920x1080",	1920, 1080, 20 },
-	{ "Mode 21: 1920x1200", 1920, 1200, 21 },
-	{ "Mode 22: 2048x1536", 2048, 1536, 22 },
+	{"Mode 0: 320x240", 320, 240, 0},
+	{"Mode 1: 400x300", 400, 300, 1},
+	{"Mode 2: 512x384", 512, 384, 2},
+	{"Mode 3: 640x400", 640, 400, 3},
+	{"Mode 4: 640x480", 640, 480, 4},
+	{"Mode 5: 800x500", 800, 500, 5},
+	{"Mode 6: 800x600", 800, 600, 6},
+	{"Mode 7: 960x720", 960, 720, 7},
+	{"Mode 8: 1024x480", 1024, 480, 8},
+	{"Mode 9: 1024x640", 1024, 640, 9},
+	{"Mode 10: 1024x768", 1024, 768, 10},
+	{"Mode 11: 1152x768", 1152, 768, 11},
+	{"Mode 12: 1152x864", 1152, 864, 12},
+	{"Mode 13: 1280x800", 1280, 800, 13},
+	{"Mode 14: 1280x854", 1280, 854, 14},
+	{"Mode 15: 1280x960", 1280, 860, 15},
+	{"Mode 16: 1280x1024", 1280, 1024, 16},
+	{"Mode 17: 1440x900", 1440, 900, 17},
+	{"Mode 18: 1600x1200", 1600, 1200, 18},
+	{"Mode 19: 1680x1050", 1680, 1050, 19},
+	{"Mode 20: 1920x1080", 1920, 1080, 20},
+	{"Mode 21: 1920x1200", 1920, 1200, 21},
+	{"Mode 22: 2048x1536", 2048, 1536, 22},
 };
 
 qboolean
-VID_GetModeInfo ( int *width, int *height, int mode )
+VID_GetModeInfo(int *width, int *height, int mode)
 {
-	if ( ( mode < 0 ) || ( mode >= VID_NUM_MODES ) )
+	if ((mode < 0) || (mode >= VID_NUM_MODES))
 	{
-		return ( false );
+		return false;
 	}
 
-	*width  = vid_modes [ mode ].width;
-	*height = vid_modes [ mode ].height;
+	*width = vid_modes[mode].width;
+	*height = vid_modes[mode].height;
 
-	return ( true );
+	return true;
 }
 
 void
-VID_NewWindow ( int width, int height )
+VID_NewWindow(int width, int height)
 {
-	viddef.width  = width;
+	viddef.width = width;
 	viddef.height = height;
 }
 
 void
-VID_FreeReflib ( void )
+VID_FreeReflib(void)
 {
-	if ( reflib_library )
+	if (reflib_library)
 	{
-		if ( IN_Close_fp )
+		if (IN_Close_fp)
 		{
 			IN_Close_fp();
 		}
 
-		if ( IN_BackendShutdown_fp )
+		if (IN_BackendShutdown_fp)
 		{
 			IN_BackendShutdown_fp();
 		}
 
-		dlclose( reflib_library );
+		dlclose(reflib_library);
 	}
 
 	IN_KeyboardInit_fp = NULL;
@@ -202,28 +203,28 @@ VID_FreeReflib ( void )
 	IN_BackendMouseButtons_fp = NULL;
 	IN_BackendMove_fp = NULL;
 
-	memset( &re, 0, sizeof ( re ) );
+	memset(&re, 0, sizeof(re));
 	reflib_library = NULL;
-	reflib_active  = false;
+	reflib_active = false;
 }
 
 qboolean
-VID_LoadRefresh ( char *name )
+VID_LoadRefresh(char *name)
 {
 	refimport_t ri;
 	R_GetRefAPI_t R_GetRefAPI;
-	char fn [ MAX_OSPATH ];
-	char    *path;
+	char fn[MAX_OSPATH];
+	char *path;
 	struct stat st;
 
-	if ( reflib_active )
+	if (reflib_active)
 	{
-		if ( IN_Close_fp )
+		if (IN_Close_fp)
 		{
 			IN_Close_fp();
 		}
 
-		if ( IN_BackendShutdown_fp )
+		if (IN_BackendShutdown_fp)
 		{
 			IN_BackendShutdown_fp();
 		}
@@ -234,24 +235,24 @@ VID_LoadRefresh ( char *name )
 		VID_FreeReflib();
 	}
 
-	Com_Printf( "----- refresher initialization -----\n");
+	Com_Printf("----- refresher initialization -----\n");
 
-	path = Cvar_Get( "basedir", ".", CVAR_NOSET )->string;
-	snprintf( fn, MAX_OSPATH, "%s/%s", path, name );
+	path = Cvar_Get("basedir", ".", CVAR_NOSET)->string;
+	snprintf(fn, MAX_OSPATH, "%s/%s", path, name);
 
-	if ( stat( fn, &st ) == -1 )
+	if (stat(fn, &st) == -1)
 	{
-		Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name, strerror( errno ) );
-		return ( false );
+		Com_Printf("LoadLibrary(\"%s\") failed: %s\n", name, strerror(errno));
+		return false;
 	}
 
-	if ( ( reflib_library = dlopen( fn, RTLD_LAZY ) ) == 0 )
+	if ((reflib_library = dlopen(fn, RTLD_LAZY)) == 0)
 	{
-		Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name, dlerror() );
-		return ( false );
+		Com_Printf("LoadLibrary(\"%s\") failed: %s\n", name, dlerror());
+		return false;
 	}
 
-	Com_Printf( "LoadLibrary(\"%s\")\n", fn );
+	Com_Printf("LoadLibrary(\"%s\")\n", fn);
 
 	ri.Cmd_AddCommand = Cmd_AddCommand;
 	ri.Cmd_RemoveCommand = Cmd_RemoveCommand;
@@ -271,17 +272,17 @@ VID_LoadRefresh ( char *name )
 	ri.Vid_MenuInit = VID_MenuInit;
 	ri.Vid_NewWindow = VID_NewWindow;
 
-	if ( ( R_GetRefAPI = (void *) dlsym( reflib_library, "R_GetRefAPI" ) ) == 0 )
+	if ((R_GetRefAPI = (void *)dlsym(reflib_library, "R_GetRefAPI")) == 0)
 	{
-		Com_Error( ERR_FATAL, "dlsym failed on %s", name );
+		Com_Error(ERR_FATAL, "dlsym failed on %s", name);
 	}
 
-	re = R_GetRefAPI( ri );
+	re = R_GetRefAPI(ri);
 
-	if ( re.api_version != API_VERSION )
+	if (re.api_version != API_VERSION)
 	{
 		VID_FreeReflib();
-		Com_Error( ERR_FATAL, "%s has incompatible api_version", name );
+		Com_Error(ERR_FATAL, "%s has incompatible api_version", name);
 	}
 
 	/* Init IN (Mouse) */
@@ -291,40 +292,40 @@ VID_LoadRefresh ( char *name )
 	in_state.in_strafe_state = &in_strafe.state;
 	in_state.in_speed_state = &in_speed.state;
 
-	if ( ( ( IN_BackendInit_fp = dlsym( reflib_library, "IN_BackendInit" ) ) == NULL ) ||
-		 ( ( IN_BackendShutdown_fp = dlsym( reflib_library, "IN_BackendShutdown" ) ) == NULL ) ||
-		 ( ( IN_BackendMouseButtons_fp = dlsym( reflib_library, "IN_BackendMouseButtons" ) ) == NULL ) ||
-		 ( ( IN_BackendMove_fp = dlsym( reflib_library, "IN_BackendMove" ) ) == NULL ) )
+	if (((IN_BackendInit_fp = dlsym(reflib_library, "IN_BackendInit")) == NULL) ||
+		((IN_BackendShutdown_fp = dlsym(reflib_library, "IN_BackendShutdown")) == NULL) ||
+		((IN_BackendMouseButtons_fp = dlsym(reflib_library, "IN_BackendMouseButtons")) == NULL) ||
+		((IN_BackendMove_fp = dlsym(reflib_library, "IN_BackendMove")) == NULL))
 	{
-		Com_Error( ERR_FATAL, "No input backend init functions in REF.\n" );
+		Com_Error(ERR_FATAL, "No input backend init functions in REF.\n");
 	}
 
-	if ( IN_BackendInit_fp )
+	if (IN_BackendInit_fp)
 	{
-		IN_BackendInit_fp( &in_state );
+		IN_BackendInit_fp(&in_state);
 	}
 
-	if ( re.Init( 0, 0 ) == -1 )
+	if (re.Init(0, 0) == -1)
 	{
 		re.Shutdown();
 		VID_FreeReflib();
-		return ( false );
+		return false;
 	}
 
 	/* Init IN */
-	if ( ( ( IN_KeyboardInit_fp = dlsym( reflib_library, "IN_KeyboardInit" ) ) == NULL ) ||
-		 ( ( IN_Update_fp = dlsym( reflib_library, "IN_Update" ) ) == NULL ) ||
-		 ( ( IN_Close_fp = dlsym( reflib_library, "IN_Close" ) ) == NULL ) )
+	if (((IN_KeyboardInit_fp = dlsym(reflib_library, "IN_KeyboardInit")) == NULL) ||
+		((IN_Update_fp = dlsym(reflib_library, "IN_Update")) == NULL) ||
+		((IN_Close_fp = dlsym(reflib_library, "IN_Close")) == NULL))
 	{
-		Com_Error( ERR_FATAL, "No keyboard input functions in REF.\n" );
+		Com_Error(ERR_FATAL, "No keyboard input functions in REF.\n");
 	}
 
-	IN_KeyboardInit_fp( Do_Key_Event );
+	IN_KeyboardInit_fp(Do_Key_Event);
 	Key_ClearStates();
 
-	Com_Printf( "------------------------------------\n\n" );
+	Com_Printf("------------------------------------\n\n");
 	reflib_active = true;
-	return ( true );
+	return true;
 }
 
 /*
@@ -334,16 +335,16 @@ VID_LoadRefresh ( char *name )
  * and/or video mode to match.
  */
 void
-VID_CheckChanges ( void )
+VID_CheckChanges(void)
 {
-	char name [ 100 ];
+	char name[100];
 
-	if ( vid_ref->modified )
+	if (vid_ref->modified)
 	{
 		S_StopAllSounds();
 	}
 
-	while ( vid_ref->modified )
+	while (vid_ref->modified)
 	{
 		/* refresh has changed */
 		vid_ref->modified = false;
@@ -351,47 +352,46 @@ VID_CheckChanges ( void )
 		cl.refresh_prepped = false;
 		cls.disable_screen = true;
 
-		sprintf( name, "ref_%s.so", vid_ref->string );
+		sprintf(name, "ref_%s.so", vid_ref->string);
 
-		if ( !VID_LoadRefresh( name ) )
+		if (!VID_LoadRefresh(name))
 		{
-			Cvar_Set( "vid_ref", "gl" );
+			Cvar_Set("vid_ref", "gl");
 		}
 
 		cls.disable_screen = false;
 	}
 }
 
-
 void
-VID_Init ( void )
+VID_Init(void)
 {
 	/* Create the video variables so we know how to start the graphics drivers */
-	vid_ref = Cvar_Get( "vid_ref", "gl", CVAR_ARCHIVE );
+	vid_ref = Cvar_Get("vid_ref", "gl", CVAR_ARCHIVE);
 
-	vid_xpos = Cvar_Get( "vid_xpos", "3", CVAR_ARCHIVE );
-	vid_ypos = Cvar_Get( "vid_ypos", "22", CVAR_ARCHIVE );
-	vid_fullscreen = Cvar_Get( "vid_fullscreen", "0", CVAR_ARCHIVE );
-	vid_gamma = Cvar_Get( "vid_gamma", "1", CVAR_ARCHIVE );
+	vid_xpos = Cvar_Get("vid_xpos", "3", CVAR_ARCHIVE);
+	vid_ypos = Cvar_Get("vid_ypos", "22", CVAR_ARCHIVE);
+	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+	vid_gamma = Cvar_Get("vid_gamma", "1", CVAR_ARCHIVE);
 
 	/* Add some console commands that we want to handle */
-	Cmd_AddCommand( "vid_restart", VID_Restart_f );
+	Cmd_AddCommand("vid_restart", VID_Restart_f);
 
 	/* Start the graphics mode and load refresh DLL */
 	VID_CheckChanges();
 }
 
 void
-VID_Shutdown ( void )
+VID_Shutdown(void)
 {
-	if ( reflib_active )
+	if (reflib_active)
 	{
-		if ( IN_Close_fp )
+		if (IN_Close_fp)
 		{
 			IN_Close_fp();
 		}
 
-		if ( IN_BackendShutdown_fp )
+		if (IN_BackendShutdown_fp)
 		{
 			IN_BackendShutdown_fp();
 		}
@@ -411,55 +411,56 @@ VID_Shutdown ( void )
  * ever have their names changed.
  */
 qboolean
-VID_CheckRefExists ( const char *ref )
+VID_CheckRefExists(const char *ref)
 {
-	char fn [ MAX_OSPATH ];
-	char    *path;
+	char fn[MAX_OSPATH];
+	char *path;
 	struct stat st;
 
-	path = Cvar_Get( "basedir", ".", CVAR_NOSET )->string;
-	snprintf( fn, MAX_OSPATH, "%s/ref_%s.so", path, ref );
+	path = Cvar_Get("basedir", ".", CVAR_NOSET)->string;
+	snprintf(fn, MAX_OSPATH, "%s/ref_%s.so", path, ref);
 
-	if ( stat( fn, &st ) == 0 )
+	if (stat(fn, &st) == 0)
 	{
-		return ( true );
+		return true;
 	}
 	else
 	{
-		return ( false );
+		return false;
 	}
 }
 
 /* INPUT */
 void
-IN_Shutdown ( void )
+IN_Shutdown(void)
 {
-	if ( IN_BackendShutdown_fp )
+	if (IN_BackendShutdown_fp)
 	{
 		IN_BackendShutdown_fp();
 	}
 }
 
 void
-IN_Commands ( void )
+IN_Commands(void)
 {
-	if ( IN_BackendMouseButtons_fp )
+	if (IN_BackendMouseButtons_fp)
 	{
 		IN_BackendMouseButtons_fp();
 	}
 }
 
 void
-IN_Move ( usercmd_t *cmd )
+IN_Move(usercmd_t *cmd)
 {
-	if ( IN_BackendMove_fp )
+	if (IN_BackendMove_fp)
 	{
-		IN_BackendMove_fp( cmd );
+		IN_BackendMove_fp(cmd);
 	}
 }
 
 void
-Do_Key_Event ( int key, qboolean down )
+Do_Key_Event(int key, qboolean down)
 {
-	Key_Event( key, down, Sys_Milliseconds() );
+	Key_Event(key, down, Sys_Milliseconds());
 }
+

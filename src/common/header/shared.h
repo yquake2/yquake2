@@ -55,14 +55,12 @@ typedef enum {false, true}  qboolean;
 #define MAX_QPATH 64                /* max length of a quake game pathname */
 
 #ifdef _WIN32
-#define MAX_OSPATH 256             /* max length of a filesystem pathname (same as MAX_PATH) */
+ #define MAX_OSPATH 256             /* max length of a filesystem pathname (same as MAX_PATH) */
 #else
-#define MAX_OSPATH 128              /* max length of a filesystem pathname */
+ #define MAX_OSPATH 128             /* max length of a filesystem pathname */
 #endif
 
-/* */
 /* per-level limits */
-/* */
 #define MAX_CLIENTS 256             /* absolute limit */
 #define MAX_EDICTS 1024             /* must change protocol to increase more */
 #define MAX_LIGHTSTYLES 256
@@ -128,10 +126,12 @@ extern vec3_t vec3_origin;
 #define Q_ftol(f) (long)(f)
 
 #define DotProduct(x, y) (x[0] * y[0] + x[1] * y[1] + x[2] * y[2])
-#define VectorSubtract(a, b, c) (c[0] = a[0] - b[0], c[1] = a[1] - b[1], c[2] =	\
-									 a[2] - b[2])
-#define VectorAdd(a, b, c) (c[0] = a[0] + b[0], c[1] = a[1] + b[1], c[2] = \
-								a[2] + b[2])
+#define VectorSubtract(a, b, c)	\
+	(c[0] = a[0] - b[0], c[1] = a[1] - b[1], c[2] =	\
+	 a[2] - b[2])
+#define VectorAdd(a, b, c) \
+	(c[0] = a[0] + b[0], c[1] = a[1] + b[1], c[2] =	\
+	 a[2] + b[2])
 #define VectorCopy(a, b) (b[0] = a[0], b[1] = a[1], b[2] = a[2])
 #define VectorClear(a) (a[0] = a[1] = a[2] = 0)
 #define VectorNegate(a, b) (b[0] = -a[0], b[1] = -a[1], b[2] = -a[2])
@@ -183,8 +183,10 @@ float LerpAngle(float a1, float a2, float frac);
 
 void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal);
 void PerpendicularVector(vec3_t dst, const vec3_t src);
-void RotatePointAroundVector(vec3_t dst, const vec3_t dir,
-		const vec3_t point, float degrees);
+void RotatePointAroundVector(vec3_t dst,
+		const vec3_t dir,
+		const vec3_t point,
+		float degrees);
 
 /* ============================================= */
 
@@ -201,7 +203,7 @@ void Com_sprintf(char *dest, int size, char *fmt, ...);
 
 void Com_PageInMemory(byte *buffer, int size);
 
-char *strlwr ( char *s );
+char *strlwr(char *s);
 
 /* ============================================= */
 
@@ -237,7 +239,7 @@ qboolean Info_Validate(char *s);
 /* ============================================= */
 
 /* Random number generator */
-int  randk(void);
+int randk(void);
 float frandk(void);
 float crandk(void);
 void randk_seed(void);
@@ -364,19 +366,23 @@ typedef struct cvar_s
 /* content masks */
 #define MASK_ALL (-1)
 #define MASK_SOLID (CONTENTS_SOLID | CONTENTS_WINDOW)
-#define MASK_PLAYERSOLID (CONTENTS_SOLID | CONTENTS_PLAYERCLIP | \
-						  CONTENTS_WINDOW | CONTENTS_MONSTER)
+#define MASK_PLAYERSOLID \
+	(CONTENTS_SOLID | CONTENTS_PLAYERCLIP |	\
+	 CONTENTS_WINDOW | CONTENTS_MONSTER)
 #define MASK_DEADSOLID (CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_WINDOW)
-#define MASK_MONSTERSOLID (CONTENTS_SOLID | CONTENTS_MONSTERCLIP | \
-						   CONTENTS_WINDOW | CONTENTS_MONSTER)
+#define MASK_MONSTERSOLID \
+	(CONTENTS_SOLID | CONTENTS_MONSTERCLIP | \
+	 CONTENTS_WINDOW | CONTENTS_MONSTER)
 #define MASK_WATER (CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME)
 #define MASK_OPAQUE (CONTENTS_SOLID | CONTENTS_SLIME | CONTENTS_LAVA)
-#define MASK_SHOT (CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_WINDOW | \
-				   CONTENTS_DEADMONSTER)
-#define MASK_CURRENT (CONTENTS_CURRENT_0 | CONTENTS_CURRENT_90 | \
-					  CONTENTS_CURRENT_180 | CONTENTS_CURRENT_270 |	\
-					  CONTENTS_CURRENT_UP |	\
-					  CONTENTS_CURRENT_DOWN)
+#define MASK_SHOT \
+	(CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_WINDOW | \
+	 CONTENTS_DEADMONSTER)
+#define MASK_CURRENT \
+	(CONTENTS_CURRENT_0 | CONTENTS_CURRENT_90 |	\
+	 CONTENTS_CURRENT_180 | CONTENTS_CURRENT_270 | \
+	 CONTENTS_CURRENT_UP | \
+	 CONTENTS_CURRENT_DOWN)
 
 /* gi.BoxEdicts() can return a list of either solid or trigger entities */
 #define AREA_SOLID 1
@@ -458,10 +464,10 @@ typedef enum
 #define PMF_NO_PREDICTION 64    /* temporarily disables prediction (used for grappling hook) */
 
 /* this structure needs to be communicated bit-accurate/
-   from the server to the client to guarantee that
-   prediction stays in sync, so no floats are used.
-   if any part of the game code modifies this struct, it
-   will result in a prediction error of some degree. */
+ * from the server to the client to guarantee that
+ * prediction stays in sync, so no floats are used.
+ * if any part of the game code modifies this struct, it
+ * will result in a prediction error of some degree. */
 typedef struct
 {
 	pmtype_t pm_type;
@@ -472,7 +478,7 @@ typedef struct
 	byte pm_time;               /* each unit = 8 ms */
 	short gravity;
 	short delta_angles[3];      /* add to command angles to get view direction
-								   changed by spawns, rotating objects, and teleporters */
+								 * changed by spawns, rotating objects, and teleporters */
 } pmove_state_t;
 
 /* button bits */
@@ -520,10 +526,10 @@ typedef struct
 } pmove_t;
 
 /* entity_state_t->effects
-   Effects are things handled on the client side (lights, particles,
-   frame animations)  that happen constantly on the given entity.
-   An entity that has effects will be sent to the client even if
-   it has a zero index model. */
+ * Effects are things handled on the client side (lights, particles,
+ * frame animations)  that happen constantly on the given entity.
+ * An entity that has effects will be sent to the client even if
+ * it has a zero index model. */
 #define EF_ROTATE 0x00000001                /* rotate (bonus items) */
 #define EF_GIB 0x00000002                   /* leave a trail */
 #define EF_BLASTER 0x00000008               /* redlight + trail */
@@ -844,9 +850,9 @@ typedef struct
 extern vec3_t monster_flash_offset[];
 
 /* Temp entity events are for things that happen
-   at a location seperate from any existing entity.
-   Temporary entity messages are explicitly constructed
-   and broadcast. */
+ * at a location seperate from any existing entity.
+ * Temporary entity messages are explicitly constructed
+ * and broadcast. */
 typedef enum
 {
 	TE_GUNSHOT,
@@ -916,9 +922,9 @@ typedef enum
 #define SPLASH_BLOOD 6
 
 /* sound channels:
-   channel 0 never willingly overrides
-   other channels (1-7) allways override
-   a playing sound on that channel */
+ * channel 0 never willingly overrides
+ * other channels (1-7) allways override
+ * a playing sound on that channel */
 #define CHAN_AUTO 0
 #define CHAN_WEAPON 1
 #define CHAN_VOICE 2
@@ -993,8 +999,8 @@ typedef enum
 #define SHORT2ANGLE(x) ((x) * (360.0 / 65536))
 
 /* config strings are a general means of communication from
-   the server to all connected clients. Each config string
-   can be at most MAX_QPATH characters. */
+ * the server to all connected clients. Each config string
+ * can be at most MAX_QPATH characters. */
 #define CS_NAME 0
 #define CS_CDTRACK 1
 #define CS_SKY 2
@@ -1018,9 +1024,9 @@ typedef enum
 /* ============================================== */
 
 /* entity_state_t->event values
-   entity events are for effects that take place reletive
-   to an existing entities origin.  Very network efficient.
-   All muzzle flashes really should be converted to events... */
+ * entity events are for effects that take place reletive
+ * to an existing entities origin.  Very network efficient.
+ * All muzzle flashes really should be converted to events... */
 typedef enum
 {
 	EV_NONE,
@@ -1034,8 +1040,8 @@ typedef enum
 } entity_event_t;
 
 /* entity_state_t is the information conveyed from the server
-   in an update message about entities that the client will
-   need to render in some way */
+ * in an update message about entities that the client will
+ * need to render in some way */
 typedef struct entity_state_s
 {
 	int number;             /* edict index */
@@ -1061,9 +1067,9 @@ typedef struct entity_state_s
 /* ============================================== */
 
 /* player_state_t is the information needed in addition to pmove_state_t
-   to rendered a view.  There will only be 10 player_state_t sent each second,
-   but the number of pmove_state_t changes will be reletive to client
-   frame rates */
+ * to rendered a view.  There will only be 10 player_state_t sent each second,
+ * but the number of pmove_state_t changes will be reletive to client
+ * frame rates */
 typedef struct
 {
 	pmove_state_t pmove;        /* for prediction */

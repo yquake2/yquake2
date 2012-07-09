@@ -29,13 +29,13 @@
 #ifdef USE_OPENAL
 
 #ifndef _QAL_API_H_
-#define _QAL_API_H_
+ #define _QAL_API_H_
 
-#include <AL/al.h>
-#include <AL/efx.h>
+ #include <AL/al.h>
+ #include <AL/efx.h>
 
 /* Function pointers used to tie
-   the qal API to the OpenAL API */
+*  the qal API to the OpenAL API */
 extern LPALENABLE qalEnable;
 extern LPALDISABLE qalDisable;
 extern LPALISENABLED qalIsEnabled;

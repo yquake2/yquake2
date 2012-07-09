@@ -19,7 +19,7 @@
  *
  * =======================================================================
  *
- * Zone malloc. It's just a normal mallic with counter.
+ * Zone malloc. It's just a normal malloc with tags.
  *
  * =======================================================================
  */
@@ -29,20 +29,21 @@
 
 #define Z_MAGIC 0x1d1d
 
-zhead_t	z_chain;
-int		z_count, z_bytes;
+zhead_t z_chain;
+int z_count, z_bytes;
 
-void Z_Free (void *ptr)
+void
+Z_Free(void *ptr)
 {
-	zhead_t	*z;
+	zhead_t *z;
 
 	z = ((zhead_t *)ptr) - 1;
 
 	if (z->magic != Z_MAGIC)
 	{
-		printf( "free: %p failed\n", ptr );
+		printf("free: %p failed\n", ptr);
 		abort();
-		Com_Error (ERR_FATAL, "Z_Free: bad magic");
+		Com_Error(ERR_FATAL, "Z_Free: bad magic");
 	}
 
 	z->prev->next = z->next;
@@ -50,38 +51,45 @@ void Z_Free (void *ptr)
 
 	z_count--;
 	z_bytes -= z->size;
-	free (z);
+	free(z);
 }
 
-void Z_Stats_f (void)
+void
+Z_Stats_f(void)
 {
-	Com_Printf ("%i bytes in %i blocks\n", z_bytes, z_count);
+	Com_Printf("%i bytes in %i blocks\n", z_bytes, z_count);
 }
 
-void Z_FreeTags (int tag)
+void
+Z_FreeTags(int tag)
 {
-	zhead_t	*z, *next;
+	zhead_t *z, *next;
 
-	for (z=z_chain.next ; z != &z_chain ; z=next)
+	for (z = z_chain.next; z != &z_chain; z = next)
 	{
 		next = z->next;
 
 		if (z->tag == tag)
-			Z_Free ((void *)(z+1));
+		{
+			Z_Free((void *)(z + 1));
+		}
 	}
 }
 
-void *Z_TagMalloc (int size, int tag)
+void *
+Z_TagMalloc(int size, int tag)
 {
-	zhead_t	*z;
+	zhead_t *z;
 
 	size = size + sizeof(zhead_t);
 	z = malloc(size);
 
 	if (!z)
-		Com_Error (ERR_FATAL, "Z_Malloc: failed on allocation of %i bytes",size);
+	{
+		Com_Error(ERR_FATAL, "Z_Malloc: failed on allocation of %i bytes", size);
+	}
 
-	memset (z, 0, size);
+	memset(z, 0, size);
 	z_count++;
 	z_bytes += size;
 	z->magic = Z_MAGIC;
@@ -93,10 +101,12 @@ void *Z_TagMalloc (int size, int tag)
 	z_chain.next->prev = z;
 	z_chain.next = z;
 
-	return (void *)(z+1);
+	return (void *)(z + 1);
 }
 
-void *Z_Malloc (int size)
+void *
+Z_Malloc(int size)
 {
-	return Z_TagMalloc (size, 0);
+	return Z_TagMalloc(size, 0);
 }
+

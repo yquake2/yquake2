@@ -478,28 +478,21 @@ CLIENT_OBJS_ := \
 	src/client/sound/snd_mix.o \
 	src/client/sound/snd_vorbis.o \
 	src/client/sound/snd_wav.o \
+	src/common/argproc.o \
+	src/common/clientserver.o \
+	src/common/collision.o \
 	src/common/crc.o \
+	src/common/cmdparser.o \
 	src/common/cvar.o \
 	src/common/filesystem.o \
 	src/common/glob.o \
 	src/common/md4.o \
+	src/common/movemsg.o \
 	src/common/misc.o \
 	src/common/netchan.o \
 	src/common/pmove.o \
 	src/common/szone.o \
 	src/common/zone.o \
-	src/common/command/cmd_execution.o \
-	src/common/command/cmd_parser.o \
-	src/common/command/cmd_script.o \
-	src/common/common/com_arg.o \
-	src/common/common/com_clientserver.o \
-	src/common/message/msg_io.o \
-	src/common/message/msg_read.o \
- 	src/common/model/cm_areaportals.o \
-	src/common/model/cm_box.o \
-	src/common/model/cm_boxtracing.o \
-	src/common/model/cm_bsp.o \
-	src/common/model/cm_vis.o \
 	src/common/shared/flash.o \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o \
@@ -540,28 +533,21 @@ endif
 
 # Used by the server
 SERVER_OBJS_ := \
+	src/common/argproc.o \
+	src/common/clientserver.o \
+	src/common/collision.o \
 	src/common/crc.o \
+	src/common/cmdparser.o \
 	src/common/cvar.o \
 	src/common/filesystem.o \
 	src/common/glob.o \
 	src/common/md4.o \
 	src/common/misc.o \
+	src/common/movemsg.o \
 	src/common/netchan.o \
 	src/common/pmove.o \
 	src/common/szone.o \
 	src/common/zone.o \
-	src/common/command/cmd_execution.o \
-	src/common/command/cmd_parser.o \
-	src/common/command/cmd_script.o \
-	src/common/common/com_arg.o \
-	src/common/common/com_clientserver.o \
-	src/common/message/msg_io.o \
-	src/common/message/msg_read.o \
- 	src/common/model/cm_areaportals.o \
-	src/common/model/cm_box.o \
-	src/common/model/cm_boxtracing.o \
-	src/common/model/cm_bsp.o \
-	src/common/model/cm_vis.o \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o \
 	src/common/unzip/ioapi.o \

@@ -272,3 +272,4 @@ SNDDMA_BeginPainting(void)
 {
 	SDL_LockAudio();
 }
+
