@@ -342,6 +342,15 @@ GLimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen)
 void
 GLimp_Shutdown(void)
 {
+	/* Clear the backbuffer and make it
+	   current. This may help some broken
+	   video drivers like the AMD Catalyst
+	   to avoid artifacts in unused screen
+	   areas, */
+	qglClearColor(0.0, 0.0, 0.0, 0.0);
+	qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	GLimp_EndFrame();
+
 	if (surface)
 	{
 		SDL_FreeSurface(surface);
