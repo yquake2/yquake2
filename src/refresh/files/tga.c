@@ -107,7 +107,7 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 		(targa_header.image_type != 10) &&
 		(targa_header.image_type != 3))
 	{
-		ri.Sys_Error( ERR_DROP, "LoadTGA (%s): Only type 2 (RGB), 3 (gray), and 10 (RGB) TGA images supported", name);
+		ri.Sys_Error(ERR_DROP, "LoadTGA (%s): Only type 2 (RGB), 3 (gray), and 10 (RGB) TGA images supported", name);
 	}
 
 	if (targa_header.colormap_type != 0)

@@ -86,3 +86,4 @@ GetWalInfo(char *name, int *width, int *height)
 
 	return;
 }
+

@@ -77,7 +77,9 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 
 	raw = &pcx->data;
 
-	if ((pcx->manufacturer != 0x0a) || (pcx->version != 5) || (pcx->encoding != 1) || (pcx->bits_per_pixel != 8) || (pcx->xmax >= 640) || (pcx->ymax >= 480))
+	if ((pcx->manufacturer != 0x0a) || (pcx->version != 5) ||
+		(pcx->encoding != 1) || (pcx->bits_per_pixel != 8) ||
+		(pcx->xmax >= 640) || (pcx->ymax >= 480))
 	{
 		ri.Con_Printf(PRINT_ALL, "Bad pcx file %s\n", filename);
 		return;
@@ -160,3 +162,4 @@ GetPCXInfo(char *filename, int *width, int *height)
 
 	return;
 }
+

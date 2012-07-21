@@ -30,7 +30,9 @@
 #include <jpeglib.h>
 #include <jerror.h>
 
-void jpeg_memory_src(j_decompress_ptr cinfo, unsigned char *inbuffer, unsigned long insize);
+void jpeg_memory_src(j_decompress_ptr cinfo,
+		unsigned char *inbuffer,
+		unsigned long insize);
 
 void
 jpg_null(j_decompress_ptr cinfo)
@@ -54,7 +56,10 @@ jpg_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 void
 jpeg_mem_src(j_decompress_ptr cinfo, unsigned char *mem, unsigned long len)
 {
-	cinfo->src = (struct jpeg_source_mgr *)(*cinfo->mem->alloc_small)((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof(struct jpeg_source_mgr));
+	cinfo->src =
+		(struct jpeg_source_mgr *)(*cinfo->mem->alloc_small)((j_common_ptr)
+				cinfo,
+				JPOOL_PERMANENT, sizeof(struct jpeg_source_mgr));
 	cinfo->src->init_source = jpg_null;
 	cinfo->src->fill_input_buffer = jpg_fill_input_buffer;
 	cinfo->src->skip_input_data = jpg_skip_input_data;
@@ -97,7 +102,8 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 		return;
 	}
 
-	if ((rawsize < 10) || (rawdata[6] != 'J') || (rawdata[7] != 'F') || (rawdata[8] != 'I') || (rawdata[9] != 'F'))
+	if ((rawsize < 10) || (rawdata[6] != 'J') || (rawdata[7] != 'F') ||
+		(rawdata[8] != 'I') || (rawdata[9] != 'F'))
 	{
 		ri.Con_Printf(PRINT_ALL, "Invalid JPEG header: %s\n", filename);
 		ri.FS_FreeFile(rawdata);
@@ -138,7 +144,8 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 
 	if (!scanline)
 	{
-		ri.Con_Printf(PRINT_ALL, "Insufficient memory for JPEG scanline buffer\n");
+		ri.Con_Printf(PRINT_ALL,
+				"Insufficient memory for JPEG scanline buffer\n");
 		free(rgbadata);
 		jpeg_destroy_decompress(&cinfo);
 		ri.FS_FreeFile(rawdata);

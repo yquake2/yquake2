@@ -27,16 +27,16 @@
 #ifndef REF_MODEL_H
 #define REF_MODEL_H
 
-#define SIDE_FRONT  0
-#define SIDE_BACK   1
-#define SIDE_ON     2
+#define SIDE_FRONT 0
+#define SIDE_BACK 1
+#define SIDE_ON 2
 
-#define SURF_PLANEBACK      2
-#define SURF_DRAWSKY        4
-#define SURF_DRAWTURB       0x10
+#define SURF_PLANEBACK 2
+#define SURF_DRAWSKY 4
+#define SURF_DRAWTURB 0x10
 #define SURF_DRAWBACKGROUND 0x40
-#define SURF_UNDERWATER     0x80
-#define VERTEXSIZE  7
+#define SURF_UNDERWATER 0x80
+#define VERTEXSIZE 7
 
 /* in memory representation */
 typedef struct
@@ -56,26 +56,26 @@ typedef struct
 
 typedef struct
 {
-	unsigned short v [ 2 ];
+	unsigned short v[2];
 	unsigned int cachededgeoffset;
 } medge_t;
 
 typedef struct mtexinfo_s
 {
-	float vecs [ 2 ] [ 4 ];
+	float vecs[2][4];
 	int flags;
 	int numframes;
 	struct mtexinfo_s *next; /* animation chain */
-	image_t     *image;
+	image_t *image;
 } mtexinfo_t;
 
 typedef struct glpoly_s
 {
-	struct  glpoly_s    *next;
-	struct  glpoly_s    *chain;
+	struct  glpoly_s *next;
+	struct  glpoly_s *chain;
 	int numverts;
 	int flags; /* for SURF_UNDERWATER (not needed anymore?) */
-	float verts [ 4 ] [ VERTEXSIZE ]; /* variable sized (xyz s1t1 s2t2) */
+	float verts[4][VERTEXSIZE]; /* variable sized (xyz s1t1 s2t2) */
 } glpoly_t;
 
 typedef struct msurface_s
@@ -88,26 +88,26 @@ typedef struct msurface_s
 	int firstedge;          /* look up in model->surfedges[], negative numbers */
 	int numedges;           /* are backwards edges */
 
-	short texturemins [ 2 ];
-	short extents [ 2 ];
+	short texturemins[2];
+	short extents[2];
 
 	int light_s, light_t;           /* gl lightmap coordinates */
 	int dlight_s, dlight_t;         /* gl lightmap coordinates for dynamic lightmaps */
 
-	glpoly_t    *polys;             /* multiple if warped */
-	struct  msurface_s  *texturechain;
-	struct  msurface_s  *lightmapchain;
+	glpoly_t *polys;                /* multiple if warped */
+	struct  msurface_s *texturechain;
+	struct  msurface_s *lightmapchain;
 
-	mtexinfo_t  *texinfo;
+	mtexinfo_t *texinfo;
 
 	/* lighting info */
 	int dlightframe;
 	int dlightbits;
 
 	int lightmaptexturenum;
-	byte styles [ MAXLIGHTMAPS ];
-	float cached_light [ MAXLIGHTMAPS ];    /* values currently used in lightmap */
-	byte *samples;							/* [numstyles*surfsize] */
+	byte styles[MAXLIGHTMAPS];
+	float cached_light[MAXLIGHTMAPS];       /* values currently used in lightmap */
+	byte *samples;                          /* [numstyles*surfsize] */
 } msurface_t;
 
 typedef struct mnode_s
@@ -116,13 +116,13 @@ typedef struct mnode_s
 	int contents;               /* -1, to differentiate from leafs */
 	int visframe;               /* node needs to be traversed if current */
 
-	float minmaxs [ 6 ];        /* for bounding box culling */
+	float minmaxs[6];           /* for bounding box culling */
 
-	struct mnode_s  *parent;
+	struct mnode_s *parent;
 
 	/* node specific */
-	cplane_t    *plane;
-	struct mnode_s  *children [ 2 ];
+	cplane_t *plane;
+	struct mnode_s *children[2];
 
 	unsigned short firstsurface;
 	unsigned short numsurfaces;
@@ -134,24 +134,24 @@ typedef struct mleaf_s
 	int contents;               /* wil be a negative contents number */
 	int visframe;               /* node needs to be traversed if current */
 
-	float minmaxs [ 6 ];        /* for bounding box culling */
+	float minmaxs[6];           /* for bounding box culling */
 
-	struct mnode_s  *parent;
+	struct mnode_s *parent;
 
 	/* leaf specific */
 	int cluster;
 	int area;
 
-	msurface_t  **firstmarksurface;
+	msurface_t **firstmarksurface;
 	int nummarksurfaces;
 } mleaf_t;
 
 /* Whole model */
-typedef enum {mod_bad, mod_brush, mod_sprite, mod_alias } modtype_t;
+typedef enum {mod_bad, mod_brush, mod_sprite, mod_alias} modtype_t;
 
 typedef struct model_s
 {
-	char name [ MAX_QPATH ];
+	char name[MAX_QPATH];
 
 	int registration_sequence;
 
@@ -173,61 +173,61 @@ typedef struct model_s
 	int lightmap; /* only for submodels */
 
 	int numsubmodels;
-	mmodel_t    *submodels;
+	mmodel_t *submodels;
 
 	int numplanes;
-	cplane_t    *planes;
+	cplane_t *planes;
 
 	int numleafs; /* number of visible leafs, not counting 0 */
-	mleaf_t     *leafs;
+	mleaf_t *leafs;
 
 	int numvertexes;
-	mvertex_t   *vertexes;
+	mvertex_t *vertexes;
 
 	int numedges;
-	medge_t     *edges;
+	medge_t *edges;
 
 	int numnodes;
 	int firstnode;
-	mnode_t     *nodes;
+	mnode_t *nodes;
 
 	int numtexinfo;
-	mtexinfo_t  *texinfo;
+	mtexinfo_t *texinfo;
 
 	int numsurfaces;
-	msurface_t  *surfaces;
+	msurface_t *surfaces;
 
 	int numsurfedges;
-	int         *surfedges;
+	int *surfedges;
 
 	int nummarksurfaces;
-	msurface_t  **marksurfaces;
+	msurface_t **marksurfaces;
 
-	dvis_t      *vis;
+	dvis_t *vis;
 
-	byte        *lightdata;
+	byte *lightdata;
 
 	/* for alias models and skins */
-	image_t     *skins [ MAX_MD2SKINS ];
+	image_t *skins[MAX_MD2SKINS];
 
 	int extradatasize;
-	void        *extradata;
+	void *extradata;
 } model_t;
 
-void    Mod_Init ( void );
-void    Mod_ClearAll ( void );
-model_t *Mod_ForName ( char *name, qboolean crash );
-mleaf_t *Mod_PointInLeaf ( float *p, model_t *model );
-byte    *Mod_ClusterPVS ( int cluster, model_t *model );
+void Mod_Init(void);
+void Mod_ClearAll(void);
+model_t *Mod_ForName(char *name, qboolean crash);
+mleaf_t *Mod_PointInLeaf(float *p, model_t *model);
+byte *Mod_ClusterPVS(int cluster, model_t *model);
 
-void    Mod_Modellist_f ( void );
+void Mod_Modellist_f(void);
 
-void    *Hunk_Begin ( int maxsize );
-void    *Hunk_Alloc ( int size );
-int     Hunk_End ( void );
-void    Hunk_Free ( void *base );
+void *Hunk_Begin(int maxsize);
+void *Hunk_Alloc(int size);
+int Hunk_End(void);
+void Hunk_Free(void *base);
 
-void    Mod_FreeAll ( void );
-void    Mod_Free ( model_t *mod );
+void Mod_FreeAll(void);
+void Mod_Free(model_t *mod);
 
 #endif
