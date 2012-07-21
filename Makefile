@@ -245,7 +245,7 @@ release/quake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.d
 endif
 
 ifeq ($(WITH_ZIP),yes)
-release/quake2.exe : CFLAGS += -DZIP
+release/quake2.exe : CFLAGS += -DZIP -DNOUNCRYPT
 release/quake2.exe : LDFLAGS += -lz
 endif
 
@@ -275,7 +275,7 @@ release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1
 endif
 
 ifeq ($(WITH_ZIP),yes)
-release/quake2 : CFLAGS += -DZIP
+release/quake2 : CFLAGS += -DZIP -DNOUNCRYPT
 release/quake2 : LDFLAGS += -lz
 endif
 endif
@@ -298,7 +298,7 @@ release/q2ded.exe : CFLAGS += -DDEDICATED_ONLY
 release/q2ded.exe : LDFLAGS += -lz
 
 ifeq ($(WITH_ZIP),yes)
-release/q2ded.exe : CFLAGS += -DZIP
+release/q2ded.exe : CFLAGS += -DZIP -DNOUNCRYPT  
 release/q2ded.exe : LDFLAGS += -lz
 endif
 else
@@ -316,7 +316,7 @@ release/q2ded : CFLAGS += -DDEDICATED_ONLY
 release/q2ded : LDFLAGS += -lz
 
 ifeq ($(WITH_ZIP),yes)
-release/q2ded : CFLAGS += -DZIP
+release/q2ded : CFLAGS += -DZIP -DNOUNCRYPT
 release/q2ded : LDFLAGS += -lz
 endif
 endif
