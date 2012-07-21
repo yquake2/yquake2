@@ -26,32 +26,32 @@
 
 #include "header/server.h"
 
-#define HEARTBEAT_SECONDS   300
+#define HEARTBEAT_SECONDS 300
 
-netadr_t master_adr [ MAX_MASTERS ]; /* address of group servers */
+netadr_t master_adr[MAX_MASTERS]; /* address of group servers */
 
-client_t    *sv_client;         /* current client */
+client_t *sv_client; /* current client */
 
-cvar_t  *sv_paused;
-cvar_t  *sv_timedemo;
-cvar_t  *sv_enforcetime;
-cvar_t  *timeout;               /* seconds without any message */
-cvar_t  *zombietime;            /* seconds to sink messages after disconnect */
-cvar_t  *rcon_password;         /* password for remote server commands */
-cvar_t  *allow_download;
-cvar_t  *allow_download_players;
-cvar_t  *allow_download_models;
-cvar_t  *allow_download_sounds;
-cvar_t  *allow_download_maps;
-cvar_t  *sv_airaccelerate;
-cvar_t  *sv_noreload;           /* don't reload level state when reentering */
-cvar_t  *maxclients;            /* FIXME: rename sv_maxclients */
-cvar_t  *sv_showclamp;
-cvar_t  *hostname;
-cvar_t  *public_server;         /* should heartbeats be sent */
+cvar_t *sv_paused;
+cvar_t *sv_timedemo;
+cvar_t *sv_enforcetime;
+cvar_t *timeout; /* seconds without any message */
+cvar_t *zombietime; /* seconds to sink messages after disconnect */
+cvar_t *rcon_password; /* password for remote server commands */
+cvar_t *allow_download;
+cvar_t *allow_download_players;
+cvar_t *allow_download_models;
+cvar_t *allow_download_sounds;
+cvar_t *allow_download_maps;
+cvar_t *sv_airaccelerate;
+cvar_t *sv_noreload; /* don't reload level state when reentering */
+cvar_t *maxclients; /* rename sv_maxclients */
+cvar_t *sv_showclamp;
+cvar_t *hostname;
+cvar_t *public_server; /* should heartbeats be sent */
 
-void Master_Shutdown ( void );
-void SV_ConnectionlessPacket ( void );
+void Master_Shutdown(void);
+void SV_ConnectionlessPacket(void);
 
 /*
  * Called when the player is totally leaving the server, either willingly
@@ -59,83 +59,83 @@ void SV_ConnectionlessPacket ( void );
  * or crashing.
  */
 void
-SV_DropClient ( client_t *drop )
+SV_DropClient(client_t *drop)
 {
 	/* add the disconnect */
-	MSG_WriteByte( &drop->netchan.message, svc_disconnect );
+	MSG_WriteByte(&drop->netchan.message, svc_disconnect);
 
-	if ( drop->state == cs_spawned )
+	if (drop->state == cs_spawned)
 	{
 		/* call the prog function for removing a client
 		   this will remove the body, among other things */
-		ge->ClientDisconnect( drop->edict );
+		ge->ClientDisconnect(drop->edict);
 	}
 
-	if ( drop->download )
+	if (drop->download)
 	{
-		FS_FreeFile( drop->download );
+		FS_FreeFile(drop->download);
 		drop->download = NULL;
 	}
 
 	drop->state = cs_zombie; /* become free in a few seconds */
-	drop->name [ 0 ] = 0;
+	drop->name[0] = 0;
 }
 
 /*
  * Builds the string that is sent as heartbeats and status replies
  */
 char *
-SV_StatusString ( void )
+SV_StatusString(void)
 {
-	char player [ 1024 ];
-	static char status [ MAX_MSGLEN - 16 ];
+	char player[1024];
+	static char status[MAX_MSGLEN - 16];
 	int i;
-	client_t    *cl;
+	client_t *cl;
 	int statusLength;
 	int playerLength;
 
-	strcpy( status, Cvar_Serverinfo() );
-	strcat( status, "\n" );
-	statusLength = (int) strlen( status );
+	strcpy(status, Cvar_Serverinfo());
+	strcat(status, "\n");
+	statusLength = (int)strlen(status);
 
-	for ( i = 0; i < maxclients->value; i++ )
+	for (i = 0; i < maxclients->value; i++)
 	{
-		cl = &svs.clients [ i ];
+		cl = &svs.clients[i];
 
-		if ( ( cl->state == cs_connected ) || ( cl->state == cs_spawned ) )
+		if ((cl->state == cs_connected) || (cl->state == cs_spawned))
 		{
-			Com_sprintf( player, sizeof ( player ), "%i %i \"%s\"\n",
-					cl->edict->client->ps.stats [ STAT_FRAGS ], cl->ping, cl->name );
-			playerLength = (int) strlen( player );
+			Com_sprintf(player, sizeof(player), "%i %i \"%s\"\n",
+					cl->edict->client->ps.stats[STAT_FRAGS], cl->ping, cl->name);
+			playerLength = (int)strlen(player);
 
-			if ( statusLength + playerLength >= sizeof ( status ) )
+			if (statusLength + playerLength >= sizeof(status))
 			{
 				break; /* can't hold any more */
 			}
 
-			strcpy( status + statusLength, player );
+			strcpy(status + statusLength, player);
 			statusLength += playerLength;
 		}
 	}
 
-	return ( status );
+	return status;
 }
 
 /*
  * Updates the cl->ping variables
  */
 void
-SV_CalcPings ( void )
+SV_CalcPings(void)
 {
 	int i, j;
-	client_t    *cl;
+	client_t *cl;
 	int total, count;
 
-	for ( i = 0; i < maxclients->value; i++ )
+	for (i = 0; i < maxclients->value; i++)
 	{
-		cl = &svs.clients [ i ];
+		cl = &svs.clients[i];
 
-		if ( cl->state != cs_spawned )
+		if (cl->state != cs_spawned)
 		{
 			continue;
 		}
@@ -143,16 +143,16 @@ SV_CalcPings ( void )
 		total = 0;
 		count = 0;
 
-		for ( j = 0; j < LATENCY_COUNTS; j++ )
+		for (j = 0; j < LATENCY_COUNTS; j++)
 		{
-			if ( cl->frame_latency [ j ] > 0 )
+			if (cl->frame_latency[j] > 0)
 			{
 				count++;
-				total += cl->frame_latency [ j ];
+				total += cl->frame_latency[j];
 			}
 		}
 
-		if ( !count )
+		if (!count)
 		{
 			cl->ping = 0;
 		}
@@ -171,21 +171,21 @@ SV_CalcPings ( void )
  * for their command moves. If they exceed it, assume cheating.
  */
 void
-SV_GiveMsec ( void )
+SV_GiveMsec(void)
 {
 	int i;
-	client_t    *cl;
+	client_t *cl;
 
-	if ( sv.framenum & 15 )
+	if (sv.framenum & 15)
 	{
 		return;
 	}
 
-	for ( i = 0; i < maxclients->value; i++ )
+	for (i = 0; i < maxclients->value; i++)
 	{
-		cl = &svs.clients [ i ];
+		cl = &svs.clients[i];
 
-		if ( cl->state == cs_free )
+		if (cl->state == cs_free)
 		{
 			continue;
 		}
@@ -195,16 +195,16 @@ SV_GiveMsec ( void )
 }
 
 void
-SV_ReadPackets ( void )
+SV_ReadPackets(void)
 {
 	int i;
-	client_t    *cl;
+	client_t *cl;
 	int qport;
 
-	while ( NET_GetPacket( NS_SERVER, &net_from, &net_message ) )
+	while (NET_GetPacket(NS_SERVER, &net_from, &net_message))
 	{
 		/* check for connectionless packet (0xffffffff) first */
-		if ( *(int *) net_message.data == -1 )
+		if (*(int *)net_message.data == -1)
 		{
 			SV_ConnectionlessPacket();
 			continue;
@@ -212,45 +212,45 @@ SV_ReadPackets ( void )
 
 		/* read the qport out of the message so we can fix up
 		   stupid address translating routers */
-		MSG_BeginReading( &net_message );
-		MSG_ReadLong( &net_message );        /* sequence number */
-		MSG_ReadLong( &net_message );        /* sequence number */
-		qport = MSG_ReadShort( &net_message ) & 0xffff;
+		MSG_BeginReading(&net_message);
+		MSG_ReadLong(&net_message); /* sequence number */
+		MSG_ReadLong(&net_message); /* sequence number */
+		qport = MSG_ReadShort(&net_message) & 0xffff;
 
 		/* check for packets from connected clients */
-		for ( i = 0, cl = svs.clients; i < maxclients->value; i++, cl++ )
+		for (i = 0, cl = svs.clients; i < maxclients->value; i++, cl++)
 		{
-			if ( cl->state == cs_free )
+			if (cl->state == cs_free)
 			{
 				continue;
 			}
 
-			if ( !NET_CompareBaseAdr( net_from, cl->netchan.remote_address ) )
+			if (!NET_CompareBaseAdr(net_from, cl->netchan.remote_address))
 			{
 				continue;
 			}
 
-			if ( cl->netchan.qport != qport )
+			if (cl->netchan.qport != qport)
 			{
 				continue;
 			}
 
-			if ( cl->netchan.remote_address.port != net_from.port )
+			if (cl->netchan.remote_address.port != net_from.port)
 			{
-				Com_Printf( "SV_ReadPackets: fixing up a translated port\n" );
+				Com_Printf("SV_ReadPackets: fixing up a translated port\n");
 				cl->netchan.remote_address.port = net_from.port;
 			}
 
-			if ( Netchan_Process( &cl->netchan, &net_message ) )
+			if (Netchan_Process(&cl->netchan, &net_message))
 			{
 				/* this is a valid, sequenced packet, so process it */
-				if ( cl->state != cs_zombie )
+				if (cl->state != cs_zombie)
 				{
 					cl->lastmessage = svs.realtime; /* don't timeout */
 
-					if ( !( sv.demofile && ( sv.state == ss_demo ) ) )
+					if (!(sv.demofile && (sv.state == ss_demo)))
 					{
-						SV_ExecuteClientMessage( cl );
+						SV_ExecuteClientMessage(cl);
 					}
 				}
 			}
@@ -258,7 +258,7 @@ SV_ReadPackets ( void )
 			break;
 		}
 
-		if ( i != maxclients->value )
+		if (i != maxclients->value)
 		{
 			continue;
 		}
@@ -275,36 +275,36 @@ SV_ReadPackets ( void )
  * if necessary
  */
 void
-SV_CheckTimeouts ( void )
+SV_CheckTimeouts(void)
 {
 	int i;
-	client_t    *cl;
+	client_t *cl;
 	int droppoint;
 	int zombiepoint;
 
 	droppoint = svs.realtime - 1000 * timeout->value;
 	zombiepoint = svs.realtime - 1000 * zombietime->value;
 
-	for ( i = 0, cl = svs.clients; i < maxclients->value; i++, cl++ )
+	for (i = 0, cl = svs.clients; i < maxclients->value; i++, cl++)
 	{
 		/* message times may be wrong across a changelevel */
-		if ( cl->lastmessage > svs.realtime )
+		if (cl->lastmessage > svs.realtime)
 		{
 			cl->lastmessage = svs.realtime;
 		}
 
-		if ( ( cl->state == cs_zombie ) &&
-			 ( cl->lastmessage < zombiepoint ) )
+		if ((cl->state == cs_zombie) &&
+			(cl->lastmessage < zombiepoint))
 		{
 			cl->state = cs_free; /* can now be reused */
 			continue;
 		}
 
-		if ( ( ( cl->state == cs_connected ) || ( cl->state == cs_spawned ) ) &&
-			 ( cl->lastmessage < droppoint ) )
+		if (((cl->state == cs_connected) || (cl->state == cs_spawned)) &&
+			(cl->lastmessage < droppoint))
 		{
-			SV_BroadcastPrintf( PRINT_HIGH, "%s timed out\n", cl->name );
-			SV_DropClient( cl );
+			SV_BroadcastPrintf(PRINT_HIGH, "%s timed out\n", cl->name);
+			SV_DropClient(cl);
 			cl->state = cs_free; /* don't bother with zombie state */
 		}
 	}
@@ -315,14 +315,14 @@ SV_CheckTimeouts ( void )
  * player processing happens outside RunWorldFrame
  */
 void
-SV_PrepWorldFrame ( void )
+SV_PrepWorldFrame(void)
 {
 	edict_t *ent;
 	int i;
 
-	for ( i = 0; i < ge->num_edicts; i++, ent++ )
+	for (i = 0; i < ge->num_edicts; i++, ent++)
 	{
-		ent = EDICT_NUM( i );
+		ent = EDICT_NUM(i);
 
 		/* events only last for a single message */
 		ent->s.event = 0;
@@ -330,11 +330,11 @@ SV_PrepWorldFrame ( void )
 }
 
 void
-SV_RunGameFrame ( void )
+SV_RunGameFrame(void)
 {
 #ifndef DEDICATED_ONLY
 
-	if ( host_speeds->value )
+	if (host_speeds->value)
 	{
 		time_before_game = Sys_Milliseconds();
 	}
@@ -349,16 +349,16 @@ SV_RunGameFrame ( void )
 	sv.time = sv.framenum * 100;
 
 	/* don't run if paused */
-	if ( !sv_paused->value || ( maxclients->value > 1 ) )
+	if (!sv_paused->value || (maxclients->value > 1))
 	{
 		ge->RunFrame();
 
 		/* never get more than one tic behind */
-		if ( sv.time < svs.realtime )
+		if (sv.time < svs.realtime)
 		{
-			if ( sv_showclamp->value )
+			if (sv_showclamp->value)
 			{
-				Com_Printf( "sv highclamp\n" );
+				Com_Printf("sv highclamp\n");
 			}
 
 			svs.realtime = sv.time;
@@ -367,7 +367,7 @@ SV_RunGameFrame ( void )
 
 #ifndef DEDICATED_ONLY
 
-	if ( host_speeds->value )
+	if (host_speeds->value)
 	{
 		time_after_game = Sys_Milliseconds();
 	}
@@ -376,14 +376,14 @@ SV_RunGameFrame ( void )
 }
 
 void
-SV_Frame ( int msec )
+SV_Frame(int msec)
 {
 #ifndef DEDICATED_ONLY
 	time_before_game = time_after_game = 0;
 #endif
 
 	/* if server is not active, do nothing */
-	if ( !svs.initialized )
+	if (!svs.initialized)
 	{
 		return;
 	}
@@ -400,20 +400,20 @@ SV_Frame ( int msec )
 	SV_ReadPackets();
 
 	/* move autonomous things around if enough time has passed */
-	if ( !sv_timedemo->value && ( svs.realtime < sv.time ) )
+	if (!sv_timedemo->value && (svs.realtime < sv.time))
 	{
 		/* never let the time get too far off */
-		if ( sv.time - svs.realtime > 100 )
+		if (sv.time - svs.realtime > 100)
 		{
-			if ( sv_showclamp->value )
+			if (sv_showclamp->value)
 			{
-				Com_Printf( "sv lowclamp\n" );
+				Com_Printf("sv lowclamp\n");
 			}
 
 			svs.realtime = sv.time - 100;
 		}
 
-		NET_Sleep( sv.time - svs.realtime );
+		NET_Sleep(sv.time - svs.realtime);
 		return;
 	}
 
@@ -444,28 +444,28 @@ SV_Frame ( int msec )
  * let it know we are alive, and log information
  */
 void
-Master_Heartbeat ( void )
+Master_Heartbeat(void)
 {
-	char        *string;
+	char *string;
 	int i;
 
-	if ( !dedicated || !dedicated->value )
+	if (!dedicated || !dedicated->value)
 	{
 		return; /* only dedicated servers send heartbeats */
 	}
 
-	if ( !public_server || !public_server->value )
+	if (!public_server || !public_server->value)
 	{
 		return; /* a private dedicated game */
 	}
 
 	/* check for time wraparound */
-	if ( svs.last_heartbeat > svs.realtime )
+	if (svs.last_heartbeat > svs.realtime)
 	{
 		svs.last_heartbeat = svs.realtime;
 	}
 
-	if ( svs.realtime - svs.last_heartbeat < HEARTBEAT_SECONDS * 1000 )
+	if (svs.realtime - svs.last_heartbeat < HEARTBEAT_SECONDS * 1000)
 	{
 		return; /* not time to send yet */
 	}
@@ -476,12 +476,14 @@ Master_Heartbeat ( void )
 	string = SV_StatusString();
 
 	/* send to group master */
-	for ( i = 0; i < MAX_MASTERS; i++ )
+	for (i = 0; i < MAX_MASTERS; i++)
 	{
-		if ( master_adr [ i ].port )
+		if (master_adr[i].port)
 		{
-			Com_Printf( "Sending heartbeat to %s\n", NET_AdrToString( master_adr [ i ] ) );
-			Netchan_OutOfBandPrint( NS_SERVER, master_adr [ i ], "heartbeat\n%s", string );
+			Com_Printf("Sending heartbeat to %s\n",
+					NET_AdrToString(master_adr[i]));
+			Netchan_OutOfBandPrint(NS_SERVER, master_adr[i],
+					"heartbeat\n%s", string);
 		}
 	}
 }
@@ -490,31 +492,32 @@ Master_Heartbeat ( void )
  * Informs all masters that this server is going down
  */
 void
-Master_Shutdown ( void )
+Master_Shutdown(void)
 {
 	int i;
 
-	if ( !dedicated || !dedicated->value )
+	if (!dedicated || !dedicated->value)
 	{
 		return; /* only dedicated servers send heartbeats */
 	}
 
-	if ( !public_server || !public_server->value )
+	if (!public_server || !public_server->value)
 	{
 		return; /* a private dedicated game */
 	}
 
 	/* send to group master */
-	for ( i = 0; i < MAX_MASTERS; i++ )
+	for (i = 0; i < MAX_MASTERS; i++)
 	{
-		if ( master_adr [ i ].port )
+		if (master_adr[i].port)
 		{
-			if ( i > 0 )
+			if (i > 0)
 			{
-				Com_Printf( "Sending heartbeat to %s\n", NET_AdrToString( master_adr [ i ] ) );
+				Com_Printf("Sending heartbeat to %s\n",
+						NET_AdrToString(master_adr[i]));
 			}
 
-			Netchan_OutOfBandPrint( NS_SERVER, master_adr [ i ], "shutdown" );
+			Netchan_OutOfBandPrint(NS_SERVER, master_adr[i], "shutdown");
 		}
 	}
 }
@@ -524,37 +527,38 @@ Master_Shutdown ( void )
  * into a more C freindly form.
  */
 void
-SV_UserinfoChanged ( client_t *cl )
+SV_UserinfoChanged(client_t *cl)
 {
-	char    *val;
+	char *val;
 	int i;
 
 	/* call prog code to allow overrides */
-	ge->ClientUserinfoChanged( cl->edict, cl->userinfo );
+	ge->ClientUserinfoChanged(cl->edict, cl->userinfo);
 
 	/* name for C code */
-	strncpy( cl->name, Info_ValueForKey( cl->userinfo, "name" ), sizeof ( cl->name ) - 1 );
+	strncpy(cl->name, Info_ValueForKey(cl->userinfo,
+					"name"), sizeof(cl->name) - 1);
 
 	/* mask off high bit */
-	for ( i = 0; i < sizeof ( cl->name ); i++ )
+	for (i = 0; i < sizeof(cl->name); i++)
 	{
-		cl->name [ i ] &= 127;
+		cl->name[i] &= 127;
 	}
 
 	/* rate command */
-	val = Info_ValueForKey( cl->userinfo, "rate" );
+	val = Info_ValueForKey(cl->userinfo, "rate");
 
-	if ( strlen( val ) )
+	if (strlen(val))
 	{
-		i = (int)strtol( val, (char **)NULL, 10 );
+		i = (int)strtol(val, (char **)NULL, 10);
 		cl->rate = i;
 
-		if ( cl->rate < 100 )
+		if (cl->rate < 100)
 		{
 			cl->rate = 100;
 		}
 
-		if ( cl->rate > 15000 )
+		if (cl->rate > 15000)
 		{
 			cl->rate = 15000;
 		}
@@ -565,11 +569,11 @@ SV_UserinfoChanged ( client_t *cl )
 	}
 
 	/* msg command */
-	val = Info_ValueForKey( cl->userinfo, "msg" );
+	val = Info_ValueForKey(cl->userinfo, "msg");
 
-	if ( strlen( val ) )
+	if (strlen(val))
 	{
-		cl->messagelevel = (int)strtol( val, (char **)NULL, 10 );
+		cl->messagelevel = (int)strtol(val, (char **)NULL, 10);
 	}
 }
 
@@ -577,83 +581,85 @@ SV_UserinfoChanged ( client_t *cl )
  * Only called at quake2.exe startup, not for each game
  */
 void
-SV_Init ( void )
+SV_Init(void)
 {
 	SV_InitOperatorCommands();
 
-	rcon_password = Cvar_Get( "rcon_password", "", 0 );
-	Cvar_Get( "skill", "1", 0 );
-	Cvar_Get( "deathmatch", "0", CVAR_LATCH );
-	Cvar_Get( "coop", "0", CVAR_LATCH );
-	Cvar_Get( "dmflags", va( "%i", DF_INSTANT_ITEMS ), CVAR_SERVERINFO );
-	Cvar_Get( "fraglimit", "0", CVAR_SERVERINFO );
-	Cvar_Get( "timelimit", "0", CVAR_SERVERINFO );
-	Cvar_Get( "cheats", "0", CVAR_SERVERINFO | CVAR_LATCH );
-	Cvar_Get( "protocol", va( "%i", PROTOCOL_VERSION ), CVAR_SERVERINFO | CVAR_NOSET );
-	maxclients = Cvar_Get( "maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH );
-	hostname = Cvar_Get( "hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE );
-	timeout = Cvar_Get( "timeout", "125", 0 );
-	zombietime = Cvar_Get( "zombietime", "2", 0 );
-	sv_showclamp = Cvar_Get( "showclamp", "0", 0 );
-	sv_paused = Cvar_Get( "paused", "0", 0 );
-	sv_timedemo = Cvar_Get( "timedemo", "0", 0 );
-	sv_enforcetime = Cvar_Get( "sv_enforcetime", "0", 0 );
-	allow_download = Cvar_Get( "allow_download", "1", CVAR_ARCHIVE );
-	allow_download_players  = Cvar_Get( "allow_download_players", "0", CVAR_ARCHIVE );
-	allow_download_models = Cvar_Get( "allow_download_models", "1", CVAR_ARCHIVE );
-	allow_download_sounds = Cvar_Get( "allow_download_sounds", "1", CVAR_ARCHIVE );
-	allow_download_maps   = Cvar_Get( "allow_download_maps", "1", CVAR_ARCHIVE );
+	rcon_password = Cvar_Get("rcon_password", "", 0);
+	Cvar_Get("skill", "1", 0);
+	Cvar_Get("deathmatch", "0", CVAR_LATCH);
+	Cvar_Get("coop", "0", CVAR_LATCH);
+	Cvar_Get("dmflags", va("%i", DF_INSTANT_ITEMS), CVAR_SERVERINFO);
+	Cvar_Get("fraglimit", "0", CVAR_SERVERINFO);
+	Cvar_Get("timelimit", "0", CVAR_SERVERINFO);
+	Cvar_Get("cheats", "0", CVAR_SERVERINFO | CVAR_LATCH);
+	Cvar_Get("protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_NOSET);
+	maxclients = Cvar_Get("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
+	hostname = Cvar_Get("hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE);
+	timeout = Cvar_Get("timeout", "125", 0);
+	zombietime = Cvar_Get("zombietime", "2", 0);
+	sv_showclamp = Cvar_Get("showclamp", "0", 0);
+	sv_paused = Cvar_Get("paused", "0", 0);
+	sv_timedemo = Cvar_Get("timedemo", "0", 0);
+	sv_enforcetime = Cvar_Get("sv_enforcetime", "0", 0);
+	allow_download = Cvar_Get("allow_download", "1", CVAR_ARCHIVE);
+	allow_download_players = Cvar_Get("allow_download_players", "0", CVAR_ARCHIVE);
+	allow_download_models = Cvar_Get("allow_download_models", "1", CVAR_ARCHIVE);
+	allow_download_sounds = Cvar_Get("allow_download_sounds", "1", CVAR_ARCHIVE);
+	allow_download_maps = Cvar_Get("allow_download_maps", "1", CVAR_ARCHIVE);
 
-	sv_noreload = Cvar_Get( "sv_noreload", "0", 0 );
+	sv_noreload = Cvar_Get("sv_noreload", "0", 0);
 
-	sv_airaccelerate = Cvar_Get( "sv_airaccelerate", "0", CVAR_LATCH );
+	sv_airaccelerate = Cvar_Get("sv_airaccelerate", "0", CVAR_LATCH);
 
-	public_server = Cvar_Get( "public", "0", 0 );
+	public_server = Cvar_Get("public", "0", 0);
 
-	SZ_Init( &net_message, net_message_buffer, sizeof ( net_message_buffer ) );
+	SZ_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
 }
 
 /*
  * Used by SV_Shutdown to send a final message to all
- * connected clients before the server goes down. The messages are sent immediately,
- * not just stuck on the outgoing message list, because the server is going
+ * connected clients before the server goes down. The 
+ * messages are sent immediately, not just stuck on the
+ * outgoing message list, because the server is going
  * to totally exit after returning from this function.
  */
 void
-SV_FinalMessage ( char *message, qboolean reconnect )
+SV_FinalMessage(char *message, qboolean reconnect)
 {
 	int i;
-	client_t    *cl;
+	client_t *cl;
 
-	SZ_Clear( &net_message );
-	MSG_WriteByte( &net_message, svc_print );
-	MSG_WriteByte( &net_message, PRINT_HIGH );
-	MSG_WriteString( &net_message, message );
+	SZ_Clear(&net_message);
+	MSG_WriteByte(&net_message, svc_print);
+	MSG_WriteByte(&net_message, PRINT_HIGH);
+	MSG_WriteString(&net_message, message);
 
-	if ( reconnect )
+	if (reconnect)
 	{
-		MSG_WriteByte( &net_message, svc_reconnect );
+		MSG_WriteByte(&net_message, svc_reconnect);
 	}
 	else
 	{
-		MSG_WriteByte( &net_message, svc_disconnect );
+		MSG_WriteByte(&net_message, svc_disconnect);
 	}
 
 	/* stagger the packets to crutch operating system limited buffers */
-	for ( i = 0, cl = svs.clients; i < maxclients->value; i++, cl++ )
+	for (i = 0, cl = svs.clients; i < maxclients->value; i++, cl++)
 	{
-		if ( cl->state >= cs_connected )
+		if (cl->state >= cs_connected)
 		{
-			Netchan_Transmit( &cl->netchan, net_message.cursize, net_message.data );
+			Netchan_Transmit(&cl->netchan, net_message.cursize,
+					net_message.data);
 		}
 	}
 
-	for ( i = 0, cl = svs.clients; i < maxclients->value; i++, cl++ )
+	for (i = 0, cl = svs.clients; i < maxclients->value; i++, cl++)
 	{
-		if ( cl->state >= cs_connected )
+		if (cl->state >= cs_connected)
 		{
-			Netchan_Transmit( &cl->netchan, net_message.cursize,
-					net_message.data );
+			Netchan_Transmit(&cl->netchan, net_message.cursize,
+					net_message.data);
 		}
 	}
 }
@@ -663,40 +669,41 @@ SV_FinalMessage ( char *message, qboolean reconnect )
  * before Sys_Quit or Sys_Error
  */
 void
-SV_Shutdown ( char *finalmsg, qboolean reconnect )
+SV_Shutdown(char *finalmsg, qboolean reconnect)
 {
-	if ( svs.clients )
+	if (svs.clients)
 	{
-		SV_FinalMessage( finalmsg, reconnect );
+		SV_FinalMessage(finalmsg, reconnect);
 	}
 
 	Master_Shutdown();
 	SV_ShutdownGameProgs();
 
 	/* free current level */
-	if ( sv.demofile )
+	if (sv.demofile)
 	{
-		FS_FCloseFile( (size_t) sv.demofile );
+		FS_FCloseFile((size_t)sv.demofile);
 	}
 
-	memset( &sv, 0, sizeof ( sv ) );
-	Com_SetServerState( sv.state );
+	memset(&sv, 0, sizeof(sv));
+	Com_SetServerState(sv.state);
 
 	/* free server static data */
-	if ( svs.clients )
+	if (svs.clients)
 	{
-		Z_Free( svs.clients );
+		Z_Free(svs.clients);
 	}
 
-	if ( svs.client_entities )
+	if (svs.client_entities)
 	{
-		Z_Free( svs.client_entities );
+		Z_Free(svs.client_entities);
 	}
 
-	if ( svs.demofile )
+	if (svs.demofile)
 	{
-		FS_FCloseFile( (size_t) svs.demofile );
+		FS_FCloseFile((size_t)svs.demofile);
 	}
 
-	memset( &svs, 0, sizeof ( svs ) );
+	memset(&svs, 0, sizeof(svs));
 }
+
