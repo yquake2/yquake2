@@ -692,7 +692,7 @@ void CL_ParseTEnt (void) {
 				ex->ent.angles[1] = 0;
 
 			ex->type = ex_misc;
-			ex->ent.flags = 0.3;
+			ex->ent.flags = 0;
 			ex->start = cl.frame.servertime - 100.0f;
 			ex->light = 150;
 			ex->lightcolor[0] = 1;
