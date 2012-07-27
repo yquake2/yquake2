@@ -68,7 +68,7 @@ main(int argc, char **argv)
 	/* enforce C locale */
 	setenv("LC_ALL", "C", 1);
 
-	printf("\nYamagi Quake II v%4.2f\n", VERSION);
+	printf("\nYamagi Quake II v%s\n", VERSION);
 	printf("=====================\n\n");
 
 #ifndef DEDICATED_ONLY

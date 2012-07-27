@@ -292,7 +292,7 @@ GLimp_InitGraphics(qboolean fullscreen)
 #endif
 
 	/* Window title */
-	snprintf(title, sizeof(title), "Yamagi Quake II %4.2f", VERSION);
+	snprintf(title, sizeof(title), "Yamagi Quake II %s", VERSION);
 	SDL_WM_SetCaption(title, title);
 
 	/* No cursor */

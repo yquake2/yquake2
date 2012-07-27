@@ -32,7 +32,9 @@
 #include "shared.h"
 #include "crc.h"
 
-#define VERSION 4.90
+/* Should have 4 characters. */
+#define VERSION "4.90"
+
 #define BASEDIRNAME "baseq2"
 
 #if defined __linux__
