@@ -35,6 +35,7 @@
 #include <shlobj.h>
 
 #include "../../common/header/common.h"
+#include "../generic/header/input.h"
 #include "header/resource.h"
 #include "header/winquake.h"
 

@@ -453,6 +453,7 @@ GAME_OBJS_ = \
 # Used by the client
 CLIENT_OBJS_ := \
 	src/backends/generic/qal.o \
+    src/backends/generic/vid.o \
 	src/backends/sdl/cd.o \
 	src/backends/sdl/sound.o \
 	src/client/cl_cin.o \
@@ -516,16 +517,14 @@ ifeq ($(OSTYPE), Windows)
 CLIENT_OBJS_ += \
 	src/backends/windows/mem.o \
 	src/backends/windows/network.o \
-	src/backends/windows/system.o \
-    src/backends/windows/vid.o	
+	src/backends/windows/system.o
 else
 CLIENT_OBJS_ += \
 	src/backends/unix/hunk.o \
 	src/backends/unix/main.o \
  	src/backends/unix/network.o \
  	src/backends/unix/signalhandler.o \
-	src/backends/unix/system.o \
- 	src/backends/unix/vid.o
+	src/backends/unix/system.o
 endif
 
 # ----------

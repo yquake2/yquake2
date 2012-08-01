@@ -33,13 +33,10 @@
  */
 
 #include <assert.h>
-#include <dlfcn.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <errno.h>
 
 #include "../../client/header/client.h"
-#include "header/unix.h"
+#include "header/input.h"
 
 /* Structure containing functions exported from refresh DLL */
 refexport_t re;
@@ -192,7 +189,7 @@ VID_FreeReflib(void)
 			IN_BackendShutdown_fp();
 		}
 
-		dlclose(reflib_library);
+		Sys_FreeLibrary(reflib_library);
 	}
 
 	IN_KeyboardInit_fp = NULL;
@@ -212,10 +209,10 @@ qboolean
 VID_LoadRefresh(char *name)
 {
 	refimport_t ri;
-	R_GetRefAPI_t R_GetRefAPI;
+	R_GetRefAPI_t GetRefAPI;
+
 	char fn[MAX_OSPATH];
 	char *path;
-	struct stat st;
 
 	if (reflib_active)
 	{
@@ -240,19 +237,13 @@ VID_LoadRefresh(char *name)
 	path = Cvar_Get("basedir", ".", CVAR_NOSET)->string;
 	snprintf(fn, MAX_OSPATH, "%s/%s", path, name);
 
-	if (stat(fn, &st) == -1)
+	Sys_LoadLibrary(fn, NULL, &reflib_library);
+
+	if (reflib_library == 0)
 	{
-		Com_Printf("LoadLibrary(\"%s\") failed: %s\n", name, strerror(errno));
 		return false;
 	}
 
-	if ((reflib_library = dlopen(fn, RTLD_LAZY)) == 0)
-	{
-		Com_Printf("LoadLibrary(\"%s\") failed: %s\n", name, dlerror());
-		return false;
-	}
-
-	Com_Printf("LoadLibrary(\"%s\")\n", fn);
 
 	ri.Cmd_AddCommand = Cmd_AddCommand;
 	ri.Cmd_RemoveCommand = Cmd_RemoveCommand;
@@ -275,12 +266,12 @@ VID_LoadRefresh(char *name)
 	ri.Vid_MenuInit = VID_MenuInit;
 	ri.Vid_NewWindow = VID_NewWindow;
 
-	if ((R_GetRefAPI = (void *)dlsym(reflib_library, "R_GetRefAPI")) == 0)
+	if ((GetRefAPI = (void *)Sys_GetProcAddress(reflib_library, "R_GetRefAPI")) == 0)
 	{
-		Com_Error(ERR_FATAL, "dlsym failed on %s", name);
+		Com_Error(ERR_FATAL, "Sys_GetProcAddress failed on %s", name);
 	}
 
-	re = R_GetRefAPI(ri);
+	re = GetRefAPI(ri);
 
 	if (re.api_version != API_VERSION)
 	{
@@ -295,10 +286,10 @@ VID_LoadRefresh(char *name)
 	in_state.in_strafe_state = &in_strafe.state;
 	in_state.in_speed_state = &in_speed.state;
 
-	if (((IN_BackendInit_fp = dlsym(reflib_library, "IN_BackendInit")) == NULL) ||
-		((IN_BackendShutdown_fp = dlsym(reflib_library, "IN_BackendShutdown")) == NULL) ||
-		((IN_BackendMouseButtons_fp = dlsym(reflib_library, "IN_BackendMouseButtons")) == NULL) ||
-		((IN_BackendMove_fp = dlsym(reflib_library, "IN_BackendMove")) == NULL))
+	if (((IN_BackendInit_fp = Sys_GetProcAddress(reflib_library, "IN_BackendInit")) == NULL) ||
+		((IN_BackendShutdown_fp = Sys_GetProcAddress(reflib_library, "IN_BackendShutdown")) == NULL) ||
+		((IN_BackendMouseButtons_fp = Sys_GetProcAddress(reflib_library, "IN_BackendMouseButtons")) == NULL) ||
+		((IN_BackendMove_fp = Sys_GetProcAddress(reflib_library, "IN_BackendMove")) == NULL))
 	{
 		Com_Error(ERR_FATAL, "No input backend init functions in REF.\n");
 	}
@@ -316,9 +307,9 @@ VID_LoadRefresh(char *name)
 	}
 
 	/* Init IN */
-	if (((IN_KeyboardInit_fp = dlsym(reflib_library, "IN_KeyboardInit")) == NULL) ||
-		((IN_Update_fp = dlsym(reflib_library, "IN_Update")) == NULL) ||
-		((IN_Close_fp = dlsym(reflib_library, "IN_Close")) == NULL))
+	if (((IN_KeyboardInit_fp = Sys_GetProcAddress(reflib_library, "IN_KeyboardInit")) == NULL) ||
+		((IN_Update_fp = Sys_GetProcAddress(reflib_library, "IN_Update")) == NULL) ||
+		((IN_Close_fp = Sys_GetProcAddress(reflib_library, "IN_Close")) == NULL))
 	{
 		Com_Error(ERR_FATAL, "No keyboard input functions in REF.\n");
 	}
@@ -355,7 +346,11 @@ VID_CheckChanges(void)
 		cl.refresh_prepped = false;
 		cls.disable_screen = true;
 
+#ifdef _WIN32
+		sprintf(name, "ref_%s.dll", vid_ref->string);
+#else
 		sprintf(name, "ref_%s.so", vid_ref->string);
+#endif
 
 		if (!VID_LoadRefresh(name))
 		{
@@ -410,27 +405,17 @@ VID_Shutdown(void)
 
 /*
  * Checks to see if the given ref_NAME.so exists.
- * Placed here to avoid complicating other code if the library .so files
- * ever have their names changed.
+ * Placed here to avoid complicating other code if
+ * the library .so files ever have their names changed.
+ *
+ * In Yamagi Quake II this is just a dummy, to
+ * satisfy dependencies in the menu system.
  */
 qboolean
 VID_CheckRefExists(const char *ref)
 {
-	char fn[MAX_OSPATH];
-	char *path;
-	struct stat st;
-
-	path = Cvar_Get("basedir", ".", CVAR_NOSET)->string;
-	snprintf(fn, MAX_OSPATH, "%s/ref_%s.so", path, ref);
-
-	if (stat(fn, &st) == 0)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+   
+	return true;
 }
 
 /* INPUT */

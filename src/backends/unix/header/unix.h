@@ -19,27 +19,13 @@
  *
  * =======================================================================
  *
- * A header file for some of the plattform dependend stuff. This stuff
- * is implemented in unix/ and sdl/
+ * A header file for some of the plattform dependend stuff.
  *
  * =======================================================================
  */
 
 #ifndef UNIX_UNIX_H
 #define UNIX_UNIX_H
-
-typedef void (*Key_Event_fp_t)(int key, qboolean down);
-extern void (*IN_Update_fp)(void);
-
-typedef struct in_state
-{
-	/* Pointers to functions back in client, set by vid_so */
-	void (*IN_CenterView_fp)(void);
-	Key_Event_fp_t Key_Event_fp;
-	vec_t *viewangles;
-	int *in_strafe_state;
-	int *in_speed_state;
-} in_state_t;
 
 void registerHandler(void);
 

@@ -47,6 +47,7 @@
 
 #include "../../common/header/common.h"
 #include "../../common/header/glob.h"
+#include "../generic/header/input.h"
 #include "header/unix.h"
 
 unsigned sys_frame_time;

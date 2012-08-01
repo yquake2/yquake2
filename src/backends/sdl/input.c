@@ -27,13 +27,12 @@
  
 #include "../../refresh/header/local.h"
 #include "../../client/header/keyboard.h"
- 
+#include "../generic/header/input.h"
+
 #ifdef _WIN32
 #include <SDL/SDL.h>
-#include "../windows/header/winquake.h"
 #else
 #include <SDL.h>
-#include "../unix/header/unix.h"
 #endif
 
 #define MOUSE_MAX 3000
