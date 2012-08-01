@@ -31,14 +31,10 @@
 #ifdef USE_OPENAL
 
 #include "../header/client.h"
+#include "../../backends/generic/header/qal.h"
 #include "header/local.h"
 #include "header/vorbis.h"
 
-#ifdef _WIN32
- #include "../../backends/windows/header/qal.h"
-#else
- #include "../../backends/unix/header/qal.h"
-#endif
 
 /* translates from AL coordinate system to quake */
 #define AL_UnpackVector(v) - v[1], v[2], -v[0]

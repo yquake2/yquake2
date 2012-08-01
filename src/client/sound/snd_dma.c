@@ -27,14 +27,9 @@
  */
 
 #include "../header/client.h"
+#include "../../backends/generic/header/qal.h"
 #include "header/local.h"
 #include "header/vorbis.h"
-
-#ifdef _WIN32
- #include "../../backends/windows/header/qal.h"
-#else
- #include "../../backends/unix/header/qal.h"
-#endif
 
 void S_Play(void);
 void S_SoundList(void);

@@ -791,3 +791,64 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	return TRUE;
 }
 
+void
+Sys_FreeLibrary(void *handle)
+{
+	if (!handle)
+	{
+		return;
+	}
+
+	if (!FreeLibrary(handle))
+	{
+		Com_Error(ERR_FATAL, "FreeLibrary failed on %p", handle);
+	}
+}
+
+void *
+Sys_LoadLibrary(const char *path, const char *sym, void **handle)
+{
+	HMODULE module;
+	void *entry;
+
+	*handle = NULL;
+
+	module = LoadLibraryA(path);
+
+	if (!module)
+	{
+		Com_DPrintf("%s failed: LoadLibrary returned %lu on %s\n",
+				__func__, GetLastError(), path);
+		return NULL;
+	}
+
+	if (sym)
+	{
+		entry = GetProcAddress(module, sym);
+
+		if (!entry)
+		{
+			Com_DPrintf("%s failed: GetProcAddress returned %lu on %s\n",
+					__func__, GetLastError(), path);
+			FreeLibrary(module);
+			return NULL;
+		}
+	}
+	else
+	{
+		entry = NULL;
+	}
+
+	*handle = module;
+
+	Com_DPrintf("%s succeeded: %s\n", __func__, path);
+
+	return entry;
+}
+
+void *
+Sys_GetProcAddress(void *handle, const char *sym)
+{
+	return GetProcAddress(handle, sym);
+}
+

@@ -495,3 +495,56 @@ Sys_GetHomeDir(void)
 	return gdir;
 }
 
+void *
+Sys_GetProcAddress(void *handle, const char *sym)
+{
+    return dlsym(handle, sym);
+}
+
+void *
+Sys_LoadLibrary(const char *path, const char *sym, void **handle)
+{
+	void *module, *entry;
+
+	*handle = NULL;
+
+	module = dlopen(path, RTLD_LAZY);
+
+	if (!module)
+	{
+		Com_DPrintf("%s failed: %s\n", __func__, dlerror());
+		return NULL;
+	}
+
+	if (sym)
+	{
+		entry = dlsym(module, sym);
+
+		if (!entry)
+		{
+			Com_DPrintf("%s failed: %s\n", __func__, dlerror());
+			dlclose(module);
+			return NULL;
+		}
+	}
+	else
+	{
+		entry = NULL;
+	}
+
+	Com_DPrintf("%s succeeded: %s\n", __func__, path);
+
+	*handle = module;
+
+	return entry;
+}
+
+void
+Sys_FreeLibrary(void *handle)
+{
+	if (handle && dlclose(handle))
+	{
+		Com_Error(ERR_FATAL, "dlclose failed on %p: %s", handle, dlerror());
+	}
+}
+
