@@ -580,6 +580,7 @@ endif
 
 # Used by the OpenGL refresher
 OPENGL_OBJS_ = \
+	src/backends/generic/qgl.o \
 	src/backends/sdl/input.o \
 	src/backends/sdl/refresh.o \
 	src/refresh/r_draw.o \
@@ -604,12 +605,10 @@ OPENGL_OBJS_ = \
 
 ifeq ($(OSTYPE), Windows)
 OPENGL_OBJS_ += \
-	src/backends/windows/mem.o \
-	src/backends/windows/qgl.o
+	src/backends/windows/mem.o
 else
 OPENGL_OBJS_ += \
-	src/backends/unix/hunk.o \
-	src/backends/unix/qgl.o
+	src/backends/unix/hunk.o
 endif
 
 # ----------

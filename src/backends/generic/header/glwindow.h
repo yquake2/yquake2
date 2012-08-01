@@ -24,8 +24,16 @@
  * =======================================================================
  */
 
-#ifndef UNIX_GLWINDOW_H
-#define UNIX_GLWINDOW_H
+#ifndef GEN_GLWINDOW_H
+#define GEN_GLWINDOW_H
+
+#include <stdio.h>
+
+#ifdef _WIN32
+#define LIBGL "opengl32.dll"
+#else
+#define LIBGL "libGL.so.1"
+#endif
 
 typedef struct
 {

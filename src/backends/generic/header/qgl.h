@@ -494,6 +494,8 @@ extern void (APIENTRY *qglSelectTextureSGIS)(GLenum);
 extern void (APIENTRY *qglActiveTextureARB)(GLenum);
 extern void (APIENTRY *qglClientActiveTextureARB)(GLenum);
 
+extern void *qwglGetProcAddress(char *symbol);
+
 #ifdef _WIN32
 
 extern int (WINAPI *qwglChoosePixelFormat)(HDC, CONST PIXELFORMATDESCRIPTOR *);
@@ -510,7 +512,6 @@ extern HGLRC (WINAPI *qwglCreateLayerContext)(HDC, int);
 extern BOOL (WINAPI *qwglDeleteContext)(HGLRC);
 extern HGLRC (WINAPI *qwglGetCurrentContext)(VOID);
 extern HDC (WINAPI *qwglGetCurrentDC)(VOID);
-extern PROC (WINAPI *qwglGetProcAddress)(LPCSTR);
 extern BOOL (WINAPI *qwglMakeCurrent)(HDC, HGLRC);
 extern BOOL (WINAPI *qwglShareLists)(HGLRC, HGLRC);
 extern BOOL (WINAPI *qwglUseFontBitmaps)(HDC, DWORD, DWORD, DWORD);
@@ -536,8 +537,6 @@ extern BOOL (WINAPI *qwglSetDeviceGammaRampEXT)(const unsigned char *pRed,
 #else
 
 /* local function in dll */
-extern void *qwglGetProcAddress(char *symbol);
-
 void Fake_glColorTableEXT(GLenum target, GLenum internalformat, GLsizei width,
 		GLenum format, GLenum type, const GLvoid *table);
 

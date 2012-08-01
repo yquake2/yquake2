@@ -33,7 +33,7 @@
 #include <GL/gl.h>
 
 #include "../../client/header/ref.h"
-#include "qgl.h"
+#include "../../backends/generic/header/qgl.h"
 
 #ifndef GL_COLOR_INDEX8_EXT
  #define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX

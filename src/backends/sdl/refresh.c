@@ -26,14 +26,13 @@
  */
 
 #include "../../refresh/header/local.h"
+#include "../generic/header/glwindow.h"
 #include <GL/gl.h>
 
 #ifdef _WIN32
 #include <SDL/SDL.h>
-#include "../windows/header/glwindow.h"
 #else
 #include <SDL.h>
-#include "../unix/header/glwindow.h"
 #endif
 
 /* The window icon */

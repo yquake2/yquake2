@@ -186,27 +186,6 @@ VID_GetModeInfo(int *width, int *height, int mode)
 }
 
 void
-VID_UpdateWindowPosAndSize(int x, int y)
-{
-	RECT r;
-	int style;
-	int w, h;
-
-	r.left = 0;
-	r.top = 0;
-	r.right = viddef.width;
-	r.bottom = viddef.height;
-
-	style = GetWindowLong(cl_hwnd, GWL_STYLE);
-	AdjustWindowRect(&r, style, FALSE);
-
-	w = r.right - r.left;
-	h = r.bottom - r.top;
-
-	MoveWindow(cl_hwnd, vid_xpos->value, vid_ypos->value, w, h, TRUE);
-}
-
-void
 VID_NewWindow(int width, int height)
 {
 	viddef.width = width;
@@ -291,6 +270,9 @@ VID_LoadRefresh(char *name)
 	ri.Con_Printf = VID_Printf;
 	ri.Sys_Error = VID_Error;
 	ri.Sys_Mkdir = Sys_Mkdir;
+	ri.Sys_LoadLibrary = Sys_LoadLibrary;
+	ri.Sys_FreeLibrary = Sys_FreeLibrary;
+	ri.Sys_GetProcAddress = Sys_GetProcAddress;
 	ri.FS_LoadFile = FS_LoadFile;
 	ri.FS_FreeFile = FS_FreeFile;
 	ri.FS_Gamedir = FS_Gamedir;

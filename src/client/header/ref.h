@@ -176,6 +176,9 @@ typedef struct {
 typedef struct {
 	void	(*Sys_Error)(int err_level, char *str, ...);
 	void	(*Sys_Mkdir)(char *path);
+	void	(*Sys_FreeLibrary)(void *handle);
+	void	*(*Sys_LoadLibrary)(const char *path, const char *sym, void **handle);
+	void	*(*Sys_GetProcAddress)(void *handle, const char *sym);
 
 	void	(*Cmd_AddCommand)(char *name, void(*cmd)(void));
 	void	(*Cmd_RemoveCommand)(char *name);
