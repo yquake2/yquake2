@@ -30,10 +30,10 @@
  
 #ifdef _WIN32
 #include <SDL/SDL.h>
-#include "../../windows/header/winquake.h"
+#include "../windows/header/winquake.h"
 #else
 #include <SDL.h>
-#include "../../unix/header/unix.h"
+#include "../unix/header/unix.h"
 #endif
 
 #define MOUSE_MAX 3000

@@ -33,7 +33,7 @@
 #ifdef _WIN32
  #include "../../windows/header/qal.h"
 #else
- #include "../../unix/header/qal.h"
+ #include "../../backends/unix/header/qal.h"
 #endif
 
 void S_Play(void);

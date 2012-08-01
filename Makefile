@@ -520,13 +520,13 @@ CLIENT_OBJS_ += \
     src/windows/vid.o	
 else
 CLIENT_OBJS_ += \
-	src/unix/hunk.o \
-	src/unix/main.o \
- 	src/unix/network.o \
-	src/unix/qal.o \
- 	src/unix/signalhandler.o \
-	src/unix/system.o \
- 	src/unix/vid.o
+	src/backends/unix/hunk.o \
+	src/backends/unix/main.o \
+ 	src/backends/unix/network.o \
+	src/backends/unix/qal.o \
+ 	src/backends/unix/signalhandler.o \
+	src/backends/unix/system.o \
+ 	src/backends/unix/vid.o
 endif
 
 # ----------
@@ -570,11 +570,11 @@ SERVER_OBJS_ += \
 	src/windows/system.o	
 else
 SERVER_OBJS_ += \
-	src/unix/hunk.o \
-	src/unix/main.o \
- 	src/unix/network.o \
- 	src/unix/signalhandler.o \
-	src/unix/system.o
+	src/backends/unix/hunk.o \
+	src/backends/unix/main.o \
+ 	src/backends/unix/network.o \
+ 	src/backends/unix/signalhandler.o \
+	src/backends/unix/system.o
 endif
 
 # ----------
@@ -609,8 +609,8 @@ OPENGL_OBJS_ += \
 	src/windows/qgl.o
 else
 OPENGL_OBJS_ += \
-	src/unix/hunk.o \
-	src/unix/qgl.o
+	src/backends/unix/hunk.o \
+	src/backends/unix/qgl.o
 endif
 
 # ----------

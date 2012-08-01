@@ -36,7 +36,7 @@
 #include <AL/alc.h>
 #include <AL/alext.h>
 
-#include "../common/header/common.h"
+#include "../../common/header/common.h"
 #include "header/qal.h"
 
 static ALCcontext *context;

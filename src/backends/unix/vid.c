@@ -38,7 +38,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "../client/header/client.h"
+#include "../../client/header/client.h"
 #include "header/unix.h"
 
 /* Structure containing functions exported from refresh DLL */

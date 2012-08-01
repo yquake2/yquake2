@@ -37,7 +37,7 @@
 #ifdef _WIN32
  #include "../../windows/header/qal.h"
 #else
- #include "../../unix/header/qal.h"
+ #include "../../backends/unix/header/qal.h"
 #endif
 
 /* translates from AL coordinate system to quake */
