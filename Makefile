@@ -513,11 +513,11 @@ CLIENT_OBJS_ := \
 
 ifeq ($(OSTYPE), Windows)
 CLIENT_OBJS_ += \
-	src/windows/mem.o \
-	src/windows/network.o \
-	src/windows/qal.o \
-	src/windows/system.o \
-    src/windows/vid.o	
+	src/backends/windows/mem.o \
+	src/backends/windows/network.o \
+	src/backends/windows/qal.o \
+	src/backends/windows/system.o \
+    src/backends/windows/vid.o	
 else
 CLIENT_OBJS_ += \
 	src/backends/unix/hunk.o \
@@ -565,9 +565,9 @@ SERVER_OBJS_ := \
 
 ifeq ($(OSTYPE), Windows)
 SERVER_OBJS_ += \
-	src/windows/mem.o \
-	src/windows/network.o \
-	src/windows/system.o	
+	src/backends/windows/mem.o \
+	src/backends/windows/network.o \
+	src/backends/windows/system.o	
 else
 SERVER_OBJS_ += \
 	src/backends/unix/hunk.o \
@@ -605,8 +605,8 @@ OPENGL_OBJS_ = \
 
 ifeq ($(OSTYPE), Windows)
 OPENGL_OBJS_ += \
-	src/windows/mem.o \
-	src/windows/qgl.o
+	src/backends/windows/mem.o \
+	src/backends/windows/qgl.o
 else
 OPENGL_OBJS_ += \
 	src/backends/unix/hunk.o \

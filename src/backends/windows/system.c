@@ -34,7 +34,7 @@
 #include <conio.h>
 #include <shlobj.h>
 
-#include "../common/header/common.h"
+#include "../../common/header/common.h"
 #include "header/resource.h"
 #include "header/winquake.h"
 

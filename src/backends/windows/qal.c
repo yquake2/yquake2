@@ -36,7 +36,7 @@
 #include <AL/alext.h>
 #include <windows.h>
 
-#include "../common/header/common.h"
+#include "../../common/header/common.h"
 #include "header/qal.h"
 
 #define GPA(a) (void *)GetProcAddress(handle, a)

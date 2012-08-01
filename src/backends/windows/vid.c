@@ -35,9 +35,9 @@
 #include <assert.h>
 #include <float.h>
 
-#include "../common/header/common.h"
+#include "../../common/header/common.h"
 #include "header/winquake.h"
-#include "../client/header/client.h"
+#include "../../client/header/client.h"
 
 /* Structure containing functions
  * exported from refresh DLL */

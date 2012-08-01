@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "../common/header/common.h"
+#include "../../common/header/common.h"
 #include "header/winquake.h"
 
 byte *membase;

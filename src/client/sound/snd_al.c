@@ -35,7 +35,7 @@
 #include "header/vorbis.h"
 
 #ifdef _WIN32
- #include "../../windows/header/qal.h"
+ #include "../../backends/windows/header/qal.h"
 #else
  #include "../../backends/unix/header/qal.h"
 #endif

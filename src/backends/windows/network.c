@@ -30,7 +30,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <wsipx.h>
-#include "../common/header/common.h"
+#include "../../common/header/common.h"
 
 #define MAX_LOOPBACK 4
 #define QUAKE2MCAST "ff12::666"

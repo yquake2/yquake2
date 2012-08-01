@@ -30,7 +30,7 @@
  */
 
 #include <float.h>
-#include "../refresh/header/local.h"
+#include "../../refresh/header/local.h"
 #include "header/glwindow.h"
 
 int (WINAPI *qwglChoosePixelFormat)(HDC, CONST PIXELFORMATDESCRIPTOR *);
