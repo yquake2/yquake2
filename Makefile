@@ -452,6 +452,8 @@ GAME_OBJS_ = \
 
 # Used by the client
 CLIENT_OBJS_ := \
+	src/backends/sdl/cd.o \
+	src/backends/sdl/sound.o \
 	src/client/cl_cin.o \
 	src/client/cl_console.o \
 	src/client/cl_download.o \
@@ -498,8 +500,6 @@ CLIENT_OBJS_ := \
 	src/common/shared/shared.o \
 	src/common/unzip/ioapi.o \
 	src/common/unzip/unzip.o \
-	src/sdl/cd.o \
-	src/sdl/sound.o \
 	src/server/sv_cmd.o \
 	src/server/sv_conless.o \
 	src/server/sv_entities.o \
@@ -581,6 +581,8 @@ endif
 
 # Used by the OpenGL refresher
 OPENGL_OBJS_ = \
+	src/backends/sdl/input.o \
+	src/backends/sdl/refresh.o \
 	src/refresh/r_draw.o \
 	src/refresh/r_image.o \
 	src/refresh/r_light.o \
@@ -598,8 +600,6 @@ OPENGL_OBJS_ = \
 	src/refresh/files/tga.o \
 	src/refresh/files/jpeg.o \
 	src/refresh/files/wal.o \
-	src/sdl/input.o \
-	src/sdl/refresh.o \
     src/common/glob.o \
     src/common/shared/shared.o
 

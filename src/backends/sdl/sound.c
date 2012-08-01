@@ -36,8 +36,8 @@
 #include <SDL.h>
 #endif
 
-#include "../client/header/client.h"
-#include "../client/sound/header/local.h"
+#include "../../client/header/client.h"
+#include "../../client/sound/header/local.h"
 
 /* Global stuff */
 int    snd_inited = 0;
