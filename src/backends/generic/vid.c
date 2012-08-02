@@ -58,23 +58,17 @@ qboolean reflib_active = 0;
 
 #define VID_NUM_MODES (sizeof(vid_modes) / sizeof(vid_modes[0]))
 
-/* INPUT */
 void Do_Key_Event(int key, qboolean down);
 
 void (*IN_Update_fp)(void);
 void (*IN_KeyboardInit_fp)(Key_Event_fp_t fp);
 void (*IN_Close_fp)(void);
-
-in_state_t in_state;
-
 void (*IN_BackendInit_fp)(in_state_t *in_state_p);
 void (*IN_BackendShutdown_fp)(void);
 void (*IN_BackendMouseButtons_fp)(void);
 void (*IN_BackendMove_fp)(usercmd_t *cmd);
 
-extern void VID_MenuShutdown(void);
-
-/* DLL GLUE */
+in_state_t in_state;
 
 #define MAXPRINTMSG 4096
 
@@ -402,26 +396,10 @@ VID_Shutdown(void)
 		re.Shutdown();
 		VID_FreeReflib();
 	}
-
-	VID_MenuShutdown();
-}
-
-/*
- * Checks to see if the given ref_NAME.so exists.
- * Placed here to avoid complicating other code if
- * the library .so files ever have their names changed.
- *
- * In Yamagi Quake II this is just a dummy, to
- * satisfy dependencies in the menu system.
- */
-qboolean
-VID_CheckRefExists(const char *ref)
-{
-   
-	return true;
 }
 
 /* INPUT */
+
 void
 IN_Shutdown(void)
 {
