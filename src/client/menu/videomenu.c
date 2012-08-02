@@ -144,7 +144,7 @@ ApplyChanges(void *unused)
 		Cbuf_AddText("vid_restart\n");
 	}
 
-	//M_ForceMenuOff();
+	M_ForceMenuOff();
 }
 
 void
@@ -255,7 +255,10 @@ VID_MenuInit(void)
 		scr_viewsize = Cvar_Get("viewsize", "100", CVAR_ARCHIVE);
 	}
 
-	s_screensize_slider.curvalue = scr_viewsize->value / 10;
+	if (!vid_gamma)
+	{
+		vid_gamma = Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
+	}
 
 	s_opengl_menu.x = viddef.width * 0.50;
 	s_opengl_menu.nitems = 0;
@@ -279,6 +282,7 @@ VID_MenuInit(void)
 	s_screensize_slider.minvalue = 3;
 	s_screensize_slider.maxvalue = 12;
 	s_screensize_slider.generic.callback = ScreenSizeCallback;
+	s_screensize_slider.curvalue = scr_viewsize->value / 10;
 
 	s_brightness_slider.generic.type = MTYPE_SLIDER;
 	s_brightness_slider.generic.x = 0;
