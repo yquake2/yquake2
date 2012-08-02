@@ -42,11 +42,13 @@ static cvar_t *gl_driver;
 static cvar_t *gl_picmip;
 static cvar_t *gl_ext_palettedtexture;
 
+static cvar_t *fov;
 static cvar_t *windowed_mouse;
 
 static menuframework_s s_opengl_menu;
 
 static menulist_s s_mode_list;
+static menulist_s s_aspect_list;
 static menuslider_s s_tq_slider;
 static menuslider_s s_screensize_slider;
 static menuslider_s s_brightness_slider;
@@ -111,6 +113,32 @@ ApplyChanges(void *unused)
 		Cvar_SetValue("gl_mode", -1);
 	}
 
+	/* fov */
+	if (s_aspect_list.curvalue == 0)
+	{
+		if (fov->value != 90)
+		{
+			/* Restarts automatically */
+			Cvar_SetValue("fov", 90);
+		}
+	}
+	else if (s_aspect_list.curvalue == 1)
+	{
+		if (fov->value != 100)
+		{
+			/* Restarts automatically */
+			Cvar_SetValue("fov", 100);
+		}
+	}
+	else if (s_aspect_list.curvalue == 2)
+	{
+		if (fov->value != 105)
+		{
+			/* Restarts automatically */
+			Cvar_SetValue("fov", 105);
+		}
+	}
+ 
 	if (restart)
 	{
 		Cbuf_AddText("vid_restart\n");
@@ -149,10 +177,18 @@ VID_MenuInit(void)
 		"[Custom   ]",
 		0
 	};
+
 	static const char *yesno_names[] = {
 		"no",
 		"yes",
 		0
+	};
+
+	static const char *aspect_names[] = {
+		"4:3",
+		"16:10",
+		"16:9",
+		"Custom"
 	};
 
 	if (!gl_driver)
@@ -182,6 +218,28 @@ VID_MenuInit(void)
 				CVAR_USERINFO | CVAR_ARCHIVE);
 	}
 
+	if (!fov)
+	{
+		fov = Cvar_Get("fov", "90",  CVAR_USERINFO | CVAR_ARCHIVE);
+	}
+
+	if (fov->value == 90)
+	{
+		s_aspect_list.curvalue = 0;
+	}
+	else if (fov->value == 100)
+	{
+		s_aspect_list.curvalue = 1;
+	}
+	else if (fov->value == 105)
+	{
+		s_aspect_list.curvalue = 2;
+	}
+	else
+	{
+		s_aspect_list.curvalue = 3;
+	}
+
 	/* custom mode */
 	if (gl_mode->value >= 1.0)
 	{
@@ -208,9 +266,15 @@ VID_MenuInit(void)
 	s_mode_list.generic.y = 0;
 	s_mode_list.itemnames = resolutions;
 
+ 	s_aspect_list.generic.type = MTYPE_SPINCONTROL;
+	s_aspect_list.generic.name = "aspect ratio";
+	s_aspect_list.generic.x = 0;
+	s_aspect_list.generic.y = 10;
+	s_aspect_list.itemnames = aspect_names; 
+	
 	s_screensize_slider.generic.type = MTYPE_SLIDER;
 	s_screensize_slider.generic.x = 0;
-	s_screensize_slider.generic.y = 10;
+	s_screensize_slider.generic.y = 20;
 	s_screensize_slider.generic.name = "screen size";
 	s_screensize_slider.minvalue = 3;
 	s_screensize_slider.maxvalue = 12;
@@ -218,7 +282,7 @@ VID_MenuInit(void)
 
 	s_brightness_slider.generic.type = MTYPE_SLIDER;
 	s_brightness_slider.generic.x = 0;
-	s_brightness_slider.generic.y = 20;
+	s_brightness_slider.generic.y = 40;
 	s_brightness_slider.generic.name = "brightness";
 	s_brightness_slider.generic.callback = BrightnessCallback;
 	s_brightness_slider.minvalue = 1;
@@ -227,14 +291,14 @@ VID_MenuInit(void)
 
 	s_fs_box.generic.type = MTYPE_SPINCONTROL;
 	s_fs_box.generic.x = 0;
-	s_fs_box.generic.y = 30;
+	s_fs_box.generic.y = 50;
 	s_fs_box.generic.name = "fullscreen";
 	s_fs_box.itemnames = yesno_names;
 	s_fs_box.curvalue = vid_fullscreen->value;
  
 	s_tq_slider.generic.type = MTYPE_SLIDER;
 	s_tq_slider.generic.x = 0;
-	s_tq_slider.generic.y = 50;
+	s_tq_slider.generic.y = 70;
 	s_tq_slider.generic.name = "texture quality";
 	s_tq_slider.minvalue = 0;
 	s_tq_slider.maxvalue = 3;
@@ -242,7 +306,7 @@ VID_MenuInit(void)
  
 	s_paletted_texture_box.generic.type = MTYPE_SPINCONTROL;
 	s_paletted_texture_box.generic.x = 0;
-	s_paletted_texture_box.generic.y = 60;
+	s_paletted_texture_box.generic.y = 80;
 	s_paletted_texture_box.generic.name = "8-bit textures";
 	s_paletted_texture_box.itemnames = yesno_names;
 	s_paletted_texture_box.curvalue = gl_ext_palettedtexture->value;
@@ -250,16 +314,17 @@ VID_MenuInit(void)
 	s_defaults_action.generic.type = MTYPE_ACTION;
 	s_defaults_action.generic.name = "reset to default";
 	s_defaults_action.generic.x = 0;
-	s_defaults_action.generic.y = 80;
+	s_defaults_action.generic.y = 100;
 	s_defaults_action.generic.callback = ResetDefaults;
 
 	s_apply_action.generic.type = MTYPE_ACTION;
 	s_apply_action.generic.name = "apply";
 	s_apply_action.generic.x = 0;
-	s_apply_action.generic.y = 90;
+	s_apply_action.generic.y = 110;
 	s_apply_action.generic.callback = ApplyChanges;
 
 	Menu_AddItem(&s_opengl_menu, (void *)&s_mode_list);
+	Menu_AddItem(&s_opengl_menu, (void *)&s_aspect_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_screensize_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_brightness_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_fs_box);
