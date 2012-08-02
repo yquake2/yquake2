@@ -26,6 +26,9 @@
  * QGL_Init() - loads libraries, assigns function pointers, etc.
  * QGL_Shutdown() - unloads libraries, NULLs function pointers
  *
+ * This implementation should work for Windows and unixoid platforms,
+ * other platforms may need an own implementation.
+ *
  * =======================================================================
  */
 

@@ -23,8 +23,9 @@
  * Low level, platform depended "qal" API implementation. This files
  * provides functions to load, initialize, shutdown und unload the
  * OpenAL library and connects the "qal" funtion pointers to the
- * OpenAL functions. This source file was taken from Q2Pro and
- * modified by the YQ2 authors.
+ * OpenAL functions. It shopuld work on Windows and unixoid Systems,
+ * other platforms may need an own implementation. This source file
+ * was taken from Q2Pro and modified by the YQ2 authors.
  *
  * =======================================================================
  */

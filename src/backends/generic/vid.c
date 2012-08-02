@@ -29,6 +29,9 @@
  * refresher and those subsystems are the main cause for the very
  * acurate and precise input controls of the id Tech 2.
  *
+ * This implementation works for Windows and unixoid systems, but
+ * other platforms may need an own implementation!
+ *
  * =======================================================================
  */
 
