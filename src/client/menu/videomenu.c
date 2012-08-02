@@ -81,21 +81,42 @@ ResetDefaults(void *unused)
 static void
 ApplyChanges(void *unused)
 {
-	Cvar_SetValue("gl_picmip", 3 - s_tq_slider.curvalue);
+	qboolean restart = false;
+
+	if (gl_picmip->value != (3 - s_tq_slider.curvalue))
+	{
+
+		Cvar_SetValue("gl_picmip", 3 - s_tq_slider.curvalue);
+		restart = true;
+	}
+
+	if (gl_ext_palettedtexture->value != s_paletted_texture_box.curvalue)
+	{
+		Cvar_SetValue("gl_ext_palettedtexture", s_paletted_texture_box.curvalue);
+		restart = true;
+	}
+
+	/* Restarts automatically */
 	Cvar_SetValue("vid_fullscreen", s_fs_box.curvalue);
-	Cvar_SetValue("gl_ext_palettedtexture", s_paletted_texture_box.curvalue);
 
 	/* custom mode */
 	if (s_mode_list.curvalue != CUSTOM_MODE)
 	{
+		/* Restarts automatically */
 		Cvar_SetValue("gl_mode", s_mode_list.curvalue);
 	}
 	else
 	{
+		/* Restarts automatically */
 		Cvar_SetValue("gl_mode", -1);
 	}
 
-	M_ForceMenuOff();
+	if (restart)
+	{
+		Cbuf_AddText("vid_restart\n");
+	}
+
+	//M_ForceMenuOff();
 }
 
 void
