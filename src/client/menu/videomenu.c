@@ -188,7 +188,8 @@ VID_MenuInit(void)
 		"4:3",
 		"16:10",
 		"16:9",
-		"Custom"
+		"Custom",
+		0
 	};
 
 	if (!gl_driver)
