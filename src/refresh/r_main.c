@@ -1059,7 +1059,7 @@ R_SetMode(void)
 	{
 		if (gl_mode->value == -1)
 		{
-			gl_state.prev_mode = 3; /* safe default for custom mode */
+			gl_state.prev_mode = 4; /* safe default for custom mode */
 		}
 		else
 		{
