@@ -998,12 +998,7 @@ R_Register(void)
 	gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", 0);
 	gl_flashblend = ri.Cvar_Get("gl_flashblend", "0", 0);
 	gl_playermip = ri.Cvar_Get("gl_playermip", "0", 0);
-
-#ifdef _WIN32
-	gl_driver = ri.Cvar_Get("gl_driver", "opengl32.dll", CVAR_ARCHIVE);
-#else
-	gl_driver = ri.Cvar_Get("gl_driver", "libGL.so.1", CVAR_ARCHIVE);
-#endif
+	gl_driver = ri.Cvar_Get("gl_driver", LIBGL, CVAR_ARCHIVE);
 
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl_texturealphamode = ri.Cvar_Get("gl_texturealphamode", "default", CVAR_ARCHIVE);

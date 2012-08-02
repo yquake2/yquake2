@@ -29,12 +29,6 @@
 
 #include <stdio.h>
 
-#ifdef _WIN32
-#define LIBGL "opengl32.dll"
-#else
-#define LIBGL "libGL.so.1"
-#endif
-
 typedef struct
 {
 	void *OpenGLLib; /* instance of OpenGL library */

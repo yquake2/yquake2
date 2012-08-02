@@ -163,7 +163,7 @@ ApplyChanges(void *unused)
 		Cvar_Set("vid_ref", "gl");
 
 		/* below is wrong if we use different libs for different GL reflibs */
-		Cvar_Get("gl_driver", "libGL.so.1", CVAR_ARCHIVE);
+		Cvar_Get("gl_driver", LIBGL, CVAR_ARCHIVE);
 
 		if (gl_driver->modified)
 		{

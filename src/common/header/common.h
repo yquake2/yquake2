@@ -63,6 +63,13 @@
  #define CFGDIR ".yq2"
 #endif
 
+#ifdef _WIN32
+ #define LIBGL "opengl32.dll"
+#else
+ #define LIBGL "libGL.so.1"
+#endif
+
+
 /* ================================================================== */
 
 typedef struct sizebuf_s
