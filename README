@@ -205,7 +205,7 @@ If you haven't got Quake II, try the demo version. Get it here:
 ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe
 
 Extract this file into a new directory and delete everything but
-"baseq2\pak0.pak" and the "baseq2\video\" directory. No patching 
+"baseq2\pak0.pak" and the "baseq2\players\" directory. No patching 
 is needed for the demo, in fact it would break it.
 
 2.4 Addons
