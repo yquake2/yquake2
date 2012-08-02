@@ -362,9 +362,7 @@ are some things that can and in some cases must be tuned via cvars. Here
 the most common questions are answered.
 
 - Yamagi Quake II has full support for widescreen setups. Just select your
-  favorite resolution and start a game. Now you'll need to adjust the field
-  of view. Open the console with pressing "^" or "~" and set the fov cvar.
-  Default is 90, we suggest 100 for 16:10 screens and 105 for 16:9.
+  favorite resolution and aspect ration via the video menu.
 
 - If your resolution is not in the list, it's also possible to set custom
   resolutions via the console: Set gl_customwidth and gl_customheight to the
