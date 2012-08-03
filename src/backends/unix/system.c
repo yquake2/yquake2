@@ -513,7 +513,7 @@ Sys_LoadLibrary(const char *path, const char *sym, void **handle)
 
 	if (!module)
 	{
-		Com_DPrintf("%s failed: %s\n", __func__, dlerror());
+		Com_Printf("%s failed: %s\n", __func__, dlerror());
 		return NULL;
 	}
 
@@ -523,7 +523,7 @@ Sys_LoadLibrary(const char *path, const char *sym, void **handle)
 
 		if (!entry)
 		{
-			Com_DPrintf("%s failed: %s\n", __func__, dlerror());
+			Com_Printf("%s failed: %s\n", __func__, dlerror());
 			dlclose(module);
 			return NULL;
 		}

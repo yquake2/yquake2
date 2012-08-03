@@ -818,7 +818,7 @@ Sys_LoadLibrary(const char *path, const char *sym, void **handle)
 
 	if (!module)
 	{
-		Com_DPrintf("%s failed: LoadLibrary returned %lu on %s\n",
+		Com_Printf("%s failed: LoadLibrary returned %lu on %s\n",
 				__func__, GetLastError(), path);
 		return NULL;
 	}
@@ -829,7 +829,7 @@ Sys_LoadLibrary(const char *path, const char *sym, void **handle)
 
 		if (!entry)
 		{
-			Com_DPrintf("%s failed: GetProcAddress returned %lu on %s\n",
+			Com_Printf("%s failed: GetProcAddress returned %lu on %s\n",
 					__func__, GetLastError(), path);
 			FreeLibrary(module);
 			return NULL;
