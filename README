@@ -112,7 +112,7 @@ Unzip this file (again, it's a self-extracting zip file). Create a new
 "quake2/" directory with a "baseq2/" sub-directory and put the "pak0.pak" 
 and the "players/" sub-directory, you can find them within the unzipped 
 files (in Install/Data/baseq2/), in your "baseq2/" directory. No patching
- is needed for the demo, in fact it would break it.
+is needed for the demo, in fact it would break it.
 
 1.4 Addons
 ----------
@@ -205,7 +205,7 @@ If you haven't got Quake II, try the demo version. Get it here:
 ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe
 
 Extract this file into a new directory and delete everything but
-"baseq2\pak0.pak" and the "baseq2\players\" directory. No patching 
+"baseq2\pak0.pak" and the "baseq2\players\" directory. No patching
 is needed for the demo, in fact it would break it.
 
 2.4 Addons
