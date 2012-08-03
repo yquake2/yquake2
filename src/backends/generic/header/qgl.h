@@ -494,7 +494,9 @@ extern void (APIENTRY *qglSelectTextureSGIS)(GLenum);
 extern void (APIENTRY *qglActiveTextureARB)(GLenum);
 extern void (APIENTRY *qglClientActiveTextureARB)(GLenum);
 
-extern void *qwglGetProcAddress(char *symbol);
+extern void *GetProcAddressGL(char *symbol);
+
+extern void *(APIENTRY *qwglGetProcAddress)(char *symbol);
 
 #ifdef _WIN32
 

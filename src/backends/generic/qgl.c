@@ -35,6 +35,8 @@
 #include "../../refresh/header/local.h"
 #include "header/glwindow.h"
 
+void *(APIENTRY *qwglGetProcAddress)(char *symbol);
+
 void (APIENTRY *qglAccum)(GLenum op, GLfloat value);
 void (APIENTRY *qglAlphaFunc)(GLenum func, GLclampf ref);
 GLboolean (APIENTRY *qglAreTexturesResident)(GLsizei n, const GLuint *textures,
@@ -3274,6 +3276,8 @@ QGL_Shutdown(void)
 
 	glw_state.OpenGLLib = NULL;
 
+	qwglGetProcAddress = NULL;
+
 	qglAccum = NULL;
 	qglAlphaFunc = NULL;
 	qglAreTexturesResident = NULL;
@@ -3612,15 +3616,27 @@ QGL_Shutdown(void)
 	qglViewport = NULL;
 }
 
+/*
+ * Special case function to return addresses of non
+ * base functions in libGL. The system wide function
+ * can't be used since on Windows wglGetProcAddress
+ * is required instead of GetProcAddress().
+ */
 void *
-qwglGetProcAddress(char *symbol)
+GetProcAddressGL(char *symbol)
 {
-	if (glw_state.OpenGLLib)
+	if (qwglGetProcAddress)
+	{
+		return qwglGetProcAddress(symbol);
+	}
+	else if (glw_state.OpenGLLib)
 	{
 		return ri.Sys_GetProcAddress(glw_state.OpenGLLib, symbol);
 	}
-
-	return NULL;
+	else
+	{
+		return NULL;
+	}
 }
 
 /*
@@ -4013,6 +4029,9 @@ QGL_Init(const char *dllname)
 	qglVertex4sv = dllVertex4sv = ri.Sys_GetProcAddress(glw_state.OpenGLLib, "glVertex4sv");
 	qglVertexPointer = dllVertexPointer = ri.Sys_GetProcAddress(glw_state.OpenGLLib, "glVertexPointer");
 	qglViewport = dllViewport = ri.Sys_GetProcAddress(glw_state.OpenGLLib, "glViewport");
+
+	/* Connect wglGetProcAddress (only available on Windows, otherwise NULL */
+	qwglGetProcAddress = ri.Sys_GetProcAddress(glw_state.OpenGLLib, "wglGetProcAddress");
 
 	qglLockArraysEXT = 0;
 	qglUnlockArraysEXT = 0;
