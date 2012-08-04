@@ -28,7 +28,7 @@
 #include "../../client/header/client.h"
 #include "../../client/menu/header/qmenu.h"
 
-#define CUSTOM_MODE 20
+#define CUSTOM_MODE 23
 
 extern void M_ForceMenuOff(void);
 
@@ -242,7 +242,7 @@ VID_MenuInit(void)
 	}
 
 	/* custom mode */
-	if (gl_mode->value >= 1.0)
+	if (gl_mode->value >= 0)
 	{
 		s_mode_list.curvalue = gl_mode->value;
 	}
