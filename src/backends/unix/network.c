@@ -98,7 +98,7 @@ NetadrToSockadr(netadr_t *a, struct sockaddr_storage *s)
 
 			s6->sin6_family = AF_INET6;
 			s6->sin6_port = a->port;
-#ifdef __FreeBSD__
+#ifdef SIN6_LEN
 			s6->sin6_len = sizeof(struct sockaddr_in6);
 #endif
 
@@ -112,7 +112,7 @@ NetadrToSockadr(netadr_t *a, struct sockaddr_storage *s)
 
 			if (IN6_IS_ADDR_V4MAPPED((struct in6_addr *)a->ip))
 			{
-#ifdef __FreeBSD__
+#ifdef SIN6_LEN
 				s->ss_len = sizeof(struct sockaddr_in);
 #endif
 				s->ss_family = AF_INET;
@@ -128,7 +128,7 @@ NetadrToSockadr(netadr_t *a, struct sockaddr_storage *s)
 				s6->sin6_family = AF_INET6;
 				memcpy(&s6->sin6_addr, a->ip, sizeof(s6->sin6_addr));
 				s6->sin6_port = a->port;
-#ifdef __FreeBSD__
+#ifdef SIN6_LEN
 				s6->sin6_len = sizeof(struct sockaddr_in6);
 #endif
 
@@ -296,7 +296,7 @@ NET_BaseAdrToString(netadr_t a)
 
 			if (IN6_IS_ADDR_V4MAPPED((struct in6_addr *)a.ip))
 			{
-#ifdef __FreeBSD__
+#ifdef SIN6_LEN
 				ss.ss_len = sizeof(struct sockaddr_in);
 #endif
 				ss.ss_family = AF_INET;
@@ -306,7 +306,7 @@ NET_BaseAdrToString(netadr_t a)
 			}
 			else
 			{
-#ifdef __FreeBSD__
+#ifdef SIN6_LEN
 				s6->sin6_len = sizeof(struct sockaddr_in6);
 #endif
 				s6->sin6_scope_id = a.scope_id;
@@ -314,7 +314,7 @@ NET_BaseAdrToString(netadr_t a)
 				memcpy(&s6->sin6_addr, a.ip, sizeof(struct in6_addr));
 			}
 
-#ifdef __FreeBSD__
+#ifdef SIN6_LEN
 			socklen_t const salen = ss.ss_len;
 #else
 			socklen_t const salen = sizeof(ss);
@@ -670,7 +670,7 @@ NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 				   multicast address. getaddrinfo is
 				   passed a multicast address of the
 				   form ff0x::xxx%multicast_interface */
-#ifdef __FreeBSD__
+#ifdef SIN6_LEN
 				error = getnameinfo((struct sockaddr *)s6, s6->sin6_len, tmp,
 						sizeof(tmp), NULL, 0, NI_NUMERICHOST);
 #else
