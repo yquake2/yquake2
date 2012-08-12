@@ -86,6 +86,8 @@
  */
 #if defined(__FreeBSD__)
  #define OS "FreeBSD"
+#elif defined(__OpenBSD__)
+ #define OS "OpenBSD"
 #elif defined(__linux__)
  #define OS "Linux"
 #elif defined(_WIN32)

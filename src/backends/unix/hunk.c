@@ -32,10 +32,11 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 #include "../../common/header/common.h"
 
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
  #include <machine/param.h>
  #define MAP_ANONYMOUS MAP_ANON
 #endif
@@ -87,7 +88,9 @@ Hunk_End(void)
 {
 	byte *n = NULL;
 
-#if defined(__FreeBSD__)
+#if defined(__linux__)
+	n = (byte *)mremap(membase, maxhunksize, curhunksize + sizeof(int), 0);
+#elif defined(__FreeBSD__)
 	size_t old_size = maxhunksize;
 	size_t new_size = curhunksize + sizeof(int);
 	void *unmap_base;
@@ -106,10 +109,36 @@ Hunk_End(void)
 		unmap_len = old_size - new_size;
 		n = munmap(unmap_base, unmap_len) + membase;
 	}
+#else
+#ifndef round_page
+#define round_page(x) (((size_t)(x) + (page_size - 1)) / page_size) * \
+	    page_size
 #endif
 
-#if defined(__linux__)
-	n = (byte *)mremap(membase, maxhunksize, curhunksize + sizeof(int), 0);
+	size_t old_size = maxhunksize;
+	size_t new_size = curhunksize + sizeof(int);
+	void *unmap_base;
+	size_t unmap_len;
+	long page_size;
+
+	page_size = sysconf(_SC_PAGESIZE);
+	if (page_size == -1) {
+		Sys_Error("Hunk_End: sysconf _SC_PAGESIZE failed (%d)", errno);
+	}
+
+	new_size = round_page(new_size);
+	old_size = round_page(old_size);
+
+	if (new_size > old_size)
+	{
+		n = 0; /* error */
+	}
+	else if (new_size < old_size)
+	{
+		unmap_base = (caddr_t)(membase + new_size);
+		unmap_len = old_size - new_size;
+		n = munmap(unmap_base, unmap_len) + membase;
+	}
 #endif
 
 	if (n != membase)

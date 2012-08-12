@@ -140,6 +140,8 @@ ifeq ($(OSTYPE),Linux)
 INCLUDE := -I/usr/include
 else ifeq ($(OSTYPE),FreeBSD)
 INCLUDE := -I/usr/local/include
+else ifeq ($(OSTYPE),OpenBSD)
+INCLUDE := -I/usr/local/include
 endif
 
 # ----------
@@ -148,6 +150,8 @@ endif
 ifeq ($(OSTYPE),Linux)
 LDFLAGS := -L/usr/lib -lm -ldl
 else ifeq ($(OSTYPE),FreeBSD)
+LDFLAGS := -L/usr/local/lib -lm
+else ifeq ($(OSTYPE),OpenBSD)
 LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),Windows)
 LDFLAGS := -lws2_32 -lwinmm
@@ -271,7 +275,11 @@ release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg
 endif
 
 ifeq ($(WITH_OPENAL),yes)
+ifeq ($(OSTYPE), OpenBSD)
+release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so"'
+else
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
+endif
 endif
 
 ifeq ($(WITH_ZIP),yes)
