@@ -41,6 +41,8 @@
  #define BUILDSTRING "Linux"
 #elif defined __FreeBSD__
  #define BUILDSTRING "FreeBSD"
+#elif defined __OpenBSD__
+ #define BUILDSTRING "OpenBSD"
 #elif defined _WIN32
  #define BUILDSTRING "Windows"
 #else
@@ -65,6 +67,8 @@
 
 #ifdef _WIN32
  #define LIBGL "opengl32.dll"
+#elif defined __OpenBSD__
+ #define LIBGL "libGL.so"
 #else
  #define LIBGL "libGL.so.1"
 #endif
