@@ -129,3 +129,21 @@ a port to the Wii should be feasible and support for the several
 open source or alternative consoles straight forward.
 
 ===============================================================================
+
+7. Add head tracking to Quake II
+
+Difficulty: Hard
+Knowledge: How to design APIs and integrate new paradigms into an old codebase
+
+Head tracking is becoming more and more popular. After the hype of early,
+homegrown solutions based on the Nintendo Wiimote and similar techniques
+professional build head tracking helmets start to emerge. One example is
+the community funded "Oculus Rift" helmet build by Oculus and supported by
+John Carmack, Cliff Bleszinski, Gabe Newell and other famous game industry 
+staff. The goal of this project is to implement Head Tracking into Yamagi
+Quake II. Due to the great number of competing head tracking solutions a
+generic frontend needs to be designed and integrated into the client. This
+frontend should be supported by a device dependent backend. For testing
+purposes at least one backend must be implemented.
+
+===============================================================================
