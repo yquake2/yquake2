@@ -50,7 +50,7 @@ Some hints:
 1. Port Yamagi Quake II to Mac OS X
 
 Difficulty: Medium
-Knowledge: Mac OS X API, good knowledge of src/unix/
+Knowledge: Mac OS X API, good knowledge of src/backends/unix/
 
 A port to Mac OS X is a frequently requested feature but can't be done
 by the Yamagi Quake II developers due to the lack of hardware. Since Mac
@@ -63,8 +63,8 @@ on OS X.
 
 =============================================================================== 
 
-2. Port Yamagi Quake II to new unixoid platforms (DragonflyBSD, NetBSD, OpenBSD
-   (Open)Solaris, etc.)
+2. Port Yamagi Quake II to new unixoid platforms (for example DragonflyBSD, 
+   NetBSD, Solaris, etc.)
 
 Difficulty: Medium
 Knowledge: Good knowledge of the target platform
