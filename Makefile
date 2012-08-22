@@ -12,8 +12,9 @@
 #  - libGL                                               #
 #                                                        #
 # Platforms:                                             #
-#  - Linux                                               #
 #  - FreeBSD                                             #
+#  - Linux                                               #
+#  - OpenBSD                                             #
 #  - Windows (MinGW)                                     #
 # ------------------------------------------------------ #
 
@@ -73,6 +74,9 @@ endif
 # Detect the architecture
 ifeq ($(OSTYPE), Windows)
 # At this time only i386 is supported on Windows
+# (amd64 works, but building an 64 bit executable
+#  is not that easy. Especially SDL and OpenAL are
+#  somewhat problematic)
 ARCH := i386
 else
 # Some platforms call it "amd64" and some "x86_64"
