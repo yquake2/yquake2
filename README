@@ -11,9 +11,9 @@ Quake II. The main focus is single player, the gameplay and the graphics are
 unchanged, but many bugs were fixed. Unlike most other Quake II ports Yamagi
 Quake II is full 64 bit clean so it works perfectly on modern amd64 (x86_64)
 processors and operating systems. This code should run on Windows XP or higher
-and on most unix-like operating systems (only FreeBSD and Linux are officially
- supported and tested, for other systems you'd at least have to edit the 
-Makefile), just type "make" or "gmake" to compile.
+and on most unix-like operating systems (only FreeBSD, Linux and OpenBSD are
+officially supported and tested, for other systems you'd at least have to edit
+the Makefile), just type "make" or "gmake" to compile.
 
 This code is based upon Icculus Quake II, which itself is built upon id
 Software's original code drop. Additional code and patches by many contributers
@@ -24,7 +24,7 @@ file for further information.
 
 Content of this file:
 --------------------
- 1. Installation on FreeBSD and Linux
+ 1. Installation on (Free)BSD and Linux
    1.1 Supported Systems
    1.2 Retail Version
    1.3 Demo Version
@@ -60,8 +60,8 @@ Content of this file:
 
 ===============================================================================
 
-1. Installation on FreeBSD and Linux
-====================================
+1. Installation on (Free)BSD and Linux
+=======================================
 Note: If you're using Debian Linux or a derived distribution like Ubuntu, you
 probably want to use the packages that are linked in the Download section at
 http://www.yamagi.org/quake2/debian.html They'll even assist you in installing
@@ -69,13 +69,13 @@ the game data.
 
 1.1 Supported Systems:
 ----------------------
-Officially, only Linux and FreeBSD on i386 (x86) and amd64 (x86_64) compatible
-CPUs are supported. Other (Unix-like) Operating Systems and hardware
-architectures are untested and may need small changes, at least in the Makefile.
-Yamagi Quake II needs OpenGL 1.1 (better: 1.4) support in hardware and libGL;
-OpenGL ES will not work. The only tested compilers are gcc 4.2 (or later) and
-clang 3.0 (or later). Patches (or better Github pull request) for other 
-platforms are welcome. :-)
+Officially, only FreeBSD, Linux and OpenBSD on i386 (x86), amd64 (x86_64),
+sparc64 and compatible CPUs are supported. Other (Unix-like) Operating Systems
+and hardware architectures are untested and may need small changes, at least in
+the Makefile. Yamagi Quake II needs OpenGL 1.1 (better: 1.4) support in hardware
+and libGL; OpenGL ES will not work. The only tested compilers are gcc 4.2 (or
+later) and clang 3.0 (or later). Patches (or better Github pull request) for
+other platforms are welcome. :-)
 
 1.2 Retail Version:
 -------------------
@@ -140,9 +140,9 @@ it'll lead to the loss of features):
  - ZLib
 
 Extract the source, change into the new created directory and type "make"
-(Linux) or "gmake" (FreeBSD). After the compilation finished, copy the following
-files from "release/" to your installation directory preserving the directory
-structure:
+(Linux) or "gmake" (FreeBSD, OpenBSD). After the compilation finished, copy the
+following files from "release/" to your installation directory preserving the
+directory structure:
 - q2ded
 - quake2
 - ref_gl.so
@@ -464,7 +464,7 @@ and even surround support.
 This is the original sound implementation, as used in the first release of Quake
 II in 1997. It featured stereo calculations for most samples. It's disabled by
 default and can be reenables by setting "s_openal" to "0", followed by
-"snd_restart. Common problems are:
+"snd_restart. Common problems with the classic sound system are:
 
 - The earthquake sound sample is distorted
   This is not a fault of the sound code but of the sound sample itself.
@@ -493,11 +493,11 @@ default and can be reenables by setting "s_openal" to "0", followed by
 -----------------------------
 This is a sound system based upon the popular OpenAL audio library. It features
 surround playback which gives a huge improvement in sound quality and gameplay
-experience. It's enables by default, but can be disabled by setting "s_openal"
+experience. It's enabled by default, but can be disabled by setting "s_openal"
 to "0", followed by a "snd_restart". To work correctly it's in the need of a
-correctly configured OpenAL! OpenAL is configured in the file ~/.alsoftrc (for
-the openal-soft implementation, other implementations may vary). The most
-important options (tested with OpenAL Soft 1.14) are:
+correctly configured OpenAL implementation! OpenAL is configured in the file
+~/.alsoftrc (for the openal-soft implementation, other implementations may
+vary). The most important options (tested with OpenAL Soft 1.14) are:
 
 - channels = surround51 -> Enable 5.1 surround support. Other values are "mono",
   "stereo", "quad", "surround61" and "surround71".
@@ -516,11 +516,12 @@ important options (tested with OpenAL Soft 1.14) are:
 5. Bugreports
 =============
 Something is not working as expected? An elevator is broken? An enemy doesn't
-move? Or the whole game is just crashing? Just open an issue at
+move? Or the whole game is just crashing? Just open a new github issue at
 https://github.com/yquake2/yquake2. Please include a problem description and
 - if possible - a screenshot of the problematic situation and the name of the
 problematic map. In case of crashes, further helpful information (and
-instructions) are printed to stdout (your terminal).
+instructions) are printed to stdout (your terminal, ...\Documents\YamagiQ2\
+stdout.txt on Windows).
 
 But first, read this little FAQ:
 
@@ -630,15 +631,15 @@ Can I connect to an IPv6 server?
      ./q2ded +set ip "[2001:db8::1]"
 
 Where can I find the configuartion file?
- - It's located at ~/.yq2/game/config.cfg (FreeBSD and Linux) or
-   C:\Users\Username\Documents\YamagiQ2\game\config.cfg (Windows).
+ - It's located at ~/.yq2/game/config.cfg (FreeBSD, Linux and OpenBSD) or
+   ...\Documents\YamagiQ2\game\config.cfg (Windows).
    Replace "game" by the mod name, e.g. "baseq2/" for the main game.
 
 My mod crashes at startup.
  - This is known problem, yet to be analyzed. A workaround is to create the
    working directory by hand:
-     mkdir -p ~/.yq2/$moddir (FreeBSD and Linux)
-     C:\Users\Username\Documents\YamagiQ2\$moddir (Windows)
+     mkdir -p ~/.yq2/$moddir (FreeBSD, Linux and OpenBSD)
+     ...\Documents\YamagiQ2\$moddir (Windows)
 
 Only parts of the maps are rendered!
  - By default the maximum view distance is 2300 units. You can widen it up
@@ -648,7 +649,7 @@ Why has Yamagi Quake II no support for joysticks?
  - Because nobody has implemented it yet and egoshooters like Quake II
    are not really meant to be played with joysticks, gamepads or anything
    like that. If you really need joystick support you can use a joystick
-   to keyboard translator like joytran (for FreeBSD and Linux): 
+   to keyboard translator like joytran (for FreeBSD, Linux and OpenBSD): 
      http://chiselapp.com/user/beyert/repository/joytran/index
 
 What is yq2.cfg for?
