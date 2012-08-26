@@ -396,7 +396,7 @@ blaster_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 		return;
 	}
 
-	if (self->owner->client)
+	if (self->owner && self->owner->client)
 	{
 		PlayerNoise(self->owner, self->s.origin, PNOISE_IMPACT);
 	}
@@ -412,8 +412,16 @@ blaster_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 			mod = MOD_BLASTER;
 		}
 
-		T_Damage(other, self, self->owner, self->velocity, self->s.origin,
-				plane->normal, self->dmg, 1, DAMAGE_ENERGY, mod);
+		if (plane)
+		{
+			T_Damage(other, self, self->owner, self->velocity, self->s.origin,
+					plane->normal, self->dmg, 1, DAMAGE_ENERGY, mod);
+		}
+		else
+		{
+			T_Damage(other, self, self->owner, self->velocity, self->s.origin,
+					vec3_origin, self->dmg, 1, DAMAGE_ENERGY, mod);
+		}
 	}
 	else
 	{
@@ -590,7 +598,7 @@ Grenade_Explode(edict_t *ent)
 void
 Grenade_Touch(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurface_t *surf)
 {
-	if (!ent || !other || !surf)
+	if (!ent || !other)
 	{
 		G_FreeEdict(ent);
 		return;
@@ -601,7 +609,7 @@ Grenade_Touch(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurfa
 		return;
 	}
 
-	if (surf->flags & SURF_SKY)
+	if (surf && (surf->flags & SURF_SKY))
 	{
 		G_FreeEdict(ent);
 		return;
@@ -741,7 +749,7 @@ rocket_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 	vec3_t origin;
 	int n;
 
-	if (!ent || !other || !plane || !surf)
+	if (!ent || !other)
 	{
 		G_FreeEdict(ent);
 		return;
@@ -752,7 +760,7 @@ rocket_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 		return;
 	}
 
-	if (surf->flags & SURF_SKY)
+	if (surf && (surf->flags & SURF_SKY))
 	{
 		G_FreeEdict(ent);
 		return;
@@ -768,8 +776,16 @@ rocket_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 
 	if (other->takedamage)
 	{
-		T_Damage(other, ent, ent->owner, ent->velocity, ent->s.origin,
-				plane->normal, ent->dmg, 0, 0, MOD_ROCKET);
+		if (plane)
+		{
+			T_Damage(other, ent, ent->owner, ent->velocity, ent->s.origin,
+					plane->normal, ent->dmg, 0, 0, MOD_ROCKET);
+		}
+		else
+		{
+			T_Damage(other, ent, ent->owner, ent->velocity, ent->s.origin,
+					vec3_origin, ent->dmg, 0, 0, MOD_ROCKET);
+		}
 	}
 	else
 	{
@@ -1001,7 +1017,7 @@ bfg_explode(edict_t *self)
 void
 bfg_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
-	if (!self || !other || !plane || !surf)
+	if (!self || !other)
 	{
 		G_FreeEdict(self);
 		return;
@@ -1012,13 +1028,13 @@ bfg_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 		return;
 	}
 
-	if (surf->flags & SURF_SKY)
+	if (surf && (surf->flags & SURF_SKY))
 	{
 		G_FreeEdict(self);
 		return;
 	}
 
-	if (self->owner->client)
+	if (self->owner && self->owner->client)
 	{
 		PlayerNoise(self->owner, self->s.origin, PNOISE_IMPACT);
 	}
@@ -1026,8 +1042,16 @@ bfg_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 	/* core explosion - prevents firing it into the wall/floor */
 	if (other->takedamage)
 	{
-		T_Damage(other, self, self->owner, self->velocity, self->s.origin,
-				plane->normal, 200, 0, 0, MOD_BFG_BLAST);
+		if (plane)
+		{
+			T_Damage(other, self, self->owner, self->velocity, self->s.origin,
+					plane->normal, 200, 0, 0, MOD_BFG_BLAST);
+		}
+		else
+		{
+			T_Damage(other, self, self->owner, self->velocity, self->s.origin,
+					vec3_origin, 200, 0, 0, MOD_BFG_BLAST);
+		}
 	}
 
 	T_RadiusDamage(self, self->owner, 200, other, 100, MOD_BFG_BLAST);
