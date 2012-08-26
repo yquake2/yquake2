@@ -390,7 +390,7 @@ blaster_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 		return;
 	}
 
-	if (!surf && (!surf->flags & SURF_SKY))
+	if (surf && (!surf->flags & SURF_SKY))
 	{
 		G_FreeEdict(self);
 		return;
@@ -412,11 +412,8 @@ blaster_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 			mod = MOD_BLASTER;
 		}
 
-		if (plane)
-		{
-			T_Damage(other, self, self->owner, self->velocity, self->s.origin,
-					plane->normal, self->dmg, 1, DAMAGE_ENERGY, mod);
-		}
+		T_Damage(other, self, self->owner, self->velocity, self->s.origin,
+				plane->normal, self->dmg, 1, DAMAGE_ENERGY, mod);
 	}
 	else
 	{
