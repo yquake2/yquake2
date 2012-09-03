@@ -3,7 +3,7 @@ Quake II 4.21 to 5.00
 - Support for OpenBSD. (by Jonathan Gray)
 - Aspect ration can be set via the video menu.
 - A better random number generator.
-- The SDL sound driver is noe selectable by
+- The SDL sound driver is now selectable by
   "s_sdldriver".
 
 Quake II 4.20 to 4.21
