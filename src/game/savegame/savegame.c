@@ -84,7 +84,9 @@
  * crash q2 in spectecular
  * ways
  */
-#if defined(__FreeBSD__)
+#if defined(__APPLE__)
+ #define OS "MacOS X"
+#elif defined(__FreeBSD__)
  #define OS "FreeBSD"
 #elif defined(__OpenBSD__)
  #define OS "OpenBSD"
