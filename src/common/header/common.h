@@ -45,6 +45,8 @@
  #define BUILDSTRING "OpenBSD"
 #elif defined _WIN32
  #define BUILDSTRING "Windows"
+#elif defined __APPLE__
+ #define BUILDSTRING "MacOS X"
 #else
  #define BUILDSTRING "Unknown"
 #endif
@@ -69,6 +71,8 @@
  #define LIBGL "opengl32.dll"
 #elif defined __OpenBSD__
  #define LIBGL "libGL.so"
+#elif defined __APPLE__
+ #define LIBGL "/System/Library/Frameworks/OpenGL.framework/OpenGL"
 #else
  #define LIBGL "libGL.so.1"
 #endif

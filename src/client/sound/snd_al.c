@@ -74,6 +74,9 @@ AL_InitStreamSource()
 static void
 AL_InitUnderwaterFilter()
 {
+#if defined (__APPLE__)
+	return;
+#else
 	/* Generate a filter */
 	qalGenFilters(1, &underwaterFilter);
 
@@ -95,6 +98,7 @@ AL_InitUnderwaterFilter()
 	/* The effect */
 	qalFilterf(underwaterFilter, AL_LOWPASS_GAIN, 1.5);
 	qalFilterf(underwaterFilter, AL_LOWPASS_GAINHF, 0.25);
+#endif
 }
 
 qboolean
@@ -166,8 +170,9 @@ AL_Shutdown(void)
 	S_AL_StreamDie();
 
 	qalDeleteSources(1, &streamSource);
+#if !defined (__APPLE__)
 	qalDeleteFilters(1, &underwaterFilter);
-
+#endif
 	if (s_numchannels)
 	{
 		/* delete source names */
@@ -537,7 +542,9 @@ AL_Underwater()
 	/* Apply to all sources */
 	for (i = 0; i < s_numchannels; i++)
 	{
+#if !defined (__APPLE__)
 		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, underwaterFilter);
+#endif	
 	}
 }
 
@@ -554,7 +561,9 @@ AL_Overwater()
 	/* Apply to all sources */
 	for (i = 0; i < s_numchannels; i++)
 	{
+#if !defined (__APPLE__)
 		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, 0);
+#endif	
 	}
 }
 

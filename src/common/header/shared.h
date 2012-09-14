@@ -36,8 +36,15 @@
 #include <stdlib.h>
 #include <time.h>
 
-typedef unsigned char byte;
+
+#if defined(__APPLE__)
+#include <stdbool.h>
+typedef bool qboolean;
+#else
 typedef enum {false, true}  qboolean;
+#endif
+
+typedef unsigned char byte;
 
 #ifndef NULL
  #define NULL ((void *)0)

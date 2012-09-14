@@ -31,8 +31,12 @@
 #ifndef _QAL_API_H_
  #define _QAL_API_H_
 
+ #if defined (__APPLE__)
+ #include <OpenAL/al.h>
+ #else
  #include <AL/al.h>
  #include <AL/efx.h>
+ #endif
 
 /* Function pointers used to tie
 *  the qal API to the OpenAL API */
@@ -109,10 +113,12 @@ extern LPALDOPPLERFACTOR qalDopplerFactor;
 extern LPALDOPPLERVELOCITY qalDopplerVelocity;
 extern LPALSPEEDOFSOUND qalSpeedOfSound;
 extern LPALDISTANCEMODEL qalDistanceModel;
+#if !defined (__APPLE__)
 extern LPALGENFILTERS qalGenFilters;
 extern LPALFILTERI qalFilteri;
 extern LPALFILTERF qalFilterf;
 extern LPALDELETEFILTERS qalDeleteFilters;
+#endif
 
 /*
  * Gives information over the OpenAL

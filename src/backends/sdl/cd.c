@@ -31,6 +31,8 @@
 
 #ifdef _WIN32
  #include "SDL/SDL.h"
+#elif defined(__APPLE__)
+ #include <SDL/SDL.h>
 #else
  #include "SDL.h"
 #endif

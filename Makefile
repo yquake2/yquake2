@@ -34,18 +34,18 @@ WITH_OGG:=yes
 
 # Enables the optional OpenAL sound system.
 # To use it your system needs libopenal.so.1
-# or openal32.dll (we recommend openal-soft) 
+# or openal32.dll (we recommend openal-soft)
 # installed
 WITH_OPENAL:=yes
 
-# Enables retexturing support. Adds 
+# Enables retexturing support. Adds
 # a dependency to libjpeg
 WITH_RETEXTURING:=yes
 
 # Set the gamma via X11 and not via SDL. This works
 # around problems in some SDL version. Adds dependencies
 # to pkg-config, libX11 and libXxf86vm. Unsupported on
-# Windows.
+# Windows and OS X.
 WITH_X11GAMMA:=no
 
 # Enables opening of ZIP files (also known as .pk3 paks).
@@ -55,10 +55,24 @@ WITH_ZIP:=yes
 # Enable systemwide installation of game assets
 WITH_SYSTEMWIDE:=no
 
-# This will set the default SYSTEMDIR, a non-empty string 
+# This will set the default SYSTEMDIR, a non-empty string
 # would actually be used. On Windows normals slashes (/)
 # instead of backslashed (\) should be used!
 WITH_SYSTEMDIR:=
+
+# This will set the architectures of the OSX-binaries.
+# You have to make sure your libs/frameworks supports
+# these architectures to build an universal ppc-compatible
+# one would add -arch ppc for example, but I did not tested
+# it!
+OSX_ARCH := -arch i386 -arch x86_64
+
+# This will set the build options to create an MacOS .app-bundle.
+# The app-bundle itself will not be created, but the runtime paths
+# will be set to expect the linked Frameworks in *.app/Contents/
+# Frameworks and the game-data will be expected in # *.app/
+# Contents/Resources
+OSX_APP := no
 
 # ====================================================== #
 #     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
@@ -75,8 +89,8 @@ endif
 ifeq ($(OSTYPE), Windows)
 # At this time only i386 is supported on Windows
 # (amd64 works, but building an 64 bit executable
-#  is not that easy. Especially SDL and OpenAL are
-#  somewhat problematic)
+# is not that easy. Especially SDL and OpenAL are
+# somewhat problematic)
 ARCH := i386
 else
 # Some platforms call it "amd64" and some "x86_64"
@@ -106,9 +120,16 @@ endif
 #  CHANGE THIS, since it's our only chance to debug this
 #  crap when random crashes happen!
 #
-# -MMD to generate header dependencies.
+# -MMD to generate header dependencies. (They cannot be
+#  generated if building universal binaries on OSX)
+ifeq ($(OSTYPE), Darwin)
+CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
+		  -Wall -pipe -g
+CFLAGS += $(OSX_ARCH)
+else
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 		  -Wall -pipe -g -MMD
+endif
 
 # ----------
 
@@ -124,16 +145,22 @@ endif
 
 # Extra CFLAGS for SDL
 ifneq ($(OSTYPE), Windows)
-SDLCFLAGS := $(shell sdl-config --cflags)
+ ifeq ($(OSTYPE), Darwin)
+  SDLCFLAGS :=
+ else
+  SDLCFLAGS := $(shell sdl-config --cflags)
+ endif
 endif
 
 # ----------
 
 # Extra CFLAGS for X11
 ifneq ($(OSTYPE), Windows)
+ifneq ($(OSTYPE), Darwin)
 ifeq ($(WITH_X11GAMMA),yes)
 X11CFLAGS := $(shell pkg-config x11 --cflags)
 X11CFLAGS += $(shell pkg-config xxf86vm --cflags)
+endif
 endif
 endif
 
@@ -146,6 +173,8 @@ else ifeq ($(OSTYPE),FreeBSD)
 INCLUDE := -I/usr/local/include
 else ifeq ($(OSTYPE),OpenBSD)
 INCLUDE := -I/usr/local/include
+else ifeq ($(OSTYPE),Darwin)
+INCLUDE :=
 endif
 
 # ----------
@@ -159,6 +188,8 @@ else ifeq ($(OSTYPE),OpenBSD)
 LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),Windows)
 LDFLAGS := -lws2_32 -lwinmm
+else ifeq ($(OSTYPE), Darwin)
+LDFLAGS := $(OSX_ARCH) -lm
 endif
 
 # ----------
@@ -166,6 +197,8 @@ endif
 # Extra LDFLAGS for SDL
 ifeq ($(OSTYPE), Windows)
 SDLLDFLAGS := -lSDL
+else ifeq ($(OSTYPE), Darwin)
+SDLLDFLAGS := -framework SDL -framework OpenGL -framework Cocoa
 else
 SDLLDFLAGS := $(shell sdl-config --libs)
 endif
@@ -174,9 +207,11 @@ endif
 
 # Extra LDFLAGS for X11
 ifneq ($(OSTYPE), Windows)
+ifneq ($(OSTYPE), Darwin)
 ifeq ($(WITH_X11GAMMA),yes)
 X11LDFLAGS := $(shell pkg-config x11 --libs)
 X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
+endif
 endif
 endif
 
@@ -218,7 +253,7 @@ endif
 ifeq ($(OSTYPE), Windows)
 clean:
 	@echo "===> CLEAN"
-	@-rmdir /S /Q release build 
+	@-rmdir /S /Q release build
 else
 clean:
 	@echo "===> CLEAN"
@@ -269,18 +304,32 @@ build/client/%.o: %.c
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
+ifeq ($(OSTYPE), Darwin)
+build/client/%.o : %.m
+	@echo "===> CC $<"
+	${Q}mkdir -p $(@D)
+	${Q}$(CC) $(OSX_ARCH) $(USE_APP_RESOURCES) -x objective-c -c $< -o $@
+endif
+
 ifeq ($(WITH_CDA),yes)
 release/quake2 : CFLAGS += -DCDA
 endif
 
 ifeq ($(WITH_OGG),yes)
 release/quake2 : CFLAGS += -DOGG
+ifeq ($(OSTYPE), Darwin)
+release/quake2 : LDFLAGS += -framework Vorbis -framework Ogg
+else
 release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg
+endif
 endif
 
 ifeq ($(WITH_OPENAL),yes)
 ifeq ($(OSTYPE), OpenBSD)
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so"'
+else ifeq ($(OSTYPE), Darwin)
+release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"/System/Library/Frameworks/OpenAL.framework/OpenAL"'
+release/quake2 : LDFLAGS += -framework OpenAL
 else
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
 endif
@@ -291,7 +340,14 @@ release/quake2 : CFLAGS += -DZIP -DNOUNCRYPT
 release/quake2 : LDFLAGS += -lz
 endif
 endif
- 
+
+ifeq ($(OSTYPE), Darwin)
+ifeq ($(OSX_APP), yes)
+release/quake2 : USE_APP_RESOURCES = -DUSE_APP_RESOURCES
+release/quake2 : LDFLAGS += -Xlinker -rpath -Xlinker @loader_path/../Frameworks
+endif
+endif
+
 # ----------
 
 # The server
@@ -310,7 +366,7 @@ release/q2ded.exe : CFLAGS += -DDEDICATED_ONLY
 release/q2ded.exe : LDFLAGS += -lz
 
 ifeq ($(WITH_ZIP),yes)
-release/q2ded.exe : CFLAGS += -DZIP -DNOUNCRYPT  
+release/q2ded.exe : CFLAGS += -DZIP -DNOUNCRYPT
 release/q2ded.exe : LDFLAGS += -lz
 endif
 else
@@ -322,10 +378,9 @@ server:
 build/server/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $< 
+	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 release/q2ded : CFLAGS += -DDEDICATED_ONLY
-release/q2ded : LDFLAGS += -lz
 
 ifeq ($(WITH_ZIP),yes)
 release/q2ded : CFLAGS += -DZIP -DNOUNCRYPT
@@ -372,11 +427,16 @@ release/ref_gl.so : CFLAGS += -DX11GAMMA
 endif
 
 ifeq ($(WITH_RETEXTURING),yes)
-release/ref_gl.so : CFLAGS += -DRETEXTURE
-release/ref_gl.so : LDFLAGS += -ljpeg
+ release/ref_gl.so : CFLAGS += -DRETEXTURE
+ ifeq ($(OSTYPE), Darwin)
+  release/ref_gl.so : LDFLAGS += -framework libjpeg
+ else
+  release/ref_gl.so : LDFLAGS += -ljpeg
+ endif
 endif
+
 endif
- 
+
 # ----------
 
 # The baseq2 game
@@ -406,7 +466,7 @@ build/baseq2/%.o: %.c
 release/baseq2/game.so : CFLAGS += -fPIC
 release/baseq2/game.so : LDFLAGS += -shared
 endif
- 
+
 # ----------
 
 # Used by the game
@@ -539,6 +599,10 @@ CLIENT_OBJS_ += \
 	src/backends/unix/system.o
 endif
 
+ifeq ($(OSTYPE), Darwin)
+CLIENT_OBJS_ += src/backends/sdl_osx/SDLMain.o
+endif
+
 # ----------
 
 # Used by the server
@@ -577,7 +641,7 @@ ifeq ($(OSTYPE), Windows)
 SERVER_OBJS_ += \
 	src/backends/windows/mem.o \
 	src/backends/windows/network.o \
-	src/backends/windows/system.o	
+	src/backends/windows/system.o
 else
 SERVER_OBJS_ += \
 	src/backends/unix/hunk.o \
@@ -658,7 +722,7 @@ release/quake2 : $(CLIENT_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 endif
- 
+
 # release/q2ded
 ifeq ($(OSTYPE), Windows)
 release/q2ded.exe : $(SERVER_OBJS) icon
@@ -675,12 +739,16 @@ ifeq ($(OSTYPE), Windows)
 release/ref_gl.dll : $(OPENGL_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+else ifeq ($(OSTYPE), Darwin)
+release/ref_gl.so : $(OPENGL_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
 release/ref_gl.so : $(OPENGL_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
 endif
- 
+
 # release/baseq2/game.so
 ifeq ($(OSTYPE), Windows)
 release/baseq2/game.dll : $(GAME_OBJS)
@@ -691,5 +759,5 @@ release/baseq2/game.so : $(GAME_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
 endif
- 
+
 # ----------

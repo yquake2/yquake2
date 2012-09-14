@@ -27,9 +27,15 @@
 
 #include "../../refresh/header/local.h"
 #include "../generic/header/glwindow.h"
+#if defined(__APPLE__)
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 
 #ifdef _WIN32
+#include <SDL/SDL.h>
+#elif defined(__APPLE__)
 #include <SDL/SDL.h>
 #else
 #include <SDL.h>

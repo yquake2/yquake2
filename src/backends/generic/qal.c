@@ -32,9 +32,14 @@
 
 #ifdef USE_OPENAL
 
+#if defined (__APPLE__)
+#include <OpenAL/al.h>
+#include <OpenAL/alc.h>
+#else
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
+#endif
 
 #include "../../common/header/common.h"
 #include "header/qal.h"
@@ -142,10 +147,12 @@ LPALDOPPLERFACTOR qalDopplerFactor;
 LPALDOPPLERVELOCITY qalDopplerVelocity;
 LPALSPEEDOFSOUND qalSpeedOfSound;
 LPALDISTANCEMODEL qalDistanceModel;
+#if !defined (__APPLE__)
 LPALGENFILTERS qalGenFilters;
 LPALFILTERI qalFilteri;
 LPALFILTERF qalFilterf;
 LPALDELETEFILTERS qalDeleteFilters;
+#endif
 
 /*
  * Gives information over the OpenAL
@@ -316,10 +323,12 @@ QAL_Shutdown()
 	qalDopplerVelocity = NULL;
 	qalSpeedOfSound = NULL;
 	qalDistanceModel = NULL;
+#if !defined (__APPLE__)	
 	qalGenFilters = NULL;
 	qalFilteri = NULL;
 	qalFilterf = NULL;
 	qalDeleteFilters = NULL;
+#endif
 
 	/* Unload the shared lib */
 	Sys_FreeLibrary(handle);
@@ -445,10 +454,12 @@ QAL_Init()
 	qalDopplerVelocity = Sys_GetProcAddress(handle, "alDopplerVelocity");
 	qalSpeedOfSound = Sys_GetProcAddress(handle, "alSpeedOfSound");
 	qalDistanceModel = Sys_GetProcAddress(handle, "alDistanceModel");
+#if !defined (__APPLE__)	
 	qalGenFilters = Sys_GetProcAddress(handle, "alGenFilters");
 	qalFilteri = Sys_GetProcAddress(handle, "alFilteri");
 	qalFilterf = Sys_GetProcAddress(handle, "alFilterf");
 	qalDeleteFilters = Sys_GetProcAddress(handle, "alDeleteFilters");
+#endif
 
 	/* Open the OpenAL device */
     Com_Printf("...opening OpenAL device:");
