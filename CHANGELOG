@@ -1,3 +1,6 @@
+Quake II 5.00 to 5.10
+- Support for OS X. (by W. Beser)
+
 Quake II 4.21 to 5.00
 - Backport to Microsoft Windows.
 - Support for OpenBSD. (by Jonathan Gray)
