@@ -47,23 +47,7 @@ Some hints:
 
 =============================================================================== 
 
-1. Port Yamagi Quake II to Mac OS X
-
-Difficulty: Medium
-Knowledge: Mac OS X API, good knowledge of src/backends/unix/
-
-A port to Mac OS X is a frequently requested feature but can't be done
-by the Yamagi Quake II developers due to the lack of hardware. Since Mac
-OS X is just another unixoid platform porting the game should be easy,
-the most notable difference to FreeBSD and Linux is the MACH-O binary
-format. So at least all calls to dlopen(), dlsym() and dlclose() must be
-replaced by the corresponding Mac OS X functions. All other platform
-dependend stuff should be hidden by SDL, but there may be some SDL bugs
-on OS X.
-
-=============================================================================== 
-
-2. Port Yamagi Quake II to new unixoid platforms (for example DragonflyBSD, 
+1. Port Yamagi Quake II to new unixoid platforms (for example DragonflyBSD, 
    NetBSD, Solaris, etc.)
 
 Difficulty: Medium
@@ -76,7 +60,7 @@ Ports to new unixoid operating systems should be easy. In most cases only some
 
 =============================================================================== 
 
-3. Source code cleanup
+2. Source code cleanup
 
 Difficulty: Hard
 Knowledge: Good knowledge of the Yamagi Quake II source
@@ -88,7 +72,7 @@ can be done at one module (e.g. client, server, refresher, game, etc) at a time.
 
 =============================================================================== 
 
-4. Addon cleanup
+3. Addon cleanup
 
 Difficulty: Medium
 Knowledge: How to debug hard to read code
@@ -101,7 +85,7 @@ Especially the coop-support of both addons is still fragile at best.
 
 =============================================================================== 
 
-5. Finish the port of Zaero
+4. Finish the port of Zaero
 
 Difficulty: Hard
 Knowledge: How to work with broken code
@@ -114,7 +98,7 @@ testing, have fun while playing. :)
 
 =============================================================================== 
 
-6. Port Quake II to various consoles (especially the Nintendo Wii)
+5. Port Quake II to various consoles (especially the Nintendo Wii)
 
 Difficulty: Hard
 Knowledge: How to port games to the console, Knowledge of the platform
@@ -130,7 +114,7 @@ open source or alternative consoles straight forward.
 
 ===============================================================================
 
-7. Add head tracking to Quake II
+6. Add head tracking to Quake II
 
 Difficulty: Hard
 Knowledge: How to design APIs and integrate new paradigms into an old codebase
