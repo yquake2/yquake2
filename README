@@ -273,9 +273,9 @@ Now you are ready to start your brand new Quake II. Have fun.
 
 3. Installation on OS X
 =======================
-Yamagi Quake II has full support for Microsoft Windows. All features are
+Yamagi Quake II has full support for Apple OS X. All features are
 supported, including the IPv6 network code and the OpenAL sound backend.
-Installation can be done by using the binary release (this is highly 
+Installation can be done by using the binary release (this is highly
 recommended) or by compiling the source.
 
 3.1 Supported Systems
@@ -320,7 +320,7 @@ is needed for the demo, in fact it would break it.
 
 3.4 Addons
 ----------
-The addons are currently unsupported on OS X. The build but are crashing
+The addons are currently unsupported on OS X. They build but are crashing
 as soon as a map is loaded. Patches are welcome.
  
 3.5 Binary Installation
