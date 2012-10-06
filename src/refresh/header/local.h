@@ -148,7 +148,6 @@ void GL_BeginRendering(int *x, int *y, int *width, int *height);
 void GL_EndRendering(void);
 
 void R_SetDefaultState(void);
-void R_UpdateSwapInterval(void);
 
 extern float gldepthmin, gldepthmax;
 

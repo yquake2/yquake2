@@ -1464,9 +1464,6 @@ R_BeginFrame(float camera_separation)
 		gl_texturesolidmode->modified = false;
 	}
 
-	/* swapinterval stuff */
-	R_UpdateSwapInterval();
-
 	/* clear screen if desired */
 	R_Clear();
 }

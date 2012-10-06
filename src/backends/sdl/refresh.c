@@ -229,10 +229,15 @@ GLimp_InitGraphics(qboolean fullscreen)
 	/* Set the icon */
 	SetSDLIcon();
 
+	/* Enable vsync */
+	if (gl_swapinterval->value)
+	{
+		SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
+	}
+
 	while (1)
 	{
-		if ((surface =
-				 SDL_SetVideoMode(vid.width, vid.height, 0, flags)) == NULL)
+		if ((surface = SDL_SetVideoMode(vid.width, vid.height, 0, flags)) == NULL)
 		{
 			if (counter == 1)
 			{

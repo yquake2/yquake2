@@ -219,16 +219,5 @@ R_SetDefaultState(void)
 
 		R_SetTexturePalette(d_8to24table);
 	}
-
-	R_UpdateSwapInterval();
-}
-
-void
-R_UpdateSwapInterval(void)
-{
-	if (gl_swapinterval->modified)
-	{
-		gl_swapinterval->modified = false;
-	}
 }
 
