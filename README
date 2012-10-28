@@ -731,4 +731,12 @@ Why isn't there an "underwater sound effect" when playing under OS X?
  - That's a limitation of OS X. Apples OpenAL implementation doesn't
    support sound effects.
 
+Why is the FOV different than in id Softwares client?
+ - id Softwares client was designed to work an 4:3 screens only. Setting
+   the FOV kept the aspect ratio, resulting in minor distortion. Since
+   version 5.10 Yamagi Quake II calculates the horizontal and vertical
+   FOV based on the current aspect ratio, avoid distortion. You can
+   archive the old and wrong behavior by selecting an aspect ration other
+   than "auto" in the video menu or setting the "horplus" cvar to "0".
+
 ==============================================================================
