@@ -113,8 +113,24 @@ ApplyChanges(void *unused)
 		Cvar_SetValue("gl_mode", -1);
 	}
 
-	/* fov */
+	/* horplus */
 	if (s_aspect_list.curvalue == 0)
+	{
+		if (horplus->value != 1)
+		{
+			Cvar_SetValue("horplus", 1);
+		}
+	}
+	else
+	{
+		if (horplus->value != 0)
+		{
+			Cvar_SetValue("horplus", 0);
+		}
+	}
+
+	/* fov */
+	if (s_aspect_list.curvalue == 0 || s_aspect_list.curvalue == 1)
 	{
 		if (fov->value != 90)
 		{
@@ -122,7 +138,15 @@ ApplyChanges(void *unused)
 			Cvar_SetValue("fov", 90);
 		}
 	}
-	else if (s_aspect_list.curvalue == 1)
+	else if (s_aspect_list.curvalue == 2)
+	{
+		if (fov->value != 86)
+		{
+			/* Restarts automatically */
+			Cvar_SetValue("fov", 86);
+		}
+	}
+	else if (s_aspect_list.curvalue == 3)
 	{
 		if (fov->value != 100)
 		{
@@ -130,12 +154,12 @@ ApplyChanges(void *unused)
 			Cvar_SetValue("fov", 100);
 		}
 	}
-	else if (s_aspect_list.curvalue == 2)
+	else if (s_aspect_list.curvalue == 4)
 	{
-		if (fov->value != 105)
+		if (fov->value != 106)
 		{
 			/* Restarts automatically */
-			Cvar_SetValue("fov", 105);
+			Cvar_SetValue("fov", 106);
 		}
 	}
  
@@ -185,7 +209,9 @@ VID_MenuInit(void)
 	};
 
 	static const char *aspect_names[] = {
+		"Auto",
 		"4:3",
+		"5:4",
 		"16:10",
 		"16:9",
 		"Custom",
@@ -219,26 +245,39 @@ VID_MenuInit(void)
 				CVAR_USERINFO | CVAR_ARCHIVE);
 	}
 
+	if (!horplus)
+	{
+		horplus = Cvar_Get("horplus", "1", CVAR_ARCHIVE);
+	}
+
 	if (!fov)
 	{
 		fov = Cvar_Get("fov", "90",  CVAR_USERINFO | CVAR_ARCHIVE);
 	}
 
-	if (fov->value == 90)
+	if (horplus->value == 1)
 	{
 		s_aspect_list.curvalue = 0;
 	}
-	else if (fov->value == 100)
+	else if (fov->value == 90)
 	{
 		s_aspect_list.curvalue = 1;
 	}
-	else if (fov->value == 105)
+	else if (fov->value == 86)
 	{
 		s_aspect_list.curvalue = 2;
 	}
-	else
+	else if (fov->value == 100)
 	{
 		s_aspect_list.curvalue = 3;
+	}
+	else if (fov->value == 106)
+	{
+		s_aspect_list.curvalue = 4;
+	}
+	else
+	{
+		s_aspect_list.curvalue = 5;
 	}
 
 	/* custom mode */
@@ -270,7 +309,7 @@ VID_MenuInit(void)
 	s_mode_list.generic.y = 0;
 	s_mode_list.itemnames = resolutions;
 
- 	s_aspect_list.generic.type = MTYPE_SPINCONTROL;
+	s_aspect_list.generic.type = MTYPE_SPINCONTROL;
 	s_aspect_list.generic.name = "aspect ratio";
 	s_aspect_list.generic.x = 0;
 	s_aspect_list.generic.y = 10;

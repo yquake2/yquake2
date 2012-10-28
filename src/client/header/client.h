@@ -287,6 +287,7 @@ extern	cvar_t	*cl_lightlevel;
 extern	cvar_t	*cl_paused;
 extern	cvar_t	*cl_timedemo;
 extern	cvar_t	*cl_vwep;
+extern	cvar_t  *horplus;
 
 typedef struct
 {

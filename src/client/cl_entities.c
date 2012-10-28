@@ -24,6 +24,7 @@
  * =======================================================================
  */
 
+#include <math.h>
 #include "header/client.h"
 
 extern struct model_s *cl_mod_powerscreen;
@@ -725,13 +726,35 @@ CL_AddViewWeapon(player_state_t *ps, player_state_t *ops)
 }
 
 /*
+ * Adapts a 4:3 aspect FOV to the current aspect (Hor+)
+ */
+static inline float
+AdaptFov(float fov, float w, float h)
+{
+	static const float pi = M_PI; /* float instead of double */
+
+	if (w <= 0 || h <= 0)
+		return fov;
+
+	/*
+	 * Formula:
+	 *
+	 * fov = 2.0 * atan(width / height * 3.0 / 4.0 * tan(fov43 / 2.0))
+	 *
+	 * The code below is equivalent but precalculates a few values and
+	 * converts between degrees and radians when needed.
+	 */
+	return (atanf(tanf(fov / 360.0f * pi) * (w / h * 0.75f)) / pi * 360.0f);
+}
+
+/*
  * Sets cl.refdef view values
  */
 void
 CL_CalcViewValues(void)
 {
 	int i;
-	float lerp, backlerp;
+	float lerp, backlerp, ifov;
 	frame_t *oldframe;
 	player_state_t *ps, *ops;
 
@@ -820,7 +843,15 @@ CL_CalcViewValues(void)
 	AngleVectors(cl.refdef.viewangles, cl.v_forward, cl.v_right, cl.v_up);
 
 	/* interpolate field of view */
-	cl.refdef.fov_x = ops->fov + lerp * (ps->fov - ops->fov);
+	ifov = ops->fov + lerp * (ps->fov - ops->fov);
+	if (horplus->value)
+	{
+		cl.refdef.fov_x = AdaptFov(ifov, cl.refdef.width, cl.refdef.height);
+	}
+	else
+	{
+		cl.refdef.fov_x = ifov;
+	}
 
 	/* don't interpolate blend color */
 	for (i = 0; i < 4; i++)
