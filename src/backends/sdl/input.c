@@ -40,7 +40,7 @@
 #define MOUSE_MAX 3000
 #define MOUSE_MIN 40
 
-static int old_windowed_mouse;
+static qboolean mouse_grabbed;
 static cvar_t *windowed_mouse;
 static cvar_t *in_grab;
 static int mouse_x, mouse_y;
@@ -469,30 +469,41 @@ IN_Update(void)
 	}
 
 	/* Grab and ungrab the mouse if the
-	 * console is opened */
+	 * console or the menu is opened */
 	if (in_grab->value == 2)
 	{
-		if (old_windowed_mouse != windowed_mouse->value)
+		if (windowed_mouse->value)
 		{
-			old_windowed_mouse = windowed_mouse->value;
-
-			if (!windowed_mouse->value)
-			{
-				SDL_WM_GrabInput(SDL_GRAB_OFF);
-			}
-			else
+			if (!mouse_grabbed)
 			{
 				SDL_WM_GrabInput(SDL_GRAB_ON);
+				mouse_grabbed = true;
+			}
+		}
+		else
+		{
+			if (mouse_grabbed)
+			{
+				SDL_WM_GrabInput(SDL_GRAB_OFF);
+				mouse_grabbed = false;
 			}
 		}
 	}
 	else if (in_grab->value == 1)
 	{
-		SDL_WM_GrabInput(SDL_GRAB_ON);
+		if (!mouse_grabbed)
+		{
+			SDL_WM_GrabInput(SDL_GRAB_ON);
+			mouse_grabbed = true;
+		}
 	}
 	else
 	{
-		SDL_WM_GrabInput(SDL_GRAB_OFF);
+		if (mouse_grabbed)
+		{
+			SDL_WM_GrabInput(SDL_GRAB_OFF);
+			mouse_grabbed = false;
+		}
 	}
 
 	/* Process the key events */
@@ -605,6 +616,14 @@ IN_BackendInit(in_state_t *in_state_p)
 	/* SDL stuff */
 	SDL_EnableUNICODE(0);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+	if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON)
+	{
+		mouse_grabbed = true;
+	}
+	else
+	{
+		mouse_grabbed = false;
+	}
 
 	windowed_mouse = ri.Cvar_Get("windowed_mouse", "1",
 			CVAR_USERINFO | CVAR_ARCHIVE);
