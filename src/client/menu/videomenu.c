@@ -43,7 +43,6 @@ static cvar_t *gl_picmip;
 static cvar_t *gl_ext_palettedtexture;
 
 static cvar_t *fov;
-static cvar_t *windowed_mouse;
 
 static menuframework_s s_opengl_menu;
 
@@ -237,12 +236,6 @@ VID_MenuInit(void)
 	{
 		gl_ext_palettedtexture = Cvar_Get("gl_ext_palettedtexture",
 				"0", CVAR_ARCHIVE);
-	}
-
-	if (!windowed_mouse)
-	{
-		windowed_mouse = Cvar_Get("windowed_mouse", "1",
-				CVAR_USERINFO | CVAR_ARCHIVE);
 	}
 
 	if (!horplus)

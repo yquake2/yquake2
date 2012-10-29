@@ -1411,7 +1411,6 @@ ConsoleFunc(void *unused)
 
 	if (cl.attractloop)
 	{
-		Cvar_SetValue("windowed_mouse", 0);
 		Cbuf_AddText("killserver\n");
 		return;
 	}
