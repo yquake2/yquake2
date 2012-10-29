@@ -692,7 +692,7 @@ CL_FixCvarCheats(void)
 void
 CL_UpdateWindowedMouse(void)
 {
-	if (cls.key_dest == key_console ||
+	if (cls.key_dest == key_menu || cls.key_dest == key_console ||
 		(cls.key_dest == key_game && cls.state == ca_disconnected))
 	{
 		Cvar_SetValue("windowed_mouse", 0);
