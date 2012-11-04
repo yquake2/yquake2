@@ -27,8 +27,14 @@
 #ifdef RETEXTURE
 
 #include "../header/local.h"
+
+#ifdef __APPLE__
+#include <libjpeg/jpeglib.h>
+#include <libjpeg/jerror.h>
+#else
 #include <jpeglib.h>
 #include <jerror.h>
+#endif
 
 void jpeg_memory_src(j_decompress_ptr cinfo,
 		unsigned char *inbuffer,
