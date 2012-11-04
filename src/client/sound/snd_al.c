@@ -48,7 +48,10 @@ qboolean streamPlaying;
 int active_buffers;
 
 static ALuint streamSource;
+
+#ifndef __APPLE__
 static ALuint underwaterFilter;
+#endif
 
 static ALuint s_srcnums[MAX_CHANNELS - 1];
 static int s_framecount;
