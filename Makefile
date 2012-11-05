@@ -145,11 +145,11 @@ endif
 
 # Extra CFLAGS for SDL
 ifneq ($(OSTYPE), Windows)
- ifeq ($(OSTYPE), Darwin)
-  SDLCFLAGS :=
- else
-  SDLCFLAGS := $(shell sdl-config --cflags)
- endif
+ifeq ($(OSTYPE), Darwin)
+SDLCFLAGS :=
+else
+SDLCFLAGS := $(shell sdl-config --cflags)
+endif
 endif
 
 # ----------
@@ -427,12 +427,12 @@ release/ref_gl.so : CFLAGS += -DX11GAMMA
 endif
 
 ifeq ($(WITH_RETEXTURING),yes)
- release/ref_gl.so : CFLAGS += -DRETEXTURE
- ifeq ($(OSTYPE), Darwin)
-  release/ref_gl.so : LDFLAGS += -framework libjpeg
- else
-  release/ref_gl.so : LDFLAGS += -ljpeg
- endif
+release/ref_gl.so : CFLAGS += -DRETEXTURE
+ifeq ($(OSTYPE), Darwin)
+release/ref_gl.so : LDFLAGS += -framework libjpeg
+else
+release/ref_gl.so : LDFLAGS += -ljpeg
+endif
 endif
 
 endif
@@ -474,7 +474,7 @@ GAME_OBJS_ = \
 	src/common/shared/flash.o \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o \
-    src/game/g_ai.o \
+	src/game/g_ai.o \
 	src/game/g_chase.o \
 	src/game/g_cmds.o \
 	src/game/g_combat.o \
@@ -518,14 +518,14 @@ GAME_OBJS_ = \
 	src/game/player/trail.o \
 	src/game/player/view.o \
 	src/game/player/weapon.o \
-    src/game/savegame/savegame.o
+	src/game/savegame/savegame.o
 
 # ----------
 
 # Used by the client
 CLIENT_OBJS_ := \
 	src/backends/generic/qal.o \
-    src/backends/generic/vid.o \
+	src/backends/generic/vid.o \
 	src/backends/sdl/cd.o \
 	src/backends/sdl/sound.o \
 	src/client/cl_cin.o \
@@ -594,8 +594,8 @@ else
 CLIENT_OBJS_ += \
 	src/backends/unix/hunk.o \
 	src/backends/unix/main.o \
- 	src/backends/unix/network.o \
- 	src/backends/unix/signalhandler.o \
+	src/backends/unix/network.o \
+	src/backends/unix/signalhandler.o \
 	src/backends/unix/system.o
 endif
 
@@ -646,8 +646,8 @@ else
 SERVER_OBJS_ += \
 	src/backends/unix/hunk.o \
 	src/backends/unix/main.o \
- 	src/backends/unix/network.o \
- 	src/backends/unix/signalhandler.o \
+	src/backends/unix/network.o \
+	src/backends/unix/signalhandler.o \
 	src/backends/unix/system.o
 endif
 
@@ -675,8 +675,8 @@ OPENGL_OBJS_ = \
 	src/refresh/files/tga.o \
 	src/refresh/files/jpeg.o \
 	src/refresh/files/wal.o \
-    src/common/glob.o \
-    src/common/shared/shared.o
+	src/common/glob.o \
+	src/common/shared/shared.o
 
 ifeq ($(OSTYPE), Windows)
 OPENGL_OBJS_ += \
