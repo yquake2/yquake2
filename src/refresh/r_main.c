@@ -1112,16 +1112,16 @@ R_Init(void *hinstance, void *hWnd)
 	}
 
 	/* Options */
-	Com_Printf("Refresher build options:\n");
+	ri.Con_Printf(PRINT_ALL, "Refresher build options:\n");
 #ifdef RETEXTURE
-	Com_Printf(" + Retexturing support\n");
+	ri.Con_Printf(PRINT_ALL, " + Retexturing support\n");
 #else
-	Com_Printf(" - Retexturing support\n");
+	ri.Con_Printf(PRINT_ALL, " - Retexturing support\n");
 #endif
 #ifdef X11GAMMA
-	Com_Printf(" + Gamma via X11\n");
+	ri.Con_Printf(PRINT_ALL, " + Gamma via X11\n");
 #else
-	Com_Printf(" - Gamma via X11\n");
+	ri.Con_Printf(PRINT_ALL, " - Gamma via X11\n");
 #endif
 
 	ri.Con_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
@@ -1187,7 +1187,7 @@ R_Init(void *hinstance, void *hWnd)
 	if (strstr(gl_config.extensions_string, "GL_EXT_compiled_vertex_array") ||
 		strstr(gl_config.extensions_string, "GL_SGI_compiled_vertex_array"))
 	{
-		ri.Con_Printf(PRINT_ALL, "...enabling GL_EXT_compiled_vertex_array\n");
+		ri.Con_Printf(PRINT_ALL, "...using GL_EXT_compiled_vertex_array\n");
 		qglLockArraysEXT = (void *)GetProcAddressGL("glLockArraysEXT");
 		qglUnlockArraysEXT = (void *)GetProcAddressGL("glUnlockArraysEXT");
 	}
@@ -1200,11 +1200,11 @@ R_Init(void *hinstance, void *hWnd)
 	{
 		if (gl_ext_pointparameters->value)
 		{
+			ri.Con_Printf(PRINT_ALL, "...using GL_EXT_point_parameters\n");
 			qglPointParameterfEXT = (void (APIENTRY *)(GLenum, GLfloat))
 				GetProcAddressGL("glPointParameterfEXT");
 			qglPointParameterfvEXT = (void (APIENTRY *)(GLenum, const GLfloat *))
 				GetProcAddressGL("glPointParameterfvEXT");
-			ri.Con_Printf(PRINT_ALL, "...using GL_EXT_point_parameters\n");
 		}
 		else
 		{
@@ -1230,8 +1230,7 @@ R_Init(void *hinstance, void *hWnd)
 		}
 		else
 		{
-			ri.Con_Printf(PRINT_ALL,
-					"...ignoring GL_EXT_shared_texture_palette\n");
+			ri.Con_Printf(PRINT_ALL, "...ignoring GL_EXT_shared_texture_palette\n");
 		}
 	}
 	else
@@ -1264,8 +1263,7 @@ R_Init(void *hinstance, void *hWnd)
 	{
 		if (qglActiveTextureARB)
 		{
-			ri.Con_Printf(PRINT_ALL,
-					"...GL_SGIS_multitexture deprecated in favor of ARB_multitexture\n");
+			ri.Con_Printf(PRINT_ALL, "...GL_SGIS_multitexture deprecated in favor of ARB_multitexture\n");
 		}
 		else if (gl_ext_multitexture->value)
 		{
@@ -1296,7 +1294,7 @@ R_Init(void *hinstance, void *hWnd)
 	}
 	else
 	{
-		ri.Con_Printf(PRINT_ALL, "..GL_EXT_texture_filter_anisotropic not found\n");
+		ri.Con_Printf(PRINT_ALL, "...GL_EXT_texture_filter_anisotropic not found\n");
 		gl_config.anisotropic = false;
 		gl_config.max_anisotropy = 0.0;
 		ri.Cvar_SetValue("gl_anisotropic_avail", 0.0);
@@ -1308,17 +1306,17 @@ R_Init(void *hinstance, void *hWnd)
 	{
 		if (gl_ext_mtexcombine->value)
 		{
-			Com_Printf("...using GL_ARB_texture_env_combine\n");
+			ri.Con_Printf(PRINT_ALL, "...using GL_ARB_texture_env_combine\n");
 			gl_config.mtexcombine = true;
 		}
 		else
 		{
-			Com_Printf("...ignoring GL_ARB_texture_env_combine\n");
+			ri.Con_Printf(PRINT_ALL, "...ignoring GL_ARB_texture_env_combine\n");
 		}
 	}
 	else
 	{
-		Com_Printf("...GL_ARB_texture_env_combine not found\n");
+		ri.Con_Printf(PRINT_ALL, "...GL_ARB_texture_env_combine not found\n");
 	}
 
 	if (!gl_config.mtexcombine)
@@ -1327,17 +1325,17 @@ R_Init(void *hinstance, void *hWnd)
 		{
 			if (gl_ext_mtexcombine->value)
 			{
-				Com_Printf("...using GL_EXT_texture_env_combine\n");
+				ri.Con_Printf(PRINT_ALL, "...using GL_EXT_texture_env_combine\n");
 				gl_config.mtexcombine = true;
 			}
 			else
 			{
-				Com_Printf("...ignoring GL_EXT_texture_env_combine\n");
+				ri.Con_Printf(PRINT_ALL, "...ignoring GL_EXT_texture_env_combine\n");
 			}
 		}
 		else
 		{
-			Com_Printf("...GL_EXT_texture_env_combine not found\n");
+			ri.Con_Printf(PRINT_ALL, "...GL_EXT_texture_env_combine not found\n");
 		}
 	}
 
@@ -1618,7 +1616,7 @@ R_GetRefAPI(refimport_t rimp)
 
 /*
  * this is only here so the functions in
- * q_shared.c can link
+ * shared.c, mem.c and hunk.c can link
  */
 void
 Sys_Error(char *error, ...)

@@ -241,7 +241,7 @@ GLimp_InitGraphics(qboolean fullscreen)
 		{
 			if (counter == 1)
 			{
-				Sys_Error(PRINT_ALL, "Failed to revert to gl_mode 4. Exiting...\n");
+				ri.Sys_Error(ERR_FATAL, "Failed to revert to gl_mode 4. Exiting...\n");
 				return false;
 			}
 

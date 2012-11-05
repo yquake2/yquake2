@@ -3680,17 +3680,17 @@ QGL_Init(const char *dllname)
 			else
 			{
 				ri.Cvar_Set("gl_driver", LIBGL);
-				Com_Printf("Using %s for OpenGL.\n", LIBGL);
+				ri.Con_Printf(PRINT_ALL, "Using %s for OpenGL.\n", LIBGL);
 			}
 		}
 		else
 		{
-			Com_Printf("Using %s for OpenGL.\n", fn);
+			ri.Con_Printf(PRINT_ALL, "Using %s for OpenGL.\n", fn);
 		}
 	}
 	else
 	{
-		Com_Printf("Using %s for OpenGL.\n", dllname);
+		ri.Con_Printf(PRINT_ALL, "Using %s for OpenGL.\n", dllname);
 	}
 
 	qglAccum = dllAccum = ri.Sys_GetProcAddress(glw_state.OpenGLLib, "glAccum");

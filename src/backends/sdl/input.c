@@ -629,7 +629,7 @@ IN_BackendInit(in_state_t *in_state_p)
 			CVAR_USERINFO | CVAR_ARCHIVE);
 	in_grab = ri.Cvar_Get("in_grab", "2", CVAR_ARCHIVE);
 
-	Com_Printf("Input initialized.\n");
+	ri.Con_Printf(PRINT_ALL, "Input initialized.\n");
 }
 
 /*
@@ -641,7 +641,7 @@ IN_BackendShutdown(void)
 	ri.Cmd_RemoveCommand("+mlook");
 	ri.Cmd_RemoveCommand("-mlook");
 	ri.Cmd_RemoveCommand("force_centerview");
-	Com_Printf("Input shut down.\n");
+	ri.Con_Printf(PRINT_ALL, "Input shut down.\n");
 }
 
 /*
