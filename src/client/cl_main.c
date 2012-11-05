@@ -693,7 +693,7 @@ void
 CL_UpdateWindowedMouse(void)
 {
 	if (cls.key_dest == key_menu || cls.key_dest == key_console ||
-		(cls.key_dest == key_game && cls.state == ca_disconnected))
+		(cls.key_dest == key_game && cls.state != ca_active && !cls.disable_screen))
 	{
 		Cvar_SetValue("windowed_mouse", 0);
 	}
