@@ -6,14 +6,14 @@
 
 ===============================================================================
 
-This is the Yamagi Quake II Client, an enhanced Version of id Software's
-Quake II. The main focus is single player, the gameplay and the graphics are
+This is the Yamagi Quake II Client, an enhanced Version of id Software's Quake
+II. The main focus is single player, the gameplay and the graphics are
 unchanged, but many bugs were fixed. Unlike most other Quake II ports Yamagi
 Quake II is full 64 bit clean so it works perfectly on modern amd64 (x86_64)
-processors and operating systems. This code should run on Windows XP or higher
-and on most unix-like operating systems (only FreeBSD, Linux and OpenBSD are
-officially supported and tested, for other systems you'd at least have to edit
-the Makefile), just type "make" or "gmake" to compile.
+processors and operating systems. This code should run on Windows XP or later,
+Mac OS X 10.6 or higher and on most unix-like operating systems (only FreeBSD,
+Linux and OpenBSD are officially supported and tested, for other systems you'd
+at least have to edit the Makefile), just type "make" or "gmake" to compile.
 
 This code is based upon Icculus Quake II, which itself is built upon id
 Software's original code drop. Additional code and patches by many contributers
@@ -47,6 +47,8 @@ Content of this file:
    3.3 Demo Version
    3.4 Addons
    3.5 Binary Installation
+   3.6 Compiling
+   3.7 Default Configuration
 
  4. OGG/Vorbis playback
    4.1 Setup for the original soundtrack
@@ -107,19 +109,20 @@ zip file. Now delete the following files and directories:
 - xatrix/gamex86.dll
 - rogue/gamex86.dll
 
-Now put the Quake II CD-ROM into your cd drive and copy the file "pak0.pak" and
-the directory "video/" to the "baseq2/" directory of your installation.
+Now put the Quake II CD-ROM into your cd drive and copy the file "pak0.pak"
+and the directory "video/" to the "baseq2/" directory of your installation.
 
 1.3 Demo Version:
 -----------------
 If you haven't got Quake II, try the demo version. Get it here:
 ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe
 
-Unzip this file (again, it's a self-extracting zip file). Create a new 
-"quake2/" directory with a "baseq2/" sub-directory and put the "pak0.pak" 
-and the "players/" sub-directory, you can find them within the unzipped 
-files (in Install/Data/baseq2/), in your "baseq2/" directory. No patching
-is needed for the demo, in fact it would break it.
+Unzip this file (again, it's a self-extracting zip file). Create a new
+"quake2/" directory with a "baseq2/" sub-directory and put the
+"pak0.pak" and the "players/" sub-directory into it - you can find them
+within the unzipped files in Install/Data/baseq2/ -  in your "baseq2/"
+directory. No patching is needed for the demo, in fact it would break
+it.
 
 1.4 Addons
 ----------
@@ -202,7 +205,7 @@ the following files and directories:
 - xatrix\gamex86.dll
 - rogue\gamex86.dll
 
-Now put the Quake II CD-ROM into your cd drive and cancel the installtion. 
+Now put the Quake II CD-ROM into your cd drive and cancel the installation. 
 Copy "pak0.pak" and the directory "video\" to the "baseq2\" directory of your
 installation.
 
@@ -258,14 +261,15 @@ installation preserving the directory structure:
 You'll need a "openal32.dll" and an "SDL.dll" next to "quake2.exe". You can use
 and rename the OpenAL DLL that came with OpenAL Soft. We recommend to use a
 "SDL.dll" from http://libsdl.org and not the one supplied with Nuwens MinGW
-distribution.
+distribution. Known to be good DLLs can be found in the stuff/win32-libs 
+directory of the source code distribution.
 
 2.7 Default Configuration
 -------------------------
 Quake II ships with an old and for today standards "insane" default
 configuration. This is no problem since you can alter everything. To make your
 life easier Yamagi Quake II contains an updated default configuration.
-If you want to use it just copy "stuff\yq2.cfg" to your "baseq2/" folder.
+If you want to use it just copy "stuff\yq2.cfg" to your "baseq2\" folder.
 
 Now you are ready to start your brand new Quake II. Have fun.
 
@@ -305,9 +309,8 @@ the following files and directories:
 - xatrix\gamex86.dll
 - rogue\gamex86.dll
 
-Now put the Quake II CD-ROM into your cd drive and cancel the installtion. 
-Copy "pak0.pak" and the directory "video\" to the "baseq2\" directory of your
-installation.
+Now put the Quake II CD-ROM into your cd drive and copy "pak0.pak" and
+the directory "video\" to the "baseq2\" directory of your installation.
 
 3.3 Demo Version
 ----------------
@@ -320,8 +323,12 @@ is needed for the demo, in fact it would break it.
 
 3.4 Addons
 ----------
-The addons are currently unsupported on OS X. They build but are crashing
-as soon as a map is loaded. Patches are welcome.
+Due to license issues - Yamagi Quake II is covered by the GPL and the
+addons are under the id Software SDK license - the addons are
+distributed separately. You can get them at http://www.yamagi.org/quake2,
+both contain installation instructions. But nevertheless you'll need an
+installation of the full Quake II game with our client for playing them.
+The same applies to the "ctf" capture the flag addon. 
  
 3.5 Binary Installation
 -----------------------
@@ -331,6 +338,34 @@ a new finder window will open. Navigate to Contents/Resources/baseq2 and
 copy the contents of the baseq2/ folder (created while preparing the game
 data, see above) into it. Close the finder windows. Yamagi Quake II is
 now ready.
+
+3.6 Compiling
+-------------
+Compiling Yamagi Quake II from source is unnecessary as long as you will not
+use the github version or want to develop on OS X. If you really want to
+compile Yamagi Quake II by yourself follow these steps:
+
+1. Make sure that you've installed XCode with the "Unix Develoment Tools".
+   Depending on your OS X version the name of these can be different.
+2. Extract the framework found in stuff/osx-frameworks to /Libraries/
+   Frameworks. It's generally a good idea to use our versions since
+   other build might be incompatible.
+3. Open a terminal and navigate to the Yamagi Quake II source code. Type
+   "make" to compile it. After that the binaries can be found in the release/
+   directory.
+
+The binaries can be put into an app-bundle (see 3.5 Binary Installation) or
+used in the classic classic unix way. In the last case the game be started 
+at the command line.
+
+3.7 Default Configuration
+-------------------------
+Quake II ships with an old and for today standards "insane" default
+configuration. This is no problem since you can alter everything. To make your
+life easier Yamagi Quake II contains an updated default configuration.
+If you want to use it just copy "stuff\yq2.cfg" to your "baseq2\" folder.
+
+Now you are ready to start your brand new Quake II. Have fun.
 
 ===============================================================================
 
@@ -432,7 +467,7 @@ are some things that can and in some cases must be tuned via cvars. Here
 the most common questions are answered.
 
 - Yamagi Quake II has full support for widescreen setups. Just select your
-  favorite resolution and aspect ration via the video menu.
+  favorite resolution via the video menu.
 
 - If your resolution is not in the list, it's also possible to set custom
   resolutions via the console: Set gl_customwidth and gl_customheight to the
@@ -565,8 +600,9 @@ This is a sound system based upon the popular OpenAL audio library. It features
 surround playback which gives a huge improvement in sound quality and gameplay
 experience. It's enabled by default, but can be disabled by setting "s_openal"
 to "0", followed by a "snd_restart". To work correctly it's in the need of a
-correctly configured OpenAL implementation! OpenAL is configured in the file
-~/.alsoftrc (for the openal-soft implementation, other implementations may
+correctly configured OpenAL implementation! On OS X and Windows the default
+configuration is okay. On FreeBSD, Linux and OpenBSD OpenAL is configured in the
+file ~/.alsoftrc (for the openal-soft implementation, other implementations may
 vary). The most important options (tested with OpenAL Soft 1.14) are:
 
 - channels = surround51 -> Enable 5.1 surround support. Other values are "mono",
@@ -601,7 +637,9 @@ My sound is not working!
    Does the sound work in other SDL games? Does your setup support at least five
    virtual channels? In most cases it's better to not use sound servers like
    Pulseaudio but the plain sound system like OSS or ALSA with libasound instead.
-   Also see the "Sound" section in this file!
+   Also see the "Sound" section in this file! On Windows the SDL sound backend
+   may not work on all installations. This is due to a limitation of SDL. Use
+   OpenAL instead.
 
 My OpenGL is not working!
  - Make sure, that OpenGL is working in other games. Use "glxinfo" and
@@ -616,9 +654,9 @@ The game is crashing!
 
 Valgrind reports many, many memory leaks!
  - Yeah it does. But they're usually false positives due to Quake IIs caching
-   architecture. There some real memory leaks in SDL, Mesa3D, X11 and so on but
-   they're out of our scope. So before reporting memory leaks please read the
-   code, understand the code and be sure that's a real leak!
+   architecture. There are some real memory leaks in SDL, Mesa3D, X11 and so on
+   but they're out of our scope. So before reporting memory leaks please read 
+   the code, understand the code and be sure that's a real leak!
 
 ===============================================================================
 
@@ -629,10 +667,10 @@ How do I open the console?
  - Press "^" or "~", depending on your keyboard layout.
 
 How do I get the frame counter?
- - Set cl_drawfps to 1
+ - Set "cl_drawfps" to 1
 
 How do I make a benchmark?
- - Set timedemo to 1 and play a demo.
+ - Set "timedemo" to 1 and play a demo.
 
 How do I play demos?
  - "demomap name.dm2". Note that the extension .dm2 is important!
@@ -642,9 +680,10 @@ How do I record a demo?
 
 When playing in window mode my cursor is locked onto the window. Can I change
 that, so that Quake II behaves like a normal window?
- - Open the console by pressing ~ or ^. If you want Quake II to never  grab the
-   mouse set "in_grab" to 0, if Quake II should never release the mouse set 1,
-   for releasing the mouse when the console is opened set to 2. The default is 2.
+ - Open the console by pressing ~ or ^ or drop into the menu. If you want Quake
+   II to never  grab the mouse set "in_grab" to 0, if Quake II should never
+   release the mouse set 1, for releasing the mouse when the console is opened
+   set to 2. The default is 2.
 
 Hey, my screensaver crashes Quake II or I experience strange crashes after a
 fixed amount of time!
@@ -701,14 +740,14 @@ Can I connect to an IPv6 server?
      ./q2ded +set ip "[2001:db8::1]"
 
 Where can I find the configuartion file?
- - It's located at ~/.yq2/game/config.cfg (FreeBSD, Linux and OpenBSD) or
-   ...\Documents\YamagiQ2\game\config.cfg (Windows).
-   Replace "game" by the mod name, e.g. "baseq2/" for the main game.
+ - It's located at ~/.yq2/game/config.cfg (FreeBSD, Linux, OpenBSD and OS X) or
+   ...\Documents\YamagiQ2\game\config.cfg (Windows). Replace "game" by the mod
+   name, e.g. "baseq2/" for the main game.
 
 My mod crashes at startup.
- - This is known problem, yet to be analyzed. A workaround is to create the
-   working directory by hand:
-     mkdir -p ~/.yq2/$moddir (FreeBSD, Linux and OpenBSD)
+ - This is known problem of some mods. A workaround is to create the working
+   directory by hand:
+     mkdir -p ~/.yq2/$moddir (FreeBSD, Linux, OpenBSD and OS X)
      ...\Documents\YamagiQ2\$moddir (Windows)
 
 Only parts of the maps are rendered!
@@ -733,10 +772,11 @@ Why isn't there an "underwater sound effect" when playing under OS X?
 
 Why is the FOV different than in id Softwares client?
  - id Softwares client was designed to work an 4:3 screens only. Setting
-   the FOV kept the aspect ratio, resulting in minor distortion. Since
-   version 5.10 Yamagi Quake II calculates the horizontal and vertical
-   FOV based on the current aspect ratio, avoid distortion. You can
-   archive the old and wrong behavior by selecting an aspect ration other
-   than "auto" in the video menu or setting the "horplus" cvar to "0".
+   the FOV kept the aspect ratio, expanded the view angle in height and 
+   width. Setting a higher FOV on wider screens was common, but the image
+   distorted lightly. Yamagi Quake II calculates a correct FOV without
+   distortions. You can get the old behavior if you select an aspect
+   ratio other than "auto" in the video menu or by setting the "horplus"
+   cvar to "0".
 
 ==============================================================================
