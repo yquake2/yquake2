@@ -1615,8 +1615,8 @@ R_GetRefAPI(refimport_t rimp)
 }
 
 /*
- * this is only here so the functions in
- * shared.c, mem.c and hunk.c can link
+ * this is only here so the functions
+ * in shared source files can link
  */
 void
 Sys_Error(char *error, ...)

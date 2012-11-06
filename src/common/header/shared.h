@@ -286,7 +286,7 @@ char *Sys_FindFirst(char *path, unsigned musthave, unsigned canthave);
 char *Sys_FindNext(unsigned musthave, unsigned canthave);
 void Sys_FindClose(void);
 
-/* this is only here so the functions in q_shared.c and q_shwin.c can link */
+/* this is only here so the functions in shared source files can link */
 void Sys_Error(char *error, ...);
 void Com_Printf(char *msg, ...);
 

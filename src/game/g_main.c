@@ -145,6 +145,10 @@ GetGameAPI(game_import_t *import)
 	return &globals;
 }
 
+/*
+ * this is only here so the functions
+ * in shared source files can link
+ */
 void
 Sys_Error(char *error, ...)
 {

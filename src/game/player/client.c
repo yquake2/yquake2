@@ -2194,7 +2194,7 @@ PrintPmove(pmove_t *pm)
 
 	c1 = CheckBlock(&pm->s, sizeof(pm->s));
 	c2 = CheckBlock(&pm->cmd, sizeof(pm->cmd));
-	Com_Printf("sv %3i:%i %i\n", pm->cmd.impulse, c1, c2);
+	gi.dprintf("sv %3i:%i %i\n", pm->cmd.impulse, c1, c2);
 }
 
 /*
