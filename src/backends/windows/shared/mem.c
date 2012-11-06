@@ -24,8 +24,8 @@
  * =======================================================================
  */
 
-#include "../../common/header/common.h"
-#include "header/winquake.h"
+#include "../../../common/header/common.h"
+#include "../header/winquake.h"
 
 byte *membase;
 int hunkcount;
@@ -35,7 +35,7 @@ int cursize;
 void *
 Hunk_Begin(int maxsize)
 {
-	/* reserve a huge chunk of memory, 
+	/* reserve a huge chunk of memory,
 	   but don't commit any yet */
 	cursize = 0;
 	hunkmaxsize = maxsize;

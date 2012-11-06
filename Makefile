@@ -587,16 +587,16 @@ CLIENT_OBJS_ := \
 
 ifeq ($(OSTYPE), Windows)
 CLIENT_OBJS_ += \
-	src/backends/windows/mem.o \
 	src/backends/windows/network.o \
-	src/backends/windows/system.o
+	src/backends/windows/system.o \
+	src/backends/windows/shared/mem.o
 else
 CLIENT_OBJS_ += \
-	src/backends/unix/hunk.o \
 	src/backends/unix/main.o \
 	src/backends/unix/network.o \
 	src/backends/unix/signalhandler.o \
-	src/backends/unix/system.o
+	src/backends/unix/system.o \
+	src/backends/unix/shared/hunk.o
 endif
 
 ifeq ($(OSTYPE), Darwin)
@@ -639,16 +639,16 @@ SERVER_OBJS_ := \
 
 ifeq ($(OSTYPE), Windows)
 SERVER_OBJS_ += \
-	src/backends/windows/mem.o \
 	src/backends/windows/network.o \
-	src/backends/windows/system.o
+	src/backends/windows/system.o \
+	src/backends/windows/shared/mem.o
 else
 SERVER_OBJS_ += \
-	src/backends/unix/hunk.o \
 	src/backends/unix/main.o \
 	src/backends/unix/network.o \
 	src/backends/unix/signalhandler.o \
-	src/backends/unix/system.o
+	src/backends/unix/system.o \
+	src/backends/unix/shared/hunk.o
 endif
 
 # ----------
@@ -675,15 +675,14 @@ OPENGL_OBJS_ = \
 	src/refresh/files/tga.o \
 	src/refresh/files/jpeg.o \
 	src/refresh/files/wal.o \
-	src/common/glob.o \
 	src/common/shared/shared.o
 
 ifeq ($(OSTYPE), Windows)
 OPENGL_OBJS_ += \
-	src/backends/windows/mem.o
+	src/backends/windows/shared/mem.o
 else
 OPENGL_OBJS_ += \
-	src/backends/unix/hunk.o
+	src/backends/unix/shared/hunk.o
 endif
 
 # ----------
