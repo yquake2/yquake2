@@ -77,6 +77,8 @@ static cvar_t *freelook;
 static cvar_t *m_filter;
 static cvar_t *in_mouse;
 
+cvar_t *vid_fullscreen;
+
 /*
  * This function translates the SDL keycodes
  * to the internal key representation of the
@@ -354,8 +356,6 @@ IN_GetEvent(SDL_Event *event)
 				 KeyStates[SDLK_RALT]) && 
 				 (event->key.keysym.sym == SDLK_RETURN))
 			{
-				cvar_t *fullscreen;
-
 				SDL_WM_ToggleFullScreen(surface);
 
 				if (surface->flags & SDL_FULLSCREEN)
@@ -367,8 +367,7 @@ IN_GetEvent(SDL_Event *event)
 					ri.Cvar_SetValue("vid_fullscreen", 0);
 				}
 
-				fullscreen = ri.Cvar_Get("vid_fullscreen", "0", 0);
-				fullscreen->modified = false;
+				vid_fullscreen->modified = false;
 
 				break;
 			}
@@ -470,7 +469,31 @@ IN_Update(void)
 
 	/* Grab and ungrab the mouse if the
 	 * console or the menu is opened */
-	if (in_grab->value == 2)
+	if (vid_fullscreen->value)
+	{
+		if (!mouse_grabbed)
+		{
+			SDL_WM_GrabInput(SDL_GRAB_ON);
+			mouse_grabbed = true;
+		}
+	}
+	if (in_grab->value == 0)
+	{
+		if (mouse_grabbed)
+		{
+			SDL_WM_GrabInput(SDL_GRAB_OFF);
+			mouse_grabbed = false;
+		}
+	}
+	else if (in_grab->value == 1)
+	{
+		if (!mouse_grabbed)
+		{
+			SDL_WM_GrabInput(SDL_GRAB_ON);
+			mouse_grabbed = true;
+		}
+	}
+	else
 	{
 		if (windowed_mouse->value)
 		{
@@ -487,22 +510,6 @@ IN_Update(void)
 				SDL_WM_GrabInput(SDL_GRAB_OFF);
 				mouse_grabbed = false;
 			}
-		}
-	}
-	else if (in_grab->value == 1)
-	{
-		if (!mouse_grabbed)
-		{
-			SDL_WM_GrabInput(SDL_GRAB_ON);
-			mouse_grabbed = true;
-		}
-	}
-	else
-	{
-		if (mouse_grabbed)
-		{
-			SDL_WM_GrabInput(SDL_GRAB_OFF);
-			mouse_grabbed = false;
 		}
 	}
 
@@ -628,6 +635,8 @@ IN_BackendInit(in_state_t *in_state_p)
 	windowed_mouse = ri.Cvar_Get("windowed_mouse", "1",
 			CVAR_USERINFO | CVAR_ARCHIVE);
 	in_grab = ri.Cvar_Get("in_grab", "2", CVAR_ARCHIVE);
+
+	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 
 	ri.Con_Printf(PRINT_ALL, "Input initialized.\n");
 }

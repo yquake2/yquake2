@@ -682,8 +682,8 @@ When playing in window mode my cursor is locked onto the window. Can I change
 that, so that Quake II behaves like a normal window?
  - Open the console by pressing ~ or ^ or drop into the menu. If you want Quake
    II to never  grab the mouse set "in_grab" to 0, if Quake II should never
-   release the mouse set 1, for releasing the mouse when the console is opened
-   set to 2. The default is 2.
+   release the mouse set 1, for releasing the mouse when the console or the
+   menu is opened set to 2. The default is 2.
 
 Hey, my screensaver crashes Quake II or I experience strange crashes after a
 fixed amount of time!

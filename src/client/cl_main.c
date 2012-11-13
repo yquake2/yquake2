@@ -692,8 +692,13 @@ CL_FixCvarCheats(void)
 void
 CL_UpdateWindowedMouse(void)
 {
+	if (cls.disable_screen)
+	{
+		return;
+	}
+
 	if (cls.key_dest == key_menu || cls.key_dest == key_console ||
-		(cls.key_dest == key_game && cls.state != ca_active && !cls.disable_screen))
+		(cls.key_dest == key_game && (cls.state != ca_active || !cl.refresh_prepped)))
 	{
 		Cvar_SetValue("windowed_mouse", 0);
 	}
