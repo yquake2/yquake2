@@ -21,6 +21,11 @@
 #define ZLIB_FILEFUNC_MODE_EXISTING (4)
 #define ZLIB_FILEFUNC_MODE_CREATE   (8)
 
+#if PRE_ANSI_C89
+#define OF(args) ()
+#else
+#define OF(args) args
+#endif
 
 #ifndef ZCALLBACK
 
