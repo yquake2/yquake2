@@ -229,7 +229,7 @@ VID_MenuInit(void)
 
 	if (!gl_mode)
 	{
-		gl_mode = Cvar_Get("gl_mode", "4", 0);
+		gl_mode = Cvar_Get("gl_mode", "5", 0);
 	}
 
 	if (!gl_ext_palettedtexture)

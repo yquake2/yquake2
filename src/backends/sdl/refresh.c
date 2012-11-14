@@ -241,16 +241,16 @@ GLimp_InitGraphics(qboolean fullscreen)
 		{
 			if (counter == 1)
 			{
-				ri.Sys_Error(ERR_FATAL, "Failed to revert to gl_mode 4. Exiting...\n");
+				ri.Sys_Error(ERR_FATAL, "Failed to revert to gl_mode 5. Exiting...\n");
 				return false;
 			}
 
 			ri.Con_Printf(PRINT_ALL, "SDL SetVideoMode failed: %s\n",
 					SDL_GetError());
-			ri.Con_Printf(PRINT_ALL, "Reverting to gl_mode 4 (640x480) and windowed mode.\n");
+			ri.Con_Printf(PRINT_ALL, "Reverting to gl_mode 5 (640x480) and windowed mode.\n");
 
 			/* Try to recover */
-			ri.Cvar_SetValue("gl_mode", 4);
+			ri.Cvar_SetValue("gl_mode", 5);
 			ri.Cvar_SetValue("vid_fullscreen", 0);
 			vid.width = 640;
 			vid.height = 480;
