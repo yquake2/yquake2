@@ -700,11 +700,17 @@ CL_UpdateWindowedMouse(void)
 	if (cls.key_dest == key_menu || cls.key_dest == key_console ||
 		(cls.key_dest == key_game && (cls.state != ca_active || !cl.refresh_prepped)))
 	{
-		Cvar_SetValue("windowed_mouse", 0);
+		if (windowed_mouse->value)
+		{
+			Cvar_SetValue("windowed_mouse", 0);
+		}
 	}
 	else
 	{
-		Cvar_SetValue("windowed_mouse", 1);
+		if (!windowed_mouse->value)
+		{
+			Cvar_SetValue("windowed_mouse", 1);
+		}
 	}
 }
 
