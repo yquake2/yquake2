@@ -75,7 +75,6 @@ printBacktrace(int sig)
 	printf("Signal:       %i\n", sig);
 	printf("\nBacktrace:\n");
 	printf("  Not available on this plattform.\n\n");
-
 }
 
 #endif
@@ -97,7 +96,7 @@ signalhandler(int sig)
 	printf("    - ref_gl.so (the renderer)\n\n");
 	printf("    - game.so (the game.so of the mod you were playing\n");
 	printf("      when the game crashed. baseq2/game.so for the\n");
-    printf("      main game)\n\n");
+	printf("      main game)\n\n");
 	printf(" - Any other data which you think might be usefull\n");
 	printf("\nThank you very much for your help, making Yamagi Quake\n");
 	printf("II an even better source port. It's much appreciated.\n");
@@ -105,14 +104,17 @@ signalhandler(int sig)
 
 	printBacktrace(sig);
 
-    /* reset signalhandler */
+	/* reset signalhandler */
 	signal(SIGSEGV, SIG_DFL);
 	signal(SIGILL, SIG_DFL);
 	signal(SIGFPE, SIG_DFL);
-    signal(SIGABRT, SIG_DFL);
+	signal(SIGABRT, SIG_DFL);
+
+	/* make sure this is written */
+	fflush(stdout);
 
 	/* pass signal to the os */
-    raise(sig);
+	raise(sig);
 }
 
 void
@@ -121,5 +123,5 @@ registerHandler(void)
 	signal(SIGSEGV, signalhandler);
 	signal(SIGILL, signalhandler);
 	signal(SIGFPE, signalhandler);
-    signal(SIGABRT, signalhandler);
+	signal(SIGABRT, signalhandler);
 }
