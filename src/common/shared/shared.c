@@ -987,9 +987,7 @@ skipwhite:
 
 			if ((c == '\"') || !c)
 			{
-				com_token[len] = 0;
-				*data_p = data;
-				return com_token;
+				goto done;
 			}
 
 			if (len < MAX_TOKEN_CHARS)
@@ -1014,6 +1012,7 @@ skipwhite:
 	}
 	while (c > 32);
 
+done:
 	if (len == MAX_TOKEN_CHARS)
 	{
 		len = 0;
