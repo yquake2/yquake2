@@ -1,6 +1,7 @@
 Quake II 5.00 to 5.10
 - Support for OS X. (by W. Beser)
 - Correct field of view handling (by Ricardo Garci)
+- Many improvements to the mouse release code (by svdijk)
 
 Quake II 4.21 to 5.00
 - Backport to Microsoft Windows.
