@@ -349,14 +349,15 @@ compile Yamagi Quake II by yourself follow these steps:
    Depending on your OS X version the name of these can be different.
 2. Extract the framework found in stuff/osx-frameworks to /Libraries/
    Frameworks. It's generally a good idea to use our versions since
-   other build might be incompatible.
+   other builds might be incompatible.
 3. Open a terminal and navigate to the Yamagi Quake II source code. Type
    "make" to compile it. After that the binaries can be found in the release/
    directory.
 
 The binaries can be put into an app-bundle (see 3.5 Binary Installation) or
-used in the classic classic unix way. In the last case the game be started 
-at the command line.
+used in the classic classic unix way. In the latter case the game be started 
+at the command line. Be aware that the app-bundle support has to be deactivated
+in the Makefile, otherwise the game is unable to find it's libraries!
 
 3.7 Default Configuration
 -------------------------
