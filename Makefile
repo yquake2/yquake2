@@ -72,7 +72,7 @@ OSX_ARCH := -arch i386 -arch x86_64
 # will be set to expect the linked Frameworks in *.app/Contents/
 # Frameworks and the game-data will be expected in # *.app/
 # Contents/Resources
-OSX_APP := no
+OSX_APP := yes
 
 # ====================================================== #
 #     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
@@ -308,7 +308,7 @@ ifeq ($(OSTYPE), Darwin)
 build/client/%.o : %.m
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) $(OSX_ARCH) $(USE_APP_RESOURCES) -x objective-c -c $< -o $@
+	${Q}$(CC) $(OSX_ARCH) -x objective-c -c $< -o $@
 endif
 
 ifeq ($(WITH_CDA),yes)
@@ -343,7 +343,6 @@ endif
 
 ifeq ($(OSTYPE), Darwin)
 ifeq ($(OSX_APP), yes)
-release/quake2 : USE_APP_RESOURCES = -DUSE_APP_RESOURCES
 release/quake2 : LDFLAGS += -Xlinker -rpath -Xlinker @loader_path/../Frameworks
 endif
 endif
