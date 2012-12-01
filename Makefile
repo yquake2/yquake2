@@ -99,7 +99,7 @@ endif
 
 # Refuse all other platforms as a firewall against PEBKAC
 # (You'll need some #ifdef for your unsupported  plattform!)
-ifeq ($(findstring $(ARCH), i386 x86_64 sparc64),)
+ifeq ($(findstring $(ARCH), i386 x86_64 sparc64 ia64),)
 $(error arch $(ARCH) is currently not supported)
 endif
 

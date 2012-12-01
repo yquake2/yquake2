@@ -29,6 +29,11 @@
 
 #ifdef __x86_64__
 #define INT long int
+#elif defined __ia64__
+/* I will have to double check this but if my experience in adding CLIPS to
+ * LLVM is any sign then long int will fail horribly but long long will work on
+ * ia64. I'll double check this on my zx6000. */
+#define INT long long 
 #else
 #define INT int
 #endif
