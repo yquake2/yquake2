@@ -104,6 +104,8 @@
  #define ARCH "amd64"
 #elif defined(__sparc__)
  #define ARCH "sparc64"
+#elif defined(__ia64__)
+ #define ARCH "ia64"
 #else
  #define ARCH "unknown"
 #endif
