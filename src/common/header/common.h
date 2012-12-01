@@ -57,7 +57,7 @@
  #define CPUSTRING "amd64"
 #elif defined __sparc__
  #define CPUSTRING "sparc64"
-#elif define __ia64__
+#elif defined __ia64__
  #define CPUSTRING "ia64"
 #else
  #define CPUSTRING "Unknown"
