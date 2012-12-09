@@ -1087,7 +1087,7 @@ Keys_MenuInit(void)
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_inv_next_action);
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_help_computer_action);
 
-	Menu_SetStatusBar(&s_keys_menu, "enter to change, backspace to clear");
+	Menu_SetStatusBar(&s_keys_menu, "ENTER to change, BACKSPACE to clear");
 	Menu_Center(&s_keys_menu);
 }
 
@@ -1114,7 +1114,7 @@ Keys_MenuKey(int key)
 			Cbuf_InsertText(cmd);
 		}
 
-		Menu_SetStatusBar(&s_keys_menu, "enter to change, backspace to clear");
+		Menu_SetStatusBar(&s_keys_menu, "ENTER to change, BACKSPACE to clear");
 		bind_grab = false;
 		return menu_out_sound;
 	}
@@ -2357,17 +2357,20 @@ M_Menu_Game_f(void)
  * LOADGAME MENU
  */
 
-/* This is okay since the lowest
-   possible res is 640x480. */
-#define MAX_SAVEGAMES 30
+#define MAX_SAVESLOTS 16
+#define MAX_SAVEPAGES 2
 
-static menuframework_s s_savegame_menu;
+static int m_loadsave_page;
+static char m_loadsave_statusbar[32];
 
 static menuframework_s s_loadgame_menu;
-static menuaction_s s_loadgame_actions[MAX_SAVEGAMES];
+static menuaction_s s_loadgame_actions[MAX_SAVESLOTS];
 
-char m_savestrings[MAX_SAVEGAMES][32];
-qboolean m_savevalid[MAX_SAVEGAMES];
+static menuframework_s s_savegame_menu;
+static menuaction_s s_savegame_actions[MAX_SAVESLOTS];
+
+static char m_savestrings[MAX_SAVESLOTS][32];
+static qboolean m_savevalid[MAX_SAVESLOTS];
 
 static void
 Create_Savestrings(void)
@@ -2376,9 +2379,9 @@ Create_Savestrings(void)
 	fileHandle_t f;
 	char name[MAX_OSPATH];
 
-	for (i = 0; i < MAX_SAVEGAMES; i++)
+	for (i = 0; i < MAX_SAVESLOTS; i++)
 	{
-		Com_sprintf(name, sizeof(name), "save/save%i/server.ssv", i);
+		Com_sprintf(name, sizeof(name), "save/save%i/server.ssv", m_loadsave_page * MAX_SAVESLOTS + i);
 		FS_FOpenFile(name, &f, FS_READ);
 
 		if (!f)
@@ -2396,13 +2399,31 @@ Create_Savestrings(void)
 }
 
 static void
+LoadSave_AdjustPage(int dir)
+{
+	m_loadsave_page += dir;
+
+	if (m_loadsave_page >= MAX_SAVEPAGES)
+	{
+		m_loadsave_page = 0;
+	}
+	else if (m_loadsave_page < 0)
+	{
+		m_loadsave_page = MAX_SAVEPAGES - 1;
+	}
+
+	Com_sprintf(m_loadsave_statusbar, sizeof(m_loadsave_statusbar),
+			"page %d/%d", m_loadsave_page + 1, MAX_SAVEPAGES);
+}
+
+static void
 LoadGameCallback(void *self)
 {
 	menuaction_s *a = (menuaction_s *)self;
 
 	if (m_savevalid[a->generic.localdata[0]])
 	{
-		Cbuf_AddText(va("load save%i\n", a->generic.localdata[0]));
+		Cbuf_AddText(va("load save%i\n", m_loadsave_page * MAX_SAVESLOTS + a->generic.localdata[0]));
 	}
 
 	M_ForceMenuOff();
@@ -2419,53 +2440,96 @@ LoadGame_MenuInit(void)
 
 	Create_Savestrings();
 
-	for (i = 0; i < MAX_SAVEGAMES; i++)
+	for (i = 0; i < MAX_SAVESLOTS; i++)
 	{
-		s_loadgame_actions[i].generic.name = m_savestrings[i];
-		s_loadgame_actions[i].generic.flags = QMF_LEFT_JUSTIFY;
-		s_loadgame_actions[i].generic.localdata[0] = i;
-		s_loadgame_actions[i].generic.callback = LoadGameCallback;
-
-		s_loadgame_actions[i].generic.x = 0;
-		s_loadgame_actions[i].generic.y = (i) * 10;
-
-		if (i > 0) /* separate from autosave */
-		{
-			s_loadgame_actions[i].generic.y += 10;
-		}
-
 		s_loadgame_actions[i].generic.type = MTYPE_ACTION;
+		s_loadgame_actions[i].generic.name = m_savestrings[i];
+		s_loadgame_actions[i].generic.x = 0;
+		s_loadgame_actions[i].generic.y = i * 10;
+		s_loadgame_actions[i].generic.localdata[0] = i;
+		s_loadgame_actions[i].generic.flags = QMF_LEFT_JUSTIFY;
+		if (m_loadsave_page == 0 && i == 0)
+		{
+			s_loadgame_actions[i].generic.flags |= QMF_GRAYED;
+		}
+		s_loadgame_actions[i].generic.callback = LoadGameCallback;
 
 		Menu_AddItem(&s_loadgame_menu, &s_loadgame_actions[i]);
 	}
+
+	Menu_SetStatusBar(&s_loadgame_menu, m_loadsave_statusbar);
 }
 
 static void
 LoadGame_MenuDraw(void)
 {
 	M_Banner("m_banner_load_game");
+	Menu_AdjustCursor(&s_loadgame_menu, 1);
 	Menu_Draw(&s_loadgame_menu);
 }
 
 static const char *
 LoadGame_MenuKey(int key)
 {
-	if ((key == K_ESCAPE) || (key == K_ENTER))
-	{
-		s_savegame_menu.cursor = s_loadgame_menu.cursor - 1;
+	static menuframework_s *m = &s_loadgame_menu;
+	int old_cursor;
 
-		if (s_savegame_menu.cursor < 0)
-		{
-			s_savegame_menu.cursor = 0;
-		}
+	switch (key)
+	{
+		case K_ESCAPE:
+		case K_ENTER:
+			s_savegame_menu.cursor = s_loadgame_menu.cursor;
+			break;
+		case K_KP_UPARROW:
+		case K_UPARROW:
+			old_cursor = m->cursor;
+			m->cursor--;
+			Menu_AdjustCursor(m, -1);
+			if (m->cursor >= old_cursor)
+			{
+				LoadSave_AdjustPage(-1);
+				LoadGame_MenuInit();
+				m->cursor = m->nitems;
+				Menu_AdjustCursor(m, -1);
+			}
+			return menu_move_sound;
+		case K_TAB:
+		case K_KP_DOWNARROW:
+		case K_DOWNARROW:
+			old_cursor = m->cursor;
+			m->cursor++;
+			Menu_AdjustCursor(m, 1);
+			if (m->cursor <= old_cursor)
+			{
+				LoadSave_AdjustPage(1);
+				LoadGame_MenuInit();
+				m->cursor = 0;
+				Menu_AdjustCursor(m, 1);
+			}
+			return menu_move_sound;
+		case K_KP_LEFTARROW:
+		case K_LEFTARROW:
+			LoadSave_AdjustPage(-1);
+			LoadGame_MenuInit();
+			Menu_AdjustCursor(m, 1);
+			return menu_move_sound;
+		case K_KP_RIGHTARROW:
+		case K_RIGHTARROW:
+			LoadSave_AdjustPage(1);
+			LoadGame_MenuInit();
+			Menu_AdjustCursor(m, 1);
+			return menu_move_sound;
+		default:
+			break;
 	}
 
-	return Default_MenuKey(&s_loadgame_menu, key);
+	return Default_MenuKey(m, key);
 }
 
 static void
 M_Menu_LoadGame_f(void)
 {
+	LoadSave_AdjustPage(0);
 	LoadGame_MenuInit();
 	M_PushMenu(LoadGame_MenuDraw, LoadGame_MenuKey);
 }
@@ -2473,9 +2537,6 @@ M_Menu_LoadGame_f(void)
 /*
  * SAVEGAME MENU
  */
-
-static menuframework_s s_savegame_menu;
-static menuaction_s s_savegame_actions[MAX_SAVEGAMES];
 
 static void
 SaveGameCallback(void *self)
@@ -2506,36 +2567,88 @@ SaveGame_MenuInit(void)
 	Create_Savestrings();
 
 	/* don't include the autosave slot */
-	for (i = 0; i < MAX_SAVEGAMES - 1; i++)
+	for (i = 0; i < MAX_SAVESLOTS; i++)
 	{
-		s_savegame_actions[i].generic.name = m_savestrings[i + 1];
-		s_savegame_actions[i].generic.localdata[0] = i + 1;
+		if (m_loadsave_page == 0 && i == 0)
+		{
+			s_savegame_actions[i].generic.type = MTYPE_SEPARATOR;
+			s_savegame_actions[i].generic.name = NULL;
+
+			Menu_AddItem(&s_savegame_menu, &s_savegame_actions[i]);
+
+			continue;
+		}
+
+		s_savegame_actions[i].generic.type = MTYPE_ACTION;
+		s_savegame_actions[i].generic.name = m_savestrings[i];
+		s_savegame_actions[i].generic.x = 0;
+		s_savegame_actions[i].generic.y = i * 10;
+		s_savegame_actions[i].generic.localdata[0] = i;
 		s_savegame_actions[i].generic.flags = QMF_LEFT_JUSTIFY;
 		s_savegame_actions[i].generic.callback = SaveGameCallback;
 
-		s_savegame_actions[i].generic.x = 0;
-		s_savegame_actions[i].generic.y = (i) * 10;
-
-		s_savegame_actions[i].generic.type = MTYPE_ACTION;
-
 		Menu_AddItem(&s_savegame_menu, &s_savegame_actions[i]);
 	}
+
+	Menu_SetStatusBar(&s_savegame_menu, m_loadsave_statusbar);
 }
 
 static const char *
 SaveGame_MenuKey(int key)
 {
-	if ((key == K_ENTER) || (key == K_ESCAPE))
-	{
-		s_loadgame_menu.cursor = s_savegame_menu.cursor - 1;
+	static menuframework_s *m = &s_savegame_menu;
+	int old_cursor;
 
-		if (s_loadgame_menu.cursor < 0)
-		{
-			s_loadgame_menu.cursor = 0;
-		}
+	switch (key)
+	{
+		case K_ESCAPE:
+		case K_ENTER:
+			s_loadgame_menu.cursor = s_savegame_menu.cursor;
+			break;
+		case K_KP_UPARROW:
+		case K_UPARROW:
+			old_cursor = m->cursor;
+			m->cursor--;
+			Menu_AdjustCursor(m, -1);
+			if (m->cursor >= old_cursor)
+			{
+				LoadSave_AdjustPage(-1);
+				SaveGame_MenuInit();
+				m->cursor = m->nitems;
+				Menu_AdjustCursor(m, -1);
+			}
+			return menu_move_sound;
+		case K_TAB:
+		case K_KP_DOWNARROW:
+		case K_DOWNARROW:
+			old_cursor = m->cursor;
+			m->cursor++;
+			Menu_AdjustCursor(m, 1);
+			if (m->cursor <= old_cursor)
+			{
+				LoadSave_AdjustPage(1);
+				SaveGame_MenuInit();
+				m->cursor = 0;
+				Menu_AdjustCursor(m, 1);
+			}
+			return menu_move_sound;
+		case K_KP_LEFTARROW:
+		case K_LEFTARROW:
+			LoadSave_AdjustPage(-1);
+			SaveGame_MenuInit();
+			Menu_AdjustCursor(m, 1);
+			return menu_move_sound;
+		case K_KP_RIGHTARROW:
+		case K_RIGHTARROW:
+			LoadSave_AdjustPage(1);
+			SaveGame_MenuInit();
+			Menu_AdjustCursor(m, 1);
+			return menu_move_sound;
+		default:
+			break;
 	}
 
-	return Default_MenuKey(&s_savegame_menu, key);
+	return Default_MenuKey(m, key);
 }
 
 static void
@@ -2546,9 +2659,9 @@ M_Menu_SaveGame_f(void)
 		return; /* not playing a game */
 	}
 
+	LoadSave_AdjustPage(0);
 	SaveGame_MenuInit();
 	M_PushMenu(SaveGame_MenuDraw, SaveGame_MenuKey);
-	Create_Savestrings();
 }
 
 /*
@@ -4360,7 +4473,7 @@ M_Menu_PlayerConfig_f(void)
 {
 	if (!PlayerConfig_MenuInit())
 	{
-		Menu_SetStatusBar(&s_multiplayer_menu, "No valid player models found");
+		Menu_SetStatusBar(&s_multiplayer_menu, "no valid player models found");
 		return;
 	}
 

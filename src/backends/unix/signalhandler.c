@@ -104,14 +104,14 @@ signalhandler(int sig)
 
 	printBacktrace(sig);
 
+	/* make sure this is written */
+	fflush(stdout);
+
 	/* reset signalhandler */
 	signal(SIGSEGV, SIG_DFL);
 	signal(SIGILL, SIG_DFL);
 	signal(SIGFPE, SIG_DFL);
 	signal(SIGABRT, SIG_DFL);
-
-	/* make sure this is written */
-	fflush(stdout);
 
 	/* pass signal to the os */
 	raise(sig);
