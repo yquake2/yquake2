@@ -670,13 +670,11 @@ char *bindnames[][2] = {
 	{"+klook", "keyboard look"},
 	{"+moveup", "up / jump"},
 	{"+movedown", "down / crouch"},
-
 	{"inven", "inventory"},
 	{"invuse", "use item"},
 	{"invdrop", "drop item"},
 	{"invprev", "prev item"},
 	{"invnext", "next item"},
-
 	{"cmd help", "help computer"},
 	{0, 0}
 };
@@ -686,7 +684,8 @@ static int bind_grab;
 
 static menuframework_s s_keys_menu;
 static menuaction_s s_keys_attack_action;
-static menuaction_s s_keys_change_weapon_action;
+static menuaction_s s_keys_next_weapon_action;
+static menuaction_s s_keys_previous_weapon_action;
 static menuaction_s s_keys_walk_forward_action;
 static menuaction_s s_keys_backpedal_action;
 static menuaction_s s_keys_turn_left_action;
@@ -707,7 +706,6 @@ static menuaction_s s_keys_inv_use_action;
 static menuaction_s s_keys_inv_drop_action;
 static menuaction_s s_keys_inv_prev_action;
 static menuaction_s s_keys_inv_next_action;
-
 static menuaction_s s_keys_help_computer_action;
 
 static void
@@ -857,14 +855,23 @@ Keys_MenuInit(void)
 	s_keys_attack_action.generic.name =
 		bindnames[s_keys_attack_action.generic.localdata[0]][1];
 
-	s_keys_change_weapon_action.generic.type = MTYPE_ACTION;
-	s_keys_change_weapon_action.generic.flags = QMF_GRAYED;
-	s_keys_change_weapon_action.generic.x = 0;
-	s_keys_change_weapon_action.generic.y = y += 9;
-	s_keys_change_weapon_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_change_weapon_action.generic.localdata[0] = ++i;
-	s_keys_change_weapon_action.generic.name =
-		bindnames[s_keys_change_weapon_action.generic.localdata[0]][1];
+	s_keys_next_weapon_action.generic.type = MTYPE_ACTION;
+	s_keys_next_weapon_action.generic.flags = QMF_GRAYED;
+	s_keys_next_weapon_action.generic.x = 0;
+	s_keys_next_weapon_action.generic.y = y += 9;
+	s_keys_next_weapon_action.generic.ownerdraw = DrawKeyBindingFunc;
+	s_keys_next_weapon_action.generic.localdata[0] = ++i;
+	s_keys_next_weapon_action.generic.name =
+		bindnames[s_keys_next_weapon_action.generic.localdata[0]][1];
+
+	s_keys_previous_weapon_action.generic.type = MTYPE_ACTION;
+	s_keys_previous_weapon_action.generic.flags = QMF_GRAYED;
+	s_keys_previous_weapon_action.generic.x = 0;
+	s_keys_previous_weapon_action.generic.y = y += 9;
+	s_keys_previous_weapon_action.generic.ownerdraw = DrawKeyBindingFunc;
+	s_keys_previous_weapon_action.generic.localdata[0] = ++i;
+	s_keys_previous_weapon_action.generic.name =
+		bindnames[s_keys_previous_weapon_action.generic.localdata[0]][1];
 
 	s_keys_walk_forward_action.generic.type = MTYPE_ACTION;
 	s_keys_walk_forward_action.generic.flags = QMF_GRAYED;
@@ -1056,7 +1063,8 @@ Keys_MenuInit(void)
 		bindnames[s_keys_help_computer_action.generic.localdata[0]][1];
 
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_attack_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_change_weapon_action);
+	Menu_AddItem(&s_keys_menu, (void *)&s_keys_next_weapon_action);
+	Menu_AddItem(&s_keys_menu, (void *)&s_keys_previous_weapon_action);
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_walk_forward_action);
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_backpedal_action);
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_turn_left_action);
@@ -1072,13 +1080,11 @@ Keys_MenuInit(void)
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_keyboard_look_action);
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_move_up_action);
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_move_down_action);
-
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_inventory_action);
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_inv_use_action);
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_inv_drop_action);
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_inv_prev_action);
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_inv_next_action);
-
 	Menu_AddItem(&s_keys_menu, (void *)&s_keys_help_computer_action);
 
 	Menu_SetStatusBar(&s_keys_menu, "enter to change, backspace to clear");

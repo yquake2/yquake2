@@ -233,12 +233,7 @@ Field_Key(menufield_s *f, int key)
 
 	if (key > 127)
 	{
-		switch (key)
-		{
-			case K_DEL:
-			default:
-				return false;
-		}
+		return false;
 	}
 
 	switch (key)
