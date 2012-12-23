@@ -2543,7 +2543,7 @@ SaveGameCallback(void *self)
 {
 	menuaction_s *a = (menuaction_s *)self;
 
-	Cbuf_AddText(va("save save%i\n", a->generic.localdata[0]));
+	Cbuf_AddText(va("save save%i\n", m_loadsave_page * MAX_SAVESLOTS + a->generic.localdata[0]));
 	M_ForceMenuOff();
 }
 
