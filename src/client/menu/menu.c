@@ -2360,6 +2360,9 @@ M_Menu_Game_f(void)
 #define MAX_SAVESLOTS 16
 #define MAX_SAVEPAGES 2
 
+static char m_savestrings[MAX_SAVESLOTS][32];
+static qboolean m_savevalid[MAX_SAVESLOTS];
+
 static int m_loadsave_page;
 static char m_loadsave_statusbar[32];
 
@@ -2368,9 +2371,6 @@ static menuaction_s s_loadgame_actions[MAX_SAVESLOTS];
 
 static menuframework_s s_savegame_menu;
 static menuaction_s s_savegame_actions[MAX_SAVESLOTS];
-
-static char m_savestrings[MAX_SAVESLOTS][32];
-static qboolean m_savevalid[MAX_SAVESLOTS];
 
 static void
 Create_Savestrings(void)
@@ -2421,11 +2421,7 @@ LoadGameCallback(void *self)
 {
 	menuaction_s *a = (menuaction_s *)self;
 
-	if (m_savevalid[a->generic.localdata[0]])
-	{
-		Cbuf_AddText(va("load save%i\n", m_loadsave_page * MAX_SAVESLOTS + a->generic.localdata[0]));
-	}
-
+	Cbuf_AddText(va("load save%i\n", a->generic.localdata[0]));
 	M_ForceMenuOff();
 }
 
@@ -2446,13 +2442,20 @@ LoadGame_MenuInit(void)
 		s_loadgame_actions[i].generic.name = m_savestrings[i];
 		s_loadgame_actions[i].generic.x = 0;
 		s_loadgame_actions[i].generic.y = i * 10;
-		s_loadgame_actions[i].generic.localdata[0] = i;
+		s_loadgame_actions[i].generic.localdata[0] = i + m_loadsave_page * MAX_SAVESLOTS;
 		s_loadgame_actions[i].generic.flags = QMF_LEFT_JUSTIFY;
 		if (m_loadsave_page == 0 && i == 0)
 		{
 			s_loadgame_actions[i].generic.flags |= QMF_GRAYED;
 		}
-		s_loadgame_actions[i].generic.callback = LoadGameCallback;
+		if (!m_savevalid[i])
+		{
+			s_loadgame_actions[i].generic.callback = NULL;
+		}
+		else
+		{
+			s_loadgame_actions[i].generic.callback = LoadGameCallback;
+		}
 
 		Menu_AddItem(&s_loadgame_menu, &s_loadgame_actions[i]);
 	}
@@ -2476,10 +2479,6 @@ LoadGame_MenuKey(int key)
 
 	switch (key)
 	{
-		case K_ESCAPE:
-		case K_ENTER:
-			s_savegame_menu.cursor = s_loadgame_menu.cursor;
-			break;
 		case K_KP_UPARROW:
 		case K_UPARROW:
 			old_cursor = m->cursor;
@@ -2520,6 +2519,7 @@ LoadGame_MenuKey(int key)
 			Menu_AdjustCursor(m, 1);
 			return menu_move_sound;
 		default:
+			s_savegame_menu.cursor = s_loadgame_menu.cursor;
 			break;
 	}
 
@@ -2543,7 +2543,7 @@ SaveGameCallback(void *self)
 {
 	menuaction_s *a = (menuaction_s *)self;
 
-	Cbuf_AddText(va("save save%i\n", m_loadsave_page * MAX_SAVESLOTS + a->generic.localdata[0]));
+	Cbuf_AddText(va("save save%i\n", a->generic.localdata[0]));
 	M_ForceMenuOff();
 }
 
@@ -2583,7 +2583,7 @@ SaveGame_MenuInit(void)
 		s_savegame_actions[i].generic.name = m_savestrings[i];
 		s_savegame_actions[i].generic.x = 0;
 		s_savegame_actions[i].generic.y = i * 10;
-		s_savegame_actions[i].generic.localdata[0] = i;
+		s_savegame_actions[i].generic.localdata[0] = i + m_loadsave_page * MAX_SAVESLOTS;
 		s_savegame_actions[i].generic.flags = QMF_LEFT_JUSTIFY;
 		s_savegame_actions[i].generic.callback = SaveGameCallback;
 
@@ -2601,10 +2601,6 @@ SaveGame_MenuKey(int key)
 
 	switch (key)
 	{
-		case K_ESCAPE:
-		case K_ENTER:
-			s_loadgame_menu.cursor = s_savegame_menu.cursor;
-			break;
 		case K_KP_UPARROW:
 		case K_UPARROW:
 			old_cursor = m->cursor;
@@ -2645,6 +2641,7 @@ SaveGame_MenuKey(int key)
 			Menu_AdjustCursor(m, 1);
 			return menu_move_sound;
 		default:
+			s_loadgame_menu.cursor = s_savegame_menu.cursor;
 			break;
 	}
 
