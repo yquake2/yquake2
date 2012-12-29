@@ -675,38 +675,15 @@ char *bindnames[][2] = {
 	{"invdrop", "drop item"},
 	{"invprev", "prev item"},
 	{"invnext", "next item"},
-	{"cmd help", "help computer"},
-	{0, 0}
+	{"cmd help", "help computer"}
 };
+#define NUM_BINDNAMES (sizeof bindnames / sizeof bindnames[0])
 
 int keys_cursor;
 static int bind_grab;
 
 static menuframework_s s_keys_menu;
-static menuaction_s s_keys_attack_action;
-static menuaction_s s_keys_next_weapon_action;
-static menuaction_s s_keys_previous_weapon_action;
-static menuaction_s s_keys_walk_forward_action;
-static menuaction_s s_keys_backpedal_action;
-static menuaction_s s_keys_turn_left_action;
-static menuaction_s s_keys_turn_right_action;
-static menuaction_s s_keys_run_action;
-static menuaction_s s_keys_step_left_action;
-static menuaction_s s_keys_step_right_action;
-static menuaction_s s_keys_sidestep_action;
-static menuaction_s s_keys_look_up_action;
-static menuaction_s s_keys_look_down_action;
-static menuaction_s s_keys_center_view_action;
-static menuaction_s s_keys_mouse_look_action;
-static menuaction_s s_keys_keyboard_look_action;
-static menuaction_s s_keys_move_up_action;
-static menuaction_s s_keys_move_down_action;
-static menuaction_s s_keys_inventory_action;
-static menuaction_s s_keys_inv_use_action;
-static menuaction_s s_keys_inv_drop_action;
-static menuaction_s s_keys_inv_prev_action;
-static menuaction_s s_keys_inv_next_action;
-static menuaction_s s_keys_help_computer_action;
+static menuaction_s s_keys_actions[NUM_BINDNAMES];
 
 static void
 M_UnbindCommand(char *command)
@@ -839,253 +816,25 @@ KeyBindingFunc(void *self)
 static void
 Keys_MenuInit(void)
 {
-	int y = 0;
-	int i = 0;
+	int i;
 
 	s_keys_menu.x = (int)(viddef.width * 0.50f);
 	s_keys_menu.nitems = 0;
 	s_keys_menu.cursordraw = KeyCursorDrawFunc;
 
-	s_keys_attack_action.generic.type = MTYPE_ACTION;
-	s_keys_attack_action.generic.flags = QMF_GRAYED;
-	s_keys_attack_action.generic.x = 0;
-	s_keys_attack_action.generic.y = y;
-	s_keys_attack_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_attack_action.generic.localdata[0] = i;
-	s_keys_attack_action.generic.name =
-		bindnames[s_keys_attack_action.generic.localdata[0]][1];
+	for (i = 0; i < NUM_BINDNAMES; i++)
+	{
+		s_keys_actions[i].generic.type = MTYPE_ACTION;
+		s_keys_actions[i].generic.flags = QMF_GRAYED;
+		s_keys_actions[i].generic.x = 0;
+		s_keys_actions[i].generic.y = i * 9;
+		s_keys_actions[i].generic.ownerdraw = DrawKeyBindingFunc;
+		s_keys_actions[i].generic.localdata[0] = i;
+		s_keys_actions[i].generic.name =
+			bindnames[s_keys_actions[i].generic.localdata[0]][1];
 
-	s_keys_next_weapon_action.generic.type = MTYPE_ACTION;
-	s_keys_next_weapon_action.generic.flags = QMF_GRAYED;
-	s_keys_next_weapon_action.generic.x = 0;
-	s_keys_next_weapon_action.generic.y = y += 9;
-	s_keys_next_weapon_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_next_weapon_action.generic.localdata[0] = ++i;
-	s_keys_next_weapon_action.generic.name =
-		bindnames[s_keys_next_weapon_action.generic.localdata[0]][1];
-
-	s_keys_previous_weapon_action.generic.type = MTYPE_ACTION;
-	s_keys_previous_weapon_action.generic.flags = QMF_GRAYED;
-	s_keys_previous_weapon_action.generic.x = 0;
-	s_keys_previous_weapon_action.generic.y = y += 9;
-	s_keys_previous_weapon_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_previous_weapon_action.generic.localdata[0] = ++i;
-	s_keys_previous_weapon_action.generic.name =
-		bindnames[s_keys_previous_weapon_action.generic.localdata[0]][1];
-
-	s_keys_walk_forward_action.generic.type = MTYPE_ACTION;
-	s_keys_walk_forward_action.generic.flags = QMF_GRAYED;
-	s_keys_walk_forward_action.generic.x = 0;
-	s_keys_walk_forward_action.generic.y = y += 9;
-	s_keys_walk_forward_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_walk_forward_action.generic.localdata[0] = ++i;
-	s_keys_walk_forward_action.generic.name =
-		bindnames[s_keys_walk_forward_action.generic.localdata[0]][1];
-
-	s_keys_backpedal_action.generic.type = MTYPE_ACTION;
-	s_keys_backpedal_action.generic.flags = QMF_GRAYED;
-	s_keys_backpedal_action.generic.x = 0;
-	s_keys_backpedal_action.generic.y = y += 9;
-	s_keys_backpedal_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_backpedal_action.generic.localdata[0] = ++i;
-	s_keys_backpedal_action.generic.name =
-		bindnames[s_keys_backpedal_action.generic.localdata[0]][1];
-
-	s_keys_turn_left_action.generic.type = MTYPE_ACTION;
-	s_keys_turn_left_action.generic.flags = QMF_GRAYED;
-	s_keys_turn_left_action.generic.x = 0;
-	s_keys_turn_left_action.generic.y = y += 9;
-	s_keys_turn_left_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_turn_left_action.generic.localdata[0] = ++i;
-	s_keys_turn_left_action.generic.name =
-		bindnames[s_keys_turn_left_action.generic.localdata[0]][1];
-
-	s_keys_turn_right_action.generic.type = MTYPE_ACTION;
-	s_keys_turn_right_action.generic.flags = QMF_GRAYED;
-	s_keys_turn_right_action.generic.x = 0;
-	s_keys_turn_right_action.generic.y = y += 9;
-	s_keys_turn_right_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_turn_right_action.generic.localdata[0] = ++i;
-	s_keys_turn_right_action.generic.name =
-		bindnames[s_keys_turn_right_action.generic.localdata[0]][1];
-
-	s_keys_run_action.generic.type = MTYPE_ACTION;
-	s_keys_run_action.generic.flags = QMF_GRAYED;
-	s_keys_run_action.generic.x = 0;
-	s_keys_run_action.generic.y = y += 9;
-	s_keys_run_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_run_action.generic.localdata[0] = ++i;
-	s_keys_run_action.generic.name =
-		bindnames[s_keys_run_action.generic.localdata[0]][1];
-
-	s_keys_step_left_action.generic.type = MTYPE_ACTION;
-	s_keys_step_left_action.generic.flags = QMF_GRAYED;
-	s_keys_step_left_action.generic.x = 0;
-	s_keys_step_left_action.generic.y = y += 9;
-	s_keys_step_left_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_step_left_action.generic.localdata[0] = ++i;
-	s_keys_step_left_action.generic.name =
-		bindnames[s_keys_step_left_action.generic.localdata[0]][1];
-
-	s_keys_step_right_action.generic.type = MTYPE_ACTION;
-	s_keys_step_right_action.generic.flags = QMF_GRAYED;
-	s_keys_step_right_action.generic.x = 0;
-	s_keys_step_right_action.generic.y = y += 9;
-	s_keys_step_right_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_step_right_action.generic.localdata[0] = ++i;
-	s_keys_step_right_action.generic.name =
-		bindnames[s_keys_step_right_action.generic.localdata[0]][1];
-
-	s_keys_sidestep_action.generic.type = MTYPE_ACTION;
-	s_keys_sidestep_action.generic.flags = QMF_GRAYED;
-	s_keys_sidestep_action.generic.x = 0;
-	s_keys_sidestep_action.generic.y = y += 9;
-	s_keys_sidestep_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_sidestep_action.generic.localdata[0] = ++i;
-	s_keys_sidestep_action.generic.name =
-		bindnames[s_keys_sidestep_action.generic.localdata[0]][1];
-
-	s_keys_look_up_action.generic.type = MTYPE_ACTION;
-	s_keys_look_up_action.generic.flags = QMF_GRAYED;
-	s_keys_look_up_action.generic.x = 0;
-	s_keys_look_up_action.generic.y = y += 9;
-	s_keys_look_up_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_look_up_action.generic.localdata[0] = ++i;
-	s_keys_look_up_action.generic.name =
-		bindnames[s_keys_look_up_action.generic.localdata[0]][1];
-
-	s_keys_look_down_action.generic.type = MTYPE_ACTION;
-	s_keys_look_down_action.generic.flags = QMF_GRAYED;
-	s_keys_look_down_action.generic.x = 0;
-	s_keys_look_down_action.generic.y = y += 9;
-	s_keys_look_down_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_look_down_action.generic.localdata[0] = ++i;
-	s_keys_look_down_action.generic.name =
-		bindnames[s_keys_look_down_action.generic.localdata[0]][1];
-
-	s_keys_center_view_action.generic.type = MTYPE_ACTION;
-	s_keys_center_view_action.generic.flags = QMF_GRAYED;
-	s_keys_center_view_action.generic.x = 0;
-	s_keys_center_view_action.generic.y = y += 9;
-	s_keys_center_view_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_center_view_action.generic.localdata[0] = ++i;
-	s_keys_center_view_action.generic.name =
-		bindnames[s_keys_center_view_action.generic.localdata[0]][1];
-
-	s_keys_mouse_look_action.generic.type = MTYPE_ACTION;
-	s_keys_mouse_look_action.generic.flags = QMF_GRAYED;
-	s_keys_mouse_look_action.generic.x = 0;
-	s_keys_mouse_look_action.generic.y = y += 9;
-	s_keys_mouse_look_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_mouse_look_action.generic.localdata[0] = ++i;
-	s_keys_mouse_look_action.generic.name =
-		bindnames[s_keys_mouse_look_action.generic.localdata[0]][1];
-
-	s_keys_keyboard_look_action.generic.type = MTYPE_ACTION;
-	s_keys_keyboard_look_action.generic.flags = QMF_GRAYED;
-	s_keys_keyboard_look_action.generic.x = 0;
-	s_keys_keyboard_look_action.generic.y = y += 9;
-	s_keys_keyboard_look_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_keyboard_look_action.generic.localdata[0] = ++i;
-	s_keys_keyboard_look_action.generic.name =
-		bindnames[s_keys_keyboard_look_action.generic.localdata[0]][1];
-
-	s_keys_move_up_action.generic.type = MTYPE_ACTION;
-	s_keys_move_up_action.generic.flags = QMF_GRAYED;
-	s_keys_move_up_action.generic.x = 0;
-	s_keys_move_up_action.generic.y = y += 9;
-	s_keys_move_up_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_move_up_action.generic.localdata[0] = ++i;
-	s_keys_move_up_action.generic.name =
-		bindnames[s_keys_move_up_action.generic.localdata[0]][1];
-
-	s_keys_move_down_action.generic.type = MTYPE_ACTION;
-	s_keys_move_down_action.generic.flags = QMF_GRAYED;
-	s_keys_move_down_action.generic.x = 0;
-	s_keys_move_down_action.generic.y = y += 9;
-	s_keys_move_down_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_move_down_action.generic.localdata[0] = ++i;
-	s_keys_move_down_action.generic.name =
-		bindnames[s_keys_move_down_action.generic.localdata[0]][1];
-
-	s_keys_inventory_action.generic.type = MTYPE_ACTION;
-	s_keys_inventory_action.generic.flags = QMF_GRAYED;
-	s_keys_inventory_action.generic.x = 0;
-	s_keys_inventory_action.generic.y = y += 9;
-	s_keys_inventory_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_inventory_action.generic.localdata[0] = ++i;
-	s_keys_inventory_action.generic.name =
-		bindnames[s_keys_inventory_action.generic.localdata[0]][1];
-
-	s_keys_inv_use_action.generic.type = MTYPE_ACTION;
-	s_keys_inv_use_action.generic.flags = QMF_GRAYED;
-	s_keys_inv_use_action.generic.x = 0;
-	s_keys_inv_use_action.generic.y = y += 9;
-	s_keys_inv_use_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_inv_use_action.generic.localdata[0] = ++i;
-	s_keys_inv_use_action.generic.name =
-		bindnames[s_keys_inv_use_action.generic.localdata[0]][1];
-
-	s_keys_inv_drop_action.generic.type = MTYPE_ACTION;
-	s_keys_inv_drop_action.generic.flags = QMF_GRAYED;
-	s_keys_inv_drop_action.generic.x = 0;
-	s_keys_inv_drop_action.generic.y = y += 9;
-	s_keys_inv_drop_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_inv_drop_action.generic.localdata[0] = ++i;
-	s_keys_inv_drop_action.generic.name =
-		bindnames[s_keys_inv_drop_action.generic.localdata[0]][1];
-
-	s_keys_inv_prev_action.generic.type = MTYPE_ACTION;
-	s_keys_inv_prev_action.generic.flags = QMF_GRAYED;
-	s_keys_inv_prev_action.generic.x = 0;
-	s_keys_inv_prev_action.generic.y = y += 9;
-	s_keys_inv_prev_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_inv_prev_action.generic.localdata[0] = ++i;
-	s_keys_inv_prev_action.generic.name =
-		bindnames[s_keys_inv_prev_action.generic.localdata[0]][1];
-
-	s_keys_inv_next_action.generic.type = MTYPE_ACTION;
-	s_keys_inv_next_action.generic.flags = QMF_GRAYED;
-	s_keys_inv_next_action.generic.x = 0;
-	s_keys_inv_next_action.generic.y = y += 9;
-	s_keys_inv_next_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_inv_next_action.generic.localdata[0] = ++i;
-	s_keys_inv_next_action.generic.name =
-		bindnames[s_keys_inv_next_action.generic.localdata[0]][1];
-
-	s_keys_help_computer_action.generic.type = MTYPE_ACTION;
-	s_keys_help_computer_action.generic.flags = QMF_GRAYED;
-	s_keys_help_computer_action.generic.x = 0;
-	s_keys_help_computer_action.generic.y = y += 9;
-	s_keys_help_computer_action.generic.ownerdraw = DrawKeyBindingFunc;
-	s_keys_help_computer_action.generic.localdata[0] = ++i;
-	s_keys_help_computer_action.generic.name =
-		bindnames[s_keys_help_computer_action.generic.localdata[0]][1];
-
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_attack_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_next_weapon_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_previous_weapon_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_walk_forward_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_backpedal_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_turn_left_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_turn_right_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_run_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_step_left_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_step_right_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_sidestep_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_look_up_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_look_down_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_center_view_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_mouse_look_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_keyboard_look_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_move_up_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_move_down_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_inventory_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_inv_use_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_inv_drop_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_inv_prev_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_inv_next_action);
-	Menu_AddItem(&s_keys_menu, (void *)&s_keys_help_computer_action);
+		Menu_AddItem(&s_keys_menu, (void *)&s_keys_actions[i]);
+	}
 
 	Menu_SetStatusBar(&s_keys_menu, "ENTER to change, BACKSPACE to clear");
 	Menu_Center(&s_keys_menu);
