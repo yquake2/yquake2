@@ -2444,12 +2444,9 @@ LoadGame_MenuInit(void)
 		s_loadgame_actions[i].generic.y = i * 10;
 		s_loadgame_actions[i].generic.localdata[0] = i + m_loadsave_page * MAX_SAVESLOTS;
 		s_loadgame_actions[i].generic.flags = QMF_LEFT_JUSTIFY;
-		if (m_loadsave_page == 0 && i == 0)
-		{
-			s_loadgame_actions[i].generic.flags |= QMF_GRAYED;
-		}
 		if (!m_savevalid[i])
 		{
+			s_loadgame_actions[i].generic.flags |= QMF_GRAYED;
 			s_loadgame_actions[i].generic.callback = NULL;
 		}
 		else
@@ -2475,48 +2472,35 @@ static const char *
 LoadGame_MenuKey(int key)
 {
 	static menuframework_s *m = &s_loadgame_menu;
-	int old_cursor;
 
 	switch (key)
 	{
 		case K_KP_UPARROW:
 		case K_UPARROW:
-			old_cursor = m->cursor;
-			m->cursor--;
-			Menu_AdjustCursor(m, -1);
-			if (m->cursor >= old_cursor)
+			if (m->cursor == 0)
 			{
 				LoadSave_AdjustPage(-1);
 				LoadGame_MenuInit();
-				m->cursor = m->nitems;
-				Menu_AdjustCursor(m, -1);
 			}
-			return menu_move_sound;
+			break;
 		case K_TAB:
 		case K_KP_DOWNARROW:
 		case K_DOWNARROW:
-			old_cursor = m->cursor;
-			m->cursor++;
-			Menu_AdjustCursor(m, 1);
-			if (m->cursor <= old_cursor)
+			if (m->cursor == m->nitems - 1)
 			{
 				LoadSave_AdjustPage(1);
 				LoadGame_MenuInit();
-				m->cursor = 0;
-				Menu_AdjustCursor(m, 1);
 			}
-			return menu_move_sound;
+			break;
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:
 			LoadSave_AdjustPage(-1);
 			LoadGame_MenuInit();
-			Menu_AdjustCursor(m, 1);
 			return menu_move_sound;
 		case K_KP_RIGHTARROW:
 		case K_RIGHTARROW:
 			LoadSave_AdjustPage(1);
 			LoadGame_MenuInit();
-			Menu_AdjustCursor(m, 1);
 			return menu_move_sound;
 		default:
 			s_savegame_menu.cursor = s_loadgame_menu.cursor;
@@ -2569,23 +2553,21 @@ SaveGame_MenuInit(void)
 	/* don't include the autosave slot */
 	for (i = 0; i < MAX_SAVESLOTS; i++)
 	{
-		if (m_loadsave_page == 0 && i == 0)
-		{
-			s_savegame_actions[i].generic.type = MTYPE_SEPARATOR;
-			s_savegame_actions[i].generic.name = NULL;
-
-			Menu_AddItem(&s_savegame_menu, &s_savegame_actions[i]);
-
-			continue;
-		}
-
 		s_savegame_actions[i].generic.type = MTYPE_ACTION;
 		s_savegame_actions[i].generic.name = m_savestrings[i];
 		s_savegame_actions[i].generic.x = 0;
 		s_savegame_actions[i].generic.y = i * 10;
 		s_savegame_actions[i].generic.localdata[0] = i + m_loadsave_page * MAX_SAVESLOTS;
 		s_savegame_actions[i].generic.flags = QMF_LEFT_JUSTIFY;
-		s_savegame_actions[i].generic.callback = SaveGameCallback;
+		if (s_savegame_actions[i].generic.localdata[0] == 0)
+		{
+			s_savegame_actions[i].generic.flags |= QMF_GRAYED;
+			s_savegame_actions[i].generic.callback = NULL;
+		}
+		else
+		{
+			s_savegame_actions[i].generic.callback = SaveGameCallback;
+		}
 
 		Menu_AddItem(&s_savegame_menu, &s_savegame_actions[i]);
 	}
@@ -2597,48 +2579,35 @@ static const char *
 SaveGame_MenuKey(int key)
 {
 	static menuframework_s *m = &s_savegame_menu;
-	int old_cursor;
 
 	switch (key)
 	{
 		case K_KP_UPARROW:
 		case K_UPARROW:
-			old_cursor = m->cursor;
-			m->cursor--;
-			Menu_AdjustCursor(m, -1);
-			if (m->cursor >= old_cursor)
+			if (m->cursor == 0)
 			{
 				LoadSave_AdjustPage(-1);
 				SaveGame_MenuInit();
-				m->cursor = m->nitems;
-				Menu_AdjustCursor(m, -1);
 			}
-			return menu_move_sound;
+			break;
 		case K_TAB:
 		case K_KP_DOWNARROW:
 		case K_DOWNARROW:
-			old_cursor = m->cursor;
-			m->cursor++;
-			Menu_AdjustCursor(m, 1);
-			if (m->cursor <= old_cursor)
+			if (m->cursor == m->nitems - 1)
 			{
 				LoadSave_AdjustPage(1);
 				SaveGame_MenuInit();
-				m->cursor = 0;
-				Menu_AdjustCursor(m, 1);
 			}
-			return menu_move_sound;
+			break;
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:
 			LoadSave_AdjustPage(-1);
 			SaveGame_MenuInit();
-			Menu_AdjustCursor(m, 1);
 			return menu_move_sound;
 		case K_KP_RIGHTARROW:
 		case K_RIGHTARROW:
 			LoadSave_AdjustPage(1);
 			SaveGame_MenuInit();
-			Menu_AdjustCursor(m, 1);
 			return menu_move_sound;
 		default:
 			s_loadgame_menu.cursor = s_savegame_menu.cursor;
