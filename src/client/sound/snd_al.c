@@ -292,11 +292,10 @@ AL_PlayChannel(channel_t *ch)
 	qalGetError();
 	qalSourcei(ch->srcnum, AL_BUFFER, sc->bufnum);
 	qalSourcei(ch->srcnum, AL_LOOPING, ch->autosound ? AL_TRUE : AL_FALSE);
-	qalSourcef(ch->srcnum, AL_GAIN, ch->master_vol / 3);
+	qalSourcef(ch->srcnum, AL_GAIN, ch->oal_vol);
 	qalSourcef(ch->srcnum, AL_REFERENCE_DISTANCE, SOUND_FULLVOLUME);
 	qalSourcef(ch->srcnum, AL_MAX_DISTANCE, 8192);
-	qalSourcef(ch->srcnum, AL_ROLLOFF_FACTOR, ch->dist_mult *
-			(8192 - SOUND_FULLVOLUME));
+	qalSourcef(ch->srcnum, AL_ROLLOFF_FACTOR, ch->dist_mult * (8192 - SOUND_FULLVOLUME));
 
 	AL_Spatialize(ch);
 

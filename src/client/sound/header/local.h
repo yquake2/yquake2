@@ -99,6 +99,7 @@ typedef struct
 	qboolean autosound;         /* from an entity->sound, cleared each frame */
 #if USE_OPENAL
 	int autoframe;
+	float oal_vol;
 	int srcnum;
 #endif
 } channel_t;

@@ -689,7 +689,6 @@ S_IssuePlaysound(playsound_t *ps)
 		ch->dist_mult = ps->attenuation * 0.0005f;
 	}
 
-	ch->master_vol = (int)ps->volume;
 	ch->entnum = ps->entnum;
 	ch->entchannel = ps->entchannel;
 	ch->sfx = ps->sfx;
@@ -699,11 +698,13 @@ S_IssuePlaysound(playsound_t *ps)
 #if USE_OPENAL
 	if (sound_started == SS_OAL)
 	{
+		ch->oal_vol = ps->volume;
 		AL_PlayChannel(ch);
 	}
 	else
 #endif
 	{
+		ch->master_vol = (int)ps->volume;
 		S_Spatialize(ch);
 	}
 
@@ -870,7 +871,7 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 	if (sound_started == SS_OAL)
 	{
 		ps->begin = paintedtime + timeofs * 1000;
-		ps->volume = fvol * 384;
+		ps->volume = fvol;
 	}
 	else
 #endif
