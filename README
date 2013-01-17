@@ -618,6 +618,10 @@ vary). The most important options (tested with OpenAL Soft 1.14) are:
   several hard to resamples sound effects. Especially the earthquake sound can
   distort if a low quality resampler is employed!
 
+If the sound is distorted and cracking, most likely the ingame volume is set too 
+high. Lower it by setting the "s_volume" CVAR to 0.3 or even less and use the 
+system mixer instead!
+
 ===============================================================================
 
 6. Bugreports

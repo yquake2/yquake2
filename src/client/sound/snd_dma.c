@@ -698,7 +698,7 @@ S_IssuePlaysound(playsound_t *ps)
 #if USE_OPENAL
 	if (sound_started == SS_OAL)
 	{
-		ch->oal_vol = ps->volume;
+		ch->oal_vol = ps->volume * (s_volume->value);
 		AL_PlayChannel(ch);
 	}
 	else
@@ -1182,6 +1182,7 @@ S_RawSamples(int samples, int rate, int width,
 #if USE_OPENAL
 	if (sound_started == SS_OAL)
 	{
+		volume = volume * (s_volume->value);
 		AL_RawSamples(samples, rate, width, channels, data, volume);
 		return;
 	}

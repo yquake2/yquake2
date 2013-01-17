@@ -475,7 +475,6 @@ AL_Update(void)
 	AL_CopyVector(listener_forward, orientation);
 	AL_CopyVector(listener_up, orientation + 3);
 	qalListenerfv(AL_ORIENTATION, orientation);
-	qalListenerf(AL_GAIN, s_volume->value / 3);
 	qalDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
 
 	/* update spatialization for dynamic sounds */
