@@ -620,7 +620,9 @@ vary). The most important options (tested with OpenAL Soft 1.14) are:
 
 If the sound is distorted and cracking, most likely the ingame volume is set too 
 high. Lower it by setting the "s_volume" CVAR to 0.3 or even less and use the 
-system mixer instead!
+system mixer instead! If everything failes set s_openal_maxgain to a lower value
+like 0.3 to clamp the maximum preamplification gain. But beware! The side effect
+is a limited dynamic range!
 
 ===============================================================================
 

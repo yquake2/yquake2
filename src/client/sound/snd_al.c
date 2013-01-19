@@ -55,12 +55,11 @@ static ALuint underwaterFilter;
 
 static ALuint s_srcnums[MAX_CHANNELS - 1];
 static int s_framecount;
+cvar_t *s_openal_maxgain;
 
 /* Forward Declarations */
 static void S_AL_StreamUpdate(void);
 static void S_AL_StreamDie(void);
-
-/* /Forward Declarations */
 
 static void
 AL_InitStreamSource()
@@ -114,6 +113,8 @@ AL_Init(void)
 		Com_Printf("ERROR: OpenAL failed to initialize.\n");
 		return false;
 	}
+
+	s_openal_maxgain = Cvar_Get("s_openal_maxgain", "1.0", CVAR_ARCHIVE);
 
 	/* check for linear distance extension */
 	if (!qalIsExtensionPresent("AL_EXT_LINEAR_DISTANCE"))
@@ -293,6 +294,7 @@ AL_PlayChannel(channel_t *ch)
 	qalSourcei(ch->srcnum, AL_BUFFER, sc->bufnum);
 	qalSourcei(ch->srcnum, AL_LOOPING, ch->autosound ? AL_TRUE : AL_FALSE);
 	qalSourcef(ch->srcnum, AL_GAIN, ch->oal_vol);
+	qalSourcef(ch->srcnum, AL_MAX_GAIN, s_openal_maxgain->value);
 	qalSourcef(ch->srcnum, AL_REFERENCE_DISTANCE, SOUND_FULLVOLUME);
 	qalSourcef(ch->srcnum, AL_MAX_DISTANCE, 8192);
 	qalSourcef(ch->srcnum, AL_ROLLOFF_FACTOR, ch->dist_mult * (8192 - SOUND_FULLVOLUME));
@@ -671,6 +673,7 @@ AL_RawSamples(int samples, int rate, int width, int channels,
 
 	/* set volume */
 	qalSourcef(streamSource, AL_GAIN, volume);
+	qalSourcef(streamSource, AL_MAX_GAIN, s_openal_maxgain->value);
 
 	/* Shove the data onto the streamSource */
 	qalSourceQueueBuffers(streamSource, 1, &buffer);
