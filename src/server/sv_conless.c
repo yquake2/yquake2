@@ -28,9 +28,6 @@
 
 extern cvar_t *hostname;
 extern cvar_t *rcon_password;
-
-cvar_t *sv_reconnect_limit; /* minimum seconds between connect messages */
-
 char *SV_StatusString(void);
 
 /*
@@ -240,9 +237,7 @@ SVC_DirectConnect(void)
 			((cl->netchan.qport == qport) ||
 			 (adr.port == cl->netchan.remote_address.port)))
 		{
-			if (!NET_IsLocalAddress(adr) &&
-				((svs.realtime - cl->lastconnect) <
-				 ((int)sv_reconnect_limit->value * 1000)))
+			if (!NET_IsLocalAddress(adr))
 			{
 				Com_DPrintf("%s:reconnect rejected : too soon\n",
 						NET_AdrToString(adr));
