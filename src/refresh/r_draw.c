@@ -39,8 +39,8 @@ Draw_InitLocal(void)
 	/* load console characters (don't bilerp characters) */
 	draw_chars = R_FindImage("pics/conchars.pcx", it_pic);
 	R_Bind(draw_chars->texnum);
-	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
 /*
@@ -361,8 +361,8 @@ Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 				image8);
 	}
 
-	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	qglBegin(GL_QUADS);
 	qglTexCoord2f(1.0 / 512.0, 1.0 / 512.0);

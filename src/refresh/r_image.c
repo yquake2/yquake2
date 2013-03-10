@@ -306,15 +306,15 @@ R_TextureMode(char *string)
 		if ((glt->type != it_pic) && (glt->type != it_sky))
 		{
 			R_Bind(glt->texnum);
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+			qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 					gl_filter_min);
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+			qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
 					gl_filter_max);
 
 			/* Set anisotropic filter if supported and enabled */
 			if (gl_config.anisotropic && gl_anisotropic->value)
 			{
-				qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+				qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
 						gl_anisotropic->value);
 			}
 		}
@@ -818,18 +818,18 @@ done:
 
 	if (mipmap)
 	{
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 	}
 	else
 	{
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 	}
 
 	if (mipmap && gl_config.anisotropic && gl_anisotropic->value)
 	{
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
 				gl_anisotropic->value);
 	}
 
@@ -859,8 +859,8 @@ R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 				width, height, 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE,
 				data);
 
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
+		qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 
 		return false; /* SBF: FIXME - what is the correct return value? */
 	}
