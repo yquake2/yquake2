@@ -146,6 +146,7 @@ cvar_t *gl_picmip;
 cvar_t *gl_skymip;
 cvar_t *gl_showtris;
 cvar_t *gl_ztrick;
+cvar_t *gl_zfix;
 cvar_t *gl_finish;
 cvar_t *gl_clear;
 cvar_t *gl_cull;
@@ -788,12 +789,20 @@ R_Clear(void)
 			gldepthmin = 0;
 			gldepthmax = 0.49999;
 			qglDepthFunc(GL_LEQUAL);
+			if (gl_zfix->value)
+			{
+				qglPolygonOffset(0, 14);
+			}
 		}
 		else
 		{
 			gldepthmin = 1;
 			gldepthmax = 0.5;
 			qglDepthFunc(GL_GEQUAL);
+			if (gl_zfix->value)
+			{
+				qglPolygonOffset(0, -14);
+			}
 		}
 	}
 	else
@@ -810,6 +819,10 @@ R_Clear(void)
 		gldepthmin = 0;
 		gldepthmax = 1;
 		qglDepthFunc(GL_LEQUAL);
+		if (gl_zfix->value)
+		{
+			qglPolygonOffset(0, 14);
+		}
 	}
 
 	qglDepthRange(gldepthmin, gldepthmax);
@@ -992,6 +1005,7 @@ R_Register(void)
 	gl_skymip = ri.Cvar_Get("gl_skymip", "0", 0);
 	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
 	gl_ztrick = ri.Cvar_Get("gl_ztrick", "0", 0);
+	gl_zfix = ri.Cvar_Get("gl_zfix", "1", 0);
 	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
 	gl_clear = ri.Cvar_Get("gl_clear", "0", 0);
 	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);

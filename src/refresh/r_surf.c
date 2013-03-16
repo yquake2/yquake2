@@ -911,6 +911,11 @@ R_DrawBrushModel(entity_t *e)
 		return;
 	}
 
+	if (gl_zfix->value)
+	{
+		qglEnable(GL_POLYGON_OFFSET_FILL);
+	}
+
 	qglColor3f(1, 1, 1);
 	memset(gl_lms.lightmap_surfaces, 0, sizeof(gl_lms.lightmap_surfaces));
 
@@ -992,6 +997,11 @@ R_DrawBrushModel(entity_t *e)
 	R_EnableMultitexture(false);
 
 	qglPopMatrix();
+
+	if (gl_zfix->value)
+	{
+		qglDisable(GL_POLYGON_OFFSET_FILL);
+	}
 }
 
 void
