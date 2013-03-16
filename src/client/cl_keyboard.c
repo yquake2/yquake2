@@ -29,6 +29,8 @@
 
 #include "header/client.h"
 
+static cvar_t *cfg_unbindall;
+
 /*
  * key up events are sent even if in console mode
  */
@@ -760,6 +762,11 @@ Key_WriteBindings(FILE *f)
 {
 	int i;
 
+	if (cfg_unbindall->value)
+	{
+		fprintf(f, "unbindall\n");
+	}
+
 	for (i = 0; i < K_LAST; i++)
 	{
 		if (keybindings[i] && keybindings[i][0])
@@ -874,6 +881,9 @@ Key_Init(void)
 	{
 		menubound[K_F1 + i] = true;
 	}
+
+	/* register our variables */
+	cfg_unbindall = Cvar_Get("cfg_unbindall", "1", CVAR_ARCHIVE);
 
 	/* register our functions */
 	Cmd_AddCommand("bind", Key_Bind_f);
