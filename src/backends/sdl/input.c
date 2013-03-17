@@ -148,7 +148,18 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 				key = K_UPARROW;
 				break;
 			case SDLK_ESCAPE:
-				key = K_ESCAPE;
+				/* Make Shift+Escape toggle the console. This
+				   really belongs in Key_Event(), but since
+				   Key_ClearStates() can mess up the internal
+				   K_SHIFT state let's do it here instead. */
+				if (KeyStates[SDLK_LSHIFT] || KeyStates[SDLK_RSHIFT])
+				{
+					key = '~';
+				}
+				else
+				{
+					key = K_ESCAPE;
+				}
 				break;
 			case SDLK_KP_ENTER:
 				key = K_KP_ENTER;
