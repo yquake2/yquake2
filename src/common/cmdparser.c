@@ -700,13 +700,11 @@ Cmd_AddCommand(char *cmd_name, xcommand_t function)
 	cmd->name = cmd_name;
 	cmd->function = function;
 
-        /* link the command in */
-	for (pos = &cmd_functions; *pos; pos = &(*pos)->next)
+	/* link the command in */
+	pos = &cmd_functions;
+	while (*pos && strcmp((*pos)->name, cmd->name) < 0)
 	{
-		if (strcmp(cmd->name, (*pos)->name) < 0)
-		{
-			break;
-		}
+		pos = &(*pos)->next;
 	}
 	cmd->next = *pos;
 	*pos = cmd;

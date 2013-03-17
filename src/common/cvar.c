@@ -177,12 +177,10 @@ Cvar_Get(char *var_name, char *var_value, int flags)
 	var->value = strtod(var->string, (char **)NULL);
 
 	/* link the variable in */
-	for (pos = &cvar_vars; *pos; pos = &(*pos)->next)
+	pos = &cvar_vars;
+	while (*pos && strcmp((*pos)->name, var->name) < 0)
 	{
-		if (strcmp(var->name, (*pos)->name) < 0)
-		{
-			break;
-		}
+		pos = &(*pos)->next;
 	}
 	var->next = *pos;
 	*pos = var;
