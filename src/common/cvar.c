@@ -137,6 +137,7 @@ cvar_t *
 Cvar_Get(char *var_name, char *var_value, int flags)
 {
 	cvar_t *var;
+	cvar_t **pos;
 
 	if (flags & (CVAR_USERINFO | CVAR_SERVERINFO))
 	{
@@ -176,8 +177,15 @@ Cvar_Get(char *var_name, char *var_value, int flags)
 	var->value = strtod(var->string, (char **)NULL);
 
 	/* link the variable in */
-	var->next = cvar_vars;
-	cvar_vars = var;
+	for (pos = &cvar_vars; *pos; pos = &(*pos)->next)
+	{
+		if (strcmp(var->name, (*pos)->name) < 0)
+		{
+			break;
+		}
+	}
+	var->next = *pos;
+	*pos = var;
 
 	var->flags = flags;
 

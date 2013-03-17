@@ -678,6 +678,7 @@ void
 Cmd_AddCommand(char *cmd_name, xcommand_t function)
 {
 	cmd_function_t *cmd;
+	cmd_function_t **pos;
 
 	/* fail if the command is a variable name */
 	if (Cvar_VariableString(cmd_name)[0])
@@ -698,8 +699,17 @@ Cmd_AddCommand(char *cmd_name, xcommand_t function)
 	cmd = Z_Malloc(sizeof(cmd_function_t));
 	cmd->name = cmd_name;
 	cmd->function = function;
-	cmd->next = cmd_functions;
-	cmd_functions = cmd;
+
+        /* link the command in */
+	for (pos = &cmd_functions; *pos; pos = &(*pos)->next)
+	{
+		if (strcmp(cmd->name, (*pos)->name) < 0)
+		{
+			break;
+		}
+	}
+	cmd->next = *pos;
+	*pos = cmd;
 }
 
 void
