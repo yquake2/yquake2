@@ -217,7 +217,7 @@ DeathmatchScoreboardMessage(edict_t *ent, edict_t *killer)
 	edict_t *cl_ent;
 	char *tag;
 
-	if (!ent || !killer)
+	if (!ent)
 	{
 		return;
 	}
@@ -369,11 +369,8 @@ Cmd_Score_f(edict_t *ent)
 	DeathmatchScoreboard(ent);
 }
 
-/*
- * Draw help computer.
- */
 void
-HelpComputer(edict_t *ent)
+HelpComputerMessage(edict_t *ent)
 {
 	char string[1024];
 	char *sk;
@@ -419,6 +416,20 @@ HelpComputer(edict_t *ent)
 
 	gi.WriteByte(svc_layout);
 	gi.WriteString(string);
+}
+
+/*
+ * Draw help computer.
+ */
+void
+HelpComputer(edict_t *ent)
+{
+	if (!ent)
+	{
+		return;
+	}
+
+	HelpComputerMessage(ent);
 	gi.unicast(ent, true);
 }
 
@@ -443,8 +454,7 @@ Cmd_Help_f(edict_t *ent)
 	ent->client->showinventory = false;
 	ent->client->showscores = false;
 
-	if (ent->client->showhelp &&
-		(ent->client->pers.game_helpchanged == game.helpchanged))
+	if (ent->client->showhelp)
 	{
 		ent->client->showhelp = false;
 		return;

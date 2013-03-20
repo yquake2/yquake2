@@ -605,9 +605,26 @@ Cmd_Drop_f(edict_t *ent)
 }
 
 void
-Cmd_Inven_f(edict_t *ent)
+InventoryMessage(edict_t *ent)
 {
 	int i;
+
+	if (!ent)
+	{
+		return;
+	}
+
+	gi.WriteByte(svc_inventory);
+
+	for (i = 0; i < MAX_ITEMS; i++)
+	{
+		gi.WriteShort(ent->client->pers.inventory[i]);
+	}
+}
+
+void
+Cmd_Inven_f(edict_t *ent)
+{
 	gclient_t *cl;
 
 	if (!ent)
@@ -628,13 +645,7 @@ Cmd_Inven_f(edict_t *ent)
 
 	cl->showinventory = true;
 
-	gi.WriteByte(svc_inventory);
-
-	for (i = 0; i < MAX_ITEMS; i++)
-	{
-		gi.WriteShort(cl->pers.inventory[i]);
-	}
-
+	InventoryMessage(ent);
 	gi.unicast(ent, true);
 }
 

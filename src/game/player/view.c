@@ -1371,4 +1371,19 @@ ClientEndServerFrame(edict_t *ent)
 		DeathmatchScoreboardMessage(ent, ent->enemy);
 		gi.unicast(ent, false);
 	}
+
+	/* if the inventory is up, update it */
+	if (ent->client->showinventory && !(level.framenum & 1))
+	{
+		InventoryMessage(ent);
+		gi.unicast(ent, false);
+	}
+
+	/* if the help computer is up, update it */
+	if (ent->client->showhelp && !(level.framenum & 31))
+	{
+		ent->client->pers.helpchanged = 0;
+		HelpComputerMessage(ent);
+		gi.unicast(ent, false);
+	}
 }
