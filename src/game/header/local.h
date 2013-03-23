@@ -572,7 +572,7 @@ extern field_t fields[];
 extern gitem_t itemlist[];
 
 /* g_cmds.c */
-void InventoryMessage(edict_t *client);
+void Cmd_Help_f(edict_t *ent);
 
 /* g_items.c */
 void PrecacheItem(gitem_t *it);
@@ -752,8 +752,7 @@ void G_CheckChaseStats(edict_t *ent);
 void ValidateSelectedItem(edict_t *ent);
 void DeathmatchScoreboardMessage(edict_t *client, edict_t *killer);
 void HelpComputerMessage(edict_t *client);
-void Cmd_Score_f(edict_t *ent);
-void Cmd_Help_f(edict_t *ent);
+void InventoryMessage(edict_t *client);
 
 /* g_pweapon.c */
 void PlayerNoise(edict_t *who, vec3_t where, int type);

@@ -323,52 +323,6 @@ DeathmatchScoreboardMessage(edict_t *ent, edict_t *killer)
 	gi.WriteString(string);
 }
 
-/*
- * Draw instead of help message.
- * Note that it isn't that hard to
- * overflow the 1400 byte message limit!
- */
-void
-DeathmatchScoreboard(edict_t *ent)
-{
-	if (!ent)
-	{
-		return;
-	}
-
-	DeathmatchScoreboardMessage(ent, ent->enemy);
-	gi.unicast(ent, true);
-}
-
-/*
- * Display the scoreboard
- */
-void
-Cmd_Score_f(edict_t *ent)
-{
-	if (!ent)
-	{
-		return;
-	}
-
-	ent->client->showinventory = false;
-	ent->client->showhelp = false;
-
-	if (!deathmatch->value && !coop->value)
-	{
-		return;
-	}
-
-	if (ent->client->showscores)
-	{
-		ent->client->showscores = false;
-		return;
-	}
-
-	ent->client->showscores = true;
-	DeathmatchScoreboard(ent);
-}
-
 void
 HelpComputerMessage(edict_t *ent)
 {
@@ -418,52 +372,24 @@ HelpComputerMessage(edict_t *ent)
 	gi.WriteString(string);
 }
 
-/*
- * Draw help computer.
- */
 void
-HelpComputer(edict_t *ent)
+InventoryMessage(edict_t *ent)
 {
-	if (!ent)
-	{
-		return;
-	}
+        int i;
 
-	HelpComputerMessage(ent);
-	gi.unicast(ent, true);
+        if (!ent)
+        {
+                return;
+        }
+
+        gi.WriteByte(svc_inventory);
+
+        for (i = 0; i < MAX_ITEMS; i++)
+        {
+                gi.WriteShort(ent->client->pers.inventory[i]);
+        }
 }
 
-/*
- * Display the current help message
- */
-void
-Cmd_Help_f(edict_t *ent)
-{
-	if (!ent)
-	{
-		return;
-	}
-
-	/* this is for backwards compatability */
-	if (deathmatch->value)
-	{
-		Cmd_Score_f(ent);
-		return;
-	}
-
-	ent->client->showinventory = false;
-	ent->client->showscores = false;
-
-	if (ent->client->showhelp)
-	{
-		ent->client->showhelp = false;
-		return;
-	}
-
-	ent->client->showhelp = true;
-	ent->client->pers.helpchanged = 0;
-	HelpComputer(ent);
-}
 
 /* ======================================================================= */
 

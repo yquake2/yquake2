@@ -605,21 +605,60 @@ Cmd_Drop_f(edict_t *ent)
 }
 
 void
-InventoryMessage(edict_t *ent)
+Cmd_Score_f(edict_t *ent)
 {
-	int i;
-
 	if (!ent)
 	{
 		return;
 	}
 
-	gi.WriteByte(svc_inventory);
+	ent->client->showinventory = false;
+	ent->client->showhelp = false;
 
-	for (i = 0; i < MAX_ITEMS; i++)
+	if (!deathmatch->value && !coop->value)
 	{
-		gi.WriteShort(ent->client->pers.inventory[i]);
+		return;
 	}
+
+	if (ent->client->showscores)
+	{
+		ent->client->showscores = false;
+		return;
+	}
+
+	ent->client->showscores = true;
+	DeathmatchScoreboardMessage(ent, ent->enemy);
+	gi.unicast(ent, true);
+}
+
+void
+Cmd_Help_f(edict_t *ent)
+{
+	if (!ent)
+	{
+		return;
+	}
+
+	/* this is for backwards compatability */
+	if (deathmatch->value)
+	{
+		Cmd_Score_f(ent);
+		return;
+	}
+
+	ent->client->showinventory = false;
+	ent->client->showscores = false;
+
+	if (ent->client->showhelp)
+	{
+		ent->client->showhelp = false;
+		return;
+	}
+
+	ent->client->showhelp = true;
+	ent->client->pers.helpchanged = 0;
+	HelpComputerMessage(ent);
+	gi.unicast(ent, true);
 }
 
 void

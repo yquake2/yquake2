@@ -1365,25 +1365,28 @@ ClientEndServerFrame(edict_t *ent)
 	VectorClear(ent->client->kick_origin);
 	VectorClear(ent->client->kick_angles);
 
-	/* if the scoreboard is up, update it */
-	if (ent->client->showscores && !(level.framenum & 31))
+	if (level.framenum & 31)
 	{
-		DeathmatchScoreboardMessage(ent, ent->enemy);
-		gi.unicast(ent, false);
+		/* if the scoreboard is up, update it */
+		if (ent->client->showscores)
+		{
+			DeathmatchScoreboardMessage(ent, ent->enemy);
+			gi.unicast(ent, false);
+		}
+
+		/* if the help computer is up, update it */
+		if (ent->client->showhelp)
+		{
+			ent->client->pers.helpchanged = 0;
+			HelpComputerMessage(ent);
+			gi.unicast(ent, false);
+		}
 	}
 
 	/* if the inventory is up, update it */
-	if (ent->client->showinventory && !(level.framenum & 1))
+	if (ent->client->showinventory)
 	{
 		InventoryMessage(ent);
-		gi.unicast(ent, false);
-	}
-
-	/* if the help computer is up, update it */
-	if (ent->client->showhelp && !(level.framenum & 31))
-	{
-		ent->client->pers.helpchanged = 0;
-		HelpComputerMessage(ent);
 		gi.unicast(ent, false);
 	}
 }
