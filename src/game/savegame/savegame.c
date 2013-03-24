@@ -754,7 +754,7 @@ WriteGame(const char *filename, qboolean autosave)
 	int i;
 	char str_ver[32];
 	char str_game[32];
-    char str_os[32];
+	char str_os[32];
 	char str_arch[32];
 
 	if (!autosave)
@@ -778,7 +778,7 @@ WriteGame(const char *filename, qboolean autosave)
 	strncpy(str_ver, SAVEGAMEVER, sizeof(str_ver));
 	strncpy(str_game, GAMEVERSION, sizeof(str_game));
 	strncpy(str_os, OS, sizeof(str_os));
-    strncpy(str_arch, ARCH, sizeof(str_arch));
+	strncpy(str_arch, ARCH, sizeof(str_arch));
 
 	fwrite(str_ver, sizeof(str_ver), 1, f);
 	fwrite(str_game, sizeof(str_game), 1, f);

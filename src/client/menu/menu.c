@@ -2404,8 +2404,8 @@ static char local_server_netadr_strings[MAX_LOCAL_SERVERS][80];
 void
 M_AddToServerList(netadr_t adr, char *info)
 {
-	int i;
 	char *s;
+	int i;
 
 	if (m_num_servers == MAX_LOCAL_SERVERS)
 	{
