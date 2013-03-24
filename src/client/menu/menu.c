@@ -2394,16 +2394,18 @@ static menuaction_s s_joinserver_server_actions[MAX_LOCAL_SERVERS];
 int m_num_servers;
 #define NO_SERVER_STRING "<no server>"
 
-/* user readable information */
-static char local_server_names[MAX_LOCAL_SERVERS][80];
-
 /* network address */
 static netadr_t local_server_netadr[MAX_LOCAL_SERVERS];
+
+/* user readable information */
+static char local_server_names[MAX_LOCAL_SERVERS][80];
+static char local_server_netadr_strings[MAX_LOCAL_SERVERS][80];
 
 void
 M_AddToServerList(netadr_t adr, char *info)
 {
 	int i;
+	char *s;
 
 	if (m_num_servers == MAX_LOCAL_SERVERS)
 	{
@@ -2415,19 +2417,23 @@ M_AddToServerList(netadr_t adr, char *info)
 		info++;
 	}
 
+	s = NET_AdrToString(adr);
+
 	/* ignore if duplicated */
 	for (i = 0; i < m_num_servers; i++)
 	{
-		if (!strcmp(info, local_server_names[i]))
+		if (!strcmp(local_server_names[i], info) &&
+			!strcmp(local_server_netadr_strings[i], s))
 		{
 			return;
 		}
 	}
 
 	local_server_netadr[m_num_servers] = adr;
-	Com_sprintf(local_server_names[m_num_servers],
-			sizeof(local_server_names[0]) - 1,
-			"%s %s", info, NET_AdrToString(adr));
+	strncpy(local_server_names[m_num_servers], info,
+			sizeof(local_server_names[0])-1);
+	strncpy(local_server_netadr_strings[m_num_servers], s,
+			sizeof(local_server_netadr_strings[0])-1);
 	m_num_servers++;
 }
 
@@ -2470,7 +2476,9 @@ SearchLocalGames(void)
 
 	for (i = 0; i < MAX_LOCAL_SERVERS; i++)
 	{
-		sprintf(local_server_names[i], "%d. %s", i + 1, NO_SERVER_STRING);
+		Com_sprintf(local_server_names[i], sizeof(local_server_names[0])-1,
+				"%d. %s", i + 1, NO_SERVER_STRING);
+		local_server_netadr_strings[i][0] = '\0';
 	}
 
 	M_DrawTextBox(8, 120 - 48, 36, 3);
@@ -2522,14 +2530,13 @@ JoinServer_MenuInit(void)
 	for (i = 0; i < MAX_LOCAL_SERVERS; i++)
 	{
 		s_joinserver_server_actions[i].generic.type = MTYPE_ACTION;
-		strcpy(local_server_names[i], NO_SERVER_STRING);
 		s_joinserver_server_actions[i].generic.name = local_server_names[i];
 		s_joinserver_server_actions[i].generic.flags = QMF_LEFT_JUSTIFY;
 		s_joinserver_server_actions[i].generic.x = 0;
 		s_joinserver_server_actions[i].generic.y = 40 + i * 10;
 		s_joinserver_server_actions[i].generic.callback = JoinServerFunc;
 		s_joinserver_server_actions[i].generic.statusbar =
-			"press ENTER to connect";
+			local_server_netadr_strings[i];
 	}
 
 	Menu_AddItem(&s_joinserver_menu, &s_joinserver_address_book_action);
