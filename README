@@ -786,4 +786,7 @@ Why is the FOV different than in id Softwares client?
    ratio other than "auto" in the video menu or by setting the "horplus"
    cvar to "0".
 
+Why doesn't gl_showtris work?
+ - gl_showtris requires gl_ext_multitexturing set to 0.
+
 ==============================================================================
