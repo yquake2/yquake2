@@ -789,20 +789,12 @@ R_Clear(void)
 			gldepthmin = 0;
 			gldepthmax = 0.49999;
 			qglDepthFunc(GL_LEQUAL);
-			if (gl_zfix->value)
-			{
-				qglPolygonOffset(0, 14);
-			}
 		}
 		else
 		{
 			gldepthmin = 1;
 			gldepthmax = 0.5;
 			qglDepthFunc(GL_GEQUAL);
-			if (gl_zfix->value)
-			{
-				qglPolygonOffset(0, -14);
-			}
 		}
 	}
 	else
@@ -819,13 +811,21 @@ R_Clear(void)
 		gldepthmin = 0;
 		gldepthmax = 1;
 		qglDepthFunc(GL_LEQUAL);
-		if (gl_zfix->value)
-		{
-			qglPolygonOffset(0, 14);
-		}
 	}
 
 	qglDepthRange(gldepthmin, gldepthmax);
+
+	if (gl_zfix->value)
+	{
+		if (gldepthmax > gldepthmin)
+		{
+			qglPolygonOffset(0.05, 1);
+		}
+		else
+		{
+			qglPolygonOffset(-0.05, -1);
+		}
+	}
 
 	/* stencilbuffer shadows */
 	if (gl_shadows->value && have_stencil && gl_stencilshadow->value)
@@ -1005,7 +1005,7 @@ R_Register(void)
 	gl_skymip = ri.Cvar_Get("gl_skymip", "0", 0);
 	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
 	gl_ztrick = ri.Cvar_Get("gl_ztrick", "0", 0);
-	gl_zfix = ri.Cvar_Get("gl_zfix", "1", 0);
+	gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
 	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
 	gl_clear = ri.Cvar_Get("gl_clear", "0", 0);
 	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
