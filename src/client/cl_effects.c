@@ -1619,9 +1619,11 @@ CL_FlyParticles(vec3_t origin, int count)
 
 	if (!avelocities[0][0])
 	{
-		for (i = 0; i < NUMVERTEXNORMALS * 3; i++)
+		for (i = 0; i < NUMVERTEXNORMALS; i++)
 		{
-			avelocities[0][i] = (randk() & 255) * 0.01f;
+			avelocities[i][0] = (randk() & 255) * 0.01f;
+			avelocities[i][1] = (randk() & 255) * 0.01f;
+			avelocities[i][2] = (randk() & 255) * 0.01f;
 		}
 	}
 
@@ -1726,9 +1728,11 @@ CL_BfgParticles(entity_t *ent)
 
 	if (!avelocities[0][0])
 	{
-		for (i = 0; i < NUMVERTEXNORMALS * 3; i++)
+		for (i = 0; i < NUMVERTEXNORMALS; i++)
 		{
-			avelocities[0][i] = (randk() & 255) * 0.01f;
+			avelocities[i][0] = (randk() & 255) * 0.01f;
+			avelocities[i][1] = (randk() & 255) * 0.01f;
+			avelocities[i][2] = (randk() & 255) * 0.01f;
 		}
 	}
 
