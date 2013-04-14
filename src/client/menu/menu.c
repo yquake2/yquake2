@@ -1264,10 +1264,11 @@ UpdateSoundQualityFunc(void *unused)
 		Cvar_SetValue("s_loadas8bit", false);
 	}
 
-	M_DrawTextBox(8, 120 - 48, 36, 3);
-	M_Print(16 + 16, 120 - 48 + 8, "Restarting the sound system. This");
-	M_Print(16 + 16, 120 - 48 + 16, "could take up to a minute, so");
-	M_Print(16 + 16, 120 - 48 + 24, "please be patient.");
+	m_popup_string = "Restarting the sound system. This\n"
+				"could take up to a minute, so\n"
+				"please be patient.";
+	m_popup_endtime = cls.realtime + 2000;
+	M_Popup();
 
 	/* the text box won't show up unless we do a buffer swap */
 	re.EndFrame();
@@ -1471,11 +1472,17 @@ Options_MenuDraw(void)
 	M_Banner("m_banner_options");
 	Menu_AdjustCursor(&s_options_menu, 1);
 	Menu_Draw(&s_options_menu);
+	M_Popup();
 }
 
 static const char *
 Options_MenuKey(int key)
 {
+	if (m_popup_string)
+	{
+		m_popup_string = NULL;
+		return NULL;
+	}
 	return Default_MenuKey(&s_options_menu, key);
 }
 
