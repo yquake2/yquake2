@@ -2209,7 +2209,7 @@ Create_Savestrings(void)
 
 		if (!f)
 		{
-			strcpy(m_savestrings[i], "<EMPTY>");
+			strcpy(m_savestrings[i], "<empty>");
 			m_savevalid[i] = false;
 		}
 		else
@@ -2558,8 +2558,7 @@ SearchLocalGames(void)
 
 	for (i = 0; i < MAX_LOCAL_SERVERS; i++)
 	{
-		Com_sprintf(local_server_names[i], sizeof(local_server_names[0])-1,
-				"%d. %s", i + 1, NO_SERVER_STRING);
+		strcpy(local_server_names[i], NO_SERVER_STRING);
 		local_server_netadr_strings[i][0] = '\0';
 	}
 
