@@ -335,13 +335,25 @@ M_DrawCharacter(int cx, int cy, int num)
 }
 
 static void
-M_Print(int cx, int cy, char *str)
+M_Print(int x, int y, char *str)
 {
+	int cx, cy;
+
+	cx = x;
+	cy = y;
 	while (*str)
 	{
-		M_DrawCharacter(cx, cy, (*str) + 128);
+		if (*str == '\n')
+		{
+			cx = x;
+			cy += 8;
+		}
+		else
+		{
+			M_DrawCharacter(cx, cy, (*str) + 128);
+			cx += 8;
+		}
 		str++;
-		cx += 8;
 	}
 }
 
@@ -431,6 +443,61 @@ M_DrawTextBox(int x, int y, int width, int lines)
 	}
 
 	M_DrawCharacter(cx, cy + 8, 9);
+}
+
+static char *m_popup_string;
+static int m_popup_endtime;
+
+static void
+M_Popup(void)
+{
+	int x, y, width, lines;
+	int n;
+	char *str;
+
+	if (!m_popup_string)
+	{
+		return;
+	}
+
+	if (m_popup_endtime && m_popup_endtime < cls.realtime)
+	{
+		m_popup_string = NULL;
+		return;
+	}
+
+	width = lines = n = 0;
+	for (str = m_popup_string; *str; str++)
+	{
+		if (*str == '\n')
+		{
+			lines++;
+			n = 0;
+		}
+		else
+		{
+			n++;
+			if (n > width)
+			{
+				width = n;
+			}
+		}
+	}
+	if (n)
+	{
+		lines++;
+	}
+
+	if (width)
+	{
+		width += 2;
+
+		x = (320 - (width + 2) * 8) / 2;
+		y = (240 - (lines + 2) * 8) / 2;
+
+		M_DrawTextBox(x, y, width, lines);
+		M_Print(x + 16, y + 8, m_popup_string);
+	}
 }
 
 /*
