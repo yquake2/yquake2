@@ -2269,7 +2269,6 @@ LoadGame_MenuInit(void)
 		s_loadgame_actions[i].generic.flags = QMF_LEFT_JUSTIFY;
 		if (!m_savevalid[i])
 		{
-			s_loadgame_actions[i].generic.flags |= QMF_GRAYED;
 			s_loadgame_actions[i].generic.callback = NULL;
 		}
 		else
@@ -2350,6 +2349,16 @@ SaveGameCallback(void *self)
 {
 	menuaction_s *a = (menuaction_s *)self;
 
+	if (a->generic.localdata[0] == 0)
+	{
+		m_popup_string = "This slot is reserved for\n"
+					"autosaving. Please select\n"
+					"another one.";
+		m_popup_endtime = cls.realtime + 2000;
+		M_Popup();
+		return;
+	}
+
 	Cbuf_AddText(va("save save%i\n", a->generic.localdata[0]));
 	M_ForceMenuOff();
 }
@@ -2360,6 +2369,7 @@ SaveGame_MenuDraw(void)
 	M_Banner("m_banner_save_game");
 	Menu_AdjustCursor(&s_savegame_menu, 1);
 	Menu_Draw(&s_savegame_menu);
+	M_Popup();
 }
 
 static void
@@ -2382,15 +2392,7 @@ SaveGame_MenuInit(void)
 		s_savegame_actions[i].generic.y = i * 10;
 		s_savegame_actions[i].generic.localdata[0] = i + m_loadsave_page * MAX_SAVESLOTS;
 		s_savegame_actions[i].generic.flags = QMF_LEFT_JUSTIFY;
-		if (s_savegame_actions[i].generic.localdata[0] == 0)
-		{
-			s_savegame_actions[i].generic.flags |= QMF_GRAYED;
-			s_savegame_actions[i].generic.callback = NULL;
-		}
-		else
-		{
-			s_savegame_actions[i].generic.callback = SaveGameCallback;
-		}
+		s_savegame_actions[i].generic.callback = SaveGameCallback;
 
 		Menu_AddItem(&s_savegame_menu, &s_savegame_actions[i]);
 	}
@@ -2402,6 +2404,12 @@ static const char *
 SaveGame_MenuKey(int key)
 {
 	static menuframework_s *m = &s_savegame_menu;
+
+	if (m_popup_string)
+	{
+		m_popup_string = NULL;
+		return NULL;
+	}
 
 	switch (key)
 	{
