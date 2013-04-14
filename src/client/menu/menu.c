@@ -2352,7 +2352,7 @@ SaveGameCallback(void *self)
 	if (a->generic.localdata[0] == 0)
 	{
 		m_popup_string = "This slot is reserved for\n"
-					"autosaving. Please select\n"
+					"autosaving, so please select\n"
 					"another one.";
 		m_popup_endtime = cls.realtime + 2000;
 		M_Popup();

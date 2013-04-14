@@ -151,7 +151,7 @@ ChaseNext(edict_t *ent)
 	int i;
 	edict_t *e;
 
-    if (!ent)
+	if (!ent)
 	{
 		return;
 	}
