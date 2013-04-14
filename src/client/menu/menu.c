@@ -2555,10 +2555,11 @@ SearchLocalGames(void)
 		local_server_netadr_strings[i][0] = '\0';
 	}
 
-	M_DrawTextBox(8, 120 - 48, 36, 3);
-	M_Print(16 + 16, 120 - 48 + 8, "Searching for local servers, this");
-	M_Print(16 + 16, 120 - 48 + 16, "could take up to a minute, so");
-	M_Print(16 + 16, 120 - 48 + 24, "please be patient.");
+	m_popup_string = "Searching for local servers. This\n"
+				"could take up to a minute, so\n"
+				"please be patient.";
+	m_popup_endtime = cls.realtime + 2000;
+	M_Popup();
 
 	/* the text box won't show up unless we do a buffer swap */
 	re.EndFrame();
@@ -2632,11 +2633,17 @@ JoinServer_MenuDraw(void)
 {
 	M_Banner("m_banner_join_server");
 	Menu_Draw(&s_joinserver_menu);
+	M_Popup();
 }
 
 static const char *
 JoinServer_MenuKey(int key)
 {
+	if (m_popup_string)
+	{
+		m_popup_string = NULL;
+		return NULL;
+	}
 	return Default_MenuKey(&s_joinserver_menu, key);
 }
 
