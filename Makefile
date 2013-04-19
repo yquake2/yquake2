@@ -181,7 +181,7 @@ endif
 
 # Base LDFLAGS.
 ifeq ($(OSTYPE),Linux)
-LDFLAGS := -L/usr/lib -lm -ldl
+LDFLAGS := -L/usr/lib -lm -ldl -rdynamic
 else ifeq ($(OSTYPE),FreeBSD)
 LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),OpenBSD)
