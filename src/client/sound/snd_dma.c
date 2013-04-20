@@ -151,7 +151,7 @@ S_Init(void)
 		{
 			if (SDL_BackendInit())
 			{
-				sound_started = SS_DMA;
+				sound_started = SS_SDL;
 			}
 			else
 			{
@@ -162,7 +162,6 @@ S_Init(void)
 
 		num_sfx = 0;
 
-		soundtime = 0;
 		paintedtime = 0;
 
 		Com_Printf("Sound sampling rate: %i\n", sound.speed);

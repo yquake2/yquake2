@@ -56,11 +56,13 @@ cvar_t *s_sdldriver;
 int *snd_p;
 static sound_t *backend;
 static portable_samplepair_t paintbuffer[SDL_PAINTBUFFER_SIZE];
+static int beginofs;
 static int playpos = 0;
 static int samplesize = 0;
 static int snd_inited = 0;
 static int snd_scaletable[32][256];
 static int snd_vol;
+static int soundtime;
 
 /* ------------------------------------------------------------------ */
 
@@ -450,21 +452,21 @@ SDL_PaintChannels(int endtime)
 int
 SDL_DriftBeginofs(float timeofs)
 {
-	int start = (int)(cl.frame.servertime * 0.001f * sound.speed + s_beginofs);
+	int start = (int)(cl.frame.servertime * 0.001f * sound.speed + beginofs);
 
 	if (start < paintedtime)
 	{
 		start = paintedtime;
-		s_beginofs = (int)(start - (cl.frame.servertime * 0.001f * sound.speed));
+		beginofs = (int)(start - (cl.frame.servertime * 0.001f * sound.speed));
 	}
 	else if (start > paintedtime + 0.3f * sound.speed)
 	{
 		start = (int)(paintedtime + 0.1f * sound.speed);
-		s_beginofs = (int)(start - (cl.frame.servertime * 0.001f * sound.speed));
+		beginofs = (int)(start - (cl.frame.servertime * 0.001f * sound.speed));
 	}
 	else
 	{
-		s_beginofs -= 10;
+		beginofs -= 10;
 	}
 
 	return timeofs ? start + timeofs * sound.speed : paintedtime;
@@ -1318,7 +1320,10 @@ SDL_BackendInit(void)
 	SDL_PauseAudio(0);
 
 	Com_Printf("SDL audio initialized.\n");
+
+	soundtime = 0;
 	snd_inited = 1;
+	
 	return 1;
 }
 
