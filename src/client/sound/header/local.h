@@ -181,6 +181,7 @@ channel_t *S_PickChannel(int entnum, int entchannel);
 
 /* spatializes a channel */
 void SDL_Spatialize(channel_t *ch);
+void SDL_RawSamples(int samples, int rate, int width, int channels, byte *data, float volume);
 
 void S_BuildSoundList(int *sounds);
 

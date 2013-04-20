@@ -941,11 +941,6 @@ void
 S_RawSamples(int samples, int rate, int width,
 		int channels, byte *data, float volume)
 {
-	int i;
-	int src, dst;
-	float scale;
-	int intVolume;
-
 	if (!sound_started)
 	{
 		return;
@@ -961,86 +956,11 @@ S_RawSamples(int samples, int rate, int width,
 	{
 		volume = volume * (s_volume->value);
 		AL_RawSamples(samples, rate, width, channels, data, volume);
-		return;
 	}
+	else
 #endif
-
-	scale = (float)rate / dma.speed;
-	intVolume = (int)(256 * volume);
-
-	if ((channels == 2) && (width == 2))
 	{
-		for (i = 0; ; i++)
-		{
-			src = (int)(i * scale);
-
-			if (src >= samples)
-			{
-				break;
-			}
-
-			dst = s_rawend & (MAX_RAW_SAMPLES - 1);
-			s_rawend++;
-			s_rawsamples[dst].left = ((short *)data)[src * 2] * intVolume;
-			s_rawsamples[dst].right = ((short *)data)[src * 2 + 1] * intVolume;
-		}
-	}
-	else if ((channels == 1) && (width == 2))
-	{
-		for (i = 0; ; i++)
-		{
-			src = (int)(i * scale);
-
-			if (src >= samples)
-			{
-				break;
-			}
-
-			dst = s_rawend & (MAX_RAW_SAMPLES - 1);
-			s_rawend++;
-			s_rawsamples[dst].left = ((short *)data)[src] * intVolume;
-			s_rawsamples[dst].right = ((short *)data)[src] * intVolume;
-		}
-	}
-	else if ((channels == 2) && (width == 1))
-	{
-		intVolume *= 256;
-
-		for (i = 0; ; i++)
-		{
-			src = (int)(i * scale);
-
-			if (src >= samples)
-			{
-				break;
-			}
-
-			dst = s_rawend & (MAX_RAW_SAMPLES - 1);
-			s_rawend++;
-			s_rawsamples[dst].left =
-				(((byte *)data)[src * 2] - 128) * intVolume;
-			s_rawsamples[dst].right =
-				(((byte *)data)[src * 2 + 1] - 128) * intVolume;
-		}
-	}
-	else if ((channels == 1) && (width == 1))
-	{
-		intVolume *= 256;
-
-		for (i = 0; ; i++)
-		{
-			src = (int)(i * scale);
-
-			if (src >= samples)
-			{
-				break;
-			}
-
-			dst = s_rawend & (MAX_RAW_SAMPLES - 1);
-			s_rawend++;
-			s_rawsamples[dst].left = (((byte *)data)[src] - 128) * intVolume;
-			s_rawsamples[dst].right = (((byte *)data)[src] - 128) * intVolume;
-		}
+		SDL_RawSamples(samples, rate, width, channels, data, volume);
 	}
 }
 
