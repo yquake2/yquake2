@@ -799,66 +799,68 @@ SDL_UpdateScaletable(void)
  * necessary endianess convertions are
  * performed.
  */
-void
-SDL_Cache(sfx_t *sfx, int inrate, int inwidth, byte *data)
+qboolean
+SDL_Cache(sfx_t *sfx, wavinfo_t *info, byte *data)
 {
-	int outcount;
-	int srcsample;
 	float stepscale;
 	int i;
+	int len;
 	int sample;
-	unsigned int samplefrac, fracstep;
+	int srcsample;
 	sfxcache_t *sc;
+	unsigned int samplefrac = 0;
 
-	sc = sfx->cache;
+	stepscale = (float)info->rate / dma.speed;
+    len = (int)(info->samples / stepscale);
+
+	if ((info->samples == 0) || (len == 0))
+	{
+		Com_Printf("WARNING: Zero length sound encountered: %s\n", sfx->name);
+		return false;
+	}
+
+	len = len * info->width * info->channels;
+	sc = sfx->cache = Z_Malloc(len + sizeof(sfxcache_t));
 
 	if (!sc)
 	{
-		return;
+		return false;
 	}
 
-	stepscale = (float)inrate / dma.speed;
-	outcount = (int)(sc->length / stepscale);
+	sc->loopstart = info->loopstart;
+    sc->stereo = 0;
+	sc->length = (int)(info->samples / stepscale);
+	sc->speed = dma.speed;
 
-	if (outcount == 0)
+	if ((int)(info->samples / stepscale) == 0)
 	{
 		Com_Printf("ResampleSfx: Invalid sound file '%s' (zero length)\n", sfx->name);
 		Z_Free(sfx->cache);
 		sfx->cache = NULL;
-		return;
+		return false;
 	}
-
-	sc->length = outcount;
 
 	if (sc->loopstart != -1)
 	{
 		sc->loopstart = (int)(sc->loopstart / stepscale);
 	}
 
-	sc->speed = dma.speed;
-
 	if (s_loadas8bit->value)
 	{
 		sc->width = 1;
 	}
-
 	else
 	{
-		sc->width = inwidth;
+		sc->width = info->width;
 	}
 
-	sc->stereo = 0;
-
 	/* resample / decimate to the current source rate */
-	samplefrac = 0;
-	fracstep = (int)(stepscale * 256);
-
-	for (i = 0; i < outcount; i++)
+	for (i = 0; i < (int)(info->samples / stepscale); i++)
 	{
 		srcsample = samplefrac >> 8;
-		samplefrac += fracstep;
+		samplefrac += (int)(stepscale * 256);
 
-		if (inwidth == 2)
+		if (info->width == 2)
 		{
 			sample = LittleShort(((short *)data)[srcsample]);
 		}
@@ -878,6 +880,8 @@ SDL_Cache(sfx_t *sfx, int inrate, int inwidth, byte *data)
 			((signed char *)sc->data)[i] = sample >> 8;
 		}
 	}
+
+	return true;
 }
 
 /* ------------------------------------------------------------------ */

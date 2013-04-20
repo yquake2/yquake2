@@ -257,8 +257,6 @@ S_LoadSound(sfx_t *s)
 	char namebuffer[MAX_QPATH];
 	byte *data;
 	wavinfo_t info;
-	int len;
-	float stepscale;
 	sfxcache_t *sc;
 	int size;
 	char *name;
@@ -314,34 +312,6 @@ S_LoadSound(sfx_t *s)
 		return NULL;
 	}
 
-	if (sound_started != SS_OAL)
-	{
-		stepscale = (float)info.rate / dma.speed;
-		len = (int)(info.samples / stepscale);
-
-		if ((info.samples == 0) || (len == 0))
-		{
-			Com_Printf("WARNING: Zero length sound encountered: %s\n", s->name);
-			FS_FreeFile(data);
-			return NULL;
-		}
-
-		len = len * info.width * info.channels;
-		sc = s->cache = Z_Malloc(len + sizeof(sfxcache_t));
-
-		if (!sc)
-		{
-			FS_FreeFile(data);
-			return NULL;
-		}
-
-		sc->length = info.samples;
-		sc->loopstart = info.loopstart;
-		sc->speed = info.rate;
-		sc->width = info.width;
-		sc->stereo = info.channels;
-	}
-
 #if USE_OPENAL
 	if (sound_started == SS_OAL)
 	{
@@ -350,7 +320,12 @@ S_LoadSound(sfx_t *s)
 	else
 #endif
 	{
-	    SDL_Cache(s, sc->speed, sc->width, data + info.dataofs);
+	    if (!SDL_Cache(s, &info, data + info.dataofs))
+		{
+			Com_Printf("Pansen!\n");
+			FS_FreeFile(data);
+			return NULL;
+		}
 	}
 
 	FS_FreeFile(data);
