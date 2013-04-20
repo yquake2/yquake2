@@ -42,6 +42,7 @@
 #endif
 
 #include "../../common/header/common.h"
+#include "../../client/sound/header/local.h"
 #include "header/qal.h"
 
 static ALCcontext *context;
@@ -203,6 +204,8 @@ void QAL_SoundInfo()
 			Com_Printf("- %s\n", devs);
 		}
 	}
+
+	Com_Printf("\nNumber of sources: %d\n", s_numchannels);
 }
 
 /*

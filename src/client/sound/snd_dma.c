@@ -94,7 +94,6 @@ S_SoundInfo_f(void)
 	if (sound_started == SS_OAL)
 	{
 		QAL_SoundInfo();
-		Com_Printf("\nNumber of sources: %d\n", s_numchannels);
 	}
 	else
 #endif
@@ -166,14 +165,7 @@ S_Init(void)
 		soundtime = 0;
 		paintedtime = 0;
 
-#if USE_OPENAL
-		if (sound_started == SS_DMA)
-		{
-			Com_Printf("Sound sampling rate: %i\n", dma.speed);
-		}
-#else
 		Com_Printf("Sound sampling rate: %i\n", dma.speed);
-#endif
 
 		S_StopAllSounds();
 
