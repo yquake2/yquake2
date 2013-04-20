@@ -55,8 +55,6 @@ vec3_t listener_right;
 vec3_t listener_up;
 
 static qboolean s_registering;
-
-static int soundtime;
 int paintedtime;
 
 /* during registration it is possible to have more sounds
@@ -505,95 +503,6 @@ S_PickChannel(int entnum, int entchannel)
 	return ch;
 }
 
-/*
- * Used for spatializing channels and autosounds
- */
-void
-S_SpatializeOrigin(vec3_t origin, float master_vol, float dist_mult,
-		int *left_vol, int *right_vol)
-{
-	vec_t dot;
-	vec_t dist;
-	vec_t lscale, rscale, scale;
-	vec3_t source_vec;
-
-	if (cls.state != ca_active)
-	{
-		*left_vol = *right_vol = 255;
-		return;
-	}
-
-	/* calculate stereo seperation and distance attenuation */
-	VectorSubtract(origin, listener_origin, source_vec);
-
-	dist = VectorNormalize(source_vec);
-	dist -= SOUND_FULLVOLUME;
-
-	if (dist < 0)
-	{
-		dist = 0; /* close enough to be at full volume */
-	}
-
-	dist *= dist_mult; /* different attenuation levels */
-
-	dot = DotProduct(listener_right, source_vec);
-
-	if ((dma.channels == 1) || !dist_mult)
-	{
-		/* no attenuation = no spatialization */
-		rscale = 1.0f;
-		lscale = 1.0f;
-	}
-	else
-	{
-		rscale = 0.5f * (1.0f + dot);
-		lscale = 0.5f * (1.0f - dot);
-	}
-
-	/* add in distance effect */
-	scale = (1.0f - dist) * rscale;
-	*right_vol = (int)(master_vol * scale);
-
-	if (*right_vol < 0)
-	{
-		*right_vol = 0;
-	}
-
-	scale = (1.0 - dist) * lscale;
-	*left_vol = (int)(master_vol * scale);
-
-	if (*left_vol < 0)
-	{
-		*left_vol = 0;
-	}
-}
-
-void
-S_Spatialize(channel_t *ch)
-{
-	vec3_t origin;
-
-	/* anything coming from the view entity will always be full volume */
-	if (ch->entnum == cl.playernum + 1)
-	{
-		ch->leftvol = ch->master_vol;
-		ch->rightvol = ch->master_vol;
-		return;
-	}
-
-	if (ch->fixed_origin)
-	{
-		VectorCopy(ch->origin, origin);
-	}
-	else
-	{
-		CL_GetEntitySoundOrigin(ch->entnum, origin);
-	}
-
-	S_SpatializeOrigin(origin, (float)ch->master_vol, ch->dist_mult,
-			&ch->leftvol, &ch->rightvol);
-}
-
 playsound_t *
 S_AllocPlaysound(void)
 {
@@ -693,7 +602,7 @@ S_IssuePlaysound(playsound_t *ps)
 #endif
 	{
 		ch->master_vol = (int)ps->volume;
-		S_Spatialize(ch);
+		SDL_Spatialize(ch);
 	}
 
 	ch->pos = 0;
@@ -880,46 +789,6 @@ S_StartLocalSound(char *sound)
 }
 
 void
-S_ClearBuffer(void)
-{
-	int clear;
-
-	if (!sound_started)
-	{
-		return;
-	}
-
-	s_rawend = 0;
-
-	if (dma.samplebits == 8)
-	{
-		clear = 0x80;
-	}
-	else
-	{
-		clear = 0;
-	}
-
-	SDL_BeginPainting();
-
-	if (dma.buffer)
-	{
-		int i;
-		unsigned char *ptr = dma.buffer;
-
-		i = dma.samples * dma.samplebits / 8;
-
-		while (i--)
-		{
-			*ptr = clear;
-			ptr++;
-		}
-	}
-
-	SDL_Submit();
-}
-
-void
 S_StopAllSounds(void)
 {
 	int i;
@@ -950,7 +819,7 @@ S_StopAllSounds(void)
 	else
 #endif
 	{
-		S_ClearBuffer();
+		SDL_ClearBuffer();
 	}
 
 	/* clear all the channels */
@@ -985,136 +854,6 @@ S_BuildSoundList(int *sounds)
 		else
 		{
 			sounds[i] = ent->sound;
-		}
-	}
-}
-
-/*
- * Entities with a ->sound field will generated looped sounds
- * that are automatically started, stopped, and merged together
- * as the entities are sent to the client
- */
-void
-S_AddLoopSounds(void)
-{
-	int i, j;
-	int sounds[MAX_EDICTS];
-	int left, right, left_total, right_total;
-	channel_t *ch;
-	sfx_t *sfx;
-	sfxcache_t *sc;
-	int num;
-	entity_state_t *ent;
-	vec3_t origin;
-
-	if (cl_paused->value)
-	{
-		return;
-	}
-
-	if (cls.state != ca_active)
-	{
-		return;
-	}
-
-	if (!cl.sound_prepped || !s_ambient->value)
-	{
-		return;
-	}
-
-	memset(&sounds, 0, sizeof(int) * MAX_EDICTS);
-	S_BuildSoundList(sounds);
-
-	for (i = 0; i < cl.frame.num_entities; i++)
-	{
-		if (!sounds[i])
-		{
-			continue;
-		}
-
-		sfx = cl.sound_precache[sounds[i]];
-
-		if (!sfx)
-		{
-			continue; /* bad sound effect */
-		}
-
-		sc = sfx->cache;
-
-		if (!sc)
-		{
-			continue;
-		}
-
-		num = (cl.frame.parse_entities + i) & (MAX_PARSE_ENTITIES - 1);
-		ent = &cl_parse_entities[num];
-
-		CL_GetEntitySoundOrigin(ent->number, origin);
-
-		/* find the total contribution of all sounds of this type */
-		S_SpatializeOrigin(ent->origin, 255.0f, SOUND_LOOPATTENUATE,
-				&left_total, &right_total);
-
-		for (j = i + 1; j < cl.frame.num_entities; j++)
-		{
-			if (sounds[j] != sounds[i])
-			{
-				continue;
-			}
-
-			sounds[j] = 0; /* don't check this again later */
-
-			num = (cl.frame.parse_entities + j) & (MAX_PARSE_ENTITIES - 1);
-			ent = &cl_parse_entities[num];
-
-			S_SpatializeOrigin(ent->origin, 255.0f, SOUND_LOOPATTENUATE,
-					&left, &right);
-			left_total += left;
-			right_total += right;
-		}
-
-		if ((left_total == 0) && (right_total == 0))
-		{
-			continue; /* not audible */
-		}
-
-		/* allocate a channel */
-		ch = S_PickChannel(0, 0);
-
-		if (!ch)
-		{
-			return;
-		}
-
-		if (left_total > 255)
-		{
-			left_total = 255;
-		}
-
-		if (right_total > 255)
-		{
-			right_total = 255;
-		}
-
-		ch->leftvol = left_total;
-		ch->rightvol = right_total;
-		ch->autosound = true; /* remove next frame */
-		ch->sfx = sfx;
-
-		/* Sometimes, the sc->length argument can become 0,
-		   and in that case we get a SIGFPE in the next
-		   modulo operation. The workaround checks for this
-		   situation and in that case, sets the pos and end
-		   parameters to 0. */
-		if (sc->length == 0)
-		{
-			ch->pos = 0;
-			ch->end = 0;
-		}
-		else
-		{
-			ch->pos = paintedtime % sc->length;
-			ch->end = paintedtime + sc->length - ch->pos;
 		}
 	}
 }
@@ -1231,37 +970,6 @@ S_RawSamples(int samples, int rate, int width,
 	}
 }
 
-void
-GetSoundtime(void)
-{
-	int samplepos;
-	static int buffers;
-	static int oldsamplepos;
-	int fullsamples;
-
-	fullsamples = dma.samples / dma.channels;
-
-	/* it is possible to miscount buffers if it has wrapped twice between
-	   calls to S_Update. Oh well. This a hack around that. */
-	samplepos = SDL_GetPos();
-
-	if (samplepos < oldsamplepos)
-	{
-		buffers++; /* buffer wrapped */
-
-		if (paintedtime > 0x40000000)
-		{
-			/* time to chop things off to avoid 32 bit limits */
-			buffers = 0;
-			paintedtime = fullsamples;
-			S_StopAllSounds();
-		}
-	}
-
-	oldsamplepos = samplepos;
-	soundtime = buffers * fullsamples + samplepos / dma.channels;
-}
-
 /*
  * Called once each time through the main loop
  */
@@ -1286,7 +994,7 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 	{
 		if (sound_started == SS_DMA)
 		{
-			S_ClearBuffer();
+			SDL_ClearBuffer();
 		}
 
 		return;
@@ -1328,7 +1036,7 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 			continue;
 		}
 
-		S_Spatialize(ch); /* respatialize channel */
+		SDL_Spatialize(ch); /* respatialize channel */
 
 		if (!ch->leftvol && !ch->rightvol)
 		{
@@ -1338,7 +1046,7 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 	}
 
 	/* add loopsounds */
-	S_AddLoopSounds();
+	SDL_AddLoopSounds();
 
 	/* debugging output */
 	if (s_show->value)
@@ -1378,7 +1086,7 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 	}
 
 	/* Updates DMA time */
-	GetSoundtime();
+	SDL_UpdateSoundtime();
 
 	if (!soundtime)
 	{

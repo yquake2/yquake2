@@ -124,6 +124,7 @@ typedef enum
 extern sndstarted_t sound_started;
 
 int s_beginofs;
+int soundtime;
 
 /* initializes cycling through a DMA
    buffer and returns information on it */
@@ -139,6 +140,9 @@ void SDL_Submit(void);
 
 void SDL_SoundInfo(void);
 int  SDL_DriftBeginofs(float);
+void SDL_ClearBuffer(void);
+void SDL_AddLoopSounds(void);
+void SDL_UpdateSoundtime(void);
 
 #define MAX_CHANNELS 32
 extern channel_t channels[MAX_CHANNELS];
@@ -175,7 +179,7 @@ void S_PaintChannels(int endtime);
 channel_t *S_PickChannel(int entnum, int entchannel);
 
 /* spatializes a channel */
-void S_Spatialize(channel_t *ch);
+void SDL_Spatialize(channel_t *ch);
 
 void S_BuildSoundList(int *sounds);
 

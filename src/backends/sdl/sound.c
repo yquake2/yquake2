@@ -41,6 +41,9 @@
 #include "../../client/header/client.h"
 #include "../../client/sound/header/local.h"
 
+#define SDL_FULLVOLUME 80
+#define SDL_LOOPATTENUATE 0.003
+
 /* Global stuff */
 int    snd_inited = 0;
 static int dmapos = 0;
@@ -48,21 +51,7 @@ static int dmasize = 0;
 static dma_t *dmabackend;
 cvar_t *s_sdldriver;
 
-/*
- * Gives information over user
- * defineable variables
- */
-void
-SDL_SoundInfo(void)
-{
-	Com_Printf("%5d stereo\n", dma.channels - 1);
-	Com_Printf("%5d samples\n", dma.samples);
-	Com_Printf("%5d samplepos\n", dma.samplepos);
-	Com_Printf("%5d samplebits\n", dma.samplebits);
-	Com_Printf("%5d submission_chunk\n", dma.submission_chunk);
-	Com_Printf("%5d speed\n", dma.speed);
-	Com_Printf("%p dma buffer\n", dma.buffer);
-}
+/* ------------------------------------------------------------------ */
 
 /*
  * Calculates when a sound
@@ -91,6 +80,319 @@ SDL_DriftBeginofs(float timeofs)
 	return timeofs ? start + timeofs * dma.speed : paintedtime;
 }
 
+/*
+ * Spatialize a sound effect based on it's origin.
+ */
+void
+SDL_SpatializeOrigin(vec3_t origin, float master_vol, float dist_mult, 
+		int *left_vol, int *right_vol)
+{
+	vec_t dot;
+	vec_t dist;
+	vec_t lscale, rscale, scale;
+	vec3_t source_vec;
+
+	if (cls.state != ca_active)
+	{
+		*left_vol = *right_vol = 255;
+		return;
+	}
+
+	/* Calculate stereo seperation and distance attenuation */
+	VectorSubtract(origin, listener_origin, source_vec);
+
+	dist = VectorNormalize(source_vec);
+	dist -= SDL_FULLVOLUME;
+
+	if (dist < 0)
+	{
+		dist = 0; /* Close enough to be at full volume */
+	}
+
+	dist *= dist_mult;
+	dot = DotProduct(listener_right, source_vec);
+
+	if ((dma.channels == 1) || !dist_mult)
+	{
+		rscale = 1.0f;
+		lscale = 1.0f;
+	}
+	else
+	{
+		rscale = 0.5f * (1.0f + dot);
+		lscale = 0.5f * (1.0f - dot);
+	}
+
+	/* Add in distance effect */
+	scale = (1.0f - dist) * rscale;
+	*right_vol = (int)(master_vol * scale);
+
+	if (*right_vol < 0)
+	{
+		*right_vol = 0;
+	}
+
+	scale = (1.0 - dist) * lscale;
+	*left_vol = (int)(master_vol * scale);
+
+	if (*left_vol < 0)
+	{
+		*left_vol = 0;
+	}
+}
+
+/*
+ * Spatializes a channel.
+ */
+void
+SDL_Spatialize(channel_t *ch)
+{
+	vec3_t origin;
+
+	/* Anything coming from the view entity
+	   will always be full volume */
+	if (ch->entnum == cl.playernum + 1)
+	{
+		ch->leftvol = ch->master_vol;
+		ch->rightvol = ch->master_vol;
+		return;
+	}
+
+	if (ch->fixed_origin)
+	{
+		VectorCopy(ch->origin, origin);
+	}
+	else
+	{
+		CL_GetEntitySoundOrigin(ch->entnum, origin);
+	}
+
+	SDL_SpatializeOrigin(origin, (float)ch->master_vol, ch->dist_mult,
+			&ch->leftvol, &ch->rightvol);
+}
+
+/*
+ * Entities with a "sound" field will generated looped sounds
+ * that are automatically started, stopped, and merged together
+ * as the entities are sent to the client
+ */
+void
+SDL_AddLoopSounds(void)
+{
+	int i, j;
+	int sounds[MAX_EDICTS];
+	int left, right, left_total, right_total;
+	channel_t *ch;
+	sfx_t *sfx;
+	sfxcache_t *sc;
+	int num;
+	entity_state_t *ent;
+	vec3_t origin;
+
+	if (cl_paused->value)
+	{
+		return;
+	}
+
+	if (cls.state != ca_active)
+	{
+		return;
+	}
+
+	if (!cl.sound_prepped || !s_ambient->value)
+	{
+		return;
+	}
+
+	memset(&sounds, 0, sizeof(int) * MAX_EDICTS);
+	S_BuildSoundList(sounds);
+
+	for (i = 0; i < cl.frame.num_entities; i++)
+	{
+		if (!sounds[i])
+		{
+			continue;
+		}
+
+		sfx = cl.sound_precache[sounds[i]];
+
+		if (!sfx)
+		{
+			continue; /* bad sound effect */
+		}
+
+		sc = sfx->cache;
+
+		if (!sc)
+		{
+			continue;
+		}
+
+		num = (cl.frame.parse_entities + i) & (MAX_PARSE_ENTITIES - 1);
+		ent = &cl_parse_entities[num];
+
+		CL_GetEntitySoundOrigin(ent->number, origin);
+
+		/* find the total contribution of all sounds of this type */
+		SDL_SpatializeOrigin(ent->origin, 255.0f, SDL_LOOPATTENUATE,
+				&left_total, &right_total);
+
+		for (j = i + 1; j < cl.frame.num_entities; j++)
+		{
+			if (sounds[j] != sounds[i])
+			{
+				continue;
+			}
+
+			sounds[j] = 0; /* don't check this again later */
+			num = (cl.frame.parse_entities + j) & (MAX_PARSE_ENTITIES - 1);
+			ent = &cl_parse_entities[num];
+
+			SDL_SpatializeOrigin(ent->origin, 255.0f, SDL_LOOPATTENUATE, &left, &right);
+
+			left_total += left;
+			right_total += right;
+		}
+
+		if ((left_total == 0) && (right_total == 0))
+		{
+			continue; /* not audible */
+		}
+
+		/* allocate a channel */
+		ch = S_PickChannel(0, 0);
+
+		if (!ch)
+		{
+			return;
+		}
+
+		if (left_total > 255)
+		{
+			left_total = 255;
+		}
+
+		if (right_total > 255)
+		{
+			right_total = 255;
+		}
+
+		ch->leftvol = left_total;
+		ch->rightvol = right_total;
+		ch->autosound = true; /* remove next frame */
+		ch->sfx = sfx;
+
+		/* Sometimes, the sc->length argument can become 0,
+		   and in that case we get a SIGFPE in the next
+		   modulo operation. The workaround checks for this
+		   situation and in that case, sets the pos and end
+		   parameters to 0. */
+		if (sc->length == 0)
+		{
+			ch->pos = 0;
+			ch->end = 0;
+		}
+		else
+		{
+			ch->pos = paintedtime % sc->length;
+			ch->end = paintedtime + sc->length - ch->pos;
+		}
+	}
+}
+
+/*
+ * Clears the playback buffer so
+ * that all playback stops.
+ */
+void
+SDL_ClearBuffer(void)
+{
+	int clear;
+	int i;
+	unsigned char *ptr = dma.buffer;
+
+	if (!sound_started)
+	{
+		return;
+	}
+
+	s_rawend = 0;
+
+	if (dma.samplebits == 8)
+	{
+		clear = 0x80;
+	}
+	else
+	{
+		clear = 0;
+	}
+
+	SDL_LockAudio();
+
+	if (dma.buffer)
+	{
+		i = dma.samples * dma.samplebits / 8;
+
+		while (i--)
+		{
+			*ptr = clear;
+			ptr++;
+		}
+	}
+
+	SDL_UnlockAudio();
+}
+
+/*
+ * Calculates the absolute timecode
+ * of current playback.
+ */
+void
+SDL_UpdateSoundtime(void)
+{
+	static int buffers;
+	static int oldsamplepos;
+	int fullsamples;
+
+	fullsamples = dma.samples / dma.channels;
+
+	/* it is possible to miscount buffers if it has wrapped twice between
+	   calls to S_Update. Oh well. This a hack around that. */
+	if (dmapos < oldsamplepos)
+	{
+		buffers++; /* buffer wrapped */
+
+		if (paintedtime > 0x40000000)
+		{
+			/* time to chop things off to avoid 32 bit limits */
+			buffers = 0;
+			paintedtime = fullsamples;
+			S_StopAllSounds();
+		}
+	}
+
+	oldsamplepos = dmapos;
+	soundtime = buffers * fullsamples + dmapos / dma.channels;
+}
+
+/* ------------------------------------------------------------------ */
+
+/*
+ * Gives information over user
+ * defineable variables
+ */
+void
+SDL_SoundInfo(void)
+{
+	Com_Printf("%5d stereo\n", dma.channels - 1);
+	Com_Printf("%5d samples\n", dma.samples);
+	Com_Printf("%5d samplepos\n", dma.samplepos);
+	Com_Printf("%5d samplebits\n", dma.samplebits);
+	Com_Printf("%5d submission_chunk\n", dma.submission_chunk);
+	Com_Printf("%5d speed\n", dma.speed);
+	Com_Printf("%p dma buffer\n", dma.buffer);
+}
+ 
 /*
  * Callback funktion for SDL. Writes 
  * sound data to SDL when requested.
@@ -305,12 +607,6 @@ SDL_BackendShutdown(void)
     dmapos = dmasize = 0;
     snd_inited = 0;
     Com_Printf("SDL audio device shut down.\n");
-}
- 
-int
-SDL_GetPos(void)
-{
-	return dmapos;
 }
  
 /*
