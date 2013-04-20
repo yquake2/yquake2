@@ -31,41 +31,18 @@
 #include "header/local.h"
 #include "header/vorbis.h"
 
-void S_Play(void);
-void S_SoundList(void);
-void S_StopAllSounds(void);
-
-/* only begin attenuating sound volumes when outside the FULLVOLUME range */
-#define     SOUND_FULLVOLUME 80
-#define     SOUND_LOOPATTENUATE 0.003
-
-int s_registration_sequence;
-
-channel_t channels[MAX_CHANNELS];
-int s_numchannels;
-
-qboolean snd_initialized = false;
-sndstarted_t sound_started = SS_NOT;
-
-sound_t sound;
+/* During registration it is possible to have more sounds
+   than could actually be referenced during gameplay,
+   because we don't want to free anything until we are
+   sure we won't need it. */
+#define MAX_SFX (MAX_SOUNDS * 2) 
+#define MAX_PLAYSOUNDS 128
 
 vec3_t listener_origin;
 vec3_t listener_forward;
 vec3_t listener_right;
 vec3_t listener_up;
 
-static qboolean s_registering;
-int paintedtime;
-
-/* during registration it is possible to have more sounds
- * than could actually be referenced during gameplay,
- * because we don't want to free anything until we are
- * sure we won't need it. */
-#define     MAX_SFX (MAX_SOUNDS * 2)
-sfx_t known_sfx[MAX_SFX];
-int num_sfx;
-
-#define     MAX_PLAYSOUNDS 128
 playsound_t s_playsounds[MAX_PLAYSOUNDS];
 playsound_t s_freeplays;
 playsound_t s_pendingplays;
@@ -78,178 +55,24 @@ cvar_t *s_mixahead;
 cvar_t *s_show;
 cvar_t *s_ambient;
 
+channel_t channels[MAX_CHANNELS];
+int num_sfx;
+int paintedtime;
+int s_numchannels;
 int s_rawend;
+int s_registration_sequence;
 portable_samplepair_t s_rawsamples[MAX_RAW_SAMPLES];
+qboolean snd_initialized = false;
+sfx_t known_sfx[MAX_SFX];
+sndstarted_t sound_started = SS_NOT;
+sound_t sound;
+static qboolean s_registering;
 
-void
-S_SoundInfo_f(void)
-{
-	if (!sound_started)
-	{
-		Com_Printf("sound system not started\n");
-		return;
-	}
-
-#if USE_OPENAL
-	if (sound_started == SS_OAL)
-	{
-		QAL_SoundInfo();
-	}
-	else
-#endif
-	{
-		SDL_SoundInfo();
-	}
-}
-
-void
-S_Init(void)
-{
-	cvar_t *cv;
-
-	Com_Printf("\n------- sound initialization -------\n");
-
-	cv = Cvar_Get("s_initsound", "1", 0);
-
-	if (!cv->value)
-	{
-		Com_Printf("not initializing.\n");
-	}
-	else
-	{
-#ifdef __linux__
-		s_volume = Cvar_Get("s_volume", "0.7", CVAR_ARCHIVE);
-#else
-		s_volume = Cvar_Get("s_volume", "0.3", CVAR_ARCHIVE);
-#endif
-
-		s_khz = Cvar_Get("s_khz", "44", CVAR_ARCHIVE);
-		s_loadas8bit = Cvar_Get("s_loadas8bit", "0", CVAR_ARCHIVE);
-		s_mixahead = Cvar_Get("s_mixahead", "0.14", CVAR_ARCHIVE);
-		s_show = Cvar_Get("s_show", "0", 0);
-		s_testsound = Cvar_Get("s_testsound", "0", 0);
-		s_ambient = Cvar_Get("s_ambient", "1", 0);
-
-		Cmd_AddCommand("play", S_Play);
-		Cmd_AddCommand("stopsound", S_StopAllSounds);
-		Cmd_AddCommand("soundlist", S_SoundList);
-		Cmd_AddCommand("soundinfo", S_SoundInfo_f);
-#ifdef OGG
-		Cmd_AddCommand("ogg_init", OGG_Init);
-		Cmd_AddCommand("ogg_shutdown", OGG_Shutdown);
-#endif
-
-#if USE_OPENAL
-		cv = Cvar_Get("s_openal", "1", CVAR_ARCHIVE);
-
-		if (cv->value && AL_Init())
-		{
-			sound_started = SS_OAL;
-		}
-		else
-#endif
-		{
-			if (SDL_BackendInit())
-			{
-				sound_started = SS_SDL;
-			}
-			else
-			{
-				sound_started = SS_NOT;
-				return;
-			}
-		}
-
-		num_sfx = 0;
-
-		paintedtime = 0;
-
-		Com_Printf("Sound sampling rate: %i\n", sound.speed);
-
-		S_StopAllSounds();
-
-#ifdef OGG
-		OGG_Init();
-#endif
-	}
-
-	Com_Printf("------------------------------------\n\n");
-}
+/* ----------------------------------------------------------------- */
 
 /*
- * Shutdown sound engine
+ * Loads one sample into memory
  */
-void
-S_Shutdown(void)
-{
-	int i;
-	sfx_t *sfx;
-
-	if (!sound_started)
-	{
-		return;
-	}
-
-	S_StopAllSounds();
-
-	/* free all sounds */
-	for (i = 0, sfx = known_sfx; i < num_sfx; i++, sfx++)
-	{
-		if (!sfx->name[0])
-		{
-			continue;
-		}
-
-#if USE_OPENAL
-		if (sound_started == SS_OAL)
-		{
-			AL_DeleteSfx(sfx);
-		}
-#endif
-
-		if (sfx->cache)
-		{
-			Z_Free(sfx->cache);
-		}
-
-		if (sfx->truename)
-		{
-			Z_Free(sfx->truename);
-		}
-	}
-
-	memset(known_sfx, 0, sizeof(known_sfx));
-
-	num_sfx = 0;
-
-#ifdef OGG
-	OGG_Shutdown();
-#endif
-
-#if USE_OPENAL
-	if (sound_started == SS_OAL)
-	{
-		AL_Shutdown();
-	}
-	else
-#endif
-	{
-		SDL_BackendShutdown();
-	}
-
-	sound_started = SS_NOT;
-	s_numchannels = 0;
-
-	Cmd_RemoveCommand("soundlist");
-	Cmd_RemoveCommand("soundinfo");
-	Cmd_RemoveCommand("play");
-	Cmd_RemoveCommand("stopsound");
-#ifdef OGG
-	Cmd_RemoveCommand("ogg_init");
-	Cmd_RemoveCommand("ogg_shutdown");
-#endif
-}
-
 sfxcache_t *
 S_LoadSound(sfx_t *s)
 {
@@ -273,7 +96,7 @@ S_LoadSound(sfx_t *s)
 		return sc;
 	}
 
-	/* load it in */
+	/* load it */
 	if (s->truename)
 	{
 		name = s->truename;
@@ -319,16 +142,18 @@ S_LoadSound(sfx_t *s)
 	else
 #endif
 	{
-	    if (!SDL_Cache(s, &info, data + info.dataofs))
+		if (sound_started == SS_SDL)
 		{
-			Com_Printf("Pansen!\n");
-			FS_FreeFile(data);
-			return NULL;
+			if (!SDL_Cache(s, &info, data + info.dataofs))
+			{
+				Com_Printf("Pansen!\n");
+				FS_FreeFile(data);
+				return NULL;
+			}
 		}
 	}
 
 	FS_FreeFile(data);
-
 	return sc;
 }
 
@@ -389,11 +214,6 @@ S_FindName(char *name, qboolean create)
 		num_sfx++;
 	}
 
-	if (strlen(name) >= MAX_QPATH - 1)
-	{
-		Com_Error(ERR_FATAL, "Sound name too long: %s", name);
-	}
-
 	sfx = &known_sfx[i];
 	sfx->truename = NULL;
 	strcpy(sfx->name, name);
@@ -402,6 +222,10 @@ S_FindName(char *name, qboolean create)
 	return sfx;
 }
 
+/*
+ * Registers an alias name
+ * for a sound
+ */
 sfx_t *
 S_AliasName(char *aliasname, char *truename)
 {
@@ -440,6 +264,10 @@ S_AliasName(char *aliasname, char *truename)
 	return sfx;
 }
 
+/*
+ * Called before registering
+ * of sound starts
+ */
 void
 S_BeginRegistration(void)
 {
@@ -447,6 +275,9 @@ S_BeginRegistration(void)
 	s_registering = true;
 }
 
+/*
+ * Registers a sound
+ */
 sfx_t *
 S_RegisterSound(char *name)
 {
@@ -467,7 +298,76 @@ S_RegisterSound(char *name)
 
 	return sfx;
 }
+ 
+struct sfx_s *
+S_RegisterSexedSound(entity_state_t *ent, char *base)
+{
+	int n;
+	char *p;
+	int len;
+	struct sfx_s *sfx;
+	char model[MAX_QPATH];
+	char sexedFilename[MAX_QPATH];
+	char maleFilename[MAX_QPATH];
 
+	/* determine what model the client is using */
+	model[0] = 0;
+	n = CS_PLAYERSKINS + ent->number - 1;
+
+	if (cl.configstrings[n][0])
+	{
+		p = strchr(cl.configstrings[n], '\\');
+
+		if (p)
+		{
+			p += 1;
+			strcpy(model, p);
+			p = strchr(model, '/');
+
+			if (p)
+			{
+				p[0] = 0;
+			}
+		}
+	}
+
+	/* if we can't figure it out, they're male */
+	if (!model[0])
+	{
+		strcpy(model, "male");
+	}
+
+	/* see if we already know of the model specific sound */
+	Com_sprintf(sexedFilename, sizeof(sexedFilename),
+			"#players/%s/%s", model, base + 1);
+	sfx = S_FindName(sexedFilename, false);
+
+	if (!sfx)
+	{
+		/* no, so see if it exists */
+		len = FS_LoadFile(&sexedFilename[1], NULL);
+
+		if (len != -1)
+		{
+			/* yes, close the file and register it */
+			sfx = S_RegisterSound(sexedFilename);
+		}
+		else
+		{
+			/* no, revert to the male sound in the pak0.pak */
+			Com_sprintf(maleFilename, sizeof(maleFilename),
+					"player/male/%s", base + 1);
+			sfx = S_AliasName(sexedFilename, maleFilename);
+		}
+	}
+
+	return sfx;
+}
+ 
+/*
+ * Called after registering of
+ * sound has ended
+ */
 void
 S_EndRegistration(void)
 {
@@ -492,7 +392,7 @@ S_EndRegistration(void)
 
 			if (sfx->truename)
 			{
-				Z_Free(sfx->truename); /* memleak fix from echon */
+				Z_Free(sfx->truename);
 			}
 
 			sfx->cache = NULL;
@@ -514,6 +414,11 @@ S_EndRegistration(void)
 	s_registering = false;
 }
 
+/* ----------------------------------------------------------------- */
+
+/*
+ * Picks a free channel
+ */
 channel_t *
 S_PickChannel(int entnum, int entchannel)
 {
@@ -567,15 +472,18 @@ S_PickChannel(int entnum, int entchannel)
 #if USE_OPENAL
 	if ((sound_started == SS_OAL) && ch->sfx)
 	{
+		/* Make sure the channel is dead */
 		AL_StopChannel(ch);
 	}
 #endif
 
 	memset(ch, 0, sizeof(*ch));
-
 	return ch;
 }
 
+/*
+ * Picks a free playsound
+ */
 playsound_t *
 S_AllocPlaysound(void)
 {
@@ -584,8 +492,10 @@ S_AllocPlaysound(void)
 	ps = s_freeplays.next;
 
 	if (ps == &s_freeplays)
-	{
-		return NULL; /* no free playsounds, this results in stuttering an cracking */
+	{                 
+		/* no free playsounds, this results
+		   in stuttering an cracking */
+		return NULL;
 	}
 
 	/* unlink from freelist */
@@ -595,6 +505,9 @@ S_AllocPlaysound(void)
 	return ps;
 }
 
+/*
+ * Frees a playsound
+ */
 void
 S_FreePlaysound(playsound_t *ps)
 {
@@ -674,8 +587,11 @@ S_IssuePlaysound(playsound_t *ps)
 	else
 #endif
 	{
-		ch->master_vol = (int)ps->volume;
-		SDL_Spatialize(ch);
+		if (sound_started == SS_SDL)
+		{
+			ch->master_vol = (int)ps->volume;
+			SDL_Spatialize(ch);
+		}
 	}
 
 	ch->pos = 0;
@@ -685,75 +601,11 @@ S_IssuePlaysound(playsound_t *ps)
 	S_FreePlaysound(ps);
 }
 
-struct sfx_s *
-S_RegisterSexedSound(entity_state_t *ent, char *base)
-{
-	int n;
-	char *p;
-	int len;
-	struct sfx_s *sfx;
-	char model[MAX_QPATH];
-	char sexedFilename[MAX_QPATH];
-	char maleFilename[MAX_QPATH];
-
-	/* determine what model the client is using */
-	model[0] = 0;
-	n = CS_PLAYERSKINS + ent->number - 1;
-
-	if (cl.configstrings[n][0])
-	{
-		p = strchr(cl.configstrings[n], '\\');
-
-		if (p)
-		{
-			p += 1;
-			strcpy(model, p);
-			p = strchr(model, '/');
-
-			if (p)
-			{
-				p[0] = 0;
-			}
-		}
-	}
-
-	/* if we can't figure it out, they're male */
-	if (!model[0])
-	{
-		strcpy(model, "male");
-	}
-
-	/* see if we already know of the model specific sound */
-	Com_sprintf(sexedFilename, sizeof(sexedFilename),
-			"#players/%s/%s", model, base + 1);
-	sfx = S_FindName(sexedFilename, false);
-
-	if (!sfx)
-	{
-		/* no, so see if it exists */
-		len = FS_LoadFile(&sexedFilename[1], NULL);
-
-		if (len != -1)
-		{
-			/* yes, close the file and register it */
-			sfx = S_RegisterSound(sexedFilename);
-		}
-		else
-		{
-			/* no, revert to the male sound in the pak0.pak */
-			Com_sprintf(maleFilename, sizeof(maleFilename),
-					"player/male/%s", base + 1);
-			sfx = S_AliasName(sexedFilename, maleFilename);
-		}
-	}
-
-	return sfx;
-}
-
 /*
- * Validates the parms and ques the sound up if pos is NULL, the sound
- * will be dynamically sourced from the entity Entchannel 0 will never
- * override a playing sound
+ * Validates the parms and queues the sound up.
+ * If pos is NULL, the sound will be dynamically
+ * sourced from the entity. Entchannel 0 will never
+ * override a playing sound.
  */
 void
 S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
@@ -786,8 +638,9 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 	sc = S_LoadSound(sfx);
 
 	if (!sc)
-	{
-		return; /* couldn't load the sound's data */
+	{            
+		/* couldn't load the sound's data */
+		return;
 	}
 
 	/* make the playsound_t */
@@ -822,8 +675,11 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 	else
 #endif
 	{
-		ps->begin = SDL_DriftBeginofs(timeofs);
-		ps->volume = fvol * 255;
+		if (sound_started == SS_SDL)
+		{
+			ps->begin = SDL_DriftBeginofs(timeofs);
+			ps->volume = fvol * 255;
+		}
 	}
 
 	/* sort into the pending sound list */
@@ -840,6 +696,11 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 	ps->prev->next = ps;
 }
 
+/*
+ * Plays a sound when we're not
+ * in a level. Used by the menu
+ * system.
+ */
 void
 S_StartLocalSound(char *sound)
 {
@@ -861,6 +722,9 @@ S_StartLocalSound(char *sound)
 	S_StartSound(NULL, cl.playernum + 1, 0, sfx, 1, 1, 0);
 }
 
+/*
+ * Stops all sounds
+ */
 void
 S_StopAllSounds(void)
 {
@@ -892,13 +756,19 @@ S_StopAllSounds(void)
 	else
 #endif
 	{
-		SDL_ClearBuffer();
+		if (sound_started == SS_SDL)
+		{
+			SDL_ClearBuffer();
+		}
 	}
 
 	/* clear all the channels */
 	memset(channels, 0, sizeof(channels));
 }
 
+/*
+ * Builds a list of all sounds
+ */
 void
 S_BuildSoundList(int *sounds)
 {
@@ -932,9 +802,9 @@ S_BuildSoundList(int *sounds)
 }
 
 /*
- * Cinematic streaming and voice over network
- * This could be used for chat over network, but that
- * would be terrible slow.
+ * Cinematic streaming and voice over network.
+ * This could be used for chat over network, but
+ * that would be terrible slow.
  */
 void
 S_RawSamples(int samples, int rate, int width,
@@ -959,12 +829,17 @@ S_RawSamples(int samples, int rate, int width,
 	else
 #endif
 	{
-		SDL_RawSamples(samples, rate, width, channels, data, volume);
+		if (sound_started == SS_SDL)
+		{
+			SDL_RawSamples(samples, rate, width, channels, data, volume);
+		}
 	}
 }
 
 /*
- * Called once each time through the main loop
+ * Calls the update functions of the
+ * backend. Those perform their
+ * calculations and fill their buffers.
  */
 void
 S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
@@ -988,10 +863,17 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 	else
 #endif
 	{
-		SDL_Update();
+		if (sound_started == SS_SDL)
+		{
+			SDL_Update();
+		}
 	}
 }
 
+/*
+ * Plays one sample. Called
+ * by the "play" cmd.
+ */
 void
 S_Play(void)
 {
@@ -1025,6 +907,9 @@ S_Play(void)
 	}
 }
 
+/*
+ * List all loaded sounds
+ */
 void
 S_SoundList(void)
 {
@@ -1072,4 +957,188 @@ S_SoundList(void)
 	Com_Printf("Total resident: %i bytes (%.2f MB) in %d sounds\n", total,
 			(float)total / 1024 / 1024, numsounds);
 }
+ 
+/* ----------------------------------------------------------------- */
+ 
+/*
+ * Prints information about the
+ * active sound backend
+ */
+void
+S_SoundInfo_f(void)
+{
+	if (!sound_started)
+	{
+		Com_Printf("Sound system not started\n");
+		return;
+	}
 
+#if USE_OPENAL
+	if (sound_started == SS_OAL)
+	{
+		QAL_SoundInfo();
+	}
+	else
+#endif
+	{
+		SDL_SoundInfo();
+	}
+}
+
+/*
+ * Initializes the sound system
+ * and it's requested backend
+ */
+void
+S_Init(void)
+{
+	cvar_t *cv;
+
+	Com_Printf("\n------- sound initialization -------\n");
+
+	cv = Cvar_Get("s_initsound", "1", 0);
+
+	if (!cv->value)
+	{
+		Com_Printf("Not initializing.\n");
+		Com_Printf("------------------------------------\n\n");
+		return;
+	}
+
+	/*
+	 * On Linux the standard volume is higher
+	 * because ALSA is relative silent.
+	 */
+#ifdef __linux__
+	s_volume = Cvar_Get("s_volume", "0.7", CVAR_ARCHIVE);
+#else
+	s_volume = Cvar_Get("s_volume", "0.3", CVAR_ARCHIVE);
+#endif
+
+	s_khz = Cvar_Get("s_khz", "44", CVAR_ARCHIVE);
+	s_loadas8bit = Cvar_Get("s_loadas8bit", "0", CVAR_ARCHIVE);
+	s_mixahead = Cvar_Get("s_mixahead", "0.14", CVAR_ARCHIVE);
+	s_show = Cvar_Get("s_show", "0", 0);
+	s_testsound = Cvar_Get("s_testsound", "0", 0);
+	s_ambient = Cvar_Get("s_ambient", "1", 0);
+
+	Cmd_AddCommand("play", S_Play);
+	Cmd_AddCommand("stopsound", S_StopAllSounds);
+	Cmd_AddCommand("soundlist", S_SoundList);
+	Cmd_AddCommand("soundinfo", S_SoundInfo_f);
+#ifdef OGG
+	Cmd_AddCommand("ogg_init", OGG_Init);
+	Cmd_AddCommand("ogg_shutdown", OGG_Shutdown);
+#endif
+
+#if USE_OPENAL
+	cv = Cvar_Get("s_openal", "1", CVAR_ARCHIVE);
+
+	if (cv->value && AL_Init())
+	{
+		sound_started = SS_OAL;
+	}
+	else
+#endif
+	{
+		if (SDL_BackendInit())
+		{
+			sound_started = SS_SDL;
+		}
+		else
+		{
+			sound_started = SS_NOT;
+			return;
+		}
+	}
+
+	num_sfx = 0;
+	paintedtime = 0;
+ 
+#ifdef OGG
+	OGG_Init();
+#endif
+ 
+	Com_Printf("Sound sampling rate: %i\n", sound.speed);
+	S_StopAllSounds();
+
+	Com_Printf("------------------------------------\n\n");
+}
+
+/*
+ * Shutdown the sound system
+ * and it's backend
+ */
+void
+S_Shutdown(void)
+{
+	int i;
+	sfx_t *sfx;
+
+	if (!sound_started)
+	{
+		return;
+	}
+
+	S_StopAllSounds();
+ 
+#ifdef OGG
+	OGG_Shutdown();
+#endif
+ 
+	/* free all sounds */
+	for (i = 0, sfx = known_sfx; i < num_sfx; i++, sfx++)
+	{
+		if (!sfx->name[0])
+		{
+			continue;
+		}
+
+#if USE_OPENAL
+		if (sound_started == SS_OAL)
+		{
+			AL_DeleteSfx(sfx);
+		}
+#endif
+
+		if (sfx->cache)
+		{
+			Z_Free(sfx->cache);
+		}
+
+		if (sfx->truename)
+		{
+			Z_Free(sfx->truename);
+		}
+	}
+
+	memset(known_sfx, 0, sizeof(known_sfx));
+	num_sfx = 0;
+
+#if USE_OPENAL
+	if (sound_started == SS_OAL)
+	{
+		AL_Shutdown();
+	}
+	else
+#endif
+	{
+		if (sound_started == SS_SDL)
+		{
+			SDL_BackendShutdown();
+		}
+	}
+
+	sound_started = SS_NOT;
+	s_numchannels = 0;
+
+	Cmd_RemoveCommand("soundlist");
+	Cmd_RemoveCommand("soundinfo");
+	Cmd_RemoveCommand("play");
+	Cmd_RemoveCommand("stopsound");
+#ifdef OGG
+	Cmd_RemoveCommand("ogg_init");
+	Cmd_RemoveCommand("ogg_shutdown");
+#endif
+}
+ 
