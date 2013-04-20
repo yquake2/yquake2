@@ -19,9 +19,11 @@
  *
  * =======================================================================
  *
- * Upper layer of the sound output. This is implemented via DMA, thus
- * needs a DMA capable lower level implementation for painting the
- * sounds to the device. Otherwise it'll be horible slow and stuttering.
+ * The upper layer of the Quake II sound system. This is merely more
+ * than an interface between the client and a backend. Currently only
+ * two backends are supported:
+ * - OpenAL, renders sound with OpenAL.
+ * - SDL, has the same features than the original sound system.
  *
  * =======================================================================
  */
