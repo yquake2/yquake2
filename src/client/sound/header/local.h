@@ -80,7 +80,7 @@ typedef struct
 	int samplebits;
 	int speed;
 	unsigned char *buffer;
-} dma_t;
+} sound_t;
 
 typedef struct
 {
@@ -152,7 +152,7 @@ extern vec3_t listener_origin;
 extern vec3_t listener_forward;
 extern vec3_t listener_right;
 extern vec3_t listener_up;
-extern dma_t dma;
+extern sound_t sound;
 extern playsound_t s_pendingplays;
 
 #define MAX_RAW_SAMPLES 8192

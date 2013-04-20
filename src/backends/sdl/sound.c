@@ -51,10 +51,10 @@
 /* Globals */
 cvar_t *s_sdldriver;
 int *snd_p;
-static dma_t *dmabackend;
+static sound_t *backend;
 static portable_samplepair_t paintbuffer[SDL_PAINTBUFFER_SIZE];
-static int dmapos = 0;
-static int dmasize = 0;
+static int playpos = 0;
+static int samplesize = 0;
 static int snd_inited = 0;
 static int snd_scaletable[32][256];
 static int snd_vol;
@@ -82,7 +82,7 @@ SDL_TransferPaintBuffer(int endtime)
 	short *snd_out;
 	unsigned char *pbuf;
 
-	pbuf = dma.buffer;
+	pbuf = sound.buffer;
 
 	if (s_testsound->value)
 	{
@@ -99,18 +99,18 @@ SDL_TransferPaintBuffer(int endtime)
 		}
 	}
 
-	if ((dma.samplebits == 16) && (dma.channels == 2))
+	if ((sound.samplebits == 16) && (sound.channels == 2))
 	{
 		snd_p = (int *)paintbuffer;
 		ls_paintedtime = paintedtime;
 
 		while (ls_paintedtime < endtime)
 		{
-			lpos = ls_paintedtime & ((dma.samples >> 1) - 1);
+			lpos = ls_paintedtime & ((sound.samples >> 1) - 1);
 
 			snd_out = (short *)pbuf + (lpos << 1);
 
-			snd_linear_count = (dma.samples >> 1) - lpos;
+			snd_linear_count = (sound.samples >> 1) - lpos;
 
 			if (ls_paintedtime + snd_linear_count > endtime)
 			{
@@ -159,12 +159,12 @@ SDL_TransferPaintBuffer(int endtime)
 	else
 	{
 		p = (int *)paintbuffer;
-		count = (endtime - paintedtime) * dma.channels;
-		out_mask = dma.samples - 1;
-		out_idx = paintedtime * dma.channels & out_mask;
-		step = 3 - dma.channels;
+		count = (endtime - paintedtime) * sound.channels;
+		out_mask = sound.samples - 1;
+		out_idx = paintedtime * sound.channels & out_mask;
+		step = 3 - sound.channels;
 
-		if (dma.samplebits == 16)
+		if (sound.samplebits == 16)
 		{
 			short *out = (short *)pbuf;
 
@@ -187,7 +187,7 @@ SDL_TransferPaintBuffer(int endtime)
 				out_idx = (out_idx + 1) & out_mask;
 			}
 		}
-		else if (dma.samplebits == 8)
+		else if (sound.samplebits == 8)
 		{
 			unsigned char *out = (unsigned char *)pbuf;
 
@@ -300,7 +300,7 @@ SDL_PaintChannels(int endtime)
 
 	while (paintedtime < endtime)
 	{
-		/* if paintbuffer is smaller than DMA buffer */
+		/* if paintbuffer is smaller than SDL buffer */
 		end = endtime;
 
 		if (endtime - paintedtime > SDL_PAINTBUFFER_SIZE)
@@ -432,7 +432,7 @@ SDL_PaintChannels(int endtime)
 			}
 		}
 
-		/* transfer out according to DMA format */
+		/* transfer out according to SDL format */
 		SDL_TransferPaintBuffer(end);
 		paintedtime = end;
 	}
@@ -447,24 +447,24 @@ SDL_PaintChannels(int endtime)
 int
 SDL_DriftBeginofs(float timeofs)
 {
-	int start = (int)(cl.frame.servertime * 0.001f * dma.speed + s_beginofs);
+	int start = (int)(cl.frame.servertime * 0.001f * sound.speed + s_beginofs);
 
 	if (start < paintedtime)
 	{
 		start = paintedtime;
-		s_beginofs = (int)(start - (cl.frame.servertime * 0.001f * dma.speed));
+		s_beginofs = (int)(start - (cl.frame.servertime * 0.001f * sound.speed));
 	}
-	else if (start > paintedtime + 0.3f * dma.speed)
+	else if (start > paintedtime + 0.3f * sound.speed)
 	{
-		start = (int)(paintedtime + 0.1f * dma.speed);
-		s_beginofs = (int)(start - (cl.frame.servertime * 0.001f * dma.speed));
+		start = (int)(paintedtime + 0.1f * sound.speed);
+		s_beginofs = (int)(start - (cl.frame.servertime * 0.001f * sound.speed));
 	}
 	else
 	{
 		s_beginofs -= 10;
 	}
 
-	return timeofs ? start + timeofs * dma.speed : paintedtime;
+	return timeofs ? start + timeofs * sound.speed : paintedtime;
 }
 
 /*
@@ -499,7 +499,7 @@ SDL_SpatializeOrigin(vec3_t origin, float master_vol, float dist_mult,
 	dist *= dist_mult;
 	dot = DotProduct(listener_right, source_vec);
 
-	if ((dma.channels == 1) || !dist_mult)
+	if ((sound.channels == 1) || !dist_mult)
 	{
 		rscale = 1.0f;
 		lscale = 1.0f;
@@ -696,7 +696,7 @@ SDL_ClearBuffer(void)
 {
 	int clear;
 	int i;
-	unsigned char *ptr = dma.buffer;
+	unsigned char *ptr = sound.buffer;
 
 	if (!sound_started)
 	{
@@ -705,7 +705,7 @@ SDL_ClearBuffer(void)
 
 	s_rawend = 0;
 
-	if (dma.samplebits == 8)
+	if (sound.samplebits == 8)
 	{
 		clear = 0x80;
 	}
@@ -716,9 +716,9 @@ SDL_ClearBuffer(void)
 
 	SDL_LockAudio();
 
-	if (dma.buffer)
+	if (sound.buffer)
 	{
-		i = dma.samples * dma.samplebits / 8;
+		i = sound.samples * sound.samplebits / 8;
 
 		while (i--)
 		{
@@ -741,11 +741,11 @@ SDL_UpdateSoundtime(void)
 	static int oldsamplepos;
 	int fullsamples;
 
-	fullsamples = dma.samples / dma.channels;
+	fullsamples = sound.samples / sound.channels;
 
 	/* it is possible to miscount buffers if it has wrapped twice between
 	   calls to S_Update. Oh well. This a hack around that. */
-	if (dmapos < oldsamplepos)
+	if (playpos < oldsamplepos)
 	{
 		buffers++; /* buffer wrapped */
 
@@ -758,8 +758,8 @@ SDL_UpdateSoundtime(void)
 		}
 	}
 
-	oldsamplepos = dmapos;
-	soundtime = buffers * fullsamples + dmapos / dma.channels;
+	oldsamplepos = playpos;
+	soundtime = buffers * fullsamples + playpos / sound.channels;
 }
 
 /*
@@ -810,7 +810,7 @@ SDL_Cache(sfx_t *sfx, wavinfo_t *info, byte *data)
 	sfxcache_t *sc;
 	unsigned int samplefrac = 0;
 
-	stepscale = (float)info->rate / dma.speed;
+	stepscale = (float)info->rate / sound.speed;
     len = (int)(info->samples / stepscale);
 
 	if ((info->samples == 0) || (len == 0))
@@ -830,7 +830,7 @@ SDL_Cache(sfx_t *sfx, wavinfo_t *info, byte *data)
 	sc->loopstart = info->loopstart;
     sc->stereo = 0;
 	sc->length = (int)(info->samples / stepscale);
-	sc->speed = dma.speed;
+	sc->speed = sound.speed;
 
 	if ((int)(info->samples / stepscale) == 0)
 	{
@@ -899,7 +899,7 @@ SDL_RawSamples(int samples, int rate, int width,
 	int src;
 	int intVolume;
 
-	scale = (float)rate / dma.speed;
+	scale = (float)rate / sound.speed;
 	intVolume = (int)(256 * volume);
 
 	if ((channels == 2) && (width == 2))
@@ -1064,7 +1064,7 @@ SDL_Update(void)
 	OGG_Stream();
 #endif
   
-	if (!dma.buffer)
+	if (!sound.buffer)
 	{
 		return;
 	}
@@ -1088,11 +1088,11 @@ SDL_Update(void)
 	}
 
 	/* mix ahead of current position */
-	endtime = (int)(soundtime + s_mixahead->value * dma.speed);
+	endtime = (int)(soundtime + s_mixahead->value * sound.speed);
 
 	/* mix to an even submission block size */
-	endtime = (endtime + dma.submission_chunk - 1) & ~(dma.submission_chunk - 1);
-	samps = dma.samples >> (dma.channels - 1);
+	endtime = (endtime + sound.submission_chunk - 1) & ~(sound.submission_chunk - 1);
+	samps = sound.samples >> (sound.channels - 1);
 
 	if (endtime - soundtime > samps)
 	{
@@ -1112,13 +1112,13 @@ SDL_Update(void)
 void
 SDL_SoundInfo(void)
 {
-	Com_Printf("%5d stereo\n", dma.channels - 1);
-	Com_Printf("%5d samples\n", dma.samples);
-	Com_Printf("%5d samplepos\n", dma.samplepos);
-	Com_Printf("%5d samplebits\n", dma.samplebits);
-	Com_Printf("%5d submission_chunk\n", dma.submission_chunk);
-	Com_Printf("%5d speed\n", dma.speed);
-	Com_Printf("%p dma buffer\n", dma.buffer);
+	Com_Printf("%5d stereo\n", sound.channels - 1);
+	Com_Printf("%5d samples\n", sound.samples);
+	Com_Printf("%5d samplepos\n", sound.samplepos);
+	Com_Printf("%5d samplebits\n", sound.samplebits);
+	Com_Printf("%5d submission_chunk\n", sound.submission_chunk);
+	Com_Printf("%5d speed\n", sound.speed);
+	Com_Printf("%p sound buffer\n", sound.buffer);
 }
  
 /*
@@ -1130,11 +1130,11 @@ SDL_Callback(void *data, Uint8 *stream, int length)
 {
 	int length1;
 	int length2;
-	int pos = (dmapos * (dmabackend->samplebits / 8));
+	int pos = (playpos * (backend->samplebits / 8));
 
-	if (pos >= dmasize)
+	if (pos >= samplesize)
 	{
-		dmapos = pos = 0;
+		playpos = pos = 0;
 	}
 
 	/* This can't happen! */
@@ -1144,7 +1144,7 @@ SDL_Callback(void *data, Uint8 *stream, int length)
 		return;
 	}
 
-	int tobufferend = dmasize - pos;
+	int tobufferend = samplesize - pos;
 
 	if (length > tobufferend)
 	{
@@ -1157,22 +1157,22 @@ SDL_Callback(void *data, Uint8 *stream, int length)
 		length2 = 0;
 	}
 
-	memcpy(stream, dmabackend->buffer + pos, length1);
+	memcpy(stream, backend->buffer + pos, length1);
 
 	/* Set new position */
 	if (length2 <= 0)
 	{
-		dmapos += (length1 / (dmabackend->samplebits / 8));
+		playpos += (length1 / (backend->samplebits / 8));
 	}
 	else
 	{
-		memcpy(stream + length1, dmabackend->buffer, length2);
-		dmapos = (length2 / (dmabackend->samplebits / 8));
+		memcpy(stream + length1, backend->buffer, length2);
+		playpos = (length2 / (backend->samplebits / 8));
 	}
 
-    if (dmapos >= dmasize)
+    if (playpos >= samplesize)
 	{
-		dmapos = 0;
+		playpos = 0;
 	}
 }
 
@@ -1288,11 +1288,11 @@ SDL_BackendInit(void)
 	}
 
 	/* This points to the frontend */
-	dmabackend = &dma;
+	backend = &sound;
 
-	dmapos = 0;
-	dmabackend->samplebits = obtained.format & 0xFF;
-	dmabackend->channels = obtained.channels;
+	playpos = 0;
+	backend->samplebits = obtained.format & 0xFF;
+	backend->channels = obtained.channels;
 
 	tmp = (obtained.samples * obtained.channels) * 10;
 	if (tmp & (tmp - 1))
@@ -1303,12 +1303,12 @@ SDL_BackendInit(void)
 
 		tmp = val;
 	}
-	dmabackend->samples = tmp;
+	backend->samples = tmp;
 
-	dmabackend->submission_chunk = 1;
-	dmabackend->speed = obtained.freq;
-	dmasize = (dmabackend->samples * (dmabackend->samplebits / 8));
-	dmabackend->buffer = calloc(1, dmasize);
+	backend->submission_chunk = 1;
+	backend->speed = obtained.freq;
+	samplesize = (backend->samples * (backend->samplebits / 8));
+	backend->buffer = calloc(1, samplesize);
 	s_numchannels = MAX_CHANNELS;
 
 	SDL_UpdateScaletable();
@@ -1329,9 +1329,9 @@ SDL_BackendShutdown(void)
     SDL_PauseAudio(1);
     SDL_CloseAudio();
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
-    free(dmabackend->buffer);
-    dmabackend->buffer = NULL;
-    dmapos = dmasize = 0;
+    free(backend->buffer);
+    backend->buffer = NULL;
+    playpos = samplesize = 0;
     snd_inited = 0;
     Com_Printf("SDL audio device shut down.\n");
 }

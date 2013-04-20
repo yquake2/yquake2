@@ -47,7 +47,7 @@ int s_numchannels;
 qboolean snd_initialized = false;
 sndstarted_t sound_started = SS_NOT;
 
-dma_t dma;
+sound_t sound;
 
 vec3_t listener_origin;
 vec3_t listener_forward;
@@ -165,7 +165,7 @@ S_Init(void)
 		soundtime = 0;
 		paintedtime = 0;
 
-		Com_Printf("Sound sampling rate: %i\n", dma.speed);
+		Com_Printf("Sound sampling rate: %i\n", sound.speed);
 
 		S_StopAllSounds();
 
