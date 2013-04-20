@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
- * Copyright (C) 2010 Yamagi Burmeister
+ * Copyright (C) 2010, 2013 Yamagi Burmeister
  * Copyright (C) 2005 Ryan C. Gordon
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,11 +21,14 @@
  *
  * =======================================================================
  *
- * The lower layer of the sound system. It utilizes SDL for writing the
- * sound data to the device. This file was rewritten by Yamagi to solve
- * a lot problems arrising from the old Icculus Quake 2 SDL backend like
- * stuttering and cracking. This implementation is based on ioQuake3s
- * snd_sdl.c.
+ * SDL sound backend. Since SDL is just an API for sound playback, we 
+ * must caculate everything in software: mixing, resampling, stereo
+ * spartializations, etc. Therefor this file is rather complex. :) 
+ * Samples are read from the cache (see the upper layer of the sound
+ * system), manipulated and written into sound.buffer. sound.buffer is
+ * passed to SDL (in fact requested by SDL via the callback) and played
+ * with a platform dependend SDL driver. Parts of this file are based
+ * on ioQuake3s snd_sdl.c.
  *
  * =======================================================================
  */
