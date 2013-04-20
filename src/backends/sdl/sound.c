@@ -21,9 +21,9 @@
  *
  * =======================================================================
  *
- * SDL sound backend. Since SDL is just an API for sound playback, we 
+ * SDL sound backend. Since SDL is just an API for sound playback, we
  * must caculate everything in software: mixing, resampling, stereo
- * spartializations, etc. Therefor this file is rather complex. :) 
+ * spartializations, etc. Therefor this file is rather complex. :)
  * Samples are read from the cache (see the upper layer of the sound
  * system), manipulated and written into sound.buffer. sound.buffer is
  * passed to SDL (in fact requested by SDL via the callback) and played
@@ -65,7 +65,7 @@ static int snd_vol;
 /* ------------------------------------------------------------------ */
 
 /*
- * Transfers a mixed "paint buffer" to 
+ * Transfers a mixed "paint buffer" to
  * the SDL output buffer and places it
  * at the appropriate position.
  */
@@ -343,7 +343,7 @@ SDL_PaintChannels(int endtime)
 		/* clear the paint buffer */
 		if (s_rawend < paintedtime)
 		{
-			memset(paintbuffer, 0, (end - paintedtime) 
+			memset(paintbuffer, 0, (end - paintedtime)
 					* sizeof(portable_samplepair_t));
 		}
 		else
@@ -474,7 +474,7 @@ SDL_DriftBeginofs(float timeofs)
  * Spatialize a sound effect based on it's origin.
  */
 void
-SDL_SpatializeOrigin(vec3_t origin, float master_vol, float dist_mult, 
+SDL_SpatializeOrigin(vec3_t origin, float master_vol, float dist_mult,
 		int *left_vol, int *right_vol)
 {
 	vec_t dot;
@@ -893,7 +893,7 @@ SDL_Cache(sfx_t *sfx, wavinfo_t *info, byte *data)
  * and cinematic playback.
  */
 void
-SDL_RawSamples(int samples, int rate, int width, 
+SDL_RawSamples(int samples, int rate, int width,
 		int channels, byte *data, float volume)
 {
 	float scale;
@@ -982,7 +982,7 @@ SDL_RawSamples(int samples, int rate, int width,
 }
 
 /*
- * Runs every frame, handles all necessary 
+ * Runs every frame, handles all necessary
  * sound calculations and fills the play-
  * back buffer.
  */
@@ -1011,7 +1011,7 @@ SDL_Update(void)
 		SDL_UpdateScaletable();
 	}
 
-	/* update spatialization 
+	/* update spatialization
 	   for dynamic sounds */
 	ch = channels;
 
@@ -1066,12 +1066,12 @@ SDL_Update(void)
 	/* stream music */
 	OGG_Stream();
 #endif
-  
+
 	if (!sound.buffer)
 	{
 		return;
 	}
-  
+
     /* Mix the samples */
 	SDL_LockAudio();
 
@@ -1123,9 +1123,9 @@ SDL_SoundInfo(void)
 	Com_Printf("%5d speed\n", sound.speed);
 	Com_Printf("%p sound buffer\n", sound.buffer);
 }
- 
+
 /*
- * Callback funktion for SDL. Writes 
+ * Callback funktion for SDL. Writes
  * sound data to SDL when requested.
  */
 static void
@@ -1338,4 +1338,4 @@ SDL_BackendShutdown(void)
     snd_inited = 0;
     Com_Printf("SDL audio device shut down.\n");
 }
- 
+
