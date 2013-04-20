@@ -37,7 +37,7 @@
    than could actually be referenced during gameplay,
    because we don't want to free anything until we are
    sure we won't need it. */
-#define MAX_SFX (MAX_SOUNDS * 2) 
+#define MAX_SFX (MAX_SOUNDS * 2)
 #define MAX_PLAYSOUNDS 128
 
 vec3_t listener_origin;
@@ -300,7 +300,7 @@ S_RegisterSound(char *name)
 
 	return sfx;
 }
- 
+
 struct sfx_s *
 S_RegisterSexedSound(entity_state_t *ent, char *base)
 {
@@ -365,7 +365,7 @@ S_RegisterSexedSound(entity_state_t *ent, char *base)
 
 	return sfx;
 }
- 
+
 /*
  * Called after registering of
  * sound has ended
@@ -494,7 +494,7 @@ S_AllocPlaysound(void)
 	ps = s_freeplays.next;
 
 	if (ps == &s_freeplays)
-	{                 
+	{
 		/* no free playsounds, this results
 		   in stuttering an cracking */
 		return NULL;
@@ -640,7 +640,7 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 	sc = S_LoadSound(sfx);
 
 	if (!sc)
-	{            
+	{
 		/* couldn't load the sound's data */
 		return;
 	}
@@ -846,7 +846,7 @@ S_RawSamples(int samples, int rate, int width,
 void
 S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 {
-  
+
 	if (!sound_started)
 	{
 		return;
@@ -959,9 +959,9 @@ S_SoundList(void)
 	Com_Printf("Total resident: %i bytes (%.2f MB) in %d sounds\n", total,
 			(float)total / 1024 / 1024, numsounds);
 }
- 
+
 /* ----------------------------------------------------------------- */
- 
+
 /*
  * Prints information about the
  * active sound backend
@@ -1056,11 +1056,11 @@ S_Init(void)
 
 	num_sfx = 0;
 	paintedtime = 0;
- 
+
 #ifdef OGG
 	OGG_Init();
 #endif
- 
+
 	Com_Printf("Sound sampling rate: %i\n", sound.speed);
 	S_StopAllSounds();
 
@@ -1083,11 +1083,11 @@ S_Shutdown(void)
 	}
 
 	S_StopAllSounds();
- 
+
 #ifdef OGG
 	OGG_Shutdown();
 #endif
- 
+
 	/* free all sounds */
 	for (i = 0, sfx = known_sfx; i < num_sfx; i++, sfx++)
 	{
@@ -1143,4 +1143,4 @@ S_Shutdown(void)
 	Cmd_RemoveCommand("ogg_shutdown");
 #endif
 }
- 
+
