@@ -1016,7 +1016,7 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 	/* rebuild scale tables if volume is modified */
 	if (s_volume->modified)
 	{
-		S_InitScaletable();
+		SDL_UpdateScaletable();
 	}
 
 	/* update spatialization for dynamic sounds	*/
@@ -1112,7 +1112,7 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 		endtime = soundtime + samps;
 	}
 
-	S_PaintChannels(endtime);
+	SDL_PaintChannels(endtime);
 
 	SDL_Submit();
 }

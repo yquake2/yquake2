@@ -170,10 +170,10 @@ extern cvar_t *s_testsound;
 extern cvar_t *s_ambient;
 
 wavinfo_t GetWavinfo(char *name, byte *wav, int wavlength);
-void S_InitScaletable(void);
+void SDL_UpdateScaletable(void);
 sfxcache_t *S_LoadSound(sfx_t *s);
 void S_IssuePlaysound(playsound_t *ps);
-void S_PaintChannels(int endtime);
+void SDL_PaintChannels(int endtime);
 
 /* picks a channel based on priorities, empty slots, number of channels */
 channel_t *S_PickChannel(int entnum, int entchannel);

@@ -550,7 +550,6 @@ CLIENT_OBJS_ := \
 	src/client/sound/snd_al.o \
 	src/client/sound/snd_dma.o \
 	src/client/sound/snd_mem.o \
-	src/client/sound/snd_mix.o \
 	src/client/sound/snd_vorbis.o \
 	src/client/sound/snd_wav.o \
 	src/common/argproc.o \

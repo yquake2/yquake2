@@ -30,6 +30,7 @@
  * =======================================================================
  */
 
+/* SDL includes */
 #ifdef _WIN32
 #include <SDL/SDL.h>
 #elif defined(__APPLE__)
@@ -38,18 +39,404 @@
 #include <SDL.h>
 #endif
 
+/* Local includes */
 #include "../../client/header/client.h"
 #include "../../client/sound/header/local.h"
 
+/* Defines */
+#define SDL_PAINTBUFFER_SIZE 2048
 #define SDL_FULLVOLUME 80
 #define SDL_LOOPATTENUATE 0.003
 
-/* Global stuff */
-int    snd_inited = 0;
+/* Globals */
+cvar_t *s_sdldriver;
+int *snd_p;
+static dma_t *dmabackend;
+static portable_samplepair_t paintbuffer[SDL_PAINTBUFFER_SIZE];
 static int dmapos = 0;
 static int dmasize = 0;
-static dma_t *dmabackend;
-cvar_t *s_sdldriver;
+static int snd_inited = 0;
+static int snd_scaletable[32][256];
+static int snd_vol;
+
+/* ------------------------------------------------------------------ */
+
+/*
+ * Transfers a mixed "paint buffer" to 
+ * the SDL output buffer and places it
+ * at the appropriate position.
+ */
+void
+SDL_TransferPaintBuffer(int endtime)
+{
+	int i;
+	int lpos;
+	int ls_paintedtime;
+	int out_idx;
+	int count;
+	int out_mask;
+	int *p;
+	int snd_linear_count;
+	int step;
+	int val;
+	short *snd_out;
+	unsigned char *pbuf;
+
+	pbuf = dma.buffer;
+
+	if (s_testsound->value)
+	{
+		int i;
+		int count;
+
+		/* write a fixed sine wave */
+		count = (endtime - paintedtime);
+
+		for (i = 0; i < count; i++)
+		{
+			paintbuffer[i].left = paintbuffer[i].right =
+				(int)((float)sin((paintedtime + i) * 0.1f) * 20000 * 256);
+		}
+	}
+
+	if ((dma.samplebits == 16) && (dma.channels == 2))
+	{
+		snd_p = (int *)paintbuffer;
+		ls_paintedtime = paintedtime;
+
+		while (ls_paintedtime < endtime)
+		{
+			lpos = ls_paintedtime & ((dma.samples >> 1) - 1);
+
+			snd_out = (short *)pbuf + (lpos << 1);
+
+			snd_linear_count = (dma.samples >> 1) - lpos;
+
+			if (ls_paintedtime + snd_linear_count > endtime)
+			{
+				snd_linear_count = endtime - ls_paintedtime;
+			}
+
+			snd_linear_count <<= 1;
+
+			for (i = 0; i < snd_linear_count; i += 2)
+			{
+				val = snd_p[i] >> 8;
+
+				if (val > 0x7fff)
+				{
+					snd_out[i] = 0x7fff;
+				}
+				else if (val < -32768)
+				{
+					snd_out[i] = -32768;
+				}
+				else
+				{
+					snd_out[i] = val;
+				}
+
+				val = snd_p[i + 1] >> 8;
+
+				if (val > 0x7fff)
+				{
+					snd_out[i + 1] = 0x7fff;
+				}
+				else if (val < -32768)
+				{
+					snd_out[i + 1] = -32768;
+				}
+				else
+				{
+					snd_out[i + 1] = val;
+				}
+			}
+
+			snd_p += snd_linear_count;
+			ls_paintedtime += (snd_linear_count >> 1);
+		}
+	}
+	else
+	{
+		p = (int *)paintbuffer;
+		count = (endtime - paintedtime) * dma.channels;
+		out_mask = dma.samples - 1;
+		out_idx = paintedtime * dma.channels & out_mask;
+		step = 3 - dma.channels;
+
+		if (dma.samplebits == 16)
+		{
+			short *out = (short *)pbuf;
+
+			while (count--)
+			{
+				val = *p >> 8;
+				p += step;
+
+				if (val > 0x7fff)
+				{
+					val = 0x7fff;
+				}
+
+				else if (val < -32768)
+				{
+					val = -32768;
+				}
+
+				out[out_idx] = val;
+				out_idx = (out_idx + 1) & out_mask;
+			}
+		}
+		else if (dma.samplebits == 8)
+		{
+			unsigned char *out = (unsigned char *)pbuf;
+
+			while (count--)
+			{
+				val = *p >> 8;
+				p += step;
+
+				if (val > 0x7fff)
+				{
+					val = 0x7fff;
+				}
+
+				else if (val < -32768)
+				{
+					val = -32768;
+				}
+
+				out[out_idx] = (val >> 8) + 128;
+				out_idx = (out_idx + 1) & out_mask;
+			}
+		}
+	}
+}
+
+/*
+ * Mixes an 8 bit sample into a channel.
+ */
+void
+SDL_PaintChannelFrom8(channel_t *ch, sfxcache_t *sc, int count, int offset)
+{
+	int data;
+	int *lscale, *rscale;
+	unsigned char *sfx;
+	int i;
+	portable_samplepair_t *samp;
+
+	if (ch->leftvol > 255)
+	{
+		ch->leftvol = 255;
+	}
+
+	if (ch->rightvol > 255)
+	{
+		ch->rightvol = 255;
+	}
+
+	lscale = snd_scaletable[ch->leftvol >> 3];
+	rscale = snd_scaletable[ch->rightvol >> 3];
+	sfx = sc->data + ch->pos;
+
+	samp = &paintbuffer[offset];
+
+	for (i = 0; i < count; i++, samp++)
+	{
+		data = sfx[i];
+		samp->left += lscale[data];
+		samp->right += rscale[data];
+	}
+
+	ch->pos += count;
+}
+
+/*
+ * Mixes an 16 bit sample into a channel
+ */
+void
+SDL_PaintChannelFrom16(channel_t *ch, sfxcache_t *sc, int count, int offset)
+{
+	int data;
+	int left, right;
+	int leftvol, rightvol;
+	signed short *sfx;
+	int i;
+	portable_samplepair_t *samp;
+
+	leftvol = ch->leftvol * snd_vol;
+	rightvol = ch->rightvol * snd_vol;
+	sfx = (signed short *)sc->data + ch->pos;
+
+	samp = &paintbuffer[offset];
+
+	for (i = 0; i < count; i++, samp++)
+	{
+		data = sfx[i];
+		left = (data * leftvol) >> 8;
+		right = (data * rightvol) >> 8;
+		samp->left += left;
+		samp->right += right;
+	}
+
+	ch->pos += count;
+}
+
+/*
+ * Mixes all pending sounds into
+ * the available output channels.
+ */
+void
+SDL_PaintChannels(int endtime)
+{
+	int i;
+	int end;
+	channel_t *ch;
+	sfxcache_t *sc;
+	int ltime, count;
+	playsound_t *ps;
+
+	snd_vol = (int)(s_volume->value * 256);
+
+	while (paintedtime < endtime)
+	{
+		/* if paintbuffer is smaller than DMA buffer */
+		end = endtime;
+
+		if (endtime - paintedtime > SDL_PAINTBUFFER_SIZE)
+		{
+			end = paintedtime + SDL_PAINTBUFFER_SIZE;
+		}
+
+		/* start any playsounds */
+		for ( ; ; )
+		{
+			ps = s_pendingplays.next;
+
+			if (ps == NULL)
+			{
+				break;
+			}
+
+			if (ps == &s_pendingplays)
+			{
+				break; /* no more pending sounds */
+			}
+
+			if (ps->begin <= paintedtime)
+			{
+				S_IssuePlaysound(ps);
+				continue;
+			}
+
+			if (ps->begin < end)
+			{
+				end = ps->begin; /* stop here */
+			}
+
+			break;
+		}
+
+		/* clear the paint buffer */
+		if (s_rawend < paintedtime)
+		{
+			memset(paintbuffer, 0, (end - paintedtime) 
+					* sizeof(portable_samplepair_t));
+		}
+		else
+		{
+			/* copy from the streaming sound source */
+			int s;
+			int stop;
+
+			stop = (end < s_rawend) ? end : s_rawend;
+
+			for (i = paintedtime; i < stop; i++)
+			{
+				s = i & (MAX_RAW_SAMPLES - 1);
+				paintbuffer[i - paintedtime] = s_rawsamples[s];
+			}
+
+			for ( ; i < end; i++)
+			{
+				memset(&paintbuffer[i - paintedtime], 0,
+				   sizeof(paintbuffer[i - paintedtime]));
+			}
+		}
+
+		/* paint in the channels. */
+		ch = channels;
+
+		for (i = 0; i < s_numchannels; i++, ch++)
+		{
+			ltime = paintedtime;
+
+			while (ltime < end)
+			{
+				if (!ch->sfx || (!ch->leftvol && !ch->rightvol))
+				{
+					break;
+				}
+
+				/* max painting is to the end of the buffer */
+				count = end - ltime;
+
+				/* might be stopped by running out of data */
+				if (ch->end - ltime < count)
+				{
+					count = ch->end - ltime;
+				}
+
+				sc = S_LoadSound(ch->sfx);
+
+				if (!sc)
+				{
+					break;
+				}
+
+				if ((count > 0) && ch->sfx)
+				{
+					if (sc->width == 1)
+					{
+						SDL_PaintChannelFrom8(ch, sc, count, ltime - paintedtime);
+					}
+
+					else
+					{
+						SDL_PaintChannelFrom16(ch, sc, count, ltime - paintedtime);
+					}
+
+					ltime += count;
+				}
+
+				/* if at end of loop, restart */
+				if (ltime >= ch->end)
+				{
+					if (ch->autosound)
+					{
+						/* autolooping sounds always go back to start */
+						ch->pos = 0;
+						ch->end = ltime + sc->length;
+					}
+					else if (sc->loopstart >= 0)
+					{
+						ch->pos = sc->loopstart;
+						ch->end = ltime + sc->length - ch->pos;
+					}
+					else
+					{
+						/* channel just stopped */
+						ch->sfx = NULL;
+					}
+				}
+			}
+		}
+
+		/* transfer out according to DMA format */
+		SDL_TransferPaintBuffer(end);
+		paintedtime = end;
+	}
+}
 
 /* ------------------------------------------------------------------ */
 
@@ -375,6 +762,38 @@ SDL_UpdateSoundtime(void)
 	soundtime = buffers * fullsamples + dmapos / dma.channels;
 }
 
+/*
+ * Updates the volume scale table
+ * based on current volume setting.
+ */
+void
+SDL_UpdateScaletable(void)
+{
+	int i, j;
+	int scale;
+
+	if (s_volume->value > 2.0f)
+	{
+		Cvar_Set("s_volume", "2");
+	}
+	else if (s_volume->value < 0)
+	{
+		Cvar_Set("s_volume", "0");
+	}
+
+	s_volume->modified = false;
+
+	for (i = 0; i < 32; i++)
+	{
+		scale = (int)(i * 8 * 256 * s_volume->value);
+
+		for (j = 0; j < 256; j++)
+		{
+			snd_scaletable[i][j] = ((j < 128) ? j : j - 0xff) * scale;
+		}
+	}
+}
+
 /* ------------------------------------------------------------------ */
 
 /*
@@ -581,10 +1000,9 @@ SDL_BackendInit(void)
 	dmabackend->speed = obtained.freq;
 	dmasize = (dmabackend->samples * (dmabackend->samplebits / 8));
 	dmabackend->buffer = calloc(1, dmasize);
-
 	s_numchannels = MAX_CHANNELS;
-	S_InitScaletable();
 
+	SDL_UpdateScaletable();
 	SDL_PauseAudio(0);
 
 	Com_Printf("SDL audio initialized.\n");
