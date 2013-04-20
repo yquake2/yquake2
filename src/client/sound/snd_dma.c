@@ -970,27 +970,9 @@ S_RawSamples(int samples, int rate, int width,
 void
 S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 {
-	int i;
-	int total;
-	channel_t *ch;
-	unsigned endtime;
-	int samps;
-
+  
 	if (!sound_started)
 	{
-		return;
-	}
-
-	/* if the loading plaque is up, clear everything
-	   out to make sure we aren't looping a dirty
-	   dma buffer while loading */
-	if (cls.disable_screen)
-	{
-		if (sound_started == SS_DMA)
-		{
-			SDL_ClearBuffer();
-		}
-
 		return;
 	}
 
@@ -1003,112 +985,12 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 	if (sound_started == SS_OAL)
 	{
 		AL_Update();
-		return;
 	}
+	else
 #endif
-
-	/* rebuild scale tables if volume is modified */
-	if (s_volume->modified)
 	{
-		SDL_UpdateScaletable();
+		SDL_Update();
 	}
-
-	/* update spatialization for dynamic sounds	*/
-	ch = channels;
-
-	for (i = 0; i < s_numchannels; i++, ch++)
-	{
-		if (!ch->sfx)
-		{
-			continue;
-		}
-
-		if (ch->autosound)
-		{
-			/* autosounds are regenerated fresh each frame */
-			memset(ch, 0, sizeof(*ch));
-			continue;
-		}
-
-		SDL_Spatialize(ch); /* respatialize channel */
-
-		if (!ch->leftvol && !ch->rightvol)
-		{
-			memset(ch, 0, sizeof(*ch));
-			continue;
-		}
-	}
-
-	/* add loopsounds */
-	SDL_AddLoopSounds();
-
-	/* debugging output */
-	if (s_show->value)
-	{
-		total = 0;
-		ch = channels;
-
-		for (i = 0; i < s_numchannels; i++, ch++)
-		{
-			if (ch->sfx && (ch->leftvol || ch->rightvol))
-			{
-				Com_Printf("%3i %3i %s\n", ch->leftvol,
-						ch->rightvol, ch->sfx->name);
-				total++;
-			}
-		}
-
-		Com_Printf("----(%i)---- painted: %i\n", total, paintedtime);
-	}
-
-#ifdef OGG
-	/* stream music */
-	OGG_Stream();
-#endif
-
-	/* mix some sound */
-	if (!sound_started)
-	{
-		return;
-	}
-
-	SDL_BeginPainting();
-
-	if (!dma.buffer)
-	{
-		return;
-	}
-
-	/* Updates DMA time */
-	SDL_UpdateSoundtime();
-
-	if (!soundtime)
-	{
-		return;
-	}
-
-	/* check to make sure that we haven't overshot */
-	if (paintedtime < soundtime)
-	{
-		Com_DPrintf("S_Update_ : overflow\n");
-		paintedtime = soundtime;
-	}
-
-	/* mix ahead of current position */
-	endtime = (int)(soundtime + s_mixahead->value * dma.speed);
-
-	/* mix to an even submission block size */
-	endtime = (endtime + dma.submission_chunk - 1) & ~(dma.submission_chunk - 1);
-	samps = dma.samples >> (dma.channels - 1);
-
-	if (endtime - soundtime > samps)
-	{
-		endtime = soundtime + samps;
-	}
-
-	SDL_PaintChannels(endtime);
-
-	SDL_Submit();
 }
 
 void

@@ -135,8 +135,6 @@ int SDL_GetPos(void);
 
 /* shutdown the DMA xfer. */
 void SDL_BackendShutdown(void);
-void SDL_BeginPainting(void);
-void SDL_Submit(void);
 
 void SDL_SoundInfo(void);
 int  SDL_DriftBeginofs(float);
@@ -175,6 +173,7 @@ sfxcache_t *S_LoadSound(sfx_t *s);
 void S_IssuePlaysound(playsound_t *ps);
 void SDL_PaintChannels(int endtime);
 qboolean SDL_Cache(sfx_t *sfx, wavinfo_t *info, byte *data);
+void SDL_Update(void);
 
 /* picks a channel based on priorities, empty slots, number of channels */
 channel_t *S_PickChannel(int entnum, int entchannel);
