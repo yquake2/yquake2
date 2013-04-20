@@ -794,6 +794,92 @@ SDL_UpdateScaletable(void)
 	}
 }
 
+/*
+ * Saves a sound sample into cache. If
+ * necessary endianess convertions are
+ * performed.
+ */
+void
+SDL_Cache(sfx_t *sfx, int inrate, int inwidth, byte *data)
+{
+	int outcount;
+	int srcsample;
+	float stepscale;
+	int i;
+	int sample;
+	unsigned int samplefrac, fracstep;
+	sfxcache_t *sc;
+
+	sc = sfx->cache;
+
+	if (!sc)
+	{
+		return;
+	}
+
+	stepscale = (float)inrate / dma.speed;
+	outcount = (int)(sc->length / stepscale);
+
+	if (outcount == 0)
+	{
+		Com_Printf("ResampleSfx: Invalid sound file '%s' (zero length)\n", sfx->name);
+		Z_Free(sfx->cache);
+		sfx->cache = NULL;
+		return;
+	}
+
+	sc->length = outcount;
+
+	if (sc->loopstart != -1)
+	{
+		sc->loopstart = (int)(sc->loopstart / stepscale);
+	}
+
+	sc->speed = dma.speed;
+
+	if (s_loadas8bit->value)
+	{
+		sc->width = 1;
+	}
+
+	else
+	{
+		sc->width = inwidth;
+	}
+
+	sc->stereo = 0;
+
+	/* resample / decimate to the current source rate */
+	samplefrac = 0;
+	fracstep = (int)(stepscale * 256);
+
+	for (i = 0; i < outcount; i++)
+	{
+		srcsample = samplefrac >> 8;
+		samplefrac += fracstep;
+
+		if (inwidth == 2)
+		{
+			sample = LittleShort(((short *)data)[srcsample]);
+		}
+
+		else
+		{
+			sample = (int)((unsigned char)(data[srcsample]) - 128) << 8;
+		}
+
+		if (sc->width == 2)
+		{
+			((short *)sc->data)[i] = sample;
+		}
+
+		else
+		{
+			((signed char *)sc->data)[i] = sample >> 8;
+		}
+	}
+}
+
 /* ------------------------------------------------------------------ */
 
 /*

@@ -259,6 +259,113 @@ S_Shutdown(void)
 #endif
 }
 
+sfxcache_t *
+S_LoadSound(sfx_t *s)
+{
+	char namebuffer[MAX_QPATH];
+	byte *data;
+	wavinfo_t info;
+	int len;
+	float stepscale;
+	sfxcache_t *sc;
+	int size;
+	char *name;
+
+	if (s->name[0] == '*')
+	{
+		return NULL;
+	}
+
+	/* see if still in memory */
+	sc = s->cache;
+
+	if (sc)
+	{
+		return sc;
+	}
+
+	/* load it in */
+	if (s->truename)
+	{
+		name = s->truename;
+	}
+
+	else
+	{
+		name = s->name;
+	}
+
+	if (name[0] == '#')
+	{
+		strcpy(namebuffer, &name[1]);
+	}
+	else
+	{
+		Com_sprintf(namebuffer, sizeof(namebuffer), "sound/%s", name);
+	}
+
+	size = FS_LoadFile(namebuffer, (void **)&data);
+
+	if (!data)
+	{
+		s->cache = NULL;
+		Com_DPrintf("Couldn't load %s\n", namebuffer);
+		return NULL;
+	}
+
+	info = GetWavinfo(s->name, data, size);
+
+	if (info.channels != 1)
+	{
+		Com_Printf("%s is a stereo sample\n", s->name);
+		FS_FreeFile(data);
+		return NULL;
+	}
+
+	if (sound_started != SS_OAL)
+	{
+		stepscale = (float)info.rate / dma.speed;
+		len = (int)(info.samples / stepscale);
+
+		if ((info.samples == 0) || (len == 0))
+		{
+			Com_Printf("WARNING: Zero length sound encountered: %s\n", s->name);
+			FS_FreeFile(data);
+			return NULL;
+		}
+
+		len = len * info.width * info.channels;
+		sc = s->cache = Z_Malloc(len + sizeof(sfxcache_t));
+
+		if (!sc)
+		{
+			FS_FreeFile(data);
+			return NULL;
+		}
+
+		sc->length = info.samples;
+		sc->loopstart = info.loopstart;
+		sc->speed = info.rate;
+		sc->width = info.width;
+		sc->stereo = info.channels;
+	}
+
+#if USE_OPENAL
+	if (sound_started == SS_OAL)
+	{
+		sc = AL_UploadSfx(s, &info, data + info.dataofs);
+	}
+	else
+#endif
+	{
+	    SDL_Cache(s, sc->speed, sc->width, data + info.dataofs);
+	}
+
+	FS_FreeFile(data);
+
+	return sc;
+}
+
 /*
  * Returns the name of a sound
  */

@@ -174,6 +174,7 @@ void SDL_UpdateScaletable(void);
 sfxcache_t *S_LoadSound(sfx_t *s);
 void S_IssuePlaysound(playsound_t *ps);
 void SDL_PaintChannels(int endtime);
+void SDL_Cache(sfx_t *sfx, int inrate, int inwidth, byte *data);
 
 /* picks a channel based on priorities, empty slots, number of channels */
 channel_t *S_PickChannel(int entnum, int entchannel);
