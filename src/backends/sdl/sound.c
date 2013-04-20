@@ -48,9 +48,55 @@ static int dmasize = 0;
 static dma_t *dmabackend;
 cvar_t *s_sdldriver;
 
-/* The callback */
+/*
+ * Gives information over user
+ * defineable variables
+ */
+void
+SDL_SoundInfo(void)
+{
+	Com_Printf("%5d stereo\n", dma.channels - 1);
+	Com_Printf("%5d samples\n", dma.samples);
+	Com_Printf("%5d samplepos\n", dma.samplepos);
+	Com_Printf("%5d samplebits\n", dma.samplebits);
+	Com_Printf("%5d submission_chunk\n", dma.submission_chunk);
+	Com_Printf("%5d speed\n", dma.speed);
+	Com_Printf("%p dma buffer\n", dma.buffer);
+}
+
+/*
+ * Calculates when a sound
+ * must be started.
+ */
+int
+SDL_DriftBeginofs(float timeofs)
+{
+	int start = (int)(cl.frame.servertime * 0.001f * dma.speed + s_beginofs);
+
+	if (start < paintedtime)
+	{
+		start = paintedtime;
+		s_beginofs = (int)(start - (cl.frame.servertime * 0.001f * dma.speed));
+	}
+	else if (start > paintedtime + 0.3f * dma.speed)
+	{
+		start = (int)(paintedtime + 0.1f * dma.speed);
+		s_beginofs = (int)(start - (cl.frame.servertime * 0.001f * dma.speed));
+	}
+	else
+	{
+		s_beginofs -= 10;
+	}
+
+	return timeofs ? start + timeofs * dma.speed : paintedtime;
+}
+
+/*
+ * Callback funktion for SDL. Writes 
+ * sound data to SDL when requested.
+ */
 static void
-sdl_audio_callback(void *data, Uint8 *stream, int length)
+SDL_Callback(void *data, Uint8 *stream, int length)
 {
 	int length1;
 	int length2;
@@ -100,8 +146,12 @@ sdl_audio_callback(void *data, Uint8 *stream, int length)
 	}
 }
 
+/*
+ * Initializes the SDL sound
+ * backend and sets up SDL.
+ */
 qboolean
-SNDDMA_Init(void)
+SDL_BackendInit(void)
 {
 	char drivername[128];
 	char reqdriver[128];
@@ -197,7 +247,7 @@ SNDDMA_Init(void)
 	}
 
 	desired.channels = sndchans;
-	desired.callback = sdl_audio_callback;
+	desired.callback = SDL_Callback;
 
 	/* Okay, let's try our luck */
 	if (SDL_OpenAudio(&desired, &obtained) == -1)
@@ -240,14 +290,11 @@ SNDDMA_Init(void)
 	return 1;
 }
 
-int
-SNDDMA_GetDMAPos(void)
-{
-	return dmapos;
-}
-
+/*
+ * Shuts the SDL backend down.
+ */
 void
-SNDDMA_Shutdown(void)
+SDL_BackendShutdown(void)
 {
 	Com_Printf("Closing SDL audio device...\n");
     SDL_PauseAudio(1);
@@ -259,20 +306,26 @@ SNDDMA_Shutdown(void)
     snd_inited = 0;
     Com_Printf("SDL audio device shut down.\n");
 }
-
+ 
+int
+SDL_GetPos(void)
+{
+	return dmapos;
+}
+ 
 /*
  * This sends the sound to the device.
  * In the SDL backend it's useless and
  * only implemented for compatiblity.
  */
 void
-SNDDMA_Submit(void)
+SDL_Submit(void)
 {
 	SDL_UnlockAudio();
 }
 
 void
-SNDDMA_BeginPainting(void)
+SDL_BeginPainting(void)
 {
 	SDL_LockAudio();
 }

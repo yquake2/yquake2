@@ -123,17 +123,22 @@ typedef enum
 
 extern sndstarted_t sound_started;
 
+int s_beginofs;
+
 /* initializes cycling through a DMA
    buffer and returns information on it */
-qboolean SNDDMA_Init(void);
+qboolean SDL_BackendInit(void);
 
 /* gets the current DMA position */
-int SNDDMA_GetDMAPos(void);
+int SDL_GetPos(void);
 
 /* shutdown the DMA xfer. */
-void SNDDMA_Shutdown(void);
-void SNDDMA_BeginPainting(void);
-void SNDDMA_Submit(void);
+void SDL_BackendShutdown(void);
+void SDL_BeginPainting(void);
+void SDL_Submit(void);
+
+void SDL_SoundInfo(void);
+int  SDL_DriftBeginofs(float);
 
 #define MAX_CHANNELS 32
 extern channel_t channels[MAX_CHANNELS];

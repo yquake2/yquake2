@@ -72,8 +72,6 @@ playsound_t s_playsounds[MAX_PLAYSOUNDS];
 playsound_t s_freeplays;
 playsound_t s_pendingplays;
 
-int s_beginofs;
-
 cvar_t *s_volume;
 cvar_t *s_testsound;
 cvar_t *s_loadas8bit;
@@ -84,21 +82,6 @@ cvar_t *s_ambient;
 
 int s_rawend;
 portable_samplepair_t s_rawsamples[MAX_RAW_SAMPLES];
-
-/*
- * User-setable variables
- */
-static void
-DMA_SoundInfo(void)
-{
-	Com_Printf("%5d stereo\n", dma.channels - 1);
-	Com_Printf("%5d samples\n", dma.samples);
-	Com_Printf("%5d samplepos\n", dma.samplepos);
-	Com_Printf("%5d samplebits\n", dma.samplebits);
-	Com_Printf("%5d submission_chunk\n", dma.submission_chunk);
-	Com_Printf("%5d speed\n", dma.speed);
-	Com_Printf("%p dma buffer\n", dma.buffer);
-}
 
 void
 S_SoundInfo_f(void)
@@ -118,7 +101,7 @@ S_SoundInfo_f(void)
 	else
 #endif
 	{
-		DMA_SoundInfo();
+		SDL_SoundInfo();
 	}
 }
 
@@ -169,7 +152,7 @@ S_Init(void)
 		else
 #endif
 		{
-			if (SNDDMA_Init())
+			if (SDL_BackendInit())
 			{
 				sound_started = SS_DMA;
 			}
@@ -262,7 +245,7 @@ S_Shutdown(void)
 	else
 #endif
 	{
-		SNDDMA_Shutdown();
+		SDL_BackendShutdown();
 	}
 
 	sound_started = SS_NOT;
@@ -785,30 +768,6 @@ S_RegisterSexedSound(entity_state_t *ent, char *base)
 	return sfx;
 }
 
-static int
-DMA_DriftBeginofs(float timeofs)
-{
-	/* drift s_beginofs */
-	int start = (int)(cl.frame.servertime * 0.001f * dma.speed + s_beginofs);
-
-	if (start < paintedtime)
-	{
-		start = paintedtime;
-		s_beginofs = (int)(start - (cl.frame.servertime * 0.001f * dma.speed));
-	}
-	else if (start > paintedtime + 0.3f * dma.speed)
-	{
-		start = (int)(paintedtime + 0.1f * dma.speed);
-		s_beginofs = (int)(start - (cl.frame.servertime * 0.001f * dma.speed));
-	}
-	else
-	{
-		s_beginofs -= 10;
-	}
-
-	return timeofs ? start + timeofs * dma.speed : paintedtime;
-}
-
 /*
  * Validates the parms and ques the sound up if pos is NULL, the sound
  * will be dynamically sourced from the entity Entchannel 0 will never
@@ -881,7 +840,7 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 	else
 #endif
 	{
-		ps->begin = DMA_DriftBeginofs(timeofs);
+		ps->begin = SDL_DriftBeginofs(timeofs);
 		ps->volume = fvol * 255;
 	}
 
@@ -941,7 +900,7 @@ S_ClearBuffer(void)
 		clear = 0;
 	}
 
-	SNDDMA_BeginPainting();
+	SDL_BeginPainting();
 
 	if (dma.buffer)
 	{
@@ -957,7 +916,7 @@ S_ClearBuffer(void)
 		}
 	}
 
-	SNDDMA_Submit();
+	SDL_Submit();
 }
 
 void
@@ -1284,7 +1243,7 @@ GetSoundtime(void)
 
 	/* it is possible to miscount buffers if it has wrapped twice between
 	   calls to S_Update. Oh well. This a hack around that. */
-	samplepos = SNDDMA_GetDMAPos();
+	samplepos = SDL_GetPos();
 
 	if (samplepos < oldsamplepos)
 	{
@@ -1411,7 +1370,7 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 		return;
 	}
 
-	SNDDMA_BeginPainting();
+	SDL_BeginPainting();
 
 	if (!dma.buffer)
 	{
@@ -1447,7 +1406,7 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 
 	S_PaintChannels(endtime);
 
-	SNDDMA_Submit();
+	SDL_Submit();
 }
 
 void
