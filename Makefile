@@ -548,9 +548,9 @@ CLIENT_OBJS_ := \
 	src/client/menu/qmenu.o \
 	src/client/menu/videomenu.o \
 	src/client/sound/snd_al.o \
-	src/client/sound/snd_dma.o \
 	src/client/sound/snd_vorbis.o \
 	src/client/sound/snd_wav.o \
+	src/client/sound/sound.o \
 	src/common/argproc.o \
 	src/common/clientserver.o \
 	src/common/collision.o \
