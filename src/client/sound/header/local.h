@@ -329,6 +329,12 @@ void AL_Update(void);
 void AL_RawSamples(int samples, int rate, int width,
 		int channels, byte *data, float volume);
 
+/*
+ * Unqueues any raw samples
+ * still in flight
+ */
+void AL_UnqueueRawSamples();
+
 #endif /* USE_OPENAL */
 #endif /* CL_SOUND_LOCAL_H */
 

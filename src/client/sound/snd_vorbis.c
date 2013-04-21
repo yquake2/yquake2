@@ -20,9 +20,9 @@
  * This file implements an interface to libvorbis for decoding
  * OGG/Vorbis files. Strongly spoken this file isn't part of the sound
  * system but part of the main client. It justs converts Vorbis streams
- * into normal, raw Wave stream which are injected into snd_mem.c as if
- * they were normal wave files. At this moment only background music
- * playback and in theory .cin movie file playback is supported.
+ * into normal, raw Wave stream which are injected into the backends as 
+ * if they were normal "raw" samples. At this moment only background
+ * music playback and in theory .cin movie file playback is supported.
  *
  * =======================================================================
  */
@@ -38,10 +38,6 @@
 #include "../header/client.h"
 #include "header/local.h"
 #include "header/vorbis.h"
-
-#ifdef USE_OPENAL
-void AL_UnqueueRawSamples();
-#endif
 
 qboolean ogg_first_init = true; /* First initialization flag. */
 qboolean ogg_started = false;   /* Initialization flag. */
@@ -60,7 +56,7 @@ cvar_t *ogg_sequence;			/* Sequence play indicator. */
 cvar_t *ogg_volume;				/* Music volume. */
 OggVorbis_File ovFile;			/* Ogg Vorbis file. */
 vorbis_info *ogg_info;			/* Ogg Vorbis file information */
-int ogg_numbufs;			/* Number of buffers for OpenAL */
+int ogg_numbufs;				/* Number of buffers for OpenAL */
 
 /*
  * Initialize the Ogg Vorbis subsystem.
@@ -665,13 +661,16 @@ OGG_Stream(void)
 		else /* using SDL */
 #endif
 		{
-			/* Read that number samples into the buffer, that
-			   were played since the last call to this function.
-			   This keeps the buffer at all times at an "optimal"
-			   fill level. */
-			while (paintedtime + MAX_RAW_SAMPLES - 2048 > s_rawend)
+			if (sound_started == SS_SDL)
 			{
-				OGG_Read();
+				/* Read that number samples into the buffer, that
+				   were played since the last call to this function.
+				   This keeps the buffer at all times at an "optimal"
+				   fill level. */
+				while (paintedtime + MAX_RAW_SAMPLES - 2048 > s_rawend)
+				{
+					OGG_Read();
+				}
 			}
 		} /* using SDL */
 	} /* ogg_status == PLAY */
