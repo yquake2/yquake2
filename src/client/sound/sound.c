@@ -1008,16 +1008,7 @@ S_Init(void)
 		return;
 	}
 
-	/*
-	 * On Linux the standard volume is higher
-	 * because ALSA is relative silent.
-	 */
-#ifdef __linux__
 	s_volume = Cvar_Get("s_volume", "0.7", CVAR_ARCHIVE);
-#else
-	s_volume = Cvar_Get("s_volume", "0.3", CVAR_ARCHIVE);
-#endif
-
 	s_khz = Cvar_Get("s_khz", "44", CVAR_ARCHIVE);
 	s_loadas8bit = Cvar_Get("s_loadas8bit", "0", CVAR_ARCHIVE);
 	s_mixahead = Cvar_Get("s_mixahead", "0.14", CVAR_ARCHIVE);

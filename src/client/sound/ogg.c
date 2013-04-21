@@ -92,12 +92,7 @@ OGG_Init(void)
 	ogg_check = Cvar_Get("ogg_check", "0", CVAR_ARCHIVE);
 	ogg_playlist = Cvar_Get("ogg_playlist", "playlist", CVAR_ARCHIVE);
 	ogg_sequence = Cvar_Get("ogg_sequence", "loop", CVAR_ARCHIVE);
-
-#ifdef __linux__
 	ogg_volume = Cvar_Get("ogg_volume", "0.7", CVAR_ARCHIVE);
-#else
-	ogg_volume = Cvar_Get("ogg_volume", "0.3", CVAR_ARCHIVE);
-#endif
 
 	/* Console commands. */
 	Cmd_AddCommand("ogg_list", OGG_ListCmd);
