@@ -21,9 +21,13 @@
  *
  * =======================================================================
  *
- * This is an OpenAL backend for the Quake II Soundsystem. Most of these
- * functions are from the Q2Pro project, and some are from zeq2. We 
- * adapted them to work with Yamagi Quake II.
+ * This is the OpenAL backend for the Quake II Soundsystem. Most of these
+ * functions were optained from the Q2Pro project, and some are from zeq2. 
+ * We adapted them to work with Yamagi Quake II. The OpenAL backend is
+ * split into two layers. This is the upper layer, doing the actual work.
+ * The lower layer implements the interface between Q2 and the OpenAL
+ * implementation. This backend is overmuch complicated due to the
+ * restrictions of the frontend. 
  *
  * =======================================================================
  */
