@@ -35,166 +35,108 @@
 #include "header/local.h"
 #include "header/vorbis.h"
 
-
 /* translates from AL coordinate system to quake */
 #define AL_UnpackVector(v) - v[1], v[2], -v[0]
-#define AL_CopyVector(a, b) ((b)[0] = -(a)[1], (b)[1] = (a)[2], (b)[2] = \
-								 -(a)[0])
+#define AL_CopyVector(a, b) ((b)[0] = -(a)[1], (b)[1] = (a)[2], (b)[2] = -(a)[0])
 
-/* OpenAL implementation should support at least this number of sources */
+/* The OpenAL implementation should support
+   at least this number of sources */
 #define MIN_CHANNELS 16
 
-qboolean streamPlaying;
+/* Globals */
+cvar_t *s_openal_maxgain;
 int active_buffers;
-
+qboolean streamPlaying;
+static ALuint s_srcnums[MAX_CHANNELS - 1];
 static ALuint streamSource;
+static int s_framecount;
 
+/* Apple crappy OpenAL implementation
+   has no support for filters. */
 #ifndef __APPLE__
 static ALuint underwaterFilter;
 #endif
-
-static ALuint s_srcnums[MAX_CHANNELS - 1];
-static int s_framecount;
-cvar_t *s_openal_maxgain;
-
-/* Forward Declarations */
-static void S_AL_StreamUpdate(void);
-static void S_AL_StreamDie(void);
-
+ 
+/* ----------------------------------------------------------------- */
+ 
+/*
+ * Silence / stop all OpenAL streams
+ */
 static void
-AL_InitStreamSource()
+AL_StreamDie(void)
 {
-	qalSourcei(streamSource, AL_BUFFER, 0);
-	qalSourcei(streamSource, AL_LOOPING, AL_FALSE);
-	qalSource3f(streamSource, AL_POSITION, 0.0, 0.0, 0.0);
-	qalSource3f(streamSource, AL_VELOCITY, 0.0, 0.0, 0.0);
-	qalSource3f(streamSource, AL_DIRECTION, 0.0, 0.0, 0.0);
-	qalSourcef(streamSource, AL_ROLLOFF_FACTOR, 0.0);
-	qalSourcei(streamSource, AL_SOURCE_RELATIVE, AL_TRUE);
-}
+	int numBuffers;
 
+	streamPlaying = false;
+	qalSourceStop(streamSource);
+
+	/* Un-queue any buffers, and delete them */
+	qalGetSourcei(streamSource, AL_BUFFERS_QUEUED, &numBuffers);
+
+	while (numBuffers--)
+	{
+		ALuint buffer;
+		qalSourceUnqueueBuffers(streamSource, 1, &buffer);
+		qalDeleteBuffers(1, &buffer);
+		active_buffers--;
+	}
+}
+ 
+/*
+ * Updates stream sources by removing all played
+ * buffers and restarting playback if necessary.
+ */
 static void
-AL_InitUnderwaterFilter()
+AL_StreamUpdate(void)
 {
-#if defined (__APPLE__)
-	return;
-#else
-	/* Generate a filter */
-	qalGenFilters(1, &underwaterFilter);
+	int numBuffers;
+	ALint state;
 
-	if (qalGetError() != AL_NO_ERROR)
+	/* Un-queue any buffers, and delete them */
+	qalGetSourcei(streamSource, AL_BUFFERS_PROCESSED, &numBuffers);
+
+	while (numBuffers--)
 	{
-		Com_Printf("Couldn't generate an OpenAL filter!\n");
-		return;
+		ALuint buffer;
+		qalSourceUnqueueBuffers(streamSource, 1, &buffer);
+		qalDeleteBuffers(1, &buffer);
+		active_buffers--;
 	}
 
-	/* Low pass filter for underwater effect */
-	qalFilteri(underwaterFilter, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+	/* Start the streamSource playing if necessary */
+	qalGetSourcei(streamSource, AL_BUFFERS_QUEUED, &numBuffers);
+	qalGetSourcei(streamSource, AL_SOURCE_STATE, &state);
 
-	if (qalGetError() != AL_NO_ERROR)
+	if (state == AL_STOPPED)
 	{
-		Com_Printf("Low pass filter is not supported!\n");
-		return;
+		streamPlaying = false;
 	}
 
-	/* The effect */
-	qalFilterf(underwaterFilter, AL_LOWPASS_GAIN, 1.5);
-	qalFilterf(underwaterFilter, AL_LOWPASS_GAINHF, 0.25);
-#endif
+	if (!streamPlaying && numBuffers)
+	{
+		qalSourcePlay(streamSource);
+		streamPlaying = true;
+	}
 }
+ 
+/* ----------------------------------------------------------------- */
 
-qboolean
-AL_Init(void)
-{
-	int i;
-
-	if (!QAL_Init())
-	{
-		Com_Printf("ERROR: OpenAL failed to initialize.\n");
-		return false;
-	}
-
-	s_openal_maxgain = Cvar_Get("s_openal_maxgain", "1.0", CVAR_ARCHIVE);
-
-	/* check for linear distance extension */
-	if (!qalIsExtensionPresent("AL_EXT_LINEAR_DISTANCE"))
-	{
-		Com_Printf("ERROR: Required AL_EXT_LINEAR_DISTANCE extension is missing.\n");
-		goto fail;
-	}
-
-	/* generate source names */
-	qalGetError();
-	qalGenSources(1, &streamSource);
-
-	if (qalGetError() != AL_NO_ERROR)
-	{
-		Com_Printf("ERROR: Couldn't get a single Source.\n");
-		goto fail;
-	}
-	else
-	{
-		/* -1 because we already got one channel for streaming */
-		for (i = 0; i < MAX_CHANNELS - 1; i++)
-		{
-			qalGenSources(1, &s_srcnums[i]);
-
-			if (qalGetError() != AL_NO_ERROR)
-			{
-				break;
-			}
-		}
-
-		if (i < MIN_CHANNELS - 1)
-		{
-			Com_Printf("ERROR: Required at least %d sources, but got %d.\n",
-					MIN_CHANNELS, i + 1);
-			goto fail;
-		}
-	}
-
-	s_numchannels = i;
-	AL_InitStreamSource();
-	AL_InitUnderwaterFilter();
-
-	Com_Printf("Number of OpenAL sources: %d\n\n", s_numchannels);
-
-	return true;
-
-fail:
-	QAL_Shutdown();
-	return false;
-}
-
-void
-AL_Shutdown(void)
-{
-	Com_Printf("Shutting down OpenAL.\n");
-
-	S_AL_StreamDie();
-
-	qalDeleteSources(1, &streamSource);
-#if !defined (__APPLE__)
-	qalDeleteFilters(1, &underwaterFilter);
-#endif
-	if (s_numchannels)
-	{
-		/* delete source names */
-		qalDeleteSources(s_numchannels, s_srcnums);
-		memset(s_srcnums, 0, sizeof(s_srcnums));
-		s_numchannels = 0;
-	}
-
-	QAL_Shutdown();
-}
-
+/*
+ * Uploads a sample to OpenAL and places
+ * a dummy entry in the frontends cache.
+ * This is not nice but necessary for the
+ * frontend to work.
+ */
 sfxcache_t *
 AL_UploadSfx(sfx_t *s, wavinfo_t *s_info, byte *data)
 {
 	sfxcache_t *sc;
-	ALsizei size = s_info->samples * s_info->width;
-	ALenum format = s_info->width == 2 ? AL_FORMAT_MONO16 : AL_FORMAT_MONO8;
-	ALuint name;
+	ALsizei size;
+	ALenum format;
+	ALuint name;   
+	
+	size = s_info->samples * s_info->width;
+    format = s_info->width == 2 ? AL_FORMAT_MONO16 : AL_FORMAT_MONO8;
 
 	if (!size)
 	{
@@ -213,7 +155,7 @@ AL_UploadSfx(sfx_t *s, wavinfo_t *s_info, byte *data)
 
 	/* allocate placeholder sfxcache */
 	sc = s->cache = Z_TagMalloc(sizeof(*sc), 0);
-	sc->length = s_info->samples * 1000 / s_info->rate; /* in msec */
+	sc->length = s_info->samples * 1000 / s_info->rate;
 	sc->loopstart = s_info->loopstart;
 	sc->width = s_info->width;
 	sc->size = size;
@@ -222,6 +164,11 @@ AL_UploadSfx(sfx_t *s, wavinfo_t *s_info, byte *data)
 	return sc;
 }
 
+/*
+ * Deletes a sample from OpenALs internal
+ * cache. The dummy entry in the frontends
+ * cache is deleted by the frontend.
+ */
 void
 AL_DeleteSfx(sfx_t *s)
 {
@@ -240,20 +187,13 @@ AL_DeleteSfx(sfx_t *s)
 	active_buffers--;
 }
 
-void
-AL_StopChannel(channel_t *ch)
-{
-	if (s_show->value > 1)
-	{
-		Com_Printf("%s: %s\n", __func__, ch->sfx->name);
-	}
-
-	/* stop it */
-	qalSourceStop(ch->srcnum);
-	qalSourcei(ch->srcnum, AL_BUFFER, AL_NONE);
-	memset(ch, 0, sizeof(*ch));
-}
-
+/* ----------------------------------------------------------------- */
+ 
+/*
+ * Performance stereo spatialization
+ * of a channel in the frontends
+ * sense.
+ */
 static void
 AL_Spatialize(channel_t *ch)
 {
@@ -279,17 +219,24 @@ AL_Spatialize(channel_t *ch)
 	qalSource3f(ch->srcnum, AL_POSITION, AL_UnpackVector(origin));
 }
 
+/*
+ * Plays a channel (in the frontends
+ * sense) with OpenAL.
+ */
 void
 AL_PlayChannel(channel_t *ch)
 {
-	sfxcache_t *sc = ch->sfx->cache;
+	sfxcache_t *sc;
 
+	/* Debug */
 	if (s_show->value > 1)
 	{
 		Com_Printf("%s: %s\n", __func__, ch->sfx->name);
 	}
 
+    sc = ch->sfx->cache;
 	ch->srcnum = s_srcnums[ch - channels];
+
 	qalGetError();
 	qalSourcei(ch->srcnum, AL_BUFFER, sc->bufnum);
 	qalSourcei(ch->srcnum, AL_LOOPING, ch->autosound ? AL_TRUE : AL_FALSE);
@@ -299,17 +246,41 @@ AL_PlayChannel(channel_t *ch)
 	qalSourcef(ch->srcnum, AL_MAX_DISTANCE, 8192);
 	qalSourcef(ch->srcnum, AL_ROLLOFF_FACTOR, ch->dist_mult * (8192 - SOUND_FULLVOLUME));
 
+	/* Spatialize it */
 	AL_Spatialize(ch);
 
-	/* play it */
+	/* Play it */
 	qalSourcePlay(ch->srcnum);
 
+	/* Do not play broken channels */
 	if (qalGetError() != AL_NO_ERROR)
 	{
 		AL_StopChannel(ch);
 	}
 }
+  
+/*
+ * Stops playback of a "channel"
+ * in the frontends sense.
+ */
+void
+AL_StopChannel(channel_t *ch)
+{
+	/* Debug output */
+	if (s_show->value > 1)
+	{
+		Com_Printf("%s: %s\n", __func__, ch->sfx->name);
+	}
 
+	/* stop it */
+	qalSourceStop(ch->srcnum);
+	qalSourcei(ch->srcnum, AL_BUFFER, AL_NONE);
+	memset(ch, 0, sizeof(*ch));
+}
+ 
+/*
+ * Stops playback of all channels.
+ */
 void
 AL_StopAllChannels(void)
 {
@@ -318,6 +289,8 @@ AL_StopAllChannels(void)
 
 	ch = channels;
 
+	/* It doesn't matter if a channel
+	   is active or not. */
 	for (i = 0; i < s_numchannels; i++, ch++)
 	{
 		if (!ch->sfx)
@@ -329,9 +302,18 @@ AL_StopAllChannels(void)
 	}
 
 	s_rawend = 0;
-	S_AL_StreamDie();
+
+	/* Remove all pending samples */
+	AL_StreamDie();
 }
 
+/* ----------------------------------------------------------------- */
+
+/*
+ * Returns the channel which contains
+ * the looping sound for the entity
+ * "entnum".
+ */
 static channel_t *
 AL_FindLoopingSound(int entnum, sfx_t *sfx)
 {
@@ -368,6 +350,9 @@ AL_FindLoopingSound(int entnum, sfx_t *sfx)
 	return NULL;
 }
 
+/*
+ * Plays an looping sound with OpenAL
+ */
 static void
 AL_AddLoopSounds(void)
 {
@@ -439,6 +424,9 @@ AL_AddLoopSounds(void)
 	}
 }
 
+/*
+ * Starts all pending playsounds. 
+ */
 static void
 AL_IssuePlaysounds(void)
 {
@@ -462,7 +450,74 @@ AL_IssuePlaysounds(void)
 		S_IssuePlaysound(ps);
 	}
 }
+ 
+/*
+ * Queues raw samples for playback. Used 
+ * by the background music an cinematics.
+ */
+void
+AL_RawSamples(int samples, int rate, int width, int channels,
+		byte *data, float volume)
+{
+	ALuint buffer;
+	ALuint format = 0;
+     
+	/* Work out format */
+	if (width == 1)
+	{
+		if (channels == 1)
+		{
+			format = AL_FORMAT_MONO8;
+		}
+		else if (channels == 2)
+		{
+			format = AL_FORMAT_STEREO8;
+		}
+	}
+	else if (width == 2)
+	{
+		if (channels == 1)
+		{
+			format = AL_FORMAT_MONO16;
+		}
+		else if (channels == 2)
+		{
+			format = AL_FORMAT_STEREO16;
+		}
+	}
 
+	/* Create a buffer, and stuff the data into it */
+	qalGenBuffers(1, &buffer);
+	qalBufferData(buffer, format, (ALvoid *)data,
+			(samples * width * channels), rate);
+	active_buffers++;
+
+	/* set volume */
+	qalSourcef(streamSource, AL_GAIN, volume);
+	qalSourcef(streamSource, AL_MAX_GAIN, s_openal_maxgain->value);
+
+	/* Shove the data onto the streamSource */
+	qalSourceQueueBuffers(streamSource, 1, &buffer);
+
+	/* emulate behavior of S_RawSamples for s_rawend */
+	s_rawend += samples;
+}
+ 
+/*
+ * Kills all raw samples still in flight.
+ * This is used to stop music playback
+ * when silence is triggered.
+ */
+void
+AL_UnqueueRawSamples()
+{
+	AL_StreamDie();
+}
+ 
+/*
+ * Main update function. Called every frame,
+ * performes all necessary calculations.
+ */
 void
 AL_Update(void)
 {
@@ -472,7 +527,7 @@ AL_Update(void)
 
 	paintedtime = cl.time;
 
-	/* set listener parameters */
+	/* set listener (player) parameters */
 	qalListener3f(AL_POSITION, AL_UnpackVector(listener_origin));
 	AL_CopyVector(listener_forward, orientation);
 	AL_CopyVector(listener_up, orientation + 3);
@@ -517,7 +572,8 @@ AL_Update(void)
 			Com_Printf("%3i %s\n", ch->master_vol, ch->sfx->name);
 		}
 
-		AL_Spatialize(ch); /* respatialize channel */
+		/* respatialize channel */
+		AL_Spatialize(ch);
 	}
 
 	s_framecount++;
@@ -526,15 +582,23 @@ AL_Update(void)
 	AL_AddLoopSounds();
 
 	/* add music */
+#ifdef OGG
 	OGG_Stream();
-	S_AL_StreamUpdate();
+#endif
 
+	AL_StreamUpdate();
 	AL_IssuePlaysounds();
 }
 
+/* ----------------------------------------------------------------- */
+
+/*
+ * Enables underwater effect
+ */
 void
 AL_Underwater()
 {
+#if !defined (__APPLE__)
 	int i;
 
 	if (sound_started != SS_OAL)
@@ -545,15 +609,18 @@ AL_Underwater()
 	/* Apply to all sources */
 	for (i = 0; i < s_numchannels; i++)
 	{
-#if !defined (__APPLE__)
 		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, underwaterFilter);
-#endif	
 	}
+#endif	
 }
 
+/*
+ * Disables the underwater effect
+ */
 void
 AL_Overwater()
 {
+#if !defined (__APPLE__)
 	int i;
 
 	if (sound_started != SS_OAL) 
@@ -564,128 +631,148 @@ AL_Overwater()
 	/* Apply to all sources */
 	for (i = 0; i < s_numchannels; i++)
 	{
-#if !defined (__APPLE__)
 		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, 0);
+	}
 #endif	
-	}
 }
 
+/* ----------------------------------------------------------------- */
+ 
+/*
+ * Set up the stream sources
+ */
 static void
-S_AL_StreamDie(void)
+AL_InitStreamSource()
 {
-	int numBuffers;
-
-	streamPlaying = false;
-	qalSourceStop(streamSource);
-
-	/* Un-queue any buffers, and delete them */
-	qalGetSourcei(streamSource, AL_BUFFERS_QUEUED, &numBuffers);
-
-	while (numBuffers--)
-	{
-		ALuint buffer;
-		qalSourceUnqueueBuffers(streamSource, 1, &buffer);
-		qalDeleteBuffers(1, &buffer);
-		active_buffers--;
-	}
+ 	qalSource3f(streamSource, AL_POSITION, 0.0, 0.0, 0.0);
+	qalSource3f(streamSource, AL_VELOCITY, 0.0, 0.0, 0.0);
+	qalSource3f(streamSource, AL_DIRECTION, 0.0, 0.0, 0.0); 
+	qalSourcef(streamSource, AL_ROLLOFF_FACTOR, 0.0);
+	qalSourcei(streamSource, AL_BUFFER, 0);
+	qalSourcei(streamSource, AL_LOOPING, AL_FALSE);
+	qalSourcei(streamSource, AL_SOURCE_RELATIVE, AL_TRUE);
 }
 
+/*
+ * Set up the underwater filter
+ */
 static void
-S_AL_StreamUpdate(void)
+AL_InitUnderwaterFilter()
 {
-	int numBuffers;
-	ALint state;
+	/* Generate a filter */
+	qalGenFilters(1, &underwaterFilter);
 
-	/* Un-queue any buffers, and delete them */
-	qalGetSourcei(streamSource, AL_BUFFERS_PROCESSED, &numBuffers);
-
-	while (numBuffers--)
+	if (qalGetError() != AL_NO_ERROR)
 	{
-		ALuint buffer;
-		qalSourceUnqueueBuffers(streamSource, 1, &buffer);
-		qalDeleteBuffers(1, &buffer);
-		active_buffers--;
+		Com_Printf("Couldn't generate an OpenAL filter!\n");
+		return;
 	}
 
-	/* Start the streamSource playing if necessary */
-	qalGetSourcei(streamSource, AL_BUFFERS_QUEUED, &numBuffers);
+	/* Low pass filter for underwater effect */
+	qalFilteri(underwaterFilter, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
 
-	qalGetSourcei(streamSource, AL_SOURCE_STATE, &state);
-
-	if (state == AL_STOPPED)
+	if (qalGetError() != AL_NO_ERROR)
 	{
-		streamPlaying = false;
+		Com_Printf("Low pass filter is not supported!\n");
+		return;
 	}
 
-	if (!streamPlaying && numBuffers)
-	{
-		qalSourcePlay(streamSource);
-		streamPlaying = true;
-	}
+	/* The effect */
+	qalFilterf(underwaterFilter, AL_LOWPASS_GAIN, 1.5);
+	qalFilterf(underwaterFilter, AL_LOWPASS_GAINHF, 0.25);
 }
 
-static ALuint
-S_AL_Format(int width, int channels)
+/*
+ * Initializes the OpenAL backend
+ */
+qboolean
+AL_Init(void)
 {
-	ALuint format = AL_FORMAT_MONO16;
+	int i;
 
-	/* Work out format */
-	if (width == 1)
+	if (!QAL_Init())
 	{
-		if (channels == 1)
-		{
-			format = AL_FORMAT_MONO8;
-		}
-		else if (channels == 2)
-		{
-			format = AL_FORMAT_STEREO8;
-		}
-	}
-	else if (width == 2)
-	{
-		if (channels == 1)
-		{
-			format = AL_FORMAT_MONO16;
-		}
-		else if (channels == 2)
-		{
-			format = AL_FORMAT_STEREO16;
-		}
+		Com_Printf("ERROR: OpenAL failed to initialize.\n");
+		return false;
 	}
 
-	return format;
+	s_openal_maxgain = Cvar_Get("s_openal_maxgain", "1.0", CVAR_ARCHIVE);
+
+	/* check for linear distance extension */
+	if (!qalIsExtensionPresent("AL_EXT_LINEAR_DISTANCE"))
+	{
+		Com_Printf("ERROR: Required AL_EXT_LINEAR_DISTANCE extension is missing.\n");
+		QAL_Shutdown();
+		return false;
+	}
+
+	/* generate source names */
+	qalGetError();
+	qalGenSources(1, &streamSource);
+
+	if (qalGetError() != AL_NO_ERROR)
+	{
+		Com_Printf("ERROR: Couldn't get a single Source.\n");
+		QAL_Shutdown();
+		return false;
+	}
+	else
+	{
+		/* -1 because we already got one channel for streaming */
+		for (i = 0; i < MAX_CHANNELS - 1; i++)
+		{
+			qalGenSources(1, &s_srcnums[i]);
+
+			if (qalGetError() != AL_NO_ERROR)
+			{
+				break;
+			}
+		}
+
+		if (i < MIN_CHANNELS - 1)
+		{
+			Com_Printf("ERROR: Required at least %d sources, but got %d.\n",
+					MIN_CHANNELS, i + 1);
+			QAL_Shutdown();
+			return false;
+		}
+	}
+
+	s_numchannels = i;
+	AL_InitStreamSource();
+
+#ifndef __APPLE__
+	AL_InitUnderwaterFilter();
+#endif
+
+	Com_Printf("Number of OpenAL sources: %d\n\n", s_numchannels);
+	return true;
 }
 
+/*
+ * Shuts the OpenAL backend down
+ */
 void
-AL_RawSamples(int samples, int rate, int width, int channels,
-		byte *data, float volume)
+AL_Shutdown(void)
 {
-	ALuint buffer;
-	ALuint format;
+	Com_Printf("Shutting down OpenAL.\n");
 
-	format = S_AL_Format(width, channels);
+	AL_StreamDie();
 
-	/* Create a buffer, and stuff the data into it */
-	qalGenBuffers(1, &buffer);
-	qalBufferData(buffer, format, (ALvoid *)data,
-			(samples * width * channels), rate);
-	active_buffers++;
+	qalDeleteSources(1, &streamSource);
+#if !defined (__APPLE__)
+	qalDeleteFilters(1, &underwaterFilter);
+#endif
+	if (s_numchannels)
+	{
+		/* delete source names */
+		qalDeleteSources(s_numchannels, s_srcnums);
+		memset(s_srcnums, 0, sizeof(s_srcnums));
+		s_numchannels = 0;
+	}
 
-	/* set volume */
-	qalSourcef(streamSource, AL_GAIN, volume);
-	qalSourcef(streamSource, AL_MAX_GAIN, s_openal_maxgain->value);
-
-	/* Shove the data onto the streamSource */
-	qalSourceQueueBuffers(streamSource, 1, &buffer);
-
-	/* emulate behavior of S_RawSamples for s_rawend */
-	s_rawend += samples;
-}
-
-void
-AL_UnqueueRawSamples()
-{
-	S_AL_StreamDie();
+	QAL_Shutdown();
 }
 
 #endif /* USE_OPENAL */
+
