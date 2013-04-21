@@ -22,12 +22,12 @@
  * =======================================================================
  *
  * This is the OpenAL backend for the Quake II Soundsystem. Most of these
- * functions were optained from the Q2Pro project, and some are from zeq2. 
+ * functions were optained from the Q2Pro project, and some are from zeq2.
  * We adapted them to work with Yamagi Quake II. The OpenAL backend is
  * split into two layers. This is the upper layer, doing the actual work.
  * The lower layer implements the interface between Q2 and the OpenAL
  * implementation. This backend is overmuch complicated due to the
- * restrictions of the frontend. 
+ * restrictions of the frontend.
  *
  * =======================================================================
  */
@@ -60,9 +60,9 @@ static int s_framecount;
 #ifndef __APPLE__
 static ALuint underwaterFilter;
 #endif
- 
+
 /* ----------------------------------------------------------------- */
- 
+
 /*
  * Silence / stop all OpenAL streams
  */
@@ -85,7 +85,7 @@ AL_StreamDie(void)
 		active_buffers--;
 	}
 }
- 
+
 /*
  * Updates stream sources by removing all played
  * buffers and restarting playback if necessary.
@@ -122,7 +122,7 @@ AL_StreamUpdate(void)
 		streamPlaying = true;
 	}
 }
- 
+
 /* ----------------------------------------------------------------- */
 
 /*
@@ -137,8 +137,8 @@ AL_UploadSfx(sfx_t *s, wavinfo_t *s_info, byte *data)
 	sfxcache_t *sc;
 	ALsizei size;
 	ALenum format;
-	ALuint name;   
-	
+	ALuint name;
+
 	size = s_info->samples * s_info->width;
     format = s_info->width == 2 ? AL_FORMAT_MONO16 : AL_FORMAT_MONO8;
 
@@ -192,7 +192,7 @@ AL_DeleteSfx(sfx_t *s)
 }
 
 /* ----------------------------------------------------------------- */
- 
+
 /*
  * Performance stereo spatialization
  * of a channel in the frontends
@@ -203,8 +203,8 @@ AL_Spatialize(channel_t *ch)
 {
 	vec3_t origin;
 
-	/* anything coming from the view entity 
-	   will always be full volume. no 
+	/* anything coming from the view entity
+	   will always be full volume. no
 	   attenuation = no spatialization */
 	if ((ch->entnum == -1) || (ch->entnum == cl.playernum + 1) ||
 		!ch->dist_mult)
@@ -256,7 +256,7 @@ AL_PlayChannel(channel_t *ch)
 	qalSourcef(ch->srcnum, AL_ROLLOFF_FACTOR, ch->dist_mult * (8192 - SOUND_FULLVOLUME));
 	qalSourcef(ch->srcnum, AL_GAIN, vol);
  	qalSourcei(ch->srcnum, AL_BUFFER, sc->bufnum);
-	qalSourcei(ch->srcnum, AL_LOOPING, ch->autosound ? AL_TRUE : AL_FALSE); 
+	qalSourcei(ch->srcnum, AL_LOOPING, ch->autosound ? AL_TRUE : AL_FALSE);
 
 	/* Spatialize it */
 	AL_Spatialize(ch);
@@ -270,7 +270,7 @@ AL_PlayChannel(channel_t *ch)
 		AL_StopChannel(ch);
 	}
 }
-  
+
 /*
  * Stops playback of a "channel"
  * in the frontends sense.
@@ -289,7 +289,7 @@ AL_StopChannel(channel_t *ch)
 	qalSourcei(ch->srcnum, AL_BUFFER, AL_NONE);
 	memset(ch, 0, sizeof(*ch));
 }
- 
+
 /*
  * Stops playback of all channels.
  */
@@ -437,7 +437,7 @@ AL_AddLoopSounds(void)
 }
 
 /*
- * Starts all pending playsounds. 
+ * Starts all pending playsounds.
  */
 static void
 AL_IssuePlaysounds(void)
@@ -462,9 +462,9 @@ AL_IssuePlaysounds(void)
 		S_IssuePlaysound(ps);
 	}
 }
- 
+
 /*
- * Queues raw samples for playback. Used 
+ * Queues raw samples for playback. Used
  * by the background music an cinematics.
  */
 void
@@ -473,7 +473,7 @@ AL_RawSamples(int samples, int rate, int width, int channels,
 {
 	ALuint buffer;
 	ALuint format = 0;
-     
+
 	/* Work out format */
 	if (width == 1)
 	{
@@ -518,7 +518,7 @@ AL_RawSamples(int samples, int rate, int width, int channels,
 	/* emulate behavior of S_RawSamples for s_rawend */
 	s_rawend += samples;
 }
- 
+
 /*
  * Kills all raw samples still in flight.
  * This is used to stop music playback
@@ -529,7 +529,7 @@ AL_UnqueueRawSamples()
 {
 	AL_StreamDie();
 }
- 
+
 /*
  * Main update function. Called every frame,
  * performes all necessary calculations.
@@ -547,7 +547,7 @@ AL_Update(void)
 	AL_CopyVector(listener_forward, orientation);
 	AL_CopyVector(listener_up, orientation + 3);
  	qalListenerf(AL_GAIN, s_volume->value);
-	qalListenerf(AL_MAX_GAIN, s_openal_maxgain->value); 
+	qalListenerf(AL_MAX_GAIN, s_openal_maxgain->value);
 	qalDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
 	qalListener3f(AL_POSITION, AL_UnpackVector(listener_origin));
 	qalListenerfv(AL_ORIENTATION, orientation);
@@ -629,7 +629,7 @@ AL_Underwater()
 	{
 		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, underwaterFilter);
 	}
-#endif	
+#endif
 }
 
 /*
@@ -641,7 +641,7 @@ AL_Overwater()
 #if !defined (__APPLE__)
 	int i;
 
-	if (sound_started != SS_OAL) 
+	if (sound_started != SS_OAL)
 	{
 		return;
 	}
@@ -651,11 +651,11 @@ AL_Overwater()
 	{
 		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, 0);
 	}
-#endif	
+#endif
 }
 
 /* ----------------------------------------------------------------- */
- 
+
 /*
  * Set up the stream sources
  */
@@ -664,7 +664,7 @@ AL_InitStreamSource()
 {
  	qalSource3f(streamSource, AL_POSITION, 0.0, 0.0, 0.0);
 	qalSource3f(streamSource, AL_VELOCITY, 0.0, 0.0, 0.0);
-	qalSource3f(streamSource, AL_DIRECTION, 0.0, 0.0, 0.0); 
+	qalSource3f(streamSource, AL_DIRECTION, 0.0, 0.0, 0.0);
 	qalSourcef(streamSource, AL_ROLLOFF_FACTOR, 0.0);
 	qalSourcei(streamSource, AL_BUFFER, 0);
 	qalSourcei(streamSource, AL_LOOPING, AL_FALSE);
