@@ -547,7 +547,7 @@ CLIENT_OBJS_ := \
 	src/client/menu/menu.o \
 	src/client/menu/qmenu.o \
 	src/client/menu/videomenu.o \
-	src/client/sound/snd_al.o \
+	src/client/sound/openal.o \
 	src/client/sound/snd_vorbis.o \
 	src/client/sound/snd_wav.o \
 	src/client/sound/sound.o \

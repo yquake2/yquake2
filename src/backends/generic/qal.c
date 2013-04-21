@@ -204,8 +204,6 @@ void QAL_SoundInfo()
 			Com_Printf("- %s\n", devs);
 		}
 	}
-
-	Com_Printf("\nNumber of sources: %d\n", s_numchannels);
 }
 
 /*
