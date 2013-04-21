@@ -583,6 +583,7 @@ S_IssuePlaysound(playsound_t *ps)
 #if USE_OPENAL
 	if (sound_started == SS_OAL)
 	{
+		/* This is clamped to 1.0 in AL_PlayChannel() */
 		ch->oal_vol = ps->volume * (s_volume->value);
 		AL_PlayChannel(ch);
 	}

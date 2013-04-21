@@ -227,6 +227,7 @@ void
 AL_PlayChannel(channel_t *ch)
 {
 	sfxcache_t *sc;
+	float vol;
 
 	/* Debug */
 	if (s_show->value > 1)
@@ -234,17 +235,24 @@ AL_PlayChannel(channel_t *ch)
 		Com_Printf("%s: %s\n", __func__, ch->sfx->name);
 	}
 
+	/* Clamp volume */
+	vol = ch->oal_vol + s_volume->value;
+
+	if (vol > 1.0f)
+	{
+		vol = 1.0f;
+	}
+
     sc = ch->sfx->cache;
 	ch->srcnum = s_srcnums[ch - channels];
 
 	qalGetError();
-	qalSourcei(ch->srcnum, AL_BUFFER, sc->bufnum);
-	qalSourcei(ch->srcnum, AL_LOOPING, ch->autosound ? AL_TRUE : AL_FALSE);
-	qalSourcef(ch->srcnum, AL_GAIN, ch->oal_vol);
-	qalSourcef(ch->srcnum, AL_MAX_GAIN, s_openal_maxgain->value);
 	qalSourcef(ch->srcnum, AL_REFERENCE_DISTANCE, SOUND_FULLVOLUME);
 	qalSourcef(ch->srcnum, AL_MAX_DISTANCE, 8192);
 	qalSourcef(ch->srcnum, AL_ROLLOFF_FACTOR, ch->dist_mult * (8192 - SOUND_FULLVOLUME));
+	qalSourcef(ch->srcnum, AL_GAIN, vol);
+ 	qalSourcei(ch->srcnum, AL_BUFFER, sc->bufnum);
+	qalSourcei(ch->srcnum, AL_LOOPING, ch->autosound ? AL_TRUE : AL_FALSE); 
 
 	/* Spatialize it */
 	AL_Spatialize(ch);
@@ -492,9 +500,13 @@ AL_RawSamples(int samples, int rate, int width, int channels,
 			(samples * width * channels), rate);
 	active_buffers++;
 
-	/* set volume */
+    /* set volume */
+	if (volume > 1.0f)
+	{
+		volume = 1.0f;
+	}
+
 	qalSourcef(streamSource, AL_GAIN, volume);
-	qalSourcef(streamSource, AL_MAX_GAIN, s_openal_maxgain->value);
 
 	/* Shove the data onto the streamSource */
 	qalSourceQueueBuffers(streamSource, 1, &buffer);
@@ -528,11 +540,13 @@ AL_Update(void)
 	paintedtime = cl.time;
 
 	/* set listener (player) parameters */
-	qalListener3f(AL_POSITION, AL_UnpackVector(listener_origin));
 	AL_CopyVector(listener_forward, orientation);
 	AL_CopyVector(listener_up, orientation + 3);
-	qalListenerfv(AL_ORIENTATION, orientation);
+ 	qalListenerf(AL_GAIN, s_volume->value);
+	qalListenerf(AL_MAX_GAIN, s_openal_maxgain->value); 
 	qalDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
+	qalListener3f(AL_POSITION, AL_UnpackVector(listener_origin));
+	qalListenerfv(AL_ORIENTATION, orientation);
 
 	/* update spatialization for dynamic sounds */
 	ch = channels;

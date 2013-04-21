@@ -270,7 +270,7 @@ void SDL_Spatialize(channel_t *ch);
 
  /* Only begin attenuating sound volumes
     when outside the FULLVOLUME range */
- #define     SOUND_FULLVOLUME 80
+ #define     SOUND_FULLVOLUME 1.0
  #define     SOUND_LOOPATTENUATE 0.003
 
 /* number of buffers in flight (needed for ogg) */
