@@ -28,7 +28,7 @@
 #include "../../client/header/client.h"
 #include "../../client/menu/header/qmenu.h"
 
-#define CUSTOM_MODE 23
+#define CUSTOM_MODE 24
 
 extern void M_ForceMenuOff(void);
 
