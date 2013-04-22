@@ -293,6 +293,7 @@ extern	cvar_t	*cl_paused;
 extern	cvar_t	*cl_timedemo;
 extern	cvar_t	*cl_vwep;
 extern	cvar_t  *horplus;
+extern	cvar_t	*cin_force43;
 
 typedef struct
 {

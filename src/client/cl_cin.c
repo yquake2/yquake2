@@ -27,6 +27,8 @@
 
 #include "header/client.h"
 
+cvar_t *cin_force43;
+
 typedef struct
 {
 	byte *data;
@@ -500,6 +502,8 @@ SCR_RunCinematic(void)
 qboolean
 SCR_DrawCinematic(void)
 {
+	int x, y, w, h;
+
 	if (cl.cinematictime <= 0)
 	{
 		return false;
@@ -524,8 +528,38 @@ SCR_DrawCinematic(void)
 		return true;
 	}
 
-	re.DrawStretchRaw(0, 0, viddef.width, viddef.height,
-			cin.width, cin.height, cin.pic);
+	if (cin_force43->value)
+	{
+		w = (w = viddef.height * 4 / 3) > viddef.width ? viddef.width : w;
+		x = (viddef.width - w) / 2;
+		h = (h = viddef.width * 3 / 4) > viddef.height ? viddef.height : h;
+		y = (viddef.height - h) / 2;
+	}
+	else
+	{
+		x = y = 0;
+		w = viddef.width;
+		h = viddef.height;
+	}
+
+	if (x > 0)
+	{
+		re.DrawFill(0, 0, x, viddef.height, 0);
+	}
+	if (x + w < viddef.width)
+	{
+		re.DrawFill(x + w, 0, viddef.width - (x + w), viddef.height, 0);
+	}
+	if (y > 0)
+	{
+		re.DrawFill(x, 0, w, y, 0);
+	}
+	if (y + h < viddef.height)
+	{
+		re.DrawFill(x, y + h, w, viddef.height - (y + h), 0);
+	}
+
+	re.DrawStretchRaw(x, y, w, h, cin.width, cin.height, cin.pic);
 
 	return true;
 }

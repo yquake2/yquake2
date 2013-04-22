@@ -488,6 +488,8 @@ CL_InitLocal(void)
 	adr7 = Cvar_Get("adr7", "", CVAR_ARCHIVE);
 	adr8 = Cvar_Get("adr8", "", CVAR_ARCHIVE);
 
+	cin_force43 = Cvar_Get("cin_force43", "1", 0);
+
 	/* register our variables */
 	cl_add_blend = Cvar_Get("cl_blend", "1", 0);
 	cl_add_lights = Cvar_Get("cl_lights", "1", 0);
