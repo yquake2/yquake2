@@ -530,9 +530,14 @@ SCR_DrawCinematic(void)
 
 	if (cin_force43->value)
 	{
-		w = (w = viddef.height * 4 / 3) > viddef.width ? viddef.width : w;
+		w = viddef.height * 4 / 3;
+		if (w > viddef.width)
+		{
+			w = viddef.width;
+		}
+		w &= ~3;
+		h = w * 3 / 4;
 		x = (viddef.width - w) / 2;
-		h = (h = viddef.width * 3 / 4) > viddef.height ? viddef.height : h;
 		y = (viddef.height - h) / 2;
 	}
 	else
