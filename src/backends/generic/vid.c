@@ -187,7 +187,7 @@ VID_FreeReflib(void)
 			IN_BackendShutdown_fp();
 		}
 
-		Sys_FreeLibrary(reflib_library);
+		//Sys_FreeLibrary(reflib_library);
 	}
 
 	IN_KeyboardInit_fp = NULL;
@@ -235,12 +235,12 @@ VID_LoadRefresh(char *name)
 	path = Cvar_Get("basedir", ".", CVAR_NOSET)->string;
 	snprintf(fn, MAX_OSPATH, "%s/%s", path, name);
 
-	Sys_LoadLibrary(fn, NULL, &reflib_library);
+	/*Sys_LoadLibrary(fn, NULL, &reflib_library);
 
 	if (reflib_library == 0)
 	{
 		return false;
-	}
+	}*/
 
 
 	ri.Cmd_AddCommand = Cmd_AddCommand;
@@ -264,12 +264,14 @@ VID_LoadRefresh(char *name)
 	ri.Vid_MenuInit = VID_MenuInit;
 	ri.Vid_NewWindow = VID_NewWindow;
 
-	if ((GetRefAPI = (void *)Sys_GetProcAddress(reflib_library, "R_GetRefAPI")) == 0)
+	/*if ((GetRefAPI = (void *)Sys_GetProcAddress(reflib_library, "R_GetRefAPI")) == 0)
 	{
 		Com_Error(ERR_FATAL, "Sys_GetProcAddress failed on %s", name);
-	}
+	}*/
 
-	re = GetRefAPI(ri);
+	//re = GetRefAPI(ri);
+        re = R_GetRefAPI(ri);
+        
 
 	if (re.api_version != API_VERSION)
 	{

@@ -234,7 +234,8 @@ endif
 # ----------
 
 # Builds everything
-all: client server refresher game
+#all: client server refresher game
+all: client server game
 
 # ----------
 
@@ -671,14 +672,14 @@ OPENGL_OBJS_ = \
 	src/refresh/files/sp2.o \
 	src/refresh/files/tga.o \
 	src/refresh/files/jpeg.o \
-	src/refresh/files/wal.o \
+	src/refresh/files/wal.o# \
 	src/common/shared/shared.o
 
 ifeq ($(OSTYPE), Windows)
 OPENGL_OBJS_ += \
 	src/backends/windows/shared/mem.o
-else
-OPENGL_OBJS_ += \
+#else
+#OPENGL_OBJS_ += \
 	src/backends/unix/shared/hunk.o
 endif
 
@@ -714,9 +715,9 @@ release/quake2.exe : $(CLIENT_OBJS) icon
 	@echo "===> LD $@"
 	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
-release/quake2 : $(CLIENT_OBJS)
+release/quake2 : $(CLIENT_OBJS) $(OPENGL_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(CLIENT_OBJS) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/q2ded
@@ -731,19 +732,19 @@ release/q2ded : $(SERVER_OBJS)
 endif
 
 # release/ref_gl.so
-ifeq ($(OSTYPE), Windows)
-release/ref_gl.dll : $(OPENGL_OBJS)
-	@echo "===> LD $@"
-	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
-else ifeq ($(OSTYPE), Darwin)
-release/ref_gl.so : $(OPENGL_OBJS)
-	@echo "===> LD $@"
-	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
-else
-release/ref_gl.so : $(OPENGL_OBJS)
-	@echo "===> LD $@"
-	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
-endif
+#ifeq ($(OSTYPE), Windows)
+#release/ref_gl.dll : $(OPENGL_OBJS)
+#	@echo "===> LD $@"
+#	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+#else ifeq ($(OSTYPE), Darwin)
+#release/ref_gl.so : $(OPENGL_OBJS)
+#	@echo "===> LD $@"
+#	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+#else
+#release/ref_gl.so : $(OPENGL_OBJS)
+#	@echo "===> LD $@"
+#	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
+#endif
 
 # release/baseq2/game.so
 ifeq ($(OSTYPE), Windows)
