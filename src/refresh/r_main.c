@@ -1630,7 +1630,7 @@ R_GetRefAPI(refimport_t rimp)
  * this is only here so the functions
  * in shared source files can link
  */
-void
+/*void
 Sys_Error(char *error, ...)
 {
 	va_list argptr;
@@ -1654,5 +1654,5 @@ Com_Printf(char *fmt, ...)
 	va_end(argptr);
 
 	ri.Con_Printf(PRINT_ALL, "%s", text);
-}
+}*/
 
