@@ -677,6 +677,7 @@ AL_InitStreamSource()
 static void
 AL_InitUnderwaterFilter()
 {
+#if !defined (__APPLE__)
 	/* Generate a filter */
 	qalGenFilters(1, &underwaterFilter);
 
@@ -698,6 +699,7 @@ AL_InitUnderwaterFilter()
 	/* The effect */
 	qalFilterf(underwaterFilter, AL_LOWPASS_GAIN, 1.5);
 	qalFilterf(underwaterFilter, AL_LOWPASS_GAINHF, 0.25);
+#endif
 }
 
 /*
