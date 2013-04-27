@@ -236,7 +236,8 @@ endif
 
 # Builds everything
 all: config client server game
-	
+
+# Print config values
 config:
 	@echo "Build configuration"
 	@echo "============================"
@@ -248,7 +249,7 @@ config:
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
 	@echo "============================"
-
+	
 # ----------
 
 # Special target to compile
@@ -443,6 +444,7 @@ ifeq ($(WITH_RETEXTURING),yes)
 release/quake2 : CFLAGS += -DRETEXTURE
 ifeq ($(OSTYPE), Darwin)
 #release/ref_gl.so : LDFLAGS += -framework libjpeg
+release/quake2 : LDFLAGS += -framework libjpeg
 else
 #release/ref_gl.so : LDFLAGS += -ljpeg
 release/quake2 : LDFLAGS += -ljpeg
