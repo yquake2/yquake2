@@ -235,7 +235,19 @@ endif
 # ----------
 
 # Builds everything
-all: client server game
+all: config client server game
+	
+config:
+	@echo "Build configuration"
+	@echo "============================"
+	@echo "WITH_CDA = $(WITH_CDA)"
+	@echo "WITH_OPENAL = $(WITH_OPENAL)"
+	@echo "WITH_RETEXTURING = $(WITH_RETEXTURING)"
+	@echo "WITH_X11GAMMA = $(WITH_X11GAMMA)"
+	@echo "WITH_ZIP = $(WITH_ZIP)"
+	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
+	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
+	@echo "============================"
 
 # ----------
 
@@ -428,10 +440,12 @@ endif
 
 ifeq ($(WITH_RETEXTURING),yes)
 #release/ref_gl.so : CFLAGS += -DRETEXTURE
+release/quake2 : CFLAGS += -DRETEXTURE
 ifeq ($(OSTYPE), Darwin)
 #release/ref_gl.so : LDFLAGS += -framework libjpeg
 else
 #release/ref_gl.so : LDFLAGS += -ljpeg
+release/quake2 : LDFLAGS += -ljpeg
 endif
 endif
 
