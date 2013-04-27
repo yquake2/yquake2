@@ -405,48 +405,30 @@ endif
 
 # The refresher
 ifeq ($(OSTYPE), Windows)
-#refresher:
-#	@echo "===> Building ref_gl.dll"
-#	${Q}stuff/misc/mkdir.exe -p release
-#	$(MAKE) release/ref_gl.dll
-
 build/refresher/%.o: %.c
 	@echo "===> CC $<"
 	${Q}stuff/misc/mkdir.exe -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
 
-#release/ref_gl.dll : LDFLAGS += -shared
-
 ifeq ($(WITH_RETEXTURING),yes)
-#release/ref_gl.dll : CFLAGS += -DRETEXTURE
-#release/ref_gl.dll : LDFLAGS += -ljpeg
+release/quake2.exe : CFLAGS += -DRETEXTURE
+release/quake2.exe : LDFLAGS += -ljpeg
 endif
 else
-#refresher:
-#	@echo "===> Building ref_gl.so"
-#	${Q}mkdir -p release
-#	$(MAKE) release/ref_gl.so
-
 build/refresher/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
-
-#release/ref_gl.so : CFLAGS += -fPIC
-#release/ref_gl.so : LDFLAGS += -shared
 
 ifeq ($(WITH_X11GAMMA),yes)
 #release/ref_gl.so : CFLAGS += -DX11GAMMA
 endif
 
 ifeq ($(WITH_RETEXTURING),yes)
-#release/ref_gl.so : CFLAGS += -DRETEXTURE
 release/quake2 : CFLAGS += -DRETEXTURE
 ifeq ($(OSTYPE), Darwin)
-#release/ref_gl.so : LDFLAGS += -framework libjpeg
 release/quake2 : LDFLAGS += -framework libjpeg
 else
-#release/ref_gl.so : LDFLAGS += -ljpeg
 release/quake2 : LDFLAGS += -ljpeg
 endif
 endif
