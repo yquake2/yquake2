@@ -207,7 +207,7 @@ qboolean
 VID_LoadRefresh(char *name)
 {
 	refimport_t ri;
-	R_GetRefAPI_t GetRefAPI;
+	//R_GetRefAPI_t GetRefAPI;
 
 	char fn[MAX_OSPATH];
 	char *path;
@@ -272,12 +272,12 @@ VID_LoadRefresh(char *name)
 	//re = GetRefAPI(ri);
         re = R_GetRefAPI(ri);
         
-
-	if (re.api_version != API_VERSION)
+        // This is never going to happen
+	/*if (re.api_version != API_VERSION)
 	{
 		VID_FreeReflib();
 		Com_Error(ERR_FATAL, "%s has incompatible api_version", name);
-	}
+	}*/
 
 	/* Init IN (Mouse) */
 	in_state.IN_CenterView_fp = IN_CenterView;

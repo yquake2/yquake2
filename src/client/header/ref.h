@@ -213,7 +213,9 @@ typedef struct {
 /* this is the only function actually exported at the linker level */
 typedef	refexport_t	(*R_GetRefAPI_t)(refimport_t);
 
+/* */
 refexport_t R_GetRefAPI(refimport_t rimp);
-//#include "../../refresh/header/local.h";
+
+void R_BeginRegistration(char *map);
 
 #endif
