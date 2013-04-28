@@ -421,7 +421,7 @@ build/refresher/%.o: %.c
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
 
 ifeq ($(WITH_X11GAMMA),yes)
-#release/ref_gl.so : CFLAGS += -DX11GAMMA
+release/quake2 : CFLAGS += -DX11GAMMA
 endif
 
 ifeq ($(WITH_RETEXTURING),yes)
@@ -706,7 +706,7 @@ release/quake2.exe : $(CLIENT_OBJS) $(OPENGL_OBJS) icon
 else
 release/quake2 : $(CLIENT_OBJS) $(OPENGL_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(CLIENT_OBJS) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(CLIENT_OBJS) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) $(X11LDFLAGS) -o $@
 endif
 
 # release/q2ded
@@ -719,21 +719,6 @@ release/q2ded : $(SERVER_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@
 endif
-
-# release/ref_gl.so
-#ifeq ($(OSTYPE), Windows)
-#release/ref_gl.dll : $(OPENGL_OBJS)
-#	@echo "===> LD $@"
-#	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
-#else ifeq ($(OSTYPE), Darwin)
-#release/ref_gl.so : $(OPENGL_OBJS)
-#	@echo "===> LD $@"
-#	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
-#else
-#release/ref_gl.so : $(OPENGL_OBJS)
-#	@echo "===> LD $@"
-#	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
-#endif
 
 # release/baseq2/game.so
 ifeq ($(OSTYPE), Windows)
