@@ -28,7 +28,7 @@
 #define GEN_INPUT_H
 
 typedef void (*Key_Event_fp_t)(int key, qboolean down);
-extern void (*IN_Update_fp)(void);
+//extern void (*IN_Update_fp)(void);
 
 typedef struct in_state
 {

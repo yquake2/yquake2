@@ -53,20 +53,20 @@ cvar_t *vid_fullscreen;
 
 /* Global variables used internally by this module */
 viddef_t viddef;                /* global video state; used by other modules */
-void *reflib_library;           /* Handle to refresh DLL */
+//void *reflib_library;           /* Handle to refresh DLL */
 qboolean reflib_active = 0;
 
 #define VID_NUM_MODES (sizeof(vid_modes) / sizeof(vid_modes[0]))
 
 void Do_Key_Event(int key, qboolean down);
 
-void (*IN_Update_fp)(void);
+/*void (*IN_Update_fp)(void);
 void (*IN_KeyboardInit_fp)(Key_Event_fp_t fp);
 void (*IN_Close_fp)(void);
 void (*IN_BackendInit_fp)(in_state_t *in_state_p);
 void (*IN_BackendShutdown_fp)(void);
 void (*IN_BackendMouseButtons_fp)(void);
-void (*IN_BackendMove_fp)(usercmd_t *cmd);
+void (*IN_BackendMove_fp)(usercmd_t *cmd);*/
 
 in_state_t in_state;
 
@@ -175,7 +175,7 @@ VID_NewWindow(int width, int height)
 void
 VID_FreeReflib(void)
 {
-	if (reflib_library)
+	/*if (reflib_library)
 	{
 		if (IN_Close_fp)
 		{
@@ -196,10 +196,16 @@ VID_FreeReflib(void)
 	IN_BackendInit_fp = NULL;
 	IN_BackendShutdown_fp = NULL;
 	IN_BackendMouseButtons_fp = NULL;
-	IN_BackendMove_fp = NULL;
+	IN_BackendMove_fp = NULL;*/
+    
+        IN_Close();
+        IN_BackendShutdown();
 
+        // Get rid of refexport function pointers
 	memset(&re, 0, sizeof(re));
-	reflib_library = NULL;
+	//reflib_library = NULL;
+        
+        // Declare the refresher as inactive
 	reflib_active = false;
 }
 
@@ -209,12 +215,12 @@ VID_LoadRefresh(char *name)
 	refimport_t ri;
 	//R_GetRefAPI_t GetRefAPI;
 
-	char fn[MAX_OSPATH];
-	char *path;
+	//char fn[MAX_OSPATH];
+	//char *path;
 
 	if (reflib_active)
 	{
-		if (IN_Close_fp)
+		/*if (IN_Close_fp)
 		{
 			IN_Close_fp();
 		}
@@ -222,18 +228,18 @@ VID_LoadRefresh(char *name)
 		if (IN_BackendShutdown_fp)
 		{
 			IN_BackendShutdown_fp();
-		}
+		}*/
 
-		IN_Close_fp = NULL;
-		IN_BackendShutdown_fp = NULL;
+		//IN_Close_fp = NULL;
+		//IN_BackendShutdown_fp = NULL;
 		re.Shutdown();
 		VID_FreeReflib();
 	}
 
 	Com_Printf("----- refresher initialization -----\n");
 
-	path = Cvar_Get("basedir", ".", CVAR_NOSET)->string;
-	snprintf(fn, MAX_OSPATH, "%s/%s", path, name);
+	//path = Cvar_Get("basedir", ".", CVAR_NOSET)->string;
+	//snprintf(fn, MAX_OSPATH, "%s/%s", path, name);
 
 	/*Sys_LoadLibrary(fn, NULL, &reflib_library);
 
@@ -349,11 +355,11 @@ VID_CheckChanges(void)
 		cl.cinematicpalette_active = false;
 		cls.disable_screen = true;
 
-#ifdef _WIN32
-		sprintf(name, "ref_%s.dll", vid_ref->string);
-#else
-		sprintf(name, "ref_%s.so", vid_ref->string);
-#endif
+//#ifdef _WIN32
+//		sprintf(name, "ref_%s.dll", vid_ref->string);
+//#else
+//		sprintf(name, "ref_%s.so", vid_ref->string);
+//#endif
 
 		if (!VID_LoadRefresh(name))
 		{
@@ -387,7 +393,7 @@ VID_Shutdown(void)
 {
 	if (reflib_active)
 	{
-		if (IN_Close_fp)
+		/*if (IN_Close_fp)
 		{
 			IN_Close_fp();
 		}
@@ -398,7 +404,7 @@ VID_Shutdown(void)
 		}
 
 		IN_Close_fp = NULL;
-		IN_BackendShutdown_fp = NULL;
+		IN_BackendShutdown_fp = NULL;*/
 		re.Shutdown();
 		VID_FreeReflib();
 	}
