@@ -56,7 +56,7 @@ unsigned int sys_msg_time;
 unsigned int sys_frame_time;
 
 static char console_text[256];
-static int console_textlen;  
+static int console_textlen;
 
 char findbase[MAX_OSPATH];
 char findpath[MAX_OSPATH];
@@ -76,7 +76,7 @@ Sys_Error(char *error, ...)
 #ifndef DEDICATED_ONLY
 	CL_Shutdown();
 #endif
-	
+
 	Qcommon_Shutdown();
 
 	va_start(argptr, error);
@@ -164,7 +164,7 @@ Sys_Init(void)
 	   limit Yamagi Quake II to Windows XP and
 	   above. Testing older version would be a
 	   PITA. */
-	if (!((vinfo.dwMajorVersion > 5) || 
+	if (!((vinfo.dwMajorVersion > 5) ||
 		  ((vinfo.dwMajorVersion == 5) &&
 		   (vinfo.dwMinorVersion >= 1))))
 	{
@@ -300,12 +300,7 @@ void
 Sys_SendKeyEvents(void)
 {
 #ifndef DEDICATED_ONLY
-
-	if ( IN_Update_fp )
-	{
-		IN_Update_fp();
-	}
-
+	IN_Update();
 #endif
 
 	/* grab frame time */
@@ -367,7 +362,7 @@ Sys_GetGameAPI(void *parms)
 		{
 			Com_DPrintf("LoadLibrary (%s)\n", name);
 			break;
-		}    
+		}
 	}
 
 	GetGameAPI = (void *)GetProcAddress(game_library, "GetGameAPI");
@@ -432,7 +427,7 @@ Sys_Milliseconds(void)
 	curtime = timeGetTime() - base;
 
 	return curtime;
-} 
+}
 
 /* ======================================================================= */
 
@@ -554,7 +549,7 @@ Sys_FindClose(void)
 	}
 
 	findhandle = 0;
-} 
+}
 
 void
 Sys_Mkdir(char *path)
@@ -633,7 +628,7 @@ Sys_GetHomeDir(void)
 			}
 
 			old = cur;
-			cur = strchr(old + 1, '\\');  
+			cur = strchr(old + 1, '\\');
 		}
 	}
 
@@ -688,7 +683,7 @@ Sys_RedirectStdout(void)
 /* ======================================================================= */
 
 /*
- * Windows main function. Containts the 
+ * Windows main function. Containts the
  * initialization code and the main loop
  */
 int WINAPI

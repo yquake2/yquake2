@@ -27,8 +27,9 @@
 #ifndef GEN_INPUT_H
 #define GEN_INPUT_H
 
+#include "../../../common/header/shared.h"
+
 typedef void (*Key_Event_fp_t)(int key, qboolean down);
-extern void (*IN_Update_fp)(void);
 
 typedef struct in_state
 {
@@ -39,5 +40,41 @@ typedef struct in_state
 	int *in_strafe_state;
 	int *in_speed_state;
 } in_state_t;
+
+/*
+ * Keyboard initialisation. Called by the client.
+ */
+void IN_KeyboardInit(Key_Event_fp_t fp);
+
+/*
+ * Updates the state of the input queue
+ */
+void IN_Update(void);
+
+/*
+ * Initializes the input backend
+ */
+void IN_BackendInit(in_state_t *in_state_p);
+
+/*
+ * Shuts the backend down
+ */
+void IN_BackendShutdown(void);
+
+/*
+ * Shuts the input backend down
+ */
+void IN_BackendMouseButtons(void);
+
+/*
+ * Move handling
+ */
+void IN_BackendMove(usercmd_t *cmd);
+
+/*
+ * Closes all inputs and clears
+ * the input queue.
+ */
+void IN_Close(void);
 
 #endif
