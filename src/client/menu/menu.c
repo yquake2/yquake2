@@ -493,7 +493,7 @@ M_Popup(void)
 		width += 2;
 
 		x = (320 - (width + 2) * 8) / 2;
-		y = (240 - (lines + 2) * 8) / 2;
+		y = (240 - (lines + 2) * 8) / 3;
 
 		M_DrawTextBox(x, y, width, lines);
 		M_Print(x + 16, y + 8, m_popup_string);

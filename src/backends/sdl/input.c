@@ -605,6 +605,19 @@ void
 IN_KeyboardInit(Key_Event_fp_t fp)
 {
 	Key_Event_fp = fp;
+
+	/* SDL stuff. Moved here from IN_BackendInit because
+	 * this must be done after video is initialized. */
+	SDL_EnableUNICODE(0);
+	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+	if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON)
+	{
+		mouse_grabbed = true;
+	}
+	else
+	{
+		mouse_grabbed = false;
+	}
 }
 
 /*
@@ -632,18 +645,6 @@ IN_BackendInit(in_state_t *in_state_p)
 	ri.Cmd_AddCommand("force_centerview", IN_ForceCenterView);
 
 	mouse_x = mouse_y = 0.0;
-
-	/* SDL stuff */
-	SDL_EnableUNICODE(0);
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-	if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON)
-	{
-		mouse_grabbed = true;
-	}
-	else
-	{
-		mouse_grabbed = false;
-	}
 
 	windowed_mouse = ri.Cvar_Get("windowed_mouse", "1",
 			CVAR_USERINFO | CVAR_ARCHIVE);
