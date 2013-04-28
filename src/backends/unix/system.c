@@ -468,10 +468,11 @@ void
 Sys_SendKeyEvents(void)
 {
 #ifndef DEDICATED_ONLY
-	if (IN_Update_fp)
+	/*if (IN_Update_fp)
 	{
 		IN_Update_fp();
-	}
+	}*/
+        IN_Update();
 #endif
 
 	/* grab frame time */

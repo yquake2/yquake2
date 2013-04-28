@@ -286,18 +286,19 @@ VID_LoadRefresh(char *name)
 	in_state.in_strafe_state = &in_strafe.state;
 	in_state.in_speed_state = &in_speed.state;
 
-	if (((IN_BackendInit_fp = Sys_GetProcAddress(reflib_library, "IN_BackendInit")) == NULL) ||
+	/*if (((IN_BackendInit_fp = Sys_GetProcAddress(reflib_library, "IN_BackendInit")) == NULL) ||
 		((IN_BackendShutdown_fp = Sys_GetProcAddress(reflib_library, "IN_BackendShutdown")) == NULL) ||
 		((IN_BackendMouseButtons_fp = Sys_GetProcAddress(reflib_library, "IN_BackendMouseButtons")) == NULL) ||
 		((IN_BackendMove_fp = Sys_GetProcAddress(reflib_library, "IN_BackendMove")) == NULL))
 	{
 		Com_Error(ERR_FATAL, "No input backend init functions in REF.\n");
-	}
+	}*/
 
-	if (IN_BackendInit_fp)
+	/*if (IN_BackendInit_fp)
 	{
 		IN_BackendInit_fp(&in_state);
-	}
+	}*/
+        IN_BackendInit (&in_state);
 
 	if (re.Init(0, 0) == -1)
 	{
@@ -307,14 +308,15 @@ VID_LoadRefresh(char *name)
 	}
 
 	/* Init IN */
-	if (((IN_KeyboardInit_fp = Sys_GetProcAddress(reflib_library, "IN_KeyboardInit")) == NULL) ||
+	/*if (((IN_KeyboardInit_fp = Sys_GetProcAddress(reflib_library, "IN_KeyboardInit")) == NULL) ||
 		((IN_Update_fp = Sys_GetProcAddress(reflib_library, "IN_Update")) == NULL) ||
 		((IN_Close_fp = Sys_GetProcAddress(reflib_library, "IN_Close")) == NULL))
 	{
 		Com_Error(ERR_FATAL, "No keyboard input functions in REF.\n");
 	}
 
-	IN_KeyboardInit_fp(Do_Key_Event);
+	IN_KeyboardInit_fp(Do_Key_Event);*/
+        IN_KeyboardInit (Do_Key_Event);
 	Key_ClearStates();
 
 	Com_Printf("------------------------------------\n\n");
@@ -407,28 +409,31 @@ VID_Shutdown(void)
 void
 IN_Shutdown(void)
 {
-	if (IN_BackendShutdown_fp)
+	/*if (IN_BackendShutdown_fp)
 	{
 		IN_BackendShutdown_fp();
-	}
+	}*/
+        IN_BackendShutdown();
 }
 
 void
 IN_Commands(void)
 {
-	if (IN_BackendMouseButtons_fp)
+	/*if (IN_BackendMouseButtons_fp)
 	{
 		IN_BackendMouseButtons_fp();
-	}
+	}*/
+        IN_BackendMouseButtons();
 }
 
 void
 IN_Move(usercmd_t *cmd)
 {
-	if (IN_BackendMove_fp)
+	/*if (IN_BackendMove_fp)
 	{
 		IN_BackendMove_fp(cmd);
-	}
+	}*/
+        IN_BackendMove (cmd);
 }
 
 void
