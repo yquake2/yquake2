@@ -40,4 +40,12 @@ typedef struct in_state
 	int *in_speed_state;
 } in_state_t;
 
+void IN_KeyboardInit(Key_Event_fp_t fp);
+void IN_Update(void);
+void IN_BackendInit(in_state_t *in_state_p);
+void IN_BackendShutdown(void);
+void IN_BackendMouseButtons(void);
+void IN_BackendMove(usercmd_t *cmd);
+void IN_Close(void);
+
 #endif

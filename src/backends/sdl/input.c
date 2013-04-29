@@ -599,7 +599,7 @@ IN_MLookUp(void)
 
 /*
  * Keyboard initialisation. Called
- * by the client via function pointer
+ * by the client directly
  */
 void
 IN_KeyboardInit(Key_Event_fp_t fp)
