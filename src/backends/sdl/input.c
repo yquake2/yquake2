@@ -24,7 +24,7 @@
  *
  * =======================================================================
  */
- 
+
 #include "../../refresh/header/local.h"
 #include "../../client/header/keyboard.h"
 #include "../generic/header/input.h"
@@ -91,7 +91,7 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 
 	if ((keysym >= SDLK_SPACE) && (keysym < SDLK_DELETE))
 	{
-		/* These happen to match 
+		/* These happen to match
 		   the ASCII chars */
 		key = (int)keysym;
 	}
@@ -353,7 +353,7 @@ IN_GetEvent(SDL_Event *event)
 
 			/* Fullscreen switch via Alt-Return */
 			if ((KeyStates[SDLK_LALT] ||
-				 KeyStates[SDLK_RALT]) && 
+				 KeyStates[SDLK_RALT]) &&
 				 (event->key.keysym.sym == SDLK_RETURN))
 			{
 				SDL_WM_ToggleFullScreen(surface);
@@ -598,8 +598,7 @@ IN_MLookUp(void)
 }
 
 /*
- * Keyboard initialisation. Called
- * by the client directly
+ * Keyboard initialisation. Called by the client.
  */
 void
 IN_KeyboardInit(Key_Event_fp_t fp)

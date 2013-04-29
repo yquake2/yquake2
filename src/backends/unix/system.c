@@ -468,11 +468,7 @@ void
 Sys_SendKeyEvents(void)
 {
 #ifndef DEDICATED_ONLY
-	/*if (IN_Update_fp)
-	{
-		IN_Update_fp();
-	}*/
-        IN_Update();
+    IN_Update();
 #endif
 
 	/* grab frame time */
@@ -484,7 +480,7 @@ Sys_GetHomeDir(void)
 {
 	static char gdir[MAX_OSPATH];
 	char *home;
-   
+
 	home = getenv("HOME");
 
 	if (!home)
