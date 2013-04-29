@@ -32,7 +32,6 @@
 
 extern void M_ForceMenuOff(void);
 
-extern cvar_t *vid_ref;
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_gamma;
 extern cvar_t *scr_viewsize;
@@ -161,7 +160,7 @@ ApplyChanges(void *unused)
 			Cvar_SetValue("fov", 106);
 		}
 	}
- 
+
 	if (restart)
 	{
 		Cbuf_AddText("vid_restart\n");
@@ -307,8 +306,8 @@ VID_MenuInit(void)
 	s_aspect_list.generic.name = "aspect ratio";
 	s_aspect_list.generic.x = 0;
 	s_aspect_list.generic.y = 10;
-	s_aspect_list.itemnames = aspect_names; 
-	
+	s_aspect_list.itemnames = aspect_names;
+
 	s_screensize_slider.generic.type = MTYPE_SLIDER;
 	s_screensize_slider.generic.x = 0;
 	s_screensize_slider.generic.y = 20;
@@ -333,7 +332,7 @@ VID_MenuInit(void)
 	s_fs_box.generic.name = "fullscreen";
 	s_fs_box.itemnames = yesno_names;
 	s_fs_box.curvalue = vid_fullscreen->value;
- 
+
 	s_tq_slider.generic.type = MTYPE_SLIDER;
 	s_tq_slider.generic.x = 0;
 	s_tq_slider.generic.y = 70;
@@ -341,14 +340,14 @@ VID_MenuInit(void)
 	s_tq_slider.minvalue = 0;
 	s_tq_slider.maxvalue = 3;
 	s_tq_slider.curvalue = 3 - gl_picmip->value;
- 
+
 	s_paletted_texture_box.generic.type = MTYPE_SPINCONTROL;
 	s_paletted_texture_box.generic.x = 0;
 	s_paletted_texture_box.generic.y = 80;
 	s_paletted_texture_box.generic.name = "8-bit textures";
 	s_paletted_texture_box.itemnames = yesno_names;
 	s_paletted_texture_box.curvalue = gl_ext_palettedtexture->value;
-  
+
 	s_defaults_action.generic.type = MTYPE_ACTION;
 	s_defaults_action.generic.name = "reset to default";
 	s_defaults_action.generic.x = 0;
