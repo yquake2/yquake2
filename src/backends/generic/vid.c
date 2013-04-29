@@ -290,7 +290,7 @@ VID_CheckChanges(void)
 		cl.cinematicpalette_active = false;
 		cls.disable_screen = true;
 
-        // Proceed to reboot the refresher
+		// Proceed to reboot the refresher
 		if (!VID_LoadRefresh(name))
 		{
 			Cvar_Set("vid_ref", "gl");
