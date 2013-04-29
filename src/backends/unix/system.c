@@ -468,7 +468,7 @@ void
 Sys_SendKeyEvents(void)
 {
 #ifndef DEDICATED_ONLY
-    IN_Update();
+	IN_Update();
 #endif
 
 	/* grab frame time */
@@ -496,7 +496,7 @@ Sys_GetHomeDir(void)
 void *
 Sys_GetProcAddress(void *handle, const char *sym)
 {
-    return dlsym(handle, sym);
+	return dlsym(handle, sym);
 }
 
 void *

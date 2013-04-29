@@ -300,7 +300,7 @@ void
 Sys_SendKeyEvents(void)
 {
 #ifndef DEDICATED_ONLY
-    IN_Update();
+	IN_Update();
 #endif
 
 	/* grab frame time */

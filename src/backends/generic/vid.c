@@ -180,14 +180,14 @@ VID_FreeReflib(void)
 		}
 	}*/
 
-    // Shut down the input backend
-    IN_Close();
-    IN_BackendShutdown();
+	// Shut down the input backend
+	IN_Close();
+	IN_BackendShutdown();
 
-    // Get rid of refexport function pointers
+	// Get rid of refexport function pointers
 	memset(&re, 0, sizeof(re));
 
-    // Declare the refresher as inactive
+	// Declare the refresher as inactive
 	reflib_active = false;
 }
 
@@ -214,7 +214,7 @@ VID_LoadRefresh(char *name)
 
 	Com_Printf("----- refresher initialization -----\n");
 
-    // Fill in client functions for the refresher
+	// Fill in client functions for the refresher
 	ri.Cmd_AddCommand = Cmd_AddCommand;
 	ri.Cmd_RemoveCommand = Cmd_RemoveCommand;
 	ri.Cmd_Argc = Cmd_Argc;
@@ -237,7 +237,7 @@ VID_LoadRefresh(char *name)
 	ri.Vid_NewWindow = VID_NewWindow;
 
 	// Get refresher API
-    re = R_GetRefAPI(ri);
+	re = R_GetRefAPI(ri);
 
 	/* Init IN (Mouse) */
 	in_state.IN_CenterView_fp = IN_CenterView;
@@ -247,7 +247,7 @@ VID_LoadRefresh(char *name)
 	in_state.in_speed_state = &in_speed.state;
 
 	// Initiate the input backend
-    IN_BackendInit (&in_state);
+	IN_BackendInit (&in_state);
 
 	if (re.Init(0, 0) == -1)
 	{
@@ -257,7 +257,7 @@ VID_LoadRefresh(char *name)
 	}
 
 	// Initiate keyboard at the input backend
-    IN_KeyboardInit (Do_Key_Event);
+	IN_KeyboardInit (Do_Key_Event);
 	Key_ClearStates();
 
 	Com_Printf("------------------------------------\n\n");
@@ -343,13 +343,13 @@ VID_Shutdown(void)
 void
 IN_Shutdown(void)
 {
-    IN_BackendShutdown();
+	IN_BackendShutdown();
 }
 
 void
 IN_Commands(void)
 {
-    IN_BackendMouseButtons();
+	IN_BackendMouseButtons();
 }
 
 void
