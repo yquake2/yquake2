@@ -276,7 +276,7 @@ VID_LoadRefresh(void)
 void
 VID_CheckChanges(void)
 {
-	char name[100];
+	//char name[100];
 
 	//if (vid_ref->modified)
 	if (vid_fullscreen->modified)
