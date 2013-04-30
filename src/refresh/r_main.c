@@ -1397,12 +1397,14 @@ R_BeginFrame(float camera_separation)
 	gl_state.camera_separation = camera_separation;
 
 	/* change modes if necessary */
-	if (gl_mode->modified || vid_fullscreen->modified)
+	//if (gl_mode->modified || vid_fullscreen->modified)
+	if (gl_mode->modified)
 	{
 		/*cvar_t *ref;
 
 		ref = ri.Cvar_Get("vid_ref", "gl", 0);
 		ref->modified = true;*/
+		vid_fullscreen->modified = true;
 	}
 
 	if (gl_log->modified)
