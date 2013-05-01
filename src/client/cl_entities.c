@@ -67,26 +67,26 @@ S_RegisterSexedModel(entity_state_t *ent, char *base)
 	}
 
 	Com_sprintf(buffer, sizeof(buffer), "players/%s/%s", model, base + 1);
-	md2 = re.RegisterModel(buffer);
+	md2 = R_RegisterModel(buffer);
 
 	if (!md2)
 	{
 		/* not found, try default weapon model */
 		Com_sprintf(buffer, sizeof(buffer), "players/%s/weapon.md2", model);
-		md2 = re.RegisterModel(buffer);
+		md2 = R_RegisterModel(buffer);
 
 		if (!md2)
 		{
 			/* no, revert to the male model */
 			Com_sprintf(buffer, sizeof(buffer), "players/%s/%s",
 					"male", base + 1);
-			md2 = re.RegisterModel(buffer);
+			md2 = R_RegisterModel(buffer);
 
 			if (!md2)
 			{
 				/* last try, default male weapon.md2 */
 				Com_sprintf(buffer, sizeof(buffer), "players/male/weapon.md2");
-				md2 = re.RegisterModel(buffer);
+				md2 = R_RegisterModel(buffer);
 			}
 		}
 	}
@@ -232,17 +232,17 @@ CL_AddPacketEntities(frame_t *frame)
 						if (!strncmp((char *)ent.skin, "players/male", 12))
 						{
 							ent.skin = re.RegisterSkin("players/male/disguise.pcx");
-							ent.model = re.RegisterModel("players/male/tris.md2");
+							ent.model = R_RegisterModel("players/male/tris.md2");
 						}
 						else if (!strncmp((char *)ent.skin, "players/female", 14))
 						{
 							ent.skin = re.RegisterSkin("players/female/disguise.pcx");
-							ent.model = re.RegisterModel("players/female/tris.md2");
+							ent.model = R_RegisterModel("players/female/tris.md2");
 						}
 						else if (!strncmp((char *)ent.skin, "players/cyborg", 14))
 						{
 							ent.skin = re.RegisterSkin("players/cyborg/disguise.pcx");
-							ent.model = re.RegisterModel("players/cyborg/tris.md2");
+							ent.model = R_RegisterModel("players/cyborg/tris.md2");
 						}
 					}
 				}
@@ -404,11 +404,11 @@ CL_AddPacketEntities(frame_t *frame)
 						renderfx |= RF_SHELL_BLUE;
 					}
 
-					/* if we have a blue shell (and not a red shell), 
+					/* if we have a blue shell (and not a red shell),
 					   turn it to cyan by adding green */
 					else if (renderfx & RF_SHELL_BLUE)
 					{
-						/* go to green if it's on already, 
+						/* go to green if it's on already,
 						   otherwise do cyan (flash green) */
 						if (renderfx & RF_SHELL_GREEN)
 						{
