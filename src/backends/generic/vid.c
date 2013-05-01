@@ -310,19 +310,20 @@ VID_Shutdown(void)
 {
 	if (ref_active)
 	{
-		/*if (IN_Close_fp)
-		{
-			IN_Close_fp();
-		}
+		// Shut down the input backend
+		IN_Close();
+		IN_BackendShutdown();
 
-		if (IN_BackendShutdown_fp)
-		{
-			IN_BackendShutdown_fp();
-		}*/
-
+		/* Shut down the renderer */
 		re.Shutdown();
+
+		// Get rid of refexport function pointers
+		// (soon to be deleted)
 		VID_FreeReflib();
 	}
+
+	// Declare the refresher as inactive
+	ref_active = false;
 }
 
 /* Input callbacks from client */
