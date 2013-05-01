@@ -29,13 +29,7 @@
 #define NUM_BEAM_SEGS 6
 
 void R_Clear(void);
-void R_BeginRegistration(char *map);
-struct model_s *R_RegisterModel(char *name);
-struct image_s *R_RegisterSkin(char *name);
-void R_SetSky(char *name, float rotate, vec3_t axis);
-void R_EndRegistration(void);
-void R_RenderFrame(refdef_t *fd);
-struct image_s *Draw_FindPic(char *name);
+
 
 void Draw_Pic(int x, int y, char *name);
 void Draw_Char(int x, int y, int c);
@@ -1581,14 +1575,15 @@ R_DrawBeam(entity_t *e)
 	qglDepthMask(GL_TRUE);
 }
 
-refexport_t
+//refexport_t
+void *
 R_GetRefAPI(refimport_t rimp)
 {
-	refexport_t re;
+	//refexport_t re;
 
 	ri = rimp;
 
-	re.api_version = API_VERSION;
+	/*re.api_version = API_VERSION;
 
 	re.BeginRegistration = R_BeginRegistration;
 	re.RegisterModel = R_RegisterModel;
@@ -1616,11 +1611,12 @@ R_GetRefAPI(refimport_t rimp)
 	re.BeginFrame = R_BeginFrame;
 	re.EndFrame = GLimp_EndFrame;
 
-	re.AppActivate = NULL;
+	re.AppActivate = NULL;*/
 
 	Swap_Init();
 
-	return re;
+	//return re;
+	return NULL;
 }
 
 /*

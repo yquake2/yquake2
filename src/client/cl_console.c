@@ -41,7 +41,7 @@ DrawString(int x, int y, char *s)
 {
 	while (*s)
 	{
-		re.DrawChar(x, y, *s);
+		Draw_Char(x, y, *s);
 		x += 8;
 		s++;
 	}
@@ -52,7 +52,7 @@ DrawAltString(int x, int y, char *s)
 {
 	while (*s)
 	{
-		re.DrawChar(x, y, *s ^ 0x80);
+		Draw_Char(x, y, *s ^ 0x80);
 		x += 8;
 		s++;
 	}
@@ -493,7 +493,7 @@ Con_DrawInput(void)
 
 	for (i = 0; i < con.linewidth; i++)
 	{
-		re.DrawChar((i + 1) << 3, con.vislines - 22, text[i]);
+		Draw_Char((i + 1) << 3, con.vislines - 22, text[i]);
 	}
 
 	/* remove cursor */
@@ -540,7 +540,7 @@ Con_DrawNotify(void)
 
 		for (x = 0; x < con.linewidth; x++)
 		{
-			re.DrawChar((x + 1) << 3, v, text[x]);
+			Draw_Char((x + 1) << 3, v, text[x]);
 		}
 
 		v += 8;
@@ -570,11 +570,11 @@ Con_DrawNotify(void)
 
 		while (s[x])
 		{
-			re.DrawChar((x + skip) << 3, v, s[x]);
+			Draw_Char((x + skip) << 3, v, s[x]);
 			x++;
 		}
 
-		re.DrawChar((x + skip) << 3, v, 10 + ((cls.realtime >> 8) & 1));
+		Draw_Char((x + skip) << 3, v, 10 + ((cls.realtime >> 8) & 1));
 		v += 8;
 	}
 
@@ -617,7 +617,7 @@ Con_DrawConsole(float frac)
 	}
 
 	/* draw the background */
-	re.DrawStretchPic(0, -viddef.height + lines, viddef.width,
+	Draw_StretchPic(0, -viddef.height + lines, viddef.width,
 			viddef.height, "conback");
 	SCR_AddDirtyPoint(0, 0);
 	SCR_AddDirtyPoint(viddef.width - 1, lines - 1);
@@ -626,7 +626,7 @@ Con_DrawConsole(float frac)
 
 	for (x = 0; x < 21; x++)
 	{
-		re.DrawChar(viddef.width - 173 + x * 8, lines - 35, 128 + version[x]);
+		Draw_Char(viddef.width - 173 + x * 8, lines - 35, 128 + version[x]);
 	}
 
 	t = time(NULL);
@@ -637,7 +637,7 @@ Con_DrawConsole(float frac)
 
 	for (x = 0; x < 21; x++)
 	{
-		re.DrawChar(viddef.width - 173 + x * 8, lines - 25, 128 + tmpbuf[x]);
+		Draw_Char(viddef.width - 173 + x * 8, lines - 25, 128 + tmpbuf[x]);
 	}
 
 	/* draw the text */
@@ -653,7 +653,7 @@ Con_DrawConsole(float frac)
 		/* draw arrows to show the buffer is backscrolled */
 		for (x = 0; x < con.linewidth; x += 4)
 		{
-			re.DrawChar((x + 1) << 3, y, '^');
+			Draw_Char((x + 1) << 3, y, '^');
 		}
 
 		y -= 8;
@@ -678,7 +678,7 @@ Con_DrawConsole(float frac)
 
 		for (x = 0; x < con.linewidth; x++)
 		{
-			re.DrawChar((x + 1) << 3, y, text[x]);
+			Draw_Char((x + 1) << 3, y, text[x]);
 		}
 	}
 
@@ -749,7 +749,7 @@ Con_DrawConsole(float frac)
 
 		for (i = 0; i < strlen(dlbar); i++)
 		{
-			re.DrawChar((i + 1) << 3, y, dlbar[i]);
+			Draw_Char((i + 1) << 3, y, dlbar[i]);
 		}
 	}
 

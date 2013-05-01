@@ -803,7 +803,7 @@ CL_ParseFrame(void)
 		CL_FireEntityEvents(&cl.frame);
 
 		if (!(!cl_predict->value ||
-			  (cl.frame.playerstate.pmove.pm_flags & 
+			  (cl.frame.playerstate.pmove.pm_flags &
 			   PMF_NO_PREDICTION)))
 		{
 			CL_CheckPredictionError();
@@ -922,11 +922,11 @@ CL_LoadClientinfo(clientinfo_t *ci, char *s)
 		strcpy(weapon_filename, "players/male/weapon.md2");
 		strcpy(skin_filename, "players/male/grunt.pcx");
 		strcpy(ci->iconname, "/players/male/grunt_i.pcx");
-		ci->model = re.RegisterModel(model_filename);
+		ci->model = R_RegisterModel(model_filename);
 		memset(ci->weaponmodel, 0, sizeof(ci->weaponmodel));
-		ci->weaponmodel[0] = re.RegisterModel(weapon_filename);
-		ci->skin = re.RegisterSkin(skin_filename);
-		ci->icon = re.RegisterPic(ci->iconname);
+		ci->weaponmodel[0] = R_RegisterModel(weapon_filename);
+		ci->skin = R_RegisterSkin(skin_filename);
+		ci->icon = Draw_FindPic(ci->iconname);
 	}
 	else
 	{
@@ -952,20 +952,20 @@ CL_LoadClientinfo(clientinfo_t *ci, char *s)
 		/* model file */
 		Com_sprintf(model_filename, sizeof(model_filename),
 				"players/%s/tris.md2", model_name);
-		ci->model = re.RegisterModel(model_filename);
+		ci->model = R_RegisterModel(model_filename);
 
 		if (!ci->model)
 		{
 			strcpy(model_name, "male");
 			Com_sprintf(model_filename, sizeof(model_filename),
 					"players/male/tris.md2");
-			ci->model = re.RegisterModel(model_filename);
+			ci->model = R_RegisterModel(model_filename);
 		}
 
 		/* skin file */
 		Com_sprintf(skin_filename, sizeof(skin_filename),
 				"players/%s/%s.pcx", model_name, skin_name);
-		ci->skin = re.RegisterSkin(skin_filename);
+		ci->skin = R_RegisterSkin(skin_filename);
 
 		/* if we don't have the skin and the model wasn't male,
 		 * see if the male has it (this is for CTF's skins) */
@@ -975,12 +975,12 @@ CL_LoadClientinfo(clientinfo_t *ci, char *s)
 			strcpy(model_name, "male");
 			Com_sprintf(model_filename, sizeof(model_filename),
 					"players/male/tris.md2");
-			ci->model = re.RegisterModel(model_filename);
+			ci->model = R_RegisterModel(model_filename);
 
 			/* see if the skin exists for the male model */
 			Com_sprintf(skin_filename, sizeof(skin_filename),
 					"players/%s/%s.pcx", model_name, skin_name);
-			ci->skin = re.RegisterSkin(skin_filename);
+			ci->skin = R_RegisterSkin(skin_filename);
 		}
 
 		/* if we still don't have a skin, it means that the male model didn't have
@@ -990,7 +990,7 @@ CL_LoadClientinfo(clientinfo_t *ci, char *s)
 			/* see if the skin exists for the male model */
 			Com_sprintf(skin_filename, sizeof(skin_filename),
 					"players/%s/grunt.pcx", model_name, skin_name);
-			ci->skin = re.RegisterSkin(skin_filename);
+			ci->skin = R_RegisterSkin(skin_filename);
 		}
 
 		/* weapon file */
@@ -998,14 +998,14 @@ CL_LoadClientinfo(clientinfo_t *ci, char *s)
 		{
 			Com_sprintf(weapon_filename, sizeof(weapon_filename),
 					"players/%s/%s", model_name, cl_weaponmodels[i]);
-			ci->weaponmodel[i] = re.RegisterModel(weapon_filename);
+			ci->weaponmodel[i] = R_RegisterModel(weapon_filename);
 
 			if (!ci->weaponmodel[i] && (strcmp(model_name, "cyborg") == 0))
 			{
 				/* try male */
 				Com_sprintf(weapon_filename, sizeof(weapon_filename),
 						"players/male/%s", cl_weaponmodels[i]);
-				ci->weaponmodel[i] = re.RegisterModel(weapon_filename);
+				ci->weaponmodel[i] = R_RegisterModel(weapon_filename);
 			}
 
 			if (!cl_vwep->value)
@@ -1017,7 +1017,7 @@ CL_LoadClientinfo(clientinfo_t *ci, char *s)
 		/* icon file */
 		Com_sprintf(ci->iconname, sizeof(ci->iconname),
 				"/players/%s/%s_i.pcx", model_name, skin_name);
-		ci->icon = re.RegisterPic(ci->iconname);
+		ci->icon = Draw_FindPic(ci->iconname);
 	}
 
 	/* must have loaded all data types to be valid */
@@ -1103,7 +1103,7 @@ CL_ParseConfigString(void)
 	{
 		if (cl.refresh_prepped)
 		{
-			cl.model_draw[i - CS_MODELS] = re.RegisterModel(cl.configstrings[i]);
+			cl.model_draw[i - CS_MODELS] = R_RegisterModel(cl.configstrings[i]);
 
 			if (cl.configstrings[i][0] == '*')
 			{
@@ -1120,7 +1120,7 @@ CL_ParseConfigString(void)
 	{
 		if (cl.refresh_prepped)
 		{
-			cl.sound_precache[i - CS_SOUNDS] = 
+			cl.sound_precache[i - CS_SOUNDS] =
 				S_RegisterSound(cl.configstrings[i]);
 		}
 	}
@@ -1128,7 +1128,7 @@ CL_ParseConfigString(void)
 	{
 		if (cl.refresh_prepped)
 		{
-			cl.image_precache[i - CS_IMAGES] = re.RegisterPic(cl.configstrings[i]);
+			cl.image_precache[i - CS_IMAGES] = Draw_FindPic(cl.configstrings[i]);
 		}
 	}
 	else if ((i >= CS_PLAYERSKINS) && (i < CS_PLAYERSKINS + MAX_CLIENTS))
@@ -1390,7 +1390,7 @@ CL_ParseServerMessage(void)
 
 	CL_AddNetgraph();
 
-	/* we don't know if it is ok to save a demo message 
+	/* we don't know if it is ok to save a demo message
 	   until after we have parsed the frame */
 	if (cls.demorecording && !cls.demowaiting)
 	{

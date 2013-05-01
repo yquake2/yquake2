@@ -198,7 +198,7 @@ CL_Connect_f(void)
 
 	if (Com_ServerState())
 	{
-		/* if running a local server, kill it and reissue 
+		/* if running a local server, kill it and reissue
 		   note: this is connect with the save game system */
 		SV_Shutdown(va("Server quit\n", msg), false);
 	}
@@ -285,7 +285,7 @@ CL_Rcon_f(void)
 }
 
 /*
- * Goes from a connected state to full screen 
+ * Goes from a connected state to full screen
  * console state Sends a disconnect message to
  * the server This is also called on Com_Error, so
  * it shouldn't cause any errors
@@ -316,7 +316,7 @@ CL_Disconnect(void)
 
 	VectorClear(cl.refdef.blend);
 
-	re.CinematicSetPalette(NULL);
+	R_SetPalette(NULL);
 
 	M_ForceMenuOff();
 
