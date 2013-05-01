@@ -163,31 +163,11 @@ VID_NewWindow(int width, int height)
 	viddef.height = height;
 }
 
+// Get rid of refexport function pointers
 void
 VID_FreeReflib(void)
 {
-	/*if (reflib_library)
-	{
-		if (IN_Close_fp)
-		{
-			IN_Close_fp();
-		}
-
-		if (IN_BackendShutdown_fp)
-		{
-			IN_BackendShutdown_fp();
-		}
-	}*/
-
-	// Shut down the input backend
-	IN_Close();
-	IN_BackendShutdown();
-
-	// Get rid of refexport function pointers
 	memset(&re, 0, sizeof(re));
-
-	// Declare the refresher as inactive
-	ref_active = false;
 }
 
 qboolean
