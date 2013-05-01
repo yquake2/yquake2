@@ -191,7 +191,6 @@ VID_FreeReflib(void)
 }
 
 qboolean
-//VID_LoadRefresh(char *name)
 VID_LoadRefresh(void)
 {
 	refimport_t ri; // Refresh imported functions
