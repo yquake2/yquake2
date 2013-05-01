@@ -42,7 +42,7 @@ Inv_DrawString(int x, int y, char *string)
 {
 	while (*string)
 	{
-		re.DrawChar(x, y, *string);
+		Draw_Char(x, y, *string);
 		x += 8;
 		string++;
 	}
@@ -149,7 +149,7 @@ CL_DrawInventory(void)
 			/* draw a blinky cursor by the selected item */
 			if ((int)(cls.realtime * 10) & 1)
 			{
-				re.DrawChar(x - 8, y, 15);
+				Draw_Char(x - 8, y, 15);
 			}
 		}
 

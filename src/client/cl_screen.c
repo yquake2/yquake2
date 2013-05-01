@@ -135,7 +135,7 @@ SCR_DrawDebugGraph(void)
 
 	x = scr_vrect.x;
 	y = scr_vrect.y + scr_vrect.height;
-	re.DrawFill(x, y - scr_graphheight->value,
+	Draw_Fill(x, y - scr_graphheight->value,
 			w, scr_graphheight->value, 8);
 
 	for (a = 0; a < w; a++)
@@ -152,7 +152,7 @@ SCR_DrawDebugGraph(void)
 		}
 
 		h = (int)v % (int)scr_graphheight->value;
-		re.DrawFill(x + w - 1 - a, y - h, 1, h, color);
+		Draw_Fill(x + w - 1 - a, y - h, 1, h, color);
 	}
 }
 
@@ -281,7 +281,7 @@ SCR_DrawCenterString(void)
 
 		for (j = 0; j < l; j++, x += 8)
 		{
-			re.DrawChar(x, y, start[j]);
+			Draw_Char(x, y, start[j]);
 
 			if (!remaining--)
 			{
@@ -534,7 +534,7 @@ SCR_DrawConsole(void)
 	{
 		/* connected, but can't render */
 		Con_DrawConsole(0.5);
-		re.DrawFill(0, viddef.height / 2, viddef.width, viddef.height / 2, 0);
+		Draw_Fill(0, viddef.height / 2, viddef.width, viddef.height / 2, 0);
 		return;
 	}
 
@@ -647,7 +647,7 @@ SCR_TimeRefresh_f(void)
 
 		for (j = 0; j < 1000; j++)
 		{
-			re.BeginFrame(0);
+			R_BeginFrame(0);
 
 			for (i = 0; i < 128; i++)
 			{
@@ -655,7 +655,7 @@ SCR_TimeRefresh_f(void)
 				R_RenderFrame(&cl.refdef);
 			}
 
-			re.EndFrame();
+			GLimp_EndFrame();
 		}
 	}
 	else
@@ -664,9 +664,9 @@ SCR_TimeRefresh_f(void)
 		{
 			cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
 
-			re.BeginFrame(0);
+			R_BeginFrame(0);
 			R_RenderFrame(&cl.refdef);
-			re.EndFrame();
+			GLimp_EndFrame();
 		}
 	}
 
@@ -788,7 +788,7 @@ SCR_TileClear(void)
 	{
 		/* clear above view screen */
 		i = clear.y2 < top - 1 ? clear.y2 : top - 1;
-		re.DrawTileClear(clear.x1, clear.y1,
+		Draw_TileClear(clear.x1, clear.y1,
 				clear.x2 - clear.x1 + 1, i - clear.y1 + 1, "backtile");
 		clear.y1 = top;
 	}
@@ -797,7 +797,7 @@ SCR_TileClear(void)
 	{
 		/* clear below view screen */
 		i = clear.y1 > bottom + 1 ? clear.y1 : bottom + 1;
-		re.DrawTileClear(clear.x1, i,
+		Draw_TileClear(clear.x1, i,
 				clear.x2 - clear.x1 + 1, clear.y2 - i + 1, "backtile");
 		clear.y2 = bottom;
 	}
@@ -806,7 +806,7 @@ SCR_TileClear(void)
 	{
 		/* clear left of view screen */
 		i = clear.x2 < left - 1 ? clear.x2 : left - 1;
-		re.DrawTileClear(clear.x1, clear.y1,
+		Draw_TileClear(clear.x1, clear.y1,
 				i - clear.x1 + 1, clear.y2 - clear.y1 + 1, "backtile");
 		clear.x1 = left;
 	}
@@ -815,7 +815,7 @@ SCR_TileClear(void)
 	{
 		/* clear left of view screen */
 		i = clear.x1 > right + 1 ? clear.x1 : right + 1;
-		re.DrawTileClear(i, clear.y1,
+		Draw_TileClear(i, clear.y1,
 				clear.x2 - i + 1, clear.y2 - clear.y1 + 1, "backtile");
 		clear.x2 = right;
 	}
@@ -909,7 +909,7 @@ DrawHUDString(char *string, int x, int y, int centerwidth, int xor)
 
 		for (i = 0; i < width; i++)
 		{
-			re.DrawChar(x, y, line[i] ^ xor);
+			Draw_Char(x, y, line[i] ^ xor);
 			x += 8;
 		}
 
@@ -1431,14 +1431,14 @@ SCR_UpdateScreen(void)
 
 	for (i = 0; i < numframes; i++)
 	{
-		re.BeginFrame(separation[i]);
+		R_BeginFrame(separation[i]);
 
 		if (scr_draw_loading == 2)
 		{
 			/* loading plaque over black screen */
 			int w, h;
 
-			re.CinematicSetPalette(NULL);
+			R_SetPalette(NULL);
 			scr_draw_loading = false;
 			Draw_GetPicSize(&w, &h, "loading");
 			Draw_Pic((viddef.width - w) / 2, (viddef.height - h) / 2, "loading");
@@ -1452,7 +1452,7 @@ SCR_UpdateScreen(void)
 			{
 				if (cl.cinematicpalette_active)
 				{
-					re.CinematicSetPalette(NULL);
+					R_SetPalette(NULL);
 					cl.cinematicpalette_active = false;
 				}
 
@@ -1462,7 +1462,7 @@ SCR_UpdateScreen(void)
 			{
 				if (cl.cinematicpalette_active)
 				{
-					re.CinematicSetPalette(NULL);
+					R_SetPalette(NULL);
 					cl.cinematicpalette_active = false;
 				}
 
@@ -1478,7 +1478,7 @@ SCR_UpdateScreen(void)
 			/* make sure the game palette is active */
 			if (cl.cinematicpalette_active)
 			{
-				re.CinematicSetPalette(NULL);
+				R_SetPalette(NULL);
 				cl.cinematicpalette_active = false;
 			}
 
@@ -1533,7 +1533,7 @@ SCR_UpdateScreen(void)
 		}
 	}
 
-	re.EndFrame();
+	GLimp_EndFrame();
 }
 
 void

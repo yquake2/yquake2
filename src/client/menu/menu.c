@@ -331,7 +331,7 @@ Default_MenuKey(menuframework_s *m, int key)
 static void
 M_DrawCharacter(int cx, int cy, int num)
 {
-	re.DrawChar(cx + ((viddef.width - 320) >> 1), cy + ((viddef.height - 240) >> 1), num);
+	Draw_Char(cx + ((viddef.width - 320) >> 1), cy + ((viddef.height - 240) >> 1), num);
 }
 
 static void
@@ -816,12 +816,12 @@ KeyCursorDrawFunc(menuframework_s *menu)
 {
 	if (bind_grab)
 	{
-		re.DrawChar(menu->x, menu->y + menu->cursor * 9, '=');
+		Draw_Char(menu->x, menu->y + menu->cursor * 9, '=');
 	}
 
 	else
 	{
-		re.DrawChar(menu->x, menu->y + menu->cursor * 9, 12 +
+		Draw_Char(menu->x, menu->y + menu->cursor * 9, 12 +
 				((int)(Sys_Milliseconds() / 250) & 1));
 	}
 }
@@ -1271,7 +1271,7 @@ UpdateSoundQualityFunc(void *unused)
 	M_Popup();
 
 	/* the text box won't show up unless we do a buffer swap */
-	re.EndFrame();
+	GLimp_EndFrame();
 
 	CL_Snd_Restart_f();
 }
@@ -1898,12 +1898,12 @@ M_Credits_MenuDraw(void)
 
 			if (bold)
 			{
-				re.DrawChar(x, y, credits[i][j + stringoffset] + 128);
+				Draw_Char(x, y, credits[i][j + stringoffset] + 128);
 			}
 
 			else
 			{
-				re.DrawChar(x, y, credits[i][j + stringoffset]);
+				Draw_Char(x, y, credits[i][j + stringoffset]);
 			}
 		}
 	}
@@ -2569,7 +2569,7 @@ SearchLocalGames(void)
 	M_Popup();
 
 	/* the text box won't show up unless we do a buffer swap */
-	re.EndFrame();
+	GLimp_EndFrame();
 
 	/* send out info packets */
 	CL_PingServers_f();
@@ -4369,12 +4369,12 @@ M_Draw(void)
 	/* dim everything behind it down */
 	if (cl.cinematictime > 0)
 	{
-		re.DrawFill(0, 0, viddef.width, viddef.height, 0);
+		Draw_Fill(0, 0, viddef.width, viddef.height, 0);
 	}
 
 	else
 	{
-		re.DrawFadeScreen();
+		Draw_FadeScreen();
 	}
 
 	m_drawfunc();

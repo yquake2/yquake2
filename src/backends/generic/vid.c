@@ -287,7 +287,7 @@ VID_Shutdown(void)
 		IN_BackendShutdown();
 
 		/* Shut down the renderer */
-		re.Shutdown();
+		R_Shutdown();
 
 		// Get rid of refexport function pointers
 		// (soon to be deleted)
