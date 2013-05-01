@@ -408,7 +408,7 @@ SCR_Sky_f(void)
 		axis[2] = 1;
 	}
 
-	re.SetSky(Cmd_Argv(1), rotate, axis);
+	R_SetSky(Cmd_Argv(1), rotate, axis);
 }
 
 void
@@ -445,7 +445,7 @@ SCR_DrawNet(void)
 		return;
 	}
 
-	re.DrawPic(scr_vrect.x + 64, scr_vrect.y, "net");
+	Draw_Pic(scr_vrect.x + 64, scr_vrect.y, "net");
 }
 
 void
@@ -463,8 +463,8 @@ SCR_DrawPause(void)
 		return;
 	}
 
-	re.DrawGetPicSize(&w, &h, "pause");
-	re.DrawPic((viddef.width - w) / 2, viddef.height / 2 + 8, "pause");
+	Draw_GetPicSize(&w, &h, "pause");
+	Draw_Pic((viddef.width - w) / 2, viddef.height / 2 + 8, "pause");
 }
 
 void
@@ -478,8 +478,8 @@ SCR_DrawLoading(void)
 	}
 
 	scr_draw_loading = false;
-	re.DrawGetPicSize(&w, &h, "loading");
-	re.DrawPic((viddef.width - w) / 2, (viddef.height - h) / 2, "loading");
+	Draw_GetPicSize(&w, &h, "loading");
+	Draw_Pic((viddef.width - w) / 2, (viddef.height - h) / 2, "loading");
 }
 
 /*
@@ -652,7 +652,7 @@ SCR_TimeRefresh_f(void)
 			for (i = 0; i < 128; i++)
 			{
 				cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
-				re.RenderFrame(&cl.refdef);
+				R_RenderFrame(&cl.refdef);
 			}
 
 			re.EndFrame();
@@ -665,7 +665,7 @@ SCR_TimeRefresh_f(void)
 			cl.refdef.viewangles[1] = i / 128.0f * 360.0f;
 
 			re.BeginFrame(0);
-			re.RenderFrame(&cl.refdef);
+			R_RenderFrame(&cl.refdef);
 			re.EndFrame();
 		}
 	}
@@ -966,7 +966,7 @@ SCR_DrawField(int x, int y, int color, int width, int value)
 			frame = *ptr - '0';
 		}
 
-		re.DrawPic(x, y, sb_nums[color][frame]);
+		Draw_Pic(x, y, sb_nums[color][frame]);
 		x += CHAR_WIDTH;
 		ptr++;
 		l--;
@@ -998,7 +998,7 @@ SCR_TouchPics(void)
 
 		Com_sprintf(crosshair_pic, sizeof(crosshair_pic), "ch%i",
 				(int)(crosshair->value));
-		re.DrawGetPicSize(&crosshair_width, &crosshair_height, crosshair_pic);
+		Draw_GetPicSize(&crosshair_width, &crosshair_height, crosshair_pic);
 
 		if (!crosshair_width)
 		{
@@ -1098,7 +1098,7 @@ SCR_ExecuteLayoutString(char *s)
 			{
 				SCR_AddDirtyPoint(x, y);
 				SCR_AddDirtyPoint(x + 23, y + 23);
-				re.DrawPic(x, y, cl.configstrings[CS_IMAGES + value]);
+				Draw_Pic(x, y, cl.configstrings[CS_IMAGES + value]);
 			}
 
 			continue;
@@ -1146,7 +1146,7 @@ SCR_ExecuteLayoutString(char *s)
 				ci = &cl.baseclientinfo;
 			}
 
-			re.DrawPic(x, y, ci->iconname);
+			Draw_Pic(x, y, ci->iconname);
 			continue;
 		}
 
@@ -1205,7 +1205,7 @@ SCR_ExecuteLayoutString(char *s)
 			token = COM_Parse(&s);
 			SCR_AddDirtyPoint(x, y);
 			SCR_AddDirtyPoint(x + 23, y + 23);
-			re.DrawPic(x, y, (char *)token);
+			Draw_Pic(x, y, (char *)token);
 			continue;
 		}
 
@@ -1243,7 +1243,7 @@ SCR_ExecuteLayoutString(char *s)
 
 			if (cl.frame.playerstate.stats[STAT_FLASHES] & 1)
 			{
-				re.DrawPic(x, y, "field_3");
+				Draw_Pic(x, y, "field_3");
 			}
 
 			SCR_DrawField(x, y, color, width, value);
@@ -1273,7 +1273,7 @@ SCR_ExecuteLayoutString(char *s)
 
 			if (cl.frame.playerstate.stats[STAT_FLASHES] & 4)
 			{
-				re.DrawPic(x, y, "field_3");
+				Draw_Pic(x, y, "field_3");
 			}
 
 			SCR_DrawField(x, y, color, width, value);
@@ -1297,7 +1297,7 @@ SCR_ExecuteLayoutString(char *s)
 
 			if (cl.frame.playerstate.stats[STAT_FLASHES] & 2)
 			{
-				re.DrawPic(x, y, "field_3");
+				Draw_Pic(x, y, "field_3");
 			}
 
 			SCR_DrawField(x, y, color, width, value);
@@ -1440,8 +1440,8 @@ SCR_UpdateScreen(void)
 
 			re.CinematicSetPalette(NULL);
 			scr_draw_loading = false;
-			re.DrawGetPicSize(&w, &h, "loading");
-			re.DrawPic((viddef.width - w) / 2, (viddef.height - h) / 2, "loading");
+			Draw_GetPicSize(&w, &h, "loading");
+			Draw_Pic((viddef.width - w) / 2, (viddef.height - h) / 2, "loading");
 		}
 
 		/* if a cinematic is supposed to be running,
@@ -1570,7 +1570,7 @@ SCR_DrawCrosshair(void)
 		return;
 	}
 
-	re.DrawPic(scr_vrect.x + ((scr_vrect.width - crosshair_width) >> 1),
+	Draw_Pic(scr_vrect.x + ((scr_vrect.width - crosshair_width) >> 1),
 			scr_vrect.y + ((scr_vrect.height - crosshair_height) >> 1),
 			crosshair_pic);
 }

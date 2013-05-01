@@ -342,11 +342,11 @@ CL_PrepRefresh(void)
 	SCR_UpdateScreen();
 	rotate = (float)strtod(cl.configstrings[CS_SKYROTATE], (char **)NULL);
 	sscanf(cl.configstrings[CS_SKYAXIS], "%f %f %f", &axis[0], &axis[1], &axis[2]);
-	re.SetSky(cl.configstrings[CS_SKY], rotate, axis);
+	R_SetSky(cl.configstrings[CS_SKY], rotate, axis);
 	Com_Printf("                                     \r");
 
 	/* the renderer can now free unneeded stuff */
-	re.EndRegistration();
+	R_EndRegistration();
 
 	/* clear any lines of console text */
 	Con_ClearNotify();
@@ -569,7 +569,7 @@ V_RenderView(float stereo_separation)
 				entitycmpfnc);
 	}
 
-	re.RenderFrame(&cl.refdef);
+	R_RenderFrame(&cl.refdef);
 
 	if (cl_stats->value)
 	{

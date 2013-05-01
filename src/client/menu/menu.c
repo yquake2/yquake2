@@ -83,8 +83,8 @@ M_Banner(char *name)
 {
 	int w, h;
 
-	re.DrawGetPicSize(&w, &h, name);
-	re.DrawPic(viddef.width / 2 - w / 2, viddef.height / 2 - 110, name);
+	Draw_GetPicSize(&w, &h, name);
+	Draw_Pic(viddef.width / 2 - w / 2, viddef.height / 2 - 110, name);
 }
 
 void
@@ -360,7 +360,7 @@ M_Print(int x, int y, char *str)
 void
 M_DrawPic(int x, int y, char *pic)
 {
-	re.DrawPic(x + ((viddef.width - 320) >> 1),
+	Draw_Pic(x + ((viddef.width - 320) >> 1),
 			y + ((viddef.height - 240) >> 1),
 			pic);
 }
@@ -391,7 +391,7 @@ M_DrawCursor(int x, int y, int f)
 	}
 
 	Com_sprintf(cursorname, sizeof(cursorname), "m_cursor%d", f);
-	re.DrawPic(x, y, cursorname);
+	Draw_Pic(x, y, cursorname);
 }
 
 static void
@@ -527,7 +527,7 @@ M_Main_Draw(void)
 
 	for (i = 0; names[i] != 0; i++)
 	{
-		re.DrawGetPicSize(&w, &h, names[i]);
+		Draw_GetPicSize(&w, &h, names[i]);
 
 		if (w > widest)
 		{
@@ -544,21 +544,21 @@ M_Main_Draw(void)
 	{
 		if (i != m_main_cursor)
 		{
-			re.DrawPic(xoffset, ystart + i * 40 + 13, names[i]);
+			Draw_Pic(xoffset, ystart + i * 40 + 13, names[i]);
 		}
 	}
 
 	strcpy(litname, names[m_main_cursor]);
 	strcat(litname, "_sel");
-	re.DrawPic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
+	Draw_Pic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
 
 	M_DrawCursor(xoffset - 25, ystart + m_main_cursor * 40 + 11,
 			(int)(cls.realtime / 100) % NUM_CURSOR_FRAMES);
 
-	re.DrawGetPicSize(&w, &h, "m_main_plaque");
-	re.DrawPic(xoffset - 30 - w, ystart, "m_main_plaque");
+	Draw_GetPicSize(&w, &h, "m_main_plaque");
+	Draw_Pic(xoffset - 30 - w, ystart, "m_main_plaque");
 
-	re.DrawPic(xoffset - 30 - w, ystart + h + 5, "m_main_logo");
+	Draw_Pic(xoffset - 30 - w, ystart + h + 5, "m_main_logo");
 }
 
 const char *
@@ -4227,13 +4227,13 @@ PlayerConfig_MenuDraw(void)
 				refdef.width / 8, refdef.height / 8);
 		refdef.height += 4;
 
-		re.RenderFrame(&refdef);
+		R_RenderFrame(&refdef);
 
 		Com_sprintf(scratch, sizeof(scratch), "/players/%s/%s_i.pcx",
 				s_pmi[s_player_model_box.curvalue].directory,
 				s_pmi[s_player_model_box.curvalue].skindisplaynames[
 					s_player_skin_box.curvalue]);
-		re.DrawPic(s_player_config_menu.x - 40, refdef.y, scratch);
+		Draw_Pic(s_player_config_menu.x - 40, refdef.y, scratch);
 	}
 }
 
@@ -4324,8 +4324,8 @@ M_Quit_Draw(void)
 {
 	int w, h;
 
-	re.DrawGetPicSize(&w, &h, "quit");
-	re.DrawPic((viddef.width - w) / 2, (viddef.height - h) / 2, "quit");
+	Draw_GetPicSize(&w, &h, "quit");
+	Draw_Pic((viddef.width - w) / 2, (viddef.height - h) / 2, "quit");
 }
 
 static void
