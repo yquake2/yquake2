@@ -213,9 +213,35 @@ typedef struct {
 /* this is the only function actually exported at the linker level */
 typedef	refexport_t	(*R_GetRefAPI_t)(refimport_t);
 
-/* */
+/* This will be deleted */
 refexport_t R_GetRefAPI(refimport_t rimp);
 
+/*
+ * Specifies the model that will be used as the world
+ */
 void R_BeginRegistration(char *map);
+
+/*
+ * Refresh API
+ */
+struct model_s *R_RegisterModel(char *name);
+struct image_s *R_RegisterSkin(char *name);
+void R_SetSky(char *name, float rotate, vec3_t axis);
+void R_EndRegistration(void);
+struct image_s *Draw_FindPic(char *name);
+void R_RenderFrame(refdef_t *fd);
+void Draw_GetPicSize(int *w, int *h, char *name);
+void Draw_Pic(int x, int y, char *name);
+void Draw_StretchPic(int x, int y, int w, int h, char *name);
+void Draw_Char(int x, int y, int c);
+void Draw_TileClear(int x, int y, int w, int h, char *name);
+void Draw_Fill(int x, int y, int w, int h, int c);
+void Draw_FadeScreen(void);
+void Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
+int R_Init(void *hinstance, void *hWnd);
+void R_Shutdown(void);
+void R_SetPalette(const unsigned char *palette);
+void R_BeginFrame(float camera_separation);
+void GLimp_EndFrame(void);
 
 #endif
