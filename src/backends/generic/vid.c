@@ -225,7 +225,8 @@ VID_LoadRefresh(void)
 	ref_active = true;
 
 	// Initiate the refresher
-	if (re.Init(0, 0) == -1)
+	//if (re.Init(0, 0) == -1)
+	if (R_Init(0, 0) == -1)
 	{
 		VID_Shutdown(); // Isn't that just too bad? :(
 		return false;
