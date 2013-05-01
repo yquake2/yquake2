@@ -325,7 +325,7 @@ VID_Shutdown(void)
 	}
 }
 
-/* INPUT */
+/* Input callbacks from client */
 
 void
 IN_Shutdown(void)
