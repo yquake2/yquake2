@@ -42,13 +42,13 @@ static void SpinControl_DoSlide(menulist_s *s, int dir);
 #define RCOLUMN_OFFSET 16
 #define LCOLUMN_OFFSET -16
 
-extern refexport_t re;
+//extern refexport_t re;
 extern viddef_t viddef;
 
 #define VID_WIDTH viddef.width
 #define VID_HEIGHT viddef.height
-#define Draw_Char re.DrawChar
-#define Draw_Fill re.DrawFill
+//#define Draw_Char re.DrawChar
+//#define Draw_Fill re.DrawFill
 
 void
 Action_DoEnter(menuaction_s *a)
@@ -138,11 +138,11 @@ Field_Draw(menufield_s *f)
 	Draw_Char(f->generic.x + f->generic.parent->x + 16,
 			f->generic.y + f->generic.parent->y + 4, 24);
 
-	Draw_Char(f->generic.x + f->generic.parent->x + 24 + 
-			f->visible_length * 8, f->generic.y + 
+	Draw_Char(f->generic.x + f->generic.parent->x + 24 +
+			f->visible_length * 8, f->generic.y +
 			f->generic.parent->y - 4, 20);
 	Draw_Char(f->generic.x + f->generic.parent->x + 24 +
-		   	f->visible_length * 8, f->generic.y + 
+		   	f->visible_length * 8, f->generic.y +
 			f->generic.parent->y + 4, 26);
 
 	for (i = 0; i < f->visible_length; i++)
@@ -172,14 +172,14 @@ Field_Draw(menufield_s *f)
 
 		if (((int)(Sys_Milliseconds() / 250)) & 1)
 		{
-			Draw_Char(f->generic.x + f->generic.parent->x + 
-					(offset + 2) * 8 + 8, f->generic.y + 
+			Draw_Char(f->generic.x + f->generic.parent->x +
+					(offset + 2) * 8 + 8, f->generic.y +
 					f->generic.parent->y, 11);
 		}
 		else
 		{
 			Draw_Char(f->generic.x + f->generic.parent->x +
-				   	(offset + 2) * 8 + 8, f->generic.y + 
+				   	(offset + 2) * 8 + 8, f->generic.y +
 					f->generic.parent->y, ' ');
 		}
 	}
@@ -633,14 +633,14 @@ MenuList_Draw(menulist_s *l)
 	const char **n;
 	int y = 0;
 
-	Menu_DrawStringR2LDark(l->generic.x + l->generic.parent->x 
+	Menu_DrawStringR2LDark(l->generic.x + l->generic.parent->x
 			+ LCOLUMN_OFFSET, l->generic.y + l->generic.parent->y,
 			l->generic.name);
 
 	n = l->itemnames;
 
-	Draw_Fill(l->generic.x - 112 + l->generic.parent->x, 
-			l->generic.parent->y + l->generic.y + 
+	Draw_Fill(l->generic.x - 112 + l->generic.parent->x,
+			l->generic.parent->y + l->generic.y +
 			l->curvalue * 10 + 10, 128, 10, 16);
 
 	while (*n)
@@ -697,7 +697,7 @@ Slider_Draw(menuslider_s *s)
 		   	LCOLUMN_OFFSET, s->generic.y + s->generic.parent->y,
 			s->generic.name);
 
-	s->range = (s->curvalue - s->minvalue) / 
+	s->range = (s->curvalue - s->minvalue) /
 		(float)(s->maxvalue - s->minvalue);
 
 	if (s->range < 0)
@@ -716,12 +716,12 @@ Slider_Draw(menuslider_s *s)
 
 	for (i = 0; i < SLIDER_RANGE; i++)
 	{
-		Draw_Char(RCOLUMN_OFFSET + s->generic.x + i * 8 + 
+		Draw_Char(RCOLUMN_OFFSET + s->generic.x + i * 8 +
 				s->generic.parent->x + 8, s->generic.y +
 			   	s->generic.parent->y, 129);
 	}
 
-	Draw_Char(RCOLUMN_OFFSET + s->generic.x + i * 8 + 
+	Draw_Char(RCOLUMN_OFFSET + s->generic.x + i * 8 +
 			s->generic.parent->x + 8, s->generic.y +
 		   	s->generic.parent->y, 130);
 	Draw_Char((int)(8 + RCOLUMN_OFFSET + s->generic.parent->x +
@@ -765,8 +765,8 @@ SpinControl_Draw(menulist_s *s)
 
 	if (!strchr(s->itemnames[s->curvalue], '\n'))
 	{
-		Menu_DrawString(RCOLUMN_OFFSET + s->generic.x + 
-				s->generic.parent->x, s->generic.y + 
+		Menu_DrawString(RCOLUMN_OFFSET + s->generic.x +
+				s->generic.parent->x, s->generic.y +
 				s->generic.parent->y,
 				s->itemnames[s->curvalue]);
 	}
@@ -775,11 +775,11 @@ SpinControl_Draw(menulist_s *s)
 		strcpy(buffer, s->itemnames[s->curvalue]);
 		*strchr(buffer, '\n') = 0;
 		Menu_DrawString(RCOLUMN_OFFSET + s->generic.x +
-			   	s->generic.parent->x, s->generic.y + 
+			   	s->generic.parent->x, s->generic.y +
 				s->generic.parent->y, buffer);
 		strcpy(buffer, strchr(s->itemnames[s->curvalue], '\n') + 1);
-		Menu_DrawString(RCOLUMN_OFFSET + s->generic.x + 
-				s->generic.parent->x, s->generic.y + 
+		Menu_DrawString(RCOLUMN_OFFSET + s->generic.x +
+				s->generic.parent->x, s->generic.y +
 				s->generic.parent->y + 10, buffer);
 	}
 }

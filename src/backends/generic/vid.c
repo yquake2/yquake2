@@ -77,7 +77,7 @@ vidmode_t vid_modes[] = {
 };
 
 /* Structure containing functions exported from refresh DLL */
-refexport_t re;
+//refexport_t re;
 
 /* Console variables that we need to access from this module */
 cvar_t *vid_gamma;
@@ -167,7 +167,7 @@ VID_NewWindow(int width, int height)
 void
 VID_FreeReflib(void)
 {
-	memset(&re, 0, sizeof(re));
+	//memset(&re, 0, sizeof(re));
 }
 
 qboolean
@@ -205,7 +205,7 @@ VID_LoadRefresh(void)
 	ri.Vid_NewWindow = VID_NewWindow;
 
 	// Get refresher API exports
-	re = R_GetRefAPI(ri);
+	R_GetRefAPI(ri);
 
 	/* Init IN (Mouse) */
 	in_state.IN_CenterView_fp = IN_CenterView;
@@ -225,7 +225,8 @@ VID_LoadRefresh(void)
 	ref_active = true;
 
 	// Initiate the refresher
-	if (re.Init(0, 0) == -1)
+	//if (re.Init(0, 0) == -1)
+	if (R_Init(0, 0) == -1)
 	{
 		VID_Shutdown(); // Isn't that just too bad? :(
 		return false;
@@ -286,7 +287,7 @@ VID_Shutdown(void)
 		IN_BackendShutdown();
 
 		/* Shut down the renderer */
-		re.Shutdown();
+		R_Shutdown();
 
 		// Get rid of refexport function pointers
 		// (soon to be deleted)

@@ -83,8 +83,8 @@ M_Banner(char *name)
 {
 	int w, h;
 
-	re.DrawGetPicSize(&w, &h, name);
-	re.DrawPic(viddef.width / 2 - w / 2, viddef.height / 2 - 110, name);
+	Draw_GetPicSize(&w, &h, name);
+	Draw_Pic(viddef.width / 2 - w / 2, viddef.height / 2 - 110, name);
 }
 
 void
@@ -331,7 +331,7 @@ Default_MenuKey(menuframework_s *m, int key)
 static void
 M_DrawCharacter(int cx, int cy, int num)
 {
-	re.DrawChar(cx + ((viddef.width - 320) >> 1), cy + ((viddef.height - 240) >> 1), num);
+	Draw_Char(cx + ((viddef.width - 320) >> 1), cy + ((viddef.height - 240) >> 1), num);
 }
 
 static void
@@ -360,7 +360,7 @@ M_Print(int x, int y, char *str)
 void
 M_DrawPic(int x, int y, char *pic)
 {
-	re.DrawPic(x + ((viddef.width - 320) >> 1),
+	Draw_Pic(x + ((viddef.width - 320) >> 1),
 			y + ((viddef.height - 240) >> 1),
 			pic);
 }
@@ -384,14 +384,14 @@ M_DrawCursor(int x, int y, int f)
 		{
 			Com_sprintf(cursorname, sizeof(cursorname), "m_cursor%d", i);
 
-			re.RegisterPic(cursorname);
+			Draw_FindPic(cursorname);
 		}
 
 		cached = true;
 	}
 
 	Com_sprintf(cursorname, sizeof(cursorname), "m_cursor%d", f);
-	re.DrawPic(x, y, cursorname);
+	Draw_Pic(x, y, cursorname);
 }
 
 static void
@@ -527,7 +527,7 @@ M_Main_Draw(void)
 
 	for (i = 0; names[i] != 0; i++)
 	{
-		re.DrawGetPicSize(&w, &h, names[i]);
+		Draw_GetPicSize(&w, &h, names[i]);
 
 		if (w > widest)
 		{
@@ -544,21 +544,21 @@ M_Main_Draw(void)
 	{
 		if (i != m_main_cursor)
 		{
-			re.DrawPic(xoffset, ystart + i * 40 + 13, names[i]);
+			Draw_Pic(xoffset, ystart + i * 40 + 13, names[i]);
 		}
 	}
 
 	strcpy(litname, names[m_main_cursor]);
 	strcat(litname, "_sel");
-	re.DrawPic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
+	Draw_Pic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
 
 	M_DrawCursor(xoffset - 25, ystart + m_main_cursor * 40 + 11,
 			(int)(cls.realtime / 100) % NUM_CURSOR_FRAMES);
 
-	re.DrawGetPicSize(&w, &h, "m_main_plaque");
-	re.DrawPic(xoffset - 30 - w, ystart, "m_main_plaque");
+	Draw_GetPicSize(&w, &h, "m_main_plaque");
+	Draw_Pic(xoffset - 30 - w, ystart, "m_main_plaque");
 
-	re.DrawPic(xoffset - 30 - w, ystart + h + 5, "m_main_logo");
+	Draw_Pic(xoffset - 30 - w, ystart + h + 5, "m_main_logo");
 }
 
 const char *
@@ -816,12 +816,12 @@ KeyCursorDrawFunc(menuframework_s *menu)
 {
 	if (bind_grab)
 	{
-		re.DrawChar(menu->x, menu->y + menu->cursor * 9, '=');
+		Draw_Char(menu->x, menu->y + menu->cursor * 9, '=');
 	}
 
 	else
 	{
-		re.DrawChar(menu->x, menu->y + menu->cursor * 9, 12 +
+		Draw_Char(menu->x, menu->y + menu->cursor * 9, 12 +
 				((int)(Sys_Milliseconds() / 250) & 1));
 	}
 }
@@ -1271,7 +1271,7 @@ UpdateSoundQualityFunc(void *unused)
 	M_Popup();
 
 	/* the text box won't show up unless we do a buffer swap */
-	re.EndFrame();
+	GLimp_EndFrame();
 
 	CL_Snd_Restart_f();
 }
@@ -1899,12 +1899,12 @@ M_Credits_MenuDraw(void)
 
 			if (bold)
 			{
-				re.DrawChar(x, y, credits[i][j + stringoffset] + 128);
+				Draw_Char(x, y, credits[i][j + stringoffset] + 128);
 			}
 
 			else
 			{
-				re.DrawChar(x, y, credits[i][j + stringoffset]);
+				Draw_Char(x, y, credits[i][j + stringoffset]);
 			}
 		}
 	}
@@ -2588,7 +2588,7 @@ SearchLocalGames(void)
 	M_Popup();
 
 	/* the text box won't show up unless we do a buffer swap */
-	re.EndFrame();
+	GLimp_EndFrame();
 
 	/* send out info packets */
 	CL_PingServers_f();
@@ -2837,10 +2837,10 @@ StartServer_MenuInit(void)
 	int length;
 	int i;
 	FILE *fp;
-                             
+
 	/* initialize list of maps once, reuse it afterwards (=> it isn't freed) */
 	if (mapnames == NULL)
-	{   
+	{
 		/* load the list of map names */
 		Com_sprintf(mapsname, sizeof(mapsname), "%s/maps.lst", FS_Gamedir());
 
@@ -4213,12 +4213,12 @@ PlayerConfig_MenuDraw(void)
 
 		Com_sprintf(scratch, sizeof(scratch), "players/%s/tris.md2",
 				s_pmi[s_player_model_box.curvalue].directory);
-		entity.model = re.RegisterModel(scratch);
+		entity.model = R_RegisterModel(scratch);
 		Com_sprintf(scratch, sizeof(scratch), "players/%s/%s.pcx",
 				s_pmi[s_player_model_box.curvalue].directory,
 				s_pmi[s_player_model_box.curvalue].skindisplaynames[
 				s_player_skin_box.curvalue]);
-		entity.skin = re.RegisterSkin(scratch);
+		entity.skin = R_RegisterSkin(scratch);
 		entity.flags = RF_FULLBRIGHT;
 		entity.origin[0] = 80;
 		entity.origin[1] = 0;
@@ -4247,13 +4247,13 @@ PlayerConfig_MenuDraw(void)
 				refdef.width / 8, refdef.height / 8);
 		refdef.height += 4;
 
-		re.RenderFrame(&refdef);
+		R_RenderFrame(&refdef);
 
 		Com_sprintf(scratch, sizeof(scratch), "/players/%s/%s_i.pcx",
 				s_pmi[s_player_model_box.curvalue].directory,
 				s_pmi[s_player_model_box.curvalue].skindisplaynames[
 					s_player_skin_box.curvalue]);
-		re.DrawPic(s_player_config_menu.x - 40, refdef.y, scratch);
+		Draw_Pic(s_player_config_menu.x - 40, refdef.y, scratch);
 	}
 }
 
@@ -4344,8 +4344,8 @@ M_Quit_Draw(void)
 {
 	int w, h;
 
-	re.DrawGetPicSize(&w, &h, "quit");
-	re.DrawPic((viddef.width - w) / 2, (viddef.height - h) / 2, "quit");
+	Draw_GetPicSize(&w, &h, "quit");
+	Draw_Pic((viddef.width - w) / 2, (viddef.height - h) / 2, "quit");
 }
 
 static void
@@ -4389,12 +4389,12 @@ M_Draw(void)
 	/* dim everything behind it down */
 	if (cl.cinematictime > 0)
 	{
-		re.DrawFill(0, 0, viddef.width, viddef.height, 0);
+		Draw_Fill(0, 0, viddef.width, viddef.height, 0);
 	}
 
 	else
 	{
-		re.DrawFadeScreen();
+		Draw_FadeScreen();
 	}
 
 	m_drawfunc();

@@ -119,56 +119,56 @@ typedef struct {
 /*
  * these are the functions exported by the refresh module
  */
-typedef struct {
-	/* if api_version is different, the dll cannot be used */
-	int		api_version;
-
-	/* called when the library is loaded */
-	int		(*Init)(void *hinstance, void *wndproc);
-
-	/* called before the library is unloaded */
-	void	(*Shutdown)(void);
-
-	/* All data that will be used in a level should be
-	   registered before rendering any frames to prevent disk hits,
-	   but they can still be registered at a later time
-	   if necessary.
-
-	   EndRegistration will free any remaining data that wasn't registered.
-	   Any model_s or skin_s pointers from before the BeginRegistration
-	   are no longer valid after EndRegistration.
-
-	   Skins and images need to be differentiated, because skins
-	   are flood filled to eliminate mip map edge errors, and pics have
-	   an implicit "pics/" prepended to the name. (a pic name that starts with a
-	   slash will not use the "pics/" prefix or the ".pcx" postfix) */
-	void	(*BeginRegistration)(char *map);
-	struct model_s *(*RegisterModel)(char *name);
-	struct image_s *(*RegisterSkin)(char *name);
-	struct image_s *(*RegisterPic)(char *name);
-	void	(*SetSky)(char *name, float rotate, vec3_t axis);
-	void	(*EndRegistration)(void);
-
-	void	(*RenderFrame)(refdef_t *fd);
-	void	(*DrawStretchPic)(int x, int y, int w, int h, char *name);
-	void	(*DrawChar)(int x, int y, int c);
-	void	(*DrawGetPicSize)(int *w, int *h, char *name);	/* will return 0 0 if not found */
-	void	(*DrawPic)(int x, int y, char *name);
-	void	(*DrawTileClear)(int x, int y, int w, int h, char *name);
-	void	(*DrawFill)(int x, int y, int w, int h, int c);
-	void	(*DrawFadeScreen)(void);
-
-	/* Draw images for cinematic rendering (which can have a different palette). Note that calls */
-	void	(*DrawStretchRaw)(int x, int y, int w, int h, int cols, int rows, byte *data);
-
-	/* video mode and refresh state management entry points */
-	void	(*CinematicSetPalette)(const unsigned char *palette);	/* NULL = game palette */
-	void	(*BeginFrame)(float camera_separation);
-	void	(*EndFrame)(void);
-
-	void	(*AppActivate)(qboolean activate);
-
-} refexport_t;
+//typedef struct {
+//	/* if api_version is different, the dll cannot be used */
+//	int		api_version;
+//
+//	/* called when the library is loaded */
+//	int		(*Init)(void *hinstance, void *wndproc);
+//
+//	/* called before the library is unloaded */
+//	void	(*Shutdown)(void);
+//
+//	/* All data that will be used in a level should be
+//	   registered before rendering any frames to prevent disk hits,
+//	   but they can still be registered at a later time
+//	   if necessary.
+//
+//	   EndRegistration will free any remaining data that wasn't registered.
+//	   Any model_s or skin_s pointers from before the BeginRegistration
+//	   are no longer valid after EndRegistration.
+//
+//	   Skins and images need to be differentiated, because skins
+//	   are flood filled to eliminate mip map edge errors, and pics have
+//	   an implicit "pics/" prepended to the name. (a pic name that starts with a
+//	   slash will not use the "pics/" prefix or the ".pcx" postfix) */
+//	void	(*BeginRegistration)(char *map);
+//	struct model_s *(*RegisterModel)(char *name);
+//	struct image_s *(*RegisterSkin)(char *name);
+//	struct image_s *(*RegisterPic)(char *name);
+//	void	(*SetSky)(char *name, float rotate, vec3_t axis);
+//	void	(*EndRegistration)(void);
+//
+//	void	(*RenderFrame)(refdef_t *fd);
+//	void	(*DrawStretchPic)(int x, int y, int w, int h, char *name);
+//	void	(*DrawChar)(int x, int y, int c);
+//	void	(*DrawGetPicSize)(int *w, int *h, char *name);	/* will return 0 0 if not found */
+//	void	(*DrawPic)(int x, int y, char *name);
+//	void	(*DrawTileClear)(int x, int y, int w, int h, char *name);
+//	void	(*DrawFill)(int x, int y, int w, int h, int c);
+//	void	(*DrawFadeScreen)(void);
+//
+//	/* Draw images for cinematic rendering (which can have a different palette). Note that calls */
+//	void	(*DrawStretchRaw)(int x, int y, int w, int h, int cols, int rows, byte *data);
+//
+//	/* video mode and refresh state management entry points */
+//	void	(*CinematicSetPalette)(const unsigned char *palette);	/* NULL = game palette */
+//	void	(*BeginFrame)(float camera_separation);
+//	void	(*EndFrame)(void);
+//
+//	void	(*AppActivate)(qboolean activate);
+//
+//} refexport_t;
 
 /*
  * these are the functions imported by the refresh module
@@ -211,11 +211,38 @@ typedef struct {
 } refimport_t;
 
 /* this is the only function actually exported at the linker level */
-typedef	refexport_t	(*R_GetRefAPI_t)(refimport_t);
+//typedef	refexport_t	(*R_GetRefAPI_t)(refimport_t);
 
-/* */
-refexport_t R_GetRefAPI(refimport_t rimp);
+/* This will be deleted */
+//refexport_t R_GetRefAPI(refimport_t rimp);
+void *R_GetRefAPI(refimport_t rimp);
 
+/*
+ * Specifies the model that will be used as the world
+ */
 void R_BeginRegistration(char *map);
+
+/*
+ * Refresh API
+ */
+struct model_s *R_RegisterModel(char *name);
+struct image_s *R_RegisterSkin(char *name);
+void R_SetSky(char *name, float rotate, vec3_t axis);
+void R_EndRegistration(void);
+struct image_s *Draw_FindPic(char *name);
+void R_RenderFrame(refdef_t *fd);
+void Draw_GetPicSize(int *w, int *h, char *name);
+void Draw_Pic(int x, int y, char *name);
+void Draw_StretchPic(int x, int y, int w, int h, char *name);
+void Draw_Char(int x, int y, int c);
+void Draw_TileClear(int x, int y, int w, int h, char *name);
+void Draw_Fill(int x, int y, int w, int h, int c);
+void Draw_FadeScreen(void);
+void Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
+int R_Init(void *hinstance, void *hWnd);
+void R_Shutdown(void);
+void R_SetPalette(const unsigned char *palette);
+void R_BeginFrame(float camera_separation);
+void GLimp_EndFrame(void);
 
 #endif
