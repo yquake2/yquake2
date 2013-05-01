@@ -291,7 +291,7 @@ CL_PrepRefresh(void)
 		}
 		else
 		{
-			cl.model_draw[i] = re.RegisterModel(cl.configstrings[CS_MODELS + i]);
+			cl.model_draw[i] = R_RegisterModel(cl.configstrings[CS_MODELS + i]);
 
 			if (name[0] == '*')
 			{
@@ -442,7 +442,7 @@ V_Gun_Model_f(void)
 	}
 
 	Com_sprintf(name, sizeof(name), "models/%s/tris.md2", Cmd_Argv(1));
-	gun_model = re.RegisterModel(name);
+	gun_model = R_RegisterModel(name);
 }
 
 void

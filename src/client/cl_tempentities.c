@@ -149,34 +149,34 @@ CL_RegisterTEntSounds(void)
 void
 CL_RegisterTEntModels(void)
 {
-	cl_mod_explode = re.RegisterModel("models/objects/explode/tris.md2");
-	cl_mod_smoke = re.RegisterModel("models/objects/smoke/tris.md2");
-	cl_mod_flash = re.RegisterModel("models/objects/flash/tris.md2");
-	cl_mod_parasite_segment = re.RegisterModel("models/monsters/parasite/segment/tris.md2");
-	cl_mod_grapple_cable = re.RegisterModel("models/ctf/segment/tris.md2");
-	cl_mod_parasite_tip = re.RegisterModel("models/monsters/parasite/tip/tris.md2");
-	cl_mod_explo4 = re.RegisterModel("models/objects/r_explode/tris.md2");
-	cl_mod_bfg_explo = re.RegisterModel("sprites/s_bfg2.sp2");
-	cl_mod_powerscreen = re.RegisterModel("models/items/armor/effect/tris.md2");
+	cl_mod_explode = R_RegisterModel("models/objects/explode/tris.md2");
+	cl_mod_smoke = R_RegisterModel("models/objects/smoke/tris.md2");
+	cl_mod_flash = R_RegisterModel("models/objects/flash/tris.md2");
+	cl_mod_parasite_segment = R_RegisterModel("models/monsters/parasite/segment/tris.md2");
+	cl_mod_grapple_cable = R_RegisterModel("models/ctf/segment/tris.md2");
+	cl_mod_parasite_tip = R_RegisterModel("models/monsters/parasite/tip/tris.md2");
+	cl_mod_explo4 = R_RegisterModel("models/objects/r_explode/tris.md2");
+	cl_mod_bfg_explo = R_RegisterModel("sprites/s_bfg2.sp2");
+	cl_mod_powerscreen = R_RegisterModel("models/items/armor/effect/tris.md2");
 
-	re.RegisterModel("models/objects/laser/tris.md2");
-	re.RegisterModel("models/objects/grenade2/tris.md2");
-	re.RegisterModel("models/weapons/v_machn/tris.md2");
-	re.RegisterModel("models/weapons/v_handgr/tris.md2");
-	re.RegisterModel("models/weapons/v_shotg2/tris.md2");
-	re.RegisterModel("models/objects/gibs/bone/tris.md2");
-	re.RegisterModel("models/objects/gibs/sm_meat/tris.md2");
-	re.RegisterModel("models/objects/gibs/bone2/tris.md2");
+	R_RegisterModel("models/objects/laser/tris.md2");
+	R_RegisterModel("models/objects/grenade2/tris.md2");
+	R_RegisterModel("models/weapons/v_machn/tris.md2");
+	R_RegisterModel("models/weapons/v_handgr/tris.md2");
+	R_RegisterModel("models/weapons/v_shotg2/tris.md2");
+	R_RegisterModel("models/objects/gibs/bone/tris.md2");
+	R_RegisterModel("models/objects/gibs/sm_meat/tris.md2");
+	R_RegisterModel("models/objects/gibs/bone2/tris.md2");
 
 	re.RegisterPic("w_machinegun");
 	re.RegisterPic("a_bullets");
 	re.RegisterPic("i_health");
 	re.RegisterPic("a_grenades");
 
-	cl_mod_explo4_big = re.RegisterModel("models/objects/r_explode2/tris.md2");
-	cl_mod_lightning = re.RegisterModel("models/proj/lightning/tris.md2");
-	cl_mod_heatbeam = re.RegisterModel("models/proj/beam/tris.md2");
-	cl_mod_monster_heatbeam = re.RegisterModel("models/proj/widowbeam/tris.md2");
+	cl_mod_explo4_big = R_RegisterModel("models/objects/r_explode2/tris.md2");
+	cl_mod_lightning = R_RegisterModel("models/proj/lightning/tris.md2");
+	cl_mod_heatbeam = R_RegisterModel("models/proj/beam/tris.md2");
+	cl_mod_monster_heatbeam = R_RegisterModel("models/proj/widowbeam/tris.md2");
 }
 
 void
@@ -412,7 +412,7 @@ CL_ParsePlayerBeam(struct model_s *model)
 		{
 			b->entity = ent;
 			b->model = model;
-			b->endtime = cl.time + 100; /* this needs to be 100 to 
+			b->endtime = cl.time + 100; /* this needs to be 100 to
 										   prevent multiple heatbeams */
 			VectorCopy(start, b->start);
 			VectorCopy(end, b->end);
@@ -1335,10 +1335,10 @@ CL_AddBeams(void)
 		steps = (float)ceil(d / model_length);
 		len = (d - model_length) / (steps - 1);
 
-		/* special case for lightning model .. if the real length 
-		   is shorter than the model, flip it around & draw it 
+		/* special case for lightning model .. if the real length
+		   is shorter than the model, flip it around & draw it
 		   from the end to the start. This prevents the model from
-		   going through the tesla mine (instead it goes through 
+		   going through the tesla mine (instead it goes through
 		   the target) */
 		if ((b->model == cl_mod_lightning) && (d <= model_length))
 		{
@@ -1614,10 +1614,10 @@ CL_AddPlayerBeams(void)
 		steps = ceil(d / model_length);
 		len = (d - model_length) / (steps - 1);
 
-		/* special case for lightning model .. if the real 
+		/* special case for lightning model .. if the real
 		   length is shorter than the model, flip it around
 		   & draw it from the end to the start. This prevents
-		   the model from going through the tesla mine 
+		   the model from going through the tesla mine
 		   (instead it goes through the target) */
 		if ((b->model == cl_mod_lightning) && (d <= model_length))
 		{
