@@ -173,49 +173,50 @@ typedef struct {
 /*
  * these are the functions imported by the refresh module
  */
-typedef struct {
-	void	(*Sys_Error)(int err_level, char *str, ...);
-	void	(*Sys_Mkdir)(char *path);
-	void	(*Sys_FreeLibrary)(void *handle);
-	void	*(*Sys_LoadLibrary)(const char *path, const char *sym, void **handle);
-	void	*(*Sys_GetProcAddress)(void *handle, const char *sym);
-
-	void	(*Cmd_AddCommand)(char *name, void(*cmd)(void));
-	void	(*Cmd_RemoveCommand)(char *name);
-	int		(*Cmd_Argc)(void);
-	char	*(*Cmd_Argv)(int i);
-	void	(*Cmd_ExecuteText)(int exec_when, char *text);
-
-	void	(*Con_Printf)(int print_level, char *str, ...);
-
-	/* files will be memory mapped read only
-	   the returned buffer may be part of a larger pak file,
-	   or a discrete file from anywhere in the quake search path
-	   a -1 return means the file does not exist
-	   NULL can be passed for buf to just determine existance */
-	int		(*FS_LoadFile)(char *name, void **buf);
-	void	(*FS_FreeFile)(void *buf);
-
-	/* The gamedir is the ./baseq2 directory (read only) and the
-	   ~/.quake2/baseq2 directory for write operations. The later
-	   overrides the first */
-	char	*(*FS_Gamedir)(void);
-
-	cvar_t	*(*Cvar_Get)(char *name, char *value, int flags);
-	cvar_t	*(*Cvar_Set)(char *name, char *value);
-	void	(*Cvar_SetValue)(char *name, float value);
-
-	qboolean(*Vid_GetModeInfo)(int *width, int *height, int mode);
-	void	(*Vid_MenuInit)(void);
-	void	(*Vid_NewWindow)(int width, int height);
-} refimport_t;
+//typedef struct {
+//	void	(*Sys_Error)(int err_level, char *str, ...);
+//	void	(*Sys_Mkdir)(char *path);
+//	void	(*Sys_FreeLibrary)(void *handle);
+//	void	*(*Sys_LoadLibrary)(const char *path, const char *sym, void **handle);
+//	void	*(*Sys_GetProcAddress)(void *handle, const char *sym);
+//
+//	void	(*Cmd_AddCommand)(char *name, void(*cmd)(void));
+//	void	(*Cmd_RemoveCommand)(char *name);
+//	int		(*Cmd_Argc)(void);
+//	char	*(*Cmd_Argv)(int i);
+//	void	(*Cmd_ExecuteText)(int exec_when, char *text);
+//
+//	void	(*Con_Printf)(int print_level, char *str, ...);
+//
+//	/* files will be memory mapped read only
+//	   the returned buffer may be part of a larger pak file,
+//	   or a discrete file from anywhere in the quake search path
+//	   a -1 return means the file does not exist
+//	   NULL can be passed for buf to just determine existance */
+//	int		(*FS_LoadFile)(char *name, void **buf);
+//	void	(*FS_FreeFile)(void *buf);
+//
+//	/* The gamedir is the ./baseq2 directory (read only) and the
+//	   ~/.quake2/baseq2 directory for write operations. The later
+//	   overrides the first */
+//	char	*(*FS_Gamedir)(void);
+//
+//	cvar_t	*(*Cvar_Get)(char *name, char *value, int flags);
+//	cvar_t	*(*Cvar_Set)(char *name, char *value);
+//	void	(*Cvar_SetValue)(char *name, float value);
+//
+//	qboolean(*Vid_GetModeInfo)(int *width, int *height, int mode);
+//	void	(*Vid_MenuInit)(void);
+//	void	(*Vid_NewWindow)(int width, int height);
+//} refimport_t;
 
 /* this is the only function actually exported at the linker level */
 //typedef	refexport_t	(*R_GetRefAPI_t)(refimport_t);
 
 /* This will be deleted */
 //refexport_t R_GetRefAPI(refimport_t rimp);
-void *R_GetRefAPI(refimport_t rimp);
+//void *R_GetRefAPI(refimport_t rimp);
+void *R_GetRefAPI(void);
 
 /*
  * Specifies the model that will be used as the world
