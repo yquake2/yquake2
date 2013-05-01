@@ -68,7 +68,7 @@ LM_UploadBlock(qboolean dynamic)
 			}
 		}
 
-		qglTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, BLOCK_WIDTH, 
+		qglTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, BLOCK_WIDTH,
 				height, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE,
 				gl_lms.lightmap_buffer);
 	}
@@ -80,14 +80,14 @@ LM_UploadBlock(qboolean dynamic)
 
 		if (++gl_lms.current_lightmap_texture == MAX_LIGHTMAPS)
 		{
-			ri.Sys_Error(ERR_DROP,
+			VID_Error(ERR_DROP,
 					"LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n");
 		}
 	}
 }
 
-/* 
- * returns a texture number and the position inside it 
+/*
+ * returns a texture number and the position inside it
  */
 qboolean
 LM_AllocBlock(int w, int h, int *x, int *y)
@@ -226,7 +226,7 @@ LM_CreateSurfaceLightmap(msurface_t *surf)
 
 		if (!LM_AllocBlock(smax, tmax, &surf->light_s, &surf->light_t))
 		{
-			ri.Sys_Error(ERR_FATAL, "Consecutive calls to LM_AllocBlock(%d,%d) failed\n",
+			VID_Error(ERR_FATAL, "Consecutive calls to LM_AllocBlock(%d,%d) failed\n",
 					smax, tmax);
 		}
 	}

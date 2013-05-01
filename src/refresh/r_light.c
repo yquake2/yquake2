@@ -488,7 +488,7 @@ R_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 	if (surf->texinfo->flags &
 		(SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP))
 	{
-		ri.Sys_Error(ERR_DROP, "R_BuildLightMap called for non-lit surface");
+		VID_Error(ERR_DROP, "R_BuildLightMap called for non-lit surface");
 	}
 
 	smax = (surf->extents[0] >> 4) + 1;
@@ -497,7 +497,7 @@ R_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 
 	if (size > (sizeof(s_blocklights) >> 4))
 	{
-		ri.Sys_Error(ERR_DROP, "Bad s_blocklights size");
+		VID_Error(ERR_DROP, "Bad s_blocklights size");
 	}
 
 	/* set to full bright if no light data */
@@ -649,12 +649,12 @@ store:
 				max = b;
 			}
 
-			/* alpha is ONLY used for the mono lightmap case. For this 
+			/* alpha is ONLY used for the mono lightmap case. For this
 			   reason we set it to the brightest of the color components
 			   so that things don't get too dim. */
 			a = max;
 
-			/* rescale all the color components if the 
+			/* rescale all the color components if the
 			   intensity of the greatest channel exceeds
 			   1.0 */
 			if (max > 255)

@@ -48,7 +48,7 @@ jpg_null(j_decompress_ptr cinfo)
 boolean
 jpg_fill_input_buffer(j_decompress_ptr cinfo)
 {
-	ri.Con_Printf(PRINT_ALL, "Premature end of JPEG data\n");
+	VID_Printf(PRINT_ALL, "Premature end of JPEG data\n");
 	return 1;
 }
 
@@ -95,7 +95,7 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 	*pic = NULL;
 
 	/* Load JPEG file into memory */
-	rawsize = ri.FS_LoadFile(filename, (void **)&rawdata);
+	rawsize = FS_LoadFile(filename, (void **)&rawdata);
 
 	if (!rawdata)
 	{
@@ -105,8 +105,8 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 	if ((rawsize < 10) || (rawdata[6] != 'J') || (rawdata[7] != 'F') ||
 		(rawdata[8] != 'I') || (rawdata[9] != 'F'))
 	{
-		ri.Con_Printf(PRINT_ALL, "Invalid JPEG header: %s\n", filename);
-		ri.FS_FreeFile(rawdata);
+		VID_Printf(PRINT_ALL, "Invalid JPEG header: %s\n", filename);
+		FS_FreeFile(rawdata);
 		return;
 	}
 
@@ -118,9 +118,9 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 
 	if ((cinfo.output_components != 3) && (cinfo.output_components != 4))
 	{
-		ri.Con_Printf(PRINT_ALL, "Invalid JPEG colour components\n");
+		VID_Printf(PRINT_ALL, "Invalid JPEG colour components\n");
 		jpeg_destroy_decompress(&cinfo);
-		ri.FS_FreeFile(rawdata);
+		FS_FreeFile(rawdata);
 		return;
 	}
 
@@ -129,9 +129,9 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 
 	if (!rgbadata)
 	{
-		ri.Con_Printf(PRINT_ALL, "Insufficient memory for JPEG buffer\n");
+		VID_Printf(PRINT_ALL, "Insufficient memory for JPEG buffer\n");
 		jpeg_destroy_decompress(&cinfo);
-		ri.FS_FreeFile(rawdata);
+		FS_FreeFile(rawdata);
 		return;
 	}
 
@@ -144,11 +144,11 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 
 	if (!scanline)
 	{
-		ri.Con_Printf(PRINT_ALL,
+		VID_Printf(PRINT_ALL,
 				"Insufficient memory for JPEG scanline buffer\n");
 		free(rgbadata);
 		jpeg_destroy_decompress(&cinfo);
-		ri.FS_FreeFile(rawdata);
+		FS_FreeFile(rawdata);
 		return;
 	}
 

@@ -76,13 +76,13 @@ GLimp_Init(void)
 
 		if (SDL_Init(SDL_INIT_VIDEO) == -1)
 		{
-			ri.Con_Printf(PRINT_ALL, "Couldn't init SDL video: %s.\n",
+			VID_Printf(PRINT_ALL, "Couldn't init SDL video: %s.\n",
 					SDL_GetError());
 			return false;
 		}
 
 		SDL_VideoDriverName(driverName, sizeof(driverName) - 1);
-		ri.Con_Printf(PRINT_ALL, "SDL video driver is \"%s\".\n", driverName);
+		VID_Printf(PRINT_ALL, "SDL video driver is \"%s\".\n", driverName);
 	}
 
 	return true;
@@ -209,7 +209,7 @@ GLimp_InitGraphics(qboolean fullscreen)
 	}
 
 	/* Create the window */
-	ri.Vid_NewWindow(vid.width, vid.height);
+	VID_NewWindow(vid.width, vid.height);
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
@@ -241,17 +241,17 @@ GLimp_InitGraphics(qboolean fullscreen)
 		{
 			if (counter == 1)
 			{
-				ri.Sys_Error(ERR_FATAL, "Failed to revert to gl_mode 4. Exiting...\n");
+				VID_Error(ERR_FATAL, "Failed to revert to gl_mode 4. Exiting...\n");
 				return false;
 			}
 
-			ri.Con_Printf(PRINT_ALL, "SDL SetVideoMode failed: %s\n",
+			VID_Printf(PRINT_ALL, "SDL SetVideoMode failed: %s\n",
 					SDL_GetError());
-			ri.Con_Printf(PRINT_ALL, "Reverting to gl_mode 4 (640x480) and windowed mode.\n");
+			VID_Printf(PRINT_ALL, "Reverting to gl_mode 4 (640x480) and windowed mode.\n");
 
 			/* Try to recover */
-			ri.Cvar_SetValue("gl_mode", 4);
-			ri.Cvar_SetValue("vid_fullscreen", 0);
+			Cvar_SetValue("gl_mode", 4);
+			Cvar_SetValue("vid_fullscreen", 0);
 			vid.width = 640;
 			vid.height = 480;
 
@@ -267,7 +267,7 @@ GLimp_InitGraphics(qboolean fullscreen)
 	/* Initialize the stencil buffer */
 	if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits))
 	{
-		ri.Con_Printf(PRINT_ALL, "Got %d bits of stencil.\n", stencil_bits);
+		VID_Printf(PRINT_ALL, "Got %d bits of stencil.\n", stencil_bits);
 
 		if (stencil_bits >= 1)
 		{
@@ -279,7 +279,7 @@ GLimp_InitGraphics(qboolean fullscreen)
 #ifdef X11GAMMA
 	if ((dpy = XOpenDisplay(displayname)) == NULL)
 	{
-		ri.Con_Printf(PRINT_ALL, "Unable to open display.\n");
+		VID_Printf(PRINT_ALL, "Unable to open display.\n");
 	}
 	else
 	{
@@ -293,12 +293,12 @@ GLimp_InitGraphics(qboolean fullscreen)
 
 		XF86VidModeGetGamma(dpy, screen, &x11_oldgamma);
 
-		ri.Con_Printf(PRINT_ALL, "Using hardware gamma via X11.\n");
+		VID_Printf(PRINT_ALL, "Using hardware gamma via X11.\n");
 	}
 #else
 	gl_state.hwgamma = true;
 	vid_gamma->modified = true;
-	ri.Con_Printf(PRINT_ALL, "Using hardware gamma via SDL.\n");
+	VID_Printf(PRINT_ALL, "Using hardware gamma via SDL.\n");
 #endif
 
 	/* Window title */
@@ -326,17 +326,17 @@ GLimp_EndFrame(void)
 int
 GLimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen)
 {
-	ri.Con_Printf(PRINT_ALL, "setting mode %d:", mode);
+	VID_Printf(PRINT_ALL, "setting mode %d:", mode);
 
 	/* mode -1 is not in the vid mode table - so we keep the values in pwidth
 	   and pheight and don't even try to look up the mode info */
-	if ((mode != -1) && !ri.Vid_GetModeInfo(pwidth, pheight, mode))
+	if ((mode != -1) && !VID_GetModeInfo(pwidth, pheight, mode))
 	{
-		ri.Con_Printf(PRINT_ALL, " invalid mode\n");
+		VID_Printf(PRINT_ALL, " invalid mode\n");
 		return rserr_invalid_mode;
 	}
 
-	ri.Con_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
+	VID_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
 
 	if (!GLimp_InitGraphics(fullscreen))
 	{

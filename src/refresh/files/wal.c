@@ -42,11 +42,11 @@ LoadWal(char *origname)
 		Q_strlcat(name, ".wal", sizeof(name));
 	}
 
-	ri.FS_LoadFile(name, (void **)&mt);
+	FS_LoadFile(name, (void **)&mt);
 
 	if (!mt)
 	{
-		ri.Con_Printf(PRINT_ALL, "LoadWall: can't load %s\n", name);
+		VID_Printf(PRINT_ALL, "LoadWall: can't load %s\n", name);
 		return r_notexture;
 	}
 
@@ -56,7 +56,7 @@ LoadWal(char *origname)
 
 	image = R_LoadPic(name, (byte *)mt + ofs, width, 0, height, 0, it_wall, 8);
 
-	ri.FS_FreeFile((void *)mt);
+	FS_FreeFile((void *)mt);
 
 	return image;
 }
@@ -66,7 +66,7 @@ GetWalInfo(char *name, int *width, int *height)
 {
 	miptex_t *mt;
 
-	ri.FS_LoadFile(name, (void **)&mt);
+	FS_LoadFile(name, (void **)&mt);
 
 	if (!mt)
 	{
@@ -76,7 +76,7 @@ GetWalInfo(char *name, int *width, int *height)
 	*width = LittleLong(mt->width);
 	*height = LittleLong(mt->height);
 
-	ri.FS_FreeFile((void *)mt);
+	FS_FreeFile((void *)mt);
 
 	return;
 }
