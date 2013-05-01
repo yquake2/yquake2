@@ -411,7 +411,7 @@ typedef struct
 
 extern glconfig_t gl_config;
 extern glstate_t gl_state;
-extern refimport_t ri;
+//extern refimport_t ri;
 
 void GLimp_BeginFrame(float camera_separation);
 int GLimp_Init(void);

@@ -54,7 +54,7 @@ R_LerpVerts(int nverts, dtrivertx_t *v, dtrivertx_t *ov,
 	int i;
 
 	if (currententity->flags &
-		(RF_SHELL_RED | RF_SHELL_GREEN | 
+		(RF_SHELL_RED | RF_SHELL_GREEN |
 		 RF_SHELL_BLUE | RF_SHELL_DOUBLE |
 		 RF_SHELL_HALF_DAM))
 	{
@@ -390,14 +390,14 @@ R_CullAliasModel(vec3_t bbox[8], entity_t *e)
 
 	if ((e->frame >= paliashdr->num_frames) || (e->frame < 0))
 	{
-		ri.Con_Printf(PRINT_ALL, "R_CullAliasModel %s: no such frame %d\n",
+		VID_Printf(PRINT_ALL, "R_CullAliasModel %s: no such frame %d\n",
 				currentmodel->name, e->frame);
 		e->frame = 0;
 	}
 
 	if ((e->oldframe >= paliashdr->num_frames) || (e->oldframe < 0))
 	{
-		ri.Con_Printf(PRINT_ALL, "R_CullAliasModel %s: no such oldframe %d\n",
+		VID_Printf(PRINT_ALL, "R_CullAliasModel %s: no such oldframe %d\n",
 				currentmodel->name, e->oldframe);
 		e->oldframe = 0;
 	}
@@ -760,7 +760,7 @@ R_DrawAliasModel(entity_t *e)
 	if ((currententity->frame >= paliashdr->num_frames) ||
 		(currententity->frame < 0))
 	{
-		ri.Con_Printf(PRINT_ALL, "R_DrawAliasModel %s: no such frame %d\n",
+		VID_Printf(PRINT_ALL, "R_DrawAliasModel %s: no such frame %d\n",
 				currentmodel->name, currententity->frame);
 		currententity->frame = 0;
 		currententity->oldframe = 0;
@@ -769,7 +769,7 @@ R_DrawAliasModel(entity_t *e)
 	if ((currententity->oldframe >= paliashdr->num_frames) ||
 		(currententity->oldframe < 0))
 	{
-		ri.Con_Printf(PRINT_ALL, "R_DrawAliasModel %s: no such oldframe %d\n",
+		VID_Printf(PRINT_ALL, "R_DrawAliasModel %s: no such oldframe %d\n",
 				currentmodel->name, currententity->oldframe);
 		currententity->frame = 0;
 		currententity->oldframe = 0;

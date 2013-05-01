@@ -132,7 +132,7 @@ Draw_StretchPic(int x, int y, int w, int h, char *pic)
 
 	if (!gl)
 	{
-		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		VID_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
 		return;
 	}
 
@@ -163,7 +163,7 @@ Draw_Pic(int x, int y, char *pic)
 
 	if (!gl)
 	{
-		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		VID_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
 		return;
 	}
 
@@ -199,7 +199,7 @@ Draw_TileClear(int x, int y, int w, int h, char *pic)
 
 	if (!image)
 	{
-		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		VID_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
 		return;
 	}
 
@@ -230,7 +230,7 @@ Draw_Fill(int x, int y, int w, int h, int c)
 
 	if ((unsigned)c > 255)
 	{
-		ri.Sys_Error(ERR_FATAL, "Draw_Fill: bad color");
+		VID_Error(ERR_FATAL, "Draw_Fill: bad color");
 	}
 
 	qglDisable(GL_TEXTURE_2D);
@@ -390,7 +390,7 @@ Draw_GetPalette(void)
 
 	if (!pal)
 	{
-		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/colormap.pcx");
+		VID_Error(ERR_FATAL, "Couldn't load pics/colormap.pcx");
 	}
 
 	for (i = 0; i < 256; i++)
