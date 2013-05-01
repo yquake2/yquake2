@@ -52,7 +52,7 @@ cvar_t *vid_fullscreen;
 
 /* Global variables used internally by this module */
 viddef_t viddef;                /* global video state; used by other modules */
-qboolean reflib_active = 0;
+qboolean ref_active = 0;
 
 #define VID_NUM_MODES (sizeof(vid_modes) / sizeof(vid_modes[0]))
 
@@ -187,7 +187,7 @@ VID_FreeReflib(void)
 	memset(&re, 0, sizeof(re));
 
 	// Declare the refresher as inactive
-	reflib_active = false;
+	ref_active = false;
 }
 
 qboolean
@@ -195,7 +195,7 @@ VID_LoadRefresh(void)
 {
 	refimport_t ri; // Refresh imported functions
 
-	if (reflib_active)
+	if (ref_active)
 	{
 		/*if (IN_Close_fp)
 		{
@@ -260,7 +260,7 @@ VID_LoadRefresh(void)
 	Key_ClearStates();
 
 	Com_Printf("------------------------------------\n\n");
-	reflib_active = true;
+	ref_active = true;
 	return true;
 }
 
@@ -308,7 +308,7 @@ VID_Init(void)
 void
 VID_Shutdown(void)
 {
-	if (reflib_active)
+	if (ref_active)
 	{
 		/*if (IN_Close_fp)
 		{
