@@ -164,7 +164,6 @@ cvar_t *gl_lockpvs;
 
 cvar_t *vid_fullscreen;
 cvar_t *vid_gamma;
-//cvar_t *vid_ref;
 
 /*
  * Returns true if the box is completely outside the frustom
@@ -1037,7 +1036,6 @@ R_Register(void)
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
-	//vid_ref = ri.Cvar_Get("vid_ref", "soft", CVAR_ARCHIVE);
 
 	gl_customwidth = ri.Cvar_Get("gl_customwidth", "1024", CVAR_ARCHIVE);
 	gl_customheight = ri.Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
@@ -1397,13 +1395,8 @@ R_BeginFrame(float camera_separation)
 	gl_state.camera_separation = camera_separation;
 
 	/* change modes if necessary */
-	//if (gl_mode->modified || vid_fullscreen->modified)
 	if (gl_mode->modified)
 	{
-		/*cvar_t *ref;
-
-		ref = ri.Cvar_Get("vid_ref", "gl", 0);
-		ref->modified = true;*/
 		vid_fullscreen->modified = true;
 	}
 

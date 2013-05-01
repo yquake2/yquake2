@@ -32,7 +32,6 @@
 
 extern void M_ForceMenuOff(void);
 
-//extern cvar_t *vid_ref;
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_gamma;
 extern cvar_t *scr_viewsize;

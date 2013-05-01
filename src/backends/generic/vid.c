@@ -46,7 +46,6 @@ refexport_t re;
 
 /* Console variables that we need to access from this module */
 cvar_t *vid_gamma;
-//cvar_t *vid_ref;                /* Name of Refresh DLL loaded */
 cvar_t *vid_xpos;               /* X coordinate of window position */
 cvar_t *vid_ypos;               /* Y coordinate of window position */
 cvar_t *vid_fullscreen;
@@ -98,14 +97,13 @@ VID_Error(int err_level, char *fmt, ...)
 }
 
 /*
- * Console command to re-start the video mode and refresh DLL. We do this
- * simply by setting the modified flag for the vid_ref variable, which will
- * cause the entire video mode and refresh DLL to be reset on the next frame.
+ * Console command to re-start the video mode and refresh. We do this
+ * simply by setting the modified flag for the vid_fullscreen variable, which will
+ * cause the entire video mode and refreshto be reset on the next frame.
  */
 void
 VID_Restart_f(void)
 {
-	//vid_ref->modified = true;
 	vid_fullscreen->modified = true;
 }
 
@@ -270,24 +268,17 @@ VID_LoadRefresh(void)
 /*
  * This function gets called once just before drawing each frame, and
  * it's sole purpose in life is to check to see if any of the video mode
- * parameters have changed, and if they have to update the rendering DLL
+ * parameters have changed, and if they have to update the refresh
  * and/or video mode to match.
  */
 void
 VID_CheckChanges(void)
 {
-	//char name[100];
-
-	//if (vid_ref->modified)
 	if (vid_fullscreen->modified)
 	{
 		S_StopAllSounds();
-	//}
 
-	//while (vid_ref->modified)
-	//{
 		/* refresh has changed */
-		//vid_ref->modified = false;
 		vid_fullscreen->modified = true;
 		cl.refresh_prepped = false;
 		cl.cinematicpalette_active = false;
@@ -295,11 +286,6 @@ VID_CheckChanges(void)
 
 		// Proceed to reboot the refresher
 		VID_LoadRefresh();
-//		if (!VID_LoadRefresh(name))
-//		{
-//			Cvar_Set("vid_ref", "gl");
-//		}
-
 		cls.disable_screen = false;
 	}
 }
@@ -308,8 +294,6 @@ void
 VID_Init(void)
 {
 	/* Create the video variables so we know how to start the graphics drivers */
-	//vid_ref = Cvar_Get("vid_ref", "gl", CVAR_ARCHIVE);
-
 	vid_xpos = Cvar_Get("vid_xpos", "3", CVAR_ARCHIVE);
 	vid_ypos = Cvar_Get("vid_ypos", "22", CVAR_ARCHIVE);
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);

@@ -276,7 +276,7 @@ Cbuf_AddEarlyCommands(qboolean clear)
 /*
  * Adds command line parameters as script statements
  * Commands lead with a + and continue until another + or -
- * quake +vid_ref gl +map amlev1
+ * quake +developer 1 +map amlev1
  *
  * Returns true if any late commands were added, which
  * will keep the demoloop from immediately starting
