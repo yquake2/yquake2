@@ -1038,10 +1038,10 @@ R_Register(void)
 	gl_retexturing = ri.Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
 #endif
 
-	ri.Cmd_AddCommand("imagelist", R_ImageList_f);
-	ri.Cmd_AddCommand("screenshot", R_ScreenShot);
-	ri.Cmd_AddCommand("modellist", Mod_Modellist_f);
-	ri.Cmd_AddCommand("gl_strings", R_Strings);
+	Cmd_AddCommand("imagelist", R_ImageList_f);
+	Cmd_AddCommand("screenshot", R_ScreenShot);
+	Cmd_AddCommand("modellist", Mod_Modellist_f);
+	Cmd_AddCommand("gl_strings", R_Strings);
 }
 
 qboolean
@@ -1365,10 +1365,10 @@ R_Init(void *hinstance, void *hWnd)
 void
 R_Shutdown(void)
 {
-	ri.Cmd_RemoveCommand("modellist");
-	ri.Cmd_RemoveCommand("screenshot");
-	ri.Cmd_RemoveCommand("imagelist");
-	ri.Cmd_RemoveCommand("gl_strings");
+	Cmd_RemoveCommand("modellist");
+	Cmd_RemoveCommand("screenshot");
+	Cmd_RemoveCommand("imagelist");
+	Cmd_RemoveCommand("gl_strings");
 
 	Mod_FreeAll();
 

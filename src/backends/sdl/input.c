@@ -639,9 +639,9 @@ IN_BackendInit(in_state_t *in_state_p)
 	m_forward = ri.Cvar_Get("m_forward", "1", 0);
 	m_side = ri.Cvar_Get("m_side", "0.8", 0);
 
-	ri.Cmd_AddCommand("+mlook", IN_MLookDown);
-	ri.Cmd_AddCommand("-mlook", IN_MLookUp);
-	ri.Cmd_AddCommand("force_centerview", IN_ForceCenterView);
+	Cmd_AddCommand("+mlook", IN_MLookDown);
+	Cmd_AddCommand("-mlook", IN_MLookUp);
+	Cmd_AddCommand("force_centerview", IN_ForceCenterView);
 
 	mouse_x = mouse_y = 0.0;
 
@@ -660,9 +660,9 @@ IN_BackendInit(in_state_t *in_state_p)
 void
 IN_BackendShutdown(void)
 {
-	ri.Cmd_RemoveCommand("+mlook");
-	ri.Cmd_RemoveCommand("-mlook");
-	ri.Cmd_RemoveCommand("force_centerview");
+	Cmd_RemoveCommand("+mlook");
+	Cmd_RemoveCommand("-mlook");
+	Cmd_RemoveCommand("force_centerview");
 	ri.Con_Printf(PRINT_ALL, "Input shut down.\n");
 }
 
