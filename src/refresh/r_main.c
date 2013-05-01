@@ -1575,14 +1575,15 @@ R_DrawBeam(entity_t *e)
 	qglDepthMask(GL_TRUE);
 }
 
-refexport_t
+//refexport_t
+void *
 R_GetRefAPI(refimport_t rimp)
 {
-	refexport_t re;
+	//refexport_t re;
 
 	ri = rimp;
 
-	re.api_version = API_VERSION;
+	/*re.api_version = API_VERSION;
 
 	re.BeginRegistration = R_BeginRegistration;
 	re.RegisterModel = R_RegisterModel;
@@ -1610,11 +1611,12 @@ R_GetRefAPI(refimport_t rimp)
 	re.BeginFrame = R_BeginFrame;
 	re.EndFrame = GLimp_EndFrame;
 
-	re.AppActivate = NULL;
+	re.AppActivate = NULL;*/
 
 	Swap_Init();
 
-	return re;
+	//return re;
+	return NULL;
 }
 
 /*
