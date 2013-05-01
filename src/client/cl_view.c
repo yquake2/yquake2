@@ -315,7 +315,7 @@ CL_PrepRefresh(void)
 
 	for (i = 1; i < MAX_IMAGES && cl.configstrings[CS_IMAGES + i][0]; i++)
 	{
-		cl.image_precache[i] = re.RegisterPic(cl.configstrings[CS_IMAGES + i]);
+		cl.image_precache[i] = Draw_FindPic(cl.configstrings[CS_IMAGES + i]);
 		Sys_SendKeyEvents();
 	}
 

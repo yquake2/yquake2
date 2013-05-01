@@ -926,7 +926,7 @@ CL_LoadClientinfo(clientinfo_t *ci, char *s)
 		memset(ci->weaponmodel, 0, sizeof(ci->weaponmodel));
 		ci->weaponmodel[0] = R_RegisterModel(weapon_filename);
 		ci->skin = R_RegisterSkin(skin_filename);
-		ci->icon = re.RegisterPic(ci->iconname);
+		ci->icon = Draw_FindPic(ci->iconname);
 	}
 	else
 	{
@@ -1017,7 +1017,7 @@ CL_LoadClientinfo(clientinfo_t *ci, char *s)
 		/* icon file */
 		Com_sprintf(ci->iconname, sizeof(ci->iconname),
 				"/players/%s/%s_i.pcx", model_name, skin_name);
-		ci->icon = re.RegisterPic(ci->iconname);
+		ci->icon = Draw_FindPic(ci->iconname);
 	}
 
 	/* must have loaded all data types to be valid */
@@ -1128,7 +1128,7 @@ CL_ParseConfigString(void)
 	{
 		if (cl.refresh_prepped)
 		{
-			cl.image_precache[i - CS_IMAGES] = re.RegisterPic(cl.configstrings[i]);
+			cl.image_precache[i - CS_IMAGES] = Draw_FindPic(cl.configstrings[i]);
 		}
 	}
 	else if ((i >= CS_PLAYERSKINS) && (i < CS_PLAYERSKINS + MAX_CLIENTS))

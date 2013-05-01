@@ -985,7 +985,7 @@ SCR_TouchPics(void)
 	{
 		for (j = 0; j < 11; j++)
 		{
-			re.RegisterPic(sb_nums[i][j]);
+			Draw_FindPic(sb_nums[i][j]);
 		}
 	}
 
@@ -1397,7 +1397,7 @@ SCR_DrawLayout(void)
 }
 
 /*
- * This is called every frame, and can also be called 
+ * This is called every frame, and can also be called
  * explicitly to flush text to the screen.
  */
 void
@@ -1407,7 +1407,7 @@ SCR_UpdateScreen(void)
 	int i;
 	float separation[2] = {0, 0};
 
-	/* if the screen is disabled (loading plaque is 
+	/* if the screen is disabled (loading plaque is
 	   up, or vid mode changing) do nothing at all */
 	if (cls.disable_screen)
 	{

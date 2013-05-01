@@ -168,10 +168,10 @@ CL_RegisterTEntModels(void)
 	R_RegisterModel("models/objects/gibs/sm_meat/tris.md2");
 	R_RegisterModel("models/objects/gibs/bone2/tris.md2");
 
-	re.RegisterPic("w_machinegun");
-	re.RegisterPic("a_bullets");
-	re.RegisterPic("i_health");
-	re.RegisterPic("a_grenades");
+	Draw_FindPic("w_machinegun");
+	Draw_FindPic("a_bullets");
+	Draw_FindPic("i_health");
+	Draw_FindPic("a_grenades");
 
 	cl_mod_explo4_big = R_RegisterModel("models/objects/r_explode2/tris.md2");
 	cl_mod_lightning = R_RegisterModel("models/proj/lightning/tris.md2");
