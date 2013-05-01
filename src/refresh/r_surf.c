@@ -335,7 +335,7 @@ R_BlendLightmaps(void)
 				/* try uploading the block now */
 				if (!LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
 				{
-					ri.Sys_Error(ERR_FATAL,
+					VID_Error(ERR_FATAL,
 							"Consecutive calls to LM_AllocBlock(%d,%d) failed (dynamic)\n",
 							smax, tmax);
 				}
@@ -429,7 +429,7 @@ R_RenderBrushPoly(msurface_t *fa)
 		if (gl_dynamic->value)
 		{
 			if (!(fa->texinfo->flags &
-				  (SURF_SKY | SURF_TRANS33 | 
+				  (SURF_SKY | SURF_TRANS33 |
 				   SURF_TRANS66 | SURF_WARP)))
 			{
 				is_dynamic = true;
@@ -440,7 +440,7 @@ R_RenderBrushPoly(msurface_t *fa)
 	if (is_dynamic)
 	{
 		if (((fa->styles[maps] >= 32) ||
-			 (fa->styles[maps] == 0)) && 
+			 (fa->styles[maps] == 0)) &&
 			  (fa->dlightframe != r_framecount))
 		{
 			unsigned temp[34 * 34];
@@ -664,7 +664,7 @@ R_RenderLightmappedPoly(msurface_t *surf)
 		int smax, tmax;
 
 		if (((surf->styles[map] >= 32) ||
-			 (surf->styles[map] == 0)) && 
+			 (surf->styles[map] == 0)) &&
 				(surf->dlightframe != r_framecount))
 		{
 			smax = (surf->extents[0] >> 4) + 1;
@@ -1241,7 +1241,7 @@ R_DrawWorld(void)
 }
 
 /*
- * Mark the leaves and nodes that are 
+ * Mark the leaves and nodes that are
  * in the PVS for the current cluster
  */
 void
@@ -1255,14 +1255,14 @@ R_MarkLeaves(void)
 	int cluster;
 
 	if ((r_oldviewcluster == r_viewcluster) &&
-		(r_oldviewcluster2 == r_viewcluster2) && 
+		(r_oldviewcluster2 == r_viewcluster2) &&
 		!gl_novis->value &&
 		(r_viewcluster != -1))
 	{
 		return;
 	}
 
-	/* development aid to let you run around 
+	/* development aid to let you run around
 	   and see exactly where the pvs ends */
 	if (gl_lockpvs->value)
 	{

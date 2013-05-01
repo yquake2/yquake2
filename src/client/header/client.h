@@ -423,8 +423,6 @@ void IN_Accumulate (void);
 
 void CL_ParseLayout (void);
 
-//extern	refexport_t	re;
-
 void CL_Init (void);
 
 void CL_FixUpGender(void);

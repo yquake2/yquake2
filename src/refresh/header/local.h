@@ -83,16 +83,6 @@
 /* fall over */
 #define ROLL 2
 
-#ifndef __VIDDEF_T
- #define __VIDDEF_T
-
-typedef struct
-{
-	int width, height; /* coordinates from main game */
-} viddef_t;
-
-#endif
-
 char *strlwr(char *s);
 
 extern viddef_t vid;
@@ -321,8 +311,6 @@ int Draw_GetPalette(void);
 void R_ResampleTexture(unsigned *in, int inwidth, int inheight,
 		unsigned *out, int outwidth, int outheight);
 
-struct image_s *R_RegisterSkin(char *name);
-
 void LoadPCX(char *filename, byte **pic, byte **palette,
 		int *width, int *height);
 image_t *LoadWal(char *name);
@@ -411,7 +399,6 @@ typedef struct
 
 extern glconfig_t gl_config;
 extern glstate_t gl_state;
-extern refimport_t ri;
 
 void GLimp_BeginFrame(float camera_separation);
 int GLimp_Init(void);

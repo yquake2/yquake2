@@ -76,9 +76,6 @@ vidmode_t vid_modes[] = {
 	{"Mode 23: 2048x1536", 2048, 1536, 23},
 };
 
-/* Structure containing functions exported from refresh DLL */
-//refexport_t re;
-
 /* Console variables that we need to access from this module */
 cvar_t *vid_gamma;
 cvar_t *vid_xpos;               /* X coordinate of window position */
@@ -163,18 +160,9 @@ VID_NewWindow(int width, int height)
 	viddef.height = height;
 }
 
-// Get rid of refexport function pointers
-void
-VID_FreeReflib(void)
-{
-	//memset(&re, 0, sizeof(re));
-}
-
 qboolean
 VID_LoadRefresh(void)
 {
-	refimport_t ri; // Refresh imported functions
-
 	// If the refresher is already active
 	// we'll shut it down
 	VID_Shutdown();
@@ -182,30 +170,8 @@ VID_LoadRefresh(void)
 	// Log it!
 	Com_Printf("----- refresher initialization -----\n");
 
-	// Fill in client functions for the refresher
-	ri.Cmd_AddCommand = Cmd_AddCommand;
-	ri.Cmd_RemoveCommand = Cmd_RemoveCommand;
-	ri.Cmd_Argc = Cmd_Argc;
-	ri.Cmd_Argv = Cmd_Argv;
-	ri.Cmd_ExecuteText = Cbuf_ExecuteText;
-	ri.Con_Printf = VID_Printf;
-	ri.Sys_Error = VID_Error;
-	ri.Sys_Mkdir = Sys_Mkdir;
-	ri.Sys_LoadLibrary = Sys_LoadLibrary;
-	ri.Sys_FreeLibrary = Sys_FreeLibrary;
-	ri.Sys_GetProcAddress = Sys_GetProcAddress;
-	ri.FS_LoadFile = FS_LoadFile;
-	ri.FS_FreeFile = FS_FreeFile;
-	ri.FS_Gamedir = FS_Gamedir;
-	ri.Cvar_Get = Cvar_Get;
-	ri.Cvar_Set = Cvar_Set;
-	ri.Cvar_SetValue = Cvar_SetValue;
-	ri.Vid_GetModeInfo = VID_GetModeInfo;
-	ri.Vid_MenuInit = VID_MenuInit;
-	ri.Vid_NewWindow = VID_NewWindow;
-
 	// Get refresher API exports
-	R_GetRefAPI(ri);
+	//R_GetRefAPI();
 
 	/* Init IN (Mouse) */
 	in_state.IN_CenterView_fp = IN_CenterView;
@@ -225,7 +191,6 @@ VID_LoadRefresh(void)
 	ref_active = true;
 
 	// Initiate the refresher
-	//if (re.Init(0, 0) == -1)
 	if (R_Init(0, 0) == -1)
 	{
 		VID_Shutdown(); // Isn't that just too bad? :(
@@ -288,10 +253,6 @@ VID_Shutdown(void)
 
 		/* Shut down the renderer */
 		R_Shutdown();
-
-		// Get rid of refexport function pointers
-		// (soon to be deleted)
-		VID_FreeReflib();
 	}
 
 	// Declare the refresher as inactive

@@ -93,8 +93,8 @@ R_ScreenShot(void)
 	FILE *f;
 
 	/* create the scrnshots directory if it doesn't exist */
-	Com_sprintf(checkname, sizeof(checkname), "%s/scrnshot", ri.FS_Gamedir());
-	ri.Sys_Mkdir(checkname);
+	Com_sprintf(checkname, sizeof(checkname), "%s/scrnshot", FS_Gamedir());
+	Sys_Mkdir(checkname);
 
 	/* find a file name to save it to */
 	strcpy(picname, "quake00.tga");
@@ -104,7 +104,7 @@ R_ScreenShot(void)
 		picname[5] = i / 10 + '0';
 		picname[6] = i % 10 + '0';
 		Com_sprintf(checkname, sizeof(checkname), "%s/scrnshot/%s",
-			   	ri.FS_Gamedir(), picname);
+			   	FS_Gamedir(), picname);
 		f = fopen(checkname, "rb");
 
 		if (!f)
@@ -117,7 +117,7 @@ R_ScreenShot(void)
 
 	if (i == 100)
 	{
-		ri.Con_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't create a file\n");
+		VID_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't create a file\n");
 		return;
 	}
 
@@ -148,16 +148,16 @@ R_ScreenShot(void)
 	fclose(f);
 
 	free(buffer);
-	ri.Con_Printf(PRINT_ALL, "Wrote %s\n", picname);
+	VID_Printf(PRINT_ALL, "Wrote %s\n", picname);
 }
 
 void
 R_Strings(void)
 {
-	ri.Con_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string);
-	ri.Con_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string);
-	ri.Con_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string);
-	ri.Con_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
+	VID_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string);
+	VID_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string);
+	VID_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string);
+	VID_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
 }
 
 void
