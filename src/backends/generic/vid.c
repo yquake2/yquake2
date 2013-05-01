@@ -175,22 +175,11 @@ VID_LoadRefresh(void)
 {
 	refimport_t ri; // Refresh imported functions
 
-	if (ref_active)
-	{
-		/*if (IN_Close_fp)
-		{
-			IN_Close_fp();
-		}
+	// If the refresher is already active
+	// we'll shut it down
+	VID_Shutdown();
 
-		if (IN_BackendShutdown_fp)
-		{
-			IN_BackendShutdown_fp();
-		}*/
-
-		re.Shutdown();
-		VID_FreeReflib();
-	}
-
+	// Log it!
 	Com_Printf("----- refresher initialization -----\n");
 
 	// Fill in client functions for the refresher
@@ -215,7 +204,7 @@ VID_LoadRefresh(void)
 	ri.Vid_MenuInit = VID_MenuInit;
 	ri.Vid_NewWindow = VID_NewWindow;
 
-	// Get refresher API
+	// Get refresher API exports
 	re = R_GetRefAPI(ri);
 
 	/* Init IN (Mouse) */
@@ -228,19 +217,21 @@ VID_LoadRefresh(void)
 	// Initiate the input backend
 	IN_BackendInit (&in_state);
 
-	if (re.Init(0, 0) == -1)
-	{
-		re.Shutdown();
-		VID_FreeReflib();
-		return false;
-	}
-
 	// Initiate keyboard at the input backend
 	IN_KeyboardInit (Do_Key_Event);
 	Key_ClearStates();
 
-	Com_Printf("------------------------------------\n\n");
+	// Declare the refresher as active
 	ref_active = true;
+
+	// Initiate the refresher
+	if (re.Init(0, 0) == -1)
+	{
+		VID_Shutdown(); // Isn't that just too bad? :(
+		return false;
+	}
+
+	Com_Printf("------------------------------------\n\n");
 	return true;
 }
 
