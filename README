@@ -569,7 +569,7 @@ and even surround support.
 ------------------------------
 This is the original sound implementation, as used in the first release of Quake
 II in 1997. It featured stereo calculations for most samples. It's disabled by
-default and can be reenables by setting "s_openal" to "0", followed by
+default and can be reenabled by setting "s_openal" to "0", followed by
 "snd_restart. Common problems with the classic sound system are:
 
 - The earthquake sound sample is distorted
@@ -618,6 +618,10 @@ vary). The most important options (tested with OpenAL Soft 1.14) are:
   several hard to resamples sound effects. Especially the earthquake sound can
   distort if a low quality resampler is employed!
 
+- hrtf = true -> When playing with headphones this gives a much better surround
+  experience, even with only two channels. But playback will sound "broken" on
+  normal speakers.
+
 If the sound is distorted and cracking, most likely the ingame volume is set too 
 high. Lower it by setting the "s_volume" CVAR to 0.3 or even less and use the 
 system mixer instead! If everything failes set s_openal_maxgain to a lower value
@@ -638,7 +642,7 @@ stdout.txt on Windows).
 
 But first, read this little FAQ:
 
-My sound is not working!
+My SDL sound is not working!
  - Most reported sound problems exist between keyboard and chair. Please make
    sure, the the correct SDL sound backend is installed and configured!
    Does the sound work in other SDL games? Does your setup support at least five
