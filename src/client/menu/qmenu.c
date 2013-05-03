@@ -46,8 +46,6 @@ extern viddef_t viddef;
 
 #define VID_WIDTH viddef.width
 #define VID_HEIGHT viddef.height
-//#define Draw_Char re.DrawChar
-//#define Draw_Fill re.DrawFill
 
 void
 Action_DoEnter(menuaction_s *a)
