@@ -1576,7 +1576,6 @@ R_DrawBeam(entity_t *e)
 void
 R_GetRefAPI(void)
 {
-	//refexport_t re;
 	Swap_Init();
 }
 

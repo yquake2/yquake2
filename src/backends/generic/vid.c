@@ -76,9 +76,6 @@ vidmode_t vid_modes[] = {
 	{"Mode 23: 2048x1536", 2048, 1536, 23},
 };
 
-/* Structure containing functions exported from refresh DLL */
-//refexport_t re;
-
 /* Console variables that we need to access from this module */
 cvar_t *vid_gamma;
 cvar_t *vid_xpos;               /* X coordinate of window position */
@@ -163,13 +160,6 @@ VID_NewWindow(int width, int height)
 	viddef.height = height;
 }
 
-// Get rid of refexport function pointers
-void
-VID_FreeReflib(void)
-{
-	//memset(&re, 0, sizeof(re));
-}
-
 qboolean
 VID_LoadRefresh(void)
 {
@@ -181,7 +171,7 @@ VID_LoadRefresh(void)
 	Com_Printf("----- refresher initialization -----\n");
 
 	// Get refresher API exports
-	R_GetRefAPI(/*ri*/);
+	R_GetRefAPI();
 
 	/* Init IN (Mouse) */
 	in_state.IN_CenterView_fp = IN_CenterView;
@@ -201,7 +191,6 @@ VID_LoadRefresh(void)
 	ref_active = true;
 
 	// Initiate the refresher
-	//if (re.Init(0, 0) == -1)
 	if (R_Init(0, 0) == -1)
 	{
 		VID_Shutdown(); // Isn't that just too bad? :(
@@ -264,10 +253,6 @@ VID_Shutdown(void)
 
 		/* Shut down the renderer */
 		R_Shutdown();
-
-		// Get rid of refexport function pointers
-		// (soon to be deleted)
-		VID_FreeReflib();
 	}
 
 	// Declare the refresher as inactive
