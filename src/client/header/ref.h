@@ -118,7 +118,7 @@ typedef struct {
 } refdef_t;
 
 // Soon to be deleted
-void R_GetRefAPI(void);
+//void R_GetRefAPI(void);
 
 /*
  * Refresh API

@@ -1101,6 +1101,8 @@ R_Init(void *hinstance, void *hWnd)
 	int j;
 	extern float r_turbsin[256];
 
+	Swap_Init();
+
 	for (j = 0; j < 256; j++)
 	{
 		r_turbsin[j] *= 0.5;
@@ -1564,10 +1566,10 @@ R_DrawBeam(entity_t *e)
 	qglDepthMask(GL_TRUE);
 }
 
-void
+/*void
 R_GetRefAPI(void)
 {
 	Swap_Init();
-}
+}*/
 
 
