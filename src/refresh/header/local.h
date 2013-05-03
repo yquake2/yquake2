@@ -311,8 +311,6 @@ int Draw_GetPalette(void);
 void R_ResampleTexture(unsigned *in, int inwidth, int inheight,
 		unsigned *out, int outwidth, int outheight);
 
-struct image_s *R_RegisterSkin(char *name);
-
 void LoadPCX(char *filename, byte **pic, byte **palette,
 		int *width, int *height);
 image_t *LoadWal(char *name);
