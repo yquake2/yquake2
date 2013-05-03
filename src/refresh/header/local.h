@@ -83,16 +83,6 @@
 /* fall over */
 #define ROLL 2
 
-#ifndef __VIDDEF_T
- #define __VIDDEF_T
-
-typedef struct
-{
-	int width, height; /* coordinates from main game */
-} viddef_t;
-
-#endif
-
 char *strlwr(char *s);
 
 extern viddef_t vid;

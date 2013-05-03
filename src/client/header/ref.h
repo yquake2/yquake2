@@ -28,6 +28,7 @@
 #define CL_REF_H
 
 #include "../../common/header/common.h"
+#include "vid.h"
 
 #define	MAX_DLIGHTS		32
 #define	MAX_ENTITIES	128
