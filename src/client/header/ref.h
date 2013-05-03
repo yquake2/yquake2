@@ -124,6 +124,7 @@ void R_GetRefAPI(void);
  * Refresh API
  */
 void R_BeginRegistration(char *map);
+void R_Clear(void);
 struct model_s *R_RegisterModel(char *name);
 struct image_s *R_RegisterSkin(char *name);
 void R_SetSky(char *name, float rotate, vec3_t axis);
