@@ -1365,7 +1365,7 @@ ClientEndServerFrame(edict_t *ent)
 	VectorClear(ent->client->kick_origin);
 	VectorClear(ent->client->kick_angles);
 
-	if (level.framenum & 31)
+	if (!(level.framenum & 31))
 	{
 		/* if the scoreboard is up, update it */
 		if (ent->client->showscores)
