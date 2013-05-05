@@ -4,7 +4,6 @@
 # Just type "make" to compile the                        #
 #  - SDL Client (quake2)                                 #
 #  - Server (q2ded)                                      #
-#  - SDL OpenGL-Refresher (ref_gl.so or ref_gl.dll)      #
 #  - Quake II Game (baseq2)                              #
 #                                                        #
 # Base dependencies:                                     #
@@ -702,7 +701,7 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 ifeq ($(OSTYPE), Windows)
 release/quake2.exe : $(CLIENT_OBJS) $(OPENGL_OBJS) icon
 	@echo "===> LD $@"
-	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
 release/quake2 : $(CLIENT_OBJS) $(OPENGL_OBJS)
 	@echo "===> LD $@"
