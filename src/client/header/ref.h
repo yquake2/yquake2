@@ -28,6 +28,7 @@
 #define CL_REF_H
 
 #include "../../common/header/common.h"
+#include "vid.h"
 
 #define	MAX_DLIGHTS		32
 #define	MAX_ENTITIES	128
@@ -116,101 +117,32 @@ typedef struct {
 	particle_t	*particles;
 } refdef_t;
 
-/*
- * these are the functions exported by the refresh module
- */
-typedef struct {
-	/* if api_version is different, the dll cannot be used */
-	int		api_version;
-
-	/* called when the library is loaded */
-	int		(*Init)(void *hinstance, void *wndproc);
-
-	/* called before the library is unloaded */
-	void	(*Shutdown)(void);
-
-	/* All data that will be used in a level should be
-	   registered before rendering any frames to prevent disk hits,
-	   but they can still be registered at a later time
-	   if necessary.
-
-	   EndRegistration will free any remaining data that wasn't registered.
-	   Any model_s or skin_s pointers from before the BeginRegistration
-	   are no longer valid after EndRegistration.
-
-	   Skins and images need to be differentiated, because skins
-	   are flood filled to eliminate mip map edge errors, and pics have
-	   an implicit "pics/" prepended to the name. (a pic name that starts with a
-	   slash will not use the "pics/" prefix or the ".pcx" postfix) */
-	void	(*BeginRegistration)(char *map);
-	struct model_s *(*RegisterModel)(char *name);
-	struct image_s *(*RegisterSkin)(char *name);
-	struct image_s *(*RegisterPic)(char *name);
-	void	(*SetSky)(char *name, float rotate, vec3_t axis);
-	void	(*EndRegistration)(void);
-
-	void	(*RenderFrame)(refdef_t *fd);
-	void	(*DrawStretchPic)(int x, int y, int w, int h, char *name);
-	void	(*DrawChar)(int x, int y, int c);
-	void	(*DrawGetPicSize)(int *w, int *h, char *name);	/* will return 0 0 if not found */
-	void	(*DrawPic)(int x, int y, char *name);
-	void	(*DrawTileClear)(int x, int y, int w, int h, char *name);
-	void	(*DrawFill)(int x, int y, int w, int h, int c);
-	void	(*DrawFadeScreen)(void);
-
-	/* Draw images for cinematic rendering (which can have a different palette). Note that calls */
-	void	(*DrawStretchRaw)(int x, int y, int w, int h, int cols, int rows, byte *data);
-
-	/* video mode and refresh state management entry points */
-	void	(*CinematicSetPalette)(const unsigned char *palette);	/* NULL = game palette */
-	void	(*BeginFrame)(float camera_separation);
-	void	(*EndFrame)(void);
-
-	void	(*AppActivate)(qboolean activate);
-
-} refexport_t;
+// Soon to be deleted
+//void R_GetRefAPI(void);
 
 /*
- * these are the functions imported by the refresh module
+ * Refresh API
  */
-typedef struct {
-	void	(*Sys_Error)(int err_level, char *str, ...);
-	void	(*Sys_Mkdir)(char *path);
-	void	(*Sys_FreeLibrary)(void *handle);
-	void	*(*Sys_LoadLibrary)(const char *path, const char *sym, void **handle);
-	void	*(*Sys_GetProcAddress)(void *handle, const char *sym);
-
-	void	(*Cmd_AddCommand)(char *name, void(*cmd)(void));
-	void	(*Cmd_RemoveCommand)(char *name);
-	int		(*Cmd_Argc)(void);
-	char	*(*Cmd_Argv)(int i);
-	void	(*Cmd_ExecuteText)(int exec_when, char *text);
-
-	void	(*Con_Printf)(int print_level, char *str, ...);
-
-	/* files will be memory mapped read only
-	   the returned buffer may be part of a larger pak file,
-	   or a discrete file from anywhere in the quake search path
-	   a -1 return means the file does not exist
-	   NULL can be passed for buf to just determine existance */
-	int		(*FS_LoadFile)(char *name, void **buf);
-	void	(*FS_FreeFile)(void *buf);
-
-	/* The gamedir is the ./baseq2 directory (read only) and the
-	   ~/.quake2/baseq2 directory for write operations. The later
-	   overrides the first */
-	char	*(*FS_Gamedir)(void);
-
-	cvar_t	*(*Cvar_Get)(char *name, char *value, int flags);
-	cvar_t	*(*Cvar_Set)(char *name, char *value);
-	void	(*Cvar_SetValue)(char *name, float value);
-
-	qboolean(*Vid_GetModeInfo)(int *width, int *height, int mode);
-	void	(*Vid_MenuInit)(void);
-	void	(*Vid_NewWindow)(int width, int height);
-} refimport_t;
-
-/* this is the only function actually exported at the linker level */
-typedef	refexport_t	(*R_GetRefAPI_t)(refimport_t);
+void R_BeginRegistration(char *map);
+void R_Clear(void);
+struct model_s *R_RegisterModel(char *name);
+struct image_s *R_RegisterSkin(char *name);
+void R_SetSky(char *name, float rotate, vec3_t axis);
+void R_EndRegistration(void);
+struct image_s *Draw_FindPic(char *name);
+void R_RenderFrame(refdef_t *fd);
+void Draw_GetPicSize(int *w, int *h, char *name);
+void Draw_Pic(int x, int y, char *name);
+void Draw_StretchPic(int x, int y, int w, int h, char *name);
+void Draw_Char(int x, int y, int c);
+void Draw_TileClear(int x, int y, int w, int h, char *name);
+void Draw_Fill(int x, int y, int w, int h, int c);
+void Draw_FadeScreen(void);
+void Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
+int R_Init(void *hinstance, void *hWnd);
+void R_Shutdown(void);
+void R_SetPalette(const unsigned char *palette);
+void R_BeginFrame(float camera_separation);
+void GLimp_EndFrame(void);
 
 #endif

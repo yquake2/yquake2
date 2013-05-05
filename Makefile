@@ -4,7 +4,6 @@
 # Just type "make" to compile the                        #
 #  - SDL Client (quake2)                                 #
 #  - Server (q2ded)                                      #
-#  - SDL OpenGL-Refresher (ref_gl.so or ref_gl.dll)      #
 #  - Quake II Game (baseq2)                              #
 #                                                        #
 # Base dependencies:                                     #
@@ -229,13 +228,27 @@ endif
 # ----------
 
 # Phony targets
-.PHONY : all client game icon refresher server
+#.PHONY : all client game icon refresher server
+.PHONY : all client game icon server
 
 # ----------
 
 # Builds everything
-all: client server refresher game
+all: config client server game
 
+# Print config values
+config:
+	@echo "Build configuration"
+	@echo "============================"
+	@echo "WITH_CDA = $(WITH_CDA)"
+	@echo "WITH_OPENAL = $(WITH_OPENAL)"
+	@echo "WITH_RETEXTURING = $(WITH_RETEXTURING)"
+	@echo "WITH_X11GAMMA = $(WITH_X11GAMMA)"
+	@echo "WITH_ZIP = $(WITH_ZIP)"
+	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
+	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
+	@echo "============================"
+	
 # ----------
 
 # Special target to compile
@@ -391,46 +404,31 @@ endif
 
 # The refresher
 ifeq ($(OSTYPE), Windows)
-refresher:
-	@echo "===> Building ref_gl.dll"
-	${Q}stuff/misc/mkdir.exe -p release
-	$(MAKE) release/ref_gl.dll
-
 build/refresher/%.o: %.c
 	@echo "===> CC $<"
 	${Q}stuff/misc/mkdir.exe -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
 
-release/ref_gl.dll : LDFLAGS += -shared
-
 ifeq ($(WITH_RETEXTURING),yes)
-release/ref_gl.dll : CFLAGS += -DRETEXTURE
-release/ref_gl.dll : LDFLAGS += -ljpeg
+release/quake2.exe : CFLAGS += -DRETEXTURE
+release/quake2.exe : LDFLAGS += -ljpeg
 endif
 else
-refresher:
-	@echo "===> Building ref_gl.so"
-	${Q}mkdir -p release
-	$(MAKE) release/ref_gl.so
-
 build/refresher/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
 
-release/ref_gl.so : CFLAGS += -fPIC
-release/ref_gl.so : LDFLAGS += -shared
-
 ifeq ($(WITH_X11GAMMA),yes)
-release/ref_gl.so : CFLAGS += -DX11GAMMA
+release/quake2 : CFLAGS += -DX11GAMMA
 endif
 
 ifeq ($(WITH_RETEXTURING),yes)
-release/ref_gl.so : CFLAGS += -DRETEXTURE
+release/quake2 : CFLAGS += -DRETEXTURE
 ifeq ($(OSTYPE), Darwin)
-release/ref_gl.so : LDFLAGS += -framework libjpeg
+release/quake2 : LDFLAGS += -framework libjpeg
 else
-release/ref_gl.so : LDFLAGS += -ljpeg
+release/quake2 : LDFLAGS += -ljpeg
 endif
 endif
 
@@ -671,16 +669,7 @@ OPENGL_OBJS_ = \
 	src/refresh/files/sp2.o \
 	src/refresh/files/tga.o \
 	src/refresh/files/jpeg.o \
-	src/refresh/files/wal.o \
-	src/common/shared/shared.o
-
-ifeq ($(OSTYPE), Windows)
-OPENGL_OBJS_ += \
-	src/backends/windows/shared/mem.o
-else
-OPENGL_OBJS_ += \
-	src/backends/unix/shared/hunk.o
-endif
+	src/refresh/files/wal.o
 
 # ----------
 
@@ -710,13 +699,13 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 
 # release/quake2
 ifeq ($(OSTYPE), Windows)
-release/quake2.exe : $(CLIENT_OBJS) icon
+release/quake2.exe : $(CLIENT_OBJS) $(OPENGL_OBJS) icon
 	@echo "===> LD $@"
-	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
-release/quake2 : $(CLIENT_OBJS)
+release/quake2 : $(CLIENT_OBJS) $(OPENGL_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(CLIENT_OBJS) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) $(X11LDFLAGS) -o $@
 endif
 
 # release/q2ded
@@ -728,21 +717,6 @@ else
 release/q2ded : $(SERVER_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@
-endif
-
-# release/ref_gl.so
-ifeq ($(OSTYPE), Windows)
-release/ref_gl.dll : $(OPENGL_OBJS)
-	@echo "===> LD $@"
-	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
-else ifeq ($(OSTYPE), Darwin)
-release/ref_gl.so : $(OPENGL_OBJS)
-	@echo "===> LD $@"
-	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
-else
-release/ref_gl.so : $(OPENGL_OBJS)
-	@echo "===> LD $@"
-	${Q}$(CC) $(OPENGL_OBJS) $(LDFLAGS) $(X11LDFLAGS) -o $@
 endif
 
 # release/baseq2/game.so

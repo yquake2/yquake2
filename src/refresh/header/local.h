@@ -83,16 +83,6 @@
 /* fall over */
 #define ROLL 2
 
-#ifndef __VIDDEF_T
- #define __VIDDEF_T
-
-typedef struct
-{
-	int width, height; /* coordinates from main game */
-} viddef_t;
-
-#endif
-
 char *strlwr(char *s);
 
 extern viddef_t vid;
@@ -287,8 +277,6 @@ extern unsigned d_8to24table[256];
 extern int registration_sequence;
 
 void V_AddBlend(float r, float g, float b, float a, float *v_blend);
-int R_Init(void *hinstance, void *hWnd);
-void R_Shutdown(void);
 
 void R_RenderView(refdef_t *fd);
 void R_ScreenShot(void);
@@ -316,25 +304,12 @@ void R_MarkLights(dlight_t *light, int bit, mnode_t *node);
 
 void COM_StripExtension(char *in, char *out);
 
-void Draw_GetPicSize(int *w, int *h, char *name);
-void Draw_Pic(int x, int y, char *name);
-void Draw_StretchPic(int x, int y, int w, int h, char *name);
-void Draw_Char(int x, int y, int c);
-void Draw_TileClear(int x, int y, int w, int h, char *name);
-void Draw_Fill(int x, int y, int w, int h, int c);
-void Draw_FadeScreen(void);
-void Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
-
-void R_BeginFrame(float camera_separation);
 void R_SwapBuffers(int);
-void R_SetPalette(const unsigned char *palette);
 
 int Draw_GetPalette(void);
 
 void R_ResampleTexture(unsigned *in, int inwidth, int inheight,
 		unsigned *out, int outwidth, int outheight);
-
-struct image_s *R_RegisterSkin(char *name);
 
 void LoadPCX(char *filename, byte **pic, byte **palette,
 		int *width, int *height);
@@ -424,10 +399,8 @@ typedef struct
 
 extern glconfig_t gl_config;
 extern glstate_t gl_state;
-extern refimport_t ri;
 
 void GLimp_BeginFrame(float camera_separation);
-void GLimp_EndFrame(void);
 int GLimp_Init(void);
 void GLimp_Shutdown(void);
 int GLimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen);

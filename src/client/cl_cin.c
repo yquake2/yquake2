@@ -168,7 +168,7 @@ SCR_StopCinematic(void)
 
 	if (cl.cinematicpalette_active)
 	{
-		re.CinematicSetPalette(NULL);
+		R_SetPalette(NULL);
 		cl.cinematicpalette_active = false;
 	}
 
@@ -512,14 +512,14 @@ SCR_DrawCinematic(void)
 	/* blank screen and pause if menu is up */
 	if (cls.key_dest == key_menu)
 	{
-		re.CinematicSetPalette(NULL);
+		R_SetPalette(NULL);
 		cl.cinematicpalette_active = false;
 		return true;
 	}
 
 	if (!cl.cinematicpalette_active)
 	{
-		re.CinematicSetPalette(cl.cinematicpalette);
+		R_SetPalette(cl.cinematicpalette);
 		cl.cinematicpalette_active = true;
 	}
 
@@ -549,22 +549,22 @@ SCR_DrawCinematic(void)
 
 	if (x > 0)
 	{
-		re.DrawFill(0, 0, x, viddef.height, 0);
+		Draw_Fill(0, 0, x, viddef.height, 0);
 	}
 	if (x + w < viddef.width)
 	{
-		re.DrawFill(x + w, 0, viddef.width - (x + w), viddef.height, 0);
+		Draw_Fill(x + w, 0, viddef.width - (x + w), viddef.height, 0);
 	}
 	if (y > 0)
 	{
-		re.DrawFill(x, 0, w, y, 0);
+		Draw_Fill(x, 0, w, y, 0);
 	}
 	if (y + h < viddef.height)
 	{
-		re.DrawFill(x, y + h, w, viddef.height - (y + h), 0);
+		Draw_Fill(x, y + h, w, viddef.height - (y + h), 0);
 	}
 
-	re.DrawStretchRaw(x, y, w, h, cin.width, cin.height, cin.pic);
+	Draw_StretchRaw(x, y, w, h, cin.width, cin.height, cin.pic);
 
 	return true;
 }

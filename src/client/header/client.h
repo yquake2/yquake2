@@ -33,7 +33,7 @@
 /* I will have to double check this but if my experience in adding CLIPS to
  * LLVM is any sign then long int will fail horribly but long long will work on
  * ia64. I'll double check this on my zx6000. */
-#define INT long long 
+#define INT long long
 #else
 #define INT int
 #endif
@@ -422,8 +422,6 @@ void CL_Quit_f (void);
 void IN_Accumulate (void);
 
 void CL_ParseLayout (void);
-
-extern	refexport_t	re;
 
 void CL_Init (void);
 

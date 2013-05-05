@@ -66,7 +66,7 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 	*pic = NULL;
 
 	/* load the file */
-	length = ri.FS_LoadFile(name, (void **)&buffer);
+	length = FS_LoadFile(name, (void **)&buffer);
 
 	if (!buffer)
 	{
@@ -75,7 +75,7 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 
 	if (length < 18)
 	{
-		ri.Sys_Error(ERR_DROP, "LoadTGA: %s has an invalid file size", name);
+		VID_Error(ERR_DROP, "LoadTGA: %s has an invalid file size", name);
 	}
 
 	buf_p = buffer;
@@ -107,17 +107,17 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 		(targa_header.image_type != 10) &&
 		(targa_header.image_type != 3))
 	{
-		ri.Sys_Error(ERR_DROP, "LoadTGA (%s): Only type 2 (RGB), 3 (gray), and 10 (RGB) TGA images supported", name);
+		VID_Error(ERR_DROP, "LoadTGA (%s): Only type 2 (RGB), 3 (gray), and 10 (RGB) TGA images supported", name);
 	}
 
 	if (targa_header.colormap_type != 0)
 	{
-		ri.Sys_Error(ERR_DROP, "LoadTGA (%s): colormaps not supported", name);
+		VID_Error(ERR_DROP, "LoadTGA (%s): colormaps not supported", name);
 	}
 
 	if (((targa_header.pixel_size != 32) && (targa_header.pixel_size != 24)) && (targa_header.image_type != 3))
 	{
-		ri.Sys_Error( ERR_DROP, "LoadTGA (%s): Only 32 or 24 bit images supported (no colormaps)", name);
+		VID_Error( ERR_DROP, "LoadTGA (%s): Only 32 or 24 bit images supported (no colormaps)", name);
 	}
 
 	columns = targa_header.width;
@@ -136,7 +136,7 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 
 	if (!columns || !rows || (numPixels > 0x7FFFFFFF) || (numPixels / columns / 4 != rows))
 	{
-		ri.Sys_Error(ERR_DROP, "LoadTGA (%s): Invalid image size", name);
+		VID_Error(ERR_DROP, "LoadTGA (%s): Invalid image size", name);
 	}
 
 	targa_rgba = malloc(numPixels);
@@ -158,7 +158,7 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 
 				if (buf_p - buffer + (3 * columns * rows) > length)
 				{
-					ri.Sys_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
+					VID_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
 				}
 
 				for (row = rows - 1; row >= 0; row--)
@@ -185,7 +185,7 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 
 				if (buf_p - buffer + (4 * columns * rows) > length)
 				{
-					ri.Sys_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
+					VID_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
 				}
 
 				for (row = rows - 1; row >= 0; row--)
@@ -213,7 +213,7 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 
 				if (buf_p - buffer + (1 * columns * rows) > length)
 				{
-					ri.Sys_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
+					VID_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
 				}
 
 				for (row = rows - 1; row >= 0; row--)
@@ -266,7 +266,7 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 
 							if (buf_p - buffer + (3) > length)
 							{
-								ri.Sys_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
+								VID_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
 							}
 
 							blue = *buf_p++;
@@ -278,7 +278,7 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 
 							if (buf_p - buffer + (4) > length)
 							{
-								ri.Sys_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
+								VID_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
 							}
 
 							blue = *buf_p++;
@@ -325,7 +325,7 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 
 							if (buf_p - buffer + (3 * packetSize) > length)
 							{
-								ri.Sys_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
+								VID_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
 							}
 
 							for (j = 0; j < packetSize; j++)
@@ -364,7 +364,7 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 
 							if (buf_p - buffer + (4 * packetSize) > length)
 							{
-								ri.Sys_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
+								VID_Error( ERR_DROP, "LoadTGA: (%s): Pointer passed end of file - corrupt TGA file", name);
 							}
 
 							for (j = 0; j < packetSize; j++)
@@ -417,10 +417,10 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 
 		if (!temp)
 		{
-			ri.Sys_Error(ERR_FATAL, "LoadTGA: not enough memory");
+			VID_Error(ERR_FATAL, "LoadTGA: not enough memory");
 		}
 
-		ri.Con_Printf(PRINT_DEVELOPER, "LoadTGA: Bottom-to-top TGA file (slow): %s\n", name);
+		VID_Printf(PRINT_DEVELOPER, "LoadTGA: Bottom-to-top TGA file (slow): %s\n", name);
 		memcpy(temp, targa_rgba, numPixels);
 
 		for (row = 0; row < rows; row++)
@@ -431,5 +431,5 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 		free(temp);
 	}
 
-	ri.FS_FreeFile(buffer);
+	FS_FreeFile(buffer);
 }

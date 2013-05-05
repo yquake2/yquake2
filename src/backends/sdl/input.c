@@ -24,7 +24,7 @@
  *
  * =======================================================================
  */
- 
+
 #include "../../refresh/header/local.h"
 #include "../../client/header/keyboard.h"
 #include "../generic/header/input.h"
@@ -91,7 +91,7 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 
 	if ((keysym >= SDLK_SPACE) && (keysym < SDLK_DELETE))
 	{
-		/* These happen to match 
+		/* These happen to match
 		   the ASCII chars */
 		key = (int)keysym;
 	}
@@ -353,18 +353,18 @@ IN_GetEvent(SDL_Event *event)
 
 			/* Fullscreen switch via Alt-Return */
 			if ((KeyStates[SDLK_LALT] ||
-				 KeyStates[SDLK_RALT]) && 
+				 KeyStates[SDLK_RALT]) &&
 				 (event->key.keysym.sym == SDLK_RETURN))
 			{
 				SDL_WM_ToggleFullScreen(surface);
 
 				if (surface->flags & SDL_FULLSCREEN)
 				{
-					ri.Cvar_SetValue("vid_fullscreen", 1);
+					Cvar_SetValue("vid_fullscreen", 1);
 				}
 				else
 				{
-					ri.Cvar_SetValue("vid_fullscreen", 0);
+					Cvar_SetValue("vid_fullscreen", 0);
 				}
 
 				vid_fullscreen->modified = false;
@@ -380,7 +380,7 @@ IN_GetEvent(SDL_Event *event)
 				KeyStates[SDLK_RSHIFT]) &&
 				(event->key.keysym.sym == SDLK_ESCAPE))
 			{
-				ri.Cmd_ExecuteText(EXEC_NOW, "toggleconsole");
+				Cbuf_ExecuteText(EXEC_NOW, "toggleconsole");
 
 				break;
 			}
@@ -598,8 +598,7 @@ IN_MLookUp(void)
 }
 
 /*
- * Keyboard initialisation. Called
- * by the client via function pointer
+ * Keyboard initialisation. Called by the client.
  */
 void
 IN_KeyboardInit(Key_Event_fp_t fp)
@@ -627,32 +626,32 @@ void
 IN_BackendInit(in_state_t *in_state_p)
 {
 	in_state = in_state_p;
-	m_filter = ri.Cvar_Get("m_filter", "0", CVAR_ARCHIVE);
-	in_mouse = ri.Cvar_Get("in_mouse", "0", CVAR_ARCHIVE);
+	m_filter = Cvar_Get("m_filter", "0", CVAR_ARCHIVE);
+	in_mouse = Cvar_Get("in_mouse", "0", CVAR_ARCHIVE);
 
-	freelook = ri.Cvar_Get("freelook", "1", 0);
-	lookstrafe = ri.Cvar_Get("lookstrafe", "0", 0);
-	sensitivity = ri.Cvar_Get("sensitivity", "3", 0);
-	exponential_speedup = ri.Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
+	freelook = Cvar_Get("freelook", "1", 0);
+	lookstrafe = Cvar_Get("lookstrafe", "0", 0);
+	sensitivity = Cvar_Get("sensitivity", "3", 0);
+	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 
-	m_pitch = ri.Cvar_Get("m_pitch", "0.022", 0);
-	m_yaw = ri.Cvar_Get("m_yaw", "0.022", 0);
-	m_forward = ri.Cvar_Get("m_forward", "1", 0);
-	m_side = ri.Cvar_Get("m_side", "0.8", 0);
+	m_pitch = Cvar_Get("m_pitch", "0.022", 0);
+	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
+	m_forward = Cvar_Get("m_forward", "1", 0);
+	m_side = Cvar_Get("m_side", "0.8", 0);
 
-	ri.Cmd_AddCommand("+mlook", IN_MLookDown);
-	ri.Cmd_AddCommand("-mlook", IN_MLookUp);
-	ri.Cmd_AddCommand("force_centerview", IN_ForceCenterView);
+	Cmd_AddCommand("+mlook", IN_MLookDown);
+	Cmd_AddCommand("-mlook", IN_MLookUp);
+	Cmd_AddCommand("force_centerview", IN_ForceCenterView);
 
 	mouse_x = mouse_y = 0.0;
 
-	windowed_mouse = ri.Cvar_Get("windowed_mouse", "1",
+	windowed_mouse = Cvar_Get("windowed_mouse", "1",
 			CVAR_USERINFO | CVAR_ARCHIVE);
-	in_grab = ri.Cvar_Get("in_grab", "2", CVAR_ARCHIVE);
+	in_grab = Cvar_Get("in_grab", "2", CVAR_ARCHIVE);
 
-	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 
-	ri.Con_Printf(PRINT_ALL, "Input initialized.\n");
+	VID_Printf(PRINT_ALL, "Input initialized.\n");
 }
 
 /*
@@ -661,10 +660,10 @@ IN_BackendInit(in_state_t *in_state_p)
 void
 IN_BackendShutdown(void)
 {
-	ri.Cmd_RemoveCommand("+mlook");
-	ri.Cmd_RemoveCommand("-mlook");
-	ri.Cmd_RemoveCommand("force_centerview");
-	ri.Con_Printf(PRINT_ALL, "Input shut down.\n");
+	Cmd_RemoveCommand("+mlook");
+	Cmd_RemoveCommand("-mlook");
+	Cmd_RemoveCommand("force_centerview");
+	VID_Printf(PRINT_ALL, "Input shut down.\n");
 }
 
 /*

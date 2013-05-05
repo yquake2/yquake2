@@ -250,7 +250,7 @@ CL_PrepRefresh(void)
 	/* register models, pics, and skins */
 	Com_Printf("Map: %s\r", mapname);
 	SCR_UpdateScreen();
-	re.BeginRegistration(mapname);
+	R_BeginRegistration (mapname);
 	Com_Printf("                                     \r");
 
 	/* precache status bar pics */
@@ -290,7 +290,7 @@ CL_PrepRefresh(void)
 		}
 		else
 		{
-			cl.model_draw[i] = re.RegisterModel(cl.configstrings[CS_MODELS + i]);
+			cl.model_draw[i] = R_RegisterModel(cl.configstrings[CS_MODELS + i]);
 
 			if (name[0] == '*')
 			{
@@ -314,7 +314,7 @@ CL_PrepRefresh(void)
 
 	for (i = 1; i < MAX_IMAGES && cl.configstrings[CS_IMAGES + i][0]; i++)
 	{
-		cl.image_precache[i] = re.RegisterPic(cl.configstrings[CS_IMAGES + i]);
+		cl.image_precache[i] = Draw_FindPic(cl.configstrings[CS_IMAGES + i]);
 		Sys_SendKeyEvents();
 	}
 
@@ -341,11 +341,11 @@ CL_PrepRefresh(void)
 	SCR_UpdateScreen();
 	rotate = (float)strtod(cl.configstrings[CS_SKYROTATE], (char **)NULL);
 	sscanf(cl.configstrings[CS_SKYAXIS], "%f %f %f", &axis[0], &axis[1], &axis[2]);
-	re.SetSky(cl.configstrings[CS_SKY], rotate, axis);
+	R_SetSky(cl.configstrings[CS_SKY], rotate, axis);
 	Com_Printf("                                     \r");
 
 	/* the renderer can now free unneeded stuff */
-	re.EndRegistration();
+	R_EndRegistration();
 
 	/* clear any lines of console text */
 	Con_ClearNotify();
@@ -441,7 +441,7 @@ V_Gun_Model_f(void)
 	}
 
 	Com_sprintf(name, sizeof(name), "models/%s/tris.md2", Cmd_Argv(1));
-	gun_model = re.RegisterModel(name);
+	gun_model = R_RegisterModel(name);
 }
 
 void
@@ -568,7 +568,7 @@ V_RenderView(float stereo_separation)
 				entitycmpfnc);
 	}
 
-	re.RenderFrame(&cl.refdef);
+	R_RenderFrame(&cl.refdef);
 
 	if (cl_stats->value)
 	{
