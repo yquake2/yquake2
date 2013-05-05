@@ -702,7 +702,7 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 ifeq ($(OSTYPE), Windows)
 release/quake2.exe : $(CLIENT_OBJS) $(OPENGL_OBJS) icon
 	@echo "===> LD $@"
-	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
 release/quake2 : $(CLIENT_OBJS) $(OPENGL_OBJS)
 	@echo "===> LD $@"
