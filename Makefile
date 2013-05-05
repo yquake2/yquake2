@@ -4,7 +4,6 @@
 # Just type "make" to compile the                        #
 #  - SDL Client (quake2)                                 #
 #  - Server (q2ded)                                      #
-#  - SDL OpenGL-Refresher (ref_gl.so or ref_gl.dll)      #
 #  - Quake II Game (baseq2)                              #
 #                                                        #
 # Base dependencies:                                     #
