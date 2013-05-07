@@ -38,17 +38,14 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	byte *out, *pix;
 	char filename[256];
 
+	strncpy(filename, origname, sizeof(filename) - 1);
+	filename[sizeof(filename) - 1] = '\0';
+
 	/* Add the extension */
 	filelen = strlen(origname);
-
-	if (strcmp(origname + filelen - 4, ".pcx"))
+	if (strcmp(filename + filelen - 4, ".pcx"))
 	{
-		strncpy(filename, origname, 256);
-		strncat(filename, ".pcx", 255);
-	}
-	else
-	{
-		strncpy(filename, origname, 256);
+		strncat(filename, ".pcx", sizeof(filename) - 1 - filelen);
 	}
 
 	*pic = NULL;

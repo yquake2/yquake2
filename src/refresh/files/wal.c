@@ -35,17 +35,14 @@ LoadWal(char *origname)
 	int len;
 	char name[256];
 
-	/* Add the extension */
-	len = strlen(origname);
+	strncpy(name, origname, sizeof(name) - 1);
+	name[sizeof(name) - 1] = '\0';
 
-	if (strcmp(origname + len - 4, ".wal"))
+	/* Add the extension */
+	len = strlen(name);
+	if (strcmp(name + len - 4, ".wal"))
 	{
-		strncpy(name, origname, 256);
-		strncat(name, ".wal", 255);
-	}
-	else
-	{
-		strncpy(name, origname, 256);
+		strncat(name, ".wal", sizeof(name) - 1 - len);
 	}
 
 	ri.FS_LoadFile(name, (void **)&mt);

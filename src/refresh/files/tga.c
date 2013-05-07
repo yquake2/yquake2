@@ -50,17 +50,14 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 	char name[256];
 	int len;
 
+	strncpy(name, origname, sizeof(name) - 1);
+	name[sizeof(name) - 1] = '\0';
+
 	/* Add the extension */
 	len = strlen(origname);
-
-	if (strcmp(origname + len - 4, ".tga"))
+	if (strcmp(name + len - 4, ".tga"))
 	{
-		strncpy(name, origname, 256);
-		strncat(name, ".tga", 255);
-	}
-	else
-	{
-		strncpy(name, origname, 256);
+		strncat(name, ".tga", sizeof(name) - 1 - len);
 	}
 
 	*pic = NULL;

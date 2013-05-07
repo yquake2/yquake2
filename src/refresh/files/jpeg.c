@@ -85,17 +85,14 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 	byte *rawdata, *rgbadata, *scanline, *p, *q;
 	unsigned int rawsize, i;
 
-	/* Add the extension */
-	len = strlen(origname);
+	strncpy(filename, origname, sizeof(filename) - 1);
+	filename[sizeof(filename) - 1] = '\0';
 
-	if (strcmp(origname + len - 4, ".jpg"))
+	/* Add the extension */
+	len = strlen(filename);
+	if (strcmp(filename + len - 4, ".jpg"))
 	{
-		strncpy(filename, origname, 256);
-		strncat(filename, ".jpg", 255);
-	}
-	else
-	{
-		strncpy(filename, origname, 256);
+		strncat(filename, ".jpg", sizeof(filename) - 1 - len);
 	}
 
 	*pic = NULL;
