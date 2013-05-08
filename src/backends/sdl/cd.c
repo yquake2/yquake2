@@ -332,7 +332,11 @@ CDAudio_Init()
 		return -1;
 	}
 
+#ifdef OGG
+	cd_nocd = Cvar_Get("cd_nocd", "1", CVAR_ARCHIVE);
+#else
 	cd_nocd = Cvar_Get("cd_nocd", "0", CVAR_ARCHIVE);
+#endif
 
 	if (cd_nocd->value)
 	{

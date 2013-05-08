@@ -74,7 +74,7 @@ OGG_Init(void)
 	Com_Printf("Starting Ogg Vorbis.\n");
 
 	/* Skip initialization if disabled. */
-	cv = Cvar_Get("ogg_enable", "0", CVAR_ARCHIVE);
+	cv = Cvar_Get("ogg_enable", "1", CVAR_ARCHIVE);
 
 	if (cv->value != 1)
 	{
@@ -696,7 +696,7 @@ OGG_ParseCmd(char *arg)
 	int n;
 	cvar_t *ogg_enable;
 
-	ogg_enable = Cvar_Get("ogg_enable", "0", CVAR_ARCHIVE);
+	ogg_enable = Cvar_Get("ogg_enable", "1", CVAR_ARCHIVE);
 
 	switch (arg[0])
 	{
