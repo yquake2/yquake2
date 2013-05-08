@@ -40,7 +40,7 @@ LoadWal(char *origname)
 
 	/* Add the extension */
 	len = strlen(name);
-	if (strcmp(name + len - 4, ".wal"))
+	if (len >= 4 && strcmp(name + len - 4, ".wal"))
 	{
 		strncat(name, ".wal", sizeof(name) - 1 - len);
 	}

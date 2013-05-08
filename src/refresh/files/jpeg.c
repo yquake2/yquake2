@@ -90,7 +90,7 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 
 	/* Add the extension */
 	len = strlen(filename);
-	if (strcmp(filename + len - 4, ".jpg"))
+	if (len >= 4 && strcmp(filename + len - 4, ".jpg"))
 	{
 		strncat(filename, ".jpg", sizeof(filename) - 1 - len);
 	}

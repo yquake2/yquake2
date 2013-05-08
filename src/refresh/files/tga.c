@@ -54,8 +54,8 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 	name[sizeof(name) - 1] = '\0';
 
 	/* Add the extension */
-	len = strlen(origname);
-	if (strcmp(name + len - 4, ".tga"))
+	len = strlen(name);
+	if (len >= 4 && strcmp(name + len - 4, ".tga"))
 	{
 		strncat(name, ".tga", sizeof(name) - 1 - len);
 	}
