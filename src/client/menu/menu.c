@@ -2224,6 +2224,9 @@ Create_Savestrings(void)
 static void
 LoadSave_AdjustPage(int dir)
 {
+	int i;
+	char *str;
+
 	m_loadsave_page += dir;
 
 	if (m_loadsave_page >= MAX_SAVEPAGES)
@@ -2235,8 +2238,23 @@ LoadSave_AdjustPage(int dir)
 		m_loadsave_page = MAX_SAVEPAGES - 1;
 	}
 
-	Com_sprintf(m_loadsave_statusbar, sizeof(m_loadsave_statusbar),
-			"page %d/%d", m_loadsave_page + 1, MAX_SAVEPAGES);
+	strcpy(m_loadsave_statusbar, "pages: ");
+
+	for (i = 0; i < MAX_SAVEPAGES; i++)
+	{
+		str = va("%c%d%c",
+				i == m_loadsave_page ? '[' : ' ',
+				i + 1,
+				i == m_loadsave_page ? ']' : ' ');
+
+		if (strlen(m_loadsave_statusbar) + strlen(str) >=
+			sizeof(m_loadsave_statusbar))
+		{
+			break;
+		}
+
+		strcat(m_loadsave_statusbar, str);
+	}
 }
 
 static void
