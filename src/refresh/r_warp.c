@@ -699,7 +699,7 @@ R_SetSky(char *name, float rotate, vec3_t axis)
 	int i;
 	char pathname[MAX_QPATH];
 
-	strncpy(skyname, name, sizeof(skyname) - 1);
+	Q_strlcpy(skyname, name, sizeof(skyname));
 	skyrotate = rotate;
 	VectorCopy(axis, skyaxis);
 

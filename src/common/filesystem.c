@@ -183,7 +183,7 @@ Com_FilePath(const char *path, char *dst, int dstSize)
 	}
 	else
 	{
-		strncpy(dst, path, dstSize);
+		Q_strlcpy(dst, path, dstSize);
 	}
 }
 

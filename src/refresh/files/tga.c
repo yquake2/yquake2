@@ -48,14 +48,11 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 	int length;
 	int pixel_size;
 	char name[256];
-	int len;
 
-	strncpy(name, origname, sizeof(name) - 1);
-	name[sizeof(name) - 1] = '\0';
+	Q_strlcpy(name, origname, sizeof(name));
 
 	/* Add the extension */
-	len = strlen(name);
-	if (len >= 4 && strcmp(name + len - 4, ".tga"))
+	if (strcmp(COM_FileExtension(name), "tga"))
 	{
 		Q_strlcat(name, ".tga", sizeof(name));
 	}

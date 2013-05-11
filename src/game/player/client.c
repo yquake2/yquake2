@@ -1947,7 +1947,7 @@ ClientUserinfoChanged(edict_t *ent, char *userinfo)
 
 	/* set name */
 	s = Info_ValueForKey(userinfo, "name");
-	strncpy(ent->client->pers.netname, s, sizeof(ent->client->pers.netname) - 1);
+	Q_strlcpy(ent->client->pers.netname, s, sizeof(ent->client->pers.netname));
 
 	/* set spectator */
 	s = Info_ValueForKey(userinfo, "spectator");
@@ -1999,8 +1999,7 @@ ClientUserinfoChanged(edict_t *ent, char *userinfo)
 	}
 
 	/* save off the userinfo in case we want to check something later */
-	strncpy(ent->client->pers.userinfo, userinfo,
-			sizeof(ent->client->pers.userinfo) - 1);
+	Q_strlcpy(ent->client->pers.userinfo, userinfo, sizeof(ent->client->pers.userinfo));
 }
 
 /*

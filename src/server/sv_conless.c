@@ -178,8 +178,7 @@ SVC_DirectConnect(void)
 
 	challenge = (int)strtol(Cmd_Argv(3), (char **)NULL, 10);
 
-	strncpy(userinfo, Cmd_Argv(4), sizeof(userinfo) - 1);
-	userinfo[sizeof(userinfo) - 1] = 0;
+	Q_strlcpy(userinfo, Cmd_Argv(4), sizeof(userinfo));
 
 	/* force the IP key/value pair so the game can filter based on ip */
 	Info_SetValueForKey(userinfo, "ip", NET_AdrToString(net_from));

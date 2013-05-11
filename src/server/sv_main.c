@@ -536,8 +536,7 @@ SV_UserinfoChanged(client_t *cl)
 	ge->ClientUserinfoChanged(cl->edict, cl->userinfo);
 
 	/* name for C code */
-	strncpy(cl->name, Info_ValueForKey(cl->userinfo,
-					"name"), sizeof(cl->name) - 1);
+	Q_strlcpy(cl->name, Info_ValueForKey(cl->userinfo, "name"), sizeof(cl->name));
 
 	/* mask off high bit */
 	for (i = 0; i < sizeof(cl->name); i++)

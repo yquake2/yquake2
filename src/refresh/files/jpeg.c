@@ -81,16 +81,13 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 	struct jpeg_decompress_struct cinfo;
 	char filename[256];
 	struct jpeg_error_mgr jerr;
-	int len;
 	byte *rawdata, *rgbadata, *scanline, *p, *q;
 	unsigned int rawsize, i;
 
-	strncpy(filename, origname, sizeof(filename) - 1);
-	filename[sizeof(filename) - 1] = '\0';
+	Q_strlcpy(filename, origname, sizeof(filename));
 
 	/* Add the extension */
-	len = strlen(filename);
-	if (len >= 4 && strcmp(filename + len - 4, ".jpg"))
+	if (strcmp(COM_FileExtension(filename), "jpg"))
 	{
 		Q_strlcat(filename, ".jpg", sizeof(filename));
 	}

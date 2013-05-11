@@ -142,7 +142,7 @@ SP_target_speaker(edict_t *ent)
 	}
 	else
 	{
-		strncpy(buffer, st.noise, sizeof(buffer));
+		Q_strlcpy(buffer, st.noise, sizeof(buffer));
 	}
 
 	ent->noise_index = gi.soundindex(buffer);
@@ -186,11 +186,11 @@ Use_Target_Help(edict_t *ent, edict_t *other /* unused */, edict_t *activator /*
 
 	if (ent->spawnflags & 1)
 	{
-		strncpy(game.helpmessage1, ent->message, sizeof(game.helpmessage2) - 1);
+		Q_strlcpy(game.helpmessage1, ent->message, sizeof(game.helpmessage1));
 	}
 	else
 	{
-		strncpy(game.helpmessage2, ent->message, sizeof(game.helpmessage1) - 1);
+		Q_strlcpy(game.helpmessage2, ent->message, sizeof(game.helpmessage2));
 	}
 
 	game.helpchanged++;

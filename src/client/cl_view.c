@@ -282,9 +282,9 @@ CL_PrepRefresh(void)
 			/* special player weapon model */
 			if (num_cl_weaponmodels < MAX_CLIENTWEAPONMODELS)
 			{
-				strncpy(cl_weaponmodels[num_cl_weaponmodels],
+				Q_strlcpy(cl_weaponmodels[num_cl_weaponmodels],
 						cl.configstrings[CS_MODELS + i] + 1,
-						sizeof(cl_weaponmodels[num_cl_weaponmodels]) - 1);
+						sizeof(cl_weaponmodels[num_cl_weaponmodels]));
 				num_cl_weaponmodels++;
 			}
 		}

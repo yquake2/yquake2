@@ -2530,10 +2530,10 @@ M_AddToServerList(netadr_t adr, char *info)
 	}
 
 	local_server_netadr[m_num_servers] = adr;
-	strncpy(local_server_names[m_num_servers], info,
-			sizeof(local_server_names[0])-1);
-	strncpy(local_server_netadr_strings[m_num_servers], s,
-			sizeof(local_server_netadr_strings[0])-1);
+	Q_strlcpy(local_server_names[m_num_servers], info,
+			sizeof(local_server_names[m_num_servers]));
+	Q_strlcpy(local_server_netadr_strings[m_num_servers], s,
+			sizeof(local_server_netadr_strings[m_num_servers]));
 	m_num_servers++;
 }
 
@@ -3960,9 +3960,10 @@ PlayerConfig_ScanDirectories(void)
 			c = b;
 		}
 
-		strncpy(s_pmi[s_numplayermodels].displayname,
-				c + 1, MAX_DISPLAYNAME - 1);
-		strcpy(s_pmi[s_numplayermodels].directory, c + 1);
+		Q_strlcpy(s_pmi[s_numplayermodels].displayname, c + 1,
+				sizeof(s_pmi[s_numplayermodels].displayname));
+		Q_strlcpy(s_pmi[s_numplayermodels].directory, c + 1,
+				sizeof(s_pmi[s_numplayermodels].directory));
 
 		FreeFileList(pcxnames, npcxfiles);
 

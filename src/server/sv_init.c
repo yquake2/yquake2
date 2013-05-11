@@ -57,7 +57,7 @@ SV_FindIndex(char *name, int start, int max, qboolean create)
 		Com_Error(ERR_DROP, "*Index: overflow");
 	}
 
-	strncpy(sv.configstrings[start + i], name, sizeof(sv.configstrings[i]));
+	Q_strlcpy(sv.configstrings[start + i], name, sizeof(sv.configstrings[start + i]));
 
 	if (sv.state != ss_loading)
 	{

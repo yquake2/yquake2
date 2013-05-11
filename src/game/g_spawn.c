@@ -455,7 +455,7 @@ ED_ParseEdict(char *data, edict_t *ent)
 			gi.error("ED_ParseEntity: EOF without closing brace");
 		}
 
-		strncpy(keyname, com_token, sizeof(keyname) - 1);
+		Q_strlcpy(keyname, com_token, sizeof(keyname));
 
 		/* parse value */
 		com_token = COM_Parse(&data);
@@ -602,8 +602,8 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 	memset(&level, 0, sizeof(level));
 	memset(g_edicts, 0, game.maxentities * sizeof(g_edicts[0]));
 
-	strncpy(level.mapname, mapname, sizeof(level.mapname) - 1);
-	strncpy(game.spawnpoint, spawnpoint, sizeof(game.spawnpoint) - 1);
+	Q_strlcpy(level.mapname, mapname, sizeof(level.mapname));
+	Q_strlcpy(game.spawnpoint, spawnpoint, sizeof(game.spawnpoint));
 
 	/* set client fields on player ents */
 	for (i = 0; i < game.maxclients; i++)
@@ -875,11 +875,11 @@ SP_worldspawn(edict_t *ent)
 	if (ent->message && ent->message[0])
 	{
 		gi.configstring(CS_NAME, ent->message);
-		strncpy(level.level_name, ent->message, sizeof(level.level_name));
+		Q_strlcpy(level.level_name, ent->message, sizeof(level.level_name));
 	}
 	else
 	{
-		strncpy(level.level_name, level.mapname, sizeof(level.level_name));
+		Q_strlcpy(level.level_name, level.mapname, sizeof(level.level_name));
 	}
 
 	if (st.sky && st.sky[0])

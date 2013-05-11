@@ -890,12 +890,12 @@ S_Play(void)
 	{
 		if (!strrchr(Cmd_Argv(i), '.'))
 		{
-			strncpy(name, Cmd_Argv(i), sizeof(name) - 5);
-			strcat(name, ".wav");
+			Q_strlcpy(name, Cmd_Argv(i), sizeof(name) - 4);
+			Q_strlcat(name, ".wav", sizeof(name));
 		}
 		else
 		{
-			strncpy(name, Cmd_Argv(i), sizeof(name) - 1);
+			Q_strlcpy(name, Cmd_Argv(i), sizeof(name));
 		}
 
 		if (strstr(name, "..") || (name[0] == '/') || (name[0] == '\\'))

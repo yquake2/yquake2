@@ -126,7 +126,14 @@ Field_Draw(menufield_s *f)
 				f->generic.name);
 	}
 
-	strncpy(tempbuffer, f->buffer + f->visible_offset, f->visible_length);
+	if (f->visible_length < sizeof(tempbuffer))
+	{
+		Q_strlcpy(tempbuffer, f->buffer + f->visible_offset, f->visible_length + 1);
+	}
+	else
+	{
+		Q_strlcpy(tempbuffer, f->buffer + f->visible_offset, sizeof(tempbuffer));
+	}
 
 	Draw_Char(f->generic.x + f->generic.parent->x + 16,
 			f->generic.y + f->generic.parent->y - 4, 18);

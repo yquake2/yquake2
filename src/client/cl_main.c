@@ -393,7 +393,7 @@ CL_FixUpGender(void)
 			return;
 		}
 
-		strncpy(sk, skin->string, sizeof(sk) - 1);
+		Q_strlcpy(sk, skin->string, sizeof(sk));
 
 		if ((p = strchr(sk, '/')) != NULL)
 		{

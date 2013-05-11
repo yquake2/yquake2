@@ -1184,12 +1184,10 @@ R_Init(void *hinstance, void *hWnd)
 	gl_config.extensions_string = (char *)qglGetString(GL_EXTENSIONS);
 	ri.Con_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
 
-	strncpy(renderer_buffer, gl_config.renderer_string, sizeof(renderer_buffer));
-	renderer_buffer[sizeof(renderer_buffer) - 1] = 0;
+	Q_strlcpy(renderer_buffer, gl_config.renderer_string, sizeof(renderer_buffer));
 	Q_strlwr(renderer_buffer);
 
-	strncpy(vendor_buffer, gl_config.vendor_string, sizeof(vendor_buffer));
-	vendor_buffer[sizeof(vendor_buffer) - 1] = 0;
+	Q_strlcpy(vendor_buffer, gl_config.vendor_string, sizeof(vendor_buffer));
 	Q_strlwr(vendor_buffer);
 
 	ri.Cvar_Set("scr_drawall", "0");

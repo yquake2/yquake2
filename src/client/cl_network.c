@@ -149,7 +149,7 @@ CL_CheckForResend(void)
 	if ((cls.state == ca_disconnected) && Com_ServerState())
 	{
 		cls.state = ca_connecting;
-		strncpy(cls.servername, "localhost", sizeof(cls.servername) - 1);
+		Q_strlcpy(cls.servername, "localhost", sizeof(cls.servername));
 		/* we don't need a challenge on the localhost */
 		CL_SendConnectPacket();
 		return;
@@ -215,7 +215,7 @@ CL_Connect_f(void)
 	CL_Disconnect();
 
 	cls.state = ca_connecting;
-	strncpy(cls.servername, server, sizeof(cls.servername) - 1);
+	Q_strlcpy(cls.servername, server, sizeof(cls.servername));
 	cls.connect_time = -99999; /* HACK: CL_CheckForResend() will fire immediately */
 }
 

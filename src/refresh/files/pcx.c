@@ -33,17 +33,14 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	pcx_t *pcx;
 	int x, y;
 	int len;
-	int filelen;
 	int dataByte, runLength;
 	byte *out, *pix;
 	char filename[256];
 
-	strncpy(filename, origname, sizeof(filename) - 1);
-	filename[sizeof(filename) - 1] = '\0';
+	Q_strlcpy(filename, origname, sizeof(filename));
 
 	/* Add the extension */
-	filelen = strlen(filename);
-	if (filelen >= 4 && strcmp(filename + filelen - 4, ".pcx"))
+	if (strcmp(COM_FileExtension(filename), "pcx"))
 	{
 		Q_strlcat(filename, ".pcx", sizeof(filename));
 	}

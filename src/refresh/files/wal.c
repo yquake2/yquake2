@@ -32,15 +32,12 @@ LoadWal(char *origname)
 	miptex_t *mt;
 	int width, height, ofs;
 	image_t *image;
-	int len;
 	char name[256];
 
-	strncpy(name, origname, sizeof(name) - 1);
-	name[sizeof(name) - 1] = '\0';
+	Q_strlcpy(name, origname, sizeof(name));
 
 	/* Add the extension */
-	len = strlen(name);
-	if (len >= 4 && strcmp(name + len - 4, ".wal"))
+	if (strcmp(COM_FileExtension(name), "wal"))
 	{
 		Q_strlcat(name, ".wal", sizeof(name));
 	}
