@@ -1132,6 +1132,41 @@ Q_strlwr ( char *s )
 	return ( p );
 }
 
+int
+Q_strlcpy(char *dst, const char *src, int size)
+{
+	const char *s = src;
+
+	while (*s)
+	{
+		if (size > 1)
+		{
+			*dst++ = *s;
+			size--;
+		}
+		s++;
+	}
+	if (size > 0)
+	{
+		*dst = '\0';
+	}
+
+	return s - src;
+}
+
+int
+Q_strlcat(char *dst, const char *src, int size)
+{
+	char *d = dst;
+
+	while (*d)
+	{
+		d++;
+	}
+
+	return (d - dst) + Q_strlcpy(d, src, size - (d - dst));
+}
+
 /*
  * =====================================================================
  *

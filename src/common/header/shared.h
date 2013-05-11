@@ -223,6 +223,10 @@ int Q_strncasecmp(char *s1, char *s2, int n);
 /* portable string lowercase */
 char *Q_strlwr(char *s);
 
+/* portable safe string copy/concatenate */
+int Q_strlcpy(char *dst, const char *src, int size);
+int Q_strlcat(char *dst, const char *src, int size);
+
 /* ============================================= */
 
 short BigShort(short l);
