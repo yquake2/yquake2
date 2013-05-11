@@ -1231,7 +1231,7 @@ SDL_BackendInit(void)
 
 	if (SDL_AudioDriverName(drivername, sizeof(drivername)) == NULL)
 	{
-		strcpy(drivername, "(UNKNOW)");
+		strcpy(drivername, "(UNKNOWN)");
 	}
 
 	Com_Printf("SDL audio driver is \"%s\".\n", drivername);
