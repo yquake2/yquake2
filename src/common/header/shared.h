@@ -213,14 +213,15 @@ void Com_sprintf(char *dest, int size, char *fmt, ...);
 
 void Com_PageInMemory(byte *buffer, int size);
 
-char *strlwr(char *s);
-
 /* ============================================= */
 
 /* portable case insensitive compare */
 int Q_stricmp(const char *s1, const char *s2);
 int Q_strcasecmp(char *s1, char *s2);
 int Q_strncasecmp(char *s1, char *s2, int n);
+
+/* portable string lowercase */
+char *Q_strlwr(char *s);
 
 /* ============================================= */
 
@@ -266,7 +267,6 @@ extern int curtime; /* time returned by last Sys_Milliseconds */
 
 int Sys_Milliseconds(void);
 void Sys_Mkdir(char *path);
-char *strlwr(char *s);
 
 /* large block stack allocation routines */
 void *Hunk_Begin(int maxsize);

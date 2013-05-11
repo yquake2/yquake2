@@ -1119,7 +1119,7 @@ Com_sprintf(char *dest, int size, char *fmt, ...)
 }
 
 char *
-strlwr ( char *s )
+Q_strlwr ( char *s )
 {
 	char *p = s;
 

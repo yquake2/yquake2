@@ -1186,11 +1186,11 @@ R_Init(void *hinstance, void *hWnd)
 
 	strncpy(renderer_buffer, gl_config.renderer_string, sizeof(renderer_buffer));
 	renderer_buffer[sizeof(renderer_buffer) - 1] = 0;
-	strlwr(renderer_buffer);
+	Q_strlwr(renderer_buffer);
 
 	strncpy(vendor_buffer, gl_config.vendor_string, sizeof(vendor_buffer));
 	vendor_buffer[sizeof(vendor_buffer) - 1] = 0;
-	strlwr(vendor_buffer);
+	Q_strlwr(vendor_buffer);
 
 	ri.Cvar_Set("scr_drawall", "0");
 	gl_config.allow_cds = true;

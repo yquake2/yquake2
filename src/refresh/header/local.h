@@ -93,8 +93,6 @@ typedef struct
 
 #endif
 
-char *strlwr(char *s);
-
 extern viddef_t vid;
 
 /*

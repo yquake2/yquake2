@@ -485,7 +485,7 @@ FS_FOpenFileRead(fsHandle_t *handle)
 
 			if (!handle->file)
 			{
-				strlwr(path);
+				Q_strlwr(path);
 				handle->file = fopen(path, "rb");
 			}
 
