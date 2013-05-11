@@ -379,7 +379,7 @@ blaster_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
 	int mod;
 
-	if (!self || !other)
+	if (!self || !other) /* plane and surf can be NULL */
 	{
 		G_FreeEdict(self);
 		return;
@@ -598,7 +598,7 @@ Grenade_Explode(edict_t *ent)
 void
 Grenade_Touch(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurface_t *surf)
 {
-	if (!ent || !other)
+	if (!ent || !other) /* plane is unused, surf can be NULL */
 	{
 		G_FreeEdict(ent);
 		return;
@@ -749,7 +749,7 @@ rocket_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 	vec3_t origin;
 	int n;
 
-	if (!ent || !other)
+	if (!ent || !other) /* plane and surf can be NULL */
 	{
 		G_FreeEdict(ent);
 		return;
@@ -1017,7 +1017,7 @@ bfg_explode(edict_t *self)
 void
 bfg_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
-	if (!self || !other)
+	if (!self || !other) /* plane and surf can be NULL */
 	{
 		G_FreeEdict(self);
 		return;

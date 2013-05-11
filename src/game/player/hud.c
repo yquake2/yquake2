@@ -203,7 +203,7 @@ BeginIntermission(edict_t *targ)
 }
 
 void
-DeathmatchScoreboardMessage(edict_t *ent, edict_t *killer /* can be NULL */)
+DeathmatchScoreboardMessage(edict_t *ent, edict_t *killer)
 {
 	char entry[1024];
 	char string[1400];
@@ -217,7 +217,7 @@ DeathmatchScoreboardMessage(edict_t *ent, edict_t *killer /* can be NULL */)
 	edict_t *cl_ent;
 	char *tag;
 
-	if (!ent)
+	if (!ent) /* killer can be NULL */
 	{
 		return;
 	}
