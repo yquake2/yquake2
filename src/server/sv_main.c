@@ -681,7 +681,7 @@ SV_Shutdown(char *finalmsg, qboolean reconnect)
 	/* free current level */
 	if (sv.demofile)
 	{
-		FS_FCloseFile((size_t)sv.demofile);
+		FS_FCloseFile((fileHandle_t)sv.demofile);
 	}
 
 	memset(&sv, 0, sizeof(sv));
@@ -700,7 +700,7 @@ SV_Shutdown(char *finalmsg, qboolean reconnect)
 
 	if (svs.demofile)
 	{
-		FS_FCloseFile((size_t)svs.demofile);
+		FS_FCloseFile((fileHandle_t)svs.demofile);
 	}
 
 	memset(&svs, 0, sizeof(svs));
