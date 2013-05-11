@@ -57,7 +57,7 @@ LoadTGA(char *origname, byte **pic, int *width, int *height)
 	len = strlen(name);
 	if (len >= 4 && strcmp(name + len - 4, ".tga"))
 	{
-		strncat(name, ".tga", sizeof(name) - 1 - len);
+		Q_strlcat(name, ".tga", sizeof(name));
 	}
 
 	*pic = NULL;

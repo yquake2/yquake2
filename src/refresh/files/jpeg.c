@@ -92,7 +92,7 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 	len = strlen(filename);
 	if (len >= 4 && strcmp(filename + len - 4, ".jpg"))
 	{
-		strncat(filename, ".jpg", sizeof(filename) - 1 - len);
+		Q_strlcat(filename, ".jpg", sizeof(filename));
 	}
 
 	*pic = NULL;

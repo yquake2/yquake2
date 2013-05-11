@@ -42,7 +42,7 @@ LoadWal(char *origname)
 	len = strlen(name);
 	if (len >= 4 && strcmp(name + len - 4, ".wal"))
 	{
-		strncat(name, ".wal", sizeof(name) - 1 - len);
+		Q_strlcat(name, ".wal", sizeof(name));
 	}
 
 	ri.FS_LoadFile(name, (void **)&mt);

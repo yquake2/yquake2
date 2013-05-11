@@ -45,7 +45,7 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	filelen = strlen(filename);
 	if (filelen >= 4 && strcmp(filename + filelen - 4, ".pcx"))
 	{
-		strncat(filename, ".pcx", sizeof(filename) - 1 - filelen);
+		Q_strlcat(filename, ".pcx", sizeof(filename));
 	}
 
 	*pic = NULL;

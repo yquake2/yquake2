@@ -243,8 +243,7 @@ SV_WriteServerFile(qboolean autosave)
 				newtime->tm_hour, newtime->tm_min / 10,
 				newtime->tm_min % 10, newtime->tm_mon + 1,
 				newtime->tm_mday);
-		strncat(comment, sv.configstrings[CS_NAME],
-				sizeof(comment) - 1 - strlen(comment));
+		Q_strlcat(comment, sv.configstrings[CS_NAME], sizeof(comment));
 	}
 	else
 	{
