@@ -116,7 +116,7 @@ Field_DoEnter(menufield_s *f)
 void
 Field_Draw(menufield_s *f)
 {
-	int i;
+	int i, n;
 	char tempbuffer[128] = "";
 
 	if (f->generic.name)
@@ -126,14 +126,12 @@ Field_Draw(menufield_s *f)
 				f->generic.name);
 	}
 
-	if (f->visible_length < sizeof(tempbuffer))
+	n = f->visible_length + 1;
+	if (n > sizeof(tempbuffer))
 	{
-		Q_strlcpy(tempbuffer, f->buffer + f->visible_offset, f->visible_length + 1);
+		n = sizeof(tempbuffer);
 	}
-	else
-	{
-		Q_strlcpy(tempbuffer, f->buffer + f->visible_offset, sizeof(tempbuffer));
-	}
+	Q_strlcpy(tempbuffer, f->buffer + f->visible_offset, n);
 
 	Draw_Char(f->generic.x + f->generic.parent->x + 16,
 			f->generic.y + f->generic.parent->y - 4, 18);

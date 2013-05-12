@@ -299,7 +299,7 @@ gotnewcl:
 	}
 
 	/* parse some info from the info strings */
-	strncpy(newcl->userinfo, userinfo, sizeof(newcl->userinfo) - 1);
+	Q_strlcpy(newcl->userinfo, userinfo, sizeof(newcl->userinfo));
 	SV_UserinfoChanged(newcl);
 
 	/* send the connect packet to the client */

@@ -149,7 +149,7 @@ Con_Dump_f(void)
 		return;
 	}
 
-	if (con.linewidth > 1024)
+	if (con.linewidth >= 1024)
 	{
 		Com_Printf("con.linewidth too large!\n");
 		return;

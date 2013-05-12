@@ -302,7 +302,7 @@ FS_HandleForFile(const char *path, fileHandle_t *f)
 #endif
 			)
 		{
-			strncpy(handle->name, path, sizeof(handle->name));
+			Q_strlcpy(handle->name, path, sizeof(handle->name));
 			*f = i + 1;
 			return handle;
 		}
@@ -452,7 +452,7 @@ FS_FOpenFileRead(fsHandle_t *handle)
 					{
 						/* PK3 */
 						file_from_pk3 = 1;
-						strncpy(file_from_pk3_name, strrchr(pack->name,
+						Q_strlcpy(file_from_pk3_name, strrchr(pack->name,
 										'/') + 1, sizeof(file_from_pk3_name));
 						handle->zip = unzOpen(pack->name);
 
@@ -497,7 +497,7 @@ FS_FOpenFileRead(fsHandle_t *handle)
 			if (handle->file)
 			{
 				/* Found it! */
-				strncpy(fs_fileInPath, search->path, sizeof(fs_fileInPath));
+				Q_strlcpy(fs_fileInPath, search->path, sizeof(fs_fileInPath));
 				fs_fileInPack = false;
 
 				if (fs_debug->value)
@@ -597,7 +597,7 @@ FS_FOpenFile(const char *name, fileHandle_t *f, fsMode_t mode)
 
 	handle = FS_HandleForFile(name, f);
 
-	strncpy(handle->name, name, sizeof(handle->name));
+	Q_strlcpy(handle->name, name, sizeof(handle->name));
 	handle->mode = mode;
 
 	switch (mode)
@@ -1150,13 +1150,13 @@ FS_LoadPAK(const char *packPath)
 	/* Parse the directory. */
 	for (i = 0; i < numFiles; i++)
 	{
-		strncpy(files[i].name, info[i].name, sizeof(files[i].name));
+		Q_strlcpy(files[i].name, info[i].name, sizeof(files[i].name));
 		files[i].offset = LittleLong(info[i].filepos);
 		files[i].size = LittleLong(info[i].filelen);
 	}
 
 	pack = Z_Malloc(sizeof(fsPack_t));
-	strncpy(pack->name, packPath, sizeof(pack->name));
+	Q_strlcpy(pack->name, packPath, sizeof(pack->name));
 	pack->pak = handle;
 #ifdef ZIP
 	pack->pk3 = NULL;
@@ -1221,7 +1221,7 @@ FS_LoadPK3(const char *packPath)
 		fileName[0] = '\0';
 		unzGetCurrentFileInfo(handle, &info, fileName, MAX_QPATH,
 				NULL, 0, NULL, 0);
-		strncpy(files[i].name, fileName, sizeof(files[i].name));
+		Q_strlcpy(files[i].name, fileName, sizeof(files[i].name));
 		files[i].offset = -1; /* Not used in ZIP files */
 		files[i].size = info.uncompressed_size;
 		i++;
@@ -1229,7 +1229,7 @@ FS_LoadPK3(const char *packPath)
 	}
 
 	pack = Z_Malloc(sizeof(fsPack_t));
-	strncpy(pack->name, packPath, sizeof(pack->name));
+	Q_strlcpy(pack->name, packPath, sizeof(pack->name));
 	pack->pak = NULL;
 	pack->pk3 = handle;
 	pack->numFiles = numFiles;
@@ -1260,14 +1260,14 @@ FS_AddGameDirectory(const char *dir)
 	pack = NULL;
 
 	/* Set game directory. */
-	strncpy(fs_gamedir, dir, sizeof(fs_gamedir));
+	Q_strlcpy(fs_gamedir, dir, sizeof(fs_gamedir));
 
 	/* Create directory if it does not exist. */
 	FS_CreatePath(fs_gamedir);
 
 	/* Add the directory to the search path. */
 	search = Z_Malloc(sizeof(fsSearchPath_t));
-	strncpy(search->path, dir, sizeof(search->path));
+	Q_strlcpy(search->path, dir, sizeof(search->path));
 	search->next = fs_searchPaths;
 	fs_searchPaths = search;
 
@@ -1376,8 +1376,7 @@ FS_AddHomeAsGameDirectory(char *dir)
 		gdir[len - 1] = 0;
 	}
 
-	strncpy(fs_gamedir, gdir, sizeof(fs_gamedir) - 1);
-	fs_gamedir[sizeof(fs_gamedir) - 1] = 0;
+	Q_strlcpy(fs_gamedir, gdir, sizeof(fs_gamedir));
 
 	FS_AddGameDirectory(gdir);
 }
@@ -1551,7 +1550,7 @@ FS_Startup(void)
 		/* Don't add baseq2 again. */
 		if (Q_stricmp(fs_gamedirvar->string, BASEDIRNAME) == 0)
 		{
-			strncpy(fs_gamedir, fs_basedir->string, sizeof(fs_gamedir));
+			Q_strlcpy(fs_gamedir, fs_basedir->string, sizeof(fs_gamedir));
 		}
 		else
 		{
@@ -1561,7 +1560,7 @@ FS_Startup(void)
 		}
 	}
 
-	strncpy(fs_currentGame, fs_gamedirvar->string, sizeof(fs_currentGame));
+	Q_strlcpy(fs_currentGame, fs_gamedirvar->string, sizeof(fs_currentGame));
 
 	FS_Path_f();
 }
@@ -1804,7 +1803,7 @@ ComparePackFiles(const char *findname, const char *name, unsigned musthave,
 	char *ptr;
 	char buffer[MAX_OSPATH];
 
-	strncpy(buffer, name, sizeof(buffer));
+	Q_strlcpy(buffer, name, sizeof(buffer));
 
 	if ((canthave & SFF_SUBDIR) && (name[strlen(name) - 1] == '/'))
 	{
@@ -1846,7 +1845,7 @@ ComparePackFiles(const char *findname, const char *name, unsigned musthave,
 
 	if (retval && (output != NULL))
 	{
-		strncpy(output, buffer, size);
+		Q_strlcpy(output, buffer, size);
 	}
 
 	return retval;
@@ -2023,7 +2022,7 @@ FS_Dir_f(void)
 	/* Check for pattern in arguments. */
 	if (Cmd_Argc() != 1)
 	{
-		strncpy(wildcard, Cmd_Argv(1), sizeof(wildcard));
+		Q_strlcpy(wildcard, Cmd_Argv(1), sizeof(wildcard));
 	}
 
 	/* Scan search paths and list files. */
@@ -2093,7 +2092,7 @@ FS_InitFilesystem(void)
 
 	/* Any set gamedirs will be freed up to here. */
 	fs_baseSearchPaths = fs_searchPaths;
-	strncpy(fs_currentGame, BASEDIRNAME, sizeof(fs_currentGame));
+	Q_strlcpy(fs_currentGame, BASEDIRNAME, sizeof(fs_currentGame));
 
 	/* Check for game override. */
 	if (fs_gamedirvar->string[0] != '\0')
