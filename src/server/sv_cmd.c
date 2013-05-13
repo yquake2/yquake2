@@ -550,6 +550,7 @@ SV_ServerRecord_f(void)
 			{
 				Com_Printf("not enough buffer space available.\n");
 				fclose(svs.demofile);
+				SVS.demofile = NULL;
 				return;
 			}
 		}
