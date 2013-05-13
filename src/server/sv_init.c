@@ -194,7 +194,7 @@ SV_SpawnServer(char *server, char *spawnpoint, server_state_t serverstate,
 
 	if (sv.demofile)
 	{
-		FS_FCloseFile((fileHandle_t)sv.demofile);
+		FS_FCloseFile(sv.demofile);
 	}
 
 	svs.spawncount++; /* any partially connected client will be restarted */

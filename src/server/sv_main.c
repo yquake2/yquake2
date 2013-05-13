@@ -681,7 +681,7 @@ SV_Shutdown(char *finalmsg, qboolean reconnect)
 	/* free current level */
 	if (sv.demofile)
 	{
-		FS_FCloseFile((fileHandle_t)sv.demofile);
+		FS_FCloseFile(sv.demofile);
 	}
 
 	memset(&sv, 0, sizeof(sv));
