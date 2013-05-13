@@ -700,7 +700,7 @@ SV_Shutdown(char *finalmsg, qboolean reconnect)
 
 	if (svs.demofile)
 	{
-		FS_FCloseFile((fileHandle_t)svs.demofile);
+		fclose(svs.demofile);
 	}
 
 	memset(&svs, 0, sizeof(svs));

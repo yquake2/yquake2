@@ -75,7 +75,7 @@ typedef struct
 	byte multicast_buf[MAX_MSGLEN];
 
 	/* demo server information */
-	FILE *demofile;
+	fileHandle_t demofile;
 	qboolean timedemo; /* don't time sync */
 } server_t;
 
