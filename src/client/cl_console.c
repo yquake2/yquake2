@@ -192,7 +192,7 @@ Con_Dump_f(void)
 	for ( ; l <= con.current; l++)
 	{
 		line = con.text + (l % con.totallines) * con.linewidth;
-		strncpy(buffer, line, con.linewidth);
+		memcpy(buffer, line, con.linewidth);
 
 		for (x = con.linewidth - 1; x >= 0; x--)
 		{
@@ -702,7 +702,7 @@ Con_DrawConsole(float frac)
 		if (strlen(text) > i)
 		{
 			y = x - i - 11;
-			strncpy(dlbar, text, i);
+			memcpy(dlbar, text, i);
 			dlbar[i] = 0;
 			strcat(dlbar, "...");
 		}

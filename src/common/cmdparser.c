@@ -560,8 +560,8 @@ Cmd_MacroExpandString(char *text)
 			return NULL;
 		}
 
-		strncpy(temporary, scan, i);
-		strcpy(temporary + i, token);
+		memcpy(temporary, scan, i);
+		memcpy(temporary + i, token, j);
 		strcpy(temporary + i + j, start);
 
 		strcpy(expanded, temporary);

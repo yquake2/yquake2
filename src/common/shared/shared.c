@@ -718,7 +718,7 @@ COM_FileBase(char *in, char *out)
 	else
 	{
 		s--;
-		strncpy(out, s2 + 1, s - s2);
+		memcpy(out, s2 + 1, s - s2);
 		out[s - s2] = 0;
 	}
 }
@@ -738,7 +738,7 @@ COM_FilePath(const char *in, char *out)
 		s--;
 	}
 
-	strncpy(out, in, s - in);
+	memcpy(out, in, s - in);
 	out[s - in] = 0;
 }
 
