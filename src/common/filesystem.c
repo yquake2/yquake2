@@ -345,7 +345,7 @@ FS_FOpenFileAppend(fsHandle_t *handle)
 
 	Com_sprintf(path, sizeof(path), "%s/%s", fs_gamedir, handle->name);
 
-	handle->file = fopen(path, "a");
+	handle->file = fopen(path, "ab");
 
 	if (handle->file)
 	{
@@ -377,7 +377,7 @@ FS_FOpenFileWrite(fsHandle_t *handle)
 
 	Com_sprintf(path, sizeof(path), "%s/%s", fs_gamedir, handle->name);
 
-	if ((handle->file = fopen(path, "w")) == NULL)
+	if ((handle->file = fopen(path, "wb")) != NULL)
 	{
 		if (fs_debug->value)
 		{
