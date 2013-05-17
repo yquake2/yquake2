@@ -1218,7 +1218,7 @@ Cmd_PlayerList_f(edict_t *ent)
 
 		if (strlen(text) + strlen(st) > sizeof(text) - 50)
 		{
-			sprintf(text + strlen(text), "And more...\n");
+			Q_strlcat(text, "And more...\n", sizeof(text));
 			gi.cprintf(ent, PRINT_HIGH, "%s", text);
 			return;
 		}

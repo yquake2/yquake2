@@ -212,7 +212,8 @@ SV_SpawnServer(char *server, char *spawnpoint, server_state_t serverstate,
 
 	if (Cvar_VariableValue("deathmatch"))
 	{
-		sprintf(sv.configstrings[CS_AIRACCEL], "%g", sv_airaccelerate->value);
+		snprintf(sv.configstrings[CS_AIRACCEL], sizeof(sv.configstrings[CS_AIRACCEL]),
+				"%g", sv_airaccelerate->value);
 		pm_airaccelerate = sv_airaccelerate->value;
 	}
 	else

@@ -1100,22 +1100,16 @@ Com_sprintf(char *dest, int size, char *fmt, ...)
 {
 	int len;
 	va_list argptr;
-	static char bigbuffer[0x10000];
 
 	va_start(argptr, fmt);
-	len = vsnprintf(bigbuffer, 0x10000, fmt, argptr);
+	len = vsnprintf(dest, size, fmt, argptr);
 	va_end(argptr);
 
-	if ((len >= size) || (len == size))
+	if (len >= size)
 	{
 		Com_Printf("Com_sprintf: overflow\n");
-
-		dest = NULL;
 		return;
 	}
-
-	bigbuffer[size - 1] = '\0';
-	strcpy(dest, bigbuffer);
 }
 
 char *

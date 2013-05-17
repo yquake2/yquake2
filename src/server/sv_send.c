@@ -58,7 +58,7 @@ SV_ClientPrintf(client_t *cl, int level, char *fmt, ...)
 	}
 
 	va_start(argptr, fmt);
-	vsprintf(string, fmt, argptr);
+	vsnprintf(string, sizeof(string), fmt, argptr);
 	va_end(argptr);
 
 	MSG_WriteByte(&cl->netchan.message, svc_print);
@@ -78,7 +78,7 @@ SV_BroadcastPrintf(int level, char *fmt, ...)
 	int i;
 
 	va_start(argptr, fmt);
-	vsprintf(string, fmt, argptr);
+	vsnprintf(string, sizeof(string), fmt, argptr);
 	va_end(argptr);
 
 	/* echo to console */
@@ -130,7 +130,7 @@ SV_BroadcastCommand(char *fmt, ...)
 	}
 
 	va_start(argptr, fmt);
-	vsprintf(string, fmt, argptr);
+	vsnprintf(string, sizeof(string), fmt, argptr);
 	va_end(argptr);
 
 	MSG_WriteByte(&sv.multicast, svc_stufftext);

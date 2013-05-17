@@ -399,7 +399,7 @@ CL_RequestNextDownload(void)
 			{
 				char fn[MAX_OSPATH];
 
-				sprintf(fn, "textures/%s.wal",
+				snprintf(fn, sizeof(fn), "textures/%s.wal",
 						map_surfaces[precache_tex++].rname);
 
 				if (!CL_CheckOrDownloadFile(fn))

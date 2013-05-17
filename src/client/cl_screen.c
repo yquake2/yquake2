@@ -1184,7 +1184,7 @@ SCR_ExecuteLayoutString(char *s)
 				ping = 999;
 			}
 
-			sprintf(block, "%3d %3d %-12.12s", score, ping, ci->name);
+			snprintf(block, sizeof(block), "%3d %3d %-12.12s", score, ping, ci->name);
 
 			if (value == cl.playernum)
 			{
@@ -1508,7 +1508,7 @@ SCR_UpdateScreen(void)
 			if (cl_drawfps->value)
 			{
 				char s[8];
-				sprintf(s, "%3.0ffps", 1 / cls.frametime);
+				snprintf(s, sizeof(s), "%3.0ffps", 1 / cls.frametime);
 				DrawString(viddef.width - 64, 0, s);
 			}
 

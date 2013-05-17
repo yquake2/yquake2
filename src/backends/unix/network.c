@@ -839,7 +839,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 	}
 	else
 	{
-		sprintf(Buf, "%5d", port);
+		snprintf(Buf, sizeof(Buf), "%5d", port);
 		Service = Buf;
 	}
 
