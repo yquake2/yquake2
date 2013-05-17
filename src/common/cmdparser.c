@@ -460,15 +460,15 @@ Cmd_Alias_f(void)
 
 	for (i = 2; i < c; i++)
 	{
-		strcat(cmd, Cmd_Argv(i));
+		Q_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
 
 		if (i != (c - 1))
 		{
-			strcat(cmd, " ");
+			Q_strlcat(cmd, " ", sizeof(cmd));
 		}
 	}
 
-	strcat(cmd, "\n");
+	Q_strlcat(cmd, "\n", sizeof(cmd));
 
 	a->value = CopyString(cmd);
 }

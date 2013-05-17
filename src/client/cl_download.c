@@ -469,7 +469,7 @@ CL_CheckOrDownloadFile(char *filename)
 	   to the real name when done, so if interrupted
 	   a runt file wont be left */
 	COM_StripExtension(cls.downloadname, cls.downloadtempname);
-	strcat(cls.downloadtempname, ".tmp");
+	Q_strlcat(cls.downloadtempname, ".tmp", sizeof(cls.downloadtempname));
 
 	/* check to see if we already have a tmp for this 
 	   file, if so, try to resume and open the file if
@@ -540,7 +540,7 @@ CL_Download_f(void)
 	   to the real name when done, so if interrupted
 	   a runt file wont be left */
 	COM_StripExtension(cls.downloadname, cls.downloadtempname);
-	strcat(cls.downloadtempname, ".tmp");
+	Q_strlcat(cls.downloadtempname, ".tmp", sizeof(cls.downloadtempname));
 
 	MSG_WriteByte(&cls.netchan.message, clc_stringcmd);
 	MSG_WriteString(&cls.netchan.message, va("download %s", cls.downloadname));

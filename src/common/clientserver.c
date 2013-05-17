@@ -89,7 +89,7 @@ Com_Printf(char *fmt, ...)
 			*rd_buffer = 0;
 		}
 
-		strcat(rd_buffer, msg);
+		Q_strlcat(rd_buffer, msg, rd_buffersize);
 		return;
 	}
 

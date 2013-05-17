@@ -368,8 +368,8 @@ SVC_RemoteCommand(void)
 
 		for (i = 2; i < Cmd_Argc(); i++)
 		{
-			strcat(remaining, Cmd_Argv(i));
-			strcat(remaining, " ");
+			Q_strlcat(remaining, Cmd_Argv(i), sizeof(remaining));
+			Q_strlcat(remaining, " ", sizeof(remaining));
 		}
 
 		Cmd_ExecuteString(remaining);

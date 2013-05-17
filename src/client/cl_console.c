@@ -449,7 +449,7 @@ Con_CenteredPrint(char *text)
 
 	memset(buffer, ' ', l);
 	strcpy(buffer + l, text);
-	strcat(buffer, "\n");
+	Q_strlcat(buffer, "\n", sizeof(buffer));
 	Con_Print(buffer);
 }
 
@@ -704,14 +704,14 @@ Con_DrawConsole(float frac)
 			y = x - i - 11;
 			memcpy(dlbar, text, i);
 			dlbar[i] = 0;
-			strcat(dlbar, "...");
+			Q_strlcat(dlbar, "...", sizeof(dlbar));
 		}
 		else
 		{
 			strcpy(dlbar, text);
 		}
 
-		strcat(dlbar, ": ");
+		Q_strlcat(dlbar, ": ", sizeof(dlbar));
 		i = strlen(dlbar);
 		dlbar[i++] = '\x80';
 

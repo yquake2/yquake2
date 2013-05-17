@@ -408,7 +408,7 @@ SV_ConSay_f(void)
 		p[strlen(p) - 1] = 0;
 	}
 
-	strcat(text, p);
+	Q_strlcat(text, p, sizeof(text));
 
 	for (j = 0, client = svs.clients; j < maxclients->value; j++, client++)
 	{
