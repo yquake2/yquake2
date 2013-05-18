@@ -1152,12 +1152,13 @@ Q_strlcat(char *dst, const char *src, int size)
 {
 	char *d = dst;
 
-	while (*d)
+	while (size > 0 && *d)
 	{
+		size--;
 		d++;
 	}
 
-	return (d - dst) + Q_strlcpy(d, src, size - (d - dst));
+	return (d - dst) + Q_strlcpy(d, src, size);
 }
 
 /*
