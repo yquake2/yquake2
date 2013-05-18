@@ -80,7 +80,7 @@ Sys_Error(char *error, ...)
 	Qcommon_Shutdown();
 
 	va_start(argptr, error);
-	vsnprintf(text, sizeof(text), error, argptr);
+	vsprintf(text, error, argptr);
 	va_end(argptr);
 
 #ifndef DEDICATED_ONLY

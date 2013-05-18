@@ -549,7 +549,7 @@ M_Main_Draw(void)
 	}
 
 	strcpy(litname, names[m_main_cursor]);
-	Q_strlcat(litname, "_sel", sizeof(litname));
+	strcat(litname, "_sel");
 	re.DrawPic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
 
 	M_DrawCursor(xoffset - 25, ystart + m_main_cursor * 40 + 11,
@@ -3784,7 +3784,7 @@ IconOfSkinExists(char *skin, char **pcxfiles, int npcxfiles)
 
 	strcpy(scratch, skin);
 	*strrchr(scratch, '.') = 0;
-	Q_strlcat(scratch, "_i.pcx", sizeof(scratch));
+	strcat(scratch, "_i.pcx");
 
 	for (i = 0; i < npcxfiles; i++)
 	{
@@ -3862,7 +3862,7 @@ PlayerConfig_ScanDirectories(void)
 
 		/* verify the existence of tris.md2 */
 		strcpy(scratch, dirnames[i]);
-		Q_strlcat(scratch, "/tris.md2", sizeof(scratch));
+		strcat(scratch, "/tris.md2");
 
 		if (!Sys_FindFirst(scratch, 0, SFF_SUBDIR | SFF_HIDDEN | SFF_SYSTEM))
 		{
@@ -3876,7 +3876,7 @@ PlayerConfig_ScanDirectories(void)
 
 		/* verify the existence of at least one pcx skin */
 		strcpy(scratch, dirnames[i]);
-		Q_strlcat(scratch, "/*.pcx", sizeof(scratch));
+		strcat(scratch, "/*.pcx");
 		pcxnames = FS_ListFiles(scratch, &npcxfiles,
 				0, SFF_SUBDIR | SFF_HIDDEN | SFF_SYSTEM);
 

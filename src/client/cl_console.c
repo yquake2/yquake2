@@ -449,7 +449,7 @@ Con_CenteredPrint(char *text)
 
 	memset(buffer, ' ', l);
 	strcpy(buffer + l, text);
-	Q_strlcat(buffer, "\n", sizeof(buffer));
+	strcat(buffer, "\n");
 	Con_Print(buffer);
 }
 
@@ -704,14 +704,14 @@ Con_DrawConsole(float frac)
 			y = x - i - 11;
 			memcpy(dlbar, text, i);
 			dlbar[i] = 0;
-			Q_strlcat(dlbar, "...", sizeof(dlbar));
+			strcat(dlbar, "...");
 		}
 		else
 		{
 			strcpy(dlbar, text);
 		}
 
-		Q_strlcat(dlbar, ": ", sizeof(dlbar));
+		strcat(dlbar, ": ");
 		i = strlen(dlbar);
 		dlbar[i++] = '\x80';
 
@@ -742,7 +742,7 @@ Con_DrawConsole(float frac)
 		dlbar[i++] = '\x82';
 		dlbar[i] = 0;
 
-		snprintf(dlbar + i, sizeof(dlbar) - i, " %02d%%", cls.downloadpercent);
+		sprintf(dlbar + strlen(dlbar), " %02d%%", cls.downloadpercent);
 
 		/* draw it */
 		y = con.vislines - 12;

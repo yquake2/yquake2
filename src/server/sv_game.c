@@ -78,7 +78,7 @@ PF_dprintf(char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, argptr);
+	vsprintf(msg, fmt, argptr);
 	va_end(argptr);
 
 	Com_Printf("%s", msg);
@@ -107,7 +107,7 @@ PF_cprintf(edict_t *ent, int level, char *fmt, ...)
 	}
 
 	va_start(argptr, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, argptr);
+	vsprintf(msg, fmt, argptr);
 	va_end(argptr);
 
 	if (ent)
@@ -138,7 +138,7 @@ PF_centerprintf(edict_t *ent, char *fmt, ...)
 	}
 
 	va_start(argptr, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, argptr);
+	vsprintf(msg, fmt, argptr);
 	va_end(argptr);
 
 	MSG_WriteByte(&sv.multicast, svc_centerprint);
@@ -156,7 +156,7 @@ PF_error(char *fmt, ...)
 	va_list argptr;
 
 	va_start(argptr, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, argptr);
+	vsprintf(msg, fmt, argptr);
 	va_end(argptr);
 
 	Com_Error(ERR_DROP, "Game Error: %s", msg);

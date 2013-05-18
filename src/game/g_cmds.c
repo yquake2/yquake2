@@ -1096,9 +1096,9 @@ Cmd_Say_f(edict_t *ent, qboolean team, qboolean arg0)
 
 	if (arg0)
 	{
-		Q_strlcat(text, gi.argv(0), sizeof(text));
-		Q_strlcat(text, " ", sizeof(text));
-		Q_strlcat(text, gi.args(), sizeof(text));
+		strcat(text, gi.argv(0));
+		strcat(text, " ");
+		strcat(text, gi.args());
 	}
 	else
 	{
@@ -1110,7 +1110,7 @@ Cmd_Say_f(edict_t *ent, qboolean team, qboolean arg0)
 			p[strlen(p) - 1] = 0;
 		}
 
-		Q_strlcat(text, p, sizeof(text));
+		strcat(text, p);
 	}
 
 	/* don't let text be too long for malicious reasons */
@@ -1119,7 +1119,7 @@ Cmd_Say_f(edict_t *ent, qboolean team, qboolean arg0)
 		text[150] = 0;
 	}
 
-	Q_strlcat(text, "\n", sizeof(text));
+	strcat(text, "\n");
 
 	if (flood_msgs->value)
 	{
@@ -1218,7 +1218,7 @@ Cmd_PlayerList_f(edict_t *ent)
 
 		if (strlen(text) + strlen(st) > sizeof(text) - 50)
 		{
-			strcat(text, "And more...\n");
+			sprintf(text + strlen(text), "And more...\n");
 			gi.cprintf(ent, PRINT_HIGH, "%s", text);
 			return;
 		}

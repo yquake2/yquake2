@@ -277,12 +277,12 @@ CL_Setenv_f(void)
 		int i;
 
 		strcpy(buffer, Cmd_Argv(1));
-		Q_strlcat(buffer, "=", sizeof(buffer));
+		strcat(buffer, "=");
 
 		for (i = 2; i < argc; i++)
 		{
-			Q_strlcat(buffer, Cmd_Argv(i), sizeof(buffer));
-			Q_strlcat(buffer, " ", sizeof(buffer));
+			strcat(buffer, Cmd_Argv(i));
+			strcat(buffer, " ");
 		}
 
 		putenv(buffer);

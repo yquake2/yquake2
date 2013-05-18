@@ -247,15 +247,15 @@ CL_Rcon_f(void)
 
 	NET_Config(true);  /* allow remote */
 
-	Q_strlcat(message, "rcon ", sizeof(message));
+	strcat(message, "rcon ");
 
-	Q_strlcat(message, rcon_client_password->string, sizeof(message));
-	Q_strlcat(message, " ", sizeof(message));
+	strcat(message, rcon_client_password->string);
+	strcat(message, " ");
 
 	for (i = 1; i < Cmd_Argc(); i++)
 	{
-		Q_strlcat(message, Cmd_Argv(i), sizeof(message));
-		Q_strlcat(message, " ", sizeof(message));
+		strcat(message, Cmd_Argv(i));
+		strcat(message, " ");
 	}
 
 	if (cls.state >= ca_connected)

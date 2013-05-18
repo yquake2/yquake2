@@ -399,7 +399,7 @@ CL_RequestNextDownload(void)
 			{
 				char fn[MAX_OSPATH];
 
-				snprintf(fn, sizeof(fn), "textures/%s.wal",
+				sprintf(fn, "textures/%s.wal",
 						map_surfaces[precache_tex++].rname);
 
 				if (!CL_CheckOrDownloadFile(fn))
@@ -469,7 +469,7 @@ CL_CheckOrDownloadFile(char *filename)
 	   to the real name when done, so if interrupted
 	   a runt file wont be left */
 	COM_StripExtension(cls.downloadname, cls.downloadtempname);
-	Q_strlcat(cls.downloadtempname, ".tmp", sizeof(cls.downloadtempname));
+	strcat(cls.downloadtempname, ".tmp");
 
 	/* check to see if we already have a tmp for this 
 	   file, if so, try to resume and open the file if
@@ -540,7 +540,7 @@ CL_Download_f(void)
 	   to the real name when done, so if interrupted
 	   a runt file wont be left */
 	COM_StripExtension(cls.downloadname, cls.downloadtempname);
-	Q_strlcat(cls.downloadtempname, ".tmp", sizeof(cls.downloadtempname));
+	strcat(cls.downloadtempname, ".tmp");
 
 	MSG_WriteByte(&cls.netchan.message, clc_stringcmd);
 	MSG_WriteString(&cls.netchan.message, va("download %s", cls.downloadname));

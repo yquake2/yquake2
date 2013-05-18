@@ -743,11 +743,11 @@ Key_Bind_f(void)
 
 	for (i = 2; i < c; i++)
 	{
-		Q_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
+		strcat(cmd, Cmd_Argv(i));
 
 		if (i != (c - 1))
 		{
-			Q_strlcat(cmd, " ", sizeof(cmd));
+			strcat(cmd, " ");
 		}
 	}
 

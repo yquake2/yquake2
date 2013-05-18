@@ -346,9 +346,9 @@ VID_CheckChanges(void)
 		cls.disable_screen = true;
 
 #ifdef _WIN32
-		snprintf(name, sizeof(name), "ref_%s.dll", vid_ref->string);
+		sprintf(name, "ref_%s.dll", vid_ref->string);
 #else
-		snprintf(name, sizeof(name), "ref_%s.so", vid_ref->string);
+		sprintf(name, "ref_%s.so", vid_ref->string);
 #endif
 
 		if (!VID_LoadRefresh(name))

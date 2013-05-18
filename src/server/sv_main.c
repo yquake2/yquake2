@@ -95,7 +95,7 @@ SV_StatusString(void)
 	int playerLength;
 
 	strcpy(status, Cvar_Serverinfo());
-	Q_strlcat(status, "\n", sizeof(status));
+	strcat(status, "\n");
 	statusLength = (int)strlen(status);
 
 	for (i = 0; i < maxclients->value; i++)
