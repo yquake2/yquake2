@@ -1,3 +1,8 @@
+Quake II 5.10 to 5.11
+- A lot of bugfixes.
+- Videos are scaled to 4:3 to prevent distortions.
+- Another sound system cleanup.
+
 Quake II 5.00 to 5.10
 - Support for OS X. (by W. Beser)
 - Correct field of view handling (by Ricardo Garci)
