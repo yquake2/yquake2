@@ -146,6 +146,7 @@ it'll lead to the loss of features):
  - libjpeg (6 or 8)
  - libogg with development headers
  - libvorbis with development headers
+ - OpenAL with development headers
  - SDL with development headers and sdl-config(1)
  - ZLib
 
