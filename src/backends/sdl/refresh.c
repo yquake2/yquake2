@@ -25,7 +25,7 @@
  * =======================================================================
  */
 
-#include "../../refresh/header/local.h"
+#include "../../client/refresh/header/local.h"
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>
 #else

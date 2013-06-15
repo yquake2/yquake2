@@ -304,8 +304,13 @@ ifeq ($(WITH_ZIP),yes)
 release/quake2.exe : CFLAGS += -DZIP -DNOUNCRYPT
 release/quake2.exe : LDFLAGS += -lz
 endif
+ 
+ifeq ($(WITH_RETEXTURING),yes)
+release/quake2.exe : CFLAGS += -DRETEXTURE
+release/quake2.exe : LDFLAGS += -ljpeg
+endif 
 
-release/quake2.exe : LDFLAGS += -mwindows
+release/quake2.exe : LDFLAGS += -mwindows -lopengl32
 else
 client:
 	@echo "===> Building quake2"
@@ -315,7 +320,7 @@ client:
 build/client/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
 
 ifeq ($(OSTYPE), Darwin)
 build/client/%.o : %.m
@@ -323,8 +328,6 @@ build/client/%.o : %.m
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) $(OSX_ARCH) -x objective-c -c $< -o $@
 endif
-
-release/quake2 : LDFLAGS += -lGL
 
 ifeq ($(WITH_CDA),yes)
 release/quake2 : CFLAGS += -DCDA
@@ -354,11 +357,28 @@ ifeq ($(WITH_ZIP),yes)
 release/quake2 : CFLAGS += -DZIP -DNOUNCRYPT
 release/quake2 : LDFLAGS += -lz
 endif
+
+ifeq ($(WITH_X11GAMMA),yes)
+release/quake2 : CFLAGS += -DX11GAMMA
 endif
 
+ifeq ($(WITH_RETEXTURING),yes)
+release/quake2 : CFLAGS += -DRETEXTURE
+ifeq ($(OSTYPE), Darwin)
+release/quake2 : LDFLAGS += -framework libjpeg
+else
+release/quake2 : LDFLAGS += -ljpeg
+endif
+endif
+ 
 ifeq ($(OSTYPE), Darwin)
 ifeq ($(OSX_APP), yes)
 release/quake2 : LDFLAGS += -Xlinker -rpath -Xlinker @loader_path/../Frameworks
+endif
+endif
+ 
+ifneq ($(OSTYPE), Darwin)
+release/quake2 : LDFLAGS += -lGL
 endif
 endif
 
@@ -400,40 +420,6 @@ ifeq ($(WITH_ZIP),yes)
 release/q2ded : CFLAGS += -DZIP -DNOUNCRYPT
 release/q2ded : LDFLAGS += -lz
 endif
-endif
-
-# ----------
-
-# The refresher
-ifeq ($(OSTYPE), Windows)
-build/refresher/%.o: %.c
-	@echo "===> CC $<"
-	${Q}stuff/misc/mkdir.exe -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
-
-ifeq ($(WITH_RETEXTURING),yes)
-release/quake2.exe : CFLAGS += -DRETEXTURE
-release/quake2.exe : LDFLAGS += -ljpeg
-endif
-else
-build/refresher/%.o: %.c
-	@echo "===> CC $<"
-	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
-
-ifeq ($(WITH_X11GAMMA),yes)
-release/quake2 : CFLAGS += -DX11GAMMA
-endif
-
-ifeq ($(WITH_RETEXTURING),yes)
-release/quake2 : CFLAGS += -DRETEXTURE
-ifeq ($(OSTYPE), Darwin)
-release/quake2 : LDFLAGS += -framework libjpeg
-else
-release/quake2 : LDFLAGS += -ljpeg
-endif
-endif
-
 endif
 
 # ----------
@@ -525,7 +511,10 @@ GAME_OBJS_ = \
 CLIENT_OBJS_ := \
 	src/backends/generic/qal.o \
 	src/backends/generic/vid.o \
+ 	src/backends/generic/qgl.o \
 	src/backends/sdl/cd.o \
+	src/backends/sdl/input.o \
+	src/backends/sdl/refresh.o \
 	src/backends/sdl/sound.o \
 	src/client/cl_cin.o \
 	src/client/cl_console.o \
@@ -544,6 +533,23 @@ CLIENT_OBJS_ := \
 	src/client/cl_screen.o \
 	src/client/cl_tempentities.o \
 	src/client/cl_view.o \
+	src/client/refresh/r_draw.o \
+	src/client/refresh/r_image.o \
+	src/client/refresh/r_light.o \
+	src/client/refresh/r_lightmap.o \
+	src/client/refresh/r_main.o \
+	src/client/refresh/r_mesh.o \
+	src/client/refresh/r_misc.o \
+	src/client/refresh/r_model.o \
+	src/client/refresh/r_scrap.o \
+	src/client/refresh/r_surf.o \
+	src/client/refresh/r_warp.o \
+	src/client/refresh/files/md2.o \
+	src/client/refresh/files/pcx.o \
+	src/client/refresh/files/sp2.o \
+	src/client/refresh/files/tga.o \
+	src/client/refresh/files/jpeg.o \
+	src/client/refresh/files/wal.o \
 	src/client/menu/menu.o \
 	src/client/menu/qmenu.o \
 	src/client/menu/videomenu.o \
@@ -650,35 +656,9 @@ endif
 
 # ----------
 
-# Used by the OpenGL refresher
-OPENGL_OBJS_ = \
-	src/backends/generic/qgl.o \
-	src/backends/sdl/input.o \
-	src/backends/sdl/refresh.o \
-	src/refresh/r_draw.o \
-	src/refresh/r_image.o \
-	src/refresh/r_light.o \
-	src/refresh/r_lightmap.o \
-	src/refresh/r_main.o \
-	src/refresh/r_mesh.o \
-	src/refresh/r_misc.o \
-	src/refresh/r_model.o \
-	src/refresh/r_scrap.o \
-	src/refresh/r_surf.o \
-	src/refresh/r_warp.o \
-	src/refresh/files/md2.o \
-	src/refresh/files/pcx.o \
-	src/refresh/files/sp2.o \
-	src/refresh/files/tga.o \
-	src/refresh/files/jpeg.o \
-	src/refresh/files/wal.o
-
-# ----------
-
 # Rewrite pathes to our object directory
 CLIENT_OBJS = $(patsubst %,build/client/%,$(CLIENT_OBJS_))
 SERVER_OBJS = $(patsubst %,build/server/%,$(SERVER_OBJS_))
-OPENGL_OBJS = $(patsubst %,build/refresher/%,$(OPENGL_OBJS_))
 GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 
 # ----------
@@ -686,7 +666,6 @@ GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 # Generate header dependencies
 CLIENT_DEPS= $(CLIENT_OBJS:.o=.d)
 SERVER_DEPS= $(SERVER_OBJS:.o=.d)
-OPENGL_DEPS= $(OPENGL_OBJS:.o=.d)
 GAME_DEPS= $(GAME_OBJS:.o=.d)
 
 # ----------
@@ -694,20 +673,19 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 # Suck header dependencies in
 -include $(CLIENT_DEPS)
 -include $(SERVER_DEPS)
--include $(OPENGL_DEPS)
 -include $(GAME_DEPS)
 
 # ----------
 
 # release/quake2
 ifeq ($(OSTYPE), Windows)
-release/quake2.exe : $(CLIENT_OBJS) $(OPENGL_OBJS) icon
+release/quake2.exe : $(CLIENT_OBJS) icon
 	@echo "===> LD $@"
-	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
-release/quake2 : $(CLIENT_OBJS) $(OPENGL_OBJS)
+release/quake2 : $(CLIENT_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(CLIENT_OBJS) $(OPENGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) $(X11LDFLAGS) -o $@
+	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) $(X11LDFLAGS) -o $@
 endif
 
 # release/q2ded
