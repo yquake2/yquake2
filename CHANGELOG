@@ -1,3 +1,9 @@
+Quake II 5.11 to 5.20
+- Integrate the refresher into the client and
+  remove QGL. This means that ref_gl.so is gone
+  and libGL is now linked every other lib. (by
+  Alejandro Ricoveri)
+
 Quake II 5.10 to 5.11
 - A lot of bugfixes.
 - Videos are scaled to 4:3 to prevent distortions.
