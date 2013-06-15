@@ -324,6 +324,8 @@ build/client/%.o : %.m
 	${Q}$(CC) $(OSX_ARCH) -x objective-c -c $< -o $@
 endif
 
+release/quake2 : LDFLAGS += -lGL
+
 ifeq ($(WITH_CDA),yes)
 release/quake2 : CFLAGS += -DCDA
 endif

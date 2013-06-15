@@ -37,7 +37,6 @@ extern cvar_t *vid_gamma;
 extern cvar_t *scr_viewsize;
 
 static cvar_t *gl_mode;
-static cvar_t *gl_driver;
 static cvar_t *gl_picmip;
 static cvar_t *gl_ext_palettedtexture;
 
@@ -216,11 +215,6 @@ VID_MenuInit(void)
 		"Custom",
 		0
 	};
-
-	if (!gl_driver)
-	{
-		gl_driver = Cvar_Get("gl_driver", LIBGL, 0);
-	}
 
 	if (!gl_picmip)
 	{

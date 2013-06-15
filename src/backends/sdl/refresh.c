@@ -26,7 +26,6 @@
  */
 
 #include "../../refresh/header/local.h"
-#include "../generic/header/glwindow.h"
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>
 #else
@@ -53,7 +52,6 @@
 #endif
 
 SDL_Surface *surface;
-glwstate_t glw_state;
 qboolean have_stencil = false;
 
 char *displayname = NULL;
@@ -86,6 +84,15 @@ GLimp_Init(void)
 	}
 
 	return true;
+}
+
+/*
+ * Returns the adress of a GL function
+ */
+void *
+GLimp_GetProcAddress (const char* proc)
+{
+	return SDL_GL_GetProcAddress ( proc );
 }
 
 /*

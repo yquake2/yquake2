@@ -211,7 +211,6 @@ extern cvar_t *gl_customheight;
 extern cvar_t *gl_retexturing;
 #endif
 
-extern cvar_t *gl_log;
 extern cvar_t *gl_lightmap;
 extern cvar_t *gl_shadows;
 extern cvar_t *gl_stencilshadow;
@@ -235,7 +234,6 @@ extern cvar_t *gl_modulate;
 extern cvar_t *gl_playermip;
 extern cvar_t *gl_drawbuffer;
 extern cvar_t *gl_3dlabs_broken;
-extern cvar_t *gl_driver;
 extern cvar_t *gl_swapinterval;
 extern cvar_t *gl_anisotropic;
 extern cvar_t *gl_anisotropic_avail;
@@ -399,12 +397,25 @@ typedef struct
 extern glconfig_t gl_config;
 extern glstate_t gl_state;
 
-void GLimp_BeginFrame(float camera_separation);
+/*
+ * Initializes the SDL OpenGL context
+ */
 int GLimp_Init(void);
+
+/*
+ * Shuts the SDL render backend down
+ */
 void GLimp_Shutdown(void);
+
+/*
+ * Changes the video mode
+ */
 int GLimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen);
-void GLimp_AppActivate(qboolean active);
-void GLimp_EnableLogging(qboolean enable);
-void GLimp_LogNewFrame(void);
+
+/*
+ * Returns the address of the GL function proc,
+ * or NULL if the function is not found.
+ */
+void *GLimp_GetProcAddress (const char* proc);
 
 #endif

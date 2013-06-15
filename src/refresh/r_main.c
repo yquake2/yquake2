@@ -105,10 +105,8 @@ cvar_t *gl_ext_pointparameters;
 cvar_t *gl_ext_compiled_vertex_array;
 cvar_t *gl_ext_mtexcombine;
 
-cvar_t *gl_log;
 cvar_t *gl_bitdepth;
 cvar_t *gl_drawbuffer;
-cvar_t *gl_driver;
 cvar_t *gl_lightmap;
 cvar_t *gl_shadows;
 cvar_t *gl_stencilshadow;
@@ -974,7 +972,6 @@ R_Register(void)
 	gl_particle_att_c = Cvar_Get("gl_particle_att_c", "0.01", CVAR_ARCHIVE);
 
 	gl_modulate = Cvar_Get("gl_modulate", "1", CVAR_ARCHIVE);
-	gl_log = Cvar_Get("gl_log", "0", 0);
 	gl_bitdepth = Cvar_Get("gl_bitdepth", "0", 0);
 	gl_mode = Cvar_Get("gl_mode", "4", CVAR_ARCHIVE);
 	gl_lightmap = Cvar_Get("gl_lightmap", "0", 0);
@@ -994,7 +991,6 @@ R_Register(void)
 	gl_polyblend = Cvar_Get("gl_polyblend", "1", 0);
 	gl_flashblend = Cvar_Get("gl_flashblend", "0", 0);
 	gl_playermip = Cvar_Get("gl_playermip", "0", 0);
-	gl_driver = Cvar_Get("gl_driver", LIBGL, CVAR_ARCHIVE);
 
 	gl_texturemode = Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl_texturealphamode = Cvar_Get("gl_texturealphamode", "default", CVAR_ARCHIVE);
@@ -1128,13 +1124,7 @@ R_Init(void *hinstance, void *hWnd)
 	R_Register();
 
 	/* initialize our QGL dynamic bindings */
-	if (!QGL_Init(gl_driver->string))
-	{
-		QGL_Shutdown();
-		VID_Printf(PRINT_ALL, "ref_gl::R_Init() - could not load \"%s\"\n",
-				gl_driver->string);
-		return -1;
-	}
+	QGL_Init();
 
 	/* initialize OS-specific parts of OpenGL */
 	if (!GLimp_Init())
@@ -1183,8 +1173,8 @@ R_Init(void *hinstance, void *hWnd)
 		strstr(gl_config.extensions_string, "GL_SGI_compiled_vertex_array"))
 	{
 		VID_Printf(PRINT_ALL, "...using GL_EXT_compiled_vertex_array\n");
-		qglLockArraysEXT = (void *)GetProcAddressGL("glLockArraysEXT");
-		qglUnlockArraysEXT = (void *)GetProcAddressGL("glUnlockArraysEXT");
+		qglLockArraysEXT = ( void * ) QGL_GetProcAddress ( "glLockArraysEXT" );
+		qglUnlockArraysEXT = ( void * ) QGL_GetProcAddress ( "glUnlockArraysEXT" );
 	}
 	else
 	{
@@ -1197,9 +1187,9 @@ R_Init(void *hinstance, void *hWnd)
 		{
 			VID_Printf(PRINT_ALL, "...using GL_EXT_point_parameters\n");
 			qglPointParameterfEXT = (void (APIENTRY *)(GLenum, GLfloat))
-				GetProcAddressGL("glPointParameterfEXT");
+				QGL_GetProcAddress ( "glPointParameterfEXT" );
 			qglPointParameterfvEXT = (void (APIENTRY *)(GLenum, const GLfloat *))
-				GetProcAddressGL("glPointParameterfvEXT");
+				QGL_GetProcAddress ( "glPointParameterfvEXT" );
 		}
 		else
 		{
@@ -1220,7 +1210,7 @@ R_Init(void *hinstance, void *hWnd)
 			VID_Printf(PRINT_ALL, "...using GL_EXT_shared_texture_palette\n");
 			qglColorTableEXT =
 				(void (APIENTRY *)(GLenum, GLenum, GLsizei, GLenum, GLenum,
-						 const GLvoid *))GetProcAddressGL(
+						const GLvoid * ) ) QGL_GetProcAddress (
 						"glColorTableEXT");
 		}
 		else
@@ -1238,9 +1228,9 @@ R_Init(void *hinstance, void *hWnd)
 		if (gl_ext_multitexture->value)
 		{
 			VID_Printf(PRINT_ALL, "...using GL_ARB_multitexture\n");
-			qglMTexCoord2fSGIS = (void *)GetProcAddressGL("glMultiTexCoord2fARB");
-			qglActiveTextureARB = (void *)GetProcAddressGL("glActiveTextureARB");
-			qglClientActiveTextureARB = (void *)GetProcAddressGL("glClientActiveTextureARB");
+			qglMTexCoord2fSGIS = ( void * ) QGL_GetProcAddress ( "glMultiTexCoord2fARB" );
+			qglActiveTextureARB = ( void * ) QGL_GetProcAddress ( "glActiveTextureARB" );
+			qglClientActiveTextureARB = ( void * ) QGL_GetProcAddress ( "glClientActiveTextureARB" );
 			QGL_TEXTURE0 = GL_TEXTURE0_ARB;
 			QGL_TEXTURE1 = GL_TEXTURE1_ARB;
 		}
@@ -1263,8 +1253,8 @@ R_Init(void *hinstance, void *hWnd)
 		else if (gl_ext_multitexture->value)
 		{
 			VID_Printf(PRINT_ALL, "...using GL_SGIS_multitexture\n");
-			qglMTexCoord2fSGIS = (void *)GetProcAddressGL("glMTexCoord2fSGIS");
-			qglSelectTextureSGIS = (void *)GetProcAddressGL("glSelectTextureSGIS");
+			qglMTexCoord2fSGIS = ( void * ) QGL_GetProcAddress ( "glMTexCoord2fSGIS" );
+			qglSelectTextureSGIS = ( void * ) QGL_GetProcAddress ( "glSelectTextureSGIS" );
 			QGL_TEXTURE0 = GL_TEXTURE0_SGIS;
 			QGL_TEXTURE1 = GL_TEXTURE1_SGIS;
 		}
@@ -1381,17 +1371,6 @@ R_BeginFrame(float camera_separation)
 	if (gl_mode->modified)
 	{
 		vid_fullscreen->modified = true;
-	}
-
-	if (gl_log->modified)
-	{
-		GLimp_EnableLogging(gl_log->value);
-		gl_log->modified = false;
-	}
-
-	if (gl_log->value)
-	{
-		GLimp_LogNewFrame();
 	}
 
 	if (vid_gamma->modified)
