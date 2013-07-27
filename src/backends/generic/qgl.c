@@ -68,14 +68,6 @@ QGL_Shutdown ( void )
 
 /* ========================================================================= */
 
-void *
-QGL_GetProcAddress ( char *proc )
-{
-	return GLimp_GetProcAddress (proc );
-}
-
-/* ========================================================================= */
-
 qboolean
 QGL_Init (void)
 {

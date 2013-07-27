@@ -1169,8 +1169,8 @@ R_Init(void *hinstance, void *hWnd)
 	if (strstr(gl_config.extensions_string, "GL_EXT_compiled_vertex_array"))
 	{
 		VID_Printf(PRINT_ALL, "...using GL_EXT_compiled_vertex_array\n");
-		qglLockArraysEXT = ( void * ) QGL_GetProcAddress ( "glLockArraysEXT" );
-		qglUnlockArraysEXT = ( void * ) QGL_GetProcAddress ( "glUnlockArraysEXT" );
+		qglLockArraysEXT = ( void * ) GLimp_GetProcAddress ( "glLockArraysEXT" );
+		qglUnlockArraysEXT = ( void * ) GLimp_GetProcAddress ( "glUnlockArraysEXT" );
 	}
 	else
 	{
@@ -1183,9 +1183,9 @@ R_Init(void *hinstance, void *hWnd)
 		{
 			VID_Printf(PRINT_ALL, "...using GL_EXT_point_parameters\n");
 			qglPointParameterfEXT = (void (APIENTRY *)(GLenum, GLfloat))
-				QGL_GetProcAddress ( "glPointParameterfEXT" );
+				GLimp_GetProcAddress ( "glPointParameterfEXT" );
 			qglPointParameterfvEXT = (void (APIENTRY *)(GLenum, const GLfloat *))
-				QGL_GetProcAddress ( "glPointParameterfvEXT" );
+				GLimp_GetProcAddress ( "glPointParameterfvEXT" );
 		}
 		else
 		{
@@ -1206,7 +1206,7 @@ R_Init(void *hinstance, void *hWnd)
 			VID_Printf(PRINT_ALL, "...using GL_EXT_shared_texture_palette\n");
 			qglColorTableEXT =
 				(void (APIENTRY *)(GLenum, GLenum, GLsizei, GLenum, GLenum,
-						const GLvoid * ) ) QGL_GetProcAddress ("glColorTableEXT");
+						const GLvoid * ) ) GLimp_GetProcAddress ("glColorTableEXT");
 		}
 		else
 		{
@@ -1223,9 +1223,9 @@ R_Init(void *hinstance, void *hWnd)
 		if (gl_ext_multitexture->value)
 		{
 			VID_Printf(PRINT_ALL, "...using GL_ARB_multitexture\n");
-			qglMultiTexCoord2fARB = ( void * ) QGL_GetProcAddress ( "glMultiTexCoord2fARB" );
-			qglActiveTextureARB = ( void * ) QGL_GetProcAddress ( "glActiveTextureARB" );
-			qglClientActiveTextureARB = ( void * ) QGL_GetProcAddress ( "glClientActiveTextureARB" );
+			qglMultiTexCoord2fARB = ( void * ) GLimp_GetProcAddress ( "glMultiTexCoord2fARB" );
+			qglActiveTextureARB = ( void * ) GLimp_GetProcAddress ( "glActiveTextureARB" );
+			qglClientActiveTextureARB = ( void * ) GLimp_GetProcAddress ( "glClientActiveTextureARB" );
 		}
 		else
 		{

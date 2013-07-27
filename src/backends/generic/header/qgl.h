@@ -108,12 +108,6 @@ qboolean QGL_Init ( void );
  */
 void QGL_Shutdown ( void );
 
-/*
- * Special case function to return addresses of non
- * base functions in libGL.
- */
-void * QGL_GetProcAddress ( char *proc );
-
 /* GL extensions */
 extern void ( APIENTRY *qglPointParameterfEXT ) ( GLenum param, GLfloat value );
 extern void ( APIENTRY *qglPointParameterfvEXT ) ( GLenum param,
