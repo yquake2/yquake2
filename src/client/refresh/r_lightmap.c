@@ -252,7 +252,7 @@ LM_BeginBuildingLightmaps(model_t *m)
 	r_framecount = 1; /* no dlightcache */
 
 	R_EnableMultitexture(true);
-	R_SelectTexture(QGL_TEXTURE1);
+	R_SelectTexture(GL_TEXTURE1_ARB);
 
 	/* setup the base lightstyles so the lightmaps
 	   won't have to be regenerated the first time

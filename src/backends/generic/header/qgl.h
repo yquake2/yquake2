@@ -122,11 +122,8 @@ extern void ( APIENTRY *qglColorTableEXT ) ( GLenum, GLenum, GLsizei, GLenum,
 		GLenum, const GLvoid * );
 extern void ( APIENTRY *qglLockArraysEXT ) ( int, int );
 extern void ( APIENTRY *qglUnlockArraysEXT ) ( void );
-extern void ( APIENTRY *qglMTexCoord2fSGIS ) ( GLenum, GLfloat, GLfloat );
-extern void ( APIENTRY *qglSelectTextureSGIS ) ( GLenum );
+extern void ( APIENTRY *qglMultiTexCoord2fARB) ( GLenum, GLfloat, GLfloat );
 extern void ( APIENTRY *qglActiveTextureARB ) ( GLenum );
 extern void ( APIENTRY *qglClientActiveTextureARB ) ( GLenum );
-
-extern int QGL_TEXTURE0, QGL_TEXTURE1;
 
 #endif

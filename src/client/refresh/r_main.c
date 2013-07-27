@@ -29,9 +29,6 @@
 #define NUM_BEAM_SEGS 6
 
 viddef_t vid;
-
-int QGL_TEXTURE0, QGL_TEXTURE1;
-
 model_t *r_worldmodel;
 
 float gldepthmin, gldepthmax;
@@ -1169,8 +1166,7 @@ R_Init(void *hinstance, void *hWnd)
 	VID_Printf(PRINT_ALL, "\n\nProbing for OpenGL extensions:\n");
 
 	/* grab extensions */
-	if (strstr(gl_config.extensions_string, "GL_EXT_compiled_vertex_array") ||
-		strstr(gl_config.extensions_string, "GL_SGI_compiled_vertex_array"))
+	if (strstr(gl_config.extensions_string, "GL_EXT_compiled_vertex_array"))
 	{
 		VID_Printf(PRINT_ALL, "...using GL_EXT_compiled_vertex_array\n");
 		qglLockArraysEXT = ( void * ) QGL_GetProcAddress ( "glLockArraysEXT" );
@@ -1210,8 +1206,7 @@ R_Init(void *hinstance, void *hWnd)
 			VID_Printf(PRINT_ALL, "...using GL_EXT_shared_texture_palette\n");
 			qglColorTableEXT =
 				(void (APIENTRY *)(GLenum, GLenum, GLsizei, GLenum, GLenum,
-						const GLvoid * ) ) QGL_GetProcAddress (
-						"glColorTableEXT");
+						const GLvoid * ) ) QGL_GetProcAddress ("glColorTableEXT");
 		}
 		else
 		{
@@ -1228,11 +1223,9 @@ R_Init(void *hinstance, void *hWnd)
 		if (gl_ext_multitexture->value)
 		{
 			VID_Printf(PRINT_ALL, "...using GL_ARB_multitexture\n");
-			qglMTexCoord2fSGIS = ( void * ) QGL_GetProcAddress ( "glMultiTexCoord2fARB" );
+			qglMultiTexCoord2fARB = ( void * ) QGL_GetProcAddress ( "glMultiTexCoord2fARB" );
 			qglActiveTextureARB = ( void * ) QGL_GetProcAddress ( "glActiveTextureARB" );
 			qglClientActiveTextureARB = ( void * ) QGL_GetProcAddress ( "glClientActiveTextureARB" );
-			QGL_TEXTURE0 = GL_TEXTURE0_ARB;
-			QGL_TEXTURE1 = GL_TEXTURE1_ARB;
 		}
 		else
 		{
@@ -1242,30 +1235,6 @@ R_Init(void *hinstance, void *hWnd)
 	else
 	{
 		VID_Printf(PRINT_ALL, "...GL_ARB_multitexture not found\n");
-	}
-
-	if (strstr(gl_config.extensions_string, "GL_SGIS_multitexture"))
-	{
-		if (qglActiveTextureARB)
-		{
-			VID_Printf(PRINT_ALL, "...GL_SGIS_multitexture deprecated in favor of ARB_multitexture\n");
-		}
-		else if (gl_ext_multitexture->value)
-		{
-			VID_Printf(PRINT_ALL, "...using GL_SGIS_multitexture\n");
-			qglMTexCoord2fSGIS = ( void * ) QGL_GetProcAddress ( "glMTexCoord2fSGIS" );
-			qglSelectTextureSGIS = ( void * ) QGL_GetProcAddress ( "glSelectTextureSGIS" );
-			QGL_TEXTURE0 = GL_TEXTURE0_SGIS;
-			QGL_TEXTURE1 = GL_TEXTURE1_SGIS;
-		}
-		else
-		{
-			VID_Printf(PRINT_ALL, "...ignoring GL_SGIS_multitexture\n");
-		}
-	}
-	else
-	{
-		VID_Printf(PRINT_ALL, "...GL_SGIS_multitexture not found\n");
 	}
 
 	gl_config.anisotropic = false;

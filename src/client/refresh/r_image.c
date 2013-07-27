@@ -151,25 +151,25 @@ R_SetTexturePalette(unsigned palette[256])
 void
 R_EnableMultitexture(qboolean enable)
 {
-	if (!qglSelectTextureSGIS && !qglActiveTextureARB)
+	if (!qglActiveTextureARB)
 	{
 		return;
 	}
 
 	if (enable)
 	{
-		R_SelectTexture(QGL_TEXTURE1);
+		R_SelectTexture(GL_TEXTURE1_ARB);
 		glEnable(GL_TEXTURE_2D);
 		R_TexEnv(GL_REPLACE);
 	}
 	else
 	{
-		R_SelectTexture(QGL_TEXTURE1);
+		R_SelectTexture(GL_TEXTURE1_ARB);
 		glDisable(GL_TEXTURE_2D);
 		R_TexEnv(GL_REPLACE);
 	}
 
-	R_SelectTexture(QGL_TEXTURE0);
+	R_SelectTexture(GL_TEXTURE0_ARB);
 	R_TexEnv(GL_REPLACE);
 }
 
@@ -178,12 +178,12 @@ R_SelectTexture(GLenum texture)
 {
 	int tmu;
 
-	if (!qglSelectTextureSGIS && !qglActiveTextureARB)
+	if (!qglActiveTextureARB)
 	{
 		return;
 	}
 
-	if (texture == QGL_TEXTURE0)
+	if (texture == GL_TEXTURE0_ARB)
 	{
 		tmu = 0;
 	}
@@ -199,11 +199,7 @@ R_SelectTexture(GLenum texture)
 
 	gl_state.currenttmu = tmu;
 
-	if (qglSelectTextureSGIS)
-	{
-		qglSelectTextureSGIS(texture);
-	}
-	else if (qglActiveTextureARB)
+	if (qglActiveTextureARB)
 	{
 		qglActiveTextureARB(texture);
 		qglClientActiveTextureARB(texture);
@@ -246,7 +242,7 @@ R_MBind(GLenum target, int texnum)
 {
 	R_SelectTexture(target);
 
-	if (target == QGL_TEXTURE0)
+	if (target == GL_TEXTURE0_ARB)
 	{
 		if (gl_state.currenttextures[0] == texnum)
 		{
