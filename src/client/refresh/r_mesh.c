@@ -123,7 +123,7 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 		(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE |
 		 RF_SHELL_HALF_DAM))
 	{
-		qglDisable(GL_TEXTURE_2D);
+		glDisable(GL_TEXTURE_2D);
 	}
 
 	frontlerp = 1.0 - backlerp;
@@ -157,19 +157,19 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 	{
 		float colorArray[MAX_VERTS * 4];
 
-		qglEnableClientState(GL_VERTEX_ARRAY);
-		qglVertexPointer(3, GL_FLOAT, 16, s_lerped);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 16, s_lerped);
 
 		if (currententity->flags &
 			(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE |
 			 RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
 		{
-			qglColor4f(shadelight[0], shadelight[1], shadelight[2], alpha);
+			glColor4f(shadelight[0], shadelight[1], shadelight[2], alpha);
 		}
 		else
 		{
-			qglEnableClientState(GL_COLOR_ARRAY);
-			qglColorPointer(3, GL_FLOAT, 0, colorArray);
+			glEnableClientState(GL_COLOR_ARRAY);
+			glColorPointer(3, GL_FLOAT, 0, colorArray);
 
 			/* pre light everything */
 			for (i = 0; i < paliashdr->num_xyz; i++)
@@ -200,11 +200,11 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 			if (count < 0)
 			{
 				count = -count;
-				qglBegin(GL_TRIANGLE_FAN);
+				glBegin(GL_TRIANGLE_FAN);
 			}
 			else
 			{
-				qglBegin(GL_TRIANGLE_STRIP);
+				glBegin(GL_TRIANGLE_STRIP);
 			}
 
 			if (currententity->flags &
@@ -217,7 +217,7 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 					index_xyz = order[2];
 					order += 3;
 
-					qglVertex3fv(s_lerped[index_xyz]);
+					glVertex3fv(s_lerped[index_xyz]);
 				}
 				while (--count);
 			}
@@ -226,17 +226,17 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 				do
 				{
 					/* texture coordinates come from the draw list */
-					qglTexCoord2f(((float *)order)[0], ((float *)order)[1]);
+					glTexCoord2f(((float *)order)[0], ((float *)order)[1]);
 					index_xyz = order[2];
 
 					order += 3;
 
-					qglArrayElement(index_xyz);
+					glArrayElement(index_xyz);
 				}
 				while (--count);
 			}
 
-			qglEnd();
+			glEnd();
 		}
 
 		if (qglUnlockArraysEXT != 0)
@@ -259,11 +259,11 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 			if (count < 0)
 			{
 				count = -count;
-				qglBegin(GL_TRIANGLE_FAN);
+				glBegin(GL_TRIANGLE_FAN);
 			}
 			else
 			{
-				qglBegin(GL_TRIANGLE_STRIP);
+				glBegin(GL_TRIANGLE_STRIP);
 			}
 
 			if (currententity->flags &
@@ -274,9 +274,9 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 					index_xyz = order[2];
 					order += 3;
 
-					qglColor4f(shadelight[0], shadelight[1],
+					glColor4f(shadelight[0], shadelight[1],
 							shadelight[2], alpha);
-					qglVertex3fv(s_lerped[index_xyz]);
+					glVertex3fv(s_lerped[index_xyz]);
 				}
 				while (--count);
 			}
@@ -285,21 +285,21 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 				do
 				{
 					/* texture coordinates come from the draw list */
-					qglTexCoord2f(((float *)order)[0], ((float *)order)[1]);
+					glTexCoord2f(((float *)order)[0], ((float *)order)[1]);
 					index_xyz = order[2];
 					order += 3;
 
 					/* normals and vertexes come from the frame list */
 					l = shadedots[verts[index_xyz].lightnormalindex];
 
-					qglColor4f(l * shadelight[0], l * shadelight[1],
+					glColor4f(l * shadelight[0], l * shadelight[1],
 							l * shadelight[2], alpha);
-					qglVertex3fv(s_lerped[index_xyz]);
+					glVertex3fv(s_lerped[index_xyz]);
 				}
 				while (--count);
 			}
 
-			qglEnd();
+			glEnd();
 		}
 	}
 
@@ -307,7 +307,7 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 		(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE |
 		 RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
 	{
-		qglEnable(GL_TEXTURE_2D);
+		glEnable(GL_TEXTURE_2D);
 	}
 }
 
@@ -326,9 +326,9 @@ R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 	/* stencilbuffer shadows */
 	if (have_stencil && gl_stencilshadow->value)
 	{
-		qglEnable(GL_STENCIL_TEST);
-		qglStencilFunc(GL_EQUAL, 1, 2);
-		qglStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_EQUAL, 1, 2);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
 	}
 
 	while (1)
@@ -344,11 +344,11 @@ R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 		if (count < 0)
 		{
 			count = -count;
-			qglBegin(GL_TRIANGLE_FAN);
+			glBegin(GL_TRIANGLE_FAN);
 		}
 		else
 		{
-			qglBegin(GL_TRIANGLE_STRIP);
+			glBegin(GL_TRIANGLE_STRIP);
 		}
 
 		do
@@ -359,19 +359,19 @@ R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 			point[0] -= shadevector[0] * (point[2] + lheight);
 			point[1] -= shadevector[1] * (point[2] + lheight);
 			point[2] = height;
-			qglVertex3fv(point);
+			glVertex3fv(point);
 
 			order += 3;
 		}
 		while (--count);
 
-		qglEnd();
+		glEnd();
 	}
 
 	/* stencilbuffer shadows */
 	if (have_stencil && gl_stencilshadow->value)
 	{
-		qglDisable(GL_STENCIL_TEST);
+		glDisable(GL_STENCIL_TEST);
 	}
 }
 
@@ -693,7 +693,7 @@ R_DrawAliasModel(entity_t *e)
 	if (currententity->flags & RF_DEPTHHACK)
 	{
 		/* hack the depth range to prevent view model from poking into walls */
-		qglDepthRange(gldepthmin, gldepthmin + 0.3 * (gldepthmax - gldepthmin));
+		glDepthRange(gldepthmin, gldepthmin + 0.3 * (gldepthmax - gldepthmin));
 	}
 
 	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
@@ -701,19 +701,19 @@ R_DrawAliasModel(entity_t *e)
 		extern void R_MYgluPerspective(GLdouble fovy, GLdouble aspect,
 				GLdouble zNear, GLdouble zFar);
 
-		qglMatrixMode(GL_PROJECTION);
-		qglPushMatrix();
-		qglLoadIdentity();
-		qglScalef(-1, 1, 1);
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		glScalef(-1, 1, 1);
 		R_MYgluPerspective(r_newrefdef.fov_y,
 				(float)r_newrefdef.width / r_newrefdef.height,
 				4, 4096);
-		qglMatrixMode(GL_MODELVIEW);
+		glMatrixMode(GL_MODELVIEW);
 
-		qglCullFace(GL_BACK);
+		glCullFace(GL_BACK);
 	}
 
-	qglPushMatrix();
+	glPushMatrix();
 	e->angles[PITCH] = -e->angles[PITCH];
 	R_RotateForEntity(e);
 	e->angles[PITCH] = -e->angles[PITCH];
@@ -748,13 +748,13 @@ R_DrawAliasModel(entity_t *e)
 	R_Bind(skin->texnum);
 
 	/* draw it */
-	qglShadeModel(GL_SMOOTH);
+	glShadeModel(GL_SMOOTH);
 
 	R_TexEnv(GL_MODULATE);
 
 	if (currententity->flags & RF_TRANSLUCENT)
 	{
-		qglEnable(GL_BLEND);
+		glEnable(GL_BLEND);
 	}
 
 	if ((currententity->frame >= paliashdr->num_frames) ||
@@ -783,46 +783,46 @@ R_DrawAliasModel(entity_t *e)
 	R_DrawAliasFrameLerp(paliashdr, currententity->backlerp);
 
 	R_TexEnv(GL_REPLACE);
-	qglShadeModel(GL_FLAT);
+	glShadeModel(GL_FLAT);
 
-	qglPopMatrix();
+	glPopMatrix();
 
 	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
 	{
-		qglMatrixMode(GL_PROJECTION);
-		qglPopMatrix();
-		qglMatrixMode(GL_MODELVIEW);
-		qglCullFace(GL_FRONT);
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glCullFace(GL_FRONT);
 	}
 
 	if (currententity->flags & RF_TRANSLUCENT)
 	{
-		qglDisable(GL_BLEND);
+		glDisable(GL_BLEND);
 	}
 
 	if (currententity->flags & RF_DEPTHHACK)
 	{
-		qglDepthRange(gldepthmin, gldepthmax);
+		glDepthRange(gldepthmin, gldepthmax);
 	}
 
 	if (gl_shadows->value &&
 		!(currententity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL | RF_NOSHADOW)))
 	{
-		qglPushMatrix();
+		glPushMatrix();
 
 		/* don't rotate shadows on ungodly axes */
-		qglTranslatef(e->origin[0], e->origin[1], e->origin[2]);
-		qglRotatef(e->angles[1], 0, 0, 1);
+		glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
+		glRotatef(e->angles[1], 0, 0, 1);
 
-		qglDisable(GL_TEXTURE_2D);
-		qglEnable(GL_BLEND);
-		qglColor4f(0, 0, 0, 0.5);
+		glDisable(GL_TEXTURE_2D);
+		glEnable(GL_BLEND);
+		glColor4f(0, 0, 0, 0.5);
 		R_DrawAliasShadow(paliashdr, currententity->frame);
-		qglEnable(GL_TEXTURE_2D);
-		qglDisable(GL_BLEND);
-		qglPopMatrix();
+		glEnable(GL_TEXTURE_2D);
+		glDisable(GL_BLEND);
+		glPopMatrix();
 	}
 
-	qglColor4f(1, 1, 1, 1);
+	glColor4f(1, 1, 1, 1);
 }
 

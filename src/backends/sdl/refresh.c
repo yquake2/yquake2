@@ -366,8 +366,8 @@ GLimp_Shutdown(void)
 	   areas. */
 	if (SDL_WasInit(SDL_INIT_VIDEO))
 	{
-		qglClearColor(0.0, 0.0, 0.0, 0.0);
-		qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClearColor(0.0, 0.0, 0.0, 0.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		GLimp_EndFrame();
 	}
 

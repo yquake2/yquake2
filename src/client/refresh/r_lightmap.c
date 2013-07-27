@@ -53,8 +53,8 @@ LM_UploadBlock(qboolean dynamic)
 	}
 
 	R_Bind(gl_state.lightmap_textures + texture);
-	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if (dynamic)
 	{
@@ -68,13 +68,13 @@ LM_UploadBlock(qboolean dynamic)
 			}
 		}
 
-		qglTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, BLOCK_WIDTH,
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, BLOCK_WIDTH,
 				height, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE,
 				gl_lms.lightmap_buffer);
 	}
 	else
 	{
-		qglTexImage2D(GL_TEXTURE_2D, 0, gl_lms.internal_format,
+		glTexImage2D(GL_TEXTURE_2D, 0, gl_lms.internal_format,
 				BLOCK_WIDTH, BLOCK_HEIGHT, 0, GL_LIGHTMAP_FORMAT,
 				GL_UNSIGNED_BYTE, gl_lms.lightmap_buffer);
 
@@ -277,9 +277,9 @@ LM_BeginBuildingLightmaps(model_t *m)
 
 	/* initialize the dynamic lightmap texture */
 	R_Bind(gl_state.lightmap_textures + 0);
-	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	qglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	qglTexImage2D(GL_TEXTURE_2D, 0, gl_lms.internal_format,
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, gl_lms.internal_format,
 			BLOCK_WIDTH, BLOCK_HEIGHT, 0, GL_LIGHTMAP_FORMAT,
 			GL_UNSIGNED_BYTE, dummy);
 }

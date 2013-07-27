@@ -173,11 +173,11 @@ R_CullBox(vec3_t mins, vec3_t maxs)
 void
 R_RotateForEntity(entity_t *e)
 {
-	qglTranslatef(e->origin[0], e->origin[1], e->origin[2]);
+	glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
 
-	qglRotatef(e->angles[1], 0, 0, 1);
-	qglRotatef(-e->angles[0], 0, 1, 0);
-	qglRotatef(-e->angles[2], 1, 0, 0);
+	glRotatef(e->angles[1], 0, 0, 1);
+	glRotatef(-e->angles[0], 0, 1, 0);
+	glRotatef(-e->angles[2], 1, 0, 0);
 }
 
 void
@@ -207,10 +207,10 @@ R_DrawSpriteModel(entity_t *e)
 
 	if (alpha != 1.0F)
 	{
-		qglEnable(GL_BLEND);
+		glEnable(GL_BLEND);
 	}
 
-	qglColor4f(1, 1, 1, alpha);
+	glColor4f(1, 1, 1, alpha);
 
 	R_Bind(currentmodel->skins[e->frame]->texnum);
 
@@ -218,46 +218,46 @@ R_DrawSpriteModel(entity_t *e)
 
 	if (alpha == 1.0)
 	{
-		qglEnable(GL_ALPHA_TEST);
+		glEnable(GL_ALPHA_TEST);
 	}
 	else
 	{
-		qglDisable(GL_ALPHA_TEST);
+		glDisable(GL_ALPHA_TEST);
 	}
 
-	qglBegin(GL_QUADS);
+	glBegin(GL_QUADS);
 
-	qglTexCoord2f(0, 1);
+	glTexCoord2f(0, 1);
 	VectorMA(e->origin, -frame->origin_y, up, point);
 	VectorMA(point, -frame->origin_x, right, point);
-	qglVertex3fv(point);
+	glVertex3fv(point);
 
-	qglTexCoord2f(0, 0);
+	glTexCoord2f(0, 0);
 	VectorMA(e->origin, frame->height - frame->origin_y, up, point);
 	VectorMA(point, -frame->origin_x, right, point);
-	qglVertex3fv(point);
+	glVertex3fv(point);
 
-	qglTexCoord2f(1, 0);
+	glTexCoord2f(1, 0);
 	VectorMA(e->origin, frame->height - frame->origin_y, up, point);
 	VectorMA(point, frame->width - frame->origin_x, right, point);
-	qglVertex3fv(point);
+	glVertex3fv(point);
 
-	qglTexCoord2f(1, 1);
+	glTexCoord2f(1, 1);
 	VectorMA(e->origin, -frame->origin_y, up, point);
 	VectorMA(point, frame->width - frame->origin_x, right, point);
-	qglVertex3fv(point);
+	glVertex3fv(point);
 
-	qglEnd();
+	glEnd();
 
-	qglDisable(GL_ALPHA_TEST);
+	glDisable(GL_ALPHA_TEST);
 	R_TexEnv(GL_REPLACE);
 
 	if (alpha != 1.0F)
 	{
-		qglDisable(GL_BLEND);
+		glDisable(GL_BLEND);
 	}
 
-	qglColor4f(1, 1, 1, 1);
+	glColor4f(1, 1, 1, 1);
 }
 
 void
@@ -275,35 +275,35 @@ R_DrawNullModel(void)
 		R_LightPoint(currententity->origin, shadelight);
 	}
 
-	qglPushMatrix();
+	glPushMatrix();
 	R_RotateForEntity(currententity);
 
-	qglDisable(GL_TEXTURE_2D);
-	qglColor3fv(shadelight);
+	glDisable(GL_TEXTURE_2D);
+	glColor3fv(shadelight);
 
-	qglBegin(GL_TRIANGLE_FAN);
-	qglVertex3f(0, 0, -16);
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex3f(0, 0, -16);
 
 	for (i = 0; i <= 4; i++)
 	{
-		qglVertex3f(16 * cos(i * M_PI / 2), 16 * sin(i * M_PI / 2), 0);
+		glVertex3f(16 * cos(i * M_PI / 2), 16 * sin(i * M_PI / 2), 0);
 	}
 
-	qglEnd();
+	glEnd();
 
-	qglBegin(GL_TRIANGLE_FAN);
-	qglVertex3f(0, 0, 16);
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex3f(0, 0, 16);
 
 	for (i = 4; i >= 0; i--)
 	{
-		qglVertex3f(16 * cos(i * M_PI / 2), 16 * sin(i * M_PI / 2), 0);
+		glVertex3f(16 * cos(i * M_PI / 2), 16 * sin(i * M_PI / 2), 0);
 	}
 
-	qglEnd();
+	glEnd();
 
-	qglColor3f(1, 1, 1);
-	qglPopMatrix();
-	qglEnable(GL_TEXTURE_2D);
+	glColor3f(1, 1, 1);
+	glPopMatrix();
+	glEnable(GL_TEXTURE_2D);
 }
 
 void
@@ -361,7 +361,7 @@ R_DrawEntitiesOnList(void)
 	/* draw transparent entities
 	   we could sort these if it ever
 	   becomes a problem... */
-	qglDepthMask(0);
+	glDepthMask(0);
 
 	for (i = 0; i < r_newrefdef.num_entities; i++)
 	{
@@ -404,7 +404,7 @@ R_DrawEntitiesOnList(void)
 		}
 	}
 
-	qglDepthMask(1); /* back to writing */
+	glDepthMask(1); /* back to writing */
 }
 
 void
@@ -418,10 +418,10 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	byte color[4];
 
 	R_Bind(r_particletexture->texnum);
-	qglDepthMask(GL_FALSE); /* no z buffering */
-	qglEnable(GL_BLEND);
+	glDepthMask(GL_FALSE); /* no z buffering */
+	glEnable(GL_BLEND);
 	R_TexEnv(GL_MODULATE);
-	qglBegin(GL_TRIANGLES);
+	glBegin(GL_TRIANGLES);
 
 	VectorScale(vup, 1.5, up);
 	VectorScale(vright, 1.5, right);
@@ -445,26 +445,26 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 		*(int *)color = colortable[p->color];
 		color[3] = p->alpha * 255;
 
-		qglColor4ubv(color);
+		glColor4ubv(color);
 
-		qglTexCoord2f(0.0625, 0.0625);
-		qglVertex3fv(p->origin);
+		glTexCoord2f(0.0625, 0.0625);
+		glVertex3fv(p->origin);
 
-		qglTexCoord2f(1.0625, 0.0625);
-		qglVertex3f(p->origin[0] + up[0] * scale,
+		glTexCoord2f(1.0625, 0.0625);
+		glVertex3f(p->origin[0] + up[0] * scale,
 				p->origin[1] + up[1] * scale,
 				p->origin[2] + up[2] * scale);
 
-		qglTexCoord2f(0.0625, 1.0625);
-		qglVertex3f(p->origin[0] + right[0] * scale,
+		glTexCoord2f(0.0625, 1.0625);
+		glVertex3f(p->origin[0] + right[0] * scale,
 				p->origin[1] + right[1] * scale,
 				p->origin[2] + right[2] * scale);
 	}
 
-	qglEnd();
-	qglDisable(GL_BLEND);
-	qglColor4f(1, 1, 1, 1);
-	qglDepthMask(1); /* back to normal Z buffering */
+	glEnd();
+	glDisable(GL_BLEND);
+	glColor4f(1, 1, 1, 1);
+	glDepthMask(1); /* back to normal Z buffering */
 	R_TexEnv(GL_REPLACE);
 }
 
@@ -477,13 +477,13 @@ R_DrawParticles(void)
 		unsigned char color[4];
 		const particle_t *p;
 
-		qglDepthMask(GL_FALSE);
-		qglEnable(GL_BLEND);
-		qglDisable(GL_TEXTURE_2D);
+		glDepthMask(GL_FALSE);
+		glEnable(GL_BLEND);
+		glDisable(GL_TEXTURE_2D);
 
-		qglPointSize(LittleFloat(gl_particle_size->value));
+		glPointSize(LittleFloat(gl_particle_size->value));
 
-		qglBegin(GL_POINTS);
+		glBegin(GL_POINTS);
 
 		for (i = 0, p = r_newrefdef.particles;
 			 i < r_newrefdef.num_particles;
@@ -491,16 +491,16 @@ R_DrawParticles(void)
 		{
 			*(int *)color = d_8to24table[p->color & 0xFF];
 			color[3] = p->alpha * 255;
-			qglColor4ubv(color);
-			qglVertex3fv(p->origin);
+			glColor4ubv(color);
+			glVertex3fv(p->origin);
 		}
 
-		qglEnd();
+		glEnd();
 
-		qglDisable(GL_BLEND);
-		qglColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-		qglDepthMask(GL_TRUE);
-		qglEnable(GL_TEXTURE_2D);
+		glDisable(GL_BLEND);
+		glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+		glDepthMask(GL_TRUE);
+		glEnable(GL_TEXTURE_2D);
 	}
 	else
 	{
@@ -522,31 +522,31 @@ R_PolyBlend(void)
 		return;
 	}
 
-	qglDisable(GL_ALPHA_TEST);
-	qglEnable(GL_BLEND);
-	qglDisable(GL_DEPTH_TEST);
-	qglDisable(GL_TEXTURE_2D);
+	glDisable(GL_ALPHA_TEST);
+	glEnable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_2D);
 
-	qglLoadIdentity();
+	glLoadIdentity();
 
-	qglRotatef(-90, 1, 0, 0); /* put Z going up */
-	qglRotatef(90, 0, 0, 1); /* put Z going up */
+	glRotatef(-90, 1, 0, 0); /* put Z going up */
+	glRotatef(90, 0, 0, 1); /* put Z going up */
 
-	qglColor4fv(v_blend);
+	glColor4fv(v_blend);
 
-	qglBegin(GL_QUADS);
+	glBegin(GL_QUADS);
 
-	qglVertex3f(10, 100, 100);
-	qglVertex3f(10, -100, 100);
-	qglVertex3f(10, -100, -100);
-	qglVertex3f(10, 100, -100);
-	qglEnd();
+	glVertex3f(10, 100, 100);
+	glVertex3f(10, -100, 100);
+	glVertex3f(10, -100, -100);
+	glVertex3f(10, 100, -100);
+	glEnd();
 
-	qglDisable(GL_BLEND);
-	qglEnable(GL_TEXTURE_2D);
-	qglEnable(GL_ALPHA_TEST);
+	glDisable(GL_BLEND);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_ALPHA_TEST);
 
-	qglColor4f(1, 1, 1, 1);
+	glColor4f(1, 1, 1, 1);
 }
 
 int
@@ -659,14 +659,14 @@ R_SetupFrame(void)
 	/* clear out the portion of the screen that the NOWORLDMODEL defines */
 	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
 	{
-		qglEnable(GL_SCISSOR_TEST);
-		qglClearColor(0.3, 0.3, 0.3, 1);
-		qglScissor(r_newrefdef.x,
+		glEnable(GL_SCISSOR_TEST);
+		glClearColor(0.3, 0.3, 0.3, 1);
+		glScissor(r_newrefdef.x,
 				vid.height - r_newrefdef.height - r_newrefdef.y,
 				r_newrefdef.width, r_newrefdef.height);
-		qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		qglClearColor(1, 0, 0.5, 0.5);
-		qglDisable(GL_SCISSOR_TEST);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClearColor(1, 0, 0.5, 0.5);
+		glDisable(GL_SCISSOR_TEST);
 	}
 }
 
@@ -685,7 +685,7 @@ R_MYgluPerspective(GLdouble fovy, GLdouble aspect,
 	xmin += -(2 * gl_state.camera_separation) / zNear;
 	xmax += -(2 * gl_state.camera_separation) / zNear;
 
-	qglFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
 }
 
 void
@@ -704,12 +704,12 @@ R_SetupGL(void)
 	w = x2 - x;
 	h = y - y2;
 
-	qglViewport(x, y2, w, h);
+	glViewport(x, y2, w, h);
 
 	/* set up projection matrix */
 	screenaspect = (float)r_newrefdef.width / r_newrefdef.height;
-	qglMatrixMode(GL_PROJECTION);
-	qglLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
 
 	if (gl_farsee->value == 0)
 	{
@@ -720,34 +720,34 @@ R_SetupGL(void)
 		R_MYgluPerspective(r_newrefdef.fov_y, screenaspect, 4, 8192);
 	}
 
-	qglCullFace(GL_FRONT);
+	glCullFace(GL_FRONT);
 
-	qglMatrixMode(GL_MODELVIEW);
-	qglLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
-	qglRotatef(-90, 1, 0, 0); /* put Z going up */
-	qglRotatef(90, 0, 0, 1); /* put Z going up */
-	qglRotatef(-r_newrefdef.viewangles[2], 1, 0, 0);
-	qglRotatef(-r_newrefdef.viewangles[0], 0, 1, 0);
-	qglRotatef(-r_newrefdef.viewangles[1], 0, 0, 1);
-	qglTranslatef(-r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1],
+	glRotatef(-90, 1, 0, 0); /* put Z going up */
+	glRotatef(90, 0, 0, 1); /* put Z going up */
+	glRotatef(-r_newrefdef.viewangles[2], 1, 0, 0);
+	glRotatef(-r_newrefdef.viewangles[0], 0, 1, 0);
+	glRotatef(-r_newrefdef.viewangles[1], 0, 0, 1);
+	glTranslatef(-r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1],
 			-r_newrefdef.vieworg[2]);
 
-	qglGetFloatv(GL_MODELVIEW_MATRIX, r_world_matrix);
+	glGetFloatv(GL_MODELVIEW_MATRIX, r_world_matrix);
 
 	/* set drawing parms */
 	if (gl_cull->value)
 	{
-		qglEnable(GL_CULL_FACE);
+		glEnable(GL_CULL_FACE);
 	}
 	else
 	{
-		qglDisable(GL_CULL_FACE);
+		glDisable(GL_CULL_FACE);
 	}
 
-	qglDisable(GL_BLEND);
-	qglDisable(GL_ALPHA_TEST);
-	qglEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+	glDisable(GL_ALPHA_TEST);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void
@@ -759,7 +759,7 @@ R_Clear(void)
 
 		if (gl_clear->value)
 		{
-			qglClear(GL_COLOR_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
 		trickframe++;
@@ -768,50 +768,50 @@ R_Clear(void)
 		{
 			gldepthmin = 0;
 			gldepthmax = 0.49999;
-			qglDepthFunc(GL_LEQUAL);
+			glDepthFunc(GL_LEQUAL);
 		}
 		else
 		{
 			gldepthmin = 1;
 			gldepthmax = 0.5;
-			qglDepthFunc(GL_GEQUAL);
+			glDepthFunc(GL_GEQUAL);
 		}
 	}
 	else
 	{
 		if (gl_clear->value)
 		{
-			qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}
 		else
 		{
-			qglClear(GL_DEPTH_BUFFER_BIT);
+			glClear(GL_DEPTH_BUFFER_BIT);
 		}
 
 		gldepthmin = 0;
 		gldepthmax = 1;
-		qglDepthFunc(GL_LEQUAL);
+		glDepthFunc(GL_LEQUAL);
 	}
 
-	qglDepthRange(gldepthmin, gldepthmax);
+	glDepthRange(gldepthmin, gldepthmax);
 
 	if (gl_zfix->value)
 	{
 		if (gldepthmax > gldepthmin)
 		{
-			qglPolygonOffset(0.05, 1);
+			glPolygonOffset(0.05, 1);
 		}
 		else
 		{
-			qglPolygonOffset(-0.05, -1);
+			glPolygonOffset(-0.05, -1);
 		}
 	}
 
 	/* stencilbuffer shadows */
 	if (gl_shadows->value && have_stencil && gl_stencilshadow->value)
 	{
-		qglClearStencil(1);
-		qglClear(GL_STENCIL_BUFFER_BIT);
+		glClearStencil(1);
+		glClear(GL_STENCIL_BUFFER_BIT);
 	}
 }
 
@@ -849,7 +849,7 @@ R_RenderView(refdef_t *fd)
 
 	if (gl_finish->value)
 	{
-		qglFinish();
+		glFinish();
 	}
 
 	R_SetupFrame();
@@ -884,17 +884,17 @@ void
 R_SetGL2D(void)
 {
 	/* set 2D virtual screen size */
-	qglViewport(0, 0, vid.width, vid.height);
-	qglMatrixMode(GL_PROJECTION);
-	qglLoadIdentity();
-	qglOrtho(0, vid.width, vid.height, 0, -99999, 99999);
-	qglMatrixMode(GL_MODELVIEW);
-	qglLoadIdentity();
-	qglDisable(GL_DEPTH_TEST);
-	qglDisable(GL_CULL_FACE);
-	qglDisable(GL_BLEND);
-	qglEnable(GL_ALPHA_TEST);
-	qglColor4f(1, 1, 1, 1);
+	glViewport(0, 0, vid.width, vid.height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glEnable(GL_ALPHA_TEST);
+	glColor4f(1, 1, 1, 1);
 }
 
 void
@@ -1148,13 +1148,13 @@ R_Init(void *hinstance, void *hWnd)
 
 	/* get our various GL strings */
 	VID_Printf(PRINT_ALL, "\nOpenGL setting:\n", gl_config.vendor_string);
-	gl_config.vendor_string = (char *)qglGetString(GL_VENDOR);
+	gl_config.vendor_string = (char *)glGetString(GL_VENDOR);
 	VID_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string);
-	gl_config.renderer_string = (char *)qglGetString(GL_RENDERER);
+	gl_config.renderer_string = (char *)glGetString(GL_RENDERER);
 	VID_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string);
-	gl_config.version_string = (char *)qglGetString(GL_VERSION);
+	gl_config.version_string = (char *)glGetString(GL_VERSION);
 	VID_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string);
-	gl_config.extensions_string = (char *)qglGetString(GL_EXTENSIONS);
+	gl_config.extensions_string = (char *)glGetString(GL_EXTENSIONS);
 	VID_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
 
 	Q_strlcpy(renderer_buffer, gl_config.renderer_string, sizeof(renderer_buffer));
@@ -1274,7 +1274,7 @@ R_Init(void *hinstance, void *hWnd)
 	{
 		VID_Printf(PRINT_ALL, "...using GL_EXT_texture_filter_anisotropic\n");
 		gl_config.anisotropic = true;
-		qglGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gl_config.max_anisotropy);
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gl_config.max_anisotropy);
 		Cvar_SetValue("gl_anisotropic_avail", gl_config.max_anisotropy);
 	}
 	else
@@ -1331,7 +1331,7 @@ R_Init(void *hinstance, void *hWnd)
 	R_InitParticleTexture();
 	Draw_InitLocal();
 
-	err = qglGetError();
+	err = glGetError();
 
 	if (err != GL_NO_ERROR)
 	{
@@ -1384,17 +1384,17 @@ R_BeginFrame(float camera_separation)
 	}
 
 	/* go into 2D mode */
-	qglViewport(0, 0, vid.width, vid.height);
-	qglMatrixMode(GL_PROJECTION);
-	qglLoadIdentity();
-	qglOrtho(0, vid.width, vid.height, 0, -99999, 99999);
-	qglMatrixMode(GL_MODELVIEW);
-	qglLoadIdentity();
-	qglDisable(GL_DEPTH_TEST);
-	qglDisable(GL_CULL_FACE);
-	qglDisable(GL_BLEND);
-	qglEnable(GL_ALPHA_TEST);
-	qglColor4f(1, 1, 1, 1);
+	glViewport(0, 0, vid.width, vid.height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glEnable(GL_ALPHA_TEST);
+	glColor4f(1, 1, 1, 1);
 
 	/* draw buffer stuff */
 	if (gl_drawbuffer->modified)
@@ -1405,11 +1405,11 @@ R_BeginFrame(float camera_separation)
 		{
 			if (Q_stricmp(gl_drawbuffer->string, "GL_FRONT") == 0)
 			{
-				qglDrawBuffer(GL_FRONT);
+				glDrawBuffer(GL_FRONT);
 			}
 			else
 			{
-				qglDrawBuffer(GL_BACK);
+				glDrawBuffer(GL_BACK);
 			}
 		}
 	}
@@ -1467,9 +1467,9 @@ R_SetPalette(const unsigned char *palette)
 
 	R_SetTexturePalette(r_rawpalette);
 
-	qglClearColor(0, 0, 0, 0);
-	qglClear(GL_COLOR_BUFFER_BIT);
-	qglClearColor(1, 0, 0.5, 0.5);
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(1, 0, 0.5, 0.5);
 }
 
 /* R_DrawBeam */
@@ -1512,9 +1512,9 @@ R_DrawBeam(entity_t *e)
 		VectorAdd(start_points[i], direction, end_points[i]);
 	}
 
-	qglDisable(GL_TEXTURE_2D);
-	qglEnable(GL_BLEND);
-	qglDepthMask(GL_FALSE);
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glDepthMask(GL_FALSE);
 
 	r = (LittleLong(d_8to24table[e->skinnum & 0xFF])) & 0xFF;
 	g = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8) & 0xFF;
@@ -1524,23 +1524,23 @@ R_DrawBeam(entity_t *e)
 	g *= 1 / 255.0F;
 	b *= 1 / 255.0F;
 
-	qglColor4f(r, g, b, e->alpha);
+	glColor4f(r, g, b, e->alpha);
 
-	qglBegin(GL_TRIANGLE_STRIP);
+	glBegin(GL_TRIANGLE_STRIP);
 
 	for (i = 0; i < NUM_BEAM_SEGS; i++)
 	{
-		qglVertex3fv(start_points[i]);
-		qglVertex3fv(end_points[i]);
-		qglVertex3fv(start_points[(i + 1) % NUM_BEAM_SEGS]);
-		qglVertex3fv(end_points[(i + 1) % NUM_BEAM_SEGS]);
+		glVertex3fv(start_points[i]);
+		glVertex3fv(end_points[i]);
+		glVertex3fv(start_points[(i + 1) % NUM_BEAM_SEGS]);
+		glVertex3fv(end_points[(i + 1) % NUM_BEAM_SEGS]);
 	}
 
-	qglEnd();
+	glEnd();
 
-	qglEnable(GL_TEXTURE_2D);
-	qglDisable(GL_BLEND);
-	qglDepthMask(GL_TRUE);
+	glEnable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
 }
 
 /*void
