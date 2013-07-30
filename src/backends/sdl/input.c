@@ -40,7 +40,7 @@
 #define MOUSE_MAX 3000
 #define MOUSE_MIN 40
 
-static qboolean mouse_grabbed;
+static qboolean have_grab;
 static cvar_t *windowed_mouse;
 static cvar_t *in_grab;
 static int mouse_x, mouse_y;
@@ -430,6 +430,7 @@ IN_Update(void)
 	SDL_Event event;
 	static int IN_Update_Flag;
 	int bstate;
+	qboolean want_grab;
 
 	/* Protection against multiple calls */
 	if (IN_Update_Flag == 1)
@@ -482,48 +483,12 @@ IN_Update(void)
 
 	/* Grab and ungrab the mouse if the
 	 * console or the menu is opened */
-	if (vid_fullscreen->value)
+	want_grab = (vid_fullscreen->value || in_grab->value == 1 ||
+			(in_grab->value == 2 && windowed_mouse->value));
+	if (have_grab != want_grab)
 	{
-		if (!mouse_grabbed)
-		{
-			SDL_WM_GrabInput(SDL_GRAB_ON);
-			mouse_grabbed = true;
-		}
-	}
-	if (in_grab->value == 0)
-	{
-		if (mouse_grabbed)
-		{
-			SDL_WM_GrabInput(SDL_GRAB_OFF);
-			mouse_grabbed = false;
-		}
-	}
-	else if (in_grab->value == 1)
-	{
-		if (!mouse_grabbed)
-		{
-			SDL_WM_GrabInput(SDL_GRAB_ON);
-			mouse_grabbed = true;
-		}
-	}
-	else
-	{
-		if (windowed_mouse->value)
-		{
-			if (!mouse_grabbed)
-			{
-				SDL_WM_GrabInput(SDL_GRAB_ON);
-				mouse_grabbed = true;
-			}
-		}
-		else
-		{
-			if (mouse_grabbed)
-			{
-				SDL_WM_GrabInput(SDL_GRAB_OFF);
-				mouse_grabbed = false;
-			}
-		}
+		SDL_WM_GrabInput((want_grab ? SDL_GRAB_ON : SDL_GRAB_OFF));
+		have_grab = want_grab;
 	}
 
 	/* Process the key events */
@@ -609,14 +574,7 @@ IN_KeyboardInit(Key_Event_fp_t fp)
 	 * this must be done after video is initialized. */
 	SDL_EnableUNICODE(0);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-	if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON)
-	{
-		mouse_grabbed = true;
-	}
-	else
-	{
-		mouse_grabbed = false;
-	}
+	have_grab = (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON);
 }
 
 /*
