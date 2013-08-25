@@ -1188,7 +1188,6 @@ SDL_Callback(void *data, Uint8 *stream, int length)
 qboolean
 SDL_BackendInit(void)
 {
-	char drivername[128];
 	char reqdriver[128];
 	SDL_AudioSpec desired;
 	SDL_AudioSpec obtained;
@@ -1215,7 +1214,7 @@ SDL_BackendInit(void)
 	s_sdldriver = (Cvar_Get("s_sdldriver", "dsp", CVAR_ARCHIVE));
 #endif
 
-	snprintf(reqdriver, sizeof(drivername), "%s=%s", "SDL_AUDIODRIVER", s_sdldriver->string);
+	snprintf(reqdriver, sizeof(reqdriver), "%s=%s", "SDL_AUDIODRIVER", s_sdldriver->string);
 	putenv(reqdriver);
 
 	Com_Printf("Starting SDL audio callback.\n");
@@ -1228,11 +1227,21 @@ SDL_BackendInit(void)
 			return 0;
 		}
 	}
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	const char* drivername = SDL_GetCurrentAudioDriver();
+	if(drivername == NULL)
+	{
+		drivername = "(UNKNOWN)";
+	}
 
+#else
+	char drivername[128];
 	if (SDL_AudioDriverName(drivername, sizeof(drivername)) == NULL)
 	{
 		strcpy(drivername, "(UNKNOWN)");
 	}
+#endif
+
 
 	Com_Printf("SDL audio driver is \"%s\".\n", drivername);
 

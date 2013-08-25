@@ -51,7 +51,13 @@
  #include <X11/extensions/xf86vmode.h>
 #endif
 
-SDL_Surface *surface;
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+SDL_Window* window = NULL;
+SDL_GLContext context = NULL;
+#else
+SDL_Surface* window = NULL;
+#endif
+
 qboolean have_stencil = false;
 
 char *displayname = NULL;
@@ -62,6 +68,14 @@ Display *dpy;
 XF86VidModeGamma x11_oldgamma;
 #endif
 
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+// some compatibility defines
+#define SDL_SRCCOLORKEY SDL_TRUE
+#define SDL_FULLSCREEN SDL_WINDOW_FULLSCREEN
+#define SDL_OPENGL SDL_WINDOW_OPENGL
+
+#endif
+
 /*
  * Initialzes the SDL OpenGL context
  */
@@ -70,7 +84,6 @@ GLimp_Init(void)
 {
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 	{
-		char driverName[64];
 
 		if (SDL_Init(SDL_INIT_VIDEO) == -1)
 		{
@@ -78,8 +91,12 @@ GLimp_Init(void)
 					SDL_GetError());
 			return false;
 		}
-
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		const char* driverName = SDL_GetCurrentVideoDriver();
+#else
+		char driverName[64];
 		SDL_VideoDriverName(driverName, sizeof(driverName) - 1);
+#endif
 		VID_Printf(PRINT_ALL, "SDL video driver is \"%s\".\n", driverName);
 	}
 
@@ -101,6 +118,8 @@ GLimp_GetProcAddress (const char* proc)
 static void
 SetSDLIcon()
 {
+
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_Surface *icon;
 	SDL_Color color;
 	Uint8 *ptr;
@@ -143,6 +162,7 @@ SetSDLIcon()
 
 	SDL_WM_SetIcon(icon, NULL);
 	SDL_FreeSurface(icon);
+#endif
 }
 
 /*
@@ -171,12 +191,79 @@ UpdateHardwareGamma(void)
 void
 UpdateHardwareGamma(void)
 {
-	float gamma;
 
-	gamma = (vid_gamma->value);
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	// FIXME: there's no more SDL_SetGamma?!
+	// see rbd3bfg R_SetColorMappings() ?
+#else
+	float gamma = (vid_gamma->value);
 	SDL_SetGamma(gamma, gamma, gamma);
+#endif
 }
 #endif
+
+static qboolean IsFullscreen()
+{
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	return !!(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN);
+#else
+	return !!(window->flags & SDL_FULLSCREEN);
+#endif
+}
+
+static qboolean CreateWindow(int flags)
+{
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	int windowPos = SDL_WINDOWPOS_UNDEFINED;
+	// TODO: support fullscreen on different displays with SDL_WINDOWPOS_UNDEFINED_DISPLAY(displaynum)
+	window = SDL_CreateWindow("Yamagi Quake II", windowPos, windowPos,
+	                          vid.width, vid.height, flags);
+
+	if(window == NULL)
+	{
+		return false;
+	}
+
+	context = SDL_GL_CreateContext(window);
+	if(context == NULL)
+	{
+		SDL_DestroyWindow(window);
+		window = NULL;
+		return false;
+	}
+
+	// set vsync - TODO: -1 could be set for "late swap tearing",
+	//  i.e. only vsync if framerate is high enough
+	SDL_GL_SetSwapInterval(gl_swapinterval->value ? 1 : 0);
+
+	return true;
+#else
+	window = SDL_SetVideoMode(vid.width, vid.height, 0, flags);
+	return window != NULL;
+#endif
+}
+
+static qboolean GetWindowSize(int* w, int* h)
+{
+	if(window == NULL || w == NULL || h == NULL)
+		return false;
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_DisplayMode m;
+	if(SDL_GetWindowDisplayMode(window, &m) != 0)
+	{
+		VID_Printf(PRINT_ALL, "Can't get Displaymode: %s\n", SDL_GetError());
+		return false;
+	}
+	*w = m.w;
+	*h = m.h;
+#else
+	*w = window->w;
+	*h = window->h;
+#endif
+
+	return true;
+}
 
 /*
  * Initializes the OpenGL window
@@ -189,30 +276,32 @@ GLimp_InitGraphics(qboolean fullscreen)
 	int stencil_bits;
 	char title[24];
 
-	if (surface && (surface->w == vid.width) && (surface->h == vid.height))
-	{
-		/* Are we running fullscreen? */
-		int isfullscreen = (surface->flags & SDL_FULLSCREEN) ? 1 : 0;
+	int width, height;
 
-		/* We should, but we don't */
-		if (fullscreen != isfullscreen)
+	if (GetWindowSize(&width, &height) && (width == vid.width) && (height == vid.height))
+	{
+		/* If we want fullscreen, but aren't */
+		if (fullscreen != IsFullscreen())
 		{
-			SDL_WM_ToggleFullScreen(surface);
+			GLimp_ToggleFullscreen();
 		}
 
-		/* Do we now? */
-		isfullscreen = (surface->flags & SDL_FULLSCREEN) ? 1 : 0;
-
-		if (fullscreen == isfullscreen)
+		/* Are we now? */
+		if (fullscreen == IsFullscreen())
 		{
 			return true;
 		}
 	}
 
 	/* Is the surface used? */
-	if (surface)
+	if (window)
 	{
-		SDL_FreeSurface(surface);
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		SDL_GL_DeleteContext(context);
+		SDL_DestroyWindow(window);
+#else
+		SDL_FreeSurface(window);
+#endif
 	}
 
 	/* Create the window */
@@ -236,15 +325,17 @@ GLimp_InitGraphics(qboolean fullscreen)
 	/* Set the icon */
 	SetSDLIcon();
 
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
 	/* Enable vsync */
 	if (gl_swapinterval->value)
 	{
 		SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
 	}
+#endif
 
 	while (1)
 	{
-		if ((surface = SDL_SetVideoMode(vid.width, vid.height, 0, flags)) == NULL)
+		if (!CreateWindow(flags))
 		{
 			if (counter == 1)
 			{
@@ -310,7 +401,11 @@ GLimp_InitGraphics(qboolean fullscreen)
 
 	/* Window title */
 	snprintf(title, sizeof(title), "Yamagi Quake II %s", VERSION);
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_SetWindowTitle(window, title);
+#else
 	SDL_WM_SetCaption(title, title);
+#endif
 
 	/* No cursor */
 	SDL_ShowCursor(0);
@@ -324,7 +419,11 @@ GLimp_InitGraphics(qboolean fullscreen)
 void
 GLimp_EndFrame(void)
 {
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_GL_SwapWindow(window);
+#else
 	SDL_GL_SwapBuffers();
+#endif
 }
 
 /*
@@ -354,6 +453,57 @@ GLimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen)
 }
 
 /*
+ * Toggle fullscreen.
+ */
+void GLimp_ToggleFullscreen(void)
+{
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	int wantFullscreen = !IsFullscreen();
+
+	SDL_SetWindowFullscreen(window, wantFullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+	Cvar_SetValue("vid_fullscreen", wantFullscreen);
+#else
+	SDL_WM_ToggleFullScreen(window);
+
+	if (IsFullscreen())
+	{
+		Cvar_SetValue("vid_fullscreen", 1);
+	}
+	else
+	{
+		Cvar_SetValue("vid_fullscreen", 0);
+	}
+#endif
+	vid_fullscreen->modified = false;
+}
+
+/*
+ * (Un)grab Input
+ */
+void GLimp_GrabInput(qboolean grab)
+{
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_SetWindowGrab(window, grab ? SDL_TRUE : SDL_FALSE);
+#else
+	SDL_WM_GrabInput(grab ? SDL_GRAB_ON : SDL_GRAB_OFF);
+#endif
+}
+
+/*
+ * returns true if input is grabbed, else false
+ */
+qboolean GLimp_InputIsGrabbed()
+{
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	return SDL_GetWindowGrab(window) ? true : false;
+#else
+	SDL_GrabMode m = SDL_WM_GrabInput(SDL_GRAB_QUERY);
+	return m == SDL_GRAB_ON;
+#endif
+}
+
+
+/*
  * Shuts the SDL render backend down
  */
 void
@@ -371,12 +521,22 @@ GLimp_Shutdown(void)
 		GLimp_EndFrame();
 	}
 
-	if (surface)
+	if (window)
 	{
-		SDL_FreeSurface(surface);
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		SDL_DestroyWindow(window);
+#else
+		SDL_FreeSurface(window);
+#endif
 	}
 
-	surface = NULL;
+	window = NULL;
+
+	if(context)
+	{
+		SDL_GL_DeleteContext(context);
+		context = NULL;
+	}
 
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)
 	{

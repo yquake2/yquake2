@@ -20,11 +20,16 @@
 # User configurable options
 # -------------------------
 
+# blabla
+# should be no by default in the future
+WITH_SDL2:=yes
+
 # Enables CD audio playback. CD audio playback is used
 # for the background music and doesn't add any further
 # dependencies. It should work on all platforms where
 # CD playback is supported by SDL.
-WITH_CDA:=yes
+# was yes
+WITH_CDA:=no
 
 # Enables OGG/Vorbis support. OGG/Vorbis files can be
 # used as a substitute of CD audio playback. Adds
@@ -145,11 +150,17 @@ endif
 # Extra CFLAGS for SDL
 ifneq ($(OSTYPE), Windows)
 ifeq ($(OSTYPE), Darwin)
+# TODO: set -I.../SDL2/ or /SDL/
 SDLCFLAGS :=
-else
+else # not darwin
+ifeq ($(WITH_SDL2),yes)
+SDLCFLAGS := $(shell sdl2-config --cflags)
+else # not SDL2
 SDLCFLAGS := $(shell sdl-config --cflags)
-endif
-endif
+endif # SDL2
+
+endif # darwin's else
+endif # not windows
 
 # ----------
 
@@ -195,11 +206,16 @@ endif
 
 # Extra LDFLAGS for SDL
 ifeq ($(OSTYPE), Windows)
+# TODO: SDL2 for win/osx
 SDLLDFLAGS := -lSDL
 else ifeq ($(OSTYPE), Darwin)
 SDLLDFLAGS := -framework SDL -framework OpenGL -framework Cocoa
 else
+ifeq ($(WITH_SDL2),yes)
+SDLLDFLAGS := $(shell sdl2-config --libs)
+else
 SDLLDFLAGS := $(shell sdl-config --libs)
+endif
 endif
 
 # ----------
@@ -248,6 +264,8 @@ config:
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
 	@echo "============================"
+	@echo ""
+	@echo "SDL-Debug: $(SDLCFLAGS)"
 	
 # ----------
 

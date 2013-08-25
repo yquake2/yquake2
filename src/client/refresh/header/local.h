@@ -418,4 +418,19 @@ int GLimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen);
  */
 void *GLimp_GetProcAddress (const char* proc);
 
+/*
+ * Toggle fullscreen.
+ */
+void GLimp_ToggleFullscreen(void);
+
+/*
+ * (Un)grab Input
+ */
+void GLimp_GrabInput(qboolean grab);
+
+/*
+ * returns true if input is grabbed, else false
+ */
+qboolean GLimp_InputIsGrabbed();
+
 #endif
