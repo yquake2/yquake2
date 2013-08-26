@@ -118,10 +118,8 @@ GLimp_GetProcAddress (const char* proc)
 static void
 SetSDLIcon()
 {
-
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_Surface *icon;
-	SDL_Color color;
+	SDL_Color transColor, solidColor;
 	Uint8 *ptr;
 	int i;
 	int mask;
@@ -137,17 +135,28 @@ SetSDLIcon()
 
 	SDL_SetColorKey(icon, SDL_SRCCOLORKEY, 0);
 
-	color.r = 255;
-	color.g = 255;
-	color.b = 255;
+	transColor.r = 255;
+	transColor.g = 255;
+	transColor.b = 255;
 
-	SDL_SetColors(icon, &color, 0, 1);
+	solidColor.r = 0;
+	solidColor.g = 16;
+	solidColor.b = 0;
 
-	color.r = 0;
-	color.g = 16;
-	color.b = 0;
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	// only SDL2 has alphas there and they must be set apparently
+	transColor.a = 0;
+	solidColor.a = 255;
 
-	SDL_SetColors(icon, &color, 1, 1);
+	SDL_Palette* palette = SDL_AllocPalette(256);
+	SDL_SetPaletteColors(palette, &transColor, 0, 1);
+	SDL_SetPaletteColors(palette, &solidColor, 1, 1);
+
+	SDL_SetSurfacePalette(icon, palette);
+#else
+	SDL_SetColors(icon, &transColor, 0, 1);
+	SDL_SetColors(icon, &solidColor, 1, 1);
+#endif
 
 	ptr = (Uint8 *)icon->pixels;
 
@@ -159,10 +168,14 @@ SetSDLIcon()
 			ptr++;
 		}
 	}
-
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_SetWindowIcon(window, icon);
+	SDL_FreePalette(palette);
+#else
 	SDL_WM_SetIcon(icon, NULL);
-	SDL_FreeSurface(icon);
 #endif
+
+	SDL_FreeSurface(icon);
 }
 
 /*
@@ -322,10 +335,10 @@ GLimp_InitGraphics(qboolean fullscreen)
 		flags |= SDL_FULLSCREEN;
 	}
 
-	/* Set the icon */
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+	/* Set the icon - for SDL1.2 this must be done before creating the window */
 	SetSDLIcon();
 
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
 	/* Enable vsync */
 	if (gl_swapinterval->value)
 	{
@@ -361,6 +374,10 @@ GLimp_InitGraphics(qboolean fullscreen)
 			break;
 		}
 	}
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	/* Set the icon - for SDL2 this must be done after creating the window */
+	SetSDLIcon();
+#endif
 
 	/* Initialize the stencil buffer */
 	if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits))
