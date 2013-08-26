@@ -341,6 +341,19 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 	return key;
 }
 
+// add down and up event for mousewheel to simulate a "click"
+static void IN_AddMouseWheelEvents(int key)
+{
+	assert(key == K_MWHEELUP || key == K_MWHEELDOWN);
+
+	keyq[keyq_head].key = key;
+	keyq[keyq_head].down = true;
+	keyq_head = (keyq_head + 1) & 127;
+	keyq[keyq_head].key = key;
+	keyq[keyq_head].down = false;
+	keyq_head = (keyq_head + 1) & 127;
+}
+
 /*
  * Input event processing
  */
@@ -357,28 +370,25 @@ IN_GetEvent(SDL_Event *event)
 	switch (event->type)
 	{
 		/* The mouse wheel */
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		case SDL_MOUSEWHEEL:
+			IN_AddMouseWheelEvents(event->wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN);
+			break;
+
+#else
 		case SDL_MOUSEBUTTONDOWN:
 
 			if (event->button.button == 4)
 			{
-				keyq[keyq_head].key = K_MWHEELUP;
-				keyq[keyq_head].down = true;
-				keyq_head = (keyq_head + 1) & 127;
-				keyq[keyq_head].key = K_MWHEELUP;
-				keyq[keyq_head].down = false;
-				keyq_head = (keyq_head + 1) & 127;
+				IN_AddMouseWheelEvents(K_MWHEELUP);
 			}
 			else if (event->button.button == 5)
 			{
-				keyq[keyq_head].key = K_MWHEELDOWN;
-				keyq[keyq_head].down = true;
-				keyq_head = (keyq_head + 1) & 127;
-				keyq[keyq_head].key = K_MWHEELDOWN;
-				keyq[keyq_head].down = false;
-				keyq_head = (keyq_head + 1) & 127;
+				IN_AddMouseWheelEvents(K_MWHEELDOWN);
 			}
 
 			break;
+#endif
 
 		case SDL_MOUSEBUTTONUP:
 			break;

@@ -20,16 +20,17 @@
 # User configurable options
 # -------------------------
 
-# blabla
-# should be no by default in the future
-WITH_SDL2:=yes
+# Use SDL2 instead of SDL1.2
+# Disables CD audio support, because SDL2 has none.
+# Use OGG/Vorbis music instead :-)
+WITH_SDL2:=no
 
 # Enables CD audio playback. CD audio playback is used
 # for the background music and doesn't add any further
 # dependencies. It should work on all platforms where
 # CD playback is supported by SDL.
 # was yes
-WITH_CDA:=no
+WITH_CDA:=yes
 
 # Enables OGG/Vorbis support. OGG/Vorbis files can be
 # used as a substitute of CD audio playback. Adds
@@ -105,6 +106,15 @@ endif
 # (You'll need some #ifdef for your unsupported  plattform!)
 ifeq ($(findstring $(ARCH), i386 x86_64 sparc64 ia64),)
 $(error arch $(ARCH) is currently not supported)
+endif
+
+# Disable CDA for SDL2
+# FIXME: printed too often
+ifeq ($(WITH_SDL2),yes)
+ifeq ($(WITH_CDA),yes)
+WITH_CDA:=no
+$(info WARNING: Disabled CD-Audio support, because SDL2 doesn't support it)
+endif
 endif
 
 # ----------

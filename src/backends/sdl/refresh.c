@@ -484,6 +484,9 @@ void GLimp_GrabInput(qboolean grab)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_SetWindowGrab(window, grab ? SDL_TRUE : SDL_FALSE);
+	if(grab)
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+
 #else
 	SDL_WM_GrabInput(grab ? SDL_GRAB_ON : SDL_GRAB_OFF);
 #endif
@@ -525,18 +528,18 @@ GLimp_Shutdown(void)
 	{
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 		SDL_DestroyWindow(window);
+
+		if(context)
+		{
+			SDL_GL_DeleteContext(context);
+			context = NULL;
+		}
 #else
 		SDL_FreeSurface(window);
 #endif
 	}
 
 	window = NULL;
-
-	if(context)
-	{
-		SDL_GL_DeleteContext(context);
-		context = NULL;
-	}
 
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)
 	{
