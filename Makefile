@@ -20,11 +20,6 @@
 # User configurable options
 # -------------------------
 
-# Use SDL2 instead of SDL1.2
-# Disables CD audio support, because SDL2 has none.
-# Use OGG/Vorbis music instead :-)
-WITH_SDL2:=no
-
 # Enables CD audio playback. CD audio playback is used
 # for the background music and doesn't add any further
 # dependencies. It should work on all platforms where
@@ -46,6 +41,11 @@ WITH_OPENAL:=yes
 # Enables retexturing support. Adds
 # a dependency to libjpeg
 WITH_RETEXTURING:=yes
+
+# Use SDL2 instead of SDL1.2
+# Disables CD audio support, because SDL2 has none.
+# Use OGG/Vorbis music instead :-)
+WITH_SDL2:=no
 
 # Set the gamma via X11 and not via SDL. This works
 # around problems in some SDL version. Adds dependencies
@@ -109,11 +109,14 @@ $(error arch $(ARCH) is currently not supported)
 endif
 
 # Disable CDA for SDL2
-# FIXME: printed too often
 ifeq ($(WITH_SDL2),yes)
 ifeq ($(WITH_CDA),yes)
 WITH_CDA:=no
-$(info WARNING: Disabled CD-Audio support, because SDL2 doesn't support it)
+
+# Evil hack to tell the "all" target
+# that CDA was disabled because SDL2
+# is enabled.
+CDA_ENABLED:=yes
 endif
 endif
 
@@ -269,13 +272,19 @@ config:
 	@echo "WITH_CDA = $(WITH_CDA)"
 	@echo "WITH_OPENAL = $(WITH_OPENAL)"
 	@echo "WITH_RETEXTURING = $(WITH_RETEXTURING)"
+	@echo "WITH_SDL2 = $(WITH_SDL2)"
 	@echo "WITH_X11GAMMA = $(WITH_X11GAMMA)"
 	@echo "WITH_ZIP = $(WITH_ZIP)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
 	@echo "============================"
 	@echo ""
-	@echo "SDL-Debug: $(SDLCFLAGS)"
+ifeq ($(WITH_SDL2),yes)
+ifeq ($(CDA_ENABLED),yes)
+	@echo "WARNING: CDA disabled because SDL2 doesn't support it!"
+	@echo ""
+endif
+endif
 	
 # ----------
 
