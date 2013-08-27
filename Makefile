@@ -239,6 +239,7 @@ ifneq ($(OSTYPE), Darwin)
 ifeq ($(WITH_X11GAMMA),yes)
 X11LDFLAGS := $(shell pkg-config x11 --libs)
 X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
+X11LDFLAGS += $(shell pkg-config xrandr --libs)
 endif
 endif
 endif

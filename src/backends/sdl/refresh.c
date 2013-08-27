@@ -49,6 +49,9 @@
  #include <X11/Xlib.h>
  #include <X11/Xutil.h>
  #include <X11/extensions/xf86vmode.h>
+ #include <X11/extensions/Xrandr.h>
+
+ #include <SDL_syswm.h>
 #endif
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -185,6 +188,34 @@ SetSDLIcon()
 void
 UpdateHardwareGamma(void)
 {
+#if 1
+	float gamma = (vid_gamma->value);
+	// RANDR implementation
+	int i;
+	SDL_SysWMinfo info;
+	SDL_VERSION(&info.version);
+	SDL_GetWindowWMInfo(window, &info); // TODO: check return val
+
+	XRRScreenResources* res = XRRGetScreenResources(info.info.x11.display, info.info.x11.window);
+
+	Uint16 ramp[256];
+	SDL_CalculateGammaRamp(gamma, ramp);
+	size_t rampSize = 256*sizeof(Uint16);
+
+	for(i=0; i < res->ncrtc; ++i)
+	{
+		XRRCrtcGamma* gamma = XRRAllocGamma(256);
+
+		memcpy(gamma->red, ramp, rampSize);
+		memcpy(gamma->green, ramp, rampSize);
+		memcpy(gamma->blue, ramp, rampSize);
+		XRRSetCrtcGamma(info.info.x11.display, res->crtcs[i], gamma);
+		XRRFreeGamma(gamma);
+	}
+
+	XRRFreeScreenResources(res);
+
+#else
 	float gamma;
 	XF86VidModeGamma x11_gamma;
 
@@ -198,6 +229,7 @@ UpdateHardwareGamma(void)
 
 	/* This forces X11 to update the gamma tables */
 	XF86VidModeGetGamma(dpy, screen, &x11_gamma);
+#endif
 }
 
 #else
@@ -210,7 +242,9 @@ UpdateHardwareGamma(void)
 	// FIXME: does this work?
 	Uint16 ramp[256];
 	SDL_CalculateGammaRamp(gamma, ramp);
-	SDL_SetWindowGammaRamp(window, ramp, ramp, ramp);
+	if(SDL_SetWindowGammaRamp(window, ramp, ramp, ramp) != 0) {
+		printf("## setting gamma failed: %s\n", SDL_GetError());
+	}
 #else
 	SDL_SetGamma(gamma, gamma, gamma);
 #endif
