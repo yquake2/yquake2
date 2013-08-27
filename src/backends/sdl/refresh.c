@@ -204,12 +204,14 @@ UpdateHardwareGamma(void)
 void
 UpdateHardwareGamma(void)
 {
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	// FIXME: there's no more SDL_SetGamma?!
-	// see rbd3bfg R_SetColorMappings() ?
-#else
+	// FIXME: SDL expects a value between 0 and 1, X11 not?
 	float gamma = (vid_gamma->value);
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	// FIXME: does this work?
+	Uint16 ramp[256];
+	SDL_CalculateGammaRamp(gamma, ramp);
+	SDL_SetWindowGammaRamp(window, ramp, ramp, ramp);
+#else
 	SDL_SetGamma(gamma, gamma, gamma);
 #endif
 }
