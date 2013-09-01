@@ -163,7 +163,6 @@ endif
 # Extra CFLAGS for SDL
 ifneq ($(OSTYPE), Windows)
 ifeq ($(OSTYPE), Darwin)
-# TODO: set -I.../SDL2/ or /SDL/
 SDLCFLAGS :=
 else # not darwin
 ifeq ($(WITH_SDL2),yes)
@@ -219,17 +218,24 @@ endif
 
 # Extra LDFLAGS for SDL
 ifeq ($(OSTYPE), Windows)
-# TODO: SDL2 for win/osx
+ifeq ($(WITH_SDL2),yes)
+SDLLDFLAGS := -lSDL2
+else # not SDL2
 SDLLDFLAGS := -lSDL
+endif # SDL2
 else ifeq ($(OSTYPE), Darwin)
+ifeq ($(WITH_SDL2),yes)
+SDLLDFLAGS := -framework SDL2 -framework OpenGL -framework Cocoa
+else # not SDL2
 SDLLDFLAGS := -framework SDL -framework OpenGL -framework Cocoa
-else
+endif # SDL2
+else # not Darwin/Win
 ifeq ($(WITH_SDL2),yes)
 SDLLDFLAGS := $(shell sdl2-config --libs)
-else
+else # not SDL2
 SDLLDFLAGS := $(shell sdl-config --libs)
-endif
-endif
+endif # SDL2
+endif # Darwin/Win
 
 # ----------
 
@@ -348,6 +354,10 @@ release/quake2.exe : CFLAGS += -DRETEXTURE
 release/quake2.exe : LDFLAGS += -ljpeg
 endif 
 
+ifeq ($(WITH_SDL2),yes)
+release/quake2.exe : CFLAGS += -DSDL2
+endif
+
 release/quake2.exe : LDFLAGS += -mwindows -lopengl32
 else
 client:
@@ -407,6 +417,10 @@ release/quake2 : LDFLAGS += -framework libjpeg
 else
 release/quake2 : LDFLAGS += -ljpeg
 endif
+endif
+
+ifeq ($(WITH_SDL2),yes)
+release/quake2 : CFLAGS += -DSDL2
 endif
  
 ifeq ($(OSTYPE), Darwin)

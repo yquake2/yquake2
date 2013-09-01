@@ -18,6 +18,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
  * 02111-1307, USA.
  *
+ * ----------------------------------------------------------------------
+ * CalculateGammaRamp() is derived from SDL2's SDL_CalculateGammaRamp()
+ * (C) 1997-2013 Sam Lantinga <slouken@libsdl.org>
+ * Published under zlib License: http://www.libsdl.org/license.php
+ *
  * =======================================================================
  *
  * This file implements an OpenGL context via SDL
@@ -32,13 +37,15 @@
 #include <GL/gl.h>
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE__)
+#ifdef SDL2
+#include <SDL2/SDL.h>
+#else // SDL1.2
 #include <SDL/SDL.h>
-#elif defined(__APPLE__)
-#include <SDL/SDL.h>
-#else
+#endif //SDL2
+#else // not _WIN32 || APPLE
 #include <SDL.h>
-#endif
+#endif // _WIN32 || APPLE
 
 /* The window icon */
 #include "icon/q2icon.xbm"

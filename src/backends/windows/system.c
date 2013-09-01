@@ -712,6 +712,11 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 #ifndef DEDICATED_ONLY
 	printf("Client build options:\n");
+#ifdef SDL2
+	printf(" + SDL2\n");
+#else
+	printf(" - SDL2 (using 1.2)\n");
+#endif
 #ifdef CDA
 	printf(" + CD audio\n");
 #else

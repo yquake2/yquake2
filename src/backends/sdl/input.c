@@ -29,13 +29,15 @@
 #include "../../client/header/keyboard.h"
 #include "../generic/header/input.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE__)
+#ifdef SDL2
+#include <SDL2/SDL.h>
+#else // SDL1.2
 #include <SDL/SDL.h>
-#elif defined(__APPLE__)
-#include <SDL/SDL.h>
-#else
+#endif //SDL2
+#else // not _WIN32 || APPLE
 #include <SDL.h>
-#endif
+#endif // _WIN32 || APPLE
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	#define SDLK_KP0 SDLK_KP_0
