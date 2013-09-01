@@ -63,12 +63,9 @@ SDL_Surface* window = NULL;
 
 qboolean have_stencil = false;
 
-char *displayname = NULL;
-int screen = -1;
-
 #ifdef X11GAMMA
-Display *dpy;
-XF86VidModeGamma x11_oldgamma;
+XRRCrtcGamma** gammaRamps = NULL;
+int noGammaRamps = 0;
 #endif
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -182,74 +179,125 @@ SetSDLIcon()
 }
 
 /*
+ *  from SDL2 SDL_CalculateGammaRamp, adjusted for arbitrary ramp sizes
+ *  because xrandr seems to support ramp sizes != 256 (in theory at least)
+ */
+void CalculateGammaRamp(float gamma, Uint16* ramp, int len)
+{
+    int i;
+
+    /* Input validation */
+    if (gamma < 0.0f ) {
+      return;
+    }
+    if (ramp == NULL) {
+      return;
+    }
+
+    /* 0.0 gamma is all black */
+    if (gamma == 0.0f) {
+        for (i = 0; i < len; ++i) {
+            ramp[i] = 0;
+        }
+        return;
+    } else if (gamma == 1.0f) {
+        /* 1.0 gamma is identity */
+        for (i = 0; i < len; ++i) {
+            ramp[i] = (i << 8) | i;
+        }
+        return;
+    } else {
+        /* Calculate a real gamma ramp */
+        int value;
+        gamma = 1.0f / gamma;
+        for (i = 0; i < len; ++i) {
+            value = (int) (pow((double) i / (double) len, gamma) * 65535.0 + 0.5);
+            if (value > 65535) {
+                value = 65535;
+            }
+            ramp[i] = (Uint16) value;
+        }
+    }
+}
+/*
  * Sets the hardware gamma
  */
 #ifdef X11GAMMA
 void
 UpdateHardwareGamma(void)
 {
-#if 1
 	float gamma = (vid_gamma->value);
-	// RANDR implementation
 	int i;
+
+	Display* dpy = NULL;
 	SDL_SysWMinfo info;
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_VERSION(&info.version);
-	SDL_GetWindowWMInfo(window, &info); // TODO: check return val
+	if(!SDL_GetWindowWMInfo(window, &info))
+#else
+	if(SDL_GetWMInfo(&info) != 1)
+#endif
+	{
+		VID_Printf(PRINT_ALL, "Couldn't get Window info from SDL\n");
+		return;
+	}
 
-	XRRScreenResources* res = XRRGetScreenResources(info.info.x11.display, info.info.x11.window);
+	dpy = info.info.x11.display;
 
-	Uint16 ramp[256];
-	SDL_CalculateGammaRamp(gamma, ramp);
-	size_t rampSize = 256*sizeof(Uint16);
+	XRRScreenResources* res = XRRGetScreenResources(dpy, info.info.x11.window);
+	if(res == NULL)
+	{
+		VID_Printf(PRINT_ALL, "Unable to get xrandr screen resources.\n");
+		return;
+	}
 
 	for(i=0; i < res->ncrtc; ++i)
 	{
-		XRRCrtcGamma* gamma = XRRAllocGamma(256);
+		int len = XRRGetCrtcGammaSize(dpy, res->crtcs[i]);
+		size_t rampSize = len*sizeof(Uint16);
+		Uint16* ramp = malloc(rampSize); // TODO: check for NULL
+		if(ramp == NULL)
+		{
+			VID_Printf(PRINT_ALL, "Couldn't allocate &zd byte of memory for gamma ramp - OOM?!\n", rampSize);
+			return;
+		}
+
+		CalculateGammaRamp(gamma, ramp, len);
+
+		XRRCrtcGamma* gamma = XRRAllocGamma(len);
 
 		memcpy(gamma->red, ramp, rampSize);
 		memcpy(gamma->green, ramp, rampSize);
 		memcpy(gamma->blue, ramp, rampSize);
-		XRRSetCrtcGamma(info.info.x11.display, res->crtcs[i], gamma);
+
+		free(ramp);
+
+		XRRSetCrtcGamma(dpy, res->crtcs[i], gamma);
+
 		XRRFreeGamma(gamma);
 	}
 
 	XRRFreeScreenResources(res);
-
-#else
-	float gamma;
-	XF86VidModeGamma x11_gamma;
-
-	gamma = vid_gamma->value;
-
-	x11_gamma.red = gamma;
-	x11_gamma.green = gamma;
-	x11_gamma.blue = gamma;
-
-	XF86VidModeSetGamma(dpy, screen, &x11_gamma);
-
-	/* This forces X11 to update the gamma tables */
-	XF86VidModeGetGamma(dpy, screen, &x11_gamma);
-#endif
 }
 
-#else
+#else // no X11GAMMA
 void
 UpdateHardwareGamma(void)
 {
-	// FIXME: SDL expects a value between 0 and 1, X11 not?
 	float gamma = (vid_gamma->value);
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	// FIXME: does this work?
+
 	Uint16 ramp[256];
-	SDL_CalculateGammaRamp(gamma, ramp);
+	CalculateGammaRamp(gamma, ramp, 256);
+#if SDL_VERSION_ATLEAST(2, 0, 0)
 	if(SDL_SetWindowGammaRamp(window, ramp, ramp, ramp) != 0) {
-		printf("## setting gamma failed: %s\n", SDL_GetError());
-	}
 #else
-	SDL_SetGamma(gamma, gamma, gamma);
+	if(SDL_SetGammaRamp(ramp, ramp, ramp) < 0) {
 #endif
+		VID_Printf(PRINT_ALL, "Setting gamma failed: %s\n", SDL_GetError());
+	}
 }
-#endif
+#endif // X11GAMMA
 
 static qboolean IsFullscreen()
 {
@@ -313,6 +361,129 @@ static qboolean GetWindowSize(int* w, int* h)
 
 	return true;
 }
+
+static void InitGamma()
+{
+#ifdef X11GAMMA
+	int i=0;
+	SDL_SysWMinfo info;
+	Display* dpy = NULL;
+
+	if(gammaRamps != NULL) // already saved gamma
+		return;
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_VERSION(&info.version);
+	if(!SDL_GetWindowWMInfo(window, &info))
+#else
+	if(SDL_GetWMInfo(&info) != 1)
+#endif
+	{
+		VID_Printf(PRINT_ALL, "Couldn't get Window info from SDL\n");
+		return;
+	}
+
+	dpy = info.info.x11.display;
+
+	XRRScreenResources* res = XRRGetScreenResources(dpy, info.info.x11.window);
+	if(res == NULL)
+	{
+		VID_Printf(PRINT_ALL, "Unable to get xrandr screen resources.\n");
+		return;
+	}
+
+	noGammaRamps = res->ncrtc;
+	gammaRamps = calloc(noGammaRamps, sizeof(XRRCrtcGamma*));
+	if(gammaRamps == NULL) {
+		VID_Printf(PRINT_ALL, "Couldn't allocate memory for %d gamma ramps - OOM?!\n", noGammaRamps);
+		return;
+	}
+
+	for(i=0; i < noGammaRamps; ++i)
+	{
+		int len = XRRGetCrtcGammaSize(dpy, res->crtcs[i]);
+		size_t rampSize = len*sizeof(Uint16);
+
+		XRRCrtcGamma* origGamma = XRRGetCrtcGamma(dpy, res->crtcs[i]);
+
+		XRRCrtcGamma* gammaCopy = XRRAllocGamma(len);
+
+		memcpy(gammaCopy->red, origGamma->red, rampSize);
+		memcpy(gammaCopy->green, origGamma->green, rampSize);
+		memcpy(gammaCopy->blue, origGamma->blue, rampSize);
+
+		gammaRamps[i] = gammaCopy;
+	}
+
+	XRRFreeScreenResources(res);
+
+	VID_Printf(PRINT_ALL, "Using hardware gamma via X11/xRandR.\n");
+
+#else
+	VID_Printf(PRINT_ALL, "Using hardware gamma via SDL.\n");
+#endif
+	gl_state.hwgamma = true;
+	vid_gamma->modified = true;
+}
+
+#ifdef X11GAMMA
+static void RestoreGamma()
+{
+	int i=0;
+	SDL_SysWMinfo info;
+	Display* dpy = NULL;
+
+	if(gammaRamps == NULL)
+			return;
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_VERSION(&info.version);
+	if(!SDL_GetWindowWMInfo(window, &info))
+#else
+	if(SDL_GetWMInfo(&info) != 1)
+#endif
+	{
+		VID_Printf(PRINT_ALL, "Couldn't get Window info from SDL\n");
+		return;
+	}
+
+	dpy = info.info.x11.display;
+
+	XRRScreenResources* res = XRRGetScreenResources(dpy, info.info.x11.window);
+	if(res == NULL)
+	{
+		VID_Printf(PRINT_ALL, "Unable to get xrandr screen resources.\n");
+		return;
+	}
+
+	for(i=0; i < noGammaRamps; ++i)
+	{
+		// in case a display was unplugged or something, noGammaRamps may be > res->ncrtc
+		if(i < res->ncrtc)
+		{
+			int len = XRRGetCrtcGammaSize(dpy, res->crtcs[i]);
+			if(len != gammaRamps[i]->size) {
+				VID_Printf(PRINT_ALL, "WTF, gamma ramp size for display %d has changed from %d to %d!\n",
+							   i, gammaRamps[i]->size, len);
+
+				continue;
+			}
+
+			XRRSetCrtcGamma(dpy, res->crtcs[i], gammaRamps[i]);
+		}
+
+		// the ramp needs to be free()d either way
+		XRRFreeGamma(gammaRamps[i]);
+		gammaRamps[i] = NULL;
+
+	}
+	XRRFreeScreenResources(res);
+	free(gammaRamps);
+	gammaRamps = NULL;
+
+	VID_Printf(PRINT_ALL, "Restored original Gamma\n");
+}
+#endif // X11GAMMA
 
 /*
  * Initializes the OpenGL window
@@ -427,30 +598,7 @@ GLimp_InitGraphics(qboolean fullscreen)
 	}
 
 	/* Initialize hardware gamma */
-#ifdef X11GAMMA
-	if ((dpy = XOpenDisplay(displayname)) == NULL)
-	{
-		VID_Printf(PRINT_ALL, "Unable to open display.\n");
-	}
-	else
-	{
-		if (screen == -1)
-		{
-			screen = DefaultScreen(dpy);
-		}
-
-		gl_state.hwgamma = true;
-		vid_gamma->modified = true;
-
-		XF86VidModeGetGamma(dpy, screen, &x11_oldgamma);
-
-		VID_Printf(PRINT_ALL, "Using hardware gamma via X11.\n");
-	}
-#else
-	gl_state.hwgamma = true;
-	vid_gamma->modified = true;
-	VID_Printf(PRINT_ALL, "Using hardware gamma via SDL.\n");
-#endif
+	InitGamma();
 
 	/* Window title */
 	snprintf(title, sizeof(title), "Yamagi Quake II %s", VERSION);
@@ -577,6 +725,10 @@ GLimp_Shutdown(void)
 		GLimp_EndFrame();
 	}
 
+#ifdef X11GAMMA
+	RestoreGamma();
+#endif
+
 	if (window)
 	{
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -602,16 +754,6 @@ GLimp_Shutdown(void)
 	{
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	}
-
-#ifdef X11GAMMA
-	if (gl_state.hwgamma == true)
-	{
-		XF86VidModeSetGamma(dpy, screen, &x11_oldgamma);
-
-		/* This forces X11 to update the gamma tables */
-		XF86VidModeGetGamma(dpy, screen, &x11_oldgamma);
-	}
-#endif
 
 	gl_state.hwgamma = false;
 }
