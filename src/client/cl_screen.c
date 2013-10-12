@@ -343,7 +343,7 @@ SCR_CalcVrect(void)
 	size = scr_viewsize->value;
 
 	scr_vrect.width = viddef.width * size / 100;
-	scr_vrect.width &= ~7;
+	scr_vrect.width &= ~1;
 
 	scr_vrect.height = viddef.height * size / 100;
 	scr_vrect.height &= ~1;
