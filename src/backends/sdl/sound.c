@@ -1207,7 +1207,11 @@ SDL_BackendInit(void)
 	int sndchans = (Cvar_Get("sndchannels", "2", CVAR_ARCHIVE))->value;
 
 #ifdef _WIN32
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	s_sdldriver = (Cvar_Get("s_sdldriver", "directsound", CVAR_ARCHIVE));
+#else
 	s_sdldriver = (Cvar_Get("s_sdldriver", "dsound", CVAR_ARCHIVE));
+#endif
 #elif __linux__
 	s_sdldriver = (Cvar_Get("s_sdldriver", "alsa", CVAR_ARCHIVE));
 #elif __APPLE__
