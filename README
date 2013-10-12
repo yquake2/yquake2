@@ -11,9 +11,10 @@ II. The main focus is single player, the gameplay and the graphics are
 unchanged, but many bugs were fixed. Unlike most other Quake II ports Yamagi
 Quake II is full 64 bit clean so it works perfectly on modern amd64 (x86_64)
 processors and operating systems. This code should run on Windows XP or later,
-Mac OS X 10.6 or higher and on most unix-like operating systems (only FreeBSD,
-Linux and OpenBSD are officially supported and tested, for other systems you'd
-at least have to edit the Makefile), just type "make" or "gmake" to compile.
+Mac OS X 10.6 or higher (unsupported!) and on most unix-like operating systems
+(only FreeBSD, Linux and OpenBSD are officially supported and tested, for other
+systems you'd at least have to edit the Makefile), just type "make" or "gmake"
+to compile.
 
 This code is based upon Icculus Quake II, which itself is built upon id
 Software's original code drop. Additional code and patches by many contributers
@@ -279,6 +280,10 @@ Yamagi Quake II has full support for Apple OS X. All features are
 supported, including the IPv6 network code and the OpenAL sound backend.
 Installation can be done by using the binary release (this is highly
 recommended) or by compiling the source.
+
+ATTENTION: OS X is currently unsupported. I neither have a Mac nor the time to
+maintain this platform. If you're interested in spending work on OS X please
+write an e-mail to quake2@yamagi.org.
 
 3.1 Supported Systems
 ---------------------
