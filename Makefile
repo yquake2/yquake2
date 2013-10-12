@@ -7,7 +7,7 @@
 #  - Quake II Game (baseq2)                              #
 #                                                        #
 # Base dependencies:                                     #
-#  - SDL 1.2                                             #
+#  - SDL 1.2 or SDL 2.0                                  #
 #  - libGL                                               #
 #                                                        #
 # Platforms:                                             #
