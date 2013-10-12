@@ -46,7 +46,7 @@ WITH_RETEXTURING:=yes
 # because SDL2 has none. Use OGG/Vorbis music instead :-)
 # On Windows sdl-config isn't used, so make sure that
 # you've got the SDL2 headers and libs installed.
-WITH_SDL2:=no
+WITH_SDL2:=yes
 
 # Set the gamma via X11 and not via SDL. This works
 # around problems in some SDL version. Adds dependencies
