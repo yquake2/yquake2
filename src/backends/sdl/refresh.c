@@ -315,7 +315,7 @@ static qboolean IsFullscreen()
 #endif
 }
 
-static qboolean CreateWindow(int flags)
+static qboolean CreateSDLWindow(int flags)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	int windowPos = SDL_WINDOWPOS_UNDEFINED;
@@ -562,7 +562,7 @@ GLimp_InitGraphics(qboolean fullscreen)
 
 	while (1)
 	{
-		if (!CreateWindow(flags))
+		if (!CreateSDLWindow(flags))
 		{
 			if (counter == 1)
 			{
