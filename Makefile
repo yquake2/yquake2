@@ -42,9 +42,10 @@ WITH_OPENAL:=yes
 # a dependency to libjpeg
 WITH_RETEXTURING:=yes
 
-# Use SDL2 instead of SDL1.2
-# Disables CD audio support, because SDL2 has none.
-# Use OGG/Vorbis music instead :-)
+# Use SDL2 instead of SDL1.2. Disables CD audio support,
+# because SDL2 has none. Use OGG/Vorbis music instead :-)
+# On Windows sdl-config isn't used, so make sure that
+# you've got the SDL2 headers and libs installed.
 WITH_SDL2:=no
 
 # Set the gamma via X11 and not via SDL. This works
@@ -219,7 +220,7 @@ endif
 # Extra LDFLAGS for SDL
 ifeq ($(OSTYPE), Windows)
 ifeq ($(WITH_SDL2),yes)
-SDLLDFLAGS := -lSDL2
+SDLLDFLAGS := -lSDL2main -lSDL2  -mwindows  -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid
 else # not SDL2
 SDLLDFLAGS := -lSDL
 endif # SDL2
