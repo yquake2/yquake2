@@ -433,6 +433,12 @@ endif
 ifneq ($(OSTYPE), Darwin)
 release/quake2 : LDFLAGS += -lGL
 endif
+
+ifeq ($(OSTYPE), FreeBSD)
+release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib'
+else ifeq ($(OSTYPE), Linux)
+release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib'
+endif
 endif
 
 # ----------
