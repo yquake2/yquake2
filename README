@@ -11,9 +11,10 @@ II. The main focus is single player, the gameplay and the graphics are
 unchanged, but many bugs were fixed. Unlike most other Quake II ports Yamagi
 Quake II is full 64 bit clean so it works perfectly on modern amd64 (x86_64)
 processors and operating systems. This code should run on Windows XP or later,
-Mac OS X 10.6 or higher and on most unix-like operating systems (only FreeBSD,
-Linux and OpenBSD are officially supported and tested, for other systems you'd
-at least have to edit the Makefile), just type "make" or "gmake" to compile.
+Mac OS X 10.6 or higher (unsupported!) and on most unix-like operating systems
+(only FreeBSD, Linux and OpenBSD are officially supported and tested, for other
+systems you'd at least have to edit the Makefile), just type "make" or "gmake"
+to compile.
 
 This code is based upon Icculus Quake II, which itself is built upon id
 Software's original code drop. Additional code and patches by many contributers
@@ -147,7 +148,7 @@ it'll lead to the loss of features):
  - libogg with development headers
  - libvorbis with development headers
  - OpenAL with development headers
- - SDL with development headers and sdl-config(1)
+ - SDL 1.2 or 2.0 with development headers and sdl-config(1)
  - ZLib
 
 Extract the source, change into the new created directory and type "make"
@@ -156,7 +157,6 @@ following files from "release/" to your installation directory preserving the
 directory structure:
 - q2ded
 - quake2
-- ref_gl.so
 - baseq2/game.so
 
 1.6 Default Configuration
@@ -242,7 +242,7 @@ use the github version or want to develop on Windows. If you really want to
 compile Yamagi Quake II by yourself follow these steps:
 
 1. Grab a copy of Nuwens MinGW distribution from http://nuwen.net/mingw.html
-   Our code is tested with version 9.0, newer version may work but we can not
+   Our code is tested with version 11.0, newer version may work but we can not
    guarantee that. Extract the distribution to a directory of your choice.
 2. Grab a copy of OpenAL Soft from http://kcat.strangesoft.net/openal.html 
    (the binary release for Windows). Our code is tested with version 1.14.
@@ -256,14 +256,12 @@ After compiling, copy the following files from "release\" to your Quake II
 installation preserving the directory structure:
 - q2ded.exe
 - quake2.exe
-- ref_gl.dll
 - baseq2\game.dll
 
-You'll need a "openal32.dll" and an "SDL.dll" next to "quake2.exe". You can use
-and rename the OpenAL DLL that came with OpenAL Soft. We recommend to use a
-"SDL.dll" from http://libsdl.org and not the one supplied with Nuwens MinGW
-distribution. Known to be good DLLs can be found in the stuff/win32-libs 
-directory of the source code distribution.
+You'll need a "openal32.dll. You can use and rename the OpenAL DLL that
+came with OpenAL Soft. Known to be good DLLs can be found in the
+stuff/win32-libs directory of the source code distribution. The supplied
+SDL.dll is an SDL 1.2 build, required if you're still using SDL 1.2.
 
 2.7 Default Configuration
 -------------------------
@@ -282,6 +280,10 @@ Yamagi Quake II has full support for Apple OS X. All features are
 supported, including the IPv6 network code and the OpenAL sound backend.
 Installation can be done by using the binary release (this is highly
 recommended) or by compiling the source.
+
+ATTENTION: OS X is currently unsupported. I neither have a Mac nor the time to
+maintain this platform. If you're interested in spending work on OS X please
+write an e-mail to quake2@yamagi.org.
 
 3.1 Supported Systems
 ---------------------
@@ -375,8 +377,9 @@ Now you are ready to start your brand new Quake II. Have fun.
 ======================
 Since most modern CD-ROM and DVD drives don't have an analog audio output and
 most sound codecs don't have the appropriate input header, it's not possible to
-use CD audio as background music on such systems. Therefore OGG/Vorbis music
-support has been added to Yamagi Quake II.
+use CD audio as background music on such systems. With SDL 2.0 CD audio is
+unsupported Therefore OGG/Vorbis music support has been added to Yamagi Quake 
+II.
 
 4.1 Setup for the original soundtrack:
 --------------------------------------
@@ -649,9 +652,7 @@ My SDL sound is not working!
    Does the sound work in other SDL games? Does your setup support at least five
    virtual channels? In most cases it's better to not use sound servers like
    Pulseaudio but the plain sound system like OSS or ALSA with libasound instead.
-   Also see the "Sound" section in this file! On Windows the SDL sound backend
-   may not work on all installations. This is due to a limitation of SDL. Use
-   OpenAL instead.
+   Also see the "Sound" section in this file!
 
 My OpenGL is not working!
  - Make sure, that OpenGL is working in other games. Use "glxinfo" and
@@ -699,7 +700,7 @@ that, so that Quake II behaves like a normal window?
 
 Hey, my screensaver crashes Quake II or I experience strange crashes after a
 fixed amount of time!
- - This is a known bug in some linux distributions. SDL fails to disable
+ - This is a known bug in some linux distributions. SDL 1.2 fails to disable
    the screensaver even if we tell him to do so. See this Ubuntu bugreport:
    https://bugs.launchpad.net/ubuntu/+source/gnome-screensaver/+bug/32457
    As a work around use the startscript in stuff/quake-start.sh It deactivates
@@ -793,5 +794,15 @@ Why is the FOV different than in id Softwares client?
 
 Why doesn't gl_showtris work?
  - gl_showtris requires gl_ext_multitexturing set to 0.
+
+How do I disable the vsync?
+ - Set gl_swapinterval to 0 and type vid_restart. Beware that this may
+   not work with SDL 1.2 due to bugs in SDL.
+
+I've build Yamagi Quake II with SDL 2.0 and now my mouse behaves strange.
+ - If it feels like your mouse is hitting the window borders you're
+   experiencing a problem in SDL 2.0. SDL 2.0 needs XInput 2.2 or higher
+   and fails when the installed version is older. So make sure that you
+   have XInput 2.2 or higher installed.
 
 ==============================================================================

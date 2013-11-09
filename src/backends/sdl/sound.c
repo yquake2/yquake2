@@ -34,13 +34,15 @@
  */
 
 /* SDL includes */
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE__)
+#ifdef SDL2
+#include <SDL2/SDL.h>
+#else // SDL1.2
 #include <SDL/SDL.h>
-#elif defined(__APPLE__)
-#include <SDL/SDL.h>
-#else
+#endif //SDL2
+#else // not _WIN32 || APPLE
 #include <SDL.h>
-#endif
+#endif // _WIN32 || APPLE
 
 /* Local includes */
 #include "../../client/header/client.h"
@@ -1188,7 +1190,6 @@ SDL_Callback(void *data, Uint8 *stream, int length)
 qboolean
 SDL_BackendInit(void)
 {
-	char drivername[128];
 	char reqdriver[128];
 	SDL_AudioSpec desired;
 	SDL_AudioSpec obtained;
@@ -1206,7 +1207,11 @@ SDL_BackendInit(void)
 	int sndchans = (Cvar_Get("sndchannels", "2", CVAR_ARCHIVE))->value;
 
 #ifdef _WIN32
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	s_sdldriver = (Cvar_Get("s_sdldriver", "directsound", CVAR_ARCHIVE));
+#else
 	s_sdldriver = (Cvar_Get("s_sdldriver", "dsound", CVAR_ARCHIVE));
+#endif
 #elif __linux__
 	s_sdldriver = (Cvar_Get("s_sdldriver", "alsa", CVAR_ARCHIVE));
 #elif __APPLE__
@@ -1215,7 +1220,7 @@ SDL_BackendInit(void)
 	s_sdldriver = (Cvar_Get("s_sdldriver", "dsp", CVAR_ARCHIVE));
 #endif
 
-	snprintf(reqdriver, sizeof(drivername), "%s=%s", "SDL_AUDIODRIVER", s_sdldriver->string);
+	snprintf(reqdriver, sizeof(reqdriver), "%s=%s", "SDL_AUDIODRIVER", s_sdldriver->string);
 	putenv(reqdriver);
 
 	Com_Printf("Starting SDL audio callback.\n");
@@ -1228,11 +1233,21 @@ SDL_BackendInit(void)
 			return 0;
 		}
 	}
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	const char* drivername = SDL_GetCurrentAudioDriver();
+	if(drivername == NULL)
+	{
+		drivername = "(UNKNOWN)";
+	}
 
+#else
+	char drivername[128];
 	if (SDL_AudioDriverName(drivername, sizeof(drivername)) == NULL)
 	{
 		strcpy(drivername, "(UNKNOWN)");
 	}
+#endif
+
 
 	Com_Printf("SDL audio driver is \"%s\".\n", drivername);
 

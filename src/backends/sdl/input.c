@@ -29,12 +29,36 @@
 #include "../../client/header/keyboard.h"
 #include "../generic/header/input.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE__)
+#ifdef SDL2
+#include <SDL2/SDL.h>
+#else // SDL1.2
 #include <SDL/SDL.h>
-#elif defined(__APPLE__)
-#include <SDL/SDL.h>
-#else
+#endif //SDL2
+#else // not _WIN32 || APPLE
 #include <SDL.h>
+#endif // _WIN32 || APPLE
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	#define SDLK_KP0 SDLK_KP_0
+	#define SDLK_KP1 SDLK_KP_1
+	#define SDLK_KP2 SDLK_KP_2
+	#define SDLK_KP3 SDLK_KP_3
+	#define SDLK_KP4 SDLK_KP_4
+	#define SDLK_KP5 SDLK_KP_5
+	#define SDLK_KP6 SDLK_KP_6
+	#define SDLK_KP7 SDLK_KP_7
+	#define SDLK_KP8 SDLK_KP_8
+	#define SDLK_KP9 SDLK_KP_9
+
+	#define SDLK_RMETA SDLK_RGUI
+	#define SDLK_LMETA SDLK_LGUI
+
+	#define SDLK_COMPOSE SDLK_APPLICATION // really?
+
+	#define SDLK_PRINT SDLK_PRINTSCREEN
+	#define SDLK_SCROLLOCK SDLK_SCROLLLOCK
+	#define SDLK_NUMLOCK SDLK_NUMLOCKCLEAR
 #endif
 
 #define MOUSE_MAX 3000
@@ -61,9 +85,7 @@ int my;
 
 Key_Event_fp_t Key_Event_fp;
 
-extern SDL_Surface *surface;
 static in_state_t *in_state;
-static unsigned char KeyStates[SDLK_LAST];
 static qboolean mlooking;
 
 static cvar_t *sensitivity;
@@ -232,10 +254,13 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 			case SDLK_LALT:
 				key = K_ALT;
 				break;
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+				// TODO: delete? what is this anyway?
 			case SDLK_LSUPER:
 			case SDLK_RSUPER:
 				key = K_SUPER;
 				break;
+#endif
 			case SDLK_KP5:
 				key = K_KP_5;
 				break;
@@ -272,18 +297,24 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 			case SDLK_SYSREQ:
 				key = K_SYSREQ;
 				break;
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+				// TODO: delete? what is this anyway?
 			case SDLK_BREAK:
 				key = K_BREAK;
 				break;
+#endif
 			case SDLK_MENU:
 				key = K_MENU;
 				break;
 			case SDLK_POWER:
 				key = K_POWER;
 				break;
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+				// TODO: delete? what is this anyway?
 			case SDLK_EURO:
 				key = K_EURO;
 				break;
+#endif
 			case SDLK_UNDO:
 				key = K_UNDO;
 				break;
@@ -298,17 +329,31 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 				break;
 
 			default:
-
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+				// FIXME: how could this be used with SDL2?!
 				if ((keysym >= SDLK_WORLD_0) && (keysym <= SDLK_WORLD_95))
 				{
 					key = (keysym - SDLK_WORLD_0) + K_WORLD_0;
 				}
-
+#endif
 				break;
 		}
 	}
 
 	return key;
+}
+
+// add down and up event for mousewheel to simulate a "click"
+static void IN_AddMouseWheelEvents(int key)
+{
+	assert(key == K_MWHEELUP || key == K_MWHEELDOWN);
+
+	keyq[keyq_head].key = key;
+	keyq[keyq_head].down = true;
+	keyq_head = (keyq_head + 1) & 127;
+	keyq[keyq_head].key = key;
+	keyq[keyq_head].down = false;
+	keyq_head = (keyq_head + 1) & 127;
 }
 
 /*
@@ -318,32 +363,34 @@ void
 IN_GetEvent(SDL_Event *event)
 {
 	unsigned int key;
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_Keymod modstate = SDL_GetModState();
+#else
+	SDLMod modstate = SDL_GetModState();
+#endif
 
 	switch (event->type)
 	{
 		/* The mouse wheel */
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		case SDL_MOUSEWHEEL:
+			IN_AddMouseWheelEvents(event->wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN);
+			break;
+
+#else
 		case SDL_MOUSEBUTTONDOWN:
 
 			if (event->button.button == 4)
 			{
-				keyq[keyq_head].key = K_MWHEELUP;
-				keyq[keyq_head].down = true;
-				keyq_head = (keyq_head + 1) & 127;
-				keyq[keyq_head].key = K_MWHEELUP;
-				keyq[keyq_head].down = false;
-				keyq_head = (keyq_head + 1) & 127;
+				IN_AddMouseWheelEvents(K_MWHEELUP);
 			}
 			else if (event->button.button == 5)
 			{
-				keyq[keyq_head].key = K_MWHEELDOWN;
-				keyq[keyq_head].down = true;
-				keyq_head = (keyq_head + 1) & 127;
-				keyq[keyq_head].key = K_MWHEELDOWN;
-				keyq[keyq_head].down = false;
-				keyq_head = (keyq_head + 1) & 127;
+				IN_AddMouseWheelEvents(K_MWHEELDOWN);
 			}
 
 			break;
+#endif
 
 		case SDL_MOUSEBUTTONUP:
 			break;
@@ -352,23 +399,10 @@ IN_GetEvent(SDL_Event *event)
 		case SDL_KEYDOWN:
 
 			/* Fullscreen switch via Alt-Return */
-			if ((KeyStates[SDLK_LALT] ||
-				 KeyStates[SDLK_RALT]) &&
+			if ((modstate & KMOD_ALT) &&
 				 (event->key.keysym.sym == SDLK_RETURN))
 			{
-				SDL_WM_ToggleFullScreen(surface);
-
-				if (surface->flags & SDL_FULLSCREEN)
-				{
-					Cvar_SetValue("vid_fullscreen", 1);
-				}
-				else
-				{
-					Cvar_SetValue("vid_fullscreen", 0);
-				}
-
-				vid_fullscreen->modified = false;
-
+				GLimp_ToggleFullscreen();
 				break;
 			}
 
@@ -376,16 +410,13 @@ IN_GetEvent(SDL_Event *event)
 			   really belongs in Key_Event(), but since
 			   Key_ClearStates() can mess up the internal
 			   K_SHIFT state let's do it here instead. */
-			if ((KeyStates[SDLK_LSHIFT] ||
-				KeyStates[SDLK_RSHIFT]) &&
+			if ((modstate & KMOD_SHIFT) &&
 				(event->key.keysym.sym == SDLK_ESCAPE))
 			{
 				Cbuf_ExecuteText(EXEC_NOW, "toggleconsole");
 
 				break;
 			}
-
-			KeyStates[event->key.keysym.sym] = 1;
 
 			/* Get the pressed key and add it to the key list */
 			key = IN_TranslateSDLtoQ2Key(event->key.keysym.sym);
@@ -401,20 +432,14 @@ IN_GetEvent(SDL_Event *event)
 
 		/* The user released a key */
 		case SDL_KEYUP:
+			/* Get the pressed key and remove it from the key list */
+			key = IN_TranslateSDLtoQ2Key(event->key.keysym.sym);
 
-			if (KeyStates[event->key.keysym.sym])
+			if (key)
 			{
-				KeyStates[event->key.keysym.sym] = 0;
-
-				/* Get the pressed key and remove it from the key list */
-				key = IN_TranslateSDLtoQ2Key(event->key.keysym.sym);
-
-				if (key)
-				{
-					keyq[keyq_head].key = key;
-					keyq[keyq_head].down = false;
-					keyq_head = (keyq_head + 1) & 127;
-				}
+				keyq[keyq_head].key = key;
+				keyq[keyq_head].down = false;
+				keyq_head = (keyq_head + 1) & 127;
 			}
 
 			break;
@@ -445,14 +470,15 @@ IN_Update(void)
 		IN_GetEvent(&event);
 	}
 
-	/* Mouse button processing. Button 4
-	   and 5 are the mousewheel and thus
-	   not processed here. */
+
 	if (!mx && !my)
 	{
 		SDL_GetRelativeMouseState(&mx, &my);
 	}
 
+	/* Mouse button processing. Button 4
+	   and 5 are the mousewheel and thus
+	   not processed here. */
 	mouse_buttonstate = 0;
 	bstate = SDL_GetMouseState(NULL, NULL);
 
@@ -487,7 +513,7 @@ IN_Update(void)
 			(in_grab->value == 2 && windowed_mouse->value));
 	if (have_grab != want_grab)
 	{
-		SDL_WM_GrabInput((want_grab ? SDL_GRAB_ON : SDL_GRAB_OFF));
+		GLimp_GrabInput(want_grab);
 		have_grab = want_grab;
 	}
 
@@ -572,9 +598,16 @@ IN_KeyboardInit(Key_Event_fp_t fp)
 
 	/* SDL stuff. Moved here from IN_BackendInit because
 	 * this must be done after video is initialized. */
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	// TODO: keyrepeat?
+	// TODO: only if want_grab?
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+	have_grab = GLimp_InputIsGrabbed();
+#else
 	SDL_EnableUNICODE(0);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	have_grab = (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON);
+#endif
 }
 
 /*

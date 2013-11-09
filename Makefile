@@ -7,7 +7,7 @@
 #  - Quake II Game (baseq2)                              #
 #                                                        #
 # Base dependencies:                                     #
-#  - SDL 1.2                                             #
+#  - SDL 1.2 or SDL 2.0                                  #
 #  - libGL                                               #
 #                                                        #
 # Platforms:                                             #
@@ -24,6 +24,7 @@
 # for the background music and doesn't add any further
 # dependencies. It should work on all platforms where
 # CD playback is supported by SDL.
+# was yes
 WITH_CDA:=yes
 
 # Enables OGG/Vorbis support. OGG/Vorbis files can be
@@ -40,6 +41,12 @@ WITH_OPENAL:=yes
 # Enables retexturing support. Adds
 # a dependency to libjpeg
 WITH_RETEXTURING:=yes
+
+# Use SDL2 instead of SDL1.2. Disables CD audio support,
+# because SDL2 has none. Use OGG/Vorbis music instead :-)
+# On Windows sdl-config isn't used, so make sure that
+# you've got the SDL2 headers and libs installed.
+WITH_SDL2:=yes
 
 # Set the gamma via X11 and not via SDL. This works
 # around problems in some SDL version. Adds dependencies
@@ -102,6 +109,18 @@ ifeq ($(findstring $(ARCH), i386 x86_64 sparc64 ia64),)
 $(error arch $(ARCH) is currently not supported)
 endif
 
+# Disable CDA for SDL2
+ifeq ($(WITH_SDL2),yes)
+ifeq ($(WITH_CDA),yes)
+WITH_CDA:=no
+
+# Evil hack to tell the "all" target
+# that CDA was disabled because SDL2
+# is enabled.
+CDA_ENABLED:=yes
+endif
+endif
+
 # ----------
 
 # Base CFLAGS.
@@ -146,10 +165,15 @@ endif
 ifneq ($(OSTYPE), Windows)
 ifeq ($(OSTYPE), Darwin)
 SDLCFLAGS :=
-else
+else # not darwin
+ifeq ($(WITH_SDL2),yes)
+SDLCFLAGS := $(shell sdl2-config --cflags)
+else # not SDL2
 SDLCFLAGS := $(shell sdl-config --cflags)
-endif
-endif
+endif # SDL2
+
+endif # darwin's else
+endif # not windows
 
 # ----------
 
@@ -195,12 +219,24 @@ endif
 
 # Extra LDFLAGS for SDL
 ifeq ($(OSTYPE), Windows)
+ifeq ($(WITH_SDL2),yes)
+SDLLDFLAGS := -lSDL2main -lSDL2  -mwindows  -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid
+else # not SDL2
 SDLLDFLAGS := -lSDL
+endif # SDL2
 else ifeq ($(OSTYPE), Darwin)
+ifeq ($(WITH_SDL2),yes)
+SDLLDFLAGS := -framework SDL2 -framework OpenGL -framework Cocoa
+else # not SDL2
 SDLLDFLAGS := -framework SDL -framework OpenGL -framework Cocoa
-else
+endif # SDL2
+else # not Darwin/Win
+ifeq ($(WITH_SDL2),yes)
+SDLLDFLAGS := $(shell sdl2-config --libs)
+else # not SDL2
 SDLLDFLAGS := $(shell sdl-config --libs)
-endif
+endif # SDL2
+endif # Darwin/Win
 
 # ----------
 
@@ -210,6 +246,7 @@ ifneq ($(OSTYPE), Darwin)
 ifeq ($(WITH_X11GAMMA),yes)
 X11LDFLAGS := $(shell pkg-config x11 --libs)
 X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
+X11LDFLAGS += $(shell pkg-config xrandr --libs)
 endif
 endif
 endif
@@ -243,11 +280,19 @@ config:
 	@echo "WITH_CDA = $(WITH_CDA)"
 	@echo "WITH_OPENAL = $(WITH_OPENAL)"
 	@echo "WITH_RETEXTURING = $(WITH_RETEXTURING)"
+	@echo "WITH_SDL2 = $(WITH_SDL2)"
 	@echo "WITH_X11GAMMA = $(WITH_X11GAMMA)"
 	@echo "WITH_ZIP = $(WITH_ZIP)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
 	@echo "============================"
+	@echo ""
+ifeq ($(WITH_SDL2),yes)
+ifeq ($(CDA_ENABLED),yes)
+	@echo "WARNING: CDA disabled because SDL2 doesn't support it!"
+	@echo ""
+endif
+endif
 	
 # ----------
 
@@ -310,6 +355,10 @@ release/quake2.exe : CFLAGS += -DRETEXTURE
 release/quake2.exe : LDFLAGS += -ljpeg
 endif 
 
+ifeq ($(WITH_SDL2),yes)
+release/quake2.exe : CFLAGS += -DSDL2
+endif
+
 release/quake2.exe : LDFLAGS += -mwindows -lopengl32
 else
 client:
@@ -369,6 +418,10 @@ release/quake2 : LDFLAGS += -framework libjpeg
 else
 release/quake2 : LDFLAGS += -ljpeg
 endif
+endif
+
+ifeq ($(WITH_SDL2),yes)
+release/quake2 : CFLAGS += -DSDL2
 endif
  
 ifeq ($(OSTYPE), Darwin)
