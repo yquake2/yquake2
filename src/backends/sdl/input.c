@@ -20,7 +20,7 @@
  *
  * =======================================================================
  *
- * This is the Quake II input system, written in SDL.
+ * This is the Quake II input system backend, written in SDL.
  *
  * =======================================================================
  */
@@ -29,16 +29,18 @@
 #include "../../client/header/keyboard.h"
 #include "../generic/header/input.h"
 
+/* There's no sdl-config on OS X and Windows */
 #if defined(_WIN32) || defined(__APPLE__)
 #ifdef SDL2
 #include <SDL2/SDL.h>
-#else // SDL1.2
+#else /* SDL1.2 */
 #include <SDL/SDL.h>
-#endif //SDL2
-#else // not _WIN32 || APPLE
+#endif /*SDL2 */
+#else /* not _WIN32 || APPLE */
 #include <SDL.h>
-#endif // _WIN32 || APPLE
+#endif /* _WIN32 || APPLE */
 
+/* SDL 1.2 <-> 2.0 compatiblity cruft */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	#define SDLK_KP0 SDLK_KP_0
 	#define SDLK_KP1 SDLK_KP_1
@@ -54,7 +56,7 @@
 	#define SDLK_RMETA SDLK_RGUI
 	#define SDLK_LMETA SDLK_LGUI
 
-	#define SDLK_COMPOSE SDLK_APPLICATION // really?
+	#define SDLK_COMPOSE SDLK_APPLICATION
 
 	#define SDLK_PRINT SDLK_PRINTSCREEN
 	#define SDLK_SCROLLOCK SDLK_SCROLLLOCK
@@ -63,15 +65,33 @@
 
 #define MOUSE_MAX 3000
 #define MOUSE_MIN 40
-
-static qboolean have_grab;
-static cvar_t *windowed_mouse;
-static cvar_t *in_grab;
-static int mouse_x, mouse_y;
-static int old_mouse_x, old_mouse_y;
+ 
+/* Globals */
+Key_Event_fp_t Key_Event_fp;
+static in_state_t *in_state;
 static int mouse_buttonstate;
 static int mouse_oldbuttonstate;
+static int mouse_x, mouse_y;
+static int old_mouse_x, old_mouse_y;
+static qboolean have_grab;
+static qboolean mlooking;
 
+/* CVars */
+cvar_t *vid_fullscreen;
+static cvar_t *in_grab;
+static cvar_t *in_mouse;
+static cvar_t *exponential_speedup;
+static cvar_t *freelook;
+static cvar_t *lookstrafe;
+static cvar_t *m_forward;
+static cvar_t *m_filter;
+static cvar_t *m_pitch;
+static cvar_t *m_side;
+static cvar_t *m_yaw;
+static cvar_t *sensitivity;
+static cvar_t *windowed_mouse;
+
+/* Key queue */
 struct
 {
 	int key;
@@ -79,34 +99,14 @@ struct
 } keyq[128];
 
 int keyq_head = 0;
-int keyq_tail = 0;
-int mx;
-int my;
-
-Key_Event_fp_t Key_Event_fp;
-
-static in_state_t *in_state;
-static qboolean mlooking;
-
-static cvar_t *sensitivity;
-static cvar_t *exponential_speedup;
-static cvar_t *lookstrafe;
-static cvar_t *m_side;
-static cvar_t *m_yaw;
-static cvar_t *m_pitch;
-static cvar_t *m_forward;
-static cvar_t *freelook;
-static cvar_t *m_filter;
-static cvar_t *in_mouse;
-
-cvar_t *vid_fullscreen;
+int keyq_tail = 0; 
 
 /*
- * This function translates the SDL keycodes
- * to the internal key representation of the
- * id Tech 2 engine.
+ * This creepy function translates the SDL 
+ * keycodes to the internal key representation
+ * of the id Tech 2 engine.
  */
-int
+static int
 IN_TranslateSDLtoQ2Key(unsigned int keysym)
 {
 	int key = 0;
@@ -254,13 +254,6 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 			case SDLK_LALT:
 				key = K_ALT;
 				break;
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-				// TODO: delete? what is this anyway?
-			case SDLK_LSUPER:
-			case SDLK_RSUPER:
-				key = K_SUPER;
-				break;
-#endif
 			case SDLK_KP5:
 				key = K_KP_5;
 				break;
@@ -297,24 +290,12 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 			case SDLK_SYSREQ:
 				key = K_SYSREQ;
 				break;
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-				// TODO: delete? what is this anyway?
-			case SDLK_BREAK:
-				key = K_BREAK;
-				break;
-#endif
 			case SDLK_MENU:
 				key = K_MENU;
 				break;
 			case SDLK_POWER:
 				key = K_POWER;
 				break;
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-				// TODO: delete? what is this anyway?
-			case SDLK_EURO:
-				key = K_EURO;
-				break;
-#endif
 			case SDLK_UNDO:
 				key = K_UNDO;
 				break;
@@ -329,13 +310,6 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 				break;
 
 			default:
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-				// FIXME: how could this be used with SDL2?!
-				if ((keysym >= SDLK_WORLD_0) && (keysym <= SDLK_WORLD_95))
-				{
-					key = (keysym - SDLK_WORLD_0) + K_WORLD_0;
-				}
-#endif
 				break;
 		}
 	}
@@ -343,14 +317,22 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 	return key;
 }
 
-// add down and up event for mousewheel to simulate a "click"
-static void IN_AddMouseWheelEvents(int key)
+/*
+ * Synthesize up and down events for the
+ * mousewheel. Quake II is unable to use
+ * buttons wich do not generate events.
+ */
+static void
+IN_AddMouseWheelEvents(int key)
 {
 	assert(key == K_MWHEELUP || key == K_MWHEELDOWN);
 
+	/* Key down */
 	keyq[keyq_head].key = key;
 	keyq[keyq_head].down = true;
 	keyq_head = (keyq_head + 1) & 127;
+
+	/* Key up */
 	keyq[keyq_head].key = key;
 	keyq[keyq_head].down = false;
 	keyq_head = (keyq_head + 1) & 127;
@@ -359,10 +341,11 @@ static void IN_AddMouseWheelEvents(int key)
 /*
  * Input event processing
  */
-void
+static void
 IN_GetEvent(SDL_Event *event)
 {
 	unsigned int key;
+
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_Keymod modstate = SDL_GetModState();
 #else
@@ -376,7 +359,6 @@ IN_GetEvent(SDL_Event *event)
 		case SDL_MOUSEWHEEL:
 			IN_AddMouseWheelEvents(event->wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN);
 			break;
-
 #else
 		case SDL_MOUSEBUTTONDOWN:
 
@@ -399,8 +381,7 @@ IN_GetEvent(SDL_Event *event)
 		case SDL_KEYDOWN:
 
 			/* Fullscreen switch via Alt-Return */
-			if ((modstate & KMOD_ALT) &&
-				 (event->key.keysym.sym == SDLK_RETURN))
+			if ((modstate & KMOD_ALT) && (event->key.keysym.sym == SDLK_RETURN))
 			{
 				GLimp_ToggleFullscreen();
 				break;
@@ -410,11 +391,9 @@ IN_GetEvent(SDL_Event *event)
 			   really belongs in Key_Event(), but since
 			   Key_ClearStates() can mess up the internal
 			   K_SHIFT state let's do it here instead. */
-			if ((modstate & KMOD_SHIFT) &&
-				(event->key.keysym.sym == SDLK_ESCAPE))
+			if ((modstate & KMOD_SHIFT) && (event->key.keysym.sym == SDLK_ESCAPE))
 			{
 				Cbuf_ExecuteText(EXEC_NOW, "toggleconsole");
-
 				break;
 			}
 
@@ -432,6 +411,7 @@ IN_GetEvent(SDL_Event *event)
 
 		/* The user released a key */
 		case SDL_KEYUP:
+
 			/* Get the pressed key and remove it from the key list */
 			key = IN_TranslateSDLtoQ2Key(event->key.keysym.sym);
 
@@ -447,33 +427,37 @@ IN_GetEvent(SDL_Event *event)
 }
 
 /*
- * Updates the state of the input queue
+ * Updates the input queue state
  */
 void
 IN_Update(void)
 {
-	SDL_Event event;
-	static int IN_Update_Flag;
 	int bstate;
 	qboolean want_grab;
+	SDL_Event event;
+	static int protection;
 
-	/* Protection against multiple calls */
-	if (IN_Update_Flag == 1)
+	/* Protection against multiple calls.
+	   In theory this should neber trigger. */ 
+	if (protection == 1)
 	{
 		return;
 	}
+	else
+	{
+		protection = 1;
+	}
 
-	IN_Update_Flag = 1;
-
+	/* Get and process an event */
 	while (SDL_PollEvent(&event))
 	{
 		IN_GetEvent(&event);
 	}
 
-
-	if (!mx && !my)
+	/* Get new mouse coordinates */
+	if (!mouse_x && !mouse_y)
 	{
-		SDL_GetRelativeMouseState(&mx, &my);
+		SDL_GetRelativeMouseState(&mouse_x, &mouse_y);
 	}
 
 	/* Mouse button processing. Button 4
@@ -486,23 +470,19 @@ IN_Update(void)
 	{
 		mouse_buttonstate |= (1 << 0);
 	}
-
-	if (SDL_BUTTON(3) & bstate)
+	else if (SDL_BUTTON(3) & bstate)
 	{
 		mouse_buttonstate |= (1 << 1);
 	}
-
-	if (SDL_BUTTON(2) & bstate)
+	else if (SDL_BUTTON(2) & bstate)
 	{
 		mouse_buttonstate |= (1 << 2);
 	}
-
-	if (SDL_BUTTON(6) & bstate)
+	else if (SDL_BUTTON(6) & bstate)
 	{
 		mouse_buttonstate |= (1 << 3);
 	}
-
-	if (SDL_BUTTON(7) & bstate)
+	else if (SDL_BUTTON(7) & bstate)
 	{
 		mouse_buttonstate |= (1 << 4);
 	}
@@ -511,6 +491,7 @@ IN_Update(void)
 	 * console or the menu is opened */
 	want_grab = (vid_fullscreen->value || in_grab->value == 1 ||
 			(in_grab->value == 2 && windowed_mouse->value));
+
 	if (have_grab != want_grab)
 	{
 		GLimp_GrabInput(want_grab);
@@ -524,12 +505,12 @@ IN_Update(void)
 		keyq_tail = (keyq_tail + 1) & 127;
 	}
 
-	IN_Update_Flag = 0;
+	protection = 0;
 }
 
 /*
- * Closes all inputs and clears
- * the input queue.
+ * Closes all inputs and 
+ * clears the input queue.
  */
 void
 IN_Close(void)
@@ -538,26 +519,6 @@ IN_Close(void)
 	keyq_tail = 0;
 
 	memset(keyq, 0, sizeof(keyq));
-}
-
-/*
- * Gets the mouse state
- */
-void
-IN_GetMouseState(int *x, int *y, int *state)
-{
-	*x = mx;
-	*y = my;
-	*state = mouse_buttonstate;
-}
-
-/*
- * Cleares the mouse state
- */
-void
-IN_ClearMouseState()
-{
-	mx = my = 0;
 }
 
 /*
@@ -570,7 +531,7 @@ IN_ForceCenterView(void)
 }
 
 /*
- * Look up
+ * Look down
  */
 static void
 IN_MLookDown(void)
@@ -579,7 +540,7 @@ IN_MLookDown(void)
 }
 
 /*
- * Look down
+ * Look up
  */
 static void
 IN_MLookUp(void)
@@ -597,10 +558,8 @@ IN_KeyboardInit(Key_Event_fp_t fp)
 	Key_Event_fp = fp;
 
 	/* SDL stuff. Moved here from IN_BackendInit because
-	 * this must be done after video is initialized. */
+	   this must be done after video is initialized. */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	// TODO: keyrepeat?
-	// TODO: only if want_grab?
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	have_grab = GLimp_InputIsGrabbed();
 #else
@@ -617,30 +576,26 @@ void
 IN_BackendInit(in_state_t *in_state_p)
 {
 	in_state = in_state_p;
-	m_filter = Cvar_Get("m_filter", "0", CVAR_ARCHIVE);
-	in_mouse = Cvar_Get("in_mouse", "0", CVAR_ARCHIVE);
 
-	freelook = Cvar_Get("freelook", "1", 0);
-	lookstrafe = Cvar_Get("lookstrafe", "0", 0);
-	sensitivity = Cvar_Get("sensitivity", "3", 0);
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
-
-	m_pitch = Cvar_Get("m_pitch", "0.022", 0);
-	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
+	freelook = Cvar_Get("freelook", "1", 0);
+	in_grab = Cvar_Get("in_grab", "2", CVAR_ARCHIVE);
+	in_mouse = Cvar_Get("in_mouse", "0", CVAR_ARCHIVE);
+	lookstrafe = Cvar_Get("lookstrafe", "0", 0);
+	m_filter = Cvar_Get("m_filter", "0", CVAR_ARCHIVE);
 	m_forward = Cvar_Get("m_forward", "1", 0);
+	m_pitch = Cvar_Get("m_pitch", "0.022", 0);
 	m_side = Cvar_Get("m_side", "0.8", 0);
+	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
+	sensitivity = Cvar_Get("sensitivity", "3", 0);
+	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
 	Cmd_AddCommand("+mlook", IN_MLookDown);
 	Cmd_AddCommand("-mlook", IN_MLookUp);
 	Cmd_AddCommand("force_centerview", IN_ForceCenterView);
 
-	mouse_x = mouse_y = 0.0;
-
-	windowed_mouse = Cvar_Get("windowed_mouse", "1",
-			CVAR_USERINFO | CVAR_ARCHIVE);
-	in_grab = Cvar_Get("in_grab", "2", CVAR_ARCHIVE);
-
-	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+	mouse_x = mouse_y = 0;
 
 	VID_Printf(PRINT_ALL, "Input initialized.\n");
 }
@@ -651,9 +606,10 @@ IN_BackendInit(in_state_t *in_state_p)
 void
 IN_BackendShutdown(void)
 {
+	Cmd_RemoveCommand("force_centerview");
 	Cmd_RemoveCommand("+mlook");
 	Cmd_RemoveCommand("-mlook");
-	Cmd_RemoveCommand("force_centerview");
+
 	VID_Printf(PRINT_ALL, "Input shut down.\n");
 }
 
@@ -664,8 +620,6 @@ void
 IN_BackendMouseButtons(void)
 {
 	int i;
-
-	IN_GetMouseState(&mouse_x, &mouse_y, &mouse_buttonstate);
 
 	for (i = 0; i < 3; i++)
 	{
@@ -709,8 +663,6 @@ IN_BackendMouseButtons(void)
 void
 IN_BackendMove(usercmd_t *cmd)
 {
-	IN_GetMouseState(&mouse_x, &mouse_y, &mouse_buttonstate);
-
 	if (m_filter->value)
 	{
 		if ((mouse_x > 1) || (mouse_x < -1))
@@ -783,7 +735,7 @@ IN_BackendMove(usercmd_t *cmd)
 			cmd->forwardmove -= m_forward->value * mouse_y;
 		}
 
-		IN_ClearMouseState();
+		mouse_x = mouse_y = 0;
 	}
 }
 
