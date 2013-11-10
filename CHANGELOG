@@ -3,6 +3,17 @@ Quake II 5.11 to 5.20
   remove QGL. This means that ref_gl.so is gone
   and libGL is now linked like every other lib.
   (by Alejandro Ricoveri)
+- Port the client to SDL 2.0. The newer SDL version
+  solves some long standing problems, like broken
+  keyboard layouts and non working SDL sound on
+  Windows. While SDL 2.0 is enabled by default,
+  one can switch back to SDL 1.2 by editing the
+  Makefile.
+- OS X support was put to hold. While OS X support
+  is nice to have, non of the deveolpers has
+  interest in maintaining it. Until someone steps
+  up and takes responsibility, no OS X versions
+  will be released.
 
 Quake II 5.10 to 5.11
 - A lot of bugfixes.
