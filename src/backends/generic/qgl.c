@@ -52,18 +52,26 @@ void ( APIENTRY *qglClientActiveTextureARB ) ( GLenum );
 
 /* ========================================================================= */
 
+void QGL_EXT_Reset ( void )
+{
+	qglLockArraysEXT          = NULL;
+	qglUnlockArraysEXT 	      = NULL;
+	qglPointParameterfEXT     = NULL;
+	qglPointParameterfvEXT    = NULL;
+	qglColorTableEXT          = NULL;
+	qgl3DfxSetPaletteEXT      = NULL;
+	qglMultiTexCoord2fARB     = NULL;
+	qglActiveTextureARB       = NULL;
+	qglClientActiveTextureARB = NULL;
+}
+
+/* ========================================================================= */
+
 void
 QGL_Shutdown ( void )
 {
-	qglLockArraysEXT = NULL;
-	qglUnlockArraysEXT = NULL;
-	qglPointParameterfEXT = NULL;
-	qglPointParameterfvEXT = NULL;
-	qglColorTableEXT = NULL;
-	qgl3DfxSetPaletteEXT = NULL;
-	qglMultiTexCoord2fARB = NULL;
-	qglActiveTextureARB = NULL;
-	qglClientActiveTextureARB = NULL;
+	// Reset GL extension pointers
+	QGL_EXT_Reset();
 }
 
 /* ========================================================================= */
@@ -71,15 +79,8 @@ QGL_Shutdown ( void )
 qboolean
 QGL_Init (void)
 {
-	qglLockArraysEXT = NULL;
-	qglUnlockArraysEXT = NULL;
-	qglPointParameterfEXT = NULL;
-	qglPointParameterfvEXT = NULL;
-	qglColorTableEXT = NULL;
-	qgl3DfxSetPaletteEXT = NULL;
-	qglMultiTexCoord2fARB = NULL;
-	qglActiveTextureARB = NULL;
-	qglClientActiveTextureARB = NULL;
+	// Reset GL extension pointers
+	QGL_EXT_Reset();
 	return true;
 }
 

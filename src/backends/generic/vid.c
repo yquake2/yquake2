@@ -170,9 +170,6 @@ VID_LoadRefresh(void)
 	// Log it!
 	Com_Printf("----- refresher initialization -----\n");
 
-	// Get refresher API exports
-	//R_GetRefAPI();
-
 	/* Init IN (Mouse) */
 	in_state.IN_CenterView_fp = IN_CenterView;
 	in_state.Key_Event_fp = Do_Key_Event;
