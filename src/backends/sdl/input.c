@@ -69,8 +69,6 @@
 /* Globals */
 Key_Event_fp_t Key_Event_fp;
 static in_state_t *in_state;
-static int mouse_buttonstate;
-static int mouse_oldbuttonstate;
 static int mouse_x, mouse_y;
 static int old_mouse_x, old_mouse_y;
 static qboolean have_grab;
@@ -359,22 +357,50 @@ IN_GetEvent(SDL_Event *event)
 		case SDL_MOUSEWHEEL:
 			IN_AddMouseWheelEvents(event->wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN);
 			break;
-#else
+#endif
 		case SDL_MOUSEBUTTONDOWN:
-
+#if ! SDL_VERSION_ATLEAST(2, 0, 0) // SDL1.2 mousewheel stuff
 			if (event->button.button == 4)
 			{
 				IN_AddMouseWheelEvents(K_MWHEELUP);
+				break;
 			}
 			else if (event->button.button == 5)
 			{
 				IN_AddMouseWheelEvents(K_MWHEELDOWN);
+				break;
+			}
+#endif
+			// fall-through
+		case SDL_MOUSEBUTTONUP:
+			// DG: luckily, we don't need that IN_MouseEvent() magic with SDL,
+			//     as it really sends one event per pressed/released button
+			switch( event->button.button )
+			{
+				case SDL_BUTTON_LEFT:
+					key = K_MOUSE1;
+					break;
+				case SDL_BUTTON_MIDDLE:
+					key = K_MOUSE3;
+					break;
+				case SDL_BUTTON_RIGHT:
+					key = K_MOUSE2;
+					break;
+				case SDL_BUTTON_X1:
+					key = K_MOUSE4;
+					break;
+				case SDL_BUTTON_X2:
+					key = K_MOUSE5;
+					break;
+				default: // WTF, unknown mousebutton
+					// TODO: print warning?
+					return;
 			}
 
-			break;
-#endif
+			keyq[keyq_head].key = key;
+			keyq[keyq_head].down = event->type == SDL_MOUSEBUTTONDOWN;
+			keyq_head = (keyq_head + 1) & 127;
 
-		case SDL_MOUSEBUTTONUP:
 			break;
 
 		/* The user pressed a button */
@@ -432,7 +458,6 @@ IN_GetEvent(SDL_Event *event)
 void
 IN_Update(void)
 {
-	int bstate;
 	qboolean want_grab;
 	SDL_Event event;
 	static int protection;
@@ -458,33 +483,6 @@ IN_Update(void)
 	if (!mouse_x && !mouse_y)
 	{
 		SDL_GetRelativeMouseState(&mouse_x, &mouse_y);
-	}
-
-	/* Mouse button processing. Button 4
-	   and 5 are the mousewheel and thus
-	   not processed here. */
-	mouse_buttonstate = 0;
-	bstate = SDL_GetMouseState(NULL, NULL);
-
-	if (SDL_BUTTON(1) & bstate)
-	{
-		mouse_buttonstate |= (1 << 0);
-	}
-	else if (SDL_BUTTON(3) & bstate)
-	{
-		mouse_buttonstate |= (1 << 1);
-	}
-	else if (SDL_BUTTON(2) & bstate)
-	{
-		mouse_buttonstate |= (1 << 2);
-	}
-	else if (SDL_BUTTON(6) & bstate)
-	{
-		mouse_buttonstate |= (1 << 3);
-	}
-	else if (SDL_BUTTON(7) & bstate)
-	{
-		mouse_buttonstate |= (1 << 4);
 	}
 
 	/* Grab and ungrab the mouse if the
@@ -619,42 +617,8 @@ IN_BackendShutdown(void)
 void
 IN_BackendMouseButtons(void)
 {
-	int i;
-
-	for (i = 0; i < 3; i++)
-	{
-		if ((mouse_buttonstate & (1 << i)) && !(mouse_oldbuttonstate & (1 << i)))
-		{
-			in_state->Key_Event_fp(K_MOUSE1 + i, true);
-		}
-
-		if (!(mouse_buttonstate & (1 << i)) && (mouse_oldbuttonstate & (1 << i)))
-		{
-			in_state->Key_Event_fp(K_MOUSE1 + i, false);
-		}
-	}
-
-	if ((mouse_buttonstate & (1 << 3)) && !(mouse_oldbuttonstate & (1 << 3)))
-	{
-		in_state->Key_Event_fp(K_MOUSE4, true);
-	}
-
-	if (!(mouse_buttonstate & (1 << 3)) && (mouse_oldbuttonstate & (1 << 3)))
-	{
-		in_state->Key_Event_fp(K_MOUSE4, false);
-	}
-
-	if ((mouse_buttonstate & (1 << 4)) && !(mouse_oldbuttonstate & (1 << 4)))
-	{
-		in_state->Key_Event_fp(K_MOUSE5, true);
-	}
-
-	if (!(mouse_buttonstate & (1 << 4)) && (mouse_oldbuttonstate & (1 << 4)))
-	{
-		in_state->Key_Event_fp(K_MOUSE5, false);
-	}
-
-	mouse_oldbuttonstate = mouse_buttonstate;
+	// nothing to do, we don't need this hack with SDL
+	// the mouse events are generated directly in IN_GetEvent()
 }
 
 /*
