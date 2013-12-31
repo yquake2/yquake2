@@ -97,7 +97,7 @@ ifeq ($(OSTYPE), Windows)
 # (amd64 works, but building an 64 bit executable
 # is not that easy. Especially SDL and OpenAL are
 # somewhat problematic)
-ARCH := i386
+ARCH ?= i386
 else
 # Some platforms call it "amd64" and some "x86_64"
 ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/amd64/x86_64/)
