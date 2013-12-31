@@ -782,9 +782,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		}
 		while (time < 1);
 
-		_controlfp(_PC_24, _MCW_PC);
 		Qcommon_Frame(time);
-
 		oldtime = newtime;
 	}
 
