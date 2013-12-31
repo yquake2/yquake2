@@ -182,7 +182,7 @@ recommended) or by compiling the source with MinGW.
 Yamagi Quake II should run on Windows XP or higher, older versions are not
 supported. You'll need a graphics card with support for at least OpenGL 1.1
 (OpenGL 1.4 is recommended). Both x86 and x86_64 Windows installations are
-supported.
+supported, but x86 is much more tested.
 
 2.2 Retail Version
 ------------------
@@ -242,15 +242,18 @@ use the github version or want to develop on Windows. If you really want to
 compile Yamagi Quake II by yourself follow these steps:
 
 1. Grab a copy of Nuwens MinGW distribution from http://nuwen.net/mingw.html
-   Our code is tested with version 11.0, newer version may work but we can not
-   guarantee that. Extract the distribution to a directory of your choice.
+   Our code is tested with version 10.0, newer version may work but we can not
+   guarantee that. Please note, that Nuwen MinGW 11.0 and higher are creating
+   64 bit binaries. Extract the distribution to a directory of your choice.
 2. Grab a copy of OpenAL Soft from http://kcat.strangesoft.net/openal.html 
-   (the binary release for Windows). Our code is tested with version 1.14.
-   Extract it and put the include\AL directory into the include\ directory
-   of the MinGW distribution.
+   (the binary release for Windows). Our code is tested with version 1.14,
+   but newer version should work. Extract it and put the include\AL directory
+   into the include\ directory of the MinGW distribution.
 3. Open the command window of Nuwens MinGW distribution, navigate to your
    copy of the Yamagi Quake II source and type "make". This'll build the
-   Windows binaries.
+   Windows binaries. In some cases you'll need to tell make the name of your
+   compiler, e.g. "make CC=gcc47". For a 64 bit build it's recommended - 
+   but not nececcarry - to override the ARCH string: "make ARCH=x86_64".
 
 After compiling, copy the following files from "release\" to your Quake II
 installation preserving the directory structure:
@@ -258,10 +261,12 @@ installation preserving the directory structure:
 - quake2.exe
 - baseq2\game.dll
 
-You'll need a "openal32.dll. You can use and rename the OpenAL DLL that
-came with OpenAL Soft. Known to be good DLLs can be found in the
-stuff/win32-libs directory of the source code distribution. The supplied
-SDL.dll is an SDL 1.2 build, required if you're still using SDL 1.2.
+You'll need an "openal32.dll". You can use and rename the OpenAL DLL that
+came with OpenAL Soft. Known to be good DLLs (32 bit only) can be found in the
+stuff/win32-libs directory of the source code distribution. Please note that
+the name of the DLL is always "openal32.dll", even if it's a 64 bit library.
+The supplied SDL.dll is an SDL 1.2 build, required if you're still using SDL
+1.2.
 
 2.7 Default Configuration
 -------------------------
