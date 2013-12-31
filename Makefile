@@ -14,6 +14,7 @@
 #  - FreeBSD                                             #
 #  - Linux                                               #
 #  - OpenBSD                                             #
+#  - OS X                                                #
 #  - Windows (MinGW)                                     #
 # ------------------------------------------------------ #
 
@@ -24,7 +25,6 @@
 # for the background music and doesn't add any further
 # dependencies. It should work on all platforms where
 # CD playback is supported by SDL.
-# was yes
 WITH_CDA:=yes
 
 # Enables OGG/Vorbis support. OGG/Vorbis files can be
@@ -68,15 +68,14 @@ WITH_SYSTEMDIR:=
 
 # This will set the architectures of the OSX-binaries.
 # You have to make sure your libs/frameworks supports
-# these architectures to build an universal ppc-compatible
-# one would add -arch ppc for example, but I did not tested
-# it!
+# these architectures! To build an universal ppc-compatible
+# one would add -arch ppc for example.
 OSX_ARCH := -arch i386 -arch x86_64
 
 # This will set the build options to create an MacOS .app-bundle.
 # The app-bundle itself will not be created, but the runtime paths
 # will be set to expect the linked Frameworks in *.app/Contents/
-# Frameworks and the game-data will be expected in # *.app/
+# Frameworks and the game-data will be expected in *.app/
 # Contents/Resources
 OSX_APP := yes
 
@@ -117,7 +116,7 @@ WITH_CDA:=no
 # Evil hack to tell the "all" target
 # that CDA was disabled because SDL2
 # is enabled.
-CDA_ENABLED:=yes
+CDA_DISABLED:=yes
 endif
 endif
 
@@ -288,7 +287,7 @@ config:
 	@echo "============================"
 	@echo ""
 ifeq ($(WITH_SDL2),yes)
-ifeq ($(CDA_ENABLED),yes)
+ifeq ($(CDA_DISABLED),yes)
 	@echo "WARNING: CDA disabled because SDL2 doesn't support it!"
 	@echo ""
 endif
