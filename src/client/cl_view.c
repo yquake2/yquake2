@@ -444,11 +444,25 @@ V_Gun_Model_f(void)
 	gun_model = R_RegisterModel(name);
 }
 
+int
+entitycmpfnc(const entity_t *a, const entity_t *b)
+{
+	/* all other models are sorted by model then skin */
+	if (a->model == b->model)
+	{
+		return (a->skin == b->skin) ? 0 :
+			(a->skin > b->skin) ? 1 : -1;
+	}
+	else
+	{
+ 		return (a->model == b->model) ? 0 :
+			(a->model > b->model) ? 1 : -1; 
+	}
+}
+
 void
 V_RenderView(float stereo_separation)
 {
-	extern int entitycmpfnc(const entity_t *, const entity_t *);
-
 	if (cls.state != ca_active)
 	{
 		return;
