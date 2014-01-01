@@ -220,7 +220,9 @@ endif
 # Extra LDFLAGS for SDL
 ifeq ($(OSTYPE), Windows)
 ifeq ($(WITH_SDL2),yes)
-SDLLDFLAGS := -lSDL2main -lSDL2  -mwindows  -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid
+SDLLDFLAGS := -lSDL2main -lSDL2  -mwindows  -lm -ldinput8 -ldxguid \
+	-ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 \
+	-lshell32 -lversion -luuid
 else # not SDL2
 SDLLDFLAGS := -lSDL
 endif # SDL2
