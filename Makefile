@@ -63,21 +63,22 @@ WITH_SYSTEMWIDE:=no
 
 # This will set the default SYSTEMDIR, a non-empty string
 # would actually be used. On Windows normals slashes (/)
-# instead of backslashed (\) should be used!
-WITH_SYSTEMDIR:=
+# instead of backslashed (\) should be used! The string
+# MUST NOT be surrounded by quotation marks!
+WITH_SYSTEMDIR:=""
 
 # This will set the architectures of the OSX-binaries.
 # You have to make sure your libs/frameworks supports
 # these architectures! To build an universal ppc-compatible
 # one would add -arch ppc for example.
-OSX_ARCH := -arch i386 -arch x86_64
+OSX_ARCH:=-arch i386 -arch x86_64
 
 # This will set the build options to create an MacOS .app-bundle.
 # The app-bundle itself will not be created, but the runtime paths
 # will be set to expect the linked Frameworks in *.app/Contents/
 # Frameworks and the game-data will be expected in *.app/
 # Contents/Resources
-OSX_APP := yes
+OSX_APP:=yes
 
 # ====================================================== #
 #     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
@@ -437,6 +438,22 @@ ifeq ($(OSTYPE), FreeBSD)
 release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib'
 else ifeq ($(OSTYPE), Linux)
 release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib'
+endif
+
+ifeq ($(WITH_SYSTEMWIDE),yes)
+ifneq ($(WITH_SYSTEMDIR),"")
+ifeq ($(OSTYPE), FreeBSD)
+release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$(WITH_SYSTEMDIR)/lib'
+else ifeq ($(OSTYPE), Linux)
+release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$(WITH_SYSTEMDIR)/lib'
+endif
+else
+ifeq ($(OSTYPE), FreeBSD)
+release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='/usr/share/games/quake2/lib'
+else ifeq ($(OSTYPE), Linux)
+release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='/usr/share/games/quake2/lib'
+endif
+endif
 endif
 endif
 
