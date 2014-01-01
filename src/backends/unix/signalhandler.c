@@ -20,7 +20,8 @@
  * =======================================================================
  *
  * This is a signal handler for printing some hints to debug problem in
- * the case of a crash. On Linux a backtrace is printed.
+ * the case of a crash. On Linux a backtrace is printed. Additionally
+ * a special handler for SIGINT and SIGTERM ist supplied.
  *
  * =======================================================================
  */
@@ -118,10 +119,21 @@ signalhandler(int sig)
 }
 
 void
+terminate(int sig)
+{
+	Cbuf_AddText("quit");
+}
+
+void
 registerHandler(void)
 {
+	/* Crash */
 	signal(SIGSEGV, signalhandler);
 	signal(SIGILL, signalhandler);
 	signal(SIGFPE, signalhandler);
 	signal(SIGABRT, signalhandler);
+
+	/* User abort */
+	signal(SIGINT, terminate);
+	signal(SIGTERM, terminate);
 }
