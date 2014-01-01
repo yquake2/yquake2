@@ -1,3 +1,11 @@
+Quake II 5.20 to 5.21:
+- Fix a bug regaring mouse key handling (reported 
+  by phenixia2003)
+- Correct MS Windows builds. Add official support
+  for Win64. This still needs some testing.
+- Allow to shutdown the client by pressing ctrl-c
+  or sending SIGTERM. Unix / Linux only.
+
 Quake II 5.11 to 5.20
 - Integrate the refresher into the client and
   remove QGL. This means that ref_gl.so is gone
