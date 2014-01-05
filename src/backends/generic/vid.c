@@ -245,7 +245,6 @@ VID_Shutdown(void)
 	if (ref_active)
 	{
 		// Shut down the input backend
-		IN_Close();
 		IN_BackendShutdown();
 
 		/* Shut down the renderer */

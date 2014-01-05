@@ -530,16 +530,6 @@ IN_BackendMove(usercmd_t *cmd)
 /* ------------------------------------------------------------------ */
 
 /*
- * Closes the inoput device. Unnecessary
- * for SDL, but requiered by the frontend
- * API.
- */
-void
-IN_Close(void)
-{
-}
-
-/*
  * Centers the view
  */
 static void

@@ -66,10 +66,4 @@ void IN_BackendShutdown(void);
  */
 void IN_BackendMove(usercmd_t *cmd);
 
-/*
- * Closes all inputs and clears
- * the input queue.
- */
-void IN_Close(void);
-
 #endif
