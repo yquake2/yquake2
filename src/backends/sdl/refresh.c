@@ -102,7 +102,7 @@ GLimp_Init(void)
 		const char* driverName = SDL_GetCurrentVideoDriver();
 #else
 		char driverName[64];
-		SDL_VideoDriverName(driverName, sizeof(driverName) - 1);
+		SDL_VideoDriverName(driverName, sizeof(driverName));
 #endif
 		VID_Printf(PRINT_ALL, "SDL video driver is \"%s\".\n", driverName);
 	}
