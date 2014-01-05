@@ -178,10 +178,9 @@ VID_LoadRefresh(void)
 	in_state.in_speed_state = &in_speed.state;
 
 	// Initiate the input backend
-	IN_BackendInit (&in_state);
+	IN_BackendInit (&in_state, Do_Key_Event);
 
 	// Initiate keyboard at the input backend
-	IN_KeyboardInit (Do_Key_Event);
 	Key_ClearStates();
 
 	// Declare the refresher as active

@@ -560,15 +560,15 @@ IN_MLookUp(void)
 /* ------------------------------------------------------------------ */
 
 /*
- * Keyboard initialisation. Called by the client.
+ * Initializes the backend
  */
 void
-IN_KeyboardInit(Key_Event_fp_t fp)
+IN_BackendInit(in_state_t *in_state_p, Key_Event_fp_t fp)
 {
-	Key_Event_fp = fp;
+	in_state = in_state_p;
+ 	Key_Event_fp = fp;
+	mouse_x = mouse_y = 0;
 
-	/* SDL stuff. Moved here from IN_BackendInit because
-	   this must be done after video is initialized. */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	have_grab = GLimp_InputIsGrabbed();
@@ -576,16 +576,7 @@ IN_KeyboardInit(Key_Event_fp_t fp)
 	SDL_EnableUNICODE(0);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	have_grab = (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON);
-#endif
-}
-
-/*
- * Initializes the backend
- */
-void
-IN_BackendInit(in_state_t *in_state_p)
-{
-	in_state = in_state_p;
+#endif 
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 	freelook = Cvar_Get("freelook", "1", 0);
@@ -604,8 +595,6 @@ IN_BackendInit(in_state_t *in_state_p)
 	Cmd_AddCommand("+mlook", IN_MLookDown);
 	Cmd_AddCommand("-mlook", IN_MLookUp);
 	Cmd_AddCommand("force_centerview", IN_ForceCenterView);
-
-	mouse_x = mouse_y = 0;
 
 	VID_Printf(PRINT_ALL, "Input initialized.\n");
 }
