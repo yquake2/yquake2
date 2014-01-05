@@ -178,10 +178,7 @@ VID_LoadRefresh(void)
 	in_state.in_speed_state = &in_speed.state;
 
 	// Initiate the input backend
-	IN_BackendInit (&in_state, Do_Key_Event);
-
-	// Initiate keyboard at the input backend
-	Key_ClearStates();
+	IN_BackendInit (&in_state);
 
 	// Declare the refresher as active
 	ref_active = true;
@@ -192,6 +189,10 @@ VID_LoadRefresh(void)
 		VID_Shutdown(); // Isn't that just too bad? :(
 		return false;
 	}
+
+	// Initiate keyboard at the input backend
+	IN_KeyboardInit(Do_Key_Event);
+	Key_ClearStates();
 
 	Com_Printf("------------------------------------\n\n");
 	return true;

@@ -560,15 +560,15 @@ IN_MLookUp(void)
 /* ------------------------------------------------------------------ */
 
 /*
- * Initializes the backend
+ * Keyboard initialisation. Called by the client.
  */
 void
-IN_BackendInit(in_state_t *in_state_p, Key_Event_fp_t fp)
+IN_KeyboardInit(Key_Event_fp_t fp)
 {
-	in_state = in_state_p;
  	Key_Event_fp = fp;
-	mouse_x = mouse_y = 0;
 
+	/* SDL stuff. Moved here from IN_BackendInit because
+	 * this must be done after video is initialized. */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	have_grab = GLimp_InputIsGrabbed();
@@ -577,6 +577,16 @@ IN_BackendInit(in_state_t *in_state_p, Key_Event_fp_t fp)
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	have_grab = (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON);
 #endif 
+}
+
+/*
+ * Initializes the backend
+ */
+void
+IN_BackendInit(in_state_t *in_state_p)
+{
+	in_state = in_state_p;
+	mouse_x = mouse_y = 0;
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 	freelook = Cvar_Get("freelook", "1", 0);

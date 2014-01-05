@@ -42,6 +42,11 @@ typedef struct in_state
 } in_state_t;
 
 /*
+ * Keyboard initialisation. Called by the client.
+ */
+void IN_KeyboardInit(Key_Event_fp_t fp);
+
+/*
  * Updates the state of the input queue
  */
 void IN_Update(void);
@@ -49,7 +54,7 @@ void IN_Update(void);
 /*
  * Initializes the input backend
  */
-void IN_BackendInit(in_state_t *in_state_p, Key_Event_fp_t fp);
+void IN_BackendInit(in_state_t *in_state_p);
 
 /*
  * Shuts the backend down
