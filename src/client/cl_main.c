@@ -725,9 +725,6 @@ CL_SendCommand(void)
 	/* get new key events */
 	Sys_SendKeyEvents();
 
-	/* allow mice or other external controllers to add commands */
-	IN_Commands();
-
 	/* process console commands */
 	Cbuf_Execute();
 

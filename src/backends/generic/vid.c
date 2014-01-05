@@ -265,12 +265,6 @@ IN_Shutdown(void)
 }
 
 void
-IN_Commands(void)
-{
-	IN_BackendMouseButtons();
-}
-
-void
 IN_Move(usercmd_t *cmd)
 {
 	IN_BackendMove (cmd);

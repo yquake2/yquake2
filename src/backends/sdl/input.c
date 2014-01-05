@@ -446,16 +446,6 @@ IN_Update(void)
 }
  
 /*
- * SDL does all the mouse button processing for
- * us. Thus no need for this functions, it's
- * just here to satisfy the frontend.
- */
-void
-IN_BackendMouseButtons(void)
-{
-}
- 
-/*
  * Move handling
  */
 void

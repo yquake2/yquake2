@@ -62,11 +62,6 @@ void IN_BackendInit(in_state_t *in_state_p);
 void IN_BackendShutdown(void);
 
 /*
- * Shuts the input backend down
- */
-void IN_BackendMouseButtons(void);
-
-/*
  * Move handling
  */
 void IN_BackendMove(usercmd_t *cmd);
