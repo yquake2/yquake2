@@ -20,7 +20,7 @@
  *
  * =======================================================================
  *
- * This is the Quake II input system backend, written in SDL.
+ * This is the Quake II input system backend, implemented with SDL.
  *
  * =======================================================================
  */
@@ -89,15 +89,7 @@ static cvar_t *m_yaw;
 static cvar_t *sensitivity;
 static cvar_t *windowed_mouse;
 
-/* Key queue */
-struct
-{
-	int key;
-	int down;
-} keyq[128];
-
-int keyq_head = 0;
-int keyq_tail = 0; 
+/* ------------------------------------------------------------------ */
 
 /*
  * This creepy function translates the SDL 
@@ -315,168 +307,124 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 	return key;
 }
 
-/*
- * Synthesize up and down events for the
- * mousewheel. Quake II is unable to use
- * buttons wich do not generate events.
- */
-static void
-IN_AddMouseWheelEvents(int key)
-{
-	assert(key == K_MWHEELUP || key == K_MWHEELDOWN);
-
-	/* Key down */
-	keyq[keyq_head].key = key;
-	keyq[keyq_head].down = true;
-	keyq_head = (keyq_head + 1) & 127;
-
-	/* Key up */
-	keyq[keyq_head].key = key;
-	keyq[keyq_head].down = false;
-	keyq_head = (keyq_head + 1) & 127;
-}
+/* ------------------------------------------------------------------ */
 
 /*
- * Input event processing
- */
-static void
-IN_GetEvent(SDL_Event *event)
-{
-	unsigned int key;
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_Keymod modstate = SDL_GetModState();
-#else
-	SDLMod modstate = SDL_GetModState();
-#endif
-
-	switch (event->type)
-	{
-		/* The mouse wheel */
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-		case SDL_MOUSEWHEEL:
-			IN_AddMouseWheelEvents(event->wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN);
-			break;
-#endif
-		case SDL_MOUSEBUTTONDOWN:
-#if ! SDL_VERSION_ATLEAST(2, 0, 0) // SDL1.2 mousewheel stuff
-			if (event->button.button == 4)
-			{
-				IN_AddMouseWheelEvents(K_MWHEELUP);
-				break;
-			}
-			else if (event->button.button == 5)
-			{
-				IN_AddMouseWheelEvents(K_MWHEELDOWN);
-				break;
-			}
-#endif
-			// fall-through
-		case SDL_MOUSEBUTTONUP:
-			// DG: luckily, we don't need that IN_MouseEvent() magic with SDL,
-			//     as it really sends one event per pressed/released button
-			switch( event->button.button )
-			{
-				case SDL_BUTTON_LEFT:
-					key = K_MOUSE1;
-					break;
-				case SDL_BUTTON_MIDDLE:
-					key = K_MOUSE3;
-					break;
-				case SDL_BUTTON_RIGHT:
-					key = K_MOUSE2;
-					break;
-				case SDL_BUTTON_X1:
-					key = K_MOUSE4;
-					break;
-				case SDL_BUTTON_X2:
-					key = K_MOUSE5;
-					break;
-				default: // WTF, unknown mousebutton
-					// TODO: print warning?
-					return;
-			}
-
-			keyq[keyq_head].key = key;
-			keyq[keyq_head].down = event->type == SDL_MOUSEBUTTONDOWN;
-			keyq_head = (keyq_head + 1) & 127;
-
-			break;
-
-		/* The user pressed a button */
-		case SDL_KEYDOWN:
-
-			/* Fullscreen switch via Alt-Return */
-			if ((modstate & KMOD_ALT) && (event->key.keysym.sym == SDLK_RETURN))
-			{
-				GLimp_ToggleFullscreen();
-				break;
-			}
-
-			/* Make Shift+Escape toggle the console. This
-			   really belongs in Key_Event(), but since
-			   Key_ClearStates() can mess up the internal
-			   K_SHIFT state let's do it here instead. */
-			if ((modstate & KMOD_SHIFT) && (event->key.keysym.sym == SDLK_ESCAPE))
-			{
-				Cbuf_ExecuteText(EXEC_NOW, "toggleconsole");
-				break;
-			}
-
-			/* Get the pressed key and add it to the key list */
-			key = IN_TranslateSDLtoQ2Key(event->key.keysym.sym);
-
-			if (key)
-			{
-				keyq[keyq_head].key = key;
-				keyq[keyq_head].down = true;
-				keyq_head = (keyq_head + 1) & 127;
-			}
-
-			break;
-
-		/* The user released a key */
-		case SDL_KEYUP:
-
-			/* Get the pressed key and remove it from the key list */
-			key = IN_TranslateSDLtoQ2Key(event->key.keysym.sym);
-
-			if (key)
-			{
-				keyq[keyq_head].key = key;
-				keyq[keyq_head].down = false;
-				keyq_head = (keyq_head + 1) & 127;
-			}
-
-			break;
-	}
-}
-
-/*
- * Updates the input queue state
+ * Updates the input queue state. Called every
+ * frame by the client and does nearly all the
+ * input magic.
  */
 void
 IN_Update(void)
 {
 	qboolean want_grab;
 	SDL_Event event;
-	static int protection;
+ 	unsigned int key;
 
-	/* Protection against multiple calls.
-	   In theory this should neber trigger. */ 
-	if (protection == 1)
-	{
-		return;
-	}
-	else
-	{
-		protection = 1;
-	}
-
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_Keymod modstate;
+#else
+	SDLMod modstate;
+#endif
+ 
 	/* Get and process an event */
 	while (SDL_PollEvent(&event))
 	{
-		IN_GetEvent(&event);
+
+		switch (event.type)
+		{
+			/* The mouse wheel */
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+			case SDL_MOUSEWHEEL:
+				in_state->Key_Event_fp((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), true);
+				in_state->Key_Event_fp((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), false);
+				break;
+#endif
+			case SDL_MOUSEBUTTONDOWN:
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+				if (event.button.button == 4)
+				{
+					in_state->Key_Event_fp(K_MWHEELUP, true);
+					in_state->Key_Event_fp(K_MWHEELUP, false);
+					break;
+				}
+				else if (event.button.button == 5)
+				{
+					in_state->Key_Event_fp(K_MWHEELDOWN, true);
+					in_state->Key_Event_fp(K_MWHEELDOWN, false);
+					break;
+				}
+#endif
+
+			case SDL_MOUSEBUTTONUP:
+				switch( event.button.button )
+				{
+					case SDL_BUTTON_LEFT:
+						key = K_MOUSE1;
+						break;
+					case SDL_BUTTON_MIDDLE:
+						key = K_MOUSE3;
+						break;
+					case SDL_BUTTON_RIGHT:
+						key = K_MOUSE2;
+						break;
+					case SDL_BUTTON_X1:
+						key = K_MOUSE4;
+						break;
+					case SDL_BUTTON_X2:
+						key = K_MOUSE5;
+						break;
+					default:
+						return;
+				}
+
+				in_state->Key_Event_fp(key, (event.type == SDL_MOUSEBUTTONDOWN));
+				break;
+
+				/* The user pressed a button */
+			case SDL_KEYDOWN:
+				modstate = SDL_GetModState();
+
+				/* Fullscreen switch via Alt-Return */
+				if ((modstate & KMOD_ALT) && (event.key.keysym.sym == SDLK_RETURN))
+				{
+					GLimp_ToggleFullscreen();
+					break;
+				}
+
+				/* Make Shift+Escape toggle the console. This
+				   really belongs in Key_Event(), but since
+				   Key_ClearStates() can mess up the internal
+				   K_SHIFT state let's do it here instead. */
+				if ((modstate & KMOD_SHIFT) && (event.key.keysym.sym == SDLK_ESCAPE))
+				{
+					Cbuf_ExecuteText(EXEC_NOW, "toggleconsole");
+					break;
+				}
+
+				/* Get the pressed key and add it to the key list */
+				key = IN_TranslateSDLtoQ2Key(event.key.keysym.sym);
+
+				if (key)
+				{
+					in_state->Key_Event_fp(key, true);
+				}
+
+				break;
+
+				/* The user released a key */
+			case SDL_KEYUP:
+
+				/* Get the pressed key and remove it from the key list */
+				key = IN_TranslateSDLtoQ2Key(event.key.keysym.sym);
+
+				if (key)
+				{
+					in_state->Key_Event_fp(key, false);
+				}
+
+				break;
+		} 
 	}
 
 	/* Get new mouse coordinates */
@@ -495,132 +443,18 @@ IN_Update(void)
 		GLimp_GrabInput(want_grab);
 		have_grab = want_grab;
 	}
-
-	/* Process the key events */
-	while (keyq_head != keyq_tail)
-	{
-		in_state->Key_Event_fp(keyq[keyq_tail].key, keyq[keyq_tail].down);
-		keyq_tail = (keyq_tail + 1) & 127;
-	}
-
-	protection = 0;
 }
-
+ 
 /*
- * Closes all inputs and 
- * clears the input queue.
- */
-void
-IN_Close(void)
-{
-	keyq_head = 0;
-	keyq_tail = 0;
-
-	memset(keyq, 0, sizeof(keyq));
-}
-
-/*
- * Centers the view
- */
-static void
-IN_ForceCenterView(void)
-{
-	in_state->viewangles[PITCH] = 0;
-}
-
-/*
- * Look down
- */
-static void
-IN_MLookDown(void)
-{
-	mlooking = true;
-}
-
-/*
- * Look up
- */
-static void
-IN_MLookUp(void)
-{
-	mlooking = false;
-	in_state->IN_CenterView_fp();
-}
-
-/*
- * Keyboard initialisation. Called by the client.
- */
-void
-IN_KeyboardInit(Key_Event_fp_t fp)
-{
-	Key_Event_fp = fp;
-
-	/* SDL stuff. Moved here from IN_BackendInit because
-	   this must be done after video is initialized. */
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_SetRelativeMouseMode(SDL_TRUE);
-	have_grab = GLimp_InputIsGrabbed();
-#else
-	SDL_EnableUNICODE(0);
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-	have_grab = (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON);
-#endif
-}
-
-/*
- * Initializes the backend
- */
-void
-IN_BackendInit(in_state_t *in_state_p)
-{
-	in_state = in_state_p;
-
-	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
-	freelook = Cvar_Get("freelook", "1", 0);
-	in_grab = Cvar_Get("in_grab", "2", CVAR_ARCHIVE);
-	in_mouse = Cvar_Get("in_mouse", "0", CVAR_ARCHIVE);
-	lookstrafe = Cvar_Get("lookstrafe", "0", 0);
-	m_filter = Cvar_Get("m_filter", "0", CVAR_ARCHIVE);
-	m_forward = Cvar_Get("m_forward", "1", 0);
-	m_pitch = Cvar_Get("m_pitch", "0.022", 0);
-	m_side = Cvar_Get("m_side", "0.8", 0);
-	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
-	sensitivity = Cvar_Get("sensitivity", "3", 0);
-	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
-	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
-
-	Cmd_AddCommand("+mlook", IN_MLookDown);
-	Cmd_AddCommand("-mlook", IN_MLookUp);
-	Cmd_AddCommand("force_centerview", IN_ForceCenterView);
-
-	mouse_x = mouse_y = 0;
-
-	VID_Printf(PRINT_ALL, "Input initialized.\n");
-}
-
-/*
- * Shuts the backend down
- */
-void
-IN_BackendShutdown(void)
-{
-	Cmd_RemoveCommand("force_centerview");
-	Cmd_RemoveCommand("+mlook");
-	Cmd_RemoveCommand("-mlook");
-
-	VID_Printf(PRINT_ALL, "Input shut down.\n");
-}
-
-/*
- * Mouse button handling
+ * SDL does all the mouse button processing for
+ * us. Thus no need for this functions, it's
+ * just here to satisfy the frontend.
  */
 void
 IN_BackendMouseButtons(void)
 {
-	// nothing to do, we don't need this hack with SDL
-	// the mouse events are generated directly in IN_GetEvent()
 }
-
+ 
 /*
  * Move handling
  */
@@ -702,4 +536,113 @@ IN_BackendMove(usercmd_t *cmd)
 		mouse_x = mouse_y = 0;
 	}
 }
+ 
+/* ------------------------------------------------------------------ */
+
+/*
+ * Closes the inoput device. Unnecessary
+ * for SDL, but requiered by the frontend
+ * API.
+ */
+void
+IN_Close(void)
+{
+}
+
+/*
+ * Centers the view
+ */
+static void
+IN_ForceCenterView(void)
+{
+	in_state->viewangles[PITCH] = 0;
+}
+
+/*
+ * Look down
+ */
+static void
+IN_MLookDown(void)
+{
+	mlooking = true;
+}
+
+/*
+ * Look up
+ */
+static void
+IN_MLookUp(void)
+{
+	mlooking = false;
+	in_state->IN_CenterView_fp();
+}
+
+/* ------------------------------------------------------------------ */
+
+/*
+ * Keyboard initialisation. Called by the client.
+ */
+void
+IN_KeyboardInit(Key_Event_fp_t fp)
+{
+	Key_Event_fp = fp;
+
+	/* SDL stuff. Moved here from IN_BackendInit because
+	   this must be done after video is initialized. */
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+	have_grab = GLimp_InputIsGrabbed();
+#else
+	SDL_EnableUNICODE(0);
+	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+	have_grab = (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON);
+#endif
+}
+
+/*
+ * Initializes the backend
+ */
+void
+IN_BackendInit(in_state_t *in_state_p)
+{
+	in_state = in_state_p;
+
+	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
+	freelook = Cvar_Get("freelook", "1", 0);
+	in_grab = Cvar_Get("in_grab", "2", CVAR_ARCHIVE);
+	in_mouse = Cvar_Get("in_mouse", "0", CVAR_ARCHIVE);
+	lookstrafe = Cvar_Get("lookstrafe", "0", 0);
+	m_filter = Cvar_Get("m_filter", "0", CVAR_ARCHIVE);
+	m_forward = Cvar_Get("m_forward", "1", 0);
+	m_pitch = Cvar_Get("m_pitch", "0.022", 0);
+	m_side = Cvar_Get("m_side", "0.8", 0);
+	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
+	sensitivity = Cvar_Get("sensitivity", "3", 0);
+	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
+
+	Cmd_AddCommand("+mlook", IN_MLookDown);
+	Cmd_AddCommand("-mlook", IN_MLookUp);
+	Cmd_AddCommand("force_centerview", IN_ForceCenterView);
+
+	mouse_x = mouse_y = 0;
+
+	VID_Printf(PRINT_ALL, "Input initialized.\n");
+}
+
+/*
+ * Shuts the backend down
+ */
+void
+IN_BackendShutdown(void)
+{
+	Cmd_RemoveCommand("force_centerview");
+	Cmd_RemoveCommand("+mlook");
+	Cmd_RemoveCommand("-mlook");
+
+	VID_Printf(PRINT_ALL, "Input shut down.\n");
+}
+
+/* ------------------------------------------------------------------ */
+
 
