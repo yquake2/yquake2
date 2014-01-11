@@ -569,13 +569,13 @@ IN_KeyboardInit(Key_Event_fp_t fp)
 
 	/* SDL stuff. Moved here from IN_BackendInit because
 	   this must be done after video is initialized. */
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_SetRelativeMouseMode(SDL_TRUE);
 	have_grab = GLimp_InputIsGrabbed();
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	if (have_grab)
+		SDL_SetRelativeMouseMode(SDL_TRUE);
 #else
 	SDL_EnableUNICODE(0);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-	have_grab = (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON);
 #endif
 }
 
