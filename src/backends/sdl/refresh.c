@@ -19,13 +19,17 @@
  * 02111-1307, USA.
  *
  * ----------------------------------------------------------------------
+ *
  * CalculateGammaRamp() is derived from SDL2's SDL_CalculateGammaRamp()
  * (C) 1997-2013 Sam Lantinga <slouken@libsdl.org>
  * Published under zlib License: http://www.libsdl.org/license.php
  *
  * =======================================================================
  *
- * This file implements an OpenGL context via SDL
+ * This file implements an OpenGL context and window handling through
+ * SDL. The code is complicated by supporting the fairly different SDL
+ * 1.2 and SDL 2 APIs, each with hardware gamma or software gamma by
+ * RANDR.
  *
  * =======================================================================
  */
@@ -738,13 +742,13 @@ GLimp_Shutdown(void)
 	if (window)
 	{
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-		SDL_DestroyWindow(window);
-
 		if(context)
 		{
 			SDL_GL_DeleteContext(context);
 			context = NULL;
 		}
+
+		SDL_DestroyWindow(window);
 #else
 		SDL_FreeSurface(window);
 #endif
