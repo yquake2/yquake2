@@ -74,6 +74,10 @@ static int old_mouse_x, old_mouse_y;
 static qboolean have_grab;
 static qboolean mlooking;
 
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+qboolean in_relativemode;
+#endif
+
 /* CVars */
 cvar_t *vid_fullscreen;
 static cvar_t *in_grab;
@@ -430,7 +434,38 @@ IN_Update(void)
 	/* Get new mouse coordinates */
 	if (!mouse_x && !mouse_y)
 	{
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		if (in_relativemode)
+		{
+			SDL_GetRelativeMouseState(&mouse_x, &mouse_y);
+		}
+		else
+		{
+			/* This is a hack to work around an unsuccessfull
+			 * SDL_SetRelativeMouseMode(). This can happen if
+			 * some broken security software is blocking raw
+			 * input (to prevent keyloggers accessing the input
+			 * queue), or if - on Linux / Unix - XInput2 is not
+			 * available.
+			 * Since SDL_WarpMouseInWindow() injects a movement
+			 * event into the queue, we need to pump the queue
+			 * and remove the event by reading it. There are
+			 * other ways to accomplish this, but this arguable
+			 * ugly solution seems to have the lowest chance to
+			 * fu** thinks up. */
+			SDL_GetRelativeMouseState(&mouse_x, &mouse_y);
+
+			if (have_grab)
+			{
+				SDL_WarpMouseInWindow(NULL, vid.width / 2, vid.height / 2);
+			}
+
+			SDL_PumpEvents();
+			SDL_GetRelativeMouseState(NULL, NULL);
+		}
+#else
 		SDL_GetRelativeMouseState(&mouse_x, &mouse_y);
+#endif
 	}
 
 	/* Grab and ungrab the mouse if the
@@ -572,7 +607,16 @@ IN_KeyboardInit(Key_Event_fp_t fp)
 	have_grab = GLimp_InputIsGrabbed();
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	if (have_grab)
-		SDL_SetRelativeMouseMode(SDL_TRUE);
+	{
+		if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0)
+		{
+			in_relativemode = false;
+		}
+		else
+		{
+			in_relativemode = true;
+		}
+	}
 #else
 	SDL_EnableUNICODE(0);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);

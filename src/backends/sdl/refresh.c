@@ -66,6 +66,7 @@
 #endif
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
+extern qboolean in_relativemode;
 SDL_Window* window = NULL;
 SDL_GLContext context = NULL;
 #else
@@ -696,8 +697,18 @@ void GLimp_GrabInput(qboolean grab)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_SetWindowGrab(window, grab ? SDL_TRUE : SDL_FALSE);
+
 	if (grab)
-		SDL_SetRelativeMouseMode(SDL_TRUE);
+	{
+		if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0)
+		{
+			in_relativemode = false;
+		}
+		else
+		{
+			in_relativemode = true;
+		}
+	}
 
 #else
 	SDL_WM_GrabInput(grab ? SDL_GRAB_ON : SDL_GRAB_OFF);
