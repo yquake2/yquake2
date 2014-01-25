@@ -804,10 +804,4 @@ How do I disable the vsync?
  - Set gl_swapinterval to 0 and type vid_restart. Beware that this may
    not work with SDL 1.2 due to bugs in SDL.
 
-I've build Yamagi Quake II with SDL 2.0 and now my mouse behaves strange.
- - If it feels like your mouse is hitting the window borders you're
-   experiencing a problem in SDL 2.0. SDL 2.0 needs XInput 2.2 or higher
-   and fails when the installed version is older. So make sure that you
-   have XInput 2.2 or higher installed.
-
 ==============================================================================
