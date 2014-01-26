@@ -139,6 +139,7 @@ cvar_t *gl_texturesolidmode;
 cvar_t *gl_anisotropic;
 cvar_t *gl_anisotropic_avail;
 cvar_t *gl_lockpvs;
+cvar_t *gl_msaa_samples;
 
 cvar_t *vid_fullscreen;
 cvar_t *vid_gamma;
@@ -1015,6 +1016,7 @@ R_Register(void)
 
 	gl_customwidth = Cvar_Get("gl_customwidth", "1024", CVAR_ARCHIVE);
 	gl_customheight = Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
+	gl_msaa_samples = Cvar_Get ( "gl_msaa_samples", "0", CVAR_ARCHIVE );
 
 #ifdef RETEXTURE
 	gl_retexturing = Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);

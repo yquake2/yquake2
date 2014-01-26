@@ -505,10 +505,11 @@ GLimp_InitGraphics(qboolean fullscreen)
 {
 	int counter = 0;
 	int flags;
+	int msaa_samples;
 	int stencil_bits;
+	int width, height;
 	char title[24];
 
-	int width, height;
 
 	if (GetWindowSize(&width, &height) && (width == vid.width) && (height == vid.height))
 	{
@@ -545,6 +546,22 @@ GLimp_InitGraphics(qboolean fullscreen)
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+	if (gl_msaa_samples->value)
+	{
+		msaa_samples = gl_msaa_samples->value;
+
+		if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) == -1)
+		{
+			Com_Printf("MSAA is unsupported: %s\n", SDL_GetError());
+			Cvar_SetValue ("gl_msaa_samples", 0);
+		}
+		else if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaa_samples) == -1)
+		{
+			Com_Printf("%i MSAA are unsupported: %s\n", msaa_samples, SDL_GetError());
+			Cvar_SetValue("gl_msaa_samples", 0);
+		}
+	}
 
 	/* Initiate the flags */
 	flags = SDL_OPENGL;

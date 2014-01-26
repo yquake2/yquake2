@@ -9,11 +9,12 @@ copys for each license:
 Parts of other Quake II Clients were included into the source. They
 covered by the same GPLv2 license as Quake II itself:
 
+- Hecatomb
 - Icculus Quake 2
-- r1q2
-- QuDoS
 - KMQuake2
 - Q2Pro
+- QuDoS
+- r1q2
 - zeq2
 
 The following code is used in library form and thus not part of Yamagi

@@ -164,6 +164,7 @@ void
 R_SetDefaultState(void)
 {
 	glClearColor(1, 0, 0.5, 0.5);
+	glDisable(GL_MULTISAMPLE);
 	glCullFace(GL_FRONT);
 	glEnable(GL_TEXTURE_2D);
 
@@ -216,8 +217,13 @@ R_SetDefaultState(void)
 	if (qglColorTableEXT && gl_ext_palettedtexture->value)
 	{
 		glEnable(GL_SHARED_TEXTURE_PALETTE_EXT);
-
 		R_SetTexturePalette(d_8to24table);
+	}
+
+	if (gl_msaa_samples->value)
+	{
+		glEnable(GL_MULTISAMPLE);
+		glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
 	}
 }
 
