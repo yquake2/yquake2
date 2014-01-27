@@ -10,6 +10,13 @@
 #  - SDL 1.2 or SDL 2.0                                  #
 #  - libGL                                               #
 #                                                        #
+# Further dependencies:                                  #
+#  - libjpeg                                             #
+#  - libogg                                              #
+#  - libvorbis                                           #
+#  - OpenAL                                              #
+#  - zlib                                                #
+#                                                        #
 # Platforms:                                             #
 #  - FreeBSD                                             #
 #  - Linux                                               #
@@ -91,6 +98,11 @@ else
 OSTYPE := $(shell uname -s)
 endif
 
+# Special case for MinGW
+ifneq (,$(findstring MINGW,$(OSTYPE)))
+OSTYPE := Windows
+endif
+
 # Detect the architecture
 ifeq ($(OSTYPE), Windows)
 # At this time only i386 is supported on Windows
@@ -161,19 +173,32 @@ endif
 
 # ----------
 
+# On Windows / MinGW $(CC) is
+# undefined by default.
+ifeq ($(OSTYPE),Windows)
+CC := gcc
+endif
+
+# ----------
+
 # Extra CFLAGS for SDL
-ifneq ($(OSTYPE), Windows)
 ifeq ($(OSTYPE), Darwin)
 SDLCFLAGS :=
 else # not darwin
 ifeq ($(WITH_SDL2),yes)
+ifeq ($(OSTYPE),Windows)
+SDLCFLAGS := $(shell /custom/bin/sdl2-config --cflags)
+else
 SDLCFLAGS := $(shell sdl2-config --cflags)
+endif
 else # not SDL2
+ifeq ($(OSTYPE),Windows)
+SDLCFLAGS :=
+else
 SDLCFLAGS := $(shell sdl-config --cflags)
+endif
 endif # SDL2
-
 endif # darwin's else
-endif # not windows
 
 # ----------
 
@@ -198,6 +223,8 @@ else ifeq ($(OSTYPE),OpenBSD)
 INCLUDE := -I/usr/local/include
 else ifeq ($(OSTYPE),Darwin)
 INCLUDE :=
+else ifeq ($(OSTYPE),Windows)
+INCLUDE := -I/custom/include
 endif
 
 # ----------
@@ -210,7 +237,7 @@ LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),OpenBSD)
 LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),Windows)
-LDFLAGS := -lws2_32 -lwinmm
+LDFLAGS := -L/custom/lib -static -lws2_32 -lwinmm
 else ifeq ($(OSTYPE), Darwin)
 LDFLAGS := $(OSX_ARCH) -lm
 endif
@@ -220,9 +247,7 @@ endif
 # Extra LDFLAGS for SDL
 ifeq ($(OSTYPE), Windows)
 ifeq ($(WITH_SDL2),yes)
-SDLLDFLAGS := -lSDL2main -lSDL2  -mwindows  -lm -ldinput8 -ldxguid \
-	-ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 \
-	-lshell32 -lversion -luuid
+SDLLDFLAGS := $(shell /custom/bin/sdl2-config --static-libs) 
 else # not SDL2
 SDLLDFLAGS := -lSDL
 endif # SDL2
@@ -310,15 +335,9 @@ endif
 # ----------
 
 # Cleanup
-ifeq ($(OSTYPE), Windows)
-clean:
-	@echo "===> CLEAN"
-	@-rmdir /S /Q release build
-else
 clean:
 	@echo "===> CLEAN"
 	${Q}rm -Rf build release
-endif
 
 # ----------
 
@@ -326,12 +345,12 @@ endif
 ifeq ($(OSTYPE), Windows)
 client:
 	@echo "===> Building quake2.exe"
-	${Q}stuff/misc/mkdir.exe -p release
+	${Q}mkdir -p release
 	$(MAKE) release/quake2.exe
 
 build/client/%.o: %.c
 	@echo "===> CC $<"
-	${Q}stuff/misc/mkdir.exe -p $(@D)
+	${Q}mkdir.exe -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 ifeq ($(WITH_CDA),yes)
@@ -465,12 +484,12 @@ endif
 ifeq ($(OSTYPE), Windows)
 server:
 	@echo "===> Building q2ded"
-	${Q}stuff/misc/mkdir.exe -p release
+	${Q}mkdir -p release
 	$(MAKE) release/q2ded.exe
 
 build/server/%.o: %.c
 	@echo "===> CC $<"
-	${Q}stuff/misc/mkdir.exe -p $(@D)
+	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 release/q2ded.exe : CFLAGS += -DDEDICATED_ONLY
@@ -505,12 +524,12 @@ endif
 ifeq ($(OSTYPE), Windows)
 game:
 	@echo "===> Building baseq2/game.dll"
-	${Q}stuff/misc/mkdir.exe -p release/baseq2
+	${Q}mkdir -p release/baseq2
 	$(MAKE) release/baseq2/game.dll
 
 build/baseq2/%.o: %.c
 	@echo "===> CC $<"
-	${Q}stuff/misc/mkdir.exe -p $(@D)
+	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 release/baseq2/game.dll : LDFLAGS += -shared
@@ -759,6 +778,7 @@ ifeq ($(OSTYPE), Windows)
 release/quake2.exe : $(CLIENT_OBJS) icon
 	@echo "===> LD $@"
 	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	$(Q)strip $@
 else
 release/quake2 : $(CLIENT_OBJS)
 	@echo "===> LD $@"
@@ -770,6 +790,7 @@ ifeq ($(OSTYPE), Windows)
 release/q2ded.exe : $(SERVER_OBJS) icon
 	@echo "===> LD $@.exe"
 	${Q}$(CC) build/icon/icon.res $(SERVER_OBJS) $(LDFLAGS) -o $@
+	$(Q)strip $@
 else
 release/q2ded : $(SERVER_OBJS)
 	@echo "===> LD $@"
@@ -781,6 +802,7 @@ ifeq ($(OSTYPE), Windows)
 release/baseq2/game.dll : $(GAME_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
+	$(Q)strip $@
 else
 release/baseq2/game.so : $(GAME_OBJS)
 	@echo "===> LD $@"
