@@ -707,7 +707,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	Sys_RedirectStdout();
 #endif
 
-	printf("Yamagi Quake II v%s\n", VERSION);
+	printf("Yamagi Quake II v%s\n", YQ2VERSION);
 	printf("=====================\n\n");
 
 #ifndef DEDICATED_ONLY

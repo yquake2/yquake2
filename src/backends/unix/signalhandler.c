@@ -48,7 +48,7 @@ printBacktrace(int sig)
 	strings = backtrace_symbols(array, size);
 
 	printf("Product:      Yamagi Quake II\n");
-	printf("Version:      %s\n", VERSION);
+	printf("Version:      %s\n", YQ2VERSION);
 	printf("Plattform:    %s\n", BUILDSTRING);
 	printf("Architecture: %s\n", CPUSTRING);
 	printf("Compiler:     %s\n", __VERSION__);
@@ -69,7 +69,7 @@ void
 printBacktrace(int sig)
 {
 	printf("Product:      Yamagi Quake II\n");
-	printf("Version:      %s\n", VERSION);
+	printf("Version:      %s\n", YQ2VERSION);
 	printf("Plattform:    %s\n", BUILDSTRING);
 	printf("Architecture: %s\n", CPUSTRING);
 	printf("Compiler:     %s\n", __VERSION__);

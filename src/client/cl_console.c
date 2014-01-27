@@ -622,7 +622,7 @@ Con_DrawConsole(float frac)
 	SCR_AddDirtyPoint(0, 0);
 	SCR_AddDirtyPoint(viddef.width - 1, lines - 1);
 
-	Com_sprintf(version, sizeof(version), "Yamagi Quake II v%s", VERSION);
+	Com_sprintf(version, sizeof(version), "Yamagi Quake II v%s", YQ2VERSION);
 
 	for (x = 0; x < 21; x++)
 	{

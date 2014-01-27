@@ -169,7 +169,7 @@ SVC_DirectConnect(void)
 	if (version != PROTOCOL_VERSION)
 	{
 		Netchan_OutOfBandPrint(NS_SERVER, adr,
-				"print\nServer is version %s.\n", VERSION);
+				"print\nServer is version %s.\n", YQ2VERSION);
 		Com_DPrintf("    rejected connect from version %i\n", version);
 		return;
 	}

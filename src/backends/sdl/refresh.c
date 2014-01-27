@@ -630,7 +630,7 @@ GLimp_InitGraphics(qboolean fullscreen)
 	InitGamma();
 
 	/* Window title */
-	snprintf(title, sizeof(title), "Yamagi Quake II %s", VERSION);
+	snprintf(title, sizeof(title), "Yamagi Quake II %s", YQ2VERSION);
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_SetWindowTitle(window, title);
 #else
