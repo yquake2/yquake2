@@ -28,10 +28,6 @@
 
 #include "../header/local.h"
 
-#ifdef _WIN32
-#define HAVE_BOOLEAN
-#endif
-
 #ifdef __APPLE__
 #include <libjpeg/jpeglib.h>
 #include <libjpeg/jerror.h>
@@ -40,7 +36,9 @@
 #include <jerror.h>
 #endif
 
-void jpeg_memory_src(j_decompress_ptr cinfo, unsigned char *inbuffer, unsigned long insize);
+void jpeg_memory_src(j_decompress_ptr cinfo,
+		unsigned char *inbuffer,
+		unsigned long insize);
 
 void
 jpg_null(j_decompress_ptr cinfo)
@@ -64,8 +62,10 @@ jpg_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 void
 jpeg_mem_src(j_decompress_ptr cinfo, unsigned char *mem, unsigned long len)
 {
-	cinfo->src = (struct jpeg_source_mgr *)(*cinfo->mem->alloc_small)((j_common_ptr)
-			cinfo, JPOOL_PERMANENT, sizeof(struct jpeg_source_mgr));
+	cinfo->src =
+		(struct jpeg_source_mgr *)(*cinfo->mem->alloc_small)((j_common_ptr)
+				cinfo,
+				JPOOL_PERMANENT, sizeof(struct jpeg_source_mgr));
 	cinfo->src->init_source = jpg_null;
 	cinfo->src->fill_input_buffer = jpg_fill_input_buffer;
 	cinfo->src->skip_input_data = jpg_skip_input_data;
