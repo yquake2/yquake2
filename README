@@ -144,11 +144,12 @@ the requirement of most of this depencenies can be removed, but
 it'll lead to the loss of features):
  - A libGL implementation (Mesa3D, nVidia, AMD Catalyst, etc.)
  - OpenGL system headers
- - libjpeg (6 or 8)
+ - libjpeg (version 8 or higher)
  - libogg with development headers
  - libvorbis with development headers
  - OpenAL with development headers
- - SDL 1.2 or 2.0 with development headers and sdl-config(1)
+ - SDL 1.2 or 2.0 (the later is recommended) with development headers
+   and sdl-config(1)
  - ZLib
 
 Extract the source, change into the new created directory and type "make"
@@ -226,34 +227,30 @@ addons are under the id Software SDK license - the addons are
 distributed separately. You can get them at http://www.yamagi.org/quake2,
 both contain installation instructions. But nevertheless you'll need an
 installation of the full Quake II game with our client for playing them.
-The same applies to the "ctf" capture the flag addon.
+The same applies to the "ctf" capture the flag addon. Please note, that
+support for the addons is included in the binary release (see below).
 
 2.5 Binary Installation
 -----------------------
 We highly recommend, that you use our binary release of Yamagi Quake 2. 
-Just extract at over the directory created in step 2.3 or 2.4. If you
+Just extract it over the directory created in step 2.3 or 2.4. If you
 want to copy the files by hand, just copy them over by preserving the
 directory structure.
 
 2.6 Compiling
 -------------
-Compiling Yamagi Quake II from source is unnecessary as long as you will not
-use the github version or want to develop on Windows. If you really want to
-compile Yamagi Quake II by yourself follow these steps:
+Compiling Yamagi Quake II from source is unnecessary as long as you do not
+want to use the github version or want to develop on Windows. If you really
+want to compile Yamagi Quake II by yourself follow these steps:
 
-1. Grab a copy of Nuwens MinGW distribution from http://nuwen.net/mingw.html
-   Our code is tested with version 10.0, newer version may work but we can not
-   guarantee that. Please note, that Nuwen MinGW 11.0 and higher are creating
-   64 bit binaries. Extract the distribution to a directory of your choice.
-2. Grab a copy of OpenAL Soft from http://kcat.strangesoft.net/openal.html 
-   (the binary release for Windows). Our code is tested with version 1.14,
-   but newer version should work. Extract it and put the include\AL directory
-   into the include\ directory of the MinGW distribution.
-3. Open the command window of Nuwens MinGW distribution, navigate to your
-   copy of the Yamagi Quake II source and type "make". This'll build the
-   Windows binaries. In some cases you'll need to tell make the name of your
-   compiler, e.g. "make CC=gcc47". For a 64 bit build it's recommended - 
-   but not nececcarry - to override the ARCH string: "make ARCH=x86_64".
+1. Grab an up to date version of the MinGW build environment from
+   http://deponie.yamagi.org/quake2/windows/build/, extract it to C:\MinGW
+   and start either the 32 bit or the 64 bit version by C:\MinGW\MSYS32
+   or C:\MinGW\MSYS64.
+2. Navigate to your Yamagi Quake II source. If you need to check it out
+   from git, first install git from http://git-scm.com/. Type "make" to
+   compile. Please note, that compilation on network shares is somewhat
+   shaky.
 
 After compiling, copy the following files from "release\" to your Quake II
 installation preserving the directory structure:
@@ -262,11 +259,9 @@ installation preserving the directory structure:
 - baseq2\game.dll
 
 You'll need an "openal32.dll". You can use and rename the OpenAL DLL that
-came with OpenAL Soft. Known to be good DLLs (32 bit only) can be found in the
-stuff/win32-libs directory of the source code distribution. Please note that
-the name of the DLL is always "openal32.dll", even if it's a 64 bit library.
-The supplied SDL.dll is an SDL 1.2 build, required if you're still using SDL
-1.2.
+that is provided by OpenAL Soft (see http://kcat.strangesoft.net/openal.html).
+Please note that the name of the DLL is always "openal32.dll", even if it's
+ a 64 bit library.
 
 2.7 Default Configuration
 -------------------------
@@ -530,6 +525,11 @@ the most common questions are answered.
    off at any time by setting "gl_retexturing" to "0" and executing
    "vid_restart" aftwards.
 
+- Yamagi Quake II has support for antialiasing. Set gl_msaa_samples to the
+  desired antialiasing factor (most graphic cards support 2, 4, 8 and 16),
+  followd by a vid_restart. Please note that very old graphic cards may not
+  support antialiasing at all.
+
 
 5.2 Input
 ---------
@@ -705,7 +705,7 @@ that, so that Quake II behaves like a normal window?
 
 Hey, my screensaver crashes Quake II or I experience strange crashes after a
 fixed amount of time!
- - This is a known bug in some linux distributions. SDL 1.2 fails to disable
+ - This is a known bug in some linux distributions. SDL fails to disable
    the screensaver even if we tell him to do so. See this Ubuntu bugreport:
    https://bugs.launchpad.net/ubuntu/+source/gnome-screensaver/+bug/32457
    As a work around use the startscript in stuff/quake-start.sh It deactivates
@@ -731,7 +731,7 @@ I'm creating a package or port for my system. Is a system wide install
 possible without patching the source?
  - Yes. Just set -DSYSTEMWIDE. If you want to change the default
    directory from /usr/share/games/quake2/, just set -DSYSTEMDIR
-   to the desired path.
+   to the desired path. Also have a look into the Makefile.
 
 How do I disable friendly fire in coop mode?
  - The same way as in team deathmatch. Via the menu select "deathmatch options"
