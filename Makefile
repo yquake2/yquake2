@@ -328,7 +328,7 @@ endif
 ifeq ($(OSTYPE), Windows)
 icon:
 	@echo "===> WR build/icon/icon.res"
-	${Q}stuff/misc/mkdir -p build/icon
+	${Q}mkdir -p build/icon
 	${Q}windres stuff\icon\icon.rc -O COFF -o build\icon\icon.res
 endif
 
@@ -350,7 +350,7 @@ client:
 
 build/client/%.o: %.c
 	@echo "===> CC $<"
-	${Q}mkdir.exe -p $(@D)
+	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 ifeq ($(WITH_CDA),yes)
