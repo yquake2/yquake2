@@ -205,38 +205,14 @@ CL_AddDLights(void)
 
 	dl = cl_dlights;
 
-	if (vidref_val == VIDREF_GL)
+	for (i = 0; i < MAX_DLIGHTS; i++, dl++)
 	{
-		for (i = 0; i < MAX_DLIGHTS; i++, dl++)
+		if (!dl->radius)
 		{
-			if (!dl->radius)
-			{
-				continue;
-			}
-
-			V_AddLight(dl->origin, dl->radius, dl->color[0], dl->color[1], dl->color[2]);
+			continue;
 		}
-	}
-	else
-	{
-		for (i = 0; i < MAX_DLIGHTS; i++, dl++)
-		{
-			if (!dl->radius)
-			{
-				continue;
-			}
 
-			/* negative light in software. only black allowed */
-			if ((dl->color[0] < 0) || (dl->color[1] < 0) || (dl->color[2] < 0))
-			{
-				dl->radius = -(dl->radius);
-				dl->color[0] = 1;
-				dl->color[1] = 1;
-				dl->color[2] = 1;
-			}
-
-			V_AddLight(dl->origin, dl->radius, dl->color[0], dl->color[1], dl->color[2]);
-		}
+		V_AddLight(dl->origin, dl->radius, dl->color[0], dl->color[1], dl->color[2]);
 	}
 }
 

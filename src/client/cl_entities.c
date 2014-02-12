@@ -28,7 +28,6 @@
 #include "header/client.h"
 
 extern struct model_s *cl_mod_powerscreen;
-int vidref_val;
 
 struct model_s *
 S_RegisterSexedModel(entity_state_t *ent, char *base)
@@ -599,17 +598,7 @@ CL_AddPacketEntities(frame_t *frame)
 					float intensity;
 
 					intensity = 50 + (500 * ((float)sin(cl.time / 500.0f) + 1.0f));
-
-					if (vidref_val == VIDREF_GL)
-					{
-						V_AddLight(ent.origin, intensity, -1.0, -1.0, -1.0);
-					}
-
-					else
-					{
-						V_AddLight(ent.origin, -1.0f * intensity,
-								1.0f, 1.0f, 1.0f);
-					}
+					V_AddLight(ent.origin, intensity, -1.0, -1.0, -1.0);
 				}
 				else
 				{
@@ -620,16 +609,7 @@ CL_AddPacketEntities(frame_t *frame)
 			else if (effects & EF_TRACKER)
 			{
 				CL_TrackerTrail(cent->lerp_origin, ent.origin, 0);
-
-				if (vidref_val == VIDREF_GL)
-				{
-					V_AddLight(ent.origin, 200, -1, -1, -1);
-				}
-
-				else
-				{
-					V_AddLight(ent.origin, -200, 1, 1, 1);
-				}
+				V_AddLight(ent.origin, 200, -1, -1, -1);
 			}
 			else if (effects & EF_IONRIPPER)
 			{

@@ -1106,12 +1106,6 @@ typedef struct
 	short stats[MAX_STATS];     /* fast status bar updates */
 } player_state_t;
 
-#define VIDREF_GL 1
-#define VIDREF_SOFT 2
-#define VIDREF_OTHER 3
-
-extern int vidref_val;
-
 size_t verify_fread(void *, size_t, size_t, FILE *);
 size_t verify_fwrite(void *, size_t, size_t, FILE *);
 
