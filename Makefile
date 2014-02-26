@@ -25,6 +25,10 @@
 #  - Windows (MinGW)                                     #
 # ------------------------------------------------------ #
 
+# ====================================================== #
+#     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
+# ====================================================== #
+
 # User configurable options
 # -------------------------
 
@@ -87,9 +91,14 @@ OSX_ARCH:=-arch i386 -arch x86_64
 # Contents/Resources
 OSX_APP:=yes
 
-# ====================================================== #
-#     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
-# ====================================================== #
+# This is an optional configuration file, it'll be used in
+# case of presence.
+CONFIG_FILE := config.mk
+
+# In case a of a configuration file being present, we'll just use it
+ifeq ($(wildcard $(CONFIG_FILE)), $(CONFIG_FILE))
+include $(CONFIG_FILE)
+endif
 
 # Detect the OS
 ifdef SystemRoot
@@ -292,7 +301,6 @@ endif
 # ----------
 
 # Phony targets
-#.PHONY : all client game icon refresher server
 .PHONY : all client game icon server
 
 # ----------
