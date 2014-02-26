@@ -25,10 +25,6 @@
 #  - Windows (MinGW)                                     #
 # ------------------------------------------------------ #
 
-# ====================================================== #
-#     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
-# ====================================================== #
-
 # User configurable options
 # -------------------------
 
@@ -94,6 +90,8 @@ OSX_APP:=yes
 # This is an optional configuration file, it'll be used in
 # case of presence.
 CONFIG_FILE := config.mk
+
+# ----------
 
 # In case a of a configuration file being present, we'll just use it
 ifeq ($(wildcard $(CONFIG_FILE)), $(CONFIG_FILE))
