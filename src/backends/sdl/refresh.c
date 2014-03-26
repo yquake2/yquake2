@@ -726,7 +726,11 @@ void GLimp_GrabInput(qboolean grab)
 			in_relativemode = true;
 		}
 	}
-
+	else
+	{
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+		in_relativemode = false;
+	}
 #else
 	SDL_WM_GrabInput(grab ? SDL_GRAB_ON : SDL_GRAB_OFF);
 #endif

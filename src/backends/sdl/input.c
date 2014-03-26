@@ -606,6 +606,11 @@ IN_KeyboardInit(Key_Event_fp_t fp)
 			in_relativemode = true;
 		}
 	}
+	else
+	{
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+		in_relativemode = false;
+	}
 #else
 	SDL_EnableUNICODE(0);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
