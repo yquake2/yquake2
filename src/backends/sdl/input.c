@@ -595,22 +595,8 @@ IN_KeyboardInit(Key_Event_fp_t fp)
 	   this must be done after video is initialized. */
 	have_grab = GLimp_InputIsGrabbed();
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	if (have_grab)
-	{
-		if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0)
-		{
-			in_relativemode = false;
-		}
-		else
-		{
-			in_relativemode = true;
-		}
-	}
-	else
-	{
-		SDL_SetRelativeMouseMode(SDL_FALSE);
-		in_relativemode = false;
-	}
+	SDL_SetRelativeMouseMode(have_grab ? SDL_TRUE : SDL_FALSE);
+	in_relativemode = (SDL_GetRelativeMouseMode() == SDL_TRUE);
 #else
 	SDL_EnableUNICODE(0);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
