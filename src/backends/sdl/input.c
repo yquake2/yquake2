@@ -385,6 +385,32 @@ IN_Update(void)
 				in_state->Key_Event_fp(key, (event.type == SDL_MOUSEBUTTONDOWN));
 				break;
 
+			case SDL_MOUSEMOTION:
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+				/* This is a hack to work around an unsuccessful
+				 * SDL_SetRelativeMouseMode(). This can happen if
+				 * some broken security software is blocking raw
+				 * input (to prevent keyloggers accessing the input
+				 * queue), or if - on Linux / Unix - XInput2 is not
+				 * available.
+				 * Since SDL_WarpMouseInWindow() injects a movement
+				 * event into the queue, we ignore events that move
+				 * the mouse exactly to the warp position. */
+				if (have_grab && !in_relativemode)
+				{
+					int center_x = vid.width / 2;
+					int center_y = vid.height / 2;
+					if (event.motion.x == center_x && event.motion.y == center_y)
+					{
+						break;
+					}
+					SDL_WarpMouseInWindow(NULL, center_x, center_y);
+				}
+#endif
+				mouse_x += event.motion.xrel;
+				mouse_y += event.motion.yrel;
+				break;
+
 				/* The user pressed a button */
 			case SDL_KEYDOWN:
 				modstate = SDL_GetModState();
@@ -429,43 +455,6 @@ IN_Update(void)
 
 				break;
 		} 
-	}
-
-	/* Get new mouse coordinates */
-	if (!mouse_x && !mouse_y)
-	{
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-		if (in_relativemode)
-		{
-			SDL_GetRelativeMouseState(&mouse_x, &mouse_y);
-		}
-		else
-		{
-			/* This is a hack to work around an unsuccessfull
-			 * SDL_SetRelativeMouseMode(). This can happen if
-			 * some broken security software is blocking raw
-			 * input (to prevent keyloggers accessing the input
-			 * queue), or if - on Linux / Unix - XInput2 is not
-			 * available.
-			 * Since SDL_WarpMouseInWindow() injects a movement
-			 * event into the queue, we need to pump the queue
-			 * and remove the event by reading it. There are
-			 * other ways to accomplish this, but this arguable
-			 * ugly solution seems to have the lowest chance to
-			 * fu** thinks up. */
-			SDL_GetRelativeMouseState(&mouse_x, &mouse_y);
-
-			if (have_grab)
-			{
-				SDL_WarpMouseInWindow(NULL, vid.width / 2, vid.height / 2);
-			}
-
-			SDL_PumpEvents();
-			SDL_GetRelativeMouseState(NULL, NULL);
-		}
-#else
-		SDL_GetRelativeMouseState(&mouse_x, &mouse_y);
-#endif
 	}
 
 	/* Grab and ungrab the mouse if the
