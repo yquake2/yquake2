@@ -94,7 +94,6 @@ signalhandler(int sig)
 	printf(" - The following files. None of them contains private\n");
 	printf("   data. They're necessary to analyze the backtrace:\n\n");
 	printf("    - quake2 (the executable / binary)\n\n");
-	printf("    - ref_gl.so (the renderer)\n\n");
 	printf("    - game.so (the game.so of the mod you were playing\n");
 	printf("      when the game crashed. baseq2/game.so for the\n");
 	printf("      main game)\n\n");

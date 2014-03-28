@@ -1077,7 +1077,7 @@ R_SetMode(void)
 		}
 
 		/* try setting it back to something safe */
-		if ((err =GLimp_SetMode(&vid.width, &vid.height, gl_state.prev_mode, false)) != rserr_ok)
+		if ((err = GLimp_SetMode(&vid.width, &vid.height, gl_state.prev_mode, false)) != rserr_ok)
 		{
 			VID_Printf(PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
 			return false;
@@ -1132,8 +1132,8 @@ R_Init(void *hinstance, void *hWnd)
 		return -1;
 	}
 
-	/* set our "safe" modes */
-	gl_state.prev_mode = 3;
+	/* set our "safe" mode */
+	gl_state.prev_mode = 4;
 
 	/* create the window and set up the context */
 	if (!R_SetMode())
