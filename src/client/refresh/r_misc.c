@@ -122,6 +122,12 @@ R_ScreenShot(void)
 	}
 
 	buffer = malloc(vid.width * vid.height * 3 + 18);
+	if (!buffer)
+	{
+		VID_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't malloc enough memory\n");
+		return;
+	}
+
 	memset(buffer, 0, 18);
 	buffer[2] = 2; /* uncompressed type */
 	buffer[12] = vid.width & 255;
