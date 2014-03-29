@@ -671,7 +671,6 @@ Slider_DoSlide(menuslider_s *s, int dir)
 	{
 		s->curvalue = s->maxvalue;
 	}
-
 	else if (s->curvalue < s->minvalue)
 	{
 		s->curvalue = s->minvalue;
@@ -736,7 +735,6 @@ SpinControl_DoSlide(menulist_s *s, int dir)
 	{
 		s->curvalue = 0;
 	}
-
 	else if (s->itemnames[s->curvalue] == 0)
 	{
 		s->curvalue--;

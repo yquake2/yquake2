@@ -325,7 +325,7 @@ VID_MenuInit(void)
 	s_fs_box.generic.y = 50;
 	s_fs_box.generic.name = "fullscreen";
 	s_fs_box.itemnames = yesno_names;
-	s_fs_box.curvalue = vid_fullscreen->value;
+	s_fs_box.curvalue = (vid_fullscreen->value != 0);
 
 	s_tq_slider.generic.type = MTYPE_SLIDER;
 	s_tq_slider.generic.x = 0;
@@ -340,7 +340,7 @@ VID_MenuInit(void)
 	s_paletted_texture_box.generic.y = 80;
 	s_paletted_texture_box.generic.name = "8-bit textures";
 	s_paletted_texture_box.itemnames = yesno_names;
-	s_paletted_texture_box.curvalue = gl_ext_palettedtexture->value;
+	s_paletted_texture_box.curvalue = (gl_ext_palettedtexture->value != 0);
 
 	s_defaults_action.generic.type = MTYPE_ACTION;
 	s_defaults_action.generic.name = "reset to default";

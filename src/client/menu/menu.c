@@ -1037,12 +1037,17 @@ static void
 ControlsSetMenuItemValues(void)
 {
     s_options_sfxvolume_slider.curvalue = Cvar_VariableValue("s_volume") * 10;
+
 #ifdef CDA
-    s_options_cdvolume_box.curvalue = !Cvar_VariableValue("cd_nocd");
+    s_options_cdvolume_box.curvalue = (Cvar_VariableValue("cd_nocd") == 0);
+#endif
+
+#if defined(OGG) || defined(CDA)
+    s_options_cdshuffle_box.curvalue = (Cvar_VariableValue("cd_shuffle") != 0);
 #endif
 
 #ifdef OGG
-    s_options_oggvolume_box.curvalue = Cvar_VariableValue("ogg_enable");
+    s_options_oggvolume_box.curvalue = (Cvar_VariableValue("ogg_enable") != 0);
 
     cvar_t *ogg;
     ogg = Cvar_Get("ogg_sequence", "loop", CVAR_ARCHIVE);
@@ -1055,28 +1060,23 @@ ControlsSetMenuItemValues(void)
     {
         s_options_cdshuffle_box.curvalue = 0;
     }
-
 #endif
 
-    s_options_quality_list.curvalue = !Cvar_VariableValue("s_loadas8bit");
-    s_options_sensitivity_slider.curvalue = (sensitivity->value) * 2;
+    s_options_quality_list.curvalue = (Cvar_VariableValue("s_loadas8bit") == 0);
 
-    Cvar_SetValue("cl_run", ClampCvar(0, 1, cl_run->value));
-    s_options_alwaysrun_box.curvalue = cl_run->value;
+    s_options_sensitivity_slider.curvalue = sensitivity->value * 2;
 
-    s_options_invertmouse_box.curvalue = m_pitch->value < 0;
+    s_options_alwaysrun_box.curvalue = (cl_run->value != 0);
 
-    Cvar_SetValue("lookspring", ClampCvar(0, 1, lookspring->value));
-    s_options_lookspring_box.curvalue = lookspring->value;
+    s_options_invertmouse_box.curvalue = (m_pitch->value < 0);
 
-    Cvar_SetValue("lookstrafe", ClampCvar(0, 1, lookstrafe->value));
-    s_options_lookstrafe_box.curvalue = lookstrafe->value;
+    s_options_lookspring_box.curvalue = (lookspring->value != 0);
 
-    Cvar_SetValue("freelook", ClampCvar(0, 1, freelook->value));
-    s_options_freelook_box.curvalue = freelook->value;
+    s_options_lookstrafe_box.curvalue = (lookstrafe->value != 0);
 
-    Cvar_SetValue("crosshair", ClampCvar(0, 3, crosshair->value));
-    s_options_crosshair_box.curvalue = crosshair->value;
+    s_options_freelook_box.curvalue = (freelook->value != 0);
+
+    s_options_crosshair_box.curvalue = ClampCvar(0, 3, crosshair->value);
 }
 
 static void
@@ -1341,7 +1341,6 @@ Options_MenuInit(void)
     s_options_sfxvolume_slider.generic.callback = UpdateVolumeFunc;
     s_options_sfxvolume_slider.minvalue = 0;
     s_options_sfxvolume_slider.maxvalue = 10;
-    s_options_sfxvolume_slider.curvalue = Cvar_VariableValue("s_volume") * 10.0f;
 
 #ifdef CDA
     s_options_cdvolume_box.generic.type = MTYPE_SPINCONTROL;
@@ -1350,7 +1349,6 @@ Options_MenuInit(void)
     s_options_cdvolume_box.generic.name = "CD music";
     s_options_cdvolume_box.generic.callback = UpdateCDVolumeFunc;
     s_options_cdvolume_box.itemnames = cd_music_items;
-    s_options_cdvolume_box.curvalue = !Cvar_VariableValue("cd_nocd");
 #endif
 
 #ifdef OGG
@@ -1360,7 +1358,6 @@ Options_MenuInit(void)
     s_options_oggvolume_box.generic.name = "OGG music";
     s_options_oggvolume_box.generic.callback = UpdateOGGVolumeFunc;
     s_options_oggvolume_box.itemnames = ogg_music_items;
-    s_options_oggvolume_box.curvalue = Cvar_VariableValue("ogg_enable");
 #endif
 
 #if defined(OGG) || defined(CDA)
@@ -1370,7 +1367,6 @@ Options_MenuInit(void)
     s_options_cdshuffle_box.generic.name = "Shuffle";
     s_options_cdshuffle_box.generic.callback = CDShuffleFunc;
     s_options_cdshuffle_box.itemnames = cd_shuffle;
-    s_options_cdshuffle_box.curvalue = Cvar_VariableValue("cd_shuffle");
 #endif
 
     s_options_quality_list.generic.type = MTYPE_SPINCONTROL;
@@ -1379,7 +1375,6 @@ Options_MenuInit(void)
     s_options_quality_list.generic.name = "sound quality";
     s_options_quality_list.generic.callback = UpdateSoundQualityFunc;
     s_options_quality_list.itemnames = quality_items;
-    s_options_quality_list.curvalue = !Cvar_VariableValue("s_loadas8bit");
 
     s_options_sensitivity_slider.generic.type = MTYPE_SLIDER;
     s_options_sensitivity_slider.generic.x = 0;
@@ -2952,7 +2947,6 @@ StartServer_MenuInit(void)
     {
         s_rules_box.itemnames = dm_coop_names_rogue;
     }
-
     else
     {
         s_rules_box.itemnames = dm_coop_names;
@@ -2962,7 +2956,6 @@ StartServer_MenuInit(void)
     {
         s_rules_box.curvalue = 1;
     }
-
     else
     {
         s_rules_box.curvalue = 0;
@@ -3007,7 +3000,6 @@ StartServer_MenuInit(void)
     {
         strcpy(s_maxclients_field.buffer, "8");
     }
-
     else
     {
         strcpy(s_maxclients_field.buffer, Cvar_VariableString("maxclients"));
@@ -3517,22 +3509,18 @@ DownloadCallback(void *self)
     {
         Cvar_SetValue("allow_download", (float)f->curvalue);
     }
-
     else if (f == &s_allow_download_maps_box)
     {
         Cvar_SetValue("allow_download_maps", (float)f->curvalue);
     }
-
     else if (f == &s_allow_download_models_box)
     {
         Cvar_SetValue("allow_download_models", (float)f->curvalue);
     }
-
     else if (f == &s_allow_download_players_box)
     {
         Cvar_SetValue("allow_download_players", (float)f->curvalue);
     }
-
     else if (f == &s_allow_download_sounds_box)
     {
         Cvar_SetValue("allow_download_sounds", (float)f->curvalue);
@@ -4048,11 +4036,6 @@ PlayerConfig_MenuInit(void)
         return false;
     }
 
-    if ((hand->value < 0) || (hand->value > 2))
-    {
-        Cvar_SetValue("hand", 0);
-    }
-
     strcpy(currentdirectory, skin->string);
 
     if (strchr(currentdirectory, '/'))
@@ -4149,7 +4132,7 @@ PlayerConfig_MenuInit(void)
     s_player_handedness_box.generic.name = 0;
     s_player_handedness_box.generic.cursor_offset = -48;
     s_player_handedness_box.generic.callback = HandednessCallback;
-    s_player_handedness_box.curvalue = Cvar_VariableValue("hand");
+    s_player_handedness_box.curvalue = ClampCvar(0, 2, hand->value);
     s_player_handedness_box.itemnames = handedness;
 
     for (i = 0; i < sizeof(rate_tbl) / sizeof(*rate_tbl) - 1; i++)
