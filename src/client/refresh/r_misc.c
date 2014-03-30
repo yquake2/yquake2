@@ -86,10 +86,10 @@ R_InitParticleTexture(void)
 void
 R_ScreenShot(void)
 {
-	byte *buffer;
+	byte *buffer, temp;
 	char picname[80];
 	char checkname[MAX_OSPATH];
-	int i, c, temp;
+	int i, c;
 	FILE *f;
 
 	/* create the scrnshots directory if it doesn't exist */
@@ -121,10 +121,12 @@ R_ScreenShot(void)
 		return;
 	}
 
-	buffer = malloc(vid.width * vid.height * 3 + 18);
+	c = 18 + vid.width * vid.height * 3;
+
+	buffer = malloc(c);
 	if (!buffer)
 	{
-		VID_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't malloc enough memory\n");
+		VID_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't malloc %d bytes\n", c);
 		return;
 	}
 
@@ -140,8 +142,6 @@ R_ScreenShot(void)
 			GL_UNSIGNED_BYTE, buffer + 18);
 
 	/* swap rgb to bgr */
-	c = 18 + vid.width * vid.height * 3;
-
 	for (i = 18; i < c; i += 3)
 	{
 		temp = buffer[i];
@@ -150,11 +150,18 @@ R_ScreenShot(void)
 	}
 
 	f = fopen(checkname, "wb");
-	fwrite(buffer, 1, c, f);
-	fclose(f);
+	if (f)
+	{
+		fwrite(buffer, 1, c, f);
+		fclose(f);
+		VID_Printf(PRINT_ALL, "Wrote %s\n", picname);
+	}
+	else
+	{
+		VID_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't write %s\n", picname);
+	}
 
 	free(buffer);
-	VID_Printf(PRINT_ALL, "Wrote %s\n", picname);
 }
 
 void
