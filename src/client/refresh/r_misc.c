@@ -138,6 +138,7 @@ R_ScreenShot(void)
 	buffer[15] = vid.height >> 8;
 	buffer[16] = 24; /* pixel size */
 
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glReadPixels(0, 0, vid.width, vid.height, GL_RGB,
 			GL_UNSIGNED_BYTE, buffer + 18);
 
