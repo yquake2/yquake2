@@ -39,6 +39,7 @@ extern cvar_t *scr_viewsize;
 static cvar_t *gl_mode;
 static cvar_t *gl_picmip;
 static cvar_t *gl_ext_palettedtexture;
+static cvar_t *gl_swapinterval;
 
 static cvar_t *fov;
 
@@ -46,13 +47,14 @@ static menuframework_s s_opengl_menu;
 
 static menulist_s s_mode_list;
 static menulist_s s_aspect_list;
-static menuslider_s s_tq_slider;
 static menuslider_s s_screensize_slider;
 static menuslider_s s_brightness_slider;
 static menulist_s s_fs_box;
+static menulist_s s_vsync_list;
+static menuslider_s s_tq_slider;
 static menulist_s s_paletted_texture_box;
-static menuaction_s s_apply_action;
 static menuaction_s s_defaults_action;
+static menuaction_s s_apply_action;
 
 static void
 ScreenSizeCallback(void *s)
@@ -92,6 +94,13 @@ ApplyChanges(void *unused)
 	if (gl_ext_palettedtexture->value != s_paletted_texture_box.curvalue)
 	{
 		Cvar_SetValue("gl_ext_palettedtexture", s_paletted_texture_box.curvalue);
+		restart = true;
+	}
+
+	/* vertical sync */
+	if (gl_swapinterval->value != s_vsync_list.curvalue)
+	{
+		Cvar_SetValue("gl_swapinterval", s_vsync_list.curvalue);
 		restart = true;
 	}
 
@@ -232,6 +241,11 @@ VID_MenuInit(void)
 				"0", CVAR_ARCHIVE);
 	}
 
+	if (!gl_swapinterval)
+	{
+		gl_swapinterval = Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
+	}
+
 	if (!horplus)
 	{
 		horplus = Cvar_Get("horplus", "1", CVAR_ARCHIVE);
@@ -327,9 +341,16 @@ VID_MenuInit(void)
 	s_fs_box.itemnames = yesno_names;
 	s_fs_box.curvalue = (vid_fullscreen->value != 0);
 
+	s_vsync_list.generic.type = MTYPE_SPINCONTROL;
+	s_vsync_list.generic.name = "vertical sync";
+	s_vsync_list.generic.x = 0;
+	s_vsync_list.generic.y = 60;
+	s_vsync_list.itemnames = yesno_names;
+	s_vsync_list.curvalue = (gl_swapinterval->value != 0);
+
 	s_tq_slider.generic.type = MTYPE_SLIDER;
 	s_tq_slider.generic.x = 0;
-	s_tq_slider.generic.y = 70;
+	s_tq_slider.generic.y = 80;
 	s_tq_slider.generic.name = "texture quality";
 	s_tq_slider.minvalue = 0;
 	s_tq_slider.maxvalue = 3;
@@ -337,7 +358,7 @@ VID_MenuInit(void)
 
 	s_paletted_texture_box.generic.type = MTYPE_SPINCONTROL;
 	s_paletted_texture_box.generic.x = 0;
-	s_paletted_texture_box.generic.y = 80;
+	s_paletted_texture_box.generic.y = 90;
 	s_paletted_texture_box.generic.name = "8-bit textures";
 	s_paletted_texture_box.itemnames = yesno_names;
 	s_paletted_texture_box.curvalue = (gl_ext_palettedtexture->value != 0);
@@ -345,13 +366,13 @@ VID_MenuInit(void)
 	s_defaults_action.generic.type = MTYPE_ACTION;
 	s_defaults_action.generic.name = "reset to default";
 	s_defaults_action.generic.x = 0;
-	s_defaults_action.generic.y = 100;
+	s_defaults_action.generic.y = 110;
 	s_defaults_action.generic.callback = ResetDefaults;
 
 	s_apply_action.generic.type = MTYPE_ACTION;
 	s_apply_action.generic.name = "apply";
 	s_apply_action.generic.x = 0;
-	s_apply_action.generic.y = 110;
+	s_apply_action.generic.y = 120;
 	s_apply_action.generic.callback = ApplyChanges;
 
 	Menu_AddItem(&s_opengl_menu, (void *)&s_mode_list);
@@ -359,6 +380,7 @@ VID_MenuInit(void)
 	Menu_AddItem(&s_opengl_menu, (void *)&s_screensize_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_brightness_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_fs_box);
+	Menu_AddItem(&s_opengl_menu, (void *)&s_vsync_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_tq_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_paletted_texture_box);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_defaults_action);
