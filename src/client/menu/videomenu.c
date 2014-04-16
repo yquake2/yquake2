@@ -40,6 +40,7 @@ static cvar_t *gl_mode;
 static cvar_t *gl_picmip;
 static cvar_t *gl_ext_palettedtexture;
 static cvar_t *gl_swapinterval;
+static cvar_t *gl_msaa_samples;
 
 static cvar_t *fov;
 
@@ -53,6 +54,7 @@ static menulist_s s_fs_box;
 static menulist_s s_vsync_list;
 static menuslider_s s_tq_slider;
 static menulist_s s_paletted_texture_box;
+static menulist_s s_msaa_list;
 static menuaction_s s_defaults_action;
 static menuaction_s s_apply_action;
 
@@ -102,6 +104,24 @@ ApplyChanges(void *unused)
 	{
 		Cvar_SetValue("gl_swapinterval", s_vsync_list.curvalue);
 		restart = true;
+	}
+
+	/* multisample anti-aliasing */
+	if (s_msaa_list.curvalue == 0)
+	{
+		if (gl_msaa_samples->value != 0)
+		{
+			Cvar_SetValue("gl_msaa_samples", 0);
+			restart = true;
+		}
+	}
+	else
+	{
+		if (gl_msaa_samples->value != pow(2, s_msaa_list.curvalue))
+		{
+			Cvar_SetValue("gl_msaa_samples", pow(2, s_msaa_list.curvalue));
+			restart = true;
+		}
 	}
 
 	/* Restarts automatically */
@@ -225,6 +245,15 @@ VID_MenuInit(void)
 		0
 	};
 
+	static const char *msaa_names[] = {
+		"off",
+		"2x",
+		"4x",
+		"8x",
+		"16x",
+		0
+	};
+
 	if (!gl_picmip)
 	{
 		gl_picmip = Cvar_Get("gl_picmip", "0", 0);
@@ -244,6 +273,11 @@ VID_MenuInit(void)
 	if (!gl_swapinterval)
 	{
 		gl_swapinterval = Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
+	}
+
+	if (!gl_msaa_samples)
+	{
+		gl_msaa_samples = Cvar_Get("gl_msaa_samples", "0", CVAR_ARCHIVE);
 	}
 
 	if (!horplus)
@@ -363,16 +397,32 @@ VID_MenuInit(void)
 	s_paletted_texture_box.itemnames = yesno_names;
 	s_paletted_texture_box.curvalue = (gl_ext_palettedtexture->value != 0);
 
+	s_msaa_list.generic.type = MTYPE_SPINCONTROL;
+	s_msaa_list.generic.name = "multisampling";
+	s_msaa_list.generic.x = 0;
+	s_msaa_list.generic.y = 100;
+	s_msaa_list.itemnames = msaa_names;
+	s_msaa_list.curvalue = 0;
+	if (gl_msaa_samples > 0)
+	{
+		do
+		{
+			s_msaa_list.curvalue++;
+		} while (msaa_names[s_msaa_list.curvalue] &&
+				pow(2, s_msaa_list.curvalue) <= gl_msaa_samples->value);
+		s_msaa_list.curvalue--;
+	}
+
 	s_defaults_action.generic.type = MTYPE_ACTION;
 	s_defaults_action.generic.name = "reset to default";
 	s_defaults_action.generic.x = 0;
-	s_defaults_action.generic.y = 110;
+	s_defaults_action.generic.y = 120;
 	s_defaults_action.generic.callback = ResetDefaults;
 
 	s_apply_action.generic.type = MTYPE_ACTION;
 	s_apply_action.generic.name = "apply";
 	s_apply_action.generic.x = 0;
-	s_apply_action.generic.y = 120;
+	s_apply_action.generic.y = 130;
 	s_apply_action.generic.callback = ApplyChanges;
 
 	Menu_AddItem(&s_opengl_menu, (void *)&s_mode_list);
@@ -383,6 +433,7 @@ VID_MenuInit(void)
 	Menu_AddItem(&s_opengl_menu, (void *)&s_vsync_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_tq_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_paletted_texture_box);
+	Menu_AddItem(&s_opengl_menu, (void *)&s_msaa_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_defaults_action);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_apply_action);
 
