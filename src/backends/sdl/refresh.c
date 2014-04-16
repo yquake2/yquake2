@@ -503,13 +503,11 @@ static void RestoreGamma()
 static qboolean
 GLimp_InitGraphics(qboolean fullscreen)
 {
-	int counter = 0;
 	int flags;
 	int msaa_samples;
 	int stencil_bits;
 	int width, height;
 	char title[24];
-
 
 	if (GetWindowSize(&width, &height) && (width == vid.width) && (height == vid.height))
 	{
@@ -555,11 +553,15 @@ GLimp_InitGraphics(qboolean fullscreen)
 		{
 			Com_Printf("MSAA is unsupported: %s\n", SDL_GetError());
 			Cvar_SetValue ("gl_msaa_samples", 0);
+			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 		}
 		else if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaa_samples) == -1)
 		{
-			Com_Printf("%i MSAA are unsupported: %s\n", msaa_samples, SDL_GetError());
+			Com_Printf("MSAA %ix is unsupported: %s\n", msaa_samples, SDL_GetError());
 			Cvar_SetValue("gl_msaa_samples", 0);
+			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 		}
 	}
 
@@ -586,24 +588,36 @@ GLimp_InitGraphics(qboolean fullscreen)
 	{
 		if (!CreateSDLWindow(flags))
 		{
-			if (counter == 1)
+			if (gl_msaa_samples->value)
+			{
+				VID_Printf(PRINT_ALL, "SDL SetVideoMode failed: %s\n",
+						SDL_GetError());
+				VID_Printf(PRINT_ALL, "Reverting to gl_mode %i (%ix%i) without MSAA.\n",
+						(int)Cvar_VariableValue("gl_mode"), vid.width, vid.height);
+
+				/* Try to recover */
+				Cvar_SetValue("gl_msaa_samples", 0);
+				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+			}
+			else if (vid.width != 640 || vid.height != 480 || (flags & SDL_FULLSCREEN))
+			{
+				VID_Printf(PRINT_ALL, "SDL SetVideoMode failed: %s\n",
+						SDL_GetError());
+				VID_Printf(PRINT_ALL, "Reverting to gl_mode 4 (640x480) and windowed mode.\n");
+
+				/* Try to recover */
+				Cvar_SetValue("gl_mode", 4);
+				Cvar_SetValue("vid_fullscreen", 0);
+				flags &= ~SDL_FULLSCREEN;
+				vid.width = 640;
+				vid.height = 480;
+			}
+			else
 			{
 				VID_Error(ERR_FATAL, "Failed to revert to gl_mode 4. Exiting...\n");
 				return false;
 			}
-
-			VID_Printf(PRINT_ALL, "SDL SetVideoMode failed: %s\n",
-					SDL_GetError());
-			VID_Printf(PRINT_ALL, "Reverting to gl_mode 4 (640x480) and windowed mode.\n");
-
-			/* Try to recover */
-			Cvar_SetValue("gl_mode", 4);
-			Cvar_SetValue("vid_fullscreen", 0);
-			vid.width = 640;
-			vid.height = 480;
-
-			counter++;
-			continue;
 		}
 		else
 		{
