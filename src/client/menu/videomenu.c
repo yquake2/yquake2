@@ -225,7 +225,7 @@ VID_MenuInit(void)
 		"[1920 1080]",
 		"[1920 1200]",
 		"[2048 1536]",
-		"[Custom   ]",
+		"[custom   ]",
 		0
 	};
 
@@ -236,12 +236,12 @@ VID_MenuInit(void)
 	};
 
 	static const char *aspect_names[] = {
-		"Auto",
+		"auto",
 		"4:3",
 		"5:4",
 		"16:10",
 		"16:9",
-		"Custom",
+		"custom",
 		0
 	};
 
