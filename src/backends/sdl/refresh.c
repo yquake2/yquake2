@@ -231,6 +231,7 @@ void CalculateGammaRamp(float gamma, Uint16* ramp, int len)
         }
     }
 }
+
 /*
  * Sets the hardware gamma
  */
@@ -292,7 +293,6 @@ UpdateHardwareGamma(void)
 
 	XRRFreeScreenResources(res);
 }
-
 #else // no X11GAMMA
 void
 UpdateHardwareGamma(void)
@@ -340,10 +340,6 @@ static qboolean CreateSDLWindow(int flags)
 		window = NULL;
 		return false;
 	}
-
-	// set vsync - TODO: -1 could be set for "late swap tearing",
-	//  i.e. only vsync if framerate is high enough
-	SDL_GL_SetSwapInterval(gl_swapinterval->value ? 1 : 0);
 
 	return true;
 #else
@@ -574,14 +570,13 @@ GLimp_InitGraphics(qboolean fullscreen)
 	}
 
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
-	/* Set the icon - for SDL1.2 this must be done before creating the window */
+	/* For SDL1.2, these things must be done before creating the window */
+
+	/* Set the icon */
 	SetSDLIcon();
 
-	/* Enable vsync */
-	if (gl_swapinterval->value)
-	{
-		SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
-	}
+	/* Set vsync */
+	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, gl_swapinterval->value ? 1 : 0);
 #endif
 
 	while (1)
@@ -592,7 +587,8 @@ GLimp_InitGraphics(qboolean fullscreen)
 			{
 				VID_Printf(PRINT_ALL, "SDL SetVideoMode failed: %s\n",
 						SDL_GetError());
-				VID_Printf(PRINT_ALL, "Reverting to gl_mode %i (%ix%i) without MSAA.\n",
+				VID_Printf(PRINT_ALL, "Reverting to %s gl_mode %i (%ix%i) without MSAA.\n",
+						(flags & SDL_FULLSCREEN) ? "fullscreen" : "windowed",
 						(int)Cvar_VariableValue("gl_mode"), vid.width, vid.height);
 
 				/* Try to recover */
@@ -604,14 +600,14 @@ GLimp_InitGraphics(qboolean fullscreen)
 			{
 				VID_Printf(PRINT_ALL, "SDL SetVideoMode failed: %s\n",
 						SDL_GetError());
-				VID_Printf(PRINT_ALL, "Reverting to gl_mode 4 (640x480) and windowed mode.\n");
+				VID_Printf(PRINT_ALL, "Reverting to windowed gl_mode 4 (640x480).\n");
 
 				/* Try to recover */
 				Cvar_SetValue("gl_mode", 4);
 				Cvar_SetValue("vid_fullscreen", 0);
-				flags &= ~SDL_FULLSCREEN;
 				vid.width = 640;
 				vid.height = 480;
+				flags &= ~SDL_FULLSCREEN;
 			}
 			else
 			{
@@ -624,9 +620,15 @@ GLimp_InitGraphics(qboolean fullscreen)
 			break;
 		}
 	}
+
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	/* Set the icon - for SDL2 this must be done after creating the window */
+	/* For SDL2, these things must be done after creating the window */
+
+	/* Set the icon */
 	SetSDLIcon();
+
+	/* Set vsync - TODO: -1 could be set for "late swap tearing" */
+	SDL_GL_SetSwapInterval(gl_swapinterval->value ? 1 : 0);
 #endif
 
 	/* Initialize the stencil buffer */
@@ -746,7 +748,6 @@ qboolean GLimp_InputIsGrabbed()
 	return (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON);
 #endif
 }
-
 
 /*
  * Shuts the SDL render backend down
