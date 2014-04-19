@@ -403,14 +403,17 @@ VID_MenuInit(void)
 	s_msaa_list.generic.y = 100;
 	s_msaa_list.itemnames = msaa_names;
 	s_msaa_list.curvalue = 0;
-	if (gl_msaa_samples > 0)
+	if (gl_msaa_samples->value)
 	{
 		do
 		{
 			s_msaa_list.curvalue++;
 		} while (msaa_names[s_msaa_list.curvalue] &&
-				pow(2, s_msaa_list.curvalue) <= gl_msaa_samples->value);
-		s_msaa_list.curvalue--;
+				pow(2, s_msaa_list.curvalue) < gl_msaa_samples->value);
+		if (!msaa_names[s_msaa_list.curvalue])
+		{
+			s_msaa_list.curvalue--;
+		}
 	}
 
 	s_defaults_action.generic.type = MTYPE_ACTION;
