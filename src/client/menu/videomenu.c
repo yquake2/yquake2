@@ -250,7 +250,6 @@ VID_MenuInit(void)
 		"2x",
 		"4x",
 		"8x",
-		"16x",
 		0
 	};
 
