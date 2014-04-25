@@ -51,8 +51,19 @@ Draw_InitLocal(void)
 void
 Draw_Char(int x, int y, int num)
 {
+	Draw_CharScaled(x, y, num, 1.0f);
+}
+
+/*
+ * Draws one 8*8 graphics character with 0 being transparent.
+ * It can be clipped to the top of the screen to allow the console to be
+ * smoothly scrolled off.
+ */
+void
+Draw_CharScaled(int x, int y, int num, float scale)
+{
 	int row, col;
-	float frow, fcol, size;
+	float frow, fcol, size, scaledSize;
 
 	num &= 255;
 
@@ -73,17 +84,19 @@ Draw_Char(int x, int y, int num)
 	fcol = col * 0.0625;
 	size = 0.0625;
 
+	scaledSize = 8*scale;
+
 	R_Bind(draw_chars->texnum);
 
 	glBegin(GL_QUADS);
 	glTexCoord2f(fcol, frow);
 	glVertex2f(x, y);
 	glTexCoord2f(fcol + size, frow);
-	glVertex2f(x + 8, y);
+	glVertex2f(x + scaledSize, y);
 	glTexCoord2f(fcol + size, frow + size);
-	glVertex2f(x + 8, y + 8);
+	glVertex2f(x + scaledSize, y + scaledSize);
 	glTexCoord2f(fcol, frow + size);
-	glVertex2f(x, y + 8);
+	glVertex2f(x, y + scaledSize);
 	glEnd();
 }
 
@@ -157,6 +170,12 @@ Draw_StretchPic(int x, int y, int w, int h, char *pic)
 void
 Draw_Pic(int x, int y, char *pic)
 {
+	Draw_PicScaled(x, y, pic, 1.0f);
+}
+
+void
+Draw_PicScaled(int x, int y, char *pic, float factor)
+{
 	image_t *gl;
 
 	gl = Draw_FindPic(pic);
@@ -172,16 +191,19 @@ Draw_Pic(int x, int y, char *pic)
 		Scrap_Upload();
 	}
 
+	GLfloat w = gl->width*factor;
+	GLfloat h = gl->height*factor;
+
 	R_Bind(gl->texnum);
 	glBegin(GL_QUADS);
 	glTexCoord2f(gl->sl, gl->tl);
 	glVertex2f(x, y);
 	glTexCoord2f(gl->sh, gl->tl);
-	glVertex2f(x + gl->width, y);
+	glVertex2f(x + w, y);
 	glTexCoord2f(gl->sh, gl->th);
-	glVertex2f(x + gl->width, y + gl->height);
+	glVertex2f(x + w, y + h);
 	glTexCoord2f(gl->sl, gl->th);
-	glVertex2f(x, y + gl->height);
+	glVertex2f(x, y + h);
 	glEnd();
 }
 

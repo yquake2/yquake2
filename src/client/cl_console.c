@@ -39,10 +39,16 @@ extern int key_linepos;
 void
 DrawString(int x, int y, char *s)
 {
+	DrawStringScaled(x, y, s, 1.0f);
+}
+
+void
+DrawStringScaled(int x, int y, char *s, float factor)
+{
 	while (*s)
 	{
-		Draw_Char(x, y, *s);
-		x += 8;
+		Draw_CharScaled(x, y, *s, factor);
+		x += 8*factor;
 		s++;
 	}
 }
@@ -50,10 +56,16 @@ DrawString(int x, int y, char *s)
 void
 DrawAltString(int x, int y, char *s)
 {
+	DrawAltStringScaled(x, y, s, 1.0f);
+}
+
+void
+DrawAltStringScaled(int x, int y, char *s, float factor)
+{
 	while (*s)
 	{
-		Draw_Char(x, y, *s ^ 0x80);
-		x += 8;
+		Draw_CharScaled(x, y, *s ^ 0x80, factor);
+		x += 8*factor;
 		s++;
 	}
 }

@@ -862,7 +862,7 @@ SizeHUDString(char *string, int *w, int *h)
 }
 
 void
-DrawHUDString(char *string, int x, int y, int centerwidth, int xor)
+DrawHUDStringScaled(char *string, int x, int y, int centerwidth, int xor, float factor)
 {
 	int margin;
 	char line[1024];
@@ -885,7 +885,7 @@ DrawHUDString(char *string, int x, int y, int centerwidth, int xor)
 
 		if (centerwidth)
 		{
-			x = margin + (centerwidth - width * 8) / 2;
+			x = margin + (centerwidth - width * 8)*factor / 2;
 		}
 
 		else
@@ -895,20 +895,26 @@ DrawHUDString(char *string, int x, int y, int centerwidth, int xor)
 
 		for (i = 0; i < width; i++)
 		{
-			Draw_Char(x, y, line[i] ^ xor);
-			x += 8;
+			Draw_CharScaled(x, y, line[i] ^ xor, factor);
+			x += 8*factor;
 		}
 
 		if (*string)
 		{
 			string++; /* skip the \n */
-			y += 8;
+			y += 8*factor;
 		}
 	}
 }
 
 void
-SCR_DrawField(int x, int y, int color, int width, int value)
+DrawHUDString(char *string, int x, int y, int centerwidth, int xor)
+{
+	DrawHUDStringScaled(string, x, y, centerwidth, xor, 1.0f);
+}
+
+void
+SCR_DrawFieldScaled(int x, int y, int color, int width, int value, float factor)
 {
 	char num[16], *ptr;
 	int l;
@@ -926,7 +932,7 @@ SCR_DrawField(int x, int y, int color, int width, int value)
 	}
 
 	SCR_AddDirtyPoint(x, y);
-	SCR_AddDirtyPoint(x + width * CHAR_WIDTH + 2, y + 23);
+	SCR_AddDirtyPoint(x + (width * CHAR_WIDTH + 2)*factor, y + 23);
 
 	Com_sprintf(num, sizeof(num), "%i", value);
 	l = (int)strlen(num);
@@ -936,7 +942,7 @@ SCR_DrawField(int x, int y, int color, int width, int value)
 		l = width;
 	}
 
-	x += 2 + CHAR_WIDTH * (width - l);
+	x += (2 + CHAR_WIDTH * (width - l)) * factor;
 
 	ptr = num;
 
@@ -952,11 +958,17 @@ SCR_DrawField(int x, int y, int color, int width, int value)
 			frame = *ptr - '0';
 		}
 
-		Draw_Pic(x, y, sb_nums[color][frame]);
-		x += CHAR_WIDTH;
+		Draw_PicScaled(x, y, sb_nums[color][frame], factor);
+		x += CHAR_WIDTH*factor;
 		ptr++;
 		l--;
 	}
+}
+
+void
+SCR_DrawField(int x, int y, int color, int width, int value)
+{
+	SCR_DrawFieldScaled(x, y, color, width, value, 1.0f);
 }
 
 /*
@@ -993,6 +1005,9 @@ SCR_TouchPics(void)
 	}
 }
 
+// from r_main.c
+extern cvar_t	*gl_hudscale;
+
 void
 SCR_ExecuteLayoutString(char *s)
 {
@@ -1002,6 +1017,8 @@ SCR_ExecuteLayoutString(char *s)
 	int width;
 	int index;
 	clientinfo_t *ci;
+
+	float scale = gl_hudscale->value;
 
 	if ((cls.state != ca_active) || !cl.refresh_prepped)
 	{
@@ -1030,14 +1047,14 @@ SCR_ExecuteLayoutString(char *s)
 		if (!strcmp(token, "xr"))
 		{
 			token = COM_Parse(&s);
-			x = viddef.width + (int)strtol(token, (char **)NULL, 10);
+			x = viddef.width + scale*(int)strtol(token, (char **)NULL, 10);
 			continue;
 		}
 
 		if (!strcmp(token, "xv"))
 		{
 			token = COM_Parse(&s);
-			x = viddef.width / 2 - 160 + (int)strtol(token, (char **)NULL, 10);
+			x = viddef.width / 2 - scale*160 + scale*(int)strtol(token, (char **)NULL, 10);
 			continue;
 		}
 
@@ -1051,14 +1068,14 @@ SCR_ExecuteLayoutString(char *s)
 		if (!strcmp(token, "yb"))
 		{
 			token = COM_Parse(&s);
-			y = viddef.height + (int)strtol(token, (char **)NULL, 10);
+			y = viddef.height + scale*(int)strtol(token, (char **)NULL, 10);
 			continue;
 		}
 
 		if (!strcmp(token, "yv"))
 		{
 			token = COM_Parse(&s);
-			y = viddef.height / 2 - 120 + (int)strtol(token, (char **)NULL, 10);
+			y = viddef.height / 2 - scale*120 + scale*(int)strtol(token, (char **)NULL, 10);
 			continue;
 		}
 
@@ -1083,8 +1100,8 @@ SCR_ExecuteLayoutString(char *s)
 			if (cl.configstrings[CS_IMAGES + value])
 			{
 				SCR_AddDirtyPoint(x, y);
-				SCR_AddDirtyPoint(x + 23, y + 23);
-				Draw_Pic(x, y, cl.configstrings[CS_IMAGES + value]);
+				SCR_AddDirtyPoint(x + 23*scale, y + 23*scale);
+				Draw_PicScaled(x, y, cl.configstrings[CS_IMAGES + value], scale);
 			}
 
 			continue;
@@ -1096,11 +1113,11 @@ SCR_ExecuteLayoutString(char *s)
 			int score, ping, time;
 
 			token = COM_Parse(&s);
-			x = viddef.width / 2 - 160 + (int)strtol(token, (char **)NULL, 10);
+			x = viddef.width / 2 - scale*160 + scale*(int)strtol(token, (char **)NULL, 10);
 			token = COM_Parse(&s);
-			y = viddef.height / 2 - 120 + (int)strtol(token, (char **)NULL, 10);
+			y = viddef.height / 2 - scale*120 + scale*(int)strtol(token, (char **)NULL, 10);
 			SCR_AddDirtyPoint(x, y);
-			SCR_AddDirtyPoint(x + 159, y + 31);
+			SCR_AddDirtyPoint(x + scale*159, y + scale*31);
 
 			token = COM_Parse(&s);
 			value = (int)strtol(token, (char **)NULL, 10);
@@ -1121,18 +1138,19 @@ SCR_ExecuteLayoutString(char *s)
 			token = COM_Parse(&s);
 			time = (int)strtol(token, (char **)NULL, 10);
 
-			DrawAltString(x + 32, y, ci->name);
-			DrawString(x + 32, y + 8, "Score: ");
-			DrawAltString(x + 32 + 7 * 8, y + 8, va("%i", score));
-			DrawString(x + 32, y + 16, va("Ping:  %i", ping));
-			DrawString(x + 32, y + 24, va("Time:  %i", time));
+			// TODO: scale*
+			DrawAltStringScaled(x + scale*32, y, ci->name, scale);
+			DrawAltStringScaled(x + scale*32, y + scale*8, "Score: ", scale);
+			DrawAltStringScaled(x + scale*(32 + 7 * 8), y + scale*8, va("%i", score), scale);
+			DrawStringScaled(x + scale*32, y + scale*16, va("Ping:  %i", ping), scale);
+			DrawStringScaled(x + scale*32, y + scale*24, va("Time:  %i", time), scale);
 
 			if (!ci->icon)
 			{
 				ci = &cl.baseclientinfo;
 			}
 
-			Draw_Pic(x, y, ci->iconname);
+			Draw_PicScaled(x, y, ci->iconname, scale);
 			continue;
 		}
 
@@ -1143,11 +1161,11 @@ SCR_ExecuteLayoutString(char *s)
 			char block[80];
 
 			token = COM_Parse(&s);
-			x = viddef.width / 2 - 160 + (int)strtol(token, (char **)NULL, 10);
+			x = viddef.width / 2 - scale*160 + scale*(int)strtol(token, (char **)NULL, 10);
 			token = COM_Parse(&s);
-			y = viddef.height / 2 - 120 + (int)strtol(token, (char **)NULL, 10);
+			y = viddef.height / 2 - scale*120 + scale*(int)strtol(token, (char **)NULL, 10);
 			SCR_AddDirtyPoint(x, y);
-			SCR_AddDirtyPoint(x + 159, y + 31);
+			SCR_AddDirtyPoint(x + scale*159, y + scale*31);
 
 			token = COM_Parse(&s);
 			value = (int)strtol(token, (char **)NULL, 10);
@@ -1174,12 +1192,12 @@ SCR_ExecuteLayoutString(char *s)
 
 			if (value == cl.playernum)
 			{
-				DrawAltString(x, y, block);
+				DrawAltStringScaled(x, y, block, scale);
 			}
 
 			else
 			{
-				DrawString(x, y, block);
+				DrawAltStringScaled(x, y, block, scale);
 			}
 
 			continue;
@@ -1190,8 +1208,8 @@ SCR_ExecuteLayoutString(char *s)
 			/* draw a pic from a name */
 			token = COM_Parse(&s);
 			SCR_AddDirtyPoint(x, y);
-			SCR_AddDirtyPoint(x + 23, y + 23);
-			Draw_Pic(x, y, (char *)token);
+			SCR_AddDirtyPoint(x + scale*23, y + scale*23);
+			Draw_PicScaled(x, y, (char *)token, scale);
 			continue;
 		}
 
@@ -1202,7 +1220,7 @@ SCR_ExecuteLayoutString(char *s)
 			width = (int)strtol(token, (char **)NULL, 10);
 			token = COM_Parse(&s);
 			value = cl.frame.playerstate.stats[(int)strtol(token, (char **)NULL, 10)];
-			SCR_DrawField(x, y, 0, width, value);
+			SCR_DrawFieldScaled(x, y, 0, width, value, scale);
 			continue;
 		}
 
@@ -1229,10 +1247,10 @@ SCR_ExecuteLayoutString(char *s)
 
 			if (cl.frame.playerstate.stats[STAT_FLASHES] & 1)
 			{
-				Draw_Pic(x, y, "field_3");
+				Draw_PicScaled(x, y, "field_3", scale);
 			}
 
-			SCR_DrawField(x, y, color, width, value);
+			SCR_DrawFieldScaled(x, y, color, width, value, scale);
 			continue;
 		}
 
@@ -1259,10 +1277,10 @@ SCR_ExecuteLayoutString(char *s)
 
 			if (cl.frame.playerstate.stats[STAT_FLASHES] & 4)
 			{
-				Draw_Pic(x, y, "field_3");
+				Draw_PicScaled(x, y, "field_3", scale);
 			}
 
-			SCR_DrawField(x, y, color, width, value);
+			SCR_DrawFieldScaled(x, y, color, width, value, scale);
 			continue;
 		}
 
@@ -1283,10 +1301,10 @@ SCR_ExecuteLayoutString(char *s)
 
 			if (cl.frame.playerstate.stats[STAT_FLASHES] & 2)
 			{
-				Draw_Pic(x, y, "field_3");
+				Draw_PicScaled(x, y, "field_3", scale);
 			}
 
-			SCR_DrawField(x, y, color, width, value);
+			SCR_DrawFieldScaled(x, y, color, width, value, scale);
 			continue;
 		}
 
@@ -1307,35 +1325,35 @@ SCR_ExecuteLayoutString(char *s)
 				Com_Error(ERR_DROP, "Bad stat_string index");
 			}
 
-			DrawString(x, y, cl.configstrings[index]);
+			DrawStringScaled(x, y, cl.configstrings[index], scale);
 			continue;
 		}
 
 		if (!strcmp(token, "cstring"))
 		{
 			token = COM_Parse(&s);
-			DrawHUDString(token, x, y, 320, 0);
+			DrawHUDStringScaled(token, x, y, 320, 0, scale); // FIXME: or scale 320 here?
 			continue;
 		}
 
 		if (!strcmp(token, "string"))
 		{
 			token = COM_Parse(&s);
-			DrawString(x, y, token);
+			DrawStringScaled(x, y, token, scale);
 			continue;
 		}
 
 		if (!strcmp(token, "cstring2"))
 		{
 			token = COM_Parse(&s);
-			DrawHUDString(token, x, y, 320, 0x80);
+			DrawHUDStringScaled(token, x, y, 320, 0x80, scale); // FIXME: or scale 320 here?
 			continue;
 		}
 
 		if (!strcmp(token, "string2"))
 		{
 			token = COM_Parse(&s);
-			DrawAltString(x, y, token);
+			DrawAltStringScaled(x, y, token, scale);
 			continue;
 		}
 
