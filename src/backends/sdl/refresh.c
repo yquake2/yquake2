@@ -545,14 +545,14 @@ GLimp_InitGraphics(qboolean fullscreen)
 	{
 		msaa_samples = gl_msaa_samples->value;
 
-		if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) == -1)
+		if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) < 0)
 		{
 			Com_Printf("MSAA is unsupported: %s\n", SDL_GetError());
 			Cvar_SetValue ("gl_msaa_samples", 0);
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 		}
-		else if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaa_samples) == -1)
+		else if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaa_samples) < 0)
 		{
 			Com_Printf("MSAA %ix is unsupported: %s\n", msaa_samples, SDL_GetError());
 			Cvar_SetValue("gl_msaa_samples", 0);
@@ -618,6 +618,13 @@ GLimp_InitGraphics(qboolean fullscreen)
 		else
 		{
 			break;
+		}
+	}
+	if (gl_msaa_samples->value)
+	{
+		if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &msaa_samples) == 0)
+		{
+			Cvar_SetValue("gl_msaa_samples", msaa_samples);
 		}
 	}
 
