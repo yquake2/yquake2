@@ -1390,10 +1390,11 @@ R_BeginFrame(float camera_separation)
 	}
 
 	/* texturemode stuff */
-	if (gl_texturemode->modified)
+	if (gl_texturemode->modified || (gl_config.anisotropic && gl_anisotropic->modified))
 	{
 		R_TextureMode(gl_texturemode->string);
 		gl_texturemode->modified = false;
+		gl_anisotropic->modified = false;
 	}
 
 	if (gl_texturealphamode->modified)
