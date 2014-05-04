@@ -1047,7 +1047,7 @@ SCR_ExecuteLayoutString(char *s)
 		if (!strcmp(token, "xl"))
 		{
 			token = COM_Parse(&s);
-			x = (int)strtol(token, (char **)NULL, 10);
+			x = scale*(int)strtol(token, (char **)NULL, 10);
 			continue;
 		}
 
@@ -1068,7 +1068,7 @@ SCR_ExecuteLayoutString(char *s)
 		if (!strcmp(token, "yt"))
 		{
 			token = COM_Parse(&s);
-			y = (int)strtol(token, (char **)NULL, 10);
+			y = scale*(int)strtol(token, (char **)NULL, 10);
 			continue;
 		}
 
