@@ -354,8 +354,8 @@ VID_MenuInit(void)
 	s_screensize_slider.generic.x = 0;
 	s_screensize_slider.generic.y = 20;
 	s_screensize_slider.generic.name = "screen size";
-	s_screensize_slider.minvalue = 3;
-	s_screensize_slider.maxvalue = 12;
+	s_screensize_slider.minvalue = 4;
+	s_screensize_slider.maxvalue = 10;
 	s_screensize_slider.generic.callback = ScreenSizeCallback;
 	s_screensize_slider.curvalue = scr_viewsize->value / 10;
 
