@@ -32,16 +32,14 @@
 
 extern void M_ForceMenuOff(void);
 
-extern cvar_t *vid_fullscreen;
-extern cvar_t *vid_gamma;
-extern cvar_t *scr_viewsize;
-
 static cvar_t *gl_mode;
-static cvar_t *gl_swapinterval;
-static cvar_t *gl_msaa_samples;
-static cvar_t *gl_anisotropic;
-
 static cvar_t *fov;
+extern cvar_t *scr_viewsize;
+extern cvar_t *vid_gamma;
+extern cvar_t *vid_fullscreen;
+static cvar_t *gl_swapinterval;
+static cvar_t *gl_anisotropic;
+static cvar_t *gl_msaa_samples;
 
 static menuframework_s s_opengl_menu;
 
