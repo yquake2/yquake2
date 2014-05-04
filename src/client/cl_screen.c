@@ -1145,7 +1145,6 @@ SCR_ExecuteLayoutString(char *s)
 			token = COM_Parse(&s);
 			time = (int)strtol(token, (char **)NULL, 10);
 
-			// TODO: scale*
 			DrawAltStringScaled(x + scale*32, y, ci->name, scale);
 			DrawAltStringScaled(x + scale*32, y + scale*8, "Score: ", scale);
 			DrawAltStringScaled(x + scale*(32 + 7 * 8), y + scale*8, va("%i", score), scale);
