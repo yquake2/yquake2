@@ -41,6 +41,7 @@ static cvar_t *gl_picmip;
 static cvar_t *gl_ext_palettedtexture;
 static cvar_t *gl_swapinterval;
 static cvar_t *gl_msaa_samples;
+static cvar_t *gl_anisotropic;
 
 static cvar_t *fov;
 
@@ -54,6 +55,7 @@ static menulist_s s_fs_box;
 static menulist_s s_vsync_list;
 static menuslider_s s_tq_slider;
 static menulist_s s_paletted_texture_box;
+static menulist_s s_af_list;
 static menulist_s s_msaa_list;
 static menuaction_s s_defaults_action;
 static menuaction_s s_apply_action;
@@ -73,6 +75,14 @@ BrightnessCallback(void *s)
 
 	float gamma = slider->curvalue / 10.0;
 	Cvar_SetValue("vid_gamma", gamma);
+}
+
+static void
+AnisotropicCallback(void *s)
+{
+	menulist_s *list = (menulist_s *)s;
+
+	Cvar_SetValue("gl_anisotropic", pow(2, list->curvalue));
 }
 
 static void
@@ -245,7 +255,7 @@ VID_MenuInit(void)
 		0
 	};
 
-	static const char *msaa_names[] = {
+	static const char *pow2_names[] = {
 		"off",
 		"2x",
 		"4x",
@@ -273,6 +283,11 @@ VID_MenuInit(void)
 	if (!gl_swapinterval)
 	{
 		gl_swapinterval = Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
+	}
+
+	if (!gl_anisotropic)
+	{
+		gl_anisotropic = Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
 	}
 
 	if (!gl_msaa_samples)
@@ -397,35 +412,49 @@ VID_MenuInit(void)
 	s_paletted_texture_box.itemnames = yesno_names;
 	s_paletted_texture_box.curvalue = (gl_ext_palettedtexture->value != 0);
 
+	s_af_list.generic.type = MTYPE_SPINCONTROL;
+	s_af_list.generic.name = "aniso filtering";
+	s_af_list.generic.x = 0;
+	s_af_list.generic.y = 100;
+	s_af_list.generic.callback = AnisotropicCallback;
+	s_af_list.itemnames = pow2_names;
+	s_af_list.curvalue = 0;
+	if (gl_anisotropic->value)
+	{
+		do
+		{
+			s_af_list.curvalue++;
+		} while (pow2_names[s_af_list.curvalue] &&
+				pow(2, s_af_list.curvalue) <= gl_anisotropic->value);
+		s_af_list.curvalue--;
+	}
+
 	s_msaa_list.generic.type = MTYPE_SPINCONTROL;
 	s_msaa_list.generic.name = "multisampling";
 	s_msaa_list.generic.x = 0;
-	s_msaa_list.generic.y = 100;
-	s_msaa_list.itemnames = msaa_names;
+	s_msaa_list.generic.y = 110;
+	s_msaa_list.itemnames = pow2_names;
 	s_msaa_list.curvalue = 0;
 	if (gl_msaa_samples->value)
 	{
 		do
 		{
 			s_msaa_list.curvalue++;
-		} while (msaa_names[s_msaa_list.curvalue] &&
-				pow(2, s_msaa_list.curvalue) < gl_msaa_samples->value);
-		if (!msaa_names[s_msaa_list.curvalue])
-		{
-			s_msaa_list.curvalue--;
-		}
+		} while (pow2_names[s_msaa_list.curvalue] &&
+				pow(2, s_msaa_list.curvalue) <= gl_msaa_samples->value);
+		s_msaa_list.curvalue--;
 	}
 
 	s_defaults_action.generic.type = MTYPE_ACTION;
 	s_defaults_action.generic.name = "reset to default";
 	s_defaults_action.generic.x = 0;
-	s_defaults_action.generic.y = 120;
+	s_defaults_action.generic.y = 130;
 	s_defaults_action.generic.callback = ResetDefaults;
 
 	s_apply_action.generic.type = MTYPE_ACTION;
 	s_apply_action.generic.name = "apply";
 	s_apply_action.generic.x = 0;
-	s_apply_action.generic.y = 130;
+	s_apply_action.generic.y = 140;
 	s_apply_action.generic.callback = ApplyChanges;
 
 	Menu_AddItem(&s_opengl_menu, (void *)&s_mode_list);
@@ -436,6 +465,7 @@ VID_MenuInit(void)
 	Menu_AddItem(&s_opengl_menu, (void *)&s_vsync_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_tq_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_paletted_texture_box);
+	Menu_AddItem(&s_opengl_menu, (void *)&s_af_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_msaa_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_defaults_action);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_apply_action);

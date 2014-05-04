@@ -295,6 +295,10 @@ R_TextureMode(char *string)
 			Cvar_SetValue("gl_anisotropic", 1.0);
 		}
 	}
+	else
+	{
+		Cvar_SetValue("gl_anisotropic", 0.0);
+	}
 
 	/* change all the existing mipmap texture objects */
 	for (i = 0, glt = gltextures; i < numgltextures; i++, glt++)
