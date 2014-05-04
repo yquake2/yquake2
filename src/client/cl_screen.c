@@ -328,6 +328,7 @@ static void
 SCR_CalcVrect(void)
 {
 	int size;
+	static int prev_size;
 
 	/* bound viewsize */
 	if (scr_viewsize->value < 40)
@@ -341,6 +342,12 @@ SCR_CalcVrect(void)
 	}
 
 	size = scr_viewsize->value;
+
+	if (size != prev_size)
+	{
+		prev_size = size;
+		cl.force_refdef = true;
+	}
 
 	scr_vrect.width = viddef.width * size / 100;
 	scr_vrect.width &= ~1;
