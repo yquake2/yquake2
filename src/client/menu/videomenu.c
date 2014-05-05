@@ -76,7 +76,14 @@ AnisotropicCallback(void *s)
 {
 	menulist_s *list = (menulist_s *)s;
 
-	Cvar_SetValue("gl_anisotropic", pow(2, list->curvalue));
+	if (list->curvalue == 0)
+	{
+		Cvar_SetValue("gl_anisotropic", 0);
+	}
+	else
+	{
+		Cvar_SetValue("gl_anisotropic", pow(2, list->curvalue));
+	}
 }
 
 static void
