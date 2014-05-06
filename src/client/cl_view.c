@@ -26,8 +26,6 @@
 
 #include "header/client.h"
 
-void SCR_DrawCrosshair(void);
-
 /* development tools for weapons */
 int gun_frame;
 struct model_s *gun_model;

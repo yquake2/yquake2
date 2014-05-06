@@ -65,6 +65,8 @@ void SCR_RunCinematic(void);
 void SCR_StopCinematic(void);
 void SCR_FinishCinematic(void);
 
+void SCR_DrawCrosshair(void);
+
 float SCR_GetHUDScale(void);
 
 #endif
