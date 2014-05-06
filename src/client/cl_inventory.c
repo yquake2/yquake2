@@ -59,9 +59,6 @@ SetStringHighBit(char *s)
 
 #define DISPLAY_ITEMS 17
 
-// from r_main.c
-extern cvar_t	*gl_hudscale;
-
 void
 CL_DrawInventory(void)
 {
@@ -80,7 +77,7 @@ CL_DrawInventory(void)
 	num = 0;
 	selected_num = 0;
 
-	float scale = gl_hudscale->value;
+	float scale = SCR_GetHUDScale();
 
 	for (i = 0; i < MAX_ITEMS; i++)
 	{

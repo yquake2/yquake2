@@ -50,6 +50,8 @@ cvar_t *scr_graphscale;
 cvar_t *scr_graphshift;
 cvar_t *scr_drawall;
 
+cvar_t *gl_hudscale; /* named for consistency with R1Q2 */
+
 typedef struct
 {
 	int x1, y1, x2, y2;
@@ -423,9 +425,9 @@ SCR_Init(void)
 {
 	scr_viewsize = Cvar_Get("viewsize", "100", CVAR_ARCHIVE);
 	scr_conspeed = Cvar_Get("scr_conspeed", "3", 0);
+	scr_centertime = Cvar_Get("scr_centertime", "2.5", 0);
 	scr_showturtle = Cvar_Get("scr_showturtle", "0", 0);
 	scr_showpause = Cvar_Get("scr_showpause", "1", 0);
-	scr_centertime = Cvar_Get("scr_centertime", "2.5", 0);
 	scr_netgraph = Cvar_Get("netgraph", "0", 0);
 	scr_timegraph = Cvar_Get("timegraph", "0", 0);
 	scr_debuggraph = Cvar_Get("debuggraph", "0", 0);
@@ -433,6 +435,7 @@ SCR_Init(void)
 	scr_graphscale = Cvar_Get("graphscale", "1", 0);
 	scr_graphshift = Cvar_Get("graphshift", "0", 0);
 	scr_drawall = Cvar_Get("scr_drawall", "0", 0);
+	gl_hudscale = Cvar_Get("gl_hudscale", "1", CVAR_ARCHIVE);
 
 	/* register our commands */
 	Cmd_AddCommand("timerefresh", SCR_TimeRefresh_f);
@@ -1012,9 +1015,6 @@ SCR_TouchPics(void)
 	}
 }
 
-// from r_main.c
-extern cvar_t	*gl_hudscale;
-
 void
 SCR_ExecuteLayoutString(char *s)
 {
@@ -1025,7 +1025,7 @@ SCR_ExecuteLayoutString(char *s)
 	int index;
 	clientinfo_t *ci;
 
-	float scale = gl_hudscale->value;
+	float scale = SCR_GetHUDScale();
 
 	if ((cls.state != ca_active) || !cl.refresh_prepped)
 	{
@@ -1583,5 +1583,33 @@ SCR_DrawCrosshair(void)
 	Draw_Pic(scr_vrect.x + ((scr_vrect.width - crosshair_width) >> 1),
 			scr_vrect.y + ((scr_vrect.height - crosshair_height) >> 1),
 			crosshair_pic);
+}
+
+float
+SCR_GetHUDScale(void)
+{
+	float scale;
+
+	if (gl_hudscale->value < 0)
+	{
+		int i = viddef.width / 640;
+
+		while (i > viddef.height / 240)
+		{
+			i--;
+		}
+		if (i < 1)
+		{
+			i = 1;
+		}
+
+		scale = i;
+	}
+	else
+	{
+		scale = gl_hudscale->value;
+	}
+
+	return scale;
 }
 
