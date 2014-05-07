@@ -534,12 +534,6 @@ V_RenderView(float stereo_separation)
 		cl.refdef.vieworg[1] += 1.0 / 16;
 		cl.refdef.vieworg[2] += 1.0 / 16;
 
-		cl.refdef.x = scr_vrect.x;
-		cl.refdef.y = scr_vrect.y;
-		cl.refdef.width = scr_vrect.width;
-		cl.refdef.height = scr_vrect.height;
-		cl.refdef.fov_y = CalcFov(cl.refdef.fov_x, (float)cl.refdef.width,
-					(float)cl.refdef.height);
 		cl.refdef.time = cl.time * 0.001f;
 
 		cl.refdef.areabits = cl.frame.areabits;
@@ -579,6 +573,13 @@ V_RenderView(float stereo_separation)
 				sizeof(cl.refdef.entities[0]), (int (*)(const void *, const void *))
 				entitycmpfnc);
 	}
+
+	cl.refdef.x = scr_vrect.x;
+	cl.refdef.y = scr_vrect.y;
+	cl.refdef.width = scr_vrect.width;
+	cl.refdef.height = scr_vrect.height;
+	cl.refdef.fov_y = CalcFov(cl.refdef.fov_x, (float)cl.refdef.width,
+				(float)cl.refdef.height);
 
 	R_RenderFrame(&cl.refdef);
 
