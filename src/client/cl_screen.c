@@ -1586,10 +1586,11 @@ SCR_GetHUDScale(void)
 	if (gl_hudscale->value < 0)
 	{
 		int i = viddef.width / 640;
+		int j = viddef.height / 240;
 
-		while (i > viddef.height / 240)
+		if (i > j)
 		{
-			i--;
+			i = j;
 		}
 		if (i < 1)
 		{
