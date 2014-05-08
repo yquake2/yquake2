@@ -1,6 +1,9 @@
 Quake II 5.22 to 5.23:
 - Provide gl_hudscale cvar that can be changed to
-  scale the HUD, for high resolutions etc (by caedes)
+  scale the HUD, for high resolutions etc. (by caedes)
+- Several menu improvements.
+- A better work around for the "the mouse cursor hits the
+  window border" SDL2 problem.
 
 Quake II 5.21 to 5.22:
 - Provide a fallback if SDL2s relative mouse mode
