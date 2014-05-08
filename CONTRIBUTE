@@ -4,7 +4,7 @@
                        *    http://github.com/yquake2   *
                        * ****************************** *
                                     
-								    TODO List
+                                    TODO List
 
 =============================================================================== 
 
@@ -50,7 +50,7 @@ Some hints:
 1. Port Yamagi Quake II to new unixoid platforms (for example DragonflyBSD, 
    NetBSD, Solaris, etc.)
 
-Difficulty: Medium
+Difficulty: Easy
 Knowledge: Good knowledge of the target platform
 
 Yamagi Quake II runs fine on Linux and FreeBSD. Due to it's very low hardware
@@ -62,7 +62,7 @@ Ports to new unixoid operating systems should be easy. In most cases only some
 
 2. Source code cleanup
 
-Difficulty: Hard
+Difficulty: Medium
 Knowledge: Good knowledge of the Yamagi Quake II source
 
 While the Yamagi Quake II source code was cleaned a few times there is still
@@ -72,20 +72,7 @@ can be done at one module (e.g. client, server, refresher, game, etc) at a time.
 
 =============================================================================== 
 
-3. Addon cleanup
-
-Difficulty: Medium
-Knowledge: How to debug hard to read code
-
-While the baseq2 game modul was cleaned up and made more robust by adding
-hundreds of sanity checks, both addons (xatrix and rogue) still require a lot
-of work. Go through the code, read it and understand it. Remove bugs, and add
-the missing sanity checks. Test (e.g. play) and add implement map quirks.
-Especially the coop-support of both addons is still fragile at best.
-
-=============================================================================== 
-
-4. Finish the port of Zaero
+3. Finish the port of Zaero
 
 Difficulty: Hard
 Knowledge: How to work with broken code
@@ -97,37 +84,3 @@ organization), clean it and debug it. Zaero will need some extensive
 testing, have fun while playing. :)
 
 =============================================================================== 
-
-5. Port Quake II to various consoles (especially the Nintendo Wii)
-
-Difficulty: Hard
-Knowledge: How to port games to the console, Knowledge of the platform
-           dependent parts of the Yamagi Quake II source
-
-Game consoles are popular and having Quake II on them is a often
-requested feature. Porting Yamagi Quake II to the XBOX 360 isn't
-necessary, since an official port (by id Software / Bethesda) was
-included in Quake IV for the XBOX 360. A port to the Playstation 3
-would be nice but most likely it's impossible due to the DRM. But
-a port to the Wii should be feasible and support for the several
-open source or alternative consoles straight forward.
-
-===============================================================================
-
-6. Add head tracking to Quake II
-
-Difficulty: Hard
-Knowledge: How to design APIs and integrate new paradigms into an old codebase
-
-Head tracking is becoming more and more popular. After the hype of early,
-homegrown solutions based on the Nintendo Wiimote and similar techniques
-professional build head tracking helmets start to emerge. One example is
-the community funded "Oculus Rift" helmet build by Oculus and supported by
-John Carmack, Cliff Bleszinski, Gabe Newell and other famous game industry 
-staff. The goal of this project is to implement Head Tracking into Yamagi
-Quake II. Due to the great number of competing head tracking solutions a
-generic frontend needs to be designed and integrated into the client. This
-frontend should be supported by a device dependent backend. For testing
-purposes at least one backend must be implemented.
-
-===============================================================================
