@@ -43,7 +43,7 @@ WITH_OGG:=yes
 # To use it your system needs libopenal.so.1
 # or openal32.dll (we recommend openal-soft)
 # installed
-WITH_OPENAL:=yes
+WITH_OPENAL:=no
 
 # Enables retexturing support. Adds
 # a dependency to libjpeg
@@ -190,7 +190,7 @@ endif
 
 # Extra CFLAGS for SDL
 ifeq ($(OSTYPE), Darwin)
-SDLCFLAGS :=
+SDLCFLAGS := 
 else # not darwin
 ifeq ($(WITH_SDL2),yes)
 ifeq ($(OSTYPE),Windows)
@@ -229,7 +229,7 @@ INCLUDE := -I/usr/local/include
 else ifeq ($(OSTYPE),OpenBSD)
 INCLUDE := -I/usr/local/include
 else ifeq ($(OSTYPE),Darwin)
-INCLUDE :=
+INCLUDE := -F$(HOME)/Library/Frameworks
 else ifeq ($(OSTYPE),Windows)
 INCLUDE := -I/custom/include
 endif
@@ -246,7 +246,7 @@ LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),Windows)
 LDFLAGS := -L/custom/lib -static -lws2_32 -lwinmm
 else ifeq ($(OSTYPE), Darwin)
-LDFLAGS := $(OSX_ARCH) -lm
+LDFLAGS := -F$(HOME)/Library/Frameworks $(OSX_ARCH) -lm
 endif
 
 # ----------
@@ -402,7 +402,7 @@ ifeq ($(OSTYPE), Darwin)
 build/client/%.o : %.m
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) $(OSX_ARCH) -x objective-c -c $< -o $@
+	${Q}$(CC) $(OSX_ARCH) $(SDLCFLAGS) $(INCLUDE) -x objective-c -c $< -o $@
 endif
 
 ifeq ($(WITH_CDA),yes)
@@ -422,7 +422,7 @@ ifeq ($(WITH_OPENAL),yes)
 ifeq ($(OSTYPE), OpenBSD)
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so"'
 else ifeq ($(OSTYPE), Darwin)
-release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"/System/Library/Frameworks/OpenAL.framework/OpenAL"'
+release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"$HOME/Library/Frameworks/OpenAL.framework/OpenAL"'
 release/quake2 : LDFLAGS += -framework OpenAL
 else
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
