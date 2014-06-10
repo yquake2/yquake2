@@ -31,6 +31,10 @@
 #include <ctype.h>
 #include <math.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>
 #else
