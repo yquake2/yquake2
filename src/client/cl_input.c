@@ -682,7 +682,8 @@ CL_SendCmd(void)
 		if (cls.netchan.message.cursize ||
 			(curtime - cls.netchan.last_sent > 100))
 		{
-			Netchan_Transmit(&cls.netchan, 0, buf.data);
+            byte zero_data = 0;
+			Netchan_Transmit(&cls.netchan, 0, &zero_data);
 		}
 
 		return;
