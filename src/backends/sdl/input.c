@@ -28,6 +28,7 @@
 #include "../../client/refresh/header/local.h"
 #include "../../client/header/keyboard.h"
 #include "../generic/header/input.h"
+#include "../../client/header/client.h"
 
 /* There's no sdl-config on OS X and Windows */
 #if defined(_WIN32) || defined(__APPLE__)
@@ -407,8 +408,10 @@ IN_Update(void)
 					SDL_WarpMouseInWindow(NULL, center_x, center_y);
 				}
 #endif
-				mouse_x += event.motion.xrel;
-				mouse_y += event.motion.yrel;
+                if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
+                    mouse_x += event.motion.xrel;
+                    mouse_y += event.motion.yrel;
+                }
 				break;
 
 				/* The user pressed a button */
