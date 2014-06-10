@@ -1050,10 +1050,7 @@ R_FindImage(char *name, imagetype_t type)
 	int width, height;
 	char *ptr;
 	char namewe[256];
-
-#ifdef RETEXTURE
 	int realwidth = 0, realheight = 0;
-#endif
 
 	if (!name)
 	{
@@ -1202,14 +1199,33 @@ R_FindImage(char *name, imagetype_t type)
 			}
 		}
 	}
-
-#ifdef RETEXTURE
 	else if (!strcmp(name + len - 4, ".tga"))
 	{
+        char tmp_name[256];
+
+        realwidth = 0;
+        realheight = 0;
+
+        strcpy(tmp_name, namewe);
+        strcat(tmp_name, ".wal");
+        GetWalInfo(tmp_name, &realwidth, &realheight);
+
+        if (realwidth == 0 || realheight == 0) {
+            /* It's a sky. */
+            strcpy(tmp_name, namewe);
+            strcat(tmp_name, ".pcx");
+            GetPCXInfo(tmp_name, &realwidth, &realheight);
+        }
+
+        if (realwidth == 0 || realheight == 0)
+            return NULL;
+
 		LoadTGA(name, &pic, &width, &height);
 		image = R_LoadPic(name, pic, width, realwidth,
-				height, realwidth, type, 32);
+				height, realheight, type, 32);
 	}
+
+#ifdef RETEXTURE
 	else if (!strcmp(name + len - 4, ".jpg"))
 	{
 		LoadJPG(name, &pic, &width, &height);
