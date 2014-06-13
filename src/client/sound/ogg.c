@@ -31,7 +31,9 @@
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
 
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
 #include <errno.h>
 #include <vorbis/vorbisfile.h>
 
