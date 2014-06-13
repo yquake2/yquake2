@@ -84,14 +84,14 @@ cvar_t *vid_fullscreen;
 static cvar_t *in_grab;
 static cvar_t *in_mouse;
 static cvar_t *exponential_speedup;
-static cvar_t *freelook;
-static cvar_t *lookstrafe;
-static cvar_t *m_forward;
+cvar_t *freelook;
+cvar_t *lookstrafe;
+cvar_t *m_forward;
 static cvar_t *m_filter;
-static cvar_t *m_pitch;
-static cvar_t *m_side;
-static cvar_t *m_yaw;
-static cvar_t *sensitivity;
+cvar_t *m_pitch;
+cvar_t *m_side;
+cvar_t *m_yaw;
+cvar_t *sensitivity;
 static cvar_t *windowed_mouse;
 
 /* ------------------------------------------------------------------ */
