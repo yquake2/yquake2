@@ -90,16 +90,29 @@ Draw_CharScaled(int x, int y, int num, float scale)
 
 	R_Bind(draw_chars->texnum);
 
-	glBegin(GL_QUADS);
-	glTexCoord2f(fcol, frow);
-	glVertex2f(x, y);
-	glTexCoord2f(fcol + size, frow);
-	glVertex2f(x + scaledSize, y);
-	glTexCoord2f(fcol + size, frow + size);
-	glVertex2f(x + scaledSize, y + scaledSize);
-	glTexCoord2f(fcol, frow + size);
-	glVertex2f(x, y + scaledSize);
-	glEnd();
+	GLfloat vtx[] = {
+		x, y,
+		x + scaledSize, y,
+		x + scaledSize, y + scaledSize,
+		x, y + scaledSize
+	};
+
+	GLfloat tex[] = {
+		fcol, frow,
+		fcol + size, frow,
+		fcol + size, frow + size,
+		fcol, frow + size
+	};
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glVertexPointer( 2, GL_FLOAT, 0, vtx );
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 }
 
 image_t *
@@ -157,16 +170,30 @@ Draw_StretchPic(int x, int y, int w, int h, char *pic)
 	}
 
 	R_Bind(gl->texnum);
-	glBegin(GL_QUADS);
-	glTexCoord2f(gl->sl, gl->tl);
-	glVertex2f(x, y);
-	glTexCoord2f(gl->sh, gl->tl);
-	glVertex2f(x + w, y);
-	glTexCoord2f(gl->sh, gl->th);
-	glVertex2f(x + w, y + h);
-	glTexCoord2f(gl->sl, gl->th);
-	glVertex2f(x, y + h);
-	glEnd();
+
+	GLfloat vtx[] = {
+		x, y,
+		x + w, y,
+		x + w, y + h,
+		x, y + h
+	};
+
+	GLfloat tex[] = {
+		gl->sl, gl->tl,
+		gl->sh, gl->tl,
+		gl->sh, gl->th,
+		gl->sl, gl->th
+	};
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glVertexPointer( 2, GL_FLOAT, 0, vtx );
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 }
 
 void
@@ -193,20 +220,31 @@ Draw_PicScaled(int x, int y, char *pic, float factor)
 		Scrap_Upload();
 	}
 
-	GLfloat w = gl->width*factor;
-	GLfloat h = gl->height*factor;
-
 	R_Bind(gl->texnum);
-	glBegin(GL_QUADS);
-	glTexCoord2f(gl->sl, gl->tl);
-	glVertex2f(x, y);
-	glTexCoord2f(gl->sh, gl->tl);
-	glVertex2f(x + w, y);
-	glTexCoord2f(gl->sh, gl->th);
-	glVertex2f(x + w, y + h);
-	glTexCoord2f(gl->sl, gl->th);
-	glVertex2f(x, y + h);
-	glEnd();
+
+	GLfloat vtx[] = {
+		x, y,
+		x + gl->width * factor, y,
+		x + gl->width * factor, y + gl->height * factor,
+		x, y + gl->height * factor
+	};
+
+	GLfloat tex[] = {
+		gl->sl, gl->tl,
+		gl->sh, gl->tl,
+		gl->sh, gl->th,
+		gl->sl, gl->th
+	};
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glVertexPointer( 2, GL_FLOAT, 0, vtx );
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 }
 
 /*
@@ -228,16 +266,30 @@ Draw_TileClear(int x, int y, int w, int h, char *pic)
 	}
 
 	R_Bind(image->texnum);
-	glBegin(GL_QUADS);
-	glTexCoord2f(x / 64.0, y / 64.0);
-	glVertex2f(x, y);
-	glTexCoord2f((x + w) / 64.0, y / 64.0);
-	glVertex2f(x + w, y);
-	glTexCoord2f((x + w) / 64.0, (y + h) / 64.0);
-	glVertex2f(x + w, y + h);
-	glTexCoord2f(x / 64.0, (y + h) / 64.0);
-	glVertex2f(x, y + h);
-	glEnd();
+
+	GLfloat vtx[] = {
+		x, y,
+		x + w, y,
+		x + w, y + h,
+		x, y + h
+	};
+
+	GLfloat tex[] = {
+		x / 64.0, y / 64.0,
+		( x + w ) / 64.0, y / 64.0,
+		( x + w ) / 64.0, ( y + h ) / 64.0,
+		x / 64.0, ( y + h ) / 64.0
+	};
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glVertexPointer( 2, GL_FLOAT, 0, vtx );
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 }
 
 /*
@@ -260,17 +312,24 @@ Draw_Fill(int x, int y, int w, int h, int c)
 	glDisable(GL_TEXTURE_2D);
 
 	color.c = d_8to24table[c];
-	glColor4f(color.v[0] / 255.0, color.v[1] / 255.0, color.v[2] / 255.0, 1);
+	glColor4f(color.v [ 0 ] / 255.0, color.v [ 1 ] / 255.0,
+			   color.v [ 2 ] / 255.0, 1);
 
-	glBegin(GL_QUADS);
+	GLfloat vtx[] = {
+		x, y,
+		x + w, y,
+		x + w, y + h,
+		x, y + h
+	};
 
-	glVertex2f(x, y);
-	glVertex2f(x + w, y);
-	glVertex2f(x + w, y + h);
-	glVertex2f(x, y + h);
+	glEnableClientState( GL_VERTEX_ARRAY );
 
-	glEnd();
-	glColor4f(1, 1, 1, 1);
+	glVertexPointer( 2, GL_FLOAT, 0, vtx );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+
+	glColor4f( 1, 1, 1, 1 );
 	glEnable(GL_TEXTURE_2D);
 }
 
@@ -280,14 +339,21 @@ Draw_FadeScreen(void)
 	glEnable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
 	glColor4f(0, 0, 0, 0.8);
-	glBegin(GL_QUADS);
 
-	glVertex2f(0, 0);
-	glVertex2f(vid.width, 0);
-	glVertex2f(vid.width, vid.height);
-	glVertex2f(0, vid.height);
+	GLfloat vtx[] = {
+		0, 0,
+		vid.width, 0,
+		vid.width, vid.height,
+		0, vid.height
+	};
 
-	glEnd();
+	glEnableClientState( GL_VERTEX_ARRAY );
+
+	glVertexPointer( 2, GL_FLOAT, 0, vtx );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+
 	glColor4f(1, 1, 1, 1);
 	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
@@ -374,29 +440,36 @@ Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 			}
 		}
 
-		glTexImage2D(GL_TEXTURE_2D,
-				0,
-				GL_COLOR_INDEX8_EXT,
-				256, 256,
-				0,
-				GL_COLOR_INDEX,
-				GL_UNSIGNED_BYTE,
-				image8);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT, 256, 256,
+				0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, image8);
 	}
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glBegin(GL_QUADS);
-	glTexCoord2f(1.0 / 512.0, 1.0 / 512.0);
-	glVertex2f(x, y);
-	glTexCoord2f(511.0 / 512.0, 1.0 / 512.0);
-	glVertex2f(x + w, y);
-	glTexCoord2f(511.0 / 512.0, t);
-	glVertex2f(x + w, y + h);
-	glTexCoord2f(1.0 / 512.0, t);
-	glVertex2f(x, y + h);
-	glEnd();
+	GLfloat vtx[] = {
+		x, y,
+		x + w, y,
+		x + w, y + h,
+		x, y + h
+	};
+
+	GLfloat tex[] = {
+		1.0 / 512.0, 1.0 / 512.0,
+		511.0 / 512.0, 1.0 / 512.0,
+		511.0 / 512.0, t,
+		1.0 / 512.0, t
+	};
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glVertexPointer( 2, GL_FLOAT, 0, vtx );
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 }
 
 int

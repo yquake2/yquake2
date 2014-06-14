@@ -198,7 +198,6 @@ R_SetDefaultState(void)
 	glDisable(GL_BLEND);
 
 	glColor4f(1, 1, 1, 1);
-
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glShadeModel(GL_FLAT);
 

@@ -185,7 +185,7 @@ void
 R_DrawSpriteModel(entity_t *e)
 {
 	float alpha = 1.0F;
-	vec3_t point;
+    vec3_t point[4];
 	dsprframe_t *frame;
 	float *up, *right;
 	dsprite_t *psprite;
@@ -226,29 +226,34 @@ R_DrawSpriteModel(entity_t *e)
 		glDisable(GL_ALPHA_TEST);
 	}
 
-	glBegin(GL_QUADS);
+	GLfloat tex[] = {
+		0, 1,
+		0, 0,
+		1, 0,
+		1, 1
+	};
 
-	glTexCoord2f(0, 1);
-	VectorMA(e->origin, -frame->origin_y, up, point);
-	VectorMA(point, -frame->origin_x, right, point);
-	glVertex3fv(point);
+	VectorMA( e->origin, -frame->origin_y, up, point[0] );
+	VectorMA( point[0], -frame->origin_x, right, point[0] );
 
-	glTexCoord2f(0, 0);
-	VectorMA(e->origin, frame->height - frame->origin_y, up, point);
-	VectorMA(point, -frame->origin_x, right, point);
-	glVertex3fv(point);
+	VectorMA( e->origin, frame->height - frame->origin_y, up, point[1] );
+	VectorMA( point[1], -frame->origin_x, right, point[1] );
 
-	glTexCoord2f(1, 0);
-	VectorMA(e->origin, frame->height - frame->origin_y, up, point);
-	VectorMA(point, frame->width - frame->origin_x, right, point);
-	glVertex3fv(point);
+	VectorMA( e->origin, frame->height - frame->origin_y, up, point[2] );
+	VectorMA( point[2], frame->width - frame->origin_x, right, point[2] );
 
-	glTexCoord2f(1, 1);
-	VectorMA(e->origin, -frame->origin_y, up, point);
-	VectorMA(point, frame->width - frame->origin_x, right, point);
-	glVertex3fv(point);
+	VectorMA( e->origin, -frame->origin_y, up, point[3] );
+	VectorMA( point[3], frame->width - frame->origin_x, right, point[3] );
 
-	glEnd();
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glVertexPointer( 3, GL_FLOAT, 0, point );
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 
 	glDisable(GL_ALPHA_TEST);
 	R_TexEnv(GL_REPLACE);
@@ -265,7 +270,6 @@ void
 R_DrawNullModel(void)
 {
 	vec3_t shadelight;
-	int i;
 
 	if (currententity->flags & RF_FULLBRIGHT)
 	{
@@ -282,25 +286,37 @@ R_DrawNullModel(void)
 	glDisable(GL_TEXTURE_2D);
 	glColor4f( shadelight[0], shadelight[1], shadelight[2], 1 );
 
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3f(0, 0, -16);
+    GLfloat vtxA[] = {
+        0, 0, -16,
+        16 * cos( 0 * M_PI / 2 ), 16 * sin( 0 * M_PI / 2 ), 0,
+        16 * cos( 1 * M_PI / 2 ), 16 * sin( 1 * M_PI / 2 ), 0,
+        16 * cos( 2 * M_PI / 2 ), 16 * sin( 2 * M_PI / 2 ), 0,
+        16 * cos( 3 * M_PI / 2 ), 16 * sin( 3 * M_PI / 2 ), 0,
+        16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0
+    };
 
-	for (i = 0; i <= 4; i++)
-	{
-		glVertex3f(16 * cos(i * M_PI / 2), 16 * sin(i * M_PI / 2), 0);
-	}
+    glEnableClientState( GL_VERTEX_ARRAY );
 
-	glEnd();
+    glVertexPointer( 3, GL_FLOAT, 0, vtxA );
+    glDrawArrays( GL_TRIANGLE_FAN, 0, 6 );
 
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3f(0, 0, 16);
+    glDisableClientState( GL_VERTEX_ARRAY );
 
-	for (i = 4; i >= 0; i--)
-	{
-		glVertex3f(16 * cos(i * M_PI / 2), 16 * sin(i * M_PI / 2), 0);
-	}
+	GLfloat vtxB[] = {
+		0, 0, 16,
+		16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0,
+		16 * cos( 3 * M_PI / 2 ), 16 * sin( 3 * M_PI / 2 ), 0,
+		16 * cos( 2 * M_PI / 2 ), 16 * sin( 2 * M_PI / 2 ), 0,
+		16 * cos( 1 * M_PI / 2 ), 16 * sin( 1 * M_PI / 2 ), 0,
+		16 * cos( 0 * M_PI / 2 ), 16 * sin( 0 * M_PI / 2 ), 0
+	};
 
-	glEnd();
+	glEnableClientState( GL_VERTEX_ARRAY );
+
+	glVertexPointer( 3, GL_FLOAT, 0, vtxB );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 6 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
 
 	glColor4f(1, 1, 1, 1);
 	glPopMatrix();
@@ -417,24 +433,31 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	vec3_t up, right;
 	float scale;
 	byte color[4];
-
+ 
+	GLfloat vtx[3*num_particles*3];
+	GLfloat tex[2*num_particles*3];
+	GLfloat clr[4*num_particles*3];
+	unsigned int index_vtx = 0;
+	unsigned int index_tex = 0;
+	unsigned int index_clr = 0;
+	unsigned int j;
+ 
 	R_Bind(r_particletexture->texnum);
 	glDepthMask(GL_FALSE); /* no z buffering */
 	glEnable(GL_BLEND);
 	R_TexEnv(GL_MODULATE);
-	glBegin(GL_TRIANGLES);
 
-	VectorScale(vup, 1.5, up);
-	VectorScale(vright, 1.5, right);
+	VectorScale( vup, 1.5, up );
+	VectorScale( vright, 1.5, right );
 
-	for (p = particles, i = 0; i < num_particles; i++, p++)
+	for ( p = particles, i = 0; i < num_particles; i++, p++ )
 	{
 		/* hack a scale up to keep particles from disapearing */
-		scale = (p->origin[0] - r_origin[0]) * vpn[0] +
-				(p->origin[1] - r_origin[1]) * vpn[1] +
-				(p->origin[2] - r_origin[2]) * vpn[2];
+		scale = ( p->origin [ 0 ] - r_origin [ 0 ] ) * vpn [ 0 ] +
+			( p->origin [ 1 ] - r_origin [ 1 ] ) * vpn [ 1 ] +
+			( p->origin [ 2 ] - r_origin [ 2 ] ) * vpn [ 2 ];
 
-		if (scale < 20)
+		if ( scale < 20 )
 		{
 			scale = 1;
 		}
@@ -443,26 +466,54 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 			scale = 1 + scale * 0.004;
 		}
 
-		*(int *)color = colortable[p->color];
-		color[3] = p->alpha * 255;
+		*(int *) color = colortable [ p->color ];
 
-		glColor4ubv(color);
+		for (j=0; j<3; j++) // Copy the color for each point
+		{
+			clr[index_clr++] = color[0]/255.0f;
+			clr[index_clr++] = color[1]/255.0f;
+			clr[index_clr++] = color[2]/255.0f;
+			clr[index_clr++] = p->alpha;
+		}
 
-		glTexCoord2f(0.0625, 0.0625);
-		glVertex3fv(p->origin);
+		// point 0
+		tex[index_tex++] = 0.0625f;
+		tex[index_tex++] = 0.0625f;
 
-		glTexCoord2f(1.0625, 0.0625);
-		glVertex3f(p->origin[0] + up[0] * scale,
-				p->origin[1] + up[1] * scale,
-				p->origin[2] + up[2] * scale);
+		vtx[index_vtx++] = p->origin[0];
+		vtx[index_vtx++] = p->origin[1];
+		vtx[index_vtx++] = p->origin[2];
 
-		glTexCoord2f(0.0625, 1.0625);
-		glVertex3f(p->origin[0] + right[0] * scale,
-				p->origin[1] + right[1] * scale,
-				p->origin[2] + right[2] * scale);
+		// point 1
+		tex[index_tex++] = 1.0625f;
+		tex[index_tex++] = 0.0625f;
+
+		vtx[index_vtx++] = p->origin [ 0 ] + up [ 0 ] * scale;
+		vtx[index_vtx++] = p->origin [ 1 ] + up [ 1 ] * scale;
+		vtx[index_vtx++] = p->origin [ 2 ] + up [ 2 ] * scale;
+
+		// point 2
+		tex[index_tex++] = 0.0625f;
+		tex[index_tex++] = 1.0625f;
+
+		vtx[index_vtx++] = p->origin [ 0 ] + right [ 0 ] * scale;
+		vtx[index_vtx++] = p->origin [ 1 ] + right [ 1 ] * scale;
+		vtx[index_vtx++] = p->origin [ 2 ] + right [ 2 ] * scale;
 	}
 
-	glEnd();
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+	glEnableClientState( GL_COLOR_ARRAY );
+
+	glVertexPointer( 3, GL_FLOAT, 0, vtx );
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
+	glColorPointer( 4, GL_FLOAT, 0, clr );
+	glDrawArrays( GL_TRIANGLES, 0, num_particles*3 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	glDisableClientState( GL_COLOR_ARRAY );
+ 
 	glDisable(GL_BLEND);
 	glColor4f(1, 1, 1, 1);
 	glDepthMask(1); /* back to normal Z buffering */
@@ -480,29 +531,43 @@ R_DrawParticles(void)
 		int i;
 		unsigned char color[4];
 		const particle_t *p;
-
+ 
+		GLfloat vtx[3*r_newrefdef.num_particles];
+		GLfloat clr[4*r_newrefdef.num_particles];
+		unsigned int index_vtx = 0;
+		unsigned int index_clr = 0;
+  
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
 		glDisable(GL_TEXTURE_2D);
 
 		glPointSize(LittleFloat(gl_particle_size->value));
 
-		glBegin(GL_POINTS);
-
-		for (i = 0, p = r_newrefdef.particles;
-			 i < r_newrefdef.num_particles;
-			 i++, p++)
+		for ( i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++ )
 		{
-			*(int *)color = d_8to24table[p->color & 0xFF];
-			color[3] = p->alpha * 255;
-			glColor4ubv(color);
-			glVertex3fv(p->origin);
+			*(int *) color = d_8to24table [ p->color & 0xFF ];
+			clr[index_clr++] = color[0]/255.0f;
+			clr[index_clr++] = color[1]/255.0f;
+			clr[index_clr++] = color[2]/255.0f;
+			clr[index_clr++] = p->alpha;
+
+			vtx[index_vtx++] = p->origin[0];
+			vtx[index_vtx++] = p->origin[1];
+			vtx[index_vtx++] = p->origin[2];
 		}
 
-		glEnd();
+		glEnableClientState( GL_VERTEX_ARRAY );
+		glEnableClientState( GL_COLOR_ARRAY );
+
+		glVertexPointer( 3, GL_FLOAT, 0, vtx );
+		glColorPointer( 4, GL_FLOAT, 0, clr );
+		glDrawArrays( GL_POINTS, 0, r_newrefdef.num_particles );
+
+		glDisableClientState( GL_VERTEX_ARRAY );
+		glDisableClientState( GL_COLOR_ARRAY );
 
 		glDisable(GL_BLEND);
-		glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+		glColor4f( 1, 1, 1, 1 );
 		glDepthMask(GL_TRUE);
 		glEnable(GL_TEXTURE_2D);
 	}
@@ -536,15 +601,21 @@ R_PolyBlend(void)
 	glRotatef(-90, 1, 0, 0); /* put Z going up */
 	glRotatef(90, 0, 0, 1); /* put Z going up */
 
-	glColor4f(v_blend[0], v_blend[1], v_blend[2], v_blend[3]);
+	glColor4f( v_blend[0], v_blend[1], v_blend[2], v_blend[3] );
 
-	glBegin(GL_QUADS);
+	GLfloat vtx[] = {
+		10, 100, 100,
+		10, -100, 100,
+		10, -100, -100,
+		10, 100, -100
+	};
 
-	glVertex3f(10, 100, 100);
-	glVertex3f(10, -100, 100);
-	glVertex3f(10, -100, -100);
-	glVertex3f(10, 100, -100);
-	glEnd();
+	glEnableClientState( GL_VERTEX_ARRAY );
+
+	glVertexPointer( 3, GL_FLOAT, 0, vtx );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
 
 	glDisable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
@@ -1182,7 +1253,6 @@ R_Register(void)
 	gl_anisotropic = Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
 	gl_anisotropic_avail = Cvar_Get("gl_anisotropic_avail", "0", 0);
 	gl_lockpvs = Cvar_Get("gl_lockpvs", "0", 0);
-
 	gl_vertex_arrays = Cvar_Get("gl_vertex_arrays", "0", CVAR_ARCHIVE);
 
 	gl_ext_swapinterval = Cvar_Get("gl_ext_swapinterval", "1", CVAR_ARCHIVE);
@@ -1686,7 +1756,11 @@ R_DrawBeam(entity_t *e)
 	vec3_t direction, normalized_direction;
 	vec3_t start_points[NUM_BEAM_SEGS], end_points[NUM_BEAM_SEGS];
 	vec3_t oldorigin, origin;
-
+ 
+	GLfloat vtx[3*NUM_BEAM_SEGS*4];
+	unsigned int index_vtx = 0;
+	unsigned int pointb;
+ 
 	oldorigin[0] = e->oldorigin[0];
 	oldorigin[1] = e->oldorigin[1];
 	oldorigin[2] = e->oldorigin[2];
@@ -1729,27 +1803,35 @@ R_DrawBeam(entity_t *e)
 
 	glColor4f(r, g, b, e->alpha);
 
-	glBegin(GL_TRIANGLE_STRIP);
-
-	for (i = 0; i < NUM_BEAM_SEGS; i++)
+	for ( i = 0; i < NUM_BEAM_SEGS; i++ )
 	{
-		glVertex3fv(start_points[i]);
-		glVertex3fv(end_points[i]);
-		glVertex3fv(start_points[(i + 1) % NUM_BEAM_SEGS]);
-		glVertex3fv(end_points[(i + 1) % NUM_BEAM_SEGS]);
+		vtx[index_vtx++] = start_points [ i ][ 0 ];
+		vtx[index_vtx++] = start_points [ i ][ 1 ];
+		vtx[index_vtx++] = start_points [ i ][ 2 ];
+
+		vtx[index_vtx++] = end_points [ i ][ 0 ];
+		vtx[index_vtx++] = end_points [ i ][ 1 ];
+		vtx[index_vtx++] = end_points [ i ][ 2 ];
+
+		pointb = ( i + 1 ) % NUM_BEAM_SEGS;
+		vtx[index_vtx++] = start_points [ pointb ][ 0 ];
+		vtx[index_vtx++] = start_points [ pointb ][ 1 ];
+		vtx[index_vtx++] = start_points [ pointb ][ 2 ];
+
+		vtx[index_vtx++] = end_points [ pointb ][ 0 ];
+		vtx[index_vtx++] = end_points [ pointb ][ 1 ];
+		vtx[index_vtx++] = end_points [ pointb ][ 2 ];
 	}
 
-	glEnd();
+	glEnableClientState( GL_VERTEX_ARRAY );
+
+	glVertexPointer( 3, GL_FLOAT, 0, vtx );
+	glDrawArrays( GL_TRIANGLE_STRIP, 0, NUM_BEAM_SEGS*4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
 
 	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
 }
-
-/*void
-R_GetRefAPI(void)
-{
-	Swap_Init();
-}*/
-
 
