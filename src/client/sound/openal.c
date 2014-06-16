@@ -530,6 +530,49 @@ AL_UnqueueRawSamples()
 	AL_StreamDie();
 }
 
+void oal_update_underwater()
+{
+    int i;
+    float gain_hf;
+    qboolean update = false;
+    ALuint filter;
+
+    if (underwaterFilter == 0)
+        return;
+
+    if (s_underwater->modified) {
+        update = true;
+        s_underwater->modified = false;
+        snd_is_underwater_enabled = ((int)s_underwater->value != 0);
+    }
+
+    if (s_underwater_gain_hf->modified) {
+        update = true;
+        s_underwater_gain_hf->modified = false;
+    }
+
+    if (!update)
+        return;
+
+    gain_hf = s_underwater_gain_hf->value;
+
+    if (gain_hf < AL_LOWPASS_MIN_GAINHF)
+        gain_hf = AL_LOWPASS_MIN_GAINHF;
+
+    if (gain_hf > AL_LOWPASS_MAX_GAINHF)
+        gain_hf = AL_LOWPASS_MAX_GAINHF;
+
+    qalFilterf(underwaterFilter, AL_LOWPASS_GAINHF, gain_hf);
+
+    if (snd_is_underwater_enabled && snd_is_underwater)
+        filter = underwaterFilter;
+    else
+        filter = 0;
+
+    for (i = 0; i < s_numchannels; ++i)
+        qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, filter);
+}
+
 /*
  * Main update function. Called every frame,
  * performes all necessary calculations.
@@ -606,6 +649,8 @@ AL_Update(void)
 
 	AL_StreamUpdate();
 	AL_IssuePlaysounds();
+
+    oal_update_underwater();
 }
 
 /* ----------------------------------------------------------------- */
@@ -707,9 +752,10 @@ AL_InitUnderwaterFilter()
 		return;
 	}
 
-	/* The effect */
-	qalFilterf(underwaterFilter, AL_LOWPASS_GAIN, 1.5);
-	qalFilterf(underwaterFilter, AL_LOWPASS_GAINHF, 0.25);
+    qalFilterf(underwaterFilter, AL_LOWPASS_GAIN, AL_LOWPASS_DEFAULT_GAIN);
+
+    s_underwater->modified = true;
+    s_underwater_gain_hf->modified = true;
 #endif
 }
 
