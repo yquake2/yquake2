@@ -26,6 +26,7 @@
  */
 
 #include "header/common.h"
+#include "../client/sound/header/local.h"
 
 #if !defined(DEDICATED_ONLY) && defined(USE_OPENAL)
 void AL_Underwater();
@@ -1270,7 +1271,7 @@ PM_ClampAngles(void)
 void
 Pmove(pmove_t *pmove)
 {
-#if !defined(DEDICATED_ONLY) && defined(USE_OPENAL)
+#if !defined(DEDICATED_ONLY)
 	static int underwater;
 #endif
 
@@ -1414,17 +1415,25 @@ Pmove(pmove_t *pmove)
 	/* set groundentity, watertype, and waterlevel for final spot */
 	PM_CatagorizePosition();
 
-#if !defined(DEDICATED_ONLY) && defined(USE_OPENAL)
+#if !defined(DEDICATED_ONLY)
 	if ((pm->waterlevel == 3) && !underwater)
 	{
 		underwater = 1;
-		AL_Underwater();
+        snd_is_underwater = 1;
+#ifdef USE_OPENAL
+        if (snd_is_underwater_enabled)
+            AL_Underwater();
+#endif
 	}
 
 	if (((pm->waterlevel < 3) && underwater))
 	{
 		underwater = 0;
-		AL_Overwater();
+        snd_is_underwater = 0;
+#ifdef USE_OPENAL
+        if (snd_is_underwater_enabled)
+            AL_Overwater();
+#endif
 	}
 #endif
 
