@@ -530,8 +530,13 @@ the most common questions are answered.
   followd by a vid_restart. Please note that very old graphic cards may not
   support antialiasing at all.
 
-- If you want to scale the HUD (e.g. for high resoltutions), set the
-  gl_hudscale cvar to a value > 1 (2.0 works well).
+- If you want to scale the HUD (e.g. for high resolutions), set the
+  gl_hudscale cvar to -1. To specify the scale factor by hand, set the
+  cvar to a value > 0.
+
+- If you want to scale the console (e.g. for high resolutions), set the
+  gl_consolescale cvar to -1. To specify the scale factor by hand, set the
+  cvar to a value > 0.
 
 5.2 Input
 ---------

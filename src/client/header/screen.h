@@ -68,5 +68,6 @@ void SCR_FinishCinematic(void);
 void SCR_DrawCrosshair(void);
 
 float SCR_GetHUDScale(void);
+float SCR_GetConsoleScale(void);
 
 #endif

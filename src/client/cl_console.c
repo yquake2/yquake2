@@ -487,7 +487,7 @@ Con_DrawInput(void)
 		return;
 	}
 
-	scale = SCR_GetHUDScale();
+	scale = SCR_GetConsoleScale();
 	text = key_lines[edit_line];
 
 	/* add the cursor frame */
@@ -529,7 +529,7 @@ Con_DrawNotify(void)
 	float scale;
 
 	v = 0;
-	scale = SCR_GetHUDScale();
+	scale = SCR_GetConsoleScale();
 
 	for (i = con.current - NUM_CON_TIMES + 1; i <= con.current; i++)
 	{
@@ -621,7 +621,7 @@ Con_DrawConsole(float frac)
 	time_t t;
 	struct tm *today;
 
-	scale = SCR_GetHUDScale();
+	scale = SCR_GetConsoleScale();
 	lines = viddef.height * frac;
 
 	if (lines <= 0)
