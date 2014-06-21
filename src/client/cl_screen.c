@@ -250,21 +250,23 @@ SCR_DrawCenterString(void)
 	int j;
 	int x, y;
 	int remaining;
+	float scale;
 
 	/* the finale prints the characters one at a time */
 	remaining = 9999;
 
 	scr_erase_center = 0;
 	start = scr_centerstring;
+	scale = SCR_GetHUDScale();
 
 	if (scr_center_lines <= 4)
 	{
-		y = viddef.height * 0.35;
+		y = (viddef.height * 0.35) / scale;
 	}
 
 	else
 	{
-		y = 48;
+		y = 48 / scale;
 	}
 
 	do
@@ -278,12 +280,12 @@ SCR_DrawCenterString(void)
 			}
 		}
 
-		x = (viddef.width - l * 8) / 2;
+		x = ((viddef.width - l * 8) / 2) / scale;
 		SCR_AddDirtyPoint(x, y);
 
 		for (j = 0; j < l; j++, x += 8)
 		{
-			Draw_Char(x, y, start[j]);
+			Draw_CharScaled(x * scale, y * scale, start[j], scale);
 
 			if (!remaining--)
 			{

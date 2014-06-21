@@ -473,6 +473,7 @@ void
 Con_DrawInput(void)
 {
 	int i;
+	float scale;
 	char *text;
 
 	if (cls.key_dest == key_menu)
@@ -486,6 +487,7 @@ Con_DrawInput(void)
 		return;
 	}
 
+	scale = SCR_GetHUDScale();
 	text = key_lines[edit_line];
 
 	/* add the cursor frame */
@@ -505,7 +507,7 @@ Con_DrawInput(void)
 
 	for (i = 0; i < con.linewidth; i++)
 	{
-		Draw_Char((i + 1) << 3, con.vislines - 22, text[i]);
+		Draw_CharScaled(((i + 1) << 3) * scale, con.vislines - 22 * scale, text[i], scale);
 	}
 
 	/* remove cursor */
@@ -524,8 +526,10 @@ Con_DrawNotify(void)
 	int time;
 	char *s;
 	int skip;
+	float scale;
 
 	v = 0;
+	scale = SCR_GetHUDScale();
 
 	for (i = con.current - NUM_CON_TIMES + 1; i <= con.current; i++)
 	{
@@ -552,7 +556,7 @@ Con_DrawNotify(void)
 
 		for (x = 0; x < con.linewidth; x++)
 		{
-			Draw_Char((x + 1) << 3, v, text[x]);
+			Draw_CharScaled(((x + 1) << 3) * scale, v * scale, text[x], scale);
 		}
 
 		v += 8;
@@ -562,12 +566,12 @@ Con_DrawNotify(void)
 	{
 		if (chat_team)
 		{
-			DrawString(8, v, "say_team:");
+			DrawStringScaled(8 * scale, v * scale, "say_team:", scale);
 			skip = 11;
 		}
 		else
 		{
-			DrawString(8, v, "say:");
+			DrawStringScaled(8 * scale, v * scale, "say:", scale);
 			skip = 5;
 		}
 
@@ -582,11 +586,11 @@ Con_DrawNotify(void)
 
 		while (s[x])
 		{
-			Draw_Char((x + skip) << 3, v, s[x]);
+			Draw_CharScaled(((x + skip) << 3) * scale, v * scale, s[x], scale);
 			x++;
 		}
 
-		Draw_Char((x + skip) << 3, v, 10 + ((cls.realtime >> 8) & 1));
+		Draw_CharScaled(((x + skip) << 3) * scale, v + scale, 10 + ((cls.realtime >> 8) & 1), scale);
 		v += 8;
 	}
 
@@ -608,6 +612,7 @@ Con_DrawConsole(float frac)
 	char *text;
 	int row;
 	int lines;
+	float scale;
 	char version[48];
 	char dlbar[1024];
 	char timebuf[48];
@@ -616,6 +621,7 @@ Con_DrawConsole(float frac)
 	time_t t;
 	struct tm *today;
 
+	scale = SCR_GetHUDScale();
 	lines = viddef.height * frac;
 
 	if (lines <= 0)
@@ -638,7 +644,7 @@ Con_DrawConsole(float frac)
 
 	for (x = 0; x < 21; x++)
 	{
-		Draw_Char(viddef.width - 173 + x * 8, lines - 35, 128 + version[x]);
+		Draw_CharScaled(viddef.width - (173 * scale) + x * 8 * scale, lines - 35 * scale, 128 + version[x], scale);
 	}
 
 	t = time(NULL);
@@ -649,15 +655,14 @@ Con_DrawConsole(float frac)
 
 	for (x = 0; x < 21; x++)
 	{
-		Draw_Char(viddef.width - 173 + x * 8, lines - 25, 128 + tmpbuf[x]);
+		Draw_CharScaled(viddef.width - (173 * scale) + x * 8 * scale, lines - 25 * scale, 128 + tmpbuf[x], scale);
 	}
 
 	/* draw the text */
 	con.vislines = lines;
 
 	rows = (lines - 22) >> 3; /* rows of text to draw */
-
-	y = lines - 30;
+	y = (lines - 30 * scale) / scale;
 
 	/* draw from the bottom up */
 	if (con.display != con.current)
@@ -665,7 +670,7 @@ Con_DrawConsole(float frac)
 		/* draw arrows to show the buffer is backscrolled */
 		for (x = 0; x < con.linewidth; x += 4)
 		{
-			Draw_Char((x + 1) << 3, y, '^');
+			Draw_CharScaled(((x + 1) << 3) * scale, y * scale, '^', scale);
 		}
 
 		y -= 8;
@@ -690,7 +695,7 @@ Con_DrawConsole(float frac)
 
 		for (x = 0; x < con.linewidth; x++)
 		{
-			Draw_Char((x + 1) << 3, y, text[x]);
+			Draw_CharScaled(((x + 1) << 3) * scale, y * scale, text[x], scale);
 		}
 	}
 
@@ -761,7 +766,7 @@ Con_DrawConsole(float frac)
 
 		for (i = 0; i < strlen(dlbar); i++)
 		{
-			Draw_Char((i + 1) << 3, y, dlbar[i]);
+			Draw_CharScaled(((i + 1) << 3) * scale, y * scale, dlbar[i], scale);
 		}
 	}
 
