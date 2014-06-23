@@ -52,6 +52,7 @@ cvar_t *scr_drawall;
 
 cvar_t *gl_hudscale; /* named for consistency with R1Q2 */
 cvar_t *gl_consolescale;
+cvar_t *gl_menuscale;
 
 typedef struct
 {
@@ -433,6 +434,7 @@ SCR_Init(void)
 	scr_drawall = Cvar_Get("scr_drawall", "0", 0);
 	gl_hudscale = Cvar_Get("gl_hudscale", "1", CVAR_ARCHIVE);
 	gl_consolescale = Cvar_Get("gl_consolescale", "1", CVAR_ARCHIVE);
+	gl_menuscale = Cvar_Get("gl_menuscale", "1", CVAR_ARCHIVE);
 
 	/* register our commands */
 	Cmd_AddCommand("timerefresh", SCR_TimeRefresh_f);
@@ -1629,6 +1631,23 @@ SCR_GetConsoleScale(void)
 	else
 	{
 		scale = gl_consolescale->value;
+	}
+
+	return scale;
+}
+
+float
+SCR_GetMenuScale(void)
+{
+	float scale;
+
+	if (gl_menuscale->value < 0)
+	{
+		scale = SCR_GetScale();
+	}
+	else
+	{
+		scale = gl_menuscale->value;
 	}
 
 	return scale;
