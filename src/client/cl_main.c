@@ -873,6 +873,8 @@ CL_Init(void)
 
 	S_Init();
 
+	SCR_Init();
+
 	VID_Init();
 
 	V_Init();
@@ -882,8 +884,6 @@ CL_Init(void)
 	net_message.maxsize = sizeof(net_message_buffer);
 
 	M_Init();
-
-	SCR_Init();
 
 	cls.disable_screen = true; /* don't draw yet */
 
