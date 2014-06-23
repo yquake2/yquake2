@@ -1585,30 +1585,19 @@ SCR_DrawCrosshair(void)
 float
 SCR_GetScale(void)
 {
-	float scale;
+	int i = viddef.width / 640;
+	int j = viddef.height / 240;
 
-	if (gl_hudscale->value < 0)
+	if (i > j)
 	{
-		int i = viddef.width / 640;
-		int j = viddef.height / 240;
-
-		if (i > j)
-		{
-			i = j;
-		}
-		if (i < 1)
-		{
-			i = 1;
-		}
-
-		scale = i;
+		i = j;
 	}
-	else
+	if (i < 1)
 	{
-		scale = gl_hudscale->value;
+		i = 1;
 	}
 
-	return scale;
+	return i;
 }
 
 float
