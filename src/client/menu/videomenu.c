@@ -437,11 +437,12 @@ void
 VID_MenuDraw(void)
 {
 	int w, h;
+	float scale = SCR_GetMenuScale();
 
 	/* draw the banner */
 	Draw_GetPicSize(&w, &h, "m_banner_video");
-	Draw_Pic(viddef.width / 2 - w / 2, viddef.height / 2 - 110,
-			"m_banner_video");
+	Draw_PicScaled(viddef.width / 2 - (w * scale) / 2, viddef.height / 2 - (110 * scale),
+			"m_banner_video", scale);
 
 	/* move cursor to a reasonable starting position */
 	Menu_AdjustCursor(&s_opengl_menu, 1);

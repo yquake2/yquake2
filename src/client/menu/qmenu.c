@@ -115,6 +115,7 @@ Field_Draw(menufield_s *f)
 {
 	int i, n;
 	char tempbuffer[128] = "";
+	float scale = SCR_GetMenuScale();
 
 	if (f->generic.name)
 	{
@@ -130,24 +131,24 @@ Field_Draw(menufield_s *f)
 	}
 	Q_strlcpy(tempbuffer, f->buffer + f->visible_offset, n);
 
-	Draw_Char(f->generic.x + f->generic.parent->x + 16,
-			f->generic.y + f->generic.parent->y - 4, 18);
-	Draw_Char(f->generic.x + f->generic.parent->x + 16,
-			f->generic.y + f->generic.parent->y + 4, 24);
+	Draw_CharScaled(f->generic.x + (f->generic.parent->x + 16),
+			(f->generic.y + f->generic.parent->y - 4) * scale, 18, scale);
+	Draw_CharScaled(f->generic.x + f->generic.parent->x + 16,
+			(f->generic.y + f->generic.parent->y + 4) * scale, 24, scale);
 
-	Draw_Char(f->generic.x + f->generic.parent->x + 24 +
-			f->visible_length * 8, f->generic.y +
-			f->generic.parent->y - 4, 20);
-	Draw_Char(f->generic.x + f->generic.parent->x + 24 +
-		   	f->visible_length * 8, f->generic.y +
-			f->generic.parent->y + 4, 26);
+	Draw_CharScaled(f->generic.x + f->generic.parent->x + 24 +
+			f->visible_length * 8, (f->generic.y +
+			f->generic.parent->y - 4) * scale, 20, scale);
+	Draw_CharScaled(f->generic.x + f->generic.parent->x + 24 +
+		   	f->visible_length * 8, (f->generic.y +
+			f->generic.parent->y + 4) * scale, 26, scale);
 
 	for (i = 0; i < f->visible_length; i++)
 	{
-		Draw_Char(f->generic.x + f->generic.parent->x + 24 + i * 8,
-				f->generic.y + f->generic.parent->y - 4, 19);
-		Draw_Char(f->generic.x + f->generic.parent->x + 24 + i * 8,
-				f->generic.y + f->generic.parent->y + 4, 25);
+		Draw_CharScaled(f->generic.x + f->generic.parent->x + 24 + i * 8,
+				(f->generic.y + f->generic.parent->y - 4) * scale, 19, scale);
+		Draw_CharScaled(f->generic.x + f->generic.parent->x + 24 + i * 8,
+				(f->generic.y + f->generic.parent->y + 4) * scale, 25, scale);
 	}
 
 	Menu_DrawString(f->generic.x + f->generic.parent->x + 24,
@@ -169,15 +170,15 @@ Field_Draw(menufield_s *f)
 
 		if (((int)(Sys_Milliseconds() / 250)) & 1)
 		{
-			Draw_Char(f->generic.x + f->generic.parent->x +
-					(offset + 2) * 8 + 8, f->generic.y +
-					f->generic.parent->y, 11);
+			Draw_CharScaled(f->generic.x + f->generic.parent->x +
+					(offset * scale + 2) * 8 + 8, (f->generic.y +
+					f->generic.parent->y) * scale, 11, scale);
 		}
 		else
 		{
-			Draw_Char(f->generic.x + f->generic.parent->x +
-				   	(offset + 2) * 8 + 8, f->generic.y +
-					f->generic.parent->y, ' ');
+			Draw_CharScaled(f->generic.x + f->generic.parent->x +
+				   	(offset * scale + 2) * 8 + 8 *scale, (f->generic.y +
+					f->generic.parent->y) * scale, ' ', scale);
 		}
 	}
 }
@@ -386,11 +387,12 @@ void
 Menu_Center(menuframework_s *menu)
 {
 	int height;
+	float scale = SCR_GetMenuScale();
 
 	height = ((menucommon_s *)menu->items[menu->nitems - 1])->y;
 	height += 10;
 
-	menu->y = (VID_HEIGHT - height) / 2;
+	menu->y = (VID_HEIGHT - height) / (2 * scale);
 }
 
 void
@@ -398,6 +400,7 @@ Menu_Draw(menuframework_s *menu)
 {
 	int i;
 	menucommon_s *item;
+	float scale = SCR_GetMenuScale();
 
 	/* draw contents */
 	for (i = 0; i < menu->nitems; i++)
@@ -439,14 +442,14 @@ Menu_Draw(menuframework_s *menu)
 	{
 		if (item->flags & QMF_LEFT_JUSTIFY)
 		{
-			Draw_Char(menu->x + item->x - 24 + item->cursor_offset,
-					menu->y + item->y, 12 + ((int)(Sys_Milliseconds() /
-					250) & 1));
+			Draw_CharScaled(menu->x + (item->x - 24 + item->cursor_offset) * scale,
+					(menu->y + item->y) * scale, 12 + ((int)(Sys_Milliseconds() /
+					250) & 1), scale);
 		}
 		else
 		{
-			Draw_Char(menu->x + item->cursor_offset, menu->y + item->y,
-				   	12 + ((int)(Sys_Milliseconds() / 250) & 1));
+			Draw_CharScaled(menu->x + (item->cursor_offset) * scale, (menu->y + item->y) * scale,
+				   	12 + ((int)(Sys_Milliseconds() / 250) & 1), scale);
 		}
 	}
 
@@ -476,18 +479,20 @@ Menu_Draw(menuframework_s *menu)
 void
 Menu_DrawStatusBar(const char *string)
 {
+	float scale = SCR_GetMenuScale();
+
 	if (string)
 	{
 		int l = (int)strlen(string);
 		int maxcol = VID_WIDTH / 8;
 		int col = maxcol / 2 - l / 2;
 
-		Draw_Fill(0, VID_HEIGHT - 8, VID_WIDTH, 8, 4);
-		Menu_DrawString(col * 8, VID_HEIGHT - 8, string);
+		Draw_Fill(0, VID_HEIGHT - 8 * scale, VID_WIDTH, 8 * scale, 4);
+		Menu_DrawString(col * 8, VID_HEIGHT / scale - 8, string);
 	}
 	else
 	{
-		Draw_Fill(0, VID_HEIGHT - 8, VID_WIDTH, 8, 0);
+		Draw_Fill(0, VID_HEIGHT - 8 * scale, VID_WIDTH, 8 * scale, 0);
 	}
 }
 
@@ -495,10 +500,11 @@ void
 Menu_DrawString(int x, int y, const char *string)
 {
 	unsigned i;
+	float scale = SCR_GetMenuScale();
 
 	for (i = 0; i < strlen(string); i++)
 	{
-		Draw_Char((x + i * 8), y, string[i]);
+		Draw_CharScaled(x + i * 8 * scale, y * scale, string[i], scale);
 	}
 }
 
@@ -506,10 +512,11 @@ void
 Menu_DrawStringDark(int x, int y, const char *string)
 {
 	unsigned i;
+	float scale = SCR_GetMenuScale();
 
 	for (i = 0; i < strlen(string); i++)
 	{
-		Draw_Char((x + i * 8), y, string[i] + 128);
+		Draw_CharScaled(x + i * 8 * scale, y * scale, string[i] + 128, scale);
 	}
 }
 
@@ -517,10 +524,11 @@ void
 Menu_DrawStringR2L(int x, int y, const char *string)
 {
 	unsigned i;
+	float scale = SCR_GetMenuScale();
 
 	for (i = 0; i < strlen(string); i++)
 	{
-		Draw_Char((x - i * 8), y, string[strlen(string) - i - 1]);
+		Draw_CharScaled(x - i * 8 * scale, y * scale, string[strlen(string) - i - 1], scale);
 	}
 }
 
@@ -528,10 +536,11 @@ void
 Menu_DrawStringR2LDark(int x, int y, const char *string)
 {
 	unsigned i;
+	float scale = SCR_GetMenuScale();
 
 	for (i = 0; i < strlen(string); i++)
 	{
-		Draw_Char((x - i * 8), y, string[strlen(string) - i - 1] + 128);
+		Draw_CharScaled(x - i * 8 * scale, y * scale, string[strlen(string) - i - 1] + 128, scale);
 	}
 }
 
@@ -688,6 +697,7 @@ void
 Slider_Draw(menuslider_s *s)
 {
 	int i;
+	float scale = SCR_GetMenuScale();
 
 	Menu_DrawStringR2LDark(s->generic.x + s->generic.parent->x +
 		   	LCOLUMN_OFFSET, s->generic.y + s->generic.parent->y,
@@ -706,24 +716,21 @@ Slider_Draw(menuslider_s *s)
 		s->range = 1;
 	}
 
-	Draw_Char(s->generic.x + s->generic.parent->x + RCOLUMN_OFFSET,
-			s->generic.y + s->generic.parent->y,
-			128);
+	Draw_CharScaled(s->generic.x + (s->generic.parent->x + RCOLUMN_OFFSET),
+			(s->generic.y + s->generic.parent->y) * scale, 128, scale);
 
-	for (i = 0; i < SLIDER_RANGE; i++)
+	for (i = 0; i < SLIDER_RANGE * scale; i++)
 	{
-		Draw_Char(RCOLUMN_OFFSET + s->generic.x + i * 8 +
-				s->generic.parent->x + 8, s->generic.y +
-			   	s->generic.parent->y, 129);
+		Draw_CharScaled((RCOLUMN_OFFSET + s->generic.x + i * 8 + s->generic.parent->x + 8),
+			   	(s->generic.y + s->generic.parent->y) * scale, 129, scale);
 	}
 
-	Draw_Char(RCOLUMN_OFFSET + s->generic.x + i * 8 +
-			s->generic.parent->x + 8, s->generic.y +
-		   	s->generic.parent->y, 130);
-	Draw_Char((int)(8 + RCOLUMN_OFFSET + s->generic.parent->x +
-			s->generic.x + (SLIDER_RANGE - 1) * 8 * s->range),
-			s->generic.y + s->generic.parent->y,
-			131);
+	Draw_CharScaled((RCOLUMN_OFFSET + s->generic.x + i * 8 +
+			s->generic.parent->x + 8), (s->generic.y +
+		   	s->generic.parent->y) * scale, 130, scale);
+	Draw_CharScaled(((int)(8 + RCOLUMN_OFFSET + s->generic.parent->x +
+			s->generic.x + (SLIDER_RANGE * scale - 1) * 8 * s->range)),
+			(s->generic.y + s->generic.parent->y) * scale, 131, scale);
 }
 
 void

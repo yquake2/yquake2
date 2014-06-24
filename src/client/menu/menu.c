@@ -82,9 +82,10 @@ static void
 M_Banner(char *name)
 {
     int w, h;
+	float scale = SCR_GetMenuScale();
 
     Draw_GetPicSize(&w, &h, name);
-    Draw_Pic(viddef.width / 2 - w / 2, viddef.height / 2 - 110, name);
+    Draw_PicScaled(viddef.width / 2 - (w * scale) / 2, viddef.height / 2 - (110 * scale), name, scale);
 }
 
 void
@@ -331,13 +332,15 @@ Default_MenuKey(menuframework_s *m, int key)
 static void
 M_DrawCharacter(int cx, int cy, int num)
 {
-    Draw_Char(cx + ((viddef.width - 320) >> 1), cy + ((viddef.height - 240) >> 1), num);
+	float scale = SCR_GetMenuScale();
+	Draw_CharScaled(cx + ((viddef.width - 320 * (int)scale) >> 1), cy + ((viddef.height - 240 * (int)scale) >> 1), num, scale);
 }
 
 static void
 M_Print(int x, int y, char *str)
 {
     int cx, cy;
+	float scale = SCR_GetMenuScale();
 
     cx = x;
     cy = y;
@@ -350,7 +353,7 @@ M_Print(int x, int y, char *str)
         }
         else
         {
-            M_DrawCharacter(cx, cy, (*str) + 128);
+            M_DrawCharacter(cx * scale, cy * scale, (*str) + 128);
             cx += 8;
         }
         str++;
@@ -360,9 +363,10 @@ M_Print(int x, int y, char *str)
 void
 M_DrawPic(int x, int y, char *pic)
 {
-    Draw_Pic(x + ((viddef.width - 320) >> 1),
-             y + ((viddef.height - 240) >> 1),
-             pic);
+	float scale = SCR_GetMenuScale();
+
+    Draw_PicScaled((x + ((viddef.width - 320) >> 1)) * scale,
+             (y + ((viddef.height - 240) >> 1)) * scale, pic, scale);
 }
 
 /*
@@ -375,6 +379,7 @@ M_DrawCursor(int x, int y, int f)
 {
     char cursorname[80];
     static qboolean cached;
+	float scale = SCR_GetMenuScale();
 
     if (!cached)
     {
@@ -391,7 +396,7 @@ M_DrawCursor(int x, int y, int f)
     }
 
     Com_sprintf(cursorname, sizeof(cursorname), "m_cursor%d", f);
-    Draw_Pic(x, y, cursorname);
+    Draw_PicScaled(x * scale, y * scale, cursorname, scale);
 }
 
 static void
@@ -399,19 +404,20 @@ M_DrawTextBox(int x, int y, int width, int lines)
 {
     int cx, cy;
     int n;
+	float scale = SCR_GetMenuScale();
 
     /* draw left side */
     cx = x;
     cy = y;
-    M_DrawCharacter(cx, cy, 1);
+    M_DrawCharacter(cx * scale, cy * scale, 1);
 
     for (n = 0; n < lines; n++)
     {
         cy += 8;
-        M_DrawCharacter(cx, cy, 4);
+        M_DrawCharacter(cx * scale, cy * scale, 4);
     }
 
-    M_DrawCharacter(cx, cy + 8, 7);
+    M_DrawCharacter(cx * scale, cy * scale + 8 * scale, 7);
 
     /* draw middle */
     cx += 8;
@@ -419,30 +425,30 @@ M_DrawTextBox(int x, int y, int width, int lines)
     while (width > 0)
     {
         cy = y;
-        M_DrawCharacter(cx, cy, 2);
+        M_DrawCharacter(cx * scale, cy * scale, 2);
 
         for (n = 0; n < lines; n++)
         {
             cy += 8;
-            M_DrawCharacter(cx, cy, 5);
+            M_DrawCharacter(cx * scale, cy * scale, 5);
         }
 
-        M_DrawCharacter(cx, cy + 8, 8);
+        M_DrawCharacter(cx * scale, cy *scale + 8 * scale, 8);
         width -= 1;
         cx += 8;
     }
 
     /* draw right side */
     cy = y;
-    M_DrawCharacter(cx, cy, 3);
+    M_DrawCharacter(cx * scale, cy * scale, 3);
 
     for (n = 0; n < lines; n++)
     {
         cy += 8;
-        M_DrawCharacter(cx, cy, 6);
+        M_DrawCharacter(cx * scale, cy * scale, 6);
     }
 
-    M_DrawCharacter(cx, cy + 8, 9);
+    M_DrawCharacter(cx * scale, cy * scale + 8 * scale, 9);
 }
 
 static char *m_popup_string;
@@ -516,6 +522,7 @@ M_Main_Draw(void)
     int widest = -1;
     int totalheight = 0;
     char litname[80];
+	float scale = SCR_GetMenuScale();
     char *names[] =
     {
         "m_main_game",
@@ -538,28 +545,28 @@ M_Main_Draw(void)
         totalheight += (h + 12);
     }
 
-    ystart = (viddef.height / 2 - 110);
-    xoffset = (viddef.width - widest + 70) / 2;
+    ystart = (viddef.height / (2 * scale) - 110);
+    xoffset = (viddef.width / scale - widest + 70) / 2;
 
     for (i = 0; names[i] != 0; i++)
     {
         if (i != m_main_cursor)
         {
-            Draw_Pic(xoffset, ystart + i * 40 + 13, names[i]);
+            Draw_PicScaled(xoffset * scale, (ystart + i * 40 + 13) * scale, names[i], scale);
         }
     }
 
     strcpy(litname, names[m_main_cursor]);
     strcat(litname, "_sel");
-    Draw_Pic(xoffset, ystart + m_main_cursor * 40 + 13, litname);
+    Draw_PicScaled(xoffset * scale, (ystart + m_main_cursor * 40 + 13) * scale, litname, scale);
 
     M_DrawCursor(xoffset - 25, ystart + m_main_cursor * 40 + 11,
                  (int)(cls.realtime / 100) % NUM_CURSOR_FRAMES);
 
     Draw_GetPicSize(&w, &h, "m_main_plaque");
-    Draw_Pic(xoffset - 30 - w, ystart, "m_main_plaque");
+    Draw_PicScaled((xoffset - 30 - w) * scale, ystart * scale, "m_main_plaque", scale);
 
-    Draw_Pic(xoffset - 30 - w, ystart + h + 5, "m_main_logo");
+    Draw_PicScaled((xoffset - 30 - w) * scale, (ystart + h + 5) * scale, "m_main_logo", scale);
 }
 
 const char *
@@ -669,7 +676,9 @@ StartNetworkServerFunc(void *unused)
 static void
 Multiplayer_MenuInit(void)
 {
-    s_multiplayer_menu.x = (int)(viddef.width * 0.50f) - 64;
+	float scale = SCR_GetMenuScale();
+
+    s_multiplayer_menu.x = (int)(viddef.width * 0.50f) - 64 * scale;
     s_multiplayer_menu.nitems = 0;
 
     s_join_network_server_action.generic.type = MTYPE_ACTION;
@@ -816,15 +825,17 @@ M_FindKeysForCommand(char *command, int *twokeys)
 static void
 KeyCursorDrawFunc(menuframework_s *menu)
 {
+	float scale = SCR_GetMenuScale();
+
     if (bind_grab)
     {
-        Draw_Char(menu->x, menu->y + menu->cursor * 9, '=');
+        Draw_CharScaled(menu->x, (menu->y + menu->cursor * 9) * scale, '=', scale);
     }
 
     else
     {
-        Draw_Char(menu->x, menu->y + menu->cursor * 9, 12 +
-                  ((int)(Sys_Milliseconds() / 250) & 1));
+        Draw_CharScaled(menu->x, (menu->y + menu->cursor * 9) * scale, 12 +
+                  ((int)(Sys_Milliseconds() / 250) & 1), scale);
     }
 }
 
@@ -896,11 +907,10 @@ Keys_MenuInit(void)
         s_keys_actions[i].generic.type = MTYPE_ACTION;
         s_keys_actions[i].generic.flags = QMF_GRAYED;
         s_keys_actions[i].generic.x = 0;
-        s_keys_actions[i].generic.y = i * 9;
+        s_keys_actions[i].generic.y = (i * 9);
         s_keys_actions[i].generic.ownerdraw = DrawKeyBindingFunc;
         s_keys_actions[i].generic.localdata[0] = i;
-        s_keys_actions[i].generic.name =
-            bindnames[s_keys_actions[i].generic.localdata[0]][1];
+        s_keys_actions[i].generic.name = bindnames[s_keys_actions[i].generic.localdata[0]][1];
 
         Menu_AddItem(&s_keys_menu, (void *)&s_keys_actions[i]);
     }
@@ -1329,9 +1339,11 @@ Options_MenuInit(void)
         0
     };
 
+	float scale = SCR_GetMenuScale();
+
     /* configure controls menu and menu items */
     s_options_menu.x = viddef.width / 2;
-    s_options_menu.y = viddef.height / 2 - 58;
+    s_options_menu.y = viddef.height / (2 * scale) - 58;
     s_options_menu.nitems = 0;
 
     s_options_sfxvolume_slider.generic.type = MTYPE_SLIDER;
@@ -1869,11 +1881,12 @@ static void
 M_Credits_MenuDraw(void)
 {
     int i, y;
+	float scale = SCR_GetMenuScale();
 
     /* draw the credits */
     for (i = 0,
-            y = (int)(viddef.height - ((cls.realtime - credits_start_time) / 40.0F));
-            credits[i] && y < viddef.height;
+            y = (int)(viddef.height / scale - ((cls.realtime - credits_start_time) / 40.0F));
+            credits[i] && y < viddef.height / scale;
             y += 10, i++)
     {
         int j, stringoffset = 0;
@@ -1899,17 +1912,17 @@ M_Credits_MenuDraw(void)
         {
             int x;
 
-            x = (viddef.width - (int)strlen(credits[i]) * 8 - stringoffset *
+            x = (viddef.width / scale- (int)strlen(credits[i]) * 8 - stringoffset *
                  8) / 2 + (j + stringoffset) * 8;
 
             if (bold)
             {
-                Draw_Char(x, y, credits[i][j + stringoffset] + 128);
+                Draw_CharScaled(x * scale, y * scale, credits[i][j + stringoffset] + 128, scale);
             }
 
             else
             {
-                Draw_Char(x, y, credits[i][j + stringoffset]);
+                Draw_CharScaled(x * scale, y * scale, credits[i][j + stringoffset], scale);
             }
         }
     }
@@ -2276,9 +2289,10 @@ static void
 LoadGame_MenuInit(void)
 {
     int i;
+	float scale = SCR_GetMenuScale();
 
-    s_loadgame_menu.x = viddef.width / 2 - 120;
-    s_loadgame_menu.y = viddef.height / 2 - 58;
+    s_loadgame_menu.x = viddef.width / 2 - (120 * scale);
+    s_loadgame_menu.y = viddef.height / (2 * scale) - 58;
     s_loadgame_menu.nitems = 0;
 
     Create_Savestrings();
@@ -2400,9 +2414,10 @@ static void
 SaveGame_MenuInit(void)
 {
     int i;
+	float scale = SCR_GetMenuScale();
 
-    s_savegame_menu.x = viddef.width / 2 - 120;
-    s_savegame_menu.y = viddef.height / 2 - 58;
+    s_savegame_menu.x = viddef.width / 2 - (120 * scale);
+    s_savegame_menu.y = viddef.height / (2 * scale) - 58;
     s_savegame_menu.nitems = 0;
 
     Create_Savestrings();
@@ -2609,8 +2624,9 @@ static void
 JoinServer_MenuInit(void)
 {
     int i;
+	float scale = SCR_GetMenuScale();
 
-    s_joinserver_menu.x = (int)(viddef.width * 0.50f) - 120;
+    s_joinserver_menu.x = (int)(viddef.width * 0.50f) - 120 * scale;
     s_joinserver_menu.nitems = 0;
 
     s_joinserver_address_book_action.generic.type = MTYPE_ACTION;
@@ -2630,7 +2646,10 @@ JoinServer_MenuInit(void)
 
     s_joinserver_server_title.generic.type = MTYPE_SEPARATOR;
     s_joinserver_server_title.generic.name = "connect to...";
-    s_joinserver_server_title.generic.x = 80;
+	if (scale > 1)
+		s_joinserver_server_title.generic.x = 80 * scale + (scale * 8);
+	else
+		s_joinserver_server_title.generic.x = 80;
     s_joinserver_server_title.generic.y = 30;
 
     for (i = 0; i < MAX_LOCAL_SERVERS; i++)
@@ -3636,9 +3655,10 @@ static void
 AddressBook_MenuInit(void)
 {
     int i;
+	float scale = SCR_GetMenuScale();
 
     s_addressbook_menu.x = viddef.width / 2 - 142;
-    s_addressbook_menu.y = viddef.height / 2 - 58;
+    s_addressbook_menu.y = viddef.height / (2 * scale) - 58;
     s_addressbook_menu.nitems = 0;
 
     for (i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++)
@@ -3731,9 +3751,7 @@ static int s_numplayermodels;
 
 static int rate_tbl[] = {2500, 3200, 5000, 10000, 25000, 0};
 static const char *rate_names[] = {"28.8 Modem", "33.6 Modem", "Single ISDN",
-                                   "Dual ISDN/Cable", "T1/LAN", "User defined",
-                                   0
-                                  };
+                                   "Dual ISDN/Cable", "T1/LAN", "User defined", 0 };
 
 static void
 DownloadOptionsFunc(void *self)
@@ -3759,8 +3777,7 @@ RateCallback(void *unused)
 static void
 ModelCallback(void *unused)
 {
-    s_player_skin_box.itemnames =
-        (const char **)s_pmi[s_player_model_box.curvalue].skindisplaynames;
+    s_player_skin_box.itemnames = (const char **)s_pmi[s_player_model_box.curvalue].skindisplaynames;
     s_player_skin_box.curvalue = 0;
 }
 
@@ -4021,6 +4038,7 @@ PlayerConfig_MenuInit(void)
     char currentdirectory[1024];
     char currentskin[1024];
     int i = 0;
+	float scale = SCR_GetMenuScale();
 
     int currentdirectoryindex = 0;
     int currentskinindex = 0;
@@ -4079,8 +4097,8 @@ PlayerConfig_MenuInit(void)
         }
     }
 
-    s_player_config_menu.x = viddef.width / 2 - 95;
-    s_player_config_menu.y = viddef.height / 2 - 97;
+    s_player_config_menu.x = viddef.width / 2 - 95 * scale;
+    s_player_config_menu.y = viddef.height / (2 * scale) - 97;
     s_player_config_menu.nitems = 0;
 
     s_player_name_field.generic.type = MTYPE_FIELD;
@@ -4088,18 +4106,24 @@ PlayerConfig_MenuInit(void)
     s_player_name_field.generic.callback = 0;
     s_player_name_field.generic.x = 0;
     s_player_name_field.generic.y = 0;
-    s_player_name_field.length = 20;
-    s_player_name_field.visible_length = 20;
+	s_player_name_field.length = 20 * scale;
+    s_player_name_field.visible_length = 20 * scale;
     strcpy(s_player_name_field.buffer, name->string);
     s_player_name_field.cursor = strlen(name->string);
 
     s_player_model_title.generic.type = MTYPE_SEPARATOR;
     s_player_model_title.generic.name = "model";
-    s_player_model_title.generic.x = -8;
+	if (scale > 1)
+		s_player_model_title.generic.x = -8 * scale + (8 * scale);
+	else
+		s_player_model_title.generic.x = -8;
     s_player_model_title.generic.y = 60;
 
     s_player_model_box.generic.type = MTYPE_SPINCONTROL;
-    s_player_model_box.generic.x = -56;
+	if (scale > 1)
+		s_player_model_box.generic.x = -56 * scale + ((15 + scale) * scale);
+	else
+		s_player_model_box.generic.x = -56;
     s_player_model_box.generic.y = 70;
     s_player_model_box.generic.callback = ModelCallback;
     s_player_model_box.generic.cursor_offset = -48;
@@ -4108,11 +4132,17 @@ PlayerConfig_MenuInit(void)
 
     s_player_skin_title.generic.type = MTYPE_SEPARATOR;
     s_player_skin_title.generic.name = "skin";
-    s_player_skin_title.generic.x = -16;
+	if (scale > 1)
+		s_player_skin_title.generic.x = -16 * scale + (8 * scale);
+	else
+		s_player_skin_title.generic.x = -16;
     s_player_skin_title.generic.y = 84;
 
     s_player_skin_box.generic.type = MTYPE_SPINCONTROL;
-    s_player_skin_box.generic.x = -56;
+	if (scale > 1)
+		s_player_skin_box.generic.x = -56 * scale + ((15 + scale) * scale);
+	else
+		s_player_skin_box.generic.x = -56;
     s_player_skin_box.generic.y = 94;
     s_player_skin_box.generic.name = 0;
     s_player_skin_box.generic.callback = 0;
@@ -4123,11 +4153,17 @@ PlayerConfig_MenuInit(void)
 
     s_player_hand_title.generic.type = MTYPE_SEPARATOR;
     s_player_hand_title.generic.name = "handedness";
-    s_player_hand_title.generic.x = 32;
+	if (scale > 1)
+		s_player_hand_title.generic.x = 32 * scale + (8 * scale);
+	else
+		s_player_hand_title.generic.x = 32;
     s_player_hand_title.generic.y = 108;
 
     s_player_handedness_box.generic.type = MTYPE_SPINCONTROL;
-    s_player_handedness_box.generic.x = -56;
+	if (scale > 1)
+		s_player_handedness_box.generic.x = -56 * scale + ((15 + scale) * scale);
+	else
+		s_player_handedness_box.generic.x = -56;
     s_player_handedness_box.generic.y = 118;
     s_player_handedness_box.generic.name = 0;
     s_player_handedness_box.generic.cursor_offset = -48;
@@ -4145,11 +4181,17 @@ PlayerConfig_MenuInit(void)
 
     s_player_rate_title.generic.type = MTYPE_SEPARATOR;
     s_player_rate_title.generic.name = "connect speed";
-    s_player_rate_title.generic.x = 56;
+	if (scale > 1)
+		s_player_rate_title.generic.x = 56 * scale + (8 * scale);
+	else
+		s_player_rate_title.generic.x = 56;
     s_player_rate_title.generic.y = 156;
 
     s_player_rate_box.generic.type = MTYPE_SPINCONTROL;
-    s_player_rate_box.generic.x = -56;
+	if (scale > 1)
+		s_player_rate_box.generic.x = -56 * scale + ((15 + scale) * scale);
+	else
+		s_player_rate_box.generic.x = -56;
     s_player_rate_box.generic.y = 166;
     s_player_rate_box.generic.name = 0;
     s_player_rate_box.generic.cursor_offset = -48;
@@ -4160,7 +4202,13 @@ PlayerConfig_MenuInit(void)
     s_player_download_action.generic.type = MTYPE_ACTION;
     s_player_download_action.generic.name = "download options";
     s_player_download_action.generic.flags = QMF_LEFT_JUSTIFY;
-    s_player_download_action.generic.x = -24;
+	if (scale > 1)
+	{
+		s_player_download_action.generic.x = -24 * scale;
+		s_player_download_action.generic.cursor_offset = 16 * scale;
+	}
+	else
+		s_player_download_action.generic.x = -24;
     s_player_download_action.generic.y = 186;
     s_player_download_action.generic.statusbar = NULL;
     s_player_download_action.generic.callback = DownloadOptionsFunc;
@@ -4191,16 +4239,16 @@ PlayerConfig_MenuDraw(void)
 {
     refdef_t refdef;
     char scratch[MAX_QPATH];
+	float scale = SCR_GetMenuScale();
 
     memset(&refdef, 0, sizeof(refdef));
 
     refdef.x = viddef.width / 2;
-    refdef.y = viddef.height / 2 - 72;
-    refdef.width = 144;
-    refdef.height = 168;
+    refdef.y = viddef.height / 2 - 72 * scale;
+    refdef.width = 144 * scale;
+    refdef.height = 168 * scale;
     refdef.fov_x = 40;
-    refdef.fov_y = CalcFov(refdef.fov_x, (float)refdef.width,
-                           (float)refdef.height);
+    refdef.fov_y = CalcFov(refdef.fov_x, (float)refdef.width, (float)refdef.height);
     refdef.time = cls.realtime * 0.001f;
 
     if (s_pmi[s_player_model_box.curvalue].skindisplaynames)
@@ -4243,7 +4291,7 @@ PlayerConfig_MenuDraw(void)
 
         M_DrawTextBox(((int)(refdef.x) * (320.0F / viddef.width) - 8),
                       (int)((viddef.height / 2) * (240.0F / viddef.height) - 77),
-                      refdef.width / 8, refdef.height / 8);
+                      refdef.width / (8 * scale), refdef.height / (8 * scale));
         refdef.height += 4;
 
         R_RenderFrame(&refdef);
@@ -4252,7 +4300,7 @@ PlayerConfig_MenuDraw(void)
                     s_pmi[s_player_model_box.curvalue].directory,
                     s_pmi[s_player_model_box.curvalue].skindisplaynames[
                         s_player_skin_box.curvalue]);
-        Draw_Pic(s_player_config_menu.x - 40, refdef.y, scratch);
+        Draw_PicScaled(s_player_config_menu.x - 40, refdef.y, scratch, scale);
     }
 }
 
