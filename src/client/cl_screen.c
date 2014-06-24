@@ -449,18 +449,21 @@ SCR_Init(void)
 void
 SCR_DrawNet(void)
 {
+	float scale = SCR_GetMenuScale();
+
 	if (cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged < CMD_BACKUP - 1)
 	{
 		return;
 	}
 
-	Draw_Pic(scr_vrect.x + 64, scr_vrect.y, "net");
+	Draw_PicScaled(scr_vrect.x + 64 * scale, scr_vrect.y, "net", scale);
 }
 
 void
 SCR_DrawPause(void)
 {
 	int w, h;
+	float scale = SCR_GetMenuScale();
 
 	if (!scr_showpause->value) /* turn off for screenshots */
 	{
@@ -473,13 +476,14 @@ SCR_DrawPause(void)
 	}
 
 	Draw_GetPicSize(&w, &h, "pause");
-	Draw_Pic((viddef.width - w) / 2, viddef.height / 2 + 8, "pause");
+	Draw_PicScaled((viddef.width - w * scale) / 2, viddef.height / 2 + 8 * scale, "pause", scale);
 }
 
 void
 SCR_DrawLoading(void)
 {
 	int w, h;
+	float scale = SCR_GetMenuScale();
 
 	if (!scr_draw_loading)
 	{
@@ -488,7 +492,7 @@ SCR_DrawLoading(void)
 
 	scr_draw_loading = false;
 	Draw_GetPicSize(&w, &h, "loading");
-	Draw_Pic((viddef.width - w) / 2, (viddef.height - h) / 2, "loading");
+	Draw_PicScaled((viddef.width - w * scale) / 2, (viddef.height - h * scale) / 2, "loading", scale);
 }
 
 /*
@@ -1415,6 +1419,7 @@ SCR_UpdateScreen(void)
 	int numframes;
 	int i;
 	float separation[2] = {0, 0};
+	float scale = SCR_GetMenuScale();
 
 	/* if the screen is disabled (loading plaque is
 	   up, or vid mode changing) do nothing at all */
@@ -1450,7 +1455,7 @@ SCR_UpdateScreen(void)
 			R_SetPalette(NULL);
 			scr_draw_loading = false;
 			Draw_GetPicSize(&w, &h, "loading");
-			Draw_Pic((viddef.width - w) / 2, (viddef.height - h) / 2, "loading");
+			Draw_PicScaled((viddef.width - w * scale) / 2, (viddef.height - h * scale) / 2, "loading", scale);
 		}
 
 		/* if a cinematic is supposed to be running,
