@@ -530,13 +530,23 @@ the most common questions are answered.
   followd by a vid_restart. Please note that very old graphic cards may not
   support antialiasing at all.
 
-- If you want to scale the HUD (e.g. for high resolutions), set the
-  gl_hudscale cvar to -1. To specify the scale factor by hand, set the
-  cvar to a value > 0.
-
-- If you want to scale the console (e.g. for high resolutions), set the
-  gl_consolescale cvar to -1. To specify the scale factor by hand, set the
-  cvar to a value > 0.
+- It's possible to upscale nearly all 2D artwork. This is especially usefull on
+  high resolution displays were the cosole and HUD can become very small or even
+  unreadable. Scaling support is devided into 3 parts which are controlled by
+  cvars:
+   - gl_consolescale: Scale the console and most in-game texts
+   - gl_menuscale: Scales the menu. Please note that the menu was never ment to
+                   be scaled and slight disalignement (especially in the "Player
+                   Setup" menu) are unavoidable. That's not considered a bug.
+   - gl_hudscale: Scales the in-game HUD
+ All 3 cvars work the same way. They're set to the scale factor. A factor of 1
+ (defaults) means no scaling at all. Values smaller than 1 but bigger than 0
+ downscale the artwork, it becomes smaller. A value of 0 means no artwork at
+ all. Values greater than 1 enlarge the artwork. Please note that full numbers
+ will give best results. For example 1.7 will lead to small distortions while
+ 2 will not. Most users will set all 3 cvars to -1. In that case the game
+ calculates a more or less optimal scaling factor, matching the artwork size
+ at a resolution of 640x480.
 
 5.2 Input
 ---------
