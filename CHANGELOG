@@ -1,3 +1,10 @@
+Quake II 5.23 to 5.24:
+- Provide gl_consolescale and gl_menuscale cvars to
+  change the scale of the console and the menu.
+- Several bugfixes and improvements to the sound system.
+  Some bugs were fixed and the underwater effect is now
+  supported in the SDL backend. (by bibendovsky)
+
 Quake II 5.22 to 5.23:
 - Provide gl_hudscale cvar that can be changed to
   scale the HUD, for high resolutions etc. (by caedes)
