@@ -73,7 +73,7 @@ extern short BigShort ( short l ) ;
 extern void COM_DefaultExtension ( char * path , const char * extension ) ;
 extern void COM_FilePath ( const char * in , char * out ) ;
 extern void COM_FileBase ( char * in , char * out ) ;
-extern char * COM_FileExtension ( char * in ) ;
+extern const char * COM_FileExtension ( const char * in ) ;
 extern void COM_StripExtension ( char * in , char * out ) ;
 extern char * COM_SkipPath ( char * pathname ) ;
 extern int Q_log2 ( int val ) ;
