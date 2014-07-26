@@ -235,7 +235,9 @@ support for the addons is included in the binary release (see below).
 We highly recommend, that you use our binary release of Yamagi Quake 2. 
 Just extract it over the directory created in step 2.3 or 2.4. If you
 want to copy the files by hand, just copy them over by preserving the
-directory structure.
+directory structure. Please make sure that openal32.dll is copied too.
+Otherwise Yamagi Quake 2 may use a systemwide installed library, which
+may problems including a non starting game.
 
 2.6 Compiling
 -------------
