@@ -237,7 +237,7 @@ Just extract it over the directory created in step 2.3 or 2.4. If you
 want to copy the files by hand, just copy them over by preserving the
 directory structure. Please make sure that openal32.dll is copied too.
 Otherwise Yamagi Quake 2 may use a systemwide installed library, which
-may problems including a non starting game.
+may cause problems including a non starting game.
 
 2.6 Compiling
 -------------
@@ -263,7 +263,7 @@ installation preserving the directory structure:
 You'll need an "openal32.dll". You can use and rename the OpenAL DLL that
 that is provided by OpenAL Soft (see http://kcat.strangesoft.net/openal.html).
 Please note that the name of the DLL is always "openal32.dll", even if it's
- a 64 bit library.
+a 64 bit library.
 
 2.7 Default Configuration
 -------------------------
