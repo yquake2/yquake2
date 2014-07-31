@@ -211,7 +211,7 @@ ai_walk(edict_t *self, float dist)
 
 /*
  * Turns towards target and advances
- * Use this call with a distnace of 0
+ * Use this call with a distance of 0
  * to replace ai_face
  */
 void
@@ -289,7 +289,7 @@ ai_turn(edict_t *self, float dist)
 /* ============================================================================ */
 
 /*
- * returns the range catagorization of an entity reletive to self
+ * returns the range categorization of an entity relative to self
  * 0	melee range, will become hostile even if back is turned
  * 1	visibility and infront, or visibility and show hostile
  * 2	infront and show hostile
@@ -892,7 +892,7 @@ ai_run_missile(edict_t *self)
 
 /*
  * Strafe sideways, but stay at
- * aproximately the same range
+ * approximately the same range
  */
 void
 ai_run_slide(edict_t *self, float distance)
