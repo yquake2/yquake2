@@ -639,7 +639,7 @@ Cmd_Help_f(edict_t *ent)
 		return;
 	}
 
-	/* this is for backwards compatability */
+	/* this is for backwards compatibility */
 	if (deathmatch->value)
 	{
 		Cmd_Score_f(ent);

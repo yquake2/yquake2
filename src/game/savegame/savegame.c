@@ -81,7 +81,7 @@
  * prohibit loading of savegames
  * created on other systems or
  * architectures. This will
- * crash q2 in spectecular
+ * crash q2 in spectacular
  * ways
  */
 #if defined(__APPLE__)
@@ -124,7 +124,7 @@ typedef struct
 /*
  * Connects a human readable
  * mmove_t string with the
- * correspondig pointer
+ * corresponding pointer
  * */
 typedef struct
 {
@@ -151,7 +151,7 @@ functionList_t functionList[] = {
 };
 
 /*
- * Prtotypes for forward
+ * Prototypes for forward
  * declaration for all game
  * mmove_t functions.
  */
@@ -897,7 +897,7 @@ WriteEdict(FILE *f, edict_t *ent)
 }
 
 /*
- * Helper fcuntion to write the
+ * Helper function to write the
  * level local data into a file.
  * Called by WriteLevel.
  */
@@ -1013,10 +1013,10 @@ ReadLevelLocals(FILE *f)
 
 /*
  * Reads a level back into the memory.
- * SpawnEntities were allready called
+ * SpawnEntities were already called
  * in the same way when the level was
  * saved. All world links were cleared
- * befor this function was called. When
+ * before this function was called. When
  * this function is called, no clients
  * are connected to the server.
  */
