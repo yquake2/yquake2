@@ -1906,29 +1906,27 @@ FS_ListFiles2(char *findname, int *numfiles,
 				}
 			}
 		}
-		else if (search->path != NULL)
+
+		if (musthave & SFF_INPACK)
 		{
-			if (musthave & SFF_INPACK)
+			continue;
+		}
+
+		Com_sprintf(path, sizeof(path), "%s/%s", search->path, findname);
+		tmplist = FS_ListFiles(path, &tmpnfiles, musthave, canthave);
+
+		if (tmplist != NULL)
+		{
+			tmpnfiles--;
+			nfiles += tmpnfiles;
+			list = realloc(list, nfiles * sizeof(char *));
+
+			for (i = 0, j = nfiles - tmpnfiles; i < tmpnfiles; i++, j++)
 			{
-				continue;
+				list[j] = strdup(tmplist[i] + strlen(search->path) + 1);
 			}
 
-			Com_sprintf(path, sizeof(path), "%s/%s", search->path, findname);
-			tmplist = FS_ListFiles(path, &tmpnfiles, musthave, canthave);
-
-			if (tmplist != NULL)
-			{
-				tmpnfiles--;
-				nfiles += tmpnfiles;
-				list = realloc(list, nfiles * sizeof(char *));
-
-				for (i = 0, j = nfiles - tmpnfiles; i < tmpnfiles; i++, j++)
-				{
-					list[j] = strdup(tmplist[i] + strlen(search->path) + 1);
-				}
-
-				FS_FreeList(tmplist, tmpnfiles + 1);
-			}
+			FS_FreeList(tmplist, tmpnfiles + 1);
 		}
 	}
 
