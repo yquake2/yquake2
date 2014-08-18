@@ -1282,35 +1282,19 @@ void PM_CalculateWaterLevelForDemo()
 {
     vec3_t point;
     int cont;
-    float sample1;
-    float sample2;
 
     point[0] = pml.origin[0];
     point[1] = pml.origin[1];
+    point[2] = pml.origin[2] + pm->viewheight;
 
     pm->waterlevel = 0;
     pm->watertype = 0;
 
-    sample2 = pm->viewheight - pm->mins[2];
-    sample1 = sample2 / 2;
-
-    point[2] = pml.origin[2] + pm->mins[2] + 1;
     cont = pm->pointcontents(point);
 
     if ((cont & MASK_WATER) != 0) {
+        pm->waterlevel = 3;
         pm->watertype = cont;
-        pm->waterlevel = 1;
-        point[2] = pml.origin[2] + pm->mins[2] + sample1;
-        cont = pm->pointcontents(point);
-
-        if ((cont & MASK_WATER) != 0) {
-            pm->waterlevel = 2;
-            point[2] = pml.origin[2] + pm->mins[2] + sample2;
-            cont = pm->pointcontents(point);
-
-            if ((cont & MASK_WATER) != 0)
-                pm->waterlevel = 3;
-        }
     }
 }
 
