@@ -25,6 +25,7 @@
  */
 
 #include "header/client.h"
+#include "../client/sound/header/local.h"
 
 void CL_ParseStatusMessage(void);
 
@@ -354,6 +355,8 @@ CL_Disconnect(void)
 	}
 
 	cls.state = ca_disconnected;
+
+    snd_is_underwater = false;
 }
 
 void

@@ -27,6 +27,7 @@
 
 #include "header/common.h"
 #include "../client/sound/header/local.h"
+#include "../client/header/client.h"
 
 #if !defined(DEDICATED_ONLY) && defined(USE_OPENAL)
 void AL_Underwater();
@@ -1265,16 +1266,73 @@ PM_ClampAngles(void)
 	AngleVectors(pm->viewangles, pml.forward, pml.right, pml.up);
 }
 
+void PM_CalculateViewHeightForDemo()
+{
+    if (pm->s.pm_type == PM_GIB)
+        pm->viewheight = 8;
+    else {
+        if ((pm->s.pm_flags & PMF_DUCKED) != 0)
+            pm->viewheight = -2;
+        else
+            pm->viewheight = 22;
+    }
+}
+
+void PM_CalculateWaterLevelForDemo()
+{
+    vec3_t point;
+    int cont;
+
+    point[0] = pml.origin[0];
+    point[1] = pml.origin[1];
+    point[2] = pml.origin[2] + pm->viewheight;
+
+    pm->waterlevel = 0;
+    pm->watertype = 0;
+
+    cont = pm->pointcontents(point);
+
+    if ((cont & MASK_WATER) != 0) {
+        pm->waterlevel = 3;
+        pm->watertype = cont;
+    }
+}
+
+void PM_UpdateUnderwaterSfx()
+{
+#if !defined(DEDICATED_ONLY)
+    static int underwater;
+#endif
+
+#if !defined(DEDICATED_ONLY)
+    if ((pm->waterlevel == 3) && !underwater) {
+        underwater = 1;
+        snd_is_underwater = 1;
+
+#ifdef USE_OPENAL
+        if (snd_is_underwater_enabled)
+            AL_Underwater();
+#endif
+    }
+
+    if ((pm->waterlevel < 3) && underwater) {
+        underwater = 0;
+        snd_is_underwater = 0;
+
+#ifdef USE_OPENAL
+        if (snd_is_underwater_enabled)
+            AL_Overwater();
+#endif
+    }
+#endif
+}
+
 /*
  * Can be called by either the server or the client
  */
 void
 Pmove(pmove_t *pmove)
 {
-#if !defined(DEDICATED_ONLY)
-	static int underwater;
-#endif
-
 	pm = pmove;
 
 	/* clear results */
@@ -1320,6 +1378,12 @@ Pmove(pmove_t *pmove)
 
 	if (pm->s.pm_type == PM_FREEZE)
 	{
+        if (cl.attractloop) {
+            PM_CalculateViewHeightForDemo();
+            PM_CalculateWaterLevelForDemo();
+            PM_UpdateUnderwaterSfx();
+        }
+
 		return; /* no movement at all */
 	}
 
@@ -1415,27 +1479,7 @@ Pmove(pmove_t *pmove)
 	/* set groundentity, watertype, and waterlevel for final spot */
 	PM_CatagorizePosition();
 
-#if !defined(DEDICATED_ONLY)
-	if ((pm->waterlevel == 3) && !underwater)
-	{
-		underwater = 1;
-        snd_is_underwater = 1;
-#ifdef USE_OPENAL
-        if (snd_is_underwater_enabled)
-            AL_Underwater();
-#endif
-	}
-
-	if (((pm->waterlevel < 3) && underwater))
-	{
-		underwater = 0;
-        snd_is_underwater = 0;
-#ifdef USE_OPENAL
-        if (snd_is_underwater_enabled)
-            AL_Overwater();
-#endif
-	}
-#endif
+    PM_UpdateUnderwaterSfx();
 
 	PM_SnapPosition();
 }
