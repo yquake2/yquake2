@@ -356,7 +356,7 @@ CL_Disconnect(void)
 
 	cls.state = ca_disconnected;
 
-    snd_is_underwater = false;
+	snd_is_underwater = false;
 }
 
 void
