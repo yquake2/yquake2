@@ -1266,6 +1266,7 @@ PM_ClampAngles(void)
 	AngleVectors(pm->viewangles, pml.forward, pml.right, pml.up);
 }
 
+#if !defined(DEDICATED_ONLY)
 void PM_CalculateViewHeightForDemo()
 {
     if (pm->s.pm_type == PM_GIB)
@@ -1300,11 +1301,8 @@ void PM_CalculateWaterLevelForDemo()
 
 void PM_UpdateUnderwaterSfx()
 {
-#if !defined(DEDICATED_ONLY)
     static int underwater;
-#endif
 
-#if !defined(DEDICATED_ONLY)
     if ((pm->waterlevel == 3) && !underwater) {
         underwater = 1;
         snd_is_underwater = 1;
@@ -1324,8 +1322,8 @@ void PM_UpdateUnderwaterSfx()
             AL_Overwater();
 #endif
     }
-#endif
 }
+#endif
 
 /*
  * Can be called by either the server or the client
@@ -1378,11 +1376,13 @@ Pmove(pmove_t *pmove)
 
 	if (pm->s.pm_type == PM_FREEZE)
 	{
+#if !defined(DEDICATED_ONLY)
         if (cl.attractloop) {
             PM_CalculateViewHeightForDemo();
             PM_CalculateWaterLevelForDemo();
             PM_UpdateUnderwaterSfx();
         }
+#endif
 
 		return; /* no movement at all */
 	}
@@ -1419,8 +1419,7 @@ Pmove(pmove_t *pmove)
 
 		if (msec >= pm->s.pm_time)
 		{
-			pm->s.pm_flags &=
-				~(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT);
+			pm->s.pm_flags &= ~(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT);
 			pm->s.pm_time = 0;
 		}
 		else
@@ -1479,7 +1478,9 @@ Pmove(pmove_t *pmove)
 	/* set groundentity, watertype, and waterlevel for final spot */
 	PM_CatagorizePosition();
 
+#if !defined(DEDICATED_ONLY)
     PM_UpdateUnderwaterSfx();
+#endif
 
 	PM_SnapPosition();
 }
