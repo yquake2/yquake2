@@ -1378,11 +1378,13 @@ Pmove(pmove_t *pmove)
 
 	if (pm->s.pm_type == PM_FREEZE)
 	{
+#if !defined(DEDICATED_ONLY)
         if (cl.attractloop) {
             PM_CalculateViewHeightForDemo();
             PM_CalculateWaterLevelForDemo();
             PM_UpdateUnderwaterSfx();
         }
+#endif
 
 		return; /* no movement at all */
 	}
