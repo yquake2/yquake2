@@ -992,7 +992,7 @@ static menulist_s s_options_enablecd_box;
 static menulist_s s_options_cdshuffle_box;
 #endif
 #ifdef OGG
-static menulist_s s_options_oggvolume_box;
+static menulist_s s_options_enableogg_box;
 #endif
 static menulist_s s_options_quality_list;
 static menulist_s s_options_console_action;
@@ -1057,7 +1057,7 @@ ControlsSetMenuItemValues(void)
 #endif
 
 #ifdef OGG
-    s_options_oggvolume_box.curvalue = (Cvar_VariableValue("ogg_enable") != 0);
+    s_options_enableogg_box.curvalue = (Cvar_VariableValue("ogg_enable") != 0);
 
     cvar_t *ogg;
     ogg = Cvar_Get("ogg_sequence", "loop", CVAR_ARCHIVE);
@@ -1203,14 +1203,14 @@ EnableCDMusic(void *unused)
 
 #ifdef OGG
 static void
-UpdateOGGVolumeFunc(void *unused)
+EnableOGGMusic(void *unused)
 {
-    Cvar_SetValue("ogg_enable", (float)s_options_oggvolume_box.curvalue);
+    Cvar_SetValue("ogg_enable", (float)s_options_enableogg_box.curvalue);
 #ifdef CDA
     Cvar_SetValue("cd_nocd", 1);
 #endif
 
-    if (s_options_oggvolume_box.curvalue)
+    if (s_options_enableogg_box.curvalue)
     {
 #ifdef CDA
         CDAudio_Stop();
@@ -1364,12 +1364,12 @@ Options_MenuInit(void)
 #endif
 
 #ifdef OGG
-    s_options_oggvolume_box.generic.type = MTYPE_SPINCONTROL;
-    s_options_oggvolume_box.generic.x = 0;
-    s_options_oggvolume_box.generic.y = 20;
-    s_options_oggvolume_box.generic.name = "OGG music";
-    s_options_oggvolume_box.generic.callback = UpdateOGGVolumeFunc;
-    s_options_oggvolume_box.itemnames = ogg_music_items;
+    s_options_enableogg_box.generic.type = MTYPE_SPINCONTROL;
+    s_options_enableogg_box.generic.x = 0;
+    s_options_enableogg_box.generic.y = 20;
+    s_options_enableogg_box.generic.name = "OGG music";
+    s_options_enableogg_box.generic.callback = EnableOGGMusic;
+    s_options_enableogg_box.itemnames = ogg_music_items;
 #endif
 
 #if defined(OGG) || defined(CDA)
@@ -1463,7 +1463,7 @@ Options_MenuInit(void)
     Menu_AddItem(&s_options_menu, (void *)&s_options_enablecd_box);
 #endif
 #ifdef OGG
-    Menu_AddItem(&s_options_menu, (void *)&s_options_oggvolume_box);
+    Menu_AddItem(&s_options_menu, (void *)&s_options_enableogg_box);
 #endif
 #if defined(OGG) || defined(CDA)
     Menu_AddItem(&s_options_menu, (void *)&s_options_cdshuffle_box);
