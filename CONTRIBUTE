@@ -84,3 +84,16 @@ organization), clean it and debug it. Zaero will need some extensive
 testing, have fun while playing. :)
 
 =============================================================================== 
+
+4. Take ownership of the OS X port
+
+Difficulty: Medium
+Knowledge: Good knowledge of OS X
+
+Several years ago a port Yamagi Quake II to OS X was submitted and merged
+into our codebase. We tried to maintain it on a best efford base. But since
+no Yamagi Quake II developer has a Mac nor the necessary knowledge regarding
+OS X, the port bitrotted. Nowadays it's unsupported and next to disfunctional.
+Modernize the port and keep it up to date.
+
+===============================================================================
