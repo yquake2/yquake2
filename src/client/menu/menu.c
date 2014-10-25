@@ -986,7 +986,7 @@ static menulist_s s_options_lookstrafe_box;
 static menulist_s s_options_crosshair_box;
 static menuslider_s s_options_sfxvolume_slider;
 #ifdef CDA
-static menulist_s s_options_cdvolume_box;
+static menulist_s s_options_enablecd_box;
 #endif
 #if defined(OGG) || defined(CDA)
 static menulist_s s_options_cdshuffle_box;
@@ -1049,7 +1049,7 @@ ControlsSetMenuItemValues(void)
     s_options_sfxvolume_slider.curvalue = Cvar_VariableValue("s_volume") * 10;
 
 #ifdef CDA
-    s_options_cdvolume_box.curvalue = (Cvar_VariableValue("cd_nocd") == 0);
+    s_options_enablecd_box.curvalue = (Cvar_VariableValue("cd_nocd") == 0);
 #endif
 
 #if defined(OGG) || defined(CDA)
@@ -1169,14 +1169,14 @@ CDShuffleFunc(void *unused)
 
 #ifdef CDA
 static void
-UpdateCDVolumeFunc(void *unused)
+EnableCDMusic(void *unused)
 {
-    Cvar_SetValue("cd_nocd", (float)!s_options_cdvolume_box.curvalue);
+    Cvar_SetValue("cd_nocd", (float)!s_options_enablecd_box.curvalue);
 #ifdef OGG
     Cvar_SetValue("ogg_enable", 0);
 #endif
 
-    if (s_options_cdvolume_box.curvalue)
+    if (s_options_enablecd_box.curvalue)
     {
 #ifdef OGG
         OGG_Shutdown();
@@ -1355,12 +1355,12 @@ Options_MenuInit(void)
     s_options_sfxvolume_slider.maxvalue = 10;
 
 #ifdef CDA
-    s_options_cdvolume_box.generic.type = MTYPE_SPINCONTROL;
-    s_options_cdvolume_box.generic.x = 0;
-    s_options_cdvolume_box.generic.y = 10;
-    s_options_cdvolume_box.generic.name = "CD music";
-    s_options_cdvolume_box.generic.callback = UpdateCDVolumeFunc;
-    s_options_cdvolume_box.itemnames = cd_music_items;
+    s_options_enablecd_box.generic.type = MTYPE_SPINCONTROL;
+    s_options_enablecd_box.generic.x = 0;
+    s_options_enablecd_box.generic.y = 10;
+    s_options_enablecd_box.generic.name = "CD music";
+    s_options_enablecd_box.generic.callback = EnableCDMusic;
+    s_options_enablecd_box.itemnames = cd_music_items;
 #endif
 
 #ifdef OGG
@@ -1460,7 +1460,7 @@ Options_MenuInit(void)
 
     Menu_AddItem(&s_options_menu, (void *)&s_options_sfxvolume_slider);
 #ifdef CDA
-    Menu_AddItem(&s_options_menu, (void *)&s_options_cdvolume_box);
+    Menu_AddItem(&s_options_menu, (void *)&s_options_enablecd_box);
 #endif
 #ifdef OGG
     Menu_AddItem(&s_options_menu, (void *)&s_options_oggvolume_box);
