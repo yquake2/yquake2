@@ -1025,7 +1025,6 @@ extern void ValidateSelectedItem ( edict_t * ent ) ;
 extern void SelectPrevItem ( edict_t * ent , int itflags ) ;
 extern void SelectNextItem ( edict_t * ent , int itflags ) ;
 extern qboolean OnSameTeam ( edict_t * ent1 , edict_t * ent2 ) ;
-extern char * ClientTeam ( edict_t * ent ) ;
 extern void GetChaseTarget ( edict_t * ent ) ;
 extern void ChasePrev ( edict_t * ent ) ;
 extern void ChaseNext ( edict_t * ent ) ;
