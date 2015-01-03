@@ -504,7 +504,8 @@ the most common questions are answered.
 
 - Yamagi Quake II offers hardware gamma control in realtime in the "Video" menu.
   If Quake II is still too dark, set the "vid_gamma" cvar by hand to values
-  above 1.5.
+  above 1.5. If models and dynamic lights are too dark consider increasing the
+  "gl_modulate" cvar.
 
 - Yamagi Quake II can draw shadows. Just set "gl_shadows" to 1. You most
   likely want to set "gl_stecilshadow" to 1 too. This enables high
