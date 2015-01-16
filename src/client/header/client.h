@@ -50,7 +50,6 @@
 #include "ref.h"
 #include "vid.h"
 #include "screen.h"
-#include "input.h"
 #include "keyboard.h"
 #include "console.h"
 

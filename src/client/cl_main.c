@@ -26,6 +26,7 @@
  */
 
 #include "header/client.h"
+#include "../backends/generic/header/input.h"
 
 void CL_ForwardToServer_f(void);
 void CL_Changing_f(void);
@@ -877,6 +878,8 @@ CL_Init(void)
 
 	VID_Init();
 
+	IN_Init();
+
 	V_Init();
 
 	net_message.data = net_message_buffer;
@@ -920,6 +923,7 @@ CL_Shutdown(void)
 	OGG_Stop();
 #endif
 	S_Shutdown();
+	IN_Shutdown();
 	VID_Shutdown();
 }
 

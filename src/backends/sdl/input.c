@@ -68,8 +68,6 @@
 #define MOUSE_MIN 40
  
 /* Globals */
-Key_Event_fp_t Key_Event_fp;
-static in_state_t *in_state;
 static int mouse_x, mouse_y;
 static int old_mouse_x, old_mouse_y;
 static qboolean have_grab;
@@ -341,22 +339,22 @@ IN_Update(void)
 			/* The mouse wheel */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_MOUSEWHEEL:
-				in_state->Key_Event_fp((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), true);
-				in_state->Key_Event_fp((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), false);
+				Key_Event((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), true);
+				Key_Event((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), false);
 				break;
 #endif
 			case SDL_MOUSEBUTTONDOWN:
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
 				if (event.button.button == 4)
 				{
-					in_state->Key_Event_fp(K_MWHEELUP, true);
-					in_state->Key_Event_fp(K_MWHEELUP, false);
+					Key_Event(K_MWHEELUP, true);
+					Key_Event(K_MWHEELUP, false);
 					break;
 				}
 				else if (event.button.button == 5)
 				{
-					in_state->Key_Event_fp(K_MWHEELDOWN, true);
-					in_state->Key_Event_fp(K_MWHEELDOWN, false);
+					Key_Event(K_MWHEELDOWN, true);
+					Key_Event(K_MWHEELDOWN, false);
 					break;
 				}
 #endif
@@ -383,20 +381,24 @@ IN_Update(void)
 						return;
 				}
 
-				in_state->Key_Event_fp(key, (event.type == SDL_MOUSEBUTTONDOWN));
+				Key_Event(key, (event.type == SDL_MOUSEBUTTONDOWN));
 				break;
 
 			case SDL_MOUSEMOTION:
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 				/* This is a hack to work around an unsuccessful
-				 * SDL_SetRelativeMouseMode(). This can happen if
-				 * some broken security software is blocking raw
-				 * input (to prevent keyloggers accessing the input
-				 * queue), or if - on Linux / Unix - XInput2 is not
-				 * available.
-				 * Since SDL_WarpMouseInWindow() injects a movement
-				 * event into the queue, we ignore events that move
-				 * the mouse exactly to the warp position. */
+				   SDL_SetRelativeMouseMode(). This can happen if
+				   some broken security software is blocking raw
+				   input (to prevent keyloggers accessing the input
+				   queue), or if - on Linux / Unix - XInput2 is not
+				   available.
+
+				   Since SDL_WarpMouseInWindow() injects a movement
+				   event into the queue, we ignore events that move
+				   the mouse exactly to the warp position.
+
+				   The underlying issue _should_ be solved in SDL
+				   2.0.3 an above. */
 				if (have_grab && !in_relativemode)
 				{
 					int center_x = vid.width / 2;
@@ -425,10 +427,7 @@ IN_Update(void)
 					break;
 				}
 
-				/* Make Shift+Escape toggle the console. This
-				   really belongs in Key_Event(), but since
-				   Key_ClearStates() can mess up the internal
-				   K_SHIFT state let's do it here instead. */
+				/* Make Shift+Escape toggle the console. */
 				if ((modstate & KMOD_SHIFT) && (event.key.keysym.sym == SDLK_ESCAPE))
 				{
 					Cbuf_ExecuteText(EXEC_NOW, "toggleconsole");
@@ -440,7 +439,7 @@ IN_Update(void)
 
 				if (key)
 				{
-					in_state->Key_Event_fp(key, true);
+					Key_Event(key, true);
 				}
 
 				break;
@@ -453,7 +452,7 @@ IN_Update(void)
 
 				if (key)
 				{
-					in_state->Key_Event_fp(key, false);
+					Key_Event(key, false);
 				}
 
 				break;
@@ -476,7 +475,7 @@ IN_Update(void)
  * Move handling
  */
 void
-IN_BackendMove(usercmd_t *cmd)
+IN_Move(usercmd_t *cmd)
 {
 	if (m_filter->value)
 	{
@@ -530,20 +529,18 @@ IN_BackendMove(usercmd_t *cmd)
 		}
 
 		/* add mouse X/Y movement to cmd */
-		if ((*in_state->in_strafe_state & 1) ||
-			(lookstrafe->value && mlooking))
+		if ((in_strafe.state & 1) || (lookstrafe->value && mlooking))
 		{
 			cmd->sidemove += m_side->value * mouse_x;
 		}
 		else
 		{
-			in_state->viewangles[YAW] -= m_yaw->value * mouse_x;
+			cl.viewangles[YAW] -= m_yaw->value * mouse_x;
 		}
 
-		if ((mlooking || freelook->value) &&
-			!(*in_state->in_strafe_state & 1))
+		if ((mlooking || freelook->value) && !(in_strafe.state & 1))
 		{
-			in_state->viewangles[PITCH] += m_pitch->value * mouse_y;
+			cl.viewangles[PITCH] += m_pitch->value * mouse_y;
 		}
 		else
 		{
@@ -562,7 +559,7 @@ IN_BackendMove(usercmd_t *cmd)
 static void
 IN_ForceCenterView(void)
 {
-	in_state->viewangles[PITCH] = 0;
+	cl.viewangles[PITCH] = 0;
 }
 
 /*
@@ -581,38 +578,19 @@ static void
 IN_MLookUp(void)
 {
 	mlooking = false;
-	in_state->IN_CenterView_fp();
+	IN_CenterView();
 }
 
 /* ------------------------------------------------------------------ */
 
 /*
- * Keyboard initialisation. Called by the client.
- */
-void
-IN_KeyboardInit(Key_Event_fp_t fp)
-{
-	Key_Event_fp = fp;
-
-	/* SDL stuff. Moved here from IN_BackendInit because
-	   this must be done after video is initialized. */
-	have_grab = GLimp_InputIsGrabbed();
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_SetRelativeMouseMode(have_grab ? SDL_TRUE : SDL_FALSE);
-	in_relativemode = (SDL_GetRelativeMouseMode() == SDL_TRUE);
-#else
-	SDL_EnableUNICODE(0);
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-#endif
-}
-
-/*
  * Initializes the backend
  */
 void
-IN_BackendInit(in_state_t *in_state_p)
+IN_Init(void)
 {
-	in_state = in_state_p;
+	Com_Printf("------- input initialization -------\n");
+
 	mouse_x = mouse_y = 0;
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
@@ -633,22 +611,31 @@ IN_BackendInit(in_state_t *in_state_p)
 	Cmd_AddCommand("-mlook", IN_MLookUp);
 	Cmd_AddCommand("force_centerview", IN_ForceCenterView);
 
-	VID_Printf(PRINT_ALL, "Input initialized.\n");
+	have_grab = GLimp_InputIsGrabbed();
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_SetRelativeMouseMode(have_grab ? SDL_TRUE : SDL_FALSE);
+	in_relativemode = (SDL_GetRelativeMouseMode() == SDL_TRUE);
+#else
+	SDL_EnableUNICODE(0);
+	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+#endif
+
+	Com_Printf("------------------------------------\n\n");
 }
 
 /*
  * Shuts the backend down
  */
 void
-IN_BackendShutdown(void)
+IN_Shutdown(void)
 {
 	Cmd_RemoveCommand("force_centerview");
 	Cmd_RemoveCommand("+mlook");
 	Cmd_RemoveCommand("-mlook");
 
-	VID_Printf(PRINT_ALL, "Input shut down.\n");
+    Com_Printf("Shutting down input.\n");
 }
 
 /* ------------------------------------------------------------------ */
-
 

@@ -39,7 +39,6 @@
 #include <errno.h>
 
 #include "../../client/header/client.h"
-#include "header/input.h"
 
 typedef struct vidmode_s
 {
@@ -87,12 +86,6 @@ viddef_t viddef;                /* global video state; used by other modules */
 qboolean ref_active = false;    /* Is the refresher being used? */
 
 #define VID_NUM_MODES (sizeof(vid_modes) / sizeof(vid_modes[0]))
-
-void Do_Key_Event(int key, qboolean down);
-
-// Input state
-in_state_t in_state;
-
 #define MAXPRINTMSG 4096
 
 void
@@ -170,16 +163,6 @@ VID_LoadRefresh(void)
 	// Log it!
 	Com_Printf("----- refresher initialization -----\n");
 
-	/* Init IN (Mouse) */
-	in_state.IN_CenterView_fp = IN_CenterView;
-	in_state.Key_Event_fp = Do_Key_Event;
-	in_state.viewangles = cl.viewangles;
-	in_state.in_strafe_state = &in_strafe.state;
-	in_state.in_speed_state = &in_speed.state;
-
-	// Initiate the input backend
-	IN_BackendInit (&in_state);
-
 	// Declare the refresher as active
 	ref_active = true;
 
@@ -189,10 +172,6 @@ VID_LoadRefresh(void)
 		VID_Shutdown(); // Isn't that just too bad? :(
 		return false;
 	}
-
-	// Initiate keyboard at the input backend
-	IN_KeyboardInit(Do_Key_Event);
-	Key_ClearStates();
 
 	Com_Printf("------------------------------------\n\n");
 	return true;
@@ -244,9 +223,6 @@ VID_Shutdown(void)
 {
 	if (ref_active)
 	{
-		// Shut down the input backend
-		IN_BackendShutdown();
-
 		/* Shut down the renderer */
 		R_Shutdown();
 	}
@@ -254,24 +230,3 @@ VID_Shutdown(void)
 	// Declare the refresher as inactive
 	ref_active = false;
 }
-
-/* Input callbacks from client */
-
-void
-IN_Shutdown(void)
-{
-	IN_BackendShutdown();
-}
-
-void
-IN_Move(usercmd_t *cmd)
-{
-	IN_BackendMove (cmd);
-}
-
-void
-Do_Key_Event(int key, qboolean down)
-{
-	Key_Event(key, down, Sys_Milliseconds());
-}
-

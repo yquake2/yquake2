@@ -95,7 +95,6 @@ M_ForceMenuOff(void)
     m_keyfunc = NULL;
     cls.key_dest = key_game;
     m_menudepth = 0;
-    Key_ClearStates();
     Cvar_Set("paused", "0");
 }
 

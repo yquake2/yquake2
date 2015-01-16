@@ -898,10 +898,11 @@ Key_Init(void)
  * Should NOT be called during an interrupt!
  */
 void
-Key_Event(int key, qboolean down, unsigned time)
+Key_Event(int key, qboolean down)
 {
 	char *kb;
 	char cmd[1024];
+	unsigned int time = Sys_Milliseconds();
 
 	/* hack for modal presses */
 	if (key_waiting == -1)
@@ -1105,25 +1106,6 @@ Key_Event(int key, qboolean down, unsigned time)
 			break;
 		default:
 			Com_Error(ERR_FATAL, "Bad cls.key_dest");
-	}
-}
-
-void
-Key_ClearStates(void)
-{
-	int i;
-
-	anykeydown = false;
-
-	for (i = 0; i < K_LAST; i++)
-	{
-		if (keydown[i] || key_repeats[i])
-		{
-			Key_Event(i, false, 0);
-		}
-
-		keydown[i] = 0;
-		key_repeats[i] = 0;
 	}
 }
 

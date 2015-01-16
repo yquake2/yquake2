@@ -29,41 +29,24 @@
 
 #include "../../../common/header/shared.h"
 
-typedef void (*Key_Event_fp_t)(int key, qboolean down);
-
-typedef struct in_state
-{
-	/* Pointers to functions back in client, set by vid_so */
-	void (*IN_CenterView_fp)(void);
-	Key_Event_fp_t Key_Event_fp;
-	vec_t *viewangles;
-	int *in_strafe_state;
-	int *in_speed_state;
-} in_state_t;
+/*
+ * Initializes the input backend
+ */
+void IN_Init(void);
 
 /*
- * Keyboard initialisation. Called by the client.
+ * Move handling
  */
-void IN_KeyboardInit(Key_Event_fp_t fp);
+void IN_Move(usercmd_t *cmd);
+
+/*
+ * Shuts the backend down
+ */
+void IN_Shutdown(void);
 
 /*
  * Updates the state of the input queue
  */
 void IN_Update(void);
-
-/*
- * Initializes the input backend
- */
-void IN_BackendInit(in_state_t *in_state_p);
-
-/*
- * Shuts the backend down
- */
-void IN_BackendShutdown(void);
-
-/*
- * Move handling
- */
-void IN_BackendMove(usercmd_t *cmd);
 
 #endif
