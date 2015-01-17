@@ -95,216 +95,207 @@ static cvar_t *windowed_mouse;
 /* ------------------------------------------------------------------ */
 
 /*
- * This creepy function translates the SDL 
- * keycodes to the internal key representation
- * of the id Tech 2 engine.
+ * This creepy function translates SDL keycodes into
+ * the id Tech 2 engines interal representation.
  */
 static int
 IN_TranslateSDLtoQ2Key(unsigned int keysym)
 {
 	int key = 0;
 
-	if ((keysym >= SDLK_SPACE) && (keysym < SDLK_DELETE))
+	/* These must be translated */
+	switch (keysym)
 	{
-		/* These happen to match
-		   the ASCII chars */
-		key = (int)keysym;
-	}
-	else
-	{
-		switch (keysym)
-		{
-			case SDLK_PAGEUP:
-				key = K_PGUP;
-				break;
-			case SDLK_KP9:
-				key = K_KP_PGUP;
-				break;
-			case SDLK_PAGEDOWN:
-				key = K_PGDN;
-				break;
-			case SDLK_KP3:
-				key = K_KP_PGDN;
-				break;
-			case SDLK_KP7:
-				key = K_KP_HOME;
-				break;
-			case SDLK_HOME:
-				key = K_HOME;
-				break;
-			case SDLK_KP1:
-				key = K_KP_END;
-				break;
-			case SDLK_END:
-				key = K_END;
-				break;
-			case SDLK_KP4:
-				key = K_KP_LEFTARROW;
-				break;
-			case SDLK_LEFT:
-				key = K_LEFTARROW;
-				break;
-			case SDLK_KP6:
-				key = K_KP_RIGHTARROW;
-				break;
-			case SDLK_RIGHT:
-				key = K_RIGHTARROW;
-				break;
-			case SDLK_KP2:
-				key = K_KP_DOWNARROW;
-				break;
-			case SDLK_DOWN:
-				key = K_DOWNARROW;
-				break;
-			case SDLK_KP8:
-				key = K_KP_UPARROW;
-				break;
-			case SDLK_UP:
-				key = K_UPARROW;
-				break;
-			case SDLK_ESCAPE:
-				key = K_ESCAPE;
-				break;
-			case SDLK_KP_ENTER:
-				key = K_KP_ENTER;
-				break;
-			case SDLK_RETURN:
-				key = K_ENTER;
-				break;
-			case SDLK_TAB:
-				key = K_TAB;
-				break;
-			case SDLK_F1:
-				key = K_F1;
-				break;
-			case SDLK_F2:
-				key = K_F2;
-				break;
-			case SDLK_F3:
-				key = K_F3;
-				break;
-			case SDLK_F4:
-				key = K_F4;
-				break;
-			case SDLK_F5:
-				key = K_F5;
-				break;
-			case SDLK_F6:
-				key = K_F6;
-				break;
-			case SDLK_F7:
-				key = K_F7;
-				break;
-			case SDLK_F8:
-				key = K_F8;
-				break;
-			case SDLK_F9:
-				key = K_F9;
-				break;
-			case SDLK_F10:
-				key = K_F10;
-				break;
-			case SDLK_F11:
-				key = K_F11;
-				break;
-			case SDLK_F12:
-				key = K_F12;
-				break;
-			case SDLK_F13:
-				key = K_F13;
-				break;
-			case SDLK_F14:
-				key = K_F14;
-				break;
-			case SDLK_F15:
-				key = K_F15;
-				break;
-			case SDLK_BACKSPACE:
-				key = K_BACKSPACE;
-				break;
-			case SDLK_KP_PERIOD:
-				key = K_KP_DEL;
-				break;
-			case SDLK_DELETE:
-				key = K_DEL;
-				break;
-			case SDLK_PAUSE:
-				key = K_PAUSE;
-				break;
-			case SDLK_LSHIFT:
-			case SDLK_RSHIFT:
-				key = K_SHIFT;
-				break;
-			case SDLK_LCTRL:
-			case SDLK_RCTRL:
-				key = K_CTRL;
-				break;
-			case SDLK_RMETA:
-			case SDLK_LMETA:
-				key = K_COMMAND;
-				break;
-			case SDLK_RALT:
-			case SDLK_LALT:
-				key = K_ALT;
-				break;
-			case SDLK_KP5:
-				key = K_KP_5;
-				break;
-			case SDLK_INSERT:
-				key = K_INS;
-				break;
-			case SDLK_KP0:
-				key = K_KP_INS;
-				break;
-			case SDLK_KP_MULTIPLY:
-				key = K_KP_STAR;
-				break;
-			case SDLK_KP_PLUS:
-				key = K_KP_PLUS;
-				break;
-			case SDLK_KP_MINUS:
-				key = K_KP_MINUS;
-				break;
-			case SDLK_KP_DIVIDE:
-				key = K_KP_SLASH;
-				break;
-			case SDLK_MODE:
-				key = K_MODE;
-				break;
-			case SDLK_COMPOSE:
-				key = K_COMPOSE;
-				break;
-			case SDLK_HELP:
-				key = K_HELP;
-				break;
-			case SDLK_PRINT:
-				key = K_PRINT;
-				break;
-			case SDLK_SYSREQ:
-				key = K_SYSREQ;
-				break;
-			case SDLK_MENU:
-				key = K_MENU;
-				break;
-			case SDLK_POWER:
-				key = K_POWER;
-				break;
-			case SDLK_UNDO:
-				key = K_UNDO;
-				break;
-			case SDLK_SCROLLOCK:
-				key = K_SCROLLOCK;
-				break;
-			case SDLK_NUMLOCK:
-				key = K_KP_NUMLOCK;
-				break;
-			case SDLK_CAPSLOCK:
-				key = K_CAPSLOCK;
-				break;
+		case SDLK_PAGEUP:
+			key = K_PGUP;
+			break;
+		case SDLK_KP9:
+			key = K_KP_PGUP;
+			break;
+		case SDLK_PAGEDOWN:
+			key = K_PGDN;
+			break;
+		case SDLK_KP3:
+			key = K_KP_PGDN;
+			break;
+		case SDLK_KP7:
+			key = K_KP_HOME;
+			break;
+		case SDLK_HOME:
+			key = K_HOME;
+			break;
+		case SDLK_KP1:
+			key = K_KP_END;
+			break;
+		case SDLK_END:
+			key = K_END;
+			break;
+		case SDLK_KP4:
+			key = K_KP_LEFTARROW;
+			break;
+		case SDLK_LEFT:
+			key = K_LEFTARROW;
+			break;
+		case SDLK_KP6:
+			key = K_KP_RIGHTARROW;
+			break;
+		case SDLK_RIGHT:
+			key = K_RIGHTARROW;
+			break;
+		case SDLK_KP2:
+			key = K_KP_DOWNARROW;
+			break;
+		case SDLK_DOWN:
+			key = K_DOWNARROW;
+			break;
+		case SDLK_KP8:
+			key = K_KP_UPARROW;
+			break;
+		case SDLK_UP:
+			key = K_UPARROW;
+			break;
+		case SDLK_ESCAPE:
+			key = K_ESCAPE;
+			break;
+		case SDLK_KP_ENTER:
+			key = K_KP_ENTER;
+			break;
+		case SDLK_RETURN:
+			key = K_ENTER;
+			break;
+		case SDLK_TAB:
+			key = K_TAB;
+			break;
+		case SDLK_F1:
+			key = K_F1;
+			break;
+		case SDLK_F2:
+			key = K_F2;
+			break;
+		case SDLK_F3:
+			key = K_F3;
+			break;
+		case SDLK_F4:
+			key = K_F4;
+			break;
+		case SDLK_F5:
+			key = K_F5;
+			break;
+		case SDLK_F6:
+			key = K_F6;
+			break;
+		case SDLK_F7:
+			key = K_F7;
+			break;
+		case SDLK_F8:
+			key = K_F8;
+			break;
+		case SDLK_F9:
+			key = K_F9;
+			break;
+		case SDLK_F10:
+			key = K_F10;
+			break;
+		case SDLK_F11:
+			key = K_F11;
+			break;
+		case SDLK_F12:
+			key = K_F12;
+			break;
+		case SDLK_F13:
+			key = K_F13;
+			break;
+		case SDLK_F14:
+			key = K_F14;
+			break;
+		case SDLK_F15:
+			key = K_F15;
+			break;
+		case SDLK_BACKSPACE:
+			key = K_BACKSPACE;
+			break;
+		case SDLK_KP_PERIOD:
+			key = K_KP_DEL;
+			break;
+		case SDLK_DELETE:
+			key = K_DEL;
+			break;
+		case SDLK_PAUSE:
+			key = K_PAUSE;
+			break;
+		case SDLK_LSHIFT:
+		case SDLK_RSHIFT:
+			key = K_SHIFT;
+			break;
+		case SDLK_LCTRL:
+		case SDLK_RCTRL:
+			key = K_CTRL;
+			break;
+		case SDLK_RMETA:
+		case SDLK_LMETA:
+			key = K_COMMAND;
+			break;
+		case SDLK_RALT:
+		case SDLK_LALT:
+			key = K_ALT;
+			break;
+		case SDLK_KP5:
+			key = K_KP_5;
+			break;
+		case SDLK_INSERT:
+			key = K_INS;
+			break;
+		case SDLK_KP0:
+			key = K_KP_INS;
+			break;
+		case SDLK_KP_MULTIPLY:
+			key = K_KP_STAR;
+			break;
+		case SDLK_KP_PLUS:
+			key = K_KP_PLUS;
+			break;
+		case SDLK_KP_MINUS:
+			key = K_KP_MINUS;
+			break;
+		case SDLK_KP_DIVIDE:
+			key = K_KP_SLASH;
+			break;
+		case SDLK_MODE:
+			key = K_MODE;
+			break;
+		case SDLK_COMPOSE:
+			key = K_COMPOSE;
+			break;
+		case SDLK_HELP:
+			key = K_HELP;
+			break;
+		case SDLK_PRINT:
+			key = K_PRINT;
+			break;
+		case SDLK_SYSREQ:
+			key = K_SYSREQ;
+			break;
+		case SDLK_MENU:
+			key = K_MENU;
+			break;
+		case SDLK_POWER:
+			key = K_POWER;
+			break;
+		case SDLK_UNDO:
+			key = K_UNDO;
+			break;
+		case SDLK_SCROLLOCK:
+			key = K_SCROLLOCK;
+			break;
+		case SDLK_NUMLOCK:
+			key = K_KP_NUMLOCK;
+			break;
+		case SDLK_CAPSLOCK:
+			key = K_CAPSLOCK;
+			break;
 
-			default:
-				break;
-		}
+		default:
+			break;
 	}
 
 	return key;
@@ -336,29 +327,27 @@ IN_Update(void)
 
 		switch (event.type)
 		{
-			/* The mouse wheel */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_MOUSEWHEEL:
-				Key_Event((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), true);
-				Key_Event((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), false);
+				Key_Event((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), true, true);
+				Key_Event((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), false, true);
 				break;
 #endif
 			case SDL_MOUSEBUTTONDOWN:
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
 				if (event.button.button == 4)
 				{
-					Key_Event(K_MWHEELUP, true);
-					Key_Event(K_MWHEELUP, false);
+					Key_Event(K_MWHEELUP, true, true);
+					Key_Event(K_MWHEELUP, false, true);
 					break;
 				}
 				else if (event.button.button == 5)
 				{
-					Key_Event(K_MWHEELDOWN, true);
-					Key_Event(K_MWHEELDOWN, false);
+					Key_Event(K_MWHEELDOWN, true, true);
+					Key_Event(K_MWHEELDOWN, false, true);
 					break;
 				}
 #endif
-
 			case SDL_MOUSEBUTTONUP:
 				switch( event.button.button )
 				{
@@ -381,7 +370,7 @@ IN_Update(void)
 						return;
 				}
 
-				Key_Event(key, (event.type == SDL_MOUSEBUTTONDOWN));
+				Key_Event(key, (event.type == SDL_MOUSEBUTTONDOWN), true);
 				break;
 
 			case SDL_MOUSEMOTION:
@@ -398,7 +387,7 @@ IN_Update(void)
 				   the mouse exactly to the warp position.
 
 				   The underlying issue _should_ be solved in SDL
-				   2.0.3 an above. */
+				   2.0.3 and above. */
 				if (have_grab && !in_relativemode)
 				{
 					int center_x = vid.width / 2;
@@ -416,7 +405,12 @@ IN_Update(void)
                 }
 				break;
 
-				/* The user pressed a button */
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+			case SDL_TEXTINPUT:
+				Char_Event(event.text.text[0]);
+				break;
+#endif
+
 			case SDL_KEYDOWN:
 				modstate = SDL_GetModState();
 
@@ -434,33 +428,39 @@ IN_Update(void)
 					break;
 				}
 
-				/* Get the pressed key and add it to the key list */
-				key = IN_TranslateSDLtoQ2Key(event.key.keysym.sym);
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+				Char_Event(event.key.keysym.unicode);
+#endif
 
-				if (key)
+				if ((event.key.keysym.sym >= SDLK_SPACE) &&
+					 (event.key.keysym.sym < SDLK_DELETE))
 				{
-					Key_Event(key, true);
+					Key_Event(event.key.keysym.sym, true, false);
+				}
+				else
+				{
+					Key_Event(IN_TranslateSDLtoQ2Key(event.key.keysym.sym), true, true);
 				}
 
 				break;
 
-				/* The user released a key */
 			case SDL_KEYUP:
 
-				/* Get the pressed key and remove it from the key list */
-				key = IN_TranslateSDLtoQ2Key(event.key.keysym.sym);
-
-				if (key)
+				if ((event.key.keysym.sym >= SDLK_SPACE) &&
+					 (event.key.keysym.sym < SDLK_DELETE))
 				{
-					Key_Event(key, false);
+					Key_Event(event.key.keysym.sym, false, false);
+				}
+				else
+				{
+					Key_Event(IN_TranslateSDLtoQ2Key(event.key.keysym.sym), false, true);
 				}
 
 				break;
 		} 
 	}
 
-	/* Grab and ungrab the mouse if the
-	 * console or the menu is opened */
+	/* Grab and ungrab the mouse if the* console or the menu is opened */
 	want_grab = (vid_fullscreen->value || in_grab->value == 1 ||
 			(in_grab->value == 2 && windowed_mouse->value));
 
@@ -616,8 +616,9 @@ IN_Init(void)
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_SetRelativeMouseMode(have_grab ? SDL_TRUE : SDL_FALSE);
 	in_relativemode = (SDL_GetRelativeMouseMode() == SDL_TRUE);
+	SDL_StartTextInput();
 #else
-	SDL_EnableUNICODE(0);
+	SDL_EnableUNICODE(SDL_TRUE);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 #endif
 

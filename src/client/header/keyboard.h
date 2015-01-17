@@ -287,10 +287,11 @@ extern int		chat_bufferlen;
 extern int		chat_cursorpos;
 extern qboolean	chat_team;
 
-void Key_Event (int key, qboolean down);
-void Key_Init (void);
-void Key_WriteBindings (FILE *f);
-void Key_SetBinding (int keynum, char *binding);
-int Key_GetKey (void);
+void Char_Event(int key);
+void Key_Event(int key, qboolean down, qboolean special);
+void Key_Init(void);
+void Key_WriteBindings(FILE *f);
+void Key_SetBinding(int keynum, char *binding);
+int Key_GetKey(void);
 
 #endif
