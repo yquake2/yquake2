@@ -28,6 +28,7 @@
  */
 
 #include "header/client.h"
+#include "refresh/header/local.h"
 
 static cvar_t *cfg_unbindall;
 
@@ -933,6 +934,20 @@ Key_Event(int key, qboolean down, qboolean special)
 		key_repeats[key] = 0;
 	}
 
+	/* Fullscreen switch through Alt + Return */
+	if (down && keydown[K_ALT] && key == K_ENTER)
+	{
+		GLimp_ToggleFullscreen();
+		return;
+	}
+
+	/* Toogle console though Shift + Escape */
+	if (down && keydown[K_SHIFT] && key == K_ESCAPE)
+	{
+		Con_ToggleConsole_f();
+		return;
+	}
+
 	/* Key is unbound */
 	if ((key >= 200) && !keybindings[key] && (cls.key_dest != key_console))
 	{
@@ -1007,7 +1022,7 @@ Key_Event(int key, qboolean down, qboolean special)
 
 		if (kb && (kb[0] == '+'))
 		{
-			Com_sprintf(cmd, sizeof(cmd), "-%s %i %i\n", kb + 1, key, Sys_Milliseconds);
+			Com_sprintf(cmd, sizeof(cmd), "-%s %i %i\n", kb + 1, key, Sys_Milliseconds());
 			Cbuf_AddText(cmd);
 		}
 
@@ -1025,7 +1040,7 @@ Key_Event(int key, qboolean down, qboolean special)
 			if (kb[0] == '+')
 			{
 				/* button commands add keynum and time as a parm */
-				Com_sprintf(cmd, sizeof(cmd), "%s %i %i\n", kb, key, Sys_Milliseconds);
+				Com_sprintf(cmd, sizeof(cmd), "%s %i %i\n", kb, key, Sys_Milliseconds());
 				Cbuf_AddText(cmd);
 			}
 			else

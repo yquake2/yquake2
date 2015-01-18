@@ -612,10 +612,20 @@ IN_CenterView(void)
 	cl.viewangles[PITCH] = -SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
 }
 
+/*
+ * Centers the view
+ */
+static void
+IN_ForceCenterView(void)
+{
+	cl.viewangles[PITCH] = 0;
+}
+
 void
 CL_InitInput(void)
 {
 	Cmd_AddCommand("centerview", IN_CenterView);
+	Cmd_AddCommand("force_centerview", IN_ForceCenterView);
 
 	Cmd_AddCommand("+moveup", IN_UpDown);
 	Cmd_AddCommand("-moveup", IN_UpUp);

@@ -315,12 +315,6 @@ IN_Update(void)
 	SDL_Event event;
  	unsigned int key;
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_Keymod modstate;
-#else
-	SDLMod modstate;
-#endif
- 
 	/* Get and process an event */
 	while (SDL_PollEvent(&event))
 	{
@@ -412,22 +406,6 @@ IN_Update(void)
 #endif
 
 			case SDL_KEYDOWN:
-				modstate = SDL_GetModState();
-
-				/* Fullscreen switch via Alt-Return */
-				if ((modstate & KMOD_ALT) && (event.key.keysym.sym == SDLK_RETURN))
-				{
-					GLimp_ToggleFullscreen();
-					break;
-				}
-
-				/* Make Shift+Escape toggle the console. */
-				if ((modstate & KMOD_SHIFT) && (event.key.keysym.sym == SDLK_ESCAPE))
-				{
-					Cbuf_ExecuteText(EXEC_NOW, "toggleconsole");
-					break;
-				}
-
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
 				Char_Event(event.key.keysym.unicode);
 #endif
@@ -554,15 +532,6 @@ IN_Move(usercmd_t *cmd)
 /* ------------------------------------------------------------------ */
 
 /*
- * Centers the view
- */
-static void
-IN_ForceCenterView(void)
-{
-	cl.viewangles[PITCH] = 0;
-}
-
-/*
  * Look down
  */
 static void
@@ -609,7 +578,6 @@ IN_Init(void)
 
 	Cmd_AddCommand("+mlook", IN_MLookDown);
 	Cmd_AddCommand("-mlook", IN_MLookUp);
-	Cmd_AddCommand("force_centerview", IN_ForceCenterView);
 
 	have_grab = GLimp_InputIsGrabbed();
 
