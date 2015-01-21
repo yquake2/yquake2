@@ -401,13 +401,22 @@ IN_Update(void)
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_TEXTINPUT:
-				Char_Event(event.text.text[0]);
+				if ((event.text.text[0] >= SDLK_SPACE) &&
+					 (event.text.text[0] < SDLK_DELETE))
+				{
+					Char_Event(event.text.text[0]);
+				}
+
 				break;
 #endif
 
 			case SDL_KEYDOWN:
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
-				Char_Event(event.key.keysym.unicode);
+				if ((event.key.keysym.unicode >= SDLK_SPACE) &&
+					 (event.key.keysym.unicode < SDLK_DELETE))
+				{
+					Char_Event(event.key.keysym.unicode);
+				}
 #endif
 
 				if ((event.key.keysym.sym >= SDLK_SPACE) &&
