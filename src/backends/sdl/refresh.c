@@ -344,6 +344,7 @@ static qboolean CreateSDLWindow(int flags)
 	return true;
 #else
 	window = SDL_SetVideoMode(vid.width, vid.height, 0, flags);
+	SDL_EnableUNICODE(SDL_TRUE);
 	return window != NULL;
 #endif
 }

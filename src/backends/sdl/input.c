@@ -595,7 +595,6 @@ IN_Init(void)
 	in_relativemode = (SDL_GetRelativeMouseMode() == SDL_TRUE);
 	SDL_StartTextInput();
 #else
-	SDL_EnableUNICODE(SDL_TRUE);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 #endif
 
