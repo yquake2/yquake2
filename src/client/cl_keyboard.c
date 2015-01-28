@@ -1088,3 +1088,16 @@ Key_Event(int key, qboolean down, qboolean special)
 	}
 }
 
+/*
+ * Marks all keys as "up"
+ */
+void
+Key_MarkAllUp(void)
+{
+	int key;
+
+	for (key = 0; key < K_LAST; key++)
+	{
+		key_repeats[key] = 0;
+	}
+}

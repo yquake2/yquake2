@@ -39,6 +39,7 @@
 #include <errno.h>
 
 #include "../../client/header/client.h"
+#include "../../client/header/keyboard.h"
 
 typedef struct vidmode_s
 {
@@ -172,6 +173,9 @@ VID_LoadRefresh(void)
 		VID_Shutdown(); // Isn't that just too bad? :(
 		return false;
 	}
+
+	/* Ensure that all key states are cleared */
+	Key_MarkAllUp();
 
 	Com_Printf("------------------------------------\n\n");
 	return true;

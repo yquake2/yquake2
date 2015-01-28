@@ -31,6 +31,7 @@
 
 #include <ctype.h>
 #include "../header/client.h"
+#include "../header/keyboard.h"
 #include "header/qmenu.h"
 
 static int m_main_cursor;
@@ -95,6 +96,7 @@ M_ForceMenuOff(void)
     m_keyfunc = NULL;
     cls.key_dest = key_game;
     m_menudepth = 0;
+	Key_MarkAllUp();
     Cvar_Set("paused", "0");
 }
 
