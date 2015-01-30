@@ -913,6 +913,34 @@ Key_Event(int key, qboolean down, qboolean special)
     /* Track if key is down */
 	keydown[key] = down;
 
+	/* This is one of the most ugly constructs I've
+	   found so far in Quake II. When the game is in
+	   the intermission, the player can press any key
+	   to end it and advance into the next level. It
+	   should be easy to figure out at server level if
+	   a button is pressed. But somehow the developers
+	   decided, that they'll need special move state
+	   BUTTON_ANY to solve this problem. So there's
+	   this global variable anykeydown. If it's not
+	   0, CL_FinishMove() encodes BUTTON_ANY into the
+	   button state. The server reads this value and
+	   sends it to gi->ClientThink() where it's used
+	   to determine if the intermission shall end.
+	   Needless to say that this is the only consumer
+	   of BUTTON_ANY.
+
+	   Since we cannot alter the network protocol nor
+	   the server <-> game API, I'll leave things alone
+	   and try to forget. */
+	if (down)
+	{
+		anykeydown++;
+	}
+	else
+	{
+		anykeydown--;
+	}
+
 	/* Ignore most autorepeats */
 	if (down)
 	{
