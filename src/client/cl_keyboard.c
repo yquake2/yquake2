@@ -909,6 +909,7 @@ Key_Event(int key, qboolean down, qboolean special)
 {
 	char cmd[1024];
 	char *kb;
+	unsigned int time = Sys_Milliseconds();
 
     /* Track if key is down */
 	keydown[key] = down;
@@ -1050,7 +1051,7 @@ Key_Event(int key, qboolean down, qboolean special)
 
 		if (kb && (kb[0] == '+'))
 		{
-			Com_sprintf(cmd, sizeof(cmd), "-%s %i %i\n", kb + 1, key, Sys_Milliseconds());
+			Com_sprintf(cmd, sizeof(cmd), "-%s %i %i\n", kb + 1, key, time);
 			Cbuf_AddText(cmd);
 		}
 
@@ -1068,7 +1069,7 @@ Key_Event(int key, qboolean down, qboolean special)
 			if (kb[0] == '+')
 			{
 				/* button commands add keynum and time as a parm */
-				Com_sprintf(cmd, sizeof(cmd), "%s %i %i\n", kb, key, Sys_Milliseconds());
+				Com_sprintf(cmd, sizeof(cmd), "%s %i %i\n", kb, key, time);
 				Cbuf_AddText(cmd);
 			}
 			else
