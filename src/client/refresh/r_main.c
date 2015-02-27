@@ -1256,6 +1256,12 @@ R_Init(void *hinstance, void *hWnd)
 		Cvar_SetValue("gl_anisotropic_avail", 0.0);
 	}
 
+	if (strstr(gl_config.extensions_string, "GL_ARB_texture_non_power_of_two"))
+	{
+		VID_Printf(PRINT_ALL, "...using GL_ARB_texture_non_power_of_two\n");
+		gl_config.tex_npot = true;
+	}
+
 	gl_config.mtexcombine = false;
 
 	if (strstr(gl_config.extensions_string, "GL_ARB_texture_env_combine"))

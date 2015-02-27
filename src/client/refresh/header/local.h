@@ -366,6 +366,7 @@ typedef struct
 	qboolean mtexcombine;
 
 	qboolean anisotropic;
+	qboolean tex_npot;
 	float max_anisotropy;
 } glconfig_t;
 
