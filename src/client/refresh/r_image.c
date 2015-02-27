@@ -625,7 +625,10 @@ R_BuildPalettedTexture(unsigned char *paletted_texture, unsigned char *scaled,
 	}
 }
 
+// Windows headers don't define this constant.
+#ifndef GL_GENERATE_MIPMAP
 #define GL_GENERATE_MIPMAP 0x8191
+#endif
 
 qboolean
 R_Upload32Native(unsigned *data, int width, int height, qboolean mipmap)
