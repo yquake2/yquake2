@@ -625,8 +625,44 @@ R_BuildPalettedTexture(unsigned char *paletted_texture, unsigned char *scaled,
 	}
 }
 
+#define GL_GENERATE_MIPMAP 0x8191
+
 qboolean
-R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
+R_Upload32Native(unsigned *data, int width, int height, qboolean mipmap)
+{
+	// This is for GL 2.x so no palettes, no scaling, no messing around with the data here. :)
+	int samples;
+	int i, c;
+	byte *scan;
+	int comp;
+
+	c = width * height;
+	scan = ((byte *)data) + 3;
+	samples = gl_solid_format;
+	comp = gl_tex_solid_format;
+	upload_width = width;
+	upload_height = height;
+
+	for (i = 0; i < c; i++, scan += 4)
+	{
+		if (*scan != 255)
+		{
+			samples = gl_alpha_format;
+			comp = gl_tex_alpha_format;
+			break;
+		}
+	}
+    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, mipmap);
+	glTexImage2D(GL_TEXTURE_2D, 0, comp, width,
+			height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+			data);
+    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, false);
+	return samples == gl_alpha_format;
+}
+
+
+qboolean
+R_Upload32Old(unsigned *data, int width, int height, qboolean mipmap)
 {
 	int samples;
 	unsigned scaled[256 * 256];
@@ -696,29 +732,16 @@ R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 	c = width * height;
 	scan = ((byte *)data) + 3;
 	samples = gl_solid_format;
+	comp = gl_tex_solid_format;
 
 	for (i = 0; i < c; i++, scan += 4)
 	{
 		if (*scan != 255)
 		{
 			samples = gl_alpha_format;
+			comp = gl_tex_alpha_format;
 			break;
 		}
-	}
-
-	if (samples == gl_solid_format)
-	{
-		comp = gl_tex_solid_format;
-	}
-	else if (samples == gl_alpha_format)
-	{
-		comp = gl_tex_alpha_format;
-	}
-	else
-	{
-		VID_Printf(PRINT_ALL, "Unknown number of texture components %i\n",
-				samples);
-		comp = samples;
 	}
 
 	if ((scaled_width == width) && (scaled_height == height))
@@ -816,6 +839,23 @@ R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 
 done:
 
+	return samples == gl_alpha_format;
+}
+
+qboolean
+R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
+{
+	qboolean res;
+
+	if (gl_config.tex_npot)
+	{
+		res = R_Upload32Native(data, width, height, mipmap);
+	}
+	else
+	{
+		res = R_Upload32Old(data, width, height, mipmap);
+	}
+
 	if (mipmap)
 	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
@@ -832,9 +872,9 @@ done:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
 				gl_anisotropic->value);
 	}
-
-	return samples == gl_alpha_format;
+	return res;
 }
+
 
 /*
  * Returns has_alpha
