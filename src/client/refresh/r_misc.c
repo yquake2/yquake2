@@ -121,7 +121,9 @@ R_ScreenShot(void)
 		return;
 	}
 
-	c = 18 + vid.width * vid.height * 3;
+	static const int headerLength = 18+4;
+
+	c = headerLength + vid.width * vid.height * 3;
 
 	buffer = malloc(c);
 	if (!buffer)
@@ -130,20 +132,26 @@ R_ScreenShot(void)
 		return;
 	}
 
-	memset(buffer, 0, 18);
+	memset(buffer, 0, headerLength);
+	buffer[0] = 4; // image ID: "yq2\0"
 	buffer[2] = 2; /* uncompressed type */
 	buffer[12] = vid.width & 255;
 	buffer[13] = vid.width >> 8;
 	buffer[14] = vid.height & 255;
 	buffer[15] = vid.height >> 8;
 	buffer[16] = 24; /* pixel size */
+	buffer[17] = 0; // image descriptor
+	buffer[18] = 'y'; // following: the 4 image ID fields
+	buffer[19] = 'q';
+	buffer[20] = '2';
+	buffer[21] = '\0';
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glReadPixels(0, 0, vid.width, vid.height, GL_RGB,
-			GL_UNSIGNED_BYTE, buffer + 18);
+			GL_UNSIGNED_BYTE, buffer + headerLength);
 
 	/* swap rgb to bgr */
-	for (i = 18; i < c; i += 3)
+	for (i = headerLength; i < c; i += 3)
 	{
 		temp = buffer[i];
 		buffer[i] = buffer[i + 2];
