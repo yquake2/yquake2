@@ -1,4 +1,7 @@
 Quake II 5.23 to 5.24:
+- Fix keyboard layouts in the console.
+- Use GL_ARB_texture_non_power_of_two if it's
+  supported by the GPU.
 - Provide gl_consolescale and gl_menuscale cvars to
   change the scale of the console and the menu.
 - Several bugfixes and improvements to the sound system.
