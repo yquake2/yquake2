@@ -1094,9 +1094,17 @@ R_FindImage(char *name, imagetype_t type)
 	char *ptr;
 	char namewe[256];
 	int realwidth = 0, realheight = 0;
+	const char* ext;
 
 	if (!name)
 	{
+		return NULL;
+	}
+
+	ext = COM_FileExtension(name);
+	if(!ext[0])
+	{
+		/* file has no extension */
 		return NULL;
 	}
 
@@ -1131,32 +1139,29 @@ R_FindImage(char *name, imagetype_t type)
 	pic = NULL;
 	palette = NULL;
 
-	if (!strcmp(name + len - 4, ".pcx"))
+	if (strcmp(ext, "pcx") == 0)
 	{
-#ifdef RETEXTURE
-
 		if (gl_retexturing->value)
 		{
 			GetPCXInfo(name, &realwidth, &realheight);
-
-			/* Try to load a TGA */
-			LoadTGA(namewe, &pic, &width, &height);
-
-			if (!pic)
+			if(realwidth == 0)
 			{
-				/* JPEG if no TGA available */
-				LoadJPG(namewe, &pic, &width, &height);
+				/* No texture found */
+				return NULL;
+			}
+
+			/* try to load a tga, png or jpg (in that order/priority) */
+			if (  LoadSTB(namewe, "tga", &pic, &width, &height)
+			   || LoadSTB(namewe, "png", &pic, &width, &height)
+			   || LoadSTB(namewe, "jpg", &pic, &width, &height) )
+			{
+				/* upload tga or png or jpg */
+				image = R_LoadPic(name, pic, width, realwidth, height,
+						realheight, type, 32);
 			}
 			else
 			{
-				/* Upload TGA */
-				R_LoadPic(name, pic, width, realwidth, height,
-						realheight, type, 32);
-			}
-
-			if (!pic)
-			{
-				/* PCX if no JPEG available (exists always) */
+				/* PCX if no TGA/PNG/JPEG available (exists always) */
 				LoadPCX(name, &pic, &palette, &width, &height);
 
 				if (!pic)
@@ -1168,15 +1173,8 @@ R_FindImage(char *name, imagetype_t type)
 				/* Upload the PCX */
 				image = R_LoadPic(name, pic, width, 0, height, 0, type, 8);
 			}
-			else
-			{
-				/* Upload JPEG or TGA */
-				image = R_LoadPic(name, pic, width, realwidth,
-						height, realheight, type, 32);
-			}
 		}
-		else
-#endif
+		else /* gl_retexture is not set */
 		{
 			LoadPCX(name, &pic, &palette, &width, &height);
 
@@ -1188,40 +1186,31 @@ R_FindImage(char *name, imagetype_t type)
 			image = R_LoadPic(name, pic, width, 0, height, 0, type, 8);
 		}
 	}
-	else if (!strcmp(name + len - 4, ".wal"))
+	else if (strcmp(ext, "wal") == 0)
 	{
-#ifdef RETEXTURE
-
 		if (gl_retexturing->value)
 		{
 			/* Get size of the original texture */
 			GetWalInfo(name, &realwidth, &realheight);
-
-			/* Try to load a TGA */
-			LoadTGA(namewe, &pic, &width, &height);
-
-			if (!pic)
+			if(realwidth == 0)
 			{
-				/* JPEG if no TGA available */
-				LoadJPG(namewe, &pic, &width, &height);
+				/* No texture found */
+				return NULL;
 			}
-			else
+
+			/* try to load a tga, png or jpg (in that order/priority) */
+			if (  LoadSTB(namewe, "tga", &pic, &width, &height)
+			   || LoadSTB(namewe, "png", &pic, &width, &height)
+			   || LoadSTB(namewe, "jpg", &pic, &width, &height) )
 			{
-				/* Upload TGA */
-				R_LoadPic(name, pic, width, realwidth, height,
+				/* upload tga or png or jpg */
+				image = R_LoadPic(name, pic, width, realwidth, height,
 						realheight, type, 32);
 			}
-
-			if (!pic)
-			{
-				/* WAL of no JPEG available (exists always) */
-				image = LoadWal(namewe);
-			}
 			else
 			{
-				/* Upload JPEG or TGA */
-				image = R_LoadPic(name, pic, width, realwidth,
-						height, realheight, type, 32);
+				/* WAL if no TGA/PNG/JPEG available (exists always) */
+				image = LoadWal(namewe);
 			}
 
 			if (!image)
@@ -1230,8 +1219,7 @@ R_FindImage(char *name, imagetype_t type)
 				return NULL;
 			}
 		}
-		else
-#endif
+		else /* gl_retexture is not set */
 		{
 			image = LoadWal(name);
 
@@ -1242,40 +1230,33 @@ R_FindImage(char *name, imagetype_t type)
 			}
 		}
 	}
-	else if (!strcmp(name + len - 4, ".tga"))
+	else if (strcmp(ext, "tga") == 0 || strcmp(ext, "png") == 0 || strcmp(ext, "jpg") == 0)
 	{
-        char tmp_name[256];
+		char tmp_name[256];
 
-        realwidth = 0;
-        realheight = 0;
+		realwidth = 0;
+		realheight = 0;
 
-        strcpy(tmp_name, namewe);
-        strcat(tmp_name, ".wal");
-        GetWalInfo(tmp_name, &realwidth, &realheight);
+		strcpy(tmp_name, namewe);
+		strcat(tmp_name, ".wal");
+		GetWalInfo(tmp_name, &realwidth, &realheight);
 
-        if (realwidth == 0 || realheight == 0) {
-            /* It's a sky. */
-            strcpy(tmp_name, namewe);
-            strcat(tmp_name, ".pcx");
-            GetPCXInfo(tmp_name, &realwidth, &realheight);
-        }
+		if (realwidth == 0 || realheight == 0) {
+			/* It's a sky or model skin. */
+			strcpy(tmp_name, namewe);
+			strcat(tmp_name, ".pcx");
+			GetPCXInfo(tmp_name, &realwidth, &realheight);
+		}
 
-        if (realwidth == 0 || realheight == 0)
-            return NULL;
+		/* TODO: not sure if not having realwidth/heigth is bad - a tga/png/jpg
+		 * was requested, after all, so there might be no corresponding wal/pcx?
+		 * if (realwidth == 0 || realheight == 0) return NULL;
+		 */
 
-		LoadTGA(name, &pic, &width, &height);
+		LoadSTB(name, ext, &pic, &width, &height);
 		image = R_LoadPic(name, pic, width, realwidth,
 				height, realheight, type, 32);
 	}
-
-#ifdef RETEXTURE
-	else if (!strcmp(name + len - 4, ".jpg"))
-	{
-		LoadJPG(name, &pic, &width, &height);
-		image = R_LoadPic(name, pic, width, realwidth,
-				height, realheight, type, 32);
-	}
-#endif
 	else
 	{
 		return NULL;

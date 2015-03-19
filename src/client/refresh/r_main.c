@@ -112,9 +112,7 @@ cvar_t *gl_mode;
 cvar_t *gl_customwidth;
 cvar_t *gl_customheight;
 
-#ifdef RETEXTURE
 cvar_t *gl_retexturing;
-#endif
 
 cvar_t *gl_dynamic;
 cvar_t *gl_modulate;
@@ -1018,9 +1016,7 @@ R_Register(void)
 	gl_customheight = Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
 	gl_msaa_samples = Cvar_Get ( "gl_msaa_samples", "0", CVAR_ARCHIVE );
 
-#ifdef RETEXTURE
 	gl_retexturing = Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
-#endif
 
 	Cmd_AddCommand("imagelist", R_ImageList_f);
 	Cmd_AddCommand("screenshot", R_ScreenShot);
@@ -1105,11 +1101,9 @@ R_Init(void *hinstance, void *hWnd)
 
 	/* Options */
 	VID_Printf(PRINT_ALL, "Refresher build options:\n");
-#ifdef RETEXTURE
+
 	VID_Printf(PRINT_ALL, " + Retexturing support\n");
-#else
-	VID_Printf(PRINT_ALL, " - Retexturing support\n");
-#endif
+
 #ifdef X11GAMMA
 	VID_Printf(PRINT_ALL, " + Gamma via X11\n");
 #else

@@ -11,7 +11,6 @@
 #  - libGL                                               #
 #                                                        #
 # Further dependencies:                                  #
-#  - libjpeg                                             #
 #  - libogg                                              #
 #  - libvorbis                                           #
 #  - OpenAL                                              #
@@ -44,10 +43,6 @@ WITH_OGG:=yes
 # or openal32.dll (we recommend openal-soft)
 # installed
 WITH_OPENAL:=yes
-
-# Enables retexturing support. Adds
-# a dependency to libjpeg
-WITH_RETEXTURING:=yes
 
 # Use SDL2 instead of SDL1.2. Disables CD audio support,
 # because SDL2 has none. Use OGG/Vorbis music instead :-)
@@ -165,7 +160,7 @@ CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 CFLAGS += $(OSX_ARCH)
 else
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -pipe -g -MMD
+		  -Wall -pipe -g -ggdb -MMD
 endif
 
 # ----------
@@ -312,7 +307,6 @@ config:
 	@echo "============================"
 	@echo "WITH_CDA = $(WITH_CDA)"
 	@echo "WITH_OPENAL = $(WITH_OPENAL)"
-	@echo "WITH_RETEXTURING = $(WITH_RETEXTURING)"
 	@echo "WITH_SDL2 = $(WITH_SDL2)"
 	@echo "WITH_X11GAMMA = $(WITH_X11GAMMA)"
 	@echo "WITH_ZIP = $(WITH_ZIP)"
@@ -376,11 +370,6 @@ ifeq ($(WITH_ZIP),yes)
 release/quake2.exe : CFLAGS += -DZIP -DNOUNCRYPT
 release/quake2.exe : LDFLAGS += -lz
 endif
- 
-ifeq ($(WITH_RETEXTURING),yes)
-release/quake2.exe : CFLAGS += -DRETEXTURE
-release/quake2.exe : LDFLAGS += -ljpeg
-endif 
 
 ifeq ($(WITH_SDL2),yes)
 release/quake2.exe : CFLAGS += -DSDL2
@@ -436,15 +425,6 @@ endif
 
 ifeq ($(WITH_X11GAMMA),yes)
 release/quake2 : CFLAGS += -DX11GAMMA
-endif
-
-ifeq ($(WITH_RETEXTURING),yes)
-release/quake2 : CFLAGS += -DRETEXTURE
-ifeq ($(OSTYPE), Darwin)
-release/quake2 : LDFLAGS += -framework libjpeg
-else
-release/quake2 : LDFLAGS += -ljpeg
-endif
 endif
 
 ifeq ($(WITH_SDL2),yes)
@@ -649,8 +629,7 @@ CLIENT_OBJS_ := \
 	src/client/refresh/files/md2.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/sp2.o \
-	src/client/refresh/files/tga.o \
-	src/client/refresh/files/jpeg.o \
+	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
 	src/client/menu/menu.o \
 	src/client/menu/qmenu.o \
