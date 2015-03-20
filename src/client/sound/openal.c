@@ -54,12 +54,7 @@ qboolean streamPlaying;
 static ALuint s_srcnums[MAX_CHANNELS - 1];
 static ALuint streamSource;
 static int s_framecount;
-
-/* Apple crappy OpenAL implementation
-   has no support for filters. */
-#ifndef __APPLE__
 static ALuint underwaterFilter;
-#endif
 
 /* ----------------------------------------------------------------- */
 
@@ -661,7 +656,6 @@ AL_Update(void)
 void
 AL_Underwater()
 {
-#if !defined (__APPLE__)
 	int i;
 
 	if (sound_started != SS_OAL)
@@ -677,7 +671,6 @@ AL_Underwater()
 	{
 		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, underwaterFilter);
 	}
-#endif
 }
 
 /*
@@ -686,7 +679,6 @@ AL_Underwater()
 void
 AL_Overwater()
 {
-#if !defined (__APPLE__)
 	int i;
 
 	if (sound_started != SS_OAL)
@@ -702,7 +694,6 @@ AL_Overwater()
 	{
 		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, 0);
 	}
-#endif
 }
 
 /* ----------------------------------------------------------------- */
@@ -728,7 +719,6 @@ AL_InitStreamSource()
 static void
 AL_InitUnderwaterFilter()
 {
-#if !defined (__APPLE__)
     underwaterFilter = 0;
 
     if (!(qalGenFilters && qalFilteri && qalFilterf && qalDeleteFilters))
@@ -756,7 +746,6 @@ AL_InitUnderwaterFilter()
 
     s_underwater->modified = true;
     s_underwater_gain_hf->modified = true;
-#endif
 }
 
 /*
@@ -817,10 +806,7 @@ AL_Init(void)
 
 	s_numchannels = i;
 	AL_InitStreamSource();
-
-#ifndef __APPLE__
 	AL_InitUnderwaterFilter();
-#endif
 
 	Com_Printf("Number of OpenAL sources: %d\n\n", s_numchannels);
 	return true;
@@ -837,9 +823,8 @@ AL_Shutdown(void)
 	AL_StreamDie();
 
 	qalDeleteSources(1, &streamSource);
-#if !defined (__APPLE__)
 	qalDeleteFilters(1, &underwaterFilter);
-#endif
+
 	if (s_numchannels)
 	{
 		/* delete source names */

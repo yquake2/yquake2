@@ -20,7 +20,6 @@
 #  - FreeBSD                                             #
 #  - Linux                                               #
 #  - OpenBSD                                             #
-#  - OS X                                                #
 #  - Windows (MinGW)                                     #
 # ------------------------------------------------------ #
 
@@ -68,19 +67,6 @@ WITH_SYSTEMWIDE:=no
 # instead of backslashed (\) should be used! The string
 # MUST NOT be surrounded by quotation marks!
 WITH_SYSTEMDIR:=""
-
-# This will set the architectures of the OSX-binaries.
-# You have to make sure your libs/frameworks supports
-# these architectures! To build an universal ppc-compatible
-# one would add -arch ppc for example.
-OSX_ARCH:=-arch i386 -arch x86_64
-
-# This will set the build options to create an MacOS .app-bundle.
-# The app-bundle itself will not be created, but the runtime paths
-# will be set to expect the linked Frameworks in *.app/Contents/
-# Frameworks and the game-data will be expected in *.app/
-# Contents/Resources
-OSX_APP:=yes
 
 # This is an optional configuration file, it'll be used in
 # case of presence.
@@ -154,14 +140,8 @@ endif
 #
 # -MMD to generate header dependencies. (They cannot be
 #  generated if building universal binaries on OSX)
-ifeq ($(OSTYPE), Darwin)
-CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -pipe -g
-CFLAGS += $(OSX_ARCH)
-else
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 		  -Wall -pipe -g -ggdb -MMD
-endif
 
 # ----------
 
@@ -184,9 +164,6 @@ endif
 # ----------
 
 # Extra CFLAGS for SDL
-ifeq ($(OSTYPE), Darwin)
-SDLCFLAGS :=
-else # not darwin
 ifeq ($(WITH_SDL2),yes)
 ifeq ($(OSTYPE),Windows)
 SDLCFLAGS := $(shell /custom/bin/sdl2-config --cflags)
@@ -200,17 +177,14 @@ else
 SDLCFLAGS := $(shell sdl-config --cflags)
 endif
 endif # SDL2
-endif # darwin's else
 
 # ----------
 
 # Extra CFLAGS for X11
 ifneq ($(OSTYPE), Windows)
-ifneq ($(OSTYPE), Darwin)
 ifeq ($(WITH_X11GAMMA),yes)
 X11CFLAGS := $(shell pkg-config x11 --cflags)
 X11CFLAGS += $(shell pkg-config xxf86vm --cflags)
-endif
 endif
 endif
 
@@ -223,8 +197,6 @@ else ifeq ($(OSTYPE),FreeBSD)
 INCLUDE := -I/usr/local/include
 else ifeq ($(OSTYPE),OpenBSD)
 INCLUDE := -I/usr/local/include
-else ifeq ($(OSTYPE),Darwin)
-INCLUDE :=
 else ifeq ($(OSTYPE),Windows)
 INCLUDE := -I/custom/include
 endif
@@ -240,8 +212,6 @@ else ifeq ($(OSTYPE),OpenBSD)
 LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),Windows)
 LDFLAGS := -L/custom/lib -static -lws2_32 -lwinmm
-else ifeq ($(OSTYPE), Darwin)
-LDFLAGS := $(OSX_ARCH) -lm
 endif
 
 # ----------
@@ -253,30 +223,22 @@ SDLLDFLAGS := $(shell /custom/bin/sdl2-config --static-libs)
 else # not SDL2
 SDLLDFLAGS := -lSDL
 endif # SDL2
-else ifeq ($(OSTYPE), Darwin)
-ifeq ($(WITH_SDL2),yes)
-SDLLDFLAGS := -framework SDL2 -framework OpenGL -framework Cocoa
-else # not SDL2
-SDLLDFLAGS := -framework SDL -framework OpenGL -framework Cocoa
-endif # SDL2
-else # not Darwin/Win
+else # not Win
 ifeq ($(WITH_SDL2),yes)
 SDLLDFLAGS := $(shell sdl2-config --libs)
 else # not SDL2
 SDLLDFLAGS := $(shell sdl-config --libs)
 endif # SDL2
-endif # Darwin/Win
+endif # Win
 
 # ----------
 
 # Extra LDFLAGS for X11
 ifneq ($(OSTYPE), Windows)
-ifneq ($(OSTYPE), Darwin)
 ifeq ($(WITH_X11GAMMA),yes)
 X11LDFLAGS := $(shell pkg-config x11 --libs)
 X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
 X11LDFLAGS += $(shell pkg-config xrandr --libs)
-endif
 endif
 endif
 
@@ -376,7 +338,7 @@ release/quake2.exe : CFLAGS += -DSDL2
 endif
 
 release/quake2.exe : LDFLAGS += -mwindows -lopengl32
-else
+else # not Windows
 client:
 	@echo "===> Building quake2"
 	${Q}mkdir -p release
@@ -387,32 +349,18 @@ build/client/%.o: %.c
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
 
-ifeq ($(OSTYPE), Darwin)
-build/client/%.o : %.m
-	@echo "===> CC $<"
-	${Q}mkdir -p $(@D)
-	${Q}$(CC) $(OSX_ARCH) -x objective-c -c $< -o $@
-endif
-
 ifeq ($(WITH_CDA),yes)
 release/quake2 : CFLAGS += -DCDA
 endif
 
 ifeq ($(WITH_OGG),yes)
 release/quake2 : CFLAGS += -DOGG
-ifeq ($(OSTYPE), Darwin)
-release/quake2 : LDFLAGS += -framework Vorbis -framework Ogg
-else
 release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg
-endif
 endif
 
 ifeq ($(WITH_OPENAL),yes)
 ifeq ($(OSTYPE), OpenBSD)
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so"'
-else ifeq ($(OSTYPE), Darwin)
-release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"/System/Library/Frameworks/OpenAL.framework/OpenAL"'
-release/quake2 : LDFLAGS += -framework OpenAL
 else
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
 endif
@@ -431,15 +379,7 @@ ifeq ($(WITH_SDL2),yes)
 release/quake2 : CFLAGS += -DSDL2
 endif
  
-ifeq ($(OSTYPE), Darwin)
-ifeq ($(OSX_APP), yes)
-release/quake2 : LDFLAGS += -Xlinker -rpath -Xlinker @loader_path/../Frameworks
-endif
-endif
- 
-ifneq ($(OSTYPE), Darwin)
 release/quake2 : LDFLAGS += -lGL
-endif
 
 ifeq ($(OSTYPE), FreeBSD)
 release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib'
@@ -485,7 +425,7 @@ ifeq ($(WITH_ZIP),yes)
 release/q2ded.exe : CFLAGS += -DZIP -DNOUNCRYPT
 release/q2ded.exe : LDFLAGS += -lz
 endif
-else
+else # not Windows
 server:
 	@echo "===> Building q2ded"
 	${Q}mkdir -p release
@@ -519,7 +459,7 @@ build/baseq2/%.o: %.c
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 release/baseq2/game.dll : LDFLAGS += -shared
-else
+else # not Windows
 game:
 	@echo "===> Building baseq2/game.so"
 	${Q}mkdir -p release/baseq2
@@ -683,10 +623,6 @@ CLIENT_OBJS_ += \
 	src/backends/unix/shared/hunk.o
 endif
 
-ifeq ($(OSTYPE), Darwin)
-CLIENT_OBJS_ += src/backends/sdl_osx/SDLMain.o
-endif
-
 # ----------
 
 # Used by the server
@@ -726,7 +662,7 @@ SERVER_OBJS_ += \
 	src/backends/windows/network.o \
 	src/backends/windows/system.o \
 	src/backends/windows/shared/mem.o
-else
+else # not Windows
 SERVER_OBJS_ += \
 	src/backends/unix/main.o \
 	src/backends/unix/network.o \

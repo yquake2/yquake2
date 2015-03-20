@@ -34,7 +34,7 @@
 #include "../../common/header/common.h"
 #include "header/unix.h"
 
-#if defined(__APPLE__) && !defined(DEDICATED_ONLY)
+#if !defined(DEDICATED_ONLY)
 #include <SDL/SDL.h>
 #endif
 

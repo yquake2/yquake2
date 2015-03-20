@@ -32,14 +32,9 @@
 
 #ifdef USE_OPENAL
 
-#if defined (__APPLE__)
-#include <OpenAL/al.h>
-#include <OpenAL/alc.h>
-#else
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
-#endif
 
 #include "../../common/header/common.h"
 #include "../../client/sound/header/local.h"
@@ -148,12 +143,10 @@ LPALDOPPLERFACTOR qalDopplerFactor;
 LPALDOPPLERVELOCITY qalDopplerVelocity;
 LPALSPEEDOFSOUND qalSpeedOfSound;
 LPALDISTANCEMODEL qalDistanceModel;
-#if !defined (__APPLE__)
 LPALGENFILTERS qalGenFilters;
 LPALFILTERI qalFilteri;
 LPALFILTERF qalFilterf;
 LPALDELETEFILTERS qalDeleteFilters;
-#endif
 
 /*
  * Gives information over the OpenAL
@@ -324,12 +317,10 @@ QAL_Shutdown()
 	qalDopplerVelocity = NULL;
 	qalSpeedOfSound = NULL;
 	qalDistanceModel = NULL;
-#if !defined (__APPLE__)	
 	qalGenFilters = NULL;
 	qalFilteri = NULL;
 	qalFilterf = NULL;
 	qalDeleteFilters = NULL;
-#endif
 
 	/* Unload the shared lib */
 	Sys_FreeLibrary(handle);
@@ -494,7 +485,6 @@ QAL_Init()
 		return false;
 	}
 
-#if !defined (__APPLE__)
     if (qalcIsExtensionPresent(device, "ALC_EXT_EFX") != AL_FALSE) {
         qalGenFilters = qalGetProcAddress("alGenFilters");
         qalFilteri = qalGetProcAddress("alFilteri");
@@ -506,7 +496,6 @@ QAL_Init()
         qalFilterf = NULL;
         qalDeleteFilters = NULL;
     }
-#endif
 
 	Com_Printf("ok\n");
 
