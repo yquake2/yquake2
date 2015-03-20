@@ -646,6 +646,8 @@ R_Upload32Native(unsigned *data, int width, int height, qboolean mipmap)
 	upload_width = width;
 	upload_height = height;
 
+	R_LightScaleTexture(data, upload_width, upload_height, !mipmap);
+
 	for (i = 0; i < c; i++, scan += 4)
 	{
 		if (*scan != 255)
