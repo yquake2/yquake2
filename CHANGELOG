@@ -1,5 +1,5 @@
 Quake II 5.24 to 5.30:
-- Remove support for Mac OS X.
+- Support for Mac OS X was overhauled. (by Jarvik7)
 
 Quake II 5.23 to 5.24:
 - Fix keyboard layouts in the console.
