@@ -439,9 +439,4 @@ void GLimp_ToggleFullscreen(void);
  */
 void GLimp_GrabInput(qboolean grab);
 
-/*
- * returns true if input is grabbed, else false
- */
-qboolean GLimp_InputIsGrabbed();
-
 #endif

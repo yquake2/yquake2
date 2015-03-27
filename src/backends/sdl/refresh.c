@@ -66,7 +66,6 @@
 #endif
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-extern qboolean in_relativemode;
 SDL_Window* window = NULL;
 SDL_GLContext context = NULL;
 #else
@@ -737,23 +736,17 @@ void GLimp_ToggleFullscreen(void)
 void GLimp_GrabInput(qboolean grab)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_SetWindowGrab(window, grab ? SDL_TRUE : SDL_FALSE);
-	SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
-	in_relativemode = (SDL_GetRelativeMouseMode() == SDL_TRUE);
+	if(window != NULL)
+	{
+		SDL_SetWindowGrab(window, grab ? SDL_TRUE : SDL_FALSE);
+	}
+	if(SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE) < 0)
+	{
+		VID_Printf(PRINT_ALL, "WARNING: Setting Relative Mousemode failed, reason: %s\n", SDL_GetError());
+		VID_Printf(PRINT_ALL, "         You should probably update to SDL 2.0.3 or newer!\n");
+	}
 #else
 	SDL_WM_GrabInput(grab ? SDL_GRAB_ON : SDL_GRAB_OFF);
-#endif
-}
-
-/*
- * returns true if input is grabbed, else false
- */
-qboolean GLimp_InputIsGrabbed()
-{
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	return SDL_GetWindowGrab(window) ? true : false;
-#else
-	return (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON);
 #endif
 }
 
@@ -781,6 +774,9 @@ GLimp_Shutdown(void)
 
 	if (window)
 	{
+		/* cleanly ungrab input (needs window) */
+		GLimp_GrabInput(false);
+
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 		if(context)
 		{

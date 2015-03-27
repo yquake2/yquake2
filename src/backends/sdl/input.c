@@ -70,12 +70,7 @@
 /* Globals */
 static int mouse_x, mouse_y;
 static int old_mouse_x, old_mouse_y;
-static qboolean have_grab;
 static qboolean mlooking;
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-qboolean in_relativemode;
-#endif
 
 /* CVars */
 cvar_t *vid_fullscreen;
@@ -368,31 +363,6 @@ IN_Update(void)
 				break;
 
 			case SDL_MOUSEMOTION:
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-				/* This is a hack to work around an unsuccessful
-				   SDL_SetRelativeMouseMode(). This can happen if
-				   some broken security software is blocking raw
-				   input (to prevent keyloggers accessing the input
-				   queue), or if - on Linux / Unix - XInput2 is not
-				   available.
-
-				   Since SDL_WarpMouseInWindow() injects a movement
-				   event into the queue, we ignore events that move
-				   the mouse exactly to the warp position.
-
-				   The underlying issue _should_ be solved in SDL
-				   2.0.3 and above. */
-				if (have_grab && !in_relativemode)
-				{
-					int center_x = vid.width / 2;
-					int center_y = vid.height / 2;
-					if (event.motion.x == center_x && event.motion.y == center_y)
-					{
-						break;
-					}
-					SDL_WarpMouseInWindow(NULL, center_x, center_y);
-				}
-#endif
                 if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
                     mouse_x += event.motion.xrel;
                     mouse_y += event.motion.yrel;
@@ -450,12 +420,11 @@ IN_Update(void)
 	/* Grab and ungrab the mouse if the* console or the menu is opened */
 	want_grab = (vid_fullscreen->value || in_grab->value == 1 ||
 			(in_grab->value == 2 && windowed_mouse->value));
-
-	if (have_grab != want_grab)
-	{
-		GLimp_GrabInput(want_grab);
-		have_grab = want_grab;
-	}
+	/* calling GLimp_GrabInput() each is a but ugly but simple and should work.
+	 * + the called SDL functions return after a cheap check, if there's
+	 * nothing to do, anyway
+	 */
+	GLimp_GrabInput(want_grab);
 }
  
 /*
@@ -588,11 +557,7 @@ IN_Init(void)
 	Cmd_AddCommand("+mlook", IN_MLookDown);
 	Cmd_AddCommand("-mlook", IN_MLookUp);
 
-	have_grab = GLimp_InputIsGrabbed();
-
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_SetRelativeMouseMode(have_grab ? SDL_TRUE : SDL_FALSE);
-	in_relativemode = (SDL_GetRelativeMouseMode() == SDL_TRUE);
 	SDL_StartTextInput();
 #else
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
