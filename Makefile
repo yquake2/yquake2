@@ -73,7 +73,7 @@ WITH_SYSTEMDIR:=""
 # You have to make sure your libs/frameworks supports
 # these architectures! To build an universal ppc-compatible
 # one would add -arch ppc for example.
-OSX_ARCH:=-arch x86_64
+OSX_ARCH:=-arch $(shell uname -m | sed -e s/i.86/i386/)
 
 # This will set the build options to create an MacOS .app-bundle.
 # The app-bundle itself will not be created, but the runtime paths
