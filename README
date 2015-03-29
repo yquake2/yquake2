@@ -11,9 +11,10 @@ II. The main focus is single player, the gameplay and the graphics are
 unchanged, but many bugs were fixed. Unlike most other Quake II ports Yamagi
 Quake II is full 64 bit clean so it works perfectly on modern amd64 (x86_64)
 processors and operating systems. This code should run on Windows XP or later,
-and on most unix-like operating systems (only FreeBSD, Linux and OpenBSD are
-officially supported and tested, for other systems you'd at least have to edit
-the Makefile), just type "make" or "gmake" to compile.
+Mac OS X 10.6 or higher and on most unix-like operating systems
+(only FreeBSD, Linux and OpenBSD are officially supported and tested, for other
+systems you'd at least have to edit the Makefile), just type "make" or "gmake"
+to compile.
 
 This code is based upon Icculus Quake II, which itself is built upon id
 Software's original code drop. Additional code and patches by many contributers
@@ -41,22 +42,31 @@ Content of this file:
    2.6 Compiling
    2.7 Default Configuration
 
- 3. OGG/Vorbis playback
-   3.1 Setup for the original soundtrack
-   3.2 Setup for other music and playlists
-   3.3 Manual control
-   3.4 Console variables
+ 3. Installation on OS X
+   3.1 Supported Systems
+   3.2 Retail Version
+   3.3 Demo Version
+   3.4 Addons
+   3.5 Binary Installation
+   3.6 Compiling
+   3.7 Default Configuration
 
- 4. Configuration
-   4.1 Video
-   4.2 Input
-   4.3 Sound
-   4.3.1 The classic sound system
-   4.3.2 The OpenAL sound system
+ 4. OGG/Vorbis playback
+   4.1 Setup for the original soundtrack
+   4.2 Setup for other music and playlists
+   4.3 Manual control
+   4.4 Console variables
 
- 5. Bugreports
+ 5. Configuration
+   5.1 Video
+   5.2 Input
+   5.3 Sound
+   5.3.1 The classic sound system
+   5.3.2 The OpenAL sound system
 
- 6. FAQ
+ 6. Bugreports
+
+ 7. FAQ
 
 ===============================================================================
 
@@ -266,7 +276,106 @@ Now you are ready to start your brand new Quake II. Have fun.
 
 ===============================================================================
 
-3. OGG/Vorbis playback
+3. Installation on OS X
+=======================
+Yamagi Quake II has full support for Apple OS X. All features are
+supported, including the IPv6 network code and the OpenAL sound backend.
+Installation can be done by using the binary release or by compiling the source.
+
+3.1 Supported Systems
+---------------------
+Yamagi Quake II should run on every Mac with Intel CPU and OS X 10.6
+or higher.
+
+3.2 Retail Version
+------------------
+If you own Quake II, first get the official point release to Quake II 3.20:
+ftp://ftp.idsoftware.com/idstuff/quake2/q2-3.20-x86-full-ctf.exe
+Use this and only this file! Unofficial pointreleases or something like
+that will not work and may crash your game!
+
+Extract the file into a new directory (we recommend quake2\) and remove
+the following files and directories:
+- 3.20_Changes.txt
+- quake2.exe
+- ref_gl.dll
+- ref_soft.dll
+- baseq2\gamex86.dll
+- baseq2\maps.lst
+- ctf\ctf2.ico
+- ctf\gamex86.dll
+- ctf\readme.txt
+- ctf\server.cfg
+- xatrix\gamex86.dll
+- rogue\gamex86.dll
+
+Now put the Quake II CD-ROM into your cd drive and copy "pak0.pak" and
+the directory "video\" to the "baseq2\" directory of your installation.
+
+3.3 Demo Version
+----------------
+If you haven't got Quake II, try the demo version. Get it here:
+ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe
+
+Extract this file into a new directory and delete everything but
+"baseq2\pak0.pak" and the "baseq2\players\" directory. No patching
+is needed for the demo, in fact it would break it.
+
+3.4 Addons
+----------
+Due to license issues - Yamagi Quake II is covered by the GPL and the
+addons are under the id Software SDK license - the addons are
+distributed separately. You can get them at http://www.yamagi.org/quake2,
+both contain installation instructions. But nevertheless you'll need an
+installation of the full Quake II game with our client for playing them.
+The same applies to the "ctf" capture the flag addon. 
+ 
+3.5 Binary Installation
+-----------------------
+Extract the zip archive and right click on the app. Select "Show Contents",
+a new finder window will open. Navigate to Contents/Resources/baseq2 and
+copy the contents of the baseq2/ folder (created while preparing the game
+data, see above) into it. Close the finder windows. Yamagi Quake II is
+now ready.
+
+3.6 Compiling
+-------------
+Compiling Yamagi Quake II from source is unnecessary as long as you will not
+use the github version or want to develop on OS X. If you really want to
+compile Yamagi Quake II by yourself follow these steps:
+
+1. Make sure that you've installed XCode with the "Unix Develoment Tools".
+   Depending on your OS X version the name of these can be different.
+2. Install dependencies using Homebrew (http://brew.sh). Once you have Homebrew
+   installed, run the following commands from the terminal to install dependencies:
+   brew install sdl2 --universal
+   brew install openal-soft --universal
+   brew install libogg --universal
+   brew install libvorbis --universal
+   brew install libjpeg --universal
+   
+3. Open a terminal and navigate to the Yamagi Quake II source code. Type
+   "make" to compile it. After that the binaries can be found in the release/
+   directory.
+
+The binaries can be put into an app-bundle (see 3.5 Binary Installation) or
+used in the classic classic unix way. An empty .App template is included in /stuff/osx.
+In the latter case the game be started at the command line. Be aware that the app-bundle
+support has to be deactivated in the Makefile, otherwise the game is unable to find it's
+libraries!
+
+3.7 Default Configuration
+-------------------------
+Quake II ships with an old and for today standards "insane" default
+configuration. This is no problem since you can alter everything. To make your
+life easier Yamagi Quake II contains an updated default configuration.
+If you want to use it just copy "stuff\yq2.cfg" to your "baseq2\" folder.
+
+Now you are ready to start your brand new Quake II. Have fun.
+
+===============================================================================
+
+4. OGG/Vorbis playback
 ======================
 Since most modern CD-ROM and DVD drives don't have an analog audio output and
 most sound codecs don't have the appropriate input header, it's not possible to
@@ -274,7 +383,7 @@ use CD audio as background music on such systems. With SDL 2.0 CD audio is
 unsupported Therefore OGG/Vorbis music support has been added to Yamagi Quake 
 II.
 
-3.1 Setup for the original soundtrack:
+4.1 Setup for the original soundtrack:
 --------------------------------------
 Put your Quake II CD-ROM into your drive, start your favorite CD extractor and
 rip the audiotracks into OGG/Vorbis files. These files must be named after their
@@ -287,7 +396,7 @@ Drop these files in "baseq2/music/", start Quake II, enter the "Options" menu
 and set "OGG music" to enabled. "CD music" will be automaticly disabled.
 Quake II will now play the OGG/Vorbis files instead of the Audio-CD.
 
-3.2 Setup for other music and playlists:
+4.2 Setup for other music and playlists:
 ----------------------------------------
 You can put any OGG/Vorbis files into "baseq2/music/" or "your_mod/music/".
 If shuffle is enabled, Quake II will shuffle through all files, otherwise it
@@ -295,7 +404,7 @@ will loop through the track associated with the map.
 A playlist is also supported. Just put the filenames into music/playlist
 (a plain text file) and start the game.
 
-3.3 Manual control:
+4.3 Manual control:
 -------------------
 For manual control of ogg playback the following console commands are available:
 
@@ -328,7 +437,7 @@ For manual control of ogg playback the following console commands are available:
 - ogg_status
  Display status ("playing a file", "paused", "stopped", etc).
 
-3.4 Console variables:
+4.4 Console variables:
 ----------------------
 - ogg_enable {0 | 1}
  Enables the Ogg Vorbis subsystem if set to "1". Defaults to "0".
@@ -352,13 +461,13 @@ For manual control of ogg playback the following console commands are available:
 
 ===============================================================================
 
-4. Configuration
+5. Configuration
 ================
 While configuring Quake II is straight forward some rough edges can arise.
 Before reporting bugs or mailing us please read this section all the hints
 covered in it!
 
-4.1 Video
+5.1 Video
 ---------
 For most people the options in the "Video" menu are sufficent. But there
 are some things that can and in some cases must be tuned via cvars. Here
@@ -442,7 +551,7 @@ the most common questions are answered.
  calculates a more or less optimal scaling factor, matching the artwork size
  at a resolution of 640x480.
 
-4.2 Input
+5.2 Input
 ---------
 Quake II had a rather simple input system, even back in 1997. It just mapped
 Windows 95 mouse directly on movements. That was a very acurate way to do it,
@@ -472,7 +581,7 @@ There are some cvar to adjust:
   impossible to add modern acceleration to Quake II since most of the needed data
   isn't available to the input backend.
 
-4.3 Sound
+5.3 Sound
 ---------
 Quake II featured one of the best sound systems of it's time (for example it had
 support for realtime calculated stereo effects) but sadly it was totaly broken.
@@ -485,7 +594,7 @@ scratch. This should solve most if not all problems. Yamagi Quake II 4.20
 featured an optional OpenAL sound system, enabling better stereo calculations
 and even surround support.
 
-4.3.1 The classic sound system
+5.3.1 The classic sound system
 ------------------------------
 This is the original sound implementation, as used in the first release of Quake
 II in 1997. It featured stereo calculations for most samples. It's disabled by
@@ -515,13 +624,13 @@ default and can be reenabled by setting "s_openal" to "0", followed by
    card 0
    }
 
-4.3.2 The OpenAL sound system
+5.3.2 The OpenAL sound system
 -----------------------------
 This is a sound system based upon the popular OpenAL audio library. It features
-sand urround playback which gives a huge improvement in sound quality and
-gameplay experience. It's enabled by default, but can be disabled by setting
-"s_openal" to "0", followed by a "snd_restart". To work correctly it's in the
-need of a correctly configured OpenAL implementation! On Windows the default
+surround playback which gives a huge improvement in sound quality and gameplay
+experience. It's enabled by default, but can be disabled by setting "s_openal"
+to "0", followed by a "snd_restart". To work correctly it's in the need of a
+correctly configured OpenAL implementation! On OS X and Windows the default
 configuration is okay. On FreeBSD, Linux and OpenBSD OpenAL is configured in the
 file ~/.alsoftrc (for the openal-soft implementation, other implementations may
 vary). The most important options (tested with OpenAL Soft 1.14) are:
@@ -550,7 +659,7 @@ is a limited dynamic range!
 
 ===============================================================================
 
-5. Bugreports
+6. Bugreports
 =============
 Something is not working as expected? An elevator is broken? An enemy doesn't
 move? Or the whole game is just crashing? Just open a new github issue at
@@ -589,7 +698,7 @@ Valgrind reports many, many memory leaks!
 
 ===============================================================================
 
-6. FAQ
+7. FAQ
 ======
 
 How do I open the console?
@@ -669,14 +778,14 @@ Can I connect to an IPv6 server?
      ./q2ded +set ip "[2001:db8::1]"
 
 Where can I find the configuartion file?
- - It's located at ~/.yq2/game/config.cfg (FreeBSD, Linux and OpenBSD) or
+ - It's located at ~/.yq2/game/config.cfg (FreeBSD, Linux, OpenBSD and OS X) or
    ...\Documents\YamagiQ2\game\config.cfg (Windows). Replace "game" by the mod
    name, e.g. "baseq2/" for the main game.
 
 My mod crashes at startup.
  - This is known problem of some mods. A workaround is to create the working
    directory by hand:
-     mkdir -p ~/.yq2/$moddir (FreeBSD, Linux, OpenBSD)
+     mkdir -p ~/.yq2/$moddir (FreeBSD, Linux, OpenBSD and OS X)
      ...\Documents\YamagiQ2\$moddir (Windows)
 
 Only parts of the maps are rendered!
