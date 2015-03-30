@@ -1149,5 +1149,6 @@ Key_MarkAllUp(void)
 	for (key = 0; key < K_LAST; key++)
 	{
 		key_repeats[key] = 0;
+		keydown[key] = 0;
 	}
 }
