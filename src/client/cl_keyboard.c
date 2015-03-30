@@ -909,6 +909,7 @@ Key_Event(int key, qboolean down, qboolean special)
 {
 	char cmd[1024];
 	char *kb;
+	cvar_t *fullscreen;
 	unsigned int time = Sys_Milliseconds();
 
     /* Track if key is down */
@@ -938,7 +939,19 @@ Key_Event(int key, qboolean down, qboolean special)
 	/* Fullscreen switch through Alt + Return */
 	if (down && keydown[K_ALT] && key == K_ENTER)
 	{
-		GLimp_ToggleFullscreen();
+		fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+
+		if (!fullscreen->value)
+		{
+			fullscreen->value = 1;
+			fullscreen->modified = true;
+		}
+		else
+		{
+			fullscreen->value = 0;
+			fullscreen->modified = true;
+		}
+
 		return;
 	}
 

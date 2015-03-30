@@ -510,7 +510,13 @@ GLimp_InitGraphics(qboolean fullscreen)
 		/* If we want fullscreen, but aren't */
 		if (fullscreen != IsFullscreen())
 		{
-			GLimp_ToggleFullscreen();
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+			SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+#else
+			SDL_WM_ToggleFullScreen(window);
+#endif
+
+			Cvar_SetValue("vid_fullscreen", fullscreen);
 		}
 
 		/* Are we now? */
@@ -703,31 +709,6 @@ GLimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen)
 	}
 
 	return rserr_ok;
-}
-
-/*
- * Toggle fullscreen.
- */
-void GLimp_ToggleFullscreen(void)
-{
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	int wantFullscreen = !IsFullscreen();
-
-	SDL_SetWindowFullscreen(window, wantFullscreen ? SDL_WINDOW_FULLSCREEN : 0);
-	Cvar_SetValue("vid_fullscreen", wantFullscreen);
-#else
-	SDL_WM_ToggleFullScreen(window);
-
-	if (IsFullscreen())
-	{
-		Cvar_SetValue("vid_fullscreen", 1);
-	}
-	else
-	{
-		Cvar_SetValue("vid_fullscreen", 0);
-	}
-#endif
-	vid_fullscreen->modified = false;
 }
 
 /*
