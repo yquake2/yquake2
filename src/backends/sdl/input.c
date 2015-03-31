@@ -414,6 +414,11 @@ IN_Update(void)
 				}
 
 				break;
+
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+			case SDL_WINDOWEVENT_FOCUS_LOST:
+				Key_MarkAllUp();
+#endif
 		} 
 	}
 
