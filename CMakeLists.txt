@@ -9,6 +9,8 @@ set(YQUAKE2_PATCH_VERSION 0)
 # Cmake module search path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules
                       ${CMAKE_MODULE_PATH})
+#Add Homebrew for OSX
+list(APPEND CMAKE_PREFIX_PATH /usr/local)
 
 #These variables will act as our list of include folders and linker flags
 set(yquake2LinkerFlags)
@@ -40,7 +42,7 @@ list(APPEND yquake2IncludeDirectories ${ZLIB_INCLUDE_DIRS})
 list(APPEND yquake2LinkerFlags ${ZLIB_LIBRARIES})
 
 find_package(OpenAL REQUIRED)
-add_definitions(-DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER)
+#add_definitions(-DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER)
 list(APPEND yquake2IncludeDirectories ${OPENAL_INCLUDE_DIR})
 list(APPEND yquake2LinkerFlags ${OPENAL_LIBRARY})
 
@@ -244,11 +246,16 @@ set_target_properties(game PROPERTIES
 						   PREFIX ""
 						   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/baseq2")
 target_link_libraries(game ${yquake2LinkerFlags})
-
+#Main Quake 2 executable
 add_executable(quake2 ${Client-Source} ${Platform-Specific-Source})
+set_target_properties(quake2 PROPERTIES 
+						   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 target_link_libraries(quake2 ${yquake2LinkerFlags})
 
+#Quake 2 Dedicated Server
 add_executable(q2ded ${Server-Source} ${Platform-Specific-Source})
 set_target_properties(q2ded PROPERTIES
 							COMPILE_DEFINITIONS "DEDICATED_ONLY")
+set_target_properties(q2ded PROPERTIES 
+						   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 target_link_libraries(q2ded ${yquake2LinkerFlags})
