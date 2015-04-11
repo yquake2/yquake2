@@ -1,5 +1,10 @@
 Quake II 5.24 to 5.30:
 - Support for Mac OS X was overhauled. (by Jarvik7)
+- Overhauled retexturing support, replacing libjpeg with stb_image,
+  adding png support because it was so easy (by caedes).
+- Fix gamma (was broken in last release)
+- Fix mouse grabbing (again!)
+- Add binary directory to game data path
 
 Quake II 5.23 to 5.24:
 - Fix keyboard layouts in the console.
