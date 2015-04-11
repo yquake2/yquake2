@@ -1318,7 +1318,7 @@ FS_AddGameDirectory(const char *dir)
 
 		for (j = 0; j < nfiles - 1; j++)
 		{
-			/* Skip numbered packs. */
+			/* Skip all packs starting with "pak" */
 			if (glob_match(path, list[j]))
 			{
 				continue;
