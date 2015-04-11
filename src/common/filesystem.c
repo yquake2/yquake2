@@ -1368,7 +1368,7 @@ FS_AddHomeAsGameDirectory(char *dir)
 		return;
 	}
 
-    len = snprintf(gdir, sizeof(gdir), "%s%s/", home, dir);
+	len = snprintf(gdir, sizeof(gdir), "%s%s/", home, dir);
 	FS_CreatePath(gdir);
 
 	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len - 1] == '/'))
@@ -1399,6 +1399,26 @@ FS_AddSystemwideGameDirectory(char *dir)
 	FS_AddGameDirectory(gdir);
 }
 #endif
+
+void FS_AddBinaryDirAsGameDirectory(const char* dir)
+{
+	char gdir[MAX_OSPATH];
+	const char *datadir = Sys_GetBinaryDir();
+	if(datadir[0] == '\0')
+	{
+		return;
+	}
+	int len = snprintf(gdir, sizeof(gdir), "%s%s/", datadir, dir);
+
+	printf("Using binary dir %s to fetch paks\n", gdir);
+
+	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len - 1] == '/'))
+	{
+		gdir[len - 1] = 0;
+	}
+
+	FS_AddGameDirectory(gdir);
+}
 
 /*
  * Allows enumerating all of the directories in the search path.
@@ -1675,6 +1695,7 @@ FS_SetGamedir(char *dir)
 #endif
 
 		FS_AddGameDirectory(va("%s/%s", fs_basedir->string, dir));
+		FS_AddBinaryDirAsGameDirectory(dir);
 		FS_AddHomeAsGameDirectory(dir);
 	}
 }
@@ -2086,6 +2107,7 @@ FS_InitFilesystem(void)
 
 	/* Add baseq2 to search path. */
 	FS_AddGameDirectory(va("%s/" BASEDIRNAME, fs_basedir->string));
+	FS_AddBinaryDirAsGameDirectory(BASEDIRNAME);
 	FS_AddHomeAsGameDirectory(BASEDIRNAME);
 
 	/* Any set gamedirs will be freed up to here. */

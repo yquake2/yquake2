@@ -574,6 +574,7 @@ GAME_OBJS_ = \
 
 # Used by the client
 CLIENT_OBJS_ := \
+	src/backends/generic/misc.o \
 	src/backends/generic/qal.o \
 	src/backends/generic/vid.o \
  	src/backends/generic/qgl.o \
@@ -698,7 +699,8 @@ SERVER_OBJS_ := \
 	src/server/sv_save.o \
 	src/server/sv_send.o \
 	src/server/sv_user.o \
-	src/server/sv_world.o
+	src/server/sv_world.o \
+	src/backends/generic/misc.o
 
 ifeq ($(OSTYPE), Windows)
 SERVER_OBJS_ += \
