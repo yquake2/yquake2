@@ -72,10 +72,13 @@ Content of this file:
 
 1. Installation on (Free|Open)BSD and Linux
 ===========================================
-Note: If you're using Debian Linux or a derived distribution like Ubuntu, you
-probably want to use the packages that are linked in the Download section at
-http://www.yamagi.org/quake2/debian.html They'll even assist you in installing
-the game data.
+Note: Some Linux distributions have packages of Yamagi Quake II that might even
+assist you in installing the game data.
+In Debian and Ubuntu it's called "yamagi-quake2", the package
+"game-data-packager" should help you with installing the game data.
+Note however that those packages are usually outdated a few versions, so if you
+encounter any bugs in them it's possible that we have already fixed those bugs
+in a later release.
 
 1.1 Supported Systems:
 ----------------------
@@ -144,11 +147,10 @@ the requirement of most of this depencenies can be removed, but
 it'll lead to the loss of features):
  - A libGL implementation (Mesa3D, nVidia, AMD Catalyst, etc.)
  - OpenGL system headers
- - libjpeg (version 8 or higher)
  - libogg with development headers
  - libvorbis with development headers
  - OpenAL with development headers
- - SDL 1.2 or 2.0 (the later is recommended) with development headers
+ - SDL 1.2 or 2.0 (the latter is recommended) with development headers
    and sdl-config(1)
  - ZLib
 
@@ -352,7 +354,6 @@ compile Yamagi Quake II by yourself follow these steps:
    brew install openal-soft --universal
    brew install libogg --universal
    brew install libvorbis --universal
-   brew install libjpeg --universal
    
 3. Open a terminal and navigate to the Yamagi Quake II source code. Type
    "make" to compile it. After that the binaries can be found in the release/
@@ -519,11 +520,11 @@ the most common questions are answered.
 
 - Yamagi Quake II has support for the high resolution retexturing pack, created
   by the community. Installation is easy:
-   1. Download q2_textures.zip and/or models.zip from
-        http://www-personal.umich.edu/~jimw/q2/
-   2. Extract one or both files into the "baseq2/" directory of your Quake II
-      installation, so that the new directories "baseq2/textures/" and/or
-      "baseq2/models/" are created.
+   1. Download q2_textures.zip from http://deponie.yamagi.org/quake2/texturepack/
+      (There's also models.zip, but not all contained textures fit on the
+       original Quake II models and thus look broken.)
+   2. Extract the file into the "baseq2/" directory of your Quake II
+      installation, so that the new directories "baseq2/textures/" is created.
    The retexturing pack is used by default if it's installed. It can be switched
    off at any time by setting "gl_retexturing" to "0" and executing
    "vid_restart" aftwards.
@@ -533,7 +534,7 @@ the most common questions are answered.
   followd by a vid_restart. Please note that very old graphic cards may not
   support antialiasing at all.
 
-- It's possible to upscale nearly all 2D artwork. This is especially usefull on
+- It's possible to upscale nearly all 2D artwork. This is especially useful on
   high resolution displays were the cosole and HUD can become very small or even
   unreadable. Scaling support is devided into 3 parts which are controlled by
   cvars:
