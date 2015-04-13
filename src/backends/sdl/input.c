@@ -415,11 +415,22 @@ IN_Update(void)
 
 				break;
 
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-			case SDL_WINDOWEVENT_FOCUS_LOST:
-				Key_MarkAllUp();
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+			case SDL_WINDOWEVENT:
+				if(event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+				{
+					Key_MarkAllUp();
+				}
+
+#else // SDL1.2
+			case SDL_ACTIVEEVENT:
+				if(event.active.gain == 0 && (event.active.state & SDL_APPINPUTFOCUS))
+				{
+					Key_MarkAllUp();
+				}
 #endif
-		} 
+				break;
+		}
 	}
 
 	/* Grab and ungrab the mouse if the* console or the menu is opened */
