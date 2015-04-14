@@ -25,6 +25,10 @@ set(GAME_SRC_DIR ${SOURCE_DIR}/game)
 set(SERVER_SRC_DIR ${SOURCE_DIR}/server)
 set(CLIENT_SRC_DIR ${SOURCE_DIR}/client)
 
+#Hack to enable OpenGL 3+ rendering
+add_definitions(-DUSEGL3=1)
+
+
 #Required libraries to build the different
 #components of the tutorials. Find them and add the include/linker
 #directories and flags(In case the package manager find it in a weird place)
