@@ -572,7 +572,7 @@ There are some cvar to adjust:
 - sensitivity -> The sensistivity of the mouse. Adjust to your needs, via the
   cvar or via the "Options" menu.
 
-- in_filter -> A mouse filter. This was added in one of the countless point
+- m_filter -> A mouse filter. This was added in one of the countless point
   releases but it was broken. We fixed it. The effect is the same as in
   Quake III Arena, instead of using the raw movement signals, two of them are
   combined, filtering vibrations and things like that out.
