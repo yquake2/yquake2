@@ -155,12 +155,12 @@ endif
 #  generated if building universal binaries on OSX)
 ifeq ($(OSTYPE), Darwin)
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -pipe -g 
+		  -Wall -pipe -g -fwrapv
 		  #-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.5.sdk
 CFLAGS += $(OSX_ARCH)
 else
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -pipe -g -ggdb -MMD
+		  -Wall -pipe -g -ggdb -MMD -fwrapv
 endif
 
 # ----------
