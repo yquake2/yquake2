@@ -30,9 +30,7 @@
 console_t con;
 cvar_t *con_notifytime;
 
-#define MAXCMDLINE 256
-
-extern char key_lines[32][MAXCMDLINE];
+extern char key_lines[NUM_KEY_LINES][MAXCMDLINE];
 extern int edit_line;
 extern int key_linepos;
 

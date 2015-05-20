@@ -899,6 +899,8 @@ CL_Init(void)
 	FS_ExecAutoexec();
 
 	Cbuf_Execute();
+
+	Key_ReadConsoleHistory();
 }
 
 void
@@ -915,6 +917,8 @@ CL_Shutdown(void)
 	isdown = true;
 
 	CL_WriteConfiguration();
+
+	Key_WriteConsoleHistory();
 
 #ifdef CDA
 	CDAudio_Shutdown();

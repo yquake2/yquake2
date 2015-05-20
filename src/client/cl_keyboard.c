@@ -36,9 +36,7 @@ static cvar_t *cfg_unbindall;
  * key up events are sent even if in console mode
  */
 
-#define     MAXCMDLINE 256
-
-char key_lines[32][MAXCMDLINE];
+char key_lines[NUM_KEY_LINES][MAXCMDLINE];
 int key_linepos;
 int anykeydown;
 
@@ -283,7 +281,7 @@ Key_Console(int key)
 
 		Cbuf_AddText("\n");
 		Com_Printf("%s\n", key_lines[edit_line]);
-		edit_line = (edit_line + 1) & 31;
+		edit_line = (edit_line + 1) & (NUM_KEY_LINES-1);
 		history_line = edit_line;
 		key_lines[edit_line][0] = ']';
 		key_linepos = 1;
@@ -329,14 +327,14 @@ Key_Console(int key)
 	{
 		do
 		{
-			history_line = (history_line - 1) & 31;
+			history_line = (history_line - 1) & (NUM_KEY_LINES-1);
 		}
 		while (history_line != edit_line &&
 			   !key_lines[history_line][1]);
 
 		if (history_line == edit_line)
 		{
-			history_line = (edit_line + 1) & 31;
+			history_line = (edit_line + 1) & (NUM_KEY_LINES-1);
 		}
 
 		strcpy(key_lines[edit_line], key_lines[history_line]);
@@ -354,7 +352,7 @@ Key_Console(int key)
 
 		do
 		{
-			history_line = (history_line + 1) & 31;
+			history_line = (history_line + 1) & (NUM_KEY_LINES-1);
 		}
 		while (history_line != edit_line &&
 			   !key_lines[history_line][1]);
@@ -787,6 +785,76 @@ Key_WriteBindings(FILE *f)
 }
 
 void
+Key_WriteConsoleHistory()
+{
+	int i;
+	char path[MAX_OSPATH];
+	Com_sprintf(path, sizeof(path), "%s/history.txt", FS_Gamedir());
+
+	FILE* f = fopen(path, "w");
+
+	if(f==NULL)
+	{
+		Com_Printf("Opening console history %s for writing failed!\n", path);
+		return;
+	}
+
+	// save the oldest lines first by starting at edit_line
+	// and going forward (and wrapping around)
+	for(i=0; i<NUM_KEY_LINES; ++i)
+	{
+		int lineIdx = (edit_line+i) & (NUM_KEY_LINES-1);
+		const char* line = key_lines[lineIdx];
+
+		if(line[1] != '\0')
+		{
+			// if the line actually contains something besides the ] prompt, write it to the file
+			fputs(line, f);
+			fputc('\n', f);
+		}
+	}
+
+	fclose(f);
+}
+
+/* initializes key_lines from history file, if available */
+void
+Key_ReadConsoleHistory()
+{
+	int i;
+
+	char path[MAX_OSPATH];
+	Com_sprintf(path, sizeof(path), "%s/history.txt", FS_Gamedir());
+
+	FILE* f = fopen(path, "r");
+	if(f==NULL)
+	{
+		Com_DPrintf("Opening console history %s for reading failed!\n", path);
+		return;
+	}
+
+	for (i = 0; i < NUM_KEY_LINES; i++)
+	{
+		if(fgets(key_lines[i], MAXCMDLINE, f) == NULL)
+		{
+			// probably EOF.. adjust edit_line and history_line and we're done here
+			edit_line = i;
+			history_line = i;
+			break;
+		}
+		// remove trailing newlines
+		int lastCharIdx = strlen(key_lines[i])-1;
+		while((key_lines[i][lastCharIdx] == '\n' || key_lines[i][lastCharIdx] == '\r') && lastCharIdx >= 0)
+		{
+			key_lines[i][lastCharIdx] = '\0';
+			--lastCharIdx;
+		}
+	}
+
+	fclose(f);
+}
+
+void
 Key_Bindlist_f(void)
 {
 	int i;
@@ -804,12 +872,12 @@ void
 Key_Init(void)
 {
 	int i;
-
-	for (i = 0; i < 32; i++)
+	for (i = 0; i < NUM_KEY_LINES; i++)
 	{
 		key_lines[i][0] = ']';
 		key_lines[i][1] = 0;
 	}
+	// can't call Key_ReadConsoleHistory() here because FS_Gamedir() isn't set yet
 
 	key_linepos = 1;
 

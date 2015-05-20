@@ -27,6 +27,14 @@
 #ifndef CL_HEADER_KEYBOARD_H
 #define CL_HEADER_KEYBOARD_H
 
+/* max length of a console command line */
+#define MAXCMDLINE 256
+
+/* number of console command lines saved in history,
+ * must be a power of two, because we use & (NUM_KEY_LINES-1)
+ * instead of % so -1 wraps to NUM_KEY_LINES-1 */
+#define NUM_KEY_LINES 32
+
 /* these are the key numbers that should be passed to Key_Event
    they must be mached by the low level key event processing! */
 enum QKEYS {
@@ -291,6 +299,8 @@ void Char_Event(int key);
 void Key_Event(int key, qboolean down, qboolean special);
 void Key_Init(void);
 void Key_WriteBindings(FILE *f);
+void Key_ReadConsoleHistory();
+void Key_WriteConsoleHistory();
 void Key_SetBinding(int keynum, char *binding);
 void Key_MarkAllUp(void);
 int Key_GetKey(void);
