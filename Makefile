@@ -249,7 +249,7 @@ SDLLDFLAGS := -lSDL
 endif # SDL2
 else ifeq ($(OSTYPE), Darwin)
 ifeq ($(WITH_SDL2),yes)
-SDLLDFLAGS := -lSDL2 -framework OpenGL -framework Cocoa
+SDLLDFLAGS := -framework SDL2 -framework OpenGL -framework Cocoa
 else # not SDL2
 SDLLDFLAGS := -lSDL -framework OpenGL -framework Cocoa
 endif # SDL2
