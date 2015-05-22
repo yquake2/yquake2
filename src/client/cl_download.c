@@ -445,9 +445,11 @@ CL_CheckOrDownloadFile(char *filename)
 	char name[MAX_OSPATH];
 	char *ptr;
 
+	// FIXME: we should probably also forbid paths starting with '/' or '\\' or "C:\"
+	//  (or any other drive name) because in the end FS_LoadFile() will fallback to fopen()!
 	if (strstr(filename, ".."))
 	{
-		Com_Printf("Refusing to download a path with ..\n");
+		Com_Printf("Refusing to download a path with ..: %s\n", filename);
 		return true;
 	}
 
