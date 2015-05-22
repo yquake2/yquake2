@@ -801,16 +801,20 @@ Key_WriteConsoleHistory()
 
 	// save the oldest lines first by starting at edit_line
 	// and going forward (and wrapping around)
+	const char* lastWrittenLine = "";
 	for(i=0; i<NUM_KEY_LINES; ++i)
 	{
 		int lineIdx = (edit_line+i) & (NUM_KEY_LINES-1);
 		const char* line = key_lines[lineIdx];
 
-		if(line[1] != '\0')
+		if(line[1] != '\0' && strcmp(lastWrittenLine, line ) != 0)
 		{
-			// if the line actually contains something besides the ] prompt, write it to the file
+			// if the line actually contains something besides the ] prompt,
+			// and is not identical to the last written line, write it to the file
 			fputs(line, f);
 			fputc('\n', f);
+
+			lastWrittenLine = line;
 		}
 	}
 
