@@ -789,7 +789,7 @@ Key_WriteConsoleHistory()
 {
 	int i;
 	char path[MAX_OSPATH];
-	Com_sprintf(path, sizeof(path), "%s/history.txt", FS_Gamedir());
+	Com_sprintf(path, sizeof(path), "%sconsole_history.txt", Sys_GetHomeDir());
 
 	FILE* f = fopen(path, "w");
 
@@ -828,7 +828,7 @@ Key_ReadConsoleHistory()
 	int i;
 
 	char path[MAX_OSPATH];
-	Com_sprintf(path, sizeof(path), "%s/history.txt", FS_Gamedir());
+	Com_sprintf(path, sizeof(path), "%sconsole_history.txt", Sys_GetHomeDir());
 
 	FILE* f = fopen(path, "r");
 	if(f==NULL)
