@@ -262,23 +262,23 @@ SV_WriteServerFile(qboolean autosave)
 	   skill, deathmatch, etc */
 	for (var = cvar_vars; var; var = var->next)
 	{
+		char cvarname[LATCH_CVAR_SAVELENGTH] = {0};
 		if (!(var->flags & CVAR_LATCH))
 		{
 			continue;
 		}
 
-		if ((strlen(var->name) >= sizeof(name) - 1) ||
+		if ((strlen(var->name) >= sizeof(cvarname) - 1) ||
 			(strlen(var->string) >= sizeof(string) - 1))
 		{
 			Com_Printf("Cvar too long: %s = %s\n", var->name, var->string);
 			continue;
 		}
 
-		memset(name, 0, sizeof(name));
 		memset(string, 0, sizeof(string));
-		strcpy(name, var->name);
+		strcpy(cvarname, var->name);
 		strcpy(string, var->string);
-		fwrite(name, 1, sizeof(name), f);
+		fwrite(cvarname, 1, sizeof(cvarname), f);
 		fwrite(string, 1, sizeof(string), f);
 	}
 
@@ -319,14 +319,15 @@ SV_ReadServerFile(void)
 	   coop, skill, deathmatch, etc */
 	while (1)
 	{
-		if (!FS_FRead(name, 1, sizeof(name), f))
+		char cvarname[LATCH_CVAR_SAVELENGTH] = {0};
+		if (!FS_FRead(cvarname, 1, sizeof(cvarname), f))
 		{
 			break;
 		}
 
 		FS_Read(string, sizeof(string), f);
-		Com_DPrintf("Set %s = %s\n", name, string);
-		Cvar_ForceSet(name, string);
+		Com_DPrintf("Set %s = %s\n", cvarname, string);
+		Cvar_ForceSet(cvarname, string);
 	}
 
 	FS_FCloseFile(f);
