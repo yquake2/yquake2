@@ -432,7 +432,7 @@ SCR_Init(void)
 	scr_graphscale = Cvar_Get("graphscale", "1", 0);
 	scr_graphshift = Cvar_Get("graphshift", "0", 0);
 	scr_drawall = Cvar_Get("scr_drawall", "0", 0);
-	gl_hudscale = Cvar_Get("gl_hudscale", "1", CVAR_ARCHIVE);
+	gl_hudscale = Cvar_Get("gl_hudscale", "-1", CVAR_ARCHIVE);
 	gl_consolescale = Cvar_Get("gl_consolescale", "1", CVAR_ARCHIVE);
 	gl_menuscale = Cvar_Get("gl_menuscale", "1", CVAR_ARCHIVE);
 

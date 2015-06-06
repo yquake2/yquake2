@@ -299,7 +299,7 @@ VID_MenuInit(void)
 
 	if (!gl_hudscale)
 	{
-		gl_hudscale = Cvar_Get("gl_hudscale", "1", CVAR_ARCHIVE);
+		gl_hudscale = Cvar_Get("gl_hudscale", "-1", CVAR_ARCHIVE);
 	}
 
 	if (!horplus)
