@@ -33,6 +33,7 @@
 extern void M_ForceMenuOff(void);
 
 static cvar_t *gl_mode;
+static cvar_t *gl_hudscale;
 static cvar_t *fov;
 extern cvar_t *scr_viewsize;
 extern cvar_t *vid_gamma;
@@ -45,6 +46,7 @@ static menuframework_s s_opengl_menu;
 
 static menulist_s s_mode_list;
 static menulist_s s_aspect_list;
+static menulist_s s_hudscale_list;
 static menuslider_s s_screensize_slider;
 static menuslider_s s_brightness_slider;
 static menulist_s s_fs_box;
@@ -159,6 +161,32 @@ ApplyChanges(void *unused)
 		}
 	}
 
+	/* HUD scaling */
+	if (s_hudscale_list.curvalue == 0)
+	{
+		Cvar_SetValue("gl_hudscale", 1);
+	}
+	else if (s_hudscale_list.curvalue == 1)
+	{
+		Cvar_SetValue("gl_hudscale", -1);
+	}
+	else if (s_hudscale_list.curvalue == 2)
+	{
+		Cvar_SetValue("gl_hudscale", 1.5);
+	}
+	else if (s_hudscale_list.curvalue == 3)
+	{
+		Cvar_SetValue("gl_hudscale", 2);
+	}
+	else if (s_hudscale_list.curvalue == 4)
+	{
+		Cvar_SetValue("gl_hudscale", 2.5);
+	}
+	else if (s_hudscale_list.curvalue == 5)
+	{
+		Cvar_SetValue("gl_hudscale", 3);
+	}
+
 	/* Restarts automatically */
 	Cvar_SetValue("vid_fullscreen", s_fs_box.curvalue);
 
@@ -239,6 +267,16 @@ VID_MenuInit(void)
 		0
 	};
 
+	static const char *hudscale_names[] = {
+		"no (1x)",
+		"auto",
+		"1.5x",
+		"2x",
+		"2.5x",
+		"3.0x",
+		0
+	};
+
 	static const char *yesno_names[] = {
 		"no",
 		"yes",
@@ -257,6 +295,11 @@ VID_MenuInit(void)
 	if (!gl_mode)
 	{
 		gl_mode = Cvar_Get("gl_mode", "4", 0);
+	}
+
+	if (!gl_hudscale)
+	{
+		gl_hudscale = Cvar_Get("gl_hudscale", "1", CVAR_ARCHIVE);
 	}
 
 	if (!horplus)
@@ -341,6 +384,36 @@ VID_MenuInit(void)
 		s_aspect_list.curvalue = 5;
 	}
 
+	s_hudscale_list.generic.type = MTYPE_SPINCONTROL;
+	s_hudscale_list.generic.name = "hud scale";
+	s_hudscale_list.generic.x = 0;
+	s_hudscale_list.generic.y = (y += 10);
+	s_hudscale_list.itemnames = hudscale_names;
+	if (gl_hudscale->value == 1)
+	{
+		s_hudscale_list.curvalue = 0;
+	}
+	else if (gl_hudscale->value < 0)
+	{
+		s_hudscale_list.curvalue = 1;
+	}
+	else if (gl_hudscale->value == 1.5f)
+	{
+		s_hudscale_list.curvalue = 2;
+	}
+	else if (gl_hudscale->value == 2)
+	{
+		s_hudscale_list.curvalue = 3;
+	}
+	else if (gl_hudscale->value == 2.5f)
+	{
+		s_hudscale_list.curvalue = 4;
+	}
+	else if (gl_hudscale->value == 3)
+	{
+		s_hudscale_list.curvalue = 5;
+	}
+
 	s_screensize_slider.generic.type = MTYPE_SLIDER;
 	s_screensize_slider.generic.name = "screen size";
 	s_screensize_slider.generic.x = 0;
@@ -353,7 +426,7 @@ VID_MenuInit(void)
 	s_brightness_slider.generic.type = MTYPE_SLIDER;
 	s_brightness_slider.generic.name = "brightness";
 	s_brightness_slider.generic.x = 0;
-	s_brightness_slider.generic.y = (y += 20);
+	s_brightness_slider.generic.y = (y += 10);
 	s_brightness_slider.generic.callback = BrightnessCallback;
 	s_brightness_slider.minvalue = 1;
 	s_brightness_slider.maxvalue = 20;
@@ -420,6 +493,7 @@ VID_MenuInit(void)
 
 	Menu_AddItem(&s_opengl_menu, (void *)&s_mode_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_aspect_list);
+	Menu_AddItem(&s_opengl_menu, (void *)&s_hudscale_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_screensize_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_brightness_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_fs_box);
