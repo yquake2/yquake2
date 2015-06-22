@@ -1118,6 +1118,7 @@ R_RecursiveWorldNode(mnode_t *node)
 			/* add to the translucent chain */
 			surf->texturechain = r_alpha_surfaces;
 			r_alpha_surfaces = surf;
+			r_alpha_surfaces->texinfo->image = R_TextureAnimation(surf->texinfo);
 		}
 		else
 		{
