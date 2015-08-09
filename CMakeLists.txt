@@ -25,16 +25,12 @@ set(GAME_SRC_DIR ${SOURCE_DIR}/game)
 set(SERVER_SRC_DIR ${SOURCE_DIR}/server)
 set(CLIENT_SRC_DIR ${SOURCE_DIR}/client)
 
-#Hack to enable OpenGL 3+ rendering
-add_definitions(-DUSEGL3=1)
-
-
 #Required libraries to build the different
 #components of the tutorials. Find them and add the include/linker
 #directories and flags(In case the package manager find it in a weird place)
 find_package(SDL2 REQUIRED)
 add_definitions(-DSDL2)
-list(APPEND yquake2IncludeDirectories ${SDL2_INCLUDE_DIR})
+list(APPEND yquake2IncludeDirectories "${SDL2_INCLUDE_DIR}/..")
 list(APPEND yquake2LinkerFlags ${SDL2_LIBRARY})
 
 find_package(OpenGL REQUIRED)
@@ -45,10 +41,13 @@ find_package(ZLIB REQUIRED)
 list(APPEND yquake2IncludeDirectories ${ZLIB_INCLUDE_DIRS})
 list(APPEND yquake2LinkerFlags ${ZLIB_LIBRARIES})
 
-find_package(OpenAL REQUIRED)
-#add_definitions(-DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER)
-list(APPEND yquake2IncludeDirectories ${OPENAL_INCLUDE_DIR})
+find_package(OpenAL)
+#TODO Enable OSX OpenAL support
+if(${OPENAL_FOUND} AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+	add_definitions(-DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER)
+	list(APPEND yquake2IncludeDirectories "${OPENAL_INCLUDE_DIR}")
 list(APPEND yquake2LinkerFlags ${OPENAL_LIBRARY})
+endif()
 
 list(APPEND yquake2LinkerFlags "-L/usr/lib -lm -ldl -rdynamic")
 
@@ -59,12 +58,24 @@ add_definitions(-DZIP -DNOUNCRYPT)
 include_directories(${yquake2IncludeDirectories})
 link_directories(${yquake2LinkerDirectories})
 
+set(Backends-Generic-Source
+	${BACKENDS_SRC_DIR}/generic/qal.c
+	${BACKENDS_SRC_DIR}/generic/vid.c
+ 	${BACKENDS_SRC_DIR}/generic/qgl.c
+ 	${BACKENDS_SRC_DIR}/generic/misc.c
+
+ 	${BACKENDS_SRC_DIR}/sdl/cd.c
+	${BACKENDS_SRC_DIR}/sdl/input.c
+	${BACKENDS_SRC_DIR}/sdl/refresh.c
+	${BACKENDS_SRC_DIR}/sdl/sound.c
+ 	)
 
 set(Backends-Unix-Source
-	${BACKENDS_SRC_DIR}/unix/main.c
 	${BACKENDS_SRC_DIR}/unix/network.c
-	${BACKENDS_SRC_DIR}/unix/signalhandler.c
 	${BACKENDS_SRC_DIR}/unix/system.c
+	${BACKENDS_SRC_DIR}/generic/misc.c
+	${BACKENDS_SRC_DIR}/unix/main.c
+	${BACKENDS_SRC_DIR}/unix/signalhandler.c
 	${BACKENDS_SRC_DIR}/unix/shared/hunk.c
 	)
 
@@ -76,8 +87,14 @@ set(Backends-Windows-Source
 
 #Set the nessesary platform specific source
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	add_definitions(-DPLATFORM_WINDOWS=1)
 	set(Platform-Specific-Source ${Backends-Windows-Source})
 else()
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		add_definitions(-DPLATFORM_MAC_OSX=1)
+	endif()
+
+	add_definitions(-DPLATFORM_UNIX=1)
 	set(Platform-Specific-Source ${Backends-Unix-Source})
 endif()
 
@@ -133,13 +150,6 @@ set(Game-Source
 	)
 
 set(Client-Source
-	${BACKENDS_SRC_DIR}/generic/qal.c
-	${BACKENDS_SRC_DIR}/generic/vid.c
- 	${BACKENDS_SRC_DIR}/generic/qgl.c
-	${BACKENDS_SRC_DIR}/sdl/cd.c
-	${BACKENDS_SRC_DIR}/sdl/input.c
-	${BACKENDS_SRC_DIR}/sdl/refresh.c
-	${BACKENDS_SRC_DIR}/sdl/sound.c
 	${CLIENT_SRC_DIR}/cl_cin.c
 	${CLIENT_SRC_DIR}/cl_console.c
 	${CLIENT_SRC_DIR}/cl_download.c
@@ -244,22 +254,29 @@ set(Server-Source
 	${SERVER_SRC_DIR}/sv_world.c
 	)
 
-#Build game.so
+#Build the game dynamic library
 add_library(game SHARED ${Game-Source})
 set_target_properties(game PROPERTIES 
 						   PREFIX ""
-						   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/baseq2")
+						   LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/baseq2
+						   LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release/baseq2
+						   )
 target_link_libraries(game ${yquake2LinkerFlags})
 #Main Quake 2 executable
-add_executable(quake2 ${Client-Source} ${Platform-Specific-Source})
-set_target_properties(quake2 PROPERTIES 
-						   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-target_link_libraries(quake2 ${yquake2LinkerFlags})
-
+add_executable(quake2 ${Client-Source} ${Platform-Specific-Source} ${Backends-Generic-Source})
+set_target_properties(quake2 PROPERTIES
+							 PREFIX ""
+							 RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
+							 RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
+							 )
+target_link_libraries(quake2 game ${yquake2LinkerFlags})
 #Quake 2 Dedicated Server
 add_executable(q2ded ${Server-Source} ${Platform-Specific-Source})
+
 set_target_properties(q2ded PROPERTIES
-							COMPILE_DEFINITIONS "DEDICATED_ONLY")
-set_target_properties(q2ded PROPERTIES 
-						   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-target_link_libraries(q2ded ${yquake2LinkerFlags})
+							PREFIX "" 
+						    COMPILE_DEFINITIONS "DEDICATED_ONLY"
+							RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
+							RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
+							)
+target_link_libraries(q2ded game ${yquake2LinkerFlags})

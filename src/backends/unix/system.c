@@ -388,7 +388,11 @@ Sys_GetGameAPI(void *parms)
 	char name[MAX_OSPATH];
 	char *path;
 	char *str_p;
-	const char *gamename = "game.so";
+    #if PLATFORM_MAC_OSX
+        const char *gamename = "game.dylib";
+    #else
+        const char *gamename = "game.so";
+    #endif
 
 	setreuid(getuid(), getuid());
 	setegid(getgid());
