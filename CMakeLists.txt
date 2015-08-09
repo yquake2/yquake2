@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 #yquake cmake configuration
 project (yquake2)
 
-set(YQUAKE2_MAJOR_VERSION 0)
-set(YQUAKE2_MINOR_VERSION 0)
+set(YQUAKE2_MAJOR_VERSION 5)
+set(YQUAKE2_MINOR_VERSION 3)
 set(YQUAKE2_PATCH_VERSION 0)
 
 # Cmake module search path
