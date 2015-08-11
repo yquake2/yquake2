@@ -58,7 +58,8 @@ if(${OPENAL_FOUND} AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 list(APPEND yquake2LinkerFlags ${OPENAL_LIBRARY})
 endif()
 
-list(APPEND yquake2LinkerFlags "-L/usr/lib -lm -ldl -rdynamic")
+list(APPEND yquake2LinkerFlags "-lm -rdynamic")
+list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
 
 add_definitions(-DZIP -DNOUNCRYPT)
 
