@@ -21,6 +21,8 @@ list(APPEND CMAKE_PREFIX_PATH /usr/local)
 #  -fwrapv              -> Make signed integer overflows defined
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fno-strict-aliasing -fwrapv")
 
+string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+
 # yquake2 compilation options
 option(ZIP_SUPPORT "ZIP support" ON)
 option(OGG_SUPPORT "OGG Vorbis playback support (Music)" ON)
