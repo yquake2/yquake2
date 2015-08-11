@@ -9,7 +9,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 project (yquake2)
 
 # Cmake module search path
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/stuff/cmake/modules ${CMAKE_MODULE_PATH})
 
 # Add extended path for FreeBSD and Homebrew on OS X
 list(APPEND CMAKE_PREFIX_PATH /usr/local)
