@@ -41,6 +41,15 @@ find_package(ZLIB REQUIRED)
 list(APPEND yquake2IncludeDirectories ${ZLIB_INCLUDE_DIRS})
 list(APPEND yquake2LinkerFlags ${ZLIB_LIBRARIES})
 
+#OggVorbis
+find_package(OggVorbis)
+if(${OGGVORBIS_FOUND})
+	add_definitions(-DOGG=1)
+	list(APPEND yquake2IncludeDirectories ${OGGVORBIS_INCLUDE_DIR})
+	list(APPEND yquake2LinkerFlags ${OGG_LIBRARY} ${VORBIS_LIBRARY} ${VORBISFILE_LIBRARY})
+endif()
+
+#OpenAL
 find_package(OpenAL)
 #TODO Enable OSX OpenAL support
 if(${OPENAL_FOUND} AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
