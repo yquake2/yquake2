@@ -34,15 +34,11 @@
  */
 
 /* SDL includes */
-#if defined(_WIN32) || defined(__APPLE__)
 #ifdef SDL2
 #include <SDL2/SDL.h>
 #else // SDL1.2
 #include <SDL/SDL.h>
 #endif //SDL2
-#else // not _WIN32 || APPLE
-#include <SDL.h>
-#endif // _WIN32 || APPLE
 
 /* Local includes */
 #include "../../client/header/client.h"

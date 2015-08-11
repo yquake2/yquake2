@@ -12,6 +12,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules
 #Add Homebrew for OSX
 list(APPEND CMAKE_PREFIX_PATH /usr/local)
 
+#yquake2 compilation options
+option(ZIP_SUPPORT "ZIP support" ON)
+option(OGG_SUPPORT "OGG Vorbis playback support (Music)" ON)
+option(OPENAL_SUPPORT "3D Sound support" ON)
+#TODO Remove the X11 Gamma from the code
+#TODO Remove SDL 1.X all together.
+
 #These variables will act as our list of include folders and linker flags
 set(yquake2LinkerFlags)
 set(yquake2IncludeDirectories)
@@ -28,40 +35,63 @@ set(CLIENT_SRC_DIR ${SOURCE_DIR}/client)
 #Required libraries to build the different
 #components of the tutorials. Find them and add the include/linker
 #directories and flags(In case the package manager find it in a weird place)
-find_package(SDL2 REQUIRED)
-add_definitions(-DSDL2)
-list(APPEND yquake2IncludeDirectories "${SDL2_INCLUDE_DIR}/..")
-list(APPEND yquake2LinkerFlags ${SDL2_LIBRARY})
+find_package(SDL2)
+if(${SDL2_FOUND})
+	add_definitions(-DSDL2)
+	list(APPEND yquake2IncludeDirectories "${SDL2_INCLUDE_DIR}/..")
+	list(APPEND yquake2LinkerFlags ${SDL2_LIBRARY})
+else()
+	#If we can't get SDL2 at least get SDL 1.X
+	find_package(SDL REQUIRED)
+	add_definitions(-DWITH_CDA)
+	list(APPEND yquake2IncludeDirectories "${SDL_INCLUDE_DIR}/..")
+	list(APPEND yquake2LinkerFlags ${SDL_LIBRARY})
+endif()
 
 find_package(OpenGL REQUIRED)
 list(APPEND yquake2IncludeDirectories ${OPENGL_INCLUDE_DIR})
 list(APPEND yquake2LinkerFlags ${OPENGL_LIBRARIES})
 
-find_package(ZLIB REQUIRED)
-list(APPEND yquake2IncludeDirectories ${ZLIB_INCLUDE_DIRS})
-list(APPEND yquake2LinkerFlags ${ZLIB_LIBRARIES})
-
-#OggVorbis
-find_package(OggVorbis)
-if(${OGGVORBIS_FOUND})
-	add_definitions(-DOGG=1)
-	list(APPEND yquake2IncludeDirectories ${OGGVORBIS_INCLUDE_DIR})
-	list(APPEND yquake2LinkerFlags ${OGG_LIBRARY} ${VORBIS_LIBRARY} ${VORBISFILE_LIBRARY})
+if(${ZIP_SUPPORT})
+	find_package(ZLIB REQUIRED)
+	list(APPEND yquake2IncludeDirectories ${ZLIB_INCLUDE_DIRS})
+	list(APPEND yquake2LinkerFlags ${ZLIB_LIBRARIES})
+	add_definitions(-DZIP -DNOUNCRYPT)
 endif()
 
-#OpenAL
-find_package(OpenAL)
-#TODO Enable OSX OpenAL support
-if(${OPENAL_FOUND} AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
-	add_definitions(-DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER)
-	list(APPEND yquake2IncludeDirectories "${OPENAL_INCLUDE_DIR}")
-list(APPEND yquake2LinkerFlags ${OPENAL_LIBRARY})
+if(${OGG_SUPPORT})
+	find_package(OggVorbis)
+	if(${OGGVORBIS_FOUND})
+		add_definitions(-DOGG=1)
+		list(APPEND yquake2IncludeDirectories ${OGGVORBIS_INCLUDE_DIR})
+		list(APPEND yquake2LinkerFlags ${OGG_LIBRARY} ${VORBIS_LIBRARY} ${VORBISFILE_LIBRARY})
+	endif()
+endif()
+
+if(${OPENAL_SUPPORT})
+	find_package(OpenAL)
+	#TODO Enable OSX OpenAL support
+	if(${OPENAL_FOUND} AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+		list(APPEND yquake2IncludeDirectories "${OPENAL_INCLUDE_DIR}")
+		list(APPEND yquake2LinkerFlags ${OPENAL_LIBRARY})
+
+		#TODO This should be done in the source with a #ifdef PLATFORM_X
+		#We found the library but we must also give it the right dynamic library
+		#to open.
+		if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+			add_definitions(-DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER="openal32.dll")
+		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+			add_definitions(-DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER="libopenal.dylib")
+		elseif((${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD") OR (${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD"))
+			add_definitions(-DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER="libopenal.so")
+		else()
+			add_definitions(-DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER="libopenal.so.1")
+		endif()
+	endif()
 endif()
 
 list(APPEND yquake2LinkerFlags "-lm -rdynamic")
 list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
-
-add_definitions(-DZIP -DNOUNCRYPT)
 
 #With all of those libraries and user defined paths added,
 #lets give them to the compiler and linker.
