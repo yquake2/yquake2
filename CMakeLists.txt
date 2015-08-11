@@ -1,35 +1,30 @@
 cmake_minimum_required(VERSION 3.0)
 
+# Enforce "Debug" as standard build type
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
-#yquake cmake configuration
+# CMake project configuration
 project (yquake2)
 
-set(YQUAKE2_MAJOR_VERSION 5)
-set(YQUAKE2_MINOR_VERSION 3)
-set(YQUAKE2_PATCH_VERSION 0)
-
 # Cmake module search path
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules
-                      ${CMAKE_MODULE_PATH})
-#Add Homebrew for OSX
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
+
+# Add extended path for FreeBSD and Homebrew on OS X
 list(APPEND CMAKE_PREFIX_PATH /usr/local)
 
 #yquake2 compilation options
 option(ZIP_SUPPORT "ZIP support" ON)
 option(OGG_SUPPORT "OGG Vorbis playback support (Music)" ON)
-option(OPENAL_SUPPORT "3D Sound support" ON)
-#TODO Remove the X11 Gamma from the code
-#TODO Remove SDL 1.X all together.
+option(OPENAL_SUPPORT "OpenAL support" ON)
 
-#These variables will act as our list of include folders and linker flags
+# These variables will act as our list of include folders and linker flags
 set(yquake2LinkerFlags)
 set(yquake2IncludeDirectories)
 set(yquake2LinkerDirectories)
 
-#Set directory locations (allowing us to move directories easily)
+# Set directory locations (allowing us to move directories easily)
 set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
 set(BACKENDS_SRC_DIR ${SOURCE_DIR}/backends)
 set(COMMON_SRC_DIR ${SOURCE_DIR}/common)
@@ -37,16 +32,15 @@ set(GAME_SRC_DIR ${SOURCE_DIR}/game)
 set(SERVER_SRC_DIR ${SOURCE_DIR}/server)
 set(CLIENT_SRC_DIR ${SOURCE_DIR}/client)
 
-#Required libraries to build the different
-#components of the tutorials. Find them and add the include/linker
-#directories and flags(In case the package manager find it in a weird place)
+# Required libraries to build the different components of the binaries. Find
+# them and add the include/linker directories and flags (in case the package
+# manager find it in a weird place)
 find_package(SDL2)
 if(${SDL2_FOUND})
 	add_definitions(-DSDL2)
 	list(APPEND yquake2IncludeDirectories "${SDL2_INCLUDE_DIR}/..")
 	list(APPEND yquake2LinkerFlags ${SDL2_LIBRARY})
 else()
-	#If we can't get SDL2 at least get SDL 1.X
 	find_package(SDL REQUIRED)
 	add_definitions(-DWITH_CDA)
 	list(APPEND yquake2IncludeDirectories "${SDL_INCLUDE_DIR}/..")
@@ -67,7 +61,7 @@ endif()
 if(${OGG_SUPPORT})
 	find_package(OggVorbis)
 	if(${OGGVORBIS_FOUND})
-		add_definitions(-DOGG=1)
+		add_definitions(-DOGG)
 		list(APPEND yquake2IncludeDirectories ${OGGVORBIS_INCLUDE_DIR})
 		list(APPEND yquake2LinkerFlags ${OGG_LIBRARY} ${VORBIS_LIBRARY} ${VORBISFILE_LIBRARY})
 	endif()
@@ -75,14 +69,12 @@ endif()
 
 if(${OPENAL_SUPPORT})
 	find_package(OpenAL)
-	#TODO Enable OSX OpenAL support
+
+	# TODO: OS X is still missing here
 	if(${OPENAL_FOUND} AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 		list(APPEND yquake2IncludeDirectories "${OPENAL_INCLUDE_DIR}")
 		list(APPEND yquake2LinkerFlags ${OPENAL_LIBRARY})
 
-		#TODO This should be done in the source with a #ifdef PLATFORM_X
-		#We found the library but we must also give it the right dynamic library
-		#to open.
 		if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 			add_definitions(-DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER="openal32.dll")
 		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -98,8 +90,8 @@ endif()
 list(APPEND yquake2LinkerFlags "-lm -rdynamic")
 list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
 
-#With all of those libraries and user defined paths added,
-#lets give them to the compiler and linker.
+# With all of those libraries and user defined paths
+# added, lets give them to the compiler and linker.
 include_directories(${yquake2IncludeDirectories})
 link_directories(${yquake2LinkerDirectories})
 
@@ -130,16 +122,10 @@ set(Backends-Windows-Source
 	${BACKENDS_SRC_DIR}/windows/shared/mem.c
 	)
 
-#Set the nessesary platform specific source
+# Set the nessesary platform specific source
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	add_definitions(-DPLATFORM_WINDOWS=1)
 	set(Platform-Specific-Source ${Backends-Windows-Source})
 else()
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		add_definitions(-DPLATFORM_MAC_OSX=1)
-	endif()
-
-	add_definitions(-DPLATFORM_UNIX=1)
 	set(Platform-Specific-Source ${Backends-Unix-Source})
 endif()
 
@@ -299,7 +285,7 @@ set(Server-Source
 	${SERVER_SRC_DIR}/sv_world.c
 	)
 
-#Build the game dynamic library
+# Build the game dynamic library
 add_library(game SHARED ${Game-Source})
 set_target_properties(game PROPERTIES 
 						   PREFIX ""
@@ -307,7 +293,8 @@ set_target_properties(game PROPERTIES
 						   LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release/baseq2
 						   )
 target_link_libraries(game ${yquake2LinkerFlags})
-#Main Quake 2 executable
+
+# Main Quake 2 executable
 add_executable(quake2 ${Client-Source} ${Platform-Specific-Source} ${Backends-Generic-Source})
 set_target_properties(quake2 PROPERTIES
 							 PREFIX ""
@@ -315,9 +302,9 @@ set_target_properties(quake2 PROPERTIES
 							 RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
 							 )
 target_link_libraries(quake2 game ${yquake2LinkerFlags})
-#Quake 2 Dedicated Server
-add_executable(q2ded ${Server-Source} ${Platform-Specific-Source})
 
+# Quake 2 Dedicated Server
+add_executable(q2ded ${Server-Source} ${Platform-Specific-Source})
 set_target_properties(q2ded PROPERTIES
 							PREFIX "" 
 						    COMPILE_DEFINITIONS "DEDICATED_ONLY"
@@ -325,3 +312,4 @@ set_target_properties(q2ded PROPERTIES
 							RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
 							)
 target_link_libraries(q2ded game ${yquake2LinkerFlags})
+
