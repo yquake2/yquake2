@@ -98,14 +98,14 @@ link_directories(${yquake2LinkerDirectories})
 set(Backends-Generic-Source
 	${BACKENDS_SRC_DIR}/generic/qal.c
 	${BACKENDS_SRC_DIR}/generic/vid.c
- 	${BACKENDS_SRC_DIR}/generic/qgl.c
- 	${BACKENDS_SRC_DIR}/generic/misc.c
+	${BACKENDS_SRC_DIR}/generic/qgl.c
+	${BACKENDS_SRC_DIR}/generic/misc.c
 
- 	${BACKENDS_SRC_DIR}/sdl/cd.c
+	${BACKENDS_SRC_DIR}/sdl/cd.c
 	${BACKENDS_SRC_DIR}/sdl/input.c
 	${BACKENDS_SRC_DIR}/sdl/refresh.c
 	${BACKENDS_SRC_DIR}/sdl/sound.c
- 	)
+	)
 
 set(Backends-Unix-Source
 	${BACKENDS_SRC_DIR}/unix/network.c
@@ -287,7 +287,7 @@ set(Server-Source
 
 # Build the game dynamic library
 add_library(game SHARED ${Game-Source})
-set_target_properties(game PROPERTIES 
+set_target_properties(game PROPERTIES
 						   PREFIX ""
 						   LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/baseq2
 						   LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release/baseq2
@@ -306,8 +306,8 @@ target_link_libraries(quake2 game ${yquake2LinkerFlags})
 # Quake 2 Dedicated Server
 add_executable(q2ded ${Server-Source} ${Platform-Specific-Source})
 set_target_properties(q2ded PROPERTIES
-							PREFIX "" 
-						    COMPILE_DEFINITIONS "DEDICATED_ONLY"
+							PREFIX ""
+							COMPILE_DEFINITIONS "DEDICATED_ONLY"
 							RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
 							RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
 							)
