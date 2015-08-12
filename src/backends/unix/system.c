@@ -388,7 +388,7 @@ Sys_GetGameAPI(void *parms)
 	char name[MAX_OSPATH];
 	char *path;
 	char *str_p;
-    #if PLATFORM_MAC_OSX
+    #ifdef __APPLE__
         const char *gamename = "game.dylib";
     #else
         const char *gamename = "game.so";
