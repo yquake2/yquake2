@@ -14,13 +14,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/stuff/cmake/modules ${CMAKE_MODU
 # Add extended path for FreeBSD and Homebrew on OS X
 list(APPEND CMAKE_PREFIX_PATH /usr/local)
 
-# Enforce compiler flags (GCC compatible, yquake2
+# Enforce compiler flags (GCC / Clang compatible, yquake2
 # won't build with another compiler anyways)
 #  -Wall                -> More warnings
 #  -fno-strict-aliasing -> Quake 2 is far away from strict aliasing
 #  -fwrapv              -> Make signed integer overflows defined
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fno-strict-aliasing -fwrapv")
 
+# Use -O2 as maximum optimization level. -O3 has it's problems with yquake2.
 string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
 # yquake2 compilation options
