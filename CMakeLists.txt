@@ -117,6 +117,12 @@ set(Backends-Generic-Source
 	${BACKENDS_SRC_DIR}/sdl/sound.c
 	)
 
+set(Backends-Generic-Header
+	${BACKENDS_SRC_DIR}/generic/header/input.h
+	${BACKENDS_SRC_DIR}/generic/header/qal.h
+	${BACKENDS_SRC_DIR}/generic/header/qgl.h
+	)
+
 set(Backends-Unix-Source
 	${BACKENDS_SRC_DIR}/unix/network.c
 	${BACKENDS_SRC_DIR}/unix/system.c
@@ -126,17 +132,27 @@ set(Backends-Unix-Source
 	${BACKENDS_SRC_DIR}/unix/shared/hunk.c
 	)
 
+set(Backends-Unix-Header
+	${BACKENDS_SRC_DIR}/unix/header/unix.h
+	)
+
 set(Backends-Windows-Source
 	${BACKENDS_SRC_DIR}/windows/network.c
 	${BACKENDS_SRC_DIR}/windows/system.c
 	${BACKENDS_SRC_DIR}/windows/shared/mem.c
 	)
 
+set(Backends-Windows-Header
+	${BACKENDS_SRC_DIR}/windows/header/resource.h
+	${BACKENDS_SRC_DIR}/windows/header/winquake.h
+	)
+
+
 # Set the nessesary platform specific source
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set(Platform-Specific-Source ${Backends-Windows-Source})
+	set(Platform-Specific-Source ${Backends-Windows-Source} ${Backends-Windows-Header})
 else()
-	set(Platform-Specific-Source ${Backends-Unix-Source})
+	set(Platform-Specific-Source ${Backends-Unix-Source} ${Backends-Unix-Header})
 endif()
 
 set(Game-Source
@@ -188,6 +204,39 @@ set(Game-Source
 	${GAME_SRC_DIR}/player/view.c
 	${GAME_SRC_DIR}/player/weapon.c
 	${GAME_SRC_DIR}/savegame/savegame.c
+	)
+
+set(Game-Header
+	${GAME_SRC_DIR}/header/game.h
+	${GAME_SRC_DIR}/header/local.h
+	${GAME_SRC_DIR}/monster/berserker/berserker.h
+	${GAME_SRC_DIR}/monster/boss2/boss2.h
+	${GAME_SRC_DIR}/monster/boss3/boss31.h
+	${GAME_SRC_DIR}/monster/boss3/boss32.h
+	${GAME_SRC_DIR}/monster/brain/brain.h
+	${GAME_SRC_DIR}/monster/chick/chick.h
+	${GAME_SRC_DIR}/monster/flipper/flipper.h
+	${GAME_SRC_DIR}/monster/float/float.h
+	${GAME_SRC_DIR}/monster/flyer/flyer.h
+	${GAME_SRC_DIR}/monster/gladiator/gladiator.h
+	${GAME_SRC_DIR}/monster/gunner/gunner.h
+	${GAME_SRC_DIR}/monster/hover/hover.h
+	${GAME_SRC_DIR}/monster/infantry/infantry.h
+	${GAME_SRC_DIR}/monster/insane/insane.h
+	${GAME_SRC_DIR}/monster/medic/medic.h
+	${GAME_SRC_DIR}/monster/misc/player.h
+	${GAME_SRC_DIR}/monster/mutant/mutant.h
+	${GAME_SRC_DIR}/monster/parasite/parasite.h
+	${GAME_SRC_DIR}/monster/soldier/soldier.h
+	${GAME_SRC_DIR}/monster/supertank/supertank.h
+	${GAME_SRC_DIR}/monster/tank/tank.h
+	${GAME_SRC_DIR}/savegame/tables/clientfields.h
+	${GAME_SRC_DIR}/savegame/tables/fields.h
+	${GAME_SRC_DIR}/savegame/tables/gamefunc_decs.h
+	${GAME_SRC_DIR}/savegame/tables/gamefunc_list.h
+	${GAME_SRC_DIR}/savegame/tables/gamemmove_decs.h
+	${GAME_SRC_DIR}/savegame/tables/gamemmove_list.h
+	${GAME_SRC_DIR}/savegame/tables/levelfields.h
 	)
 
 set(Client-Source
@@ -263,6 +312,35 @@ set(Client-Source
 	${SERVER_SRC_DIR}/sv_world.c
 	)
 
+set(Client-Header
+	${CLIENT_SRC_DIR}/header/client.h
+	${CLIENT_SRC_DIR}/header/console.h
+	${CLIENT_SRC_DIR}/header/keyboard.h
+	${CLIENT_SRC_DIR}/header/ref.h
+	${CLIENT_SRC_DIR}/header/screen.h
+	${CLIENT_SRC_DIR}/header/vid.h
+	${CLIENT_SRC_DIR}/menu/header/qmenu.h
+	${CLIENT_SRC_DIR}/refresh/constants/anorms.h
+	${CLIENT_SRC_DIR}/refresh/constants/anormtab.h
+	${CLIENT_SRC_DIR}/refresh/constants/warpsin.h
+	${CLIENT_SRC_DIR}/refresh/files/stb_image.h
+	${CLIENT_SRC_DIR}/refresh/header/local.h
+	${CLIENT_SRC_DIR}/refresh/header/model.h
+	${CLIENT_SRC_DIR}/sound/header/cdaudio.h
+	${CLIENT_SRC_DIR}/sound/header/local.h
+	${CLIENT_SRC_DIR}/sound/header/sound.h
+	${CLIENT_SRC_DIR}/sound/header/vorbis.h
+	${COMMON_SRC_DIR}/header/common.h
+	${COMMON_SRC_DIR}/header/crc.h
+	${COMMON_SRC_DIR}/header/files.h
+	${COMMON_SRC_DIR}/header/glob.h
+	${COMMON_SRC_DIR}/header/shared.h
+	${COMMON_SRC_DIR}/header/zone.h
+	${COMMON_SRC_DIR}/unzip/ioapi.h
+	${COMMON_SRC_DIR}/unzip/unzip.h
+	${SERVER_SRC_DIR}/header/server.h
+	)
+
 set(Server-Source
 	${COMMON_SRC_DIR}/argproc.c
 	${COMMON_SRC_DIR}/clientserver.c
@@ -295,8 +373,20 @@ set(Server-Source
 	${SERVER_SRC_DIR}/sv_world.c
 	)
 
+set(Server-Header
+    ${COMMON_SRC_DIR}/header/common.h
+	${COMMON_SRC_DIR}/header/crc.h
+	${COMMON_SRC_DIR}/header/files.h
+	${COMMON_SRC_DIR}/header/glob.h
+	${COMMON_SRC_DIR}/header/shared.h
+	${COMMON_SRC_DIR}/header/zone.h
+	${COMMON_SRC_DIR}/unzip/ioapi.h
+	${COMMON_SRC_DIR}/unzip/unzip.h
+	${SERVER_SRC_DIR}/header/server.h
+	)
+
 # Build the game dynamic library
-add_library(game SHARED ${Game-Source})
+add_library(game SHARED ${Game-Source} ${Game-Header})
 set_target_properties(game PROPERTIES
 						   PREFIX ""
 						   LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/baseq2
@@ -305,7 +395,7 @@ set_target_properties(game PROPERTIES
 target_link_libraries(game ${yquake2LinkerFlags})
 
 # Main Quake 2 executable
-add_executable(quake2 ${Client-Source} ${Platform-Specific-Source} ${Backends-Generic-Source})
+add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source} ${Backends-Generic-Source} ${Backends-Generic-Header})
 set_target_properties(quake2 PROPERTIES
 							 PREFIX ""
 							 RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
@@ -314,7 +404,7 @@ set_target_properties(quake2 PROPERTIES
 target_link_libraries(quake2 game ${yquake2LinkerFlags})
 
 # Quake 2 Dedicated Server
-add_executable(q2ded ${Server-Source} ${Platform-Specific-Source})
+add_executable(q2ded ${Server-Source} ${Server-Header} ${Platform-Specific-Source})
 set_target_properties(q2ded PROPERTIES
 							PREFIX ""
 							COMPILE_DEFINITIONS "DEDICATED_ONLY"
