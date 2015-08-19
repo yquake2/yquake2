@@ -402,19 +402,19 @@ set(Server-Header
 # Build the game dynamic library
 add_library(game SHARED ${Game-Source} ${Game-Header})
 set_target_properties(game PROPERTIES
-						   PREFIX ""
-						   LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/baseq2
-						   LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release/baseq2
-						   )
+							PREFIX ""
+							LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/baseq2
+							LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release/baseq2
+							)
 target_link_libraries(game ${yquake2LinkerFlags})
 
 # Main Quake 2 executable
 add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source} ${Backends-Generic-Source} ${Backends-Generic-Header})
 set_target_properties(quake2 PROPERTIES
-							 PREFIX ""
-							 RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
-							 RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
-							 )
+							PREFIX ""
+							RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
+							RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
+							)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_link_libraries(quake2 game ${yquake2LinkerFlags} ws2_32 winmm)
