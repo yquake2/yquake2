@@ -97,7 +97,12 @@ if(${OPENAL_SUPPORT})
 	endif()
 endif()
 
-list(APPEND yquake2LinkerFlags "-lm -rdynamic")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	list(APPEND yquake2LinkerFlags "-lm")
+else()
+	list(APPEND yquake2LinkerFlags "-lm -rdynamic")
+endif()
+
 list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
 
 # With all of those libraries and user defined paths
@@ -137,6 +142,7 @@ set(Backends-Unix-Header
 	)
 
 set(Backends-Windows-Source
+	${BACKENDS_SRC_DIR}/generic/misc.c
 	${BACKENDS_SRC_DIR}/windows/network.c
 	${BACKENDS_SRC_DIR}/windows/system.c
 	${BACKENDS_SRC_DIR}/windows/shared/mem.c
@@ -401,7 +407,12 @@ set_target_properties(quake2 PROPERTIES
 							 RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
 							 RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
 							 )
-target_link_libraries(quake2 game ${yquake2LinkerFlags})
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	target_link_libraries(quake2 game ${yquake2LinkerFlags} ws2_32 winmm)
+else()
+	target_link_libraries(quake2 game ${yquake2LinkerFlags})
+endif()
 
 # Quake 2 Dedicated Server
 add_executable(q2ded ${Server-Source} ${Server-Header} ${Platform-Specific-Source})
@@ -411,5 +422,9 @@ set_target_properties(q2ded PROPERTIES
 							RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
 							RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
 							)
-target_link_libraries(q2ded game ${yquake2LinkerFlags})
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	target_link_libraries(q2ded game ${yquake2LinkerFlags} ws2_32 winmm)
+else()
+	target_link_libraries(q2ded game ${yquake2LinkerFlags})
+endif()
