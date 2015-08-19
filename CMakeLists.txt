@@ -11,6 +11,14 @@ project (yquake2)
 # Cmake module search path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/stuff/cmake/modules ${CMAKE_MODULE_PATH})
 
+if (YQUAKE2LIBS)
+	set(ENV{CMAKE_PREFIX_PATH} ${YQUAKE2LIBS})
+
+	set(ENV{OPENALDIR} ${YQUAKE2LIBS})
+	set(ENV{SDLDIR} ${YQUAKE2LIBS})
+	set(ENV{SDL2DIR} ${YQUAKE2LIBS})
+endif()
+
 # Add extended path for FreeBSD and Homebrew on OS X
 list(APPEND CMAKE_PREFIX_PATH /usr/local)
 
