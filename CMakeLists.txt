@@ -417,9 +417,9 @@ set_target_properties(quake2 PROPERTIES
 							)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_link_libraries(quake2 game ${yquake2LinkerFlags} ws2_32 winmm)
+	target_link_libraries(quake2 ${yquake2LinkerFlags} ws2_32 winmm)
 else()
-	target_link_libraries(quake2 game ${yquake2LinkerFlags})
+	target_link_libraries(quake2 ${yquake2LinkerFlags})
 endif()
 
 # Quake 2 Dedicated Server
