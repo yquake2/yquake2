@@ -159,7 +159,7 @@ Sys_Error(char *error, ...)
 	vsprintf(text, error, argptr);
 	va_end(argptr);
 
-	gi.error(ERR_FATAL, "%s", text);
+	gi.error("%s", text);
 }
 
 void
