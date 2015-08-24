@@ -377,7 +377,7 @@ SV_InitGame(void)
 	svs.spawncount = randk();
 	svs.clients = Z_Malloc(sizeof(client_t) * maxclients->value);
 	svs.num_client_entities = maxclients->value * UPDATE_BACKUP * 64;
-	svs.client_entities = 
+	svs.client_entities =
 		Z_Malloc( sizeof(entity_state_t) * svs.num_client_entities);
 
 	/* init network stuff */
@@ -463,12 +463,13 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame)
 	}
 
 	/* skip the end-of-unit flag if necessary */
+	l = strlen(level);
+
 	if (level[0] == '*')
 	{
-		memmove(level, level + 1, strlen(level) + 1);
+		memmove(level, level + 1, l);
+		--l;
 	}
-
-	l = strlen(level);
 
 	if ((l > 4) && !strcmp(level + l - 4, ".cin"))
 	{
