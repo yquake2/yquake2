@@ -903,6 +903,7 @@ CL_LoadClientinfo(clientinfo_t *ci, char *s)
 	char weapon_filename[MAX_QPATH];
 
 	Q_strlcpy(ci->cinfo, s, sizeof(ci->cinfo));
+	s = ci->cinfo;
 
 	/* isolate the player's name */
 	Q_strlcpy(ci->name, s, sizeof(ci->name));
@@ -1048,7 +1049,7 @@ CL_ParseClientinfo(int player)
 void
 CL_ParseConfigString(void)
 {
-	int i;
+	int i, length;
 	char *s;
 	char olds[MAX_QPATH];
 
@@ -1062,6 +1063,12 @@ CL_ParseConfigString(void)
 	s = MSG_ReadString(&net_message);
 
 	Q_strlcpy(olds, cl.configstrings[i], sizeof(olds));
+
+	length = strlen(s);
+	if (length > sizeof(cl.configstrings) - sizeof(cl.configstrings[0])*i - 1)
+	{
+		Com_Error(ERR_DROP, "CL_ParseConfigString: oversize configstring");
+	}
 
 	strcpy(cl.configstrings[i], s);
 
