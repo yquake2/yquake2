@@ -202,11 +202,14 @@ Cbuf_Execute(void)
 
 		if (i > sizeof(line) - 1)
 		{
-			i = sizeof(line) - 1;
+			memcpy(line, text, sizeof(line) - 1);
+			line[sizeof(line) - 1] = 0;
 		}
-
-		memcpy(line, text, i);
-		line[i] = 0;
+		else
+		{
+			memcpy(line, text, i);
+			line[i] = 0;
+		}
 
 		/* delete the text from the command buffer and move remaining
 		   commands down this is necessary because commands (exec,
@@ -215,7 +218,6 @@ Cbuf_Execute(void)
 		{
 			cmd_text.cursize = 0;
 		}
-
 		else
 		{
 			i++;
