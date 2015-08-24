@@ -307,7 +307,7 @@ CL_PrepRefresh(void)
 		}
 	}
 
-	Com_Printf("images\r", i);
+	Com_Printf("images\r");
 	SCR_UpdateScreen();
 
 	for (i = 1; i < MAX_IMAGES && cl.configstrings[CS_IMAGES + i][0]; i++)
@@ -335,7 +335,7 @@ CL_PrepRefresh(void)
 	CL_LoadClientinfo(&cl.baseclientinfo, "unnamed\\male/grunt");
 
 	/* set sky textures and speed */
-	Com_Printf("sky\r", i);
+	Com_Printf("sky\r");
 	SCR_UpdateScreen();
 	rotate = (float)strtod(cl.configstrings[CS_SKYROTATE], (char **)NULL);
 	sscanf(cl.configstrings[CS_SKYAXIS], "%f %f %f", &axis[0], &axis[1], &axis[2]);
@@ -454,7 +454,7 @@ entitycmpfnc(const entity_t *a, const entity_t *b)
 	else
 	{
  		return (a->model == b->model) ? 0 :
-			(a->model > b->model) ? 1 : -1; 
+			(a->model > b->model) ? 1 : -1;
 	}
 }
 

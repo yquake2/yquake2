@@ -300,7 +300,7 @@ CL_Setenv_f(void)
 
 		else
 		{
-			Com_Printf("%s undefined\n", Cmd_Argv(1), env);
+			Com_Printf("%s undefined\n", Cmd_Argv(1));
 		}
 	}
 }

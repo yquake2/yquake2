@@ -201,7 +201,7 @@ CL_Connect_f(void)
 	{
 		/* if running a local server, kill it and reissue
 		   note: this is connect with the save game system */
-		SV_Shutdown(va("Server quit\n", msg), false);
+		SV_Shutdown("Server quit\n", false);
 	}
 
 	else

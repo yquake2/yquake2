@@ -987,7 +987,7 @@ CL_LoadClientinfo(clientinfo_t *ci, char *s)
 		{
 			/* see if the skin exists for the male model */
 			Com_sprintf(skin_filename, sizeof(skin_filename),
-					"players/%s/grunt.pcx", model_name, skin_name);
+					"players/%s/grunt.pcx", model_name);
 			ci->skin = R_RegisterSkin(skin_filename);
 		}
 
