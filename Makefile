@@ -233,7 +233,7 @@ LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),OpenBSD)
 LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),Windows)
-LDFLAGS := -L/custom/lib -static -lws2_32 -lwinmm
+LDFLAGS := -L/custom/lib -lws2_32 -lwinmm
 else ifeq ($(OSTYPE), Darwin)
 LDFLAGS := $(OSX_ARCH) -lm
 endif
@@ -243,7 +243,7 @@ endif
 # Extra LDFLAGS for SDL
 ifeq ($(OSTYPE), Windows)
 ifeq ($(WITH_SDL2),yes)
-SDLLDFLAGS := $(shell /custom/bin/sdl2-config --static-libs) 
+SDLLDFLAGS := $(shell /custom/bin/sdl2-config --libs)
 else # not SDL2
 SDLLDFLAGS := -lSDL
 endif # SDL2
