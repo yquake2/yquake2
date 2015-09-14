@@ -1551,7 +1551,7 @@ SCR_UpdateScreen(void)
 }
 
 float
-SCR_GetScale(void)
+SCR_GetDefaultScale(void)
 {
 	int i = viddef.width / 640;
 	int j = viddef.height / 240;
@@ -1591,7 +1591,7 @@ SCR_DrawCrosshair(void)
 
 	if (crosshair_scale->value < 0)
 	{
-		scale = SCR_GetScale();
+		scale = SCR_GetDefaultScale();
 	}
 	else
 	{
@@ -1610,7 +1610,7 @@ SCR_GetHUDScale(void)
 
 	if (gl_hudscale->value < 0)
 	{
-		scale = SCR_GetScale();
+		scale = SCR_GetDefaultScale();
 	}
 	else
 	{
@@ -1627,7 +1627,7 @@ SCR_GetConsoleScale(void)
 
 	if (gl_consolescale->value < 0)
 	{
-		scale = SCR_GetScale();
+		scale = SCR_GetDefaultScale();
 	}
 	else
 	{
@@ -1644,7 +1644,7 @@ SCR_GetMenuScale(void)
 
 	if (gl_menuscale->value < 0)
 	{
-		scale = SCR_GetScale();
+		scale = SCR_GetDefaultScale();
 	}
 	else
 	{
