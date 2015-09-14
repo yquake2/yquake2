@@ -1550,45 +1550,6 @@ SCR_UpdateScreen(void)
 	GLimp_EndFrame();
 }
 
-void
-SCR_DrawCrosshair(void)
-{
-	if (!crosshair->value)
-	{
-		return;
-	}
-
-	if (crosshair->modified)
-	{
-		crosshair->modified = false;
-		SCR_TouchPics();
-	}
-
-	if (crosshair_scale->modified)
-	{
-		crosshair_scale->modified = false;
-
-		if (crosshair_scale->value > 5)
-		{
-			Cvar_SetValue("crosshair_scale", 5);
-		}
-
-		else if (crosshair_scale->value < 0.25)
-		{
-			Cvar_SetValue("crosshair_scale", 0.25);
-		}
-	}
-
-	if (!crosshair_pic[0])
-	{
-		return;
-	}
-
-	Draw_Pic(scr_vrect.x + ((scr_vrect.width - crosshair_width) >> 1),
-			scr_vrect.y + ((scr_vrect.height - crosshair_height) >> 1),
-			crosshair_pic);
-}
-
 float
 SCR_GetScale(void)
 {
@@ -1605,6 +1566,41 @@ SCR_GetScale(void)
 	}
 
 	return i;
+}
+
+void
+SCR_DrawCrosshair(void)
+{
+	float scale;
+
+	if (!crosshair->value)
+	{
+		return;
+	}
+
+	if (crosshair->modified)
+	{
+		crosshair->modified = false;
+		SCR_TouchPics();
+	}
+
+	if (!crosshair_pic[0])
+	{
+		return;
+	}
+
+	if (crosshair_scale->value < 0)
+	{
+		scale = SCR_GetScale();
+	}
+	else
+	{
+		scale = crosshair_scale->value;
+	}
+
+	Draw_PicScaled(scr_vrect.x + ((scr_vrect.width - crosshair_width) >> 1),
+			scr_vrect.y + ((scr_vrect.height - crosshair_height) >> 1),
+			crosshair_pic, scale);
 }
 
 float
