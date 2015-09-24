@@ -201,21 +201,26 @@ AL_Spatialize(channel_t *ch)
 	/* anything coming from the view entity
 	   will always be full volume. no
 	   attenuation = no spatialization */
-	if ((ch->entnum == -1) || (ch->entnum == cl.playernum + 1) ||
-		!ch->dist_mult)
+	if ((ch->entnum == -1) || (ch->entnum == cl.playernum + 1) || !ch->dist_mult)
 	{
-		VectorCopy(listener_origin, origin);
+		qalSource3f(ch->srcnum, AL_POSITION, 0,0,0);
+		qalSourcei(ch->srcnum, AL_SOURCE_RELATIVE, AL_TRUE);
+		return;
 	}
 	else if (ch->fixed_origin)
 	{
 		VectorCopy(ch->origin, origin);
+		qalSource3f(ch->srcnum, AL_POSITION, AL_UnpackVector(origin));
+		return;
 	}
 	else
 	{
 		CL_GetEntitySoundOrigin(ch->entnum, origin);
+		qalSource3f(ch->srcnum, AL_POSITION, AL_UnpackVector(origin));
+		return;
 	}
 
-	qalSource3f(ch->srcnum, AL_POSITION, AL_UnpackVector(origin));
+
 }
 
 /*
