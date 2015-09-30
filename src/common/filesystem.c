@@ -40,7 +40,7 @@
 
 #ifdef SYSTEMWIDE
  #ifndef SYSTEMDIR
-  #define SYSTEMDIR "/usr/share/games/quake2/"
+  #define SYSTEMDIR "/usr/share/games/quake2"
  #endif
 #endif
 
@@ -1381,25 +1381,6 @@ FS_AddHomeAsGameDirectory(char *dir)
 	FS_AddGameDirectory(gdir);
 }
 
-#ifdef SYSTEMWIDE
-void
-FS_AddSystemwideGameDirectory(char *dir)
-{
-	char gdir[MAX_OSPATH];
-	char *datadir = SYSTEMDIR;
-	int len = snprintf(gdir, sizeof(gdir), "%s/%s/", datadir, dir);
-
-	printf("Using %s to fetch paks\n", gdir);
-
-	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len - 1] == '/'))
-	{
-		gdir[len - 1] = 0;
-	}
-
-	FS_AddGameDirectory(gdir);
-}
-#endif
-
 void FS_AddBinaryDirAsGameDirectory(const char* dir)
 {
 	char gdir[MAX_OSPATH];
@@ -1689,10 +1670,6 @@ FS_SetGamedir(char *dir)
 		{
 			FS_AddGameDirectory(va("%s/%s", fs_cddir->string, dir));
 		}
-
-#ifdef SYSTEMWIDE
-		FS_AddSystemwideGameDirectory(dir);
-#endif
 
 		FS_AddGameDirectory(va("%s/%s", fs_basedir->string, dir));
 		FS_AddBinaryDirAsGameDirectory(dir);
@@ -2081,7 +2058,13 @@ FS_InitFilesystem(void)
 	Cmd_AddCommand("dir", FS_Dir_f);
 
 	/* basedir <path> Allows the game to run from outside the data tree.  */
-	fs_basedir = Cvar_Get("basedir", ".", CVAR_NOSET);
+	fs_basedir = Cvar_Get("basedir",
+#ifdef SYSTEMWIDE
+		SYSTEMDIR,
+#else
+		".",
+#endif
+		CVAR_NOSET);
 
 	/* cddir <path> Logically concatenates the cddir after the basedir to
 	   allow the game to run from outside the data tree. */
@@ -2100,10 +2083,6 @@ FS_InitFilesystem(void)
 
 	/* Current directory. */
 	fs_homepath = Cvar_Get("homepath", Sys_GetCurrentDirectory(), CVAR_NOSET);
-
-#ifdef SYSTEMWIDE
-	FS_AddSystemwideGameDirectory(BASEDIRNAME);
-#endif
 
 	/* Add baseq2 to search path. */
 	FS_AddGameDirectory(va("%s/" BASEDIRNAME, fs_basedir->string));
