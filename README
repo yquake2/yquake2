@@ -113,8 +113,8 @@ zip file. Now delete the following files and directories:
 - xatrix/gamex86.dll
 - rogue/gamex86.dll
 
-Now put the Quake II CD-ROM into your cd drive and copy the file "pak0.pak"
-and the directory "video/" to the "baseq2/" directory of your installation.
+Now copy the file "pak0.pak" and the directory "video/" from Quake II CD-ROM
+to the "baseq2/" directory of your installation.
 
 1.3 Demo Version:
 -----------------
