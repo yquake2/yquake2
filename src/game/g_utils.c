@@ -274,11 +274,12 @@ G_UseTargets(edict_t *ent, edict_t *activator)
 			else if (!Q_stricmp(t->classname,"target_goal"))
 			{
 				level.total_goals--;
-
+#ifdef WITH_OLDPLAYBACK
 				if (level.found_goals >= level.total_goals)
 				{
 					gi.configstring (CS_CDTRACK, "0");
 				}
+#endif
 			}
 
 			G_FreeEdict(t);

@@ -300,12 +300,12 @@ use_target_goal(edict_t *ent, edict_t *other /* unused */, edict_t *activator /*
 	gi.sound(ent, CHAN_VOICE, ent->noise_index, 1, ATTN_NORM, 0);
 
 	level.found_goals++;
-
+#ifdef WITH_OLDPLAYBACK
 	if (level.found_goals == level.total_goals)
 	{
 		gi.configstring(CS_CDTRACK, "0");
 	}
-
+#endif
 	G_UseTargets(ent, activator);
 	G_FreeEdict(ent);
 }
