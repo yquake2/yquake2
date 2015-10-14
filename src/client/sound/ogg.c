@@ -497,13 +497,15 @@ OGG_OpenName(char *filename)
 	char *name; /* File name. */
 	int i;		/* Loop counter. */
 
-	/* If the track name is '00', stop playback */
+	/* If the track name is '00', stop playback for default behaviour,
+	 * otherwise ignore */
+#ifdef WITH_OLDPLAYBACK
 	if (!strncmp(filename, "00", sizeof(char) * 3))
 	{
 		OGG_PauseCmd();
 		return false;
 	}
-
+#endif
 	name = va("%s/%s.ogg", OGG_DIR, filename);
 
 	for (i = 0; i < ogg_numfiles; i++)
