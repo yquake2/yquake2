@@ -708,6 +708,10 @@ Key_Unbindall_f(void)
 	}
 }
 
+/* ugly hack, set in Cmd_ExecuteString() when yq2.cfg is executed
+ * (=> default.cfg is done) */
+extern qboolean doneWithDefaultCfg;
+
 void
 Key_Bind_f(void)
 {
@@ -727,6 +731,17 @@ Key_Bind_f(void)
 	if (b == -1)
 	{
 		Com_Printf("\"%s\" isn't a valid key\n", Cmd_Argv(1));
+		return;
+	}
+
+	/* don't allow binding escape or the special console keys */
+	if(b == K_ESCAPE || b == '^' || b == '`' || b == '~')
+	{
+		if(doneWithDefaultCfg)
+		{
+			/* don't warn about this when it's from default.cfg, we can't change that anyway */
+			Com_Printf("You can't bind the special key \"%s\"!\n", Cmd_Argv(1));
+		}
 		return;
 	}
 
