@@ -921,6 +921,9 @@ Cmd_IsComplete(char *command)
 	return false;
 }
 
+/* ugly hack to suppress warnings from default.cfg in Key_Bind_f() */
+qboolean doneWithDefaultCfg;
+
 /*
  * A complete command line has been parsed, so try to execute it
  */
@@ -936,6 +939,12 @@ Cmd_ExecuteString(char *text)
 	if (!Cmd_Argc())
 	{
 		return; /* no tokens */
+	}
+
+	if(Cmd_Argc() > 1 && Q_strcasecmp(cmd_argv[0], "exec") == 0 && Q_strcasecmp(cmd_argv[1], "yq2.cfg") == 0)
+	{
+		/* exec yq2.cfg is done directly after exec default.cfg, see Qcommon_Init() */
+		doneWithDefaultCfg = true;
 	}
 
 	/* check functions */
