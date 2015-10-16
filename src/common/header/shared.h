@@ -129,6 +129,11 @@ typedef enum
 
 typedef float vec_t;
 typedef vec_t vec3_t[3];
+typedef vec_t vec5_t[5];
+
+typedef int fixed4_t;
+typedef int fixed8_t;
+typedef int fixed16_t;
 
 #ifndef M_PI
  #define M_PI 3.14159265358979323846 /* matches value in gcc v2 math.h */
@@ -155,21 +160,28 @@ extern vec3_t vec3_origin;
 #define VectorClear(a) (a[0] = a[1] = a[2] = 0)
 #define VectorNegate(a, b) (b[0] = -a[0], b[1] = -a[1], b[2] = -a[2])
 #define VectorSet(v, x, y, z) (v[0] = (x), v[1] = (y), v[2] = (z))
-#define VectorLength(x) sqrtf(x[0] * x[0] + x[1] * x[1] + x[2] * x[2])
-#define VectorScale(x, scale, y) (y[0] = scale * x[0], \
-				  y[1] = scale * x[1], \
-				  y[2] = scale * x[2])
-#define VectorMA(x, scale, y, z) (z[0] = x[0] + scale * y[0], \
-				  z[1] = x[1] + scale * y[1], \
-				  z[2] = x[2] + scale * y[2])
+
+void VectorMA(vec3_t veca, float scale, vec3_t vecb, vec3_t vecc);
+
+/* just in case you do't want to use the macros */
+vec_t _DotProduct(vec3_t v1, vec3_t v2);
+void _VectorSubtract(vec3_t veca, vec3_t vecb, vec3_t out);
+void _VectorAdd(vec3_t veca, vec3_t vecb, vec3_t out);
+void _VectorCopy(vec3_t in, vec3_t out);
 
 void ClearBounds(vec3_t mins, vec3_t maxs);
 void AddPointToBounds(vec3_t v, vec3_t mins, vec3_t maxs);
 int VectorCompare(vec3_t v1, vec3_t v2);
+vec_t VectorLength(vec3_t v);
 void CrossProduct(vec3_t v1, vec3_t v2, vec3_t cross);
 vec_t VectorNormalize(vec3_t v); /* returns vector length */
+vec_t VectorNormalize2(vec3_t v, vec3_t out);
+void VectorInverse(vec3_t v);
+void VectorScale(vec3_t in, vec_t scale, vec3_t out);
+int Q_log2(int val);
 
 void R_ConcatRotations(float in1[3][3], float in2[3][3], float out[3][3]);
+void R_ConcatTransforms(float in1[3][4], float in2[3][4], float out[3][4]);
 
 void AngleVectors(vec3_t angles, vec3_t forward, vec3_t right, vec3_t up);
 void AngleVectors2(vec3_t value1, vec3_t angles);

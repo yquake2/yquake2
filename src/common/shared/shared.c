@@ -258,7 +258,45 @@ R_ConcatRotations(float in1[3][3], float in2[3][3], float out[3][3])
 				in1[2][2] * in2[2][2];
 }
 
+void
+R_ConcatTransforms(float in1[3][4], float in2[3][4], float out[3][4])
+{
+	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] +
+				in1[0][2] * in2[2][0];
+	out[0][1] = in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] +
+				in1[0][2] * in2[2][1];
+	out[0][2] = in1[0][0] * in2[0][2] + in1[0][1] * in2[1][2] +
+				in1[0][2] * in2[2][2];
+	out[0][3] = in1[0][0] * in2[0][3] + in1[0][1] * in2[1][3] +
+				in1[0][2] * in2[2][3] + in1[0][3];
+	out[1][0] = in1[1][0] * in2[0][0] + in1[1][1] * in2[1][0] +
+				in1[1][2] * in2[2][0];
+	out[1][1] = in1[1][0] * in2[0][1] + in1[1][1] * in2[1][1] +
+				in1[1][2] * in2[2][1];
+	out[1][2] = in1[1][0] * in2[0][2] + in1[1][1] * in2[1][2] +
+				in1[1][2] * in2[2][2];
+	out[1][3] = in1[1][0] * in2[0][3] + in1[1][1] * in2[1][3] +
+				in1[1][2] * in2[2][3] + in1[1][3];
+	out[2][0] = in1[2][0] * in2[0][0] + in1[2][1] * in2[1][0] +
+				in1[2][2] * in2[2][0];
+	out[2][1] = in1[2][0] * in2[0][1] + in1[2][1] * in2[1][1] +
+				in1[2][2] * in2[2][1];
+	out[2][2] = in1[2][0] * in2[0][2] + in1[2][1] * in2[1][2] +
+				in1[2][2] * in2[2][2];
+	out[2][3] = in1[2][0] * in2[0][3] + in1[2][1] * in2[1][3] +
+				in1[2][2] * in2[2][3] + in1[2][3];
+}
+
 /* ============================================================================ */
+
+float
+Q_fabs(float f)
+{
+	int tmp = *(int *)&f;
+
+	tmp &= 0x7FFFFFFF;
+	return *(float *)&tmp;
+}
 
 float
 LerpAngle(float a2, float a1, float frac)
@@ -464,7 +502,10 @@ VectorCompare(vec3_t v1, vec3_t v2)
 vec_t
 VectorNormalize(vec3_t v)
 {
-	float ilength, length = VectorLength(v);
+	float length, ilength;
+
+	length = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+	length = (float)sqrt(length);
 
 	if (length)
 	{
@@ -477,12 +518,118 @@ VectorNormalize(vec3_t v)
 	return length;
 }
 
+vec_t
+VectorNormalize2(vec3_t v, vec3_t out)
+{
+	float length, ilength;
+
+	length = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+	length = (float)sqrt(length);
+
+	if (length)
+	{
+		ilength = 1 / length;
+		out[0] = v[0] * ilength;
+		out[1] = v[1] * ilength;
+		out[2] = v[2] * ilength;
+	}
+
+	return length;
+}
+
+void
+VectorMA(vec3_t veca, float scale, vec3_t vecb, vec3_t vecc)
+{
+	vecc[0] = veca[0] + scale * vecb[0];
+	vecc[1] = veca[1] + scale * vecb[1];
+	vecc[2] = veca[2] + scale * vecb[2];
+}
+
+vec_t
+_DotProduct(vec3_t v1, vec3_t v2)
+{
+	return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+}
+
+void
+_VectorSubtract(vec3_t veca, vec3_t vecb, vec3_t out)
+{
+	out[0] = veca[0] - vecb[0];
+	out[1] = veca[1] - vecb[1];
+	out[2] = veca[2] - vecb[2];
+}
+
+void
+_VectorAdd(vec3_t veca, vec3_t vecb, vec3_t out)
+{
+	out[0] = veca[0] + vecb[0];
+	out[1] = veca[1] + vecb[1];
+	out[2] = veca[2] + vecb[2];
+}
+
+void
+_VectorCopy(vec3_t in, vec3_t out)
+{
+	out[0] = in[0];
+	out[1] = in[1];
+	out[2] = in[2];
+}
+
 void
 CrossProduct(vec3_t v1, vec3_t v2, vec3_t cross)
 {
 	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
 	cross[1] = v1[2] * v2[0] - v1[0] * v2[2];
 	cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
+}
+
+double sqrt(double x);
+
+vec_t
+VectorLength(vec3_t v)
+{
+	int i;
+	float length;
+
+	length = 0;
+
+	for (i = 0; i < 3; i++)
+	{
+		length += v[i] * v[i];
+	}
+
+	length = (float)sqrt(length);
+
+	return length;
+}
+
+void
+VectorInverse(vec3_t v)
+{
+	v[0] = -v[0];
+	v[1] = -v[1];
+	v[2] = -v[2];
+}
+
+void
+VectorScale(vec3_t in, vec_t scale, vec3_t out)
+{
+	out[0] = in[0] * scale;
+	out[1] = in[1] * scale;
+	out[2] = in[2] * scale;
+}
+
+int
+Q_log2(int val)
+{
+	int answer = 0;
+
+	while (val >>= 1)
+	{
+		answer++;
+	}
+
+	return answer;
 }
 
 /* ==================================================================================== */
