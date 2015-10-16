@@ -1,6 +1,3 @@
-Quake II 5.31 to 5.32:
-- Cleanup vector math. (by Dmitry Antipov)
-
 Quake II 5.30 to 5.31:
 - Enabled hud scaling by default and added an option to the video
   menu to switch scaling off.
