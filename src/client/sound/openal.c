@@ -198,13 +198,12 @@ AL_Spatialize(channel_t *ch)
 {
 	vec3_t origin;
 
-	/* anything coming from the view entity
-	   will always be full volume. no
-	   attenuation = no spatialization */
 	if ((ch->entnum == -1) || (ch->entnum == cl.playernum + 1) || !ch->dist_mult)
 	{
-		qalSource3f(ch->srcnum, AL_POSITION, 0,0,0);
-		qalSourcei(ch->srcnum, AL_SOURCE_RELATIVE, AL_TRUE);
+		/* from view entity (player) => nothing to do,
+		 * position is still (0,0,0) and relative,
+		 * as set in AL_PlayChannel() */
+
 		return;
 	}
 	else if (ch->fixed_origin)
@@ -247,7 +246,7 @@ AL_PlayChannel(channel_t *ch)
 		vol = 1.0f;
 	}
 
-    sc = ch->sfx->cache;
+	sc = ch->sfx->cache;
 	ch->srcnum = s_srcnums[ch - channels];
 
 	qalGetError();
@@ -257,6 +256,20 @@ AL_PlayChannel(channel_t *ch)
 	qalSourcef(ch->srcnum, AL_GAIN, vol);
  	qalSourcei(ch->srcnum, AL_BUFFER, sc->bufnum);
 	qalSourcei(ch->srcnum, AL_LOOPING, ch->autosound ? AL_TRUE : AL_FALSE);
+
+	if ((ch->entnum == -1) || (ch->entnum == cl.playernum + 1) || !ch->dist_mult)
+	{
+		/* anything coming from the view entity will always
+		 * be full volume and at the listeners position */
+		qalSource3f(ch->srcnum, AL_POSITION, 0.0f, 0.0f, 0.0f);
+		qalSourcei(ch->srcnum, AL_SOURCE_RELATIVE, AL_TRUE);
+	}
+	else
+	{
+		/* all other sources are *not* relative */
+		qalSourcei(ch->srcnum, AL_SOURCE_RELATIVE, AL_FALSE);
+	}
+
 
 	/* Spatialize it */
 	AL_Spatialize(ch);
