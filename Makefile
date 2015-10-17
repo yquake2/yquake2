@@ -27,6 +27,13 @@
 # User configurable options
 # -------------------------
 
+# Ignores original playback behaviour when goals are reached. Unfortunately
+# this stops CD/OGG playback for the rest of the level and must be manually
+# restarted. To retain this behaviour leave as yes, otherwise change to no.
+# If Ogg support is disabled, this will have no effect.
+WITH_OLDPLAYBACK:=no
+
+
 # Enables CD audio playback. CD audio playback is used
 # for the background music and doesn't add any further
 # dependencies. It should work on all platforms where
@@ -175,6 +182,13 @@ endif
 
 # ----------
 
+# Enable old playback behaviour
+ifeq ($(WITH_OLDPLAYBACK),yes)
+CFLAGS += -DWITH_OLDPLAYBACK
+endif
+
+# ----------
+
 # On Windows / MinGW $(CC) is
 # undefined by default.
 ifeq ($(OSTYPE),Windows)
@@ -306,6 +320,7 @@ config:
 	@echo "WITH_ZIP = $(WITH_ZIP)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
+	@echo "WITH_OLDPLAYBACK = $(WITH_OLDPLAYBACK)"
 	@echo "============================"
 	@echo ""
 ifeq ($(WITH_SDL2),yes)
