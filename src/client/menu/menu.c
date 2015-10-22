@@ -3660,7 +3660,7 @@ AddressBook_MenuInit(void)
     int i;
 	float scale = SCR_GetMenuScale();
 
-    s_addressbook_menu.x = viddef.width / 2 - 142;
+    s_addressbook_menu.x = viddef.width / scale / 2 - 142 / scale;
     s_addressbook_menu.y = viddef.height / (2 * scale) - 58;
     s_addressbook_menu.nitems = 0;
 
