@@ -253,6 +253,8 @@ SCR_DrawCenterString(void)
 	int x, y;
 	int remaining;
 	float scale;
+    const int char_unscaled_width  = 8;
+    const int char_unscaled_height = 8;
 
 	/* the finale prints the characters one at a time */
 	remaining = 9999;
@@ -282,10 +284,10 @@ SCR_DrawCenterString(void)
 			}
 		}
 
-		x = ((viddef.width - l * 8) / 2) / scale;
+		x = ((viddef.width / scale) - (l * char_unscaled_width)) / 2;
 		SCR_AddDirtyPoint(x, y);
 
-		for (j = 0; j < l; j++, x += 8)
+		for (j = 0; j < l; j++, x += char_unscaled_width)
 		{
 			Draw_CharScaled(x * scale, y * scale, start[j], scale);
 
@@ -295,9 +297,9 @@ SCR_DrawCenterString(void)
 			}
 		}
 
-		SCR_AddDirtyPoint(x, y + 8);
+		SCR_AddDirtyPoint(x, y + char_unscaled_height);
 
-		y += 8;
+		y += char_unscaled_height;
 
 		while (*start && *start != '\n')
 		{
