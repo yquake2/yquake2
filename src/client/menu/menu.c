@@ -3557,13 +3557,14 @@ DownloadOptions_MenuInit(void)
         "no", "yes", 0
     };
     int y = 0;
+    float scale = SCR_GetMenuScale();
 
     s_downloadoptions_menu.x = (int)(viddef.width * 0.50f);
     s_downloadoptions_menu.nitems = 0;
 
     s_download_title.generic.type = MTYPE_SEPARATOR;
     s_download_title.generic.name = "Download Options";
-    s_download_title.generic.x = 48;
+    s_download_title.generic.x = 48 * scale;
     s_download_title.generic.y = y;
 
     s_allow_download_box.generic.type = MTYPE_SPINCONTROL;

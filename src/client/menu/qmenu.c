@@ -485,11 +485,10 @@ Menu_DrawStatusBar(const char *string)
 	if (string)
 	{
 		int l = (int)strlen(string);
-		int maxcol = VID_WIDTH / 8;
-		int col = maxcol / 2 - l / 2;
+        float col = (VID_WIDTH / 2) - (l*8 / 2) * scale;
 
 		Draw_Fill(0, VID_HEIGHT - 8 * scale, VID_WIDTH, 8 * scale, 4);
-		Menu_DrawString(col * 8, VID_HEIGHT / scale - 8, string);
+		Menu_DrawString(col, VID_HEIGHT / scale - 8, string);
 	}
 	else
 	{
