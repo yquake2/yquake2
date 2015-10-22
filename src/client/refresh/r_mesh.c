@@ -668,6 +668,21 @@ R_DrawAliasModel(entity_t *e)
 		}
 	}
 
+
+    /* Apply gl_overbrightbits to the mesh. If we don't do this they will appear slightly dimmer relative to
+       walls. Also note that gl_overbrightbits is only applied to walls when gl_ext_mtexcombine is set to 1,
+       so we'll also want to check that; otherwise we'll end up in the reverse situation and the meshes will
+       appear too bright. */
+    if (gl_config.mtexcombine)
+    {
+        for (i = 0; i < 3; ++i)
+        {
+            shadelight[i] *= gl_overbrightbits->value;
+        }
+    }
+    
+
+
 	/* ir goggles color override */
 	if (r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags &
 		RF_IR_VISIBLE)

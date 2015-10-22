@@ -941,9 +941,8 @@ R_DrawBrushModel(entity_t *e)
 	e->angles[2] = -e->angles[2];
 
 	R_EnableMultitexture(true);
+
 	R_SelectTexture(GL_TEXTURE0_ARB);
-	R_TexEnv(GL_REPLACE);
-	R_SelectTexture(GL_TEXTURE1_ARB);
 
 	if (!gl_config.mtexcombine)
 	{
@@ -1175,8 +1174,6 @@ R_DrawWorld(void)
 		R_EnableMultitexture(true);
 
 		R_SelectTexture(GL_TEXTURE0_ARB);
-		R_TexEnv(GL_REPLACE);
-		R_SelectTexture(GL_TEXTURE1_ARB);
 
 		if (!gl_config.mtexcombine)
 		{
@@ -1212,7 +1209,7 @@ R_DrawWorld(void)
 			else
 			{
 				glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-				glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
+			    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
 				glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PREVIOUS_EXT);
 				glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_MODULATE);
 				glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_TEXTURE);
