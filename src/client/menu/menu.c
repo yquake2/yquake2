@@ -845,12 +845,13 @@ DrawKeyBindingFunc(void *self)
 {
     int keys[2];
     menuaction_s *a = (menuaction_s *)self;
+    float scale = SCR_GetMenuScale();
 
     M_FindKeysForCommand(bindnames[a->generic.localdata[0]][0], keys);
 
     if (keys[0] == -1)
     {
-        Menu_DrawString(a->generic.x + a->generic.parent->x + 16,
+        Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
                         a->generic.y + a->generic.parent->y, "???");
     }
     else
@@ -860,16 +861,16 @@ DrawKeyBindingFunc(void *self)
 
         name = Key_KeynumToString(keys[0]);
 
-        Menu_DrawString(a->generic.x + a->generic.parent->x + 16,
+        Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
                         a->generic.y + a->generic.parent->y, name);
 
         x = strlen(name) * 8;
 
         if (keys[1] != -1)
         {
-            Menu_DrawString(a->generic.x + a->generic.parent->x + 24 + x,
+            Menu_DrawString(a->generic.x + a->generic.parent->x + 24 * scale + (x * scale),
                             a->generic.y + a->generic.parent->y, "or");
-            Menu_DrawString(a->generic.x + a->generic.parent->x + 48 + x,
+            Menu_DrawString(a->generic.x + a->generic.parent->x + 48 * scale + (x * scale),
                             a->generic.y + a->generic.parent->y,
                             Key_KeynumToString(keys[1]));
         }
