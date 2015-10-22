@@ -2864,6 +2864,7 @@ StartServer_MenuInit(void)
     int length;
     int i;
     FILE *fp;
+    float scale = SCR_GetMenuScale();
 
     /* initialize list of maps once, reuse it afterwards (=> it isn't freed) */
     if (mapnames == NULL)
@@ -3038,7 +3039,7 @@ StartServer_MenuInit(void)
     s_startserver_dmoptions_action.generic.type = MTYPE_ACTION;
     s_startserver_dmoptions_action.generic.name = " deathmatch flags";
     s_startserver_dmoptions_action.generic.flags = QMF_LEFT_JUSTIFY;
-    s_startserver_dmoptions_action.generic.x = 24;
+    s_startserver_dmoptions_action.generic.x = 24 * scale;
     s_startserver_dmoptions_action.generic.y = 108;
     s_startserver_dmoptions_action.generic.statusbar = NULL;
     s_startserver_dmoptions_action.generic.callback = DMOptionsFunc;
@@ -3046,7 +3047,7 @@ StartServer_MenuInit(void)
     s_startserver_start_action.generic.type = MTYPE_ACTION;
     s_startserver_start_action.generic.name = " begin";
     s_startserver_start_action.generic.flags = QMF_LEFT_JUSTIFY;
-    s_startserver_start_action.generic.x = 24;
+    s_startserver_start_action.generic.x = 24 * scale;
     s_startserver_start_action.generic.y = 128;
     s_startserver_start_action.generic.callback = StartServerActionFunc;
 
