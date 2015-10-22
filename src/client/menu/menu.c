@@ -845,12 +845,13 @@ DrawKeyBindingFunc(void *self)
 {
     int keys[2];
     menuaction_s *a = (menuaction_s *)self;
+    float scale = SCR_GetMenuScale();
 
     M_FindKeysForCommand(bindnames[a->generic.localdata[0]][0], keys);
 
     if (keys[0] == -1)
     {
-        Menu_DrawString(a->generic.x + a->generic.parent->x + 16,
+        Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
                         a->generic.y + a->generic.parent->y, "???");
     }
     else
@@ -860,16 +861,16 @@ DrawKeyBindingFunc(void *self)
 
         name = Key_KeynumToString(keys[0]);
 
-        Menu_DrawString(a->generic.x + a->generic.parent->x + 16,
+        Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
                         a->generic.y + a->generic.parent->y, name);
 
         x = strlen(name) * 8;
 
         if (keys[1] != -1)
         {
-            Menu_DrawString(a->generic.x + a->generic.parent->x + 24 + x,
+            Menu_DrawString(a->generic.x + a->generic.parent->x + 24 * scale + (x * scale),
                             a->generic.y + a->generic.parent->y, "or");
-            Menu_DrawString(a->generic.x + a->generic.parent->x + 48 + x,
+            Menu_DrawString(a->generic.x + a->generic.parent->x + 48 * scale + (x * scale),
                             a->generic.y + a->generic.parent->y,
                             Key_KeynumToString(keys[1]));
         }
@@ -2864,6 +2865,7 @@ StartServer_MenuInit(void)
     int length;
     int i;
     FILE *fp;
+    float scale = SCR_GetMenuScale();
 
     /* initialize list of maps once, reuse it afterwards (=> it isn't freed) */
     if (mapnames == NULL)
@@ -3038,7 +3040,7 @@ StartServer_MenuInit(void)
     s_startserver_dmoptions_action.generic.type = MTYPE_ACTION;
     s_startserver_dmoptions_action.generic.name = " deathmatch flags";
     s_startserver_dmoptions_action.generic.flags = QMF_LEFT_JUSTIFY;
-    s_startserver_dmoptions_action.generic.x = 24;
+    s_startserver_dmoptions_action.generic.x = 24 * scale;
     s_startserver_dmoptions_action.generic.y = 108;
     s_startserver_dmoptions_action.generic.statusbar = NULL;
     s_startserver_dmoptions_action.generic.callback = DMOptionsFunc;
@@ -3046,7 +3048,7 @@ StartServer_MenuInit(void)
     s_startserver_start_action.generic.type = MTYPE_ACTION;
     s_startserver_start_action.generic.name = " begin";
     s_startserver_start_action.generic.flags = QMF_LEFT_JUSTIFY;
-    s_startserver_start_action.generic.x = 24;
+    s_startserver_start_action.generic.x = 24 * scale;
     s_startserver_start_action.generic.y = 128;
     s_startserver_start_action.generic.callback = StartServerActionFunc;
 
@@ -3555,13 +3557,14 @@ DownloadOptions_MenuInit(void)
         "no", "yes", 0
     };
     int y = 0;
+    float scale = SCR_GetMenuScale();
 
     s_downloadoptions_menu.x = (int)(viddef.width * 0.50f);
     s_downloadoptions_menu.nitems = 0;
 
     s_download_title.generic.type = MTYPE_SEPARATOR;
     s_download_title.generic.name = "Download Options";
-    s_download_title.generic.x = 48;
+    s_download_title.generic.x = 48 * scale;
     s_download_title.generic.y = y;
 
     s_allow_download_box.generic.type = MTYPE_SPINCONTROL;
@@ -3658,7 +3661,7 @@ AddressBook_MenuInit(void)
     int i;
 	float scale = SCR_GetMenuScale();
 
-    s_addressbook_menu.x = viddef.width / 2 - 142;
+    s_addressbook_menu.x = viddef.width / scale / 2 - 142 / scale;
     s_addressbook_menu.y = viddef.height / (2 * scale) - 58;
     s_addressbook_menu.nitems = 0;
 
@@ -4107,24 +4110,18 @@ PlayerConfig_MenuInit(void)
     s_player_name_field.generic.callback = 0;
     s_player_name_field.generic.x = 0;
     s_player_name_field.generic.y = 0;
-	s_player_name_field.length = 20 * scale;
-    s_player_name_field.visible_length = 20 * scale;
+	s_player_name_field.length = 20;
+    s_player_name_field.visible_length = 20;
     strcpy(s_player_name_field.buffer, name->string);
     s_player_name_field.cursor = strlen(name->string);
 
     s_player_model_title.generic.type = MTYPE_SEPARATOR;
     s_player_model_title.generic.name = "model";
-	if (scale > 1)
-		s_player_model_title.generic.x = -8 * scale + (8 * scale);
-	else
-		s_player_model_title.generic.x = -8;
+    s_player_model_title.generic.x = -8 * scale;
     s_player_model_title.generic.y = 60;
 
     s_player_model_box.generic.type = MTYPE_SPINCONTROL;
-	if (scale > 1)
-		s_player_model_box.generic.x = -56 * scale + ((15 + scale) * scale);
-	else
-		s_player_model_box.generic.x = -56;
+    s_player_model_box.generic.x = -56 * scale;
     s_player_model_box.generic.y = 70;
     s_player_model_box.generic.callback = ModelCallback;
     s_player_model_box.generic.cursor_offset = -48;
@@ -4133,17 +4130,11 @@ PlayerConfig_MenuInit(void)
 
     s_player_skin_title.generic.type = MTYPE_SEPARATOR;
     s_player_skin_title.generic.name = "skin";
-	if (scale > 1)
-		s_player_skin_title.generic.x = -16 * scale + (8 * scale);
-	else
-		s_player_skin_title.generic.x = -16;
+    s_player_skin_title.generic.x = -16 * scale;
     s_player_skin_title.generic.y = 84;
 
     s_player_skin_box.generic.type = MTYPE_SPINCONTROL;
-	if (scale > 1)
-		s_player_skin_box.generic.x = -56 * scale + ((15 + scale) * scale);
-	else
-		s_player_skin_box.generic.x = -56;
+    s_player_skin_box.generic.x = -56 * scale;
     s_player_skin_box.generic.y = 94;
     s_player_skin_box.generic.name = 0;
     s_player_skin_box.generic.callback = 0;
@@ -4154,17 +4145,11 @@ PlayerConfig_MenuInit(void)
 
     s_player_hand_title.generic.type = MTYPE_SEPARATOR;
     s_player_hand_title.generic.name = "handedness";
-	if (scale > 1)
-		s_player_hand_title.generic.x = 32 * scale + (8 * scale);
-	else
-		s_player_hand_title.generic.x = 32;
+    s_player_hand_title.generic.x = 32 * scale;
     s_player_hand_title.generic.y = 108;
 
     s_player_handedness_box.generic.type = MTYPE_SPINCONTROL;
-	if (scale > 1)
-		s_player_handedness_box.generic.x = -56 * scale + ((15 + scale) * scale);
-	else
-		s_player_handedness_box.generic.x = -56;
+    s_player_handedness_box.generic.x = -56 * scale;
     s_player_handedness_box.generic.y = 118;
     s_player_handedness_box.generic.name = 0;
     s_player_handedness_box.generic.cursor_offset = -48;
@@ -4182,17 +4167,11 @@ PlayerConfig_MenuInit(void)
 
     s_player_rate_title.generic.type = MTYPE_SEPARATOR;
     s_player_rate_title.generic.name = "connect speed";
-	if (scale > 1)
-		s_player_rate_title.generic.x = 56 * scale + (8 * scale);
-	else
-		s_player_rate_title.generic.x = 56;
+    s_player_rate_title.generic.x = 56 * scale;
     s_player_rate_title.generic.y = 156;
 
     s_player_rate_box.generic.type = MTYPE_SPINCONTROL;
-	if (scale > 1)
-		s_player_rate_box.generic.x = -56 * scale + ((15 + scale) * scale);
-	else
-		s_player_rate_box.generic.x = -56;
+    s_player_rate_box.generic.x = -56 * scale;
     s_player_rate_box.generic.y = 166;
     s_player_rate_box.generic.name = 0;
     s_player_rate_box.generic.cursor_offset = -48;
@@ -4203,13 +4182,7 @@ PlayerConfig_MenuInit(void)
     s_player_download_action.generic.type = MTYPE_ACTION;
     s_player_download_action.generic.name = "download options";
     s_player_download_action.generic.flags = QMF_LEFT_JUSTIFY;
-	if (scale > 1)
-	{
-		s_player_download_action.generic.x = -24 * scale;
-		s_player_download_action.generic.cursor_offset = 16 * scale;
-	}
-	else
-		s_player_download_action.generic.x = -24;
+    s_player_download_action.generic.x = -24 * scale;
     s_player_download_action.generic.y = 186;
     s_player_download_action.generic.statusbar = NULL;
     s_player_download_action.generic.callback = DownloadOptionsFunc;
@@ -4293,7 +4266,7 @@ PlayerConfig_MenuDraw(void)
         M_DrawTextBox(((int)(refdef.x) * (320.0F / viddef.width) - 8),
                       (int)((viddef.height / 2) * (240.0F / viddef.height) - 77),
                       refdef.width / (8 * scale), refdef.height / (8 * scale));
-        refdef.height += 4;
+        refdef.height += 4 * scale;
 
         R_RenderFrame(&refdef);
 
@@ -4301,7 +4274,7 @@ PlayerConfig_MenuDraw(void)
                     s_pmi[s_player_model_box.curvalue].directory,
                     s_pmi[s_player_model_box.curvalue].skindisplaynames[
                         s_player_skin_box.curvalue]);
-        Draw_PicScaled(s_player_config_menu.x - 40, refdef.y, scratch, scale);
+        Draw_PicScaled(s_player_config_menu.x - 40*scale, refdef.y, scratch, scale);
     }
 }
 
