@@ -441,6 +441,9 @@ extern spawn_temp_t st;
 extern int sm_meat_index;
 extern int snd_fry;
 
+extern int gibsthisframe;
+extern int lastgibframe;
+
 /* means of death */
 #define MOD_UNKNOWN 0
 #define MOD_BLASTER 1
