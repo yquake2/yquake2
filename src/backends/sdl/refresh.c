@@ -47,9 +47,6 @@
 #include <SDL/SDL.h>
 #endif //SDL2
 
-/* The window icon */
-#include "icon/q2icon.xbm"
-
 /* X.org stuff */
 #ifdef X11GAMMA
  #include <X11/Xos.h>
@@ -122,6 +119,44 @@ GLimp_GetProcAddress (const char* proc)
 /*
  * Sets the window icon
  */
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+
+/* The 64x64 32bit window icon */
+#include "icon/q2icon64.h"
+
+static void
+SetSDLIcon()
+{
+	/* these masks are needed to tell SDL_CreateRGBSurface(From)
+	   to assume the data it gets is byte-wise RGB(A) data */
+	Uint32 rmask, gmask, bmask, amask;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+	int shift = (q2icon64.bytes_per_pixel == 3) ? 8 : 0;
+	rmask = 0xff000000 >> shift;
+	gmask = 0x00ff0000 >> shift;
+	bmask = 0x0000ff00 >> shift;
+	amask = 0x000000ff >> shift;
+#else /* little endian, like x86 */
+	rmask = 0x000000ff;
+	gmask = 0x0000ff00;
+	bmask = 0x00ff0000;
+	amask = (q2icon64.bytes_per_pixel == 3) ? 0 : 0xff000000;
+#endif
+
+	SDL_Surface* icon = SDL_CreateRGBSurfaceFrom((void*)q2icon64.pixel_data, q2icon64.width,
+		q2icon64.height, q2icon64.bytes_per_pixel*8, q2icon64.bytes_per_pixel*q2icon64.width,
+		rmask, gmask, bmask, amask);
+
+	SDL_SetWindowIcon(window, icon);
+
+	SDL_FreeSurface(icon);
+}
+
+#else /* SDL 1.2 */
+
+/* The window icon */
+#include "icon/q2icon.xbm"
+
 static void
 SetSDLIcon()
 {
@@ -150,20 +185,8 @@ SetSDLIcon()
 	solidColor.g = 16;
 	solidColor.b = 0;
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	// only SDL2 has alphas there and they must be set apparently
-	transColor.a = 0;
-	solidColor.a = 255;
-
-	SDL_Palette* palette = SDL_AllocPalette(256);
-	SDL_SetPaletteColors(palette, &transColor, 0, 1);
-	SDL_SetPaletteColors(palette, &solidColor, 1, 1);
-
-	SDL_SetSurfacePalette(icon, palette);
-#else
 	SDL_SetColors(icon, &transColor, 0, 1);
 	SDL_SetColors(icon, &solidColor, 1, 1);
-#endif
 
 	ptr = (Uint8 *)icon->pixels;
 
@@ -175,15 +198,12 @@ SetSDLIcon()
 			ptr++;
 		}
 	}
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_SetWindowIcon(window, icon);
-	SDL_FreePalette(palette);
-#else
+
 	SDL_WM_SetIcon(icon, NULL);
-#endif
 
 	SDL_FreeSurface(icon);
 }
+#endif /* SDL 1.2 */
 
 /*
  *  from SDL2 SDL_CalculateGammaRamp, adjusted for arbitrary ramp sizes
