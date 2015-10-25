@@ -2226,7 +2226,7 @@ Create_Savestrings(void)
 	for (i = 0; i < MAX_SAVESLOTS; i++)
 	{
 		Com_sprintf(name, sizeof(name), "save/save%i/server.ssv", m_loadsave_page * MAX_SAVESLOTS + i);
-		FS_FOpenFile(name, &f, FS_READ);
+		FS_FOpenFile(name, &f, true);
 
 		if (!f)
 		{

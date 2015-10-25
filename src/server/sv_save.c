@@ -41,12 +41,12 @@ SV_WipeSavegame(char *savename)
 
 	Com_sprintf(name, sizeof(name), "%s/save/%s/server.ssv",
 				FS_Gamedir(), savename);
-	
+
 	remove(name);
 
 	Com_sprintf(name, sizeof(name), "%s/save/%s/game.ssv",
 				FS_Gamedir(), savename);
-	
+
 	remove(name);
 
 	Com_sprintf(name, sizeof(name), "%s/save/%s/*.sav", FS_Gamedir(), savename);
@@ -194,7 +194,7 @@ SV_ReadLevelFile(void)
 	Com_DPrintf("SV_ReadLevelFile()\n");
 
 	Com_sprintf(name, sizeof(name), "save/current/%s.sv2", sv.name);
-	FS_FOpenFile(name, &f, FS_READ);
+	FS_FOpenFile(name, &f, true);
 
 	if (!f)
 	{
@@ -300,7 +300,7 @@ SV_ReadServerFile(void)
 	Com_DPrintf("SV_ReadServerFile()\n");
 
 	Com_sprintf(name, sizeof(name), "save/current/server.ssv");
-	FS_FOpenFile(name, &f, FS_READ);
+	FS_FOpenFile(name, &f, true);
 
 	if (!f)
 	{
@@ -315,7 +315,7 @@ SV_ReadServerFile(void)
 	FS_Read(mapcmd, sizeof(mapcmd), f);
 
 	/* read all CVAR_LATCH cvars
-	   these will be things like 
+	   these will be things like
 	   coop, skill, deathmatch, etc */
 	while (1)
 	{

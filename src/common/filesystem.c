@@ -368,134 +368,6 @@ FS_FOpenFileWrite(fsHandle_t *handle)
 }
 
 /*
- * Returns file size or -1 if not found. Can open separate files as well as
- * files inside pack files (both PAK and PK3).
- */
-int
-FS_FOpenFileRead(fsHandle_t *handle)
-{
-	char path[MAX_OSPATH];
-	int i;
-	fsSearchPath_t *search;
-	fsPack_t *pack;
-
-	file_from_pak = 0;
-#ifdef ZIP
-	file_from_pk3 = 0;
-#endif
-
-	/* Search through the path, one element at a time. */
-	for (search = fs_searchPaths; search; search = search->next)
-	{
-		/* Search inside a pack file. */
-		if (search->pack)
-		{
-			pack = search->pack;
-
-			for (i = 0; i < pack->numFiles; i++)
-			{
-				if (Q_stricmp(pack->files[i].name, handle->name) == 0)
-				{
-					/* Found it! */
-					Com_FilePath(pack->name, fs_fileInPath,
-							sizeof(fs_fileInPath));
-					fs_fileInPack = true;
-
-					if (fs_debug->value)
-					{
-						Com_Printf("FS_FOpenFileRead: '%s' (found in '%s').\n",
-								handle->name, pack->name);
-					}
-
-					if (pack->pak)
-					{
-						/* PAK */
-						file_from_pak = 1;
-						handle->file = fopen(pack->name, "rb");
-
-						if (handle->file)
-						{
-							fseek(handle->file, pack->files[i].offset, SEEK_SET);
-							return pack->files[i].size;
-						}
-					}
-#ifdef ZIP
-					else if (pack->pk3)
-					{
-						/* PK3 */
-						file_from_pk3 = 1;
-						Q_strlcpy(file_from_pk3_name, strrchr(pack->name,
-										'/') + 1, sizeof(file_from_pk3_name));
-						handle->zip = unzOpen(pack->name);
-
-						if (handle->zip)
-						{
-							if (unzLocateFile(handle->zip, handle->name,
-										2) == UNZ_OK)
-							{
-								if (unzOpenCurrentFile(handle->zip) == UNZ_OK)
-								{
-									return pack->files[i].size;
-								}
-							}
-
-							unzClose(handle->zip);
-						}
-					}
-#endif
-
-					Com_Error(ERR_FATAL, "Couldn't reopen '%s'", pack->name);
-				}
-			}
-		}
-		else
-		{
-			/* Search in a directory tree. */
-			Com_sprintf(path, sizeof(path), "%s/%s", search->path, handle->name);
-
-			handle->file = fopen(path, "rb");
-
-			if (!handle->file)
-			{
-				Q_strlwr(path);
-				handle->file = fopen(path, "rb");
-			}
-
-			if (!handle->file)
-			{
-				continue;
-			}
-
-			if (handle->file)
-			{
-				/* Found it! */
-				Q_strlcpy(fs_fileInPath, search->path, sizeof(fs_fileInPath));
-				fs_fileInPack = false;
-
-				if (fs_debug->value)
-				{
-					Com_Printf("FS_FOpenFileRead: '%s' (found in '%s').\n",
-							handle->name, search->path);
-				}
-
-				return FS_FileLength(handle->file);
-			}
-		}
-	}
-
-	/* Not found! */
-	fs_fileInPath[0] = 0;
-	fs_fileInPack = false;
-
-	if (fs_debug->value)
-	{
-		Com_Printf("FS_FOpenFileRead: couldn't find '%s'.\n", handle->name);
-	}
-
-	return -1;
-}
-
-/*
  * Other dll's can't just call fclose() on files returned by FS_FOpenFile.
  */
 void
@@ -546,41 +418,139 @@ Developer_searchpath(int who)
  * for streaming data out of either a pak file or a seperate file.
  */
 int
-FS_FOpenFile(const char *name, fileHandle_t *f, fsMode_t mode)
+FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 {
-	int size = 0;
+	char path[MAX_OSPATH];
 	fsHandle_t *handle;
+	fsPack_t *pack;
+	fsSearchPath_t *search;
+	int i;
+
+	file_from_pak = 0;
+#ifdef ZIP
+	file_from_pk3 = 0;
+#endif
 
 	handle = FS_HandleForFile(name, f);
-
 	Q_strlcpy(handle->name, name, sizeof(handle->name));
-	handle->mode = mode;
+	handle->mode = FS_READ;
 
-	switch (mode)
+	/* Search through the path, one element at a time. */
+	for (search = fs_searchPaths; search; search = search->next)
 	{
-		case FS_READ:
-			size = FS_FOpenFileRead(handle);
-			break;
-		case FS_WRITE:
-			size = FS_FOpenFileWrite(handle);
-			break;
-		case FS_APPEND:
-			size = FS_FOpenFileAppend(handle);
-			break;
-		default:
-			Com_Error(ERR_FATAL, "FS_FOpenFile: bad mode (%i)", mode);
-			break;
+		if (gamedir_only)
+		{
+			if (strstr(search->path, FS_Gamedir()) == NULL)
+			{
+				break;
+			}
+		}
+
+		/* Search inside a pack file. */
+		if (search->pack)
+		{
+			pack = search->pack;
+
+			for (i = 0; i < pack->numFiles; i++)
+			{
+				if (Q_stricmp(pack->files[i].name, handle->name) == 0)
+				{
+					/* Found it! */
+					Com_FilePath(pack->name, fs_fileInPath, sizeof(fs_fileInPath));
+					fs_fileInPack = true;
+
+					if (fs_debug->value)
+					{
+						Com_Printf("FS_FOpenFile: '%s' (found in '%s').\n",
+								   handle->name, pack->name);
+					}
+
+					if (pack->pak)
+					{
+						/* PAK */
+						file_from_pak = 1;
+						handle->file = fopen(pack->name, "rb");
+
+						if (handle->file)
+						{
+							fseek(handle->file, pack->files[i].offset, SEEK_SET);
+							return pack->files[i].size;
+						}
+					}
+#ifdef ZIP
+					else if (pack->pk3)
+					{
+						/* PK3 */
+						file_from_pk3 = 1;
+						Q_strlcpy(file_from_pk3_name, strrchr(pack->name, '/') + 1, sizeof(file_from_pk3_name));
+						handle->zip = unzOpen(pack->name);
+
+						if (handle->zip)
+						{
+							if (unzLocateFile(handle->zip, handle->name, 2) == UNZ_OK)
+							{
+								if (unzOpenCurrentFile(handle->zip) == UNZ_OK)
+								{
+									return pack->files[i].size;
+								}
+							}
+
+							unzClose(handle->zip);
+						}
+					}
+#endif
+
+					Com_Error(ERR_FATAL, "Couldn't reopen '%s'", pack->name);
+				}
+			}
+		}
+		else
+		{
+			/* Search in a directory tree. */
+			Com_sprintf(path, sizeof(path), "%s/%s", search->path, handle->name);
+
+			handle->file = fopen(path, "rb");
+
+			if (!handle->file)
+			{
+				Q_strlwr(path);
+				handle->file = fopen(path, "rb");
+			}
+
+			if (!handle->file)
+			{
+				continue;
+			}
+
+			if (handle->file)
+			{
+				/* Found it! */
+				Q_strlcpy(fs_fileInPath, search->path, sizeof(fs_fileInPath));
+				fs_fileInPack = false;
+
+				if (fs_debug->value)
+				{
+					Com_Printf("FS_FOpenFile: '%s' (found in '%s').\n",
+							   handle->name, search->path);
+				}
+
+				return FS_FileLength(handle->file);
+			}
+		}
 	}
 
-	if (size != -1)
+	/* Not found! */
+	fs_fileInPath[0] = 0;
+	fs_fileInPack = false;
+
+	if (fs_debug->value)
 	{
-		return size;
+		Com_Printf("FS_FOpenFile: couldn't find '%s'.\n", handle->name);
 	}
 
 	/* Couldn't open, so free the handle. */
 	memset(handle, 0, sizeof(*handle));
 	*f = 0;
-
 	return -1;
 }
 
@@ -732,7 +702,7 @@ FS_LoadFile(char *path, void **buffer)
 	fileHandle_t f; /* File handle. */
 
 	buf = NULL;
-	size = FS_FOpenFile(path, &f, FS_READ);
+	size = FS_FOpenFile(path, &f, false);
 
 	if (size <= 0)
 	{

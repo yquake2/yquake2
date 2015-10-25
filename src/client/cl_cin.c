@@ -612,7 +612,7 @@ SCR_PlayCinematic(char *arg)
 	}
 
 	Com_sprintf(name, sizeof(name), "video/%s", arg);
-	FS_FOpenFile(name, &cl.cinematic_file, FS_READ);
+	FS_FOpenFile(name, &cl.cinematic_file, false);
 
 	if (!cl.cinematic_file)
 	{
