@@ -452,12 +452,15 @@ Con_CenteredPrint(char *text)
 	l = strlen(text);
 	l = (con.linewidth - l) / 2;
 
-	if (l < 0)
+	if (l <= 0)
 	{
 		l = 0;
 	}
+	else
+	{
+		memset(buffer, ' ', l);
+	}
 
-	memset(buffer, ' ', l);
 	strcpy(buffer + l, text);
 	strcat(buffer, "\n");
 	Con_Print(buffer);
