@@ -308,7 +308,7 @@ SV_BeginDownload_f(void)
 
 	/* hacked by zoid to allow more conrol over download
 	   first off, no .. or global allow check */
-	if (strstr(name, "..") || strstr(name, "\\") || !allow_download->value
+	if (strstr(name, "..") || strstr(name, "\\") || strstr(name, ":") || !allow_download->value
 		/* leading dot is no good */
 		|| (*name == '.')
 		/* leading slash bad as well, must be in subdir */

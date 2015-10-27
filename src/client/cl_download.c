@@ -445,14 +445,6 @@ CL_CheckOrDownloadFile(char *filename)
 	char name[MAX_OSPATH];
 	char *ptr;
 
-	// FIXME: we should probably also forbid paths starting with '/' or '\\' or "C:\"
-	//  (or any other drive name) because in the end FS_LoadFile() will fallback to fopen()!
-	if (strstr(filename, ".."))
-	{
-		Com_Printf("Refusing to download a path with ..: %s\n", filename);
-		return true;
-	}
-
 	/* fix backslashes - this is mostly für UNIX comaptiblity */
 	while ((ptr = strchr(filename, '\\')))
 	{
@@ -462,6 +454,12 @@ CL_CheckOrDownloadFile(char *filename)
 	if (FS_LoadFile(filename, NULL) != -1)
 	{
 		/* it exists, no need to download */
+		return true;
+	}
+
+	if (strstr(filename, "..") || strstr(name, ":") || (*name == '.') || (*name == '/'))
+	{
+		Com_Printf("Refusing to download a path with ..: %s\n", filename);
 		return true;
 	}
 
