@@ -442,7 +442,7 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 		{
 			if (strstr(search->path, FS_Gamedir()) == NULL)
 			{
-				break;
+				continue;
 			}
 		}
 
