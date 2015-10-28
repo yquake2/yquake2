@@ -457,7 +457,7 @@ CL_CheckOrDownloadFile(char *filename)
 		return true;
 	}
 
-	if (strstr(filename, "..") || strstr(name, ":") || (*name == '.') || (*name == '/'))
+	if (strstr(filename, "..") || strstr(filename, ":") || (*filename == '.') || (*filename == '/'))
 	{
 		Com_Printf("Refusing to download a path with ..: %s\n", filename);
 		return true;
