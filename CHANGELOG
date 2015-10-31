@@ -1,3 +1,12 @@
+Quake II 5.31 to 5.32:
+- Fix problems with never openal-soft versions.
+- Fix overbright bits not applied to regular meshes. (by David Reid)
+- Several improvements to GUI / HUD scaling. (by David Reid)
+- Don't stop generatings gibs after map change.
+- A new high resolution application / windows icon. (by Ryan)
+- Don't display baseq2 savegames in mods / addons.
+- Some smaller bugfixes.
+
 Quake II 5.30 to 5.31:
 - Enabled hud scaling by default and added an option to the video
   menu to switch scaling off.
