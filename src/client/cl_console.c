@@ -610,6 +610,7 @@ Con_DrawConsole(float frac)
 {
 	int i, j, x, y, n;
 	int rows;
+	int verLen;
 	char *text;
 	int row;
 	int lines;
@@ -643,9 +644,11 @@ Con_DrawConsole(float frac)
 
 	Com_sprintf(version, sizeof(version), "Yamagi Quake II v%s", YQ2VERSION);
 
-	for (x = 0; x < 21; x++)
+	verLen = strlen(version);
+
+	for (x = 0; x < verLen; x++)
 	{
-		Draw_CharScaled(viddef.width - (173 * scale) + x * 8 * scale, lines - 35 * scale, 128 + version[x], scale);
+		Draw_CharScaled(viddef.width - ((verLen*8+5) * scale) + x * 8 * scale, lines - 35 * scale, 128 + version[x], scale);
 	}
 
 	t = time(NULL);

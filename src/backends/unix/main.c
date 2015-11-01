@@ -38,6 +38,8 @@ int
 main(int argc, char **argv)
 {
 	int time, oldtime, newtime;
+	int verLen, i;
+	const char* versionString;
 
 	/* register signal handler */
 	registerHandler();
@@ -59,7 +61,7 @@ main(int argc, char **argv)
 	{
 		printf("The effective UID is not the real UID! Your binary is probably marked\n");
 		printf("'setuid'. That is not good idea, please fix it :) If you really know\n");
-		printf("what you're doin edit src/unix/main.c and remove this check. Don't\n");
+		printf("what you're doing edit src/unix/main.c and remove this check. Don't\n");
 		printf("complain if Quake II eats your dog afterwards!\n");
 
 		return 1;
@@ -68,8 +70,15 @@ main(int argc, char **argv)
 	/* enforce C locale */
 	setenv("LC_ALL", "C", 1);
 
-	printf("\nYamagi Quake II v%s\n", YQ2VERSION);
-	printf("=====================\n\n");
+	versionString = va("Yamagi Quake II v%s", YQ2VERSION);
+	verLen = strlen(versionString);
+
+	printf("\n%s\n", versionString);
+	for(i=0; i<verLen; ++i)
+	{
+		putc('=', stdout);
+	}
+	puts("\n");
 
 #ifndef DEDICATED_ONLY
 	printf("Client build options:\n");
