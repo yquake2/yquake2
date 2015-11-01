@@ -830,7 +830,6 @@ S_RawSamples(int samples, int rate, int width,
 #if USE_OPENAL
 	if (sound_started == SS_OAL)
 	{
-		volume = volume * (s_volume->value);
 		AL_RawSamples(samples, rate, width, channels, data, volume);
 	}
 	else
