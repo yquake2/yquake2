@@ -445,6 +445,11 @@ AL_AddLoopSounds(void)
 		ch->dist_mult = SOUND_LOOPATTENUATE;
 		ch->end = paintedtime + sc->length;
 
+		/* it seems like looped sounds are always played at full volume
+		 * see SDL_AddLoopSounds() which calls SDL_SpatializeOrigin() with volume 255.0f
+		 * so set it to full volume (1.0 * s_volume). */
+		ch->oal_vol = s_volume->value;
+
 		AL_PlayChannel(ch);
 	}
 }
