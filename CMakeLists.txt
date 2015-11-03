@@ -1,18 +1,22 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 # Enforce "Debug" as standard build type
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
-endif(NOT CMAKE_BUILD_TYPE)
+endif()
 
 # CMake project configuration
-project (yquake2)
+project(yquake2)
 
 # Cmake module search path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/stuff/cmake/modules ${CMAKE_MODULE_PATH})
 
-if (YQUAKE2LIBS)
-	set(ENV{CMAKE_PREFIX_PATH} ${YQUAKE2LIBS})
+if(YQUAKE2LIBS)
+	if(CMAKE_CROSSCOMPILING)
+		set(CMAKE_FIND_ROOT_PATH ${YQUAKE2LIBS})
+	else()
+		set(ENV{CMAKE_PREFIX_PATH} ${YQUAKE2LIBS})
+	endif()
 
 	set(ENV{OPENALDIR} ${YQUAKE2LIBS})
 	set(ENV{SDLDIR} ${YQUAKE2LIBS})
