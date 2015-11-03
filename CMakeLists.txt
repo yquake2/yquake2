@@ -407,8 +407,10 @@ set(Server-Header
 add_library(game SHARED ${Game-Source} ${Game-Header})
 set_target_properties(game PROPERTIES
 							PREFIX ""
+							RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release/baseq2
+							LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release/baseq2
+							RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/baseq2
 							LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/baseq2
-							LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release/baseq2
 							)
 target_link_libraries(game ${yquake2LinkerFlags})
 
@@ -416,8 +418,8 @@ target_link_libraries(game ${yquake2LinkerFlags})
 add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source} ${Backends-Generic-Source} ${Backends-Generic-Header})
 set_target_properties(quake2 PROPERTIES
 							PREFIX ""
+							RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release
 							RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
-							RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
 							)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -431,8 +433,8 @@ add_executable(q2ded ${Server-Source} ${Server-Header} ${Platform-Specific-Sourc
 set_target_properties(q2ded PROPERTIES
 							PREFIX ""
 							COMPILE_DEFINITIONS "DEDICATED_ONLY"
+							RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Release
 							RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
-							RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
 							)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
