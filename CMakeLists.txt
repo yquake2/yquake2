@@ -123,10 +123,10 @@ include_directories(${yquake2IncludeDirectories})
 link_directories(${yquake2LinkerDirectories})
 
 set(Backends-Generic-Source
-	${BACKENDS_SRC_DIR}/generic/qal.c
-	${BACKENDS_SRC_DIR}/generic/vid.c
-	${BACKENDS_SRC_DIR}/generic/qgl.c
 	${BACKENDS_SRC_DIR}/generic/misc.c
+	${BACKENDS_SRC_DIR}/generic/qal.c
+	${BACKENDS_SRC_DIR}/generic/qgl.c
+	${BACKENDS_SRC_DIR}/generic/vid.c
 
 	${BACKENDS_SRC_DIR}/sdl/cd.c
 	${BACKENDS_SRC_DIR}/sdl/input.c
@@ -141,11 +141,11 @@ set(Backends-Generic-Header
 	)
 
 set(Backends-Unix-Source
-	${BACKENDS_SRC_DIR}/unix/network.c
-	${BACKENDS_SRC_DIR}/unix/system.c
 	${BACKENDS_SRC_DIR}/generic/misc.c
 	${BACKENDS_SRC_DIR}/unix/main.c
+	${BACKENDS_SRC_DIR}/unix/network.c
 	${BACKENDS_SRC_DIR}/unix/signalhandler.c
+	${BACKENDS_SRC_DIR}/unix/system.c
 	${BACKENDS_SRC_DIR}/unix/shared/hunk.c
 	)
 
@@ -154,8 +154,8 @@ set(Backends-Unix-Header
 	)
 
 set(Backends-Windows-Source
-	${BACKENDS_SRC_DIR}/windows/icon.rc
 	${BACKENDS_SRC_DIR}/generic/misc.c
+	${BACKENDS_SRC_DIR}/windows/icon.rc
 	${BACKENDS_SRC_DIR}/windows/network.c
 	${BACKENDS_SRC_DIR}/windows/system.c
 	${BACKENDS_SRC_DIR}/windows/shared/mem.c
@@ -393,7 +393,7 @@ set(Server-Source
 	)
 
 set(Server-Header
-    ${COMMON_SRC_DIR}/header/common.h
+	${COMMON_SRC_DIR}/header/common.h
 	${COMMON_SRC_DIR}/header/crc.h
 	${COMMON_SRC_DIR}/header/files.h
 	${COMMON_SRC_DIR}/header/glob.h
