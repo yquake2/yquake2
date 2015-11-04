@@ -323,7 +323,7 @@ ifeq ($(OSTYPE), Windows)
 icon:
 	@echo "===> WR build/icon/icon.res"
 	${Q}mkdir -p build/icon
-	${Q}windres stuff\icon\icon.rc -O COFF -o build\icon\icon.res
+	${Q}windres src/backends/windows/icon.rc -O COFF -o build/icon/icon.res
 endif
 
 # ----------
