@@ -154,6 +154,7 @@ set(Backends-Unix-Header
 	)
 
 set(Backends-Windows-Source
+	${BACKENDS_SRC_DIR}/windows/icon.rc
 	${BACKENDS_SRC_DIR}/generic/misc.c
 	${BACKENDS_SRC_DIR}/windows/network.c
 	${BACKENDS_SRC_DIR}/windows/system.c
