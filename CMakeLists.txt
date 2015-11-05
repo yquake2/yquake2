@@ -407,22 +407,18 @@ set(Server-Header
 # Build the game dynamic library
 add_library(game MODULE ${Game-Source} ${Game-Header})
 set_target_properties(game PROPERTIES
-							PREFIX ""
-							RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/baseq2
-							LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/baseq2
-							RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release/baseq2
-							LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release/baseq2
-							)
+	PREFIX ""
+	LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
+	)
 target_link_libraries(game ${yquake2LinkerFlags})
 
 # Main Quake 2 executable
 add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source} ${Backends-Generic-Source} ${Backends-Generic-Header})
 set_target_properties(quake2 PROPERTIES
-							PREFIX ""
-							RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
-							RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
-							)
-
+	PREFIX ""
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+	)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_link_libraries(quake2 ${yquake2LinkerFlags} ws2_32 winmm)
 else()
@@ -432,12 +428,10 @@ endif()
 # Quake 2 Dedicated Server
 add_executable(q2ded ${Server-Source} ${Server-Header} ${Platform-Specific-Source})
 set_target_properties(q2ded PROPERTIES
-							PREFIX ""
-							COMPILE_DEFINITIONS "DEDICATED_ONLY"
-							RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
-							RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Release
-							)
-
+	PREFIX ""
+	COMPILE_DEFINITIONS "DEDICATED_ONLY"
+	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+	)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_link_libraries(q2ded ${yquake2LinkerFlags} ws2_32 winmm)
 else()
