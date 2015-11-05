@@ -416,7 +416,6 @@ target_link_libraries(game ${yquake2LinkerFlags})
 # Main Quake 2 executable
 add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source} ${Backends-Generic-Source} ${Backends-Generic-Header})
 set_target_properties(quake2 PROPERTIES
-	PREFIX ""
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 	)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -428,7 +427,6 @@ endif()
 # Quake 2 Dedicated Server
 add_executable(q2ded ${Server-Source} ${Server-Header} ${Platform-Specific-Source})
 set_target_properties(q2ded PROPERTIES
-	PREFIX ""
 	COMPILE_DEFINITIONS "DEDICATED_ONLY"
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 	)
