@@ -405,7 +405,7 @@ set(Server-Header
 	)
 
 # Build the game dynamic library
-add_library(game SHARED ${Game-Source} ${Game-Header})
+add_library(game MODULE ${Game-Source} ${Game-Header})
 set_target_properties(game PROPERTIES
 							PREFIX ""
 							RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug/baseq2
