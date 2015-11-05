@@ -439,7 +439,7 @@ set_target_properties(q2ded PROPERTIES
 							)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_link_libraries(q2ded game ${yquake2LinkerFlags} ws2_32 winmm)
+	target_link_libraries(q2ded ${yquake2LinkerFlags} ws2_32 winmm)
 else()
-	target_link_libraries(q2ded game ${yquake2LinkerFlags})
+	target_link_libraries(q2ded ${yquake2LinkerFlags})
 endif()
