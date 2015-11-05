@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 # Enforce "Debug" as standard build type
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+	set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
 # CMake project configuration
