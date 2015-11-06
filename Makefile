@@ -504,17 +504,17 @@ build/baseq2/%.o: %.c
 release/baseq2/game.dll : LDFLAGS += -shared
 else ifeq ($(OSTYPE), Darwin)
 game:
-	@echo "===> Building baseq2/game.dynlib"
+	@echo "===> Building baseq2/game.dylib"
 	${Q}mkdir -p release/baseq2
-	$(MAKE) release/baseq2/game.dynlib
+	$(MAKE) release/baseq2/game.dylib
 
 build/baseq2/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
-release/baseq2/game.dynlib : CFLAGS += -fPIC
-release/baseq2/game.dynlib : LDFLAGS += -shared
+release/baseq2/game.dylib : CFLAGS += -fPIC
+release/baseq2/game.dylib : LDFLAGS += -shared
 else # not Windows or Darwin
 game:
 	@echo "===> Building baseq2/game.so"
@@ -783,7 +783,7 @@ release/baseq2/game.dll : $(GAME_OBJS)
 	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
 	$(Q)strip $@
 else ifeq ($(OSTYPE), Darwin)
-release/baseq2/game.dynlib : $(GAME_OBJS)
+release/baseq2/game.dylib : $(GAME_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
 else
