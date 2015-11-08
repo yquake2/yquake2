@@ -274,6 +274,7 @@ VID_MenuInit(void)
 		"2x",
 		"2.5x",
 		"3.0x",
+		"custom",
 		0
 	};
 
@@ -412,6 +413,10 @@ VID_MenuInit(void)
 	else if (gl_hudscale->value == 3)
 	{
 		s_hudscale_list.curvalue = 5;
+	}
+	else
+	{
+		s_hudscale_list.curvalue = 6;
 	}
 
 	s_screensize_slider.generic.type = MTYPE_SLIDER;
