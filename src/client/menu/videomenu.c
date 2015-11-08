@@ -312,11 +312,11 @@ VID_MenuInit(void)
 	}
 	if (!gl_consolescale)
 	{
-		gl_consolescale = Cvar_Get("gl_consolescale", "1", CVAR_ARCHIVE);
+		gl_consolescale = Cvar_Get("gl_consolescale", "-1", CVAR_ARCHIVE);
 	}
 	if (!gl_menuscale)
 	{
-		gl_menuscale = Cvar_Get("gl_menuscale", "1", CVAR_ARCHIVE);
+		gl_menuscale = Cvar_Get("gl_menuscale", "-1", CVAR_ARCHIVE);
 	}
 
 	if (!horplus)
