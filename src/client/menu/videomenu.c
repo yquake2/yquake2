@@ -166,30 +166,14 @@ ApplyChanges(void *unused)
 	/* UI scaling */
 	if (s_uiscale_list.curvalue == 0)
 	{
-		Cvar_SetValue("gl_hudscale", 1);
-	}
-	else if (s_uiscale_list.curvalue == 1)
-	{
 		Cvar_SetValue("gl_hudscale", -1);
 	}
-	else if (s_uiscale_list.curvalue == 2)
+	else if (s_uiscale_list.curvalue < 4)
 	{
-		Cvar_SetValue("gl_hudscale", 1.5);
-	}
-	else if (s_uiscale_list.curvalue == 3)
-	{
-		Cvar_SetValue("gl_hudscale", 2);
-	}
-	else if (s_uiscale_list.curvalue == 4)
-	{
-		Cvar_SetValue("gl_hudscale", 2.5);
-	}
-	else if (s_uiscale_list.curvalue == 5)
-	{
-		Cvar_SetValue("gl_hudscale", 3);
+		Cvar_SetValue("gl_hudscale", s_uiscale_list.curvalue);
 	}
 
-	if (s_uiscale_list.curvalue != 6)
+	if (s_uiscale_list.curvalue != 4)
 	{
 		Cvar_SetValue("gl_consolescale", gl_hudscale->value);
 		Cvar_SetValue("gl_menuscale", gl_hudscale->value);
@@ -276,12 +260,10 @@ VID_MenuInit(void)
 	};
 
 	static const char *uiscale_names[] = {
-		"no (1x)",
 		"auto",
-		"1.5x",
+		"no (1x)",
 		"2x",
-		"2.5x",
-		"3.0x",
+		"3x",
 		"custom",
 		0
 	};
@@ -409,35 +391,21 @@ VID_MenuInit(void)
 	if (gl_hudscale->value != gl_consolescale->value ||
 		gl_hudscale->value != gl_menuscale->value)
 	{
-		s_uiscale_list.curvalue = 6;
-	}
-	else if (gl_hudscale->value == 1)
-	{
-		s_uiscale_list.curvalue = 0;
+		s_uiscale_list.curvalue = 4;
 	}
 	else if (gl_hudscale->value < 0)
 	{
-		s_uiscale_list.curvalue = 1;
+		s_uiscale_list.curvalue = 0;
 	}
-	else if (gl_hudscale->value == 1.5f)
+	else if (gl_hudscale->value == 1 ||
+			gl_hudscale->value == 2 ||
+			gl_hudscale->value == 3)
 	{
-		s_uiscale_list.curvalue = 2;
-	}
-	else if (gl_hudscale->value == 2)
-	{
-		s_uiscale_list.curvalue = 3;
-	}
-	else if (gl_hudscale->value == 2.5f)
-	{
-		s_uiscale_list.curvalue = 4;
-	}
-	else if (gl_hudscale->value == 3)
-	{
-		s_uiscale_list.curvalue = 5;
+		s_uiscale_list.curvalue = gl_hudscale->value;
 	}
 	else
 	{
-		s_uiscale_list.curvalue = 6;
+		s_uiscale_list.curvalue = 4;
 	}
 
 	s_screensize_slider.generic.type = MTYPE_SLIDER;
