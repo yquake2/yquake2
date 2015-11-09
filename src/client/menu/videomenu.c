@@ -36,6 +36,7 @@ static cvar_t *gl_mode;
 static cvar_t *gl_hudscale;
 static cvar_t *gl_consolescale;
 static cvar_t *gl_menuscale;
+static cvar_t *crosshair_scale;
 static cvar_t *fov;
 extern cvar_t *scr_viewsize;
 extern cvar_t *vid_gamma;
@@ -177,6 +178,7 @@ ApplyChanges(void *unused)
 	{
 		Cvar_SetValue("gl_consolescale", gl_hudscale->value);
 		Cvar_SetValue("gl_menuscale", gl_hudscale->value);
+		Cvar_SetValue("crosshair_scale", gl_hudscale->value);
 	}
 
 	/* Restarts automatically */
@@ -300,6 +302,10 @@ VID_MenuInit(void)
 	{
 		gl_menuscale = Cvar_Get("gl_menuscale", "-1", CVAR_ARCHIVE);
 	}
+	if (!crosshair_scale)
+	{
+		crosshair_scale = Cvar_Get("crosshair_scale", "-1", CVAR_ARCHIVE);
+	}
 
 	if (!horplus)
 	{
@@ -389,7 +395,8 @@ VID_MenuInit(void)
 	s_uiscale_list.generic.y = (y += 10);
 	s_uiscale_list.itemnames = uiscale_names;
 	if (gl_hudscale->value != gl_consolescale->value ||
-		gl_hudscale->value != gl_menuscale->value)
+		gl_hudscale->value != gl_menuscale->value ||
+		gl_hudscale->value != crosshair_scale->value)
 	{
 		s_uiscale_list.curvalue = 4;
 	}
