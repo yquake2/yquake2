@@ -169,12 +169,12 @@ ApplyChanges(void *unused)
 	{
 		Cvar_SetValue("gl_hudscale", -1);
 	}
-	else if (s_uiscale_list.curvalue < 4)
+	else if (s_uiscale_list.curvalue < 7)
 	{
 		Cvar_SetValue("gl_hudscale", s_uiscale_list.curvalue);
 	}
 
-	if (s_uiscale_list.curvalue != 4)
+	if (s_uiscale_list.curvalue != 7)
 	{
 		Cvar_SetValue("gl_consolescale", gl_hudscale->value);
 		Cvar_SetValue("gl_menuscale", gl_hudscale->value);
@@ -263,9 +263,12 @@ VID_MenuInit(void)
 
 	static const char *uiscale_names[] = {
 		"auto",
-		"no (1x)",
+		"1x",
 		"2x",
 		"3x",
+		"4x",
+		"5x",
+		"6x",
 		"custom",
 		0
 	};
@@ -398,7 +401,7 @@ VID_MenuInit(void)
 		gl_hudscale->value != gl_menuscale->value ||
 		gl_hudscale->value != crosshair_scale->value)
 	{
-		s_uiscale_list.curvalue = 4;
+		s_uiscale_list.curvalue = 7;
 	}
 	else if (gl_hudscale->value < 0)
 	{
@@ -406,13 +409,16 @@ VID_MenuInit(void)
 	}
 	else if (gl_hudscale->value == 1 ||
 			gl_hudscale->value == 2 ||
-			gl_hudscale->value == 3)
+			gl_hudscale->value == 3 ||
+			gl_hudscale->value == 4 ||
+			gl_hudscale->value == 5 ||
+			gl_hudscale->value == 6)
 	{
 		s_uiscale_list.curvalue = gl_hudscale->value;
 	}
 	else
 	{
-		s_uiscale_list.curvalue = 4;
+		s_uiscale_list.curvalue = 7;
 	}
 
 	s_screensize_slider.generic.type = MTYPE_SLIDER;
