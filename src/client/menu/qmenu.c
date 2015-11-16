@@ -59,22 +59,20 @@ Action_DoEnter(menuaction_s *a)
 void
 Action_Draw(menuaction_s *a)
 {
-    float scale = SCR_GetMenuScale();
+	float scale = SCR_GetMenuScale();
 
 	if (a->generic.flags & QMF_LEFT_JUSTIFY)
 	{
 		if (a->generic.flags & QMF_GRAYED)
 		{
 			Menu_DrawStringDark(a->generic.x + a->generic.parent->x + (LCOLUMN_OFFSET * scale),
-                    a->generic.y + a->generic.parent->y,
-					a->generic.name);
+					a->generic.y + a->generic.parent->y, a->generic.name);
 		}
 
 		else
 		{
 			Menu_DrawString(a->generic.x + a->generic.parent->x + (LCOLUMN_OFFSET * scale),
-                    a->generic.y + a->generic.parent->y,
-					a->generic.name);
+					a->generic.y + a->generic.parent->y, a->generic.name);
 		}
 	}
 	else
@@ -82,15 +80,13 @@ Action_Draw(menuaction_s *a)
 		if (a->generic.flags & QMF_GRAYED)
 		{
 			Menu_DrawStringR2LDark(a->generic.x + a->generic.parent->x + (LCOLUMN_OFFSET * scale),
-                    a->generic.y + a->generic.parent->y,
-					a->generic.name);
+					a->generic.y + a->generic.parent->y, a->generic.name);
 		}
 
 		else
 		{
 			Menu_DrawStringR2L(a->generic.x + a->generic.parent->x + (LCOLUMN_OFFSET * scale),
-                    a->generic.y + a->generic.parent->y,
-					a->generic.name);
+					a->generic.y + a->generic.parent->y, a->generic.name);
 		}
 	}
 
@@ -139,9 +135,9 @@ Field_Draw(menufield_s *f)
 			(f->generic.y + f->generic.parent->y + 4) * scale, 24, scale);
 
 	Draw_CharScaled((f->generic.x + f->generic.parent->x + 24 * scale) + (f->visible_length * 8 * scale),
-            (f->generic.y + f->generic.parent->y - 4) * scale, 20, scale);
+			(f->generic.y + f->generic.parent->y - 4) * scale, 20, scale);
 	Draw_CharScaled((f->generic.x + f->generic.parent->x + 24 * scale) + (f->visible_length * 8 * scale),
-            (f->generic.y + f->generic.parent->y + 4) * scale, 26, scale);
+			(f->generic.y + f->generic.parent->y + 4) * scale, 26, scale);
 
 	for (i = 0; i < f->visible_length; i++)
 	{
@@ -171,14 +167,14 @@ Field_Draw(menufield_s *f)
 		if (((int)(Sys_Milliseconds() / 250)) & 1)
 		{
 			Draw_CharScaled(
-                f->generic.x + f->generic.parent->x + 24 * scale + (offset * 8 * scale),
-                (f->generic.y + f->generic.parent->y) * scale, 11, scale);
+				f->generic.x + f->generic.parent->x + 24 * scale + (offset * 8 * scale),
+				(f->generic.y + f->generic.parent->y) * scale, 11, scale);
 		}
 		else
 		{
 			Draw_CharScaled(
-                f->generic.x + f->generic.parent->x + 24 * scale + (offset * 8 * scale),
-                (f->generic.y + f->generic.parent->y) * scale, ' ', scale);
+				f->generic.x + f->generic.parent->x + 24 * scale + (offset * 8 * scale),
+				(f->generic.y + f->generic.parent->y) * scale, ' ', scale);
 		}
 	}
 }
@@ -392,7 +388,7 @@ Menu_Center(menuframework_s *menu)
 	height = ((menucommon_s *)menu->items[menu->nitems - 1])->y;
 	height += 10;
 
-    menu->y = (VID_HEIGHT / scale - height) / 2;
+	menu->y = (VID_HEIGHT / scale - height) / 2;
 }
 
 void
@@ -444,13 +440,13 @@ Menu_Draw(menuframework_s *menu)
 		{
 			Draw_CharScaled(menu->x + (item->x / scale - 24 + item->cursor_offset) * scale,
 					(menu->y + item->y) * scale,
-                    12 + ((int)(Sys_Milliseconds() / 250) & 1), scale);
+					12 + ((int)(Sys_Milliseconds() / 250) & 1), scale);
 		}
 		else
 		{
 			Draw_CharScaled(menu->x + (item->cursor_offset) * scale,
-                    (menu->y + item->y) * scale,
-				   	12 + ((int)(Sys_Milliseconds() / 250) & 1), scale);
+					(menu->y + item->y) * scale,
+					12 + ((int)(Sys_Milliseconds() / 250) & 1), scale);
 		}
 	}
 
@@ -485,7 +481,7 @@ Menu_DrawStatusBar(const char *string)
 	if (string)
 	{
 		int l = (int)strlen(string);
-        float col = (VID_WIDTH / 2) - (l*8 / 2) * scale;
+		float col = (VID_WIDTH / 2) - (l*8 / 2) * scale;
 
 		Draw_Fill(0, VID_HEIGHT - 8 * scale, VID_WIDTH, 8 * scale, 4);
 		Menu_DrawString(col, VID_HEIGHT / scale - 8, string);
@@ -638,7 +634,7 @@ MenuList_Draw(menulist_s *l)
 {
 	const char **n;
 	int y = 0;
-    float scale = SCR_GetMenuScale();
+	float scale = SCR_GetMenuScale();
 
 	Menu_DrawStringR2LDark(l->generic.x + l->generic.parent->x
 			+ LCOLUMN_OFFSET * scale, l->generic.y + l->generic.parent->y,
@@ -758,7 +754,7 @@ void
 SpinControl_Draw(menulist_s *s)
 {
 	char buffer[100];
-    float scale = SCR_GetMenuScale();
+	float scale = SCR_GetMenuScale();
 
 	if (s->generic.name)
 	{
