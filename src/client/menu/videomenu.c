@@ -28,8 +28,6 @@
 #include "../../client/header/client.h"
 #include "../../client/menu/header/qmenu.h"
 
-#define CUSTOM_MODE 24
-
 extern void M_ForceMenuOff(void);
 
 static cvar_t *gl_mode;
@@ -58,6 +56,21 @@ static menulist_s s_af_list;
 static menulist_s s_msaa_list;
 static menuaction_s s_defaults_action;
 static menuaction_s s_apply_action;
+
+static int
+GetCustomValue(menulist_s list)
+{
+	int i = list.curvalue;
+
+	do
+	{
+		i++;
+	}
+	while (list.itemnames[i]);
+	i--;
+
+	return i;
+}
 
 static void
 ScreenSizeCallback(void *s)
@@ -103,7 +116,7 @@ ApplyChanges(void *unused)
 	qboolean restart = false;
 
 	/* custom mode */
-	if (s_mode_list.curvalue != CUSTOM_MODE)
+	if (s_mode_list.curvalue != GetCustomValue(s_mode_list))
 	{
 		/* Restarts automatically */
 		Cvar_SetValue("gl_mode", s_mode_list.curvalue);
@@ -169,12 +182,12 @@ ApplyChanges(void *unused)
 	{
 		Cvar_SetValue("gl_hudscale", -1);
 	}
-	else if (s_uiscale_list.curvalue < 7)
+	else if (s_uiscale_list.curvalue < GetCustomValue(s_uiscale_list))
 	{
 		Cvar_SetValue("gl_hudscale", s_uiscale_list.curvalue);
 	}
 
-	if (s_uiscale_list.curvalue != 7)
+	if (s_uiscale_list.curvalue != GetCustomValue(s_uiscale_list))
 	{
 		Cvar_SetValue("gl_consolescale", gl_hudscale->value);
 		Cvar_SetValue("gl_menuscale", gl_hudscale->value);
@@ -359,7 +372,7 @@ VID_MenuInit(void)
 	}
 	else
 	{
-		s_mode_list.curvalue = CUSTOM_MODE;
+		s_mode_list.curvalue = GetCustomValue(s_mode_list);
 	}
 
 	s_aspect_list.generic.type = MTYPE_SPINCONTROL;
@@ -389,7 +402,7 @@ VID_MenuInit(void)
 	}
 	else
 	{
-		s_aspect_list.curvalue = 5;
+		s_aspect_list.curvalue = GetCustomValue(s_aspect_list);
 	}
 
 	s_uiscale_list.generic.type = MTYPE_SPINCONTROL;
@@ -401,7 +414,7 @@ VID_MenuInit(void)
 		gl_hudscale->value != gl_menuscale->value ||
 		gl_hudscale->value != crosshair_scale->value)
 	{
-		s_uiscale_list.curvalue = 7;
+		s_uiscale_list.curvalue = GetCustomValue(s_uiscale_list);
 	}
 	else if (gl_hudscale->value < 0)
 	{
@@ -418,7 +431,7 @@ VID_MenuInit(void)
 	}
 	else
 	{
-		s_uiscale_list.curvalue = 7;
+		s_uiscale_list.curvalue = GetCustomValue(s_uiscale_list);
 	}
 
 	s_screensize_slider.generic.type = MTYPE_SLIDER;
