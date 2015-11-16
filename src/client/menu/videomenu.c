@@ -420,12 +420,9 @@ VID_MenuInit(void)
 	{
 		s_uiscale_list.curvalue = 0;
 	}
-	else if (gl_hudscale->value == 1 ||
-			gl_hudscale->value == 2 ||
-			gl_hudscale->value == 3 ||
-			gl_hudscale->value == 4 ||
-			gl_hudscale->value == 5 ||
-			gl_hudscale->value == 6)
+	else if (gl_hudscale->value > 0 &&
+			gl_hudscale->value < GetCustomValue(s_uiscale_list) &&
+			gl_hudscale->value == (int)gl_hudscale->value)
 	{
 		s_uiscale_list.curvalue = gl_hudscale->value;
 	}
