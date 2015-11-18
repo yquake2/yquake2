@@ -182,7 +182,7 @@ SetSDLIcon()
 	transColor.b = 255;
 
 	solidColor.r = 0;
-	solidColor.g = 16;
+	solidColor.g = 0;
 	solidColor.b = 0;
 
 	SDL_SetColors(icon, &transColor, 0, 1);
