@@ -1620,8 +1620,8 @@ SCR_DrawCrosshair(void)
 		scale = SCR_ClampScale(crosshair_scale->value);
 	}
 
-	Draw_PicScaled(scr_vrect.x + ((scr_vrect.width - crosshair_width) >> 1),
-			scr_vrect.y + ((scr_vrect.height - crosshair_height) >> 1),
+	Draw_PicScaled(scr_vrect.x + (scr_vrect.width - crosshair_width * scale) / 2,
+			scr_vrect.y + (scr_vrect.height - crosshair_height * scale) / 2,
 			crosshair_pic, scale);
 }
 
