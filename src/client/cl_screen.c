@@ -1552,7 +1552,27 @@ SCR_UpdateScreen(void)
 	GLimp_EndFrame();
 }
 
-float
+static float
+SCR_ClampScale(float scale)
+{
+	float f;
+
+	f = viddef.width / 320.0f;
+	if (scale > f)
+	{
+		scale = f;
+	}
+
+	f = viddef.height / 240.0f;
+	if (scale > f)
+	{
+		scale = f;
+	}
+
+	return scale;
+}
+
+static float
 SCR_GetDefaultScale(void)
 {
 	int i = viddef.width / 640;
@@ -1597,7 +1617,7 @@ SCR_DrawCrosshair(void)
 	}
 	else
 	{
-		scale = crosshair_scale->value;
+		scale = SCR_ClampScale(crosshair_scale->value);
 	}
 
 	Draw_PicScaled(scr_vrect.x + ((scr_vrect.width - crosshair_width) >> 1),
@@ -1616,7 +1636,7 @@ SCR_GetHUDScale(void)
 	}
 	else
 	{
-		scale = gl_hudscale->value;
+		scale = SCR_ClampScale(gl_hudscale->value);
 	}
 
 	return scale;
@@ -1633,7 +1653,7 @@ SCR_GetConsoleScale(void)
 	}
 	else
 	{
-		scale = gl_consolescale->value;
+		scale = SCR_ClampScale(gl_consolescale->value);
 	}
 
 	return scale;
@@ -1650,7 +1670,7 @@ SCR_GetMenuScale(void)
 	}
 	else
 	{
-		scale = gl_menuscale->value;
+		scale = SCR_ClampScale(gl_menuscale->value);
 	}
 
 	return scale;
