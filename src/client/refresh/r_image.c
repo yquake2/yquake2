@@ -961,6 +961,7 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 {
 	image_t *image;
 	int i;
+	qboolean nolerp = (strstr(Cvar_VariableString("gl_nolerp_list"), name) != NULL);
 
 	/* find a free image_t */
 	for (i = 0, image = gltextures; i < numgltextures; i++, image++)
@@ -1001,7 +1002,7 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 	}
 
 	/* load little pics into the scrap */
-	if ((image->type == it_pic) && (bits == 8) &&
+	if (!nolerp && (image->type == it_pic) && (bits == 8) &&
 		(image->width < 64) && (image->height < 64))
 	{
 		int x, y;
@@ -1078,6 +1079,12 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 		image->sh = 1;
 		image->tl = 0;
 		image->th = 1;
+
+		if (nolerp)
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
 	}
 
 	return image;
