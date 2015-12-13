@@ -334,7 +334,7 @@ static void
 M_DrawCharacter(int cx, int cy, int num)
 {
 	float scale = SCR_GetMenuScale();
-	Draw_CharScaled(cx + ((viddef.width - 320 * (int)scale) >> 1), cy + ((viddef.height - 240 * (int)scale) >> 1), num, scale);
+	Draw_CharScaled(cx + ((int)(viddef.width - 320 * scale) >> 1), cy + ((int)(viddef.height - 240 * scale) >> 1), num, scale);
 }
 
 static void
@@ -2606,10 +2606,7 @@ JoinServer_MenuInit(void)
 
     s_joinserver_server_title.generic.type = MTYPE_SEPARATOR;
     s_joinserver_server_title.generic.name = "connect to...";
-	if (scale > 1)
-		s_joinserver_server_title.generic.x = 80 * scale + (scale * 8);
-	else
-		s_joinserver_server_title.generic.x = 80;
+    s_joinserver_server_title.generic.x = 80 * scale;
     s_joinserver_server_title.generic.y = 30;
 
     for (i = 0; i < MAX_LOCAL_SERVERS; i++)
@@ -3619,7 +3616,7 @@ AddressBook_MenuInit(void)
     int i;
 	float scale = SCR_GetMenuScale();
 
-    s_addressbook_menu.x = viddef.width / scale / 2 - 142 / scale;
+    s_addressbook_menu.x = viddef.width / 2 - (142 * scale);
     s_addressbook_menu.y = viddef.height / (2 * scale) - 58;
     s_addressbook_menu.nitems = 0;
 
