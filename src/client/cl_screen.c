@@ -1569,6 +1569,11 @@ SCR_ClampScale(float scale)
 		scale = f;
 	}
 
+	if (scale < 1)
+	{
+		scale = 1;
+	}
+
 	return scale;
 }
 
@@ -1637,6 +1642,10 @@ SCR_GetHUDScale(void)
 	else if (gl_hudscale->value < 0)
 	{
 		scale = SCR_GetDefaultScale();
+	}
+	else if (gl_hudscale->value == 0) /* HACK: allow scale 0 to hide the HUD */
+	{
+		scale = 0;
 	}
 	else
 	{
