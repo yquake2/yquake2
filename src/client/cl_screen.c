@@ -1630,7 +1630,11 @@ SCR_GetHUDScale(void)
 {
 	float scale;
 
-	if (gl_hudscale->value < 0)
+	if (!scr_initialized)
+	{
+		scale = 1;
+	}
+	else if (gl_hudscale->value < 0)
 	{
 		scale = SCR_GetDefaultScale();
 	}
@@ -1647,7 +1651,11 @@ SCR_GetConsoleScale(void)
 {
 	float scale;
 
-	if (gl_consolescale->value < 0)
+	if (!scr_initialized)
+	{
+		scale = 1;
+	}
+	else if (gl_consolescale->value < 0)
 	{
 		scale = SCR_GetDefaultScale();
 	}
@@ -1664,7 +1672,11 @@ SCR_GetMenuScale(void)
 {
 	float scale;
 
-	if (gl_menuscale->value < 0)
+	if (!scr_initialized)
+	{
+		scale = 1;
+	}
+	else if (gl_menuscale->value < 0)
 	{
 		scale = SCR_GetDefaultScale();
 	}
