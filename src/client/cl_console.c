@@ -261,8 +261,9 @@ Con_CheckResize(void)
 {
 	int i, j, width, oldwidth, oldtotallines, numlines, numchars;
 	char tbuf[CON_TEXTSIZE];
+	float scale = SCR_GetConsoleScale();
 
-	width = (viddef.width >> 3) - 2;
+	width = ((int)(viddef.width / scale) >> 3) - 2;
 
 	if (width == con.linewidth)
 	{
