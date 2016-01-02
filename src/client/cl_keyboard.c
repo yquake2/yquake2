@@ -966,9 +966,11 @@ Char_Event(int key)
 			break;
 
 		/* Console */
-		case key_game:
 		case key_console:
 			Key_Console(key);
+			break;
+
+		default: /* incl. key_game */
 			break;
 	}
 }
