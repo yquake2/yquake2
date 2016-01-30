@@ -970,7 +970,14 @@ Char_Event(int key)
 			Key_Console(key);
 			break;
 
-		default: /* incl. key_game */
+		/* Console is really open but key_dest is game anyway (not connected) */
+		case key_game:
+			if(cls.state == ca_disconnected || cls.state == ca_connecting)
+				Key_Console(key);
+
+			break;
+
+		default:
 			break;
 	}
 }
