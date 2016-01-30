@@ -59,28 +59,3 @@ Ports to new unixoid operating systems should be easy. In most cases only some
 #ifdef need to be added and the Makefile integration written.
 
 =============================================================================== 
-
-2. Source code cleanup
-
-Difficulty: Medium
-Knowledge: Good knowledge of the Yamagi Quake II source
-
-While the Yamagi Quake II source code was cleaned a few times there is still
-much left to do. Someone need to go through the source, read and audit it. Dead
-code should be removed, inefficient functions rewritten and bugs resolved. This
-can be done at one module (e.g. client, server, refresher, game, etc) at a time.
-
-=============================================================================== 
-
-3. Finish the port of Zaero
-
-Difficulty: Hard
-Knowledge: How to work with broken code
-
-Zaero is an unofficial but popular addon to Quake II. It was release as
-freeware. The Yamagi Quake II developers did an inital port, but it's
-unfinished and still buggy. Grab the source (take a look at our Github
-organization), clean it and debug it. Zaero will need some extensive
-testing, have fun while playing. :)
-
-=============================================================================== 

@@ -1,3 +1,10 @@
+Quake II 5.32 to 5.33:
+- Add OGG volume slider in settings menu
+- Fixed some bugs in volume settings
+- Replaced HUD scale option in video menu with generic UI scale
+- General UI upscaling improvements
+- Better support for keyboards with AZERTY layout
+
 Quake II 5.31 to 5.32:
 - Fix problems with never openal-soft versions.
 - Fix overbright bits not applied to regular meshes. (by David Reid)
