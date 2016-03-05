@@ -40,6 +40,7 @@ string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 option(ZIP_SUPPORT "ZIP support" ON)
 option(OGG_SUPPORT "OGG Vorbis playback support (Music)" ON)
 option(OPENAL_SUPPORT "OpenAL support" ON)
+option(SYSTEMWIDE_SUPPORT "Enable systemwide installation of game assets" OFF)
 
 # These variables will act as our list of include folders and linker flags
 set(yquake2LinkerFlags)
@@ -53,6 +54,11 @@ set(COMMON_SRC_DIR ${SOURCE_DIR}/common)
 set(GAME_SRC_DIR ${SOURCE_DIR}/game)
 set(SERVER_SRC_DIR ${SOURCE_DIR}/server)
 set(CLIENT_SRC_DIR ${SOURCE_DIR}/client)
+
+# Systemwide installation of game assets
+if(${SYSTEMWIDE_SUPPORT})
+    add_definitions(-DSYSTEMWIDE)
+endif()
 
 # Required libraries to build the different components of the binaries. Find
 # them and add the include/linker directories and flags (in case the package
