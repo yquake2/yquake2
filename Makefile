@@ -401,7 +401,8 @@ ifeq ($(WITH_OPENAL),yes)
 ifeq ($(OSTYPE), OpenBSD)
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so"'
 else ifeq ($(OSTYPE), Darwin)
-release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.dylib"'
+release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.dylib"' -I/usr/local/opt/openal-soft/include
+release/quake2 : LDFLAGS += -L/usr/local/opt/openal-soft/lib
 else
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
 endif
