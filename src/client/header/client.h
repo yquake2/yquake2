@@ -248,6 +248,7 @@ extern client_static_t	cls;
 
 /* cvars */
 extern	cvar_t	*cl_stereo_separation;
+extern	cvar_t	*cl_stereo_convergence;
 extern	cvar_t	*cl_stereo;
 extern	cvar_t	*cl_gun;
 extern	cvar_t	*cl_add_blend;
@@ -282,6 +283,8 @@ extern	cvar_t	*cl_timedemo;
 extern	cvar_t	*cl_vwep;
 extern	cvar_t  *horplus;
 extern	cvar_t	*cin_force43;
+
+int SCR_Scale (void);
 
 typedef struct
 {
@@ -403,6 +406,8 @@ void CL_AddEntities (void);
 void CL_AddDLights (void);
 void CL_AddTEnts (void);
 void CL_AddLightStyles (void);
+
+void CL_CalcViewValues (void);
 
 void CL_PrepRefresh (void);
 void CL_RegisterSounds (void);

@@ -117,6 +117,21 @@ typedef enum
 	it_sky
 } imagetype_t;
 
+enum stereo_modes {
+	STEREO_MODE_NONE,
+	STEREO_MODE_OPENGL,
+	STEREO_MODE_ANAGLYPH,
+	STEREO_MODE_ROW_INTERLEAVED,
+	STEREO_MODE_COLUMN_INTERLEAVED,
+	STEREO_MODE_PIXEL_INTERLEAVED,
+};
+
+enum opengl_special_buffer_modes {
+	OPENGL_SPECIAL_BUFFER_MODE_NONE,
+	OPENGL_SPECIAL_BUFFER_MODE_STEREO,
+	OPENGL_SPECIAL_BUFFER_MODE_STENCIL,
+};
+
 typedef struct image_s
 {
 	char name[MAX_QPATH];               /* game path, including extension */
@@ -382,7 +397,7 @@ typedef struct
 	int currenttmu;
 
 	float camera_separation;
-	qboolean stereo_enabled;
+	enum stereo_modes stereo_mode;
 
 	qboolean hwgamma;
 

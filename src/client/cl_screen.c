@@ -50,6 +50,7 @@ cvar_t *scr_graphscale;
 cvar_t *scr_graphshift;
 cvar_t *scr_drawall;
 
+cvar_t *scr_scale;
 cvar_t *gl_hudscale; /* named for consistency with R1Q2 */
 cvar_t *gl_consolescale;
 cvar_t *gl_menuscale;
@@ -69,6 +70,34 @@ extern cvar_t *crosshair_scale;
 
 void SCR_TimeRefresh_f(void);
 void SCR_Loading_f(void);
+
+int SCR_Scale ( void )
+{
+
+	int scale_x, scale_y, scale;
+
+	scale = scr_scale->value;
+	if (scale == 1) {
+		return scale;
+	} else if (scale < 0) {
+		scale = 0;
+	}
+	
+	scale_x = abs(viddef.width) / 320;
+	scale_y = abs(viddef.height) / 240;
+
+	if (scale_x > scale_y) {
+		scale_x = scale_y;
+	}
+
+	if (scale == 0 || (scale_x > 0 && scale_x < scale))
+	{
+		scale = scale_x;
+	}
+
+	return scale;
+}
+
 
 /*
  * A new packet was just parsed
@@ -434,6 +463,7 @@ SCR_Init(void)
 	scr_graphscale = Cvar_Get("graphscale", "1", 0);
 	scr_graphshift = Cvar_Get("graphshift", "0", 0);
 	scr_drawall = Cvar_Get("scr_drawall", "0", 0);
+	scr_scale = Cvar_Get ("scr_scale", "0", CVAR_ARCHIVE);
 	gl_hudscale = Cvar_Get("gl_hudscale", "-1", CVAR_ARCHIVE);
 	gl_consolescale = Cvar_Get("gl_consolescale", "-1", CVAR_ARCHIVE);
 	gl_menuscale = Cvar_Get("gl_menuscale", "-1", CVAR_ARCHIVE);
@@ -1441,9 +1471,18 @@ SCR_UpdateScreen(void)
 		return; /* not initialized yet */
 	}
 
-	separation[0] = 0;
-	separation[1] = 0;
-	numframes = 1;
+	if ( cl_stereo->value )
+	{
+		numframes = 2;
+		separation[0] = -cl_stereo_separation->value / 2;
+		separation[1] = +cl_stereo_separation->value / 2;
+	}		
+	else
+	{
+		separation[0] = 0;
+		separation[1] = 0;
+		numframes = 1;
+	}
 
 	for (i = 0; i < numframes; i++)
 	{

@@ -95,6 +95,11 @@ cvar_t *hand;
 cvar_t *gender;
 cvar_t *gender_auto;
 
+
+cvar_t	*cl_stereo;
+cvar_t	*cl_stereo_separation;
+cvar_t	*cl_stereo_convergence;
+
 cvar_t *cl_vwep;
 
 client_static_t cls;
@@ -528,6 +533,10 @@ CL_InitLocal(void)
 	cl_timeout = Cvar_Get("cl_timeout", "120", 0);
 	cl_paused = Cvar_Get("paused", "0", 0);
 	cl_timedemo = Cvar_Get("timedemo", "0", 0);
+
+	cl_stereo = Cvar_Get( "cl_stereo", "0", CVAR_ARCHIVE );
+	cl_stereo_separation = Cvar_Get( "cl_stereo_separation", "-0.4", CVAR_ARCHIVE );
+	cl_stereo_convergence = Cvar_Get( "cl_stereo_convergence", "1", CVAR_ARCHIVE );
 
 	rcon_client_password = Cvar_Get("rcon_password", "", 0);
 	rcon_address = Cvar_Get("rcon_address", "", 0);
