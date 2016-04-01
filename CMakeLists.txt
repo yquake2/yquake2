@@ -201,7 +201,6 @@ set(Game-Source
 	${GAME_SRC_DIR}/g_turret.c
 	${GAME_SRC_DIR}/g_utils.c
 	${GAME_SRC_DIR}/g_weapon.c
-	${GAME_SRC_DIR}/laser.c
 	${GAME_SRC_DIR}/monster/berserker/berserker.c
 	${GAME_SRC_DIR}/monster/boss2/boss2.c
 	${GAME_SRC_DIR}/monster/boss3/boss3.c
