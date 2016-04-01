@@ -480,7 +480,10 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 void
 R_DrawParticles(void)
 {
-	if (gl_ext_pointparameters->value && qglPointParameterfEXT)
+	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	if (gl_ext_pointparameters->value && qglPointParameterfEXT && !(stereo_split_tb || stereo_split_lr))
 	{
 		int i;
 		unsigned char color[4];
@@ -715,6 +718,25 @@ R_SetupGL(void)
 
 	w = x2 - x;
 	h = y - y2;
+
+	qboolean drawing_left_eye = (gl_state.camera_separation  * cl_stereo_separation->value) < 0;
+	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	// x = 0;
+	// w = vid.width;
+	// y = 0;
+	// h = vid.height;
+
+	if(stereo_split_lr) {
+		w = w / 2;
+		x = drawing_left_eye ? x : (x + w);
+	}
+
+	if(stereo_split_tb) {
+		h = h / 2;
+		y2 = drawing_left_eye ? (y2 + h) : y2;
+	}
 
 	glViewport(x, y2, w, h);
 
@@ -1020,8 +1042,28 @@ R_RenderView(refdef_t *fd)
 void
 R_SetGL2D(void)
 {
+	int x, w, y, h;
 	/* set 2D virtual screen size */
-	glViewport(0, 0, vid.width, vid.height);
+	qboolean drawing_left_eye = (gl_state.camera_separation  * cl_stereo_separation->value) < 0;
+	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	x = 0;
+	w = vid.width;
+	y = 0;
+	h = vid.height;
+
+	if(stereo_split_lr) {
+		w =  w / 2;
+		x = drawing_left_eye ? 0 : w;
+	}
+
+	if(stereo_split_tb) {
+		h =  h / 2;
+		y = drawing_left_eye ? h : 0;
+	}
+
+	glViewport(x, y, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
@@ -1037,6 +1079,8 @@ R_SetGL2D(void)
 enum opengl_special_buffer_modes GL_GetSpecialBufferModeForStereoMode(enum stereo_modes stereo_mode) {
 	switch (stereo_mode) {
 		case STEREO_MODE_NONE:
+		case STEREO_SPLIT_HORIZONTAL:
+		case STEREO_SPLIT_VERTICAL:
 		case STEREO_MODE_ANAGLYPH:
 			return OPENGL_SPECIAL_BUFFER_MODE_NONE;
 		case STEREO_MODE_OPENGL:
