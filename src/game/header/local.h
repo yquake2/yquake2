@@ -1073,4 +1073,9 @@ struct edict_s
 	monsterinfo_t monsterinfo;
 };
 
+/* laser.c */
+void LaserSightThink (edict_t *self);
+void SP_LaserSight(edict_t *self);
+void UpdateLaserSight(void);
+
 #endif /* GAME_LOCAL_H */
