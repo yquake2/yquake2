@@ -511,5 +511,6 @@ void CL_KeyInventory (int key);
 void CL_DrawInventory (void);
 
 void CL_PredictMovement (void);
+trace_t CL_PMTrace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
 
 #endif

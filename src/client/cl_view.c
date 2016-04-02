@@ -31,11 +31,18 @@ int gun_frame;
 struct model_s *gun_model;
 
 cvar_t *crosshair;
+cvar_t *crosshair_3d;
+cvar_t *crosshair_3d_glow;
+cvar_t *crosshair_3d_color;
+
 cvar_t *crosshair_scale;
 cvar_t *cl_testparticles;
 cvar_t *cl_testentities;
 cvar_t *cl_testlights;
 cvar_t *cl_testblend;
+cvar_t *crosshair_3d_glow_r;
+cvar_t *crosshair_3d_glow_g;
+cvar_t *crosshair_3d_glow_b;
 
 cvar_t *cl_stats;
 
@@ -52,6 +59,8 @@ lightstyle_t r_lightstyles[MAX_LIGHTSTYLES];
 
 char cl_weaponmodels[MAX_CLIENTWEAPONMODELS][MAX_QPATH];
 int num_cl_weaponmodels;
+
+void V_Render3dCrosshair(void);
 
 /*
  * Specifies the model that will be used as the world
@@ -494,6 +503,9 @@ V_RenderView(float stereo_separation)
 		   v_forward, etc. */
 		CL_AddEntities();
 
+		// before changing viewport we should trace the crosshair position
+		V_Render3dCrosshair();
+
 		if (cl_testparticles->value)
 		{
 			V_TestParticles();
@@ -519,6 +531,7 @@ V_RenderView(float stereo_separation)
 
 		/* offset vieworg appropriately if
 		   we're doing stereo separation */
+
 		if (stereo_separation != 0)
 		{
 			vec3_t tmp;
@@ -600,6 +613,53 @@ V_RenderView(float stereo_separation)
 			scr_vrect.y + scr_vrect.height - 1);
 
 	SCR_DrawCrosshair();
+}
+
+void 
+V_Render3dCrosshair(void)
+{
+	trace_t crosshair_trace;
+	vec3_t end;
+	vec_t *crosshair_pos;
+
+	crosshair_3d = Cvar_Get("crosshair_3d", "0", CVAR_ARCHIVE);
+	crosshair_3d_glow = Cvar_Get("crosshair_3d_glow", "0", CVAR_ARCHIVE);
+	
+
+	if(crosshair_3d->value || crosshair_3d_glow->value){
+		VectorMA(cl.refdef.vieworg,8192,cl.v_forward,end);
+		crosshair_trace = CL_PMTrace(cl.refdef.vieworg, vec3_origin, vec3_origin, end);
+
+		if(crosshair_3d_glow->value){
+			crosshair_3d_glow_r = Cvar_Get("crosshair_3d_glow_r", "5", CVAR_ARCHIVE);
+			crosshair_3d_glow_g = Cvar_Get("crosshair_3d_glow_g", "1", CVAR_ARCHIVE);
+			crosshair_3d_glow_b = Cvar_Get("crosshair_3d_glow_b", "4", CVAR_ARCHIVE);
+
+			V_AddLight(
+				crosshair_trace.endpos, 
+				crosshair_3d_glow->value, 
+				crosshair_3d_glow_r->value, 
+				crosshair_3d_glow_g->value, 
+				crosshair_3d_glow_b->value
+			);
+		}
+
+		if(crosshair_3d->value){
+			entity_t crosshair_ent = {0};
+
+			crosshair_ent.origin[0] = crosshair_trace.endpos[0];
+			crosshair_ent.origin[1] = crosshair_trace.endpos[1];
+			crosshair_ent.origin[2] = crosshair_trace.endpos[2];
+
+			crosshair_ent.model = R_RegisterModel("models/crosshair/tris.md2");
+			crosshair_ent.skin = R_RegisterSkin("models/crosshair/skin.pcx");
+
+			AngleVectors2(crosshair_trace.plane.normal, crosshair_ent.angles);
+			crosshair_ent.flags = RF_DEPTHHACK | RF_FULLBRIGHT | RF_NOSHADOW;
+
+			V_AddEntity(&crosshair_ent);
+		}
+	}
 }
 
 void
