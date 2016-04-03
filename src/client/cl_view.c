@@ -652,7 +652,7 @@ V_Render3dCrosshair(void)
 			crosshair_ent.origin[2] = crosshair_trace.endpos[2];
 
 			crosshair_ent.model = R_RegisterModel("models/crosshair/tris.md2");
-			crosshair_ent.skin = R_RegisterSkin("models/crosshair/skin.pcx");
+			//crosshair_ent.skin = R_RegisterSkin("models/crosshair/skin.pcx");
 
 			AngleVectors2(crosshair_trace.plane.normal, crosshair_ent.angles);
 			crosshair_ent.flags = RF_DEPTHHACK | RF_FULLBRIGHT | RF_NOSHADOW;
