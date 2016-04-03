@@ -284,8 +284,6 @@ extern	cvar_t	*cl_vwep;
 extern	cvar_t  *horplus;
 extern	cvar_t	*cin_force43;
 
-int SCR_Scale (void);
-
 typedef struct
 {
 	int		key; /* so entities can reuse same entry */
@@ -406,8 +404,6 @@ void CL_AddEntities (void);
 void CL_AddDLights (void);
 void CL_AddTEnts (void);
 void CL_AddLightStyles (void);
-
-void CL_CalcViewValues (void);
 
 void CL_PrepRefresh (void);
 void CL_RegisterSounds (void);

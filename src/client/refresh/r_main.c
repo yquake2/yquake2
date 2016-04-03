@@ -147,9 +147,6 @@ cvar_t *cl_stereo_separation;
 cvar_t *cl_stereo_anaglyph_colors;
 cvar_t *cl_stereo_convergence;
 
-cvar_t *scr_viewsize;
-
-
 /*
  * Returns true if the box is completely outside the frustom
  */
@@ -420,7 +417,6 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	vec3_t up, right;
 	float scale;
 	byte color[4];
-	float viewsize;
 
 	R_Bind(r_particletexture->texnum);
 	glDepthMask(GL_FALSE); /* no z buffering */
@@ -430,8 +426,6 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 
 	VectorScale(vup, 1.5, up);
 	VectorScale(vright, 1.5, right);
-
-	viewsize = scr_viewsize->value * 0.01f;
 
 	for (p = particles, i = 0; i < num_particles; i++, p++)
 	{
@@ -448,8 +442,6 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 		{
 			scale = 1 + scale * 0.004;
 		}
-
-		scale *= viewsize;
 
 		*(int *)color = colortable[p->color];
 		color[3] = p->alpha * 255;
@@ -489,14 +481,11 @@ R_DrawParticles(void)
 		unsigned char color[4];
 		const particle_t *p;
 
-		float viewsize;
-		viewsize = scr_viewsize->value * 0.01f;
-
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
 		glDisable(GL_TEXTURE_2D);
 
-		glPointSize(LittleFloat(gl_particle_size->value * viewsize));
+		glPointSize(LittleFloat(gl_particle_size->value));
 
 		glBegin(GL_POINTS);
 
@@ -1223,8 +1212,6 @@ R_Register(void)
 	cl_stereo_separation = Cvar_Get( "cl_stereo_separation", "-0.4", CVAR_ARCHIVE );
 	cl_stereo_anaglyph_colors = Cvar_Get( "cl_stereo_anaglyph_colors", "rc", CVAR_ARCHIVE );
 	cl_stereo_convergence = Cvar_Get( "cl_stereo_convergence", "1", CVAR_ARCHIVE );
-
-	scr_viewsize = Cvar_Get( "viewsize", "100", CVAR_ARCHIVE );
 
 	Cmd_AddCommand("imagelist", R_ImageList_f);
 	Cmd_AddCommand("screenshot", R_ScreenShot);
