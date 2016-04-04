@@ -708,23 +708,18 @@ R_SetupGL(void)
 	w = x2 - x;
 	h = y - y2;
 
-	qboolean drawing_left_eye = (gl_state.camera_separation  * cl_stereo_separation->value) < 0;
+	qboolean drawing_left_eye = gl_state.camera_separation < 0;
 	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
 	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
 
-	// x = 0;
-	// w = vid.width;
-	// y = 0;
-	// h = vid.height;
-
 	if(stereo_split_lr) {
 		w = w / 2;
-		x = drawing_left_eye ? x : (x + w);
+		x = drawing_left_eye ? (x / 2) : (x + vid.width) / 2;
 	}
 
 	if(stereo_split_tb) {
 		h = h / 2;
-		y2 = drawing_left_eye ? (y2 + h) : y2;
+		y2 = drawing_left_eye ? (y2 + vid.height) / 2 : (y2 / 2);
 	}
 
 	glViewport(x, y2, w, h);
@@ -859,7 +854,7 @@ R_RenderView(refdef_t *fd)
 {
 	if ((gl_state.stereo_mode != STEREO_MODE_NONE) && gl_state.camera_separation) {
 
-		qboolean drawing_left_eye = (gl_state.camera_separation  * cl_stereo_separation->value) < 0;
+		qboolean drawing_left_eye = gl_state.camera_separation < 0;
 		switch (gl_state.stereo_mode) {
 			case STEREO_MODE_ANAGLYPH:
 				{
@@ -1033,7 +1028,7 @@ R_SetGL2D(void)
 {
 	int x, w, y, h;
 	/* set 2D virtual screen size */
-	qboolean drawing_left_eye = (gl_state.camera_separation  * cl_stereo_separation->value) < 0;
+	qboolean drawing_left_eye = gl_state.camera_separation < 0;
 	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
 	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
 
@@ -1566,7 +1561,28 @@ R_BeginFrame(float camera_separation)
 	}
 
 	/* go into 2D mode */
-	glViewport(0, 0, vid.width, vid.height);
+
+	int x, w, y, h;
+	qboolean drawing_left_eye = gl_state.camera_separation < 0;
+	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	x = 0;
+	w = vid.width;
+	y = 0;
+	h = vid.height;
+
+	if(stereo_split_lr) {
+		w =  w / 2;
+		x = drawing_left_eye ? 0 : w;
+	}
+
+	if(stereo_split_tb) {
+		h =  h / 2;
+		y = drawing_left_eye ? h : 0;
+	}
+
+	glViewport(x, y, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
