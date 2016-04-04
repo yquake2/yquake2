@@ -33,7 +33,6 @@ struct model_s *gun_model;
 cvar_t *crosshair;
 cvar_t *crosshair_3d;
 cvar_t *crosshair_3d_glow;
-cvar_t *crosshair_3d_color;
 
 cvar_t *crosshair_scale;
 cvar_t *cl_testparticles;
