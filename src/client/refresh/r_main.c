@@ -142,6 +142,11 @@ cvar_t *gl_msaa_samples;
 cvar_t *vid_fullscreen;
 cvar_t *vid_gamma;
 
+cvar_t *cl_stereo;
+cvar_t *cl_stereo_separation;
+cvar_t *cl_stereo_anaglyph_colors;
+cvar_t *cl_stereo_convergence;
+
 /*
  * Returns true if the box is completely outside the frustom
  */
@@ -467,7 +472,10 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 void
 R_DrawParticles(void)
 {
-	if (gl_ext_pointparameters->value && qglPointParameterfEXT)
+	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	if (gl_ext_pointparameters->value && qglPointParameterfEXT && !(stereo_split_tb || stereo_split_lr))
 	{
 		int i;
 		unsigned char color[4];
@@ -678,8 +686,8 @@ R_MYgluPerspective(GLdouble fovy, GLdouble aspect,
 	xmin = ymin * aspect;
 	xmax = ymax * aspect;
 
-	xmin += -(2 * gl_state.camera_separation) / zNear;
-	xmax += -(2 * gl_state.camera_separation) / zNear;
+	xmin += - cl_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
+	xmax += - cl_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
 
 	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
 }
@@ -699,6 +707,20 @@ R_SetupGL(void)
 
 	w = x2 - x;
 	h = y - y2;
+
+	qboolean drawing_left_eye = gl_state.camera_separation < 0;
+	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	if(stereo_split_lr) {
+		w = w / 2;
+		x = drawing_left_eye ? (x / 2) : (x + vid.width) / 2;
+	}
+
+	if(stereo_split_tb) {
+		h = h / 2;
+		y2 = drawing_left_eye ? (y2 + vid.height) / 2 : (y2 / 2);
+	}
 
 	glViewport(x, y2, w, h);
 
@@ -749,13 +771,20 @@ R_SetupGL(void)
 void
 R_Clear(void)
 {
+	// Check whether the stencil buffer needs clearing, and do so if need be.
+	GLbitfield stencilFlags = 0;
+	if (gl_state.stereo_mode >= STEREO_MODE_ROW_INTERLEAVED && gl_state.stereo_mode <= STEREO_MODE_PIXEL_INTERLEAVED) {
+		glClearStencil(0);
+		stencilFlags |= GL_STENCIL_BUFFER_BIT;
+	}
+
 	if (gl_ztrick->value)
 	{
 		static int trickframe;
 
 		if (gl_clear->value)
 		{
-			glClear(GL_COLOR_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | stencilFlags);
 		}
 
 		trickframe++;
@@ -777,11 +806,11 @@ R_Clear(void)
 	{
 		if (gl_clear->value)
 		{
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | stencilFlags | GL_DEPTH_BUFFER_BIT);
 		}
 		else
 		{
-			glClear(GL_DEPTH_BUFFER_BIT);
+			glClear(GL_DEPTH_BUFFER_BIT | stencilFlags);
 		}
 
 		gldepthmin = 0;
@@ -823,6 +852,113 @@ R_Flash(void)
 void
 R_RenderView(refdef_t *fd)
 {
+	if ((gl_state.stereo_mode != STEREO_MODE_NONE) && gl_state.camera_separation) {
+
+		qboolean drawing_left_eye = gl_state.camera_separation < 0;
+		switch (gl_state.stereo_mode) {
+			case STEREO_MODE_ANAGLYPH:
+				{
+
+					// Work out the colour for each eye.
+					int anaglyph_colours[] = { 0x4, 0x3 }; // Left = red, right = cyan.
+					
+					if (strlen(cl_stereo_anaglyph_colors->string) == 2) {
+						int eye, colour, missing_bits;
+						// Decode the colour name from its character.
+						for (eye = 0; eye < 2; ++eye) {
+							colour = 0;
+							switch (toupper(cl_stereo_anaglyph_colors->string[eye])) {
+								case 'B': ++colour; // 001 Blue
+								case 'G': ++colour; // 010 Green
+								case 'C': ++colour; // 011 Cyan
+								case 'R': ++colour; // 100 Red
+								case 'M': ++colour; // 101 Magenta
+								case 'Y': ++colour; // 110 Yellow
+									anaglyph_colours[eye] = colour;
+									break;
+							}
+						}
+						// Fill in any missing bits.
+						missing_bits = ~(anaglyph_colours[0] | anaglyph_colours[1]) & 0x3;
+						for (eye = 0; eye < 2; ++eye) {
+							anaglyph_colours[eye] |= missing_bits;
+						}
+					}
+	
+					// Set the current colour.
+					glColorMask(
+						!!(anaglyph_colours[drawing_left_eye] & 0x4),
+						!!(anaglyph_colours[drawing_left_eye] & 0x2),
+						!!(anaglyph_colours[drawing_left_eye] & 0x1),
+						GL_TRUE
+					);					
+				}
+				break;
+			case STEREO_MODE_ROW_INTERLEAVED:
+			case STEREO_MODE_COLUMN_INTERLEAVED:
+			case STEREO_MODE_PIXEL_INTERLEAVED:
+				{
+					qboolean flip_eyes = true;
+					int client_x, client_y;
+
+					//GLimp_GetClientAreaOffset(&client_x, &client_y);
+					client_x = 0;
+					client_y = 0;
+
+					R_SetGL2D();
+
+					glEnable(GL_STENCIL_TEST);
+					glStencilMask(GL_TRUE);
+					glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+					glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+					glStencilFunc(GL_NEVER, 0, 1);
+
+					glBegin(GL_QUADS);
+					{
+						glVertex2i(0, 0);
+						glVertex2i(vid.width, 0);
+						glVertex2i(vid.width, vid.height);
+						glVertex2i(0, vid.height);
+					}
+					glEnd();
+
+					glStencilOp(GL_INVERT, GL_KEEP, GL_KEEP);
+					glStencilFunc(GL_NEVER, 1, 1);
+
+					glBegin(GL_LINES);
+					{
+						if (gl_state.stereo_mode == STEREO_MODE_ROW_INTERLEAVED || gl_state.stereo_mode == STEREO_MODE_PIXEL_INTERLEAVED) {
+							int y;
+							for (y = 0; y <= vid.height; y += 2) {
+								glVertex2f(0, y - 0.5f);
+								glVertex2f(vid.width, y - 0.5f);
+							}
+							flip_eyes ^= (client_y & 1);
+						}
+
+						if (gl_state.stereo_mode == STEREO_MODE_COLUMN_INTERLEAVED || gl_state.stereo_mode == STEREO_MODE_PIXEL_INTERLEAVED) {
+							int x;
+							for (x = 0; x <= vid.width; x += 2) {
+								glVertex2f(x - 0.5f, 0);
+								glVertex2f(x - 0.5f, vid.height);
+							}
+							flip_eyes ^= (client_x & 1);
+						}
+					}
+					glEnd();
+
+					glStencilMask(GL_FALSE);
+					glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+					glStencilFunc(GL_EQUAL, drawing_left_eye ^ flip_eyes, 1);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+				}
+				break;
+		}
+	}
+
+
 	if (gl_norefresh->value)
 	{
 		return;
@@ -874,13 +1010,44 @@ R_RenderView(refdef_t *fd)
 				c_brush_polys, c_alias_polys, c_visible_textures,
 				c_visible_lightmaps);
 	}
+
+	switch (gl_state.stereo_mode) {
+		case STEREO_MODE_ANAGLYPH:
+			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+			break;
+		case STEREO_MODE_ROW_INTERLEAVED:
+		case STEREO_MODE_COLUMN_INTERLEAVED:
+		case STEREO_MODE_PIXEL_INTERLEAVED:
+			glDisable(GL_STENCIL_TEST);
+			break;
+	}
 }
 
 void
 R_SetGL2D(void)
 {
+	int x, w, y, h;
 	/* set 2D virtual screen size */
-	glViewport(0, 0, vid.width, vid.height);
+	qboolean drawing_left_eye = gl_state.camera_separation < 0;
+	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	x = 0;
+	w = vid.width;
+	y = 0;
+	h = vid.height;
+
+	if(stereo_split_lr) {
+		w =  w / 2;
+		x = drawing_left_eye ? 0 : w;
+	}
+
+	if(stereo_split_tb) {
+		h =  h / 2;
+		y = drawing_left_eye ? h : 0;
+	}
+
+	glViewport(x, y, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
@@ -891,6 +1058,23 @@ R_SetGL2D(void)
 	glDisable(GL_BLEND);
 	glEnable(GL_ALPHA_TEST);
 	glColor4f(1, 1, 1, 1);
+}
+
+enum opengl_special_buffer_modes GL_GetSpecialBufferModeForStereoMode(enum stereo_modes stereo_mode) {
+	switch (stereo_mode) {
+		case STEREO_MODE_NONE:
+		case STEREO_SPLIT_HORIZONTAL:
+		case STEREO_SPLIT_VERTICAL:
+		case STEREO_MODE_ANAGLYPH:
+			return OPENGL_SPECIAL_BUFFER_MODE_NONE;
+		case STEREO_MODE_OPENGL:
+			return OPENGL_SPECIAL_BUFFER_MODE_STEREO;
+		case STEREO_MODE_ROW_INTERLEAVED:
+		case STEREO_MODE_COLUMN_INTERLEAVED:
+		case STEREO_MODE_PIXEL_INTERLEAVED:
+			return OPENGL_SPECIAL_BUFFER_MODE_STENCIL;
+	}
+	return OPENGL_SPECIAL_BUFFER_MODE_NONE;
 }
 
 void
@@ -1018,6 +1202,12 @@ R_Register(void)
 
 	gl_retexturing = Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
 
+
+	cl_stereo = Cvar_Get( "cl_stereo", "0", CVAR_ARCHIVE );
+	cl_stereo_separation = Cvar_Get( "cl_stereo_separation", "-0.4", CVAR_ARCHIVE );
+	cl_stereo_anaglyph_colors = Cvar_Get( "cl_stereo_anaglyph_colors", "rc", CVAR_ARCHIVE );
+	cl_stereo_convergence = Cvar_Get( "cl_stereo_convergence", "1", CVAR_ARCHIVE );
+
 	Cmd_AddCommand("imagelist", R_ImageList_f);
 	Cmd_AddCommand("screenshot", R_ScreenShot);
 	Cmd_AddCommand("modellist", Mod_Modellist_f);
@@ -1128,6 +1318,7 @@ R_Init(void *hinstance, void *hWnd)
 
 	/* set our "safe" mode */
 	gl_state.prev_mode = 4;
+	gl_state.stereo_mode = cl_stereo->value;
 
 	/* create the window and set up the context */
 	if (!R_SetMode())
@@ -1344,6 +1535,21 @@ R_BeginFrame(float camera_separation)
 		vid_fullscreen->modified = true;
 	}
 
+	// force a vid_restart if cl_stereo has been modified.
+	if ( gl_state.stereo_mode != cl_stereo->value ) {
+		// If we've gone from one mode to another with the same special buffer requirements there's no need to restart.
+		if ( GL_GetSpecialBufferModeForStereoMode( gl_state.stereo_mode ) == GL_GetSpecialBufferModeForStereoMode( cl_stereo->value )  ) {
+			gl_state.stereo_mode = cl_stereo->value;
+		}
+		else
+		{
+			VID_Printf(PRINT_ALL, "stereo supermode changed, restarting video!\n");
+			cvar_t	*ref;
+			ref = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+			ref->modified = true;
+		}
+	}
+
 	if (vid_gamma->modified)
 	{
 		vid_gamma->modified = false;
@@ -1355,7 +1561,28 @@ R_BeginFrame(float camera_separation)
 	}
 
 	/* go into 2D mode */
-	glViewport(0, 0, vid.width, vid.height);
+
+	int x, w, y, h;
+	qboolean drawing_left_eye = gl_state.camera_separation < 0;
+	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	x = 0;
+	w = vid.width;
+	y = 0;
+	h = vid.height;
+
+	if(stereo_split_lr) {
+		w =  w / 2;
+		x = drawing_left_eye ? 0 : w;
+	}
+
+	if(stereo_split_tb) {
+		h =  h / 2;
+		y = drawing_left_eye ? h : 0;
+	}
+
+	glViewport(x, y, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
@@ -1372,7 +1599,7 @@ R_BeginFrame(float camera_separation)
 	{
 		gl_drawbuffer->modified = false;
 
-		if ((gl_state.camera_separation == 0) || !gl_state.stereo_enabled)
+		if ((gl_state.camera_separation == 0) || gl_state.stereo_mode != STEREO_MODE_OPENGL)
 		{
 			if (Q_stricmp(gl_drawbuffer->string, "GL_FRONT") == 0)
 			{

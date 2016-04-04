@@ -758,7 +758,13 @@ CL_CalcViewValues(void)
 		ops = ps; /* don't interpolate */
 	}
 
-	lerp = cl.lerpfrac;
+	if(cl_paused->value){
+		lerp = 1.0f;
+	}
+	else
+	{
+		lerp = cl.lerpfrac;
+	}
 
 	/* calculate the origin */
 	if ((cl_predict->value) && !(cl.frame.playerstate.pmove.pm_flags & PMF_NO_PREDICTION))
