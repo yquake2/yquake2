@@ -492,7 +492,6 @@ SCR_DrawLoading(void)
 		return;
 	}
 
-	scr_draw_loading = false;
 	Draw_GetPicSize(&w, &h, "loading");
 	Draw_PicScaled((viddef.width - w * scale) / 2, (viddef.height - h * scale) / 2, "loading", scale);
 }
@@ -609,6 +608,9 @@ SCR_BeginLoadingPlaque(void)
 	}
 
 	SCR_UpdateScreen();
+
+	scr_draw_loading = false;
+
 	SCR_StopCinematic();
 	cls.disable_screen = Sys_Milliseconds();
 	cls.disable_servercount = cl.servercount;
@@ -1463,8 +1465,14 @@ SCR_UpdateScreen(void)
 			/* loading plaque over black screen */
 			int w, h;
 
-			R_SetPalette(NULL);
-			scr_draw_loading = false;
+			if(i == 0){
+				R_SetPalette(NULL);
+			}
+
+			if(i == numframes - 1){
+				scr_draw_loading = false;
+			}
+
 			Draw_GetPicSize(&w, &h, "loading");
 			Draw_PicScaled((viddef.width - w * scale) / 2, (viddef.height - h * scale) / 2, "loading", scale);
 		}
