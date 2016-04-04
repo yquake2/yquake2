@@ -822,3 +822,29 @@ How do I disable the vsync?
    not work with SDL 1.2 due to bugs in SDL.
 
 ==============================================================================
+
+8. Stereo Support
+======
+Stereo support was added back.
+3d crosshair was added, which requires a model 'models/crosshair/tris.md2' (not included here yet)
+
+added cvars 
+-----------
+ - cl_stereo:
+  - 0 - none
+  - 1 - native opengl (not tested)
+  - 2 - anaglyph
+  - 3 - horizontal interleaved
+  - 4 - vertical interleaved
+  - 5 - pixel interleaved
+  - 6 - horizontal split
+  - 7 - vertical split
+ - cl_stereo_separation
+ - cl_stereo_convergence
+ - crosshair_3d - non-cheating 3d crosshair
+  it does not work as iron sights, as is positioned exactly at the center of the view, similar to 2d crosshair
+ - crosshair_3d_glow (0 - ...) - radius of glow area, can be used without crosshair_3d enabled
+ - crosshair_3d_glow_r
+ - crosshair_3d_glow_g
+ - crosshair_3d_glow_b
+ 
