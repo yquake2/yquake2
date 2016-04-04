@@ -826,7 +826,7 @@ How do I disable the vsync?
 8. Stereo Support
 ======
 Stereo support was added back.
-3d crosshair was added, which requires a model 'models/crosshair/tris.md2' (not included here yet)
+3d crosshair was added, which requires a model 'models/crosshair/tris.md2' (look in stuff directory)
 
 added cvars 
 -----------
