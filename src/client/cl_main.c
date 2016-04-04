@@ -535,8 +535,8 @@ CL_InitLocal(void)
 	cl_timedemo = Cvar_Get("timedemo", "0", 0);
 
 	cl_stereo = Cvar_Get( "cl_stereo", "0", CVAR_ARCHIVE );
-	cl_stereo_separation = Cvar_Get( "cl_stereo_separation", "-0.4", CVAR_ARCHIVE );
-	cl_stereo_convergence = Cvar_Get( "cl_stereo_convergence", "1", CVAR_ARCHIVE );
+	cl_stereo_separation = Cvar_Get( "cl_stereo_separation", "1", CVAR_ARCHIVE );
+	cl_stereo_convergence = Cvar_Get( "cl_stereo_convergence", "1.4", CVAR_ARCHIVE );
 
 	rcon_client_password = Cvar_Get("rcon_password", "", 0);
 	rcon_address = Cvar_Get("rcon_address", "", 0);
