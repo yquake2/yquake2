@@ -842,7 +842,7 @@ added cvars
  - cl_stereo_separation
  - cl_stereo_convergence
  - crosshair_3d - non-cheating 3d crosshair
-  it does not work as iron sights, as is positioned exactly at the center of the view, similar to 2d crosshair
+   it does not work as iron sights, as is positioned exactly at the center of the view, similar to 2d crosshair
  - crosshair_3d_glow (0 - ...) - radius of glow area, can be used without crosshair_3d enabled
  - crosshair_3d_glow_r
  - crosshair_3d_glow_g
