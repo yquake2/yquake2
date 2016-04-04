@@ -766,8 +766,6 @@ CL_CalcViewValues(void)
 		lerp = cl.lerpfrac;
 	}
 
-
-
 	/* calculate the origin */
 	if ((cl_predict->value) && !(cl.frame.playerstate.pmove.pm_flags & PMF_NO_PREDICTION))
 	{
