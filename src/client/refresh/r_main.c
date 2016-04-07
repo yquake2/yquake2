@@ -142,10 +142,10 @@ cvar_t *gl_msaa_samples;
 cvar_t *vid_fullscreen;
 cvar_t *vid_gamma;
 
-cvar_t *cl_stereo;
-cvar_t *cl_stereo_separation;
-cvar_t *cl_stereo_anaglyph_colors;
-cvar_t *cl_stereo_convergence;
+cvar_t *gl_stereo;
+cvar_t *gl_stereo_separation;
+cvar_t *gl_stereo_anaglyph_colors;
+cvar_t *gl_stereo_convergence;
 
 /*
  * Returns true if the box is completely outside the frustom
@@ -686,8 +686,8 @@ R_MYgluPerspective(GLdouble fovy, GLdouble aspect,
 	xmin = ymin * aspect;
 	xmax = ymax * aspect;
 
-	xmin += - cl_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
-	xmax += - cl_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
+	xmin += - gl_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
+	xmax += - gl_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
 
 	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
 }
@@ -899,12 +899,12 @@ R_RenderView(refdef_t *fd)
 					// Work out the colour for each eye.
 					int anaglyph_colours[] = { 0x4, 0x3 }; // Left = red, right = cyan.
 
-					if (strlen(cl_stereo_anaglyph_colors->string) == 2) {
+					if (strlen(gl_stereo_anaglyph_colors->string) == 2) {
 						int eye, colour, missing_bits;
 						// Decode the colour name from its character.
 						for (eye = 0; eye < 2; ++eye) {
 							colour = 0;
-							switch (toupper(cl_stereo_anaglyph_colors->string[eye])) {
+							switch (toupper(gl_stereo_anaglyph_colors->string[eye])) {
 								case 'B': ++colour; // 001 Blue
 								case 'G': ++colour; // 010 Green
 								case 'C': ++colour; // 011 Cyan
@@ -1207,10 +1207,10 @@ R_Register(void)
 	gl_retexturing = Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
 
 
-	cl_stereo = Cvar_Get( "cl_stereo", "0", CVAR_ARCHIVE );
-	cl_stereo_separation = Cvar_Get( "cl_stereo_separation", "-0.4", CVAR_ARCHIVE );
-	cl_stereo_anaglyph_colors = Cvar_Get( "cl_stereo_anaglyph_colors", "rc", CVAR_ARCHIVE );
-	cl_stereo_convergence = Cvar_Get( "cl_stereo_convergence", "1", CVAR_ARCHIVE );
+	gl_stereo = Cvar_Get( "gl_stereo", "0", CVAR_ARCHIVE );
+	gl_stereo_separation = Cvar_Get( "gl_stereo_separation", "-0.4", CVAR_ARCHIVE );
+	gl_stereo_anaglyph_colors = Cvar_Get( "gl_stereo_anaglyph_colors", "rc", CVAR_ARCHIVE );
+	gl_stereo_convergence = Cvar_Get( "gl_stereo_convergence", "1", CVAR_ARCHIVE );
 
 	Cmd_AddCommand("imagelist", R_ImageList_f);
 	Cmd_AddCommand("screenshot", R_ScreenShot);
@@ -1322,7 +1322,7 @@ R_Init(void *hinstance, void *hWnd)
 
 	/* set our "safe" mode */
 	gl_state.prev_mode = 4;
-	gl_state.stereo_mode = cl_stereo->value;
+	gl_state.stereo_mode = gl_stereo->value;
 
 	/* create the window and set up the context */
 	if (!R_SetMode())
@@ -1539,11 +1539,11 @@ R_BeginFrame(float camera_separation)
 		vid_fullscreen->modified = true;
 	}
 
-	// force a vid_restart if cl_stereo has been modified.
-	if ( gl_state.stereo_mode != cl_stereo->value ) {
+	// force a vid_restart if gl_stereo has been modified.
+	if ( gl_state.stereo_mode != gl_stereo->value ) {
 		// If we've gone from one mode to another with the same special buffer requirements there's no need to restart.
-		if ( GL_GetSpecialBufferModeForStereoMode( gl_state.stereo_mode ) == GL_GetSpecialBufferModeForStereoMode( cl_stereo->value )  ) {
-			gl_state.stereo_mode = cl_stereo->value;
+		if ( GL_GetSpecialBufferModeForStereoMode( gl_state.stereo_mode ) == GL_GetSpecialBufferModeForStereoMode( gl_stereo->value )  ) {
+			gl_state.stereo_mode = gl_stereo->value;
 		}
 		else
 		{

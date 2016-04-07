@@ -830,7 +830,7 @@ Stereo support was added back.
 
 added cvars 
 -----------
- - cl_stereo:
+ - gl_stereo:
   - 0 - none
   - 1 - native opengl (not tested)
   - 2 - anaglyph
@@ -839,8 +839,8 @@ added cvars
   - 5 - pixel interleaved
   - 6 - horizontal split
   - 7 - vertical split
- - cl_stereo_separation
- - cl_stereo_convergence
+ - gl_stereo_separation
+ - gl_stereo_convergence
  - crosshair_3d - non-cheating 3d crosshair
    it does not work as iron sights, as is positioned exactly 
    at the center of the view, similar to 2d crosshair

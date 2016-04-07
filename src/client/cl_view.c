@@ -584,7 +584,7 @@ V_RenderView(float stereo_separation)
 		qsort(cl.refdef.entities, cl.refdef.num_entities,
 				sizeof(cl.refdef.entities[0]), (int (*)(const void *, const void *))
 				entitycmpfnc);
-	} else if (cl.frame.valid && cl_paused->value && cl_stereo->value) {  
+	} else if (cl.frame.valid && cl_paused->value && gl_stereo->value) {
 		// We need to adjust the refdef in stereo mode when paused.  
 		vec3_t tmp;  
 		CL_CalcViewValues();  
