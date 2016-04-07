@@ -631,7 +631,6 @@ V_Render3dCrosshair(void)
 {
 	trace_t crosshair_trace;
 	vec3_t end;
-	vec_t *crosshair_pos;
 
 	crosshair_3d = Cvar_Get("crosshair_3d", "0", CVAR_ARCHIVE);
 	crosshair_3d_glow = Cvar_Get("crosshair_3d_glow", "0", CVAR_ARCHIVE);

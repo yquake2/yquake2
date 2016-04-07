@@ -846,6 +846,43 @@ R_Flash(void)
 	R_PolyBlend();
 }
 
+void
+R_SetGL2D(void)
+{
+	int x, w, y, h;
+	/* set 2D virtual screen size */
+	qboolean drawing_left_eye = gl_state.camera_separation < 0;
+	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	x = 0;
+	w = vid.width;
+	y = 0;
+	h = vid.height;
+
+	if(stereo_split_lr) {
+		w =  w / 2;
+		x = drawing_left_eye ? 0 : w;
+	}
+
+	if(stereo_split_tb) {
+		h =  h / 2;
+		y = drawing_left_eye ? h : 0;
+	}
+
+	glViewport(x, y, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glEnable(GL_ALPHA_TEST);
+	glColor4f(1, 1, 1, 1);
+}
+
 /*
  * r_newrefdef must be set before the first call
  */
@@ -861,7 +898,7 @@ R_RenderView(refdef_t *fd)
 
 					// Work out the colour for each eye.
 					int anaglyph_colours[] = { 0x4, 0x3 }; // Left = red, right = cyan.
-					
+
 					if (strlen(cl_stereo_anaglyph_colors->string) == 2) {
 						int eye, colour, missing_bits;
 						// Decode the colour name from its character.
@@ -884,14 +921,14 @@ R_RenderView(refdef_t *fd)
 							anaglyph_colours[eye] |= missing_bits;
 						}
 					}
-	
+
 					// Set the current colour.
 					glColorMask(
 						!!(anaglyph_colours[drawing_left_eye] & 0x4),
 						!!(anaglyph_colours[drawing_left_eye] & 0x2),
 						!!(anaglyph_colours[drawing_left_eye] & 0x1),
 						GL_TRUE
-					);					
+					);
 				}
 				break;
 			case STEREO_MODE_ROW_INTERLEAVED:
@@ -954,6 +991,8 @@ R_RenderView(refdef_t *fd)
 					glStencilFunc(GL_EQUAL, drawing_left_eye ^ flip_eyes, 1);
 					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 				}
+				break;
+			default:
 				break;
 		}
 	}
@@ -1020,44 +1059,9 @@ R_RenderView(refdef_t *fd)
 		case STEREO_MODE_PIXEL_INTERLEAVED:
 			glDisable(GL_STENCIL_TEST);
 			break;
+		default:
+			break;
 	}
-}
-
-void
-R_SetGL2D(void)
-{
-	int x, w, y, h;
-	/* set 2D virtual screen size */
-	qboolean drawing_left_eye = gl_state.camera_separation < 0;
-	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
-	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
-
-	x = 0;
-	w = vid.width;
-	y = 0;
-	h = vid.height;
-
-	if(stereo_split_lr) {
-		w =  w / 2;
-		x = drawing_left_eye ? 0 : w;
-	}
-
-	if(stereo_split_tb) {
-		h =  h / 2;
-		y = drawing_left_eye ? h : 0;
-	}
-
-	glViewport(x, y, w, h);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
-	glEnable(GL_ALPHA_TEST);
-	glColor4f(1, 1, 1, 1);
 }
 
 enum opengl_special_buffer_modes GL_GetSpecialBufferModeForStereoMode(enum stereo_modes stereo_mode) {
