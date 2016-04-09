@@ -280,4 +280,32 @@ extern PFNGLGETATTRIBLOCATIONARBPROC qglGetAttribLocationARB;
 
 #endif /* GL_ARB_fragment_shader */
 
+/* -------------------------- GL_ARB_texture_float ------------------------- */
+
+#ifndef GL_ARB_texture_float
+#define GL_ARB_texture_float 1
+
+#define GL_RGBA32F_ARB 0x8814
+#define GL_RGB32F_ARB 0x8815
+#define GL_ALPHA32F_ARB 0x8816
+#define GL_INTENSITY32F_ARB 0x8817
+#define GL_LUMINANCE32F_ARB 0x8818
+#define GL_LUMINANCE_ALPHA32F_ARB 0x8819
+#define GL_RGBA16F_ARB 0x881A
+#define GL_RGB16F_ARB 0x881B
+#define GL_ALPHA16F_ARB 0x881C
+#define GL_INTENSITY16F_ARB 0x881D
+#define GL_LUMINANCE16F_ARB 0x881E
+#define GL_LUMINANCE_ALPHA16F_ARB 0x881F
+#define GL_TEXTURE_RED_TYPE_ARB 0x8C10
+#define GL_TEXTURE_GREEN_TYPE_ARB 0x8C11
+#define GL_TEXTURE_BLUE_TYPE_ARB 0x8C12
+#define GL_TEXTURE_ALPHA_TYPE_ARB 0x8C13
+#define GL_TEXTURE_LUMINANCE_TYPE_ARB 0x8C14
+#define GL_TEXTURE_INTENSITY_TYPE_ARB 0x8C15
+#define GL_TEXTURE_DEPTH_TYPE_ARB 0x8C16
+#define GL_UNSIGNED_NORMALIZED_ARB 0x8C17
+
+#endif /* GL_ARB_texture_float */
+
 #endif

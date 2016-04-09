@@ -400,6 +400,7 @@ typedef struct
 	qboolean shaders;
 	qboolean vertex_shaders;
 	qboolean fragment_shaders;
+	qboolean float_textures;
 } glconfig_t;
 
 typedef struct

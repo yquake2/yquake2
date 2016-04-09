@@ -1587,6 +1587,21 @@ R_Init(void *hinstance, void *hWnd)
 		gl_config.fragment_shaders = false;
 	}
 	
+	/* -------------------------- GL_ARB_texture_float ------------------------- */
+	
+	gl_config.float_textures = false;
+	
+	if (strstr(gl_config.extensions_string, "GL_ARB_texture_float"))
+	{
+		VID_Printf(PRINT_ALL, "...using GL_ARB_texture_float\n");
+		gl_config.float_textures = true;
+	}
+	else
+	{
+		VID_Printf(PRINT_ALL, "...GL_ARB_texture_float not found\n");
+		gl_config.float_textures = false;
+	}
+	
 	
 	R_SetDefaultState();
 
