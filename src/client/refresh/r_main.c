@@ -1572,6 +1572,21 @@ R_Init(void *hinstance, void *hWnd)
 		gl_config.vertex_shaders = false;
 	}
 	
+	/* -------------------------- GL_ARB_fragment_shader ------------------------- */
+	
+	gl_config.fragment_shaders = false;
+	
+	if (strstr(gl_config.extensions_string, "GL_ARB_fragment_shader"))
+	{
+		VID_Printf(PRINT_ALL, "...using GL_ARB_fragment_shader\n");
+		gl_config.fragment_shaders = true;
+	}
+	else
+	{
+		VID_Printf(PRINT_ALL, "...GL_ARB_fragment_shader not found\n");
+		gl_config.fragment_shaders = false;
+	}
+	
 	
 	R_SetDefaultState();
 
