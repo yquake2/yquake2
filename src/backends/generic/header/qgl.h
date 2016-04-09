@@ -269,4 +269,15 @@ extern PFNGLGETATTRIBLOCATIONARBPROC qglGetAttribLocationARB;
 
 #endif /* GL_ARB_vertex_shader */
 
+/* ------------------------- GL_ARB_fragment_shader ------------------------ */
+
+#ifndef GL_ARB_fragment_shader
+#define GL_ARB_fragment_shader 1
+
+#define GL_FRAGMENT_SHADER_ARB 0x8B30
+#define GL_MAX_FRAGMENT_UNIFORM_COMPONENTS_ARB 0x8B49
+#define GL_FRAGMENT_SHADER_DERIVATIVE_HINT_ARB 0x8B8B
+
+#endif /* GL_ARB_fragment_shader */
+
 #endif
