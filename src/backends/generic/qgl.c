@@ -92,6 +92,12 @@ PFNGLUNIFORMMATRIX4FVARBPROC qglUniformMatrix4fvARB;
 PFNGLUSEPROGRAMOBJECTARBPROC qglUseProgramObjectARB;
 PFNGLVALIDATEPROGRAMARBPROC qglValidateProgramARB;
 
+/* -------------------------- GL_ARB_vertex_shader ------------------------- */
+
+PFNGLBINDATTRIBLOCATIONARBPROC qglBindAttribLocationARB;
+PFNGLGETACTIVEATTRIBARBPROC qglGetActiveAttribARB;
+PFNGLGETATTRIBLOCATIONARBPROC qglGetAttribLocationARB;
+
 /* ========================================================================= */
 
 void QGL_EXT_Reset ( void )
@@ -147,6 +153,12 @@ void QGL_EXT_Reset ( void )
 	qglUniformMatrix4fvARB = NULL;
 	qglUseProgramObjectARB = NULL;
 	qglValidateProgramARB = NULL;	
+
+	/* -------------------------- GL_ARB_vertex_shader ------------------------- */
+	
+	qglBindAttribLocationARB = NULL;
+	qglGetActiveAttribARB = NULL;
+	qglGetAttribLocationARB = NULL;
 }
 
 /* ========================================================================= */

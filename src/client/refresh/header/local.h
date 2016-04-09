@@ -387,6 +387,7 @@ typedef struct
 	float max_anisotropy;
 	
 	qboolean shaders;
+	qboolean vertex_shaders;
 } glconfig_t;
 
 typedef struct

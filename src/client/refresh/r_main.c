@@ -1549,6 +1549,30 @@ R_Init(void *hinstance, void *hWnd)
 		gl_config.shaders = false;
 	}
 	
+	/* -------------------------- GL_ARB_vertex_shader ------------------------- */
+	
+	gl_config.vertex_shaders = false;
+	
+	if (strstr(gl_config.extensions_string, "GL_ARB_vertex_shader"))
+	{
+		VID_Printf(PRINT_ALL, "...using GL_ARB_vertex_shader\n");
+		
+		gl_config.vertex_shaders = true;
+
+#define GET_PROC_ADDRESS(x) q##x = ( void * ) GLimp_GetProcAddress ( #x );
+		GET_PROC_ADDRESS(glBindAttribLocationARB);
+		GET_PROC_ADDRESS(glGetActiveAttribARB);
+		GET_PROC_ADDRESS(glGetAttribLocationARB);
+#undef GET_PROC_ADDRESS
+
+	}
+	else
+	{
+		VID_Printf(PRINT_ALL, "...GL_ARB_vertex_shader not found\n");
+		gl_config.vertex_shaders = false;
+	}
+	
+	
 	R_SetDefaultState();
 
 	R_InitImages();
