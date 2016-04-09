@@ -17,11 +17,28 @@ const GLcharARB* fragment_shader_source =
 	"uniform sampler2D tex0;\n"
 	"void main() { gl_FragColor = texture2D(tex0, gl_TexCoord[0].st); }\n"
 	"\n";
+
+static void
+PrintObjectInfoLog(GLhandleARB object)
+{
+	GLint info_log_length = 0;
+	GLcharARB *info_log_buffer = NULL;
+
+	qglGetObjectParameterivARB(object, GL_OBJECT_INFO_LOG_LENGTH_ARB, &info_log_length);
 	
+	if (info_log_length > 0)
+	{
+		info_log_buffer = (GLcharARB*)Z_Malloc(info_log_length * sizeof(GLcharARB));
+		qglGetInfoLogARB(object, info_log_length, NULL, info_log_buffer);
+		VID_Printf(PRINT_ALL, info_log_buffer);
+		Z_Free(info_log_buffer);
+	}
+}
+
 void
 R_InitPathtracing(void)
 {
-	GLint status;
+	GLint status = 0;
 	
 	gl_pt_enable = Cvar_Get( "gl_pt_enable", "0", CVAR_ARCHIVE);
 
@@ -36,6 +53,7 @@ R_InitPathtracing(void)
 	if (status != GL_TRUE)
 	{
 		VID_Printf(PRINT_ALL, "R_InitPathtracing: Vertex shader failed to compile\n");
+		PrintObjectInfoLog(vertex_shader);
 		return;
 	}
 
@@ -46,6 +64,7 @@ R_InitPathtracing(void)
 	if (status != GL_TRUE)
 	{
 		VID_Printf(PRINT_ALL, "R_InitPathtracing: Fragment shader failed to compile\n");
+		PrintObjectInfoLog(fragment_shader);
 		return;
 	}
 	
@@ -58,6 +77,7 @@ R_InitPathtracing(void)
 	if (status != GL_TRUE)
 	{
 		VID_Printf(PRINT_ALL, "R_InitPathtracing: Program failed to link\n");
+		PrintObjectInfoLog(pt_program_handle);
 		return;
 	}
 	
