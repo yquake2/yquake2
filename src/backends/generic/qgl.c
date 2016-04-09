@@ -50,6 +50,48 @@ void ( APIENTRY *qglMultiTexCoord2fARB ) ( GLenum, GLfloat, GLfloat );
 void ( APIENTRY *qglActiveTextureARB ) ( GLenum );
 void ( APIENTRY *qglClientActiveTextureARB ) ( GLenum );
 
+/* ------------------------- GL_ARB_shader_objects ------------------------- */
+
+PFNGLATTACHOBJECTARBPROC qglAttachObjectARB;
+PFNGLCOMPILESHADERARBPROC qglCompileShaderARB;
+PFNGLCREATEPROGRAMOBJECTARBPROC qglCreateProgramObjectARB;
+PFNGLCREATESHADEROBJECTARBPROC qglCreateShaderObjectARB;
+PFNGLDELETEOBJECTARBPROC qglDeleteObjectARB;
+PFNGLDETACHOBJECTARBPROC qglDetachObjectARB;
+PFNGLGETACTIVEUNIFORMARBPROC qglGetActiveUniformARB;
+PFNGLGETATTACHEDOBJECTSARBPROC qglGetAttachedObjectsARB;
+PFNGLGETHANDLEARBPROC qglGetHandleARB;
+PFNGLGETINFOLOGARBPROC qglGetInfoLogARB;
+PFNGLGETOBJECTPARAMETERFVARBPROC qglGetObjectParameterfvARB;
+PFNGLGETOBJECTPARAMETERIVARBPROC qglGetObjectParameterivARB;
+PFNGLGETSHADERSOURCEARBPROC qglGetShaderSourceARB;
+PFNGLGETUNIFORMLOCATIONARBPROC qglGetUniformLocationARB;
+PFNGLGETUNIFORMFVARBPROC qglGetUniformfvARB;
+PFNGLGETUNIFORMIVARBPROC qglGetUniformivARB;
+PFNGLLINKPROGRAMARBPROC qglLinkProgramARB;
+PFNGLSHADERSOURCEARBPROC qglShaderSourceARB;
+PFNGLUNIFORM1FARBPROC qglUniform1fARB;
+PFNGLUNIFORM1FVARBPROC qglUniform1fvARB;
+PFNGLUNIFORM1IARBPROC qglUniform1iARB;
+PFNGLUNIFORM1IVARBPROC qglUniform1ivARB;
+PFNGLUNIFORM2FARBPROC qglUniform2fARB;
+PFNGLUNIFORM2FVARBPROC qglUniform2fvARB;
+PFNGLUNIFORM2IARBPROC qglUniform2iARB;
+PFNGLUNIFORM2IVARBPROC qglUniform2ivARB;
+PFNGLUNIFORM3FARBPROC qglUniform3fARB;
+PFNGLUNIFORM3FVARBPROC qglUniform3fvARB;
+PFNGLUNIFORM3IARBPROC qglUniform3iARB;
+PFNGLUNIFORM3IVARBPROC qglUniform3ivARB;
+PFNGLUNIFORM4FARBPROC qglUniform4fARB;
+PFNGLUNIFORM4FVARBPROC qglUniform4fvARB;
+PFNGLUNIFORM4IARBPROC qglUniform4iARB;
+PFNGLUNIFORM4IVARBPROC qglUniform4ivARB;
+PFNGLUNIFORMMATRIX2FVARBPROC qglUniformMatrix2fvARB;
+PFNGLUNIFORMMATRIX3FVARBPROC qglUniformMatrix3fvARB;
+PFNGLUNIFORMMATRIX4FVARBPROC qglUniformMatrix4fvARB;
+PFNGLUSEPROGRAMOBJECTARBPROC qglUseProgramObjectARB;
+PFNGLVALIDATEPROGRAMARBPROC qglValidateProgramARB;
+
 /* ========================================================================= */
 
 void QGL_EXT_Reset ( void )
@@ -63,6 +105,48 @@ void QGL_EXT_Reset ( void )
 	qglMultiTexCoord2fARB     = NULL;
 	qglActiveTextureARB       = NULL;
 	qglClientActiveTextureARB = NULL;
+   
+	/* ------------------------- GL_ARB_shader_objects ------------------------- */
+
+	qglAttachObjectARB = NULL;
+	qglCompileShaderARB = NULL;
+	qglCreateProgramObjectARB = NULL;
+	qglCreateShaderObjectARB = NULL;
+	qglDeleteObjectARB = NULL;
+	qglDetachObjectARB = NULL;
+	qglGetActiveUniformARB = NULL;
+	qglGetAttachedObjectsARB = NULL;
+	qglGetHandleARB = NULL;
+	qglGetInfoLogARB = NULL;
+	qglGetObjectParameterfvARB = NULL;
+	qglGetObjectParameterivARB = NULL;
+	qglGetShaderSourceARB = NULL;
+	qglGetUniformLocationARB = NULL;
+	qglGetUniformfvARB = NULL;
+	qglGetUniformivARB = NULL;
+	qglLinkProgramARB = NULL;
+	qglShaderSourceARB = NULL;
+	qglUniform1fARB = NULL;
+	qglUniform1fvARB = NULL;
+	qglUniform1iARB = NULL;
+	qglUniform1ivARB = NULL;
+	qglUniform2fARB = NULL;
+	qglUniform2fvARB = NULL;
+	qglUniform2iARB = NULL;
+	qglUniform2ivARB = NULL;
+	qglUniform3fARB = NULL;
+	qglUniform3fvARB = NULL;
+	qglUniform3iARB = NULL;
+	qglUniform3ivARB = NULL;
+	qglUniform4fARB = NULL;
+	qglUniform4fvARB = NULL;
+	qglUniform4iARB = NULL;
+	qglUniform4ivARB = NULL;
+	qglUniformMatrix2fvARB = NULL;
+	qglUniformMatrix3fvARB = NULL;
+	qglUniformMatrix4fvARB = NULL;
+	qglUseProgramObjectARB = NULL;
+	qglValidateProgramARB = NULL;	
 }
 
 /* ========================================================================= */

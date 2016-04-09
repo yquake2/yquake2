@@ -1490,6 +1490,65 @@ R_Init(void *hinstance, void *hWnd)
 		}
 	}
 
+	/* ------------------------- GL_ARB_shader_objects ------------------------- */
+	
+	gl_config.shaders = false;
+	
+	if (strstr(gl_config.extensions_string, "GL_ARB_shader_objects"))
+	{
+		VID_Printf(PRINT_ALL, "...using GL_ARB_shader_objects\n");
+		
+		gl_config.shaders = true;
+
+#define GET_PROC_ADDRESS(x) q##x = ( void * ) GLimp_GetProcAddress ( #x );
+		GET_PROC_ADDRESS(glAttachObjectARB);
+		GET_PROC_ADDRESS(glCompileShaderARB);
+		GET_PROC_ADDRESS(glCreateProgramObjectARB);
+		GET_PROC_ADDRESS(glCreateShaderObjectARB);
+		GET_PROC_ADDRESS(glDeleteObjectARB);
+		GET_PROC_ADDRESS(glDetachObjectARB);
+		GET_PROC_ADDRESS(glGetActiveUniformARB);
+		GET_PROC_ADDRESS(glGetAttachedObjectsARB);
+		GET_PROC_ADDRESS(glGetHandleARB);
+		GET_PROC_ADDRESS(glGetInfoLogARB);
+		GET_PROC_ADDRESS(glGetObjectParameterfvARB);
+		GET_PROC_ADDRESS(glGetObjectParameterivARB);
+		GET_PROC_ADDRESS(glGetShaderSourceARB);
+		GET_PROC_ADDRESS(glGetUniformLocationARB);
+		GET_PROC_ADDRESS(glGetUniformfvARB);
+		GET_PROC_ADDRESS(glGetUniformivARB);
+		GET_PROC_ADDRESS(glLinkProgramARB);
+		GET_PROC_ADDRESS(glShaderSourceARB);
+		GET_PROC_ADDRESS(glUniform1fARB);
+		GET_PROC_ADDRESS(glUniform1fvARB);
+		GET_PROC_ADDRESS(glUniform1iARB);
+		GET_PROC_ADDRESS(glUniform1ivARB);
+		GET_PROC_ADDRESS(glUniform2fARB);
+		GET_PROC_ADDRESS(glUniform2fvARB);
+		GET_PROC_ADDRESS(glUniform2iARB);
+		GET_PROC_ADDRESS(glUniform2ivARB);
+		GET_PROC_ADDRESS(glUniform3fARB);
+		GET_PROC_ADDRESS(glUniform3fvARB);
+		GET_PROC_ADDRESS(glUniform3iARB);
+		GET_PROC_ADDRESS(glUniform3ivARB);
+		GET_PROC_ADDRESS(glUniform4fARB);
+		GET_PROC_ADDRESS(glUniform4fvARB);
+		GET_PROC_ADDRESS(glUniform4iARB);
+		GET_PROC_ADDRESS(glUniform4ivARB);
+		GET_PROC_ADDRESS(glUniformMatrix2fvARB);
+		GET_PROC_ADDRESS(glUniformMatrix3fvARB);
+		GET_PROC_ADDRESS(glUniformMatrix4fvARB);
+		GET_PROC_ADDRESS(glUseProgramObjectARB);
+		GET_PROC_ADDRESS(glValidateProgramARB);
+#undef GET_PROC_ADDRESS
+
+	}
+	else
+	{
+		VID_Printf(PRINT_ALL, "...GL_ARB_shader_objects not found\n");
+		gl_config.shaders = false;
+	}
+	
 	R_SetDefaultState();
 
 	R_InitImages();

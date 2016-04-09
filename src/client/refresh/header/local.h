@@ -382,6 +382,8 @@ typedef struct
 	qboolean anisotropic;
 	qboolean tex_npot;
 	float max_anisotropy;
+	
+	qboolean shaders;
 } glconfig_t;
 
 typedef struct
