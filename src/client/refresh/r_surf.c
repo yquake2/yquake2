@@ -1154,6 +1154,11 @@ R_DrawWorld(void)
 		return;
 	}
 
+	if (gl_pt_enable->value)
+	{
+		qglUseProgramObjectARB(pt_program_handle);
+	}
+	
 	currentmodel = r_worldmodel;
 
 	VectorCopy(r_newrefdef.vieworg, modelorg);
@@ -1234,6 +1239,11 @@ R_DrawWorld(void)
 	R_BlendLightmaps();
 	R_DrawSkyBox();
 	R_DrawTriangleOutlines();
+
+	if (gl_pt_enable->value)
+	{
+		qglUseProgramObjectARB(0);
+	}
 
 	currententity = NULL;
 }

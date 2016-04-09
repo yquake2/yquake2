@@ -276,6 +276,8 @@ extern cvar_t *vid_gamma;
 
 extern cvar_t *intensity;
 
+extern cvar_t *gl_pt_enable;
+
 extern int gl_lightmap_format;
 extern int gl_solid_format;
 extern int gl_alpha_format;
@@ -359,8 +361,17 @@ void R_TextureAlphaMode(char *string);
 void R_TextureSolidMode(char *string);
 int Scrap_AllocBlock(int w, int h, int *x, int *y);
 
+
+/*
+ * Pathtracing
+ */
+ 
 void R_InitPathtracing(void);
 void R_ShutdownPathtracing(void);
+
+extern GLhandleARB pt_program_handle;
+
+
 
 /* GL extension emulation functions */
 void R_DrawParticles2(int n,

@@ -1,6 +1,9 @@
 #include "header/local.h"
 
-static GLhandleARB program_handle;
+cvar_t *gl_pt_enable;
+
+GLhandleARB pt_program_handle;
+
 static GLhandleARB vertex_shader;
 static GLhandleARB fragment_shader;
 
@@ -19,7 +22,9 @@ R_InitPathtracing(void)
 {
 	GLint status;
 	
-	program_handle = qglCreateProgramObjectARB();
+	gl_pt_enable = Cvar_Get( "gl_pt_enable", "0", CVAR_ARCHIVE);
+
+	pt_program_handle = qglCreateProgramObjectARB();
 	vertex_shader = qglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
 	fragment_shader = qglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
 	
@@ -43,11 +48,11 @@ R_InitPathtracing(void)
 		return;
 	}
 	
-	qglAttachObjectARB(program_handle, vertex_shader);
-	qglAttachObjectARB(program_handle, fragment_shader);
+	qglAttachObjectARB(pt_program_handle, vertex_shader);
+	qglAttachObjectARB(pt_program_handle, fragment_shader);
 	
-	qglLinkProgramARB(program_handle);
-	qglGetObjectParameterivARB(program_handle, GL_OBJECT_LINK_STATUS_ARB, &status);
+	qglLinkProgramARB(pt_program_handle);
+	qglGetObjectParameterivARB(pt_program_handle, GL_OBJECT_LINK_STATUS_ARB, &status);
 	
 	if (status != GL_TRUE)
 	{
@@ -59,8 +64,8 @@ R_InitPathtracing(void)
 void
 R_ShutdownPathtracing(void)
 {
-	qglDeleteObjectARB(program_handle);
 	qglDeleteObjectARB(vertex_shader);
 	qglDeleteObjectARB(fragment_shader);
+	qglDeleteObjectARB(pt_program_handle);
 }
 
