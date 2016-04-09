@@ -368,10 +368,12 @@ int Scrap_AllocBlock(int w, int h, int *x, int *y);
  
 void R_InitPathtracing(void);
 void R_ShutdownPathtracing(void);
+void R_PreparePathtracer(void);
 
 extern GLhandleARB pt_program_handle;
-
-
+extern GLhandleARB pt_node_texture;
+extern GLhandleARB pt_child_texture;
+extern GLint pt_frame_counter_loc;
 
 /* GL extension emulation functions */
 void R_DrawParticles2(int n,

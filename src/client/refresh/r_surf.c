@@ -635,6 +635,14 @@ R_RenderLightmappedPoly(msurface_t *surf)
 	unsigned lmtex = surf->lightmaptexturenum;
 	glpoly_t *p;
 
+	if (gl_pt_enable->value)
+	{
+		if (surf->flags & SURF_PLANEBACK)
+			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, -surf->plane->normal[0], -surf->plane->normal[1], -surf->plane->normal[2]);
+		else
+			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, surf->plane->normal[0], surf->plane->normal[1], surf->plane->normal[2]);
+	}
+	
 	for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
 	{
 		if (r_newrefdef.lightstyles[surf->styles[map]].white !=
@@ -1156,7 +1164,14 @@ R_DrawWorld(void)
 
 	if (gl_pt_enable->value)
 	{
+		static unsigned long int pt_frame_counter = 0;
 		qglUseProgramObjectARB(pt_program_handle);
+		qglActiveTextureARB(GL_TEXTURE2_ARB);
+		glBindTexture(GL_TEXTURE_2D, pt_node_texture);
+		qglActiveTextureARB(GL_TEXTURE3_ARB);
+		glBindTexture(GL_TEXTURE_2D, pt_child_texture);
+		qglActiveTextureARB(GL_TEXTURE0_ARB);
+		qglUniform1iARB(pt_frame_counter_loc, pt_frame_counter++);
 	}
 	
 	currentmodel = r_worldmodel;
@@ -1243,6 +1258,11 @@ R_DrawWorld(void)
 	if (gl_pt_enable->value)
 	{
 		qglUseProgramObjectARB(0);
+		qglActiveTextureARB(GL_TEXTURE2_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE3_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE0_ARB);
 	}
 
 	currententity = NULL;
