@@ -9,12 +9,13 @@ static GLhandleARB fragment_shader;
 
 const GLcharARB* vertex_shader_source =
 	"#version 120\n"
-	"void main() { gl_Position = ftransform(); }\n"
+	"void main() { gl_Position = ftransform(); gl_TexCoord[0] = gl_MultiTexCoord0; }\n"
 	"\n";
 
 const GLcharARB* fragment_shader_source =
 	"#version 120\n"
-	"void main() { gl_FragColor = vec4(1.0, 0.2, 1.0, 1.0); }\n"
+	"uniform sampler2D tex0;\n"
+	"void main() { gl_FragColor = texture2D(tex0, gl_TexCoord[0].st); }\n"
 	"\n";
 	
 void
@@ -59,6 +60,10 @@ R_InitPathtracing(void)
 		VID_Printf(PRINT_ALL, "R_InitPathtracing: Program failed to link\n");
 		return;
 	}
+	
+	qglUseProgramObjectARB(pt_program_handle);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "tex0"), 0);
+	qglUseProgramObjectARB(0);
 }
 
 void
