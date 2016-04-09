@@ -1415,6 +1415,7 @@ R_Init(void *hinstance, void *hWnd)
 		{
 			VID_Printf(PRINT_ALL, "...using GL_ARB_multitexture\n");
 			qglMultiTexCoord2fARB = ( void * ) GLimp_GetProcAddress ( "glMultiTexCoord2fARB" );
+			qglMultiTexCoord3fARB = ( void * ) GLimp_GetProcAddress ( "glMultiTexCoord3fARB" );
 			qglActiveTextureARB = ( void * ) GLimp_GetProcAddress ( "glActiveTextureARB" );
 			qglClientActiveTextureARB = ( void * ) GLimp_GetProcAddress ( "glClientActiveTextureARB" );
 		}

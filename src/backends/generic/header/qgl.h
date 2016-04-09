@@ -48,6 +48,9 @@
 #define GL_TEXTURE0_SGIS 0x835E
 #define GL_TEXTURE1_SGIS 0x835F
 
+#define GL_TEXTURE2_ARB 0x84C2
+#define GL_TEXTURE3_ARB 0x84C3
+
 #define GL_POINT_SIZE_MIN_EXT 0x8126
 #define GL_POINT_SIZE_MAX_EXT 0x8127
 #define GL_DISTANCE_ATTENUATION_EXT 0x8129
@@ -117,6 +120,7 @@ extern void ( APIENTRY *qglColorTableEXT ) ( GLenum, GLenum, GLsizei, GLenum,
 extern void ( APIENTRY *qglLockArraysEXT ) ( int, int );
 extern void ( APIENTRY *qglUnlockArraysEXT ) ( void );
 extern void ( APIENTRY *qglMultiTexCoord2fARB) ( GLenum, GLfloat, GLfloat );
+extern void ( APIENTRY *qglMultiTexCoord3fARB) ( GLenum, GLfloat, GLfloat, GLfloat );
 extern void ( APIENTRY *qglActiveTextureARB ) ( GLenum );
 extern void ( APIENTRY *qglClientActiveTextureARB ) ( GLenum );
 
