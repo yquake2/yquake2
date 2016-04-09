@@ -77,7 +77,7 @@
 #define MAX_SCRAPS 1
 #define BLOCK_WIDTH 128
 #define BLOCK_HEIGHT 128
-#define REF_VERSION "Yamagi Quake II OpenGL Refresher"
+#define REF_VERSION "Yamagi Quake II OpenGL Refresher (+Pathtracing)"
 #define MAX_LBM_HEIGHT 480
 #define BACKFACE_EPSILON 0.01
 #define DYNAMIC_LIGHT_WIDTH 128
