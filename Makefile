@@ -624,6 +624,7 @@ CLIENT_OBJS_ := \
 	src/client/refresh/r_scrap.o \
 	src/client/refresh/r_surf.o \
 	src/client/refresh/r_warp.o \
+	src/client/refresh/r_pathtracing.o \
 	src/client/refresh/files/md2.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/sp2.o \

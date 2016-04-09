@@ -359,6 +359,9 @@ void R_TextureAlphaMode(char *string);
 void R_TextureSolidMode(char *string);
 int Scrap_AllocBlock(int w, int h, int *x, int *y);
 
+void R_InitPathtracing(void);
+void R_ShutdownPathtracing(void);
+
 /* GL extension emulation functions */
 void R_DrawParticles2(int n,
 		const particle_t particles[],

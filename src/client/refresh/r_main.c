@@ -1556,6 +1556,8 @@ R_Init(void *hinstance, void *hWnd)
 	R_InitParticleTexture();
 	Draw_InitLocal();
 
+	R_InitPathtracing();
+	
 	err = glGetError();
 
 	if (err != GL_NO_ERROR)
@@ -1578,6 +1580,8 @@ R_Shutdown(void)
 
 	R_ShutdownImages();
 
+	R_ShutdownPathtracing();
+	
 	/* shutdown OS specific OpenGL stuff like contexts, etc.  */
 	GLimp_Shutdown();
 
