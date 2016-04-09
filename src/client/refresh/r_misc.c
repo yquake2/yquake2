@@ -247,5 +247,10 @@ R_SetDefaultState(void)
 		glEnable(GL_MULTISAMPLE);
 		glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
 	}
+	
+	if (qglUseProgramObjectARB)
+	{
+		qglUseProgramObjectARB(0);
+	}
 }
 
