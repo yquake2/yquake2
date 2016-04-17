@@ -459,7 +459,7 @@ AddAliasModel(entity_t *entity, model_t *model)
 	float frontlerp;
 	vec3_t move, delta, vectors[3];
 	vec3_t frontv, backv;
-	int i, j, k;
+	int i, j, k, m;
 	float *lerp;
 	float transformation_matrix[16];
 	vec4_t lerped_vertex;
@@ -615,6 +615,47 @@ AddAliasModel(entity_t *entity, model_t *model)
 	
 	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeMortonCodeComparator);
 
+	/* Group nodes together to create a hierarchy in bottom-up style. */
+	
+	for (i = 0; i < PT_MAX_NODE_DEPTH; ++i)
+	{
+		int first_node_index2 = pt_num_nodes;
+		int num_added_nodes2 = 0;
+		for (j = 0; j < num_added_nodes; j += PT_MAX_NODE_CHILDREN)
+		{
+			if (pt_num_nodes >= PT_MAX_TRI_NODES)
+				continue;
+			
+			node = AllocateNode();
+			
+			num_added_nodes2++;
+			
+			node->leaf = false;
+			
+			for (k = 0; k < PT_MAX_NODE_CHILDREN && (j + k) < num_added_nodes; ++k)
+			{
+				node->children[k] = pt_trinodes_ordered + first_node_index + j + k;
+				for (m = 0; m < 3; ++m)
+				{
+					if(node->aabb_min[m] > node->children[k]->aabb_min[k])
+						node->aabb_min[m] = node->children[k]->aabb_min[k];
+
+					if(node->aabb_max[m] < node->children[k]->aabb_max[k])
+						node->aabb_max[m] = node->children[k]->aabb_max[k];
+				}
+				++node->num_children;
+			}
+			
+			node->surface_area = TriNodeCalculateSurfaceArea(node);
+		}
+		first_node_index = first_node_index2;
+		num_added_nodes = num_added_nodes2;
+	}
+	
+	/* Sort the top-level nodes by surface area so that the nodes with largest area are visited first. This is done because the
+		larger nodes are more likely to be intersected by a given random ray. */
+	
+	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeSurfaceAreaComparator);
 }
 
 static void
