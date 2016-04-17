@@ -168,6 +168,7 @@ static trinode_t *pt_trinodes_ordered[PT_MAX_TRI_NODES];
 static short pt_num_nodes = 0;
 static short pt_num_triangles = 0;
 static short pt_num_vertices = 0;
+static short pt_written_nodes = 0;
 
 static int pt_triangle_data[PT_MAX_TRIANGLES * 2];
 static int pt_node0_data[PT_MAX_TRI_NODES * 4];
@@ -307,7 +308,7 @@ TriNodeWriteData(const trinode_t *n, int *node0_data, int *node1_data, int index
 }
 
 static int
-WriteTriNodes(int *node0_data, int *node1_data, const trinode_t *nodes, int num_nodes)
+WriteTriNodes(int *node0_data, int *node1_data, int first_node_index, int num_nodes)
 {
 	int i, m;
 	int node_count = 0, prev_node_count = -1;
@@ -315,7 +316,7 @@ WriteTriNodes(int *node0_data, int *node1_data, const trinode_t *nodes, int num_
 	
 	for (i = 0; i < num_nodes; ++i)
 	{
-		m = TriNodeWriteData(nodes + i, node0_data, node1_data, node_count);
+		m = TriNodeWriteData(pt_trinodes_ordered[first_node_index + i], node0_data, node1_data, node_count);
 		if (m > 0)
 		{
 			if (node_count > 0)
@@ -666,6 +667,8 @@ AddAliasModel(entity_t *entity, model_t *model)
 		larger nodes are more likely to be intersected by a given random ray. */
 	
 	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeSurfaceAreaComparator);
+
+	pt_written_nodes += WriteTriNodes(pt_node0_data + pt_written_nodes * 4, pt_node1_data + pt_written_nodes * 4, first_node_index, num_added_nodes);
 }
 
 static void
@@ -734,9 +737,10 @@ R_UpdatePathtracerForCurrentFrame(void)
 	pt_num_nodes = 0;
 	pt_num_triangles = 0;
 	pt_num_vertices = 0;
+	pt_written_nodes = 0;
 	
 	AddEntities();
-	
+		
 	UploadTextureBufferData(pt_node0_buffer, pt_node0_data, pt_num_nodes * 4 * sizeof(GLint));
 	UploadTextureBufferData(pt_node1_buffer, pt_node1_data, pt_num_nodes * 4 * sizeof(GLint));
 	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data, pt_num_triangles * 2 * sizeof(GLint));
