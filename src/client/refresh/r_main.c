@@ -1603,6 +1603,63 @@ R_Init(void *hinstance, void *hWnd)
 		gl_config.float_textures = false;
 	}
 	
+	/* -------------------------- GL_ARB_texture_buffer_object ------------------------- */
+	
+	gl_config.texture_buffer_objects = false;
+	
+	if (strstr(gl_config.extensions_string, "GL_ARB_texture_buffer_object"))
+	{
+		VID_Printf(PRINT_ALL, "...using GL_ARB_texture_buffer_object\n");
+		
+		gl_config.texture_buffer_objects = true;
+		
+#define GET_PROC_ADDRESS(x) q##x = ( void * ) GLimp_GetProcAddress ( #x );
+		GET_PROC_ADDRESS(glTexBufferARB);
+#undef GET_PROC_ADDRESS
+
+	}
+	else
+	{
+		VID_Printf(PRINT_ALL, "...GL_ARB_texture_buffer_object not found\n");
+		gl_config.texture_buffer_objects = false;
+	}
+	
+	/* -------------------------- GL_EXT_texture_buffer_object ------------------------- */
+
+	if (!gl_config.texture_buffer_objects)
+	{
+		if (strstr(gl_config.extensions_string, "GL_EXT_texture_buffer_object"))
+		{
+			VID_Printf(PRINT_ALL, "...using GL_EXT_texture_buffer_object\n");
+			
+			gl_config.texture_buffer_objects = true;
+			
+#define GET_PROC_ADDRESS(x) q##x = ( void * ) GLimp_GetProcAddress ( #x );
+			GET_PROC_ADDRESS(glTexBufferEXT);
+#undef GET_PROC_ADDRESS
+
+		}
+		else
+		{
+			VID_Printf(PRINT_ALL, "...GL_EXT_texture_buffer_object not found\n");
+			gl_config.texture_buffer_objects = false;
+		}
+	}
+	
+	/* -------------------------- GL_ARB_texture_buffer_object_rgb32 ------------------------- */
+	
+	gl_config.texture_buffer_objects_rgb = false;
+	
+	if (strstr(gl_config.extensions_string, "GL_ARB_texture_buffer_object_rgb32"))
+	{
+		VID_Printf(PRINT_ALL, "...using GL_ARB_texture_buffer_object_rgb32\n");
+		gl_config.texture_buffer_objects_rgb = true;
+	}
+	else
+	{
+		VID_Printf(PRINT_ALL, "...GL_ARB_texture_buffer_object_rgb32 not found\n");
+		gl_config.texture_buffer_objects_rgb = false;
+	}
 	
 	R_SetDefaultState();
 

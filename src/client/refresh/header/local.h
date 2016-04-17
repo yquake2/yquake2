@@ -403,6 +403,8 @@ typedef struct
 	qboolean vertex_shaders;
 	qboolean fragment_shaders;
 	qboolean float_textures;
+	qboolean texture_buffer_objects;
+	qboolean texture_buffer_objects_rgb;
 } glconfig_t;
 
 typedef struct

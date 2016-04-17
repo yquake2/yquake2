@@ -99,6 +99,14 @@ PFNGLBINDATTRIBLOCATIONARBPROC qglBindAttribLocationARB;
 PFNGLGETACTIVEATTRIBARBPROC qglGetActiveAttribARB;
 PFNGLGETATTRIBLOCATIONARBPROC qglGetAttribLocationARB;
 
+/* ---------------------- GL_ARB_texture_buffer_object --------------------- */
+
+PFNGLTEXBUFFERARBPROC qglTexBufferARB;
+
+/* ---------------------- GL_EXT_texture_buffer_object --------------------- */
+
+PFNGLTEXBUFFEREXTPROC qglTexBufferEXT;
+
 /* ========================================================================= */
 
 void QGL_EXT_Reset ( void )
@@ -161,6 +169,14 @@ void QGL_EXT_Reset ( void )
 	qglBindAttribLocationARB = NULL;
 	qglGetActiveAttribARB = NULL;
 	qglGetAttribLocationARB = NULL;
+	
+	/* ---------------------- GL_ARB_texture_buffer_object --------------------- */
+
+	qglTexBufferARB = NULL;
+
+	/* ---------------------- GL_EXT_texture_buffer_object --------------------- */
+
+	qglTexBufferEXT = NULL;
 }
 
 /* ========================================================================= */
