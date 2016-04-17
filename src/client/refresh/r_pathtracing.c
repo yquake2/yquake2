@@ -707,6 +707,25 @@ AddEntities(void)
 	}
 }
 
+static void
+UploadTextureBufferData(Gluint buffer, byte *data, GLsizei size)
+{
+	if (gglBindBufferARB)
+		gglBindBufferARB(GL_TEXTURE_BUFFER, buffer);
+	else if (qglBindBuffer)
+		qglBindBuffer(GL_TEXTURE_BUFFER, buffer);
+	
+	if (gglBufferSubDataARB)	
+		gglBufferSubDataARB(GL_TEXTURE_BUFFER, 0, size, data);
+	else
+		gglBufferSubData(GL_TEXTURE_BUFFER, 0, size, data);
+	
+	if (gglBindBufferARB)
+		gglBindBufferARB(GL_TEXTURE_BUFFER, 0);
+	else if (qglBindBuffer)
+		qglBindBuffer(GL_TEXTURE_BUFFER, 0);
+}
+
 void
 R_UpdatePathtracerForCurrentFrame(void)
 {
@@ -715,6 +734,11 @@ R_UpdatePathtracerForCurrentFrame(void)
 	pt_num_vertices = 0;
 	
 	AddEntities();
+	
+	UploadTextureBufferData(pt_node0_buffer, pt_node0_data, pt_num_nodes * 4 * sizeof(GLint));
+	UploadTextureBufferData(pt_node1_buffer, pt_node1_data, pt_num_nodes * 4 * sizeof(GLint));
+	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data, pt_num_triangles * 2 * sizeof(GLint));
+	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data, pt_num_vertices * 3 * sizeof(GLfloat));
 }
 	
 static void
