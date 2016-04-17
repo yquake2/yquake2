@@ -821,10 +821,10 @@ R_UpdatePathtracerForCurrentFrame(void)
 
 	pt_written_nodes++;
 		
-	UploadTextureBufferData(pt_node0_buffer, pt_node0_data, pt_written_nodes * 4 * sizeof(GLint));
-	UploadTextureBufferData(pt_node1_buffer, pt_node1_data, pt_written_nodes * 4 * sizeof(GLint));
-	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data, pt_num_triangles * 2 * sizeof(GLint));
-	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data, pt_num_vertices * 3 * sizeof(GLfloat));
+	UploadTextureBufferData(pt_node0_buffer, pt_node0_data, pt_written_nodes * 4 * sizeof(pt_node0_data[0]));
+	UploadTextureBufferData(pt_node1_buffer, pt_node1_data, pt_written_nodes * 4 * sizeof(pt_node1_data[0]));
+	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data, pt_num_triangles * 2 * sizeof(pt_triangle_data[0]));
+	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data, pt_num_vertices * 3 * sizeof(pt_vertex_data[0]));
 
 	if (gl_pt_stats->value)
 		VID_Printf(PRINT_ALL, "pt_stats: n=%5d, t=%5d, v=%5d, w=%5d\n", pt_num_nodes, pt_num_triangles, pt_num_vertices, pt_written_nodes);
