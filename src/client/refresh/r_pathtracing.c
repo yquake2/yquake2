@@ -31,14 +31,17 @@ static unsigned long int texture_width, texture_height;
 
 static const GLcharARB* vertex_shader_source =
 	"#version 120\n"
-	"void main() { gl_Position = ftransform(); gl_TexCoord[0] = gl_MultiTexCoord0; gl_TexCoord[1] = gl_Vertex; gl_TexCoord[2].xyz = vec3(0.0, 0.0, 0.0);  gl_TexCoord[3] = gl_MultiTexCoord2; }\n"
+	"varying vec4 texcoords[4];\n"
+	"void main() { gl_Position = ftransform(); texcoords[0] = gl_MultiTexCoord0; texcoords[1] = gl_Vertex; texcoords[2].xyz = vec3(0.0, 0.0, 0.0);  texcoords[3] = gl_MultiTexCoord2; }\n"
 	"\n";
 
 static const GLcharARB* fragment_shader_source =
-	"#version 120\n"
+	"#version 330\n"
 	"\n"
 	"#define EPS	 (1./32.)\n"
 	"#define MAXT	(2048.)\n"
+	"\n"
+	"in vec4 texcoords[4];\n"
 	"\n"
 	"uniform sampler2D tex0;\n"
 	"uniform sampler2D planes;\n"
@@ -51,9 +54,9 @@ static const GLcharARB* fragment_shader_source =
 	"float seed = 0.;\n"
 	"float rand() { return fract(sin(seed++)*43758.5453123); }\n"
 	"\n"
-	"vec3 rp = gl_TexCoord[1].xyz;\n"
-	"vec3 dir = normalize(gl_TexCoord[2].xyz);\n"
-	"vec3 normal = gl_TexCoord[3].xyz;\n"
+	"vec3 rp = texcoords[1].xyz;\n"
+	"vec3 dir = normalize(texcoords[2].xyz);\n"
+	"vec3 normal = texcoords[3].xyz;\n"
 	"vec4 out_pln;\n"
 	"\n"
 	"\n"
@@ -144,7 +147,7 @@ static const GLcharARB* fragment_shader_source =
 	"\n"
 	"	gl_FragColor.rgb = r;\n"
 	"	gl_FragColor.a = 1.0;\n"
-	"	gl_FragColor *= texture2D(tex0, gl_TexCoord[0].st);\n"
+	"	gl_FragColor *= texture2D(tex0, texcoords[0].st);\n"
 	"}\n"
 	"\n";
 
