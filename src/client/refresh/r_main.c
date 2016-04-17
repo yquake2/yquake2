@@ -1695,6 +1695,21 @@ R_Init(void *hinstance, void *hWnd)
 		gl_config.texture_buffer_objects_rgb = false;
 	}
 	
+	/* ----------------------------- GL_VERSION_3_1 ---------------------------- */
+
+	if (gl_config.version_major >= 3 && gl_config.version_minor >= 1)
+	{
+		VID_Printf(PRINT_ALL, "...using OpenGL 3.1 features\n");
+
+		gl_config.texture_buffer_objects = true;
+		
+#define GET_PROC_ADDRESS(x) q##x = ( void * ) GLimp_GetProcAddress ( #x );
+		GET_PROC_ADDRESS(glDrawArraysInstanced);
+		GET_PROC_ADDRESS(glDrawElementsInstanced);
+		GET_PROC_ADDRESS(glPrimitiveRestartIndex);
+		GET_PROC_ADDRESS(glTexBuffer);
+#undef GET_PROC_ADDRESS
+	}
 
 	R_SetDefaultState();
 

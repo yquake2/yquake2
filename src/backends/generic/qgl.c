@@ -107,6 +107,13 @@ PFNGLTEXBUFFERARBPROC qglTexBufferARB;
 
 PFNGLTEXBUFFEREXTPROC qglTexBufferEXT;
 
+/* ----------------------------- GL_VERSION_3_1 ---------------------------- */
+
+PFNGLDRAWARRAYSINSTANCEDPROC qglDrawArraysInstanced;
+PFNGLDRAWELEMENTSINSTANCEDPROC qglDrawElementsInstanced;
+PFNGLPRIMITIVERESTARTINDEXPROC qglPrimitiveRestartIndex;
+PFNGLTEXBUFFERPROC qglTexBuffer;
+
 /* ========================================================================= */
 
 void QGL_EXT_Reset ( void )
@@ -177,6 +184,13 @@ void QGL_EXT_Reset ( void )
 	/* ---------------------- GL_EXT_texture_buffer_object --------------------- */
 
 	qglTexBufferEXT = NULL;
+	
+	/* ----------------------------- GL_VERSION_3_1 ---------------------------- */
+
+	qglDrawArraysInstanced = NULL;
+	qglDrawElementsInstanced = NULL;
+	qglPrimitiveRestartIndex = NULL;
+	qglTexBuffer = NULL;
 }
 
 /* ========================================================================= */
