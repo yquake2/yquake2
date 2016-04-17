@@ -129,6 +129,27 @@ PFNGLISBUFFERARBPROC qglIsBufferARB;
 PFNGLMAPBUFFERARBPROC qglMapBufferARB;
 PFNGLUNMAPBUFFERARBPROC qglUnmapBufferARB;
 
+/* ----------------------------- GL_VERSION_1_5 ---------------------------- */
+
+PFNGLBEGINQUERYPROC qglBeginQuery;
+PFNGLBINDBUFFERPROC qglBindBuffer;
+PFNGLBUFFERDATAPROC qglBufferData;
+PFNGLBUFFERSUBDATAPROC qglBufferSubData;
+PFNGLDELETEBUFFERSPROC qglDeleteBuffers;
+PFNGLDELETEQUERIESPROC qglDeleteQueries;
+PFNGLENDQUERYPROC qglEndQuery;
+PFNGLGENBUFFERSPROC qglGenBuffers;
+PFNGLGENQUERIESPROC qglGenQueries;
+PFNGLGETBUFFERPARAMETERIVPROC qglGetBufferParameteriv;
+PFNGLGETBUFFERPOINTERVPROC qglGetBufferPointerv;
+PFNGLGETBUFFERSUBDATAPROC qglGetBufferSubData;
+PFNGLGETQUERYOBJECTIVPROC qglGetQueryObjectiv;
+PFNGLGETQUERYOBJECTUIVPROC qglGetQueryObjectuiv;
+PFNGLGETQUERYIVPROC qglGetQueryiv;
+PFNGLISBUFFERPROC qglIsBuffer;
+PFNGLISQUERYPROC qglIsQuery;
+PFNGLMAPBUFFERPROC qglMapBuffer;
+PFNGLUNMAPBUFFERPROC qglUnmapBuffer;
 
 /* ========================================================================= */
 
@@ -221,6 +242,28 @@ void QGL_EXT_Reset ( void )
 	qglIsBufferARB = NULL;
 	qglMapBufferARB = NULL;
 	qglUnmapBufferARB = NULL;
+	
+	/* ----------------------------- GL_VERSION_1_5 ---------------------------- */
+
+	qglBeginQuery = NULL;
+	qglBindBuffer = NULL;
+	qglBufferData = NULL;
+	qglBufferSubData = NULL;
+	qglDeleteBuffers = NULL;
+	qglDeleteQueries = NULL;
+	qglEndQuery = NULL;
+	qglGenBuffers = NULL;
+	qglGenQueries = NULL;
+	qglGetBufferParameteriv = NULL;
+	qglGetBufferPointerv = NULL;
+	qglGetBufferSubData = NULL;
+	qglGetQueryObjectiv = NULL;
+	qglGetQueryObjectuiv = NULL;
+	qglGetQueryiv = NULL;
+	qglIsBuffer = NULL;
+	qglIsQuery = NULL;
+	qglMapBuffer = NULL;
+	qglUnmapBuffer = NULL;
 }
 
 /* ========================================================================= */

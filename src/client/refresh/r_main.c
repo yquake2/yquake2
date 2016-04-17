@@ -1736,6 +1736,51 @@ R_Init(void *hinstance, void *hWnd)
 		gl_config.vertex_buffer_objects = false;
 	}
 	
+	/* ----------------------------- GL_VERSION_1_5 ---------------------------- */
+
+	if (gl_config.version_major >= 1 && gl_config.version_minor >= 5)
+	{
+		VID_Printf(PRINT_ALL, "...using OpenGL 1.5 features\n");
+
+		gl_config.vertex_buffer_objects = true;
+		
+		GET_PROC_ADDRESS(glBeginQuery);
+		GET_PROC_ADDRESS(glBindBuffer);
+		GET_PROC_ADDRESS(glBufferData);
+		GET_PROC_ADDRESS(glBufferSubData);
+		GET_PROC_ADDRESS(glDeleteBuffers);
+		GET_PROC_ADDRESS(glDeleteQueries);
+		GET_PROC_ADDRESS(glEndQuery);
+		GET_PROC_ADDRESS(glGenBuffers);
+		GET_PROC_ADDRESS(glGenQueries);
+		GET_PROC_ADDRESS(glGetBufferParameteriv);
+		GET_PROC_ADDRESS(glGetBufferPointerv);
+		GET_PROC_ADDRESS(glGetBufferSubData);
+		GET_PROC_ADDRESS(glGetQueryObjectiv);
+		GET_PROC_ADDRESS(glGetQueryObjectuiv);
+		GET_PROC_ADDRESS(glGetQueryiv);
+		GET_PROC_ADDRESS(glIsBuffer);
+		GET_PROC_ADDRESS(glIsQuery);
+		GET_PROC_ADDRESS(glMapBuffer);
+		GET_PROC_ADDRESS(glUnmapBuffer);
+
+	}
+	
+	/* -------------------------- GL_ARB_texture_rg ------------------------- */
+	
+	gl_config.texture_rg = false;
+	
+	if (strstr(gl_config.extensions_string, "GL_ARB_texture_rg"))
+	{
+		VID_Printf(PRINT_ALL, "...using GL_ARB_texture_rg\n");
+		gl_config.texture_rg = true;
+	}
+	else
+	{
+		VID_Printf(PRINT_ALL, "...GL_ARB_texture_rg not found\n");
+		gl_config.texture_rg = false;
+	}
+	
 	R_SetDefaultState();
 
 	R_InitImages();

@@ -578,4 +578,137 @@ extern PFNGLUNMAPBUFFERARBPROC qglUnmapBufferARB;
 
 #endif /* GL_ARB_vertex_buffer_object */
 
+/* ----------------------------- GL_VERSION_1_5 ---------------------------- */
+
+#ifndef GL_VERSION_1_5
+#define GL_VERSION_1_5 1
+
+#define GL_CURRENT_FOG_COORD GL_CURRENT_FOG_COORDINATE
+#define GL_FOG_COORD GL_FOG_COORDINATE
+#define GL_FOG_COORD_ARRAY GL_FOG_COORDINATE_ARRAY
+#define GL_FOG_COORD_ARRAY_BUFFER_BINDING GL_FOG_COORDINATE_ARRAY_BUFFER_BINDING
+#define GL_FOG_COORD_ARRAY_POINTER GL_FOG_COORDINATE_ARRAY_POINTER
+#define GL_FOG_COORD_ARRAY_STRIDE GL_FOG_COORDINATE_ARRAY_STRIDE
+#define GL_FOG_COORD_ARRAY_TYPE GL_FOG_COORDINATE_ARRAY_TYPE
+#define GL_FOG_COORD_SRC GL_FOG_COORDINATE_SOURCE
+#define GL_SRC0_ALPHA GL_SOURCE0_ALPHA
+#define GL_SRC0_RGB GL_SOURCE0_RGB
+#define GL_SRC1_ALPHA GL_SOURCE1_ALPHA
+#define GL_SRC1_RGB GL_SOURCE1_RGB
+#define GL_SRC2_ALPHA GL_SOURCE2_ALPHA
+#define GL_SRC2_RGB GL_SOURCE2_RGB
+#define GL_BUFFER_SIZE 0x8764
+#define GL_BUFFER_USAGE 0x8765
+#define GL_QUERY_COUNTER_BITS 0x8864
+#define GL_CURRENT_QUERY 0x8865
+#define GL_QUERY_RESULT 0x8866
+#define GL_QUERY_RESULT_AVAILABLE 0x8867
+#define GL_ARRAY_BUFFER 0x8892
+#define GL_ELEMENT_ARRAY_BUFFER 0x8893
+#define GL_ARRAY_BUFFER_BINDING 0x8894
+#define GL_ELEMENT_ARRAY_BUFFER_BINDING 0x8895
+#define GL_VERTEX_ARRAY_BUFFER_BINDING 0x8896
+#define GL_NORMAL_ARRAY_BUFFER_BINDING 0x8897
+#define GL_COLOR_ARRAY_BUFFER_BINDING 0x8898
+#define GL_INDEX_ARRAY_BUFFER_BINDING 0x8899
+#define GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING 0x889A
+#define GL_EDGE_FLAG_ARRAY_BUFFER_BINDING 0x889B
+#define GL_SECONDARY_COLOR_ARRAY_BUFFER_BINDING 0x889C
+#define GL_FOG_COORDINATE_ARRAY_BUFFER_BINDING 0x889D
+#define GL_WEIGHT_ARRAY_BUFFER_BINDING 0x889E
+#define GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING 0x889F
+#define GL_READ_ONLY 0x88B8
+#define GL_WRITE_ONLY 0x88B9
+#define GL_READ_WRITE 0x88BA
+#define GL_BUFFER_ACCESS 0x88BB
+#define GL_BUFFER_MAPPED 0x88BC
+#define GL_BUFFER_MAP_POINTER 0x88BD
+#define GL_STREAM_DRAW 0x88E0
+#define GL_STREAM_READ 0x88E1
+#define GL_STREAM_COPY 0x88E2
+#define GL_STATIC_DRAW 0x88E4
+#define GL_STATIC_READ 0x88E5
+#define GL_STATIC_COPY 0x88E6
+#define GL_DYNAMIC_DRAW 0x88E8
+#define GL_DYNAMIC_READ 0x88E9
+#define GL_DYNAMIC_COPY 0x88EA
+#define GL_SAMPLES_PASSED 0x8914
+
+typedef ptrdiff_t GLintptr;
+typedef ptrdiff_t GLsizeiptr;
+
+typedef void ( APIENTRY * PFNGLBEGINQUERYPROC) (GLenum target, GLuint id);
+typedef void ( APIENTRY * PFNGLBINDBUFFERPROC) (GLenum target, GLuint buffer);
+typedef void ( APIENTRY * PFNGLBUFFERDATAPROC) (GLenum target, GLsizeiptr size, const void* data, GLenum usage);
+typedef void ( APIENTRY * PFNGLBUFFERSUBDATAPROC) (GLenum target, GLintptr offset, GLsizeiptr size, const void* data);
+typedef void ( APIENTRY * PFNGLDELETEBUFFERSPROC) (GLsizei n, const GLuint* buffers);
+typedef void ( APIENTRY * PFNGLDELETEQUERIESPROC) (GLsizei n, const GLuint* ids);
+typedef void ( APIENTRY * PFNGLENDQUERYPROC) (GLenum target);
+typedef void ( APIENTRY * PFNGLGENBUFFERSPROC) (GLsizei n, GLuint* buffers);
+typedef void ( APIENTRY * PFNGLGENQUERIESPROC) (GLsizei n, GLuint* ids);
+typedef void ( APIENTRY * PFNGLGETBUFFERPARAMETERIVPROC) (GLenum target, GLenum pname, GLint* params);
+typedef void ( APIENTRY * PFNGLGETBUFFERPOINTERVPROC) (GLenum target, GLenum pname, void** params);
+typedef void ( APIENTRY * PFNGLGETBUFFERSUBDATAPROC) (GLenum target, GLintptr offset, GLsizeiptr size, void* data);
+typedef void ( APIENTRY * PFNGLGETQUERYOBJECTIVPROC) (GLuint id, GLenum pname, GLint* params);
+typedef void ( APIENTRY * PFNGLGETQUERYOBJECTUIVPROC) (GLuint id, GLenum pname, GLuint* params);
+typedef void ( APIENTRY * PFNGLGETQUERYIVPROC) (GLenum target, GLenum pname, GLint* params);
+typedef GLboolean ( APIENTRY * PFNGLISBUFFERPROC) (GLuint buffer);
+typedef GLboolean ( APIENTRY * PFNGLISQUERYPROC) (GLuint id);
+typedef void* ( APIENTRY * PFNGLMAPBUFFERPROC) (GLenum target, GLenum access);
+typedef GLboolean ( APIENTRY * PFNGLUNMAPBUFFERPROC) (GLenum target);
+
+extern PFNGLBEGINQUERYPROC qglBeginQuery;
+extern PFNGLBINDBUFFERPROC qglBindBuffer;
+extern PFNGLBUFFERDATAPROC qglBufferData;
+extern PFNGLBUFFERSUBDATAPROC qglBufferSubData;
+extern PFNGLDELETEBUFFERSPROC qglDeleteBuffers;
+extern PFNGLDELETEQUERIESPROC qglDeleteQueries;
+extern PFNGLENDQUERYPROC qglEndQuery;
+extern PFNGLGENBUFFERSPROC qglGenBuffers;
+extern PFNGLGENQUERIESPROC qglGenQueries;
+extern PFNGLGETBUFFERPARAMETERIVPROC qglGetBufferParameteriv;
+extern PFNGLGETBUFFERPOINTERVPROC qglGetBufferPointerv;
+extern PFNGLGETBUFFERSUBDATAPROC qglGetBufferSubData;
+extern PFNGLGETQUERYOBJECTIVPROC qglGetQueryObjectiv;
+extern PFNGLGETQUERYOBJECTUIVPROC qglGetQueryObjectuiv;
+extern PFNGLGETQUERYIVPROC qglGetQueryiv;
+extern PFNGLISBUFFERPROC qglIsBuffer;
+extern PFNGLISQUERYPROC qglIsQuery;
+extern PFNGLMAPBUFFERPROC qglMapBuffer;
+extern PFNGLUNMAPBUFFERPROC qglUnmapBuffer;
+
+#endif /* GL_VERSION_1_5 */
+
+/* --------------------------- GL_ARB_texture_rg --------------------------- */
+
+#ifndef GL_ARB_texture_rg
+#define GL_ARB_texture_rg 1
+
+#define GL_COMPRESSED_RED 0x8225
+#define GL_COMPRESSED_RG 0x8226
+#define GL_RG 0x8227
+#define GL_RG_INTEGER 0x8228
+#define GL_R8 0x8229
+#define GL_R16 0x822A
+#define GL_RG8 0x822B
+#define GL_RG16 0x822C
+#define GL_R16F 0x822D
+#define GL_R32F 0x822E
+#define GL_RG16F 0x822F
+#define GL_RG32F 0x8230
+#define GL_R8I 0x8231
+#define GL_R8UI 0x8232
+#define GL_R16I 0x8233
+#define GL_R16UI 0x8234
+#define GL_R32I 0x8235
+#define GL_R32UI 0x8236
+#define GL_RG8I 0x8237
+#define GL_RG8UI 0x8238
+#define GL_RG16I 0x8239
+#define GL_RG16UI 0x823A
+#define GL_RG32I 0x823B
+#define GL_RG32UI 0x823C
+
+#endif /* GL_ARB_texture_rg */
+
 #endif
