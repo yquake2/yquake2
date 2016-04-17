@@ -60,7 +60,63 @@ static const GLcharARB* fragment_shader_source =
 	"vec4 out_pln;\n"
 	"\n"
 	"\n"
-	"bool traceRayShadow(vec3 org, vec3 dir, float t0, float max_t)\n"
+	"\n"
+	"uniform isamplerBuffer node0;\n"
+	"uniform isamplerBuffer node1;\n"
+	"uniform samplerBuffer edge0;\n"
+	"uniform isamplerBuffer triangle;\n"
+	"\n"
+	"vec2 boxInterval(vec3 ro, vec3 rd, vec3 size)\n"
+	"{\n"
+	"	vec3 mins = (size * -sign(rd) - ro) / rd;\n"
+	"	vec3 maxs = (size * +sign(rd) - ro) / rd;	\n"
+	"\n"
+	"	return vec2(max(max(mins.x, mins.y), mins.z), min(min(maxs.x, maxs.y), maxs.z));\n"
+	"}\n"
+	"\n"
+	"bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist)\n"
+	"{\n"
+	"	int node = 0;\n"
+	"\n"
+	"	do\n"
+	"	{\n"
+	"		ivec4 n0 = texelFetch(node0, node);\n"
+	"		ivec4 n1 = texelFetch(node1, node);\n"
+	"\n"
+	"		vec2 i = boxInterval(ro - intBitsToFloat(n1.xyz), rd, intBitsToFloat(n0.xyz));\n"
+	"\n"
+	"		if (i.x < i.y && i.x < maxdist && i.y > 0.0)\n"
+	"		{\n"
+	"			if (n1.w != -1)\n"
+	"			{\n"
+	"				ivec2 tri = texelFetch(triangle, n1.w).xy;\n"
+	"\n"
+	"				vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;\n"
+	"				vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;\n"
+	"				vec3 p2 = texelFetch(edge0, tri.y).xyz;\n"
+	"\n"
+	"				vec3 n = cross(p1 - p0, p2 - p0);\n"
+	"				float t = dot(p0 - ro, n) / dot(rd, n);\n"
+	"\n"
+	"				float d0 = dot(rd, cross(p0 - ro, p1 - ro));\n"
+	"				float d1 = dot(rd, cross(p1 - ro, p2 - ro));\n"
+	"				float d2 = dot(rd, cross(p2 - ro, p0 - ro));\n"
+	"\n"
+	"				if (sign(d0) == sign(d1) && sign(d0) == sign(d2) && t < maxdist && t > 0.0)\n"
+	"					return false;\n"
+	"			}\n"
+	"			\n"
+	"			++node;\n"
+	"		}\n"
+	"		else\n"
+	"			node = n0.w;\n"
+	"\n"
+	"	} while(node > 0);\n"
+	"\n"
+	"	return true;\n"
+	"}\n"
+	"\n"
+	"bool traceRayShadowBSP(vec3 org, vec3 dir, float t0, float max_t)\n"
 	"{\n"
 	"	vec2  other_node=vec2(0);\n"
 	"	float other_t1=max_t;\n"
@@ -141,7 +197,7 @@ static const GLcharARB* fragment_shader_source =
 	"\n"
 	"			vec3 rd=u*cos(r1)*r2s + v*sin(r1)*r2s + spln.xyz*sqrt(1.0-r2);\n"
 	"				\n"
-	"			if(traceRayShadow(rp,rd,EPS*16,aoradius))\n"
+	"			if(traceRayShadowBSP(rp,rd,EPS*16,aoradius) && traceRayShadowTri(rp,rd,aoradius))\n"
 	"				r+=vec3(1.0/float(n));\n"
 	"	}\n"
 	"\n"
@@ -173,6 +229,7 @@ static short pt_num_nodes = 0;
 static short pt_num_triangles = 0;
 static short pt_num_vertices = 0;
 static short pt_written_nodes = 0;
+static short pt_previous_node = -1;
 
 static int pt_triangle_data[PT_MAX_TRIANGLES * 2];
 static int pt_node0_data[PT_MAX_TRI_NODES * 4];
@@ -256,12 +313,12 @@ FloatBitsToInt(float x)
 }
 
 static int
-TriNodeWriteData(const trinode_t *n, int *node0_data, int *node1_data, int index)
+TriNodeWriteData(const trinode_t *n, int index)
 {
 	int i, c, prev_child_index;
 	int child_index, m;
-	int *n0 = node0_data + index * 4;
-	int *n1 = node1_data + index * 4;
+	int *n0 = pt_node0_data + index * 4;
+	int *n1 = pt_node1_data + index * 4;
 	int *pn0;
 	float aabb_size[3];
 
@@ -290,13 +347,13 @@ TriNodeWriteData(const trinode_t *n, int *node0_data, int *node1_data, int index
 	for (i = 0; i < n->num_children; ++i)
 	{
 		child_index = index + c;
-		m = TriNodeWriteData(n->children[i], node0_data, node1_data, child_index);
+		m = TriNodeWriteData(n->children[i], child_index);
 
 		if (m > 0)
 		{
 			if (prev_child_index != -1)
 			{
-				pn0 = node0_data + prev_child_index * 4;
+				pn0 = pt_node0_data + prev_child_index * 4;
 				pn0[3] = child_index;
 			}
 
@@ -305,35 +362,41 @@ TriNodeWriteData(const trinode_t *n, int *node0_data, int *node1_data, int index
 		}
 	}
 
-	pn0 = node0_data + prev_child_index * 4;
-	pn0[3] = index + c;
-
+	if (prev_child_index != -1)
+	{
+		pn0 = pt_node0_data + prev_child_index * 4;
+		pn0[3] = index + c;
+	}
+	
 	return c;
 }
 
-static int
-WriteTriNodes(int *node0_data, int *node1_data, int first_node_index, int num_nodes)
+static void
+WriteTriNodes(int first_node_index, int num_nodes)
 {
 	int i, m;
-	int node_count = 0, prev_node_count = -1;
 	int *pn0;
 	
 	for (i = 0; i < num_nodes; ++i)
 	{
-		m = TriNodeWriteData(pt_trinodes_ordered[first_node_index + i], node0_data, node1_data, node_count);
+		m = TriNodeWriteData(pt_trinodes_ordered[first_node_index + i], pt_written_nodes);
 		if (m > 0)
 		{
-			if (node_count > 0)
+			if (pt_previous_node >= 0)
 			{
-				pn0 = node0_data + prev_node_count * 4;
-				pn0[3] = node_count;
+				pn0 = pt_node0_data + pt_previous_node * 4;
+				pn0[3] = pt_written_nodes;
 			}
-			prev_node_count = node_count;
-			node_count += m;
+			pt_previous_node = pt_written_nodes;
+			pt_written_nodes += m;
 		}
 	}
-
-	return node_count;
+	
+	if (pt_previous_node >= 0)
+	{
+		pn0 = pt_node0_data + pt_previous_node * 4;
+		pn0[3] = 0;
+	}	
 }
 
 static void
@@ -652,11 +715,11 @@ AddAliasModel(entity_t *entity, model_t *model)
 				node->children[k] = pt_trinodes_ordered[first_node_index + j + k];
 				for (m = 0; m < 3; ++m)
 				{
-					if(node->aabb_min[m] > node->children[k]->aabb_min[k])
-						node->aabb_min[m] = node->children[k]->aabb_min[k];
+					if(node->aabb_min[m] > node->children[k]->aabb_min[m])
+						node->aabb_min[m] = node->children[k]->aabb_min[m];
 
-					if(node->aabb_max[m] < node->children[k]->aabb_max[k])
-						node->aabb_max[m] = node->children[k]->aabb_max[k];
+					if(node->aabb_max[m] < node->children[k]->aabb_max[m])
+						node->aabb_max[m] = node->children[k]->aabb_max[m];
 				}
 				++node->num_children;
 			}
@@ -672,7 +735,7 @@ AddAliasModel(entity_t *entity, model_t *model)
 	
 	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeSurfaceAreaComparator);
 
-	pt_written_nodes += WriteTriNodes(pt_node0_data + pt_written_nodes * 4, pt_node1_data + pt_written_nodes * 4, first_node_index, num_added_nodes);
+	WriteTriNodes(first_node_index, num_added_nodes);
 }
 
 static void
@@ -738,20 +801,33 @@ UploadTextureBufferData(GLuint buffer, void *data, GLsizei size)
 void
 R_UpdatePathtracerForCurrentFrame(void)
 {
+	int i;
+	
 	pt_num_nodes = 0;
 	pt_num_triangles = 0;
 	pt_num_vertices = 0;
 	pt_written_nodes = 0;
-	
+	pt_previous_node = -1;
+
 	AddEntities();
 	
-	if (gl_pt_stats->value)
-		VID_Printf(PRINT_ALL, "pt_stats: n=%5d, t=%5d, v=%5d, w=%5d\n", pt_num_nodes, pt_num_triangles, pt_num_vertices, pt_written_nodes);
+	/* Nullify the entry just past the last node, so that we can guarantee that traversal terminates correctly. */
+	
+	for (i = 0; i < 4; ++i)
+	{
+		pt_node0_data[pt_written_nodes * 4 + i] = 0;
+		pt_node1_data[pt_written_nodes * 4 + i] = 0;
+	}
+
+	pt_written_nodes++;
 		
-	UploadTextureBufferData(pt_node0_buffer, pt_node0_data, pt_num_nodes * 4 * sizeof(GLint));
-	UploadTextureBufferData(pt_node1_buffer, pt_node1_data, pt_num_nodes * 4 * sizeof(GLint));
+	UploadTextureBufferData(pt_node0_buffer, pt_node0_data, pt_written_nodes * 4 * sizeof(GLint));
+	UploadTextureBufferData(pt_node1_buffer, pt_node1_data, pt_written_nodes * 4 * sizeof(GLint));
 	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data, pt_num_triangles * 2 * sizeof(GLint));
 	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data, pt_num_vertices * 3 * sizeof(GLfloat));
+
+	if (gl_pt_stats->value)
+		VID_Printf(PRINT_ALL, "pt_stats: n=%5d, t=%5d, v=%5d, w=%5d\n", pt_num_nodes, pt_num_triangles, pt_num_vertices, pt_written_nodes);
 }
 	
 static void
@@ -953,11 +1029,15 @@ R_InitPathtracing(void)
 		PrintObjectInfoLog(pt_program_handle);
 		return;
 	}
-	
+
 	qglUseProgramObjectARB(pt_program_handle);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "tex0"), 0);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "planes"), 2);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "branches"), 3);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "node0"), 4);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "node1"), 5);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "edge0"), 6);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "triangle"), 7);
 	pt_frame_counter_loc = qglGetUniformLocationARB(pt_program_handle, "frame");
 	qglUseProgramObjectARB(0);
 }

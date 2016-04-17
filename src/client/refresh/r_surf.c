@@ -1170,6 +1170,14 @@ R_DrawWorld(void)
 		glBindTexture(GL_TEXTURE_2D, pt_node_texture);
 		qglActiveTextureARB(GL_TEXTURE3_ARB);
 		glBindTexture(GL_TEXTURE_2D, pt_child_texture);
+		qglActiveTextureARB(GL_TEXTURE4_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_node0_texture);
+		qglActiveTextureARB(GL_TEXTURE5_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_node1_texture);
+		qglActiveTextureARB(GL_TEXTURE6_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_vertex_texture);
+		qglActiveTextureARB(GL_TEXTURE7_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
 		qglActiveTextureARB(GL_TEXTURE0_ARB);
 		qglUniform1iARB(pt_frame_counter_loc, pt_frame_counter++);
 	}
@@ -1262,6 +1270,14 @@ R_DrawWorld(void)
 		glBindTexture(GL_TEXTURE_2D, 0);
 		qglActiveTextureARB(GL_TEXTURE3_ARB);
 		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE4_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE5_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE6_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE7_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
 		qglActiveTextureARB(GL_TEXTURE0_ARB);
 	}
 

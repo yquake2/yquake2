@@ -376,6 +376,10 @@ extern GLhandleARB pt_program_handle;
 extern GLhandleARB pt_node_texture;
 extern GLhandleARB pt_child_texture;
 extern GLint pt_frame_counter_loc;
+extern GLuint pt_node0_texture;
+extern GLuint pt_node1_texture;
+extern GLuint pt_triangle_texture;
+extern GLuint pt_vertex_texture;
 
 /* GL extension emulation functions */
 void R_DrawParticles2(int n,
