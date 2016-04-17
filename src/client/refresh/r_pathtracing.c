@@ -467,7 +467,9 @@ AddAliasModel(entity_t *entity, model_t *model)
 	vec4_t lerped_vertex;
 	dtriangle_t *triangles, *tri;
 	trinode_t *node;
-		
+	int first_node_index, num_added_nodes, first_node_index2, num_added_nodes2;
+	int triangle_vertices_offset;
+
 	/* Construct a transformation matrix to match the one used for drawing entities. This is based on the GL matrix transformation
 		code in R_DrawAliasModel and R_RotateForEntity. */
 	
@@ -551,7 +553,7 @@ AddAliasModel(entity_t *entity, model_t *model)
 	
 	lerp = pt_lerped[0];
 
-	int triangle_vertices_offset = pt_num_vertices;
+	triangle_vertices_offset = pt_num_vertices;
 	
 	for (i = 0; i < alias_header->num_xyz; i++, v++, ov++, lerp += 4)
 	{
@@ -579,9 +581,9 @@ AddAliasModel(entity_t *entity, model_t *model)
 	/* Create a leaf node for each triangle. */
 
 	triangles = (dtriangle_t *)((byte *)alias_header + alias_header->ofs_tris);
-	
-	int first_node_index = pt_num_nodes;
-	int num_added_nodes = 0;
+		
+	first_node_index = pt_num_nodes;
+	num_added_nodes = 0;
 	
 	for (i = 0; i < alias_header->num_tris; ++i)
 	{
@@ -627,8 +629,8 @@ AddAliasModel(entity_t *entity, model_t *model)
 	
 	for (i = 0; i < PT_MAX_NODE_DEPTH; ++i)
 	{
-		int first_node_index2 = pt_num_nodes;
-		int num_added_nodes2 = 0;
+		first_node_index2 = pt_num_nodes;
+		num_added_nodes2 = 0;
 		for (j = 0; j < num_added_nodes; j += PT_MAX_NODE_CHILDREN)
 		{
 			if (pt_num_nodes >= PT_MAX_TRI_NODES)
