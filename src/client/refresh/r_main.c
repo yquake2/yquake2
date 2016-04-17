@@ -1280,6 +1280,7 @@ R_SetMode(void)
 int
 R_Init(void *hinstance, void *hWnd)
 {
+#define GET_PROC_ADDRESS(x) q##x = ( void * ) GLimp_GetProcAddress ( #x ); if (!q##x) { VID_Printf(PRINT_ALL, #x " was not found!\n"); return -1; }
 	char renderer_buffer[1000];
 	char vendor_buffer[1000];
 	int err;
@@ -1535,7 +1536,6 @@ R_Init(void *hinstance, void *hWnd)
 		
 		gl_config.shaders = true;
 
-#define GET_PROC_ADDRESS(x) q##x = ( void * ) GLimp_GetProcAddress ( #x );
 		GET_PROC_ADDRESS(glAttachObjectARB);
 		GET_PROC_ADDRESS(glCompileShaderARB);
 		GET_PROC_ADDRESS(glCreateProgramObjectARB);
@@ -1575,7 +1575,6 @@ R_Init(void *hinstance, void *hWnd)
 		GET_PROC_ADDRESS(glUniformMatrix4fvARB);
 		GET_PROC_ADDRESS(glUseProgramObjectARB);
 		GET_PROC_ADDRESS(glValidateProgramARB);
-#undef GET_PROC_ADDRESS
 
 	}
 	else
@@ -1594,11 +1593,9 @@ R_Init(void *hinstance, void *hWnd)
 		
 		gl_config.vertex_shaders = true;
 
-#define GET_PROC_ADDRESS(x) q##x = ( void * ) GLimp_GetProcAddress ( #x );
 		GET_PROC_ADDRESS(glBindAttribLocationARB);
 		GET_PROC_ADDRESS(glGetActiveAttribARB);
 		GET_PROC_ADDRESS(glGetAttribLocationARB);
-#undef GET_PROC_ADDRESS
 
 	}
 	else
@@ -1647,9 +1644,7 @@ R_Init(void *hinstance, void *hWnd)
 		
 		gl_config.texture_buffer_objects = true;
 		
-#define GET_PROC_ADDRESS(x) q##x = ( void * ) GLimp_GetProcAddress ( #x );
 		GET_PROC_ADDRESS(glTexBufferARB);
-#undef GET_PROC_ADDRESS
 
 	}
 	else
@@ -1668,9 +1663,7 @@ R_Init(void *hinstance, void *hWnd)
 			
 			gl_config.texture_buffer_objects = true;
 			
-#define GET_PROC_ADDRESS(x) q##x = ( void * ) GLimp_GetProcAddress ( #x );
 			GET_PROC_ADDRESS(glTexBufferEXT);
-#undef GET_PROC_ADDRESS
 
 		}
 		else
@@ -1703,12 +1696,10 @@ R_Init(void *hinstance, void *hWnd)
 
 		gl_config.texture_buffer_objects = true;
 		
-#define GET_PROC_ADDRESS(x) q##x = ( void * ) GLimp_GetProcAddress ( #x );
 		GET_PROC_ADDRESS(glDrawArraysInstanced);
 		GET_PROC_ADDRESS(glDrawElementsInstanced);
 		GET_PROC_ADDRESS(glPrimitiveRestartIndex);
 		GET_PROC_ADDRESS(glTexBuffer);
-#undef GET_PROC_ADDRESS
 	}
 
 	R_SetDefaultState();
@@ -1728,6 +1719,7 @@ R_Init(void *hinstance, void *hWnd)
 	}
 
 	return true;
+#undef GET_PROC_ADDRESS
 }
 
 void
