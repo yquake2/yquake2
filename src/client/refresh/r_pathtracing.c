@@ -1,10 +1,26 @@
 #include "header/local.h"
 
+#define PT_MAX_TRI_NODES		16384
+#define PT_MAX_TRIANGLES		16384
+#define PT_MAX_VERTICES			16384
+#define PT_MAX_NODE_CHILDREN	4
+#define PT_MAX_NODE_DEPTH		4
+
 cvar_t *gl_pt_enable;
 
 GLhandleARB pt_program_handle;
 GLhandleARB pt_node_texture = 0;
 GLhandleARB pt_child_texture = 0;
+
+GLuint pt_node0_buffer = 0;
+GLuint pt_node0_texture = 0;
+GLuint pt_node1_buffer = 0;
+GLuint pt_node1_texture = 0;
+GLuint pt_triangle_buffer = 0;
+GLuint pt_triangle_texture = 0;
+GLuint pt_vertex_buffer = 0;
+GLuint pt_vertex_texture = 0;
+
 GLint pt_frame_counter_loc = -1;
 
 static GLhandleARB vertex_shader;
@@ -20,8 +36,8 @@ static const GLcharARB* vertex_shader_source =
 static const GLcharARB* fragment_shader_source =
 	"#version 120\n"
 	"\n"
-	"#define EPS    (1./32.)\n"
-	"#define MAXT   (2048.)\n"
+	"#define EPS	 (1./32.)\n"
+	"#define MAXT	(2048.)\n"
 	"\n"
 	"uniform sampler2D tex0;\n"
 	"uniform sampler2D planes;\n"
@@ -42,88 +58,88 @@ static const GLcharARB* fragment_shader_source =
 	"\n"
 	"bool traceRayShadow(vec3 org, vec3 dir, float t0, float max_t)\n"
 	"{\n"
-	"   vec2  other_node=vec2(0);\n"
-	"   float other_t1=max_t;\n"
+	"	vec2  other_node=vec2(0);\n"
+	"	float other_t1=max_t;\n"
 	"\n"
-	"   while(t0<max_t)\n"
-	"   {\n"
-	"      vec2  node=other_node;\n"
-	"      float t1=other_t1;\n"
-	"      \n"
-	"      other_node=vec2(0);\n"
-	"      other_t1=max_t;\n"
+	"	while(t0<max_t)\n"
+	"	{\n"
+	"		vec2  node=other_node;\n"
+	"		float t1=other_t1;\n"
+	"		\n"
+	"		other_node=vec2(0);\n"
+	"		other_t1=max_t;\n"
 	"\n"
-	"      do{\n"
-	"         vec4 pln=texture2D(planes,node);\n"
-	"         vec4 children=texture2D(branches,node);\n"
-	"         \n"
-	"         float t=dot(pln.xyz,dir);\n"
+	"		do{\n"
+	"			vec4 pln=texture2D(planes,node);\n"
+	"			vec4 children=texture2D(branches,node);\n"
+	"			\n"
+	"			float t=dot(pln.xyz,dir);\n"
 	"\n"
-	"         children=(t>0.0) ? children.zwxy : children.xyzw;\n"
+	"			children=(t>0.0) ? children.zwxy : children.xyzw;\n"
 	"\n"
-	"         t=(pln.w-dot(pln.xyz,org)) / t;\n"
+	"			t=(pln.w-dot(pln.xyz,org)) / t;\n"
 	"\n"
-	"         if(t>t0)\n"
-	"         {\n"
-	"            node=children.xy;\n"
-	"            \n"
-	"            if(t<t1) \n"
-	"            {\n"
-	"               other_t1=t1;\n"
-	"               t1=t;\n"
-	"               other_node=children.zw;\n"
-	"            }\n"
-	"         }\n"
-	"         else\n"
-	"         {\n"
-	"            node=children.zw;\n"
-	"         }\n"
-	"         \n"
-	"         if(node.y==1.0)\n"
-	"         {\n"
-	"             return false;\n"
-	"         }\n"
-	"         \n"
-	"      } while(node!=vec2(0.0));\n"
-	"      \n"
-	"      t0=t1+EPS;\n"
-	"   }\n"
+	"			if(t>t0)\n"
+	"			{\n"
+	"				node=children.xy;\n"
+	"				\n"
+	"				if(t<t1) \n"
+	"				{\n"
+	"					other_t1=t1;\n"
+	"					t1=t;\n"
+	"					other_node=children.zw;\n"
+	"				}\n"
+	"			}\n"
+	"			else\n"
+	"			{\n"
+	"				node=children.zw;\n"
+	"			}\n"
+	"			\n"
+	"			if(node.y==1.0)\n"
+	"			{\n"
+	"				 return false;\n"
+	"			}\n"
+	"			\n"
+	"		} while(node!=vec2(0.0));\n"
+	"		\n"
+	"		t0=t1+EPS;\n"
+	"	}\n"
 	"\n"
-	"   return true;\n"
+	"	return true;\n"
 	"}\n"
 	"\n"
 	"void main()\n"
 	"{\n"
-	"   seed = gl_FragCoord.x * 89.9 + gl_FragCoord.y * 197.3 + frame*0.02;\n"
+	"	seed = gl_FragCoord.x * 89.9 + gl_FragCoord.y * 197.3 + frame*0.02;\n"
 	"\n"
-	"   rp+=normal*EPS;\n"
-	"   \n"
-	"   out_pln.xyz=normal;\n"
-	"   out_pln.w=dot(rp,out_pln.xyz);\n"
+	"	rp+=normal*EPS;\n"
+	"	\n"
+	"	out_pln.xyz=normal;\n"
+	"	out_pln.w=dot(rp,out_pln.xyz);\n"
 	"\n"
-	"   vec4 spln=out_pln;\n"
+	"	vec4 spln=out_pln;\n"
 	"\n"
-	"   // permutate components\n"
-	"   vec3 b=vec3(spln.z,spln.x,spln.y);\n"
-	"   \n"
-	"   // tangents\n"
-	"   vec3 u=normalize(cross(spln.xyz,b)),\n"
-	"          v=cross(spln.xyz,u);\n"
-	"     \n"
-	"   vec3 r=vec3(0.0);\n"
-	"   const int n=4;\n"
+	"	// permutate components\n"
+	"	vec3 b=vec3(spln.z,spln.x,spln.y);\n"
+	"	\n"
+	"	// tangents\n"
+	"	vec3 u=normalize(cross(spln.xyz,b)),\n"
+	"			 v=cross(spln.xyz,u);\n"
+	"	  \n"
+	"	vec3 r=vec3(0.0);\n"
+	"	const int n=4;\n"
 	"  \n"
-	"   for(int i=0;i<n;++i)\n"
-	"   {\n"
-	"         float r1=2.0*pi*rand();\n"
-	"         float r2=rand();\n"
-	"         float r2s=sqrt(r2);\n"
+	"	for(int i=0;i<n;++i)\n"
+	"	{\n"
+	"			float r1=2.0*pi*rand();\n"
+	"			float r2=rand();\n"
+	"			float r2s=sqrt(r2);\n"
 	"\n"
-	"         vec3 rd=u*cos(r1)*r2s + v*sin(r1)*r2s + spln.xyz*sqrt(1.0-r2);\n"
-	"            \n"
-	"         if(traceRayShadow(rp,rd,EPS*16,aoradius))\n"
-	"            r+=vec3(1.0/float(n));\n"
-	"   }\n"
+	"			vec3 rd=u*cos(r1)*r2s + v*sin(r1)*r2s + spln.xyz*sqrt(1.0-r2);\n"
+	"				\n"
+	"			if(traceRayShadow(rp,rd,EPS*16,aoradius))\n"
+	"				r+=vec3(1.0/float(n));\n"
+	"	}\n"
 	"\n"
 	"	gl_FragColor.rgb = r;\n"
 	"	gl_FragColor.a = 1.0;\n"
@@ -133,23 +149,223 @@ static const GLcharARB* fragment_shader_source =
 
 	
 typedef float vec4_t[4];
-static vec4_t s_lerped[MAX_VERTS];
+static vec4_t pt_lerped[MAX_VERTS];
 
+
+typedef struct trinode_s
+{
+	qboolean leaf;
+	short triangle_index;
+	float aabb_min[3], aabb_max[3];
+	float surface_area;
+	struct trinode_s* children[PT_MAX_NODE_CHILDREN];
+	int num_children;
+	unsigned long int morton_code;
+} trinode_t;
+
+static trinode_t pt_trinodes[PT_MAX_TRI_NODES];
+static trinode_t *pt_trinodes_ordered[PT_MAX_TRI_NODES];
+static short pt_num_nodes = 0;
+static short pt_num_triangles = 0;
+
+static int pt_triangle_data[PT_MAX_TRIANGLES * 2];
+static int pt_node0_data[PT_MAX_TRI_NODES * 4];
+static int pt_node1_data[PT_MAX_TRI_NODES * 4];
+
+static void
+TriNodeClear(trinode_t *n)
+{
+	int i;
+	n->leaf = true;
+	n->triangle_index = 0;
+	for (i = 0; i < 3; ++i)
+	{
+		n->aabb_min[i] = 1e9f;
+		n->aabb_max[i] = -1e9f;
+	}
+	n->surface_area = 0;
+	n->num_children = 0;
+	n->morton_code = 0;
+}
+
+static trinode_t*
+AllocateNode()
+{
+	trinode_t *n = pt_trinodes + pt_num_nodes;
+	pt_trinodes_ordered[pt_num_nodes] = n;
+	TriNodeClear(n);
+	++pt_num_nodes;
+	return n;
+}
+
+static float
+TriNodeCalculateSurfaceArea(const trinode_t *n)
+{
+	int i;
+	float aabb_size[3];
+	for (i = 0; i < 3; ++i)
+		aabb_size[i] = n->aabb_max[i] - n->aabb_min[i];
+	return (aabb_size[0] * aabb_size[1] + aabb_size[1] * aabb_size[2] + aabb_size[2] * aabb_size[0]) * 2;
+}
+
+static unsigned long int
+TriNodeCalculateMortonCode(const trinode_t *n)
+{
+	int i;
+	
+	unsigned long int box_center[3] = { (unsigned long int)((n->aabb_min[0] + n->aabb_max[0]) / 2.0),
+													(unsigned long int)((n->aabb_min[1] + n->aabb_max[1]) / 2.0),
+													(unsigned long int)((n->aabb_min[2] + n->aabb_max[2]) / 2.0) };
+
+	unsigned long int bits = 0;
+
+	/* Interleave the bits of each component of the center point. */
+	for (i = 0; i < 32; ++i)
+		bits |= (box_center[i % 3] & (1 << (i / 3))) << (i - i / 3);
+
+	return bits;
+}
+
+static int
+TriNodeSurfaceAreaComparator(void const *a, void const *b)
+{
+	trinode_t *n0 = *(trinode_t**)a;
+	trinode_t *n1 = *(trinode_t**)b;
+	return n0->surface_area > n1->surface_area;
+}
+
+static int
+TriNodeMortonCodeComparator(void const *a, void const *b)
+{
+	trinode_t *n0 = *(trinode_t**)a;
+	trinode_t *n1 = *(trinode_t**)b;
+	return n0->morton_code < n1->morton_code;
+}
+
+static int
+FloatBitsToInt(float x)
+{
+	return *(int*)&x;
+}
+
+static int
+TriNodeWriteData(const trinode_t *n, int *node0_data, int *node1_data, int index)
+{
+	int i, c, prev_child_index;
+	int child_index, m;
+	int *n0 = node0_data + index * 4;
+	int *n1 = node1_data + index * 4;
+	int *pn0;
+	float aabb_size[3];
+
+	for (i = 0; i < 3; ++i)
+		aabb_size[i] = n->aabb_max[i] - n->aabb_min[i];
+
+	for (i = 0; i < 3; ++i)
+	{
+		n0[i] = FloatBitsToInt(aabb_size[i] / 2.0f);
+		n1[i] = FloatBitsToInt((n->aabb_min[i] + n->aabb_max[i]) / 2.0f);
+	}
+
+	n0[3] = 0;
+
+	if (n->leaf)
+	{
+		n1[3] = n->triangle_index;
+		return 1;
+	}
+
+	n1[3] = -1;
+
+	c = 1;
+	prev_child_index = -1;
+	
+	for (i = 0; i < n->num_children; ++i)
+	{
+		child_index = index + c;
+		m = TriNodeWriteData(n->children[i], node0_data, node1_data, child_index);
+
+		if (m > 0)
+		{
+			if (prev_child_index != -1)
+			{
+				pn0 = node0_data + prev_child_index * 4;
+				pn0[3] = child_index;
+			}
+
+			prev_child_index = child_index;
+			c += m;
+		}
+	}
+
+	pn0 = node0_data + prev_child_index * 4;
+	pn0[3] = index + c;
+
+	return c;
+}
+
+static int
+WriteTriNodes(int *node0_data, int *node1_data, const trinode_t *nodes, int num_nodes)
+{
+	int i, m;
+	int node_count = 0, prev_node_count = -1;
+	int *pn0;
+	
+	for (i = 0; i < num_nodes; ++i)
+	{
+		m = TriNodeWriteData(nodes + i, node0_data, node1_data, node_count);
+		if (m > 0)
+		{
+			if (node_count > 0)
+			{
+				pn0 = node0_data + prev_node_count * 4;
+				pn0[3] = node_count;
+			}
+			prev_node_count = node_count;
+			node_count += m;
+		}
+	}
+
+	return node_count;
+}
+
+static void
+DeleteBuffer(GLuint *h)
+{
+	if (*h)
+	{
+		if (qglDeleteBuffersARB)
+			qglDeleteBuffersARB(1, h);
+		else if(qglDeleteBuffers)
+			qglDeleteBuffers(1, h);
+		*h = 0;
+	}
+}
+
+static void
+DeleteTexture(GLuint *h)
+{
+	if (*h)
+	{
+		glDeleteTextures(1, h);
+		*h = 0;
+	}
+}
 
 static void
 FreeModelData(void)
 {
-	if (pt_node_texture)
-	{
-		glDeleteTextures(1, &pt_node_texture);
-		pt_node_texture = 0;
-	}
+	DeleteTexture(&pt_node_texture);
+	DeleteTexture(&pt_child_texture);
 
-	if (pt_child_texture)
-	{
-		glDeleteTextures(1, &pt_child_texture);
-		pt_child_texture = 0;
-	}
+	DeleteBuffer(&pt_node0_buffer);
+	DeleteTexture(&pt_node0_texture);
+	DeleteBuffer(&pt_node1_buffer);
+	DeleteTexture(&pt_node1_texture);
+	DeleteBuffer(&pt_triangle_buffer);
+	DeleteTexture(&pt_triangle_texture);
+	DeleteBuffer(&pt_vertex_buffer);
+	DeleteTexture(&pt_vertex_texture);
 }
 
 /* Applies a translation vector to the given 4x4 matrix in-place. */
@@ -247,6 +463,8 @@ AddAliasModel(entity_t *entity, model_t *model)
 	float *lerp;
 	float transformation_matrix[16];
 	vec4_t lerped_vertex;
+	dtriangle_t *triangles, *tri;
+	trinode_t *node;
 		
 	/* Construct a transformation matrix to match the one used for drawing entities. This is based on the GL matrix transformation
 		code in R_DrawAliasModel and R_RotateForEntity. */
@@ -329,7 +547,7 @@ AddAliasModel(entity_t *entity, model_t *model)
 
 	/* Interpolate and transform the vertices. */
 	
-	lerp = s_lerped[0];
+	lerp = pt_lerped[0];
 
 	for (i = 0; i < alias_header->num_xyz; i++, v++, ov++, lerp += 4)
 	{
@@ -349,6 +567,54 @@ AddAliasModel(entity_t *entity, model_t *model)
 			}
 		}
 	}
+	
+	/* Create a leaf node for each triangle. */
+
+	triangles = (dtriangle_t *)((byte *)alias_header + alias_header->ofs_tris);
+	
+	int first_node_index = pt_num_nodes;
+	int num_added_nodes = 0;
+	
+	for (i = 0; i < alias_header->num_tris; ++i)
+	{
+		if (pt_num_nodes >= PT_MAX_TRI_NODES || pt_num_triangles >= PT_MAX_TRIANGLES)
+			continue;
+				
+		tri = triangles + i;
+		node = AllocateNode();
+		
+		num_added_nodes++;
+		
+		node->leaf = true;
+		node->triangle_index = pt_num_triangles++;
+		
+		/* Get the bounding box of the triangles. */
+		
+		for (j = 0; j < 3; ++j)
+		{
+			lerp = pt_lerped[tri->index_xyz[j]];
+			
+			for (k = 0; k < 3; ++k)
+			{
+				if (node->aabb_min[k] > lerp[k])
+					node->aabb_min[k] = lerp[k];
+
+				if(node->aabb_max[k] < lerp[k])
+					node->aabb_max[k] = lerp[k];
+			}
+		}
+		
+		node->morton_code = TriNodeCalculateMortonCode(node);
+		node->surface_area = TriNodeCalculateSurfaceArea(node);
+		
+		pt_triangle_data[node->triangle_index * 2 + 0] = (int)tri->index_xyz[0] | ((int)tri->index_xyz[1] << 16);
+		pt_triangle_data[node->triangle_index * 2 + 1] = (int)tri->index_xyz[2];
+	}
+	
+	/* Sort the leaf nodes by morton code so that nodes which are spatially close are ordinally close. */
+	
+	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeSurfaceAreaComparator);
+
 }
 
 static void
@@ -395,9 +661,52 @@ AddEntities(void)
 void
 R_UpdatePathtracerForCurrentFrame(void)
 {
+	pt_num_nodes = 0;
+	pt_num_triangles = 0;
+	
 	AddEntities();
 }
 	
+static void
+CreateTextureBuffer(GLuint *buffer, GLuint *texture, GLenum format, GLsizei size)
+{
+	*buffer = 0;
+	*texture = 0;
+	
+	if (qglGenBuffersARB)
+		qglGenBuffersARB(1, buffer);
+	else if(qglGenBuffers)
+		qglGenBuffers(1, buffer);
+	
+	glGenTextures(1, texture);
+	
+	if (qglBindBufferARB)
+		qglBindBufferARB(GL_TEXTURE_BUFFER, *buffer);
+	else if (qglBindBuffer)
+		qglBindBuffer(GL_TEXTURE_BUFFER, *buffer);
+	
+	if (qglBufferDataARB)
+		qglBufferDataARB(GL_TEXTURE_BUFFER, size, NULL, GL_DYNAMIC_DRAW_ARB);
+	else if (qglBufferData)
+		qglBufferData(GL_TEXTURE_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
+
+	glBindTexture(GL_TEXTURE_BUFFER, *texture);
+
+	if (qglTexBufferARB)
+		qglTexBufferARB(GL_TEXTURE_BUFFER, format, *buffer);
+	else if (qglTexBufferEXT)
+		qglTexBufferEXT(GL_TEXTURE_BUFFER, format, *buffer);
+	else if (qglTexBuffer)
+		qglTexBuffer(GL_TEXTURE_BUFFER, format, *buffer);
+		
+	if (qglBindBufferARB)
+		qglBindBufferARB(GL_TEXTURE_BUFFER, 0);
+	else if (qglBindBuffer)
+		qglBindBuffer(GL_TEXTURE_BUFFER, 0);
+	
+	glBindTexture(GL_TEXTURE_BUFFER, 0);
+}
+
 void
 R_PreparePathtracer(void)
 {
@@ -426,29 +735,29 @@ R_PreparePathtracer(void)
 		return;
 	}
 
-   while (texture_width * texture_height < num_texels)
-   {
-      texture_width <<= 1;
+	while (texture_width * texture_height < num_texels)
+	{
+		texture_width <<= 1;
 		
-      if (texture_width * texture_height >= num_texels)
-         break;
+		if (texture_width * texture_height >= num_texels)
+			break;
 		
-      texture_height <<= 1;
-   }
+		texture_height <<= 1;
+	}
 	
 	num_texels = texture_width * texture_height;
 	
 	tex_node_data = (float*)Z_Malloc(num_texels * 4 * sizeof(float));
 	tex_child_data = (unsigned char*)Z_Malloc(num_texels * 4);
 	
-   for (i = 0; i < r_worldmodel->numnodes; ++i)
-   {
-      in = r_worldmodel->nodes + r_worldmodel->firstnode + i;
+	for (i = 0; i < r_worldmodel->numnodes; ++i)
+	{
+		in = r_worldmodel->nodes + r_worldmodel->firstnode + i;
 
-      tex_node_data[i * 4 + 0] = in->plane->normal[0];
-      tex_node_data[i * 4 + 1] = in->plane->normal[1];
-      tex_node_data[i * 4 + 2] = in->plane->normal[2];
-      tex_node_data[i * 4 + 3] = in->plane->dist;
+		tex_node_data[i * 4 + 0] = in->plane->normal[0];
+		tex_node_data[i * 4 + 1] = in->plane->normal[1];
+		tex_node_data[i * 4 + 2] = in->plane->normal[2];
+		tex_node_data[i * 4 + 3] = in->plane->dist;
 
 		for (j = 0; j < 2; ++j)
 		{
@@ -462,7 +771,7 @@ R_PreparePathtracer(void)
 				tex_child_data[i * 4 + 0 + j * 2] = tex_child_data[i * 4 + 1 + j * 2] = in->children[j]->contents == CONTENTS_SOLID ? 255 : 0;
 			}
 		}
-   }
+	}
 	
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
@@ -486,6 +795,12 @@ R_PreparePathtracer(void)
 	
 	Z_Free(tex_node_data);
 	Z_Free(tex_child_data);
+	
+
+	CreateTextureBuffer(&pt_node0_buffer, &pt_node0_texture, GL_RGBA32I, PT_MAX_TRI_NODES * 4 * sizeof(GLint));
+	CreateTextureBuffer(&pt_node1_buffer, &pt_node1_texture, GL_RGBA32I, PT_MAX_TRI_NODES * 4 * sizeof(GLint));
+	CreateTextureBuffer(&pt_triangle_buffer, &pt_triangle_texture, GL_RG32I, PT_MAX_TRIANGLES * 2 * sizeof(GLint));
+	CreateTextureBuffer(&pt_vertex_buffer, &pt_vertex_texture, GL_RGB32F, PT_MAX_VERTICES * 3 * sizeof(GLfloat));
 }
 	
 static void
