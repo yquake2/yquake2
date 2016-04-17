@@ -1702,6 +1702,35 @@ R_Init(void *hinstance, void *hWnd)
 		GET_PROC_ADDRESS(glTexBuffer);
 	}
 
+	/* ---------------------- GL_ARB_vertex_buffer_object ---------------------- */
+
+	gl_config.vertex_buffer_objects = false;
+	
+	if (strstr(gl_config.extensions_string, "GL_ARB_vertex_buffer_object"))
+	{
+		VID_Printf(PRINT_ALL, "...using GL_ARB_vertex_buffer_object\n");
+		
+		gl_config.vertex_buffer_objects = true;
+		
+		GET_PROC_ADDRESS(glBindBufferARB);
+		GET_PROC_ADDRESS(glBufferDataARB);
+		GET_PROC_ADDRESS(glBufferSubDataARB);
+		GET_PROC_ADDRESS(glDeleteBuffersARB);
+		GET_PROC_ADDRESS(glGenBuffersARB);
+		GET_PROC_ADDRESS(glGetBufferParameterivARB);
+		GET_PROC_ADDRESS(glGetBufferPointervARB);
+		GET_PROC_ADDRESS(glGetBufferSubDataARB);
+		GET_PROC_ADDRESS(glIsBufferARB);
+		GET_PROC_ADDRESS(glMapBufferARB);
+		GET_PROC_ADDRESS(glUnmapBufferARB);
+
+	}
+	else
+	{
+		VID_Printf(PRINT_ALL, "...GL_ARB_vertex_buffer_object not found\n");
+		gl_config.vertex_buffer_objects = false;
+	}
+	
 	R_SetDefaultState();
 
 	R_InitImages();

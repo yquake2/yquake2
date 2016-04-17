@@ -114,6 +114,22 @@ PFNGLDRAWELEMENTSINSTANCEDPROC qglDrawElementsInstanced;
 PFNGLPRIMITIVERESTARTINDEXPROC qglPrimitiveRestartIndex;
 PFNGLTEXBUFFERPROC qglTexBuffer;
 
+
+/* ---------------------- GL_ARB_vertex_buffer_object ---------------------- */
+
+PFNGLBINDBUFFERARBPROC qglBindBufferARB;
+PFNGLBUFFERDATAARBPROC qglBufferDataARB;
+PFNGLBUFFERSUBDATAARBPROC qglBufferSubDataARB;
+PFNGLDELETEBUFFERSARBPROC qglDeleteBuffersARB;
+PFNGLGENBUFFERSARBPROC qglGenBuffersARB;
+PFNGLGETBUFFERPARAMETERIVARBPROC qglGetBufferParameterivARB;
+PFNGLGETBUFFERPOINTERVARBPROC qglGetBufferPointervARB;
+PFNGLGETBUFFERSUBDATAARBPROC qglGetBufferSubDataARB;
+PFNGLISBUFFERARBPROC qglIsBufferARB;
+PFNGLMAPBUFFERARBPROC qglMapBufferARB;
+PFNGLUNMAPBUFFERARBPROC qglUnmapBufferARB;
+
+
 /* ========================================================================= */
 
 void QGL_EXT_Reset ( void )
@@ -191,6 +207,20 @@ void QGL_EXT_Reset ( void )
 	qglDrawElementsInstanced = NULL;
 	qglPrimitiveRestartIndex = NULL;
 	qglTexBuffer = NULL;
+
+	/* ---------------------- GL_ARB_vertex_buffer_object ---------------------- */
+
+	qglBindBufferARB = NULL;
+	qglBufferDataARB = NULL;
+	qglBufferSubDataARB = NULL;
+	qglDeleteBuffersARB = NULL;
+	qglGenBuffersARB = NULL;
+	qglGetBufferParameterivARB = NULL;
+	qglGetBufferPointervARB = NULL;
+	qglGetBufferSubDataARB = NULL;
+	qglIsBufferARB = NULL;
+	qglMapBufferARB = NULL;
+	qglUnmapBufferARB = NULL;
 }
 
 /* ========================================================================= */
