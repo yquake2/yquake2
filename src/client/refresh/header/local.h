@@ -369,6 +369,7 @@ int Scrap_AllocBlock(int w, int h, int *x, int *y);
 void R_InitPathtracing(void);
 void R_ShutdownPathtracing(void);
 void R_PreparePathtracer(void);
+void R_UpdatePathtracerForCurrentFrame(void);
 
 extern GLhandleARB pt_program_handle;
 extern GLhandleARB pt_node_texture;

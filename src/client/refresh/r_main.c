@@ -1030,9 +1030,14 @@ R_RenderView(refdef_t *fd)
 	R_SetupGL();
 
 	R_MarkLeaves(); /* done here so we know if we're in water */
-
+	
+	if (gl_pt_enable->value)
+	{
+		R_UpdatePathtracerForCurrentFrame();
+	}
+	
 	R_DrawWorld();
-
+	
 	R_DrawEntitiesOnList();
 
 	R_RenderDlights();
