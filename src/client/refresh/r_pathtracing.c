@@ -7,6 +7,7 @@
 #define PT_MAX_NODE_DEPTH		4
 
 cvar_t *gl_pt_enable;
+cvar_t *gl_pt_stats;
 
 GLhandleARB pt_program_handle;
 GLhandleARB pt_node_texture = 0;
@@ -740,6 +741,9 @@ R_UpdatePathtracerForCurrentFrame(void)
 	pt_written_nodes = 0;
 	
 	AddEntities();
+	
+	if (gl_pt_stats->value)
+		VID_Printf(PRINT_ALL, "pt_stats: n=%5d, t=%5d, v=%5d, w=%5d\n", pt_num_nodes, pt_num_triangles, pt_num_vertices, pt_written_nodes);
 		
 	UploadTextureBufferData(pt_node0_buffer, pt_node0_data, pt_num_nodes * 4 * sizeof(GLint));
 	UploadTextureBufferData(pt_node1_buffer, pt_node1_data, pt_num_nodes * 4 * sizeof(GLint));
@@ -906,6 +910,7 @@ R_InitPathtracing(void)
 	GLint status = 0;
 	
 	gl_pt_enable = Cvar_Get( "gl_pt_enable", "0", CVAR_ARCHIVE);
+	gl_pt_stats = Cvar_Get( "gl_pt_stats", "0", CVAR_ARCHIVE);
 
 	pt_program_handle = qglCreateProgramObjectARB();
 	vertex_shader = qglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
