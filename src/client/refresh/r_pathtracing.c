@@ -613,7 +613,7 @@ AddAliasModel(entity_t *entity, model_t *model)
 	
 	/* Sort the leaf nodes by morton code so that nodes which are spatially close are ordinally close. */
 	
-	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeSurfaceAreaComparator);
+	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeMortonCodeComparator);
 
 }
 
