@@ -644,7 +644,7 @@ AddAliasModel(entity_t *entity, model_t *model)
 			
 			for (k = 0; k < PT_MAX_NODE_CHILDREN && (j + k) < num_added_nodes; ++k)
 			{
-				node->children[k] = pt_trinodes_ordered + first_node_index + j + k;
+				node->children[k] = pt_trinodes_ordered[first_node_index + j + k];
 				for (m = 0; m < 3; ++m)
 				{
 					if(node->aabb_min[m] > node->children[k]->aabb_min[k])
@@ -710,20 +710,20 @@ AddEntities(void)
 }
 
 static void
-UploadTextureBufferData(Gluint buffer, byte *data, GLsizei size)
+UploadTextureBufferData(GLuint buffer, void *data, GLsizei size)
 {
-	if (gglBindBufferARB)
-		gglBindBufferARB(GL_TEXTURE_BUFFER, buffer);
+	if (qglBindBufferARB)
+		qglBindBufferARB(GL_TEXTURE_BUFFER, buffer);
 	else if (qglBindBuffer)
 		qglBindBuffer(GL_TEXTURE_BUFFER, buffer);
 	
-	if (gglBufferSubDataARB)	
-		gglBufferSubDataARB(GL_TEXTURE_BUFFER, 0, size, data);
+	if (qglBufferSubDataARB)	
+		qglBufferSubDataARB(GL_TEXTURE_BUFFER, 0, size, data);
 	else
-		gglBufferSubData(GL_TEXTURE_BUFFER, 0, size, data);
+		qglBufferSubData(GL_TEXTURE_BUFFER, 0, size, data);
 	
-	if (gglBindBufferARB)
-		gglBindBufferARB(GL_TEXTURE_BUFFER, 0);
+	if (qglBindBufferARB)
+		qglBindBufferARB(GL_TEXTURE_BUFFER, 0);
 	else if (qglBindBuffer)
 		qglBindBuffer(GL_TEXTURE_BUFFER, 0);
 }
