@@ -1351,6 +1351,40 @@ R_Init(void *hinstance, void *hWnd)
 	Q_strlcpy(vendor_buffer, gl_config.vendor_string, sizeof(vendor_buffer));
 	Q_strlwr(vendor_buffer);
 
+	
+	
+	/* Get the major and minor version numbers of the context. For a context with version
+		less than 3.0 this will fail, so that case needs to be checked for. */
+		
+	/* First deal with any error which already occured. */
+	err = glGetError();
+
+	if (err != GL_NO_ERROR)
+	{
+		VID_Printf(PRINT_ALL, "glGetError() = 0x%x\n", err);
+	}
+	
+	gl_config.version_major = 0;
+	gl_config.version_minor = 0;
+
+	glGetIntegerv(GL_MAJOR_VERSION, &gl_config.version_major);
+
+	err = glGetError();
+
+	if (err != GL_NO_ERROR)
+	{
+		gl_config.version_major = 0;
+		gl_config.version_minor = 0;
+		VID_Printf(PRINT_ALL, "\n\nglGetIntegerv(GL_MAJOR_VERSION) failed with glGetError() = 0x%x, GL version is assumed to be less than 3.0", err);
+	}
+	else
+	{
+		glGetIntegerv(GL_MINOR_VERSION, &gl_config.version_minor);
+		VID_Printf(PRINT_ALL, "\n\nGL version is %d.%d", gl_config.version_major, gl_config.version_minor);
+	}
+
+
+	
 	Cvar_Set("scr_drawall", "0");
 	gl_config.allow_cds = true;
 
@@ -1661,6 +1695,7 @@ R_Init(void *hinstance, void *hWnd)
 		gl_config.texture_buffer_objects_rgb = false;
 	}
 	
+
 	R_SetDefaultState();
 
 	R_InitImages();

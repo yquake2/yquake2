@@ -405,6 +405,9 @@ typedef struct
 	qboolean float_textures;
 	qboolean texture_buffer_objects;
 	qboolean texture_buffer_objects_rgb;
+
+	GLint version_major;
+	GLint version_minor;
 } glconfig_t;
 
 typedef struct

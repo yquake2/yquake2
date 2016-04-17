@@ -346,4 +346,14 @@ extern PFNGLTEXBUFFEREXTPROC qglTexBufferEXT;
 
 #endif /* GL_EXT_texture_buffer_object */
 
+/* ----------------------------- GL_VERSION_3_0 ---------------------------- */
+
+#ifndef GL_VERSION_3_0
+#define GL_VERSION_3_0 1
+
+#define GL_MAJOR_VERSION 0x821B
+#define GL_MINOR_VERSION 0x821C
+
+#endif /* GL_VERSION_3_0 */
+
 #endif
