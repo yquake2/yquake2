@@ -167,10 +167,12 @@ static trinode_t pt_trinodes[PT_MAX_TRI_NODES];
 static trinode_t *pt_trinodes_ordered[PT_MAX_TRI_NODES];
 static short pt_num_nodes = 0;
 static short pt_num_triangles = 0;
+static short pt_num_vertices = 0;
 
 static int pt_triangle_data[PT_MAX_TRIANGLES * 2];
 static int pt_node0_data[PT_MAX_TRI_NODES * 4];
 static int pt_node1_data[PT_MAX_TRI_NODES * 4];
+static float pt_vertex_data[PT_MAX_VERTICES * 3];
 
 static void
 TriNodeClear(trinode_t *n)
@@ -549,6 +551,8 @@ AddAliasModel(entity_t *entity, model_t *model)
 	
 	lerp = pt_lerped[0];
 
+	int triangle_vertices_offset = pt_num_vertices;
+	
 	for (i = 0; i < alias_header->num_xyz; i++, v++, ov++, lerp += 4)
 	{
 		lerped_vertex[0] = move[0] + ov->v[0] * backv[0] + v->v[0] * frontv[0];
@@ -565,7 +569,11 @@ AddAliasModel(entity_t *entity, model_t *model)
 			{
 				lerp[j] += transformation_matrix[k * 4 + j] * lerped_vertex[k];
 			}
+			
+			pt_vertex_data[pt_num_vertices * 3 + j] = lerp[j];
 		}
+		
+		pt_num_vertices++;
 	}
 	
 	/* Create a leaf node for each triangle. */
@@ -607,8 +615,8 @@ AddAliasModel(entity_t *entity, model_t *model)
 		node->morton_code = TriNodeCalculateMortonCode(node);
 		node->surface_area = TriNodeCalculateSurfaceArea(node);
 		
-		pt_triangle_data[node->triangle_index * 2 + 0] = (int)tri->index_xyz[0] | ((int)tri->index_xyz[1] << 16);
-		pt_triangle_data[node->triangle_index * 2 + 1] = (int)tri->index_xyz[2];
+		pt_triangle_data[node->triangle_index * 2 + 0] = (triangle_vertices_offset + (int)tri->index_xyz[0]) | ((triangle_vertices_offset + (int)tri->index_xyz[1]) << 16);
+		pt_triangle_data[node->triangle_index * 2 + 1] = (triangle_vertices_offset + (int)tri->index_xyz[2]);
 	}
 	
 	/* Sort the leaf nodes by morton code so that nodes which are spatially close are ordinally close. */
@@ -704,6 +712,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 {
 	pt_num_nodes = 0;
 	pt_num_triangles = 0;
+	pt_num_vertices = 0;
 	
 	AddEntities();
 }
