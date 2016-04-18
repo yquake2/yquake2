@@ -537,7 +537,8 @@ AddAliasModel(entity_t *entity, model_t *model)
 	trinode_t *node;
 	int first_node_index, num_added_nodes, first_node_index2, num_added_nodes2;
 	int triangle_vertices_offset;
-
+	float entity_aabb_min[3], entity_aabb_max[3];
+	
 	/* Construct a transformation matrix to match the one used for drawing entities. This is based on the GL matrix transformation
 		code in R_DrawAliasModel and R_RotateForEntity. */
 	
@@ -617,6 +618,14 @@ AddAliasModel(entity_t *entity, model_t *model)
 		backv[i] = entity->backlerp * oldframe->scale[i];
 	}
 
+	/* Initialise the entity's bounding box. */
+	
+	for (i = 0; i < 3; ++i)
+	{
+		entity_aabb_min[i] = 1e9f;
+		entity_aabb_max[i] = -1e9f;
+	}
+
 	/* Interpolate and transform the vertices. */
 	
 	lerp = pt_lerped[0];
@@ -641,6 +650,14 @@ AddAliasModel(entity_t *entity, model_t *model)
 			}
 			
 			pt_vertex_data[pt_num_vertices * 3 + j] = lerp[j];
+			
+			/* If necessary, expand the entity's bounding box to include this vertex. */
+			
+			if (entity_aabb_min[j] > lerp[j])
+				entity_aabb_min[j] = lerp[j];
+
+			if (entity_aabb_max[j] < lerp[j])
+				entity_aabb_max[j] = lerp[j];
 		}
 		
 		pt_num_vertices++;
@@ -735,7 +752,24 @@ AddAliasModel(entity_t *entity, model_t *model)
 	
 	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeSurfaceAreaComparator);
 
+	/* Make one node for the whole entity, so it can be skipped entirely with a single bounding box test. */
+
+	int *entitynode_n0 = pt_node0_data + pt_written_nodes * 4;
+	int *entitynode_n1 = pt_node1_data + pt_written_nodes * 4;
+	
+	for (i = 0; i < 3; ++i)
+	{
+		entitynode_n0[i] = FloatBitsToInt((entity_aabb_max[i] - entity_aabb_min[i]) / 2.0f);
+		entitynode_n1[i] = FloatBitsToInt((entity_aabb_min[i] + entity_aabb_max[i]) / 2.0f);
+	}
+
+	entitynode_n1[3] = -1;
+	
+	++pt_written_nodes;
+	
 	WriteTriNodes(first_node_index, num_added_nodes);
+	
+	entitynode_n0[3] = pt_written_nodes;
 }
 
 static void
