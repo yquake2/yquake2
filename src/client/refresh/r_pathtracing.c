@@ -518,6 +518,21 @@ MatrixRotateAxis(float m[16], int axis, float angle)
 	MatrixApply(m, mt0, mt1);
 }
 
+/* Constructs a transformation matrix to match the one used for drawing entities. This is based on the GL matrix transformation
+	code in R_DrawAliasModel and R_RotateForEntity. */
+void
+R_ConstructEntityToWorldMatrix(float m[16], entity_t *entity)
+{
+	MatrixIdentity(m);	
+	MatrixTranslate(m, entity->origin[0], entity->origin[1], entity->origin[2]);
+
+	entity->angles[PITCH] = -entity->angles[PITCH];
+	MatrixRotateAxis(m, 2, entity->angles[1] * M_PI / 180.0);
+	MatrixRotateAxis(m, 1, -entity->angles[0] * M_PI / 180.0);
+	MatrixRotateAxis(m, 0, -entity->angles[2] * M_PI / 180.0);
+	entity->angles[PITCH] = -entity->angles[PITCH];
+}
+
 /* Constructs an interpolated mesh in worldspace to match the one which is drawn by R_DrawAliasModel. This function
 	is mostly based on R_DrawAliasModel except that it does no drawing. */
 static void
@@ -539,16 +554,9 @@ AddAliasModel(entity_t *entity, model_t *model)
 	int triangle_vertices_offset;
 	float entity_aabb_min[3], entity_aabb_max[3];
 	
-	/* Construct a transformation matrix to match the one used for drawing entities. This is based on the GL matrix transformation
-		code in R_DrawAliasModel and R_RotateForEntity. */
+	/* Get the entity-to-world transformation matrix. */
 	
-	entity->angles[PITCH] = -entity->angles[PITCH];
-	MatrixIdentity(transformation_matrix);	
-	MatrixTranslate(transformation_matrix, entity->origin[0], entity->origin[1], entity->origin[2]);
-	MatrixRotateAxis(transformation_matrix, 2, entity->angles[1] * M_PI / 180.0);
-	MatrixRotateAxis(transformation_matrix, 1, -entity->angles[0] * M_PI / 180.0);
-	MatrixRotateAxis(transformation_matrix, 0, -entity->angles[2] * M_PI / 180.0);
-	entity->angles[PITCH] = -entity->angles[PITCH];
+	R_ConstructEntityToWorldMatrix(transformation_matrix, entity);
 	
 	/* Get the alias model header. */
 	

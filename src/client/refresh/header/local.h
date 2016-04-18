@@ -371,6 +371,7 @@ void R_InitPathtracing(void);
 void R_ShutdownPathtracing(void);
 void R_PreparePathtracer(void);
 void R_UpdatePathtracerForCurrentFrame(void);
+void R_ConstructEntityToWorldMatrix(float m[16], entity_t *entity);
 
 extern GLhandleARB pt_program_handle;
 extern GLhandleARB pt_node_texture;
