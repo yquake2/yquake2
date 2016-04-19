@@ -1180,6 +1180,9 @@ R_DrawWorld(void)
 		glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
 		qglActiveTextureARB(GL_TEXTURE0_ARB);
 		qglUniform1iARB(pt_frame_counter_loc, pt_frame_counter++);
+		
+		static const float identity_matrix[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+		qglUniformMatrix4fvARB(pt_entity_to_world_loc, 1, GL_FALSE, identity_matrix);
 	}
 	
 	currentmodel = r_worldmodel;

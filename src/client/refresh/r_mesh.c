@@ -81,6 +81,38 @@ R_LerpVerts(int nverts, dtrivertx_t *v, dtrivertx_t *ov,
 	}
 }
 
+static void
+SetNormalForPathtracer(float* p0, float* p1, float *p2)
+{
+	float n[3], l, e0[3], e1[3];
+	static const int perm[4] = { 1, 2, 0, 1 };
+	int i;
+
+	/* Get the edge vectors. */
+	for (i = 0; i < 3; ++i)
+	{
+		e0[i] = p2[i] - p0[i];
+		e1[i] = p1[i] - p0[i];
+	}
+
+	/* Perform a cross product on the edge vectors. */
+	for (i = 0; i < 3; ++i)
+		n[i] = e0[perm[i]] * e1[perm[i + 1]] - e0[perm[i + 1]] * e1[perm[i]];
+
+	/* Get the length of the cross product. */
+	l = sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+
+	/* Normalize. */
+	if (l > 0)
+	{
+		for (i = 0; i < 3; ++i)
+			n[i] /= l;
+	}
+
+	/* Set the normal. */
+	qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, n[0], n[1], n[2]);
+}
+
 /*
  * Interpolates between two frames and origins
  */
@@ -99,6 +131,7 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 	int i;
 	int index_xyz;
 	float *lerp;
+	float *st0, *st1, *st2, *xyz0, *xyz1, *xyz2;
 
 	frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames
 							  + currententity->frame * paliashdr->framesize);
@@ -153,7 +186,104 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 
 	R_LerpVerts(paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv);
 
-	if (gl_vertex_arrays->value)
+	if (gl_pt_enable->value && !(currententity->flags & (RF_FULLBRIGHT | RF_DEPTHHACK | RF_WEAPONMODEL | RF_TRANSLUCENT | RF_BEAM | RF_NOSHADOW | RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM)))
+	{
+		glBegin(GL_TRIANGLES);
+
+		while (1)
+		{
+			/* get the vertex count and primitive type */
+			count = *order++;
+
+			if (!count)
+			{
+				break; /* done */
+			}
+
+			st0 = st1 = st2 = xyz0 = xyz1 = xyz2 = NULL;
+
+			if (count < 0)
+			{
+				/* Triangle fan. */
+				count = -count;
+
+				do
+				{
+					if (!st2 && !xyz2)
+					{
+						st2 = st1;
+						xyz2 = xyz1;
+					}
+					st1 = st0;
+					xyz1 = xyz0;
+					st0 = (float *)order;
+					xyz0 = s_lerped[order[2]];
+					order += 3;
+
+					if (st0 && st1 && st2 && xyz0 && xyz1 && xyz2)
+					{
+						SetNormalForPathtracer(xyz2, xyz1, xyz0);
+
+						glTexCoord2fv(st2);
+						glVertex3fv(xyz2);
+						glTexCoord2fv(st1);
+						glVertex3fv(xyz1);
+						glTexCoord2fv(st0);
+						glVertex3fv(xyz0);
+					}
+				}
+				while (--count);
+			}
+			else
+			{
+				/* Triangle strip. */
+				i = 0;
+				do
+				{
+					st2 = st1;
+					xyz2 = xyz1;
+					st1 = st0;
+					xyz1 = xyz0;
+					st0 = (float *)order;
+					xyz0 = s_lerped[order[2]];
+					order += 3;
+
+					if (st0 && st1 && st2 && xyz0 && xyz1 && xyz2)
+					{
+						if (i & 1)
+						{
+							SetNormalForPathtracer(xyz0, xyz1, xyz2);
+
+							glTexCoord2fv(st0);
+							glVertex3fv(xyz0);
+							glTexCoord2fv(st1);
+							glVertex3fv(xyz1);
+							glTexCoord2fv(st2);
+							glVertex3fv(xyz2);
+						}
+						else
+						{
+							SetNormalForPathtracer(xyz2, xyz1, xyz0);
+
+							glTexCoord2fv(st2);
+							glVertex3fv(xyz2);
+							glTexCoord2fv(st1);
+							glVertex3fv(xyz1);
+							glTexCoord2fv(st0);
+							glVertex3fv(xyz0);
+						}
+					}
+					
+					++i;
+				}
+				while (--count);
+			}
+			
+		}
+
+		glEnd();
+	}
+	else if (gl_vertex_arrays->value)
 	{
 		float colorArray[MAX_VERTS * 4];
 
@@ -795,8 +925,50 @@ R_DrawAliasModel(entity_t *e)
 		currententity->backlerp = 0;
 	}
 
+	if (gl_pt_enable->value && !(currententity->flags & (RF_FULLBRIGHT | RF_DEPTHHACK | RF_WEAPONMODEL | RF_TRANSLUCENT | RF_BEAM | RF_NOSHADOW | RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM)))
+	{
+		static unsigned long int pt_frame_counter = 0;
+		qglUseProgramObjectARB(pt_program_handle);
+		qglActiveTextureARB(GL_TEXTURE2_ARB);
+		glBindTexture(GL_TEXTURE_2D, pt_node_texture);
+		qglActiveTextureARB(GL_TEXTURE3_ARB);
+		glBindTexture(GL_TEXTURE_2D, pt_child_texture);
+		qglActiveTextureARB(GL_TEXTURE4_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_node0_texture);
+		qglActiveTextureARB(GL_TEXTURE5_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_node1_texture);
+		qglActiveTextureARB(GL_TEXTURE6_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_vertex_texture);
+		qglActiveTextureARB(GL_TEXTURE7_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
+		qglActiveTextureARB(GL_TEXTURE0_ARB);
+		qglUniform1iARB(pt_frame_counter_loc, pt_frame_counter++);
+		
+		float entity_to_world_matrix[16];
+		R_ConstructEntityToWorldMatrix(entity_to_world_matrix, currententity);
+		qglUniformMatrix4fvARB(pt_entity_to_world_loc, 1, GL_FALSE, entity_to_world_matrix);
+	}
+	
 	R_DrawAliasFrameLerp(paliashdr, currententity->backlerp);
 
+	if (gl_pt_enable->value)
+	{
+		qglUseProgramObjectARB(0);
+		qglActiveTextureARB(GL_TEXTURE2_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE3_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE4_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE5_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE6_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE7_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE0_ARB);
+	}
+	
 	R_TexEnv(GL_REPLACE);
 	glShadeModel(GL_FLAT);
 

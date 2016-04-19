@@ -23,6 +23,7 @@ GLuint pt_vertex_buffer = 0;
 GLuint pt_vertex_texture = 0;
 
 GLint pt_frame_counter_loc = -1;
+GLint pt_entity_to_world_loc = -1;
 
 static GLhandleARB vertex_shader;
 static GLhandleARB fragment_shader;
@@ -31,8 +32,16 @@ static unsigned long int texture_width, texture_height;
 
 static const GLcharARB* vertex_shader_source =
 	"#version 120\n"
+	"uniform mat4 entity_to_world = mat4(1);\n"
 	"varying vec4 texcoords[4];\n"
-	"void main() { gl_Position = ftransform(); texcoords[0] = gl_MultiTexCoord0; texcoords[1] = gl_Vertex; texcoords[2].xyz = vec3(0.0, 0.0, 0.0);  texcoords[3] = gl_MultiTexCoord2; }\n"
+	"void main()\n"
+	"{\n"
+	"	gl_Position = ftransform();\n"
+	"	texcoords[0] = gl_MultiTexCoord0;\n"
+	"	texcoords[1] = entity_to_world * gl_Vertex;\n"
+	"	texcoords[2].xyz = vec3(0.0, 0.0, 0.0);\n"
+	"	texcoords[3].xyz = mat3(entity_to_world) * gl_MultiTexCoord2.xyz;\n"
+	"}\n"
 	"\n";
 
 static const GLcharARB* fragment_shader_source =
@@ -1081,6 +1090,7 @@ R_InitPathtracing(void)
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "edge0"), 6);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "triangle"), 7);
 	pt_frame_counter_loc = qglGetUniformLocationARB(pt_program_handle, "frame");
+	pt_entity_to_world_loc = qglGetUniformLocationARB(pt_program_handle, "entity_to_world");
 	qglUseProgramObjectARB(0);
 }
 
