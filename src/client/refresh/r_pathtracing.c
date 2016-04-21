@@ -336,7 +336,8 @@ TriNodeWriteData(const trinode_t *n, int index)
 
 	for (i = 0; i < 3; ++i)
 	{
-		n0[i] = FloatBitsToInt(aabb_size[i] / 2.0f);
+		/* A small expansion of the bounding box is made here, so that axial triangles don't result in a degenerate bounding box. */
+		n0[i] = FloatBitsToInt(aabb_size[i] / 2.0f + 1e-3f);
 		n1[i] = FloatBitsToInt((n->aabb_min[i] + n->aabb_max[i]) / 2.0f);
 	}
 
@@ -542,6 +543,79 @@ R_ConstructEntityToWorldMatrix(float m[16], entity_t *entity)
 	entity->angles[PITCH] = -entity->angles[PITCH];
 }
 
+static void
+BuildAndWriteEntityNodesHierarchy(int first_node_index, int num_added_nodes, float entity_aabb_min[3], float entity_aabb_max[3])
+{
+	int first_node_index2, num_added_nodes2, i, j, k, m;
+	int *entitynode_n0, *entitynode_n1;
+	trinode_t *node;
+	
+	/* Sort the leaf nodes by morton code so that nodes which are spatially close are ordinally close. */
+	
+	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeMortonCodeComparator);
+
+	/* Group nodes together to create a hierarchy in bottom-up style. */
+	
+	for (i = 0; i < PT_MAX_NODE_DEPTH; ++i)
+	{
+		first_node_index2 = pt_num_nodes;
+		num_added_nodes2 = 0;
+		for (j = 0; j < num_added_nodes; j += PT_MAX_NODE_CHILDREN)
+		{
+			if (pt_num_nodes >= PT_MAX_TRI_NODES)
+				continue;
+			
+			node = AllocateNode();
+			
+			num_added_nodes2++;
+			
+			node->leaf = false;
+			
+			for (k = 0; k < PT_MAX_NODE_CHILDREN && (j + k) < num_added_nodes; ++k)
+			{
+				node->children[k] = pt_trinodes_ordered[first_node_index + j + k];
+				for (m = 0; m < 3; ++m)
+				{
+					if(node->aabb_min[m] > node->children[k]->aabb_min[m])
+						node->aabb_min[m] = node->children[k]->aabb_min[m];
+
+					if(node->aabb_max[m] < node->children[k]->aabb_max[m])
+						node->aabb_max[m] = node->children[k]->aabb_max[m];
+				}
+				++node->num_children;
+			}
+			
+			node->surface_area = TriNodeCalculateSurfaceArea(node);
+		}
+		first_node_index = first_node_index2;
+		num_added_nodes = num_added_nodes2;
+	}
+	
+	/* Sort the top-level nodes by surface area so that the nodes with largest area are visited first. This is done because the
+		larger nodes are more likely to be intersected by a given random ray. */
+	
+	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeSurfaceAreaComparator);
+
+	/* Make one node for the whole entity, so it can be skipped entirely with a single bounding box test. */
+
+	entitynode_n0 = pt_node0_data + pt_written_nodes * 4;
+	entitynode_n1 = pt_node1_data + pt_written_nodes * 4;
+	
+	for (i = 0; i < 3; ++i)
+	{
+		entitynode_n0[i] = FloatBitsToInt((entity_aabb_max[i] - entity_aabb_min[i]) / 2.0f);
+		entitynode_n1[i] = FloatBitsToInt((entity_aabb_min[i] + entity_aabb_max[i]) / 2.0f);
+	}
+
+	entitynode_n1[3] = -1;
+	
+	++pt_written_nodes;
+	
+	WriteTriNodes(first_node_index, num_added_nodes);
+	
+	entitynode_n0[3] = pt_written_nodes;
+}
+
 /* Constructs an interpolated mesh in worldspace to match the one which is drawn by R_DrawAliasModel. This function
 	is mostly based on R_DrawAliasModel except that it does no drawing. */
 static void
@@ -553,13 +627,13 @@ AddAliasModel(entity_t *entity, model_t *model)
 	float frontlerp;
 	vec3_t move, delta, vectors[3];
 	vec3_t frontv, backv;
-	int i, j, k, m;
+	int i, j, k;
 	float *lerp;
 	float transformation_matrix[16];
 	vec4_t lerped_vertex;
 	dtriangle_t *triangles, *tri;
 	trinode_t *node;
-	int first_node_index, num_added_nodes, first_node_index2, num_added_nodes2;
+	int first_node_index, num_added_nodes;
 	int triangle_vertices_offset;
 	float entity_aabb_min[3], entity_aabb_max[3];
 	
@@ -723,76 +797,126 @@ AddAliasModel(entity_t *entity, model_t *model)
 		pt_triangle_data[node->triangle_index * 2 + 1] = (triangle_vertices_offset + (int)tri->index_xyz[2]);
 	}
 	
-	/* Sort the leaf nodes by morton code so that nodes which are spatially close are ordinally close. */
-	
-	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeMortonCodeComparator);
-
-	/* Group nodes together to create a hierarchy in bottom-up style. */
-	
-	for (i = 0; i < PT_MAX_NODE_DEPTH; ++i)
-	{
-		first_node_index2 = pt_num_nodes;
-		num_added_nodes2 = 0;
-		for (j = 0; j < num_added_nodes; j += PT_MAX_NODE_CHILDREN)
-		{
-			if (pt_num_nodes >= PT_MAX_TRI_NODES)
-				continue;
-			
-			node = AllocateNode();
-			
-			num_added_nodes2++;
-			
-			node->leaf = false;
-			
-			for (k = 0; k < PT_MAX_NODE_CHILDREN && (j + k) < num_added_nodes; ++k)
-			{
-				node->children[k] = pt_trinodes_ordered[first_node_index + j + k];
-				for (m = 0; m < 3; ++m)
-				{
-					if(node->aabb_min[m] > node->children[k]->aabb_min[m])
-						node->aabb_min[m] = node->children[k]->aabb_min[m];
-
-					if(node->aabb_max[m] < node->children[k]->aabb_max[m])
-						node->aabb_max[m] = node->children[k]->aabb_max[m];
-				}
-				++node->num_children;
-			}
-			
-			node->surface_area = TriNodeCalculateSurfaceArea(node);
-		}
-		first_node_index = first_node_index2;
-		num_added_nodes = num_added_nodes2;
-	}
-	
-	/* Sort the top-level nodes by surface area so that the nodes with largest area are visited first. This is done because the
-		larger nodes are more likely to be intersected by a given random ray. */
-	
-	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeSurfaceAreaComparator);
-
-	/* Make one node for the whole entity, so it can be skipped entirely with a single bounding box test. */
-
-	int *entitynode_n0 = pt_node0_data + pt_written_nodes * 4;
-	int *entitynode_n1 = pt_node1_data + pt_written_nodes * 4;
-	
-	for (i = 0; i < 3; ++i)
-	{
-		entitynode_n0[i] = FloatBitsToInt((entity_aabb_max[i] - entity_aabb_min[i]) / 2.0f);
-		entitynode_n1[i] = FloatBitsToInt((entity_aabb_min[i] + entity_aabb_max[i]) / 2.0f);
-	}
-
-	entitynode_n1[3] = -1;
-	
-	++pt_written_nodes;
-	
-	WriteTriNodes(first_node_index, num_added_nodes);
-	
-	entitynode_n0[3] = pt_written_nodes;
+	BuildAndWriteEntityNodesHierarchy(first_node_index, num_added_nodes, entity_aabb_min, entity_aabb_max);
 }
 
 static void
 AddBrushModel(entity_t *entity, model_t *model)
 {
+	float transformation_matrix[16];
+	trinode_t *node;
+	int first_node_index, num_added_nodes;
+	int poly_offset;
+	float entity_aabb_min[3], entity_aabb_max[3];
+	int i, j, k, m;
+	msurface_t *psurf;
+	float *v, x;
+	vec4_t vertex;
+	glpoly_t *p;
+	
+	if (model->nummodelsurfaces == 0)
+		return;
+
+	/* Get the entity-to-world transformation matrix. */
+	
+	entity->angles[2] = -entity->angles[2];
+	R_ConstructEntityToWorldMatrix(transformation_matrix, entity);
+	entity->angles[2] = -entity->angles[2];	
+
+	/* Initialise the entity's bounding box. */
+	
+	for (i = 0; i < 3; ++i)
+	{
+		entity_aabb_min[i] = 1e9f;
+		entity_aabb_max[i] = -1e9f;
+	}
+	
+	psurf = &model->surfaces[model->firstmodelsurface];
+
+	first_node_index = pt_num_nodes;
+	num_added_nodes = 0;
+	
+	for (i = 0; i < model->nummodelsurfaces; i++, psurf++)
+	{
+		if (psurf->texinfo->flags & (SURF_TRANS33 | SURF_TRANS66))
+			continue;
+
+		p = psurf->polys;
+
+		v = p->verts[0];
+
+		poly_offset = pt_num_vertices;
+		
+		for (k = 0; k < p->numverts; k++, v += VERTEXSIZE)
+		{
+			/* Apply the transformation to this vertex and store the result. */
+			
+			for (j = 0; j < 3; ++j)
+			{
+				vertex[j] = 0;
+
+				vertex[j] += transformation_matrix[0 * 4 + j] * v[0];
+				vertex[j] += transformation_matrix[1 * 4 + j] * v[1];
+				vertex[j] += transformation_matrix[2 * 4 + j] * v[2];
+				vertex[j] += transformation_matrix[3 * 4 + j];
+				
+				pt_vertex_data[pt_num_vertices * 3 + j] = vertex[j];
+				
+				/* If necessary, expand the entity's bounding box to include this vertex. */
+				
+				if (entity_aabb_min[j] > vertex[j])
+					entity_aabb_min[j] = vertex[j];
+
+				if (entity_aabb_max[j] < vertex[j])
+					entity_aabb_max[j] = vertex[j];
+			}
+			
+			pt_num_vertices++;
+
+			if (k > 1)
+			{
+				/* Add a new triangle and leaf node for this segment of the polygon. */
+				if (pt_num_nodes >= PT_MAX_TRI_NODES || pt_num_triangles >= PT_MAX_TRIANGLES)
+					continue;
+				
+				int ind[3] = { poly_offset, poly_offset + k - 1, poly_offset + k };
+
+				node = AllocateNode();
+				
+				num_added_nodes++;
+				
+				node->leaf = true;
+				node->triangle_index = pt_num_triangles++;
+				
+				/* Get the bounding box of the triangle. */
+				
+				for (j = 0; j < 3; ++j)
+				{					
+					for (m = 0; m < 3; ++m)
+					{
+						x = pt_vertex_data[ind[j] * 3 + m];
+
+						if (node->aabb_min[m] > x)
+							node->aabb_min[m] = x;
+
+						if(node->aabb_max[m] < x)
+							node->aabb_max[m] = x;
+					}
+				}
+				
+				node->morton_code = TriNodeCalculateMortonCode(node);
+				node->surface_area = TriNodeCalculateSurfaceArea(node);
+				
+				pt_triangle_data[node->triangle_index * 2 + 0] = ind[0] | (ind[1] << 16);
+				pt_triangle_data[node->triangle_index * 2 + 1] = ind[2];
+			}				
+		}
+
+	}
+	
+	BuildAndWriteEntityNodesHierarchy(first_node_index, num_added_nodes, entity_aabb_min, entity_aabb_max);
 }
+
 
 static void
 AddEntities(void)
