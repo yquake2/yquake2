@@ -1000,7 +1000,52 @@ R_DrawBrushModel(entity_t *e)
 		}
 	}
 
+	if (gl_pt_enable->value && !(currententity->flags & (RF_FULLBRIGHT | RF_DEPTHHACK | RF_WEAPONMODEL | RF_TRANSLUCENT | RF_BEAM | RF_NOSHADOW | RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM)))
+	{
+		static unsigned long int pt_frame_counter = 0;
+		qglUseProgramObjectARB(pt_program_handle);
+		qglActiveTextureARB(GL_TEXTURE2_ARB);
+		glBindTexture(GL_TEXTURE_2D, pt_node_texture);
+		qglActiveTextureARB(GL_TEXTURE3_ARB);
+		glBindTexture(GL_TEXTURE_2D, pt_child_texture);
+		qglActiveTextureARB(GL_TEXTURE4_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_node0_texture);
+		qglActiveTextureARB(GL_TEXTURE5_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_node1_texture);
+		qglActiveTextureARB(GL_TEXTURE6_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_vertex_texture);
+		qglActiveTextureARB(GL_TEXTURE7_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
+		qglActiveTextureARB(GL_TEXTURE1_ARB);
+		qglUniform1iARB(pt_frame_counter_loc, pt_frame_counter++);
+		
+		float entity_to_world_matrix[16];
+		e->angles[2] = -e->angles[2];
+		R_ConstructEntityToWorldMatrix(entity_to_world_matrix, currententity);
+		e->angles[2] = -e->angles[2];
+		qglUniformMatrix4fvARB(pt_entity_to_world_loc, 1, GL_FALSE, entity_to_world_matrix);
+	}
+	
 	R_DrawInlineBModel();
+	
+	if (gl_pt_enable->value)
+	{
+		qglUseProgramObjectARB(0);
+		qglActiveTextureARB(GL_TEXTURE2_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE3_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE4_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE5_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE6_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE7_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE1_ARB);
+	}
+	
 	R_EnableMultitexture(false);
 
 	glPopMatrix();
