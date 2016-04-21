@@ -334,6 +334,10 @@ TriNodeWriteData(const trinode_t *n, int index)
 	for (i = 0; i < 3; ++i)
 		aabb_size[i] = n->aabb_max[i] - n->aabb_min[i];
 
+	/* Completely degenerate nodes can be skipped. */
+	if (aabb_size[0] < 1e-3f && aabb_size[1] < 1e-3f && aabb_size[2] < 1e-3f)
+		return 0;
+	
 	for (i = 0; i < 3; ++i)
 	{
 		/* A small expansion of the bounding box is made here, so that axial triangles don't result in a degenerate bounding box. */
