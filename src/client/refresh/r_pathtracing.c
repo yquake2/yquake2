@@ -405,12 +405,6 @@ WriteTriNodes(int first_node_index, int num_nodes)
 			pt_written_nodes += m;
 		}
 	}
-	
-	if (pt_previous_node >= 0)
-	{
-		pn0 = pt_node0_data + pt_previous_node * 4;
-		pn0[3] = 0;
-	}	
 }
 
 static void
