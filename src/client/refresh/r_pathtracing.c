@@ -15,6 +15,7 @@ cvar_t *gl_pt_stats;
 GLhandleARB pt_program_handle;
 GLhandleARB pt_node_texture = 0;
 GLhandleARB pt_child_texture = 0;
+GLhandleARB pt_bsp_lightref_texture = 0;
 
 GLuint pt_node0_buffer = 0;
 GLuint pt_node0_texture = 0;
@@ -617,6 +618,7 @@ FreeModelData(void)
 {
 	DeleteTexture(&pt_node_texture);
 	DeleteTexture(&pt_child_texture);
+	DeleteTexture(&pt_bsp_lightref_texture);
 
 	DeleteBuffer(&pt_node0_buffer);
 	DeleteTexture(&pt_node0_texture);
@@ -1231,8 +1233,11 @@ AddStaticBSP()
 	unsigned long int num_texels;
 	float *tex_node_data;
 	unsigned char *tex_child_data;
+	int *tex_light_data;
 	unsigned int i, j;
-	mnode_t* in;
+	mnode_t *in;
+	mleaf_t *leaf;
+	int cluster;
 	
 	pt_bsp_texture_width = 1;
 	pt_bsp_texture_height = 1;
@@ -1253,6 +1258,7 @@ AddStaticBSP()
 	
 	tex_node_data = (float*)Z_Malloc(num_texels * 4 * sizeof(float));
 	tex_child_data = (unsigned char*)Z_Malloc(num_texels * 4);
+	tex_light_data = (int*)Z_Malloc(num_texels * 2 * sizeof(int));
 	
 	for (i = 0; i < r_worldmodel->numnodes; ++i)
 	{
@@ -1272,7 +1278,21 @@ AddStaticBSP()
 			}
 			else
 			{
-				tex_child_data[i * 4 + 0 + j * 2] = tex_child_data[i * 4 + 1 + j * 2] = in->children[j]->contents == CONTENTS_SOLID ? 255 : 0;
+				if (in->children[j]->contents == CONTENTS_SOLID)
+				{
+					/* The leaf is solid, so mark the reference as such. */
+					tex_child_data[i * 4 + 0 + j * 2] = tex_child_data[i * 4 + 1 + j * 2] = 255;
+				}
+				else
+				{
+					/* The leaf is empty, so it may have a visible light list. */
+					tex_child_data[i * 4 + 0 + j * 2] = tex_child_data[i * 4 + 1 + j * 2] = 0;
+					
+					leaf = (mleaf_t*)(in->children[j]);
+					cluster = leaf->cluster;
+					
+					tex_light_data[i * 2 + j] = pt_cluster_light_references[cluster];
+				}
 			}
 		}
 	}
@@ -1297,8 +1317,18 @@ AddStaticBSP()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, pt_bsp_texture_width, pt_bsp_texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_child_data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
+	glGenTextures(1, &pt_bsp_lightref_texture);
+	glBindTexture(GL_TEXTURE_2D, pt_bsp_lightref_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32I, pt_bsp_texture_width, pt_bsp_texture_height, 0, GL_RG, GL_INT, tex_light_data);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
 	Z_Free(tex_node_data);
 	Z_Free(tex_child_data);
+	Z_Free(tex_light_data);
 }
 
 void
