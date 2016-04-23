@@ -5,6 +5,9 @@
 #define PT_MAX_VERTICES			16384
 #define PT_MAX_NODE_CHILDREN	4
 #define PT_MAX_NODE_DEPTH		4
+#define PT_MAX_TRI_LIGHTS		16384
+#define PT_MAX_TRI_LIGHT_REFS	(1 << 20)
+#define PT_MAX_CLUSTERS			16384
 
 cvar_t *gl_pt_enable;
 cvar_t *gl_pt_stats;
@@ -220,6 +223,13 @@ static const GLcharARB* fragment_shader_source =
 typedef float vec4_t[4];
 static vec4_t pt_lerped[MAX_VERTS];
 
+typedef struct trilight_s
+{
+	short triangle_index;
+	qboolean quad;
+	float radiant_flux[3];
+	msurface_t* surface;
+} trilight_t;
 
 typedef struct trinode_s
 {
@@ -234,16 +244,194 @@ typedef struct trinode_s
 
 static trinode_t pt_trinodes[PT_MAX_TRI_NODES];
 static trinode_t *pt_trinodes_ordered[PT_MAX_TRI_NODES];
+static trilight_t pt_trilights[PT_MAX_TRI_LIGHTS];
+static int pt_trilight_references[PT_MAX_TRI_LIGHT_REFS];
+static int pt_cluster_light_references[PT_MAX_CLUSTERS];
+
 static short pt_num_nodes = 0;
 static short pt_num_triangles = 0;
 static short pt_num_vertices = 0;
 static short pt_written_nodes = 0;
 static short pt_previous_node = -1;
+static short pt_num_lights = 0;
+static int pt_num_trilight_references = 0;
+
+static short pt_dynamic_vertices_offset = 0;
+static short pt_dynamic_triangles_offset = 0;
 
 static int pt_triangle_data[PT_MAX_TRIANGLES * 2];
 static int pt_node0_data[PT_MAX_TRI_NODES * 4];
 static int pt_node1_data[PT_MAX_TRI_NODES * 4];
 static float pt_vertex_data[PT_MAX_VERTICES * 3];
+static float pt_light_data[PT_MAX_TRI_LIGHTS * 4];
+
+static int
+FloatBitsToInt(float x)
+{
+	return *(int*)&x;
+}
+
+static int
+IntBitsToFloat(int x)
+{
+	return *(float*)&x;
+}
+
+static void
+AddStaticLights(void)
+{
+	msurface_t *surf;
+	mtexinfo_t *texinfo;
+	trilight_t *light;
+	int i, j, k, m;
+	glpoly_t *p;
+	float *v;
+	int poly_offset;
+	float a, b, x, area;
+	int light_index;
+	mleaf_t *leaf, *other_leaf;
+	byte *vis;
+	int cluster;
+					
+	pt_num_lights = 0;
+
+	/* Visit each surface in the worldmodel. */
+	
+	for (i = 0; i < r_worldmodel->numsurfaces; ++i)
+	{
+		surf = r_worldmodel->surfaces + i;
+		texinfo = surf->texinfo;
+		if ((texinfo->flags & SURF_LIGHT) && texinfo->radiance > 0)
+		{			
+			p = surf->polys;
+			
+			v = p->verts[0];
+			
+			poly_offset = pt_num_vertices;
+		
+			for (k = 0; k < p->numverts; k++, v += VERTEXSIZE)
+			{
+				/* Store this vertex of the polygon. */
+				
+				for (j = 0; j < 3; ++j)
+					pt_vertex_data[pt_num_vertices * 3 + j] = v[j];
+
+				pt_num_vertices++;
+
+				if (k > 1)
+				{
+					/* Add a new triangle light for this segment of the polygon. */
+					if (pt_num_lights >= PT_MAX_TRI_LIGHTS)
+						continue;
+					
+					int ind[3] = { poly_offset, poly_offset + k - 1, poly_offset + k };
+
+					light_index = pt_num_lights++;
+					light = pt_trilights + light_index;
+					
+					light->quad = false;
+					light->triangle_index = pt_num_triangles++;
+					light->surface = surf;
+					
+					/* Calculate the area of the triangle. */
+					
+					a = b = 0;
+					
+					for (j = 0; j < 3; ++j)
+					{
+						x = pt_vertex_data[ind[1] * 3 + j] - pt_vertex_data[ind[0] * 3 + j];
+						a += x * x;
+						x = pt_vertex_data[ind[2] * 3 + j] - pt_vertex_data[ind[0] * 3 + j];
+						b += x * x;						
+					}
+					
+					area = sqrt(a) * sqrt(b) * 0.5;
+					
+					/* Calculate the radiant flux of the light. */
+					
+					for (j = 0; j < 3; ++j)
+						light->radiant_flux[j] = texinfo->image->reflectivity[j] * texinfo->radiance * area;
+										
+					pt_triangle_data[light->triangle_index * 2 + 0] = ind[0] | (ind[1] << 16);
+					pt_triangle_data[light->triangle_index * 2 + 1] = ind[2];
+					
+					/* Pack the data into the buffer. */
+
+					pt_light_data[light_index * 4 + 0] = light->radiant_flux[0];
+					pt_light_data[light_index * 4 + 1] = light->radiant_flux[1];
+					pt_light_data[light_index * 4 + 2] = light->radiant_flux[2];
+					pt_light_data[light_index * 4 + 3] = IntBitsToFloat(light->triangle_index);
+				}
+			}			
+		}
+	}
+	
+	/* Reset the cluster light reference lists. */
+	
+	for (i = 0; i < PT_MAX_CLUSTERS; ++i)
+		pt_cluster_light_references[i] = -1;
+	
+	/* Visit each leaf in the worldmodel and build the list of visible lights for each cluster. */
+	
+	pt_num_trilight_references = 0;
+	
+	for (i = 0; i < r_worldmodel->numleafs; ++i)
+	{
+		leaf = r_worldmodel->leafs + i;
+		
+		if (leaf->contents == CONTENTS_SOLID || leaf->cluster == -1)
+			continue;
+		
+		/* Skip clusters which have already been processed. */
+
+		if (pt_cluster_light_references[leaf->cluster] != -1)
+			continue;
+		
+		pt_cluster_light_references[leaf->cluster] = pt_num_trilight_references;
+		
+		/* Get the PVS bits for this cluster. */
+		
+		vis = Mod_ClusterPVS(leaf->cluster, r_worldmodel);
+
+		/* Go through every visible leaf and build a list of the lights which have corresponding
+			surfaces in that leaf. */
+		
+		for (j = 0; j < r_worldmodel->numleafs; ++j)
+		{
+			other_leaf = r_worldmodel->leafs + j;
+			
+			if (other_leaf->contents == CONTENTS_SOLID)
+				continue;
+		
+			cluster = other_leaf->cluster;
+
+			if (cluster == -1)
+				continue;
+
+			if (vis[cluster >> 3] & (1 << (cluster & 7)))
+			{
+				/* This leaf is visible, so look for any light-emitting surfaces within it. */
+				
+				for (k = 0; k < other_leaf->nummarksurfaces; ++k)
+				{
+					surf = other_leaf->firstmarksurface[k];
+					
+					for (m = 0; m < pt_num_lights; ++m)
+					{
+						if (pt_trilights[m].surface == surf)
+						{
+							/* A light-emitting surface has been found, so add a reference to the light into the reference list. */
+							pt_trilight_references[pt_num_trilight_references++] = m;
+						}
+					}
+				}
+			}
+		}
+		
+		/* Add the end-of-list marker. */
+		pt_trilight_references[pt_num_trilight_references++] = -1;
+	}
+}
 
 static void
 TriNodeClear(trinode_t *n)
@@ -313,12 +501,6 @@ TriNodeMortonCodeComparator(void const *a, void const *b)
 	trinode_t *n0 = *(trinode_t**)a;
 	trinode_t *n1 = *(trinode_t**)b;
 	return n0->morton_code < n1->morton_code;
-}
-
-static int
-FloatBitsToInt(float x)
-{
-	return *(int*)&x;
 }
 
 static int
@@ -977,8 +1159,8 @@ R_UpdatePathtracerForCurrentFrame(void)
 	int i;
 	
 	pt_num_nodes = 0;
-	pt_num_triangles = 0;
-	pt_num_vertices = 0;
+	pt_num_triangles = pt_dynamic_triangles_offset;
+	pt_num_vertices = pt_dynamic_vertices_offset;
 	pt_written_nodes = 0;
 	pt_previous_node = -1;
 
@@ -1137,6 +1319,18 @@ R_PreparePathtracer(void)
 	CreateTextureBuffer(&pt_node1_buffer, &pt_node1_texture, GL_RGBA32I, PT_MAX_TRI_NODES * 4 * sizeof(GLint));
 	CreateTextureBuffer(&pt_triangle_buffer, &pt_triangle_texture, GL_RG32I, PT_MAX_TRIANGLES * 2 * sizeof(GLint));
 	CreateTextureBuffer(&pt_vertex_buffer, &pt_vertex_texture, GL_RGB32F, PT_MAX_VERTICES * 3 * sizeof(GLfloat));
+	
+	pt_num_nodes = 0;
+	pt_num_triangles = 0;
+	pt_num_vertices = 0;
+	pt_written_nodes = 0;
+	pt_previous_node = -1;
+	pt_num_lights = 0;
+
+	AddStaticLights();
+	
+	pt_dynamic_vertices_offset = pt_num_vertices;
+	pt_dynamic_triangles_offset = pt_num_triangles;
 }
 	
 static void

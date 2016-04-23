@@ -67,6 +67,7 @@ typedef struct mtexinfo_s
 	int numframes;
 	struct mtexinfo_s *next; /* animation chain */
 	image_t *image;
+	int radiance; /* Only for pathtracing. */
 } mtexinfo_t;
 
 typedef struct glpoly_s

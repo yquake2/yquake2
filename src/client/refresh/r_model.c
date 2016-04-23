@@ -460,6 +460,9 @@ Mod_LoadTexinfo(lump_t *l)
 			out->vecs[1][j] = LittleFloat(in->vecs[1][j]);
 		}
 
+		/* Load the radiance value for pathtracing. */
+		out->radiance = in->value;
+		
 		out->flags = LittleLong(in->flags);
 		next = LittleLong(in->nexttexinfo);
 

@@ -952,6 +952,85 @@ R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 	}
 }
 
+
+/* This function was taken directly the common utility functions used by qrad3. */
+static vec_t
+ColorNormalize (vec3_t in, vec3_t out)
+{
+	float	max, scale;
+
+	max = in[0];
+	if (in[1] > max)
+		max = in[1];
+	if (in[2] > max)
+		max = in[2];
+
+	if (max == 0)
+		return 0;
+
+	scale = 1.0 / max;
+
+	VectorScale (in, scale, out);
+
+	return max;
+}
+
+/* Calculates the albedo for a texture in the same way that qrad3 does, so that the pathtracer can match
+	try to the lighting that the offline lightmap generator produces. This function is mostly
+	based on CalcTextureReflectivity	from qrad3. */
+static void
+CalcReflectivityForPathtracing(image_t *image, const byte *pic, int bits)
+{
+	int				i;
+	int				j, k, texels;
+	int				color[3];
+	int				texel;
+	byte			*palette;
+	char			path[1024];
+	float			r, scale;
+	miptex_t		*mt;
+	unsigned rgb24;
+
+	image->reflectivity[0] = 0.5;
+	image->reflectivity[1] = 0.5;
+	image->reflectivity[2] = 0.5;
+	
+	/* Since qrad3 doesn't seem to support non-paletted textures then we assume that
+		the reflectivty for this texture doesn't matter. */
+	if (bits != 8)
+		return;
+	
+	/* The reflectivity is only relevant for wall textures. */
+	if (image->type != it_wall)
+		return;
+	
+	texels = image->width * image->height;
+	color[0] = color[1] = color[2] = 0;
+
+	for (j=0 ; j<texels ; j++)
+	{
+		texel = pic[j];
+		rgb24 = d_8to24table[texel];
+		color[0] += rgb24 & 255;
+		color[1] += (rgb24 >> 8) & 255;
+		color[2] += (rgb24 >> 16) & 255;
+	}
+
+	for (j=0 ; j<3 ; j++)
+	{
+		r = color[j]/texels/255.0;
+		image->reflectivity[j] = r;
+	}
+	// scale the reflectivity up, because the textures are
+	// so dim
+	scale = ColorNormalize (image->reflectivity, image->reflectivity);
+	if (scale < 0.5)
+	{
+		scale *= 2;
+		VectorScale (image->reflectivity, scale, image->reflectivity);
+	}
+}
+
 /*
  * This is also used as an entry point for the generated r_notexture
  */
@@ -1087,6 +1166,8 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 		}
 	}
 
+	CalcReflectivityForPathtracing(image, pic, bits);
+	
 	return image;
 }
 

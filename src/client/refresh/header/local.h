@@ -148,6 +148,9 @@ typedef struct image_s
 	qboolean has_alpha;
 
 	qboolean paletted;
+	
+	/* Surface reflectivity for pathtracing. */
+	vec3_t reflectivity;
 } image_t;
 
 typedef enum
