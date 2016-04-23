@@ -26,6 +26,10 @@ GLuint pt_triangle_buffer = 0;
 GLuint pt_triangle_texture = 0;
 GLuint pt_vertex_buffer = 0;
 GLuint pt_vertex_texture = 0;
+GLuint pt_trilights_buffer = 0;
+GLuint pt_trilights_texture = 0;
+GLuint pt_lightref_buffer = 0;
+GLuint pt_lightref_texture = 0;
 
 GLint pt_frame_counter_loc = -1;
 GLint pt_entity_to_world_loc = -1;
@@ -265,7 +269,7 @@ static int pt_triangle_data[PT_MAX_TRIANGLES * 2];
 static int pt_node0_data[PT_MAX_TRI_NODES * 4];
 static int pt_node1_data[PT_MAX_TRI_NODES * 4];
 static float pt_vertex_data[PT_MAX_VERTICES * 3];
-static float pt_light_data[PT_MAX_TRI_LIGHTS * 4];
+static float pt_trilight_data[PT_MAX_TRI_LIGHTS * 4];
 
 static int
 FloatBitsToInt(float x)
@@ -359,10 +363,10 @@ AddStaticLights(void)
 					
 					/* Pack the data into the buffer. */
 
-					pt_light_data[light_index * 4 + 0] = light->radiant_flux[0];
-					pt_light_data[light_index * 4 + 1] = light->radiant_flux[1];
-					pt_light_data[light_index * 4 + 2] = light->radiant_flux[2];
-					pt_light_data[light_index * 4 + 3] = IntBitsToFloat(light->triangle_index);
+					pt_trilight_data[light_index * 4 + 0] = light->radiant_flux[0];
+					pt_trilight_data[light_index * 4 + 1] = light->radiant_flux[1];
+					pt_trilight_data[light_index * 4 + 2] = light->radiant_flux[2];
+					pt_trilight_data[light_index * 4 + 3] = IntBitsToFloat(light->triangle_index);
 				}
 			}			
 		}
@@ -629,6 +633,10 @@ FreeModelData(void)
 	DeleteTexture(&pt_triangle_texture);
 	DeleteBuffer(&pt_vertex_buffer);
 	DeleteTexture(&pt_vertex_texture);
+	DeleteBuffer(&pt_trilights_buffer);
+	DeleteTexture(&pt_trilights_texture);
+	DeleteBuffer(&pt_lightref_buffer);
+	DeleteTexture(&pt_lightref_texture);
 }
 
 /* Applies a translation vector to the given 4x4 matrix in-place. */
@@ -1353,6 +1361,8 @@ R_PreparePathtracer(void)
 	CreateTextureBuffer(&pt_node1_buffer, &pt_node1_texture, GL_RGBA32I, PT_MAX_TRI_NODES * 4 * sizeof(GLint));
 	CreateTextureBuffer(&pt_triangle_buffer, &pt_triangle_texture, GL_RG32I, PT_MAX_TRIANGLES * 2 * sizeof(GLint));
 	CreateTextureBuffer(&pt_vertex_buffer, &pt_vertex_texture, GL_RGB32F, PT_MAX_VERTICES * 3 * sizeof(GLfloat));
+	CreateTextureBuffer(&pt_trilights_buffer, &pt_trilights_texture, GL_RGBA32F, PT_MAX_TRI_LIGHTS * 4 * sizeof(GLfloat));
+	CreateTextureBuffer(&pt_lightref_buffer, &pt_lightref_texture, GL_RG32I, PT_MAX_TRI_LIGHT_REFS * sizeof(GLint));
 	
 	pt_num_nodes = 0;
 	pt_num_triangles = 0;
@@ -1368,6 +1378,9 @@ R_PreparePathtracer(void)
 	AddStaticBSP();
 
 	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: Static BSP texture size is %dx%d\n", pt_bsp_texture_width, pt_bsp_texture_height);
+	
+	UploadTextureBufferData(pt_trilights_buffer, pt_trilight_data, pt_num_lights * 4 * sizeof(pt_trilight_data[0]));
+	UploadTextureBufferData(pt_lightref_buffer, pt_trilight_references, pt_num_trilight_references * sizeof(pt_trilight_references[0]));
 	
 	pt_dynamic_vertices_offset = pt_num_vertices;
 	pt_dynamic_triangles_offset = pt_num_triangles;
