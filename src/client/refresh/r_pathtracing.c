@@ -31,7 +31,7 @@ GLint pt_entity_to_world_loc = -1;
 static GLhandleARB vertex_shader;
 static GLhandleARB fragment_shader;
 
-static unsigned long int texture_width, texture_height;
+static unsigned long int pt_bsp_texture_width = 0, pt_bsp_texture_height = 0;
 
 static const GLcharARB* vertex_shader_source =
 	"#version 120\n"
@@ -1225,8 +1225,8 @@ CreateTextureBuffer(GLuint *buffer, GLuint *texture, GLenum format, GLsizei size
 	glBindTexture(GL_TEXTURE_BUFFER, 0);
 }
 
-void
-R_PreparePathtracer(void)
+static void
+AddStaticBSP()
 {
 	unsigned long int num_texels;
 	float *tex_node_data;
@@ -1234,36 +1234,22 @@ R_PreparePathtracer(void)
 	unsigned int i, j;
 	mnode_t* in;
 	
-	FreeModelData();
-	
-	texture_width = 1;
-	texture_height = 1;
-
-	if (r_worldmodel == NULL)
-	{
-		VID_Printf(PRINT_ALL, "R_PreparePathtracer: r_worldmodel is NULL!\n");
-		return;
-	}
+	pt_bsp_texture_width = 1;
+	pt_bsp_texture_height = 1;
 	
 	num_texels = r_worldmodel->numnodes;
-	
-	if (num_texels == 0)
-	{
-		VID_Printf(PRINT_ALL, "R_PreparePathtracer: num_texels is zero!\n");
-		return;
-	}
 
-	while (texture_width * texture_height < num_texels)
+	while (pt_bsp_texture_width * pt_bsp_texture_height < num_texels)
 	{
-		texture_width <<= 1;
+		pt_bsp_texture_width <<= 1;
 		
-		if (texture_width * texture_height >= num_texels)
+		if (pt_bsp_texture_width * pt_bsp_texture_height >= num_texels)
 			break;
 		
-		texture_height <<= 1;
+		pt_bsp_texture_height <<= 1;
 	}
 	
-	num_texels = texture_width * texture_height;
+	num_texels = pt_bsp_texture_width * pt_bsp_texture_height;
 	
 	tex_node_data = (float*)Z_Malloc(num_texels * 4 * sizeof(float));
 	tex_child_data = (unsigned char*)Z_Malloc(num_texels * 4);
@@ -1281,8 +1267,8 @@ R_PreparePathtracer(void)
 		{
 			if (in->children[j]->contents == -1)
 			{
-				tex_child_data[i * 4 + 0 + j * 2] = ((in->children[j] - (r_worldmodel->nodes + r_worldmodel->firstnode)) % texture_width) * 256 / texture_width;
-				tex_child_data[i * 4 + 1 + j * 2] = ((in->children[j] - (r_worldmodel->nodes + r_worldmodel->firstnode)) / texture_width) * 256 / texture_height;
+				tex_child_data[i * 4 + 0 + j * 2] = ((in->children[j] - (r_worldmodel->nodes + r_worldmodel->firstnode)) % pt_bsp_texture_width) * 256 / pt_bsp_texture_width;
+				tex_child_data[i * 4 + 1 + j * 2] = ((in->children[j] - (r_worldmodel->nodes + r_worldmodel->firstnode)) / pt_bsp_texture_width) * 256 / pt_bsp_texture_height;
 			}
 			else
 			{
@@ -1299,7 +1285,7 @@ R_PreparePathtracer(void)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F_ARB, texture_width, texture_height, 0, GL_RGBA, GL_FLOAT, tex_node_data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F_ARB, pt_bsp_texture_width, pt_bsp_texture_height, 0, GL_RGBA, GL_FLOAT, tex_node_data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glGenTextures(1, &pt_child_texture);
@@ -1308,13 +1294,30 @@ R_PreparePathtracer(void)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture_width, texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_child_data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, pt_bsp_texture_width, pt_bsp_texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_child_data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	Z_Free(tex_node_data);
 	Z_Free(tex_child_data);
-	
+}
 
+void
+R_PreparePathtracer(void)
+{
+	FreeModelData();
+
+	if (r_worldmodel == NULL)
+	{
+		VID_Printf(PRINT_ALL, "R_PreparePathtracer: r_worldmodel is NULL!\n");
+		return;
+	}
+	
+	if (r_worldmodel->numnodes == 0)
+	{
+		VID_Printf(PRINT_ALL, "R_PreparePathtracer: r_worldmodel->numnodes is zero!\n");
+		return;
+	}
+	
 	CreateTextureBuffer(&pt_node0_buffer, &pt_node0_texture, GL_RGBA32I, PT_MAX_TRI_NODES * 4 * sizeof(GLint));
 	CreateTextureBuffer(&pt_node1_buffer, &pt_node1_texture, GL_RGBA32I, PT_MAX_TRI_NODES * 4 * sizeof(GLint));
 	CreateTextureBuffer(&pt_triangle_buffer, &pt_triangle_texture, GL_RG32I, PT_MAX_TRIANGLES * 2 * sizeof(GLint));
@@ -1328,7 +1331,8 @@ R_PreparePathtracer(void)
 	pt_num_lights = 0;
 
 	AddStaticLights();
-	
+	AddStaticBSP();
+
 	pt_dynamic_vertices_offset = pt_num_vertices;
 	pt_dynamic_triangles_offset = pt_num_triangles;
 }
