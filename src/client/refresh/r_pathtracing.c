@@ -1362,8 +1362,13 @@ R_PreparePathtracer(void)
 	pt_num_lights = 0;
 
 	AddStaticLights();
+
+	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: %d static lights\n", pt_num_lights);
+
 	AddStaticBSP();
 
+	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: Static BSP texture size is %dx%d\n", pt_bsp_texture_width, pt_bsp_texture_height);
+	
 	pt_dynamic_vertices_offset = pt_num_vertices;
 	pt_dynamic_triangles_offset = pt_num_triangles;
 }
