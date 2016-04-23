@@ -13,9 +13,10 @@ cvar_t *gl_pt_enable;
 cvar_t *gl_pt_stats;
 
 GLhandleARB pt_program_handle;
-GLhandleARB pt_node_texture = 0;
-GLhandleARB pt_child_texture = 0;
-GLhandleARB pt_bsp_lightref_texture = 0;
+
+GLuint pt_node_texture = 0;
+GLuint pt_child_texture = 0;
+GLuint pt_bsp_lightref_texture = 0;
 
 GLuint pt_node0_buffer = 0;
 GLuint pt_node0_texture = 0;
