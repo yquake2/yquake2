@@ -1002,7 +1002,6 @@ R_DrawBrushModel(entity_t *e)
 
 	if (gl_pt_enable->value && !(currententity->flags & (RF_FULLBRIGHT | RF_DEPTHHACK | RF_WEAPONMODEL | RF_TRANSLUCENT | RF_BEAM | RF_NOSHADOW | RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM)))
 	{
-		static unsigned long int pt_frame_counter = 0;
 		qglUseProgramObjectARB(pt_program_handle);
 		qglActiveTextureARB(GL_TEXTURE2_ARB);
 		glBindTexture(GL_TEXTURE_2D, pt_node_texture);
@@ -1017,7 +1016,7 @@ R_DrawBrushModel(entity_t *e)
 		qglActiveTextureARB(GL_TEXTURE7_ARB);
 		glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
 		qglActiveTextureARB(GL_TEXTURE1_ARB);
-		qglUniform1iARB(pt_frame_counter_loc, pt_frame_counter++);
+		qglUniform1iARB(pt_frame_counter_loc, r_framecount);
 		
 		float entity_to_world_matrix[16];
 		e->angles[2] = -e->angles[2];
@@ -1209,7 +1208,6 @@ R_DrawWorld(void)
 
 	if (gl_pt_enable->value)
 	{
-		static unsigned long int pt_frame_counter = 0;
 		qglUseProgramObjectARB(pt_program_handle);
 		qglActiveTextureARB(GL_TEXTURE2_ARB);
 		glBindTexture(GL_TEXTURE_2D, pt_node_texture);
@@ -1224,7 +1222,7 @@ R_DrawWorld(void)
 		qglActiveTextureARB(GL_TEXTURE7_ARB);
 		glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
 		qglActiveTextureARB(GL_TEXTURE0_ARB);
-		qglUniform1iARB(pt_frame_counter_loc, pt_frame_counter++);
+		qglUniform1iARB(pt_frame_counter_loc, r_framecount);
 		
 		static const float identity_matrix[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
 		qglUniformMatrix4fvARB(pt_entity_to_world_loc, 1, GL_FALSE, identity_matrix);

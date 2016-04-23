@@ -927,7 +927,6 @@ R_DrawAliasModel(entity_t *e)
 
 	if (gl_pt_enable->value && !(currententity->flags & (RF_FULLBRIGHT | RF_DEPTHHACK | RF_WEAPONMODEL | RF_TRANSLUCENT | RF_BEAM | RF_NOSHADOW | RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM)))
 	{
-		static unsigned long int pt_frame_counter = 0;
 		qglUseProgramObjectARB(pt_program_handle);
 		qglActiveTextureARB(GL_TEXTURE2_ARB);
 		glBindTexture(GL_TEXTURE_2D, pt_node_texture);
@@ -942,7 +941,7 @@ R_DrawAliasModel(entity_t *e)
 		qglActiveTextureARB(GL_TEXTURE7_ARB);
 		glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
 		qglActiveTextureARB(GL_TEXTURE0_ARB);
-		qglUniform1iARB(pt_frame_counter_loc, pt_frame_counter++);
+		qglUniform1iARB(pt_frame_counter_loc, r_framecount);
 		
 		float entity_to_world_matrix[16];
 		R_ConstructEntityToWorldMatrix(entity_to_world_matrix, currententity);
