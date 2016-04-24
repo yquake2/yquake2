@@ -320,7 +320,8 @@ static const GLcharARB* fragment_shader_source =
 	"	gl_FragColor.a = 1.0;\n"
 	*/
 	
-	"	gl_FragColor *= texture(tex0, texcoords[0].st);\n"
+	"	gl_FragColor.a = 1.0;\n"
+	"	gl_FragColor.rgb *= texture(tex0, texcoords[0].st).rgb + vec3(1e-2);\n"
 	"	gl_FragColor.rgb = sqrt(gl_FragColor.rgb);\n"
 	
 	"}\n"
