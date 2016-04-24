@@ -84,6 +84,10 @@ static const GLcharARB* fragment_shader_source =
 	"uniform samplerBuffer edge0;\n"
 	"uniform isamplerBuffer triangle;\n"
 	"\n"
+	"uniform samplerBuffer lights;\n"
+	"uniform isamplerBuffer lightrefs;\n"
+	"uniform isampler2D bsp_lightrefs;\n"
+	"\n"
 	"vec2 boxInterval(vec3 ro, vec3 rd, vec3 size)\n"
 	"{\n"
 	"	vec3 mins = (size * -sign(rd) - ro) / rd;\n"
@@ -133,7 +137,6 @@ static const GLcharARB* fragment_shader_source =
 	"\n"
 	"	return true;\n"
 	"}\n"
-	"\n"
 	"bool traceRayShadowBSP(vec3 org, vec3 dir, float t0, float max_t)\n"
 	"{\n"
 	"	vec2  other_node=vec2(0);\n"
@@ -148,8 +151,8 @@ static const GLcharARB* fragment_shader_source =
 	"		other_t1=max_t;\n"
 	"\n"
 	"		do{\n"
-	"			vec4 pln=texture2D(planes,node);\n"
-	"			vec4 children=texture2D(branches,node);\n"
+	"			vec4 pln=texture(planes,node);\n"
+	"			vec4 children=texture(branches,node);\n"
 	"			\n"
 	"			float t=dot(pln.xyz,dir);\n"
 	"\n"
@@ -186,6 +189,27 @@ static const GLcharARB* fragment_shader_source =
 	"	return true;\n"
 	"}\n"
 	"\n"
+	"int getLightRef(vec3 p)\n"
+	"{\n"
+	" int index=0;\n"
+	"	vec2  node=vec2(0);\n"
+	"		do{\n"
+	"			vec4 pln=texture(planes,node);\n"
+	"			vec4 children=texture(branches,node);\n"
+	"			ivec2 light_indices = texture(bsp_lightrefs, node).rg;\n"
+	"			\n"
+	"			float d=dot(pln.xyz,p)-pln.w;\n"
+	"			if(d<0.0) { node = children.zw; index = light_indices.y; } else { node = children.xy; index = light_indices.x; };\n"
+	"\n"
+	"			if(node.y==1.0)\n"
+	"			{\n"
+	"				 return -1;\n"
+	"			}\n"
+	"			\n"
+	"		} while(node!=vec2(0.0));\n"
+	"	return index;\n"
+	"}\n"
+	"\n"
 	"void main()\n"
 	"{\n"
 	"	seed = gl_FragCoord.x * 89.9 + gl_FragCoord.y * 197.3 + frame*0.02;\n"
@@ -205,6 +229,79 @@ static const GLcharARB* fragment_shader_source =
 	"			 v=cross(spln.xyz,u);\n"
 	"	  \n"
 	"	vec3 r=vec3(0.0);\n"
+	"	  \n"
+	" int oli=getLightRef(rp),li=oli;\n"
+	"	int ref=texelFetch(lightrefs, li).r;\n"
+	"  float wsum=0.;\n"
+	" if(ref != -1) do{\n"
+	" 				vec4 light=texelFetch(lights, ref);\n"
+	"				ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;\n"
+	"				vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;\n"
+	"				vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;\n"
+	"				vec3 p2 = texelFetch(edge0, tri.y).xyz;\n"
+	"				vec3 n = cross(p2 - p0, p1 - p0);\n"
+	"				float d=distance(rp,(p0+p1+p2)/3.);\n"
+   "   			float pd=dot(rp-p0,n);\n"
+   "   			float w=1./(d*d)*max(0.,pd);\n"
+   "   			wsum+=w;\n"
+	"				++li;\n"
+	"				ref=texelFetch(lightrefs, li).r;\n"
+	" } while(ref!=-1);\n"
+	"\n"
+	"{\n"
+   "   float x=rand()*wsum,w=1;\n"
+   "   vec4 j=vec4(0);\n"
+   "\n"   
+	" li=oli;\n"
+	"	int ref=texelFetch(lightrefs, li).r;\n"
+	" 	if(ref != -1) 	do{\n"
+	" 				vec4 light=texelFetch(lights, ref);\n"
+	"				ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;\n"
+	"				vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;\n"
+	"				vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;\n"
+	"				vec3 p2 = texelFetch(edge0, tri.y).xyz;\n"
+	"				vec3 n = cross(p2 - p0, p1 - p0);\n"
+	"				float d=distance(rp,(p0+p1+p2)/3.);\n"
+   "   			float pd=dot(rp-p0,n);\n"
+   "   			float w=1./(d*d)*max(0.,pd);\n"	
+   "      x-=w;\n"
+   "      if(x<0.)\n"
+   "      {\n"
+   "         j=light;\n"
+   "         break;\n"
+   "      }\n"
+	"				++li;\n"
+	"				ref=texelFetch(lightrefs, li).r;\n"
+	" 		} while(ref!=-1);\n"
+	
+	"	vec4 light=j;\n"
+	"				ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;\n"
+	"				vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;\n"
+	"				vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;\n"
+	"				vec3 p2 = texelFetch(edge0, tri.y).xyz;\n"
+	"				vec3 n = cross(p2 - p0, p1 - p0);\n"
+	"				float d=distance(rp,(p0+p1+p2)/3.);\n"
+   "   			float pd=dot(rp-p0,n);\n"
+   "   			w=1./(d*d)*max(0.,pd);\n"	
+   "   vec3 sp=rp;\n"
+   "   vec3 sn=spln.xyz;\n"
+   "   vec3 lp=p0;\n"
+	"	 vec2 uv = vec2(rand(), rand());\n"
+	"	 if((uv.x + uv.y) > 1.) uv = vec2(1) - uv;\n"
+   "   lp+=(p1 - p0)*uv.x+(p2 - p0)*uv.y;\n"
+   "   float ld=distance(sp,lp);\n"
+   "   vec3 l=(lp-sp)/ld;\n"
+   "   float ndotl=dot(l,sn),lndotl=dot(-l,n);\n"
+   "   if(ndotl>0. && lndotl>0.)\n"
+   "   {\n"
+   "   	float s=(traceRayShadowBSP(sp,l,EPS*4,min(2048.,ld)) && traceRayShadowTri(sp,l,min(2048.,ld))) ? 1./(ld*ld) : 0.;\n"
+   "   	r+=s*ndotl*lndotl*light.rgb/(w/wsum);\n"
+	"	}\n"
+	"}\n"
+	"	gl_FragColor.rgb = r / 1e7;\n"
+
+	/*	This code implements ambient occlusion. It has been temporarily disabled.
+	"	vec3 r=vec3(0.0);\n"
 	"	const int n=4;\n"
 	"  \n"
 	"	for(int i=0;i<n;++i)\n"
@@ -221,7 +318,11 @@ static const GLcharARB* fragment_shader_source =
 	"\n"
 	"	gl_FragColor.rgb = r;\n"
 	"	gl_FragColor.a = 1.0;\n"
-	"	gl_FragColor *= texture2D(tex0, texcoords[0].st);\n"
+	*/
+	
+	"	gl_FragColor *= texture(tex0, texcoords[0].st);\n"
+	"	gl_FragColor.rgb = sqrt(gl_FragColor.rgb);\n"
+	
 	"}\n"
 	"\n";
 
@@ -277,7 +378,7 @@ FloatBitsToInt(float x)
 	return *(int*)&x;
 }
 
-static int
+static float
 IntBitsToFloat(int x)
 {
 	return *(float*)&x;
@@ -378,11 +479,12 @@ AddStaticLights(void)
 		pt_cluster_light_references[i] = -1;
 	
 	/* Visit each leaf in the worldmodel and build the list of visible lights for each cluster. */
-	
-	pt_num_trilight_references = 0;
-	
+		
 	for (i = 0; i < r_worldmodel->numleafs; ++i)
 	{
+		if (pt_num_trilight_references >= PT_MAX_TRI_LIGHT_REFS)
+			continue;
+	
 		leaf = r_worldmodel->leafs + i;
 		
 		if (leaf->contents == CONTENTS_SOLID || leaf->cluster == -1)
@@ -426,16 +528,22 @@ AddStaticLights(void)
 					{
 						if (pt_trilights[m].surface == surf)
 						{
-							/* A light-emitting surface has been found, so add a reference to the light into the reference list. */
-							pt_trilight_references[pt_num_trilight_references++] = m;
+							if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
+							{
+								/* A light-emitting surface has been found, so add a reference to the light into the reference list. */
+								pt_trilight_references[pt_num_trilight_references++] = m;
+							}
 						}
 					}
 				}
 			}
 		}
 		
-		/* Add the end-of-list marker. */
-		pt_trilight_references[pt_num_trilight_references++] = -1;
+		if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
+		{
+			/* Add the end-of-list marker. */
+			pt_trilight_references[pt_num_trilight_references++] = -1;
+		}
 	}
 }
 
@@ -1332,7 +1440,7 @@ AddStaticBSP()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32I, pt_bsp_texture_width, pt_bsp_texture_height, 0, GL_RG, GL_INT, tex_light_data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32I, pt_bsp_texture_width, pt_bsp_texture_height, 0, GL_RG_INTEGER, GL_INT, tex_light_data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	Z_Free(tex_node_data);
@@ -1362,7 +1470,7 @@ R_PreparePathtracer(void)
 	CreateTextureBuffer(&pt_triangle_buffer, &pt_triangle_texture, GL_RG32I, PT_MAX_TRIANGLES * 2 * sizeof(GLint));
 	CreateTextureBuffer(&pt_vertex_buffer, &pt_vertex_texture, GL_RGB32F, PT_MAX_VERTICES * 3 * sizeof(GLfloat));
 	CreateTextureBuffer(&pt_trilights_buffer, &pt_trilights_texture, GL_RGBA32F, PT_MAX_TRI_LIGHTS * 4 * sizeof(GLfloat));
-	CreateTextureBuffer(&pt_lightref_buffer, &pt_lightref_texture, GL_RG32I, PT_MAX_TRI_LIGHT_REFS * sizeof(GLint));
+	CreateTextureBuffer(&pt_lightref_buffer, &pt_lightref_texture, GL_R32I, PT_MAX_TRI_LIGHT_REFS * sizeof(GLint));
 	
 	pt_num_nodes = 0;
 	pt_num_triangles = 0;
@@ -1370,6 +1478,7 @@ R_PreparePathtracer(void)
 	pt_written_nodes = 0;
 	pt_previous_node = -1;
 	pt_num_lights = 0;
+	pt_num_trilight_references = 0;
 
 	AddStaticLights();
 
@@ -1458,6 +1567,10 @@ R_InitPathtracing(void)
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "node1"), 5);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "edge0"), 6);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "triangle"), 7);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "lights"), 8);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "lightrefs"), 9);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bsp_lightrefs"), 10);
+	
 	pt_frame_counter_loc = qglGetUniformLocationARB(pt_program_handle, "frame");
 	pt_entity_to_world_loc = qglGetUniformLocationARB(pt_program_handle, "entity_to_world");
 	qglUseProgramObjectARB(0);

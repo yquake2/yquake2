@@ -981,14 +981,10 @@ ColorNormalize (vec3_t in, vec3_t out)
 static void
 CalcReflectivityForPathtracing(image_t *image, const byte *pic, int bits)
 {
-	int				i;
-	int				j, k, texels;
+	int				j, texels;
 	int				color[3];
 	int				texel;
-	byte			*palette;
-	char			path[1024];
 	float			r, scale;
-	miptex_t		*mt;
 	unsigned rgb24;
 
 	image->reflectivity[0] = 0.5;

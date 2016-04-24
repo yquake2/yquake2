@@ -940,6 +940,12 @@ R_DrawAliasModel(entity_t *e)
 		glBindTexture(GL_TEXTURE_BUFFER, pt_vertex_texture);
 		qglActiveTextureARB(GL_TEXTURE7_ARB);
 		glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
+		qglActiveTextureARB(GL_TEXTURE8_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_trilights_texture);
+		qglActiveTextureARB(GL_TEXTURE9_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_lightref_texture);
+		qglActiveTextureARB(GL_TEXTURE10_ARB);
+		glBindTexture(GL_TEXTURE_2D, pt_bsp_lightref_texture);
 		qglActiveTextureARB(GL_TEXTURE0_ARB);
 		qglUniform1iARB(pt_frame_counter_loc, r_framecount);
 		
@@ -965,6 +971,11 @@ R_DrawAliasModel(entity_t *e)
 		glBindTexture(GL_TEXTURE_BUFFER, 0);
 		qglActiveTextureARB(GL_TEXTURE7_ARB);
 		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE8_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE9_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE10_ARB);
 		qglActiveTextureARB(GL_TEXTURE0_ARB);
 	}
 	

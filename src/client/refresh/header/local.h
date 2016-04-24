@@ -376,15 +376,18 @@ void R_PreparePathtracer(void);
 void R_UpdatePathtracerForCurrentFrame(void);
 void R_ConstructEntityToWorldMatrix(float m[16], entity_t *entity);
 
-extern GLhandleARB pt_program_handle;
-extern GLhandleARB pt_node_texture;
-extern GLhandleARB pt_child_texture;
+extern GLuint pt_program_handle;
+extern GLuint pt_node_texture;
+extern GLuint pt_child_texture;
 extern GLint pt_frame_counter_loc;
 extern GLint pt_entity_to_world_loc;
 extern GLuint pt_node0_texture;
 extern GLuint pt_node1_texture;
 extern GLuint pt_triangle_texture;
 extern GLuint pt_vertex_texture;
+extern GLuint pt_trilights_texture;
+extern GLuint pt_lightref_texture;
+extern GLuint pt_bsp_lightref_texture;
 
 /* GL extension emulation functions */
 void R_DrawParticles2(int n,
