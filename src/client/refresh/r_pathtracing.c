@@ -42,7 +42,7 @@ static unsigned long int pt_bsp_texture_width = 0, pt_bsp_texture_height = 0;
 static const GLcharARB* vertex_shader_source =
 	"#version 120\n"
 	"uniform mat4 entity_to_world = mat4(1);\n"
-	"varying vec4 texcoords[4];\n"
+	"varying vec4 texcoords[5];\n"
 	"void main()\n"
 	"{\n"
 	"	gl_Position = ftransform();\n"
@@ -50,6 +50,7 @@ static const GLcharARB* vertex_shader_source =
 	"	texcoords[1] = entity_to_world * gl_Vertex;\n"
 	"	texcoords[2].xyz = vec3(0.0, 0.0, 0.0);\n"
 	"	texcoords[3].xyz = mat3(entity_to_world) * gl_MultiTexCoord2.xyz;\n"
+	"	texcoords[4] = gl_MultiTexCoord3;\n"
 	"}\n"
 	"\n";
 
@@ -59,7 +60,7 @@ static const GLcharARB* fragment_shader_source =
 	"#define EPS	 (1./32.)\n"
 	"#define MAXT	(2048.)\n"
 	"\n"
-	"in vec4 texcoords[4];\n"
+	"in vec4 texcoords[5];\n"
 	"\n"
 	"uniform sampler2D tex0;\n"
 	"uniform sampler2D planes;\n"
@@ -228,7 +229,7 @@ static const GLcharARB* fragment_shader_source =
 	"	vec3 u=normalize(cross(spln.xyz,b)),\n"
 	"			 v=cross(spln.xyz,u);\n"
 	"	  \n"
-	"	vec3 r=vec3(0.0);\n"
+	"	vec3 r=texcoords[4].rgb;\n"
 	"	  \n"
 	" int oli=getLightRef(rp),li=oli;\n"
 	"	int ref=texelFetch(lightrefs, li).r;\n"
@@ -323,7 +324,6 @@ static const GLcharARB* fragment_shader_source =
 	"	gl_FragColor.a = 1.0;\n"
 	"	gl_FragColor.rgb *= texture(tex0, texcoords[0].st).rgb + vec3(1e-2);\n"
 	"	gl_FragColor.rgb = sqrt(gl_FragColor.rgb);\n"
-	
 	"}\n"
 	"\n";
 

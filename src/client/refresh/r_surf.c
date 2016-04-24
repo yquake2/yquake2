@@ -641,6 +641,11 @@ R_RenderLightmappedPoly(msurface_t *surf)
 			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, -surf->plane->normal[0], -surf->plane->normal[1], -surf->plane->normal[2]);
 		else
 			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, surf->plane->normal[0], surf->plane->normal[1], surf->plane->normal[2]);
+
+		if ((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->radiance > 0)
+			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, image->reflectivity[0] * surf->texinfo->radiance, image->reflectivity[1] * surf->texinfo->radiance, image->reflectivity[2] * surf->texinfo->radiance);
+		else
+			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
 	}
 	
 	for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
