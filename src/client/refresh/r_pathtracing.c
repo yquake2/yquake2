@@ -298,7 +298,7 @@ static const GLcharARB* fragment_shader_source =
    "   	r+=s*ndotl*lndotl*light.rgb/(w/wsum);\n"
 	"	}\n"
 	"}\n"
-	"	gl_FragColor.rgb = r / 1e7;\n"
+	"	gl_FragColor.rgb = r / 1024.;\n"
 
 	/*	This code implements ambient occlusion. It has been temporarily disabled.
 	"	vec3 r=vec3(0.0);\n"
@@ -394,7 +394,6 @@ AddStaticLights(void)
 	glpoly_t *p;
 	float *v;
 	int poly_offset;
-	float a, b, x, area;
 	int light_index;
 	mleaf_t *leaf, *other_leaf;
 	byte *vis;
@@ -440,24 +439,10 @@ AddStaticLights(void)
 					light->triangle_index = pt_num_triangles++;
 					light->surface = surf;
 					
-					/* Calculate the area of the triangle. */
-					
-					a = b = 0;
-					
-					for (j = 0; j < 3; ++j)
-					{
-						x = pt_vertex_data[ind[1] * 3 + j] - pt_vertex_data[ind[0] * 3 + j];
-						a += x * x;
-						x = pt_vertex_data[ind[2] * 3 + j] - pt_vertex_data[ind[0] * 3 + j];
-						b += x * x;						
-					}
-					
-					area = sqrt(a) * sqrt(b) * 0.5;
-					
 					/* Calculate the radiant flux of the light. */
 					
 					for (j = 0; j < 3; ++j)
-						light->radiant_flux[j] = texinfo->image->reflectivity[j] * texinfo->radiance * area;
+						light->radiant_flux[j] = texinfo->image->reflectivity[j] * texinfo->radiance;
 										
 					pt_triangle_data[light->triangle_index * 2 + 0] = ind[0] | (ind[1] << 16);
 					pt_triangle_data[light->triangle_index * 2 + 1] = ind[2];
