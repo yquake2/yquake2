@@ -190,6 +190,65 @@ static const GLcharARB* fragment_shader_source =
 	"\n"
 	"	return true;\n"
 	"}\n"
+	
+	"float traceRayBSP(vec3 org, vec3 dir, float t0, float max_t)\n"
+	"{\n"
+	"	vec2  other_node=vec2(0);\n"
+	"	float other_t1=max_t;\n"
+	"	vec4 other_pln0;\n"
+	"\n"
+	"	while(t0<max_t)\n"
+	"	{\n"
+	"		vec2  node=other_node;\n"
+	"		float t1=other_t1;\n"
+	"		vec4 pln0=other_pln0;\n"
+	"		\n"
+	"		other_node=vec2(0);\n"
+	"		other_t1=max_t;\n"
+	"\n"
+	"		do{\n"
+	"			vec4 pln=texture(planes,node);\n"
+	"			vec4 children=texture(branches,node);\n"
+	"			\n"
+	"			float t=dot(pln.xyz,dir);\n"
+	"\n"
+	"			children=(t>0.0) ? children.zwxy : children.xyzw;\n"
+	"\n"
+	"			t=(pln.w-dot(pln.xyz,org)) / t;\n"
+	"\n"
+	"			if(t>t0)\n"
+	"			{\n"
+	"				node=children.xy;\n"
+	"				\n"
+	"				if(t<t1) \n"
+	"				{\n"
+	"					other_t1=t1;\n"
+	"					t1=t;\n"
+	"					other_pln0=pln0;\n"
+	"					pln0=pln;\n"
+	"					other_node=children.zw;\n"
+	"				}\n"
+	"			}\n"
+	"			else\n"
+	"			{\n"
+	"				node=children.zw;\n"
+	"			}\n"
+	"			\n"
+	"			if(node.y==1.0)\n"
+	"			{\n"
+	"				 return t0;\n"
+	"			}\n"
+	"			\n"
+	"		} while(node!=vec2(0.0));\n"
+	"		\n"
+	"		out_pln=pln0;\n"
+	"		t0=t1+EPS;\n"
+	"	}\n"
+	"\n"
+	"	return 1e8;\n"
+	"}\n"
+	
+	
 	"\n"
 	"int getLightRef(vec3 p)\n"
 	"{\n"
@@ -253,7 +312,8 @@ static const GLcharARB* fragment_shader_source =
 	"{\n"
    "   float x=rand()*wsum,w=1;\n"
    "   vec4 j=vec4(0);\n"
-   "\n"   
+   "\n"
+	" int sky_li=li;\n"
 	" li=oli;\n"
 	"	int ref=texelFetch(lightrefs, li).r;\n"
 	" 	if(ref != -1) 	do{\n"
@@ -299,6 +359,40 @@ static const GLcharARB* fragment_shader_source =
    "   	float s=(traceRayShadowBSP(sp,l,EPS*16,min(2048.,ld)) && traceRayShadowTri(sp,l,min(2048.,ld))) ? 1./(ld*ld) : 0.;\n"
    "   	r+=s*ndotl*lndotl*light.rgb/(w/wsum);\n"
 	"	}\n"
+
+	/* Sky portals */
+	"	li=sky_li;\n"
+	"	++li;\n"
+	"	ref=texelFetch(lightrefs, li).r;\n"
+	" 	if(ref != -1){\n"
+	"			float r1=2.0*pi*rand();\n"
+	"			float r2=rand();\n"
+	"			float r2s=sqrt(r2);\n"
+	"\n"
+	"			vec3 rd=u*cos(r1)*r2s + v*sin(r1)*r2s + spln.xyz*sqrt(1.0-r2);\n"
+	"				\n"
+	"			float t=traceRayBSP(rp,rd,EPS*16,2048.);\n"
+	"			vec3 sp=rp+rd*t;\n"
+	" if(traceRayShadowTri(rp,rd,t))\n"
+	"		do{\n"
+	" 				vec4 light=texelFetch(lights, ref);\n"
+	"				ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;\n"
+	"				vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;\n"
+	"				vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;\n"
+	"				vec3 p2 = texelFetch(edge0, tri.y).xyz;\n"
+	"				vec3 n = cross(p2 - p0, p1 - p0);\n"
+	"				float s0 = dot(cross(p0 - sp, p1 - sp), n);\n"
+	"				float s1 = dot(cross(p1 - sp, p2 - sp), n);\n"
+	"				float s2 = dot(cross(p2 - sp, p0 - sp), n);\n"
+	"\n"
+	"				if (s0 < 0.0 && s1 < 0.0 && s2 < 0.0 && abs(dot(normalize(n), sp - p0)) < 1.)\n"
+	"					r += light.rgb;\n"
+	"				++li;\n"
+	"				ref=texelFetch(lightrefs, li).r;\n"
+	" 		} while(ref!=-1);\n"
+	"	}\n"
+	
+	
 	"}\n"
 	"	gl_FragColor.rgb = r / 1024.;\n"
 
@@ -386,6 +480,20 @@ IntBitsToFloat(int x)
 	return *(float*)&x;
 }
 
+static int
+LightSkyPortalComparator(void const *a, void const *b)
+{
+	trilight_t *la = (trilight_t*)a;
+	trilight_t *lb = (trilight_t*)b;
+	int fa = la->surface->texinfo->flags & SURF_SKY;
+	int fb = lb->surface->texinfo->flags & SURF_SKY;
+	if (fa == fb)
+		return 0;
+	else if (fa > fb)
+		return +1;
+	return -1;
+}
+
 static void
 AddStaticLights(void)
 {
@@ -453,7 +561,11 @@ AddStaticLights(void)
 			}			
 		}
 	}
+
+	/* Sort the lights such that sky portals come last in the light list. */
 	
+	qsort(pt_trilights, pt_num_lights, sizeof(pt_trilights[0]), LightSkyPortalComparator);
+
 	/* Pack the light data into the buffer. */
 	
 	for (m = 0; m < pt_num_lights; ++m)
@@ -492,7 +604,12 @@ AddStaticLights(void)
 		/* Get the PVS bits for this cluster. */
 		
 		vis = Mod_ClusterPVS(leaf->cluster, r_worldmodel);
-
+		
+		/* First a bitset is created indicating which lights are potentially visible, then a reference list is constructed from this. */
+		
+		static byte light_list_bits[(PT_MAX_TRI_LIGHTS + 7) / 8];
+		memset(light_list_bits, 0, sizeof(light_list_bits));
+		
 		/* Go through every visible leaf and build a list of the lights which have corresponding
 			surfaces in that leaf. */
 		
@@ -512,23 +629,53 @@ AddStaticLights(void)
 			{
 				/* This leaf is visible, so look for any light-emitting surfaces within it. */
 				
-				for (k = 0; k < other_leaf->nummarksurfaces; ++k)
+				for (m = 0; m < pt_num_lights; ++m)
 				{
-					surf = other_leaf->firstmarksurface[k];
-					
-					for (m = 0; m < pt_num_lights; ++m)
+					for (k = 0; k < other_leaf->nummarksurfaces; ++k)
 					{
+						surf = other_leaf->firstmarksurface[k];
+					
 						if (pt_trilights[m].surface == surf)
 						{
-							if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
-							{
-								/* A light-emitting surface has been found, so add a reference to the light into the reference list. */
-								pt_trilight_references[pt_num_trilight_references++] = m;
-							}
+							/* Mark this light for inclusion in the reference list. */
+							light_list_bits[m >> 3] |= 1 << (m & 7);
+							break;
 						}
 					}
 				}
 			}
+		}
+		
+		/* Construct the reference list. */
+		
+		qboolean first_skyportal_hit = false;
+		
+		for (m = 0; m < pt_num_lights; ++m)
+		{
+			surf = pt_trilights[m].surface;
+			
+			if ((surf->texinfo->flags & SURF_SKY) && (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS) && !first_skyportal_hit)
+			{
+				/* All lights after this one are sky portals, so mark the end of the non-skyportal light references. */
+				pt_trilight_references[pt_num_trilight_references++] = -1;
+				first_skyportal_hit = true;
+			}
+			
+			if (light_list_bits[m >> 3] & (1 << (m & 7)))
+			{	
+				if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
+				{
+					/* A light-emitting surface has been found, so add a reference to the light into the reference list. */
+					pt_trilight_references[pt_num_trilight_references++] = m;
+				}
+			}
+		}
+		
+		/* If there are no sky portals then add an extra end-of-list marker to demarcate the empty list. */
+		if (!first_skyportal_hit)
+		{
+			if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
+				pt_trilight_references[pt_num_trilight_references++] = -1;
 		}
 		
 		if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
@@ -610,6 +757,7 @@ TriNodeMortonCodeComparator(void const *a, void const *b)
 	trinode_t *nb = *(trinode_t**)b;
 	return (int)na->morton_code - (int)nb->morton_code;
 }
+
 
 static int
 TriNodeWriteData(const trinode_t *n, int index)
