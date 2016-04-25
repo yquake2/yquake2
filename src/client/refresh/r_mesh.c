@@ -952,6 +952,9 @@ R_DrawAliasModel(entity_t *e)
 		float entity_to_world_matrix[16];
 		R_ConstructEntityToWorldMatrix(entity_to_world_matrix, currententity);
 		qglUniformMatrix4fvARB(pt_entity_to_world_loc, 1, GL_FALSE, entity_to_world_matrix);
+		
+		/* Assume that alias models never need to be treated as direct light-emitters. */
+		qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
 	}
 	
 	R_DrawAliasFrameLerp(paliashdr, currententity->backlerp);
