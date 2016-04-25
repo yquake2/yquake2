@@ -354,7 +354,7 @@ typedef struct trinode_s
 static trinode_t pt_trinodes[PT_MAX_TRI_NODES];
 static trinode_t *pt_trinodes_ordered[PT_MAX_TRI_NODES];
 static trilight_t pt_trilights[PT_MAX_TRI_LIGHTS];
-static int pt_trilight_references[PT_MAX_TRI_LIGHT_REFS];
+static short pt_trilight_references[PT_MAX_TRI_LIGHT_REFS];
 static int pt_cluster_light_references[PT_MAX_CLUSTERS];
 
 static short pt_num_nodes = 0;
@@ -1457,7 +1457,7 @@ R_PreparePathtracer(void)
 	CreateTextureBuffer(&pt_triangle_buffer, &pt_triangle_texture, GL_RG32I, PT_MAX_TRIANGLES * 2 * sizeof(GLint));
 	CreateTextureBuffer(&pt_vertex_buffer, &pt_vertex_texture, GL_RGB32F, PT_MAX_VERTICES * 3 * sizeof(GLfloat));
 	CreateTextureBuffer(&pt_trilights_buffer, &pt_trilights_texture, GL_RGBA32F, PT_MAX_TRI_LIGHTS * 4 * sizeof(GLfloat));
-	CreateTextureBuffer(&pt_lightref_buffer, &pt_lightref_texture, GL_R32I, PT_MAX_TRI_LIGHT_REFS * sizeof(GLint));
+	CreateTextureBuffer(&pt_lightref_buffer, &pt_lightref_texture, GL_R16I, PT_MAX_TRI_LIGHT_REFS * sizeof(GLshort));
 	
 	pt_num_nodes = 0;
 	pt_num_triangles = 0;
