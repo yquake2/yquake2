@@ -389,7 +389,7 @@ R_RenderBrushPoly(msurface_t *fa)
 		else
 			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, fa->plane->normal[0], fa->plane->normal[1], fa->plane->normal[2]);
 
-		if ((fa->texinfo->flags & SURF_LIGHT) && fa->texinfo->radiance > 0)
+		if ((fa->texinfo->flags & SURF_LIGHT) && !(fa->texinfo->flags & SURF_WARP) && fa->texinfo->radiance > 0)
 			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, image->reflectivity[0] * fa->texinfo->radiance, image->reflectivity[1] * fa->texinfo->radiance, image->reflectivity[2] * fa->texinfo->radiance);
 		else
 			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
@@ -560,7 +560,7 @@ R_DrawAlphaSurfaces(void)
 			else
 				qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, s->plane->normal[0], s->plane->normal[1], s->plane->normal[2]);
 
-			if ((s->texinfo->flags & SURF_LIGHT) && s->texinfo->radiance > 0)
+			if ((s->texinfo->flags & SURF_LIGHT) && !(s->texinfo->flags & SURF_WARP) && s->texinfo->radiance > 0)
 				qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, s->texinfo->image->reflectivity[0] * s->texinfo->radiance, s->texinfo->image->reflectivity[1] * s->texinfo->radiance, s->texinfo->image->reflectivity[2] * s->texinfo->radiance);
 			else
 				qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
@@ -720,7 +720,7 @@ R_RenderLightmappedPoly(msurface_t *surf)
 		else
 			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, surf->plane->normal[0], surf->plane->normal[1], surf->plane->normal[2]);
 
-		if ((surf->texinfo->flags & SURF_LIGHT) && surf->texinfo->radiance > 0)
+		if ((surf->texinfo->flags & SURF_LIGHT) && !(surf->texinfo->flags & SURF_WARP) && surf->texinfo->radiance > 0)
 			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, image->reflectivity[0] * surf->texinfo->radiance, image->reflectivity[1] * surf->texinfo->radiance, image->reflectivity[2] * surf->texinfo->radiance);
 		else
 			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);

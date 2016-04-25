@@ -409,7 +409,7 @@ AddStaticLights(void)
 	{
 		surf = r_worldmodel->surfaces + i;
 		texinfo = surf->texinfo;
-		if ((texinfo->flags & SURF_LIGHT) && texinfo->radiance > 0)
+		if ((texinfo->flags & SURF_LIGHT) && !(texinfo->flags & SURF_WARP) && texinfo->radiance > 0)
 		{			
 			p = surf->polys;
 			
