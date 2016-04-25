@@ -42,7 +42,7 @@ static unsigned long int pt_bsp_texture_width = 0, pt_bsp_texture_height = 0;
 static const GLcharARB* vertex_shader_source =
 	"#version 120\n"
 	"uniform mat4 entity_to_world = mat4(1);\n"
-	"varying vec4 texcoords[5];\n"
+	"varying vec4 texcoords[5], color;\n"
 	"void main()\n"
 	"{\n"
 	"	gl_Position = ftransform();\n"
@@ -51,6 +51,7 @@ static const GLcharARB* vertex_shader_source =
 	"	texcoords[2].xyz = vec3(0.0, 0.0, 0.0);\n"
 	"	texcoords[3].xyz = mat3(entity_to_world) * gl_MultiTexCoord2.xyz;\n"
 	"	texcoords[4] = gl_MultiTexCoord3;\n"
+	"	color = gl_Color;\n"
 	"}\n"
 	"\n";
 
@@ -60,7 +61,7 @@ static const GLcharARB* fragment_shader_source =
 	"#define EPS	 (1./32.)\n"
 	"#define MAXT	(2048.)\n"
 	"\n"
-	"in vec4 texcoords[5];\n"
+	"in vec4 texcoords[5], color;\n"
 	"\n"
 	"uniform sampler2D tex0;\n"
 	"uniform sampler2D planes;\n"
@@ -321,7 +322,7 @@ static const GLcharARB* fragment_shader_source =
 	"	gl_FragColor.a = 1.0;\n"
 	*/
 	
-	"	gl_FragColor.a = 1.0;\n"
+	"	gl_FragColor.a = color.a;\n"
 	"	gl_FragColor.rgb *= texture(tex0, texcoords[0].st).rgb + vec3(1e-2);\n"
 	"	gl_FragColor.rgb = sqrt(gl_FragColor.rgb);\n"
 	"}\n"

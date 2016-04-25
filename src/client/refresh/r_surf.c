@@ -382,6 +382,19 @@ R_RenderBrushPoly(msurface_t *fa)
 
 	image = R_TextureAnimation(fa->texinfo);
 
+	if (gl_pt_enable->value)
+	{
+		if (fa->flags & SURF_PLANEBACK)
+			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, -fa->plane->normal[0], -fa->plane->normal[1], -fa->plane->normal[2]);
+		else
+			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, fa->plane->normal[0], fa->plane->normal[1], fa->plane->normal[2]);
+
+		if ((fa->texinfo->flags & SURF_LIGHT) && fa->texinfo->radiance > 0)
+			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, image->reflectivity[0] * fa->texinfo->radiance, image->reflectivity[1] * fa->texinfo->radiance, image->reflectivity[2] * fa->texinfo->radiance);
+		else
+			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
+	}
+	
 	if (fa->flags & SURF_DRAWTURB)
 	{
 		R_Bind(image->texnum);
@@ -494,6 +507,34 @@ R_DrawAlphaSurfaces(void)
 	   lighting range, so scale it back down */
 	intens = gl_state.inverse_intensity;
 
+	if (gl_pt_enable->value)
+	{
+		qglUseProgramObjectARB(pt_program_handle);
+		qglActiveTextureARB(GL_TEXTURE2_ARB);
+		glBindTexture(GL_TEXTURE_2D, pt_node_texture);
+		qglActiveTextureARB(GL_TEXTURE3_ARB);
+		glBindTexture(GL_TEXTURE_2D, pt_child_texture);
+		qglActiveTextureARB(GL_TEXTURE4_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_node0_texture);
+		qglActiveTextureARB(GL_TEXTURE5_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_node1_texture);
+		qglActiveTextureARB(GL_TEXTURE6_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_vertex_texture);
+		qglActiveTextureARB(GL_TEXTURE7_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
+		qglActiveTextureARB(GL_TEXTURE8_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_trilights_texture);
+		qglActiveTextureARB(GL_TEXTURE9_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, pt_lightref_texture);
+		qglActiveTextureARB(GL_TEXTURE10_ARB);
+		glBindTexture(GL_TEXTURE_2D, pt_bsp_lightref_texture);
+		qglActiveTextureARB(GL_TEXTURE0_ARB);
+		qglUniform1iARB(pt_frame_counter_loc, r_framecount);
+		
+		static const float identity_matrix[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+		qglUniformMatrix4fvARB(pt_entity_to_world_loc, 1, GL_FALSE, identity_matrix);
+	}
+	
 	for (s = r_alpha_surfaces; s; s = s->texturechain)
 	{
 		R_Bind(s->texinfo->image->texnum);
@@ -512,6 +553,19 @@ R_DrawAlphaSurfaces(void)
 			glColor4f(intens, intens, intens, 1);
 		}
 
+		if (gl_pt_enable->value)
+		{
+			if (s->flags & SURF_PLANEBACK)
+				qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, -s->plane->normal[0], -s->plane->normal[1], -s->plane->normal[2]);
+			else
+				qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, s->plane->normal[0], s->plane->normal[1], s->plane->normal[2]);
+
+			if ((s->texinfo->flags & SURF_LIGHT) && s->texinfo->radiance > 0)
+				qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, s->texinfo->image->reflectivity[0] * s->texinfo->radiance, s->texinfo->image->reflectivity[1] * s->texinfo->radiance, s->texinfo->image->reflectivity[2] * s->texinfo->radiance);
+			else
+				qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
+		}
+	
 		if (s->flags & SURF_DRAWTURB)
 		{
 			R_EmitWaterPolys(s);
@@ -526,6 +580,30 @@ R_DrawAlphaSurfaces(void)
 		}
 	}
 
+	if (gl_pt_enable->value)
+	{
+		qglUseProgramObjectARB(0);
+		qglActiveTextureARB(GL_TEXTURE2_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE3_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE4_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE5_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE6_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE7_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE8_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE9_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE10_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE0_ARB);
+	}
+	
 	R_TexEnv(GL_REPLACE);
 	glColor4f(1, 1, 1, 1);
 	glDisable(GL_BLEND);
