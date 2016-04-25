@@ -596,17 +596,19 @@ TriNodeCalculateMortonCode(const trinode_t *n)
 static int
 TriNodeSurfaceAreaComparator(void const *a, void const *b)
 {
-	trinode_t *n0 = *(trinode_t**)a;
-	trinode_t *n1 = *(trinode_t**)b;
-	return n0->surface_area > n1->surface_area;
+	trinode_t *na = *(trinode_t**)a;
+	trinode_t *nb = *(trinode_t**)b;
+	float sa = na->surface_area;
+	float sb = nb->surface_area;
+	return (int)(sb - sa);
 }
 
 static int
 TriNodeMortonCodeComparator(void const *a, void const *b)
 {
-	trinode_t *n0 = *(trinode_t**)a;
-	trinode_t *n1 = *(trinode_t**)b;
-	return n0->morton_code < n1->morton_code;
+	trinode_t *na = *(trinode_t**)a;
+	trinode_t *nb = *(trinode_t**)b;
+	return (int)na->morton_code - (int)nb->morton_code;
 }
 
 static int
