@@ -400,8 +400,6 @@ AddStaticLights(void)
 	mleaf_t *leaf, *other_leaf;
 	byte *vis;
 	int cluster;
-					
-	pt_num_lights = 0;
 
 	/* Visit each surface in the worldmodel. */
 	
@@ -429,6 +427,7 @@ AddStaticLights(void)
 				if (k > 1)
 				{
 					/* Add a new triangle light for this segment of the polygon. */
+					
 					if (pt_num_lights >= PT_MAX_TRI_LIGHTS)
 						continue;
 					
@@ -446,20 +445,26 @@ AddStaticLights(void)
 					for (j = 0; j < 3; ++j)
 						light->radiant_flux[j] = texinfo->image->reflectivity[j] * texinfo->radiance;
 										
+					/* Store the triangle data. */
+					
 					pt_triangle_data[light->triangle_index * 2 + 0] = ind[0] | (ind[1] << 16);
 					pt_triangle_data[light->triangle_index * 2 + 1] = ind[2];
-					
-					/* Pack the data into the buffer. */
-
-					pt_trilight_data[light_index * 4 + 0] = light->radiant_flux[0];
-					pt_trilight_data[light_index * 4 + 1] = light->radiant_flux[1];
-					pt_trilight_data[light_index * 4 + 2] = light->radiant_flux[2];
-					pt_trilight_data[light_index * 4 + 3] = IntBitsToFloat(light->triangle_index);
 				}
 			}			
 		}
 	}
 	
+	/* Pack the light data into the buffer. */
+	
+	for (m = 0; m < pt_num_lights; ++m)
+	{
+		light = pt_trilights + m;
+		pt_trilight_data[m * 4 + 0] = light->radiant_flux[0];
+		pt_trilight_data[m * 4 + 1] = light->radiant_flux[1];
+		pt_trilight_data[m * 4 + 2] = light->radiant_flux[2];
+		pt_trilight_data[m * 4 + 3] = IntBitsToFloat(light->triangle_index);
+	}				
+					
 	/* Reset the cluster light reference lists. */
 	
 	for (i = 0; i < PT_MAX_CLUSTERS; ++i)
@@ -1466,7 +1471,7 @@ R_PreparePathtracer(void)
 	pt_previous_node = -1;
 	pt_num_lights = 0;
 	pt_num_trilight_references = 0;
-
+					
 	AddStaticLights();
 
 	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: %d static lights\n", pt_num_lights);
