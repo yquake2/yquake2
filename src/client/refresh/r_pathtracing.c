@@ -369,10 +369,10 @@ static const GLcharARB* fragment_shader_source =
 	"			float r2=rand();\n"
 	"			float r2s=sqrt(r2);\n"
 	"\n"
-	"			vec3 rd=u*cos(r1)*r2s + v*sin(r1)*r2s + spln.xyz*sqrt(1.0-r2);\n"
+	"			vec3 rd=normalize(u*cos(r1)*r2s + v*sin(r1)*r2s + spln.xyz*sqrt(1.0-r2));\n"
 	"				\n"
 	"			float t=traceRayBSP(rp,rd,EPS*16,2048.);\n"
-	"			vec3 sp=rp+rd*t;\n"
+	"			vec3 sp=rp+rd*max(0.0, t - 1.0);\n"
 	" if(traceRayShadowTri(rp,rd,t))\n"
 	"		do{\n"
 	" 				vec4 light=texelFetch(lights, ref);\n"
@@ -380,12 +380,12 @@ static const GLcharARB* fragment_shader_source =
 	"				vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;\n"
 	"				vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;\n"
 	"				vec3 p2 = texelFetch(edge0, tri.y).xyz;\n"
-	"				vec3 n = cross(p2 - p0, p1 - p0);\n"
+	"				vec3 n = normalize(cross(p2 - p0, p1 - p0));\n"
 	"				float s0 = dot(cross(p0 - sp, p1 - sp), n);\n"
 	"				float s1 = dot(cross(p1 - sp, p2 - sp), n);\n"
 	"				float s2 = dot(cross(p2 - sp, p0 - sp), n);\n"
 	"\n"
-	"				if (s0 < 0.0 && s1 < 0.0 && s2 < 0.0 && abs(dot(normalize(n), sp - p0)) < 1.)\n"
+	"				if (s0 < 0.0 && s1 < 0.0 && s2 < 0.0 && abs(dot(n, sp - p0)) < 1.)\n"
 	"					r += light.rgb;\n"
 	"				++li;\n"
 	"				ref=texelFetch(lightrefs, li).r;\n"
@@ -514,7 +514,7 @@ AddStaticLights(void)
 	{
 		surf = r_worldmodel->surfaces + i;
 		texinfo = surf->texinfo;
-		if ((texinfo->flags & SURF_LIGHT) && !(texinfo->flags & SURF_WARP) && texinfo->radiance > 0)
+		if (!(texinfo->flags & SURF_WARP) && texinfo->radiance > 0)
 		{			
 			p = surf->polys;
 			
