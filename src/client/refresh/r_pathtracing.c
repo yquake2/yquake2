@@ -430,7 +430,6 @@ typedef struct trilight_s
 {
 	short triangle_index;
 	qboolean quad;
-	float radiant_flux[3];
 	msurface_t* surface;
 } trilight_t;
 
@@ -548,17 +547,12 @@ AddStaticLights(void)
 				light->quad = false;
 				light->triangle_index = pt_num_triangles++;
 				light->surface = surf;
-				
-				/* Calculate the radiant flux of the light. */
-				
-				for (j = 0; j < 3; ++j)
-					light->radiant_flux[j] = texinfo->image->reflectivity[j] * texinfo->radiance;
-									
+													
 				/* Store the triangle data. */
 				
 				pt_triangle_data[light->triangle_index * 2 + 0] = ind[0] | (ind[1] << 16);
 				pt_triangle_data[light->triangle_index * 2 + 1] = ind[2];
-			}			
+			}
 		}
 	}
 
@@ -571,9 +565,13 @@ AddStaticLights(void)
 	for (m = 0; m < pt_num_lights; ++m)
 	{
 		light = pt_trilights + m;
-		pt_trilight_data[m * 4 + 0] = light->radiant_flux[0];
-		pt_trilight_data[m * 4 + 1] = light->radiant_flux[1];
-		pt_trilight_data[m * 4 + 2] = light->radiant_flux[2];
+		texinfo = light->surface->texinfo;
+
+		/* Calculate the radiant flux of the light. */
+		
+		for (j = 0; j < 3; ++j)
+			pt_trilight_data[m * 4 + j] = texinfo->image->reflectivity[j] * texinfo->radiance;
+
 		pt_trilight_data[m * 4 + 3] = IntBitsToFloat(light->triangle_index);
 	}				
 					
