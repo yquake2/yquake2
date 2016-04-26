@@ -530,34 +530,34 @@ AddStaticLights(void)
 				for (j = 0; j < 3; ++j)
 					pt_vertex_data[pt_num_vertices * 3 + j] = v[j];
 
-				pt_num_vertices++;
+				pt_num_vertices++;	
+			}
+			
+			for (k = 2; k < p->numverts; k++)
+			{
+				/* Add a new triangle light for this segment of the polygon. */
+				
+				if (pt_num_lights >= PT_MAX_TRI_LIGHTS)
+					continue;
+				
+				int ind[3] = { poly_offset, poly_offset + k - 1, poly_offset + k };
 
-				if (k > 1)
-				{
-					/* Add a new triangle light for this segment of the polygon. */
-					
-					if (pt_num_lights >= PT_MAX_TRI_LIGHTS)
-						continue;
-					
-					int ind[3] = { poly_offset, poly_offset + k - 1, poly_offset + k };
-
-					light_index = pt_num_lights++;
-					light = pt_trilights + light_index;
-					
-					light->quad = false;
-					light->triangle_index = pt_num_triangles++;
-					light->surface = surf;
-					
-					/* Calculate the radiant flux of the light. */
-					
-					for (j = 0; j < 3; ++j)
-						light->radiant_flux[j] = texinfo->image->reflectivity[j] * texinfo->radiance;
-										
-					/* Store the triangle data. */
-					
-					pt_triangle_data[light->triangle_index * 2 + 0] = ind[0] | (ind[1] << 16);
-					pt_triangle_data[light->triangle_index * 2 + 1] = ind[2];
-				}
+				light_index = pt_num_lights++;
+				light = pt_trilights + light_index;
+				
+				light->quad = false;
+				light->triangle_index = pt_num_triangles++;
+				light->surface = surf;
+				
+				/* Calculate the radiant flux of the light. */
+				
+				for (j = 0; j < 3; ++j)
+					light->radiant_flux[j] = texinfo->image->reflectivity[j] * texinfo->radiance;
+									
+				/* Store the triangle data. */
+				
+				pt_triangle_data[light->triangle_index * 2 + 0] = ind[0] | (ind[1] << 16);
+				pt_triangle_data[light->triangle_index * 2 + 1] = ind[2];
 			}			
 		}
 	}
