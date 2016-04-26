@@ -349,7 +349,7 @@ static const GLcharARB* fragment_shader_source =
    "   vec3 sn=spln.xyz;\n"
    "   vec3 lp=p0;\n"
 	"	 vec2 uv = vec2(rand(), rand());\n"
-	"	 if((uv.x + uv.y) > 1.) uv = vec2(1) - uv;\n"
+	"	 if((uv.x + uv.y) > 1. && dot(light.rgb,vec3(1)) > 0.0) uv = vec2(1) - uv;\n"
    "   lp+=(p1 - p0)*uv.x+(p2 - p0)*uv.y;\n"
    "   float ld=distance(sp,lp);\n"
    "   vec3 l=(lp-sp)/ld;\n"
@@ -357,7 +357,7 @@ static const GLcharARB* fragment_shader_source =
    "   if(ndotl>0. && lndotl>0.)\n"
    "   {\n"
    "   	float s=(traceRayShadowBSP(sp,l,EPS*16,min(2048.,ld)) && traceRayShadowTri(sp,l,min(2048.,ld))) ? 1./(ld*ld) : 0.;\n"
-   "   	r+=s*ndotl*lndotl*light.rgb/(w/wsum);\n"
+   "   	r+=s*ndotl*lndotl*abs(light.rgb)/(w/wsum);\n"
 	"	}\n"
 
 	/* Sky portals */
@@ -501,7 +501,7 @@ AddStaticLights(void)
 	trilight_t *light;
 	int i, j, k, m;
 	glpoly_t *p;
-	float *v;
+	float *v, x;
 	int poly_offset;
 	int light_index;
 	mleaf_t *leaf, *other_leaf;
@@ -532,26 +532,76 @@ AddStaticLights(void)
 				pt_num_vertices++;	
 			}
 			
-			for (k = 2; k < p->numverts; k++)
+			/* Test to see if this polygon is a parallelogram. In which case a small trick is used to reduce the total number of lights. */
+			
+			int parallelogram_reflection = -1;
+			
+			if (p->numverts == 4 && !(texinfo->flags & SURF_SKY))
 			{
-				/* Add a new triangle light for this segment of the polygon. */
+				/* Reflect each vertex and test whether the result matches the opposite vertex in the polygon. */
+				
+				int ind[7] = { poly_offset + 3, poly_offset, poly_offset + 1, poly_offset + 2, poly_offset + 3, poly_offset, poly_offset + 1 };
+
+				for (k = 0; k < 4; ++k)
+				{
+					for (j = 0; j < 3; ++j)
+					{
+						x = pt_vertex_data[ind[k + 2] * 3 + j] + pt_vertex_data[ind[k] * 3 + j] - pt_vertex_data[ind[k + 1] * 3 + j];
+						if (abs(x - pt_vertex_data[ind[k + 3] * 3 + j]) > 0.25)
+							break;
+					}
+					if (j == 3)
+					{
+						parallelogram_reflection = k;
+						break;
+					}
+				}
+			}
+			
+			if (parallelogram_reflection != -1)
+			{
+				/* Add a new triangle light and mark it as a quad (really a parallelogram). */
 				
 				if (pt_num_lights >= PT_MAX_TRI_LIGHTS)
 					continue;
 				
-				int ind[3] = { poly_offset, poly_offset + k - 1, poly_offset + k };
+				int ind[6] = { poly_offset, poly_offset + 1, poly_offset + 2, poly_offset + 3, poly_offset, poly_offset + 1 };
 
 				light_index = pt_num_lights++;
 				light = pt_trilights + light_index;
 				
-				light->quad = false;
+				light->quad = true;
 				light->triangle_index = pt_num_triangles++;
 				light->surface = surf;
 													
 				/* Store the triangle data. */
 				
-				pt_triangle_data[light->triangle_index * 2 + 0] = ind[0] | (ind[1] << 16);
-				pt_triangle_data[light->triangle_index * 2 + 1] = ind[2];
+				pt_triangle_data[light->triangle_index * 2 + 0] = ind[parallelogram_reflection] | (ind[parallelogram_reflection + 1] << 16);
+				pt_triangle_data[light->triangle_index * 2 + 1] = ind[parallelogram_reflection + 2];
+			}
+			else
+			{			
+				for (k = 2; k < p->numverts; k++)
+				{
+					/* Add a new triangle light for this segment of the polygon. */
+					
+					if (pt_num_lights >= PT_MAX_TRI_LIGHTS)
+						continue;
+					
+					int ind[3] = { poly_offset, poly_offset + k - 1, poly_offset + k };
+
+					light_index = pt_num_lights++;
+					light = pt_trilights + light_index;
+					
+					light->quad = false;
+					light->triangle_index = pt_num_triangles++;
+					light->surface = surf;
+														
+					/* Store the triangle data. */
+					
+					pt_triangle_data[light->triangle_index * 2 + 0] = ind[0] | (ind[1] << 16);
+					pt_triangle_data[light->triangle_index * 2 + 1] = ind[2];
+				}
 			}
 		}
 	}
@@ -567,10 +617,10 @@ AddStaticLights(void)
 		light = pt_trilights + m;
 		texinfo = light->surface->texinfo;
 
-		/* Calculate the radiant flux of the light. */
+		/* Calculate the radiant flux of the light. This stored vector is negated if the light is a quad. */
 		
 		for (j = 0; j < 3; ++j)
-			pt_trilight_data[m * 4 + j] = texinfo->image->reflectivity[j] * texinfo->radiance;
+			pt_trilight_data[m * 4 + j] = (light->quad ? -1 : +1) * texinfo->image->reflectivity[j] * texinfo->radiance;
 
 		pt_trilight_data[m * 4 + 3] = IntBitsToFloat(light->triangle_index);
 	}				
