@@ -533,6 +533,9 @@ R_DrawAlphaSurfaces(void)
 		
 		static const float identity_matrix[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
 		qglUniformMatrix4fvARB(pt_entity_to_world_loc, 1, GL_FALSE, identity_matrix);
+		
+		/* Simulate GL_MODULATE using blending functions. */
+		glBlendFunc(GL_ONE_MINUS_SRC_COLOR, GL_ONE);
 	}
 	
 	for (s = r_alpha_surfaces; s; s = s->texturechain)
@@ -602,6 +605,9 @@ R_DrawAlphaSurfaces(void)
 		qglActiveTextureARB(GL_TEXTURE10_ARB);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		qglActiveTextureARB(GL_TEXTURE0_ARB);
+
+		/* Restore the blending state. */
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	
 	R_TexEnv(GL_REPLACE);
