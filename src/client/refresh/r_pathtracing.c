@@ -49,7 +49,7 @@ static const GLcharARB* vertex_shader_source =
 	"	texcoords[0] = gl_MultiTexCoord0;\n"
 	"	texcoords[1] = entity_to_world * gl_Vertex;\n"
 	"	texcoords[2].xyz = vec3(0.0, 0.0, 0.0);\n"
-	"	texcoords[3].xyz = mat3(entity_to_world) * gl_MultiTexCoord2.xyz;\n"
+	"	texcoords[3].xyz = normalize(mat3(entity_to_world) * gl_MultiTexCoord2.xyz);\n"
 	"	texcoords[4] = gl_MultiTexCoord3;\n"
 	"	color = gl_Color;\n"
 	"}\n"
@@ -1011,6 +1011,19 @@ MatrixRotateAxis(float m[16], int axis, float angle)
 	MatrixApply(m, mt0, mt1);
 }
 
+/* Applies a non-uniform scaling to the given 4x4 matrix in-place. */
+static void 
+MatrixScale(float m[16], float sx, float sy, float sz)
+{
+	int i,j;
+	float s[3] = { sx, sy, sz };
+	for (i = 0; i < 3; ++i)
+		for (j = 0; j < 3; ++j)
+		{
+			m[i * 4 + j] *= s[i];
+		}
+}
+
 /* Constructs a transformation matrix to match the one used for drawing entities. This is based on the GL matrix transformation
 	code in R_DrawAliasModel and R_RotateForEntity. */
 void
@@ -1024,6 +1037,9 @@ R_ConstructEntityToWorldMatrix(float m[16], entity_t *entity)
 	MatrixRotateAxis(m, 1, -entity->angles[0] * M_PI / 180.0);
 	MatrixRotateAxis(m, 0, -entity->angles[2] * M_PI / 180.0);
 	entity->angles[PITCH] = -entity->angles[PITCH];
+	
+	if (entity->flags & RF_DEPTHHACK)
+		MatrixScale(m, .25f, .25f, .25f);
 }
 
 static void
@@ -1419,7 +1435,7 @@ AddEntities(void)
 	{
 		entity = &r_newrefdef.entities[i];
 		
-		if (entity->flags & (RF_FULLBRIGHT | RF_DEPTHHACK | RF_WEAPONMODEL | RF_TRANSLUCENT | RF_BEAM | RF_NOSHADOW | RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
+		if (!(entity->flags & RF_WEAPONMODEL) && (entity->flags & (RF_FULLBRIGHT | RF_DEPTHHACK | RF_TRANSLUCENT | RF_BEAM | RF_NOSHADOW | RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM)))
 			continue;
 		
 		model = entity->model;
