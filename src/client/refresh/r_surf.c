@@ -1411,6 +1411,8 @@ R_DrawWorld(void)
 		R_RecursiveWorldNode(r_worldmodel->nodes);
 	}
 
+	R_DrawTextureChains();
+
 	if (gl_pt_enable->value)
 	{
 		qglUseProgramObjectARB(0);
@@ -1434,12 +1436,8 @@ R_DrawWorld(void)
 		glBindTexture(GL_TEXTURE_2D, 0);
 		qglActiveTextureARB(GL_TEXTURE0_ARB);
 	}
-	else
-	{
-		R_DrawTextureChains();
-		R_BlendLightmaps();
-	}
 
+	R_BlendLightmaps();
 	R_DrawSkyBox();
 	R_DrawTriangleOutlines();
 
