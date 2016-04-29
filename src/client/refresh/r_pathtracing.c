@@ -309,23 +309,24 @@ static const GLcharARB* fragment_shader_source =
 	"				ref=texelFetch(lightrefs, li).r;\n"
 	" } while(ref!=-1);\n"
 	"\n"
+	"int sky_li = li;\n"
 	"{\n"
    "   float x=rand()*wsum,w=1;\n"
    "   vec4 j=vec4(0);\n"
    "\n"
-	" int sky_li=li;\n"
 	" li=oli;\n"
 	"	int ref=texelFetch(lightrefs, li).r;\n"
+	"	vec3 p0,p1,p2,n;\n"
 	" 	if(ref != -1) 	do{\n"
 	" 				vec4 light=texelFetch(lights, ref);\n"
 	"				ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;\n"
-	"				vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;\n"
-	"				vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;\n"
-	"				vec3 p2 = texelFetch(edge0, tri.y).xyz;\n"
-	"				vec3 n = cross(p2 - p0, p1 - p0);\n"
+	"				p0 = texelFetch(edge0, tri.x & 0xffff).xyz;\n"
+	"				p1 = texelFetch(edge0, tri.x >> 16).xyz;\n"
+	"				p2 = texelFetch(edge0, tri.y).xyz;\n"
+	"				n = cross(p2 - p0, p1 - p0);\n"
 	"				float d=distance(rp,(p0+p1+p2)/3.);\n"
    "   			float pd=dot(rp-p0,n);\n"
-   "   			float w=length(light.rgb)*1./(d*d)*max(0.,pd);\n"	
+   "   			w=length(light.rgb)*1./(d*d)*max(0.,pd);\n"	
    "      x-=w;\n"
    "      if(x<0.)\n"
    "      {\n"
@@ -337,14 +338,6 @@ static const GLcharARB* fragment_shader_source =
 	" 		} while(ref!=-1);\n"
 	
 	"	vec4 light=j;\n"
-	"				ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;\n"
-	"				vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;\n"
-	"				vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;\n"
-	"				vec3 p2 = texelFetch(edge0, tri.y).xyz;\n"
-	"				vec3 n = cross(p2 - p0, p1 - p0);\n"
-	"				float d=distance(rp,(p0+p1+p2)/3.);\n"
-   "   			float pd=dot(rp-p0,n);\n"
-   "   			w=length(light.rgb)*1./(d*d)*max(0.,pd);\n"	
    "   vec3 sp=rp;\n"
    "   vec3 sn=spln.xyz;\n"
    "   vec3 lp=p0;\n"
@@ -359,7 +352,8 @@ static const GLcharARB* fragment_shader_source =
    "   	float s=(traceRayShadowBSP(sp,l,EPS*16,min(2048.,ld)) && traceRayShadowTri(sp,l,min(2048.,ld))) ? 1./(ld*ld) : 0.;\n"
    "   	r+=s*ndotl*lndotl*abs(light.rgb)/(w/wsum);\n"
 	"	}\n"
-
+	
+#if 1
 	/* Sky portals */
 	"	li=sky_li;\n"
 	"	++li;\n"
@@ -391,7 +385,7 @@ static const GLcharARB* fragment_shader_source =
 	"				ref=texelFetch(lightrefs, li).r;\n"
 	" 		} while(ref!=-1);\n"
 	"	}\n"
-	
+#endif
 	
 	"}\n"
 	"	gl_FragColor.rgb = r / 1024.;\n"
@@ -1045,7 +1039,7 @@ BuildAndWriteEntityNodesHierarchy(int first_node_index, int num_added_nodes, flo
 
 	/* Group nodes together to create a hierarchy in bottom-up style. */
 	
-	for (i = 0; i < PT_MAX_NODE_DEPTH; ++i)
+	for (i = 0; i < PT_MAX_NODE_DEPTH && num_added_nodes > 2; ++i)
 	{
 		first_node_index2 = pt_num_nodes;
 		num_added_nodes2 = 0;
@@ -1085,24 +1079,31 @@ BuildAndWriteEntityNodesHierarchy(int first_node_index, int num_added_nodes, flo
 	
 	qsort(pt_trinodes_ordered + first_node_index, num_added_nodes, sizeof(pt_trinodes_ordered[0]), TriNodeSurfaceAreaComparator);
 
-	/* Make one node for the whole entity, so it can be skipped entirely with a single bounding box test. */
-
-	entitynode_n0 = pt_node0_data + pt_written_nodes * 4;
-	entitynode_n1 = pt_node1_data + pt_written_nodes * 4;
+	entitynode_n0 = NULL;
+	entitynode_n1 = NULL;
 	
-	for (i = 0; i < 3; ++i)
+	if (num_added_nodes > 2)
 	{
-		entitynode_n0[i] = FloatBitsToInt((entity_aabb_max[i] - entity_aabb_min[i]) / 2.0f);
-		entitynode_n1[i] = FloatBitsToInt((entity_aabb_min[i] + entity_aabb_max[i]) / 2.0f);
-	}
+		/* Make one node for the whole entity, so it can be skipped entirely with a single bounding box test. */
 
-	entitynode_n1[3] = -1;
-	
-	++pt_written_nodes;
+		entitynode_n0 = pt_node0_data + pt_written_nodes * 4;
+		entitynode_n1 = pt_node1_data + pt_written_nodes * 4;
+		
+		for (i = 0; i < 3; ++i)
+		{
+			entitynode_n0[i] = FloatBitsToInt((entity_aabb_max[i] - entity_aabb_min[i]) / 2.0f);
+			entitynode_n1[i] = FloatBitsToInt((entity_aabb_min[i] + entity_aabb_max[i]) / 2.0f);
+		}
+
+		entitynode_n1[3] = -1;
+		
+		++pt_written_nodes;
+	}
 	
 	WriteTriNodes(first_node_index, num_added_nodes);
 	
-	entitynode_n0[3] = pt_written_nodes;
+	if (entitynode_n0)
+		entitynode_n0[3] = pt_written_nodes;
 }
 
 /* Constructs an interpolated mesh in worldspace to match the one which is drawn by R_DrawAliasModel. This function
