@@ -363,11 +363,6 @@ static const GLcharARB* fragment_shader_source =
 	" r+=sampleDirectLight(rp, spln.xyz);\n"
 
 #if 1
-	/* Sky portals */
-	"	int li=sky_li;\n"
-	"	++li;\n"
-	"	int ref=texelFetch(lightrefs, li).r;\n"
-	" 	if(ref != -1){\n"
 	"			float r1=2.0*pi*rand();\n"
 	"			float r2=rand();\n"
 	"			float r2s=sqrt(r2);\n"
@@ -375,6 +370,15 @@ static const GLcharARB* fragment_shader_source =
 	"			vec3 rd=normalize(u*cos(r1)*r2s + v*sin(r1)*r2s + spln.xyz*sqrt(1.0-r2));\n"
 	"				\n"
 	"			float t=traceRayBSP(rp,rd,EPS*16,2048.);\n"
+
+	"if ((dot(out_pln.xyz,rp) - out_pln.w) < 0.0) out_pln *= -1.0;\n"
+		" r+=.75*sampleDirectLight(rp+rd*max(0.0, t - 1.0), out_pln.xyz);\n"
+
+	/* Sky portals */
+	"	int li=sky_li;\n"
+	"	++li;\n"
+	"	int ref=texelFetch(lightrefs, li).r;\n"
+	" 	if(ref != -1){\n"
 	" if(traceRayShadowTri(rp,rd,t))\n"
 	"		do{\n"
 	"				vec3 sp=rp+rd*max(0.0, t - 1.0);\n"
