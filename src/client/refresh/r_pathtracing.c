@@ -271,26 +271,11 @@ static const GLcharARB* fragment_shader_source =
 	"	return index;\n"
 	"}\n"
 	"\n"
-	"void main()\n"
+
+	"int sky_li;\n"
+	"vec3 sampleDirectLight(vec3 rp, vec3 rn)\n"
 	"{\n"
-	"	seed = gl_FragCoord.x * 89.9 + gl_FragCoord.y * 197.3 + frame*0.02;\n"
-	"\n"
-	"	rp+=normal*EPS*16;\n"
-	"	\n"
-	"	out_pln.xyz=normal;\n"
-	"	out_pln.w=dot(rp,out_pln.xyz);\n"
-	"\n"
-	"	vec4 spln=out_pln;\n"
-	"\n"
-	"	// permutate components\n"
-	"	vec3 b=vec3(spln.z,spln.x,spln.y);\n"
-	"	\n"
-	"	// tangents\n"
-	"	vec3 u=normalize(cross(spln.xyz,b)),\n"
-	"			 v=cross(spln.xyz,u);\n"
-	"	  \n"
-	"	vec3 r=texcoords[4].rgb;\n"
-	"	  \n"
+	" vec3 r=vec3(0);\n"
 	" int oli=getLightRef(rp),li=oli;\n"
 	"	int ref=texelFetch(lightrefs, li).r;\n"
 	"  float wsum=0.;\n"
@@ -309,13 +294,12 @@ static const GLcharARB* fragment_shader_source =
 	"				ref=texelFetch(lightrefs, li).r;\n"
 	" } while(ref!=-1);\n"
 	"\n"
-	"int sky_li = li;\n"
-	"{\n"
+	"sky_li = li;\n"
    "   float x=rand()*wsum,w=1;\n"
    "   vec4 j=vec4(0);\n"
    "\n"
 	" li=oli;\n"
-	"	int ref=texelFetch(lightrefs, li).r;\n"
+	"	ref=texelFetch(lightrefs, li).r;\n"
 	"	vec3 p0,p1,p2,n;\n"
 	" 	if(ref != -1) 	do{\n"
 	" 				vec4 light=texelFetch(lights, ref);\n"
@@ -339,7 +323,7 @@ static const GLcharARB* fragment_shader_source =
 	
 	"	vec4 light=j;\n"
    "   vec3 sp=rp;\n"
-   "   vec3 sn=spln.xyz;\n"
+   "   vec3 sn=rn.xyz;\n"
    "   vec3 lp=p0;\n"
 	"	 vec2 uv = vec2(rand(), rand());\n"
 	"	 if((uv.x + uv.y) > 1. && dot(light.rgb,vec3(1)) > 0.0) uv = vec2(1) - uv;\n"
@@ -352,12 +336,37 @@ static const GLcharARB* fragment_shader_source =
    "   	float s=(traceRayShadowBSP(sp,l,EPS*16,min(2048.,ld)) && traceRayShadowTri(sp,l,min(2048.,ld))) ? 1./(ld*ld) : 0.;\n"
    "   	r+=s*ndotl*lndotl*abs(light.rgb)/(w/wsum);\n"
 	"	}\n"
-	
+	"	return r;\n"
+	"}\n"
+
+	"void main()\n"
+	"{\n"
+	"	seed = gl_FragCoord.x * 89.9 + gl_FragCoord.y * 197.3 + frame*0.02;\n"
+	"\n"
+	"	rp+=normal*EPS*16;\n"
+	"	\n"
+	"	out_pln.xyz=normal;\n"
+	"	out_pln.w=dot(rp,out_pln.xyz);\n"
+	"\n"
+	"	vec4 spln=out_pln;\n"
+	"\n"
+	"	// permutate components\n"
+	"	vec3 b=vec3(spln.z,spln.x,spln.y);\n"
+	"	\n"
+	"	// tangents\n"
+	"	vec3 u=normalize(cross(spln.xyz,b)),\n"
+	"			 v=cross(spln.xyz,u);\n"
+	"	  \n"
+	"	vec3 r=texcoords[4].rgb;\n"
+	"	  \n"
+
+	" r+=sampleDirectLight(rp, spln.xyz);\n"
+
 #if 1
 	/* Sky portals */
-	"	li=sky_li;\n"
+	"	int li=sky_li;\n"
 	"	++li;\n"
-	"	ref=texelFetch(lightrefs, li).r;\n"
+	"	int ref=texelFetch(lightrefs, li).r;\n"
 	" 	if(ref != -1){\n"
 	"			float r1=2.0*pi*rand();\n"
 	"			float r2=rand();\n"
@@ -392,7 +401,7 @@ static const GLcharARB* fragment_shader_source =
 	"	}\n"
 #endif
 	
-	"}\n"
+//	"}\n"
 	"	gl_FragColor.rgb = r / 1024.;\n"
 
 	/*	This code implements ambient occlusion. It has been temporarily disabled.
@@ -1691,7 +1700,7 @@ R_PreparePathtracer(void)
 	pt_previous_node = -1;
 	pt_num_lights = 0;
 	pt_num_trilight_references = 0;
-					
+
 	AddStaticLights();
 
 	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: %d static lights\n", pt_num_lights);
