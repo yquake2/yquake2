@@ -533,7 +533,7 @@ AddStaticLights(void)
 			
 			/* Test to see if this polygon is a parallelogram. In which case a small trick is used to reduce the total number of lights. */
 			
-			int parallelogram_reflection = -1;
+			int parallelogram_reflection = 0;
 			
 			if (p->numverts == 4)
 			{
@@ -551,20 +551,20 @@ AddStaticLights(void)
 					}
 					if (j == 3)
 					{
-						parallelogram_reflection = k;
+						parallelogram_reflection = k + 1;
 						break;
 					}
 				}
 			}
 			
-			if (parallelogram_reflection != -1)
+			if (parallelogram_reflection > 0)
 			{
 				/* Add a new triangle light and mark it as a quad (really a parallelogram). */
 				
 				if (pt_num_lights >= PT_MAX_TRI_LIGHTS)
 					continue;
 				
-				int ind[6] = { poly_offset, poly_offset + 1, poly_offset + 2, poly_offset + 3, poly_offset, poly_offset + 1 };
+				int ind[6] = { poly_offset + 3, poly_offset, poly_offset + 1, poly_offset + 2, poly_offset + 3, poly_offset };
 
 				light_index = pt_num_lights++;
 				light = pt_trilights + light_index;
@@ -576,7 +576,7 @@ AddStaticLights(void)
 				/* Store the triangle data. */
 				
 				pt_triangle_data[light->triangle_index * 2 + 0] = ind[parallelogram_reflection] | (ind[parallelogram_reflection + 1] << 16);
-				pt_triangle_data[light->triangle_index * 2 + 1] = ind[parallelogram_reflection + 2];
+				pt_triangle_data[light->triangle_index * 2 + 1] = ind[parallelogram_reflection - 1];
 			}
 			else
 			{			
