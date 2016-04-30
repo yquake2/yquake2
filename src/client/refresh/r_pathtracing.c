@@ -366,15 +366,20 @@ static const GLcharARB* fragment_shader_source =
 	"			vec3 rd=normalize(u*cos(r1)*r2s + v*sin(r1)*r2s + spln.xyz*sqrt(1.0-r2));\n"
 	"				\n"
 	"			float t=traceRayBSP(rp,rd,EPS*16,2048.);\n"
-	"			vec3 sp=rp+rd*max(0.0, t - 1.0);\n"
 	" if(traceRayShadowTri(rp,rd,t))\n"
 	"		do{\n"
+	"				vec3 sp=rp+rd*max(0.0, t - 1.0);\n"
 	" 				vec4 light=texelFetch(lights, ref);\n"
 	"				ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;\n"
 	"				vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;\n"
 	"				vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;\n"
 	"				vec3 p2 = texelFetch(edge0, tri.y).xyz;\n"
 	"				vec3 n = normalize(cross(p2 - p0, p1 - p0));\n"
+	"	 			if(dot(light.rgb, vec3(1)) < 0.0)\n"
+	"				{\n"
+	"					vec3 mirror = normalize(cross(p2 - p1, n));\n"
+	"					sp -= 2.0 * mirror * dot(sp - p1, mirror);\n"
+	"				}\n"
 	"				float s0 = dot(cross(p0 - sp, p1 - sp), n);\n"
 	"				float s1 = dot(cross(p1 - sp, p2 - sp), n);\n"
 	"				float s2 = dot(cross(p2 - sp, p0 - sp), n);\n"
@@ -530,7 +535,7 @@ AddStaticLights(void)
 			
 			int parallelogram_reflection = -1;
 			
-			if (p->numverts == 4 && !(texinfo->flags & SURF_SKY))
+			if (p->numverts == 4)
 			{
 				/* Reflect each vertex and test whether the result matches the opposite vertex in the polygon. */
 				
