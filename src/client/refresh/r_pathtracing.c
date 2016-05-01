@@ -374,11 +374,13 @@ static const GLcharARB* fragment_shader_source =
 	"if ((dot(out_pln.xyz,rp) - out_pln.w) < 0.0) out_pln *= -1.0;\n"
 		" r+=.75*sampleDirectLight(rp+rd*max(0.0, t - 1.0), out_pln.xyz);\n"
 
+
 	/* Sky portals */
 	"	int li=sky_li;\n"
 	"	++li;\n"
 	"	int ref=texelFetch(lightrefs, li).r;\n"
 	" 	if(ref != -1){\n"
+
 	" if(traceRayShadowTri(rp,rd,t))\n"
 	"		do{\n"
 	"				vec3 sp=rp+rd*max(0.0, t - 1.0);\n"
@@ -1673,6 +1675,125 @@ AddStaticBSP()
 	Z_Free(tex_light_data);
 }
 
+/* Parses a single entity and extracts the fields which are interesting for the purposes of
+	pathtracing. This function is mostly based on ED_ParseEdict from g_spawn.c */
+static char *
+ParseEntityDictionary(char *data)
+{
+	char keyname[256];
+	const char *com_token;
+	char classname[256];
+	char origin[256];
+	char color[256];
+	char light[256];
+	char style[256];
+
+	classname[0] = 0;
+	origin[0] = 0;
+	color[0] = 0;
+	light[0] = 0;
+	style[0] = 0;
+	
+	/* go through all the dictionary pairs */
+	while (1)
+	{
+		/* parse key */
+		com_token = COM_Parse(&data);
+
+		if (com_token[0] == '}')
+		{
+			break;
+		}
+
+		if (!data)
+		{
+			VID_Printf(ERR_DROP, "ParseEntityDictionary: EOF without closing brace\n");
+		}
+
+		Q_strlcpy(keyname, com_token, sizeof(keyname));
+
+		/* parse value */
+		com_token = COM_Parse(&data);
+
+		if (!data)
+		{
+			VID_Printf(ERR_DROP, "ParseEntityDictionary: EOF without closing brace\n");
+		}
+
+		if (com_token[0] == '}')
+		{
+			VID_Printf(ERR_DROP, "ParseEntityDictionary: closing brace without data\n");
+		}
+		
+		if (!Q_stricmp(keyname, "classname"))
+		{
+			Q_strlcpy(classname, com_token, sizeof(classname));
+		}
+		else if (!Q_stricmp(keyname, "origin"))
+		{
+			Q_strlcpy(origin, com_token, sizeof(origin));
+		}
+		else if (!Q_stricmp(keyname, "_color"))
+		{
+			Q_strlcpy(color, com_token, sizeof(color));
+		}
+		else if (!Q_stricmp(keyname, "_light") || !Q_stricmp(keyname, "light"))
+		{
+			Q_strlcpy(light, com_token, sizeof(light));
+		}
+		else if (!Q_stricmp(keyname, "_style") || !Q_stricmp(keyname, "style"))
+		{
+			Q_strlcpy(style, com_token, sizeof(style));
+		}
+	}
+
+	if (!Q_stricmp(classname, "light"))
+	{
+		VID_Printf(PRINT_ALL, "found a light\n");
+		VID_Printf(PRINT_ALL, "origin = %s\n", origin);
+		VID_Printf(PRINT_ALL, "color = %s\n", color);
+		VID_Printf(PRINT_ALL, "light = %s\n", light);
+		VID_Printf(PRINT_ALL, "style = %s\n", style);
+	}
+
+	return data;
+}
+
+/* Parses the entities from the given string (which should have been taken directly from the
+	entities lump of a map). This function is mostly based on SpawnEntities from g_spawn.c */
+static void
+AddStaticEntityLights(char *entities)
+{
+	const char *com_token;
+
+	if (!entities)
+	{
+		return;
+	}
+
+	/* parse ents */
+	while (1)
+	{
+		/* parse the opening brace */
+		com_token = COM_Parse(&entities);
+
+		if (!entities)
+		{
+			break;
+		}
+
+		if (com_token[0] != '{')
+		{
+			VID_Printf(ERR_DROP, "AddStaticEntityLights: found %s when expecting {\n", com_token);
+			return;
+		}
+
+		entities = ParseEntityDictionary(entities);
+	}
+
+}
+
+
 void
 R_PreparePathtracer(void)
 {
@@ -1706,6 +1827,8 @@ R_PreparePathtracer(void)
 	pt_num_trilight_references = 0;
 
 	AddStaticLights();
+	
+	AddStaticEntityLights(Mod_EntityString());
 
 	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: %d static lights\n", pt_num_lights);
 

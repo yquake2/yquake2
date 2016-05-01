@@ -36,6 +36,10 @@ int mod_numknown;
 int registration_sequence;
 byte *mod_base;
 
+/* Only required for pathtracing. */
+static int	numentitychars;
+static char map_entitystring[MAX_MAP_ENTSTRING];
+
 void LoadSP2(model_t *mod, void *buffer);
 void Mod_LoadBrushModel(model_t *mod, void *buffer);
 void LoadMD2(model_t *mod, void *buffer);
@@ -47,6 +51,12 @@ void LM_BeginBuildingLightmaps(model_t *m);
 
 /* the inline * models from the current map are kept seperate */
 model_t mod_inline[MAX_MOD_KNOWN];
+
+char *
+Mod_EntityString(void)
+{
+	return map_entitystring;
+}
 
 mleaf_t *
 Mod_PointInLeaf(vec3_t p, model_t *model)
@@ -170,6 +180,8 @@ Mod_Modellist_f(void)
 void
 Mod_Init(void)
 {
+	numentitychars = 0;
+	map_entitystring[0] = 0;
 	memset(mod_novis, 0xff, sizeof(mod_novis));
 }
 
@@ -880,6 +892,19 @@ Mod_LoadPlanes(lump_t *l)
 }
 
 void
+Mod_LoadEntityString(lump_t *l)
+{
+	numentitychars = l->filelen;
+
+	if (l->filelen > MAX_MAP_ENTSTRING)
+	{
+		VID_Error(ERR_DROP, "Mod_LoadEntityString: Map has too large entity lump");
+	}
+
+	memcpy(map_entitystring, mod_base + l->fileofs, l->filelen);
+}
+
+void
 Mod_LoadBrushModel(model_t *mod, void *buffer)
 {
 	int i;
@@ -924,6 +949,10 @@ Mod_LoadBrushModel(model_t *mod, void *buffer)
 	Mod_LoadLeafs(&header->lumps[LUMP_LEAFS]);
 	Mod_LoadNodes(&header->lumps[LUMP_NODES]);
 	Mod_LoadSubmodels(&header->lumps[LUMP_MODELS]);
+
+	/* Only required for pathtracing, so static lighting properties are accessible. */
+	Mod_LoadEntityString(&header->lumps[LUMP_ENTITIES]);
+
 	mod->numframes = 2; /* regular and alternate animation */
 
 	/* set up the submodels */
@@ -990,6 +1019,10 @@ R_BeginRegistration(char *model)
 
 	registration_sequence++;
 	r_oldviewcluster = -1; /* force markleafs */
+
+	/* Clear the entity string. */
+	numentitychars = 0;
+	map_entitystring[0] = 0;
 
 	Com_sprintf(fullname, sizeof(fullname), "maps/%s.bsp", model);
 

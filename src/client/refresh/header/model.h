@@ -221,6 +221,9 @@ model_t *Mod_ForName(char *name, qboolean crash);
 mleaf_t *Mod_PointInLeaf(float *p, model_t *model);
 byte *Mod_ClusterPVS(int cluster, model_t *model);
 
+/* Only required for pathtracing. There is only ever one entitystring so it's not necessary to specify a model_t. */
+char *Mod_EntityString(void);
+
 void Mod_Modellist_f(void);
 
 void *Hunk_Begin(int maxsize);
