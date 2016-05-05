@@ -1,14 +1,14 @@
 #include "header/local.h"
 
-#define PT_MAX_TRI_NODES					16384
-#define PT_MAX_TRIANGLES					16384
-#define PT_MAX_VERTICES						16384
+#define PT_MAX_TRI_NODES					8192
+#define PT_MAX_TRIANGLES					8192
+#define PT_MAX_VERTICES						8192
 #define PT_MAX_NODE_CHILDREN				4
 #define PT_MAX_NODE_DEPTH					4
-#define PT_MAX_TRI_LIGHTS					16384
+#define PT_MAX_TRI_LIGHTS					8192
 #define PT_MAX_TRI_LIGHT_REFS				(1 << 20)
-#define PT_MAX_CLUSTERS						16384
-#define PT_MAX_ENTITY_LIGHTS				16384
+#define PT_MAX_CLUSTERS						8192
+#define PT_MAX_ENTITY_LIGHTS				2048
 #define PT_MAX_ENTITY_LIGHT_CLUSTERS	8
 #define PT_MAX_BSP_TREE_DEPTH				32
 
