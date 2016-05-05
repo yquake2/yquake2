@@ -379,6 +379,7 @@ static const GLcharARB* fragment_shader_source =
 
 
 	/* Sky portals */
+	
 	"	int li=sky_li;\n"
 	"	++li;\n"
 	"	int ref=texelFetch(lightrefs, li).r;\n"
@@ -408,6 +409,7 @@ static const GLcharARB* fragment_shader_source =
 	"				ref=texelFetch(lightrefs, li).r;\n"
 	" 		} while(ref!=-1);\n"
 	"	}\n"
+	
 #endif
 	
 //	"}\n"
@@ -2065,7 +2067,7 @@ BuildClusterListForEntityLight(entitylight_t *entity)
 	pathtracing. This function is mostly based on ED_ParseEdict from g_spawn.c, and mimics some
 	of the logic of CreateDirectLights from qrad3's lightmap.c */
 static char *
-ParseEntityDictionary(char *data, entitylight_t *entity)
+ParseEntityDictionary(char *data)
 {
 	char keyname[256];
 	const char *com_token;
@@ -2074,6 +2076,7 @@ ParseEntityDictionary(char *data, entitylight_t *entity)
 	char color[256];
 	char light[256];
 	char style[256];
+	entitylight_t *entity;
 
 	classname[0] = 0;
 	origin[0] = 0;
@@ -2136,6 +2139,10 @@ ParseEntityDictionary(char *data, entitylight_t *entity)
 
 	if (!Q_stricmp(classname, "light"))
 	{
+		entity = pt_entitylights + pt_num_entitylights++;
+
+		ClearEntityLight(entity);
+
 		ParseEntityVector(entity->origin, origin);
 		
 		if (color[0])
@@ -2196,12 +2203,8 @@ ParseStaticEntityLights(char *entitystring)
 
 		if (pt_num_entitylights >= PT_MAX_ENTITY_LIGHTS)
 			break;
-		
-		entitylight_t *entity = pt_entitylights + pt_num_entitylights++;
-
-		ClearEntityLight(entity);
-		
-		entitystring = ParseEntityDictionary(entitystring, entity);
+				
+		entitystring = ParseEntityDictionary(entitystring);
 	}
 
 }
