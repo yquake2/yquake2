@@ -421,6 +421,7 @@ typedef struct
 	qboolean texture_buffer_objects_rgb;
 	qboolean vertex_buffer_objects;
 	qboolean texture_rg;
+	qboolean map_buffer_range;
 
 	GLint version_major;
 	GLint version_minor;

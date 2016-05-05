@@ -1787,6 +1787,26 @@ R_Init(void *hinstance, void *hWnd)
 		gl_config.texture_rg = false;
 	}
 	
+	/* ---------------------- GL_ARB_map_buffer_range ---------------------- */
+
+	gl_config.map_buffer_range = false;
+	
+	if (strstr(gl_config.extensions_string, "GL_ARB_map_buffer_range"))
+	{
+		VID_Printf(PRINT_ALL, "...using GL_ARB_map_buffer_range\n");
+		
+		gl_config.map_buffer_range = true;
+		
+		GET_PROC_ADDRESS(glFlushMappedBufferRange);
+		GET_PROC_ADDRESS(glMapBufferRange);
+
+		}
+	else
+	{
+		VID_Printf(PRINT_ALL, "...GL_ARB_map_buffer_range not found\n");
+		gl_config.map_buffer_range = false;
+	}
+	
 	R_SetDefaultState();
 
 	R_InitImages();

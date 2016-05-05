@@ -151,6 +151,11 @@ PFNGLISQUERYPROC qglIsQuery;
 PFNGLMAPBUFFERPROC qglMapBuffer;
 PFNGLUNMAPBUFFERPROC qglUnmapBuffer;
 
+/* ------------------------ GL_ARB_map_buffer_range ------------------------ */
+
+PFNGLFLUSHMAPPEDBUFFERRANGEPROC qglFlushMappedBufferRange;
+PFNGLMAPBUFFERRANGEPROC qglMapBufferRange;
+
 /* ========================================================================= */
 
 void QGL_EXT_Reset ( void )
@@ -264,6 +269,11 @@ void QGL_EXT_Reset ( void )
 	qglIsQuery = NULL;
 	qglMapBuffer = NULL;
 	qglUnmapBuffer = NULL;
+	
+	/* ------------------------ GL_ARB_map_buffer_range ------------------------ */
+
+	qglFlushMappedBufferRange = NULL;
+	qglMapBufferRange = NULL;
 }
 
 /* ========================================================================= */
