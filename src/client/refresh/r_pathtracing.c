@@ -1,13 +1,16 @@
 #include "header/local.h"
 
-#define PT_MAX_TRI_NODES		16384
-#define PT_MAX_TRIANGLES		16384
-#define PT_MAX_VERTICES			16384
-#define PT_MAX_NODE_CHILDREN	4
-#define PT_MAX_NODE_DEPTH		4
-#define PT_MAX_TRI_LIGHTS		16384
-#define PT_MAX_TRI_LIGHT_REFS	(1 << 20)
-#define PT_MAX_CLUSTERS			16384
+#define PT_MAX_TRI_NODES					16384
+#define PT_MAX_TRIANGLES					16384
+#define PT_MAX_VERTICES						16384
+#define PT_MAX_NODE_CHILDREN				4
+#define PT_MAX_NODE_DEPTH					4
+#define PT_MAX_TRI_LIGHTS					16384
+#define PT_MAX_TRI_LIGHT_REFS				(1 << 20)
+#define PT_MAX_CLUSTERS						16384
+#define PT_MAX_ENTITY_LIGHTS				16384
+#define PT_MAX_ENTITY_LIGHT_CLUSTERS	8
+#define PT_MAX_BSP_TREE_DEPTH				32
 
 cvar_t *gl_pt_enable;
 cvar_t *gl_pt_stats;
@@ -440,11 +443,22 @@ static const GLcharARB* fragment_shader_source =
 typedef float vec4_t[4];
 static vec4_t pt_lerped[MAX_VERTS];
 
+typedef struct entitylight_s
+{
+	vec3_t origin;
+	vec3_t color;
+	float intensity;
+	int style;
+	float radius;
+	short clusters[PT_MAX_ENTITY_LIGHT_CLUSTERS];
+} entitylight_t;
+
 typedef struct trilight_s
 {
 	short triangle_index;
 	qboolean quad;
 	msurface_t* surface;
+	entitylight_t* entity;
 } trilight_t;
 
 typedef struct trinode_s
@@ -463,6 +477,7 @@ static trinode_t *pt_trinodes_ordered[PT_MAX_TRI_NODES];
 static trilight_t pt_trilights[PT_MAX_TRI_LIGHTS];
 static short pt_trilight_references[PT_MAX_TRI_LIGHT_REFS];
 static int pt_cluster_light_references[PT_MAX_CLUSTERS];
+static entitylight_t pt_entitylights[PT_MAX_ENTITY_LIGHTS];
 
 static short pt_num_nodes = 0;
 static short pt_num_triangles = 0;
@@ -471,6 +486,7 @@ static short pt_written_nodes = 0;
 static short pt_previous_node = -1;
 static short pt_num_lights = 0;
 static int pt_num_trilight_references = 0;
+static short pt_num_entitylights = 0;
 
 static short pt_dynamic_vertices_offset = 0;
 static short pt_dynamic_triangles_offset = 0;
@@ -493,19 +509,26 @@ IntBitsToFloat(int x)
 	return *(float*)&x;
 }
 
+static qboolean
+TriLightIsAnEntityLight(const trilight_t *light)
+{
+	return light->entity != NULL;
+}
+
 static int
 LightSkyPortalComparator(void const *a, void const *b)
 {
 	trilight_t *la = (trilight_t*)a;
 	trilight_t *lb = (trilight_t*)b;
-	int fa = la->surface->texinfo->flags & SURF_SKY;
-	int fb = lb->surface->texinfo->flags & SURF_SKY;
+	int fa = (la->surface != NULL) ? (la->surface->texinfo->flags & SURF_SKY) : 0;
+	int fb = (lb->surface != NULL) ? (lb->surface->texinfo->flags & SURF_SKY) : 0;
 	if (fa == fb)
 		return 0;
 	else if (fa > fb)
 		return +1;
 	return -1;
 }
+
 
 static void
 AddStaticLights(void)
@@ -521,6 +544,8 @@ AddStaticLights(void)
 	mleaf_t *leaf, *other_leaf;
 	byte *vis;
 	int cluster;
+	entitylight_t *entity;
+	qboolean light_is_in_pvs;
 
 	/* Visit each surface in the worldmodel. */
 	
@@ -587,6 +612,7 @@ AddStaticLights(void)
 				light->quad = true;
 				light->triangle_index = pt_num_triangles++;
 				light->surface = surf;
+				light->entity = NULL;
 													
 				/* Store the triangle data. */
 				
@@ -610,6 +636,7 @@ AddStaticLights(void)
 					light->quad = false;
 					light->triangle_index = pt_num_triangles++;
 					light->surface = surf;
+					light->entity = NULL;
 														
 					/* Store the triangle data. */
 					
@@ -620,6 +647,61 @@ AddStaticLights(void)
 		}
 	}
 
+	/* Vist each static entity light. */
+	
+	for (i = 0; i < pt_num_entitylights; ++i)
+	{
+		entity = pt_entitylights + i;
+		
+		if ((entity->color[0] <= 0 && entity->color[1] <= 0 && entity->color[2] <= 0) || entity->intensity <= 0 || entity->radius <= 0)
+			continue;
+		
+		if (pt_num_lights >= PT_MAX_TRI_LIGHTS)
+			continue;
+		
+		/* Construct a tetrahedron. */
+		
+		poly_offset = pt_num_vertices;
+		
+		const vec3_t d = { 1.0, sqrt(2.0 / 3.0) * 0.5, sqrt(3.0) / 2.0 };
+		
+		const vec3_t tetrahedron_vertices[4] = {
+				{-d[0],-d[1],-d[2]},
+				{ d[0],-d[1],-d[2]},
+				{ 0.0,-d[1], d[2]},
+				{ 0.0,+d[1],-1.0/12.0 * sqrt(3.0)},
+			};
+			
+		static const short tetrahedron_indices[4][3] = {
+				{0,1,2},
+				{0,3,1},
+				{1,3,2},
+				{2,3,0},
+			};
+		
+		for (j = 0; j < 4; ++j)
+			for (k = 0; k < 3; ++k)
+				pt_vertex_data[(poly_offset + j) * 3 + k] = tetrahedron_vertices[j][k] * entity->radius / 2.0 + entity->origin[k];
+		
+		pt_num_vertices += 4;
+		
+		for (j = 0; j < 4; ++j)
+		{		
+			light_index = pt_num_lights++;
+			light = pt_trilights + light_index;
+			
+			light->quad = false;
+			light->triangle_index = pt_num_triangles++;
+			light->surface = NULL;
+			light->entity = entity;
+			
+			/* Store the triangle data. */
+			
+			pt_triangle_data[light->triangle_index * 2 + 0] = (poly_offset + tetrahedron_indices[j][0]) | ((poly_offset + tetrahedron_indices[j][1]) << 16);
+			pt_triangle_data[light->triangle_index * 2 + 1] = poly_offset + tetrahedron_indices[j][2];
+		}
+	}
+	
 	/* Sort the lights such that sky portals come last in the light list. */
 	
 	qsort(pt_trilights, pt_num_lights, sizeof(pt_trilights[0]), LightSkyPortalComparator);
@@ -629,13 +711,22 @@ AddStaticLights(void)
 	for (m = 0; m < pt_num_lights; ++m)
 	{
 		light = pt_trilights + m;
-		texinfo = light->surface->texinfo;
-
-		/* Calculate the radiant flux of the light. This stored vector is negated if the light is a quad. */
 		
-		for (j = 0; j < 3; ++j)
-			pt_trilight_data[m * 4 + j] = (light->quad ? -1 : +1) * texinfo->image->reflectivity[j] * texinfo->radiance;
+		if (TriLightIsAnEntityLight(light))
+		{
+			for (j = 0; j < 3; ++j)
+				pt_trilight_data[m * 4 + j] = light->entity->color[j] * light->entity->intensity * 32;
+		}
+		else
+		{
+			texinfo = light->surface->texinfo;
 
+			/* Calculate the radiant flux of the light. This stored vector is negated if the light is a quad. */
+			
+			for (j = 0; j < 3; ++j)
+				pt_trilight_data[m * 4 + j] = (light->quad ? -1 : +1) * texinfo->image->reflectivity[j] * texinfo->radiance;
+		}
+		
 		pt_trilight_data[m * 4 + 3] = IntBitsToFloat(light->triangle_index);
 	}				
 					
@@ -689,20 +780,49 @@ AddStaticLights(void)
 
 			if (vis[cluster >> 3] & (1 << (cluster & 7)))
 			{
-				/* This leaf is visible, so look for any light-emitting surfaces within it. */
+				/* This leaf is visible, so look for any lightsources within it. */
 				
 				for (m = 0; m < pt_num_lights; ++m)
 				{
-					for (k = 0; k < other_leaf->nummarksurfaces; ++k)
+					if (light_list_bits[m >> 3] & (1 << (m & 7)))
 					{
-						surf = other_leaf->firstmarksurface[k];
+						/* This light was already marked visible, so it does not need to be processed again. */
+						continue;
+					}
 					
-						if (pt_trilights[m].surface == surf)
+					light_is_in_pvs = false;
+					
+					if (TriLightIsAnEntityLight(pt_trilights + m))
+					{
+						/* If this cluster is in the list of clusters that the light intersects then the light is visible. */
+						for (k = 0; k < PT_MAX_ENTITY_LIGHT_CLUSTERS; ++k)
 						{
-							/* Mark this light for inclusion in the reference list. */
-							light_list_bits[m >> 3] |= 1 << (m & 7);
-							break;
+							if (pt_trilights[m].entity->clusters[k] == cluster)
+							{
+								light_is_in_pvs = true;
+								break;
+							}
 						}
+					}
+					else
+					{
+						/* If this leaf contains the surface which this light was created from then the light is visible. */
+						for (k = 0; k < other_leaf->nummarksurfaces; ++k)
+						{
+							surf = other_leaf->firstmarksurface[k];
+						
+							if (pt_trilights[m].surface == surf)
+							{
+								light_is_in_pvs = true;
+								break;
+							}
+						}
+					}
+					
+					if (light_is_in_pvs)
+					{
+						/* Mark this light for inclusion in the reference list. */
+						light_list_bits[m >> 3] |= 1 << (m & 7);
 					}
 				}
 			}
@@ -714,13 +834,16 @@ AddStaticLights(void)
 		
 		for (m = 0; m < pt_num_lights; ++m)
 		{
-			surf = pt_trilights[m].surface;
-			
-			if ((surf->texinfo->flags & SURF_SKY) && (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS) && !first_skyportal_hit)
+			if (!TriLightIsAnEntityLight(pt_trilights + m))
 			{
-				/* All lights after this one are sky portals, so mark the end of the non-skyportal light references. */
-				pt_trilight_references[pt_num_trilight_references++] = -1;
-				first_skyportal_hit = true;
+				surf = pt_trilights[m].surface;
+				
+				if ((surf->texinfo->flags & SURF_SKY) && (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS) && !first_skyportal_hit)
+				{
+					/* All lights after this one are sky portals, so mark the end of the non-skyportal light references. */
+					pt_trilight_references[pt_num_trilight_references++] = -1;
+					first_skyportal_hit = true;
+				}
 			}
 			
 			if (light_list_bits[m >> 3] & (1 << (m & 7)))
@@ -1675,10 +1798,117 @@ AddStaticBSP()
 	Z_Free(tex_light_data);
 }
 
+static void
+ParseEntityVector(vec3_t vec, const char* str)
+{
+	sscanf (str, "%f %f %f", &vec[0], &vec[1], &vec[2]);
+}
+
+static void
+ClearEntityLightClusterList(entitylight_t *entity)
+{
+	int i;
+	for (i = 0; i < PT_MAX_ENTITY_LIGHT_CLUSTERS; ++i)
+		entity->clusters[i] = -1;
+}
+
+static void
+ClearEntityLight(entitylight_t *entity)
+{		
+	int i;
+	
+	for (i = 0; i < 3; ++i)
+		entity->origin[i] = entity->color[i] = 0;
+	
+	entity->style = 0;
+	entity->intensity = 0;
+	entity->radius = 0;
+	
+	ClearEntityLightClusterList(entity);
+}
+
+static void
+EnsureEntityLightDoesNotIntersectWalls(entitylight_t *entity)
+{
+	mleaf_t *leaf;
+	
+	leaf = Mod_PointInLeaf(entity->origin, r_worldmodel);
+	
+	if (!leaf || leaf->contents == CONTENTS_SOLID || leaf->cluster == -1)
+	{
+		VID_Printf(PRINT_DEVELOPER, "EnsureEntityLightDoesNotIntersectWalls: Entity's origin is within a wall.\n");
+		entity->radius = 0;
+		return;
+	}
+}
+
+static void
+BuildClusterListForEntityLight(entitylight_t *entity)
+{
+	mnode_t *node_stack[PT_MAX_BSP_TREE_DEPTH];
+	int i, stack_size;
+	mnode_t *node;
+	float d, r;
+	cplane_t *plane;
+	model_t *model;
+	mleaf_t *leaf;
+	short num_clusters;
+	qboolean already_listed;
+	
+	stack_size = 0;
+	r = entity->radius;
+	model = r_worldmodel;
+	num_clusters = 0;
+	
+	ClearEntityLightClusterList(entity);
+
+	node_stack[stack_size++] = model->nodes;
+	
+	while (stack_size > 0)
+	{
+		node = node_stack[--stack_size];
+		
+		if (node->contents != -1)
+		{
+			leaf = (mleaf_t*)node;
+			
+			already_listed = false;
+			
+			for (i = 0; i < num_clusters; ++i)
+				if (entity->clusters[i] == leaf->cluster)
+				{
+					already_listed = true;
+					break;
+				}
+				
+			if (!already_listed && leaf->cluster >= 0 && num_clusters < PT_MAX_ENTITY_LIGHT_CLUSTERS)
+				entity->clusters[num_clusters++] = leaf->cluster;
+
+			continue;
+		}
+
+		plane = node->plane;
+		d = DotProduct(entity->origin, plane->normal) - plane->dist;
+		
+		if (d > -r)
+		{
+			if (stack_size < PT_MAX_BSP_TREE_DEPTH)
+				node_stack[stack_size++] = node->children[0];
+		}
+		
+		if (d < +r)
+		{
+			if (stack_size < PT_MAX_BSP_TREE_DEPTH)
+				node_stack[stack_size++] = node->children[1];
+		}
+	}
+}
+
 /* Parses a single entity and extracts the fields which are interesting for the purposes of
-	pathtracing. This function is mostly based on ED_ParseEdict from g_spawn.c */
+	pathtracing. This function is mostly based on ED_ParseEdict from g_spawn.c, and mimics some
+	of the logic of CreateDirectLights from qrad3's lightmap.c */
 static char *
-ParseEntityDictionary(char *data)
+ParseEntityDictionary(char *data, entitylight_t *entity)
 {
 	char keyname[256];
 	const char *com_token;
@@ -1749,24 +1979,43 @@ ParseEntityDictionary(char *data)
 
 	if (!Q_stricmp(classname, "light"))
 	{
-		VID_Printf(PRINT_ALL, "found a light\n");
-		VID_Printf(PRINT_ALL, "origin = %s\n", origin);
-		VID_Printf(PRINT_ALL, "color = %s\n", color);
-		VID_Printf(PRINT_ALL, "light = %s\n", light);
-		VID_Printf(PRINT_ALL, "style = %s\n", style);
+		ParseEntityVector(entity->origin, origin);
+		
+		if (color[0])
+			ParseEntityVector(entity->color, color);
+		else
+			entity->color[0] = entity->color[1] = entity->color[2] = 1.0;
+		
+		entity->intensity = atof(light);
+		entity->style = atof(style);
+		
+		/* The default radius is set to stay within the QUAKED bounding box specified for lights in g_misc.c */
+		entity->radius = 8;
+
+		/* Enforce the same defaults and restrictions that qrad3 enforces. */
+
+		if (entity->intensity == 0)
+			entity->intensity = 300;
+		
+		if (entity->style < 0 || entity->style >= MAX_LIGHTSTYLES)
+			entity->style = 0;
+		
+		EnsureEntityLightDoesNotIntersectWalls(entity);
+		BuildClusterListForEntityLight(entity);
 	}
 
 	return data;
 }
 
+
 /* Parses the entities from the given string (which should have been taken directly from the
 	entities lump of a map). This function is mostly based on SpawnEntities from g_spawn.c */
 static void
-AddStaticEntityLights(char *entities)
+ParseStaticEntityLights(char *entitystring)
 {
 	const char *com_token;
 
-	if (!entities)
+	if (!entitystring)
 	{
 		return;
 	}
@@ -1775,20 +2024,27 @@ AddStaticEntityLights(char *entities)
 	while (1)
 	{
 		/* parse the opening brace */
-		com_token = COM_Parse(&entities);
+		com_token = COM_Parse(&entitystring);
 
-		if (!entities)
+		if (!entitystring)
 		{
 			break;
 		}
 
 		if (com_token[0] != '{')
 		{
-			VID_Printf(ERR_DROP, "AddStaticEntityLights: found %s when expecting {\n", com_token);
+			VID_Printf(ERR_DROP, "ParseStaticEntityLights: found %s when expecting {\n", com_token);
 			return;
 		}
 
-		entities = ParseEntityDictionary(entities);
+		if (pt_num_entitylights >= PT_MAX_ENTITY_LIGHTS)
+			break;
+		
+		entitylight_t *entity = pt_entitylights + pt_num_entitylights++;
+
+		ClearEntityLight(entity);
+		
+		entitystring = ParseEntityDictionary(entitystring, entity);
 	}
 
 }
@@ -1825,12 +2081,15 @@ R_PreparePathtracer(void)
 	pt_previous_node = -1;
 	pt_num_lights = 0;
 	pt_num_trilight_references = 0;
+	pt_num_entitylights = 0;
+
+	ParseStaticEntityLights(Mod_EntityString());
+
+	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: %d static entity light-emitters\n", pt_num_entitylights);
 
 	AddStaticLights();
 	
-	AddStaticEntityLights(Mod_EntityString());
-
-	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: %d static lights\n", pt_num_lights);
+	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: %d static trilights\n", pt_num_lights);
 
 	AddStaticBSP();
 
