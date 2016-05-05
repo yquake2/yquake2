@@ -478,6 +478,8 @@ static trilight_t pt_trilights[PT_MAX_TRI_LIGHTS];
 static short pt_trilight_references[PT_MAX_TRI_LIGHT_REFS];
 static int pt_cluster_light_references[PT_MAX_CLUSTERS];
 static entitylight_t pt_entitylights[PT_MAX_ENTITY_LIGHTS];
+static short pt_lightstyle_sublists[MAX_LIGHTSTYLES];
+static short pt_lightstyle_sublist_lengths[MAX_LIGHTSTYLES];
 
 static short pt_num_nodes = 0;
 static short pt_num_triangles = 0;
@@ -516,16 +518,33 @@ TriLightIsAnEntityLight(const trilight_t *light)
 }
 
 static int
-LightSkyPortalComparator(void const *a, void const *b)
+LightSkyPortalAndStyleComparator(void const *a, void const *b)
 {
 	trilight_t *la = (trilight_t*)a;
 	trilight_t *lb = (trilight_t*)b;
+	
 	int fa = (la->surface != NULL) ? (la->surface->texinfo->flags & SURF_SKY) : 0;
 	int fb = (lb->surface != NULL) ? (lb->surface->texinfo->flags & SURF_SKY) : 0;
+	
 	if (fa == fb)
-		return 0;
+	{
+		int sa = (la->entity != NULL) ? la->entity->style : 0;
+		int sb = (lb->entity != NULL) ? lb->entity->style : 0;
+		
+		if (sa == sb)
+		{
+			return 0;
+		}
+		else if (sa > sb)
+		{
+			return +1;
+		}
+	}
 	else if (fa > fb)
+	{
 		return +1;
+	}
+	
 	return -1;
 }
 
@@ -546,6 +565,7 @@ AddStaticLights(void)
 	int cluster;
 	entitylight_t *entity;
 	qboolean light_is_in_pvs;
+	int style, previous_style;
 
 	/* Visit each surface in the worldmodel. */
 	
@@ -702,10 +722,40 @@ AddStaticLights(void)
 		}
 	}
 	
-	/* Sort the lights such that sky portals come last in the light list. */
+	/* Sort the lights such that sky portals come last in the light list, and the remaining lights are sorted by style. */
 	
-	qsort(pt_trilights, pt_num_lights, sizeof(pt_trilights[0]), LightSkyPortalComparator);
-
+	qsort(pt_trilights, pt_num_lights, sizeof(pt_trilights[0]), LightSkyPortalAndStyleComparator);
+	
+	/* Build the lightstyle sublists. */
+	
+	previous_style = 0;
+	style = 0;
+	k = 0;
+	
+	for (i = 0; i < MAX_LIGHTSTYLES; ++i)
+	{
+		pt_lightstyle_sublists[i] = 0;
+		pt_lightstyle_sublist_lengths[i] = 0;
+	}
+	
+	for (m = 0; m < pt_num_lights; ++m)
+	{
+		light = pt_trilights + m;
+		style = light->entity ? light->entity->style : 0;
+		
+		if (style != previous_style)
+		{
+			pt_lightstyle_sublists[previous_style] = k;
+			pt_lightstyle_sublist_lengths[previous_style] = m - k;
+			k = m;
+		}
+		
+		previous_style = style;
+	}
+	
+	pt_lightstyle_sublists[style] = k;
+	pt_lightstyle_sublist_lengths[style] = m - k;
+	
 	/* Pack the light data into the buffer. */
 	
 	for (m = 0; m < pt_num_lights; ++m)
@@ -1622,10 +1672,56 @@ UploadTextureBufferData(GLuint buffer, void *data, GLsizei size)
 		qglBindBuffer(GL_TEXTURE_BUFFER, 0);
 }
 
+static void *
+MapTextureBufferRange(GLuint buffer, GLint offset, GLsizei length)
+{
+	if (qglBindBufferARB)
+		qglBindBufferARB(GL_TEXTURE_BUFFER, buffer);
+	else if (qglBindBuffer)
+		qglBindBuffer(GL_TEXTURE_BUFFER, buffer);
+	
+	if (qglMapBufferRange)
+		return qglMapBufferRange(GL_TEXTURE_BUFFER, offset, length, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+	
+	return NULL;
+}
+
+static void *
+MapTextureBuffer(GLuint buffer)
+{
+	if (qglBindBufferARB)
+		qglBindBufferARB(GL_TEXTURE_BUFFER, buffer);
+	else if (qglBindBuffer)
+		qglBindBuffer(GL_TEXTURE_BUFFER, buffer);
+	
+	if (qglMapBufferARB)
+		return qglMapBufferARB(GL_TEXTURE_BUFFER, GL_WRITE_ONLY);
+	else if (qglMapBuffer)
+		return qglMapBuffer(GL_TEXTURE_BUFFER, GL_WRITE_ONLY);
+	
+	return NULL;
+}
+
+static void
+UnmapTextureBuffer()
+{
+	if (qglUnmapBufferARB)
+		qglUnmapBufferARB(GL_TEXTURE_BUFFER);
+	else if (qglUnmapBuffer)
+		qglUnmapBuffer(GL_TEXTURE_BUFFER);
+	
+	if (qglBindBufferARB)
+		qglBindBufferARB(GL_TEXTURE_BUFFER, 0);
+	else if (qglBindBuffer)
+		qglBindBuffer(GL_TEXTURE_BUFFER, 0);
+}
+
 void
 R_UpdatePathtracerForCurrentFrame(void)
 {
-	int i;
+	int i, j, k, m;
+	lightstyle_t *lightstyle;
+	float *mapped_buffer;
 	
 	pt_num_nodes = 0;
 	pt_num_triangles = pt_dynamic_triangles_offset;
@@ -1650,6 +1746,67 @@ R_UpdatePathtracerForCurrentFrame(void)
 	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data, pt_num_triangles * 2 * sizeof(pt_triangle_data[0]));
 	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data, pt_num_vertices * 3 * sizeof(pt_vertex_data[0]));
 
+	/* Update the lightsource states with the current lightstyle states. */
+	
+	if (gl_config.map_buffer_range)
+	{
+		/* Map a subrange of the TBO for updating. */
+		for (i = 1; i < MAX_LIGHTSTYLES; ++i)
+		{
+			j = pt_lightstyle_sublists[i];
+			k = pt_lightstyle_sublist_lengths[i];
+			
+			if (k > 0)
+			{
+				lightstyle = r_newrefdef.lightstyles + i;
+				mapped_buffer = (float*)MapTextureBufferRange(pt_trilights_buffer, j * sizeof(pt_trilight_data[0]) * 4, k * sizeof(pt_trilight_data[0]) * 4);
+				
+				if (!mapped_buffer)
+					continue;
+				
+				j = 0;
+				
+				for (; j < k; ++j)
+				{
+					for (m = 0; m < 3; ++m)
+						mapped_buffer[j * 4 + m] = pt_trilight_data[j * 4 + m] * lightstyle->rgb[m];
+					mapped_buffer[j * 4 + 3] = pt_trilight_data[j * 4 + 3];
+				}
+				
+				UnmapTextureBuffer();
+			}
+		}
+	}
+	else
+	{
+		/* Mapping subranges is not possible, so map the entire buffer. */
+		mapped_buffer = (float*)MapTextureBuffer(pt_trilights_buffer);
+		
+		if (mapped_buffer)
+		{
+			for (i = 1; i < MAX_LIGHTSTYLES; ++i)
+			{
+				j = pt_lightstyle_sublists[i];
+				k = pt_lightstyle_sublist_lengths[i];
+				
+				if (k > 0)
+				{
+					lightstyle = r_newrefdef.lightstyles + i;
+					
+					k += j;
+					
+					for (; j < k; ++j)
+					{
+						for (m = 0; m < 3; ++m)
+							mapped_buffer[j * 4 + m] = pt_trilight_data[j * 4 + m] * lightstyle->rgb[m];
+						mapped_buffer[j * 4 + 3] = pt_trilight_data[j * 4 + 3];
+					}
+				}
+			}
+			UnmapTextureBuffer();
+		}
+	}
+	
 	if (gl_pt_stats->value)
 		VID_Printf(PRINT_ALL, "pt_stats: n=%5d, t=%5d, v=%5d, w=%5d\n", pt_num_nodes, pt_num_triangles, pt_num_vertices, pt_written_nodes);
 }
