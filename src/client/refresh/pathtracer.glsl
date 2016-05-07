@@ -1,5 +1,5 @@
 #version 330
-	
+
 #ifndef NUM_BOUNCES
 # define NUM_BOUNCES 0
 #endif
@@ -12,8 +12,8 @@
 # define NUM_LIGHT_SAMPLES 1
 #endif
 	
-#ifndef SKY_ENABLE
-# define SKY_ENABLE 1
+#ifndef SKY_SAMPLES
+# define SKY_SAMPLES 1
 #endif
 
 #ifndef AO_SAMPLES
@@ -382,7 +382,7 @@ void main()
 	 
 	r += sampleDirectLight(rp, out_pln.xyz);
 
-#if NUM_BOUNCES > 0 || AO_SAMPLES > 0 || SKY_ENABLE
+#if NUM_BOUNCES > 0 || AO_SAMPLES > 0 || SKY_SAMPLES
 	vec3 b = vec3(out_pln.z, out_pln.x, out_pln.y);
 	vec3 u = normalize(cross(out_pln.xyz, b));
 	vec3 v = cross(out_pln.xyz, u);
@@ -406,7 +406,7 @@ void main()
 	}
 #endif
 
-#if NUM_BOUNCES > 0 || SKY_ENABLE
+#if NUM_BOUNCES > 0 || SKY_SAMPLES
 	float r1 = 2.0 * PI * rand();
 	float r2 = rand();
 	float r2s = sqrt(r2);
@@ -424,43 +424,50 @@ void main()
 	r += bounce_factor * sampleDirectLight(sp, out_pln.xyz);
 #endif
 
-#if SKY_ENABLE
-	int li = sky_li;
-	++li;
-	int ref = texelFetch(lightrefs, li).r;
-	if (ref != -1)
+#if SKY_SAMPLES
 	{
-		if (traceRayShadowTri(rp, rd, t))
+		vec3 sky_r = vec3(0);
+		for (int sky_sample = 0; sky_sample < SKY_SAMPLES; ++sky_sample)
 		{
-			do
+			int li = sky_li;
+			++li;
+			int ref = texelFetch(lightrefs, li).r;
+			if (ref != -1)
 			{
-				vec4 light = texelFetch(lights, ref);
-				ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;
-				
-				vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;
-				vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;
-				vec3 p2 = texelFetch(edge0, tri.y).xyz;
-				
-				vec3 n = normalize(cross(p2 - p0, p1 - p0));
-				
-				if (dot(light.rgb, vec3(1)) < 0.0)
+				if (traceRayShadowTri(rp, rd, t))
 				{
-					vec3 mirror = normalize(cross(p2 - p1, n));
-					sp -= 2.0 * mirror * dot(sp - p1, mirror);
-				}
-				
-				float s0 = dot(cross(p0 - sp, p1 - sp), n);
-				float s1 = dot(cross(p1 - sp, p2 - sp), n);
-				float s2 = dot(cross(p2 - sp, p0 - sp), n);
+					do
+					{
+						vec4 light = texelFetch(lights, ref);
+						ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;
+						
+						vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;
+						vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;
+						vec3 p2 = texelFetch(edge0, tri.y).xyz;
+						
+						vec3 n = normalize(cross(p2 - p0, p1 - p0));
+						
+						if (dot(light.rgb, vec3(1)) < 0.0)
+						{
+							vec3 mirror = normalize(cross(p2 - p1, n));
+							sp -= 2.0 * mirror * dot(sp - p1, mirror);
+						}
+						
+						float s0 = dot(cross(p0 - sp, p1 - sp), n);
+						float s1 = dot(cross(p1 - sp, p2 - sp), n);
+						float s2 = dot(cross(p2 - sp, p0 - sp), n);
 
-				if (s0 < 0.0 && s1 < 0.0 && s2 < 0.0 && abs(dot(n, sp - p0)) < 1.0)
-					r += light.rgb;
-				
-				++li;
-				ref = texelFetch(lightrefs, li).r;
-				
-			} while (ref != -1);
+						if (s0 < 0.0 && s1 < 0.0 && s2 < 0.0 && abs(dot(n, sp - p0)) < 1.0)
+							sky_r += light.rgb;
+						
+						++li;
+						ref = texelFetch(lightrefs, li).r;
+						
+					} while (ref != -1);
+				}
+			}
 		}
+		r += sky_r / float(SKY_SAMPLES);
 	}
 #endif
 
