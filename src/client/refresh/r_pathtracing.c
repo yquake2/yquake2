@@ -1906,13 +1906,18 @@ PrintObjectInfoLog(GLhandleARB object)
 	}
 }
 
-void
-R_InitPathtracing(void)
+static void
+FreeShaderPrograms(void)
+{
+	qglDeleteObjectARB(vertex_shader);
+	qglDeleteObjectARB(fragment_shader);
+	qglDeleteObjectARB(pt_program_handle);
+}
+
+static void
+CreateShaderPrograms(void)
 {
 	GLint status = 0;
-	
-	gl_pt_enable = Cvar_Get( "gl_pt_enable", "0", CVAR_ARCHIVE);
-	gl_pt_stats = Cvar_Get( "gl_pt_stats", "0", CVAR_ARCHIVE);
 
 	pt_program_handle = qglCreateProgramObjectARB();
 	vertex_shader = qglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
@@ -1971,11 +1976,18 @@ R_InitPathtracing(void)
 }
 
 void
+R_InitPathtracing(void)
+{	
+	gl_pt_enable = Cvar_Get( "gl_pt_enable", "0", CVAR_ARCHIVE);
+	gl_pt_stats = Cvar_Get( "gl_pt_stats", "0", CVAR_ARCHIVE);
+
+	CreateShaderPrograms();
+}
+
+void
 R_ShutdownPathtracing(void)
 {
 	FreeModelData();
-	qglDeleteObjectARB(vertex_shader);
-	qglDeleteObjectARB(fragment_shader);
-	qglDeleteObjectARB(pt_program_handle);
+	FreeShaderPrograms();
 }
 
