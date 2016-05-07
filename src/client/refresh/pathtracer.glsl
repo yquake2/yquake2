@@ -23,7 +23,11 @@
 #ifndef TRI_SHADOWS_ENABLE
 # define TRI_SHADOWS_ENABLE 1
 #endif
-	
+
+#ifndef DIFFUSE_MAP_ENABLE
+# define DIFFUSE_MAP_ENABLE 1
+#endif
+
 #define EPS		(1.0 / 32.0)
 #define MAXT	2048.0
 #define PI		acos(-1.0)
@@ -66,6 +70,7 @@ vec2 boxInterval(vec3 ro, vec3 rd, vec3 size)
 
 bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist)
 {
+#if TRI_SHADOWS_ENABLE
 	int node = 0;
 
 	do
@@ -102,6 +107,7 @@ bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist)
 			node = n0.w;
 
 	} while (node > 0);
+#endif
 
 	return true;
 }
@@ -328,6 +334,7 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn)
 			} while (ref != -1);
 		}
 
+#if NUM_SHADOW_SAMPLES > 0
 		for (int shadow_sample = 0; shadow_sample < NUM_SHADOW_SAMPLES; ++shadow_sample)
 		{
 			vec4 light = j;
@@ -351,6 +358,9 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn)
 				r += s * ndotl * lndotl * abs(light.rgb) * wsum / w;
 			}
 		}
+#else
+		r += abs(light.rgb) * wsum / w;
+#endif
 	}
 	
 	return r / float(NUM_LIGHT_SAMPLES * NUM_SHADOW_SAMPLES);
@@ -359,6 +369,8 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn)
 
 void main()
 {
+	gl_FragColor = vec4(0);
+	
 	rand_seed = gl_FragCoord.x * 89.9 + gl_FragCoord.y * 197.3 + frame * 0.02;
 
 	rp += normal * EPS * 16;
@@ -366,31 +378,53 @@ void main()
 	out_pln.xyz = normal;
 	out_pln.w = dot(rp, out_pln.xyz);
 
-	vec4 spln = out_pln;
-
-	vec3 b = vec3(spln.z, spln.x, spln.y);
-	vec3 u = normalize(cross(spln.xyz, b));
-	vec3 v = cross(spln.xyz, u);
 	vec3 r = texcoords[4].rgb;
-	  
+	 
+	r += sampleDirectLight(rp, out_pln.xyz);
 
-	r += sampleDirectLight(rp, spln.xyz);
+#if NUM_BOUNCES > 0 || AO_SAMPLES > 0 || SKY_ENABLE
+	vec3 b = vec3(out_pln.z, out_pln.x, out_pln.y);
+	vec3 u = normalize(cross(out_pln.xyz, b));
+	vec3 v = cross(out_pln.xyz, u);
+#endif
 	
+#if AO_SAMPLES > 0
+	{
+		float ao = 0.0;
+		for (int ao_sample = 0; ao_sample < AO_SAMPLES; ++ao_sample)
+		{
+			float r1 = 2.0 * PI * rand();
+			float r2 = rand();
+			float r2s = sqrt(r2);
 
+			vec3 rd = u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - r2);
+				
+			if (traceRayShadowBSP(rp, rd, EPS * 16, ao_radius) && traceRayShadowTri(rp, rd, ao_radius))
+				ao += 1.0;
+		}
+		gl_FragColor.rgb += ao_color * ao / float(AO_SAMPLES);
+	}
+#endif
+
+#if NUM_BOUNCES > 0 || SKY_ENABLE
 	float r1 = 2.0 * PI * rand();
 	float r2 = rand();
 	float r2s = sqrt(r2);
 
-	vec3 rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + spln.xyz * sqrt(1.0 - r2));
+	vec3 rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - r2));
 
 	float t = traceRayBSP(rp, rd, EPS * 16, 2048.0);
 
 	if ((dot(out_pln.xyz, rp) - out_pln.w) < 0.0)
 		out_pln *= -1.0;
 	
-	r += bounce_factor * sampleDirectLight(rp + rd * max(0.0, t - 1.0), out_pln.xyz);
+	vec3 sp = rp + rd * max(0.0, t - 1.0);
+	
+#if NUM_BOUNCES > 0
+	r += bounce_factor * sampleDirectLight(sp, out_pln.xyz);
+#endif
 
-
+#if SKY_ENABLE
 	int li = sky_li;
 	++li;
 	int ref = texelFetch(lightrefs, li).r;
@@ -400,8 +434,6 @@ void main()
 		{
 			do
 			{
-				vec3 sp = rp + rd * max(0.0, t - 1.0);
-				
 				vec4 light = texelFetch(lights, ref);
 				ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;
 				
@@ -430,29 +462,43 @@ void main()
 			} while (ref != -1);
 		}
 	}
+#endif
 
+	rp = sp;
 
-	gl_FragColor.rgb = r / 1024.;
-
-#if AO_SAMPLES
+#if NUM_BOUNCES > 1
 	{
-		float ao = 0.0;
-		for (int ao_sample = 0; ao_sample < AO_SAMPLES; ++ao_sample)
+		float factor = bounce_factor;
+		for (int bounce = 1; bounce < NUM_BOUNCES; ++bounce)
 		{
 			float r1 = 2.0 * PI * rand();
 			float r2 = rand();
 			float r2s = sqrt(r2);
 
-			vec3 rd = u * cos(r1) * r2s + v * sin(r1) * r2s + spln.xyz * sqrt(1.0 - r2);
-				
-			if (traceRayShadowBSP(rp, rd, EPS * 16, aoradius) && traceRayShadowTri(rp, rd, aoradius))
-				r += 1.0;
+			vec3 rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - r2));
+
+			float t = traceRayBSP(rp, rd, EPS * 16, 2048.0);
+
+			if ((dot(out_pln.xyz, rp) - out_pln.w) < 0.0)
+				out_pln *= -1.0;
+			
+			rp = rp + rd * max(0.0, t - 1.0);
+			
+			factor *= bounce_factor;
+			r += factor * sampleDirectLight(rp, out_pln.xyz);
 		}
-		gl_FragColor.rgb += ao_color * ao / float(AO_SAMPLES);
 	}
 #endif
 
+#endif
+
+	gl_FragColor.rgb += r / 1024.;
+
 	gl_FragColor.a = color.a;
+	
+#if DIFFUSE_MAP_ENABLE
 	gl_FragColor.rgb *= texture(tex0, texcoords[0].st).rgb + vec3(1e-2);
+#endif
+
 	gl_FragColor.rgb = sqrt(gl_FragColor.rgb);
 }
