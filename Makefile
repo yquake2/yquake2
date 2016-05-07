@@ -1,5 +1,6 @@
 # ------------------------------------------------------ #
 # Makefile for the "Yamagi Quake 2 Client"               #
+#	+ modifications to support pathtracing						#
 #                                                        #
 # Just type "make" to compile the                        #
 #  - SDL Client (quake2)                                 #
@@ -332,6 +333,7 @@ endif
 clean:
 	@echo "===> CLEAN"
 	${Q}rm -Rf build release
+	${Q}rm -Rf ./src/client/refresh/generated
 
 # ----------
 
@@ -339,6 +341,7 @@ clean:
 ifeq ($(OSTYPE), Windows)
 client:
 	@echo "===> Building quake2.exe"
+	sh stringifyshaders.sh
 	${Q}mkdir -p release
 	$(MAKE) release/quake2.exe
 

@@ -3,3 +3,4 @@
 *.mk
 *.user
 *.d
+/src/client/refresh/generated/*
