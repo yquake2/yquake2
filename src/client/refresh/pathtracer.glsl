@@ -1,4 +1,3 @@
-#version 330
 
 #ifndef NUM_BOUNCES
 # define NUM_BOUNCES 0
@@ -406,7 +405,7 @@ void main()
 	}
 #endif
 
-#if NUM_BOUNCES > 0 || SKY_SAMPLES
+#if NUM_BOUNCES > 0 || SKY_SAMPLES > 0
 	float r1 = 2.0 * PI * rand();
 	float r2 = rand();
 	float r2s = sqrt(r2);
@@ -424,7 +423,7 @@ void main()
 	r += bounce_factor * sampleDirectLight(sp, out_pln.xyz);
 #endif
 
-#if SKY_SAMPLES
+#if SKY_SAMPLES > 0
 	{
 		vec3 sky_r = vec3(0);
 		for (int sky_sample = 0; sky_sample < SKY_SAMPLES; ++sky_sample)

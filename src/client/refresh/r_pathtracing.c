@@ -12,9 +12,30 @@
 #define PT_MAX_ENTITY_LIGHT_CLUSTERS	8
 #define PT_MAX_BSP_TREE_DEPTH				32
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 cvar_t *gl_pt_enable;
 cvar_t *gl_pt_stats;
+cvar_t *gl_pt_enable;
+cvar_t *gl_pt_stats;
+cvar_t *gl_pt_bounces;
+cvar_t *gl_pt_shadow_samples;
+cvar_t *gl_pt_light_samples;
+cvar_t *gl_pt_sky_enable;
+cvar_t *gl_pt_sky_samples;
+cvar_t *gl_pt_ao_enable;
+cvar_t *gl_pt_ao_radius;
+cvar_t *gl_pt_ao_color;
+cvar_t *gl_pt_ao_samples;
+cvar_t *gl_pt_translucent_surfaces_enable;
+cvar_t *gl_pt_lightstyles_enable;
+cvar_t *gl_pt_dlights_enable;
+cvar_t *gl_pt_brushmodel_shadows_enable;
+cvar_t *gl_pt_aliasmodel_shadows_enable;
+cvar_t *gl_pt_bounce_factor;
+cvar_t *gl_pt_diffuse_map_enable;
 
+	
 GLhandleARB pt_program_handle;
 
 GLuint pt_node_texture = 0;
@@ -36,7 +57,11 @@ GLuint pt_lightref_texture = 0;
 
 GLint pt_frame_counter_loc = -1;
 GLint pt_entity_to_world_loc = -1;
-
+GLint pt_ao_radius_loc = -1;
+GLint pt_ao_color_loc = -1;
+GLint pt_bounce_factor_loc = -1;
+		
+		
 static GLhandleARB vertex_shader;
 static GLhandleARB fragment_shader;
 
@@ -58,7 +83,7 @@ static const GLcharARB* vertex_shader_source =
 	"}\n"
 	"\n";
 
-static const GLcharARB* fragment_shader_source = ""
+static const GLcharARB* fragment_shader_main_source = ""
 #include "generated/pathtracing_shader_source.h"
 	;
 
@@ -1262,10 +1287,12 @@ AddEntities(void)
 		switch (model->type)
 		{
 			case mod_alias:
-				AddAliasModel(entity, model);
+				if (gl_pt_aliasmodel_shadows_enable->value)
+					AddAliasModel(entity, model);
 				break;
 			case mod_brush:
-				AddBrushModel(entity, model);
+				if (gl_pt_brushmodel_shadows_enable->value)
+					AddBrushModel(entity, model);
 				break;
 			case mod_sprite:
 				break;
@@ -1348,6 +1375,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	int i, j, k, m;
 	lightstyle_t *lightstyle;
 	float *mapped_buffer;
+	float r, g, b;
 	
 	pt_num_nodes = 0;
 	pt_num_triangles = pt_dynamic_triangles_offset;
@@ -1372,44 +1400,13 @@ R_UpdatePathtracerForCurrentFrame(void)
 	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data + pt_dynamic_triangles_offset * 2, pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]), (pt_num_triangles - pt_dynamic_triangles_offset) * 2 * sizeof(pt_triangle_data[0]));
 	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data + pt_dynamic_vertices_offset * 3, pt_dynamic_vertices_offset * 3 * sizeof(pt_vertex_data[0]), (pt_num_vertices - pt_dynamic_vertices_offset) * 3 * sizeof(pt_vertex_data[0]));
 
-	/* Update the lightsource states with the current lightstyle states. */
-	
-	if (gl_config.map_buffer_range)
+	if (gl_pt_lightstyles_enable->value)
 	{
-		/* Map a subrange of the TBO for updating. */
-		for (i = 1; i < MAX_LIGHTSTYLES; ++i)
-		{
-			j = pt_lightstyle_sublists[i];
-			k = pt_lightstyle_sublist_lengths[i];
-			
-			if (k > 0)
-			{
-				lightstyle = r_newrefdef.lightstyles + i;
-				mapped_buffer = (float*)MapTextureBufferRange(pt_trilights_buffer, j * sizeof(pt_trilight_data[0]) * 4, k * sizeof(pt_trilight_data[0]) * 4);
-				
-				if (!mapped_buffer)
-					continue;
-				
-				j = 0;
-				
-				for (; j < k; ++j)
-				{
-					for (m = 0; m < 3; ++m)
-						mapped_buffer[j * 4 + m] = pt_trilight_data[j * 4 + m] * lightstyle->rgb[m];
-					mapped_buffer[j * 4 + 3] = pt_trilight_data[j * 4 + 3];
-				}
-				
-				UnmapTextureBuffer();
-			}
-		}
-	}
-	else
-	{
-		/* Mapping subranges is not possible, so map the entire buffer. */
-		mapped_buffer = (float*)MapTextureBuffer(pt_trilights_buffer);
+		/* Update the lightsource states with the current lightstyle states. */
 		
-		if (mapped_buffer)
+		if (gl_config.map_buffer_range)
 		{
+			/* Map a subrange of the TBO for updating. */
 			for (i = 1; i < MAX_LIGHTSTYLES; ++i)
 			{
 				j = pt_lightstyle_sublists[i];
@@ -1418,8 +1415,12 @@ R_UpdatePathtracerForCurrentFrame(void)
 				if (k > 0)
 				{
 					lightstyle = r_newrefdef.lightstyles + i;
+					mapped_buffer = (float*)MapTextureBufferRange(pt_trilights_buffer, j * sizeof(pt_trilight_data[0]) * 4, k * sizeof(pt_trilight_data[0]) * 4);
 					
-					k += j;
+					if (!mapped_buffer)
+						continue;
+					
+					j = 0;
 					
 					for (; j < k; ++j)
 					{
@@ -1427,12 +1428,55 @@ R_UpdatePathtracerForCurrentFrame(void)
 							mapped_buffer[j * 4 + m] = pt_trilight_data[j * 4 + m] * lightstyle->rgb[m];
 						mapped_buffer[j * 4 + 3] = pt_trilight_data[j * 4 + 3];
 					}
+					
+					UnmapTextureBuffer();
 				}
 			}
-			UnmapTextureBuffer();
+		}
+		else
+		{
+			/* Mapping subranges is not possible, so map the entire buffer. */
+			mapped_buffer = (float*)MapTextureBuffer(pt_trilights_buffer);
+			
+			if (mapped_buffer)
+			{
+				for (i = 1; i < MAX_LIGHTSTYLES; ++i)
+				{
+					j = pt_lightstyle_sublists[i];
+					k = pt_lightstyle_sublist_lengths[i];
+					
+					if (k > 0)
+					{
+						lightstyle = r_newrefdef.lightstyles + i;
+						
+						k += j;
+						
+						for (; j < k; ++j)
+						{
+							for (m = 0; m < 3; ++m)
+								mapped_buffer[j * 4 + m] = pt_trilight_data[j * 4 + m] * lightstyle->rgb[m];
+							mapped_buffer[j * 4 + 3] = pt_trilight_data[j * 4 + 3];
+						}
+					}
+				}
+				UnmapTextureBuffer();
+			}
 		}
 	}
 	
+	/* Update the configuration uniform variables. */
+	qglUseProgramObjectARB(pt_program_handle);
+	qglUniform1fARB(pt_ao_radius_loc, gl_pt_ao_radius->value);
+	if (gl_pt_ao_color->string)
+	{
+		r = g = b = 0;
+		if (sscanf(gl_pt_ao_color->string, "%f %f %f", &r, &g, &b) == 3)
+			qglUniform3fARB(pt_ao_color_loc, r, g, b);
+	}
+	qglUniform1fARB(pt_bounce_factor_loc, gl_pt_bounce_factor->value);
+	qglUseProgramObjectARB(0);
+	
+	/* Print the stats if necessary. */
 	if (gl_pt_stats->value)
 		VID_Printf(PRINT_ALL, "pt_stats: n=%5d, t=%5d, v=%5d, w=%5d\n", pt_num_nodes, pt_num_triangles, pt_num_vertices, pt_written_nodes);
 }
@@ -1909,9 +1953,48 @@ PrintObjectInfoLog(GLhandleARB object)
 static void
 FreeShaderPrograms(void)
 {
+	pt_frame_counter_loc = -1;
+	pt_entity_to_world_loc = -1;
+	pt_ao_radius_loc = -1;
+	pt_ao_color_loc = -1;
+	pt_bounce_factor_loc = -1;
+
 	qglDeleteObjectARB(vertex_shader);
 	qglDeleteObjectARB(fragment_shader);
 	qglDeleteObjectARB(pt_program_handle);
+	
+	vertex_shader = 0;
+	fragment_shader = 0;
+	pt_program_handle = 0;
+}
+
+static void
+ConstructFragmentShaderSource(GLhandleARB shader)
+{
+	static const GLcharARB* version = "#version 330\n";
+	
+	static GLcharARB config[1024];
+
+	snprintf(config, sizeof(config),
+			"#define NUM_BOUNCES %d\n"
+			"#define NUM_SHADOW_SAMPLES %d\n"
+			"#define NUM_LIGHT_SAMPLES %d\n"
+			"#define SKY_SAMPLES %d\n"
+			"#define AO_SAMPLES %d\n"
+			"#define TRI_SHADOWS_ENABLE %d\n"
+			"#define DIFFUSE_MAP_ENABLE %d\n",
+			MAX(0, (int)gl_pt_bounces->value),
+			MAX(0, (int)gl_pt_shadow_samples->value),
+			MAX(0, (int)gl_pt_light_samples->value),
+			gl_pt_sky_enable->value ? MAX(0, (int)gl_pt_sky_samples->value) : 0,
+			gl_pt_ao_enable->value ? MAX(0, (int)gl_pt_ao_samples->value) : 0,
+			MAX(0, (int)gl_pt_aliasmodel_shadows_enable->value | (int)gl_pt_brushmodel_shadows_enable->value),
+			MAX(0, (int)gl_pt_diffuse_map_enable->value)
+		);
+	
+	const GLcharARB* strings[] = { version, config, fragment_shader_main_source };
+	
+	qglShaderSourceARB(shader, sizeof(strings) / sizeof(strings[0]), strings, NULL);
 }
 
 static void
@@ -1934,7 +2017,8 @@ CreateShaderPrograms(void)
 		return;
 	}
 
-	qglShaderSourceARB(fragment_shader, 1, &fragment_shader_source, NULL);
+	ConstructFragmentShaderSource(fragment_shader);
+	
 	qglCompileShaderARB(fragment_shader);
 	qglGetObjectParameterivARB(fragment_shader, GL_OBJECT_COMPILE_STATUS_ARB, &status);
 	
@@ -1972,14 +2056,36 @@ CreateShaderPrograms(void)
 	
 	pt_frame_counter_loc = qglGetUniformLocationARB(pt_program_handle, "frame");
 	pt_entity_to_world_loc = qglGetUniformLocationARB(pt_program_handle, "entity_to_world");
+	pt_ao_radius_loc = qglGetUniformLocationARB(pt_program_handle, "ao_radius");
+	pt_ao_color_loc = qglGetUniformLocationARB(pt_program_handle, "ao_color");
+	pt_bounce_factor_loc = qglGetUniformLocationARB(pt_program_handle, "bounce_factor");
+		
 	qglUseProgramObjectARB(0);
 }
-
+	
 void
 R_InitPathtracing(void)
-{	
-	gl_pt_enable = Cvar_Get( "gl_pt_enable", "0", CVAR_ARCHIVE);
-	gl_pt_stats = Cvar_Get( "gl_pt_stats", "0", CVAR_ARCHIVE);
+{
+#define GET_PT_CVAR(x, d) x = Cvar_Get( #x, d, CVAR_ARCHIVE);
+	GET_PT_CVAR(gl_pt_enable, "0")
+	GET_PT_CVAR(gl_pt_stats, "0")
+	GET_PT_CVAR(gl_pt_bounces, "0")
+	GET_PT_CVAR(gl_pt_shadow_samples, "1")
+	GET_PT_CVAR(gl_pt_light_samples, "1")
+	GET_PT_CVAR(gl_pt_sky_enable, "1")
+	GET_PT_CVAR(gl_pt_sky_samples, "1")
+	GET_PT_CVAR(gl_pt_ao_enable, "0")
+	GET_PT_CVAR(gl_pt_ao_radius, "150")
+	GET_PT_CVAR(gl_pt_ao_color, "1 1 1")
+	GET_PT_CVAR(gl_pt_ao_samples, "1")
+	GET_PT_CVAR(gl_pt_translucent_surfaces_enable, "1")
+	GET_PT_CVAR(gl_pt_lightstyles_enable, "1")
+	GET_PT_CVAR(gl_pt_dlights_enable, "1")
+	GET_PT_CVAR(gl_pt_brushmodel_shadows_enable, "1")
+	GET_PT_CVAR(gl_pt_aliasmodel_shadows_enable, "1")
+	GET_PT_CVAR(gl_pt_bounce_factor, "0.75")
+	GET_PT_CVAR(gl_pt_diffuse_map_enable, "1")
+#undef CVAR
 
 	CreateShaderPrograms();
 }
