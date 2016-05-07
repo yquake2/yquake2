@@ -1277,17 +1277,20 @@ AddEntities(void)
 }
 
 static void
-UploadTextureBufferData(GLuint buffer, void *data, GLsizei size)
+UploadTextureBufferData(GLuint buffer, void *data, GLintptr offset, GLsizeiptr size)
 {
+	if (size == 0)
+		return;
+	
 	if (qglBindBufferARB)
 		qglBindBufferARB(GL_TEXTURE_BUFFER, buffer);
 	else if (qglBindBuffer)
 		qglBindBuffer(GL_TEXTURE_BUFFER, buffer);
 	
 	if (qglBufferSubDataARB)	
-		qglBufferSubDataARB(GL_TEXTURE_BUFFER, 0, size, data);
+		qglBufferSubDataARB(GL_TEXTURE_BUFFER, offset, size, data);
 	else
-		qglBufferSubData(GL_TEXTURE_BUFFER, 0, size, data);
+		qglBufferSubData(GL_TEXTURE_BUFFER, offset, size, data);
 	
 	if (qglBindBufferARB)
 		qglBindBufferARB(GL_TEXTURE_BUFFER, 0);
@@ -1364,10 +1367,10 @@ R_UpdatePathtracerForCurrentFrame(void)
 
 	pt_written_nodes++;
 		
-	UploadTextureBufferData(pt_node0_buffer, pt_node0_data, pt_written_nodes * 4 * sizeof(pt_node0_data[0]));
-	UploadTextureBufferData(pt_node1_buffer, pt_node1_data, pt_written_nodes * 4 * sizeof(pt_node1_data[0]));
-	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data, pt_num_triangles * 2 * sizeof(pt_triangle_data[0]));
-	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data, pt_num_vertices * 3 * sizeof(pt_vertex_data[0]));
+	UploadTextureBufferData(pt_node0_buffer, pt_node0_data, 0, pt_written_nodes * 4 * sizeof(pt_node0_data[0]));
+	UploadTextureBufferData(pt_node1_buffer, pt_node1_data, 0, pt_written_nodes * 4 * sizeof(pt_node1_data[0]));
+	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data + pt_dynamic_triangles_offset * 2, pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]), (pt_num_triangles - pt_dynamic_triangles_offset) * 2 * sizeof(pt_triangle_data[0]));
+	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data + pt_dynamic_vertices_offset * 3, pt_dynamic_vertices_offset * 3 * sizeof(pt_vertex_data[0]), (pt_num_vertices - pt_dynamic_vertices_offset) * 3 * sizeof(pt_vertex_data[0]));
 
 	/* Update the lightsource states with the current lightstyle states. */
 	
@@ -1876,9 +1879,12 @@ R_PreparePathtracer(void)
 
 	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: Static BSP texture size is %dx%d\n", pt_bsp_texture_width, pt_bsp_texture_height);
 	
-	UploadTextureBufferData(pt_trilights_buffer, pt_trilight_data, pt_num_lights * 4 * sizeof(pt_trilight_data[0]));
-	UploadTextureBufferData(pt_lightref_buffer, pt_trilight_references, pt_num_trilight_references * sizeof(pt_trilight_references[0]));
+	UploadTextureBufferData(pt_trilights_buffer, pt_trilight_data, 0, pt_num_lights * 4 * sizeof(pt_trilight_data[0]));
+	UploadTextureBufferData(pt_lightref_buffer, pt_trilight_references, 0, pt_num_trilight_references * sizeof(pt_trilight_references[0]));
 	
+	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data, 0, pt_num_triangles * 2 * sizeof(pt_triangle_data[0]));
+	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data, 0, pt_num_vertices * 3 * sizeof(pt_vertex_data[0]));
+
 	pt_dynamic_vertices_offset = pt_num_vertices;
 	pt_dynamic_triangles_offset = pt_num_triangles;
 }
