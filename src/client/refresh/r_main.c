@@ -1807,6 +1807,19 @@ R_Init(void *hinstance, void *hWnd)
 		gl_config.map_buffer_range = false;
 	}
 	
+	/* ----------------------------- GL_VERSION_1_2 ---------------------------- */
+
+	if (VersionOfGLIsGreaterThanOrEqualTo(1, 2))
+	{
+		VID_Printf(PRINT_ALL, "...using OpenGL 1.2 features\n");
+
+		GET_PROC_ADDRESS(glCopyTexSubImage3D);
+		GET_PROC_ADDRESS(glDrawRangeElements);
+		GET_PROC_ADDRESS(glTexImage3D);
+		GET_PROC_ADDRESS(glTexSubImage3D);
+
+	}
+	
 	R_SetDefaultState();
 
 	R_InitImages();

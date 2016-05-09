@@ -156,6 +156,13 @@ PFNGLUNMAPBUFFERPROC qglUnmapBuffer;
 PFNGLFLUSHMAPPEDBUFFERRANGEPROC qglFlushMappedBufferRange;
 PFNGLMAPBUFFERRANGEPROC qglMapBufferRange;
 
+/* ----------------------------- GL_VERSION_1_2 ---------------------------- */
+
+PFNGLCOPYTEXSUBIMAGE3DPROC qglCopyTexSubImage3D;
+PFNGLDRAWRANGEELEMENTSPROC qglDrawRangeElements;
+PFNGLTEXIMAGE3DPROC qglTexImage3D;
+PFNGLTEXSUBIMAGE3DPROC qglTexSubImage3D;
+
 /* ========================================================================= */
 
 void QGL_EXT_Reset ( void )
@@ -274,6 +281,13 @@ void QGL_EXT_Reset ( void )
 
 	qglFlushMappedBufferRange = NULL;
 	qglMapBufferRange = NULL;
+	
+	/* ----------------------------- GL_VERSION_1_2 ---------------------------- */
+
+	qglCopyTexSubImage3D = NULL;
+	qglDrawRangeElements = NULL;
+	qglTexImage3D = NULL;
+	qglTexSubImage3D = NULL;
 }
 
 /* ========================================================================= */
