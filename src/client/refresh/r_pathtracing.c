@@ -1375,7 +1375,6 @@ R_UpdatePathtracerForCurrentFrame(void)
 	int i, j, k, m;
 	lightstyle_t *lightstyle;
 	float *mapped_buffer;
-	float r, g, b;
 	
 	pt_num_nodes = 0;
 	pt_num_triangles = pt_dynamic_triangles_offset;
@@ -1467,12 +1466,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	/* Update the configuration uniform variables. */
 	qglUseProgramObjectARB(pt_program_handle);
 	qglUniform1fARB(pt_ao_radius_loc, gl_pt_ao_radius->value);
-	if (gl_pt_ao_color->string)
-	{
-		r = g = b = 0;
-		if (sscanf(gl_pt_ao_color->string, "%f %f %f", &r, &g, &b) == 3)
-			qglUniform3fARB(pt_ao_color_loc, r, g, b);
-	}
+	qglUniform3fARB(pt_ao_color_loc, gl_pt_ao_color->value, gl_pt_ao_color->value, gl_pt_ao_color->value);
 	qglUniform1fARB(pt_bounce_factor_loc, gl_pt_bounce_factor->value);
 	qglUseProgramObjectARB(0);
 	
@@ -2076,7 +2070,7 @@ R_InitPathtracing(void)
 	GET_PT_CVAR(gl_pt_sky_samples, "1")
 	GET_PT_CVAR(gl_pt_ao_enable, "0")
 	GET_PT_CVAR(gl_pt_ao_radius, "150")
-	GET_PT_CVAR(gl_pt_ao_color, "1 1 1")
+	GET_PT_CVAR(gl_pt_ao_color, "1")
 	GET_PT_CVAR(gl_pt_ao_samples, "1")
 	GET_PT_CVAR(gl_pt_translucent_surfaces_enable, "1")
 	GET_PT_CVAR(gl_pt_lightstyles_enable, "1")
