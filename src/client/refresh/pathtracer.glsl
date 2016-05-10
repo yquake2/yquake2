@@ -27,6 +27,10 @@
 # define DIFFUSE_MAP_ENABLE 1
 #endif
 
+#ifndef RAND_TEX_SIZE
+# define RAND_TEX_SIZE 64
+#endif
+
 #define EPS		(1.0 / 32.0)
 #define MAXT	2048.0
 #define PI		acos(-1.0)
@@ -41,6 +45,7 @@ uniform isamplerBuffer triangle;
 uniform samplerBuffer lights;
 uniform isamplerBuffer lightrefs;
 uniform isampler2D bsp_lightrefs;
+uniform sampler2DArray randtex;
 uniform int frame = 0;
 uniform float ao_radius = 150.0;
 uniform vec3 ao_color = vec3(1);
@@ -53,11 +58,11 @@ vec3 dir = normalize(texcoords[2].xyz);
 vec3 normal = texcoords[3].xyz;
 vec4 out_pln;
 int sky_li;
-float rand_seed = 0.0;
+float rand_index = frame;
 
-float rand()
+vec2 rand2()
 {
-	return fract(sin(rand_seed++) * 43758.5453123);
+	return texture(randtex, vec3(gl_FragCoord.st / RAND_TEX_SIZE, mod(rand_index++, 8))).rg;
 }
 
 vec2 boxInterval(vec3 ro, vec3 rd, vec3 size)
@@ -291,7 +296,7 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn)
 	}
 	
 	sky_li = li;
-	float x = rand() * wsum, w=1.0;
+	float x = rand2().x * wsum, w=1.0;
 	vec4 j = vec4(0);
 
 	for (int light_sample = 0; light_sample < NUM_LIGHT_SAMPLES; ++light_sample)
@@ -340,7 +345,7 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn)
 			vec3 sp = rp;
 			vec3 sn = rn.xyz;
 			vec3 lp = p0;
-			vec2 uv = vec2(rand(), rand());
+			vec2 uv = rand2();
 			
 			if ((uv.x + uv.y) > 1.0 && dot(light.rgb, vec3(1)) > 0.0)
 				uv = vec2(1) - uv;
@@ -370,8 +375,6 @@ void main()
 {
 	gl_FragColor = vec4(0);
 	
-	rand_seed = gl_FragCoord.x * 89.9 + gl_FragCoord.y * 197.3 + frame * 0.02;
-
 	rp += normal * EPS * 16;
 
 	out_pln.xyz = normal;
@@ -392,11 +395,12 @@ void main()
 		float ao = 0.0;
 		for (int ao_sample = 0; ao_sample < AO_SAMPLES; ++ao_sample)
 		{
-			float r1 = 2.0 * PI * rand();
-			float r2 = rand();
-			float r2s = sqrt(r2);
+			vec2 rr = rand2();
+			
+			float r1 = 2.0 * PI * rr.x;
+			float r2s = sqrt(rr.y);
 
-			vec3 rd = u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - r2);
+			vec3 rd = u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - rr.y);
 				
 			if (traceRayShadowBSP(rp, rd, EPS * 16, ao_radius) && traceRayShadowTri(rp, rd, ao_radius))
 				ao += 1.0;
@@ -406,11 +410,12 @@ void main()
 #endif
 
 #if NUM_BOUNCES > 0 || SKY_SAMPLES > 0
-	float r1 = 2.0 * PI * rand();
-	float r2 = rand();
-	float r2s = sqrt(r2);
+	vec2 rr = rand2();
 
-	vec3 rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - r2));
+	float r1 = 2.0 * PI * rr.x;
+	float r2s = sqrt(rr.y);
+
+	vec3 rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - rr.y));
 
 	float t = traceRayBSP(rp, rd, EPS * 16, 2048.0);
 
@@ -477,11 +482,12 @@ void main()
 		float factor = bounce_factor;
 		for (int bounce = 1; bounce < NUM_BOUNCES; ++bounce)
 		{
-			float r1 = 2.0 * PI * rand();
-			float r2 = rand();
-			float r2s = sqrt(r2);
+			vec2 rr = rand2();
 
-			vec3 rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - r2));
+			float r1 = 2.0 * PI * rr.x;
+			float r2s = sqrt(rr.y);
+
+			vec3 rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - rr.y));
 
 			float t = traceRayBSP(rp, rd, EPS * 16, 2048.0);
 

@@ -11,6 +11,7 @@
 #define PT_MAX_ENTITY_LIGHTS				2048
 #define PT_MAX_ENTITY_LIGHT_CLUSTERS	8
 #define PT_MAX_BSP_TREE_DEPTH				32
+#define PT_RAND_TEXTURE_SIZE 				64
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -54,6 +55,7 @@ GLuint pt_trilights_buffer = 0;
 GLuint pt_trilights_texture = 0;
 GLuint pt_lightref_buffer = 0;
 GLuint pt_lightref_texture = 0;
+GLuint pt_rand_texture = 0;
 
 GLint pt_frame_counter_loc = -1;
 GLint pt_entity_to_world_loc = -1;
@@ -1925,8 +1927,38 @@ R_PreparePathtracer(void)
 
 	pt_dynamic_vertices_offset = pt_num_vertices;
 	pt_dynamic_triangles_offset = pt_num_triangles;
+	
+	qglActiveTextureARB(GL_TEXTURE11_ARB);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, pt_rand_texture);
+	qglActiveTextureARB(GL_TEXTURE0_ARB);
 }
 	
+static void
+FreeRandom(void)
+{
+	DeleteTexture(&pt_rand_texture);
+}
+
+static void
+InitRandom(void)
+{
+	int i;
+	static const int texture_size = PT_RAND_TEXTURE_SIZE, num_layers = 8;
+	GLubyte texels[texture_size * texture_size * 2 * num_layers];
+	
+	for (i = 0; i < sizeof(texels) / sizeof(texels[0]); ++i)
+		texels[i] = randk();
+	
+	glGenTextures(1, &pt_rand_texture);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, pt_rand_texture);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	qglTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RG8, texture_size, texture_size, num_layers, 0, GL_RG, GL_UNSIGNED_BYTE, texels);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+}	
+
 static void
 PrintObjectInfoLog(GLhandleARB object)
 {
@@ -1976,14 +2008,16 @@ ConstructFragmentShaderSource(GLhandleARB shader)
 			"#define SKY_SAMPLES %d\n"
 			"#define AO_SAMPLES %d\n"
 			"#define TRI_SHADOWS_ENABLE %d\n"
-			"#define DIFFUSE_MAP_ENABLE %d\n",
+			"#define DIFFUSE_MAP_ENABLE %d\n"
+			"#define RAND_TEX_SIZE %d\n",
 			MAX(0, (int)gl_pt_bounces->value),
 			MAX(0, (int)gl_pt_shadow_samples->value),
 			MAX(0, (int)gl_pt_light_samples->value),
 			gl_pt_sky_enable->value ? MAX(0, (int)gl_pt_sky_samples->value) : 0,
 			gl_pt_ao_enable->value ? MAX(0, (int)gl_pt_ao_samples->value) : 0,
 			MAX(0, (int)gl_pt_aliasmodel_shadows_enable->value | (int)gl_pt_brushmodel_shadows_enable->value),
-			MAX(0, (int)gl_pt_diffuse_map_enable->value)
+			MAX(0, (int)gl_pt_diffuse_map_enable->value),
+			PT_RAND_TEXTURE_SIZE
 		);
 	
 	const GLcharARB* strings[] = { version, config, fragment_shader_main_source };
@@ -2047,7 +2081,8 @@ CreateShaderPrograms(void)
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "lights"), 8);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "lightrefs"), 9);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bsp_lightrefs"), 10);
-	
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "randtex"), 11);
+		
 	pt_frame_counter_loc = qglGetUniformLocationARB(pt_program_handle, "frame");
 	pt_entity_to_world_loc = qglGetUniformLocationARB(pt_program_handle, "entity_to_world");
 	pt_ao_radius_loc = qglGetUniformLocationARB(pt_program_handle, "ao_radius");
@@ -2081,6 +2116,7 @@ R_InitPathtracing(void)
 	GET_PT_CVAR(gl_pt_diffuse_map_enable, "1")
 #undef CVAR
 
+	InitRandom();
 	CreateShaderPrograms();
 }
 
@@ -2089,5 +2125,6 @@ R_ShutdownPathtracing(void)
 {
 	FreeModelData();
 	FreeShaderPrograms();
+	FreeRandom();
 }
 
