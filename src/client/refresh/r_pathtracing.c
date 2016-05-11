@@ -2092,6 +2092,14 @@ CreateShaderPrograms(void)
 	qglUseProgramObjectARB(0);
 }
 	
+static void
+RecompileShaderPrograms(void)
+{
+	FreeShaderPrograms();
+	CreateShaderPrograms();
+	VID_Printf(PRINT_ALL, "Shaders recompiled.\n");
+}
+	
 void
 R_InitPathtracing(void)
 {
@@ -2116,6 +2124,8 @@ R_InitPathtracing(void)
 	GET_PT_CVAR(gl_pt_diffuse_map_enable, "1")
 #undef CVAR
 
+	Cmd_AddCommand("gl_pt_recompile_shaders", RecompileShaderPrograms);
+
 	InitRandom();
 	CreateShaderPrograms();
 }
@@ -2123,6 +2133,8 @@ R_InitPathtracing(void)
 void
 R_ShutdownPathtracing(void)
 {
+	Cmd_RemoveCommand("gl_pt_recompile_shaders");
+
 	FreeModelData();
 	FreeShaderPrograms();
 	FreeRandom();
