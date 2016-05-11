@@ -11,12 +11,12 @@
 # define NUM_LIGHT_SAMPLES 1
 #endif
 	
-#ifndef SKY_SAMPLES
-# define SKY_SAMPLES 1
+#ifndef NUM_SKY_SAMPLES
+# define NUM_SKY_SAMPLES 1
 #endif
 
-#ifndef AO_SAMPLES
-# define AO_SAMPLES 0
+#ifndef NUM_AO_SAMPLES
+# define NUM_AO_SAMPLES 0
 #endif
 
 #ifndef TRI_SHADOWS_ENABLE
@@ -53,14 +53,11 @@ uniform float bounce_factor = 0.75;
 
 in vec4 texcoords[5], color;
 
-vec3 rp = texcoords[1].xyz;
-vec3 dir = normalize(texcoords[2].xyz);
-vec3 normal = texcoords[3].xyz;
 vec4 out_pln;
 int sky_li;
 float rand_index = frame;
 
-vec2 rand2()
+vec2 rand()
 {
 	return texture(randtex, vec3(gl_FragCoord.st / RAND_TEX_SIZE, mod(rand_index++, 8))).rg;
 }
@@ -268,10 +265,11 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn)
 	int oli = getLightRef(rp);
 	int li = oli;
 	int ref = texelFetch(lightrefs, li).r;
-	float wsum = 0.0;
 	
 	if (ref != -1)
 	{
+		float wsum = 0.0;
+		
 		do
 		{
 			vec4 light = texelFetch(lights, ref);
@@ -293,21 +291,19 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn)
 			ref = texelFetch(lightrefs, li).r;
 			
 		} while (ref != -1);
-	}
-	
-	sky_li = li;
-	float x = rand2().x * wsum, w=1.0;
-	vec4 j = vec4(0);
+		
+		sky_li = li;
 
-	for (int light_sample = 0; light_sample < NUM_LIGHT_SAMPLES; ++light_sample)
-	{
-		li = oli;
-		ref = texelFetch(lightrefs, li).r;
-		
-		vec3 p0, p1, p2, n;
-		
-		if (ref != -1) 
+		for (int light_sample = 0; light_sample < NUM_LIGHT_SAMPLES; ++light_sample)
 		{
+			li = oli;
+			ref = texelFetch(lightrefs, li).r;
+			
+			vec3 p0, p1, p2, n;
+		
+			float x = rand().x * wsum, w=1.0;
+			vec4 j = vec4(0);
+
 			do
 			{
 				vec4 light=texelFetch(lights, ref);
@@ -336,37 +332,37 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn)
 				ref = texelFetch(lightrefs, li).r;
 				
 			} while (ref != -1);
-		}
 
 #if NUM_SHADOW_SAMPLES > 0
-		for (int shadow_sample = 0; shadow_sample < NUM_SHADOW_SAMPLES; ++shadow_sample)
-		{
-			vec4 light = j;
-			vec3 sp = rp;
-			vec3 sn = rn.xyz;
-			vec3 lp = p0;
-			vec2 uv = rand2();
-			
-			if ((uv.x + uv.y) > 1.0 && dot(light.rgb, vec3(1)) > 0.0)
-				uv = vec2(1) - uv;
-			
-			lp += (p1 - p0) * uv.x + (p2 - p0) * uv.y;
-			
-			float ld = distance(sp, lp);
-			
-			vec3 l = (lp - sp) / ld;
-			float ndotl = dot(l, sn), lndotl = dot(-l, n);
-			if (ndotl > 0.0 && lndotl > 0.0)
+			for (int shadow_sample = 0; shadow_sample < NUM_SHADOW_SAMPLES; ++shadow_sample)
 			{
-				float s = (traceRayShadowBSP(sp, l, EPS * 16, ld) && traceRayShadowTri(sp, l, ld)) ? 1.0 / (ld * ld) : 0.0;
-				r += s * ndotl * lndotl * abs(light.rgb) * wsum / w;
+				vec4 light = j;
+				vec3 sp = rp;
+				vec3 sn = rn.xyz;
+				vec3 lp = p0;
+				vec2 uv = rand();
+				
+				if ((uv.x + uv.y) > 1.0 && dot(light.rgb, vec3(1)) > 0.0)
+					uv = vec2(1) - uv;
+				
+				lp += (p1 - p0) * uv.x + (p2 - p0) * uv.y;
+				
+				float ld = distance(sp, lp);
+				
+				vec3 l = (lp - sp) / ld;
+				float ndotl = dot(l, sn), lndotl = dot(-l, n);
+				if (ndotl > 0.0 && lndotl > 0.0)
+				{
+					float s = (traceRayShadowBSP(sp, l, EPS * 16, ld) && traceRayShadowTri(sp, l, ld)) ? 1.0 / (ld * ld) : 0.0;
+					r += s * ndotl * lndotl * abs(light.rgb) * wsum / w;
+				}
 			}
-		}
 #else
-		r += abs(light.rgb) * wsum / w;
+			r += abs(light.rgb) * wsum / w;
 #endif
+		}
 	}
-	
+
 	return r / float(NUM_LIGHT_SAMPLES * NUM_SHADOW_SAMPLES);
 }
 
@@ -374,28 +370,28 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn)
 void main()
 {
 	gl_FragColor = vec4(0);
-	
-	rp += normal * EPS * 16;
 
-	out_pln.xyz = normal;
+	vec3 rp = texcoords[1].xyz + texcoords[3].xyz * EPS * 16;
+
+	out_pln.xyz = texcoords[3].xyz;
 	out_pln.w = dot(rp, out_pln.xyz);
 
-	vec3 r = texcoords[4].rgb;
-	 
-	r += sampleDirectLight(rp, out_pln.xyz);
+	vec3 r = sampleDirectLight(rp, out_pln.xyz);
+	
+	r += texcoords[4].rgb;
 
-#if NUM_BOUNCES > 0 || AO_SAMPLES > 0 || SKY_SAMPLES
+#if NUM_BOUNCES > 0 || NUM_AO_SAMPLES > 0 || NUM_SKY_SAMPLES > 0
 	vec3 b = vec3(out_pln.z, out_pln.x, out_pln.y);
 	vec3 u = normalize(cross(out_pln.xyz, b));
 	vec3 v = cross(out_pln.xyz, u);
 #endif
 	
-#if AO_SAMPLES > 0
+#if NUM_AO_SAMPLES > 0
 	{
 		float ao = 0.0;
-		for (int ao_sample = 0; ao_sample < AO_SAMPLES; ++ao_sample)
+		for (int ao_sample = 0; ao_sample < NUM_AO_SAMPLES; ++ao_sample)
 		{
-			vec2 rr = rand2();
+			vec2 rr = rand();
 			
 			float r1 = 2.0 * PI * rr.x;
 			float r2s = sqrt(rr.y);
@@ -405,12 +401,12 @@ void main()
 			if (traceRayShadowBSP(rp, rd, EPS * 16, ao_radius) && traceRayShadowTri(rp, rd, ao_radius))
 				ao += 1.0;
 		}
-		gl_FragColor.rgb += ao_color * ao / float(AO_SAMPLES);
+		gl_FragColor.rgb += ao_color * ao / float(NUM_AO_SAMPLES);
 	}
 #endif
 
-#if NUM_BOUNCES > 0 || SKY_SAMPLES > 0
-	vec2 rr = rand2();
+#if NUM_BOUNCES > 0 || NUM_SKY_SAMPLES > 0
+	vec2 rr = rand();
 
 	float r1 = 2.0 * PI * rr.x;
 	float r2s = sqrt(rr.y);
@@ -428,10 +424,10 @@ void main()
 	r += bounce_factor * sampleDirectLight(sp, out_pln.xyz);
 #endif
 
-#if SKY_SAMPLES > 0
+#if NUM_SKY_SAMPLES > 0
 	{
 		vec3 sky_r = vec3(0);
-		for (int sky_sample = 0; sky_sample < SKY_SAMPLES; ++sky_sample)
+		for (int sky_sample = 0; sky_sample < NUM_SKY_SAMPLES; ++sky_sample)
 		{
 			int li = sky_li;
 			++li;
@@ -471,7 +467,7 @@ void main()
 				}
 			}
 		}
-		r += sky_r / float(SKY_SAMPLES);
+		r += sky_r / float(NUM_SKY_SAMPLES);
 	}
 #endif
 
@@ -482,7 +478,7 @@ void main()
 		float factor = bounce_factor;
 		for (int bounce = 1; bounce < NUM_BOUNCES; ++bounce)
 		{
-			vec2 rr = rand2();
+			vec2 rr = rand();
 
 			float r1 = 2.0 * PI * rr.x;
 			float r2s = sqrt(rr.y);
