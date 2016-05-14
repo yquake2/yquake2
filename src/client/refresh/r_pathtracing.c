@@ -34,6 +34,7 @@ static cvar_t *gl_pt_brushmodel_shadows_enable;
 static cvar_t *gl_pt_aliasmodel_shadows_enable;
 static cvar_t *gl_pt_bounce_factor;
 static cvar_t *gl_pt_diffuse_map_enable;
+static cvar_t *gl_pt_static_entity_lights_enable;
 
 	
 static GLhandleARB pt_program_handle;
@@ -1958,7 +1959,8 @@ R_PreparePathtracer(void)
 	pt_num_trilight_references = 0;
 	pt_num_entitylights = 0;
 
-	ParseStaticEntityLights(Mod_EntityString());
+	if (gl_pt_static_entity_lights_enable->value)
+		ParseStaticEntityLights(Mod_EntityString());
 
 	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: %d static entity light-emitters\n", pt_num_entitylights);
 
@@ -2173,6 +2175,7 @@ R_InitPathtracing(void)
 	GET_PT_CVAR(gl_pt_aliasmodel_shadows_enable, "1")
 	GET_PT_CVAR(gl_pt_bounce_factor, "0.75")
 	GET_PT_CVAR(gl_pt_diffuse_map_enable, "1")
+	GET_PT_CVAR(gl_pt_static_entity_lights_enable, "1")
 #undef CVAR
 
 	Cmd_AddCommand("gl_pt_recompile_shaders", RecompileShaderPrograms);
