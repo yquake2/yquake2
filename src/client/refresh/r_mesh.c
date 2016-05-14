@@ -927,31 +927,10 @@ R_DrawAliasModel(entity_t *e)
 
 	if (gl_pt_enable->value && !(currententity->flags & (RF_FULLBRIGHT | RF_TRANSLUCENT | RF_BEAM | RF_NOSHADOW | RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM)))
 	{
-		qglUseProgramObjectARB(pt_program_handle);
-		qglActiveTextureARB(GL_TEXTURE2_ARB);
-		glBindTexture(GL_TEXTURE_2D, pt_node_texture);
-		qglActiveTextureARB(GL_TEXTURE3_ARB);
-		glBindTexture(GL_TEXTURE_2D, pt_child_texture);
-		qglActiveTextureARB(GL_TEXTURE4_ARB);
-		glBindTexture(GL_TEXTURE_BUFFER, pt_node0_texture);
-		qglActiveTextureARB(GL_TEXTURE5_ARB);
-		glBindTexture(GL_TEXTURE_BUFFER, pt_node1_texture);
-		qglActiveTextureARB(GL_TEXTURE6_ARB);
-		glBindTexture(GL_TEXTURE_BUFFER, pt_vertex_texture);
-		qglActiveTextureARB(GL_TEXTURE7_ARB);
-		glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
-		qglActiveTextureARB(GL_TEXTURE8_ARB);
-		glBindTexture(GL_TEXTURE_BUFFER, pt_trilights_texture);
-		qglActiveTextureARB(GL_TEXTURE9_ARB);
-		glBindTexture(GL_TEXTURE_BUFFER, pt_lightref_texture);
-		qglActiveTextureARB(GL_TEXTURE10_ARB);
-		glBindTexture(GL_TEXTURE_2D, pt_bsp_lightref_texture);
-		qglActiveTextureARB(GL_TEXTURE0_ARB);
-		qglUniform1iARB(pt_frame_counter_loc, r_framecount);
-		
 		float entity_to_world_matrix[16];
+
 		R_ConstructEntityToWorldMatrix(entity_to_world_matrix, currententity);
-		qglUniformMatrix4fvARB(pt_entity_to_world_loc, 1, GL_FALSE, entity_to_world_matrix);
+		R_SetGLStateForPathtracing(entity_to_world_matrix);
 		
 		/* Assume that alias models never need to be treated as direct light-emitters. */
 		qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
@@ -961,24 +940,7 @@ R_DrawAliasModel(entity_t *e)
 
 	if (gl_pt_enable->value)
 	{
-		qglUseProgramObjectARB(0);
-		qglActiveTextureARB(GL_TEXTURE2_ARB);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		qglActiveTextureARB(GL_TEXTURE3_ARB);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		qglActiveTextureARB(GL_TEXTURE4_ARB);
-		glBindTexture(GL_TEXTURE_BUFFER, 0);
-		qglActiveTextureARB(GL_TEXTURE5_ARB);
-		glBindTexture(GL_TEXTURE_BUFFER, 0);
-		qglActiveTextureARB(GL_TEXTURE6_ARB);
-		glBindTexture(GL_TEXTURE_BUFFER, 0);
-		qglActiveTextureARB(GL_TEXTURE7_ARB);
-		glBindTexture(GL_TEXTURE_BUFFER, 0);
-		qglActiveTextureARB(GL_TEXTURE8_ARB);
-		glBindTexture(GL_TEXTURE_BUFFER, 0);
-		qglActiveTextureARB(GL_TEXTURE9_ARB);
-		glBindTexture(GL_TEXTURE_BUFFER, 0);
-		qglActiveTextureARB(GL_TEXTURE10_ARB);
+		R_ClearGLStateForPathtracing();
 		qglActiveTextureARB(GL_TEXTURE0_ARB);
 	}
 	

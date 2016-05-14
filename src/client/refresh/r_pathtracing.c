@@ -885,6 +885,58 @@ R_ConstructEntityToWorldMatrix(float m[16], entity_t *entity)
 		MatrixScale(m, .25f, .25f, .25f);
 }
 
+void
+R_SetGLStateForPathtracing(const float entity_to_world_matrix[16])
+{
+	qglUseProgramObjectARB(pt_program_handle);
+	qglActiveTextureARB(GL_TEXTURE2_ARB);
+	glBindTexture(GL_TEXTURE_2D, pt_node_texture);
+	qglActiveTextureARB(GL_TEXTURE3_ARB);
+	glBindTexture(GL_TEXTURE_2D, pt_child_texture);
+	qglActiveTextureARB(GL_TEXTURE4_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, pt_node0_texture);
+	qglActiveTextureARB(GL_TEXTURE5_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, pt_node1_texture);
+	qglActiveTextureARB(GL_TEXTURE6_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, pt_vertex_texture);
+	qglActiveTextureARB(GL_TEXTURE7_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
+	qglActiveTextureARB(GL_TEXTURE8_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, pt_trilights_texture);
+	qglActiveTextureARB(GL_TEXTURE9_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, pt_lightref_texture);
+	qglActiveTextureARB(GL_TEXTURE10_ARB);
+	glBindTexture(GL_TEXTURE_2D, pt_bsp_lightref_texture);
+	qglActiveTextureARB(GL_TEXTURE0_ARB);
+	qglUniform1iARB(pt_frame_counter_loc, r_framecount);	
+	qglUniformMatrix4fvARB(pt_entity_to_world_loc, 1, GL_FALSE, entity_to_world_matrix);
+}
+
+void
+R_ClearGLStateForPathtracing(void)
+{
+	qglUseProgramObjectARB(0);
+	qglActiveTextureARB(GL_TEXTURE2_ARB);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	qglActiveTextureARB(GL_TEXTURE3_ARB);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	qglActiveTextureARB(GL_TEXTURE4_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, 0);
+	qglActiveTextureARB(GL_TEXTURE5_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, 0);
+	qglActiveTextureARB(GL_TEXTURE6_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, 0);
+	qglActiveTextureARB(GL_TEXTURE7_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, 0);
+	qglActiveTextureARB(GL_TEXTURE8_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, 0);
+	qglActiveTextureARB(GL_TEXTURE9_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, 0);
+	qglActiveTextureARB(GL_TEXTURE10_ARB);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	qglActiveTextureARB(GL_TEXTURE0_ARB);
+}
+
 static void
 BuildAndWriteEntityNodesHierarchy(int first_node_index, int num_added_nodes, float entity_aabb_min[3], float entity_aabb_max[3])
 {
