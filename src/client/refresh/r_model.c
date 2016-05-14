@@ -990,6 +990,10 @@ Mod_LoadBrushModel(model_t *mod, void *buffer)
 void
 Mod_Free(model_t *mod)
 {
+	/* Clear the entity string. */
+	numentitychars = 0;
+	map_entitystring[0] = 0;
+
 	Hunk_Free(mod->extradata);
 	memset(mod, 0, sizeof(*mod));
 }
@@ -1019,10 +1023,6 @@ R_BeginRegistration(char *model)
 
 	registration_sequence++;
 	r_oldviewcluster = -1; /* force markleafs */
-
-	/* Clear the entity string. */
-	numentitychars = 0;
-	map_entitystring[0] = 0;
 
 	Com_sprintf(fullname, sizeof(fullname), "maps/%s.bsp", model);
 
