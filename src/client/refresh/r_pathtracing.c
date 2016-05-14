@@ -17,51 +17,50 @@
 
 cvar_t *gl_pt_enable;
 cvar_t *gl_pt_stats;
-cvar_t *gl_pt_enable;
-cvar_t *gl_pt_stats;
-cvar_t *gl_pt_bounces;
-cvar_t *gl_pt_shadow_samples;
-cvar_t *gl_pt_light_samples;
-cvar_t *gl_pt_sky_enable;
-cvar_t *gl_pt_sky_samples;
-cvar_t *gl_pt_ao_enable;
-cvar_t *gl_pt_ao_radius;
-cvar_t *gl_pt_ao_color;
-cvar_t *gl_pt_ao_samples;
-cvar_t *gl_pt_translucent_surfaces_enable;
-cvar_t *gl_pt_lightstyles_enable;
-cvar_t *gl_pt_dlights_enable;
-cvar_t *gl_pt_brushmodel_shadows_enable;
-cvar_t *gl_pt_aliasmodel_shadows_enable;
-cvar_t *gl_pt_bounce_factor;
-cvar_t *gl_pt_diffuse_map_enable;
+
+static cvar_t *gl_pt_bounces;
+static cvar_t *gl_pt_shadow_samples;
+static cvar_t *gl_pt_light_samples;
+static cvar_t *gl_pt_sky_enable;
+static cvar_t *gl_pt_sky_samples;
+static cvar_t *gl_pt_ao_enable;
+static cvar_t *gl_pt_ao_radius;
+static cvar_t *gl_pt_ao_color;
+static cvar_t *gl_pt_ao_samples;
+static cvar_t *gl_pt_translucent_surfaces_enable;
+static cvar_t *gl_pt_lightstyles_enable;
+static cvar_t *gl_pt_dlights_enable;
+static cvar_t *gl_pt_brushmodel_shadows_enable;
+static cvar_t *gl_pt_aliasmodel_shadows_enable;
+static cvar_t *gl_pt_bounce_factor;
+static cvar_t *gl_pt_diffuse_map_enable;
 
 	
-GLhandleARB pt_program_handle;
+static GLhandleARB pt_program_handle;
 
-GLuint pt_node_texture = 0;
-GLuint pt_child_texture = 0;
-GLuint pt_bsp_lightref_texture = 0;
+static GLuint pt_node_texture = 0;
+static GLuint pt_child_texture = 0;
+static GLuint pt_bsp_lightref_texture = 0;
 
-GLuint pt_node0_buffer = 0;
-GLuint pt_node0_texture = 0;
-GLuint pt_node1_buffer = 0;
-GLuint pt_node1_texture = 0;
-GLuint pt_triangle_buffer = 0;
-GLuint pt_triangle_texture = 0;
-GLuint pt_vertex_buffer = 0;
-GLuint pt_vertex_texture = 0;
-GLuint pt_trilights_buffer = 0;
-GLuint pt_trilights_texture = 0;
-GLuint pt_lightref_buffer = 0;
-GLuint pt_lightref_texture = 0;
-GLuint pt_rand_texture = 0;
+static GLuint pt_node0_buffer = 0;
+static GLuint pt_node0_texture = 0;
+static GLuint pt_node1_buffer = 0;
+static GLuint pt_node1_texture = 0;
+static GLuint pt_triangle_buffer = 0;
+static GLuint pt_triangle_texture = 0;
+static GLuint pt_vertex_buffer = 0;
+static GLuint pt_vertex_texture = 0;
+static GLuint pt_trilights_buffer = 0;
+static GLuint pt_trilights_texture = 0;
+static GLuint pt_lightref_buffer = 0;
+static GLuint pt_lightref_texture = 0;
+static GLuint pt_rand_texture = 0;
 
-GLint pt_frame_counter_loc = -1;
-GLint pt_entity_to_world_loc = -1;
-GLint pt_ao_radius_loc = -1;
-GLint pt_ao_color_loc = -1;
-GLint pt_bounce_factor_loc = -1;
+static GLint pt_frame_counter_loc = -1;
+static GLint pt_entity_to_world_loc = -1;
+static GLint pt_ao_radius_loc = -1;
+static GLint pt_ao_color_loc = -1;
+static GLint pt_bounce_factor_loc = -1;
 		
 		
 static GLhandleARB vertex_shader;
