@@ -2093,8 +2093,8 @@ ConstructFragmentShaderSource(GLhandleARB shader)
 			"#define NUM_BOUNCES %d\n"
 			"#define NUM_SHADOW_SAMPLES %d\n"
 			"#define NUM_LIGHT_SAMPLES %d\n"
-			"#define SKY_SAMPLES %d\n"
-			"#define AO_SAMPLES %d\n"
+			"#define NUM_SKY_SAMPLES %d\n"
+			"#define NUM_AO_SAMPLES %d\n"
 			"#define TRI_SHADOWS_ENABLE %d\n"
 			"#define DIFFUSE_MAP_ENABLE %d\n"
 			"#define RAND_TEX_SIZE %d\n",
