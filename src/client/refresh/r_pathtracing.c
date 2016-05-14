@@ -126,7 +126,7 @@ static trinode_t pt_trinodes[PT_MAX_TRI_NODES];
 static trinode_t *pt_trinodes_ordered[PT_MAX_TRI_NODES];
 static trilight_t pt_trilights[PT_MAX_TRI_LIGHTS];
 static short pt_trilight_references[PT_MAX_TRI_LIGHT_REFS];
-static int pt_cluster_light_references[PT_MAX_CLUSTERS];
+static int pt_cluster_light_references[PT_MAX_CLUSTERS * 2];
 static entitylight_t pt_entitylights[PT_MAX_ENTITY_LIGHTS];
 static short pt_lightstyle_sublists[MAX_LIGHTSTYLES];
 static short pt_lightstyle_sublist_lengths[MAX_LIGHTSTYLES];
@@ -165,6 +165,12 @@ static qboolean
 TriLightIsAnEntityLight(const trilight_t *light)
 {
 	return light->entity != NULL;
+}
+
+static qboolean
+TriLightIsASkyPortal(const trilight_t *light)
+{
+	return !TriLightIsAnEntityLight(light) && (light->surface->texinfo->flags & SURF_SKY);
 }
 
 static int
@@ -216,6 +222,17 @@ AddStaticLights(void)
 	entitylight_t *entity;
 	qboolean light_is_in_pvs;
 	int style, previous_style;
+	int num_direct_lights;
+
+	/* Ensure that there is always an empty reference list at the first index. */
+	
+	if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
+		pt_trilight_references[pt_num_trilight_references++] = -1;
+		
+	/* Reset the cluster light reference lists. */
+	
+	for (i = 0; i < sizeof(pt_cluster_light_references) / sizeof(pt_cluster_light_references[0]); ++i)
+		pt_cluster_light_references[i] = 0;
 
 	/* Visit each surface in the worldmodel. */
 	
@@ -376,7 +393,15 @@ AddStaticLights(void)
 	
 	qsort(pt_trilights, pt_num_lights, sizeof(pt_trilights[0]), LightSkyPortalAndStyleComparator);
 	
-	/* Build the lightstyle sublists. */
+	/* Get the number of lights which are not skyportals. */
+	
+	for (i = 0; i < pt_num_lights; ++i)
+		if (TriLightIsASkyPortal(pt_trilights + i))
+			break;
+	
+	num_direct_lights = i;
+	
+	/* Build the lightstyle sublists. Only direct lights are considered here beause skyportals can't have lightstyles. */
 	
 	previous_style = 0;
 	style = 0;
@@ -388,7 +413,7 @@ AddStaticLights(void)
 		pt_lightstyle_sublist_lengths[i] = 0;
 	}
 	
-	for (m = 0; m < pt_num_lights; ++m)
+	for (m = 0; m < num_direct_lights; ++m)
 	{
 		light = pt_trilights + m;
 		style = light->entity ? light->entity->style : 0;
@@ -429,12 +454,7 @@ AddStaticLights(void)
 		
 		pt_trilight_data[m * 4 + 3] = IntBitsToFloat(light->triangle_index);
 	}				
-					
-	/* Reset the cluster light reference lists. */
-	
-	for (i = 0; i < PT_MAX_CLUSTERS; ++i)
-		pt_cluster_light_references[i] = -1;
-	
+						
 	/* Visit each leaf in the worldmodel and build the list of visible lights for each cluster. */
 		
 	for (i = 0; i < r_worldmodel->numleafs; ++i)
@@ -449,11 +469,9 @@ AddStaticLights(void)
 		
 		/* Skip clusters which have already been processed. */
 
-		if (pt_cluster_light_references[leaf->cluster] != -1)
+		if (pt_cluster_light_references[leaf->cluster * 2 + 0] != 0 || pt_cluster_light_references[leaf->cluster * 2 + 1] != 0)
 			continue;
-		
-		pt_cluster_light_references[leaf->cluster] = pt_num_trilight_references;
-		
+				
 		/* Get the PVS bits for this cluster. */
 		
 		vis = Mod_ClusterPVS(leaf->cluster, r_worldmodel);
@@ -463,8 +481,28 @@ AddStaticLights(void)
 		static byte light_list_bits[(PT_MAX_TRI_LIGHTS + 7) / 8];
 		memset(light_list_bits, 0, sizeof(light_list_bits));
 		
+		/* Go through every surface in this leaf and mark any light which corresponds to one of
+			those surfaces. This is only done for skyportals. */
+								
+		for (m = num_direct_lights; m < pt_num_lights; ++m)
+		{
+			light = pt_trilights + m;
+			
+			for (k = 0; k < leaf->nummarksurfaces; ++k)
+			{
+				surf = leaf->firstmarksurface[k];
+				
+				if (light->surface == surf)
+				{
+					/* Mark this light for inclusion in the reference list. */
+					light_list_bits[m >> 3] |= 1 << (m & 7);
+					break;
+				}
+			}
+		}
+						
 		/* Go through every visible leaf and build a list of the lights which have corresponding
-			surfaces in that leaf. */
+			surfaces in that leaf. This does not include skyportals. */
 		
 		for (j = 0; j < r_worldmodel->numleafs; ++j)
 		{
@@ -482,7 +520,7 @@ AddStaticLights(void)
 			{
 				/* This leaf is visible, so look for any lightsources within it. */
 				
-				for (m = 0; m < pt_num_lights; ++m)
+				for (m = 0; m < num_direct_lights; ++m)
 				{
 					if (light_list_bits[m >> 3] & (1 << (m & 7)))
 					{
@@ -491,7 +529,7 @@ AddStaticLights(void)
 					}
 					
 					light_is_in_pvs = false;
-					
+										
 					if (TriLightIsAnEntityLight(pt_trilights + m))
 					{
 						/* If this cluster is in the list of clusters that the light intersects then the light is visible. */
@@ -528,47 +566,43 @@ AddStaticLights(void)
 			}
 		}
 		
-		/* Construct the reference list. */
-		
-		qboolean first_skyportal_hit = false;
-		
-		for (m = 0; m < pt_num_lights; ++m)
-		{
-			if (!TriLightIsAnEntityLight(pt_trilights + m))
-			{
-				surf = pt_trilights[m].surface;
+		/* Construct the reference lists. */
 				
-				if ((surf->texinfo->flags & SURF_SKY) && (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS) && !first_skyportal_hit)
-				{
-					/* All lights after this one are sky portals, so mark the end of the non-skyportal light references. */
-					pt_trilight_references[pt_num_trilight_references++] = -1;
-					first_skyportal_hit = true;
-				}
-			}
-			
+		pt_cluster_light_references[leaf->cluster * 2 + 0] = pt_num_trilight_references;
+
+		for (m = 0; m < num_direct_lights; ++m)
+		{
 			if (light_list_bits[m >> 3] & (1 << (m & 7)))
 			{	
 				if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
 				{
-					/* A light-emitting surface has been found, so add a reference to the light into the reference list. */
 					pt_trilight_references[pt_num_trilight_references++] = m;
 				}
 			}
 		}
-		
-		/* If there are no sky portals then add an extra end-of-list marker to demarcate the empty list. */
-		if (!first_skyportal_hit)
-		{
-			if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
-				pt_trilight_references[pt_num_trilight_references++] = -1;
-		}
-		
+
 		if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
-		{
-			/* Add the end-of-list marker. */
 			pt_trilight_references[pt_num_trilight_references++] = -1;
+		
+		pt_cluster_light_references[leaf->cluster * 2 + 1] = pt_num_trilight_references;
+
+		for (m = num_direct_lights; m < pt_num_lights; ++m)
+		{
+			if (light_list_bits[m >> 3] & (1 << (m & 7)))
+			{	
+				if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
+				{
+					pt_trilight_references[pt_num_trilight_references++] = m;
+				}
+			}
 		}
+
+		if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
+			pt_trilight_references[pt_num_trilight_references++] = -1;
 	}
+	
+	/* Ensure that the reference at the end of the buffer is always an end-of-list marker. */
+	pt_trilight_references[PT_MAX_TRI_LIGHT_REFS - 1] = -1;
 }
 
 static void
@@ -1600,7 +1634,7 @@ AddStaticBSP()
 	
 	tex_node_data = (float*)Z_Malloc(num_texels * 4 * sizeof(float));
 	tex_child_data = (unsigned char*)Z_Malloc(num_texels * 4);
-	tex_light_data = (int*)Z_Malloc(num_texels * 2 * sizeof(int));
+	tex_light_data = (int*)Z_Malloc(num_texels * 4 * sizeof(int));
 	
 	for (i = 0; i < r_worldmodel->numnodes; ++i)
 	{
@@ -1633,7 +1667,8 @@ AddStaticBSP()
 					leaf = (mleaf_t*)(in->children[j]);
 					cluster = leaf->cluster;
 					
-					tex_light_data[i * 2 + j] = pt_cluster_light_references[cluster];
+					tex_light_data[i * 4 + 0 + j] = pt_cluster_light_references[cluster * 2 + 0];
+					tex_light_data[i * 4 + 2 + j] = pt_cluster_light_references[cluster * 2 + 1];
 				}
 			}
 		}
@@ -1665,7 +1700,7 @@ AddStaticBSP()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32I, pt_bsp_texture_width, pt_bsp_texture_height, 0, GL_RG_INTEGER, GL_INT, tex_light_data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32I, pt_bsp_texture_width, pt_bsp_texture_height, 0, GL_RGBA_INTEGER, GL_INT, tex_light_data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	Z_Free(tex_node_data);

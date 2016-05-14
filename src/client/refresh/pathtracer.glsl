@@ -54,7 +54,6 @@ uniform float bounce_factor = 0.75;
 in vec4 texcoords[5], color;
 
 vec4 out_pln;
-int sky_li;
 float rand_index = frame;
 
 vec2 rand()
@@ -224,7 +223,7 @@ float traceRayBSP(vec3 org, vec3 dir, float t0, float max_t)
 	return 1e8;
 }
 
-int getLightRef(vec3 p)
+ivec2 getLightRef(vec3 p)
 {
 	vec2 node = vec2(0), prev_node;
 	float d;
@@ -248,25 +247,21 @@ int getLightRef(vec3 p)
 		}
 
 		if (node.y == 1.0)
-		{
-			 return -1;
-		}
+			 return ivec2(0);
 		
 	} while (node != vec2(0));
 	
-	ivec2 light_indices = texture(bsp_lightrefs, prev_node).rg;
+	ivec4 light_indices = texture(bsp_lightrefs, prev_node);
 	
-	return d < 0.0 ? light_indices.y : light_indices.x;
+	return d < 0.0 ? light_indices.yw : light_indices.xz;
 }
 
 vec3 sampleDirectLight(vec3 rp, vec3 rn)
 {
 	vec3 r = vec3(0);
-	int oli = getLightRef(rp);
+	int oli = getLightRef(rp).x;
 	int li = oli;
 	int ref = texelFetch(lightrefs, li).r;
-
-	sky_li = li;
 	
 	if (ref != -1)
 	{
@@ -294,8 +289,6 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn)
 			
 		} while (ref != -1);
 		
-		sky_li = li;
-
 		for (int light_sample = 0; light_sample < NUM_LIGHT_SAMPLES; ++light_sample)
 		{
 			li = oli;
@@ -431,8 +424,7 @@ void main()
 		vec3 sky_r = vec3(0);
 		for (int sky_sample = 0; sky_sample < NUM_SKY_SAMPLES; ++sky_sample)
 		{
-			int li = sky_li;
-			++li;
+			int li = getLightRef(sp).y;
 			int ref = texelFetch(lightrefs, li).r;
 			if (ref != -1)
 			{
