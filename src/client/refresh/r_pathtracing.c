@@ -1494,6 +1494,52 @@ ClearEntityLight(entitylight_t *entity)
 	ClearEntityLightClusterList(entity);
 }
 
+static qboolean
+SphereIntersectsAnySolidLeaf(vec3_t origin, float radius)
+{
+	mnode_t *node_stack[PT_MAX_BSP_TREE_DEPTH];
+	int stack_size;
+	mnode_t *node;
+	float d;
+	cplane_t *plane;
+	model_t *model;
+	
+	stack_size = 0;
+	model = r_worldmodel;
+
+	node_stack[stack_size++] = model->nodes;
+	
+	while (stack_size > 0)
+	{
+		node = node_stack[--stack_size];
+
+		if (node->contents != -1)
+		{
+			if (node->contents == CONTENTS_SOLID || ((mleaf_t*)node)->cluster == -1)
+				return true;
+			else
+				continue;
+		}
+		
+		plane = node->plane;
+		d = DotProduct(origin, plane->normal) - plane->dist;
+		
+		if (d > -radius)
+		{
+			if (stack_size < PT_MAX_BSP_TREE_DEPTH)
+				node_stack[stack_size++] = node->children[0];
+		}
+		
+		if (d < +radius)
+		{
+			if (stack_size < PT_MAX_BSP_TREE_DEPTH)
+				node_stack[stack_size++] = node->children[1];
+		}
+	}
+	
+	return false;
+}
+
 static void
 EnsureEntityLightDoesNotIntersectWalls(entitylight_t *entity)
 {
@@ -1507,6 +1553,11 @@ EnsureEntityLightDoesNotIntersectWalls(entitylight_t *entity)
 		entity->radius = 0;
 		return;
 	}
+	
+	/* If the entity intersects a solid wall then reduce it's radius by half repeatedly until either
+		it becomes free or it becomes too small. */
+	while (SphereIntersectsAnySolidLeaf(entity->origin, entity->radius) && entity->radius > 1.0f / 8.0f)
+		entity->radius /= 2.0f;
 }
 
 static void
