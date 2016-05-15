@@ -2468,6 +2468,18 @@ RecompileShaderPrograms(void)
 	CreateShaderPrograms();
 	VID_Printf(PRINT_ALL, "Shaders recompiled.\n");
 }
+
+static void
+PrintStaticInfo(void)
+{
+	VID_Printf(PRINT_ALL, "%6d trilight references\n", pt_num_trilight_references);
+	VID_Printf(PRINT_ALL, "%6d clusters\n", pt_num_clusters);
+	VID_Printf(PRINT_ALL, "%6d used nonstatic lightstyles\n", pt_num_used_nonstatic_lightstyles);
+	VID_Printf(PRINT_ALL, "%6d static vertices\n", pt_dynamic_vertices_offset);
+	VID_Printf(PRINT_ALL, "%6d static triangles\n", pt_dynamic_triangles_offset);
+	VID_Printf(PRINT_ALL, "%6d static entity lights\n", pt_dynamic_entitylights_offset);
+	VID_Printf(PRINT_ALL, "%6d static trilights\n", pt_dynamic_lights_offset);
+}
 	
 void
 R_InitPathtracing(void)
@@ -2497,6 +2509,7 @@ R_InitPathtracing(void)
 #undef CVAR
 
 	Cmd_AddCommand("gl_pt_recompile_shaders", RecompileShaderPrograms);
+	Cmd_AddCommand("gl_pt_print_static_info", PrintStaticInfo);
 
 	InitRandom();
 	CreateShaderPrograms();
@@ -2506,6 +2519,7 @@ void
 R_ShutdownPathtracing(void)
 {
 	Cmd_RemoveCommand("gl_pt_recompile_shaders");
+	Cmd_RemoveCommand("gl_pt_print_static_info");
 
 	FreeModelData();
 	FreeShaderPrograms();
