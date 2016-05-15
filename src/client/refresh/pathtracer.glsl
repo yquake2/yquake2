@@ -405,18 +405,21 @@ void main()
 
 	float r1 = 2.0 * PI * rr.x;
 	float r2s = sqrt(rr.y);
-
+	
 	vec3 rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - rr.y));
 
-	float t = traceRayBSP(rp, rd, EPS * 16, 2048.0);
+	vec4 pln = out_pln;
+
+	float t = traceRayBSP(rp, rd, EPS * 16, 2048.0) - 1.0;
 
 	if ((dot(out_pln.xyz, rp) - out_pln.w) < 0.0)
 		out_pln *= -1.0;
 	
-	vec3 sp = rp + rd * max(0.0, t - 1.0);
+	vec3 sp = rp + rd * max(0.0, t);
 	
 #if NUM_BOUNCES > 0
-	r += bounce_factor * sampleDirectLight(sp, out_pln.xyz);
+	if (traceRayShadowTri(rp, rd, t))
+		r += bounce_factor * sampleDirectLight(sp, out_pln.xyz);
 #endif
 
 #if NUM_SKY_SAMPLES > 0
@@ -469,14 +472,14 @@ void main()
 			r1 = 2.0 * PI * rr.x;
 			r2s = sqrt(rr.y);
 
-			rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - rr.y));
+			rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y));
 
-			t = traceRayBSP(rp, rd, EPS * 16, 2048.0);
+			t = traceRayBSP(rp, rd, EPS * 16, 2048.0) - 1.0;
 
 			if ((dot(out_pln.xyz, rp) - out_pln.w) < 0.0)
 				out_pln *= -1.0;
 			
-			sp = rp + rd * max(0.0, t - 1.0);
+			sp = rp + rd * max(0.0, t);
 #endif
 		}
 		r += sky_r / float(NUM_SKY_SAMPLES);
@@ -497,15 +500,24 @@ void main()
 
 			vec3 rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - rr.y));
 
-			float t = traceRayBSP(rp, rd, EPS * 16, 2048.0);
+			float t = traceRayBSP(rp, rd, EPS * 16, 2048.0) - 1.0;
 
+			if (!traceRayShadowTri(rp, rd, t))
+				break;
+			
 			if ((dot(out_pln.xyz, rp) - out_pln.w) < 0.0)
 				out_pln *= -1.0;
 			
-			rp = rp + rd * max(0.0, t - 1.0);
+			rp = rp + rd * max(0.0, t);
 			
 			factor *= bounce_factor;
 			r += factor * sampleDirectLight(rp, out_pln.xyz);
+			
+#if NUM_BOUNCES > 2
+			b = vec3(out_pln.z, out_pln.x, out_pln.y);
+			u = normalize(cross(out_pln.xyz, b));
+			v = cross(out_pln.xyz, u);
+#endif
 		}
 	}
 #endif
