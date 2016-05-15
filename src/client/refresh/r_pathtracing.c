@@ -14,6 +14,7 @@
 #define PT_RAND_TEXTURE_SIZE 				64
 #define PT_MAX_CLUSTER_DLIGHTS			16
 #define PT_NUM_ENTITY_TRILIGHTS			4
+#define PT_NUM_ENTITY_VERTICES			4
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -269,7 +270,7 @@ AddPointLight(entitylight_t *entity)
 	
 	const vec3_t d = { 1.0, sqrt(2.0 / 3.0) * 0.5, sqrt(3.0) / 2.0 };
 	
-	const vec3_t tetrahedron_vertices[4] = {
+	const vec3_t tetrahedron_vertices[PT_NUM_ENTITY_VERTICES] = {
 			{-d[0],-d[1],-d[2]},
 			{ d[0],-d[1],-d[2]},
 			{ 0.0,-d[1], d[2]},
@@ -283,16 +284,16 @@ AddPointLight(entitylight_t *entity)
 			{2,3,0},
 		};
 	
-	for (j = 0; j < 4; ++j)
+	for (j = 0; j < PT_NUM_ENTITY_VERTICES; ++j)
 		for (k = 0; k < 3; ++k)
 			pt_vertex_data[(poly_offset + j) * 3 + k] = tetrahedron_vertices[j][k] * entity->radius / 2.0 + entity->origin[k];
 	
-	pt_num_vertices += 4;
+	pt_num_vertices += PT_NUM_ENTITY_VERTICES;
 	
 	entity->light_index = pt_num_lights;
 	
 	for (j = 0; j < PT_NUM_ENTITY_TRILIGHTS; ++j)
-	{		
+	{
 		light_index = pt_num_lights++;
 		light = pt_trilights + light_index;
 		
@@ -381,7 +382,10 @@ AddStaticLights(void)
 		if (!(texinfo->flags & SURF_WARP) && texinfo->radiance > 0)
 		{			
 			p = surf->polys;
-			
+		
+			if (pt_num_vertices > (PT_MAX_VERTICES - p->numverts))
+				continue;
+		
 			v = p->verts[0];
 			
 			poly_offset = pt_num_vertices;
@@ -426,7 +430,7 @@ AddStaticLights(void)
 			{
 				/* Add a new triangle light and mark it as a quad (really a parallelogram). */
 				
-				if (pt_num_lights >= PT_MAX_TRI_LIGHTS)
+				if (pt_num_triangles >= PT_MAX_TRIANGLES || pt_num_lights >= PT_MAX_TRI_LIGHTS)
 					continue;
 				
 				int ind[6] = { poly_offset + 3, poly_offset, poly_offset + 1, poly_offset + 2, poly_offset + 3, poly_offset };
@@ -445,14 +449,14 @@ AddStaticLights(void)
 				pt_triangle_data[light->triangle_index * 2 + 1] = ind[parallelogram_reflection - 1];
 			}
 			else
-			{			
+			{		
+				if (pt_num_triangles > (PT_MAX_TRIANGLES - p->numverts - 2) || pt_num_lights > (PT_MAX_TRI_LIGHTS - p->numverts - 2))
+					continue;
+		
 				for (k = 2; k < p->numverts; k++)
 				{
 					/* Add a new triangle light for this segment of the polygon. */
-					
-					if (pt_num_lights >= PT_MAX_TRI_LIGHTS)
-						continue;
-					
+										
 					int ind[3] = { poly_offset, poly_offset + k - 1, poly_offset + k };
 
 					light_index = pt_num_lights++;
@@ -481,7 +485,7 @@ AddStaticLights(void)
 		if ((entity->color[0] <= 0 && entity->color[1] <= 0 && entity->color[2] <= 0) || entity->intensity <= 0 || entity->radius <= 0)
 			continue;
 		
-		if (pt_num_lights >= PT_MAX_TRI_LIGHTS)
+		if (pt_num_vertices > (PT_MAX_VERTICES - PT_NUM_ENTITY_VERTICES) || pt_num_triangles > (PT_MAX_TRIANGLES - PT_NUM_ENTITY_TRILIGHTS) || pt_num_lights > (PT_MAX_TRI_LIGHTS - PT_NUM_ENTITY_TRILIGHTS))
 			continue;
 		
 		AddPointLight(entity);
@@ -550,7 +554,7 @@ AddStaticLights(void)
 	
 		leaf = r_worldmodel->leafs + i;
 		
-		if (leaf->contents == CONTENTS_SOLID || leaf->cluster == -1)
+		if (leaf->contents == CONTENTS_SOLID || leaf->cluster == -1 || leaf->cluster >= PT_MAX_CLUSTERS)
 			continue;
 		
 		/* Skip clusters which have already been processed. */
@@ -604,7 +608,7 @@ AddStaticLights(void)
 		
 			cluster = other_leaf->cluster;
 
-			if (cluster == -1)
+			if (cluster == -1 || cluster >= PT_MAX_CLUSTERS)
 				continue;
 
 			if (vis[cluster >> 3] & (1 << (cluster & 7)))
@@ -1181,6 +1185,9 @@ AddAliasModel(entity_t *entity, model_t *model)
 	
 	alias_header = (dmdl_t *)model->extradata;
 	
+	if (pt_num_vertices > (PT_MAX_VERTICES - alias_header->num_xyz))
+		return;
+
 	/* Check the frame numbers in the same way that R_DrawAliasModel does. */
 	
 	if ((entity->frame >= alias_header->num_frames) ||
@@ -1256,7 +1263,7 @@ AddAliasModel(entity_t *entity, model_t *model)
 	/* Interpolate and transform the vertices. */
 	
 	lerp = pt_lerped[0];
-
+	
 	triangle_vertices_offset = pt_num_vertices;
 	
 	for (i = 0; i < alias_header->num_xyz; i++, v++, ov++, lerp += 4)
@@ -1379,6 +1386,9 @@ AddBrushModel(entity_t *entity, model_t *model)
 
 		p = psurf->polys;
 
+		if (pt_num_vertices > (PT_MAX_VERTICES - p->numverts))
+			continue;
+		
 		v = p->verts[0];
 
 		poly_offset = pt_num_vertices;
@@ -1529,6 +1539,9 @@ BuildClusterListForEntityLight(entitylight_t *entity)
 		{
 			leaf = (mleaf_t*)node;
 			
+			if (leaf->cluster == -1 || leaf->cluster >= PT_MAX_CLUSTERS)
+				continue;
+			
 			already_listed = false;
 			
 			for (i = 0; i < num_clusters; ++i)
@@ -1538,7 +1551,7 @@ BuildClusterListForEntityLight(entitylight_t *entity)
 					break;
 				}
 				
-			if (!already_listed && leaf->cluster >= 0 && num_clusters < PT_MAX_ENTITY_LIGHT_CLUSTERS)
+			if (!already_listed && num_clusters < PT_MAX_ENTITY_LIGHT_CLUSTERS)
 				entity->clusters[num_clusters++] = leaf->cluster;
 
 			continue;
@@ -1679,6 +1692,10 @@ AddDLights(void)
 		if ((dl->color[0] <= 0 && dl->color[1] <= 0 && dl->color[2] <= 0) || dl->intensity <= 0)
 			continue;
 		
+		if (pt_num_entitylights >= PT_MAX_ENTITY_LIGHTS || pt_num_vertices > (PT_MAX_VERTICES - PT_NUM_ENTITY_VERTICES) ||
+				pt_num_triangles > (PT_MAX_TRIANGLES - PT_NUM_ENTITY_TRILIGHTS) || pt_num_lights > (PT_MAX_TRI_LIGHTS - PT_NUM_ENTITY_TRILIGHTS))
+			continue;
+
 		entity = pt_entitylights + pt_num_entitylights++;
 		
 		ClearEntityLight(entity);
@@ -2149,7 +2166,7 @@ ParseEntityDictionary(char *data)
 		}
 	}
 
-	if (!Q_stricmp(classname, "light"))
+	if (!Q_stricmp(classname, "light") && pt_num_entitylights < PT_MAX_ENTITY_LIGHTS)
 	{
 		entity = pt_entitylights + pt_num_entitylights++;
 
