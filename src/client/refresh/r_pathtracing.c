@@ -134,6 +134,7 @@ static int pt_cluster_light_references[PT_MAX_CLUSTERS * 2];
 static entitylight_t pt_entitylights[PT_MAX_ENTITY_LIGHTS];
 static short pt_lightstyle_sublists[MAX_LIGHTSTYLES];
 static short pt_lightstyle_sublist_lengths[MAX_LIGHTSTYLES];
+static vec3_t pt_cached_lightstyles[MAX_LIGHTSTYLES];
 
 static short pt_num_nodes = 0;
 static short pt_num_triangles = 0;
@@ -158,8 +159,19 @@ static float pt_vertex_data[PT_MAX_VERTICES * 3];
 static float pt_trilight_data[PT_MAX_TRI_LIGHTS * 4];
 
 static void
+ClearLightStyleCache(void)
+{
+	int i, j;
+	for (i = 0; i < MAX_LIGHTSTYLES; ++i)
+		for (j = 0; j < 3; ++j)
+			pt_cached_lightstyles[i][j] = -1;
+}
+
+static void
 ClearPathtracerState(void)
 {
+	ClearLightStyleCache();
+	
 	pt_num_nodes = 0;
 	pt_num_triangles = 0;
 	pt_num_vertices = 0;
@@ -1779,6 +1791,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	int cluster, other_cluster;
 	short *mapped_references;
 	byte *vis;
+	float* cached;
 	
 	/* Clear the dynamic (moving) lightsource data by re-visiting the data ranges which were updated in the previous frame.
 		There is no need to update the lightsource data itself as it's only necessary to remove the references. */
@@ -1865,6 +1878,16 @@ R_UpdatePathtracerForCurrentFrame(void)
 				if (k > 0)
 				{
 					lightstyle = r_newrefdef.lightstyles + i;
+
+					cached = pt_cached_lightstyles[i];
+				
+					/* If the lightstyle hasn't changed since the last update, then skip it. */
+					if (cached[0] == lightstyle->rgb[0] && cached[1] == lightstyle->rgb[1] && cached[2] == lightstyle->rgb[2])
+						continue;
+					
+					for (m = 0; m < 3; ++m)
+						cached[m] = lightstyle->rgb[m];
+					
 					mapped_buffer = (float*)MapTextureBufferRange(pt_trilights_buffer, j * sizeof(pt_trilight_data[0]) * 4, k * sizeof(pt_trilight_data[0]) * 4);
 					
 					if (!mapped_buffer)
@@ -1875,41 +1898,63 @@ R_UpdatePathtracerForCurrentFrame(void)
 					for (; j < k; ++j)
 					{
 						for (m = 0; m < 3; ++m)
-							mapped_buffer[j * 4 + m] = pt_trilight_data[j * 4 + m] * lightstyle->rgb[m];
+							mapped_buffer[j * 4 + m] = pt_trilight_data[j * 4 + m] * cached[m];
 						mapped_buffer[j * 4 + 3] = pt_trilight_data[j * 4 + 3];
 					}
 					
 					UnmapTextureBuffer();
+					mapped_buffer = NULL;
 				}
 			}
 		}
 		else
 		{
-			/* Mapping subranges is not possible, so map the entire buffer. */
-			mapped_buffer = (float*)MapTextureBuffer(pt_trilights_buffer, GL_WRITE_ONLY);
+			/* Mapping subranges is not possible, so map the entire buffer if any lightstyle update is necessary. */
+			
+			mapped_buffer = NULL;
+			
+			for (i = 1; i < MAX_LIGHTSTYLES; ++i)
+			{
+				j = pt_lightstyle_sublists[i];
+				k = pt_lightstyle_sublist_lengths[i];
+								
+				if (k > 0)
+				{
+					lightstyle = r_newrefdef.lightstyles + i;
+
+					cached = pt_cached_lightstyles[i];
+				
+					/* If the lightstyle hasn't changed since the last update, then skip it. */
+					if (cached[0] == lightstyle->rgb[0] && cached[1] == lightstyle->rgb[1] && cached[2] == lightstyle->rgb[2])
+						continue;
+				
+					for (m = 0; m < 3; ++m)
+						cached[m] = lightstyle->rgb[m];
+					
+					k += j;
+
+					/* The buffer is mapped here so that no mapping occurs if none of the lightstyles differ from their cached copies. */
+					if (!mapped_buffer)
+					{
+						mapped_buffer = (float*)MapTextureBuffer(pt_trilights_buffer, GL_WRITE_ONLY);
+						if (!mapped_buffer)
+							break;
+					}
+					
+					for (; j < k; ++j)
+					{
+						for (m = 0; m < 3; ++m)
+							mapped_buffer[j * 4 + m] = pt_trilight_data[j * 4 + m] * cached[m];
+						
+						mapped_buffer[j * 4 + 3] = pt_trilight_data[j * 4 + 3];
+					}
+				}
+			}
 			
 			if (mapped_buffer)
 			{
-				for (i = 1; i < MAX_LIGHTSTYLES; ++i)
-				{
-					j = pt_lightstyle_sublists[i];
-					k = pt_lightstyle_sublist_lengths[i];
-					
-					if (k > 0)
-					{
-						lightstyle = r_newrefdef.lightstyles + i;
-						
-						k += j;
-						
-						for (; j < k; ++j)
-						{
-							for (m = 0; m < 3; ++m)
-								mapped_buffer[j * 4 + m] = pt_trilight_data[j * 4 + m] * lightstyle->rgb[m];
-							mapped_buffer[j * 4 + 3] = pt_trilight_data[j * 4 + 3];
-						}
-					}
-				}
 				UnmapTextureBuffer();
+				mapped_buffer = NULL;
 			}
 		}
 	}
@@ -2289,12 +2334,12 @@ ParseStaticEntityLights(char *entitystring)
 
 }
 
-
 void
 R_PreparePathtracer(void)
 {
 	FreeModelData();
-
+	ClearLightStyleCache();
+	
 	if (r_worldmodel == NULL)
 	{
 		VID_Printf(PRINT_ALL, "R_PreparePathtracer: r_worldmodel is NULL!\n");
