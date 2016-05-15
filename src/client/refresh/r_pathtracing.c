@@ -12,6 +12,8 @@
 #define PT_MAX_ENTITY_LIGHT_CLUSTERS	8
 #define PT_MAX_BSP_TREE_DEPTH				32
 #define PT_RAND_TEXTURE_SIZE 				64
+#define PT_MAX_CLUSTER_DLIGHTS			16
+#define PT_NUM_ENTITY_TRILIGHTS			4
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -101,6 +103,7 @@ typedef struct entitylight_s
 	int style;
 	float radius;
 	short clusters[PT_MAX_ENTITY_LIGHT_CLUSTERS];
+	short light_index;
 } entitylight_t;
 
 typedef struct trilight_s
@@ -139,9 +142,12 @@ static short pt_previous_node = -1;
 static short pt_num_lights = 0;
 static int pt_num_trilight_references = 0;
 static short pt_num_entitylights = 0;
+static short pt_num_clusters = 0;
 
 static short pt_dynamic_vertices_offset = 0;
 static short pt_dynamic_triangles_offset = 0;
+static short pt_dynamic_entitylights_offset = 0;
+static short pt_dynamic_lights_offset = 0;
 
 static int pt_triangle_data[PT_MAX_TRIANGLES * 2];
 static int pt_node0_data[PT_MAX_TRI_NODES * 4];
@@ -204,6 +210,91 @@ LightSkyPortalAndStyleComparator(void const *a, void const *b)
 	return -1;
 }
 
+static void
+AddPointLight(entitylight_t *entity)
+{
+	int poly_offset, j, k, light_index;
+	trilight_t *light;
+	
+	/* Construct a tetrahedron. */
+	
+	poly_offset = pt_num_vertices;
+	
+	const vec3_t d = { 1.0, sqrt(2.0 / 3.0) * 0.5, sqrt(3.0) / 2.0 };
+	
+	const vec3_t tetrahedron_vertices[4] = {
+			{-d[0],-d[1],-d[2]},
+			{ d[0],-d[1],-d[2]},
+			{ 0.0,-d[1], d[2]},
+			{ 0.0,+d[1],-1.0/12.0 * sqrt(3.0)},
+		};
+		
+	static const short tetrahedron_indices[PT_NUM_ENTITY_TRILIGHTS][3] = {
+			{0,1,2},
+			{0,3,1},
+			{1,3,2},
+			{2,3,0},
+		};
+	
+	for (j = 0; j < 4; ++j)
+		for (k = 0; k < 3; ++k)
+			pt_vertex_data[(poly_offset + j) * 3 + k] = tetrahedron_vertices[j][k] * entity->radius / 2.0 + entity->origin[k];
+	
+	pt_num_vertices += 4;
+	
+	entity->light_index = pt_num_lights;
+	
+	for (j = 0; j < PT_NUM_ENTITY_TRILIGHTS; ++j)
+	{		
+		light_index = pt_num_lights++;
+		light = pt_trilights + light_index;
+		
+		light->quad = false;
+		light->triangle_index = pt_num_triangles++;
+		light->surface = NULL;
+		light->entity = entity;
+		
+		/* Store the triangle data. */
+		
+		pt_triangle_data[light->triangle_index * 2 + 0] = (poly_offset + tetrahedron_indices[j][0]) | ((poly_offset + tetrahedron_indices[j][1]) << 16);
+		pt_triangle_data[light->triangle_index * 2 + 1] = poly_offset + tetrahedron_indices[j][2];
+	}
+}
+
+/* Converts the trilight structure data within the given range into a form directly usable as a sampled buffer. */
+static void
+PackTriLightData(short start, short end)
+{
+	short m, j;
+	mtexinfo_t *texinfo;
+	trilight_t *light;
+
+	for (m = start; m < end; ++m)
+	{
+		light = pt_trilights + m;
+		
+		if (TriLightIsAnEntityLight(light))
+		{
+			/* The light emitted by an entity is defined entirely by the entity itself. */
+			
+			for (j = 0; j < 3; ++j)
+				pt_trilight_data[m * 4 + j] = light->entity->color[j] * light->entity->intensity * 32;
+		}
+		else
+		{
+			/* Light emitted by a non-entity light is defined by surface texture metadata. */
+			
+			texinfo = light->surface->texinfo;
+
+			/* Calculate the radiant flux of the light. This stored vector is negated if the light is a quad. */
+			
+			for (j = 0; j < 3; ++j)
+				pt_trilight_data[m * 4 + j] = (light->quad ? -1 : +1) * texinfo->image->reflectivity[j] * texinfo->radiance;
+		}
+		
+		pt_trilight_data[m * 4 + 3] = IntBitsToFloat(light->triangle_index);
+	}
+}
 
 static void
 AddStaticLights(void)
@@ -346,47 +437,7 @@ AddStaticLights(void)
 		if (pt_num_lights >= PT_MAX_TRI_LIGHTS)
 			continue;
 		
-		/* Construct a tetrahedron. */
-		
-		poly_offset = pt_num_vertices;
-		
-		const vec3_t d = { 1.0, sqrt(2.0 / 3.0) * 0.5, sqrt(3.0) / 2.0 };
-		
-		const vec3_t tetrahedron_vertices[4] = {
-				{-d[0],-d[1],-d[2]},
-				{ d[0],-d[1],-d[2]},
-				{ 0.0,-d[1], d[2]},
-				{ 0.0,+d[1],-1.0/12.0 * sqrt(3.0)},
-			};
-			
-		static const short tetrahedron_indices[4][3] = {
-				{0,1,2},
-				{0,3,1},
-				{1,3,2},
-				{2,3,0},
-			};
-		
-		for (j = 0; j < 4; ++j)
-			for (k = 0; k < 3; ++k)
-				pt_vertex_data[(poly_offset + j) * 3 + k] = tetrahedron_vertices[j][k] * entity->radius / 2.0 + entity->origin[k];
-		
-		pt_num_vertices += 4;
-		
-		for (j = 0; j < 4; ++j)
-		{		
-			light_index = pt_num_lights++;
-			light = pt_trilights + light_index;
-			
-			light->quad = false;
-			light->triangle_index = pt_num_triangles++;
-			light->surface = NULL;
-			light->entity = entity;
-			
-			/* Store the triangle data. */
-			
-			pt_triangle_data[light->triangle_index * 2 + 0] = (poly_offset + tetrahedron_indices[j][0]) | ((poly_offset + tetrahedron_indices[j][1]) << 16);
-			pt_triangle_data[light->triangle_index * 2 + 1] = poly_offset + tetrahedron_indices[j][2];
-		}
+		AddPointLight(entity);
 	}
 	
 	/* Sort the lights such that sky portals come last in the light list, and the remaining lights are sorted by style. */
@@ -423,9 +474,8 @@ AddStaticLights(void)
 			pt_lightstyle_sublists[previous_style] = k;
 			pt_lightstyle_sublist_lengths[previous_style] = m - k;
 			k = m;
-		}
-		
-		previous_style = style;
+			previous_style = style;
+		}		
 	}
 	
 	pt_lightstyle_sublists[style] = k;
@@ -433,28 +483,8 @@ AddStaticLights(void)
 	
 	/* Pack the light data into the buffer. */
 	
-	for (m = 0; m < pt_num_lights; ++m)
-	{
-		light = pt_trilights + m;
-		
-		if (TriLightIsAnEntityLight(light))
-		{
-			for (j = 0; j < 3; ++j)
-				pt_trilight_data[m * 4 + j] = light->entity->color[j] * light->entity->intensity * 32;
-		}
-		else
-		{
-			texinfo = light->surface->texinfo;
-
-			/* Calculate the radiant flux of the light. This stored vector is negated if the light is a quad. */
-			
-			for (j = 0; j < 3; ++j)
-				pt_trilight_data[m * 4 + j] = (light->quad ? -1 : +1) * texinfo->image->reflectivity[j] * texinfo->radiance;
-		}
-		
-		pt_trilight_data[m * 4 + 3] = IntBitsToFloat(light->triangle_index);
-	}				
-						
+	PackTriLightData(0, pt_num_lights);
+							
 	/* Visit each leaf in the worldmodel and build the list of visible lights for each cluster. */
 		
 	for (i = 0; i < r_worldmodel->numleafs; ++i)
@@ -471,7 +501,12 @@ AddStaticLights(void)
 
 		if (pt_cluster_light_references[leaf->cluster * 2 + 0] != 0 || pt_cluster_light_references[leaf->cluster * 2 + 1] != 0)
 			continue;
-				
+		
+		/* Track the highest cluster index to determine how many clusters are in the worldmodel. */
+		
+		if ((leaf->cluster + 1) > pt_num_clusters)
+			pt_num_clusters = leaf->cluster + 1;
+		
 		/* Get the PVS bits for this cluster. */
 		
 		vis = Mod_ClusterPVS(leaf->cluster, r_worldmodel);
@@ -540,6 +575,10 @@ AddStaticLights(void)
 								light_is_in_pvs = true;
 								break;
 							}
+							else if (pt_trilights[m].entity->clusters[k] == -1)
+							{
+								break;
+							}
 						}
 					}
 					else
@@ -567,7 +606,7 @@ AddStaticLights(void)
 		}
 		
 		/* Construct the reference lists. */
-				
+			
 		pt_cluster_light_references[leaf->cluster * 2 + 0] = pt_num_trilight_references;
 
 		for (m = 0; m < num_direct_lights; ++m)
@@ -581,8 +620,14 @@ AddStaticLights(void)
 			}
 		}
 
-		if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
-			pt_trilight_references[pt_num_trilight_references++] = -1;
+		/* Insert multiple end-of-list markers in order to allocate space for dlights without needing
+			 to re-arrange the lists. */
+		
+		for (m = 0; m < PT_MAX_CLUSTER_DLIGHTS + 1; ++m)
+		{		
+			if (pt_num_trilight_references < PT_MAX_TRI_LIGHT_REFS)
+				pt_trilight_references[pt_num_trilight_references++] = -1;
+		}
 		
 		pt_cluster_light_references[leaf->cluster * 2 + 1] = pt_num_trilight_references;
 
@@ -1354,6 +1399,113 @@ AddBrushModel(entity_t *entity, model_t *model)
 
 
 static void
+ParseEntityVector(vec3_t vec, const char* str)
+{
+	sscanf (str, "%f %f %f", &vec[0], &vec[1], &vec[2]);
+}
+
+static void
+ClearEntityLightClusterList(entitylight_t *entity)
+{
+	int i;
+	for (i = 0; i < PT_MAX_ENTITY_LIGHT_CLUSTERS; ++i)
+		entity->clusters[i] = -1;
+}
+
+static void
+ClearEntityLight(entitylight_t *entity)
+{		
+	int i;
+	
+	for (i = 0; i < 3; ++i)
+		entity->origin[i] = entity->color[i] = 0;
+	
+	entity->style = 0;
+	entity->intensity = 0;
+	entity->radius = 0;
+	entity->light_index = 0;
+	
+	ClearEntityLightClusterList(entity);
+}
+
+static void
+EnsureEntityLightDoesNotIntersectWalls(entitylight_t *entity)
+{
+	mleaf_t *leaf;
+	
+	leaf = Mod_PointInLeaf(entity->origin, r_worldmodel);
+	
+	if (!leaf || leaf->contents == CONTENTS_SOLID || leaf->cluster == -1)
+	{
+		VID_Printf(PRINT_DEVELOPER, "EnsureEntityLightDoesNotIntersectWalls: Entity's origin is within a wall.\n");
+		entity->radius = 0;
+		return;
+	}
+}
+
+static void
+BuildClusterListForEntityLight(entitylight_t *entity)
+{
+	mnode_t *node_stack[PT_MAX_BSP_TREE_DEPTH];
+	int i, stack_size;
+	mnode_t *node;
+	float d, r;
+	cplane_t *plane;
+	model_t *model;
+	mleaf_t *leaf;
+	short num_clusters;
+	qboolean already_listed;
+	
+	stack_size = 0;
+	r = entity->radius;
+	model = r_worldmodel;
+	num_clusters = 0;
+	
+	ClearEntityLightClusterList(entity);
+
+	node_stack[stack_size++] = model->nodes;
+	
+	while (stack_size > 0)
+	{
+		node = node_stack[--stack_size];
+		
+		if (node->contents != -1)
+		{
+			leaf = (mleaf_t*)node;
+			
+			already_listed = false;
+			
+			for (i = 0; i < num_clusters; ++i)
+				if (entity->clusters[i] == leaf->cluster)
+				{
+					already_listed = true;
+					break;
+				}
+				
+			if (!already_listed && leaf->cluster >= 0 && num_clusters < PT_MAX_ENTITY_LIGHT_CLUSTERS)
+				entity->clusters[num_clusters++] = leaf->cluster;
+
+			continue;
+		}
+
+		plane = node->plane;
+		d = DotProduct(entity->origin, plane->normal) - plane->dist;
+		
+		if (d > -r)
+		{
+			if (stack_size < PT_MAX_BSP_TREE_DEPTH)
+				node_stack[stack_size++] = node->children[0];
+		}
+		
+		if (d < +r)
+		{
+			if (stack_size < PT_MAX_BSP_TREE_DEPTH)
+				node_stack[stack_size++] = node->children[1];
+		}
+	}
+}
+
+static void
 AddEntities(void)
 {
 	int i;
@@ -1428,7 +1580,7 @@ MapTextureBufferRange(GLuint buffer, GLint offset, GLsizei length)
 }
 
 static void *
-MapTextureBuffer(GLuint buffer)
+MapTextureBuffer(GLuint buffer, GLenum access)
 {
 	if (qglBindBufferARB)
 		qglBindBufferARB(GL_TEXTURE_BUFFER, buffer);
@@ -1436,9 +1588,9 @@ MapTextureBuffer(GLuint buffer)
 		qglBindBuffer(GL_TEXTURE_BUFFER, buffer);
 	
 	if (qglMapBufferARB)
-		return qglMapBufferARB(GL_TEXTURE_BUFFER, GL_WRITE_ONLY);
+		return qglMapBufferARB(GL_TEXTURE_BUFFER, access);
 	else if (qglMapBuffer)
-		return qglMapBuffer(GL_TEXTURE_BUFFER, GL_WRITE_ONLY);
+		return qglMapBuffer(GL_TEXTURE_BUFFER, access);
 	
 	return NULL;
 }
@@ -1457,20 +1609,99 @@ UnmapTextureBuffer()
 		qglBindBuffer(GL_TEXTURE_BUFFER, 0);
 }
 
+static void
+AddDLights(void)
+{
+	int i, j;
+	const dlight_t* dl;
+	entitylight_t* entity;
+	
+	for (i = 0; i < r_newrefdef.num_dlights; ++i)
+	{
+		dl = r_newrefdef.dlights + i;
+		
+		if ((dl->color[0] <= 0 && dl->color[1] <= 0 && dl->color[2] <= 0) || dl->intensity <= 0)
+			continue;
+		
+		entity = pt_entitylights + pt_num_entitylights++;
+		
+		ClearEntityLight(entity);
+		
+		for (j = 0; j < 3; ++j)
+		{
+			entity->origin[j] = dl->origin[j];
+			entity->color[j] = dl->color[j];
+			entity->intensity = dl->intensity;
+		}
+
+		entity->style = 0;
+		entity->radius = 8;
+		
+		if ((entity->color[0] <= 0 && entity->color[1] <= 0 && entity->color[2] <= 0) || entity->intensity <= 0 || entity->radius <= 0)
+			continue;
+		
+		AddPointLight(entity);
+		BuildClusterListForEntityLight(entity);
+	}
+}
+
 void
 R_UpdatePathtracerForCurrentFrame(void)
 {
 	int i, j, k, m;
 	lightstyle_t *lightstyle;
 	float *mapped_buffer;
+	entitylight_t *entity;
+	int cluster, other_cluster;
+	short *mapped_references;
+	byte *vis;
+	
+	/* Clear the dynamic (moving) lightsource data by re-visiting the data ranges which were updated in the previous frame.
+		There is no need to update the lightsource data itself as it's only necessary to remove the references. */
+	
+	if (pt_num_entitylights > pt_dynamic_entitylights_offset)
+	{
+		mapped_references = (short*)MapTextureBuffer(pt_lightref_buffer, GL_WRITE_ONLY);
+		
+		if (mapped_references)
+		{
+			/* Visit every cluster and clear it's dynamic light references. */
+			for (cluster = 0; cluster < pt_num_clusters; ++cluster)
+			{
+				/* Locate the end of the static list, where the dynamic light references were appended. */
+				
+				k = pt_cluster_light_references[cluster * 2 + 0];
+
+				while (pt_trilight_references[k] != -1)
+					++k;
+
+				/* Replace all of the dynamic light references with end-of-list markers. */
+				for (i = 0; i < PT_MAX_CLUSTER_DLIGHTS; ++i)
+					mapped_references[k + i] = -1;
+			}
+			
+			UnmapTextureBuffer();
+		}
+	}
+	
+	/* Reset the dynamic data offsets. */
 	
 	pt_num_nodes = 0;
 	pt_num_triangles = pt_dynamic_triangles_offset;
 	pt_num_vertices = pt_dynamic_vertices_offset;
+	pt_num_entitylights = pt_dynamic_entitylights_offset;
+	pt_num_lights = pt_dynamic_lights_offset;
 	pt_written_nodes = 0;
 	pt_previous_node = -1;
 
+	/* Add dynamic shadow-casting entity geometry. */	
 	AddEntities();
+	
+	if (gl_pt_dlights_enable->value)
+	{
+		/* Add dynamic light emitters. */
+		AddDLights();
+	}
 	
 	/* Nullify the entry just past the last node, so that we can guarantee that traversal terminates correctly. */
 	
@@ -1484,8 +1715,16 @@ R_UpdatePathtracerForCurrentFrame(void)
 		
 	UploadTextureBufferData(pt_node0_buffer, pt_node0_data, 0, pt_written_nodes * 4 * sizeof(pt_node0_data[0]));
 	UploadTextureBufferData(pt_node1_buffer, pt_node1_data, 0, pt_written_nodes * 4 * sizeof(pt_node1_data[0]));
-	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data + pt_dynamic_triangles_offset * 2, pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]), (pt_num_triangles - pt_dynamic_triangles_offset) * 2 * sizeof(pt_triangle_data[0]));
-	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data + pt_dynamic_vertices_offset * 3, pt_dynamic_vertices_offset * 3 * sizeof(pt_vertex_data[0]), (pt_num_vertices - pt_dynamic_vertices_offset) * 3 * sizeof(pt_vertex_data[0]));
+	
+	if (pt_num_triangles > pt_dynamic_triangles_offset)
+	{
+		UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data + pt_dynamic_triangles_offset * 2, pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]), (pt_num_triangles - pt_dynamic_triangles_offset) * 2 * sizeof(pt_triangle_data[0]));
+	}
+	
+	if (pt_num_vertices > pt_dynamic_vertices_offset)
+	{
+		UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data + pt_dynamic_vertices_offset * 3, pt_dynamic_vertices_offset * 3 * sizeof(pt_vertex_data[0]), (pt_num_vertices - pt_dynamic_vertices_offset) * 3 * sizeof(pt_vertex_data[0]));
+	}
 
 	if (gl_pt_lightstyles_enable->value)
 	{
@@ -1523,7 +1762,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 		else
 		{
 			/* Mapping subranges is not possible, so map the entire buffer. */
-			mapped_buffer = (float*)MapTextureBuffer(pt_trilights_buffer);
+			mapped_buffer = (float*)MapTextureBuffer(pt_trilights_buffer, GL_WRITE_ONLY);
 			
 			if (mapped_buffer)
 			{
@@ -1550,7 +1789,78 @@ R_UpdatePathtracerForCurrentFrame(void)
 			}
 		}
 	}
-	
+
+	if (gl_pt_dlights_enable->value)
+	{
+		/* Update the dynamic (moving) lightsources if necessary. */
+		
+		if (pt_num_entitylights > pt_dynamic_entitylights_offset)
+		{
+			/* Pack the dynamic light data into the buffer. */
+			
+			PackTriLightData(pt_dynamic_lights_offset, pt_num_lights);
+		
+			UploadTextureBufferData(pt_trilights_buffer, pt_trilight_data + pt_dynamic_lights_offset * 4, pt_dynamic_lights_offset * 4 * sizeof(pt_trilight_data[0]), (pt_num_lights - pt_dynamic_lights_offset) * 4 * sizeof(pt_trilight_data[0]));
+
+			mapped_references = (short*)MapTextureBuffer(pt_lightref_buffer, GL_READ_WRITE);
+			
+			if (mapped_references)
+			{
+				/* Visit each dynamic entity light and add it into the light reference list of each cluster that it is
+					potentially visible from. */
+				
+				for (i = pt_dynamic_entitylights_offset; i < pt_num_entitylights; ++i)
+				{
+					entity = pt_entitylights + i;
+					
+					for (j = 0; j < PT_MAX_ENTITY_LIGHT_CLUSTERS; ++j)
+					{
+						cluster = entity->clusters[j];
+						
+						if (cluster == -1)
+							break;
+						
+						/* Get the PVS bits for this cluster. */
+						
+						vis = Mod_ClusterPVS(cluster, r_worldmodel);
+						
+						/* Visit every cluster which is visible from this cluster. The individual leaves don't	matter because
+							they were already assigned an index to the first reference in their respective clusters. */
+						
+						for (other_cluster = 0; other_cluster < pt_num_clusters; ++other_cluster)
+						{
+							/* If this cluster is visible then update it's reference list. */
+							
+							if (vis[other_cluster >> 3] & (1 << (other_cluster & 7)))
+							{
+								/* Locate the end of the list, where dynamic light references can be appended. */
+								
+								k = pt_cluster_light_references[other_cluster * 2 + 0];
+
+								while (mapped_references[k] != -1)
+									++k;
+
+								for (m = 0; m < PT_NUM_ENTITY_TRILIGHTS; ++m)
+								{					
+									/* Ensure that there is at least one end-of-list marker. */
+									
+									if (k >= PT_MAX_TRI_LIGHT_REFS || pt_trilight_references[k + 1] != -1 || mapped_references[k] != -1)
+										continue;
+
+									/* Insert the reference. */
+									
+									mapped_references[k++] = entity->light_index + m;
+								}
+							}
+						}
+					}
+				}
+				
+				UnmapTextureBuffer();
+			}
+		}
+	}
+
 	/* Update the configuration uniform variables. */
 	qglUseProgramObjectARB(pt_program_handle);
 	qglUniform1fARB(pt_ao_radius_loc, gl_pt_ao_radius->value);
@@ -1708,111 +2018,6 @@ AddStaticBSP()
 	Z_Free(tex_light_data);
 }
 
-static void
-ParseEntityVector(vec3_t vec, const char* str)
-{
-	sscanf (str, "%f %f %f", &vec[0], &vec[1], &vec[2]);
-}
-
-static void
-ClearEntityLightClusterList(entitylight_t *entity)
-{
-	int i;
-	for (i = 0; i < PT_MAX_ENTITY_LIGHT_CLUSTERS; ++i)
-		entity->clusters[i] = -1;
-}
-
-static void
-ClearEntityLight(entitylight_t *entity)
-{		
-	int i;
-	
-	for (i = 0; i < 3; ++i)
-		entity->origin[i] = entity->color[i] = 0;
-	
-	entity->style = 0;
-	entity->intensity = 0;
-	entity->radius = 0;
-	
-	ClearEntityLightClusterList(entity);
-}
-
-static void
-EnsureEntityLightDoesNotIntersectWalls(entitylight_t *entity)
-{
-	mleaf_t *leaf;
-	
-	leaf = Mod_PointInLeaf(entity->origin, r_worldmodel);
-	
-	if (!leaf || leaf->contents == CONTENTS_SOLID || leaf->cluster == -1)
-	{
-		VID_Printf(PRINT_DEVELOPER, "EnsureEntityLightDoesNotIntersectWalls: Entity's origin is within a wall.\n");
-		entity->radius = 0;
-		return;
-	}
-}
-
-static void
-BuildClusterListForEntityLight(entitylight_t *entity)
-{
-	mnode_t *node_stack[PT_MAX_BSP_TREE_DEPTH];
-	int i, stack_size;
-	mnode_t *node;
-	float d, r;
-	cplane_t *plane;
-	model_t *model;
-	mleaf_t *leaf;
-	short num_clusters;
-	qboolean already_listed;
-	
-	stack_size = 0;
-	r = entity->radius;
-	model = r_worldmodel;
-	num_clusters = 0;
-	
-	ClearEntityLightClusterList(entity);
-
-	node_stack[stack_size++] = model->nodes;
-	
-	while (stack_size > 0)
-	{
-		node = node_stack[--stack_size];
-		
-		if (node->contents != -1)
-		{
-			leaf = (mleaf_t*)node;
-			
-			already_listed = false;
-			
-			for (i = 0; i < num_clusters; ++i)
-				if (entity->clusters[i] == leaf->cluster)
-				{
-					already_listed = true;
-					break;
-				}
-				
-			if (!already_listed && leaf->cluster >= 0 && num_clusters < PT_MAX_ENTITY_LIGHT_CLUSTERS)
-				entity->clusters[num_clusters++] = leaf->cluster;
-
-			continue;
-		}
-
-		plane = node->plane;
-		d = DotProduct(entity->origin, plane->normal) - plane->dist;
-		
-		if (d > -r)
-		{
-			if (stack_size < PT_MAX_BSP_TREE_DEPTH)
-				node_stack[stack_size++] = node->children[0];
-		}
-		
-		if (d < +r)
-		{
-			if (stack_size < PT_MAX_BSP_TREE_DEPTH)
-				node_stack[stack_size++] = node->children[1];
-		}
-	}
-}
 
 /* Parses a single entity and extracts the fields which are interesting for the purposes of
 	pathtracing. This function is mostly based on ED_ParseEdict from g_spawn.c, and mimics some
@@ -1993,6 +2198,7 @@ R_PreparePathtracer(void)
 	pt_num_lights = 0;
 	pt_num_trilight_references = 0;
 	pt_num_entitylights = 0;
+	pt_num_clusters = 0;
 
 	if (gl_pt_static_entity_lights_enable->value)
 		ParseStaticEntityLights(Mod_EntityString());
@@ -2015,6 +2221,8 @@ R_PreparePathtracer(void)
 
 	pt_dynamic_vertices_offset = pt_num_vertices;
 	pt_dynamic_triangles_offset = pt_num_triangles;
+	pt_dynamic_entitylights_offset = pt_num_entitylights;
+	pt_dynamic_lights_offset = pt_num_lights;
 	
 	qglActiveTextureARB(GL_TEXTURE11_ARB);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, pt_rand_texture);
