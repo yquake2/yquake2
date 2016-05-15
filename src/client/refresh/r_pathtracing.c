@@ -143,6 +143,7 @@ static short pt_num_lights = 0;
 static int pt_num_trilight_references = 0;
 static short pt_num_entitylights = 0;
 static short pt_num_clusters = 0;
+static short pt_num_used_nonstatic_lightstyles = 0;
 
 static short pt_dynamic_vertices_offset = 0;
 static short pt_dynamic_triangles_offset = 0;
@@ -452,7 +453,8 @@ AddStaticLights(void)
 	
 	num_direct_lights = i;
 	
-	/* Build the lightstyle sublists. Only direct lights are considered here beause skyportals can't have lightstyles. */
+	/* Build the lightstyle sublists. Only direct lights are considered here beause skyportals can't have lightstyles.
+		Note that lightstyle zero is always static (brightness and colour do not change during runtime). */
 	
 	previous_style = 0;
 	style = 0;
@@ -481,6 +483,14 @@ AddStaticLights(void)
 	pt_lightstyle_sublists[style] = k;
 	pt_lightstyle_sublist_lengths[style] = m - k;
 	
+	pt_num_used_nonstatic_lightstyles = 0;
+
+	for (i = 1; i < MAX_LIGHTSTYLES; ++i)
+	{
+		if (pt_lightstyle_sublist_lengths[i] > 0)
+			++pt_num_used_nonstatic_lightstyles;
+	}
+
 	/* Pack the light data into the buffer. */
 	
 	PackTriLightData(0, pt_num_lights);
@@ -1726,7 +1736,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 		UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data + pt_dynamic_vertices_offset * 3, pt_dynamic_vertices_offset * 3 * sizeof(pt_vertex_data[0]), (pt_num_vertices - pt_dynamic_vertices_offset) * 3 * sizeof(pt_vertex_data[0]));
 	}
 
-	if (gl_pt_lightstyles_enable->value)
+	if (gl_pt_lightstyles_enable->value && pt_num_used_nonstatic_lightstyles > 0)
 	{
 		/* Update the lightsource states with the current lightstyle states. */
 		
