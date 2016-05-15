@@ -158,6 +158,8 @@ static int pt_node1_data[PT_MAX_TRI_NODES * 4];
 static float pt_vertex_data[PT_MAX_VERTICES * 3];
 static float pt_trilight_data[PT_MAX_TRI_LIGHTS * 4];
 
+static int pt_last_update_ms = -1;
+
 static void
 ClearLightStyleCache(void)
 {
@@ -213,6 +215,8 @@ ClearPathtracerState(void)
 	pt_ao_radius_loc = -1;
 	pt_ao_color_loc = -1;
 	pt_bounce_factor_loc = -1;
+	
+	pt_last_update_ms = -1;
 }
 
 static int
@@ -1792,6 +1796,18 @@ R_UpdatePathtracerForCurrentFrame(void)
 	short *mapped_references;
 	byte *vis;
 	float* cached;
+	int start_ms = 0, end_ms = 0, refresh_ms = 0, ms = 0;
+	
+	if (gl_pt_stats->value)
+	{
+		ms = Sys_Milliseconds();
+		start_ms = ms;
+		
+		if (pt_last_update_ms != -1)		
+			refresh_ms = ms - pt_last_update_ms;
+		
+		pt_last_update_ms = ms;
+	}
 	
 	/* Clear the dynamic (moving) lightsource data by re-visiting the data ranges which were updated in the previous frame.
 		There is no need to update the lightsource data itself as it's only necessary to remove the references. */
@@ -2036,10 +2052,16 @@ R_UpdatePathtracerForCurrentFrame(void)
 	qglUniform3fARB(pt_ao_color_loc, gl_pt_ao_color->value, gl_pt_ao_color->value, gl_pt_ao_color->value);
 	qglUniform1fARB(pt_bounce_factor_loc, gl_pt_bounce_factor->value);
 	qglUseProgramObjectARB(0);
-	
+		
 	/* Print the stats if necessary. */
 	if (gl_pt_stats->value)
-		VID_Printf(PRINT_ALL, "pt_stats: n=%5d, t=%5d, v=%5d, w=%5d\n", pt_num_nodes, pt_num_triangles, pt_num_vertices, pt_written_nodes);
+	{
+		end_ms = Sys_Milliseconds();
+
+		VID_Printf(PRINT_ALL, "pt_stats: f=%7d, n=%7d, t=%7d, v=%7d, w=%7d, l=%7d, c=%7d, r=%7d\n", r_framecount, pt_num_nodes,
+						pt_num_triangles - pt_dynamic_triangles_offset, pt_num_vertices - pt_dynamic_vertices_offset, pt_written_nodes, pt_num_lights - pt_dynamic_lights_offset,
+						end_ms - start_ms, refresh_ms);
+	}
 }
 	
 static void
@@ -2340,6 +2362,8 @@ R_PreparePathtracer(void)
 	FreeModelData();
 	ClearLightStyleCache();
 	
+	pt_last_update_ms = -1;
+
 	if (r_worldmodel == NULL)
 	{
 		VID_Printf(PRINT_ALL, "R_PreparePathtracer: r_worldmodel is NULL!\n");
