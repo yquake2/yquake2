@@ -462,6 +462,22 @@ void main()
 					} while (ref != -1);
 				}
 			}
+
+#if NUM_SKY_SAMPLES > 1			
+			rr = rand();
+
+			r1 = 2.0 * PI * rr.x;
+			r2s = sqrt(rr.y);
+
+			rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - rr.y));
+
+			t = traceRayBSP(rp, rd, EPS * 16, 2048.0);
+
+			if ((dot(out_pln.xyz, rp) - out_pln.w) < 0.0)
+				out_pln *= -1.0;
+			
+			sp = rp + rd * max(0.0, t - 1.0);
+#endif
 		}
 		r += sky_r / float(NUM_SKY_SAMPLES);
 	}
