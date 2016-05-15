@@ -156,6 +156,52 @@ static int pt_node1_data[PT_MAX_TRI_NODES * 4];
 static float pt_vertex_data[PT_MAX_VERTICES * 3];
 static float pt_trilight_data[PT_MAX_TRI_LIGHTS * 4];
 
+static void
+ClearPathtracerState(void)
+{
+	pt_num_nodes = 0;
+	pt_num_triangles = 0;
+	pt_num_vertices = 0;
+	pt_written_nodes = 0;
+	pt_previous_node = -1;
+	pt_num_lights = 0;
+	pt_num_trilight_references = 0;
+	pt_num_entitylights = 0;
+	pt_num_clusters = 0;
+	pt_num_used_nonstatic_lightstyles = 0;
+
+	pt_dynamic_vertices_offset = 0;
+	pt_dynamic_triangles_offset = 0;
+	pt_dynamic_entitylights_offset = 0;
+	pt_dynamic_lights_offset = 0;
+	
+	pt_program_handle = 0;
+
+	pt_node_texture = 0;
+	pt_child_texture = 0;
+	pt_bsp_lightref_texture = 0;
+
+	pt_node0_buffer = 0;
+	pt_node0_texture = 0;
+	pt_node1_buffer = 0;
+	pt_node1_texture = 0;
+	pt_triangle_buffer = 0;
+	pt_triangle_texture = 0;
+	pt_vertex_buffer = 0;
+	pt_vertex_texture = 0;
+	pt_trilights_buffer = 0;
+	pt_trilights_texture = 0;
+	pt_lightref_buffer = 0;
+	pt_lightref_texture = 0;
+	pt_rand_texture = 0;
+
+	pt_frame_counter_loc = -1;
+	pt_entity_to_world_loc = -1;
+	pt_ao_radius_loc = -1;
+	pt_ao_color_loc = -1;
+	pt_bounce_factor_loc = -1;
+}
+
 static int
 FloatBitsToInt(float x)
 {
@@ -2409,6 +2455,8 @@ RecompileShaderPrograms(void)
 void
 R_InitPathtracing(void)
 {
+	ClearPathtracerState();
+
 #define GET_PT_CVAR(x, d) x = Cvar_Get( #x, d, CVAR_ARCHIVE);
 	GET_PT_CVAR(gl_pt_enable, "0")
 	GET_PT_CVAR(gl_pt_stats, "0")
@@ -2445,5 +2493,7 @@ R_ShutdownPathtracing(void)
 	FreeModelData();
 	FreeShaderPrograms();
 	FreeRandom();
+	
+	ClearPathtracerState();
 }
 
