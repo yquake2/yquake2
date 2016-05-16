@@ -256,10 +256,10 @@ ivec2 getLightRef(vec3 p)
 	return d < 0.0 ? light_indices.yw : light_indices.xz;
 }
 
-vec3 sampleDirectLight(vec3 rp, vec3 rn)
+vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 {
 	vec3 r = vec3(0);
-	int oli = getLightRef(rp).x;
+	oli = oli < 0 ? -oli : +oli;
 	int li = oli;
 	int ref = texelFetch(lightrefs, li).r;
 	
@@ -371,7 +371,8 @@ void main()
 	out_pln.xyz = texcoords[3].xyz;
 	out_pln.w = dot(rp, out_pln.xyz);
 
-	vec3 r = sampleDirectLight(rp, out_pln.xyz);
+	int rpli = getLightRef(rp).x;
+	vec3 r = sampleDirectLight(rp, out_pln.xyz, rpli);
 	
 	r += texcoords[4].rgb;
 
@@ -401,28 +402,42 @@ void main()
 #endif
 
 #if NUM_BOUNCES > 0 || NUM_SKY_SAMPLES > 0
-	vec2 rr = rand();
 
-	float r1 = 2.0 * PI * rr.x;
-	float r2s = sqrt(rr.y);
-	
-	vec3 rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - rr.y));
+	vec3 sp, rd;
+	vec4 pln;
+	float t;
 
-	vec4 pln = out_pln;
+#if NUM_BOUNCES == 0
+	if (rpli < 0)
+#endif
+	{
+		vec2 rr = rand();
 
-	float t = traceRayBSP(rp, rd, EPS * 16, 2048.0) - 1.0;
+		float r1 = 2.0 * PI * rr.x;
+		float r2s = sqrt(rr.y);
+		
+		rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - rr.y));
 
-	if ((dot(out_pln.xyz, rp) - out_pln.w) < 0.0)
-		out_pln *= -1.0;
-	
-	vec3 sp = rp + rd * max(0.0, t);
+		pln = out_pln;
+
+		t = traceRayBSP(rp, rd, EPS * 16, 2048.0) - 1.0;
+
+		if ((dot(out_pln.xyz, rp) - out_pln.w) < 0.0)
+			out_pln *= -1.0;
+		
+		sp = rp + rd * max(0.0, t);
+	}
 	
 #if NUM_BOUNCES > 0
 	if (traceRayShadowTri(rp, rd, t))
-		r += bounce_factor * sampleDirectLight(sp, out_pln.xyz);
+	{
+		int li = getLightRef(sp).x;
+		r += bounce_factor * sampleDirectLight(sp, out_pln.xyz, li);
+	}
 #endif
 
 #if NUM_SKY_SAMPLES > 0
+	if (rpli < 0)
 	{
 		vec3 sky_r = vec3(0);
 		for (int sky_sample = 0; sky_sample < NUM_SKY_SAMPLES; ++sky_sample)
@@ -467,10 +482,10 @@ void main()
 			}
 
 #if NUM_SKY_SAMPLES > 1			
-			rr = rand();
+			vec2 rr = rand();
 
-			r1 = 2.0 * PI * rr.x;
-			r2s = sqrt(rr.y);
+			float r1 = 2.0 * PI * rr.x;
+			float r2s = sqrt(rr.y);
 
 			rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y));
 
@@ -486,11 +501,10 @@ void main()
 	}
 #endif
 
-	rp = sp;
-
 #if NUM_BOUNCES > 1
 	{
 		float factor = bounce_factor;
+		rp = sp;
 		for (int bounce = 1; bounce < NUM_BOUNCES; ++bounce)
 		{
 			vec2 rr = rand();
@@ -511,7 +525,8 @@ void main()
 			rp = rp + rd * max(0.0, t);
 			
 			factor *= bounce_factor;
-			r += factor * sampleDirectLight(rp, out_pln.xyz);
+			int li = getLightRef(rp).x;
+			r += factor * sampleDirectLight(rp, out_pln.xyz, li);
 			
 #if NUM_BOUNCES > 2
 			b = vec3(out_pln.z, out_pln.x, out_pln.y);

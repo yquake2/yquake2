@@ -378,6 +378,7 @@ AddStaticLights(void)
 	qboolean light_is_in_pvs;
 	int style, previous_style;
 	int num_direct_lights;
+	qboolean sky_is_visible;
 
 	/* Ensure that there is always an empty reference list at the first index. */
 	
@@ -611,9 +612,11 @@ AddStaticLights(void)
 				}
 			}
 		}
+		
+		sky_is_visible = false;
 						
 		/* Go through every visible leaf and build a list of the lights which have corresponding
-			surfaces in that leaf. This does not include skyportals. */
+			surfaces in that leaf. Skyportals are detected, but are not inserted into the visibility lists. */
 		
 		for (j = 0; j < r_worldmodel->numleafs; ++j)
 		{
@@ -631,8 +634,8 @@ AddStaticLights(void)
 			{
 				/* This leaf is visible, so look for any lightsources within it. */
 				
-				for (m = 0; m < num_direct_lights; ++m)
-				{
+				for (m = 0; m < pt_num_lights; ++m)
+				{					
 					if (light_list_bits[m >> 3] & (1 << (m & 7)))
 					{
 						/* This light was already marked visible, so it does not need to be processed again. */
@@ -674,8 +677,16 @@ AddStaticLights(void)
 					
 					if (light_is_in_pvs)
 					{
-						/* Mark this light for inclusion in the reference list. */
-						light_list_bits[m >> 3] |= 1 << (m & 7);
+						if (m < num_direct_lights)
+						{
+							/* This light is not a skyportal, so mark it for inclusion in the reference list. */
+							light_list_bits[m >> 3] |= 1 << (m & 7);
+						}
+						else
+						{
+							/* Skyportals aren't added to the list of visible lights, but if any are visible then we need to raise the relevant flag. */
+							sky_is_visible = true;
+						}
 					}
 				}
 			}
@@ -683,7 +694,7 @@ AddStaticLights(void)
 		
 		/* Construct the reference lists. */
 			
-		pt_cluster_light_references[leaf->cluster * 2 + 0] = pt_num_trilight_references;
+		pt_cluster_light_references[leaf->cluster * 2 + 0] = pt_num_trilight_references * (sky_is_visible ? -1 : +1);
 
 		for (m = 0; m < num_direct_lights; ++m)
 		{
@@ -1823,7 +1834,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 			{
 				/* Locate the end of the static list, where the dynamic light references were appended. */
 				
-				k = pt_cluster_light_references[cluster * 2 + 0];
+				k = abs(pt_cluster_light_references[cluster * 2 + 0]);
 
 				while (pt_trilight_references[k] != -1)
 					++k;
@@ -2020,7 +2031,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 							{
 								/* Locate the end of the list, where dynamic light references can be appended. */
 								
-								k = pt_cluster_light_references[other_cluster * 2 + 0];
+								k = abs(pt_cluster_light_references[other_cluster * 2 + 0]);
 
 								while (mapped_references[k] != -1)
 									++k;
