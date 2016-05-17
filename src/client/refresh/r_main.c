@@ -1282,8 +1282,8 @@ R_SetMode(void)
 	return true;
 }
 
-static qboolean
-VersionOfGLIsGreaterThanOrEqualTo(int major, int minor)
+qboolean
+R_VersionOfGLIsGreaterThanOrEqualTo(int major, int minor)
 {
 	return gl_config.version_major > major || (gl_config.version_major == major && gl_config.version_minor >= minor);
 }
@@ -1701,7 +1701,7 @@ R_Init(void *hinstance, void *hWnd)
 	
 	/* ----------------------------- GL_VERSION_3_1 ---------------------------- */
 
-	if (VersionOfGLIsGreaterThanOrEqualTo(3, 1))
+	if (R_VersionOfGLIsGreaterThanOrEqualTo(3, 1))
 	{
 		VID_Printf(PRINT_ALL, "...using OpenGL 3.1 features\n");
 
@@ -1744,7 +1744,7 @@ R_Init(void *hinstance, void *hWnd)
 	
 	/* ----------------------------- GL_VERSION_1_5 ---------------------------- */
 	
-	if (VersionOfGLIsGreaterThanOrEqualTo(1, 5))
+	if (R_VersionOfGLIsGreaterThanOrEqualTo(1, 5))
 	{
 		VID_Printf(PRINT_ALL, "...using OpenGL 1.5 features\n");
 
@@ -1809,7 +1809,7 @@ R_Init(void *hinstance, void *hWnd)
 	
 	/* ----------------------------- GL_VERSION_1_2 ---------------------------- */
 
-	if (VersionOfGLIsGreaterThanOrEqualTo(1, 2))
+	if (R_VersionOfGLIsGreaterThanOrEqualTo(1, 2))
 	{
 		VID_Printf(PRINT_ALL, "...using OpenGL 1.2 features\n");
 

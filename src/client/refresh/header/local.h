@@ -378,6 +378,9 @@ void R_ConstructEntityToWorldMatrix(float m[16], entity_t *entity);
 void R_SetGLStateForPathtracing(const float entity_to_world_matrix[16]);
 void R_ClearGLStateForPathtracing(void);
 
+qboolean R_PathtracingIsSupportedByGL(void);
+qboolean R_VersionOfGLIsGreaterThanOrEqualTo(int major, int minor);
+
 
 /* GL extension emulation functions */
 void R_DrawParticles2(int n,

@@ -160,6 +160,14 @@ static float pt_trilight_data[PT_MAX_TRI_LIGHTS * 4];
 
 static int pt_last_update_ms = -1;
 
+qboolean
+R_PathtracingIsSupportedByGL(void)
+{
+	return R_VersionOfGLIsGreaterThanOrEqualTo(3, 3) && gl_config.shaders &&
+				gl_config.vertex_shaders && gl_config.fragment_shaders && gl_config.float_textures &&
+				gl_config.texture_buffer_objects && gl_config.texture_buffer_objects_rgb && gl_config.texture_rg;
+}
+
 static void
 ClearLightStyleCache(void)
 {
