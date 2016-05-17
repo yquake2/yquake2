@@ -175,6 +175,15 @@ R_PathtracingIsSupportedByGL(void)
 }
 
 static void
+PrintMissingGLFeaturesMessageAndDisablePathtracing()
+{
+	VID_Printf(PRINT_ALL, "ERROR: The OpenGL features necessary for pathtracing are not available.\n");
+	
+	if (gl_pt_enable)
+		Cvar_ForceSet(gl_pt_enable->name, "0");
+}
+
+static void
 ClearLightStyleCache(void)
 {
 	int i, j;
@@ -1071,6 +1080,12 @@ R_ConstructEntityToWorldMatrix(float m[16], entity_t *entity)
 void
 R_SetGLStateForPathtracing(const float entity_to_world_matrix[16])
 {
+	if (!qglUseProgramObjectARB || !qglActiveTextureARB || !qglUniform1iARB || !qglUniformMatrix4fvARB || !R_PathtracingIsSupportedByGL())
+	{
+		PrintMissingGLFeaturesMessageAndDisablePathtracing();
+		return;
+	}
+	
 	qglUseProgramObjectARB(pt_program_handle);
 	qglActiveTextureARB(GL_TEXTURE2_ARB);
 	glBindTexture(GL_TEXTURE_2D, pt_node_texture);
@@ -1098,6 +1113,12 @@ R_SetGLStateForPathtracing(const float entity_to_world_matrix[16])
 void
 R_ClearGLStateForPathtracing(void)
 {
+	if (!qglUseProgramObjectARB || !qglActiveTextureARB || !qglUniform1iARB || !qglUniformMatrix4fvARB || !R_PathtracingIsSupportedByGL())
+	{
+		PrintMissingGLFeaturesMessageAndDisablePathtracing();
+		return;
+	}
+	
 	qglUseProgramObjectARB(0);
 	qglActiveTextureARB(GL_TEXTURE2_ARB);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -2502,13 +2523,23 @@ FreeShaderPrograms(void)
 	pt_ao_color_loc = -1;
 	pt_bounce_factor_loc = -1;
 
-	qglDeleteObjectARB(vertex_shader);
-	qglDeleteObjectARB(fragment_shader);
-	qglDeleteObjectARB(pt_program_handle);
+	if (vertex_shader)
+	{
+		qglDeleteObjectARB(vertex_shader);
+		vertex_shader = 0;
+	}
 	
-	vertex_shader = 0;
-	fragment_shader = 0;
-	pt_program_handle = 0;
+	if (fragment_shader)
+	{
+		qglDeleteObjectARB(fragment_shader);
+		fragment_shader = 0;
+	}
+	
+	if (pt_program_handle)
+	{
+		qglDeleteObjectARB(pt_program_handle);
+		pt_program_handle = 0;
+	}
 }
 
 static void
@@ -2634,6 +2665,12 @@ R_InitPathtracing(void)
 {
 	ClearPathtracerState();
 
+	if (!R_PathtracingIsSupportedByGL())
+	{
+		PrintMissingGLFeaturesMessageAndDisablePathtracing();
+		return;
+	}
+	
 	pt_vertex_buffer_format = (gl_config.texture_buffer_objects_rgb || R_VersionOfGLIsGreaterThanOrEqualTo(4, 0)) ? GL_RGB32F : GL_RGBA32F;
 	pt_vertex_stride = (pt_vertex_buffer_format == GL_RGB32F) ? 3 : 4;
 
