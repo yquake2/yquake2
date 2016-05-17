@@ -155,17 +155,23 @@ static short pt_dynamic_lights_offset = 0;
 static int pt_triangle_data[PT_MAX_TRIANGLES * 2];
 static int pt_node0_data[PT_MAX_TRI_NODES * 4];
 static int pt_node1_data[PT_MAX_TRI_NODES * 4];
-static float pt_vertex_data[PT_MAX_VERTICES * 3];
+static float pt_vertex_data[PT_MAX_VERTICES * 4];
 static float pt_trilight_data[PT_MAX_TRI_LIGHTS * 4];
 
 static int pt_last_update_ms = -1;
 
+static GLenum pt_vertex_buffer_format = GL_NONE;
+static int pt_vertex_stride = 0;
+
+
 qboolean
 R_PathtracingIsSupportedByGL(void)
 {
-	return R_VersionOfGLIsGreaterThanOrEqualTo(3, 3) && gl_config.shaders &&
+	qboolean tbo_rgb = R_VersionOfGLIsGreaterThanOrEqualTo(4, 0) || gl_config.texture_buffer_objects_rgb;
+	
+	return R_VersionOfGLIsGreaterThanOrEqualTo(3, 3) || (gl_config.shaders &&
 				gl_config.vertex_shaders && gl_config.fragment_shaders && gl_config.float_textures &&
-				gl_config.texture_buffer_objects && gl_config.texture_buffer_objects_rgb && gl_config.texture_rg;
+				gl_config.texture_buffer_objects && tbo_rgb && gl_config.texture_rg);
 }
 
 static void
@@ -225,6 +231,9 @@ ClearPathtracerState(void)
 	pt_bounce_factor_loc = -1;
 	
 	pt_last_update_ms = -1;
+	
+	pt_vertex_buffer_format = GL_NONE;
+	pt_vertex_stride = 0;
 }
 
 static int
@@ -310,7 +319,7 @@ AddPointLight(entitylight_t *entity)
 	
 	for (j = 0; j < PT_NUM_ENTITY_VERTICES; ++j)
 		for (k = 0; k < 3; ++k)
-			pt_vertex_data[(poly_offset + j) * 3 + k] = tetrahedron_vertices[j][k] * entity->radius / 2.0 + entity->origin[k];
+			pt_vertex_data[(poly_offset + j) * pt_vertex_stride + k] = tetrahedron_vertices[j][k] * entity->radius / 2.0 + entity->origin[k];
 	
 	pt_num_vertices += PT_NUM_ENTITY_VERTICES;
 	
@@ -420,7 +429,7 @@ AddStaticLights(void)
 				/* Store this vertex of the polygon. */
 				
 				for (j = 0; j < 3; ++j)
-					pt_vertex_data[pt_num_vertices * 3 + j] = v[j];
+					pt_vertex_data[pt_num_vertices * pt_vertex_stride + j] = v[j];
 
 				pt_num_vertices++;	
 			}
@@ -439,8 +448,8 @@ AddStaticLights(void)
 				{
 					for (j = 0; j < 3; ++j)
 					{
-						x = pt_vertex_data[ind[k + 2] * 3 + j] + pt_vertex_data[ind[k] * 3 + j] - pt_vertex_data[ind[k + 1] * 3 + j];
-						if (abs(x - pt_vertex_data[ind[k + 3] * 3 + j]) > 0.25)
+						x = pt_vertex_data[ind[k + 2] * pt_vertex_stride + j] + pt_vertex_data[ind[k] * pt_vertex_stride + j] - pt_vertex_data[ind[k + 1] * pt_vertex_stride + j];
+						if (abs(x - pt_vertex_data[ind[k + 3] * pt_vertex_stride + j]) > 0.25)
 							break;
 					}
 					if (j == 3)
@@ -1318,7 +1327,7 @@ AddAliasModel(entity_t *entity, model_t *model)
 				lerp[j] += transformation_matrix[k * 4 + j] * lerped_vertex[k];
 			}
 			
-			pt_vertex_data[pt_num_vertices * 3 + j] = lerp[j];
+			pt_vertex_data[pt_num_vertices * pt_vertex_stride + j] = lerp[j];
 			
 			/* If necessary, expand the entity's bounding box to include this vertex. */
 			
@@ -1441,7 +1450,7 @@ AddBrushModel(entity_t *entity, model_t *model)
 				vertex[j] += transformation_matrix[2 * 4 + j] * v[2];
 				vertex[j] += transformation_matrix[3 * 4 + j];
 				
-				pt_vertex_data[pt_num_vertices * 3 + j] = vertex[j];
+				pt_vertex_data[pt_num_vertices * pt_vertex_stride + j] = vertex[j];
 				
 				/* If necessary, expand the entity's bounding box to include this vertex. */
 				
@@ -1475,7 +1484,7 @@ AddBrushModel(entity_t *entity, model_t *model)
 				{					
 					for (m = 0; m < 3; ++m)
 					{
-						x = pt_vertex_data[ind[j] * 3 + m];
+						x = pt_vertex_data[ind[j] * pt_vertex_stride + m];
 
 						if (node->aabb_min[m] > x)
 							node->aabb_min[m] = x;
@@ -1895,7 +1904,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	
 	if (pt_num_vertices > pt_dynamic_vertices_offset)
 	{
-		UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data + pt_dynamic_vertices_offset * 3, pt_dynamic_vertices_offset * 3 * sizeof(pt_vertex_data[0]), (pt_num_vertices - pt_dynamic_vertices_offset) * 3 * sizeof(pt_vertex_data[0]));
+		UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data + pt_dynamic_vertices_offset * pt_vertex_stride, pt_dynamic_vertices_offset * pt_vertex_stride * sizeof(pt_vertex_data[0]), (pt_num_vertices - pt_dynamic_vertices_offset) * pt_vertex_stride * sizeof(pt_vertex_data[0]));
 	}
 
 	if (gl_pt_lightstyles_enable->value && pt_num_used_nonstatic_lightstyles > 0)
@@ -2394,11 +2403,11 @@ R_PreparePathtracer(void)
 		VID_Printf(PRINT_ALL, "R_PreparePathtracer: r_worldmodel->numnodes is zero!\n");
 		return;
 	}
-	
+		
 	CreateTextureBuffer(&pt_node0_buffer, &pt_node0_texture, GL_RGBA32I, PT_MAX_TRI_NODES * 4 * sizeof(GLint));
 	CreateTextureBuffer(&pt_node1_buffer, &pt_node1_texture, GL_RGBA32I, PT_MAX_TRI_NODES * 4 * sizeof(GLint));
 	CreateTextureBuffer(&pt_triangle_buffer, &pt_triangle_texture, GL_RG32I, PT_MAX_TRIANGLES * 2 * sizeof(GLint));
-	CreateTextureBuffer(&pt_vertex_buffer, &pt_vertex_texture, GL_RGB32F, PT_MAX_VERTICES * 3 * sizeof(GLfloat));
+	CreateTextureBuffer(&pt_vertex_buffer, &pt_vertex_texture, pt_vertex_buffer_format, PT_MAX_VERTICES * pt_vertex_stride * sizeof(GLfloat));
 	CreateTextureBuffer(&pt_trilights_buffer, &pt_trilights_texture, GL_RGBA32F, PT_MAX_TRI_LIGHTS * 4 * sizeof(GLfloat));
 	CreateTextureBuffer(&pt_lightref_buffer, &pt_lightref_texture, GL_R16I, PT_MAX_TRI_LIGHT_REFS * sizeof(GLshort));
 	
@@ -2429,7 +2438,7 @@ R_PreparePathtracer(void)
 	UploadTextureBufferData(pt_lightref_buffer, pt_trilight_references, 0, pt_num_trilight_references * sizeof(pt_trilight_references[0]));
 	
 	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data, 0, pt_num_triangles * 2 * sizeof(pt_triangle_data[0]));
-	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data, 0, pt_num_vertices * 3 * sizeof(pt_vertex_data[0]));
+	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data, 0, pt_num_vertices * pt_vertex_stride * sizeof(pt_vertex_data[0]));
 
 	pt_dynamic_vertices_offset = pt_num_vertices;
 	pt_dynamic_triangles_offset = pt_num_triangles;
@@ -2624,6 +2633,9 @@ void
 R_InitPathtracing(void)
 {
 	ClearPathtracerState();
+
+	pt_vertex_buffer_format = (gl_config.texture_buffer_objects_rgb || R_VersionOfGLIsGreaterThanOrEqualTo(4, 0)) ? GL_RGB32F : GL_RGBA32F;
+	pt_vertex_stride = (pt_vertex_buffer_format == GL_RGB32F) ? 3 : 4;
 
 #define GET_PT_CVAR(x, d) x = Cvar_Get( #x, d, CVAR_ARCHIVE);
 	GET_PT_CVAR(gl_pt_enable, "0")
