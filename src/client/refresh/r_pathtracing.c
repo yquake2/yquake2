@@ -1843,6 +1843,12 @@ R_UpdatePathtracerForCurrentFrame(void)
 	float* cached;
 	int start_ms = 0, end_ms = 0, refresh_ms = 0, ms = 0;
 	
+	if (!R_PathtracingIsSupportedByGL())
+	{
+		PrintMissingGLFeaturesMessageAndDisablePathtracing();
+		return;
+	}	
+	
 	if (gl_pt_stats->value)
 	{
 		ms = Sys_Milliseconds();
@@ -2407,6 +2413,12 @@ R_PreparePathtracer(void)
 	FreeModelData();
 	ClearLightStyleCache();
 	
+	if (!R_PathtracingIsSupportedByGL())
+	{
+		PrintMissingGLFeaturesMessageAndDisablePathtracing();
+		return;
+	}
+	
 	pt_last_update_ms = -1;
 
 	if (r_worldmodel == NULL)
@@ -2661,15 +2673,6 @@ R_InitPathtracing(void)
 {
 	ClearPathtracerState();
 
-	if (!R_PathtracingIsSupportedByGL())
-	{
-		PrintMissingGLFeaturesMessageAndDisablePathtracing();
-		return;
-	}
-	
-	pt_vertex_buffer_format = (gl_config.texture_buffer_objects_rgb || R_VersionOfGLIsGreaterThanOrEqualTo(4, 0)) ? GL_RGB32F : GL_RGBA32F;
-	pt_vertex_stride = (pt_vertex_buffer_format == GL_RGB32F) ? 3 : 4;
-
 #define GET_PT_CVAR(x, d) x = Cvar_Get( #x, d, CVAR_ARCHIVE);
 	GET_PT_CVAR(gl_pt_enable, "0")
 	GET_PT_CVAR(gl_pt_stats, "0")
@@ -2694,6 +2697,15 @@ R_InitPathtracing(void)
 
 	Cmd_AddCommand("gl_pt_recompile_shaders", RecompileShaderPrograms);
 	Cmd_AddCommand("gl_pt_print_static_info", PrintStaticInfo);
+
+	if (!R_PathtracingIsSupportedByGL())
+	{
+		PrintMissingGLFeaturesMessageAndDisablePathtracing();
+		return;
+	}
+	
+	pt_vertex_buffer_format = (gl_config.texture_buffer_objects_rgb || R_VersionOfGLIsGreaterThanOrEqualTo(4, 0)) ? GL_RGB32F : GL_RGBA32F;
+	pt_vertex_stride = (pt_vertex_buffer_format == GL_RGB32F) ? 3 : 4;
 
 	InitRandom();
 	CreateShaderPrograms();
