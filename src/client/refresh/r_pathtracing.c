@@ -1076,65 +1076,26 @@ R_ConstructEntityToWorldMatrix(float m[16], entity_t *entity)
 void
 R_SetGLStateForPathtracing(const float entity_to_world_matrix[16])
 {
-	if (!qglUseProgramObjectARB || !qglActiveTextureARB || !qglUniform1iARB || !qglUniformMatrix4fvARB || !R_PathtracingIsSupportedByGL())
+	if (!qglUseProgramObjectARB || !qglUniformMatrix4fvARB || !R_PathtracingIsSupportedByGL())
 	{
 		PrintMissingGLFeaturesMessageAndDisablePathtracing();
 		return;
 	}
 	
 	qglUseProgramObjectARB(pt_program_handle);
-	qglActiveTextureARB(GL_TEXTURE2_ARB);
-	glBindTexture(GL_TEXTURE_2D, pt_node_texture);
-	qglActiveTextureARB(GL_TEXTURE3_ARB);
-	glBindTexture(GL_TEXTURE_2D, pt_child_texture);
-	qglActiveTextureARB(GL_TEXTURE4_ARB);
-	glBindTexture(GL_TEXTURE_BUFFER, pt_node0_texture);
-	qglActiveTextureARB(GL_TEXTURE5_ARB);
-	glBindTexture(GL_TEXTURE_BUFFER, pt_node1_texture);
-	qglActiveTextureARB(GL_TEXTURE6_ARB);
-	glBindTexture(GL_TEXTURE_BUFFER, pt_vertex_texture);
-	qglActiveTextureARB(GL_TEXTURE7_ARB);
-	glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
-	qglActiveTextureARB(GL_TEXTURE8_ARB);
-	glBindTexture(GL_TEXTURE_BUFFER, pt_trilights_texture);
-	qglActiveTextureARB(GL_TEXTURE9_ARB);
-	glBindTexture(GL_TEXTURE_BUFFER, pt_lightref_texture);
-	qglActiveTextureARB(GL_TEXTURE10_ARB);
-	glBindTexture(GL_TEXTURE_2D, pt_bsp_lightref_texture);
-	qglActiveTextureARB(GL_TEXTURE0_ARB);
-	qglUniform1iARB(pt_frame_counter_loc, r_framecount);	
 	qglUniformMatrix4fvARB(pt_entity_to_world_loc, 1, GL_FALSE, entity_to_world_matrix);
 }
 
 void
 R_ClearGLStateForPathtracing(void)
 {
-	if (!qglUseProgramObjectARB || !qglActiveTextureARB || !qglUniform1iARB || !qglUniformMatrix4fvARB || !R_PathtracingIsSupportedByGL())
+	if (!qglUseProgramObjectARB || !R_PathtracingIsSupportedByGL())
 	{
 		PrintMissingGLFeaturesMessageAndDisablePathtracing();
 		return;
 	}
 	
 	qglUseProgramObjectARB(0);
-	qglActiveTextureARB(GL_TEXTURE2_ARB);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	qglActiveTextureARB(GL_TEXTURE3_ARB);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	qglActiveTextureARB(GL_TEXTURE4_ARB);
-	glBindTexture(GL_TEXTURE_BUFFER, 0);
-	qglActiveTextureARB(GL_TEXTURE5_ARB);
-	glBindTexture(GL_TEXTURE_BUFFER, 0);
-	qglActiveTextureARB(GL_TEXTURE6_ARB);
-	glBindTexture(GL_TEXTURE_BUFFER, 0);
-	qglActiveTextureARB(GL_TEXTURE7_ARB);
-	glBindTexture(GL_TEXTURE_BUFFER, 0);
-	qglActiveTextureARB(GL_TEXTURE8_ARB);
-	glBindTexture(GL_TEXTURE_BUFFER, 0);
-	qglActiveTextureARB(GL_TEXTURE9_ARB);
-	glBindTexture(GL_TEXTURE_BUFFER, 0);
-	qglActiveTextureARB(GL_TEXTURE10_ARB);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	qglActiveTextureARB(GL_TEXTURE0_ARB);
 }
 
 static void
@@ -2102,6 +2063,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	qglUniform1fARB(pt_ao_radius_loc, gl_pt_ao_radius->value);
 	qglUniform3fARB(pt_ao_color_loc, gl_pt_ao_color->value, gl_pt_ao_color->value, gl_pt_ao_color->value);
 	qglUniform1fARB(pt_bounce_factor_loc, gl_pt_bounce_factor->value);
+	qglUniform1iARB(pt_frame_counter_loc, r_framecount);	
 	qglUseProgramObjectARB(0);
 		
 	/* Print the stats if necessary. */
@@ -2473,7 +2435,25 @@ R_PreparePathtracer(void)
 	pt_dynamic_triangles_offset = pt_num_triangles;
 	pt_dynamic_entitylights_offset = pt_num_entitylights;
 	pt_dynamic_lights_offset = pt_num_lights;
-	
+		
+	qglActiveTextureARB(GL_TEXTURE2_ARB);
+	glBindTexture(GL_TEXTURE_2D, pt_node_texture);
+	qglActiveTextureARB(GL_TEXTURE3_ARB);
+	glBindTexture(GL_TEXTURE_2D, pt_child_texture);
+	qglActiveTextureARB(GL_TEXTURE4_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, pt_node0_texture);
+	qglActiveTextureARB(GL_TEXTURE5_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, pt_node1_texture);
+	qglActiveTextureARB(GL_TEXTURE6_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, pt_vertex_texture);
+	qglActiveTextureARB(GL_TEXTURE7_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, pt_triangle_texture);
+	qglActiveTextureARB(GL_TEXTURE8_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, pt_trilights_texture);
+	qglActiveTextureARB(GL_TEXTURE9_ARB);
+	glBindTexture(GL_TEXTURE_BUFFER, pt_lightref_texture);
+	qglActiveTextureARB(GL_TEXTURE10_ARB);
+	glBindTexture(GL_TEXTURE_2D, pt_bsp_lightref_texture);
 	qglActiveTextureARB(GL_TEXTURE11_ARB);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, pt_rand_texture);
 	qglActiveTextureARB(GL_TEXTURE0_ARB);
@@ -2714,6 +2694,31 @@ R_InitPathtracing(void)
 void
 R_ShutdownPathtracing(void)
 {
+	if (qglActiveTextureARB)
+	{
+		qglActiveTextureARB(GL_TEXTURE2_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE3_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE4_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE5_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE6_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE7_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE8_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE9_ARB);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		qglActiveTextureARB(GL_TEXTURE10_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		qglActiveTextureARB(GL_TEXTURE11_ARB);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+		qglActiveTextureARB(GL_TEXTURE0_ARB);
+	}
+	
 	Cmd_RemoveCommand("gl_pt_recompile_shaders");
 	Cmd_RemoveCommand("gl_pt_print_static_info");
 

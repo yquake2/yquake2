@@ -566,9 +566,6 @@ R_DrawAlphaSurfaces(void)
 	{
 		R_ClearGLStateForPathtracing();
 		
-		if (qglActiveTextureARB)
-			qglActiveTextureARB(GL_TEXTURE0_ARB);
-
 		/* Restore the blending state. */
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
@@ -1061,9 +1058,6 @@ R_DrawBrushModel(entity_t *e)
 		e->angles[2] = -e->angles[2];
 		
 		R_SetGLStateForPathtracing(entity_to_world_matrix);
-
-		if (qglActiveTextureARB)
-			qglActiveTextureARB(GL_TEXTURE1_ARB);
 	}
 	
 	R_DrawInlineBModel();
@@ -1071,9 +1065,6 @@ R_DrawBrushModel(entity_t *e)
 	if (gl_pt_enable->value)
 	{
 		R_ClearGLStateForPathtracing();
-		
-		if (qglActiveTextureARB)
-			qglActiveTextureARB(GL_TEXTURE1_ARB);
 	}
 	
 	R_EnableMultitexture(false);
@@ -1323,12 +1314,7 @@ R_DrawWorld(void)
 	R_DrawTextureChains();
 
 	if (gl_pt_enable->value)
-	{
 		R_ClearGLStateForPathtracing();
-		
-		if (qglActiveTextureARB)
-			qglActiveTextureARB(GL_TEXTURE0_ARB);
-	}
 
 	R_BlendLightmaps();
 	R_DrawSkyBox();

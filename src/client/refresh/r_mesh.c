@@ -941,12 +941,7 @@ R_DrawAliasModel(entity_t *e)
 	R_DrawAliasFrameLerp(paliashdr, currententity->backlerp);
 
 	if (gl_pt_enable->value)
-	{
 		R_ClearGLStateForPathtracing();
-
-		if (qglActiveTextureARB)
-			qglActiveTextureARB(GL_TEXTURE0_ARB);
-	}
 	
 	R_TexEnv(GL_REPLACE);
 	glShadeModel(GL_FLAT);
