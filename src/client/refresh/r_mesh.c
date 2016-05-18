@@ -110,7 +110,8 @@ SetNormalForPathtracer(float* p0, float* p1, float *p2)
 	}
 
 	/* Set the normal. */
-	qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, n[0], n[1], n[2]);
+	if (qglMultiTexCoord3fARB)
+		qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, n[0], n[1], n[2]);
 }
 
 /*
@@ -933,7 +934,8 @@ R_DrawAliasModel(entity_t *e)
 		R_SetGLStateForPathtracing(entity_to_world_matrix);
 		
 		/* Assume that alias models never need to be treated as direct light-emitters. */
-		qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
+		if (qglMultiTexCoord3fARB)
+			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
 	}
 	
 	R_DrawAliasFrameLerp(paliashdr, currententity->backlerp);
@@ -941,7 +943,9 @@ R_DrawAliasModel(entity_t *e)
 	if (gl_pt_enable->value)
 	{
 		R_ClearGLStateForPathtracing();
-		qglActiveTextureARB(GL_TEXTURE0_ARB);
+
+		if (qglActiveTextureARB)
+			qglActiveTextureARB(GL_TEXTURE0_ARB);
 	}
 	
 	R_TexEnv(GL_REPLACE);

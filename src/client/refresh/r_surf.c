@@ -382,7 +382,7 @@ R_RenderBrushPoly(msurface_t *fa)
 
 	image = R_TextureAnimation(fa->texinfo);
 
-	if (gl_pt_enable->value)
+	if (gl_pt_enable->value && qglMultiTexCoord3fARB)
 	{
 		if (fa->flags & SURF_PLANEBACK)
 			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, -fa->plane->normal[0], -fa->plane->normal[1], -fa->plane->normal[2]);
@@ -535,7 +535,7 @@ R_DrawAlphaSurfaces(void)
 			glColor4f(intens, intens, intens, 1);
 		}
 
-		if (gl_pt_enable->value)
+		if (gl_pt_enable->value && qglMultiTexCoord3fARB)
 		{
 			if (s->flags & SURF_PLANEBACK)
 				qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, -s->plane->normal[0], -s->plane->normal[1], -s->plane->normal[2]);
@@ -565,7 +565,9 @@ R_DrawAlphaSurfaces(void)
 	if (gl_pt_enable->value)
 	{
 		R_ClearGLStateForPathtracing();
-		qglActiveTextureARB(GL_TEXTURE0_ARB);
+		
+		if (qglActiveTextureARB)
+			qglActiveTextureARB(GL_TEXTURE0_ARB);
 
 		/* Restore the blending state. */
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -680,7 +682,7 @@ R_RenderLightmappedPoly(msurface_t *surf)
 	unsigned lmtex = surf->lightmaptexturenum;
 	glpoly_t *p;
 
-	if (gl_pt_enable->value)
+	if (gl_pt_enable->value && qglMultiTexCoord3fARB)
 	{
 		if (surf->flags & SURF_PLANEBACK)
 			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, -surf->plane->normal[0], -surf->plane->normal[1], -surf->plane->normal[2]);
@@ -1060,7 +1062,8 @@ R_DrawBrushModel(entity_t *e)
 		
 		R_SetGLStateForPathtracing(entity_to_world_matrix);
 
-		qglActiveTextureARB(GL_TEXTURE1_ARB);
+		if (qglActiveTextureARB)
+			qglActiveTextureARB(GL_TEXTURE1_ARB);
 	}
 	
 	R_DrawInlineBModel();
@@ -1068,7 +1071,9 @@ R_DrawBrushModel(entity_t *e)
 	if (gl_pt_enable->value)
 	{
 		R_ClearGLStateForPathtracing();
-		qglActiveTextureARB(GL_TEXTURE1_ARB);
+		
+		if (qglActiveTextureARB)
+			qglActiveTextureARB(GL_TEXTURE1_ARB);
 	}
 	
 	R_EnableMultitexture(false);
@@ -1320,7 +1325,9 @@ R_DrawWorld(void)
 	if (gl_pt_enable->value)
 	{
 		R_ClearGLStateForPathtracing();
-		qglActiveTextureARB(GL_TEXTURE0_ARB);
+		
+		if (qglActiveTextureARB)
+			qglActiveTextureARB(GL_TEXTURE0_ARB);
 	}
 
 	R_BlendLightmaps();
