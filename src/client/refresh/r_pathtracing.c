@@ -167,11 +167,7 @@ static int pt_vertex_stride = 0;
 qboolean
 R_PathtracingIsSupportedByGL(void)
 {
-	qboolean tbo_rgb = R_VersionOfGLIsGreaterThanOrEqualTo(4, 0) || gl_config.texture_buffer_objects_rgb;
-	
-	return R_VersionOfGLIsGreaterThanOrEqualTo(3, 3) || (gl_config.shaders &&
-				gl_config.vertex_shaders && gl_config.fragment_shaders && gl_config.float_textures &&
-				gl_config.texture_buffer_objects && tbo_rgb && gl_config.texture_rg);
+	return R_VersionOfGLIsGreaterThanOrEqualTo(3, 3);
 }
 
 static void
