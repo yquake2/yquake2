@@ -342,12 +342,13 @@ now ready.
 
 3.6 Compiling
 -------------
-Compiling Yamagi Quake II from source is unnecessary as long as you will not
-use the github version or want to develop on OS X. If you really want to
-compile Yamagi Quake II by yourself follow these steps:
+If you want to compile Yamagi Quake II on OS X follow these steps:
 
 1. Make sure that you've installed XCode with the "Unix Develoment Tools".
    Depending on your OS X version the name of these can be different.
+   At least on OS X 10.11 El Capitan it should be sufficient to enter "clang" in a
+   Terminal to be prompted for installation of the commandline development tools;
+   full XCode is not needed there.
 2. Install dependencies using Homebrew (http://brew.sh). Once you have Homebrew
    installed, run the following commands from the terminal to install dependencies:
    brew install sdl2 --universal
