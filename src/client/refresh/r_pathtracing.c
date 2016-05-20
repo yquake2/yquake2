@@ -1,8 +1,8 @@
 #include "header/local.h"
 
-#define PT_MAX_TRI_NODES					8192
-#define PT_MAX_TRIANGLES					8192
-#define PT_MAX_VERTICES						8192
+#define PT_MAX_TRI_NODES					16384
+#define PT_MAX_TRIANGLES					16384
+#define PT_MAX_VERTICES						16384
 #define PT_MAX_NODE_CHILDREN				4
 #define PT_MAX_NODE_DEPTH					4
 #define PT_MAX_TRI_LIGHTS					8192
