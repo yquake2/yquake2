@@ -88,7 +88,7 @@ bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist)
 
 				vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;
 				vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;
-				vec3 p2 = texelFetch(edge0, tri.y).xyz;
+				vec3 p2 = texelFetch(edge0, tri.y & 0xffff).xyz;
 
 				vec3 n = cross(p1 - p0, p2 - p0);
 				float t = dot(p0 - ro, n) / dot(rd, n);

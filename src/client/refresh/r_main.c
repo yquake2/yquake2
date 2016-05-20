@@ -1034,6 +1034,7 @@ R_RenderView(refdef_t *fd)
 	if (gl_pt_enable->value)
 	{
 		R_UpdatePathtracerForCurrentFrame();
+		R_DrawPathtracerDepthPrePass();
 	}
 	
 	R_DrawWorld();

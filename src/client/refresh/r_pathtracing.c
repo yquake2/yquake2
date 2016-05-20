@@ -38,6 +38,7 @@ static cvar_t *gl_pt_aliasmodel_shadows_enable;
 static cvar_t *gl_pt_bounce_factor;
 static cvar_t *gl_pt_diffuse_map_enable;
 static cvar_t *gl_pt_static_entity_lights_enable;
+static cvar_t *gl_pt_depth_prepass_enable;
 
 	
 static GLhandleARB pt_program_handle;
@@ -146,13 +147,15 @@ static int pt_num_trilight_references = 0;
 static short pt_num_entitylights = 0;
 static short pt_num_clusters = 0;
 static short pt_num_used_nonstatic_lightstyles = 0;
+static short pt_num_shadow_triangles = 0;
+static short pt_weapon_entity_triangles_offset = 0;
 
 static short pt_dynamic_vertices_offset = 0;
 static short pt_dynamic_triangles_offset = 0;
 static short pt_dynamic_entitylights_offset = 0;
 static short pt_dynamic_lights_offset = 0;
 
-static int pt_triangle_data[PT_MAX_TRIANGLES * 2];
+static int pt_triangle_data[(PT_MAX_TRIANGLES + 1) * 2];
 static int pt_node0_data[PT_MAX_TRI_NODES * 4];
 static int pt_node1_data[PT_MAX_TRI_NODES * 4];
 static float pt_vertex_data[PT_MAX_VERTICES * 4];
@@ -203,7 +206,9 @@ ClearPathtracerState(void)
 	pt_num_entitylights = 0;
 	pt_num_clusters = 0;
 	pt_num_used_nonstatic_lightstyles = 0;
-
+	pt_num_shadow_triangles = 0;
+	pt_weapon_entity_triangles_offset = 0;
+	
 	pt_dynamic_vertices_offset = 0;
 	pt_dynamic_triangles_offset = 0;
 	pt_dynamic_entitylights_offset = 0;
@@ -1648,41 +1653,71 @@ BuildClusterListForEntityLight(entitylight_t *entity)
 }
 
 static void
+AddSingleEntity(entity_t *entity)
+{
+	model_t *model = entity->model;
+	
+	if (!model)
+		return;
+	
+	switch (model->type)
+	{
+		case mod_alias:
+			if (gl_pt_aliasmodel_shadows_enable->value)
+				AddAliasModel(entity, model);
+			break;
+		case mod_brush:
+			if (gl_pt_brushmodel_shadows_enable->value)
+				AddBrushModel(entity, model);
+			break;
+		case mod_sprite:
+			break;
+		default:
+			VID_Error(ERR_DROP, "Bad modeltype");
+			break;
+	}
+}
+
+static void
 AddEntities(void)
 {
 	int i;
-	entity_t *entity;
-	model_t *model;
+	entity_t *entity, *weapon_entity;
+	
+	weapon_entity = NULL;
 	
 	for (i = 0; i < r_newrefdef.num_entities; i++)
 	{
 		entity = &r_newrefdef.entities[i];
+				
+		/* When the depth pre-pass is enabled, the weapon entity is added last because
+			it needs to be drawn with a reduced depth range. */
+		if (gl_pt_depth_prepass_enable->value && (entity->flags & RF_WEAPONMODEL) && (entity->flags & RF_DEPTHHACK))
+		{
+			weapon_entity = entity;
+			continue;
+		}
 		
 		if (!(entity->flags & RF_WEAPONMODEL) && (entity->flags & (RF_FULLBRIGHT | RF_DEPTHHACK | RF_TRANSLUCENT | RF_BEAM | RF_NOSHADOW | RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM)))
 			continue;
-		
-		model = entity->model;
-		
-		if (!model)
-			continue;
-		
-		switch (model->type)
-		{
-			case mod_alias:
-				if (gl_pt_aliasmodel_shadows_enable->value)
-					AddAliasModel(entity, model);
-				break;
-			case mod_brush:
-				if (gl_pt_brushmodel_shadows_enable->value)
-					AddBrushModel(entity, model);
-				break;
-			case mod_sprite:
-				break;
-			default:
-				VID_Error(ERR_DROP, "Bad modeltype");
-				break;
-		}
+
+		AddSingleEntity(entity);
 	}
+	
+	pt_weapon_entity_triangles_offset = pt_num_triangles;
+	
+	/* Now add the weapon entity if it needs to be separated. */
+	if (weapon_entity)
+		AddSingleEntity(weapon_entity);
+}
+
+static void
+BindBuffer(GLenum target, GLuint buffer)
+{
+	if (qglBindBufferARB)
+		qglBindBufferARB(target, buffer);
+	else if (qglBindBuffer)
+		qglBindBuffer(target, buffer);
 }
 
 static void
@@ -1690,30 +1725,21 @@ UploadTextureBufferData(GLuint buffer, void *data, GLintptr offset, GLsizeiptr s
 {
 	if (size == 0)
 		return;
-	
-	if (qglBindBufferARB)
-		qglBindBufferARB(GL_TEXTURE_BUFFER, buffer);
-	else if (qglBindBuffer)
-		qglBindBuffer(GL_TEXTURE_BUFFER, buffer);
+
+	BindBuffer(GL_TEXTURE_BUFFER, buffer);
 	
 	if (qglBufferSubDataARB)	
 		qglBufferSubDataARB(GL_TEXTURE_BUFFER, offset, size, data);
 	else
 		qglBufferSubData(GL_TEXTURE_BUFFER, offset, size, data);
 	
-	if (qglBindBufferARB)
-		qglBindBufferARB(GL_TEXTURE_BUFFER, 0);
-	else if (qglBindBuffer)
-		qglBindBuffer(GL_TEXTURE_BUFFER, 0);
+	BindBuffer(GL_TEXTURE_BUFFER, 0);
 }
 
 static void *
 MapTextureBufferRange(GLuint buffer, GLint offset, GLsizei length)
 {
-	if (qglBindBufferARB)
-		qglBindBufferARB(GL_TEXTURE_BUFFER, buffer);
-	else if (qglBindBuffer)
-		qglBindBuffer(GL_TEXTURE_BUFFER, buffer);
+	BindBuffer(GL_TEXTURE_BUFFER, buffer);
 	
 	if (qglMapBufferRange)
 		return qglMapBufferRange(GL_TEXTURE_BUFFER, offset, length, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
@@ -1724,10 +1750,7 @@ MapTextureBufferRange(GLuint buffer, GLint offset, GLsizei length)
 static void *
 MapTextureBuffer(GLuint buffer, GLenum access)
 {
-	if (qglBindBufferARB)
-		qglBindBufferARB(GL_TEXTURE_BUFFER, buffer);
-	else if (qglBindBuffer)
-		qglBindBuffer(GL_TEXTURE_BUFFER, buffer);
+	BindBuffer(GL_TEXTURE_BUFFER, buffer);
 	
 	if (qglMapBufferARB)
 		return qglMapBufferARB(GL_TEXTURE_BUFFER, access);
@@ -1744,11 +1767,8 @@ UnmapTextureBuffer()
 		qglUnmapBufferARB(GL_TEXTURE_BUFFER);
 	else if (qglUnmapBuffer)
 		qglUnmapBuffer(GL_TEXTURE_BUFFER);
-	
-	if (qglBindBufferARB)
-		qglBindBufferARB(GL_TEXTURE_BUFFER, 0);
-	else if (qglBindBuffer)
-		qglBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+	BindBuffer(GL_TEXTURE_BUFFER, 0);
 }
 
 static void
@@ -1789,6 +1809,46 @@ AddDLights(void)
 		AddPointLight(entity);
 		BuildClusterListForEntityLight(entity);
 	}
+}
+
+void
+R_DrawPathtracerDepthPrePass(void)
+{
+	int element_count;
+	
+	if (!gl_pt_depth_prepass_enable->value || !pt_vertex_buffer || !pt_triangle_buffer || pt_num_shadow_triangles == 0)
+		return;
+		
+	glPolygonOffset(2, 4);
+	glEnable(GL_POLYGON_OFFSET_FILL);
+	BindBuffer(GL_ARRAY_BUFFER, pt_vertex_buffer);
+	BindBuffer(GL_ELEMENT_ARRAY_BUFFER, pt_triangle_buffer);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, NULL);
+
+	element_count = (pt_weapon_entity_triangles_offset - pt_dynamic_triangles_offset) * 4;
+
+	/* Adjust the weapon entity triangles offset so that it starts at the first index of a triangle. */
+	
+	switch (element_count % 3)
+	{
+		case 1:
+			element_count -= 1;
+			break;
+
+		case 2:
+			element_count += 1;
+			break;
+	}
+			
+	glDrawElements(GL_TRIANGLES, element_count, GL_UNSIGNED_SHORT, (byte*)0 + pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]));
+	
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	BindBuffer(GL_ARRAY_BUFFER, 0);
+	BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
 void
@@ -1858,9 +1918,47 @@ R_UpdatePathtracerForCurrentFrame(void)
 	pt_num_lights = pt_dynamic_lights_offset;
 	pt_written_nodes = 0;
 	pt_previous_node = -1;
+	pt_num_shadow_triangles = 0;
+	pt_weapon_entity_triangles_offset = pt_num_triangles;
 
 	/* Add dynamic shadow-casting entity geometry. */	
 	AddEntities();
+	
+	if (gl_pt_depth_prepass_enable->value)
+	{
+		/* To allow the triangle data to be used directly as an element array buffer object, the unused
+			elements are over-written with duplicates of other elements. This is done because the stride for element
+			drawing is 3 elements whereas the stride for the TBO is 4 elements (each element is 16 bits). */
+		
+		pt_num_shadow_triangles = pt_num_triangles - pt_dynamic_triangles_offset;
+		
+		if ((pt_num_shadow_triangles - 1) % 3 == 0)
+		{
+			/* The final element will have an element past the end of the triangle list added to it, so that
+				element must be cleared to avoid introducing garbage data. */
+			pt_triangle_data[pt_num_triangles * 2 + 0] = 0;
+			pt_triangle_data[pt_num_triangles * 2 + 1] = 0;
+		}
+
+		/* Populate the unused elements. */
+		for (i = pt_dynamic_triangles_offset; i < pt_num_triangles; ++i)
+		{
+			switch ((i - pt_dynamic_triangles_offset) % 3)
+			{
+				case 0:
+					pt_triangle_data[i * 2 + 1] |= (pt_triangle_data[(i + 1) * 2 + 1] & 0xffff) << 16;
+					break;
+
+				case 1:
+					pt_triangle_data[i * 2 + 1] |= (pt_triangle_data[i * 2 + 1] & 0xffff) << 16;
+					break;
+
+				case 2:
+					pt_triangle_data[i * 2 + 1] |= (pt_triangle_data[i * 2 + 0] & 0xffff) << 16;
+					break;
+			}			
+		}
+	}
 	
 	if (gl_pt_dlights_enable->value)
 	{
@@ -2090,10 +2188,7 @@ CreateTextureBuffer(GLuint *buffer, GLuint *texture, GLenum format, GLsizei size
 	
 	glGenTextures(1, texture);
 	
-	if (qglBindBufferARB)
-		qglBindBufferARB(GL_TEXTURE_BUFFER, *buffer);
-	else if (qglBindBuffer)
-		qglBindBuffer(GL_TEXTURE_BUFFER, *buffer);
+	BindBuffer(GL_TEXTURE_BUFFER, *buffer);
 	
 	if (qglBufferDataARB)
 		qglBufferDataARB(GL_TEXTURE_BUFFER, size, NULL, GL_DYNAMIC_DRAW_ARB);
@@ -2109,10 +2204,7 @@ CreateTextureBuffer(GLuint *buffer, GLuint *texture, GLenum format, GLsizei size
 	else if (qglTexBuffer)
 		qglTexBuffer(GL_TEXTURE_BUFFER, format, *buffer);
 		
-	if (qglBindBufferARB)
-		qglBindBufferARB(GL_TEXTURE_BUFFER, 0);
-	else if (qglBindBuffer)
-		qglBindBuffer(GL_TEXTURE_BUFFER, 0);
+	BindBuffer(GL_TEXTURE_BUFFER, 0);
 	
 	glBindTexture(GL_TEXTURE_BUFFER, 0);
 }
@@ -2411,6 +2503,8 @@ R_PreparePathtracer(void)
 	pt_num_trilight_references = 0;
 	pt_num_entitylights = 0;
 	pt_num_clusters = 0;
+	pt_num_shadow_triangles = 0;
+	pt_weapon_entity_triangles_offset = 0;
 
 	if (gl_pt_static_entity_lights_enable->value)
 		ParseStaticEntityLights(Mod_EntityString());
@@ -2673,6 +2767,7 @@ R_InitPathtracing(void)
 	GET_PT_CVAR(gl_pt_bounce_factor, "0.75")
 	GET_PT_CVAR(gl_pt_diffuse_map_enable, "1")
 	GET_PT_CVAR(gl_pt_static_entity_lights_enable, "1")
+	GET_PT_CVAR(gl_pt_depth_prepass_enable, "1")
 #undef CVAR
 
 	Cmd_AddCommand("gl_pt_recompile_shaders", RecompileShaderPrograms);
