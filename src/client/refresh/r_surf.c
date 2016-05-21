@@ -276,7 +276,7 @@ R_BlendLightmaps(void)
 	}
 
 	/* render dynamic lightmaps */
-	if (gl_dynamic->value)
+	if (gl_dynamic->value && !gl_pt_enable->value)
 	{
 		LM_InitBlock();
 
@@ -450,7 +450,7 @@ R_RenderBrushPoly(msurface_t *fa)
 		}
 	}
 
-	if (is_dynamic)
+	if (is_dynamic && !gl_pt_enable->value)
 	{
 		if (((fa->styles[maps] >= 32) ||
 			 (fa->styles[maps] == 0)) &&
@@ -715,7 +715,7 @@ R_RenderLightmappedPoly(msurface_t *surf)
 		}
 	}
 
-	if (is_dynamic)
+	if (is_dynamic && !gl_pt_enable->value)
 	{
 		unsigned temp[128 * 128];
 		int smax, tmax;
