@@ -316,21 +316,23 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 
 void main()
 {
+	vec4 pln;
+
 	gl_FragColor = vec4(0);
 
 	vec3 rp = texcoords[1].xyz + texcoords[3].xyz * EPS * 16;
 
-	out_pln.xyz = texcoords[3].xyz;
-	out_pln.w = dot(rp, out_pln.xyz);
+	pln.xyz = texcoords[3].xyz;
+	pln.w = dot(rp, pln.xyz);
 
 	int rpli = getLightRef(rp).x;
-	vec3 r = sampleDirectLight(rp, out_pln.xyz, rpli);
+	vec3 r = sampleDirectLight(rp, pln.xyz, rpli);
 	
 	r += texcoords[4].rgb;
 
 #if NUM_BOUNCES > 0 || NUM_AO_SAMPLES > 0 || NUM_SKY_SAMPLES > 0
-	vec3 u = normalize(cross(out_pln.xyz, out_pln.zxy));
-	vec3 v = cross(out_pln.xyz, u);
+	vec3 u = normalize(cross(pln.xyz, pln.zxy));
+	vec3 v = cross(pln.xyz, u);
 #endif
 	
 #if NUM_AO_SAMPLES > 0
@@ -343,7 +345,7 @@ void main()
 			float r1 = 2.0 * PI * rr.x;
 			float r2s = sqrt(rr.y);
 
-			vec3 rd = u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - rr.y);
+			vec3 rd = u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y);
 				
 			if (traceRayShadowBSP(rp, rd, EPS * 16, ao_radius) && traceRayShadowTri(rp, rd, ao_radius))
 				ao += 1.0;
@@ -355,7 +357,6 @@ void main()
 #if NUM_BOUNCES > 0 || NUM_SKY_SAMPLES > 0
 
 	vec3 sp, rd;
-	vec4 pln;
 	float t;
 
 #if NUM_BOUNCES == 0
@@ -367,9 +368,7 @@ void main()
 		float r1 = 2.0 * PI * rr.x;
 		float r2s = sqrt(rr.y);
 		
-		rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - rr.y));
-
-		pln = out_pln;
+		rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y));
 
 		t = traceRayBSP(rp, rd, EPS * 16, 2048.0) - 1.0;
 
@@ -383,7 +382,9 @@ void main()
 	if (traceRayShadowTri(rp, rd, t))
 	{
 		int li = getLightRef(sp).x;
+		pln = out_pln;
 		r += bounce_factor * sampleDirectLight(sp, out_pln.xyz, li);
+		out_pln = pln;
 	}
 #endif
 
@@ -477,7 +478,9 @@ void main()
 			
 			factor *= bounce_factor;
 			int li = getLightRef(rp).x;
+			pln = out_pln;
 			r += factor * sampleDirectLight(rp, out_pln.xyz, li);
+			out_pln = pln;
 			
 #if NUM_BOUNCES > 2
 			u = normalize(cross(out_pln.xyz, out_pln.zxy));
