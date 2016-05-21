@@ -15,6 +15,7 @@
 #define PT_MAX_CLUSTER_DLIGHTS			16
 #define PT_NUM_ENTITY_TRILIGHTS			4
 #define PT_NUM_ENTITY_VERTICES			4
+#define PT_MAX_CLUSTER_SIZE				2048.0
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -136,6 +137,7 @@ static entitylight_t pt_entitylights[PT_MAX_ENTITY_LIGHTS];
 static short pt_lightstyle_sublists[MAX_LIGHTSTYLES];
 static short pt_lightstyle_sublist_lengths[MAX_LIGHTSTYLES];
 static vec3_t pt_cached_lightstyles[MAX_LIGHTSTYLES];
+static float pt_cluster_bounding_boxes[PT_MAX_CLUSTERS * 6];
 
 static short pt_num_nodes = 0;
 static short pt_num_triangles = 0;
@@ -1619,7 +1621,7 @@ BuildClusterListForEntityLight(entitylight_t *entity)
 			
 			if (leaf->cluster == -1 || leaf->cluster >= PT_MAX_CLUSTERS)
 				continue;
-			
+						
 			already_listed = false;
 			
 			for (i = 0; i < num_clusters; ++i)
@@ -1863,7 +1865,10 @@ R_UpdatePathtracerForCurrentFrame(void)
 	byte *vis;
 	float* cached;
 	int start_ms = 0, end_ms = 0, refresh_ms = 0, ms = 0;
-	
+	float max_component, influence_box_size;
+	float *box;
+					
+
 	if (!R_PathtracingIsSupportedByGL())
 	{
 		PrintMissingGLFeaturesMessageAndDisablePathtracing();
@@ -2107,7 +2112,10 @@ R_UpdatePathtracerForCurrentFrame(void)
 				for (i = pt_dynamic_entitylights_offset; i < pt_num_entitylights; ++i)
 				{
 					entity = pt_entitylights + i;
-					
+
+					max_component = MAX(entity->color[0], MAX(entity->color[1], entity->color[2])) * entity->intensity;
+					influence_box_size = sqrt(max_component / 5e-2);
+				
 					for (j = 0; j < PT_MAX_ENTITY_LIGHT_CLUSTERS; ++j)
 					{
 						cluster = entity->clusters[j];
@@ -2127,7 +2135,16 @@ R_UpdatePathtracerForCurrentFrame(void)
 							/* If this cluster is visible then update it's reference list. */
 							
 							if (vis[other_cluster >> 3] & (1 << (other_cluster & 7)))
-							{
+							{	
+								/* If the entity light would have too little influence in this cluster due to attenuation, then skip it. */
+								
+								box = pt_cluster_bounding_boxes + other_cluster * 6;
+								
+								if (	box[0] > entity->origin[0] + influence_box_size || box[3] < entity->origin[0] - influence_box_size ||
+										box[1] > entity->origin[1] + influence_box_size || box[4] < entity->origin[1] - influence_box_size ||
+										box[2] > entity->origin[2] + influence_box_size || box[5] < entity->origin[2] - influence_box_size)
+										continue;
+
 								/* Locate the end of the list, where dynamic light references can be appended. */
 								
 								k = abs(pt_cluster_light_references[other_cluster * 2 + 0]);
@@ -2464,6 +2481,10 @@ ParseStaticEntityLights(char *entitystring)
 void
 R_PreparePathtracer(void)
 {
+	int i, j;
+	mleaf_t *leaf;
+	float *box;
+	
 	FreeModelData();
 	ClearLightStyleCache();
 	
@@ -2518,6 +2539,35 @@ R_PreparePathtracer(void)
 	AddStaticBSP();
 
 	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: Static BSP texture size is %dx%d\n", pt_bsp_texture_width, pt_bsp_texture_height);
+	
+	/* Reset the cluster bounding boxes. */
+	for (i = 0; i < PT_MAX_CLUSTERS * 6; i += 6)
+	{
+		for (j = 0; j < 3; ++j)
+		{
+			pt_cluster_bounding_boxes[i + j + 0] = +PT_MAX_CLUSTER_SIZE;
+			pt_cluster_bounding_boxes[i + j + 3] = -PT_MAX_CLUSTER_SIZE;
+		}
+	}
+	
+	/* Make the cluster bounding boxes by combining the leaf bounding boxes contained in each cluster. */
+	for (i = 0; i < r_worldmodel->numleafs; ++i)
+	{
+		leaf = r_worldmodel->leafs + i;
+		
+		if (leaf->cluster != -1)
+		{
+			box = pt_cluster_bounding_boxes + leaf->cluster * 6;
+			
+			for (j = 0; j < 3; ++j)
+			{
+				if (box[j + 0] > leaf->minmaxs[j + 0])
+					box[j + 0] = leaf->minmaxs[j + 0];
+				if (box[j + 3] < leaf->minmaxs[j + 3])
+					box[j + 3] = leaf->minmaxs[j + 3];
+			}
+		}
+	}
 	
 	UploadTextureBufferData(pt_trilights_buffer, pt_trilight_data, 0, pt_num_lights * 4 * sizeof(pt_trilight_data[0]));
 	UploadTextureBufferData(pt_lightref_buffer, pt_trilight_references, 0, pt_num_trilight_references * sizeof(pt_trilight_references[0]));
