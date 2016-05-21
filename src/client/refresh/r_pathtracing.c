@@ -2114,7 +2114,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 					entity = pt_entitylights + i;
 
 					max_component = MAX(entity->color[0], MAX(entity->color[1], entity->color[2])) * entity->intensity;
-					influence_box_size = sqrt(max_component / 5e-2);
+					influence_box_size = sqrt(max_component / 2e-2);
 				
 					for (j = 0; j < PT_MAX_ENTITY_LIGHT_CLUSTERS; ++j)
 					{
