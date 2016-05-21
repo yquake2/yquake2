@@ -112,59 +112,6 @@ bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist)
 	return true;
 }
 
-bool traceRayShadowBSP(vec3 org, vec3 dir, float t0, float max_t)
-{
-	vec2  other_node = vec2(0);
-	float other_t1 = max_t;
-
-	while (t0 < max_t)
-	{
-		vec2  node = other_node;
-		float t1 = other_t1;
-		
-		other_node = vec2(0);
-		other_t1 = max_t;
-
-		do
-		{
-			vec4 pln = texture(planes, node);
-			vec4 children = texture(branches, node);
-			
-			float t = dot(pln.xyz, dir);
-
-			children = (t > 0.0) ? children.zwxy : children.xyzw;
-
-			t = (pln.w - dot(pln.xyz, org)) / t;
-
-			if (t > t0)
-			{
-				node = children.xy;
-				
-				if (t < t1) 
-				{
-					other_t1 = t1;
-					t1 = t;
-					other_node = children.zw;
-				}
-			}
-			else
-			{
-				node = children.zw;
-			}
-			
-			if (node.y == 1.0)
-			{
-				 return false;
-			}
-			
-		} while (node != vec2(0.0));
-		
-		t0 = t1 + EPS;
-	}
-
-	return true;
-}
-
 float traceRayBSP(vec3 org, vec3 dir, float t0, float max_t)
 {
 	vec2  other_node = vec2(0);
@@ -221,6 +168,11 @@ float traceRayBSP(vec3 org, vec3 dir, float t0, float max_t)
 	}
 
 	return 1e8;
+}
+
+bool traceRayShadowBSP(vec3 org, vec3 dir, float t0, float max_t)
+{
+	return traceRayBSP(org, dir, t0, max_t) >= max_t;
 }
 
 ivec2 getLightRef(vec3 p)
@@ -377,8 +329,7 @@ void main()
 	r += texcoords[4].rgb;
 
 #if NUM_BOUNCES > 0 || NUM_AO_SAMPLES > 0 || NUM_SKY_SAMPLES > 0
-	vec3 b = vec3(out_pln.z, out_pln.x, out_pln.y);
-	vec3 u = normalize(cross(out_pln.xyz, b));
+	vec3 u = normalize(cross(out_pln.xyz, out_pln.zxy));
 	vec3 v = cross(out_pln.xyz, u);
 #endif
 	
@@ -514,7 +465,7 @@ void main()
 
 			vec3 rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + out_pln.xyz * sqrt(1.0 - rr.y));
 
-			float t = traceRayBSP(rp, rd, EPS * 16, 2048.0) - 1.0;
+			t = traceRayBSP(rp, rd, EPS * 16, 2048.0) - 1.0;
 
 			if (!traceRayShadowTri(rp, rd, t))
 				break;
@@ -529,8 +480,7 @@ void main()
 			r += factor * sampleDirectLight(rp, out_pln.xyz, li);
 			
 #if NUM_BOUNCES > 2
-			b = vec3(out_pln.z, out_pln.x, out_pln.y);
-			u = normalize(cross(out_pln.xyz, b));
+			u = normalize(cross(out_pln.xyz, out_pln.zxy));
 			v = cross(out_pln.xyz, u);
 #endif
 		}
