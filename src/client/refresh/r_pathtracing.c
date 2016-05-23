@@ -1818,7 +1818,7 @@ R_DrawPathtracerDepthPrePass(void)
 {
 	int element_count;
 	
-	if (!gl_pt_depth_prepass_enable->value || !pt_vertex_buffer || !pt_triangle_buffer || pt_num_shadow_triangles == 0)
+	if (!gl_pt_depth_prepass_enable->value || !pt_vertex_buffer || !pt_triangle_buffer || pt_num_shadow_triangles == 0 || !gl_drawentities->value)
 		return;
 		
 	glPolygonOffset(2, 4);
