@@ -409,22 +409,24 @@ void main()
 						vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;
 						vec3 p2 = texelFetch(edge0, tri.y).xyz;
 						
-						vec3 n = normalize(cross(p2 - p0, p1 - p0));
+						vec3 n = normalize(cross(p1 - p0, p2 - p0));
 						
 						vec3 sp2 = sp;
 						
-						if (dot(light.rgb, vec3(1)) < 0.0)
-						{
-							vec3 mirror = normalize(cross(p2 - p1, n));
-							sp2 -= 2.0 * mirror * dot(sp2 - p1, mirror);
-						}
-						
-						float s0 = dot(cross(p0 - sp2, p1 - sp2), n);
 						float s1 = dot(cross(p1 - sp2, p2 - sp2), n);
+
+						if (dot(light.rgb, vec3(1)) < 0.0 && s1 < 0.0)
+						{
+							s1 *= -1.0;
+							vec3 mirror = normalize(p2 - p1);
+							sp2 -= 2.0 * mirror * dot(sp2 - (p1 + p2) * 0.5, mirror);
+						}
+
+						float s0 = dot(cross(p0 - sp2, p1 - sp2), n);
 						float s2 = dot(cross(p2 - sp2, p0 - sp2), n);
 
-						if (s0 < 0.0 && s1 < 0.0 && s2 < 0.0 && abs(dot(n, sp2 - p0)) < 1.0)
-							sky_r += light.rgb;
+						if (s0 > 0.0 && s1 > 0.0 && s2 > 0.0 && abs(dot(n, sp2 - p0)) < 1.0)
+							sky_r += abs(light.rgb);
 						
 						++li;
 						ref = texelFetch(lightrefs, li).r;
