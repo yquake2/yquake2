@@ -3051,7 +3051,7 @@ R_InitPathtracing(void)
 	GET_PT_CVAR(gl_pt_diffuse_map_enable, "1")
 	GET_PT_CVAR(gl_pt_static_entity_lights_enable, "1")
 	GET_PT_CVAR(gl_pt_depth_prepass_enable, "1")
-#undef CVAR
+#undef GET_PT_CVAR
 
 	Cmd_AddCommand("gl_pt_recompile_shaders", RecompileShaderPrograms);
 	Cmd_AddCommand("gl_pt_print_static_info", PrintStaticInfo);
