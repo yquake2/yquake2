@@ -26,6 +26,8 @@
  * =======================================================================
  */
  
+#include <assert.h>
+ 
 #include "header/local.h"
 
 #define PT_MAX_TRI_NODES					16384
@@ -59,6 +61,12 @@
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+#ifdef PT_DEBUG_ASSERTIONS
+# define PT_ASSERT(x) assert(x)
+#else
+# define PT_ASSERT(x) (void)(x)
+#endif
 
 /*
  * Console variables
@@ -322,12 +330,16 @@ IntBitsToFloat(int x)
 static qboolean
 TriLightIsAnEntityLight(const trilight_t *light)
 {
+	PT_ASSERT(light != NULL);
 	return light->entity != NULL;
 }
 
 static qboolean
 TriLightIsASkyPortal(const trilight_t *light)
 {
+	PT_ASSERT(light != NULL);
+	PT_ASSERT(TriLightIsAnEntityLight(light) || light->surface != NULL);
+	PT_ASSERT(TriLightIsAnEntityLight(light) || light->surface->texinfo != NULL);
 	return !TriLightIsAnEntityLight(light) && (light->surface->texinfo->flags & SURF_SKY);
 }
 
@@ -337,6 +349,9 @@ LightSkyPortalAndStyleComparator(void const *a, void const *b)
 	trilight_t *la = (trilight_t*)a;
 	trilight_t *lb = (trilight_t*)b;
 	
+	PT_ASSERT(la->surface == NULL || la->surface->texinfo != NULL);
+	PT_ASSERT(lb->surface == NULL || lb->surface->texinfo != NULL);
+
 	int fa = (la->surface != NULL) ? (la->surface->texinfo->flags & SURF_SKY) : 0;
 	int fb = (lb->surface != NULL) ? (lb->surface->texinfo->flags & SURF_SKY) : 0;
 	
@@ -368,6 +383,8 @@ AddPointLight(entitylight_t *entity)
 	int poly_offset, j, k, light_index;
 	trilight_t *light;
 	
+	PT_ASSERT(entity != NULL);
+
 	/* Construct a tetrahedron. */
 	
 	poly_offset = pt_num_vertices;
@@ -421,6 +438,10 @@ PackTriLightData(short start, short end)
 	mtexinfo_t *texinfo;
 	trilight_t *light;
 
+	PT_ASSERT(start <= end);
+	PT_ASSERT(start >= 0);
+	PT_ASSERT(end >= 0);
+	
 	for (m = start; m < end; ++m)
 	{
 		light = pt_trilights + m;
@@ -519,6 +540,11 @@ AddStaticLights(void)
 				{
 					for (j = 0; j < 3; ++j)
 					{
+						PT_ASSERT(ind[k + 0] >= 0 && ind[k + 0] < pt_num_vertices);
+						PT_ASSERT(ind[k + 1] >= 0 && ind[k + 1] < pt_num_vertices);
+						PT_ASSERT(ind[k + 2] >= 0 && ind[k + 2] < pt_num_vertices);
+						PT_ASSERT(ind[k + 3] >= 0 && ind[k + 3] < pt_num_vertices);
+
 						x = pt_vertex_data[ind[k + 2] * pt_vertex_stride + j] + pt_vertex_data[ind[k] * pt_vertex_stride + j] - pt_vertex_data[ind[k + 1] * pt_vertex_stride + j];
 						if (abs(x - pt_vertex_data[ind[k + 3] * pt_vertex_stride + j]) > 0.25)
 							break;
@@ -550,6 +576,8 @@ AddStaticLights(void)
 													
 				/* Store the triangle data. */
 				
+				PT_ASSERT(parallelogram_reflection >= 0 && parallelogram_reflection < sizeof(ind) / sizeof(ind[0]));
+					
 				pt_triangle_data[light->triangle_index * 2 + 0] = ind[parallelogram_reflection] | (ind[parallelogram_reflection + 1] << 16);
 				pt_triangle_data[light->triangle_index * 2 + 1] = ind[parallelogram_reflection - 1];
 			}
@@ -694,6 +722,9 @@ AddStaticLights(void)
 			{
 				surf = leaf->firstmarksurface[k];
 				
+				PT_ASSERT(surf != NULL);
+				PT_ASSERT(light->surface != NULL);
+				
 				if (light->surface == surf)
 				{
 					/* Mark this light for inclusion in the reference list. */
@@ -740,6 +771,8 @@ AddStaticLights(void)
 						/* If this cluster is in the list of clusters that the light intersects then the light is visible. */
 						for (k = 0; k < PT_MAX_ENTITY_LIGHT_CLUSTERS; ++k)
 						{
+							PT_ASSERT(pt_trilights[m].entity != NULL);
+							
 							if (pt_trilights[m].entity->clusters[k] == cluster)
 							{
 								light_is_in_pvs = true;
@@ -757,7 +790,10 @@ AddStaticLights(void)
 						for (k = 0; k < other_leaf->nummarksurfaces; ++k)
 						{
 							surf = other_leaf->firstmarksurface[k];
-						
+
+							PT_ASSERT(surf != NULL);
+							PT_ASSERT(pt_trilights[m].surface != NULL);
+
 							if (pt_trilights[m].surface == surf)
 							{
 								light_is_in_pvs = true;
@@ -832,6 +868,7 @@ static void
 TriNodeClear(trinode_t *n)
 {
 	int i;
+	PT_ASSERT(n != NULL);
 	n->leaf = true;
 	n->triangle_index = 0;
 	for (i = 0; i < 3; ++i)
@@ -859,6 +896,7 @@ TriNodeCalculateSurfaceArea(const trinode_t *n)
 {
 	int i;
 	float aabb_size[3];
+	PT_ASSERT(n != NULL);
 	for (i = 0; i < 3; ++i)
 		aabb_size[i] = n->aabb_max[i] - n->aabb_min[i];
 	return (aabb_size[0] * aabb_size[1] + aabb_size[1] * aabb_size[2] + aabb_size[2] * aabb_size[0]) * 2;
@@ -869,6 +907,8 @@ TriNodeCalculateMortonCode(const trinode_t *n)
 {
 	int i;
 	
+	PT_ASSERT(n != NULL);
+
 	unsigned long int box_center[3] = { (unsigned long int)((n->aabb_min[0] + n->aabb_max[0]) / 2.0),
 													(unsigned long int)((n->aabb_min[1] + n->aabb_max[1]) / 2.0),
 													(unsigned long int)((n->aabb_min[2] + n->aabb_max[2]) / 2.0) };
@@ -887,6 +927,8 @@ TriNodeSurfaceAreaComparator(void const *a, void const *b)
 {
 	trinode_t *na = *(trinode_t**)a;
 	trinode_t *nb = *(trinode_t**)b;
+	PT_ASSERT(na != NULL);
+	PT_ASSERT(nb != NULL);
 	float sa = na->surface_area;
 	float sb = nb->surface_area;
 	return (int)(sb - sa);
@@ -897,6 +939,8 @@ TriNodeMortonCodeComparator(void const *a, void const *b)
 {
 	trinode_t *na = *(trinode_t**)a;
 	trinode_t *nb = *(trinode_t**)b;
+	PT_ASSERT(na != NULL);
+	PT_ASSERT(nb != NULL);
 	return (int)na->morton_code - (int)nb->morton_code;
 }
 
@@ -910,6 +954,8 @@ TriNodeWriteData(const trinode_t *n, int index)
 	int *n1 = pt_node1_data + index * 4;
 	int *pn0;
 	float aabb_size[3];
+
+	PT_ASSERT(n != NULL);
 
 	for (i = 0; i < 3; ++i)
 		aabb_size[i] = n->aabb_max[i] - n->aabb_min[i];
@@ -971,6 +1017,9 @@ WriteTriNodes(int first_node_index, int num_nodes)
 	int i, m;
 	int *pn0;
 	
+	PT_ASSERT(first_node_index >= 0);
+	PT_ASSERT(num_nodes >= 0);
+
 	for (i = 0; i < num_nodes; ++i)
 	{
 		m = TriNodeWriteData(pt_trinodes_ordered[first_node_index + i], pt_written_nodes);
@@ -990,6 +1039,8 @@ WriteTriNodes(int first_node_index, int num_nodes)
 static void
 DeleteBuffer(GLuint *h)
 {
+	PT_ASSERT(h != NULL);
+
 	if (*h)
 	{
 		if (qglDeleteBuffersARB)
@@ -1003,6 +1054,8 @@ DeleteBuffer(GLuint *h)
 static void
 DeleteTexture(GLuint *h)
 {
+	PT_ASSERT(h != NULL);
+
 	if (*h)
 	{
 		glDeleteTextures(1, h);
@@ -1074,6 +1127,8 @@ MatrixRotateAxis(float m[16], int axis, float angle)
 	float mt0[16];
 	float mt1[16];
 
+	PT_ASSERT(axis >= 0 && axis < 3);
+
 	memcpy(mt0, m, sizeof(mt0));
 	
 	MatrixIdentity(mt1);
@@ -1129,6 +1184,8 @@ MatrixScale(float m[16], float sx, float sy, float sz)
 void
 R_ConstructEntityToWorldMatrix(float m[16], entity_t *entity)
 {
+	PT_ASSERT(entity != NULL);
+	
 	MatrixIdentity(m);	
 	MatrixTranslate(m, entity->origin[0], entity->origin[1], entity->origin[2]);
 
@@ -1268,6 +1325,9 @@ AddAliasModel(entity_t *entity, model_t *model)
 	int triangle_vertices_offset;
 	float entity_aabb_min[3], entity_aabb_max[3];
 	
+	PT_ASSERT(entity != NULL);
+	PT_ASSERT(model != NULL);
+
 	/* Get the entity-to-world transformation matrix. */
 	
 	R_ConstructEntityToWorldMatrix(transformation_matrix, entity);
@@ -1448,6 +1508,9 @@ AddBrushModel(entity_t *entity, model_t *model)
 	vec4_t vertex;
 	glpoly_t *p;
 	
+	PT_ASSERT(entity != NULL);
+	PT_ASSERT(model != NULL);
+
 	if (model->nummodelsurfaces == 0)
 		return;
 
@@ -1558,6 +1621,9 @@ AddBrushModel(entity_t *entity, model_t *model)
 static void
 ParseEntityVector(vec3_t vec, const char* str)
 {
+	PT_ASSERT(vec != NULL);
+	PT_ASSERT(str != NULL);
+
 	sscanf (str, "%f %f %f", &vec[0], &vec[1], &vec[2]);
 }
 
@@ -1565,6 +1631,7 @@ static void
 ClearEntityLightClusterList(entitylight_t *entity)
 {
 	int i;
+	PT_ASSERT(entity != NULL);
 	for (i = 0; i < PT_MAX_ENTITY_LIGHT_CLUSTERS; ++i)
 		entity->clusters[i] = -1;
 }
@@ -1573,6 +1640,8 @@ static void
 ClearEntityLight(entitylight_t *entity)
 {		
 	int i;
+
+	PT_ASSERT(entity != NULL);
 	
 	for (i = 0; i < 3; ++i)
 		entity->origin[i] = entity->color[i] = 0;
@@ -1636,6 +1705,8 @@ EnsureEntityLightDoesNotIntersectWalls(entitylight_t *entity)
 {
 	mleaf_t *leaf;
 	
+	PT_ASSERT(entity != NULL);
+
 	leaf = Mod_PointInLeaf(entity->origin, r_worldmodel);
 	
 	if (!leaf || leaf->contents == CONTENTS_SOLID || leaf->cluster == -1)
@@ -1664,6 +1735,8 @@ BuildClusterListForEntityLight(entitylight_t *entity)
 	short num_clusters;
 	qboolean already_listed;
 	
+	PT_ASSERT(entity != NULL);
+
 	stack_size = 0;
 	r = entity->radius;
 	model = r_worldmodel;
@@ -1719,6 +1792,8 @@ BuildClusterListForEntityLight(entitylight_t *entity)
 static void
 AddSingleEntity(entity_t *entity)
 {
+	PT_ASSERT(entity != NULL);
+
 	model_t *model = entity->model;
 	
 	if (!model)
@@ -2271,11 +2346,22 @@ R_UpdatePathtracerForCurrentFrame(void)
 						pt_num_triangles - pt_dynamic_triangles_offset, pt_num_vertices - pt_dynamic_vertices_offset, pt_written_nodes, pt_num_lights - pt_dynamic_lights_offset,
 						end_ms - start_ms, refresh_ms);
 	}
+	
+	PT_ASSERT(pt_num_nodes 					<= PT_MAX_TRI_NODES);
+	PT_ASSERT(pt_written_nodes 			<= PT_MAX_TRI_NODES);
+	PT_ASSERT(pt_num_triangles 			<= PT_MAX_TRIANGLES);
+	PT_ASSERT(pt_num_shadow_triangles	<= PT_MAX_TRIANGLES);
+	PT_ASSERT(pt_num_vertices 				<= PT_MAX_VERTICES);
+	PT_ASSERT(pt_num_entitylights 		<= PT_MAX_ENTITY_LIGHTS);
+	PT_ASSERT(pt_num_lights 				<= PT_MAX_TRI_LIGHTS);
 }
 	
 static void
 CreateTextureBuffer(GLuint *buffer, GLuint *texture, GLenum format, GLsizei size)
 {
+	PT_ASSERT(buffer != NULL);
+	PT_ASSERT(texture != NULL);
+
 	*buffer = 0;
 	*texture = 0;
 	
@@ -2884,7 +2970,7 @@ R_InitPathtracing(void)
 
 	/* Initialise the console variables. */
 	
-#define GET_PT_CVAR(x, d) x = Cvar_Get( #x, d, CVAR_ARCHIVE);
+#define GET_PT_CVAR(x, d) x = Cvar_Get( #x, d, CVAR_ARCHIVE); PT_ASSERT(x != NULL);
 	GET_PT_CVAR(gl_pt_enable, "0")
 	GET_PT_CVAR(gl_pt_stats, "0")
 	GET_PT_CVAR(gl_pt_bounces, "0")
