@@ -681,6 +681,8 @@ AddStaticLights(void)
 		static byte light_list_bits[(PT_MAX_TRI_LIGHTS + 7) / 8];
 		memset(light_list_bits, 0, sizeof(light_list_bits));
 		
+		sky_is_visible = false;
+
 		/* Go through every surface in this leaf and mark any light which corresponds to one of
 			those surfaces. This is only done for skyportals. */
 								
@@ -696,13 +698,14 @@ AddStaticLights(void)
 				{
 					/* Mark this light for inclusion in the reference list. */
 					light_list_bits[m >> 3] |= 1 << (m & 7);
+					
+					/* If there are any skyportals in the current leaf, then for sure the sky is visible from within this leaf. */
+					sky_is_visible = true;
 					break;
 				}
 			}
 		}
-		
-		sky_is_visible = false;
-						
+								
 		/* Go through every visible leaf and build a list of the lights which have corresponding
 			surfaces in that leaf. Skyportals are detected, but are not inserted into the visibility lists. */
 		
