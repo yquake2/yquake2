@@ -308,13 +308,12 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 #if NUM_SHADOW_SAMPLES > 0
 			for (int shadow_sample = 0; shadow_sample < NUM_SHADOW_SAMPLES; ++shadow_sample)
 			{
-				vec4 light = j;
 				vec3 sp = rp;
 				vec3 sn = rn.xyz;
 				vec3 lp = p0;
 				vec2 uv = rand();
 				
-				if ((uv.x + uv.y) > 1.0 && dot(light.rgb, vec3(1)) > 0.0)
+				if ((uv.x + uv.y) > 1.0 && dot(j.rgb, vec3(1)) > 0.0)
 					uv = vec2(1) - uv;
 				
 				lp += (p1 - p0) * uv.x + (p2 - p0) * uv.y;
@@ -326,11 +325,11 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 				if (ndotl > 0.0 && lndotl > 0.0)
 				{
 					float s = (traceRayShadowBSP(sp, l, EPS * 16, ld) && traceRayShadowTri(sp, l, ld)) ? 1.0 / (ld * ld) : 0.0;
-					r += s * ndotl * lndotl * abs(light.rgb) * wsum / w;
+					r += s * ndotl * lndotl * abs(j.rgb) * wsum / w;
 				}
 			}
 #else
-			r += abs(light.rgb) * wsum / w;
+			r += abs(j.rgb) * wsum / w;
 #endif
 		}
 	}
