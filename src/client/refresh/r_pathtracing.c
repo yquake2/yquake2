@@ -2779,13 +2779,13 @@ CreateShaderPrograms(void)
 	}
 
 	qglUseProgramObjectARB(pt_program_handle);
-	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "tex0"), 0);
-	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "planes"), 2);
-	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "branches"), 3);
-	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "node0"), 4);
-	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "node1"), 5);
-	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "edge0"), 6);
-	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "triangle"), 7);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "diffuse_texture"), 0);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bsp_planes"), 2);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bsp_branches"), 3);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "tri_nodes0"), 4);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "tri_nodes1"), 5);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "tri_vertices"), 6);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "triangles"), 7);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "lights"), 8);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "lightrefs"), 9);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bsp_lightrefs"), 10);

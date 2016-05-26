@@ -60,24 +60,37 @@
 #define MAXT	2048.0
 #define PI		acos(-1.0)
 
-uniform sampler2D tex0;
-uniform sampler2D planes;
-uniform sampler2D branches;
-uniform isamplerBuffer node0;
-uniform isamplerBuffer node1;
-uniform samplerBuffer edge0;
-uniform isamplerBuffer triangle;
-uniform samplerBuffer lights;
-uniform isamplerBuffer lightrefs;
-uniform isampler2D bsp_lightrefs;
-uniform sampler2DArray randtex;
-uniform int frame = 0;
-uniform float ao_radius = 150.0;
-uniform vec3 ao_color = vec3(1);
-uniform float bounce_factor = 0.75;
+// Diffuse (albedo) texture map.
+uniform sampler2D diffuse_texture;
 
+// BSP tree data.
+uniform sampler2D		bsp_planes;
+uniform sampler2D 	bsp_branches;
+uniform isampler2D	bsp_lightrefs;
+
+// Triangle mesh data.
+uniform isamplerBuffer 	tri_nodes0;
+uniform isamplerBuffer 	tri_nodes1;
+uniform samplerBuffer 	tri_vertices;
+uniform isamplerBuffer 	triangles;
+
+// Lightsource data.
+uniform samplerBuffer 	lights;
+uniform isamplerBuffer 	lightrefs;
+
+// PRNG table.
+uniform sampler2DArray randtex;
+
+// Uniform attributes.
+uniform int		frame = 0;
+uniform float	ao_radius = 150.0;
+uniform vec3	ao_color = vec3(1);
+uniform float	bounce_factor = 0.75;
+
+// Inputs from the vertex stage.
 in vec4 texcoords[5], color;
 
+// Globals.
 vec4 out_pln;
 float rand_index = frame;
 
@@ -100,8 +113,8 @@ bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist)
 
 	do
 	{
-		ivec4 n0 = texelFetch(node0, node);
-		ivec4 n1 = texelFetch(node1, node);
+		ivec4 n0 = texelFetch(tri_nodes0, node);
+		ivec4 n1 = texelFetch(tri_nodes1, node);
 
 		vec2 i = boxInterval(ro - intBitsToFloat(n1.xyz), rd, intBitsToFloat(n0.xyz));
 
@@ -109,11 +122,11 @@ bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist)
 		{
 			if (n1.w != -1)
 			{
-				ivec2 tri = texelFetch(triangle, n1.w).xy;
+				ivec2 tri = texelFetch(triangles, n1.w).xy;
 
-				vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;
-				vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;
-				vec3 p2 = texelFetch(edge0, tri.y & 0xffff).xyz;
+				vec3 p0 = texelFetch(tri_vertices, tri.x & 0xffff).xyz;
+				vec3 p1 = texelFetch(tri_vertices, tri.x >> 16).xyz;
+				vec3 p2 = texelFetch(tri_vertices, tri.y & 0xffff).xyz;
 
 				vec3 n = cross(p1 - p0, p2 - p0);
 				float t = dot(p0 - ro, n) / dot(rd, n);
@@ -154,8 +167,8 @@ float traceRayBSP(vec3 org, vec3 dir, float t0, float max_t)
 
 		do
 		{
-			vec4 pln = texture(planes, node);
-			vec4 children = texture(branches, node);
+			vec4 pln = texture(bsp_planes, node);
+			vec4 children = texture(bsp_branches, node);
 			
 			float t = dot(pln.xyz, dir);
 
@@ -207,8 +220,8 @@ ivec2 getLightRef(vec3 p)
 	
 	do
 	{
-		vec4 pln = texture(planes, node);
-		vec4 children = texture(branches, node);
+		vec4 pln = texture(bsp_planes, node);
+		vec4 children = texture(bsp_branches, node);
 		
 		d = dot(pln.xyz, p) - pln.w;
 		
@@ -248,11 +261,11 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 		{
 			vec4 light = texelFetch(lights, ref);
 
-			ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;
+			ivec2 tri = texelFetch(triangles, floatBitsToInt(light.w)).xy;
 
-			vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;
-			vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;
-			vec3 p2 = texelFetch(edge0, tri.y).xyz;
+			vec3 p0 = texelFetch(tri_vertices, tri.x & 0xffff).xyz;
+			vec3 p1 = texelFetch(tri_vertices, tri.x >> 16).xyz;
+			vec3 p2 = texelFetch(tri_vertices, tri.y).xyz;
 
 			vec3 n = cross(p2 - p0, p1 - p0);
 
@@ -279,11 +292,11 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 			do
 			{
 				vec4 light=texelFetch(lights, ref);
-				ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;
+				ivec2 tri = texelFetch(triangles, floatBitsToInt(light.w)).xy;
 				
-				p0 = texelFetch(edge0, tri.x & 0xffff).xyz;
-				p1 = texelFetch(edge0, tri.x >> 16).xyz;
-				p2 = texelFetch(edge0, tri.y).xyz;
+				p0 = texelFetch(tri_vertices, tri.x & 0xffff).xyz;
+				p1 = texelFetch(tri_vertices, tri.x >> 16).xyz;
+				p2 = texelFetch(tri_vertices, tri.y).xyz;
 				
 				n = cross(p2 - p0, p1 - p0);
 				
@@ -427,11 +440,11 @@ void main()
 					do
 					{
 						vec4 light = texelFetch(lights, ref);
-						ivec2 tri = texelFetch(triangle, floatBitsToInt(light.w)).xy;
+						ivec2 tri = texelFetch(triangles, floatBitsToInt(light.w)).xy;
 						
-						vec3 p0 = texelFetch(edge0, tri.x & 0xffff).xyz;
-						vec3 p1 = texelFetch(edge0, tri.x >> 16).xyz;
-						vec3 p2 = texelFetch(edge0, tri.y).xyz;
+						vec3 p0 = texelFetch(tri_vertices, tri.x & 0xffff).xyz;
+						vec3 p1 = texelFetch(tri_vertices, tri.x >> 16).xyz;
+						vec3 p2 = texelFetch(tri_vertices, tri.y).xyz;
 						
 						vec3 n = normalize(cross(p1 - p0, p2 - p0));
 						
@@ -523,7 +536,7 @@ void main()
 	gl_FragColor.a = color.a;
 	
 #if DIFFUSE_MAP_ENABLE
-	gl_FragColor.rgb *= texture(tex0, texcoords[0].st).rgb + vec3(1e-2);
+	gl_FragColor.rgb *= texture(diffuse_texture, texcoords[0].st).rgb + vec3(1e-2);
 #endif
 
 	gl_FragColor.rgb = sqrt(gl_FragColor.rgb);
