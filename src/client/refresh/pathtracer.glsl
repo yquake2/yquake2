@@ -56,6 +56,10 @@
 # define RAND_TEX_SIZE 64
 #endif
 
+#ifndef RAND_TEX_LAYERS
+# define RAND_TEX_LAYERS 1
+#endif
+
 #define EPS		(1.0 / 32.0)
 #define MAXT	2048.0
 #define PI		acos(-1.0)
@@ -96,7 +100,7 @@ float rand_index = frame;
 
 vec2 rand()
 {
-	return texture(randtex, vec3(gl_FragCoord.st / RAND_TEX_SIZE, mod(rand_index++, 8))).rg;
+	return texture(randtex, vec3(gl_FragCoord.st / RAND_TEX_SIZE, mod(rand_index++, RAND_TEX_LAYERS))).rg;
 }
 
 vec2 boxInterval(vec3 ro, vec3 rd, vec3 size)

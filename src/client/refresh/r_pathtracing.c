@@ -58,6 +58,7 @@
 #define PT_TEXTURE_UNIT_RANDTEX				11
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 cvar_t *gl_pt_enable;
 cvar_t *gl_pt_stats;
@@ -1753,6 +1754,14 @@ AddEntities(void)
 		AddSingleEntity(weapon_entity);
 }
 
+static GLint
+GetRandTextureLayers(void)
+{
+	GLint maximum = 1;
+	glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &maximum);
+	return MIN(16, maximum);
+}
+
 static void
 BindTextureUnit(GLint unit, GLenum binding_point, GLuint handle)
 {
@@ -2650,7 +2659,8 @@ static void
 InitRandom(void)
 {
 	int i;
-	static const int texture_size = PT_RAND_TEXTURE_SIZE, num_layers = 8;
+	static const int texture_size = PT_RAND_TEXTURE_SIZE;
+	const int num_layers = GetRandTextureLayers();
 	GLubyte texels[texture_size * texture_size * 2 * num_layers];
 	
 	for (i = 0; i < sizeof(texels) / sizeof(texels[0]); ++i)
@@ -2726,7 +2736,8 @@ ConstructFragmentShaderSource(GLhandleARB shader)
 			"#define NUM_AO_SAMPLES %d\n"
 			"#define TRI_SHADOWS_ENABLE %d\n"
 			"#define DIFFUSE_MAP_ENABLE %d\n"
-			"#define RAND_TEX_SIZE %d\n",
+			"#define RAND_TEX_SIZE %d\n"
+			"#define RAND_TEX_LAYERS %d\n",
 			MAX(0, (int)gl_pt_bounces->value),
 			MAX(0, (int)gl_pt_shadow_samples->value),
 			MAX(0, (int)gl_pt_light_samples->value),
@@ -2734,7 +2745,8 @@ ConstructFragmentShaderSource(GLhandleARB shader)
 			gl_pt_ao_enable->value ? MAX(0, (int)gl_pt_ao_samples->value) : 0,
 			MAX(0, (int)gl_pt_aliasmodel_shadows_enable->value | (int)gl_pt_brushmodel_shadows_enable->value),
 			MAX(0, (int)gl_pt_diffuse_map_enable->value),
-			PT_RAND_TEXTURE_SIZE
+			PT_RAND_TEXTURE_SIZE,
+			MAX(1, GetRandTextureLayers())
 		);
 	
 	const GLcharARB* strings[] = { version, config, fragment_shader_main_source };
