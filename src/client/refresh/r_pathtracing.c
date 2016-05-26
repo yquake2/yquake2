@@ -74,7 +74,7 @@
  
 cvar_t *gl_pt_enable	= NULL;
 
-static cvar_t *gl_pt_stats									= NULL;
+static cvar_t *gl_pt_stats_enable						= NULL;
 static cvar_t *gl_pt_bounces 								= NULL;
 static cvar_t *gl_pt_shadow_samples 					= NULL;
 static cvar_t *gl_pt_light_samples 						= NULL;
@@ -2091,7 +2091,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 		return;
 	}	
 	
-	if (gl_pt_stats->value)
+	if (gl_pt_stats_enable->value)
 	{
 		ms = Sys_Milliseconds();
 		start_ms = ms;
@@ -2398,7 +2398,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	qglUseProgramObjectARB(0);
 		
 	/* Print the stats if necessary. */
-	if (gl_pt_stats->value)
+	if (gl_pt_stats_enable->value)
 	{
 		end_ms = Sys_Milliseconds();
 
@@ -3032,7 +3032,7 @@ R_InitPathtracing(void)
 	
 #define GET_PT_CVAR(x, d) x = Cvar_Get( #x, d, CVAR_ARCHIVE); PT_ASSERT(x != NULL);
 	GET_PT_CVAR(gl_pt_enable, "0")
-	GET_PT_CVAR(gl_pt_stats, "0")
+	GET_PT_CVAR(gl_pt_stats_enable, "0")
 	GET_PT_CVAR(gl_pt_bounces, "0")
 	GET_PT_CVAR(gl_pt_shadow_samples, "1")
 	GET_PT_CVAR(gl_pt_light_samples, "1")
