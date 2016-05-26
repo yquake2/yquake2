@@ -151,7 +151,7 @@ static const GLcharARB* vertex_shader_source =
 	"	texcoords[0] = gl_MultiTexCoord0;\n"
 	"	texcoords[1] = entity_to_world * gl_Vertex;\n"
 	"	texcoords[2].xyz = vec3(0.0, 0.0, 0.0);\n"
-	"	texcoords[3].xyz = normalize(mat3(entity_to_world) * gl_MultiTexCoord2.xyz);\n"
+	"	texcoords[3].xyz = mat3(entity_to_world) * gl_MultiTexCoord2.xyz;\n"
 	"	texcoords[4] = gl_MultiTexCoord3;\n"
 	"	color = gl_Color;\n"
 	"}\n"

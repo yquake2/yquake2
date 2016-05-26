@@ -414,7 +414,7 @@ void main()
 	vec3 rp = texcoords[1].xyz + texcoords[3].xyz * EPS * 16;
 
 	// Get the surface normal of the surface being rasterised.
-	pln.xyz = texcoords[3].xyz;
+	pln.xyz = normalize(texcoords[3].xyz);
 	pln.w = dot(rp, pln.xyz);
 
 	// Sample the direct light at this point.

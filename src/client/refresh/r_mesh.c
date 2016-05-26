@@ -85,7 +85,7 @@ R_LerpVerts(int nverts, dtrivertx_t *v, dtrivertx_t *ov,
 static void
 SetNormalForPathtracer(float* p0, float* p1, float *p2)
 {
-	float n[3], l, e0[3], e1[3];
+	float n[3], l, e0[3], e1[3], desired_length, ratio;
 	static const int perm[4] = { 1, 2, 0, 1 };
 	int i;
 
@@ -102,12 +102,21 @@ SetNormalForPathtracer(float* p0, float* p1, float *p2)
 
 	/* Get the length of the cross product. */
 	l = sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
-
+	
 	/* Normalize. */
 	if (l > 0)
 	{
+		/* Reduce the length of the normal to transparently shorten epsilon offsets when shading entities. */
+		desired_length = 0.25f;
+		ratio = desired_length / l;
+
 		for (i = 0; i < 3; ++i)
-			n[i] /= l;
+			n[i] *= ratio;
+	}
+	else
+	{
+		for (i = 0; i < 3; ++i)
+			n[i] = 0;
 	}
 
 	/* Set the normal. */
