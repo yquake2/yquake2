@@ -564,6 +564,19 @@ AddStaticLights(void)
 
 				pt_num_vertices++;	
 			}
+
+			polygon_area = 0;
+	
+			for (k = 2; k < p->numverts; k++)
+				polygon_area += TriangleArea(poly_offset, poly_offset + k - 1, poly_offset + k);
+
+			/* If the polygon is too small to have any real effect then skip it. This also avoids divide-by-zero errors in area ratio calculations. */
+			if (polygon_area < 1.0 / 32.0)
+			{
+				/* Remove the vertices which were just added for this polygon, because they will not be used. */
+				pt_num_vertices = poly_offset;
+				continue;
+			}
 			
 			/* Test to see if this polygon is a parallelogram. In which case a small trick is used to reduce the total number of lights. */
 			
@@ -613,7 +626,7 @@ AddStaticLights(void)
 				light->surface = surf;
 				light->entity = NULL;
 				light->area_fraction = 1;
-													
+
 				/* Store the triangle data. */
 				
 				PT_ASSERT(parallelogram_reflection >= 0 && parallelogram_reflection < sizeof(ind) / sizeof(ind[0]));
@@ -625,15 +638,7 @@ AddStaticLights(void)
 			{		
 				if (pt_num_triangles > (PT_MAX_TRIANGLES - p->numverts - 2) || pt_num_lights > (PT_MAX_TRI_LIGHTS - p->numverts - 2))
 					continue;
-		
-				polygon_area = 0;
-		
-				for (k = 2; k < p->numverts; k++)
-					polygon_area += TriangleArea(poly_offset, poly_offset + k - 1, poly_offset + k);
-
-				if (polygon_area < 1.0 / 32.0)
-					continue;
-				
+						
 				for (k = 2; k < p->numverts; k++)
 				{
 					/* Add a new triangle light for this segment of the polygon. */
@@ -647,13 +652,12 @@ AddStaticLights(void)
 					light->triangle_index = pt_num_triangles++;
 					light->surface = surf;
 					light->entity = NULL;
+					light->area_fraction = 1;
 					
 					/* Skyportals are sampled implicitly, so their light emission is defined as radiance whereas
 						directly-sampled lightsources have their emission defined as intensity so it needs to be adjusted by the polygon area ratio. */
 					
-					if (texinfo->flags & SURF_SKY)
-						light->area_fraction = 1;					
-					else
+					if (!(texinfo->flags & SURF_SKY))
 						light->area_fraction = TriangleArea(ind[0], ind[1], ind[2]) / polygon_area;
 								
 					/* Store the triangle data. */
