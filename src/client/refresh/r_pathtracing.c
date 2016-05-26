@@ -1906,7 +1906,7 @@ AddEntities(void)
 	pt_weapon_entity_triangles_offset = pt_num_triangles;
 	
 	/* Now add the weapon entity if it needs to be separated. */
-	if (weapon_entity)
+	if (weapon_entity && gl_lefthand->value != 2)
 		AddSingleEntity(weapon_entity);
 }
 
