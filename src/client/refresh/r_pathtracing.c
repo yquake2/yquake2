@@ -60,31 +60,44 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-cvar_t *gl_pt_enable;
-cvar_t *gl_pt_stats;
+/*
+ * Console variables
+ */
+ 
+cvar_t *gl_pt_enable	= NULL;
 
-static cvar_t *gl_pt_bounces;
-static cvar_t *gl_pt_shadow_samples;
-static cvar_t *gl_pt_light_samples;
-static cvar_t *gl_pt_sky_enable;
-static cvar_t *gl_pt_sky_samples;
-static cvar_t *gl_pt_ao_enable;
-static cvar_t *gl_pt_ao_radius;
-static cvar_t *gl_pt_ao_color;
-static cvar_t *gl_pt_ao_samples;
-static cvar_t *gl_pt_translucent_surfaces_enable;
-static cvar_t *gl_pt_lightstyles_enable;
-static cvar_t *gl_pt_dlights_enable;
-static cvar_t *gl_pt_brushmodel_shadows_enable;
-static cvar_t *gl_pt_aliasmodel_shadows_enable;
-static cvar_t *gl_pt_bounce_factor;
-static cvar_t *gl_pt_diffuse_map_enable;
-static cvar_t *gl_pt_static_entity_lights_enable;
-static cvar_t *gl_pt_depth_prepass_enable;
+static cvar_t *gl_pt_stats									= NULL;
+static cvar_t *gl_pt_bounces 								= NULL;
+static cvar_t *gl_pt_shadow_samples 					= NULL;
+static cvar_t *gl_pt_light_samples 						= NULL;
+static cvar_t *gl_pt_sky_enable 							= NULL;
+static cvar_t *gl_pt_sky_samples 						= NULL;
+static cvar_t *gl_pt_ao_enable 							= NULL;
+static cvar_t *gl_pt_ao_radius 							= NULL;
+static cvar_t *gl_pt_ao_color 							= NULL;
+static cvar_t *gl_pt_ao_samples 							= NULL;
+static cvar_t *gl_pt_translucent_surfaces_enable	= NULL;
+static cvar_t *gl_pt_lightstyles_enable 				= NULL;
+static cvar_t *gl_pt_dlights_enable 					= NULL;
+static cvar_t *gl_pt_brushmodel_shadows_enable 		= NULL;
+static cvar_t *gl_pt_aliasmodel_shadows_enable 		= NULL;
+static cvar_t *gl_pt_bounce_factor 						= NULL;
+static cvar_t *gl_pt_diffuse_map_enable 				= NULL;
+static cvar_t *gl_pt_static_entity_lights_enable 	= NULL;
+static cvar_t *gl_pt_depth_prepass_enable 			= NULL;
 
-	
-static GLhandleARB pt_program_handle;
+/*
+ * Shader programs
+ */
+ 
+static GLhandleARB pt_program_handle = 0;
+static GLhandleARB vertex_shader = 0;
+static GLhandleARB fragment_shader = 0;
 
+/*
+ * Textures and buffers
+ */
+ 
 static GLuint pt_node_texture = 0;
 static GLuint pt_child_texture = 0;
 static GLuint pt_bsp_lightref_texture = 0;
@@ -103,18 +116,23 @@ static GLuint pt_lightref_buffer = 0;
 static GLuint pt_lightref_texture = 0;
 static GLuint pt_rand_texture = 0;
 
+/*
+ * Uniform locations
+ */
+ 
 static GLint pt_frame_counter_loc = -1;
 static GLint pt_entity_to_world_loc = -1;
 static GLint pt_ao_radius_loc = -1;
 static GLint pt_ao_color_loc = -1;
 static GLint pt_bounce_factor_loc = -1;
 		
-		
-static GLhandleARB vertex_shader;
-static GLhandleARB fragment_shader;
 
 static unsigned long int pt_bsp_texture_width = 0, pt_bsp_texture_height = 0;
 
+/*
+ * Shader source code
+ */
+ 
 static const GLcharARB* vertex_shader_source =
 	"#version 120\n"
 	"uniform mat4 entity_to_world = mat4(1);\n"
@@ -169,16 +187,16 @@ typedef struct trinode_s
 	unsigned long int morton_code;
 } trinode_t;
 
-static trinode_t pt_trinodes[PT_MAX_TRI_NODES];
-static trinode_t *pt_trinodes_ordered[PT_MAX_TRI_NODES];
-static trilight_t pt_trilights[PT_MAX_TRI_LIGHTS];
-static short pt_trilight_references[PT_MAX_TRI_LIGHT_REFS];
-static int pt_cluster_light_references[PT_MAX_CLUSTERS * 2];
-static entitylight_t pt_entitylights[PT_MAX_ENTITY_LIGHTS];
-static short pt_lightstyle_sublists[MAX_LIGHTSTYLES];
-static short pt_lightstyle_sublist_lengths[MAX_LIGHTSTYLES];
-static vec3_t pt_cached_lightstyles[MAX_LIGHTSTYLES];
-static float pt_cluster_bounding_boxes[PT_MAX_CLUSTERS * 6];
+static trinode_t		pt_trinodes							[PT_MAX_TRI_NODES];
+static trinode_t*		pt_trinodes_ordered				[PT_MAX_TRI_NODES];
+static trilight_t 	pt_trilights						[PT_MAX_TRI_LIGHTS];
+static short 			pt_trilight_references			[PT_MAX_TRI_LIGHT_REFS];
+static int 				pt_cluster_light_references	[PT_MAX_CLUSTERS * 2];
+static entitylight_t	pt_entitylights					[PT_MAX_ENTITY_LIGHTS];
+static short 			pt_lightstyle_sublists			[MAX_LIGHTSTYLES];
+static short 			pt_lightstyle_sublist_lengths	[MAX_LIGHTSTYLES];
+static vec3_t 			pt_cached_lightstyles			[MAX_LIGHTSTYLES];
+static float 			pt_cluster_bounding_boxes		[PT_MAX_CLUSTERS * 6];
 
 static short pt_num_nodes = 0;
 static short pt_num_triangles = 0;
@@ -354,20 +372,20 @@ AddPointLight(entitylight_t *entity)
 	
 	poly_offset = pt_num_vertices;
 	
-	const vec3_t d = { 1.0, sqrt(2.0 / 3.0) * 0.5, sqrt(3.0) / 2.0 };
+	static const vec3_t d = { 1.0, sqrt(2.0 / 3.0) * 0.5, sqrt(3.0) / 2.0 };
 	
 	const vec3_t tetrahedron_vertices[PT_NUM_ENTITY_VERTICES] = {
-			{-d[0],-d[1],-d[2]},
-			{ d[0],-d[1],-d[2]},
-			{ 0.0,-d[1], d[2]},
-			{ 0.0,+d[1],-1.0/12.0 * sqrt(3.0)},
+			{-d[0], -d[1], -d[2]},
+			{ d[0], -d[1], -d[2]},
+			{ 0.0, -d[1], d[2]},
+			{ 0.0, +d[1], -1.0 / 12.0 * sqrt(3.0)},
 		};
 		
 	static const short tetrahedron_indices[PT_NUM_ENTITY_TRILIGHTS][3] = {
-			{0,1,2},
-			{0,3,1},
-			{1,3,2},
-			{2,3,0},
+			{ 0, 1, 2 },
+			{ 0, 3, 1 },
+			{ 1, 3, 2 },
+			{ 2, 3, 0 },
 		};
 	
 	for (j = 0; j < PT_NUM_ENTITY_VERTICES; ++j)
@@ -1837,6 +1855,7 @@ AddDLights(void)
 	const dlight_t* dl;
 	entitylight_t* entity;
 	
+	/* Visit each dlight. */
 	for (i = 0; i < r_newrefdef.num_dlights; ++i)
 	{
 		dl = r_newrefdef.dlights + i;
@@ -1848,6 +1867,8 @@ AddDLights(void)
 				pt_num_triangles > (PT_MAX_TRIANGLES - PT_NUM_ENTITY_TRILIGHTS) || pt_num_lights > (PT_MAX_TRI_LIGHTS - PT_NUM_ENTITY_TRILIGHTS))
 			continue;
 
+		/* Make a new entity light. */
+		
 		entity = pt_entitylights + pt_num_entitylights++;
 		
 		ClearEntityLight(entity);
@@ -2728,6 +2749,7 @@ ConstructFragmentShaderSource(GLhandleARB shader)
 	
 	static GLcharARB config[1024];
 
+	/* Make a single string which sets all of the configuration variables which are hard-coded into the shader. */
 	snprintf(config, sizeof(config),
 			"#define NUM_BOUNCES %d\n"
 			"#define NUM_SHADOW_SAMPLES %d\n"
@@ -2749,8 +2771,10 @@ ConstructFragmentShaderSource(GLhandleARB shader)
 			MAX(1, GetRandTextureLayers())
 		);
 	
+	/* Specify the ordering of the parts of the shader. */
 	const GLcharARB* strings[] = { version, config, fragment_shader_main_source };
 	
+	/* Commit the shader source code. */
 	qglShaderSourceARB(shader, sizeof(strings) / sizeof(strings[0]), strings, NULL);
 }
 
@@ -2759,10 +2783,12 @@ CreateShaderPrograms(void)
 {
 	GLint status = 0;
 
+	/* Create new program and shader objects. */
 	pt_program_handle = qglCreateProgramObjectARB();
 	vertex_shader = qglCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
 	fragment_shader = qglCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
 	
+	/* Compile the vertex shader. */
 	qglShaderSourceARB(vertex_shader, 1, &vertex_shader_source, NULL);
 	qglCompileShaderARB(vertex_shader);
 	qglGetObjectParameterivARB(vertex_shader, GL_OBJECT_COMPILE_STATUS_ARB, &status);
@@ -2775,7 +2801,8 @@ CreateShaderPrograms(void)
 	}
 
 	ConstructFragmentShaderSource(fragment_shader);
-	
+
+	/* Compile the fragment shader. */
 	qglCompileShaderARB(fragment_shader);
 	qglGetObjectParameterivARB(fragment_shader, GL_OBJECT_COMPILE_STATUS_ARB, &status);
 	
@@ -2789,6 +2816,7 @@ CreateShaderPrograms(void)
 	qglAttachObjectARB(pt_program_handle, vertex_shader);
 	qglAttachObjectARB(pt_program_handle, fragment_shader);
 	
+	/* Link the shader program. */
 	qglLinkProgramARB(pt_program_handle);
 	qglGetObjectParameterivARB(pt_program_handle, GL_OBJECT_LINK_STATUS_ARB, &status);
 	
@@ -2799,6 +2827,8 @@ CreateShaderPrograms(void)
 		return;
 	}
 
+	/* Set the sample uniforms now, since they don't need to change during rendering. */
+	
 	qglUseProgramObjectARB(pt_program_handle);
 	
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "diffuse_texture"), 	PT_TEXTURE_UNIT_DIFFUSE_TEXTURE);
@@ -2812,7 +2842,9 @@ CreateShaderPrograms(void)
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "lightrefs"), 			PT_TEXTURE_UNIT_LIGHTREFS);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bsp_lightrefs"), 	PT_TEXTURE_UNIT_BSP_LIGHTREFS);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "randtex"), 			PT_TEXTURE_UNIT_RANDTEX);
-		
+	
+	/* Get the locations of uniforms which do need to be change during rendering. */
+	
 	pt_frame_counter_loc = qglGetUniformLocationARB(pt_program_handle, "frame");
 	pt_entity_to_world_loc = qglGetUniformLocationARB(pt_program_handle, "entity_to_world");
 	pt_ao_radius_loc = qglGetUniformLocationARB(pt_program_handle, "ao_radius");
@@ -2847,6 +2879,8 @@ R_InitPathtracing(void)
 {
 	ClearPathtracerState();
 
+	/* Initialise the console variables. */
+	
 #define GET_PT_CVAR(x, d) x = Cvar_Get( #x, d, CVAR_ARCHIVE);
 	GET_PT_CVAR(gl_pt_enable, "0")
 	GET_PT_CVAR(gl_pt_stats, "0")
