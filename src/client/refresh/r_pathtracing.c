@@ -182,6 +182,7 @@ typedef struct trilight_s
 	qboolean quad;
 	msurface_t* surface;
 	entitylight_t* entity;
+	float area_fraction;
 } trilight_t;
 
 typedef struct trinode_s
@@ -315,6 +316,42 @@ ClearPathtracerState(void)
 	pt_vertex_stride = 0;
 }
 
+/* Returns the area of the triangle defined by the 3 given global vertex indices. */
+static float
+TriangleArea(short a, short b, short c)
+{
+	float e0[3], e1[3], x, normal_length_squared, *va, *vb, *vc;
+	int i;
+
+	PT_ASSERT(a >= 0 && a < pt_num_vertices);
+	PT_ASSERT(b >= 0 && b < pt_num_vertices);
+	PT_ASSERT(c >= 0 && c < pt_num_vertices);
+	
+	/* Get the vertex points. */
+	va = pt_vertex_data + a * pt_vertex_stride;
+	vb = pt_vertex_data + b * pt_vertex_stride;
+	vc = pt_vertex_data + c * pt_vertex_stride;
+	
+	/* Get the edge vectors. */
+	for (i = 0; i < 3; ++i)
+	{
+		e0[i] = vb[i] - va[i];
+		e1[i] = vc[i] - va[i];
+	}
+	
+	/* Calculate the squared length of this triangle's surface normal (cross product). */
+	x = 0;
+	normal_length_squared = 0;
+	for (i = 0; i < 3; ++i)
+	{
+		static const int perm[4] = { 1, 2, 0, 1 };
+		x = e0[perm[i]] * e1[perm[i+1]] + e0[perm[i+1]] * e1[perm[i]];
+		normal_length_squared += x * x;
+	}
+	
+	return sqrt(normal_length_squared) / 2.0;
+}
+
 static int
 FloatBitsToInt(float x)
 {
@@ -422,6 +459,7 @@ AddPointLight(entitylight_t *entity)
 		light->triangle_index = pt_num_triangles++;
 		light->surface = NULL;
 		light->entity = entity;
+		light->area_fraction = 1;
 		
 		/* Store the triangle data. */
 		
@@ -462,7 +500,7 @@ PackTriLightData(short start, short end)
 			/* Calculate the radiant flux of the light. This stored vector is negated if the light is a quad. */
 			
 			for (j = 0; j < 3; ++j)
-				pt_trilight_data[m * 4 + j] = (light->quad ? -1 : +1) * texinfo->image->reflectivity[j] * texinfo->radiance;
+				pt_trilight_data[m * 4 + j] = (light->quad ? -1 : +1) * texinfo->image->reflectivity[j] * texinfo->radiance * light->area_fraction;
 		}
 		
 		pt_trilight_data[m * 4 + 3] = IntBitsToFloat(light->triangle_index);
@@ -488,6 +526,7 @@ AddStaticLights(void)
 	int style, previous_style;
 	int num_direct_lights;
 	qboolean sky_is_visible;
+	float polygon_area;
 
 	/* Ensure that there is always an empty reference list at the first index. */
 	
@@ -573,6 +612,7 @@ AddStaticLights(void)
 				light->triangle_index = pt_num_triangles++;
 				light->surface = surf;
 				light->entity = NULL;
+				light->area_fraction = 1;
 													
 				/* Store the triangle data. */
 				
@@ -586,6 +626,14 @@ AddStaticLights(void)
 				if (pt_num_triangles > (PT_MAX_TRIANGLES - p->numverts - 2) || pt_num_lights > (PT_MAX_TRI_LIGHTS - p->numverts - 2))
 					continue;
 		
+				polygon_area = 0;
+		
+				for (k = 2; k < p->numverts; k++)
+					polygon_area += TriangleArea(poly_offset, poly_offset + k - 1, poly_offset + k);
+
+				if (polygon_area < 1.0 / 32.0)
+					continue;
+				
 				for (k = 2; k < p->numverts; k++)
 				{
 					/* Add a new triangle light for this segment of the polygon. */
@@ -599,7 +647,15 @@ AddStaticLights(void)
 					light->triangle_index = pt_num_triangles++;
 					light->surface = surf;
 					light->entity = NULL;
-														
+					
+					/* Skyportals are sampled implicitly, so their light emission is defined as radiance whereas
+						directly-sampled lightsources have their emission defined as intensity so it needs to be adjusted by the polygon area ratio. */
+					
+					if (texinfo->flags & SURF_SKY)
+						light->area_fraction = 1;					
+					else
+						light->area_fraction = TriangleArea(ind[0], ind[1], ind[2]) / polygon_area;
+								
 					/* Store the triangle data. */
 					
 					pt_triangle_data[light->triangle_index * 2 + 0] = ind[0] | (ind[1] << 16);
