@@ -239,6 +239,8 @@ typedef void ( APIENTRY * PFNGLUNIFORMMATRIX4FVARBPROC) (GLint location, GLsizei
 typedef void ( APIENTRY * PFNGLUSEPROGRAMOBJECTARBPROC) (GLhandleARB programObj);
 typedef void ( APIENTRY * PFNGLVALIDATEPROGRAMARBPROC) (GLhandleARB programObj);
 
+#endif /* GL_ARB_shader_objects */
+
 extern PFNGLATTACHOBJECTARBPROC qglAttachObjectARB;
 extern PFNGLCOMPILESHADERARBPROC qglCompileShaderARB;
 extern PFNGLCREATEPROGRAMOBJECTARBPROC qglCreateProgramObjectARB;
@@ -279,7 +281,7 @@ extern PFNGLUNIFORMMATRIX4FVARBPROC qglUniformMatrix4fvARB;
 extern PFNGLUSEPROGRAMOBJECTARBPROC qglUseProgramObjectARB;
 extern PFNGLVALIDATEPROGRAMARBPROC qglValidateProgramARB;
 
-#endif /* GL_ARB_shader_objects */
+
 
 /* -------------------------- GL_ARB_vertex_shader ------------------------- */
 
@@ -298,11 +300,13 @@ typedef void ( APIENTRY * PFNGLBINDATTRIBLOCATIONARBPROC) (GLhandleARB programOb
 typedef void ( APIENTRY * PFNGLGETACTIVEATTRIBARBPROC) (GLhandleARB programObj, GLuint index, GLsizei maxLength, GLsizei* length, GLint *size, GLenum *type, GLcharARB *name);
 typedef GLint ( APIENTRY * PFNGLGETATTRIBLOCATIONARBPROC) (GLhandleARB programObj, const GLcharARB* name);
 
+#endif /* GL_ARB_vertex_shader */
+
 extern PFNGLBINDATTRIBLOCATIONARBPROC qglBindAttribLocationARB;
 extern PFNGLGETACTIVEATTRIBARBPROC qglGetActiveAttribARB;
 extern PFNGLGETATTRIBLOCATIONARBPROC qglGetAttribLocationARB;
 
-#endif /* GL_ARB_vertex_shader */
+
 
 /* ------------------------- GL_ARB_fragment_shader ------------------------ */
 
@@ -356,9 +360,10 @@ extern PFNGLGETATTRIBLOCATIONARBPROC qglGetAttribLocationARB;
 
 typedef void ( APIENTRY * PFNGLTEXBUFFERARBPROC) (GLenum target, GLenum internalformat, GLuint buffer);
 
+#endif /* GL_ARB_texture_buffer_object */
+
 extern PFNGLTEXBUFFERARBPROC qglTexBufferARB;
 
-#endif /* GL_ARB_texture_buffer_object */
 
 /* ---------------------- GL_EXT_texture_buffer_object --------------------- */
 
@@ -373,9 +378,10 @@ extern PFNGLTEXBUFFERARBPROC qglTexBufferARB;
 
 typedef void ( APIENTRY * PFNGLTEXBUFFEREXTPROC) (GLenum target, GLenum internalformat, GLuint buffer);
 
+#endif /* GL_EXT_texture_buffer_object */
+
 extern PFNGLTEXBUFFEREXTPROC qglTexBufferEXT;
 
-#endif /* GL_EXT_texture_buffer_object */
 
 /* ----------------------------- GL_VERSION_3_0 ---------------------------- */
 
@@ -535,12 +541,12 @@ typedef void ( APIENTRY * PFNGLDRAWELEMENTSINSTANCEDPROC) (GLenum mode, GLsizei 
 typedef void ( APIENTRY * PFNGLPRIMITIVERESTARTINDEXPROC) (GLuint buffer);
 typedef void ( APIENTRY * PFNGLTEXBUFFERPROC) (GLenum target, GLenum internalFormat, GLuint buffer);
 
+#endif /* GL_VERSION_3_1 */
+
 extern PFNGLDRAWARRAYSINSTANCEDPROC qglDrawArraysInstanced;
 extern PFNGLDRAWELEMENTSINSTANCEDPROC qglDrawElementsInstanced;
 extern PFNGLPRIMITIVERESTARTINDEXPROC qglPrimitiveRestartIndex;
 extern PFNGLTEXBUFFERPROC qglTexBuffer;
-
-#endif /* GL_VERSION_3_1 */
 
 
 /* ---------------------- GL_ARB_vertex_buffer_object ---------------------- */
@@ -595,6 +601,8 @@ typedef GLboolean ( APIENTRY * PFNGLISBUFFERARBPROC) (GLuint buffer);
 typedef void * ( APIENTRY * PFNGLMAPBUFFERARBPROC) (GLenum target, GLenum access);
 typedef GLboolean ( APIENTRY * PFNGLUNMAPBUFFERARBPROC) (GLenum target);
 
+#endif /* GL_ARB_vertex_buffer_object */
+
 extern PFNGLBINDBUFFERARBPROC qglBindBufferARB;
 extern PFNGLBUFFERDATAARBPROC qglBufferDataARB;
 extern PFNGLBUFFERSUBDATAARBPROC qglBufferSubDataARB;
@@ -606,8 +614,6 @@ extern PFNGLGETBUFFERSUBDATAARBPROC qglGetBufferSubDataARB;
 extern PFNGLISBUFFERARBPROC qglIsBufferARB;
 extern PFNGLMAPBUFFERARBPROC qglMapBufferARB;
 extern PFNGLUNMAPBUFFERARBPROC qglUnmapBufferARB;
-
-#endif /* GL_ARB_vertex_buffer_object */
 
 /* ----------------------------- GL_VERSION_1_5 ---------------------------- */
 
@@ -688,6 +694,8 @@ typedef GLboolean ( APIENTRY * PFNGLISQUERYPROC) (GLuint id);
 typedef void* ( APIENTRY * PFNGLMAPBUFFERPROC) (GLenum target, GLenum access);
 typedef GLboolean ( APIENTRY * PFNGLUNMAPBUFFERPROC) (GLenum target);
 
+#endif /* GL_VERSION_1_5 */
+
 extern PFNGLBEGINQUERYPROC qglBeginQuery;
 extern PFNGLBINDBUFFERPROC qglBindBuffer;
 extern PFNGLBUFFERDATAPROC qglBufferData;
@@ -708,7 +716,6 @@ extern PFNGLISQUERYPROC qglIsQuery;
 extern PFNGLMAPBUFFERPROC qglMapBuffer;
 extern PFNGLUNMAPBUFFERPROC qglUnmapBuffer;
 
-#endif /* GL_VERSION_1_5 */
 
 /* --------------------------- GL_ARB_texture_rg --------------------------- */
 
@@ -757,10 +764,11 @@ extern PFNGLUNMAPBUFFERPROC qglUnmapBuffer;
 typedef void ( APIENTRY * PFNGLFLUSHMAPPEDBUFFERRANGEPROC) (GLenum target, GLintptr offset, GLsizeiptr length);
 typedef void * ( APIENTRY * PFNGLMAPBUFFERRANGEPROC) (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
 
+#endif /* GL_ARB_map_buffer_range */
+
 extern PFNGLFLUSHMAPPEDBUFFERRANGEPROC qglFlushMappedBufferRange;
 extern PFNGLMAPBUFFERRANGEPROC qglMapBufferRange;
 
-#endif /* GL_ARB_map_buffer_range */
 
 /* ----------------------------- GL_VERSION_1_2 ---------------------------- */
 
@@ -813,11 +821,11 @@ typedef void ( APIENTRY * PFNGLDRAWRANGEELEMENTSPROC) (GLenum mode, GLuint start
 typedef void ( APIENTRY * PFNGLTEXIMAGE3DPROC) (GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
 typedef void ( APIENTRY * PFNGLTEXSUBIMAGE3DPROC) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
 
+#endif /* GL_VERSION_1_2 */
+
 extern PFNGLCOPYTEXSUBIMAGE3DPROC qglCopyTexSubImage3D;
 extern PFNGLDRAWRANGEELEMENTSPROC qglDrawRangeElements;
 extern PFNGLTEXIMAGE3DPROC qglTexImage3D;
 extern PFNGLTEXSUBIMAGE3DPROC qglTexSubImage3D;
-
-#endif /* GL_VERSION_1_2 */
 
 #endif
