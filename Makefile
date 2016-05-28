@@ -376,6 +376,7 @@ release/quake2.exe : LDFLAGS += -mwindows -lopengl32
 else # not Windows
 client:
 	@echo "===> Building quake2"
+	sh stringifyshaders.sh
 	${Q}mkdir -p release
 	$(MAKE) release/quake2
 
