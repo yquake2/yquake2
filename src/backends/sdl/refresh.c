@@ -442,7 +442,10 @@ static void InitGamma()
 	XRRFreeScreenResources(res);
 
 	VID_Printf(PRINT_ALL, "Using hardware gamma via X11/xRandR.\n");
-
+#elif __APPLE__
+	gl_state.hwgamma = false;
+	VID_Printf(PRINT_ALL, "Using software gamma (needs vid_restart after changes)\n");
+	return;
 #else
 	VID_Printf(PRINT_ALL, "Using hardware gamma via SDL.\n");
 #endif

@@ -1332,7 +1332,8 @@ void
 R_InitImages(void)
 {
 	int i, j;
-	float g = vid_gamma->value;
+	// use 1/gamma so higher value is brighter, to match HW gamma settings
+	float g = 1.0f/vid_gamma->value;
 
 	registration_sequence = 1;
 
