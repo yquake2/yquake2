@@ -426,7 +426,9 @@ AddPointLight(entitylight_t *entity)
 	
 	poly_offset = pt_num_vertices;
 	
-	static const vec3_t d = { 1.0, sqrt(2.0 / 3.0) * 0.5, sqrt(3.0) / 2.0 };
+	//static const vec3_t d = { 1.0, sqrt(2.0 / 3.0) * 0.5, sqrt(3.0) / 2.0 };
+
+	static const vec3_t d = { 1.0, 0.40824829, 0.8660254 };
 	
 	const vec3_t tetrahedron_vertices[PT_NUM_ENTITY_VERTICES] = {
 			{-d[0], -d[1], -d[2]},
@@ -598,7 +600,7 @@ AddStaticLights(void)
 						PT_ASSERT(ind[k + 3] >= 0 && ind[k + 3] < pt_num_vertices);
 
 						x = pt_vertex_data[ind[k + 2] * pt_vertex_stride + j] + pt_vertex_data[ind[k] * pt_vertex_stride + j] - pt_vertex_data[ind[k + 1] * pt_vertex_stride + j];
-						if (abs(x - pt_vertex_data[ind[k + 3] * pt_vertex_stride + j]) > 0.25)
+						if (fabsf(x - pt_vertex_data[ind[k + 3] * pt_vertex_stride + j]) > 0.25)
 							break;
 					}
 					if (j == 3)
