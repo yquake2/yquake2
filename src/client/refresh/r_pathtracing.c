@@ -3050,7 +3050,7 @@ R_InitPathtracing(void)
 	GET_PT_CVAR(gl_pt_aliasmodel_shadows_enable, "1")
 	GET_PT_CVAR(gl_pt_bounce_factor, "0.75")
 	GET_PT_CVAR(gl_pt_diffuse_map_enable, "1")
-	GET_PT_CVAR(gl_pt_static_entity_lights_enable, "1")
+	GET_PT_CVAR(gl_pt_static_entity_lights_enable, "0")
 	GET_PT_CVAR(gl_pt_depth_prepass_enable, "1")
 #undef GET_PT_CVAR
 
