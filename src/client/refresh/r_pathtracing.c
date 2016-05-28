@@ -426,8 +426,7 @@ AddPointLight(entitylight_t *entity)
 	
 	poly_offset = pt_num_vertices;
 	
-	//static const vec3_t d = { 1.0, sqrt(2.0 / 3.0) * 0.5, sqrt(3.0) / 2.0 };
-
+	/* d = { 1.0, sqrt(2.0 / 3.0) * 0.5, sqrt(3.0) / 2.0 }; */
 	static const vec3_t d = { 1.0, 0.40824829, 0.8660254 };
 	
 	const vec3_t tetrahedron_vertices[PT_NUM_ENTITY_VERTICES] = {
