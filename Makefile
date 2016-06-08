@@ -106,20 +106,16 @@ endif
 
 # Detect the architecture
 ifeq ($(OSTYPE), Windows)
-# At this time only i386 is supported on Windows
-# (amd64 works, but building an 64 bit executable
-# is not that easy. Especially SDL and OpenAL are
-# somewhat problematic)
-ARCH ?= i386
+ifdef PROCESSOR_ARCHITEW6432
+# 64 bit Windows
+ARCH := $(PROCESSOR_ARCHITEW6432)
 else
-# Some platforms call it "amd64" and some "x86_64"
-ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/amd64/x86_64/)
+# 32 bit Windows
+ARCH := $(PROCESSOR_ARCHITECTURE)
 endif
-
-# Refuse all other platforms as a firewall against PEBKAC
-# (You'll need some #ifdef for your unsupported  plattform!)
-ifeq ($(findstring $(ARCH), i386 x86_64 sparc64 ia64),)
-$(error arch $(ARCH) is currently not supported)
+else
+# Normalize some abiguous ARCH strings
+ARCH := $(shell uname -m | sed -e 's/i.86/i386/' -e 's/amd64/x86_64/' -e 's/^arm.*/arm/')
 endif
 
 # Disable CDA for SDL2
@@ -156,12 +152,16 @@ endif
 ifeq ($(OSTYPE), Darwin)
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 		  -Wall -pipe -g -fwrapv
-		  #-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.5.sdk
 CFLAGS += $(OSX_ARCH)
 else
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 		  -Wall -pipe -g -ggdb -MMD -fwrapv
 endif
+
+# ----------
+
+# Defines the operating system and architecture
+CFLAGS += -DOSTYPE=\"$(OSTYPE)\" -DARCH=\"$(ARCH)\"
 
 # ----------
 

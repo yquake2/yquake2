@@ -34,33 +34,14 @@
 
 /* Should have 4 characters. */
 #define YQ2VERSION "5.34pre"
-
 #define BASEDIRNAME "baseq2"
 
-#if defined __linux__
- #define BUILDSTRING "Linux"
-#elif defined __FreeBSD__
- #define BUILDSTRING "FreeBSD"
-#elif defined __OpenBSD__
- #define BUILDSTRING "OpenBSD"
-#elif defined _WIN32
- #define BUILDSTRING "Windows"
-#elif defined __APPLE__
- #define BUILDSTRING "MacOS X"
-#else
- #define BUILDSTRING "Unknown"
+#ifndef OSTYPE
+#error OSTYPE should be defined by the build system
 #endif
 
-#ifdef __i386__
- #define CPUSTRING "i386"
-#elif defined __x86_64__
- #define CPUSTRING "amd64"
-#elif defined __sparc__
- #define CPUSTRING "sparc64"
-#elif defined __ia64__
- #define CPUSTRING "ia64"
-#else
- #define CPUSTRING "Unknown"
+#ifndef ARCH
+#error ARCH should be defined by the build system
 #endif
 
 #ifdef _WIN32
@@ -78,7 +59,6 @@
 #else
  #define LIBGL "libGL.so.1"
 #endif
-
 
 /* ================================================================== */
 
@@ -767,7 +747,7 @@ extern vec3_t bytedirs[NUMVERTEXNORMALS];
 /* this is in the client code, but can be used for debugging from server */
 void SCR_DebugGraph(float value, int color);
 
-/* NON-PORTABLE SYSTEM SERVICES */
+/* NON-PORTABLE OSTYPE SERVICES */
 
 void Sys_Init(void);
 void Sys_UnloadGame(void);

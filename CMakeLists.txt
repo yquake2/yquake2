@@ -55,6 +55,15 @@ set(GAME_SRC_DIR ${SOURCE_DIR}/game)
 set(SERVER_SRC_DIR ${SOURCE_DIR}/server)
 set(CLIENT_SRC_DIR ${SOURCE_DIR}/client)
 
+# Operating system
+add_definitions(-DOSTYPE="${CMAKE_SYSTEM_NAME}")
+
+# Architecture string
+string(REGEX REPLACE "amd64" "x86_64" ARCH ${CMAKE_SYSTEM_PROCESSOR})
+string(REGEX REPLACE "i.86" "i386" ARCH ${ARCH})
+string(REGEX REPLACE "^arm.*" "arm" ARCH ${ARCH})
+add_definitions(-DARCH="${ARCH}")
+
 # Systemwide installation of game assets
 if(${SYSTEMWIDE_SUPPORT})
     add_definitions(-DSYSTEMWIDE)

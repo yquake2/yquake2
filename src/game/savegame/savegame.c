@@ -67,47 +67,53 @@
 #include "../header/local.h"
 
 /*
- * When ever the savegame version
- * is changed, q2 will refuse to
- * load older savegames. This
- * should be bumped if the files
- * in tables/ are changed, otherwise
- * strange things may happen.
+ * When ever the savegame version is changed, q2 will refuse to
+ * load older savegames. This should be bumped if the files
+ * in tables/ are changed, otherwise strange things may happen.
  */
-#define SAVEGAMEVER "YQ2-1"
+#define SAVEGAMEVER "YQ2-2"
 
 /*
- * This macros are used to
- * prohibit loading of savegames
- * created on other systems or
- * architectures. This will
- * crash q2 in spectacular
- * ways
+ * This macros are used to prohibit loading of savegames
+ * created on other systems or architectures. This will
+ * crash q2 in spectacular ways
+ */
+#ifndef OSTYPE
+#error OSTYPE should be defined by the build system
+#endif
+
+#ifndef ARCH
+#error ARCH should be defined by the build system
+#endif
+
+/*
+ * Older operating systen and architecture detection
+ * macros, implemented by savegame version YQ2-1.
  */
 #if defined(__APPLE__)
- #define OS "MacOS X"
+#define OSTYPE_1 "MacOS X"
 #elif defined(__FreeBSD__)
- #define OS "FreeBSD"
+#define OSTYPE_1 "FreeBSD"
 #elif defined(__OpenBSD__)
- #define OS "OpenBSD"
+#define OSTYPE_1 "OpenBSD"
 #elif defined(__linux__)
- #define OS "Linux"
+ #define OSTYPE_1 "Linux"
 #elif defined(_WIN32)
- #define OS "Windows"
+ #define OSTYPE_1 "Windows"
 #else
- #define OS "Unknown"
+ #define OSTYPE_1 "Unknown"
 #endif
 
 #if defined(__i386__)
- #define ARCH "i386"
+#define ARCH_1 "i386"
 #elif defined(__x86_64__)
- #define ARCH "amd64"
+#define ARCH_1 "amd64"
 #elif defined(__sparc__)
- #define ARCH "sparc64"
+#define ARCH_1 "sparc64"
 #elif defined(__ia64__)
- #define ARCH "ia64"
+ #define ARCH_1 "ia64"
 #else
- #define ARCH "unknown"
+ #define ARCH_1 "unknown"
 #endif
 
 /*
@@ -777,7 +783,7 @@ WriteGame(const char *filename, qboolean autosave)
 
 	Q_strlcpy(str_ver, SAVEGAMEVER, sizeof(str_ver));
 	Q_strlcpy(str_game, GAMEVERSION, sizeof(str_game));
-	Q_strlcpy(str_os, OS, sizeof(str_os));
+	Q_strlcpy(str_os, OSTYPE, sizeof(str_os));
 	Q_strlcpy(str_arch, ARCH, sizeof(str_arch));
 
 	fwrite(str_ver, sizeof(str_ver), 1, f);
@@ -827,26 +833,59 @@ ReadGame(const char *filename)
 	fread(str_os, sizeof(str_os), 1, f);
 	fread(str_arch, sizeof(str_arch), 1, f);
 
-	if (strcmp(str_ver, SAVEGAMEVER))
+	if (!strcmp(str_ver, SAVEGAMEVER))
+	{
+		if (strcmp(str_game, GAMEVERSION))
+		{
+			fclose(f);
+			gi.error("Savegame from an other game.so.\n");
+		}
+		else if (strcmp(str_os, OSTYPE))
+		{
+			fclose(f);
+			gi.error("Savegame from an other os.\n");
+		}
+		else if (strcmp(str_arch, ARCH))
+		{
+			fclose(f);
+			gi.error("Savegame from an other architecure.\n");
+		}
+	}
+	else if (!strcmp(str_ver, "YQ2-1"))
+	{
+		if (strcmp(str_game, GAMEVERSION))
+		{
+			fclose(f);
+			gi.error("Savegame from an other game.so.\n");
+		}
+		else if (strcmp(str_os, OSTYPE_1))
+		{
+			fclose(f);
+			gi.error("Savegame from an other os.\n");
+		}
+
+		if (!strcmp(str_os, "Windows"))
+		{
+			/* Windows was forced to i386 */
+			if (strcmp(str_arch, "i386"))
+			{
+				fclose(f);
+				gi.error("Savegame from an other architecure.\n");
+			}
+		}
+		else
+		{
+			if (strcmp(str_arch, ARCH_1))
+			{
+				fclose(f);
+				gi.error("Savegame from an other architecure.\n");
+			}
+		}
+	}
+	else
 	{
 		fclose(f);
 		gi.error("Savegame from an incompatible version.\n");
-	}
-	else if (strcmp(str_game, GAMEVERSION))
-	{
-		fclose(f);
-		gi.error("Savegame from an other game.so.\n");
-	}
- 	else if (strcmp(str_os, OS))
-	{
-		fclose(f);
-		gi.error("Savegame from an other os.\n");
-	}
-
- 	else if (strcmp(str_arch, ARCH))
-	{
-		fclose(f);
-		gi.error("Savegame from an other architecure.\n");
 	}
 
 	g_edicts = gi.TagMalloc(game.maxentities * sizeof(g_edicts[0]), TAG_GAME);

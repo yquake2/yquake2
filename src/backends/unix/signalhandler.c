@@ -49,8 +49,8 @@ printBacktrace(int sig)
 
 	printf("Product:      Yamagi Quake II\n");
 	printf("Version:      %s\n", YQ2VERSION);
-	printf("Plattform:    %s\n", BUILDSTRING);
-	printf("Architecture: %s\n", CPUSTRING);
+	printf("Plattform:    %s\n", OSTYPE);
+	printf("Architecture: %s\n", ARCH);
 	printf("Compiler:     %s\n", __VERSION__);
 	printf("Signal:       %i\n", sig);
 	printf("\nBacktrace:\n");
@@ -70,8 +70,8 @@ printBacktrace(int sig)
 {
 	printf("Product:      Yamagi Quake II\n");
 	printf("Version:      %s\n", YQ2VERSION);
-	printf("Plattform:    %s\n", BUILDSTRING);
-	printf("Architecture: %s\n", CPUSTRING);
+	printf("Plattform:    %s\n", OSTYPE);
+	printf("Architecture: %s\n", ARCH);
 	printf("Compiler:     %s\n", __VERSION__);
 	printf("Signal:       %i\n", sig);
 	printf("\nBacktrace:\n");

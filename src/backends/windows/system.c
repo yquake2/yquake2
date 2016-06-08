@@ -739,8 +739,8 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 #endif
 #endif
 
-	printf("Platform: %s\n", BUILDSTRING);
-	printf("Architecture: %s\n", CPUSTRING);
+	printf("Platform: %s\n", OSTYPE);
+	printf("Architecture: %s\n", ARCH);
 
 	/* Seed PRNG */
 	randk_seed();
