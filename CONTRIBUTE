@@ -8,13 +8,9 @@
 
 =============================================================================== 
 
-This is a list of features that are currently not implemented in Yamagi Quake
-II, but would be nice to have. If you have some freetime to spare, fun coding or
-just want to contribute something, this list has some suggestions. All tasks
-need strong C knowledge, the necessary amount of understandig of the Quake II
-source code or external ABIs differs between the tasks.
+At this time there're no open tasks regaring Quake II. Nevertheless the hints
+for working with the code:
 
-Some hints:
 - Sign up for a Github account and fork our yquake2 repository. This allows 
   the easy integration of upstream changes into your branch and sending of
   pull requests. You'll get a wiki and a bugtracker for free.
@@ -45,17 +41,3 @@ Some hints:
   C (e.g. no inline assembler) and in an endianess independed way.
 - gcc is not the only compiler. Test your changes with clang.
 
-=============================================================================== 
-
-1. Port Yamagi Quake II to new unixoid platforms (for example DragonflyBSD, 
-   NetBSD, Solaris, etc.)
-
-Difficulty: Easy
-Knowledge: Good knowledge of the target platform
-
-Yamagi Quake II runs fine on Linux and FreeBSD. Due to it's very low hardware
-requirements it's an ideal game for platforms without good 3D acceleration.
-Ports to new unixoid operating systems should be easy. In most cases only some
-#ifdef need to be added and the Makefile integration written.
-
-=============================================================================== 
