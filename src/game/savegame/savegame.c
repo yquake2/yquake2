@@ -207,7 +207,7 @@ void
 InitGame(void)
 {
 	gi.dprintf("Game is starting up.\n");
-	gi.dprintf("Game is %s built on %s.\n", GAMEVERSION, __DATE__);
+	gi.dprintf("Game is %s built on %s.\n", GAMEVERSION, BUILD_DATE);
 
 	gun_x = gi.cvar("gun_x", "0", 0);
 	gun_y = gi.cvar("gun_y", "0", 0);
@@ -223,7 +223,7 @@ InitGame(void)
 	/* latched vars */
 	sv_cheats = gi.cvar("cheats", "0", CVAR_SERVERINFO | CVAR_LATCH);
 	gi.cvar("gamename", GAMEVERSION, CVAR_SERVERINFO | CVAR_LATCH);
-	gi.cvar("gamedate", __DATE__, CVAR_SERVERINFO | CVAR_LATCH);
+	gi.cvar("gamedate", BUILD_DATE, CVAR_SERVERINFO | CVAR_LATCH);
 	maxclients = gi.cvar("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
 	maxspectators = gi.cvar("maxspectators", "4", CVAR_SERVERINFO);
 	deathmatch = gi.cvar("deathmatch", "0", CVAR_LATCH);

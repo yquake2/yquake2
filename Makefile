@@ -165,6 +165,13 @@ CFLAGS += -DOSTYPE=\"$(OSTYPE)\" -DARCH=\"$(ARCH)\"
 
 # ----------
 
+# https://reproducible-builds.org/specs/source-date-epoch/
+ifdef SOURCE_DATE_EPOCH
+CFLAGS += -DBUILD_DATE=\"$(shell date --utc --date="@${SOURCE_DATE_EPOCH}" +"%b %_d %Y" | sed -e 's/ /\\ /g')\"
+endif
+
+# ----------
+
 # Systemwide installation
 ifeq ($(WITH_SYSTEMWIDE),yes)
 CFLAGS += -DSYSTEMWIDE
