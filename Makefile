@@ -44,6 +44,12 @@ WITH_OGG:=yes
 # installed
 WITH_OPENAL:=yes
 
+# Enables optional runtime loading of OpenAL (dlopen
+# or similar).
+# If set to "no", the library is linked in at compile
+# time in the normal way.
+DLOPEN_OPENAL:=yes
+
 # Use SDL2 instead of SDL1.2. Disables CD audio support,
 # because SDL2 has none. Use OGG/Vorbis music instead :-)
 # On Windows sdl-config isn't used, so make sure that
@@ -405,15 +411,20 @@ release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg
 endif
 
 ifeq ($(WITH_OPENAL),yes)
+ifeq ($(DLOPEN_OPENAL),yes)
 ifeq ($(OSTYPE), OpenBSD)
-release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so"'
+release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so"' -DDLOPEN_OPENAL
 else ifeq ($(OSTYPE), Darwin)
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.dylib"' -I/usr/local/opt/openal-soft/include
 release/quake2 : LDFLAGS += -L/usr/local/opt/openal-soft/lib
 else
-release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
+release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"' -DDLOPEN_OPENAL
 endif
-endif
+else # !DLOPEN_OPENAL
+release/quake2 : CFLAGS += -DUSE_OPENAL
+release/quake2 : LDFLAGS += -lopenal
+endif # !DLOPEN_OPENAL
+endif # WITH_OPENAL
 
 ifeq ($(WITH_ZIP),yes)
 release/quake2 : CFLAGS += -DZIP -DNOUNCRYPT
