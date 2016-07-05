@@ -73,6 +73,10 @@
  */
 #define SAVEGAMEVER "YQ2-2"
 
+#ifndef BUILD_DATE
+#define BUILD_DATE __DATE__
+#endif
+
 /*
  * This macros are used to prohibit loading of savegames
  * created on other systems or architectures. This will
