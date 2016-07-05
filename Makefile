@@ -44,10 +44,10 @@ WITH_OGG:=yes
 # installed
 WITH_OPENAL:=yes
 
-# Enables optional runtime loading of OpenAL (dlopen
-# or similar).
-# If set to "no", the library is linked in at compile
-# time in the normal way.
+# Enables optional runtime loading of OpenAL (dlopen or
+# similar). If set to "no", the library is linked in at
+# compile time in the normal way. On Windows this option
+# is ignored, OpenAL is always loaded at runtime.
 DLOPEN_OPENAL:=yes
 
 # Use SDL2 instead of SDL1.2. Disables CD audio support,
@@ -370,7 +370,7 @@ release/quake2.exe : LDFLAGS += -lvorbisfile -lvorbis -logg
 endif
 
 ifeq ($(WITH_OPENAL),yes)
-release/quake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"'
+release/quake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"' -DDLOPEN_OPENAL
 endif
 
 ifeq ($(WITH_ZIP),yes)
