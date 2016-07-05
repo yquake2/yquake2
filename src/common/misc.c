@@ -241,7 +241,7 @@ Qcommon_Init(int argc, char **argv)
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET);
 #endif
 
-	s = va("%s %s %s %s", YQ2VERSION, ARCH, __DATE__, OSTYPE);
+	s = va("%s %s %s %s", YQ2VERSION, ARCH, BUILD_DATE, OSTYPE);
 	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
 	if (dedicated->value)

@@ -44,6 +44,10 @@
 #error ARCH should be defined by the build system
 #endif
 
+#ifndef BUILD_DATE
+#define BUILD_DATE __DATE__
+#endif
+
 #ifdef _WIN32
  #define CFGDIR "YamagiQ2"
 #else
