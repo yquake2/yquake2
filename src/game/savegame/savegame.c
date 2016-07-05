@@ -838,17 +838,17 @@ ReadGame(const char *filename)
 		if (strcmp(str_game, GAMEVERSION))
 		{
 			fclose(f);
-			gi.error("Savegame from an other game.so.\n");
+			gi.error("Savegame from another game.so.\n");
 		}
 		else if (strcmp(str_os, OSTYPE))
 		{
 			fclose(f);
-			gi.error("Savegame from an other os.\n");
+			gi.error("Savegame from another os.\n");
 		}
 		else if (strcmp(str_arch, ARCH))
 		{
 			fclose(f);
-			gi.error("Savegame from an other architecure.\n");
+			gi.error("Savegame from another architecture.\n");
 		}
 	}
 	else if (!strcmp(str_ver, "YQ2-1"))
@@ -856,12 +856,12 @@ ReadGame(const char *filename)
 		if (strcmp(str_game, GAMEVERSION))
 		{
 			fclose(f);
-			gi.error("Savegame from an other game.so.\n");
+			gi.error("Savegame from another game.so.\n");
 		}
 		else if (strcmp(str_os, OSTYPE_1))
 		{
 			fclose(f);
-			gi.error("Savegame from an other os.\n");
+			gi.error("Savegame from another os.\n");
 		}
 
 		if (!strcmp(str_os, "Windows"))
@@ -870,7 +870,7 @@ ReadGame(const char *filename)
 			if (strcmp(str_arch, "i386"))
 			{
 				fclose(f);
-				gi.error("Savegame from an other architecure.\n");
+				gi.error("Savegame from another architecture.\n");
 			}
 		}
 		else
@@ -878,7 +878,7 @@ ReadGame(const char *filename)
 			if (strcmp(str_arch, ARCH_1))
 			{
 				fclose(f);
-				gi.error("Savegame from an other architecure.\n");
+				gi.error("Savegame from another architecture.\n");
 			}
 		}
 	}

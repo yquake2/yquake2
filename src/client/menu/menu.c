@@ -1696,7 +1696,7 @@ static const char *xatcredits[] =
     "Chris Toft",
     "Juan Valdes",
     "",
-    "+THANKS TO INTERGRAPH COMPUTER SYTEMS",
+    "+THANKS TO INTERGRAPH COMPUTER SYSTEMS",
     "+IN PARTICULAR:",
     "",
     "Michael T. Nicolaou",
