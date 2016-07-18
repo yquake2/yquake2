@@ -436,6 +436,11 @@ IN_Update(void)
 				}
 #endif
 				break;
+
+			case SDL_QUIT:
+				Com_Quit();
+				
+				break;
 		}
 	}
 
