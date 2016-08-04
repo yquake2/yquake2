@@ -732,28 +732,6 @@ CL_UpdateWindowedMouse(void)
 }
 
 void
-CL_SendCommand(void)
-{
-	/* update windowed_mouse cvar */
-	CL_UpdateWindowedMouse();
-
-	/* get new key events */
-	Sys_SendKeyEvents();
-
-	/* process console commands */
-	Cbuf_Execute();
-
-	/* fix any cheating cvars */
-	CL_FixCvarCheats();
-
-	/* send intentions now */
-	CL_SendCmd();
-
-	/* resend a connection request if necessary */
-	CL_CheckForResend();
-}
-
-void
 CL_Frame(int msec)
 {
 	static int lasttimecalled;
