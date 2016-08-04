@@ -840,6 +840,7 @@ CL_Frame(int msec)
 	if (packetframe || renderframe)
 	{
 		CL_ReadPackets();
+		CL_UpdateWindowedMouse();
 		Sys_SendKeyEvents();
 		Cbuf_Execute();
 		CL_FixCvarCheats();
