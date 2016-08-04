@@ -74,6 +74,7 @@ LM_UploadBlock(qboolean dynamic)
 	}
 	else
 	{
+		gl_lms.internal_format = GL_LIGHTMAP_FORMAT;
 		glTexImage2D(GL_TEXTURE_2D, 0, gl_lms.internal_format,
 				BLOCK_WIDTH, BLOCK_HEIGHT, 0, GL_LIGHTMAP_FORMAT,
 				GL_UNSIGNED_BYTE, gl_lms.lightmap_buffer);
@@ -273,7 +274,7 @@ LM_BeginBuildingLightmaps(model_t *m)
 	}
 
 	gl_lms.current_lightmap_texture = 1;
-	gl_lms.internal_format = gl_tex_solid_format;
+	gl_lms.internal_format = GL_LIGHTMAP_FORMAT;
 
 	/* initialize the dynamic lightmap texture */
 	R_Bind(gl_state.lightmap_textures + 0);
