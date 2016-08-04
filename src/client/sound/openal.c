@@ -842,7 +842,7 @@ AL_Shutdown(void)
 {
 	Com_Printf("Shutting down OpenAL.\n");
 
-	AL_StreamDie();
+	AL_StopAllChannels();
 
 	qalDeleteSources(1, &streamSource);
 	qalDeleteFilters(1, &underwaterFilter);
