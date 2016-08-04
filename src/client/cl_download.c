@@ -418,6 +418,7 @@ CL_RequestNextDownload(void)
 
 	MSG_WriteByte(&cls.netchan.message, clc_stringcmd);
 	MSG_WriteString(&cls.netchan.message, va("begin %i\n", precache_spawncount));
+	cls.forcePacket = true;
 }
 
 void
@@ -500,6 +501,7 @@ CL_CheckOrDownloadFile(char *filename)
 	}
 
 	cls.downloadnumber++;
+	cls.forcePacket = true;
 
 	return false;
 }
@@ -606,6 +608,7 @@ CL_ParseDownload(void)
 
 		MSG_WriteByte(&cls.netchan.message, clc_stringcmd);
 		SZ_Print(&cls.netchan.message, "nextdl");
+		cls.forcePacket = true;
 	}
 	else
 	{

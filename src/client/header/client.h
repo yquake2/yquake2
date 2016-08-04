@@ -210,7 +210,8 @@ typedef struct
 
 	int			framecount;
 	int			realtime; /* always increasing, no clamping, etc */
-	float		frametime; /* seconds since last frame */
+	float		rframetime; /* seconds since last render frame */
+	float		nframetime; /* network frame time */
 
 	/* screen rendering information */
 	float		disable_screen; /* showing loading plaque between levels */
@@ -230,6 +231,8 @@ typedef struct
 	int			serverProtocol; /* in case we are doing some kind of version hack */
 
 	int			challenge; /* from the server to use for connecting */
+
+	qboolean	forcePacket; /* Forces a package to be send at the next frame. */
 
 	FILE		*download; /* file transfer from server */
 	char		downloadtempname[MAX_OSPATH];
@@ -438,7 +441,9 @@ extern 	kbutton_t 	in_strafe;
 extern 	kbutton_t 	in_speed;
 
 void CL_InitInput (void);
+void CL_RefreshCmd(void);
 void CL_SendCmd (void);
+void CL_RefreshMove(void);
 void CL_SendMove (usercmd_t *cmd);
 
 void CL_ClearState (void);

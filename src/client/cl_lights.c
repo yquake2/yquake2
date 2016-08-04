@@ -188,7 +188,7 @@ CL_RunDLights(void)
 			return;
 		}
 
-		dl->radius -= cls.frametime * dl->decay;
+		dl->radius -= cls.rframetime * dl->decay;
 
 		if (dl->radius < 0)
 		{

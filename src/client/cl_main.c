@@ -95,6 +95,7 @@ cvar_t *hand;
 cvar_t *gender;
 cvar_t *gender_auto;
 
+cvar_t *gl_maxfps;
 
 cvar_t	*gl_stereo;
 cvar_t	*gl_stereo_separation;
@@ -506,7 +507,7 @@ CL_InitLocal(void)
 	cl_noskins = Cvar_Get("cl_noskins", "0", 0);
 	cl_autoskins = Cvar_Get("cl_autoskins", "0", 0);
 	cl_predict = Cvar_Get("cl_predict", "1", 0);
-	cl_maxfps = Cvar_Get("cl_maxfps", "95", CVAR_ARCHIVE);
+	cl_maxfps = Cvar_Get("cl_maxfps", "30", CVAR_ARCHIVE);
 	cl_drawfps = Cvar_Get("cl_drawfps", "0", CVAR_ARCHIVE);
 
 	cl_upspeed = Cvar_Get("cl_upspeed", "200", 0);
@@ -533,6 +534,8 @@ CL_InitLocal(void)
 	cl_timeout = Cvar_Get("cl_timeout", "120", 0);
 	cl_paused = Cvar_Get("paused", "0", 0);
 	cl_timedemo = Cvar_Get("timedemo", "0", 0);
+
+	gl_maxfps = Cvar_Get("gl_maxfps", "95", CVAR_ARCHIVE);
 
 	gl_stereo = Cvar_Get( "gl_stereo", "0", CVAR_ARCHIVE );
 	gl_stereo_separation = Cvar_Get( "gl_stereo_separation", "1", CVAR_ARCHIVE );
@@ -753,41 +756,41 @@ CL_SendCommand(void)
 void
 CL_Frame(int msec)
 {
-	static int extratime;
 	static int lasttimecalled;
+
+	static int packetdelta = 0;
+	static int renderdelta = 0;
+	static int miscdelta = 0;
+
+	qboolean packetframe = true;
+	qboolean renderframe = true;
+	qboolean miscframe = true;
 
 	if (dedicated->value)
 	{
 		return;
 	}
 
-	extratime += msec;
+	// Adjust deltas
+	packetdelta += msec;
+	renderdelta += msec;
+	miscdelta += msec;
 
-	if (!cl_timedemo->value)
+	// Calculate simulation time
+	cls.nframetime = packetdelta * 0.001f;
+	cls.rframetime = renderdelta * 0.001f;
+	cls.realtime = curtime;
+	cl.time += msec;
+
+	// Don't extrapolate too far ahead
+	if (cls.nframetime > 0.5f)
 	{
-		if ((cls.state == ca_connected) && (extratime < 100))
-		{
-			return; /* don't flood packets out while connecting */
-		}
-
-		if (extratime < 1000 / cl_maxfps->value)
-		{
-			return; /* framerate is too high */
-		}
+		cls.nframetime = 0.5f;
 	}
 
-	/* decide the simulation time */
-	cls.frametime = extratime / 1000.0;
-
-	cl.time += extratime;
-
-	cls.realtime = curtime;
-
-	extratime = 0;
-
-	if (cls.frametime > (1.0 / 5))
+	if (cls.rframetime > 0.5f)
 	{
-		cls.frametime = (1.0 / 5);
+		cls.rframetime = 0.5f;
 	}
 
 	/* if in the debugger last frame, don't timeout */
@@ -796,77 +799,150 @@ CL_Frame(int msec)
 		cls.netchan.last_received = Sys_Milliseconds();
 	}
 
-	/* fetch results from server */
-	CL_ReadPackets();
-
-	/* send a new command message to the server */
-	CL_SendCommand();
-
-	/* predict all unacknowledged movements */
-	CL_PredictMovement();
-
-	/* allow renderer DLL change */
-	VID_CheckChanges();
-
-	if (!cl.refresh_prepped && (cls.state == ca_active))
+	if (!cl_timedemo->value)
 	{
-		CL_PrepRefresh();
+		// Don't flood while connecting
+		if ((cls.state == ca_connected) && (packetdelta < 100))
+		{
+			packetframe = false;
+		}
+
+		// Network frames
+		if (packetdelta < (1000.0f / cl_maxfps->value))
+		{
+			packetframe = false;
+		}
+		else if (cls.nframetime == cls.rframetime)
+		{
+			packetframe = false;
+		}
+
+		// Render frames
+		if (renderdelta < (1000.0f / gl_maxfps->value))
+		{
+			renderframe = false;
+		}
+
+		// Misc. stuff at 10 FPS
+		if (miscdelta < 100.0f)
+		{
+			miscframe = false;
+		}
+
+		// TODO: Do we need the cl_sleep stuff?
+	}
+	else if (msec < 1)
+	{
+		return;
 	}
 
-	/* update the screen */
-	if (host_speeds->value)
+	// Update input stuff
+	if (packetframe || renderframe)
 	{
-		time_before_ref = Sys_Milliseconds();
+		CL_ReadPackets();
+		Sys_SendKeyEvents();
+		Cbuf_Execute();
+		CL_FixCvarCheats();
+
+		if (cls.state > ca_connecting)
+		{
+			CL_RefreshCmd();
+		}
+		else
+		{
+			CL_RefreshMove();
+		}
 	}
 
-	SCR_UpdateScreen();
-
-	if (host_speeds->value)
+	if (cls.forcePacket || userinfo_modified)
 	{
-		time_after_ref = Sys_Milliseconds();
+		packetframe = true;
+		cls.forcePacket = false;
 	}
 
-	/* update audio */
-	S_Update(cl.refdef.vieworg, cl.v_forward, cl.v_right, cl.v_up);
+	if (packetframe)
+	{
+		packetdelta = 0;
+
+		CL_SendCmd();
+		CL_CheckForResend();
+	}
+
+	if (renderframe)
+	{
+		renderdelta = 0;
+
+		if (miscframe)
+		{
+			miscdelta = 0;
+
+			VID_CheckChanges();
+		}
+
+		CL_PredictMovement(); // TODO: Make called function async
+
+		if (!cl.refresh_prepped && (cls.state == ca_active))
+		{
+			CL_PrepRefresh();
+		}
+
+		/* update the screen */
+		if (host_speeds->value)
+		{
+			time_before_ref = Sys_Milliseconds();
+		}
+
+		SCR_UpdateScreen();
+
+		if (host_speeds->value)
+		{
+			time_after_ref = Sys_Milliseconds();
+		}
+
+		/* update audio */
+		S_Update(cl.refdef.vieworg, cl.v_forward, cl.v_right, cl.v_up);
+
 #ifdef CDA
-	CDAudio_Update();
+		if (miscframe)
+		{
+			CDAudio_Update();
+		}
 #endif
 
-	/* advance local effects for next frame */
-	CL_RunDLights();
+		/* advance local effects for next frame */
+		CL_RunDLights();
+		CL_RunLightStyles();
+		SCR_RunCinematic();
+		SCR_RunConsole();
 
-	CL_RunLightStyles();
+		/* Update framecounter */
+		cls.framecount++;
 
-	SCR_RunCinematic();
-
-	SCR_RunConsole();
-
-	cls.framecount++;
-
-	if (log_stats->value)
-	{
-		if (cls.state == ca_active)
+		if (log_stats->value)
 		{
-			if (!lasttimecalled)
+			if (cls.state == ca_active)
 			{
-				lasttimecalled = Sys_Milliseconds();
-
-				if (log_stats_file)
+				if (!lasttimecalled)
 				{
-					fprintf(log_stats_file, "0\n");
-				}
-			}
+					lasttimecalled = Sys_Milliseconds();
 
-			else
-			{
-				int now = Sys_Milliseconds();
-
-				if (log_stats_file)
-				{
-					fprintf(log_stats_file, "%d\n", now - lasttimecalled);
+					if (log_stats_file)
+					{
+						fprintf(log_stats_file, "0\n");
+					}
 				}
 
-				lasttimecalled = now;
+				else
+				{
+					int now = Sys_Milliseconds();
+
+					if (log_stats_file)
+					{
+						fprintf(log_stats_file, "%d\n", now - lasttimecalled);
+					}
+
+					lasttimecalled = now;
+				}
 			}
 		}
 	}

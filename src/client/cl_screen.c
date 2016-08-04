@@ -319,7 +319,7 @@ SCR_DrawCenterString(void)
 void
 SCR_CheckDrawCenterString(void)
 {
-	scr_centertime_off -= cls.frametime;
+	scr_centertime_off -= cls.rframetime;
 
 	if (scr_centertime_off <= 0)
 	{
@@ -514,7 +514,7 @@ SCR_RunConsole(void)
 
 	if (scr_conlines < scr_con_current)
 	{
-		scr_con_current -= scr_conspeed->value * cls.frametime;
+		scr_con_current -= scr_conspeed->value * cls.rframetime;
 
 		if (scr_conlines > scr_con_current)
 		{
@@ -523,7 +523,7 @@ SCR_RunConsole(void)
 	}
 	else if (scr_conlines > scr_con_current)
 	{
-		scr_con_current += scr_conspeed->value * cls.frametime;
+		scr_con_current += scr_conspeed->value * cls.rframetime;
 
 		if (scr_conlines < scr_con_current)
 		{
@@ -1541,13 +1541,13 @@ SCR_UpdateScreen(void)
 			if (cl_drawfps->value)
 			{
 				char s[8];
-				sprintf(s, "%3.0ffps", 1 / cls.frametime);
+				sprintf(s, "%3.0ffps", 1 / cls.rframetime);
 				DrawString(viddef.width - 64, 0, s);
 			}
 
 			if (scr_timegraph->value)
 			{
-				SCR_DebugGraph(cls.frametime * 300, 0);
+				SCR_DebugGraph(cls.rframetime * 300, 0);
 			}
 
 			if (scr_debuggraph->value || scr_timegraph->value ||
