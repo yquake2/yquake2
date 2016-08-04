@@ -280,7 +280,7 @@ R_DrawNullModel(void)
 	R_RotateForEntity(currententity);
 
 	glDisable(GL_TEXTURE_2D);
-	glColor3fv(shadelight);
+	glColor4f( shadelight[0], shadelight[1], shadelight[2], 1 );
 
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(0, 0, -16);
@@ -302,7 +302,7 @@ R_DrawNullModel(void)
 
 	glEnd();
 
-	glColor3f(1, 1, 1);
+	glColor4f(1, 1, 1, 1);
 	glPopMatrix();
 	glEnable(GL_TEXTURE_2D);
 }
@@ -536,7 +536,7 @@ R_PolyBlend(void)
 	glRotatef(-90, 1, 0, 0); /* put Z going up */
 	glRotatef(90, 0, 0, 1); /* put Z going up */
 
-	glColor4fv(v_blend);
+	glColor4f(v_blend[0], v_blend[1], v_blend[2], v_blend[3]);
 
 	glBegin(GL_QUADS);
 

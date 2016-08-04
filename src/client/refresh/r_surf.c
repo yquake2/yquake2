@@ -916,7 +916,7 @@ R_DrawBrushModel(entity_t *e)
 		glEnable(GL_POLYGON_OFFSET_FILL);
 	}
 
-	glColor3f(1, 1, 1);
+	glColor4f(1, 1, 1, 1);
 	memset(gl_lms.lightmap_surfaces, 0, sizeof(gl_lms.lightmap_surfaces));
 
 	VectorSubtract(r_newrefdef.vieworg, e->origin, modelorg);
@@ -1165,7 +1165,7 @@ R_DrawWorld(void)
 
 	gl_state.currenttextures[0] = gl_state.currenttextures[1] = -1;
 
-	glColor3f(1, 1, 1);
+	glColor4f(1, 1, 1, 1);
 	memset(gl_lms.lightmap_surfaces, 0, sizeof(gl_lms.lightmap_surfaces));
 	R_ClearSkyBox();
 

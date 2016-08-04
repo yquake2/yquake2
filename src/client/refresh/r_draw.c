@@ -260,8 +260,7 @@ Draw_Fill(int x, int y, int w, int h, int c)
 	glDisable(GL_TEXTURE_2D);
 
 	color.c = d_8to24table[c];
-	glColor3f(color.v[0] / 255.0, color.v[1] / 255.0,
-			color.v[2] / 255.0);
+	glColor4f(color.v[0] / 255.0, color.v[1] / 255.0, color.v[2] / 255.0, 1);
 
 	glBegin(GL_QUADS);
 
@@ -271,7 +270,7 @@ Draw_Fill(int x, int y, int w, int h, int c)
 	glVertex2f(x, y + h);
 
 	glEnd();
-	glColor3f(1, 1, 1);
+	glColor4f(1, 1, 1, 1);
 	glEnable(GL_TEXTURE_2D);
 }
 
