@@ -429,6 +429,12 @@ Sys_Milliseconds(void)
 	return curtime;
 }
 
+void
+Sys_Sleep(int msec)
+{
+	Sleep(msec);
+}
+
 /* ======================================================================= */
 
 static qboolean

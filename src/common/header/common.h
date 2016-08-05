@@ -764,6 +764,7 @@ void Sys_Error(char *error, ...);
 void Sys_Quit(void);
 char *Sys_GetHomeDir(void);
 const char *Sys_GetBinaryDir(void);
+void Sys_Sleep(int msec);
 
 void Sys_FreeLibrary(void *handle);
 void *Sys_LoadLibrary(const char *path, const char *sym, void **handle);

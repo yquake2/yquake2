@@ -807,7 +807,19 @@ CL_Frame(int msec)
 			miscframe = false;
 		}
 
-		// TODO: Do we need the cl_sleep stuff?
+		// Throttle the game a little bit. 1000 FPS are enough.
+		if (!packetframe && !renderframe && !cls.forcePacket && !userinfo_modified)
+		{
+			double frametime = (1000.0 / cl_maxfps->value - packetdelta) <= (1000.0 / gl_maxfps->value - renderdelta) ?
+							   (1000.0 / cl_maxfps->value - packetdelta) : (1000.0 / gl_maxfps->value - renderdelta);
+
+			if (frametime > 1)
+			{
+				Sys_Sleep(1);
+			}
+
+			return;
+		}
 	}
 	else if (msec < 1)
 	{
