@@ -195,12 +195,10 @@ R_SelectTexture(GLenum texture)
 	}
 
 	gl_state.currenttmu = tmu;
+	gl_state.currenttarget = texture;
 
-	if (qglActiveTextureARB)
-	{
-		qglActiveTextureARB(texture);
-		qglClientActiveTextureARB(texture);
-	}
+	qglActiveTextureARB(texture);
+	qglClientActiveTextureARB(texture);
 }
 
 void
@@ -237,7 +235,10 @@ R_Bind(int texnum)
 void
 R_MBind(GLenum target, int texnum)
 {
-	R_SelectTexture(target);
+	if (target != gl_state.currenttarget)
+	{
+		R_SelectTexture(target);
+	}
 
 	if (target == GL_TEXTURE0_ARB)
 	{

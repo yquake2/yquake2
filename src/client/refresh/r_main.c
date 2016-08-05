@@ -1421,9 +1421,6 @@ R_Init(void *hinstance, void *hWnd)
 	Q_strlcpy(vendor_buffer, gl_config.vendor_string, sizeof(vendor_buffer));
 	Q_strlwr(vendor_buffer);
 
-	Cvar_Set("scr_drawall", "0");
-	gl_config.allow_cds = true;
-
 	VID_Printf(PRINT_ALL, "\n\nProbing for OpenGL extensions:\n");
 
 	/* grab extensions */
@@ -1485,6 +1482,7 @@ R_Init(void *hinstance, void *hWnd)
 		{
 			VID_Printf(PRINT_ALL, "...using GL_ARB_multitexture\n");
 			qglMultiTexCoord2fARB = ( void * ) GLimp_GetProcAddress ( "glMultiTexCoord2fARB" );
+			qglMultiTexCoord2fvARB = (void * ) GLimp_GetProcAddress( "glMultiTexCoord2fvARB" );
 			qglActiveTextureARB = ( void * ) GLimp_GetProcAddress ( "glActiveTextureARB" );
 			qglClientActiveTextureARB = ( void * ) GLimp_GetProcAddress ( "glClientActiveTextureARB" );
 		}

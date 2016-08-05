@@ -117,6 +117,7 @@ extern void ( APIENTRY *qglColorTableEXT ) ( GLenum, GLenum, GLsizei, GLenum,
 extern void ( APIENTRY *qglLockArraysEXT ) ( int, int );
 extern void ( APIENTRY *qglUnlockArraysEXT ) ( void );
 extern void ( APIENTRY *qglMultiTexCoord2fARB) ( GLenum, GLfloat, GLfloat );
+extern void ( APIENTRY *qglMultiTexCoord2fvARB) ( GLenum, GLfloat* );
 extern void ( APIENTRY *qglActiveTextureARB ) ( GLenum );
 extern void ( APIENTRY *qglClientActiveTextureARB ) ( GLenum );
 

@@ -47,6 +47,7 @@ void (APIENTRY *qglColorTableEXT)(GLenum, GLenum, GLsizei, GLenum, GLenum,
 
 void ( APIENTRY *qgl3DfxSetPaletteEXT ) ( GLuint * );
 void ( APIENTRY *qglMultiTexCoord2fARB ) ( GLenum, GLfloat, GLfloat );
+void ( APIENTRY *qglMultiTexCoord2fvARB) ( GLenum, GLfloat* );
 void ( APIENTRY *qglActiveTextureARB ) ( GLenum );
 void ( APIENTRY *qglClientActiveTextureARB ) ( GLenum );
 
@@ -61,6 +62,7 @@ void QGL_EXT_Reset ( void )
 	qglColorTableEXT          = NULL;
 	qgl3DfxSetPaletteEXT      = NULL;
 	qglMultiTexCoord2fARB     = NULL;
+	qglMultiTexCoord2fvARB    = NULL;
 	qglActiveTextureARB       = NULL;
 	qglClientActiveTextureARB = NULL;
 }

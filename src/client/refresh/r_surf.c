@@ -737,8 +737,7 @@ R_RenderLightmappedPoly(msurface_t *surf)
 		{
 			float scroll;
 
-			scroll = -64 *
-					 ((r_newrefdef.time / 40.0) - (int)(r_newrefdef.time / 40.0));
+			scroll = -64 * ((r_newrefdef.time / 40.0) - (int)(r_newrefdef.time / 40.0));
 
 			if (scroll == 0.0)
 			{
@@ -748,60 +747,34 @@ R_RenderLightmappedPoly(msurface_t *surf)
 			for (p = surf->polys; p; p = p->chain)
 			{
 				v = p->verts[0];
+				glBegin(GL_POLYGON);
 
-                GLfloat tex[2*nv];
-                unsigned int index_tex = 0;
-
-				for ( i = 0; i < nv; i++, v += VERTEXSIZE )
+				for (i = 0; i < nv; i++, v += VERTEXSIZE)
 				{
-					tex[index_tex++] = v [ 3 ] + scroll;
-					tex[index_tex++] = v [ 4 ];
+					qglMultiTexCoord2fARB(GL_TEXTURE0, (v[3]+scroll), v[4]);
+					qglMultiTexCoord2fvARB(GL_TEXTURE1, &v[5]);
+					glVertex3fv(v);
 				}
 
-                v = p->verts [ 0 ];
-
-                R_SelectTexture( GL_TEXTURE0 );
-                glEnableClientState( GL_VERTEX_ARRAY );
-                glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-                glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
-                glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-
-                R_SelectTexture( GL_TEXTURE1 );
-                glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-                glTexCoordPointer( 2, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v+5 );
-
-                glDrawArrays( GL_TRIANGLE_FAN, 0, nv );
-
-                glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-                R_SelectTexture( GL_TEXTURE0 );
-                glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-                glDisableClientState( GL_VERTEX_ARRAY );
+				glEnd();
 			}
 		}
 		else
 		{
+
 			for (p = surf->polys; p; p = p->chain)
 			{
 				v = p->verts[0];
+				glBegin(GL_POLYGON);
 
-                R_SelectTexture( GL_TEXTURE0 );
-                glEnableClientState( GL_VERTEX_ARRAY );
-                glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+				for (i=0 ; i< nv; i++, v+= VERTEXSIZE)
+				{
+					qglMultiTexCoord2fvARB(GL_TEXTURE0, &v[3]);
+					qglMultiTexCoord2fvARB(GL_TEXTURE1, &v[5]);
+					glVertex3fv(v);
+				}
 
-                glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
-                glTexCoordPointer( 2, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v+3 );
-
-                R_SelectTexture( GL_TEXTURE1 );
-                glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-                glTexCoordPointer( 2, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v+5 );
-
-                glDrawArrays( GL_TRIANGLE_FAN, 0, nv );
-
-                glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-                R_SelectTexture( GL_TEXTURE0 );
-                glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-                glDisableClientState( GL_VERTEX_ARRAY );
+				glEnd();
 			}
 		}
 	}
@@ -822,39 +795,18 @@ R_RenderLightmappedPoly(msurface_t *surf)
 			{
 				scroll = -64.0;
 			}
-
 			for (p = surf->polys; p; p = p->chain)
 			{
 				v = p->verts[0];
+				glBegin(GL_POLYGON);
 
-                GLfloat tex[2*nv];
-                unsigned int index_tex = 0;
-
-				for ( i = 0; i < nv; i++, v += VERTEXSIZE )
+				for (i=0 ; i< nv; i++, v+= VERTEXSIZE)
 				{
-					tex[index_tex++] = v [ 3 ] + scroll;
-					tex[index_tex++] = v [ 4 ];
+					qglMultiTexCoord2fARB(GL_TEXTURE0, (v[3]+scroll), v[4]);
+					qglMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
 				}
 
-                v = p->verts [ 0 ];
-
-                R_SelectTexture( GL_TEXTURE0 );
-                glEnableClientState( GL_VERTEX_ARRAY );
-                glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-                glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
-                glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-
-                R_SelectTexture( GL_TEXTURE1 );
-                glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-                glTexCoordPointer( 2, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v+5 );
-
-                glDrawArrays( GL_TRIANGLE_FAN, 0, nv );
-
-                glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-                R_SelectTexture( GL_TEXTURE0 );
-                glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-                glDisableClientState( GL_VERTEX_ARRAY );
+				glEnd();
 			}
 		}
 		else
@@ -862,23 +814,16 @@ R_RenderLightmappedPoly(msurface_t *surf)
 			for (p = surf->polys; p; p = p->chain)
 			{
 				v = p->verts[0];
+				glBegin (GL_POLYGON);
 
-                R_SelectTexture( GL_TEXTURE0 );
-                glEnableClientState( GL_VERTEX_ARRAY );
-                glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+				for (i=0 ; i< nv; i++, v+= VERTEXSIZE)
+				{
+					qglMultiTexCoord2fvARB(GL_TEXTURE0, &v[3]);
+					qglMultiTexCoord2fvARB(GL_TEXTURE1, &v[5]);
+					glVertex3fv(v);
+				}
 
-                glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
-                glTexCoordPointer( 2, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v+3 );
-
-                R_SelectTexture( GL_TEXTURE1 );
-                glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-                glTexCoordPointer( 2, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v+5 );
-                glDrawArrays( GL_TRIANGLE_FAN, 0, nv );
-
-                glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-                R_SelectTexture( GL_TEXTURE0 );
-                glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-                glDisableClientState( GL_VERTEX_ARRAY );
+				glEnd();
 			}
 		}
 	}
@@ -900,8 +845,7 @@ R_DrawInlineBModel(void)
 
 		for (k = 0; k < r_newrefdef.num_dlights; k++, lt++)
 		{
-			R_MarkLights(lt, 1 << k,
-					currentmodel->nodes + currentmodel->firstnode);
+			R_MarkLights(lt, 1 << k, currentmodel->nodes + currentmodel->firstnode);
 		}
 	}
 
@@ -1264,7 +1208,7 @@ R_DrawWorld(void)
 		if (!gl_config.mtexcombine)
 		{
 			R_TexEnv(GL_REPLACE);
-			R_SelectTexture(GL_TEXTURE1);
+			R_SelectTexture(GL_TEXTURE1_ARB);
 
 			if (gl_lightmap->value)
 			{
@@ -1282,7 +1226,7 @@ R_DrawWorld(void)
 			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
 			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
 			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_TEXTURE);
-			R_SelectTexture(GL_TEXTURE1);
+			R_SelectTexture(GL_TEXTURE1_ARB);
 			R_TexEnv(GL_COMBINE_EXT);
 
 			if (gl_lightmap->value)
