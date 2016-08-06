@@ -45,9 +45,6 @@
 
 #define GL_SHARED_TEXTURE_PALETTE_EXT 0x81FB
 
-#define GL_TEXTURE0_SGIS 0x835E
-#define GL_TEXTURE1_SGIS 0x835F
-
 #define GL_POINT_SIZE_MIN_EXT 0x8126
 #define GL_POINT_SIZE_MAX_EXT 0x8127
 #define GL_DISTANCE_ATTENUATION_EXT 0x8129
@@ -96,7 +93,14 @@
 #define GL_OPERAND7_ALPHA_EXT 0x859F
 #endif
 
-/* QGL main functions */
+#ifdef _WIN32
+GLAPI void APIENTRY glActiveTextureARB( GLenum texture );
+GLAPI void APIENTRY glClientActiveTextureARB( GLenum texture );
+GLAPI void APIENTRY glMultiTexCoord2fARB(GLenum target, GLfloat s, GLfloat t);
+GLAPI void APIENTRY glMultiTexCoord2fvARB(GLenum target, const GLfloat *v);
+#endif
+
+// =======================================================================
 
 /*
  * This is responsible for setting up our QGL extension pointers

@@ -81,8 +81,6 @@
 #define REF_VERSION "Yamagi Quake II OpenGL Refresher"
 #define MAX_LBM_HEIGHT 480
 #define BACKFACE_EPSILON 0.01
-#define DYNAMIC_LIGHT_WIDTH 128
-#define DYNAMIC_LIGHT_HEIGHT 128
 #define LIGHTMAP_BYTES 4
 #define MAX_LIGHTMAPS 128
 #define GL_LIGHTMAP_FORMAT GL_RGBA
@@ -96,7 +94,6 @@
 /* fall over */
 #define ROLL 2
 
-char *strlwr(char *s);
 extern viddef_t vid;
 
 /*

@@ -660,31 +660,42 @@ R_DrawTextureChains(void)
 void
 R_RenderLightmappedPoly(msurface_t *surf)
 {
-	int i, nv = surf->polys->numverts;
+	int i;
 	int map;
+	int nv;
+	int smax;
+	int tmax;
+	float scroll;
 	float *v;
-	image_t *image = R_TextureAnimation(surf->texinfo);
-	qboolean is_dynamic = false;
-	unsigned lmtex = surf->lightmaptexturenum;
 	glpoly_t *p;
+	image_t *image;
+	qboolean is_dynamic;
+	unsigned lmtex;
+	unsigned temp[128 * 128];
 
+	image = R_TextureAnimation(surf->texinfo);
+	is_dynamic = false;
+	lmtex = surf->lightmaptexturenum;
+	nv = surf->polys->numverts;
+
+	// Any dynamic lights on this surface?
 	for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
 	{
-		if (r_newrefdef.lightstyles[surf->styles[map]].white !=
-			surf->cached_light[map])
+		if (r_newrefdef.lightstyles[surf->styles[map]].white != surf->cached_light[map])
 		{
-			goto dynamic;
+			if (!(surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
+			{
+				is_dynamic = true;
+			}
 		}
 	}
 
+	// Normal dynamic lights
 	if (surf->dlightframe == r_framecount)
 	{
-	dynamic:
-
 		if (gl_dynamic->value)
 		{
-			if (!(surf->texinfo->flags &
-				  (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
+			if (!(surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
 			{
 				is_dynamic = true;
 			}
@@ -693,138 +704,97 @@ R_RenderLightmappedPoly(msurface_t *surf)
 
 	if (is_dynamic)
 	{
-		unsigned temp[128 * 128];
-		int smax, tmax;
-
-		if (((surf->styles[map] >= 32) ||
-			 (surf->styles[map] == 0)) &&
-				(surf->dlightframe != r_framecount))
+		// Dynamic lights on a surface
+		if (((surf->styles[map] >= 32) || (surf->styles[map] == 0)) && (surf->dlightframe != r_framecount))
 		{
 			smax = (surf->extents[0] >> 4) + 1;
 			tmax = (surf->extents[1] >> 4) + 1;
 
-			R_BuildLightMap(surf, (void *)temp, smax * 4);
+			R_BuildLightMap(surf, (void *) temp, smax * 4);
 			R_SetCacheState(surf);
-
 			R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + surf->lightmaptexturenum);
 
 			lmtex = surf->lightmaptexturenum;
 
-			glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t,
-					smax, tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t, smax,
+							tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
 		}
-		else
+		else // Normal dynamic lights
 		{
 			smax = (surf->extents[0] >> 4) + 1;
 			tmax = (surf->extents[1] >> 4) + 1;
 
-			R_BuildLightMap(surf, (void *)temp, smax * 4);
-
+			R_BuildLightMap(surf, (void *) temp, smax * 4);
 			R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + 0);
 
 			lmtex = 0;
 
-			glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t,
-					smax, tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t, smax,
+							tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
 		}
 
 		c_brush_polys++;
 
 		R_MBind(GL_TEXTURE0_ARB, image->texnum);
 		R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + lmtex);
-
-		if (surf->texinfo->flags & SURF_FLOWING)
-		{
-			float scroll;
-
-			scroll = -64 * ((r_newrefdef.time / 40.0) - (int)(r_newrefdef.time / 40.0));
-
-			if (scroll == 0.0)
-			{
-				scroll = -64.0;
-			}
-
-			for (p = surf->polys; p; p = p->chain)
-			{
-				v = p->verts[0];
-				glBegin(GL_POLYGON);
-
-				for (i = 0; i < nv; i++, v += VERTEXSIZE)
-				{
-					qglMultiTexCoord2fARB(GL_TEXTURE0, (v[3]+scroll), v[4]);
-					qglMultiTexCoord2fvARB(GL_TEXTURE1, &v[5]);
-					glVertex3fv(v);
-				}
-
-				glEnd();
-			}
-		}
-		else
-		{
-
-			for (p = surf->polys; p; p = p->chain)
-			{
-				v = p->verts[0];
-				glBegin(GL_POLYGON);
-
-				for (i=0 ; i< nv; i++, v+= VERTEXSIZE)
-				{
-					qglMultiTexCoord2fvARB(GL_TEXTURE0, &v[3]);
-					qglMultiTexCoord2fvARB(GL_TEXTURE1, &v[5]);
-					glVertex3fv(v);
-				}
-
-				glEnd();
-			}
-		}
 	}
-	else
+	else // No dynamic lights
 	{
 		c_brush_polys++;
 
 		R_MBind(GL_TEXTURE0_ARB, image->texnum);
 		R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + lmtex);
+	}
 
-		if (surf->texinfo->flags & SURF_FLOWING)
+	if (surf->texinfo->flags & SURF_FLOWING)
+	{
+		scroll = -64 * ((r_newrefdef.time / 40.0) - (int) (r_newrefdef.time / 40.0));
+
+		if (scroll == 0.0)
 		{
-			float scroll;
-
-			scroll = -64 * ((r_newrefdef.time / 40.0) - (int)(r_newrefdef.time / 40.0));
-
-			if (scroll == 0.0)
-			{
-				scroll = -64.0;
-			}
-			for (p = surf->polys; p; p = p->chain)
-			{
-				v = p->verts[0];
-				glBegin(GL_POLYGON);
-
-				for (i=0 ; i< nv; i++, v+= VERTEXSIZE)
-				{
-					qglMultiTexCoord2fARB(GL_TEXTURE0, (v[3]+scroll), v[4]);
-					qglMultiTexCoord2fARB(GL_TEXTURE1, v[5], v[6]);
-				}
-
-				glEnd();
-			}
+			scroll = -64.0;
 		}
-		else
+
+		for (p = surf->polys; p; p = p->chain)
 		{
-			for (p = surf->polys; p; p = p->chain)
+			v = p->verts[0];
+			glBegin(GL_POLYGON);
+
+			for (i = 0; i < nv; i++, v += VERTEXSIZE)
 			{
-				v = p->verts[0];
-				glBegin (GL_POLYGON);
-
-				for (i=0 ; i< nv; i++, v+= VERTEXSIZE)
-				{
-					qglMultiTexCoord2fvARB(GL_TEXTURE0, &v[3]);
-					qglMultiTexCoord2fvARB(GL_TEXTURE1, &v[5]);
-					glVertex3fv(v);
-				}
-
-				glEnd();
+				qglMultiTexCoord2fARB(GL_TEXTURE0, (v[3] + scroll), v[4]);
+				qglMultiTexCoord2fvARB(GL_TEXTURE1, &v[5]);
+				glVertex3fv(v);
 			}
+
+			glEnd();
+		}
+	}
+	else
+	{
+		for (p = surf->polys; p; p = p->chain)
+		{
+			v = p->verts[0];
+
+			// Polygon
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(3, GL_FLOAT, VERTEXSIZE * sizeof(GLfloat), v);
+
+			// Texture
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			qglClientActiveTextureARB(GL_TEXTURE0_ARB);
+			glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE * sizeof(GLfloat), v + 3);
+
+			// Lightmap
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			qglClientActiveTextureARB(GL_TEXTURE1_ARB);
+			glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE * sizeof(GLfloat), v + 5);
+
+			// Draw the crap
+			glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
+
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		}
 	}
 }
