@@ -1350,8 +1350,6 @@ R_SetMode(void)
 int
 R_Init(void *hinstance, void *hWnd)
 {
-	char renderer_buffer[1000];
-	char vendor_buffer[1000];
 	int err;
 	int j;
 	extern float r_turbsin[256];
@@ -1404,22 +1402,36 @@ R_Init(void *hinstance, void *hWnd)
 
 	VID_MenuInit();
 
+	// --------
+
 	/* get our various GL strings */
 	VID_Printf(PRINT_ALL, "\nOpenGL setting:\n", gl_config.vendor_string);
+
 	gl_config.vendor_string = (char *)glGetString(GL_VENDOR);
 	VID_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string);
+
 	gl_config.renderer_string = (char *)glGetString(GL_RENDERER);
 	VID_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string);
+
 	gl_config.version_string = (char *)glGetString(GL_VERSION);
 	VID_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string);
+
 	gl_config.extensions_string = (char *)glGetString(GL_EXTENSIONS);
 	VID_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
 
-	Q_strlcpy(renderer_buffer, gl_config.renderer_string, sizeof(renderer_buffer));
-	Q_strlwr(renderer_buffer);
+	sscanf(gl_config.version_string, "%d.%d", &gl_config.major_version, &gl_config.minor_version);
 
-	Q_strlcpy(vendor_buffer, gl_config.vendor_string, sizeof(vendor_buffer));
-	Q_strlwr(vendor_buffer);
+	if (gl_config.major_version == 1)
+	{
+		if (gl_config.minor_version < 4)
+		{
+			QGL_Shutdown();
+			VID_Printf(PRINT_ALL, "Support for OpenGL 1.4 wasn't found\n");
+
+			return -1;
+		}
+	}
+
 
 	VID_Printf(PRINT_ALL, "\n\nProbing for OpenGL extensions:\n");
 

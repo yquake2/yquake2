@@ -371,11 +371,15 @@ void R_DrawParticles2(int n,
 
 typedef struct
 {
-	int renderer;
 	const char *renderer_string;
 	const char *vendor_string;
 	const char *version_string;
 	const char *extensions_string;
+
+	int major_version;
+	int minor_version;
+
+	// ----
 
 	qboolean mtexcombine;
 
