@@ -38,8 +38,6 @@
 /*
  * GL extensions
  */
-void (APIENTRY *qglLockArraysEXT)(int, int);
-void (APIENTRY *qglUnlockArraysEXT)(void);
 void (APIENTRY *qglPointParameterfEXT)(GLenum param, GLfloat value);
 void (APIENTRY *qglPointParameterfvEXT)(GLenum param, const GLfloat *value);
 void (APIENTRY *qglColorTableEXT)(GLenum, GLenum, GLsizei, GLenum, GLenum,
@@ -55,8 +53,6 @@ void ( APIENTRY *qglClientActiveTextureARB ) ( GLenum );
 
 void QGL_EXT_Reset ( void )
 {
-	qglLockArraysEXT          = NULL;
-	qglUnlockArraysEXT 	      = NULL;
 	qglPointParameterfEXT     = NULL;
 	qglPointParameterfvEXT    = NULL;
 	qglColorTableEXT          = NULL;

@@ -1435,18 +1435,6 @@ R_Init(void *hinstance, void *hWnd)
 
 	VID_Printf(PRINT_ALL, "\n\nProbing for OpenGL extensions:\n");
 
-	/* grab extensions */
-	if (strstr(gl_config.extensions_string, "GL_EXT_compiled_vertex_array"))
-	{
-		VID_Printf(PRINT_ALL, "...using GL_EXT_compiled_vertex_array\n");
-		qglLockArraysEXT = ( void * ) GLimp_GetProcAddress ( "glLockArraysEXT" );
-		qglUnlockArraysEXT = ( void * ) GLimp_GetProcAddress ( "glUnlockArraysEXT" );
-	}
-	else
-	{
-		VID_Printf(PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n");
-	}
-
 	if (strstr(gl_config.extensions_string, "GL_EXT_point_parameters"))
 	{
 		if (gl_ext_pointparameters->value)
