@@ -83,11 +83,6 @@ cvar_t *gl_farsee;
 cvar_t *gl_lightlevel;
 cvar_t *gl_overbrightbits;
 
-cvar_t *gl_nosubimage;
-cvar_t *gl_allow_software;
-
-cvar_t *gl_vertex_arrays;
-
 cvar_t *gl_particle_min_size;
 cvar_t *gl_particle_max_size;
 cvar_t *gl_particle_size;
@@ -95,14 +90,11 @@ cvar_t *gl_particle_att_a;
 cvar_t *gl_particle_att_b;
 cvar_t *gl_particle_att_c;
 
-cvar_t *gl_ext_swapinterval;
 cvar_t *gl_palettedtexture;
 cvar_t *gl_multitexture;
 cvar_t *gl_pointparameters;
-cvar_t *gl_ext_compiled_vertex_array;
 cvar_t *gl_mtexcombine;
 
-cvar_t *gl_bitdepth;
 cvar_t *gl_drawbuffer;
 cvar_t *gl_lightmap;
 cvar_t *gl_shadows;
@@ -119,7 +111,6 @@ cvar_t *gl_modulate;
 cvar_t *gl_nobind;
 cvar_t *gl_round_down;
 cvar_t *gl_picmip;
-cvar_t *gl_skymip;
 cvar_t *gl_showtris;
 cvar_t *gl_ztrick;
 cvar_t *gl_zfix;
@@ -128,14 +119,12 @@ cvar_t *gl_clear;
 cvar_t *gl_cull;
 cvar_t *gl_polyblend;
 cvar_t *gl_flashblend;
-cvar_t *gl_playermip;
 cvar_t *gl_saturatelighting;
 cvar_t *gl_swapinterval;
 cvar_t *gl_texturemode;
 cvar_t *gl_texturealphamode;
 cvar_t *gl_texturesolidmode;
 cvar_t *gl_anisotropic;
-cvar_t *gl_anisotropic_avail;
 cvar_t *gl_lockpvs;
 cvar_t *gl_msaa_samples;
 
@@ -1216,9 +1205,6 @@ R_Register(void)
 	gl_lightlevel = Cvar_Get("gl_lightlevel", "0", 0);
 	gl_overbrightbits = Cvar_Get("gl_overbrightbits", "2", CVAR_ARCHIVE);
 
-	gl_nosubimage = Cvar_Get("gl_nosubimage", "0", 0);
-	gl_allow_software = Cvar_Get("gl_allow_software", "0", 0);
-
 	gl_particle_min_size = Cvar_Get("gl_particle_min_size", "2", CVAR_ARCHIVE);
 	gl_particle_max_size = Cvar_Get("gl_particle_max_size", "40", CVAR_ARCHIVE);
 	gl_particle_size = Cvar_Get("gl_particle_size", "40", CVAR_ARCHIVE);
@@ -1227,7 +1213,6 @@ R_Register(void)
 	gl_particle_att_c = Cvar_Get("gl_particle_att_c", "0.01", CVAR_ARCHIVE);
 
 	gl_modulate = Cvar_Get("gl_modulate", "1", CVAR_ARCHIVE);
-	gl_bitdepth = Cvar_Get("gl_bitdepth", "0", 0);
 	gl_mode = Cvar_Get("gl_mode", "4", CVAR_ARCHIVE);
 	gl_lightmap = Cvar_Get("gl_lightmap", "0", 0);
 	gl_shadows = Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
@@ -1236,7 +1221,6 @@ R_Register(void)
 	gl_nobind = Cvar_Get("gl_nobind", "0", 0);
 	gl_round_down = Cvar_Get("gl_round_down", "1", 0);
 	gl_picmip = Cvar_Get("gl_picmip", "0", 0);
-	gl_skymip = Cvar_Get("gl_skymip", "0", 0);
 	gl_showtris = Cvar_Get("gl_showtris", "0", 0);
 	gl_ztrick = Cvar_Get("gl_ztrick", "0", 0);
 	gl_zfix = Cvar_Get("gl_zfix", "0", 0);
@@ -1245,21 +1229,16 @@ R_Register(void)
 	gl_cull = Cvar_Get("gl_cull", "1", 0);
 	gl_polyblend = Cvar_Get("gl_polyblend", "1", 0);
 	gl_flashblend = Cvar_Get("gl_flashblend", "0", 0);
-	gl_playermip = Cvar_Get("gl_playermip", "0", 0);
 
 	gl_texturemode = Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl_texturealphamode = Cvar_Get("gl_texturealphamode", "default", CVAR_ARCHIVE);
 	gl_texturesolidmode = Cvar_Get("gl_texturesolidmode", "default", CVAR_ARCHIVE);
 	gl_anisotropic = Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
-	gl_anisotropic_avail = Cvar_Get("gl_anisotropic_avail", "0", 0);
 	gl_lockpvs = Cvar_Get("gl_lockpvs", "0", 0);
-	gl_vertex_arrays = Cvar_Get("gl_vertex_arrays", "0", CVAR_ARCHIVE);
 
-	gl_ext_swapinterval = Cvar_Get("gl_ext_swapinterval", "1", CVAR_ARCHIVE);
 	gl_palettedtexture = Cvar_Get("gl_palettedtexture", "0", CVAR_ARCHIVE);
 	gl_multitexture = Cvar_Get("gl_multitexture", "0", CVAR_ARCHIVE);
 	gl_pointparameters = Cvar_Get("gl_pointparameters", "1", CVAR_ARCHIVE);
-	gl_ext_compiled_vertex_array = Cvar_Get("gl_ext_compiled_vertex_array", "1", CVAR_ARCHIVE);
 	gl_mtexcombine = Cvar_Get("gl_mtexcombine", "1", CVAR_ARCHIVE);
 
 	gl_drawbuffer = Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
@@ -1426,7 +1405,7 @@ R_Init(void *hinstance, void *hWnd)
 		if (gl_config.minor_version < 4)
 		{
 			QGL_Shutdown();
-			VID_Printf(PRINT_ALL, "Support for OpenGL 1.4 wasn't found\n");
+			VID_Printf(PRINT_ALL, "Support for OpenGL 1.4 is not available\n");
 
 			return -1;
 		}

@@ -155,101 +155,6 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 
 	R_LerpVerts(paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv);
 
-	if (gl_vertex_arrays->value)
-	{
-		float colorArray[MAX_VERTS * 4];
-
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 16, s_lerped);
-
-		if (currententity->flags &
-			(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE |
-			 RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
-		{
-			glColor4f(shadelight[0], shadelight[1], shadelight[2], alpha);
-		}
-		else
-		{
-			glEnableClientState(GL_COLOR_ARRAY);
-			glColorPointer(3, GL_FLOAT, 0, colorArray);
-
-			/* pre light everything */
-			for (i = 0; i < paliashdr->num_xyz; i++)
-			{
-				float l = shadedots[verts[i].lightnormalindex];
-
-				colorArray[i * 3 + 0] = l * shadelight[0];
-				colorArray[i * 3 + 1] = l * shadelight[1];
-				colorArray[i * 3 + 2] = l * shadelight[2];
-			}
-		}
-
-		while (1)
-		{
-			/* get the vertex count and primitive type */
-			count = *order++;
-
-			if (!count)
-			{
-				break; /* done */
-			}
-
-			if (count < 0)
-			{
-				count = -count;
-
-				type = GL_TRIANGLE_FAN;
-			}
-			else
-			{
-                type = GL_TRIANGLE_STRIP;
-			}
-
-			total = count;
-			GLfloat vtx[3*total];
-			GLfloat tex[2*total];
-			unsigned int index_vtx = 0;
-			unsigned int index_tex = 0;
-
-			if (currententity->flags &
-				(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE |
-				 RF_SHELL_DOUBLE |
-				 RF_SHELL_HALF_DAM))
-			{
-				do
-				{
-					index_xyz = order[2];
-					order += 3;
-
-                    vtx[index_vtx++] = s_lerped [ index_xyz ][0];
-                    vtx[index_vtx++] = s_lerped [ index_xyz ][1];
-                    vtx[index_vtx++] = s_lerped [ index_xyz ][2];
-				}
-				while (--count);
-			}
-			else
-			{
-				do
-				{
-                    tex[index_tex++] = ( (float *) order ) [ 0 ];
-                    tex[index_tex++] = ( (float *) order ) [ 1 ];
-					index_xyz = order [ 2 ];
-
-					order += 3;
-				}
-				while (--count);
-			}
-
-            glEnableClientState( GL_VERTEX_ARRAY );
-
-            glVertexPointer( 3, GL_FLOAT, 0, vtx );
-            glDrawArrays( type, 0, total );
-
-            glDisableClientState( GL_VERTEX_ARRAY );
-		}
-	}
-	else
-	{
 		while (1)
 		{
 			/* get the vertex count and primitive type */
@@ -274,7 +179,7 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 			total = count;
 			GLfloat vtx[3*total];
 			GLfloat tex[2*total];
-			GLfloat clr[4*total];
+			GLfloat clr[4 * total];
 			unsigned int index_vtx = 0;
 			unsigned int index_tex = 0;
 			unsigned int index_clr = 0;
@@ -287,14 +192,14 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 					index_xyz = order[2];
 					order += 3;
 
-                    clr[index_clr++] = shadelight [ 0 ];
-                    clr[index_clr++] = shadelight [ 1 ];
-                    clr[index_clr++] = shadelight [ 2 ];
-                    clr[index_clr++] = alpha;
+					clr[index_clr++] = shadelight[0];
+					clr[index_clr++] = shadelight[1];
+					clr[index_clr++] = shadelight[2];
+					clr[index_clr++] = alpha;
 
-                    vtx[index_vtx++] = s_lerped [ index_xyz ][ 0 ];
-                    vtx[index_vtx++] = s_lerped [ index_xyz ][ 1 ];
-                    vtx[index_vtx++] = s_lerped [ index_xyz ][ 2 ];
+					vtx[index_vtx++] = s_lerped[index_xyz][0];
+					vtx[index_vtx++] = s_lerped[index_xyz][1];
+					vtx[index_vtx++] = s_lerped[index_xyz][2];
 				}
 				while (--count);
 			}
@@ -303,8 +208,8 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 				do
 				{
 					/* texture coordinates come from the draw list */
-                    tex[index_tex++] = ( (float *) order ) [ 0 ];
-                    tex[index_tex++] = ( (float *) order ) [ 1 ];
+					tex[index_tex++] = ((float *) order)[0];
+					tex[index_tex++] = ((float *) order)[1];
 
 					index_xyz = order[2];
 					order += 3;
@@ -312,32 +217,31 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 					/* normals and vertexes come from the frame list */
 					l = shadedots[verts[index_xyz].lightnormalindex];
 
-                    clr[index_clr++] = l * shadelight [ 0 ];
-                    clr[index_clr++] = l * shadelight [ 1 ];
-                    clr[index_clr++] = l * shadelight [ 2 ];
-                    clr[index_clr++] = alpha;
+					clr[index_clr++] = l * shadelight[0];
+					clr[index_clr++] = l * shadelight[1];
+					clr[index_clr++] = l * shadelight[2];
+					clr[index_clr++] = alpha;
 
-                    vtx[index_vtx++] = s_lerped [ index_xyz ][ 0 ];
-                    vtx[index_vtx++] = s_lerped [ index_xyz ][ 1 ];
-                    vtx[index_vtx++] = s_lerped [ index_xyz ][ 2 ];
+					vtx[index_vtx++] = s_lerped[index_xyz][0];
+					vtx[index_vtx++] = s_lerped[index_xyz][1];
+					vtx[index_vtx++] = s_lerped[index_xyz][2];
 				}
 				while (--count);
 			}
 
-            glEnableClientState( GL_VERTEX_ARRAY );
-            glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-            glEnableClientState( GL_COLOR_ARRAY );
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
 
-            glVertexPointer( 3, GL_FLOAT, 0, vtx );
-            glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-            glColorPointer( 4, GL_FLOAT, 0, clr );
-            glDrawArrays( type, 0, total );
+			glVertexPointer(3, GL_FLOAT, 0, vtx);
+			glTexCoordPointer(2, GL_FLOAT, 0, tex);
+			glColorPointer(4, GL_FLOAT, 0, clr);
+			glDrawArrays(type, 0, total);
 
-            glDisableClientState( GL_VERTEX_ARRAY );
-            glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-            glDisableClientState( GL_COLOR_ARRAY );
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY);
 		}
-	}
 
 	if (currententity->flags &
 		(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE |
