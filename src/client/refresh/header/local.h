@@ -218,7 +218,7 @@ extern cvar_t *gl_palettedtexture;
 extern cvar_t *gl_multitexture;
 extern cvar_t *gl_pointparameters;
 extern cvar_t *gl_ext_compiled_vertex_array;
-extern cvar_t *gl_ext_mtexcombine;
+extern cvar_t *gl_mtexcombine;
 
 extern cvar_t *gl_particle_min_size;
 extern cvar_t *gl_particle_max_size;
@@ -379,20 +379,15 @@ typedef struct
 	// ----
 
 	qboolean anisotropic;
+	qboolean mtexcombine;
 	qboolean multitexture;
 	qboolean npottextures;
 	qboolean palettedtexture;
 	qboolean pointparameters;
 
-
-	qboolean mtexcombine;
-
 	// ----
 
-
 	float max_anisotropy;
-
-
 } glconfig_t;
 
 typedef struct

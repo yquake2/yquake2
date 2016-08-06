@@ -100,7 +100,7 @@ cvar_t *gl_palettedtexture;
 cvar_t *gl_multitexture;
 cvar_t *gl_pointparameters;
 cvar_t *gl_ext_compiled_vertex_array;
-cvar_t *gl_ext_mtexcombine;
+cvar_t *gl_mtexcombine;
 
 cvar_t *gl_bitdepth;
 cvar_t *gl_drawbuffer;
@@ -1260,7 +1260,7 @@ R_Register(void)
 	gl_multitexture = Cvar_Get("gl_multitexture", "0", CVAR_ARCHIVE);
 	gl_pointparameters = Cvar_Get("gl_pointparameters", "1", CVAR_ARCHIVE);
 	gl_ext_compiled_vertex_array = Cvar_Get("gl_ext_compiled_vertex_array", "1", CVAR_ARCHIVE);
-	gl_ext_mtexcombine = Cvar_Get("gl_ext_mtexcombine", "1", CVAR_ARCHIVE);
+	gl_mtexcombine = Cvar_Get("gl_mtexcombine", "1", CVAR_ARCHIVE);
 
 	gl_drawbuffer = Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
 	gl_swapinterval = Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
@@ -1554,7 +1554,6 @@ R_Init(void *hinstance, void *hWnd)
 	/* Non power of two textures */
 	VID_Printf(PRINT_ALL, " - Non power of two textures: ");
 
-
 	if (strstr(gl_config.extensions_string, "GL_ARB_texture_non_power_of_two"))
 	{
 		gl_config.npottextures = true;
@@ -1568,46 +1567,27 @@ R_Init(void *hinstance, void *hWnd)
 
 	// ----
 
-	gl_config.mtexcombine = false;
+	/* Multi texturing combine */
+	VID_Printf(PRINT_ALL, " - Multi texturing combine: ");
 
 	if (strstr(gl_config.extensions_string, "GL_ARB_texture_env_combine"))
 	{
-		if (gl_ext_mtexcombine->value)
+		if (gl_mtexcombine->value)
 		{
-			VID_Printf(PRINT_ALL, "...using GL_ARB_texture_env_combine\n");
 			gl_config.mtexcombine = true;
+			VID_Printf(PRINT_ALL, "Okay");
 		}
 		else
 		{
-			VID_Printf(PRINT_ALL, "...ignoring GL_ARB_texture_env_combine\n");
+			VID_Printf(PRINT_ALL, "Disabled\n");
 		}
 	}
 	else
 	{
-		VID_Printf(PRINT_ALL, "...GL_ARB_texture_env_combine not found\n");
+		VID_Printf(PRINT_ALL, "Failed\n");
 	}
 
-	// ----
-
-	if (!gl_config.mtexcombine)
-	{
-		if (strstr(gl_config.extensions_string, "GL_EXT_texture_env_combine"))
-		{
-			if (gl_ext_mtexcombine->value)
-			{
-				VID_Printf(PRINT_ALL, "...using GL_EXT_texture_env_combine\n");
-				gl_config.mtexcombine = true;
-			}
-			else
-			{
-				VID_Printf(PRINT_ALL, "...ignoring GL_EXT_texture_env_combine\n");
-			}
-		}
-		else
-		{
-			VID_Printf(PRINT_ALL, "...GL_EXT_texture_env_combine not found\n");
-		}
-	}
+	// --------
 
 	R_SetDefaultState();
 
