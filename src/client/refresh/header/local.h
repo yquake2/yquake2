@@ -381,12 +381,15 @@ typedef struct
 
 	// ----
 
+	qboolean anisotropic;
 	qboolean palettedtexture;
 	qboolean pointparameters;
 
 	qboolean mtexcombine;
 
-	qboolean anisotropic;
+	// ----
+
+
 	float max_anisotropy;
 
 	qboolean tex_npot;

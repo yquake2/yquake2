@@ -1437,7 +1437,7 @@ R_Init(void *hinstance, void *hWnd)
 	// ----
 
 	/* Point parameters */
-	VID_Printf(PRINT_ALL, "- Point parameters: ");
+	VID_Printf(PRINT_ALL, " - Point parameters: ");
 
 	if (strstr(gl_config.extensions_string, "GL_ARB_point_parameters"))
 	{
@@ -1467,7 +1467,7 @@ R_Init(void *hinstance, void *hWnd)
 	// ----
 
 	/* Paletted texture */
-	VID_Printf(PRINT_ALL, "- Paletted texture: ");
+	VID_Printf(PRINT_ALL, " - Paletted texture: ");
 
 	if (strstr(gl_config.extensions_string, "GL_EXT_paletted_texture") &&
 		strstr(gl_config.extensions_string, "GL_EXT_shared_texture_palette"))
@@ -1497,6 +1497,7 @@ R_Init(void *hinstance, void *hWnd)
 
 	// ----
 
+	/* TODO */
 	if (strstr(gl_config.extensions_string, "GL_ARB_multitexture"))
 	{
 		if (gl_ext_multitexture->value)
@@ -1517,22 +1518,29 @@ R_Init(void *hinstance, void *hWnd)
 		VID_Printf(PRINT_ALL, "...GL_ARB_multitexture not found\n");
 	}
 
-	gl_config.anisotropic = false;
+	// ----
+
+	/* Anisotropic */
+	VID_Printf(PRINT_ALL, " - Anisotropic: ");
 
 	if (strstr(gl_config.extensions_string, "GL_EXT_texture_filter_anisotropic"))
 	{
-		VID_Printf(PRINT_ALL, "...using GL_EXT_texture_filter_anisotropic\n");
 		gl_config.anisotropic = true;
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gl_config.max_anisotropy);
 		Cvar_SetValue("gl_anisotropic_avail", gl_config.max_anisotropy);
+
+		VID_Printf(PRINT_ALL, "%ux\n", (int)gl_config.max_anisotropy);
 	}
 	else
 	{
-		VID_Printf(PRINT_ALL, "...GL_EXT_texture_filter_anisotropic not found\n");
 		gl_config.anisotropic = false;
 		gl_config.max_anisotropy = 0.0;
 		Cvar_SetValue("gl_anisotropic_avail", 0.0);
+
+		VID_Printf(PRINT_ALL, "failed\n");
 	}
+
+	// ----
 
 	if (strstr(gl_config.extensions_string, "GL_ARB_texture_non_power_of_two"))
 	{
@@ -1558,6 +1566,8 @@ R_Init(void *hinstance, void *hWnd)
 	{
 		VID_Printf(PRINT_ALL, "...GL_ARB_texture_env_combine not found\n");
 	}
+
+	// ----
 
 	if (!gl_config.mtexcombine)
 	{
