@@ -484,7 +484,7 @@ the most common questions are answered.
 
 - Particle effects are broken. They're just squares and not perfectly
   round: This is a problem by your graphics driver, not implementing
-  a special filter mode for "points". Set "gl_ext_pointparameters" to 0
+  a special filter mode for "points". Set "gl_pointparameters" to 0
   to get better (but not perfect) particles.
 
 - The game is bright enough but it's also washed out and dull: You need

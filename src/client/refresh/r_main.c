@@ -98,7 +98,7 @@ cvar_t *gl_particle_att_c;
 cvar_t *gl_ext_swapinterval;
 cvar_t *gl_ext_palettedtexture;
 cvar_t *gl_ext_multitexture;
-cvar_t *gl_ext_pointparameters;
+cvar_t *gl_pointparameters;
 cvar_t *gl_ext_compiled_vertex_array;
 cvar_t *gl_ext_mtexcombine;
 
@@ -526,7 +526,7 @@ R_DrawParticles(void)
 	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
 	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
 
-	if (gl_ext_pointparameters->value && qglPointParameterfEXT && !(stereo_split_tb || stereo_split_lr))
+	if (gl_config.pointparameters && !(stereo_split_tb || stereo_split_lr))
 	{
 		int i;
 		unsigned char color[4];
@@ -1258,7 +1258,7 @@ R_Register(void)
 	gl_ext_swapinterval = Cvar_Get("gl_ext_swapinterval", "1", CVAR_ARCHIVE);
 	gl_ext_palettedtexture = Cvar_Get("gl_ext_palettedtexture", "0", CVAR_ARCHIVE);
 	gl_ext_multitexture = Cvar_Get("gl_ext_multitexture", "0", CVAR_ARCHIVE);
-	gl_ext_pointparameters = Cvar_Get("gl_ext_pointparameters", "1", CVAR_ARCHIVE);
+	gl_pointparameters = Cvar_Get("gl_pointparameters", "1", CVAR_ARCHIVE);
 	gl_ext_compiled_vertex_array = Cvar_Get("gl_ext_compiled_vertex_array", "1", CVAR_ARCHIVE);
 	gl_ext_mtexcombine = Cvar_Get("gl_ext_mtexcombine", "1", CVAR_ARCHIVE);
 
@@ -1432,27 +1432,34 @@ R_Init(void *hinstance, void *hWnd)
 		}
 	}
 
-
 	VID_Printf(PRINT_ALL, "\n\nProbing for OpenGL extensions:\n");
 
-	if (strstr(gl_config.extensions_string, "GL_EXT_point_parameters"))
+	/* Point parameters */
+	VID_Printf(PRINT_ALL, "- Point parameters: ");
+
+	if (strstr(gl_config.extensions_string, "GL_ARB_point_parameters"))
 	{
-		if (gl_ext_pointparameters->value)
+			qglPointParameterfARB = (void (APIENTRY *)(GLenum, GLfloat))GLimp_GetProcAddress ( "glPointParameterfARB" );
+			qglPointParameterfvARB = (void (APIENTRY *)(GLenum, const GLfloat *))GLimp_GetProcAddress ( "glPointParameterfvARB" );
+	}
+
+	gl_config.pointparameters = false;
+
+	if (gl_pointparameters->value)
+	{
+		if (qglPointParameterfARB && qglPointParameterfvARB)
 		{
-			VID_Printf(PRINT_ALL, "...using GL_EXT_point_parameters\n");
-			qglPointParameterfEXT = (void (APIENTRY *)(GLenum, GLfloat))
-				GLimp_GetProcAddress ( "glPointParameterfEXT" );
-			qglPointParameterfvEXT = (void (APIENTRY *)(GLenum, const GLfloat *))
-				GLimp_GetProcAddress ( "glPointParameterfvEXT" );
+			gl_config.pointparameters = true;
+			VID_Printf(PRINT_ALL, "Okay\n");
 		}
 		else
 		{
-			VID_Printf(PRINT_ALL, "...ignoring GL_EXT_point_parameters\n");
+			VID_Printf(PRINT_ALL, "Failed\n");
 		}
 	}
 	else
 	{
-		VID_Printf(PRINT_ALL, "...GL_EXT_point_parameters not found\n");
+		VID_Printf(PRINT_ALL, "Disabled\n");
 	}
 
 	if (!qglColorTableEXT &&

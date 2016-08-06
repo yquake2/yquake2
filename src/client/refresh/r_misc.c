@@ -198,6 +198,7 @@ R_SetDefaultState(void)
 	glDisable(GL_BLEND);
 
 	glColor4f(1, 1, 1, 1);
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glShadeModel(GL_FLAT);
 
@@ -215,7 +216,7 @@ R_SetDefaultState(void)
 
 	R_TexEnv(GL_REPLACE);
 
-	if (qglPointParameterfEXT)
+	if (gl_config.pointparameters)
 	{
 		float attenuations[3];
 
@@ -228,11 +229,9 @@ R_SetDefaultState(void)
 		   i915.so. That the points are squares and not circles
 		   is not a problem by Quake II! */
 		glEnable(GL_POINT_SMOOTH);
-		qglPointParameterfEXT(GL_POINT_SIZE_MIN_EXT,
-				gl_particle_min_size->value);
-		qglPointParameterfEXT(GL_POINT_SIZE_MAX_EXT,
-				gl_particle_max_size->value);
-		qglPointParameterfvEXT(GL_DISTANCE_ATTENUATION_EXT, attenuations);
+		qglPointParameterfARB(GL_POINT_SIZE_MIN_EXT, gl_particle_min_size->value);
+		qglPointParameterfARB(GL_POINT_SIZE_MAX_EXT, gl_particle_max_size->value);
+		qglPointParameterfvARB(GL_DISTANCE_ATTENUATION_EXT, attenuations);
 	}
 
 	if (qglColorTableEXT && gl_ext_palettedtexture->value)

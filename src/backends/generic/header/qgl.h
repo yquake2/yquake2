@@ -109,8 +109,8 @@ qboolean QGL_Init ( void );
 void QGL_Shutdown ( void );
 
 /* GL extensions */
-extern void ( APIENTRY *qglPointParameterfEXT ) ( GLenum param, GLfloat value );
-extern void ( APIENTRY *qglPointParameterfvEXT ) ( GLenum param,
+extern void ( APIENTRY *qglPointParameterfARB ) ( GLenum param, GLfloat value );
+extern void ( APIENTRY *qglPointParameterfvARB ) ( GLenum param,
 		const GLfloat *value );
 extern void ( APIENTRY *qglColorTableEXT ) ( GLenum, GLenum, GLsizei, GLenum,
 		GLenum, const GLvoid * );
