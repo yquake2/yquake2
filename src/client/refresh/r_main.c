@@ -1529,6 +1529,28 @@ R_Init(void *hinstance, void *hWnd)
 
 	// ----
 
+	/* Multi texturing combine */
+	VID_Printf(PRINT_ALL, " - Multi texturing combine: ");
+
+	if (strstr(gl_config.extensions_string, "GL_ARB_texture_env_combine") && gl_config.multitexture)
+	{
+		if (gl_mtexcombine->value)
+		{
+			gl_config.mtexcombine = true;
+			VID_Printf(PRINT_ALL, "Okay\n");
+		}
+		else
+		{
+			VID_Printf(PRINT_ALL, "Disabled\n");
+		}
+	}
+	else
+	{
+		VID_Printf(PRINT_ALL, "Failed\n");
+	}
+
+	// --------
+
 	/* Anisotropic */
 	VID_Printf(PRINT_ALL, " - Anisotropic: ");
 
@@ -1567,41 +1589,12 @@ R_Init(void *hinstance, void *hWnd)
 
 	// ----
 
-	/* Multi texturing combine */
-	VID_Printf(PRINT_ALL, " - Multi texturing combine: ");
-
-	if (strstr(gl_config.extensions_string, "GL_ARB_texture_env_combine"))
-	{
-		if (gl_mtexcombine->value)
-		{
-			gl_config.mtexcombine = true;
-			VID_Printf(PRINT_ALL, "Okay");
-		}
-		else
-		{
-			VID_Printf(PRINT_ALL, "Disabled\n");
-		}
-	}
-	else
-	{
-		VID_Printf(PRINT_ALL, "Failed\n");
-	}
-
-	// --------
-
 	R_SetDefaultState();
 
 	R_InitImages();
 	Mod_Init();
 	R_InitParticleTexture();
 	Draw_InitLocal();
-
-	err = glGetError();
-
-	if (err != GL_NO_ERROR)
-	{
-		VID_Printf(PRINT_ALL, "glGetError() = 0x%x\n", err);
-	}
 
 	return true;
 }
