@@ -382,8 +382,10 @@ typedef struct
 	// ----
 
 	qboolean anisotropic;
+	qboolean npottextures;
 	qboolean palettedtexture;
 	qboolean pointparameters;
+
 
 	qboolean mtexcombine;
 
@@ -392,7 +394,7 @@ typedef struct
 
 	float max_anisotropy;
 
-	qboolean tex_npot;
+
 } glconfig_t;
 
 typedef struct

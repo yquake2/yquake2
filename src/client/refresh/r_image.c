@@ -665,7 +665,7 @@ R_Upload32Native(unsigned *data, int width, int height, qboolean mipmap)
 
 
 qboolean
-R_Upload32Old(unsigned *data, int width, int height, qboolean mipmap)
+R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 {
 	int samples;
 	unsigned scaled[256 * 256];
@@ -850,13 +850,13 @@ R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 {
 	qboolean res;
 
-	if (gl_config.tex_npot)
+	if (gl_config.npottextures)
 	{
 		res = R_Upload32Native(data, width, height, mipmap);
 	}
 	else
 	{
-		res = R_Upload32Old(data, width, height, mipmap);
+		res = R_Upload32Soft(data, width, height, mipmap);
 	}
 
 	if (mipmap)

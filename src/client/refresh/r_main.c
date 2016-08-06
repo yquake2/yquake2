@@ -1537,16 +1537,27 @@ R_Init(void *hinstance, void *hWnd)
 		gl_config.max_anisotropy = 0.0;
 		Cvar_SetValue("gl_anisotropic_avail", 0.0);
 
-		VID_Printf(PRINT_ALL, "failed\n");
+		VID_Printf(PRINT_ALL, "Failed\n");
 	}
 
 	// ----
 
+	/* Non power of two textures */
+	VID_Printf(PRINT_ALL, " - Non power of two textures: ");
+
+
 	if (strstr(gl_config.extensions_string, "GL_ARB_texture_non_power_of_two"))
 	{
-		VID_Printf(PRINT_ALL, "...using GL_ARB_texture_non_power_of_two\n");
-		gl_config.tex_npot = true;
+		gl_config.npottextures = true;
+		VID_Printf(PRINT_ALL, "Okay\n");
 	}
+	else
+	{
+		gl_config.npottextures = false;
+		VID_Printf(PRINT_ALL, "Failed\n");
+	}
+
+	// ----
 
 	gl_config.mtexcombine = false;
 
