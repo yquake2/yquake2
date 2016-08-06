@@ -72,6 +72,13 @@ R_DrawGLPoly(glpoly_t *p)
 
 	v = p->verts[0];
 
+	if (gl_overbrightbits->value)
+	{
+		R_TexEnv(GL_COMBINE_EXT);
+		R_SelectTexture(GL_TEXTURE1);
+		glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
+	}
+
     glEnableClientState( GL_VERTEX_ARRAY );
     glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
@@ -111,6 +118,13 @@ R_DrawGLFlowingPoly(msurface_t *fa)
         tex[index_tex++] = v [ 4 ];
     }
     v = p->verts [ 0 ];
+
+	if (gl_overbrightbits->value)
+	{
+		R_TexEnv(GL_COMBINE_EXT);
+		R_SelectTexture(GL_TEXTURE1);
+		glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
+	}
 
     glEnableClientState( GL_VERTEX_ARRAY );
     glEnableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -195,6 +209,13 @@ R_DrawGLPolyChain(glpoly_t *p, float soffset, float toffset)
 				return;
 			}
 
+			if (gl_overbrightbits->value)
+			{
+				R_TexEnv(GL_COMBINE_EXT);
+				R_SelectTexture(GL_TEXTURE1);
+				glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
+			}
+
             glEnableClientState( GL_VERTEX_ARRAY );
             glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
@@ -225,6 +246,13 @@ R_DrawGLPolyChain(glpoly_t *p, float soffset, float toffset)
 			}
 
 			v = p->verts [ 0 ];
+
+			if (gl_overbrightbits->value)
+			{
+				R_TexEnv(GL_COMBINE_EXT);
+				R_SelectTexture(GL_TEXTURE1);
+				glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
+			}
 
             glEnableClientState( GL_VERTEX_ARRAY );
             glEnableClientState( GL_TEXTURE_COORD_ARRAY );
