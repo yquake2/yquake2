@@ -148,7 +148,7 @@ R_SetTexturePalette(unsigned palette[256])
 void
 R_EnableMultitexture(qboolean enable)
 {
-	if (!qglActiveTextureARB)
+	if (!gl_config.multitexture)
 	{
 		return;
 	}
@@ -175,7 +175,7 @@ R_SelectTexture(GLenum texture)
 {
 	int tmu;
 
-	if (!qglActiveTextureARB)
+	if (!gl_config.multitexture)
 	{
 		return;
 	}

@@ -575,7 +575,7 @@ R_DrawTextureChains(void)
 
 	c_visible_textures = 0;
 
-	if (!qglActiveTextureARB)
+	if (!gl_config.multitexture)
 	{
 		for (i = 0, image = gltextures; i < numgltextures; i++, image++)
 		{
@@ -876,7 +876,7 @@ R_DrawInlineBModel(void)
 				psurf->texturechain = r_alpha_surfaces;
 				r_alpha_surfaces = psurf;
 			}
-			else if (qglMultiTexCoord2fARB && !(psurf->flags & SURF_DRAWTURB))
+			else if (gl_config.multitexture && !(psurf->flags & SURF_DRAWTURB))
 			{
 				R_RenderLightmappedPoly(psurf);
 			}
@@ -891,7 +891,7 @@ R_DrawInlineBModel(void)
 
 	if (!(currententity->flags & RF_TRANSLUCENT))
 	{
-		if (!qglMultiTexCoord2fARB)
+		if (!gl_config.multitexture)
 		{
 			R_BlendLightmaps();
 		}
@@ -1151,7 +1151,7 @@ R_RecursiveWorldNode(mnode_t *node)
 		}
 		else
 		{
-			if (qglMultiTexCoord2fARB && !(surf->flags & SURF_DRAWTURB))
+			if (gl_config.multitexture && !(surf->flags & SURF_DRAWTURB))
 			{
 				R_RenderLightmappedPoly(surf);
 			}
@@ -1199,7 +1199,7 @@ R_DrawWorld(void)
 	memset(gl_lms.lightmap_surfaces, 0, sizeof(gl_lms.lightmap_surfaces));
 	R_ClearSkyBox();
 
-	if (qglMultiTexCoord2fARB)
+	if (gl_config.multitexture)
 	{
 		R_EnableMultitexture(true);
 
