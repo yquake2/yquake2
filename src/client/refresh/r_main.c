@@ -1663,6 +1663,21 @@ R_BeginFrame(float camera_separation)
 		}
 	}
 
+	// Clamp overbrightbits
+	if (gl_overbrightbits->modified)
+	{
+		if (gl_overbrightbits->value > 2 && gl_overbrightbits->value < 4)
+		{
+			Cvar_Set("gl_overbrightbits", "2");
+		}
+		else if (gl_overbrightbits->value > 4)
+		{
+			Cvar_Set("gl_overbrightbits", "4");
+		}
+
+		gl_overbrightbits->modified = false;
+	}
+
 	/* go into 2D mode */
 
 	int x, w, y, h;
