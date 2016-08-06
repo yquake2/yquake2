@@ -386,7 +386,7 @@ Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 
 	t = rows * hscale / 256 - 1.0 / 512.0;
 
-	if (!qglColorTableEXT)
+	if (!gl_config.palettedtexture)
 	{
 		unsigned *dest;
 

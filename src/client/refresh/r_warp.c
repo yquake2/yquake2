@@ -735,7 +735,7 @@ R_SetSky(char *name, float rotate, vec3_t axis)
 
 	for (i = 0; i < 6; i++)
 	{
-		if (qglColorTableEXT && gl_ext_palettedtexture->value)
+		if (gl_config.palettedtexture)
 		{
 			Com_sprintf(pathname, sizeof(pathname), "env/%s%s.pcx",
 					skyname, suf[i]);

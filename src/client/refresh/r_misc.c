@@ -234,7 +234,7 @@ R_SetDefaultState(void)
 		qglPointParameterfvARB(GL_DISTANCE_ATTENUATION_EXT, attenuations);
 	}
 
-	if (qglColorTableEXT && gl_ext_palettedtexture->value)
+	if (gl_config.palettedtexture)
 	{
 		glEnable(GL_SHARED_TEXTURE_PALETTE_EXT);
 		R_SetTexturePalette(d_8to24table);

@@ -131,7 +131,7 @@ R_SetTexturePalette(unsigned palette[256])
 	int i;
 	unsigned char temptable[768];
 
-	if (qglColorTableEXT && gl_ext_palettedtexture->value)
+	if (gl_config.palettedtexture)
 	{
 		for (i = 0; i < 256; i++)
 		{
@@ -751,7 +751,7 @@ R_Upload32Old(unsigned *data, int width, int height, qboolean mipmap)
 	{
 		if (!mipmap)
 		{
-			if (qglColorTableEXT && gl_ext_palettedtexture->value &&
+			if (qglColorTableEXT && gl_palettedtexture->value &&
 				(samples == gl_solid_format))
 			{
 				uploaded_paletted = true;
@@ -781,7 +781,7 @@ R_Upload32Old(unsigned *data, int width, int height, qboolean mipmap)
 
 	R_LightScaleTexture(scaled, scaled_width, scaled_height, !mipmap);
 
-	if (qglColorTableEXT && gl_ext_palettedtexture->value &&
+	if (qglColorTableEXT && gl_palettedtexture->value &&
 		(samples == gl_solid_format))
 	{
 		uploaded_paletted = true;
@@ -822,7 +822,7 @@ R_Upload32Old(unsigned *data, int width, int height, qboolean mipmap)
 
 			miplevel++;
 
-			if (qglColorTableEXT && gl_ext_palettedtexture->value &&
+			if (qglColorTableEXT && gl_palettedtexture->value &&
 				(samples == gl_solid_format))
 			{
 				uploaded_paletted = true;
@@ -896,7 +896,7 @@ R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 		VID_Error(ERR_DROP, "R_Upload8: too large");
 	}
 
-	if (qglColorTableEXT && gl_ext_palettedtexture->value && is_sky)
+	if (gl_config.palettedtexture && is_sky)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT,
 				width, height, 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE,
@@ -1347,7 +1347,7 @@ R_InitImages(void)
 
 	Draw_GetPalette();
 
-	if (qglColorTableEXT)
+	if (gl_config.palettedtexture)
 	{
 		FS_LoadFile("pics/16to8.dat", (void **)&gl_state.d_16to8table);
 

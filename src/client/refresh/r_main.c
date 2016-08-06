@@ -96,7 +96,7 @@ cvar_t *gl_particle_att_b;
 cvar_t *gl_particle_att_c;
 
 cvar_t *gl_ext_swapinterval;
-cvar_t *gl_ext_palettedtexture;
+cvar_t *gl_palettedtexture;
 cvar_t *gl_ext_multitexture;
 cvar_t *gl_pointparameters;
 cvar_t *gl_ext_compiled_vertex_array;
@@ -1256,7 +1256,7 @@ R_Register(void)
 	gl_vertex_arrays = Cvar_Get("gl_vertex_arrays", "0", CVAR_ARCHIVE);
 
 	gl_ext_swapinterval = Cvar_Get("gl_ext_swapinterval", "1", CVAR_ARCHIVE);
-	gl_ext_palettedtexture = Cvar_Get("gl_ext_palettedtexture", "0", CVAR_ARCHIVE);
+	gl_palettedtexture = Cvar_Get("gl_palettedtexture", "0", CVAR_ARCHIVE);
 	gl_ext_multitexture = Cvar_Get("gl_ext_multitexture", "0", CVAR_ARCHIVE);
 	gl_pointparameters = Cvar_Get("gl_pointparameters", "1", CVAR_ARCHIVE);
 	gl_ext_compiled_vertex_array = Cvar_Get("gl_ext_compiled_vertex_array", "1", CVAR_ARCHIVE);
@@ -1434,6 +1434,8 @@ R_Init(void *hinstance, void *hWnd)
 
 	VID_Printf(PRINT_ALL, "\n\nProbing for OpenGL extensions:\n");
 
+	// ----
+
 	/* Point parameters */
 	VID_Printf(PRINT_ALL, "- Point parameters: ");
 
@@ -1462,26 +1464,38 @@ R_Init(void *hinstance, void *hWnd)
 		VID_Printf(PRINT_ALL, "Disabled\n");
 	}
 
-	if (!qglColorTableEXT &&
-		strstr(gl_config.extensions_string, "GL_EXT_paletted_texture") &&
+	// ----
+
+	/* Paletted texture */
+	VID_Printf(PRINT_ALL, "- Paletted texture: ");
+
+	if (strstr(gl_config.extensions_string, "GL_EXT_paletted_texture") &&
 		strstr(gl_config.extensions_string, "GL_EXT_shared_texture_palette"))
 	{
-		if (gl_ext_palettedtexture->value)
+			qglColorTableEXT = (void (APIENTRY *)(GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid * ))
+					GLimp_GetProcAddress ("glColorTableEXT");
+	}
+
+	gl_config.palettedtexture = false;
+
+	if (gl_palettedtexture->value)
+	{
+		if (qglColorTableEXT)
 		{
-			VID_Printf(PRINT_ALL, "...using GL_EXT_shared_texture_palette\n");
-			qglColorTableEXT =
-				(void (APIENTRY *)(GLenum, GLenum, GLsizei, GLenum, GLenum,
-						const GLvoid * ) ) GLimp_GetProcAddress ("glColorTableEXT");
+			gl_config.palettedtexture = true;
+			VID_Printf(PRINT_ALL, "Okay\n");
 		}
 		else
 		{
-			VID_Printf(PRINT_ALL, "...ignoring GL_EXT_shared_texture_palette\n");
+			VID_Printf(PRINT_ALL, "Failed\n");
 		}
 	}
 	else
 	{
-		VID_Printf(PRINT_ALL, "...GL_EXT_shared_texture_palette not found\n");
+		VID_Printf(PRINT_ALL, "Disabled\n");
 	}
+
+	// ----
 
 	if (strstr(gl_config.extensions_string, "GL_ARB_multitexture"))
 	{
