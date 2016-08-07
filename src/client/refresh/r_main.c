@@ -1329,7 +1329,6 @@ R_SetMode(void)
 int
 R_Init(void *hinstance, void *hWnd)
 {
-	int err;
 	int j;
 	extern float r_turbsin[256];
 
