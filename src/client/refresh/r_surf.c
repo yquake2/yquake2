@@ -226,13 +226,6 @@ R_DrawGLPolyChain(glpoly_t *p, float soffset, float toffset)
 
 			v = p->verts [ 0 ];
 
-			if (gl_overbrightbits->value)
-			{
-				R_TexEnv(GL_COMBINE_EXT);
-				R_SelectTexture(GL_TEXTURE1);
-				glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
-			}
-
             glEnableClientState( GL_VERTEX_ARRAY );
             glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
@@ -309,6 +302,14 @@ R_BlendLightmaps(void)
 			{
 				if (surf->polys)
 				{
+					// Apply overbright bits to the static lightmaps
+					if (gl_overbrightbits->value)
+					{
+						R_TexEnv(GL_COMBINE_EXT);
+						R_SelectTexture(GL_TEXTURE1);
+						glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
+					}
+
 					R_DrawGLPolyChain(surf->polys, 0, 0);
 				}
 			}

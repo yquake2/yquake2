@@ -624,11 +624,8 @@ R_DrawAliasModel(entity_t *e)
 	}
 
 
-    /* Apply gl_overbrightbits to the mesh. If we don't do this they will appear slightly dimmer relative to
-       walls. Also note that gl_overbrightbits is only applied to walls when gl_mtexcombine is set to 1,
-       so we'll also want to check that; otherwise we'll end up in the reverse situation and the meshes will
-       appear too bright. */
-    if (gl_config.mtexcombine && gl_overbrightbits->value)
+    // Apply gl_overbrightbits to the mesh. If we don't do this they will appear slightly dimmer relative to walls.
+    if (gl_overbrightbits->value)
     {
         for (i = 0; i < 3; ++i)
         {
