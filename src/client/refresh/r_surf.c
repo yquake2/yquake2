@@ -362,6 +362,14 @@ R_BlendLightmaps(void)
 				{
 					if (drawsurf->polys)
 					{
+						// Apply overbright bits to the dynamic lightmaps
+						if (gl_overbrightbits->value)
+						{
+							R_TexEnv(GL_COMBINE_EXT);
+							R_SelectTexture(GL_TEXTURE1);
+							glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
+						}
+
 						R_DrawGLPolyChain(drawsurf->polys,
 								(drawsurf->light_s - drawsurf->dlight_s) * (1.0 / 128.0),
 								(drawsurf->light_t - drawsurf->dlight_t) * (1.0 / 128.0));
@@ -399,6 +407,14 @@ R_BlendLightmaps(void)
 		{
 			if (surf->polys)
 			{
+				// Apply overbright bits to the remainder lightmaps
+				if (gl_overbrightbits->value)
+				{
+					R_TexEnv(GL_COMBINE_EXT);
+					R_SelectTexture(GL_TEXTURE1);
+					glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
+				}
+
 				R_DrawGLPolyChain(surf->polys,
 						(surf->light_s - surf->dlight_s) * (1.0 / 128.0),
 						(surf->light_t - surf->dlight_t) * (1.0 / 128.0));
