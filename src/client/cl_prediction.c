@@ -298,6 +298,10 @@ CL_PredictMovement(void)
 		VectorCopy(pm.s.origin, cl.predicted_origins[frame]);
 	}
 
+	/* We need to remove the current frame. Otherwise we're
+	   predicting one frame too far, leading to misses. */
+	--ack;
+
 	oldframe = (ack - 2) & (CMD_BACKUP - 1);
 	oldz = cl.predicted_origins[oldframe][2];
 	step = pm.s.origin[2] - oldz;
