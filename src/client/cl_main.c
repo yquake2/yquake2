@@ -51,6 +51,7 @@ cvar_t *cl_add_particles;
 cvar_t *cl_add_lights;
 cvar_t *cl_add_entities;
 cvar_t *cl_add_blend;
+cvar_t *cl_async;
 
 cvar_t *cl_shownet;
 cvar_t *cl_showmiss;
@@ -485,6 +486,7 @@ CL_InitLocal(void)
 	cl_predict = Cvar_Get("cl_predict", "1", 0);
 	cl_maxfps = Cvar_Get("cl_maxfps", "30", CVAR_ARCHIVE);
 	cl_drawfps = Cvar_Get("cl_drawfps", "0", CVAR_ARCHIVE);
+	cl_async = Cvar_Get("cl_async", "0", CVAR_ARCHIVE);
 
 	cl_upspeed = Cvar_Get("cl_upspeed", "200", 0);
 	cl_forwardspeed = Cvar_Get("cl_forwardspeed", "200", 0);
@@ -759,26 +761,39 @@ CL_Frame(int msec)
 			packetframe = false;
 		}
 
-		// Network frames
-		if (packetdelta < (1000.0f / cl_maxfps->value))
+		if (cl_async->value)
 		{
-			packetframe = false;
-		}
-		else if (cls.nframetime == cls.rframetime)
-		{
-			packetframe = false;
-		}
+			// Network frames
+			if (packetdelta < (1000.0f / cl_maxfps->value))
+			{
+				packetframe = false;
+			}
+			else if (cls.nframetime == cls.rframetime)
+			{
+				packetframe = false;
+			}
 
-		// Render frames
-		if (renderdelta < (1000.0f / gl_maxfps->value))
-		{
-			renderframe = false;
-		}
+			// Render frames
+			if (renderdelta < (1000.0f / gl_maxfps->value))
+			{
+				renderframe = false;
+			}
 
-		// Misc. stuff at 10 FPS
-		if (miscdelta < 100.0f)
+			// Misc. stuff at 10 FPS
+			if (miscdelta < 100.0f)
+			{
+				miscframe = false;
+			}
+		}
+		else
 		{
-			miscframe = false;
+			// Cap frames at gl_maxfps
+			if (renderdelta < (1000.0f / gl_maxfps->value))
+			{
+				renderframe = false;
+				packetframe = false;
+				miscframe = false;
+			}
 		}
 
 		// Throttle the game a little bit. 1000 FPS are enough.
