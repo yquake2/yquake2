@@ -37,21 +37,10 @@ void CL_CheckForResend(void);
 
 cvar_t *freelook;
 
-cvar_t *adr0;
-cvar_t *adr1;
-cvar_t *adr2;
-cvar_t *adr3;
-cvar_t *adr4;
-cvar_t *adr5;
-cvar_t *adr6;
-cvar_t *adr7;
-cvar_t *adr8;
-
 cvar_t *rcon_client_password;
 cvar_t *rcon_address;
 
 cvar_t *cl_noskins;
-cvar_t *cl_autoskins;
 cvar_t *cl_footsteps;
 cvar_t *cl_timeout;
 cvar_t *cl_predict;
@@ -82,8 +71,6 @@ cvar_t *m_side;
 cvar_t *cl_lightlevel;
 
 /* userinfo */
-cvar_t *info_password;
-cvar_t *info_spectator;
 cvar_t *name;
 cvar_t *skin;
 cvar_t *rate;
@@ -485,19 +472,9 @@ CL_InitLocal(void)
 
 	CL_InitInput();
 
-	adr0 = Cvar_Get("adr0", "", CVAR_ARCHIVE);
-	adr1 = Cvar_Get("adr1", "", CVAR_ARCHIVE);
-	adr2 = Cvar_Get("adr2", "", CVAR_ARCHIVE);
-	adr3 = Cvar_Get("adr3", "", CVAR_ARCHIVE);
-	adr4 = Cvar_Get("adr4", "", CVAR_ARCHIVE);
-	adr5 = Cvar_Get("adr5", "", CVAR_ARCHIVE);
-	adr6 = Cvar_Get("adr6", "", CVAR_ARCHIVE);
-	adr7 = Cvar_Get("adr7", "", CVAR_ARCHIVE);
-	adr8 = Cvar_Get("adr8", "", CVAR_ARCHIVE);
-
+	/* register our variables */
 	cin_force43 = Cvar_Get("cin_force43", "1", 0);
 
-	/* register our variables */
 	cl_add_blend = Cvar_Get("cl_blend", "1", 0);
 	cl_add_lights = Cvar_Get("cl_lights", "1", 0);
 	cl_add_particles = Cvar_Get("cl_particles", "1", 0);
@@ -505,7 +482,6 @@ CL_InitLocal(void)
 	cl_gun = Cvar_Get("cl_gun", "2", CVAR_ARCHIVE);
 	cl_footsteps = Cvar_Get("cl_footsteps", "1", 0);
 	cl_noskins = Cvar_Get("cl_noskins", "0", 0);
-	cl_autoskins = Cvar_Get("cl_autoskins", "0", 0);
 	cl_predict = Cvar_Get("cl_predict", "1", 0);
 	cl_maxfps = Cvar_Get("cl_maxfps", "30", CVAR_ARCHIVE);
 	cl_drawfps = Cvar_Get("cl_drawfps", "0", CVAR_ARCHIVE);
@@ -547,8 +523,6 @@ CL_InitLocal(void)
 	cl_lightlevel = Cvar_Get("gl_lightlevel", "0", 0);
 
 	/* userinfo */
-	info_password = Cvar_Get("password", "", CVAR_USERINFO);
-	info_spectator = Cvar_Get("spectator", "0", CVAR_USERINFO);
 	name = Cvar_Get("name", "unnamed", CVAR_USERINFO | CVAR_ARCHIVE);
 	skin = Cvar_Get("skin", "male/grunt", CVAR_USERINFO | CVAR_ARCHIVE);
 	rate = Cvar_Get("rate", "8000", CVAR_USERINFO | CVAR_ARCHIVE);
