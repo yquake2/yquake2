@@ -443,10 +443,30 @@ R_RenderBrushPoly(msurface_t *fa)
 	{
 		R_Bind(image->texnum);
 
-		/* warp texture, no lightmaps */
-		R_TexEnv(GL_MODULATE);
-		glColor4f(gl_state.inverse_intensity, gl_state.inverse_intensity,
-				gl_state.inverse_intensity, 1.0f);
+		/* This is a hack ontop of a hack. Warping surfaces like those generated
+		   by R_EmitWaterPolys() don't have a lightmap. Original Quake II therefor
+		   negated the global intensity on those surfaces, because otherwise they
+		   would show up much too bright. When we implemented overbright bits this
+		   hack modified the global GL state in an incompatible way. So implement
+		   a new hack, based on overbright bits... Depending on the value set to
+		   gl_overbrightbits the result is different:
+
+		    0: Old behaviour.
+		    1: No overbright bits on the global scene but correct lightning on
+		       warping surfaces. */
+		if (gl_overbrightbits->value)
+		{
+			R_TexEnv(GL_COMBINE_EXT);
+			R_SelectTexture(GL_TEXTURE1);
+			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
+		}
+		else
+		{
+			R_TexEnv(GL_MODULATE);
+			glColor4f(gl_state.inverse_intensity, gl_state.inverse_intensity,
+					  gl_state.inverse_intensity, 1.0f);
+		}
+
 		R_EmitWaterPolys(fa);
 		R_TexEnv(GL_REPLACE);
 
