@@ -712,9 +712,9 @@ CL_Frame(int msec)
 {
 	static int lasttimecalled;
 
-	static int packetdelta = 0;
-	static int renderdelta = 0;
-	static int miscdelta = 0;
+	static int packetdelta = 1000;
+	static int renderdelta = 1000;
+	static int miscdelta = 1000;
 
 	qboolean packetframe = true;
 	qboolean renderframe = true;
@@ -859,7 +859,7 @@ CL_Frame(int msec)
 			VID_CheckChanges();
 		}
 
-		CL_PredictMovement(); // TODO: Make called function async
+		CL_PredictMovement();
 
 		if (!cl.refresh_prepped && (cls.state == ca_active))
 		{
