@@ -43,6 +43,8 @@
 
 #ifdef SDL2
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_video.h>
+
 #else // SDL1.2
 #include <SDL/SDL.h>
 #endif //SDL2
@@ -66,6 +68,7 @@ SDL_Surface* window = NULL;
 #endif
 
 qboolean have_stencil = false;
+qboolean vsync_active;
 
 #ifdef X11GAMMA
 XRRCrtcGamma** gammaRamps = NULL;
@@ -602,6 +605,7 @@ GLimp_InitGraphics(qboolean fullscreen)
 
 	/* Set vsync */
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, gl_swapinterval->value ? 1 : 0);
+	vsync_active = gl_swapinterval->value ? true : false;
 #endif
 
 	while (1)
@@ -661,6 +665,7 @@ GLimp_InitGraphics(qboolean fullscreen)
 
 	/* Set vsync - TODO: -1 could be set for "late swap tearing" */
 	SDL_GL_SetSwapInterval(gl_swapinterval->value ? 1 : 0);
+	vsync_active = gl_swapinterval->value ? true : false;
 #endif
 
 	/* Initialize the stencil buffer */
@@ -748,6 +753,32 @@ void GLimp_GrabInput(qboolean grab)
 #else
 	SDL_WM_GrabInput(grab ? SDL_GRAB_ON : SDL_GRAB_OFF);
 #endif
+}
+
+/*
+ * Returns the VSync state.
+ */
+qboolean GLimp_VsyncEnabled(void)
+{
+	return vsync_active;
+}
+
+/*
+ * Returns the current display refresh rate.
+ */
+int GLimp_GetRefreshRate(void)
+{
+	int i;
+	int refresh = 0;
+	SDL_DisplayMode mode;
+
+	for (i = 0; i < SDL_GetNumVideoDisplays(); ++i)
+	{
+		SDL_GetCurrentDisplayMode(i, &mode);
+		refresh = refresh < mode.refresh_rate ? mode.refresh_rate : refresh;
+	}
+
+	return refresh;
 }
 
 /*

@@ -707,9 +707,15 @@ CL_UpdateWindowedMouse(void)
 	}
 }
 
+qboolean GLimp_VsyncEnabled(void);
+int GLimp_GetRefreshRate(void);
+
 void
 CL_Frame(int msec)
 {
+	int nfps;
+	int rfps;
+
 	static int lasttimecalled;
 
 	static int packetdelta = 1000;
@@ -724,6 +730,24 @@ CL_Frame(int msec)
 	{
 		return;
 	}
+
+	// Target render frame rate
+	if (GLimp_VsyncEnabled())
+	{
+		rfps = GLimp_GetRefreshRate();
+
+		if (rfps > gl_maxfps->value)
+		{
+			rfps = (int)gl_maxfps->value;
+		}
+	}
+	else
+	{
+		rfps = (int)gl_maxfps->value;
+	}
+
+	// The network framerate must not be higher then the render framerate
+	nfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
 
 	// Adjust deltas
 	packetdelta += msec;
@@ -764,7 +788,7 @@ CL_Frame(int msec)
 		if (cl_async->value)
 		{
 			// Network frames
-			if (packetdelta < (1000.0f / cl_maxfps->value))
+			if (packetdelta < (1000.0f / nfps))
 			{
 				packetframe = false;
 			}
@@ -774,7 +798,7 @@ CL_Frame(int msec)
 			}
 
 			// Render frames
-			if (renderdelta < (1000.0f / gl_maxfps->value))
+			if (renderdelta < (1000.0f / rfps))
 			{
 				renderframe = false;
 			}
@@ -788,7 +812,7 @@ CL_Frame(int msec)
 		else
 		{
 			// Cap frames at gl_maxfps
-			if (renderdelta < (1000.0f / gl_maxfps->value))
+			if (renderdelta < (1000.0f / rfps))
 			{
 				renderframe = false;
 				packetframe = false;
