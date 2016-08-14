@@ -768,6 +768,7 @@ qboolean GLimp_VsyncEnabled(void)
  */
 int GLimp_GetRefreshRate(void)
 {
+#if SDL_VERSION_ATLEAST(2, 0, 0)
 	int i;
 	int refresh = 0;
 	SDL_DisplayMode mode;
@@ -779,6 +780,10 @@ int GLimp_GetRefreshRate(void)
 	}
 
 	return refresh;
+#else
+	// Asume 60hz.
+	return 60
+#endif
 }
 
 /*
