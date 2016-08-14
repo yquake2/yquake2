@@ -227,13 +227,10 @@ CL_PredictMovement(void)
 {
 	int ack, current;
 	int frame;
-	int oldframe;
 	usercmd_t *cmd;
 	pmove_t pm;
 	int i;
 	int step;
-	int oldz;
-	static int last_step_frame = 0;
 
 	if (cls.state != ca_active)
 	{
@@ -298,19 +295,13 @@ CL_PredictMovement(void)
 		VectorCopy(pm.s.origin, cl.predicted_origins[frame]);
 	}
 
-	/* We need to remove the current frame. Otherwise we're
-	   predicting one frame too far, leading to misses. */
-	--ack;
+	step = pm.s.origin[2] - (int)(cl.predicted_origin[2] * 8);
 
-	oldframe = (ack - 2) & (CMD_BACKUP - 1);
-	oldz = cl.predicted_origins[oldframe][2];
-	step = pm.s.origin[2] - oldz;
-
-	if (last_step_frame != current && step > 63 && step < 160 && (pm.s.pm_flags & PMF_ON_GROUND))
+	if (((step > 62 && step < 66) || (step > 94 && step < 98) || (step > 126 && step < 130))
+		&& !VectorCompare((float *)pm.s.velocity, vec3_origin) && (pm.s.pm_flags & PMF_ON_GROUND))
 	{
 		cl.predicted_step = step * 0.125f;
-		cl.predicted_step_time = cls.realtime - cls.nframetime * 500;
-		last_step_frame = current;
+		cl.predicted_step_time = cls.realtime - (int)(cls.nframetime * 500);
 	}
 
 	/* copy results out for rendering */
