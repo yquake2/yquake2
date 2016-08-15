@@ -1203,7 +1203,7 @@ R_Register(void)
 	gl_speeds = Cvar_Get("gl_speeds", "0", 0);
 
 	gl_lightlevel = Cvar_Get("gl_lightlevel", "0", 0);
-	gl_overbrightbits = Cvar_Get("gl_overbrightbits", "2", CVAR_ARCHIVE);
+	gl_overbrightbits = Cvar_Get("gl_overbrightbits", "0", CVAR_ARCHIVE);
 
 	gl_particle_min_size = Cvar_Get("gl_particle_min_size", "2", CVAR_ARCHIVE);
 	gl_particle_max_size = Cvar_Get("gl_particle_max_size", "40", CVAR_ARCHIVE);
