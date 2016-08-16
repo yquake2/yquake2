@@ -306,68 +306,6 @@ FS_GetFileByHandle(fileHandle_t f)
 }
 
 /*
- * Returns file size or -1 on error.
- */
-int
-FS_FOpenFileAppend(fsHandle_t *handle)
-{
-	char path[MAX_OSPATH];
-
-	FS_CreatePath(handle->name);
-
-	Com_sprintf(path, sizeof(path), "%s/%s", fs_gamedir, handle->name);
-
-	handle->file = fopen(path, "ab");
-
-	if (handle->file)
-	{
-		if (fs_debug->value)
-		{
-			Com_Printf("FS_FOpenFileAppend: '%s'.\n", path);
-		}
-
-		return FS_FileLength(handle->file);
-	}
-
-	if (fs_debug->value)
-	{
-		Com_Printf("FS_FOpenFileAppend: couldn't open '%s'.\n", path);
-	}
-
-	return -1;
-}
-
-/*
- * Always returns 0 or -1 on error.
- */
-int
-FS_FOpenFileWrite(fsHandle_t *handle)
-{
-	char path[MAX_OSPATH];
-
-	FS_CreatePath(handle->name);
-
-	Com_sprintf(path, sizeof(path), "%s/%s", fs_gamedir, handle->name);
-
-	if ((handle->file = fopen(path, "wb")) != NULL)
-	{
-		if (fs_debug->value)
-		{
-			Com_Printf("FS_FOpenFileWrite: '%s'.\n", path);
-		}
-
-		return 0;
-	}
-
-	if (fs_debug->value)
-	{
-		Com_Printf("FS_FOpenFileWrite: couldn't open '%s'.\n", path);
-	}
-
-	return -1;
-}
-
-/*
  * Other dll's can't just call fclose() on files returned by FS_FOpenFile.
  */
 void
