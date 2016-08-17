@@ -453,12 +453,14 @@ R_RenderBrushPoly(msurface_t *fa)
 
 		    0: Old behaviour.
 		    1: No overbright bits on the global scene but correct lightning on
-		       warping surfaces. */
+		       warping surfaces.
+		    2: Overbright bits on the global scene but not on warping surfaces.
+		        They oversaturate otherwise. */
 		if (gl_overbrightbits->value)
 		{
 			R_TexEnv(GL_COMBINE_EXT);
 			R_SelectTexture(GL_TEXTURE1);
-			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
+			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 1);
 		}
 		else
 		{
