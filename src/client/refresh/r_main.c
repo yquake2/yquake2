@@ -1536,7 +1536,6 @@ R_Init(void *hinstance, void *hWnd)
 	{
 		gl_config.anisotropic = true;
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gl_config.max_anisotropy);
-		Cvar_SetValue("gl_anisotropic_avail", gl_config.max_anisotropy);
 
 		VID_Printf(PRINT_ALL, "%ux\n", (int)gl_config.max_anisotropy);
 	}
@@ -1544,7 +1543,6 @@ R_Init(void *hinstance, void *hWnd)
 	{
 		gl_config.anisotropic = false;
 		gl_config.max_anisotropy = 0.0;
-		Cvar_SetValue("gl_anisotropic_avail", 0.0);
 
 		VID_Printf(PRINT_ALL, "Failed\n");
 	}
