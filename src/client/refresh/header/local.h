@@ -205,7 +205,6 @@ extern cvar_t *gl_drawworld;
 extern cvar_t *gl_speeds;
 extern cvar_t *gl_fullbright;
 extern cvar_t *gl_novis;
-extern cvar_t *gl_nocull;
 extern cvar_t *gl_lerpmodels;
 
 extern cvar_t *gl_lightlevel;
