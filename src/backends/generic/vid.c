@@ -78,8 +78,6 @@ vidmode_t vid_modes[] = {
 
 /* Console variables that we need to access from this module */
 cvar_t *vid_gamma;
-cvar_t *vid_xpos;               /* X coordinate of window position */
-cvar_t *vid_ypos;               /* Y coordinate of window position */
 cvar_t *vid_fullscreen;
 
 /* Global variables used internally by this module */
@@ -209,8 +207,6 @@ void
 VID_Init(void)
 {
 	/* Create the video variables so we know how to start the graphics drivers */
-	vid_xpos = Cvar_Get("vid_xpos", "3", CVAR_ARCHIVE);
-	vid_ypos = Cvar_Get("vid_ypos", "22", CVAR_ARCHIVE);
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = Cvar_Get("vid_gamma", "1", CVAR_ARCHIVE);
 
