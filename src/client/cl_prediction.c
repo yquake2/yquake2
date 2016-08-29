@@ -297,7 +297,7 @@ CL_PredictMovement(void)
 
 	step = pm.s.origin[2] - (int)(cl.predicted_origin[2] * 8);
 
-	if (((step > 62 && step < 66) || (step > 126 && step < 130))
+	if (((step > 126 && step < 130))
 		&& !VectorCompare((float *)pm.s.velocity, vec3_origin)
 		&& (pm.s.pm_flags & PMF_ON_GROUND))
 	{
