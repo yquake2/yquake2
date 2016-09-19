@@ -217,7 +217,7 @@ Visual Studio.
 #### Compiling
 
 Download the latest release from http://www.yamagi.org/quake2 or clone the
-source from https://github.com/yquake/yquake.git, change into the yquake2/
+source from https://github.com/yquake2/yquake2.git, change into the yquake2/
 source directory and type *make*. After that copy everything from the release/
 directory to your Yamagi Quake II installation directory.
 
