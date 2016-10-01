@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "header/local.h"
+#include "../header/local.h"
 
 #define NUM_BEAM_SEGS 6
 
@@ -133,6 +133,9 @@ cvar_t *gl_stereo;
 cvar_t *gl_stereo_separation;
 cvar_t *gl_stereo_anaglyph_colors;
 cvar_t *gl_stereo_convergence;
+
+
+refimport_t ri; // TODO: put this in some header ?
 
 /*
  * Returns true if the box is completely outside the frustom
@@ -1179,7 +1182,7 @@ R_SetLightLevel(void)
 }
 
 void
-R_RenderFrame(refdef_t *fd)
+RI_RenderFrame(refdef_t *fd)
 {
 	R_RenderView(fd);
 	R_SetLightLevel();
@@ -1263,6 +1266,32 @@ R_Register(void)
 	Cmd_AddCommand("gl_strings", R_Strings);
 }
 
+/*
+ * Changes the video mode
+ */
+static int
+SetMode_impl(int *pwidth, int *pheight, int mode, qboolean fullscreen)
+{
+	VID_Printf(PRINT_ALL, "setting mode %d:", mode);
+
+	/* mode -1 is not in the vid mode table - so we keep the values in pwidth
+	   and pheight and don't even try to look up the mode info */
+	if ((mode != -1) && !VID_GetModeInfo(pwidth, pheight, mode))
+	{
+		VID_Printf(PRINT_ALL, " invalid mode\n");
+		return rserr_invalid_mode;
+	}
+
+	VID_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
+
+	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
+	{
+		return rserr_invalid_mode;
+	}
+
+	return rserr_ok;
+}
+
 qboolean
 R_SetMode(void)
 {
@@ -1279,7 +1308,7 @@ R_SetMode(void)
 	vid.width = gl_customwidth->value;
 	vid.height = gl_customheight->value;
 
-	if ((err = GLimp_SetMode(&vid.width, &vid.height, gl_mode->value,
+	if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value,
 					 fullscreen)) == rserr_ok)
 	{
 		if (gl_mode->value == -1)
@@ -1299,7 +1328,7 @@ R_SetMode(void)
 			vid_fullscreen->modified = false;
 			VID_Printf(PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
 
-			if ((err = GLimp_SetMode(&vid.width, &vid.height, gl_mode->value, false)) == rserr_ok)
+			if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value, false)) == rserr_ok)
 			{
 				return true;
 			}
@@ -1312,7 +1341,7 @@ R_SetMode(void)
 		}
 
 		/* try setting it back to something safe */
-		if ((err = GLimp_SetMode(&vid.width, &vid.height, gl_state.prev_mode, false)) != rserr_ok)
+		if ((err = SetMode_impl(&vid.width, &vid.height, gl_state.prev_mode, false)) != rserr_ok)
 		{
 			VID_Printf(PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
 			return false;
@@ -1323,7 +1352,7 @@ R_SetMode(void)
 }
 
 int
-R_Init(void *hinstance, void *hWnd)
+RI_Init(void *hinstance, void *hWnd)
 {
 	int j;
 	extern float r_turbsin[256];
@@ -1518,7 +1547,7 @@ R_Init(void *hinstance, void *hWnd)
 }
 
 void
-R_Shutdown(void)
+RI_Shutdown(void)
 {
 	Cmd_RemoveCommand("modellist");
 	Cmd_RemoveCommand("screenshot");
@@ -1530,7 +1559,7 @@ R_Shutdown(void)
 	R_ShutdownImages();
 
 	/* shutdown OS specific OpenGL stuff like contexts, etc.  */
-	GLimp_Shutdown();
+	RI_ShutdownWindow(false);
 
 	/* shutdown our QGL subsystem */
 	QGL_Shutdown();
@@ -1539,7 +1568,7 @@ R_Shutdown(void)
 extern void UpdateHardwareGamma();
 
 void
-R_BeginFrame(float camera_separation)
+RI_BeginFrame(float camera_separation)
 {
 	gl_state.camera_separation = camera_separation;
 
@@ -1666,7 +1695,7 @@ R_BeginFrame(float camera_separation)
 }
 
 void
-R_SetPalette(const unsigned char *palette)
+RI_SetPalette(const unsigned char *palette)
 {
 	int i;
 
@@ -1788,5 +1817,74 @@ R_DrawBeam(entity_t *e)
 	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
+}
+
+extern int RI_PrepareForWindow(void);
+extern int RI_InitContext(void* win);
+
+extern void RI_BeginRegistration(char *model);
+extern struct model_s * RI_RegisterModel(char *name);
+extern struct image_s * RI_RegisterSkin(char *name);
+
+extern void RI_SetSky(char *name, float rotate, vec3_t axis);
+extern void RI_EndRegistration(void);
+
+extern void RI_RenderFrame(refdef_t *fd);
+
+extern image_t * RDraw_FindPic(char *name);
+extern void RDraw_GetPicSize(int *w, int *h, char *pic);
+extern void RDraw_PicScaled(int x, int y, char *pic, float factor);
+extern void RDraw_StretchPic(int x, int y, int w, int h, char *pic);
+extern void RDraw_CharScaled(int x, int y, int num, float scale);
+extern void RDraw_TileClear(int x, int y, int w, int h, char *pic);
+extern void RDraw_Fill(int x, int y, int w, int h, int c);
+extern void RDraw_FadeScreen(void);
+extern void RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
+
+extern void RI_SetPalette(const unsigned char *palette);
+extern void RI_EndFrame(void);
+
+refexport_t
+GetRefAPI(refimport_t imp)
+{
+	refexport_t re = {0};
+
+	ri = imp;
+
+	re.api_version = API_VERSION;
+
+	re.Init = RI_Init;
+	re.Shutdown = RI_Shutdown;
+	re.PrepareForWindow = RI_PrepareForWindow;
+	re.InitContext = RI_InitContext;
+	re.ShutdownWindow = RI_ShutdownWindow;
+	re.BeginRegistration = RI_BeginRegistration;
+	re.RegisterModel = RI_RegisterModel;
+	re.RegisterSkin = RI_RegisterSkin;
+
+	re.SetSky = RI_SetSky;
+	re.EndRegistration = RI_EndRegistration;
+
+	re.RenderFrame = RI_RenderFrame;
+
+	re.DrawFindPic = RDraw_FindPic;
+
+	re.DrawGetPicSize = RDraw_GetPicSize;
+	//re.DrawPic = Draw_Pic;
+	re.DrawPicScaled = RDraw_PicScaled;
+	re.DrawStretchPic = RDraw_StretchPic;
+	//re.DrawChar = Draw_Char;
+	re.DrawCharScaled = RDraw_CharScaled;
+	re.DrawTileClear = RDraw_TileClear;
+	re.DrawFill = RDraw_Fill;
+	re.DrawFadeScreen = RDraw_FadeScreen;
+
+	re.DrawStretchRaw = RDraw_StretchRaw;
+
+	re.SetPalette = RI_SetPalette;
+	re.BeginFrame = RI_BeginFrame;
+	re.EndFrame = RI_EndFrame;
+
+	return re;
 }
 

@@ -302,12 +302,12 @@ endif
 # ----------
 
 # Phony targets
-.PHONY : all client game icon server
+.PHONY : all client game icon server ref_gl
 
 # ----------
 
 # Builds everything
-all: config client server game
+all: config client server game ref_gl
 
 # Print config values
 config:
@@ -344,6 +344,10 @@ endif
 
 # Cleanup
 clean:
+	@echo "===> CLEAN"
+	${Q}rm -Rf build release/*
+
+cleanall:
 	@echo "===> CLEAN"
 	${Q}rm -Rf build release
 
@@ -384,7 +388,9 @@ release/quake2.exe : CFLAGS += -DSDL2
 endif
 
 release/quake2.exe : LDFLAGS += -mwindows -lopengl32
+
 else # not Windows
+
 client:
 	@echo "===> Building quake2"
 	${Q}mkdir -p release
@@ -393,7 +399,7 @@ client:
 build/client/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 ifeq ($(OSTYPE), Darwin)
 build/client/%.o : %.m
@@ -439,9 +445,9 @@ endif
 ifeq ($(WITH_SDL2),yes)
 release/quake2 : CFLAGS += -DSDL2
 endif
- 
+
 ifneq ($(OSTYPE), Darwin)
-release/quake2 : LDFLAGS += -lGL
+release/ref_gl.so : LDFLAGS += -lGL
 endif
 
 ifeq ($(OSTYPE), FreeBSD)
@@ -506,6 +512,53 @@ release/q2ded : CFLAGS += -DZIP -DNOUNCRYPT
 release/q2ded : LDFLAGS += -lz
 endif
 endif
+
+# ----------
+
+# The renderer lib
+
+ifeq ($(OSTYPE), Windows)
+
+ref_gl:
+	@echo "===> Building ref_gl.dll"
+	$(MAKE) release/ref_gl.dll
+
+ifeq ($(WITH_SDL2),yes)
+release/ref_gl.dll : CFLAGS += -DSDL2
+endif
+
+else ifeq ($(OSTYPE), Darwin)
+
+ref_gl:
+	@echo "===> Building ref_gl.dylib"
+	$(MAKE) release/ref_gl.dylib
+
+
+ifeq ($(WITH_SDL2),yes)
+release/ref_gl.dylib : CFLAGS += -DSDL2
+endif
+
+else # not Windows or Darwin
+
+ref_gl:
+	@echo "===> Building ref_gl.so"
+	$(MAKE) release/ref_gl.so
+
+
+release/ref_gl.so : CFLAGS += -fPIC
+release/ref_gl.so : LDFLAGS += -shared
+
+ifeq ($(WITH_SDL2),yes)
+release/ref_gl.so : CFLAGS += -DSDL2
+endif
+
+endif # OS specific ref_gl shit
+
+build/ref_gl/%.o: %.c
+	@echo "===> CC $<"
+	${Q}mkdir -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
+
 
 # ----------
 
@@ -610,7 +663,6 @@ CLIENT_OBJS_ := \
 	src/backends/generic/misc.o \
 	src/backends/generic/qal.o \
 	src/backends/generic/vid.o \
- 	src/backends/generic/qgl.o \
 	src/backends/sdl/cd.o \
 	src/backends/sdl/input.o \
 	src/backends/sdl/refresh.o \
@@ -632,22 +684,6 @@ CLIENT_OBJS_ := \
 	src/client/cl_screen.o \
 	src/client/cl_tempentities.o \
 	src/client/cl_view.o \
-	src/client/refresh/r_draw.o \
-	src/client/refresh/r_image.o \
-	src/client/refresh/r_light.o \
-	src/client/refresh/r_lightmap.o \
-	src/client/refresh/r_main.o \
-	src/client/refresh/r_mesh.o \
-	src/client/refresh/r_misc.o \
-	src/client/refresh/r_model.o \
-	src/client/refresh/r_scrap.o \
-	src/client/refresh/r_surf.o \
-	src/client/refresh/r_warp.o \
-	src/client/refresh/files/md2.o \
-	src/client/refresh/files/pcx.o \
-	src/client/refresh/files/sp2.o \
-	src/client/refresh/files/stb.o \
-	src/client/refresh/files/wal.o \
 	src/client/menu/menu.o \
 	src/client/menu/qmenu.o \
 	src/client/menu/videomenu.o \
@@ -684,7 +720,7 @@ CLIENT_OBJS_ := \
 	src/server/sv_save.o \
 	src/server/sv_send.o \
 	src/server/sv_user.o \
-	src/server/sv_world.o
+	src/server/sv_world.o 
 
 ifeq ($(OSTYPE), Windows)
 CLIENT_OBJS_ += \
@@ -697,6 +733,41 @@ CLIENT_OBJS_ += \
 	src/backends/unix/network.o \
 	src/backends/unix/signalhandler.o \
 	src/backends/unix/system.o \
+	src/backends/unix/shared/hunk.o
+endif
+
+# ----------
+
+# TODO: move qgl.c to refresh/gl/ (and probably the header as well)
+
+REFGL_OBJS_ := \
+	src/backends/generic/qgl.o \
+	src/client/refresh/gl/r_draw.o \
+	src/client/refresh/gl/r_image.o \
+	src/client/refresh/gl/r_light.o \
+	src/client/refresh/gl/r_lightmap.o \
+	src/client/refresh/gl/r_main.o \
+	src/client/refresh/gl/r_mesh.o \
+	src/client/refresh/gl/r_misc.o \
+	src/client/refresh/gl/r_model.o \
+	src/client/refresh/gl/r_scrap.o \
+	src/client/refresh/gl/r_surf.o \
+	src/client/refresh/gl/r_warp.o \
+	src/client/refresh/gl/r_sdl.o \
+	src/client/refresh/files/md2.o \
+	src/client/refresh/files/pcx.o \
+	src/client/refresh/files/sp2.o \
+	src/client/refresh/files/stb.o \
+	src/client/refresh/files/wal.o \
+	src/common/shared/flash.o \
+	src/common/shared/rand.o \
+	src/common/shared/shared.o 
+	
+ifeq ($(OSTYPE), Windows)
+REFGL_OBJS_ += \
+	src/backends/windows/shared/mem.o
+else # not Windows
+REFGL_OBJS_ += \
 	src/backends/unix/shared/hunk.o
 endif
 
@@ -753,6 +824,7 @@ endif
 
 # Rewrite pathes to our object directory
 CLIENT_OBJS = $(patsubst %,build/client/%,$(CLIENT_OBJS_))
+REFGL_OBJS = $(patsubst %,build/ref_gl/%,$(REFGL_OBJS_))
 SERVER_OBJS = $(patsubst %,build/server/%,$(SERVER_OBJS_))
 GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 
@@ -760,6 +832,7 @@ GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 
 # Generate header dependencies
 CLIENT_DEPS= $(CLIENT_OBJS:.o=.d)
+REFGL_DEPS= $(REFGL_OBJS:.o=.d)
 SERVER_DEPS= $(SERVER_OBJS:.o=.d)
 GAME_DEPS= $(GAME_OBJS:.o=.d)
 
@@ -767,6 +840,7 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 
 # Suck header dependencies in
 -include $(CLIENT_DEPS)
+-include $(REFGL_DEPS)
 -include $(SERVER_DEPS)
 -include $(GAME_DEPS)
 
@@ -794,6 +868,22 @@ else
 release/q2ded : $(SERVER_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@
+endif
+
+# release/ref_gl.so
+ifeq ($(OSTYPE), Windows)
+release/ref_gl.dll : $(REFGL_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(REFGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	$(Q)strip $@
+else ifeq ($(OSTYPE), Darwin)
+release/ref_gl.dylib : $(REFGL_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+else
+release/ref_gl.so : $(REFGL_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(REFGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/baseq2/game.so

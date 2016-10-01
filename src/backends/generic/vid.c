@@ -41,6 +41,8 @@
 #include "../../client/header/client.h"
 #include "../../client/header/keyboard.h"
 
+qboolean VID_LoadRefresh(void);
+
 typedef struct vidmode_s
 {
 	const char *description;
@@ -82,7 +84,6 @@ cvar_t *vid_fullscreen;
 
 /* Global variables used internally by this module */
 viddef_t viddef;                /* global video state; used by other modules */
-qboolean ref_active = false;    /* Is the refresher being used? */
 
 #define VID_NUM_MODES (sizeof(vid_modes) / sizeof(vid_modes[0]))
 #define MAXPRINTMSG 4096
@@ -152,33 +153,6 @@ VID_NewWindow(int width, int height)
 	viddef.height = height;
 }
 
-qboolean
-VID_LoadRefresh(void)
-{
-	// If the refresher is already active
-	// we'll shut it down
-	VID_Shutdown();
-
-	// Log it!
-	Com_Printf("----- refresher initialization -----\n");
-
-	// Declare the refresher as active
-	ref_active = true;
-
-	// Initiate the refresher
-	if (R_Init(0, 0) == -1)
-	{
-		VID_Shutdown(); // Isn't that just too bad? :(
-		return false;
-	}
-
-	/* Ensure that all key states are cleared */
-	Key_MarkAllUp();
-
-	Com_Printf("------------------------------------\n\n");
-	return true;
-}
-
 /*
  * This function gets called once just before drawing each frame, and
  * it's sole purpose in life is to check to see if any of the video mode
@@ -217,15 +191,272 @@ VID_Init(void)
 	VID_CheckChanges();
 }
 
+// Structure containing functions exported from refresh DLL
+refexport_t	re;
+void *reflib_handle = NULL;		// Handle to refresh DLL
+qboolean ref_active = false;    /* Is the refresher being used? */
+
+void Key_MarkAllUp(void);
+
+extern qboolean GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight);
+extern void VID_ShutdownWindow(void);
+
+qboolean
+VID_LoadRefresh(void)
+{
+	refimport_t		ri;
+	GetRefAPI_t		GetRefAPI;
+
+#ifdef __APPLE__
+	const char* lib_ext = "dylib";
+#elif defined(_WIN32)
+	const char* lib_ext = "dll";
+#else
+	const char* lib_ext = "so";
+#endif
+	char reflib_path[MAX_OSPATH] = {0};
+
+	// If the refresher is already active
+	// we'll shut it down
+	VID_Shutdown();
+
+	// Log it!
+	Com_Printf("----- refresher initialization -----\n");
+
+	snprintf(reflib_path, sizeof(reflib_path), "./ref_gl.%s", lib_ext); // TODO: name from cvar
+
+	GetRefAPI = Sys_LoadLibrary(reflib_path, "GetRefAPI", &reflib_handle);
+	if(GetRefAPI == NULL)
+	{
+		Com_Error( ERR_FATAL, "Loading %s as renderer lib failed!", reflib_path );
+		return false;
+	}
+
+	ri.Cmd_AddCommand = Cmd_AddCommand;
+	ri.Cmd_RemoveCommand = Cmd_RemoveCommand;
+	ri.Cmd_Argc = Cmd_Argc;
+	ri.Cmd_Argv = Cmd_Argv;
+	ri.Cmd_ExecuteText = Cbuf_ExecuteText;
+	ri.Con_Printf = VID_Printf;
+	ri.Sys_Error = VID_Error;
+	ri.FS_LoadFile = FS_LoadFile;
+	ri.FS_FreeFile = FS_FreeFile;
+	ri.FS_Gamedir = FS_Gamedir;
+	ri.Cvar_Get = Cvar_Get;
+	ri.Cvar_Set = Cvar_Set;
+	ri.Cvar_SetValue = Cvar_SetValue;
+	ri.Vid_GetModeInfo = VID_GetModeInfo;
+	ri.Vid_MenuInit = VID_MenuInit;
+	ri.Vid_NewWindow = VID_NewWindow;
+
+	ri.Vid_ShutdownWindow = VID_ShutdownWindow;
+	ri.GLimp_InitGraphics = GLimp_InitGraphics;
+
+	re = GetRefAPI( ri );
+
+	// Declare the refresher as active
+	ref_active = true;
+
+	if (re.api_version != API_VERSION)
+	{
+		VID_Shutdown();
+		Com_Error (ERR_FATAL, "%s has incompatible api_version %d", reflib_path, re.api_version);
+	}
+
+	// Initiate the refresher
+	if (re.Init(0, 0) == -1)
+	{
+		VID_Shutdown(); // Isn't that just too bad? :(
+		return false;
+	}
+
+	/* Ensure that all key states are cleared */
+	Key_MarkAllUp();
+
+	Com_Printf("------------------------------------\n\n");
+	return true;
+}
+
 void
 VID_Shutdown(void)
 {
 	if (ref_active)
 	{
 		/* Shut down the renderer */
-		R_Shutdown();
+		re.Shutdown();
+		Sys_FreeLibrary(reflib_handle);
+		reflib_handle = NULL;
+		memset(&re, 0, sizeof(re));
 	}
 
 	// Declare the refresher as inactive
 	ref_active = false;
+}
+
+// ======== wrappers for functions from refresh lib ========
+
+void
+R_BeginRegistration(char *map)
+{
+	if(ref_active)
+	{
+		re.BeginRegistration(map);
+	}
+}
+
+struct model_s*
+R_RegisterModel(char *name)
+{
+	if(ref_active)
+	{
+		return re.RegisterModel(name);
+	}
+	return NULL;
+}
+
+struct image_s*
+R_RegisterSkin(char *name)
+{
+	if(ref_active)
+	{
+		return re.RegisterSkin(name);
+	}
+	return NULL;
+}
+
+void
+R_SetSky(char *name, float rotate, vec3_t axis)
+{
+	if(ref_active)
+	{
+		re.SetSky(name, rotate, axis);
+	}
+}
+
+void
+R_EndRegistration(void)
+{
+	if(ref_active)
+	{
+		re.EndRegistration();
+	}
+}
+
+void
+R_RenderFrame(refdef_t *fd)
+{
+	if(ref_active)
+	{
+		re.RenderFrame(fd);
+	}
+}
+
+struct image_s*
+Draw_FindPic(char *name)
+{
+	if(ref_active)
+	{
+		return re.DrawFindPic(name);
+	}
+	return NULL;
+}
+
+
+void
+Draw_GetPicSize(int *w, int *h, char *name)
+{
+	if(ref_active)
+	{
+		re.DrawGetPicSize(w, h, name);
+	}
+}
+
+void
+Draw_StretchPic(int x, int y, int w, int h, char *name)
+{
+	if(ref_active)
+	{
+		re.DrawStretchPic(x, y, w, h, name);
+	}
+}
+
+void
+Draw_PicScaled(int x, int y, char *pic, float factor)
+{
+	if(ref_active)
+	{
+		re.DrawPicScaled(x, y, pic, factor);
+	}
+}
+
+void
+Draw_CharScaled(int x, int y, int num, float scale)
+{
+	if(ref_active)
+	{
+		re.DrawCharScaled(x, y, num, scale);
+	}
+}
+
+void
+Draw_TileClear(int x, int y, int w, int h, char *name)
+{
+	if(ref_active)
+	{
+		re.DrawTileClear(x, y, w, h, name);
+	}
+}
+
+void
+Draw_Fill(int x, int y, int w, int h, int c)
+{
+	if(ref_active)
+	{
+		re.DrawFill(x, y, w, h, c);
+	}
+}
+
+void
+Draw_FadeScreen(void)
+{
+	if(ref_active)
+	{
+		re.DrawFadeScreen();
+	}
+}
+
+void
+Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
+{
+	if(ref_active)
+	{
+		re.DrawStretchRaw(x, y, w, h, cols, rows, data);
+	}
+}
+
+void
+R_SetPalette(const unsigned char *palette)
+{
+	if(ref_active)
+	{
+		re.SetPalette(palette);
+	}
+}
+
+void
+R_BeginFrame(float camera_separation)
+{
+	if(ref_active)
+	{
+		re.BeginFrame(camera_separation);
+	}
+}
+
+void
+R_EndFrame(void)
+{
+	if(ref_active)
+	{
+		re.EndFrame();
+	}
 }

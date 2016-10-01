@@ -658,7 +658,7 @@ SCR_TimeRefresh_f(void)
 				R_RenderFrame(&cl.refdef);
 			}
 
-			GLimp_EndFrame();
+			R_EndFrame();
 		}
 	}
 	else
@@ -669,7 +669,7 @@ SCR_TimeRefresh_f(void)
 
 			R_BeginFrame(0);
 			R_RenderFrame(&cl.refdef);
-			GLimp_EndFrame();
+			R_EndFrame();
 		}
 	}
 
@@ -1566,7 +1566,7 @@ SCR_UpdateScreen(void)
 		}
 	}
 
-	GLimp_EndFrame();
+	R_EndFrame();
 }
 
 static float

@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "header/local.h"
+#include "../header/local.h"
 
 #define MAX_MOD_KNOWN 512
 
@@ -980,7 +980,7 @@ Mod_FreeAll(void)
  * Specifies the model that will be used as the world
  */
 void
-R_BeginRegistration(char *model)
+RI_BeginRegistration(char *model)
 {
 	char fullname[MAX_QPATH];
 	cvar_t *flushmap;
@@ -1006,7 +1006,7 @@ R_BeginRegistration(char *model)
 }
 
 struct model_s *
-R_RegisterModel(char *name)
+RI_RegisterModel(char *name)
 {
 	model_t *mod;
 	int i;
@@ -1055,7 +1055,7 @@ R_RegisterModel(char *name)
 }
 
 void
-R_EndRegistration(void)
+RI_EndRegistration(void)
 {
 	int i;
 	model_t *mod;

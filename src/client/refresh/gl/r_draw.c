@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "header/local.h"
+#include "../header/local.h"
 
 image_t *draw_chars;
 
@@ -51,18 +51,7 @@ Draw_InitLocal(void)
  * smoothly scrolled off.
  */
 void
-Draw_Char(int x, int y, int num)
-{
-	Draw_CharScaled(x, y, num, 1.0f);
-}
-
-/*
- * Draws one 8*8 graphics character with 0 being transparent.
- * It can be clipped to the top of the screen to allow the console to be
- * smoothly scrolled off.
- */
-void
-Draw_CharScaled(int x, int y, int num, float scale)
+RDraw_CharScaled(int x, int y, int num, float scale)
 {
 	int row, col;
 	float frow, fcol, size, scaledSize;
@@ -116,7 +105,7 @@ Draw_CharScaled(int x, int y, int num, float scale)
 }
 
 image_t *
-Draw_FindPic(char *name)
+RDraw_FindPic(char *name)
 {
 	image_t *gl;
 	char fullname[MAX_QPATH];
@@ -135,11 +124,11 @@ Draw_FindPic(char *name)
 }
 
 void
-Draw_GetPicSize(int *w, int *h, char *pic)
+RDraw_GetPicSize(int *w, int *h, char *pic)
 {
 	image_t *gl;
 
-	gl = Draw_FindPic(pic);
+	gl = RDraw_FindPic(pic);
 
 	if (!gl)
 	{
@@ -152,11 +141,11 @@ Draw_GetPicSize(int *w, int *h, char *pic)
 }
 
 void
-Draw_StretchPic(int x, int y, int w, int h, char *pic)
+RDraw_StretchPic(int x, int y, int w, int h, char *pic)
 {
 	image_t *gl;
 
-	gl = Draw_FindPic(pic);
+	gl = RDraw_FindPic(pic);
 
 	if (!gl)
 	{
@@ -197,17 +186,11 @@ Draw_StretchPic(int x, int y, int w, int h, char *pic)
 }
 
 void
-Draw_Pic(int x, int y, char *pic)
-{
-	Draw_PicScaled(x, y, pic, 1.0f);
-}
-
-void
-Draw_PicScaled(int x, int y, char *pic, float factor)
+RDraw_PicScaled(int x, int y, char *pic, float factor)
 {
 	image_t *gl;
 
-	gl = Draw_FindPic(pic);
+	gl = RDraw_FindPic(pic);
 
 	if (!gl)
 	{
@@ -253,11 +236,11 @@ Draw_PicScaled(int x, int y, char *pic, float factor)
  * refresh window.
  */
 void
-Draw_TileClear(int x, int y, int w, int h, char *pic)
+RDraw_TileClear(int x, int y, int w, int h, char *pic)
 {
 	image_t *image;
 
-	image = Draw_FindPic(pic);
+	image = RDraw_FindPic(pic);
 
 	if (!image)
 	{
@@ -296,7 +279,7 @@ Draw_TileClear(int x, int y, int w, int h, char *pic)
  * Fills a box of pixels with a single color
  */
 void
-Draw_Fill(int x, int y, int w, int h, int c)
+RDraw_Fill(int x, int y, int w, int h, int c)
 {
 	union
 	{
@@ -334,7 +317,7 @@ Draw_Fill(int x, int y, int w, int h, int c)
 }
 
 void
-Draw_FadeScreen(void)
+RDraw_FadeScreen(void)
 {
 	glEnable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
@@ -360,7 +343,7 @@ Draw_FadeScreen(void)
 }
 
 void
-Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
+RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 {
 	GLfloat tex[8];
 	byte *source;

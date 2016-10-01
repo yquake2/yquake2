@@ -412,14 +412,10 @@ extern glstate_t gl_state;
 int GLimp_Init(void);
 
 /*
- * Shuts the SDL render backend down
+ * Shuts the render context and SDL window down
+ * (if contextOnly, the window will not be shutdown)
  */
-void GLimp_Shutdown(void);
-
-/*
- * Changes the video mode
- */
-int GLimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen);
+void RI_ShutdownWindow(qboolean contextOnly);
 
 /*
  * Returns the address of the GL function proc,

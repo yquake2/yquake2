@@ -24,18 +24,18 @@
  * =======================================================================
  */
 
-#include "header/local.h"
+#include "../header/local.h"
 
 #define NUMVERTEXNORMALS 162
 #define SHADEDOT_QUANT 16
 
 float r_avertexnormals[NUMVERTEXNORMALS][3] = {
-#include "constants/anorms.h"
+#include "../constants/anorms.h"
 };
 
 /* precalculated dot products for quantized angles */
 float r_avertexnormal_dots[SHADEDOT_QUANT][256] =
-#include "constants/anormtab.h"
+#include "../constants/anormtab.h"
 ;
 
 typedef float vec4_t[4];

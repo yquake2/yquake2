@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "header/local.h"
+#include "../header/local.h"
 
 extern gllightmapstate_t gl_lms;
 

@@ -52,7 +52,6 @@
 #define SHELL_WHITE_COLOR	0xD7
 
 #define ENTITY_FLAGS	68
-#define	API_VERSION		3
 
 typedef struct entity_s {
 	struct model_s		*model; /* opaque type outside refresh */
@@ -117,8 +116,127 @@ typedef struct {
 	particle_t	*particles;
 } refdef_t;
 
-// Soon to be deleted
-//void R_GetRefAPI(void);
+// FIXME: bump API_VERSION?
+#define	API_VERSION		4
+#define EXPORT
+#define IMPORT
+
+//
+// these are the functions exported by the refresh module
+//
+typedef struct
+{
+	// if api_version is different, the dll cannot be used
+	int		api_version;
+
+	// called when the library is loaded - FIXME: remove arguments, not used anyway
+	int		(EXPORT *Init) ( void *hinstance, void *wndproc );
+
+	// called before the library is unloaded
+	void	(EXPORT *Shutdown) (void);
+
+	// called by GLimp_InitGraphics() before creating window,
+	// returns flags for SDL window creation
+	int		(EXPORT *PrepareForWindow)(void);
+
+	// called by GLimp_InitGraphics() *after* creating window,
+	// passing the SDL_Window* (void* so we don't spill SDL.h here)
+	// returns true (1) on success
+	int		(EXPORT *InitContext)(void* window);
+
+	// shuts down rendering (OpenGL) context, calls
+	// VID_ShutdownWindow() to shut down window as well, if !contextOnly
+	void	(EXPORT *ShutdownWindow)(qboolean contextOnly);
+
+	// All data that will be used in a level should be
+	// registered before rendering any frames to prevent disk hits,
+	// but they can still be registered at a later time
+	// if necessary.
+	//
+	// EndRegistration will free any remaining data that wasn't registered.
+	// Any model_s or skin_s pointers from before the BeginRegistration
+	// are no longer valid after EndRegistration.
+	//
+	// Skins and images need to be differentiated, because skins
+	// are flood filled to eliminate mip map edge errors, and pics have
+	// an implicit "pics/" prepended to the name. (a pic name that starts with a
+	// slash will not use the "pics/" prefix or the ".pcx" postfix)
+	void	(EXPORT *BeginRegistration) (char *map);
+	struct model_s * (EXPORT *RegisterModel) (char *name);
+	struct image_s * (EXPORT *RegisterSkin) (char *name);
+
+	void	(EXPORT *SetSky) (char *name, float rotate, vec3_t axis);
+	void	(EXPORT *EndRegistration) (void);
+
+	void	(EXPORT *RenderFrame) (refdef_t *fd);
+
+	struct image_s * (EXPORT *DrawFindPic)(char *name);
+
+	void	(EXPORT *DrawGetPicSize) (int *w, int *h, char *name);	// will return 0 0 if not found
+	//void	(EXPORT *DrawPic) (int x, int y, char *name); - apparently not used anymore
+	void 	(EXPORT *DrawPicScaled) (int x, int y, char *pic, float factor);
+	void	(EXPORT *DrawStretchPic) (int x, int y, int w, int h, char *name);
+	void	(EXPORT *DrawChar) (int x, int y, int c);
+	void	(EXPORT *DrawCharScaled)(int x, int y, int num, float scale);
+	void	(EXPORT *DrawTileClear) (int x, int y, int w, int h, char *name);
+	void	(EXPORT *DrawFill) (int x, int y, int w, int h, int c);
+	void	(EXPORT *DrawFadeScreen) (void);
+
+	// Draw images for cinematic rendering (which can have a different palette). Note that calls
+	void	(EXPORT *DrawStretchRaw) (int x, int y, int w, int h, int cols, int rows, byte *data);
+
+	/*
+	** video mode and refresh state management entry points
+	*/
+	void	(EXPORT *SetPalette)( const unsigned char *palette);	// NULL = game palette
+	void	(EXPORT *BeginFrame)( float camera_separation );
+	void	(EXPORT *EndFrame) (void);
+
+	//void	(EXPORT *AppActivate)( qboolean activate );
+} refexport_t;
+
+typedef struct
+{
+	void	(IMPORT *Sys_Error) (int err_level, char *str, ...) __attribute__ ((format (printf, 2, 3)));
+
+	void	(IMPORT *Cmd_AddCommand) (char *name, void(*cmd)(void));
+	void	(IMPORT *Cmd_RemoveCommand) (char *name);
+	int		(IMPORT *Cmd_Argc) (void);
+	char	*(IMPORT *Cmd_Argv) (int i);
+	void	(IMPORT *Cmd_ExecuteText) (int exec_when, char *text);
+
+	void	(IMPORT *Con_Printf) (int print_level, char *str, ...) __attribute__ ((format (printf, 2, 3)));
+
+	// files will be memory mapped read only
+	// the returned buffer may be part of a larger pak file,
+	// or a discrete file from anywhere in the quake search path
+	// a -1 return means the file does not exist
+	// NULL can be passed for buf to just determine existance
+	int		(IMPORT *FS_LoadFile) (char *name, void **buf);
+	void	(IMPORT *FS_FreeFile) (void *buf);
+
+	// gamedir will be the current directory that generated
+	// files should be stored to, ie: "f:\quake\id1"
+	char	*(IMPORT *FS_Gamedir) (void);
+
+	cvar_t	*(IMPORT *Cvar_Get) (char *name, char *value, int flags);
+	cvar_t	*(IMPORT *Cvar_Set) (char *name, char *value);
+	void	 (IMPORT *Cvar_SetValue) (char *name, float value);
+
+	qboolean	(IMPORT *Vid_GetModeInfo)(int *width, int *height, int mode);
+	void		(IMPORT *Vid_MenuInit)( void );
+	void		(IMPORT *Vid_NewWindow)( int width, int height );
+
+	void		(IMPORT *Vid_ShutdownWindow)(void);
+	qboolean	(IMPORT *GLimp_InitGraphics)(qboolean fullscreen, int *pwidth, int *pheight);
+} refimport_t;
+
+// this is the only function actually exported at the linker level
+typedef	refexport_t	(EXPORT *GetRefAPI_t) (refimport_t);
+
+// FIXME: #ifdef client/ref around this
+extern refexport_t re;
+extern refimport_t ri;
 
 /*
  * Refresh API
@@ -132,19 +250,19 @@ void R_EndRegistration(void);
 struct image_s *Draw_FindPic(char *name);
 void R_RenderFrame(refdef_t *fd);
 void Draw_GetPicSize(int *w, int *h, char *name);
-void Draw_Pic(int x, int y, char *name);
+
 void Draw_StretchPic(int x, int y, int w, int h, char *name);
 void Draw_PicScaled(int x, int y, char *pic, float factor);
-void Draw_Char(int x, int y, int c);
+
 void Draw_CharScaled(int x, int y, int num, float scale);
 void Draw_TileClear(int x, int y, int w, int h, char *name);
 void Draw_Fill(int x, int y, int w, int h, int c);
 void Draw_FadeScreen(void);
 void Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
-int R_Init(void *hinstance, void *hWnd);
-void R_Shutdown(void);
+//int R_Init(void *hinstance, void *hWnd);
+//void R_Shutdown(void);
 void R_SetPalette(const unsigned char *palette);
 void R_BeginFrame(float camera_separation);
-void GLimp_EndFrame(void);
+void R_EndFrame(void);
 
 #endif

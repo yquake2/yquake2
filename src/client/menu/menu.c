@@ -1251,7 +1251,7 @@ UpdateSoundQualityFunc(void *unused)
     M_Popup();
 
     /* the text box won't show up unless we do a buffer swap */
-    GLimp_EndFrame();
+    R_EndFrame();
 
     CL_Snd_Restart_f();
 }
@@ -2566,7 +2566,7 @@ SearchLocalGames(void)
     M_Popup();
 
     /* the text box won't show up unless we do a buffer swap */
-    GLimp_EndFrame();
+    R_EndFrame();
 
     /* send out info packets */
     CL_PingServers_f();

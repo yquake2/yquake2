@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "header/local.h"
+#include "../header/local.h"
 
 #define TURBSCALE (256.0 / (2 * M_PI))
 #define SUBDIVIDE_SIZE 64
@@ -48,7 +48,7 @@ unsigned int index_tex = 0;
 char *suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 
 float r_turbsin[] = {
-#include "constants/warpsin.h"
+#include "../constants/warpsin.h"
 };
 
 vec3_t skyclip[6] = {
@@ -724,7 +724,7 @@ R_DrawSkyBox(void)
 }
 
 void
-R_SetSky(char *name, float rotate, vec3_t axis)
+RI_SetSky(char *name, float rotate, vec3_t axis)
 {
 	int i;
 	char pathname[MAX_QPATH];
