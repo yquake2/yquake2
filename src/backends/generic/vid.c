@@ -198,6 +198,7 @@ qboolean ref_active = false;    /* Is the refresher being used? */
 
 void Key_MarkAllUp(void);
 
+extern int GLimp_Init(void);
 extern qboolean GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight);
 extern void VID_ShutdownWindow(void);
 
@@ -250,6 +251,7 @@ VID_LoadRefresh(void)
 	ri.Vid_NewWindow = VID_NewWindow;
 
 	ri.Vid_ShutdownWindow = VID_ShutdownWindow;
+	ri.GLimp_Init = GLimp_Init;
 	ri.GLimp_InitGraphics = GLimp_InitGraphics;
 
 	re = GetRefAPI( ri );

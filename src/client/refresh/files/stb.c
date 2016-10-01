@@ -63,7 +63,7 @@ LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *hei
 	*pic = NULL;
 
 	byte* rawdata = NULL;
-	int rawsize = FS_LoadFile(filename, (void **)&rawdata);
+	int rawsize = ri.FS_LoadFile(filename, (void **)&rawdata);
 	if (rawdata == NULL)
 	{
 		return false;
@@ -75,11 +75,11 @@ LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *hei
 	if (data == NULL)
 	{
 		ri.Con_Printf(PRINT_ALL, "stb_image couldn't load data from %s: %s!\n", filename, stbi_failure_reason());
-		FS_FreeFile(rawdata);
+		ri.FS_FreeFile(rawdata);
 		return false;
 	}
 
-	FS_FreeFile(rawdata);
+	ri.FS_FreeFile(rawdata);
 
 	ri.Con_Printf(PRINT_DEVELOPER, "LoadSTB() loaded: %s\n", filename);
 

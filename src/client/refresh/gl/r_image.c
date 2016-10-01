@@ -204,16 +204,16 @@ R_TextureMode(char *string)
 	{
 		if (gl_anisotropic->value > gl_config.max_anisotropy)
 		{
-			Cvar_SetValue("gl_anisotropic", gl_config.max_anisotropy);
+			ri.Cvar_SetValue("gl_anisotropic", gl_config.max_anisotropy);
 		}
 		else if (gl_anisotropic->value < 1.0)
 		{
-			Cvar_SetValue("gl_anisotropic", 1.0);
+			ri.Cvar_SetValue("gl_anisotropic", 1.0);
 		}
 	}
 	else
 	{
-		Cvar_SetValue("gl_anisotropic", 0.0);
+		ri.Cvar_SetValue("gl_anisotropic", 0.0);
 	}
 
 	/* change all the existing mipmap texture objects */
@@ -877,7 +877,14 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 {
 	image_t *image;
 	int i;
-	qboolean nolerp = (strstr(Cvar_VariableString("gl_nolerp_list"), name) != NULL);
+
+	qboolean nolerp = false;
+
+	cvar_t* nolerp_var = ri.Cvar_Get("gl_nolerp_list", NULL, 0);
+	if(nolerp_var != NULL && nolerp_var->string != NULL)
+	{
+		nolerp = strstr(nolerp_var->string, name) != NULL;
+	}
 
 	/* find a free image_t */
 	for (i = 0, image = gltextures; i < numgltextures; i++, image++)
@@ -1254,11 +1261,11 @@ R_InitImages(void)
 	registration_sequence = 1;
 
 	/* init intensity conversions */
-	intensity = Cvar_Get("intensity", "2", CVAR_ARCHIVE);
+	intensity = ri.Cvar_Get("intensity", "2", CVAR_ARCHIVE);
 
 	if (intensity->value <= 1)
 	{
-		Cvar_Set("intensity", "1");
+		ri.Cvar_Set("intensity", "1");
 	}
 
 	gl_state.inverse_intensity = 1 / intensity->value;
@@ -1267,7 +1274,7 @@ R_InitImages(void)
 
 	if (gl_config.palettedtexture)
 	{
-		FS_LoadFile("pics/16to8.dat", (void **)&gl_state.d_16to8table);
+		ri.FS_LoadFile("pics/16to8.dat", (void **)&gl_state.d_16to8table);
 
 		if (!gl_state.d_16to8table)
 		{

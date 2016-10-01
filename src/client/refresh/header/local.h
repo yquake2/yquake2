@@ -408,7 +408,7 @@ extern glconfig_t gl_config;
 extern glstate_t gl_state;
 
 /*
- * Initializes the SDL OpenGL context
+ * Initialzes the SDL video subsystem
  */
 int GLimp_Init(void);
 

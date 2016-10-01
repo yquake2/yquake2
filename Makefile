@@ -252,6 +252,9 @@ else ifeq ($(OSTYPE), Darwin)
 LDFLAGS := $(OSX_ARCH) -lm
 endif
 
+CFLAGS += -fvisibility=hidden
+LDFLAGS += -fvisibility=hidden -Wl,--no-undefined
+
 # ----------
 
 # Extra LDFLAGS for SDL

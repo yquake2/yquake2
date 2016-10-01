@@ -228,6 +228,7 @@ typedef struct
 	void		(IMPORT *Vid_NewWindow)( int width, int height );
 
 	void		(IMPORT *Vid_ShutdownWindow)(void);
+	int			(IMPORT *GLimp_Init)(void);
 	qboolean	(IMPORT *GLimp_InitGraphics)(qboolean fullscreen, int *pwidth, int *pheight);
 } refimport_t;
 

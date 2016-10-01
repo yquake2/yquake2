@@ -1527,6 +1527,8 @@ FS_Dir_f(void)
 void
 FS_InitFilesystem(void)
 {
+	char scrnshotdir[MAX_OSPATH];
+
 	/* Register FS commands. */
 	Cmd_AddCommand("path", FS_Path_f);
 	Cmd_AddCommand("link", FS_Link_f);
@@ -1576,6 +1578,12 @@ FS_InitFilesystem(void)
 
 	/* Create directory if it does not exist. */
 	FS_CreatePath(fs_gamedir);
+
+	/* create the scrnshots directory if it doesn't exist
+	 * (do it here instead of in ref_gl so ref_gl doesn't need mkdir)
+	 */
+	Com_sprintf(scrnshotdir, sizeof(scrnshotdir), "%s/scrnshot", FS_Gamedir());
+	Sys_Mkdir(scrnshotdir);
 
 	Com_Printf("Using '%s' for writing.\n", fs_gamedir);
 }

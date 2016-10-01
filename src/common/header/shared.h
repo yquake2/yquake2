@@ -79,9 +79,19 @@ typedef unsigned char byte;
 #ifdef _WIN32
  #define MAX_OSPATH 256             /* max length of a filesystem pathname (same as MAX_PATH) */
  #define LATCH_CVAR_SAVELENGTH 256
-#else
+
+ // by default dlls don't export any functions, use this to
+ // make a function visible (for GetGameAPI(), GetRefAPI() and similar)
+ #define Q2_DLL_EXPORTED  __declspec(dllexport)
+
+#else // not Win32 (Linux, BSD, Mac, ..)
+
  #define MAX_OSPATH 4096            /* max length of a filesystem pathname */
  #define LATCH_CVAR_SAVELENGTH 128
+
+ // by default our .so/.dylibs don't export any functions, use this to
+ // make a function visible (for GetGameAPI(), GetRefAPI() and similar)
+ #define Q2_DLL_EXPORTED  __attribute__((__visibility__("default")))
 #endif
 
 /* per-level limits */

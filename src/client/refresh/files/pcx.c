@@ -49,7 +49,7 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	*palette = NULL;
 
 	/* load the file */
-	len = FS_LoadFile(filename, (void **)&raw);
+	len = ri.FS_LoadFile(filename, (void **)&raw);
 
 	if (!raw)
 	{
@@ -131,7 +131,7 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 		*pic = NULL;
 	}
 
-	FS_FreeFile(pcx);
+	ri.FS_FreeFile(pcx);
 }
 
 void
@@ -140,7 +140,7 @@ GetPCXInfo(char *filename, int *width, int *height)
 	pcx_t *pcx;
 	byte *raw;
 
-	FS_LoadFile(filename, (void **)&raw);
+	ri.FS_LoadFile(filename, (void **)&raw);
 
 	if (!raw)
 	{
@@ -152,7 +152,7 @@ GetPCXInfo(char *filename, int *width, int *height)
 	*width = pcx->xmax + 1;
 	*height = pcx->ymax + 1;
 
-	FS_FreeFile(raw);
+	ri.FS_FreeFile(raw);
 
 	return;
 }
