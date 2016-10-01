@@ -42,7 +42,8 @@
 #endif
 
 #include "../../header/ref.h"
-#include "../../../backends/generic/header/qgl.h"
+// FIXME: can we avoid including qgl.h here? it's specific to the gl1 backend
+#include "../gl/qgl.h"
 
 #ifndef GL_COLOR_INDEX8_EXT
  #define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX

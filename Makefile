@@ -738,10 +738,8 @@ endif
 
 # ----------
 
-# TODO: move qgl.c to refresh/gl/ (and probably the header as well)
-
 REFGL_OBJS_ := \
-	src/backends/generic/qgl.o \
+	src/client/refresh/gl/qgl.o \
 	src/client/refresh/gl/r_draw.o \
 	src/client/refresh/gl/r_image.o \
 	src/client/refresh/gl/r_light.o \
