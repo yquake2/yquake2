@@ -390,7 +390,7 @@ ifeq ($(WITH_SDL2),yes)
 release/quake2.exe : CFLAGS += -DSDL2
 endif
 
-release/quake2.exe : LDFLAGS += -mwindows -lopengl32
+release/quake2.exe : LDFLAGS += -mwindows
 
 else # not Windows
 
@@ -529,6 +529,12 @@ ref_gl:
 ifeq ($(WITH_SDL2),yes)
 release/ref_gl.dll : CFLAGS += -DSDL2
 endif
+
+release/ref_gl.dll : LDFLAGS += -lopengl32 -shared
+
+# don't want the dll to link against libSDL2main or libmingw32, and no -mwindows either
+# that's for the .exe only
+DLL_SDLLDFLAGS = $(subst -mwindows,,$(subst -lmingw32,,$(subst -lSDL2main,,$(SDLLDFLAGS))))
 
 else ifeq ($(OSTYPE), Darwin)
 
@@ -875,7 +881,7 @@ endif
 ifeq ($(OSTYPE), Windows)
 release/ref_gl.dll : $(REFGL_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(REFGL_OBJS) $(LDFLAGS) $(DLL_SDLLDFLAGS) -o $@
 	$(Q)strip $@
 else ifeq ($(OSTYPE), Darwin)
 release/ref_gl.dylib : $(REFGL_OBJS)
