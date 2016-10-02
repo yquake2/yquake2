@@ -382,7 +382,7 @@ R_BlendLightmaps(void)
 				/* try uploading the block now */
 				if (!LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
 				{
-					VID_Error(ERR_FATAL,
+					ri.Sys_Error(ERR_FATAL,
 							"Consecutive calls to LM_AllocBlock(%d,%d) failed (dynamic)\n",
 							smax, tmax);
 				}

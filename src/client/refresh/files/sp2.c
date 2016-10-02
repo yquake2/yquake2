@@ -43,13 +43,13 @@ LoadSP2(model_t *mod, void *buffer)
 
 	if (sprout->version != SPRITE_VERSION)
 	{
-		VID_Error(ERR_DROP, "%s has wrong version number (%i should be %i)",
+		ri.Sys_Error(ERR_DROP, "%s has wrong version number (%i should be %i)",
 				mod->name, sprout->version, SPRITE_VERSION);
 	}
 
 	if (sprout->numframes > MAX_MD2SKINS)
 	{
-		VID_Error(ERR_DROP, "%s has too many frames (%i > %i)",
+		ri.Sys_Error(ERR_DROP, "%s has too many frames (%i > %i)",
 				mod->name, sprout->numframes, MAX_MD2SKINS);
 	}
 

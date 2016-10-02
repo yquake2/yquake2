@@ -43,7 +43,7 @@ LoadMD2(model_t *mod, void *buffer)
 
 	if (version != ALIAS_VERSION)
 	{
-		VID_Error(ERR_DROP, "%s has wrong version number (%i should be %i)",
+		ri.Sys_Error(ERR_DROP, "%s has wrong version number (%i should be %i)",
 				mod->name, version, ALIAS_VERSION);
 	}
 
@@ -57,33 +57,33 @@ LoadMD2(model_t *mod, void *buffer)
 
 	if (pheader->skinheight > MAX_LBM_HEIGHT)
 	{
-		VID_Error(ERR_DROP, "model %s has a skin taller than %d", mod->name,
+		ri.Sys_Error(ERR_DROP, "model %s has a skin taller than %d", mod->name,
 				MAX_LBM_HEIGHT);
 	}
 
 	if (pheader->num_xyz <= 0)
 	{
-		VID_Error(ERR_DROP, "model %s has no vertices", mod->name);
+		ri.Sys_Error(ERR_DROP, "model %s has no vertices", mod->name);
 	}
 
 	if (pheader->num_xyz > MAX_VERTS)
 	{
-		VID_Error(ERR_DROP, "model %s has too many vertices", mod->name);
+		ri.Sys_Error(ERR_DROP, "model %s has too many vertices", mod->name);
 	}
 
 	if (pheader->num_st <= 0)
 	{
-		VID_Error(ERR_DROP, "model %s has no st vertices", mod->name);
+		ri.Sys_Error(ERR_DROP, "model %s has no st vertices", mod->name);
 	}
 
 	if (pheader->num_tris <= 0)
 	{
-		VID_Error(ERR_DROP, "model %s has no triangles", mod->name);
+		ri.Sys_Error(ERR_DROP, "model %s has no triangles", mod->name);
 	}
 
 	if (pheader->num_frames <= 0)
 	{
-		VID_Error(ERR_DROP, "model %s has no frames", mod->name);
+		ri.Sys_Error(ERR_DROP, "model %s has no frames", mod->name);
 	}
 
 	/* load base s and t vertices (not used in gl version) */

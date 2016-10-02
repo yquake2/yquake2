@@ -149,7 +149,7 @@ RDraw_StretchPic(int x, int y, int w, int h, char *pic)
 
 	if (!gl)
 	{
-		VID_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
 		return;
 	}
 
@@ -194,7 +194,7 @@ RDraw_PicScaled(int x, int y, char *pic, float factor)
 
 	if (!gl)
 	{
-		VID_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
 		return;
 	}
 
@@ -244,7 +244,7 @@ RDraw_TileClear(int x, int y, int w, int h, char *pic)
 
 	if (!image)
 	{
-		VID_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
 		return;
 	}
 
@@ -289,7 +289,7 @@ RDraw_Fill(int x, int y, int w, int h, int c)
 
 	if ((unsigned)c > 255)
 	{
-		VID_Error(ERR_FATAL, "Draw_Fill: bad color");
+		ri.Sys_Error(ERR_FATAL, "Draw_Fill: bad color");
 	}
 
 	glDisable(GL_TEXTURE_2D);
@@ -530,7 +530,7 @@ Draw_GetPalette(void)
 
 	if (!pal)
 	{
-		VID_Error(ERR_FATAL, "Couldn't load pics/colormap.pcx");
+		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/colormap.pcx");
 	}
 
 	for (i = 0; i < 256; i++)

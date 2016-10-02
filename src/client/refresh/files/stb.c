@@ -74,14 +74,14 @@ LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *hei
 	data = stbi_load_from_memory(rawdata, rawsize, &w, &h, &bytesPerPixel, STBI_rgb_alpha);
 	if (data == NULL)
 	{
-		VID_Printf(PRINT_ALL, "stb_image couldn't load data from %s: %s!\n", filename, stbi_failure_reason());
+		ri.Con_Printf(PRINT_ALL, "stb_image couldn't load data from %s: %s!\n", filename, stbi_failure_reason());
 		FS_FreeFile(rawdata);
 		return false;
 	}
 
 	FS_FreeFile(rawdata);
 
-	VID_Printf(PRINT_DEVELOPER, "LoadSTB() loaded: %s\n", filename);
+	ri.Con_Printf(PRINT_DEVELOPER, "LoadSTB() loaded: %s\n", filename);
 
 	*pic = data;
 	*width = w;

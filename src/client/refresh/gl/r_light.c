@@ -500,7 +500,7 @@ R_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 	if (surf->texinfo->flags &
 		(SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP))
 	{
-		VID_Error(ERR_DROP, "R_BuildLightMap called for non-lit surface");
+		ri.Sys_Error(ERR_DROP, "R_BuildLightMap called for non-lit surface");
 	}
 
 	smax = (surf->extents[0] >> 4) + 1;
@@ -509,7 +509,7 @@ R_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 
 	if (size > (sizeof(s_blocklights) >> 4))
 	{
-		VID_Error(ERR_DROP, "Bad s_blocklights size");
+		ri.Sys_Error(ERR_DROP, "Bad s_blocklights size");
 	}
 
 	/* set to full bright if no light data */

@@ -110,7 +110,7 @@ UpdateHardwareGamma(void)
 	if(SDL_GetWMInfo(&info) != 1)
 #endif
 	{
-		VID_Printf(PRINT_ALL, "Couldn't get Window info from SDL\n");
+		ri.Con_Printf(PRINT_ALL, "Couldn't get Window info from SDL\n");
 		return;
 	}
 
@@ -119,7 +119,7 @@ UpdateHardwareGamma(void)
 	XRRScreenResources* res = XRRGetScreenResources(dpy, info.info.x11.window);
 	if(res == NULL)
 	{
-		VID_Printf(PRINT_ALL, "Unable to get xrandr screen resources.\n");
+		ri.Con_Printf(PRINT_ALL, "Unable to get xrandr screen resources.\n");
 		return;
 	}
 
@@ -130,7 +130,7 @@ UpdateHardwareGamma(void)
 		Uint16* ramp = malloc(rampSize); // TODO: check for NULL
 		if(ramp == NULL)
 		{
-			VID_Printf(PRINT_ALL, "Couldn't allocate &zd byte of memory for gamma ramp - OOM?!\n", rampSize);
+			ri.Con_Printf(PRINT_ALL, "Couldn't allocate &zd byte of memory for gamma ramp - OOM?!\n", rampSize);
 			return;
 		}
 
@@ -164,7 +164,7 @@ UpdateHardwareGamma(void)
 #else
 	if(SDL_SetGammaRamp(ramp, ramp, ramp) < 0) {
 #endif
-		VID_Printf(PRINT_ALL, "Setting gamma failed: %s\n", SDL_GetError());
+		ri.Con_Printf(PRINT_ALL, "Setting gamma failed: %s\n", SDL_GetError());
 	}
 }
 #endif // X11GAMMA
@@ -186,7 +186,7 @@ static void InitGamma()
 	if(SDL_GetWMInfo(&info) != 1)
 #endif
 	{
-		VID_Printf(PRINT_ALL, "Couldn't get Window info from SDL\n");
+		ri.Con_Printf(PRINT_ALL, "Couldn't get Window info from SDL\n");
 		return;
 	}
 
@@ -195,14 +195,14 @@ static void InitGamma()
 	XRRScreenResources* res = XRRGetScreenResources(dpy, info.info.x11.window);
 	if(res == NULL)
 	{
-		VID_Printf(PRINT_ALL, "Unable to get xrandr screen resources.\n");
+		ri.Con_Printf(PRINT_ALL, "Unable to get xrandr screen resources.\n");
 		return;
 	}
 
 	noGammaRamps = res->ncrtc;
 	gammaRamps = calloc(noGammaRamps, sizeof(XRRCrtcGamma*));
 	if(gammaRamps == NULL) {
-		VID_Printf(PRINT_ALL, "Couldn't allocate memory for %d gamma ramps - OOM?!\n", noGammaRamps);
+		ri.Con_Printf(PRINT_ALL, "Couldn't allocate memory for %d gamma ramps - OOM?!\n", noGammaRamps);
 		return;
 	}
 
@@ -224,13 +224,13 @@ static void InitGamma()
 
 	XRRFreeScreenResources(res);
 
-	VID_Printf(PRINT_ALL, "Using hardware gamma via X11/xRandR.\n");
+	ri.Con_Printf(PRINT_ALL, "Using hardware gamma via X11/xRandR.\n");
 #elif __APPLE__
 	gl_state.hwgamma = false;
-	VID_Printf(PRINT_ALL, "Using software gamma (needs vid_restart after changes)\n");
+	ri.Con_Printf(PRINT_ALL, "Using software gamma (needs vid_restart after changes)\n");
 	return;
 #else
-	VID_Printf(PRINT_ALL, "Using hardware gamma via SDL.\n");
+	ri.Con_Printf(PRINT_ALL, "Using hardware gamma via SDL.\n");
 #endif
 	gl_state.hwgamma = true;
 	vid_gamma->modified = true;
@@ -253,7 +253,7 @@ static void RestoreGamma()
 	if(SDL_GetWMInfo(&info) != 1)
 #endif
 	{
-		VID_Printf(PRINT_ALL, "Couldn't get Window info from SDL\n");
+		ri.Con_Printf(PRINT_ALL, "Couldn't get Window info from SDL\n");
 		return;
 	}
 
@@ -262,7 +262,7 @@ static void RestoreGamma()
 	XRRScreenResources* res = XRRGetScreenResources(dpy, info.info.x11.window);
 	if(res == NULL)
 	{
-		VID_Printf(PRINT_ALL, "Unable to get xrandr screen resources.\n");
+		ri.Con_Printf(PRINT_ALL, "Unable to get xrandr screen resources.\n");
 		return;
 	}
 
@@ -273,7 +273,7 @@ static void RestoreGamma()
 		{
 			int len = XRRGetCrtcGammaSize(dpy, res->crtcs[i]);
 			if(len != gammaRamps[i]->size) {
-				VID_Printf(PRINT_ALL, "WTF, gamma ramp size for display %d has changed from %d to %d!\n",
+				ri.Con_Printf(PRINT_ALL, "WTF, gamma ramp size for display %d has changed from %d to %d!\n",
 							   i, gammaRamps[i]->size, len);
 
 				continue;
@@ -291,7 +291,7 @@ static void RestoreGamma()
 	free(gammaRamps);
 	gammaRamps = NULL;
 
-	VID_Printf(PRINT_ALL, "Restored original Gamma\n");
+	ri.Con_Printf(PRINT_ALL, "Restored original Gamma\n");
 }
 #endif // X11GAMMA
 
@@ -351,7 +351,7 @@ int RI_InitContext(void* win)
 
 	if(win == NULL)
 	{
-		VID_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
+		ri.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
 		return false;
 	}
 
@@ -359,7 +359,7 @@ int RI_InitContext(void* win)
 	context = SDL_GL_CreateContext(window);
 	if(context == NULL)
 	{
-		VID_Printf(PRINT_ALL, "R_InitContext(): Creating OpenGL Context failed: %s\n", SDL_GetError());
+		ri.Con_Printf(PRINT_ALL, "R_InitContext(): Creating OpenGL Context failed: %s\n", SDL_GetError());
 		window = NULL;
 		return false;
 	}
@@ -381,7 +381,7 @@ int RI_InitContext(void* win)
 	/* Initialize the stencil buffer */
 	if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits))
 	{
-		VID_Printf(PRINT_ALL, "Got %d bits of stencil.\n", stencil_bits);
+		ri.Con_Printf(PRINT_ALL, "Got %d bits of stencil.\n", stencil_bits);
 
 		if (stencil_bits >= 1)
 		{
