@@ -1060,7 +1060,8 @@ ai_checkattack(edict_t *self)
 		VectorCopy(self->enemy->s.origin, self->monsterinfo.last_sighting);
 	}
 
-	if (coop && (self->monsterinfo.search_time < level.time))
+	/* look for other coop players here */
+	if (coop->value && (self->monsterinfo.search_time < level.time))
 	{
 		if (FindTarget(self))
 		{
