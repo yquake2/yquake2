@@ -110,8 +110,8 @@ main(int argc, char **argv)
 #endif
 #endif
 
-	printf("Platform: %s\n", OSTYPE);
-	printf("Architecture: %s\n", ARCH);
+	printf("Platform: %s\n", YQ2OSTYPE);
+	printf("Architecture: %s\n", YQ2ARCH);
 
 	/* Seed PRNG */
 	randk_seed();

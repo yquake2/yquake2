@@ -56,13 +56,15 @@ set(SERVER_SRC_DIR ${SOURCE_DIR}/server)
 set(CLIENT_SRC_DIR ${SOURCE_DIR}/client)
 
 # Operating system
-add_definitions(-DOSTYPE="${CMAKE_SYSTEM_NAME}")
+set(YQ2OSTYPE "${CMAKE_SYSTEM_NAME}" CACHE STRING "Override operation system type")
+add_definitions(-DYQ2OSTYPE="${YQ2OSTYPE}")
 
 # Architecture string
-string(REGEX REPLACE "amd64" "x86_64" ARCH ${CMAKE_SYSTEM_PROCESSOR})
+set(YQ2ARCH "${CMAKE_SYSTEM_PROCESSOR}" CACHE STRING "Override CPU architecture")
+string(REGEX REPLACE "amd64" "x86_64" ARCH ${YQ2ARCH})
 string(REGEX REPLACE "i.86" "i386" ARCH ${ARCH})
 string(REGEX REPLACE "^arm.*" "arm" ARCH ${ARCH})
-add_definitions(-DARCH="${ARCH}")
+add_definitions(-DYQ2ARCH="${ARCH}")
 
 # Systemwide installation of game assets
 if(${SYSTEMWIDE_SUPPORT})

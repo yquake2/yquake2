@@ -36,12 +36,12 @@
 #define YQ2VERSION "6.00pre"
 #define BASEDIRNAME "baseq2"
 
-#ifndef OSTYPE
-#error OSTYPE should be defined by the build system
+#ifndef YQ2OSTYPE
+#error YQ2OSTYPE should be defined by the build system
 #endif
 
-#ifndef ARCH
-#error ARCH should be defined by the build system
+#ifndef YQ2ARCH
+#error YQ2RCH should be defined by the build system
 #endif
 
 #ifndef BUILD_DATE

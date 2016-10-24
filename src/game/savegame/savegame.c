@@ -82,12 +82,12 @@
  * created on other systems or architectures. This will
  * crash q2 in spectacular ways
  */
-#ifndef OSTYPE
-#error OSTYPE should be defined by the build system
+#ifndef YQ2OSTYPE
+#error YQ2OSTYPE should be defined by the build system
 #endif
 
-#ifndef ARCH
-#error ARCH should be defined by the build system
+#ifndef YQ2ARCH
+#error YQ2ARCH should be defined by the build system
 #endif
 
 /*
@@ -787,8 +787,8 @@ WriteGame(const char *filename, qboolean autosave)
 
 	Q_strlcpy(str_ver, SAVEGAMEVER, sizeof(str_ver));
 	Q_strlcpy(str_game, GAMEVERSION, sizeof(str_game));
-	Q_strlcpy(str_os, OSTYPE, sizeof(str_os));
-	Q_strlcpy(str_arch, ARCH, sizeof(str_arch));
+	Q_strlcpy(str_os, YQ2OSTYPE, sizeof(str_os));
+	Q_strlcpy(str_arch, YQ2ARCH, sizeof(str_arch));
 
 	fwrite(str_ver, sizeof(str_ver), 1, f);
 	fwrite(str_game, sizeof(str_game), 1, f);
@@ -844,12 +844,12 @@ ReadGame(const char *filename)
 			fclose(f);
 			gi.error("Savegame from another game.so.\n");
 		}
-		else if (strcmp(str_os, OSTYPE))
+		else if (strcmp(str_os, YQ2OSTYPE))
 		{
 			fclose(f);
 			gi.error("Savegame from another os.\n");
 		}
-		else if (strcmp(str_arch, ARCH))
+		else if (strcmp(str_arch, YQ2ARCH))
 		{
 			fclose(f);
 			gi.error("Savegame from another architecture.\n");
