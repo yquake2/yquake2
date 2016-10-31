@@ -100,28 +100,28 @@ endif
 
 # Detect the OS
 ifdef SystemRoot
-YQ2OSTYPE ?= Windows
+OSTYPE ?= Windows
 else
-YQ2OSTYPE ?= $(shell uname -s)
+OSTYPE ?= $(shell uname -s)
 endif
 
 # Special case for MinGW
 ifneq (,$(findstring MINGW,$(OSTYPE)))
-YQ2OSTYPE ?= Windows
+OSTYPE ?= Windows
 endif
 
 # Detect the architecture
 ifeq ($(OSTYPE), Windows)
 ifdef PROCESSOR_ARCHITEW6432
 # 64 bit Windows
-YQ2ARCH ?= $(PROCESSOR_ARCHITEW6432)
+ARCH ?= $(PROCESSOR_ARCHITEW6432)
 else
 # 32 bit Windows
-YQ2ARCH ?= $(PROCESSOR_ARCHITECTURE)
+ARCH ?= $(PROCESSOR_ARCHITECTURE)
 endif
 else
 # Normalize some abiguous ARCH strings
-YQ2ARCH ?= $(shell uname -m | sed -e 's/i.86/i386/' -e 's/amd64/x86_64/' -e 's/^arm.*/arm/')
+ARCH ?= $(shell uname -m | sed -e 's/i.86/i386/' -e 's/amd64/x86_64/' -e 's/^arm.*/arm/')
 endif
 
 # Disable CDA for SDL2
@@ -135,6 +135,7 @@ WITH_CDA:=no
 CDA_DISABLED:=yes
 endif
 endif
+
 
 # ----------
 
@@ -167,7 +168,7 @@ endif
 # ----------
 
 # Defines the operating system and architecture
-CFLAGS += -DYQ2OSTYPE=\"$(YQ2OSTYPE)\" -DYQ2ARCH=\"$(YQ2ARCH)\"
+CFLAGS += -DYQ2OSTYPE=\"$(OSTYPE)\" -DYQ2ARCH=\"$(ARCH)\"
 
 # ----------
 
