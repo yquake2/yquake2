@@ -257,11 +257,6 @@ M_CheckGround(edict_t *ent)
 		return;
 	}
 
-    /* This two lines were commented out
-	   by id. But why? */
-    ent->groundentity = trace.ent;
-	ent->groundentity_linkcount = trace.ent->linkcount;
-
 	if (!trace.startsolid && !trace.allsolid)
 	{
 		VectorCopy(trace.endpos, ent->s.origin);
