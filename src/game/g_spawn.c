@@ -572,6 +572,7 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 	const char *com_token;
 	int i;
 	float skill_level;
+	static qboolean monster_count_city3 = false;
 
 	if (!mapname || !entities || !spawnpoint)
 	{
@@ -647,6 +648,21 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 		   	!Q_stricmp(ent->model, "*27"))
 		{
 			ent->spawnflags &= ~SPAWNFLAG_NOT_HARD;
+		}
+
+		/*
+		 * The 'monsters' count in city3.bsp is wrong.
+		 * There're two monsters triggered in a hidden
+		 * and unreachable room next to the security
+		 * pass.
+		 *
+		 * We need to make sure that this hack is only
+		 * applied once!
+		 */
+		if(!Q_stricmp(level.mapname, "city3") && !monster_count_city3)
+		{
+			level.total_monsters = level.total_monsters - 2;
+			monster_count_city3 = true;
 		}
 
 		/* remove things (except the world) from
