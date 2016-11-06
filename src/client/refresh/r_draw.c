@@ -362,8 +362,6 @@ Draw_FadeScreen(void)
 void
 Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 {
-	unsigned image32[256 * 256];
-	unsigned char image8[256 * 256];
 	int i, j, trows;
 	byte *source;
 	int frac, fracstep;
@@ -373,9 +371,9 @@ Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 
 	R_Bind(0);
 
-	if (rows <= 256)
+	if(gl_config.npottextures || rows <= 256)
 	{
-		hscale = 1;
+		hscale = 1.0f;
 		trows = rows;
 	}
 	else
@@ -388,35 +386,75 @@ Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 
 	if (!gl_config.palettedtexture)
 	{
-		unsigned *dest;
+		unsigned image32[320*240]; /* was 256 * 256, but we want a bit more space */
 
-		for (i = 0; i < trows; i++)
+		/* .. because now if non-power-of-2 textures are supported, we just load
+		 * the data into a texture in the original format, without skipping any
+		 * pixels to fit into a 256x256 texture.
+		 * This causes text in videos (which are 320x240) to not look broken anymore.
+		 */
+		if(gl_config.npottextures)
 		{
-			row = (int)(i * hscale);
-
-			if (row > rows)
+			unsigned* img = image32;
+			if(cols*rows > 320*240)
 			{
-				break;
+				/* in case there is a bigger video after all,
+				 * malloc enough space to hold the frame */
+				img = (unsigned*)malloc(cols*rows*4);
 			}
 
-			source = data + cols * row;
-			dest = &image32[i * 256];
-			fracstep = cols * 0x10000 / 256;
-			frac = fracstep >> 1;
-
-			for (j = 0; j < 256; j++)
+			for(i=0; i<rows; ++i)
 			{
-				dest[j] = r_rawpalette[source[frac >> 16]];
-				frac += fracstep;
+				int rowOffset = i*cols;
+				for(j=0; j<cols; ++j)
+				{
+					byte palIdx = data[rowOffset+j];
+					img[rowOffset+j] = r_rawpalette[palIdx];
+				}
+			}
+
+			glTexImage2D(GL_TEXTURE_2D, 0, gl_tex_solid_format,
+								cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+								img);
+
+			if(img != image32)
+			{
+				free(img);
 			}
 		}
+		else
+		{
+			unsigned *dest;
 
-		glTexImage2D(GL_TEXTURE_2D, 0, gl_tex_solid_format,
-				256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-				image32);
+			for (i = 0; i < trows; i++)
+			{
+				row = (int)(i * hscale);
+
+				if (row > rows)
+				{
+					break;
+				}
+
+				source = data + cols * row;
+				dest = &image32[i * 256];
+				fracstep = cols * 0x10000 / 256;
+				frac = fracstep >> 1;
+
+				for (j = 0; j < 256; j++)
+				{
+					dest[j] = r_rawpalette[source[frac >> 16]];
+					frac += fracstep;
+				}
+			}
+
+			glTexImage2D(GL_TEXTURE_2D, 0, gl_tex_solid_format,
+					256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+					image32);
+		}
 	}
 	else
 	{
+		unsigned char image8[256 * 256];
 		unsigned char *dest;
 
 		for (i = 0; i < trows; i++)

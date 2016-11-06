@@ -41,7 +41,7 @@
 #endif
 
 #ifndef YQ2ARCH
-#error YQ2RCH should be defined by the build system
+#error YQ2ARCH should be defined by the build system
 #endif
 
 #ifndef BUILD_DATE
