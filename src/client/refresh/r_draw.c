@@ -368,7 +368,6 @@ Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 	int frac, fracstep;
 	int i, j, trows;
 	int row;
-	float t;
 
 	R_Bind(0);
 
