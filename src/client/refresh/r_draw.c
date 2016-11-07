@@ -362,10 +362,11 @@ Draw_FadeScreen(void)
 void
 Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 {
-	int i, j, trows;
+	GLfloat tex[8];
 	byte *source;
-	int frac, fracstep;
 	float hscale;
+	int frac, fracstep;
+	int i, j, trows;
 	int row;
 	float t;
 
@@ -373,16 +374,51 @@ Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 
 	if(gl_config.npottextures || rows <= 256)
 	{
-		hscale = 1.0f;
-		trows = rows;
+		// X, X
+		tex[0] = 0;
+		tex[1] = 0;
+
+		// X, Y
+		tex[2] = 1;
+		tex[3] = 0;
+
+		// Y, X
+		tex[4] = 1;
+		tex[5] = 1;
+
+		// Y, Y
+		tex[6] = 0;
+		tex[7] = 1;
 	}
 	else
 	{
+		// Scale params
 		hscale = rows / 256.0;
 		trows = 256;
+
+		// X, X
+		tex[0] = 1.0 / 512.0;
+		tex[1] = 1.0 / 512.0;
+
+		// X, Y
+		tex[2] = 511.0 / 512.0;
+		tex[3] = 1.0 / 512.0;
+
+		// Y, X
+		tex[4] = 511.0 / 512.0;
+		tex[5] = rows * hscale / 256 - 1.0 / 512.0;
+
+		// Y, Y
+		tex[6] = 1.0 / 512.0;
+		tex[7] = rows * hscale / 256 - 1.0 / 512.0;
 	}
 
-	t = rows * hscale / 256 - 1.0 / 512.0;
+	GLfloat vtx[] = {
+			x, y,
+			x + w, y,
+			x + w, y + h,
+			x, y + h
+	};
 
 	if (!gl_config.palettedtexture)
 	{
@@ -393,9 +429,10 @@ Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 		 * pixels to fit into a 256x256 texture.
 		 * This causes text in videos (which are 320x240) to not look broken anymore.
 		 */
-		if(gl_config.npottextures)
+		if(gl_config.npottextures || rows <= 256)
 		{
 			unsigned* img = image32;
+
 			if(cols*rows > 320*240)
 			{
 				/* in case there is a bigger video after all,
@@ -424,6 +461,7 @@ Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 		}
 		else
 		{
+			unsigned int image32[320*240];
 			unsigned *dest;
 
 			for (i = 0; i < trows; i++)
@@ -484,20 +522,6 @@ Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	GLfloat vtx[] = {
-		x, y,
-		x + w, y,
-		x + w, y + h,
-		x, y + h
-	};
-
-	GLfloat tex[] = {
-		1.0 / 512.0, 1.0 / 512.0,
-		511.0 / 512.0, 1.0 / 512.0,
-		511.0 / 512.0, t,
-		1.0 / 512.0, t
-	};
 
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
