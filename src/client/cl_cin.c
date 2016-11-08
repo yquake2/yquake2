@@ -576,6 +576,12 @@ SCR_PlayCinematic(char *arg)
 	byte *palette;
 	char name[MAX_OSPATH], *dot;
 
+	/* Make sure that all keys are marked up. Under
+	   some circumstances cinematics are started with
+	   at least one key marked down, causing them to
+	   abort right after the first frame... */
+	Key_MarkAllUp();
+
 	/* make sure background music is not playing */
 #ifdef CDA
 	CDAudio_Stop();

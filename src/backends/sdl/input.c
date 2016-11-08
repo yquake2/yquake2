@@ -423,7 +423,8 @@ IN_Update(void)
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_WINDOWEVENT:
-				if(event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+				if(event.window.event == SDL_WINDOWEVENT_FOCUS_LOST ||
+						event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
 				{
 					Key_MarkAllUp();
 				}
