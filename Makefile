@@ -107,7 +107,7 @@ endif
 
 # Special case for MinGW
 ifneq (,$(findstring MINGW,$(OSTYPE)))
-OSTYPE ?= Windows
+OSTYPE := Windows
 endif
 
 # Detect the architecture
