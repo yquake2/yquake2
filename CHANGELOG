@@ -1,3 +1,17 @@
+Quake II 5.34 to 6.00:
+- Make the client asynchronous. The old behaviour can be forced by
+  setting cl_async to 0. Please note that asynchronicity can lead to
+  problems if the old SDL 1.2 backend is used and vsync is enabled.
+- Implement gl_overbrightbits in the non multitexturing case.  A
+  value of 1 just fixes lighting on water surfaces, higher values
+  increase the brightness of everything.
+- General renderer overhaul for better compatibility with modern GPUs.
+  OpenGL 1.4 is now required, older versions are no longer supported.
+  Multitexturing was deprecated and will be removed in a future 
+  release.
+- Fix some longstanding AI problems.
+- Several general gameplay fixes.
+
 Quake II 5.33 to 5.34:
 - Add support for stereo 3D (by Valery Guskov)
 - Make gibt solid so they move with conveyor belts.
