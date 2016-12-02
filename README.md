@@ -5,12 +5,12 @@ This is the Yamagi Quake II Client, an enhanced version of id Software's Quake
 II with focus on offline and coop gameplay. Both the gameplay and the graphics
 are unchanged, but many bugs if the last official release were fixed and some
 nice to have features like widescreen support were added. Unlike most other
-Quake II source ports Yamagi Quake II is full 64 bit clean. It works perfectly
+Quake II source ports Yamagi Quake II is fully 64 bit clean. It works perfectly
 on modern processors and operating systems. Yamagi Quake II runs on nearly all
-common platforms, including FreeBSD, Linux, OpenBSD, Windows and OS X.
+common platforms; including FreeBSD, Linux, OpenBSD, Windows and OS X.
 
 This code is build upon Icculus Quake II, which itself is based on Quake II
-3.21. Yamagi Quake II released under the terms of the GPL version 2. See the
+3.21. Yamagi Quake II is released under the terms of the GPL version 2. See the
 LICENSE file for further information.
 
 
@@ -222,6 +222,7 @@ source directory and type *make*. After that copy everything from the release/
 directory to your Yamagi Quake II installation directory.
 
 For the addons download or clone their source, change into the source directory
-and type *make*. After the compilation finishes the release/game.so is copied
-to the corresponding directory in your Quake II installation.
+and type *make* (*make CC=gcc* on Windows). After the compilation finishes the
+release/game.so is copied to the corresponding directory in your Quake II
+installation.
  
