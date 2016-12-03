@@ -1,5 +1,4 @@
-Yamagi Quake II
-===============
+# Yamagi Quake II
 
 This is the Yamagi Quake II Client, an enhanced version of id Software's Quake
 II with focus on offline and coop gameplay. Both the gameplay and the graphics
@@ -14,8 +13,7 @@ This code is build upon Icculus Quake II, which itself is based on Quake II
 LICENSE file for further information.
 
 
-Installation
-------------
+## Installation
 
 Yamagi Quake II is installed in 3 steps:
 
