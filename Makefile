@@ -100,7 +100,7 @@ endif
 
 # Detect the OS
 ifdef SystemRoot
-OSTYPE ?= Windows
+OSTYPE := Windows
 else
 OSTYPE ?= $(shell uname -s)
 endif
