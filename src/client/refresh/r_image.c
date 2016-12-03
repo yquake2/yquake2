@@ -146,62 +146,6 @@ R_SetTexturePalette(unsigned palette[256])
 }
 
 void
-R_EnableMultitexture(qboolean enable)
-{
-	if (!gl_config.multitexture)
-	{
-		return;
-	}
-
-	if (enable)
-	{
-		R_SelectTexture(GL_TEXTURE1_ARB);
-		glEnable(GL_TEXTURE_2D);
-		R_TexEnv(GL_REPLACE);
-	}
-	else
-	{
-		R_SelectTexture(GL_TEXTURE1_ARB);
-		glDisable(GL_TEXTURE_2D);
-		R_TexEnv(GL_REPLACE);
-	}
-
-	R_SelectTexture(GL_TEXTURE0_ARB);
-	R_TexEnv(GL_REPLACE);
-}
-
-void
-R_SelectTexture(GLenum texture)
-{
-	int tmu;
-
-	if (!gl_config.multitexture)
-	{
-		return;
-	}
-
-	if (texture == GL_TEXTURE0_ARB)
-	{
-		tmu = 0;
-	}
-	else
-	{
-		tmu = 1;
-	}
-
-	if (tmu == gl_state.currenttmu)
-	{
-		return;
-	}
-
-	gl_state.currenttmu = tmu;
-	gl_state.currenttarget = texture;
-
-	qglActiveTextureARB(texture);
-	qglClientActiveTextureARB(texture);
-}
-
-void
 R_TexEnv(GLenum mode)
 {
 	static int lastmodes[2] = {-1, -1};
@@ -230,32 +174,6 @@ R_Bind(int texnum)
 
 	gl_state.currenttextures[gl_state.currenttmu] = texnum;
 	glBindTexture(GL_TEXTURE_2D, texnum);
-}
-
-void
-R_MBind(GLenum target, int texnum)
-{
-	if (target != gl_state.currenttarget)
-	{
-		R_SelectTexture(target);
-	}
-
-	if (target == GL_TEXTURE0_ARB)
-	{
-		if (gl_state.currenttextures[0] == texnum)
-		{
-			return;
-		}
-	}
-	else
-	{
-		if (gl_state.currenttextures[1] == texnum)
-		{
-			return;
-		}
-	}
-
-	R_Bind(texnum);
 }
 
 void

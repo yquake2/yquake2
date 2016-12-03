@@ -90,9 +90,7 @@ cvar_t *gl_particle_att_b;
 cvar_t *gl_particle_att_c;
 
 cvar_t *gl_palettedtexture;
-cvar_t *gl_multitexture;
 cvar_t *gl_pointparameters;
-cvar_t *gl_mtexcombine;
 
 cvar_t *gl_drawbuffer;
 cvar_t *gl_lightmap;
@@ -1235,9 +1233,7 @@ R_Register(void)
 	gl_lockpvs = Cvar_Get("gl_lockpvs", "0", 0);
 
 	gl_palettedtexture = Cvar_Get("gl_palettedtexture", "0", CVAR_ARCHIVE);
-	gl_multitexture = Cvar_Get("gl_multitexture", "0", CVAR_ARCHIVE);
 	gl_pointparameters = Cvar_Get("gl_pointparameters", "1", CVAR_ARCHIVE);
-	gl_mtexcombine = Cvar_Get("gl_mtexcombine", "1", CVAR_ARCHIVE);
 
 	gl_drawbuffer = Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
 	gl_swapinterval = Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
@@ -1469,60 +1465,6 @@ R_Init(void *hinstance, void *hWnd)
 	else
 	{
 		VID_Printf(PRINT_ALL, "Disabled\n");
-	}
-
-	// ----
-
-	/* Multitexturing */
-	VID_Printf(PRINT_ALL, " - Multitexturing: ");
-
-	if (strstr(gl_config.extensions_string, "GL_ARB_multitexture"))
-	{
-		qglMultiTexCoord2fARB = (void *)GLimp_GetProcAddress("glMultiTexCoord2fARB");
-		qglMultiTexCoord2fvARB = (void *)GLimp_GetProcAddress("glMultiTexCoord2fvARB");
-		qglActiveTextureARB = (void *)GLimp_GetProcAddress("glActiveTextureARB");
-		qglClientActiveTextureARB = (void *)GLimp_GetProcAddress("glClientActiveTextureARB");
-	}
-
-	gl_config.multitexture = false;
-
-	if (gl_multitexture->value)
-	{
-		if (qglMultiTexCoord2fARB && qglMultiTexCoord2fvARB && qglActiveTextureARB && qglClientActiveTextureARB)
-		{
-			gl_config.multitexture = true;
-			VID_Printf(PRINT_ALL, "Okay\n");
-		}
-		else
-		{
-			VID_Printf(PRINT_ALL, "Failed\n");
-		}
-	}
-	else
-	{
-		VID_Printf(PRINT_ALL, "Disabled\n");
-	}
-
-	// ----
-
-	/* Multi texturing combine */
-	VID_Printf(PRINT_ALL, " - Multi texturing combine: ");
-
-	if (strstr(gl_config.extensions_string, "GL_ARB_texture_env_combine") && gl_config.multitexture)
-	{
-		if (gl_mtexcombine->value)
-		{
-			gl_config.mtexcombine = true;
-			VID_Printf(PRINT_ALL, "Okay\n");
-		}
-		else
-		{
-			VID_Printf(PRINT_ALL, "Disabled\n");
-		}
-	}
-	else
-	{
-		VID_Printf(PRINT_ALL, "Failed\n");
 	}
 
 	// --------

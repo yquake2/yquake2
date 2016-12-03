@@ -252,9 +252,6 @@ LM_BeginBuildingLightmaps(model_t *m)
 
 	r_framecount = 1; /* no dlightcache */
 
-	R_EnableMultitexture(true);
-	R_SelectTexture(GL_TEXTURE1_ARB);
-
 	/* setup the base lightstyles so the lightmaps
 	   won't have to be regenerated the first time
 	   they're seen */
@@ -289,6 +286,5 @@ void
 LM_EndBuildingLightmaps(void)
 {
 	LM_UploadBlock(false);
-	R_EnableMultitexture(false);
 }
 
