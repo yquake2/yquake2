@@ -81,6 +81,7 @@ vidmode_t vid_modes[] = {
 /* Console variables that we need to access from this module */
 cvar_t *vid_gamma;
 cvar_t *vid_fullscreen;
+cvar_t *vid_ref;
 
 /* Global variables used internally by this module */
 viddef_t viddef;                /* global video state; used by other modules */
@@ -183,6 +184,7 @@ VID_Init(void)
 	/* Create the video variables so we know how to start the graphics drivers */
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = Cvar_Get("vid_gamma", "1", CVAR_ARCHIVE);
+	vid_ref = Cvar_Get("vid_ref", "gl", CVAR_ARCHIVE);
 
 	/* Add some console commands that we want to handle */
 	Cmd_AddCommand("vid_restart", VID_Restart_f);
@@ -224,7 +226,7 @@ VID_LoadRefresh(void)
 	// Log it!
 	Com_Printf("----- refresher initialization -----\n");
 
-	snprintf(reflib_path, sizeof(reflib_path), "./ref_gl.%s", lib_ext); // TODO: name from cvar
+	snprintf(reflib_path, sizeof(reflib_path), "./ref_%s.%s", vid_ref->string, lib_ext);
 
 	GetRefAPI = Sys_LoadLibrary(reflib_path, "GetRefAPI", &reflib_handle);
 	if(GetRefAPI == NULL)
@@ -275,6 +277,7 @@ VID_LoadRefresh(void)
 	/* Ensure that all key states are cleared */
 	Key_MarkAllUp();
 
+	Com_Printf("Successfully loaded %s as rendering backend\n", reflib_path);
 	Com_Printf("------------------------------------\n\n");
 	return true;
 }
