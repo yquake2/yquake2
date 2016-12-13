@@ -987,8 +987,6 @@ CL_Init(void)
 
 	CL_InitLocal();
 
-	FS_ExecAutoexec();
-
 	Cbuf_Execute();
 
 	Key_ReadConsoleHistory();

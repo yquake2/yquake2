@@ -684,7 +684,6 @@ void FS_InitFilesystem(void);
 void FS_SetGamedir(char *dir);
 char *FS_Gamedir(void);
 char *FS_NextPath(char *prevpath);
-void FS_ExecAutoexec(void);
 int FS_LoadFile(char *path, void **buffer);
 
 /* a null buffer will just return the file length without loading */
