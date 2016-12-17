@@ -381,7 +381,7 @@ ED_ParseField(const char *key, const char *value, edict_t *ent)
 
 	for (f = fields; f->name; f++)
 	{
-		if (!(f->flags & FFL_NOSPAWN) && !Q_stricmp(f->name, key))
+		if (!(f->flags & FFL_NOSPAWN) && !Q_strcasecmp(f->name, (char *)key))
 		{
 			/* found it */
 			if (f->flags & FFL_SPAWNTEMP)
