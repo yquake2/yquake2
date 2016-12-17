@@ -327,6 +327,11 @@ ED_NewString(const char *string)
 	char *newb, *new_p;
 	int i, l;
 
+	if (!string)
+	{
+		return NULL;
+	}
+
 	l = strlen(string) + 1;
 
 	newb = gi.TagMalloc(l, TAG_LEVEL);
@@ -435,6 +440,11 @@ ED_ParseEdict(char *data, edict_t *ent)
 	qboolean init;
 	char keyname[256];
 	const char *com_token;
+
+	if (!ent)
+	{
+		return NULL;
+	}
 
 	init = false;
 	memset(&st, 0, sizeof(st));
