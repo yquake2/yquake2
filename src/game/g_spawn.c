@@ -408,10 +408,10 @@ ED_ParseField(const char *key, const char *value, edict_t *ent)
 					*(int *)(b + f->ofs) = (int)strtol(value, (char **)NULL, 10);
 					break;
 				case F_FLOAT:
-					*(float *)(b + f->ofs) = strtod(value, (char **)NULL);
+					*(float *)(b + f->ofs) = strtof(value, (char **)NULL);
 					break;
 				case F_ANGLEHACK:
-					v = strtod(value, (char **)NULL);
+					v = strtof(value, (char **)NULL);
 					((float *)(b + f->ofs))[0] = 0;
 					((float *)(b + f->ofs))[1] = v;
 					((float *)(b + f->ofs))[2] = 0;
