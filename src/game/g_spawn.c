@@ -987,20 +987,23 @@ SP_worldspawn(edict_t *ent)
 	gi.soundindex("*pain100_1.wav");
 	gi.soundindex("*pain100_2.wav");
 
-	/* sexed models you can add more, max 15
-	   THIS ORDER MUST MATCH THE DEFINES IN
-	   g_local.h  */
-	gi.modelindex("#w_blaster.md2");
-	gi.modelindex("#w_shotgun.md2");
-	gi.modelindex("#w_sshotgun.md2");
-	gi.modelindex("#w_machinegun.md2");
-	gi.modelindex("#w_chaingun.md2");
-	gi.modelindex("#a_grenades.md2");
-	gi.modelindex("#w_glauncher.md2");
-	gi.modelindex("#w_rlauncher.md2");
-	gi.modelindex("#w_hyperblaster.md2");
-	gi.modelindex("#w_railgun.md2");
-	gi.modelindex("#w_bfg.md2");
+	/* sexed models: THIS ORDER MUST MATCH THE DEFINES IN g_local.h
+	   you can add more, max 19 (pete change)these models are only
+	   loaded in coop or deathmatch. not singleplayer. */
+	if (coop->value || deathmatch->value)
+	{
+		gi.modelindex("#w_blaster.md2");
+		gi.modelindex("#w_shotgun.md2");
+		gi.modelindex("#w_sshotgun.md2");
+		gi.modelindex("#w_machinegun.md2");
+		gi.modelindex("#w_chaingun.md2");
+		gi.modelindex("#a_grenades.md2");
+		gi.modelindex("#w_glauncher.md2");
+		gi.modelindex("#w_rlauncher.md2");
+		gi.modelindex("#w_hyperblaster.md2");
+		gi.modelindex("#w_railgun.md2");
+		gi.modelindex("#w_bfg.md2");
+	}
 
 	/* ------------------- */
 
