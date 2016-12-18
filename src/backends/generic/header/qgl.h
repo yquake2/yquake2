@@ -93,13 +93,6 @@
 #define GL_OPERAND7_ALPHA_EXT 0x859F
 #endif
 
-#ifdef _WIN32
-GLAPI void APIENTRY glActiveTextureARB( GLenum texture );
-GLAPI void APIENTRY glClientActiveTextureARB( GLenum texture );
-GLAPI void APIENTRY glMultiTexCoord2fARB(GLenum target, GLfloat s, GLfloat t);
-GLAPI void APIENTRY glMultiTexCoord2fvARB(GLenum target, const GLfloat *v);
-#endif
-
 // =======================================================================
 
 /*
@@ -118,11 +111,5 @@ extern void ( APIENTRY *qglPointParameterfvARB ) ( GLenum param,
 		const GLfloat *value );
 extern void ( APIENTRY *qglColorTableEXT ) ( GLenum, GLenum, GLsizei, GLenum,
 		GLenum, const GLvoid * );
-extern void ( APIENTRY *qglLockArraysEXT ) ( int, int );
-extern void ( APIENTRY *qglUnlockArraysEXT ) ( void );
-extern void ( APIENTRY *qglMultiTexCoord2fARB) ( GLenum, GLfloat, GLfloat );
-extern void ( APIENTRY *qglMultiTexCoord2fvARB) ( GLenum, GLfloat* );
-extern void ( APIENTRY *qglActiveTextureARB ) ( GLenum );
-extern void ( APIENTRY *qglClientActiveTextureARB ) ( GLenum );
 
 #endif

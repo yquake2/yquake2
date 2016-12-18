@@ -53,11 +53,6 @@
  #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 #endif
 
-#ifndef GL_ARB_multitexture
- #define GL_TEXTURE0_ARB 0x84C0
- #define GL_TEXTURE1_ARB 0x84C1
-#endif
-
 #ifndef GL_VERSION_1_3
  #define GL_TEXTURE0 0x84C0
  #define GL_TEXTURE1 0x84C1
@@ -210,12 +205,8 @@ extern cvar_t *gl_lerpmodels;
 extern cvar_t *gl_lightlevel;
 extern cvar_t *gl_overbrightbits;
 
-extern cvar_t *gl_vertex_arrays;
-
 extern cvar_t *gl_palettedtexture;
-extern cvar_t *gl_multitexture;
 extern cvar_t *gl_pointparameters;
-extern cvar_t *gl_mtexcombine;
 
 extern cvar_t *gl_particle_min_size;
 extern cvar_t *gl_particle_max_size;
