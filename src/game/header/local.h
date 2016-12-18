@@ -1053,7 +1053,7 @@ struct edict_s
 	float delay; /* before firing targets */
 	float random;
 
-	float teleport_time;
+	float last_sound_time;
 
 	int watertype;
 	int waterlevel;
