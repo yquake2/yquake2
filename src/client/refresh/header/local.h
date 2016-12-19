@@ -408,11 +408,6 @@ extern glconfig_t gl_config;
 extern glstate_t gl_state;
 
 /*
- * Initialzes the SDL video subsystem
- */
-int GLimp_Init(void);
-
-/*
  * Shuts the render context and SDL window down
  * (if contextOnly, the window will not be shutdown)
  */
@@ -423,10 +418,5 @@ void RI_ShutdownWindow(qboolean contextOnly);
  * or NULL if the function is not found.
  */
 void *GLimp_GetProcAddress (const char* proc);
-
-/*
- * (Un)grab Input
- */
-void GLimp_GrabInput(qboolean grab);
 
 #endif

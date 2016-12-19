@@ -28,7 +28,6 @@
  */
 
 #include "header/client.h"
-#include "refresh/header/local.h"
 
 static cvar_t *cfg_unbindall;
 

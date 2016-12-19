@@ -25,7 +25,6 @@
  * =======================================================================
  */
 
-#include "../../client/refresh/header/local.h"
 #include "../../client/header/keyboard.h"
 #include "../generic/header/input.h"
 #include "../../client/header/client.h"
@@ -82,6 +81,9 @@ cvar_t *m_side;
 cvar_t *m_yaw;
 cvar_t *sensitivity;
 static cvar_t *windowed_mouse;
+
+
+extern void GLimp_GrabInput(qboolean grab);
 
 /* ------------------------------------------------------------------ */
 

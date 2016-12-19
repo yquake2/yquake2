@@ -34,8 +34,8 @@
  * =======================================================================
  */
 
-#include "../../client/refresh/header/local.h"
-
+#include "../../common/header/common.h" /* CVar_*, qboolean (through shared.h) */
+#include "../../client/header/ref.h"
 
 #ifdef SDL2
 #include <SDL2/SDL.h>

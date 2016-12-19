@@ -27,6 +27,8 @@
 #ifndef CL_HEADER_KEYBOARD_H
 #define CL_HEADER_KEYBOARD_H
 
+#include "../../common/header/shared.h" /* for qboolean etc */
+
 /* max length of a console command line */
 #define MAXCMDLINE 256
 
