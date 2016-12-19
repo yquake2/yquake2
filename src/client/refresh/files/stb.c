@@ -28,7 +28,7 @@
 
 #include <stdlib.h>
 
-#include "../header/local.h"
+#include "../gl/header/local.h"
 
 // don't need HDR stuff
 #define STBI_NO_LINEAR

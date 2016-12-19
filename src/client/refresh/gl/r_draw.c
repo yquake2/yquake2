@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "../header/local.h"
+#include "header/local.h"
 
 image_t *draw_chars;
 
@@ -347,7 +347,7 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 {
 	GLfloat tex[8];
 	byte *source;
-	float hscale;
+	float hscale = 1.0f;
 	int frac, fracstep;
 	int i, j, trows;
 	int row;

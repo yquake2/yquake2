@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "../header/local.h"
+#include "header/local.h"
 
 #define TURBSCALE (256.0 / (2 * M_PI))
 #define SUBDIVIDE_SIZE 64

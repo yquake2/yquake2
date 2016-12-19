@@ -31,19 +31,8 @@
 #include <ctype.h>
 #include <math.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__)
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
-#include "../../header/ref.h"
-// FIXME: can we avoid including qgl.h here? it's specific to the gl1 backend
-#include "../gl/qgl.h"
+#include "../../../header/ref.h"
+#include "qgl.h"
 
 #ifndef GL_COLOR_INDEX8_EXT
  #define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX

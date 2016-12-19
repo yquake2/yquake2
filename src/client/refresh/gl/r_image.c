@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "../header/local.h"
+#include "header/local.h"
 
 image_t gltextures[MAX_GLTEXTURES];
 int numgltextures;

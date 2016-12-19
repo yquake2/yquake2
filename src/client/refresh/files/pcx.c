@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "../header/local.h"
+#include "../gl/header/local.h"
 
 void
 LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)

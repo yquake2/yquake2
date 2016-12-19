@@ -25,7 +25,7 @@
  * =======================================================================
  */
 
-#include "../header/local.h"
+#include "header/local.h"
 
 int scrap_allocated[MAX_SCRAPS][BLOCK_WIDTH];
 byte scrap_texels[MAX_SCRAPS][BLOCK_WIDTH * BLOCK_HEIGHT];

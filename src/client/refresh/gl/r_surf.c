@@ -25,7 +25,8 @@
  */
 
 #include <assert.h>
-#include "../header/local.h"
+
+#include "header/local.h"
 
 int c_visible_lightmaps;
 int c_visible_textures;

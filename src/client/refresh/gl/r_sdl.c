@@ -1,6 +1,6 @@
 // SDL-specific OpenGL shit formerly in refresh.c
 
-#include "../header/local.h"
+#include "header/local.h"
 
 #ifdef SDL2
 #include <SDL2/SDL.h>

@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "../header/local.h"
+#include "header/local.h"
 
 #define NUMVERTEXNORMALS 162
 #define SHADEDOT_QUANT 16
