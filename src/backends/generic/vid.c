@@ -89,7 +89,7 @@ viddef_t viddef;                /* global video state; used by other modules */
 #define VID_NUM_MODES (sizeof(vid_modes) / sizeof(vid_modes[0]))
 #define MAXPRINTMSG 4096
 
-void
+static void // FIXME: remove, it sucks! (only kept as long as it's passed into reflibs)
 VID_Printf(int print_level, char *fmt, ...)
 {
 	va_list argptr;
@@ -107,19 +107,6 @@ VID_Printf(int print_level, char *fmt, ...)
 	{
 		Com_DPrintf("%s", msg);
 	}
-}
-
-void
-VID_Error(int err_level, char *fmt, ...)
-{
-	va_list argptr;
-	char msg[MAXPRINTMSG];
-
-	va_start(argptr, fmt);
-	vsnprintf(msg, MAXPRINTMSG, fmt, argptr);
-	va_end(argptr);
-
-	Com_Error(err_level, "%s", msg);
 }
 
 /*
@@ -240,8 +227,8 @@ VID_LoadRefresh(void)
 	ri.Cmd_Argc = Cmd_Argc;
 	ri.Cmd_Argv = Cmd_Argv;
 	ri.Cmd_ExecuteText = Cbuf_ExecuteText;
-	ri.Con_Printf = VID_Printf;
-	ri.Sys_Error = VID_Error;
+	ri.Con_Printf = VID_Printf; // FIXME: use Com_VPrintf()
+	ri.Sys_Error = Com_Error;
 	ri.FS_LoadFile = FS_LoadFile;
 	ri.FS_FreeFile = FS_FreeFile;
 	ri.FS_Gamedir = FS_Gamedir;

@@ -72,8 +72,7 @@ GLimp_Init(void)
 
 		if (SDL_Init(SDL_INIT_VIDEO) == -1)
 		{
-			VID_Printf(PRINT_ALL, "Couldn't init SDL video: %s.\n",
-					SDL_GetError());
+			Com_Printf("Couldn't init SDL video: %s.\n", SDL_GetError());
 			return false;
 		}
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -82,7 +81,7 @@ GLimp_Init(void)
 		char driverName[64];
 		SDL_VideoDriverName(driverName, sizeof(driverName));
 #endif
-		VID_Printf(PRINT_ALL, "SDL video driver is \"%s\".\n", driverName);
+		Com_Printf("SDL video driver is \"%s\".\n", driverName);
 	}
 
 	return true;
@@ -210,7 +209,7 @@ static qboolean GetWindowSize(int* w, int* h)
 	SDL_DisplayMode m;
 	if(SDL_GetWindowDisplayMode(window, &m) != 0)
 	{
-		VID_Printf(PRINT_ALL, "Can't get Displaymode: %s\n", SDL_GetError());
+		Com_Printf("Can't get Displaymode: %s\n", SDL_GetError());
 		return false;
 	}
 	*w = m.w;
@@ -309,9 +308,8 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 #endif // 0
 			if (width != 640 || height != 480 || (flags & SDL_FULLSCREEN))
 			{
-				VID_Printf(PRINT_ALL, "SDL SetVideoMode failed: %s\n",
-						SDL_GetError());
-				VID_Printf(PRINT_ALL, "Reverting to windowed gl_mode 4 (640x480).\n");
+				Com_Printf("SDL SetVideoMode failed: %s\n", SDL_GetError());
+				Com_Printf("Reverting to windowed gl_mode 4 (640x480).\n");
 
 				/* Try to recover */
 				Cvar_SetValue("gl_mode", 4);
@@ -323,7 +321,7 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 			}
 			else
 			{
-				VID_Error(ERR_FATAL, "Failed to revert to gl_mode 4. Exiting...\n");
+				Com_Error(ERR_FATAL, "Failed to revert to gl_mode 4. Exiting...\n");
 				return false;
 			}
 		}
@@ -373,8 +371,8 @@ void GLimp_GrabInput(qboolean grab)
 	}
 	if(SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE) < 0)
 	{
-		VID_Printf(PRINT_ALL, "WARNING: Setting Relative Mousemode failed, reason: %s\n", SDL_GetError());
-		VID_Printf(PRINT_ALL, "         You should probably update to SDL 2.0.3 or newer!\n");
+		Com_Printf("WARNING: Setting Relative Mousemode failed, reason: %s\n", SDL_GetError());
+		Com_Printf("         You should probably update to SDL 2.0.3 or newer!\n");
 	}
 #else
 	SDL_WM_GrabInput(grab ? SDL_GRAB_ON : SDL_GRAB_OFF);
