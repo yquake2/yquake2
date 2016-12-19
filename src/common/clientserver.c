@@ -72,7 +72,7 @@ Com_EndRedirect(void)
  * to the apropriate place.
  */
 void
-Com_VPrintf(int print_level, char *fmt, va_list argptr)
+Com_VPrintf(int print_level, const char *fmt, va_list argptr)
 {
 	if((print_level == PRINT_DEVELOPER) && (!developer || !developer->value))
 	{

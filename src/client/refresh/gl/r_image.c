@@ -192,7 +192,7 @@ R_TextureMode(char *string)
 
 	if (i == NUM_GL_MODES)
 	{
-		ri.Con_Printf(PRINT_ALL, "bad filter name\n");
+		R_Printf(PRINT_ALL, "bad filter name\n");
 		return;
 	}
 
@@ -252,7 +252,7 @@ R_TextureAlphaMode(char *string)
 
 	if (i == NUM_GL_ALPHA_MODES)
 	{
-		ri.Con_Printf(PRINT_ALL, "bad alpha texture mode name\n");
+		R_Printf(PRINT_ALL, "bad alpha texture mode name\n");
 		return;
 	}
 
@@ -274,7 +274,7 @@ R_TextureSolidMode(char *string)
 
 	if (i == NUM_GL_SOLID_MODES)
 	{
-		ri.Con_Printf(PRINT_ALL, "bad solid texture mode name\n");
+		R_Printf(PRINT_ALL, "bad solid texture mode name\n");
 		return;
 	}
 
@@ -292,7 +292,7 @@ R_ImageList_f(void)
 		"PAL"
 	};
 
-	ri.Con_Printf(PRINT_ALL, "------------------\n");
+	R_Printf(PRINT_ALL, "------------------\n");
 	texels = 0;
 
 	for (i = 0, image = gltextures; i < numgltextures; i++, image++)
@@ -307,28 +307,28 @@ R_ImageList_f(void)
 		switch (image->type)
 		{
 			case it_skin:
-				ri.Con_Printf(PRINT_ALL, "M");
+				R_Printf(PRINT_ALL, "M");
 				break;
 			case it_sprite:
-				ri.Con_Printf(PRINT_ALL, "S");
+				R_Printf(PRINT_ALL, "S");
 				break;
 			case it_wall:
-				ri.Con_Printf(PRINT_ALL, "W");
+				R_Printf(PRINT_ALL, "W");
 				break;
 			case it_pic:
-				ri.Con_Printf(PRINT_ALL, "P");
+				R_Printf(PRINT_ALL, "P");
 				break;
 			default:
-				ri.Con_Printf(PRINT_ALL, " ");
+				R_Printf(PRINT_ALL, " ");
 				break;
 		}
 
-		ri.Con_Printf(PRINT_ALL, " %3i %3i %s: %s\n",
+		R_Printf(PRINT_ALL, " %3i %3i %s: %s\n",
 				image->upload_width, image->upload_height,
 				palstrings[image->paletted], image->name);
 	}
 
-	ri.Con_Printf(PRINT_ALL,
+	R_Printf(PRINT_ALL,
 			"Total texel count (not counting mipmaps): %i\n",
 			texels);
 }
@@ -992,7 +992,7 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 			}
 			else
 			{
-				ri.Con_Printf(PRINT_DEVELOPER,
+				R_Printf(PRINT_DEVELOPER,
 						"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
 						name, image->width, image->height, realwidth, realheight);
 			}

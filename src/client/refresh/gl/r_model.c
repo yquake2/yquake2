@@ -151,7 +151,7 @@ Mod_Modellist_f(void)
 	int total;
 
 	total = 0;
-	ri.Con_Printf(PRINT_ALL, "Loaded models:\n");
+	R_Printf(PRINT_ALL, "Loaded models:\n");
 
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 	{
@@ -160,11 +160,11 @@ Mod_Modellist_f(void)
 			continue;
 		}
 
-		ri.Con_Printf(PRINT_ALL, "%8i : %s\n", mod->extradatasize, mod->name);
+		R_Printf(PRINT_ALL, "%8i : %s\n", mod->extradatasize, mod->name);
 		total += mod->extradatasize;
 	}
 
-	ri.Con_Printf(PRINT_ALL, "Total resident: %i\n", total);
+	R_Printf(PRINT_ALL, "Total resident: %i\n", total);
 }
 
 void
@@ -478,7 +478,7 @@ Mod_LoadTexinfo(lump_t *l)
 
 		if (!out->image)
 		{
-			ri.Con_Printf(PRINT_ALL, "Couldn't load %s\n", name);
+			R_Printf(PRINT_ALL, "Couldn't load %s\n", name);
 			out->image = r_notexture;
 		}
 	}

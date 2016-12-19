@@ -711,7 +711,7 @@ void Com_BeginRedirect(int target, char *buffer, int buffersize, void (*flush));
 void Com_EndRedirect(void);
 void Com_Printf(char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 void Com_DPrintf(char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
-void Com_VPrintf(int print_level, char *fmt, va_list argptr); /* print_level is PRINT_ALL or PRINT_DEVELOPER */
+void Com_VPrintf(int print_level, const char *fmt, va_list argptr); /* print_level is PRINT_ALL or PRINT_DEVELOPER */
 void Com_MDPrintf(char *fmt, ...);
 void Com_Error(int code, char *fmt, ...);
 void Com_Quit(void);

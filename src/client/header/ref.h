@@ -205,7 +205,7 @@ typedef struct
 	char	*(IMPORT *Cmd_Argv) (int i);
 	void	(IMPORT *Cmd_ExecuteText) (int exec_when, char *text);
 
-	void	(IMPORT *Con_Printf) (int print_level, char *str, ...) __attribute__ ((format (printf, 2, 3)));
+	void	(IMPORT *Com_VPrintf) (int print_level, const char *fmt, va_list argptr);
 
 	// files will be memory mapped read only
 	// the returned buffer may be part of a larger pak file,

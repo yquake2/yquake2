@@ -89,26 +89,6 @@ viddef_t viddef;                /* global video state; used by other modules */
 #define VID_NUM_MODES (sizeof(vid_modes) / sizeof(vid_modes[0]))
 #define MAXPRINTMSG 4096
 
-static void // FIXME: remove, it sucks! (only kept as long as it's passed into reflibs)
-VID_Printf(int print_level, char *fmt, ...)
-{
-	va_list argptr;
-	char msg[MAXPRINTMSG];
-
-	va_start(argptr, fmt);
-	vsnprintf(msg, MAXPRINTMSG, fmt, argptr);
-	va_end(argptr);
-
-	if (print_level == PRINT_ALL)
-	{
-		Com_Printf("%s", msg);
-	}
-	else
-	{
-		Com_DPrintf("%s", msg);
-	}
-}
-
 /*
  * Console command to re-start the video mode and refresh. We do this
  * simply by setting the modified flag for the vid_fullscreen variable, which will
@@ -227,7 +207,7 @@ VID_LoadRefresh(void)
 	ri.Cmd_Argc = Cmd_Argc;
 	ri.Cmd_Argv = Cmd_Argv;
 	ri.Cmd_ExecuteText = Cbuf_ExecuteText;
-	ri.Con_Printf = VID_Printf; // FIXME: use Com_VPrintf()
+	ri.Com_VPrintf = Com_VPrintf;
 	ri.Sys_Error = Com_Error;
 	ri.FS_LoadFile = FS_LoadFile;
 	ri.FS_FreeFile = FS_FreeFile;

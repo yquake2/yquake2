@@ -115,7 +115,7 @@ R_ScreenShot(void)
 
 	if (i == 100)
 	{
-		ri.Con_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't create a file\n");
+		R_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't create a file\n");
 		return;
 	}
 
@@ -126,7 +126,7 @@ R_ScreenShot(void)
 	buffer = malloc(c);
 	if (!buffer)
 	{
-		ri.Con_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't malloc %d bytes\n", c);
+		R_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't malloc %d bytes\n", c);
 		return;
 	}
 
@@ -161,11 +161,11 @@ R_ScreenShot(void)
 	{
 		fwrite(buffer, 1, c, f);
 		fclose(f);
-		ri.Con_Printf(PRINT_ALL, "Wrote %s\n", picname);
+		R_Printf(PRINT_ALL, "Wrote %s\n", picname);
 	}
 	else
 	{
-		ri.Con_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't write %s\n", picname);
+		R_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't write %s\n", picname);
 	}
 
 	free(buffer);
@@ -174,10 +174,10 @@ R_ScreenShot(void)
 void
 R_Strings(void)
 {
-	ri.Con_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string);
-	ri.Con_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string);
-	ri.Con_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string);
-	ri.Con_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
+	R_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string);
+	R_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string);
+	R_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string);
+	R_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
 }
 
 void

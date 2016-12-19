@@ -408,4 +408,6 @@ void RI_ShutdownWindow(qboolean contextOnly);
  */
 void *GLimp_GetProcAddress (const char* proc);
 
+void R_Printf(int level, const char* msg, ...) __attribute__ ((format (printf, 2, 3)));
+
 #endif

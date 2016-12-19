@@ -53,7 +53,7 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 
 	if (!raw)
 	{
-		ri.Con_Printf(PRINT_DEVELOPER, "Bad pcx file %s\n", filename);
+		R_Printf(PRINT_DEVELOPER, "Bad pcx file %s\n", filename);
 		return;
 	}
 
@@ -75,7 +75,7 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 		(pcx->encoding != 1) || (pcx->bits_per_pixel != 8) ||
 		(pcx->xmax >= 640) || (pcx->ymax >= 480))
 	{
-		ri.Con_Printf(PRINT_ALL, "Bad pcx file %s\n", filename);
+		R_Printf(PRINT_ALL, "Bad pcx file %s\n", filename);
 		return;
 	}
 
@@ -126,7 +126,7 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 
 	if (raw - (byte *)pcx > len)
 	{
-		ri.Con_Printf(PRINT_DEVELOPER, "PCX file %s was malformed", filename);
+		R_Printf(PRINT_DEVELOPER, "PCX file %s was malformed", filename);
 		free(*pic);
 		*pic = NULL;
 	}

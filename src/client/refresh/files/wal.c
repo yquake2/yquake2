@@ -46,7 +46,7 @@ LoadWal(char *origname)
 
 	if (!mt)
 	{
-		ri.Con_Printf(PRINT_ALL, "LoadWall: can't load %s\n", name);
+		R_Printf(PRINT_ALL, "LoadWall: can't load %s\n", name);
 		return r_notexture;
 	}
 
