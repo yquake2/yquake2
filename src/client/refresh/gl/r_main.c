@@ -135,7 +135,7 @@ cvar_t *gl_stereo_anaglyph_colors;
 cvar_t *gl_stereo_convergence;
 
 
-refimport_t ri; // TODO: put this in some header ?
+refimport_t ri;
 
 /*
  * Returns true if the box is completely outside the frustom
