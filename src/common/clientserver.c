@@ -72,64 +72,80 @@ Com_EndRedirect(void)
  * to the apropriate place.
  */
 void
+Com_VPrintf(int print_level, char *fmt, va_list argptr)
+{
+	if((print_level == PRINT_DEVELOPER) && (!developer || !developer->value))
+	{
+		return; /* don't confuse non-developers with techie stuff... */
+	}
+	else
+	{
+		char msg[MAXPRINTMSG];
+		vsnprintf(msg, MAXPRINTMSG, fmt, argptr);
+
+		if (rd_target)
+		{
+			if ((strlen(msg) + strlen(rd_buffer)) > (rd_buffersize - 1))
+			{
+				rd_flush(rd_target, rd_buffer);
+				*rd_buffer = 0;
+			}
+
+			strcat(rd_buffer, msg);
+			return;
+		}
+
+	#ifndef DEDICATED_ONLY
+		Con_Print(msg);
+	#endif
+
+		/* also echo to debugging console */
+		Sys_ConsoleOutput(msg);
+
+		/* logfile */
+		if (logfile_active && logfile_active->value)
+		{
+			char name[MAX_QPATH];
+
+			if (!logfile)
+			{
+				Com_sprintf(name, sizeof(name), "%s/qconsole.log", FS_Gamedir());
+
+				if (logfile_active->value > 2)
+				{
+					logfile = fopen(name, "a");
+				}
+
+				else
+				{
+					logfile = fopen(name, "w");
+				}
+			}
+
+			if (logfile)
+			{
+				fprintf(logfile, "%s", msg);
+			}
+
+			if (logfile_active->value > 1)
+			{
+				fflush(logfile);  /* force it to save every time */
+			}
+		}
+	}
+}
+
+/*
+ * Both client and server can use this, and it will output
+ * to the apropriate place.
+ */
+void
 Com_Printf(char *fmt, ...)
 {
 	va_list argptr;
-	char msg[MAXPRINTMSG];
-
 	va_start(argptr, fmt);
-	vsnprintf(msg, MAXPRINTMSG, fmt, argptr);
+	Com_VPrintf(PRINT_ALL, fmt, argptr);
 	va_end(argptr);
-
-	if (rd_target)
-	{
-		if ((strlen(msg) + strlen(rd_buffer)) > (rd_buffersize - 1))
-		{
-			rd_flush(rd_target, rd_buffer);
-			*rd_buffer = 0;
-		}
-
-		strcat(rd_buffer, msg);
-		return;
-	}
-
-#ifndef DEDICATED_ONLY
-	Con_Print(msg);
-#endif
-
-	/* also echo to debugging console */
-	Sys_ConsoleOutput(msg);
-
-	/* logfile */
-	if (logfile_active && logfile_active->value)
-	{
-		char name[MAX_QPATH];
-
-		if (!logfile)
-		{
-			Com_sprintf(name, sizeof(name), "%s/qconsole.log", FS_Gamedir());
-
-			if (logfile_active->value > 2)
-			{
-				logfile = fopen(name, "a");
-			}
-
-			else
-			{
-				logfile = fopen(name, "w");
-			}
-		}
-
-		if (logfile)
-		{
-			fprintf(logfile, "%s", msg);
-		}
-
-		if (logfile_active->value > 1)
-		{
-			fflush(logfile);  /* force it to save every time */
-		}
-	}
 }
 
 /*
@@ -139,18 +155,9 @@ void
 Com_DPrintf(char *fmt, ...)
 {
 	va_list argptr;
-	char msg[MAXPRINTMSG];
-
-	if (!developer || !developer->value)
-	{
-		return; /* don't confuse non-developers with techie stuff... */
-	}
-
 	va_start(argptr, fmt);
-	vsnprintf(msg, MAXPRINTMSG, fmt, argptr);
+	Com_VPrintf(PRINT_DEVELOPER, fmt, argptr);
 	va_end(argptr);
-
-	Com_Printf("%s", msg);
 }
 
 /*

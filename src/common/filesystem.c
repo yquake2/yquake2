@@ -745,7 +745,7 @@ FS_LoadPAK(const char *packPath)
 	pack->numFiles = numFiles;
 	pack->files = files;
 
-	Com_Printf("Added packfile '%s' (%i files).\n", pack, numFiles);
+	Com_Printf("Added packfile '%s' (%i files).\n", pack->name, numFiles);
 
 	return pack;
 }
@@ -816,7 +816,7 @@ FS_LoadPK3(const char *packPath)
 	pack->numFiles = numFiles;
 	pack->files = files;
 
-	Com_Printf("Added packfile '%s' (%i files).\n", pack, numFiles);
+	Com_Printf("Added packfile '%s' (%i files).\n", pack->name, numFiles);
 
 	return pack;
 }
