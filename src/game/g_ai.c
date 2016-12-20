@@ -950,7 +950,7 @@ ai_checkattack(edict_t *self)
 			return false;
 		}
 
-		if (!visible(self, self->goalentity) && (self->monsterinfo.aiflags & AI_SOUND_TARGET))
+		if ((self->monsterinfo.aiflags & AI_SOUND_TARGET) && !visible(self, self->goalentity))
 		{
 			if ((level.time - self->enemy->last_sound_time) > 5.0)
 			{
