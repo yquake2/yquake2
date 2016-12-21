@@ -253,7 +253,12 @@ LDFLAGS := $(OSX_ARCH) -lm
 endif
 
 CFLAGS += -fvisibility=hidden
-LDFLAGS += -fvisibility=hidden -Wl,--no-undefined
+LDFLAGS += -fvisibility=hidden
+
+ifneq ($(OSTYPE), Darwin)
+# for some reason the OSX linker doesn't support this
+LDFLAGS += -Wl,--no-undefined
+endif
 
 # ----------
 
@@ -548,6 +553,8 @@ ref_gl:
 ifeq ($(WITH_SDL2),yes)
 release/ref_gl.dylib : CFLAGS += -DSDL2
 endif
+
+release/ref_gl.dylib : LDFLAGS += -shared
 
 else # not Windows or Darwin
 
