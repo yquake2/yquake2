@@ -310,12 +310,12 @@ endif
 # ----------
 
 # Phony targets
-.PHONY : all client game icon server ref_gl
+.PHONY : all client game icon server ref_gl ref_gl3
 
 # ----------
 
 # Builds everything
-all: config client server game ref_gl
+all: config client server game ref_gl ref_gl3
 
 # Print config values
 config:
@@ -525,7 +525,7 @@ endif
 
 # ----------
 
-# The renderer lib
+# The OpenGL 1.x renderer lib
 
 ifeq ($(OSTYPE), Windows)
 
@@ -577,6 +577,57 @@ build/ref_gl/%.o: %.c
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
 
+# ----------
+
+# The OpenGL 3.x renderer lib
+
+ifeq ($(OSTYPE), Windows)
+
+ref_gl3:
+	@echo "===> Building ref_gl3.dll"
+	$(MAKE) release/ref_gl3.dll
+
+ifeq ($(WITH_SDL2),yes)
+release/ref_gl3.dll : CFLAGS += -DSDL2
+endif
+
+# FIXME: -lopengl32 ?? shouldn't be needed, SDL should load it dynamically..
+release/ref_gl3.dll : LDFLAGS += -shared
+
+else ifeq ($(OSTYPE), Darwin)
+
+ref_gl3:
+	@echo "===> Building ref_gl3.dylib"
+	$(MAKE) release/ref_gl3.dylib
+
+
+ifeq ($(WITH_SDL2),yes)
+release/ref_gl3.dylib : CFLAGS += -DSDL2
+endif
+
+else # not Windows or Darwin
+
+ref_gl3:
+	@echo "===> Building ref_gl3.so"
+	$(MAKE) release/ref_gl3.so
+
+
+release/ref_gl3.so : CFLAGS += -fPIC
+release/ref_gl3.so : LDFLAGS += -shared
+
+ifeq ($(WITH_SDL2),yes)
+release/ref_gl3.so : CFLAGS += -DSDL2
+endif
+
+endif # OS specific ref_gl3 shit
+
+# TODO: glad_dbg support
+GLAD_INCLUDE = -Isrc/client/refresh/gl3/glad/include
+
+build/ref_gl3/%.o: %.c
+	@echo "===> CC $<"
+	${Q}mkdir -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) $(GLAD_INCLUDE) -o $@ $<
 
 # ----------
 
@@ -789,6 +840,37 @@ endif
 
 # ----------
 
+REFGL3_OBJS_ := \
+	src/client/refresh/gl3/gl3_main.o \
+	src/client/refresh/gl3/gl3_sdl.o \
+	src/client/refresh/gl3/gl3_draw.o \
+	src/client/refresh/files/pcx.o \
+	src/common/shared/flash.o \
+	src/common/shared/rand.o \
+	src/common/shared/shared.o
+
+# TODO: filetype support for gl3 renderer - can we reuse same code?
+REFGL3_TODO_ := \
+	src/client/refresh/files/md2.o \
+	src/client/refresh/files/pcx.o \
+	src/client/refresh/files/sp2.o \
+	src/client/refresh/files/stb.o \
+	src/client/refresh/files/wal.o 
+	
+# TODO: glad_dbg support
+REFGL3_OBJS_ += \
+	src/client/refresh/gl3/glad/src/glad.o
+
+ifeq ($(OSTYPE), Windows)
+REFGL3_OBJS_ += \
+	src/backends/windows/shared/mem.o
+else # not Windows
+REFGL3_OBJS_ += \
+	src/backends/unix/shared/hunk.o
+endif
+
+# ----------
+
 # Used by the server
 SERVER_OBJS_ := \
 	src/common/argproc.o \
@@ -841,6 +923,7 @@ endif
 # Rewrite pathes to our object directory
 CLIENT_OBJS = $(patsubst %,build/client/%,$(CLIENT_OBJS_))
 REFGL_OBJS = $(patsubst %,build/ref_gl/%,$(REFGL_OBJS_))
+REFGL3_OBJS = $(patsubst %,build/ref_gl3/%,$(REFGL3_OBJS_))
 SERVER_OBJS = $(patsubst %,build/server/%,$(SERVER_OBJS_))
 GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 
@@ -849,6 +932,7 @@ GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 # Generate header dependencies
 CLIENT_DEPS= $(CLIENT_OBJS:.o=.d)
 REFGL_DEPS= $(REFGL_OBJS:.o=.d)
+REFGL3_DEPS= $(REFGL3_OBJS:.o=.d)
 SERVER_DEPS= $(SERVER_OBJS:.o=.d)
 GAME_DEPS= $(GAME_OBJS:.o=.d)
 
@@ -857,6 +941,7 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 # Suck header dependencies in
 -include $(CLIENT_DEPS)
 -include $(REFGL_DEPS)
+-include $(REFGL3_DEPS)
 -include $(SERVER_DEPS)
 -include $(GAME_DEPS)
 
@@ -900,6 +985,22 @@ else
 release/ref_gl.so : $(REFGL_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(REFGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+endif
+
+# release/ref_gl3.so
+ifeq ($(OSTYPE), Windows)
+release/ref_gl3.dll : $(REFGL3_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(REFGL3_OBJS) $(LDFLAGS) $(DLL_SDLLDFLAGS) -o $@
+	$(Q)strip $@
+else ifeq ($(OSTYPE), Darwin)
+release/ref_gl3.dylib : $(REFGL3_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(REFGL3_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+else
+release/ref_gl3.so : $(REFGL3_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(REFGL3_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/baseq2/game.so
