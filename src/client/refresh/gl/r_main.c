@@ -1351,8 +1351,8 @@ R_SetMode(void)
 	return true;
 }
 
-int
-RI_Init(void *hinstance, void *hWnd)
+qboolean
+RI_Init()
 {
 	int j;
 	extern float r_turbsin[256];
@@ -1388,7 +1388,7 @@ RI_Init(void *hinstance, void *hWnd)
 	if (!ri.GLimp_Init())
 	{
 		QGL_Shutdown();
-		return -1;
+		return false;
 	}
 
 	/* set our "safe" mode */
@@ -1400,7 +1400,7 @@ RI_Init(void *hinstance, void *hWnd)
 	{
 		QGL_Shutdown();
 		R_Printf(PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n");
-		return -1;
+		return false;
 	}
 
 	ri.Vid_MenuInit();
@@ -1431,7 +1431,7 @@ RI_Init(void *hinstance, void *hWnd)
 			QGL_Shutdown();
 			R_Printf(PRINT_ALL, "Support for OpenGL 1.4 is not available\n");
 
-			return -1;
+			return false;
 		}
 	}
 

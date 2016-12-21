@@ -235,10 +235,12 @@ VID_LoadRefresh(void)
 	}
 
 	// Initiate the refresher
-	if (re.Init(0, 0) == -1)
+	if (!re.Init())
 	{
 		VID_Shutdown(); // Isn't that just too bad? :(
-		return false;
+		Com_Printf("ERROR: Loading %s as rendering backend failed!\n", reflib_path);
+		Com_Printf("------------------------------------\n\n");
+		return false; // TODO: try again with default renderer?
 	}
 
 	/* Ensure that all key states are cleared */

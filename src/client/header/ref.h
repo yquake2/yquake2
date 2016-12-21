@@ -129,14 +129,14 @@ typedef struct
 	// if api_version is different, the dll cannot be used
 	int		api_version;
 
-	// called when the library is loaded - FIXME: remove arguments, not used anyway
-	int		(EXPORT *Init) ( void *hinstance, void *wndproc );
+	// called when the library is loaded
+	qboolean (EXPORT *Init) (void);
 
 	// called before the library is unloaded
 	void	(EXPORT *Shutdown) (void);
 
 	// called by GLimp_InitGraphics() before creating window,
-	// returns flags for SDL window creation
+	// returns flags for SDL window creation, returns -1 on error
 	int		(EXPORT *PrepareForWindow)(void);
 
 	// called by GLimp_InitGraphics() *after* creating window,

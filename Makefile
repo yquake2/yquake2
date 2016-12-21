@@ -411,6 +411,8 @@ build/client/%.o : %.m
 	${Q}$(CC) $(OSX_ARCH) -x objective-c -c $< -o $@
 endif
 
+release/quake2 : CFLAGS += -Wno-unused-result
+
 ifeq ($(WITH_CDA),yes)
 release/quake2 : CFLAGS += -DCDA
 endif
@@ -508,7 +510,7 @@ build/server/%.o: %.c
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
-release/q2ded : CFLAGS += -DDEDICATED_ONLY
+release/q2ded : CFLAGS += -DDEDICATED_ONLY -Wno-unused-result
 
 ifeq ($(WITH_ZIP),yes)
 release/q2ded : CFLAGS += -DZIP -DNOUNCRYPT
@@ -608,7 +610,7 @@ build/baseq2/%.o: %.c
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
-release/baseq2/game.so : CFLAGS += -fPIC
+release/baseq2/game.so : CFLAGS += -fPIC -Wno-unused-result
 release/baseq2/game.so : LDFLAGS += -shared
 endif
 
@@ -886,7 +888,7 @@ release/ref_gl.dll : $(REFGL_OBJS)
 else ifeq ($(OSTYPE), Darwin)
 release/ref_gl.dylib : $(REFGL_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(REFGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
 release/ref_gl.so : $(REFGL_OBJS)
 	@echo "===> LD $@"

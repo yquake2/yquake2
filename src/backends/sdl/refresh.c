@@ -275,6 +275,11 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 
 	// let renderer prepare things (set OpenGL attributes)
 	flags = re.PrepareForWindow();
+	if(flags == -1)
+	{
+		// hopefully PrepareForWindow() logged an error
+		return false;
+	}
 
 	if (fullscreen)
 	{
@@ -293,9 +298,8 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 #if 0 // DG: do we really need to do this? it makes things complicated and belongs into ref dll
 			if (gl_msaa_samples->value)
 			{
-				VID_Printf(PRINT_ALL, "SDL SetVideoMode failed: %s\n",
-						SDL_GetError());
-				VID_Printf(PRINT_ALL, "Reverting to %s gl_mode %i (%ix%i) without MSAA.\n",
+				Com_Printf( "SDL SetVideoMode failed: %s\n", SDL_GetError());
+				Com_Printf("Reverting to %s gl_mode %i (%ix%i) without MSAA.\n",
 						(flags & SDL_FULLSCREEN) ? "fullscreen" : "windowed",
 						(int)Cvar_VariableValue("gl_mode"), width, height);
 
