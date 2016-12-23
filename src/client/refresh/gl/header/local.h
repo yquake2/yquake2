@@ -31,8 +31,9 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "../../../header/ref.h"
+#include "../../ref_shared.h"
 #include "qgl.h"
+
 
 #ifndef GL_COLOR_INDEX8_EXT
  #define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX
@@ -81,24 +82,6 @@
 
 extern viddef_t vid;
 
-/*
- * skins will be outline flood filled and mip mapped
- * pics and sprites with alpha will be outline flood filled
- * pic won't be mip mapped
- *
- * model skin
- * sprite frame
- * wall texture
- * pic
- */
-typedef enum
-{
-	it_skin,
-	it_sprite,
-	it_wall,
-	it_pic,
-	it_sky
-} imagetype_t;
 
 enum stereo_modes {
 	STEREO_MODE_NONE,
@@ -300,10 +283,8 @@ int Draw_GetPalette(void);
 void R_ResampleTexture(unsigned *in, int inwidth, int inheight,
 		unsigned *out, int outwidth, int outheight);
 
-void LoadPCX(char *filename, byte **pic, byte **palette,
-		int *width, int *height);
 image_t *LoadWal(char *name);
-qboolean LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *height);
+
 void GetWalInfo(char *name, int *width, int *height);
 void GetPCXInfo(char *filename, int *width, int *height);
 image_t *R_LoadPic(char *name, byte *pic, int width, int realwidth,
@@ -407,7 +388,5 @@ void RI_ShutdownWindow(qboolean contextOnly);
  * or NULL if the function is not found.
  */
 void *GLimp_GetProcAddress (const char* proc);
-
-void R_Printf(int level, const char* msg, ...) __attribute__ ((format (printf, 2, 3)));
 
 #endif

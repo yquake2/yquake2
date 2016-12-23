@@ -27,7 +27,6 @@
 
 #include "../../header/ref.h"
 #include "header/local.h"
-#include "header/qgl.h"
 
 // TODO: put this in local.h ?
 #define REF_VERSION "Yamagi Quake II OpenGL3 Refresher"
@@ -47,8 +46,28 @@ cvar_t *gl_mode;
 cvar_t *gl_customwidth;
 cvar_t *gl_customheight;
 cvar_t *vid_gamma;
+cvar_t *gl_anisotropic;
 
 cvar_t *gl3_debugcontext;
+
+static void
+GL3_Strings(void)
+{
+	GLint i, numExtensions;
+	R_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl3config.vendor_string);
+	R_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl3config.renderer_string);
+	R_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl3config.version_string);
+	R_Printf(PRINT_ALL, "GL_SHADING_LANGUAGE_VERSION: %s\n", gl3config.glsl_version_string);
+
+	glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+
+	R_Printf(PRINT_ALL, "GL_EXTENSIONS:");
+	for(i = 0; i < numExtensions; i++)
+	{
+		R_Printf(PRINT_ALL, " %s", (const char*)glGetStringi(GL_EXTENSIONS, i));
+	}
+	R_Printf(PRINT_ALL, "\n");
+}
 
 static void
 GL3_Register(void)
@@ -60,8 +79,11 @@ GL3_Register(void)
 	gl_mode = ri.Cvar_Get("gl_mode", "4", CVAR_ARCHIVE);
 	gl_customwidth = ri.Cvar_Get("gl_customwidth", "1024", CVAR_ARCHIVE);
 	gl_customheight = ri.Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
+	gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
+
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
+
 
 #if 0 // TODO!
 	gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
@@ -105,7 +127,7 @@ GL3_Register(void)
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl_texturealphamode = ri.Cvar_Get("gl_texturealphamode", "default", CVAR_ARCHIVE);
 	gl_texturesolidmode = ri.Cvar_Get("gl_texturesolidmode", "default", CVAR_ARCHIVE);
-	gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
+	//gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
 	gl_lockpvs = ri.Cvar_Get("gl_lockpvs", "0", 0);
 
 	gl_palettedtexture = ri.Cvar_Get("gl_palettedtexture", "0", CVAR_ARCHIVE);
@@ -130,12 +152,12 @@ GL3_Register(void)
 	gl_stereo_separation = ri.Cvar_Get( "gl_stereo_separation", "-0.4", CVAR_ARCHIVE );
 	gl_stereo_anaglyph_colors = ri.Cvar_Get( "gl_stereo_anaglyph_colors", "rc", CVAR_ARCHIVE );
 	gl_stereo_convergence = ri.Cvar_Get( "gl_stereo_convergence", "1", CVAR_ARCHIVE );
-
-	ri.Cmd_AddCommand("imagelist", R_ImageList_f);
-	ri.Cmd_AddCommand("screenshot", R_ScreenShot);
-	ri.Cmd_AddCommand("modellist", Mod_Modellist_f);
-	ri.Cmd_AddCommand("gl_strings", R_Strings);
 #endif // 0
+
+	ri.Cmd_AddCommand("imagelist", GL3_ImageList_f);
+	ri.Cmd_AddCommand("screenshot", GL3_ScreenShot);
+	ri.Cmd_AddCommand("modellist", GL3_Mod_Modellist_f);
+	ri.Cmd_AddCommand("gl_strings", GL3_Strings);
 }
 
 /*
@@ -239,16 +261,15 @@ GL3_SetMode(void)
 static qboolean
 GL3_Init(void)
 {
+	/* TODO!
 	int j;
 	extern float r_turbsin[256];
-
-	Swap_Init(); // FIXME: for fucks sake, this doesn't have to be done at runtime!
-
-	/* TODO!
 	for (j = 0; j < 256; j++)
 	{
 		r_turbsin[j] *= 0.5;
 	}*/
+
+	Swap_Init(); // FIXME: for fucks sake, this doesn't have to be done at runtime!
 
 	/* Options */
 	R_Printf(PRINT_ALL, "Refresher build options:\n");
@@ -286,33 +307,13 @@ GL3_Init(void)
 	ri.Vid_MenuInit();
 
 	/* get our various GL strings */
-	R_Printf(PRINT_ALL, "\nOpenGL setting:\n");
-
 	gl3config.vendor_string = (const char*)glGetString(GL_VENDOR);
-	R_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl3config.vendor_string);
-
 	gl3config.renderer_string = (const char*)glGetString(GL_RENDERER);
-	R_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl3config.renderer_string);
-
 	gl3config.version_string = (const char*)glGetString(GL_VERSION);
-	R_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl3config.version_string);
+	gl3config.glsl_version_string = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
 
-	gl3config.version_string = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-	R_Printf(PRINT_ALL, "GL_SHADING_LANGUAGE_VERSION: %s\n", gl3config.version_string);
-
-	//gl3config.extensions_string = (const char*)glGetString(GL_EXTENSIONS);
-	//R_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl3config.extensions_string);
-	{
-		GLint i, numExtensions;
-		glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
-
-		R_Printf(PRINT_ALL, "GL_EXTENSIONS:");
-		for(i = 0; i < numExtensions; i++)
-		{
-			R_Printf(PRINT_ALL, " %s", (const char*)glGetStringi(GL_EXTENSIONS, i));
-		}
-		R_Printf(PRINT_ALL, "\n");
-	}
+	R_Printf(PRINT_ALL, "\nOpenGL setting:\n");
+	GL3_Strings();
 
 	/*
 	if (gl_config.major_version < 3)
@@ -363,18 +364,22 @@ GL3_Init(void)
 		R_Printf(PRINT_ALL, " - OpenGL Debug Output: Not Supported\n");
 	}
 
-#if 0
-	R_SetDefaultState();
 
-	R_InitImages();
+	GL3_SetDefaultState();
+
+	STUB("TODO: Some intensity and gamma stuff that was in R_InitImages()");
+
+#if 0
+	//R_InitImages(); - most of the things in R_InitImages() shouldn't be needed anymore
 	Mod_Init();
 	R_InitParticleTexture();
-	Draw_InitLocal();
-
-	return true; // -1 is error, other values don't matter. FIXME: mabe make this return bool..
 #endif // 0
 
+	GL3_Draw_InitLocal();
+
 	R_Printf(PRINT_ALL, "\n");
+	return true; // -1 is error, other values don't matter. FIXME: mabe make this return bool..
+
 	return false;
 }
 
@@ -412,7 +417,7 @@ GetRefAPI(refimport_t imp)
 	re.PrepareForWindow = GL3_PrepareForWindow;
 	re.InitContext = GL3_InitContext;
 	re.ShutdownWindow = GL3_ShutdownWindow;
-	/* TODO!
+#if 0 // TODO!
 	re.BeginRegistration = RI_BeginRegistration;
 	re.RegisterModel = RI_RegisterModel;
 	re.RegisterSkin = RI_RegisterSkin;
@@ -438,7 +443,7 @@ GetRefAPI(refimport_t imp)
 
 	re.SetPalette = RI_SetPalette;
 	re.BeginFrame = RI_BeginFrame;
-	*/
+#endif // 0
 	re.EndFrame = GL3_EndFrame;
 
 	return re;

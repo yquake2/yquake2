@@ -28,7 +28,6 @@
  */
 
 
-#include "header/qgl.h"
 #include "header/local.h"
 
 #ifdef SDL2

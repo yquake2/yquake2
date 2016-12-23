@@ -29,13 +29,29 @@
 #ifndef SRC_CLIENT_REFRESH_GL3_HEADER_LOCAL_H_
 #define SRC_CLIENT_REFRESH_GL3_HEADER_LOCAL_H_
 
-#include "../../../header/ref.h"
+#ifdef IN_IDE_PARSER
+  // this is just a hack to get proper auto-completion in IDEs:
+  // using system headers for their parsers/indexers but glad for real build
+  // (in glad glFoo is just a #define to glad_glFoo or sth, which screws up autocompletion)
+  // (you may have to configure your IDE to #define IN_IDE_PARSER, but not for building!)
+  #define GL_GLEXT_PROTOTYPES 1
+  #include <GL/gl.h>
+  #include <GL/glext.h>
+#else
+  #include <glad/glad.h>
+#endif
+
+#include "../../ref_shared.h"
+
+#define STUB(msg) \
+	R_Printf(PRINT_ALL, "STUB: %s() %s\n", __FUNCTION__, msg )
 
 typedef struct
 {
 	const char *renderer_string;
 	const char *vendor_string;
 	const char *version_string;
+	const char *glsl_version_string;
 	//const char *extensions_string; deprecated in GL3
 
 	int major_version;
@@ -73,19 +89,48 @@ typedef struct
 	//qboolean hwgamma;
 } gl3state_t;
 
+
+typedef struct gl3image_s
+{
+	// TODO: what of this is actually needed?
+	char name[MAX_QPATH];               /* game path, including extension */
+	imagetype_t type;
+	int width, height;                  /* source image */
+	int upload_width, upload_height;    /* after power of two and picmip */
+	int registration_sequence;          /* 0 = free */
+	struct msurface_s *texturechain;    /* for sort-by-texture world drawing */
+	int texnum;                         /* gl texture binding */
+	float sl, tl, sh, th;               /* 0,0 - 1,1 unless part of the scrap */
+	qboolean scrap;
+	qboolean has_alpha;
+
+	qboolean paletted;
+} gl3image_t;
+
 extern gl3config_t gl3config;
 extern gl3state_t gl3state;
+
+extern viddef_t vid;
+
+extern int gl_filter_min;
+extern int gl_filter_max;
 
 extern int GL3_PrepareForWindow(void);
 extern int GL3_InitContext(void* win);
 extern void GL3_EndFrame(void);
 extern void GL3_ShutdownWindow(qboolean contextOnly);
 
+extern void GL3_ScreenShot(void);
+extern void GL3_SetDefaultState(void);
+
+extern void GL3_Mod_Modellist_f(void);
+
+extern void GL3_Draw_InitLocal(void);
 extern int GL3_Draw_GetPalette(void);
 
-extern void R_Printf(int level, const char* msg, ...) __attribute__((format (printf, 2, 3)));
-
-extern void LoadPCX(char *filename, byte **pic, byte **palette, int *width, int *height);
+extern gl3image_t * GL3_FindImage(char *name, imagetype_t type);
+extern void GL3_TextureMode(char *string);
+extern void GL3_ImageList_f(void);
 
 extern cvar_t *gl_msaa_samples;
 extern cvar_t *gl_swapinterval;
@@ -95,6 +140,7 @@ extern cvar_t *gl_mode;
 extern cvar_t *gl_customwidth;
 extern cvar_t *gl_customheight;
 extern cvar_t *vid_gamma;
+extern cvar_t *gl_anisotropic;
 
 extern cvar_t *gl3_debugcontext;
 

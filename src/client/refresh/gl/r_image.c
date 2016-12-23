@@ -880,7 +880,7 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 	qboolean nolerp = false;
 
-	cvar_t* nolerp_var = ri.Cvar_Get("gl_nolerp_list", NULL, 0);
+	cvar_t* nolerp_var = ri.Cvar_Get("gl_nolerp_list", NULL, 0); // FIXME: isn't this cached somewhere?!
 	if(nolerp_var != NULL && nolerp_var->string != NULL)
 	{
 		nolerp = strstr(nolerp_var->string, name) != NULL;
@@ -1270,7 +1270,7 @@ R_InitImages(void)
 
 	gl_state.inverse_intensity = 1 / intensity->value;
 
-	Draw_GetPalette();
+	Draw_GetPalette(); // FIXME: I think this is redundant - RI_Init() already calls that!
 
 	if (gl_config.palettedtexture)
 	{
