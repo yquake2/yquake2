@@ -5,6 +5,7 @@ copys for each license:
 - Quake II: GPLv2
 - Info-ZIP (unzip): Info-ZIP License
 - Cocoa SDL entry points
+- stb
 
 Parts of other Quake II Clients were included into the source. They
 covered by the same GPLv2 license as Quake II itself:
@@ -15,19 +16,19 @@ covered by the same GPLv2 license as Quake II itself:
 - Q2Pro
 - QuDoS
 - r1q2
+- stereo quake
 - zeq2
 
 The following code is used in library form and thus not part of Yamagi
 Quake II:
 
-- libjpeg
 - libogg
 - libopenal
 - libvorbis
 - libz
-- libsdl
 - libX11
 - libXxf86vm
+- SDL
 
 ===============================================================================
 
@@ -443,5 +444,10 @@ Initial Version: Darrell Walisser <dwaliss1@purdue.edu>
 Non-NIB-Code & other changes: Max Horn <max@quendi.de>
 
 Feel free to customize this file to suit your needs
+
+===============================================================================
+
+Sean's Tool Box -- public domain -- http://nothings.org/stb.h
+no warranty is offered or implied; use this code at your own risk
 
 ===============================================================================

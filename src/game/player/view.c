@@ -799,7 +799,7 @@ P_WorldEffects(void)
 		current_player->flags &= ~FL_INWATER;
 	}
 
-	/* check for head just going under water */
+	/* check for head just going under moove^^water */
 	if ((old_waterlevel != 3) && (waterlevel == 3))
 	{
 		gi.sound(current_player, CHAN_BODY, gi.soundindex(

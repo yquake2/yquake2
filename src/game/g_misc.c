@@ -26,8 +26,8 @@
 
 #include "header/local.h"
 
-int	gibsthisframe = 0;
-int lastgibframe = 0;
+int gibsthisframe;
+int lastgibframe;
 
 void
 Use_Areaportal(edict_t *ent, edict_t *other /* unused */, edict_t *activator /* unused */)
@@ -218,7 +218,7 @@ ThrowGib(edict_t *self, char *gibname, int damage, int type)
 	gib->s.origin[2] = origin[2] + crandom() * size[2];
 
 	gi.setmodel(gib, gibname);
-	gib->solid = SOLID_NOT;
+	gib->solid = SOLID_BBOX;
 	gib->s.effects |= EF_GIB;
 	gib->flags |= FL_NO_KNOCKBACK;
 	gib->takedamage = DAMAGE_YES;
@@ -267,7 +267,7 @@ ThrowHead(edict_t *self, char *gibname, int damage, int type)
 
 	self->s.modelindex2 = 0;
 	gi.setmodel(self, gibname);
-	self->solid = SOLID_NOT;
+	self->solid = SOLID_BBOX;
 	self->s.effects |= EF_GIB;
 	self->s.effects &= ~EF_FLIES;
 	self->s.sound = 0;
@@ -330,7 +330,7 @@ ThrowClientHead(edict_t *self, int damage)
 	VectorSet(self->maxs, 16, 16, 16);
 
 	self->takedamage = DAMAGE_NO;
-	self->solid = SOLID_NOT;
+	self->solid = SOLID_BBOX;
 	self->s.effects = EF_GIB;
 	self->s.sound = 0;
 	self->flags |= FL_NO_KNOCKBACK;
@@ -2127,7 +2127,7 @@ SP_misc_gib_arm(edict_t *ent)
 	}
 
 	gi.setmodel(ent, "models/objects/gibs/arm/tris.md2");
-	ent->solid = SOLID_NOT;
+	ent->solid = SOLID_BBOX;
 	ent->s.effects |= EF_GIB;
 	ent->takedamage = DAMAGE_YES;
 	ent->die = gib_die;
@@ -2155,7 +2155,7 @@ SP_misc_gib_leg(edict_t *ent)
 	}
 
 	gi.setmodel(ent, "models/objects/gibs/leg/tris.md2");
-	ent->solid = SOLID_NOT;
+	ent->solid = SOLID_BBOX;
 	ent->s.effects |= EF_GIB;
 	ent->takedamage = DAMAGE_YES;
 	ent->die = gib_die;
@@ -2183,7 +2183,7 @@ SP_misc_gib_head(edict_t *ent)
 	}
 
 	gi.setmodel(ent, "models/objects/gibs/head/tris.md2");
-	ent->solid = SOLID_NOT;
+	ent->solid = SOLID_BBOX;
 	ent->s.effects |= EF_GIB;
 	ent->takedamage = DAMAGE_YES;
 	ent->die = gib_die;

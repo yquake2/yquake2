@@ -50,7 +50,6 @@
 #include "ref.h"
 #include "vid.h"
 #include "screen.h"
-#include "input.h"
 #include "keyboard.h"
 #include "console.h"
 
@@ -211,7 +210,8 @@ typedef struct
 
 	int			framecount;
 	int			realtime; /* always increasing, no clamping, etc */
-	float		frametime; /* seconds since last frame */
+	float		rframetime; /* seconds since last render frame */
+	float		nframetime; /* network frame time */
 
 	/* screen rendering information */
 	float		disable_screen; /* showing loading plaque between levels */
@@ -222,7 +222,7 @@ typedef struct
 									 /* > cls.disable_servercount, clear disable_screen */
 
 	/* connection information */
-	char		servername[MAX_OSPATH]; /* name of server from original connect */
+	char		servername[256]; /* name of server from original connect */
 	float		connect_time; /* for connection retransmits */
 
 	int			quakePort; /* a 16 bit value that allows quake servers */
@@ -231,6 +231,8 @@ typedef struct
 	int			serverProtocol; /* in case we are doing some kind of version hack */
 
 	int			challenge; /* from the server to use for connecting */
+
+	qboolean	forcePacket; /* Forces a package to be send at the next frame. */
 
 	FILE		*download; /* file transfer from server */
 	char		downloadtempname[MAX_OSPATH];
@@ -248,8 +250,9 @@ typedef struct
 extern client_static_t	cls;
 
 /* cvars */
-extern	cvar_t	*cl_stereo_separation;
-extern	cvar_t	*cl_stereo;
+extern	cvar_t	*gl_stereo_separation;
+extern	cvar_t	*gl_stereo_convergence;
+extern	cvar_t	*gl_stereo;
 extern	cvar_t	*cl_gun;
 extern	cvar_t	*cl_add_blend;
 extern	cvar_t	*cl_add_lights;
@@ -258,7 +261,6 @@ extern	cvar_t	*cl_add_entities;
 extern	cvar_t	*cl_predict;
 extern	cvar_t	*cl_footsteps;
 extern	cvar_t	*cl_noskins;
-extern	cvar_t	*cl_autoskins;
 extern	cvar_t	*cl_upspeed;
 extern	cvar_t	*cl_forwardspeed;
 extern	cvar_t	*cl_sidespeed;
@@ -400,6 +402,7 @@ void CL_RunParticles (void);
 void CL_RunDLights (void);
 void CL_RunLightStyles (void);
 
+void CL_CalcViewValues(void);
 void CL_AddEntities (void);
 void CL_AddDLights (void);
 void CL_AddTEnts (void);
@@ -437,7 +440,9 @@ extern 	kbutton_t 	in_strafe;
 extern 	kbutton_t 	in_speed;
 
 void CL_InitInput (void);
+void CL_RefreshCmd(void);
 void CL_SendCmd (void);
+void CL_RefreshMove(void);
 void CL_SendMove (usercmd_t *cmd);
 
 void CL_ClearState (void);
@@ -507,5 +512,6 @@ void CL_KeyInventory (int key);
 void CL_DrawInventory (void);
 
 void CL_PredictMovement (void);
+trace_t CL_PMTrace(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
 
 #endif

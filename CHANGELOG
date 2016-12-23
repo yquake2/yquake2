@@ -1,40 +1,95 @@
+Quake II 5.34 to 6.00:
+- Make the client asynchronous. The old behaviour can be forced by
+  setting cl_async to 0. Please note that asynchronicity can lead to
+  problems if the old SDL 1.2 backend is used and vsync is enabled.
+- Implement gl_overbrightbits in the non multitexturing case.  A value
+  of 1 just fixes lighting on water surfaces, higher values increase
+  the brightness of everything.
+- General renderer overhaul for better compatibility with modern GPUs.
+  OpenGL 1.4 is now required, older versions are no longer supported.
+  Multitexturing was deprecated and will be removed in a future release.
+- Fix some longstanding AI problems.
+- Several general gameplay fixes.
+
+Quake II 5.33 to 5.34:
+- Add support for stereo 3D (by Valery Guskov)
+- Make gibt solid so they move with conveyor belts.
+- Disable gl_ext_multitexturing by default.
+- Switch from an arch whitelist to an "all archs are supported"
+  approach.
+- Add a new README.
+
+Quake II 5.32 to 5.33:
+- Add OGG volume slider in settings menu
+- Fixed some bugs in volume settings
+- Replaced HUD scale option in video menu with generic UI scale
+- General UI upscaling improvements
+- Better support for keyboards with AZERTY layout
+
+Quake II 5.31 to 5.32:
+- Fix problems with never openal-soft versions.
+- Fix overbright bits not applied to regular meshes. (by David Reid)
+- Several improvements to GUI / HUD scaling. (by David Reid)
+- Don't stop generating gibs after map change.
+- A new high resolution application / windows icon. (by Ryan)
+- Don't display baseq2 savegames in mods / addons.
+- Some smaller bugfixes.
+
+Quake II 5.30 to 5.31:
+- Enabled hud scaling by default and added an option to the video menu
+  to switch scaling off.
+- Fixed animated textures on transparent surfaces.
+- Added CMake as an optional build system.
+- Implemented a persistent console history. (by caedes)
+- Fix bug with high velocities in vents in 32bit builds.
+- A lot of small fixes and changes. (by Ozkan Sezer)
+
+Quake II 5.24 to 5.30:
+- Support for Mac OS X was overhauled. (by Jarvik7)
+- Overhauled retexturing support, replacing libjpeg with stb_image,
+  adding png support because it was so easy (by caedes).
+- Fix gamma (was broken in last release)
+- Fix mouse grabbing (again!)
+- Add binary directory to game data path
+
+Quake II 5.23 to 5.24:
+- Fix keyboard layouts in the console.
+- Use GL_ARB_texture_non_power_of_two if it's supported by the GPU.
+- Provide gl_consolescale and gl_menuscale cvars to change the scale
+  of the console and the menu.
+- Several bugfixes and improvements to the sound system.  Some bugs
+  were fixed and the underwater effect is now supported in the SDL
+backend. (by bibendovsky)
+
 Quake II 5.22 to 5.23:
-- Provide gl_hudscale cvar that can be changed to
-  scale the HUD, for high resolutions etc. (by caedes)
+- Provide gl_hudscale cvar that can be changed to scale the HUD, for
+  high resolutions etc. (by caedes)
 - Several menu improvements.
-- A better work around for the "the mouse cursor hits the
-  window border" SDL2 problem.
+- A better work around for the "the mouse cursor hits the window
+  border" SDL2 problem.
 
 Quake II 5.21 to 5.22:
-- Provide a fallback if SDL2s relative mouse mode
-  cannot be activated.
-- Add support for MSAA through the gl_msaa_samples
-  cvar.
+- Provide a fallback if SDL2s relative mouse mode cannot be activated.
+- Add support for MSAA through the gl_msaa_samples cvar.
 
 Quake II 5.20 to 5.21:
-- Fix a bug regaring mouse key handling (reported 
-  by phenixia2003)
-- Correct MS Windows builds. Add official support
-  for Win64. This still needs some testing.
-- Allow to shutdown the client by pressing ctrl-c
-  or sending SIGTERM. Unix / Linux only.
+- Fix a bug regaring mouse key handling (reported by phenixia2003)
+- Correct MS Windows builds. Add official support for Win64. This
+  still needs some testing.
+- Allow to shutdown the client by pressing ctrl-c or sending SIGTERM.
+  Unix / Linux only.
 
 Quake II 5.11 to 5.20
-- Integrate the refresher into the client and
-  remove QGL. This means that ref_gl.so is gone
-  and libGL is now linked like every other lib.
+- Integrate the refresher into the client and remove QGL. This means
+  that ref_gl.so is gone and libGL is now linked like every other lib.
   (by Alejandro Ricoveri)
-- Port the client to SDL 2.0. The newer SDL version
-  solves some long standing problems, like broken
-  keyboard layouts and non working SDL sound on
-  Windows. While SDL 2.0 is enabled by default,
-  one can switch back to SDL 1.2 by editing the
-  Makefile.
-- OS X support was put to hold. While OS X support
-  is nice to have, non of the deveolpers has
-  interest in maintaining it. Until someone steps
-  up and takes responsibility, no OS X versions
-  will be released.
+- Port the client to SDL 2.0. The newer SDL version solves some long
+  standing problems, like broken keyboard layouts and non working SDL
+  sound on Windows. While SDL 2.0 is enabled by default, one can switch
+  back to SDL 1.2 by editing the Makefile.
+- OS X support was put to hold. While OS X support is nice to have,
+  non of the deveolpers has interest in maintaining it. Until someone
+  steps up and takes responsibility, no OS X versions will be released.
 
 Quake II 5.10 to 5.11
 - A lot of bugfixes.
@@ -52,43 +107,39 @@ Quake II 4.21 to 5.00
 - Support for OpenBSD. (by Jonathan Gray)
 - Aspect ration can be set via the video menu.
 - A better random number generator.
-- The SDL sound driver is now selectable by
-  "s_sdldriver".
+- The SDL sound driver is now selectable by "s_sdldriver".
 
 Quake II 4.20 to 4.21
-- Fix several segfaults with OpenAL. (reported by 
-  Joran and mxmvasilyev0)
+- Fix several segfaults with OpenAL. (reported by Joran and
+  mxmvasilyev0)
 - Add a file CONTRIBUTE.
 - Some minor changes to the Makefile.
 
 Quake II 4.10 to 4.20
-- Add an options framework to allow disabling most
-  option features (OGG/Vorbis, ZIP file loading,
-  OpenAL, etc) at compile time.
-- Integrate OpenAL support, enabling surround sound
-  and better stereo sound calculations.
-- Enforce the "C" locale to prevent libraries like
-  broken LADSPA plugins to override it and break
-  printf, scanf, etc.
+- Add an options framework to allow disabling most option features
+  (OGG/Vorbis, ZIP file loading, OpenAL, etc) at compile time.
+- Integrate OpenAL support, enabling surround sound and better stereo
+  sound calculations.
+- Enforce the "C" locale to prevent libraries like broken LADSPA
+  plugins to override it and break printf, scanf, etc.
 
 Quake II 4.03 to 4.10
-- Change the behavior of hotkey menus to fix some
-  strange bugs and memory leaks in the menu system.
-- Add the "gl_farsee" cvar. When set to "1" Quake II
-  renders maps up to 4096x4096 units instead of being
-  limited to 2300x2300. The default is "0". (by Richard
-  Allen)
+- Change the behavior of hotkey menus to fix some strange bugs and
+  memory leaks in the menu system.
+- Add the "gl_farsee" cvar. When set to "1" Quake II renders maps up
+  to 4096x4096 units instead of being limited to 2300x2300. The
+  default is "0". (by Richard Allen)
 - Add support for the high resolution retexturing pack.
-- Reenable support for gamma via SDL, since the upstream
-  bug was fixed with SDL 1.2.15. Gamma via X11 can be
-  forced by defining X11GAMMA at compile time.
-- Add support for big endian architectures and enable
-  the build on SPARC64 CPUs. (by Kieron Gillespie)
+- Reenable support for gamma via SDL, since the upstream bug was fixed
+  with SDL 1.2.15. Gamma via X11 can be forced by defining X11GAMMA at
+  compile time.
+- Add support for big endian architectures and enable the build on
+  SPARC64 CPUs. (by Kieron Gillespie)
 
 Quake II 4.02 to 4.03
 - Fix wrong function call in the Quake II file system.
-- Fix gl_ext_multitexture set to 1. (reported by Richard Allen
-  and Lukas Sabota)
+- Fix gl_ext_multitexture set to 1. (reported by Richard Allen and
+  Lukas Sabota)
 - Print the version number in the window title.
 
 Quake II 4.01 to 4.02
@@ -104,11 +155,12 @@ Quake II 3.00 to 4.00
 - Add support for system wide installations.
 - ctf was moved into a separate download.
 - All open bugs were fixed.
-- Fix spawnpoint selection if single player maps are loaded via console.
+- Fix spawnpoint selection if single player maps are loaded via
+  console.
 - Rename ~/.quake2 to ~/.yq2 to ease parallel installation with other
   Quake II clients.
-- The client does no longer crash if the menu is opened while connecting
-  to remote server.
+- The client does no longer crash if the menu is opened while
+  connecting to remote server.
 - The game code received a code audit and major rework.
 
 Quake II 3.00RC2 to 3.00
@@ -119,11 +171,9 @@ Quake II 3.00RC1 to 3.00RC2
 - The map command now works even when a server is running.
 
 Quake II 2.11 to 3.00RC1
-- Complete refactoring and code audit of the client, leading
-  to much cleaner and more maintainable code and improved
-  stability.
-- Fixed a wrong cast under linux. This could result in
-  sudden crashes.
+- Complete refactoring and code audit of the client, leading to much
+  cleaner and more maintainable code and improved stability.
+- Fixed a wrong cast under linux. This could result in sudden crashes.
 - Reworked the input system.
 - Much improved console tab completion.
 - Better TTY output of the startup and shutdown.
@@ -135,20 +185,20 @@ Quake II 2.11 to 3.00RC1
   - Rewrote the low level backend from scratch.
 - Major rework of the refresher:
   - Added multitexturing and paletted textures back (this was
-	requested by many, many people).
+    requested by many, many people).
   - Rewrote the SDL backend.
-  - Reimplemented the gamma control using native X11 calls.
-	This should fix the gamma for all setups.
+  - Reimplemented the gamma control using native X11 calls.  This
+    should fix the gamma for all setups.
   - Support for overbright bits.
 - Changed the window title to "Yamagi Quake II".
 
 Quake II 2.10 to 2.11
-- Fix a bug in the client. This fixes the strange crashes
-  under Ubuntu. (Reported by many, special thanks to jhansonxi
-  for his help)
-- Add a null pointer check in cl_view.c. This fixes a rare
-  case crash in Ground Zero when files are missing. (by Sascha K.)
-- Add a script as possible work around for Ubuntu bug 32452 (by caedes)
+- Fix a bug in the client. This fixes the strange crashes under
+  Ubuntu. (Reported by many, special thanks to jhansonxi for his help)
+- Add a null pointer check in cl_view.c. This fixes a rare case crash
+  in Ground Zero when files are missing. (by Sascha K.)
+- Add a script as possible work around for Ubuntu bug 32452 (by
+  caedes)
 
 Quake II 2.10RC3 to 2.10:
 - Fix blending
@@ -158,29 +208,27 @@ Quake II 2.10RC2 to 2.10RC3:
 - Saner standard configuration
 - Fix a bug when a video follows a video (like in Ground Zero)
 - Fix a crash when enabling OGG/Vorbis in the menu
-- Fix a crash when changing level after deactivating
-  OGG/Vorbis playback
-- Do not show the gun symbol when fov is bigger than 91 and
-  cl_gun is set to 2
+- Fix a crash when changing level after deactivating OGG/Vorbis
+  playback
+- Do not show the gun symbol when fov is bigger than 91 and cl_gun is
+  set to 2
 
 Quake II 2.10RC to 2.10RC2:
 - Fix a problem with machine gun soldiers deadlocking
 - Change CFLAGS to a saner default
-- Quake II now creates ~/.quake2 if it doesn't exist (reported
-  by N. Tsakiris)
+- Quake II now creates ~/.quake2 if it doesn't exist (reported by N.
+  Tsakiris)
 - Slightly better game performance (~10 FPS)
 
 Quake II 2.00 to 2.10RC:
 - Automagical releases the mouse when the console is opened
-- Increased the maximal amount of file descriptores from 64
-  to 256. This should fix some very rare crashes with 'The
-  Reconing' and possible similar problems with mods.
-  (reported by E. Müller)
+- Increased the maximal amount of file descriptores from 64 to 256.
+  This should fix some very rare crashes with 'The Reconing' and
+  possible similar problems with mods.  (reported by E. Müller)
 - Support for custom resolutions (by caedes and Yamagi)
 
 Quake II 1.05 to 2.00:
-- Ogg/Vorbis Support as an optional replacement for the
-  CD playback
+- Ogg/Vorbis Support as an optional replacement for the CD playback
 - Support for hardware gamma via SDL
 - Support for grabbing the mouse
 - Some bugfixes

@@ -66,6 +66,8 @@ MoveClientToIntermission(edict_t *ent)
 	ent->s.sound = 0;
 	ent->solid = SOLID_NOT;
 
+	gi.linkentity(ent);
+
 	/* add the layout */
 	if (deathmatch->value || coop->value)
 	{

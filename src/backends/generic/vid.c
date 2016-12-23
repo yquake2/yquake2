@@ -39,7 +39,7 @@
 #include <errno.h>
 
 #include "../../client/header/client.h"
-#include "header/input.h"
+#include "../../client/header/keyboard.h"
 
 typedef struct vidmode_s
 {
@@ -78,8 +78,6 @@ vidmode_t vid_modes[] = {
 
 /* Console variables that we need to access from this module */
 cvar_t *vid_gamma;
-cvar_t *vid_xpos;               /* X coordinate of window position */
-cvar_t *vid_ypos;               /* Y coordinate of window position */
 cvar_t *vid_fullscreen;
 
 /* Global variables used internally by this module */
@@ -87,12 +85,6 @@ viddef_t viddef;                /* global video state; used by other modules */
 qboolean ref_active = false;    /* Is the refresher being used? */
 
 #define VID_NUM_MODES (sizeof(vid_modes) / sizeof(vid_modes[0]))
-
-void Do_Key_Event(int key, qboolean down);
-
-// Input state
-in_state_t in_state;
-
 #define MAXPRINTMSG 4096
 
 void
@@ -170,16 +162,6 @@ VID_LoadRefresh(void)
 	// Log it!
 	Com_Printf("----- refresher initialization -----\n");
 
-	/* Init IN (Mouse) */
-	in_state.IN_CenterView_fp = IN_CenterView;
-	in_state.Key_Event_fp = Do_Key_Event;
-	in_state.viewangles = cl.viewangles;
-	in_state.in_strafe_state = &in_strafe.state;
-	in_state.in_speed_state = &in_speed.state;
-
-	// Initiate the input backend
-	IN_BackendInit (&in_state);
-
 	// Declare the refresher as active
 	ref_active = true;
 
@@ -190,9 +172,8 @@ VID_LoadRefresh(void)
 		return false;
 	}
 
-	// Initiate keyboard at the input backend
-	IN_KeyboardInit(Do_Key_Event);
-	Key_ClearStates();
+	/* Ensure that all key states are cleared */
+	Key_MarkAllUp();
 
 	Com_Printf("------------------------------------\n\n");
 	return true;
@@ -212,7 +193,6 @@ VID_CheckChanges(void)
 		S_StopAllSounds();
 
 		/* refresh has changed */
-		vid_fullscreen->modified = true;
 		cl.refresh_prepped = false;
 		cl.cinematicpalette_active = false;
 		cls.disable_screen = true;
@@ -227,8 +207,6 @@ void
 VID_Init(void)
 {
 	/* Create the video variables so we know how to start the graphics drivers */
-	vid_xpos = Cvar_Get("vid_xpos", "3", CVAR_ARCHIVE);
-	vid_ypos = Cvar_Get("vid_ypos", "22", CVAR_ARCHIVE);
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = Cvar_Get("vid_gamma", "1", CVAR_ARCHIVE);
 
@@ -244,9 +222,6 @@ VID_Shutdown(void)
 {
 	if (ref_active)
 	{
-		// Shut down the input backend
-		IN_BackendShutdown();
-
 		/* Shut down the renderer */
 		R_Shutdown();
 	}
@@ -254,24 +229,3 @@ VID_Shutdown(void)
 	// Declare the refresher as inactive
 	ref_active = false;
 }
-
-/* Input callbacks from client */
-
-void
-IN_Shutdown(void)
-{
-	IN_BackendShutdown();
-}
-
-void
-IN_Move(usercmd_t *cmd)
-{
-	IN_BackendMove (cmd);
-}
-
-void
-Do_Key_Event(int key, qboolean down)
-{
-	Key_Event(key, down, Sys_Milliseconds());
-}
-

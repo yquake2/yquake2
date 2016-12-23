@@ -28,17 +28,14 @@
 #include "../../client/refresh/header/local.h"
 #include "../../client/header/keyboard.h"
 #include "../generic/header/input.h"
+#include "../../client/header/client.h"
 
 /* There's no sdl-config on OS X and Windows */
-#if defined(_WIN32) || defined(__APPLE__)
 #ifdef SDL2
 #include <SDL2/SDL.h>
 #else /* SDL1.2 */
 #include <SDL/SDL.h>
 #endif /*SDL2 */
-#else /* not _WIN32 || APPLE */
-#include <SDL.h>
-#endif /* _WIN32 || APPLE */
 
 /* SDL 1.2 <-> 2.0 compatiblity cruft */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -67,245 +64,229 @@
 #define MOUSE_MIN 40
  
 /* Globals */
-Key_Event_fp_t Key_Event_fp;
-static in_state_t *in_state;
 static int mouse_x, mouse_y;
 static int old_mouse_x, old_mouse_y;
-static qboolean have_grab;
 static qboolean mlooking;
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-qboolean in_relativemode;
-#endif
 
 /* CVars */
 cvar_t *vid_fullscreen;
 static cvar_t *in_grab;
 static cvar_t *in_mouse;
 static cvar_t *exponential_speedup;
-static cvar_t *freelook;
-static cvar_t *lookstrafe;
-static cvar_t *m_forward;
+cvar_t *freelook;
+cvar_t *lookstrafe;
+cvar_t *m_forward;
 static cvar_t *m_filter;
-static cvar_t *m_pitch;
-static cvar_t *m_side;
-static cvar_t *m_yaw;
-static cvar_t *sensitivity;
+cvar_t *m_pitch;
+cvar_t *m_side;
+cvar_t *m_yaw;
+cvar_t *sensitivity;
 static cvar_t *windowed_mouse;
 
 /* ------------------------------------------------------------------ */
 
 /*
- * This creepy function translates the SDL 
- * keycodes to the internal key representation
- * of the id Tech 2 engine.
+ * This creepy function translates SDL keycodes into
+ * the id Tech 2 engines interal representation.
  */
 static int
 IN_TranslateSDLtoQ2Key(unsigned int keysym)
 {
 	int key = 0;
 
-	if ((keysym >= SDLK_SPACE) && (keysym < SDLK_DELETE))
+	/* These must be translated */
+	switch (keysym)
 	{
-		/* These happen to match
-		   the ASCII chars */
-		key = (int)keysym;
-	}
-	else
-	{
-		switch (keysym)
-		{
-			case SDLK_PAGEUP:
-				key = K_PGUP;
-				break;
-			case SDLK_KP9:
-				key = K_KP_PGUP;
-				break;
-			case SDLK_PAGEDOWN:
-				key = K_PGDN;
-				break;
-			case SDLK_KP3:
-				key = K_KP_PGDN;
-				break;
-			case SDLK_KP7:
-				key = K_KP_HOME;
-				break;
-			case SDLK_HOME:
-				key = K_HOME;
-				break;
-			case SDLK_KP1:
-				key = K_KP_END;
-				break;
-			case SDLK_END:
-				key = K_END;
-				break;
-			case SDLK_KP4:
-				key = K_KP_LEFTARROW;
-				break;
-			case SDLK_LEFT:
-				key = K_LEFTARROW;
-				break;
-			case SDLK_KP6:
-				key = K_KP_RIGHTARROW;
-				break;
-			case SDLK_RIGHT:
-				key = K_RIGHTARROW;
-				break;
-			case SDLK_KP2:
-				key = K_KP_DOWNARROW;
-				break;
-			case SDLK_DOWN:
-				key = K_DOWNARROW;
-				break;
-			case SDLK_KP8:
-				key = K_KP_UPARROW;
-				break;
-			case SDLK_UP:
-				key = K_UPARROW;
-				break;
-			case SDLK_ESCAPE:
-				key = K_ESCAPE;
-				break;
-			case SDLK_KP_ENTER:
-				key = K_KP_ENTER;
-				break;
-			case SDLK_RETURN:
-				key = K_ENTER;
-				break;
-			case SDLK_TAB:
-				key = K_TAB;
-				break;
-			case SDLK_F1:
-				key = K_F1;
-				break;
-			case SDLK_F2:
-				key = K_F2;
-				break;
-			case SDLK_F3:
-				key = K_F3;
-				break;
-			case SDLK_F4:
-				key = K_F4;
-				break;
-			case SDLK_F5:
-				key = K_F5;
-				break;
-			case SDLK_F6:
-				key = K_F6;
-				break;
-			case SDLK_F7:
-				key = K_F7;
-				break;
-			case SDLK_F8:
-				key = K_F8;
-				break;
-			case SDLK_F9:
-				key = K_F9;
-				break;
-			case SDLK_F10:
-				key = K_F10;
-				break;
-			case SDLK_F11:
-				key = K_F11;
-				break;
-			case SDLK_F12:
-				key = K_F12;
-				break;
-			case SDLK_F13:
-				key = K_F13;
-				break;
-			case SDLK_F14:
-				key = K_F14;
-				break;
-			case SDLK_F15:
-				key = K_F15;
-				break;
-			case SDLK_BACKSPACE:
-				key = K_BACKSPACE;
-				break;
-			case SDLK_KP_PERIOD:
-				key = K_KP_DEL;
-				break;
-			case SDLK_DELETE:
-				key = K_DEL;
-				break;
-			case SDLK_PAUSE:
-				key = K_PAUSE;
-				break;
-			case SDLK_LSHIFT:
-			case SDLK_RSHIFT:
-				key = K_SHIFT;
-				break;
-			case SDLK_LCTRL:
-			case SDLK_RCTRL:
-				key = K_CTRL;
-				break;
-			case SDLK_RMETA:
-			case SDLK_LMETA:
-				key = K_COMMAND;
-				break;
-			case SDLK_RALT:
-			case SDLK_LALT:
-				key = K_ALT;
-				break;
-			case SDLK_KP5:
-				key = K_KP_5;
-				break;
-			case SDLK_INSERT:
-				key = K_INS;
-				break;
-			case SDLK_KP0:
-				key = K_KP_INS;
-				break;
-			case SDLK_KP_MULTIPLY:
-				key = K_KP_STAR;
-				break;
-			case SDLK_KP_PLUS:
-				key = K_KP_PLUS;
-				break;
-			case SDLK_KP_MINUS:
-				key = K_KP_MINUS;
-				break;
-			case SDLK_KP_DIVIDE:
-				key = K_KP_SLASH;
-				break;
-			case SDLK_MODE:
-				key = K_MODE;
-				break;
-			case SDLK_COMPOSE:
-				key = K_COMPOSE;
-				break;
-			case SDLK_HELP:
-				key = K_HELP;
-				break;
-			case SDLK_PRINT:
-				key = K_PRINT;
-				break;
-			case SDLK_SYSREQ:
-				key = K_SYSREQ;
-				break;
-			case SDLK_MENU:
-				key = K_MENU;
-				break;
-			case SDLK_POWER:
-				key = K_POWER;
-				break;
-			case SDLK_UNDO:
-				key = K_UNDO;
-				break;
-			case SDLK_SCROLLOCK:
-				key = K_SCROLLOCK;
-				break;
-			case SDLK_NUMLOCK:
-				key = K_KP_NUMLOCK;
-				break;
-			case SDLK_CAPSLOCK:
-				key = K_CAPSLOCK;
-				break;
+		case SDLK_PAGEUP:
+			key = K_PGUP;
+			break;
+		case SDLK_KP9:
+			key = K_KP_PGUP;
+			break;
+		case SDLK_PAGEDOWN:
+			key = K_PGDN;
+			break;
+		case SDLK_KP3:
+			key = K_KP_PGDN;
+			break;
+		case SDLK_KP7:
+			key = K_KP_HOME;
+			break;
+		case SDLK_HOME:
+			key = K_HOME;
+			break;
+		case SDLK_KP1:
+			key = K_KP_END;
+			break;
+		case SDLK_END:
+			key = K_END;
+			break;
+		case SDLK_KP4:
+			key = K_KP_LEFTARROW;
+			break;
+		case SDLK_LEFT:
+			key = K_LEFTARROW;
+			break;
+		case SDLK_KP6:
+			key = K_KP_RIGHTARROW;
+			break;
+		case SDLK_RIGHT:
+			key = K_RIGHTARROW;
+			break;
+		case SDLK_KP2:
+			key = K_KP_DOWNARROW;
+			break;
+		case SDLK_DOWN:
+			key = K_DOWNARROW;
+			break;
+		case SDLK_KP8:
+			key = K_KP_UPARROW;
+			break;
+		case SDLK_UP:
+			key = K_UPARROW;
+			break;
+		case SDLK_ESCAPE:
+			key = K_ESCAPE;
+			break;
+		case SDLK_KP_ENTER:
+			key = K_KP_ENTER;
+			break;
+		case SDLK_RETURN:
+			key = K_ENTER;
+			break;
+		case SDLK_TAB:
+			key = K_TAB;
+			break;
+		case SDLK_F1:
+			key = K_F1;
+			break;
+		case SDLK_F2:
+			key = K_F2;
+			break;
+		case SDLK_F3:
+			key = K_F3;
+			break;
+		case SDLK_F4:
+			key = K_F4;
+			break;
+		case SDLK_F5:
+			key = K_F5;
+			break;
+		case SDLK_F6:
+			key = K_F6;
+			break;
+		case SDLK_F7:
+			key = K_F7;
+			break;
+		case SDLK_F8:
+			key = K_F8;
+			break;
+		case SDLK_F9:
+			key = K_F9;
+			break;
+		case SDLK_F10:
+			key = K_F10;
+			break;
+		case SDLK_F11:
+			key = K_F11;
+			break;
+		case SDLK_F12:
+			key = K_F12;
+			break;
+		case SDLK_F13:
+			key = K_F13;
+			break;
+		case SDLK_F14:
+			key = K_F14;
+			break;
+		case SDLK_F15:
+			key = K_F15;
+			break;
+		case SDLK_BACKSPACE:
+			key = K_BACKSPACE;
+			break;
+		case SDLK_KP_PERIOD:
+			key = K_KP_DEL;
+			break;
+		case SDLK_DELETE:
+			key = K_DEL;
+			break;
+		case SDLK_PAUSE:
+			key = K_PAUSE;
+			break;
+		case SDLK_LSHIFT:
+		case SDLK_RSHIFT:
+			key = K_SHIFT;
+			break;
+		case SDLK_LCTRL:
+		case SDLK_RCTRL:
+			key = K_CTRL;
+			break;
+		case SDLK_RMETA:
+		case SDLK_LMETA:
+			key = K_COMMAND;
+			break;
+		case SDLK_RALT:
+		case SDLK_LALT:
+			key = K_ALT;
+			break;
+		case SDLK_KP5:
+			key = K_KP_5;
+			break;
+		case SDLK_INSERT:
+			key = K_INS;
+			break;
+		case SDLK_KP0:
+			key = K_KP_INS;
+			break;
+		case SDLK_KP_MULTIPLY:
+			key = K_KP_STAR;
+			break;
+		case SDLK_KP_PLUS:
+			key = K_KP_PLUS;
+			break;
+		case SDLK_KP_MINUS:
+			key = K_KP_MINUS;
+			break;
+		case SDLK_KP_DIVIDE:
+			key = K_KP_SLASH;
+			break;
+		case SDLK_MODE:
+			key = K_MODE;
+			break;
+		case SDLK_COMPOSE:
+			key = K_COMPOSE;
+			break;
+		case SDLK_HELP:
+			key = K_HELP;
+			break;
+		case SDLK_PRINT:
+			key = K_PRINT;
+			break;
+		case SDLK_SYSREQ:
+			key = K_SYSREQ;
+			break;
+		case SDLK_MENU:
+			key = K_MENU;
+			break;
+		case SDLK_POWER:
+			key = K_POWER;
+			break;
+		case SDLK_UNDO:
+			key = K_UNDO;
+			break;
+		case SDLK_SCROLLOCK:
+			key = K_SCROLLOCK;
+			break;
+		case SDLK_NUMLOCK:
+			key = K_KP_NUMLOCK;
+			break;
+		case SDLK_CAPSLOCK:
+			key = K_CAPSLOCK;
+			break;
 
-			default:
-				break;
-		}
+		default:
+			break;
 	}
 
 	return key;
@@ -325,41 +306,34 @@ IN_Update(void)
 	SDL_Event event;
  	unsigned int key;
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_Keymod modstate;
-#else
-	SDLMod modstate;
-#endif
- 
 	/* Get and process an event */
 	while (SDL_PollEvent(&event))
 	{
 
 		switch (event.type)
 		{
-			/* The mouse wheel */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_MOUSEWHEEL:
-				in_state->Key_Event_fp((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), true);
-				in_state->Key_Event_fp((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), false);
+				Key_Event((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), true, true);
+				Key_Event((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), false, true);
 				break;
 #endif
 			case SDL_MOUSEBUTTONDOWN:
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
 				if (event.button.button == 4)
 				{
-					in_state->Key_Event_fp(K_MWHEELUP, true);
-					in_state->Key_Event_fp(K_MWHEELUP, false);
+					Key_Event(K_MWHEELUP, true, true);
+					Key_Event(K_MWHEELUP, false, true);
 					break;
 				}
 				else if (event.button.button == 5)
 				{
-					in_state->Key_Event_fp(K_MWHEELDOWN, true);
-					in_state->Key_Event_fp(K_MWHEELDOWN, false);
+					Key_Event(K_MWHEELDOWN, true, true);
+					Key_Event(K_MWHEELDOWN, false, true);
 					break;
 				}
 #endif
-
+				/* fall-through */
 			case SDL_MOUSEBUTTONUP:
 				switch( event.button.button )
 				{
@@ -382,98 +356,110 @@ IN_Update(void)
 						return;
 				}
 
-				in_state->Key_Event_fp(key, (event.type == SDL_MOUSEBUTTONDOWN));
+				Key_Event(key, (event.type == SDL_MOUSEBUTTONDOWN), true);
 				break;
 
 			case SDL_MOUSEMOTION:
+                if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
+                    mouse_x += event.motion.xrel;
+                    mouse_y += event.motion.yrel;
+                }
+				break;
+
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-				/* This is a hack to work around an unsuccessful
-				 * SDL_SetRelativeMouseMode(). This can happen if
-				 * some broken security software is blocking raw
-				 * input (to prevent keyloggers accessing the input
-				 * queue), or if - on Linux / Unix - XInput2 is not
-				 * available.
-				 * Since SDL_WarpMouseInWindow() injects a movement
-				 * event into the queue, we ignore events that move
-				 * the mouse exactly to the warp position. */
-				if (have_grab && !in_relativemode)
+			case SDL_TEXTINPUT:
+				if((event.text.text[0] >= ' ') &&
+				   (event.text.text[0] <= '~'))
 				{
-					int center_x = vid.width / 2;
-					int center_y = vid.height / 2;
-					if (event.motion.x == center_x && event.motion.y == center_y)
-					{
-						break;
-					}
-					SDL_WarpMouseInWindow(NULL, center_x, center_y);
+					Char_Event(event.text.text[0]);
+				}
+
+				break;
+#endif
+
+			case SDL_KEYDOWN:
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+				if ((event.key.keysym.unicode >= SDLK_SPACE) &&
+					 (event.key.keysym.unicode < SDLK_DELETE))
+				{
+					Char_Event(event.key.keysym.unicode);
 				}
 #endif
-				mouse_x += event.motion.xrel;
-				mouse_y += event.motion.yrel;
-				break;
-
-				/* The user pressed a button */
-			case SDL_KEYDOWN:
-				modstate = SDL_GetModState();
-
-				/* Fullscreen switch via Alt-Return */
-				if ((modstate & KMOD_ALT) && (event.key.keysym.sym == SDLK_RETURN))
-				{
-					GLimp_ToggleFullscreen();
-					break;
-				}
-
-				/* Make Shift+Escape toggle the console. This
-				   really belongs in Key_Event(), but since
-				   Key_ClearStates() can mess up the internal
-				   K_SHIFT state let's do it here instead. */
-				if ((modstate & KMOD_SHIFT) && (event.key.keysym.sym == SDLK_ESCAPE))
-				{
-					Cbuf_ExecuteText(EXEC_NOW, "toggleconsole");
-					break;
-				}
-
-				/* Get the pressed key and add it to the key list */
-				key = IN_TranslateSDLtoQ2Key(event.key.keysym.sym);
-
-				if (key)
-				{
-					in_state->Key_Event_fp(key, true);
-				}
-
-				break;
-
-				/* The user released a key */
+				/* fall-through */
 			case SDL_KEYUP:
+			{
+				qboolean down = (event.type == SDL_KEYDOWN);
 
-				/* Get the pressed key and remove it from the key list */
-				key = IN_TranslateSDLtoQ2Key(event.key.keysym.sym);
-
-				if (key)
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+				/* workaround for AZERTY-keyboards, which don't have 1, 2, ..., 9, 0 in first row:
+				 * always map those physical keys (scancodes) to those keycodes anyway
+				 * see also https://bugzilla.libsdl.org/show_bug.cgi?id=3188 */
+				SDL_Scancode sc = event.key.keysym.scancode;
+				if(sc >= SDL_SCANCODE_1 && sc <= SDL_SCANCODE_0)
 				{
-					in_state->Key_Event_fp(key, false);
+					/* Note that the SDL_SCANCODEs are SDL_SCANCODE_1, _2, ..., _9, SDL_SCANCODE_0
+					 * while in ASCII it's '0', '1', ..., '9' => handle 0 and 1-9 separately
+					 * (quake2 uses the ASCII values for those keys) */
+					int key = '0'; /* implicitly handles SDL_SCANCODE_0 */
+					if(sc <= SDL_SCANCODE_9)
+					{
+						key = '1' + (sc - SDL_SCANCODE_1);
+					}
+					Key_Event(key, down, false);
+				}
+				else
+#endif /* SDL2; (SDL1.2 doesn't have scancodes so nothing we can do there) */
+				   if((event.key.keysym.sym >= SDLK_SPACE) &&
+				      (event.key.keysym.sym < SDLK_DELETE))
+				{
+					Key_Event(event.key.keysym.sym, down, false);
+				}
+				else
+				{
+					Key_Event(IN_TranslateSDLtoQ2Key(event.key.keysym.sym), down, true);
+				}
+			}
+				break;
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+			case SDL_WINDOWEVENT:
+				if(event.window.event == SDL_WINDOWEVENT_FOCUS_LOST ||
+						event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
+				{
+					Key_MarkAllUp();
 				}
 
+#else /* SDL1.2 */
+			case SDL_ACTIVEEVENT:
+				if(event.active.gain == 0 && (event.active.state & SDL_APPINPUTFOCUS))
+				{
+					Key_MarkAllUp();
+				}
+#endif
 				break;
-		} 
+
+			case SDL_QUIT:
+				Com_Quit();
+				
+				break;
+		}
 	}
 
-	/* Grab and ungrab the mouse if the
-	 * console or the menu is opened */
+	/* Grab and ungrab the mouse if the* console or the menu is opened */
 	want_grab = (vid_fullscreen->value || in_grab->value == 1 ||
 			(in_grab->value == 2 && windowed_mouse->value));
-
-	if (have_grab != want_grab)
-	{
-		GLimp_GrabInput(want_grab);
-		have_grab = want_grab;
-	}
+	/* calling GLimp_GrabInput() each is a but ugly but simple and should work.
+	 * + the called SDL functions return after a cheap check, if there's
+	 * nothing to do, anyway
+	 */
+	GLimp_GrabInput(want_grab);
 }
  
 /*
  * Move handling
  */
 void
-IN_BackendMove(usercmd_t *cmd)
+IN_Move(usercmd_t *cmd)
 {
 	if (m_filter->value)
 	{
@@ -527,20 +513,18 @@ IN_BackendMove(usercmd_t *cmd)
 		}
 
 		/* add mouse X/Y movement to cmd */
-		if ((*in_state->in_strafe_state & 1) ||
-			(lookstrafe->value && mlooking))
+		if ((in_strafe.state & 1) || (lookstrafe->value && mlooking))
 		{
 			cmd->sidemove += m_side->value * mouse_x;
 		}
 		else
 		{
-			in_state->viewangles[YAW] -= m_yaw->value * mouse_x;
+			cl.viewangles[YAW] -= m_yaw->value * mouse_x;
 		}
 
-		if ((mlooking || freelook->value) &&
-			!(*in_state->in_strafe_state & 1))
+		if ((mlooking || freelook->value) && !(in_strafe.state & 1))
 		{
-			in_state->viewangles[PITCH] += m_pitch->value * mouse_y;
+			cl.viewangles[PITCH] += m_pitch->value * mouse_y;
 		}
 		else
 		{
@@ -552,15 +536,6 @@ IN_BackendMove(usercmd_t *cmd)
 }
  
 /* ------------------------------------------------------------------ */
-
-/*
- * Centers the view
- */
-static void
-IN_ForceCenterView(void)
-{
-	in_state->viewangles[PITCH] = 0;
-}
 
 /*
  * Look down
@@ -578,38 +553,19 @@ static void
 IN_MLookUp(void)
 {
 	mlooking = false;
-	in_state->IN_CenterView_fp();
+	IN_CenterView();
 }
 
 /* ------------------------------------------------------------------ */
 
 /*
- * Keyboard initialisation. Called by the client.
- */
-void
-IN_KeyboardInit(Key_Event_fp_t fp)
-{
-	Key_Event_fp = fp;
-
-	/* SDL stuff. Moved here from IN_BackendInit because
-	   this must be done after video is initialized. */
-	have_grab = GLimp_InputIsGrabbed();
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_SetRelativeMouseMode(have_grab ? SDL_TRUE : SDL_FALSE);
-	in_relativemode = (SDL_GetRelativeMouseMode() == SDL_TRUE);
-#else
-	SDL_EnableUNICODE(0);
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-#endif
-}
-
-/*
  * Initializes the backend
  */
 void
-IN_BackendInit(in_state_t *in_state_p)
+IN_Init(void)
 {
-	in_state = in_state_p;
+	Com_Printf("------- input initialization -------\n");
+
 	mouse_x = mouse_y = 0;
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
@@ -628,24 +584,28 @@ IN_BackendInit(in_state_t *in_state_p)
 
 	Cmd_AddCommand("+mlook", IN_MLookDown);
 	Cmd_AddCommand("-mlook", IN_MLookUp);
-	Cmd_AddCommand("force_centerview", IN_ForceCenterView);
 
-	VID_Printf(PRINT_ALL, "Input initialized.\n");
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_StartTextInput();
+#else
+	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+#endif
+
+	Com_Printf("------------------------------------\n\n");
 }
 
 /*
  * Shuts the backend down
  */
 void
-IN_BackendShutdown(void)
+IN_Shutdown(void)
 {
 	Cmd_RemoveCommand("force_centerview");
 	Cmd_RemoveCommand("+mlook");
 	Cmd_RemoveCommand("-mlook");
 
-	VID_Printf(PRINT_ALL, "Input shut down.\n");
+    Com_Printf("Shutting down input.\n");
 }
 
 /* ------------------------------------------------------------------ */
-
 

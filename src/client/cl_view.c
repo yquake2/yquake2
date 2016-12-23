@@ -31,11 +31,17 @@ int gun_frame;
 struct model_s *gun_model;
 
 cvar_t *crosshair;
+cvar_t *crosshair_3d;
+cvar_t *crosshair_3d_glow;
+
 cvar_t *crosshair_scale;
 cvar_t *cl_testparticles;
 cvar_t *cl_testentities;
 cvar_t *cl_testlights;
 cvar_t *cl_testblend;
+cvar_t *crosshair_3d_glow_r;
+cvar_t *crosshair_3d_glow_g;
+cvar_t *crosshair_3d_glow_b;
 
 cvar_t *cl_stats;
 
@@ -52,6 +58,8 @@ lightstyle_t r_lightstyles[MAX_LIGHTSTYLES];
 
 char cl_weaponmodels[MAX_CLIENTWEAPONMODELS][MAX_QPATH];
 int num_cl_weaponmodels;
+
+void V_Render3dCrosshair(void);
 
 /*
  * Specifies the model that will be used as the world
@@ -307,7 +315,7 @@ CL_PrepRefresh(void)
 		}
 	}
 
-	Com_Printf("images\r", i);
+	Com_Printf("images\r");
 	SCR_UpdateScreen();
 
 	for (i = 1; i < MAX_IMAGES && cl.configstrings[CS_IMAGES + i][0]; i++)
@@ -335,7 +343,7 @@ CL_PrepRefresh(void)
 	CL_LoadClientinfo(&cl.baseclientinfo, "unnamed\\male/grunt");
 
 	/* set sky textures and speed */
-	Com_Printf("sky\r", i);
+	Com_Printf("sky\r");
 	SCR_UpdateScreen();
 	rotate = (float)strtod(cl.configstrings[CS_SKYROTATE], (char **)NULL);
 	sscanf(cl.configstrings[CS_SKYAXIS], "%f %f %f", &axis[0], &axis[1], &axis[2]);
@@ -454,7 +462,7 @@ entitycmpfnc(const entity_t *a, const entity_t *b)
 	else
 	{
  		return (a->model == b->model) ? 0 :
-			(a->model > b->model) ? 1 : -1; 
+			(a->model > b->model) ? 1 : -1;
 	}
 }
 
@@ -494,6 +502,9 @@ V_RenderView(float stereo_separation)
 		   v_forward, etc. */
 		CL_AddEntities();
 
+		// before changing viewport we should trace the crosshair position
+		V_Render3dCrosshair();
+
 		if (cl_testparticles->value)
 		{
 			V_TestParticles();
@@ -519,6 +530,7 @@ V_RenderView(float stereo_separation)
 
 		/* offset vieworg appropriately if
 		   we're doing stereo separation */
+
 		if (stereo_separation != 0)
 		{
 			vec3_t tmp;
@@ -572,7 +584,19 @@ V_RenderView(float stereo_separation)
 		qsort(cl.refdef.entities, cl.refdef.num_entities,
 				sizeof(cl.refdef.entities[0]), (int (*)(const void *, const void *))
 				entitycmpfnc);
-	}
+	} else if (cl.frame.valid && cl_paused->value && gl_stereo->value) {
+		// We need to adjust the refdef in stereo mode when paused.  
+		vec3_t tmp;  
+		CL_CalcViewValues();  
+		VectorScale( cl.v_right, stereo_separation, tmp );  
+		VectorAdd( cl.refdef.vieworg, tmp, cl.refdef.vieworg );  
+		  
+		cl.refdef.vieworg[0] += 1.0/16;  
+		cl.refdef.vieworg[1] += 1.0/16;  
+		cl.refdef.vieworg[2] += 1.0/16;  
+
+		cl.refdef.time = cl.time*0.001;  
+	}  
 
 	cl.refdef.x = scr_vrect.x;
 	cl.refdef.y = scr_vrect.y;
@@ -602,6 +626,52 @@ V_RenderView(float stereo_separation)
 	SCR_DrawCrosshair();
 }
 
+void 
+V_Render3dCrosshair(void)
+{
+	trace_t crosshair_trace;
+	vec3_t end;
+
+	crosshair_3d = Cvar_Get("crosshair_3d", "0", CVAR_ARCHIVE);
+	crosshair_3d_glow = Cvar_Get("crosshair_3d_glow", "0", CVAR_ARCHIVE);
+	
+
+	if(crosshair_3d->value || crosshair_3d_glow->value){
+		VectorMA(cl.refdef.vieworg,8192,cl.v_forward,end);
+		crosshair_trace = CL_PMTrace(cl.refdef.vieworg, vec3_origin, vec3_origin, end);
+
+		if(crosshair_3d_glow->value){
+			crosshair_3d_glow_r = Cvar_Get("crosshair_3d_glow_r", "5", CVAR_ARCHIVE);
+			crosshair_3d_glow_g = Cvar_Get("crosshair_3d_glow_g", "1", CVAR_ARCHIVE);
+			crosshair_3d_glow_b = Cvar_Get("crosshair_3d_glow_b", "4", CVAR_ARCHIVE);
+
+			V_AddLight(
+				crosshair_trace.endpos, 
+				crosshair_3d_glow->value, 
+				crosshair_3d_glow_r->value, 
+				crosshair_3d_glow_g->value, 
+				crosshair_3d_glow_b->value
+			);
+		}
+
+		if(crosshair_3d->value){
+			entity_t crosshair_ent = {0};
+
+			crosshair_ent.origin[0] = crosshair_trace.endpos[0];
+			crosshair_ent.origin[1] = crosshair_trace.endpos[1];
+			crosshair_ent.origin[2] = crosshair_trace.endpos[2];
+
+			crosshair_ent.model = R_RegisterModel("models/crosshair/tris.md2");
+			//crosshair_ent.skin = R_RegisterSkin("models/crosshair/skin.pcx");
+
+			AngleVectors2(crosshair_trace.plane.normal, crosshair_ent.angles);
+			crosshair_ent.flags = RF_DEPTHHACK | RF_FULLBRIGHT | RF_NOSHADOW;
+
+			V_AddEntity(&crosshair_ent);
+		}
+	}
+}
+
 void
 V_Viewpos_f(void)
 {
@@ -620,7 +690,7 @@ V_Init(void)
 	Cmd_AddCommand("viewpos", V_Viewpos_f);
 
 	crosshair = Cvar_Get("crosshair", "0", CVAR_ARCHIVE);
-	crosshair_scale = Cvar_Get("crosshair_scale", "1", CVAR_ARCHIVE);
+	crosshair_scale = Cvar_Get("crosshair_scale", "-1", CVAR_ARCHIVE);
 	cl_testblend = Cvar_Get("cl_testblend", "0", 0);
 	cl_testparticles = Cvar_Get("cl_testparticles", "0", 0);
 	cl_testentities = Cvar_Get("cl_testentities", "0", 0);

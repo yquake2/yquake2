@@ -49,8 +49,8 @@ printBacktrace(int sig)
 
 	printf("Product:      Yamagi Quake II\n");
 	printf("Version:      %s\n", YQ2VERSION);
-	printf("Plattform:    %s\n", BUILDSTRING);
-	printf("Architecture: %s\n", CPUSTRING);
+	printf("Platform:     %s\n", YQ2OSTYPE);
+	printf("Architecture: %s\n", YQ2ARCH);
 	printf("Compiler:     %s\n", __VERSION__);
 	printf("Signal:       %i\n", sig);
 	printf("\nBacktrace:\n");
@@ -70,8 +70,8 @@ printBacktrace(int sig)
 {
 	printf("Product:      Yamagi Quake II\n");
 	printf("Version:      %s\n", YQ2VERSION);
-	printf("Plattform:    %s\n", BUILDSTRING);
-	printf("Architecture: %s\n", CPUSTRING);
+	printf("Platform:     %s\n", YQ2OSTYPE);
+	printf("Architecture: %s\n", YQ2ARCH);
 	printf("Compiler:     %s\n", __VERSION__);
 	printf("Signal:       %i\n", sig);
 	printf("\nBacktrace:\n");
@@ -97,7 +97,7 @@ signalhandler(int sig)
 	printf("    - game.so (the game.so of the mod you were playing\n");
 	printf("      when the game crashed. baseq2/game.so for the\n");
 	printf("      main game)\n\n");
-	printf(" - Any other data which you think might be usefull\n");
+	printf(" - Any other data which you think might be useful\n");
 	printf("\nThank you very much for your help, making Yamagi Quake\n");
 	printf("II an even better source port. It's much appreciated.\n");
 	printf("\n=======================================================\n\n");

@@ -418,6 +418,7 @@ CL_RequestNextDownload(void)
 
 	MSG_WriteByte(&cls.netchan.message, clc_stringcmd);
 	MSG_WriteString(&cls.netchan.message, va("begin %i\n", precache_spawncount));
+	cls.forcePacket = true;
 }
 
 void
@@ -445,12 +446,6 @@ CL_CheckOrDownloadFile(char *filename)
 	char name[MAX_OSPATH];
 	char *ptr;
 
-	if (strstr(filename, ".."))
-	{
-		Com_Printf("Refusing to download a path with ..\n");
-		return true;
-	}
-
 	/* fix backslashes - this is mostly für UNIX comaptiblity */
 	while ((ptr = strchr(filename, '\\')))
 	{
@@ -460,6 +455,12 @@ CL_CheckOrDownloadFile(char *filename)
 	if (FS_LoadFile(filename, NULL) != -1)
 	{
 		/* it exists, no need to download */
+		return true;
+	}
+
+	if (strstr(filename, "..") || strstr(filename, ":") || (*filename == '.') || (*filename == '/'))
+	{
+		Com_Printf("Refusing to download a path with ..: %s\n", filename);
 		return true;
 	}
 
@@ -500,6 +501,7 @@ CL_CheckOrDownloadFile(char *filename)
 	}
 
 	cls.downloadnumber++;
+	cls.forcePacket = true;
 
 	return false;
 }
@@ -606,6 +608,7 @@ CL_ParseDownload(void)
 
 		MSG_WriteByte(&cls.netchan.message, clc_stringcmd);
 		SZ_Print(&cls.netchan.message, "nextdl");
+		cls.forcePacket = true;
 	}
 	else
 	{

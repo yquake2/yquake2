@@ -216,6 +216,7 @@ Qcommon_Init(int argc, char **argv)
 	Cbuf_AddText("exec default.cfg\n");
 	Cbuf_AddText("exec yq2.cfg\n");
 	Cbuf_AddText("exec config.cfg\n");
+	Cbuf_AddText("exec autoexec.cfg\n");
 
 	Cbuf_AddEarlyCommands(true);
 	Cbuf_Execute();
@@ -241,7 +242,7 @@ Qcommon_Init(int argc, char **argv)
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET);
 #endif
 
-	s = va("%s %s %s %s", YQ2VERSION, CPUSTRING, __DATE__, BUILDSTRING);
+	s = va("%s %s %s %s", YQ2VERSION, YQ2ARCH, BUILD_DATE, YQ2OSTYPE);
 	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
 	if (dedicated->value)

@@ -56,6 +56,8 @@ cvar_t *s_khz;
 cvar_t *s_mixahead;
 cvar_t *s_show;
 cvar_t *s_ambient;
+cvar_t* s_underwater;
+cvar_t* s_underwater_gain_hf;
 
 channel_t channels[MAX_CHANNELS];
 int num_sfx;
@@ -70,6 +72,8 @@ sndstarted_t sound_started = SS_NOT;
 sound_t sound;
 static qboolean s_registering;
 
+qboolean snd_is_underwater;
+qboolean snd_is_underwater_enabled;
 /* ----------------------------------------------------------------- */
 
 /*
@@ -826,7 +830,6 @@ S_RawSamples(int samples, int rate, int width,
 #if USE_OPENAL
 	if (sound_started == SS_OAL)
 	{
-		volume = volume * (s_volume->value);
 		AL_RawSamples(samples, rate, width, channels, data, volume);
 	}
 	else
@@ -1015,6 +1018,8 @@ S_Init(void)
 	s_show = Cvar_Get("s_show", "0", 0);
 	s_testsound = Cvar_Get("s_testsound", "0", 0);
 	s_ambient = Cvar_Get("s_ambient", "1", 0);
+    s_underwater = Cvar_Get("s_underwater", "1", CVAR_ARCHIVE);
+    s_underwater_gain_hf = Cvar_Get("s_underwater_gain_hf", "0.25", CVAR_ARCHIVE);
 
 	Cmd_AddCommand("play", S_Play);
 	Cmd_AddCommand("stopsound", S_StopAllSounds);

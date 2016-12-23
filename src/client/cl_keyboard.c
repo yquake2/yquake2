@@ -28,6 +28,7 @@
  */
 
 #include "header/client.h"
+#include "refresh/header/local.h"
 
 static cvar_t *cfg_unbindall;
 
@@ -35,11 +36,8 @@ static cvar_t *cfg_unbindall;
  * key up events are sent even if in console mode
  */
 
-#define     MAXCMDLINE 256
-
-char key_lines[32][MAXCMDLINE];
+char key_lines[NUM_KEY_LINES][MAXCMDLINE];
 int key_linepos;
-int shift_down = false;
 int anykeydown;
 
 int edit_line = 0;
@@ -49,7 +47,6 @@ int key_waiting;
 char *keybindings[K_LAST];
 qboolean consolekeys[K_LAST]; /* if true, can't be rebound while in console */
 qboolean menubound[K_LAST]; /* if true, can't be rebound while in menu */
-int keyshift[K_LAST]; /* key to map to if shift held down in console */
 int key_repeats[K_LAST]; /* if > 1, it is autorepeating */
 qboolean keydown[K_LAST];
 
@@ -61,12 +58,20 @@ typedef struct
 	int keynum;
 } keyname_t;
 
+/* Translates internal key representations
+ * into human readable strings. */
 keyname_t keynames[] = {
 	{"TAB", K_TAB},
 	{"ENTER", K_ENTER},
 	{"ESCAPE", K_ESCAPE},
 	{"SPACE", K_SPACE},
 	{"BACKSPACE", K_BACKSPACE},
+
+	{"COMMAND", K_COMMAND},
+	{"CAPSLOCK", K_CAPSLOCK},
+	{"POWER", K_POWER},
+	{"PAUSE", K_PAUSE},
+
 	{"UPARROW", K_UPARROW},
 	{"DOWNARROW", K_DOWNARROW},
 	{"LEFTARROW", K_LEFTARROW},
@@ -161,6 +166,8 @@ keyname_t keynames[] = {
 	{NULL, 0}
 };
 
+/* ------------------------------------------------------------------ */
+
 void
 CompleteCommand(void)
 {
@@ -202,50 +209,31 @@ CompleteCommand(void)
 void
 Key_Console(int key)
 {
+	/*
+	 * Ignore keypad in console to prevent duplicate
+	 * entries through key presses processed as a
+	 * normal char event and additionally as key
+	 * event.
+	 */
 	switch (key)
 	{
 		case K_KP_SLASH:
-			key = '/';
-			break;
 		case K_KP_MINUS:
-			key = '-';
-			break;
 		case K_KP_PLUS:
-			key = '+';
-			break;
 		case K_KP_HOME:
-			key = '7';
-			break;
 		case K_KP_UPARROW:
-			key = '8';
-			break;
 		case K_KP_PGUP:
-			key = '9';
-			break;
 		case K_KP_LEFTARROW:
-			key = '4';
-			break;
 		case K_KP_5:
-			key = '5';
-			break;
 		case K_KP_RIGHTARROW:
-			key = '6';
-			break;
 		case K_KP_END:
-			key = '1';
-			break;
 		case K_KP_DOWNARROW:
-			key = '2';
-			break;
 		case K_KP_PGDN:
-			key = '3';
-			break;
 		case K_KP_INS:
-			key = '0';
-			break;
 		case K_KP_DEL:
-			key = '.';
+			return;
 			break;
+
 		default:
 			break;
 	}
@@ -274,7 +262,7 @@ Key_Console(int key)
 
 		Cbuf_AddText("\n");
 		Com_Printf("%s\n", key_lines[edit_line]);
-		edit_line = (edit_line + 1) & 31;
+		edit_line = (edit_line + 1) & (NUM_KEY_LINES-1);
 		history_line = edit_line;
 		key_lines[edit_line][0] = ']';
 		key_linepos = 1;
@@ -320,14 +308,14 @@ Key_Console(int key)
 	{
 		do
 		{
-			history_line = (history_line - 1) & 31;
+			history_line = (history_line - 1) & (NUM_KEY_LINES-1);
 		}
 		while (history_line != edit_line &&
 			   !key_lines[history_line][1]);
 
 		if (history_line == edit_line)
 		{
-			history_line = (edit_line + 1) & 31;
+			history_line = (edit_line + 1) & (NUM_KEY_LINES-1);
 		}
 
 		strcpy(key_lines[edit_line], key_lines[history_line]);
@@ -345,7 +333,7 @@ Key_Console(int key)
 
 		do
 		{
-			history_line = (history_line + 1) & 31;
+			history_line = (history_line + 1) & (NUM_KEY_LINES-1);
 		}
 		while (history_line != edit_line &&
 			   !key_lines[history_line][1]);
@@ -701,6 +689,10 @@ Key_Unbindall_f(void)
 	}
 }
 
+/* ugly hack, set in Cmd_ExecuteString() when yq2.cfg is executed
+ * (=> default.cfg is done) */
+extern qboolean doneWithDefaultCfg;
+
 void
 Key_Bind_f(void)
 {
@@ -720,6 +712,17 @@ Key_Bind_f(void)
 	if (b == -1)
 	{
 		Com_Printf("\"%s\" isn't a valid key\n", Cmd_Argv(1));
+		return;
+	}
+
+	/* don't allow binding escape or the special console keys */
+	if(b == K_ESCAPE || b == '^' || b == '`' || b == '~')
+	{
+		if(doneWithDefaultCfg)
+		{
+			/* don't warn about this when it's from default.cfg, we can't change that anyway */
+			Com_Printf("You can't bind the special key \"%s\"!\n", Cmd_Argv(1));
+		}
 		return;
 	}
 
@@ -778,6 +781,80 @@ Key_WriteBindings(FILE *f)
 }
 
 void
+Key_WriteConsoleHistory()
+{
+	int i;
+	char path[MAX_OSPATH];
+	Com_sprintf(path, sizeof(path), "%sconsole_history.txt", Sys_GetHomeDir());
+
+	FILE* f = fopen(path, "w");
+
+	if(f==NULL)
+	{
+		Com_Printf("Opening console history %s for writing failed!\n", path);
+		return;
+	}
+
+	// save the oldest lines first by starting at edit_line
+	// and going forward (and wrapping around)
+	const char* lastWrittenLine = "";
+	for(i=0; i<NUM_KEY_LINES; ++i)
+	{
+		int lineIdx = (edit_line+i) & (NUM_KEY_LINES-1);
+		const char* line = key_lines[lineIdx];
+
+		if(line[1] != '\0' && strcmp(lastWrittenLine, line ) != 0)
+		{
+			// if the line actually contains something besides the ] prompt,
+			// and is not identical to the last written line, write it to the file
+			fputs(line, f);
+			fputc('\n', f);
+
+			lastWrittenLine = line;
+		}
+	}
+
+	fclose(f);
+}
+
+/* initializes key_lines from history file, if available */
+void
+Key_ReadConsoleHistory()
+{
+	int i;
+
+	char path[MAX_OSPATH];
+	Com_sprintf(path, sizeof(path), "%sconsole_history.txt", Sys_GetHomeDir());
+
+	FILE* f = fopen(path, "r");
+	if(f==NULL)
+	{
+		Com_DPrintf("Opening console history %s for reading failed!\n", path);
+		return;
+	}
+
+	for (i = 0; i < NUM_KEY_LINES; i++)
+	{
+		if(fgets(key_lines[i], MAXCMDLINE, f) == NULL)
+		{
+			// probably EOF.. adjust edit_line and history_line and we're done here
+			edit_line = i;
+			history_line = i;
+			break;
+		}
+		// remove trailing newlines
+		int lastCharIdx = strlen(key_lines[i])-1;
+		while((key_lines[i][lastCharIdx] == '\n' || key_lines[i][lastCharIdx] == '\r') && lastCharIdx >= 0)
+		{
+			key_lines[i][lastCharIdx] = '\0';
+			--lastCharIdx;
+		}
+	}
+
+	fclose(f);
+}
+
+void
 Key_Bindlist_f(void)
 {
 	int i;
@@ -795,12 +872,12 @@ void
 Key_Init(void)
 {
 	int i;
-
-	for (i = 0; i < 32; i++)
+	for (i = 0; i < NUM_KEY_LINES; i++)
 	{
 		key_lines[i][0] = ']';
 		key_lines[i][1] = 0;
 	}
+	// can't call Key_ReadConsoleHistory() here because FS_Gamedir() isn't set yet
 
 	key_linepos = 1;
 
@@ -843,38 +920,6 @@ Key_Init(void)
 	consolekeys['~'] = false;
 	consolekeys['^'] = false;
 
-	for (i = 0; i < K_LAST; i++)
-	{
-		keyshift[i] = i;
-	}
-
-	for (i = 'a'; i <= 'z'; i++)
-	{
-		keyshift[i] = i - 'a' + 'A';
-	}
-
-	keyshift['1'] = '!';
-	keyshift['2'] = '@';
-	keyshift['3'] = '#';
-	keyshift['4'] = '$';
-	keyshift['5'] = '%';
-	keyshift['6'] = '^';
-	keyshift['7'] = '&';
-	keyshift['8'] = '*';
-	keyshift['9'] = '(';
-	keyshift['0'] = ')';
-	keyshift['-'] = '_';
-	keyshift['='] = '+';
-	keyshift[','] = '<';
-	keyshift['.'] = '>';
-	keyshift['/'] = '?';
-	keyshift[';'] = ':';
-	keyshift['\''] = '"';
-	keyshift['['] = '{';
-	keyshift[']'] = '}';
-	keyshift['`'] = '~';
-	keyshift['\\'] = '|';
-
 	menubound[K_ESCAPE] = true;
 
 	for (i = 0; i < 12; i++)
@@ -893,28 +938,67 @@ Key_Init(void)
 }
 
 /*
- * Called by the system between frames 
- * for both key up and key down events
- * Should NOT be called during an interrupt!
+ * Called every frame for every detected keypress.
+ * ASCII input for the console, the menu and the
+ * chat window are handled by this function.
+ * Anything else is handled by Key_Event().
  */
 void
-Key_Event(int key, qboolean down, unsigned time)
+Char_Event(int key)
 {
-	char *kb;
-	char cmd[1024];
-
-	/* hack for modal presses */
-	if (key_waiting == -1)
+	/* console key is hardcoded, so the user can never unbind it */
+	if ((key == '^') || (key == '~') || (key == '`'))
 	{
-		if (down)
-		{
-			key_waiting = key;
-		}
-
+		Con_ToggleConsole_f();
 		return;
 	}
 
-	/* update auto-repeat status */
+	switch (cls.key_dest)
+	{
+		/* Chat */
+		case key_message:
+			Key_Message(key);
+			break;
+
+		/* Menu */
+		case key_menu:
+			M_Keydown(key);
+			break;
+
+		/* Console */
+		case key_console:
+			Key_Console(key);
+			break;
+
+		/* Console is really open but key_dest is game anyway (not connected) */
+		case key_game:
+			if(cls.state == ca_disconnected || cls.state == ca_connecting)
+				Key_Console(key);
+
+			break;
+
+		default:
+			break;
+	}
+}
+
+/*
+ * Called every frame for every detected keypress.
+ * This is only for movement and special characters,
+ * anything else is handled by Char_Event().
+ */
+void
+Key_Event(int key, qboolean down, qboolean special)
+{
+	char cmd[1024];
+	char *kb;
+	cvar_t *fullscreen;
+	unsigned int time = Sys_Milliseconds();
+
+    /* Track if key is down */
+	keydown[key] = down;
+
+	/* Ignore most autorepeats */
 	if (down)
 	{
 		key_repeats[key]++;
@@ -927,13 +1011,7 @@ Key_Event(int key, qboolean down, unsigned time)
 			(key != K_KP_PGDN) &&
 			(key_repeats[key] > 1))
 		{
-			return; /* ignore most autorepeats */
-		}
-
-		if ((key >= 200) && !keybindings[key] && (cls.key_dest != key_console))
-		{
-			Com_Printf("%s is unbound, hit F4 to set.\n",
-					Key_KeynumToString(key));
+			return;
 		}
 	}
 	else
@@ -941,31 +1019,54 @@ Key_Event(int key, qboolean down, unsigned time)
 		key_repeats[key] = 0;
 	}
 
-	if (key == K_SHIFT)
+	/* Fullscreen switch through Alt + Return */
+	if (down && keydown[K_ALT] && key == K_ENTER)
 	{
-		shift_down = down;
-	}
+		fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 
-	/* console key is hardcoded, so the user can never unbind it */
-	if ((key == '^') || (key == '~') || (key == '`'))
-	{
-		if (!down)
+		if (!fullscreen->value)
 		{
-			return;
+			fullscreen->value = 1;
+			fullscreen->modified = true;
+		}
+		else
+		{
+			fullscreen->value = 0;
+			fullscreen->modified = true;
 		}
 
+		return;
+	}
+
+	/* Toogle console though Shift + Escape */
+	if (down && keydown[K_SHIFT] && key == K_ESCAPE)
+	{
 		Con_ToggleConsole_f();
 		return;
 	}
 
-	/* any key during the attract mode will bring up the menu */
+	/* Key is unbound */
+	if ((key >= 200) && !keybindings[key] && (cls.key_dest != key_console))
+	{
+		Com_Printf("%s is unbound, hit F4 to set.\n", Key_KeynumToString(key));
+	}
+
+    /* While in attract loop all keys besides F1 to F12 (to
+	   allow quick load and the like) are treated like escape. */
 	if (cl.attractloop && (cls.key_dest != key_menu) &&
 		!((key >= K_F1) && (key <= K_F12)))
 	{
 		key = K_ESCAPE;
 	}
 
-	/* menu key is hardcoded, so the user can never unbind it */
+	/* Escape has a special meaning. Depending on the situation it
+	   - pauses the game and breaks into the menu
+	   - stops the attract loop and breaks into the menu
+	   - closes the console and breaks into the menu
+	   - moves one menu level up
+	   - closes the menu
+	   - closes the help computer
+	   - closes the chat window */
 	if (!cls.disable_screen)
 	{
 		if (key == K_ESCAPE)
@@ -975,37 +1076,57 @@ Key_Event(int key, qboolean down, unsigned time)
 				return;
 			}
 
+			/* Close the help computer */
 			if (cl.frame.playerstate.stats[STAT_LAYOUTS] &&
 				(cls.key_dest == key_game))
 			{
-				/* put away help computer / inventory */
 				Cbuf_AddText("cmd putaway\n");
 				return;
 			}
 
 			switch (cls.key_dest)
 			{
+				/* Close chat window */
 				case key_message:
 					Key_Message(key);
 					break;
+
+				/* Close menu or one layer up */
 				case key_menu:
 					M_Keydown(key);
 					break;
+
+				/* Pause game and / or leave console,
+				   break into the menu. */
 				case key_game:
 				case key_console:
 					M_Menu_Main_f();
 					break;
-				default:
-					Com_Error(ERR_FATAL, "Bad cls.key_dest");
 			}
 
 			return;
 		}
 	}
 
-	/* track if any key is down for BUTTON_ANY */
-	keydown[key] = down;
+	/* This is one of the most ugly constructs I've
+	   found so far in Quake II. When the game is in
+	   the intermission, the player can press any key
+	   to end it and advance into the next level. It
+	   should be easy to figure out at server level if
+	   a button is pressed. But somehow the developers
+	   decided, that they'll need special move state
+	   BUTTON_ANY to solve this problem. So there's
+	   this global variable anykeydown. If it's not
+	   0, CL_FinishMove() encodes BUTTON_ANY into the
+	   button state. The server reads this value and
+	   sends it to gi->ClientThink() where it's used
+	   to determine if the intermission shall end.
+	   Needless to say that this is the only consumer
+	   of BUTTON_ANY.
 
+	   Since we cannot alter the network protocol nor
+	   the server <-> game API, I'll leave things alone
+	   and try to forget. */
 	if (down)
 	{
 		if (key_repeats[key] == 1)
@@ -1023,13 +1144,11 @@ Key_Event(int key, qboolean down, unsigned time)
 		}
 	}
 
-	/* key up events only generate commands if the
-	   game key binding is a button command (leading
-	   + sign). These will occur even in console mode,
-	   to keep the character from continuing an action
-	   started before a console switch. Button commands
-	   include the kenum as a parameter, so multiple
-	   downs can be matched with ups */
+	/* key up events only generate commands if the game key binding
+	   is a button command (leading+ sign). These will occur even in
+	   console mode, to keep the character from continuing an action
+	   started before a console switch. Button commands include the
+	   kenum as a parameter, so multiple downs can be matched with ups */
 	if (!down)
 	{
 		kb = keybindings[key];
@@ -1040,25 +1159,12 @@ Key_Event(int key, qboolean down, unsigned time)
 			Cbuf_AddText(cmd);
 		}
 
-		if (keyshift[key] != key)
-		{
-			kb = keybindings[keyshift[key]];
-
-			if (kb && (kb[0] == '+'))
-			{
-				Com_sprintf(cmd, sizeof(cmd), "-%s %i %i\n", kb + 1, key, time);
-				Cbuf_AddText(cmd);
-			}
-		}
-
 		return;
 	}
-
-	/* if not a consolekey, send to the interpreter no matter what mode is */
-	if (((cls.key_dest == key_menu) && menubound[key]) ||
-		((cls.key_dest == key_console) && !consolekeys[key]) ||
-		((cls.key_dest == key_game) &&
-		 ((cls.state == ca_active) || !consolekeys[key])))
+	else if (((cls.key_dest == key_menu) && menubound[key]) ||
+			((cls.key_dest == key_console) && !consolekeys[key]) ||
+			((cls.key_dest == key_game) && ((cls.state == ca_active) ||
+			  !consolekeys[key])))
 	{
 		kb = keybindings[key];
 
@@ -1080,63 +1186,52 @@ Key_Event(int key, qboolean down, unsigned time)
 		return;
 	}
 
+	/* All input subsystems handled after this
+	   point only care for key down events. */
 	if (!down)
 	{
-		return; /* other systems only care about key down events */
+		return;
 	}
 
-	if (shift_down)
+	/* Everything that's not a special char
+	   is processed by Char_Event(). */
+	if (!special)
 	{
-		key = keyshift[key];
+		return;
 	}
 
+	/* Send key to the active input subsystem */
 	switch (cls.key_dest)
 	{
+		/* Chat */
 		case key_message:
 			Key_Message(key);
 			break;
+
+		/* Menu */
 		case key_menu:
 			M_Keydown(key);
 			break;
 
+		/* Console */
 		case key_game:
 		case key_console:
 			Key_Console(key);
 			break;
-		default:
-			Com_Error(ERR_FATAL, "Bad cls.key_dest");
 	}
 }
 
+/*
+ * Marks all keys as "up"
+ */
 void
-Key_ClearStates(void)
+Key_MarkAllUp(void)
 {
-	int i;
+	int key;
 
-	anykeydown = false;
-
-	for (i = 0; i < K_LAST; i++)
+	for (key = 0; key < K_LAST; key++)
 	{
-		if (keydown[i] || key_repeats[i])
-		{
-			Key_Event(i, false, 0);
-		}
-
-		keydown[i] = 0;
-		key_repeats[i] = 0;
+		key_repeats[key] = 0;
+		keydown[key] = 0;
 	}
 }
-
-int
-Key_GetKey(void)
-{
-	key_waiting = -1;
-
-	while (key_waiting == -1)
-	{
-		Sys_SendKeyEvents();
-	}
-
-	return key_waiting;
-}
-

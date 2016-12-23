@@ -43,11 +43,11 @@ qboolean R_Upload8(byte *data, int width, int height,
 		qboolean mipmap, qboolean is_sky);
 qboolean R_Upload32(unsigned *data, int width, int height, qboolean mipmap);
 
-int gl_solid_format = 3;
-int gl_alpha_format = 4;
+int gl_solid_format = GL_RGB;
+int gl_alpha_format = GL_RGBA;
 
-int gl_tex_solid_format = 3;
-int gl_tex_alpha_format = 4;
+int gl_tex_solid_format = GL_RGB;
+int gl_tex_alpha_format = GL_RGBA;
 
 int gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int gl_filter_max = GL_LINEAR;
@@ -78,7 +78,7 @@ typedef struct
 } gltmode_t;
 
 gltmode_t gl_alpha_modes[] = {
-	{"default", 4},
+	{"default", GL_RGBA},
 	{"GL_RGBA", GL_RGBA},
 	{"GL_RGBA8", GL_RGBA8},
 	{"GL_RGB5_A1", GL_RGB5_A1},
@@ -89,15 +89,12 @@ gltmode_t gl_alpha_modes[] = {
 #define NUM_GL_ALPHA_MODES (sizeof(gl_alpha_modes) / sizeof(gltmode_t))
 
 gltmode_t gl_solid_modes[] = {
-	{"default", 3},
+	{"default", GL_RGB},
 	{"GL_RGB", GL_RGB},
 	{"GL_RGB8", GL_RGB8},
 	{"GL_RGB5", GL_RGB5},
 	{"GL_RGB4", GL_RGB4},
 	{"GL_R3_G3_B2", GL_R3_G3_B2},
-#ifdef GL_RGB2_EXT
-	{"GL_RGB2", GL_RGB2_EXT},
-#endif
 };
 
 #define NUM_GL_SOLID_MODES (sizeof(gl_solid_modes) / sizeof(gltmode_t))
@@ -134,7 +131,7 @@ R_SetTexturePalette(unsigned palette[256])
 	int i;
 	unsigned char temptable[768];
 
-	if (qglColorTableEXT && gl_ext_palettedtexture->value)
+	if (gl_config.palettedtexture)
 	{
 		for (i = 0; i < 256; i++)
 		{
@@ -145,64 +142,6 @@ R_SetTexturePalette(unsigned palette[256])
 
 		qglColorTableEXT(GL_SHARED_TEXTURE_PALETTE_EXT, GL_RGB,
 				256, GL_RGB, GL_UNSIGNED_BYTE, temptable);
-	}
-}
-
-void
-R_EnableMultitexture(qboolean enable)
-{
-	if (!qglActiveTextureARB)
-	{
-		return;
-	}
-
-	if (enable)
-	{
-		R_SelectTexture(GL_TEXTURE1_ARB);
-		glEnable(GL_TEXTURE_2D);
-		R_TexEnv(GL_REPLACE);
-	}
-	else
-	{
-		R_SelectTexture(GL_TEXTURE1_ARB);
-		glDisable(GL_TEXTURE_2D);
-		R_TexEnv(GL_REPLACE);
-	}
-
-	R_SelectTexture(GL_TEXTURE0_ARB);
-	R_TexEnv(GL_REPLACE);
-}
-
-void
-R_SelectTexture(GLenum texture)
-{
-	int tmu;
-
-	if (!qglActiveTextureARB)
-	{
-		return;
-	}
-
-	if (texture == GL_TEXTURE0_ARB)
-	{
-		tmu = 0;
-	}
-	else
-	{
-		tmu = 1;
-	}
-
-	if (tmu == gl_state.currenttmu)
-	{
-		return;
-	}
-
-	gl_state.currenttmu = tmu;
-
-	if (qglActiveTextureARB)
-	{
-		qglActiveTextureARB(texture);
-		qglClientActiveTextureARB(texture);
 	}
 }
 
@@ -235,29 +174,6 @@ R_Bind(int texnum)
 
 	gl_state.currenttextures[gl_state.currenttmu] = texnum;
 	glBindTexture(GL_TEXTURE_2D, texnum);
-}
-
-void
-R_MBind(GLenum target, int texnum)
-{
-	R_SelectTexture(target);
-
-	if (target == GL_TEXTURE0_ARB)
-	{
-		if (gl_state.currenttextures[0] == texnum)
-		{
-			return;
-		}
-	}
-	else
-	{
-		if (gl_state.currenttextures[1] == texnum)
-		{
-			return;
-		}
-	}
-
-	R_Bind(texnum);
 }
 
 void
@@ -625,8 +541,49 @@ R_BuildPalettedTexture(unsigned char *paletted_texture, unsigned char *scaled,
 	}
 }
 
+// Windows headers don't define this constant.
+#ifndef GL_GENERATE_MIPMAP
+#define GL_GENERATE_MIPMAP 0x8191
+#endif
+
 qboolean
-R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
+R_Upload32Native(unsigned *data, int width, int height, qboolean mipmap)
+{
+	// This is for GL 2.x so no palettes, no scaling, no messing around with the data here. :)
+	int samples;
+	int i, c;
+	byte *scan;
+	int comp;
+
+	c = width * height;
+	scan = ((byte *)data) + 3;
+	samples = gl_solid_format;
+	comp = gl_tex_solid_format;
+	upload_width = width;
+	upload_height = height;
+
+	R_LightScaleTexture(data, upload_width, upload_height, !mipmap);
+
+	for (i = 0; i < c; i++, scan += 4)
+	{
+		if (*scan != 255)
+		{
+			samples = gl_alpha_format;
+			comp = gl_tex_alpha_format;
+			break;
+		}
+	}
+    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, mipmap);
+	glTexImage2D(GL_TEXTURE_2D, 0, comp, width,
+			height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+			data);
+    glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, false);
+	return samples == gl_alpha_format;
+}
+
+
+qboolean
+R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 {
 	int samples;
 	unsigned scaled[256 * 256];
@@ -696,36 +653,23 @@ R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 	c = width * height;
 	scan = ((byte *)data) + 3;
 	samples = gl_solid_format;
+	comp = gl_tex_solid_format;
 
 	for (i = 0; i < c; i++, scan += 4)
 	{
 		if (*scan != 255)
 		{
 			samples = gl_alpha_format;
+			comp = gl_tex_alpha_format;
 			break;
 		}
-	}
-
-	if (samples == gl_solid_format)
-	{
-		comp = gl_tex_solid_format;
-	}
-	else if (samples == gl_alpha_format)
-	{
-		comp = gl_tex_alpha_format;
-	}
-	else
-	{
-		VID_Printf(PRINT_ALL, "Unknown number of texture components %i\n",
-				samples);
-		comp = samples;
 	}
 
 	if ((scaled_width == width) && (scaled_height == height))
 	{
 		if (!mipmap)
 		{
-			if (qglColorTableEXT && gl_ext_palettedtexture->value &&
+			if (qglColorTableEXT && gl_palettedtexture->value &&
 				(samples == gl_solid_format))
 			{
 				uploaded_paletted = true;
@@ -755,7 +699,7 @@ R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 
 	R_LightScaleTexture(scaled, scaled_width, scaled_height, !mipmap);
 
-	if (qglColorTableEXT && gl_ext_palettedtexture->value &&
+	if (qglColorTableEXT && gl_palettedtexture->value &&
 		(samples == gl_solid_format))
 	{
 		uploaded_paletted = true;
@@ -796,7 +740,7 @@ R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 
 			miplevel++;
 
-			if (qglColorTableEXT && gl_ext_palettedtexture->value &&
+			if (qglColorTableEXT && gl_palettedtexture->value &&
 				(samples == gl_solid_format))
 			{
 				uploaded_paletted = true;
@@ -816,6 +760,23 @@ R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 
 done:
 
+	return samples == gl_alpha_format;
+}
+
+qboolean
+R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
+{
+	qboolean res;
+
+	if (gl_config.npottextures)
+	{
+		res = R_Upload32Native(data, width, height, mipmap);
+	}
+	else
+	{
+		res = R_Upload32Soft(data, width, height, mipmap);
+	}
+
 	if (mipmap)
 	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
@@ -832,9 +793,9 @@ done:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
 				gl_anisotropic->value);
 	}
-
-	return samples == gl_alpha_format;
+	return res;
 }
+
 
 /*
  * Returns has_alpha
@@ -853,7 +814,7 @@ R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 		VID_Error(ERR_DROP, "R_Upload8: too large");
 	}
 
-	if (qglColorTableEXT && gl_ext_palettedtexture->value && is_sky)
+	if (gl_config.palettedtexture && is_sky)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_COLOR_INDEX8_EXT,
 				width, height, 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE,
@@ -916,6 +877,7 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 {
 	image_t *image;
 	int i;
+	qboolean nolerp = (strstr(Cvar_VariableString("gl_nolerp_list"), name) != NULL);
 
 	/* find a free image_t */
 	for (i = 0, image = gltextures; i < numgltextures; i++, image++)
@@ -956,7 +918,7 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 	}
 
 	/* load little pics into the scrap */
-	if ((image->type == it_pic) && (bits == 8) &&
+	if (!nolerp && (image->type == it_pic) && (bits == 8) &&
 		(image->width < 64) && (image->height < 64))
 	{
 		int x, y;
@@ -1033,6 +995,12 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 		image->sh = 1;
 		image->tl = 0;
 		image->th = 1;
+
+		if (nolerp)
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
 	}
 
 	return image;
@@ -1050,13 +1018,18 @@ R_FindImage(char *name, imagetype_t type)
 	int width, height;
 	char *ptr;
 	char namewe[256];
-
-#ifdef RETEXTURE
 	int realwidth = 0, realheight = 0;
-#endif
+	const char* ext;
 
 	if (!name)
 	{
+		return NULL;
+	}
+
+	ext = COM_FileExtension(name);
+	if(!ext[0])
+	{
+		/* file has no extension */
 		return NULL;
 	}
 
@@ -1091,32 +1064,29 @@ R_FindImage(char *name, imagetype_t type)
 	pic = NULL;
 	palette = NULL;
 
-	if (!strcmp(name + len - 4, ".pcx"))
+	if (strcmp(ext, "pcx") == 0)
 	{
-#ifdef RETEXTURE
-
 		if (gl_retexturing->value)
 		{
 			GetPCXInfo(name, &realwidth, &realheight);
-
-			/* Try to load a TGA */
-			LoadTGA(namewe, &pic, &width, &height);
-
-			if (!pic)
+			if(realwidth == 0)
 			{
-				/* JPEG if no TGA available */
-				LoadJPG(namewe, &pic, &width, &height);
+				/* No texture found */
+				return NULL;
+			}
+
+			/* try to load a tga, png or jpg (in that order/priority) */
+			if (  LoadSTB(namewe, "tga", &pic, &width, &height)
+			   || LoadSTB(namewe, "png", &pic, &width, &height)
+			   || LoadSTB(namewe, "jpg", &pic, &width, &height) )
+			{
+				/* upload tga or png or jpg */
+				image = R_LoadPic(name, pic, width, realwidth, height,
+						realheight, type, 32);
 			}
 			else
 			{
-				/* Upload TGA */
-				R_LoadPic(name, pic, width, realwidth, height,
-						realheight, type, 32);
-			}
-
-			if (!pic)
-			{
-				/* PCX if no JPEG available (exists always) */
+				/* PCX if no TGA/PNG/JPEG available (exists always) */
 				LoadPCX(name, &pic, &palette, &width, &height);
 
 				if (!pic)
@@ -1128,15 +1098,8 @@ R_FindImage(char *name, imagetype_t type)
 				/* Upload the PCX */
 				image = R_LoadPic(name, pic, width, 0, height, 0, type, 8);
 			}
-			else
-			{
-				/* Upload JPEG or TGA */
-				image = R_LoadPic(name, pic, width, realwidth,
-						height, realheight, type, 32);
-			}
 		}
-		else
-#endif
+		else /* gl_retexture is not set */
 		{
 			LoadPCX(name, &pic, &palette, &width, &height);
 
@@ -1148,40 +1111,31 @@ R_FindImage(char *name, imagetype_t type)
 			image = R_LoadPic(name, pic, width, 0, height, 0, type, 8);
 		}
 	}
-	else if (!strcmp(name + len - 4, ".wal"))
+	else if (strcmp(ext, "wal") == 0)
 	{
-#ifdef RETEXTURE
-
 		if (gl_retexturing->value)
 		{
 			/* Get size of the original texture */
 			GetWalInfo(name, &realwidth, &realheight);
-
-			/* Try to load a TGA */
-			LoadTGA(namewe, &pic, &width, &height);
-
-			if (!pic)
+			if(realwidth == 0)
 			{
-				/* JPEG if no TGA available */
-				LoadJPG(namewe, &pic, &width, &height);
+				/* No texture found */
+				return NULL;
 			}
-			else
+
+			/* try to load a tga, png or jpg (in that order/priority) */
+			if (  LoadSTB(namewe, "tga", &pic, &width, &height)
+			   || LoadSTB(namewe, "png", &pic, &width, &height)
+			   || LoadSTB(namewe, "jpg", &pic, &width, &height) )
 			{
-				/* Upload TGA */
-				R_LoadPic(name, pic, width, realwidth, height,
+				/* upload tga or png or jpg */
+				image = R_LoadPic(name, pic, width, realwidth, height,
 						realheight, type, 32);
 			}
-
-			if (!pic)
-			{
-				/* WAL of no JPEG available (exists always) */
-				image = LoadWal(namewe);
-			}
 			else
 			{
-				/* Upload JPEG or TGA */
-				image = R_LoadPic(name, pic, width, realwidth,
-						height, realheight, type, 32);
+				/* WAL if no TGA/PNG/JPEG available (exists always) */
+				image = LoadWal(namewe);
 			}
 
 			if (!image)
@@ -1190,8 +1144,7 @@ R_FindImage(char *name, imagetype_t type)
 				return NULL;
 			}
 		}
-		else
-#endif
+		else /* gl_retexture is not set */
 		{
 			image = LoadWal(name);
 
@@ -1202,21 +1155,33 @@ R_FindImage(char *name, imagetype_t type)
 			}
 		}
 	}
+	else if (strcmp(ext, "tga") == 0 || strcmp(ext, "png") == 0 || strcmp(ext, "jpg") == 0)
+	{
+		char tmp_name[256];
 
-#ifdef RETEXTURE
-	else if (!strcmp(name + len - 4, ".tga"))
-	{
-		LoadTGA(name, &pic, &width, &height);
-		image = R_LoadPic(name, pic, width, realwidth,
-				height, realwidth, type, 32);
-	}
-	else if (!strcmp(name + len - 4, ".jpg"))
-	{
-		LoadJPG(name, &pic, &width, &height);
+		realwidth = 0;
+		realheight = 0;
+
+		strcpy(tmp_name, namewe);
+		strcat(tmp_name, ".wal");
+		GetWalInfo(tmp_name, &realwidth, &realheight);
+
+		if (realwidth == 0 || realheight == 0) {
+			/* It's a sky or model skin. */
+			strcpy(tmp_name, namewe);
+			strcat(tmp_name, ".pcx");
+			GetPCXInfo(tmp_name, &realwidth, &realheight);
+		}
+
+		/* TODO: not sure if not having realwidth/heigth is bad - a tga/png/jpg
+		 * was requested, after all, so there might be no corresponding wal/pcx?
+		 * if (realwidth == 0 || realheight == 0) return NULL;
+		 */
+
+		LoadSTB(name, ext, &pic, &width, &height);
 		image = R_LoadPic(name, pic, width, realwidth,
 				height, realheight, type, 32);
 	}
-#endif
 	else
 	{
 		return NULL;
@@ -1283,7 +1248,8 @@ void
 R_InitImages(void)
 {
 	int i, j;
-	float g = vid_gamma->value;
+	// use 1/gamma so higher value is brighter, to match HW gamma settings
+	float g = 1.0f/vid_gamma->value;
 
 	registration_sequence = 1;
 
@@ -1299,7 +1265,7 @@ R_InitImages(void)
 
 	Draw_GetPalette();
 
-	if (qglColorTableEXT)
+	if (gl_config.palettedtexture)
 	{
 		FS_LoadFile("pics/16to8.dat", (void **)&gl_state.d_16to8table);
 

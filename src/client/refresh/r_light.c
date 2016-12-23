@@ -39,39 +39,51 @@ R_RenderDlight(dlight_t *light)
 {
 	int i, j;
 	float a;
-	vec3_t v;
 	float rad;
 
 	rad = light->intensity * 0.35;
 
-	VectorSubtract(light->origin, r_origin, v);
+	GLfloat vtx[3*18];
+	GLfloat clr[4*18];
 
-	glBegin(GL_TRIANGLE_FAN);
-	glColor3f(light->color[0] * 0.2, light->color[1] * 0.2,
-			light->color[2] * 0.2);
+	unsigned int index_vtx = 4;
+	unsigned int index_clr = 0;
 
-	for (i = 0; i < 3; i++)
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_COLOR_ARRAY );
+
+	clr[index_clr++] = light->color [ 0 ] * 0.2;
+	clr[index_clr++] = light->color [ 1 ] * 0.2;
+	clr[index_clr++] = light->color [ 2 ] * 0.2;
+	clr[index_clr++] = 1;
+
+	for ( i = 0; i < 3; i++ )
 	{
-		v[i] = light->origin[i] - vpn[i] * rad;
+		vtx [ i ] = light->origin [ i ] - vpn [ i ] * rad;
 	}
 
-	glVertex3fv(v);
-	glColor3f(0, 0, 0);
-
-	for (i = 16; i >= 0; i--)
+	for ( i = 16; i >= 0; i-- )
 	{
+		clr[index_clr++] = 0;
+		clr[index_clr++] = 0;
+		clr[index_clr++] = 0;
+		clr[index_clr++] = 1;
+
 		a = i / 16.0 * M_PI * 2;
 
-		for (j = 0; j < 3; j++)
+		for ( j = 0; j < 3; j++ )
 		{
-			v[j] = light->origin[j] + vright[j] * cos(a) * rad
-				   + vup[j] * sin(a) * rad;
+			vtx[index_vtx++] = light->origin [ j ] + vright [ j ] * cos( a ) * rad
+				+ vup [ j ] * sin( a ) * rad;
 		}
-
-		glVertex3fv(v);
 	}
 
-	glEnd();
+	glVertexPointer( 3, GL_FLOAT, 0, vtx );
+	glColorPointer( 4, GL_FLOAT, 0, clr );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 18 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_COLOR_ARRAY );
 }
 
 void
@@ -101,7 +113,7 @@ R_RenderDlights(void)
 		R_RenderDlight(l);
 	}
 
-	glColor3f(1, 1, 1);
+	glColor4f(1, 1, 1, 1);
 	glDisable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

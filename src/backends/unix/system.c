@@ -65,28 +65,8 @@ extern FILE	*logfile;
 static qboolean
 CompareAttributes(char *path, char *name, unsigned musthave, unsigned canthave)
 {
-	struct stat st;
-	char fn[MAX_OSPATH];
-
 	/* . and .. never match */
 	if ((strcmp(name, ".") == 0) || (strcmp(name, "..") == 0))
-	{
-		return false;
-	}
-
-	return true;
-
-	if (stat(fn, &st) == -1)
-	{
-		return false; /* shouldn't happen */
-	}
-
-	if ((st.st_mode & S_IFDIR) && (canthave & SFF_SUBDIR))
-	{
-		return false;
-	}
-
-	if ((musthave & SFF_SUBDIR) && !(st.st_mode & S_IFDIR))
 	{
 		return false;
 	}
@@ -117,6 +97,12 @@ Sys_Milliseconds(void)
 	curtime = (tp.tv_sec - secbase) * 1000 + tp.tv_usec / 1000;
 
 	return curtime;
+}
+
+void
+Sys_Sleep(int msec)
+{
+	usleep((unsigned int)1000 * msec);
 }
 
 void
@@ -388,7 +374,11 @@ Sys_GetGameAPI(void *parms)
 	char name[MAX_OSPATH];
 	char *path;
 	char *str_p;
-	const char *gamename = "game.so";
+    #ifdef __APPLE__
+        const char *gamename = "game.dylib";
+    #else
+        const char *gamename = "game.so";
+    #endif
 
 	setreuid(getuid(), getuid());
 	setegid(getgid());
@@ -496,7 +486,21 @@ Sys_GetHomeDir(void)
 void *
 Sys_GetProcAddress(void *handle, const char *sym)
 {
-	return dlsym(handle, sym);
+    if (handle == NULL)
+    {
+#ifdef RTLD_DEFAULT
+        return dlsym(RTLD_DEFAULT, sym);
+#else
+        /* POSIX suggests that this is a portable equivalent */
+        static void *global_namespace = NULL;
+
+        if (global_namespace == NULL)
+            global_namespace = dlopen(NULL, RTLD_GLOBAL|RTLD_LAZY);
+
+        return dlsym(global_namespace, sym);
+#endif
+    }
+    return dlsym(handle, sym);
 }
 
 void *

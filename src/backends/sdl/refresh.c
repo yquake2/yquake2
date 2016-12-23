@@ -41,18 +41,13 @@
 #include <GL/gl.h>
 #endif
 
-#if defined(_WIN32) || defined(__APPLE__)
 #ifdef SDL2
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_video.h>
+
 #else // SDL1.2
 #include <SDL/SDL.h>
 #endif //SDL2
-#else // not _WIN32 || APPLE
-#include <SDL.h>
-#endif // _WIN32 || APPLE
-
-/* The window icon */
-#include "icon/q2icon.xbm"
 
 /* X.org stuff */
 #ifdef X11GAMMA
@@ -66,7 +61,6 @@
 #endif
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-extern qboolean in_relativemode;
 SDL_Window* window = NULL;
 SDL_GLContext context = NULL;
 #else
@@ -74,6 +68,7 @@ SDL_Surface* window = NULL;
 #endif
 
 qboolean have_stencil = false;
+qboolean vsync_active;
 
 #ifdef X11GAMMA
 XRRCrtcGamma** gammaRamps = NULL;
@@ -127,6 +122,44 @@ GLimp_GetProcAddress (const char* proc)
 /*
  * Sets the window icon
  */
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+
+/* The 64x64 32bit window icon */
+#include "icon/q2icon64.h"
+
+static void
+SetSDLIcon()
+{
+	/* these masks are needed to tell SDL_CreateRGBSurface(From)
+	   to assume the data it gets is byte-wise RGB(A) data */
+	Uint32 rmask, gmask, bmask, amask;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+	int shift = (q2icon64.bytes_per_pixel == 3) ? 8 : 0;
+	rmask = 0xff000000 >> shift;
+	gmask = 0x00ff0000 >> shift;
+	bmask = 0x0000ff00 >> shift;
+	amask = 0x000000ff >> shift;
+#else /* little endian, like x86 */
+	rmask = 0x000000ff;
+	gmask = 0x0000ff00;
+	bmask = 0x00ff0000;
+	amask = (q2icon64.bytes_per_pixel == 3) ? 0 : 0xff000000;
+#endif
+
+	SDL_Surface* icon = SDL_CreateRGBSurfaceFrom((void*)q2icon64.pixel_data, q2icon64.width,
+		q2icon64.height, q2icon64.bytes_per_pixel*8, q2icon64.bytes_per_pixel*q2icon64.width,
+		rmask, gmask, bmask, amask);
+
+	SDL_SetWindowIcon(window, icon);
+
+	SDL_FreeSurface(icon);
+}
+
+#else /* SDL 1.2 */
+
+/* The window icon */
+#include "icon/q2icon.xbm"
+
 static void
 SetSDLIcon()
 {
@@ -152,23 +185,11 @@ SetSDLIcon()
 	transColor.b = 255;
 
 	solidColor.r = 0;
-	solidColor.g = 16;
+	solidColor.g = 0;
 	solidColor.b = 0;
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	// only SDL2 has alphas there and they must be set apparently
-	transColor.a = 0;
-	solidColor.a = 255;
-
-	SDL_Palette* palette = SDL_AllocPalette(256);
-	SDL_SetPaletteColors(palette, &transColor, 0, 1);
-	SDL_SetPaletteColors(palette, &solidColor, 1, 1);
-
-	SDL_SetSurfacePalette(icon, palette);
-#else
 	SDL_SetColors(icon, &transColor, 0, 1);
 	SDL_SetColors(icon, &solidColor, 1, 1);
-#endif
 
 	ptr = (Uint8 *)icon->pixels;
 
@@ -180,15 +201,12 @@ SetSDLIcon()
 			ptr++;
 		}
 	}
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_SetWindowIcon(window, icon);
-	SDL_FreePalette(palette);
-#else
+
 	SDL_WM_SetIcon(icon, NULL);
-#endif
 
 	SDL_FreeSurface(icon);
 }
+#endif /* SDL 1.2 */
 
 /*
  *  from SDL2 SDL_CalculateGammaRamp, adjusted for arbitrary ramp sizes
@@ -344,6 +362,7 @@ static qboolean CreateSDLWindow(int flags)
 	return true;
 #else
 	window = SDL_SetVideoMode(vid.width, vid.height, 0, flags);
+	SDL_EnableUNICODE(SDL_TRUE);
 	return window != NULL;
 #endif
 }
@@ -426,7 +445,10 @@ static void InitGamma()
 	XRRFreeScreenResources(res);
 
 	VID_Printf(PRINT_ALL, "Using hardware gamma via X11/xRandR.\n");
-
+#elif __APPLE__
+	gl_state.hwgamma = false;
+	VID_Printf(PRINT_ALL, "Using software gamma (needs vid_restart after changes)\n");
+	return;
 #else
 	VID_Printf(PRINT_ALL, "Using hardware gamma via SDL.\n");
 #endif
@@ -510,7 +532,13 @@ GLimp_InitGraphics(qboolean fullscreen)
 		/* If we want fullscreen, but aren't */
 		if (fullscreen != IsFullscreen())
 		{
-			GLimp_ToggleFullscreen();
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+			SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+#else
+			SDL_WM_ToggleFullScreen(window);
+#endif
+
+			Cvar_SetValue("vid_fullscreen", fullscreen);
 		}
 
 		/* Are we now? */
@@ -577,6 +605,7 @@ GLimp_InitGraphics(qboolean fullscreen)
 
 	/* Set vsync */
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, gl_swapinterval->value ? 1 : 0);
+	vsync_active = gl_swapinterval->value ? true : false;
 #endif
 
 	while (1)
@@ -636,6 +665,7 @@ GLimp_InitGraphics(qboolean fullscreen)
 
 	/* Set vsync - TODO: -1 could be set for "late swap tearing" */
 	SDL_GL_SetSwapInterval(gl_swapinterval->value ? 1 : 0);
+	vsync_active = gl_swapinterval->value ? true : false;
 #endif
 
 	/* Initialize the stencil buffer */
@@ -706,53 +736,53 @@ GLimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen)
 }
 
 /*
- * Toggle fullscreen.
- */
-void GLimp_ToggleFullscreen(void)
-{
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	int wantFullscreen = !IsFullscreen();
-
-	SDL_SetWindowFullscreen(window, wantFullscreen ? SDL_WINDOW_FULLSCREEN : 0);
-	Cvar_SetValue("vid_fullscreen", wantFullscreen);
-#else
-	SDL_WM_ToggleFullScreen(window);
-
-	if (IsFullscreen())
-	{
-		Cvar_SetValue("vid_fullscreen", 1);
-	}
-	else
-	{
-		Cvar_SetValue("vid_fullscreen", 0);
-	}
-#endif
-	vid_fullscreen->modified = false;
-}
-
-/*
  * (Un)grab Input
  */
 void GLimp_GrabInput(qboolean grab)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_SetWindowGrab(window, grab ? SDL_TRUE : SDL_FALSE);
-	SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
-	in_relativemode = (SDL_GetRelativeMouseMode() == SDL_TRUE);
+	if(window != NULL)
+	{
+		SDL_SetWindowGrab(window, grab ? SDL_TRUE : SDL_FALSE);
+	}
+	if(SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE) < 0)
+	{
+		VID_Printf(PRINT_ALL, "WARNING: Setting Relative Mousemode failed, reason: %s\n", SDL_GetError());
+		VID_Printf(PRINT_ALL, "         You should probably update to SDL 2.0.3 or newer!\n");
+	}
 #else
 	SDL_WM_GrabInput(grab ? SDL_GRAB_ON : SDL_GRAB_OFF);
 #endif
 }
 
 /*
- * returns true if input is grabbed, else false
+ * Returns the VSync state.
  */
-qboolean GLimp_InputIsGrabbed()
+qboolean GLimp_VsyncEnabled(void)
+{
+	return vsync_active;
+}
+
+/*
+ * Returns the current display refresh rate.
+ */
+int GLimp_GetRefreshRate(void)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	return SDL_GetWindowGrab(window) ? true : false;
+	int i;
+	int refresh = 0;
+	SDL_DisplayMode mode;
+
+	for (i = 0; i < SDL_GetNumVideoDisplays(); ++i)
+	{
+		SDL_GetCurrentDisplayMode(i, &mode);
+		refresh = refresh < mode.refresh_rate ? mode.refresh_rate : refresh;
+	}
+
+	return refresh;
 #else
-	return (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON);
+	// Asume 60hz.
+	return 60
 #endif
 }
 
@@ -780,6 +810,9 @@ GLimp_Shutdown(void)
 
 	if (window)
 	{
+		/* cleanly ungrab input (needs window) */
+		GLimp_GrabInput(false);
+
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 		if(context)
 		{

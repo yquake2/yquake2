@@ -45,9 +45,6 @@
 
 #define GL_SHARED_TEXTURE_PALETTE_EXT 0x81FB
 
-#define GL_TEXTURE0_SGIS 0x835E
-#define GL_TEXTURE1_SGIS 0x835F
-
 #define GL_POINT_SIZE_MIN_EXT 0x8126
 #define GL_POINT_SIZE_MAX_EXT 0x8127
 #define GL_DISTANCE_ATTENUATION_EXT 0x8129
@@ -96,7 +93,7 @@
 #define GL_OPERAND7_ALPHA_EXT 0x859F
 #endif
 
-/* QGL main functions */
+// =======================================================================
 
 /*
  * This is responsible for setting up our QGL extension pointers
@@ -109,15 +106,10 @@ qboolean QGL_Init ( void );
 void QGL_Shutdown ( void );
 
 /* GL extensions */
-extern void ( APIENTRY *qglPointParameterfEXT ) ( GLenum param, GLfloat value );
-extern void ( APIENTRY *qglPointParameterfvEXT ) ( GLenum param,
+extern void ( APIENTRY *qglPointParameterfARB ) ( GLenum param, GLfloat value );
+extern void ( APIENTRY *qglPointParameterfvARB ) ( GLenum param,
 		const GLfloat *value );
 extern void ( APIENTRY *qglColorTableEXT ) ( GLenum, GLenum, GLsizei, GLenum,
 		GLenum, const GLvoid * );
-extern void ( APIENTRY *qglLockArraysEXT ) ( int, int );
-extern void ( APIENTRY *qglUnlockArraysEXT ) ( void );
-extern void ( APIENTRY *qglMultiTexCoord2fARB) ( GLenum, GLfloat, GLfloat );
-extern void ( APIENTRY *qglActiveTextureARB ) ( GLenum );
-extern void ( APIENTRY *qglClientActiveTextureARB ) ( GLenum );
 
 #endif

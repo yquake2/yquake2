@@ -2266,7 +2266,10 @@ ClientThink(edict_t *ent, usercmd_t *ucmd)
 		for (i = 0; i < 3; i++)
 		{
 			pm.s.origin[i] = ent->s.origin[i] * 8;
-			pm.s.velocity[i] = ent->velocity[i] * 8;
+			/* save to an int first, in case the short overflows
+			 * so we get defined behavior (at least with -fwrapv) */
+			int tmpVel = ent->velocity[i] * 8;
+			pm.s.velocity[i] = tmpVel;
 		}
 
 		if (memcmp(&client->old_pmove, &pm.s, sizeof(pm.s)))

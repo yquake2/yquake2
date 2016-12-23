@@ -137,7 +137,7 @@ PlayerNoise(edict_t *who, vec3_t where, int type)
 	VectorCopy(where, noise->s.origin);
 	VectorSubtract(where, noise->maxs, noise->absmin);
 	VectorAdd(where, noise->maxs, noise->absmax);
-	noise->teleport_time = level.time;
+	noise->last_sound_time = level.time;
 	gi.linkentity(noise);
 }
 

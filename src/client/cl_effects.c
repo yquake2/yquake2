@@ -341,7 +341,8 @@ CL_AddMuzzleFlash2(void)
 
 	if (flash_number > 210)
 	{
-		Com_Error(ERR_DROP, "CL_AddMuzzleFlash2: bad offset");
+		Com_DPrintf("CL_AddMuzzleFlash2: bad offset");
+		return;
 	}
 
 	/* locate the origin */

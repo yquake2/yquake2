@@ -51,6 +51,8 @@ cvar_t *scr_graphshift;
 cvar_t *scr_drawall;
 
 cvar_t *gl_hudscale; /* named for consistency with R1Q2 */
+cvar_t *gl_consolescale;
+cvar_t *gl_menuscale;
 
 typedef struct
 {
@@ -250,21 +252,25 @@ SCR_DrawCenterString(void)
 	int j;
 	int x, y;
 	int remaining;
+	float scale;
+    const int char_unscaled_width  = 8;
+    const int char_unscaled_height = 8;
 
 	/* the finale prints the characters one at a time */
 	remaining = 9999;
 
 	scr_erase_center = 0;
 	start = scr_centerstring;
+	scale = SCR_GetConsoleScale();
 
 	if (scr_center_lines <= 4)
 	{
-		y = viddef.height * 0.35;
+		y = (viddef.height * 0.35) / scale;
 	}
 
 	else
 	{
-		y = 48;
+		y = 48 / scale;
 	}
 
 	do
@@ -278,12 +284,12 @@ SCR_DrawCenterString(void)
 			}
 		}
 
-		x = (viddef.width - l * 8) / 2;
+		x = ((viddef.width / scale) - (l * char_unscaled_width)) / 2;
 		SCR_AddDirtyPoint(x, y);
 
-		for (j = 0; j < l; j++, x += 8)
+		for (j = 0; j < l; j++, x += char_unscaled_width)
 		{
-			Draw_Char(x, y, start[j]);
+			Draw_CharScaled(x * scale, y * scale, start[j], scale);
 
 			if (!remaining--)
 			{
@@ -291,9 +297,9 @@ SCR_DrawCenterString(void)
 			}
 		}
 
-		SCR_AddDirtyPoint(x, y + 8);
+		SCR_AddDirtyPoint(x, y + char_unscaled_height);
 
-		y += 8;
+		y += char_unscaled_height;
 
 		while (*start && *start != '\n')
 		{
@@ -313,7 +319,7 @@ SCR_DrawCenterString(void)
 void
 SCR_CheckDrawCenterString(void)
 {
-	scr_centertime_off -= cls.frametime;
+	scr_centertime_off -= cls.rframetime;
 
 	if (scr_centertime_off <= 0)
 	{
@@ -428,7 +434,9 @@ SCR_Init(void)
 	scr_graphscale = Cvar_Get("graphscale", "1", 0);
 	scr_graphshift = Cvar_Get("graphshift", "0", 0);
 	scr_drawall = Cvar_Get("scr_drawall", "0", 0);
-	gl_hudscale = Cvar_Get("gl_hudscale", "1", CVAR_ARCHIVE);
+	gl_hudscale = Cvar_Get("gl_hudscale", "-1", CVAR_ARCHIVE);
+	gl_consolescale = Cvar_Get("gl_consolescale", "-1", CVAR_ARCHIVE);
+	gl_menuscale = Cvar_Get("gl_menuscale", "-1", CVAR_ARCHIVE);
 
 	/* register our commands */
 	Cmd_AddCommand("timerefresh", SCR_TimeRefresh_f);
@@ -443,18 +451,21 @@ SCR_Init(void)
 void
 SCR_DrawNet(void)
 {
+	float scale = SCR_GetMenuScale();
+
 	if (cls.netchan.outgoing_sequence - cls.netchan.incoming_acknowledged < CMD_BACKUP - 1)
 	{
 		return;
 	}
 
-	Draw_Pic(scr_vrect.x + 64, scr_vrect.y, "net");
+	Draw_PicScaled(scr_vrect.x + 64 * scale, scr_vrect.y, "net", scale);
 }
 
 void
 SCR_DrawPause(void)
 {
 	int w, h;
+	float scale = SCR_GetMenuScale();
 
 	if (!scr_showpause->value) /* turn off for screenshots */
 	{
@@ -467,22 +478,22 @@ SCR_DrawPause(void)
 	}
 
 	Draw_GetPicSize(&w, &h, "pause");
-	Draw_Pic((viddef.width - w) / 2, viddef.height / 2 + 8, "pause");
+	Draw_PicScaled((viddef.width - w * scale) / 2, viddef.height / 2 + 8 * scale, "pause", scale);
 }
 
 void
 SCR_DrawLoading(void)
 {
 	int w, h;
+	float scale = SCR_GetMenuScale();
 
 	if (!scr_draw_loading)
 	{
 		return;
 	}
 
-	scr_draw_loading = false;
 	Draw_GetPicSize(&w, &h, "loading");
-	Draw_Pic((viddef.width - w) / 2, (viddef.height - h) / 2, "loading");
+	Draw_PicScaled((viddef.width - w * scale) / 2, (viddef.height - h * scale) / 2, "loading", scale);
 }
 
 /*
@@ -503,7 +514,7 @@ SCR_RunConsole(void)
 
 	if (scr_conlines < scr_con_current)
 	{
-		scr_con_current -= scr_conspeed->value * cls.frametime;
+		scr_con_current -= scr_conspeed->value * cls.rframetime;
 
 		if (scr_conlines > scr_con_current)
 		{
@@ -512,7 +523,7 @@ SCR_RunConsole(void)
 	}
 	else if (scr_conlines > scr_con_current)
 	{
-		scr_con_current += scr_conspeed->value * cls.frametime;
+		scr_con_current += scr_conspeed->value * cls.rframetime;
 
 		if (scr_conlines < scr_con_current)
 		{
@@ -597,6 +608,9 @@ SCR_BeginLoadingPlaque(void)
 	}
 
 	SCR_UpdateScreen();
+
+	scr_draw_loading = false;
+
 	SCR_StopCinematic();
 	cls.disable_screen = Sys_Milliseconds();
 	cls.disable_servercount = cl.servercount;
@@ -1409,6 +1423,7 @@ SCR_UpdateScreen(void)
 	int numframes;
 	int i;
 	float separation[2] = {0, 0};
+	float scale = SCR_GetMenuScale();
 
 	/* if the screen is disabled (loading plaque is
 	   up, or vid mode changing) do nothing at all */
@@ -1428,9 +1443,18 @@ SCR_UpdateScreen(void)
 		return; /* not initialized yet */
 	}
 
-	separation[0] = 0;
-	separation[1] = 0;
-	numframes = 1;
+	if ( gl_stereo->value )
+	{
+		numframes = 2;
+		separation[0] = -gl_stereo_separation->value / 2;
+		separation[1] = +gl_stereo_separation->value / 2;
+	}		
+	else
+	{
+		separation[0] = 0;
+		separation[1] = 0;
+		numframes = 1;
+	}
 
 	for (i = 0; i < numframes; i++)
 	{
@@ -1441,10 +1465,16 @@ SCR_UpdateScreen(void)
 			/* loading plaque over black screen */
 			int w, h;
 
-			R_SetPalette(NULL);
-			scr_draw_loading = false;
+			if(i == 0){
+				R_SetPalette(NULL);
+			}
+
+			if(i == numframes - 1){
+				scr_draw_loading = false;
+			}
+
 			Draw_GetPicSize(&w, &h, "loading");
-			Draw_Pic((viddef.width - w) / 2, (viddef.height - h) / 2, "loading");
+			Draw_PicScaled((viddef.width - w * scale) / 2, (viddef.height - h * scale) / 2, "loading", scale);
 		}
 
 		/* if a cinematic is supposed to be running,
@@ -1511,13 +1541,13 @@ SCR_UpdateScreen(void)
 			if (cl_drawfps->value)
 			{
 				char s[8];
-				sprintf(s, "%3.0ffps", 1 / cls.frametime);
+				sprintf(s, "%3.0ffps", 1 / cls.rframetime);
 				DrawString(viddef.width - 64, 0, s);
 			}
 
 			if (scr_timegraph->value)
 			{
-				SCR_DebugGraph(cls.frametime * 300, 0);
+				SCR_DebugGraph(cls.rframetime * 300, 0);
 			}
 
 			if (scr_debuggraph->value || scr_timegraph->value ||
@@ -1539,9 +1569,54 @@ SCR_UpdateScreen(void)
 	GLimp_EndFrame();
 }
 
+static float
+SCR_ClampScale(float scale)
+{
+	float f;
+
+	f = viddef.width / 320.0f;
+	if (scale > f)
+	{
+		scale = f;
+	}
+
+	f = viddef.height / 240.0f;
+	if (scale > f)
+	{
+		scale = f;
+	}
+
+	if (scale < 1)
+	{
+		scale = 1;
+	}
+
+	return scale;
+}
+
+static float
+SCR_GetDefaultScale(void)
+{
+	int i = viddef.width / 640;
+	int j = viddef.height / 240;
+
+	if (i > j)
+	{
+		i = j;
+	}
+	if (i < 1)
+	{
+		i = 1;
+	}
+
+	return i;
+}
+
 void
 SCR_DrawCrosshair(void)
 {
+	float scale;
+
 	if (!crosshair->value)
 	{
 		return;
@@ -1553,29 +1628,23 @@ SCR_DrawCrosshair(void)
 		SCR_TouchPics();
 	}
 
-	if (crosshair_scale->modified)
-	{
-		crosshair_scale->modified = false;
-
-		if (crosshair_scale->value > 5)
-		{
-			Cvar_SetValue("crosshair_scale", 5);
-		}
-
-		else if (crosshair_scale->value < 0.25)
-		{
-			Cvar_SetValue("crosshair_scale", 0.25);
-		}
-	}
-
 	if (!crosshair_pic[0])
 	{
 		return;
 	}
 
-	Draw_Pic(scr_vrect.x + ((scr_vrect.width - crosshair_width) >> 1),
-			scr_vrect.y + ((scr_vrect.height - crosshair_height) >> 1),
-			crosshair_pic);
+	if (crosshair_scale->value < 0)
+	{
+		scale = SCR_GetDefaultScale();
+	}
+	else
+	{
+		scale = SCR_ClampScale(crosshair_scale->value);
+	}
+
+	Draw_PicScaled(scr_vrect.x + (scr_vrect.width - crosshair_width * scale) / 2,
+			scr_vrect.y + (scr_vrect.height - crosshair_height * scale) / 2,
+			crosshair_pic, scale);
 }
 
 float
@@ -1583,27 +1652,64 @@ SCR_GetHUDScale(void)
 {
 	float scale;
 
-	if (gl_hudscale->value < 0)
+	if (!scr_initialized)
 	{
-		int i = viddef.width / 640;
-		int j = viddef.height / 240;
-
-		if (i > j)
-		{
-			i = j;
-		}
-		if (i < 1)
-		{
-			i = 1;
-		}
-
-		scale = i;
+		scale = 1;
+	}
+	else if (gl_hudscale->value < 0)
+	{
+		scale = SCR_GetDefaultScale();
+	}
+	else if (gl_hudscale->value == 0) /* HACK: allow scale 0 to hide the HUD */
+	{
+		scale = 0;
 	}
 	else
 	{
-		scale = gl_hudscale->value;
+		scale = SCR_ClampScale(gl_hudscale->value);
 	}
 
 	return scale;
 }
 
+float
+SCR_GetConsoleScale(void)
+{
+	float scale;
+
+	if (!scr_initialized)
+	{
+		scale = 1;
+	}
+	else if (gl_consolescale->value < 0)
+	{
+		scale = SCR_GetDefaultScale();
+	}
+	else
+	{
+		scale = SCR_ClampScale(gl_consolescale->value);
+	}
+
+	return scale;
+}
+
+float
+SCR_GetMenuScale(void)
+{
+	float scale;
+
+	if (!scr_initialized)
+	{
+		scale = 1;
+	}
+	else if (gl_menuscale->value < 0)
+	{
+		scale = SCR_GetDefaultScale();
+	}
+	else
+	{
+		scale = SCR_ClampScale(gl_menuscale->value);
+	}
+
+	return scale;
+}

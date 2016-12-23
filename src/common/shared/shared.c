@@ -321,9 +321,6 @@ anglemod(float a)
 	return a;
 }
 
-int i;
-vec3_t corners[2];
-
 /*
  * This is the slow, general version
  */
@@ -668,31 +665,17 @@ COM_StripExtension(char *in, char *out)
 	*out = 0;
 }
 
-char *
-COM_FileExtension(char *in)
+const char *
+COM_FileExtension(const char *in)
 {
-	static char exten[8];
-	int i;
+	const char *ext = strrchr(in, '.');
 
-	while (*in && *in != '.')
-	{
-		in++;
-	}
-
-	if (!*in)
+	if (!ext || ext == in)
 	{
 		return "";
 	}
 
-	in++;
-
-	for (i = 0; i < 7 && *in; i++, in++)
-	{
-		exten[i] = *in;
-	}
-
-	exten[i] = 0;
-	return exten;
+	return ext + 1;
 }
 
 void
@@ -1288,7 +1271,7 @@ Info_RemoveKey(char *s, char *key)
 
 		if (!strcmp(key, pkey))
 		{
-			strcpy(start, s); /* remove this part */
+			memmove(start, s, strlen(s) + 1); /* remove this part */
 			return;
 		}
 

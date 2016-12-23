@@ -327,6 +327,11 @@ ED_NewString(const char *string)
 	char *newb, *new_p;
 	int i, l;
 
+	if (!string)
+	{
+		return NULL;
+	}
+
 	l = strlen(string) + 1;
 
 	newb = gi.TagMalloc(l, TAG_LEVEL);
@@ -376,7 +381,7 @@ ED_ParseField(const char *key, const char *value, edict_t *ent)
 
 	for (f = fields; f->name; f++)
 	{
-		if (!(f->flags & FFL_NOSPAWN) && !Q_stricmp(f->name, key))
+		if (!(f->flags & FFL_NOSPAWN) && !Q_strcasecmp(f->name, (char *)key))
 		{
 			/* found it */
 			if (f->flags & FFL_SPAWNTEMP)
@@ -403,10 +408,10 @@ ED_ParseField(const char *key, const char *value, edict_t *ent)
 					*(int *)(b + f->ofs) = (int)strtol(value, (char **)NULL, 10);
 					break;
 				case F_FLOAT:
-					*(float *)(b + f->ofs) = strtod(value, (char **)NULL);
+					*(float *)(b + f->ofs) = (float)strtod(value, (char **)NULL);
 					break;
 				case F_ANGLEHACK:
-					v = strtod(value, (char **)NULL);
+					v = (float)strtod(value, (char **)NULL);
 					((float *)(b + f->ofs))[0] = 0;
 					((float *)(b + f->ofs))[1] = v;
 					((float *)(b + f->ofs))[2] = 0;
@@ -435,6 +440,11 @@ ED_ParseEdict(char *data, edict_t *ent)
 	qboolean init;
 	char keyname[256];
 	const char *com_token;
+
+	if (!ent)
+	{
+		return NULL;
+	}
 
 	init = false;
 	memset(&st, 0, sizeof(st));
@@ -572,6 +582,7 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 	const char *com_token;
 	int i;
 	float skill_level;
+	static qboolean monster_count_city3 = false;
 
 	if (!mapname || !entities || !spawnpoint)
 	{
@@ -647,6 +658,21 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 		   	!Q_stricmp(ent->model, "*27"))
 		{
 			ent->spawnflags &= ~SPAWNFLAG_NOT_HARD;
+		}
+
+		/*
+		 * The 'monsters' count in city3.bsp is wrong.
+		 * There're two monsters triggered in a hidden
+		 * and unreachable room next to the security
+		 * pass.
+		 *
+		 * We need to make sure that this hack is only
+		 * applied once!
+		 */
+		if(!Q_stricmp(level.mapname, "city3") && !monster_count_city3)
+		{
+			level.total_monsters = level.total_monsters - 2;
+			monster_count_city3 = true;
 		}
 
 		/* remove things (except the world) from
@@ -961,20 +987,23 @@ SP_worldspawn(edict_t *ent)
 	gi.soundindex("*pain100_1.wav");
 	gi.soundindex("*pain100_2.wav");
 
-	/* sexed models you can add more, max 15
-	   THIS ORDER MUST MATCH THE DEFINES IN
-	   g_local.h  */
-	gi.modelindex("#w_blaster.md2");
-	gi.modelindex("#w_shotgun.md2");
-	gi.modelindex("#w_sshotgun.md2");
-	gi.modelindex("#w_machinegun.md2");
-	gi.modelindex("#w_chaingun.md2");
-	gi.modelindex("#a_grenades.md2");
-	gi.modelindex("#w_glauncher.md2");
-	gi.modelindex("#w_rlauncher.md2");
-	gi.modelindex("#w_hyperblaster.md2");
-	gi.modelindex("#w_railgun.md2");
-	gi.modelindex("#w_bfg.md2");
+	/* sexed models: THIS ORDER MUST MATCH THE DEFINES IN g_local.h
+	   you can add more, max 19 (pete change)these models are only
+	   loaded in coop or deathmatch. not singleplayer. */
+	if (coop->value || deathmatch->value)
+	{
+		gi.modelindex("#w_blaster.md2");
+		gi.modelindex("#w_shotgun.md2");
+		gi.modelindex("#w_sshotgun.md2");
+		gi.modelindex("#w_machinegun.md2");
+		gi.modelindex("#w_chaingun.md2");
+		gi.modelindex("#a_grenades.md2");
+		gi.modelindex("#w_glauncher.md2");
+		gi.modelindex("#w_rlauncher.md2");
+		gi.modelindex("#w_hyperblaster.md2");
+		gi.modelindex("#w_railgun.md2");
+		gi.modelindex("#w_bfg.md2");
+	}
 
 	/* ------------------- */
 

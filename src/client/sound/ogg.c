@@ -31,7 +31,9 @@
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
 
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
 #include <errno.h>
 #include <vorbis/vorbisfile.h>
 
@@ -54,6 +56,7 @@ cvar_t *ogg_check;				/* Check Ogg files or not. */
 cvar_t *ogg_playlist;			/* Playlist. */
 cvar_t *ogg_sequence;			/* Sequence play indicator. */
 cvar_t *ogg_volume;				/* Music volume. */
+cvar_t *ogg_ignoretrack0;		/* Toggle track 0 playing */
 OggVorbis_File ovFile;			/* Ogg Vorbis file. */
 vorbis_info *ogg_info;			/* Ogg Vorbis file information */
 int ogg_numbufs;				/* Number of buffers for OpenAL */
@@ -93,6 +96,7 @@ OGG_Init(void)
 	ogg_playlist = Cvar_Get("ogg_playlist", "playlist", CVAR_ARCHIVE);
 	ogg_sequence = Cvar_Get("ogg_sequence", "loop", CVAR_ARCHIVE);
 	ogg_volume = Cvar_Get("ogg_volume", "0.7", CVAR_ARCHIVE);
+	ogg_ignoretrack0 = Cvar_Get("ogg_ignoretrack0", "0", CVAR_ARCHIVE);
 
 	/* Console commands. */
 	Cmd_AddCommand("ogg_list", OGG_ListCmd);
@@ -495,8 +499,8 @@ OGG_OpenName(char *filename)
 	char *name; /* File name. */
 	int i;		/* Loop counter. */
 
-	/* If the track name is '00', stop playback */
-	if (!strncmp(filename, "00", sizeof(char) * 3))
+	/* If the track name is '00', and ogg_ignoretrack0 is set to 0, stop playback */
+	if ((!strncmp(filename, "00", sizeof(char) * 3)) && ogg_ignoretrack0->value == 0)
 	{
 		OGG_PauseCmd();
 		return false;

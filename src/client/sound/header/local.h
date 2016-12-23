@@ -164,6 +164,8 @@ extern cvar_t *s_show;
 extern cvar_t *s_mixahead;
 extern cvar_t *s_testsound;
 extern cvar_t *s_ambient;
+extern cvar_t* s_underwater;
+extern cvar_t* s_underwater_gain_hf;
 
 /*
  * Globals
@@ -180,6 +182,9 @@ extern vec3_t listener_origin;
 extern vec3_t listener_forward;
 extern vec3_t listener_right;
 extern vec3_t listener_up;
+
+extern qboolean snd_is_underwater;
+extern qboolean snd_is_underwater_enabled;
 
 /*
  * Returns the header infos

@@ -41,12 +41,12 @@ SV_WipeSavegame(char *savename)
 
 	Com_sprintf(name, sizeof(name), "%s/save/%s/server.ssv",
 				FS_Gamedir(), savename);
-	
+
 	remove(name);
 
 	Com_sprintf(name, sizeof(name), "%s/save/%s/game.ssv",
 				FS_Gamedir(), savename);
-	
+
 	remove(name);
 
 	Com_sprintf(name, sizeof(name), "%s/save/%s/*.sav", FS_Gamedir(), savename);
@@ -194,7 +194,7 @@ SV_ReadLevelFile(void)
 	Com_DPrintf("SV_ReadLevelFile()\n");
 
 	Com_sprintf(name, sizeof(name), "save/current/%s.sv2", sv.name);
-	FS_FOpenFile(name, &f, FS_READ);
+	FS_FOpenFile(name, &f, true);
 
 	if (!f)
 	{
@@ -262,23 +262,23 @@ SV_WriteServerFile(qboolean autosave)
 	   skill, deathmatch, etc */
 	for (var = cvar_vars; var; var = var->next)
 	{
+		char cvarname[LATCH_CVAR_SAVELENGTH] = {0};
 		if (!(var->flags & CVAR_LATCH))
 		{
 			continue;
 		}
 
-		if ((strlen(var->name) >= sizeof(name) - 1) ||
+		if ((strlen(var->name) >= sizeof(cvarname) - 1) ||
 			(strlen(var->string) >= sizeof(string) - 1))
 		{
 			Com_Printf("Cvar too long: %s = %s\n", var->name, var->string);
 			continue;
 		}
 
-		memset(name, 0, sizeof(name));
 		memset(string, 0, sizeof(string));
-		strcpy(name, var->name);
+		strcpy(cvarname, var->name);
 		strcpy(string, var->string);
-		fwrite(name, 1, sizeof(name), f);
+		fwrite(cvarname, 1, sizeof(cvarname), f);
 		fwrite(string, 1, sizeof(string), f);
 	}
 
@@ -300,7 +300,7 @@ SV_ReadServerFile(void)
 	Com_DPrintf("SV_ReadServerFile()\n");
 
 	Com_sprintf(name, sizeof(name), "save/current/server.ssv");
-	FS_FOpenFile(name, &f, FS_READ);
+	FS_FOpenFile(name, &f, true);
 
 	if (!f)
 	{
@@ -315,18 +315,19 @@ SV_ReadServerFile(void)
 	FS_Read(mapcmd, sizeof(mapcmd), f);
 
 	/* read all CVAR_LATCH cvars
-	   these will be things like 
+	   these will be things like
 	   coop, skill, deathmatch, etc */
 	while (1)
 	{
-		if (!FS_FRead(name, 1, sizeof(name), f))
+		char cvarname[LATCH_CVAR_SAVELENGTH] = {0};
+		if (!FS_FRead(cvarname, 1, sizeof(cvarname), f))
 		{
 			break;
 		}
 
 		FS_Read(string, sizeof(string), f);
-		Com_DPrintf("Set %s = %s\n", name, string);
-		Cvar_ForceSet(name, string);
+		Com_DPrintf("Set %s = %s\n", cvarname, string);
+		Cvar_ForceSet(cvarname, string);
 	}
 
 	FS_FCloseFile(f);

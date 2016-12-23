@@ -211,7 +211,7 @@ ai_walk(edict_t *self, float dist)
 
 /*
  * Turns towards target and advances
- * Use this call with a distnace of 0
+ * Use this call with a distance of 0
  * to replace ai_face
  */
 void
@@ -289,7 +289,7 @@ ai_turn(edict_t *self, float dist)
 /* ============================================================================ */
 
 /*
- * returns the range catagorization of an entity reletive to self
+ * returns the range categorization of an entity relative to self
  * 0	melee range, will become hostile even if back is turned
  * 1	visibility and infront, or visibility and show hostile
  * 2	infront and show hostile
@@ -437,7 +437,7 @@ FoundTarget(edict_t *self)
 		level.sight_entity->light_level = 128;
 	}
 
-	self->show_hostile = level.time + 1; /* wake up other monsters */
+	self->show_hostile = (int)level.time + 1; /* wake up other monsters */
 
 	VectorCopy(self->enemy->s.origin, self->monsterinfo.last_sighting);
 	self->monsterinfo.trail_time = level.time;
@@ -616,7 +616,7 @@ FindTarget(edict_t *self)
 
 		if (r == RANGE_NEAR)
 		{
-			if ((client->show_hostile < level.time) && !infront(self, client))
+			if ((client->show_hostile < (int)level.time) && !infront(self, client))
 			{
 				return false;
 			}
@@ -892,7 +892,7 @@ ai_run_missile(edict_t *self)
 
 /*
  * Strafe sideways, but stay at
- * aproximately the same range
+ * approximately the same range
  */
 void
 ai_run_slide(edict_t *self, float distance)
@@ -950,9 +950,9 @@ ai_checkattack(edict_t *self)
 			return false;
 		}
 
-		if (self->monsterinfo.aiflags & AI_SOUND_TARGET)
+		if ((self->monsterinfo.aiflags & AI_SOUND_TARGET) && !visible(self, self->goalentity))
 		{
-			if ((level.time - self->enemy->teleport_time) > 5.0)
+			if ((level.time - self->enemy->last_sound_time) > 5.0)
 			{
 				if (self->goalentity == self->enemy)
 				{
@@ -976,7 +976,7 @@ ai_checkattack(edict_t *self)
 			}
 			else
 			{
-				self->show_hostile = level.time + 1;
+				self->show_hostile = (int)level.time + 1;
 				return false;
 			}
 		}
@@ -1049,7 +1049,7 @@ ai_checkattack(edict_t *self)
 	}
 
 	/* wake up other monsters */
-	self->show_hostile = level.time + 1;
+	self->show_hostile = (int)level.time + 1;
 
 	/* check knowledge of enemy */
 	enemy_vis = visible(self, self->enemy);
@@ -1060,7 +1060,8 @@ ai_checkattack(edict_t *self)
 		VectorCopy(self->enemy->s.origin, self->monsterinfo.last_sighting);
 	}
 
-	if (coop && (self->monsterinfo.search_time < level.time))
+	/* look for other coop players here */
+	if (coop->value && (self->monsterinfo.search_time < level.time))
 	{
 		if (FindTarget(self))
 		{

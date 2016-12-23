@@ -429,6 +429,12 @@ Sys_Milliseconds(void)
 	return curtime;
 }
 
+void
+Sys_Sleep(int msec)
+{
+	Sleep(msec);
+}
+
 /* ======================================================================= */
 
 static qboolean
@@ -739,8 +745,8 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 #endif
 #endif
 
-	printf("Platform: %s\n", BUILDSTRING);
-	printf("Architecture: %s\n", CPUSTRING);
+	printf("Platform: %s\n", YQ2OSTYPE);
+	printf("Architecture: %s\n", YQ2ARCH);
 
 	/* Seed PRNG */
 	randk_seed();

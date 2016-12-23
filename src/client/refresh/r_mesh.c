@@ -87,6 +87,8 @@ R_LerpVerts(int nverts, dtrivertx_t *v, dtrivertx_t *ov,
 void
 R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 {
+    unsigned short total;
+    GLenum type;
 	float l;
 	daliasframe_t *frame, *oldframe;
 	dtrivertx_t *v, *ov, *verts;
@@ -153,40 +155,6 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 
 	R_LerpVerts(paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv);
 
-	if (gl_vertex_arrays->value)
-	{
-		float colorArray[MAX_VERTS * 4];
-
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 16, s_lerped);
-
-		if (currententity->flags &
-			(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE |
-			 RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
-		{
-			glColor4f(shadelight[0], shadelight[1], shadelight[2], alpha);
-		}
-		else
-		{
-			glEnableClientState(GL_COLOR_ARRAY);
-			glColorPointer(3, GL_FLOAT, 0, colorArray);
-
-			/* pre light everything */
-			for (i = 0; i < paliashdr->num_xyz; i++)
-			{
-				float l = shadedots[verts[i].lightnormalindex];
-
-				colorArray[i * 3 + 0] = l * shadelight[0];
-				colorArray[i * 3 + 1] = l * shadelight[1];
-				colorArray[i * 3 + 2] = l * shadelight[2];
-			}
-		}
-
-		if (qglLockArraysEXT != 0)
-		{
-			qglLockArraysEXT(0, paliashdr->num_xyz);
-		}
-
 		while (1)
 		{
 			/* get the vertex count and primitive type */
@@ -200,71 +168,21 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 			if (count < 0)
 			{
 				count = -count;
-				glBegin(GL_TRIANGLE_FAN);
+
+                type = GL_TRIANGLE_FAN;
 			}
 			else
 			{
-				glBegin(GL_TRIANGLE_STRIP);
+                type = GL_TRIANGLE_STRIP;
 			}
 
-			if (currententity->flags &
-				(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE |
-				 RF_SHELL_DOUBLE |
-				 RF_SHELL_HALF_DAM))
-			{
-				do
-				{
-					index_xyz = order[2];
-					order += 3;
-
-					glVertex3fv(s_lerped[index_xyz]);
-				}
-				while (--count);
-			}
-			else
-			{
-				do
-				{
-					/* texture coordinates come from the draw list */
-					glTexCoord2f(((float *)order)[0], ((float *)order)[1]);
-					index_xyz = order[2];
-
-					order += 3;
-
-					glArrayElement(index_xyz);
-				}
-				while (--count);
-			}
-
-			glEnd();
-		}
-
-		if (qglUnlockArraysEXT != 0)
-		{
-			qglUnlockArraysEXT();
-		}
-	}
-	else
-	{
-		while (1)
-		{
-			/* get the vertex count and primitive type */
-			count = *order++;
-
-			if (!count)
-			{
-				break; /* done */
-			}
-
-			if (count < 0)
-			{
-				count = -count;
-				glBegin(GL_TRIANGLE_FAN);
-			}
-			else
-			{
-				glBegin(GL_TRIANGLE_STRIP);
-			}
+			total = count;
+			GLfloat vtx[3*total];
+			GLfloat tex[2*total];
+			GLfloat clr[4 * total];
+			unsigned int index_vtx = 0;
+			unsigned int index_tex = 0;
+			unsigned int index_clr = 0;
 
 			if (currententity->flags &
 				(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE))
@@ -274,9 +192,14 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 					index_xyz = order[2];
 					order += 3;
 
-					glColor4f(shadelight[0], shadelight[1],
-							shadelight[2], alpha);
-					glVertex3fv(s_lerped[index_xyz]);
+					clr[index_clr++] = shadelight[0];
+					clr[index_clr++] = shadelight[1];
+					clr[index_clr++] = shadelight[2];
+					clr[index_clr++] = alpha;
+
+					vtx[index_vtx++] = s_lerped[index_xyz][0];
+					vtx[index_vtx++] = s_lerped[index_xyz][1];
+					vtx[index_vtx++] = s_lerped[index_xyz][2];
 				}
 				while (--count);
 			}
@@ -285,23 +208,40 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 				do
 				{
 					/* texture coordinates come from the draw list */
-					glTexCoord2f(((float *)order)[0], ((float *)order)[1]);
+					tex[index_tex++] = ((float *) order)[0];
+					tex[index_tex++] = ((float *) order)[1];
+
 					index_xyz = order[2];
 					order += 3;
 
 					/* normals and vertexes come from the frame list */
 					l = shadedots[verts[index_xyz].lightnormalindex];
 
-					glColor4f(l * shadelight[0], l * shadelight[1],
-							l * shadelight[2], alpha);
-					glVertex3fv(s_lerped[index_xyz]);
+					clr[index_clr++] = l * shadelight[0];
+					clr[index_clr++] = l * shadelight[1];
+					clr[index_clr++] = l * shadelight[2];
+					clr[index_clr++] = alpha;
+
+					vtx[index_vtx++] = s_lerped[index_xyz][0];
+					vtx[index_vtx++] = s_lerped[index_xyz][1];
+					vtx[index_vtx++] = s_lerped[index_xyz][2];
 				}
 				while (--count);
 			}
 
-			glEnd();
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
+
+			glVertexPointer(3, GL_FLOAT, 0, vtx);
+			glTexCoordPointer(2, GL_FLOAT, 0, tex);
+			glColorPointer(4, GL_FLOAT, 0, clr);
+			glDrawArrays(type, 0, total);
+
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY);
 		}
-	}
 
 	if (currententity->flags &
 		(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE |
@@ -314,6 +254,8 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 void
 R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 {
+    unsigned short total;
+    GLenum type;
 	int *order;
 	vec3_t point;
 	float height = 0, lheight;
@@ -344,12 +286,17 @@ R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 		if (count < 0)
 		{
 			count = -count;
-			glBegin(GL_TRIANGLE_FAN);
+			
+            type = GL_TRIANGLE_FAN;
 		}
 		else
 		{
-			glBegin(GL_TRIANGLE_STRIP);
+            type = GL_TRIANGLE_STRIP;
 		}
+
+        total = count;
+        GLfloat vtx[3*total];
+        unsigned int index_vtx = 0;
 
 		do
 		{
@@ -359,13 +306,21 @@ R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 			point[0] -= shadevector[0] * (point[2] + lheight);
 			point[1] -= shadevector[1] * (point[2] + lheight);
 			point[2] = height;
-			glVertex3fv(point);
+
+            vtx[index_vtx++] = point [ 0 ];
+            vtx[index_vtx++] = point [ 1 ];
+            vtx[index_vtx++] = point [ 2 ];
 
 			order += 3;
 		}
 		while (--count);
 
-		glEnd();
+        glEnableClientState( GL_VERTEX_ARRAY );
+
+        glVertexPointer( 3, GL_FLOAT, 0, vtx );
+        glDrawArrays( type, 0, total );
+
+        glDisableClientState( GL_VERTEX_ARRAY );
 	}
 
 	/* stencilbuffer shadows */
@@ -390,14 +345,14 @@ R_CullAliasModel(vec3_t bbox[8], entity_t *e)
 
 	if ((e->frame >= paliashdr->num_frames) || (e->frame < 0))
 	{
-		VID_Printf(PRINT_ALL, "R_CullAliasModel %s: no such frame %d\n",
+		VID_Printf(PRINT_DEVELOPER, "R_CullAliasModel %s: no such frame %d\n",
 				currentmodel->name, e->frame);
 		e->frame = 0;
 	}
 
 	if ((e->oldframe >= paliashdr->num_frames) || (e->oldframe < 0))
 	{
-		VID_Printf(PRINT_ALL, "R_CullAliasModel %s: no such oldframe %d\n",
+		VID_Printf(PRINT_DEVELOPER, "R_CullAliasModel %s: no such oldframe %d\n",
 				currentmodel->name, e->oldframe);
 		e->oldframe = 0;
 	}
@@ -668,6 +623,18 @@ R_DrawAliasModel(entity_t *e)
 		}
 	}
 
+
+    // Apply gl_overbrightbits to the mesh. If we don't do this they will appear slightly dimmer relative to walls.
+    if (gl_overbrightbits->value)
+    {
+        for (i = 0; i < 3; ++i)
+        {
+            shadelight[i] *= gl_overbrightbits->value;
+        }
+    }
+    
+
+
 	/* ir goggles color override */
 	if (r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags &
 		RF_IR_VISIBLE)
@@ -760,7 +727,7 @@ R_DrawAliasModel(entity_t *e)
 	if ((currententity->frame >= paliashdr->num_frames) ||
 		(currententity->frame < 0))
 	{
-		VID_Printf(PRINT_ALL, "R_DrawAliasModel %s: no such frame %d\n",
+		VID_Printf(PRINT_DEVELOPER, "R_DrawAliasModel %s: no such frame %d\n",
 				currentmodel->name, currententity->frame);
 		currententity->frame = 0;
 		currententity->oldframe = 0;
@@ -769,7 +736,7 @@ R_DrawAliasModel(entity_t *e)
 	if ((currententity->oldframe >= paliashdr->num_frames) ||
 		(currententity->oldframe < 0))
 	{
-		VID_Printf(PRINT_ALL, "R_DrawAliasModel %s: no such oldframe %d\n",
+		VID_Printf(PRINT_DEVELOPER, "R_DrawAliasModel %s: no such oldframe %d\n",
 				currentmodel->name, currententity->oldframe);
 		currententity->frame = 0;
 		currententity->oldframe = 0;
@@ -816,7 +783,7 @@ R_DrawAliasModel(entity_t *e)
 
 		glDisable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
-		glColor4f(0, 0, 0, 0.5);
+		glColor4f(0, 0, 0, 0.5f);
 		R_DrawAliasShadow(paliashdr, currententity->frame);
 		glEnable(GL_TEXTURE_2D);
 		glDisable(GL_BLEND);

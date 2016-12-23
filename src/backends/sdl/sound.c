@@ -34,15 +34,11 @@
  */
 
 /* SDL includes */
-#if defined(_WIN32) || defined(__APPLE__)
 #ifdef SDL2
 #include <SDL2/SDL.h>
 #else // SDL1.2
 #include <SDL/SDL.h>
 #endif //SDL2
-#else // not _WIN32 || APPLE
-#include <SDL.h>
-#endif // _WIN32 || APPLE
 
 /* Local includes */
 #include "../../client/header/client.h"
@@ -67,6 +63,119 @@ static int snd_vol;
 static int soundtime;
 
 /* ------------------------------------------------------------------ */
+
+/* =============================== */
+/* Low-pass filter */
+/* Based on OpenAL implementation. */
+
+/* Filter's context */
+typedef struct {
+    float a;
+    float gain_hf;
+    portable_samplepair_t history[2];
+    qboolean is_history_initialized;
+} LpfContext;
+
+static const int lpf_reference_frequency = 5000;
+static const float lpf_default_gain_hf = 0.25F;
+
+static LpfContext lpf_context;
+static qboolean lpf_is_enabled;
+
+static void lpf_initialize(
+    LpfContext* lpf_context,
+    float gain_hf,
+    int target_frequency)
+{
+    assert(target_frequency > 0);
+    assert(lpf_context);
+
+    float g;
+    float cw;
+    float a;
+
+    const float k_2_pi = 6.283185307F;
+
+    g = gain_hf;
+
+    if (g < 0.01F)
+        g = 0.01F;
+    else if (gain_hf > 1.0F)
+        g = 1.0F;
+
+    cw = cosf((k_2_pi * lpf_reference_frequency) / target_frequency);
+
+    a = 0.0F;
+
+    if (g < 0.9999F) {
+        a = (1.0F - (g * cw) - sqrtf((2.0F * g * (1.0F - cw)) -
+            (g * g * (1.0F - (cw * cw))))) / (1.0F - g);
+    }
+
+    lpf_context->a = a;
+    lpf_context->gain_hf = gain_hf;
+    lpf_context->is_history_initialized = false;
+}
+
+static void lpf_update_samples(
+    LpfContext* lpf_context,
+    int sample_count,
+    portable_samplepair_t* samples)
+{
+    assert(lpf_context);
+    assert(sample_count >= 0);
+    assert(samples);
+
+    int s;
+    float a;
+    portable_samplepair_t y;
+    portable_samplepair_t* history;
+
+    if (sample_count <= 0)
+        return;
+
+    a = lpf_context->a;
+    history = lpf_context->history;
+
+    if (!lpf_context->is_history_initialized) {
+        lpf_context->is_history_initialized = true;
+
+        for (s = 0; s < 2; ++s) {
+            history[s].left = 0;
+            history[s].right = 0;
+        }
+    }
+
+    for (s = 0; s < sample_count; ++s) {
+        /* Update left channel */
+
+        y.left = samples[s].left;
+
+        y.left = (int)(y.left + a * (history[0].left - y.left));
+        history[0].left = y.left;
+
+        y.left = (int)(y.left + a * (history[1].left - y.left));
+        history[1].left = y.left;
+
+
+        /* Update right channel */
+
+        y.right = samples[s].right;
+
+        y.right = (int)(y.right + a * (history[0].right - y.right));
+        history[0].right = y.right;
+
+        y.right = (int)(y.right + a * (history[1].right - y.right));
+        history[1].right = y.right;
+
+
+        /* Update sample */
+        samples[s] = y;
+    }
+}
+
+/* End of low-pass filter stuff */
+/* ============================ */
 
 /*
  * Transfers a mixed "paint buffer" to
@@ -344,32 +453,8 @@ SDL_PaintChannels(int endtime)
 			break;
 		}
 
-		/* clear the paint buffer */
-		if (s_rawend < paintedtime)
-		{
-			memset(paintbuffer, 0, (end - paintedtime)
-					* sizeof(portable_samplepair_t));
-		}
-		else
-		{
-			/* copy from the streaming sound source */
-			int s;
-			int stop;
-
-			stop = (end < s_rawend) ? end : s_rawend;
-
-			for (i = paintedtime; i < stop; i++)
-			{
-				s = i & (MAX_RAW_SAMPLES - 1);
-				paintbuffer[i - paintedtime] = s_rawsamples[s];
-			}
-
-			for ( ; i < end; i++)
-			{
-				memset(&paintbuffer[i - paintedtime], 0,
-				   sizeof(paintbuffer[i - paintedtime]));
-			}
-		}
+		memset(paintbuffer, 0, (end - paintedtime)
+				* sizeof(portable_samplepair_t));
 
 		/* paint in the channels. */
 		ch = channels;
@@ -436,6 +521,27 @@ SDL_PaintChannels(int endtime)
 						ch->sfx = NULL;
 					}
 				}
+			}
+		}
+
+        if (lpf_is_enabled && snd_is_underwater)
+            lpf_update_samples(&lpf_context, end - paintedtime, paintbuffer);
+        else
+            lpf_context.is_history_initialized = false;
+
+		if (s_rawend >= paintedtime)
+		{
+			/* add from the streaming sound source */
+			int s;
+			int stop;
+
+			stop = (end < s_rawend) ? end : s_rawend;
+
+			for (i = paintedtime; i < stop; i++)
+			{
+				s = i & (MAX_RAW_SAMPLES - 1);
+				paintbuffer[i - paintedtime].left += s_rawsamples[s].left;
+                paintbuffer[i - paintedtime].right += s_rawsamples[s].right;
 			}
 		}
 
@@ -999,6 +1105,18 @@ SDL_Update(void)
 	int total;
 	unsigned int endtime;
 
+    if (s_underwater->modified) {
+        s_underwater->modified = false;
+        lpf_is_enabled = ((int)s_underwater->value != 0);
+    }
+
+    if (s_underwater_gain_hf->modified) {
+        s_underwater_gain_hf->modified = false;
+
+        lpf_initialize(
+            &lpf_context, s_underwater_gain_hf->value, backend->speed);
+    }
+
 	/* if the loading plaque is up, clear everything
 	   out to make sure we aren't looping a dirty
 	   SDL buffer while loading */
@@ -1330,6 +1448,10 @@ SDL_BackendInit(void)
 	samplesize = (backend->samples * (backend->samplebits / 8));
 	backend->buffer = calloc(1, samplesize);
 	s_numchannels = MAX_CHANNELS;
+
+    s_underwater->modified = true;
+    s_underwater_gain_hf->modified = true;
+    lpf_initialize(&lpf_context, lpf_default_gain_hf, backend->speed);
 
 	SDL_UpdateScaletable();
 	SDL_PauseAudio(0);

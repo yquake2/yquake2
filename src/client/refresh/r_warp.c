@@ -38,7 +38,12 @@ vec3_t skyaxis;
 image_t *sky_images[6];
 msurface_t *warpface;
 int skytexorder[6] = {0, 2, 1, 3, 4, 5};
-
+ 
+GLfloat vtx_sky[12];
+GLfloat tex_sky[8];
+unsigned int index_vtx = 0;
+unsigned int index_tex = 0;
+ 
 /* 3dstudio environment map names */
 char *suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 
@@ -297,25 +302,33 @@ R_EmitWaterPolys(msurface_t *fa)
 	{
 		p = bp;
 
-		glBegin(GL_TRIANGLE_FAN);
+        GLfloat tex[2*p->numverts];
+        unsigned int index_tex = 0;
 
-		for (i = 0, v = p->verts[0]; i < p->numverts; i++, v += VERTEXSIZE)
+		for ( i = 0, v = p->verts [ 0 ]; i < p->numverts; i++, v += VERTEXSIZE )
 		{
-			os = v[3];
-			ot = v[4];
+			os = v [ 3 ];
+			ot = v [ 4 ];
 
-			s = os + r_turbsin[(int)((ot * 0.125 + r_newrefdef.time) * TURBSCALE) & 255];
+			s = os + r_turbsin [ (int) ( ( ot * 0.125 + r_newrefdef.time ) * TURBSCALE ) & 255 ];
 			s += scroll;
-			s *= (1.0 / 64);
+			tex[index_tex++] = s * ( 1.0 / 64 );
 
-			t = ot + r_turbsin[(int)((os * 0.125 + rdt) * TURBSCALE) & 255];
-			t *= (1.0 / 64);
-
-			glTexCoord2f(s, t);
-			glVertex3fv(v);
+			t = ot + r_turbsin [ (int) ( ( os * 0.125 + rdt ) * TURBSCALE ) & 255 ];
+			tex[index_tex++] = t * ( 1.0 / 64 );
 		}
 
-		glEnd();
+		v = p->verts [ 0 ];
+
+        glEnableClientState( GL_VERTEX_ARRAY );
+        glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+        glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
+        glTexCoordPointer( 2, GL_FLOAT, 0, tex );
+        glDrawArrays( GL_TRIANGLE_FAN, 0, p->numverts );
+
+        glDisableClientState( GL_VERTEX_ARRAY );
+        glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 	}
 }
 
@@ -634,8 +647,13 @@ R_MakeSkyVec(float s, float t, int axis)
 	}
 
 	t = 1.0 - t;
-	glTexCoord2f(s, t);
-	glVertex3fv(v);
+
+    tex_sky[index_tex++] = s;
+    tex_sky[index_tex++] = t;
+
+    vtx_sky[index_vtx++] = v[ 0 ];
+    vtx_sky[index_vtx++] = v[ 1 ];
+    vtx_sky[index_vtx++] = v[ 2 ];
 }
 
 void
@@ -682,12 +700,24 @@ R_DrawSkyBox(void)
 
 		R_Bind(sky_images[skytexorder[i]]->texnum);
 
-		glBegin(GL_QUADS);
-		R_MakeSkyVec(skymins[0][i], skymins[1][i], i);
-		R_MakeSkyVec(skymins[0][i], skymaxs[1][i], i);
-		R_MakeSkyVec(skymaxs[0][i], skymaxs[1][i], i);
-		R_MakeSkyVec(skymaxs[0][i], skymins[1][i], i);
-		glEnd();
+        glEnableClientState( GL_VERTEX_ARRAY );
+        glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+
+        index_vtx = 0;
+        index_tex = 0;
+
+		R_MakeSkyVec( skymins [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
+		R_MakeSkyVec( skymins [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
+		R_MakeSkyVec( skymaxs [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
+		R_MakeSkyVec( skymaxs [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
+
+        glVertexPointer( 3, GL_FLOAT, 0, vtx_sky );
+        glTexCoordPointer( 2, GL_FLOAT, 0, tex_sky );
+        glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+        glDisableClientState( GL_VERTEX_ARRAY );
+        glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 	}
 
 	glPopMatrix();
@@ -705,7 +735,7 @@ R_SetSky(char *name, float rotate, vec3_t axis)
 
 	for (i = 0; i < 6; i++)
 	{
-		if (qglColorTableEXT && gl_ext_palettedtexture->value)
+		if (gl_config.palettedtexture)
 		{
 			Com_sprintf(pathname, sizeof(pathname), "env/%s%s.pcx",
 					skyname, suf[i]);

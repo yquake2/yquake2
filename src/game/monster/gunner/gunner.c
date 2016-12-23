@@ -388,7 +388,7 @@ gunner_pain(edict_t *self, edict_t *other /* unused */,
 
 	if (self->health < (self->max_health / 2))
 	{
-		self->s.skinnum |= 1;
+		self->s.skinnum = 1;
 	}
 
 	if (level.time < self->pain_debounce_time)
@@ -476,8 +476,7 @@ gunner_die(edict_t *self, edict_t *inflictor /* unused */,
 		return;
 	}
 
-	self->s.skinnum |= 1;
-	self->monsterinfo.power_armor_type = POWER_ARMOR_NONE;
+	self->s.skinnum = 1;
 
 	/* check for gib */
 	if (self->health <= self->gib_health)

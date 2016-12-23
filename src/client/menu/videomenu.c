@@ -28,11 +28,13 @@
 #include "../../client/header/client.h"
 #include "../../client/menu/header/qmenu.h"
 
-#define CUSTOM_MODE 24
-
 extern void M_ForceMenuOff(void);
 
 static cvar_t *gl_mode;
+static cvar_t *gl_hudscale;
+static cvar_t *gl_consolescale;
+static cvar_t *gl_menuscale;
+static cvar_t *crosshair_scale;
 static cvar_t *fov;
 extern cvar_t *scr_viewsize;
 extern cvar_t *vid_gamma;
@@ -45,6 +47,7 @@ static menuframework_s s_opengl_menu;
 
 static menulist_s s_mode_list;
 static menulist_s s_aspect_list;
+static menulist_s s_uiscale_list;
 static menuslider_s s_screensize_slider;
 static menuslider_s s_brightness_slider;
 static menulist_s s_fs_box;
@@ -53,6 +56,27 @@ static menulist_s s_af_list;
 static menulist_s s_msaa_list;
 static menuaction_s s_defaults_action;
 static menuaction_s s_apply_action;
+
+static int
+GetCustomValue(menulist_s *list)
+{
+	static menulist_s *last;
+	static int i;
+
+	if (list != last)
+	{
+		last = list;
+		i = list->curvalue;
+		do
+		{
+			i++;
+		}
+		while (list->itemnames[i]);
+		i--;
+	}
+
+	return i;
+}
 
 static void
 ScreenSizeCallback(void *s)
@@ -98,7 +122,7 @@ ApplyChanges(void *unused)
 	qboolean restart = false;
 
 	/* custom mode */
-	if (s_mode_list.curvalue != CUSTOM_MODE)
+	if (s_mode_list.curvalue != GetCustomValue(&s_mode_list))
 	{
 		/* Restarts automatically */
 		Cvar_SetValue("gl_mode", s_mode_list.curvalue);
@@ -157,6 +181,23 @@ ApplyChanges(void *unused)
 			/* Restarts automatically */
 			Cvar_SetValue("fov", 106);
 		}
+	}
+
+	/* UI scaling */
+	if (s_uiscale_list.curvalue == 0)
+	{
+		Cvar_SetValue("gl_hudscale", -1);
+	}
+	else if (s_uiscale_list.curvalue < GetCustomValue(&s_uiscale_list))
+	{
+		Cvar_SetValue("gl_hudscale", s_uiscale_list.curvalue);
+	}
+
+	if (s_uiscale_list.curvalue != GetCustomValue(&s_uiscale_list))
+	{
+		Cvar_SetValue("gl_consolescale", gl_hudscale->value);
+		Cvar_SetValue("gl_menuscale", gl_hudscale->value);
+		Cvar_SetValue("crosshair_scale", gl_hudscale->value);
 	}
 
 	/* Restarts automatically */
@@ -239,6 +280,18 @@ VID_MenuInit(void)
 		0
 	};
 
+	static const char *uiscale_names[] = {
+		"auto",
+		"1x",
+		"2x",
+		"3x",
+		"4x",
+		"5x",
+		"6x",
+		"custom",
+		0
+	};
+
 	static const char *yesno_names[] = {
 		"no",
 		"yes",
@@ -257,6 +310,23 @@ VID_MenuInit(void)
 	if (!gl_mode)
 	{
 		gl_mode = Cvar_Get("gl_mode", "4", 0);
+	}
+
+	if (!gl_hudscale)
+	{
+		gl_hudscale = Cvar_Get("gl_hudscale", "-1", CVAR_ARCHIVE);
+	}
+	if (!gl_consolescale)
+	{
+		gl_consolescale = Cvar_Get("gl_consolescale", "-1", CVAR_ARCHIVE);
+	}
+	if (!gl_menuscale)
+	{
+		gl_menuscale = Cvar_Get("gl_menuscale", "-1", CVAR_ARCHIVE);
+	}
+	if (!crosshair_scale)
+	{
+		crosshair_scale = Cvar_Get("crosshair_scale", "-1", CVAR_ARCHIVE);
 	}
 
 	if (!horplus)
@@ -308,7 +378,7 @@ VID_MenuInit(void)
 	}
 	else
 	{
-		s_mode_list.curvalue = CUSTOM_MODE;
+		s_mode_list.curvalue = GetCustomValue(&s_mode_list);
 	}
 
 	s_aspect_list.generic.type = MTYPE_SPINCONTROL;
@@ -338,7 +408,33 @@ VID_MenuInit(void)
 	}
 	else
 	{
-		s_aspect_list.curvalue = 5;
+		s_aspect_list.curvalue = GetCustomValue(&s_aspect_list);
+	}
+
+	s_uiscale_list.generic.type = MTYPE_SPINCONTROL;
+	s_uiscale_list.generic.name = "ui scale";
+	s_uiscale_list.generic.x = 0;
+	s_uiscale_list.generic.y = (y += 10);
+	s_uiscale_list.itemnames = uiscale_names;
+	if (gl_hudscale->value != gl_consolescale->value ||
+		gl_hudscale->value != gl_menuscale->value ||
+		gl_hudscale->value != crosshair_scale->value)
+	{
+		s_uiscale_list.curvalue = GetCustomValue(&s_uiscale_list);
+	}
+	else if (gl_hudscale->value < 0)
+	{
+		s_uiscale_list.curvalue = 0;
+	}
+	else if (gl_hudscale->value > 0 &&
+			gl_hudscale->value < GetCustomValue(&s_uiscale_list) &&
+			gl_hudscale->value == (int)gl_hudscale->value)
+	{
+		s_uiscale_list.curvalue = gl_hudscale->value;
+	}
+	else
+	{
+		s_uiscale_list.curvalue = GetCustomValue(&s_uiscale_list);
 	}
 
 	s_screensize_slider.generic.type = MTYPE_SLIDER;
@@ -353,7 +449,7 @@ VID_MenuInit(void)
 	s_brightness_slider.generic.type = MTYPE_SLIDER;
 	s_brightness_slider.generic.name = "brightness";
 	s_brightness_slider.generic.x = 0;
-	s_brightness_slider.generic.y = (y += 20);
+	s_brightness_slider.generic.y = (y += 10);
 	s_brightness_slider.generic.callback = BrightnessCallback;
 	s_brightness_slider.minvalue = 1;
 	s_brightness_slider.maxvalue = 20;
@@ -420,6 +516,7 @@ VID_MenuInit(void)
 
 	Menu_AddItem(&s_opengl_menu, (void *)&s_mode_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_aspect_list);
+	Menu_AddItem(&s_opengl_menu, (void *)&s_uiscale_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_screensize_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_brightness_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_fs_box);
@@ -437,11 +534,12 @@ void
 VID_MenuDraw(void)
 {
 	int w, h;
+	float scale = SCR_GetMenuScale();
 
 	/* draw the banner */
 	Draw_GetPicSize(&w, &h, "m_banner_video");
-	Draw_Pic(viddef.width / 2 - w / 2, viddef.height / 2 - 110,
-			"m_banner_video");
+	Draw_PicScaled(viddef.width / 2 - (w * scale) / 2, viddef.height / 2 - (110 * scale),
+			"m_banner_video", scale);
 
 	/* move cursor to a reasonable starting position */
 	Menu_AdjustCursor(&s_opengl_menu, 1);

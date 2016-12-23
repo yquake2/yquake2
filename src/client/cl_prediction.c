@@ -227,12 +227,10 @@ CL_PredictMovement(void)
 {
 	int ack, current;
 	int frame;
-	int oldframe;
 	usercmd_t *cmd;
 	pmove_t pm;
 	int i;
 	int step;
-	int oldz;
 
 	if (cls.state != ca_active)
 	{
@@ -272,19 +270,23 @@ CL_PredictMovement(void)
 	}
 
 	/* copy current state to pmove */
+	memset (&pm, 0, sizeof(pm));
 	pm.trace = CL_PMTrace;
 	pm.pointcontents = CL_PMpointcontents;
-	pm_airaccelerate = strtod(cl.configstrings[CS_AIRACCEL], (char **)NULL);
+	pm_airaccelerate = atof(cl.configstrings[CS_AIRACCEL]);
 	pm.s = cl.frame.playerstate.pmove;
 
-	VectorSet(pm.mins, -16, -16, -24);
-	VectorSet(pm.maxs, 16, 16, 32);
-
 	/* run frames */
-	while (++ack < current)
+	while (++ack <= current)
 	{
 		frame = ack & (CMD_BACKUP - 1);
 		cmd = &cl.cmds[frame];
+
+		// Ignore null entries
+		if (!cmd->msec)
+		{
+			continue;
+		}
 
 		pm.cmd = *cmd;
 		Pmove(&pm);
@@ -293,14 +295,14 @@ CL_PredictMovement(void)
 		VectorCopy(pm.s.origin, cl.predicted_origins[frame]);
 	}
 
-	oldframe = (ack - 2) & (CMD_BACKUP - 1);
-	oldz = cl.predicted_origins[oldframe][2];
-	step = pm.s.origin[2] - oldz;
+	step = pm.s.origin[2] - (int)(cl.predicted_origin[2] * 8);
 
-	if ((step > 63) && (step < 160) && (pm.s.pm_flags & PMF_ON_GROUND))
+	if (((step > 126 && step < 130))
+		&& !VectorCompare((float *)pm.s.velocity, vec3_origin)
+		&& (pm.s.pm_flags & PMF_ON_GROUND))
 	{
 		cl.predicted_step = step * 0.125f;
-		cl.predicted_step_time = cls.realtime - cls.frametime * 500;
+		cl.predicted_step_time = cls.realtime - (int)(cls.nframetime * 500);
 	}
 
 	/* copy results out for rendering */

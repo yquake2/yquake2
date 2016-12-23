@@ -121,7 +121,9 @@ R_ScreenShot(void)
 		return;
 	}
 
-	c = 18 + vid.width * vid.height * 3;
+	static const int headerLength = 18+4;
+
+	c = headerLength + vid.width * vid.height * 3;
 
 	buffer = malloc(c);
 	if (!buffer)
@@ -130,20 +132,26 @@ R_ScreenShot(void)
 		return;
 	}
 
-	memset(buffer, 0, 18);
+	memset(buffer, 0, headerLength);
+	buffer[0] = 4; // image ID: "yq2\0"
 	buffer[2] = 2; /* uncompressed type */
 	buffer[12] = vid.width & 255;
 	buffer[13] = vid.width >> 8;
 	buffer[14] = vid.height & 255;
 	buffer[15] = vid.height >> 8;
 	buffer[16] = 24; /* pixel size */
+	buffer[17] = 0; // image descriptor
+	buffer[18] = 'y'; // following: the 4 image ID fields
+	buffer[19] = 'q';
+	buffer[20] = '2';
+	buffer[21] = '\0';
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glReadPixels(0, 0, vid.width, vid.height, GL_RGB,
-			GL_UNSIGNED_BYTE, buffer + 18);
+			GL_UNSIGNED_BYTE, buffer + headerLength);
 
 	/* swap rgb to bgr */
-	for (i = 18; i < c; i += 3)
+	for (i = headerLength; i < c; i += 3)
 	{
 		temp = buffer[i];
 		buffer[i] = buffer[i + 2];
@@ -208,7 +216,7 @@ R_SetDefaultState(void)
 
 	R_TexEnv(GL_REPLACE);
 
-	if (qglPointParameterfEXT)
+	if (gl_config.pointparameters)
 	{
 		float attenuations[3];
 
@@ -221,14 +229,12 @@ R_SetDefaultState(void)
 		   i915.so. That the points are squares and not circles
 		   is not a problem by Quake II! */
 		glEnable(GL_POINT_SMOOTH);
-		qglPointParameterfEXT(GL_POINT_SIZE_MIN_EXT,
-				gl_particle_min_size->value);
-		qglPointParameterfEXT(GL_POINT_SIZE_MAX_EXT,
-				gl_particle_max_size->value);
-		qglPointParameterfvEXT(GL_DISTANCE_ATTENUATION_EXT, attenuations);
+		qglPointParameterfARB(GL_POINT_SIZE_MIN_EXT, gl_particle_min_size->value);
+		qglPointParameterfARB(GL_POINT_SIZE_MAX_EXT, gl_particle_max_size->value);
+		qglPointParameterfvARB(GL_DISTANCE_ATTENUATION_EXT, attenuations);
 	}
 
-	if (qglColorTableEXT && gl_ext_palettedtexture->value)
+	if (gl_config.palettedtexture)
 	{
 		glEnable(GL_SHARED_TEXTURE_PALETTE_EXT);
 		R_SetTexturePalette(d_8to24table);

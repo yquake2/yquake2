@@ -27,11 +27,10 @@
 #include "header/local.h"
 #include "monster/misc/player.h"
 
-char *
-ClientTeam(edict_t *ent)
+static char *
+ClientTeam(edict_t *ent, char* value)
 {
 	char *p;
-	static char value[512];
 
 	value[0] = 0;
 
@@ -78,10 +77,10 @@ OnSameTeam(edict_t *ent1, edict_t *ent2)
 		return false;
 	}
 
-	strcpy(ent1Team, ClientTeam(ent1));
-	strcpy(ent2Team, ClientTeam(ent2));
+	ClientTeam(ent1, ent1Team);
+	ClientTeam(ent2, ent2Team);
 
-	if (strcmp(ent1Team, ent2Team) == 0)
+	if (ent1Team[0] != '\0' && strcmp(ent1Team, ent2Team) == 0)
 	{
 		return true;
 	}
@@ -639,7 +638,7 @@ Cmd_Help_f(edict_t *ent)
 		return;
 	}
 
-	/* this is for backwards compatability */
+	/* this is for backwards compatibility */
 	if (deathmatch->value)
 	{
 		Cmd_Score_f(ent);

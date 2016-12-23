@@ -33,34 +33,19 @@
 #include "crc.h"
 
 /* Should have 4 characters. */
-#define YQ2VERSION "5.23"
-
+#define YQ2VERSION "6.01pre"
 #define BASEDIRNAME "baseq2"
 
-#if defined __linux__
- #define BUILDSTRING "Linux"
-#elif defined __FreeBSD__
- #define BUILDSTRING "FreeBSD"
-#elif defined __OpenBSD__
- #define BUILDSTRING "OpenBSD"
-#elif defined _WIN32
- #define BUILDSTRING "Windows"
-#elif defined __APPLE__
- #define BUILDSTRING "MacOS X"
-#else
- #define BUILDSTRING "Unknown"
+#ifndef YQ2OSTYPE
+#error YQ2OSTYPE should be defined by the build system
 #endif
 
-#ifdef __i386__
- #define CPUSTRING "i386"
-#elif defined __x86_64__
- #define CPUSTRING "amd64"
-#elif defined __sparc__
- #define CPUSTRING "sparc64"
-#elif defined __ia64__
- #define CPUSTRING "ia64"
-#else
- #define CPUSTRING "Unknown"
+#ifndef YQ2ARCH
+#error YQ2ARCH should be defined by the build system
+#endif
+
+#ifndef BUILD_DATE
+#define BUILD_DATE __DATE__
 #endif
 
 #ifdef _WIN32
@@ -78,7 +63,6 @@
 #else
  #define LIBGL "libGL.so.1"
 #endif
-
 
 /* ================================================================== */
 
@@ -685,25 +669,11 @@ typedef enum
 	FS_SEARCH_FULL_PATH
 } fsSearchType_t;
 
-void FS_Startup(void);
-void FS_Shutdown(void);
 void FS_DPrintf(const char *format, ...);
-FILE *FS_FileForHandle(fileHandle_t f);
-int FS_FOpenFile(const char *name, fileHandle_t *f, fsMode_t mode);
+int FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only);
 void FS_FCloseFile(fileHandle_t f);
 int FS_Read(void *buffer, int size, fileHandle_t f);
 int FS_FRead(void *buffer, int size, int count, fileHandle_t f);
-int FS_Write(const void *buffer, int size, fileHandle_t f);
-void FS_Seek(fileHandle_t f, int offset, fsOrigin_t origin);
-int FS_FTell(fileHandle_t f);
-int FS_Tell(fileHandle_t f);
-qboolean FS_FileExists(char *path);
-void FS_CopyFile(const char *srcPath, const char *dstPath);
-void FS_RenameFile(const char *oldPath, const char *newPath);
-void FS_DeleteFile(const char *path);
-int FS_GetFileList(const char *path, const char *extension,
-		char *buffer, int size, fsSearchType_t searchType);
-char **FS_ListPak(char *find, int *num);
 char **FS_ListFiles(char *findname, int *numfiles,
 		unsigned musthave, unsigned canthave);
 char **FS_ListFiles2(char *findname, int *numfiles,
@@ -714,7 +684,6 @@ void FS_InitFilesystem(void);
 void FS_SetGamedir(char *dir);
 char *FS_Gamedir(void);
 char *FS_NextPath(char *prevpath);
-void FS_ExecAutoexec(void);
 int FS_LoadFile(char *path, void **buffer);
 
 /* a null buffer will just return the file length without loading */
@@ -781,7 +750,7 @@ extern vec3_t bytedirs[NUMVERTEXNORMALS];
 /* this is in the client code, but can be used for debugging from server */
 void SCR_DebugGraph(float value, int color);
 
-/* NON-PORTABLE SYSTEM SERVICES */
+/* NON-PORTABLE OSTYPE SERVICES */
 
 void Sys_Init(void);
 void Sys_UnloadGame(void);
@@ -793,6 +762,8 @@ void Sys_SendKeyEvents(void);
 void Sys_Error(char *error, ...);
 void Sys_Quit(void);
 char *Sys_GetHomeDir(void);
+const char *Sys_GetBinaryDir(void);
+void Sys_Sleep(int msec);
 
 void Sys_FreeLibrary(void *handle);
 void *Sys_LoadLibrary(const char *path, const char *sym, void **handle);

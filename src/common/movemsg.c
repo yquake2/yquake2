@@ -902,7 +902,7 @@ MSG_ReadString(sizebuf_t *msg_read)
 
 	do
 	{
-		c = MSG_ReadChar(msg_read);
+		c = MSG_ReadByte(msg_read);
 
 		if ((c == -1) || (c == 0))
 		{
@@ -929,7 +929,7 @@ MSG_ReadStringLine(sizebuf_t *msg_read)
 
 	do
 	{
-		c = MSG_ReadChar(msg_read);
+		c = MSG_ReadByte(msg_read);
 
 		if ((c == -1) || (c == 0) || (c == '\n'))
 		{

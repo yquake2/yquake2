@@ -159,7 +159,7 @@ Sys_Error(char *error, ...)
 	vsprintf(text, error, argptr);
 	va_end(argptr);
 
-	gi.error(ERR_FATAL, "%s", text);
+	gi.error("%s", text);
 }
 
 void
@@ -403,6 +403,9 @@ ExitLevel(void)
 			ent->health = ent->client->pers.max_health;
 		}
 	}
+
+	gibsthisframe = 0;
+	lastgibframe = 0;
 }
 
 /*
