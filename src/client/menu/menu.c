@@ -1149,7 +1149,7 @@ CDShuffleFunc(void *unused)
             if ((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL,
                             10) < 10)
             {
-                char tmp[2] = "0";
+                char tmp[3] = "0";
                 OGG_ParseCmd(strcat(tmp, cl.configstrings[CS_CDTRACK]));
             }
             else
