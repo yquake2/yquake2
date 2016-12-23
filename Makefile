@@ -42,7 +42,7 @@ WITH_OGG:=yes
 # To use it your system needs libopenal.so.1
 # or openal32.dll (we recommend openal-soft)
 # installed
-WITH_OPENAL:=no
+WITH_OPENAL:=yes
 
 # Enables optional runtime loading of OpenAL (dlopen or
 # similar). If set to "no", the library is linked in at
@@ -249,7 +249,7 @@ LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),Windows)
 LDFLAGS := -L/custom/lib -lws2_32 -lwinmm
 else ifeq ($(OSTYPE), Darwin)
-LDFLAGS := -F$(HOME)/Library/Frameworks $(OSX_ARCH) -lm
+LDFLAGS := $(OSX_ARCH) -lm
 endif
 
 # ----------
@@ -399,7 +399,7 @@ ifeq ($(OSTYPE), Darwin)
 build/client/%.o : %.m
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) $(OSX_ARCH) $(SDLCFLAGS) $(INCLUDE) -x objective-c -c $< -o $@
+	${Q}$(CC) $(OSX_ARCH) -x objective-c -c $< -o $@
 endif
 
 ifeq ($(WITH_CDA),yes)
