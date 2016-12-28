@@ -1137,7 +1137,6 @@ CDShuffleFunc(void *unused)
         if (ogg->value)
         {
             OGG_ParseCmd("?");
-            OGG_Stop();
         }
     }
     else
@@ -1146,11 +1145,10 @@ CDShuffleFunc(void *unused)
 
         if (ogg->value)
         {
-            if ((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL,
-                            10) < 10)
+            if ((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10) < 10)
             {
-                char tmp[2] = "0";
-                OGG_ParseCmd(strcat(tmp, cl.configstrings[CS_CDTRACK]));
+                char tmp[3] = {'0', cl.configstrings[CS_CDTRACK][0], '\0'};
+                OGG_ParseCmd(tmp);
             }
             else
             {
