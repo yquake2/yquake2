@@ -1021,7 +1021,7 @@ R_FindImage(char *name, imagetype_t type)
 {
 	image_t *image;
 	int i, len;
-	byte *pic, *palette;
+	byte *pic;
 	int width, height;
 	char *ptr;
 	char namewe[256];
@@ -1069,7 +1069,6 @@ R_FindImage(char *name, imagetype_t type)
 
 	/* load the pic from disk */
 	pic = NULL;
-	palette = NULL;
 
 	if (strcmp(ext, "pcx") == 0)
 	{
@@ -1094,7 +1093,7 @@ R_FindImage(char *name, imagetype_t type)
 			else
 			{
 				/* PCX if no TGA/PNG/JPEG available (exists always) */
-				LoadPCX(name, &pic, &palette, &width, &height);
+				LoadPCX(name, &pic, NULL, &width, &height);
 
 				if (!pic)
 				{
@@ -1108,7 +1107,7 @@ R_FindImage(char *name, imagetype_t type)
 		}
 		else /* gl_retexture is not set */
 		{
-			LoadPCX(name, &pic, &palette, &width, &height);
+			LoadPCX(name, &pic, NULL, &width, &height);
 
 			if (!pic)
 			{
@@ -1197,11 +1196,6 @@ R_FindImage(char *name, imagetype_t type)
 	if (pic)
 	{
 		free(pic);
-	}
-
-	if (palette)
-	{
-		free(palette);
 	}
 
 	return image;

@@ -46,7 +46,6 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	}
 
 	*pic = NULL;
-	*palette = NULL;
 
 	/* load the file */
 	len = ri.FS_LoadFile(filename, (void **)&raw);
