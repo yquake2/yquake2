@@ -38,6 +38,9 @@ gl3state_t gl3state;
 
 viddef_t vid;
 
+gl3image_t *gl3_notexture; /* use for bad textures */
+gl3image_t *gl3_particletexture; /* little dot for particles */
+
 cvar_t *gl_msaa_samples;
 cvar_t *gl_swapinterval;
 cvar_t *gl_retexturing;

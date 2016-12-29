@@ -55,4 +55,6 @@ extern void GetPCXInfo(char *filename, int *width, int *height);
 
 extern qboolean LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *height);
 
+extern void GetWalInfo(char *name, int *width, int *height);
+
 #endif /* SRC_CLIENT_REFRESH_REF_SHARED_H_ */

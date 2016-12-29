@@ -89,6 +89,11 @@ typedef struct
 	//qboolean hwgamma;
 } gl3state_t;
 
+extern gl3config_t gl3config;
+extern gl3state_t gl3state;
+
+extern viddef_t vid;
+
 
 typedef struct gl3image_s
 {
@@ -107,10 +112,10 @@ typedef struct gl3image_s
 	qboolean paletted;
 } gl3image_t;
 
-extern gl3config_t gl3config;
-extern gl3state_t gl3state;
+enum {MAX_GL3TEXTURES = 1024};
 
-extern viddef_t vid;
+extern gl3image_t *gl3_notexture;
+
 
 extern int gl_filter_min;
 extern int gl_filter_max;

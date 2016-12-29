@@ -851,6 +851,7 @@ REFGL3_OBJS_ := \
 	src/client/refresh/gl3/gl3_sdl.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
+	src/client/refresh/files/wal.o \
 	src/common/shared/flash.o \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o
@@ -859,8 +860,7 @@ REFGL3_OBJS_ := \
 REFGL3_TODO_ := \
 	src/client/refresh/files/md2.o \
 	src/client/refresh/files/pcx.o \
-	src/client/refresh/files/sp2.o \
-	src/client/refresh/files/wal.o 
+	src/client/refresh/files/sp2.o 
 	
 # TODO: glad_dbg support
 REFGL3_OBJS_ += \

@@ -111,6 +111,42 @@ GL3_TextureMode(char *string)
 }
 
 /*
+static gl3image_t *
+LoadWal(char *origname)
+{
+	miptex_t *mt;
+	int width, height, ofs;
+	gl3image_t *image;
+	char name[256];
+
+	Q_strlcpy(name, origname, sizeof(name));
+
+	/* Add the extension */
+	if (strcmp(COM_FileExtension(name), "wal"))
+	{
+		Q_strlcat(name, ".wal", sizeof(name));
+	}
+
+	ri.FS_LoadFile(name, (void **)&mt);
+
+	if (!mt)
+	{
+		R_Printf(PRINT_ALL, "LoadWal: can't load %s\n", name);
+		return gl3_notexture;
+	}
+
+	width = LittleLong(mt->width);
+	height = LittleLong(mt->height);
+	ofs = LittleLong(mt->offsets[0]);
+
+	image = GL3_LoadPic(name, (byte *)mt + ofs, width, 0, height, 0, it_wall, 8);
+
+	ri.FS_FreeFile((void *)mt);
+
+	return image;
+}
+
+/*
  * Finds or loads the given image
  */
 gl3image_t *
