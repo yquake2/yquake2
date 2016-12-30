@@ -103,6 +103,8 @@ cvar_t *gl_customheight;
 
 cvar_t *gl_retexturing;
 
+cvar_t *gl_nolerp_list;
+
 cvar_t *gl_dynamic;
 cvar_t *gl_modulate;
 cvar_t *gl_nobind;
@@ -1254,6 +1256,8 @@ R_Register(void)
 
 	gl_retexturing = ri.Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
 
+	/* don't bilerp characters and crosshairs */
+	gl_nolerp_list = ri.Cvar_Get("gl_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
 
 	gl_stereo = ri.Cvar_Get( "gl_stereo", "0", CVAR_ARCHIVE );
 	gl_stereo_separation = ri.Cvar_Get( "gl_stereo_separation", "-0.4", CVAR_ARCHIVE );

@@ -29,16 +29,11 @@
 
 unsigned d_8to24table[256];
 
-static cvar_t *gl_nolerp_list;
-
 gl3image_t *draw_chars;
 
 void
 GL3_Draw_InitLocal(void)
 {
-	/* don't bilerp characters and crosshairs */
-	gl_nolerp_list = ri.Cvar_Get("gl_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
-
 	/* load console characters */
 	draw_chars = GL3_FindImage("pics/conchars.pcx", it_pic);
 }

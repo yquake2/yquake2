@@ -880,10 +880,9 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 	qboolean nolerp = false;
 
-	cvar_t* nolerp_var = ri.Cvar_Get("gl_nolerp_list", NULL, 0); // FIXME: isn't this cached somewhere?!
-	if(nolerp_var != NULL && nolerp_var->string != NULL)
+	if(gl_nolerp_list != NULL && gl_nolerp_list->string != NULL)
 	{
-		nolerp = strstr(nolerp_var->string, name) != NULL;
+		nolerp = strstr(gl_nolerp_list->string, name) != NULL;
 	}
 
 	/* find a free image_t */
@@ -1219,9 +1218,10 @@ R_FindImage(char *name, imagetype_t type)
 		 * if (realwidth == 0 || realheight == 0) return NULL;
 		 */
 
-		LoadSTB(name, ext, &pic, &width, &height);
-		image = R_LoadPic(name, pic, width, realwidth,
-				height, realheight, type, 32);
+		if(LoadSTB(name, ext, &pic, &width, &height))
+		{
+			image = R_LoadPic(name, pic, width, realwidth, height, realheight, type, 32);
+		}
 	}
 	else
 	{

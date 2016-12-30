@@ -194,6 +194,8 @@ extern cvar_t *gl_customheight;
 
 extern cvar_t *gl_retexturing;
 
+extern cvar_t *gl_nolerp_list;
+
 extern cvar_t *gl_lightmap;
 extern cvar_t *gl_shadows;
 extern cvar_t *gl_stencilshadow;

@@ -144,6 +144,9 @@ extern cvar_t *vid_fullscreen;
 extern cvar_t *gl_mode;
 extern cvar_t *gl_customwidth;
 extern cvar_t *gl_customheight;
+
+extern cvar_t *gl_nolerp_list;
+
 extern cvar_t *vid_gamma;
 extern cvar_t *gl_anisotropic;
 

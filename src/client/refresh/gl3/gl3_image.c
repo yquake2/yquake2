@@ -319,9 +319,10 @@ GL3_FindImage(char *name, imagetype_t type)
 		 * if (realwidth == 0 || realheight == 0) return NULL;
 		 */
 
-		LoadSTB(name, ext, &pic, &width, &height);
-		image = R_LoadPic(name, pic, width, realwidth,
-				height, realheight, type, 32);
+		if(LoadSTB(name, ext, &pic, &width, &height))
+		{
+			image = R_LoadPic(name, pic, width, realwidth, height, realheight, type, 32);
+		}
 	}
 	else
 	{

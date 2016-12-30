@@ -51,6 +51,8 @@ cvar_t *gl_customheight;
 cvar_t *vid_gamma;
 cvar_t *gl_anisotropic;
 
+cvar_t *gl_nolerp_list;
+
 cvar_t *gl3_debugcontext;
 
 static void
@@ -78,10 +80,14 @@ GL3_Register(void)
 	gl_swapinterval = ri.Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
 	gl_msaa_samples = ri.Cvar_Get ( "gl_msaa_samples", "0", CVAR_ARCHIVE );
 	gl_retexturing = ri.Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
-	gl3_debugcontext = ri.Cvar_Get("gl3_debugcontext", "0", 0); // TODO: really archive?
+	gl3_debugcontext = ri.Cvar_Get("gl3_debugcontext", "0", 0);
 	gl_mode = ri.Cvar_Get("gl_mode", "4", CVAR_ARCHIVE);
 	gl_customwidth = ri.Cvar_Get("gl_customwidth", "1024", CVAR_ARCHIVE);
 	gl_customheight = ri.Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
+
+	/* don't bilerp characters and crosshairs */
+	gl_nolerp_list = ri.Cvar_Get("gl_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
+
 	gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
