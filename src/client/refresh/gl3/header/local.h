@@ -46,6 +46,14 @@
 #define STUB(msg) \
 	R_Printf(PRINT_ALL, "STUB: %s() %s\n", __FUNCTION__, msg )
 
+#define STUB_ONCE(msg) do {\
+		static int show=1; \
+		if(show) { \
+			show = 0; \
+			R_Printf(PRINT_ALL, "STUB: %s() %s\n", __FUNCTION__, msg ); \
+		} \
+	} while(0);
+
 typedef struct
 {
 	const char *renderer_string;
@@ -79,8 +87,9 @@ typedef struct
 
 	int lightmap_textures;
 
-	int currenttextures[2];
-	int currenttmu;
+	//int currenttextures[2];
+	GLuint currenttexture;
+	//int currenttmu;
 	//GLenum currenttarget;
 
 	//float camera_separation;
@@ -94,8 +103,12 @@ extern gl3state_t gl3state;
 
 extern viddef_t vid;
 
-
-typedef struct gl3image_s
+/* NOTE: struct image_s* is what re.RegisterSkin() etc return so no gl3image_s!
+ *       (I think the client only passes the pointer around and doesn't know the
+ *        definition of this struct, so this being different from struct image_s
+ *        in ref_gl should be ok)
+ */
+typedef struct image_s
 {
 	// TODO: what of this is actually needed?
 	char name[MAX_QPATH];               /* game path, including extension */
@@ -104,17 +117,18 @@ typedef struct gl3image_s
 	int upload_width, upload_height;    /* after power of two and picmip */
 	int registration_sequence;          /* 0 = free */
 	struct msurface_s *texturechain;    /* for sort-by-texture world drawing */
-	int texnum;                         /* gl texture binding */
+	GLuint texnum;                      /* gl texture binding */
 	float sl, tl, sh, th;               /* 0,0 - 1,1 unless part of the scrap */
 	qboolean scrap;
 	qboolean has_alpha;
 
-	qboolean paletted;
+	//qboolean paletted;
 } gl3image_t;
 
 enum {MAX_GL3TEXTURES = 1024};
 
-extern gl3image_t *gl3_notexture;
+extern gl3image_t *gl3_notexture; /* use for bad textures */
+extern gl3image_t *gl3_particletexture; /* little dot for particles */
 
 
 extern int gl_filter_min;
@@ -125,15 +139,21 @@ extern int GL3_InitContext(void* win);
 extern void GL3_EndFrame(void);
 extern void GL3_ShutdownWindow(qboolean contextOnly);
 
+extern void GL3_InitParticleTexture(void);
 extern void GL3_ScreenShot(void);
 extern void GL3_SetDefaultState(void);
 
+extern int registration_sequence;
 extern void GL3_Mod_Modellist_f(void);
 
 extern void GL3_Draw_InitLocal(void);
 extern int GL3_Draw_GetPalette(void);
 
-extern gl3image_t * GL3_FindImage(char *name, imagetype_t type);
+extern void GL3_Bind(int texnum);
+extern gl3image_t *GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
+                               int height, int realheight, imagetype_t type, int bits);
+extern gl3image_t *GL3_FindImage(char *name, imagetype_t type);
+extern gl3image_t *GL3_RegisterSkin(char *name);
 extern void GL3_TextureMode(char *string);
 extern void GL3_ImageList_f(void);
 
@@ -146,6 +166,7 @@ extern cvar_t *gl_customwidth;
 extern cvar_t *gl_customheight;
 
 extern cvar_t *gl_nolerp_list;
+extern cvar_t *gl_nobind;
 
 extern cvar_t *vid_gamma;
 extern cvar_t *gl_anisotropic;

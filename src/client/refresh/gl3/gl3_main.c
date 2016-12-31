@@ -38,9 +38,6 @@ gl3state_t gl3state;
 
 viddef_t vid;
 
-gl3image_t *gl3_notexture; /* use for bad textures */
-gl3image_t *gl3_particletexture; /* little dot for particles */
-
 cvar_t *gl_msaa_samples;
 cvar_t *gl_swapinterval;
 cvar_t *gl_retexturing;
@@ -52,6 +49,7 @@ cvar_t *vid_gamma;
 cvar_t *gl_anisotropic;
 
 cvar_t *gl_nolerp_list;
+cvar_t *gl_nobind;
 
 cvar_t *gl3_debugcontext;
 
@@ -87,6 +85,7 @@ GL3_Register(void)
 
 	/* don't bilerp characters and crosshairs */
 	gl_nolerp_list = ri.Cvar_Get("gl_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
+	gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
 
 	gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
 
@@ -121,7 +120,7 @@ GL3_Register(void)
 	gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
 	gl_stencilshadow = ri.Cvar_Get("gl_stencilshadow", "0", CVAR_ARCHIVE);
 	gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);
-	gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
+	//gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
 	gl_round_down = ri.Cvar_Get("gl_round_down", "1", 0);
 	gl_picmip = ri.Cvar_Get("gl_picmip", "0", 0);
 	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
@@ -377,19 +376,20 @@ GL3_Init(void)
 	GL3_SetDefaultState();
 
 	STUB("TODO: Some intensity and gamma stuff that was in R_InitImages()");
+	registration_sequence = 1; // also from R_InitImages()
 
 #if 0
 	//R_InitImages(); - most of the things in R_InitImages() shouldn't be needed anymore
 	Mod_Init();
-	R_InitParticleTexture();
 #endif // 0
+
+	GL3_InitParticleTexture();
 
 	GL3_Draw_InitLocal();
 
 	R_Printf(PRINT_ALL, "\n");
-	return true; // -1 is error, other values don't matter. FIXME: mabe make this return bool..
+	return true;
 
-	return false;
 }
 
 void
@@ -426,10 +426,11 @@ GetRefAPI(refimport_t imp)
 	re.PrepareForWindow = GL3_PrepareForWindow;
 	re.InitContext = GL3_InitContext;
 	re.ShutdownWindow = GL3_ShutdownWindow;
+
 #if 0 // TODO!
 	re.BeginRegistration = RI_BeginRegistration;
 	re.RegisterModel = RI_RegisterModel;
-	re.RegisterSkin = RI_RegisterSkin;
+	re.RegisterSkin = GL3_RegisterSkin;
 
 	re.SetSky = RI_SetSky;
 	re.EndRegistration = RI_EndRegistration;

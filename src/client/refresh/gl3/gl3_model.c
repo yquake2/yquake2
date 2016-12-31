@@ -26,6 +26,8 @@
 
 #include "header/local.h"
 
+int registration_sequence;
+
 void
 GL3_Mod_Modellist_f(void)
 {
