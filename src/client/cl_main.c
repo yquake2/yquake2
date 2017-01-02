@@ -537,6 +537,10 @@ CL_InitLocal(void)
 	gender_auto = Cvar_Get("gender_auto", "1", CVAR_ARCHIVE);
 	gender->modified = false;
 
+	// USERINFO cvars are special, they just need to be registered
+	Cvar_Get("password", "", CVAR_USERINFO);
+	Cvar_Get("spectator", "0", CVAR_USERINFO);
+
 	cl_vwep = Cvar_Get("cl_vwep", "1", CVAR_ARCHIVE);
 
 	/* register our commands */
