@@ -48,6 +48,14 @@ typedef enum
 	it_sky
 } imagetype_t;
 
+typedef enum
+{
+	mod_bad,
+	mod_brush,
+	mod_sprite,
+	mod_alias
+} modtype_t;
+
 extern void R_Printf(int level, const char* msg, ...) __attribute__ ((format (printf, 2, 3)));
 
 extern void LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height);

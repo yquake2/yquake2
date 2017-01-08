@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
- * Copyright (C) 2016 Daniel Gibson
+ * Copyright (C) 2016-2017 Daniel Gibson
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,42 @@ GL3_Draw_InitLocal(void)
 	draw_chars = GL3_FindImage("pics/conchars.pcx", it_pic);
 }
 
+gl3image_t *
+GL3_Draw_FindPic(char *name)
+{
+	gl3image_t *gl;
+	char fullname[MAX_QPATH];
+
+	if ((name[0] != '/') && (name[0] != '\\'))
+	{
+		Com_sprintf(fullname, sizeof(fullname), "pics/%s.pcx", name);
+		gl = GL3_FindImage(fullname, it_pic);
+	}
+	else
+	{
+		gl = GL3_FindImage(name + 1, it_pic);
+	}
+
+	return gl;
+}
+
+void
+GL3_Draw_GetPicSize(int *w, int *h, char *pic)
+{
+	gl3image_t *gl;
+
+	gl = GL3Draw_FindPic(pic);
+
+	if (!gl)
+	{
+		*w = *h = -1;
+		return;
+	}
+
+	*w = gl->width;
+	*h = gl->height;
+}
+
 int
 GL3_Draw_GetPalette(void)
 {
@@ -72,5 +108,3 @@ GL3_Draw_GetPalette(void)
 
 	return 0;
 }
-
-

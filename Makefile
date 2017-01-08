@@ -163,7 +163,7 @@ CFLAGS += $(OSX_ARCH)
 else
 #CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 		  -Wall -pipe -g -ggdb -MMD -fwrapv
-CFLAGS := -O0 -fno-strict-aliasing \
+CFLAGS := -O2 -fno-strict-aliasing \
 		  -Wall -pipe -g -ggdb -MMD -fwrapv
 endif
 
@@ -849,6 +849,7 @@ REFGL3_OBJS_ := \
 	src/client/refresh/gl3/gl3_misc.o \
 	src/client/refresh/gl3/gl3_model.o \
 	src/client/refresh/gl3/gl3_sdl.o \
+	src/client/refresh/gl3/gl3_warp.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
@@ -861,6 +862,7 @@ REFGL3_TODO_ := \
 	src/client/refresh/files/md2.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/sp2.o 
+	
 	
 # TODO: glad_dbg support
 REFGL3_OBJS_ += \

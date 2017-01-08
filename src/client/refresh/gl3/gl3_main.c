@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
- * Copyright (C) 2016 Daniel Gibson
+ * Copyright (C) 2016-2017 Daniel Gibson
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,9 @@
  * =======================================================================
  */
 
+#define HANDMADE_MATH_IMPLEMENTATION
+#include "header/HandmadeMath.h"
+
 #include "../../header/ref.h"
 #include "header/local.h"
 
@@ -36,7 +39,12 @@ refimport_t ri;
 gl3config_t gl3config;
 gl3state_t gl3state;
 
+/* screen size info */
+refdef_t gl3_newrefdef;
+
 viddef_t vid;
+
+int gl3_viewcluster, gl3_viewcluster2, gl3_oldviewcluster, gl3_oldviewcluster2;
 
 cvar_t *gl_msaa_samples;
 cvar_t *gl_swapinterval;
@@ -378,10 +386,8 @@ GL3_Init(void)
 	STUB("TODO: Some intensity and gamma stuff that was in R_InitImages()");
 	registration_sequence = 1; // also from R_InitImages()
 
-#if 0
 	//R_InitImages(); - most of the things in R_InitImages() shouldn't be needed anymore
-	Mod_Init();
-#endif // 0
+	GL3_Mod_Init();
 
 	GL3_InitParticleTexture();
 
@@ -389,28 +395,326 @@ GL3_Init(void)
 
 	R_Printf(PRINT_ALL, "\n");
 	return true;
-
 }
 
 void
 GL3_Shutdown(void)
 {
-
 	ri.Cmd_RemoveCommand("modellist");
 	ri.Cmd_RemoveCommand("screenshot");
 	ri.Cmd_RemoveCommand("imagelist");
 	ri.Cmd_RemoveCommand("gl_strings");
-#if 0 // TODO!
-	Mod_FreeAll();
 
-	R_ShutdownImages();
-#endif // 0
+	GL3_Mod_FreeAll();
+	GL3_ShutdownImages();
 
 	/* shutdown OS specific OpenGL stuff like contexts, etc.  */
 	GL3_ShutdownWindow(false);
 }
 
+static void
+GL3_SetGL2D(void)
+{
+	int x, w, y, h;
+#if 0 // TODO: stereo
+	/* set 2D virtual screen size */
+	qboolean drawing_left_eye = gl_state.camera_separation < 0;
+	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+#endif // 0
 
+	x = 0;
+	w = vid.width;
+	y = 0;
+	h = vid.height;
+
+#if 0 // TODO: stereo
+	if(stereo_split_lr) {
+		w =  w / 2;
+		x = drawing_left_eye ? 0 : w;
+	}
+
+	if(stereo_split_tb) {
+		h =  h / 2;
+		y = drawing_left_eye ? h : 0;
+	}
+#endif // 0
+
+	// FIXME: change to GL3 code!
+	glViewport(x, y, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glEnable(GL_ALPHA_TEST);
+	glColor4f(1, 1, 1, 1);
+}
+
+/*
+ * r_newrefdef must be set before the first call
+ */
+static void
+GL3_RenderView(refdef_t *fd)
+{
+#if 0 // TODO: keep stereo stuff?
+	if ((gl_state.stereo_mode != STEREO_MODE_NONE) && gl_state.camera_separation) {
+
+		qboolean drawing_left_eye = gl_state.camera_separation < 0;
+		switch (gl_state.stereo_mode) {
+			case STEREO_MODE_ANAGLYPH:
+				{
+
+					// Work out the colour for each eye.
+					int anaglyph_colours[] = { 0x4, 0x3 }; // Left = red, right = cyan.
+
+					if (strlen(gl_stereo_anaglyph_colors->string) == 2) {
+						int eye, colour, missing_bits;
+						// Decode the colour name from its character.
+						for (eye = 0; eye < 2; ++eye) {
+							colour = 0;
+							switch (toupper(gl_stereo_anaglyph_colors->string[eye])) {
+								case 'B': ++colour; // 001 Blue
+								case 'G': ++colour; // 010 Green
+								case 'C': ++colour; // 011 Cyan
+								case 'R': ++colour; // 100 Red
+								case 'M': ++colour; // 101 Magenta
+								case 'Y': ++colour; // 110 Yellow
+									anaglyph_colours[eye] = colour;
+									break;
+							}
+						}
+						// Fill in any missing bits.
+						missing_bits = ~(anaglyph_colours[0] | anaglyph_colours[1]) & 0x3;
+						for (eye = 0; eye < 2; ++eye) {
+							anaglyph_colours[eye] |= missing_bits;
+						}
+					}
+
+					// Set the current colour.
+					glColorMask(
+						!!(anaglyph_colours[drawing_left_eye] & 0x4),
+						!!(anaglyph_colours[drawing_left_eye] & 0x2),
+						!!(anaglyph_colours[drawing_left_eye] & 0x1),
+						GL_TRUE
+					);
+				}
+				break;
+			case STEREO_MODE_ROW_INTERLEAVED:
+			case STEREO_MODE_COLUMN_INTERLEAVED:
+			case STEREO_MODE_PIXEL_INTERLEAVED:
+				{
+					qboolean flip_eyes = true;
+					int client_x, client_y;
+
+					//GLimp_GetClientAreaOffset(&client_x, &client_y);
+					client_x = 0;
+					client_y = 0;
+
+					GL3_SetGL2D();
+
+					glEnable(GL_STENCIL_TEST);
+					glStencilMask(GL_TRUE);
+					glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+					glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+					glStencilFunc(GL_NEVER, 0, 1);
+
+					glBegin(GL_QUADS);
+					{
+						glVertex2i(0, 0);
+						glVertex2i(vid.width, 0);
+						glVertex2i(vid.width, vid.height);
+						glVertex2i(0, vid.height);
+					}
+					glEnd();
+
+					glStencilOp(GL_INVERT, GL_KEEP, GL_KEEP);
+					glStencilFunc(GL_NEVER, 1, 1);
+
+					glBegin(GL_LINES);
+					{
+						if (gl_state.stereo_mode == STEREO_MODE_ROW_INTERLEAVED || gl_state.stereo_mode == STEREO_MODE_PIXEL_INTERLEAVED) {
+							int y;
+							for (y = 0; y <= vid.height; y += 2) {
+								glVertex2f(0, y - 0.5f);
+								glVertex2f(vid.width, y - 0.5f);
+							}
+							flip_eyes ^= (client_y & 1);
+						}
+
+						if (gl_state.stereo_mode == STEREO_MODE_COLUMN_INTERLEAVED || gl_state.stereo_mode == STEREO_MODE_PIXEL_INTERLEAVED) {
+							int x;
+							for (x = 0; x <= vid.width; x += 2) {
+								glVertex2f(x - 0.5f, 0);
+								glVertex2f(x - 0.5f, vid.height);
+							}
+							flip_eyes ^= (client_x & 1);
+						}
+					}
+					glEnd();
+
+					glStencilMask(GL_FALSE);
+					glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+					glStencilFunc(GL_EQUAL, drawing_left_eye ^ flip_eyes, 1);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+				}
+				break;
+			default:
+				break;
+		}
+	}
+#endif // 0 (stereo stuff)
+
+	if (gl_norefresh->value)
+	{
+		return;
+	}
+
+	gl3_newrefdef = *fd;
+
+	STUB_ONCE("TODO: Implement!");
+
+#if 0 // TODO !!
+	if (!r_worldmodel && !(gl3_newrefdef.rdflags & RDF_NOWORLDMODEL))
+	{
+		ri.Sys_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
+	}
+
+	if (gl_speeds->value)
+	{
+		c_brush_polys = 0;
+		c_alias_polys = 0;
+	}
+
+	R_PushDlights();
+
+	if (gl_finish->value)
+	{
+		glFinish();
+	}
+
+	R_SetupFrame();
+
+	R_SetFrustum();
+
+	R_SetupGL();
+
+	R_MarkLeaves(); /* done here so we know if we're in water */
+
+	R_DrawWorld();
+
+	R_DrawEntitiesOnList();
+
+	R_RenderDlights();
+
+	R_DrawParticles();
+
+	R_DrawAlphaSurfaces();
+
+	R_Flash();
+
+	if (gl_speeds->value)
+	{
+		R_Printf(PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
+				c_brush_polys, c_alias_polys, c_visible_textures,
+				c_visible_lightmaps);
+	}
+
+#endif // 0
+
+#if 0 // TODO: stereo stuff
+	switch (gl_state.stereo_mode) {
+		case STEREO_MODE_NONE:
+			break;
+		case STEREO_MODE_ANAGLYPH:
+			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+			break;
+		case STEREO_MODE_ROW_INTERLEAVED:
+		case STEREO_MODE_COLUMN_INTERLEAVED:
+		case STEREO_MODE_PIXEL_INTERLEAVED:
+			glDisable(GL_STENCIL_TEST);
+			break;
+		default:
+			break;
+	}
+#endif // 0
+}
+
+#if 0 // TODO: stereo
+enum opengl_special_buffer_modes
+GL3_GetSpecialBufferModeForStereoMode(enum stereo_modes stereo_mode) {
+	switch (stereo_mode) {
+		case STEREO_MODE_NONE:
+		case STEREO_SPLIT_HORIZONTAL:
+		case STEREO_SPLIT_VERTICAL:
+		case STEREO_MODE_ANAGLYPH:
+			return OPENGL_SPECIAL_BUFFER_MODE_NONE;
+		case STEREO_MODE_OPENGL:
+			return OPENGL_SPECIAL_BUFFER_MODE_STEREO;
+		case STEREO_MODE_ROW_INTERLEAVED:
+		case STEREO_MODE_COLUMN_INTERLEAVED:
+		case STEREO_MODE_PIXEL_INTERLEAVED:
+			return OPENGL_SPECIAL_BUFFER_MODE_STENCIL;
+	}
+	return OPENGL_SPECIAL_BUFFER_MODE_NONE;
+}
+#endif // 0
+
+static void
+GL3_SetLightLevel(void)
+{
+	vec3_t shadelight = {0};
+
+	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
+	{
+		return;
+	}
+
+	STUB_ONCE("TODO: IMPLEMENT!");
+
+#if 0 // TODO!
+	/* save off light value for server to look at */
+	R_LightPoint(r_newrefdef.vieworg, shadelight);
+
+	/* pick the greatest component, which should be the
+	 * same as the mono value returned by software */
+	if (shadelight[0] > shadelight[1])
+	{
+		if (shadelight[0] > shadelight[2])
+		{
+			gl_lightlevel->value = 150 * shadelight[0];
+		}
+		else
+		{
+			gl_lightlevel->value = 150 * shadelight[2];
+		}
+	}
+	else
+	{
+		if (shadelight[1] > shadelight[2])
+		{
+			gl_lightlevel->value = 150 * shadelight[1];
+		}
+		else
+		{
+			gl_lightlevel->value = 150 * shadelight[2];
+		}
+	}
+#endif // 0
+}
+
+static void
+GL3_RenderFrame(refdef_t *fd)
+{
+	GL3_RenderView(fd);
+	GL3_SetLightLevel();
+	GL3_SetGL2D();
+}
 
 Q2_DLL_EXPORTED refexport_t
 GetRefAPI(refimport_t imp)
@@ -427,20 +731,19 @@ GetRefAPI(refimport_t imp)
 	re.InitContext = GL3_InitContext;
 	re.ShutdownWindow = GL3_ShutdownWindow;
 
-#if 0 // TODO!
-	re.BeginRegistration = RI_BeginRegistration;
-	re.RegisterModel = RI_RegisterModel;
+	re.BeginRegistration = GL3_BeginRegistration;
+	re.RegisterModel = GL3_RegisterModel;
 	re.RegisterSkin = GL3_RegisterSkin;
 
-	re.SetSky = RI_SetSky;
-	re.EndRegistration = RI_EndRegistration;
+	re.SetSky = GL3_SetSky;
+	re.EndRegistration = GL3_EndRegistration;
 
-	re.RenderFrame = RI_RenderFrame;
+	re.RenderFrame = GL3_RenderFrame;
 
-	re.DrawFindPic = RDraw_FindPic;
+	re.DrawFindPic = GL3_Draw_FindPic;
+	re.DrawGetPicSize = GL3_Draw_GetPicSize;
 
-	re.DrawGetPicSize = RDraw_GetPicSize;
-
+#if 0 // TODO!
 	re.DrawPicScaled = RDraw_PicScaled;
 	re.DrawStretchPic = RDraw_StretchPic;
 
@@ -450,8 +753,8 @@ GetRefAPI(refimport_t imp)
 	re.DrawFadeScreen = RDraw_FadeScreen;
 
 	re.DrawStretchRaw = RDraw_StretchRaw;
-
 	re.SetPalette = RI_SetPalette;
+
 	re.BeginFrame = RI_BeginFrame;
 #endif // 0
 	re.EndFrame = GL3_EndFrame;

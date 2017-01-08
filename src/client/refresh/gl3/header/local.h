@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
- * Copyright (C) 2016 Daniel Gibson
+ * Copyright (C) 2016-2017 Daniel Gibson
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,15 +44,23 @@
 #include "../../ref_shared.h"
 
 #define STUB(msg) \
-	R_Printf(PRINT_ALL, "STUB: %s() %s\n", __FUNCTION__, msg )
+	R_Printf(PRINT_ALL, "STUB: %s() %s\n", __FUNCTION__, msg)
 
-#define STUB_ONCE(msg) do {\
+#define STUB_ONCE(msg) do { \
 		static int show=1; \
 		if(show) { \
 			show = 0; \
-			R_Printf(PRINT_ALL, "STUB: %s() %s\n", __FUNCTION__, msg ); \
+			R_Printf(PRINT_ALL, "STUB: %s() %s\n", __FUNCTION__, msg); \
 		} \
 	} while(0);
+
+// a wrapper around glVertexAttribPointer() to stay sane
+// (caller doesn't have to cast to GLintptr and then void*)
+static inline void
+qglVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, GLintptr offset)
+{
+	glVertexAttribPointer(index, size, type, normalized, stride, (const void*)offset);
+}
 
 typedef struct
 {
@@ -103,6 +111,8 @@ extern gl3state_t gl3state;
 
 extern viddef_t vid;
 
+extern int gl3_viewcluster, gl3_viewcluster2, gl3_oldviewcluster, gl3_oldviewcluster2;
+
 /* NOTE: struct image_s* is what re.RegisterSkin() etc return so no gl3image_s!
  *       (I think the client only passes the pointer around and doesn't know the
  *        definition of this struct, so this being different from struct image_s
@@ -127,35 +137,53 @@ typedef struct image_s
 
 enum {MAX_GL3TEXTURES = 1024};
 
+// include this down here so it can use gl3image_t
+#include "model.h"
+
 extern gl3image_t *gl3_notexture; /* use for bad textures */
 extern gl3image_t *gl3_particletexture; /* little dot for particles */
-
 
 extern int gl_filter_min;
 extern int gl_filter_max;
 
+// gl3_sdl.c
 extern int GL3_PrepareForWindow(void);
 extern int GL3_InitContext(void* win);
 extern void GL3_EndFrame(void);
 extern void GL3_ShutdownWindow(qboolean contextOnly);
 
+// gl3_misc.c
 extern void GL3_InitParticleTexture(void);
 extern void GL3_ScreenShot(void);
 extern void GL3_SetDefaultState(void);
 
+// gl3_model.c
 extern int registration_sequence;
+extern void GL3_Mod_Init(void);
+extern void GL3_Mod_FreeAll(void);
+extern void GL3_BeginRegistration(char *model);
+extern struct model_s * GL3_RegisterModel(char *name);
+extern void GL3_EndRegistration(void);
 extern void GL3_Mod_Modellist_f(void);
 
+// gl3_draw.c
 extern void GL3_Draw_InitLocal(void);
+extern gl3image_t * GL3_Draw_FindPic(char *name);
+extern void GL3_Draw_GetPicSize(int *w, int *h, char *pic);
 extern int GL3_Draw_GetPalette(void);
 
+// gl3_image.c
+extern void GL3_TextureMode(char *string);
 extern void GL3_Bind(int texnum);
 extern gl3image_t *GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
                                int height, int realheight, imagetype_t type, int bits);
 extern gl3image_t *GL3_FindImage(char *name, imagetype_t type);
 extern gl3image_t *GL3_RegisterSkin(char *name);
-extern void GL3_TextureMode(char *string);
+extern void GL3_FreeUnusedImages(void);
 extern void GL3_ImageList_f(void);
+
+// gl3_warp.c
+extern void GL3_SetSky(char *name, float rotate, vec3_t axis);
 
 extern cvar_t *gl_msaa_samples;
 extern cvar_t *gl_swapinterval;

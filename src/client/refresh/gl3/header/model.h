@@ -24,19 +24,27 @@
  * =======================================================================
  */
 
-#ifndef REF_MODEL_H
-#define REF_MODEL_H
+#ifndef SRC_CLIENT_REFRESH_GL3_HEADER_MODEL_H_
+#define SRC_CLIENT_REFRESH_GL3_HEADER_MODEL_H_
 
-#define SIDE_FRONT 0
-#define SIDE_BACK 1
-#define SIDE_ON 2
+// TODO: maybe lots of these things should get a gl3_ prefix and might
+//       need to be adapted and so on
 
-#define SURF_PLANEBACK 2
-#define SURF_DRAWSKY 4
-#define SURF_DRAWTURB 0x10
-#define SURF_DRAWBACKGROUND 0x40
-#define SURF_UNDERWATER 0x80
-#define VERTEXSIZE 7
+enum {
+	SIDE_FRONT = 0,
+	SIDE_BACK = 1,
+	SIDE_ON = 2
+};
+
+enum {
+	SURF_PLANEBACK = 2,
+	SURF_DRAWSKY = 4,
+	SURF_DRAWTURB = 0x10,
+	SURF_DRAWBACKGROUND = 0x40,
+	SURF_UNDERWATER = 0x80,
+
+	VERTEXSIZE  = 7
+};
 
 /* in memory representation */
 typedef struct
@@ -66,7 +74,7 @@ typedef struct mtexinfo_s
 	int flags;
 	int numframes;
 	struct mtexinfo_s *next; /* animation chain */
-	image_t *image;
+	gl3image_t *image;
 } mtexinfo_t;
 
 typedef struct glpoly_s
@@ -148,6 +156,8 @@ typedef struct mleaf_s
 
 /* Whole model */
 
+// this, must be struct model_s, not gl3model_s,
+// because struct model_s* is returned by re.RegisterModel()
 typedef struct model_s
 {
 	char name[MAX_QPATH];
@@ -207,26 +217,10 @@ typedef struct model_s
 	byte *lightdata;
 
 	/* for alias models and skins */
-	image_t *skins[MAX_MD2SKINS];
+	gl3image_t *skins[MAX_MD2SKINS];
 
 	int extradatasize;
 	void *extradata;
-} model_t;
+} gl3model_t;
 
-void Mod_Init(void);
-void Mod_ClearAll(void);
-model_t *Mod_ForName(char *name, qboolean crash);
-mleaf_t *Mod_PointInLeaf(float *p, model_t *model);
-byte *Mod_ClusterPVS(int cluster, model_t *model);
-
-void Mod_Modellist_f(void);
-
-void *Hunk_Begin(int maxsize);
-void *Hunk_Alloc(int size);
-int Hunk_End(void);
-void Hunk_Free(void *base);
-
-void Mod_FreeAll(void);
-void Mod_Free(model_t *mod);
-
-#endif
+#endif /* SRC_CLIENT_REFRESH_GL3_HEADER_MODEL_H_ */

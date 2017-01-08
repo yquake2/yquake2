@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
- * Copyright (C) 2016 Daniel Gibson
+ * Copyright (C) 2016-2017 Daniel Gibson
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -318,6 +318,8 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 	glGenTextures(1, &texNum);
 
 	image->texnum = texNum;
+
+	// glActiveTexture(GL_TEXTURE0); TODO: useful if we need >1 texture in the fragment shader
 	GL3_Bind(texNum);
 
 	if (bits == 8)
@@ -681,32 +683,109 @@ GL3_RegisterSkin(char *name)
 	return GL3_FindImage(name, it_skin);
 }
 
+/*
+ * Any image that was not touched on
+ * this registration sequence
+ * will be freed.
+ */
+void
+GL3_FreeUnusedImages(void)
+{
+	int i;
+	gl3image_t *image;
 
+	/* never free r_notexture or particle texture */
+	gl3_notexture->registration_sequence = registration_sequence;
+	gl3_particletexture->registration_sequence = registration_sequence;
+
+	for (i = 0, image = gl3textures; i < numgl3textures; i++, image++)
+	{
+		if (image->registration_sequence == registration_sequence)
+		{
+			continue; /* used this sequence */
+		}
+
+		if (!image->registration_sequence)
+		{
+			continue; /* free image_t slot */
+		}
+
+		if (image->type == it_pic)
+		{
+			continue; /* don't free pics */
+		}
+
+		/* free it */
+		glDeleteTextures(1, &image->texnum);
+		memset(image, 0, sizeof(*image));
+	}
+}
+
+void
+GL3_ShutdownImages(void)
+{
+	int i;
+	gl3image_t *image;
+
+	for (i = 0, image = gl3textures; i < numgl3textures; i++, image++)
+	{
+		if (!image->registration_sequence)
+		{
+			continue; /* free image_t slot */
+		}
+
+		/* free it */
+		glDeleteTextures(1, &image->texnum);
+		memset(image, 0, sizeof(*image));
+	}
+}
+
+static qboolean IsNPOT(int v)
+{
+	unsigned int uv = v;
+	// just try all the power of two values between 1 and 1 << 15 (32k)
+	for(unsigned int i=0; i<16; ++i)
+	{
+		unsigned int pot = (1u << i);
+		if(uv & pot)
+		{
+			return uv != pot;
+		}
+	}
+
+	return true;
+}
 
 void
 GL3_ImageList_f(void)
 {
-	R_Printf(PRINT_ALL, "TODO: Implement R_ImageList_f()\n");
-
-	int i;
+	int i, texels=0;
 	gl3image_t *image;
-	int texels;
 	const char *formatstrings[2] = {
 		"RGB ",
 		"RGBA"
 	};
 
+	const char* potstrings[2] = {
+		" POT", "NPOT"
+	};
+
 	R_Printf(PRINT_ALL, "------------------\n");
-	texels = 0;
 
 	for (i = 0, image = gl3textures; i < numgl3textures; i++, image++)
 	{
+		int w, h;
+		qboolean isNPOT = false;
 		if (image->texnum == 0)
 		{
 			continue;
 		}
+		w = image->upload_width;
+		h = image->upload_height;
 
-		texels += image->upload_width * image->upload_height;
+		isNPOT = IsNPOT(w) || IsNPOT(h);
+
+		texels += w*h;
 
 		switch (image->type)
 		{
@@ -727,9 +806,8 @@ GL3_ImageList_f(void)
 				break;
 		}
 
-		R_Printf(PRINT_ALL, " %3i %3i %s: %s\n",
-		         image->upload_width, image->upload_height,
-				 formatstrings[image->has_alpha], image->name);
+		R_Printf(PRINT_ALL, " %3i %3i %s %s: %s\n", w, h,
+		         formatstrings[image->has_alpha], potstrings[isNPOT], image->name);
 	}
 
 	R_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i\n", texels);

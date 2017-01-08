@@ -1114,6 +1114,8 @@ R_RenderView(refdef_t *fd)
 	}
 
 	switch (gl_state.stereo_mode) {
+		case STEREO_MODE_NONE:
+			break;
 		case STEREO_MODE_ANAGLYPH:
 			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 			break;
@@ -1127,7 +1129,8 @@ R_RenderView(refdef_t *fd)
 	}
 }
 
-enum opengl_special_buffer_modes GL_GetSpecialBufferModeForStereoMode(enum stereo_modes stereo_mode) {
+enum opengl_special_buffer_modes
+GL_GetSpecialBufferModeForStereoMode(enum stereo_modes stereo_mode) {
 	switch (stereo_mode) {
 		case STEREO_MODE_NONE:
 		case STEREO_SPLIT_HORIZONTAL:

@@ -142,7 +142,7 @@ typedef struct
 	// called by GLimp_InitGraphics() *after* creating window,
 	// passing the SDL_Window* (void* so we don't spill SDL.h here)
 	// returns true (1) on success
-	int		(EXPORT *InitContext)(void* window);
+	int		(EXPORT *InitContext)(void* sdl_window);
 
 	// shuts down rendering (OpenGL) context, calls
 	// VID_ShutdownWindow() to shut down window as well, if !contextOnly
