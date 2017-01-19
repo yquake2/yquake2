@@ -109,6 +109,7 @@ cvar_t *gl_nobind;
 cvar_t *gl_round_down;
 cvar_t *gl_picmip;
 cvar_t *gl_showtris;
+cvar_t *gl_showbbox;
 cvar_t *gl_ztrick;
 cvar_t *gl_zfix;
 cvar_t *gl_finish;
@@ -1218,6 +1219,7 @@ R_Register(void)
 	gl_round_down = Cvar_Get("gl_round_down", "1", 0);
 	gl_picmip = Cvar_Get("gl_picmip", "0", 0);
 	gl_showtris = Cvar_Get("gl_showtris", "0", 0);
+	gl_showbbox = Cvar_Get("gl_showbbox", "0", 0);
 	gl_ztrick = Cvar_Get("gl_ztrick", "0", 0);
 	gl_zfix = Cvar_Get("gl_zfix", "0", 0);
 	gl_finish = Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);

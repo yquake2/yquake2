@@ -754,6 +754,24 @@ R_DrawAliasModel(entity_t *e)
 
 	glPopMatrix();
 
+	if (gl_showbbox->value)
+	{
+		glDisable(GL_CULL_FACE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glDisable(GL_TEXTURE_2D);
+		glBegin(GL_TRIANGLE_STRIP);
+
+		for (i = 0; i < 8; i++)
+		{
+			glVertex3fv(bbox[i]);
+		}
+
+		glEnd();
+		glEnable(GL_TEXTURE_2D);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_CULL_FACE);
+	}
+
 	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
 	{
 		glMatrixMode(GL_PROJECTION);
