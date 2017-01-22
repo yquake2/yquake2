@@ -56,6 +56,43 @@ GL3_Draw_ShutdownLocal(void)
 	gl3state.vao2D = 0;
 }
 
+// bind the texture before calling this
+static void
+drawTexturedRectangle(float x, float y, float w, float h,
+                      float sl, float tl, float sh, float th)
+{
+	/*
+	 *  x,y+h      x+w,y+h
+	 * sl,th--------sh,th
+	 *  |             |
+	 *  |             |
+	 *  |             |
+	 * sl,tl--------sh,tl
+	 *  x,y        x+w,y
+	 */
+
+	GLfloat vBuf[16] = {
+	//  X,   Y,   S,  T
+		x,   y+h, sl, th,
+		x,   y,   sl, tl,
+		x+w, y+h, sh, th,
+		x+w, y,   sh, tl
+	};
+
+	glBindVertexArray(gl3state.vao2D);
+
+	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo2D);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
+
+	glEnableVertexAttribArray(gl3state.si2D.attribPosition);
+	qglVertexAttribPointer(gl3state.si2D.attribPosition, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), 0);
+
+	glEnableVertexAttribArray(gl3state.si2D.attribTexCoord);
+	qglVertexAttribPointer(gl3state.si2D.attribTexCoord, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), 2*sizeof(float));
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
 /*
  * Draws one 8*8 graphics character with 0 being transparent.
  * It can be clipped to the top of the screen to allow the console to be
@@ -64,11 +101,8 @@ GL3_Draw_ShutdownLocal(void)
 void
 GL3_Draw_CharScaled(int x, int y, int num, float scale)
 {
-	STUB_ONCE("TODO: Implement!");
-#if 0
 	int row, col;
 	float frow, fcol, size, scaledSize;
-
 	num &= 255;
 
 	if ((num & 127) == 32)
@@ -90,32 +124,8 @@ GL3_Draw_CharScaled(int x, int y, int num, float scale)
 
 	scaledSize = 8*scale;
 
-	R_Bind(draw_chars->texnum);
-
-	GLfloat vtx[] = {
-		x, y,
-		x + scaledSize, y,
-		x + scaledSize, y + scaledSize,
-		x, y + scaledSize
-	};
-
-	GLfloat tex[] = {
-		fcol, frow,
-		fcol + size, frow,
-		fcol + size, frow + size,
-		fcol, frow + size
-	};
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	glVertexPointer( 2, GL_FLOAT, 0, vtx );
-	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-
-	glDisableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-#endif // 0
+	GL3_Bind(draw_chars->texnum);
+	drawTexturedRectangle(x, y, scaledSize, scaledSize, fcol, frow, fcol+size, frow+size);
 }
 
 gl3image_t *
@@ -157,11 +167,7 @@ GL3_Draw_GetPicSize(int *w, int *h, char *pic)
 void
 GL3_Draw_StretchPic(int x, int y, int w, int h, char *pic)
 {
-	STUB_ONCE("TODO: Implement!");
-#if 0
-	image_t *gl;
-
-	gl = RDraw_FindPic(pic);
+	gl3image_t *gl = GL3_Draw_FindPic(pic);
 
 	if (!gl)
 	{
@@ -169,85 +175,24 @@ GL3_Draw_StretchPic(int x, int y, int w, int h, char *pic)
 		return;
 	}
 
-	if (scrap_dirty)
-	{
-		Scrap_Upload();
-	}
+	GL3_Bind(gl->texnum);
 
-	R_Bind(gl->texnum);
-
-	GLfloat vtx[] = {
-		x, y,
-		x + w, y,
-		x + w, y + h,
-		x, y + h
-	};
-
-	GLfloat tex[] = {
-		gl->sl, gl->tl,
-		gl->sh, gl->tl,
-		gl->sh, gl->th,
-		gl->sl, gl->th
-	};
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	glVertexPointer( 2, GL_FLOAT, 0, vtx );
-	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-
-	glDisableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-#endif // 0
+	drawTexturedRectangle(x, y, w, h, gl->sl, gl->tl, gl->sh, gl->th);
 }
 
 void
 GL3_Draw_PicScaled(int x, int y, char *pic, float factor)
 {
-	STUB_ONCE("TODO: Implement!");
-#if 0
-	image_t *gl;
-
-	gl = RDraw_FindPic(pic);
-
+	gl3image_t *gl = GL3_Draw_FindPic(pic);
 	if (!gl)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
 		return;
 	}
 
-	if (scrap_dirty)
-	{
-		Scrap_Upload();
-	}
+	GL3_Bind(gl->texnum);
 
-	R_Bind(gl->texnum);
-
-	GLfloat vtx[] = {
-		x, y,
-		x + gl->width * factor, y,
-		x + gl->width * factor, y + gl->height * factor,
-		x, y + gl->height * factor
-	};
-
-	GLfloat tex[] = {
-		gl->sl, gl->tl,
-		gl->sh, gl->tl,
-		gl->sh, gl->th,
-		gl->sl, gl->th
-	};
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	glVertexPointer( 2, GL_FLOAT, 0, vtx );
-	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-
-	glDisableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-#endif // 0
+	drawTexturedRectangle(x, y, gl->width*factor, gl->height*factor, gl->sl, gl->tl, gl->sh, gl->th);
 }
 
 /*
@@ -258,44 +203,16 @@ GL3_Draw_PicScaled(int x, int y, char *pic, float factor)
 void
 GL3_Draw_TileClear(int x, int y, int w, int h, char *pic)
 {
-	STUB_ONCE("TODO: Implement!");
-#if 0
-	image_t *image;
-
-	image = RDraw_FindPic(pic);
-
+	gl3image_t *image = GL3_Draw_FindPic(pic);
 	if (!image)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
 		return;
 	}
 
-	R_Bind(image->texnum);
+	GL3_Bind(image->texnum);
 
-	GLfloat vtx[] = {
-		x, y,
-		x + w, y,
-		x + w, y + h,
-		x, y + h
-	};
-
-	GLfloat tex[] = {
-		x / 64.0, y / 64.0,
-		( x + w ) / 64.0, y / 64.0,
-		( x + w ) / 64.0, ( y + h ) / 64.0,
-		x / 64.0, ( y + h ) / 64.0
-	};
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	glVertexPointer( 2, GL_FLOAT, 0, vtx );
-	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-
-	glDisableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-#endif // 0
+	drawTexturedRectangle(x, y, w, h, x/64.0f, y/64.0f, (x+w)/64.0f, (y+h)/64.0f);
 }
 
 /*
@@ -304,71 +221,80 @@ GL3_Draw_TileClear(int x, int y, int w, int h, char *pic)
 void
 GL3_Draw_Fill(int x, int y, int w, int h, int c)
 {
-	STUB_ONCE("TODO: Implement!");
-#if 0
 	union
 	{
 		unsigned c;
 		byte v[4];
 	} color;
+	int i;
+	float cf[3];
 
 	if ((unsigned)c > 255)
 	{
 		ri.Sys_Error(ERR_FATAL, "Draw_Fill: bad color");
 	}
 
-	glDisable(GL_TEXTURE_2D);
-
 	color.c = d_8to24table[c];
-	glColor4f(color.v [ 0 ] / 255.0, color.v [ 1 ] / 255.0,
-			   color.v [ 2 ] / 255.0, 1);
 
-	GLfloat vtx[] = {
-		x, y,
-		x + w, y,
-		x + w, y + h,
-		x, y + h
+	for(i=0; i<3; ++i)
+	{
+		cf[i] = color.v[i] * (1.0f/255.0f);
+	}
+
+	GLfloat vBuf[24] = {
+	//  X,   Y,     R,     G,     B,     A
+		x,   y+h,  cf[0], cf[1], cf[2], 1.0f,
+		x,   y,    cf[0], cf[1], cf[2], 1.0f,
+		x+w, y+h,  cf[0], cf[1], cf[2], 1.0f,
+		x+w, y,    cf[0], cf[1], cf[2], 1.0f
 	};
 
-	glEnableClientState( GL_VERTEX_ARRAY );
+	glUseProgram(gl3state.si2Dcolor.shaderProgram);
 
-	glVertexPointer( 2, GL_FLOAT, 0, vtx );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+	glBindVertexArray(gl3state.vao2D);
 
-	glDisableClientState( GL_VERTEX_ARRAY );
+	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo2D);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
 
-	glColor4f( 1, 1, 1, 1 );
-	glEnable(GL_TEXTURE_2D);
-#endif // 0
+	glEnableVertexAttribArray(gl3state.si2Dcolor.attribPosition);
+	qglVertexAttribPointer(gl3state.si2Dcolor.attribPosition, 2, GL_FLOAT, GL_FALSE, 6*sizeof(float), 0);
+
+	glEnableVertexAttribArray(gl3state.si2Dcolor.attribColor);
+	qglVertexAttribPointer(gl3state.si2Dcolor.attribColor, 2, GL_FLOAT, GL_FALSE, 6*sizeof(float), 2*sizeof(float));
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glUseProgram(gl3state.si2D.shaderProgram);
 }
 
 void
 GL3_Draw_FadeScreen(void)
 {
-	STUB_ONCE("TODO: Implement!");
-#if 0
-	glEnable(GL_BLEND);
-	glDisable(GL_TEXTURE_2D);
-	glColor4f(0, 0, 0, 0.8);
+	float w = vid.width;
+	float h = vid.height;
 
-	GLfloat vtx[] = {
-		0, 0,
-		vid.width, 0,
-		vid.width, vid.height,
-		0, vid.height
+	GLfloat vBuf[24] = {
+	//  X,   Y,   R,    G,    B,    A
+		0,   h,  0.0f, 0.0f, 0.0f, 0.8f,
+		0,   0,  0.0f, 0.0f, 0.0f, 0.8f,
+		w,   h,  0.0f, 0.0f, 0.0f, 0.8f,
+		w,   0,  0.0f, 0.0f, 0.0f, 0.8f
 	};
 
-	glEnableClientState( GL_VERTEX_ARRAY );
+	glUseProgram(gl3state.si2Dcolor.shaderProgram);
 
-	glVertexPointer( 2, GL_FLOAT, 0, vtx );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+	glBindVertexArray(gl3state.vao2D);
 
-	glDisableClientState( GL_VERTEX_ARRAY );
+	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo2D);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
 
-	glColor4f(1, 1, 1, 1);
-	glEnable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
-#endif // 0
+	glEnableVertexAttribArray(gl3state.si2Dcolor.attribPosition);
+	qglVertexAttribPointer(gl3state.si2Dcolor.attribPosition, 2, GL_FLOAT, GL_FALSE, 6*sizeof(float), 0);
+
+	glEnableVertexAttribArray(gl3state.si2Dcolor.attribColor);
+	qglVertexAttribPointer(gl3state.si2Dcolor.attribColor, 2, GL_FLOAT, GL_FALSE, 6*sizeof(float), 2*sizeof(float));
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glUseProgram(gl3state.si2D.shaderProgram);
 }
 
 void
@@ -379,14 +305,6 @@ GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 	int frac, fracstep;
 	int i, j, trows;
 	int row;
-
-	GLfloat vBuf[] = {
-	//  posX,  posY,  texS, texT
-		x,     y + h, 0.0f, 1.0f,
-		x,     y,     0.0f, 0.0f,
-		x + w, y + h, 1.0f, 1.0f,
-		x + w, y,     1.0f, 0.0f,
-	};
 
 	GL3_Bind(0);
 
@@ -426,19 +344,7 @@ GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-
-	glBindVertexArray(gl3state.vao2D);
-
-	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo2D);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
-
-	glEnableVertexAttribArray(gl3state.si2D.attribPosition);
-	qglVertexAttribPointer(gl3state.si2D.attribPosition, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), 0);
-
-	glEnableVertexAttribArray(gl3state.si2D.attribTexCoord);
-	qglVertexAttribPointer(gl3state.si2D.attribTexCoord, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), sizeof(float)*2);
-
-	glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+	drawTexturedRectangle(x, y, w, h, 0.0f, 0.0f, 1.0f, 1.0f);
 
 	glDeleteTextures(1, &glTex);
 	GL3_Bind(0);

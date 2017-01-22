@@ -200,17 +200,21 @@ static const char* vertexSrc2D = MULTILINE_STRING(#version 150\n
 static const char* fragmentSrc2D = MULTILINE_STRING(#version 150\n
 		in vec2 passTexCoord;
 
-		out vec4 outColor;
-
 		uniform sampler2D tex;
+
+		out vec4 outColor;
 
 		void main()
 		{
 			// TODO: gamma, intensity
-			outColor = texture(tex, passTexCoord);
+			vec4 texel = texture(tex, passTexCoord);
+			if(texel.a < 0.666)
+				discard;
+			outColor = texel;
 		}
 );
 
+// 2D color only rendering, GL3_Draw_Fill(), GL3_Draw_FadeScreen()
 static const char* vertexSrc2Dcolor = MULTILINE_STRING(#version 150\n
 		in vec4 color;
 		in vec2 position;
@@ -229,79 +233,107 @@ static const char* vertexSrc2Dcolor = MULTILINE_STRING(#version 150\n
 static const char* fragmentSrc2Dcolor = MULTILINE_STRING(#version 150\n
 		in vec4 passColor;
 
-		out vec4 outColor;
-
 		uniform sampler2D tex;
+
+		out vec4 outColor;
 
 		void main()
 		{
-			// TODO: gamma, intensity
+			// TODO: gamma, intensity? (not sure we need that here)
 			outColor = passColor;
 		}
 );
 
 #undef MULTILINE_STRING
 
-qboolean GL3_InitShaders(void)
+static qboolean
+initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragSrc)
 {
+	GLuint shaders2D[2] = {0};
+	GLint i = -1;
+	GLuint prog = 0;
+
+	if(shaderInfo->shaderProgram != 0)
 	{
-		GLuint shaders2D[2] = {0};
-		shaders2D[0] = CompileShader(GL_VERTEX_SHADER, vertexSrc2D);
-		if(shaders2D[0] == 0)  return false;
-		shaders2D[1] = CompileShader(GL_FRAGMENT_SHADER, fragmentSrc2D);
-		if(shaders2D[1] == 0)
-		{
-			glDeleteShader(shaders2D[0]);
-			return false;
-		}
-
-		gl3state.si2D.shaderProgram = CreateShaderProgram(2, shaders2D);
-
-		// I think the shaders aren't needed anymore once they're linked into the program
-		glDeleteShader(shaders2D[0]);
-		glDeleteShader(shaders2D[1]);
-
-		if(gl3state.si2D.shaderProgram != 0)
-		{
-			glUseProgram(gl3state.si2D.shaderProgram);
-			gl3state.si2D.attribTexCoord = glGetAttribLocation(gl3state.si2D.shaderProgram, "texCoord");
-			gl3state.si2D.attribPosition = glGetAttribLocation(gl3state.si2D.shaderProgram, "position");
-			gl3state.si2D.attribColor = -1;
-
-			gl3state.si2D.uniTransMatrix = glGetUniformLocation(gl3state.si2D.shaderProgram, "trans");
-		}
-		else
-		{
-			return false;
-		}
+		R_Printf(PRINT_ALL, "WARNING: calling initShader2D for gl3ShaderInfo_t that already has a shaderProgram!\n");
+		glDeleteProgram(shaderInfo->shaderProgram);
 	}
 
+	shaderInfo->attribColor = shaderInfo->attribPosition = shaderInfo->attribTexCoord = -1;
+	shaderInfo->uniTransMatrix = -1;
+	shaderInfo->shaderProgram = 0;
+
+	shaders2D[0] = CompileShader(GL_VERTEX_SHADER, vertSrc);
+	if(shaders2D[0] == 0)  return false;
+
+	shaders2D[1] = CompileShader(GL_FRAGMENT_SHADER, fragSrc);
+	if(shaders2D[1] == 0)
 	{
-		GLuint shaders2Dcol[2] = {0};
+		glDeleteShader(shaders2D[0]);
+		return false;
+	}
 
-		shaders2Dcol[0] = CompileShader(GL_VERTEX_SHADER, vertexSrc2Dcolor);
-		shaders2Dcol[1] = CompileShader(GL_FRAGMENT_SHADER, fragmentSrc2Dcolor);
-		// TODO: error handling!
-		gl3state.si2Dcolor.shaderProgram = CreateShaderProgram(2, shaders2Dcol);
+	prog = CreateShaderProgram(2, shaders2D);
 
-		// I think the shaders aren't needed anymore once they're linked into the program
-		glDeleteShader(shaders2Dcol[0]);
-		glDeleteShader(shaders2Dcol[1]);
+	// I think the shaders aren't needed anymore once they're linked into the program
+	glDeleteShader(shaders2D[0]);
+	glDeleteShader(shaders2D[1]);
 
-		if(gl3state.si2Dcolor.shaderProgram != 0)
-		{
-			glUseProgram(gl3state.si2Dcolor.shaderProgram);
-			gl3state.si2Dcolor.attribColor = glGetAttribLocation(gl3state.si2Dcolor.shaderProgram, "color");
-			gl3state.si2Dcolor.attribPosition = glGetAttribLocation(gl3state.si2Dcolor.shaderProgram, "position");
-			gl3state.si2Dcolor.attribTexCoord = -1;
+	if(prog == 0)
+	{
+		return false;
+	}
 
-			gl3state.si2Dcolor.uniTransMatrix = glGetUniformLocation(gl3state.si2Dcolor.shaderProgram, "trans");
-		}
-		else
-		{
-			// TODO: error handling!
-		}
+	shaderInfo->shaderProgram = prog;
+	glUseProgram(prog);
+
+	i = glGetAttribLocation(prog, "position");
+	if( i == -1)
+	{
+		R_Printf(PRINT_ALL, "WARNING: Couldn't get 'position' attribute in shader\n");
+		return false;
+	}
+	shaderInfo->attribPosition = i;
+
+	// the following line will set it to -1 for the textured case, that's ok.
+	shaderInfo->attribColor = glGetAttribLocation(prog, "color");
+	// the following line will set it to -1 for the color-only case, that's ok.
+	shaderInfo->attribTexCoord = glGetAttribLocation(prog, "texCoord");
+
+	i = glGetUniformLocation(prog, "trans");
+	if( i == -1)
+	{
+		R_Printf(PRINT_ALL, "WARNING: Couldn't get 'trans' uniform in shader\n");
+		return false;
+	}
+	shaderInfo->uniTransMatrix = i;
+
+	return true;
+}
+
+qboolean GL3_InitShaders(void)
+{
+	if(!initShader2D(&gl3state.si2D, vertexSrc2D, fragmentSrc2D))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for textured 2D rendering!\n");
+		return false;
+	}
+	if(!initShader2D(&gl3state.si2Dcolor, vertexSrc2Dcolor, fragmentSrc2Dcolor))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for color-only 2D rendering!\n");
+		return false;
 	}
 
 	return true;
+}
+
+void GL3_ShutdownShaders(void)
+{
+	if(gl3state.si2D.shaderProgram != 0)
+		glDeleteProgram(gl3state.si2D.shaderProgram);
+	memset(&gl3state.si2D, 0, sizeof(gl3ShaderInfo_t));
+
+	if(gl3state.si2Dcolor.shaderProgram != 0)
+		glDeleteProgram(gl3state.si2Dcolor.shaderProgram);
+	memset(&gl3state.si2Dcolor, 0, sizeof(gl3ShaderInfo_t));
 }

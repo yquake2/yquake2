@@ -422,6 +422,8 @@ GL3_Shutdown(void)
 
 	GL3_Mod_FreeAll();
 	GL3_ShutdownImages();
+	GL3_Draw_ShutdownLocal();
+	GL3_ShutdownShaders();
 
 	/* shutdown OS specific OpenGL stuff like contexts, etc.  */
 	GL3_ShutdownWindow(false);
@@ -476,6 +478,7 @@ GL3_SetGL2D(void)
 	glDisable(GL_BLEND);
 	// glEnable(GL_ALPHA_TEST); TODO: do in shader https://www.khronos.org/opengl/wiki/Transparency_Sorting#Alpha_test
 	// glColor4f(1, 1, 1, 1);
+
 }
 
 /*
@@ -744,6 +747,11 @@ void
 GL3_BeginFrame(float camera_separation)
 {
 	STUB_ONCE("TODO: Implement!");
+
+	glClearColor(0, 0, 0, 0); // FIXME: not sure this should stay
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(1, 0, 0.5, 0.5);
+
 	GL3_SetGL2D();
 #if 0
 	gl_state.camera_separation = camera_separation;

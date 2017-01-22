@@ -92,7 +92,8 @@ typedef struct
 	float max_anisotropy;
 } gl3config_t;
 
-typedef struct {
+typedef struct
+{
 	GLuint shaderProgram;
 
 	GLint attribPosition;
@@ -226,6 +227,7 @@ extern void GL3_SetSky(char *name, float rotate, vec3_t axis);
 
 // gl3_shaders.c
 extern qboolean GL3_InitShaders(void);
+extern void GL3_ShutdownShaders(void);
 
 // ############ Cvars ###########
 
