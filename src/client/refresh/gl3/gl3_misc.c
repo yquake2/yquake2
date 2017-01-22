@@ -36,8 +36,10 @@ GL3_SetDefaultState(void)
 	glClearColor(1, 0, 0.5, 0.5);
 	glDisable(GL_MULTISAMPLE);
 	glCullFace(GL_FRONT);
-	glEnable(GL_TEXTURE_2D);
+	//glEnable(GL_TEXTURE_2D);
 
+	// TODO: this must be done in shader instead,
+	// see https://www.khronos.org/opengl/wiki/Transparency_Sorting#Alpha_test
 	//glEnable(GL_ALPHA_TEST);
 	//glAlphaFunc(GL_GREATER, 0.666);
 

@@ -62,6 +62,15 @@ qglVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normaliz
 	glVertexAttribPointer(index, size, type, normalized, stride, (const void*)offset);
 }
 
+// TODO: do we need the following configurable?
+static const int gl3_solid_format = GL_RGB;
+static const int gl3_alpha_format = GL_RGBA;
+static const int gl3_tex_solid_format = GL_RGB;
+static const int gl3_tex_alpha_format = GL_RGBA;
+
+extern unsigned gl3_rawpalette[256];
+extern unsigned d_8to24table[256];
+
 typedef struct
 {
 	const char *renderer_string;
@@ -82,6 +91,19 @@ typedef struct
 
 	float max_anisotropy;
 } gl3config_t;
+
+typedef struct {
+	GLuint shaderProgram;
+
+	GLint attribPosition;
+	GLint attribTexCoord;
+	GLint attribColor;
+
+	GLint uniTransMatrix; // TODO: could use 2 or 3 matrices?
+
+	// TODO: probably more uniforms, at least gamma and intensity
+
+} gl3ShaderInfo_t;
 
 typedef struct
 {
@@ -104,6 +126,12 @@ typedef struct
 	//enum stereo_modes stereo_mode;
 
 	//qboolean hwgamma;
+
+	gl3ShaderInfo_t si2D; // shader for rendering 2D with textures
+	gl3ShaderInfo_t si2Dcolor; // shader for rendering 2D with flat colors
+	GLuint vbo2D; // this vbo is reused for all 2D drawing (HUD, movies, menu, console, ..)
+	GLuint vao2D; // same for this vao
+
 } gl3state_t;
 
 extern gl3config_t gl3config;
@@ -168,9 +196,18 @@ extern void GL3_Mod_Modellist_f(void);
 
 // gl3_draw.c
 extern void GL3_Draw_InitLocal(void);
+extern void GL3_Draw_ShutdownLocal(void);
 extern gl3image_t * GL3_Draw_FindPic(char *name);
 extern void GL3_Draw_GetPicSize(int *w, int *h, char *pic);
 extern int GL3_Draw_GetPalette(void);
+
+extern void GL3_Draw_PicScaled(int x, int y, char *pic, float factor);
+extern void GL3_Draw_StretchPic(int x, int y, int w, int h, char *pic);
+extern void GL3_Draw_CharScaled(int x, int y, int num, float scale);
+extern void GL3_Draw_TileClear(int x, int y, int w, int h, char *pic);
+extern void GL3_Draw_Fill(int x, int y, int w, int h, int c);
+extern void GL3_Draw_FadeScreen(void);
+extern void GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
 
 // gl3_image.c
 extern void GL3_TextureMode(char *string);
@@ -179,11 +216,18 @@ extern gl3image_t *GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
                                int height, int realheight, imagetype_t type, int bits);
 extern gl3image_t *GL3_FindImage(char *name, imagetype_t type);
 extern gl3image_t *GL3_RegisterSkin(char *name);
+extern void GL3_ShutdownImages(void);
 extern void GL3_FreeUnusedImages(void);
 extern void GL3_ImageList_f(void);
 
 // gl3_warp.c
 extern void GL3_SetSky(char *name, float rotate, vec3_t axis);
+
+
+// gl3_shaders.c
+extern qboolean GL3_InitShaders(void);
+
+// ############ Cvars ###########
 
 extern cvar_t *gl_msaa_samples;
 extern cvar_t *gl_swapinterval;

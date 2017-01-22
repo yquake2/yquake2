@@ -118,13 +118,30 @@ int GL3_PrepareForWindow(void)
 	return flags;
 }
 
+enum {
+	// for some reason my driver calls the DebugCallback with the following severity
+	// even though I think it shouldn't for the extension I'm using?
+	// anyway, my gl headers don't know GL_DEBUG_SEVERITY_NOTIFICATION_* so I define it here
+	QGL_DEBUG_SEVERITY_NOTIFICATION = 0x826B
+};
+
 static void
 DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-                  const GLchar *message, const void *userParam)
+              const GLchar *message, const void *userParam)
 {
 	const char* sourceStr = "Source: Unknown";
 	const char* typeStr = "Type: Unknown";
 	const char* severityStr = "Severity: Unknown";
+	switch(severity)
+	{
+		case QGL_DEBUG_SEVERITY_NOTIFICATION:
+			// severityStr = "Severity: Note";    break;
+			return; // ignore these
+
+		case GL_DEBUG_SEVERITY_HIGH_ARB:   severityStr = "Severity: High";   break;
+		case GL_DEBUG_SEVERITY_MEDIUM_ARB: severityStr = "Severity: Medium"; break;
+		case GL_DEBUG_SEVERITY_LOW_ARB:    severityStr = "Severity: Low";    break;
+	}
 	switch(source)
 	{
 #define SRCCASE(X)  case GL_DEBUG_SOURCE_ ## X ## _ARB: sourceStr = "Source: " #X; break;
@@ -146,12 +163,6 @@ DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei le
 		TYPECASE(PERFORMANCE);
 		TYPECASE(OTHER);
 #undef TYPECASE
-	}
-	switch(severity)
-	{
-		case GL_DEBUG_SEVERITY_HIGH_ARB:   severityStr = "Severity: High";   break;
-		case GL_DEBUG_SEVERITY_MEDIUM_ARB: severityStr = "Severity: Medium"; break;
-		case GL_DEBUG_SEVERITY_LOW_ARB:    severityStr = "Severity: Low";    break;
 	}
 
 	// use PRINT_ALL - this is only called with gl3_debugcontext != 0 anyway.

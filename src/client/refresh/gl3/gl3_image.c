@@ -27,8 +27,6 @@
 
 #include "header/local.h"
 
-extern unsigned d_8to24table[256];
-
 typedef struct
 {
 	char *name;
@@ -46,12 +44,6 @@ glmode_t modes[] = {
 
 int gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int gl_filter_max = GL_LINEAR;
-
-// TODO: do we need the following configurable?
-static const int gl_solid_format = GL_RGB;
-static const int gl_alpha_format = GL_RGBA;
-static const int gl_tex_solid_format = GL_RGB;
-static const int gl_tex_alpha_format = GL_RGBA;
 
 gl3image_t gl3textures[MAX_GL3TEXTURES];
 int numgl3textures;
@@ -152,8 +144,8 @@ GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 
 	c = width * height;
 	scan = ((byte *)data) + 3;
-	samples = gl_solid_format;
-	comp = gl_tex_solid_format;
+	samples = gl3_solid_format;
+	comp = gl3_tex_solid_format;
 	//upload_width = width; // TODO: remove, probably
 	//upload_height = height;
 
@@ -164,8 +156,8 @@ GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 	{
 		if (*scan != 255)
 		{
-			samples = gl_alpha_format;
-			comp = gl_tex_alpha_format;
+			samples = gl3_alpha_format;
+			comp = gl3_tex_alpha_format;
 			break;
 		}
 	}
@@ -177,7 +169,7 @@ GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 	             0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	//glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, false);
 
-	res = (samples == gl_alpha_format);
+	res = (samples == gl3_alpha_format);
 
 	if (mipmap)
 	{

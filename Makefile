@@ -850,6 +850,7 @@ REFGL3_OBJS_ := \
 	src/client/refresh/gl3/gl3_model.o \
 	src/client/refresh/gl3/gl3_sdl.o \
 	src/client/refresh/gl3/gl3_warp.o \
+	src/client/refresh/gl3/gl3_shaders.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \

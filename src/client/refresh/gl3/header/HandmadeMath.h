@@ -180,7 +180,8 @@
 #pragma warning(disable:4201)
 #endif
 
-#ifdef __GNUC__
+//#ifdef __GNUC__
+#ifdef __clang__
 #pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
 #endif
 

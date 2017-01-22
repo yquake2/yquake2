@@ -39,6 +39,8 @@ refimport_t ri;
 gl3config_t gl3config;
 gl3state_t gl3state;
 
+unsigned gl3_rawpalette[256];
+
 /* screen size info */
 refdef_t gl3_newrefdef;
 
@@ -56,6 +58,7 @@ cvar_t *gl_customheight;
 cvar_t *vid_gamma;
 cvar_t *gl_anisotropic;
 
+cvar_t *gl_norefresh;
 cvar_t *gl_nolerp_list;
 cvar_t *gl_nobind;
 
@@ -91,6 +94,8 @@ GL3_Register(void)
 	gl_customwidth = ri.Cvar_Get("gl_customwidth", "1024", CVAR_ARCHIVE);
 	gl_customheight = ri.Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
 
+	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
+
 	/* don't bilerp characters and crosshairs */
 	gl_nolerp_list = ri.Cvar_Get("gl_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
 	gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
@@ -104,7 +109,7 @@ GL3_Register(void)
 #if 0 // TODO!
 	gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	gl_farsee = ri.Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
-	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
+	//gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
 	gl_fullbright = ri.Cvar_Get("gl_fullbright", "0", 0);
 	gl_drawentities = ri.Cvar_Get("gl_drawentities", "1", 0);
 	gl_drawworld = ri.Cvar_Get("gl_drawworld", "1", 0);
@@ -383,6 +388,16 @@ GL3_Init(void)
 
 	GL3_SetDefaultState();
 
+	if(GL3_InitShaders())
+	{
+		R_Printf(PRINT_ALL, "Loading shaders succeeded!\n");
+	}
+	else
+	{
+		R_Printf(PRINT_ALL, "Loading shaders failed!\n");
+		return false;
+	}
+
 	STUB("TODO: Some intensity and gamma stuff that was in R_InitImages()");
 	registration_sequence = 1; // also from R_InitImages()
 
@@ -440,18 +455,27 @@ GL3_SetGL2D(void)
 	}
 #endif // 0
 
-	// FIXME: change to GL3 code!
 	glViewport(x, y, w, h);
+
+	hmm_mat4 transMatr = HMM_Orthographic(0, vid.width, vid.height, 0, -99999, 99999);
+
+	glUseProgram(gl3state.si2D.shaderProgram);
+
+	glUniformMatrix4fv(gl3state.si2D.uniTransMatrix , 1, GL_FALSE, transMatr.Elements[0]);
+
+	// FIXME: change to GL3 code!
+#if 0
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+#endif // 0
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
-	glEnable(GL_ALPHA_TEST);
-	glColor4f(1, 1, 1, 1);
+	// glEnable(GL_ALPHA_TEST); TODO: do in shader https://www.khronos.org/opengl/wiki/Transparency_Sorting#Alpha_test
+	// glColor4f(1, 1, 1, 1);
 }
 
 /*
@@ -670,7 +694,7 @@ GL3_SetLightLevel(void)
 {
 	vec3_t shadelight = {0};
 
-	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
+	if (gl3_newrefdef.rdflags & RDF_NOWORLDMODEL)
 	{
 		return;
 	}
@@ -716,6 +740,169 @@ GL3_RenderFrame(refdef_t *fd)
 	GL3_SetGL2D();
 }
 
+void
+GL3_BeginFrame(float camera_separation)
+{
+	STUB_ONCE("TODO: Implement!");
+	GL3_SetGL2D();
+#if 0
+	gl_state.camera_separation = camera_separation;
+
+	/* change modes if necessary */
+	if (gl_mode->modified)
+	{
+		vid_fullscreen->modified = true;
+	}
+
+	// force a vid_restart if gl_stereo has been modified.
+	if ( gl_state.stereo_mode != gl_stereo->value ) {
+		// If we've gone from one mode to another with the same special buffer requirements there's no need to restart.
+		if ( GL_GetSpecialBufferModeForStereoMode( gl_state.stereo_mode ) == GL_GetSpecialBufferModeForStereoMode( gl_stereo->value )  ) {
+			gl_state.stereo_mode = gl_stereo->value;
+		}
+		else
+		{
+			R_Printf(PRINT_ALL, "stereo supermode changed, restarting video!\n");
+			cvar_t	*ref;
+			ref = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+			ref->modified = true;
+		}
+	}
+
+	if (vid_gamma->modified)
+	{
+		vid_gamma->modified = false;
+
+		if (gl_state.hwgamma)
+		{
+			UpdateHardwareGamma();
+		}
+	}
+
+	// Clamp overbrightbits
+	if (gl_overbrightbits->modified)
+	{
+		if (gl_overbrightbits->value > 2 && gl_overbrightbits->value < 4)
+		{
+			ri.Cvar_Set("gl_overbrightbits", "2");
+		}
+		else if (gl_overbrightbits->value > 4)
+		{
+			ri.Cvar_Set("gl_overbrightbits", "4");
+		}
+
+		gl_overbrightbits->modified = false;
+	}
+
+	/* go into 2D mode */
+
+	int x, w, y, h;
+	qboolean drawing_left_eye = gl_state.camera_separation < 0;
+	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	x = 0;
+	w = vid.width;
+	y = 0;
+	h = vid.height;
+
+	if(stereo_split_lr) {
+		w =  w / 2;
+		x = drawing_left_eye ? 0 : w;
+	}
+
+	if(stereo_split_tb) {
+		h =  h / 2;
+		y = drawing_left_eye ? h : 0;
+	}
+
+	glViewport(x, y, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, vid.width, vid.height, 0, -99999, 99999);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glEnable(GL_ALPHA_TEST);
+	glColor4f(1, 1, 1, 1);
+
+	/* draw buffer stuff */
+	if (gl_drawbuffer->modified)
+	{
+		gl_drawbuffer->modified = false;
+
+		if ((gl_state.camera_separation == 0) || gl_state.stereo_mode != STEREO_MODE_OPENGL)
+		{
+			if (Q_stricmp(gl_drawbuffer->string, "GL_FRONT") == 0)
+			{
+				glDrawBuffer(GL_FRONT);
+			}
+			else
+			{
+				glDrawBuffer(GL_BACK);
+			}
+		}
+	}
+
+	/* texturemode stuff */
+	if (gl_texturemode->modified || (gl_config.anisotropic && gl_anisotropic->modified))
+	{
+		R_TextureMode(gl_texturemode->string);
+		gl_texturemode->modified = false;
+		gl_anisotropic->modified = false;
+	}
+
+	if (gl_texturealphamode->modified)
+	{
+		R_TextureAlphaMode(gl_texturealphamode->string);
+		gl_texturealphamode->modified = false;
+	}
+
+	if (gl_texturesolidmode->modified)
+	{
+		R_TextureSolidMode(gl_texturesolidmode->string);
+		gl_texturesolidmode->modified = false;
+	}
+
+	/* clear screen if desired */
+	R_Clear();
+#endif // 0
+}
+
+static void
+GL3_SetPalette(const unsigned char *palette)
+{
+	int i;
+	byte *rp = (byte *)gl3_rawpalette;
+
+	if (palette)
+	{
+		for (i = 0; i < 256; i++)
+		{
+			rp[i * 4 + 0] = palette[i * 3 + 0];
+			rp[i * 4 + 1] = palette[i * 3 + 1];
+			rp[i * 4 + 2] = palette[i * 3 + 2];
+			rp[i * 4 + 3] = 0xff;
+		}
+	}
+	else
+	{
+		for (i = 0; i < 256; i++)
+		{
+			rp[i * 4 + 0] = LittleLong(d_8to24table[i]) & 0xff;
+			rp[i * 4 + 1] = (LittleLong(d_8to24table[i]) >> 8) & 0xff;
+			rp[i * 4 + 2] = (LittleLong(d_8to24table[i]) >> 16) & 0xff;
+			rp[i * 4 + 3] = 0xff;
+		}
+	}
+
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(1, 0, 0.5, 0.5);
+}
+
 Q2_DLL_EXPORTED refexport_t
 GetRefAPI(refimport_t imp)
 {
@@ -743,20 +930,18 @@ GetRefAPI(refimport_t imp)
 	re.DrawFindPic = GL3_Draw_FindPic;
 	re.DrawGetPicSize = GL3_Draw_GetPicSize;
 
-#if 0 // TODO!
-	re.DrawPicScaled = RDraw_PicScaled;
-	re.DrawStretchPic = RDraw_StretchPic;
+	re.DrawPicScaled = GL3_Draw_PicScaled;
+	re.DrawStretchPic = GL3_Draw_StretchPic;
 
-	re.DrawCharScaled = RDraw_CharScaled;
-	re.DrawTileClear = RDraw_TileClear;
-	re.DrawFill = RDraw_Fill;
-	re.DrawFadeScreen = RDraw_FadeScreen;
+	re.DrawCharScaled = GL3_Draw_CharScaled;
+	re.DrawTileClear = GL3_Draw_TileClear;
+	re.DrawFill = GL3_Draw_Fill;
+	re.DrawFadeScreen = GL3_Draw_FadeScreen;
 
-	re.DrawStretchRaw = RDraw_StretchRaw;
-	re.SetPalette = RI_SetPalette;
+	re.DrawStretchRaw = GL3_Draw_StretchRaw;
+	re.SetPalette = GL3_SetPalette;
 
-	re.BeginFrame = RI_BeginFrame;
-#endif // 0
+	re.BeginFrame = GL3_BeginFrame;
 	re.EndFrame = GL3_EndFrame;
 
 	return re;
