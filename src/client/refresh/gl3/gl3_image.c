@@ -146,11 +146,6 @@ GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 	scan = ((byte *)data) + 3;
 	samples = gl3_solid_format;
 	comp = gl3_tex_solid_format;
-	//upload_width = width; // TODO: remove, probably
-	//upload_height = height;
-
-	STUB_ONCE("TODO: something with gamma and intensity, somewhere");
-	// R_LightScaleTexture(data, upload_width, upload_height, !mipmap);
 
 	for (i = 0; i < c; i++, scan += 4)
 	{

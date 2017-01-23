@@ -228,6 +228,7 @@ extern void GL3_SetSky(char *name, float rotate, vec3_t axis);
 // gl3_shaders.c
 extern qboolean GL3_InitShaders(void);
 extern void GL3_ShutdownShaders(void);
+extern void GL3_SetGammaAndIntensity(void);
 
 // ############ Cvars ###########
 
@@ -243,6 +244,7 @@ extern cvar_t *gl_nolerp_list;
 extern cvar_t *gl_nobind;
 
 extern cvar_t *vid_gamma;
+extern cvar_t *intensity;
 extern cvar_t *gl_anisotropic;
 
 extern cvar_t *gl3_debugcontext;

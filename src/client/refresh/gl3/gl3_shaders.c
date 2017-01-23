@@ -201,16 +201,21 @@ static const char* fragmentSrc2D = MULTILINE_STRING(#version 150\n
 		in vec2 passTexCoord;
 
 		uniform sampler2D tex;
+		uniform float gamma; // this is 1.0/vid_gamma
+		uniform float intensity;
 
 		out vec4 outColor;
 
 		void main()
 		{
-			// TODO: gamma, intensity
 			vec4 texel = texture(tex, passTexCoord);
 			if(texel.a < 0.666)
 				discard;
-			outColor = texel;
+
+			// apply gamma correction and intensity
+			texel.rgb *= intensity;
+			outColor.rgb = pow(texel.rgb, vec3(gamma));
+			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
 		}
 );
 
@@ -233,14 +238,16 @@ static const char* vertexSrc2Dcolor = MULTILINE_STRING(#version 150\n
 static const char* fragmentSrc2Dcolor = MULTILINE_STRING(#version 150\n
 		in vec4 passColor;
 
-		uniform sampler2D tex;
+		uniform float gamma; // this is 1.0/vid_gamma
+		uniform float intensity;
 
 		out vec4 outColor;
 
 		void main()
 		{
-			// TODO: gamma, intensity? (not sure we need that here)
-			outColor = passColor;
+			vec3 col = passColor.rgb * intensity;
+			outColor.rgb = pow(col, vec3(gamma));
+			outColor.a = passColor.a;
 		}
 );
 
@@ -324,6 +331,8 @@ qboolean GL3_InitShaders(void)
 		return false;
 	}
 
+	GL3_SetGammaAndIntensity();
+
 	return true;
 }
 
@@ -336,4 +345,28 @@ void GL3_ShutdownShaders(void)
 	if(gl3state.si2Dcolor.shaderProgram != 0)
 		glDeleteProgram(gl3state.si2Dcolor.shaderProgram);
 	memset(&gl3state.si2Dcolor, 0, sizeof(gl3ShaderInfo_t));
+}
+
+void GL3_SetGammaAndIntensity(void)
+{
+	float gamma = 1.0f/vid_gamma->value;
+	float intens = intensity->value;
+	int i=0;
+	GLint progs[2] = { gl3state.si2D.shaderProgram, gl3state.si2Dcolor.shaderProgram };
+
+	for(i=0; i<2; ++i)
+	{
+		glUseProgram(progs[i]);
+		GLint uni = glGetUniformLocation(progs[i], "gamma");
+		if(uni != -1)
+		{
+			glUniform1f(uni, gamma);
+		}
+
+		uni = glGetUniformLocation(progs[i], "intensity");
+		if(uni != -1)
+		{
+			glUniform1f(uni, intens);
+		}
+	}
 }

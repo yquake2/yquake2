@@ -58,6 +58,8 @@ cvar_t *gl_customheight;
 cvar_t *vid_gamma;
 cvar_t *gl_anisotropic;
 
+cvar_t *intensity;
+
 cvar_t *gl_norefresh;
 cvar_t *gl_nolerp_list;
 cvar_t *gl_nobind;
@@ -104,6 +106,7 @@ GL3_Register(void)
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
+	intensity = ri.Cvar_Get("intensity", "1.0", CVAR_ARCHIVE);
 
 
 #if 0 // TODO!
@@ -398,10 +401,8 @@ GL3_Init(void)
 		return false;
 	}
 
-	STUB("TODO: Some intensity and gamma stuff that was in R_InitImages()");
-	registration_sequence = 1; // also from R_InitImages()
+	registration_sequence = 1; // from R_InitImages() (everything else from there shouldn't be needed anymore)
 
-	//R_InitImages(); - most of the things in R_InitImages() shouldn't be needed anymore
 	GL3_Mod_Init();
 
 	GL3_InitParticleTexture();
@@ -461,8 +462,9 @@ GL3_SetGL2D(void)
 
 	hmm_mat4 transMatr = HMM_Orthographic(0, vid.width, vid.height, 0, -99999, 99999);
 
+	glUseProgram(gl3state.si2Dcolor.shaderProgram);
+	glUniformMatrix4fv(gl3state.si2Dcolor.uniTransMatrix , 1, GL_FALSE, transMatr.Elements[0]);
 	glUseProgram(gl3state.si2D.shaderProgram);
-
 	glUniformMatrix4fv(gl3state.si2D.uniTransMatrix , 1, GL_FALSE, transMatr.Elements[0]);
 
 	// FIXME: change to GL3 code!
@@ -476,7 +478,6 @@ GL3_SetGL2D(void)
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
-	// glEnable(GL_ALPHA_TEST); TODO: do in shader https://www.khronos.org/opengl/wiki/Transparency_Sorting#Alpha_test
 	// glColor4f(1, 1, 1, 1);
 
 }
@@ -753,6 +754,15 @@ GL3_BeginFrame(float camera_separation)
 	glClearColor(1, 0, 0.5, 0.5);
 
 	GL3_SetGL2D();
+
+	if (vid_gamma->modified || intensity->modified)
+	{
+		vid_gamma->modified = false;
+		intensity->modified = false;
+
+		GL3_SetGammaAndIntensity();
+	}
+
 #if 0
 	gl_state.camera_separation = camera_separation;
 
