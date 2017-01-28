@@ -130,6 +130,10 @@
 #define GL_OPERAND7_ALPHA_EXT 0x859F
 #endif
 
+#ifndef GL_CLAMP_TO_BORDER
+#define GL_CLAMP_TO_BORDER 0x812D
+#endif
+
 /* QGL main functions */
 
 /*
