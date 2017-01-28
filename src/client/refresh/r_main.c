@@ -1039,8 +1039,11 @@ R_RenderView(refdef_t *fd)
 	}
 	
 	R_DrawWorld();
-	
-	R_CaptureWorldForTAA();
+
+	if (gl_pt_enable->value)
+	{
+		R_CaptureWorldForTAA();
+	}
 	
 	R_DrawEntitiesOnList();
 

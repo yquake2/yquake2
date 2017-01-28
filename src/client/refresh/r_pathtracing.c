@@ -3201,6 +3201,9 @@ R_InitPathtracing(void)
 void
 R_CaptureWorldForTAA(void)
 {
+	if (!gl_pt_taa_enable->value)
+		return;
+	
 	glBindTexture(GL_TEXTURE_2D, pt_taa_world_texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
