@@ -496,19 +496,20 @@ void main()
 	if (rpli < 0)
 #endif
 	{
-		vec2 rr = rand(0);
-
-		float r1 = 2.0 * PI * rr.x;
-		float r2s = sqrt(rr.y);
-		
-		if (bluenoise_sample.b < texcoords[5].w)
+		float fresnel = texcoords[5].w * mix(1.0, 0.5, pow(clamp(1.0 - dot(shading_normal, -normalize(texcoords[7].xyz)), 0.0, 1.0), 5.0));
+		if (bluenoise_sample.b < fresnel)
 		{
-			rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y)); // Lambert diffuse BRDF.
+			// Lambert diffuse BRDF.
+			vec2 rr = rand(0);
+			float r1 = 2.0 * PI * rr.x;
+			float r2s = sqrt(rr.y);
+			rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y));
 			factor = clamp(dot(rd, shading_normal) / dot(rd, pln.xyz), 0.1, 2.0);
 		}
 		else
 		{
-			rd = normalize(reflect(normalize(texcoords[7].xyz), shading_normal)); // Specular reflection.
+			// Specular reflection.
+			rd = normalize(reflect(normalize(texcoords[7].xyz), shading_normal));
 		}
 		
 		// Trace a ray against the BSP. This intersection point is later used for secondary bounces and testing

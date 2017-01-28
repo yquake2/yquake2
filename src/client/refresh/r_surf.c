@@ -27,7 +27,7 @@
 #include <assert.h>
 #include "header/local.h"
 
-#define PT_SURFACE_DIFFUSE_SPECULAR_RATIO 0.5f
+#define PT_SURFACE_DIFFUSE_SPECULAR_RATIO 0.6f
 
 int c_visible_lightmaps;
 int c_visible_textures;
