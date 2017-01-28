@@ -41,11 +41,13 @@
 #define PT_MAX_ENTITY_LIGHTS				2048
 #define PT_MAX_ENTITY_LIGHT_CLUSTERS	8
 #define PT_MAX_BSP_TREE_DEPTH				32
-#define PT_RAND_TEXTURE_SIZE 				64
+#define PT_RAND_TEXTURE_SIZE 				1024
 #define PT_MAX_CLUSTER_DLIGHTS			16
 #define PT_NUM_ENTITY_TRILIGHTS			4
 #define PT_NUM_ENTITY_VERTICES			4
 #define PT_MAX_CLUSTER_SIZE				2048.0
+#define PT_BLUENOISE_TEXTURE_WIDTH		64
+#define PT_BLUENOISE_TEXTURE_HEIGHT		64
 
 #define PT_TEXTURE_UNIT_DIFFUSE_TEXTURE	0
 #define PT_TEXTURE_UNIT_BSP_PLANES			2
@@ -58,6 +60,7 @@
 #define PT_TEXTURE_UNIT_LIGHTREFS			9
 #define PT_TEXTURE_UNIT_BSP_LIGHTREFS		10
 #define PT_TEXTURE_UNIT_RANDTEX				11
+#define PT_TEXTURE_UNIT_BLUENOISE			12
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -123,6 +126,7 @@ static GLuint pt_trilights_texture = 0;
 static GLuint pt_lightref_buffer = 0;
 static GLuint pt_lightref_texture = 0;
 static GLuint pt_rand_texture = 0;
+static GLuint pt_bluenoise_texture = 0;
 
 /*
  * Uniform locations
@@ -133,7 +137,6 @@ static GLint pt_entity_to_world_loc = -1;
 static GLint pt_ao_radius_loc = -1;
 static GLint pt_ao_color_loc = -1;
 static GLint pt_bounce_factor_loc = -1;
-		
 
 static unsigned long int pt_bsp_texture_width = 0, pt_bsp_texture_height = 0;
 
@@ -303,7 +306,8 @@ ClearPathtracerState(void)
 	pt_lightref_buffer = 0;
 	pt_lightref_texture = 0;
 	pt_rand_texture = 0;
-
+	pt_bluenoise_texture = 0;
+	
 	pt_frame_counter_loc = -1;
 	pt_entity_to_world_loc = -1;
 	pt_ao_radius_loc = -1;
@@ -1912,11 +1916,11 @@ AddEntities(void)
 }
 
 static GLint
-GetRandTextureLayers(void)
+GetBlueNoiseTextureLayers(void)
 {
 	GLint maximum = 1;
 	glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &maximum);
-	return MIN(16, maximum);
+	return MIN(64, maximum);
 }
 
 static void
@@ -2396,6 +2400,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	qglUniform3fARB(pt_ao_color_loc, gl_pt_ao_color->value, gl_pt_ao_color->value, gl_pt_ao_color->value);
 	qglUniform1fARB(pt_bounce_factor_loc, gl_pt_bounce_factor->value);
 	qglUniform1iARB(pt_frame_counter_loc, r_framecount);	
+	
 	qglUseProgramObjectARB(0);
 		
 	/* Print the stats if necessary. */
@@ -2817,33 +2822,83 @@ R_PreparePathtracer(void)
 	BindTextureUnit(PT_TEXTURE_UNIT_LIGHTS, 			GL_TEXTURE_BUFFER, 	pt_trilights_texture);
 	BindTextureUnit(PT_TEXTURE_UNIT_LIGHTREFS, 		GL_TEXTURE_BUFFER, 	pt_lightref_texture);
 	BindTextureUnit(PT_TEXTURE_UNIT_BSP_LIGHTREFS,	GL_TEXTURE_2D, 		pt_bsp_lightref_texture);
-	BindTextureUnit(PT_TEXTURE_UNIT_RANDTEX, 			GL_TEXTURE_2D_ARRAY,	pt_rand_texture);
+	BindTextureUnit(PT_TEXTURE_UNIT_RANDTEX, 			GL_TEXTURE_1D,			pt_rand_texture);
+	BindTextureUnit(PT_TEXTURE_UNIT_BLUENOISE, 		GL_TEXTURE_2D_ARRAY,	pt_bluenoise_texture);
 }
 	
 static void
 FreeRandom(void)
 {
 	DeleteTexture(&pt_rand_texture);
+	DeleteTexture(&pt_bluenoise_texture);
+}
+
+static double
+HaltonSequence(const int base, int index)
+{
+	double h = 0, f = 1.0 / (double)base, fct = f;
+	while (index > 0)
+	{
+		h += (double)(index % base) * fct;
+		index /= base;
+		fct *= f;
+	}
+	return MIN(MAX(h, 0.0), 1.0);
 }
 
 static void
 InitRandom(void)
 {
-	int i;
-	static const int texture_size = PT_RAND_TEXTURE_SIZE;
-	const int num_layers = GetRandTextureLayers();
-	GLubyte texels[texture_size * texture_size * 2 * num_layers];
-	
-	for (i = 0; i < sizeof(texels) / sizeof(texels[0]); ++i)
-		texels[i] = randk();
-	
+	int i, width, height;
+	char image_name[256];
+	const int num_layers = GetBlueNoiseTextureLayers();
+	byte *pic = NULL;
+	qboolean loaded = false;
+
+	VID_Printf(PRINT_DEVELOPER, "InitRandom: Random number lookup texture has %d layers.", num_layers);
+
+	static GLushort texels[PT_RAND_TEXTURE_SIZE * 2];
+
+	for (i = 0; i < PT_RAND_TEXTURE_SIZE; ++i)
+	{
+		texels[i * 2 + 0] = (GLushort)(HaltonSequence(2, i) * 65535.0);
+		texels[i * 2 + 1] = (GLushort)(HaltonSequence(3, i) * 65535.0);
+	}
+
 	glGenTextures(1, &pt_rand_texture);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, pt_rand_texture);
+	glBindTexture(GL_TEXTURE_1D, pt_rand_texture);
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage1D(GL_TEXTURE_1D, 0, GL_RG16, PT_RAND_TEXTURE_SIZE, 0, GL_RG, GL_UNSIGNED_SHORT, texels);
+	glBindTexture(GL_TEXTURE_1D, 0);
+	
+	glGenTextures(1, &pt_bluenoise_texture);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, pt_bluenoise_texture);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	qglTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RG8, texture_size, texture_size, num_layers, 0, GL_RG, GL_UNSIGNED_BYTE, texels);
+
+	qglTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, PT_BLUENOISE_TEXTURE_WIDTH, PT_BLUENOISE_TEXTURE_HEIGHT, num_layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	for (i = 0; i < num_layers; ++i)
+	{
+		pic = NULL;
+		Com_sprintf(image_name, sizeof(image_name), "pics\\bluenoise\\LDR_RGB1_%d", i);
+		loaded = LoadSTB(image_name, "png", &pic, &width, &height);
+		PT_ASSERT(width == PT_BLUENOISE_TEXTURE_WIDTH);
+		PT_ASSERT(height == PT_BLUENOISE_TEXTURE_HEIGHT);
+		if (loaded)
+		{
+			qglTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, pic);
+		}
+		else
+		{
+			VID_Printf(PRINT_ALL, "InitRandom: Could not find blue noise texture image \"\".\n", image_name);
+		}
+	}
+	
 	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 }	
 
@@ -2872,7 +2927,7 @@ FreeShaderPrograms(void)
 	pt_ao_radius_loc = -1;
 	pt_ao_color_loc = -1;
 	pt_bounce_factor_loc = -1;
-
+	
 	if (vertex_shader)
 	{
 		qglDeleteObjectARB(vertex_shader);
@@ -2908,8 +2963,9 @@ ConstructFragmentShaderSource(GLhandleARB shader)
 			"#define NUM_AO_SAMPLES %d\n"
 			"#define TRI_SHADOWS_ENABLE %d\n"
 			"#define DIFFUSE_MAP_ENABLE %d\n"
-			"#define RAND_TEX_SIZE %d\n"
-			"#define RAND_TEX_LAYERS %d\n",
+			"#define RAND_TEX_LAYERS %d\n"
+			"#define BLUENOISE_TEX_WIDTH %d\n"
+			"#define BLUENOISE_TEX_HEIGHT %d\n",
 			MAX(0, (int)gl_pt_bounces->value),
 			MAX(0, (int)gl_pt_shadow_samples->value),
 			MAX(0, (int)gl_pt_light_samples->value),
@@ -2917,8 +2973,9 @@ ConstructFragmentShaderSource(GLhandleARB shader)
 			gl_pt_ao_enable->value ? MAX(0, (int)gl_pt_ao_samples->value) : 0,
 			MAX(0, (int)gl_pt_aliasmodel_shadows_enable->value | (int)gl_pt_brushmodel_shadows_enable->value),
 			MAX(0, (int)gl_pt_diffuse_map_enable->value),
-			PT_RAND_TEXTURE_SIZE,
-			MAX(1, GetRandTextureLayers())
+			MAX(1, GetBlueNoiseTextureLayers()),
+			PT_BLUENOISE_TEXTURE_WIDTH,
+			PT_BLUENOISE_TEXTURE_HEIGHT
 		);
 	
 	/* Specify the ordering of the parts of the shader. */
@@ -2992,6 +3049,7 @@ CreateShaderPrograms(void)
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "lightrefs"), 			PT_TEXTURE_UNIT_LIGHTREFS);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bsp_lightrefs"), 	PT_TEXTURE_UNIT_BSP_LIGHTREFS);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "randtex"), 			PT_TEXTURE_UNIT_RANDTEX);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bluenoise"), 			PT_TEXTURE_UNIT_BLUENOISE);
 	
 	/* Get the locations of uniforms which do need to be change during rendering. */
 	
@@ -3000,7 +3058,7 @@ CreateShaderPrograms(void)
 	pt_ao_radius_loc = qglGetUniformLocationARB(pt_program_handle, "ao_radius");
 	pt_ao_color_loc = qglGetUniformLocationARB(pt_program_handle, "ao_color");
 	pt_bounce_factor_loc = qglGetUniformLocationARB(pt_program_handle, "bounce_factor");
-		
+	
 	qglUseProgramObjectARB(0);
 }
 	
@@ -3084,7 +3142,8 @@ R_ShutdownPathtracing(void)
 		BindTextureUnit(PT_TEXTURE_UNIT_LIGHTS, 			GL_TEXTURE_BUFFER, 	0);
 		BindTextureUnit(PT_TEXTURE_UNIT_LIGHTREFS, 		GL_TEXTURE_BUFFER, 	0);
 		BindTextureUnit(PT_TEXTURE_UNIT_BSP_LIGHTREFS,	GL_TEXTURE_2D, 		0);
-		BindTextureUnit(PT_TEXTURE_UNIT_RANDTEX, 			GL_TEXTURE_2D_ARRAY,	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_RANDTEX, 			GL_TEXTURE_1D,			0);
+		BindTextureUnit(PT_TEXTURE_UNIT_BLUENOISE, 		GL_TEXTURE_2D_ARRAY,	0);
 	}
 	
 	Cmd_RemoveCommand("gl_pt_recompile_shaders");
@@ -3093,7 +3152,7 @@ R_ShutdownPathtracing(void)
 	FreeModelData();
 	FreeShaderPrograms();
 	FreeRandom();
-	
+
 	ClearPathtracerState();
 }
 

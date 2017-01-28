@@ -52,12 +52,16 @@
 # define DIFFUSE_MAP_ENABLE 1
 #endif
 
-#ifndef RAND_TEX_SIZE
-# define RAND_TEX_SIZE 64
-#endif
-
 #ifndef RAND_TEX_LAYERS
 # define RAND_TEX_LAYERS 1
+#endif
+
+#ifndef BLUENOISE_TEX_WIDTH
+# define BLUENOISE_TEX_WIDTH 64
+#endif
+
+#ifndef BLUENOISE_TEX_HEIGHT
+# define BLUENOISE_TEX_HEIGHT 64
 #endif
 
 #define EPS		(1.0 / 32.0)
@@ -83,7 +87,8 @@ uniform samplerBuffer 	lights;
 uniform isamplerBuffer 	lightrefs;
 
 // PRNG table.
-uniform sampler2DArray randtex;
+uniform sampler1D randtex;
+uniform sampler2DArray bluenoise;
 
 // Uniform attributes.
 uniform int		frame = 0;
@@ -96,12 +101,12 @@ in vec4 texcoords[5], color;
 
 // Globals.
 vec4 out_pln;
-float rand_index = frame;
+vec3 bluenoise_sample = texture(bluenoise, vec3(gl_FragCoord.st / vec2(BLUENOISE_TEX_WIDTH, BLUENOISE_TEX_HEIGHT), mod(frame, RAND_TEX_LAYERS))).rgb;
 
 // Produces a pair of random numbers.
-vec2 rand()
+vec2 rand(int index)
 {
-	return texture(randtex, vec3(gl_FragCoord.st / RAND_TEX_SIZE, mod(rand_index++, RAND_TEX_LAYERS))).rg;
+	return fract(texelFetch(randtex, index, 0).rg + bluenoise_sample.rg);
 }
 
 // Returns the interval along the given ray which intersects an axis-aligned cuboid of the given size centered at the origin.
@@ -335,7 +340,7 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 			// Choose a lightsource randomly, with each lightsource having a probability of being chosen
 			// proportional to it's importance weight.
 			
-			float x = rand().x * wsum, w=1.0;
+			float x = rand(light_sample).x * wsum, w=1.0;
 			vec4 j = vec4(0);
 
 			do
@@ -376,7 +381,7 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 				vec3 sp = rp;
 				vec3 sn = rn.xyz;
 				vec3 lp = p0;
-				vec2 uv = rand();
+				vec2 uv = rand(shadow_sample);
 				
 				// Flip the barycentric coordinates if this is a triangle, don't if it's a parallelogram.
 				if ((uv.x + uv.y) > 1.0 && dot(j.rgb, vec3(1)) > 0.0)
@@ -403,7 +408,6 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 	return r / float(NUM_LIGHT_SAMPLES * NUM_SHADOW_SAMPLES);
 }
 
-
 void main()
 {
 	vec4 pln;
@@ -416,14 +420,14 @@ void main()
 	// Get the surface normal of the surface being rasterised.
 	pln.xyz = normalize(texcoords[3].xyz);
 	pln.w = dot(rp, pln.xyz);
-
+	
 	// Sample the direct light at this point.
 	int rpli = getLightRef(rp).x;
 	vec3 r = sampleDirectLight(rp, pln.xyz, rpli);
 
 	// Add the emissive light (light emitted towards the eye immediately from this surface).
 	r += texcoords[4].rgb;
-
+	
 #if NUM_BOUNCES > 0 || NUM_AO_SAMPLES > 0 || NUM_SKY_SAMPLES > 0
 	// Make an orthonormal basis for the primary ray intersection point.
 	vec3 u = normalize(cross(pln.xyz, pln.zxy));
@@ -436,7 +440,7 @@ void main()
 		float ao = 0.0;
 		for (int ao_sample = 0; ao_sample < NUM_AO_SAMPLES; ++ao_sample)
 		{
-			vec2 rr = rand();
+			vec2 rr = rand(ao_sample);
 			
 			float r1 = 2.0 * PI * rr.x;
 			float r2s = sqrt(rr.y);
@@ -455,6 +459,7 @@ void main()
 
 	vec3 sp, rd;
 	float t;
+	float factor = bounce_factor;
 
 #if NUM_BOUNCES == 0
 	// If there are no secondary bounces and there are no visible skyportals then there is no
@@ -462,14 +467,14 @@ void main()
 	if (rpli < 0)
 #endif
 	{
-		vec2 rr = rand();
+		vec2 rr = rand(0);
 
 		float r1 = 2.0 * PI * rr.x;
 		float r2s = sqrt(rr.y);
 		
 		// Lambert diffuse BRDF.
 		rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y));
-
+		
 		// Trace a ray against the BSP. This intersection point is later used for secondary bounces and testing
 		// for containment in skyportals polygons (skyportals aren't sampled directly).
 		t = traceRayBSP(rp, rd, EPS * 16, MAXT) - 1.0;
@@ -486,9 +491,7 @@ void main()
 	if (traceRayShadowTri(rp, rd, t))
 	{
 		int li = getLightRef(sp).x;
-		pln = out_pln;
-		r += bounce_factor * sampleDirectLight(sp, out_pln.xyz, li);
-		out_pln = pln;
+		r += factor * sampleDirectLight(sp, out_pln.xyz, li);
 	}
 #endif
 
@@ -551,7 +554,7 @@ void main()
 #if NUM_SKY_SAMPLES > 1
 			// There are further sky samples to be made, so sample the BRDF again to trace a new ray
 			// out into the scene to create a new sample point.
-			vec2 rr = rand();
+			vec2 rr = rand(sky_sample + 1);
 
 			float r1 = 2.0 * PI * rr.x;
 			float r2s = sqrt(rr.y);
@@ -560,9 +563,6 @@ void main()
 			rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y));
 
 			t = traceRayBSP(rp, rd, EPS * 16, MAXT) - 1.0;
-
-			if ((dot(out_pln.xyz, rp) - out_pln.w) < 0.0)
-				out_pln *= -1.0;
 			
 			sp = rp + rd * max(0.0, t);
 #endif
@@ -573,12 +573,15 @@ void main()
 
 #if NUM_BOUNCES > 1
 	{
+		if ((dot(out_pln.xyz, rp) - out_pln.w) < 0.0)
+			out_pln *= -1.0;
+
 		// Trace secondary rays to gather bounce light from surrounding surfaces. This does not include sky light.
 		float factor = bounce_factor;
 		rp = sp;
 		for (int bounce = 1; bounce < NUM_BOUNCES; ++bounce)
 		{
-			vec2 rr = rand();
+			vec2 rr = rand(bounce);
 
 			float r1 = 2.0 * PI * rr.x;
 			float r2s = sqrt(rr.y);
