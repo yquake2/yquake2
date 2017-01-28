@@ -398,9 +398,9 @@ R_RenderBrushPoly(msurface_t *fa)
 		qglMultiTexCoord3fARB(GL_TEXTURE5_ARB, fa->texinfo->vecs[1][0], fa->texinfo->vecs[1][1], fa->texinfo->vecs[1][2]);
 
 		if ((fa->texinfo->flags & SURF_LIGHT) && !(fa->texinfo->flags & SURF_WARP) && fa->texinfo->radiance > 0)
-			qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, image->reflectivity[0] * fa->texinfo->radiance, image->reflectivity[1] * fa->texinfo->radiance, image->reflectivity[2] * fa->texinfo->radiance, 1);
+			qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, image->reflectivity[0] * fa->texinfo->radiance, image->reflectivity[1] * fa->texinfo->radiance, image->reflectivity[2] * fa->texinfo->radiance, 0);
 		else
-			qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, 0, 0, 0, 1);
+			qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, 0, 0, 0, 0);
 	}
 	
 	if (fa->flags & SURF_DRAWTURB)
@@ -557,9 +557,9 @@ R_DrawAlphaSurfaces(void)
 			qglMultiTexCoord3fARB(GL_TEXTURE5_ARB, s->texinfo->vecs[1][0], s->texinfo->vecs[1][1], s->texinfo->vecs[1][2]);
 
 			if ((s->texinfo->flags & SURF_LIGHT) && !(s->texinfo->flags & SURF_WARP) && s->texinfo->radiance > 0)
-				qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, s->texinfo->image->reflectivity[0] * s->texinfo->radiance, s->texinfo->image->reflectivity[1] * s->texinfo->radiance, s->texinfo->image->reflectivity[2] * s->texinfo->radiance, 1);
+				qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, s->texinfo->image->reflectivity[0] * s->texinfo->radiance, s->texinfo->image->reflectivity[1] * s->texinfo->radiance, s->texinfo->image->reflectivity[2] * s->texinfo->radiance, 0);
 			else
-				qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, 0, 0, 0, 1);
+				qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, 0, 0, 0, 0);
 		}
 	
 		if (s->flags & SURF_DRAWTURB)
@@ -923,7 +923,7 @@ R_DrawInlineBModel(void)
 				psurf->texturechain = r_alpha_surfaces;
 				r_alpha_surfaces = psurf;
 			}
-			else if (qglMultiTexCoord2fARB && !(psurf->flags & SURF_DRAWTURB))
+			else if (qglMultiTexCoord2fARB && !(psurf->flags & SURF_DRAWTURB) && !gl_pt_enable->value)
 			{
 				R_RenderLightmappedPoly(psurf);
 			}
