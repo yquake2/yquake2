@@ -98,6 +98,8 @@ static cvar_t *gl_pt_diffuse_map_enable 				= NULL;
 static cvar_t *gl_pt_static_entity_lights_enable 	= NULL;
 static cvar_t *gl_pt_depth_prepass_enable 			= NULL;
 static cvar_t *gl_pt_taa_enable 							= NULL;
+static cvar_t *gl_pt_exposure 							= NULL;
+static cvar_t *gl_pt_gamma 								= NULL;
 
 /*
  * Shader programs
@@ -144,6 +146,8 @@ static GLint pt_view_origin_loc = -1;
 static GLint pt_previous_view_origin_loc = -1;		
 static GLint pt_current_world_matrix_loc = -1;
 static GLint pt_previous_world_matrix_loc = -1;
+static GLint pt_exposure_loc = -1;
+static GLint pt_gamma_loc = -1;
 
 static unsigned long int pt_bsp_texture_width = 0, pt_bsp_texture_height = 0;
 
@@ -346,6 +350,8 @@ ClearPathtracerState(void)
 	pt_previous_view_origin_loc = -1;
 	pt_current_world_matrix_loc = -1;
 	pt_previous_world_matrix_loc = -1;
+	pt_exposure_loc = -1;
+	pt_gamma_loc = -1;
 	
 	pt_last_update_ms = -1;
 	
@@ -2435,6 +2441,8 @@ R_UpdatePathtracerForCurrentFrame(void)
 	qglUniform1iARB(pt_frame_counter_loc, r_framecount);	
 	qglUniform3fARB(pt_view_origin_loc, r_newrefdef.vieworg[0], r_newrefdef.vieworg[1], r_newrefdef.vieworg[2]);
 	qglUniform3fARB(pt_previous_view_origin_loc, pt_previous_view_origin[0], pt_previous_view_origin[1], pt_previous_view_origin[2]);
+	qglUniform1fARB(pt_exposure_loc, gl_pt_exposure->value);
+	qglUniform1fARB(pt_gamma_loc, gl_pt_gamma->value);
 
 	for (i = 0; i < 3; ++i)
 		pt_previous_view_origin[i] = r_newrefdef.vieworg[i];
@@ -2987,7 +2995,9 @@ FreeShaderPrograms(void)
 	pt_previous_view_origin_loc = -1;
 	pt_current_world_matrix_loc = -1;
 	pt_previous_world_matrix_loc = -1;
-	
+	pt_exposure_loc = -1;
+	pt_gamma_loc = -1;
+
 	if (vertex_shader)
 	{
 		qglDeleteObjectARB(vertex_shader);
@@ -3124,7 +3134,9 @@ CreateShaderPrograms(void)
 	pt_view_origin_loc = qglGetUniformLocationARB(pt_program_handle, "view_origin");
 	pt_previous_view_origin_loc = qglGetUniformLocationARB(pt_program_handle, "previous_view_origin");
 	pt_current_world_matrix_loc = qglGetUniformLocationARB(pt_program_handle, "current_world_matrix");
-	pt_previous_world_matrix_loc =qglGetUniformLocationARB(pt_program_handle, "previous_world_matrix");
+	pt_previous_world_matrix_loc = qglGetUniformLocationARB(pt_program_handle, "previous_world_matrix");
+	pt_exposure_loc = qglGetUniformLocationARB(pt_program_handle, "exposure");
+	pt_gamma_loc = qglGetUniformLocationARB(pt_program_handle, "gamma");
 	
 	qglUseProgramObjectARB(0);
 }
@@ -3178,6 +3190,8 @@ R_InitPathtracing(void)
 	GET_PT_CVAR(gl_pt_static_entity_lights_enable, "0")
 	GET_PT_CVAR(gl_pt_depth_prepass_enable, "1")
 	GET_PT_CVAR(gl_pt_taa_enable, "0")
+	GET_PT_CVAR(gl_pt_exposure, "1.3")
+	GET_PT_CVAR(gl_pt_gamma, "2.2")
 #undef GET_PT_CVAR
 
 	Cmd_AddCommand("gl_pt_recompile_shaders", RecompileShaderPrograms);

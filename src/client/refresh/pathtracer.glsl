@@ -105,6 +105,8 @@ uniform int		frame = 0;
 uniform float	ao_radius = 150.0;
 uniform vec3	ao_color = vec3(1);
 uniform float	bounce_factor = 0.75;
+uniform float	exposure = 1.5;
+uniform float	gamma = 2.2;
 
 // Inputs from the vertex stage.
 in vec4 texcoords[8], color;
@@ -661,8 +663,11 @@ void main()
 	gl_FragColor.rgb *= texture(diffuse_texture, texcoords[0].st).rgb + vec3(1e-2);
 #endif
 
-	// Apply tonemapping and gamma correction.
-	gl_FragColor.rgb = sqrt(gl_FragColor.rgb);
+	// Tone mapping (Simple Reinhard).
+	gl_FragColor.rgb *= exposure / (vec3(1) + gl_FragColor.rgb / exposure);
+
+	// Gamma.
+	gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(1.0 / gamma));
 	
 #if TAA_ENABLE
 	// Apply TAA.
