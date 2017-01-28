@@ -137,6 +137,7 @@ static GLint pt_entity_to_world_loc = -1;
 static GLint pt_ao_radius_loc = -1;
 static GLint pt_ao_color_loc = -1;
 static GLint pt_bounce_factor_loc = -1;
+static GLint pt_view_origin_loc = -1;		
 
 static unsigned long int pt_bsp_texture_width = 0, pt_bsp_texture_height = 0;
 
@@ -147,7 +148,8 @@ static unsigned long int pt_bsp_texture_width = 0, pt_bsp_texture_height = 0;
 static const GLcharARB* vertex_shader_source =
 	"#version 120\n"
 	"uniform mat4 entity_to_world = mat4(1);\n"
-	"varying vec4 texcoords[5], color;\n"
+	"uniform vec3 view_origin = vec3(0);\n"
+	"varying vec4 texcoords[9], color;\n"
 	"void main()\n"
 	"{\n"
 	"	gl_Position = ftransform();\n"
@@ -156,6 +158,19 @@ static const GLcharARB* vertex_shader_source =
 	"	texcoords[2].xyz = vec3(0.0, 0.0, 0.0);\n"
 	"	texcoords[3].xyz = mat3(entity_to_world) * gl_MultiTexCoord2.xyz;\n"
 	"	texcoords[4] = gl_MultiTexCoord3;\n"
+	"	texcoords[5].w = gl_MultiTexCoord4.w;\n"
+	"	if (gl_MultiTexCoord4.xyz != vec3(0) && gl_MultiTexCoord5.xyz != vec3(0))\n"
+	"	{\n"
+	"		texcoords[5].xyz = normalize(gl_MultiTexCoord4.xyz);\n"
+	"		texcoords[6].xyz = normalize(gl_MultiTexCoord5.xyz);\n"	
+	"	}\n"
+	"	else\n"
+	"	{\n"
+	"		texcoords[5].xyz = vec3(0);\n"
+	"		texcoords[6].xyz = vec3(0);\n"	
+	"	}\n"
+	"	texcoords[7].xyz = texcoords[1].xyz - view_origin.xyz;\n"
+	"	texcoords[8] = gl_Position;\n"
 	"	color = gl_Color;\n"
 	"}\n"
 	"\n";
@@ -313,6 +328,7 @@ ClearPathtracerState(void)
 	pt_ao_radius_loc = -1;
 	pt_ao_color_loc = -1;
 	pt_bounce_factor_loc = -1;
+	pt_view_origin_loc = -1;
 	
 	pt_last_update_ms = -1;
 	
@@ -2400,6 +2416,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	qglUniform3fARB(pt_ao_color_loc, gl_pt_ao_color->value, gl_pt_ao_color->value, gl_pt_ao_color->value);
 	qglUniform1fARB(pt_bounce_factor_loc, gl_pt_bounce_factor->value);
 	qglUniform1iARB(pt_frame_counter_loc, r_framecount);	
+	qglUniform3fARB(pt_view_origin_loc, r_newrefdef.vieworg[0], r_newrefdef.vieworg[1], r_newrefdef.vieworg[2]);
 	
 	qglUseProgramObjectARB(0);
 		
@@ -2927,6 +2944,7 @@ FreeShaderPrograms(void)
 	pt_ao_radius_loc = -1;
 	pt_ao_color_loc = -1;
 	pt_bounce_factor_loc = -1;
+	pt_view_origin_loc = -1;
 	
 	if (vertex_shader)
 	{
@@ -3058,6 +3076,7 @@ CreateShaderPrograms(void)
 	pt_ao_radius_loc = qglGetUniformLocationARB(pt_program_handle, "ao_radius");
 	pt_ao_color_loc = qglGetUniformLocationARB(pt_program_handle, "ao_color");
 	pt_bounce_factor_loc = qglGetUniformLocationARB(pt_program_handle, "bounce_factor");
+	pt_view_origin_loc = qglGetUniformLocationARB(pt_program_handle, "view_origin");
 	
 	qglUseProgramObjectARB(0);
 }
@@ -3152,7 +3171,7 @@ R_ShutdownPathtracing(void)
 	FreeModelData();
 	FreeShaderPrograms();
 	FreeRandom();
-
+	
 	ClearPathtracerState();
 }
 

@@ -27,6 +27,8 @@
 #include <assert.h>
 #include "header/local.h"
 
+#define PT_SURFACE_DIFFUSE_SPECULAR_RATIO 0.5f
+
 int c_visible_lightmaps;
 int c_visible_textures;
 static vec3_t modelorg; /* relative to viewpoint */
@@ -389,6 +391,9 @@ R_RenderBrushPoly(msurface_t *fa)
 		else
 			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, fa->plane->normal[0], fa->plane->normal[1], fa->plane->normal[2]);
 
+		qglMultiTexCoord4fARB(GL_TEXTURE4_ARB, fa->texinfo->vecs[0][0], fa->texinfo->vecs[0][1], fa->texinfo->vecs[0][2], PT_SURFACE_DIFFUSE_SPECULAR_RATIO);
+		qglMultiTexCoord3fARB(GL_TEXTURE5_ARB, fa->texinfo->vecs[1][0], fa->texinfo->vecs[1][1], fa->texinfo->vecs[1][2]);
+
 		if ((fa->texinfo->flags & SURF_LIGHT) && !(fa->texinfo->flags & SURF_WARP) && fa->texinfo->radiance > 0)
 			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, image->reflectivity[0] * fa->texinfo->radiance, image->reflectivity[1] * fa->texinfo->radiance, image->reflectivity[2] * fa->texinfo->radiance);
 		else
@@ -542,6 +547,9 @@ R_DrawAlphaSurfaces(void)
 			else
 				qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, s->plane->normal[0], s->plane->normal[1], s->plane->normal[2]);
 
+			qglMultiTexCoord4fARB(GL_TEXTURE4_ARB, s->texinfo->vecs[0][0], s->texinfo->vecs[0][1], s->texinfo->vecs[0][2], PT_SURFACE_DIFFUSE_SPECULAR_RATIO);
+			qglMultiTexCoord3fARB(GL_TEXTURE5_ARB, s->texinfo->vecs[1][0], s->texinfo->vecs[1][1], s->texinfo->vecs[1][2]);
+
 			if ((s->texinfo->flags & SURF_LIGHT) && !(s->texinfo->flags & SURF_WARP) && s->texinfo->radiance > 0)
 				qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, s->texinfo->image->reflectivity[0] * s->texinfo->radiance, s->texinfo->image->reflectivity[1] * s->texinfo->radiance, s->texinfo->image->reflectivity[2] * s->texinfo->radiance);
 			else
@@ -685,6 +693,9 @@ R_RenderLightmappedPoly(msurface_t *surf)
 			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, -surf->plane->normal[0], -surf->plane->normal[1], -surf->plane->normal[2]);
 		else
 			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, surf->plane->normal[0], surf->plane->normal[1], surf->plane->normal[2]);
+
+		qglMultiTexCoord4fARB(GL_TEXTURE4_ARB, surf->texinfo->vecs[0][0], surf->texinfo->vecs[0][1], surf->texinfo->vecs[0][2], PT_SURFACE_DIFFUSE_SPECULAR_RATIO);
+		qglMultiTexCoord3fARB(GL_TEXTURE5_ARB, surf->texinfo->vecs[1][0], surf->texinfo->vecs[1][1], surf->texinfo->vecs[1][2]);
 
 		if ((surf->texinfo->flags & SURF_LIGHT) && !(surf->texinfo->flags & SURF_WARP) && surf->texinfo->radiance > 0)
 			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, image->reflectivity[0] * surf->texinfo->radiance, image->reflectivity[1] * surf->texinfo->radiance, image->reflectivity[2] * surf->texinfo->radiance);
@@ -1232,7 +1243,7 @@ R_DrawWorld(void)
 	{
 		static const float identity_matrix[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
 
-		R_SetGLStateForPathtracing(identity_matrix);		
+		R_SetGLStateForPathtracing(identity_matrix);
 	}
 	
 	currentmodel = r_worldmodel;

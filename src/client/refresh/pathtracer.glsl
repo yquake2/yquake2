@@ -408,6 +408,11 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 	return r / float(NUM_LIGHT_SAMPLES * NUM_SHADOW_SAMPLES);
 }
 
+float bumpHeightForDiffuseTexel(vec2 st)
+{
+	return dot(vec3(1.0 / 3.0), texture(diffuse_texture, st).rgb);
+}
+
 void main()
 {
 	vec4 pln;
@@ -420,10 +425,22 @@ void main()
 	// Get the surface normal of the surface being rasterised.
 	pln.xyz = normalize(texcoords[3].xyz);
 	pln.w = dot(rp, pln.xyz);
+
+	// Construct a shading normal for bump-mapping.
+	vec2 bump_texel_size = vec2(1) / textureSize(diffuse_texture, 0).xy;
+
+	float bump_height0 = bumpHeightForDiffuseTexel(texcoords[0].st);
+
+	vec2 bump_gradients = vec2(bumpHeightForDiffuseTexel(texcoords[0].st + vec2(bump_texel_size.x, 0.0)) - bump_height0,
+										bumpHeightForDiffuseTexel(texcoords[0].st + vec2(0.0, bump_texel_size.y)) - bump_height0) / bump_texel_size;
+
+	float bump_factor = 0.045;
+										
+	vec3 shading_normal = normalize(pln.xyz - (texcoords[5].xyz * bump_gradients.x + texcoords[6].xyz * bump_gradients.y) * bump_factor);
 	
 	// Sample the direct light at this point.
 	int rpli = getLightRef(rp).x;
-	vec3 r = sampleDirectLight(rp, pln.xyz, rpli);
+	vec3 r = sampleDirectLight(rp, shading_normal, rpli);
 
 	// Add the emissive light (light emitted towards the eye immediately from this surface).
 	r += texcoords[4].rgb;
@@ -472,8 +489,15 @@ void main()
 		float r1 = 2.0 * PI * rr.x;
 		float r2s = sqrt(rr.y);
 		
-		// Lambert diffuse BRDF.
-		rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y));
+		if (bluenoise_sample.b < texcoords[5].w)
+		{
+			rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y)); // Lambert diffuse BRDF.
+			factor = clamp(dot(rd, shading_normal) / dot(rd, pln.xyz), 0.1, 2.0);
+		}
+		else
+		{
+			rd = normalize(reflect(normalize(texcoords[7].xyz), shading_normal)); // Specular reflection.
+		}
 		
 		// Trace a ray against the BSP. This intersection point is later used for secondary bounces and testing
 		// for containment in skyportals polygons (skyportals aren't sampled directly).
@@ -541,7 +565,7 @@ void main()
 						if (s0 > 0.0 && s1 > 0.0 && s2 > 0.0 && abs(dot(n, sp2 - p0)) < 1.0)
 						{
 							// The sample point is contained by this polygon, so add the light contribution.
-							sky_r += abs(light.rgb);
+							sky_r += abs(light.rgb) * clamp(dot(rd, shading_normal) / dot(rd, pln.xyz), 0.1, 2.0);
 						}
 						
 						++li;
