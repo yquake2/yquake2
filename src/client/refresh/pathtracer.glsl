@@ -64,6 +64,10 @@
 # define BLUENOISE_TEX_HEIGHT 64
 #endif
 
+#ifndef TAA_ENABLE
+# define TAA_ENABLE 0
+#endif
+
 #define EPS		(1.0 / 32.0)
 #define MAXT	2048.0
 #define PI		acos(-1.0)
@@ -660,6 +664,7 @@ void main()
 	// Apply tonemapping and gamma correction.
 	gl_FragColor.rgb = sqrt(gl_FragColor.rgb);
 	
+#if TAA_ENABLE
 	// Apply TAA.
 	
 	vec4 clip = previous_world_matrix * texcoords[1];
@@ -674,4 +679,5 @@ void main()
 	
 	gl_FragColor.rgb = mix(gl_FragColor.rgb, texture(taa_world, ndc).rgb,
 			all(greaterThan(ndc, vec2(0))) && all(lessThan(ndc, vec2(1))) && previously_visible ? 0.45 * texcoords[4].w : 0.0);
+#endif
 }

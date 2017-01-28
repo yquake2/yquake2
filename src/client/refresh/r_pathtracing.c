@@ -97,6 +97,7 @@ static cvar_t *gl_pt_bounce_factor 						= NULL;
 static cvar_t *gl_pt_diffuse_map_enable 				= NULL;
 static cvar_t *gl_pt_static_entity_lights_enable 	= NULL;
 static cvar_t *gl_pt_depth_prepass_enable 			= NULL;
+static cvar_t *gl_pt_taa_enable 							= NULL;
 
 /*
  * Shader programs
@@ -3024,7 +3025,8 @@ ConstructFragmentShaderSource(GLhandleARB shader)
 			"#define DIFFUSE_MAP_ENABLE %d\n"
 			"#define RAND_TEX_LAYERS %d\n"
 			"#define BLUENOISE_TEX_WIDTH %d\n"
-			"#define BLUENOISE_TEX_HEIGHT %d\n",
+			"#define BLUENOISE_TEX_HEIGHT %d\n"
+			"#define TAA_ENABLE %d\n",
 			MAX(0, (int)gl_pt_bounces->value),
 			MAX(0, (int)gl_pt_shadow_samples->value),
 			MAX(0, (int)gl_pt_light_samples->value),
@@ -3034,7 +3036,8 @@ ConstructFragmentShaderSource(GLhandleARB shader)
 			MAX(0, (int)gl_pt_diffuse_map_enable->value),
 			MAX(1, GetBlueNoiseTextureLayers()),
 			PT_BLUENOISE_TEXTURE_WIDTH,
-			PT_BLUENOISE_TEXTURE_HEIGHT
+			PT_BLUENOISE_TEXTURE_HEIGHT,
+			MAX(0, (int)gl_pt_taa_enable->value)
 		);
 	
 	/* Specify the ordering of the parts of the shader. */
@@ -3174,6 +3177,7 @@ R_InitPathtracing(void)
 	GET_PT_CVAR(gl_pt_diffuse_map_enable, "1")
 	GET_PT_CVAR(gl_pt_static_entity_lights_enable, "0")
 	GET_PT_CVAR(gl_pt_depth_prepass_enable, "1")
+	GET_PT_CVAR(gl_pt_taa_enable, "0")
 #undef GET_PT_CVAR
 
 	Cmd_AddCommand("gl_pt_recompile_shaders", RecompileShaderPrograms);
