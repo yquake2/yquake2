@@ -156,6 +156,7 @@ extern void ( APIENTRY *qglLockArraysEXT ) ( int, int );
 extern void ( APIENTRY *qglUnlockArraysEXT ) ( void );
 extern void ( APIENTRY *qglMultiTexCoord2fARB) ( GLenum, GLfloat, GLfloat );
 extern void ( APIENTRY *qglMultiTexCoord3fARB) ( GLenum, GLfloat, GLfloat, GLfloat );
+extern void ( APIENTRY *qglMultiTexCoord4fARB) ( GLenum, GLfloat, GLfloat, GLfloat, GLfloat );
 extern void ( APIENTRY *qglActiveTextureARB ) ( GLenum );
 extern void ( APIENTRY *qglClientActiveTextureARB ) ( GLenum );
 

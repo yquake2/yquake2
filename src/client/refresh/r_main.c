@@ -359,7 +359,7 @@ R_DrawEntitiesOnList(void)
 			}
 		}
 	}
-
+	
 	/* draw transparent entities
 	   we could sort these if it ever
 	   becomes a problem... */
@@ -1462,10 +1462,11 @@ R_Init(void *hinstance, void *hWnd)
 		if (gl_ext_multitexture->value)
 		{
 			VID_Printf(PRINT_ALL, "...using GL_ARB_multitexture\n");
-			qglMultiTexCoord2fARB = ( void * ) GLimp_GetProcAddress ( "glMultiTexCoord2fARB" );
-			qglMultiTexCoord3fARB = ( void * ) GLimp_GetProcAddress ( "glMultiTexCoord3fARB" );
-			qglActiveTextureARB = ( void * ) GLimp_GetProcAddress ( "glActiveTextureARB" );
-			qglClientActiveTextureARB = ( void * ) GLimp_GetProcAddress ( "glClientActiveTextureARB" );
+			GET_PROC_ADDRESS(glMultiTexCoord2fARB);
+			GET_PROC_ADDRESS(glMultiTexCoord3fARB);
+			GET_PROC_ADDRESS(glMultiTexCoord4fARB);
+			GET_PROC_ADDRESS(glActiveTextureARB);
+			GET_PROC_ADDRESS(glClientActiveTextureARB);
 		}
 		else
 		{
