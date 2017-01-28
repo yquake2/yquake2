@@ -253,120 +253,123 @@ R_BlendLightmaps(void)
 		c_visible_lightmaps = 0;
 	}
 
-	/* render static lightmaps first */
-	for (i = 1; i < MAX_LIGHTMAPS; i++)
-	{
-		if (gl_lms.lightmap_surfaces[i])
+	if (!gl_pt_enable->value)
+	{		
+		/* render static lightmaps first */
+		for (i = 1; i < MAX_LIGHTMAPS; i++)
 		{
+			if (gl_lms.lightmap_surfaces[i])
+			{
+				if (currentmodel == r_worldmodel)
+				{
+					c_visible_lightmaps++;
+				}
+
+				R_Bind(gl_state.lightmap_textures + i);
+
+				for (surf = gl_lms.lightmap_surfaces[i];
+					 surf != 0;
+					 surf = surf->lightmapchain)
+				{
+					if (surf->polys)
+					{
+						R_DrawGLPolyChain(surf->polys, 0, 0);
+					}
+				}
+			}
+		}
+
+		/* render dynamic lightmaps */
+		if (gl_dynamic->value)
+		{
+			LM_InitBlock();
+
+			R_Bind(gl_state.lightmap_textures + 0);
+
 			if (currentmodel == r_worldmodel)
 			{
 				c_visible_lightmaps++;
 			}
 
-			R_Bind(gl_state.lightmap_textures + i);
+			newdrawsurf = gl_lms.lightmap_surfaces[0];
 
-			for (surf = gl_lms.lightmap_surfaces[i];
+			for (surf = gl_lms.lightmap_surfaces[0];
 				 surf != 0;
 				 surf = surf->lightmapchain)
 			{
+				int smax, tmax;
+				byte *base;
+
+				smax = (surf->extents[0] >> 4) + 1;
+				tmax = (surf->extents[1] >> 4) + 1;
+
+				if (LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
+				{
+					base = gl_lms.lightmap_buffer;
+					base += (surf->dlight_t * BLOCK_WIDTH +
+							surf->dlight_s) * LIGHTMAP_BYTES;
+
+					R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
+				}
+				else
+				{
+					msurface_t *drawsurf;
+
+					/* upload what we have so far */
+					LM_UploadBlock(true);
+
+					/* draw all surfaces that use this lightmap */
+					for (drawsurf = newdrawsurf;
+						 drawsurf != surf;
+						 drawsurf = drawsurf->lightmapchain)
+					{
+						if (drawsurf->polys)
+						{
+							R_DrawGLPolyChain(drawsurf->polys,
+									(drawsurf->light_s - drawsurf->dlight_s) * (1.0 / 128.0),
+									(drawsurf->light_t - drawsurf->dlight_t) * (1.0 / 128.0));
+						}
+					}
+
+					newdrawsurf = drawsurf;
+
+					/* clear the block */
+					LM_InitBlock();
+
+					/* try uploading the block now */
+					if (!LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
+					{
+						VID_Error(ERR_FATAL,
+								"Consecutive calls to LM_AllocBlock(%d,%d) failed (dynamic)\n",
+								smax, tmax);
+					}
+
+					base = gl_lms.lightmap_buffer;
+					base += (surf->dlight_t * BLOCK_WIDTH +
+							surf->dlight_s) * LIGHTMAP_BYTES;
+
+					R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
+				}
+			}
+
+			/* draw remainder of dynamic lightmaps that haven't been uploaded yet */
+			if (newdrawsurf)
+			{
+				LM_UploadBlock(true);
+			}
+
+			for (surf = newdrawsurf; surf != 0; surf = surf->lightmapchain)
+			{
 				if (surf->polys)
 				{
-					R_DrawGLPolyChain(surf->polys, 0, 0);
+					R_DrawGLPolyChain(surf->polys,
+							(surf->light_s - surf->dlight_s) * (1.0 / 128.0),
+							(surf->light_t - surf->dlight_t) * (1.0 / 128.0));
 				}
 			}
 		}
 	}
-
-	/* render dynamic lightmaps */
-	if (gl_dynamic->value && !gl_pt_enable->value)
-	{
-		LM_InitBlock();
-
-		R_Bind(gl_state.lightmap_textures + 0);
-
-		if (currentmodel == r_worldmodel)
-		{
-			c_visible_lightmaps++;
-		}
-
-		newdrawsurf = gl_lms.lightmap_surfaces[0];
-
-		for (surf = gl_lms.lightmap_surfaces[0];
-			 surf != 0;
-			 surf = surf->lightmapchain)
-		{
-			int smax, tmax;
-			byte *base;
-
-			smax = (surf->extents[0] >> 4) + 1;
-			tmax = (surf->extents[1] >> 4) + 1;
-
-			if (LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
-			{
-				base = gl_lms.lightmap_buffer;
-				base += (surf->dlight_t * BLOCK_WIDTH +
-						surf->dlight_s) * LIGHTMAP_BYTES;
-
-				R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
-			}
-			else
-			{
-				msurface_t *drawsurf;
-
-				/* upload what we have so far */
-				LM_UploadBlock(true);
-
-				/* draw all surfaces that use this lightmap */
-				for (drawsurf = newdrawsurf;
-					 drawsurf != surf;
-					 drawsurf = drawsurf->lightmapchain)
-				{
-					if (drawsurf->polys)
-					{
-						R_DrawGLPolyChain(drawsurf->polys,
-								(drawsurf->light_s - drawsurf->dlight_s) * (1.0 / 128.0),
-								(drawsurf->light_t - drawsurf->dlight_t) * (1.0 / 128.0));
-					}
-				}
-
-				newdrawsurf = drawsurf;
-
-				/* clear the block */
-				LM_InitBlock();
-
-				/* try uploading the block now */
-				if (!LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
-				{
-					VID_Error(ERR_FATAL,
-							"Consecutive calls to LM_AllocBlock(%d,%d) failed (dynamic)\n",
-							smax, tmax);
-				}
-
-				base = gl_lms.lightmap_buffer;
-				base += (surf->dlight_t * BLOCK_WIDTH +
-						surf->dlight_s) * LIGHTMAP_BYTES;
-
-				R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
-			}
-		}
-
-		/* draw remainder of dynamic lightmaps that haven't been uploaded yet */
-		if (newdrawsurf)
-		{
-			LM_UploadBlock(true);
-		}
-
-		for (surf = newdrawsurf; surf != 0; surf = surf->lightmapchain)
-		{
-			if (surf->polys)
-			{
-				R_DrawGLPolyChain(surf->polys,
-						(surf->light_s - surf->dlight_s) * (1.0 / 128.0),
-						(surf->light_t - surf->dlight_t) * (1.0 / 128.0));
-			}
-		}
-	}
-
+	
 	/* restore state */
 	glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -428,66 +431,69 @@ R_RenderBrushPoly(msurface_t *fa)
 	{
 		R_DrawGLPoly(fa->polys);
 	}
-
-	/* check for lightmap modification */
-	for (maps = 0; maps < MAXLIGHTMAPS && fa->styles[maps] != 255; maps++)
-	{
-		if (r_newrefdef.lightstyles[fa->styles[maps]].white !=
-			fa->cached_light[maps])
+	
+	if (!gl_pt_enable->value)
+	{		
+		/* check for lightmap modification */
+		for (maps = 0; maps < MAXLIGHTMAPS && fa->styles[maps] != 255; maps++)
 		{
-			goto dynamic;
-		}
-	}
-
-	/* dynamic this frame or dynamic previously */
-	if (fa->dlightframe == r_framecount)
-	{
-	dynamic:
-
-		if (gl_dynamic->value)
-		{
-			if (!(fa->texinfo->flags &
-				  (SURF_SKY | SURF_TRANS33 |
-				   SURF_TRANS66 | SURF_WARP)))
+			if (r_newrefdef.lightstyles[fa->styles[maps]].white !=
+				fa->cached_light[maps])
 			{
-				is_dynamic = true;
+				goto dynamic;
 			}
 		}
-	}
 
-	if (is_dynamic && !gl_pt_enable->value)
-	{
-		if (((fa->styles[maps] >= 32) ||
-			 (fa->styles[maps] == 0)) &&
-			  (fa->dlightframe != r_framecount))
+		/* dynamic this frame or dynamic previously */
+		if (fa->dlightframe == r_framecount)
 		{
-			unsigned temp[34 * 34];
-			int smax, tmax;
+		dynamic:
 
-			smax = (fa->extents[0] >> 4) + 1;
-			tmax = (fa->extents[1] >> 4) + 1;
+			if (gl_dynamic->value)
+			{
+				if (!(fa->texinfo->flags &
+					  (SURF_SKY | SURF_TRANS33 |
+						SURF_TRANS66 | SURF_WARP)))
+				{
+					is_dynamic = true;
+				}
+			}
+		}
 
-			R_BuildLightMap(fa, (void *)temp, smax * 4);
-			R_SetCacheState(fa);
+		if (is_dynamic)
+		{
+			if (((fa->styles[maps] >= 32) ||
+				 (fa->styles[maps] == 0)) &&
+				  (fa->dlightframe != r_framecount))
+			{
+				unsigned temp[34 * 34];
+				int smax, tmax;
 
-			R_Bind(gl_state.lightmap_textures + fa->lightmaptexturenum);
+				smax = (fa->extents[0] >> 4) + 1;
+				tmax = (fa->extents[1] >> 4) + 1;
 
-			glTexSubImage2D(GL_TEXTURE_2D, 0, fa->light_s, fa->light_t,
-					smax, tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
+				R_BuildLightMap(fa, (void *)temp, smax * 4);
+				R_SetCacheState(fa);
 
-			fa->lightmapchain = gl_lms.lightmap_surfaces[fa->lightmaptexturenum];
-			gl_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
+				R_Bind(gl_state.lightmap_textures + fa->lightmaptexturenum);
+
+				glTexSubImage2D(GL_TEXTURE_2D, 0, fa->light_s, fa->light_t,
+						smax, tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
+
+				fa->lightmapchain = gl_lms.lightmap_surfaces[fa->lightmaptexturenum];
+				gl_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
+			}
+			else
+			{
+				fa->lightmapchain = gl_lms.lightmap_surfaces[0];
+				gl_lms.lightmap_surfaces[0] = fa;
+			}
 		}
 		else
 		{
-			fa->lightmapchain = gl_lms.lightmap_surfaces[0];
-			gl_lms.lightmap_surfaces[0] = fa;
+			fa->lightmapchain = gl_lms.lightmap_surfaces[fa->lightmaptexturenum];
+			gl_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
 		}
-	}
-	else
-	{
-		fa->lightmapchain = gl_lms.lightmap_surfaces[fa->lightmaptexturenum];
-		gl_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
 	}
 }
 
@@ -703,29 +709,32 @@ R_RenderLightmappedPoly(msurface_t *surf)
 			qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, 0, 0, 0, 1);
 	}
 	
-	for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
+	if (!gl_pt_enable->value)
 	{
-		if (r_newrefdef.lightstyles[surf->styles[map]].white !=
-			surf->cached_light[map])
+		for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
 		{
-			goto dynamic;
-		}
-	}
-
-	if (surf->dlightframe == r_framecount)
-	{
-	dynamic:
-
-		if (gl_dynamic->value)
-		{
-			if (!(surf->texinfo->flags &
-				  (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
+			if (r_newrefdef.lightstyles[surf->styles[map]].white !=
+				surf->cached_light[map])
 			{
-				is_dynamic = true;
+				goto dynamic;
+			}
+		}
+
+		if (surf->dlightframe == r_framecount)
+		{
+		dynamic:
+
+			if (gl_dynamic->value)
+			{
+				if (!(surf->texinfo->flags &
+					  (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
+				{
+					is_dynamic = true;
+				}
 			}
 		}
 	}
-
+	
 	if (is_dynamic && !gl_pt_enable->value)
 	{
 		unsigned temp[128 * 128];
