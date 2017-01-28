@@ -1040,6 +1040,8 @@ R_RenderView(refdef_t *fd)
 	
 	R_DrawWorld();
 	
+	R_CaptureWorldForTAA();
+	
 	R_DrawEntitiesOnList();
 
 	R_RenderDlights();

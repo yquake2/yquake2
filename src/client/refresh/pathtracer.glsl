@@ -90,6 +90,12 @@ uniform isamplerBuffer 	lightrefs;
 uniform sampler1D randtex;
 uniform sampler2DArray bluenoise;
 
+// TAA feedback textures and transformations.
+uniform sampler2D taa_world;
+uniform mat4 current_world_matrix = mat4(1);
+uniform mat4 previous_world_matrix = mat4(1);
+uniform vec3 previous_view_origin = vec3(0);
+
 // Uniform attributes.
 uniform int		frame = 0;
 uniform float	ao_radius = 150.0;
@@ -97,7 +103,7 @@ uniform vec3	ao_color = vec3(1);
 uniform float	bounce_factor = 0.75;
 
 // Inputs from the vertex stage.
-in vec4 texcoords[5], color;
+in vec4 texcoords[8], color;
 
 // Globals.
 vec4 out_pln;
@@ -653,4 +659,19 @@ void main()
 
 	// Apply tonemapping and gamma correction.
 	gl_FragColor.rgb = sqrt(gl_FragColor.rgb);
+	
+	// Apply TAA.
+	
+	vec4 clip = previous_world_matrix * texcoords[1];
+	vec2 ndc = clip.xy / clip.w * 0.5 + vec2(0.5);
+	
+	rp = texcoords[1].xyz + texcoords[3].xyz * EPS * 16;
+	
+	// Check if the fragment was visible in the previous frame. If not, then the information in the previous framebuffer does not match and it cannot be reused.
+	vec3 disocclusion_test_ray = normalize(previous_view_origin - rp);
+	float disocclusion_test_distance = distance(rp, previous_view_origin);
+	bool previously_visible = traceRayShadowBSP(rp, disocclusion_test_ray, EPS * 16, disocclusion_test_distance) && traceRayShadowTri(rp, disocclusion_test_ray, disocclusion_test_distance);
+	
+	gl_FragColor.rgb = mix(gl_FragColor.rgb, texture(taa_world, ndc).rgb,
+			all(greaterThan(ndc, vec2(0))) && all(lessThan(ndc, vec2(1))) && previously_visible ? 0.45 * texcoords[4].w : 0.0);
 }

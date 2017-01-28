@@ -61,6 +61,7 @@
 #define PT_TEXTURE_UNIT_BSP_LIGHTREFS		10
 #define PT_TEXTURE_UNIT_RANDTEX				11
 #define PT_TEXTURE_UNIT_BLUENOISE			12
+#define PT_TEXTURE_UNIT_TAA_WORLD			13
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -127,6 +128,7 @@ static GLuint pt_lightref_buffer = 0;
 static GLuint pt_lightref_texture = 0;
 static GLuint pt_rand_texture = 0;
 static GLuint pt_bluenoise_texture = 0;
+static GLuint pt_taa_world_texture = 0;
 
 /*
  * Uniform locations
@@ -138,8 +140,19 @@ static GLint pt_ao_radius_loc = -1;
 static GLint pt_ao_color_loc = -1;
 static GLint pt_bounce_factor_loc = -1;
 static GLint pt_view_origin_loc = -1;		
+static GLint pt_previous_view_origin_loc = -1;		
+static GLint pt_current_world_matrix_loc = -1;
+static GLint pt_previous_world_matrix_loc = -1;
 
 static unsigned long int pt_bsp_texture_width = 0, pt_bsp_texture_height = 0;
+
+/*
+ * Persistent data
+ */
+ 
+float pt_previous_world_matrix[16];
+float pt_previous_proj_matrix[16];
+float pt_previous_view_origin[3];
 
 /*
  * Shader source code
@@ -149,7 +162,7 @@ static const GLcharARB* vertex_shader_source =
 	"#version 120\n"
 	"uniform mat4 entity_to_world = mat4(1);\n"
 	"uniform vec3 view_origin = vec3(0);\n"
-	"varying vec4 texcoords[9], color;\n"
+	"varying vec4 texcoords[8], color;\n"
 	"void main()\n"
 	"{\n"
 	"	gl_Position = ftransform();\n"
@@ -170,7 +183,6 @@ static const GLcharARB* vertex_shader_source =
 	"		texcoords[6].xyz = vec3(0);\n"	
 	"	}\n"
 	"	texcoords[7].xyz = texcoords[1].xyz - view_origin.xyz;\n"
-	"	texcoords[8] = gl_Position;\n"
 	"	color = gl_Color;\n"
 	"}\n"
 	"\n";
@@ -322,6 +334,7 @@ ClearPathtracerState(void)
 	pt_lightref_texture = 0;
 	pt_rand_texture = 0;
 	pt_bluenoise_texture = 0;
+	pt_taa_world_texture = 0;
 	
 	pt_frame_counter_loc = -1;
 	pt_entity_to_world_loc = -1;
@@ -329,6 +342,9 @@ ClearPathtracerState(void)
 	pt_ao_color_loc = -1;
 	pt_bounce_factor_loc = -1;
 	pt_view_origin_loc = -1;
+	pt_previous_view_origin_loc = -1;
+	pt_current_world_matrix_loc = -1;
+	pt_previous_world_matrix_loc = -1;
 	
 	pt_last_update_ms = -1;
 	
@@ -2417,6 +2433,27 @@ R_UpdatePathtracerForCurrentFrame(void)
 	qglUniform1fARB(pt_bounce_factor_loc, gl_pt_bounce_factor->value);
 	qglUniform1iARB(pt_frame_counter_loc, r_framecount);	
 	qglUniform3fARB(pt_view_origin_loc, r_newrefdef.vieworg[0], r_newrefdef.vieworg[1], r_newrefdef.vieworg[2]);
+	qglUniform3fARB(pt_previous_view_origin_loc, pt_previous_view_origin[0], pt_previous_view_origin[1], pt_previous_view_origin[2]);
+
+	for (i = 0; i < 3; ++i)
+		pt_previous_view_origin[i] = r_newrefdef.vieworg[i];
+	
+	float current_proj_matrix[16];
+	glGetFloatv(GL_PROJECTION_MATRIX, current_proj_matrix);
+
+	float mr[16];
+	MatrixApply(mr, current_proj_matrix, r_world_matrix);
+	qglUniformMatrix4fvARB(pt_current_world_matrix_loc, 1, GL_FALSE, mr);
+
+	MatrixApply(mr, pt_previous_proj_matrix, pt_previous_world_matrix);
+	qglUniformMatrix4fvARB(pt_previous_world_matrix_loc, 1, GL_FALSE, mr);
+
+	for (i = 0; i < 16; ++i)
+	{
+		pt_previous_world_matrix[i] = r_world_matrix[i];
+		pt_previous_proj_matrix[i] = current_proj_matrix[i];
+	}
+	
 	
 	qglUseProgramObjectARB(0);
 		
@@ -2841,6 +2878,7 @@ R_PreparePathtracer(void)
 	BindTextureUnit(PT_TEXTURE_UNIT_BSP_LIGHTREFS,	GL_TEXTURE_2D, 		pt_bsp_lightref_texture);
 	BindTextureUnit(PT_TEXTURE_UNIT_RANDTEX, 			GL_TEXTURE_1D,			pt_rand_texture);
 	BindTextureUnit(PT_TEXTURE_UNIT_BLUENOISE, 		GL_TEXTURE_2D_ARRAY,	pt_bluenoise_texture);
+	BindTextureUnit(PT_TEXTURE_UNIT_TAA_WORLD, 		GL_TEXTURE_2D,			pt_taa_world_texture);
 }
 	
 static void
@@ -2945,6 +2983,9 @@ FreeShaderPrograms(void)
 	pt_ao_color_loc = -1;
 	pt_bounce_factor_loc = -1;
 	pt_view_origin_loc = -1;
+	pt_previous_view_origin_loc = -1;
+	pt_current_world_matrix_loc = -1;
+	pt_previous_world_matrix_loc = -1;
 	
 	if (vertex_shader)
 	{
@@ -3068,6 +3109,7 @@ CreateShaderPrograms(void)
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bsp_lightrefs"), 	PT_TEXTURE_UNIT_BSP_LIGHTREFS);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "randtex"), 			PT_TEXTURE_UNIT_RANDTEX);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bluenoise"), 			PT_TEXTURE_UNIT_BLUENOISE);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "taa_world"), 			PT_TEXTURE_UNIT_TAA_WORLD);
 	
 	/* Get the locations of uniforms which do need to be change during rendering. */
 	
@@ -3077,6 +3119,9 @@ CreateShaderPrograms(void)
 	pt_ao_color_loc = qglGetUniformLocationARB(pt_program_handle, "ao_color");
 	pt_bounce_factor_loc = qglGetUniformLocationARB(pt_program_handle, "bounce_factor");
 	pt_view_origin_loc = qglGetUniformLocationARB(pt_program_handle, "view_origin");
+	pt_previous_view_origin_loc = qglGetUniformLocationARB(pt_program_handle, "previous_view_origin");
+	pt_current_world_matrix_loc = qglGetUniformLocationARB(pt_program_handle, "current_world_matrix");
+	pt_previous_world_matrix_loc =qglGetUniformLocationARB(pt_program_handle, "previous_world_matrix");
 	
 	qglUseProgramObjectARB(0);
 }
@@ -3145,6 +3190,19 @@ R_InitPathtracing(void)
 
 	InitRandom();
 	CreateShaderPrograms();
+	
+	glGenTextures(1, &pt_taa_world_texture);
+}
+
+void
+R_CaptureWorldForTAA(void)
+{
+	glBindTexture(GL_TEXTURE_2D, pt_taa_world_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, r_newrefdef.width, r_newrefdef.height, 0);
 }
 
 void
@@ -3163,6 +3221,7 @@ R_ShutdownPathtracing(void)
 		BindTextureUnit(PT_TEXTURE_UNIT_BSP_LIGHTREFS,	GL_TEXTURE_2D, 		0);
 		BindTextureUnit(PT_TEXTURE_UNIT_RANDTEX, 			GL_TEXTURE_1D,			0);
 		BindTextureUnit(PT_TEXTURE_UNIT_BLUENOISE, 		GL_TEXTURE_2D_ARRAY,	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_TAA_WORLD, 		GL_TEXTURE_2D,			0);
 	}
 	
 	Cmd_RemoveCommand("gl_pt_recompile_shaders");
@@ -3171,6 +3230,8 @@ R_ShutdownPathtracing(void)
 	FreeModelData();
 	FreeShaderPrograms();
 	FreeRandom();
+
+	glDeleteTextures(1, &pt_taa_world_texture);
 	
 	ClearPathtracerState();
 }

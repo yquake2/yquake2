@@ -395,9 +395,9 @@ R_RenderBrushPoly(msurface_t *fa)
 		qglMultiTexCoord3fARB(GL_TEXTURE5_ARB, fa->texinfo->vecs[1][0], fa->texinfo->vecs[1][1], fa->texinfo->vecs[1][2]);
 
 		if ((fa->texinfo->flags & SURF_LIGHT) && !(fa->texinfo->flags & SURF_WARP) && fa->texinfo->radiance > 0)
-			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, image->reflectivity[0] * fa->texinfo->radiance, image->reflectivity[1] * fa->texinfo->radiance, image->reflectivity[2] * fa->texinfo->radiance);
+			qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, image->reflectivity[0] * fa->texinfo->radiance, image->reflectivity[1] * fa->texinfo->radiance, image->reflectivity[2] * fa->texinfo->radiance, 1);
 		else
-			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
+			qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, 0, 0, 0, 1);
 	}
 	
 	if (fa->flags & SURF_DRAWTURB)
@@ -551,9 +551,9 @@ R_DrawAlphaSurfaces(void)
 			qglMultiTexCoord3fARB(GL_TEXTURE5_ARB, s->texinfo->vecs[1][0], s->texinfo->vecs[1][1], s->texinfo->vecs[1][2]);
 
 			if ((s->texinfo->flags & SURF_LIGHT) && !(s->texinfo->flags & SURF_WARP) && s->texinfo->radiance > 0)
-				qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, s->texinfo->image->reflectivity[0] * s->texinfo->radiance, s->texinfo->image->reflectivity[1] * s->texinfo->radiance, s->texinfo->image->reflectivity[2] * s->texinfo->radiance);
+				qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, s->texinfo->image->reflectivity[0] * s->texinfo->radiance, s->texinfo->image->reflectivity[1] * s->texinfo->radiance, s->texinfo->image->reflectivity[2] * s->texinfo->radiance, 1);
 			else
-				qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
+				qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, 0, 0, 0, 1);
 		}
 	
 		if (s->flags & SURF_DRAWTURB)
@@ -698,9 +698,9 @@ R_RenderLightmappedPoly(msurface_t *surf)
 		qglMultiTexCoord3fARB(GL_TEXTURE5_ARB, surf->texinfo->vecs[1][0], surf->texinfo->vecs[1][1], surf->texinfo->vecs[1][2]);
 
 		if ((surf->texinfo->flags & SURF_LIGHT) && !(surf->texinfo->flags & SURF_WARP) && surf->texinfo->radiance > 0)
-			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, image->reflectivity[0] * surf->texinfo->radiance, image->reflectivity[1] * surf->texinfo->radiance, image->reflectivity[2] * surf->texinfo->radiance);
+			qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, image->reflectivity[0] * surf->texinfo->radiance, image->reflectivity[1] * surf->texinfo->radiance, image->reflectivity[2] * surf->texinfo->radiance, 1);
 		else
-			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
+			qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, 0, 0, 0, 1);
 	}
 	
 	for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)

@@ -949,7 +949,7 @@ R_DrawAliasModel(entity_t *e)
 		if (qglMultiTexCoord3fARB)
 		{
 			/* Assume that alias models never need to be treated as direct light-emitters. */
-			qglMultiTexCoord3fARB(GL_TEXTURE3_ARB, 0, 0, 0);
+			qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, 0, 0, 0, 0);
 			
 			/* An objectspace-to-tangentspace transformation isn't available, so just set the tangent vectors to zero to effectively disable bumpmapping. */
 			qglMultiTexCoord4fARB(GL_TEXTURE4_ARB, 0, 0, 0, PT_ALIAS_DIFFUSE_SPECULAR_RATIO);
