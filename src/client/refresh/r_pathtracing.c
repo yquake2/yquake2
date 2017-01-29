@@ -49,6 +49,7 @@
 #define PT_BLUENOISE_TEXTURE_WIDTH		64
 #define PT_BLUENOISE_TEXTURE_HEIGHT		64
 #define PT_TRIANGLE_MESH_STATES			2
+#define PT_DEPTH_HACK_SCALE_DIVISOR		3.0f
 
 #define PT_TEXTURE_UNIT_DIFFUSE_TEXTURE	0
 #define PT_TEXTURE_UNIT_BSP_PLANES			2
@@ -1221,15 +1222,6 @@ FreeModelData(void)
 	DeleteTexture(&pt_lightref_texture);
 }
 
-/* Applies a translation vector to the given 4x4 matrix in-place. */
-static void
-MatrixTranslate(float m[16], float x, float y, float z)
-{
-	m[12] += x;
-	m[13] += y;
-	m[14] += z;
-}
-
 /* Sets the given 4x4 matrix to the identity matrix. */
 static void
 MatrixIdentity(float m[16])
@@ -1303,17 +1295,41 @@ MatrixRotateAxis(float m[16], int axis, float angle)
 	MatrixApply(m, mt0, mt1);
 }
 
-/* Applies a non-uniform scaling to the given 4x4 matrix in-place. */
+/* Applies a translation transformation to the given 4x4 matrix in-place. */
+static void
+MatrixTranslate(float m[16], float x, float y, float z)
+{
+	float mt0[16];
+	float mt1[16];
+
+	memcpy(mt0, m, sizeof(mt0));
+	
+	MatrixIdentity(mt1);
+
+	mt1[12] = x;
+	mt1[13] = y;
+	mt1[14] = z;
+
+	MatrixApply(m, mt0, mt1);
+}
+
+/* Applies a non-uniform scaling transformation to the given 4x4 matrix in-place. */
 static void 
 MatrixScale(float m[16], float sx, float sy, float sz)
 {
-	int i,j;
+	float mt0[16];
+	float mt1[16];
+	int i;
 	float s[3] = { sx, sy, sz };
+
+	memcpy(mt0, m, sizeof(mt0));
+
+	MatrixIdentity(mt1);
+
 	for (i = 0; i < 3; ++i)
-		for (j = 0; j < 3; ++j)
-		{
-			m[i * 4 + j] *= s[i];
-		}
+		mt1[i * 4 + i] = s[i];
+
+	MatrixApply(m, mt0, mt1);
 }
 
 /* Constructs a transformation matrix to match the one used for drawing entities. This is based on the GL matrix transformation
@@ -1323,17 +1339,22 @@ R_ConstructEntityToWorldMatrix(float m[16], entity_t *entity)
 {
 	PT_ASSERT(entity != NULL);
 	
-	MatrixIdentity(m);	
+	MatrixIdentity(m);
+
+	if (entity->flags & RF_DEPTHHACK)
+	{
+		MatrixTranslate(m, r_newrefdef.vieworg[0], r_newrefdef.vieworg[1], r_newrefdef.vieworg[2]);
+		MatrixScale(m, 1.0f / PT_DEPTH_HACK_SCALE_DIVISOR, 1.0f / PT_DEPTH_HACK_SCALE_DIVISOR, 1.0f / PT_DEPTH_HACK_SCALE_DIVISOR);
+		MatrixTranslate(m, -r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
+	}
+	
 	MatrixTranslate(m, entity->origin[0], entity->origin[1], entity->origin[2]);
 
 	entity->angles[PITCH] = -entity->angles[PITCH];
 	MatrixRotateAxis(m, 2, entity->angles[1] * M_PI / 180.0);
 	MatrixRotateAxis(m, 1, -entity->angles[0] * M_PI / 180.0);
 	MatrixRotateAxis(m, 0, -entity->angles[2] * M_PI / 180.0);
-	entity->angles[PITCH] = -entity->angles[PITCH];
-	
-	if (entity->flags & RF_DEPTHHACK)
-		MatrixScale(m, .25f, .25f, .25f);
+	entity->angles[PITCH] = -entity->angles[PITCH];	
 }
 
 void
@@ -2115,7 +2136,6 @@ R_DrawPathtracerDepthPrePass(void)
 	if (!gl_pt_depth_prepass_enable->value || !current_trimesh_state->vertex_buffer || !current_trimesh_state->triangle_buffer || pt_num_shadow_triangles == 0 || !gl_drawentities->value)
 		return;
 		
-	glPolygonOffset(2, 4);
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	BindBuffer(GL_ARRAY_BUFFER, current_trimesh_state->vertex_buffer);
 	BindBuffer(GL_ELEMENT_ARRAY_BUFFER, current_trimesh_state->triangle_buffer);
@@ -2138,8 +2158,26 @@ R_DrawPathtracerDepthPrePass(void)
 			element_count += 1;
 			break;
 	}
-			
+	
+	/* Draw all non-player-weapon entities. */
+	
+	glPolygonOffset(2, 4);
 	glDrawElements(GL_TRIANGLES, element_count, GL_UNSIGNED_SHORT, (byte*)0 + pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]));
+	
+	if (pt_num_triangles - pt_weapon_entity_triangles_offset > 0)
+	{
+		/* Draw the player weapon entity (this is also known as the viewmodel). */
+
+		glDepthRange(gldepthmin, gldepthmin + 0.3 * (gldepthmax - gldepthmin));
+		glPushMatrix();
+		glTranslatef(r_newrefdef.vieworg[0], r_newrefdef.vieworg[1], r_newrefdef.vieworg[2]);
+		glScalef(PT_DEPTH_HACK_SCALE_DIVISOR, PT_DEPTH_HACK_SCALE_DIVISOR, PT_DEPTH_HACK_SCALE_DIVISOR);
+		glTranslatef(-r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
+		glPolygonOffset(12, 24);
+		glDrawElements(GL_TRIANGLES, pt_num_shadow_triangles * 4 - element_count, GL_UNSIGNED_SHORT, (byte*)0 + pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]) + element_count * sizeof(pt_triangle_data[0]) / 2);
+		glPopMatrix();
+		glDepthRange(gldepthmin, gldepthmax);
+	}
 	
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	BindBuffer(GL_ARRAY_BUFFER, 0);
