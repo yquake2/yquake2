@@ -680,19 +680,24 @@ void main()
 	gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(1.0 / gamma));
 	
 #if TAA_ENABLE
-	// Apply TAA.
-	
-	vec4 clip = previous_world_matrix * texcoords[1];
-	vec2 ndc = clip.xy / clip.w * 0.5 + vec2(0.5);
-	
-	rp = texcoords[1].xyz + texcoords[3].xyz * EPS * 16;
-	
-	// Check if the fragment was visible in the previous frame. If not, then the information in the previous framebuffer does not match and it cannot be reused.
-	vec3 disocclusion_test_ray = normalize(previous_view_origin - rp);
-	float disocclusion_test_distance = distance(rp, previous_view_origin);
-	bool previously_visible = traceRayShadowBSP(rp, disocclusion_test_ray, EPS * 16, disocclusion_test_distance) && traceRayShadowTri(rp, disocclusion_test_ray, disocclusion_test_distance, tri_nodes0_prev, tri_nodes1_prev, tri_vertices_prev, triangles_prev);
-	
-	gl_FragColor.rgb = mix(gl_FragColor.rgb, texture(taa_world, ndc).rgb,
-			all(greaterThan(ndc, vec2(0))) && all(lessThan(ndc, vec2(1))) && previously_visible ? 0.45 * texcoords[4].w : 0.0);
+	if (texcoords[4].w > 0.0)
+	{
+		// Apply TAA.
+		
+		vec4 clip = previous_world_matrix * texcoords[1];
+		vec2 ndc = clip.xy / clip.w * 0.5 + vec2(0.5);
+		
+		rp = texcoords[1].xyz + texcoords[3].xyz * EPS * 16;
+		
+		// Check if the fragment was visible in the previous frame. If not, then the information in the previous framebuffer does not match and it cannot be reused.
+		vec3 disocclusion_test_ray = normalize(previous_view_origin - rp);
+		float disocclusion_test_distance = distance(rp, previous_view_origin);
+		bool previously_visible = traceRayShadowBSP(rp, disocclusion_test_ray, EPS * 16, disocclusion_test_distance) &&
+				traceRayShadowTri(rp, disocclusion_test_ray, disocclusion_test_distance, tri_nodes0_prev, tri_nodes1_prev, tri_vertices_prev, triangles_prev) &&
+				dot(normalize(texcoords[3].xyz), disocclusion_test_ray) > 0.01;
+		
+		gl_FragColor.rgb = mix(gl_FragColor.rgb, texture(taa_world, ndc).rgb,
+				all(greaterThan(ndc, vec2(0))) && all(lessThan(ndc, vec2(1))) && previously_visible ? 0.45 * texcoords[4].w : 0.0);
+	}
 #endif
 }
