@@ -48,6 +48,7 @@
 #define PT_MAX_CLUSTER_SIZE				2048.0
 #define PT_BLUENOISE_TEXTURE_WIDTH		64
 #define PT_BLUENOISE_TEXTURE_HEIGHT		64
+#define PT_TRIANGLE_MESH_STATES			2
 
 #define PT_TEXTURE_UNIT_DIFFUSE_TEXTURE	0
 #define PT_TEXTURE_UNIT_BSP_PLANES			2
@@ -62,6 +63,10 @@
 #define PT_TEXTURE_UNIT_RANDTEX				11
 #define PT_TEXTURE_UNIT_BLUENOISE			12
 #define PT_TEXTURE_UNIT_TAA_WORLD			13
+#define PT_TEXTURE_UNIT_TRI_NODES0_PREV	14
+#define PT_TEXTURE_UNIT_TRI_NODES1_PREV	15
+#define PT_TEXTURE_UNIT_TRI_VERTICES_PREV	16
+#define PT_TEXTURE_UNIT_TRIANGLES_PREV		17
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -117,14 +122,20 @@ static GLuint pt_node_texture = 0;
 static GLuint pt_child_texture = 0;
 static GLuint pt_bsp_lightref_texture = 0;
 
-static GLuint pt_node0_buffer = 0;
-static GLuint pt_node0_texture = 0;
-static GLuint pt_node1_buffer = 0;
-static GLuint pt_node1_texture = 0;
-static GLuint pt_triangle_buffer = 0;
-static GLuint pt_triangle_texture = 0;
-static GLuint pt_vertex_buffer = 0;
-static GLuint pt_vertex_texture = 0;
+typedef struct triangle_mesh_state_s 
+{
+	GLuint node0_buffer;
+	GLuint node0_texture;
+	GLuint node1_buffer;
+	GLuint node1_texture;
+	GLuint triangle_buffer;
+	GLuint triangle_texture;
+	GLuint vertex_buffer;
+	GLuint vertex_texture;
+} triangle_mesh_state_t;
+
+static triangle_mesh_state_t pt_triangle_mesh_states[PT_TRIANGLE_MESH_STATES];
+
 static GLuint pt_trilights_buffer = 0;
 static GLuint pt_trilights_texture = 0;
 static GLuint pt_lightref_buffer = 0;
@@ -297,8 +308,24 @@ ClearLightStyleCache(void)
 }
 
 static void
+TriangleMeshStateClear(triangle_mesh_state_t *state)
+{
+	PT_ASSERT(state != NULL);	
+	state->node0_buffer = 0;
+	state->node0_texture = 0;
+	state->node1_buffer = 0;
+	state->node1_texture = 0;
+	state->triangle_buffer = 0;
+	state->triangle_texture = 0;
+	state->vertex_buffer = 0;
+	state->vertex_texture = 0;
+}
+
+static void
 ClearPathtracerState(void)
 {
+	int i;
+	
 	ClearLightStyleCache();
 	
 	pt_num_nodes = 0;
@@ -325,14 +352,9 @@ ClearPathtracerState(void)
 	pt_child_texture = 0;
 	pt_bsp_lightref_texture = 0;
 
-	pt_node0_buffer = 0;
-	pt_node0_texture = 0;
-	pt_node1_buffer = 0;
-	pt_node1_texture = 0;
-	pt_triangle_buffer = 0;
-	pt_triangle_texture = 0;
-	pt_vertex_buffer = 0;
-	pt_vertex_texture = 0;
+	for (i = 0; i < PT_TRIANGLE_MESH_STATES; ++i)
+		TriangleMeshStateClear(pt_triangle_mesh_states + i);
+	
 	pt_trilights_buffer = 0;
 	pt_trilights_texture = 0;
 	pt_lightref_buffer = 0;
@@ -1168,20 +1190,31 @@ DeleteTexture(GLuint *h)
 }
 
 static void
+TriangleMeshStateDelete(triangle_mesh_state_t *state)
+{
+	PT_ASSERT(state != NULL);
+	DeleteBuffer(&state->node0_buffer);
+	DeleteTexture(&state->node0_texture);
+	DeleteBuffer(&state->node1_buffer);
+	DeleteTexture(&state->node1_texture);
+	DeleteBuffer(&state->triangle_buffer);
+	DeleteTexture(&state->triangle_texture);
+	DeleteBuffer(&state->vertex_buffer);
+	DeleteTexture(&state->vertex_texture);
+}
+
+static void
 FreeModelData(void)
 {
+	int i;
+	
 	DeleteTexture(&pt_node_texture);
 	DeleteTexture(&pt_child_texture);
 	DeleteTexture(&pt_bsp_lightref_texture);
 
-	DeleteBuffer(&pt_node0_buffer);
-	DeleteTexture(&pt_node0_texture);
-	DeleteBuffer(&pt_node1_buffer);
-	DeleteTexture(&pt_node1_texture);
-	DeleteBuffer(&pt_triangle_buffer);
-	DeleteTexture(&pt_triangle_texture);
-	DeleteBuffer(&pt_vertex_buffer);
-	DeleteTexture(&pt_vertex_texture);
+	for (i = 0; i < PT_TRIANGLE_MESH_STATES; ++i)
+		TriangleMeshStateDelete(pt_triangle_mesh_states + i);
+	
 	DeleteBuffer(&pt_trilights_buffer);
 	DeleteTexture(&pt_trilights_texture);
 	DeleteBuffer(&pt_lightref_buffer);
@@ -2077,14 +2110,15 @@ void
 R_DrawPathtracerDepthPrePass(void)
 {
 	int element_count;
+	triangle_mesh_state_t *current_trimesh_state = pt_triangle_mesh_states + ((r_framecount + 1) % PT_TRIANGLE_MESH_STATES);
 	
-	if (!gl_pt_depth_prepass_enable->value || !pt_vertex_buffer || !pt_triangle_buffer || pt_num_shadow_triangles == 0 || !gl_drawentities->value)
+	if (!gl_pt_depth_prepass_enable->value || !current_trimesh_state->vertex_buffer || !current_trimesh_state->triangle_buffer || pt_num_shadow_triangles == 0 || !gl_drawentities->value)
 		return;
 		
 	glPolygonOffset(2, 4);
 	glEnable(GL_POLYGON_OFFSET_FILL);
-	BindBuffer(GL_ARRAY_BUFFER, pt_vertex_buffer);
-	BindBuffer(GL_ELEMENT_ARRAY_BUFFER, pt_triangle_buffer);
+	BindBuffer(GL_ARRAY_BUFFER, current_trimesh_state->vertex_buffer);
+	BindBuffer(GL_ELEMENT_ARRAY_BUFFER, current_trimesh_state->triangle_buffer);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDisableClientState(GL_COLOR_ARRAY);
@@ -2127,13 +2161,25 @@ R_UpdatePathtracerForCurrentFrame(void)
 	int start_ms = 0, end_ms = 0, refresh_ms = 0, ms = 0;
 	float max_component, influence_box_size;
 	float *box;
-					
+
+	triangle_mesh_state_t *current_trimesh_state  = pt_triangle_mesh_states + ((r_framecount + 1) % PT_TRIANGLE_MESH_STATES);
+	triangle_mesh_state_t *previous_trimesh_state = pt_triangle_mesh_states + ((r_framecount + 0) % PT_TRIANGLE_MESH_STATES);
 
 	if (!R_PathtracingIsSupportedByGL())
 	{
 		PrintMissingGLFeaturesMessageAndDisablePathtracing();
 		return;
 	}	
+
+	BindTextureUnit(PT_TEXTURE_UNIT_TRI_NODES0, 		GL_TEXTURE_BUFFER, 	current_trimesh_state->node0_texture);
+	BindTextureUnit(PT_TEXTURE_UNIT_TRI_NODES1, 		GL_TEXTURE_BUFFER, 	current_trimesh_state->node1_texture);
+	BindTextureUnit(PT_TEXTURE_UNIT_TRI_VERTICES, 	GL_TEXTURE_BUFFER, 	current_trimesh_state->vertex_texture);
+	BindTextureUnit(PT_TEXTURE_UNIT_TRIANGLES, 		GL_TEXTURE_BUFFER, 	current_trimesh_state->triangle_texture);
+
+	BindTextureUnit(PT_TEXTURE_UNIT_TRI_NODES0_PREV, 		GL_TEXTURE_BUFFER, 	previous_trimesh_state->node0_texture);
+	BindTextureUnit(PT_TEXTURE_UNIT_TRI_NODES1_PREV, 		GL_TEXTURE_BUFFER, 	previous_trimesh_state->node1_texture);
+	BindTextureUnit(PT_TEXTURE_UNIT_TRI_VERTICES_PREV, 	GL_TEXTURE_BUFFER, 	previous_trimesh_state->vertex_texture);
+	BindTextureUnit(PT_TEXTURE_UNIT_TRIANGLES_PREV, 		GL_TEXTURE_BUFFER, 	previous_trimesh_state->triangle_texture);
 	
 	if (gl_pt_stats_enable->value)
 	{
@@ -2241,17 +2287,17 @@ R_UpdatePathtracerForCurrentFrame(void)
 
 	pt_written_nodes++;
 		
-	UploadTextureBufferData(pt_node0_buffer, pt_node0_data, 0, pt_written_nodes * 4 * sizeof(pt_node0_data[0]));
-	UploadTextureBufferData(pt_node1_buffer, pt_node1_data, 0, pt_written_nodes * 4 * sizeof(pt_node1_data[0]));
+	UploadTextureBufferData(current_trimesh_state->node0_buffer, pt_node0_data, 0, pt_written_nodes * 4 * sizeof(pt_node0_data[0]));
+	UploadTextureBufferData(current_trimesh_state->node1_buffer, pt_node1_data, 0, pt_written_nodes * 4 * sizeof(pt_node1_data[0]));
 	
 	if (pt_num_triangles > pt_dynamic_triangles_offset)
 	{
-		UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data + pt_dynamic_triangles_offset * 2, pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]), (pt_num_triangles - pt_dynamic_triangles_offset) * 2 * sizeof(pt_triangle_data[0]));
+		UploadTextureBufferData(current_trimesh_state->triangle_buffer, pt_triangle_data + pt_dynamic_triangles_offset * 2, pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]), (pt_num_triangles - pt_dynamic_triangles_offset) * 2 * sizeof(pt_triangle_data[0]));
 	}
 	
 	if (pt_num_vertices > pt_dynamic_vertices_offset)
 	{
-		UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data + pt_dynamic_vertices_offset * pt_vertex_stride, pt_dynamic_vertices_offset * pt_vertex_stride * sizeof(pt_vertex_data[0]), (pt_num_vertices - pt_dynamic_vertices_offset) * pt_vertex_stride * sizeof(pt_vertex_data[0]));
+		UploadTextureBufferData(current_trimesh_state->vertex_buffer, pt_vertex_data + pt_dynamic_vertices_offset * pt_vertex_stride, pt_dynamic_vertices_offset * pt_vertex_stride * sizeof(pt_vertex_data[0]), (pt_num_vertices - pt_dynamic_vertices_offset) * pt_vertex_stride * sizeof(pt_vertex_data[0]));
 	}
 
 	if (gl_pt_lightstyles_enable->value && pt_num_used_nonstatic_lightstyles > 0)
@@ -2520,6 +2566,16 @@ CreateTextureBuffer(GLuint *buffer, GLuint *texture, GLenum format, GLsizei size
 	BindBuffer(GL_TEXTURE_BUFFER, 0);
 	
 	glBindTexture(GL_TEXTURE_BUFFER, 0);
+}
+
+static void
+TriangleMeshStateCreate(triangle_mesh_state_t *state)
+{
+	PT_ASSERT(state != NULL);	
+	CreateTextureBuffer(&state->node0_buffer, &state->node0_texture, GL_RGBA32I, PT_MAX_TRI_NODES * 4 * sizeof(GLint));
+	CreateTextureBuffer(&state->node1_buffer, &state->node1_texture, GL_RGBA32I, PT_MAX_TRI_NODES * 4 * sizeof(GLint));
+	CreateTextureBuffer(&state->triangle_buffer, &state->triangle_texture, GL_RG32I, PT_MAX_TRIANGLES * 2 * sizeof(GLint));
+	CreateTextureBuffer(&state->vertex_buffer, &state->vertex_texture, pt_vertex_buffer_format, PT_MAX_VERTICES * pt_vertex_stride * sizeof(GLfloat));
 }
 
 static void
@@ -2803,11 +2859,10 @@ R_PreparePathtracer(void)
 		VID_Printf(PRINT_ALL, "R_PreparePathtracer: r_worldmodel->numnodes is zero!\n");
 		return;
 	}
-		
-	CreateTextureBuffer(&pt_node0_buffer, &pt_node0_texture, GL_RGBA32I, PT_MAX_TRI_NODES * 4 * sizeof(GLint));
-	CreateTextureBuffer(&pt_node1_buffer, &pt_node1_texture, GL_RGBA32I, PT_MAX_TRI_NODES * 4 * sizeof(GLint));
-	CreateTextureBuffer(&pt_triangle_buffer, &pt_triangle_texture, GL_RG32I, PT_MAX_TRIANGLES * 2 * sizeof(GLint));
-	CreateTextureBuffer(&pt_vertex_buffer, &pt_vertex_texture, pt_vertex_buffer_format, PT_MAX_VERTICES * pt_vertex_stride * sizeof(GLfloat));
+	
+	for (i = 0; i < PT_TRIANGLE_MESH_STATES; ++i)
+		TriangleMeshStateCreate(pt_triangle_mesh_states + i);
+
 	CreateTextureBuffer(&pt_trilights_buffer, &pt_trilights_texture, GL_RGBA32F, PT_MAX_TRI_LIGHTS * 4 * sizeof(GLfloat));
 	CreateTextureBuffer(&pt_lightref_buffer, &pt_lightref_texture, GL_R16I, PT_MAX_TRI_LIGHT_REFS * sizeof(GLshort));
 	
@@ -2868,8 +2923,11 @@ R_PreparePathtracer(void)
 	UploadTextureBufferData(pt_trilights_buffer, pt_trilight_data, 0, pt_num_lights * 4 * sizeof(pt_trilight_data[0]));
 	UploadTextureBufferData(pt_lightref_buffer, pt_trilight_references, 0, pt_num_trilight_references * sizeof(pt_trilight_references[0]));
 	
-	UploadTextureBufferData(pt_triangle_buffer, pt_triangle_data, 0, pt_num_triangles * 2 * sizeof(pt_triangle_data[0]));
-	UploadTextureBufferData(pt_vertex_buffer, pt_vertex_data, 0, pt_num_vertices * pt_vertex_stride * sizeof(pt_vertex_data[0]));
+	for (i = 0; i < PT_TRIANGLE_MESH_STATES; ++i)
+	{
+		UploadTextureBufferData(pt_triangle_mesh_states[i].triangle_buffer, pt_triangle_data, 0, pt_num_triangles * 2 * sizeof(pt_triangle_data[0]));
+		UploadTextureBufferData(pt_triangle_mesh_states[i].vertex_buffer, pt_vertex_data, 0, pt_num_vertices * pt_vertex_stride * sizeof(pt_vertex_data[0]));
+	}
 
 	pt_dynamic_vertices_offset = pt_num_vertices;
 	pt_dynamic_triangles_offset = pt_num_triangles;
@@ -2878,10 +2936,6 @@ R_PreparePathtracer(void)
 		
 	BindTextureUnit(PT_TEXTURE_UNIT_BSP_PLANES,		GL_TEXTURE_2D, 		pt_node_texture);
 	BindTextureUnit(PT_TEXTURE_UNIT_BSP_BRANCHES, 	GL_TEXTURE_2D, 		pt_child_texture);
-	BindTextureUnit(PT_TEXTURE_UNIT_TRI_NODES0, 		GL_TEXTURE_BUFFER, 	pt_node0_texture);
-	BindTextureUnit(PT_TEXTURE_UNIT_TRI_NODES1, 		GL_TEXTURE_BUFFER, 	pt_node1_texture);
-	BindTextureUnit(PT_TEXTURE_UNIT_TRI_VERTICES, 	GL_TEXTURE_BUFFER, 	pt_vertex_texture);
-	BindTextureUnit(PT_TEXTURE_UNIT_TRIANGLES, 		GL_TEXTURE_BUFFER, 	pt_triangle_texture);
 	BindTextureUnit(PT_TEXTURE_UNIT_LIGHTS, 			GL_TEXTURE_BUFFER, 	pt_trilights_texture);
 	BindTextureUnit(PT_TEXTURE_UNIT_LIGHTREFS, 		GL_TEXTURE_BUFFER, 	pt_lightref_texture);
 	BindTextureUnit(PT_TEXTURE_UNIT_BSP_LIGHTREFS,	GL_TEXTURE_2D, 		pt_bsp_lightref_texture);
@@ -3113,10 +3167,17 @@ CreateShaderPrograms(void)
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "diffuse_texture"), 	PT_TEXTURE_UNIT_DIFFUSE_TEXTURE);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bsp_planes"), 		PT_TEXTURE_UNIT_BSP_PLANES);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bsp_branches"), 		PT_TEXTURE_UNIT_BSP_BRANCHES);
+	
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "tri_nodes0"), 		PT_TEXTURE_UNIT_TRI_NODES0);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "tri_nodes1"), 		PT_TEXTURE_UNIT_TRI_NODES1);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "tri_vertices"), 		PT_TEXTURE_UNIT_TRI_VERTICES);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "triangles"), 			PT_TEXTURE_UNIT_TRIANGLES);
+
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "tri_nodes0_prev"), 	PT_TEXTURE_UNIT_TRI_NODES0_PREV);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "tri_nodes1_prev"), 	PT_TEXTURE_UNIT_TRI_NODES1_PREV);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "tri_vertices_prev"),PT_TEXTURE_UNIT_TRI_VERTICES_PREV);
+	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "triangles_prev"), 	PT_TEXTURE_UNIT_TRIANGLES_PREV);
+
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "lights"), 				PT_TEXTURE_UNIT_LIGHTS);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "lightrefs"), 			PT_TEXTURE_UNIT_LIGHTREFS);
 	qglUniform1iARB(qglGetUniformLocationARB(pt_program_handle, "bsp_lightrefs"), 	PT_TEXTURE_UNIT_BSP_LIGHTREFS);
@@ -3231,18 +3292,22 @@ R_ShutdownPathtracing(void)
 {
 	if (qglActiveTextureARB)
 	{
-		BindTextureUnit(PT_TEXTURE_UNIT_BSP_PLANES,		GL_TEXTURE_2D, 		0);
-		BindTextureUnit(PT_TEXTURE_UNIT_BSP_BRANCHES, 	GL_TEXTURE_2D, 		0);
-		BindTextureUnit(PT_TEXTURE_UNIT_TRI_NODES0, 		GL_TEXTURE_BUFFER, 	0);
-		BindTextureUnit(PT_TEXTURE_UNIT_TRI_NODES1, 		GL_TEXTURE_BUFFER, 	0);
-		BindTextureUnit(PT_TEXTURE_UNIT_TRI_VERTICES, 	GL_TEXTURE_BUFFER, 	0);
-		BindTextureUnit(PT_TEXTURE_UNIT_TRIANGLES, 		GL_TEXTURE_BUFFER, 	0);
-		BindTextureUnit(PT_TEXTURE_UNIT_LIGHTS, 			GL_TEXTURE_BUFFER, 	0);
-		BindTextureUnit(PT_TEXTURE_UNIT_LIGHTREFS, 		GL_TEXTURE_BUFFER, 	0);
-		BindTextureUnit(PT_TEXTURE_UNIT_BSP_LIGHTREFS,	GL_TEXTURE_2D, 		0);
-		BindTextureUnit(PT_TEXTURE_UNIT_RANDTEX, 			GL_TEXTURE_1D,			0);
-		BindTextureUnit(PT_TEXTURE_UNIT_BLUENOISE, 		GL_TEXTURE_2D_ARRAY,	0);
-		BindTextureUnit(PT_TEXTURE_UNIT_TAA_WORLD, 		GL_TEXTURE_2D,			0);
+		BindTextureUnit(PT_TEXTURE_UNIT_BSP_PLANES,			GL_TEXTURE_2D, 		0);
+		BindTextureUnit(PT_TEXTURE_UNIT_BSP_BRANCHES, 		GL_TEXTURE_2D, 		0);
+		BindTextureUnit(PT_TEXTURE_UNIT_TRI_NODES0, 			GL_TEXTURE_BUFFER, 	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_TRI_NODES1, 			GL_TEXTURE_BUFFER, 	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_TRI_VERTICES, 		GL_TEXTURE_BUFFER, 	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_TRIANGLES, 			GL_TEXTURE_BUFFER, 	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_TRI_NODES0_PREV, 	GL_TEXTURE_BUFFER, 	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_TRI_NODES1_PREV, 	GL_TEXTURE_BUFFER, 	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_TRI_VERTICES_PREV,	GL_TEXTURE_BUFFER, 	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_TRIANGLES_PREV, 	GL_TEXTURE_BUFFER, 	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_LIGHTS, 				GL_TEXTURE_BUFFER, 	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_LIGHTREFS, 			GL_TEXTURE_BUFFER, 	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_BSP_LIGHTREFS,		GL_TEXTURE_2D, 		0);
+		BindTextureUnit(PT_TEXTURE_UNIT_RANDTEX, 				GL_TEXTURE_1D,			0);
+		BindTextureUnit(PT_TEXTURE_UNIT_BLUENOISE, 			GL_TEXTURE_2D_ARRAY,	0);
+		BindTextureUnit(PT_TEXTURE_UNIT_TAA_WORLD, 			GL_TEXTURE_2D,			0);
 	}
 	
 	Cmd_RemoveCommand("gl_pt_recompile_shaders");

@@ -86,6 +86,14 @@ uniform isamplerBuffer 	tri_nodes1;
 uniform samplerBuffer 	tri_vertices;
 uniform isamplerBuffer 	triangles;
 
+#if TAA_ENABLE
+// Triangle mesh data from the previous frame.
+uniform isamplerBuffer 	tri_nodes0_prev;
+uniform isamplerBuffer 	tri_nodes1_prev;
+uniform samplerBuffer 	tri_vertices_prev;
+uniform isamplerBuffer 	triangles_prev;
+#endif
+
 // Lightsource data.
 uniform samplerBuffer 	lights;
 uniform isamplerBuffer 	lightrefs;
@@ -131,7 +139,8 @@ vec2 boxInterval(vec3 ro, vec3 rd, vec3 size)
 
 // Returns false if the given ray intersects any triangle mesh in the scene and the distance
 // to the intersection along the ray is less than maxdist, otherwise returns true.
-bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist)
+bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist,
+	isamplerBuffer nodes0, isamplerBuffer nodes1, samplerBuffer vertices, isamplerBuffer tris)
 {
 #if TRI_SHADOWS_ENABLE
 	// Start at the root node.
@@ -139,8 +148,8 @@ bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist)
 
 	do
 	{
-		ivec4 n0 = texelFetch(tri_nodes0, node);
-		ivec4 n1 = texelFetch(tri_nodes1, node);
+		ivec4 n0 = texelFetch(nodes0, node);
+		ivec4 n1 = texelFetch(nodes1, node);
 
 		// Test for intersection with the bounding box.
 		vec2 i = boxInterval(ro - intBitsToFloat(n1.xyz), rd, intBitsToFloat(n0.xyz));
@@ -152,11 +161,11 @@ bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist)
 			if (n1.w != -1)
 			{
 				// The node is a leaf node, so test for intersection with the referenced triangle.
-				ivec2 tri = texelFetch(triangles, n1.w).xy;
+				ivec2 tri = texelFetch(tris, n1.w).xy;
 
-				vec3 p0 = texelFetch(tri_vertices, tri.x & 0xffff).xyz;
-				vec3 p1 = texelFetch(tri_vertices, tri.x >> 16).xyz;
-				vec3 p2 = texelFetch(tri_vertices, tri.y & 0xffff).xyz;
+				vec3 p0 = texelFetch(vertices, tri.x & 0xffff).xyz;
+				vec3 p1 = texelFetch(vertices, tri.x >> 16).xyz;
+				vec3 p2 = texelFetch(vertices, tri.y & 0xffff).xyz;
 
 				// Plane intersection.
 				vec3 n = cross(p1 - p0, p2 - p0);
@@ -407,7 +416,7 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 				float ndotl = dot(l, sn), lndotl = dot(-l, n);
 				if (ndotl > 0.0 && lndotl > 0.0)
 				{
-					float s = (traceRayShadowBSP(sp, l, EPS * 16, ld) && traceRayShadowTri(sp, l, ld)) ? 1.0 / (ld * ld) : 0.0;
+					float s = (traceRayShadowBSP(sp, l, EPS * 16, ld) && traceRayShadowTri(sp, l, ld, tri_nodes0, tri_nodes1, tri_vertices, triangles)) ? 1.0 / (ld * ld) : 0.0;
 					r += s * ndotl * lndotl * abs(j.rgb) * wsum / w;
 				}
 			}
@@ -477,7 +486,7 @@ void main()
 			// Lambert diffuse BRDF.
 			vec3 rd = u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y);
 				
-			if (traceRayShadowBSP(rp, rd, EPS * 16, ao_radius) && traceRayShadowTri(rp, rd, ao_radius))
+			if (traceRayShadowBSP(rp, rd, EPS * 16, ao_radius) && traceRayShadowTri(rp, rd, ao_radius, tri_nodes0, tri_nodes1, tri_vertices, triangles))
 				ao += 1.0;
 		}
 		gl_FragColor.rgb += ao_color * ao / float(NUM_AO_SAMPLES);
@@ -525,7 +534,7 @@ void main()
 #if NUM_BOUNCES > 0
 	// Test for intersection with triangle meshes. This is done so bounce light can be shadowed
 	// by triangle meshes.
-	if (traceRayShadowTri(rp, rd, t))
+	if (traceRayShadowTri(rp, rd, t, tri_nodes0, tri_nodes1, tri_vertices, triangles))
 	{
 		int li = getLightRef(sp).x;
 		r += factor * sampleDirectLight(sp, out_pln.xyz, li);
@@ -545,7 +554,7 @@ void main()
 			if (ref != -1)
 			{
 				// Test for intersection with any triangle meshes. This is done so triangle meshes can cast shadows from sky light.
-				if (traceRayShadowTri(rp, rd, t))
+				if (traceRayShadowTri(rp, rd, t, tri_nodes0, tri_nodes1, tri_vertices, triangles))
 				{
 					// Visit each skyportal in this cluster and test for containment.
 					do
@@ -628,7 +637,7 @@ void main()
 
 			t = traceRayBSP(rp, rd, EPS * 16, MAXT) - 1.0;
 
-			if (!traceRayShadowTri(rp, rd, t))
+			if (!traceRayShadowTri(rp, rd, t, tri_nodes0, tri_nodes1, tri_vertices, triangles))
 				break;
 			
 			if ((dot(out_pln.xyz, rp) - out_pln.w) < 0.0)
@@ -681,7 +690,7 @@ void main()
 	// Check if the fragment was visible in the previous frame. If not, then the information in the previous framebuffer does not match and it cannot be reused.
 	vec3 disocclusion_test_ray = normalize(previous_view_origin - rp);
 	float disocclusion_test_distance = distance(rp, previous_view_origin);
-	bool previously_visible = traceRayShadowBSP(rp, disocclusion_test_ray, EPS * 16, disocclusion_test_distance) && traceRayShadowTri(rp, disocclusion_test_ray, disocclusion_test_distance);
+	bool previously_visible = traceRayShadowBSP(rp, disocclusion_test_ray, EPS * 16, disocclusion_test_distance) && traceRayShadowTri(rp, disocclusion_test_ray, disocclusion_test_distance, tri_nodes0_prev, tri_nodes1_prev, tri_vertices_prev, triangles_prev);
 	
 	gl_FragColor.rgb = mix(gl_FragColor.rgb, texture(taa_world, ndc).rgb,
 			all(greaterThan(ndc, vec2(0))) && all(lessThan(ndc, vec2(1))) && previously_visible ? 0.45 * texcoords[4].w : 0.0);
