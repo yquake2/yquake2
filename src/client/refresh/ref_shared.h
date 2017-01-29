@@ -56,6 +56,8 @@ typedef enum
 	mod_alias
 } modtype_t;
 
+#define MAX_LBM_HEIGHT 480
+
 extern void R_Printf(int level, const char* msg, ...) __attribute__ ((format (printf, 2, 3)));
 
 extern void LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height);

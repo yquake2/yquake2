@@ -116,7 +116,7 @@ typedef struct
 
 	unsigned char *d_16to8table;
 
-	int lightmap_textures;
+	//int lightmap_textures;
 
 	//int currenttextures[2];
 	GLuint currenttexture;
@@ -140,7 +140,14 @@ extern gl3state_t gl3state;
 
 extern viddef_t vid;
 
+extern refdef_t gl3_newrefdef;
+
+extern int gl3_visframecount; /* bumped when going to a new PVS */
+extern int gl3_framecount; /* used for dlight push checking */
+
 extern int gl3_viewcluster, gl3_viewcluster2, gl3_oldviewcluster, gl3_oldviewcluster2;
+
+extern int c_brush_polys, c_alias_polys;
 
 /* NOTE: struct image_s* is what re.RegisterSkin() etc return so no gl3image_s!
  *       (I think the client only passes the pointer around and doesn't know the
@@ -169,13 +176,49 @@ enum {MAX_GL3TEXTURES = 1024};
 // include this down here so it can use gl3image_t
 #include "model.h"
 
+enum {
+	BLOCK_WIDTH = 128,
+	BLOCK_HEIGHT = 128,
+	LIGHTMAP_BYTES = 4,
+	MAX_LIGHTMAPS = 128
+};
+
+typedef struct
+{
+	int internal_format;
+	int current_lightmap_texture;
+
+	msurface_t *lightmap_surfaces[MAX_LIGHTMAPS];
+
+	int allocated[BLOCK_WIDTH];
+
+	/* the lightmap texture data needs to be kept in
+	   main memory so texsubimage can update properly */
+	byte lightmap_buffer[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
+} gl3lightmapstate_t;
+
+extern gl3model_t *gl3_worldmodel;
+extern gl3model_t *currentmodel;
+extern entity_t *currententity;
+
+extern float gl3depthmin, gl3depthmax;
+
+extern cplane_t frustum[4];
+
+vec3_t gl3_origin;
+
 extern gl3image_t *gl3_notexture; /* use for bad textures */
 extern gl3image_t *gl3_particletexture; /* little dot for particles */
 
 extern int gl_filter_min;
 extern int gl_filter_max;
 
+extern qboolean GL3_CullBox(vec3_t mins, vec3_t maxs);
+extern void GL3_RotateForEntity(entity_t *e);
+
 // gl3_sdl.c
+extern qboolean have_stencil;
+
 extern int GL3_PrepareForWindow(void);
 extern int GL3_InitContext(void* win);
 extern void GL3_EndFrame(void);
@@ -194,6 +237,7 @@ extern void GL3_BeginRegistration(char *model);
 extern struct model_s * GL3_RegisterModel(char *name);
 extern void GL3_EndRegistration(void);
 extern void GL3_Mod_Modellist_f(void);
+extern byte* GL3_Mod_ClusterPVS(int cluster, gl3model_t *model);
 
 // gl3_draw.c
 extern void GL3_Draw_InitLocal(void);
@@ -221,8 +265,43 @@ extern void GL3_ShutdownImages(void);
 extern void GL3_FreeUnusedImages(void);
 extern void GL3_ImageList_f(void);
 
+// gl3_light.c
+extern void GL3_RenderDlights(void);
+extern void GL3_MarkLights(dlight_t *light, int bit, mnode_t *node);
+extern void GL3_PushDlights(void);
+extern void GL3_LightPoint(vec3_t p, vec3_t color);
+extern void GL3_SetCacheState(msurface_t *surf);
+extern void GL3_BuildLightMap(msurface_t *surf, byte *dest, int stride);
+
+// gl3_lightmap.c
+#define GL_LIGHTMAP_FORMAT GL_RGBA
+
+extern void GL3_LM_InitBlock(void);
+extern void GL3_LM_UploadBlock(qboolean dynamic);
+extern qboolean GL3_LM_AllocBlock(int w, int h, int *x, int *y);
+extern void GL3_LM_BuildPolygonFromSurface(msurface_t *fa);
+extern void GL3_LM_CreateSurfaceLightmap(msurface_t *surf);
+extern void GL3_LM_BeginBuildingLightmaps(gl3model_t *m);
+extern void GL3_LM_EndBuildingLightmaps(void);
+
 // gl3_warp.c
+extern void GL3_EmitWaterPolys(msurface_t *fa);
+extern void GL3_SubdivideSurface(msurface_t *fa, gl3model_t* loadmodel);
+
 extern void GL3_SetSky(char *name, float rotate, vec3_t axis);
+extern void GL3_DrawSkyBox(void);
+extern void GL3_ClearSkyBox(void);
+extern void GL3_AddSkySurface(msurface_t *fa);
+
+
+// gl3_surf.c
+extern void GL3_DrawGLPoly(glpoly_t *p);
+extern void GL3_DrawGLFlowingPoly(msurface_t *fa);
+extern void GL3_DrawTriangleOutlines(void);
+extern void GL3_DrawAlphaSurfaces(void);
+extern void GL3_DrawBrushModel(entity_t *e);
+extern void GL3_DrawWorld(void);
+extern void GL3_MarkLeaves(void);
 
 
 // gl3_shaders.c
@@ -242,10 +321,28 @@ extern cvar_t *gl_customheight;
 
 extern cvar_t *gl_nolerp_list;
 extern cvar_t *gl_nobind;
+extern cvar_t *gl_lockpvs;
+extern cvar_t *gl_novis;
+
+extern cvar_t *gl_cull;
+extern cvar_t *gl_zfix;
+extern cvar_t *gl_fullbright;
+
+extern cvar_t *gl_norefresh;
+extern cvar_t *gl_lefthand;
+extern cvar_t *gl_farsee;
 
 extern cvar_t *vid_gamma;
 extern cvar_t *intensity;
 extern cvar_t *gl_anisotropic;
+
+extern cvar_t *gl_lightlevel;
+extern cvar_t *gl_overbrightbits;
+
+extern cvar_t *gl_flashblend;
+extern cvar_t *gl_modulate;
+
+extern cvar_t *gl_stencilshadow;
 
 extern cvar_t *gl3_debugcontext;
 

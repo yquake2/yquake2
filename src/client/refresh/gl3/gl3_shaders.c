@@ -31,40 +31,6 @@
 #define eprintf(...)  R_Printf(PRINT_ALL, __VA_ARGS__)
 
 
-#if 0
-static const char* vertexSrc = MULTILINE_STRING(#version 150\n
-		in vec2 position;
-		// I renamed color to inColor and Color to passColor for more clarity
-		in vec3 inColor;
-		// same for texcoord -> inTexCoord, Textcoord -> passTexCoord
-		in vec2 inTexCoord;
-
-		out vec3 passColor;
-		out vec2 passTexCoord;
-
-		void main() {
-			passColor = inColor;
-			passTexCoord = inTexCoord;
-			gl_Position = vec4(position, 0.0, 1.0);
-		}
-);
-
-static const char* fragmentSrc = MULTILINE_STRING(#version 150\n
-		in vec3 passColor; // I renamed color to passColor (it's from the vertex shader above)
-		in vec2 passTexCoord; // same for Texcoord -> passTexCoord
-		out vec4 outColor;
-
-		uniform sampler2D tex;
-
-		void main()
-		{
-			outColor = texture(tex, passTexCoord) * vec4(passColor, 1.0);
-			//outColor = texture(tex, passTexCoord);
-			//outColor = vec4(passColor, 1.0);
-		}
-);
-#endif // 0
-
 static GLuint
 CompileShader(GLenum shaderType, const char* shaderSrc)
 {
@@ -209,7 +175,10 @@ static const char* fragmentSrc2D = MULTILINE_STRING(#version 150\n
 		void main()
 		{
 			vec4 texel = texture(tex, passTexCoord);
-			if(texel.a < 0.666)
+			// the gl1 renderer used glAlphaFunc(GL_GREATER, 0.666);
+			// and glEnable(GL_ALPHA_TEST); for 2D rendering
+			// this should do the same
+			if(texel.a <= 0.666)
 				discard;
 
 			// apply gamma correction and intensity

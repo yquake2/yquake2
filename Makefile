@@ -823,9 +823,9 @@ REFGL_OBJS_ := \
 	src/client/refresh/gl/r_surf.o \
 	src/client/refresh/gl/r_warp.o \
 	src/client/refresh/gl/r_sdl.o \
-	src/client/refresh/files/md2.o \
+	src/client/refresh/gl/r_md2.o \
+	src/client/refresh/gl/r_sp2.o \
 	src/client/refresh/files/pcx.o \
-	src/client/refresh/files/sp2.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
 	src/common/shared/flash.o \
@@ -845,12 +845,18 @@ endif
 REFGL3_OBJS_ := \
 	src/client/refresh/gl3/gl3_draw.o \
 	src/client/refresh/gl3/gl3_image.o \
+	src/client/refresh/gl3/gl3_light.o \
+	src/client/refresh/gl3/gl3_lightmap.o \
 	src/client/refresh/gl3/gl3_main.o \
+	src/client/refresh/gl3/gl3_mesh.o \
 	src/client/refresh/gl3/gl3_misc.o \
 	src/client/refresh/gl3/gl3_model.o \
 	src/client/refresh/gl3/gl3_sdl.o \
+	src/client/refresh/gl3/gl3_surf.o \
 	src/client/refresh/gl3/gl3_warp.o \
 	src/client/refresh/gl3/gl3_shaders.o \
+	src/client/refresh/gl3/gl3_md2.o \
+	src/client/refresh/gl3/gl3_sp2.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
@@ -858,13 +864,6 @@ REFGL3_OBJS_ := \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o
 
-# TODO: filetype support for gl3 renderer - can we reuse same code?
-REFGL3_TODO_ := \
-	src/client/refresh/files/md2.o \
-	src/client/refresh/files/pcx.o \
-	src/client/refresh/files/sp2.o 
-	
-	
 # TODO: glad_dbg support
 REFGL3_OBJS_ += \
 	src/client/refresh/gl3/glad/src/glad.o

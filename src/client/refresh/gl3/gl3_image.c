@@ -88,6 +88,7 @@ GL3_TextureMode(char *string)
 		ri.Cvar_SetValue("gl_anisotropic", 0.0);
 	}
 
+	STUB_ONCE("TODO: fix existing textures' modes!");
 #if 0 // TODO!
 	gl3image_t *glt;
 

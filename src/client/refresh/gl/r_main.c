@@ -1627,6 +1627,8 @@ RI_BeginFrame(float camera_separation)
 
 	/* go into 2D mode */
 
+	// FIXME: just call R_SetGL2D();
+
 	int x, w, y, h;
 	qboolean drawing_left_eye = gl_state.camera_separation < 0;
 	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);

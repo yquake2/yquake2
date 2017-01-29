@@ -300,11 +300,7 @@ GL3_Draw_FadeScreen(void)
 void
 GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 {
-	byte *source;
-	float hscale = 1.0f;
-	int frac, fracstep;
-	int i, j, trows;
-	int row;
+	int i, j;
 
 	GL3_Bind(0);
 
