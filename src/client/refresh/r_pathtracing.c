@@ -2455,11 +2455,17 @@ R_UpdatePathtracerForCurrentFrame(void)
 				
 				for (i = pt_dynamic_entitylights_offset; i < pt_num_entitylights; ++i)
 				{
+					/* The PVS's of each intersecting cluster are merged together into one PVS within which light references are added. */
+					
+					static byte merged_vis[MAX_MAP_LEAFS / 8];
+
+					memset(merged_vis, 0, sizeof(merged_vis));
+					
 					entity = pt_entitylights + i;
 
 					max_component = MAX(entity->color[0], MAX(entity->color[1], entity->color[2])) * entity->intensity;
-					influence_box_size = sqrt(max_component / 2e-2);
-				
+					influence_box_size = sqrt(max_component / 1e-3);
+
 					for (j = 0; j < PT_MAX_ENTITY_LIGHT_CLUSTERS; ++j)
 					{
 						cluster = entity->clusters[j];
@@ -2471,42 +2477,50 @@ R_UpdatePathtracerForCurrentFrame(void)
 						
 						vis = Mod_ClusterPVS(cluster, r_worldmodel);
 						
-						/* Visit every cluster which is visible from this cluster. The individual leaves don't	matter because
-							they were already assigned an index to the first reference in their respective clusters. */
+						PT_ASSERT(vis != NULL);
+						PT_ASSERT(r_worldmodel->vis != NULL);
+
+						/* Merge in the PVS. */
 						
-						for (other_cluster = 0; other_cluster < pt_num_clusters; ++other_cluster)
-						{
-							/* If this cluster is visible then update it's reference list. */
+						for (m = 0; m < (r_worldmodel->vis->numclusters + 7) >> 3; ++m)
+							merged_vis[m] |= vis[m];						
+					}
+					
+					/* Visit every cluster which is visible from this cluster. The individual leaves don't	matter because
+						they were already assigned an index to the first reference in their respective clusters. */
+						
+					for (cluster = 0; cluster < pt_num_clusters; ++cluster)
+					{
+						/* If this cluster is visible then update it's reference list. */
+						
+						if (merged_vis[cluster >> 3] & (1 << (cluster & 7)))
+						{	
+							/* If the entity light would have too little influence in this cluster due to attenuation, then skip it. */
 							
-							if (vis[other_cluster >> 3] & (1 << (other_cluster & 7)))
-							{	
-								/* If the entity light would have too little influence in this cluster due to attenuation, then skip it. */
+							box = pt_cluster_bounding_boxes + cluster * 6;
+							
+							if (	box[0] > entity->origin[0] + influence_box_size || box[3] < entity->origin[0] - influence_box_size ||
+									box[1] > entity->origin[1] + influence_box_size || box[4] < entity->origin[1] - influence_box_size ||
+									box[2] > entity->origin[2] + influence_box_size || box[5] < entity->origin[2] - influence_box_size)
+									continue;
+
+							/* Locate the end of the list, where dynamic light references can be appended. */
+							
+							k = abs(pt_cluster_light_references[cluster * 2 + 0]);
+
+							while (mapped_references[k] != -1)
+								++k;
+
+							for (m = 0; m < PT_NUM_ENTITY_TRILIGHTS; ++m)
+							{					
+								/* Ensure that there is at least one end-of-list marker. */
 								
-								box = pt_cluster_bounding_boxes + other_cluster * 6;
+								if (k >= PT_MAX_TRI_LIGHT_REFS || pt_trilight_references[k + 1] != -1 || mapped_references[k] != -1)
+									continue;
+
+								/* Insert the reference. */
 								
-								if (	box[0] > entity->origin[0] + influence_box_size || box[3] < entity->origin[0] - influence_box_size ||
-										box[1] > entity->origin[1] + influence_box_size || box[4] < entity->origin[1] - influence_box_size ||
-										box[2] > entity->origin[2] + influence_box_size || box[5] < entity->origin[2] - influence_box_size)
-										continue;
-
-								/* Locate the end of the list, where dynamic light references can be appended. */
-								
-								k = abs(pt_cluster_light_references[other_cluster * 2 + 0]);
-
-								while (mapped_references[k] != -1)
-									++k;
-
-								for (m = 0; m < PT_NUM_ENTITY_TRILIGHTS; ++m)
-								{					
-									/* Ensure that there is at least one end-of-list marker. */
-									
-									if (k >= PT_MAX_TRI_LIGHT_REFS || pt_trilight_references[k + 1] != -1 || mapped_references[k] != -1)
-										continue;
-
-									/* Insert the reference. */
-									
-									mapped_references[k++] = entity->light_index + m;
-								}
+								mapped_references[k++] = entity->light_index + m;
 							}
 						}
 					}
