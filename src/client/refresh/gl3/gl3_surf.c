@@ -95,7 +95,46 @@ GL3_DrawGLPoly(glpoly_t *p)
 
 	v = p->verts[0];
 
+	// v: blocks of 7 floats: (X, Y, Z) (S1, T1), (S2, T2)
+	// apparently (S2, T2) is not used here?
+
 	STUB_ONCE("TODO: Implement!");
+
+	glUseProgram(gl3state.si3D.shaderProgram); // TODO: needed each time?!
+
+	static GLuint vao = 0, vbo = 0; // TODO!!
+	if(vao == 0) // FIXME: DON'T DO THIS!
+	{
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
+
+		glGenBuffers(1, &vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo); // TODO ??
+
+		glEnableVertexAttribArray(gl3state.si3D.attribPosition);
+		qglVertexAttribPointer(gl3state.si3D.attribPosition, 3, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 0);
+
+		glEnableVertexAttribArray(gl3state.si3D.attribTexCoord);
+		qglVertexAttribPointer(gl3state.si3D.attribTexCoord, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 3*sizeof(float));
+
+	}
+
+	glUseProgram(gl3state.si3D.shaderProgram);
+
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, VERTEXSIZE*sizeof(GLfloat)*p->numverts, v, GL_STREAM_DRAW);
+/*
+	glEnableVertexAttribArray(gl3state.si3D.attribPosition);
+	qglVertexAttribPointer(gl3state.si3D.attribPosition, 3, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 0);
+
+	glEnableVertexAttribArray(gl3state.si3D.attribTexCoord);
+	qglVertexAttribPointer(gl3state.si3D.attribTexCoord, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 3*sizeof(GLfloat));
+*/
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
+
 #if 0
     glEnableClientState( GL_VERTEX_ARRAY );
     glEnableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -475,12 +514,14 @@ RenderBrushPoly(msurface_t *fa)
 
 	image = TextureAnimation(fa->texinfo);
 
-	STUB("TODO: implement!");
-#if 0
+
+
 	if (fa->flags & SURF_DRAWTURB)
 	{
 		GL3_Bind(image->texnum);
 
+		STUB("TODO: do something about R_TexEnv()!");
+#if 0 // TODO
 		/* This is a hack ontop of a hack. Warping surfaces like those generated
 		   by R_EmitWaterPolys() don't have a lightmap. Original Quake II therefore
 		   negated the global intensity on those surfaces, because otherwise they
@@ -505,9 +546,11 @@ RenderBrushPoly(msurface_t *fa)
 			glColor4f(gl_state.inverse_intensity, gl_state.inverse_intensity,
 					  gl_state.inverse_intensity, 1.0f);
 		}
+#endif // 0
 
 		GL3_EmitWaterPolys(fa);
-		R_TexEnv(GL_REPLACE);
+
+		//R_TexEnv(GL_REPLACE); TODO
 
 		return;
 	}
@@ -515,16 +558,16 @@ RenderBrushPoly(msurface_t *fa)
 	{
 		GL3_Bind(image->texnum);
 
-		R_TexEnv(GL_REPLACE);
+		// R_TexEnv(GL_REPLACE); TODO!
 	}
 
 	if (fa->texinfo->flags & SURF_FLOWING)
 	{
-		R_DrawGLFlowingPoly(fa);
+		GL3_DrawGLFlowingPoly(fa);
 	}
 	else
 	{
-		R_DrawGLPoly(fa->polys);
+		GL3_DrawGLPoly(fa->polys);
 	}
 
 	/* check for lightmap modification */
@@ -553,6 +596,8 @@ RenderBrushPoly(msurface_t *fa)
 		}
 	}
 
+	STUB_ONCE("TODO: lightmap support (=> esp. LM textures)")
+#if 0
 	if (is_dynamic)
 	{
 		if (((fa->styles[maps] >= 32) ||
@@ -568,7 +613,7 @@ RenderBrushPoly(msurface_t *fa)
 			GL3_BuildLightMap(fa, (void *)temp, smax * 4);
 			GL3_SetCacheState(fa);
 
-			GL3_Bind(gl_state.lightmap_textures + fa->lightmaptexturenum);
+			GL3_Bind(gl3state.lightmap_textures + fa->lightmaptexturenum);
 
 			glTexSubImage2D(GL_TEXTURE_2D, 0, fa->light_s, fa->light_t,
 					smax, tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
@@ -583,11 +628,12 @@ RenderBrushPoly(msurface_t *fa)
 		}
 	}
 	else
+#endif // 0
 	{
 		fa->lightmapchain = gl3_lms.lightmap_surfaces[fa->lightmaptexturenum];
 		gl3_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
 	}
-#endif // 0
+
 }
 
 /*
@@ -686,7 +732,7 @@ DrawTextureChains(void)
 		image->texturechain = NULL;
 	}
 
-	STUB("TODO: do something about R_TexEnv()!");
+	STUB_ONCE("TODO: do something about R_TexEnv()!");
 	// R_TexEnv(GL_REPLACE);
 }
 

@@ -100,7 +100,8 @@ typedef struct
 	GLint attribTexCoord;
 	GLint attribColor;
 
-	GLint uniTransMatrix; // TODO: could use 2 or 3 matrices?
+	GLint uniProjMatrix; // for 2D shaders this is the only one used
+	GLint uniModelViewMatrix; // TODO: or even pass as 2 matrices?
 
 	// TODO: probably more uniforms, at least gamma and intensity
 
@@ -132,6 +133,8 @@ typedef struct
 	gl3ShaderInfo_t si2Dcolor; // shader for rendering 2D with flat colors
 	GLuint vbo2D; // this vbo is reused for all 2D drawing (HUD, movies, menu, console, ..)
 	GLuint vao2D; // same for this vao
+
+	gl3ShaderInfo_t si3D;
 
 } gl3state_t;
 
@@ -238,6 +241,7 @@ extern struct model_s * GL3_RegisterModel(char *name);
 extern void GL3_EndRegistration(void);
 extern void GL3_Mod_Modellist_f(void);
 extern byte* GL3_Mod_ClusterPVS(int cluster, gl3model_t *model);
+extern mleaf_t* GL3_Mod_PointInLeaf(vec3_t p, gl3model_t *model);
 
 // gl3_draw.c
 extern void GL3_Draw_InitLocal(void);
@@ -343,6 +347,8 @@ extern cvar_t *gl_flashblend;
 extern cvar_t *gl_modulate;
 
 extern cvar_t *gl_stencilshadow;
+
+extern cvar_t *gl_dynamic;
 
 extern cvar_t *gl3_debugcontext;
 

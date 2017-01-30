@@ -246,14 +246,17 @@ GL3_EmitWaterPolys(msurface_t *fa)
 		scroll = 0;
 	}
 
+	// TODO: do the scrolling/warping in shader
+
 	for (bp = fa->polys; bp; bp = bp->next)
 	{
 		p = bp;
+		int numverts = p->numverts;
 
-		GLfloat tex[2*p->numverts];
+		GLfloat tex[2*numverts];
 		unsigned int index_tex = 0;
 
-		for ( i = 0, v = p->verts [ 0 ]; i < p->numverts; i++, v += VERTEXSIZE )
+		for ( i = 0, v = p->verts [ 0 ]; i < numverts; i++, v += VERTEXSIZE )
 		{
 			os = v [ 3 ];
 			ot = v [ 4 ];
@@ -634,18 +637,11 @@ MakeSkyVec(float s, float t, int axis)
 	vec3_t v, b;
 	int j, k;
 
-	if (gl_farsee->value == 0)
-	{
-		b[0] = s * 2300;
-		b[1] = t * 2300;
-		b[2] = 2300;
-	}
-	else
-	{
-		b[0] = s * 4096;
-		b[1] = t * 4096;
-		b[2] = 4096;
-	}
+	float dist = (gl_farsee->value == 0) ? 2300.0f : 4096.0f; // TODO: really dist?
+
+	b[0] = s * dist;
+	b[1] = t * dist;
+	b[2] = dist;
 
 	for (j = 0; j < 3; j++)
 	{

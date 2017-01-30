@@ -220,6 +220,44 @@ static const char* fragmentSrc2Dcolor = MULTILINE_STRING(#version 150\n
 		}
 );
 
+static const char* vertexSrc3D = MULTILINE_STRING(#version 150\n
+		in vec2 texCoord;
+		in vec3 position;
+
+		uniform mat4 transProj;
+		uniform mat4 transModelView;
+
+		out vec2 passTexCoord;
+
+		void main()
+		{
+			gl_Position = transProj * transModelView * vec4(position, 1.0);
+			passTexCoord = texCoord;
+		}
+);
+
+static const char* fragmentSrc3D = MULTILINE_STRING(#version 150\n
+		in vec2 passTexCoord;
+
+		uniform sampler2D tex;
+		uniform float gamma; // this is 1.0/vid_gamma
+		uniform float intensity;
+
+		out vec4 outColor;
+
+		void main()
+		{
+			vec4 texel = texture(tex, passTexCoord);
+
+			// TODO: something about GL_BLEND vs GL_ALPHATEST etc
+
+			// apply gamma correction and intensity
+			texel.rgb *= intensity;
+			outColor.rgb = pow(texel.rgb, vec3(gamma));
+			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
+		}
+);
+
 #undef MULTILINE_STRING
 
 static qboolean
@@ -236,7 +274,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	}
 
 	shaderInfo->attribColor = shaderInfo->attribPosition = shaderInfo->attribTexCoord = -1;
-	shaderInfo->uniTransMatrix = -1;
+	shaderInfo->uniProjMatrix = shaderInfo->uniModelViewMatrix = -1;
 	shaderInfo->shaderProgram = 0;
 
 	shaders2D[0] = CompileShader(GL_VERTEX_SHADER, vertSrc);
@@ -282,7 +320,79 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		R_Printf(PRINT_ALL, "WARNING: Couldn't get 'trans' uniform in shader\n");
 		return false;
 	}
-	shaderInfo->uniTransMatrix = i;
+	shaderInfo->uniProjMatrix = i;
+
+	return true;
+}
+
+static qboolean
+initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragSrc)
+{
+	GLuint shaders3D[2] = {0};
+	GLint i = -1;
+	GLuint prog = 0;
+
+	if(shaderInfo->shaderProgram != 0)
+	{
+		R_Printf(PRINT_ALL, "WARNING: calling initShader3D for gl3ShaderInfo_t that already has a shaderProgram!\n");
+		glDeleteProgram(shaderInfo->shaderProgram);
+	}
+
+	shaderInfo->attribColor = shaderInfo->attribPosition = shaderInfo->attribTexCoord = -1;
+	shaderInfo->uniProjMatrix = shaderInfo->uniModelViewMatrix = -1;
+	shaderInfo->shaderProgram = 0;
+
+	shaders3D[0] = CompileShader(GL_VERTEX_SHADER, vertSrc);
+	if(shaders3D[0] == 0)  return false;
+
+	shaders3D[1] = CompileShader(GL_FRAGMENT_SHADER, fragSrc);
+	if(shaders3D[1] == 0)
+	{
+		glDeleteShader(shaders3D[0]);
+		return false;
+	}
+
+	prog = CreateShaderProgram(2, shaders3D);
+
+	// I think the shaders aren't needed anymore once they're linked into the program
+	glDeleteShader(shaders3D[0]);
+	glDeleteShader(shaders3D[1]);
+
+	if(prog == 0)
+	{
+		return false;
+	}
+
+	shaderInfo->shaderProgram = prog;
+	glUseProgram(prog);
+
+	i = glGetAttribLocation(prog, "position");
+	if( i == -1)
+	{
+		R_Printf(PRINT_ALL, "WARNING: Couldn't get 'position' attribute in shader\n");
+		return false;
+	}
+	shaderInfo->attribPosition = i;
+
+	// the following line will set it to -1 for the textured case, that's ok.
+	shaderInfo->attribColor = glGetAttribLocation(prog, "color");
+	// the following line will set it to -1 for the color-only case, that's ok.
+	shaderInfo->attribTexCoord = glGetAttribLocation(prog, "texCoord");
+
+	i = glGetUniformLocation(prog, "transProj");
+	if( i == -1)
+	{
+		R_Printf(PRINT_ALL, "WARNING: Couldn't get 'trans' uniform in shader\n");
+		return false;
+	}
+	shaderInfo->uniProjMatrix = i;
+	i = glGetUniformLocation(prog, "transModelView");
+	if( i == -1)
+	{
+		R_Printf(PRINT_ALL, "WARNING: Couldn't get 'trans' uniform in shader\n");
+		return false;
+	}
+	shaderInfo->uniModelViewMatrix = i;
 
 	return true;
 }
@@ -299,6 +409,12 @@ qboolean GL3_InitShaders(void)
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for color-only 2D rendering!\n");
 		return false;
 	}
+	if(!initShader3D(&gl3state.si3D, vertexSrc3D, fragmentSrc3D))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for textured 3D rendering!\n");
+		return false;
+	}
+
 
 	GL3_SetGammaAndIntensity();
 
@@ -314,6 +430,10 @@ void GL3_ShutdownShaders(void)
 	if(gl3state.si2Dcolor.shaderProgram != 0)
 		glDeleteProgram(gl3state.si2Dcolor.shaderProgram);
 	memset(&gl3state.si2Dcolor, 0, sizeof(gl3ShaderInfo_t));
+
+	if(gl3state.si3D.shaderProgram != 0)
+		glDeleteProgram(gl3state.si3D.shaderProgram);
+	memset(&gl3state.si3D, 0, sizeof(gl3ShaderInfo_t));
 }
 
 void GL3_SetGammaAndIntensity(void)
@@ -321,9 +441,10 @@ void GL3_SetGammaAndIntensity(void)
 	float gamma = 1.0f/vid_gamma->value;
 	float intens = intensity->value;
 	int i=0;
-	GLint progs[2] = { gl3state.si2D.shaderProgram, gl3state.si2Dcolor.shaderProgram };
+	GLint progs[] = { gl3state.si2D.shaderProgram, gl3state.si2Dcolor.shaderProgram,
+	                  gl3state.si3D.shaderProgram };
 
-	for(i=0; i<2; ++i)
+	for(i=0; i<sizeof(progs)/sizeof(progs[0]); ++i)
 	{
 		glUseProgram(progs[i]);
 		GLint uni = glGetUniformLocation(progs[i], "gamma");

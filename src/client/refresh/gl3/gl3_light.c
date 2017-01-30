@@ -345,7 +345,7 @@ GL3_LightPoint(vec3_t p, vec3_t color)
 	vec3_t dist;
 	float add;
 
-	if (!gl3_worldmodel->lightdata)
+	if (!gl3_worldmodel->lightdata || !currententity) // FIXME: the currententity check is new
 	{
 		color[0] = color[1] = color[2] = 1.0;
 		return;

@@ -636,15 +636,15 @@ GL3_DrawAliasModel(entity_t *e)
 	}
 
 
-    // Apply gl_overbrightbits to the mesh. If we don't do this they will appear slightly dimmer relative to walls.
-    if (gl_overbrightbits->value)
-    {
-        for (i = 0; i < 3; ++i)
-        {
-            shadelight[i] *= gl_overbrightbits->value;
-        }
-    }
-    
+	// Apply gl_overbrightbits to the mesh. If we don't do this they will appear slightly dimmer relative to walls.
+	if (gl_overbrightbits->value)
+	{
+		for (i = 0; i < 3; ++i)
+		{
+			shadelight[i] *= gl_overbrightbits->value;
+		}
+	}
+
 
 
 	/* ir goggles color override */

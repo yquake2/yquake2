@@ -59,10 +59,17 @@ vec3_t vpn;
 vec3_t vright;
 vec3_t gl3_origin;
 
+hmm_mat4 gl3_projectionMatrix; // eye cord -> clip coord
+hmm_mat4 gl3_world_matrix; // the view matrix: world coord -> eye coord
+// TODO: I don't know yet if we'll also need a model matrix (model coord -> world coord) here.
+
+
 int gl3_visframecount; /* bumped when going to a new PVS */
 int gl3_framecount; /* used for dlight push checking */
 
 int c_brush_polys, c_alias_polys;
+
+static float v_blend[4]; /* final blending color */
 
 int gl3_viewcluster, gl3_viewcluster2, gl3_oldviewcluster, gl3_oldviewcluster2;
 
@@ -91,6 +98,8 @@ cvar_t *gl_nolerp_list;
 cvar_t *gl_nobind;
 cvar_t *gl_lockpvs;
 cvar_t *gl_novis;
+cvar_t *gl_speeds;
+cvar_t *gl_finish;
 
 cvar_t *gl_cull;
 cvar_t *gl_zfix;
@@ -100,6 +109,8 @@ cvar_t *gl_modulate;
 cvar_t *gl_lightmap;
 cvar_t *gl_shadows; // TODO: do we really need 2 cvars for shadows here?
 cvar_t *gl_stencilshadow;
+
+cvar_t *gl_dynamic;
 
 cvar_t *gl3_debugcontext;
 
@@ -179,6 +190,10 @@ GL3_Register(void)
 	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
 	gl_lockpvs = ri.Cvar_Get("gl_lockpvs", "0", 0);
 	gl_novis = ri.Cvar_Get("gl_novis", "0", 0);
+	gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
+	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
+
+	gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);
 
 
 #if 0 // TODO!
@@ -190,7 +205,7 @@ GL3_Register(void)
 	gl_drawworld = ri.Cvar_Get("gl_drawworld", "1", 0);
 	//gl_novis = ri.Cvar_Get("gl_novis", "0", 0);
 	//gl_lerpmodels = ri.Cvar_Get("gl_lerpmodels", "1", 0); NOTE: screw this, it looks horrible without
-	gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
+	//gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
 
 	gl_lightlevel = ri.Cvar_Get("gl_lightlevel", "0", 0);
 	gl_overbrightbits = ri.Cvar_Get("gl_overbrightbits", "0", CVAR_ARCHIVE);
@@ -207,14 +222,14 @@ GL3_Register(void)
 	//gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
 	//gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
 	//gl_stencilshadow = ri.Cvar_Get("gl_stencilshadow", "0", CVAR_ARCHIVE);
-	gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);
+	//gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);
 	//gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
 	gl_round_down = ri.Cvar_Get("gl_round_down", "1", 0);
 	gl_picmip = ri.Cvar_Get("gl_picmip", "0", 0);
 	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
 	//gl_ztrick = ri.Cvar_Get("gl_ztrick", "0", 0); NOTE: dump this.
 	//gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
-	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
+	//gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
 	gl_clear = ri.Cvar_Get("gl_clear", "0", 0);
 //	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
 	gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", 0);
@@ -606,6 +621,127 @@ GL3_DrawEntitiesOnList(void)
 #endif // 0
 }
 
+static int
+SignbitsForPlane(cplane_t *out)
+{
+	int bits, j;
+
+	/* for fast box on planeside test */
+	bits = 0;
+
+	for (j = 0; j < 3; j++)
+	{
+		if (out->normal[j] < 0)
+		{
+			bits |= 1 << j;
+		}
+	}
+
+	return bits;
+}
+
+static void
+SetFrustum(void)
+{
+	int i;
+
+	/* rotate VPN right by FOV_X/2 degrees */
+	RotatePointAroundVector(frustum[0].normal, vup, vpn,
+			-(90 - gl3_newrefdef.fov_x / 2));
+	/* rotate VPN left by FOV_X/2 degrees */
+	RotatePointAroundVector(frustum[1].normal,
+			vup, vpn, 90 - gl3_newrefdef.fov_x / 2);
+	/* rotate VPN up by FOV_X/2 degrees */
+	RotatePointAroundVector(frustum[2].normal,
+			vright, vpn, 90 - gl3_newrefdef.fov_y / 2);
+	/* rotate VPN down by FOV_X/2 degrees */
+	RotatePointAroundVector(frustum[3].normal, vright, vpn,
+			-(90 - gl3_newrefdef.fov_y / 2));
+
+	for (i = 0; i < 4; i++)
+	{
+		frustum[i].type = PLANE_ANYZ;
+		frustum[i].dist = DotProduct(gl3_origin, frustum[i].normal);
+		frustum[i].signbits = SignbitsForPlane(&frustum[i]);
+	}
+}
+
+static void
+SetupFrame(void)
+{
+	int i;
+	mleaf_t *leaf;
+
+	gl3_framecount++;
+
+	/* build the transformation matrix for the given view angles */
+	VectorCopy(gl3_newrefdef.vieworg, gl3_origin);
+
+	AngleVectors(gl3_newrefdef.viewangles, vpn, vright, vup);
+
+	/* current viewcluster */
+	if (!(gl3_newrefdef.rdflags & RDF_NOWORLDMODEL))
+	{
+		gl3_oldviewcluster = gl3_viewcluster;
+		gl3_oldviewcluster2 = gl3_viewcluster2;
+		leaf = GL3_Mod_PointInLeaf(gl3_origin, gl3_worldmodel);
+		gl3_viewcluster = gl3_viewcluster2 = leaf->cluster;
+
+		/* check above and below so crossing solid water doesn't draw wrong */
+		if (!leaf->contents)
+		{
+			/* look down a bit */
+			vec3_t temp;
+
+			VectorCopy(gl3_origin, temp);
+			temp[2] -= 16;
+			leaf = GL3_Mod_PointInLeaf(temp, gl3_worldmodel);
+
+			if (!(leaf->contents & CONTENTS_SOLID) &&
+				(leaf->cluster != gl3_viewcluster2))
+			{
+				gl3_viewcluster2 = leaf->cluster;
+			}
+		}
+		else
+		{
+			/* look up a bit */
+			vec3_t temp;
+
+			VectorCopy(gl3_origin, temp);
+			temp[2] += 16;
+			leaf = GL3_Mod_PointInLeaf(temp, gl3_worldmodel);
+
+			if (!(leaf->contents & CONTENTS_SOLID) &&
+				(leaf->cluster != gl3_viewcluster2))
+			{
+				gl3_viewcluster2 = leaf->cluster;
+			}
+		}
+	}
+
+	for (i = 0; i < 4; i++)
+	{
+		v_blend[i] = gl3_newrefdef.blend[i];
+	}
+
+	c_brush_polys = 0;
+	c_alias_polys = 0;
+
+	/* clear out the portion of the screen that the NOWORLDMODEL defines */
+	if (gl3_newrefdef.rdflags & RDF_NOWORLDMODEL)
+	{
+		glEnable(GL_SCISSOR_TEST);
+		glClearColor(0.3, 0.3, 0.3, 1);
+		glScissor(gl3_newrefdef.x,
+				vid.height - gl3_newrefdef.height - gl3_newrefdef.y,
+				gl3_newrefdef.width, gl3_newrefdef.height);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClearColor(1, 0, 0.5, 0.5);
+		glDisable(GL_SCISSOR_TEST);
+	}
+}
+
 static void
 GL3_SetGL2D(void)
 {
@@ -636,14 +772,115 @@ GL3_SetGL2D(void)
 	hmm_mat4 transMatr = HMM_Orthographic(0, vid.width, vid.height, 0, -99999, 99999);
 
 	glUseProgram(gl3state.si2Dcolor.shaderProgram);
-	glUniformMatrix4fv(gl3state.si2Dcolor.uniTransMatrix , 1, GL_FALSE, transMatr.Elements[0]);
+	glUniformMatrix4fv(gl3state.si2Dcolor.uniProjMatrix , 1, GL_FALSE, transMatr.Elements[0]);
 	glUseProgram(gl3state.si2D.shaderProgram);
-	glUniformMatrix4fv(gl3state.si2D.uniTransMatrix , 1, GL_FALSE, transMatr.Elements[0]);
+	glUniformMatrix4fv(gl3state.si2D.uniProjMatrix , 1, GL_FALSE, transMatr.Elements[0]);
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
 	// glColor4f(1, 1, 1, 1); // FIXME: change to GL3 code!
+}
+
+static void
+SetupGL(void)
+{
+	int x, x2, y2, y, w, h;
+
+	/* set up viewport */
+	x = floor(gl3_newrefdef.x * vid.width / vid.width);
+	x2 = ceil((gl3_newrefdef.x + gl3_newrefdef.width) * vid.width / vid.width);
+	y = floor(vid.height - gl3_newrefdef.y * vid.height / vid.height);
+	y2 = ceil(vid.height - (gl3_newrefdef.y + gl3_newrefdef.height) * vid.height / vid.height);
+
+	w = x2 - x;
+	h = y - y2;
+
+#if 0 // TODO: stereo stuff
+	qboolean drawing_left_eye = gl_state.camera_separation < 0;
+	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	if(stereo_split_lr) {
+		w = w / 2;
+		x = drawing_left_eye ? (x / 2) : (x + vid.width) / 2;
+	}
+
+	if(stereo_split_tb) {
+		h = h / 2;
+		y2 = drawing_left_eye ? (y2 + vid.height) / 2 : (y2 / 2);
+	}
+#endif // 0
+
+	glViewport(x, y2, w, h);
+
+	/* set up projection matrix (eye coordinates -> clip coordinates) */
+	{
+		float screenaspect = (float)gl3_newrefdef.width / gl3_newrefdef.height;
+		float dist = (gl_farsee->value == 0) ? 4096.0f : 8192.0f;
+		gl3_projectionMatrix = HMM_Perspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
+	}
+
+#if 0
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	R_MYgluPerspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
+#endif // 0
+
+	glCullFace(GL_FRONT);
+
+	/* set up view matrix (world coordinates -> eye coordinates) */
+	{
+		hmm_vec3 trans = HMM_Vec3(-gl3_newrefdef.vieworg[0], -gl3_newrefdef.vieworg[1], -gl3_newrefdef.vieworg[2]);
+		// first put Z axis going up
+		hmm_mat4 viewMat = HMM_MultiplyMat4( HMM_Rotate(-90, HMM_Vec3(1, 0, 0)), HMM_Rotate(90, HMM_Vec3(0, 0, 1)) );
+		// now rotate by view angles
+		viewMat = HMM_MultiplyMat4( viewMat, HMM_Rotate(-gl3_newrefdef.viewangles[2], HMM_Vec3(1, 0, 0)) );
+		viewMat = HMM_MultiplyMat4( viewMat, HMM_Rotate(-gl3_newrefdef.viewangles[0], HMM_Vec3(0, 1, 0)) );
+		viewMat = HMM_MultiplyMat4( viewMat, HMM_Rotate(-gl3_newrefdef.viewangles[1], HMM_Vec3(0, 0, 1)) );
+		// .. and apply translation for current position
+		viewMat = HMM_MultiplyMat4( viewMat, HMM_Translate(trans) );
+
+		// TODO: maybe there is a better way to do this, maybe similar to HMM_LookAt() ?
+
+		gl3_world_matrix = viewMat;
+	}
+
+	// TODO: set matrices as uniforms in relevant shaders
+	glUseProgram(gl3state.si3D.shaderProgram);
+	glUniformMatrix4fv(gl3state.si3D.uniProjMatrix, 1, GL_FALSE, gl3_projectionMatrix.Elements[0]);
+	glUniformMatrix4fv(gl3state.si3D.uniModelViewMatrix, 1, GL_FALSE, gl3_world_matrix.Elements[0]);
+
+#if 0
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glRotatef(-90, 1, 0, 0); /* put Z going up */
+	glRotatef(90, 0, 0, 1); /* put Z going up */
+	glRotatef(-gl3_newrefdef.viewangles[2], 1, 0, 0);
+	glRotatef(-gl3_newrefdef.viewangles[0], 0, 1, 0);
+	glRotatef(-gl3_newrefdef.viewangles[1], 0, 0, 1);
+	glTranslatef(-gl3_newrefdef.vieworg[0], -gl3_newrefdef.vieworg[1],
+			-gl3_newrefdef.vieworg[2]);
+
+	glGetFloatv(GL_MODELVIEW_MATRIX, r_world_matrix);
+#endif // 0
+
+	/* set drawing parms */
+	if (gl_cull->value)
+	{
+		glEnable(GL_CULL_FACE);
+	}
+	else
+	{
+		glDisable(GL_CULL_FACE);
+	}
+
+	STUB_ONCE("Should I do anything about disabling GL_BLEND and GL_ALPHA_TEST?");
+	//glDisable(GL_BLEND);
+	//glDisable(GL_ALPHA_TEST);
+	glEnable(GL_DEPTH_TEST);
 }
 
 /*
@@ -771,11 +1008,12 @@ GL3_RenderView(refdef_t *fd)
 
 	STUB_ONCE("TODO: Implement!");
 
-#if 0 // TODO !!
-	if (!r_worldmodel && !(gl3_newrefdef.rdflags & RDF_NOWORLDMODEL))
+
+	if (!gl3_worldmodel && !(gl3_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
 		ri.Sys_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
 	}
+
 
 	if (gl_speeds->value)
 	{
@@ -783,23 +1021,23 @@ GL3_RenderView(refdef_t *fd)
 		c_alias_polys = 0;
 	}
 
-	R_PushDlights();
+	GL3_PushDlights();
 
 	if (gl_finish->value)
 	{
 		glFinish();
 	}
 
-	R_SetupFrame();
+	SetupFrame();
 
-	R_SetFrustum();
+	SetFrustum();
 
-	R_SetupGL();
+	SetupGL();
 
-	R_MarkLeaves(); /* done here so we know if we're in water */
+	GL3_MarkLeaves(); /* done here so we know if we're in water */
 
-	R_DrawWorld();
-
+	GL3_DrawWorld();
+#if 0 // TODO !!
 	R_DrawEntitiesOnList();
 
 	GL3_RenderDlights();
@@ -867,11 +1105,8 @@ GL3_SetLightLevel(void)
 		return;
 	}
 
-	STUB_ONCE("TODO: IMPLEMENT!");
-
-#if 0 // TODO!
 	/* save off light value for server to look at */
-	R_LightPoint(gl3_newrefdef.vieworg, shadelight);
+	GL3_LightPoint(gl3_newrefdef.vieworg, shadelight);
 
 	/* pick the greatest component, which should be the
 	 * same as the mono value returned by software */
@@ -897,7 +1132,6 @@ GL3_SetLightLevel(void)
 			gl_lightlevel->value = 150 * shadelight[2];
 		}
 	}
-#endif // 0
 }
 
 
@@ -908,6 +1142,7 @@ GL3_RenderFrame(refdef_t *fd)
 	GL3_SetLightLevel();
 	GL3_SetGL2D();
 }
+
 
 static void
 GL3_Clear(void)
@@ -957,21 +1192,12 @@ GL3_Clear(void)
 	}
 
 	glClear(GL_COLOR_BUFFER_BIT); // TODO: I added this and the next line - keep?
-	glClearColor(0.5, 0.5, 1, 0.5);
+	glClearColor(0.5, 0.5, 1, 0.5); // FIXME: this would prolly look better with black.
 }
 
 void
 GL3_BeginFrame(float camera_separation)
 {
-	STUB_ONCE("TODO: Implement!");
-	/*
-	glClearColor(0, 0, 0, 0); // FIXME: not sure this should stay
-	glClear(GL_COLOR_BUFFER_BIT);
-	glClearColor(1, 0, 0.5, 0.5);
-
-	GL3_SetGL2D();
-	*/
-
 	/* change modes if necessary */
 	if (gl_mode->modified)
 	{

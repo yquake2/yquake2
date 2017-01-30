@@ -39,6 +39,43 @@ static byte *mod_base;
 /* the inline * models from the current map are kept seperate */
 gl3model_t mod_inline[MAX_MOD_KNOWN];
 
+mleaf_t *
+GL3_Mod_PointInLeaf(vec3_t p, gl3model_t *model)
+{
+	mnode_t *node;
+	float d;
+	cplane_t *plane;
+
+	if (!model || !model->nodes)
+	{
+		ri.Sys_Error(ERR_DROP, "Mod_PointInLeaf: bad model");
+	}
+
+	node = model->nodes;
+
+	while (1)
+	{
+		if (node->contents != -1)
+		{
+			return (mleaf_t *)node;
+		}
+
+		plane = node->plane;
+		d = DotProduct(p, plane->normal) - plane->dist;
+
+		if (d > 0)
+		{
+			node = node->children[0];
+		}
+		else
+		{
+			node = node->children[1];
+		}
+	}
+
+	return NULL; /* never reached */
+}
+
 static byte *
 Mod_DecompressVis(byte *in, gl3model_t *model)
 {

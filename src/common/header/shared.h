@@ -433,7 +433,7 @@ typedef struct cplane_s
 	vec3_t normal;
 	float dist;
 	byte type; /* for fast side tests */
-	byte signbits; /* signx + (signy<<1) + (signz<<1) */
+	byte signbits; /* signx + (signy<<1) + (signz<<2) */
 	byte pad[2];
 } cplane_t;
 

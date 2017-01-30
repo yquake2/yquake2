@@ -88,8 +88,6 @@ GL3_TextureMode(char *string)
 		ri.Cvar_SetValue("gl_anisotropic", 0.0);
 	}
 
-	STUB_ONCE("TODO: fix existing textures' modes!");
-#if 0 // TODO!
 	gl3image_t *glt;
 
 	/* change all the existing mipmap texture objects */
@@ -97,18 +95,17 @@ GL3_TextureMode(char *string)
 	{
 		if ((glt->type != it_pic) && (glt->type != it_sky))
 		{
-			R_Bind(glt->texnum);
+			GL3_Bind(glt->texnum);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 
 			/* Set anisotropic filter if supported and enabled */
-			if (gl_config.anisotropic && gl_anisotropic->value)
+			if (gl3config.anisotropic && gl_anisotropic->value)
 			{
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_anisotropic->value);
 			}
 		}
 	}
-#endif // 0
 }
 
 void
@@ -158,17 +155,14 @@ GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 		}
 	}
 
-	// TODO: some hardware may require mipmapping disabled for NPOT textures!
-
-	//glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, mipmap);
 	glTexImage2D(GL_TEXTURE_2D, 0, comp, width, height,
 	             0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	//glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, false);
 
 	res = (samples == gl3_alpha_format);
 
 	if (mipmap)
 	{
+		// TODO: some hardware may require mipmapping disabled for NPOT textures!
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
@@ -789,8 +783,11 @@ GL3_ImageList_f(void)
 			case it_pic:
 				R_Printf(PRINT_ALL, "P");
 				break;
+			case it_sky:
+				R_Printf(PRINT_ALL, "Y");
+				break;
 			default:
-				R_Printf(PRINT_ALL, " ");
+				R_Printf(PRINT_ALL, "?");
 				break;
 		}
 
