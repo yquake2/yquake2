@@ -273,7 +273,7 @@ SDLLDFLAGS := -lSDL
 endif # SDL2
 else ifeq ($(OSTYPE), Darwin)
 ifeq ($(WITH_SDL2),yes)
-SDLLDFLAGS := -lSDL2 -framework OpenGL -framework Cocoa
+SDLLDFLAGS := -lSDL2
 else # not SDL2
 SDLLDFLAGS := -lSDL -framework OpenGL -framework Cocoa
 endif # SDL2
@@ -556,7 +556,7 @@ ifeq ($(WITH_SDL2),yes)
 release/ref_gl.dylib : CFLAGS += -DSDL2
 endif
 
-release/ref_gl.dylib : LDFLAGS += -shared
+release/ref_gl.dylib : LDFLAGS += -shared -framework OpenGL
 
 else # not Windows or Darwin
 
@@ -606,6 +606,8 @@ ref_gl3:
 ifeq ($(WITH_SDL2),yes)
 release/ref_gl3.dylib : CFLAGS += -DSDL2
 endif
+
+release/ref_gl3.dylib : LDFLAGS += -shared
 
 else # not Windows or Darwin
 
