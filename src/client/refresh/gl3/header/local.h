@@ -43,6 +43,8 @@
 
 #include "../../ref_shared.h"
 
+#include "HandmadeMath.h"
+
 #define STUB(msg) \
 	R_Printf(PRINT_ALL, "STUB: %s() %s\n", __FUNCTION__, msg)
 
@@ -64,8 +66,8 @@ qglVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normaliz
 
 // attribute locations for vertex shaders
 enum {
-	GL3_ATTRIB_POSITION = 0,
-	GL3_ATTRIB_TEXCOORD = 1,   // for normal texture
+	GL3_ATTRIB_POSITION   = 0,
+	GL3_ATTRIB_TEXCOORD   = 1, // for normal texture
 	GL3_ATTRIB_LMTEXCOORD = 2, // for lightmap
 	// TODO: more? maybe normal and color?
 };
@@ -104,13 +106,39 @@ typedef struct
 {
 	GLuint shaderProgram;
 
-	GLint uniColor;
-	GLint uniProjMatrix; // for 2D shaders this is the only one used
-	GLint uniModelViewMatrix; // TODO: or even pass as 2 matrices?
-
-	// TODO: probably more uniforms, at least gamma and intensity
+	//GLint uniColor;
+	//GLint uniProjMatrix; // for 2D shaders this is the only one used
+	//GLint uniModelViewMatrix; // TODO: or even pass as 2 matrices?
 
 } gl3ShaderInfo_t;
+
+typedef struct
+{
+	GLfloat gamma;
+	GLfloat intensity;
+
+		// entries of std140 UBOs are aligned to multiples of their own size
+		// so we'll need to pad accordingly
+		GLfloat _padding[2];
+
+	GLfloat color[4];
+} gl3UniCommon_t;
+
+typedef struct
+{
+	GLfloat transMat4[4][4];
+} gl3Uni2D_t;
+
+typedef struct
+{
+	GLfloat transProjMat4[4][4];
+	GLfloat transModelViewMat4[4][4];
+
+	GLfloat scroll; // for SURF_FLOWING
+	GLfloat time; // for warping surfaces like water & possibly other things
+
+		GLfloat _padding[2]; // again, some padding to ensure this has right size
+} gl3Uni3D_t;
 
 typedef struct
 {
@@ -138,8 +166,18 @@ typedef struct
 	GLuint currentShaderProgram;
 	gl3ShaderInfo_t si2D; // shader for rendering 2D with textures
 	gl3ShaderInfo_t si2Dcolor; // shader for rendering 2D with flat colors
-
 	gl3ShaderInfo_t si3D;
+	gl3ShaderInfo_t si3Dturb; // for water etc
+
+	GLuint vao3D, vbo3D; // for brushes etc, using 7 floats as vertex input (x,y,z, s,t, lms,lmt)
+
+	// UBOs and their data
+	gl3UniCommon_t uniCommonData;
+	gl3Uni2D_t uni2DData;
+	gl3Uni3D_t uni3DData;
+	GLuint uniCommonUBO;
+	GLuint uni2DUBO;
+	GLuint uni3DUBO;
 
 } gl3state_t;
 
@@ -214,6 +252,9 @@ extern float gl3depthmin, gl3depthmax;
 extern cplane_t frustum[4];
 
 extern vec3_t gl3_origin;
+
+hmm_mat4 gl3_projectionMatrix; // eye cord -> clip coord
+hmm_mat4 gl3_world_matrix; // the view matrix: world coord -> eye coord
 
 extern gl3image_t *gl3_notexture; /* use for bad textures */
 extern gl3image_t *gl3_particletexture; /* little dot for particles */
@@ -324,6 +365,8 @@ extern void GL3_AddSkySurface(msurface_t *fa);
 
 
 // gl3_surf.c
+extern void GL3_SurfInit(void);
+extern void GL3_SurfShutdown(void);
 extern void GL3_DrawGLPoly(glpoly_t *p);
 extern void GL3_DrawGLFlowingPoly(msurface_t *fa);
 extern void GL3_DrawTriangleOutlines(void);
@@ -337,7 +380,9 @@ extern void GL3_MarkLeaves(void);
 
 extern qboolean GL3_InitShaders(void);
 extern void GL3_ShutdownShaders(void);
-extern void GL3_SetGammaAndIntensity(void);
+extern void GL3_UpdateUBOCommon(void);
+extern void GL3_UpdateUBO2D(void);
+extern void GL3_UpdateUBO3D(void);
 
 // ############ Cvars ###########
 

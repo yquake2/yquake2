@@ -25,11 +25,12 @@
  * =======================================================================
  */
 
-#define HANDMADE_MATH_IMPLEMENTATION
-#include "header/HandmadeMath.h"
 
 #include "../../header/ref.h"
 #include "header/local.h"
+
+#define HANDMADE_MATH_IMPLEMENTATION
+#include "header/HandmadeMath.h"
 
 // TODO: put this in local.h ?
 #define REF_VERSION "Yamagi Quake II OpenGL3 Refresher"
@@ -553,6 +554,8 @@ GL3_Init(void)
 
 	GL3_Draw_InitLocal();
 
+	GL3_SurfInit();
+
 	R_Printf(PRINT_ALL, "\n");
 	return true;
 }
@@ -567,6 +570,7 @@ GL3_Shutdown(void)
 
 	GL3_Mod_FreeAll();
 	GL3_ShutdownImages();
+	GL3_SurfShutdown();
 	GL3_Draw_ShutdownLocal();
 	GL3_ShutdownShaders();
 
@@ -829,10 +833,19 @@ GL3_SetGL2D(void)
 
 	hmm_mat4 transMatr = HMM_Orthographic(0, vid.width, vid.height, 0, -99999, 99999);
 
+	/*
 	glUseProgram(gl3state.si2Dcolor.shaderProgram);
 	glUniformMatrix4fv(gl3state.si2Dcolor.uniProjMatrix , 1, GL_FALSE, transMatr.Elements[0]);
 	glUseProgram(gl3state.si2D.shaderProgram);
 	glUniformMatrix4fv(gl3state.si2D.uniProjMatrix , 1, GL_FALSE, transMatr.Elements[0]);
+	*/
+
+	//memcpy(gl3state.uni2DData.transMat4, transMatr.Elements, 4*4*sizeof(GLfloat));
+	for(int i=0; i<4; ++i)
+		for(int j=0; j<4; ++j)
+			gl3state.uni2DData.transMat4[i][j] = transMatr.Elements[i][j];
+
+	GL3_UpdateUBO2D();
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
@@ -923,10 +936,6 @@ SetupGL(void)
 		}};
 
 		// now rotate by view angles
-		/*hmm_mat4 rotMat = HMM_Rotate(-gl3_newrefdef.viewangles[2], HMM_Vec3(1, 0, 0));
-		rotMat = HMM_MultiplyMat4( rotMat, HMM_Rotate(-gl3_newrefdef.viewangles[0], HMM_Vec3(0, 1, 0)) );
-		rotMat = HMM_MultiplyMat4( rotMat, HMM_Rotate(-gl3_newrefdef.viewangles[1], HMM_Vec3(0, 0, 1)) );
-		*/
 		hmm_mat4 rotMat = rotAroundAxisXYZ(-gl3_newrefdef.viewangles[2], -gl3_newrefdef.viewangles[0], -gl3_newrefdef.viewangles[1]);
 
 		viewMat = HMM_MultiplyMat4( viewMat, rotMat );
@@ -938,10 +947,12 @@ SetupGL(void)
 		gl3_world_matrix = viewMat;
 	}
 
-	// TODO: set matrices as uniforms in relevant shaders
-	glUseProgram(gl3state.si3D.shaderProgram);
-	glUniformMatrix4fv(gl3state.si3D.uniProjMatrix, 1, GL_FALSE, gl3_projectionMatrix.Elements[0]);
-	glUniformMatrix4fv(gl3state.si3D.uniModelViewMatrix, 1, GL_FALSE, gl3_world_matrix.Elements[0]);
+	memcpy(gl3state.uni3DData.transProjMat4, gl3_projectionMatrix.Elements, sizeof(gl3state.uni3DData.transProjMat4));
+	memcpy(gl3state.uni3DData.transModelViewMat4, gl3_world_matrix.Elements, sizeof(gl3state.uni3DData.transProjMat4));
+
+	gl3state.uni3DData.time = gl3_newrefdef.time;
+
+	GL3_UpdateUBO3D();
 
 #if 0
 	glMatrixMode(GL_MODELVIEW);
@@ -1134,9 +1145,9 @@ GL3_RenderView(refdef_t *fd)
 	GL3_RenderDlights();
 
 	R_DrawParticles();
-
-	R_DrawAlphaSurfaces();
-
+#endif // 0
+	GL3_DrawAlphaSurfaces();
+#if 0
 	R_Flash();
 
 	if (gl_speeds->value)
@@ -1316,7 +1327,9 @@ GL3_BeginFrame(float camera_separation)
 		vid_gamma->modified = false;
 		intensity->modified = false;
 
-		GL3_SetGammaAndIntensity();
+		gl3state.uniCommonData.gamma = 1.0f/vid_gamma->value;
+		gl3state.uniCommonData.intensity = intensity->value;
+		GL3_UpdateUBOCommon();
 	}
 
 	// Clamp overbrightbits

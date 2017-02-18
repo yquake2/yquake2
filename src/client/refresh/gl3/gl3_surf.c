@@ -40,6 +40,35 @@ gl3lightmapstate_t gl3_lms;
 extern gl3image_t gl3textures[MAX_GL3TEXTURES];
 extern int numgl3textures;
 
+void GL3_SurfInit(void)
+{
+	// init the VAO and VBO for the standard vertexdata: 7 floats
+	// (X, Y, Z), (S, T), (LMS, LMT) - last two for lightmap
+
+	glGenVertexArrays(1, &gl3state.vao3D);
+	GL3_BindVAO(gl3state.vao3D);
+
+	glGenBuffers(1, &gl3state.vbo3D);
+	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo3D);
+
+	glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
+	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 0);
+
+	glEnableVertexAttribArray(GL3_ATTRIB_TEXCOORD);
+	qglVertexAttribPointer(GL3_ATTRIB_TEXCOORD, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 3*sizeof(GLfloat));
+
+	glEnableVertexAttribArray(GL3_ATTRIB_LMTEXCOORD);
+	qglVertexAttribPointer(GL3_ATTRIB_LMTEXCOORD, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 5*sizeof(GLfloat));
+}
+
+void GL3_SurfShutdown(void)
+{
+	glDeleteBuffers(1, &gl3state.vbo3D);
+	gl3state.vbo3D = 0;
+	glDeleteVertexArrays(1, &gl3state.vao3D);
+	gl3state.vao3D = 0;
+}
+
 /*
  * Returns true if the box is completely outside the frustom
  */
@@ -91,56 +120,16 @@ TextureAnimation(mtexinfo_t *tex)
 void
 GL3_DrawGLPoly(glpoly_t *p)
 {
-	float *v;
-
-	v = p->verts[0];
-
-	// v: blocks of 7 floats: (X, Y, Z) (S1, T1), (S2, T2)
-	// apparently (S2, T2) is not used here, probably for lightmap?
-
-	STUB_ONCE("TODO: Implement!");
-
-	GL3_UseProgram(gl3state.si3D.shaderProgram); // TODO: needed each time?!
-
-	static GLuint vao = 0, vbo = 0; // TODO!!
-	if(vao == 0) // FIXME: DON'T DO THIS!
-	{
-		glGenVertexArrays(1, &vao);
-		GL3_BindVAO(vao);
-
-		glGenBuffers(1, &vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo); // TODO ??
-
-		glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
-		qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 0);
-
-		glEnableVertexAttribArray(GL3_ATTRIB_TEXCOORD);
-		qglVertexAttribPointer(GL3_ATTRIB_TEXCOORD, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 3*sizeof(GLfloat));
-
-		glEnableVertexAttribArray(GL3_ATTRIB_LMTEXCOORD);
-		qglVertexAttribPointer(GL3_ATTRIB_LMTEXCOORD, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 5*sizeof(GLfloat));
-	}
+	float* v = p->verts[0];
 
 	GL3_UseProgram(gl3state.si3D.shaderProgram); // TODO: needed each time?! maybe call this once in DrawTextureChains()?
 
-	GL3_BindVAO(vao);
+	GL3_BindVAO(gl3state.vao3D);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo3D);
 	glBufferData(GL_ARRAY_BUFFER, VERTEXSIZE*sizeof(GLfloat)*p->numverts, v, GL_STREAM_DRAW);
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
-
-#if 0
-    glEnableClientState( GL_VERTEX_ARRAY );
-    glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-    glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
-    glTexCoordPointer( 2, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v+3 );
-    glDrawArrays( GL_TRIANGLE_FAN, 0, p->numverts );
-
-    glDisableClientState( GL_VERTEX_ARRAY );
-    glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-#endif // 0
 }
 
 void
@@ -640,26 +629,29 @@ RenderBrushPoly(msurface_t *fa)
 void
 GL3_DrawAlphaSurfaces(void)
 {
-	STUB("TODO: implement!");
-#if 0
+	STUB_ONCE("TODO: implement!");
+
 	msurface_t *s;
 	float intens;
 
 	/* go back to the world matrix */
-	glLoadMatrixf(r_world_matrix);
+	//glLoadMatrixf(r_world_matrix);
+	memcpy(gl3state.uni3DData.transModelViewMat4, gl3_world_matrix.Elements, 16*sizeof(float));
+	GL3_UpdateUBO3D();
 
 	glEnable(GL_BLEND);
-	R_TexEnv(GL_MODULATE);
+	//R_TexEnv(GL_MODULATE);
 
 	/* the textures are prescaled up for a better
 	   lighting range, so scale it back down */
-	intens = gl_state.inverse_intensity;
+	//intens = gl_state.inverse_intensity;
+	STUB_ONCE("Something about inverse intensity");
 
-	for (s = gl3_alpha_surfaces; s; s = s->texturechain)
+	for (s = gl3_alpha_surfaces; s != NULL; s = s->texturechain)
 	{
 		GL3_Bind(s->texinfo->image->texnum);
 		c_brush_polys++;
-
+#if 0
 		if (s->texinfo->flags & SURF_TRANS33)
 		{
 			glColor4f(intens, intens, intens, 0.33);
@@ -672,27 +664,27 @@ GL3_DrawAlphaSurfaces(void)
 		{
 			glColor4f(intens, intens, intens, 1);
 		}
+#endif // 0
 
 		if (s->flags & SURF_DRAWTURB)
 		{
-			R_EmitWaterPolys(s);
+			GL3_EmitWaterPolys(s);
 		}
 		else if (s->texinfo->flags & SURF_FLOWING)
 		{
-			R_DrawGLFlowingPoly(s);
+			GL3_DrawGLFlowingPoly(s);
 		}
 		else
 		{
-			R_DrawGLPoly(s->polys);
+			GL3_DrawGLPoly(s->polys);
 		}
 	}
 
-	R_TexEnv(GL_REPLACE);
-	glColor4f(1, 1, 1, 1);
+	//R_TexEnv(GL_REPLACE);
+	//glColor4f(1, 1, 1, 1);
 	glDisable(GL_BLEND);
 
 	gl3_alpha_surfaces = NULL;
-#endif // 0
 }
 
 static void

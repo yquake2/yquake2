@@ -228,61 +228,30 @@ GL3_SubdivideSurface(msurface_t *fa, gl3model_t* loadmodel)
 void
 GL3_EmitWaterPolys(msurface_t *fa)
 {
-	glpoly_t *p, *bp;
-	float *v;
-	int i;
-	float s, t, os, ot;
-	float scroll;
-	float rdt = gl3_newrefdef.time;
-
-	static const float TURBSCALE = (256.0 / (2 * M_PI));
+	glpoly_t *bp;
+	float scroll = 0.0f;
 
 	if (fa->texinfo->flags & SURF_FLOWING)
 	{
-		scroll = -64 * ((gl3_newrefdef.time * 0.5) - (int)(gl3_newrefdef.time * 0.5));
-	}
-	else
-	{
-		scroll = 0;
+		scroll = -64.0f * ((gl3_newrefdef.time * 0.5) - (int)(gl3_newrefdef.time * 0.5));
 	}
 
-	// TODO: do the scrolling/warping in shader
-
-	for (bp = fa->polys; bp; bp = bp->next)
+	if(gl3state.uni3DData.scroll != scroll)
 	{
-		p = bp;
-		int numverts = p->numverts;
+		gl3state.uni3DData.scroll = scroll;
+		GL3_UpdateUBO3D();
+	}
 
-		GLfloat tex[2*numverts];
-		unsigned int index_tex = 0;
+	GL3_UseProgram(gl3state.si3Dturb.shaderProgram);
 
-		for ( i = 0, v = p->verts [ 0 ]; i < numverts; i++, v += VERTEXSIZE )
-		{
-			os = v [ 3 ];
-			ot = v [ 4 ];
+	GL3_BindVAO(gl3state.vao3D);
+	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo3D);
 
-			s = os + gl3_turbsin [ (int) ( ( ot * 0.125 + gl3_newrefdef.time ) * TURBSCALE ) & 255 ];
-			s += scroll;
-			tex[index_tex++] = s * ( 1.0 / 64 );
-
-			t = ot + gl3_turbsin [ (int) ( ( os * 0.125 + rdt ) * TURBSCALE ) & 255 ];
-			tex[index_tex++] = t * ( 1.0 / 64 );
-		}
-
-		v = p->verts [ 0 ];
-
-		STUB_ONCE("TODO: Implement OpenGL3 part!");
-#if 0
-		glEnableClientState( GL_VERTEX_ARRAY );
-		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-		glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
-		glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-		glDrawArrays( GL_TRIANGLE_FAN, 0, p->numverts );
-
-		glDisableClientState( GL_VERTEX_ARRAY );
-		glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-#endif // 0
+	for (bp = fa->polys; bp != NULL; bp = bp->next)
+	{
+		int numverts = bp->numverts;
+		glBufferData(GL_ARRAY_BUFFER, VERTEXSIZE*sizeof(GLfloat)*numverts, bp->verts[0], GL_STREAM_DRAW);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, numverts);
 	}
 }
 

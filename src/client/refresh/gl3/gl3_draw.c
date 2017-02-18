@@ -266,11 +266,6 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 
 	color.c = d_8to24table[c];
 
-	for(i=0; i<3; ++i)
-	{
-		cf[i] = color.v[i] * (1.0f/255.0f);
-	}
-
 	GLfloat vBuf[8] = {
 	//  X,   Y
 		x,   y+h,
@@ -279,11 +274,15 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 		x+w, y
 	};
 
+	for(i=0; i<3; ++i)
+	{
+		gl3state.uniCommonData.color[i] = color.v[i] * (1.0f/255.0f);
+	}
+
+	GL3_UpdateUBOCommon();
+
 	GL3_UseProgram(gl3state.si2Dcolor.shaderProgram);
-
 	GL3_BindVAO(vao2Dcolor);
-
-	glUniform4f(gl3state.si2Dcolor.uniColor, cf[0], cf[1], cf[2], 1.0f);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo2D);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
@@ -296,6 +295,7 @@ GL3_Draw_FadeScreen(void)
 {
 	float w = vid.width;
 	float h = vid.height;
+	int i=0;
 
 	GLfloat vBuf[8] = {
 	//  X,   Y
@@ -307,12 +307,18 @@ GL3_Draw_FadeScreen(void)
 
 	glEnable(GL_BLEND);
 
+	for(i=0; i<3; ++i)
+	{
+		gl3state.uniCommonData.color[i] = 0.0f;
+	}
+	gl3state.uniCommonData.color[3] = 0.6f;
+
+	GL3_UpdateUBOCommon();
+
 
 	GL3_UseProgram(gl3state.si2Dcolor.shaderProgram);
 
 	GL3_BindVAO(vao2Dcolor);
-
-	glUniform4f(gl3state.si2Dcolor.uniColor, 0, 0, 0, 0.6f);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo2D);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
