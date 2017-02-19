@@ -95,6 +95,7 @@ cvar_t *gl_lightlevel;
 cvar_t *gl_overbrightbits;
 
 cvar_t *gl_norefresh;
+cvar_t *gl_drawentities;
 cvar_t *gl_nolerp_list;
 cvar_t *gl_nobind;
 cvar_t *gl_lockpvs;
@@ -162,18 +163,20 @@ GL3_RotateForEntity(entity_t *e)
 	// rot matrices to be multiplied in order Z, Y, X (yaw, pitch, roll)
 	hmm_mat4 rotMat = rotAroundAxisZYX(e->angles[1], -e->angles[0], -e->angles[2]);
 
+	// TODO: or use gl3state.uni3DData.transModelViewMat4 instead of gl3_world_matrix?
+
 #if 1
 	hmm_mat4 transMat = HMM_Translate( HMM_Vec3(e->origin[0], e->origin[1], e->origin[2]) );
-	hmm_mat4 modelViewMat = HMM_MultiplyMat4(gl3_world_matrix, transMat);
+	hmm_mat4 modelViewMat = HMM_MultiplyMat4(gl3state.uni3DData.transModelViewMat4, transMat);
 	modelViewMat = HMM_MultiplyMat4(modelViewMat, rotMat);
 #else
 	// TODO: I /think/ I could just set the translation in the end instead of multiplying above
-	hmm_mat4 modelViewMat = HMM_MultiplyMat4(gl3_world_matrix, rotMat);
+	hmm_mat4 modelViewMat = HMM_MultiplyMat4(gl3state.uni3DData.transModelViewMat4, rotMat);
 	for(int i=0; i<3; ++i)  modelViewMat.Elements[3][i] = e->origin[i];
 #endif
 
-
-	// TODO: set in shaders
+	gl3state.uni3DData.transModelViewMat4 = modelViewMat;
+	GL3_UpdateUBO3D();
 
 #if 0
 	glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
@@ -222,6 +225,7 @@ GL3_Register(void)
 	gl_customheight = ri.Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
 
 	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
+	gl_drawentities = ri.Cvar_Get("gl_drawentities", "1", 0);
 	gl_fullbright = ri.Cvar_Get("gl_fullbright", "0", 0);
 
 	/* don't bilerp characters and crosshairs */
@@ -260,7 +264,7 @@ GL3_Register(void)
 	//gl_farsee = ri.Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 	//gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
 	//gl_fullbright = ri.Cvar_Get("gl_fullbright", "0", 0);
-	gl_drawentities = ri.Cvar_Get("gl_drawentities", "1", 0);
+	//gl_drawentities = ri.Cvar_Get("gl_drawentities", "1", 0);
 	gl_drawworld = ri.Cvar_Get("gl_drawworld", "1", 0);
 	//gl_novis = ri.Cvar_Get("gl_novis", "0", 0);
 	//gl_lerpmodels = ri.Cvar_Get("gl_lerpmodels", "1", 0); NOTE: screw this, it looks horrible without
@@ -581,17 +585,258 @@ GL3_Shutdown(void)
 }
 
 static void
-GL3_DrawEntitiesOnList(void)
+GL3_DrawBeam(entity_t *e)
 {
 	STUB_ONCE("TODO: Implement!");
 #if 0
 	int i;
-/*
+	float r, g, b;
+
+	enum { NUM_BEAM_SEGS = 6 };
+
+	vec3_t perpvec;
+	vec3_t direction, normalized_direction;
+	vec3_t start_points[NUM_BEAM_SEGS], end_points[NUM_BEAM_SEGS];
+	vec3_t oldorigin, origin;
+
+	GLfloat vtx[3*NUM_BEAM_SEGS*4];
+	unsigned int index_vtx = 0;
+	unsigned int pointb;
+
+	oldorigin[0] = e->oldorigin[0];
+	oldorigin[1] = e->oldorigin[1];
+	oldorigin[2] = e->oldorigin[2];
+
+	origin[0] = e->origin[0];
+	origin[1] = e->origin[1];
+	origin[2] = e->origin[2];
+
+	normalized_direction[0] = direction[0] = oldorigin[0] - origin[0];
+	normalized_direction[1] = direction[1] = oldorigin[1] - origin[1];
+	normalized_direction[2] = direction[2] = oldorigin[2] - origin[2];
+
+	if (VectorNormalize(normalized_direction) == 0)
+	{
+		return;
+	}
+
+	PerpendicularVector(perpvec, normalized_direction);
+	VectorScale(perpvec, e->frame / 2, perpvec);
+
+	for (i = 0; i < 6; i++)
+	{
+		RotatePointAroundVector(start_points[i], normalized_direction, perpvec,
+				(360.0 / NUM_BEAM_SEGS) * i);
+		VectorAdd(start_points[i], origin, start_points[i]);
+		VectorAdd(start_points[i], direction, end_points[i]);
+	}
+
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glDepthMask(GL_FALSE);
+
+	r = (LittleLong(d_8to24table[e->skinnum & 0xFF])) & 0xFF;
+	g = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8) & 0xFF;
+	b = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 16) & 0xFF;
+
+	r *= 1 / 255.0F;
+	g *= 1 / 255.0F;
+	b *= 1 / 255.0F;
+
+	glColor4f(r, g, b, e->alpha);
+
+	for ( i = 0; i < NUM_BEAM_SEGS; i++ )
+	{
+		vtx[index_vtx++] = start_points [ i ][ 0 ];
+		vtx[index_vtx++] = start_points [ i ][ 1 ];
+		vtx[index_vtx++] = start_points [ i ][ 2 ];
+
+		vtx[index_vtx++] = end_points [ i ][ 0 ];
+		vtx[index_vtx++] = end_points [ i ][ 1 ];
+		vtx[index_vtx++] = end_points [ i ][ 2 ];
+
+		pointb = ( i + 1 ) % NUM_BEAM_SEGS;
+		vtx[index_vtx++] = start_points [ pointb ][ 0 ];
+		vtx[index_vtx++] = start_points [ pointb ][ 1 ];
+		vtx[index_vtx++] = start_points [ pointb ][ 2 ];
+
+		vtx[index_vtx++] = end_points [ pointb ][ 0 ];
+		vtx[index_vtx++] = end_points [ pointb ][ 1 ];
+		vtx[index_vtx++] = end_points [ pointb ][ 2 ];
+	}
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+
+	glVertexPointer( 3, GL_FLOAT, 0, vtx );
+	glDrawArrays( GL_TRIANGLE_STRIP, 0, NUM_BEAM_SEGS*4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+
+	glEnable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+#endif // 0
+}
+
+static void
+GL3_DrawSpriteModel(entity_t *e)
+{
+	STUB_ONCE("TODO: Implement!");
+#if 0
+	float alpha = 1.0F;
+	vec3_t point[4];
+	dsprframe_t *frame;
+	float *up, *right;
+	dsprite_t *psprite;
+
+	/* don't even bother culling, because it's just
+	   a single polygon without a surface cache */
+	psprite = (dsprite_t *)currentmodel->extradata;
+
+	e->frame %= psprite->numframes;
+	frame = &psprite->frames[e->frame];
+
+	/* normal sprite */
+	up = vup;
+	right = vright;
+
+	if (e->flags & RF_TRANSLUCENT)
+	{
+		alpha = e->alpha;
+	}
+
+	if (alpha != 1.0F)
+	{
+		glEnable(GL_BLEND);
+	}
+
+	glColor4f(1, 1, 1, alpha);
+
+	R_Bind(currentmodel->skins[e->frame]->texnum);
+
+	R_TexEnv(GL_MODULATE);
+
+	if (alpha == 1.0)
+	{
+		glEnable(GL_ALPHA_TEST);
+	}
+	else
+	{
+		glDisable(GL_ALPHA_TEST);
+	}
+
+	GLfloat tex[] = {
+		0, 1,
+		0, 0,
+		1, 0,
+		1, 1
+	};
+
+	VectorMA( e->origin, -frame->origin_y, up, point[0] );
+	VectorMA( point[0], -frame->origin_x, right, point[0] );
+
+	VectorMA( e->origin, frame->height - frame->origin_y, up, point[1] );
+	VectorMA( point[1], -frame->origin_x, right, point[1] );
+
+	VectorMA( e->origin, frame->height - frame->origin_y, up, point[2] );
+	VectorMA( point[2], frame->width - frame->origin_x, right, point[2] );
+
+	VectorMA( e->origin, -frame->origin_y, up, point[3] );
+	VectorMA( point[3], frame->width - frame->origin_x, right, point[3] );
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glVertexPointer( 3, GL_FLOAT, 0, point );
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glDisable(GL_ALPHA_TEST);
+	R_TexEnv(GL_REPLACE);
+
+	if (alpha != 1.0F)
+	{
+		glDisable(GL_BLEND);
+	}
+
+	glColor4f(1, 1, 1, 1);
+#endif // 0
+}
+
+static void
+GL3_DrawNullModel(void)
+{
+	STUB_ONCE("TODO: Implement!");
+#if 0
+	vec3_t shadelight;
+
+	if (currententity->flags & RF_FULLBRIGHT)
+	{
+		shadelight[0] = shadelight[1] = shadelight[2] = 1.0F;
+	}
+	else
+	{
+		R_LightPoint(currententity->origin, shadelight);
+	}
+
+	glPushMatrix();
+	R_RotateForEntity(currententity);
+
+	glDisable(GL_TEXTURE_2D);
+	glColor4f( shadelight[0], shadelight[1], shadelight[2], 1 );
+
+	GLfloat vtxA[] = {
+			0, 0, -16,
+			16 * cos( 0 * M_PI / 2 ), 16 * sin( 0 * M_PI / 2 ), 0,
+			16 * cos( 1 * M_PI / 2 ), 16 * sin( 1 * M_PI / 2 ), 0,
+			16 * cos( 2 * M_PI / 2 ), 16 * sin( 2 * M_PI / 2 ), 0,
+			16 * cos( 3 * M_PI / 2 ), 16 * sin( 3 * M_PI / 2 ), 0,
+			16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0
+	};
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+
+	glVertexPointer( 3, GL_FLOAT, 0, vtxA );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 6 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+
+	GLfloat vtxB[] = {
+			0, 0, 16,
+			16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0,
+			16 * cos( 3 * M_PI / 2 ), 16 * sin( 3 * M_PI / 2 ), 0,
+			16 * cos( 2 * M_PI / 2 ), 16 * sin( 2 * M_PI / 2 ), 0,
+			16 * cos( 1 * M_PI / 2 ), 16 * sin( 1 * M_PI / 2 ), 0,
+			16 * cos( 0 * M_PI / 2 ), 16 * sin( 0 * M_PI / 2 ), 0
+	};
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+
+	glVertexPointer( 3, GL_FLOAT, 0, vtxB );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 6 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+
+	glColor4f(1, 1, 1, 1);
+	glPopMatrix();
+	glEnable(GL_TEXTURE_2D);
+#endif // 0
+}
+
+static void
+GL3_DrawEntitiesOnList(void)
+{
+	STUB_ONCE("TODO: Implement!");
+
+	int i;
+
 	if (!gl_drawentities->value)
 	{
 		return;
 	}
-*/
 
 	/* draw non-transparent first */
 	for (i = 0; i < gl3_newrefdef.num_entities; i++)
@@ -605,7 +850,7 @@ GL3_DrawEntitiesOnList(void)
 
 		if (currententity->flags & RF_BEAM)
 		{
-			R_DrawBeam(currententity);
+			GL3_DrawBeam(currententity);
 		}
 		else
 		{
@@ -613,7 +858,7 @@ GL3_DrawEntitiesOnList(void)
 
 			if (!currentmodel)
 			{
-				R_DrawNullModel();
+				GL3_DrawNullModel();
 				continue;
 			}
 
@@ -623,10 +868,10 @@ GL3_DrawEntitiesOnList(void)
 					GL3_DrawAliasModel(currententity);
 					break;
 				case mod_brush:
-					R_DrawBrushModel(currententity);
+					GL3_DrawBrushModel(currententity);
 					break;
 				case mod_sprite:
-					R_DrawSpriteModel(currententity);
+					GL3_DrawSpriteModel(currententity);
 					break;
 				default:
 					ri.Sys_Error(ERR_DROP, "Bad modeltype");
@@ -635,6 +880,7 @@ GL3_DrawEntitiesOnList(void)
 		}
 	}
 
+#if 1
 	/* draw transparent entities
 	   we could sort these if it ever
 	   becomes a problem... */
@@ -651,7 +897,7 @@ GL3_DrawEntitiesOnList(void)
 
 		if (currententity->flags & RF_BEAM)
 		{
-			R_DrawBeam(currententity);
+			GL3_DrawBeam(currententity);
 		}
 		else
 		{
@@ -659,20 +905,20 @@ GL3_DrawEntitiesOnList(void)
 
 			if (!currentmodel)
 			{
-				R_DrawNullModel();
+				GL3_DrawNullModel();
 				continue;
 			}
 
 			switch (currentmodel->type)
 			{
 				case mod_alias:
-					R_DrawAliasModel(currententity);
+					GL3_DrawAliasModel(currententity);
 					break;
 				case mod_brush:
-					R_DrawBrushModel(currententity);
+					GL3_DrawBrushModel(currententity);
 					break;
 				case mod_sprite:
-					R_DrawSpriteModel(currententity);
+					GL3_DrawSpriteModel(currententity);
 					break;
 				default:
 					ri.Sys_Error(ERR_DROP, "Bad modeltype");
@@ -1131,9 +1377,9 @@ GL3_RenderView(refdef_t *fd)
 	GL3_MarkLeaves(); /* done here so we know if we're in water */
 
 	GL3_DrawWorld();
-#if 0 // TODO !!
-	R_DrawEntitiesOnList();
 
+	GL3_DrawEntitiesOnList();
+#if 0 // TODO !!
 	GL3_RenderDlights();
 
 	R_DrawParticles();

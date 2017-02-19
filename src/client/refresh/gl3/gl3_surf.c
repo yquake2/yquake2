@@ -739,8 +739,9 @@ DrawInlineBModel(void)
 
 	if (currententity->flags & RF_TRANSLUCENT)
 	{
-		STUB_ONCE("TODO: implement for OpenGL3");
-		/*
+		STUB_ONCE("TODO: implement for OpenGL3 (esp. the alpha 0.25 part in color?)");
+		glEnable(GL_BLEND);
+		/* TODO: if you change this, also do at the end of the function
 		glEnable(GL_BLEND);
 		glColor4f(1, 1, 1, 0.25);
 		R_TexEnv(GL_MODULATE);
@@ -778,9 +779,10 @@ DrawInlineBModel(void)
 	}
 	else
 	{
-		STUB_ONCE("TODO: implement for OpenGL3");
-		/*
+		//STUB_ONCE("TODO: implement for OpenGL3");
+
 		glDisable(GL_BLEND);
+		/*
 		glColor4f(1, 1, 1, 1);
 		R_TexEnv(GL_REPLACE);
 		*/
@@ -848,15 +850,20 @@ GL3_DrawBrushModel(entity_t *e)
 		modelorg[2] = DotProduct(temp, up);
 	}
 
-	STUB_ONCE("TODO: something to the view matrix and R_TexEnv()");
-#if 0
-	glPushMatrix();
+
+
+	//glPushMatrix();
+	hmm_mat4 oldMat = gl3state.uni3DData.transModelViewMat4;
+
 	e->angles[0] = -e->angles[0];
 	e->angles[2] = -e->angles[2];
-	R_RotateForEntity(e);
+	GL3_RotateForEntity(e);
 	e->angles[0] = -e->angles[0];
 	e->angles[2] = -e->angles[2];
 
+
+	STUB_ONCE("TODO: something about R_TexEnv() and gl_lightmap");
+#if 0
 	R_TexEnv(GL_REPLACE);
 
 	if (gl_lightmap->value)
@@ -867,11 +874,13 @@ GL3_DrawBrushModel(entity_t *e)
 	{
 		R_TexEnv(GL_MODULATE);
 	}
+#endif // 0
 
 	DrawInlineBModel();
 
-	glPopMatrix();
-#endif // 0
+	// glPopMatrix();
+	gl3state.uni3DData.transModelViewMat4 = oldMat;
+	GL3_UpdateUBO3D();
 
 	if (gl_zfix->value)
 	{
