@@ -152,7 +152,7 @@ R_TexEnv(GLenum mode)
 
 	if (mode != lastmodes[gl_state.currenttmu])
 	{
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode); // FIXME: shouldn't this be glTexEnvi() ?
 		lastmodes[gl_state.currenttmu] = mode;
 	}
 }

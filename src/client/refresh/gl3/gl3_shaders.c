@@ -32,10 +32,14 @@
 
 
 static GLuint
-CompileShader(GLenum shaderType, const char* shaderSrc)
+CompileShader(GLenum shaderType, const char* shaderSrc, const char* shaderSrc2)
 {
 	GLuint shader = glCreateShader(shaderType);
-	glShaderSource(shader, 1, &shaderSrc, NULL);
+
+	const char* sources[2] = { shaderSrc, shaderSrc2 };
+	int numSources = shaderSrc2 != NULL ? 2 : 1;
+
+	glShaderSource(shader, numSources, sources, NULL);
 	glCompileShader(shader);
 	GLint status;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
@@ -99,6 +103,12 @@ CreateShaderProgram(int numShaders, const GLuint* shaders)
 		glAttachShader(shaderProgram, shaders[i]);
 	}
 
+	// make sure all shaders use the same attribute locations for common attributes
+	// (so the same VAO can easily be used with different shaders)
+	glBindAttribLocation(shaderProgram, GL3_ATTRIB_POSITION, "position");
+	glBindAttribLocation(shaderProgram, GL3_ATTRIB_TEXCOORD, "texCoord");
+	glBindAttribLocation(shaderProgram, GL3_ATTRIB_LMTEXCOORD, "lmTexCoord");
+
 	// the following line is not necessary/implicit (as there's only one output)
 	// glBindFragDataLocation(shaderProgram, 0, "outColor"); XXX would this even be here?
 
@@ -149,8 +159,8 @@ CreateShaderProgram(int numShaders, const GLuint* shaders)
 #define MULTILINE_STRING(...) #__VA_ARGS__
 
 static const char* vertexSrc2D = MULTILINE_STRING(#version 150\n
-		in vec2 texCoord;
-		in vec2 position;
+		in vec2 position; // GL3_ATTRIB_POSITION
+		in vec2 texCoord; // GL3_ATTRIB_TEXCOORD
 
 		uniform mat4 trans;
 
@@ -190,44 +200,56 @@ static const char* fragmentSrc2D = MULTILINE_STRING(#version 150\n
 
 // 2D color only rendering, GL3_Draw_Fill(), GL3_Draw_FadeScreen()
 static const char* vertexSrc2Dcolor = MULTILINE_STRING(#version 150\n
-		in vec4 color;
-		in vec2 position;
+		in vec2 position; // GL3_ATTRIB_POSITION
 
 		uniform mat4 trans;
-
-		out vec4 passColor;
 
 		void main()
 		{
 			gl_Position = trans * vec4(position, 0.0, 1.0);
-			passColor = color;
 		}
 );
 
 static const char* fragmentSrc2Dcolor = MULTILINE_STRING(#version 150\n
-		in vec4 passColor;
 
 		uniform float gamma; // this is 1.0/vid_gamma
 		uniform float intensity;
+		uniform vec4 color;
 
 		out vec4 outColor;
 
 		void main()
 		{
-			vec3 col = passColor.rgb * intensity;
+			vec3 col = color.rgb * intensity;
 			outColor.rgb = pow(col, vec3(gamma));
-			outColor.a = passColor.a;
+			outColor.a = color.a;
 		}
 );
 
-static const char* vertexSrc3D = MULTILINE_STRING(#version 150\n
-		in vec2 texCoord;
-		in vec3 position;
+static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
+
+		in vec3 position;   // GL3_ATTRIB_POSITION
+		in vec2 texCoord;   // GL3_ATTRIB_TEXCOORD
+		in vec2 lmTexCoord; // GL3_ATTRIB_LMTEXCOORD
+
+		out vec2 passTexCoord;
+
+		// TODO: uniform blocks
+);
+
+static const char* fragmentCommon3D = MULTILINE_STRING(#version 150\n
+
+		in vec2 passTexCoord;
+
+		out vec4 outColor;
+
+		// TODO: uniform blocks
+);
+
+static const char* vertexSrc3D = MULTILINE_STRING(
 
 		uniform mat4 transProj;
 		uniform mat4 transModelView;
-
-		out vec2 passTexCoord;
 
 		void main()
 		{
@@ -236,14 +258,11 @@ static const char* vertexSrc3D = MULTILINE_STRING(#version 150\n
 		}
 );
 
-static const char* fragmentSrc3D = MULTILINE_STRING(#version 150\n
-		in vec2 passTexCoord;
+static const char* fragmentSrc3D = MULTILINE_STRING(
 
 		uniform sampler2D tex;
 		uniform float gamma; // this is 1.0/vid_gamma
 		uniform float intensity;
-
-		out vec4 outColor;
 
 		void main()
 		{
@@ -258,7 +277,33 @@ static const char* fragmentSrc3D = MULTILINE_STRING(#version 150\n
 		}
 );
 
+
+
 #undef MULTILINE_STRING
+
+/* TODO: UBOs
+layout (std140) uniform common_data
+{
+	float gamma;
+	float intensity;
+
+	vec4 color; // really?
+
+};
+
+layout (std140) uniform for2D_data
+{
+	mat4 trans;
+};
+
+layout (std140) uniform for3D_data
+{
+	mat4 transProj;
+	mat4 transModelView; // TODO: or maybe transViewProj; and transModel; ??
+	float scroll; // for SURF_FLOWING
+	float time; // or sth like this?
+};
+ */
 
 static qboolean
 initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragSrc)
@@ -273,14 +318,13 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		glDeleteProgram(shaderInfo->shaderProgram);
 	}
 
-	shaderInfo->attribColor = shaderInfo->attribPosition = shaderInfo->attribTexCoord = -1;
-	shaderInfo->uniProjMatrix = shaderInfo->uniModelViewMatrix = -1;
+	shaderInfo->uniColor = shaderInfo->uniProjMatrix = shaderInfo->uniModelViewMatrix = -1;
 	shaderInfo->shaderProgram = 0;
 
-	shaders2D[0] = CompileShader(GL_VERTEX_SHADER, vertSrc);
+	shaders2D[0] = CompileShader(GL_VERTEX_SHADER, vertSrc, NULL);
 	if(shaders2D[0] == 0)  return false;
 
-	shaders2D[1] = CompileShader(GL_FRAGMENT_SHADER, fragSrc);
+	shaders2D[1] = CompileShader(GL_FRAGMENT_SHADER, fragSrc, NULL);
 	if(shaders2D[1] == 0)
 	{
 		glDeleteShader(shaders2D[0]);
@@ -301,18 +345,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	shaderInfo->shaderProgram = prog;
 	glUseProgram(prog);
 
-	i = glGetAttribLocation(prog, "position");
-	if( i == -1)
-	{
-		R_Printf(PRINT_ALL, "WARNING: Couldn't get 'position' attribute in shader\n");
-		return false;
-	}
-	shaderInfo->attribPosition = i;
-
-	// the following line will set it to -1 for the textured case, that's ok.
-	shaderInfo->attribColor = glGetAttribLocation(prog, "color");
-	// the following line will set it to -1 for the color-only case, that's ok.
-	shaderInfo->attribTexCoord = glGetAttribLocation(prog, "texCoord");
+	shaderInfo->uniColor = glGetUniformLocation(prog, "color");
 
 	i = glGetUniformLocation(prog, "trans");
 	if( i == -1)
@@ -338,14 +371,13 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		glDeleteProgram(shaderInfo->shaderProgram);
 	}
 
-	shaderInfo->attribColor = shaderInfo->attribPosition = shaderInfo->attribTexCoord = -1;
-	shaderInfo->uniProjMatrix = shaderInfo->uniModelViewMatrix = -1;
+	shaderInfo->uniColor = shaderInfo->uniProjMatrix = shaderInfo->uniModelViewMatrix = -1;
 	shaderInfo->shaderProgram = 0;
 
-	shaders3D[0] = CompileShader(GL_VERTEX_SHADER, vertSrc);
+	shaders3D[0] = CompileShader(GL_VERTEX_SHADER, vertexCommon3D, vertSrc);
 	if(shaders3D[0] == 0)  return false;
 
-	shaders3D[1] = CompileShader(GL_FRAGMENT_SHADER, fragSrc);
+	shaders3D[1] = CompileShader(GL_FRAGMENT_SHADER, fragmentCommon3D, fragSrc);
 	if(shaders3D[1] == 0)
 	{
 		glDeleteShader(shaders3D[0]);
@@ -366,18 +398,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	shaderInfo->shaderProgram = prog;
 	glUseProgram(prog);
 
-	i = glGetAttribLocation(prog, "position");
-	if( i == -1)
-	{
-		R_Printf(PRINT_ALL, "WARNING: Couldn't get 'position' attribute in shader\n");
-		return false;
-	}
-	shaderInfo->attribPosition = i;
-
-	// the following line will set it to -1 for the textured case, that's ok.
-	shaderInfo->attribColor = glGetAttribLocation(prog, "color");
-	// the following line will set it to -1 for the color-only case, that's ok.
-	shaderInfo->attribTexCoord = glGetAttribLocation(prog, "texCoord");
+	shaderInfo->uniColor = glGetUniformLocation(prog, "color");
 
 	i = glGetUniformLocation(prog, "transProj");
 	if( i == -1)
@@ -414,6 +435,7 @@ qboolean GL3_InitShaders(void)
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for textured 3D rendering!\n");
 		return false;
 	}
+	gl3state.currentShaderProgram = 0;
 
 
 	GL3_SetGammaAndIntensity();

@@ -31,29 +31,55 @@ unsigned d_8to24table[256];
 
 gl3image_t *draw_chars;
 
+static GLuint vbo2D = 0, vao2D = 0, vao2Dcolor = 0; // vao2D is for textured rendering, vao2Dcolor for color-only
+
 void
 GL3_Draw_InitLocal(void)
 {
 	/* load console characters */
 	draw_chars = GL3_FindImage("pics/conchars.pcx", it_pic);
 
-	glGenVertexArrays(1, &gl3state.vao2D);
-	glBindVertexArray(gl3state.vao2D);
+	// set up attribute layout for 2D textured rendering
+	glGenVertexArrays(1, &vao2D);
+	glBindVertexArray(vao2D);
 
-	glGenBuffers(1, &gl3state.vbo2D);
-	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo2D); // TODO ??
+	glGenBuffers(1, &vbo2D);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2D);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	GL3_UseProgram(gl3state.si2D.shaderProgram);
+
+	glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
+	// Note: the glVertexAttribPointer() configuration is stored in the VAO, not the shader or sth
+	//       (that's why I use one VAO per 2D shader)
+	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), 0);
+
+	glEnableVertexAttribArray(GL3_ATTRIB_TEXCOORD);
+	qglVertexAttribPointer(GL3_ATTRIB_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), 2*sizeof(float));
+
+	// set up attribute layout for 2D flat color rendering
+
+	glGenVertexArrays(1, &vao2Dcolor);
+	glBindVertexArray(vao2Dcolor);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2D); // yes, both VAOs share the same VBO
+
+	GL3_UseProgram(gl3state.si2Dcolor.shaderProgram);
+
+	glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
+	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), 0);
+
+	GL3_BindVAO(0);
 }
 
 void
 GL3_Draw_ShutdownLocal(void)
 {
-	glDeleteBuffers(1, &gl3state.vbo2D);
-	gl3state.vbo2D = 0;
-	glDeleteVertexArrays(1, &gl3state.vao2D);
-	gl3state.vao2D = 0;
+	glDeleteBuffers(1, &vbo2D);
+	vbo2D = 0;
+	glDeleteVertexArrays(1, &vao2D);
+	vao2D = 0;
+	glDeleteVertexArrays(1, &vao2Dcolor);
+	vao2Dcolor = 0;
 }
 
 // bind the texture before calling this
@@ -79,18 +105,16 @@ drawTexturedRectangle(float x, float y, float w, float h,
 		x+w, y,   sh, tl
 	};
 
-	glBindVertexArray(gl3state.vao2D);
+	GL3_BindVAO(vao2D);
 
-	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo2D);
+	// Note: while vao2D "remembers" its vbo for drawing, binding the vao does *not*
+	//       implicitly bind the vbo, so I need to explicitly bind it before glBufferData()
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2D);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
 
-	glEnableVertexAttribArray(gl3state.si2D.attribPosition);
-	qglVertexAttribPointer(gl3state.si2D.attribPosition, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), 0);
-
-	glEnableVertexAttribArray(gl3state.si2D.attribTexCoord);
-	qglVertexAttribPointer(gl3state.si2D.attribTexCoord, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), 2*sizeof(float));
-
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	//glMultiDrawArrays(mode, first, count, drawcount) ??
 }
 
 /*
@@ -124,6 +148,9 @@ GL3_Draw_CharScaled(int x, int y, int num, float scale)
 
 	scaledSize = 8*scale;
 
+	// TODO: batchen?
+
+	GL3_UseProgram(gl3state.si2D.shaderProgram);
 	GL3_Bind(draw_chars->texnum);
 	drawTexturedRectangle(x, y, scaledSize, scaledSize, fcol, frow, fcol+size, frow+size);
 }
@@ -175,6 +202,7 @@ GL3_Draw_StretchPic(int x, int y, int w, int h, char *pic)
 		return;
 	}
 
+	GL3_UseProgram(gl3state.si2D.shaderProgram);
 	GL3_Bind(gl->texnum);
 
 	drawTexturedRectangle(x, y, w, h, gl->sl, gl->tl, gl->sh, gl->th);
@@ -190,6 +218,7 @@ GL3_Draw_PicScaled(int x, int y, char *pic, float factor)
 		return;
 	}
 
+	GL3_UseProgram(gl3state.si2D.shaderProgram);
 	GL3_Bind(gl->texnum);
 
 	drawTexturedRectangle(x, y, gl->width*factor, gl->height*factor, gl->sl, gl->tl, gl->sh, gl->th);
@@ -210,6 +239,7 @@ GL3_Draw_TileClear(int x, int y, int w, int h, char *pic)
 		return;
 	}
 
+	GL3_UseProgram(gl3state.si2D.shaderProgram);
 	GL3_Bind(image->texnum);
 
 	drawTexturedRectangle(x, y, w, h, x/64.0f, y/64.0f, (x+w)/64.0f, (y+h)/64.0f);
@@ -241,29 +271,24 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 		cf[i] = color.v[i] * (1.0f/255.0f);
 	}
 
-	GLfloat vBuf[24] = {
-	//  X,   Y,     R,     G,     B,     A
-		x,   y+h,  cf[0], cf[1], cf[2], 1.0f,
-		x,   y,    cf[0], cf[1], cf[2], 1.0f,
-		x+w, y+h,  cf[0], cf[1], cf[2], 1.0f,
-		x+w, y,    cf[0], cf[1], cf[2], 1.0f
+	GLfloat vBuf[8] = {
+	//  X,   Y
+		x,   y+h,
+		x,   y,
+		x+w, y+h,
+		x+w, y
 	};
 
-	glUseProgram(gl3state.si2Dcolor.shaderProgram);
+	GL3_UseProgram(gl3state.si2Dcolor.shaderProgram);
 
-	glBindVertexArray(gl3state.vao2D);
+	GL3_BindVAO(vao2Dcolor);
 
-	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo2D);
+	glUniform4f(gl3state.si2Dcolor.uniColor, cf[0], cf[1], cf[2], 1.0f);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2D);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
 
-	glEnableVertexAttribArray(gl3state.si2Dcolor.attribPosition);
-	qglVertexAttribPointer(gl3state.si2Dcolor.attribPosition, 2, GL_FLOAT, GL_FALSE, 6*sizeof(float), 0);
-
-	glEnableVertexAttribArray(gl3state.si2Dcolor.attribColor);
-	qglVertexAttribPointer(gl3state.si2Dcolor.attribColor, 2, GL_FLOAT, GL_FALSE, 6*sizeof(float), 2*sizeof(float));
-
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glUseProgram(gl3state.si2D.shaderProgram);
 }
 
 void
@@ -272,29 +297,34 @@ GL3_Draw_FadeScreen(void)
 	float w = vid.width;
 	float h = vid.height;
 
-	GLfloat vBuf[24] = {
-	//  X,   Y,   R,    G,    B,    A
-		0,   h,  0.0f, 0.0f, 0.0f, 0.8f,
-		0,   0,  0.0f, 0.0f, 0.0f, 0.8f,
-		w,   h,  0.0f, 0.0f, 0.0f, 0.8f,
-		w,   0,  0.0f, 0.0f, 0.0f, 0.8f
+	GLfloat vBuf[8] = {
+	//  X,   Y
+		0,   h,
+		0,   0,
+		w,   h,
+		w,   0
 	};
 
-	glUseProgram(gl3state.si2Dcolor.shaderProgram);
+	glEnable(GL_BLEND);
 
-	glBindVertexArray(gl3state.vao2D);
 
-	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo2D);
+	GL3_UseProgram(gl3state.si2Dcolor.shaderProgram);
+
+	GL3_BindVAO(vao2Dcolor);
+
+	glUniform4f(gl3state.si2Dcolor.uniColor, 0, 0, 0, 0.6f);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2D);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
 
-	glEnableVertexAttribArray(gl3state.si2Dcolor.attribPosition);
-	qglVertexAttribPointer(gl3state.si2Dcolor.attribPosition, 2, GL_FLOAT, GL_FALSE, 6*sizeof(float), 0);
-
-	glEnableVertexAttribArray(gl3state.si2Dcolor.attribColor);
-	qglVertexAttribPointer(gl3state.si2Dcolor.attribColor, 2, GL_FLOAT, GL_FALSE, 6*sizeof(float), 2*sizeof(float));
+	//glEnableVertexAttribArray(gl3state.si2Dcolor.attribPosition);
+	//qglVertexAttribPointer(gl3state.si2Dcolor.attribPosition, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), 0);
+	//glEnableVertexAttribArray(gl3state.si2Dcolor.attribColor);
+	//qglVertexAttribPointer(gl3state.si2Dcolor.attribColor, 2, GL_FLOAT, GL_FALSE, 6*sizeof(float), 2*sizeof(float));
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glUseProgram(gl3state.si2D.shaderProgram);
+
+	glDisable(GL_BLEND);
 }
 
 void
@@ -324,6 +354,8 @@ GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 			img[rowOffset+j] = gl3_rawpalette[palIdx];
 		}
 	}
+
+	GL3_UseProgram(gl3state.si2D.shaderProgram);
 
 	GLuint glTex;
 	glGenTextures(1, &glTex);

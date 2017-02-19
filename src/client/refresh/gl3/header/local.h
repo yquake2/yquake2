@@ -62,6 +62,14 @@ qglVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normaliz
 	glVertexAttribPointer(index, size, type, normalized, stride, (const void*)offset);
 }
 
+// attribute locations for vertex shaders
+enum {
+	GL3_ATTRIB_POSITION = 0,
+	GL3_ATTRIB_TEXCOORD = 1,   // for normal texture
+	GL3_ATTRIB_LMTEXCOORD = 2, // for lightmap
+	// TODO: more? maybe normal and color?
+};
+
 // TODO: do we need the following configurable?
 static const int gl3_solid_format = GL_RGB;
 static const int gl3_alpha_format = GL_RGBA;
@@ -96,10 +104,7 @@ typedef struct
 {
 	GLuint shaderProgram;
 
-	GLint attribPosition;
-	GLint attribTexCoord;
-	GLint attribColor;
-
+	GLint uniColor;
 	GLint uniProjMatrix; // for 2D shaders this is the only one used
 	GLint uniModelViewMatrix; // TODO: or even pass as 2 matrices?
 
@@ -129,10 +134,10 @@ typedef struct
 
 	//qboolean hwgamma;
 
+	GLuint currentVAO;
+	GLuint currentShaderProgram;
 	gl3ShaderInfo_t si2D; // shader for rendering 2D with textures
 	gl3ShaderInfo_t si2Dcolor; // shader for rendering 2D with flat colors
-	GLuint vbo2D; // this vbo is reused for all 2D drawing (HUD, movies, menu, console, ..)
-	GLuint vao2D; // same for this vao
 
 	gl3ShaderInfo_t si3D;
 
@@ -208,13 +213,33 @@ extern float gl3depthmin, gl3depthmax;
 
 extern cplane_t frustum[4];
 
-vec3_t gl3_origin;
+extern vec3_t gl3_origin;
 
 extern gl3image_t *gl3_notexture; /* use for bad textures */
 extern gl3image_t *gl3_particletexture; /* little dot for particles */
 
 extern int gl_filter_min;
 extern int gl_filter_max;
+
+static inline void
+GL3_UseProgram(GLuint shaderProgram)
+{
+	if(shaderProgram != gl3state.currentShaderProgram)
+	{
+		gl3state.currentShaderProgram = shaderProgram;
+		glUseProgram(shaderProgram);
+	}
+}
+
+static inline void
+GL3_BindVAO(GLuint vao)
+{
+	if(vao != gl3state.currentVAO)
+	{
+		gl3state.currentVAO = vao;
+		glBindVertexArray(vao);
+	}
+}
 
 extern qboolean GL3_CullBox(vec3_t mins, vec3_t maxs);
 extern void GL3_RotateForEntity(entity_t *e);
@@ -309,6 +334,7 @@ extern void GL3_MarkLeaves(void);
 
 
 // gl3_shaders.c
+
 extern qboolean GL3_InitShaders(void);
 extern void GL3_ShutdownShaders(void);
 extern void GL3_SetGammaAndIntensity(void);

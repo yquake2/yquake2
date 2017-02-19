@@ -96,42 +96,37 @@ GL3_DrawGLPoly(glpoly_t *p)
 	v = p->verts[0];
 
 	// v: blocks of 7 floats: (X, Y, Z) (S1, T1), (S2, T2)
-	// apparently (S2, T2) is not used here?
+	// apparently (S2, T2) is not used here, probably for lightmap?
 
 	STUB_ONCE("TODO: Implement!");
 
-	glUseProgram(gl3state.si3D.shaderProgram); // TODO: needed each time?!
+	GL3_UseProgram(gl3state.si3D.shaderProgram); // TODO: needed each time?!
 
 	static GLuint vao = 0, vbo = 0; // TODO!!
 	if(vao == 0) // FIXME: DON'T DO THIS!
 	{
 		glGenVertexArrays(1, &vao);
-		glBindVertexArray(vao);
+		GL3_BindVAO(vao);
 
 		glGenBuffers(1, &vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo); // TODO ??
 
-		glEnableVertexAttribArray(gl3state.si3D.attribPosition);
-		qglVertexAttribPointer(gl3state.si3D.attribPosition, 3, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 0);
+		glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
+		qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 0);
 
-		glEnableVertexAttribArray(gl3state.si3D.attribTexCoord);
-		qglVertexAttribPointer(gl3state.si3D.attribTexCoord, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 3*sizeof(float));
+		glEnableVertexAttribArray(GL3_ATTRIB_TEXCOORD);
+		qglVertexAttribPointer(GL3_ATTRIB_TEXCOORD, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 3*sizeof(GLfloat));
 
+		glEnableVertexAttribArray(GL3_ATTRIB_LMTEXCOORD);
+		qglVertexAttribPointer(GL3_ATTRIB_LMTEXCOORD, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 5*sizeof(GLfloat));
 	}
 
-	glUseProgram(gl3state.si3D.shaderProgram);
+	GL3_UseProgram(gl3state.si3D.shaderProgram); // TODO: needed each time?! maybe call this once in DrawTextureChains()?
 
-	glBindVertexArray(vao);
+	GL3_BindVAO(vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, VERTEXSIZE*sizeof(GLfloat)*p->numverts, v, GL_STREAM_DRAW);
-/*
-	glEnableVertexAttribArray(gl3state.si3D.attribPosition);
-	qglVertexAttribPointer(gl3state.si3D.attribPosition, 3, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 0);
-
-	glEnableVertexAttribArray(gl3state.si3D.attribTexCoord);
-	qglVertexAttribPointer(gl3state.si3D.attribTexCoord, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 3*sizeof(GLfloat));
-*/
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 
@@ -598,6 +593,7 @@ RenderBrushPoly(msurface_t *fa)
 
 	STUB_ONCE("TODO: lightmap support (=> esp. LM textures)")
 #if 0
+	// TODO: 2D texture array für lightmaps?
 	if (is_dynamic)
 	{
 		if (((fa->styles[maps] >= 32) ||
