@@ -177,7 +177,7 @@ void
 R_DrawSpriteModel(entity_t *e)
 {
 	float alpha = 1.0F;
-    vec3_t point[4];
+	vec3_t point[4];
 	dsprframe_t *frame;
 	float *up, *right;
 	dsprite_t *psprite;

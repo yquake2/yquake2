@@ -34,9 +34,9 @@ static float r_avertexnormals[NUMVERTEXNORMALS][3] = {
 };
 
 /* precalculated dot products for quantized angles */
-static float r_avertexnormal_dots[SHADEDOT_QUANT][256] =
+static float r_avertexnormal_dots[SHADEDOT_QUANT][256] = {
 #include "../constants/anormtab.h"
-;
+};
 
 typedef float vec4_t[4];
 static vec4_t s_lerped[MAX_VERTS];
