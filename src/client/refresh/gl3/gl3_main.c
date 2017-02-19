@@ -440,6 +440,15 @@ GL3_Init(void)
 
 	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
 
+	if(sizeof(float) != sizeof(GLfloat))
+	{
+		// if this ever happens, things would explode because we feed vertex arrays and UBO data
+		// using floats to OpenGL, which expects GLfloat (can't easily change, those floats are from HMM etc)
+		// (but to be honest I very much doubt this will ever happen.)
+		R_Printf(PRINT_ALL, "ref_gl3: sizeof(float) != sizeof(GLfloat) - we're in real trouble here.\n");
+		return false;
+	}
+
 	GL3_Draw_GetPalette();
 
 	GL3_Register();
@@ -826,17 +835,7 @@ GL3_SetGL2D(void)
 
 	hmm_mat4 transMatr = HMM_Orthographic(0, vid.width, vid.height, 0, -99999, 99999);
 
-	/*
-	glUseProgram(gl3state.si2Dcolor.shaderProgram);
-	glUniformMatrix4fv(gl3state.si2Dcolor.uniProjMatrix , 1, GL_FALSE, transMatr.Elements[0]);
-	glUseProgram(gl3state.si2D.shaderProgram);
-	glUniformMatrix4fv(gl3state.si2D.uniProjMatrix , 1, GL_FALSE, transMatr.Elements[0]);
-	*/
-
-	//memcpy(gl3state.uni2DData.transMat4, transMatr.Elements, 4*4*sizeof(GLfloat));
-	for(int i=0; i<4; ++i)
-		for(int j=0; j<4; ++j)
-			gl3state.uni2DData.transMat4[i][j] = transMatr.Elements[i][j];
+	gl3state.uni2DData.transMat4 = transMatr;
 
 	GL3_UpdateUBO2D();
 
@@ -940,8 +939,8 @@ SetupGL(void)
 		gl3_world_matrix = viewMat;
 	}
 
-	memcpy(gl3state.uni3DData.transProjMat4, gl3_projectionMatrix.Elements, sizeof(gl3state.uni3DData.transProjMat4));
-	memcpy(gl3state.uni3DData.transModelViewMat4, gl3_world_matrix.Elements, sizeof(gl3state.uni3DData.transProjMat4));
+	gl3state.uni3DData.transProjMat4 = gl3_projectionMatrix;
+	gl3state.uni3DData.transModelViewMat4 = gl3_world_matrix;
 
 	gl3state.uni3DData.time = gl3_newrefdef.time;
 

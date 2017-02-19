@@ -118,21 +118,21 @@ typedef struct
 	GLfloat intensity;
 
 		// entries of std140 UBOs are aligned to multiples of their own size
-		// so we'll need to pad accordingly
+		// so we'll need to pad accordingly for following vec4
 		GLfloat _padding[2];
 
-	GLfloat color[4];
+	hmm_vec4 color;
 } gl3UniCommon_t;
 
 typedef struct
 {
-	GLfloat transMat4[4][4];
+	hmm_mat4 transMat4;
 } gl3Uni2D_t;
 
 typedef struct
 {
-	GLfloat transProjMat4[4][4];
-	GLfloat transModelViewMat4[4][4];
+	hmm_mat4 transProjMat4;
+	hmm_mat4 transModelViewMat4;
 
 	GLfloat scroll; // for SURF_FLOWING
 	GLfloat time; // for warping surfaces like water & possibly other things

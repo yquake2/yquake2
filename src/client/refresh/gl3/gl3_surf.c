@@ -624,8 +624,7 @@ GL3_DrawAlphaSurfaces(void)
 	float intens;
 
 	/* go back to the world matrix */
-	//glLoadMatrixf(r_world_matrix);
-	memcpy(gl3state.uni3DData.transModelViewMat4, gl3_world_matrix.Elements, 16*sizeof(float));
+	gl3state.uni3DData.transModelViewMat4 = gl3_world_matrix;
 	GL3_UpdateUBO3D();
 
 	glEnable(GL_BLEND);

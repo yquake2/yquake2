@@ -413,35 +413,10 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uniCommon': %i vs %i\n",
 					blockSize, (int)sizeof(gl3state.uniCommonData));
 
-			// TODO: clean up?
-			return false;
+			goto err_cleanup;
 		}
-
-		const GLchar *names[] = { "gamma", "intensity", "color" };
-
-		GLuint indices[3];
-		glGetUniformIndices(prog, 3, names, indices);
-
-		GLint offset[3];
-		glGetActiveUniformsiv(prog, 3, indices, GL_UNIFORM_OFFSET, offset);
-
-		printf("## uniCommon offsets in shader:");
-		for(int i=0; i<3; ++i)
-		{
-			printf(" offset of '%s' is %d", names[i], offset[i]);
-		}
-		printf("\n");
-
-		printf("## offsets in C: gamma: %zd intensity: %zd color: %zd\n",
-				offsetof(gl3UniCommon_t, gamma),
-				offsetof(gl3UniCommon_t, intensity),
-				offsetof(gl3UniCommon_t, color));
-
-
 
 		glUniformBlockBinding(prog, blockIndex, GL3_BINDINGPOINT_UNICOMMON);
-
-		// TODO: something with glUniformBlockBinding() !
 	}
 	else
 	{
@@ -457,8 +432,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		if(blockSize != sizeof(gl3state.uni2DData))
 		{
 			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uni2D'\n");
-			// TODO: clean up?
-			return false;
+			goto err_cleanup;
 		}
 
 		glUniformBlockBinding(prog, blockIndex, GL3_BINDINGPOINT_UNI2D);
@@ -466,11 +440,18 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	else
 	{
 		R_Printf(PRINT_ALL, "WARNING: Couldn't find uniform block index 'uni2D'\n");
-		// TODO: clean up?
-		return false;
+		goto err_cleanup;
 	}
 
 	return true;
+
+err_cleanup:
+	if(shaders2D[0] != 0)  glDeleteShader(shaders2D[0]);
+	if(shaders2D[1] != 0)  glDeleteShader(shaders2D[1]);
+
+	if(prog != 0)  glDeleteProgram(prog);
+
+	return false;
 }
 
 static qboolean
@@ -485,7 +466,6 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		glDeleteProgram(shaderInfo->shaderProgram);
 	}
 
-	//shaderInfo->uniColor = shaderInfo->uniProjMatrix = shaderInfo->uniModelViewMatrix = -1;
 	shaderInfo->shaderProgram = 0;
 
 	shaders3D[0] = CompileShader(GL_VERTEX_SHADER, vertexCommon3D, vertSrc);
@@ -571,8 +551,7 @@ static void initUBOs(void)
 {
 	gl3state.uniCommonData.gamma = 1.0f/vid_gamma->value;
 	gl3state.uniCommonData.intensity = intensity->value;
-	GLfloat color[4] = {1, 1, 1, 1};
-	memcpy(gl3state.uniCommonData.color, color, sizeof(color));
+	gl3state.uniCommonData.color = HMM_Vec4(1, 1, 1, 1);
 
 	glGenBuffers(1, &gl3state.uniCommonUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uniCommonUBO);
@@ -580,16 +559,16 @@ static void initUBOs(void)
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(gl3state.uniCommonData), &gl3state.uniCommonData, GL_DYNAMIC_DRAW);
 
 	// the matrix will be set to something more useful later, before being used
-	memset(gl3state.uni2DData.transMat4, 0, sizeof(gl3state.uni2DData.transMat4));
+	gl3state.uni2DData.transMat4 = HMM_Mat4();
 
 	glGenBuffers(1, &gl3state.uni2DUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uni2DUBO);
 	glBindBufferBase(GL_UNIFORM_BUFFER, GL3_BINDINGPOINT_UNI2D, gl3state.uni2DUBO);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(gl3state.uni2DData), &gl3state.uni2DData, GL_DYNAMIC_DRAW);
 
-
-	memset(&gl3state.uni3DData, 0, sizeof(gl3state.uni3DData));
 	// the matrices will be set to something more useful later, before being used
+	gl3state.uni3DData.transProjMat4 = HMM_Mat4();
+	gl3state.uni3DData.transModelViewMat4 = HMM_Mat4();
 	gl3state.uni3DData.scroll = 0.0f;
 	gl3state.uni3DData.time = 0.0f;
 	gl3state.uni3DData.alpha = 1.0f;

@@ -257,7 +257,6 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 		byte v[4];
 	} color;
 	int i;
-	float cf[3];
 
 	if ((unsigned)c > 255)
 	{
@@ -276,8 +275,9 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 
 	for(i=0; i<3; ++i)
 	{
-		gl3state.uniCommonData.color[i] = color.v[i] * (1.0f/255.0f);
+		gl3state.uniCommonData.color.Elements[i] = color.v[i] * (1.0f/255.0f);
 	}
+	gl3state.uniCommonData.color.A = 1.0f;
 
 	GL3_UpdateUBOCommon();
 
@@ -295,7 +295,6 @@ GL3_Draw_FadeScreen(void)
 {
 	float w = vid.width;
 	float h = vid.height;
-	int i=0;
 
 	GLfloat vBuf[8] = {
 	//  X,   Y
@@ -307,14 +306,8 @@ GL3_Draw_FadeScreen(void)
 
 	glEnable(GL_BLEND);
 
-	for(i=0; i<3; ++i)
-	{
-		gl3state.uniCommonData.color[i] = 0.0f;
-	}
-	gl3state.uniCommonData.color[3] = 0.6f;
-
+	gl3state.uniCommonData.color = HMM_Vec4(0, 0, 0, 0.6f);
 	GL3_UpdateUBOCommon();
-
 
 	GL3_UseProgram(gl3state.si2Dcolor.shaderProgram);
 
@@ -322,11 +315,6 @@ GL3_Draw_FadeScreen(void)
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo2D);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
-
-	//glEnableVertexAttribArray(gl3state.si2Dcolor.attribPosition);
-	//qglVertexAttribPointer(gl3state.si2Dcolor.attribPosition, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), 0);
-	//glEnableVertexAttribArray(gl3state.si2Dcolor.attribColor);
-	//qglVertexAttribPointer(gl3state.si2Dcolor.attribColor, 2, GL_FLOAT, GL_FALSE, 6*sizeof(float), 2*sizeof(float));
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
