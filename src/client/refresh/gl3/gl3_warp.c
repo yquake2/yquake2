@@ -27,11 +27,6 @@
 
 #include "header/local.h"
 
-// TODO: can we get rid of this?
-float gl3_turbsin[] = {
-#include "../constants/warpsin.h"
-};
-
 static void
 R_BoundPoly(int numverts, float *verts, vec3_t mins, vec3_t maxs)
 {
@@ -234,6 +229,10 @@ GL3_EmitWaterPolys(msurface_t *fa)
 	if (fa->texinfo->flags & SURF_FLOWING)
 	{
 		scroll = -64.0f * ((gl3_newrefdef.time * 0.5) - (int)(gl3_newrefdef.time * 0.5));
+		if (scroll == 0.0f) // this is done in GL3_DrawGLFlowingPoly() TODO: keep?
+		{
+			scroll = -64.0f;
+		}
 	}
 
 	if(gl3state.uni3DData.scroll != scroll)

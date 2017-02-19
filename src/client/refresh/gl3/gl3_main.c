@@ -431,13 +431,6 @@ GL3_SetMode(void)
 static qboolean
 GL3_Init(void)
 {
-	int j;
-	extern float gl3_turbsin[256];
-	for (j = 0; j < 256; j++)
-	{
-		gl3_turbsin[j] *= 0.5;
-	}
-
 	Swap_Init(); // FIXME: for fucks sake, this doesn't have to be done at runtime!
 
 	/* Options */

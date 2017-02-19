@@ -142,37 +142,26 @@ GL3_DrawGLFlowingPoly(msurface_t *fa)
 
 	p = fa->polys;
 
-	scroll = -64 * ((gl3_newrefdef.time / 40.0) - (int)(gl3_newrefdef.time / 40.0));
+	scroll = -64.0f * ((gl3_newrefdef.time / 40.0f) - (int)(gl3_newrefdef.time / 40.0f));
 
-	if (scroll == 0.0)
+	if (scroll == 0.0f)
 	{
-		scroll = -64.0;
+		scroll = -64.0f;
 	}
 
-	GLfloat tex[2*p->numverts];
-	unsigned int index_tex = 0;
-
-	v = p->verts [ 0 ];
-
-	for ( i = 0; i < p->numverts; i++, v += VERTEXSIZE )
+	if(gl3state.uni3DData.scroll != scroll)
 	{
-		tex[index_tex++] = v [ 3 ] + scroll;
-		tex[index_tex++] = v [ 4 ];
+		gl3state.uni3DData.scroll = scroll;
+		GL3_UpdateUBO3D();
 	}
-	v = p->verts [ 0 ];
 
-	STUB_ONCE("TODO: Implement OpenGL stuff!");
-#if 0
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+	GL3_UseProgram(gl3state.si3Dflow.shaderProgram);
 
-	glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
-	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, p->numverts );
+	GL3_BindVAO(gl3state.vao3D);
+	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo3D);
 
-	glDisableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-#endif // 0
+	glBufferData(GL_ARRAY_BUFFER, VERTEXSIZE*sizeof(GLfloat)*p->numverts, p->verts[0], GL_STREAM_DRAW);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 }
 
 static void
@@ -504,7 +493,7 @@ RenderBrushPoly(msurface_t *fa)
 	{
 		GL3_Bind(image->texnum);
 
-		STUB("TODO: do something about R_TexEnv()!");
+		STUB_ONCE("TODO: do something about inverse intensity on water surfaces b/c they have no lightmap!");
 #if 0 // TODO
 		/* This is a hack ontop of a hack. Warping surfaces like those generated
 		   by R_EmitWaterPolys() don't have a lightmap. Original Quake II therefore
@@ -645,26 +634,26 @@ GL3_DrawAlphaSurfaces(void)
 	/* the textures are prescaled up for a better
 	   lighting range, so scale it back down */
 	//intens = gl_state.inverse_intensity;
-	STUB_ONCE("Something about inverse intensity");
+	STUB_ONCE("Something about inverse intensity??");
 
 	for (s = gl3_alpha_surfaces; s != NULL; s = s->texturechain)
 	{
 		GL3_Bind(s->texinfo->image->texnum);
 		c_brush_polys++;
-#if 0
+		float alpha = 1.0f;
 		if (s->texinfo->flags & SURF_TRANS33)
 		{
-			glColor4f(intens, intens, intens, 0.33);
+			alpha = 0.333f;
 		}
 		else if (s->texinfo->flags & SURF_TRANS66)
 		{
-			glColor4f(intens, intens, intens, 0.66);
+			alpha = 0.666f;
 		}
-		else
+		if(alpha != gl3state.uni3DData.alpha)
 		{
-			glColor4f(intens, intens, intens, 1);
+			gl3state.uni3DData.alpha = alpha;
+			GL3_UpdateUBO3D();
 		}
-#endif // 0
 
 		if (s->flags & SURF_DRAWTURB)
 		{
@@ -679,6 +668,9 @@ GL3_DrawAlphaSurfaces(void)
 			GL3_DrawGLPoly(s->polys);
 		}
 	}
+
+	gl3state.uni3DData.alpha = 1.0f;
+	GL3_UpdateUBO3D();
 
 	//R_TexEnv(GL_REPLACE);
 	//glColor4f(1, 1, 1, 1);

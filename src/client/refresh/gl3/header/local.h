@@ -136,8 +136,9 @@ typedef struct
 
 	GLfloat scroll; // for SURF_FLOWING
 	GLfloat time; // for warping surfaces like water & possibly other things
+	GLfloat alpha; // for translucent surfaces (water, glass, ..)
 
-		GLfloat _padding[2]; // again, some padding to ensure this has right size
+		GLfloat _padding; // again, some padding to ensure this has right size
 } gl3Uni3D_t;
 
 typedef struct
@@ -168,6 +169,7 @@ typedef struct
 	gl3ShaderInfo_t si2Dcolor; // shader for rendering 2D with flat colors
 	gl3ShaderInfo_t si3D;
 	gl3ShaderInfo_t si3Dturb; // for water etc
+	gl3ShaderInfo_t si3Dflow; // for flowing/scrolling things (conveyor, ..?)
 
 	GLuint vao3D, vbo3D; // for brushes etc, using 7 floats as vertex input (x,y,z, s,t, lms,lmt)
 

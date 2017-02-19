@@ -267,7 +267,8 @@ static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
 			mat4 transProj;
 			mat4 transModelView; // TODO: or maybe transViewProj and transModel ??
 			float scroll; // for SURF_FLOWING
-			float time; // or sth like this?
+			float time;
+			float alpha;
 		};
 );
 
@@ -292,7 +293,8 @@ static const char* fragmentCommon3D = MULTILINE_STRING(#version 150\n
 			mat4 transProj;
 			mat4 transModelView; // TODO: or maybe transViewProj and transModel ??
 			float scroll; // for SURF_FLOWING
-			float time; // or sth like this?
+			float time;
+			float alpha;
 		};
 );
 
@@ -302,8 +304,8 @@ static const char* vertexSrc3D = MULTILINE_STRING(
 
 		void main()
 		{
-			gl_Position = transProj * transModelView * vec4(position, 1.0);
 			passTexCoord = texCoord;
+			gl_Position = transProj * transModelView * vec4(position, 1.0);
 		}
 );
 
@@ -322,23 +324,9 @@ static const char* fragmentSrc3D = MULTILINE_STRING(
 			// apply gamma correction and intensity
 			texel.rgb *= intensity;
 			outColor.rgb = pow(texel.rgb, vec3(gamma));
-			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
+			outColor.a = texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
 		}
 );
-
-/*
-	os = v [ 3 ];
-	ot = v [ 4 ];
-
-	float TURBSCALE = (256.0 / (2 * M_PI));
-
-	s = os + gl3_turbsin [ (int) ( ( ot * 0.125 + rdt ) * TURBSCALE ) & 255 ];
-	s += scroll;
-	tex[index_tex++] = s * ( 1.0 / 64 );
-
-	t = ot + gl3_turbsin [ (int) ( ( os * 0.125 + rdt ) * TURBSCALE ) & 255 ];
-	tex[index_tex++] = t * ( 1.0 / 64 );
- */
 
 static const char* vertexSrc3Dwater = MULTILINE_STRING(
 
@@ -356,29 +344,15 @@ static const char* vertexSrc3Dwater = MULTILINE_STRING(
 		}
 );
 
-static const char* fragmentSrc3Dwater = MULTILINE_STRING(
+static const char* vertexSrc3Dflow = MULTILINE_STRING(
 
-		// it gets attributes and uniforms from fragmentCommon3D
-
-		uniform sampler2D tex;
-
-		const float PI = 3.141592653589793238462643383; // TODO: put in common
-		const float TURBSCALE = (256.0 / (2 * PI));
-
+		// it gets attributes and uniforms from vertexCommon3D
 		void main()
 		{
-			vec4 texel = texture(tex, passTexCoord);
-
-			// TODO: something about GL_BLEND vs GL_ALPHATEST etc
-
-			// apply gamma correction and intensity
-			texel.rgb *= intensity;
-			outColor.rgb = pow(texel.rgb, vec3(gamma));
-			//outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
-			outColor.a = 0.666; // FIXME: set alpha via uniform
+			passTexCoord = texCoord + vec2(0, scroll);
+			gl_Position = transProj * transModelView * vec4(position, 1.0);
 		}
 );
-
 
 
 #undef MULTILINE_STRING
@@ -618,6 +592,7 @@ static void initUBOs(void)
 	// the matrices will be set to something more useful later, before being used
 	gl3state.uni3DData.scroll = 0.0f;
 	gl3state.uni3DData.time = 0.0f;
+	gl3state.uni3DData.alpha = 1.0f;
 
 	glGenBuffers(1, &gl3state.uni3DUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uni3DUBO);
@@ -644,9 +619,14 @@ qboolean GL3_InitShaders(void)
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for textured 3D rendering!\n");
 		return false;
 	}
-	if(!initShader3D(&gl3state.si3Dturb, vertexSrc3Dwater, fragmentSrc3Dwater))
+	if(!initShader3D(&gl3state.si3Dturb, vertexSrc3Dwater, fragmentSrc3D))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for water rendering!\n");
+		return false;
+	}
+	if(!initShader3D(&gl3state.si3Dflow, vertexSrc3Dflow, fragmentSrc3D))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for scrolling textures 3D rendering!\n");
 		return false;
 	}
 	gl3state.currentShaderProgram = 0;
