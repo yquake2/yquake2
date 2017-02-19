@@ -231,7 +231,6 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 {
 	int flags;
 	int curWidth, curHeight;
-	char title[24];
 	int width = *pwidth;
 	int height = *pheight;
 
@@ -346,15 +345,10 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 	cvar_t* gl_swapinterval = Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
 	vsync_active = gl_swapinterval->value ? true : false;
 
-	/* Window title */
-	snprintf(title, sizeof(title), "Yamagi Quake II %s", YQ2VERSION);
+	/* Note: window title is now set in re.InitContext() to include renderer name */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_SetWindowTitle(window, title);
-
-	/* Also set the window icon - For SDL2, this must be done after creating the window */
+	/* Set the window icon - For SDL2, this must be done after creating the window */
 	SetSDLIcon();
-#else
-	SDL_WM_SetCaption(title, title);
 #endif
 
 	/* No cursor */

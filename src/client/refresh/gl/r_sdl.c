@@ -373,6 +373,7 @@ int RI_PrepareForWindow(void)
 int RI_InitContext(void* win)
 {
 	int msaa_samples = 0, stencil_bits = 0;
+	char title[40] = {0};
 
 	if(win == NULL)
 	{
@@ -416,6 +417,14 @@ int RI_InitContext(void* win)
 
 	/* Initialize hardware gamma */
 	InitGamma();
+
+	/* Window title - set here so we can display renderer name in it */
+	snprintf(title, sizeof(title), "Yamagi Quake II %s - OpenGL 1.x", YQ2VERSION);
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_SetWindowTitle(window, title);
+#else
+	SDL_WM_SetCaption(title, title);
+#endif
 
 	return true;
 }
