@@ -490,6 +490,9 @@ GL3_DrawAliasModel(entity_t *e)
 	float an;
 	vec3_t bbox[8];
 	gl3image_t *skin;
+	hmm_mat4 origProjMat = {0}; // use for left-handed rendering
+	// used to restore ModelView matrix after changing it for this entities position/rotation
+	hmm_mat4 origMVmat = {0};
 
 	if (!(e->flags & RF_WEAPONMODEL))
 	{
@@ -623,7 +626,6 @@ GL3_DrawAliasModel(entity_t *e)
 		}
 	}
 
-
 	// Apply gl_overbrightbits to the mesh. If we don't do this they will appear slightly dimmer relative to walls.
 	if (gl_overbrightbits->value)
 	{
@@ -632,7 +634,6 @@ GL3_DrawAliasModel(entity_t *e)
 			shadelight[i] *= gl_overbrightbits->value;
 		}
 	}
-
 
 
 	/* ir goggles color override */
@@ -665,28 +666,23 @@ GL3_DrawAliasModel(entity_t *e)
 		glDepthRange(gl3depthmin, gl3depthmin + 0.3 * (gl3depthmax - gl3depthmin));
 	}
 
-	STUB_ONCE("TODO: Weapon model left hand (special case!)");
-#if 0
 	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
 	{
-		extern void R_MYgluPerspective(GLdouble fovy, GLdouble aspect,
-				GLdouble zNear, GLdouble zFar);
-
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		glScalef(-1, 1, 1);
-		R_MYgluPerspective(gl3_newrefdef.fov_y,
-				(float)gl3_newrefdef.width / gl3_newrefdef.height,
-				4, 4096);
-		glMatrixMode(GL_MODELVIEW);
+		origProjMat = gl3state.uni3DData.transProjMat4;
+		// to mirror gun so it's rendered left-handed, just invert X-axis column
+		// of projection matrix
+		for(int i=0; i<4; ++i)
+		{
+			gl3state.uni3DData.transProjMat4.Elements[0][i] = -gl3state.uni3DData.transProjMat4.Elements[0][i];
+		}
+		GL3_UpdateUBO3D();
 
 		glCullFace(GL_BACK);
 	}
-#endif // 0
+
 
 	//glPushMatrix();
-	hmm_mat4 origMVmat = gl3state.uni3DData.transModelViewMat4;
+	origMVmat = gl3state.uni3DData.transModelViewMat4;
 
 	e->angles[PITCH] = -e->angles[PITCH];
 	GL3_RotateForEntity(e);
@@ -773,16 +769,12 @@ GL3_DrawAliasModel(entity_t *e)
 	GL3_UpdateUBO3D();
 
 
-#if 0
 	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
 	{
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
+		gl3state.uni3DData.transProjMat4 = origProjMat;
+		GL3_UpdateUBO3D();
 		glCullFace(GL_FRONT);
 	}
-#endif // 0
-
 
 	if (currententity->flags & RF_TRANSLUCENT)
 	{
