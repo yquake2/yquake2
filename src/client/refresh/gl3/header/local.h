@@ -387,6 +387,8 @@ extern void GL3_DrawBrushModel(entity_t *e);
 extern void GL3_DrawWorld(void);
 extern void GL3_MarkLeaves(void);
 
+// gl3_mesh.c
+extern void GL3_DrawAliasModel(entity_t *e);
 
 // gl3_shaders.c
 

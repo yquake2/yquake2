@@ -675,7 +675,7 @@ GL3_DrawAliasModel(entity_t *e)
 		{
 			gl3state.uni3DData.transProjMat4.Elements[0][i] = -gl3state.uni3DData.transProjMat4.Elements[0][i];
 		}
-		GL3_UpdateUBO3D();
+		//GL3_UpdateUBO3D(); Note: GL3_RotateForEntity() will call this,no need to do it twice before drawing
 
 		glCullFace(GL_BACK);
 	}

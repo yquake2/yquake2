@@ -697,6 +697,22 @@ void GL3_ShutdownShaders(void)
 		glDeleteProgram(gl3state.si3D.shaderProgram);
 	memset(&gl3state.si3D, 0, sizeof(gl3ShaderInfo_t));
 
+	if(gl3state.si3Dflow.shaderProgram != 0)
+		glDeleteProgram(gl3state.si3Dflow.shaderProgram);
+	memset(&gl3state.si3Dflow, 0, sizeof(gl3ShaderInfo_t));
+
+	if(gl3state.si3Dturb.shaderProgram != 0)
+		glDeleteProgram(gl3state.si3Dturb.shaderProgram);
+	memset(&gl3state.si3Dturb, 0, sizeof(gl3ShaderInfo_t));
+
+	if(gl3state.si3Dalias.shaderProgram != 0)
+		glDeleteProgram(gl3state.si3Dalias.shaderProgram);
+	memset(&gl3state.si3Dalias, 0, sizeof(gl3ShaderInfo_t));
+
+	if(gl3state.si3DaliasColor.shaderProgram != 0)
+		glDeleteProgram(gl3state.si3DaliasColor.shaderProgram);
+	memset(&gl3state.si3DaliasColor, 0, sizeof(gl3ShaderInfo_t));
+
 	glDeleteBuffers(3, &gl3state.uniCommonUBO);
 	gl3state.uniCommonUBO = gl3state.uni2DUBO = gl3state.uni3DUBO = 0;
 }
