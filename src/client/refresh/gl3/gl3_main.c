@@ -120,9 +120,6 @@ cvar_t *gl3_debugcontext;
 // equivalent to R_z * R_y * R_x where R_x is the trans matrix for rotating around X axis for aroundXdeg
 static hmm_mat4 rotAroundAxisZYX(float aroundZdeg, float aroundYdeg, float aroundXdeg)
 {
-#if 0
-	// TODO: make sure this code is equivalent to the naive multiplications below
-
 	// Naming of variables is consistent with http://planning.cs.uiuc.edu/node102.html
 	// and https://de.wikipedia.org/wiki/Roll-Nick-Gier-Winkel#.E2.80.9EZY.E2.80.B2X.E2.80.B3-Konvention.E2.80.9C
 	float alpha = HMM_ToRadians(aroundZdeg);
@@ -131,7 +128,7 @@ static hmm_mat4 rotAroundAxisZYX(float aroundZdeg, float aroundYdeg, float aroun
 
 	float sinA = HMM_SinF(alpha);
 	float cosA = HMM_CosF(alpha);
-	// TODO: or sincosf(alpha, &sinA, &cosA); ?? (not standard conform)
+	// TODO: or sincosf(alpha, &sinA, &cosA); ?? (not a standard function)
 	float sinB = HMM_SinF(beta);
 	float cosB = HMM_CosF(beta);
 	float sinG = HMM_SinF(gamma);
@@ -139,54 +136,29 @@ static hmm_mat4 rotAroundAxisZYX(float aroundZdeg, float aroundYdeg, float aroun
 
 	hmm_mat4 ret = {{
 		{ cosA*cosB,                  sinA*cosB,                   -sinB,    0 }, // first *column*
-		{ cosA*sinB*sinG - sinA*cosG, sinA*sinB*sinG + cosA*cosG, cosB*sinG, 0 }, // cosA*sinB und cosA*sinG 2x genutzt
-		{ cosA*sinB*cosG + sinA*sinG, sinA*sinB*cosG - cosA*sinG, cosB*cosG, 0 }, // sinA*sinB und sinA*cosG auch
-		{  0,                          0,                          0,        1 }  // sinB*sinG und sinB*cosG auch
+		{ cosA*sinB*sinG - sinA*cosG, sinA*sinB*sinG + cosA*cosG, cosB*sinG, 0 },
+		{ cosA*sinB*cosG + sinA*sinG, sinA*sinB*cosG - cosA*sinG, cosB*cosG, 0 },
+		{  0,                          0,                          0,        1 }
 	}};
 
 	return ret;
-#else
-	hmm_mat4 ret = HMM_Rotate(aroundZdeg, HMM_Vec3(0, 0, 1));
-	ret = HMM_MultiplyMat4(ret, HMM_Rotate(aroundYdeg, HMM_Vec3(0, 1, 0)));
-	ret = HMM_MultiplyMat4(ret, HMM_Rotate(aroundXdeg, HMM_Vec3(1, 0, 0)));
-
-	return ret;
-#endif
 }
 
 void
 GL3_RotateForEntity(entity_t *e)
 {
-	STUB_ONCE("TODO: Implement for OpenGL3!");
-
 	// angles: pitch (around y), yaw (around z), roll (around x)
 	// rot matrices to be multiplied in order Z, Y, X (yaw, pitch, roll)
-	hmm_mat4 rotMat = rotAroundAxisZYX(e->angles[1], -e->angles[0], -e->angles[2]);
+	hmm_mat4 transMat = rotAroundAxisZYX(e->angles[1], -e->angles[0], -e->angles[2]);
 
-	// TODO: or use gl3state.uni3DData.transModelViewMat4 instead of gl3_world_matrix?
+	for(int i=0; i<3; ++i)
+	{
+		transMat.Elements[3][i] = e->origin[i]; // set translation
+	}
 
-#if 1
-	hmm_mat4 transMat = HMM_Translate( HMM_Vec3(e->origin[0], e->origin[1], e->origin[2]) );
-	hmm_mat4 modelViewMat = HMM_MultiplyMat4(gl3state.uni3DData.transModelViewMat4, transMat);
-	modelViewMat = HMM_MultiplyMat4(modelViewMat, rotMat);
-#else
-	// TODO: I /think/ I could just set the translation in the end instead of multiplying above
-	hmm_mat4 modelViewMat = HMM_MultiplyMat4(gl3state.uni3DData.transModelViewMat4, rotMat);
-	for(int i=0; i<3; ++i)  modelViewMat.Elements[3][i] = e->origin[i];
-#endif
+	gl3state.uni3DData.transModelViewMat4 = HMM_MultiplyMat4(gl3state.uni3DData.transModelViewMat4, transMat);
 
-	gl3state.uni3DData.transModelViewMat4 = modelViewMat;
 	GL3_UpdateUBO3D();
-
-#if 0
-	glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
-
-	// angles: pitch (around y), yaw (around z), roll (around x)
-
-	glRotatef(e->angles[1], 0, 0, 1); // yaw
-	glRotatef(-e->angles[0], 0, 1, 0); // pitch
-	glRotatef(-e->angles[2], 1, 0, 0); // roll
-#endif // 0
 }
 
 
@@ -1116,6 +1088,43 @@ static hmm_mat4 rotAroundAxisXYZ(float aroundXdeg, float aroundYdeg, float aroun
 	return ret;
 }
 
+// equivalent to R_MYgluPerspective() but returning a matrix instead of setting internal OpenGL state
+static hmm_mat4
+GL3_MYgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
+{
+	// calculation of left, right, bottom, top is from R_MYgluPerspective() of old gl backend
+	// which seems to be slightly different from the real gluPerspective()
+	// and thus also from HMM_Perspective()
+	GLdouble left, right, bottom, top;
+	float A, B, C, D;
+
+	top = zNear * tan(fovy * M_PI / 360.0);
+	bottom = -top;
+
+	left = bottom * aspect;
+	right = top * aspect;
+
+	// TODO:  stereo stuff
+	// left += - gl_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
+	// right += - gl_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
+
+	// the following emulates glFrustum(left, right, bottom, top, zNear, zFar)
+	// see https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
+	A = (right+left)/(right-left);
+	B = (top+bottom)/(top-bottom);
+	C = -(zFar+zNear)/(zFar-zNear);
+	D = -(2.0*zFar*zNear)/(zFar-zNear);
+
+	hmm_mat4 ret = {{
+		{ (2.0*zNear)/(right-left), 0, 0, 0 }, // first *column*
+		{ 0, (2.0*zNear)/(top-bottom), 0, 0 },
+		{ A, B, C, -1.0 },
+		{ 0, 0, D, 0 }
+	}};
+
+	return ret;
+}
+
 static void
 SetupGL(void)
 {
@@ -1152,15 +1161,8 @@ SetupGL(void)
 	{
 		float screenaspect = (float)gl3_newrefdef.width / gl3_newrefdef.height;
 		float dist = (gl_farsee->value == 0) ? 4096.0f : 8192.0f;
-		gl3_projectionMatrix = HMM_Perspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
+		gl3_projectionMatrix = GL3_MYgluPerspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
 	}
-
-#if 0
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	R_MYgluPerspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
-#endif // 0
 
 	glCullFace(GL_FRONT);
 
@@ -1192,21 +1194,6 @@ SetupGL(void)
 	gl3state.uni3DData.time = gl3_newrefdef.time;
 
 	GL3_UpdateUBO3D();
-
-#if 0
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	glRotatef(-90, 1, 0, 0); /* put Z going up */
-	glRotatef(90, 0, 0, 1); /* put Z going up */
-	glRotatef(-gl3_newrefdef.viewangles[2], 1, 0, 0);
-	glRotatef(-gl3_newrefdef.viewangles[0], 0, 1, 0);
-	glRotatef(-gl3_newrefdef.viewangles[1], 0, 0, 1);
-	glTranslatef(-gl3_newrefdef.vieworg[0], -gl3_newrefdef.vieworg[1],
-			-gl3_newrefdef.vieworg[2]);
-
-	glGetFloatv(GL_MODELVIEW_MATRIX, r_world_matrix);
-#endif // 0
 
 	/* set drawing parms */
 	if (gl_cull->value)
