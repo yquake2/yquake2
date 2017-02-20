@@ -290,6 +290,7 @@ GL3_Register(void)
 	gl_round_down = ri.Cvar_Get("gl_round_down", "1", 0);
 	gl_picmip = ri.Cvar_Get("gl_picmip", "0", 0);
 	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
+	gl_showbbox = Cvar_Get("gl_showbbox", "0", 0);
 	//gl_ztrick = ri.Cvar_Get("gl_ztrick", "0", 0); NOTE: dump this.
 	//gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
 	//gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);

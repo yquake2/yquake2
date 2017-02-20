@@ -49,7 +49,7 @@ void GL3_SurfInit(void)
 	GL3_BindVAO(gl3state.vao3D);
 
 	glGenBuffers(1, &gl3state.vbo3D);
-	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo3D);
+	GL3_BindVBO(gl3state.vbo3D);
 
 	glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
 	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 0);
@@ -125,8 +125,7 @@ GL3_DrawGLPoly(glpoly_t *p)
 	GL3_UseProgram(gl3state.si3D.shaderProgram); // TODO: needed each time?! maybe call this once in DrawTextureChains()?
 
 	GL3_BindVAO(gl3state.vao3D);
-
-	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo3D);
+	GL3_BindVBO(gl3state.vbo3D);
 	glBufferData(GL_ARRAY_BUFFER, VERTEXSIZE*sizeof(GLfloat)*p->numverts, v, GL_STREAM_DRAW);
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
@@ -158,7 +157,7 @@ GL3_DrawGLFlowingPoly(msurface_t *fa)
 	GL3_UseProgram(gl3state.si3Dflow.shaderProgram);
 
 	GL3_BindVAO(gl3state.vao3D);
-	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo3D);
+	GL3_BindVBO(gl3state.vbo3D);
 
 	glBufferData(GL_ARRAY_BUFFER, VERTEXSIZE*sizeof(GLfloat)*p->numverts, p->verts[0], GL_STREAM_DRAW);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);

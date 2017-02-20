@@ -244,7 +244,7 @@ GL3_EmitWaterPolys(msurface_t *fa)
 	GL3_UseProgram(gl3state.si3Dturb.shaderProgram);
 
 	GL3_BindVAO(gl3state.vao3D);
-	glBindBuffer(GL_ARRAY_BUFFER, gl3state.vbo3D);
+	GL3_BindVBO(gl3state.vbo3D);
 
 	for (bp = fa->polys; bp != NULL; bp = bp->next)
 	{

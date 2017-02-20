@@ -44,7 +44,7 @@ GL3_Draw_InitLocal(void)
 	glBindVertexArray(vao2D);
 
 	glGenBuffers(1, &vbo2D);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo2D);
+	GL3_BindVBO(vbo2D);
 
 	GL3_UseProgram(gl3state.si2D.shaderProgram);
 
@@ -61,7 +61,7 @@ GL3_Draw_InitLocal(void)
 	glGenVertexArrays(1, &vao2Dcolor);
 	glBindVertexArray(vao2Dcolor);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo2D); // yes, both VAOs share the same VBO
+	GL3_BindVBO(vbo2D); // yes, both VAOs share the same VBO
 
 	GL3_UseProgram(gl3state.si2Dcolor.shaderProgram);
 
@@ -109,7 +109,7 @@ drawTexturedRectangle(float x, float y, float w, float h,
 
 	// Note: while vao2D "remembers" its vbo for drawing, binding the vao does *not*
 	//       implicitly bind the vbo, so I need to explicitly bind it before glBufferData()
-	glBindBuffer(GL_ARRAY_BUFFER, vbo2D);
+	GL3_BindVBO(vbo2D);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -284,7 +284,7 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 	GL3_UseProgram(gl3state.si2Dcolor.shaderProgram);
 	GL3_BindVAO(vao2Dcolor);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo2D);
+	GL3_BindVBO(vbo2D);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -313,7 +313,7 @@ GL3_Draw_FadeScreen(void)
 
 	GL3_BindVAO(vao2Dcolor);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo2D);
+	GL3_BindVBO(vbo2D);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vBuf), vBuf, GL_STREAM_DRAW);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

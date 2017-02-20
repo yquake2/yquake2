@@ -164,6 +164,7 @@ typedef struct
 	//qboolean hwgamma;
 
 	GLuint currentVAO;
+	GLuint currentVBO;
 	GLuint currentShaderProgram;
 	gl3ShaderInfo_t si2D; // shader for rendering 2D with textures
 	gl3ShaderInfo_t si2Dcolor; // shader for rendering 2D with flat colors
@@ -281,6 +282,16 @@ GL3_BindVAO(GLuint vao)
 	{
 		gl3state.currentVAO = vao;
 		glBindVertexArray(vao);
+	}
+}
+
+static inline void
+GL3_BindVBO(GLuint vbo)
+{
+	if(vbo != gl3state.currentVBO)
+	{
+		gl3state.currentVBO = vbo;
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	}
 }
 
