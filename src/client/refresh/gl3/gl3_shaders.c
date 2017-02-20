@@ -108,6 +108,7 @@ CreateShaderProgram(int numShaders, const GLuint* shaders)
 	glBindAttribLocation(shaderProgram, GL3_ATTRIB_POSITION, "position");
 	glBindAttribLocation(shaderProgram, GL3_ATTRIB_TEXCOORD, "texCoord");
 	glBindAttribLocation(shaderProgram, GL3_ATTRIB_LMTEXCOORD, "lmTexCoord");
+	glBindAttribLocation(shaderProgram, GL3_ATTRIB_COLOR, "vertColor");
 
 	// the following line is not necessary/implicit (as there's only one output)
 	// glBindFragDataLocation(shaderProgram, 0, "outColor"); XXX would this even be here?
@@ -258,6 +259,7 @@ static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
 		in vec3 position;   // GL3_ATTRIB_POSITION
 		in vec2 texCoord;   // GL3_ATTRIB_TEXCOORD
 		in vec2 lmTexCoord; // GL3_ATTRIB_LMTEXCOORD
+		in vec4 vertColor;  // GL3_ATTRIB_COLOR
 
 		out vec2 passTexCoord;
 
@@ -351,6 +353,62 @@ static const char* vertexSrc3Dflow = MULTILINE_STRING(
 		{
 			passTexCoord = texCoord + vec2(0, scroll);
 			gl_Position = transProj * transModelView * vec4(position, 1.0);
+		}
+);
+
+static const char* vertexSrcAlias = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from vertexCommon3D
+
+		out vec4 passColor;
+
+		void main()
+		{
+			passColor = vertColor;
+			passTexCoord = texCoord;
+			gl_Position = transProj * transModelView * vec4(position, 1.0);
+		}
+);
+
+static const char* fragmentSrcAlias = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from fragmentCommon3D
+
+		uniform sampler2D tex;
+
+		in vec4 passColor;
+
+		void main()
+		{
+			vec4 texel = texture(tex, passTexCoord);
+
+			// apply gamma correction and intensity
+			texel.rgb *= intensity;
+			texel.a *= alpha; // is alpha even used here?
+
+			// TODO: is this really equivalent to GL_MODULATE's behavior of texture vs glColor()?
+			texel *= passColor;
+
+			outColor.rgb = pow(texel.rgb, vec3(gamma));
+			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
+		}
+);
+
+static const char* fragmentSrcAliasColor = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from fragmentCommon3D
+
+		in vec4 passColor;
+
+		void main()
+		{
+			vec4 texel = passColor;
+
+			// apply gamma correction and intensity
+			texel.rgb *= intensity;
+			texel.a *= alpha; // is alpha even used here?
+			outColor.rgb = pow(texel.rgb, vec3(gamma));
+			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
 		}
 );
 
@@ -608,6 +666,18 @@ qboolean GL3_InitShaders(void)
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for scrolling textures 3D rendering!\n");
 		return false;
 	}
+	if(!initShader3D(&gl3state.si3Dalias, vertexSrcAlias, fragmentSrcAlias))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for rendering textured models!\n");
+		return false;
+	}
+	if(!initShader3D(&gl3state.si3DaliasColor, vertexSrcAlias, fragmentSrcAliasColor))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for rendering flat-colored models!\n");
+		return false;
+	}
+
+
 	gl3state.currentShaderProgram = 0;
 
 	return true;

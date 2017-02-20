@@ -59,6 +59,22 @@ void GL3_SurfInit(void)
 
 	glEnableVertexAttribArray(GL3_ATTRIB_LMTEXCOORD);
 	qglVertexAttribPointer(GL3_ATTRIB_LMTEXCOORD, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 5*sizeof(GLfloat));
+
+
+	glGenVertexArrays(1, &gl3state.vaoAlias);
+	GL3_BindVAO(gl3state.vaoAlias);
+
+	glGenBuffers(1, &gl3state.vboAlias);
+	GL3_BindVBO(gl3state.vboAlias);
+
+	glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
+	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), 0);
+
+	glEnableVertexAttribArray(GL3_ATTRIB_TEXCOORD);
+	qglVertexAttribPointer(GL3_ATTRIB_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), 3*sizeof(GLfloat));
+
+	glEnableVertexAttribArray(GL3_ATTRIB_COLOR);
+	qglVertexAttribPointer(GL3_ATTRIB_COLOR, 2, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), 5*sizeof(GLfloat));
 }
 
 void GL3_SurfShutdown(void)
@@ -67,6 +83,11 @@ void GL3_SurfShutdown(void)
 	gl3state.vbo3D = 0;
 	glDeleteVertexArrays(1, &gl3state.vao3D);
 	gl3state.vao3D = 0;
+
+	glDeleteBuffers(1, &gl3state.vboAlias);
+	gl3state.vboAlias = 0;
+	glDeleteVertexArrays(1, &gl3state.vaoAlias);
+	gl3state.vaoAlias = 0;
 }
 
 /*

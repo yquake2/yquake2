@@ -87,7 +87,6 @@ LerpVerts(int nverts, dtrivertx_t *v, dtrivertx_t *ov,
 static void
 DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 {
-	unsigned short total;
 	GLenum type;
 	float l;
 	daliasframe_t *frame, *oldframe;
@@ -101,6 +100,10 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 	int i;
 	int index_xyz;
 	float *lerp;
+	// draw without texture? used for quad damage effect etc, I think
+	qboolean colorOnly = 0 != (currententity->flags &
+			(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE |
+			 RF_SHELL_HALF_DAM));
 
 	frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames
 							  + currententity->frame * paliashdr->framesize);
@@ -121,12 +124,13 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 		alpha = 1.0;
 	}
 
-	if (currententity->flags &
-		(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE |
-		 RF_SHELL_HALF_DAM))
+	if (colorOnly)
 	{
-		//glDisable(GL_TEXTURE_2D);
-		STUB_ONCE("TODO: OpenGL: use color-only shader!");
+		GL3_UseProgram(gl3state.si3DaliasColor.shaderProgram);
+	}
+	else
+	{
+		GL3_UseProgram(gl3state.si3Dalias.shaderProgram);
 	}
 
 	frontlerp = 1.0 - backlerp;
@@ -156,6 +160,14 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 
 	LerpVerts(paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv);
 
+	typedef struct {
+		GLfloat pos[3];
+		GLfloat texCoord[2];
+		GLfloat color[4];
+	} gl3_alias_vtx;
+
+	assert(sizeof(gl3_alias_vtx) == 9*sizeof(GLfloat));
+
 	while (1)
 	{
 		/* get the vertex count and primitive type */
@@ -177,82 +189,58 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 			type = GL_TRIANGLE_STRIP;
 		}
 
-		total = count;
-		GLfloat vtx[3*total];
-		GLfloat tex[2*total];
-		GLfloat clr[4 * total];
-		unsigned int index_vtx = 0;
-		unsigned int index_tex = 0;
-		unsigned int index_clr = 0;
+		gl3_alias_vtx buf[count];
 
-		if (currententity->flags &
-			(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE))
+		if (colorOnly)
 		{
-			do
+			int i;
+			for(i=0; i<count; ++i)
 			{
+				int j=0;
+				gl3_alias_vtx* cur = &buf[i];
 				index_xyz = order[2];
 				order += 3;
 
-				clr[index_clr++] = shadelight[0];
-				clr[index_clr++] = shadelight[1];
-				clr[index_clr++] = shadelight[2];
-				clr[index_clr++] = alpha;
-
-				vtx[index_vtx++] = s_lerped[index_xyz][0];
-				vtx[index_vtx++] = s_lerped[index_xyz][1];
-				vtx[index_vtx++] = s_lerped[index_xyz][2];
+				for(j=0; j<3; ++j)
+				{
+					cur->pos[j] = s_lerped[index_xyz][j];
+					cur->color[j] = shadelight[j];
+				}
+				cur->color[3] = alpha;
 			}
-			while (--count);
 		}
 		else
 		{
-			do
+			int i;
+			for(i=0; i<count; ++i)
 			{
+				int j=0;
+				gl3_alias_vtx* cur = &buf[i];
 				/* texture coordinates come from the draw list */
-				tex[index_tex++] = ((float *) order)[0];
-				tex[index_tex++] = ((float *) order)[1];
+				cur->texCoord[0] = ((float *) order)[0];
+				cur->texCoord[1] = ((float *) order)[1];
 
 				index_xyz = order[2];
+
 				order += 3;
 
 				/* normals and vertexes come from the frame list */
 				l = shadedots[verts[index_xyz].lightnormalindex];
 
-				clr[index_clr++] = l * shadelight[0];
-				clr[index_clr++] = l * shadelight[1];
-				clr[index_clr++] = l * shadelight[2];
-				clr[index_clr++] = alpha;
-
-				vtx[index_vtx++] = s_lerped[index_xyz][0];
-				vtx[index_vtx++] = s_lerped[index_xyz][1];
-				vtx[index_vtx++] = s_lerped[index_xyz][2];
+				for(j=0; j<3; ++j)
+				{
+					cur->pos[j] = s_lerped[index_xyz][j];
+					cur->color[j] = l * shadelight[j];
+				}
+				cur->color[3] = alpha;
 			}
-			while (--count);
 		}
 
-		STUB_ONCE("TODO: OpenGL!");
-#if 0
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
+		GL3_BindVAO(gl3state.vaoAlias);
+		GL3_BindVBO(gl3state.vboAlias);
 
-		glVertexPointer(3, GL_FLOAT, 0, vtx);
-		glTexCoordPointer(2, GL_FLOAT, 0, tex);
-		glColorPointer(4, GL_FLOAT, 0, clr);
-		glDrawArrays(type, 0, total);
-
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
-#endif // 0
-	}
-
-	if (currententity->flags &
-		(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE |
-		 RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
-	{
-		STUB_ONCE("TODO: OpenGL: use textured shader!");
-		//glEnable(GL_TEXTURE_2D);
+		glBufferData(GL_ARRAY_BUFFER, count*sizeof(gl3_alias_vtx), buf, GL_STREAM_DRAW);
+		glDrawArrays(type, 0, count);
 	}
 }
 
@@ -271,7 +259,7 @@ DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 	height = -lheight + 0.1f;
 
 	/* stencilbuffer shadows */
-	STUB_ONCE("TODO: OpenGL: stencil shadows!");
+	STUB_ONCE("TODO: OpenGL: *proper* stencil shadows!");
 #if 0
 	if (have_stencil && gl_stencilshadow->value)
 	{
@@ -655,6 +643,7 @@ GL3_DrawAliasModel(entity_t *e)
 		shadelight[2] = 0.0;
 	}
 
+	// TODO: maybe we could somehow store the non-rotated normal and do the dot in shader?
 	shadedots = r_avertexnormal_dots[((int)(currententity->angles[1] *
 				(SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1)];
 
@@ -667,8 +656,8 @@ GL3_DrawAliasModel(entity_t *e)
 	/* locate the proper data */
 	c_alias_polys += paliashdr->num_tris;
 
-	STUB_ONCE("TODO: OpenGL3 stuff!");
-#if 0
+
+
 	/* draw all the triangles */
 	if (currententity->flags & RF_DEPTHHACK)
 	{
@@ -676,6 +665,8 @@ GL3_DrawAliasModel(entity_t *e)
 		glDepthRange(gl3depthmin, gl3depthmin + 0.3 * (gl3depthmax - gl3depthmin));
 	}
 
+	STUB_ONCE("TODO: Weapon model left hand (special case!)");
+#if 0
 	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
 	{
 		extern void R_MYgluPerspective(GLdouble fovy, GLdouble aspect,
@@ -692,12 +683,15 @@ GL3_DrawAliasModel(entity_t *e)
 
 		glCullFace(GL_BACK);
 	}
+#endif // 0
 
-	glPushMatrix();
+	//glPushMatrix();
+	hmm_mat4 origMVmat = gl3state.uni3DData.transModelViewMat4;
+
 	e->angles[PITCH] = -e->angles[PITCH];
 	GL3_RotateForEntity(e);
 	e->angles[PITCH] = -e->angles[PITCH];
-#endif // 0
+
 
 	/* select skin */
 	if (currententity->skin)
@@ -728,18 +722,19 @@ GL3_DrawAliasModel(entity_t *e)
 
 	GL3_Bind(skin->texnum);
 
-	STUB_ONCE("TODO: OpenGL3 stuff!");
+	STUB_ONCE("TODO: OpenGL3 stuff (shade model, texenv)!");
 #if 0
 	/* draw it */
 	glShadeModel(GL_SMOOTH);
 
 	R_TexEnv(GL_MODULATE);
+#endif // 0
 
 	if (currententity->flags & RF_TRANSLUCENT)
 	{
 		glEnable(GL_BLEND);
 	}
-#endif // 0
+
 
 	if ((currententity->frame >= paliashdr->num_frames) ||
 		(currententity->frame < 0))
@@ -769,12 +764,16 @@ GL3_DrawAliasModel(entity_t *e)
 	DrawAliasFrameLerp(paliashdr, currententity->backlerp);
 
 	STUB_ONCE("TODO: even more OpenGL3 stuff!");
+
+	//R_TexEnv(GL_REPLACE);
+	//glShadeModel(GL_FLAT);
+
+	//glPopMatrix();
+	gl3state.uni3DData.transModelViewMat4 = origMVmat;
+	GL3_UpdateUBO3D();
+
+
 #if 0
-	R_TexEnv(GL_REPLACE);
-	glShadeModel(GL_FLAT);
-
-	glPopMatrix();
-
 	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
 	{
 		glMatrixMode(GL_PROJECTION);
@@ -782,6 +781,8 @@ GL3_DrawAliasModel(entity_t *e)
 		glMatrixMode(GL_MODELVIEW);
 		glCullFace(GL_FRONT);
 	}
+#endif // 0
+
 
 	if (currententity->flags & RF_TRANSLUCENT)
 	{
@@ -790,9 +791,10 @@ GL3_DrawAliasModel(entity_t *e)
 
 	if (currententity->flags & RF_DEPTHHACK)
 	{
-		glDepthRange(gldepthmin, gldepthmax);
+		glDepthRange(gl3depthmin, gl3depthmax);
 	}
 
+#if 0
 	if (gl_shadows->value &&
 		!(currententity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL | RF_NOSHADOW)))
 	{

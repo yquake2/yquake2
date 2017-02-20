@@ -69,6 +69,7 @@ enum {
 	GL3_ATTRIB_POSITION   = 0,
 	GL3_ATTRIB_TEXCOORD   = 1, // for normal texture
 	GL3_ATTRIB_LMTEXCOORD = 2, // for lightmap
+	GL3_ATTRIB_COLOR      = 3, // per-vertex color
 	// TODO: more? maybe normal and color?
 };
 
@@ -105,11 +106,6 @@ typedef struct
 typedef struct
 {
 	GLuint shaderProgram;
-
-	//GLint uniColor;
-	//GLint uniProjMatrix; // for 2D shaders this is the only one used
-	//GLint uniModelViewMatrix; // TODO: or even pass as 2 matrices?
-
 } gl3ShaderInfo_t;
 
 typedef struct
@@ -171,8 +167,11 @@ typedef struct
 	gl3ShaderInfo_t si3D;
 	gl3ShaderInfo_t si3Dturb; // for water etc
 	gl3ShaderInfo_t si3Dflow; // for flowing/scrolling things (conveyor, ..?)
+	gl3ShaderInfo_t si3Dalias; // for models
+	gl3ShaderInfo_t si3DaliasColor; // for models w/ flat colors
 
 	GLuint vao3D, vbo3D; // for brushes etc, using 7 floats as vertex input (x,y,z, s,t, lms,lmt)
+	GLuint vaoAlias, vboAlias; // for models, using 9 floats as (x,y,z, s,t, r,g,b,a)
 
 	// UBOs and their data
 	gl3UniCommon_t uniCommonData;
