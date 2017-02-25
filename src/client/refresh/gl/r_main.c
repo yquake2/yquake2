@@ -533,7 +533,8 @@ R_DrawParticles(void)
 		glEnable(GL_BLEND);
 		glDisable(GL_TEXTURE_2D);
 
-		glPointSize(LittleFloat(gl_particle_size->value));
+		// assume the particle size looks good with window height 600px and scale according to real resolution
+		glPointSize(gl_particle_size->value * (float)r_newrefdef.height/600.0f);
 
 		for ( i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++ )
 		{

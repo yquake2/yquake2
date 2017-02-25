@@ -26,15 +26,30 @@
 
 #include "header/local.h"
 
-byte dottexture[8][8] = {
-	{0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 1, 1, 0, 0, 0, 0},
-	{0, 1, 1, 1, 1, 0, 0, 0},
-	{0, 1, 1, 1, 1, 0, 0, 0},
-	{0, 0, 1, 1, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 0, 0, 0},
+static byte dottexture[16][16] = {
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 1, 2, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 1, 3, 3, 3, 3, 3, 3, 1, 0, 0, 0, 0, 0, 0, 0},
+	{0, 2, 3, 3, 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
+	{0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0},
+	{0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0},
+	{0, 2, 3, 3, 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
+	{0, 1, 3, 3, 3, 3, 3, 3, 1, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 1, 2, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+};
+
+static byte notex[4][4] = {
+	{0, 0, 0, 0},
+	{0, 0, 1, 1},
+	{0, 1, 1, 1},
+	{0, 1, 1, 1}
 };
 
 typedef struct _TargaHeader
@@ -50,37 +65,38 @@ void
 R_InitParticleTexture(void)
 {
 	int x, y;
-	byte data[8][8][4];
+	byte partData[16][16][4];
+	byte notexData[8][8][4];
 
 	/* particle texture */
-	for (x = 0; x < 8; x++)
+	for (x = 0; x < 16; x++)
 	{
-		for (y = 0; y < 8; y++)
+		for (y = 0; y < 16; y++)
 		{
-			data[y][x][0] = 255;
-			data[y][x][1] = 255;
-			data[y][x][2] = 255;
-			data[y][x][3] = dottexture[x][y] * 255;
+			partData[y][x][0] = 255;
+			partData[y][x][1] = 255;
+			partData[y][x][2] = 255;
+			partData[y][x][3] = dottexture[x][y] * 85;
 		}
 	}
 
-	r_particletexture = R_LoadPic("***particle***", (byte *)data,
-			8, 0, 8, 0, it_sprite, 32);
+	r_particletexture = R_LoadPic("***particle***", (byte *)partData,
+	                              16, 0, 16, 0, it_sprite, 32);
 
 	/* also use this for bad textures, but without alpha */
 	for (x = 0; x < 8; x++)
 	{
 		for (y = 0; y < 8; y++)
 		{
-			data[y][x][0] = dottexture[x & 3][y & 3] * 255;
-			data[y][x][1] = 0;
-			data[y][x][2] = 0;
-			data[y][x][3] = 255;
+			notexData[y][x][0] = notex[x & 3][y & 3] * 255;
+			notexData[y][x][1] = 0;
+			notexData[y][x][2] = 0;
+			notexData[y][x][3] = 255;
 		}
 	}
 
-	r_notexture = R_LoadPic("***r_notexture***", (byte *)data,
-			8, 0, 8, 0, it_wall, 32);
+	r_notexture = R_LoadPic("***r_notexture***", (byte *)notexData,
+	                        8, 0, 8, 0, it_wall, 32);
 }
 
 void
