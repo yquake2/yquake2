@@ -52,21 +52,21 @@ typedef struct vidmode_s
 
 /* This must be the same as in videomenu.c! */
 vidmode_t vid_modes[] = {
-	{"Mode 0: 320x240", 320, 240, 0},
-	{"Mode 1: 400x300", 400, 300, 1},
-	{"Mode 2: 512x384", 512, 384, 2},
-	{"Mode 3: 640x400", 640, 400, 3},
-	{"Mode 4: 640x480", 640, 480, 4},
-	{"Mode 5: 800x500", 800, 500, 5},
-	{"Mode 6: 800x600", 800, 600, 6},
-	{"Mode 7: 960x720", 960, 720, 7},
-	{"Mode 8: 1024x480", 1024, 480, 8},
-	{"Mode 9: 1024x640", 1024, 640, 9},
+	{"Mode  0:  320x240", 320, 240, 0},
+	{"Mode  1:  400x300", 400, 300, 1},
+	{"Mode  2:  512x384", 512, 384, 2},
+	{"Mode  3:  640x400", 640, 400, 3},
+	{"Mode  4:  640x480", 640, 480, 4},
+	{"Mode  5:  800x500", 800, 500, 5},
+	{"Mode  6:  800x600", 800, 600, 6},
+	{"Mode  7:  960x720", 960, 720, 7},
+	{"Mode  8: 1024x480", 1024, 480, 8},
+	{"Mode  9: 1024x640", 1024, 640, 9},
 	{"Mode 10: 1024x768", 1024, 768, 10},
 	{"Mode 11: 1152x768", 1152, 768, 11},
 	{"Mode 12: 1152x864", 1152, 864, 12},
 	{"Mode 13: 1280x800", 1280, 800, 13},
-	{"Mode 14: 1280x854", 1280, 854, 14},
+	{"Mode 14: 1280x720", 1280, 720, 14},
 	{"Mode 15: 1280x960", 1280, 960, 15},
 	{"Mode 16: 1280x1024", 1280, 1024, 16},
 	{"Mode 17: 1366x768", 1366, 768, 17},
@@ -98,6 +98,18 @@ void
 VID_Restart_f(void)
 {
 	vid_fullscreen->modified = true;
+}
+
+void
+VID_ListModes_f(void)
+{
+	int i;
+	Com_Printf("Supported video modes (gl_mode):\n");
+	for(i=0; i<VID_NUM_MODES; ++i)
+	{
+		Com_Printf("  %s\n", vid_modes[i].description);
+	}
+	Com_Printf("  Mode -1: gl_customwidth x gl_customheight\n");
 }
 
 qboolean
@@ -155,6 +167,7 @@ VID_Init(void)
 
 	/* Add some console commands that we want to handle */
 	Cmd_AddCommand("vid_restart", VID_Restart_f);
+	Cmd_AddCommand("vid_listmodes", VID_ListModes_f);
 
 	/* Start the graphics mode and load refresh DLL */
 	VID_CheckChanges();
