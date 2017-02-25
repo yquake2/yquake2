@@ -717,20 +717,25 @@ void GL3_ShutdownShaders(void)
 	gl3state.uniCommonUBO = gl3state.uni2DUBO = gl3state.uni3DUBO = 0;
 }
 
+static inline void
+updateUBO(GLuint ubo, GLsizeiptr size, void* data)
+{
+	// TODO: use glMapBufferRange() or something else instead?
+	glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+	glBufferData(GL_UNIFORM_BUFFER, size, data, GL_DYNAMIC_DRAW);
+}
+
 void GL3_UpdateUBOCommon(void)
 {
-	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uniCommonUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(gl3state.uniCommonData), &gl3state.uniCommonData, GL_DYNAMIC_DRAW);
+	updateUBO(gl3state.uniCommonUBO, sizeof(gl3state.uniCommonData), &gl3state.uniCommonData);
 }
 
 void GL3_UpdateUBO2D(void)
 {
-	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uni2DUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(gl3state.uni2DData), &gl3state.uni2DData, GL_DYNAMIC_DRAW);
+	updateUBO(gl3state.uni2DUBO, sizeof(gl3state.uni2DData), &gl3state.uni2DData);
 }
 
 void GL3_UpdateUBO3D(void)
 {
-	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uni3DUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(gl3state.uni3DData), &gl3state.uni3DData, GL_DYNAMIC_DRAW);
+	updateUBO(gl3state.uni3DUBO, sizeof(gl3state.uni3DData), &gl3state.uni3DData);
 }
