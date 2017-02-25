@@ -412,6 +412,51 @@ static const char* fragmentSrcAliasColor = MULTILINE_STRING(
 		}
 );
 
+static const char* vertexSrcParticles = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from vertexCommon3D
+
+		out vec4 passColor;
+
+		void main()
+		{
+			passColor = vertColor;
+			gl_Position = transProj * transModelView * vec4(position, 1.0);
+
+			// abusing texCoord for pointSize, pointDist for particles
+			float pointDist = texCoord.y*0.1; // with factor 0.1 it looks good.
+
+			// 1.4 to make them a bit bigger, they look smaller due to fading (see fragment shader)
+			gl_PointSize = 1.4*texCoord.x/pointDist;
+		}
+);
+
+static const char* fragmentSrcParticles = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from fragmentCommon3D
+
+		in vec4 passColor;
+
+		void main()
+		{
+			vec2 offsetFromCenter = 2.0*(gl_PointCoord - vec2(0.5, 0.5)); // normalize so offset is between 0 and 1 instead 0 and 0.5
+			float distSquared = dot(offsetFromCenter, offsetFromCenter);
+			if(distSquared > 1.0) // this makes sure the particle is round
+				discard;
+
+			vec4 texel = passColor;
+
+			// apply gamma correction and intensity
+			//texel.rgb *= intensity; TODO: intensity? Probably not?
+			outColor.rgb = pow(texel.rgb, vec3(gamma));
+
+			// I want the particles to fade out towards the edge, the following seems to look nice
+			texel.a *= min(1.0, 1.2*(1.0 - distSquared));
+
+			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
+		}
+);
+
 
 #undef MULTILINE_STRING
 
@@ -676,7 +721,11 @@ qboolean GL3_InitShaders(void)
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for rendering flat-colored models!\n");
 		return false;
 	}
-
+	if(!initShader3D(&gl3state.siParticle, vertexSrcParticles, fragmentSrcParticles))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for rendering particles!\n");
+		return false;
+	}
 
 	gl3state.currentShaderProgram = 0;
 
@@ -685,34 +734,15 @@ qboolean GL3_InitShaders(void)
 
 void GL3_ShutdownShaders(void)
 {
-	if(gl3state.si2D.shaderProgram != 0)
-		glDeleteProgram(gl3state.si2D.shaderProgram);
-	memset(&gl3state.si2D, 0, sizeof(gl3ShaderInfo_t));
+	const gl3ShaderInfo_t siZero = {0};
+	for(gl3ShaderInfo_t* si = &gl3state.si2D; si <= &gl3state.siParticle; ++si)
+	{
+		if(si->shaderProgram != 0)  glDeleteProgram(si->shaderProgram);
+		*si = siZero;
+	}
 
-	if(gl3state.si2Dcolor.shaderProgram != 0)
-		glDeleteProgram(gl3state.si2Dcolor.shaderProgram);
-	memset(&gl3state.si2Dcolor, 0, sizeof(gl3ShaderInfo_t));
-
-	if(gl3state.si3D.shaderProgram != 0)
-		glDeleteProgram(gl3state.si3D.shaderProgram);
-	memset(&gl3state.si3D, 0, sizeof(gl3ShaderInfo_t));
-
-	if(gl3state.si3Dflow.shaderProgram != 0)
-		glDeleteProgram(gl3state.si3Dflow.shaderProgram);
-	memset(&gl3state.si3Dflow, 0, sizeof(gl3ShaderInfo_t));
-
-	if(gl3state.si3Dturb.shaderProgram != 0)
-		glDeleteProgram(gl3state.si3Dturb.shaderProgram);
-	memset(&gl3state.si3Dturb, 0, sizeof(gl3ShaderInfo_t));
-
-	if(gl3state.si3Dalias.shaderProgram != 0)
-		glDeleteProgram(gl3state.si3Dalias.shaderProgram);
-	memset(&gl3state.si3Dalias, 0, sizeof(gl3ShaderInfo_t));
-
-	if(gl3state.si3DaliasColor.shaderProgram != 0)
-		glDeleteProgram(gl3state.si3DaliasColor.shaderProgram);
-	memset(&gl3state.si3DaliasColor, 0, sizeof(gl3ShaderInfo_t));
-
+	// let's (ab)use the fact that all 3 UBO handles are consecutive fields
+	// of the gl3state struct
 	glDeleteBuffers(3, &gl3state.uniCommonUBO);
 	gl3state.uniCommonUBO = gl3state.uni2DUBO = gl3state.uni3DUBO = 0;
 }

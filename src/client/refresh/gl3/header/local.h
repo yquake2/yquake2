@@ -162,6 +162,8 @@ typedef struct
 	GLuint currentVAO;
 	GLuint currentVBO;
 	GLuint currentShaderProgram;
+
+	// NOTE: make sure si2D is always the first shaderInfo (or adapt GL3_ShutdownShaders())
 	gl3ShaderInfo_t si2D; // shader for rendering 2D with textures
 	gl3ShaderInfo_t si2Dcolor; // shader for rendering 2D with flat colors
 	gl3ShaderInfo_t si3D;
@@ -170,8 +172,12 @@ typedef struct
 	gl3ShaderInfo_t si3Dalias; // for models
 	gl3ShaderInfo_t si3DaliasColor; // for models w/ flat colors
 
+	// NOTE: make sure siParticle is always the last shaderInfo (or adapt GL3_ShutdownShaders())
+	gl3ShaderInfo_t siParticle; // for particles. surprising, right?
+
 	GLuint vao3D, vbo3D; // for brushes etc, using 7 floats as vertex input (x,y,z, s,t, lms,lmt)
 	GLuint vaoAlias, vboAlias; // for models, using 9 floats as (x,y,z, s,t, r,g,b,a)
+	GLuint vaoParticle, vboParticle; // for particles, using 9 floats (x,y,z, size,distance, r,g,b,a)
 
 	// UBOs and their data
 	gl3UniCommon_t uniCommonData;

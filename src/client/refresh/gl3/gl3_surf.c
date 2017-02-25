@@ -76,6 +76,22 @@ void GL3_SurfInit(void)
 
 	glEnableVertexAttribArray(GL3_ATTRIB_COLOR);
 	qglVertexAttribPointer(GL3_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), 5*sizeof(GLfloat));
+
+
+	glGenVertexArrays(1, &gl3state.vaoParticle);
+	GL3_BindVAO(gl3state.vaoParticle);
+
+	glGenBuffers(1, &gl3state.vboParticle);
+	GL3_BindVBO(gl3state.vboParticle);
+
+	glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
+	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), 0);
+
+	glEnableVertexAttribArray(GL3_ATTRIB_TEXCOORD); // it's abused for (point_size, distance) here..
+	qglVertexAttribPointer(GL3_ATTRIB_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), 3*sizeof(GLfloat));
+
+	glEnableVertexAttribArray(GL3_ATTRIB_COLOR);
+	qglVertexAttribPointer(GL3_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), 5*sizeof(GLfloat));
 }
 
 void GL3_SurfShutdown(void)

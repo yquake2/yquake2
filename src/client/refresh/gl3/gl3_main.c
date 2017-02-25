@@ -86,6 +86,7 @@ cvar_t *gl_anisotropic;
 cvar_t *gl_texturemode;
 cvar_t *gl_drawbuffer;
 cvar_t *gl_clear;
+cvar_t *gl_particle_size;
 
 cvar_t *gl_lefthand;
 cvar_t *gl_farsee;
@@ -195,6 +196,7 @@ GL3_Register(void)
 	gl_mode = ri.Cvar_Get("gl_mode", "4", CVAR_ARCHIVE);
 	gl_customwidth = ri.Cvar_Get("gl_customwidth", "1024", CVAR_ARCHIVE);
 	gl_customheight = ri.Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
+	gl_particle_size = ri.Cvar_Get("gl_particle_size", "40", CVAR_ARCHIVE);
 
 	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
 	gl_drawentities = ri.Cvar_Get("gl_drawentities", "1", 0);
@@ -247,7 +249,7 @@ GL3_Register(void)
 
 	gl_particle_min_size = ri.Cvar_Get("gl_particle_min_size", "2", CVAR_ARCHIVE);
 	gl_particle_max_size = ri.Cvar_Get("gl_particle_max_size", "40", CVAR_ARCHIVE);
-	gl_particle_size = ri.Cvar_Get("gl_particle_size", "40", CVAR_ARCHIVE);
+	//gl_particle_size = ri.Cvar_Get("gl_particle_size", "40", CVAR_ARCHIVE);
 	gl_particle_att_a = ri.Cvar_Get("gl_particle_att_a", "0.01", CVAR_ARCHIVE);
 	gl_particle_att_b = ri.Cvar_Get("gl_particle_att_b", "0.0", CVAR_ARCHIVE);
 	gl_particle_att_c = ri.Cvar_Get("gl_particle_att_c", "0.01", CVAR_ARCHIVE);
@@ -799,6 +801,120 @@ GL3_DrawNullModel(void)
 #endif // 0
 }
 
+#if 0
+static void
+GL3_PolyBlend(void)
+{
+	if (!gl_polyblend->value)
+	{
+		return;
+	}
+
+	if (!v_blend[3])
+	{
+		return;
+	}
+
+	glDisable(GL_ALPHA_TEST);
+	glEnable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_2D);
+
+	glLoadIdentity();
+
+	glRotatef(-90, 1, 0, 0); /* put Z going up */
+	glRotatef(90, 0, 0, 1); /* put Z going up */
+
+	glColor4f( v_blend[0], v_blend[1], v_blend[2], v_blend[3] );
+
+	GLfloat vtx[] = {
+		10, 100, 100,
+		10, -100, 100,
+		10, -100, -100,
+		10, 100, -100
+	};
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+
+	glVertexPointer( 3, GL_FLOAT, 0, vtx );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+
+	glDisable(GL_BLEND);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_ALPHA_TEST);
+
+	glColor4f(1, 1, 1, 1);
+}
+#endif // 0
+
+static void
+GL3_DrawParticles(void)
+{
+	// TODO: stereo
+	//qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	//qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	//if (gl_config.pointparameters && !(stereo_split_tb || stereo_split_lr))
+	{
+		int i;
+		int numParticles = gl3_newrefdef.num_particles;
+		unsigned char color[4];
+		const particle_t *p;
+		// assume the size looks good with window height 600px and scale according to real resolution
+		float pointSize = gl_particle_size->value * (float)gl3_newrefdef.height/600.0f;
+
+		typedef struct part_vtx {
+			GLfloat pos[3];
+			GLfloat size;
+			GLfloat dist;
+			GLfloat color[4];
+		} part_vtx;
+
+		part_vtx buf[numParticles];
+
+		// FIXME: viewOrg could be in UBO
+		vec3_t viewOrg;
+		VectorCopy(gl3_newrefdef.vieworg, viewOrg);
+
+		glDepthMask(GL_FALSE);
+		glEnable(GL_BLEND);
+		glEnable(GL_PROGRAM_POINT_SIZE);
+
+		GL3_UseProgram(gl3state.siParticle.shaderProgram);
+
+		for ( i = 0, p = gl3_newrefdef.particles; i < numParticles; i++, p++ )
+		{
+			//*(int *) color = d_8to24table [ p->color & 0xFF ];
+			memcpy(color, &d_8to24table[ p->color & 0xFF ], 4);
+			part_vtx* cur = &buf[i];
+			vec3_t offset; // between viewOrg and particle position
+			VectorSubtract(viewOrg, p->origin, offset);
+
+			VectorCopy(p->origin, cur->pos);
+			cur->size = pointSize;
+			cur->dist = VectorLength(offset);
+
+			for(int j=0; j<3; ++j)  cur->color[j] = color[j]/255.0f;
+
+			cur->color[3] = p->alpha;
+		}
+
+		assert(sizeof(part_vtx)==9*sizeof(float));
+
+		GL3_BindVAO(gl3state.vaoParticle);
+		GL3_BindVBO(gl3state.vboParticle);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(part_vtx)*numParticles, buf, GL_STREAM_DRAW);
+		glDrawArrays(GL_POINTS, 0, numParticles);
+
+
+		glDisable(GL_BLEND);
+		glDepthMask(GL_TRUE);
+		glDisable(GL_PROGRAM_POINT_SIZE);
+	}
+}
+
 static void
 GL3_DrawEntitiesOnList(void)
 {
@@ -853,7 +969,6 @@ GL3_DrawEntitiesOnList(void)
 		}
 	}
 
-#if 1
 	/* draw transparent entities
 	   we could sort these if it ever
 	   becomes a problem... */
@@ -901,7 +1016,6 @@ GL3_DrawEntitiesOnList(void)
 	}
 
 	glDepthMask(1); /* back to writing */
-#endif // 0
 }
 
 static int
@@ -1369,9 +1483,10 @@ GL3_RenderView(refdef_t *fd)
 	GL3_DrawEntitiesOnList();
 #if 0 // TODO !!
 	GL3_RenderDlights();
-
-	R_DrawParticles();
 #endif // 0
+
+	GL3_DrawParticles();
+
 	GL3_DrawAlphaSurfaces();
 #if 0
 	R_Flash();
