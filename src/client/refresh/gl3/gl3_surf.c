@@ -655,8 +655,6 @@ RenderBrushPoly(msurface_t *fa)
 void
 GL3_DrawAlphaSurfaces(void)
 {
-	STUB_ONCE("TODO: implement!");
-
 	msurface_t *s;
 	float intens;
 

@@ -801,54 +801,6 @@ GL3_DrawNullModel(void)
 #endif // 0
 }
 
-#if 0
-static void
-GL3_PolyBlend(void)
-{
-	if (!gl_polyblend->value)
-	{
-		return;
-	}
-
-	if (!v_blend[3])
-	{
-		return;
-	}
-
-	glDisable(GL_ALPHA_TEST);
-	glEnable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_TEXTURE_2D);
-
-	glLoadIdentity();
-
-	glRotatef(-90, 1, 0, 0); /* put Z going up */
-	glRotatef(90, 0, 0, 1); /* put Z going up */
-
-	glColor4f( v_blend[0], v_blend[1], v_blend[2], v_blend[3] );
-
-	GLfloat vtx[] = {
-		10, 100, 100,
-		10, -100, 100,
-		10, -100, -100,
-		10, 100, -100
-	};
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-
-	glVertexPointer( 3, GL_FLOAT, 0, vtx );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-
-	glDisableClientState( GL_VERTEX_ARRAY );
-
-	glDisable(GL_BLEND);
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_ALPHA_TEST);
-
-	glColor4f(1, 1, 1, 1);
-}
-#endif // 0
-
 static void
 GL3_DrawParticles(void)
 {
@@ -871,6 +823,7 @@ GL3_DrawParticles(void)
 			GLfloat dist;
 			GLfloat color[4];
 		} part_vtx;
+		assert(sizeof(part_vtx)==9*sizeof(float)); // remember to update GL3_SurfInit() if this changes!
 
 		part_vtx buf[numParticles];
 
@@ -886,8 +839,7 @@ GL3_DrawParticles(void)
 
 		for ( i = 0, p = gl3_newrefdef.particles; i < numParticles; i++, p++ )
 		{
-			//*(int *) color = d_8to24table [ p->color & 0xFF ];
-			memcpy(color, &d_8to24table[ p->color & 0xFF ], 4);
+			*(int *) color = d_8to24table [ p->color & 0xFF ];
 			part_vtx* cur = &buf[i];
 			vec3_t offset; // between viewOrg and particle position
 			VectorSubtract(viewOrg, p->origin, offset);
@@ -900,8 +852,6 @@ GL3_DrawParticles(void)
 
 			cur->color[3] = p->alpha;
 		}
-
-		assert(sizeof(part_vtx)==9*sizeof(float));
 
 		GL3_BindVAO(gl3state.vaoParticle);
 		GL3_BindVBO(gl3state.vboParticle);
@@ -918,8 +868,6 @@ GL3_DrawParticles(void)
 static void
 GL3_DrawEntitiesOnList(void)
 {
-	STUB_ONCE("TODO: Implement!");
-
 	int i;
 
 	if (!gl_drawentities->value)
@@ -1325,6 +1273,8 @@ SetupGL(void)
 	glEnable(GL_DEPTH_TEST);
 }
 
+extern int c_visible_lightmaps, c_visible_textures;
+
 /*
  * gl3_newrefdef must be set before the first call
  */
@@ -1481,15 +1431,14 @@ GL3_RenderView(refdef_t *fd)
 	GL3_DrawWorld();
 
 	GL3_DrawEntitiesOnList();
-#if 0 // TODO !!
+
 	GL3_RenderDlights();
-#endif // 0
 
 	GL3_DrawParticles();
 
 	GL3_DrawAlphaSurfaces();
-#if 0
-	R_Flash();
+
+	// Note: R_Flash() is now GL3_Draw_Flash() and called from GL3_RenderFrame()
 
 	if (gl_speeds->value)
 	{
@@ -1497,8 +1446,6 @@ GL3_RenderView(refdef_t *fd)
 				c_brush_polys, c_alias_polys, c_visible_textures,
 				c_visible_lightmaps);
 	}
-
-#endif // 0
 
 #if 0 // TODO: stereo stuff
 	switch (gl_state.stereo_mode) {
@@ -1577,13 +1524,14 @@ GL3_SetLightLevel(void)
 	}
 }
 
-
 static void
 GL3_RenderFrame(refdef_t *fd)
 {
 	GL3_RenderView(fd);
 	GL3_SetLightLevel();
 	GL3_SetGL2D();
+
+	GL3_Draw_Flash(v_blend);
 }
 
 

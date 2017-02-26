@@ -290,11 +290,15 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
+// in GL1 this is called R_Flash() (which just calls R_PolyBlend())
+// now implemented in 2D mode and called after SetGL2D() because
+// it's pretty similar to GL3_Draw_FadeScreen()
 void
-GL3_Draw_FadeScreen(void)
+GL3_Draw_Flash(const float color[4])
 {
 	float w = vid.width;
 	float h = vid.height;
+	int i=0;
 
 	GLfloat vBuf[8] = {
 	//  X,   Y
@@ -306,7 +310,8 @@ GL3_Draw_FadeScreen(void)
 
 	glEnable(GL_BLEND);
 
-	gl3state.uniCommonData.color = HMM_Vec4(0, 0, 0, 0.6f);
+	for(i=0; i<4; ++i)  gl3state.uniCommonData.color.Elements[i] = color[i];
+
 	GL3_UpdateUBOCommon();
 
 	GL3_UseProgram(gl3state.si2Dcolor.shaderProgram);
@@ -319,6 +324,13 @@ GL3_Draw_FadeScreen(void)
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	glDisable(GL_BLEND);
+}
+
+void
+GL3_Draw_FadeScreen(void)
+{
+	float color[4] = {0, 0, 0, 0.6f};
+	GL3_Draw_Flash(color);
 }
 
 void
