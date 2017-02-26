@@ -170,6 +170,8 @@ typedef struct
 	gl3ShaderInfo_t si3Dturb; // for water etc
 	gl3ShaderInfo_t si3Dflow; // for flowing/scrolling things (conveyor, ..?)
 	gl3ShaderInfo_t si3Dsky;
+	gl3ShaderInfo_t si3Dsprite; // for sprites
+	gl3ShaderInfo_t si3DspriteAlpha; // for sprites with alpha-testing
 	gl3ShaderInfo_t si3Dalias; // for models
 	gl3ShaderInfo_t si3DaliasColor; // for models w/ flat colors
 
@@ -428,6 +430,7 @@ extern cvar_t *gl_fullbright;
 extern cvar_t *gl_norefresh;
 extern cvar_t *gl_lefthand;
 extern cvar_t *gl_farsee;
+extern cvar_t *gl_drawworld;
 
 extern cvar_t *vid_gamma;
 extern cvar_t *intensity;

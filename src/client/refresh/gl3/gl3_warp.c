@@ -685,7 +685,7 @@ GL3_DrawSkyBox(void)
 
 	// glTranslatef(gl3_origin[0], gl3_origin[1], gl3_origin[2]);
 	hmm_vec3 transl = HMM_Vec3(gl3_origin[0], gl3_origin[1], gl3_origin[2]);
-	hmm_mat4 modMVmat = HMM_MultiplyMat4(origMVmat, HMM_Translate(transl) );
+	hmm_mat4 modMVmat = HMM_MultiplyMat4(origMVmat, HMM_Translate(transl));
 	if(skyrotate != 0.0f)
 	{
 		// glRotatef(gl3_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
@@ -714,7 +714,7 @@ GL3_DrawSkyBox(void)
 		}
 
 		if ((skymins[0][i] >= skymaxs[0][i]) ||
-				(skymins[1][i] >= skymaxs[1][i]))
+		    (skymins[1][i] >= skymaxs[1][i]))
 		{
 			continue;
 		}

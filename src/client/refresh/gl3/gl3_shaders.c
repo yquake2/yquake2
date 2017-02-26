@@ -349,6 +349,43 @@ static const char* fragmentSrc3Dsky = MULTILINE_STRING(
 		}
 );
 
+static const char* fragmentSrc3Dsprite = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from fragmentCommon3D
+
+		uniform sampler2D tex;
+
+		void main()
+		{
+			vec4 texel = texture(tex, passTexCoord);
+
+			// apply gamma correction and intensity
+			texel.rgb *= intensity;
+			outColor.rgb = pow(texel.rgb, vec3(gamma));
+			outColor.a = texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
+		}
+);
+
+static const char* fragmentSrc3DspriteAlpha = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from fragmentCommon3D
+
+		uniform sampler2D tex;
+
+		void main()
+		{
+			vec4 texel = texture(tex, passTexCoord);
+
+			if(texel.a <= 0.666)
+				discard;
+
+			// apply gamma correction and intensity
+			texel.rgb *= intensity;
+			outColor.rgb = pow(texel.rgb, vec3(gamma));
+			outColor.a = texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
+		}
+);
+
 static const char* vertexSrc3Dwater = MULTILINE_STRING(
 
 		// it gets attributes and uniforms from vertexCommon3D
@@ -733,6 +770,16 @@ qboolean GL3_InitShaders(void)
 	if(!initShader3D(&gl3state.si3Dsky, vertexSrc3D, fragmentSrc3Dsky))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for sky rendering!\n");
+		return false;
+	}
+	if(!initShader3D(&gl3state.si3Dsprite, vertexSrc3D, fragmentSrc3Dsprite))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for sprite rendering!\n");
+		return false;
+	}
+	if(!initShader3D(&gl3state.si3DspriteAlpha, vertexSrc3D, fragmentSrc3DspriteAlpha))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for alpha-tested sprite rendering!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3Dalias, vertexSrcAlias, fragmentSrcAlias))

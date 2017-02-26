@@ -1064,12 +1064,10 @@ GL3_DrawWorld(void)
 {
 	entity_t ent;
 
-	STUB_ONCE("TODO: gl_drawworld cvar");
-	/*
 	if (!gl_drawworld->value)
 	{
 		return;
-	}*/
+	}
 
 	if (gl3_newrefdef.rdflags & RDF_NOWORLDMODEL)
 	{

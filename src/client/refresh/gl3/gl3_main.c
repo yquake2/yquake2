@@ -97,6 +97,7 @@ cvar_t *gl_overbrightbits;
 
 cvar_t *gl_norefresh;
 cvar_t *gl_drawentities;
+cvar_t *gl_drawworld;
 cvar_t *gl_nolerp_list;
 cvar_t *gl_nobind;
 cvar_t *gl_lockpvs;
@@ -200,6 +201,7 @@ GL3_Register(void)
 
 	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
 	gl_drawentities = ri.Cvar_Get("gl_drawentities", "1", 0);
+	gl_drawworld = ri.Cvar_Get("gl_drawworld", "1", 0);
 	gl_fullbright = ri.Cvar_Get("gl_fullbright", "0", 0);
 
 	/* don't bilerp characters and crosshairs */
@@ -239,7 +241,7 @@ GL3_Register(void)
 	//gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
 	//gl_fullbright = ri.Cvar_Get("gl_fullbright", "0", 0);
 	//gl_drawentities = ri.Cvar_Get("gl_drawentities", "1", 0);
-	gl_drawworld = ri.Cvar_Get("gl_drawworld", "1", 0);
+	//gl_drawworld = ri.Cvar_Get("gl_drawworld", "1", 0);
 	//gl_novis = ri.Cvar_Get("gl_novis", "0", 0);
 	//gl_lerpmodels = ri.Cvar_Get("gl_lerpmodels", "1", 0); NOTE: screw this, it looks horrible without
 	//gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
@@ -653,13 +655,17 @@ GL3_DrawBeam(entity_t *e)
 #endif // 0
 }
 
+typedef struct spriteVert {
+	vec3_t pos;
+	float texCoord[2];
+	float lmTexCoord[2]; // unused for sprites
+} spriteVert;
+
 static void
 GL3_DrawSpriteModel(entity_t *e)
 {
-	STUB_ONCE("TODO: Implement!");
-#if 0
 	float alpha = 1.0F;
-	vec3_t point[4];
+	spriteVert verts[4];
 	dsprframe_t *frame;
 	float *up, *right;
 	dsprite_t *psprite;
@@ -680,65 +686,59 @@ GL3_DrawSpriteModel(entity_t *e)
 		alpha = e->alpha;
 	}
 
-	if (alpha != 1.0F)
+	if (alpha != gl3state.uni3DData.alpha)
 	{
-		glEnable(GL_BLEND);
+		gl3state.uni3DData.alpha = alpha;
+		GL3_UpdateUBO3D();
 	}
 
-	glColor4f(1, 1, 1, alpha);
-
-	R_Bind(currentmodel->skins[e->frame]->texnum);
-
-	R_TexEnv(GL_MODULATE);
+	GL3_Bind(currentmodel->skins[e->frame]->texnum);
 
 	if (alpha == 1.0)
 	{
-		glEnable(GL_ALPHA_TEST);
+		// use shader with alpha test
+		GL3_UseProgram(gl3state.si3DspriteAlpha.shaderProgram);
 	}
 	else
 	{
-		glDisable(GL_ALPHA_TEST);
+		glEnable(GL_BLEND);
+
+		GL3_UseProgram(gl3state.si3Dsprite.shaderProgram);
 	}
 
-	GLfloat tex[] = {
-		0, 1,
-		0, 0,
-		1, 0,
-		1, 1
-	};
+	verts[0].texCoord[0] = 0;
+	verts[0].texCoord[1] = 1;
+	verts[1].texCoord[0] = 0;
+	verts[1].texCoord[1] = 0;
+	verts[2].texCoord[0] = 1;
+	verts[2].texCoord[1] = 0;
+	verts[3].texCoord[0] = 1;
+	verts[3].texCoord[1] = 1;
 
-	VectorMA( e->origin, -frame->origin_y, up, point[0] );
-	VectorMA( point[0], -frame->origin_x, right, point[0] );
+	VectorMA( e->origin, -frame->origin_y, up, verts[0].pos );
+	VectorMA( verts[0].pos, -frame->origin_x, right, verts[0].pos );
 
-	VectorMA( e->origin, frame->height - frame->origin_y, up, point[1] );
-	VectorMA( point[1], -frame->origin_x, right, point[1] );
+	VectorMA( e->origin, frame->height - frame->origin_y, up, verts[1].pos );
+	VectorMA( verts[1].pos, -frame->origin_x, right, verts[1].pos );
 
-	VectorMA( e->origin, frame->height - frame->origin_y, up, point[2] );
-	VectorMA( point[2], frame->width - frame->origin_x, right, point[2] );
+	VectorMA( e->origin, frame->height - frame->origin_y, up, verts[2].pos );
+	VectorMA( verts[2].pos, frame->width - frame->origin_x, right, verts[2].pos );
 
-	VectorMA( e->origin, -frame->origin_y, up, point[3] );
-	VectorMA( point[3], frame->width - frame->origin_x, right, point[3] );
+	VectorMA( e->origin, -frame->origin_y, up, verts[3].pos );
+	VectorMA( verts[3].pos, frame->width - frame->origin_x, right, verts[3].pos );
 
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+	GL3_BindVAO(gl3state.vao3D);
+	GL3_BindVBO(gl3state.vbo3D);
 
-	glVertexPointer( 3, GL_FLOAT, 0, point );
-	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-
-	glDisableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	glDisable(GL_ALPHA_TEST);
-	R_TexEnv(GL_REPLACE);
+	glBufferData(GL_ARRAY_BUFFER, 4*sizeof(spriteVert), verts, GL_STREAM_DRAW);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 	if (alpha != 1.0F)
 	{
 		glDisable(GL_BLEND);
+		gl3state.uni3DData.alpha = 1.0f;
+		GL3_UpdateUBO3D();
 	}
-
-	glColor4f(1, 1, 1, 1);
-#endif // 0
 }
 
 static void
