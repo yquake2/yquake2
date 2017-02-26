@@ -726,8 +726,6 @@ GL3_DrawSpriteModel(entity_t *e)
 static void
 GL3_DrawNullModel(void)
 {
-	STUB_ONCE("TODO: Implement!");
-#if 0
 	vec3_t shadelight;
 
 	if (currententity->flags & RF_FULLBRIGHT)
@@ -736,51 +734,42 @@ GL3_DrawNullModel(void)
 	}
 	else
 	{
-		R_LightPoint(currententity->origin, shadelight);
+		GL3_LightPoint(currententity->origin, shadelight);
 	}
 
-	glPushMatrix();
-	R_RotateForEntity(currententity);
+	hmm_mat4 origMVmat = gl3state.uni3DData.transModelViewMat4;
+	GL3_RotateForEntity(currententity);
 
-	glDisable(GL_TEXTURE_2D);
-	glColor4f( shadelight[0], shadelight[1], shadelight[2], 1 );
+	gl3state.uniCommonData.color = HMM_Vec4( shadelight[0], shadelight[1], shadelight[2], 1 );
+	GL3_UpdateUBOCommon();
 
-	GLfloat vtxA[] = {
-			0, 0, -16,
-			16 * cos( 0 * M_PI / 2 ), 16 * sin( 0 * M_PI / 2 ), 0,
-			16 * cos( 1 * M_PI / 2 ), 16 * sin( 1 * M_PI / 2 ), 0,
-			16 * cos( 2 * M_PI / 2 ), 16 * sin( 2 * M_PI / 2 ), 0,
-			16 * cos( 3 * M_PI / 2 ), 16 * sin( 3 * M_PI / 2 ), 0,
-			16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0
+	GL3_UseProgram(gl3state.si3DcolorOnly.shaderProgram);
+
+	GL3_BindVAO(gl3state.vao3D);
+	GL3_BindVBO(gl3state.vbo3D);
+
+	gl3_3D_vtx_t vtxA[6] = {
+		{{0, 0, -16}, {0,0}, {0,0}},
+		{{16 * cos( 0 * M_PI / 2 ), 16 * sin( 0 * M_PI / 2 ), 0}, {0,0}, {0,0}},
+		{{16 * cos( 1 * M_PI / 2 ), 16 * sin( 1 * M_PI / 2 ), 0}, {0,0}, {0,0}},
+		{{16 * cos( 2 * M_PI / 2 ), 16 * sin( 2 * M_PI / 2 ), 0}, {0,0}, {0,0}},
+		{{16 * cos( 3 * M_PI / 2 ), 16 * sin( 3 * M_PI / 2 ), 0}, {0,0}, {0,0}},
+		{{16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0}, {0,0}, {0,0}}
 	};
 
-	glEnableClientState( GL_VERTEX_ARRAY );
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vtxA), vtxA, GL_STREAM_DRAW);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 6);
 
-	glVertexPointer( 3, GL_FLOAT, 0, vtxA );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 6 );
-
-	glDisableClientState( GL_VERTEX_ARRAY );
-
-	GLfloat vtxB[] = {
-			0, 0, 16,
-			16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0,
-			16 * cos( 3 * M_PI / 2 ), 16 * sin( 3 * M_PI / 2 ), 0,
-			16 * cos( 2 * M_PI / 2 ), 16 * sin( 2 * M_PI / 2 ), 0,
-			16 * cos( 1 * M_PI / 2 ), 16 * sin( 1 * M_PI / 2 ), 0,
-			16 * cos( 0 * M_PI / 2 ), 16 * sin( 0 * M_PI / 2 ), 0
+	gl3_3D_vtx_t vtxB[6] = {
+		{{0, 0, 16}, {0,0}, {0,0}},
+		vtxA[5], vtxA[4], vtxA[3], vtxA[2], vtxA[1]
 	};
 
-	glEnableClientState( GL_VERTEX_ARRAY );
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vtxB), vtxB, GL_STREAM_DRAW);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 6);
 
-	glVertexPointer( 3, GL_FLOAT, 0, vtxB );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 6 );
-
-	glDisableClientState( GL_VERTEX_ARRAY );
-
-	glColor4f(1, 1, 1, 1);
-	glPopMatrix();
-	glEnable(GL_TEXTURE_2D);
-#endif // 0
+	gl3state.uni3DData.transModelViewMat4 = origMVmat;
+	GL3_UpdateUBO3D();
 }
 
 static void
