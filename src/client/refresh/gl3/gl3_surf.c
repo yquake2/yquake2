@@ -62,6 +62,9 @@ void GL3_SurfInit(void)
 	qglVertexAttribPointer(GL3_ATTRIB_LMTEXCOORD, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 5*sizeof(GLfloat));
 
 
+	// init VAO and VBO for model vertexdata: 9 floats
+	// (X,Y,Z), (S,T), (R,G,B,A)
+
 	glGenVertexArrays(1, &gl3state.vaoAlias);
 	GL3_BindVAO(gl3state.vaoAlias);
 
@@ -78,6 +81,9 @@ void GL3_SurfInit(void)
 	qglVertexAttribPointer(GL3_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), 5*sizeof(GLfloat));
 
 
+	// init VAO and VBO for particle vertexdata: 9 floats
+	// (X,Y,Z), (point_size,distace_to_camera), (R,G,B,A)
+
 	glGenVertexArrays(1, &gl3state.vaoParticle);
 	GL3_BindVAO(gl3state.vaoParticle);
 
@@ -87,6 +93,7 @@ void GL3_SurfInit(void)
 	glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
 	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), 0);
 
+	// TODO: maybe move point size and camera origin to UBO and calculate distance in vertex shader
 	glEnableVertexAttribArray(GL3_ATTRIB_TEXCOORD); // it's abused for (point_size, distance) here..
 	qglVertexAttribPointer(GL3_ATTRIB_TEXCOORD, 2, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), 3*sizeof(GLfloat));
 

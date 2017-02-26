@@ -169,6 +169,7 @@ typedef struct
 	gl3ShaderInfo_t si3D;
 	gl3ShaderInfo_t si3Dturb; // for water etc
 	gl3ShaderInfo_t si3Dflow; // for flowing/scrolling things (conveyor, ..?)
+	gl3ShaderInfo_t si3Dsky;
 	gl3ShaderInfo_t si3Dalias; // for models
 	gl3ShaderInfo_t si3DaliasColor; // for models w/ flat colors
 

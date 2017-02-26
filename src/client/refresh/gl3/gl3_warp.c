@@ -262,11 +262,6 @@ enum { MAX_CLIP_VERTS = 64 };
 
 static const int skytexorder[6] = {0, 2, 1, 3, 4, 5};
 
-static GLfloat vtx_sky[12];
-static GLfloat tex_sky[8];
-static unsigned int index_vtx = 0;
-static unsigned int index_tex = 0;
-
 static float skymins[2][6], skymaxs[2][6];
 static float sky_min, sky_max;
 
@@ -323,14 +318,13 @@ GL3_SetSky(char *name, float rotate, vec3_t axis)
 
 	for (i = 0; i < 6; i++)
 	{
-
 		// NOTE: there might be a paletted .pcx version, which was only used
-		//       if gl_config.palettedtexture
+		//       if gl_config.palettedtexture so it *shouldn't* be relevant for he GL3 renderer
 		Com_sprintf(pathname, sizeof(pathname), "env/%s%s.tga", skyname, suf[i]);
 
 		sky_images[i] = GL3_FindImage(pathname, it_sky);
 
-		if (!sky_images[i])
+		if (sky_images[i] == NULL)
 		{
 			sky_images[i] = gl3_notexture;
 		}
@@ -599,8 +593,15 @@ GL3_ClearSkyBox(void)
 	}
 }
 
+typedef struct skyVert
+{
+	float pos[3];
+	float texCoord[2];
+	float lmCoord[2]; // unused
+} skyVert;
+
 static void
-MakeSkyVec(float s, float t, int axis)
+MakeSkyVec(float s, float t, int axis, skyVert* vert)
 {
 	vec3_t v, b;
 	int j, k;
@@ -649,12 +650,12 @@ MakeSkyVec(float s, float t, int axis)
 
 	t = 1.0 - t;
 
-	tex_sky[index_tex++] = s;
-	tex_sky[index_tex++] = t;
+	VectorCopy(v, vert->pos);
 
-	vtx_sky[index_vtx++] = v[ 0 ];
-	vtx_sky[index_vtx++] = v[ 1 ];
-	vtx_sky[index_vtx++] = v[ 2 ];
+	vert->texCoord[0] = s;
+	vert->texCoord[1] = t;
+
+	vert->lmCoord[0] = vert->lmCoord[1] = 0.0f;
 }
 
 void
@@ -667,7 +668,7 @@ GL3_DrawSkyBox(void)
 		for (i = 0; i < 6; i++)
 		{
 			if ((skymins[0][i] < skymaxs[0][i]) &&
-					(skymins[1][i] < skymaxs[1][i]))
+			    (skymins[1][i] < skymaxs[1][i]))
 			{
 				break;
 			}
@@ -679,15 +680,32 @@ GL3_DrawSkyBox(void)
 		}
 	}
 
-	STUB_ONCE("TODO: Implement OpenGL3 stuff");
-#if 0
-	glPushMatrix();
-	glTranslatef(gl3_origin[0], gl3_origin[1], gl3_origin[2]);
-	glRotatef(gl3_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
+	// glPushMatrix();
+	hmm_mat4 origMVmat = gl3state.uni3DData.transModelViewMat4;
+
+	// glTranslatef(gl3_origin[0], gl3_origin[1], gl3_origin[2]);
+	hmm_vec3 transl = HMM_Vec3(gl3_origin[0], gl3_origin[1], gl3_origin[2]);
+	hmm_mat4 modMVmat = HMM_MultiplyMat4(origMVmat, HMM_Translate(transl) );
+	if(skyrotate != 0.0f)
+	{
+		// glRotatef(gl3_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
+		hmm_vec3 rotAxis = HMM_Vec3(skyaxis[0], skyaxis[1], skyaxis[2]);
+		modMVmat = HMM_MultiplyMat4(modMVmat, HMM_Rotate(gl3_newrefdef.time * skyrotate, rotAxis));
+	}
+	gl3state.uni3DData.transModelViewMat4 = modMVmat;
+	GL3_UpdateUBO3D();
+
+	GL3_UseProgram(gl3state.si3Dsky.shaderProgram);
+	GL3_BindVAO(gl3state.vao3D);
+	GL3_BindVBO(gl3state.vbo3D);
+
+	// TODO: this could all be done in one drawcall.. but.. whatever, it's <= 6 drawcalls/frame
+
+	skyVert skyVertices[4];
 
 	for (i = 0; i < 6; i++)
 	{
-		if (skyrotate)
+		if (skyrotate != 0.0f)
 		{
 			skymins[0][i] = -1;
 			skymins[1][i] = -1;
@@ -703,26 +721,16 @@ GL3_DrawSkyBox(void)
 
 		GL3_Bind(sky_images[skytexorder[i]]->texnum);
 
-		glEnableClientState( GL_VERTEX_ARRAY );
-		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+		MakeSkyVec( skymins [ 0 ] [ i ], skymins [ 1 ] [ i ], i, &skyVertices[0] );
+		MakeSkyVec( skymins [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i, &skyVertices[1] );
+		MakeSkyVec( skymaxs [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i, &skyVertices[2] );
+		MakeSkyVec( skymaxs [ 0 ] [ i ], skymins [ 1 ] [ i ], i, &skyVertices[3] );
 
-
-		index_vtx = 0;
-		index_tex = 0;
-
-		MakeSkyVec( skymins [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
-		MakeSkyVec( skymins [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
-		MakeSkyVec( skymaxs [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
-		MakeSkyVec( skymaxs [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
-
-		glVertexPointer( 3, GL_FLOAT, 0, vtx_sky );
-		glTexCoordPointer( 2, GL_FLOAT, 0, tex_sky );
-		glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-
-		glDisableClientState( GL_VERTEX_ARRAY );
-		glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+		glBufferData(GL_ARRAY_BUFFER, 4*sizeof(skyVert), skyVertices, GL_STREAM_DRAW);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 
-	glPopMatrix();
-#endif // 0
+	// glPopMatrix();
+	gl3state.uni3DData.transModelViewMat4 = origMVmat;
+	GL3_UpdateUBO3D();
 }

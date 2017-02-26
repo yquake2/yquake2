@@ -330,6 +330,25 @@ static const char* fragmentSrc3D = MULTILINE_STRING(
 		}
 );
 
+static const char* fragmentSrc3Dsky = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from fragmentCommon3D
+
+		uniform sampler2D tex;
+
+		void main()
+		{
+			vec4 texel = texture(tex, passTexCoord);
+
+			// TODO: something about GL_BLEND vs GL_ALPHATEST etc
+
+			// apply gamma correction
+			// texel.rgb *= intensity; // TODO: really no intensity for sky?
+			outColor.rgb = pow(texel.rgb, vec3(gamma));
+			outColor.a = texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
+		}
+);
+
 static const char* vertexSrc3Dwater = MULTILINE_STRING(
 
 		// it gets attributes and uniforms from vertexCommon3D
@@ -709,6 +728,11 @@ qboolean GL3_InitShaders(void)
 	if(!initShader3D(&gl3state.si3Dflow, vertexSrc3Dflow, fragmentSrc3D))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for scrolling textures 3D rendering!\n");
+		return false;
+	}
+	if(!initShader3D(&gl3state.si3Dsky, vertexSrc3D, fragmentSrc3Dsky))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for sky rendering!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3Dalias, vertexSrcAlias, fragmentSrcAlias))
