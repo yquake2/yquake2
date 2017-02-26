@@ -593,15 +593,8 @@ GL3_ClearSkyBox(void)
 	}
 }
 
-typedef struct skyVert
-{
-	float pos[3];
-	float texCoord[2];
-	float lmCoord[2]; // unused
-} skyVert;
-
 static void
-MakeSkyVec(float s, float t, int axis, skyVert* vert)
+MakeSkyVec(float s, float t, int axis, gl3_3D_vtx_t* vert)
 {
 	vec3_t v, b;
 	int j, k;
@@ -655,7 +648,7 @@ MakeSkyVec(float s, float t, int axis, skyVert* vert)
 	vert->texCoord[0] = s;
 	vert->texCoord[1] = t;
 
-	vert->lmCoord[0] = vert->lmCoord[1] = 0.0f;
+	vert->lmTexCoord[0] = vert->lmTexCoord[1] = 0.0f;
 }
 
 void
@@ -701,7 +694,7 @@ GL3_DrawSkyBox(void)
 
 	// TODO: this could all be done in one drawcall.. but.. whatever, it's <= 6 drawcalls/frame
 
-	skyVert skyVertices[4];
+	gl3_3D_vtx_t skyVertices[4];
 
 	for (i = 0; i < 6; i++)
 	{
@@ -726,7 +719,7 @@ GL3_DrawSkyBox(void)
 		MakeSkyVec( skymaxs [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i, &skyVertices[2] );
 		MakeSkyVec( skymaxs [ 0 ] [ i ], skymins [ 1 ] [ i ], i, &skyVertices[3] );
 
-		glBufferData(GL_ARRAY_BUFFER, 4*sizeof(skyVert), skyVertices, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(skyVertices), skyVertices, GL_STREAM_DRAW);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 

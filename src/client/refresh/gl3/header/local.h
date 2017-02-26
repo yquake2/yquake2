@@ -167,11 +167,13 @@ typedef struct
 	gl3ShaderInfo_t si2D; // shader for rendering 2D with textures
 	gl3ShaderInfo_t si2Dcolor; // shader for rendering 2D with flat colors
 	gl3ShaderInfo_t si3D;
+	gl3ShaderInfo_t si3DcolorOnly; // used for beams
 	gl3ShaderInfo_t si3Dturb; // for water etc
 	gl3ShaderInfo_t si3Dflow; // for flowing/scrolling things (conveyor, ..?)
 	gl3ShaderInfo_t si3Dsky;
 	gl3ShaderInfo_t si3Dsprite; // for sprites
 	gl3ShaderInfo_t si3DspriteAlpha; // for sprites with alpha-testing
+
 	gl3ShaderInfo_t si3Dalias; // for models
 	gl3ShaderInfo_t si3DaliasColor; // for models w/ flat colors
 
@@ -253,6 +255,22 @@ typedef struct
 	   main memory so texsubimage can update properly */
 	byte lightmap_buffer[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
 } gl3lightmapstate_t;
+
+// used for vertex array elements when drawing brushes, sprites, sky and more
+// (ok, it has the layout used for rendering brushes, but is not used there)
+typedef struct gl3_3D_vtx_s {
+	vec3_t pos;
+	float texCoord[2];
+	float lmTexCoord[2]; // lightmap texture coordinate (sometimes unused)
+} gl3_3D_vtx_t;
+
+// used for vertex array elements when drawing models
+typedef struct gl3_alias_vtx_s {
+	GLfloat pos[3];
+	GLfloat texCoord[2];
+	GLfloat color[4];
+} gl3_alias_vtx_t;
+
 
 extern gl3model_t *gl3_worldmodel;
 extern gl3model_t *currentmodel;

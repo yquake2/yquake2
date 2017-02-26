@@ -564,8 +564,6 @@ GL3_Shutdown(void)
 static void
 GL3_DrawBeam(entity_t *e)
 {
-	STUB_ONCE("TODO: Implement!");
-#if 0
 	int i;
 	float r, g, b;
 
@@ -576,8 +574,7 @@ GL3_DrawBeam(entity_t *e)
 	vec3_t start_points[NUM_BEAM_SEGS], end_points[NUM_BEAM_SEGS];
 	vec3_t oldorigin, origin;
 
-	GLfloat vtx[3*NUM_BEAM_SEGS*4];
-	unsigned int index_vtx = 0;
+	gl3_3D_vtx_t verts[NUM_BEAM_SEGS*4];
 	unsigned int pointb;
 
 	oldorigin[0] = e->oldorigin[0];
@@ -603,14 +600,16 @@ GL3_DrawBeam(entity_t *e)
 	for (i = 0; i < 6; i++)
 	{
 		RotatePointAroundVector(start_points[i], normalized_direction, perpvec,
-				(360.0 / NUM_BEAM_SEGS) * i);
+		                        (360.0 / NUM_BEAM_SEGS) * i);
 		VectorAdd(start_points[i], origin, start_points[i]);
 		VectorAdd(start_points[i], direction, end_points[i]);
 	}
 
-	glDisable(GL_TEXTURE_2D);
+	//glDisable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glDepthMask(GL_FALSE);
+
+	GL3_UseProgram(gl3state.si3DcolorOnly.shaderProgram);
 
 	r = (LittleLong(d_8to24table[e->skinnum & 0xFF])) & 0xFF;
 	g = (LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8) & 0xFF;
@@ -620,52 +619,35 @@ GL3_DrawBeam(entity_t *e)
 	g *= 1 / 255.0F;
 	b *= 1 / 255.0F;
 
-	glColor4f(r, g, b, e->alpha);
+	gl3state.uniCommonData.color = HMM_Vec4(r, g, b, e->alpha);
+	GL3_UpdateUBOCommon();
 
 	for ( i = 0; i < NUM_BEAM_SEGS; i++ )
 	{
-		vtx[index_vtx++] = start_points [ i ][ 0 ];
-		vtx[index_vtx++] = start_points [ i ][ 1 ];
-		vtx[index_vtx++] = start_points [ i ][ 2 ];
-
-		vtx[index_vtx++] = end_points [ i ][ 0 ];
-		vtx[index_vtx++] = end_points [ i ][ 1 ];
-		vtx[index_vtx++] = end_points [ i ][ 2 ];
+		VectorCopy(start_points[i], verts[4*i+0].pos);
+		VectorCopy(end_points[i], verts[4*i+1].pos);
 
 		pointb = ( i + 1 ) % NUM_BEAM_SEGS;
-		vtx[index_vtx++] = start_points [ pointb ][ 0 ];
-		vtx[index_vtx++] = start_points [ pointb ][ 1 ];
-		vtx[index_vtx++] = start_points [ pointb ][ 2 ];
 
-		vtx[index_vtx++] = end_points [ pointb ][ 0 ];
-		vtx[index_vtx++] = end_points [ pointb ][ 1 ];
-		vtx[index_vtx++] = end_points [ pointb ][ 2 ];
+		VectorCopy(start_points[pointb], verts[4*i+2].pos);
+		VectorCopy(end_points[pointb], verts[4*i+3].pos);
 	}
 
-	glEnableClientState( GL_VERTEX_ARRAY );
+	GL3_BindVAO(gl3state.vao3D);
+	GL3_BindVBO(gl3state.vbo3D);
 
-	glVertexPointer( 3, GL_FLOAT, 0, vtx );
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STREAM_DRAW);
 	glDrawArrays( GL_TRIANGLE_STRIP, 0, NUM_BEAM_SEGS*4 );
 
-	glDisableClientState( GL_VERTEX_ARRAY );
-
-	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
-#endif // 0
 }
-
-typedef struct spriteVert {
-	vec3_t pos;
-	float texCoord[2];
-	float lmTexCoord[2]; // unused for sprites
-} spriteVert;
 
 static void
 GL3_DrawSpriteModel(entity_t *e)
 {
 	float alpha = 1.0F;
-	spriteVert verts[4];
+	gl3_3D_vtx_t verts[4];
 	dsprframe_t *frame;
 	float *up, *right;
 	dsprite_t *psprite;
@@ -730,7 +712,7 @@ GL3_DrawSpriteModel(entity_t *e)
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
 
-	glBufferData(GL_ARRAY_BUFFER, 4*sizeof(spriteVert), verts, GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 4*sizeof(gl3_3D_vtx_t), verts, GL_STREAM_DRAW);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 	if (alpha != 1.0F)

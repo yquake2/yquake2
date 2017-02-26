@@ -161,13 +161,7 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 
 	LerpVerts(paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv);
 
-	typedef struct {
-		GLfloat pos[3];
-		GLfloat texCoord[2];
-		GLfloat color[4];
-	} gl3_alias_vtx;
-
-	assert(sizeof(gl3_alias_vtx) == 9*sizeof(GLfloat));
+	assert(sizeof(gl3_alias_vtx_t) == 9*sizeof(GLfloat));
 
 	while (1)
 	{
@@ -190,7 +184,7 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 			type = GL_TRIANGLE_STRIP;
 		}
 
-		gl3_alias_vtx buf[count];
+		gl3_alias_vtx_t buf[count];
 
 		if (colorOnly)
 		{
@@ -198,7 +192,7 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 			for(i=0; i<count; ++i)
 			{
 				int j=0;
-				gl3_alias_vtx* cur = &buf[i];
+				gl3_alias_vtx_t* cur = &buf[i];
 				index_xyz = order[2];
 				order += 3;
 
@@ -216,7 +210,7 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 			for(i=0; i<count; ++i)
 			{
 				int j=0;
-				gl3_alias_vtx* cur = &buf[i];
+				gl3_alias_vtx_t* cur = &buf[i];
 				/* texture coordinates come from the draw list */
 				cur->texCoord[0] = ((float *) order)[0];
 				cur->texCoord[1] = ((float *) order)[1];
@@ -240,7 +234,7 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 		GL3_BindVAO(gl3state.vaoAlias);
 		GL3_BindVBO(gl3state.vboAlias);
 
-		glBufferData(GL_ARRAY_BUFFER, count*sizeof(gl3_alias_vtx), buf, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, count*sizeof(gl3_alias_vtx_t), buf, GL_STREAM_DRAW);
 		glDrawArrays(type, 0, count);
 	}
 }

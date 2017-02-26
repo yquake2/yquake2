@@ -330,6 +330,21 @@ static const char* fragmentSrc3D = MULTILINE_STRING(
 		}
 );
 
+static const char* fragmentSrc3Dcolor = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from fragmentCommon3D
+
+		void main()
+		{
+			vec4 texel = color;
+
+			// apply gamma correction and intensity
+			// texel.rgb *= intensity; TODO: use intensity here? (this is used for beams)
+			outColor.rgb = pow(texel.rgb, vec3(gamma));
+			outColor.a = texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
+		}
+);
+
 static const char* fragmentSrc3Dsky = MULTILINE_STRING(
 
 		// it gets attributes and uniforms from fragmentCommon3D
@@ -461,7 +476,7 @@ static const char* fragmentSrcAliasColor = MULTILINE_STRING(
 			vec4 texel = passColor;
 
 			// apply gamma correction and intensity
-			texel.rgb *= intensity;
+			// texel.rgb *= intensity; // TODO: color-only rendering probably shouldn't use intensity?
 			texel.a *= alpha; // is alpha even used here?
 			outColor.rgb = pow(texel.rgb, vec3(gamma));
 			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
@@ -755,6 +770,11 @@ qboolean GL3_InitShaders(void)
 	if(!initShader3D(&gl3state.si3D, vertexSrc3D, fragmentSrc3D))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for textured 3D rendering!\n");
+		return false;
+	}
+	if(!initShader3D(&gl3state.si3DcolorOnly, vertexSrc3D, fragmentSrc3Dcolor))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for flat-colored 3D rendering!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3Dturb, vertexSrc3Dwater, fragmentSrc3D))
