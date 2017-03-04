@@ -767,14 +767,11 @@ DrawInlineBModel(void)
 	dlight_t *lt;
 
 	/* calculate dynamic lighting for bmodel */
-	if (!gl_flashblend->value)
-	{
-		lt = gl3_newrefdef.dlights;
+	lt = gl3_newrefdef.dlights;
 
-		for (k = 0; k < gl3_newrefdef.num_dlights; k++, lt++)
-		{
-			GL3_MarkLights(lt, 1 << k, currentmodel->nodes + currentmodel->firstnode);
-		}
+	for (k = 0; k < gl3_newrefdef.num_dlights; k++, lt++)
+	{
+		GL3_MarkLights(lt, 1 << k, currentmodel->nodes + currentmodel->firstnode);
 	}
 
 	psurf = &currentmodel->surfaces[currentmodel->firstmodelsurface];

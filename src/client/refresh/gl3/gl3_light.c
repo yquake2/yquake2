@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
+ * Copyright (C) 2016-2017 Daniel Gibson
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,99 +35,6 @@ cplane_t *lightplane; /* used as shadow plane */
 vec3_t lightspot;
 static float s_blocklights[34 * 34 * 3];
 
-static void
-RenderDlight(dlight_t *light)
-{
-	STUB_ONCE("TODO: Implement!");
-
-#if 0
-	int i, j;
-	float a;
-	float rad;
-
-	rad = light->intensity * 0.35;
-
-	GLfloat vtx[3*18];
-	GLfloat clr[4*18];
-
-	unsigned int index_vtx = 4;
-	unsigned int index_clr = 0;
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_COLOR_ARRAY );
-
-	clr[index_clr++] = light->color [ 0 ] * 0.2;
-	clr[index_clr++] = light->color [ 1 ] * 0.2;
-	clr[index_clr++] = light->color [ 2 ] * 0.2;
-	clr[index_clr++] = 1;
-
-	for ( i = 0; i < 3; i++ )
-	{
-		vtx [ i ] = light->origin [ i ] - vpn [ i ] * rad;
-	}
-
-	for ( i = 16; i >= 0; i-- )
-	{
-		clr[index_clr++] = 0;
-		clr[index_clr++] = 0;
-		clr[index_clr++] = 0;
-		clr[index_clr++] = 1;
-
-		a = i / 16.0 * M_PI * 2;
-
-		for ( j = 0; j < 3; j++ )
-		{
-			vtx[index_vtx++] = light->origin [ j ] + vright [ j ] * cos( a ) * rad
-				+ vup [ j ] * sin( a ) * rad;
-		}
-	}
-
-	glVertexPointer( 3, GL_FLOAT, 0, vtx );
-	glColorPointer( 4, GL_FLOAT, 0, clr );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 18 );
-
-	glDisableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_COLOR_ARRAY );
-#endif // 0
-}
-
-void
-GL3_RenderDlights(void)
-{
-	STUB_ONCE("TODO: Implement!");
-
-#if 0
-	int i;
-	dlight_t *l;
-
-	if (!gl_flashblend->value)
-	{
-		return;
-	}
-
-	/* because the count hasn't advanced yet for this frame */
-	r_dlightframecount = r_framecount + 1;
-
-	glDepthMask(0);
-	glDisable(GL_TEXTURE_2D);
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
-
-	l = r_newrefdef.dlights;
-
-	for (i = 0; i < r_newrefdef.num_dlights; i++, l++)
-	{
-		RenderDlight(l);
-	}
-
-	glColor4f(1, 1, 1, 1);
-	glDisable(GL_BLEND);
-	glEnable(GL_TEXTURE_2D);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthMask(1);
-#endif // 0
-}
 
 void
 GL3_MarkLights(dlight_t *light, int bit, mnode_t *node)
@@ -196,11 +104,6 @@ GL3_PushDlights(void)
 {
 	int i;
 	dlight_t *l;
-
-	if (gl_flashblend->value)
-	{
-		return;
-	}
 
 	/* because the count hasn't advanced yet for this frame */
 	r_dlightframecount = gl3_framecount + 1;

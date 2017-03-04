@@ -378,7 +378,6 @@ extern void GL3_FreeUnusedImages(void);
 extern void GL3_ImageList_f(void);
 
 // gl3_light.c
-extern void GL3_RenderDlights(void);
 extern void GL3_MarkLights(dlight_t *light, int bit, mnode_t *node);
 extern void GL3_PushDlights(void);
 extern void GL3_LightPoint(vec3_t p, vec3_t color);
@@ -459,7 +458,6 @@ extern cvar_t *gl_anisotropic;
 extern cvar_t *gl_lightlevel;
 extern cvar_t *gl_overbrightbits;
 
-extern cvar_t *gl_flashblend;
 extern cvar_t *gl_modulate;
 
 extern cvar_t *gl_stencilshadow;

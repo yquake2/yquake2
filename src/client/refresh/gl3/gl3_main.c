@@ -108,7 +108,6 @@ cvar_t *gl_finish;
 cvar_t *gl_cull;
 cvar_t *gl_zfix;
 cvar_t *gl_fullbright;
-cvar_t *gl_flashblend;
 cvar_t *gl_modulate;
 cvar_t *gl_lightmap;
 cvar_t *gl_shadows; // TODO: do we really need 2 cvars for shadows here?
@@ -222,7 +221,6 @@ GL3_Register(void)
 	gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
 	gl_stencilshadow = ri.Cvar_Get("gl_stencilshadow", "0", CVAR_ARCHIVE);
 
-	gl_flashblend = ri.Cvar_Get("gl_flashblend", "0", 0);
 	gl_modulate = ri.Cvar_Get("gl_modulate", "1", CVAR_ARCHIVE);
 	gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
 	gl_clear = ri.Cvar_Get("gl_clear", "0", 0);
@@ -1403,7 +1401,8 @@ GL3_RenderView(refdef_t *fd)
 
 	GL3_DrawEntitiesOnList();
 
-	GL3_RenderDlights();
+	// kick the silly gl_flashblend poly lights
+	// GL3_RenderDlights();
 
 	GL3_DrawParticles();
 
