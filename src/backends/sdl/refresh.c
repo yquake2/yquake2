@@ -52,8 +52,6 @@ static SDL_Surface* window = NULL;
 #endif
 
 
-qboolean vsync_active;
-
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 // some compatibility defines
 #define SDL_SRCCOLORKEY SDL_TRUE
@@ -340,11 +338,6 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 		return false;
 	}
 
-	// VSync is really set in the renderer dll, but we want vsync_active here
-	// so just get it from the Cvar here, even though it's a bit ugly
-	cvar_t* gl_swapinterval = Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
-	vsync_active = gl_swapinterval->value ? true : false;
-
 	/* Note: window title is now set in re.InitContext() to include renderer name */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	/* Set the window icon - For SDL2, this must be done after creating the window */
@@ -377,13 +370,7 @@ void GLimp_GrabInput(qboolean grab)
 #endif
 }
 
-/*
- * Returns the VSync state.
- */
-qboolean GLimp_VsyncEnabled(void)
-{
-	return vsync_active;
-}
+int glimp_refreshRate = -1;
 
 /*
  * Returns the current display refresh rate.
@@ -391,17 +378,26 @@ qboolean GLimp_VsyncEnabled(void)
 int GLimp_GetRefreshRate(void)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	int i;
-	int refresh = 0;
-	SDL_DisplayMode mode;
 
-	for (i = 0; i < SDL_GetNumVideoDisplays(); ++i)
+	// do this only once, assuming people don't change their display settings
+	// or plug in new displays while the game is running
+	if (glimp_refreshRate == -1)
 	{
-		SDL_GetCurrentDisplayMode(i, &mode);
-		refresh = refresh < mode.refresh_rate ? mode.refresh_rate : refresh;
+		SDL_DisplayMode mode;
+		// TODO: probably refreshRate should be reset to -1 if window is moved
+		int i = SDL_GetWindowDisplayIndex(window);
+		if(i >= 0 && SDL_GetCurrentDisplayMode(i, &mode) == 0)
+		{
+			glimp_refreshRate = mode.refresh_rate;
+		}
+
+		if (glimp_refreshRate <= 0)
+		{
+			glimp_refreshRate = 60; // apparently the stuff above failed, use default
+		}
 	}
 
-	return refresh;
+	return glimp_refreshRate;
 #else
 	// Asume 60hz.
 	return 60
@@ -427,6 +423,8 @@ VID_ShutdownWindow(void)
 	}
 
 	window = NULL;
+	// make sure that after vid_restart the refreshrate will be queried from SDL2 again.
+	glimp_refreshRate = -1;
 
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)
 	{

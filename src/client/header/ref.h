@@ -148,6 +148,9 @@ typedef struct
 	// VID_ShutdownWindow() to shut down window as well, if !contextOnly
 	void	(EXPORT *ShutdownWindow)(qboolean contextOnly);
 
+	// returns true if vsync is active, else false
+	qboolean (EXPORT *IsVSyncActive)(void);
+
 	// All data that will be used in a level should be
 	// registered before rendering any frames to prevent disk hits,
 	// but they can still be registered at a later time

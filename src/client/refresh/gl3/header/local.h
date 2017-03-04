@@ -329,6 +329,8 @@ extern qboolean have_stencil;
 
 extern int GL3_PrepareForWindow(void);
 extern int GL3_InitContext(void* win);
+extern void GL3_SetSwapInterval(void);
+extern qboolean GL3_IsVsyncActive(void);
 extern void GL3_EndFrame(void);
 extern void GL3_ShutdownWindow(qboolean contextOnly);
 

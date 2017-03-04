@@ -296,6 +296,8 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 
 /* ------------------------------------------------------------------ */
 
+extern int glimp_refreshRate;
+
 /*
  * Updates the input queue state. Called every
  * frame by the client and does nearly all the
@@ -429,6 +431,12 @@ IN_Update(void)
 						event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
 				{
 					Key_MarkAllUp();
+				}
+				else if(event.window.event == SDL_WINDOWEVENT_MOVED)
+				{
+					// make sure GLimp_GetRefreshRate() will query from SDL again - the window might
+					// be on another display now!
+					glimp_refreshRate = -1;
 				}
 
 #else /* SDL1.2 */

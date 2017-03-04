@@ -1638,6 +1638,12 @@ GL3_BeginFrame(float camera_separation)
 		gl_anisotropic->modified = false;
 	}
 
+	if(gl_swapinterval->modified)
+	{
+		gl_swapinterval->modified = false;
+		GL3_SetSwapInterval();
+	}
+
 	STUB_ONCE("TODO: texture-alpha/solid-mode stuff??")
 #if 0
 	if (gl_texturealphamode->modified)
@@ -1703,6 +1709,7 @@ GetRefAPI(refimport_t imp)
 	re.PrepareForWindow = GL3_PrepareForWindow;
 	re.InitContext = GL3_InitContext;
 	re.ShutdownWindow = GL3_ShutdownWindow;
+	re.IsVSyncActive = GL3_IsVsyncActive;
 
 	re.BeginRegistration = GL3_BeginRegistration;
 	re.RegisterModel = GL3_RegisterModel;

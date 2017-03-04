@@ -1574,6 +1574,7 @@ RI_Shutdown(void)
 }
 
 extern void UpdateHardwareGamma();
+extern void RI_SetSwapInterval(void);
 
 void
 RI_BeginFrame(float camera_separation)
@@ -1698,6 +1699,12 @@ RI_BeginFrame(float camera_separation)
 	{
 		R_TextureSolidMode(gl_texturesolidmode->string);
 		gl_texturesolidmode->modified = false;
+	}
+
+	if (gl_swapinterval->modified)
+	{
+		gl_swapinterval->modified = false;
+		RI_SetSwapInterval();
 	}
 
 	/* clear screen if desired */
@@ -1852,6 +1859,7 @@ extern void RDraw_FadeScreen(void);
 extern void RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
 
 extern void RI_SetPalette(const unsigned char *palette);
+extern qboolean RI_IsVSyncActive(void);
 extern void RI_EndFrame(void);
 
 Q2_DLL_EXPORTED refexport_t
@@ -1868,6 +1876,7 @@ GetRefAPI(refimport_t imp)
 	re.PrepareForWindow = RI_PrepareForWindow;
 	re.InitContext = RI_InitContext;
 	re.ShutdownWindow = RI_ShutdownWindow;
+	re.IsVSyncActive = RI_IsVSyncActive;
 	re.BeginRegistration = RI_BeginRegistration;
 	re.RegisterModel = RI_RegisterModel;
 	re.RegisterSkin = RI_RegisterSkin;

@@ -68,29 +68,6 @@ GL3_SetDefaultState(void)
 
 	STUB("need replacement for R_TexEnv(GL_REPLACE);");
 
-	STUB("Apparently the GL_POINT stuff works differently in OpenGL3 core");
-#if 0
-	{
-		// TODO: are we gonna use glPointParameter?
-		float attenuations[3] = {0.01f, 0.0f, 0.01f};
-		/*
-		attenuations[0] = gl_particle_att_a->value;
-		attenuations[1] = gl_particle_att_b->value;
-		attenuations[2] = gl_particle_att_c->value;
-		*/
-		STUB("gl_particle_att_[abc], gl_particle_min/max_size ??");
-
-		/* GL_POINT_SMOOTH is not implemented by some OpenGL
-		   drivers, especially the crappy Mesa3D backends like
-		   i915.so. That the points are squares and not circles
-		   is not a problem by Quake II! */
-		glEnable(GL_POINT_SMOOTH);
-		glPointParameterf(GL_POINT_SIZE_MIN_EXT, 2.0f); // TODO was gl_particle_min_size->value);
-		glPointParameterf(GL_POINT_SIZE_MAX_EXT, 40.0f); // TODO was gl_particle_max_size->value);
-		glPointParameterf(GL_DISTANCE_ATTENUATION_EXT, attenuations);
-	}
-#endif // 0
-
 	if (gl_msaa_samples->value)
 	{
 		glEnable(GL_MULTISAMPLE);

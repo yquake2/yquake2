@@ -447,3 +447,13 @@ R_EndFrame(void)
 		re.EndFrame();
 	}
 }
+
+qboolean
+R_IsVSyncActive(void)
+{
+	if(ref_active)
+	{
+		return re.IsVSyncActive();
+	}
+	return false;
+}
