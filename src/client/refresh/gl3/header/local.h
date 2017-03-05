@@ -463,7 +463,7 @@ extern cvar_t *gl_lightlevel;
 extern cvar_t *gl_overbrightbits;
 
 extern cvar_t *gl_modulate;
-
+extern cvar_t *gl_lightmap;
 extern cvar_t *gl_stencilshadow;
 
 extern cvar_t *gl_dynamic;

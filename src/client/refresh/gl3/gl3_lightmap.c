@@ -46,9 +46,7 @@ GL3_LM_UploadBlock(qboolean dynamic)
 
 	if (dynamic)
 	{
-		STUB_ONCE("TODO: dynamic lightmap!");
 		texture = 0;
-		return;
 	}
 	else
 	{
@@ -273,15 +271,14 @@ GL3_LM_BeginBuildingLightmaps(gl3model_t *m)
 
 	gl3_lms.current_lightmap_texture = 1;
 	gl3_lms.internal_format = GL_LIGHTMAP_FORMAT;
-#if 0
+
 	/* initialize the dynamic lightmap texture */
 	GL3_Bind(gl3state.lightmap_textureIDs[0]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, gl3_lms.internal_format,
-			BLOCK_WIDTH, BLOCK_HEIGHT, 0, GL_LIGHTMAP_FORMAT,
-			GL_UNSIGNED_BYTE, dummy);
-#endif // 0
+	             BLOCK_WIDTH, BLOCK_HEIGHT, 0,
+	             GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, dummy);
 }
 
 void

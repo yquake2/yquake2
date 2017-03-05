@@ -314,17 +314,15 @@ BlendLightmaps(void)
 		return;
 	}
 
-	STUB_ONCE("TODO: Implement!");
-#if 1
 	/* don't bother writing Z */
 	glDepthMask(0);
 
 	/* set the appropriate blending mode unless
 	   we're only looking at the lightmaps. */
-	if ( 1 ) // TODO !gl_lightmap->value)
+	if ( !gl_lightmap->value )
 	{
 		glEnable(GL_BLEND);
-#if 0
+#if 0 // TODO: sth about saturatelighting
 		if (gl_saturatelighting->value)
 		{
 			glBlendFunc(GL_ONE, GL_ONE);
@@ -380,13 +378,12 @@ BlendLightmaps(void)
 		}
 	}
 
-#if 0
 	/* render dynamic lightmaps */
 	if (gl_dynamic->value)
 	{
-		LM_InitBlock();
+		GL3_LM_InitBlock();
 
-		GL3_Bind(gl_state.lightmap_textures + 0);
+		GL3_Bind(gl3state.lightmap_textureIDs[0]);
 
 		if (currentmodel == gl3_worldmodel)
 		{
@@ -405,7 +402,7 @@ BlendLightmaps(void)
 			smax = (surf->extents[0] >> 4) + 1;
 			tmax = (surf->extents[1] >> 4) + 1;
 
-			if (LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
+			if (GL3_LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
 			{
 				base = gl3_lms.lightmap_buffer;
 				base += (surf->dlight_t * BLOCK_WIDTH +
@@ -418,7 +415,7 @@ BlendLightmaps(void)
 				msurface_t *drawsurf;
 
 				/* upload what we have so far */
-				LM_UploadBlock(true);
+				GL3_LM_UploadBlock(true);
 
 				/* draw all surfaces that use this lightmap */
 				for (drawsurf = newdrawsurf;
@@ -428,11 +425,11 @@ BlendLightmaps(void)
 					if (drawsurf->polys)
 					{
 						// Apply overbright bits to the dynamic lightmaps
-						if (gl_overbrightbits->value)
+						/*if (gl_overbrightbits->value) TODO: overbrightbits stuff
 						{
 							R_TexEnv(GL_COMBINE_EXT);
 							glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
-						}
+						}*/
 
 						DrawGLPolyChain(drawsurf->polys,
 								(drawsurf->light_s - drawsurf->dlight_s) * (1.0 / 128.0),
@@ -443,10 +440,10 @@ BlendLightmaps(void)
 				newdrawsurf = drawsurf;
 
 				/* clear the block */
-				LM_InitBlock();
+				GL3_LM_InitBlock();
 
 				/* try uploading the block now */
-				if (!LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
+				if (!GL3_LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
 				{
 					ri.Sys_Error(ERR_FATAL,
 							"Consecutive calls to LM_AllocBlock(%d,%d) failed (dynamic)\n",
@@ -464,7 +461,7 @@ BlendLightmaps(void)
 		/* draw remainder of dynamic lightmaps that haven't been uploaded yet */
 		if (newdrawsurf)
 		{
-			LM_UploadBlock(true);
+			GL3_LM_UploadBlock(true);
 		}
 
 		for (surf = newdrawsurf; surf != 0; surf = surf->lightmapchain)
@@ -472,11 +469,12 @@ BlendLightmaps(void)
 			if (surf->polys)
 			{
 				// Apply overbright bits to the remainder lightmaps
+				/* TODO: overbrightbits
 				if (gl_overbrightbits->value)
 				{
 					R_TexEnv(GL_COMBINE_EXT);
 					glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
-				}
+				}*/
 
 				DrawGLPolyChain(surf->polys,
 						(surf->light_s - surf->dlight_s) * (1.0 / 128.0),
@@ -484,13 +482,11 @@ BlendLightmaps(void)
 			}
 		}
 	}
-#endif // 0
 
 	/* restore state */
 	glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(1);
-#endif // 0
 }
 
 static void
@@ -533,8 +529,8 @@ RenderBrushPoly(msurface_t *fa)
 		else
 		{
 			R_TexEnv(GL_MODULATE);
-			glColor4f(gl_state.inverse_intensity, gl_state.inverse_intensity,
-					  gl_state.inverse_intensity, 1.0f);
+			glColor4f(gl3state.inverse_intensity, gl3state.inverse_intensity,
+					  gl3state.inverse_intensity, 1.0f);
 		}
 #endif // 0
 
@@ -596,24 +592,24 @@ RenderBrushPoly(msurface_t *fa)
 			  (fa->dlightframe != gl3_framecount))
 		{
 			// undo dynamic light changes, put into non-dynamic lightmap chain?
+			// (not totally sure what's happening here)
 
 			unsigned temp[34 * 34];
 			int smax, tmax;
 
 			smax = (fa->extents[0] >> 4) + 1;
 			tmax = (fa->extents[1] >> 4) + 1;
-#if 0
+
 			GL3_BuildLightMap(fa, (void *)temp, smax * 4);
 			GL3_SetCacheState(fa);
 
-			GL3_Bind(gl3state.lightmap_textures + fa->lightmaptexturenum);
+			GL3_Bind(gl3state.lightmap_textureIDs[fa->lightmaptexturenum]);
 
 			glTexSubImage2D(GL_TEXTURE_2D, 0, fa->light_s, fa->light_t,
 					smax, tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
 
 			fa->lightmapchain = gl3_lms.lightmap_surfaces[fa->lightmaptexturenum];
 			gl3_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
-#endif // 0
 		}
 		else
 		{
@@ -627,7 +623,6 @@ RenderBrushPoly(msurface_t *fa)
 		fa->lightmapchain = gl3_lms.lightmap_surfaces[fa->lightmaptexturenum];
 		gl3_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
 	}
-
 }
 
 /*
@@ -650,7 +645,7 @@ GL3_DrawAlphaSurfaces(void)
 
 	/* the textures are prescaled up for a better
 	   lighting range, so scale it back down */
-	//intens = gl_state.inverse_intensity;
+	//intens = gl3state.inverse_intensity;
 	STUB_ONCE("Something about inverse intensity??");
 
 	for (s = gl3_alpha_surfaces; s != NULL; s = s->texturechain)
