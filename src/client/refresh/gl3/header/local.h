@@ -130,12 +130,21 @@ typedef struct
 	hmm_mat4 transProjMat4;
 	hmm_mat4 transModelViewMat4;
 
+	hmm_vec2 lmOffset;
+
 	GLfloat scroll; // for SURF_FLOWING
 	GLfloat time; // for warping surfaces like water & possibly other things
 	GLfloat alpha; // for translucent surfaces (water, glass, ..)
 
-		GLfloat _padding; // again, some padding to ensure this has right size
+		GLfloat _padding[3]; // again, some padding to ensure this has right size
 } gl3Uni3D_t;
+
+enum {
+	BLOCK_WIDTH = 128,
+	BLOCK_HEIGHT = 128,
+	LIGHTMAP_BYTES = 4,
+	MAX_LIGHTMAPS = 128
+};
 
 typedef struct
 {
@@ -148,6 +157,7 @@ typedef struct
 	unsigned char *d_16to8table;
 
 	//int lightmap_textures;
+	GLuint lightmap_textureIDs[MAX_LIGHTMAPS]; // instead of lightmap_textures+i use lightmap_textureIDs[i]
 
 	//int currenttextures[2];
 	GLuint currenttexture;
@@ -173,6 +183,7 @@ typedef struct
 	gl3ShaderInfo_t si3Dsky;
 	gl3ShaderInfo_t si3Dsprite; // for sprites
 	gl3ShaderInfo_t si3DspriteAlpha; // for sprites with alpha-testing
+	gl3ShaderInfo_t si3Dlm; // for blended lightmaps TODO: prolly remove and use multitexturing
 
 	gl3ShaderInfo_t si3Dalias; // for models
 	gl3ShaderInfo_t si3DaliasColor; // for models w/ flat colors
@@ -235,17 +246,10 @@ enum {MAX_GL3TEXTURES = 1024};
 // include this down here so it can use gl3image_t
 #include "model.h"
 
-enum {
-	BLOCK_WIDTH = 128,
-	BLOCK_HEIGHT = 128,
-	LIGHTMAP_BYTES = 4,
-	MAX_LIGHTMAPS = 128
-};
-
 typedef struct
 {
 	int internal_format;
-	int current_lightmap_texture;
+	int current_lightmap_texture; // index into gl3state.lightmap_textureIDs[]
 
 	msurface_t *lightmap_surfaces[MAX_LIGHTMAPS];
 

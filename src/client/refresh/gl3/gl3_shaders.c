@@ -268,6 +268,7 @@ static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
 		{
 			mat4 transProj;
 			mat4 transModelView; // TODO: or maybe transViewProj and transModel ??
+			vec2 lmOffset;
 			float scroll; // for SURF_FLOWING
 			float time;
 			float alpha;
@@ -294,6 +295,7 @@ static const char* fragmentCommon3D = MULTILINE_STRING(#version 150\n
 		{
 			mat4 transProj;
 			mat4 transModelView; // TODO: or maybe transViewProj and transModel ??
+			vec2 lmOffset;
 			float scroll; // for SURF_FLOWING
 			float time;
 			float alpha;
@@ -307,6 +309,18 @@ static const char* vertexSrc3D = MULTILINE_STRING(
 		void main()
 		{
 			passTexCoord = texCoord;
+			gl_Position = transProj * transModelView * vec4(position, 1.0);
+		}
+);
+
+static const char* vertexSrc3Dlm = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from vertexCommon3D
+
+		void main()
+		{
+			//passTexCoord = texCoord;
+			passTexCoord = lmTexCoord-lmOffset;
 			gl_Position = transProj * transModelView * vec4(position, 1.0);
 		}
 );
@@ -775,6 +789,11 @@ qboolean GL3_InitShaders(void)
 	if(!initShader3D(&gl3state.si3DcolorOnly, vertexSrc3D, fragmentSrc3Dcolor))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for flat-colored 3D rendering!\n");
+		return false;
+	}
+	if(!initShader3D(&gl3state.si3Dlm, vertexSrc3Dlm, fragmentSrc3D))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for blending 3D lightmaps rendering!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3Dturb, vertexSrc3Dwater, fragmentSrc3D))

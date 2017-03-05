@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
+ * Copyright (C) 2016-2017 Daniel Gibson
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,28 +41,28 @@ GL3_LM_InitBlock(void)
 void
 GL3_LM_UploadBlock(qboolean dynamic)
 {
-	STUB_ONCE("TODO: Implement!");
-#if 0
 	int texture;
 	int height = 0;
 
 	if (dynamic)
 	{
+		STUB_ONCE("TODO: dynamic lightmap!");
 		texture = 0;
+		return;
 	}
 	else
 	{
 		texture = gl3_lms.current_lightmap_texture;
 	}
 
-	GL3_Bind(gl3state.lightmap_textures + texture);
+	GL3_Bind(gl3state.lightmap_textureIDs[texture]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if (dynamic)
 	{
 		int i;
-
+		STUB_ONCE("TODO: dynamic lightmap!");
 		for (i = 0; i < BLOCK_WIDTH; i++)
 		{
 			if (gl3_lms.allocated[i] > height)
@@ -87,7 +88,6 @@ GL3_LM_UploadBlock(qboolean dynamic)
 					"LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n");
 		}
 	}
-#endif // 0
 }
 
 /*
@@ -270,17 +270,12 @@ GL3_LM_BeginBuildingLightmaps(gl3model_t *m)
 	gl3_newrefdef.lightstyles = lightstyles;
 
 	STUB_ONCE("TODO: IMPLEMENT!");
-#if 0
-	if (!gl_state.lightmap_textures)
-	{
-		gl3state.lightmap_textures = TEXNUM_LIGHTMAPS;
-	}
 
 	gl3_lms.current_lightmap_texture = 1;
 	gl3_lms.internal_format = GL_LIGHTMAP_FORMAT;
-
+#if 0
 	/* initialize the dynamic lightmap texture */
-	GL3_Bind(gl_state.lightmap_textures + 0);
+	GL3_Bind(gl3state.lightmap_textureIDs[0]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, gl3_lms.internal_format,

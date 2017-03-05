@@ -514,6 +514,8 @@ GL3_Init(void)
 		R_Printf(PRINT_ALL, " - OpenGL Debug Output: Not Supported\n");
 	}
 
+	// generate texture handles for all possible lightmaps
+	glGenTextures(MAX_LIGHTMAPS, gl3state.lightmap_textureIDs);
 
 	GL3_SetDefaultState();
 

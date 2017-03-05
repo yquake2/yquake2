@@ -271,64 +271,26 @@ static void
 DrawGLPolyChain(glpoly_t *p, float soffset, float toffset)
 {
 	STUB_ONCE("TODO: Implement!");
-#if 0
-	if ((soffset == 0) && (toffset == 0))
+
+	if(gl3state.uni3DData.lmOffset.X != soffset || gl3state.uni3DData.lmOffset.Y != toffset)
 	{
-		for ( ; p != 0; p = p->chain)
-		{
-			float *v;
-
-			v = p->verts[0];
-
-			if (v == NULL)
-			{
-				fprintf(stderr, "BUGFIX: R_DrawGLPolyChain: v==NULL\n");
-				return;
-			}
-
-			glEnableClientState( GL_VERTEX_ARRAY );
-			glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-			glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
-			glTexCoordPointer( 2, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v+5 );
-			glDrawArrays( GL_TRIANGLE_FAN, 0, p->numverts );
-
-			glDisableClientState( GL_VERTEX_ARRAY );
-			glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-		}
+		gl3state.uni3DData.lmOffset = HMM_Vec2(soffset, toffset);
+		GL3_UpdateUBO3D();
 	}
-	else
+
+	for ( ; p != NULL; p = p->chain)
 	{
-		for ( ; p != 0; p = p->chain)
+		float* v = p->verts[0];
+
+		if (v == NULL)
 		{
-			float *v;
-			int j;
-
-			v = p->verts[0];
-
-			GLfloat tex[2*p->numverts];
-			unsigned int index_tex = 0;
-
-			for ( j = 0; j < p->numverts; j++, v += VERTEXSIZE )
-			{
-				tex[index_tex++] = v [ 5 ] - soffset;
-				tex[index_tex++] = v [ 6 ] - toffset;
-			}
-
-			v = p->verts [ 0 ];
-
-			glEnableClientState( GL_VERTEX_ARRAY );
-			glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-			glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
-			glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-			glDrawArrays( GL_TRIANGLE_FAN, 0, p->numverts );
-
-			glDisableClientState( GL_VERTEX_ARRAY );
-			glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+			fprintf(stderr, "BUGFIX: DrawGLPolyChain: v==NULL\n");
+			return;
 		}
+
+		glBufferData(GL_ARRAY_BUFFER, VERTEXSIZE*sizeof(GLfloat)*p->numverts, v, GL_STREAM_DRAW);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 	}
-#endif // 0
 }
 
 /*
@@ -353,16 +315,16 @@ BlendLightmaps(void)
 	}
 
 	STUB_ONCE("TODO: Implement!");
-#if 0
+#if 1
 	/* don't bother writing Z */
 	glDepthMask(0);
 
 	/* set the appropriate blending mode unless
 	   we're only looking at the lightmaps. */
-	if (!gl_lightmap->value)
+	if ( 1 ) // TODO !gl_lightmap->value)
 	{
 		glEnable(GL_BLEND);
-
+#if 0
 		if (gl_saturatelighting->value)
 		{
 			glBlendFunc(GL_ONE, GL_ONE);
@@ -371,12 +333,20 @@ BlendLightmaps(void)
 		{
 			glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 		}
+#endif // 0
+
+		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+
 	}
 
 	if (currentmodel == gl3_worldmodel)
 	{
 		c_visible_lightmaps = 0;
 	}
+
+	GL3_UseProgram(gl3state.si3Dlm.shaderProgram);
+	GL3_BindVAO(gl3state.vao3D);
+	GL3_BindVBO(gl3state.vbo3D);
 
 	/* render static lightmaps first */
 	for (i = 1; i < MAX_LIGHTMAPS; i++)
@@ -388,7 +358,7 @@ BlendLightmaps(void)
 				c_visible_lightmaps++;
 			}
 
-			GL3_Bind(gl_state.lightmap_textures + i);
+			GL3_Bind(gl3state.lightmap_textureIDs[i]);
 
 			for (surf = gl3_lms.lightmap_surfaces[i];
 				 surf != 0;
@@ -397,11 +367,12 @@ BlendLightmaps(void)
 				if (surf->polys)
 				{
 					// Apply overbright bits to the static lightmaps
+					/*
 					if (gl_overbrightbits->value)
 					{
 						R_TexEnv(GL_COMBINE_EXT);
 						glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
-					}
+					} */
 
 					DrawGLPolyChain(surf->polys, 0, 0);
 				}
@@ -409,6 +380,7 @@ BlendLightmaps(void)
 		}
 	}
 
+#if 0
 	/* render dynamic lightmaps */
 	if (gl_dynamic->value)
 	{
@@ -439,7 +411,7 @@ BlendLightmaps(void)
 				base += (surf->dlight_t * BLOCK_WIDTH +
 						surf->dlight_s) * LIGHTMAP_BYTES;
 
-				R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
+				GL3_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
 			}
 			else
 			{
@@ -485,7 +457,7 @@ BlendLightmaps(void)
 				base += (surf->dlight_t * BLOCK_WIDTH +
 						surf->dlight_s) * LIGHTMAP_BYTES;
 
-				R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
+				GL3_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
 			}
 		}
 
@@ -512,6 +484,7 @@ BlendLightmaps(void)
 			}
 		}
 	}
+#endif // 0
 
 	/* restore state */
 	glDisable(GL_BLEND);
@@ -614,7 +587,7 @@ RenderBrushPoly(msurface_t *fa)
 	}
 
 	STUB_ONCE("TODO: lightmap support (=> esp. LM textures)")
-#if 0
+
 	// TODO: 2D texture array für lightmaps?
 	if (is_dynamic)
 	{
@@ -622,12 +595,14 @@ RenderBrushPoly(msurface_t *fa)
 			 (fa->styles[maps] == 0)) &&
 			  (fa->dlightframe != gl3_framecount))
 		{
+			// undo dynamic light changes, put into non-dynamic lightmap chain?
+
 			unsigned temp[34 * 34];
 			int smax, tmax;
 
 			smax = (fa->extents[0] >> 4) + 1;
 			tmax = (fa->extents[1] >> 4) + 1;
-
+#if 0
 			GL3_BuildLightMap(fa, (void *)temp, smax * 4);
 			GL3_SetCacheState(fa);
 
@@ -638,15 +613,16 @@ RenderBrushPoly(msurface_t *fa)
 
 			fa->lightmapchain = gl3_lms.lightmap_surfaces[fa->lightmaptexturenum];
 			gl3_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
+#endif // 0
 		}
 		else
 		{
+			// dynamic lights: add to dynamic lightmap chain
 			fa->lightmapchain = gl3_lms.lightmap_surfaces[0];
 			gl3_lms.lightmap_surfaces[0] = fa;
 		}
 	}
-	else
-#endif // 0
+	else // non-dynamic lightmap chain
 	{
 		fa->lightmapchain = gl3_lms.lightmap_surfaces[fa->lightmaptexturenum];
 		gl3_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;

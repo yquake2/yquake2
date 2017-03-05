@@ -109,7 +109,7 @@ typedef struct {
 	int			num_entities;
 	entity_t	*entities;
 
-	int			num_dlights;
+	int			num_dlights; // <= 32 (MAX_DLIGHTS)
 	dlight_t	*dlights;
 
 	int			num_particles;

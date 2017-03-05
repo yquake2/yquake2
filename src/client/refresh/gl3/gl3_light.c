@@ -30,13 +30,12 @@
 #define DLIGHT_CUTOFF 64
 
 static int r_dlightframecount;
-vec3_t pointcolor;
-cplane_t *lightplane; /* used as shadow plane */
+static vec3_t pointcolor;
+static cplane_t *lightplane; /* used as shadow plane */
 vec3_t lightspot;
 static float s_blocklights[34 * 34 * 3];
 
-
-void
+void // bit: 1 << i for light number i, will be or'ed into msurface_t::dlightbits if surface is affected by this light
 GL3_MarkLights(dlight_t *light, int bit, mnode_t *node)
 {
 	cplane_t *splitplane;
@@ -258,6 +257,9 @@ GL3_LightPoint(vec3_t p, vec3_t color)
 	end[1] = p[1];
 	end[2] = p[2] - 2048;
 
+	// TODO: don't just aggregate the color, but also save position of brightest+nearest light
+	//       for shadow position and maybe lighting on model?
+
 	r = RecursiveLightPoint(gl3_worldmodel->nodes, p, end);
 
 	if (r == -1)
@@ -277,7 +279,7 @@ GL3_LightPoint(vec3_t p, vec3_t color)
 		VectorSubtract(currententity->origin,
 				dl->origin, dist);
 		add = dl->intensity - VectorLength(dist);
-		add *= (1.0 / 256);
+		add *= (1.0f / 256.0f);
 
 		if (add > 0)
 		{
@@ -410,7 +412,7 @@ GL3_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 	if (surf->texinfo->flags &
 		(SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP))
 	{
-		ri.Sys_Error(ERR_DROP, "R_BuildLightMap called for non-lit surface");
+		ri.Sys_Error(ERR_DROP, "GL3_BuildLightMap called for non-lit surface");
 	}
 
 	smax = (surf->extents[0] >> 4) + 1;
