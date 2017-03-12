@@ -41,6 +41,28 @@
 #include "../../client/header/client.h"
 #include "../../client/header/keyboard.h"
 
+#ifdef ZIP
+// if we build with zip support, zlib is available and we can use that for better PNG compression
+#include <zlib.h>
+
+static unsigned char*
+compress_for_stbiw(unsigned char *data, int data_len, int *out_len, int quality)
+{
+	uLongf bufSize = compressBound(data_len);
+	unsigned char* buf = malloc(bufSize);
+	if(buf == NULL)  return NULL;
+	if(compress2(buf, &bufSize, data, data_len, quality) != Z_OK)
+	{
+		free(buf);
+		return NULL;
+	}
+	*out_len = bufSize;
+
+	return buf;
+}
+#define STBIW_ZLIB_COMPRESS compress_for_stbiw
+#endif // ZIP
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "header/stb_image_write.h"
 
@@ -218,13 +240,22 @@ void VID_WriteScreenshot( int width, int height, int comp, const void* data )
 			{
 				if(q[i] < '0' || q[i] > '9')
 				{
-					Com_Printf("the (optional!) third argument to 'screenshot' is jpg quality, a number between 1 and 100!\n");
+					Com_Printf("the (optional!) third argument to 'screenshot' is jpg quality, a number between 1 and 100\n");
+					Com_Printf("  or png compression level, between 0 and 10!\n");
 					return;
 				}
 			}
 			quality = atoi(q);
-			if(quality < 1)  quality = 1;
-			else if(quality > 100)  quality = 100;
+			if(format == 2) // png
+			{
+				if(quality < 0)  quality = 0;
+				else if(quality > 10)  quality = 10;
+			}
+			else if(format == 3) // jpg
+			{
+				if(quality < 1)  quality = 1;
+				else if(quality > 100)  quality = 100;
+			}
 		}
 	}
 
@@ -254,7 +285,10 @@ void VID_WriteScreenshot( int width, int height, int comp, const void* data )
 	{
 		case 0: success = stbi_write_tga(checkname, width, height, comp, data); break;
 		case 1: success = stbi_write_bmp(checkname, width, height, comp, data); break;
-		case 2: success = stbi_write_png(checkname, width, height, comp, data, 0); break;
+		case 2:
+			stbi_png_level = (quality <= 10) ? quality : 7;
+			success = stbi_write_png(checkname, width, height, comp, data, 0);
+			break;
 		case 3: success = stbi_write_jpg(checkname, width, height, comp, data, quality); break;
 	}
 
