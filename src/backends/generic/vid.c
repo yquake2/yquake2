@@ -41,6 +41,9 @@
 #include "../../client/header/client.h"
 #include "../../client/header/keyboard.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "header/stb_image_write.h"
+
 qboolean VID_LoadRefresh(void);
 
 typedef struct vidmode_s
@@ -173,6 +176,98 @@ VID_Init(void)
 	VID_CheckChanges();
 }
 
+// called with image data of width*height pixel which comp bytes per pixel (must be 3 or 4 for RGB or RGBA)
+// expects the pixels data to be row-wise, starting at top left
+void VID_WriteScreenshot( int width, int height, int comp, const void* data )
+{
+	char picname[80];
+	char checkname[MAX_OSPATH];
+	int i, success=0;
+	static const char* supportedFormats[] = { "tga", "bmp", "png", "jpg" };
+	static const int numFormats = sizeof(supportedFormats)/sizeof(supportedFormats[0]);
+	int format = 0; // 0=tga 1=bmp 2=png 3=jpg
+	int quality = 85;
+	int argc = Cmd_Argc();
+	const char* gameDir = FS_Gamedir();
+
+	/* FS_InitFilesystem() made sure the screenshots dir exists */
+
+	if(argc > 1)
+	{
+		const char* maybeFormat = Cmd_Argv(1);
+
+		for(i=0; i<numFormats; ++i)
+		{
+			if(Q_stricmp(maybeFormat, supportedFormats[i]) == 0)
+			{
+				format = i;
+				break;
+			}
+		}
+		if(i==numFormats)
+		{
+			Com_Printf("the (optional) second argument to 'screenshot' is the format, one of \"tga\", \"bmp\", \"png\", \"jpg\"\n");
+			return;
+		}
+
+		if(argc > 2)
+		{
+			const char* q = Cmd_Argv(2);
+			int qualityStrLen = strlen(q);
+			for(i=0; i<qualityStrLen; ++i)
+			{
+				if(q[i] < '0' || q[i] > '9')
+				{
+					Com_Printf("the (optional!) third argument to 'screenshot' is jpg quality, a number between 1 and 100!\n");
+					return;
+				}
+			}
+			quality = atoi(q);
+			if(quality < 1)  quality = 1;
+			else if(quality > 100)  quality = 100;
+		}
+	}
+
+	/* find a file name to save it to */
+	for (i = 0; i <= 9999; i++)
+	{
+		FILE *f;
+		Com_sprintf(checkname, sizeof(checkname), "%s/scrnshot/q2_%04d.%s", gameDir, i, supportedFormats[format]);
+		f = fopen(checkname, "rb");
+
+		if (!f)
+		{
+			Com_sprintf(picname, sizeof(picname), "q2_%04d.%s", i, supportedFormats[format]);
+			break; /* file doesn't exist */
+		}
+
+		fclose(f);
+	}
+
+	if (i == 10000)
+	{
+		Com_Printf("SCR_ScreenShot_f: Couldn't create a file\n");
+		return;
+	}
+
+	switch(format) // 0=tga 1=bmp 2=png 3=jpg
+	{
+		case 0: success = stbi_write_tga(checkname, width, height, comp, data); break;
+		case 1: success = stbi_write_bmp(checkname, width, height, comp, data); break;
+		case 2: success = stbi_write_png(checkname, width, height, comp, data, 0); break;
+		case 3: success = stbi_write_jpg(checkname, width, height, comp, data, quality); break;
+	}
+
+	if(success)
+	{
+		Com_Printf("Wrote %s\n", picname);
+	}
+	else
+	{
+		Com_Printf("SCR_ScreenShot_f: Couldn't write %s\n", picname);
+	}
+}
+
 // Structure containing functions exported from refresh DLL
 refexport_t	re;
 void *reflib_handle = NULL;		// Handle to refresh DLL
@@ -231,6 +326,7 @@ VID_LoadRefresh(void)
 	ri.Vid_GetModeInfo = VID_GetModeInfo;
 	ri.Vid_MenuInit = VID_MenuInit;
 	ri.Vid_NewWindow = VID_NewWindow;
+	ri.Vid_WriteScreenshot = VID_WriteScreenshot;
 
 	ri.Vid_ShutdownWindow = VID_ShutdownWindow;
 	ri.GLimp_Init = GLimp_Init;

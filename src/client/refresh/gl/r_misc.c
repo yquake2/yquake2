@@ -102,87 +102,38 @@ R_InitParticleTexture(void)
 void
 R_ScreenShot(void)
 {
-	byte *buffer, temp;
-	char picname[80];
-	char checkname[MAX_OSPATH];
-	int i, c;
-	FILE *f;
+	int w=vid.width, h=vid.height;
+	byte *buffer = malloc(w*h*3);
 
-	/* FS_InitFilesystem() made sure the screenshots dir exists */
-
-	/* find a file name to save it to */
-	strcpy(picname, "quake00.tga");
-
-	for (i = 0; i <= 99; i++)
-	{
-		picname[5] = i / 10 + '0';
-		picname[6] = i % 10 + '0';
-		Com_sprintf(checkname, sizeof(checkname), "%s/scrnshot/%s",
-			   	ri.FS_Gamedir(), picname);
-		f = fopen(checkname, "rb");
-
-		if (!f)
-		{
-			break; /* file doesn't exist */
-		}
-
-		fclose(f);
-	}
-
-	if (i == 100)
-	{
-		R_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't create a file\n");
-		return;
-	}
-
-	static const int headerLength = 18+4;
-
-	c = headerLength + vid.width * vid.height * 3;
-
-	buffer = malloc(c);
 	if (!buffer)
 	{
-		R_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't malloc %d bytes\n", c);
+		R_Printf(PRINT_ALL, "R_ScreenShot: Couldn't malloc %d bytes\n", w*h*3);
 		return;
 	}
 
-	memset(buffer, 0, headerLength);
-	buffer[0] = 4; // image ID: "yq2\0"
-	buffer[2] = 2; /* uncompressed type */
-	buffer[12] = vid.width & 255;
-	buffer[13] = vid.width >> 8;
-	buffer[14] = vid.height & 255;
-	buffer[15] = vid.height >> 8;
-	buffer[16] = 24; /* pixel size */
-	buffer[17] = 0; // image descriptor
-	buffer[18] = 'y'; // following: the 4 image ID fields
-	buffer[19] = 'q';
-	buffer[20] = '2';
-	buffer[21] = '\0';
-
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glReadPixels(0, 0, vid.width, vid.height, GL_RGB,
-			GL_UNSIGNED_BYTE, buffer + headerLength);
+	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
-	/* swap rgb to bgr */
-	for (i = headerLength; i < c; i += 3)
+	// the pixels are now row-wise left to right, bottom to top,
+	// but we need them row-wise left to right, top to bottom.
+	// so swap bottom rows with top rows
 	{
-		temp = buffer[i];
-		buffer[i] = buffer[i + 2];
-		buffer[i + 2] = temp;
+		size_t bytesPerRow = 3*w;
+		byte rowBuffer[bytesPerRow];
+		byte *curRowL = buffer; // first byte of first row
+		byte *curRowH = buffer + bytesPerRow*(h-1); // first byte of last row
+		while(curRowL < curRowH)
+		{
+			memcpy(rowBuffer, curRowL, bytesPerRow);
+			memcpy(curRowL, curRowH, bytesPerRow);
+			memcpy(curRowH, rowBuffer, bytesPerRow);
+
+			curRowL += bytesPerRow;
+			curRowH -= bytesPerRow;
+		}
 	}
 
-	f = fopen(checkname, "wb");
-	if (f)
-	{
-		fwrite(buffer, 1, c, f);
-		fclose(f);
-		R_Printf(PRINT_ALL, "Wrote %s\n", picname);
-	}
-	else
-	{
-		R_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't write %s\n", picname);
-	}
+	ri.Vid_WriteScreenshot(w, h, 3, buffer);
 
 	free(buffer);
 }
