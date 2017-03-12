@@ -95,6 +95,7 @@ GL3_TextureMode(char *string)
 	{
 		if ((glt->type != it_pic) && (glt->type != it_sky))
 		{
+			GL3_SelectTMU(GL_TEXTURE0);
 			GL3_Bind(glt->texnum);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
@@ -109,7 +110,7 @@ GL3_TextureMode(char *string)
 }
 
 void
-GL3_Bind(int texnum)
+GL3_Bind(GLuint texnum)
 {
 	extern gl3image_t *draw_chars;
 
@@ -124,7 +125,27 @@ GL3_Bind(int texnum)
 	}
 
 	gl3state.currenttexture = texnum;
+	GL3_SelectTMU(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texnum);
+}
+
+void
+GL3_BindLightmap(int lightmapnum)
+{
+	if(lightmapnum < 0 || lightmapnum >= MAX_LIGHTMAPS)
+	{
+		R_Printf(PRINT_ALL, "WARNING: Invalid lightmapnum %i used!\n", lightmapnum);
+		return;
+	}
+
+	if (gl3state.currentlightmap == lightmapnum)
+	{
+		return;
+	}
+
+	gl3state.currentlightmap = lightmapnum;
+	GL3_SelectTMU(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, gl3state.lightmap_textureIDs[lightmapnum]);
 }
 
 /*
@@ -301,7 +322,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 	image->texnum = texNum;
 
-	// glActiveTexture(GL_TEXTURE0); TODO: useful if we need >1 texture in the fragment shader
+	GL3_SelectTMU(GL_TEXTURE0);
 	GL3_Bind(texNum);
 
 	if (bits == 8)

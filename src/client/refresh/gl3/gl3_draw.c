@@ -365,6 +365,7 @@ GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 
 	GLuint glTex;
 	glGenTextures(1, &glTex);
+	GL3_SelectTMU(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, glTex);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, gl3_tex_solid_format,
@@ -381,6 +382,7 @@ GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 	drawTexturedRectangle(x, y, w, h, 0.0f, 0.0f, 1.0f, 1.0f);
 
 	glDeleteTextures(1, &glTex);
+
 	GL3_Bind(0);
 }
 

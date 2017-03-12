@@ -90,7 +90,7 @@ typedef struct {
 
 typedef struct {
 	float		rgb[3]; /* 0.0 - 2.0 */
-	float		white; /* highest of rgb */
+	float		white; /* r+g+b */
 } lightstyle_t;
 
 typedef struct {

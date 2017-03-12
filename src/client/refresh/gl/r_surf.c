@@ -442,7 +442,7 @@ R_RenderBrushPoly(msurface_t *fa)
 		R_Bind(image->texnum);
 
 		/* This is a hack ontop of a hack. Warping surfaces like those generated
-		   by R_EmitWaterPolys() don't have a lightmap. Original Quake II therefor
+		   by R_EmitWaterPolys() don't have a lightmap. Original Quake II therefore
 		   negated the global intensity on those surfaces, because otherwise they
 		   would show up much too bright. When we implemented overbright bits this
 		   hack modified the global GL state in an incompatible way. So implement

@@ -262,6 +262,7 @@ static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
 		in vec4 vertColor;  // GL3_ATTRIB_COLOR
 
 		out vec2 passTexCoord;
+		out vec2 passLMcoord;
 
 		// for UBO shared between all 3D shaders
 		layout (std140) uniform uni3D
@@ -272,6 +273,7 @@ static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
 			float scroll; // for SURF_FLOWING
 			float time;
 			float alpha;
+			float overbrightbits;
 		};
 );
 
@@ -299,6 +301,7 @@ static const char* fragmentCommon3D = MULTILINE_STRING(#version 150\n
 			float scroll; // for SURF_FLOWING
 			float time;
 			float alpha;
+			float overbrightbits;
 		};
 );
 
@@ -309,6 +312,7 @@ static const char* vertexSrc3D = MULTILINE_STRING(
 		void main()
 		{
 			passTexCoord = texCoord;
+			passLMcoord = lmTexCoord;
 			gl_Position = transProj * transModelView * vec4(position, 1.0);
 		}
 );
@@ -328,6 +332,8 @@ static const char* vertexSrc3Dlm = MULTILINE_STRING(
 static const char* fragmentSrc3D = MULTILINE_STRING(
 
 		// it gets attributes and uniforms from fragmentCommon3D
+		// TODO: will prolly need another version of this without lightmap,
+		// also shaders for that for flow (and more?) for translucent things that have no lightmap
 
 		uniform sampler2D tex;
 
@@ -335,12 +341,39 @@ static const char* fragmentSrc3D = MULTILINE_STRING(
 		{
 			vec4 texel = texture(tex, passTexCoord);
 
-			// TODO: something about GL_BLEND vs GL_ALPHATEST etc
-
-			// apply gamma correction and intensity
+			// apply intensity and gamma
 			texel.rgb *= intensity;
 			outColor.rgb = pow(texel.rgb, vec3(gamma));
 			outColor.a = texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
+		}
+);
+
+static const char* fragmentSrc3Dlm = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from fragmentCommon3D
+		// TODO: will prolly need another version of this without lightmap,
+		// also shaders for that for flow (and more?) for translucent things that have no lightmap
+
+		uniform sampler2D tex;
+		uniform sampler2D lightmap;
+
+		in vec2 passLMcoord;
+
+		void main()
+		{
+			vec4 texel = texture(tex, passTexCoord);
+
+
+			// apply intensity
+			texel.rgb *= intensity;
+
+			// apply lightmap
+			vec4 lmTex = texture(lightmap, passLMcoord);
+			lmTex.rgb *= overbrightbits;
+			outColor = lmTex*texel;
+			outColor.rgb = pow(outColor.rgb, vec3(gamma)); // apply gamma correction to result
+			outColor.a = 1; // lightmaps aren't used with translucent surfaces
+					//texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
 		}
 );
 
@@ -437,6 +470,7 @@ static const char* vertexSrc3Dflow = MULTILINE_STRING(
 		void main()
 		{
 			passTexCoord = texCoord + vec2(0, scroll);
+			passLMcoord = lmTexCoord;
 			gl_Position = transProj * transModelView * vec4(position, 1.0);
 		}
 );
@@ -449,7 +483,7 @@ static const char* vertexSrcAlias = MULTILINE_STRING(
 
 		void main()
 		{
-			passColor = vertColor;
+			passColor = vertColor*overbrightbits;
 			passTexCoord = texCoord;
 			gl_Position = transProj * transModelView * vec4(position, 1.0);
 		}
@@ -717,6 +751,18 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		goto err_cleanup;
 	}
 
+	// make sure texture is GL_TEXTURE0 and lightmap is GL_TEXTURE1
+	GLint texLoc = glGetUniformLocation(prog, "tex");
+	if(texLoc != -1)
+	{
+		glUniform1i(texLoc, 0);
+	}
+	GLint lmLoc = glGetUniformLocation(prog, "lightmap");
+	if(lmLoc != -1)
+	{
+		glUniform1i(lmLoc, 1);
+	}
+
 	shaderInfo->shaderProgram = prog;
 
 	// I think the shaders aren't needed anymore once they're linked into the program
@@ -757,9 +803,12 @@ static void initUBOs(void)
 	// the matrices will be set to something more useful later, before being used
 	gl3state.uni3DData.transProjMat4 = HMM_Mat4();
 	gl3state.uni3DData.transModelViewMat4 = HMM_Mat4();
+	gl3state.uni3DData.lmOffset = HMM_Vec2(0.0f, 0.0f);
 	gl3state.uni3DData.scroll = 0.0f;
 	gl3state.uni3DData.time = 0.0f;
 	gl3state.uni3DData.alpha = 1.0f;
+	// gl_overbrightbits 0 means "no scaling" which is equivalent to multiplying with 1
+	gl3state.uni3DData.overbrightbits = (gl_overbrightbits->value <= 0.0f) ? 1.0f : gl_overbrightbits->value;
 
 	glGenBuffers(1, &gl3state.uni3DUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uni3DUBO);
@@ -781,7 +830,7 @@ qboolean GL3_InitShaders(void)
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for color-only 2D rendering!\n");
 		return false;
 	}
-	if(!initShader3D(&gl3state.si3D, vertexSrc3D, fragmentSrc3D))
+	if(!initShader3D(&gl3state.si3D, vertexSrc3D, fragmentSrc3Dlm))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for textured 3D rendering!\n");
 		return false;
@@ -791,17 +840,19 @@ qboolean GL3_InitShaders(void)
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for flat-colored 3D rendering!\n");
 		return false;
 	}
+	/*
 	if(!initShader3D(&gl3state.si3Dlm, vertexSrc3Dlm, fragmentSrc3D))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for blending 3D lightmaps rendering!\n");
 		return false;
 	}
+	*/
 	if(!initShader3D(&gl3state.si3Dturb, vertexSrc3Dwater, fragmentSrc3D))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for water rendering!\n");
 		return false;
 	}
-	if(!initShader3D(&gl3state.si3Dflow, vertexSrc3Dflow, fragmentSrc3D))
+	if(!initShader3D(&gl3state.si3Dflow, vertexSrc3Dflow, fragmentSrc3Dlm))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for scrolling textures 3D rendering!\n");
 		return false;

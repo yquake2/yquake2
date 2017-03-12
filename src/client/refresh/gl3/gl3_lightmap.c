@@ -53,7 +53,8 @@ GL3_LM_UploadBlock(qboolean dynamic)
 		texture = gl3_lms.current_lightmap_texture;
 	}
 
-	GL3_Bind(gl3state.lightmap_textureIDs[texture]);
+	GL3_SelectTMU(GL_TEXTURE1);
+	GL3_BindLightmap(texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -248,7 +249,7 @@ GL3_LM_BeginBuildingLightmaps(gl3model_t *m)
 
 	static lightstyle_t lightstyles[MAX_LIGHTSTYLES];
 	int i;
-	unsigned dummy[128 * 128];
+	unsigned dummy[128 * 128] = {0};
 
 	memset(gl3_lms.allocated, 0, sizeof(gl3_lms.allocated));
 
@@ -273,7 +274,8 @@ GL3_LM_BeginBuildingLightmaps(gl3model_t *m)
 	gl3_lms.internal_format = GL_LIGHTMAP_FORMAT;
 
 	/* initialize the dynamic lightmap texture */
-	GL3_Bind(gl3state.lightmap_textureIDs[0]);
+	GL3_SelectTMU(GL_TEXTURE1);
+	GL3_BindLightmap(0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, gl3_lms.internal_format,

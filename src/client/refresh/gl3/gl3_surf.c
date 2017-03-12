@@ -303,6 +303,8 @@ BlendLightmaps(void)
 	int i;
 	msurface_t *surf, *newdrawsurf = 0;
 
+	return; // XXX: remove the whole function
+
 	/* don't bother if we're set to fullbright */
 	if (gl_fullbright->value)
 	{
@@ -342,7 +344,7 @@ BlendLightmaps(void)
 		c_visible_lightmaps = 0;
 	}
 
-	GL3_UseProgram(gl3state.si3Dlm.shaderProgram);
+//	GL3_UseProgram(gl3state.si3Dlm.shaderProgram); XXX!
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
 
@@ -547,6 +549,8 @@ RenderBrushPoly(msurface_t *fa)
 		// R_TexEnv(GL_REPLACE); TODO!
 	}
 
+	GL3_BindLightmap(fa->lightmaptexturenum);
+
 	if (fa->texinfo->flags & SURF_FLOWING)
 	{
 		GL3_DrawGLFlowingPoly(fa);
@@ -555,6 +559,8 @@ RenderBrushPoly(msurface_t *fa)
 	{
 		GL3_DrawGLPoly(fa->polys);
 	}
+
+	STUB_ONCE("TODO: dynamic lightmap in shaders");
 
 	/* check for lightmap modification */
 	for (maps = 0; maps < MAXLIGHTMAPS && fa->styles[maps] != 255; maps++)
@@ -603,7 +609,8 @@ RenderBrushPoly(msurface_t *fa)
 			GL3_BuildLightMap(fa, (void *)temp, smax * 4);
 			GL3_SetCacheState(fa);
 
-			GL3_Bind(gl3state.lightmap_textureIDs[fa->lightmaptexturenum]);
+			GL3_SelectTMU(GL_TEXTURE1);
+			GL3_BindLightmap(fa->lightmaptexturenum);
 
 			glTexSubImage2D(GL_TEXTURE_2D, 0, fa->light_s, fa->light_t,
 					smax, tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
@@ -647,6 +654,8 @@ GL3_DrawAlphaSurfaces(void)
 	   lighting range, so scale it back down */
 	//intens = gl3state.inverse_intensity;
 	STUB_ONCE("Something about inverse intensity??");
+
+	STUB_ONCE("TODO: more shaders for rendering brushes (w/o lightmap for translucent etc)");
 
 	for (s = gl3_alpha_surfaces; s != NULL; s = s->texturechain)
 	{
@@ -1016,6 +1025,8 @@ RecursiveWorldNode(mnode_t *node)
 		}
 		else
 		{
+			// TODO: RenderLightmappedPoly()
+
 			/* the polygon is visible, so add it to the texture sorted chain */
 			image = TextureAnimation(surf->texinfo);
 			surf->texturechain = image->texturechain;

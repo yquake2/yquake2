@@ -1553,9 +1553,6 @@ GL3_Clear(void)
 		glClearStencil(1);
 		glClear(GL_STENCIL_BUFFER_BIT);
 	}
-
-	glClear(GL_COLOR_BUFFER_BIT); // TODO: I added this and the next line - keep?
-	glClearColor(0.5, 0.5, 1, 0.5); // FIXME: this would prolly look better with black.
 }
 
 void
@@ -1593,19 +1590,19 @@ GL3_BeginFrame(float camera_separation)
 		GL3_UpdateUBOCommon();
 	}
 
-	// Clamp overbrightbits
+	// in GL3, overbrightbits can have any positive value
+	// TODO: rename to gl3_overbrightbits?
 	if (gl_overbrightbits->modified)
 	{
-		if (gl_overbrightbits->value > 2 && gl_overbrightbits->value < 4)
+		gl_overbrightbits->modified = false;
+
+		if(gl_overbrightbits->value < 0.0f)
 		{
-			ri.Cvar_Set("gl_overbrightbits", "2");
-		}
-		else if (gl_overbrightbits->value > 4)
-		{
-			ri.Cvar_Set("gl_overbrightbits", "4");
+			ri.Cvar_Set("gl_overbrightbits", "0");
 		}
 
-		gl_overbrightbits->modified = false;
+		gl3state.uni3DData.overbrightbits = (gl_overbrightbits->value <= 0.0f) ? 1.0f : gl_overbrightbits->value;
+		GL3_UpdateUBO3D();
 	}
 
 	/* go into 2D mode */

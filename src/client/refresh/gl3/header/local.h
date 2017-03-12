@@ -135,8 +135,9 @@ typedef struct
 	GLfloat scroll; // for SURF_FLOWING
 	GLfloat time; // for warping surfaces like water & possibly other things
 	GLfloat alpha; // for translucent surfaces (water, glass, ..)
+	GLfloat overbrightbits; // gl_overbrightbits, applied to lightmaps (and elsewhere to models)
 
-		GLfloat _padding[3]; // again, some padding to ensure this has right size
+		GLfloat _padding[2]; // again, some padding to ensure this has right size
 } gl3Uni3D_t;
 
 enum {
@@ -156,12 +157,16 @@ typedef struct
 
 	unsigned char *d_16to8table;
 
+	// "So color textures start at 0, the dynamic lightmap texture is always 1024 and the static lighmap are 1025 up to 1036."
+	// yes, dynamic lightmap is 1024, but I think there can be 127 dynamic lightmaps (MAX_LIGHTMAPS == 128)
 	//int lightmap_textures;
 	GLuint lightmap_textureIDs[MAX_LIGHTMAPS]; // instead of lightmap_textures+i use lightmap_textureIDs[i]
 
 	//int currenttextures[2];
-	GLuint currenttexture;
-	//int currenttmu;
+	GLuint currenttexture; // bound to GL_TEXTURE0
+	int currentlightmap; // lightmap_textureIDs[currentlightmap] bound to GL_TEXTURE1
+	GLuint currenttmu; // GL_TEXTURE0 or GL_TEXTURE1
+	//int currenttmu; // 0 for textures, 1 for lightmaps
 	//GLenum currenttarget;
 
 	//float camera_separation;
@@ -183,7 +188,7 @@ typedef struct
 	gl3ShaderInfo_t si3Dsky;
 	gl3ShaderInfo_t si3Dsprite; // for sprites
 	gl3ShaderInfo_t si3DspriteAlpha; // for sprites with alpha-testing
-	gl3ShaderInfo_t si3Dlm; // for blended lightmaps TODO: prolly remove and use multitexturing
+	//gl3ShaderInfo_t si3Dlm; // for blended lightmaps TODO: prolly remove and use multitexturing
 
 	gl3ShaderInfo_t si3Dalias; // for models
 	gl3ShaderInfo_t si3DaliasColor; // for models w/ flat colors
@@ -371,8 +376,20 @@ extern void GL3_Draw_Flash(const float color[4]);
 extern void GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
 
 // gl3_image.c
+
+static inline void
+GL3_SelectTMU(GLenum tmu)
+{
+	if(gl3state.currenttmu != tmu)
+	{
+		glActiveTexture(tmu);
+		gl3state.currenttmu = tmu;
+	}
+}
+
 extern void GL3_TextureMode(char *string);
-extern void GL3_Bind(int texnum);
+extern void GL3_Bind(GLuint texnum);
+extern void GL3_BindLightmap(int lightmapnum);
 extern gl3image_t *GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
                                int height, int realheight, imagetype_t type, int bits);
 extern gl3image_t *GL3_FindImage(char *name, imagetype_t type);

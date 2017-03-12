@@ -220,6 +220,8 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 				order += 3;
 
 				/* normals and vertexes come from the frame list */
+				// shadedots is set in GL3DrawAliasModel() according to rotation (around Z axis I think)
+				// to one of 16 (SHADEDOT_QUANT) presets in r_avertexnormal_dots
 				l = shadedots[verts[index_xyz].lightnormalindex];
 
 				for(j=0; j<3; ++j)
@@ -621,15 +623,7 @@ GL3_DrawAliasModel(entity_t *e)
 		}
 	}
 
-	// Apply gl_overbrightbits to the mesh. If we don't do this they will appear slightly dimmer relative to walls.
-	if (gl_overbrightbits->value)
-	{
-		for (i = 0; i < 3; ++i)
-		{
-			shadelight[i] *= gl_overbrightbits->value;
-		}
-	}
-
+	// Note: gl_overbrightbits are now applied in shader.
 
 	/* ir goggles color override */
 	if ((gl3_newrefdef.rdflags & RDF_IRGOGGLES) && (currententity->flags & RF_IR_VISIBLE))
