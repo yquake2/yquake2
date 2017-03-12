@@ -133,6 +133,7 @@ extern "C" {
 #else
 #define STBIWDEF extern
 extern int stbi_write_tga_with_rle;
+extern int stbi_png_level;
 #endif
 
 #ifndef STBI_WRITE_NO_STDIO
@@ -965,7 +966,7 @@ unsigned char *stbi_write_png_to_mem(unsigned char *pixels, int stride_bytes, in
       STBIW_MEMMOVE(filt+j*(x*n+1)+1, line_buffer, x*n);
    }
    STBIW_FREE(line_buffer);
-   zlib = stbi_zlib_compress(filt, y*( x*n+1), &zlen, 8); // increase 8 to get smaller but use more memory
+   zlib = stbi_zlib_compress(filt, y*( x*n+1), &zlen, stbi_png_level);
    STBIW_FREE(filt);
    if (!zlib) return 0;
 
@@ -1002,6 +1003,8 @@ unsigned char *stbi_write_png_to_mem(unsigned char *pixels, int stride_bytes, in
 
    return out;
 }
+
+int stbi_png_level = 8;
 
 #ifndef STBI_WRITE_NO_STDIO
 STBIWDEF int stbi_write_png(char const *filename, int x, int y, int comp, const void *data, int stride_bytes)
