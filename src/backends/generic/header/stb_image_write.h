@@ -1,3 +1,11 @@
+
+/* !!! NOTE: this version of stb_image_write.h is modified !!!
+ * I added the following things:
+ * - JPEG support (maybe this gets upstream, we'll see: https://github.com/nothings/stb/pull/432
+ * - STBIW_ZLIB_COMPRESS to supply custom zlib compress()-like function for PNG
+ * - stbi_png_level to allow configuring PNG compression level
+ */
+
 /* stb_image_write - v1.05 - public domain - http://nothings.org/stb/stb_image_write.h
    writes out PNG/BMP/TGA/JPEG/HDR images to C stdio - Sean Barrett 2010-2015
                                      no warranty implied; use at your own risk
@@ -664,6 +672,7 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const 
 //
 
 // stretchy buffer; stbiw__sbpush() == vector<>::push_back() -- stbiw__sbcount() == vector<>::size()
+#ifndef STBIW_ZLIB_COMPRESS
 #define stbiw__sbraw(a) ((int *) (a) - 2)
 #define stbiw__sbm(a)   stbiw__sbraw(a)[0]
 #define stbiw__sbn(a)   stbiw__sbraw(a)[1]
@@ -743,8 +752,16 @@ static unsigned int stbiw__zhash(unsigned char *data)
 
 #define stbiw__ZHASH   16384
 
+#endif // STBIW_ZLIB_COMPRESS
+
+#define MZ_MAX(a,b) (((a)>(b))?(a):(b))
+
 unsigned char * stbi_zlib_compress(unsigned char *data, int data_len, int *out_len, int quality)
 {
+#ifdef STBIW_ZLIB_COMPRESS
+   // user provided a zlib compress implementation, use that
+   return STBIW_ZLIB_COMPRESS(data, data_len, out_len, quality);
+#else // use our own
    static unsigned short lengthc[] = { 3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258, 259 };
    static unsigned char  lengtheb[]= { 0,0,0,0,0,0,0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4,  4,  5,  5,  5,  5,  0 };
    static unsigned short distc[]   = { 1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577, 32768 };
@@ -752,6 +769,9 @@ unsigned char * stbi_zlib_compress(unsigned char *data, int data_len, int *out_l
    unsigned int bitbuf=0;
    int i,j, bitcount=0;
    unsigned char *out = NULL;
+
+   int guessedSize = MZ_MAX(128 + (data_len * 110) / 100, 128 + data_len + ((data_len / (31 * 1024)) + 1) * 5);
+   //stbiw__sbgrow(out, guessedSize);
    unsigned char ***hash_table = (unsigned char***) STBIW_MALLOC(stbiw__ZHASH * sizeof(char**));
    if (quality < 5) quality = 5;
 
@@ -846,6 +866,7 @@ unsigned char * stbi_zlib_compress(unsigned char *data, int data_len, int *out_l
    // make returned pointer freeable
    STBIW_MEMMOVE(stbiw__sbraw(out), out, *out_len);
    return (unsigned char *) stbiw__sbraw(out);
+#endif // !STBIW_ZLIB_COMPRESS
 }
 
 static unsigned int stbiw__crc32(unsigned char *buffer, int len)
