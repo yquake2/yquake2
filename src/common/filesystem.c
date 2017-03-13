@@ -943,11 +943,10 @@ FS_AddHomeAsGameDirectory(char *dir)
 	char gdir[MAX_OSPATH];
 	size_t len;
 
-    if (fs_portable->value)
-    {
-        Com_Printf("======================>>>>>>>>>>>> Portableflappen\n");
-        return;
-    }
+	if (fs_portable->value)
+	{
+		return;
+	}
 
 	home = Sys_GetHomeDir();
 

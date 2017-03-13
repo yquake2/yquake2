@@ -726,6 +726,7 @@ extern cvar_t *modder;
 extern cvar_t *dedicated;
 extern cvar_t *host_speeds;
 extern cvar_t *log_stats;
+extern cvar_t *fs_portable;
 
 extern FILE *log_stats_file;
 
