@@ -652,7 +652,7 @@ Sys_RedirectStdout(void)
 	char path_stdout[MAX_OSPATH];
 	char path_stderr[MAX_OSPATH];
 
-	if (dedicated && dedicated->value)
+	if (portable->value)
 	{
 		return;
 	}
@@ -707,11 +707,6 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	/* Make the current instance global */
 	global_hInstance = hInstance;
-
-	/* Redirect stdout and stderr into a file */
-#ifndef DEDICATED_ONLY
-	Sys_RedirectStdout();
-#endif
 
 	printf("Yamagi Quake II v%s\n", YQ2VERSION);
 	printf("=====================\n\n");

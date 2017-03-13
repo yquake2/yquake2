@@ -550,3 +550,12 @@ Sys_FreeLibrary(void *handle)
 	}
 }
 
+/*
+ * Just a dummy. There's no need on unixoid systems to
+ * redirect stdout and stderr.
+ */
+void
+Sys_RedirectStdout(void)
+{
+	return;
+}

@@ -726,7 +726,7 @@ extern cvar_t *modder;
 extern cvar_t *dedicated;
 extern cvar_t *host_speeds;
 extern cvar_t *log_stats;
-extern cvar_t *fs_portable;
+extern cvar_t *portable;
 
 extern FILE *log_stats_file;
 
@@ -769,6 +769,7 @@ void Sys_Sleep(int msec);
 void Sys_FreeLibrary(void *handle);
 void *Sys_LoadLibrary(const char *path, const char *sym, void **handle);
 void *Sys_GetProcAddress(void *handle, const char *sym);
+void Sys_RedirectStdout(void);
 
 /* CLIENT / SERVER SYSTEMS */
 
