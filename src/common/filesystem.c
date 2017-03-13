@@ -131,6 +131,7 @@ cvar_t *fs_basedir;
 cvar_t *fs_cddir;
 cvar_t *fs_gamedirvar;
 cvar_t *fs_debug;
+cvar_t *fs_portable;
 
 fsHandle_t *FS_GetFileByHandle(fileHandle_t f);
 char *Sys_GetCurrentDirectory(void);
@@ -942,6 +943,12 @@ FS_AddHomeAsGameDirectory(char *dir)
 	char gdir[MAX_OSPATH];
 	size_t len;
 
+    if (fs_portable->value)
+    {
+        Com_Printf("======================>>>>>>>>>>>> Portableflappen\n");
+        return;
+    }
+
 	home = Sys_GetHomeDir();
 
 	if (home == NULL)
@@ -1565,6 +1572,9 @@ FS_InitFilesystem(void)
 
 	/* Current directory. */
 	fs_homepath = Cvar_Get("homepath", Sys_GetCurrentDirectory(), CVAR_NOSET);
+
+    /* Be portable, don't add HOME to the search patch */
+    fs_portable = Cvar_Get("fs_portable", "0", 0);
 
 	/* Add baseq2 to search path. */
 	FS_AddGameDirectory(va("%s/" BASEDIRNAME, fs_basedir->string));
