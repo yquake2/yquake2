@@ -1083,6 +1083,13 @@ FS_SetGamedir(char *dir)
 		return;
 	}
 
+    /* Do not set BASEDIR as gamedir. It was already set by FS_InitFilesystem()
+     * and setting it again f*cks the search pathes up. Yes, this a hack. */
+	if(!Q_stricmp(dir, BASEDIRNAME))
+	{
+		return;
+	}
+
 	/* Free up any current game dir info. */
 	while (fs_searchPaths != fs_baseSearchPaths)
 	{
