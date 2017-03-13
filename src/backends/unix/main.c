@@ -39,7 +39,10 @@ main(int argc, char **argv)
 	int time, oldtime, newtime;
 	int verLen, i;
 	const char* versionString;
+
+#ifndef BUSY_WAIT
 	struct timespec t;
+#endif
 
 	/* register signal handler */
 	registerHandler();
@@ -131,9 +134,11 @@ main(int argc, char **argv)
 		/* find time spent rendering last frame */
 		do
 		{
+#ifndef BUSY_WAIT
 			/* Sleep 10 microseconds */
 			t.tv_nsec = 10000;
 			nanosleep(&t, NULL);
+#endif
 
 			newtime = Sys_Milliseconds();
 			time = newtime - oldtime;
