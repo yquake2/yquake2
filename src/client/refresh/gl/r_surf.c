@@ -515,7 +515,8 @@ R_RenderBrushPoly(msurface_t *fa)
 
 	if (is_dynamic)
 	{
-		if (((fa->styles[maps] >= 32) ||
+		if (maps < MAXLIGHTMAPS &&
+			((fa->styles[maps] >= 32) ||
 			 (fa->styles[maps] == 0)) &&
 			  (fa->dlightframe != r_framecount))
 		{
