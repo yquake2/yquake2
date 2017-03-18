@@ -212,7 +212,7 @@ GL3_Register(void)
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
-	intensity = ri.Cvar_Get("intensity", "1.0", CVAR_ARCHIVE);
+	intensity = ri.Cvar_Get("intensity", "2.0", CVAR_ARCHIVE);
 
 	gl_lightlevel = ri.Cvar_Get("gl_lightlevel", "0", 0);
 	gl_overbrightbits = ri.Cvar_Get("gl_overbrightbits", "0", CVAR_ARCHIVE);
@@ -244,8 +244,8 @@ GL3_Register(void)
 	//gl_lerpmodels = ri.Cvar_Get("gl_lerpmodels", "1", 0); NOTE: screw this, it looks horrible without
 	//gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
 
-	gl_lightlevel = ri.Cvar_Get("gl_lightlevel", "0", 0);
-	gl_overbrightbits = ri.Cvar_Get("gl_overbrightbits", "0", CVAR_ARCHIVE);
+	//gl_lightlevel = ri.Cvar_Get("gl_lightlevel", "0", 0);
+	//gl_overbrightbits = ri.Cvar_Get("gl_overbrightbits", "0", CVAR_ARCHIVE);
 
 	gl_particle_min_size = ri.Cvar_Get("gl_particle_min_size", "2", CVAR_ARCHIVE);
 	gl_particle_max_size = ri.Cvar_Get("gl_particle_max_size", "40", CVAR_ARCHIVE);

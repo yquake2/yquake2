@@ -163,11 +163,12 @@ TextureAnimation(mtexinfo_t *tex)
 }
 
 void
-GL3_DrawGLPoly(glpoly_t *p)
+GL3_DrawGLPoly(glpoly_t *p, qboolean withAlpha)
 {
 	float* v = p->verts[0];
 
-	GL3_UseProgram(gl3state.si3D.shaderProgram); // TODO: needed each time?! maybe call this once in DrawTextureChains()?
+	// TODO: needed each time?! maybe call this once in DrawTextureChains()?
+	GL3_UseProgram( withAlpha ? gl3state.si3Dtrans.shaderProgram : gl3state.si3Dlm.shaderProgram );
 
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
@@ -177,7 +178,7 @@ GL3_DrawGLPoly(glpoly_t *p)
 }
 
 void
-GL3_DrawGLFlowingPoly(msurface_t *fa)
+GL3_DrawGLFlowingPoly(msurface_t *fa, qboolean withAlpha)
 {
 	int i;
 	float *v;
@@ -199,7 +200,7 @@ GL3_DrawGLFlowingPoly(msurface_t *fa)
 		GL3_UpdateUBO3D();
 	}
 
-	GL3_UseProgram(gl3state.si3Dflow.shaderProgram);
+	GL3_UseProgram( withAlpha ? gl3state.si3DtransFlow.shaderProgram : gl3state.si3DlmFlow.shaderProgram );
 
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
@@ -553,11 +554,11 @@ RenderBrushPoly(msurface_t *fa)
 
 	if (fa->texinfo->flags & SURF_FLOWING)
 	{
-		GL3_DrawGLFlowingPoly(fa);
+		GL3_DrawGLFlowingPoly(fa, false);
 	}
 	else
 	{
-		GL3_DrawGLPoly(fa->polys);
+		GL3_DrawGLPoly(fa->polys, false);
 	}
 
 	STUB_ONCE("TODO: dynamic lightmap in shaders");
@@ -682,11 +683,11 @@ GL3_DrawAlphaSurfaces(void)
 		}
 		else if (s->texinfo->flags & SURF_FLOWING)
 		{
-			GL3_DrawGLFlowingPoly(s);
+			GL3_DrawGLFlowingPoly(s, true);
 		}
 		else
 		{
-			GL3_DrawGLPoly(s->polys);
+			GL3_DrawGLPoly(s->polys, true);
 		}
 	}
 

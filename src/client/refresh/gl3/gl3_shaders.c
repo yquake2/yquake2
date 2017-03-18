@@ -317,7 +317,7 @@ static const char* vertexSrc3D = MULTILINE_STRING(
 		}
 );
 
-static const char* vertexSrc3Dlm = MULTILINE_STRING(
+static const char* vertexSrc3DlmOnly = MULTILINE_STRING(
 
 		// it gets attributes and uniforms from vertexCommon3D
 
@@ -814,6 +814,7 @@ static void initUBOs(void)
 	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uni3DUBO);
 	glBindBufferBase(GL_UNIFORM_BUFFER, GL3_BINDINGPOINT_UNI3D, gl3state.uni3DUBO);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(gl3state.uni3DData), &gl3state.uni3DData, GL_DYNAMIC_DRAW);
+	gl3state.currentUBO = gl3state.uni3DUBO;
 }
 
 qboolean GL3_InitShaders(void)
@@ -830,9 +831,14 @@ qboolean GL3_InitShaders(void)
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for color-only 2D rendering!\n");
 		return false;
 	}
-	if(!initShader3D(&gl3state.si3D, vertexSrc3D, fragmentSrc3Dlm))
+	if(!initShader3D(&gl3state.si3Dlm, vertexSrc3D, fragmentSrc3Dlm))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for textured 3D rendering!\n");
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for textured 3D rendering with lightmap!\n");
+		return false;
+	}
+	if(!initShader3D(&gl3state.si3Dtrans, vertexSrc3D, fragmentSrc3D))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for rendering translucent 3D things!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3DcolorOnly, vertexSrc3D, fragmentSrc3Dcolor))
@@ -852,9 +858,14 @@ qboolean GL3_InitShaders(void)
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for water rendering!\n");
 		return false;
 	}
-	if(!initShader3D(&gl3state.si3Dflow, vertexSrc3Dflow, fragmentSrc3Dlm))
+	if(!initShader3D(&gl3state.si3DlmFlow, vertexSrc3Dflow, fragmentSrc3Dlm))
 	{
-		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for scrolling textures 3D rendering!\n");
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for scrolling textured 3D rendering with lightmap!\n");
+		return false;
+	}
+	if(!initShader3D(&gl3state.si3DtransFlow, vertexSrc3Dflow, fragmentSrc3D))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for scrolling textured translucent 3D rendering!\n");
 		return false;
 	}
 	if(!initShader3D(&gl3state.si3Dsky, vertexSrc3D, fragmentSrc3Dsky))
@@ -911,9 +922,31 @@ void GL3_ShutdownShaders(void)
 static inline void
 updateUBO(GLuint ubo, GLsizeiptr size, void* data)
 {
+	if(gl3state.currentUBO != ubo)
+	{
+		gl3state.currentUBO = ubo;
+		glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+	}
+
 	// TODO: use glMapBufferRange() or something else instead?
-	glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+
+	// http://docs.gl/gl3/glBufferSubData says  "When replacing the entire data store,
+	// consider using glBufferSubData rather than completely recreating the data store
+	// with glBufferData. This avoids the cost of reallocating the data store."
+	// no idea why glBufferData() doesn't just do that when size doesn't change, but whatever..
+	// however, it also says glBufferSubData() might cause a stall so I DON'T KNOW!
+	// by just looking at the fps, glBufferData() and glBufferSubData() make no difference
+	// TODO: STREAM instead DYNAMIC?
+#if 0
 	glBufferData(GL_UNIFORM_BUFFER, size, data, GL_DYNAMIC_DRAW);
+#elif 1
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, size, data);
+#else // with my current nvidia-driver, the following *really* makes it slower. (<200fps instead of ~500)
+	glBufferData(GL_UNIFORM_BUFFER, size, NULL, GL_DYNAMIC_DRAW); // orphan
+	GLvoid* ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+	memcpy(ptr, data, size);
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+#endif
 }
 
 void GL3_UpdateUBOCommon(void)
