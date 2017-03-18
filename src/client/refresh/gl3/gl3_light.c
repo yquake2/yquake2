@@ -406,7 +406,6 @@ GL3_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 	int i, j, size;
 	byte *lightmap;
 	float scale[4];
-	int nummaps;
 	float *bl;
 
 	if (surf->texinfo->flags &
@@ -435,59 +434,14 @@ GL3_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 		goto store;
 	}
 
-	/* count the # of maps */
-	for (nummaps = 0; nummaps < MAXLIGHTMAPS && surf->styles[nummaps] != 255;
-		 nummaps++)
-	{
-	}
-
-	lightmap = surf->samples;
-
 	/* add all the lightmaps */
-	if (nummaps == 1)
-	{
-		int maps;
-
-		for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255; maps++)
-		{
-			bl = s_blocklights;
-
-			for (i = 0; i < 3; i++)
-			{
-				scale[i] = gl_modulate->value *
-						   gl3_newrefdef.lightstyles[surf->styles[maps]].rgb[i];
-			}
-
-			if ((scale[0] == 1.0F) &&
-				(scale[1] == 1.0F) &&
-				(scale[2] == 1.0F))
-			{
-				for (i = 0; i < size; i++, bl += 3)
-				{
-					bl[0] = lightmap[i * 3 + 0];
-					bl[1] = lightmap[i * 3 + 1];
-					bl[2] = lightmap[i * 3 + 2];
-				}
-			}
-			else
-			{
-				for (i = 0; i < size; i++, bl += 3)
-				{
-					bl[0] = lightmap[i * 3 + 0] * scale[0];
-					bl[1] = lightmap[i * 3 + 1] * scale[1];
-					bl[2] = lightmap[i * 3 + 2] * scale[2];
-				}
-			}
-
-			lightmap += size * 3; /* skip to next lightmap */
-		}
-	}
-	else
 	{
 		int maps;
 
 		memset(s_blocklights, 0, sizeof(s_blocklights[0]) * size * 3);
 
+		lightmap = surf->samples;
+
 		for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255; maps++)
 		{
 			bl = s_blocklights;
@@ -498,25 +452,11 @@ GL3_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 						   gl3_newrefdef.lightstyles[surf->styles[maps]].rgb[i];
 			}
 
-			if ((scale[0] == 1.0F) &&
-				(scale[1] == 1.0F) &&
-				(scale[2] == 1.0F))
+			for (i = 0; i < size; i++, bl += 3)
 			{
-				for (i = 0; i < size; i++, bl += 3)
-				{
-					bl[0] += lightmap[i * 3 + 0];
-					bl[1] += lightmap[i * 3 + 1];
-					bl[2] += lightmap[i * 3 + 2];
-				}
-			}
-			else
-			{
-				for (i = 0; i < size; i++, bl += 3)
-				{
-					bl[0] += lightmap[i * 3 + 0] * scale[0];
-					bl[1] += lightmap[i * 3 + 1] * scale[1];
-					bl[2] += lightmap[i * 3 + 2] * scale[2];
-				}
+				bl[0] += lightmap[i * 3 + 0] * scale[0];
+				bl[1] += lightmap[i * 3 + 1] * scale[1];
+				bl[2] += lightmap[i * 3 + 2] * scale[2];
 			}
 
 			lightmap += size * 3; /* skip to next lightmap */

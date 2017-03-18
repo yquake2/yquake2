@@ -332,8 +332,6 @@ static const char* vertexSrc3DlmOnly = MULTILINE_STRING(
 static const char* fragmentSrc3D = MULTILINE_STRING(
 
 		// it gets attributes and uniforms from fragmentCommon3D
-		// TODO: will prolly need another version of this without lightmap,
-		// also shaders for that for flow (and more?) for translucent things that have no lightmap
 
 		uniform sampler2D tex;
 
@@ -351,11 +349,15 @@ static const char* fragmentSrc3D = MULTILINE_STRING(
 static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 
 		// it gets attributes and uniforms from fragmentCommon3D
-		// TODO: will prolly need another version of this without lightmap,
-		// also shaders for that for flow (and more?) for translucent things that have no lightmap
 
 		uniform sampler2D tex;
-		uniform sampler2D lightmap;
+
+		uniform sampler2D lightmap0;
+		uniform sampler2D lightmap1;
+		uniform sampler2D lightmap2;
+		uniform sampler2D lightmap3;
+
+		uniform vec4 lmScales[4];
 
 		in vec2 passLMcoord;
 
@@ -363,12 +365,15 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 		{
 			vec4 texel = texture(tex, passTexCoord);
 
-
 			// apply intensity
 			texel.rgb *= intensity;
 
 			// apply lightmap
-			vec4 lmTex = texture(lightmap, passLMcoord);
+			vec4 lmTex = texture(lightmap0, passLMcoord) * lmScales[0];
+			lmTex     += texture(lightmap1, passLMcoord) * lmScales[1];
+			lmTex     += texture(lightmap2, passLMcoord) * lmScales[2];
+			lmTex     += texture(lightmap3, passLMcoord) * lmScales[3];
+
 			lmTex.rgb *= overbrightbits;
 			outColor = lmTex*texel;
 			outColor.rgb = pow(outColor.rgb, vec3(gamma)); // apply gamma correction to result
@@ -599,6 +604,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 
 	//shaderInfo->uniColor = shaderInfo->uniProjMatrix = shaderInfo->uniModelViewMatrix = -1;
 	shaderInfo->shaderProgram = 0;
+	shaderInfo->uniLmScales = -1;
 
 	shaders2D[0] = CompileShader(GL_VERTEX_SHADER, vertSrc, NULL);
 	if(shaders2D[0] == 0)  return false;
@@ -681,6 +687,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 {
 	GLuint shaders3D[2] = {0};
 	GLuint prog = 0;
+	int i=0;
 
 	if(shaderInfo->shaderProgram != 0)
 	{
@@ -689,6 +696,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	}
 
 	shaderInfo->shaderProgram = 0;
+	shaderInfo->uniLmScales = -1;
 
 	shaders3D[0] = CompileShader(GL_VERTEX_SHADER, vertexCommon3D, vertSrc);
 	if(shaders3D[0] == 0)  return false;
@@ -751,16 +759,34 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		goto err_cleanup;
 	}
 
-	// make sure texture is GL_TEXTURE0 and lightmap is GL_TEXTURE1
+	// make sure texture is GL_TEXTURE0
 	GLint texLoc = glGetUniformLocation(prog, "tex");
 	if(texLoc != -1)
 	{
 		glUniform1i(texLoc, 0);
 	}
-	GLint lmLoc = glGetUniformLocation(prog, "lightmap");
-	if(lmLoc != -1)
+
+	// ..  and the 4 lightmap texture use GL_TEXTURE1..4
+	for(i=0; i<4; ++i)
 	{
-		glUniform1i(lmLoc, 1);
+		char lmName[10] = "lightmapX";
+		lmName[8] = '0'+i;
+		GLint lmLoc = glGetUniformLocation(prog, lmName);
+		if(lmLoc != -1)
+		{
+			glUniform1i(lmLoc, i+1); // lightmap0 belongs to GL_TEXTURE1, lightmap1 to GL_TEXTURE2 etc
+		}
+	}
+
+	GLint lmScalesLoc = glGetUniformLocation(prog, "lmScales");
+	shaderInfo->uniLmScales = lmScalesLoc;
+	if(lmScalesLoc != -1)
+	{
+		GLfloat scales[4][4] = {0};
+
+		for(i=0; i<4; ++i)  scales[0][i] = 1.0f;
+
+		glUniform4fv(lmScalesLoc, 4, scales[0]);
 	}
 
 	shaderInfo->shaderProgram = prog;

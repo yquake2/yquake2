@@ -106,6 +106,7 @@ typedef struct
 typedef struct
 {
 	GLuint shaderProgram;
+	GLint uniLmScales;
 } gl3ShaderInfo_t;
 
 typedef struct
@@ -144,7 +145,8 @@ enum {
 	BLOCK_WIDTH = 128,
 	BLOCK_HEIGHT = 128,
 	LIGHTMAP_BYTES = 4,
-	MAX_LIGHTMAPS = 128
+	MAX_LIGHTMAPS = 128,
+	MAX_LIGHTMAPS_PER_SURFACE = MAXLIGHTMAPS // 4
 };
 
 typedef struct
@@ -160,7 +162,7 @@ typedef struct
 	// "So color textures start at 0, the dynamic lightmap texture is always 1024 and the static lighmap are 1025 up to 1036."
 	// yes, dynamic lightmap is 1024, but I think there can be 127 dynamic lightmaps (MAX_LIGHTMAPS == 128)
 	//int lightmap_textures;
-	GLuint lightmap_textureIDs[MAX_LIGHTMAPS]; // instead of lightmap_textures+i use lightmap_textureIDs[i]
+	GLuint lightmap_textureIDs[MAX_LIGHTMAPS][MAX_LIGHTMAPS_PER_SURFACE]; // instead of lightmap_textures+i use lightmap_textureIDs[i]
 
 	//int currenttextures[2];
 	GLuint currenttexture; // bound to GL_TEXTURE0

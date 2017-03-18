@@ -305,7 +305,7 @@ BlendLightmaps(void)
 	msurface_t *surf, *newdrawsurf = 0;
 
 	return; // XXX: remove the whole function
-
+#if 0
 	/* don't bother if we're set to fullbright */
 	if (gl_fullbright->value)
 	{
@@ -490,6 +490,7 @@ BlendLightmaps(void)
 	glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(1);
+#endif // 0
 }
 
 static void
@@ -550,6 +551,8 @@ RenderBrushPoly(msurface_t *fa)
 		// R_TexEnv(GL_REPLACE); TODO!
 	}
 
+	// TODO: bind all the lightmaps
+
 	GL3_BindLightmap(fa->lightmaptexturenum);
 
 	if (fa->texinfo->flags & SURF_FLOWING)
@@ -594,7 +597,7 @@ RenderBrushPoly(msurface_t *fa)
 	// TODO: 2D texture array für lightmaps?
 	if (is_dynamic)
 	{
-		if (((fa->styles[maps] >= 32) ||
+		/*if (((fa->styles[maps] >= 32) ||
 			 (fa->styles[maps] == 0)) &&
 			  (fa->dlightframe != gl3_framecount))
 		{
@@ -619,7 +622,7 @@ RenderBrushPoly(msurface_t *fa)
 			fa->lightmapchain = gl3_lms.lightmap_surfaces[fa->lightmaptexturenum];
 			gl3_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
 		}
-		else
+		else*/
 		{
 			// dynamic lights: add to dynamic lightmap chain
 			fa->lightmapchain = gl3_lms.lightmap_surfaces[0];

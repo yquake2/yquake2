@@ -53,8 +53,8 @@ GL3_LM_UploadBlock(qboolean dynamic)
 		texture = gl3_lms.current_lightmap_texture;
 	}
 
-	GL3_SelectTMU(GL_TEXTURE1);
 	GL3_BindLightmap(texture);
+	GL3_SelectTMU(GL_TEXTURE1);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 

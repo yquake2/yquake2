@@ -145,7 +145,13 @@ GL3_BindLightmap(int lightmapnum)
 
 	gl3state.currentlightmap = lightmapnum;
 	GL3_SelectTMU(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, gl3state.lightmap_textureIDs[lightmapnum]);
+	glBindTexture(GL_TEXTURE_2D, gl3state.lightmap_textureIDs[lightmapnum][0]);
+	GL3_SelectTMU(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, gl3state.lightmap_textureIDs[lightmapnum][1]);
+	GL3_SelectTMU(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, gl3state.lightmap_textureIDs[lightmapnum][2]);
+	GL3_SelectTMU(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, gl3state.lightmap_textureIDs[lightmapnum][3]);
 }
 
 /*
