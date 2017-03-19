@@ -2195,7 +2195,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	lightstyle_t *lightstyle;
 	float *mapped_buffer;
 	entitylight_t *entity;
-	int cluster, other_cluster;
+	int cluster;
 	short *mapped_references;
 	byte *vis;
 	float* cached;
