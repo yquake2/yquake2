@@ -223,7 +223,6 @@ GL3_LM_BeginBuildingLightmaps(gl3model_t *m)
 
 	static lightstyle_t lightstyles[MAX_LIGHTSTYLES];
 	int i;
-	unsigned dummy[128 * 128] = {0};
 
 	memset(gl3_lms.allocated, 0, sizeof(gl3_lms.allocated));
 

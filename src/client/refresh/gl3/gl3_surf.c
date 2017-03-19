@@ -177,8 +177,6 @@ GL3_DrawGLPoly(glpoly_t *p)
 void
 GL3_DrawGLFlowingPoly(msurface_t *fa)
 {
-	int i;
-	float *v;
 	glpoly_t *p;
 	float scroll;
 
@@ -207,12 +205,11 @@ GL3_DrawGLFlowingPoly(msurface_t *fa)
 static void
 DrawTriangleOutlines(void)
 {
+	STUB_ONCE("TODO: Implement for gl_showtris support!");
+#if 0
 	int i, j;
 	glpoly_t *p;
 
-	STUB_ONCE("TODO: Implement for gl_showtris support!");
-
-#if 0
 	if (!gl_showtris->value)
 	{
 		return;
@@ -294,9 +291,8 @@ UpdateLMscales(const hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE], gl3ShaderInfo
 static void
 RenderBrushPoly(msurface_t *fa)
 {
-	int maps, map;
+	int map;
 	gl3image_t *image;
-	qboolean is_dynamic = false;
 
 	c_brush_polys++;
 
@@ -350,8 +346,6 @@ RenderBrushPoly(msurface_t *fa)
 	hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE] = {0};
 	lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	// TODO: bind all the lightmaps
-
 	GL3_BindLightmap(fa->lightmaptexturenum);
 
 	// Any dynamic lights on this surface?
@@ -375,6 +369,8 @@ RenderBrushPoly(msurface_t *fa)
 		UpdateLMscales(lmScales, &gl3state.si3Dlm);
 		GL3_DrawGLPoly(fa->polys);
 	}
+
+	// Note: lightmap chains are gone, lightmaps are rendered together with normal texture in one pass
 }
 
 /*
@@ -386,18 +382,16 @@ void
 GL3_DrawAlphaSurfaces(void)
 {
 	msurface_t *s;
-	float intens;
 
 	/* go back to the world matrix */
 	gl3state.uni3DData.transModelViewMat4 = gl3_world_matrix;
 	GL3_UpdateUBO3D();
 
 	glEnable(GL_BLEND);
-	//R_TexEnv(GL_MODULATE);
 
 	/* the textures are prescaled up for a better
 	   lighting range, so scale it back down */
-	//intens = gl3state.inverse_intensity;
+	//flat intens = gl3state.inverse_intensity;
 	STUB_ONCE("Something about inverse intensity??");
 
 	for (s = gl3_alpha_surfaces; s != NULL; s = s->texturechain)
@@ -438,8 +432,6 @@ GL3_DrawAlphaSurfaces(void)
 	gl3state.uni3DData.alpha = 1.0f;
 	GL3_UpdateUBO3D();
 
-	//R_TexEnv(GL_REPLACE);
-	//glColor4f(1, 1, 1, 1);
 	glDisable(GL_BLEND);
 
 	gl3_alpha_surfaces = NULL;
@@ -487,26 +479,11 @@ DrawTextureChains(void)
 static void
 RenderLightmappedPoly(msurface_t *surf)
 {
-	int i,j;
 	int map;
-	int nv;
-	int smax;
-	int tmax;
-	float scroll;
-	float *v;
-	glpoly_t *p;
-	gl3image_t *image;
-	qboolean is_dynamic;
-	unsigned lmtex;
-	unsigned temp[128 * 128];
+	gl3image_t *image = TextureAnimation(surf->texinfo);
 
 	hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE] = {0};
 	lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
-
-	image = TextureAnimation(surf->texinfo);
-	is_dynamic = false;
-	lmtex = surf->lightmaptexturenum;
-	nv = surf->polys->numverts;
 
 	assert((surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)) == 0
 			&& "RenderLightMappedPoly mustn't be called with transparent, sky or warping surfaces!");
@@ -525,7 +502,8 @@ RenderLightmappedPoly(msurface_t *surf)
 	{
 		if (gl_dynamic->value)
 		{
-			is_dynamic = true;
+			//is_dynamic = true;
+			STUB_ONCE("TODO: Handle dynamic lights!");
 		}
 	}
 
@@ -563,8 +541,7 @@ RenderLightmappedPoly(msurface_t *surf)
 	c_brush_polys++;
 
 	GL3_Bind(image->texnum);
-	GL3_BindLightmap(lmtex);
-
+	GL3_BindLightmap(surf->lightmaptexturenum);
 
 	if (surf->texinfo->flags & SURF_FLOWING)
 	{
