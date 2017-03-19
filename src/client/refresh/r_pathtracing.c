@@ -107,6 +107,7 @@ static cvar_t *gl_pt_taa_enable 							= NULL;
 static cvar_t *gl_pt_exposure 							= NULL;
 static cvar_t *gl_pt_gamma 								= NULL;
 static cvar_t *gl_pt_bump_factor 						= NULL;
+static cvar_t *gl_pt_brushlights_enable				= NULL;
 
 /*
  * Shader programs
@@ -564,6 +565,9 @@ PackTriLightData(short start, short end)
 		else
 		{
 			/* Light emitted by a non-entity light is defined by surface texture metadata. */
+			
+			PT_ASSERT(light->surface);
+			PT_ASSERT(light->surface->texinfo);
 			
 			texinfo = light->surface->texinfo;
 
@@ -1385,6 +1389,82 @@ R_ClearGLStateForPathtracing(void)
 	qglUseProgramObjectARB(0);
 }
 
+static GLint
+GetBlueNoiseTextureLayers(void)
+{
+	GLint maximum = 1;
+	glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &maximum);
+	return MIN(64, maximum);
+}
+
+static void
+BindTextureUnit(GLint unit, GLenum binding_point, GLuint handle)
+{
+	qglActiveTextureARB(GL_TEXTURE0_ARB + unit);
+	glBindTexture(binding_point, handle);
+	qglActiveTextureARB(GL_TEXTURE0_ARB);
+}
+
+static void
+BindBuffer(GLenum target, GLuint buffer)
+{
+	if (qglBindBufferARB)
+		qglBindBufferARB(target, buffer);
+	else if (qglBindBuffer)
+		qglBindBuffer(target, buffer);
+}
+
+static void
+UploadTextureBufferData(GLuint buffer, void *data, GLintptr offset, GLsizeiptr size)
+{
+	if (size == 0)
+		return;
+
+	BindBuffer(GL_TEXTURE_BUFFER, buffer);
+	
+	if (qglBufferSubDataARB)	
+		qglBufferSubDataARB(GL_TEXTURE_BUFFER, offset, size, data);
+	else
+		qglBufferSubData(GL_TEXTURE_BUFFER, offset, size, data);
+	
+	BindBuffer(GL_TEXTURE_BUFFER, 0);
+}
+
+static void *
+MapTextureBufferRange(GLuint buffer, GLint offset, GLsizei length)
+{
+	BindBuffer(GL_TEXTURE_BUFFER, buffer);
+	
+	if (qglMapBufferRange)
+		return qglMapBufferRange(GL_TEXTURE_BUFFER, offset, length, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+	
+	return NULL;
+}
+
+static void *
+MapTextureBuffer(GLuint buffer, GLenum access)
+{
+	BindBuffer(GL_TEXTURE_BUFFER, buffer);
+	
+	if (qglMapBufferARB)
+		return qglMapBufferARB(GL_TEXTURE_BUFFER, access);
+	else if (qglMapBuffer)
+		return qglMapBuffer(GL_TEXTURE_BUFFER, access);
+	
+	return NULL;
+}
+
+static void
+UnmapTextureBuffer()
+{
+	if (qglUnmapBufferARB)
+		qglUnmapBufferARB(GL_TEXTURE_BUFFER);
+	else if (qglUnmapBuffer)
+		qglUnmapBuffer(GL_TEXTURE_BUFFER);
+
+	BindBuffer(GL_TEXTURE_BUFFER, 0);
+}
+
 static void
 BuildAndWriteEntityNodesHierarchy(int first_node_index, int num_added_nodes, float entity_aabb_min[3], float entity_aabb_max[3])
 {
@@ -1668,7 +1748,17 @@ AddBrushModel(entity_t *entity, model_t *model)
 	float *v, x;
 	vec4_t vertex;
 	glpoly_t *p;
-	
+	int first_surface_triangle_index;
+	float surface_aabb_min[3], surface_aabb_max[3];
+	trilight_t *light;
+	int light_index, first_light_index;
+	short *mapped_references = NULL;
+	int cluster;
+	float *box;
+	byte *vis;
+	qboolean emitting_light;
+	float polygon_area, triangle_area;
+
 	PT_ASSERT(entity != NULL);
 	PT_ASSERT(model != NULL);
 
@@ -1707,6 +1797,18 @@ AddBrushModel(entity_t *entity, model_t *model)
 		v = p->verts[0];
 
 		poly_offset = pt_num_vertices;
+		first_surface_triangle_index = pt_num_triangles;
+		emitting_light = gl_pt_brushlights_enable->value && !(psurf->texinfo->flags & SURF_WARP) && psurf->texinfo->radiance > 0;
+		first_light_index = pt_num_lights;
+		polygon_area = 0;
+		
+		/* Initialise the surface's bounding box. */
+		
+		for (j = 0; j < 3; ++j)
+		{
+			surface_aabb_min[j] = 1e9f;
+			surface_aabb_max[j] = -1e9f;
+		}
 		
 		for (k = 0; k < p->numverts; k++, v += VERTEXSIZE)
 		{
@@ -1723,13 +1825,13 @@ AddBrushModel(entity_t *entity, model_t *model)
 				
 				pt_vertex_data[pt_num_vertices * pt_vertex_stride + j] = vertex[j];
 				
-				/* If necessary, expand the entity's bounding box to include this vertex. */
-				
-				if (entity_aabb_min[j] > vertex[j])
-					entity_aabb_min[j] = vertex[j];
+				/* If necessary, expand the surface's bounding box to include this vertex. */
 
-				if (entity_aabb_max[j] < vertex[j])
-					entity_aabb_max[j] = vertex[j];
+				if (surface_aabb_min[j] > vertex[j])
+					surface_aabb_min[j] = vertex[j];
+
+				if (surface_aabb_max[j] < vertex[j])
+					surface_aabb_max[j] = vertex[j];
 			}
 			
 			pt_num_vertices++;
@@ -1767,12 +1869,138 @@ AddBrushModel(entity_t *entity, model_t *model)
 				
 				node->morton_code = TriNodeCalculateMortonCode(node);
 				node->surface_area = TriNodeCalculateSurfaceArea(node);
+
+				triangle_area = TriangleArea(ind[0], ind[1], ind[2]);
+				polygon_area += triangle_area;
+				
+				/* Add a light-emitting triangle if necessary and possible. */
+				if (emitting_light && pt_num_lights < PT_MAX_TRI_LIGHTS)
+				{
+					light_index = pt_num_lights++;
+					light = pt_trilights + light_index;
+					
+					light->quad = false;
+					light->triangle_index = node->triangle_index;
+					light->surface = psurf;
+					light->entity = NULL;
+
+					/* area_fraction is divided by polygon_area later. */
+					light->area_fraction = triangle_area;
+				}
 				
 				pt_triangle_data[node->triangle_index * 2 + 0] = ind[0] | (ind[1] << 16);
 				pt_triangle_data[node->triangle_index * 2 + 1] = ind[2];
 			}				
 		}
 
+		/* If the polygon is too small to have any real effect then skip it. This also avoids divide-by-zero errors in area ratio calculations. */
+		if (polygon_area < 1.0 / 32.0)
+		{
+			/* Remove the vertices which were just added for this polygon, because they will not be used. */
+			pt_num_vertices = poly_offset;
+			pt_num_triangles = first_surface_triangle_index;
+			pt_num_lights = first_light_index;
+			continue;
+		}
+
+		if (pt_num_triangles > first_surface_triangle_index)
+		{
+			/* If necessary, expand the entity's bounding box to include this surface. */
+			
+			for (j = 0; j < 3; ++j)
+			{
+				PT_ASSERT(surface_aabb_min[j] <= surface_aabb_max[j]);
+				
+				if (entity_aabb_min[j] > surface_aabb_min[j])
+					entity_aabb_min[j] = surface_aabb_min[j];
+
+				if (entity_aabb_max[j] < surface_aabb_max[j])
+					entity_aabb_max[j] = surface_aabb_max[j];
+			}
+
+			if (emitting_light)
+			{
+				/* Adjust the area fractions of the lights. */				
+				for (j = first_light_index; j < pt_num_lights; ++j)
+					pt_trilights[j].area_fraction /= polygon_area;
+				
+				if (!mapped_references)
+					mapped_references = (short*)MapTextureBuffer(pt_lightref_buffer, GL_READ_WRITE);
+
+				if (mapped_references)
+				{
+					/* The PVS's of each intersecting cluster are merged together into one PVS within which light references are added. */
+					
+					static byte merged_vis[MAX_MAP_LEAFS / 8];
+
+					memset(merged_vis, 0, sizeof(merged_vis));
+
+					for (cluster = 0; cluster < pt_num_clusters; ++cluster)
+					{	
+						/* Test the bounding box of this cluster against the bounding box of the surface. If there is no overlap then skip it. */
+						
+						box = pt_cluster_bounding_boxes + cluster * 6;
+
+						if (	box[0] > surface_aabb_max[0] || box[3] < surface_aabb_min[0] ||
+								box[1] > surface_aabb_max[1] || box[4] < surface_aabb_min[1] ||
+								box[2] > surface_aabb_max[2] || box[5] < surface_aabb_min[2])
+								continue;
+
+						/* Get the PVS bits for this cluster. */
+						
+						vis = Mod_ClusterPVS(cluster, r_worldmodel);
+						
+						PT_ASSERT(vis != NULL);
+						PT_ASSERT(r_worldmodel->vis != NULL);
+
+						/* Merge in the PVS. */
+						
+						for (m = 0; m < (r_worldmodel->vis->numclusters + 7) >> 3; ++m)
+							merged_vis[m] |= vis[m];						
+					}
+					
+					/* Visit every cluster which is visible to the surface. The individual leaves don't	matter because
+						they were already assigned an index to the first reference in their respective clusters. */
+						
+					for (cluster = 0; cluster < pt_num_clusters; ++cluster)
+					{
+						/* If this cluster is visible then update it's reference list. */
+						
+						if (merged_vis[cluster >> 3] & (1 << (cluster & 7)))
+						{	
+							/* Locate the end of the list, where dynamic light references can be appended. */
+							
+							k = labs(pt_cluster_light_references[cluster * 2 + 0]);
+
+							while (mapped_references[k] != -1)
+								++k;
+
+							/* Add a reference to the light reference list of this cluster, for each light within this surface. */
+							
+							for (j = first_light_index; j < pt_num_lights; ++j)
+							{								
+								/* Ensure that there is at least one end-of-list marker. */
+								
+								if (k >= PT_MAX_TRI_LIGHT_REFS || pt_trilight_references[k + 1] != -1 || mapped_references[k] != -1)
+									continue;
+
+								/* Insert the reference. */
+								
+								mapped_references[k++] = j;
+							}
+						}
+					}
+					
+				}
+			}
+		}
+
+	}
+
+	if (mapped_references)
+	{
+		UnmapTextureBuffer();
+		mapped_references = NULL;
 	}
 	
 	BuildAndWriteEntityNodesHierarchy(first_node_index, num_added_nodes, entity_aabb_min, entity_aabb_max);
@@ -2011,81 +2239,6 @@ AddEntities(void)
 		AddSingleEntity(weapon_entity);
 }
 
-static GLint
-GetBlueNoiseTextureLayers(void)
-{
-	GLint maximum = 1;
-	glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &maximum);
-	return MIN(64, maximum);
-}
-
-static void
-BindTextureUnit(GLint unit, GLenum binding_point, GLuint handle)
-{
-	qglActiveTextureARB(GL_TEXTURE0_ARB + unit);
-	glBindTexture(binding_point, handle);
-	qglActiveTextureARB(GL_TEXTURE0_ARB);
-}
-
-static void
-BindBuffer(GLenum target, GLuint buffer)
-{
-	if (qglBindBufferARB)
-		qglBindBufferARB(target, buffer);
-	else if (qglBindBuffer)
-		qglBindBuffer(target, buffer);
-}
-
-static void
-UploadTextureBufferData(GLuint buffer, void *data, GLintptr offset, GLsizeiptr size)
-{
-	if (size == 0)
-		return;
-
-	BindBuffer(GL_TEXTURE_BUFFER, buffer);
-	
-	if (qglBufferSubDataARB)	
-		qglBufferSubDataARB(GL_TEXTURE_BUFFER, offset, size, data);
-	else
-		qglBufferSubData(GL_TEXTURE_BUFFER, offset, size, data);
-	
-	BindBuffer(GL_TEXTURE_BUFFER, 0);
-}
-
-static void *
-MapTextureBufferRange(GLuint buffer, GLint offset, GLsizei length)
-{
-	BindBuffer(GL_TEXTURE_BUFFER, buffer);
-	
-	if (qglMapBufferRange)
-		return qglMapBufferRange(GL_TEXTURE_BUFFER, offset, length, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
-	
-	return NULL;
-}
-
-static void *
-MapTextureBuffer(GLuint buffer, GLenum access)
-{
-	BindBuffer(GL_TEXTURE_BUFFER, buffer);
-	
-	if (qglMapBufferARB)
-		return qglMapBufferARB(GL_TEXTURE_BUFFER, access);
-	else if (qglMapBuffer)
-		return qglMapBuffer(GL_TEXTURE_BUFFER, access);
-	
-	return NULL;
-}
-
-static void
-UnmapTextureBuffer()
-{
-	if (qglUnmapBufferARB)
-		qglUnmapBufferARB(GL_TEXTURE_BUFFER);
-	else if (qglUnmapBuffer)
-		qglUnmapBuffer(GL_TEXTURE_BUFFER);
-
-	BindBuffer(GL_TEXTURE_BUFFER, 0);
-}
 
 static void
 AddDLights(void)
@@ -2236,7 +2389,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	/* Clear the dynamic (moving) lightsource data by re-visiting the data ranges which were updated in the previous frame.
 		There is no need to update the lightsource data itself as it's only necessary to remove the references. */
 	
-	if (pt_num_entitylights > pt_dynamic_entitylights_offset)
+	if (pt_num_lights > pt_dynamic_lights_offset)
 	{
 		mapped_references = (short*)MapTextureBuffer(pt_lightref_buffer, GL_WRITE_ONLY);
 		
@@ -2437,18 +2590,23 @@ R_UpdatePathtracerForCurrentFrame(void)
 		}
 	}
 
+	/* Trilight data on GPU needs to be updated if there are dynamic lights in the scene. */
+	
+	if (pt_num_lights > pt_dynamic_lights_offset)
+	{
+		/* Pack the dynamic light data into the buffer. */
+		
+		PackTriLightData(pt_dynamic_lights_offset, pt_num_lights);
+	
+		UploadTextureBufferData(pt_trilights_buffer, pt_trilight_data + pt_dynamic_lights_offset * 4, pt_dynamic_lights_offset * 4 * sizeof(pt_trilight_data[0]), (pt_num_lights - pt_dynamic_lights_offset) * 4 * sizeof(pt_trilight_data[0]));
+	}
+	
 	if (gl_pt_dlights_enable->value)
 	{
 		/* Update the dynamic (moving) lightsources if necessary. */
 		
 		if (pt_num_entitylights > pt_dynamic_entitylights_offset)
 		{
-			/* Pack the dynamic light data into the buffer. */
-			
-			PackTriLightData(pt_dynamic_lights_offset, pt_num_lights);
-		
-			UploadTextureBufferData(pt_trilights_buffer, pt_trilight_data + pt_dynamic_lights_offset * 4, pt_dynamic_lights_offset * 4 * sizeof(pt_trilight_data[0]), (pt_num_lights - pt_dynamic_lights_offset) * 4 * sizeof(pt_trilight_data[0]));
-
 			mapped_references = (short*)MapTextureBuffer(pt_lightref_buffer, GL_READ_WRITE);
 			
 			if (mapped_references)
@@ -3312,6 +3470,7 @@ R_InitPathtracing(void)
 	GET_PT_CVAR(gl_pt_exposure, "1.3")
 	GET_PT_CVAR(gl_pt_gamma, "2.2")
 	GET_PT_CVAR(gl_pt_bump_factor, "0.045")
+	GET_PT_CVAR(gl_pt_brushlights_enable, "0")
 #undef GET_PT_CVAR
 
 	Cmd_AddCommand("gl_pt_recompile_shaders", RecompileShaderPrograms);

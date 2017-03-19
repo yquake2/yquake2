@@ -336,7 +336,7 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 
 			vec3 p0 = texelFetch(tri_vertices, tri.x & 0xffff).xyz;
 			vec3 p1 = texelFetch(tri_vertices, tri.x >> 16).xyz;
-			vec3 p2 = texelFetch(tri_vertices, tri.y).xyz;
+			vec3 p2 = texelFetch(tri_vertices, tri.y & 0xffff).xyz;
 
 			vec3 n = cross(p2 - p0, p1 - p0);
 
@@ -372,7 +372,7 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 				
 				p0 = texelFetch(tri_vertices, tri.x & 0xffff).xyz;
 				p1 = texelFetch(tri_vertices, tri.x >> 16).xyz;
-				p2 = texelFetch(tri_vertices, tri.y).xyz;
+				p2 = texelFetch(tri_vertices, tri.y & 0xffff).xyz;
 				
 				n = cross(p2 - p0, p1 - p0);
 				
@@ -563,7 +563,7 @@ void main()
 						
 						vec3 p0 = texelFetch(tri_vertices, tri.x & 0xffff).xyz;
 						vec3 p1 = texelFetch(tri_vertices, tri.x >> 16).xyz;
-						vec3 p2 = texelFetch(tri_vertices, tri.y).xyz;
+						vec3 p2 = texelFetch(tri_vertices, tri.y & 0xffff).xyz;
 						
 						vec3 n = normalize(cross(p1 - p0, p2 - p0));
 						
