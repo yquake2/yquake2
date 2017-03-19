@@ -39,53 +39,32 @@ GL3_LM_InitBlock(void)
 }
 
 void
-GL3_LM_UploadBlock(qboolean dynamic)
+GL3_LM_UploadBlock(void)
 {
-	int texture;
-	int height = 0;
+	int map;
 
-	if (dynamic)
-	{
-		texture = 0;
-	}
-	else
-	{
-		texture = gl3_lms.current_lightmap_texture;
-	}
+	// NOTE: we don't use the dynamic lightmap anymore - all lightmaps are loaded at level load
+	//       and not changed after that. they're blended dynamically depending on light styles
+	//       though, and dynamic lights are (will be) applied in shader, hopefully per fragment.
 
-	GL3_BindLightmap(texture);
-	GL3_SelectTMU(GL_TEXTURE1);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	GL3_BindLightmap(gl3_lms.current_lightmap_texture);
 
-	if (dynamic)
+	// upload all 4 lightmaps
+	for(map=0; map < MAX_LIGHTMAPS_PER_SURFACE; ++map)
 	{
-		int i;
-		STUB_ONCE("TODO: dynamic lightmap!");
-		for (i = 0; i < BLOCK_WIDTH; i++)
-		{
-			if (gl3_lms.allocated[i] > height)
-			{
-				height = gl3_lms.allocated[i];
-			}
-		}
+		GL3_SelectTMU(GL_TEXTURE1+map); // this relies on GL_TEXTURE2 being GL_TEXTURE1+1 etc
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, BLOCK_WIDTH,
-				height, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE,
-				gl3_lms.lightmap_buffer);
-	}
-	else
-	{
 		gl3_lms.internal_format = GL_LIGHTMAP_FORMAT;
 		glTexImage2D(GL_TEXTURE_2D, 0, gl3_lms.internal_format,
-				BLOCK_WIDTH, BLOCK_HEIGHT, 0, GL_LIGHTMAP_FORMAT,
-				GL_UNSIGNED_BYTE, gl3_lms.lightmap_buffer);
+		             BLOCK_WIDTH, BLOCK_HEIGHT, 0, GL_LIGHTMAP_FORMAT,
+		             GL_UNSIGNED_BYTE, gl3_lms.lightmap_buffers[map]);
+	}
 
-		if (++gl3_lms.current_lightmap_texture == MAX_LIGHTMAPS)
-		{
-			ri.Sys_Error(ERR_DROP,
-					"LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n");
-		}
+	if (++gl3_lms.current_lightmap_texture == MAX_LIGHTMAPS)
+	{
+		ri.Sys_Error(ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n");
 	}
 }
 
@@ -212,7 +191,6 @@ void
 GL3_LM_CreateSurfaceLightmap(msurface_t *surf)
 {
 	int smax, tmax;
-	byte *base;
 
 	if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB))
 	{
@@ -224,7 +202,7 @@ GL3_LM_CreateSurfaceLightmap(msurface_t *surf)
 
 	if (!GL3_LM_AllocBlock(smax, tmax, &surf->light_s, &surf->light_t))
 	{
-		GL3_LM_UploadBlock(false);
+		GL3_LM_UploadBlock();
 		GL3_LM_InitBlock();
 
 		if (!GL3_LM_AllocBlock(smax, tmax, &surf->light_s, &surf->light_t))
@@ -236,11 +214,7 @@ GL3_LM_CreateSurfaceLightmap(msurface_t *surf)
 
 	surf->lightmaptexturenum = gl3_lms.current_lightmap_texture;
 
-	base = gl3_lms.lightmap_buffer;
-	base += (surf->light_t * BLOCK_WIDTH + surf->light_s) * LIGHTMAP_BYTES;
-
-	GL3_SetCacheState(surf);
-	GL3_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
+	GL3_BuildLightMap(surf, (surf->light_t * BLOCK_WIDTH + surf->light_s) * LIGHTMAP_BYTES, BLOCK_WIDTH * LIGHTMAP_BYTES);
 }
 
 void
@@ -268,24 +242,15 @@ GL3_LM_BeginBuildingLightmaps(gl3model_t *m)
 
 	gl3_newrefdef.lightstyles = lightstyles;
 
-	STUB_ONCE("TODO: IMPLEMENT!");
-
 	gl3_lms.current_lightmap_texture = 1;
 	gl3_lms.internal_format = GL_LIGHTMAP_FORMAT;
 
-	/* initialize the dynamic lightmap texture */
-	GL3_SelectTMU(GL_TEXTURE1);
-	GL3_BindLightmap(0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, gl3_lms.internal_format,
-	             BLOCK_WIDTH, BLOCK_HEIGHT, 0,
-	             GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, dummy);
+	// Note: the dynamic lightmap used to be initialized here, we don't use that anymore.
 }
 
 void
 GL3_LM_EndBuildingLightmaps(void)
 {
-	GL3_LM_UploadBlock(false);
+	GL3_LM_UploadBlock();
 }
 

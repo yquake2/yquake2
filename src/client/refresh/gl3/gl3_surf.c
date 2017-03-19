@@ -264,12 +264,12 @@ DrawTriangleOutlines(void)
 }
 
 static void
-UpdateLMscales(const hmm_vec4 lmScales[MAXLIGHTMAPS], gl3ShaderInfo_t* si)
+UpdateLMscales(const hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE], gl3ShaderInfo_t* si)
 {
 	int i;
 	qboolean hasChanged = false;
 
-	for(i=0; i<MAXLIGHTMAPS; ++i)
+	for(i=0; i<MAX_LIGHTMAPS_PER_SURFACE; ++i)
 	{
 		if(hasChanged)
 		{
@@ -287,7 +287,7 @@ UpdateLMscales(const hmm_vec4 lmScales[MAXLIGHTMAPS], gl3ShaderInfo_t* si)
 
 	if(hasChanged)
 	{
-		glUniform4fv(si->uniLmScales, MAXLIGHTMAPS, si->lmScales[0].Elements);
+		glUniform4fv(si->uniLmScales, MAX_LIGHTMAPS_PER_SURFACE, si->lmScales[0].Elements);
 	}
 }
 
@@ -347,7 +347,7 @@ RenderBrushPoly(msurface_t *fa)
 		// R_TexEnv(GL_REPLACE); TODO!
 	}
 
-	hmm_vec4 lmScales[MAXLIGHTMAPS] = {0};
+	hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE] = {0};
 	lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// TODO: bind all the lightmaps
@@ -355,7 +355,7 @@ RenderBrushPoly(msurface_t *fa)
 	GL3_BindLightmap(fa->lightmaptexturenum);
 
 	// Any dynamic lights on this surface?
-	for (map = 0; map < MAXLIGHTMAPS && fa->styles[map] != 255; map++)
+	for (map = 0; map < MAX_LIGHTMAPS_PER_SURFACE && fa->styles[map] != 255; map++)
 	{
 		lmScales[map].R = gl3_newrefdef.lightstyles[fa->styles[map]].rgb[0];
 		lmScales[map].G = gl3_newrefdef.lightstyles[fa->styles[map]].rgb[1];
@@ -374,77 +374,6 @@ RenderBrushPoly(msurface_t *fa)
 		GL3_UseProgram(gl3state.si3Dlm.shaderProgram);
 		UpdateLMscales(lmScales, &gl3state.si3Dlm);
 		GL3_DrawGLPoly(fa->polys);
-	}
-
-	STUB_ONCE("TODO: dynamic lightmap in shaders");
-
-	/* check for lightmap modification */
-	for (maps = 0; maps < MAXLIGHTMAPS && fa->styles[maps] != 255; maps++)
-	{
-		if (gl3_newrefdef.lightstyles[fa->styles[maps]].white !=
-			fa->cached_light[maps])
-		{
-			goto dynamic;
-		}
-	}
-
-	/* dynamic this frame or dynamic previously */
-	if (fa->dlightframe == gl3_framecount)
-	{
-	dynamic:
-
-		if (gl_dynamic->value)
-		{
-			if (!(fa->texinfo->flags &
-				  (SURF_SKY | SURF_TRANS33 |
-				   SURF_TRANS66 | SURF_WARP)))
-			{
-				is_dynamic = true;
-			}
-		}
-	}
-
-	STUB_ONCE("TODO: lightmap support (=> esp. LM textures)")
-
-	// TODO: 2D texture array für lightmaps?
-	if (is_dynamic)
-	{
-		/*if (((fa->styles[maps] >= 32) ||
-			 (fa->styles[maps] == 0)) &&
-			  (fa->dlightframe != gl3_framecount))
-		{
-			// undo dynamic light changes, put into non-dynamic lightmap chain?
-			// (not totally sure what's happening here)
-
-			unsigned temp[34 * 34];
-			int smax, tmax;
-
-			smax = (fa->extents[0] >> 4) + 1;
-			tmax = (fa->extents[1] >> 4) + 1;
-
-			GL3_BuildLightMap(fa, (void *)temp, smax * 4);
-			GL3_SetCacheState(fa);
-
-			GL3_SelectTMU(GL_TEXTURE1);
-			GL3_BindLightmap(fa->lightmaptexturenum);
-
-			glTexSubImage2D(GL_TEXTURE_2D, 0, fa->light_s, fa->light_t,
-					smax, tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
-
-			fa->lightmapchain = gl3_lms.lightmap_surfaces[fa->lightmaptexturenum];
-			gl3_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
-		}
-		else*/
-		{
-			// dynamic lights: add to dynamic lightmap chain
-			fa->lightmapchain = gl3_lms.lightmap_surfaces[0];
-			gl3_lms.lightmap_surfaces[0] = fa;
-		}
-	}
-	else // non-dynamic lightmap chain
-	{
-		fa->lightmapchain = gl3_lms.lightmap_surfaces[fa->lightmaptexturenum];
-		gl3_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
 	}
 }
 
@@ -470,8 +399,6 @@ GL3_DrawAlphaSurfaces(void)
 	   lighting range, so scale it back down */
 	//intens = gl3state.inverse_intensity;
 	STUB_ONCE("Something about inverse intensity??");
-
-	STUB_ONCE("TODO: more shaders for rendering brushes (w/o lightmap for translucent etc)");
 
 	for (s = gl3_alpha_surfaces; s != NULL; s = s->texturechain)
 	{
@@ -573,7 +500,7 @@ RenderLightmappedPoly(msurface_t *surf)
 	unsigned lmtex;
 	unsigned temp[128 * 128];
 
-	hmm_vec4 lmScales[MAXLIGHTMAPS] = {0};
+	hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE] = {0};
 	lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	image = TextureAnimation(surf->texinfo);
@@ -585,7 +512,7 @@ RenderLightmappedPoly(msurface_t *surf)
 			&& "RenderLightMappedPoly mustn't be called with transparent, sky or warping surfaces!");
 
 	// Any dynamic lights on this surface?
-	for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
+	for (map = 0; map < MAX_LIGHTMAPS_PER_SURFACE && surf->styles[map] != 255; map++)
 	{
 		lmScales[map].R = gl3_newrefdef.lightstyles[surf->styles[map]].rgb[0];
 		lmScales[map].G = gl3_newrefdef.lightstyles[surf->styles[map]].rgb[1];
@@ -598,35 +525,19 @@ RenderLightmappedPoly(msurface_t *surf)
 	{
 		if (gl_dynamic->value)
 		{
-			if (!(surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
-			{
-				is_dynamic = true;
-			}
+			is_dynamic = true;
 		}
 	}
 
 #if 0 // TODO!
 	if (is_dynamic)
 	{
-		// Dynamic lights on a surface
+		// Dynamic lights on a surface - NOTE: this is handled via lmScales
 		if (((surf->styles[map] >= 32) || (surf->styles[map] == 0)) && (surf->dlightframe != r_framecount))
 		{
-			smax = (surf->extents[0] >> 4) + 1;
-			tmax = (surf->extents[1] >> 4) + 1;
 
-			//GL3_BuildLightMap(surf, (void *) temp, smax * 4);
-			//GL3_SetCacheState(surf);
-			//R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + surf->lightmaptexturenum);
-			//GL3_BindLightmap(surf->lightmaptexturenum);
-
-			//lmtex = surf->lightmaptexturenum;
-
-			FIXME;
-
-			//glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t, smax,
-			//				tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
 		}
-		else // Normal dynamic lights
+		else // Normal dynamic lights - NOTE: This is still missing, but will not be done by creating a dynamic lightmap.
 		{
 			smax = (surf->extents[0] >> 4) + 1;
 			tmax = (surf->extents[1] >> 4) + 1;
@@ -646,16 +557,14 @@ RenderLightmappedPoly(msurface_t *surf)
 		R_MBind(GL_TEXTURE0_ARB, image->texnum);
 		R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + lmtex);
 	}
-	else // No dynamic lights
-#endif // 0
-	{
-		c_brush_polys++;
 
-		//R_MBind(GL_TEXTURE0_ARB, image->texnum);
-		GL3_Bind(image->texnum);
-		//R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + lmtex);
-		GL3_BindLightmap(lmtex);
-	}
+#endif // 0
+
+	c_brush_polys++;
+
+	GL3_Bind(image->texnum);
+	GL3_BindLightmap(lmtex);
+
 
 	if (surf->texinfo->flags & SURF_FLOWING)
 	{
@@ -782,10 +691,6 @@ GL3_DrawBrushModel(entity_t *e)
 	{
 		glEnable(GL_POLYGON_OFFSET_FILL);
 	}
-
-	STUB_ONCE("TODO: something about setting color to 1,1,1,1");
-	//glColor4f(1, 1, 1, 1);
-	memset(gl3_lms.lightmap_surfaces, 0, sizeof(gl3_lms.lightmap_surfaces));
 
 	VectorSubtract(gl3_newrefdef.vieworg, e->origin, modelorg);
 
@@ -999,17 +904,14 @@ GL3_DrawWorld(void)
 	ent.frame = (int)(gl3_newrefdef.time * 2);
 	currententity = &ent;
 
-	gl3state.currenttexture = -1; //s[0] = gl3state.currenttextures[1] = -1;
+	gl3state.currenttexture = -1;
 
 	STUB_ONCE("somehow set color to 1,1,1,1 maybe");
 	//glColor4f(1, 1, 1, 1);
 
-	memset(gl3_lms.lightmap_surfaces, 0, sizeof(gl3_lms.lightmap_surfaces));
-
 	GL3_ClearSkyBox();
 	RecursiveWorldNode(gl3_worldmodel->nodes);
 	DrawTextureChains();
-	//BlendLightmaps();
 	GL3_DrawSkyBox();
 	DrawTriangleOutlines();
 

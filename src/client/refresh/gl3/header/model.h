@@ -104,7 +104,7 @@ typedef struct msurface_s
 
 	glpoly_t *polys;                /* multiple if warped */
 	struct  msurface_s *texturechain;
-	struct  msurface_s *lightmapchain;
+	// struct  msurface_s *lightmapchain; not used/needed anymore
 
 	mtexinfo_t *texinfo;
 
@@ -114,7 +114,8 @@ typedef struct msurface_s
 
 	int lightmaptexturenum;
 	byte styles[MAXLIGHTMAPS];
-	float cached_light[MAXLIGHTMAPS];       /* values currently used in lightmap */
+	// I think cached_light is not used/needed anymore
+	//float cached_light[MAXLIGHTMAPS];       /* values currently used in lightmap */
 	byte *samples;                          /* [numstyles*surfsize] */
 } msurface_t;
 

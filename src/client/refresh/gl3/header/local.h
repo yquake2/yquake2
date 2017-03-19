@@ -262,13 +262,13 @@ typedef struct
 	int internal_format;
 	int current_lightmap_texture; // index into gl3state.lightmap_textureIDs[]
 
-	msurface_t *lightmap_surfaces[MAX_LIGHTMAPS];
+	//msurface_t *lightmap_surfaces[MAX_LIGHTMAPS]; - no more lightmap chains, lightmaps are rendered multitextured
 
 	int allocated[BLOCK_WIDTH];
 
 	/* the lightmap texture data needs to be kept in
 	   main memory so texsubimage can update properly */
-	byte lightmap_buffer[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
+	byte lightmap_buffers[MAX_LIGHTMAPS_PER_SURFACE][4 * BLOCK_WIDTH * BLOCK_HEIGHT];
 } gl3lightmapstate_t;
 
 // used for vertex array elements when drawing brushes, sprites, sky and more
@@ -408,14 +408,13 @@ extern void GL3_ImageList_f(void);
 extern void GL3_MarkLights(dlight_t *light, int bit, mnode_t *node);
 extern void GL3_PushDlights(void);
 extern void GL3_LightPoint(vec3_t p, vec3_t color);
-extern void GL3_SetCacheState(msurface_t *surf);
-extern void GL3_BuildLightMap(msurface_t *surf, byte *dest, int stride);
+extern void GL3_BuildLightMap(msurface_t *surf, int offsetInLMbuf, int stride);
 
 // gl3_lightmap.c
 #define GL_LIGHTMAP_FORMAT GL_RGBA
 
 extern void GL3_LM_InitBlock(void);
-extern void GL3_LM_UploadBlock(qboolean dynamic);
+extern void GL3_LM_UploadBlock(void);
 extern qboolean GL3_LM_AllocBlock(int w, int h, int *x, int *y);
 extern void GL3_LM_BuildPolygonFromSurface(msurface_t *fa);
 extern void GL3_LM_CreateSurfaceLightmap(msurface_t *surf);

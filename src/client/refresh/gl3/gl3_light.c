@@ -27,13 +27,14 @@
 
 #include "header/local.h"
 
+extern gl3lightmapstate_t gl3_lms;
+
 #define DLIGHT_CUTOFF 64
 
 static int r_dlightframecount;
 static vec3_t pointcolor;
 static cplane_t *lightplane; /* used as shadow plane */
 vec3_t lightspot;
-static float s_blocklights[34 * 34 * 3];
 
 void // bit: 1 << i for light number i, will be or'ed into msurface_t::dlightbits if surface is affected by this light
 GL3_MarkLights(dlight_t *light, int bit, mnode_t *node)
@@ -213,7 +214,7 @@ RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 
 			lightmap += 3 * (dt * ((surf->extents[0] >> 4) + 1) + ds);
 
-			for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255;
+			for (maps = 0; maps < MAX_LIGHTMAPS_PER_SURFACE && surf->styles[maps] != 255;
 				 maps++)
 			{
 				for (i = 0; i < 3; i++)
@@ -290,6 +291,7 @@ GL3_LightPoint(vec3_t p, vec3_t color)
 	VectorScale(color, gl_modulate->value, color);
 }
 
+#if 0 // TODO: REMOVE! (currently kept to look at when writing shader for this)
 static void
 AddDynamicLights(msurface_t *surf)
 {
@@ -382,31 +384,18 @@ AddDynamicLights(msurface_t *surf)
 		}
 	}
 }
-
-void
-GL3_SetCacheState(msurface_t *surf)
-{
-	int maps;
-
-	for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255; maps++)
-	{
-		surf->cached_light[maps] =
-			gl3_newrefdef.lightstyles[surf->styles[maps]].white;
-	}
-}
+#endif // 0
 
 /*
  * Combine and scale multiple lightmaps into the floating format in blocklights
  */
 void
-GL3_BuildLightMap(msurface_t *surf, byte *dest, int stride)
+GL3_BuildLightMap(msurface_t *surf, int offsetInLMbuf, int stride)
 {
 	int smax, tmax;
 	int r, g, b, a, max;
-	int i, j, size;
+	int i, j, size, map, numMaps;
 	byte *lightmap;
-	float scale[4];
-	float *bl;
 
 	if (surf->texinfo->flags &
 		(SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP))
@@ -418,126 +407,107 @@ GL3_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 	tmax = (surf->extents[1] >> 4) + 1;
 	size = smax * tmax;
 
-	if (size > (sizeof(s_blocklights) >> 4))
+	stride -= (smax << 2);
+
+	if (size > 34*34*3)
 	{
 		ri.Sys_Error(ERR_DROP, "Bad s_blocklights size");
 	}
 
-	/* set to full bright if no light data */
+	// count number of lightmaps surf actually has
+	for (numMaps = 0; numMaps < MAX_LIGHTMAPS_PER_SURFACE && surf->styles[numMaps] != 255; ++numMaps)
+	{}
+
 	if (!surf->samples)
 	{
-		for (i = 0; i < size * 3; i++)
+		// no lightmap samples? set at least one lightmap to fullbright, rest to 0 as normal
+
+		if (numMaps == 0)  numMaps = 1; // make sure at least one lightmap is set to fullbright
+
+		for (map = 0; map < MAX_LIGHTMAPS_PER_SURFACE; ++map)
 		{
-			s_blocklights[i] = 255;
+			// we always create 4 (MAXLIGHTMAP) lightmaps.
+			// if surf has less (numMaps < 4), the remaining ones are zeroed out.
+			// this makes sure that all 4 lightmap textures in gl3state.lightmap_textureIDs[i] have the same layout
+			// and the shader can use the same texture coordinates for all of them
+
+			int c = (map < numMaps) ? 255 : 0;
+			byte* dest = gl3_lms.lightmap_buffers[map] + offsetInLMbuf;
+
+			for (i = 0; i < tmax; i++, dest += stride)
+			{
+				memset(dest, c, 4*smax);
+				dest += 4*smax;
+			}
 		}
 
-		goto store;
+		return;
 	}
 
 	/* add all the lightmaps */
-	{
-		int maps;
 
-		memset(s_blocklights, 0, sizeof(s_blocklights[0]) * size * 3);
+	STUB_ONCE("TODO: handly dynamic lights (prolly somewhere else entirely)");
 
-		lightmap = surf->samples;
-
-		for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255; maps++)
-		{
-			bl = s_blocklights;
-
-			for (i = 0; i < 3; i++)
-			{
-				scale[i] = gl_modulate->value *
-						   gl3_newrefdef.lightstyles[surf->styles[maps]].rgb[i];
-			}
-
-			for (i = 0; i < size; i++, bl += 3)
-			{
-				bl[0] += lightmap[i * 3 + 0] * scale[0];
-				bl[1] += lightmap[i * 3 + 1] * scale[1];
-				bl[2] += lightmap[i * 3 + 2] * scale[2];
-			}
-
-			lightmap += size * 3; /* skip to next lightmap */
-		}
-	}
-
+#if 0
 	/* add all the dynamic lights */
 	if (surf->dlightframe == gl3_framecount)
 	{
 		AddDynamicLights(surf);
 	}
+#endif // 0
 
-store:
+	// as we don't apply scale here anymore, nor blend the numMaps lightmaps together,
+	// the code has gotten a lot easier and we can copy directly from surf->samples to dest
+	// without converting to float first etc
 
-	stride -= (smax << 2);
-	bl = s_blocklights;
+	lightmap = surf->samples;
 
-	for (i = 0; i < tmax; i++, dest += stride)
+	for(map=0; map<numMaps; ++map)
 	{
-		for (j = 0; j < smax; j++)
+		byte* dest = gl3_lms.lightmap_buffers[map] + offsetInLMbuf;
+		int idxInLightmap = 0;
+		for (i = 0; i < tmax; i++, dest += stride)
 		{
-			r = Q_ftol(bl[0]);
-			g = Q_ftol(bl[1]);
-			b = Q_ftol(bl[2]);
-
-			/* catch negative lights */
-			if (r < 0)
+			for (j = 0; j < smax; j++)
 			{
-				r = 0;
+				r = lightmap[idxInLightmap * 3 + 0];
+				g = lightmap[idxInLightmap * 3 + 1];
+				b = lightmap[idxInLightmap * 3 + 2];
+
+				/* determine the brightest of the three color components */
+				if (r > g)  max = r;
+				else  max = g;
+
+				if (b > max)  max = b;
+
+				/* alpha is ONLY used for the mono lightmap case. For this
+				   reason we set it to the brightest of the color components
+				   so that things don't get too dim. */
+				a = max;
+
+				dest[0] = r;
+				dest[1] = g;
+				dest[2] = b;
+				dest[3] = a;
+
+				dest += 4;
+				++idxInLightmap;
 			}
+		}
 
-			if (g < 0)
-			{
-				g = 0;
-			}
+		lightmap += size * 3; /* skip to next lightmap */
+	}
 
-			if (b < 0)
-			{
-				b = 0;
-			}
+	for ( ; map < MAX_LIGHTMAPS_PER_SURFACE; ++map)
+	{
+		// like above, fill up remaining lightmaps with 0
 
-			/* determine the brightest of the three color components */
-			if (r > g)
-			{
-				max = r;
-			}
-			else
-			{
-				max = g;
-			}
+		byte* dest = gl3_lms.lightmap_buffers[map] + offsetInLMbuf;
 
-			if (b > max)
-			{
-				max = b;
-			}
-
-			/* alpha is ONLY used for the mono lightmap case. For this
-			   reason we set it to the brightest of the color components
-			   so that things don't get too dim. */
-			a = max;
-
-			/* rescale all the color components if the
-			   intensity of the greatest channel exceeds
-			   1.0 */
-			if (max > 255)
-			{
-				float t = 255.0F / max;
-
-				r = r * t;
-				g = g * t;
-				b = b * t;
-				a = a * t;
-			}
-
-			dest[0] = r;
-			dest[1] = g;
-			dest[2] = b;
-			dest[3] = a;
-
-			bl += 3;
-			dest += 4;
+		for (i = 0; i < tmax; i++, dest += stride)
+		{
+			memset(dest, 0, 4*smax);
+			dest += 4*smax;
 		}
 	}
 }
