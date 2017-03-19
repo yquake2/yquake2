@@ -2247,7 +2247,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 			{
 				/* Locate the end of the static list, where the dynamic light references were appended. */
 				
-				k = abs(pt_cluster_light_references[cluster * 2 + 0]);
+				k = labs(pt_cluster_light_references[cluster * 2 + 0]);
 
 				while (pt_trilight_references[k] != -1)
 					++k;
@@ -2509,7 +2509,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 
 							/* Locate the end of the list, where dynamic light references can be appended. */
 							
-							k = abs(pt_cluster_light_references[cluster * 2 + 0]);
+							k = labs(pt_cluster_light_references[cluster * 2 + 0]);
 
 							while (mapped_references[k] != -1)
 								++k;
