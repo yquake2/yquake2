@@ -106,6 +106,7 @@ static cvar_t *gl_pt_depth_prepass_enable 			= NULL;
 static cvar_t *gl_pt_taa_enable 							= NULL;
 static cvar_t *gl_pt_exposure 							= NULL;
 static cvar_t *gl_pt_gamma 								= NULL;
+static cvar_t *gl_pt_bump_factor 						= NULL;
 
 /*
  * Shader programs
@@ -160,6 +161,7 @@ static GLint pt_current_world_matrix_loc = -1;
 static GLint pt_previous_world_matrix_loc = -1;
 static GLint pt_exposure_loc = -1;
 static GLint pt_gamma_loc = -1;
+static GLint pt_bump_factor_loc = -1;
 
 static unsigned long int pt_bsp_texture_width = 0, pt_bsp_texture_height = 0;
 
@@ -375,6 +377,7 @@ ClearPathtracerState(void)
 	pt_previous_world_matrix_loc = -1;
 	pt_exposure_loc = -1;
 	pt_gamma_loc = -1;
+	pt_bump_factor_loc = -1;
 	
 	pt_last_update_ms = -1;
 	
@@ -2541,6 +2544,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	qglUniform3fARB(pt_previous_view_origin_loc, pt_previous_view_origin[0], pt_previous_view_origin[1], pt_previous_view_origin[2]);
 	qglUniform1fARB(pt_exposure_loc, gl_pt_exposure->value);
 	qglUniform1fARB(pt_gamma_loc, gl_pt_gamma->value);
+	qglUniform1fARB(pt_bump_factor_loc, gl_pt_bump_factor->value);
 
 	for (i = 0; i < 3; ++i)
 		pt_previous_view_origin[i] = r_newrefdef.vieworg[i];
@@ -3103,6 +3107,7 @@ FreeShaderPrograms(void)
 	pt_previous_world_matrix_loc = -1;
 	pt_exposure_loc = -1;
 	pt_gamma_loc = -1;
+	pt_bump_factor_loc = -1;
 
 	if (vertex_shader)
 	{
@@ -3250,6 +3255,7 @@ CreateShaderPrograms(void)
 	pt_previous_world_matrix_loc = qglGetUniformLocationARB(pt_program_handle, "previous_world_matrix");
 	pt_exposure_loc = qglGetUniformLocationARB(pt_program_handle, "exposure");
 	pt_gamma_loc = qglGetUniformLocationARB(pt_program_handle, "gamma");
+	pt_bump_factor_loc = qglGetUniformLocationARB(pt_program_handle, "bump_factor");
 	
 	qglUseProgramObjectARB(0);
 }
@@ -3305,6 +3311,7 @@ R_InitPathtracing(void)
 	GET_PT_CVAR(gl_pt_taa_enable, "0")
 	GET_PT_CVAR(gl_pt_exposure, "1.3")
 	GET_PT_CVAR(gl_pt_gamma, "2.2")
+	GET_PT_CVAR(gl_pt_bump_factor, "0.045")
 #undef GET_PT_CVAR
 
 	Cmd_AddCommand("gl_pt_recompile_shaders", RecompileShaderPrograms);

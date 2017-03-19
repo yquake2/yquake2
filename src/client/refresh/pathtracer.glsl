@@ -115,6 +115,7 @@ uniform vec3	ao_color = vec3(1);
 uniform float	bounce_factor = 0.75;
 uniform float	exposure = 1.5;
 uniform float	gamma = 2.2;
+uniform float	bump_factor = 0.045;
 
 // Inputs from the vertex stage.
 in vec4 texcoords[8], color;
@@ -454,8 +455,6 @@ void main()
 
 	vec2 bump_gradients = vec2(bumpHeightForDiffuseTexel(texcoords[0].st + vec2(bump_texel_size.x, 0.0)) - bump_height0,
 										bumpHeightForDiffuseTexel(texcoords[0].st + vec2(0.0, bump_texel_size.y)) - bump_height0) / bump_texel_size;
-
-	float bump_factor = 0.045;
 										
 	vec3 shading_normal = normalize(pln.xyz - (texcoords[5].xyz * bump_gradients.x + texcoords[6].xyz * bump_gradients.y) * bump_factor);
 	
