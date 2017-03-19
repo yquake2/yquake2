@@ -342,8 +342,8 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 
 			// Calculate the importance weight.
 			float d = distance(rp, (p0 + p1 + p2) / 3.0);
-			float pd = dot(rp - p0, n);
-			float w = length(light.rgb) * 1.0 / (d * d) * sqrt(max(0.0, pd));
+			float pd = dot(normalize(rp - (p0 + p1 + p2) / 3.0), n);
+			float w = length(light.rgb) * max(0.0, pd) / (d * d);
 
 			wsum += w;
 			++li;
@@ -377,10 +377,10 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 				n = cross(p2 - p0, p1 - p0);
 				
 				// Calculate the importance weight.
-				float d = distance(rp, (p0 + p1 + p2) / 3.);
-				float pd = dot(rp - p0, n);
+				float d = distance(rp, (p0 + p1 + p2) / 3.0);
+				float pd = dot(normalize(rp - (p0 + p1 + p2) / 3.0), n);
 				
-				w = length(light.rgb) * 1.0 / (d * d) * sqrt(max(0.0, pd));	
+				w = length(light.rgb) * max(0.0, pd) / (d * d);
 				
 				x -= w;
 				
