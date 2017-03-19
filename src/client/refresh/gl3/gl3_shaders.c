@@ -767,9 +767,9 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	}
 
 	// ..  and the 4 lightmap texture use GL_TEXTURE1..4
+	char lmName[10] = "lightmapX";
 	for(i=0; i<4; ++i)
 	{
-		char lmName[10] = "lightmapX";
 		lmName[8] = '0'+i;
 		GLint lmLoc = glGetUniformLocation(prog, lmName);
 		if(lmLoc != -1)
@@ -782,11 +782,11 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	shaderInfo->uniLmScales = lmScalesLoc;
 	if(lmScalesLoc != -1)
 	{
-		GLfloat scales[4][4] = {0};
+		shaderInfo->lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-		for(i=0; i<4; ++i)  scales[0][i] = 1.0f;
+		for(i=1; i<4; ++i)  shaderInfo->lmScales[i] = HMM_Vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
-		glUniform4fv(lmScalesLoc, 4, scales[0]);
+		glUniform4fv(lmScalesLoc, 4, shaderInfo->lmScales[0].Elements);
 	}
 
 	shaderInfo->shaderProgram = prog;

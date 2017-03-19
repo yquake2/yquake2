@@ -107,6 +107,7 @@ typedef struct
 {
 	GLuint shaderProgram;
 	GLint uniLmScales;
+	hmm_vec4 lmScales[4];
 } gl3ShaderInfo_t;
 
 typedef struct
@@ -434,8 +435,8 @@ extern void GL3_AddSkySurface(msurface_t *fa);
 // gl3_surf.c
 extern void GL3_SurfInit(void);
 extern void GL3_SurfShutdown(void);
-extern void GL3_DrawGLPoly(glpoly_t *p, qboolean withAlpha);
-extern void GL3_DrawGLFlowingPoly(msurface_t *fa, qboolean withAlpha);
+extern void GL3_DrawGLPoly(glpoly_t *p);
+extern void GL3_DrawGLFlowingPoly(msurface_t *fa);
 extern void GL3_DrawTriangleOutlines(void);
 extern void GL3_DrawAlphaSurfaces(void);
 extern void GL3_DrawBrushModel(entity_t *e);

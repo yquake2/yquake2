@@ -163,12 +163,9 @@ TextureAnimation(mtexinfo_t *tex)
 }
 
 void
-GL3_DrawGLPoly(glpoly_t *p, qboolean withAlpha)
+GL3_DrawGLPoly(glpoly_t *p)
 {
 	float* v = p->verts[0];
-
-	// TODO: needed each time?! maybe call this once in DrawTextureChains()?
-	GL3_UseProgram( withAlpha ? gl3state.si3Dtrans.shaderProgram : gl3state.si3Dlm.shaderProgram );
 
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
@@ -178,7 +175,7 @@ GL3_DrawGLPoly(glpoly_t *p, qboolean withAlpha)
 }
 
 void
-GL3_DrawGLFlowingPoly(msurface_t *fa, qboolean withAlpha)
+GL3_DrawGLFlowingPoly(msurface_t *fa)
 {
 	int i;
 	float *v;
@@ -199,8 +196,6 @@ GL3_DrawGLFlowingPoly(msurface_t *fa, qboolean withAlpha)
 		gl3state.uni3DData.scroll = scroll;
 		GL3_UpdateUBO3D();
 	}
-
-	GL3_UseProgram( withAlpha ? gl3state.si3DtransFlow.shaderProgram : gl3state.si3DlmFlow.shaderProgram );
 
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
@@ -269,242 +264,43 @@ DrawTriangleOutlines(void)
 }
 
 static void
-DrawGLPolyChain(glpoly_t *p, float soffset, float toffset)
-{
-	STUB_ONCE("TODO: Implement!");
-
-	if(gl3state.uni3DData.lmOffset.X != soffset || gl3state.uni3DData.lmOffset.Y != toffset)
-	{
-		gl3state.uni3DData.lmOffset = HMM_Vec2(soffset, toffset);
-		GL3_UpdateUBO3D();
-	}
-
-	for ( ; p != NULL; p = p->chain)
-	{
-		float* v = p->verts[0];
-
-		if (v == NULL)
-		{
-			fprintf(stderr, "BUGFIX: DrawGLPolyChain: v==NULL\n");
-			return;
-		}
-
-		glBufferData(GL_ARRAY_BUFFER, VERTEXSIZE*sizeof(GLfloat)*p->numverts, v, GL_STREAM_DRAW);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
-	}
-}
-
-/*
- * This routine takes all the given light mapped surfaces
- * in the world and blends them into the framebuffer.
- */
-static void
-BlendLightmaps(void)
+UpdateLMscales(const hmm_vec4 lmScales[MAXLIGHTMAPS], gl3ShaderInfo_t* si)
 {
 	int i;
-	msurface_t *surf, *newdrawsurf = 0;
+	qboolean hasChanged = false;
 
-	return; // XXX: remove the whole function
-#if 0
-	/* don't bother if we're set to fullbright */
-	if (gl_fullbright->value)
+	for(i=0; i<MAXLIGHTMAPS; ++i)
 	{
-		return;
-	}
-
-	if (!gl3_worldmodel->lightdata)
-	{
-		return;
-	}
-
-	/* don't bother writing Z */
-	glDepthMask(0);
-
-	/* set the appropriate blending mode unless
-	   we're only looking at the lightmaps. */
-	if ( !gl_lightmap->value )
-	{
-		glEnable(GL_BLEND);
-#if 0 // TODO: sth about saturatelighting
-		if (gl_saturatelighting->value)
+		if(hasChanged)
 		{
-			glBlendFunc(GL_ONE, GL_ONE);
+			si->lmScales[i] = lmScales[i];
 		}
-		else
+		else if(   si->lmScales[i].R != lmScales[i].R
+		        || si->lmScales[i].G != lmScales[i].G
+		        || si->lmScales[i].B != lmScales[i].B
+		        || si->lmScales[i].A != lmScales[i].A )
 		{
-			glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-		}
-#endif // 0
-
-		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-
-	}
-
-	if (currentmodel == gl3_worldmodel)
-	{
-		c_visible_lightmaps = 0;
-	}
-
-//	GL3_UseProgram(gl3state.si3Dlm.shaderProgram); XXX!
-	GL3_BindVAO(gl3state.vao3D);
-	GL3_BindVBO(gl3state.vbo3D);
-
-	/* render static lightmaps first */
-	for (i = 1; i < MAX_LIGHTMAPS; i++)
-	{
-		if (gl3_lms.lightmap_surfaces[i])
-		{
-			if (currentmodel == gl3_worldmodel)
-			{
-				c_visible_lightmaps++;
-			}
-
-			GL3_Bind(gl3state.lightmap_textureIDs[i]);
-
-			for (surf = gl3_lms.lightmap_surfaces[i];
-				 surf != 0;
-				 surf = surf->lightmapchain)
-			{
-				if (surf->polys)
-				{
-					// Apply overbright bits to the static lightmaps
-					/*
-					if (gl_overbrightbits->value)
-					{
-						R_TexEnv(GL_COMBINE_EXT);
-						glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
-					} */
-
-					DrawGLPolyChain(surf->polys, 0, 0);
-				}
-			}
+			si->lmScales[i] = lmScales[i];
+			hasChanged = true;
 		}
 	}
 
-	/* render dynamic lightmaps */
-	if (gl_dynamic->value)
+	if(hasChanged)
 	{
-		GL3_LM_InitBlock();
-
-		GL3_Bind(gl3state.lightmap_textureIDs[0]);
-
-		if (currentmodel == gl3_worldmodel)
-		{
-			c_visible_lightmaps++;
-		}
-
-		newdrawsurf = gl3_lms.lightmap_surfaces[0];
-
-		for (surf = gl3_lms.lightmap_surfaces[0];
-			 surf != 0;
-			 surf = surf->lightmapchain)
-		{
-			int smax, tmax;
-			byte *base;
-
-			smax = (surf->extents[0] >> 4) + 1;
-			tmax = (surf->extents[1] >> 4) + 1;
-
-			if (GL3_LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
-			{
-				base = gl3_lms.lightmap_buffer;
-				base += (surf->dlight_t * BLOCK_WIDTH +
-						surf->dlight_s) * LIGHTMAP_BYTES;
-
-				GL3_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
-			}
-			else
-			{
-				msurface_t *drawsurf;
-
-				/* upload what we have so far */
-				GL3_LM_UploadBlock(true);
-
-				/* draw all surfaces that use this lightmap */
-				for (drawsurf = newdrawsurf;
-					 drawsurf != surf;
-					 drawsurf = drawsurf->lightmapchain)
-				{
-					if (drawsurf->polys)
-					{
-						// Apply overbright bits to the dynamic lightmaps
-						/*if (gl_overbrightbits->value) TODO: overbrightbits stuff
-						{
-							R_TexEnv(GL_COMBINE_EXT);
-							glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
-						}*/
-
-						DrawGLPolyChain(drawsurf->polys,
-								(drawsurf->light_s - drawsurf->dlight_s) * (1.0 / 128.0),
-								(drawsurf->light_t - drawsurf->dlight_t) * (1.0 / 128.0));
-					}
-				}
-
-				newdrawsurf = drawsurf;
-
-				/* clear the block */
-				GL3_LM_InitBlock();
-
-				/* try uploading the block now */
-				if (!GL3_LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
-				{
-					ri.Sys_Error(ERR_FATAL,
-							"Consecutive calls to LM_AllocBlock(%d,%d) failed (dynamic)\n",
-							smax, tmax);
-				}
-
-				base = gl3_lms.lightmap_buffer;
-				base += (surf->dlight_t * BLOCK_WIDTH +
-						surf->dlight_s) * LIGHTMAP_BYTES;
-
-				GL3_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
-			}
-		}
-
-		/* draw remainder of dynamic lightmaps that haven't been uploaded yet */
-		if (newdrawsurf)
-		{
-			GL3_LM_UploadBlock(true);
-		}
-
-		for (surf = newdrawsurf; surf != 0; surf = surf->lightmapchain)
-		{
-			if (surf->polys)
-			{
-				// Apply overbright bits to the remainder lightmaps
-				/* TODO: overbrightbits
-				if (gl_overbrightbits->value)
-				{
-					R_TexEnv(GL_COMBINE_EXT);
-					glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
-				}*/
-
-				DrawGLPolyChain(surf->polys,
-						(surf->light_s - surf->dlight_s) * (1.0 / 128.0),
-						(surf->light_t - surf->dlight_t) * (1.0 / 128.0));
-			}
-		}
+		glUniform4fv(si->uniLmScales, MAXLIGHTMAPS, si->lmScales[0].Elements);
 	}
-
-	/* restore state */
-	glDisable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthMask(1);
-#endif // 0
 }
 
 static void
 RenderBrushPoly(msurface_t *fa)
 {
-	int maps;
+	int maps, map;
 	gl3image_t *image;
 	qboolean is_dynamic = false;
 
 	c_brush_polys++;
 
 	image = TextureAnimation(fa->texinfo);
-
-
 
 	if (fa->flags & SURF_DRAWTURB)
 	{
@@ -551,17 +347,33 @@ RenderBrushPoly(msurface_t *fa)
 		// R_TexEnv(GL_REPLACE); TODO!
 	}
 
+	hmm_vec4 lmScales[MAXLIGHTMAPS] = {0};
+	lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
 	// TODO: bind all the lightmaps
 
 	GL3_BindLightmap(fa->lightmaptexturenum);
 
+	// Any dynamic lights on this surface?
+	for (map = 0; map < MAXLIGHTMAPS && fa->styles[map] != 255; map++)
+	{
+		lmScales[map].R = gl3_newrefdef.lightstyles[fa->styles[map]].rgb[0];
+		lmScales[map].G = gl3_newrefdef.lightstyles[fa->styles[map]].rgb[1];
+		lmScales[map].B = gl3_newrefdef.lightstyles[fa->styles[map]].rgb[2];
+		lmScales[map].A = 1.0f;
+	}
+
 	if (fa->texinfo->flags & SURF_FLOWING)
 	{
-		GL3_DrawGLFlowingPoly(fa, false);
+		GL3_UseProgram(gl3state.si3DlmFlow.shaderProgram);
+		UpdateLMscales(lmScales, &gl3state.si3DlmFlow);
+		GL3_DrawGLFlowingPoly(fa);
 	}
 	else
 	{
-		GL3_DrawGLPoly(fa->polys, false);
+		GL3_UseProgram(gl3state.si3Dlm.shaderProgram);
+		UpdateLMscales(lmScales, &gl3state.si3Dlm);
+		GL3_DrawGLPoly(fa->polys);
 	}
 
 	STUB_ONCE("TODO: dynamic lightmap in shaders");
@@ -686,11 +498,13 @@ GL3_DrawAlphaSurfaces(void)
 		}
 		else if (s->texinfo->flags & SURF_FLOWING)
 		{
-			GL3_DrawGLFlowingPoly(s, true);
+			GL3_UseProgram(gl3state.si3DtransFlow.shaderProgram);
+			GL3_DrawGLFlowingPoly(s);
 		}
 		else
 		{
-			GL3_DrawGLPoly(s->polys, true);
+			GL3_UseProgram(gl3state.si3Dtrans.shaderProgram);
+			GL3_DrawGLPoly(s->polys);
 		}
 	}
 
@@ -737,8 +551,124 @@ DrawTextureChains(void)
 		image->texturechain = NULL;
 	}
 
+	// TODO: maybe one loop for normal faces and one for SURF_DRAWTURB ???
+
 	STUB_ONCE("TODO: do something about R_TexEnv()!");
 	// R_TexEnv(GL_REPLACE);
+}
+
+static void
+RenderLightmappedPoly(msurface_t *surf)
+{
+	int i,j;
+	int map;
+	int nv;
+	int smax;
+	int tmax;
+	float scroll;
+	float *v;
+	glpoly_t *p;
+	gl3image_t *image;
+	qboolean is_dynamic;
+	unsigned lmtex;
+	unsigned temp[128 * 128];
+
+	hmm_vec4 lmScales[MAXLIGHTMAPS] = {0};
+	lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	image = TextureAnimation(surf->texinfo);
+	is_dynamic = false;
+	lmtex = surf->lightmaptexturenum;
+	nv = surf->polys->numverts;
+
+	assert((surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)) == 0
+			&& "RenderLightMappedPoly mustn't be called with transparent, sky or warping surfaces!");
+
+	// Any dynamic lights on this surface?
+	for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
+	{
+		lmScales[map].R = gl3_newrefdef.lightstyles[surf->styles[map]].rgb[0];
+		lmScales[map].G = gl3_newrefdef.lightstyles[surf->styles[map]].rgb[1];
+		lmScales[map].B = gl3_newrefdef.lightstyles[surf->styles[map]].rgb[2];
+		lmScales[map].A = 1.0f;
+	}
+
+	// Normal dynamic lights
+	if (surf->dlightframe == gl3_framecount)
+	{
+		if (gl_dynamic->value)
+		{
+			if (!(surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
+			{
+				is_dynamic = true;
+			}
+		}
+	}
+
+#if 0 // TODO!
+	if (is_dynamic)
+	{
+		// Dynamic lights on a surface
+		if (((surf->styles[map] >= 32) || (surf->styles[map] == 0)) && (surf->dlightframe != r_framecount))
+		{
+			smax = (surf->extents[0] >> 4) + 1;
+			tmax = (surf->extents[1] >> 4) + 1;
+
+			//GL3_BuildLightMap(surf, (void *) temp, smax * 4);
+			//GL3_SetCacheState(surf);
+			//R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + surf->lightmaptexturenum);
+			//GL3_BindLightmap(surf->lightmaptexturenum);
+
+			//lmtex = surf->lightmaptexturenum;
+
+			FIXME;
+
+			//glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t, smax,
+			//				tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
+		}
+		else // Normal dynamic lights
+		{
+			smax = (surf->extents[0] >> 4) + 1;
+			tmax = (surf->extents[1] >> 4) + 1;
+
+			GL3_BuildLightMap(surf, (void *) temp, smax * 4);
+			//R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + 0);
+			GL3_BindLightmap(0);
+
+			lmtex = 0;
+
+			glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t, smax,
+							tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
+		}
+
+		c_brush_polys++;
+
+		R_MBind(GL_TEXTURE0_ARB, image->texnum);
+		R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + lmtex);
+	}
+	else // No dynamic lights
+#endif // 0
+	{
+		c_brush_polys++;
+
+		//R_MBind(GL_TEXTURE0_ARB, image->texnum);
+		GL3_Bind(image->texnum);
+		//R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + lmtex);
+		GL3_BindLightmap(lmtex);
+	}
+
+	if (surf->texinfo->flags & SURF_FLOWING)
+	{
+		GL3_UseProgram(gl3state.si3DlmFlow.shaderProgram);
+		UpdateLMscales(lmScales, &gl3state.si3DlmFlow);
+		GL3_DrawGLFlowingPoly(surf);
+	}
+	else
+	{
+		GL3_UseProgram(gl3state.si3Dlm.shaderProgram);
+		UpdateLMscales(lmScales, &gl3state.si3Dlm);
+		GL3_DrawGLPoly(surf->polys);
+	}
 }
 
 static void
@@ -789,6 +719,10 @@ DrawInlineBModel(void)
 				psurf->texturechain = gl3_alpha_surfaces;
 				gl3_alpha_surfaces = psurf;
 			}
+			else if(!(psurf->flags & SURF_DRAWTURB))
+			{
+				RenderLightmappedPoly(psurf);
+			}
 			else
 			{
 				RenderBrushPoly(psurf);
@@ -796,14 +730,8 @@ DrawInlineBModel(void)
 		}
 	}
 
-	if (!(currententity->flags & RF_TRANSLUCENT))
+	if (currententity->flags & RF_TRANSLUCENT)
 	{
-		BlendLightmaps();
-	}
-	else
-	{
-		//STUB_ONCE("TODO: implement for OpenGL3");
-
 		glDisable(GL_BLEND);
 		/*
 		glColor4f(1, 1, 1, 1);
@@ -1029,12 +957,17 @@ RecursiveWorldNode(mnode_t *node)
 		}
 		else
 		{
-			// TODO: RenderLightmappedPoly()
-
-			/* the polygon is visible, so add it to the texture sorted chain */
-			image = TextureAnimation(surf->texinfo);
-			surf->texturechain = image->texturechain;
-			image->texturechain = surf;
+			if(!(surf->flags & SURF_DRAWTURB))
+			{
+				RenderLightmappedPoly(surf);
+			}
+			else
+			{
+				/* the polygon is visible, so add it to the texture sorted chain */
+				image = TextureAnimation(surf->texinfo);
+				surf->texturechain = image->texturechain;
+				image->texturechain = surf;
+			}
 		}
 	}
 
@@ -1076,7 +1009,7 @@ GL3_DrawWorld(void)
 	GL3_ClearSkyBox();
 	RecursiveWorldNode(gl3_worldmodel->nodes);
 	DrawTextureChains();
-	BlendLightmaps();
+	//BlendLightmaps();
 	GL3_DrawSkyBox();
 	DrawTriangleOutlines();
 
