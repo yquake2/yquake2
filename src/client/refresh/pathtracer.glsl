@@ -68,6 +68,10 @@
 # define TAA_ENABLE 0
 #endif
 
+#ifndef BUMP_ENABLE
+# define BUMP_ENABLE 1
+#endif
+
 #define EPS		(1.0 / 32.0)
 #define MAXT	2048.0
 #define PI		acos(-1.0)
@@ -448,6 +452,7 @@ void main()
 	pln.xyz = normalize(texcoords[3].xyz);
 	pln.w = dot(rp, pln.xyz);
 
+#if BUMP_ENABLE
 	// Construct a shading normal for bump-mapping.
 	vec2 bump_texel_size = vec2(1) / textureSize(diffuse_texture, 0).xy;
 
@@ -455,8 +460,11 @@ void main()
 
 	vec2 bump_gradients = vec2(bumpHeightForDiffuseTexel(texcoords[0].st + vec2(bump_texel_size.x, 0.0)) - bump_height0,
 										bumpHeightForDiffuseTexel(texcoords[0].st + vec2(0.0, bump_texel_size.y)) - bump_height0) / bump_texel_size;
-										
+				
 	vec3 shading_normal = normalize(pln.xyz - (texcoords[5].xyz * bump_gradients.x + texcoords[6].xyz * bump_gradients.y) * bump_factor);
+#else
+	vec3 shading_normal = normalize(pln.xyz);
+#endif
 	
 	// Sample the direct light at this point.
 	int rpli = getLightRef(rp).x;
