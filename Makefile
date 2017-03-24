@@ -48,7 +48,7 @@ WITH_OPENAL:=yes
 # similar). If set to "no", the library is linked in at
 # compile time in the normal way. On Windows this option
 # is ignored, OpenAL is always loaded at runtime.
-DLOPEN_OPENAL:=yes
+DLOPEN_OPENAL:=no
 
 # Use SDL2 instead of SDL1.2. Disables CD audio support,
 # because SDL2 has none. Use OGG/Vorbis music instead :-)
@@ -235,6 +235,8 @@ else ifeq ($(OSTYPE),OpenBSD)
 INCLUDE := -I/usr/local/include
 else ifeq ($(OSTYPE),Windows)
 INCLUDE := -I/custom/include
+else ifeq ($(OSTYPE), Darwin)
+INCLUDE := -I/usr/local/opt/openal-soft/include
 endif
 
 # ----------
@@ -249,7 +251,7 @@ LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(OSTYPE),Windows)
 LDFLAGS := -L/custom/lib -lws2_32 -lwinmm
 else ifeq ($(OSTYPE), Darwin)
-LDFLAGS := $(OSX_ARCH) -lm
+LDFLAGS := $(OSX_ARCH) -lm -L/usr/local/opt/openal-soft/lib
 endif
 
 # ----------
