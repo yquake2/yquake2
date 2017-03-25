@@ -86,6 +86,10 @@ OSX_APP:=yes
 # case of presence.
 CONFIG_FILE := config.mk
 
+
+RUN_GLSL_VALIDATOR:=no
+
+
 # ----------
 
 # In case a of a configuration file being present, we'll just use it
@@ -132,6 +136,14 @@ WITH_CDA:=no
 # that CDA was disabled because SDL2
 # is enabled.
 CDA_DISABLED:=yes
+endif
+endif
+
+ifeq ($(RUN_GLSL_VALIDATOR),yes)
+ifeq ($(OSTYPE), Windows)
+GLSL_VALIDATOR := glslangValidator.exe -S frag -
+else
+GLSL_VALIDATOR := glslangValidator -S frag -
 endif
 endif
 
@@ -340,11 +352,18 @@ clean:
 # The client
 ifeq ($(OSTYPE), Windows)
 client:
-	@echo "===> Building quake2.exe"
+	@echo "===> Processing shader sourcecode"
+ifeq ($(RUN_GLSL_VALIDATOR),yes)
+	@echo "#version 330" | cat - src/client/refresh/pathtracer.glsl | $(GLSL_VALIDATOR)
+endif
 	sh stringifyshaders.sh
+	@echo "===> Building quake2.exe"
 	${Q}mkdir -p release
 	$(MAKE) release/quake2.exe
-
+	@echo "===> Copying required data files"
+	${Q}mkdir -p release/baseq2
+	cp -r ./stuff/baseq2/* ./release/baseq2/
+   
 build/client/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
@@ -375,8 +394,10 @@ endif
 release/quake2.exe : LDFLAGS += -mwindows -lopengl32
 else # not Windows
 client:
-	@echo "===> Building quake2"
+	@echo "===> Processing shader sourcecode"
+	@echo "#version 330" | cat - src/client/refresh/pathtracer.glsl | $(GLSL_VALIDATOR)
 	sh stringifyshaders.sh
+	@echo "===> Building quake2"
 	${Q}mkdir -p release
 	$(MAKE) release/quake2
 
