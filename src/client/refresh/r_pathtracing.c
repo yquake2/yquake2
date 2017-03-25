@@ -252,6 +252,7 @@ static trinode_t*		pt_trinodes_ordered				[PT_MAX_TRI_NODES];
 static trilight_t 	pt_trilights						[PT_MAX_TRI_LIGHTS];
 static short 			pt_trilight_references			[PT_MAX_TRI_LIGHT_REFS];
 static int 				pt_cluster_light_references	[PT_MAX_CLUSTERS * 2];
+static int 				pt_cluster_dynamic_ref_counts	[PT_MAX_CLUSTERS];
 static entitylight_t	pt_entitylights					[PT_MAX_ENTITY_LIGHTS];
 static short 			pt_lightstyle_sublists			[MAX_LIGHTSTYLES];
 static short 			pt_lightstyle_sublist_lengths	[MAX_LIGHTSTYLES];
@@ -700,6 +701,9 @@ AddStaticLights(void)
 	for (i = 0; i < sizeof(pt_cluster_light_references) / sizeof(pt_cluster_light_references[0]); ++i)
 		pt_cluster_light_references[i] = 0;
 
+	for (i = 0; i < sizeof(pt_cluster_dynamic_ref_counts) / sizeof(pt_cluster_dynamic_ref_counts[0]); ++i)
+		pt_cluster_dynamic_ref_counts[i] = 0;
+
 	/* Visit each surface in the worldmodel. */
 	
 	for (i = 0; i < r_worldmodel->numsurfaces; ++i)
@@ -1023,7 +1027,7 @@ AddStaticLights(void)
 							{
 								/* The light is potentially visible, but it is only marked for inclusion if the distance attenuation within the cluster is not too high. */
 								dist = BoxPerpendicularDistance(box, box + 3, surf->plane);
-								if (dist < 1.0 / 32.0 || MAX(pt_trilight_data[m * 4 + 0], MAX(pt_trilight_data[m * 4 + 1], pt_trilight_data[m * 4 + 2])) / (dist * dist) < 1.0 / 512.0)
+								if (m >= num_direct_lights || dist < 1.0 / 32.0 || MAX(fabsf(pt_trilight_data[m * 4 + 0]), MAX(fabsf(pt_trilight_data[m * 4 + 1]), fabsf(pt_trilight_data[m * 4 + 2]))) / (dist * dist) > 1.0 / 128.0)
 								{
 									light_is_in_pvs = true;
 									break;
@@ -2021,7 +2025,7 @@ AddBrushModel(entity_t *entity, model_t *model)
 					pt_trilights[j].area_fraction /= polygon_area;
 				
 				if (!mapped_references)
-					mapped_references = (short*)MapTextureBuffer(pt_lightref_buffer, GL_READ_WRITE);
+					mapped_references = (short*)MapTextureBuffer(pt_lightref_buffer, GL_WRITE_ONLY);
 
 				if (mapped_references)
 				{
@@ -2070,8 +2074,10 @@ AddBrushModel(entity_t *entity, model_t *model)
 							
 							k = labs(pt_cluster_light_references[cluster * 2 + 0]);
 
-							while (mapped_references[k] != -1)
+							while (pt_trilight_references[k] != -1)
 								++k;
+							
+							k += pt_cluster_dynamic_ref_counts[cluster];
 
 							/* Add a reference to the light reference list of this cluster, for each light within this surface. */
 							
@@ -2079,12 +2085,14 @@ AddBrushModel(entity_t *entity, model_t *model)
 							{								
 								/* Ensure that there is at least one end-of-list marker. */
 								
-								if (k >= PT_MAX_TRI_LIGHT_REFS || pt_trilight_references[k + 1] != -1 || mapped_references[k] != -1)
+								if (	(k + 1) >= PT_MAX_TRI_LIGHT_REFS || pt_trilight_references[k + 1] != -1 ||
+										pt_cluster_dynamic_ref_counts[cluster] >= PT_MAX_CLUSTER_DLIGHTS)
 									continue;
 
 								/* Insert the reference. */
 								
 								mapped_references[k++] = j;
+								pt_cluster_dynamic_ref_counts[cluster]++;
 							}
 						}
 					}
@@ -2506,6 +2514,8 @@ R_UpdatePathtracerForCurrentFrame(void)
 				/* Replace all of the dynamic light references with end-of-list markers. */
 				for (i = 0; i < PT_MAX_CLUSTER_DLIGHTS; ++i)
 					mapped_references[k + i] = -1;
+
+				pt_cluster_dynamic_ref_counts[cluster] = 0;
 			}
 			
 			UnmapTextureBuffer();
@@ -2705,7 +2715,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 		
 		if (pt_num_entitylights > pt_dynamic_entitylights_offset)
 		{
-			mapped_references = (short*)MapTextureBuffer(pt_lightref_buffer, GL_READ_WRITE);
+			mapped_references = (short*)MapTextureBuffer(pt_lightref_buffer, GL_WRITE_ONLY);
 			
 			if (mapped_references)
 			{
@@ -2767,19 +2777,23 @@ R_UpdatePathtracerForCurrentFrame(void)
 							
 							k = labs(pt_cluster_light_references[cluster * 2 + 0]);
 
-							while (mapped_references[k] != -1)
+							while (pt_trilight_references[k] != -1)
 								++k;
+
+							k += pt_cluster_dynamic_ref_counts[cluster];
 
 							for (m = 0; m < PT_NUM_ENTITY_TRILIGHTS; ++m)
 							{					
 								/* Ensure that there is at least one end-of-list marker. */
 								
-								if (k >= PT_MAX_TRI_LIGHT_REFS || pt_trilight_references[k + 1] != -1 || mapped_references[k] != -1)
+								if (	(k + 1) >= PT_MAX_TRI_LIGHT_REFS || pt_trilight_references[k + 1] != -1 ||
+										pt_cluster_dynamic_ref_counts[cluster] >= PT_MAX_CLUSTER_DLIGHTS)
 									continue;
 
 								/* Insert the reference. */
 								
 								mapped_references[k++] = entity->light_index + m;
+								pt_cluster_dynamic_ref_counts[cluster]++;
 							}
 						}
 					}
