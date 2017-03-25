@@ -171,7 +171,9 @@
    Insofaras (@insofaras)
 */
 
+#ifndef HANDMADE_MATH_NO_SSE
 #include <xmmintrin.h>
+#endif
 
 #ifndef HANDMADE_MATH_H
 #define HANDMADE_MATH_H

@@ -274,6 +274,7 @@ static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
 			float time;
 			float alpha;
 			float overbrightbits;
+			vec2 _padding; // AMDs legacy windows driver needs this, otherwise uni3D has wrong size
 		};
 );
 
@@ -302,6 +303,7 @@ static const char* fragmentCommon3D = MULTILINE_STRING(#version 150\n
 			float time;
 			float alpha;
 			float overbrightbits;
+			vec2 _padding; // AMDs legacy windows driver needs this, otherwise uni3D has wrong size
 		};
 );
 
@@ -954,25 +956,42 @@ updateUBO(GLuint ubo, GLsizeiptr size, void* data)
 		glBindBuffer(GL_UNIFORM_BUFFER, ubo);
 	}
 
-	// TODO: use glMapBufferRange() or something else instead?
-
 	// http://docs.gl/gl3/glBufferSubData says  "When replacing the entire data store,
 	// consider using glBufferSubData rather than completely recreating the data store
 	// with glBufferData. This avoids the cost of reallocating the data store."
 	// no idea why glBufferData() doesn't just do that when size doesn't change, but whatever..
 	// however, it also says glBufferSubData() might cause a stall so I DON'T KNOW!
-	// by just looking at the fps, glBufferData() and glBufferSubData() make no difference
+	// on Linux/nvidia, by just looking at the fps, glBufferData() and glBufferSubData() make no difference
 	// TODO: STREAM instead DYNAMIC?
-#if 0
+
+#if 1
+	// this seems to be reasonably fast everywhere.. glMapBuffer() seems to be a bit faster on OSX though..
 	glBufferData(GL_UNIFORM_BUFFER, size, data, GL_DYNAMIC_DRAW);
-#elif 1
+#elif 0
+	// on OSX this is super slow (200fps instead of 470-500), BUT it is as fast as glBufferData() when orphaning first
+	// nvidia/linux-blob doesn't care about this vs glBufferData()
+	// AMD open source linux (R3 370) is also slower here (not as bad as OSX though)
+	// intel linux doesn't seem to care either (maybe 3% faster, but that might be imagination)
+	// AMD Windows legacy driver (Radeon HD 6950) doesn't care, all 3 alternatives seem to be equally fast
+	//glBufferData(GL_UNIFORM_BUFFER, size, NULL, GL_DYNAMIC_DRAW); // orphan
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, size, data);
-#else // with my current nvidia-driver, the following *really* makes it slower. (<200fps instead of ~500)
+#else
+	// with my current nvidia-driver (GTX 770, 375.39), the following *really* makes it slower. (<140fps instead of ~850)
+	// on OSX (Intel Haswell Iris Pro, OSX 10.11) this is fastest (~500fps instead of ~470)
+	// on Linux/intel (Ivy Bridge HD-4000, Linux 4.4) this might be a tiny bit faster than the alternatives..
 	glBufferData(GL_UNIFORM_BUFFER, size, NULL, GL_DYNAMIC_DRAW); // orphan
 	GLvoid* ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
 	memcpy(ptr, data, size);
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
 #endif
+
+	// TODO: another alternative: glMapBufferRange() and each time update a different part
+	//       of buffer asynchronously (GL_MAP_UNSYNCHRONIZED_BIT) => ringbuffer style
+	//       when starting again from the beginning, synchronization must happen I guess..
+	//       also, orphaning might be necessary
+	//       and somehow make sure the new range is used by the UBO => glBindBufferRange()
+	//  see http://git.quintin.ninja/mjones/Dolphin/blob/4a463f4588e2968c499236458c5712a489622633/Source/Plugins/Plugin_VideoOGL/Src/ProgramShaderCache.cpp#L207
+	//   or https://github.com/dolphin-emu/dolphin/blob/master/Source/Core/VideoBackends/OGL/ProgramShaderCache.cpp
 }
 
 void GL3_UpdateUBOCommon(void)
