@@ -582,6 +582,92 @@ PackTriLightData(short start, short end)
 	}
 }
 
+/* Returns the perpendicular distance from the given plane to the closest point on the given bounding box. This
+	function is based on BoxOnPlaneSide from shared.c. */
+static float
+BoxPerpendicularDistance(vec3_t emins, vec3_t emaxs, struct cplane_s *p)
+{
+	float dist1, dist2;
+
+	/* fast axial cases */
+	if (p->type < 3)
+	{
+		PT_ASSERT(emins[p->type] <= emaxs[p->type]);
+		
+		if (p->dist <= (emins[p->type] + emaxs[p->type]) / 2)
+		{
+			return emins[p->type] - p->dist;
+		}
+
+		return p->dist - emaxs[p->type];
+	}
+
+	/* general case */
+	switch (p->signbits)
+	{
+		case 0:
+			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] +
+					p->normal[2] * emaxs[2];
+			dist2 = p->normal[0] * emins[0] + p->normal[1] * emins[1] +
+					p->normal[2] * emins[2];
+			break;
+		case 1:
+			dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] +
+					p->normal[2] * emaxs[2];
+			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] +
+					p->normal[2] * emins[2];
+			break;
+		case 2:
+			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] +
+					p->normal[2] * emaxs[2];
+			dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] +
+					p->normal[2] * emins[2];
+			break;
+		case 3:
+			dist1 = p->normal[0] * emins[0] + p->normal[1] * emins[1] +
+					p->normal[2] * emaxs[2];
+			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] +
+					p->normal[2] * emins[2];
+			break;
+		case 4:
+			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] +
+					p->normal[2] * emins[2];
+			dist2 = p->normal[0] * emins[0] + p->normal[1] * emins[1] +
+					p->normal[2] * emaxs[2];
+			break;
+		case 5:
+			dist1 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] +
+					p->normal[2] * emins[2];
+			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] +
+					p->normal[2] * emaxs[2];
+			break;
+		case 6:
+			dist1 = p->normal[0] * emaxs[0] + p->normal[1] * emins[1] +
+					p->normal[2] * emins[2];
+			dist2 = p->normal[0] * emins[0] + p->normal[1] * emaxs[1] +
+					p->normal[2] * emaxs[2];
+			break;
+		case 7:
+			dist1 = p->normal[0] * emins[0] + p->normal[1] * emins[1] +
+					p->normal[2] * emins[2];
+			dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] +
+					p->normal[2] * emaxs[2];
+			break;
+		default:
+			dist1 = dist2 = 0;
+			break;
+	}
+
+	PT_ASSERT(dist2 - 1.0 / 8.0 <= dist1);
+	
+	if (p->dist <= (dist2 + dist1) / 2)
+	{
+		return dist2 - p->dist;
+	}
+
+	return p->dist - dist1;
+}
+
 static void
 AddStaticLights(void)
 {
@@ -601,7 +687,8 @@ AddStaticLights(void)
 	int style, previous_style;
 	int num_direct_lights;
 	qboolean sky_is_visible;
-	float polygon_area;
+	float polygon_area, dist;
+	float *box;
 
 	/* Ensure that there is always an empty reference list at the first index. */
 	
@@ -619,7 +706,7 @@ AddStaticLights(void)
 	{
 		surf = r_worldmodel->surfaces + i;
 		texinfo = surf->texinfo;
-		if (!(texinfo->flags & SURF_WARP) && texinfo->radiance > 0)
+		if ((texinfo->flags & SURF_WARP) == 0 && (texinfo->flags & (SURF_LIGHT | SURF_SKY)) != 0 && texinfo->radiance > 0)
 		{			
 			p = surf->polys;
 		
@@ -921,6 +1008,8 @@ AddStaticLights(void)
 					}
 					else
 					{
+						box = pt_cluster_bounding_boxes + leaf->cluster * 6;
+						
 						/* If this leaf contains the surface which this light was created from then the light is visible. */
 						for (k = 0; k < other_leaf->nummarksurfaces; ++k)
 						{
@@ -929,10 +1018,16 @@ AddStaticLights(void)
 							PT_ASSERT(surf != NULL);
 							PT_ASSERT(pt_trilights[m].surface != NULL);
 
-							if (pt_trilights[m].surface == surf)
+							if (	pt_trilights[m].surface == surf &&
+									BOX_ON_PLANE_SIDE(box, box + 3, surf->plane) != ((surf->flags & SURF_PLANEBACK) ? 1 : 2) )
 							{
-								light_is_in_pvs = true;
-								break;
+								/* The light is potentially visible, but it is only marked for inclusion if the distance attenuation within the cluster is not too high. */
+								dist = BoxPerpendicularDistance(box, box + 3, surf->plane);
+								if (dist < 1.0 / 32.0 || MAX(pt_trilight_data[m * 4 + 0], MAX(pt_trilight_data[m * 4 + 1], pt_trilight_data[m * 4 + 2])) / (dist * dist) < 1.0 / 512.0)
+								{
+									light_is_in_pvs = true;
+									break;
+								}
 							}
 						}
 					}
@@ -1966,8 +2061,10 @@ AddBrushModel(entity_t *entity, model_t *model)
 					for (cluster = 0; cluster < pt_num_clusters; ++cluster)
 					{
 						/* If this cluster is visible then update it's reference list. */
-						
-						if (merged_vis[cluster >> 3] & (1 << (cluster & 7)))
+
+						box = pt_cluster_bounding_boxes + cluster * 6;
+
+						if (merged_vis[cluster >> 3] & (1 << (cluster & 7)) && BOX_ON_PLANE_SIDE(box, box + 3, psurf->plane) != ((psurf->flags & SURF_PLANEBACK) ? 1 : 2))
 						{	
 							/* Locate the end of the list, where dynamic light references can be appended. */
 							
@@ -3093,19 +3190,6 @@ R_PreparePathtracer(void)
 	pt_num_shadow_triangles = 0;
 	pt_weapon_entity_triangles_offset = 0;
 
-	if (gl_pt_static_entity_lights_enable->value)
-		ParseStaticEntityLights(Mod_EntityString());
-
-	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: %d static entity light-emitters\n", pt_num_entitylights);
-
-	AddStaticLights();
-	
-	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: %d static trilights\n", pt_num_lights);
-
-	AddStaticBSP();
-
-	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: Static BSP texture size is %dx%d\n", pt_bsp_texture_width, pt_bsp_texture_height);
-	
 	/* Reset the cluster bounding boxes. */
 	for (i = 0; i < PT_MAX_CLUSTERS * 6; i += 6)
 	{
@@ -3115,7 +3199,7 @@ R_PreparePathtracer(void)
 			pt_cluster_bounding_boxes[i + j + 3] = -PT_MAX_CLUSTER_SIZE;
 		}
 	}
-	
+
 	/* Make the cluster bounding boxes by combining the leaf bounding boxes contained in each cluster. */
 	for (i = 0; i < r_worldmodel->numleafs; ++i)
 	{
@@ -3134,7 +3218,20 @@ R_PreparePathtracer(void)
 			}
 		}
 	}
+
+	if (gl_pt_static_entity_lights_enable->value)
+		ParseStaticEntityLights(Mod_EntityString());
+
+	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: %d static entity light-emitters\n", pt_num_entitylights);
+
+	AddStaticLights();
 	
+	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: %d static trilights\n", pt_num_lights);
+
+	AddStaticBSP();
+
+	VID_Printf(PRINT_DEVELOPER, "R_PreparePathtracer: Static BSP texture size is %dx%d\n", pt_bsp_texture_width, pt_bsp_texture_height);
+			
 	UploadTextureBufferData(pt_trilights_buffer, pt_trilight_data, 0, pt_num_lights * 4 * sizeof(pt_trilight_data[0]));
 	UploadTextureBufferData(pt_lightref_buffer, pt_trilight_references, 0, pt_num_trilight_references * sizeof(pt_trilight_references[0]));
 	
