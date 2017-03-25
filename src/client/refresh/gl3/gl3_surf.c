@@ -80,6 +80,7 @@ void GL3_SurfInit(void)
 	glEnableVertexAttribArray(GL3_ATTRIB_COLOR);
 	qglVertexAttribPointer(GL3_ATTRIB_COLOR, 4, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), 5*sizeof(GLfloat));
 
+	glGenBuffers(1, &gl3state.eboAlias);
 
 	// init VAO and VBO for particle vertexdata: 9 floats
 	// (X,Y,Z), (point_size,distace_to_camera), (R,G,B,A)
@@ -108,6 +109,8 @@ void GL3_SurfShutdown(void)
 	glDeleteVertexArrays(1, &gl3state.vao3D);
 	gl3state.vao3D = 0;
 
+	glDeleteBuffers(1, &gl3state.eboAlias);
+	gl3state.eboAlias = 0;
 	glDeleteBuffers(1, &gl3state.vboAlias);
 	gl3state.vboAlias = 0;
 	glDeleteVertexArrays(1, &gl3state.vaoAlias);

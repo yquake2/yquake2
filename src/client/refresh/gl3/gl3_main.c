@@ -32,6 +32,9 @@
 #define HANDMADE_MATH_IMPLEMENTATION
 #include "header/HandmadeMath.h"
 
+#define DG_DYNARR_IMPLEMENTATION
+#include "header/DG_dynarr.h"
+
 // TODO: put this in local.h ?
 #define REF_VERSION "Yamagi Quake II OpenGL3 Refresher"
 
@@ -552,6 +555,7 @@ GL3_Shutdown(void)
 	ri.Cmd_RemoveCommand("gl_strings");
 
 	GL3_Mod_FreeAll();
+	GL3_ShutdownMeshes();
 	GL3_ShutdownImages();
 	GL3_SurfShutdown();
 	GL3_Draw_ShutdownLocal();

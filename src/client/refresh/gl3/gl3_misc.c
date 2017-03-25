@@ -66,7 +66,6 @@ GL3_SetDefaultState(void)
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	STUB("need replacement for R_TexEnv(GL_REPLACE);");
 
 	if (gl_msaa_samples->value)
 	{

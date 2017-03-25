@@ -181,6 +181,7 @@ typedef struct
 
 	GLuint currentVAO;
 	GLuint currentVBO;
+	GLuint currentEBO;
 	GLuint currentShaderProgram;
 	GLuint currentUBO;
 
@@ -205,7 +206,7 @@ typedef struct
 	gl3ShaderInfo_t siParticle; // for particles. surprising, right?
 
 	GLuint vao3D, vbo3D; // for brushes etc, using 7 floats as vertex input (x,y,z, s,t, lms,lmt)
-	GLuint vaoAlias, vboAlias; // for models, using 9 floats as (x,y,z, s,t, r,g,b,a)
+	GLuint vaoAlias, vboAlias, eboAlias; // for models, using 9 floats as (x,y,z, s,t, r,g,b,a)
 	GLuint vaoParticle, vboParticle; // for particles, using 9 floats (x,y,z, size,distance, r,g,b,a)
 
 	// UBOs and their data
@@ -338,6 +339,16 @@ GL3_BindVBO(GLuint vbo)
 	}
 }
 
+static inline void
+GL3_BindEBO(GLuint ebo)
+{
+	if(ebo != gl3state.currentEBO)
+	{
+		gl3state.currentEBO = ebo;
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	}
+}
+
 extern qboolean GL3_CullBox(vec3_t mins, vec3_t maxs);
 extern void GL3_RotateForEntity(entity_t *e);
 
@@ -446,6 +457,7 @@ extern void GL3_MarkLeaves(void);
 
 // gl3_mesh.c
 extern void GL3_DrawAliasModel(entity_t *e);
+extern void GL3_ShutdownMeshes(void);
 
 // gl3_shaders.c
 

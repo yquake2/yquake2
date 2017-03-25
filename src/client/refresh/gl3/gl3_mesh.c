@@ -27,6 +27,8 @@
 
 #include "header/local.h"
 
+#include "header/DG_dynarr.h"
+
 #define NUMVERTEXNORMALS 162
 #define SHADEDOT_QUANT 16
 
@@ -46,6 +48,20 @@ float shadelight[3];
 float *shadedots = r_avertexnormal_dots[0];
 extern vec3_t lightspot;
 extern qboolean have_stencil;
+
+
+DA_TYPEDEF(gl3_alias_vtx_t, AliasVtxArray_t);
+DA_TYPEDEF(GLushort, UShortArray_t);
+// dynamic arrays to batch all the data of a model, so we can render a model in one draw call
+static AliasVtxArray_t vtxBuf = {0};
+static UShortArray_t idxBuf = {0};
+
+void
+GL3_ShutdownMeshes(void)
+{
+	da_free(vtxBuf);
+	da_free(idxBuf);
+}
 
 static void
 LerpVerts(int nverts, dtrivertx_t *v, dtrivertx_t *ov,
@@ -149,10 +165,7 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 	for (i = 0; i < 3; i++)
 	{
 		move[i] = backlerp * move[i] + frontlerp * frame->translate[i];
-	}
 
-	for (i = 0; i < 3; i++)
-	{
 		frontv[i] = frontlerp * frame->scale[i];
 		backv[i] = backlerp * oldframe->scale[i];
 	}
@@ -163,8 +176,21 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 
 	assert(sizeof(gl3_alias_vtx_t) == 9*sizeof(GLfloat));
 
+	// all the triangle fans and triangle strips of this model will be converted to
+	// just triangles: the vertices stay the same and are batched in vtxBuf,
+	// but idxBuf will contain indices to draw them all as GL_TRIANGLE
+	// this way there's only one draw call (and two glBufferData() calls)
+	// instead of (at least) dozens. *greatly* improves performance.
+
+	// so first clear out the data from last call to this function
+	// (the buffers are static global so we don't have malloc()/free() for each rendered model)
+	da_clear(vtxBuf);
+	da_clear(idxBuf);
+
 	while (1)
 	{
+		GLushort nextVtxIdx = da_count(vtxBuf);
+
 		/* get the vertex count and primitive type */
 		count = *order++;
 
@@ -184,7 +210,7 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 			type = GL_TRIANGLE_STRIP;
 		}
 
-		gl3_alias_vtx_t buf[count];
+		gl3_alias_vtx_t* buf = da_addn_uninit(vtxBuf, count);
 
 		if (colorOnly)
 		{
@@ -233,12 +259,55 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 			}
 		}
 
-		GL3_BindVAO(gl3state.vaoAlias);
-		GL3_BindVBO(gl3state.vboAlias);
+		// translate triangle fan/strip to just triangle indices
+		if(type == GL_TRIANGLE_FAN)
+		{
+			GLushort i;
+			for(i=1; i < count-1; ++i)
+			{
+				GLushort* add = da_addn_uninit(idxBuf, 3);
 
-		glBufferData(GL_ARRAY_BUFFER, count*sizeof(gl3_alias_vtx_t), buf, GL_STREAM_DRAW);
-		glDrawArrays(type, 0, count);
+				add[0] = nextVtxIdx;
+				add[1] = nextVtxIdx+i;
+				add[2] = nextVtxIdx+i+1;
+			}
+		}
+		else // triangle strip
+		{
+			GLushort i;
+			for(i=1; i < count-2; i+=2)
+			{
+				// add two triangles at once, because the vertex order is different
+				// for odd vs even triangles
+				GLushort* add = da_addn_uninit(idxBuf, 6);
+
+				add[0] = nextVtxIdx + i-1;
+				add[1] = nextVtxIdx + i;
+				add[2] = nextVtxIdx + i+1;
+
+				add[3] = nextVtxIdx + i;
+				add[4] = nextVtxIdx + i+2;
+				add[5] = nextVtxIdx + i+1;
+			}
+			// add remaining triangle, if any
+			if(i < count-1)
+			{
+				GLushort* add = da_addn_uninit(idxBuf, 3);
+
+				add[0] = nextVtxIdx + i-1;
+				add[1] = nextVtxIdx + i;
+				add[2] = nextVtxIdx + i+1;
+			}
+		}
 	}
+
+	GL3_BindVAO(gl3state.vaoAlias);
+	GL3_BindVBO(gl3state.vboAlias);
+
+	glBufferData(GL_ARRAY_BUFFER, da_count(vtxBuf)*sizeof(gl3_alias_vtx_t), vtxBuf.p, GL_STREAM_DRAW);
+	GL3_BindEBO(gl3state.eboAlias);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, da_count(idxBuf)*sizeof(GLushort), idxBuf.p, GL_STREAM_DRAW);
+	glDrawElements(GL_TRIANGLES, da_count(idxBuf), GL_UNSIGNED_SHORT, NULL);
 }
 
 static void
