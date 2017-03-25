@@ -2435,7 +2435,7 @@ R_DrawPathtracerDepthPrePass(void)
 		glTranslatef(r_newrefdef.vieworg[0], r_newrefdef.vieworg[1], r_newrefdef.vieworg[2]);
 		glScalef(PT_DEPTH_HACK_SCALE_DIVISOR, PT_DEPTH_HACK_SCALE_DIVISOR, PT_DEPTH_HACK_SCALE_DIVISOR);
 		glTranslatef(-r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
-		glPolygonOffset(12, 24);
+		glPolygonOffset(128, 256);
 		glDrawElements(GL_TRIANGLES, pt_num_shadow_triangles * 4 - element_count, GL_UNSIGNED_SHORT, (byte*)0 + pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]) + element_count * sizeof(pt_triangle_data[0]) / 2);
 		glPopMatrix();
 		glDepthRange(gldepthmin, gldepthmax);
