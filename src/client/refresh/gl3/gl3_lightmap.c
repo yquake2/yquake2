@@ -241,7 +241,7 @@ GL3_LM_BeginBuildingLightmaps(gl3model_t *m)
 
 	gl3_newrefdef.lightstyles = lightstyles;
 
-	gl3_lms.current_lightmap_texture = 1;
+	gl3_lms.current_lightmap_texture = 0;
 	gl3_lms.internal_format = GL_LIGHTMAP_FORMAT;
 
 	// Note: the dynamic lightmap used to be initialized here, we don't use that anymore.

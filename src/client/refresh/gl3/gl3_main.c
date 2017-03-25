@@ -1503,7 +1503,10 @@ GL3_RenderFrame(refdef_t *fd)
 	GL3_SetLightLevel();
 	GL3_SetGL2D();
 
-	GL3_Draw_Flash(v_blend);
+	if(v_blend[3] != 0.0f)
+	{
+		GL3_Draw_Flash(v_blend);
+	}
 }
 
 

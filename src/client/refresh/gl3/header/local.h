@@ -70,7 +70,7 @@ enum {
 	GL3_ATTRIB_TEXCOORD   = 1, // for normal texture
 	GL3_ATTRIB_LMTEXCOORD = 2, // for lightmap
 	GL3_ATTRIB_COLOR      = 3, // per-vertex color
-	// TODO: more? maybe normal and color?
+	// TODO: more? maybe normal
 };
 
 // TODO: do we need the following configurable?
@@ -143,10 +143,12 @@ typedef struct
 } gl3Uni3D_t;
 
 enum {
-	BLOCK_WIDTH = 128,
-	BLOCK_HEIGHT = 128,
+	// width and height used to be 128, so now we should be able to get the same lightmap data
+	// that used 32 lightmaps before into one, so 4 lightmaps should be enough
+	BLOCK_WIDTH = 1024,
+	BLOCK_HEIGHT = 512,
 	LIGHTMAP_BYTES = 4,
-	MAX_LIGHTMAPS = 128,
+	MAX_LIGHTMAPS = 4,
 	MAX_LIGHTMAPS_PER_SURFACE = MAXLIGHTMAPS // 4
 };
 
@@ -160,9 +162,9 @@ typedef struct
 
 	unsigned char *d_16to8table;
 
-	// "So color textures start at 0, the dynamic lightmap texture is always 1024 and the static lighmap are 1025 up to 1036."
-	// yes, dynamic lightmap is 1024, but I think there can be 127 dynamic lightmaps (MAX_LIGHTMAPS == 128)
-	//int lightmap_textures;
+	// each lightmap consists of 4 sub-lightmaps allowing changing shadows on the same surface
+	// used for switching on/off light and stuff like that.
+	// most surfaces only have one really and the remaining for are filled with dummy data
 	GLuint lightmap_textureIDs[MAX_LIGHTMAPS][MAX_LIGHTMAPS_PER_SURFACE]; // instead of lightmap_textures+i use lightmap_textureIDs[i]
 
 	//int currenttextures[2];

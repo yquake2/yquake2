@@ -132,6 +132,7 @@ GL3_Bind(GLuint texnum)
 void
 GL3_BindLightmap(int lightmapnum)
 {
+	int i=0;
 	if(lightmapnum < 0 || lightmapnum >= MAX_LIGHTMAPS)
 	{
 		R_Printf(PRINT_ALL, "WARNING: Invalid lightmapnum %i used!\n", lightmapnum);
@@ -144,14 +145,13 @@ GL3_BindLightmap(int lightmapnum)
 	}
 
 	gl3state.currentlightmap = lightmapnum;
-	GL3_SelectTMU(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, gl3state.lightmap_textureIDs[lightmapnum][0]);
-	GL3_SelectTMU(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, gl3state.lightmap_textureIDs[lightmapnum][1]);
-	GL3_SelectTMU(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, gl3state.lightmap_textureIDs[lightmapnum][2]);
-	GL3_SelectTMU(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, gl3state.lightmap_textureIDs[lightmapnum][3]);
+	for(i=0; i<MAX_LIGHTMAPS_PER_SURFACE; ++i)
+	{
+		// this assumes that GL_TEXTURE<i+1> = GL_TEXTURE<i> + 1
+		// at least for GL_TEXTURE0 .. GL_TEXTURE31 that's true
+		GL3_SelectTMU(GL_TEXTURE1+i);
+		glBindTexture(GL_TEXTURE_2D, gl3state.lightmap_textureIDs[lightmapnum][i]);
+	}
 }
 
 /*

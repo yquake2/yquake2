@@ -839,11 +839,16 @@ RecursiveWorldNode(mnode_t *node)
 		}
 		else
 		{
+			// calling RenderLightmappedPoly() here probably isn't optimal, rendering everything
+			// through texturechains should be faster, because far less glBindTexture() is needed
+			// (and it might allow batching the drawcalls of surfaces with the same texture)
+#if 0
 			if(!(surf->flags & SURF_DRAWTURB))
 			{
 				RenderLightmappedPoly(surf);
 			}
 			else
+#endif // 0
 			{
 				/* the polygon is visible, so add it to the texture sorted chain */
 				image = TextureAnimation(surf->texinfo);

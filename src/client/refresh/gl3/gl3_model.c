@@ -984,6 +984,8 @@ GL3_BeginRegistration(char *model)
 	registration_sequence++;
 	gl3_oldviewcluster = -1; /* force markleafs */
 
+	gl3state.currentlightmap = -1;
+
 	Com_sprintf(fullname, sizeof(fullname), "maps/%s.bsp", model);
 
 	/* explicitly free the old map if different
