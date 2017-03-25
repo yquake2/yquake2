@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Edd Biddulph
+ * Copyright (C) 2016,2017 Edd Biddulph
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -322,6 +322,9 @@ ivec2 getLightRef(vec3 p)
 // oli is an index to the first lightsource reference.
 vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 {
+#if NUM_LIGHT_SAMPLES == 0
+	return vec3(0);
+#else
 	vec3 r = vec3(0);
 	oli = oli < 0 ? -oli : +oli;
 	int li = oli;
@@ -432,6 +435,7 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 	}
 
 	return r / float(NUM_LIGHT_SAMPLES * NUM_SHADOW_SAMPLES);
+#endif
 }
 
 float bumpHeightForDiffuseTexel(vec2 st)

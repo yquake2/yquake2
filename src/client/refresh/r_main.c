@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Edd Biddulph
+ * Copyright (C) 2016,2017 Edd Biddulph
  * Copyright (C) 1997-2001 Id Software, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -358,6 +358,11 @@ R_DrawEntitiesOnList(void)
 					break;
 			}
 		}
+	}
+
+	if (gl_pt_enable->value)
+	{
+		R_CaptureWorldForTAA();
 	}
 	
 	/* draw transparent entities
@@ -1039,11 +1044,6 @@ R_RenderView(refdef_t *fd)
 	}
 	
 	R_DrawWorld();
-
-	if (gl_pt_enable->value)
-	{
-		R_CaptureWorldForTAA();
-	}
 	
 	R_DrawEntitiesOnList();
 

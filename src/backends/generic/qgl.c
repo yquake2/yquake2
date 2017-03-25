@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Edd Biddulph
+ * Copyright (C) 2016,2017 Edd Biddulph
  * Copyright (C) 2013 Alejandro Ricoveri
  * Copyright (C) 1997-2001 Id Software, Inc.
  *
