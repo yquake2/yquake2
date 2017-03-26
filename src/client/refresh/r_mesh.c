@@ -944,7 +944,7 @@ R_DrawAliasModel(entity_t *e)
 
 		R_ConstructEntityToWorldMatrix(entity_to_world_matrix, currententity);
 
-		R_SetGLStateForPathtracing(entity_to_world_matrix);
+		R_SetGLStateForPathtracing(currententity, entity_to_world_matrix);
 		
 		if (qglMultiTexCoord3fARB)
 		{

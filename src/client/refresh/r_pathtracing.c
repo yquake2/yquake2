@@ -164,6 +164,7 @@ static GLint pt_previous_world_matrix_loc = -1;
 static GLint pt_exposure_loc = -1;
 static GLint pt_gamma_loc = -1;
 static GLint pt_bump_factor_loc = -1;
+static GLint pt_shadow_ray_node_offset_loc = -1;
 
 static unsigned long int pt_bsp_texture_width = 0, pt_bsp_texture_height = 0;
 
@@ -271,6 +272,7 @@ static short pt_num_clusters = 0;
 static short pt_num_used_nonstatic_lightstyles = 0;
 static short pt_num_shadow_triangles = 0;
 static short pt_weapon_entity_triangles_offset = 0;
+static short pt_weapon_entity_nodes_offset = 0;
 
 static short pt_dynamic_vertices_offset = 0;
 static short pt_dynamic_triangles_offset = 0;
@@ -346,6 +348,7 @@ ClearPathtracerState(void)
 	pt_num_used_nonstatic_lightstyles = 0;
 	pt_num_shadow_triangles = 0;
 	pt_weapon_entity_triangles_offset = 0;
+	pt_weapon_entity_nodes_offset = 0;
 	
 	pt_dynamic_vertices_offset = 0;
 	pt_dynamic_triangles_offset = 0;
@@ -381,6 +384,7 @@ ClearPathtracerState(void)
 	pt_exposure_loc = -1;
 	pt_gamma_loc = -1;
 	pt_bump_factor_loc = -1;
+	pt_shadow_ray_node_offset_loc = -1;
 	
 	pt_last_update_ms = -1;
 	
@@ -1464,8 +1468,15 @@ R_ConstructEntityToWorldMatrix(float m[16], entity_t *entity)
 	entity->angles[PITCH] = -entity->angles[PITCH];	
 }
 
+static qboolean
+EntityIsWeaponModel(entity_t *entity)
+{
+	PT_ASSERT(entity != NULL);
+	return (entity->flags & RF_WEAPONMODEL) && (entity->flags & RF_DEPTHHACK);
+}
+
 void
-R_SetGLStateForPathtracing(const float entity_to_world_matrix[16])
+R_SetGLStateForPathtracing(entity_t* entity, const float entity_to_world_matrix[16])
 {
 	if (!qglUseProgramObjectARB || !qglUniformMatrix4fvARB || !R_PathtracingIsSupportedByGL())
 	{
@@ -1475,6 +1486,13 @@ R_SetGLStateForPathtracing(const float entity_to_world_matrix[16])
 	
 	qglUseProgramObjectARB(pt_program_handle);
 	qglUniformMatrix4fvARB(pt_entity_to_world_loc, 1, GL_FALSE, entity_to_world_matrix);
+
+	/* Restrict shadow-casting so that the weaponmodel does not cast shadows on the world or on other
+		entities, but they can cast shadows on to the weaponmodel. */
+	if (entity && EntityIsWeaponModel(entity))
+		qglUniform1iARB(pt_shadow_ray_node_offset_loc, 0);
+	else
+		qglUniform1iARB(pt_shadow_ray_node_offset_loc, pt_weapon_entity_nodes_offset);
 }
 
 void
@@ -2319,30 +2337,44 @@ AddEntities(void)
 	entity_t *entity, *weapon_entity;
 	
 	weapon_entity = NULL;
-	
+
+	if (gl_pt_depth_prepass_enable->value)
+	{
+		/* When the depth pre-pass is enabled, the weapon entity is added seperately because
+			it needs to be drawn with a reduced depth range. */
+		for (i = 0; i < r_newrefdef.num_entities; i++)
+		{
+			entity = &r_newrefdef.entities[i];
+
+			if (EntityIsWeaponModel(entity))
+			{
+				if (gl_lefthand->value != 2)
+					AddSingleEntity(entity);
+				
+				weapon_entity = entity;
+				break;
+			}
+		}
+	}
+
+	pt_weapon_entity_nodes_offset = pt_num_nodes;
+	pt_weapon_entity_triangles_offset = pt_num_triangles;
+
 	for (i = 0; i < r_newrefdef.num_entities; i++)
 	{
 		entity = &r_newrefdef.entities[i];
-				
-		/* When the depth pre-pass is enabled, the weapon entity is added last because
-			it needs to be drawn with a reduced depth range. */
-		if (gl_pt_depth_prepass_enable->value && (entity->flags & RF_WEAPONMODEL) && (entity->flags & RF_DEPTHHACK))
-		{
-			weapon_entity = entity;
+
+		/* Don't add the weaponmodel entity twice. */
+		if (entity == weapon_entity)
 			continue;
-		}
+		
+		PT_ASSERT(!gl_pt_depth_prepass_enable->value || !EntityIsWeaponModel(entity));
 		
 		if (!(entity->flags & RF_WEAPONMODEL) && (entity->flags & (RF_FULLBRIGHT | RF_DEPTHHACK | RF_TRANSLUCENT | RF_BEAM | RF_NOSHADOW | RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM)))
 			continue;
 
 		AddSingleEntity(entity);
 	}
-	
-	pt_weapon_entity_triangles_offset = pt_num_triangles;
-	
-	/* Now add the weapon entity if it needs to be separated. */
-	if (weapon_entity && gl_lefthand->value != 2)
-		AddSingleEntity(weapon_entity);
 }
 
 
@@ -2421,12 +2453,7 @@ R_DrawPathtracerDepthPrePass(void)
 			break;
 	}
 	
-	/* Draw all non-player-weapon entities. */
-	
-	glPolygonOffset(2, 4);
-	glDrawElements(GL_TRIANGLES, element_count, GL_UNSIGNED_SHORT, (byte*)0 + pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]));
-	
-	if (pt_num_triangles - pt_weapon_entity_triangles_offset > 0)
+	if (pt_weapon_entity_triangles_offset > 0)
 	{
 		/* Draw the player weapon entity (this is also known as the viewmodel). */
 
@@ -2436,11 +2463,19 @@ R_DrawPathtracerDepthPrePass(void)
 		glScalef(PT_DEPTH_HACK_SCALE_DIVISOR, PT_DEPTH_HACK_SCALE_DIVISOR, PT_DEPTH_HACK_SCALE_DIVISOR);
 		glTranslatef(-r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
 		glPolygonOffset(128, 256);
-		glDrawElements(GL_TRIANGLES, pt_num_shadow_triangles * 4 - element_count, GL_UNSIGNED_SHORT, (byte*)0 + pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]) + element_count * sizeof(pt_triangle_data[0]) / 2);
+		glDrawElements(GL_TRIANGLES, element_count, GL_UNSIGNED_SHORT, (byte*)0 + pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]));
 		glPopMatrix();
 		glDepthRange(gldepthmin, gldepthmax);
 	}
+
+	/* Draw all non-player-weapon entities. */
 	
+	glPolygonOffset(2, 4);
+
+	if (pt_num_triangles - pt_weapon_entity_triangles_offset > 0)
+		glDrawElements(GL_TRIANGLES, pt_num_shadow_triangles * 4 - element_count, GL_UNSIGNED_SHORT,
+				(byte*)0 + pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]) + element_count * sizeof(pt_triangle_data[0]) / 2);
+		
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	BindBuffer(GL_ARRAY_BUFFER, 0);
 	BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -2533,6 +2568,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	pt_previous_node = -1;
 	pt_num_shadow_triangles = 0;
 	pt_weapon_entity_triangles_offset = pt_num_triangles;
+	pt_weapon_entity_nodes_offset = pt_num_nodes;
 
 	/* Add dynamic shadow-casting entity geometry. */	
 	AddEntities();
@@ -2815,6 +2851,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 	qglUniform1fARB(pt_exposure_loc, gl_pt_exposure->value);
 	qglUniform1fARB(pt_gamma_loc, gl_pt_gamma->value);
 	qglUniform1fARB(pt_bump_factor_loc, gl_pt_bump_factor->value);
+	qglUniform1iARB(pt_shadow_ray_node_offset_loc, pt_num_nodes);
 
 	for (i = 0; i < 3; ++i)
 		pt_previous_view_origin[i] = r_newrefdef.vieworg[i];
@@ -2834,8 +2871,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 		pt_previous_world_matrix[i] = r_world_matrix[i];
 		pt_previous_proj_matrix[i] = current_proj_matrix[i];
 	}
-	
-	
+		
 	qglUseProgramObjectARB(0);
 		
 	/* Print the stats if necessary. */
@@ -3203,6 +3239,7 @@ R_PreparePathtracer(void)
 	pt_num_clusters = 0;
 	pt_num_shadow_triangles = 0;
 	pt_weapon_entity_triangles_offset = 0;
+	pt_weapon_entity_nodes_offset = 0;
 
 	/* Reset the cluster bounding boxes. */
 	for (i = 0; i < PT_MAX_CLUSTERS * 6; i += 6)
@@ -3378,6 +3415,7 @@ FreeShaderPrograms(void)
 	pt_exposure_loc = -1;
 	pt_gamma_loc = -1;
 	pt_bump_factor_loc = -1;
+	pt_shadow_ray_node_offset_loc = -1;
 
 	if (vertex_shader)
 	{
@@ -3528,6 +3566,7 @@ CreateShaderPrograms(void)
 	pt_exposure_loc = qglGetUniformLocationARB(pt_program_handle, "exposure");
 	pt_gamma_loc = qglGetUniformLocationARB(pt_program_handle, "gamma");
 	pt_bump_factor_loc = qglGetUniformLocationARB(pt_program_handle, "bump_factor");
+	pt_shadow_ray_node_offset_loc = qglGetUniformLocationARB(pt_program_handle, "shadow_ray_node_offset");
 	
 	qglUseProgramObjectARB(0);
 }

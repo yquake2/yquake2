@@ -522,7 +522,7 @@ R_DrawAlphaSurfaces(void)
 	{
 		static const float identity_matrix[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
 		
-		R_SetGLStateForPathtracing(identity_matrix);
+		R_SetGLStateForPathtracing(NULL, identity_matrix);
 		
 		/* Simulate GL_MODULATE using blending functions. */
 		glBlendFunc(GL_ONE_MINUS_SRC_COLOR, GL_ONE);
@@ -1077,7 +1077,7 @@ R_DrawBrushModel(entity_t *e)
 		R_ConstructEntityToWorldMatrix(entity_to_world_matrix, currententity);
 		e->angles[2] = -e->angles[2];
 		
-		R_SetGLStateForPathtracing(entity_to_world_matrix);
+		R_SetGLStateForPathtracing(e, entity_to_world_matrix);
 	}
 	
 	R_DrawInlineBModel();
@@ -1252,7 +1252,7 @@ R_DrawWorld(void)
 	{
 		static const float identity_matrix[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
 
-		R_SetGLStateForPathtracing(identity_matrix);
+		R_SetGLStateForPathtracing(NULL, identity_matrix);
 	}
 	
 	currentmodel = r_worldmodel;

@@ -121,6 +121,9 @@ uniform float	exposure = 1.5;
 uniform float	gamma = 2.2;
 uniform float	bump_factor = 0.045;
 
+// node offset for restricting the way in which shadows are received from triangle meshes.
+uniform int shadow_ray_node_offset = 0;
+
 // Inputs from the vertex stage.
 in vec4 texcoords[8], color;
 
@@ -148,8 +151,8 @@ bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist,
 	isamplerBuffer nodes0, isamplerBuffer nodes1, samplerBuffer vertices, isamplerBuffer tris)
 {
 #if TRI_SHADOWS_ENABLE
-	// Start at the root node.
-	int node = 0;
+	// Start at the root node, or an offset node index.
+	int node = shadow_ray_node_offset;
 
 	do
 	{
