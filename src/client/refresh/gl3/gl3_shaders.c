@@ -109,6 +109,7 @@ CreateShaderProgram(int numShaders, const GLuint* shaders)
 	glBindAttribLocation(shaderProgram, GL3_ATTRIB_TEXCOORD, "texCoord");
 	glBindAttribLocation(shaderProgram, GL3_ATTRIB_LMTEXCOORD, "lmTexCoord");
 	glBindAttribLocation(shaderProgram, GL3_ATTRIB_COLOR, "vertColor");
+	glBindAttribLocation(shaderProgram, GL3_ATTRIB_NORMAL, "normal");
 
 	// the following line is not necessary/implicit (as there's only one output)
 	// glBindFragDataLocation(shaderProgram, 0, "outColor"); XXX would this even be here?
@@ -260,9 +261,9 @@ static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
 		in vec2 texCoord;   // GL3_ATTRIB_TEXCOORD
 		in vec2 lmTexCoord; // GL3_ATTRIB_LMTEXCOORD
 		in vec4 vertColor;  // GL3_ATTRIB_COLOR
+		in vec3 normal;     // GL3_ATTRIB_NORMAL
 
 		out vec2 passTexCoord;
-		out vec2 passLMcoord;
 
 		// for UBO shared between all 3D shaders
 		layout (std140) uniform uni3D
@@ -314,19 +315,55 @@ static const char* vertexSrc3D = MULTILINE_STRING(
 		void main()
 		{
 			passTexCoord = texCoord;
-			passLMcoord = lmTexCoord;
 			gl_Position = transProj * transModelView * vec4(position, 1.0);
 		}
 );
 
-static const char* vertexSrc3DlmOnly = MULTILINE_STRING(
+static const char* vertexSrc3Dflow = MULTILINE_STRING(
 
 		// it gets attributes and uniforms from vertexCommon3D
 
 		void main()
 		{
-			//passTexCoord = texCoord;
-			passTexCoord = lmTexCoord-lmOffset;
+			passTexCoord = texCoord + vec2(0, scroll);
+			gl_Position = transProj * transModelView * vec4(position, 1.0);
+		}
+);
+
+static const char* vertexSrc3Dlm = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from vertexCommon3D
+
+		out vec2 passLMcoord;
+		out vec3 passWorldCoord;
+		out vec3 passNormal;
+
+		void main()
+		{
+			passTexCoord = texCoord;
+			passLMcoord = lmTexCoord;
+			passWorldCoord = position; // TODO: multiply with model matrix for brush-based entities
+			passNormal = normalize(normal); // TODO: multiply with model matrix and normalize
+
+			gl_Position = transProj * transModelView * vec4(position, 1.0);
+		}
+);
+
+static const char* vertexSrc3DlmFlow = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from vertexCommon3D
+
+		out vec2 passLMcoord;
+		out vec3 passWorldCoord;
+		out vec3 passNormal;
+
+		void main()
+		{
+			passTexCoord = texCoord + vec2(0, scroll);
+			passLMcoord = lmTexCoord;
+			passWorldCoord = position; // TODO: multiply with model matrix for brush-based entities
+			passNormal = normalize(normal); // TODO: multiply with model matrix and normalize
+
 			gl_Position = transProj * transModelView * vec4(position, 1.0);
 		}
 );
@@ -352,6 +389,19 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 
 		// it gets attributes and uniforms from fragmentCommon3D
 
+		struct DynLight { // gl3UniDynLight in C
+			vec3 lightOrigin;
+			float _pad;
+			vec3 lightColor;
+			float lightIntensity;
+		};
+
+		layout (std140) uniform uniLights
+		{
+			DynLight dynLights[32];
+			uint numDynLights;
+		};
+
 		uniform sampler2D tex;
 
 		uniform sampler2D lightmap0;
@@ -362,6 +412,8 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 		uniform vec4 lmScales[4];
 
 		in vec2 passLMcoord;
+		in vec3 passWorldCoord;
+		in vec3 passNormal;
 
 		void main()
 		{
@@ -375,6 +427,39 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 			lmTex     += texture(lightmap1, passLMcoord) * lmScales[1];
 			lmTex     += texture(lightmap2, passLMcoord) * lmScales[2];
 			lmTex     += texture(lightmap3, passLMcoord) * lmScales[3];
+
+			float planeDist = -dot(passNormal, passWorldCoord); // signed dist to origin, hopefully like msurface_t->plane->dist
+
+			// TODO: or is hardcoding 32 better?
+			for(uint i=uint(0); i<numDynLights; ++i)
+			{
+				// I made the following up, it's probably not too cool..
+				// it basically checks if the light is on the right side of the surface
+				// and, if it is, sets intensity according to distance between light and pixel on surface
+
+				// signed distance between light and plane
+				float fdist = dot(passNormal, dynLights[i].lightOrigin) + planeDist;
+
+				if(fdist < 0) continue; // light is on wrong side of the plane
+
+				vec3 lightToPos = dynLights[i].lightOrigin - passWorldCoord;
+				float distLightToPos = length(lightToPos);
+				float fact = max(0, dynLights[i].lightIntensity - distLightToPos - 64); // FIXME: really - 64 for DLIGHT_CUTOFF?
+
+				lmTex.rgb += dynLights[i].lightColor * fact * (1.0/256.0);
+
+				/* // the following is kinda like phong and doesn't work yet
+
+				if(fdist < 0) continue; // light is on wrong side of the plane
+				float fact = dot(passNormal, normalize(dynLights[i].lightOrigin-passWorldCoord));
+				vec3 lightToPos = dynLights[i].lightOrigin - passWorldCoord;
+				float distLightToPos = length(lightToPos);
+				fact *= (dynLights[i].lightIntensity - distLightToPos);
+				//fact -= fdist;
+				fact = max(fact, 0);
+				lmTex.rgb += dynLights[i].lightColor * fact * (1.0/256.0);
+				*/
+			}
 
 			lmTex.rgb *= overbrightbits;
 			outColor = lmTex*texel;
@@ -467,17 +552,6 @@ static const char* vertexSrc3Dwater = MULTILINE_STRING(
 			tc *= 1.0/64.0; // do this last
 			passTexCoord = tc;
 
-			gl_Position = transProj * transModelView * vec4(position, 1.0);
-		}
-);
-
-static const char* vertexSrc3Dflow = MULTILINE_STRING(
-
-		// it gets attributes and uniforms from vertexCommon3D
-		void main()
-		{
-			passTexCoord = texCoord + vec2(0, scroll);
-			passLMcoord = lmTexCoord;
 			gl_Position = transProj * transModelView * vec4(position, 1.0);
 		}
 );
@@ -589,7 +663,8 @@ static const char* fragmentSrcParticles = MULTILINE_STRING(
 enum {
 	GL3_BINDINGPOINT_UNICOMMON,
 	GL3_BINDINGPOINT_UNI2D,
-	GL3_BINDINGPOINT_UNI3D
+	GL3_BINDINGPOINT_UNI3D,
+	GL3_BINDINGPOINT_UNILIGHTS
 };
 
 static qboolean
@@ -760,6 +835,28 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 
 		goto err_cleanup;
 	}
+	blockIndex = glGetUniformBlockIndex(prog, "uniLights");
+	if(blockIndex != GL_INVALID_INDEX)
+	{
+		GLint blockSize;
+		glGetActiveUniformBlockiv(prog, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
+		if(blockSize != sizeof(gl3state.uniLightsData))
+		{
+			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uniLights'\n");
+			R_Printf(PRINT_ALL, "         OpenGL says %d, we say %d\n", blockSize, (int)sizeof(gl3state.uniLightsData));
+
+			goto err_cleanup;
+		}
+
+		glUniformBlockBinding(prog, blockIndex, GL3_BINDINGPOINT_UNILIGHTS);
+	}
+	else
+	{
+		// TODO: warn about this? only the lightmapped shaders have/need this..
+		R_Printf(PRINT_ALL, "WARNING: Couldn't find uniform block index 'uniLights'\n");
+
+		//goto err_cleanup;
+	}
 
 	// make sure texture is GL_TEXTURE0
 	GLint texLoc = glGetUniformLocation(prog, "tex");
@@ -842,7 +939,13 @@ static void initUBOs(void)
 	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uni3DUBO);
 	glBindBufferBase(GL_UNIFORM_BUFFER, GL3_BINDINGPOINT_UNI3D, gl3state.uni3DUBO);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(gl3state.uni3DData), &gl3state.uni3DData, GL_DYNAMIC_DRAW);
-	gl3state.currentUBO = gl3state.uni3DUBO;
+
+	glGenBuffers(1, &gl3state.uniLightsUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uniLightsUBO);
+	glBindBufferBase(GL_UNIFORM_BUFFER, GL3_BINDINGPOINT_UNILIGHTS, gl3state.uniLightsUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(gl3state.uniLightsData), &gl3state.uniLightsData, GL_DYNAMIC_DRAW);
+
+	gl3state.currentUBO = gl3state.uniLightsUBO;
 }
 
 qboolean GL3_InitShaders(void)
@@ -859,7 +962,7 @@ qboolean GL3_InitShaders(void)
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for color-only 2D rendering!\n");
 		return false;
 	}
-	if(!initShader3D(&gl3state.si3Dlm, vertexSrc3D, fragmentSrc3Dlm))
+	if(!initShader3D(&gl3state.si3Dlm, vertexSrc3Dlm, fragmentSrc3Dlm))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for textured 3D rendering with lightmap!\n");
 		return false;
@@ -886,7 +989,7 @@ qboolean GL3_InitShaders(void)
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for water rendering!\n");
 		return false;
 	}
-	if(!initShader3D(&gl3state.si3DlmFlow, vertexSrc3Dflow, fragmentSrc3Dlm))
+	if(!initShader3D(&gl3state.si3DlmFlow, vertexSrc3DlmFlow, fragmentSrc3Dlm))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for scrolling textured 3D rendering with lightmap!\n");
 		return false;
@@ -941,10 +1044,10 @@ void GL3_ShutdownShaders(void)
 		*si = siZero;
 	}
 
-	// let's (ab)use the fact that all 3 UBO handles are consecutive fields
+	// let's (ab)use the fact that all 4 UBO handles are consecutive fields
 	// of the gl3state struct
-	glDeleteBuffers(3, &gl3state.uniCommonUBO);
-	gl3state.uniCommonUBO = gl3state.uni2DUBO = gl3state.uni3DUBO = 0;
+	glDeleteBuffers(4, &gl3state.uniCommonUBO);
+	gl3state.uniCommonUBO = gl3state.uni2DUBO = gl3state.uni3DUBO = gl3state.uniLightsUBO = 0;
 }
 
 static inline void
@@ -1007,4 +1110,9 @@ void GL3_UpdateUBO2D(void)
 void GL3_UpdateUBO3D(void)
 {
 	updateUBO(gl3state.uni3DUBO, sizeof(gl3state.uni3DData), &gl3state.uni3DData);
+}
+
+void GL3_UpdateUBOLights(void)
+{
+	updateUBO(gl3state.uniLightsUBO, sizeof(gl3state.uniLightsData), &gl3state.uniLightsData);
 }

@@ -110,10 +110,26 @@ GL3_PushDlights(void)
 
 	l = gl3_newrefdef.dlights;
 
+	gl3state.uniLightsData.numDynLights = gl3_newrefdef.num_dlights;
+
 	for (i = 0; i < gl3_newrefdef.num_dlights; i++, l++)
 	{
+		gl3UniDynLight* udl = &gl3state.uniLightsData.dynLights[i];
 		GL3_MarkLights(l, 1 << i, gl3_worldmodel->nodes);
+
+		VectorCopy(l->origin, udl->origin);
+		VectorCopy(l->color, udl->color);
+		udl->intensity = l->intensity;
 	}
+
+	assert(MAX_DLIGHTS == 32 && "If MAX_DLIGHTS changes, remember to adjust the uniform buffer definition in the shader!");
+
+	if(i < MAX_DLIGHTS)
+	{
+		memset(&gl3state.uniLightsData.dynLights[i], 0, (MAX_DLIGHTS-i)*sizeof(gl3state.uniLightsData.dynLights[0]));
+	}
+
+	GL3_UpdateUBOLights();
 }
 
 static int

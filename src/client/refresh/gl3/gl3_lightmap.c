@@ -126,6 +126,7 @@ GL3_LM_BuildPolygonFromSurface(msurface_t *fa)
 	float s, t;
 	glpoly_t *poly;
 	vec3_t total;
+	vec3_t normal;
 
 	/* reconstruct the polygon */
 	pedges = currentmodel->edges;
@@ -135,14 +136,25 @@ GL3_LM_BuildPolygonFromSurface(msurface_t *fa)
 
 	/* draw texture */
 	poly = Hunk_Alloc(sizeof(glpoly_t) +
-		   (lnumverts - 4) * VERTEXSIZE * sizeof(float));
+		   (lnumverts - 4) * sizeof(gl3_3D_vtx_t));
 	poly->next = fa->polys;
 	poly->flags = fa->flags;
 	fa->polys = poly;
 	poly->numverts = lnumverts;
 
+	VectorCopy(fa->plane->normal, normal);
+
+	if(fa->flags & SURF_PLANEBACK)
+	{
+		// if for some reason the normal sticks to the back of the plane, invert it
+		// so it's usable for the shader
+		for (i=0; i<3; ++i)  normal[i] = -normal[i];
+	}
+
 	for (i = 0; i < lnumverts; i++)
 	{
+		gl3_3D_vtx_t* vert = &poly->vertices[i];
+
 		lindex = currentmodel->surfedges[fa->firstedge + i];
 
 		if (lindex > 0)
@@ -163,9 +175,9 @@ GL3_LM_BuildPolygonFromSurface(msurface_t *fa)
 		t /= fa->texinfo->image->height;
 
 		VectorAdd(total, vec, total);
-		VectorCopy(vec, poly->verts[i]);
-		poly->verts[i][3] = s;
-		poly->verts[i][4] = t;
+		VectorCopy(vec, vert->pos);
+		vert->texCoord[0] = s;
+		vert->texCoord[1] = t;
 
 		/* lightmap texture coordinates */
 		s = DotProduct(vec, fa->texinfo->vecs[0]) + fa->texinfo->vecs[0][3];
@@ -180,8 +192,10 @@ GL3_LM_BuildPolygonFromSurface(msurface_t *fa)
 		t += 8;
 		t /= BLOCK_HEIGHT * 16; /* fa->texinfo->texture->height; */
 
-		poly->verts[i][5] = s;
-		poly->verts[i][6] = t;
+		vert->lmTexCoord[0] = s;
+		vert->lmTexCoord[1] = t;
+
+		VectorCopy(normal, vert->normal);
 	}
 
 	poly->numverts = lnumverts;

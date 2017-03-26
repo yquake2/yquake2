@@ -43,8 +43,24 @@ enum {
 	SURF_DRAWBACKGROUND = 0x40,
 	SURF_UNDERWATER = 0x80,
 
-	VERTEXSIZE  = 7
+	//VERTEXSIZE  = 7 - is 10 now, and I use a struct - TODO: REMOVE!
 };
+
+// used for vertex array elements when drawing brushes, sprites, sky and more
+// (ok, it has the layout used for rendering brushes, but is not used there)
+typedef struct gl3_3D_vtx_s {
+	vec3_t pos;
+	float texCoord[2];
+	float lmTexCoord[2]; // lightmap texture coordinate (sometimes unused)
+	vec3_t normal;
+} gl3_3D_vtx_t;
+
+// used for vertex array elements when drawing models
+typedef struct gl3_alias_vtx_s {
+	GLfloat pos[3];
+	GLfloat texCoord[2];
+	GLfloat color[4];
+} gl3_alias_vtx_t;
 
 /* in memory representation */
 typedef struct
@@ -83,7 +99,7 @@ typedef struct glpoly_s
 	struct  glpoly_s *chain;
 	int numverts;
 	int flags; /* for SURF_UNDERWATER (not needed anymore?) */
-	float verts[4][VERTEXSIZE]; /* variable sized (xyz s1t1 s2t2) */
+	gl3_3D_vtx_t vertices[4]; /* variable sized */
 } glpoly_t;
 
 typedef struct msurface_s

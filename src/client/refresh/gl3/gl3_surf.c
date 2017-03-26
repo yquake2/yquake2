@@ -44,7 +44,8 @@ extern int numgl3textures;
 void GL3_SurfInit(void)
 {
 	// init the VAO and VBO for the standard vertexdata: 7 floats
-	// (X, Y, Z), (S, T), (LMS, LMT) - last two for lightmap
+	// (X, Y, Z), (S, T), (LMS, LMT), (normX, normY, normZ) - last two groups for lightmap/dynlights
+	// TODO: remove LMS, LMT? only used for lightmapped surfaces, but those need normal as well for dyn lights
 
 	glGenVertexArrays(1, &gl3state.vao3D);
 	GL3_BindVAO(gl3state.vao3D);
@@ -53,13 +54,16 @@ void GL3_SurfInit(void)
 	GL3_BindVBO(gl3state.vbo3D);
 
 	glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
-	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 0);
+	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(gl3_3D_vtx_t), 0);
 
 	glEnableVertexAttribArray(GL3_ATTRIB_TEXCOORD);
-	qglVertexAttribPointer(GL3_ATTRIB_TEXCOORD, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 3*sizeof(GLfloat));
+	qglVertexAttribPointer(GL3_ATTRIB_TEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(gl3_3D_vtx_t), offsetof(gl3_3D_vtx_t, texCoord));
 
 	glEnableVertexAttribArray(GL3_ATTRIB_LMTEXCOORD);
-	qglVertexAttribPointer(GL3_ATTRIB_LMTEXCOORD, 2, GL_FLOAT, GL_FALSE, VERTEXSIZE*sizeof(GLfloat), 5*sizeof(GLfloat));
+	qglVertexAttribPointer(GL3_ATTRIB_LMTEXCOORD, 2, GL_FLOAT, GL_FALSE, sizeof(gl3_3D_vtx_t), offsetof(gl3_3D_vtx_t, lmTexCoord));
+
+	glEnableVertexAttribArray(GL3_ATTRIB_NORMAL);
+	qglVertexAttribPointer(GL3_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(gl3_3D_vtx_t), offsetof(gl3_3D_vtx_t, normal));
 
 
 	// init VAO and VBO for model vertexdata: 9 floats
@@ -168,11 +172,9 @@ TextureAnimation(mtexinfo_t *tex)
 void
 GL3_DrawGLPoly(glpoly_t *p)
 {
-	float* v = p->verts[0];
-
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
-	glBufferData(GL_ARRAY_BUFFER, VERTEXSIZE*sizeof(GLfloat)*p->numverts, v, GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(gl3_3D_vtx_t)*p->numverts, p->vertices, GL_STREAM_DRAW);
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 }
@@ -201,7 +203,7 @@ GL3_DrawGLFlowingPoly(msurface_t *fa)
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
 
-	glBufferData(GL_ARRAY_BUFFER, VERTEXSIZE*sizeof(GLfloat)*p->numverts, p->verts[0], GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(gl3_3D_vtx_t)*p->numverts, p->vertices, GL_STREAM_DRAW);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
 }
 
@@ -241,10 +243,10 @@ DrawTriangleOutlines(void)
 
 					for (k=0; k<3; k++)
 					{
-						vtx[0+k] = p->verts [ 0 ][ k ];
-						vtx[3+k] = p->verts [ j - 1 ][ k ];
-						vtx[6+k] = p->verts [ j ][ k ];
-						vtx[9+k] = p->verts [ 0 ][ k ];
+						vtx[0+k] = p->vertices [ 0 ][ k ];
+						vtx[3+k] = p->vertices [ j - 1 ][ k ];
+						vtx[6+k] = p->vertices [ j ][ k ];
+						vtx[9+k] = p->vertices [ 0 ][ k ];
 					}
 
 					glEnableClientState( GL_VERTEX_ARRAY );
