@@ -2458,6 +2458,25 @@ R_DrawPathtracerDepthPrePass(void)
 		/* Draw the player weapon entity (this is also known as the viewmodel). */
 
 		glDepthRange(gldepthmin, gldepthmin + 0.3 * (gldepthmax - gldepthmin));
+
+		/* This transformation is a direct copy of the lefthand-weapon logic in R_DrawAliasModel. */
+		if (gl_lefthand->value == 1.0F)
+		{
+			extern void R_MYgluPerspective(GLdouble fovy, GLdouble aspect,
+					GLdouble zNear, GLdouble zFar);
+
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+			glScalef(-1, 1, 1);
+			R_MYgluPerspective(r_newrefdef.fov_y,
+					(float)r_newrefdef.width / r_newrefdef.height,
+					4, 4096);
+			glMatrixMode(GL_MODELVIEW);
+
+			glCullFace(GL_BACK);
+		}
+
 		glPushMatrix();
 		glTranslatef(r_newrefdef.vieworg[0], r_newrefdef.vieworg[1], r_newrefdef.vieworg[2]);
 		glScalef(PT_DEPTH_HACK_SCALE_DIVISOR, PT_DEPTH_HACK_SCALE_DIVISOR, PT_DEPTH_HACK_SCALE_DIVISOR);
@@ -2465,6 +2484,16 @@ R_DrawPathtracerDepthPrePass(void)
 		glPolygonOffset(128, 256);
 		glDrawElements(GL_TRIANGLES, element_count, GL_UNSIGNED_SHORT, (byte*)0 + pt_dynamic_triangles_offset * 2 * sizeof(pt_triangle_data[0]));
 		glPopMatrix();
+
+		/* This transformation is a direct copy of the lefthand-weapon logic in R_DrawAliasModel. */
+		if (gl_lefthand->value == 1.0F)
+		{
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glCullFace(GL_FRONT);
+		}
+
 		glDepthRange(gldepthmin, gldepthmax);
 	}
 
