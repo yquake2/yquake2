@@ -392,14 +392,17 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 		struct DynLight { // gl3UniDynLight in C
 			vec3 lightOrigin;
 			float _pad;
-			vec3 lightColor;
-			float lightIntensity;
+			//vec3 lightColor;
+			//float lightIntensity;
+			vec4 lightColor; // .a is intensity; this way it also works on OSX...
+			// (otherwise lightIntensity always contained 1 there)
 		};
 
 		layout (std140) uniform uniLights
 		{
 			DynLight dynLights[32];
 			uint numDynLights;
+			uint _pad1; uint _pad2; uint _pad3; // FFS, AMD!
 		};
 
 		uniform sampler2D tex;
@@ -442,23 +445,15 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 
 				if(fdist < 0) continue; // light is on wrong side of the plane
 
+				float intens = dynLights[i].lightColor.a;
+
 				vec3 lightToPos = dynLights[i].lightOrigin - passWorldCoord;
 				float distLightToPos = length(lightToPos);
-				float fact = max(0, dynLights[i].lightIntensity - distLightToPos - 64); // FIXME: really - 64 for DLIGHT_CUTOFF?
+				float fact = max(0, intens - distLightToPos - 64); // FIXME: really - 64 for DLIGHT_CUTOFF?
 
-				lmTex.rgb += dynLights[i].lightColor * fact * (1.0/256.0);
+				fact *= dot(passNormal, lightToPos/distLightToPos); // also factor in angle between light and surfaces
 
-				/* // the following is kinda like phong and doesn't work yet
-
-				if(fdist < 0) continue; // light is on wrong side of the plane
-				float fact = dot(passNormal, normalize(dynLights[i].lightOrigin-passWorldCoord));
-				vec3 lightToPos = dynLights[i].lightOrigin - passWorldCoord;
-				float distLightToPos = length(lightToPos);
-				fact *= (dynLights[i].lightIntensity - distLightToPos);
-				//fact -= fdist;
-				fact = max(fact, 0);
-				lmTex.rgb += dynLights[i].lightColor * fact * (1.0/256.0);
-				*/
+				lmTex.rgb += dynLights[i].lightColor.rgb * fact * (1.0/256.0);
 			}
 
 			lmTex.rgb *= overbrightbits;
