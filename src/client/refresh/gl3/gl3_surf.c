@@ -43,9 +43,8 @@ extern int numgl3textures;
 
 void GL3_SurfInit(void)
 {
-	// init the VAO and VBO for the standard vertexdata: 7 floats
+	// init the VAO and VBO for the standard vertexdata: 10 floats and 1 uint
 	// (X, Y, Z), (S, T), (LMS, LMT), (normX, normY, normZ) - last two groups for lightmap/dynlights
-	// TODO: remove LMS, LMT? only used for lightmapped surfaces, but those need normal as well for dyn lights
 
 	glGenVertexArrays(1, &gl3state.vao3D);
 	GL3_BindVAO(gl3state.vao3D);
@@ -64,6 +63,10 @@ void GL3_SurfInit(void)
 
 	glEnableVertexAttribArray(GL3_ATTRIB_NORMAL);
 	qglVertexAttribPointer(GL3_ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(gl3_3D_vtx_t), offsetof(gl3_3D_vtx_t, normal));
+
+	glEnableVertexAttribArray(GL3_ATTRIB_LIGHTFLAGS);
+	qglVertexAttribIPointer(GL3_ATTRIB_LIGHTFLAGS, 1, GL_UNSIGNED_INT, sizeof(gl3_3D_vtx_t), offsetof(gl3_3D_vtx_t, lightFlags));
+
 
 
 	// init VAO and VBO for model vertexdata: 9 floats
@@ -169,9 +172,32 @@ TextureAnimation(mtexinfo_t *tex)
 	return tex->image;
 }
 
-void
-GL3_DrawGLPoly(glpoly_t *p)
+
+static void
+SetLightFlags(msurface_t *surf)
 {
+	unsigned int lightFlags = 0;
+	if (surf->dlightframe == gl3_framecount)
+	{
+		lightFlags = surf->dlightbits;
+	}
+
+	gl3_3D_vtx_t* verts = surf->polys->vertices;
+
+	int numVerts = surf->polys->numverts;
+	for(int i=0; i<numVerts; ++i)
+	{
+		verts[i].lightFlags = lightFlags;
+	}
+}
+
+void
+GL3_DrawGLPoly(msurface_t *fa)
+{
+	glpoly_t *p = fa->polys;
+
+	SetLightFlags(fa);
+
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(gl3_3D_vtx_t)*p->numverts, p->vertices, GL_STREAM_DRAW);
@@ -184,6 +210,8 @@ GL3_DrawGLFlowingPoly(msurface_t *fa)
 {
 	glpoly_t *p;
 	float scroll;
+
+	SetLightFlags(fa);
 
 	p = fa->polys;
 
@@ -372,7 +400,7 @@ RenderBrushPoly(msurface_t *fa)
 	{
 		GL3_UseProgram(gl3state.si3Dlm.shaderProgram);
 		UpdateLMscales(lmScales, &gl3state.si3Dlm);
-		GL3_DrawGLPoly(fa->polys);
+		GL3_DrawGLPoly(fa);
 	}
 
 	// Note: lightmap chains are gone, lightmaps are rendered together with normal texture in one pass
@@ -430,7 +458,7 @@ GL3_DrawAlphaSurfaces(void)
 		else
 		{
 			GL3_UseProgram(gl3state.si3Dtrans.shaderProgram);
-			GL3_DrawGLPoly(s->polys);
+			GL3_DrawGLPoly(s);
 		}
 	}
 
@@ -558,7 +586,7 @@ RenderLightmappedPoly(msurface_t *surf)
 	{
 		GL3_UseProgram(gl3state.si3Dlm.shaderProgram);
 		UpdateLMscales(lmScales, &gl3state.si3Dlm);
-		GL3_DrawGLPoly(surf->polys);
+		GL3_DrawGLPoly(surf);
 	}
 }
 

@@ -64,6 +64,12 @@ qglVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normaliz
 	glVertexAttribPointer(index, size, type, normalized, stride, (const void*)offset);
 }
 
+static inline void
+qglVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
+{
+	glVertexAttribIPointer(index, size, type, stride, (void*)offset);
+}
+
 // attribute locations for vertex shaders
 enum {
 	GL3_ATTRIB_POSITION   = 0,
@@ -71,6 +77,7 @@ enum {
 	GL3_ATTRIB_LMTEXCOORD = 2, // for lightmap
 	GL3_ATTRIB_COLOR      = 3, // per-vertex color
 	GL3_ATTRIB_NORMAL     = 4, // vertex normal
+	GL3_ATTRIB_LIGHTFLAGS = 5  // uint, each set bit means "dyn light i affects this surface"
 };
 
 // TODO: do we need the following configurable?
@@ -444,7 +451,7 @@ extern void GL3_AddSkySurface(msurface_t *fa);
 // gl3_surf.c
 extern void GL3_SurfInit(void);
 extern void GL3_SurfShutdown(void);
-extern void GL3_DrawGLPoly(glpoly_t *p);
+extern void GL3_DrawGLPoly(msurface_t *fa);
 extern void GL3_DrawGLFlowingPoly(msurface_t *fa);
 extern void GL3_DrawTriangleOutlines(void);
 extern void GL3_DrawAlphaSurfaces(void);

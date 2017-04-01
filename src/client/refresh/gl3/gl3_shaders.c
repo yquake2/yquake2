@@ -110,6 +110,7 @@ CreateShaderProgram(int numShaders, const GLuint* shaders)
 	glBindAttribLocation(shaderProgram, GL3_ATTRIB_LMTEXCOORD, "lmTexCoord");
 	glBindAttribLocation(shaderProgram, GL3_ATTRIB_COLOR, "vertColor");
 	glBindAttribLocation(shaderProgram, GL3_ATTRIB_NORMAL, "normal");
+	glBindAttribLocation(shaderProgram, GL3_ATTRIB_LIGHTFLAGS, "lightFlags");
 
 	// the following line is not necessary/implicit (as there's only one output)
 	// glBindFragDataLocation(shaderProgram, 0, "outColor"); XXX would this even be here?
@@ -262,6 +263,7 @@ static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
 		in vec2 lmTexCoord; // GL3_ATTRIB_LMTEXCOORD
 		in vec4 vertColor;  // GL3_ATTRIB_COLOR
 		in vec3 normal;     // GL3_ATTRIB_NORMAL
+		in uint lightFlags; // GL3_ATTRIB_LIGHTFLAGS
 
 		out vec2 passTexCoord;
 
@@ -337,6 +339,7 @@ static const char* vertexSrc3Dlm = MULTILINE_STRING(
 		out vec2 passLMcoord;
 		out vec3 passWorldCoord;
 		out vec3 passNormal;
+		flat out uint passLightFlags;
 
 		void main()
 		{
@@ -344,6 +347,7 @@ static const char* vertexSrc3Dlm = MULTILINE_STRING(
 			passLMcoord = lmTexCoord;
 			passWorldCoord = position; // TODO: multiply with model matrix for brush-based entities
 			passNormal = normalize(normal); // TODO: multiply with model matrix and normalize
+			passLightFlags = lightFlags;
 
 			gl_Position = transProj * transModelView * vec4(position, 1.0);
 		}
@@ -356,6 +360,7 @@ static const char* vertexSrc3DlmFlow = MULTILINE_STRING(
 		out vec2 passLMcoord;
 		out vec3 passWorldCoord;
 		out vec3 passNormal;
+		flat out uint passLightFlags;
 
 		void main()
 		{
@@ -363,6 +368,7 @@ static const char* vertexSrc3DlmFlow = MULTILINE_STRING(
 			passLMcoord = lmTexCoord;
 			passWorldCoord = position; // TODO: multiply with model matrix for brush-based entities
 			passNormal = normalize(normal); // TODO: multiply with model matrix and normalize
+			passLightFlags = lightFlags;
 
 			gl_Position = transProj * transModelView * vec4(position, 1.0);
 		}
@@ -417,6 +423,7 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 		in vec2 passLMcoord;
 		in vec3 passWorldCoord;
 		in vec3 passNormal;
+		flat in uint passLightFlags;
 
 		void main()
 		{
@@ -431,36 +438,37 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 			lmTex     += texture(lightmap2, passLMcoord) * lmScales[2];
 			lmTex     += texture(lightmap3, passLMcoord) * lmScales[3];
 
-			float planeDist = -dot(passNormal, passWorldCoord); // signed dist to origin, hopefully like msurface_t->plane->dist
-
-			// TODO: or is hardcoding 32 better?
-			for(uint i=uint(0); i<numDynLights; ++i)
+			if(passLightFlags != 0u)
 			{
-				// I made the following up, it's probably not too cool..
-				// it basically checks if the light is on the right side of the surface
-				// and, if it is, sets intensity according to distance between light and pixel on surface
+				// TODO: or is hardcoding 32 better?
+				//for(uint i=0u; i<numDynLights; ++i)
+				for(uint i=0u; i < 32u; ++i)
+				{
+					// I made the following up, it's probably not too cool..
+					// it basically checks if the light is on the right side of the surface
+					// and, if it is, sets intensity according to distance between light and pixel on surface
 
-				// signed distance between light and plane
-				float fdist = dot(passNormal, dynLights[i].lightOrigin) + planeDist;
+					// dyn light number i does not affect this plane, just skip it
+					if((passLightFlags & (1u << i)) == 0u)  continue;
 
-				if(fdist < 0) continue; // light is on wrong side of the plane
+					float intens = dynLights[i].lightColor.a;
 
-				float intens = dynLights[i].lightColor.a;
+					vec3 lightToPos = dynLights[i].lightOrigin - passWorldCoord;
+					float distLightToPos = length(lightToPos);
+					float fact = max(0, intens - distLightToPos - 64); // FIXME: really -64 for DLIGHT_CUTOFF?
 
-				vec3 lightToPos = dynLights[i].lightOrigin - passWorldCoord;
-				float distLightToPos = length(lightToPos);
-				float fact = max(0, intens - distLightToPos - 64); // FIXME: really - 64 for DLIGHT_CUTOFF?
+					// also factor in angle between light and point on surface
+					fact *= dot(passNormal, lightToPos/distLightToPos);
 
-				fact *= dot(passNormal, lightToPos/distLightToPos); // also factor in angle between light and surfaces
-
-				lmTex.rgb += dynLights[i].lightColor.rgb * fact * (1.0/256.0);
+					lmTex.rgb += dynLights[i].lightColor.rgb * fact * (1.0/256.0);
+				}
 			}
 
 			lmTex.rgb *= overbrightbits;
 			outColor = lmTex*texel;
 			outColor.rgb = pow(outColor.rgb, vec3(gamma)); // apply gamma correction to result
+
 			outColor.a = 1; // lightmaps aren't used with translucent surfaces
-					//texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
 		}
 );
 
@@ -845,13 +853,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 
 		glUniformBlockBinding(prog, blockIndex, GL3_BINDINGPOINT_UNILIGHTS);
 	}
-	else
-	{
-		// TODO: warn about this? only the lightmapped shaders have/need this..
-		R_Printf(PRINT_ALL, "WARNING: Couldn't find uniform block index 'uniLights'\n");
-
-		//goto err_cleanup;
-	}
+	// else: as uniLights is only used in the LM shaders, it's ok if it's missing
 
 	// make sure texture is GL_TEXTURE0
 	GLint texLoc = glGetUniformLocation(prog, "tex");

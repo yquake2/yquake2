@@ -70,6 +70,12 @@ GL3_MarkLights(dlight_t *light, int bit, mnode_t *node)
 
 	for (i = 0; i < node->numsurfaces; i++, surf++)
 	{
+		if (surf->dlightframe != r_dlightframecount)
+		{
+			surf->dlightbits = 0;
+			surf->dlightframe = r_dlightframecount;
+		}
+
 		dist = DotProduct(light->origin, surf->plane->normal) - surf->plane->dist;
 
 		if (dist >= 0)
@@ -84,12 +90,6 @@ GL3_MarkLights(dlight_t *light, int bit, mnode_t *node)
 		if ((surf->flags & SURF_PLANEBACK) != sidebit)
 		{
 			continue;
-		}
-
-		if (surf->dlightframe != r_dlightframecount)
-		{
-			surf->dlightbits = 0;
-			surf->dlightframe = r_dlightframecount;
 		}
 
 		surf->dlightbits |= bit;

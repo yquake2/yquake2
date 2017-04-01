@@ -196,6 +196,7 @@ GL3_LM_BuildPolygonFromSurface(msurface_t *fa)
 		vert->lmTexCoord[1] = t;
 
 		VectorCopy(normal, vert->normal);
+		vert->lightFlags = 0;
 	}
 
 	poly->numverts = lnumverts;
