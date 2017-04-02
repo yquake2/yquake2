@@ -177,7 +177,12 @@ VID_CheckChanges(void)
 		cls.disable_screen = true;
 
 		// Proceed to reboot the refresher
-		VID_LoadRefresh();
+		if(!VID_LoadRefresh() && (strcmp(vid_ref->string, "gl") != 0)) // TODO: gl => gl1
+		{
+			Com_Printf("\n ... trying again with standard OpenGL1.x renderer ... \n\n");
+			Cvar_Set("vid_ref", "gl");
+			VID_LoadRefresh();
+		}
 		cls.disable_screen = false;
 	}
 }
@@ -326,6 +331,7 @@ VID_LoadRefresh(void)
 #else
 	const char* lib_ext = "so";
 #endif
+	char reflib_name[64] = {0};
 	char reflib_path[MAX_OSPATH] = {0};
 
 	// If the refresher is already active
@@ -335,12 +341,13 @@ VID_LoadRefresh(void)
 	// Log it!
 	Com_Printf("----- refresher initialization -----\n");
 
-	snprintf(reflib_path, sizeof(reflib_path), "./ref_%s.%s", vid_ref->string, lib_ext);
+	snprintf(reflib_name, sizeof(reflib_name), "ref_%s.%s", vid_ref->string, lib_ext);
+	snprintf(reflib_path, sizeof(reflib_path), "%s%s", Sys_GetBinaryDir(), reflib_name);
 
 	GetRefAPI = Sys_LoadLibrary(reflib_path, "GetRefAPI", &reflib_handle);
 	if(GetRefAPI == NULL)
 	{
-		Com_Error( ERR_FATAL, "Loading %s as renderer lib failed!", reflib_path );
+		Com_Error( ERR_FATAL, "Loading %s as renderer lib failed!", reflib_name );
 		return false;
 	}
 
@@ -374,14 +381,14 @@ VID_LoadRefresh(void)
 	if (re.api_version != API_VERSION)
 	{
 		VID_Shutdown();
-		Com_Error (ERR_FATAL, "%s has incompatible api_version %d", reflib_path, re.api_version);
+		Com_Error (ERR_FATAL, "%s has incompatible api_version %d", reflib_name, re.api_version);
 	}
 
 	// Initiate the refresher
 	if (!re.Init())
 	{
 		VID_Shutdown(); // Isn't that just too bad? :(
-		Com_Printf("ERROR: Loading %s as rendering backend failed!\n", reflib_path);
+		Com_Printf("ERROR: Loading %s as rendering backend failed!\n", reflib_name);
 		Com_Printf("------------------------------------\n\n");
 		return false; // TODO: try again with default renderer?
 	}
@@ -389,7 +396,7 @@ VID_LoadRefresh(void)
 	/* Ensure that all key states are cleared */
 	Key_MarkAllUp();
 
-	Com_Printf("Successfully loaded %s as rendering backend\n", reflib_path);
+	Com_Printf("Successfully loaded %s as rendering backend\n", reflib_name);
 	Com_Printf("------------------------------------\n\n");
 	return true;
 }
