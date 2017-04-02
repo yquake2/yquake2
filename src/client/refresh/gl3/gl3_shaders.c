@@ -391,6 +391,23 @@ static const char* fragmentSrc3D = MULTILINE_STRING(
 		}
 );
 
+static const char* fragmentSrc3Dwater = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from fragmentCommon3D
+
+		uniform sampler2D tex;
+
+		void main()
+		{
+			vec4 texel = texture(tex, passTexCoord);
+
+			// apply intensity and gamma
+			texel.rgb *= intensity*0.5;
+			outColor.rgb = pow(texel.rgb, vec3(gamma));
+			outColor.a = texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
+		}
+);
+
 static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 
 		// it gets attributes and uniforms from fragmentCommon3D
@@ -629,8 +646,7 @@ static const char* vertexSrcParticles = MULTILINE_STRING(
 			// abusing texCoord for pointSize, pointDist for particles
 			float pointDist = texCoord.y*0.1; // with factor 0.1 it looks good.
 
-			// 1.4 to make them a bit bigger, they look smaller due to fading (see fragment shader)
-			gl_PointSize = 1.4*texCoord.x/pointDist;
+			gl_PointSize = texCoord.x/pointDist;
 		}
 );
 
@@ -906,7 +922,7 @@ err_cleanup:
 static void initUBOs(void)
 {
 	gl3state.uniCommonData.gamma = 1.0f/vid_gamma->value;
-	gl3state.uniCommonData.intensity = intensity->value;
+	gl3state.uniCommonData.intensity = gl3_intensity->value;
 	gl3state.uniCommonData.color = HMM_Vec4(1, 1, 1, 1);
 
 	glGenBuffers(1, &gl3state.uniCommonUBO);
@@ -930,7 +946,7 @@ static void initUBOs(void)
 	gl3state.uni3DData.time = 0.0f;
 	gl3state.uni3DData.alpha = 1.0f;
 	// gl_overbrightbits 0 means "no scaling" which is equivalent to multiplying with 1
-	gl3state.uni3DData.overbrightbits = (gl_overbrightbits->value <= 0.0f) ? 1.0f : gl_overbrightbits->value;
+	gl3state.uni3DData.overbrightbits = (gl3_overbrightbits->value <= 0.0f) ? 1.0f : gl3_overbrightbits->value;
 
 	glGenBuffers(1, &gl3state.uni3DUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uni3DUBO);
@@ -981,7 +997,7 @@ qboolean GL3_InitShaders(void)
 		return false;
 	}
 	*/
-	if(!initShader3D(&gl3state.si3Dturb, vertexSrc3Dwater, fragmentSrc3D))
+	if(!initShader3D(&gl3state.si3Dturb, vertexSrc3Dwater, fragmentSrc3Dwater))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for water rendering!\n");
 		return false;

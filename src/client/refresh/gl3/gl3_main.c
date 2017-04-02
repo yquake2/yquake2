@@ -92,14 +92,14 @@ cvar_t *gl_anisotropic;
 cvar_t *gl_texturemode;
 cvar_t *gl_drawbuffer;
 cvar_t *gl_clear;
-cvar_t *gl_particle_size;
+cvar_t *gl3_particle_size;
 
 cvar_t *gl_lefthand;
 cvar_t *gl_farsee;
 
-cvar_t *intensity;
+cvar_t *gl3_intensity;
 cvar_t *gl_lightlevel;
-cvar_t *gl_overbrightbits;
+cvar_t *gl3_overbrightbits;
 
 cvar_t *gl_norefresh;
 cvar_t *gl_drawentities;
@@ -202,7 +202,7 @@ GL3_Register(void)
 	gl_mode = ri.Cvar_Get("gl_mode", "4", CVAR_ARCHIVE);
 	gl_customwidth = ri.Cvar_Get("gl_customwidth", "1024", CVAR_ARCHIVE);
 	gl_customheight = ri.Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
-	gl_particle_size = ri.Cvar_Get("gl_particle_size", "40", CVAR_ARCHIVE);
+	gl3_particle_size = ri.Cvar_Get("gl3_particle_size", "60", CVAR_ARCHIVE);
 
 	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
 	gl_drawentities = ri.Cvar_Get("gl_drawentities", "1", 0);
@@ -218,10 +218,10 @@ GL3_Register(void)
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
-	intensity = ri.Cvar_Get("intensity", "2.0", CVAR_ARCHIVE);
+	gl3_intensity = ri.Cvar_Get("gl3_intensity", "1.5", CVAR_ARCHIVE);
 
 	gl_lightlevel = ri.Cvar_Get("gl_lightlevel", "0", 0);
-	gl_overbrightbits = ri.Cvar_Get("gl_overbrightbits", "0", CVAR_ARCHIVE);
+	gl3_overbrightbits = ri.Cvar_Get("gl3_overbrightbits", "1.5", CVAR_ARCHIVE);
 
 	gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
 	gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
@@ -811,14 +811,14 @@ GL3_DrawParticles(void)
 	//qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
 	//qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
 
-	//if (gl_config.pointparameters && !(stereo_split_tb || stereo_split_lr))
+	//if (!(stereo_split_tb || stereo_split_lr))
 	{
 		int i;
 		int numParticles = gl3_newrefdef.num_particles;
 		unsigned char color[4];
 		const particle_t *p;
-		// assume the size looks good with window height 600px and scale according to real resolution
-		float pointSize = gl_particle_size->value * (float)gl3_newrefdef.height/600.0f;
+		// assume the size looks good with window height 480px and scale according to real resolution
+		float pointSize = gl3_particle_size->value * (float)gl3_newrefdef.height/480.0f;
 
 		typedef struct part_vtx {
 			GLfloat pos[3];
@@ -1615,28 +1615,28 @@ GL3_BeginFrame(float camera_separation)
 	}
 #endif // 0
 
-	if (vid_gamma->modified || intensity->modified)
+	if (vid_gamma->modified || gl3_intensity->modified)
 	{
 		vid_gamma->modified = false;
-		intensity->modified = false;
+		gl3_intensity->modified = false;
 
 		gl3state.uniCommonData.gamma = 1.0f/vid_gamma->value;
-		gl3state.uniCommonData.intensity = intensity->value;
+		gl3state.uniCommonData.intensity = gl3_intensity->value;
 		GL3_UpdateUBOCommon();
 	}
 
 	// in GL3, overbrightbits can have any positive value
 	// TODO: rename to gl3_overbrightbits?
-	if (gl_overbrightbits->modified)
+	if (gl3_overbrightbits->modified)
 	{
-		gl_overbrightbits->modified = false;
+		gl3_overbrightbits->modified = false;
 
-		if(gl_overbrightbits->value < 0.0f)
+		if(gl3_overbrightbits->value < 0.0f)
 		{
 			ri.Cvar_Set("gl_overbrightbits", "0");
 		}
 
-		gl3state.uni3DData.overbrightbits = (gl_overbrightbits->value <= 0.0f) ? 1.0f : gl_overbrightbits->value;
+		gl3state.uni3DData.overbrightbits = (gl3_overbrightbits->value <= 0.0f) ? 1.0f : gl3_overbrightbits->value;
 		GL3_UpdateUBO3D();
 	}
 
