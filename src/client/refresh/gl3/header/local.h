@@ -138,7 +138,8 @@ typedef struct
 typedef struct
 {
 	hmm_mat4 transProjMat4;
-	hmm_mat4 transModelViewMat4;
+	hmm_mat4 transViewMat4;
+	hmm_mat4 transModelMat4;
 
 	hmm_vec2 lmOffset;
 
@@ -149,6 +150,8 @@ typedef struct
 
 		GLfloat _padding[2]; // again, some padding to ensure this has right size
 } gl3Uni3D_t;
+
+extern const hmm_mat4 gl3_identityMat4;
 
 typedef struct
 {

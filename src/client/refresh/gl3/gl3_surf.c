@@ -336,36 +336,8 @@ RenderBrushPoly(msurface_t *fa)
 		GL3_Bind(image->texnum);
 
 		STUB_ONCE("TODO: do something about inverse intensity on water surfaces b/c they have no lightmap!");
-#if 0 // TODO
-		/* This is a hack ontop of a hack. Warping surfaces like those generated
-		   by R_EmitWaterPolys() don't have a lightmap. Original Quake II therefore
-		   negated the global intensity on those surfaces, because otherwise they
-		   would show up much too bright. When we implemented overbright bits this
-		   hack modified the global GL state in an incompatible way. So implement
-		   a new hack, based on overbright bits... Depending on the value set to
-		   gl_overbrightbits the result is different:
-
-		    0: Old behaviour.
-		    1: No overbright bits on the global scene but correct lightning on
-		       warping surfaces.
-		    2: Overbright bits on the global scene but not on warping surfaces.
-		        They oversaturate otherwise. */
-		if (gl_overbrightbits->value)
-		{
-			R_TexEnv(GL_COMBINE_EXT);
-			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 1);
-		}
-		else
-		{
-			R_TexEnv(GL_MODULATE);
-			glColor4f(gl3state.inverse_intensity, gl3state.inverse_intensity,
-					  gl3state.inverse_intensity, 1.0f);
-		}
-#endif // 0
 
 		GL3_EmitWaterPolys(fa);
-
-		//R_TexEnv(GL_REPLACE); TODO
 
 		return;
 	}
@@ -417,7 +389,7 @@ GL3_DrawAlphaSurfaces(void)
 	msurface_t *s;
 
 	/* go back to the world matrix */
-	gl3state.uni3DData.transModelViewMat4 = gl3_world_matrix;
+	gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
 	GL3_UpdateUBO3D();
 
 	glEnable(GL_BLEND);
@@ -539,37 +511,6 @@ RenderLightmappedPoly(msurface_t *surf)
 			STUB_ONCE("TODO: Handle dynamic lights!");
 		}
 	}
-
-#if 0 // TODO!
-	if (is_dynamic)
-	{
-		// Dynamic lights on a surface - NOTE: this is handled via lmScales
-		if (((surf->styles[map] >= 32) || (surf->styles[map] == 0)) && (surf->dlightframe != r_framecount))
-		{
-
-		}
-		else // Normal dynamic lights - NOTE: This is still missing, but will not be done by creating a dynamic lightmap.
-		{
-			smax = (surf->extents[0] >> 4) + 1;
-			tmax = (surf->extents[1] >> 4) + 1;
-
-			GL3_BuildLightMap(surf, (void *) temp, smax * 4);
-			//R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + 0);
-			GL3_BindLightmap(0);
-
-			lmtex = 0;
-
-			glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t, smax,
-							tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
-		}
-
-		c_brush_polys++;
-
-		R_MBind(GL_TEXTURE0_ARB, image->texnum);
-		R_MBind(GL_TEXTURE1_ARB, gl_state.lightmap_textures + lmtex);
-	}
-
-#endif // 0
 
 	c_brush_polys++;
 
@@ -719,7 +660,7 @@ GL3_DrawBrushModel(entity_t *e)
 
 
 	//glPushMatrix();
-	hmm_mat4 oldMat = gl3state.uni3DData.transModelViewMat4;
+	hmm_mat4 oldMat = gl3state.uni3DData.transModelMat4;
 
 	e->angles[0] = -e->angles[0];
 	e->angles[2] = -e->angles[2];
@@ -745,7 +686,7 @@ GL3_DrawBrushModel(entity_t *e)
 	DrawInlineBModel();
 
 	// glPopMatrix();
-	gl3state.uni3DData.transModelViewMat4 = oldMat;
+	gl3state.uni3DData.transModelMat4 = oldMat;
 	GL3_UpdateUBO3D();
 
 	if (gl_zfix->value)

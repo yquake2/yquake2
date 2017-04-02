@@ -271,7 +271,8 @@ static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
 		layout (std140) uniform uni3D
 		{
 			mat4 transProj;
-			mat4 transModelView; // TODO: or maybe transViewProj and transModel ??
+			mat4 transView;
+			mat4 transModel;
 			vec2 lmOffset;
 			float scroll; // for SURF_FLOWING
 			float time;
@@ -300,7 +301,8 @@ static const char* fragmentCommon3D = MULTILINE_STRING(#version 150\n
 		layout (std140) uniform uni3D
 		{
 			mat4 transProj;
-			mat4 transModelView; // TODO: or maybe transViewProj and transModel ??
+			mat4 transView;
+			mat4 transModel;
 			vec2 lmOffset;
 			float scroll; // for SURF_FLOWING
 			float time;
@@ -317,7 +319,7 @@ static const char* vertexSrc3D = MULTILINE_STRING(
 		void main()
 		{
 			passTexCoord = texCoord;
-			gl_Position = transProj * transModelView * vec4(position, 1.0);
+			gl_Position = transProj * transView * transModel * vec4(position, 1.0);
 		}
 );
 
@@ -328,7 +330,7 @@ static const char* vertexSrc3Dflow = MULTILINE_STRING(
 		void main()
 		{
 			passTexCoord = texCoord + vec2(0, scroll);
-			gl_Position = transProj * transModelView * vec4(position, 1.0);
+			gl_Position = transProj * transView * transModel * vec4(position, 1.0);
 		}
 );
 
@@ -345,11 +347,13 @@ static const char* vertexSrc3Dlm = MULTILINE_STRING(
 		{
 			passTexCoord = texCoord;
 			passLMcoord = lmTexCoord;
-			passWorldCoord = position; // TODO: multiply with model matrix for brush-based entities
-			passNormal = normalize(normal); // TODO: multiply with model matrix and normalize
+			vec4 worldCoord = transModel * vec4(position, 1.0);
+			passWorldCoord = worldCoord.xyz;
+			vec4 worldNormal = transModel * vec4(normal, 0.0f);
+			passNormal = normalize(worldNormal.xyz);
 			passLightFlags = lightFlags;
 
-			gl_Position = transProj * transModelView * vec4(position, 1.0);
+			gl_Position = transProj * transView * worldCoord;
 		}
 );
 
@@ -366,11 +370,13 @@ static const char* vertexSrc3DlmFlow = MULTILINE_STRING(
 		{
 			passTexCoord = texCoord + vec2(0, scroll);
 			passLMcoord = lmTexCoord;
-			passWorldCoord = position; // TODO: multiply with model matrix for brush-based entities
-			passNormal = normalize(normal); // TODO: multiply with model matrix and normalize
+			vec4 worldCoord = transModel * vec4(position, 1.0);
+			passWorldCoord = worldCoord.xyz;
+			vec4 worldNormal = transModel * vec4(normal, 0.0f);
+			passNormal = normalize(worldNormal.xyz);
 			passLightFlags = lightFlags;
 
-			gl_Position = transProj * transModelView * vec4(position, 1.0);
+			gl_Position = transProj * transView * worldCoord;
 		}
 );
 
@@ -458,8 +464,7 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 			if(passLightFlags != 0u)
 			{
 				// TODO: or is hardcoding 32 better?
-				//for(uint i=0u; i<numDynLights; ++i)
-				for(uint i=0u; i < 32u; ++i)
+				for(uint i=0u; i<numDynLights; ++i)
 				{
 					// I made the following up, it's probably not too cool..
 					// it basically checks if the light is on the right side of the surface
@@ -572,7 +577,7 @@ static const char* vertexSrc3Dwater = MULTILINE_STRING(
 			tc *= 1.0/64.0; // do this last
 			passTexCoord = tc;
 
-			gl_Position = transProj * transModelView * vec4(position, 1.0);
+			gl_Position = transProj * transView * transModel * vec4(position, 1.0);
 		}
 );
 
@@ -586,7 +591,7 @@ static const char* vertexSrcAlias = MULTILINE_STRING(
 		{
 			passColor = vertColor*overbrightbits;
 			passTexCoord = texCoord;
-			gl_Position = transProj * transModelView * vec4(position, 1.0);
+			gl_Position = transProj * transView * transModel * vec4(position, 1.0);
 		}
 );
 
@@ -641,7 +646,7 @@ static const char* vertexSrcParticles = MULTILINE_STRING(
 		void main()
 		{
 			passColor = vertColor;
-			gl_Position = transProj * transModelView * vec4(position, 1.0);
+			gl_Position = transProj * transView * transModel * vec4(position, 1.0);
 
 			// abusing texCoord for pointSize, pointDist for particles
 			float pointDist = texCoord.y*0.1; // with factor 0.1 it looks good.
@@ -940,7 +945,8 @@ static void initUBOs(void)
 
 	// the matrices will be set to something more useful later, before being used
 	gl3state.uni3DData.transProjMat4 = HMM_Mat4();
-	gl3state.uni3DData.transModelViewMat4 = HMM_Mat4();
+	gl3state.uni3DData.transViewMat4 = HMM_Mat4();
+	gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
 	gl3state.uni3DData.lmOffset = HMM_Vec2(0.0f, 0.0f);
 	gl3state.uni3DData.scroll = 0.0f;
 	gl3state.uni3DData.time = 0.0f;

@@ -80,6 +80,13 @@ static float v_blend[4]; /* final blending color */
 
 int gl3_viewcluster, gl3_viewcluster2, gl3_oldviewcluster, gl3_oldviewcluster2;
 
+const hmm_mat4 gl3_identityMat4 = {{
+		{1, 0, 0, 0},
+		{0, 1, 0, 0},
+		{0, 0, 1, 0},
+		{0, 0, 0, 1},
+}};
+
 cvar_t *gl_msaa_samples;
 cvar_t *gl_swapinterval;
 cvar_t *gl_retexturing;
@@ -163,7 +170,7 @@ GL3_RotateForEntity(entity_t *e)
 		transMat.Elements[3][i] = e->origin[i]; // set translation
 	}
 
-	gl3state.uni3DData.transModelViewMat4 = HMM_MultiplyMat4(gl3state.uni3DData.transModelViewMat4, transMat);
+	gl3state.uni3DData.transModelMat4 = HMM_MultiplyMat4(gl3state.uni3DData.transModelMat4, transMat);
 
 	GL3_UpdateUBO3D();
 }
@@ -769,7 +776,7 @@ GL3_DrawNullModel(void)
 		GL3_LightPoint(currententity->origin, shadelight);
 	}
 
-	hmm_mat4 origMVmat = gl3state.uni3DData.transModelViewMat4;
+	hmm_mat4 origModelMat = gl3state.uni3DData.transModelMat4;
 	GL3_RotateForEntity(currententity);
 
 	gl3state.uniCommonData.color = HMM_Vec4( shadelight[0], shadelight[1], shadelight[2], 1 );
@@ -800,7 +807,7 @@ GL3_DrawNullModel(void)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vtxB), vtxB, GL_STREAM_DRAW);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 6);
 
-	gl3state.uni3DData.transModelViewMat4 = origMVmat;
+	gl3state.uni3DData.transModelMat4 = origModelMat;
 	GL3_UpdateUBO3D();
 }
 
@@ -1254,7 +1261,8 @@ SetupGL(void)
 	}
 
 	gl3state.uni3DData.transProjMat4 = gl3_projectionMatrix;
-	gl3state.uni3DData.transModelViewMat4 = gl3_world_matrix;
+	gl3state.uni3DData.transViewMat4 = gl3_world_matrix;
+	gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
 
 	gl3state.uni3DData.time = gl3_newrefdef.time;
 

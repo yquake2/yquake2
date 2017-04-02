@@ -681,18 +681,18 @@ GL3_DrawSkyBox(void)
 	}
 
 	// glPushMatrix();
-	hmm_mat4 origMVmat = gl3state.uni3DData.transModelViewMat4;
+	hmm_mat4 origModelMat = gl3state.uni3DData.transModelMat4;
 
 	// glTranslatef(gl3_origin[0], gl3_origin[1], gl3_origin[2]);
 	hmm_vec3 transl = HMM_Vec3(gl3_origin[0], gl3_origin[1], gl3_origin[2]);
-	hmm_mat4 modMVmat = HMM_MultiplyMat4(origMVmat, HMM_Translate(transl));
+	hmm_mat4 modMVmat = HMM_MultiplyMat4(origModelMat, HMM_Translate(transl));
 	if(skyrotate != 0.0f)
 	{
 		// glRotatef(gl3_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
 		hmm_vec3 rotAxis = HMM_Vec3(skyaxis[0], skyaxis[1], skyaxis[2]);
 		modMVmat = HMM_MultiplyMat4(modMVmat, HMM_Rotate(gl3_newrefdef.time * skyrotate, rotAxis));
 	}
-	gl3state.uni3DData.transModelViewMat4 = modMVmat;
+	gl3state.uni3DData.transModelMat4 = modMVmat;
 	GL3_UpdateUBO3D();
 
 	GL3_UseProgram(gl3state.si3Dsky.shaderProgram);
@@ -731,6 +731,6 @@ GL3_DrawSkyBox(void)
 	}
 
 	// glPopMatrix();
-	gl3state.uni3DData.transModelViewMat4 = origMVmat;
+	gl3state.uni3DData.transModelMat4 = origModelMat;
 	GL3_UpdateUBO3D();
 }

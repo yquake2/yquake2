@@ -558,7 +558,7 @@ GL3_DrawAliasModel(entity_t *e)
 	gl3image_t *skin;
 	hmm_mat4 origProjMat = {0}; // use for left-handed rendering
 	// used to restore ModelView matrix after changing it for this entities position/rotation
-	hmm_mat4 origMVmat = {0};
+	hmm_mat4 origModelMat = {0};
 
 	if (!(e->flags & RF_WEAPONMODEL))
 	{
@@ -740,7 +740,7 @@ GL3_DrawAliasModel(entity_t *e)
 
 
 	//glPushMatrix();
-	origMVmat = gl3state.uni3DData.transModelViewMat4;
+	origModelMat = gl3state.uni3DData.transModelMat4;
 
 	e->angles[PITCH] = -e->angles[PITCH];
 	GL3_RotateForEntity(e);
@@ -823,7 +823,7 @@ GL3_DrawAliasModel(entity_t *e)
 	//glShadeModel(GL_FLAT);
 
 	//glPopMatrix();
-	gl3state.uni3DData.transModelViewMat4 = origMVmat;
+	gl3state.uni3DData.transModelMat4 = origModelMat;
 	GL3_UpdateUBO3D();
 
 
