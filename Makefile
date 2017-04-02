@@ -310,12 +310,12 @@ endif
 # ----------
 
 # Phony targets
-.PHONY : all client game icon server ref_gl ref_gl3
+.PHONY : all client game icon server ref_gl1 ref_gl3
 
 # ----------
 
 # Builds everything
-all: config client server game ref_gl ref_gl3
+all: config client server game ref_gl1 ref_gl3
 
 # Print config values
 config:
@@ -457,7 +457,7 @@ release/quake2 : CFLAGS += -DSDL2
 endif
 
 ifneq ($(YQ2_OSTYPE), Darwin)
-release/ref_gl.so : LDFLAGS += -lGL
+release/ref_gl1.so : LDFLAGS += -lGL
 endif
 
 ifeq ($(YQ2_OSTYPE), FreeBSD)
@@ -529,15 +529,15 @@ endif
 
 ifeq ($(YQ2_OSTYPE), Windows)
 
-ref_gl:
-	@echo "===> Building ref_gl.dll"
-	$(MAKE) release/ref_gl.dll
+ref_gl1:
+	@echo "===> Building ref_gl1.dll"
+	$(MAKE) release/ref_gl1.dll
 
 ifeq ($(WITH_SDL2),yes)
-release/ref_gl.dll : CFLAGS += -DSDL2
+release/ref_gl1.dll : CFLAGS += -DSDL2
 endif
 
-release/ref_gl.dll : LDFLAGS += -lopengl32 -shared
+release/ref_gl1.dll : LDFLAGS += -lopengl32 -shared
 
 # don't want the dll to link against libSDL2main or libmingw32, and no -mwindows either
 # that's for the .exe only
@@ -545,34 +545,34 @@ DLL_SDLLDFLAGS = $(subst -mwindows,,$(subst -lmingw32,,$(subst -lSDL2main,,$(SDL
 
 else ifeq ($(YQ2_OSTYPE), Darwin)
 
-ref_gl:
-	@echo "===> Building ref_gl.dylib"
-	$(MAKE) release/ref_gl.dylib
+ref_gl1:
+	@echo "===> Building ref_gl1.dylib"
+	$(MAKE) release/ref_gl1.dylib
 
 
 ifeq ($(WITH_SDL2),yes)
-release/ref_gl.dylib : CFLAGS += -DSDL2
+release/ref_gl1.dylib : CFLAGS += -DSDL2
 endif
 
-release/ref_gl.dylib : LDFLAGS += -shared -framework OpenGL
+release/ref_gl1.dylib : LDFLAGS += -shared -framework OpenGL
 
 else # not Windows or Darwin
 
-ref_gl:
-	@echo "===> Building ref_gl.so"
-	$(MAKE) release/ref_gl.so
+ref_gl1:
+	@echo "===> Building ref_gl1.so"
+	$(MAKE) release/ref_gl1.so
 
 
-release/ref_gl.so : CFLAGS += -fPIC
-release/ref_gl.so : LDFLAGS += -shared
+release/ref_gl1.so : CFLAGS += -fPIC
+release/ref_gl1.so : LDFLAGS += -shared
 
 ifeq ($(WITH_SDL2),yes)
-release/ref_gl.so : CFLAGS += -DSDL2
+release/ref_gl1.so : CFLAGS += -DSDL2
 endif
 
-endif # OS specific ref_gl shit
+endif # OS specific ref_gl1 shit
 
-build/ref_gl/%.o: %.c
+build/ref_gl1/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
@@ -929,7 +929,7 @@ endif
 
 # Rewrite pathes to our object directory
 CLIENT_OBJS = $(patsubst %,build/client/%,$(CLIENT_OBJS_))
-REFGL_OBJS = $(patsubst %,build/ref_gl/%,$(REFGL_OBJS_))
+REFGL_OBJS = $(patsubst %,build/ref_gl1/%,$(REFGL_OBJS_))
 REFGL3_OBJS = $(patsubst %,build/ref_gl3/%,$(REFGL3_OBJS_))
 SERVER_OBJS = $(patsubst %,build/server/%,$(SERVER_OBJS_))
 GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
@@ -978,18 +978,18 @@ release/q2ded : $(SERVER_OBJS)
 	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@
 endif
 
-# release/ref_gl.so
+# release/ref_gl1.so
 ifeq ($(YQ2_OSTYPE), Windows)
-release/ref_gl.dll : $(REFGL_OBJS)
+release/ref_gl1.dll : $(REFGL_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(REFGL_OBJS) $(LDFLAGS) $(DLL_SDLLDFLAGS) -o $@
 	$(Q)strip $@
 else ifeq ($(YQ2_OSTYPE), Darwin)
-release/ref_gl.dylib : $(REFGL_OBJS)
+release/ref_gl1.dylib : $(REFGL_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(REFGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
-release/ref_gl.so : $(REFGL_OBJS)
+release/ref_gl1.so : $(REFGL_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(REFGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 endif

@@ -177,10 +177,10 @@ VID_CheckChanges(void)
 		cls.disable_screen = true;
 
 		// Proceed to reboot the refresher
-		if(!VID_LoadRefresh() && (strcmp(vid_ref->string, "gl") != 0)) // TODO: gl => gl1
+		if(!VID_LoadRefresh() && (strcmp(vid_ref->string, "gl1") != 0))
 		{
 			Com_Printf("\n ... trying again with standard OpenGL1.x renderer ... \n\n");
-			Cvar_Set("vid_ref", "gl");
+			Cvar_Set("vid_ref", "gl1");
 			VID_LoadRefresh();
 		}
 		cls.disable_screen = false;
