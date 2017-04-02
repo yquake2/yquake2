@@ -421,6 +421,9 @@ GL3_SetMode(void)
 	return true;
 }
 
+// only needed (and allowed!) if using OpenGL compatibility profile, it's not in 3.2 core
+enum { QGL_POINT_SPRITE = 0x8861 };
+
 static qboolean
 GL3_Init(void)
 {
@@ -445,9 +448,6 @@ GL3_Init(void)
 	GL3_Draw_GetPalette();
 
 	GL3_Register();
-
-	/* initialize our QGL dynamic bindings */
-	//QGL_Init();
 
 	/* initialize OS-specific parts of OpenGL */
 	if (!ri.GLimp_Init())
@@ -510,6 +510,7 @@ GL3_Init(void)
 		R_Printf(PRINT_ALL, "Not supported\n");
 	}
 
+#ifdef SDL2
 	if(gl3config.debug_output)
 	{
 		R_Printf(PRINT_ALL, " - OpenGL Debug Output: Supported ");
@@ -525,6 +526,18 @@ GL3_Init(void)
 	else
 	{
 		R_Printf(PRINT_ALL, " - OpenGL Debug Output: Not Supported\n");
+	}
+#else // SDL1.2 - no debug output
+	R_Printf(PRINT_ALL, " - OpenGL Debug Output: Not Supported when using SDL1.2\n");
+#endif
+
+	if(gl3config.compat_profile)
+	{
+		// for some fucking reason particles (GL_POINT) don't work in compatibility profiles
+		// without setting this.. SDL1.2 only gives compat profiles and we might wanna support
+		// them for SDL2 as well, so broken screengrab software etc that uses GL1 functions still works
+		// (GL_POINT_SPRITE is not even part of 3.2core, it was only in GL2 and was deprecated afterwards)
+		glEnable(QGL_POINT_SPRITE);
 	}
 
 	// generate texture handles for all possible lightmaps

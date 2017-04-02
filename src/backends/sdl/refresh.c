@@ -400,7 +400,7 @@ int GLimp_GetRefreshRate(void)
 	return glimp_refreshRate;
 #else
 	// Asume 60hz.
-	return 60
+	return 60;
 #endif
 }
 

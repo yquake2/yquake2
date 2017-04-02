@@ -99,6 +99,7 @@ typedef struct
 
 	int major_version;
 	int minor_version;
+	qboolean compat_profile;
 
 	// ----
 

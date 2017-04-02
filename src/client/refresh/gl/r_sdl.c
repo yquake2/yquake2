@@ -393,7 +393,9 @@ int RI_InitContext(void* win)
 		return false;
 	}
 
+#if SDL_VERSION_ATLEAST(2, 0, 0)
 	window = (SDL_Window*)win;
+
 	context = SDL_GL_CreateContext(window);
 	if(context == NULL)
 	{
@@ -401,6 +403,12 @@ int RI_InitContext(void* win)
 		window = NULL;
 		return false;
 	}
+#else // SDL 1.2
+
+	window = (SDL_Surface*)win;
+	// context is created implicitly with window, nothing to do here
+
+#endif
 
 	if (gl_msaa_samples->value)
 	{

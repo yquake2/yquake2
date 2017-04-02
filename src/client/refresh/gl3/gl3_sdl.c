@@ -70,6 +70,7 @@ int GL3_PrepareForWindow(void)
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
+#if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -82,6 +83,10 @@ int GL3_PrepareForWindow(void)
 	{
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, contextFlags);
 	}
+	gl3config.compat_profile = false;
+#else // SDL1.2 doesn't have all this, so we'll have some kind of compatibility profile
+	gl3config.compat_profile = true;
+#endif
 
 
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
@@ -180,15 +185,22 @@ int GL3_InitContext(void* win)
 		ri.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
 		return false;
 	}
-
+#if SDL_VERSION_ATLEAST(2, 0, 0)
 	window = (SDL_Window*)win;
+
 	context = SDL_GL_CreateContext(window);
 	if(context == NULL)
 	{
-		R_Printf(PRINT_ALL, "R_InitContext(): Creating OpenGL Context failed: %s\n", SDL_GetError());
+		R_Printf(PRINT_ALL, "GL3_InitContext(): Creating OpenGL Context failed: %s\n", SDL_GetError());
 		window = NULL;
 		return false;
 	}
+#else // SDL 1.2
+
+	window = (SDL_Surface*)win;
+	// context is created implicitly with window, nothing to do here
+
+#endif
 
 	if (gl_msaa_samples->value)
 	{
@@ -226,8 +238,14 @@ int GL3_InitContext(void* win)
 		R_Printf(PRINT_ALL, "Successfully loaded OpenGL function pointers using glad!\n");
 	}
 
-	gl3config.anisotropic = GLAD_GL_EXT_texture_filter_anisotropic != 0;
+#if SDL_VERSION_ATLEAST(2, 0, 0)
 	gl3config.debug_output = GLAD_GL_ARB_debug_output != 0;
+#else
+	gl3config.debug_output = 0; // no debug contexts with SDL1.2 - can't set the context flag!
+#endif
+
+	gl3config.anisotropic = GLAD_GL_EXT_texture_filter_anisotropic != 0;
+
 	gl3config.major_version = GLVersion.major;
 	gl3config.minor_version = GLVersion.minor;
 
