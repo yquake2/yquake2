@@ -480,7 +480,8 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 					float fact = max(0, intens - distLightToPos - 64); // FIXME: really -64 for DLIGHT_CUTOFF?
 
 					// also factor in angle between light and point on surface
-					fact *= dot(passNormal, lightToPos/distLightToPos);
+					fact *= max(0, dot(passNormal, lightToPos/distLightToPos));
+
 
 					lmTex.rgb += dynLights[i].lightColor.rgb * fact * (1.0/256.0);
 				}

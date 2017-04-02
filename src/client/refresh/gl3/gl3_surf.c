@@ -191,12 +191,24 @@ SetLightFlags(msurface_t *surf)
 	}
 }
 
+static void
+SetAllLightFlags(msurface_t *surf)
+{
+	unsigned int lightFlags = 0xffffffff;
+
+	gl3_3D_vtx_t* verts = surf->polys->vertices;
+
+	int numVerts = surf->polys->numverts;
+	for(int i=0; i<numVerts; ++i)
+	{
+		verts[i].lightFlags = lightFlags;
+	}
+}
+
 void
 GL3_DrawGLPoly(msurface_t *fa)
 {
 	glpoly_t *p = fa->polys;
-
-	SetLightFlags(fa);
 
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
@@ -210,8 +222,6 @@ GL3_DrawGLFlowingPoly(msurface_t *fa)
 {
 	glpoly_t *p;
 	float scroll;
-
-	SetLightFlags(fa);
 
 	p = fa->polys;
 
@@ -469,6 +479,7 @@ DrawTextureChains(void)
 
 		for ( ; s; s = s->texturechain)
 		{
+			SetLightFlags(s);
 			RenderBrushPoly(s);
 		}
 
@@ -581,6 +592,7 @@ DrawInlineBModel(void)
 			}
 			else if(!(psurf->flags & SURF_DRAWTURB))
 			{
+				SetAllLightFlags(psurf);
 				RenderLightmappedPoly(psurf);
 			}
 			else
