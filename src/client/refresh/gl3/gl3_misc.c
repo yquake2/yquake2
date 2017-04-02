@@ -36,25 +36,15 @@ GL3_SetDefaultState(void)
 	glClearColor(1, 0, 0.5, 0.5);
 	glDisable(GL_MULTISAMPLE);
 	glCullFace(GL_FRONT);
-	//glEnable(GL_TEXTURE_2D);
-
-	// TODO: this must be done in shader instead,
-	// see https://www.khronos.org/opengl/wiki/Transparency_Sorting#Alpha_test
-	//glEnable(GL_ALPHA_TEST);
-	//glAlphaFunc(GL_GREATER, 0.666);
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
 
-	//glColor4f(1, 1, 1, 1);
-
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//glShadeModel(GL_FLAT);
 
+	// TODO: gl_texturemode, gl_texturealphamode?
 	//GL3_TextureMode(gl_texturemode->string);
-	STUB("call GL3_TextureMode(gl_texturemode->string);");
-	STUB("Use gl_texturealphamode and somehow or only support one mode? => R_TextureAlphaMode(), R_TextureSolidMode()");
 	//R_TextureAlphaMode(gl_texturealphamode->string);
 	//R_TextureSolidMode(gl_texturesolidmode->string);
 
@@ -65,7 +55,6 @@ GL3_SetDefaultState(void)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
 	if (gl_msaa_samples->value)
 	{

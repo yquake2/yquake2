@@ -27,9 +27,6 @@
 #ifndef SRC_CLIENT_REFRESH_GL3_HEADER_MODEL_H_
 #define SRC_CLIENT_REFRESH_GL3_HEADER_MODEL_H_
 
-// TODO: maybe lots of these things should get a gl3_ prefix and might
-//       need to be adapted and so on
-
 enum {
 	SIDE_FRONT = 0,
 	SIDE_BACK = 1,
@@ -41,9 +38,7 @@ enum {
 	SURF_DRAWSKY = 4,
 	SURF_DRAWTURB = 0x10,
 	SURF_DRAWBACKGROUND = 0x40,
-	SURF_UNDERWATER = 0x80,
-
-	//VERTEXSIZE  = 7 - is 10 now, and I use a struct - TODO: REMOVE!
+	SURF_UNDERWATER = 0x80
 };
 
 // used for vertex array elements when drawing brushes, sprites, sky and more
@@ -130,7 +125,7 @@ typedef struct msurface_s
 	int dlightbits;
 
 	int lightmaptexturenum;
-	byte styles[MAXLIGHTMAPS];
+	byte styles[MAXLIGHTMAPS]; // MAXLIGHTMAPS = MAX_LIGHTMAPS_PER_SURFACE (defined in local.h)
 	// I think cached_light is not used/needed anymore
 	//float cached_light[MAXLIGHTMAPS];       /* values currently used in lightmap */
 	byte *samples;                          /* [numstyles*surfsize] */

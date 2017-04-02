@@ -309,10 +309,11 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, da_count(idxBuf)*sizeof(GLushort), idxBuf.p, GL_STREAM_DRAW);
 	glDrawElements(GL_TRIANGLES, da_count(idxBuf), GL_UNSIGNED_SHORT, NULL);
 }
-
+#if 0 // TODO: implemenet some time..
 static void
 DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 {
+
 	unsigned short total;
 	GLenum type;
 	int *order;
@@ -325,7 +326,7 @@ DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 	height = -lheight + 0.1f;
 
 	/* stencilbuffer shadows */
-	STUB_ONCE("TODO: OpenGL: *proper* stencil shadows!");
+
 #if 0
 	if (have_stencil && gl_stencilshadow->value)
 	{
@@ -377,7 +378,6 @@ DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 		}
 		while (--count);
 
-		STUB_ONCE("TODO: OpenGL!");
 #if 0
 		glEnableClientState( GL_VERTEX_ARRAY );
 
@@ -391,10 +391,10 @@ DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 	/* stencilbuffer shadows */
 	if (have_stencil && gl_stencilshadow->value)
 	{
-		STUB_ONCE("TODO: OpenGL: stencil shadows!");
 		//glDisable(GL_STENCIL_TEST);
 	}
 }
+#endif // 0
 
 static qboolean
 CullAliasModel(vec3_t bbox[8], entity_t *e)
@@ -715,8 +715,6 @@ GL3_DrawAliasModel(entity_t *e)
 	/* locate the proper data */
 	c_alias_polys += paliashdr->num_tris;
 
-
-
 	/* draw all the triangles */
 	if (currententity->flags & RF_DEPTHHACK)
 	{
@@ -776,14 +774,6 @@ GL3_DrawAliasModel(entity_t *e)
 
 	GL3_Bind(skin->texnum);
 
-	STUB_ONCE("TODO: OpenGL3 stuff (shade model, texenv)!");
-#if 0
-	/* draw it */
-	glShadeModel(GL_SMOOTH);
-
-	R_TexEnv(GL_MODULATE);
-#endif // 0
-
 	if (currententity->flags & RF_TRANSLUCENT)
 	{
 		glEnable(GL_BLEND);
@@ -808,24 +798,11 @@ GL3_DrawAliasModel(entity_t *e)
 		currententity->oldframe = 0;
 	}
 
-	/* Fuck this, gl_lerpmodels 0 looks horrible anyway
-	if (!gl_lerpmodels->value)
-	{
-		currententity->backlerp = 0;
-	}
-	*/
-
 	DrawAliasFrameLerp(paliashdr, currententity->backlerp);
-
-	STUB_ONCE("TODO: even more OpenGL3 stuff!");
-
-	//R_TexEnv(GL_REPLACE);
-	//glShadeModel(GL_FLAT);
 
 	//glPopMatrix();
 	gl3state.uni3DData.transModelMat4 = origModelMat;
 	GL3_UpdateUBO3D();
-
 
 	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
 	{
@@ -844,6 +821,7 @@ GL3_DrawAliasModel(entity_t *e)
 		glDepthRange(gl3depthmin, gl3depthmax);
 	}
 
+	STUB_ONCE("TODO: *proper* stencil shadows!")
 #if 0
 	if (gl_shadows->value &&
 		!(currententity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL | RF_NOSHADOW)))

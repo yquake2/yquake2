@@ -264,7 +264,7 @@ GL3_LightPoint(vec3_t p, vec3_t color)
 	vec3_t dist;
 	float add;
 
-	if (!gl3_worldmodel->lightdata || !currententity) // FIXME: the currententity check is new
+	if (!gl3_worldmodel->lightdata || !currententity)
 	{
 		color[0] = color[1] = color[2] = 1.0;
 		return;
@@ -307,100 +307,6 @@ GL3_LightPoint(vec3_t p, vec3_t color)
 	VectorScale(color, gl_modulate->value, color);
 }
 
-#if 0 // TODO: REMOVE! (currently kept to look at when writing shader for this)
-static void
-AddDynamicLights(msurface_t *surf)
-{
-	int lnum;
-	int sd, td;
-	float fdist, frad, fminlight;
-	vec3_t impact, local;
-	int s, t;
-	int i;
-	int smax, tmax;
-	mtexinfo_t *tex;
-	dlight_t *dl;
-	float *pfBL;
-	float fsacc, ftacc;
-
-	smax = (surf->extents[0] >> 4) + 1;
-	tmax = (surf->extents[1] >> 4) + 1;
-	tex = surf->texinfo;
-
-	for (lnum = 0; lnum < gl3_newrefdef.num_dlights; lnum++)
-	{
-		if (!(surf->dlightbits & (1 << lnum)))
-		{
-			continue; /* not lit by this light */
-		}
-
-		dl = &gl3_newrefdef.dlights[lnum];
-		frad = dl->intensity;
-		fdist = DotProduct(dl->origin, surf->plane->normal) -
-				surf->plane->dist;
-		frad -= fabs(fdist);
-
-		/* rad is now the highest intensity on the plane */
-		fminlight = DLIGHT_CUTOFF;
-
-		if (frad < fminlight)
-		{
-			continue;
-		}
-
-		fminlight = frad - fminlight;
-
-		for (i = 0; i < 3; i++)
-		{
-			impact[i] = dl->origin[i] -
-						surf->plane->normal[i] * fdist;
-		}
-
-		local[0] = DotProduct(impact,
-				   tex->vecs[0]) + tex->vecs[0][3] - surf->texturemins[0];
-		local[1] = DotProduct(impact,
-				   tex->vecs[1]) + tex->vecs[1][3] - surf->texturemins[1];
-
-		pfBL = s_blocklights;
-
-		for (t = 0, ftacc = 0; t < tmax; t++, ftacc += 16)
-		{
-			td = local[1] - ftacc;
-
-			if (td < 0)
-			{
-				td = -td;
-			}
-
-			for (s = 0, fsacc = 0; s < smax; s++, fsacc += 16, pfBL += 3)
-			{
-				sd = Q_ftol(local[0] - fsacc);
-
-				if (sd < 0)
-				{
-					sd = -sd;
-				}
-
-				if (sd > td)
-				{
-					fdist = sd + (td >> 1);
-				}
-				else
-				{
-					fdist = td + (sd >> 1);
-				}
-
-				if (fdist < fminlight)
-				{
-					pfBL[0] += (frad - fdist) * dl->color[0];
-					pfBL[1] += (frad - fdist) * dl->color[1];
-					pfBL[2] += (frad - fdist) * dl->color[2];
-				}
-			}
-		}
-	}
-}
-#endif // 0
 
 /*
  * Combine and scale multiple lightmaps into the floating format in blocklights
@@ -442,7 +348,7 @@ GL3_BuildLightMap(msurface_t *surf, int offsetInLMbuf, int stride)
 
 		for (map = 0; map < MAX_LIGHTMAPS_PER_SURFACE; ++map)
 		{
-			// we always create 4 (MAXLIGHTMAP) lightmaps.
+			// we always create 4 (MAX_LIGHTMAPS_PER_SURFACE) lightmaps.
 			// if surf has less (numMaps < 4), the remaining ones are zeroed out.
 			// this makes sure that all 4 lightmap textures in gl3state.lightmap_textureIDs[i] have the same layout
 			// and the shader can use the same texture coordinates for all of them
@@ -462,15 +368,7 @@ GL3_BuildLightMap(msurface_t *surf, int offsetInLMbuf, int stride)
 
 	/* add all the lightmaps */
 
-	STUB_ONCE("TODO: handly dynamic lights (prolly somewhere else entirely)");
-
-#if 0
-	/* add all the dynamic lights */
-	if (surf->dlightframe == gl3_framecount)
-	{
-		AddDynamicLights(surf);
-	}
-#endif // 0
+	// Note: dynamic lights aren't handled here anymore, they're handled in the shader
 
 	// as we don't apply scale here anymore, nor blend the numMaps lightmaps together,
 	// the code has gotten a lot easier and we can copy directly from surf->samples to dest

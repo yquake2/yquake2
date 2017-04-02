@@ -181,7 +181,6 @@ enum {
 typedef struct
 {
 	// TODO: what of this do we need?
-	float inverse_intensity;
 	qboolean fullscreen;
 
 	int prev_mode;
@@ -193,7 +192,6 @@ typedef struct
 	// most surfaces only have one really and the remaining for are filled with dummy data
 	GLuint lightmap_textureIDs[MAX_LIGHTMAPS][MAX_LIGHTMAPS_PER_SURFACE]; // instead of lightmap_textures+i use lightmap_textureIDs[i]
 
-	//int currenttextures[2];
 	GLuint currenttexture; // bound to GL_TEXTURE0
 	int currentlightmap; // lightmap_textureIDs[currentlightmap] bound to GL_TEXTURE1
 	GLuint currenttmu; // GL_TEXTURE0 or GL_TEXTURE1
@@ -264,19 +262,17 @@ extern int c_brush_polys, c_alias_polys;
  */
 typedef struct image_s
 {
-	// TODO: what of this is actually needed?
 	char name[MAX_QPATH];               /* game path, including extension */
 	imagetype_t type;
 	int width, height;                  /* source image */
-	int upload_width, upload_height;    /* after power of two and picmip */
+	//int upload_width, upload_height;    /* after power of two and picmip */
 	int registration_sequence;          /* 0 = free */
 	struct msurface_s *texturechain;    /* for sort-by-texture world drawing */
 	GLuint texnum;                      /* gl texture binding */
 	float sl, tl, sh, th;               /* 0,0 - 1,1 unless part of the scrap */
-	qboolean scrap;
+	// qboolean scrap; // currently unused
 	qboolean has_alpha;
 
-	//qboolean paletted;
 } gl3image_t;
 
 enum {MAX_GL3TEXTURES = 1024};

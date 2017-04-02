@@ -494,7 +494,7 @@ Mod_LoadFaces(lump_t *l)
 		Mod_CalcSurfaceExtents(out);
 
 		/* lighting info */
-		for (i = 0; i < MAXLIGHTMAPS; i++)
+		for (i = 0; i < MAX_LIGHTMAPS_PER_SURFACE; i++)
 		{
 			out->styles[i] = in->styles[i];
 		}

@@ -38,7 +38,7 @@
 #define DG_DYNARR_IMPLEMENTATION
 #include "header/DG_dynarr.h"
 
-// TODO: put this in local.h ?
+
 #define REF_VERSION "Yamagi Quake II OpenGL3 Refresher"
 
 refimport_t ri;
@@ -68,8 +68,6 @@ vec3_t gl3_origin;
 
 hmm_mat4 gl3_projectionMatrix; // eye cord -> clip coord
 hmm_mat4 gl3_world_matrix; // the view matrix: world coord -> eye coord
-// TODO: I don't know yet if we'll also need a model matrix (model coord -> world coord) here.
-
 
 int gl3_visframecount; /* bumped when going to a new PVS */
 int gl3_framecount; /* used for dlight push checking */
@@ -837,7 +835,7 @@ GL3_DrawParticles(void)
 
 		part_vtx buf[numParticles];
 
-		// FIXME: viewOrg could be in UBO
+		// TODO: viewOrg could be in UBO
 		vec3_t viewOrg;
 		VectorCopy(gl3_newrefdef.vieworg, viewOrg);
 
@@ -1133,7 +1131,6 @@ GL3_SetGL2D(void)
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
-	// glColor4f(1, 1, 1, 1); // FIXME: change to GL3 code!
 }
 
 // equivalent to R_x * R_y * R_z where R_x is the trans matrix for rotating around X axis for aroundXdeg
@@ -1278,9 +1275,6 @@ SetupGL(void)
 		glDisable(GL_CULL_FACE);
 	}
 
-	STUB_ONCE("Should I do anything about disabling GL_BLEND and GL_ALPHA_TEST?");
-	//glDisable(GL_BLEND);
-	//glDisable(GL_ALPHA_TEST);
 	glEnable(GL_DEPTH_TEST);
 }
 
@@ -1409,14 +1403,10 @@ GL3_RenderView(refdef_t *fd)
 
 	gl3_newrefdef = *fd;
 
-	STUB_ONCE("TODO: Implement!");
-
-
 	if (!gl3_worldmodel && !(gl3_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
 		ri.Sys_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
 	}
-
 
 	if (gl_speeds->value)
 	{
@@ -1634,7 +1624,6 @@ GL3_BeginFrame(float camera_separation)
 	}
 
 	// in GL3, overbrightbits can have any positive value
-	// TODO: rename to gl3_overbrightbits?
 	if (gl3_overbrightbits->modified)
 	{
 		gl3_overbrightbits->modified = false;
@@ -1684,21 +1673,6 @@ GL3_BeginFrame(float camera_separation)
 		gl_swapinterval->modified = false;
 		GL3_SetSwapInterval();
 	}
-
-	STUB_ONCE("TODO: texture-alpha/solid-mode stuff??")
-#if 0
-	if (gl_texturealphamode->modified)
-	{
-		R_TextureAlphaMode(gl_texturealphamode->string);
-		gl_texturealphamode->modified = false;
-	}
-
-	if (gl_texturesolidmode->modified)
-	{
-		R_TextureSolidMode(gl_texturesolidmode->string);
-		gl_texturesolidmode->modified = false;
-	}
-#endif // 0
 
 	/* clear screen if desired */
 	GL3_Clear();

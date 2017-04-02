@@ -345,8 +345,6 @@ RenderBrushPoly(msurface_t *fa)
 	{
 		GL3_Bind(image->texnum);
 
-		STUB_ONCE("TODO: do something about inverse intensity on water surfaces b/c they have no lightmap!");
-
 		GL3_EmitWaterPolys(fa);
 
 		return;
@@ -354,8 +352,6 @@ RenderBrushPoly(msurface_t *fa)
 	else
 	{
 		GL3_Bind(image->texnum);
-
-		// R_TexEnv(GL_REPLACE); TODO!
 	}
 
 	hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE] = {0};
@@ -403,11 +399,6 @@ GL3_DrawAlphaSurfaces(void)
 	GL3_UpdateUBO3D();
 
 	glEnable(GL_BLEND);
-
-	/* the textures are prescaled up for a better
-	   lighting range, so scale it back down */
-	//flat intens = gl3state.inverse_intensity;
-	STUB_ONCE("Something about inverse intensity??");
 
 	for (s = gl3_alpha_surfaces; s != NULL; s = s->texturechain)
 	{
@@ -487,9 +478,6 @@ DrawTextureChains(void)
 	}
 
 	// TODO: maybe one loop for normal faces and one for SURF_DRAWTURB ???
-
-	STUB_ONCE("TODO: do something about R_TexEnv()!");
-	// R_TexEnv(GL_REPLACE);
 }
 
 static void
@@ -511,16 +499,6 @@ RenderLightmappedPoly(msurface_t *surf)
 		lmScales[map].G = gl3_newrefdef.lightstyles[surf->styles[map]].rgb[1];
 		lmScales[map].B = gl3_newrefdef.lightstyles[surf->styles[map]].rgb[2];
 		lmScales[map].A = 1.0f;
-	}
-
-	// Normal dynamic lights
-	if (surf->dlightframe == gl3_framecount)
-	{
-		if (gl_dynamic->value)
-		{
-			//is_dynamic = true;
-			STUB_ONCE("TODO: Handle dynamic lights!");
-		}
 	}
 
 	c_brush_polys++;
@@ -563,10 +541,8 @@ DrawInlineBModel(void)
 
 	if (currententity->flags & RF_TRANSLUCENT)
 	{
-		STUB_ONCE("TODO: implement for OpenGL3 (esp. the alpha 0.25 part in color?)");
 		glEnable(GL_BLEND);
-		/* TODO: if you change this, also do at the end of the function
-		glEnable(GL_BLEND);
+		/* TODO: should I care about the 0.25 part? we'll just set alpha to 0.33 or 0.66 depending on surface flag..
 		glColor4f(1, 1, 1, 0.25);
 		R_TexEnv(GL_MODULATE);
 		*/
@@ -605,10 +581,6 @@ DrawInlineBModel(void)
 	if (currententity->flags & RF_TRANSLUCENT)
 	{
 		glDisable(GL_BLEND);
-		/*
-		glColor4f(1, 1, 1, 1);
-		R_TexEnv(GL_REPLACE);
-		*/
 	}
 }
 
@@ -625,7 +597,6 @@ GL3_DrawBrushModel(entity_t *e)
 	}
 
 	currententity = e;
-	//gl3state.currenttextures[0] = gl3state.currenttextures[1] = -1;
 	gl3state.currenttexture = -1;
 
 	if (e->angles[0] || e->angles[1] || e->angles[2])
@@ -679,21 +650,6 @@ GL3_DrawBrushModel(entity_t *e)
 	GL3_RotateForEntity(e);
 	e->angles[0] = -e->angles[0];
 	e->angles[2] = -e->angles[2];
-
-
-	STUB_ONCE("TODO: something about R_TexEnv() and gl_lightmap");
-#if 0
-	R_TexEnv(GL_REPLACE);
-
-	if (gl_lightmap->value)
-	{
-		R_TexEnv(GL_REPLACE);
-	}
-	else
-	{
-		R_TexEnv(GL_MODULATE);
-	}
-#endif // 0
 
 	DrawInlineBModel();
 
@@ -873,9 +829,6 @@ GL3_DrawWorld(void)
 	currententity = &ent;
 
 	gl3state.currenttexture = -1;
-
-	STUB_ONCE("somehow set color to 1,1,1,1 maybe");
-	//glColor4f(1, 1, 1, 1);
 
 	GL3_ClearSkyBox();
 	RecursiveWorldNode(gl3_worldmodel->nodes);
