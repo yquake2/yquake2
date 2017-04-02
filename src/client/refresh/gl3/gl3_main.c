@@ -388,7 +388,7 @@ GL3_SetMode(void)
 		{
 			ri.Cvar_SetValue("vid_fullscreen", 0);
 			vid_fullscreen->modified = false;
-			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
+			R_Printf(PRINT_ALL, "ref_gl3::GL3_SetMode() - fullscreen unavailable in this mode\n");
 
 			if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value, false)) == rserr_ok)
 			{
@@ -397,15 +397,23 @@ GL3_SetMode(void)
 		}
 		else if (err == rserr_invalid_mode)
 		{
+			R_Printf(PRINT_ALL, "ref_gl3::GL3_SetMode() - invalid mode\n");
+
+			if(gl_mode->value == gl3state.prev_mode)
+			{
+				// trying again would result in a crash anyway, give up already
+				// (this would happen if your initing fails at all and your resolution already was 640x480)
+				return false;
+			}
+
 			ri.Cvar_SetValue("gl_mode", gl3state.prev_mode);
 			gl_mode->modified = false;
-			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
 		}
 
 		/* try setting it back to something safe */
 		if ((err = SetMode_impl(&vid.width, &vid.height, gl3state.prev_mode, false)) != rserr_ok)
 		{
-			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
+			R_Printf(PRINT_ALL, "ref_gl3::GL3_SetMode() - could not revert to safe mode\n");
 			return false;
 		}
 	}
@@ -455,7 +463,6 @@ GL3_Init(void)
 	/* create the window and set up the context */
 	if (!GL3_SetMode())
 	{
-		//QGL_Shutdown();
 		R_Printf(PRINT_ALL, "ref_gl3::R_Init() - could not R_SetMode()\n");
 		return false;
 	}
@@ -557,12 +564,17 @@ GL3_Shutdown(void)
 	ri.Cmd_RemoveCommand("imagelist");
 	ri.Cmd_RemoveCommand("gl_strings");
 
-	GL3_Mod_FreeAll();
-	GL3_ShutdownMeshes();
-	GL3_ShutdownImages();
-	GL3_SurfShutdown();
-	GL3_Draw_ShutdownLocal();
-	GL3_ShutdownShaders();
+	// only call all these if we have an OpenGL context and the gl function pointers
+	// randomly chose one function that should always be there to test..
+	if(glDeleteBuffers != NULL)
+	{
+		GL3_Mod_FreeAll();
+		GL3_ShutdownMeshes();
+		GL3_ShutdownImages();
+		GL3_SurfShutdown();
+		GL3_Draw_ShutdownLocal();
+		GL3_ShutdownShaders();
+	}
 
 	/* shutdown OS specific OpenGL stuff like contexts, etc.  */
 	GL3_ShutdownWindow(false);

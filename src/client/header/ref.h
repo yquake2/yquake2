@@ -141,6 +141,7 @@ typedef struct
 
 	// called by GLimp_InitGraphics() *after* creating window,
 	// passing the SDL_Window* (void* so we don't spill SDL.h here)
+	// (or SDL_Surface* for SDL1.2, another reason to use void*)
 	// returns true (1) on success
 	int		(EXPORT *InitContext)(void* sdl_window);
 

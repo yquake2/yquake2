@@ -1343,9 +1343,15 @@ R_SetMode(void)
 		}
 		else if (err == rserr_invalid_mode)
 		{
+			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
+			if(gl_mode->value == gl_state.prev_mode)
+			{
+				// trying again would result in a crash anyway, give up already
+				// (this would happen if your initing fails at all and your resolution already was 640x480)
+				return false;
+			}
 			ri.Cvar_SetValue("gl_mode", gl_state.prev_mode);
 			gl_mode->modified = false;
-			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
 		}
 
 		/* try setting it back to something safe */
