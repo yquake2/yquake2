@@ -191,7 +191,7 @@ endif
 
 # On Windows / MinGW $(CC) is
 # undefined by default.
-ifeq ($(OSTYPE),Windows)
+ifeq ($(YQ2_OSTYPE),Windows)
 CC := gcc
 endif
 
@@ -199,7 +199,7 @@ endif
 
 # Extra CFLAGS for SDL
 ifeq ($(WITH_SDL2),yes)
-ifeq ($(OSTYPE),Windows)
+ifeq ($(YQ2_OSTYPE),Windows)
 SDLCFLAGS := $(shell /custom/bin/sdl2-config --cflags)
 else
 SDLCFLAGS := $(shell sdl2-config --cflags)
