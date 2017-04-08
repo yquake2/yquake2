@@ -106,7 +106,7 @@ vidmode_t vid_modes[] = {
 /* Console variables that we need to access from this module */
 cvar_t *vid_gamma;
 cvar_t *vid_fullscreen;
-cvar_t *vid_ref;
+cvar_t *vid_renderer;
 
 /* Global variables used internally by this module */
 viddef_t viddef;                /* global video state; used by other modules */
@@ -177,10 +177,10 @@ VID_CheckChanges(void)
 		cls.disable_screen = true;
 
 		// Proceed to reboot the refresher
-		if(!VID_LoadRefresh() && (strcmp(vid_ref->string, "gl1") != 0))
+		if(!VID_LoadRefresh() && (strcmp(vid_renderer->string, "gl1") != 0))
 		{
 			Com_Printf("\n ... trying again with standard OpenGL1.x renderer ... \n\n");
-			Cvar_Set("vid_ref", "gl1");
+			Cvar_Set("vid_renderer", "gl1");
 			VID_LoadRefresh();
 		}
 		cls.disable_screen = false;
@@ -193,7 +193,7 @@ VID_Init(void)
 	/* Create the video variables so we know how to start the graphics drivers */
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = Cvar_Get("vid_gamma", "1", CVAR_ARCHIVE);
-	vid_ref = Cvar_Get("vid_ref", "gl", CVAR_ARCHIVE);
+	vid_renderer = Cvar_Get("vid_renderer", "gl1", CVAR_ARCHIVE);
 
 	/* Add some console commands that we want to handle */
 	Cmd_AddCommand("vid_restart", VID_Restart_f);
@@ -341,7 +341,7 @@ VID_LoadRefresh(void)
 	// Log it!
 	Com_Printf("----- refresher initialization -----\n");
 
-	snprintf(reflib_name, sizeof(reflib_name), "ref_%s.%s", vid_ref->string, lib_ext);
+	snprintf(reflib_name, sizeof(reflib_name), "ref_%s.%s", vid_renderer->string, lib_ext);
 	snprintf(reflib_path, sizeof(reflib_path), "%s%s", Sys_GetBinaryDir(), reflib_name);
 
 	GetRefAPI = Sys_LoadLibrary(reflib_path, "GetRefAPI", &reflib_handle);
