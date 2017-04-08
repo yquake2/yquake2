@@ -680,7 +680,6 @@ AddStaticLights(void)
 	mtexinfo_t *texinfo;
 	trilight_t *light;
 	int i, j, k, m;
-	glpoly_t *p;
 	float *v, x;
 	int poly_offset;
 	int light_index;
@@ -716,16 +715,42 @@ AddStaticLights(void)
 		texinfo = surf->texinfo;
 		if ((texinfo->flags & SURF_WARP) == 0 && (texinfo->flags & (SURF_LIGHT | SURF_SKY)) != 0 && texinfo->radiance > 0)
 		{			
-			p = surf->polys;
-		
-			if (pt_num_vertices > (PT_MAX_VERTICES - p->numverts))
+			vec3_t verts[64];
+			int numverts;
+			int edge_index;
+			int lindex;
+			float *vec;
+
+			/* convert edges back to a normal polygon */
+			numverts = 0;
+
+			for (edge_index = 0; edge_index < surf->numedges; edge_index++)
+			{
+				lindex = r_worldmodel->surfedges[surf->firstedge + edge_index];
+
+				if (lindex > 0)
+				{
+					vec = r_worldmodel->vertexes[r_worldmodel->edges[lindex].v[0]].position;
+				}
+				else
+				{
+					vec = r_worldmodel->vertexes[r_worldmodel->edges[-lindex].v[1]].position;
+				}
+
+				VectorCopy(vec, verts[numverts]);
+				numverts++;
+			}
+			
+			PT_ASSERT(numverts <= sizeof(verts) / sizeof(verts[0]));
+			
+			if (pt_num_vertices > (PT_MAX_VERTICES - numverts))
 				continue;
 		
-			v = p->verts[0];
+			v = verts[0];
 			
 			poly_offset = pt_num_vertices;
 		
-			for (k = 0; k < p->numverts; k++, v += VERTEXSIZE)
+			for (k = 0; k < numverts; k++, v += 3)
 			{
 				/* Store this vertex of the polygon. */
 				
@@ -737,7 +762,7 @@ AddStaticLights(void)
 
 			polygon_area = 0;
 	
-			for (k = 2; k < p->numverts; k++)
+			for (k = 2; k < numverts; k++)
 				polygon_area += TriangleArea(poly_offset, poly_offset + k - 1, poly_offset + k);
 
 			/* If the polygon is too small to have any real effect then skip it. This also avoids divide-by-zero errors in area ratio calculations. */
@@ -752,7 +777,7 @@ AddStaticLights(void)
 			
 			int parallelogram_reflection = 0;
 			
-			if (p->numverts == 4)
+			if (numverts == 4)
 			{
 				/* Reflect each vertex and test whether the result matches the opposite vertex in the polygon. */
 				
@@ -806,10 +831,10 @@ AddStaticLights(void)
 			}
 			else
 			{		
-				if (pt_num_triangles > (PT_MAX_TRIANGLES - p->numverts - 2) || pt_num_lights > (PT_MAX_TRI_LIGHTS - p->numverts - 2))
+				if (pt_num_triangles > (PT_MAX_TRIANGLES - numverts - 2) || pt_num_lights > (PT_MAX_TRI_LIGHTS - numverts - 2))
 					continue;
 						
-				for (k = 2; k < p->numverts; k++)
+				for (k = 2; k < numverts; k++)
 				{
 					/* Add a new triangle light for this segment of the polygon. */
 										
@@ -1865,7 +1890,6 @@ AddBrushModel(entity_t *entity, model_t *model)
 	msurface_t *psurf;
 	float *v, x;
 	vec4_t vertex;
-	glpoly_t *p;
 	int first_surface_triangle_index;
 	float surface_aabb_min[3], surface_aabb_max[3];
 	trilight_t *light;
@@ -1907,16 +1931,42 @@ AddBrushModel(entity_t *entity, model_t *model)
 		if (psurf->texinfo->flags & (SURF_TRANS33 | SURF_TRANS66))
 			continue;
 
-		p = psurf->polys;
+		vec3_t verts[64];
+		int numverts;
+		int edge_index;
+		int lindex;
+		float *vec;
 
-		if (pt_num_vertices > (PT_MAX_VERTICES - p->numverts))
+		/* convert edges back to a normal polygon */
+		numverts = 0;
+
+		for (edge_index = 0; edge_index < psurf->numedges; edge_index++)
+		{
+			lindex = model->surfedges[psurf->firstedge + edge_index];
+
+			if (lindex > 0)
+			{
+				vec = model->vertexes[model->edges[lindex].v[0]].position;
+			}
+			else
+			{
+				vec = model->vertexes[model->edges[-lindex].v[1]].position;
+			}
+
+			VectorCopy(vec, verts[numverts]);
+			numverts++;
+		}
+		
+		PT_ASSERT(numverts <= sizeof(verts) / sizeof(verts[0]));
+
+		if (pt_num_vertices > (PT_MAX_VERTICES - numverts))
 			continue;
 		
-		v = p->verts[0];
+		v = verts[0];
 
 		poly_offset = pt_num_vertices;
 		first_surface_triangle_index = pt_num_triangles;
-		emitting_light = gl_pt_brushlights_enable->value && !(psurf->texinfo->flags & SURF_WARP) && psurf->texinfo->radiance > 0;
+		emitting_light = gl_pt_brushlights_enable->value && !(psurf->texinfo->flags & SURF_WARP) && (psurf->texinfo->flags & SURF_LIGHT) != 0 && psurf->texinfo->radiance > 0;
 		first_light_index = pt_num_lights;
 		polygon_area = 0;
 		
@@ -1928,7 +1978,7 @@ AddBrushModel(entity_t *entity, model_t *model)
 			surface_aabb_max[j] = -1e9f;
 		}
 		
-		for (k = 0; k < p->numverts; k++, v += VERTEXSIZE)
+		for (k = 0; k < numverts; k++, v += 3)
 		{
 			/* Apply the transformation to this vertex and store the result. */
 			
