@@ -425,7 +425,7 @@ TriangleArea(short a, short b, short c)
 		normal_length_squared += x * x;
 	}
 	
-	return sqrt(normal_length_squared) / 2.0;
+	return sqrtf(normal_length_squared) / 2.0f;
 }
 
 static int
@@ -2798,7 +2798,7 @@ R_UpdatePathtracerForCurrentFrame(void)
 					entity = pt_entitylights + i;
 
 					max_component = MAX(entity->color[0], MAX(entity->color[1], entity->color[2])) * entity->intensity;
-					influence_box_size = sqrt(max_component / 1e-3);
+					influence_box_size = sqrtf(max_component / 1e-3f);
 
 					for (j = 0; j < PT_MAX_ENTITY_LIGHT_CLUSTERS; ++j)
 					{
