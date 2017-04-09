@@ -1535,7 +1535,10 @@ GL3_RenderFrame(refdef_t *fd)
 
 	if(v_blend[3] != 0.0f)
 	{
-		GL3_Draw_Flash(v_blend);
+		int x = (vid.width - gl3_newrefdef.width)/2;
+		int y = (vid.height - gl3_newrefdef.height)/2;
+
+		GL3_Draw_Flash(v_blend, x, y, gl3_newrefdef.width, gl3_newrefdef.height);
 	}
 }
 

@@ -395,7 +395,7 @@ extern void GL3_Draw_CharScaled(int x, int y, int num, float scale);
 extern void GL3_Draw_TileClear(int x, int y, int w, int h, char *pic);
 extern void GL3_Draw_Fill(int x, int y, int w, int h, int c);
 extern void GL3_Draw_FadeScreen(void);
-extern void GL3_Draw_Flash(const float color[4]);
+extern void GL3_Draw_Flash(const float color[4], float x, float y, float w, float h);
 extern void GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
 
 // gl3_image.c

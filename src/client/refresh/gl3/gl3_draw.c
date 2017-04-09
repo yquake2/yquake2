@@ -294,18 +294,16 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 // now implemented in 2D mode and called after SetGL2D() because
 // it's pretty similar to GL3_Draw_FadeScreen()
 void
-GL3_Draw_Flash(const float color[4])
+GL3_Draw_Flash(const float color[4], float x, float y, float w, float h)
 {
-	float w = vid.width;
-	float h = vid.height;
 	int i=0;
 
 	GLfloat vBuf[8] = {
 	//  X,   Y
-		0,   h,
-		0,   0,
-		w,   h,
-		w,   0
+		x,   y+h,
+		x,   y,
+		x+w, y+h,
+		x+w, y
 	};
 
 	glEnable(GL_BLEND);
@@ -330,7 +328,7 @@ void
 GL3_Draw_FadeScreen(void)
 {
 	float color[4] = {0, 0, 0, 0.6f};
-	GL3_Draw_Flash(color);
+	GL3_Draw_Flash(color, 0, 0, vid.width, vid.height);
 }
 
 void
