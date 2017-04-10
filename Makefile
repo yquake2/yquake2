@@ -238,6 +238,11 @@ endif
 
 # ----------
 
+# Extra includes for GLAD
+GLAD_INCLUDE = -Isrc/client/refresh/gl3/glad/include
+
+# ----------
+
 # Base LDFLAGS.
 ifeq ($(YQ2_OSTYPE),Linux)
 LDFLAGS := -L/usr/lib -lm -ldl -rdynamic
