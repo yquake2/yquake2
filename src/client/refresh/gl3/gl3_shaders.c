@@ -617,9 +617,7 @@ static const char* fragmentSrcAlias = MULTILINE_STRING(
 			// apply gamma correction and intensity
 			texel.rgb *= intensity;
 			texel.a *= alpha; // is alpha even used here?
-
-			// TODO: is this really equivalent to GL_MODULATE's behavior of texture vs glColor()?
-			texel *= passColor;
+			texel *= min(vec4(3.0), passColor);
 
 			outColor.rgb = pow(texel.rgb, vec3(gamma));
 			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
