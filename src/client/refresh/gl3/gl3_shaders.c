@@ -483,7 +483,7 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 
 					vec3 lightToPos = dynLights[i].lightOrigin - passWorldCoord;
 					float distLightToPos = length(lightToPos);
-					float fact = max(0, intens - distLightToPos - 64); // FIXME: really -64 for DLIGHT_CUTOFF?
+					float fact = max(0, intens - distLightToPos - 52);
 
 					// also factor in angle between light and point on surface
 					fact *= max(0, dot(passNormal, lightToPos/distLightToPos));
