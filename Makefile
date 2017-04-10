@@ -136,7 +136,6 @@ CDA_DISABLED:=yes
 endif
 endif
 
-
 # ----------
 
 # Base CFLAGS.
@@ -316,6 +315,8 @@ endif
 
 # Builds everything
 all: config client server game ref_gl1 ref_gl3
+
+# ----------
 
 # Print config values
 config:
@@ -591,7 +592,6 @@ ifeq ($(WITH_SDL2),yes)
 release/ref_gl3.dll : CFLAGS += -DSDL2
 endif
 
-# FIXME: -lopengl32 ?? shouldn't be needed, SDL should load it dynamically..
 release/ref_gl3.dll : LDFLAGS += -shared
 
 else ifeq ($(YQ2_OSTYPE), Darwin)
@@ -622,9 +622,6 @@ release/ref_gl3.so : CFLAGS += -DSDL2
 endif
 
 endif # OS specific ref_gl3 shit
-
-# TODO: glad_dbg support
-GLAD_INCLUDE = -Isrc/client/refresh/gl3/glad/include
 
 build/ref_gl3/%.o: %.c
 	@echo "===> CC $<"
@@ -809,7 +806,7 @@ endif
 
 # ----------
 
-REFGL_OBJS_ := \
+REFGL1_OBJS_ := \
 	src/client/refresh/gl/qgl.o \
 	src/client/refresh/gl/r_draw.o \
 	src/client/refresh/gl/r_image.o \
@@ -828,15 +825,13 @@ REFGL_OBJS_ := \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
-	src/common/shared/flash.o \
-	src/common/shared/rand.o \
 	src/common/shared/shared.o 
 	
 ifeq ($(YQ2_OSTYPE), Windows)
-REFGL_OBJS_ += \
+REFGL1_OBJS_ += \
 	src/backends/windows/shared/mem.o
 else # not Windows
-REFGL_OBJS_ += \
+REFGL1_OBJS_ += \
 	src/backends/unix/shared/hunk.o
 endif
 
@@ -857,16 +852,11 @@ REFGL3_OBJS_ := \
 	src/client/refresh/gl3/gl3_shaders.o \
 	src/client/refresh/gl3/gl3_md2.o \
 	src/client/refresh/gl3/gl3_sp2.o \
+	src/client/refresh/gl3/glad/src/glad.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
-	src/common/shared/flash.o \
-	src/common/shared/rand.o \
 	src/common/shared/shared.o
-
-# TODO: glad_dbg support
-REFGL3_OBJS_ += \
-	src/client/refresh/gl3/glad/src/glad.o
 
 ifeq ($(YQ2_OSTYPE), Windows)
 REFGL3_OBJS_ += \
@@ -929,7 +919,7 @@ endif
 
 # Rewrite pathes to our object directory
 CLIENT_OBJS = $(patsubst %,build/client/%,$(CLIENT_OBJS_))
-REFGL_OBJS = $(patsubst %,build/ref_gl1/%,$(REFGL_OBJS_))
+REFGL1_OBJS = $(patsubst %,build/ref_gl1/%,$(REFGL1_OBJS_))
 REFGL3_OBJS = $(patsubst %,build/ref_gl3/%,$(REFGL3_OBJS_))
 SERVER_OBJS = $(patsubst %,build/server/%,$(SERVER_OBJS_))
 GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
@@ -938,7 +928,7 @@ GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 
 # Generate header dependencies
 CLIENT_DEPS= $(CLIENT_OBJS:.o=.d)
-REFGL_DEPS= $(REFGL_OBJS:.o=.d)
+REFGL1_DEPS= $(REFGL1_OBJS:.o=.d)
 REFGL3_DEPS= $(REFGL3_OBJS:.o=.d)
 SERVER_DEPS= $(SERVER_OBJS:.o=.d)
 GAME_DEPS= $(GAME_OBJS:.o=.d)
@@ -947,7 +937,7 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 
 # Suck header dependencies in
 -include $(CLIENT_DEPS)
--include $(REFGL_DEPS)
+-include $(REFGL1_DEPS)
 -include $(REFGL3_DEPS)
 -include $(SERVER_DEPS)
 -include $(GAME_DEPS)
@@ -980,18 +970,18 @@ endif
 
 # release/ref_gl1.so
 ifeq ($(YQ2_OSTYPE), Windows)
-release/ref_gl1.dll : $(REFGL_OBJS)
+release/ref_gl1.dll : $(REFGL1_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFGL_OBJS) $(LDFLAGS) $(DLL_SDLLDFLAGS) -o $@
+	${Q}$(CC) $(REFGL1_OBJS) $(LDFLAGS) $(DLL_SDLLDFLAGS) -o $@
 	$(Q)strip $@
 else ifeq ($(YQ2_OSTYPE), Darwin)
-release/ref_gl1.dylib : $(REFGL_OBJS)
+release/ref_gl1.dylib : $(REFGL1_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(REFGL1_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
-release/ref_gl1.so : $(REFGL_OBJS)
+release/ref_gl1.so : $(REFGL1_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFGL_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(REFGL1_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/ref_gl3.so

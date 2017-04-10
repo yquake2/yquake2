@@ -136,7 +136,7 @@ list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
 
 # With all of those libraries and user defined paths
 # added, lets give them to the compiler and linker.
-include_directories(${yquake2IncludeDirectories})
+include_directories(${yquake2IncludeDirectories} ${CMAKE_SOURCE_DIR}/src/client/refresh/gl3/glad/include)
 link_directories(${yquake2LinkerDirectories})
 
 set(Backends-Generic-Source

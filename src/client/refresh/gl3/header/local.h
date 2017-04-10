@@ -38,7 +38,7 @@
   #include <GL/gl.h>
   #include <GL/glext.h>
 #else
-  #include <glad/glad.h>
+  #include "../glad/include/glad/glad.h"
 #endif
 
 #include "../../ref_shared.h"
