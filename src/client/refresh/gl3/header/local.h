@@ -141,14 +141,13 @@ typedef struct
 	hmm_mat4 transViewMat4;
 	hmm_mat4 transModelMat4;
 
-	hmm_vec2 lmOffset;
-
 	GLfloat scroll; // for SURF_FLOWING
 	GLfloat time; // for warping surfaces like water & possibly other things
 	GLfloat alpha; // for translucent surfaces (water, glass, ..)
-	GLfloat overbrightbits; // gl_overbrightbits, applied to lightmaps (and elsewhere to models)
+	GLfloat overbrightbits; // gl3_overbrightbits, applied to lightmaps (and elsewhere to models)
+	GLfloat particleFadeFactor; // gl3_particle_fade_factor, higher => less fading out towards edges
 
-		GLfloat _padding[2]; // again, some padding to ensure this has right size
+		GLfloat _padding[3]; // again, some padding to ensure this has right size
 } gl3Uni3D_t;
 
 extern const hmm_mat4 gl3_identityMat4;
@@ -502,6 +501,7 @@ extern cvar_t *gl_anisotropic;
 
 extern cvar_t *gl_lightlevel;
 extern cvar_t *gl3_overbrightbits;
+extern cvar_t *gl3_particle_fade_factor;
 
 extern cvar_t *gl_modulate;
 extern cvar_t *gl_lightmap;

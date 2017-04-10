@@ -273,12 +273,15 @@ static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
 			mat4 transProj;
 			mat4 transView;
 			mat4 transModel;
-			vec2 lmOffset;
+
 			float scroll; // for SURF_FLOWING
 			float time;
 			float alpha;
 			float overbrightbits;
-			vec2 _padding; // AMDs legacy windows driver needs this, otherwise uni3D has wrong size
+			float particleFadeFactor;
+			float _pad_1; // AMDs legacy windows driver needs this, otherwise uni3D has wrong size
+			float _pad_2;
+			float _pad_3;
 		};
 );
 
@@ -303,12 +306,15 @@ static const char* fragmentCommon3D = MULTILINE_STRING(#version 150\n
 			mat4 transProj;
 			mat4 transView;
 			mat4 transModel;
-			vec2 lmOffset;
+
 			float scroll; // for SURF_FLOWING
 			float time;
 			float alpha;
 			float overbrightbits;
-			vec2 _padding; // AMDs legacy windows driver needs this, otherwise uni3D has wrong size
+			float particleFadeFactor;
+			float _pad_1; // AMDs legacy windows driver needs this, otherwise uni3D has wrong size
+			float _pad_2;
+			float _pad_3;
 		};
 );
 
@@ -676,7 +682,7 @@ static const char* fragmentSrcParticles = MULTILINE_STRING(
 			outColor.rgb = pow(texel.rgb, vec3(gamma));
 
 			// I want the particles to fade out towards the edge, the following seems to look nice
-			texel.a *= min(1.0, 1.2*(1.0 - distSquared));
+			texel.a *= min(1.0, particleFadeFactor*(1.0 - distSquared));
 
 			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
 		}
@@ -848,6 +854,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		if(blockSize != sizeof(gl3state.uni3DData))
 		{
 			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uni3D'\n");
+			R_Printf(PRINT_ALL, "         driver says %d, we expect %d\n", blockSize, (int)sizeof(gl3state.uni3DData));
 
 			goto err_cleanup;
 		}
@@ -948,12 +955,12 @@ static void initUBOs(void)
 	gl3state.uni3DData.transProjMat4 = HMM_Mat4();
 	gl3state.uni3DData.transViewMat4 = HMM_Mat4();
 	gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
-	gl3state.uni3DData.lmOffset = HMM_Vec2(0.0f, 0.0f);
 	gl3state.uni3DData.scroll = 0.0f;
 	gl3state.uni3DData.time = 0.0f;
 	gl3state.uni3DData.alpha = 1.0f;
 	// gl_overbrightbits 0 means "no scaling" which is equivalent to multiplying with 1
 	gl3state.uni3DData.overbrightbits = (gl3_overbrightbits->value <= 0.0f) ? 1.0f : gl3_overbrightbits->value;
+	gl3state.uni3DData.particleFadeFactor = gl3_particle_fade_factor->value;
 
 	glGenBuffers(1, &gl3state.uni3DUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uni3DUBO);
