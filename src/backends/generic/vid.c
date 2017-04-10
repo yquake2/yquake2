@@ -192,7 +192,7 @@ VID_Init(void)
 {
 	/* Create the video variables so we know how to start the graphics drivers */
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
-	vid_gamma = Cvar_Get("vid_gamma", "1", CVAR_ARCHIVE);
+	vid_gamma = Cvar_Get("vid_gamma", "1.2", CVAR_ARCHIVE);
 	vid_renderer = Cvar_Get("vid_renderer", "gl1", CVAR_ARCHIVE);
 
 	/* Add some console commands that we want to handle */

@@ -346,7 +346,7 @@ VID_MenuInit(void)
 
 	if (!vid_gamma)
 	{
-		vid_gamma = Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
+		vid_gamma = Cvar_Get("vid_gamma", "1.2", CVAR_ARCHIVE);
 	}
 
 	if (!gl_swapinterval)
