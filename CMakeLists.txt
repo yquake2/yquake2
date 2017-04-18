@@ -43,9 +43,13 @@ option(OPENAL_SUPPORT "OpenAL support" ON)
 option(SYSTEMWIDE_SUPPORT "Enable systemwide installation of game assets" OFF)
 
 # These variables will act as our list of include folders and linker flags
-set(yquake2LinkerFlags)
 set(yquake2IncludeDirectories)
 set(yquake2LinkerDirectories)
+set(yquake2LinkerFlags)
+set(yquake2ClientLinkerFlags)
+set(yquake2RendererLinkerFlags)
+set(yquake2SDLLinkerFlags)
+set(yquake2ZLibLinkerFlags)
 
 # Set directory locations (allowing us to move directories easily)
 set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
@@ -79,22 +83,22 @@ find_package(SDL2)
 if(${SDL2_FOUND})
 	add_definitions(-DSDL2)
 	list(APPEND yquake2IncludeDirectories "${SDL2_INCLUDE_DIR}/..")
-	list(APPEND yquake2LinkerFlags ${SDL2_LIBRARY})
+	list(APPEND yquake2SDLLinkerFlags ${SDL2_LIBRARY})
 else()
 	find_package(SDL REQUIRED)
 	add_definitions(-DWITH_CDA)
 	list(APPEND yquake2IncludeDirectories "${SDL_INCLUDE_DIR}/..")
-	list(APPEND yquake2LinkerFlags ${SDL_LIBRARY})
+	list(APPEND yquake2SDLLinkerFlags ${SDL_LIBRARY})
 endif()
 
 find_package(OpenGL REQUIRED)
 list(APPEND yquake2IncludeDirectories ${OPENGL_INCLUDE_DIR})
-list(APPEND yquake2LinkerFlags ${OPENGL_LIBRARIES})
+list(APPEND yquake2RendererLinkerFlags ${OPENGL_LIBRARIES})
 
 if(${ZIP_SUPPORT})
 	find_package(ZLIB REQUIRED)
 	list(APPEND yquake2IncludeDirectories ${ZLIB_INCLUDE_DIRS})
-	list(APPEND yquake2LinkerFlags ${ZLIB_LIBRARIES})
+	list(APPEND yquake2ZLibLinkerFlags ${ZLIB_LIBRARIES})
 	add_definitions(-DZIP -DNOUNCRYPT)
 endif()
 
@@ -103,7 +107,7 @@ if(${OGG_SUPPORT})
 	if(${OGGVORBIS_FOUND})
 		add_definitions(-DOGG)
 		list(APPEND yquake2IncludeDirectories ${OGGVORBIS_INCLUDE_DIR})
-		list(APPEND yquake2LinkerFlags ${OGG_LIBRARY} ${VORBIS_LIBRARY} ${VORBISFILE_LIBRARY})
+		list(APPEND yquake2ClientLinkerFlags ${OGG_LIBRARY} ${VORBIS_LIBRARY} ${VORBISFILE_LIBRARY})
 	endif()
 endif()
 
@@ -113,7 +117,7 @@ if(${OPENAL_SUPPORT})
 	# TODO: OS X is still missing here
 	if(${OPENAL_FOUND} AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 		list(APPEND yquake2IncludeDirectories "${OPENAL_INCLUDE_DIR}")
-		list(APPEND yquake2LinkerFlags ${OPENAL_LIBRARY})
+		list(APPEND yquake2ClientLinkerFlags ${OPENAL_LIBRARY})
 
 		if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 			add_definitions(-DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER="openal32.dll")
@@ -479,14 +483,17 @@ set(GL3-Header
 	)
 
 # Main Quake 2 executable
-add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source} ${Backends-Generic-Source} ${Backends-Generic-Header})
+add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
+		${Backends-Generic-Source} ${Backends-Generic-Header})
 set_target_properties(quake2 PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 	)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_link_libraries(quake2 ${yquake2LinkerFlags} ws2_32 winmm)
+	target_link_libraries(quake2 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
+			${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
 else()
-	target_link_libraries(quake2 ${yquake2LinkerFlags})
+	target_link_libraries(quake2 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
+			${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags})
 endif()
 
 # Quake 2 Dedicated Server
@@ -496,9 +503,9 @@ set_target_properties(q2ded PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 	)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_link_libraries(q2ded ${yquake2LinkerFlags} ws2_32 winmm)
+	target_link_libraries(q2ded ${yquake2LinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
 else()
-	target_link_libraries(q2ded ${yquake2LinkerFlags})
+	target_link_libraries(q2ded ${yquake2LinkerFlags} ${yquake2ZLibLinkerFlags})
 endif()
 
 # Build the game dynamic library
@@ -517,7 +524,7 @@ set_target_properties(ref_gl1 PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		)
-target_link_libraries(ref_gl1 ${yquake2LinkerFlags})
+target_link_libraries(ref_gl1 ${yquake2LinkerFlags} ${yquake2OpenGLLinkerFlags} ${yquake2SDLLinkerFlags})
 
 # Build the GL3 dynamic library
 add_library(ref_gl3 MODULE ${GL3-Source} ${GL3-Header} ${GL-Platform-Specific-Source})
@@ -526,4 +533,4 @@ set_target_properties(ref_gl3 PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		)
-target_link_libraries(ref_gl3 ${yquake2LinkerFlags})
+target_link_libraries(ref_gl3 ${yquake2LinkerFlags} ${yquake2OpenGLLinkerFlags} ${yquake2SDLLinkerFlags})
