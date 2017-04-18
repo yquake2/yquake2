@@ -56,6 +56,7 @@ static SDL_Surface* window = NULL;
 // some compatibility defines
 #define SDL_SRCCOLORKEY SDL_TRUE
 #define SDL_FULLSCREEN SDL_WINDOW_FULLSCREEN
+#define SDL_OPENGL SDL_WINDOW_OPENGL
 
 #endif
 
@@ -288,26 +289,28 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 	SetSDLIcon();
 #endif
 
+	cvar_t *gl_msaa_samples = Cvar_Get("gl_msaa_samples", "0", CVAR_ARCHIVE);
+
 	while (1)
 	{
 		if (!CreateSDLWindow(flags, width, height))
 		{
-#if 0 // DG: do we really need to do this? it makes things complicated and belongs into ref dll
-			if (gl_msaa_samples->value)
+			if (flags & SDL_WINDOW_OPENGL)
 			{
-				Com_Printf( "SDL SetVideoMode failed: %s\n", SDL_GetError());
-				Com_Printf("Reverting to %s gl_mode %i (%ix%i) without MSAA.\n",
-						(flags & SDL_FULLSCREEN) ? "fullscreen" : "windowed",
-						(int)Cvar_VariableValue("gl_mode"), width, height);
+				if (gl_msaa_samples->value)
+				{
+					Com_Printf("SDL SetVideoMode failed: %s\n", SDL_GetError());
+					Com_Printf("Reverting to %s gl_mode %i (%ix%i) without MSAA.\n",
+					           (flags & SDL_FULLSCREEN) ? "fullscreen" : "windowed",
+					           (int) Cvar_VariableValue("gl_mode"), width, height);
 
-				/* Try to recover */
-				Cvar_SetValue("gl_msaa_samples", 0);
-				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
-				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+					/* Try to recover */
+					Cvar_SetValue("gl_msaa_samples", 0);
+					SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+					SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+				}
 			}
-			else
-#endif // 0
-			if (width != 640 || height != 480 || (flags & SDL_FULLSCREEN))
+			else if (width != 640 || height != 480 || (flags & SDL_FULLSCREEN))
 			{
 				Com_Printf("SDL SetVideoMode failed: %s\n", SDL_GetError());
 				Com_Printf("Reverting to windowed gl_mode 4 (640x480).\n");
