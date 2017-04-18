@@ -45,9 +45,7 @@
 
 #include "HandmadeMath.h"
 
-#define STUB(msg) \
-	R_Printf(PRINT_ALL, "STUB: %s() %s\n", __FUNCTION__, msg)
-
+#if 0 // only use this for development ..
 #define STUB_ONCE(msg) do { \
 		static int show=1; \
 		if(show) { \
@@ -55,6 +53,9 @@
 			R_Printf(PRINT_ALL, "STUB: %s() %s\n", __FUNCTION__, msg); \
 		} \
 	} while(0);
+#else // .. so make this a no-op in released code
+#define STUB_ONCE(msg)
+#endif
 
 // a wrapper around glVertexAttribPointer() to stay sane
 // (caller doesn't have to cast to GLintptr and then void*)
