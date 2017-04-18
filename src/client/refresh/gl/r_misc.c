@@ -26,15 +26,30 @@
 
 #include "header/local.h"
 
-byte dottexture[8][8] = {
-	{0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 1, 1, 0, 0, 0, 0},
-	{0, 1, 1, 1, 1, 0, 0, 0},
-	{0, 1, 1, 1, 1, 0, 0, 0},
-	{0, 0, 1, 1, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 0, 0, 0},
+static byte dottexture[16][16] = {
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 1, 2, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 1, 3, 3, 3, 3, 3, 3, 1, 0, 0, 0, 0, 0, 0, 0},
+	{0, 2, 3, 3, 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
+	{0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0},
+	{0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0},
+	{0, 2, 3, 3, 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
+	{0, 1, 3, 3, 3, 3, 3, 3, 1, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 1, 2, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+};
+
+static byte notex[4][4] = {
+	{0, 0, 0, 0},
+	{0, 0, 1, 1},
+	{0, 1, 1, 1},
+	{0, 1, 1, 1}
 };
 
 typedef struct _TargaHeader
@@ -50,125 +65,75 @@ void
 R_InitParticleTexture(void)
 {
 	int x, y;
-	byte data[8][8][4];
+	byte partData[16][16][4];
+	byte notexData[8][8][4];
 
 	/* particle texture */
-	for (x = 0; x < 8; x++)
+	for (x = 0; x < 16; x++)
 	{
-		for (y = 0; y < 8; y++)
+		for (y = 0; y < 16; y++)
 		{
-			data[y][x][0] = 255;
-			data[y][x][1] = 255;
-			data[y][x][2] = 255;
-			data[y][x][3] = dottexture[x][y] * 255;
+			partData[y][x][0] = 255;
+			partData[y][x][1] = 255;
+			partData[y][x][2] = 255;
+			partData[y][x][3] = dottexture[x][y] * 85;
 		}
 	}
 
-	r_particletexture = R_LoadPic("***particle***", (byte *)data,
-			8, 0, 8, 0, it_sprite, 32);
+	r_particletexture = R_LoadPic("***particle***", (byte *)partData,
+	                              16, 0, 16, 0, it_sprite, 32);
 
 	/* also use this for bad textures, but without alpha */
 	for (x = 0; x < 8; x++)
 	{
 		for (y = 0; y < 8; y++)
 		{
-			data[y][x][0] = dottexture[x & 3][y & 3] * 255;
-			data[y][x][1] = 0;
-			data[y][x][2] = 0;
-			data[y][x][3] = 255;
+			notexData[y][x][0] = notex[x & 3][y & 3] * 255;
+			notexData[y][x][1] = 0;
+			notexData[y][x][2] = 0;
+			notexData[y][x][3] = 255;
 		}
 	}
 
-	r_notexture = R_LoadPic("***r_notexture***", (byte *)data,
-			8, 0, 8, 0, it_wall, 32);
+	r_notexture = R_LoadPic("***r_notexture***", (byte *)notexData,
+	                        8, 0, 8, 0, it_wall, 32);
 }
 
 void
 R_ScreenShot(void)
 {
-	byte *buffer, temp;
-	char picname[80];
-	char checkname[MAX_OSPATH];
-	int i, c;
-	FILE *f;
+	int w=vid.width, h=vid.height;
+	byte *buffer = malloc(w*h*3);
 
-	/* create the scrnshots directory if it doesn't exist */
-	Com_sprintf(checkname, sizeof(checkname), "%s/scrnshot", FS_Gamedir());
-	Sys_Mkdir(checkname);
-
-	/* find a file name to save it to */
-	strcpy(picname, "quake00.tga");
-
-	for (i = 0; i <= 99; i++)
-	{
-		picname[5] = i / 10 + '0';
-		picname[6] = i % 10 + '0';
-		Com_sprintf(checkname, sizeof(checkname), "%s/scrnshot/%s",
-			   	FS_Gamedir(), picname);
-		f = fopen(checkname, "rb");
-
-		if (!f)
-		{
-			break; /* file doesn't exist */
-		}
-
-		fclose(f);
-	}
-
-	if (i == 100)
-	{
-		VID_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't create a file\n");
-		return;
-	}
-
-	static const int headerLength = 18+4;
-
-	c = headerLength + vid.width * vid.height * 3;
-
-	buffer = malloc(c);
 	if (!buffer)
 	{
-		VID_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't malloc %d bytes\n", c);
+		R_Printf(PRINT_ALL, "R_ScreenShot: Couldn't malloc %d bytes\n", w*h*3);
 		return;
 	}
 
-	memset(buffer, 0, headerLength);
-	buffer[0] = 4; // image ID: "yq2\0"
-	buffer[2] = 2; /* uncompressed type */
-	buffer[12] = vid.width & 255;
-	buffer[13] = vid.width >> 8;
-	buffer[14] = vid.height & 255;
-	buffer[15] = vid.height >> 8;
-	buffer[16] = 24; /* pixel size */
-	buffer[17] = 0; // image descriptor
-	buffer[18] = 'y'; // following: the 4 image ID fields
-	buffer[19] = 'q';
-	buffer[20] = '2';
-	buffer[21] = '\0';
-
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glReadPixels(0, 0, vid.width, vid.height, GL_RGB,
-			GL_UNSIGNED_BYTE, buffer + headerLength);
+	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
-	/* swap rgb to bgr */
-	for (i = headerLength; i < c; i += 3)
+	// the pixels are now row-wise left to right, bottom to top,
+	// but we need them row-wise left to right, top to bottom.
+	// so swap bottom rows with top rows
 	{
-		temp = buffer[i];
-		buffer[i] = buffer[i + 2];
-		buffer[i + 2] = temp;
+		size_t bytesPerRow = 3*w;
+		byte rowBuffer[bytesPerRow];
+		byte *curRowL = buffer; // first byte of first row
+		byte *curRowH = buffer + bytesPerRow*(h-1); // first byte of last row
+		while(curRowL < curRowH)
+		{
+			memcpy(rowBuffer, curRowL, bytesPerRow);
+			memcpy(curRowL, curRowH, bytesPerRow);
+			memcpy(curRowH, rowBuffer, bytesPerRow);
+
+			curRowL += bytesPerRow;
+			curRowH -= bytesPerRow;
+		}
 	}
 
-	f = fopen(checkname, "wb");
-	if (f)
-	{
-		fwrite(buffer, 1, c, f);
-		fclose(f);
-		VID_Printf(PRINT_ALL, "Wrote %s\n", picname);
-	}
-	else
-	{
-		VID_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't write %s\n", picname);
-	}
+	ri.Vid_WriteScreenshot(w, h, 3, buffer);
 
 	free(buffer);
 }
@@ -176,10 +141,10 @@ R_ScreenShot(void)
 void
 R_Strings(void)
 {
-	VID_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string);
-	VID_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string);
-	VID_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string);
-	VID_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
+	R_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string);
+	R_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string);
+	R_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string);
+	R_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
 }
 
 void

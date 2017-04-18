@@ -711,8 +711,8 @@ CL_UpdateWindowedMouse(void)
 	}
 }
 
-qboolean GLimp_VsyncEnabled(void);
 int GLimp_GetRefreshRate(void);
+qboolean R_IsVSyncActive(void);
 
 void
 CL_Frame(int msec)
@@ -736,7 +736,7 @@ CL_Frame(int msec)
 	}
 
 	// Target render frame rate
-	if (GLimp_VsyncEnabled())
+	if (R_IsVSyncActive())
 	{
 		rfps = GLimp_GetRefreshRate();
 
@@ -830,7 +830,7 @@ CL_Frame(int msec)
 			double frametime = (1000.0 / cl_maxfps->value - packetdelta) <= (1000.0 / gl_maxfps->value - renderdelta) ?
 							   (1000.0 / cl_maxfps->value - packetdelta) : (1000.0 / gl_maxfps->value - renderdelta);
 
-			if (frametime > 1)
+			if (frametime > 1) // FIXME: why > ??
 			{
 				Sys_Sleep(1);
 			}

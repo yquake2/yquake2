@@ -31,18 +31,9 @@
 #include <ctype.h>
 #include <math.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#include "../../ref_shared.h"
+#include "qgl.h"
 
-#if defined(__APPLE__)
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
-#include "../../header/ref.h"
-#include "../../../backends/generic/header/qgl.h"
 
 #ifndef GL_COLOR_INDEX8_EXT
  #define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX
@@ -74,7 +65,6 @@
 #define BLOCK_WIDTH 128
 #define BLOCK_HEIGHT 128
 #define REF_VERSION "Yamagi Quake II OpenGL Refresher"
-#define MAX_LBM_HEIGHT 480
 #define BACKFACE_EPSILON 0.01
 #define LIGHTMAP_BYTES 4
 #define MAX_LIGHTMAPS 128
@@ -91,24 +81,6 @@
 
 extern viddef_t vid;
 
-/*
- * skins will be outline flood filled and mip mapped
- * pics and sprites with alpha will be outline flood filled
- * pic won't be mip mapped
- *
- * model skin
- * sprite frame
- * wall texture
- * pic
- */
-typedef enum
-{
-	it_skin,
-	it_sprite,
-	it_wall,
-	it_pic,
-	it_sky
-} imagetype_t;
 
 enum stereo_modes {
 	STEREO_MODE_NONE,
@@ -221,6 +193,8 @@ extern cvar_t *gl_customheight;
 
 extern cvar_t *gl_retexturing;
 
+extern cvar_t *gl_nolerp_list;
+
 extern cvar_t *gl_lightmap;
 extern cvar_t *gl_shadows;
 extern cvar_t *gl_stencilshadow;
@@ -310,12 +284,6 @@ int Draw_GetPalette(void);
 void R_ResampleTexture(unsigned *in, int inwidth, int inheight,
 		unsigned *out, int outwidth, int outheight);
 
-void LoadPCX(char *filename, byte **pic, byte **palette,
-		int *width, int *height);
-image_t *LoadWal(char *name);
-qboolean LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *height);
-void GetWalInfo(char *name, int *width, int *height);
-void GetPCXInfo(char *filename, int *width, int *height);
 image_t *R_LoadPic(char *name, byte *pic, int width, int realwidth,
 		int height, int realheight, imagetype_t type, int bits);
 image_t *R_FindImage(char *name, imagetype_t type);
@@ -407,29 +375,15 @@ extern glconfig_t gl_config;
 extern glstate_t gl_state;
 
 /*
- * Initializes the SDL OpenGL context
+ * Shuts the render context and SDL window down
+ * (if contextOnly, the window will not be shutdown)
  */
-int GLimp_Init(void);
-
-/*
- * Shuts the SDL render backend down
- */
-void GLimp_Shutdown(void);
-
-/*
- * Changes the video mode
- */
-int GLimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen);
+void RI_ShutdownWindow(qboolean contextOnly);
 
 /*
  * Returns the address of the GL function proc,
  * or NULL if the function is not found.
  */
 void *GLimp_GetProcAddress (const char* proc);
-
-/*
- * (Un)grab Input
- */
-void GLimp_GrabInput(qboolean grab);
 
 #endif

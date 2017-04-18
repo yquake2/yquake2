@@ -28,7 +28,7 @@
 
 #include <stdlib.h>
 
-#include "../header/local.h"
+#include "../gl/header/local.h"
 
 // don't need HDR stuff
 #define STBI_NO_LINEAR
@@ -63,7 +63,7 @@ LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *hei
 	*pic = NULL;
 
 	byte* rawdata = NULL;
-	int rawsize = FS_LoadFile(filename, (void **)&rawdata);
+	int rawsize = ri.FS_LoadFile(filename, (void **)&rawdata);
 	if (rawdata == NULL)
 	{
 		return false;
@@ -74,14 +74,14 @@ LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *hei
 	data = stbi_load_from_memory(rawdata, rawsize, &w, &h, &bytesPerPixel, STBI_rgb_alpha);
 	if (data == NULL)
 	{
-		VID_Printf(PRINT_ALL, "stb_image couldn't load data from %s: %s!\n", filename, stbi_failure_reason());
-		FS_FreeFile(rawdata);
+		R_Printf(PRINT_ALL, "stb_image couldn't load data from %s: %s!\n", filename, stbi_failure_reason());
+		ri.FS_FreeFile(rawdata);
 		return false;
 	}
 
-	FS_FreeFile(rawdata);
+	ri.FS_FreeFile(rawdata);
 
-	VID_Printf(PRINT_DEVELOPER, "LoadSTB() loaded: %s\n", filename);
+	R_Printf(PRINT_DEVELOPER, "LoadSTB() loaded: %s\n", filename);
 
 	*pic = data;
 	*width = w;

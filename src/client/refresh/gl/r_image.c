@@ -152,7 +152,7 @@ R_TexEnv(GLenum mode)
 
 	if (mode != lastmodes[gl_state.currenttmu])
 	{
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode); // FIXME: shouldn't this be glTexEnvi() ?
 		lastmodes[gl_state.currenttmu] = mode;
 	}
 }
@@ -192,7 +192,7 @@ R_TextureMode(char *string)
 
 	if (i == NUM_GL_MODES)
 	{
-		VID_Printf(PRINT_ALL, "bad filter name\n");
+		R_Printf(PRINT_ALL, "bad filter name\n");
 		return;
 	}
 
@@ -204,16 +204,16 @@ R_TextureMode(char *string)
 	{
 		if (gl_anisotropic->value > gl_config.max_anisotropy)
 		{
-			Cvar_SetValue("gl_anisotropic", gl_config.max_anisotropy);
+			ri.Cvar_SetValue("gl_anisotropic", gl_config.max_anisotropy);
 		}
 		else if (gl_anisotropic->value < 1.0)
 		{
-			Cvar_SetValue("gl_anisotropic", 1.0);
+			ri.Cvar_SetValue("gl_anisotropic", 1.0);
 		}
 	}
 	else
 	{
-		Cvar_SetValue("gl_anisotropic", 0.0);
+		ri.Cvar_SetValue("gl_anisotropic", 0.0);
 	}
 
 	/* change all the existing mipmap texture objects */
@@ -252,7 +252,7 @@ R_TextureAlphaMode(char *string)
 
 	if (i == NUM_GL_ALPHA_MODES)
 	{
-		VID_Printf(PRINT_ALL, "bad alpha texture mode name\n");
+		R_Printf(PRINT_ALL, "bad alpha texture mode name\n");
 		return;
 	}
 
@@ -274,7 +274,7 @@ R_TextureSolidMode(char *string)
 
 	if (i == NUM_GL_SOLID_MODES)
 	{
-		VID_Printf(PRINT_ALL, "bad solid texture mode name\n");
+		R_Printf(PRINT_ALL, "bad solid texture mode name\n");
 		return;
 	}
 
@@ -292,7 +292,7 @@ R_ImageList_f(void)
 		"PAL"
 	};
 
-	VID_Printf(PRINT_ALL, "------------------\n");
+	R_Printf(PRINT_ALL, "------------------\n");
 	texels = 0;
 
 	for (i = 0, image = gltextures; i < numgltextures; i++, image++)
@@ -307,28 +307,28 @@ R_ImageList_f(void)
 		switch (image->type)
 		{
 			case it_skin:
-				VID_Printf(PRINT_ALL, "M");
+				R_Printf(PRINT_ALL, "M");
 				break;
 			case it_sprite:
-				VID_Printf(PRINT_ALL, "S");
+				R_Printf(PRINT_ALL, "S");
 				break;
 			case it_wall:
-				VID_Printf(PRINT_ALL, "W");
+				R_Printf(PRINT_ALL, "W");
 				break;
 			case it_pic:
-				VID_Printf(PRINT_ALL, "P");
+				R_Printf(PRINT_ALL, "P");
 				break;
 			default:
-				VID_Printf(PRINT_ALL, " ");
+				R_Printf(PRINT_ALL, " ");
 				break;
 		}
 
-		VID_Printf(PRINT_ALL, " %3i %3i %s: %s\n",
+		R_Printf(PRINT_ALL, " %3i %3i %s: %s\n",
 				image->upload_width, image->upload_height,
 				palstrings[image->paletted], image->name);
 	}
 
-	VID_Printf(PRINT_ALL,
+	R_Printf(PRINT_ALL,
 			"Total texel count (not counting mipmaps): %i\n",
 			texels);
 }
@@ -646,7 +646,7 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 
 	if (scaled_width * scaled_height > sizeof(scaled) / 4)
 	{
-		VID_Error(ERR_DROP, "R_Upload32: too big");
+		ri.Sys_Error(ERR_DROP, "R_Upload32: too big");
 	}
 
 	/* scan the texture for any non-255 alpha */
@@ -811,7 +811,7 @@ R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 
 	if (s > sizeof(trans) / 4)
 	{
-		VID_Error(ERR_DROP, "R_Upload8: too large");
+		ri.Sys_Error(ERR_DROP, "R_Upload8: too large");
 	}
 
 	if (gl_config.palettedtexture && is_sky)
@@ -877,7 +877,13 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 {
 	image_t *image;
 	int i;
-	qboolean nolerp = (strstr(Cvar_VariableString("gl_nolerp_list"), name) != NULL);
+
+	qboolean nolerp = false;
+
+	if(gl_nolerp_list != NULL && gl_nolerp_list->string != NULL)
+	{
+		nolerp = strstr(gl_nolerp_list->string, name) != NULL;
+	}
 
 	/* find a free image_t */
 	for (i = 0, image = gltextures; i < numgltextures; i++, image++)
@@ -892,7 +898,7 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 	{
 		if (numgltextures == MAX_GLTEXTURES)
 		{
-			VID_Error(ERR_DROP, "MAX_GLTEXTURES");
+			ri.Sys_Error(ERR_DROP, "MAX_GLTEXTURES");
 		}
 
 		numgltextures++;
@@ -902,7 +908,7 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 	if (strlen(name) >= sizeof(image->name))
 	{
-		VID_Error(ERR_DROP, "Draw_LoadPic: \"%s\" is too long", name);
+		ri.Sys_Error(ERR_DROP, "Draw_LoadPic: \"%s\" is too long", name);
 	}
 
 	strcpy(image->name, name);
@@ -985,7 +991,7 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 			}
 			else
 			{
-				VID_Printf(PRINT_DEVELOPER,
+				R_Printf(PRINT_DEVELOPER,
 						"Warning, image '%s' has hi-res replacement smaller than the original! (%d x %d) < (%d x %d)\n",
 						name, image->width, image->height, realwidth, realheight);
 			}
@@ -1006,6 +1012,41 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 	return image;
 }
 
+static image_t *
+LoadWal(char *origname)
+{
+	miptex_t *mt;
+	int width, height, ofs;
+	image_t *image;
+	char name[256];
+
+	Q_strlcpy(name, origname, sizeof(name));
+
+	/* Add the extension */
+	if (strcmp(COM_FileExtension(name), "wal"))
+	{
+		Q_strlcat(name, ".wal", sizeof(name));
+	}
+
+	ri.FS_LoadFile(name, (void **)&mt);
+
+	if (!mt)
+	{
+		R_Printf(PRINT_ALL, "LoadWal: can't load %s\n", name);
+		return r_notexture;
+	}
+
+	width = LittleLong(mt->width);
+	height = LittleLong(mt->height);
+	ofs = LittleLong(mt->offsets[0]);
+
+	image = R_LoadPic(name, (byte *)mt + ofs, width, 0, height, 0, it_wall, 8);
+
+	ri.FS_FreeFile((void *)mt);
+
+	return image;
+}
+
 /*
  * Finds or loads the given image
  */
@@ -1014,7 +1055,7 @@ R_FindImage(char *name, imagetype_t type)
 {
 	image_t *image;
 	int i, len;
-	byte *pic, *palette;
+	byte *pic;
 	int width, height;
 	char *ptr;
 	char namewe[256];
@@ -1062,7 +1103,6 @@ R_FindImage(char *name, imagetype_t type)
 
 	/* load the pic from disk */
 	pic = NULL;
-	palette = NULL;
 
 	if (strcmp(ext, "pcx") == 0)
 	{
@@ -1087,7 +1127,7 @@ R_FindImage(char *name, imagetype_t type)
 			else
 			{
 				/* PCX if no TGA/PNG/JPEG available (exists always) */
-				LoadPCX(name, &pic, &palette, &width, &height);
+				LoadPCX(name, &pic, NULL, &width, &height);
 
 				if (!pic)
 				{
@@ -1101,7 +1141,7 @@ R_FindImage(char *name, imagetype_t type)
 		}
 		else /* gl_retexture is not set */
 		{
-			LoadPCX(name, &pic, &palette, &width, &height);
+			LoadPCX(name, &pic, NULL, &width, &height);
 
 			if (!pic)
 			{
@@ -1178,9 +1218,10 @@ R_FindImage(char *name, imagetype_t type)
 		 * if (realwidth == 0 || realheight == 0) return NULL;
 		 */
 
-		LoadSTB(name, ext, &pic, &width, &height);
-		image = R_LoadPic(name, pic, width, realwidth,
-				height, realheight, type, 32);
+		if(LoadSTB(name, ext, &pic, &width, &height))
+		{
+			image = R_LoadPic(name, pic, width, realwidth, height, realheight, type, 32);
+		}
 	}
 	else
 	{
@@ -1192,16 +1233,11 @@ R_FindImage(char *name, imagetype_t type)
 		free(pic);
 	}
 
-	if (palette)
-	{
-		free(palette);
-	}
-
 	return image;
 }
 
 struct image_s *
-R_RegisterSkin(char *name)
+RI_RegisterSkin(char *name)
 {
 	return R_FindImage(name, it_skin);
 }
@@ -1254,24 +1290,24 @@ R_InitImages(void)
 	registration_sequence = 1;
 
 	/* init intensity conversions */
-	intensity = Cvar_Get("intensity", "2", CVAR_ARCHIVE);
+	intensity = ri.Cvar_Get("intensity", "2", CVAR_ARCHIVE);
 
 	if (intensity->value <= 1)
 	{
-		Cvar_Set("intensity", "1");
+		ri.Cvar_Set("intensity", "1");
 	}
 
 	gl_state.inverse_intensity = 1 / intensity->value;
 
-	Draw_GetPalette();
+	Draw_GetPalette(); // FIXME: I think this is redundant - RI_Init() already calls that!
 
 	if (gl_config.palettedtexture)
 	{
-		FS_LoadFile("pics/16to8.dat", (void **)&gl_state.d_16to8table);
+		ri.FS_LoadFile("pics/16to8.dat", (void **)&gl_state.d_16to8table);
 
 		if (!gl_state.d_16to8table)
 		{
-			VID_Error(ERR_FATAL, "Couldn't load pics/16to8.pcx");
+			ri.Sys_Error(ERR_FATAL, "Couldn't load pics/16to8.pcx");
 		}
 	}
 

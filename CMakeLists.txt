@@ -31,7 +31,7 @@ list(APPEND CMAKE_PREFIX_PATH /usr/local)
 #  -Wall                -> More warnings
 #  -fno-strict-aliasing -> Quake 2 is far away from strict aliasing
 #  -fwrapv              -> Make signed integer overflows defined
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fno-strict-aliasing -fwrapv")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrapv")
 
 # Use -O2 as maximum optimization level. -O3 has it's problems with yquake2.
 string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
@@ -54,6 +54,7 @@ set(COMMON_SRC_DIR ${SOURCE_DIR}/common)
 set(GAME_SRC_DIR ${SOURCE_DIR}/game)
 set(SERVER_SRC_DIR ${SOURCE_DIR}/server)
 set(CLIENT_SRC_DIR ${SOURCE_DIR}/client)
+set(GL_SRC_DIR ${SOURCE_DIR}/client/refresh)
 
 # Operating system
 set(YQ2OSTYPE "${CMAKE_SYSTEM_NAME}" CACHE STRING "Override operation system type")
@@ -136,13 +137,12 @@ list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
 
 # With all of those libraries and user defined paths
 # added, lets give them to the compiler and linker.
-include_directories(${yquake2IncludeDirectories})
+include_directories(${yquake2IncludeDirectories} ${CMAKE_SOURCE_DIR}/src/client/refresh/gl3/glad/include)
 link_directories(${yquake2LinkerDirectories})
 
 set(Backends-Generic-Source
 	${BACKENDS_SRC_DIR}/generic/misc.c
 	${BACKENDS_SRC_DIR}/generic/qal.c
-	${BACKENDS_SRC_DIR}/generic/qgl.c
 	${BACKENDS_SRC_DIR}/generic/vid.c
 
 	${BACKENDS_SRC_DIR}/sdl/cd.c
@@ -154,7 +154,6 @@ set(Backends-Generic-Source
 set(Backends-Generic-Header
 	${BACKENDS_SRC_DIR}/generic/header/input.h
 	${BACKENDS_SRC_DIR}/generic/header/qal.h
-	${BACKENDS_SRC_DIR}/generic/header/qgl.h
 	)
 
 set(Backends-Unix-Source
@@ -183,12 +182,21 @@ set(Backends-Windows-Header
 	${BACKENDS_SRC_DIR}/windows/header/winquake.h
 	)
 
+set(GL-Windows-Source
+	${BACKENDS_SRC_DIR}/windows/shared/mem.c
+	)
+
+set(GL-Unix-Source
+	${BACKENDS_SRC_DIR}/unix/shared/hunk.c
+	)
 
 # Set the nessesary platform specific source
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set(Platform-Specific-Source ${Backends-Windows-Source} ${Backends-Windows-Header})
+	set(GL-Platform-Specific-Source ${GL-Windows-Source})
 else()
 	set(Platform-Specific-Source ${Backends-Unix-Source} ${Backends-Unix-Header})
+	set(GL-Platform-Specific-Source ${GL-Unix-Source})
 endif()
 
 set(Game-Source
@@ -293,22 +301,6 @@ set(Client-Source
 	${CLIENT_SRC_DIR}/cl_screen.c
 	${CLIENT_SRC_DIR}/cl_tempentities.c
 	${CLIENT_SRC_DIR}/cl_view.c
-	${CLIENT_SRC_DIR}/refresh/r_draw.c
-	${CLIENT_SRC_DIR}/refresh/r_image.c
-	${CLIENT_SRC_DIR}/refresh/r_light.c
-	${CLIENT_SRC_DIR}/refresh/r_lightmap.c
-	${CLIENT_SRC_DIR}/refresh/r_main.c
-	${CLIENT_SRC_DIR}/refresh/r_mesh.c
-	${CLIENT_SRC_DIR}/refresh/r_misc.c
-	${CLIENT_SRC_DIR}/refresh/r_model.c
-	${CLIENT_SRC_DIR}/refresh/r_scrap.c
-	${CLIENT_SRC_DIR}/refresh/r_surf.c
-	${CLIENT_SRC_DIR}/refresh/r_warp.c
-	${CLIENT_SRC_DIR}/refresh/files/md2.c
-	${CLIENT_SRC_DIR}/refresh/files/pcx.c
-	${CLIENT_SRC_DIR}/refresh/files/sp2.c
-	${CLIENT_SRC_DIR}/refresh/files/stb.c
-	${CLIENT_SRC_DIR}/refresh/files/wal.c
 	${CLIENT_SRC_DIR}/menu/menu.c
 	${CLIENT_SRC_DIR}/menu/qmenu.c
 	${CLIENT_SRC_DIR}/menu/videomenu.c
@@ -356,12 +348,6 @@ set(Client-Header
 	${CLIENT_SRC_DIR}/header/screen.h
 	${CLIENT_SRC_DIR}/header/vid.h
 	${CLIENT_SRC_DIR}/menu/header/qmenu.h
-	${CLIENT_SRC_DIR}/refresh/constants/anorms.h
-	${CLIENT_SRC_DIR}/refresh/constants/anormtab.h
-	${CLIENT_SRC_DIR}/refresh/constants/warpsin.h
-	${CLIENT_SRC_DIR}/refresh/files/stb_image.h
-	${CLIENT_SRC_DIR}/refresh/header/local.h
-	${CLIENT_SRC_DIR}/refresh/header/model.h
 	${CLIENT_SRC_DIR}/sound/header/cdaudio.h
 	${CLIENT_SRC_DIR}/sound/header/local.h
 	${CLIENT_SRC_DIR}/sound/header/sound.h
@@ -421,14 +407,76 @@ set(Server-Header
 	${SERVER_SRC_DIR}/header/server.h
 	)
 
-# Build the game dynamic library
-add_library(game MODULE ${Game-Source} ${Game-Header})
-set_target_properties(game PROPERTIES
-	PREFIX ""
-	LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
-	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
+set(GL1-Source
+	${GL_SRC_DIR}/gl/qgl.c
+	${GL_SRC_DIR}/gl/r_draw.c
+	${GL_SRC_DIR}/gl/r_image.c
+	${GL_SRC_DIR}/gl/r_light.c
+	${GL_SRC_DIR}/gl/r_lightmap.c
+	${GL_SRC_DIR}/gl/r_main.c
+	${GL_SRC_DIR}/gl/r_mesh.c
+	${GL_SRC_DIR}/gl/r_misc.c
+	${GL_SRC_DIR}/gl/r_model.c
+	${GL_SRC_DIR}/gl/r_scrap.c
+	${GL_SRC_DIR}/gl/r_surf.c
+	${GL_SRC_DIR}/gl/r_warp.c
+	${GL_SRC_DIR}/gl/r_sdl.c
+	${GL_SRC_DIR}/gl/r_md2.c
+	${GL_SRC_DIR}/gl/r_sp2.c
+	${GL_SRC_DIR}/files/pcx.c
+	${GL_SRC_DIR}/files/stb.c
+	${GL_SRC_DIR}/files/wal.c
+	${COMMON_SRC_DIR}/shared/shared.c
 	)
-target_link_libraries(game ${yquake2LinkerFlags})
+
+set(GL1-Header
+	${GL_SRC_DIR}/ref_shared.h
+	${GL_SRC_DIR}/constants/anorms.h
+	${GL_SRC_DIR}/constants/anormtab.h
+	${GL_SRC_DIR}/constants/warpsin.h
+	${GL_SRC_DIR}/files/stb_image.h
+	${GL_SRC_DIR}/gl/header/local.h
+	${GL_SRC_DIR}/gl/header/model.h
+	${GL_SRC_DIR}/gl/header/qgl.h
+	${COMMON_SRC_DIR}/header/shared.h
+	)
+
+set(GL3-Source
+	${GL_SRC_DIR}/gl3/gl3_draw.c
+	${GL_SRC_DIR}/gl3/gl3_image.c
+	${GL_SRC_DIR}/gl3/gl3_light.c
+	${GL_SRC_DIR}/gl3/gl3_lightmap.c
+	${GL_SRC_DIR}/gl3/gl3_main.c
+	${GL_SRC_DIR}/gl3/gl3_mesh.c
+	${GL_SRC_DIR}/gl3/gl3_misc.c
+	${GL_SRC_DIR}/gl3/gl3_model.c
+	${GL_SRC_DIR}/gl3/gl3_sdl.c
+	${GL_SRC_DIR}/gl3/gl3_surf.c
+	${GL_SRC_DIR}/gl3/gl3_warp.c
+	${GL_SRC_DIR}/gl3/gl3_shaders.c
+	${GL_SRC_DIR}/gl3/gl3_md2.c
+	${GL_SRC_DIR}/gl3/gl3_sp2.c
+	${GL_SRC_DIR}/gl3/glad/src/glad.c
+	${GL_SRC_DIR}/files/pcx.c
+	${GL_SRC_DIR}/files/stb.c
+	${GL_SRC_DIR}/files/wal.c
+	${COMMON_SRC_DIR}/shared/shared.c
+	)
+
+set(GL3-Header
+	${GL_SRC_DIR}/ref_shared.h
+	${GL_SRC_DIR}/constants/anorms.h
+	${GL_SRC_DIR}/constants/anormtab.h
+	${GL_SRC_DIR}/constants/warpsin.h
+	${GL_SRC_DIR}/files/stb_image.h
+	${GL_SRC_DIR}/gl3/glad/include/glad/glad.h
+	${GL_SRC_DIR}/gl3/glad/include/KHR/khrplatform.h
+	${GL_SRC_DIR}/gl3/header/DG_dynarr.h
+	${GL_SRC_DIR}/gl3/header/HandmadeMath.h
+	${GL_SRC_DIR}/gl3/header/local.h
+	${GL_SRC_DIR}/gl3/header/model.h
+	${COMMON_SRC_DIR}/header/shared.h
+	)
 
 # Main Quake 2 executable
 add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source} ${Backends-Generic-Source} ${Backends-Generic-Header})
@@ -452,3 +500,30 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else()
 	target_link_libraries(q2ded ${yquake2LinkerFlags})
 endif()
+
+# Build the game dynamic library
+add_library(game MODULE ${Game-Source} ${Game-Header})
+set_target_properties(game PROPERTIES
+		PREFIX ""
+		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
+		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
+		)
+target_link_libraries(game ${yquake2LinkerFlags})
+
+# Build the GL1 dynamic library
+add_library(ref_gl1 MODULE ${GL1-Source} ${GL1-Header} ${GL-Platform-Specific-Source})
+set_target_properties(ref_gl1 PROPERTIES
+		PREFIX ""
+		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		)
+target_link_libraries(ref_gl1 ${yquake2LinkerFlags})
+
+# Build the GL3 dynamic library
+add_library(ref_gl3 MODULE ${GL3-Source} ${GL3-Header} ${GL-Platform-Specific-Source})
+set_target_properties(ref_gl3 PROPERTIES
+		PREFIX ""
+		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		)
+target_link_libraries(ref_gl3 ${yquake2LinkerFlags})

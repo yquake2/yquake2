@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "../header/local.h"
+#include "../ref_shared.h"
 
 void
 LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
@@ -46,14 +46,18 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	}
 
 	*pic = NULL;
-	*palette = NULL;
+
+	if (palette)
+	{
+		*palette = NULL;
+	}
 
 	/* load the file */
-	len = FS_LoadFile(filename, (void **)&raw);
+	len = ri.FS_LoadFile(filename, (void **)&raw);
 
 	if (!raw)
 	{
-		VID_Printf(PRINT_DEVELOPER, "Bad pcx file %s\n", filename);
+		R_Printf(PRINT_DEVELOPER, "Bad pcx file %s\n", filename);
 		return;
 	}
 
@@ -75,7 +79,7 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 		(pcx->encoding != 1) || (pcx->bits_per_pixel != 8) ||
 		(pcx->xmax >= 640) || (pcx->ymax >= 480))
 	{
-		VID_Printf(PRINT_ALL, "Bad pcx file %s\n", filename);
+		R_Printf(PRINT_ALL, "Bad pcx file %s\n", filename);
 		return;
 	}
 
@@ -126,12 +130,12 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 
 	if (raw - (byte *)pcx > len)
 	{
-		VID_Printf(PRINT_DEVELOPER, "PCX file %s was malformed", filename);
+		R_Printf(PRINT_DEVELOPER, "PCX file %s was malformed", filename);
 		free(*pic);
 		*pic = NULL;
 	}
 
-	FS_FreeFile(pcx);
+	ri.FS_FreeFile(pcx);
 }
 
 void
@@ -140,7 +144,7 @@ GetPCXInfo(char *filename, int *width, int *height)
 	pcx_t *pcx;
 	byte *raw;
 
-	FS_LoadFile(filename, (void **)&raw);
+	ri.FS_LoadFile(filename, (void **)&raw);
 
 	if (!raw)
 	{
@@ -152,7 +156,7 @@ GetPCXInfo(char *filename, int *width, int *height)
 	*width = pcx->xmax + 1;
 	*height = pcx->ymax + 1;
 
-	FS_FreeFile(raw);
+	ri.FS_FreeFile(raw);
 
 	return;
 }
