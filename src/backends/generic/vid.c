@@ -344,6 +344,7 @@ VID_LoadRefresh(void)
 	snprintf(reflib_name, sizeof(reflib_name), "ref_%s.%s", vid_renderer->string, lib_ext);
 	snprintf(reflib_path, sizeof(reflib_path), "%s%s", Sys_GetBinaryDir(), reflib_name);
 
+	Com_Printf("LoadLibrary(%s)\n", reflib_name);
 	GetRefAPI = Sys_LoadLibrary(reflib_path, "GetRefAPI", &reflib_handle);
 	if(GetRefAPI == NULL)
 	{

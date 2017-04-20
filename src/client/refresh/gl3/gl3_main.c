@@ -436,12 +436,13 @@ GL3_Init(void)
 {
 	Swap_Init(); // FIXME: for fucks sake, this doesn't have to be done at runtime!
 
+	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
+	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
+
 	/* Options */
 	R_Printf(PRINT_ALL, "Refresher build options:\n");
+	R_Printf(PRINT_ALL, " + Retexturing support\n\n");
 
-	R_Printf(PRINT_ALL, " + Retexturing support\n");
-
-	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
 
 	if(sizeof(float) != sizeof(GLfloat))
 	{

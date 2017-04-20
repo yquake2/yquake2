@@ -1378,18 +1378,19 @@ RI_Init()
 		r_turbsin[j] *= 0.5;
 	}
 
+	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
+	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
+
 	/* Options */
 	R_Printf(PRINT_ALL, "Refresher build options:\n");
 
 	R_Printf(PRINT_ALL, " + Retexturing support\n");
 
 #ifdef X11GAMMA
-	R_Printf(PRINT_ALL, " + Gamma via X11\n");
+	R_Printf(PRINT_ALL, " + Gamma via X11\n\n");
 #else
-	R_Printf(PRINT_ALL, " - Gamma via X11\n");
+	R_Printf(PRINT_ALL, " - Gamma via X11\n\n");
 #endif
-
-	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
 
 	Draw_GetPalette();
 
