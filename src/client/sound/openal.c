@@ -607,7 +607,6 @@ AL_Update(void)
 	/* set listener (player) parameters */
 	AL_CopyVector(listener_forward, orientation);
 	AL_CopyVector(listener_up, orientation + 3);
-	qalListenerf(AL_MAX_GAIN, s_openal_maxgain->value);
 	qalDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
 	qalListener3f(AL_POSITION, AL_UnpackVector(listener_origin));
 	qalListenerfv(AL_ORIENTATION, orientation);
