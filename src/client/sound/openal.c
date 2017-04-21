@@ -48,7 +48,6 @@
 #define MIN_CHANNELS 16
 
 /* Globals */
-cvar_t *s_openal_maxgain;
 int active_buffers;
 qboolean streamPlaying;
 static ALuint s_srcnums[MAX_CHANNELS - 1];
@@ -782,8 +781,6 @@ AL_Init(void)
 		Com_Printf("ERROR: OpenAL failed to initialize.\n");
 		return false;
 	}
-
-	s_openal_maxgain = Cvar_Get("s_openal_maxgain", "1.0", CVAR_ARCHIVE);
 
 	/* check for linear distance extension */
 	if (!qalIsExtensionPresent("AL_EXT_LINEAR_DISTANCE"))
