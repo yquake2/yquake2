@@ -90,25 +90,28 @@ AL_StreamUpdate(void)
 	int numBuffers;
 	ALint state;
 
-	/* Un-queue any buffers, and delete them */
-	qalGetSourcei(streamSource, AL_BUFFERS_PROCESSED, &numBuffers);
-
-	while (numBuffers--)
-	{
-		ALuint buffer;
-		qalSourceUnqueueBuffers(streamSource, 1, &buffer);
-		qalDeleteBuffers(1, &buffer);
-		active_buffers--;
-	}
-
-	/* Start the streamSource playing if necessary */
-	qalGetSourcei(streamSource, AL_BUFFERS_QUEUED, &numBuffers);
 	qalGetSourcei(streamSource, AL_SOURCE_STATE, &state);
 
 	if (state == AL_STOPPED)
 	{
 		streamPlaying = false;
 	}
+	else
+	{
+		/* Un-queue any already pleyed buffers and delete them */
+		qalGetSourcei(streamSource, AL_BUFFERS_PROCESSED, &numBuffers);
+
+		while (numBuffers--)
+		{
+			ALuint buffer;
+			qalSourceUnqueueBuffers(streamSource, 1, &buffer);
+			qalDeleteBuffers(1, &buffer);
+			active_buffers--;
+		}
+	}
+
+	/* Start the streamSource playing if necessary */
+	qalGetSourcei(streamSource, AL_BUFFERS_QUEUED, &numBuffers);
 
 	if (!streamPlaying && numBuffers)
 	{
@@ -665,7 +668,7 @@ AL_Update(void)
 	AL_StreamUpdate();
 	AL_IssuePlaysounds();
 
-    oal_update_underwater();
+	oal_update_underwater();
 }
 
 /* ----------------------------------------------------------------- */
