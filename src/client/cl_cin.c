@@ -26,6 +26,7 @@
  */
 
 #include "header/client.h"
+#include "../backends/generic/header/input.h"
 
 cvar_t *cin_force43;
 
@@ -576,11 +577,7 @@ SCR_PlayCinematic(char *arg)
 	byte *palette;
 	char name[MAX_OSPATH], *dot;
 
-	/* Make sure that all keys are marked up. Under
-	   some circumstances cinematics are started with
-	   at least one key marked down, causing them to
-	   abort right after the first frame... */
-	Key_MarkAllUp();
+	In_FlushQueue();
 
 	/* make sure background music is not playing */
 #ifdef CDA

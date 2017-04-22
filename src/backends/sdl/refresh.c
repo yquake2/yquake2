@@ -295,7 +295,7 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 	{
 		if (!CreateSDLWindow(flags, width, height))
 		{
-			if (flags & SDL_WINDOW_OPENGL)
+			if (flags & SDL_OPENGL)
 			{
 				if (gl_msaa_samples->value)
 				{
