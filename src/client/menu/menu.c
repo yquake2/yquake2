@@ -31,7 +31,7 @@
 
 #include <ctype.h>
 #include "../header/client.h"
-#include "../header/keyboard.h"
+#include "../sound/header/local.h"
 #include "header/qmenu.h"
 
 static int m_main_cursor;
@@ -149,6 +149,11 @@ M_PushMenu(void (*draw)(void), const char *(*key)(int))
             Com_ServerState())
     {
         Cvar_Set("paused", "1");
+    }
+
+    if (cl.cinematic_file)
+    {
+        AL_UnqueueRawSamples();
     }
 
     /* if this menu is already open (and on top),

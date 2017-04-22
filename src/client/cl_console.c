@@ -25,6 +25,7 @@
  */
 
 #include "header/client.h"
+#include "sound/header/local.h"
 #include <time.h>
 
 console_t con;
@@ -95,6 +96,11 @@ Con_ToggleConsole_f(void)
 
 	Key_ClearTyping();
 	Con_ClearNotify();
+
+	if (cl.cinematic_file)
+	{
+		AL_UnqueueRawSamples();
+	}
 
 	if (cls.key_dest == key_console)
 	{
