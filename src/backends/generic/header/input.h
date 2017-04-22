@@ -49,4 +49,9 @@ void IN_Shutdown(void);
  */
 void IN_Update(void);
 
+/*
+ * Removes all pending events from SDLs queue.
+ */
+void In_FlushQueue(void);
+
 #endif

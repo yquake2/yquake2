@@ -464,6 +464,22 @@ IN_Update(void)
 	 */
 	GLimp_GrabInput(want_grab);
 }
+
+/*
+ * Removes all pending events from SDLs queue.
+ */
+void
+In_FlushQueue(void)
+{
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
+#else
+	SDL_Event event;
+	while(SDL_PollEvent(&event));
+#endif
+
+	Key_MarkAllUp();
+}
  
 /*
  * Move handling
