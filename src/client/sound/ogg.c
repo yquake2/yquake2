@@ -759,6 +759,8 @@ OGG_PauseCmd(void)
 		ogg_status = PAUSE;
 		ogg_numbufs = 0;
 	}
+
+	AL_UnqueueRawSamples();
 }
 
 /*
