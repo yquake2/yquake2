@@ -335,7 +335,7 @@ static const char* vertexSrc3Dflow = MULTILINE_STRING(
 
 		void main()
 		{
-			passTexCoord = texCoord + vec2(0, scroll);
+			passTexCoord = texCoord + vec2(scroll, 0);
 			gl_Position = transProj * transView * transModel * vec4(position, 1.0);
 		}
 );
