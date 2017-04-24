@@ -374,7 +374,7 @@ static const char* vertexSrc3DlmFlow = MULTILINE_STRING(
 
 		void main()
 		{
-			passTexCoord = texCoord + vec2(0, scroll);
+			passTexCoord = texCoord + vec2(scroll, 0);
 			passLMcoord = lmTexCoord;
 			vec4 worldCoord = transModel * vec4(position, 1.0);
 			passWorldCoord = worldCoord.xyz;
