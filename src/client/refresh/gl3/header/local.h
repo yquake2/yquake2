@@ -123,10 +123,11 @@ typedef struct
 {
 	GLfloat gamma;
 	GLfloat intensity;
+	GLfloat intensity2D; // for HUD, menus etc
 
 		// entries of std140 UBOs are aligned to multiples of their own size
 		// so we'll need to pad accordingly for following vec4
-		GLfloat _padding[2];
+		GLfloat _padding;
 
 	hmm_vec4 color;
 } gl3UniCommon_t;
@@ -498,6 +499,7 @@ extern cvar_t *gl_drawworld;
 
 extern cvar_t *vid_gamma;
 extern cvar_t *gl3_intensity;
+extern cvar_t *gl3_intensity_2D;
 extern cvar_t *gl_anisotropic;
 
 extern cvar_t *gl_lightlevel;

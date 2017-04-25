@@ -192,6 +192,7 @@ static const char* fragmentSrc2D = MULTILINE_STRING(#version 150\n
 		{
 			float gamma;
 			float intensity;
+			float intensity2D; // for HUD, menu etc
 
 			vec4 color;
 		};
@@ -210,7 +211,7 @@ static const char* fragmentSrc2D = MULTILINE_STRING(#version 150\n
 				discard;
 
 			// apply gamma correction and intensity
-			texel.rgb *= intensity;
+			texel.rgb *= intensity2D;
 			outColor.rgb = pow(texel.rgb, vec3(gamma));
 			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
 		}
@@ -240,6 +241,7 @@ static const char* fragmentSrc2Dcolor = MULTILINE_STRING(#version 150\n
 		{
 			float gamma;
 			float intensity;
+			float intensity2D; // for HUD, menus etc
 
 			vec4 color;
 		};
@@ -248,7 +250,7 @@ static const char* fragmentSrc2Dcolor = MULTILINE_STRING(#version 150\n
 
 		void main()
 		{
-			vec3 col = color.rgb * intensity;
+			vec3 col = color.rgb * intensity2D;
 			outColor.rgb = pow(col, vec3(gamma));
 			outColor.a = color.a;
 		}
@@ -296,6 +298,7 @@ static const char* fragmentCommon3D = MULTILINE_STRING(#version 150\n
 		{
 			float gamma; // this is 1.0/vid_gamma
 			float intensity;
+			float intensity2D; // for HUD, menus etc
 
 			vec4 color; // really?
 
@@ -934,6 +937,7 @@ static void initUBOs(void)
 {
 	gl3state.uniCommonData.gamma = 1.0f/vid_gamma->value;
 	gl3state.uniCommonData.intensity = gl3_intensity->value;
+	gl3state.uniCommonData.intensity2D = gl3_intensity_2D->value;
 	gl3state.uniCommonData.color = HMM_Vec4(1, 1, 1, 1);
 
 	glGenBuffers(1, &gl3state.uniCommonUBO);

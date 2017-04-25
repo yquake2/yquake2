@@ -104,6 +104,7 @@ cvar_t *gl_lefthand;
 cvar_t *gl_farsee;
 
 cvar_t *gl3_intensity;
+cvar_t *gl3_intensity_2D;
 cvar_t *gl_lightlevel;
 cvar_t *gl3_overbrightbits;
 
@@ -226,6 +227,7 @@ GL3_Register(void)
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.2", CVAR_ARCHIVE);
 	gl3_intensity = ri.Cvar_Get("gl3_intensity", "1.5", CVAR_ARCHIVE);
+	gl3_intensity_2D = ri.Cvar_Get("gl3_intensity_2D", "1.5", CVAR_ARCHIVE);
 
 	gl_lightlevel = ri.Cvar_Get("gl_lightlevel", "0", 0);
 	gl3_overbrightbits = ri.Cvar_Get("gl3_overbrightbits", "1.3", CVAR_ARCHIVE);
@@ -1619,13 +1621,15 @@ GL3_BeginFrame(float camera_separation)
 	}
 #endif // 0
 
-	if (vid_gamma->modified || gl3_intensity->modified)
+	if (vid_gamma->modified || gl3_intensity->modified || gl3_intensity_2D->modified)
 	{
 		vid_gamma->modified = false;
 		gl3_intensity->modified = false;
+		gl3_intensity_2D->modified = false;
 
 		gl3state.uniCommonData.gamma = 1.0f/vid_gamma->value;
 		gl3state.uniCommonData.intensity = gl3_intensity->value;
+		gl3state.uniCommonData.intensity2D = gl3_intensity_2D->value;
 		GL3_UpdateUBOCommon();
 	}
 
