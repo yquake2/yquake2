@@ -134,7 +134,7 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 
 	if (currententity->flags & RF_TRANSLUCENT)
 	{
-		alpha = currententity->alpha;
+		alpha = currententity->alpha * 0.666f;
 	}
 	else
 	{
