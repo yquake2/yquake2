@@ -309,12 +309,10 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, da_count(idxBuf)*sizeof(GLushort), idxBuf.p, GL_STREAM_DRAW);
 	glDrawElements(GL_TRIANGLES, da_count(idxBuf), GL_UNSIGNED_SHORT, NULL);
 }
-#if 0 // TODO: implemenet some time..
+
 static void
 DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 {
-
-	unsigned short total;
 	GLenum type;
 	int *order;
 	vec3_t point;
@@ -325,16 +323,19 @@ DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 	order = (int *)((byte *)paliashdr + paliashdr->ofs_glcmds);
 	height = -lheight + 0.1f;
 
-	/* stencilbuffer shadows */
-
-#if 0
-	if (have_stencil && gl_stencilshadow->value)
+	if (have_stencil)
 	{
 		glEnable(GL_STENCIL_TEST);
 		glStencilFunc(GL_EQUAL, 1, 2);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
 	}
-#endif // 0
+
+	GL3_UseProgram(gl3state.si3DaliasColor.shaderProgram);
+
+	// GL1 uses alpha 0.5, but in GL3 0.3 looks better
+	GLfloat color[4] = {0, 0, 0, 0.3};
+
+	STUB_ONCE("TODO: Draw Stencil Shadows in one drawcall, like models!");
 
 	while (1)
 	{
@@ -357,44 +358,35 @@ DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 			type = GL_TRIANGLE_STRIP;
 		}
 
-		total = count;
-		GLfloat vtx[3*total];
-		unsigned int index_vtx = 0;
+		gl3_alias_vtx_t vtx[count];
 
-		do
+		for(int i=0; i<count; ++i)
 		{
 			/* normals and vertexes come from the frame list */
-			memcpy(point, s_lerped[order[2]], sizeof(point));
+			VectorCopy(s_lerped[order[2]], point);
 
 			point[0] -= shadevector[0] * (point[2] + lheight);
 			point[1] -= shadevector[1] * (point[2] + lheight);
 			point[2] = height;
 
-			vtx[index_vtx++] = point [ 0 ];
-			vtx[index_vtx++] = point [ 1 ];
-			vtx[index_vtx++] = point [ 2 ];
+			VectorCopy(point, vtx[i].pos);
+
+			for(int j=0; j<4; ++j)  vtx[i].color[j] = color[j];
 
 			order += 3;
 		}
-		while (--count);
 
-#if 0
-		glEnableClientState( GL_VERTEX_ARRAY );
-
-		glVertexPointer( 3, GL_FLOAT, 0, vtx );
-		glDrawArrays( type, 0, total );
-
-		glDisableClientState( GL_VERTEX_ARRAY );
-#endif // 0
+		GL3_BindVAO(gl3state.vaoAlias);
+		GL3_BindVBO(gl3state.vboAlias);
+		glBufferData(GL_ARRAY_BUFFER, count*sizeof(gl3_alias_vtx_t), vtx, GL_STREAM_DRAW);
+		glDrawArrays(type, 0, count);
 	}
 
-	/* stencilbuffer shadows */
-	if (have_stencil && gl_stencilshadow->value)
+	if (have_stencil)
 	{
-		//glDisable(GL_STENCIL_TEST);
+		glDisable(GL_STENCIL_TEST);
 	}
 }
-#endif // 0
 
 static qboolean
 CullAliasModel(vec3_t bbox[8], entity_t *e)
@@ -821,27 +813,26 @@ GL3_DrawAliasModel(entity_t *e)
 		glDepthRange(gl3depthmin, gl3depthmax);
 	}
 
-	STUB_ONCE("TODO: *proper* stencil shadows!")
-#if 0
 	if (gl_shadows->value &&
 		!(currententity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL | RF_NOSHADOW)))
 	{
-		glPushMatrix();
+		//glPushMatrix();
+		hmm_mat4 oldMat = gl3state.uni3DData.transModelMat4;
 
 		/* don't rotate shadows on ungodly axes */
-		glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
-		glRotatef(e->angles[1], 0, 0, 1);
+		//glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
+		//glRotatef(e->angles[1], 0, 0, 1);
+		hmm_mat4 rotTransMat = HMM_Rotate(e->angles[1], HMM_Vec3(0, 0, 1));
+		VectorCopy(e->origin, rotTransMat.Elements[3]);
+		gl3state.uni3DData.transModelMat4 = HMM_MultiplyMat4(oldMat, rotTransMat);
+		GL3_UpdateUBO3D();
 
-		glDisable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
-		glColor4f(0, 0, 0, 0.5f);
 		DrawAliasShadow(paliashdr, currententity->frame);
-		glEnable(GL_TEXTURE_2D);
 		glDisable(GL_BLEND);
-		glPopMatrix();
+		//glPopMatrix();
+		gl3state.uni3DData.transModelMat4 = oldMat;
+		GL3_UpdateUBO3D();
 	}
-
-	glColor4f(1, 1, 1, 1);
-#endif // 0
 }
 

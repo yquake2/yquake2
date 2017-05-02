@@ -123,8 +123,8 @@ cvar_t *gl_zfix;
 cvar_t *gl_fullbright;
 cvar_t *gl_modulate;
 cvar_t *gl_lightmap;
-cvar_t *gl_shadows; // TODO: do we really need 2 cvars for shadows here?
-cvar_t *gl_stencilshadow;
+cvar_t *gl_shadows;
+// no gl_stencilshadows, always use stencil (if available)
 
 cvar_t *gl_dynamic;
 
@@ -234,7 +234,6 @@ GL3_Register(void)
 
 	gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
 	gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
-	gl_stencilshadow = ri.Cvar_Get("gl_stencilshadow", "0", CVAR_ARCHIVE);
 
 	gl_modulate = ri.Cvar_Get("gl_modulate", "1", CVAR_ARCHIVE);
 	gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
@@ -1589,7 +1588,7 @@ GL3_Clear(void)
 	}
 
 	/* stencilbuffer shadows */
-	if (gl_shadows->value && have_stencil && gl_stencilshadow->value)
+	if (gl_shadows->value && have_stencil)
 	{
 		glClearStencil(1);
 		glClear(GL_STENCIL_BUFFER_BIT);

@@ -508,7 +508,7 @@ extern cvar_t *gl3_particle_fade_factor;
 
 extern cvar_t *gl_modulate;
 extern cvar_t *gl_lightmap;
-extern cvar_t *gl_stencilshadow;
+extern cvar_t *gl_shadows;
 
 extern cvar_t *gl_dynamic;
 
