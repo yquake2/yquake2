@@ -335,10 +335,16 @@ DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 	// GL1 uses alpha 0.5, but in GL3 0.3 looks better
 	GLfloat color[4] = {0, 0, 0, 0.3};
 
-	STUB_ONCE("TODO: Draw Stencil Shadows in one drawcall, like models!");
+	// draw the shadow in a single draw call, just like the model
+
+	da_clear(vtxBuf);
+	da_clear(idxBuf);
 
 	while (1)
 	{
+		int i, j;
+		GLushort nextVtxIdx = da_count(vtxBuf);
+
 		/* get the vertex count and primitive type */
 		count = *order++;
 
@@ -358,9 +364,9 @@ DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 			type = GL_TRIANGLE_STRIP;
 		}
 
-		gl3_alias_vtx_t vtx[count];
+		gl3_alias_vtx_t* buf = da_addn_uninit(vtxBuf, count);
 
-		for(int i=0; i<count; ++i)
+		for(i=0; i<count; ++i)
 		{
 			/* normals and vertexes come from the frame list */
 			VectorCopy(s_lerped[order[2]], point);
@@ -369,18 +375,62 @@ DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 			point[1] -= shadevector[1] * (point[2] + lheight);
 			point[2] = height;
 
-			VectorCopy(point, vtx[i].pos);
+			VectorCopy(point, buf[i].pos);
 
-			for(int j=0; j<4; ++j)  vtx[i].color[j] = color[j];
+			for(j=0; j<4; ++j)  buf[i].color[j] = color[j];
 
 			order += 3;
 		}
 
-		GL3_BindVAO(gl3state.vaoAlias);
-		GL3_BindVBO(gl3state.vboAlias);
-		glBufferData(GL_ARRAY_BUFFER, count*sizeof(gl3_alias_vtx_t), vtx, GL_STREAM_DRAW);
-		glDrawArrays(type, 0, count);
+		// translate triangle fan/strip to just triangle indices
+		if(type == GL_TRIANGLE_FAN)
+		{
+			GLushort i;
+			for(i=1; i < count-1; ++i)
+			{
+				GLushort* add = da_addn_uninit(idxBuf, 3);
+
+				add[0] = nextVtxIdx;
+				add[1] = nextVtxIdx+i;
+				add[2] = nextVtxIdx+i+1;
+			}
+		}
+		else // triangle strip
+		{
+			GLushort i;
+			for(i=1; i < count-2; i+=2)
+			{
+				// add two triangles at once, because the vertex order is different
+				// for odd vs even triangles
+				GLushort* add = da_addn_uninit(idxBuf, 6);
+
+				add[0] = nextVtxIdx + i-1;
+				add[1] = nextVtxIdx + i;
+				add[2] = nextVtxIdx + i+1;
+
+				add[3] = nextVtxIdx + i;
+				add[4] = nextVtxIdx + i+2;
+				add[5] = nextVtxIdx + i+1;
+			}
+			// add remaining triangle, if any
+			if(i < count-1)
+			{
+				GLushort* add = da_addn_uninit(idxBuf, 3);
+
+				add[0] = nextVtxIdx + i-1;
+				add[1] = nextVtxIdx + i;
+				add[2] = nextVtxIdx + i+1;
+			}
+		}
 	}
+
+	GL3_BindVAO(gl3state.vaoAlias);
+	GL3_BindVBO(gl3state.vboAlias);
+
+	glBufferData(GL_ARRAY_BUFFER, da_count(vtxBuf)*sizeof(gl3_alias_vtx_t), vtxBuf.p, GL_STREAM_DRAW);
+	GL3_BindEBO(gl3state.eboAlias);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, da_count(idxBuf)*sizeof(GLushort), idxBuf.p, GL_STREAM_DRAW);
+	glDrawElements(GL_TRIANGLES, da_count(idxBuf), GL_UNSIGNED_SHORT, NULL);
 
 	if (have_stencil)
 	{
