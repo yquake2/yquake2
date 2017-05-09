@@ -199,6 +199,7 @@ static void
 AL_Spatialize(channel_t *ch)
 {
 	vec3_t origin;
+  vec3_t velocity;
 
 	if ((ch->entnum == -1) || (ch->entnum == cl.playernum + 1) || !ch->dist_mult)
 	{
@@ -218,6 +219,9 @@ AL_Spatialize(channel_t *ch)
 	{
 		CL_GetEntitySoundOrigin(ch->entnum, origin);
 		qalSource3f(ch->srcnum, AL_POSITION, AL_UnpackVector(origin));
+
+		CL_GetEntitySoundVelocity(ch->entnum, velocity);
+		qalSource3f(ch->srcnum, AL_VELOCITY, AL_UnpackVector(velocity));
 		return;
 	}
 
@@ -612,6 +616,9 @@ AL_Update(void)
 	qalDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
 	qalListener3f(AL_POSITION, AL_UnpackVector(listener_origin));
 	qalListenerfv(AL_ORIENTATION, orientation);
+
+	// TODO(xorw): add current listener's velocity update
+	// qalListener3f(AL_VELOCITY, AL_UnpackVector(listener_velocity));
 
 	/* update spatialization for dynamic sounds */
 	ch = channels;
