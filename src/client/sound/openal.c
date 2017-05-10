@@ -607,6 +607,7 @@ AL_Update(void)
 	int i;
 	channel_t *ch;
 	vec_t orientation[6];
+	vec3_t listener_velocity;
 
 	paintedtime = cls.realtime;
 
@@ -617,8 +618,10 @@ AL_Update(void)
 	qalListener3f(AL_POSITION, AL_UnpackVector(listener_origin));
 	qalListenerfv(AL_ORIENTATION, orientation);
 
-	// TODO(xorw): add current listener's velocity update
-	// qalListener3f(AL_VELOCITY, AL_UnpackVector(listener_velocity));
+	CL_GetViewVelocity(listener_velocity);
+	// xorw: sounds funky if not scaled down a lot
+	VectorScale(listener_velocity, 0.05f, listener_velocity);
+	qalListener3f(AL_VELOCITY, AL_UnpackVector(listener_velocity));
 
 	/* update spatialization for dynamic sounds */
 	ch = channels;
