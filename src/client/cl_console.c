@@ -97,10 +97,12 @@ Con_ToggleConsole_f(void)
 	Key_ClearTyping();
 	Con_ClearNotify();
 
+#ifdef USE_OPENAL
 	if (cl.cinematic_file)
 	{
 		AL_UnqueueRawSamples();
 	}
+#endif
 
 	if (cls.key_dest == key_console)
 	{

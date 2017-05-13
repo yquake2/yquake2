@@ -760,7 +760,9 @@ OGG_PauseCmd(void)
 		ogg_numbufs = 0;
 	}
 
+#ifdef USE_OPENAL
 	AL_UnqueueRawSamples();
+#endif
 }
 
 /*
