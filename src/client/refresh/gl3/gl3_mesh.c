@@ -43,12 +43,21 @@ static float r_avertexnormal_dots[SHADEDOT_QUANT][256] = {
 
 typedef float vec4_t[4];
 static vec4_t s_lerped[MAX_VERTS];
-vec3_t shadevector;
-float shadelight[3];
-float *shadedots = r_avertexnormal_dots[0];
 extern vec3_t lightspot;
 extern qboolean have_stencil;
 
+
+typedef struct gl3_shadowinfo_s {
+	vec3_t    lightspot;
+	vec3_t    shadevector;
+	dmdl_t*   paliashdr;
+	entity_t* entity;
+} gl3_shadowinfo_t;
+
+DA_TYPEDEF(gl3_shadowinfo_t, ShadowInfoArray_t);
+// collect all models casting shadows (each frame)
+// to draw shadows last
+static ShadowInfoArray_t shadowModels = {0};
 
 DA_TYPEDEF(gl3_alias_vtx_t, AliasVtxArray_t);
 DA_TYPEDEF(GLushort, UShortArray_t);
@@ -61,19 +70,18 @@ GL3_ShutdownMeshes(void)
 {
 	da_free(vtxBuf);
 	da_free(idxBuf);
+
+	da_free(shadowModels);
 }
 
 static void
-LerpVerts(int nverts, dtrivertx_t *v, dtrivertx_t *ov,
+LerpVerts(qboolean powerUpEffect, int nverts, dtrivertx_t *v, dtrivertx_t *ov,
 		dtrivertx_t *verts, float *lerp, float move[3],
 		float frontv[3], float backv[3])
 {
 	int i;
 
-	if (currententity->flags &
-		(RF_SHELL_RED | RF_SHELL_GREEN |
-		 RF_SHELL_BLUE | RF_SHELL_DOUBLE |
-		 RF_SHELL_HALF_DAM))
+	if (powerUpEffect)
 	{
 		for (i = 0; i < nverts; i++, v++, ov++, lerp += 4)
 		{
@@ -102,7 +110,7 @@ LerpVerts(int nverts, dtrivertx_t *v, dtrivertx_t *ov,
  * Interpolates between two frames and origins
  */
 static void
-DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
+DrawAliasFrameLerp(dmdl_t *paliashdr, entity_t* entity, vec3_t shadelight)
 {
 	GLenum type;
 	float l;
@@ -110,31 +118,36 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 	dtrivertx_t *v, *ov, *verts;
 	int *order;
 	int count;
-	float frontlerp;
 	float alpha;
 	vec3_t move, delta, vectors[3];
 	vec3_t frontv, backv;
 	int i;
 	int index_xyz;
+	float backlerp = entity->backlerp;
+	float frontlerp = 1.0 - backlerp;
 	float *lerp;
 	// draw without texture? used for quad damage effect etc, I think
-	qboolean colorOnly = 0 != (currententity->flags &
+	qboolean colorOnly = 0 != (entity->flags &
 			(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE |
 			 RF_SHELL_HALF_DAM));
 
+	// TODO: maybe we could somehow store the non-rotated normal and do the dot in shader?
+	float* shadedots = r_avertexnormal_dots[((int)(entity->angles[1] *
+				(SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1)];
+
 	frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames
-							  + currententity->frame * paliashdr->framesize);
+							  + entity->frame * paliashdr->framesize);
 	verts = v = frame->verts;
 
 	oldframe = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames
-				+ currententity->oldframe * paliashdr->framesize);
+				+ entity->oldframe * paliashdr->framesize);
 	ov = oldframe->verts;
 
 	order = (int *)((byte *)paliashdr + paliashdr->ofs_glcmds);
 
-	if (currententity->flags & RF_TRANSLUCENT)
+	if (entity->flags & RF_TRANSLUCENT)
 	{
-		alpha = currententity->alpha * 0.666f;
+		alpha = entity->alpha * 0.666f;
 	}
 	else
 	{
@@ -150,11 +163,9 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 		GL3_UseProgram(gl3state.si3Dalias.shaderProgram);
 	}
 
-	frontlerp = 1.0 - backlerp;
-
 	/* move should be the delta back to the previous frame * backlerp */
-	VectorSubtract(currententity->oldorigin, currententity->origin, delta);
-	AngleVectors(currententity->angles, vectors[0], vectors[1], vectors[2]);
+	VectorSubtract(entity->oldorigin, entity->origin, delta);
+	AngleVectors(entity->angles, vectors[0], vectors[1], vectors[2]);
 
 	move[0] = DotProduct(delta, vectors[0]); /* forward */
 	move[1] = -DotProduct(delta, vectors[1]); /* left */
@@ -172,7 +183,7 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 
 	lerp = s_lerped[0];
 
-	LerpVerts(paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv);
+	LerpVerts(colorOnly, paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv);
 
 	assert(sizeof(gl3_alias_vtx_t) == 9*sizeof(GLfloat));
 
@@ -246,7 +257,7 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 				order += 3;
 
 				/* normals and vertexes come from the frame list */
-				// shadedots is set in GL3DrawAliasModel() according to rotation (around Z axis I think)
+				// shadedots is set above according to rotation (around Z axis I think)
 				// to one of 16 (SHADEDOT_QUANT) presets in r_avertexnormal_dots
 				l = shadedots[verts[index_xyz].lightnormalindex];
 
@@ -311,7 +322,7 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 }
 
 static void
-DrawAliasShadow(dmdl_t *paliashdr, int posenum)
+DrawAliasShadow(gl3_shadowinfo_t* shadowInfo)
 {
 	GLenum type;
 	int *order;
@@ -319,18 +330,56 @@ DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 	float height = 0, lheight;
 	int count;
 
-	lheight = currententity->origin[2] - lightspot[2];
-	order = (int *)((byte *)paliashdr + paliashdr->ofs_glcmds);
-	height = -lheight + 0.1f;
+	dmdl_t* paliashdr = shadowInfo->paliashdr;
+	entity_t* entity = shadowInfo->entity;
 
-	if (have_stencil)
+	vec3_t shadevector;
+	VectorCopy(shadowInfo->shadevector, shadevector);
+
+	// all in this scope is to set s_lerped
 	{
-		glEnable(GL_STENCIL_TEST);
-		glStencilFunc(GL_EQUAL, 1, 2);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+		daliasframe_t *frame, *oldframe;
+		dtrivertx_t *v, *ov, *verts;
+		float backlerp = entity->backlerp;
+		float frontlerp = 1.0f - backlerp;
+		vec3_t move, delta, vectors[3];
+		vec3_t frontv, backv;
+		int i;
+
+		frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames
+								  + entity->frame * paliashdr->framesize);
+		verts = v = frame->verts;
+
+		oldframe = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames
+					+ entity->oldframe * paliashdr->framesize);
+		ov = oldframe->verts;
+
+		/* move should be the delta back to the previous frame * backlerp */
+		VectorSubtract(entity->oldorigin, entity->origin, delta);
+		AngleVectors(entity->angles, vectors[0], vectors[1], vectors[2]);
+
+		move[0] = DotProduct(delta, vectors[0]); /* forward */
+		move[1] = -DotProduct(delta, vectors[1]); /* left */
+		move[2] = DotProduct(delta, vectors[2]); /* up */
+
+		VectorAdd(move, oldframe->translate, move);
+
+		for (i = 0; i < 3; i++)
+		{
+			move[i] = backlerp * move[i] + frontlerp * frame->translate[i];
+
+			frontv[i] = frontlerp * frame->scale[i];
+			backv[i] = backlerp * oldframe->scale[i];
+		}
+
+		// false: don't extrude vertices for powerup - this means the powerup shell
+		//  is not seen in the shadow, only the underlying model..
+		LerpVerts(false, paliashdr->num_xyz, v, ov, verts, s_lerped[0], move, frontv, backv);
 	}
 
-	GL3_UseProgram(gl3state.si3DaliasColor.shaderProgram);
+	lheight = entity->origin[2] - shadowInfo->lightspot[2];
+	order = (int *)((byte *)paliashdr + paliashdr->ofs_glcmds);
+	height = -lheight + 0.1f;
 
 	// GL1 uses alpha 0.5, but in GL3 0.3 looks better
 	GLfloat color[4] = {0, 0, 0, 0.3};
@@ -431,11 +480,6 @@ DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 	GL3_BindEBO(gl3state.eboAlias);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, da_count(idxBuf)*sizeof(GLushort), idxBuf.p, GL_STREAM_DRAW);
 	glDrawElements(GL_TRIANGLES, da_count(idxBuf), GL_UNSIGNED_SHORT, NULL);
-
-	if (have_stencil)
-	{
-		glDisable(GL_STENCIL_TEST);
-	}
 }
 
 static qboolean
@@ -449,19 +493,21 @@ CullAliasModel(vec3_t bbox[8], entity_t *e)
 	daliasframe_t *pframe, *poldframe;
 	vec3_t angles;
 
-	paliashdr = (dmdl_t *)currentmodel->extradata;
+	gl3model_t* model = e->model;
+
+	paliashdr = (dmdl_t *)model->extradata;
 
 	if ((e->frame >= paliashdr->num_frames) || (e->frame < 0))
 	{
 		R_Printf(PRINT_DEVELOPER, "R_CullAliasModel %s: no such frame %d\n",
-				currentmodel->name, e->frame);
+				model->name, e->frame);
 		e->frame = 0;
 	}
 
 	if ((e->oldframe >= paliashdr->num_frames) || (e->oldframe < 0))
 	{
 		R_Printf(PRINT_DEVELOPER, "R_CullAliasModel %s: no such oldframe %d\n",
-				currentmodel->name, e->oldframe);
+				model->name, e->oldframe);
 		e->oldframe = 0;
 	}
 
@@ -591,26 +637,28 @@ CullAliasModel(vec3_t bbox[8], entity_t *e)
 }
 
 void
-GL3_DrawAliasModel(entity_t *e)
+GL3_DrawAliasModel(entity_t *entity)
 {
 	int i;
 	dmdl_t *paliashdr;
 	float an;
 	vec3_t bbox[8];
+	vec3_t shadelight;
+	vec3_t shadevector;
 	gl3image_t *skin;
 	hmm_mat4 origProjMat = {0}; // use for left-handed rendering
 	// used to restore ModelView matrix after changing it for this entities position/rotation
 	hmm_mat4 origModelMat = {0};
 
-	if (!(e->flags & RF_WEAPONMODEL))
+	if (!(entity->flags & RF_WEAPONMODEL))
 	{
-		if (CullAliasModel(bbox, e))
+		if (CullAliasModel(bbox, entity))
 		{
 			return;
 		}
 	}
 
-	if (e->flags & RF_WEAPONMODEL)
+	if (entity->flags & RF_WEAPONMODEL)
 	{
 		if (gl_lefthand->value == 2)
 		{
@@ -618,44 +666,45 @@ GL3_DrawAliasModel(entity_t *e)
 		}
 	}
 
-	paliashdr = (dmdl_t *)currentmodel->extradata;
+	gl3model_t* model = entity->model;
+	paliashdr = (dmdl_t *)model->extradata;
 
 	/* get lighting information */
-	if (currententity->flags &
+	if (entity->flags &
 		(RF_SHELL_HALF_DAM | RF_SHELL_GREEN | RF_SHELL_RED |
 		 RF_SHELL_BLUE | RF_SHELL_DOUBLE))
 	{
 		VectorClear(shadelight);
 
-		if (currententity->flags & RF_SHELL_HALF_DAM)
+		if (entity->flags & RF_SHELL_HALF_DAM)
 		{
 			shadelight[0] = 0.56;
 			shadelight[1] = 0.59;
 			shadelight[2] = 0.45;
 		}
 
-		if (currententity->flags & RF_SHELL_DOUBLE)
+		if (entity->flags & RF_SHELL_DOUBLE)
 		{
 			shadelight[0] = 0.9;
 			shadelight[1] = 0.7;
 		}
 
-		if (currententity->flags & RF_SHELL_RED)
+		if (entity->flags & RF_SHELL_RED)
 		{
 			shadelight[0] = 1.0;
 		}
 
-		if (currententity->flags & RF_SHELL_GREEN)
+		if (entity->flags & RF_SHELL_GREEN)
 		{
 			shadelight[1] = 1.0;
 		}
 
-		if (currententity->flags & RF_SHELL_BLUE)
+		if (entity->flags & RF_SHELL_BLUE)
 		{
 			shadelight[2] = 1.0;
 		}
 	}
-	else if (currententity->flags & RF_FULLBRIGHT)
+	else if (entity->flags & RF_FULLBRIGHT)
 	{
 		for (i = 0; i < 3; i++)
 		{
@@ -664,10 +713,10 @@ GL3_DrawAliasModel(entity_t *e)
 	}
 	else
 	{
-		GL3_LightPoint(currententity->origin, shadelight);
+		GL3_LightPoint(entity->origin, shadelight);
 
 		/* player lighting hack for communication back to server */
-		if (currententity->flags & RF_WEAPONMODEL)
+		if (entity->flags & RF_WEAPONMODEL)
 		{
 			/* pick the greatest component, which should be
 			   the same as the mono value returned by software */
@@ -696,7 +745,7 @@ GL3_DrawAliasModel(entity_t *e)
 		}
 	}
 
-	if (currententity->flags & RF_MINLIGHT)
+	if (entity->flags & RF_MINLIGHT)
 	{
 		for (i = 0; i < 3; i++)
 		{
@@ -714,7 +763,7 @@ GL3_DrawAliasModel(entity_t *e)
 		}
 	}
 
-	if (currententity->flags & RF_GLOW)
+	if (entity->flags & RF_GLOW)
 	{
 		/* bonus items will pulse with time */
 		float scale;
@@ -737,18 +786,14 @@ GL3_DrawAliasModel(entity_t *e)
 	// Note: gl_overbrightbits are now applied in shader.
 
 	/* ir goggles color override */
-	if ((gl3_newrefdef.rdflags & RDF_IRGOGGLES) && (currententity->flags & RF_IR_VISIBLE))
+	if ((gl3_newrefdef.rdflags & RDF_IRGOGGLES) && (entity->flags & RF_IR_VISIBLE))
 	{
 		shadelight[0] = 1.0;
 		shadelight[1] = 0.0;
 		shadelight[2] = 0.0;
 	}
 
-	// TODO: maybe we could somehow store the non-rotated normal and do the dot in shader?
-	shadedots = r_avertexnormal_dots[((int)(currententity->angles[1] *
-				(SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1)];
-
-	an = currententity->angles[1] / 180 * M_PI;
+	an = entity->angles[1] / 180 * M_PI;
 	shadevector[0] = cos(-an);
 	shadevector[1] = sin(-an);
 	shadevector[2] = 1;
@@ -758,13 +803,13 @@ GL3_DrawAliasModel(entity_t *e)
 	c_alias_polys += paliashdr->num_tris;
 
 	/* draw all the triangles */
-	if (currententity->flags & RF_DEPTHHACK)
+	if (entity->flags & RF_DEPTHHACK)
 	{
 		/* hack the depth range to prevent view model from poking into walls */
 		glDepthRange(gl3depthmin, gl3depthmin + 0.3 * (gl3depthmax - gl3depthmin));
 	}
 
-	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
+	if ((entity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
 	{
 		origProjMat = gl3state.uni3DData.transProjMat4;
 		// to mirror gun so it's rendered left-handed, just invert X-axis column
@@ -782,29 +827,29 @@ GL3_DrawAliasModel(entity_t *e)
 	//glPushMatrix();
 	origModelMat = gl3state.uni3DData.transModelMat4;
 
-	e->angles[PITCH] = -e->angles[PITCH];
-	GL3_RotateForEntity(e);
-	e->angles[PITCH] = -e->angles[PITCH];
+	entity->angles[PITCH] = -entity->angles[PITCH];
+	GL3_RotateForEntity(entity);
+	entity->angles[PITCH] = -entity->angles[PITCH];
 
 
 	/* select skin */
-	if (currententity->skin)
+	if (entity->skin)
 	{
-		skin = currententity->skin; /* custom player skin */
+		skin = entity->skin; /* custom player skin */
 	}
 	else
 	{
-		if (currententity->skinnum >= MAX_MD2SKINS)
+		if (entity->skinnum >= MAX_MD2SKINS)
 		{
-			skin = currentmodel->skins[0];
+			skin = model->skins[0];
 		}
 		else
 		{
-			skin = currentmodel->skins[currententity->skinnum];
+			skin = model->skins[entity->skinnum];
 
 			if (!skin)
 			{
-				skin = currentmodel->skins[0];
+				skin = model->skins[0];
 			}
 		}
 	}
@@ -816,58 +861,95 @@ GL3_DrawAliasModel(entity_t *e)
 
 	GL3_Bind(skin->texnum);
 
-	if (currententity->flags & RF_TRANSLUCENT)
+	if (entity->flags & RF_TRANSLUCENT)
 	{
 		glEnable(GL_BLEND);
 	}
 
 
-	if ((currententity->frame >= paliashdr->num_frames) ||
-		(currententity->frame < 0))
+	if ((entity->frame >= paliashdr->num_frames) ||
+		(entity->frame < 0))
 	{
 		R_Printf(PRINT_DEVELOPER, "R_DrawAliasModel %s: no such frame %d\n",
-				currentmodel->name, currententity->frame);
-		currententity->frame = 0;
-		currententity->oldframe = 0;
+				model->name, entity->frame);
+		entity->frame = 0;
+		entity->oldframe = 0;
 	}
 
-	if ((currententity->oldframe >= paliashdr->num_frames) ||
-		(currententity->oldframe < 0))
+	if ((entity->oldframe >= paliashdr->num_frames) ||
+		(entity->oldframe < 0))
 	{
 		R_Printf(PRINT_DEVELOPER, "R_DrawAliasModel %s: no such oldframe %d\n",
-				currentmodel->name, currententity->oldframe);
-		currententity->frame = 0;
-		currententity->oldframe = 0;
+				model->name, entity->oldframe);
+		entity->frame = 0;
+		entity->oldframe = 0;
 	}
 
-	DrawAliasFrameLerp(paliashdr, currententity->backlerp);
+	DrawAliasFrameLerp(paliashdr, entity, shadelight);
 
 	//glPopMatrix();
 	gl3state.uni3DData.transModelMat4 = origModelMat;
 	GL3_UpdateUBO3D();
 
-	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
+	if ((entity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
 	{
 		gl3state.uni3DData.transProjMat4 = origProjMat;
 		GL3_UpdateUBO3D();
 		glCullFace(GL_FRONT);
 	}
 
-	if (currententity->flags & RF_TRANSLUCENT)
+	if (entity->flags & RF_TRANSLUCENT)
 	{
 		glDisable(GL_BLEND);
 	}
 
-	if (currententity->flags & RF_DEPTHHACK)
+	if (entity->flags & RF_DEPTHHACK)
 	{
 		glDepthRange(gl3depthmin, gl3depthmax);
 	}
 
 	if (gl_shadows->value &&
-		!(currententity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL | RF_NOSHADOW)))
+		!(entity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL | RF_NOSHADOW)))
 	{
-		//glPushMatrix();
-		hmm_mat4 oldMat = gl3state.uni3DData.transModelMat4;
+		gl3_shadowinfo_t si = {0};
+		VectorCopy(lightspot, si.lightspot);
+		VectorCopy(shadevector, si.shadevector);
+		si.paliashdr = paliashdr;
+		si.entity = entity;
+
+		da_push(shadowModels, si);
+	}
+}
+
+void GL3_ResetShadowAliasModels(void)
+{
+	da_clear(shadowModels);
+}
+
+void GL3_DrawAliasShadows(void)
+{
+	size_t numShadowModels = da_count(shadowModels);
+	if(numShadowModels == 0)
+	{
+		return;
+	}
+
+	//glPushMatrix();
+	hmm_mat4 oldMat = gl3state.uni3DData.transModelMat4;
+
+	glEnable(GL_BLEND);
+	GL3_UseProgram(gl3state.si3DaliasColor.shaderProgram);
+	if (have_stencil)
+	{
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_EQUAL, 1, 2);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+	}
+
+	for(size_t i=0; i<numShadowModels; ++i)
+	{
+		gl3_shadowinfo_t* si = &shadowModels.p[i]; // XXX da_getptr(shadowModels, i);
+		entity_t* e = si->entity;
 
 		/* don't rotate shadows on ungodly axes */
 		//glTranslatef(e->origin[0], e->origin[1], e->origin[2]);
@@ -877,12 +959,18 @@ GL3_DrawAliasModel(entity_t *e)
 		gl3state.uni3DData.transModelMat4 = HMM_MultiplyMat4(oldMat, rotTransMat);
 		GL3_UpdateUBO3D();
 
-		glEnable(GL_BLEND);
-		DrawAliasShadow(paliashdr, currententity->frame);
-		glDisable(GL_BLEND);
-		//glPopMatrix();
-		gl3state.uni3DData.transModelMat4 = oldMat;
-		GL3_UpdateUBO3D();
+		DrawAliasShadow(si);
 	}
+
+	if (have_stencil)
+	{
+		glDisable(GL_STENCIL_TEST);
+	}
+
+	glDisable(GL_BLEND);
+
+	//glPopMatrix();
+	gl3state.uni3DData.transModelMat4 = oldMat;
+	GL3_UpdateUBO3D();
 }
 
