@@ -887,6 +887,8 @@ GL3_DrawEntitiesOnList(void)
 		return;
 	}
 
+	GL3_ResetShadowAliasModels();
+
 	/* draw non-transparent first */
 	for (i = 0; i < gl3_newrefdef.num_entities; i++)
 	{
@@ -975,7 +977,10 @@ GL3_DrawEntitiesOnList(void)
 		}
 	}
 
+	GL3_DrawAliasShadows();
+
 	glDepthMask(1); /* back to writing */
+
 }
 
 static int
