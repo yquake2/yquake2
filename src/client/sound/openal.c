@@ -43,6 +43,11 @@
 #define AL_UnpackVector(v) - v[1], v[2], -v[0]
 #define AL_CopyVector(a, b) ((b)[0] = -(a)[1], (b)[1] = (a)[2], (b)[2] = -(a)[0])
 
+// avg US male height / q2PlayerHeight = 1.764f / 56.0f = 0.0315f
+// see: https://en.wikipedia.org/wiki/List_of_average_human_height_worldwide
+// see: PutClientInServer(edict_t *ent) bbox
+#define AL_METER_OF_Q2_UNIT 0.0315f
+
 /* The OpenAL implementation should support
    at least this number of sources */
 #define MIN_CHANNELS 16
@@ -221,6 +226,7 @@ AL_Spatialize(channel_t *ch)
 		qalSource3f(ch->srcnum, AL_POSITION, AL_UnpackVector(origin));
 
 		CL_GetEntitySoundVelocity(ch->entnum, velocity);
+		VectorScale(velocity, AL_METER_OF_Q2_UNIT, velocity);
 		qalSource3f(ch->srcnum, AL_VELOCITY, AL_UnpackVector(velocity));
 		return;
 	}
@@ -619,8 +625,7 @@ AL_Update(void)
 	qalListenerfv(AL_ORIENTATION, orientation);
 
 	CL_GetViewVelocity(listener_velocity);
-	// xorw: sounds funky if not scaled down a lot
-	VectorScale(listener_velocity, 0.05f, listener_velocity);
+	VectorScale(listener_velocity, AL_METER_OF_Q2_UNIT, listener_velocity);
 	qalListener3f(AL_VELOCITY, AL_UnpackVector(listener_velocity));
 
 	/* update spatialization for dynamic sounds */
@@ -840,6 +845,10 @@ AL_Init(void)
 	AL_InitUnderwaterFilter();
 
 	Com_Printf("Number of OpenAL sources: %d\n\n", s_numchannels);
+
+	// exaggerate 2x because realistic is barely noticeable
+	qalDopplerFactor(2.0f);
+
 	return true;
 }
 
