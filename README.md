@@ -3,10 +3,11 @@
 This is the Yamagi Quake II Client, an enhanced version of id Software's Quake
 II with focus on offline and coop gameplay. Both the gameplay and the graphics
 are unchanged, but many bugs if the last official release were fixed and some
-nice to have features like widescreen support were added. Unlike most other
-Quake II source ports Yamagi Quake II is fully 64 bit clean. It works perfectly
-on modern processors and operating systems. Yamagi Quake II runs on nearly all
-common platforms; including FreeBSD, Linux, OpenBSD, Windows and OS X.
+nice to have features like widescreen support and a modern OpenGL 3.2 renderer
+were added. Unlike most other Quake II source ports Yamagi Quake II is fully 64
+bit clean. It works perfectly on modern processors and operating systems. Yamagi
+Quake II runs on nearly all common platforms; including FreeBSD, Linux, OpenBSD,
+Windows and OS X.
 
 This code is build upon Icculus Quake II, which itself is based on Quake II
 3.21. Yamagi Quake II is released under the terms of the GPL version 2. See the
@@ -32,8 +33,9 @@ Over the years Quake II was distributed in a myriad of ways:
 - Through steam.
 - etc.
 
-Yamagi Quake II supports all of these version, even the limited demo.  Full
-versions require about 1.6 GiB hard drive space, the demo version about 150 Mib.
+Yamagi Quake II supports all of these version, even the rather limited demo.
+Full versions require about 1.6 GiB hard drive space, the demo version about 150
+Mib.
 
 
 #### Full versions
@@ -80,8 +82,8 @@ If you own the optional addons you'll need to copy their gamedata too:
 
 1. Get the demo from http://deponie.yamagi.org/quake2/idstuff/q2-314-demo-x86.exe
    and extract it. It's just an ordinary, self-extract ZIP file. On Windows it
-   be extracted by double clicking on it, on other system an archiver or even
-   the *unzip* command can be used.
+   can be extracted by double clicking on it, on other system an archiver or
+   even the *unzip* command can be used.
 3. Create a new directory and a subdirectory baseq2/ in it.
 3. Copy the pak0.pak and the players/ subdirectory from Install/Data/baseq2/
    into the newly created baseq2/ subdirectory.
@@ -94,7 +96,7 @@ The demo **must not** be patched! Patching the demo will break it!
 The retail CD version of Quake II and both addons contain up to 11 Audio CD
 tracks, forming the soundtrack. Since modern computers lack the ability for
 classic Audio CD playback, it's often emulated by a transparent combination 
-of CD ripping and playback, these tracks can be ripped into OGG/Vorbis files.
+of CD ripping and playback. The tracks can be ripped into OGG/Vorbis files.
 Yamagi Quake II will use these files instead of the CD tracks.
 
 Later Quake II version, for example the one included with Quake IV and the one
