@@ -26,7 +26,7 @@ cvar! Use the menu instead.
   controlled by *gl_maxfps*. There're two constraints: *gl_maxfps* must
   be the same or greater than *cl_maxfps*. In case that the vsync is
   active *gl_maxfps* must not be lower than the display refresh rate. If
-  *cl_async* is set to `0` *gl_maxfps* is the same as *cl_maxfps*, use 
+  *cl_async* is set to `0` *gl_maxfps* is the same as *cl_maxfps*, use
   *cl_maxfps* to set the framerate.
 
 * **cl_drawfps**: Shows the framecounter. The shown value is rather
@@ -92,7 +92,7 @@ cvar! Use the menu instead.
   is installed, the high resolution textures are used.
 
 * **gl_shadows**: Enables rendering of shadows. Quake IIs shadows are
-  very simple and are prone to render errors. 
+  very simple and are prone to render errors.
 
 * **gl_swapinterval**: Enables the vsync.
 
