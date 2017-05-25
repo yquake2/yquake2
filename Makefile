@@ -198,17 +198,9 @@ endif
 
 # Extra CFLAGS for SDL
 ifeq ($(WITH_SDL2),yes)
-ifeq ($(YQ2_OSTYPE),Windows)
-SDLCFLAGS := $(shell /custom/bin/sdl2-config --cflags)
-else
 SDLCFLAGS := $(shell sdl2-config --cflags)
-endif
 else # not SDL2
-ifeq ($(YQ2_OSTYPE),Windows)
-SDLCFLAGS :=
-else
 SDLCFLAGS := $(shell sdl-config --cflags)
-endif
 endif # SDL2
 
 # ----------
@@ -233,7 +225,7 @@ INCLUDE := -I/usr/local/include
 else ifeq ($(YQ2_OSTYPE),OpenBSD)
 INCLUDE := -I/usr/local/include
 else ifeq ($(YQ2_OSTYPE),Windows)
-INCLUDE := -I/custom/include
+INCLUDE := -I/usr/include
 endif
 
 # ----------
@@ -251,7 +243,7 @@ LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(YQ2_OSTYPE),OpenBSD)
 LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(YQ2_OSTYPE),Windows)
-LDFLAGS := -L/custom/lib -lws2_32 -lwinmm
+LDFLAGS := -L/usr/lib -lws2_32 -lwinmm
 else ifeq ($(YQ2_OSTYPE), Darwin)
 LDFLAGS := $(OSX_ARCH) -lm
 endif
@@ -267,25 +259,19 @@ endif
 # ----------
 
 # Extra LDFLAGS for SDL
-ifeq ($(YQ2_OSTYPE), Windows)
-ifeq ($(WITH_SDL2),yes)
-SDLLDFLAGS := $(shell /custom/bin/sdl2-config --libs)
-else # not SDL2
-SDLLDFLAGS := -lSDL
-endif # SDL2
-else ifeq ($(YQ2_OSTYPE), Darwin)
+ifeq ($(YQ2_OSTYPE), Darwin)
 ifeq ($(WITH_SDL2),yes)
 SDLLDFLAGS := -lSDL2
 else # not SDL2
 SDLLDFLAGS := -lSDL -framework OpenGL -framework Cocoa
 endif # SDL2
-else # not Darwin/Win
+else # not Darwin
 ifeq ($(WITH_SDL2),yes)
 SDLLDFLAGS := $(shell sdl2-config --libs)
 else # not SDL2
 SDLLDFLAGS := $(shell sdl-config --libs)
 endif # SDL2
-endif # Darwin/Win
+endif # Darwin
 
 # ----------
 

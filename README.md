@@ -207,9 +207,9 @@ libvorbis openal-soft`
 
 On Windows a MinGW environment is needed. A preinstalled environment with all
 dependencies can be found at http://deponie.yamagi.org/quake2/windows/build/
-Just extract it into C:\MinGW\ and start either the 32 bit or 64 bit version
-through *C:\MinGW\MSYS32* or *C:\MinGW\MSYS64*. With the preinstalled MinGW
-environment GNU Make is highly recommended, CMake requires further
+Just extract it into C:\MSYS2\ and start either the 32 bit or 64 bit version
+through *C:\MSYS2\msys32.exe* or *C:\MSYS2\msys64.exe*. With the preinstalled
+MinGW environment GNU Make is highly recommended, CMake requires further
 configuration. At this time Yamagi Quake II can't be compiled with Microsoft
 Visual Studio.
 
@@ -222,7 +222,6 @@ source directory and type *make*. After that copy everything from the release/
 directory to your Yamagi Quake II installation directory.
 
 For the addons download or clone their source, change into the source directory
-and type *make* (*make CC=gcc* on Windows). After the compilation finishes the
-release/game.so is copied to the corresponding directory in your Quake II
-installation.
+and type *make*. After the compilation finishes the release/game.so is copied to
+the corresponding directory in your Quake II installation.
  
