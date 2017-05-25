@@ -225,9 +225,12 @@ AL_Spatialize(channel_t *ch)
 		CL_GetEntitySoundOrigin(ch->entnum, origin);
 		qalSource3f(ch->srcnum, AL_POSITION, AL_UnpackVector(origin));
 
-		CL_GetEntitySoundVelocity(ch->entnum, velocity);
-		VectorScale(velocity, AL_METER_OF_Q2_UNIT, velocity);
-		qalSource3f(ch->srcnum, AL_VELOCITY, AL_UnpackVector(velocity));
+		if (s_doppler->value) {
+			CL_GetEntitySoundVelocity(ch->entnum, velocity);
+			VectorScale(velocity, AL_METER_OF_Q2_UNIT, velocity);
+			qalSource3f(ch->srcnum, AL_VELOCITY, AL_UnpackVector(velocity));
+		}
+
 		return;
 	}
 
@@ -624,9 +627,11 @@ AL_Update(void)
 	qalListener3f(AL_POSITION, AL_UnpackVector(listener_origin));
 	qalListenerfv(AL_ORIENTATION, orientation);
 
-	CL_GetViewVelocity(listener_velocity);
-	VectorScale(listener_velocity, AL_METER_OF_Q2_UNIT, listener_velocity);
-	qalListener3f(AL_VELOCITY, AL_UnpackVector(listener_velocity));
+	if (s_doppler->value) {
+		CL_GetViewVelocity(listener_velocity);
+		VectorScale(listener_velocity, AL_METER_OF_Q2_UNIT, listener_velocity);
+		qalListener3f(AL_VELOCITY, AL_UnpackVector(listener_velocity));
+	}
 
 	/* update spatialization for dynamic sounds */
 	ch = channels;
@@ -847,7 +852,9 @@ AL_Init(void)
 	Com_Printf("Number of OpenAL sources: %d\n\n", s_numchannels);
 
 	// exaggerate 2x because realistic is barely noticeable
-	qalDopplerFactor(2.0f);
+	if (s_doppler->value) {
+		qalDopplerFactor(2.0f);
+	}
 
 	return true;
 }
