@@ -1,3 +1,18 @@
+Quake II 6.00 to 7.00:
+- Remove the broken multitexturing render path from the OpenGL 1.4
+  renderer. It was switched off by default in 6.00.
+- Reimplement the support for shared renderer libraries. Please note
+  the this is an incompatible implementation with an custom API. The
+  original renderer libraries will not work!
+- Implement an OpenGL 3.2 renderer. This renderer has the same look
+  and feel as the old OpenGL 1.4 renderer but makes heavy use of
+  modern OpenGL and GPU features. An OpenGL 3.2 capable GPU (Intel
+  starting with Ivy Bridge, Nvidia staring with G80 and AMD starting
+  with R600 / HD2000) is required.
+- Fix OpenAL compatibility with modern openal-soft versions.
+- Several fixes and optimizations to OpenAL, implement support for
+  doppler effects. (by xorw)
+
 Quake II 5.34 to 6.00:
 - Make the client asynchronous. The old behaviour can be forced by
   setting cl_async to 0. Please note that asynchronicity can lead to
