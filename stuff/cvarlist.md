@@ -5,34 +5,35 @@ This lists explains most console variables (cvars) added by Yamagi
 Quake II. Most of the original clients (Vanilla Quake II) cvars are
 still in place, however the `r_*` renderer cvars have been renamed
 to `gl_*` and there are cvars specific to the OpenGL3.2 renderer that
-stat with `gl3_`.
+start with `gl3_`.
 Please note: There's normally no need to change any cvar! Use the menu instead.
 
 General:
 --------
 
 * **basedir**: Directory from which the game data is loaded. Can be used
-  in startup scripts, to test binaries, etc. If not set the directory
+  in startup scripts, to test binaries, etc. If not set, the directory
   containing the binaries is used.
 
 * **cl_async**: If set to `1` (the default) the client is asynchronous.
   The client framerate is fixed, the renderer framerate is variable.
-  This makes it possible to renderer as much frames as desired without
+  This makes it possible to renderer as many frames as desired without
   any physics and movement problems. The client framerate is controlled
   by *cl_maxfps*, set to `60` by defaut. The renderer framerate is
-  controlled by *gl_maxfps*. There're two constraints: *gl_maxfps* must
+  controlled by *gl_maxfps*. There are two constraints: *gl_maxfps* must
   be the same or greater than *cl_maxfps*. In case that the vsync is
-  active *gl_maxfps* must not be lower than the display refresh rate. If
-  *cl_async* is set to `0` *gl_maxfps* is the same as *cl_maxfps*, use
+  active, *gl_maxfps* must not be lower than the display refresh rate.
+  If *cl_async* is set to `0` *gl_maxfps* is the same as *cl_maxfps*, use
   *cl_maxfps* to set the framerate.
 
 * **cl_drawfps**: Shows the framecounter. The shown value is rather
-  inaccurate, the imprecision is about 5%.
+  inaccurate and gets less precise with higher framerates, as it only
+  measures full milliseconds.
 
 * **in_grab**: Defines how the mouse is grabbed by Quake IIs window. If
   set to `0` the mouse is never grabbed and if set to `1` it's always
   grabbed. If set to `2` (the default) the mouse is grabbed during
-  gameplay and released otherwise.
+  gameplay and released otherwise (in menu, console or if game is paused).
 
 
 Audio:
@@ -51,8 +52,8 @@ Audio:
   This is only supported by the OpenAL sound backend.
 
 * **s_openal**: Use OpenAL for sound playback. This is enabled by
-  default.  OpenAL gives a huge quality boost over the classic sound
-  system.
+  default. OpenAL gives a huge quality boost over the classic sound
+  system and supports surround speakers and HRTF.
 
 * **s_underwater**: Dampen sounds if submerged. Enabled by default.
 
@@ -73,7 +74,7 @@ Graphics (all renderers):
 * **cl_gun**: Decides weather the gun is drawn. If set to `0` the gun
   is omitted. If set to `1` the gun is only drawn if the FOV is equal
   or smaller than 90. This was the default with Vanilla Quake II. If set
-  to `2` the gun is drawn regardless of the FOX. This is the default
+  to `2` the gun is drawn regardless of the FOV. This is the default
   in Yamagi Quake II.
 
 * **fov**: Sets the field of view. If the *horplus* cvar is set to `1`,
@@ -100,7 +101,7 @@ Graphics (all renderers):
 * **gl_consolescale** / **gl_hudscale** / **gl_menuscale**: Scale the
   console, the HUD and the menu. The value given is the scale factor, a
   factor of `1` means no scaling. Values greater `1` make the objects
-  bigger, values lower 1 smaller. The special value `-1` set the optimal
+  bigger, values lower 1 smaller. The special value `-1` sets the optimal
   scaling factor for the current resolution.
 
 * **gl_customheight** / **gl_customwidth**: Specifies a custom
@@ -119,10 +120,11 @@ Graphics (all renderers):
   60fps on most displays (or 120 on a 120hz display etc).
 
 * **gl_msaa_samples**: Full scene anti aliasing samples. The number of
-  samples is dependent on the GPU driver, most drivers support at least
+  samples depends on the GPU driver, most drivers support at least
   `2`, `4` and `8` samples. If an invalid value is set the value is
   reverted the highest number of samples supported. Especially on OpenGL
-  3.2 anti aliasing is expensive and can lead to a huge performance hit.
+  3.2 anti aliasing is expensive and can lead to a huge performance hit,
+  so try setting it to a lower value if your framerate is too low.
 
 * **gl_retexturing**: If set to `1` (the default) and a retexturing pack
   is installed, the high resolution textures are used.
@@ -130,11 +132,12 @@ Graphics (all renderers):
 * **gl_shadows**: Enables rendering of shadows. Quake IIs shadows are
   very simple and are prone to render errors.
 
-* **gl_swapinterval**: Enables the vsync.
+* **gl_swapinterval**: Enables the vsync: frames are synchronized with
+  display refresh rate, should (but doesn't always) prevent tearing.
 
-* **gl_zfix**: Sometimes 2 or even more surfaces overlap and flicker. If
-  this cvar is set to `1` the renderer inserts a small gap between the
-  overlapping surfaces to mitigate the flickering. This may lead to
+* **gl_zfix**: Sometimes two or even more surfaces overlap and flicker.
+  If this cvar is set to `1` the renderer inserts a small gap between
+  the overlapping surfaces to mitigate the flickering. This may lead to
   small render errors.
 
 Graphics (GL1 only):
@@ -150,8 +153,8 @@ Graphics (GL1 only):
   for water), `2` (scale by factor 2) and `3` (scale by factor 3).  
   Applied in realtime, does not need `vid_restart`.
 
-* **gl_stencilshadow**: If `gl_shadows` is set to `1`, this makes them look
-  a bit better (no flickering) by using the stencil buffer.
+* **gl_stencilshadow**: If `gl_shadows` is set to `1`, this makes them
+  look a bit better (no flickering) by using the stencil buffer.
   (This is always done in GL3, so not configurable there)
 
 Graphics (GL3 only):
