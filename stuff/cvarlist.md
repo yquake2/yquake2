@@ -42,6 +42,11 @@ Audio:
 * **al_device**: OpenAL device to use. In most cases there's no need to
   change this, since the default device is normally the right choice.
 
+* **al_driver**: OpenAL library to use. This is usefull if for some
+   reasons several OpenAL libraries are available and Quake II picks the
+   wrong one. The given value is the name of the library, for example
+   `libopenal.so.1`.
+
 * **ogg_enable**: Enable Ogg/Vorbis music playback.
 
 * **ogg_ignoretrack0**: Normally Quake II disabled the background music
@@ -125,6 +130,10 @@ Graphics (all renderers):
   reverted the highest number of samples supported. Especially on OpenGL
   3.2 anti aliasing is expensive and can lead to a huge performance hit,
   so try setting it to a lower value if your framerate is too low.
+
+* **gl_nolerp_list**: list seperate by spaces of textures ommitted from
+  bilinear filtering. Used by default to exclude the console and HUD fonts.
+  Make sure to include the default values when extending the list.
 
 * **gl_retexturing**: If set to `1` (the default) and a retexturing pack
   is installed, the high resolution textures are used.
