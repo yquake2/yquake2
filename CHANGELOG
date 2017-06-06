@@ -7,8 +7,8 @@ Quake II 6.00 to 7.00:
 - Implement an OpenGL 3.2 renderer. This renderer has the same look
   and feel as the old OpenGL 1.4 renderer but makes heavy use of
   modern OpenGL and GPU features. An OpenGL 3.2 capable GPU (Intel
-  starting with Ivy Bridge, Nvidia staring with G80 and AMD starting
-  with R600 / HD2000) is required.
+  starting with Ivy Bridge on Windows or Sandy Bridge on Linux, Nvidia
+  staring with G80 and AMD starting with R600 / HD2000) is required.
 - Fix OpenAL compatibility with modern openal-soft versions.
 - Several fixes and optimizations to OpenAL, implement support for
   doppler effects. (by xorw)
