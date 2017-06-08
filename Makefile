@@ -27,6 +27,12 @@
 # User configurable options
 # -------------------------
 
+# Ignores original playback behaviour when goals are reached. Unfortunately
+# this stops CD/OGG playback for the rest of the level and must be manually
+# restarted. To retain this behaviour leave as yes, otherwise change to no.
+WITH_OLDPLAYBACK:=no
+
+
 # Enables CD audio playback. CD audio playback is used
 # for the background music and doesn't add any further
 # dependencies. It should work on all platforms where
@@ -85,7 +91,7 @@ OSX_ARCH:=-arch $(shell uname -m | sed -e s/i.86/i386/)
 # The app-bundle itself will not be created, but the runtime paths
 # will be set to expect the game-data in *.app/
 # Contents/Resources
-OSX_APP:=yes
+OSX_APP:=no
 
 # This is an optional configuration file, it'll be used in
 # case of presence.
@@ -184,6 +190,13 @@ CFLAGS += -DSYSTEMWIDE
 ifneq ($(WITH_SYSTEMDIR),"")
 CFLAGS += -DSYSTEMDIR=\"$(WITH_SYSTEMDIR)\"
 endif
+endif
+
+# ----------
+
+# Enable old playback behaviour
+ifeq ($(WITH_OLDPLAYBACK),yes)
+CFLAGS += -DWITH_OLDPLAYBACK
 endif
 
 # ----------
@@ -320,6 +333,7 @@ config:
 	@echo "WITH_ZIP = $(WITH_ZIP)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
+	@echo "WITH_OLDPLAYBACK = $(WITH_OLDPLAYBACK)"
 	@echo "============================"
 	@echo ""
 ifeq ($(WITH_SDL2),yes)
