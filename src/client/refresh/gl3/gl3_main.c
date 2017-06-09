@@ -29,9 +29,6 @@
 #include "../../header/ref.h"
 #include "header/local.h"
 
-#ifndef __SSE__
-#define HANDMADE_MATH_NO_SSE
-#endif
 #define HANDMADE_MATH_IMPLEMENTATION
 #include "header/HandmadeMath.h"
 
