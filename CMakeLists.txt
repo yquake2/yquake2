@@ -132,7 +132,7 @@ if(${OPENAL_SUPPORT})
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	list(APPEND yquake2LinkerFlags "-lm")
+	list(APPEND yquake2LinkerFlags "-lm -static-libgcc")
 else()
 	list(APPEND yquake2LinkerFlags "-lm -rdynamic")
 endif()

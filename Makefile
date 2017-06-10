@@ -243,7 +243,7 @@ LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(YQ2_OSTYPE),OpenBSD)
 LDFLAGS := -L/usr/local/lib -lm
 else ifeq ($(YQ2_OSTYPE),Windows)
-LDFLAGS := -L/usr/lib -lws2_32 -lwinmm
+LDFLAGS := -L/usr/lib -lws2_32 -lwinmm -static-libgcc
 else ifeq ($(YQ2_OSTYPE), Darwin)
 LDFLAGS := $(OSX_ARCH) -lm
 endif
