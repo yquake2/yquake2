@@ -816,7 +816,8 @@ REFGL1_OBJS_ := \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
-	src/common/shared/shared.o 
+	src/common/shared/shared.o \
+	src/common/md4.o
 	
 ifeq ($(YQ2_OSTYPE), Windows)
 REFGL1_OBJS_ += \
@@ -847,7 +848,8 @@ REFGL3_OBJS_ := \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
-	src/common/shared/shared.o
+	src/common/shared/shared.o \
+	src/common/md4.o
 
 ifeq ($(YQ2_OSTYPE), Windows)
 REFGL3_OBJS_ += \

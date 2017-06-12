@@ -431,6 +431,7 @@ set(GL1-Source
 	${GL_SRC_DIR}/files/stb.c
 	${GL_SRC_DIR}/files/wal.c
 	${COMMON_SRC_DIR}/shared/shared.c
+	${COMMON_SRC_DIR}/md4.c
 	)
 
 set(GL1-Header
@@ -465,6 +466,7 @@ set(GL3-Source
 	${GL_SRC_DIR}/files/stb.c
 	${GL_SRC_DIR}/files/wal.c
 	${COMMON_SRC_DIR}/shared/shared.c
+	${COMMON_SRC_DIR}/md4.c
 	)
 
 set(GL3-Header
