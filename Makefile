@@ -430,8 +430,12 @@ else
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"' -DDLOPEN_OPENAL
 endif
 else # !DLOPEN_OPENAL
-release/quake2 : CFLAGS += -DUSE_OPENAL -I/usr/local/opt/openal-soft/include
-release/quake2 : LDFLAGS += -lopenal -L/usr/local/opt/openal-soft/lib
+release/quake2 : CFLAGS += -DUSE_OPENAL
+release/quake2 : LDFLAGS += -lopenal
+ifeq ($(YQ2_OSTYPE), Darwin)
+release/quake2 : CFLAGS += -I/usr/local/opt/openal-soft/include
+release/quake2 : LDFLAGS += -L/usr/local/opt/openal-soft/lib
+endif # Darwin
 endif # !DLOPEN_OPENAL
 endif # WITH_OPENAL
 
