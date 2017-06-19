@@ -688,6 +688,50 @@ Sys_RedirectStdout(void)
 
 /* ======================================================================= */
 
+typedef enum YQ2_PROCESS_DPI_AWARENESS {
+	YQ2_PROCESS_DPI_UNAWARE = 0,
+	YQ2_PROCESS_SYSTEM_DPI_AWARE = 1,
+	YQ2_PROCESS_PER_MONITOR_DPI_AWARE = 2
+} YQ2_PROCESS_DPI_AWARENESS;
+
+void
+Sys_SetHighDPIMode(void)
+{
+	/* For Vista, Win7 and Win8 */
+	BOOL(WINAPI *SetProcessDPIAware)(void) = NULL;
+
+	/* Win8.1 and later */
+	HRESULT(WINAPI *SetProcessDpiAwareness)(YQ2_PROCESS_DPI_AWARENESS dpiAwareness) = NULL;
+
+
+	HINSTANCE userDLL = LoadLibrary("USER32.DLL");
+
+	if (userDLL)
+	{
+		SetProcessDPIAware = (BOOL(WINAPI *)(void)) GetProcAddress(userDLL,
+				"SetProcessDPIAware");
+	}
+
+
+	HINSTANCE shcoreDLL = LoadLibrary("SHCORE.DLL");
+
+	if (shcoreDLL)
+	{
+		SetProcessDpiAwareness = (HRESULT(WINAPI *)(YQ2_PROCESS_DPI_AWARENESS))
+			GetProcAddress(shcoreDLL, "SetProcessDpiAwareness");
+	}
+
+
+	if (SetProcessDpiAwareness) {
+		SetProcessDpiAwareness(YQ2_PROCESS_PER_MONITOR_DPI_AWARE);
+	}
+	else if (SetProcessDPIAware) {
+		SetProcessDPIAware();
+	}
+}
+
+/* ======================================================================= */
+
 /*
  * Windows main function. Containts the
  * initialization code and the main loop
@@ -708,6 +752,10 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	/* Make the current instance global */
 	global_hInstance = hInstance;
 
+	/* Force DPI awareness */
+	Sys_SetHighDPIMode();
+
+	/* FIXME: No one can see this! */
 	printf("Yamagi Quake II v%s\n", YQ2VERSION);
 	printf("=====================\n\n");
 
