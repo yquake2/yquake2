@@ -13,7 +13,8 @@ General:
 
 * **basedir**: Directory from which the game data is loaded. Can be used
   in startup scripts, to test binaries, etc. If not set, the directory
-  containing the binaries is used.
+  containing the binaries is used.  
+  To use this cvar, set it at startup, like `./quake2 +set basedir /path/to/quake2`
 
 * **cl_async**: If set to `1` (the default) the client is asynchronous.
   The client framerate is fixed, the renderer framerate is variable.
@@ -76,7 +77,7 @@ Graphics (all renderers):
   with an aspect ratio of 4:3, regardless what the actual windows size
   or resolution is.
 
-* **cl_gun**: Decides weather the gun is drawn. If set to `0` the gun
+* **cl_gun**: Decides whether the gun is drawn. If set to `0` the gun
   is omitted. If set to `1` the gun is only drawn if the FOV is equal
   or smaller than 90. This was the default with Vanilla Quake II. If set
   to `2` the gun is drawn regardless of the FOV. This is the default
@@ -126,8 +127,8 @@ Graphics (all renderers):
 
 * **gl_msaa_samples**: Full scene anti aliasing samples. The number of
   samples depends on the GPU driver, most drivers support at least
-  `2`, `4` and `8` samples. If an invalid value is set the value is
-  reverted the highest number of samples supported. Especially on OpenGL
+  `2`, `4` and `8` samples. If an invalid value is set, the value is
+  reverted to the highest number of samples supported. Especially on OpenGL
   3.2 anti aliasing is expensive and can lead to a huge performance hit,
   so try setting it to a lower value if your framerate is too low.
 
@@ -192,3 +193,8 @@ Graphics (GL3 only):
 * **gl3_particle_fade_factor**: "softness" of particles: higher values
   look less soft. Defaults to `1.2`.  
   A value of `10` looks similar to the GL1 particles.
+
+* **gl3_particle_square**: If set to `1`, particles are rendered as squares,
+  like in the old software renderer or Quake1. Default is `0`.
+
+

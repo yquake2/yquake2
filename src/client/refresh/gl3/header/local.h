@@ -468,6 +468,7 @@ extern void GL3_ShutdownMeshes(void);
 
 // gl3_shaders.c
 
+extern qboolean GL3_RecreateShaders(void);
 extern qboolean GL3_InitShaders(void);
 extern void GL3_ShutdownShaders(void);
 extern void GL3_UpdateUBOCommon(void);
@@ -507,6 +508,7 @@ extern cvar_t *gl_anisotropic;
 extern cvar_t *gl_lightlevel;
 extern cvar_t *gl3_overbrightbits;
 extern cvar_t *gl3_particle_fade_factor;
+extern cvar_t *gl3_particle_square;
 
 extern cvar_t *gl_modulate;
 extern cvar_t *gl_lightmap;

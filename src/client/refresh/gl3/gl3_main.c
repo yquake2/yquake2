@@ -96,6 +96,7 @@ cvar_t *gl_drawbuffer;
 cvar_t *gl_clear;
 cvar_t *gl3_particle_size;
 cvar_t *gl3_particle_fade_factor;
+cvar_t *gl3_particle_square;
 
 cvar_t *gl_lefthand;
 cvar_t *gl_farsee;
@@ -208,6 +209,7 @@ GL3_Register(void)
 	gl_customheight = ri.Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
 	gl3_particle_size = ri.Cvar_Get("gl3_particle_size", "40", CVAR_ARCHIVE);
 	gl3_particle_fade_factor = ri.Cvar_Get("gl3_particle_fade_factor", "1.2", CVAR_ARCHIVE);
+	gl3_particle_square = ri.Cvar_Get("gl3_particle_square", "0", CVAR_ARCHIVE);
 
 	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
 	gl_drawentities = ri.Cvar_Get("gl_drawentities", "1", 0);
@@ -1653,6 +1655,12 @@ GL3_BeginFrame(float camera_separation)
 		gl3_particle_fade_factor->modified = false;
 		gl3state.uni3DData.particleFadeFactor = gl3_particle_fade_factor->value;
 		GL3_UpdateUBO3D();
+	}
+
+	if(gl3_particle_square->modified)
+	{
+		gl3_particle_square->modified = false;
+		GL3_RecreateShaders();
 	}
 
 

@@ -689,6 +689,18 @@ static const char* fragmentSrcParticles = MULTILINE_STRING(
 		}
 );
 
+static const char* fragmentSrcParticlesSquare = MULTILINE_STRING(
+
+		// it gets attributes and uniforms from fragmentCommon3D
+
+		in vec4 passColor;
+
+		void main()
+		{
+			outColor = passColor;
+		}
+);
+
 
 #undef MULTILINE_STRING
 
@@ -977,10 +989,8 @@ static void initUBOs(void)
 	gl3state.currentUBO = gl3state.uniLightsUBO;
 }
 
-qboolean GL3_InitShaders(void)
+static qboolean createShaders(void)
 {
-	initUBOs();
-
 	if(!initShader2D(&gl3state.si2D, vertexSrc2D, fragmentSrc2D))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for textured 2D rendering!\n");
@@ -1053,7 +1063,14 @@ qboolean GL3_InitShaders(void)
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for rendering flat-colored models!\n");
 		return false;
 	}
-	if(!initShader3D(&gl3state.siParticle, vertexSrcParticles, fragmentSrcParticles))
+
+	const char* particleFrag = fragmentSrcParticles;
+	if(gl3_particle_square->value != 0.0f)
+	{
+		particleFrag = fragmentSrcParticlesSquare;
+	}
+
+	if(!initShader3D(&gl3state.siParticle, vertexSrcParticles, particleFrag))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for rendering particles!\n");
 		return false;
@@ -1064,7 +1081,14 @@ qboolean GL3_InitShaders(void)
 	return true;
 }
 
-void GL3_ShutdownShaders(void)
+qboolean GL3_InitShaders(void)
+{
+	initUBOs();
+
+	return createShaders();
+}
+
+static void deleteShaders(void)
 {
 	const gl3ShaderInfo_t siZero = {0};
 	for(gl3ShaderInfo_t* si = &gl3state.si2D; si <= &gl3state.siParticle; ++si)
@@ -1072,11 +1096,23 @@ void GL3_ShutdownShaders(void)
 		if(si->shaderProgram != 0)  glDeleteProgram(si->shaderProgram);
 		*si = siZero;
 	}
+}
+
+void GL3_ShutdownShaders(void)
+{
+	deleteShaders();
 
 	// let's (ab)use the fact that all 4 UBO handles are consecutive fields
 	// of the gl3state struct
 	glDeleteBuffers(4, &gl3state.uniCommonUBO);
 	gl3state.uniCommonUBO = gl3state.uni2DUBO = gl3state.uni3DUBO = gl3state.uniLightsUBO = 0;
+}
+
+qboolean GL3_RecreateShaders(void)
+{
+	// delete and recreate the existing shaders (but not the UBOs)
+	deleteShaders();
+	return createShaders();
 }
 
 static inline void
