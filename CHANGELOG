@@ -1,3 +1,9 @@
+Quake II 7.00 to 7.01:
+- Fix build of GL3 on ARM.
+- Fix Jennel Jaquays name in credits and quit screen.
+- Make Quake II high DPI aware on Window Vista and above.
+- Fix some problems with loading dependend librarys on Windows.
+
 Quake II 6.00 to 7.00:
 - Remove the broken multitexturing render path from the OpenGL 1.4
   renderer. It was switched off by default in 6.00.
