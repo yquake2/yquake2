@@ -1,5 +1,5 @@
 Quake II 7.00 to 7.01:
-- Fix build of GL3 on ARM.
+- Fix build of GL3 for platforms without SSE.
 - Fix Jennel Jaquays name in credits and quit screen.
 - Make Quake II high DPI aware on Window Vista and above.
 - Fix some problems with loading dependend librarys on Windows.
