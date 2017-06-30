@@ -706,8 +706,8 @@ AL_Underwater()
 		return;
 	}
 
-    if (underwaterFilter == 0)
-        return;
+	if (underwaterFilter == 0)
+		return;
 
 	/* Apply to all sources */
 	for (i = 0; i < s_numchannels; i++)
@@ -729,8 +729,8 @@ AL_Overwater()
 		return;
 	}
 
-    if (underwaterFilter == 0)
-        return;
+	if (underwaterFilter == 0)
+		return;
 
 	/* Apply to all sources */
 	for (i = 0; i < s_numchannels; i++)
@@ -762,10 +762,10 @@ AL_InitStreamSource()
 static void
 AL_InitUnderwaterFilter()
 {
-    underwaterFilter = 0;
+	underwaterFilter = 0;
 
-    if (!(qalGenFilters && qalFilteri && qalFilterf && qalDeleteFilters))
-        return;
+	if (!(qalGenFilters && qalFilteri && qalFilterf && qalDeleteFilters))
+		return;
 
 	/* Generate a filter */
 	qalGenFilters(1, &underwaterFilter);
