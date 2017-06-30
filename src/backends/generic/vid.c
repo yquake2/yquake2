@@ -349,6 +349,8 @@ VID_LoadRefresh(void)
 	if(GetRefAPI == NULL)
 	{
 		Com_Error( ERR_FATAL, "Loading %s as renderer lib failed!", reflib_name );
+		Cvar_Set("vid_renderer", "gl1");
+
 		return false;
 	}
 
