@@ -296,7 +296,7 @@ SV_BeginDownload_f(void)
 	extern cvar_t *allow_download_models;
 	extern cvar_t *allow_download_sounds;
 	extern cvar_t *allow_download_maps;
-	extern int file_from_pak;
+	extern qboolean file_from_pak;
 	int offset = 0;
 
 	name = Cmd_Argv(1);
