@@ -1694,13 +1694,139 @@ void FS_BuildGenericSearchPath(void) {
 		// render dll doesn't link the filesystem stuff.
 		Com_sprintf(path, sizeof(path), "%s/%s/scrnshot", homedir, BASEDIRNAME);
 		Sys_Mkdir(path);
-
 	}
 
 	// Until here we've added the generic directories to the
 	// search path. Save the current head node so we can
 	// distinguish generic and specialized directories.
 	fs_baseSearchPaths = fs_searchPaths;
+}
+
+void
+FS_BuildGameSpecificSearchPath(char *dir)
+{
+	char path[MAX_OSPATH];
+	int i;
+	fsSearchPath_t *next;
+
+	// This is against PEBCAK. The user may give us paths like
+	// xatrix/ or even /home/stupid/quake2/xatrix.
+	if (!*dir || !strcmp(dir, ".") || strstr(dir, "..") || strstr(dir, "/"))
+	{
+		Com_Printf("Gamedir should be a single filename, not a path.\n");
+		return;
+	}
+
+	// BASEDIR is already added as a generic directory. Adding it
+	// again as a specialised directory breaks the logic in other
+	// parts of the code. This may happen if the user does something
+	// like ./quake2 +set game baseq2
+	if(!Q_stricmp(dir, BASEDIRNAME))
+	{
+		return;
+	}
+
+	// We may already have specialised directories in our search
+	// path. This can happen if the server changes the mod. Let's
+	// remove them.
+	while (fs_searchPaths != fs_baseSearchPaths)
+	{
+		if (fs_searchPaths->pack)
+		{
+			if (fs_searchPaths->pack->pak)
+			{
+				fclose(fs_searchPaths->pack->pak);
+			}
+
+#ifdef ZIP
+			if (fs_searchPaths->pack->pk3)
+			{
+				unzClose(fs_searchPaths->pack->pk3);
+			}
+#endif
+
+			Z_Free(fs_searchPaths->pack->files);
+			Z_Free(fs_searchPaths->pack);
+		}
+
+		next = fs_searchPaths->next;
+		Z_Free(fs_searchPaths);
+		fs_searchPaths = next;
+	}
+
+	/* Close open files for game dir. */
+	for (i = 0; i < MAX_HANDLES; i++)
+	{
+		if (strstr(fs_handles[i].name, dir) &&
+				((fs_handles[i].file != NULL)
+#ifdef ZIP
+				|| (fs_handles[i].zip != NULL)
+#endif
+		))
+		{
+			FS_FCloseFile(i);
+		}
+	}
+
+	// Enforce a renderer and sound backend restart to
+	// purge all internal caches. This is rather hacky
+	// but Quake II doesn't have a better mechanism...
+	if ((dedicated != NULL) && (dedicated->value != 1))
+	{
+		Cbuf_AddText("vid_restart\nsnd_restart\n");
+	}
+
+	// The game was reset to baseq2. Nothing to do here.
+	if ((Q_stricmp(dir, BASEDIRNAME) == 0) || (*dir == 0))
+	{
+		Cvar_FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
+		Cvar_FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
+		// TODO: Set fs_gamedir
+	} else {
+		Cvar_FullSet("gamedir", dir, CVAR_SERVERINFO | CVAR_NOSET);
+
+		// The CD must be the last directory of the path,
+		// otherwise we cannot be sure that the game won't
+		// stream the videos from the CD.
+		if (fs_cddir->string[0] == '\0')
+		{
+			Com_sprintf(path, sizeof(path), "%s/%s", fs_cddir->string, dir);
+			FS_AddDirToSearchPath(path, false);
+		}
+
+		// Add $basedir/$game
+		Com_sprintf(path, sizeof(path), "%s/%s", fs_basedir->string, dir);
+		FS_AddDirToSearchPath(path, false);
+
+		// Add SYSTEMDIR/$game
+#ifdef SYSTEMWIDE
+		Com_sprintf(path, sizeof(path), "%s/%s", SYSTEMDIR, dir);
+	FS_AddDirToSearchPath(path, false);
+#endif
+
+		// Add $binarydir/$game
+		const char *binarydir = Sys_GetBinaryDir();
+
+		if(!binarydir[0] == '\0')
+		{
+			Com_sprintf(path, sizeof(path), "%s/%s", binarydir, dir);
+			FS_AddDirToSearchPath(path, false);
+		}
+
+		// Add $HOME/.yq2/$game
+		// (MUST be the last dir!)
+		const char *homedir = Sys_GetHomeDir();
+
+		if (homedir != 0) {
+			Com_sprintf(path, sizeof(path), "%s/%s", homedir, dir);
+			FS_AddDirToSearchPath(path, true);
+
+			// We need to create the screenshot directory since the
+			// render dll doesn't link the filesystem stuff.
+			Com_sprintf(path, sizeof(path), "%s/%s/scrnshot", homedir, dir);
+			Sys_Mkdir(path);
+		}
+	}
 }
 
 void
@@ -1720,19 +1846,12 @@ FS_InitFilesystem(void)
 	// Build search path
 	FS_BuildGenericSearchPath();
 
-	/* Check for game override. */
 	if (fs_gamedirvar->string[0] != '\0')
 	{
-		FS_SetGamedir(fs_gamedirvar->string);
+		FS_BuildGameSpecificSearchPath(fs_gamedirvar->string);
 	}
 
-	/* Create directory if it does not exist. */
-	FS_CreatePath(fs_gamedir);
-
-	/* create the scrnshots directory if it doesn't exist
-	 * (do it here instead of in ref_gl so ref_gl doesn't need mkdir)
-	 */
-
+	// Debug output
 	Com_Printf("Using '%s' for writing.\n", fs_gamedir);
 }
 

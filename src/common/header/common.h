@@ -680,7 +680,7 @@ char **FS_ListFiles2(char *findname, int *numfiles,
 void FS_FreeList(char **list, int nfiles);
 
 void FS_InitFilesystem(void);
-void FS_SetGamedir(char *dir);
+void FS_BuildGameSpecificSearchPath(char *dir);
 char *FS_Gamedir(void);
 char *FS_NextPath(char *prevpath);
 int FS_LoadFile(char *path, void **buffer);
