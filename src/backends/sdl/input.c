@@ -85,6 +85,7 @@ cvar_t *m_pitch;
 cvar_t *m_side;
 cvar_t *m_yaw;
 cvar_t *sensitivity;
+cvar_t *joy_sensitivity;
 static cvar_t *windowed_mouse;
 
 
@@ -457,11 +458,11 @@ IN_Update(void)
 				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
 					if( event.jaxis.axis == 0)
 					{
-						joystick_x = event.jaxis.value / (32768 / 32);
+						joystick_x = event.jaxis.value / (32768 / joy_sensitivity->value);
 					}
 					else if( event.jaxis.axis == 1)
 					{
-						joystick_y = event.jaxis.value / (32768 / 32);
+						joystick_y = event.jaxis.value / (32768 / joy_sensitivity->value);
 					}
 				}
 				break;
@@ -655,6 +656,7 @@ IN_Init(void)
 	m_side = Cvar_Get("m_side", "0.8", 0);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
+	joy_sensitivity = Cvar_Get("joy_sensitivity", "32", 0);
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
