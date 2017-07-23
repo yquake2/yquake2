@@ -123,6 +123,21 @@ cvar_t *fs_debug;
 
 fsHandle_t *FS_GetFileByHandle(fileHandle_t f);
 
+// --------
+
+// Raw search path, the actual search
+// bath is build from this one.
+typedef struct fsRawPath_s {
+	char path[MAX_OSPATH];
+	qboolean create;
+	qboolean screenshot;
+	struct fsRawPath_s *next;
+} fsRawPath_t;
+
+fsRawPath_t *fs_rawPath;
+
+// --------
+
 /*
  * All of Quake's data access is through a hierchal file system, but the
  * contents of the file system can be transparently merged from several
@@ -1374,45 +1389,20 @@ void FS_BuildGenericSearchPath(void) {
 	// a maximum path size of 4096...
 	char path[MAX_OSPATH];
 
-	// The CD must be the last directory of the path,
-	// otherwise we cannot be sure that the game won't
-	// stream the videos from the CD.
-	if (fs_cddir->string[0] != '\0') {
-		Com_sprintf(path, sizeof(path), "%s/%s", fs_cddir->string, BASEDIRNAME);
-		FS_AddDirToSearchPath(path, false);
-	}
+	fsRawPath_t *search = fs_rawPath;
 
-	// Add $basedir/baseq2
-	Com_sprintf(path, sizeof(path), "%s/%s", fs_basedir->string, BASEDIRNAME);
-	FS_AddDirToSearchPath(path, false);
-
-	// Add SYSTEMDIR/baseq2
-#ifdef SYSTEMWIDE
-	Com_sprintf(path, sizeof(path), "%s/%s", SYSTEMDIR, BASEDIRNAME);
-	FS_AddDirToSearchPath(path, false);
-#endif
-
-	// Add $binarydir/baseq2
-	const char *binarydir = Sys_GetBinaryDir();
-
-	if(!binarydir[0] == '\0')
-	{
-		Com_sprintf(path, sizeof(path), "%s/%s", binarydir, BASEDIRNAME);
-		FS_AddDirToSearchPath(path, false);
-	}
-
-	// Add $HOME/.yq2/baseq2
-	// (MUST be the last dir!)
-	const char *homedir = Sys_GetHomeDir();
-
-	if (homedir != NULL) {
-		Com_sprintf(path, sizeof(path), "%s/%s", homedir, BASEDIRNAME);
-		FS_AddDirToSearchPath(path, true);
+	while (search != NULL) {
+		Com_sprintf(path, sizeof(path), "%s/%s", search->path, BASEDIRNAME);
+		FS_AddDirToSearchPath(path, search->create);
 
 		// We need to create the screenshot directory since the
 		// render dll doesn't link the filesystem stuff.
-		Com_sprintf(path, sizeof(path), "%s/%s/scrnshot", homedir, BASEDIRNAME);
-		Sys_Mkdir(path);
+		if (search->screenshot) {
+			Com_sprintf(path, sizeof(path), "%s/%s/scrnshot", search->path, BASEDIRNAME);
+			Sys_Mkdir(path);
+		}
+
+		search = search->next;
 	}
 
 	// Until here we've added the generic directories to the
@@ -1424,8 +1414,12 @@ void FS_BuildGenericSearchPath(void) {
 void
 FS_BuildGameSpecificSearchPath(char *dir)
 {
+	// We may not use the va() function from shared.c
+	// since it's buffersize is 1024 while most OS have
+	// a maximum path size of 4096...
 	char path[MAX_OSPATH];
 	int i;
+	fsRawPath_t *search;
 	fsSearchPath_t *next;
 
 	// This is against PEBCAK. The user may give us paths like
@@ -1503,50 +1497,73 @@ FS_BuildGameSpecificSearchPath(char *dir)
 		// TODO: Set fs_gamedir
 	} else {
 		Cvar_FullSet("gamedir", dir, CVAR_SERVERINFO | CVAR_NOSET);
+		search = fs_rawPath;
 
-		// The CD must be the last directory of the path,
-		// otherwise we cannot be sure that the game won't
-		// stream the videos from the CD.
-		if (fs_cddir->string[0] == '\0')
-		{
-			Com_sprintf(path, sizeof(path), "%s/%s", fs_cddir->string, dir);
-			FS_AddDirToSearchPath(path, false);
-		}
-
-		// Add $basedir/$game
-		Com_sprintf(path, sizeof(path), "%s/%s", fs_basedir->string, dir);
-		FS_AddDirToSearchPath(path, false);
-
-		// Add SYSTEMDIR/$game
-#ifdef SYSTEMWIDE
-		Com_sprintf(path, sizeof(path), "%s/%s", SYSTEMDIR, dir);
-	FS_AddDirToSearchPath(path, false);
-#endif
-
-		// Add $binarydir/$game
-		const char *binarydir = Sys_GetBinaryDir();
-
-		if(!binarydir[0] == '\0')
-		{
-			Com_sprintf(path, sizeof(path), "%s/%s", binarydir, dir);
-			FS_AddDirToSearchPath(path, false);
-		}
-
-		// Add $HOME/.yq2/$game
-		// (MUST be the last dir!)
-		const char *homedir = Sys_GetHomeDir();
-
-		if (homedir != NULL) {
-			Com_sprintf(path, sizeof(path), "%s/%s", homedir, dir);
-			FS_AddDirToSearchPath(path, true);
+		while (search != NULL) {
+			Com_sprintf(path, sizeof(path), "%s/%s", search->path, dir);
+			FS_AddDirToSearchPath(path, search->create);
 
 			// We need to create the screenshot directory since the
 			// render dll doesn't link the filesystem stuff.
-			Com_sprintf(path, sizeof(path), "%s/%s/scrnshot", homedir, dir);
-			Sys_Mkdir(path);
+			if (search->screenshot) {
+				Com_sprintf(path, sizeof(path), "%s/%s/scrnshot", search->path, dir);
+				Sys_Mkdir(path);
+			}
+
+			search = search->next;
 		}
 	}
 }
+
+// --------
+
+void FS_AddDirToRawPath (const char *dir, qboolean create, qboolean screenshot) {
+	fsRawPath_t *search;
+
+	// Add the directory
+	search = Z_Malloc(sizeof(fsRawPath_t));
+	Q_strlcpy(search->path, dir, sizeof(search->path));
+	search->create = create;
+	search->screenshot = screenshot;
+	search->next = fs_rawPath;
+	fs_rawPath = search;
+}
+
+
+void FS_BuildRawPath(void) {
+	// Add $HOME/.yq2/baseq2
+	// (MUST be the last dir!)
+	const char *homedir = Sys_GetHomeDir();
+
+	if (homedir != NULL) {
+		FS_AddDirToRawPath(homedir, true, true);
+	}
+
+	// Add $binarydir/baseq2
+	const char *binarydir = Sys_GetBinaryDir();
+
+	if(!binarydir[0] == '\0')
+	{
+		FS_AddDirToRawPath(binarydir, false, false);
+	}
+
+	// Add $basedir/
+	FS_AddDirToRawPath(fs_basedir->string, false, false);
+
+	// Add SYSTEMDIR/baseq2
+#ifdef SYSTEMWIDE
+	FS_AddDirToRawPath(SYSTEMDIR, false);
+#endif
+
+	// The CD must be the last directory of the path,
+	// otherwise we cannot be sure that the game won't
+	// stream the videos from the CD.
+	if (fs_cddir->string[0] != '\0') {
+		FS_AddDirToRawPath(fs_cddir->string, false, false);
+	}
+}
+
+// --------
 
 void
 FS_InitFilesystem(void)
@@ -1563,6 +1580,7 @@ FS_InitFilesystem(void)
 	fs_debug = Cvar_Get("fs_debug", "0", 0);
 
 	// Build search path
+	FS_BuildRawPath();
 	FS_BuildGenericSearchPath();
 
 	if (fs_gamedirvar->string[0] != '\0')
