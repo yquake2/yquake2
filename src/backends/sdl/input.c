@@ -64,6 +64,7 @@
 
 /* Globals */
 static int mouse_x, mouse_y;
+static int joystick_x, joystick_y;
 static int old_mouse_x, old_mouse_y;
 static qboolean mlooking;
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -453,18 +454,17 @@ IN_Update(void)
 				break;
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_JOYAXISMOTION:  /* Handle Joystick Motion */
-			//if ((event.jaxis.value < -3200) || (event.jaxis.value > 3200))
-			{
-				if( event.jaxis.axis == 0)
-				{
-					Com_Printf ("Left-right movement code %d\n", event.jaxis.value);
+				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
+					if( event.jaxis.axis == 0)
+					{
+						joystick_x = event.jaxis.value / (32768 / 32);
+					}
+					else if( event.jaxis.axis == 1)
+					{
+						joystick_y = event.jaxis.value / (32768 / 32);
+					}
 				}
-				else if( event.jaxis.axis == 1)
-				{
-					Com_Printf ("Up-Down movement code %d\n", event.jaxis.value);
-				}
-			}
-			break;
+				break;
 			case SDL_JOYBUTTONUP:
 			case SDL_JOYBUTTONDOWN:
 			{
@@ -586,6 +586,28 @@ IN_Move(usercmd_t *cmd)
 
 		mouse_x = mouse_y = 0;
 	}
+
+	if (joystick_x || joystick_y )
+	{
+		/* add mouse X/Y movement to cmd */
+		if ((in_strafe.state & 1) || (lookstrafe->value && mlooking))
+		{
+			cmd->sidemove += m_side->value * joystick_x;
+		}
+		else
+		{
+			cl.viewangles[YAW] -= m_yaw->value * joystick_x;
+		}
+
+		if ((mlooking || freelook->value) && !(in_strafe.state & 1))
+		{
+			cl.viewangles[PITCH] += m_pitch->value * joystick_y;
+		}
+		else
+		{
+			cmd->forwardmove -= m_forward->value * joystick_y;
+		}
+	}
 }
 
 /* ------------------------------------------------------------------ */
@@ -620,6 +642,7 @@ IN_Init(void)
 	Com_Printf("------- input initialization -------\n");
 
 	mouse_x = mouse_y = 0;
+	joystick_x = joystick_y = 0;
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 	freelook = Cvar_Get("freelook", "1", 0);
