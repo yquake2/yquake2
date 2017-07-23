@@ -1269,6 +1269,9 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 	{
 		dir[len - 1] = '\0';
 	}
+	else if (dir[len - 1] == '\\') {
+		dir[len - 1] = '\0';
+	}
 
 	// Set the current directory as game directory. This
 	// is somewhat fragile since the game directory MUST
@@ -1402,7 +1405,7 @@ void FS_BuildGenericSearchPath(void) {
 	// (MUST be the last dir!)
 	const char *homedir = Sys_GetHomeDir();
 
-	if (homedir != 0) {
+	if (homedir != NULL) {
 		Com_sprintf(path, sizeof(path), "%s/%s", homedir, BASEDIRNAME);
 		FS_AddDirToSearchPath(path, true);
 
@@ -1427,7 +1430,7 @@ FS_BuildGameSpecificSearchPath(char *dir)
 
 	// This is against PEBCAK. The user may give us paths like
 	// xatrix/ or even /home/stupid/quake2/xatrix.
-	if (!*dir || !strcmp(dir, ".") || strstr(dir, "..") || strstr(dir, "/"))
+	if (!*dir || !strcmp(dir, ".") || strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\"))
 	{
 		Com_Printf("Gamedir should be a single filename, not a path.\n");
 		return;
@@ -1533,7 +1536,7 @@ FS_BuildGameSpecificSearchPath(char *dir)
 		// (MUST be the last dir!)
 		const char *homedir = Sys_GetHomeDir();
 
-		if (homedir != 0) {
+		if (homedir != NULL) {
 			Com_sprintf(path, sizeof(path), "%s/%s", homedir, dir);
 			FS_AddDirToSearchPath(path, true);
 
