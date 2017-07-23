@@ -61,11 +61,15 @@
 
 #define MOUSE_MAX 3000
 #define MOUSE_MIN 40
- 
+
 /* Globals */
 static int mouse_x, mouse_y;
 static int old_mouse_x, old_mouse_y;
 static qboolean mlooking;
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+static SDL_Joystick *current_joystick = NULL;
+#endif
+
 
 /* CVars */
 cvar_t *vid_fullscreen;
@@ -364,10 +368,10 @@ IN_Update(void)
 				break;
 
 			case SDL_MOUSEMOTION:
-                if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
-                    mouse_x += event.motion.xrel;
-                    mouse_y += event.motion.yrel;
-                }
+				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
+					mouse_x += event.motion.xrel;
+					mouse_y += event.motion.yrel;
+				}
 				break;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -447,10 +451,33 @@ IN_Update(void)
 				}
 #endif
 				break;
-
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+			case SDL_JOYAXISMOTION:  /* Handle Joystick Motion */
+			//if ((event.jaxis.value < -3200) || (event.jaxis.value > 3200))
+			{
+				if( event.jaxis.axis == 0)
+				{
+					Com_Printf ("Left-right movement code %d\n", event.jaxis.value);
+				}
+				else if( event.jaxis.axis == 1)
+				{
+					Com_Printf ("Up-Down movement code %d\n", event.jaxis.value);
+				}
+			}
+			break;
+			case SDL_JOYBUTTONUP:
+			case SDL_JOYBUTTONDOWN:
+			{
+				qboolean down = (event.type == SDL_JOYBUTTONDOWN);
+				if(event.jbutton.button < (K_JOY32 - K_JOY1)) {
+					Key_Event(event.jbutton.button + K_JOY1, down, true);
+				}
+			}
+				break;
+#endif
 			case SDL_QUIT:
 				Com_Quit();
-				
+
 				break;
 		}
 	}
@@ -480,7 +507,7 @@ In_FlushQueue(void)
 
 	Key_MarkAllUp();
 }
- 
+
 /*
  * Move handling
  */
@@ -560,7 +587,7 @@ IN_Move(usercmd_t *cmd)
 		mouse_x = mouse_y = 0;
 	}
 }
- 
+
 /* ------------------------------------------------------------------ */
 
 /*
@@ -618,6 +645,26 @@ IN_Init(void)
 #endif
 
 	Com_Printf("------------------------------------\n\n");
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	/* joystik init */
+	if (!SDL_WasInit(SDL_INIT_JOYSTICK))
+	{
+		if (SDL_Init(SDL_INIT_JOYSTICK) == -1)
+		{
+			Com_Printf ("Couldn't init SDL joystick: %s.\n", SDL_GetError ());
+		} else {
+			Com_Printf ("%i joysticks were found.\n\n", SDL_NumJoysticks());
+			if (SDL_NumJoysticks() > 0) {
+				current_joystick = SDL_JoystickOpen(0);
+				Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(current_joystick));
+				Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(current_joystick));
+				Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(current_joystick));
+				Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(current_joystick));
+			}
+		}
+	}
+#endif
 }
 
 /*
@@ -630,7 +677,7 @@ IN_Shutdown(void)
 	Cmd_RemoveCommand("+mlook");
 	Cmd_RemoveCommand("-mlook");
 
-    Com_Printf("Shutting down input.\n");
+	Com_Printf("Shutting down input.\n");
 }
 
 /* ------------------------------------------------------------------ */

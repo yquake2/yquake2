@@ -285,6 +285,37 @@ Default_MenuKey(menuframework_s *m, int key)
     case K_MOUSE3:
     case K_MOUSE4:
     case K_MOUSE5:
+    case K_JOY1:
+    case K_JOY2:
+    case K_JOY3:
+    case K_JOY4:
+    case K_JOY5:
+    case K_JOY6:
+    case K_JOY7:
+    case K_JOY8:
+    case K_JOY9:
+    case K_JOY10:
+    case K_JOY11:
+    case K_JOY12:
+    case K_JOY13:
+    case K_JOY14:
+    case K_JOY15:
+    case K_JOY16:
+    case K_JOY17:
+    case K_JOY18:
+    case K_JOY19:
+    case K_JOY20:
+    case K_JOY21:
+    case K_JOY22:
+    case K_JOY23:
+    case K_JOY24:
+    case K_JOY25:
+    case K_JOY26:
+    case K_JOY27:
+    case K_JOY28:
+    case K_JOY29:
+    case K_JOY30:
+    case K_JOY31:
     case K_AUX1:
     case K_AUX2:
     case K_AUX3:
