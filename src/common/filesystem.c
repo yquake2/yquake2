@@ -1542,7 +1542,7 @@ void FS_BuildRawPath(void) {
 	// Add $binarydir/baseq2
 	const char *binarydir = Sys_GetBinaryDir();
 
-	if(!binarydir[0] == '\0')
+	if(binarydir[0] != '\0')
 	{
 		FS_AddDirToRawPath(binarydir, false, false);
 	}
