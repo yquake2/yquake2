@@ -65,6 +65,8 @@ int findhandle;
 int argc;
 char *argv[MAX_NUM_ARGVS];
 
+qboolean is_portable;
+
 /* ================================================================ */
 
 void
@@ -652,11 +654,6 @@ Sys_RedirectStdout(void)
 	char path_stdout[MAX_OSPATH];
 	char path_stderr[MAX_OSPATH];
 
-	if (portable->value)
-	{
-		return;
-	}
-
 	home = Sys_GetHomeDir();
 
 	if (home == NULL)
@@ -755,7 +752,23 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	/* Force DPI awareness */
 	Sys_SetHighDPIMode();
 
-	/* FIXME: No one can see this! */
+	/* Parse the command line arguments */
+	ParseCommandLine(lpCmdLine);
+
+	/* Are we portable? */
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "-portable") == 0) {
+			portable = true;
+		}
+	}
+
+	/* Need to redirect stdout before anything happens. */
+#ifndef DEDICATED_ONLY
+	if (!is_portable) {
+		Sys_RedirectStdout;
+	}
+#endif
+
 	printf("Yamagi Quake II v%s\n", YQ2VERSION);
 	printf("=====================\n\n");
 
@@ -791,11 +804,9 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	printf("Platform: %s\n", YQ2OSTYPE);
 	printf("Architecture: %s\n", YQ2ARCH);
 
+
 	/* Seed PRNG */
 	randk_seed();
-
-	/* Parse the command line arguments */
-	ParseCommandLine(lpCmdLine);
 
 	/* Call the initialization code */
 	Qcommon_Init(argc, argv);

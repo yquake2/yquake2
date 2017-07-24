@@ -728,6 +728,9 @@ extern cvar_t *host_speeds;
 extern cvar_t *log_stats;
 extern cvar_t *portable;
 
+/* Hack for portable client */
+extern qboolean is_portable;
+
 extern FILE *log_stats_file;
 
 /* host_speeds times */
