@@ -67,9 +67,6 @@ static int mouse_x, mouse_y;
 static int joystick_x, joystick_y;
 static int old_mouse_x, old_mouse_y;
 static qboolean mlooking;
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-static SDL_Joystick *current_joystick = NULL;
-#endif
 
 
 /* CVars */
@@ -458,11 +455,11 @@ IN_Update(void)
 				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
 					if( event.jaxis.axis == 0)
 					{
-						joystick_x = event.jaxis.value / (32768 / joy_sensitivity->value);
+						joystick_x = event.jaxis.value * joy_sensitivity->value;
 					}
 					else if( event.jaxis.axis == 1)
 					{
-						joystick_y = event.jaxis.value / (32768 / joy_sensitivity->value);
+						joystick_y = event.jaxis.value * joy_sensitivity->value;
 					}
 				}
 				break;
@@ -593,20 +590,20 @@ IN_Move(usercmd_t *cmd)
 		/* add mouse X/Y movement to cmd */
 		if ((in_strafe.state & 1) || (lookstrafe->value && mlooking))
 		{
-			cmd->sidemove += m_side->value * joystick_x;
+			cmd->sidemove += (m_side->value * joystick_x) / 32768;
 		}
 		else
 		{
-			cl.viewangles[YAW] -= m_yaw->value * joystick_x;
+			cl.viewangles[YAW] -= (m_yaw->value * joystick_x) / 32768;
 		}
 
 		if ((mlooking || freelook->value) && !(in_strafe.state & 1))
 		{
-			cl.viewangles[PITCH] += m_pitch->value * joystick_y;
+			cl.viewangles[PITCH] += (m_pitch->value * joystick_y) / 32768;
 		}
 		else
 		{
-			cmd->forwardmove -= m_forward->value * joystick_y;
+			cmd->forwardmove -= (m_forward->value * joystick_y) / 32768;
 		}
 	}
 }
@@ -656,7 +653,7 @@ IN_Init(void)
 	m_side = Cvar_Get("m_side", "0.8", 0);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
-	joy_sensitivity = Cvar_Get("joy_sensitivity", "32", 0);
+	joy_sensitivity = Cvar_Get("joy_sensitivity", "64", 0);
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
@@ -681,7 +678,7 @@ IN_Init(void)
 		} else {
 			Com_Printf ("%i joysticks were found.\n\n", SDL_NumJoysticks());
 			if (SDL_NumJoysticks() > 0) {
-				current_joystick = SDL_JoystickOpen(0);
+				SDL_Joystick *current_joystick = SDL_JoystickOpen(0);
 				Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(current_joystick));
 				Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(current_joystick));
 				Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(current_joystick));
