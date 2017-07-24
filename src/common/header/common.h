@@ -726,7 +726,6 @@ extern cvar_t *modder;
 extern cvar_t *dedicated;
 extern cvar_t *host_speeds;
 extern cvar_t *log_stats;
-extern cvar_t *portable;
 
 /* Hack for portable client */
 extern qboolean is_portable;

@@ -213,16 +213,6 @@ Qcommon_Init(int argc, char **argv)
 	Cbuf_AddEarlyCommands(false);
 	Cbuf_Execute();
 
-	/* Be portable, don't add HOME to the search path.
-	   Doing it here is a hack. We need a working cvar
-	   subsystem to create the cvar. But it must be
-	   created before the file system is initialized. */
-	if (is_portable) {
-		portable = Cvar_Get("portable", "1", CVAR_NOSET);
-	} else {
-		portable = Cvar_Get("portable", "0", CVAR_NOSET);
-	}
-
 	FS_InitFilesystem();
 
 	Cbuf_AddText("exec default.cfg\n");

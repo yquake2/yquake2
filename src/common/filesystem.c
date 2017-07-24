@@ -1533,7 +1533,7 @@ void FS_AddDirToRawPath (const char *dir, qboolean create, qboolean screenshot) 
 void FS_BuildRawPath(void) {
 	// Add $HOME/.yq2/baseq2
 	// (MUST be the last dir!)
-	if (!portable->value) {
+	if (!is_portable) {
 		const char *homedir = Sys_GetHomeDir();
 
 		if (homedir != NULL) {
