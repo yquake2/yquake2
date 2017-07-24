@@ -64,7 +64,7 @@
 
 /* Globals */
 static int mouse_x, mouse_y;
-static int joystick_x, joystick_y;
+static int joystick_x, joystick_y, joystick_z;
 static int old_mouse_x, old_mouse_y;
 static qboolean mlooking;
 
@@ -82,7 +82,9 @@ cvar_t *m_pitch;
 cvar_t *m_side;
 cvar_t *m_yaw;
 cvar_t *sensitivity;
-cvar_t *joy_sensitivity;
+cvar_t *joy_sensitivity_x;
+cvar_t *joy_sensitivity_y;
+cvar_t *joy_sensitivity_z;
 static cvar_t *windowed_mouse;
 
 
@@ -453,13 +455,25 @@ IN_Update(void)
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_JOYAXISMOTION:  /* Handle Joystick Motion */
 				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
+					// left/right
 					if( event.jaxis.axis == 0)
 					{
-						joystick_x = event.jaxis.value * joy_sensitivity->value;
+						joystick_x = event.jaxis.value * joy_sensitivity_x->value;
 					}
+					// top/bottom
 					else if( event.jaxis.axis == 1)
 					{
-						joystick_y = event.jaxis.value * joy_sensitivity->value;
+						joystick_z = event.jaxis.value * joy_sensitivity_z->value;
+					}
+					// second left/right
+					else if( event.jaxis.axis == 2)
+					{
+						joystick_x = event.jaxis.value * joy_sensitivity_x->value;
+					}
+					// second top/bottom
+					else if( event.jaxis.axis == 3)
+					{
+						joystick_y = event.jaxis.value * joy_sensitivity_y->value;
 					}
 				}
 				break;
@@ -606,6 +620,11 @@ IN_Move(usercmd_t *cmd)
 			cmd->forwardmove -= (m_forward->value * joystick_y) / 32768;
 		}
 	}
+
+	if (joystick_z)
+	{
+		cmd->forwardmove -= (m_forward->value * joystick_z) / 32768;
+	}
 }
 
 /* ------------------------------------------------------------------ */
@@ -640,7 +659,7 @@ IN_Init(void)
 	Com_Printf("------- input initialization -------\n");
 
 	mouse_x = mouse_y = 0;
-	joystick_x = joystick_y = 0;
+	joystick_x = joystick_y = joystick_z = 0;
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 	freelook = Cvar_Get("freelook", "1", 0);
@@ -653,7 +672,9 @@ IN_Init(void)
 	m_side = Cvar_Get("m_side", "0.8", 0);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
-	joy_sensitivity = Cvar_Get("joy_sensitivity", "64", 0);
+	joy_sensitivity_x = Cvar_Get("joy_sensitivity_x", "64", 0);
+	joy_sensitivity_y = Cvar_Get("joy_sensitivity_y", "64", 0);
+	joy_sensitivity_z = Cvar_Get("joy_sensitivity_z", "256", 0);
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
