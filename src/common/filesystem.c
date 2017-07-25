@@ -130,7 +130,6 @@ fsHandle_t *FS_GetFileByHandle(fileHandle_t f);
 typedef struct fsRawPath_s {
 	char path[MAX_OSPATH];
 	qboolean create;
-	qboolean screenshot;
 	struct fsRawPath_s *next;
 } fsRawPath_t;
 
@@ -1395,13 +1394,6 @@ void FS_BuildGenericSearchPath(void) {
 		Com_sprintf(path, sizeof(path), "%s/%s", search->path, BASEDIRNAME);
 		FS_AddDirToSearchPath(path, search->create);
 
-		// We need to create the screenshot directory since the
-		// render dll doesn't link the filesystem stuff.
-		if (search->screenshot) {
-			Com_sprintf(path, sizeof(path), "%s/%s/scrnshot", search->path, BASEDIRNAME);
-			Sys_Mkdir(path);
-		}
-
 		search = search->next;
 	}
 
@@ -1409,6 +1401,11 @@ void FS_BuildGenericSearchPath(void) {
 	// search path. Save the current head node so we can
 	// distinguish generic and specialized directories.
 	fs_baseSearchPaths = fs_searchPaths;
+
+	// We need to create the screenshot directory since the
+	// render dll doesn't link the filesystem stuff.
+	Com_sprintf(path, sizeof(path), "%s/scrnshot", fs_gamedir);
+	Sys_Mkdir(path);
 }
 
 void
@@ -1490,11 +1487,13 @@ FS_BuildGameSpecificSearchPath(char *dir)
 	}
 
 	// The game was reset to baseq2. Nothing to do here.
-	if ((Q_stricmp(dir, BASEDIRNAME) == 0) || (*dir == 0))
-	{
+	if ((Q_stricmp(dir, BASEDIRNAME) == 0) || (*dir == 0)) {
 		Cvar_FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
 		Cvar_FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
-		// TODO: Set fs_gamedir
+
+		// fs_gamedir must be reset to the last
+		// dir of the generic search path.
+		Q_strlcpy(fs_gamedir, fs_baseSearchPaths->path, sizeof(fs_gamedir));
 	} else {
 		Cvar_FullSet("gamedir", dir, CVAR_SERVERINFO | CVAR_NOSET);
 		search = fs_rawPath;
@@ -1503,56 +1502,52 @@ FS_BuildGameSpecificSearchPath(char *dir)
 			Com_sprintf(path, sizeof(path), "%s/%s", search->path, dir);
 			FS_AddDirToSearchPath(path, search->create);
 
-			// We need to create the screenshot directory since the
-			// render dll doesn't link the filesystem stuff.
-			if (search->screenshot) {
-				Com_sprintf(path, sizeof(path), "%s/%s/scrnshot", search->path, dir);
-				Sys_Mkdir(path);
-			}
-
 			search = search->next;
 		}
 	}
+
+	// We need to create the screenshot directory since the
+	// render dll doesn't link the filesystem stuff.
+	Com_sprintf(path, sizeof(path), "%s/scrnshot", fs_gamedir);
+	Sys_Mkdir(path);
 }
 
 // --------
 
-void FS_AddDirToRawPath (const char *dir, qboolean create, qboolean screenshot) {
+void FS_AddDirToRawPath (const char *dir, qboolean create) {
 	fsRawPath_t *search;
 
 	// Add the directory
 	search = Z_Malloc(sizeof(fsRawPath_t));
 	Q_strlcpy(search->path, dir, sizeof(search->path));
 	search->create = create;
-	search->screenshot = screenshot;
 	search->next = fs_rawPath;
 	fs_rawPath = search;
 }
 
 
 void FS_BuildRawPath(void) {
-	// Add $HOME/.yq2/baseq2
-	// (MUST be the last dir!)
+	// Add $HOME/.yq2 (MUST be the last dir!)
 	if (!is_portable) {
 		const char *homedir = Sys_GetHomeDir();
 
 		if (homedir != NULL) {
-			FS_AddDirToRawPath(homedir, true, true);
+			FS_AddDirToRawPath(homedir, true);
 		}
 	}
 
-	// Add $binarydir/baseq2
+	// Add $binarydir
 	const char *binarydir = Sys_GetBinaryDir();
 
 	if(binarydir[0] != '\0')
 	{
-		FS_AddDirToRawPath(binarydir, false, false);
+		FS_AddDirToRawPath(binarydir, false);
 	}
 
 	// Add $basedir/
-	FS_AddDirToRawPath(fs_basedir->string, false, false);
+	FS_AddDirToRawPath(fs_basedir->string, false);
 
-	// Add SYSTEMDIR/baseq2
+	// Add SYSTEMDIR
 #ifdef SYSTEMWIDE
 	FS_AddDirToRawPath(SYSTEMDIR, false);
 #endif
@@ -1561,7 +1556,7 @@ void FS_BuildRawPath(void) {
 	// otherwise we cannot be sure that the game won't
 	// stream the videos from the CD.
 	if (fs_cddir->string[0] != '\0') {
-		FS_AddDirToRawPath(fs_cddir->string, false, false);
+		FS_AddDirToRawPath(fs_cddir->string, false);
 	}
 }
 
