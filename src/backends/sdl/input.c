@@ -61,11 +61,13 @@
 
 #define MOUSE_MAX 3000
 #define MOUSE_MIN 40
- 
+
 /* Globals */
 static int mouse_x, mouse_y;
+static int joystick_x, joystick_y, joystick_z;
 static int old_mouse_x, old_mouse_y;
 static qboolean mlooking;
+
 
 /* CVars */
 cvar_t *vid_fullscreen;
@@ -80,6 +82,9 @@ cvar_t *m_pitch;
 cvar_t *m_side;
 cvar_t *m_yaw;
 cvar_t *sensitivity;
+cvar_t *joy_sensitivity_x;
+cvar_t *joy_sensitivity_y;
+cvar_t *joy_sensitivity_z;
 static cvar_t *windowed_mouse;
 
 
@@ -364,10 +369,10 @@ IN_Update(void)
 				break;
 
 			case SDL_MOUSEMOTION:
-                if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
-                    mouse_x += event.motion.xrel;
-                    mouse_y += event.motion.yrel;
-                }
+				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
+					mouse_x += event.motion.xrel;
+					mouse_y += event.motion.yrel;
+				}
 				break;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -447,10 +452,44 @@ IN_Update(void)
 				}
 #endif
 				break;
-
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+			case SDL_JOYAXISMOTION:  /* Handle Joystick Motion */
+				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
+					// left/right
+					if( event.jaxis.axis == 0)
+					{
+						joystick_x = event.jaxis.value * joy_sensitivity_x->value;
+					}
+					// top/bottom
+					else if( event.jaxis.axis == 1)
+					{
+						joystick_z = event.jaxis.value * joy_sensitivity_z->value;
+					}
+					// second left/right
+					else if( event.jaxis.axis == 2)
+					{
+						joystick_x = event.jaxis.value * joy_sensitivity_x->value;
+					}
+					// second top/bottom
+					else if( event.jaxis.axis == 3)
+					{
+						joystick_y = event.jaxis.value * joy_sensitivity_y->value;
+					}
+				}
+				break;
+			case SDL_JOYBUTTONUP:
+			case SDL_JOYBUTTONDOWN:
+			{
+				qboolean down = (event.type == SDL_JOYBUTTONDOWN);
+				if(event.jbutton.button < (K_JOY32 - K_JOY1)) {
+					Key_Event(event.jbutton.button + K_JOY1, down, true);
+				}
+			}
+				break;
+#endif
 			case SDL_QUIT:
 				Com_Quit();
-				
+
 				break;
 		}
 	}
@@ -480,7 +519,7 @@ In_FlushQueue(void)
 
 	Key_MarkAllUp();
 }
- 
+
 /*
  * Move handling
  */
@@ -559,8 +598,35 @@ IN_Move(usercmd_t *cmd)
 
 		mouse_x = mouse_y = 0;
 	}
+
+	if (joystick_x || joystick_y )
+	{
+		/* add mouse X/Y movement to cmd */
+		if ((in_strafe.state & 1) || (lookstrafe->value && mlooking))
+		{
+			cmd->sidemove += (m_side->value * joystick_x) / 32768;
+		}
+		else
+		{
+			cl.viewangles[YAW] -= (m_yaw->value * joystick_x) / 32768;
+		}
+
+		if ((mlooking || freelook->value) && !(in_strafe.state & 1))
+		{
+			cl.viewangles[PITCH] += (m_pitch->value * joystick_y) / 32768;
+		}
+		else
+		{
+			cmd->forwardmove -= (m_forward->value * joystick_y) / 32768;
+		}
+	}
+
+	if (joystick_z)
+	{
+		cmd->forwardmove -= (m_forward->value * joystick_z) / 32768;
+	}
 }
- 
+
 /* ------------------------------------------------------------------ */
 
 /*
@@ -593,6 +659,7 @@ IN_Init(void)
 	Com_Printf("------- input initialization -------\n");
 
 	mouse_x = mouse_y = 0;
+	joystick_x = joystick_y = joystick_z = 0;
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 	freelook = Cvar_Get("freelook", "1", 0);
@@ -605,6 +672,9 @@ IN_Init(void)
 	m_side = Cvar_Get("m_side", "0.8", 0);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
+	joy_sensitivity_x = Cvar_Get("joy_sensitivity_x", "64", 0);
+	joy_sensitivity_y = Cvar_Get("joy_sensitivity_y", "64", 0);
+	joy_sensitivity_z = Cvar_Get("joy_sensitivity_z", "256", 0);
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
@@ -618,6 +688,26 @@ IN_Init(void)
 #endif
 
 	Com_Printf("------------------------------------\n\n");
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	/* joystik init */
+	if (!SDL_WasInit(SDL_INIT_JOYSTICK))
+	{
+		if (SDL_Init(SDL_INIT_JOYSTICK) == -1)
+		{
+			Com_Printf ("Couldn't init SDL joystick: %s.\n", SDL_GetError ());
+		} else {
+			Com_Printf ("%i joysticks were found.\n\n", SDL_NumJoysticks());
+			if (SDL_NumJoysticks() > 0) {
+				SDL_Joystick *current_joystick = SDL_JoystickOpen(0);
+				Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(current_joystick));
+				Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(current_joystick));
+				Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(current_joystick));
+				Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(current_joystick));
+			}
+		}
+	}
+#endif
 }
 
 /*
@@ -630,7 +720,7 @@ IN_Shutdown(void)
 	Cmd_RemoveCommand("+mlook");
 	Cmd_RemoveCommand("-mlook");
 
-    Com_Printf("Shutting down input.\n");
+	Com_Printf("Shutting down input.\n");
 }
 
 /* ------------------------------------------------------------------ */
