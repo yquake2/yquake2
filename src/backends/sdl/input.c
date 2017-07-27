@@ -691,19 +691,29 @@ IN_Init(void)
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	/* joystik init */
-	if (!SDL_WasInit(SDL_INIT_JOYSTICK))
+	if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER))
 	{
-		if (SDL_Init(SDL_INIT_JOYSTICK) == -1)
+		if (SDL_Init(SDL_INIT_GAMECONTROLLER) == -1)
 		{
 			Com_Printf ("Couldn't init SDL joystick: %s.\n", SDL_GetError ());
 		} else {
 			Com_Printf ("%i joysticks were found.\n\n", SDL_NumJoysticks());
 			if (SDL_NumJoysticks() > 0) {
+				char joystick_guid[256] = {0};
+				char path[256] = {0};
+				SDL_JoystickGUID guid;
 				SDL_Joystick *current_joystick = SDL_JoystickOpen(0);
+				guid = SDL_JoystickGetDeviceGUID(0);
+				SDL_JoystickGetGUIDString(guid, joystick_guid, 255);
+				Com_Printf ("The guid of the joystick is '%s'\n", joystick_guid);
 				Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(current_joystick));
 				Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(current_joystick));
 				Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(current_joystick));
 				Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(current_joystick));
+				Com_sprintf(path, sizeof(path), "%s/gamecontrollerdb.txt", FS_Gamedir());
+				Com_Printf ("Load Game Controller Mappings from %s\n", path);
+				if (SDL_GameControllerAddMappingsFromFile(path) < 0)
+					Com_Printf ("Can't load mappings file\n");
 			}
 		}
 	}
