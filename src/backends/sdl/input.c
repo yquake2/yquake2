@@ -453,30 +453,31 @@ IN_Update(void)
 #endif
 				break;
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-			case SDL_JOYAXISMOTION:  /* Handle Joystick Motion */
+			case SDL_CONTROLLERAXISMOTION:  /* Handle Controller Motion */
 				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
-					// left/right
-					if( event.jaxis.axis == 0)
+					switch (event.caxis.axis)
 					{
-						joystick_x = event.jaxis.value * joy_sensitivity_x->value;
-					}
-					// top/bottom
-					else if( event.jaxis.axis == 1)
-					{
-						joystick_z = event.jaxis.value * joy_sensitivity_z->value;
-					}
-					// second left/right
-					else if( event.jaxis.axis == 2)
-					{
-						joystick_x = event.jaxis.value * joy_sensitivity_x->value;
-					}
-					// second top/bottom
-					else if( event.jaxis.axis == 3)
-					{
-						joystick_y = event.jaxis.value * joy_sensitivity_y->value;
+						/* left/right */
+						case SDL_CONTROLLER_AXIS_LEFTX:
+							joystick_x = event.caxis.value * joy_sensitivity_x->value;
+							break;
+						/* top/bottom */
+						case SDL_CONTROLLER_AXIS_LEFTY:
+							joystick_z = event.caxis.value * joy_sensitivity_z->value;
+							break;
+						/* second left/right */
+						case SDL_CONTROLLER_AXIS_RIGHTX:
+							joystick_x = event.caxis.value * joy_sensitivity_x->value;
+							break;
+						/* second top/bottom */
+						case SDL_CONTROLLER_AXIS_RIGHTY:
+							joystick_y = event.caxis.value * joy_sensitivity_y->value;
+							break;
 					}
 				}
 				break;
+			/* Joystick can have more buttons than on general game controller
+			 * so try to map not free buttons */
 			case SDL_JOYBUTTONUP:
 			case SDL_JOYBUTTONDOWN:
 			{
@@ -697,23 +698,30 @@ IN_Init(void)
 		{
 			Com_Printf ("Couldn't init SDL joystick: %s.\n", SDL_GetError ());
 		} else {
-			Com_Printf ("%i joysticks were found.\n\n", SDL_NumJoysticks());
+			Com_Printf ("%i joysticks were found.\n", SDL_NumJoysticks());
 			if (SDL_NumJoysticks() > 0) {
-				char joystick_guid[256] = {0};
-				char path[256] = {0};
-				SDL_JoystickGUID guid;
-				SDL_Joystick *current_joystick = SDL_JoystickOpen(0);
-				guid = SDL_JoystickGetDeviceGUID(0);
-				SDL_JoystickGetGUIDString(guid, joystick_guid, 255);
-				Com_Printf ("The guid of the joystick is '%s'\n", joystick_guid);
-				Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(current_joystick));
-				Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(current_joystick));
-				Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(current_joystick));
-				Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(current_joystick));
-				Com_sprintf(path, sizeof(path), "%s/gamecontrollerdb.txt", FS_Gamedir());
-				Com_Printf ("Load Game Controller Mappings from %s\n", path);
-				if (SDL_GameControllerAddMappingsFromFile(path) < 0)
-					Com_Printf ("Can't load mappings file\n");
+				int i;
+				for (i=0; i<SDL_NumJoysticks(); i ++) {
+					if(SDL_IsGameController(i))
+					{
+						SDL_GameController *controller;
+						controller = SDL_GameControllerOpen(i);
+						Com_Printf ("Controller settings: %s\n", SDL_GameControllerMapping(controller));
+						break;
+					} else {
+						char joystick_guid[256] = {0};
+						SDL_JoystickGUID guid;
+						SDL_Joystick *joystick = SDL_JoystickOpen(i);
+						guid = SDL_JoystickGetDeviceGUID(i);
+						SDL_JoystickGetGUIDString(guid, joystick_guid, 255);
+						Com_Printf ("For use joystic as game contoller please set SDL_GAMECONTROLLERCONFIG:\n");
+						Com_Printf ("e.g.: SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,...\n", joystick_guid, SDL_JoystickName(joystick));
+						Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(joystick));
+						Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
+						Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
+						Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(joystick));
+					}
+				}
 			}
 		}
 	}

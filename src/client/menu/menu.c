@@ -285,6 +285,7 @@ Default_MenuKey(menuframework_s *m, int key)
     case K_MOUSE3:
     case K_MOUSE4:
     case K_MOUSE5:
+
     case K_JOY1:
     case K_JOY2:
     case K_JOY3:
@@ -316,6 +317,7 @@ Default_MenuKey(menuframework_s *m, int key)
     case K_JOY29:
     case K_JOY30:
     case K_JOY31:
+
     case K_AUX1:
     case K_AUX2:
     case K_AUX3:
