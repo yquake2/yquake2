@@ -318,6 +318,11 @@ Default_MenuKey(menuframework_s *m, int key)
     case K_JOY30:
     case K_JOY31:
 
+    case K_HAT_UP:
+    case K_HAT_RIGHT:
+    case K_HAT_DOWN:
+    case K_HAT_LEFT:
+
     case K_AUX1:
     case K_AUX2:
     case K_AUX3:

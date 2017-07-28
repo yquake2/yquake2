@@ -66,6 +66,7 @@
 static int mouse_x, mouse_y;
 static int joystick_x, joystick_y, joystick_z;
 static int old_mouse_x, old_mouse_y;
+static char last_hat = SDL_HAT_CENTERED;
 static qboolean mlooking;
 
 
@@ -482,10 +483,29 @@ IN_Update(void)
 			case SDL_JOYBUTTONDOWN:
 			{
 				qboolean down = (event.type == SDL_JOYBUTTONDOWN);
-				if(event.jbutton.button < (K_JOY32 - K_JOY1)) {
+				if(event.jbutton.button <= (K_JOY32 - K_JOY1)) {
 					Key_Event(event.jbutton.button + K_JOY1, down, true);
 				}
 			}
+				break;
+			case SDL_JOYHATMOTION:
+				if (last_hat != event.jhat.value)
+				{
+					char diff = last_hat ^ event.jhat.value;
+					int i;
+					for (i=0; i < 4; i++) {
+						if (diff & (1 << i)) {
+							/* check that we have button up for some bit */
+							if (last_hat & (1 << i))
+								Key_Event(i + K_HAT_UP, false, true);
+
+							/* check that we have button down for some bit */
+							if (event.jhat.value & (1 << i))
+								Key_Event(i + K_HAT_UP, true, true);
+						}
+					}
+					last_hat = event.jhat.value;
+				}
 				break;
 #endif
 			case SDL_QUIT:
@@ -702,6 +722,12 @@ IN_Init(void)
 			if (SDL_NumJoysticks() > 0) {
 				int i;
 				for (i=0; i<SDL_NumJoysticks(); i ++) {
+					SDL_Joystick *joystick = SDL_JoystickOpen(i);
+					Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(joystick));
+					Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
+					Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
+					Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(joystick));
+					Com_Printf ("Number of Hats: %d\n", SDL_JoystickNumHats(joystick));
 					if(SDL_IsGameController(i))
 					{
 						SDL_GameController *controller;
@@ -711,15 +737,10 @@ IN_Init(void)
 					} else {
 						char joystick_guid[256] = {0};
 						SDL_JoystickGUID guid;
-						SDL_Joystick *joystick = SDL_JoystickOpen(i);
 						guid = SDL_JoystickGetDeviceGUID(i);
 						SDL_JoystickGetGUIDString(guid, joystick_guid, 255);
 						Com_Printf ("For use joystic as game contoller please set SDL_GAMECONTROLLERCONFIG:\n");
 						Com_Printf ("e.g.: SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,...\n", joystick_guid, SDL_JoystickName(joystick));
-						Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(joystick));
-						Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
-						Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
-						Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(joystick));
 					}
 				}
 			}

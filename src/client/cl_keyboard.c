@@ -139,6 +139,11 @@ keyname_t keynames[] = {
 	{"JOY31", K_JOY31},
 	{"JOY32", K_JOY32},
 
+	{"HAT_UP", K_HAT_UP},
+	{"HAT_RIGHT", K_HAT_RIGHT},
+	{"HAT_DOWN", K_HAT_DOWN},
+	{"HAT_LEFT", K_HAT_LEFT},
+
 	{"AUX1", K_AUX1},
 	{"AUX2", K_AUX2},
 	{"AUX3", K_AUX3},
