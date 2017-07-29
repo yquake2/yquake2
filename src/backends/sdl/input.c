@@ -64,7 +64,7 @@
 
 /* Globals */
 static int mouse_x, mouse_y;
-static int joystick_x, joystick_y, joystick_z, joystick_s;
+static int joystick_yaw, joystick_pitch, joystick_forwardmove, joystick_sidemove;
 static int old_mouse_x, old_mouse_y;
 static char last_hat = SDL_HAT_CENTERED;
 static qboolean mlooking;
@@ -83,12 +83,19 @@ cvar_t *m_pitch;
 cvar_t *m_side;
 cvar_t *m_yaw;
 cvar_t *sensitivity;
-cvar_t *joy_sensitivity_x;
-cvar_t *joy_sensitivity_y;
-cvar_t *joy_sensitivity_z;
-cvar_t *joy_sensitivity_s;
 static cvar_t *windowed_mouse;
-
+/* Joystick sensitivity */
+cvar_t *joy_sensitivity_yaw;
+cvar_t *joy_sensitivity_pitch;
+cvar_t *joy_sensitivity_forwardmove;
+cvar_t *joy_sensitivity_sidemove;
+/* Joystick direction settings */
+cvar_t *joy_axis_leftx;
+cvar_t *joy_axis_lefty;
+cvar_t *joy_axis_rightx;
+cvar_t *joy_axis_righty;
+cvar_t *joy_axis_triggerleft;
+cvar_t *joy_axis_triggerright;
 
 extern void GLimp_GrabInput(qboolean grab);
 
@@ -457,24 +464,50 @@ IN_Update(void)
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_CONTROLLERAXISMOTION:  /* Handle Controller Motion */
 				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
+					char* direction_type;
 					switch (event.caxis.axis)
 					{
 						/* left/right */
 						case SDL_CONTROLLER_AXIS_LEFTX:
-							joystick_s = event.caxis.value * joy_sensitivity_s->value;
+							direction_type = joy_axis_leftx->string;
 							break;
 						/* top/bottom */
 						case SDL_CONTROLLER_AXIS_LEFTY:
-							joystick_z = event.caxis.value * joy_sensitivity_z->value;
+							direction_type = joy_axis_lefty->string;
 							break;
 						/* second left/right */
 						case SDL_CONTROLLER_AXIS_RIGHTX:
-							joystick_x = event.caxis.value * joy_sensitivity_x->value;
+							direction_type = joy_axis_rightx->string;
 							break;
 						/* second top/bottom */
 						case SDL_CONTROLLER_AXIS_RIGHTY:
-							joystick_y = event.caxis.value * joy_sensitivity_y->value;
+							direction_type = joy_axis_righty->string;
 							break;
+						case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+							direction_type = joy_axis_triggerleft->string;
+							break;
+						case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+							direction_type = joy_axis_triggerright->string;
+							break;
+						default:
+							direction_type = "none";
+					}
+
+					if (strcmp(direction_type, "sidemove") == 0)
+					{
+						joystick_sidemove = event.caxis.value * joy_sensitivity_sidemove->value;
+					}
+					else if (strcmp(direction_type, "forwardmove") == 0)
+					{
+						joystick_forwardmove = event.caxis.value * joy_sensitivity_forwardmove->value;
+					}
+					else if (strcmp(direction_type, "yaw") == 0)
+					{
+						joystick_yaw = event.caxis.value * joy_sensitivity_yaw->value;
+					}
+					else if (strcmp(direction_type, "pitch") == 0)
+					{
+						joystick_pitch = event.caxis.value * joy_sensitivity_pitch->value;
 					}
 				}
 				break;
@@ -621,24 +654,24 @@ IN_Move(usercmd_t *cmd)
 		mouse_x = mouse_y = 0;
 	}
 
-	if (joystick_x)
+	if (joystick_yaw)
 	{
-		cl.viewangles[YAW] -= (m_yaw->value * joystick_x) / 32768;
+		cl.viewangles[YAW] -= (m_yaw->value * joystick_yaw) / 32768;
 	}
 
-	if(joystick_y)
+	if(joystick_pitch)
 	{
-		cl.viewangles[PITCH] += (m_pitch->value * joystick_y) / 32768;
+		cl.viewangles[PITCH] += (m_pitch->value * joystick_pitch) / 32768;
 	}
 
-	if (joystick_z)
+	if (joystick_forwardmove)
 	{
-		cmd->forwardmove -= (m_forward->value * joystick_z) / 32768;
+		cmd->forwardmove -= (m_forward->value * joystick_forwardmove) / 32768;
 	}
 
-	if (joystick_s)
+	if (joystick_sidemove)
 	{
-		cmd->sidemove += (m_side->value * joystick_s) / 32768;
+		cmd->sidemove += (m_side->value * joystick_sidemove) / 32768;
 	}
 }
 
@@ -674,7 +707,7 @@ IN_Init(void)
 	Com_Printf("------- input initialization -------\n");
 
 	mouse_x = mouse_y = 0;
-	joystick_x = joystick_y = joystick_z = joystick_s = 0;
+	joystick_yaw = joystick_pitch = joystick_forwardmove = joystick_sidemove = 0;
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 	freelook = Cvar_Get("freelook", "1", 0);
@@ -687,10 +720,19 @@ IN_Init(void)
 	m_side = Cvar_Get("m_side", "0.8", 0);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
-	joy_sensitivity_x = Cvar_Get("joy_sensitivity_x", "64", 0);
-	joy_sensitivity_y = Cvar_Get("joy_sensitivity_y", "64", 0);
-	joy_sensitivity_z = Cvar_Get("joy_sensitivity_z", "256", 0);
-	joy_sensitivity_s = Cvar_Get("joy_sensitivity_s", "256", 0);
+
+	joy_sensitivity_yaw = Cvar_Get("joy_sensitivity_yaw", "64", 0);
+	joy_sensitivity_pitch = Cvar_Get("joy_sensitivity_pitch", "64", 0);
+	joy_sensitivity_forwardmove = Cvar_Get("joy_sensitivity_forwardmove", "256", 0);
+	joy_sensitivity_sidemove = Cvar_Get("joy_sensitivity_sidemove", "256", 0);
+
+	joy_axis_leftx = Cvar_Get("joy_axis_leftx", "sidemove", 0);
+	joy_axis_lefty = Cvar_Get("joy_axis_lefty", "forwardmove", 0);
+	joy_axis_rightx = Cvar_Get("joy_axis_rightx", "yaw", 0);
+	joy_axis_righty = Cvar_Get("joy_axis_righty", "pitch", 0);
+	joy_axis_triggerleft = Cvar_Get("joy_axis_triggerleft", "none", 0);
+	joy_axis_triggerright = Cvar_Get("joy_axis_triggerright", "none", 0);
+
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
@@ -728,6 +770,13 @@ IN_Init(void)
 						SDL_GameController *controller;
 						controller = SDL_GameControllerOpen(i);
 						Com_Printf ("Controller settings: %s\n", SDL_GameControllerMapping(controller));
+						Com_Printf ("Controller axis leftx = %s\n", joy_axis_leftx->string);
+						Com_Printf ("Controller axis lefty = %s\n", joy_axis_lefty->string);
+						Com_Printf ("Controller axis rightx = %s\n", joy_axis_rightx->string);
+						Com_Printf ("Controller axis righty = %s\n", joy_axis_righty->string);
+						Com_Printf ("Controller axis triggerleft = %s\n", joy_axis_triggerleft->string);
+						Com_Printf ("Controller axis triggerright = %s\n", joy_axis_triggerright->string);
+
 						break;
 					} else {
 						char joystick_guid[256] = {0};
