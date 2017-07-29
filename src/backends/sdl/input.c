@@ -61,11 +61,14 @@
 
 #define MOUSE_MAX 3000
 #define MOUSE_MIN 40
- 
+
 /* Globals */
 static int mouse_x, mouse_y;
+static int joystick_yaw, joystick_pitch, joystick_forwardmove, joystick_sidemove;
 static int old_mouse_x, old_mouse_y;
+static char last_hat = SDL_HAT_CENTERED;
 static qboolean mlooking;
+
 
 /* CVars */
 cvar_t *vid_fullscreen;
@@ -81,7 +84,18 @@ cvar_t *m_side;
 cvar_t *m_yaw;
 cvar_t *sensitivity;
 static cvar_t *windowed_mouse;
-
+/* Joystick sensitivity */
+cvar_t *joy_sensitivity_yaw;
+cvar_t *joy_sensitivity_pitch;
+cvar_t *joy_sensitivity_forwardmove;
+cvar_t *joy_sensitivity_sidemove;
+/* Joystick direction settings */
+cvar_t *joy_axis_leftx;
+cvar_t *joy_axis_lefty;
+cvar_t *joy_axis_rightx;
+cvar_t *joy_axis_righty;
+cvar_t *joy_axis_triggerleft;
+cvar_t *joy_axis_triggerright;
 
 extern void GLimp_GrabInput(qboolean grab);
 
@@ -364,10 +378,10 @@ IN_Update(void)
 				break;
 
 			case SDL_MOUSEMOTION:
-                if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
-                    mouse_x += event.motion.xrel;
-                    mouse_y += event.motion.yrel;
-                }
+				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
+					mouse_x += event.motion.xrel;
+					mouse_y += event.motion.yrel;
+				}
 				break;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -447,10 +461,90 @@ IN_Update(void)
 				}
 #endif
 				break;
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+			case SDL_CONTROLLERAXISMOTION:  /* Handle Controller Motion */
+				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
+					char* direction_type;
+					switch (event.caxis.axis)
+					{
+						/* left/right */
+						case SDL_CONTROLLER_AXIS_LEFTX:
+							direction_type = joy_axis_leftx->string;
+							break;
+						/* top/bottom */
+						case SDL_CONTROLLER_AXIS_LEFTY:
+							direction_type = joy_axis_lefty->string;
+							break;
+						/* second left/right */
+						case SDL_CONTROLLER_AXIS_RIGHTX:
+							direction_type = joy_axis_rightx->string;
+							break;
+						/* second top/bottom */
+						case SDL_CONTROLLER_AXIS_RIGHTY:
+							direction_type = joy_axis_righty->string;
+							break;
+						case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+							direction_type = joy_axis_triggerleft->string;
+							break;
+						case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+							direction_type = joy_axis_triggerright->string;
+							break;
+						default:
+							direction_type = "none";
+					}
 
+					if (strcmp(direction_type, "sidemove") == 0)
+					{
+						joystick_sidemove = event.caxis.value * joy_sensitivity_sidemove->value;
+					}
+					else if (strcmp(direction_type, "forwardmove") == 0)
+					{
+						joystick_forwardmove = event.caxis.value * joy_sensitivity_forwardmove->value;
+					}
+					else if (strcmp(direction_type, "yaw") == 0)
+					{
+						joystick_yaw = event.caxis.value * joy_sensitivity_yaw->value;
+					}
+					else if (strcmp(direction_type, "pitch") == 0)
+					{
+						joystick_pitch = event.caxis.value * joy_sensitivity_pitch->value;
+					}
+				}
+				break;
+			/* Joystick can have more buttons than on general game controller
+			 * so try to map not free buttons */
+			case SDL_JOYBUTTONUP:
+			case SDL_JOYBUTTONDOWN:
+			{
+				qboolean down = (event.type == SDL_JOYBUTTONDOWN);
+				if(event.jbutton.button <= (K_JOY32 - K_JOY1)) {
+					Key_Event(event.jbutton.button + K_JOY1, down, true);
+				}
+			}
+				break;
+			case SDL_JOYHATMOTION:
+				if (last_hat != event.jhat.value)
+				{
+					char diff = last_hat ^ event.jhat.value;
+					int i;
+					for (i=0; i < 4; i++) {
+						if (diff & (1 << i)) {
+							/* check that we have button up for some bit */
+							if (last_hat & (1 << i))
+								Key_Event(i + K_HAT_UP, false, true);
+
+							/* check that we have button down for some bit */
+							if (event.jhat.value & (1 << i))
+								Key_Event(i + K_HAT_UP, true, true);
+						}
+					}
+					last_hat = event.jhat.value;
+				}
+				break;
+#endif
 			case SDL_QUIT:
 				Com_Quit();
-				
+
 				break;
 		}
 	}
@@ -480,7 +574,7 @@ In_FlushQueue(void)
 
 	Key_MarkAllUp();
 }
- 
+
 /*
  * Move handling
  */
@@ -559,8 +653,28 @@ IN_Move(usercmd_t *cmd)
 
 		mouse_x = mouse_y = 0;
 	}
+
+	if (joystick_yaw)
+	{
+		cl.viewangles[YAW] -= (m_yaw->value * joystick_yaw) / 32768;
+	}
+
+	if(joystick_pitch)
+	{
+		cl.viewangles[PITCH] += (m_pitch->value * joystick_pitch) / 32768;
+	}
+
+	if (joystick_forwardmove)
+	{
+		cmd->forwardmove -= (m_forward->value * joystick_forwardmove) / 32768;
+	}
+
+	if (joystick_sidemove)
+	{
+		cmd->sidemove += (m_side->value * joystick_sidemove) / 32768;
+	}
 }
- 
+
 /* ------------------------------------------------------------------ */
 
 /*
@@ -593,6 +707,7 @@ IN_Init(void)
 	Com_Printf("------- input initialization -------\n");
 
 	mouse_x = mouse_y = 0;
+	joystick_yaw = joystick_pitch = joystick_forwardmove = joystick_sidemove = 0;
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 	freelook = Cvar_Get("freelook", "1", 0);
@@ -605,6 +720,19 @@ IN_Init(void)
 	m_side = Cvar_Get("m_side", "0.8", 0);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
+
+	joy_sensitivity_yaw = Cvar_Get("joy_sensitivity_yaw", "64", 0);
+	joy_sensitivity_pitch = Cvar_Get("joy_sensitivity_pitch", "64", 0);
+	joy_sensitivity_forwardmove = Cvar_Get("joy_sensitivity_forwardmove", "256", 0);
+	joy_sensitivity_sidemove = Cvar_Get("joy_sensitivity_sidemove", "256", 0);
+
+	joy_axis_leftx = Cvar_Get("joy_axis_leftx", "sidemove", 0);
+	joy_axis_lefty = Cvar_Get("joy_axis_lefty", "forwardmove", 0);
+	joy_axis_rightx = Cvar_Get("joy_axis_rightx", "yaw", 0);
+	joy_axis_righty = Cvar_Get("joy_axis_righty", "pitch", 0);
+	joy_axis_triggerleft = Cvar_Get("joy_axis_triggerleft", "none", 0);
+	joy_axis_triggerright = Cvar_Get("joy_axis_triggerright", "none", 0);
+
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
@@ -618,6 +746,51 @@ IN_Init(void)
 #endif
 
 	Com_Printf("------------------------------------\n\n");
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	/* joystik init */
+	if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER))
+	{
+		if (SDL_Init(SDL_INIT_GAMECONTROLLER) == -1)
+		{
+			Com_Printf ("Couldn't init SDL joystick: %s.\n", SDL_GetError ());
+		} else {
+			Com_Printf ("%i joysticks were found.\n", SDL_NumJoysticks());
+			if (SDL_NumJoysticks() > 0) {
+				int i;
+				for (i=0; i<SDL_NumJoysticks(); i ++) {
+					SDL_Joystick *joystick = SDL_JoystickOpen(i);
+					Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(joystick));
+					Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
+					Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
+					Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(joystick));
+					Com_Printf ("Number of Hats: %d\n", SDL_JoystickNumHats(joystick));
+					if(SDL_IsGameController(i))
+					{
+						SDL_GameController *controller;
+						controller = SDL_GameControllerOpen(i);
+						Com_Printf ("Controller settings: %s\n", SDL_GameControllerMapping(controller));
+						Com_Printf ("Controller axis leftx = %s\n", joy_axis_leftx->string);
+						Com_Printf ("Controller axis lefty = %s\n", joy_axis_lefty->string);
+						Com_Printf ("Controller axis rightx = %s\n", joy_axis_rightx->string);
+						Com_Printf ("Controller axis righty = %s\n", joy_axis_righty->string);
+						Com_Printf ("Controller axis triggerleft = %s\n", joy_axis_triggerleft->string);
+						Com_Printf ("Controller axis triggerright = %s\n", joy_axis_triggerright->string);
+
+						break;
+					} else {
+						char joystick_guid[256] = {0};
+						SDL_JoystickGUID guid;
+						guid = SDL_JoystickGetDeviceGUID(i);
+						SDL_JoystickGetGUIDString(guid, joystick_guid, 255);
+						Com_Printf ("For use joystic as game contoller please set SDL_GAMECONTROLLERCONFIG:\n");
+						Com_Printf ("e.g.: SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,...\n", joystick_guid, SDL_JoystickName(joystick));
+					}
+				}
+			}
+		}
+	}
+#endif
 }
 
 /*
@@ -630,7 +803,7 @@ IN_Shutdown(void)
 	Cmd_RemoveCommand("+mlook");
 	Cmd_RemoveCommand("-mlook");
 
-    Com_Printf("Shutting down input.\n");
+	Com_Printf("Shutting down input.\n");
 }
 
 /* ------------------------------------------------------------------ */
