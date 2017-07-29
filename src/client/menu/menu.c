@@ -229,6 +229,7 @@ Default_MenuKey(menuframework_s *m, int key)
         return menu_out_sound;
     case K_KP_UPARROW:
     case K_UPARROW:
+    case K_HAT_UP:
 
         if (m)
         {
@@ -250,6 +251,7 @@ Default_MenuKey(menuframework_s *m, int key)
         break;
     case K_KP_DOWNARROW:
     case K_DOWNARROW:
+    case K_HAT_DOWN:
 
         if (m)
         {
@@ -261,6 +263,7 @@ Default_MenuKey(menuframework_s *m, int key)
         break;
     case K_KP_LEFTARROW:
     case K_LEFTARROW:
+    case K_HAT_LEFT:
 
         if (m)
         {
@@ -271,6 +274,7 @@ Default_MenuKey(menuframework_s *m, int key)
         break;
     case K_KP_RIGHTARROW:
     case K_RIGHTARROW:
+    case K_HAT_RIGHT:
 
         if (m)
         {
@@ -317,11 +321,6 @@ Default_MenuKey(menuframework_s *m, int key)
     case K_JOY29:
     case K_JOY30:
     case K_JOY31:
-
-    case K_HAT_UP:
-    case K_HAT_RIGHT:
-    case K_HAT_DOWN:
-    case K_HAT_LEFT:
 
     case K_AUX1:
     case K_AUX2:
@@ -628,6 +627,7 @@ M_Main_Key(int key)
 
     case K_KP_DOWNARROW:
     case K_DOWNARROW:
+    case K_HAT_DOWN:
 
         if (++m_main_cursor >= MAIN_ITEMS)
         {
@@ -638,6 +638,7 @@ M_Main_Key(int key)
 
     case K_KP_UPARROW:
     case K_UPARROW:
+    case K_HAT_UP:
 
         if (--m_main_cursor < 0)
         {
@@ -2340,6 +2341,7 @@ LoadGame_MenuKey(int key)
     {
     case K_KP_UPARROW:
     case K_UPARROW:
+    case K_HAT_UP:
         if (m->cursor == 0)
         {
             LoadSave_AdjustPage(-1);
@@ -2349,6 +2351,7 @@ LoadGame_MenuKey(int key)
     case K_TAB:
     case K_KP_DOWNARROW:
     case K_DOWNARROW:
+    case K_HAT_DOWN:
         if (m->cursor == m->nitems - 1)
         {
             LoadSave_AdjustPage(1);
@@ -2357,11 +2360,13 @@ LoadGame_MenuKey(int key)
         break;
     case K_KP_LEFTARROW:
     case K_LEFTARROW:
+    case K_HAT_LEFT:
         LoadSave_AdjustPage(-1);
         LoadGame_MenuInit();
         return menu_move_sound;
     case K_KP_RIGHTARROW:
     case K_RIGHTARROW:
+    case K_HAT_RIGHT:
         LoadSave_AdjustPage(1);
         LoadGame_MenuInit();
         return menu_move_sound;
@@ -2457,6 +2462,7 @@ SaveGame_MenuKey(int key)
     {
     case K_KP_UPARROW:
     case K_UPARROW:
+    case K_HAT_UP:
         if (m->cursor == 0)
         {
             LoadSave_AdjustPage(-1);
@@ -2466,6 +2472,7 @@ SaveGame_MenuKey(int key)
     case K_TAB:
     case K_KP_DOWNARROW:
     case K_DOWNARROW:
+    case K_HAT_DOWN:
         if (m->cursor == m->nitems - 1)
         {
             LoadSave_AdjustPage(1);
@@ -2474,11 +2481,13 @@ SaveGame_MenuKey(int key)
         break;
     case K_KP_LEFTARROW:
     case K_LEFTARROW:
+    case K_HAT_LEFT:
         LoadSave_AdjustPage(-1);
         SaveGame_MenuInit();
         return menu_move_sound;
     case K_KP_RIGHTARROW:
     case K_RIGHTARROW:
+    case K_HAT_RIGHT:
         LoadSave_AdjustPage(1);
         SaveGame_MenuInit();
         return menu_move_sound;
