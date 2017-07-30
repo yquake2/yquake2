@@ -721,17 +721,17 @@ IN_Init(void)
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
 
-	joy_sensitivity_yaw = Cvar_Get("joy_sensitivity_yaw", "64", 0);
-	joy_sensitivity_pitch = Cvar_Get("joy_sensitivity_pitch", "64", 0);
-	joy_sensitivity_forwardmove = Cvar_Get("joy_sensitivity_forwardmove", "256", 0);
-	joy_sensitivity_sidemove = Cvar_Get("joy_sensitivity_sidemove", "256", 0);
+	joy_sensitivity_yaw = Cvar_Get("joy_sensitivity_yaw", "64", CVAR_ARCHIVE);
+	joy_sensitivity_pitch = Cvar_Get("joy_sensitivity_pitch", "64", CVAR_ARCHIVE);
+	joy_sensitivity_forwardmove = Cvar_Get("joy_sensitivity_forwardmove", "256", CVAR_ARCHIVE);
+	joy_sensitivity_sidemove = Cvar_Get("joy_sensitivity_sidemove", "256", CVAR_ARCHIVE);
 
-	joy_axis_leftx = Cvar_Get("joy_axis_leftx", "sidemove", 0);
-	joy_axis_lefty = Cvar_Get("joy_axis_lefty", "forwardmove", 0);
-	joy_axis_rightx = Cvar_Get("joy_axis_rightx", "yaw", 0);
-	joy_axis_righty = Cvar_Get("joy_axis_righty", "pitch", 0);
-	joy_axis_triggerleft = Cvar_Get("joy_axis_triggerleft", "none", 0);
-	joy_axis_triggerright = Cvar_Get("joy_axis_triggerright", "none", 0);
+	joy_axis_leftx = Cvar_Get("joy_axis_leftx", "sidemove", CVAR_ARCHIVE);
+	joy_axis_lefty = Cvar_Get("joy_axis_lefty", "forwardmove", CVAR_ARCHIVE);
+	joy_axis_rightx = Cvar_Get("joy_axis_rightx", "yaw", CVAR_ARCHIVE);
+	joy_axis_righty = Cvar_Get("joy_axis_righty", "pitch", CVAR_ARCHIVE);
+	joy_axis_triggerleft = Cvar_Get("joy_axis_triggerleft", "none", CVAR_ARCHIVE);
+	joy_axis_triggerright = Cvar_Get("joy_axis_triggerright", "none", CVAR_ARCHIVE);
 
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
@@ -749,9 +749,9 @@ IN_Init(void)
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	/* joystik init */
-	if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER))
+	if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC))
 	{
-		if (SDL_Init(SDL_INIT_GAMECONTROLLER) == -1)
+		if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC) == -1)
 		{
 			Com_Printf ("Couldn't init SDL joystick: %s.\n", SDL_GetError ());
 		} else {
@@ -760,11 +760,47 @@ IN_Init(void)
 				int i;
 				for (i=0; i<SDL_NumJoysticks(); i ++) {
 					SDL_Joystick *joystick = SDL_JoystickOpen(i);
+					SDL_Haptic *haptic;
 					Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(joystick));
 					Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
 					Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
 					Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(joystick));
 					Com_Printf ("Number of Hats: %d\n", SDL_JoystickNumHats(joystick));
+
+					haptic = SDL_HapticOpenFromJoystick( joystick );
+ 					if (haptic == NULL)
+ 						Com_Printf ("Most likely joystick isn't haptic\n");
+					else
+					{
+						Com_Printf ("Supported %d effects\n", SDL_HapticNumEffects(haptic));
+						Com_Printf ("Supported %d effects in same time\n", SDL_HapticNumEffectsPlaying(haptic));
+						Com_Printf ("Supported by %d axis\n", SDL_HapticNumAxes(haptic));
+						if ((SDL_HapticQuery(haptic) & SDL_HAPTIC_SINE)!=0) {
+								SDL_HapticEffect effect;
+								int effect_id;
+								 // Create the effect
+								SDL_memset( &effect, 0, sizeof(SDL_HapticEffect) ); // 0 is safe default
+								effect.type = SDL_HAPTIC_SINE;
+								effect.periodic.direction.type = SDL_HAPTIC_POLAR; // Polar coordinates
+								effect.periodic.direction.dir[0] = 18000; // Force comes from south
+								effect.periodic.period = 1000; // 1000 ms
+								effect.periodic.magnitude = 20000; // 20000/32767 strength
+								effect.periodic.length = 5000; // 5 seconds long
+								effect.periodic.attack_length = 1000; // Takes 1 second to get max strength
+								effect.periodic.fade_length = 1000; // Takes 1 second to fade away
+
+								// Upload the effect
+								effect_id = SDL_HapticNewEffect( haptic, &effect );
+
+								// Test the effect
+								SDL_HapticRunEffect( haptic, effect_id, 1 );
+								SDL_Delay( 5000); // Wait for the effect to finish
+
+								// We destroy the effect, although closing the device also does this
+								SDL_HapticDestroyEffect( haptic, effect_id );
+						}
+					}
+
 					if(SDL_IsGameController(i))
 					{
 						SDL_GameController *controller;
