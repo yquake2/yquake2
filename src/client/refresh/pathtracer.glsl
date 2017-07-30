@@ -148,11 +148,11 @@ vec2 boxInterval(vec3 ro, vec3 rd, vec3 size)
 // Returns false if the given ray intersects any triangle mesh in the scene and the distance
 // to the intersection along the ray is less than maxdist, otherwise returns true.
 bool traceRayShadowTri(vec3 ro, vec3 rd, float maxdist,
-	isamplerBuffer nodes0, isamplerBuffer nodes1, samplerBuffer vertices, isamplerBuffer tris)
+	isamplerBuffer nodes0, isamplerBuffer nodes1, samplerBuffer vertices, isamplerBuffer tris, int node_offset)
 {
 #if TRI_SHADOWS_ENABLE
 	// Start at the root node, or an offset node index.
-	int node = shadow_ray_node_offset;
+	int node = node_offset;
 
 	do
 	{
@@ -366,7 +366,7 @@ vec3 sampleDirectLightForMirrorBRDF(vec3 rp, vec3 rd, vec3 rn, int oli)
 				float s0 = dot(cross(p0 - sp2, p1 - sp2), n);
 				float s2 = dot(cross(p2 - sp2, p0 - sp2), n);
 
-				if (s0 > 0.0 && s1 > 0.0 && s2 > 0.0 && traceRayShadowTri(rp, refl_dir, t, tri_nodes0, tri_nodes1, tri_vertices, triangles))
+				if (s0 > 0.0 && s1 > 0.0 && s2 > 0.0 && traceRayShadowTri(rp, refl_dir, t, tri_nodes0, tri_nodes1, tri_vertices, triangles, shadow_ray_node_offset))
 				{
 					return abs(light.rgb);
 				}
@@ -487,7 +487,7 @@ vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
 				float ndotl = dot(l, sn), lndotl = dot(-l, n);
 				if (ndotl > 0.0 && lndotl > 0.0)
 				{
-					float s = (traceRayShadowBSP(sp, l, EPS * 16, ld) && traceRayShadowTri(sp, l, ld, tri_nodes0, tri_nodes1, tri_vertices, triangles)) ? 1.0 / (ld * ld) : 0.0;
+					float s = (traceRayShadowBSP(sp, l, EPS * 16, ld) && traceRayShadowTri(sp, l, ld, tri_nodes0, tri_nodes1, tri_vertices, triangles, shadow_ray_node_offset)) ? 1.0 / (ld * ld) : 0.0;
 					r += s * ndotl * lndotl * abs(j.rgb) * wsum / w;
 				}
 			}
@@ -563,7 +563,7 @@ void main()
 			// Lambert diffuse BRDF.
 			vec3 rd = u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y);
 				
-			if (traceRayShadowBSP(rp, rd, EPS * 16, ao_radius) && traceRayShadowTri(rp, rd, ao_radius, tri_nodes0, tri_nodes1, tri_vertices, triangles))
+			if (traceRayShadowBSP(rp, rd, EPS * 16, ao_radius) && traceRayShadowTri(rp, rd, ao_radius, tri_nodes0, tri_nodes1, tri_vertices, triangles, shadow_ray_node_offset))
 				ao += 1.0;
 		}
 		gl_FragColor.rgb += ao_color * ao / float(NUM_AO_SAMPLES);
@@ -610,7 +610,7 @@ void main()
 #if NUM_BOUNCES > 0
 	// Test for intersection with triangle meshes. This is done so bounce light can be shadowed
 	// by triangle meshes.
-	if (traceRayShadowTri(rp, rd, t, tri_nodes0, tri_nodes1, tri_vertices, triangles))
+	if (traceRayShadowTri(rp, rd, t, tri_nodes0, tri_nodes1, tri_vertices, triangles, shadow_ray_node_offset))
 	{
 		int li = getLightRef(sp).x;
 		r += factor * sampleDirectLight(sp, out_pln.xyz, li);
@@ -630,7 +630,7 @@ void main()
 			if (ref != -1)
 			{
 				// Test for intersection with any triangle meshes. This is done so triangle meshes can cast shadows from sky light.
-				if (traceRayShadowTri(rp, rd, t, tri_nodes0, tri_nodes1, tri_vertices, triangles))
+				if (traceRayShadowTri(rp, rd, t, tri_nodes0, tri_nodes1, tri_vertices, triangles, shadow_ray_node_offset))
 				{
 					// Visit each skyportal in this cluster and test for containment.
 					do
@@ -715,7 +715,7 @@ void main()
 
 			t = traceRayBSP(rp, rd, EPS * 16, MAXT) - 1.0;
 
-			if (!traceRayShadowTri(rp, rd, t, tri_nodes0, tri_nodes1, tri_vertices, triangles))
+			if (!traceRayShadowTri(rp, rd, t, tri_nodes0, tri_nodes1, tri_vertices, triangles, shadow_ray_node_offset))
 				break;
 			
 			if ((dot(out_pln.xyz, rp) - out_pln.w) < 0.0)
@@ -768,10 +768,11 @@ void main()
 		rp = texcoords[1].xyz + texcoords[3].xyz * EPS * 16;
 		
 		// Check if the fragment was visible in the previous frame. If not, then the information in the previous framebuffer does not match and it cannot be reused.
+      // Zero is passed as the node offset to traceRayShadowTri so that the viewmodel always participates in the disocclusion test. This is necessary to prevent ghosting on the viewmodel.
 		vec3 disocclusion_test_ray = normalize(previous_view_origin - rp);
 		float disocclusion_test_distance = distance(rp, previous_view_origin);
 		bool previously_visible = traceRayShadowBSP(rp, disocclusion_test_ray, EPS * 16, disocclusion_test_distance) &&
-				traceRayShadowTri(rp, disocclusion_test_ray, disocclusion_test_distance, tri_nodes0_prev, tri_nodes1_prev, tri_vertices_prev, triangles_prev) &&
+				traceRayShadowTri(rp, disocclusion_test_ray, disocclusion_test_distance, tri_nodes0_prev, tri_nodes1_prev, tri_vertices_prev, triangles_prev, 0) &&
 				dot(normalize(texcoords[3].xyz), disocclusion_test_ray) > 0.01;
 		
 		gl_FragColor.rgb = mix(gl_FragColor.rgb, texture(taa_world, ndc).rgb,
