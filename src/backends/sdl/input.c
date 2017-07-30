@@ -64,7 +64,9 @@
 
 /* Globals */
 static int mouse_x, mouse_y;
-static int joystick_yaw, joystick_pitch, joystick_forwardmove, joystick_sidemove;
+static int joystick_yaw, joystick_pitch;
+static int joystick_forwardmove, joystick_sidemove;
+static int joystick_up;
 static int old_mouse_x, old_mouse_y;
 static char last_hat = SDL_HAT_CENTERED;
 static qboolean mlooking;
@@ -89,6 +91,7 @@ cvar_t *joy_sensitivity_yaw;
 cvar_t *joy_sensitivity_pitch;
 cvar_t *joy_sensitivity_forwardmove;
 cvar_t *joy_sensitivity_sidemove;
+cvar_t *joy_sensitivity_up;
 /* Joystick direction settings */
 cvar_t *joy_axis_leftx;
 cvar_t *joy_axis_lefty;
@@ -496,18 +499,27 @@ IN_Update(void)
 					if (strcmp(direction_type, "sidemove") == 0)
 					{
 						joystick_sidemove = event.caxis.value * joy_sensitivity_sidemove->value;
+						joystick_sidemove *= cl_sidespeed->value;
 					}
 					else if (strcmp(direction_type, "forwardmove") == 0)
 					{
 						joystick_forwardmove = event.caxis.value * joy_sensitivity_forwardmove->value;
+						joystick_forwardmove *= cl_forwardspeed->value;
 					}
 					else if (strcmp(direction_type, "yaw") == 0)
 					{
 						joystick_yaw = event.caxis.value * joy_sensitivity_yaw->value;
+						joystick_yaw *= cl_yawspeed->value;
 					}
 					else if (strcmp(direction_type, "pitch") == 0)
 					{
 						joystick_pitch = event.caxis.value * joy_sensitivity_pitch->value;
+						joystick_pitch *= cl_pitchspeed->value;
+					}
+					else if (strcmp(direction_type, "updown") == 0)
+					{
+						joystick_up = event.caxis.value * joy_sensitivity_up->value;
+						joystick_up *= cl_upspeed->value;
 					}
 				}
 				break;
@@ -721,16 +733,17 @@ IN_Init(void)
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
 
-	joy_sensitivity_yaw = Cvar_Get("joy_sensitivity_yaw", "64", CVAR_ARCHIVE);
-	joy_sensitivity_pitch = Cvar_Get("joy_sensitivity_pitch", "64", CVAR_ARCHIVE);
-	joy_sensitivity_forwardmove = Cvar_Get("joy_sensitivity_forwardmove", "256", CVAR_ARCHIVE);
-	joy_sensitivity_sidemove = Cvar_Get("joy_sensitivity_sidemove", "256", CVAR_ARCHIVE);
+	joy_sensitivity_yaw = Cvar_Get("joy_sensitivity_yaw", "1.0", CVAR_ARCHIVE);
+	joy_sensitivity_pitch = Cvar_Get("joy_sensitivity_pitch", "1.0", CVAR_ARCHIVE);
+	joy_sensitivity_forwardmove = Cvar_Get("joy_sensitivity_forwardmove", "1.0", CVAR_ARCHIVE);
+	joy_sensitivity_sidemove = Cvar_Get("joy_sensitivity_sidemove", "1.0", CVAR_ARCHIVE);
+	joy_sensitivity_up = Cvar_Get("joy_sensitivity_up", "1.0", CVAR_ARCHIVE);
 
 	joy_axis_leftx = Cvar_Get("joy_axis_leftx", "sidemove", CVAR_ARCHIVE);
 	joy_axis_lefty = Cvar_Get("joy_axis_lefty", "forwardmove", CVAR_ARCHIVE);
 	joy_axis_rightx = Cvar_Get("joy_axis_rightx", "yaw", CVAR_ARCHIVE);
 	joy_axis_righty = Cvar_Get("joy_axis_righty", "pitch", CVAR_ARCHIVE);
-	joy_axis_triggerleft = Cvar_Get("joy_axis_triggerleft", "none", CVAR_ARCHIVE);
+	joy_axis_triggerleft = Cvar_Get("joy_axis_triggerleft", "updown", CVAR_ARCHIVE);
 	joy_axis_triggerright = Cvar_Get("joy_axis_triggerright", "none", CVAR_ARCHIVE);
 
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);

@@ -344,6 +344,7 @@ IN_StrafeUp(void)
 void
 IN_AttackDown(void)
 {
+	Com_Printf ("Attack\n");
 	KeyDown(&in_attack);
 }
 
