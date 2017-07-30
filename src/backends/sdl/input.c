@@ -71,6 +71,9 @@ static int old_mouse_x, old_mouse_y;
 static char last_hat = SDL_HAT_CENTERED;
 static qboolean mlooking;
 
+static SDL_HapticEffect haptic_click_effect;
+static int haptic_click_effect_id = -1;
+static SDL_Haptic *joystick_haptic = NULL;
 
 /* CVars */
 cvar_t *vid_fullscreen;
@@ -83,6 +86,7 @@ cvar_t *m_forward;
 static cvar_t *m_filter;
 cvar_t *m_pitch;
 cvar_t *m_side;
+cvar_t *m_up;
 cvar_t *m_yaw;
 cvar_t *sensitivity;
 static cvar_t *windowed_mouse;
@@ -685,6 +689,12 @@ IN_Move(usercmd_t *cmd)
 	{
 		cmd->sidemove += (m_side->value * joystick_sidemove) / 32768;
 	}
+
+	if (joystick_up)
+	{
+		cmd->upmove -= (m_up->value * joystick_up) / 32768;
+	}
+
 }
 
 /* ------------------------------------------------------------------ */
@@ -711,6 +721,45 @@ IN_MLookUp(void)
 /* ------------------------------------------------------------------ */
 
 /*
+ * Init haptic effects
+ */
+static void
+IN_Haptic_Effects_Init(void)
+{
+	if ((SDL_HapticQuery(joystick_haptic) & SDL_HAPTIC_SINE)==0)
+		return;
+
+	 // Create the effect
+	SDL_memset(&haptic_click_effect, 0, sizeof(SDL_HapticEffect)); // 0 is safe default
+	haptic_click_effect.type = SDL_HAPTIC_SINE;
+	haptic_click_effect.periodic.direction.type = SDL_HAPTIC_POLAR; // Polar coordinates
+	haptic_click_effect.periodic.direction.dir[0] = 18000; // Force comes from south
+	haptic_click_effect.periodic.period = 1000; // 1000 ms
+	haptic_click_effect.periodic.magnitude = 15000; // 15000/32767 strength
+	haptic_click_effect.periodic.length = 400; // 0.4 seconds long
+	haptic_click_effect.periodic.attack_length = 200; // Takes 0.2 second to get max strength
+	haptic_click_effect.periodic.fade_length = 200; // Takes 0.2 second to fade away
+
+	// Upload the effect
+	haptic_click_effect_id = SDL_HapticNewEffect(joystick_haptic, &haptic_click_effect);
+}
+
+void
+Haptic_Feedback(int type)
+{
+	int effect_id = -1;
+	switch(type)
+	{
+		case HARPIC_CLICK:
+			effect_id = haptic_click_effect_id;
+			break;
+	}
+
+	if (effect_id >= 0 && joystick_haptic)
+		SDL_HapticRunEffect(joystick_haptic, effect_id, 1);
+}
+
+/*
  * Initializes the backend
  */
 void
@@ -727,6 +776,7 @@ IN_Init(void)
 	in_mouse = Cvar_Get("in_mouse", "0", CVAR_ARCHIVE);
 	lookstrafe = Cvar_Get("lookstrafe", "0", 0);
 	m_filter = Cvar_Get("m_filter", "0", CVAR_ARCHIVE);
+	m_up = Cvar_Get("m_up", "1", 0);
 	m_forward = Cvar_Get("m_forward", "1", 0);
 	m_pitch = Cvar_Get("m_pitch", "0.022", 0);
 	m_side = Cvar_Get("m_side", "0.8", 0);
@@ -773,48 +823,21 @@ IN_Init(void)
 				int i;
 				for (i=0; i<SDL_NumJoysticks(); i ++) {
 					SDL_Joystick *joystick = SDL_JoystickOpen(i);
-					SDL_Haptic *haptic;
 					Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(joystick));
 					Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
 					Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
 					Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(joystick));
 					Com_Printf ("Number of Hats: %d\n", SDL_JoystickNumHats(joystick));
 
-					haptic = SDL_HapticOpenFromJoystick( joystick );
- 					if (haptic == NULL)
- 						Com_Printf ("Most likely joystick isn't haptic\n");
+					joystick_haptic = SDL_HapticOpenFromJoystick(joystick);
+					if (joystick_haptic == NULL)
+						Com_Printf ("Most likely joystick isn't haptic\n");
 					else
 					{
-						Com_Printf ("Supported %d effects\n", SDL_HapticNumEffects(haptic));
-						Com_Printf ("Supported %d effects in same time\n", SDL_HapticNumEffectsPlaying(haptic));
-						Com_Printf ("Supported by %d axis\n", SDL_HapticNumAxes(haptic));
-						if ((SDL_HapticQuery(haptic) & SDL_HAPTIC_SINE)!=0) {
-								SDL_HapticEffect effect;
-								int effect_id;
-								 // Create the effect
-								SDL_memset( &effect, 0, sizeof(SDL_HapticEffect) ); // 0 is safe default
-								effect.type = SDL_HAPTIC_SINE;
-								effect.periodic.direction.type = SDL_HAPTIC_POLAR; // Polar coordinates
-								effect.periodic.direction.dir[0] = 18000; // Force comes from south
-								effect.periodic.period = 1000; // 1000 ms
-								effect.periodic.magnitude = 15000; // 15000/32767 strength
-								effect.periodic.length = 400; // 0.4 seconds long
-								effect.periodic.attack_length = 200; // Takes 0.2 second to get max strength
-								effect.periodic.fade_length = 200; // Takes 0.2 second to fade away
-
-								// Upload the effect
-								effect_id = SDL_HapticNewEffect( haptic, &effect );
-
-								// Test the effect
-								SDL_HapticRunEffect( haptic, effect_id, 1 );
-								/*SDL_Delay( 2500); // Wait for the effect to finish
-								SDL_HapticRunEffect( haptic, effect_id, 1 );
-								SDL_Delay( 2500); // Wait for the effect to finish
-								*/
-
-								// We destroy the effect, although closing the device also does this
-								//SDL_HapticDestroyEffect( haptic, effect_id );
-						}
+						Com_Printf ("Supported %d effects\n", SDL_HapticNumEffects(joystick_haptic));
+						Com_Printf ("Supported %d effects in same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
+						Com_Printf ("Supported by %d axis\n", SDL_HapticNumAxes(joystick_haptic));
+						IN_Haptic_Effects_Init();
 					}
 
 					if(SDL_IsGameController(i))
@@ -856,6 +879,9 @@ IN_Shutdown(void)
 	Cmd_RemoveCommand("-mlook");
 
 	Com_Printf("Shutting down input.\n");
+
+	if (joystick_haptic)
+		SDL_HapticDestroyEffect(joystick_haptic, haptic_click_effect_id);
 }
 
 /* ------------------------------------------------------------------ */
