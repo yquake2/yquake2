@@ -27,8 +27,6 @@
 
 #include "header/local.h"
 
-#define PT_ALIAS_DIFFUSE_SPECULAR_RATIO 1.0f
-
 #define NUMVERTEXNORMALS 162
 #define SHADEDOT_QUANT 16
 
@@ -952,7 +950,7 @@ R_DrawAliasModel(entity_t *e)
 			qglMultiTexCoord4fARB(GL_TEXTURE3_ARB, 0, 0, 0, 0);
 			
 			/* An objectspace-to-tangentspace transformation isn't available, so just set the tangent vectors to zero to effectively disable bumpmapping. */
-			qglMultiTexCoord4fARB(GL_TEXTURE4_ARB, 0, 0, 0, PT_ALIAS_DIFFUSE_SPECULAR_RATIO);
+			qglMultiTexCoord4fARB(GL_TEXTURE4_ARB, 0, 0, 0, gl_pt_specular_factor->value);
 			qglMultiTexCoord3fARB(GL_TEXTURE5_ARB, 0, 0, 0);
 		}
 	}
