@@ -82,7 +82,8 @@
  * Console variables
  */
  
-cvar_t *gl_pt_enable	= NULL;
+cvar_t *gl_pt_enable          = NULL;
+cvar_t *gl_pt_specular_factor = NULL;
 
 static cvar_t *gl_pt_stats_enable						= NULL;
 static cvar_t *gl_pt_bounces 								= NULL;
@@ -3704,6 +3705,7 @@ R_InitPathtracing(void)
 	GET_PT_CVAR(gl_pt_bump_factor, "0.045")
 	GET_PT_CVAR(gl_pt_brushlights_enable, "0")
 	GET_PT_CVAR(gl_pt_bump_enable, "1")
+	GET_PT_CVAR(gl_pt_specular_factor, "0.75")
 #undef GET_PT_CVAR
 
 	Cmd_AddCommand("gl_pt_recompile_shaders", RecompileShaderPrograms);

@@ -27,8 +27,6 @@
 #include <assert.h>
 #include "header/local.h"
 
-#define PT_SURFACE_DIFFUSE_SPECULAR_RATIO 0.6f
-
 int c_visible_lightmaps;
 int c_visible_textures;
 static vec3_t modelorg; /* relative to viewpoint */
@@ -394,7 +392,7 @@ R_RenderBrushPoly(msurface_t *fa)
 		else
 			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, fa->plane->normal[0], fa->plane->normal[1], fa->plane->normal[2]);
 
-		qglMultiTexCoord4fARB(GL_TEXTURE4_ARB, fa->texinfo->vecs[0][0], fa->texinfo->vecs[0][1], fa->texinfo->vecs[0][2], PT_SURFACE_DIFFUSE_SPECULAR_RATIO);
+		qglMultiTexCoord4fARB(GL_TEXTURE4_ARB, fa->texinfo->vecs[0][0], fa->texinfo->vecs[0][1], fa->texinfo->vecs[0][2], gl_pt_specular_factor->value);
 		qglMultiTexCoord3fARB(GL_TEXTURE5_ARB, fa->texinfo->vecs[1][0], fa->texinfo->vecs[1][1], fa->texinfo->vecs[1][2]);
 
 		if ((fa->texinfo->flags & SURF_LIGHT) && !(fa->texinfo->flags & SURF_WARP) && fa->texinfo->radiance > 0)
@@ -553,7 +551,7 @@ R_DrawAlphaSurfaces(void)
 			else
 				qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, s->plane->normal[0], s->plane->normal[1], s->plane->normal[2]);
 
-			qglMultiTexCoord4fARB(GL_TEXTURE4_ARB, s->texinfo->vecs[0][0], s->texinfo->vecs[0][1], s->texinfo->vecs[0][2], PT_SURFACE_DIFFUSE_SPECULAR_RATIO);
+			qglMultiTexCoord4fARB(GL_TEXTURE4_ARB, s->texinfo->vecs[0][0], s->texinfo->vecs[0][1], s->texinfo->vecs[0][2], gl_pt_specular_factor->value);
 			qglMultiTexCoord3fARB(GL_TEXTURE5_ARB, s->texinfo->vecs[1][0], s->texinfo->vecs[1][1], s->texinfo->vecs[1][2]);
 
 			if ((s->texinfo->flags & SURF_LIGHT) && !(s->texinfo->flags & SURF_WARP) && s->texinfo->radiance > 0)
@@ -700,7 +698,7 @@ R_RenderLightmappedPoly(msurface_t *surf)
 		else
 			qglMultiTexCoord3fARB(GL_TEXTURE2_ARB, surf->plane->normal[0], surf->plane->normal[1], surf->plane->normal[2]);
 
-		qglMultiTexCoord4fARB(GL_TEXTURE4_ARB, surf->texinfo->vecs[0][0], surf->texinfo->vecs[0][1], surf->texinfo->vecs[0][2], PT_SURFACE_DIFFUSE_SPECULAR_RATIO);
+		qglMultiTexCoord4fARB(GL_TEXTURE4_ARB, surf->texinfo->vecs[0][0], surf->texinfo->vecs[0][1], surf->texinfo->vecs[0][2], gl_pt_specular_factor->value);
 		qglMultiTexCoord3fARB(GL_TEXTURE5_ARB, surf->texinfo->vecs[1][0], surf->texinfo->vecs[1][1], surf->texinfo->vecs[1][2]);
 
 		if ((surf->texinfo->flags & SURF_LIGHT) && !(surf->texinfo->flags & SURF_WARP) && surf->texinfo->radiance > 0)

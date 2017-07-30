@@ -321,6 +321,66 @@ ivec2 getLightRef(vec3 p)
 	return d < 0.0 ? light_indices.yw : light_indices.xz;
 }
 
+vec3 sampleDirectLightForMirrorBRDF(vec3 rp, vec3 rd, vec3 rn, int oli)
+{
+	vec3 r = vec3(0);
+	oli = oli < 0 ? -oli : +oli;
+	int li = oli;
+	int ref = texelFetch(lightrefs, li).r;
+	
+	if (ref != -1)
+	{
+		vec3 refl_dir = reflect(rd, rn);
+		float max_t = traceRayBSP(rp, refl_dir, EPS * 16, MAXT);
+
+		do
+		{
+			vec4 light = texelFetch(lights, ref);
+
+			ivec2 tri = texelFetch(triangles, floatBitsToInt(light.w)).xy;
+
+			vec3 p0 = texelFetch(tri_vertices, tri.x & 0xffff).xyz;
+			vec3 p1 = texelFetch(tri_vertices, tri.x >> 16).xyz;
+			vec3 p2 = texelFetch(tri_vertices, tri.y & 0xffff).xyz;
+
+			vec3 n = normalize(cross(p1 - p0, p2 - p0));
+
+			float t = dot(p0 - rp, n) / dot(refl_dir, n);
+			
+			float d = dot(refl_dir, n);
+			vec3 sp2 = rp + refl_dir * t;
+			
+			if (d > 0.0 && t > 0.0 && t < max_t && dot(p0 - sp2, n) < 0.1 && dot(p0 - sp2, n) > -1e-3)
+			{	
+				float s1 = dot(cross(p1 - sp2, p2 - sp2), n);
+
+				if (dot(light.rgb, vec3(1)) < 0.0 && s1 < 0.0)
+				{
+					s1 *= -1.0;
+					vec3 mirror = normalize(p2 - p1);
+					sp2 -= 2.0 * mirror * dot(sp2 - (p1 + p2) * 0.5, mirror);
+					mirror = cross(mirror, n);
+					sp2 -= 2.0 * mirror * dot(sp2 - p1, mirror);
+				}
+
+				float s0 = dot(cross(p0 - sp2, p1 - sp2), n);
+				float s2 = dot(cross(p2 - sp2, p0 - sp2), n);
+
+				if (s0 > 0.0 && s1 > 0.0 && s2 > 0.0 && traceRayShadowTri(rp, refl_dir, t, tri_nodes0, tri_nodes1, tri_vertices, triangles))
+				{
+					return abs(light.rgb);
+				}
+			}
+
+			++li;
+			ref = texelFetch(lightrefs, li).r;
+			
+		} while (ref != -1);
+	}
+	
+	return vec3(0);
+}
+
 // Returns the amount of direct light incident at the given point with the given surface normal.
 // oli is an index to the first lightsource reference.
 vec3 sampleDirectLight(vec3 rp, vec3 rn, int oli)
@@ -472,10 +532,13 @@ void main()
 #else
 	vec3 shading_normal = normalize(pln.xyz);
 #endif
-	
+
+	float fresnel = texcoords[5].w * mix(0.9, 0.3, pow(clamp(1.0 - dot(shading_normal, -normalize(texcoords[7].xyz)), 0.0, 1.0), 4.0));
+	bool brdf_mirror = fresnel < bluenoise_sample.b;
+		
 	// Sample the direct light at this point.
 	int rpli = getLightRef(rp).x;
-	vec3 r = sampleDirectLight(rp, shading_normal, rpli);
+	vec3 r = brdf_mirror ? sampleDirectLightForMirrorBRDF(rp, normalize(texcoords[7].xyz), shading_normal, rpli) : sampleDirectLight(rp, shading_normal, rpli);
 
 	// Add the emissive light (light emitted towards the eye immediately from this surface).
 	r += texcoords[4].rgb;
@@ -519,8 +582,12 @@ void main()
 	if (rpli < 0)
 #endif
 	{
-		float fresnel = texcoords[5].w * mix(1.0, 0.5, pow(clamp(1.0 - dot(shading_normal, -normalize(texcoords[7].xyz)), 0.0, 1.0), 5.0));
-		if (bluenoise_sample.b < fresnel)
+		if (brdf_mirror)
+		{
+			// Specular reflection.
+			rd = normalize(reflect(normalize(texcoords[7].xyz), shading_normal));
+		}
+		else
 		{
 			// Lambert diffuse BRDF.
 			vec2 rr = rand(0);
@@ -528,11 +595,6 @@ void main()
 			float r2s = sqrt(rr.y);
 			rd = normalize(u * cos(r1) * r2s + v * sin(r1) * r2s + pln.xyz * sqrt(1.0 - rr.y));
 			factor = clamp(dot(rd, shading_normal) / dot(rd, pln.xyz), 0.1, 2.0);
-		}
-		else
-		{
-			// Specular reflection.
-			rd = normalize(reflect(normalize(texcoords[7].xyz), shading_normal));
 		}
 		
 		// Trace a ray against the BSP. This intersection point is later used for secondary bounces and testing
@@ -593,6 +655,8 @@ void main()
 							s1 *= -1.0;
 							vec3 mirror = normalize(p2 - p1);
 							sp2 -= 2.0 * mirror * dot(sp2 - (p1 + p2) * 0.5, mirror);
+							mirror = cross(mirror, n);
+							sp2 -= 2.0 * mirror * dot(sp2 - p1, mirror);
 						}
 
 						float s0 = dot(cross(p0 - sp2, p1 - sp2), n);
