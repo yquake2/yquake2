@@ -784,20 +784,23 @@ IN_Init(void)
 								effect.periodic.direction.type = SDL_HAPTIC_POLAR; // Polar coordinates
 								effect.periodic.direction.dir[0] = 18000; // Force comes from south
 								effect.periodic.period = 1000; // 1000 ms
-								effect.periodic.magnitude = 20000; // 20000/32767 strength
-								effect.periodic.length = 5000; // 5 seconds long
-								effect.periodic.attack_length = 1000; // Takes 1 second to get max strength
-								effect.periodic.fade_length = 1000; // Takes 1 second to fade away
+								effect.periodic.magnitude = 15000; // 15000/32767 strength
+								effect.periodic.length = 400; // 0.4 seconds long
+								effect.periodic.attack_length = 200; // Takes 0.2 second to get max strength
+								effect.periodic.fade_length = 200; // Takes 0.2 second to fade away
 
 								// Upload the effect
 								effect_id = SDL_HapticNewEffect( haptic, &effect );
 
 								// Test the effect
 								SDL_HapticRunEffect( haptic, effect_id, 1 );
-								SDL_Delay( 5000); // Wait for the effect to finish
+								/*SDL_Delay( 2500); // Wait for the effect to finish
+								SDL_HapticRunEffect( haptic, effect_id, 1 );
+								SDL_Delay( 2500); // Wait for the effect to finish
+								*/
 
 								// We destroy the effect, although closing the device also does this
-								SDL_HapticDestroyEffect( haptic, effect_id );
+								//SDL_HapticDestroyEffect( haptic, effect_id );
 						}
 					}
 
