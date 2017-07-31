@@ -29,6 +29,8 @@
 
 #if defined(__linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 #include <unistd.h> // readlink(), amongst others
+#include "../../common/header/shared.h"
+
 #endif
 
 #ifdef __FreeBSD__
@@ -64,11 +66,12 @@ static void SetExecutablePath(char* exePath)
 		exePath[0] = '\0';
 	}
 
-#elif defined(__linux) || defined(__NetBSD__) || defined(__OpenBSD__)
+#elif defined(__linux) || defined(__NetBSD__)
 
 	// all the platforms that have /proc/$pid/exe or similar that symlink the
 	// real executable - basiscally Linux and the BSDs except for FreeBSD which
-	// doesn't enable proc by default and has a sysctl() for this
+	// doesn't enable proc by default and has a sysctl() for this. OpenBSD once
+	// had /proc but removed it for security reasons.
 	char buf[PATH_MAX] = {0};
 #ifdef __linux
 	snprintf(buf, sizeof(buf), "/proc/%d/exe", getpid());
@@ -115,7 +118,13 @@ static void SetExecutablePath(char* exePath)
 
 #else
 
-#error "Unsupported Platform!" // feel free to add implementation for your platform and send me a patch
+	// Several platforms (for example OpenBSD) donn't provide a
+	// reliable way to determine the executable path. Just return
+	// an empty string.
+	exePath[0] = '\0';
+
+// feel free to add implementation for your platform and send a pull request.
+#warning "SetExecutablePath() is unimplemented on this platform"
 
 #endif
 }
@@ -124,18 +133,25 @@ const char *Sys_GetBinaryDir(void)
 {
 	static char exeDir[PATH_MAX] = {0};
 
-	if(exeDir[0] != '\0') return exeDir;
+	if(exeDir[0] != '\0') {
+		return exeDir;
+	}
 
 	SetExecutablePath(exeDir);
 
-	// cut off executable name
-	char* lastSlash = strrchr(exeDir, '/');
+	if (exeDir[0] == '\0') {
+		Com_Printf("Couldn't determine executable path. Using ./ instead.\n");
+		Q_strlcpy(exeDir, "./", sizeof(exeDir));
+	} else {
+		// cut off executable name
+		char *lastSlash = strrchr(exeDir, '/');
 #ifdef _WIN32
-	char* lastBackSlash = strrchr(exeDir, '\\');
-	if(lastSlash == NULL || lastBackSlash > lastSlash) lastSlash = lastBackSlash;
+		char* lastBackSlash = strrchr(exeDir, '\\');
+		if(lastSlash == NULL || lastBackSlash > lastSlash) lastSlash = lastBackSlash;
 #endif // _WIN32
 
-	if(lastSlash != NULL) lastSlash[1] = '\0'; // cut off after last (back)slash
+		if (lastSlash != NULL) lastSlash[1] = '\0'; // cut off after last (back)slash
+	}
 
 	return exeDir;
 }
