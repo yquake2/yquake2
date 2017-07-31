@@ -902,7 +902,18 @@ IN_Shutdown(void)
 	Com_Printf("Shutting down input.\n");
 
 	if (joystick_haptic)
-		SDL_HapticDestroyEffect(joystick_haptic, haptic_click_effect_id);
+	{
+		if (haptic_click_effect_id >=0)
+			SDL_HapticDestroyEffect(joystick_haptic, haptic_click_effect_id);
+		haptic_click_effect_id = -1;
+
+		if (haptic_menu_effect_id >=0)
+			SDL_HapticDestroyEffect(joystick_haptic, haptic_menu_effect_id);
+		haptic_menu_effect_id = -1;
+
+		SDL_HapticClose(joystick_haptic);
+		joystick_haptic = NULL;
+	}
 }
 
 /* ------------------------------------------------------------------ */
