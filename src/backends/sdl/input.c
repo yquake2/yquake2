@@ -76,6 +76,8 @@ static int haptic_click_effect_id = -1;
 static SDL_HapticEffect haptic_menu_effect;
 static int haptic_menu_effect_id = -1;
 static SDL_Haptic *joystick_haptic = NULL;
+static SDL_Joystick *joystick = NULL;
+static SDL_GameController *controller = NULL;
 
 /* CVars */
 cvar_t *vid_fullscreen;
@@ -105,6 +107,14 @@ cvar_t *joy_axis_rightx;
 cvar_t *joy_axis_righty;
 cvar_t *joy_axis_triggerleft;
 cvar_t *joy_axis_triggerright;
+/* Joystick threshold settings */
+cvar_t *joy_axis_leftx_threshold;
+cvar_t *joy_axis_lefty_threshold;
+cvar_t *joy_axis_rightx_threshold;
+cvar_t *joy_axis_righty_threshold;
+cvar_t *joy_axis_triggerleft_threshold;
+cvar_t *joy_axis_triggerright_threshold;
+/* Joystick haptic */
 cvar_t *joy_harpic_level;
 
 extern void GLimp_GrabInput(qboolean grab);
@@ -475,57 +485,82 @@ IN_Update(void)
 			case SDL_CONTROLLERAXISMOTION:  /* Handle Controller Motion */
 				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
 					char* direction_type;
+					float threshold = 0;
+					float fix_value = 0;
+					int axis_value = event.caxis.value;
 					switch (event.caxis.axis)
 					{
 						/* left/right */
 						case SDL_CONTROLLER_AXIS_LEFTX:
 							direction_type = joy_axis_leftx->string;
+							threshold = joy_axis_leftx_threshold->value;
 							break;
 						/* top/bottom */
 						case SDL_CONTROLLER_AXIS_LEFTY:
 							direction_type = joy_axis_lefty->string;
+							threshold = joy_axis_lefty_threshold->value;
 							break;
 						/* second left/right */
 						case SDL_CONTROLLER_AXIS_RIGHTX:
 							direction_type = joy_axis_rightx->string;
+							threshold = joy_axis_rightx_threshold->value;
 							break;
 						/* second top/bottom */
 						case SDL_CONTROLLER_AXIS_RIGHTY:
 							direction_type = joy_axis_righty->string;
+							threshold = joy_axis_righty_threshold->value;
 							break;
 						case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
 							direction_type = joy_axis_triggerleft->string;
+							threshold = joy_axis_triggerleft_threshold->value;
 							break;
 						case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
 							direction_type = joy_axis_triggerright->string;
+							threshold = joy_axis_triggerright_threshold->value;
 							break;
 						default:
 							direction_type = "none";
 					}
 
+
+					if (threshold > 0.9)
+						threshold = 0.9;
+
+					if (axis_value < 0 && (axis_value > (32768 * threshold)))
+						axis_value = 0;
+					else if (axis_value > 0 && (axis_value < (32768 * threshold)))
+						axis_value = 0;
+
+					// Smoothly ramp from dead zone to maximum value (from ioquake)
+					fix_value = ((float)abs(axis_value) / 32767.0f - threshold) / (1.0f - threshold);
+					if (fix_value < 0.0f)
+						fix_value = 0.0f;
+
+					axis_value = (int)(32767 * ((axis_value < 0) ? -fix_value : fix_value));
+
 					if (strcmp(direction_type, "sidemove") == 0)
 					{
-						joystick_sidemove = event.caxis.value * joy_sensitivity_sidemove->value;
+						joystick_sidemove = axis_value * joy_sensitivity_sidemove->value;
 						joystick_sidemove *= cl_sidespeed->value;
 					}
 					else if (strcmp(direction_type, "forwardmove") == 0)
 					{
-						joystick_forwardmove = event.caxis.value * joy_sensitivity_forwardmove->value;
+						joystick_forwardmove = axis_value * joy_sensitivity_forwardmove->value;
 						joystick_forwardmove *= cl_forwardspeed->value;
 					}
 					else if (strcmp(direction_type, "yaw") == 0)
 					{
-						joystick_yaw = event.caxis.value * joy_sensitivity_yaw->value;
+						joystick_yaw = axis_value * joy_sensitivity_yaw->value;
 						joystick_yaw *= cl_yawspeed->value;
 					}
 					else if (strcmp(direction_type, "pitch") == 0)
 					{
-						joystick_pitch = event.caxis.value * joy_sensitivity_pitch->value;
+						joystick_pitch = axis_value * joy_sensitivity_pitch->value;
 						joystick_pitch *= cl_pitchspeed->value;
 					}
 					else if (strcmp(direction_type, "updown") == 0)
 					{
-						joystick_up = event.caxis.value * joy_sensitivity_up->value;
+						joystick_up = axis_value * joy_sensitivity_up->value;
 						joystick_up *= cl_upspeed->value;
 					}
 				}
@@ -749,7 +784,7 @@ IN_Haptic_Effects_Init(void)
 	haptic_menu_effect.periodic.direction.type = SDL_HAPTIC_POLAR; // Polar coordinates
 	haptic_menu_effect.periodic.direction.dir[0] = 900; // Force comes from East
 	haptic_menu_effect.periodic.period = 1000; // 1000 ms
-	haptic_menu_effect.periodic.magnitude = 15000 * joy_harpic_level->value; // 15000/32767 strength
+	haptic_menu_effect.periodic.magnitude = 15000; // 15000/32767 strength
 	haptic_menu_effect.periodic.length = 200; // 0.2 seconds long
 	haptic_menu_effect.periodic.attack_length = 100; // Takes 0.1 second to get max strength
 	haptic_menu_effect.periodic.fade_length = 100; // Takes 0.1 second to fade away
@@ -775,7 +810,7 @@ Haptic_Feedback(int type)
 	}
 
 	if (effect_id >= 0 && joystick_haptic)
-		SDL_HapticRunEffect(joystick_haptic, effect_id, 1);
+		SDL_HapticRunEffect(joystick_haptic, effect_id, (int)joy_harpic_level->value);
 }
 
 /*
@@ -802,7 +837,7 @@ IN_Init(void)
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
 
-	joy_harpic_level = Cvar_Get("joy_harpic_level", "1.0", CVAR_ARCHIVE);
+	joy_harpic_level = Cvar_Get("joy_harpic_level", "0.0", CVAR_ARCHIVE);
 
 	joy_sensitivity_yaw = Cvar_Get("joy_sensitivity_yaw", "1.0", CVAR_ARCHIVE);
 	joy_sensitivity_pitch = Cvar_Get("joy_sensitivity_pitch", "1.0", CVAR_ARCHIVE);
@@ -816,6 +851,13 @@ IN_Init(void)
 	joy_axis_righty = Cvar_Get("joy_axis_righty", "pitch", CVAR_ARCHIVE);
 	joy_axis_triggerleft = Cvar_Get("joy_axis_triggerleft", "updown", CVAR_ARCHIVE);
 	joy_axis_triggerright = Cvar_Get("joy_axis_triggerright", "none", CVAR_ARCHIVE);
+
+	joy_axis_leftx_threshold = Cvar_Get("joy_axis_leftx_threshold", "0.15", CVAR_ARCHIVE);
+	joy_axis_lefty_threshold = Cvar_Get("joy_axis_lefty_threshold", "0.15", CVAR_ARCHIVE);
+	joy_axis_rightx_threshold = Cvar_Get("joy_axis_rightx_threshold", "0.15", CVAR_ARCHIVE);
+	joy_axis_righty_threshold = Cvar_Get("joy_axis_righty_threshold", "0.15", CVAR_ARCHIVE);
+	joy_axis_triggerleft_threshold = Cvar_Get("joy_axis_triggerleft_threshold", "0.15", CVAR_ARCHIVE);
+	joy_axis_triggerright_threshold = Cvar_Get("joy_axis_triggerright_threshold", "0.15", CVAR_ARCHIVE);
 
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
@@ -843,7 +885,7 @@ IN_Init(void)
 			if (SDL_NumJoysticks() > 0) {
 				int i;
 				for (i=0; i<SDL_NumJoysticks(); i ++) {
-					SDL_Joystick *joystick = SDL_JoystickOpen(i);
+					joystick = SDL_JoystickOpen(i);
 					Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(joystick));
 					Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
 					Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
@@ -855,23 +897,32 @@ IN_Init(void)
 						Com_Printf ("Most likely joystick isn't haptic\n");
 					else
 					{
-						Com_Printf ("Supported %d effects\n", SDL_HapticNumEffects(joystick_haptic));
-						Com_Printf ("Supported %d effects in same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
-						Com_Printf ("Supported by %d axis\n", SDL_HapticNumAxes(joystick_haptic));
+						Com_Printf ("Joystic haptic:\n");
+						Com_Printf (" * %d effects\n", SDL_HapticNumEffects(joystick_haptic));
+						Com_Printf (" * %d effects in same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
+						Com_Printf (" * %d haptic axis\n", SDL_HapticNumAxes(joystick_haptic));
 						IN_Haptic_Effects_Init();
 					}
 
 					if(SDL_IsGameController(i))
 					{
-						SDL_GameController *controller;
 						controller = SDL_GameControllerOpen(i);
 						Com_Printf ("Controller settings: %s\n", SDL_GameControllerMapping(controller));
-						Com_Printf ("Controller axis leftx = %s\n", joy_axis_leftx->string);
-						Com_Printf ("Controller axis lefty = %s\n", joy_axis_lefty->string);
-						Com_Printf ("Controller axis rightx = %s\n", joy_axis_rightx->string);
-						Com_Printf ("Controller axis righty = %s\n", joy_axis_righty->string);
-						Com_Printf ("Controller axis triggerleft = %s\n", joy_axis_triggerleft->string);
-						Com_Printf ("Controller axis triggerright = %s\n", joy_axis_triggerright->string);
+						Com_Printf ("Controller axis: \n");
+						Com_Printf (" * leftx = %s\n", joy_axis_leftx->string);
+						Com_Printf (" * lefty = %s\n", joy_axis_lefty->string);
+						Com_Printf (" * rightx = %s\n", joy_axis_rightx->string);
+						Com_Printf (" * righty = %s\n", joy_axis_righty->string);
+						Com_Printf (" * triggerleft = %s\n", joy_axis_triggerleft->string);
+						Com_Printf (" * triggerright = %s\n", joy_axis_triggerright->string);
+
+						Com_Printf ("Controller thresholds: \n");
+						Com_Printf (" * leftx = %f\n", joy_axis_leftx_threshold->value);
+						Com_Printf (" * lefty = %f\n", joy_axis_lefty_threshold->value);
+						Com_Printf (" * rightx = %f\n", joy_axis_rightx_threshold->value);
+						Com_Printf (" * righty = %f\n", joy_axis_righty_threshold->value);
+						Com_Printf (" * triggerleft = %f\n", joy_axis_triggerleft_threshold->value);
+						Com_Printf (" * triggerright = %f\n", joy_axis_triggerright_threshold->value);
 
 						break;
 					} else {
@@ -913,6 +964,18 @@ IN_Shutdown(void)
 
 		SDL_HapticClose(joystick_haptic);
 		joystick_haptic = NULL;
+	}
+
+	if (controller)
+	{
+		SDL_GameControllerClose(controller);
+		controller  = NULL;
+	}
+
+	if (joystick)
+	{
+		SDL_JoystickClose(joystick);
+		joystick = NULL;
 	}
 }
 
