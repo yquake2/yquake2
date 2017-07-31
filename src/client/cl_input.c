@@ -344,6 +344,7 @@ IN_StrafeUp(void)
 void
 IN_AttackDown(void)
 {
+	Haptic_Feedback(HARPIC_CLICK);
 	KeyDown(&in_attack);
 }
 

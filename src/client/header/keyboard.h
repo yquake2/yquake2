@@ -37,6 +37,12 @@
  * instead of % so -1 wraps to NUM_KEY_LINES-1 */
 #define NUM_KEY_LINES 32
 
+/* Haptic feedback types */
+enum HARPICTYPES {
+	HARPIC_CLICK = 0,
+	HARPIC_MENU_CLICK = 1
+};
+
 /* these are the key numbers that should be passed to Key_Event
    they must be mached by the low level key event processing! */
 enum QKEYS {
@@ -302,6 +308,7 @@ extern int		chat_bufferlen;
 extern int		chat_cursorpos;
 extern qboolean	chat_team;
 
+void Haptic_Feedback(int type);
 void Char_Event(int key);
 void Key_Event(int key, qboolean down, qboolean special);
 void Key_Init(void);
@@ -311,5 +318,6 @@ void Key_WriteConsoleHistory();
 void Key_SetBinding(int keynum, char *binding);
 void Key_MarkAllUp(void);
 int Key_GetKey(void);
+int Key_GetMenuKey(int key);
 
 #endif

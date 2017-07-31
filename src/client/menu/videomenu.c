@@ -596,26 +596,32 @@ VID_MenuKey(int key)
 
 	menuframework_s *m = &s_opengl_menu;
 	static const char *sound = "misc/menu1.wav";
+	int menu_key = Key_GetMenuKey(key);
 
-	switch (key)
+	switch (menu_key)
 	{
 		case K_ESCAPE:
 			M_PopMenu();
 			return NULL;
+
 		case K_UPARROW:
 			m->cursor--;
 			Menu_AdjustCursor(m, -1);
 			break;
+
 		case K_DOWNARROW:
 			m->cursor++;
 			Menu_AdjustCursor(m, 1);
 			break;
+
 		case K_LEFTARROW:
 			Menu_SlideItem(m, -1);
 			break;
+
 		case K_RIGHTARROW:
 			Menu_SlideItem(m, 1);
 			break;
+
 		case K_ENTER:
 			Menu_SelectItem(m);
 			break;
