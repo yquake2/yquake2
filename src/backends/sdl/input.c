@@ -73,6 +73,8 @@ static qboolean mlooking;
 
 static SDL_HapticEffect haptic_click_effect;
 static int haptic_click_effect_id = -1;
+static SDL_HapticEffect haptic_menu_effect;
+static int haptic_menu_effect_id = -1;
 static SDL_Haptic *joystick_haptic = NULL;
 
 /* CVars */
@@ -103,6 +105,7 @@ cvar_t *joy_axis_rightx;
 cvar_t *joy_axis_righty;
 cvar_t *joy_axis_triggerleft;
 cvar_t *joy_axis_triggerright;
+cvar_t *joy_harpic_level;
 
 extern void GLimp_GrabInput(qboolean grab);
 
@@ -733,23 +736,39 @@ IN_Haptic_Effects_Init(void)
 	SDL_memset(&haptic_click_effect, 0, sizeof(SDL_HapticEffect)); // 0 is safe default
 	haptic_click_effect.type = SDL_HAPTIC_SINE;
 	haptic_click_effect.periodic.direction.type = SDL_HAPTIC_POLAR; // Polar coordinates
-	haptic_click_effect.periodic.direction.dir[0] = 18000; // Force comes from south
+	haptic_click_effect.periodic.direction.dir[0] = 27000; // Force comes from west
 	haptic_click_effect.periodic.period = 1000; // 1000 ms
 	haptic_click_effect.periodic.magnitude = 15000; // 15000/32767 strength
-	haptic_click_effect.periodic.length = 400; // 0.4 seconds long
-	haptic_click_effect.periodic.attack_length = 200; // Takes 0.2 second to get max strength
-	haptic_click_effect.periodic.fade_length = 200; // Takes 0.2 second to fade away
-
-	// Upload the effect
+	haptic_click_effect.periodic.length = 200; // 0.2 seconds long
+	haptic_click_effect.periodic.attack_length = 100; // Takes 0.1 second to get max strength
+	haptic_click_effect.periodic.fade_length = 100; // Takes 0.1 second to fade away
 	haptic_click_effect_id = SDL_HapticNewEffect(joystick_haptic, &haptic_click_effect);
+
+	SDL_memset(&haptic_menu_effect, 0, sizeof(SDL_HapticEffect)); // 0 is safe default
+	haptic_menu_effect.type = SDL_HAPTIC_SINE;
+	haptic_menu_effect.periodic.direction.type = SDL_HAPTIC_POLAR; // Polar coordinates
+	haptic_menu_effect.periodic.direction.dir[0] = 900; // Force comes from East
+	haptic_menu_effect.periodic.period = 1000; // 1000 ms
+	haptic_menu_effect.periodic.magnitude = 15000 * joy_harpic_level->value; // 15000/32767 strength
+	haptic_menu_effect.periodic.length = 200; // 0.2 seconds long
+	haptic_menu_effect.periodic.attack_length = 100; // Takes 0.1 second to get max strength
+	haptic_menu_effect.periodic.fade_length = 100; // Takes 0.1 second to fade away
+	haptic_menu_effect_id = SDL_HapticNewEffect(joystick_haptic, &haptic_menu_effect);
 }
 
 void
 Haptic_Feedback(int type)
 {
 	int effect_id = -1;
+
+	if (joy_harpic_level->value <= 0)
+		return;
+
 	switch(type)
 	{
+		case HARPIC_MENU_CLICK:
+			effect_id = haptic_menu_effect_id;
+			break;
 		case HARPIC_CLICK:
 			effect_id = haptic_click_effect_id;
 			break;
@@ -782,6 +801,8 @@ IN_Init(void)
 	m_side = Cvar_Get("m_side", "0.8", 0);
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
+
+	joy_harpic_level = Cvar_Get("joy_harpic_level", "1.0", CVAR_ARCHIVE);
 
 	joy_sensitivity_yaw = Cvar_Get("joy_sensitivity_yaw", "1.0", CVAR_ARCHIVE);
 	joy_sensitivity_pitch = Cvar_Get("joy_sensitivity_pitch", "1.0", CVAR_ARCHIVE);

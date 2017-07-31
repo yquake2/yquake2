@@ -202,11 +202,116 @@ M_PushMenu(void (*draw)(void), const char *(*key)(int))
     cls.key_dest = key_menu;
 }
 
+int
+Key_GetMenuKey(int key)
+{
+	switch (key)
+	{
+		case K_KP_UPARROW:
+		case K_UPARROW:
+		case K_HAT_UP:
+			return K_UPARROW;
+
+		case K_TAB:
+		case K_KP_DOWNARROW:
+		case K_DOWNARROW:
+		case K_HAT_DOWN:
+			return K_DOWNARROW;
+
+		case K_KP_LEFTARROW:
+		case K_LEFTARROW:
+		case K_HAT_LEFT:
+			return K_LEFTARROW;
+
+		case K_KP_RIGHTARROW:
+		case K_RIGHTARROW:
+		case K_HAT_RIGHT:
+			return K_RIGHTARROW;
+
+		case K_MOUSE1:
+		case K_MOUSE2:
+		case K_MOUSE3:
+		case K_MOUSE4:
+		case K_MOUSE5:
+
+		case K_JOY1:
+		case K_JOY2:
+		case K_JOY3:
+		case K_JOY4:
+		case K_JOY5:
+		case K_JOY6:
+		case K_JOY7:
+		case K_JOY8:
+		case K_JOY9:
+		case K_JOY10:
+		case K_JOY11:
+		case K_JOY12:
+		case K_JOY13:
+		case K_JOY14:
+		case K_JOY15:
+		case K_JOY16:
+		case K_JOY17:
+		case K_JOY18:
+		case K_JOY19:
+		case K_JOY20:
+		case K_JOY21:
+		case K_JOY22:
+		case K_JOY23:
+		case K_JOY24:
+		case K_JOY25:
+		case K_JOY26:
+		case K_JOY27:
+		case K_JOY28:
+		case K_JOY29:
+		case K_JOY30:
+		case K_JOY31:
+
+		case K_AUX1:
+		case K_AUX2:
+		case K_AUX3:
+		case K_AUX4:
+		case K_AUX5:
+		case K_AUX6:
+		case K_AUX7:
+		case K_AUX8:
+		case K_AUX9:
+		case K_AUX10:
+		case K_AUX11:
+		case K_AUX12:
+		case K_AUX13:
+		case K_AUX14:
+		case K_AUX15:
+		case K_AUX16:
+		case K_AUX17:
+		case K_AUX18:
+		case K_AUX19:
+		case K_AUX20:
+		case K_AUX21:
+		case K_AUX22:
+		case K_AUX23:
+		case K_AUX24:
+		case K_AUX25:
+		case K_AUX26:
+		case K_AUX27:
+		case K_AUX28:
+		case K_AUX29:
+		case K_AUX30:
+		case K_AUX31:
+		case K_AUX32:
+
+		case K_KP_ENTER:
+		case K_ENTER:
+			return K_ENTER;
+	}
+
+	return key;
+}
 const char *
 Default_MenuKey(menuframework_s *m, int key)
 {
     const char *sound = NULL;
     menucommon_s *item;
+    int menu_key = Key_GetMenuKey(key);
 
     if (m)
     {
@@ -222,147 +327,51 @@ Default_MenuKey(menuframework_s *m, int key)
         }
     }
 
-    switch (key)
+    switch (menu_key)
     {
     case K_ESCAPE:
         M_PopMenu();
         return menu_out_sound;
-    case K_KP_UPARROW:
-    case K_UPARROW:
-    case K_HAT_UP:
 
+    case K_UPARROW:
         if (m)
         {
             m->cursor--;
             Menu_AdjustCursor(m, -1);
             sound = menu_move_sound;
         }
-
         break;
-    case K_TAB:
 
-        if (m)
-        {
-            m->cursor++;
-            Menu_AdjustCursor(m, 1);
-            sound = menu_move_sound;
-        }
-
-        break;
-    case K_KP_DOWNARROW:
     case K_DOWNARROW:
-    case K_HAT_DOWN:
-
         if (m)
         {
             m->cursor++;
             Menu_AdjustCursor(m, 1);
             sound = menu_move_sound;
         }
-
         break;
-    case K_KP_LEFTARROW:
-    case K_LEFTARROW:
-    case K_HAT_LEFT:
 
+    case K_LEFTARROW:
         if (m)
         {
             Menu_SlideItem(m, -1);
             sound = menu_move_sound;
         }
-
         break;
-    case K_KP_RIGHTARROW:
-    case K_RIGHTARROW:
-    case K_HAT_RIGHT:
 
+    case K_RIGHTARROW:
         if (m)
         {
             Menu_SlideItem(m, 1);
             sound = menu_move_sound;
         }
-
         break;
 
-    case K_MOUSE1:
-    case K_MOUSE2:
-    case K_MOUSE3:
-    case K_MOUSE4:
-    case K_MOUSE5:
-
-    case K_JOY1:
-    case K_JOY2:
-    case K_JOY3:
-    case K_JOY4:
-    case K_JOY5:
-    case K_JOY6:
-    case K_JOY7:
-    case K_JOY8:
-    case K_JOY9:
-    case K_JOY10:
-    case K_JOY11:
-    case K_JOY12:
-    case K_JOY13:
-    case K_JOY14:
-    case K_JOY15:
-    case K_JOY16:
-    case K_JOY17:
-    case K_JOY18:
-    case K_JOY19:
-    case K_JOY20:
-    case K_JOY21:
-    case K_JOY22:
-    case K_JOY23:
-    case K_JOY24:
-    case K_JOY25:
-    case K_JOY26:
-    case K_JOY27:
-    case K_JOY28:
-    case K_JOY29:
-    case K_JOY30:
-    case K_JOY31:
-
-    case K_AUX1:
-    case K_AUX2:
-    case K_AUX3:
-    case K_AUX4:
-    case K_AUX5:
-    case K_AUX6:
-    case K_AUX7:
-    case K_AUX8:
-    case K_AUX9:
-    case K_AUX10:
-    case K_AUX11:
-    case K_AUX12:
-    case K_AUX13:
-    case K_AUX14:
-    case K_AUX15:
-    case K_AUX16:
-    case K_AUX17:
-    case K_AUX18:
-    case K_AUX19:
-    case K_AUX20:
-    case K_AUX21:
-    case K_AUX22:
-    case K_AUX23:
-    case K_AUX24:
-    case K_AUX25:
-    case K_AUX26:
-    case K_AUX27:
-    case K_AUX28:
-    case K_AUX29:
-    case K_AUX30:
-    case K_AUX31:
-    case K_AUX32:
-
-    case K_KP_ENTER:
     case K_ENTER:
-
         if (m)
         {
             Menu_SelectItem(m);
         }
-
         sound = menu_move_sound;
         break;
     }
@@ -617,37 +626,29 @@ M_Main_Draw(void)
 const char *
 M_Main_Key(int key)
 {
-    const char *sound = menu_move_sound;
+	const char *sound = menu_move_sound;
+	int menu_key = Key_GetMenuKey(key);
 
-    switch (key)
+    switch (menu_key)
     {
     case K_ESCAPE:
         M_PopMenu();
         break;
 
-    case K_KP_DOWNARROW:
     case K_DOWNARROW:
-    case K_HAT_DOWN:
-
         if (++m_main_cursor >= MAIN_ITEMS)
         {
             m_main_cursor = 0;
         }
-
         return sound;
 
-    case K_KP_UPARROW:
     case K_UPARROW:
-    case K_HAT_UP:
-
         if (--m_main_cursor < 0)
         {
             m_main_cursor = MAIN_ITEMS - 1;
         }
-
         return sound;
 
-    case K_KP_ENTER:
     case K_ENTER:
         m_entersound = true;
 
@@ -2336,40 +2337,36 @@ static const char *
 LoadGame_MenuKey(int key)
 {
     static menuframework_s *m = &s_loadgame_menu;
+    int menu_key = Key_GetMenuKey(key);
 
-    switch (key)
+    switch (menu_key)
     {
-    case K_KP_UPARROW:
     case K_UPARROW:
-    case K_HAT_UP:
         if (m->cursor == 0)
         {
             LoadSave_AdjustPage(-1);
             LoadGame_MenuInit();
         }
         break;
-    case K_TAB:
-    case K_KP_DOWNARROW:
+
     case K_DOWNARROW:
-    case K_HAT_DOWN:
         if (m->cursor == m->nitems - 1)
         {
             LoadSave_AdjustPage(1);
             LoadGame_MenuInit();
         }
         break;
-    case K_KP_LEFTARROW:
+
     case K_LEFTARROW:
-    case K_HAT_LEFT:
         LoadSave_AdjustPage(-1);
         LoadGame_MenuInit();
         return menu_move_sound;
-    case K_KP_RIGHTARROW:
+
     case K_RIGHTARROW:
-    case K_HAT_RIGHT:
         LoadSave_AdjustPage(1);
         LoadGame_MenuInit();
         return menu_move_sound;
+
     default:
         s_savegame_menu.cursor = s_loadgame_menu.cursor;
         break;
@@ -2451,6 +2448,7 @@ static const char *
 SaveGame_MenuKey(int key)
 {
     static menuframework_s *m = &s_savegame_menu;
+    int menu_key = Key_GetMenuKey(key);
 
     if (m_popup_string)
     {
@@ -2458,39 +2456,34 @@ SaveGame_MenuKey(int key)
         return NULL;
     }
 
-    switch (key)
+    switch (menu_key)
     {
-    case K_KP_UPARROW:
     case K_UPARROW:
-    case K_HAT_UP:
         if (m->cursor == 0)
         {
             LoadSave_AdjustPage(-1);
             SaveGame_MenuInit();
         }
         break;
-    case K_TAB:
-    case K_KP_DOWNARROW:
+
     case K_DOWNARROW:
-    case K_HAT_DOWN:
         if (m->cursor == m->nitems - 1)
         {
             LoadSave_AdjustPage(1);
             SaveGame_MenuInit();
         }
         break;
-    case K_KP_LEFTARROW:
+
     case K_LEFTARROW:
-    case K_HAT_LEFT:
         LoadSave_AdjustPage(-1);
         SaveGame_MenuInit();
         return menu_move_sound;
-    case K_KP_RIGHTARROW:
+
     case K_RIGHTARROW:
-    case K_HAT_RIGHT:
         LoadSave_AdjustPage(1);
         SaveGame_MenuInit();
         return menu_move_sound;
+
     default:
         s_loadgame_menu.cursor = s_savegame_menu.cursor;
         break;
@@ -4423,6 +4416,8 @@ M_Keydown(int key)
         if ((s = m_keyfunc(key)) != 0)
         {
             S_StartLocalSound((char *)s);
+            if (s)
+                Haptic_Feedback(HARPIC_MENU_CLICK);
         }
     }
 }

@@ -39,7 +39,8 @@
 
 /* Haptic feedback types */
 enum HARPICTYPES {
-	HARPIC_CLICK = 0
+	HARPIC_CLICK = 0,
+	HARPIC_MENU_CLICK = 1
 };
 
 /* these are the key numbers that should be passed to Key_Event
@@ -317,5 +318,6 @@ void Key_WriteConsoleHistory();
 void Key_SetBinding(int keynum, char *binding);
 void Key_MarkAllUp(void);
 int Key_GetKey(void);
+int Key_GetMenuKey(int key);
 
 #endif
