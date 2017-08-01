@@ -1278,7 +1278,7 @@ R_Register(void)
  * Changes the video mode
  */
 static int
-SetMode_impl(int *pwidth, int *pheight, int mode, qboolean fullscreen)
+SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 {
 	R_Printf(PRINT_ALL, "setting mode %d:", mode);
 
@@ -1304,9 +1304,9 @@ qboolean
 R_SetMode(void)
 {
 	rserr_t err;
-	qboolean fullscreen;
+	int fullscreen;
 
-	fullscreen = vid_fullscreen->value;
+	fullscreen = (int)vid_fullscreen->value;
 
 	vid_fullscreen->modified = false;
 	gl_mode->modified = false;

@@ -315,7 +315,7 @@ qboolean ref_active = false;    /* Is the refresher being used? */
 void Key_MarkAllUp(void);
 
 extern int GLimp_Init(void);
-extern qboolean GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight);
+extern qboolean GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight);
 extern void VID_ShutdownWindow(void);
 
 qboolean
