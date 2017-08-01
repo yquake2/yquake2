@@ -609,8 +609,8 @@ void main()
 	
 #if NUM_BOUNCES > 0
 	// Test for intersection with triangle meshes. This is done so bounce light can be shadowed
-	// by triangle meshes.
-	if (traceRayShadowTri(rp, rd, t, tri_nodes0, tri_nodes1, tri_vertices, triangles, shadow_ray_node_offset))
+	// by triangle meshes. It is only done if the ray has travelled a significant distance during the bounce.
+	if (t > 1e-4 && traceRayShadowTri(rp, rd, t, tri_nodes0, tri_nodes1, tri_vertices, triangles, shadow_ray_node_offset))
 	{
 		int li = getLightRef(sp).x;
 		r += factor * sampleDirectLight(sp, out_pln.xyz, li);
