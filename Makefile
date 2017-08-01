@@ -157,12 +157,11 @@ endif
 #  generated if building universal binaries on OSX)
 ifeq ($(YQ2_OSTYPE), Darwin)
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -Wno-misleading-indentation -pipe -g -fwrapv
+		  -Wall -pipe -g -fwrapv
 CFLAGS += $(OSX_ARCH)
 else
-CFLAGS := -std=gnu99 -O2 -fno-strict-aliasing -Wall \
-		  -Wno-misleading-indentation -pipe -g -ggdb \
-		  -MMD -fwrapv
+CFLAGS := -std=gnu99 -O2 -fno-strict-aliasing \
+		  -Wall -pipe -g -ggdb -MMD -fwrapv
 endif
 
 # ----------
