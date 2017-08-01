@@ -221,11 +221,13 @@ Key_GetMenuKey(int key)
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:
 		case K_HAT_LEFT:
+		case K_TRIG_LEFT:
 			return K_LEFTARROW;
 
 		case K_KP_RIGHTARROW:
 		case K_RIGHTARROW:
 		case K_HAT_RIGHT:
+		case K_TRIG_RIGHT:
 			return K_RIGHTARROW;
 
 		case K_MOUSE1:

@@ -70,6 +70,8 @@ static int joystick_up;
 static int old_mouse_x, old_mouse_y;
 static char last_hat = SDL_HAT_CENTERED;
 static qboolean mlooking;
+static qboolean left_trigger = false;
+static qboolean right_trigger = false;
 
 static SDL_HapticEffect haptic_click_effect;
 static int haptic_click_effect_id = -1;
@@ -483,61 +485,62 @@ IN_Update(void)
 				break;
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_CONTROLLERAXISMOTION:  /* Handle Controller Motion */
-				if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
-					char* direction_type;
-					float threshold = 0;
-					float fix_value = 0;
-					int axis_value = event.caxis.value;
-					switch (event.caxis.axis)
-					{
-						/* left/right */
-						case SDL_CONTROLLER_AXIS_LEFTX:
-							direction_type = joy_axis_leftx->string;
-							threshold = joy_axis_leftx_threshold->value;
-							break;
-						/* top/bottom */
-						case SDL_CONTROLLER_AXIS_LEFTY:
-							direction_type = joy_axis_lefty->string;
-							threshold = joy_axis_lefty_threshold->value;
-							break;
-						/* second left/right */
-						case SDL_CONTROLLER_AXIS_RIGHTX:
-							direction_type = joy_axis_rightx->string;
-							threshold = joy_axis_rightx_threshold->value;
-							break;
-						/* second top/bottom */
-						case SDL_CONTROLLER_AXIS_RIGHTY:
-							direction_type = joy_axis_righty->string;
-							threshold = joy_axis_righty_threshold->value;
-							break;
-						case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
-							direction_type = joy_axis_triggerleft->string;
-							threshold = joy_axis_triggerleft_threshold->value;
-							break;
-						case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
-							direction_type = joy_axis_triggerright->string;
-							threshold = joy_axis_triggerright_threshold->value;
-							break;
-						default:
-							direction_type = "none";
-					}
+			{
+				char* direction_type;
+				float threshold = 0;
+				float fix_value = 0;
+				int axis_value = event.caxis.value;
+				switch (event.caxis.axis)
+				{
+					/* left/right */
+					case SDL_CONTROLLER_AXIS_LEFTX:
+						direction_type = joy_axis_leftx->string;
+						threshold = joy_axis_leftx_threshold->value;
+						break;
+					/* top/bottom */
+					case SDL_CONTROLLER_AXIS_LEFTY:
+						direction_type = joy_axis_lefty->string;
+						threshold = joy_axis_lefty_threshold->value;
+						break;
+					/* second left/right */
+					case SDL_CONTROLLER_AXIS_RIGHTX:
+						direction_type = joy_axis_rightx->string;
+						threshold = joy_axis_rightx_threshold->value;
+						break;
+					/* second top/bottom */
+					case SDL_CONTROLLER_AXIS_RIGHTY:
+						direction_type = joy_axis_righty->string;
+						threshold = joy_axis_righty_threshold->value;
+						break;
+					case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+						direction_type = joy_axis_triggerleft->string;
+						threshold = joy_axis_triggerleft_threshold->value;
+						break;
+					case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+						direction_type = joy_axis_triggerright->string;
+						threshold = joy_axis_triggerright_threshold->value;
+						break;
+					default:
+						direction_type = "none";
+				}
 
+				if (threshold > 0.9)
+					threshold = 0.9;
 
-					if (threshold > 0.9)
-						threshold = 0.9;
+				if (axis_value < 0 && (axis_value > (32768 * threshold)))
+					axis_value = 0;
+				else if (axis_value > 0 && (axis_value < (32768 * threshold)))
+					axis_value = 0;
 
-					if (axis_value < 0 && (axis_value > (32768 * threshold)))
-						axis_value = 0;
-					else if (axis_value > 0 && (axis_value < (32768 * threshold)))
-						axis_value = 0;
+				// Smoothly ramp from dead zone to maximum value (from ioquake)
+				fix_value = ((float)abs(axis_value) / 32767.0f - threshold) / (1.0f - threshold);
+				if (fix_value < 0.0f)
+					fix_value = 0.0f;
 
-					// Smoothly ramp from dead zone to maximum value (from ioquake)
-					fix_value = ((float)abs(axis_value) / 32767.0f - threshold) / (1.0f - threshold);
-					if (fix_value < 0.0f)
-						fix_value = 0.0f;
+				axis_value = (int)(32767 * ((axis_value < 0) ? -fix_value : fix_value));
 
-					axis_value = (int)(32767 * ((axis_value < 0) ? -fix_value : fix_value));
-
+				if (cls.key_dest == key_game && (int)cl_paused->value == 0)
+				{
 					if (strcmp(direction_type, "sidemove") == 0)
 					{
 						joystick_sidemove = axis_value * joy_sensitivity_sidemove->value;
@@ -564,6 +567,26 @@ IN_Update(void)
 						joystick_up *= cl_upspeed->value;
 					}
 				}
+
+				if (strcmp(direction_type, "triggerleft") == 0)
+				{
+					qboolean new_left_trigger = abs(axis_value) > (32767 / 2);
+					if (new_left_trigger != left_trigger)
+					{
+						left_trigger = new_left_trigger;
+						Key_Event(K_TRIG_LEFT, left_trigger, true);
+					}
+				}
+				else if (strcmp(direction_type, "triggerright") == 0)
+				{
+					qboolean new_right_trigger = abs(axis_value) > (32767 / 2);
+					if (new_right_trigger != right_trigger)
+					{
+						right_trigger = new_right_trigger;
+						Key_Event(K_TRIG_RIGHT, right_trigger, true);
+					}
+				}
+			}
 				break;
 			/* Joystick can have more buttons than on general game controller
 			 * so try to map not free buttons */
@@ -849,8 +872,8 @@ IN_Init(void)
 	joy_axis_lefty = Cvar_Get("joy_axis_lefty", "forwardmove", CVAR_ARCHIVE);
 	joy_axis_rightx = Cvar_Get("joy_axis_rightx", "yaw", CVAR_ARCHIVE);
 	joy_axis_righty = Cvar_Get("joy_axis_righty", "pitch", CVAR_ARCHIVE);
-	joy_axis_triggerleft = Cvar_Get("joy_axis_triggerleft", "none", CVAR_ARCHIVE);
-	joy_axis_triggerright = Cvar_Get("joy_axis_triggerright", "none", CVAR_ARCHIVE);
+	joy_axis_triggerleft = Cvar_Get("joy_axis_triggerleft", "triggerleft", CVAR_ARCHIVE);
+	joy_axis_triggerright = Cvar_Get("joy_axis_triggerright", "triggerright", CVAR_ARCHIVE);
 
 	joy_axis_leftx_threshold = Cvar_Get("joy_axis_leftx_threshold", "0.15", CVAR_ARCHIVE);
 	joy_axis_lefty_threshold = Cvar_Get("joy_axis_lefty_threshold", "0.15", CVAR_ARCHIVE);

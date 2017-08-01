@@ -155,6 +155,9 @@ enum QKEYS {
 	K_HAT_DOWN,
 	K_HAT_LEFT,
 
+	K_TRIG_LEFT,
+	K_TRIG_RIGHT,
+
 	K_AUX1,
 	K_AUX2,
 	K_AUX3,

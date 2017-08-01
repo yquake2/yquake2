@@ -144,6 +144,9 @@ keyname_t keynames[] = {
 	{"HAT_DOWN", K_HAT_DOWN},
 	{"HAT_LEFT", K_HAT_LEFT},
 
+	{"TRIG_LEFT", K_TRIG_LEFT},
+	{"TRIG_RIGHT", K_TRIG_RIGHT},
+
 	{"AUX1", K_AUX1},
 	{"AUX2", K_AUX2},
 	{"AUX3", K_AUX3},
