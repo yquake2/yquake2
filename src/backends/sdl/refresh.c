@@ -237,18 +237,18 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	int curWidth, curHeight;
 	int width = *pwidth;
 	int height = *pheight;
-	unsigned int fs_flag;
+	unsigned int fs_flag = 0;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	if (fullscreen == 1) {
 		fs_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
 	} else if (fullscreen == 2) {
 		fs_flag = SDL_WINDOW_FULLSCREEN;
-	} else {
-		fs_flag = 0;
 	}
 #else
-	fs_flag = SDL_FULLSCREEN;
+	if (fullscreen) {
+		fs_flag = SDL_FULLSCREEN;
+	}
 #endif
 
 	if (GetWindowSize(&curWidth, &curHeight) && (curWidth == width) && (curHeight == height))
