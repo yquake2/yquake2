@@ -73,12 +73,18 @@ GLimp_Init(void)
 			Com_Printf("Couldn't init SDL video: %s.\n", SDL_GetError());
 			return false;
 		}
+
+		SDL_version version;
+
 #if SDL_VERSION_ATLEAST(2, 0, 0)
+		SDL_GetVersion(&version);
 		const char* driverName = SDL_GetCurrentVideoDriver();
 #else
 		char driverName[64];
 		SDL_VideoDriverName(driverName, sizeof(driverName));
+		version = *SDL_Linked_Version();
 #endif
+		Com_Printf("SDL version is: %i.%i.%i\n", (int)version.major, (int)version.minor, (int)version.patch);
 		Com_Printf("SDL video driver is \"%s\".\n", driverName);
 	}
 
