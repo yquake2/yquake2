@@ -117,7 +117,7 @@ cvar_t *joy_axis_righty_threshold;
 cvar_t *joy_axis_triggerleft_threshold;
 cvar_t *joy_axis_triggerright_threshold;
 /* Joystick haptic */
-cvar_t *joy_harpic_level;
+cvar_t *joy_haptic_level;
 
 extern void GLimp_GrabInput(qboolean grab);
 
@@ -570,7 +570,7 @@ IN_Update(void)
 
 				if (strcmp(direction_type, "triggerleft") == 0)
 				{
-					qboolean new_left_trigger = abs(axis_value) > (32767 / 2);
+					qboolean new_left_trigger = abs(axis_value) > (32767 / 4);
 					if (new_left_trigger != left_trigger)
 					{
 						left_trigger = new_left_trigger;
@@ -579,7 +579,7 @@ IN_Update(void)
 				}
 				else if (strcmp(direction_type, "triggerright") == 0)
 				{
-					qboolean new_right_trigger = abs(axis_value) > (32767 / 2);
+					qboolean new_right_trigger = abs(axis_value) > (32767 / 4);
 					if (new_right_trigger != right_trigger)
 					{
 						right_trigger = new_right_trigger;
@@ -780,7 +780,6 @@ IN_MLookUp(void)
 }
 
 /* ------------------------------------------------------------------ */
-
 /*
  * Init haptic effects
  */
@@ -819,7 +818,7 @@ Haptic_Feedback(int type)
 {
 	int effect_id = -1;
 
-	if (joy_harpic_level->value <= 0)
+	if (joy_haptic_level->value <= 0)
 		return;
 
 	switch(type)
@@ -833,7 +832,7 @@ Haptic_Feedback(int type)
 	}
 
 	if (effect_id >= 0 && joystick_haptic)
-		SDL_HapticRunEffect(joystick_haptic, effect_id, (int)joy_harpic_level->value);
+		SDL_HapticRunEffect(joystick_haptic, effect_id, (int)joy_haptic_level->value);
 }
 
 /*
@@ -860,7 +859,7 @@ IN_Init(void)
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
 
-	joy_harpic_level = Cvar_Get("joy_harpic_level", "0.0", CVAR_ARCHIVE);
+	joy_haptic_level = Cvar_Get("joy_haptic_level", "0.0", CVAR_ARCHIVE);
 
 	joy_sensitivity_yaw = Cvar_Get("joy_sensitivity_yaw", "1.0", CVAR_ARCHIVE);
 	joy_sensitivity_pitch = Cvar_Get("joy_sensitivity_pitch", "1.0", CVAR_ARCHIVE);
