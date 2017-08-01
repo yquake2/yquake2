@@ -101,6 +101,7 @@ vidmode_t vid_modes[] = {
 	{"Mode 21: 1920x1080", 1920, 1080, 21},
 	{"Mode 22: 1920x1200", 1920, 1200, 22},
 	{"Mode 23: 2048x1536", 2048, 1536, 23},
+	{"Mode 24: 3840x2160", 3840, 2160, 24},
 };
 
 /* Console variables that we need to access from this module */
