@@ -339,7 +339,7 @@ enum
 };
 
 static int
-SetMode_impl(int *pwidth, int *pheight, int mode, qboolean fullscreen)
+SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 {
 	R_Printf(PRINT_ALL, "setting mode %d:", mode);
 
@@ -365,9 +365,9 @@ static qboolean
 GL3_SetMode(void)
 {
 	int err;
-	qboolean fullscreen;
+	int fullscreen;
 
-	fullscreen = vid_fullscreen->value;
+	fullscreen = (int)vid_fullscreen->value;
 
 	vid_fullscreen->modified = false;
 	gl_mode->modified = false;
@@ -397,7 +397,7 @@ GL3_SetMode(void)
 			vid_fullscreen->modified = false;
 			R_Printf(PRINT_ALL, "ref_gl3::GL3_SetMode() - fullscreen unavailable in this mode\n");
 
-			if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value, false)) == rserr_ok)
+			if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value, 0)) == rserr_ok)
 			{
 				return true;
 			}
@@ -418,7 +418,7 @@ GL3_SetMode(void)
 		}
 
 		/* try setting it back to something safe */
-		if ((err = SetMode_impl(&vid.width, &vid.height, gl3state.prev_mode, false)) != rserr_ok)
+		if ((err = SetMode_impl(&vid.width, &vid.height, gl3state.prev_mode, 0)) != rserr_ok)
 		{
 			R_Printf(PRINT_ALL, "ref_gl3::GL3_SetMode() - could not revert to safe mode\n");
 			return false;

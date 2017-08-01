@@ -1278,7 +1278,7 @@ R_Register(void)
  * Changes the video mode
  */
 static int
-SetMode_impl(int *pwidth, int *pheight, int mode, qboolean fullscreen)
+SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 {
 	R_Printf(PRINT_ALL, "setting mode %d:", mode);
 
@@ -1304,9 +1304,9 @@ qboolean
 R_SetMode(void)
 {
 	rserr_t err;
-	qboolean fullscreen;
+	int fullscreen;
 
-	fullscreen = vid_fullscreen->value;
+	fullscreen = (int)vid_fullscreen->value;
 
 	vid_fullscreen->modified = false;
 	gl_mode->modified = false;
@@ -1336,7 +1336,7 @@ R_SetMode(void)
 			vid_fullscreen->modified = false;
 			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
 
-			if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value, false)) == rserr_ok)
+			if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value, 0)) == rserr_ok)
 			{
 				return true;
 			}
@@ -1355,7 +1355,7 @@ R_SetMode(void)
 		}
 
 		/* try setting it back to something safe */
-		if ((err = SetMode_impl(&vid.width, &vid.height, gl_state.prev_mode, false)) != rserr_ok)
+		if ((err = SetMode_impl(&vid.width, &vid.height, gl_state.prev_mode, 0)) != rserr_ok)
 		{
 			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
 			return false;

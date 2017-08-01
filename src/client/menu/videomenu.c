@@ -338,6 +338,13 @@ VID_MenuInit(void)
 		0
 	};
 
+	static const char *fullscreen_names[] = {
+			"no",
+			"keep resolution",
+			"switch resolution",
+			0
+	};
+
 	static const char *pow2_names[] = {
 		"off",
 		"2x",
@@ -500,8 +507,8 @@ VID_MenuInit(void)
 	s_fs_box.generic.name = "fullscreen";
 	s_fs_box.generic.x = 0;
 	s_fs_box.generic.y = (y += 10);
-	s_fs_box.itemnames = yesno_names;
-	s_fs_box.curvalue = (vid_fullscreen->value != 0);
+	s_fs_box.itemnames = fullscreen_names;
+	s_fs_box.curvalue = (int)vid_fullscreen->value;
 
 	s_vsync_list.generic.type = MTYPE_SPINCONTROL;
 	s_vsync_list.generic.name = "vertical sync";

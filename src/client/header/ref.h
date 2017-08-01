@@ -234,7 +234,7 @@ typedef struct
 
 	void		(IMPORT *Vid_ShutdownWindow)(void);
 	int			(IMPORT *GLimp_Init)(void);
-	qboolean	(IMPORT *GLimp_InitGraphics)(qboolean fullscreen, int *pwidth, int *pheight);
+	qboolean	(IMPORT *GLimp_InitGraphics)(int fullscreen, int *pwidth, int *pheight);
 } refimport_t;
 
 // this is the only function actually exported at the linker level

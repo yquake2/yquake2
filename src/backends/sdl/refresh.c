@@ -55,7 +55,6 @@ static SDL_Surface* window = NULL;
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 // some compatibility defines
 #define SDL_SRCCOLORKEY SDL_TRUE
-#define SDL_FULLSCREEN SDL_WINDOW_FULLSCREEN
 #define SDL_OPENGL SDL_WINDOW_OPENGL
 
 #endif
@@ -74,12 +73,18 @@ GLimp_Init(void)
 			Com_Printf("Couldn't init SDL video: %s.\n", SDL_GetError());
 			return false;
 		}
+
+		SDL_version version;
+
 #if SDL_VERSION_ATLEAST(2, 0, 0)
+		SDL_GetVersion(&version);
 		const char* driverName = SDL_GetCurrentVideoDriver();
 #else
 		char driverName[64];
 		SDL_VideoDriverName(driverName, sizeof(driverName));
+		version = *SDL_Linked_Version();
 #endif
+		Com_Printf("SDL version is: %i.%i.%i\n", (int)version.major, (int)version.minor, (int)version.patch);
 		Com_Printf("SDL video driver is \"%s\".\n", driverName);
 	}
 
@@ -175,10 +180,16 @@ SetSDLIcon()
 }
 #endif /* SDL 1.2 */
 
-static qboolean IsFullscreen()
+static int IsFullscreen()
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	return !!(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN);
+	if (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+		return 1;
+	} else if (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN) {
+		return 2;
+	} else {
+		return 0;
+	}
 #else
 	return !!(window->flags & SDL_FULLSCREEN);
 #endif
@@ -226,12 +237,25 @@ static qboolean GetWindowSize(int* w, int* h)
  * Initializes the OpenGL window
  */
 qboolean
-GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
+GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 {
 	int flags;
 	int curWidth, curHeight;
 	int width = *pwidth;
 	int height = *pheight;
+	unsigned int fs_flag = 0;
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	if (fullscreen == 1) {
+		fs_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
+	} else if (fullscreen == 2) {
+		fs_flag = SDL_WINDOW_FULLSCREEN;
+	}
+#else
+	if (fullscreen) {
+		fs_flag = SDL_FULLSCREEN;
+	}
+#endif
 
 	if (GetWindowSize(&curWidth, &curHeight) && (curWidth == width) && (curHeight == height))
 	{
@@ -239,7 +263,7 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 		if (fullscreen != IsFullscreen())
 		{
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-			SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+			SDL_SetWindowFullscreen(window, fs_flag);
 #else
 			SDL_WM_ToggleFullScreen(window);
 #endif
@@ -279,9 +303,9 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 		return false;
 	}
 
-	if (fullscreen)
+	if (fs_flag)
 	{
-		flags |= SDL_FULLSCREEN;
+		flags |= fs_flag;
 	}
 
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
@@ -301,7 +325,7 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 				{
 					Com_Printf("SDL SetVideoMode failed: %s\n", SDL_GetError());
 					Com_Printf("Reverting to %s gl_mode %i (%ix%i) without MSAA.\n",
-					           (flags & SDL_FULLSCREEN) ? "fullscreen" : "windowed",
+					           (flags & fs_flag) ? "fullscreen" : "windowed",
 					           (int) Cvar_VariableValue("gl_mode"), width, height);
 
 					/* Try to recover */
@@ -310,7 +334,7 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 					SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 				}
 			}
-			else if (width != 640 || height != 480 || (flags & SDL_FULLSCREEN))
+			else if (width != 640 || height != 480 || (flags & fs_flag))
 			{
 				Com_Printf("SDL SetVideoMode failed: %s\n", SDL_GetError());
 				Com_Printf("Reverting to windowed gl_mode 4 (640x480).\n");
@@ -321,7 +345,7 @@ GLimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 				VID_NewWindow(width, height);
 				*pwidth = width = 640;
 				*pheight = height = 480;
-				flags &= ~SDL_FULLSCREEN;
+				flags &= ~fs_flag;
 			}
 			else
 			{
