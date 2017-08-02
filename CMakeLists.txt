@@ -47,7 +47,7 @@ set(yquake2IncludeDirectories)
 set(yquake2LinkerDirectories)
 set(yquake2LinkerFlags)
 set(yquake2ClientLinkerFlags)
-set(yquake2RendererLinkerFlags)
+set(yquake2OpenGLLinkerFlags)
 set(yquake2SDLLinkerFlags)
 set(yquake2ZLibLinkerFlags)
 
@@ -93,7 +93,7 @@ endif()
 
 find_package(OpenGL REQUIRED)
 list(APPEND yquake2IncludeDirectories ${OPENGL_INCLUDE_DIR})
-list(APPEND yquake2RendererLinkerFlags ${OPENGL_LIBRARIES})
+list(APPEND yquake2OpenGLLinkerFlags ${OPENGL_LIBRARIES})
 
 if(${ZIP_SUPPORT})
 	find_package(ZLIB REQUIRED)
@@ -535,4 +535,4 @@ set_target_properties(ref_gl3 PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		)
-target_link_libraries(ref_gl3 ${yquake2LinkerFlags} ${yquake2OpenGLLinkerFlags} ${yquake2SDLLinkerFlags})
+target_link_libraries(ref_gl3 ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
