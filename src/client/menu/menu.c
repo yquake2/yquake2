@@ -2819,38 +2819,23 @@ StartServer_MenuInit(void)
         "tag",
         0
     };
+
     char *buffer;
-    char mapsname[1024];
     char *s;
     int length;
     int i;
-    FILE *fp;
     float scale = SCR_GetMenuScale();
 
     /* initialize list of maps once, reuse it afterwards (=> it isn't freed) */
     if (mapnames == NULL)
     {
         /* load the list of map names */
-        Com_sprintf(mapsname, sizeof(mapsname), "%s/maps.lst", FS_Gamedir());
-
-        if ((fp = fopen(mapsname, "rb")) == 0)
+        if ((length = FS_LoadFile("maps.lst", (void **)&buffer)) == -1)
         {
-            if ((length = FS_LoadFile("maps.lst", (void **)&buffer)) == -1)
-            {
-                Com_Error(ERR_DROP, "couldn't find maps.lst\n");
-            }
-        }
-        else
-        {
-            fseek(fp, 0, SEEK_END);
-            length = ftell(fp);
-            fseek(fp, 0, SEEK_SET);
-            buffer = malloc(length);
-            fread(buffer, length, 1, fp);
+            Com_Error(ERR_DROP, "couldn't find maps.lst\n");
         }
 
         s = buffer;
-
         i = 0;
 
         while (i < length)
@@ -2896,17 +2881,7 @@ StartServer_MenuInit(void)
         }
 
         mapnames[nummaps] = 0;
-
-        if (fp != 0)
-        {
-            fclose(fp);
-            fp = 0;
-            free(buffer);
-        }
-        else
-        {
-            FS_FreeFile(buffer);
-        }
+        FS_FreeFile(buffer);
     }
 
     /* initialize the menu stuff */
