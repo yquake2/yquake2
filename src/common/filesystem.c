@@ -335,6 +335,7 @@ Developer_searchpath(int who)
 {
 	fsSearchPath_t *search;
 
+	// TODO: Distinguish baseq from mods.
 	for (search = fs_searchPaths; search; search = search->next)
 	{
 		if (strstr(search->path, "xatrix"))
@@ -380,6 +381,14 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 		{
 			if (strstr(search->path, FS_Gamedir()) == NULL)
 			{
+				continue;
+			}
+		}
+
+		// Evil hack for maps.lst and players/
+		// TODO: A flag to ignore paks would be better
+		if ((Developer_searchpath(0) == 0) && search->pack) {
+			if ((strcmp(name, "maps.lst") == 0)|| (strncmp(name, "players/", 8) == 0)) {
 				continue;
 			}
 		}
