@@ -330,28 +330,6 @@ FS_FCloseFile(fileHandle_t f)
 	memset(handle, 0, sizeof(*handle));
 }
 
-int
-Developer_searchpath(int who)
-{
-	fsSearchPath_t *search;
-
-	// TODO: Distinguish baseq from mods.
-	for (search = fs_searchPaths; search; search = search->next)
-	{
-		if (strstr(search->path, "xatrix"))
-		{
-			return 1;
-		}
-
-		if (strstr(search->path, "rogue"))
-		{
-			return 2;
-		}
-	}
-
-	return 0;
-}
-
 /*
  * Finds the file in the search path. Returns filesize and an open FILE *. Used
  * for streaming data out of either a pak file or a seperate file.
@@ -387,7 +365,7 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 
 		// Evil hack for maps.lst and players/
 		// TODO: A flag to ignore paks would be better
-		if ((Developer_searchpath(0) == 0) && search->pack) {
+		if ((strcmp(fs_gamedirvar->string, "") == 0) && search->pack) {
 			if ((strcmp(name, "maps.lst") == 0)|| (strncmp(name, "players/", 8) == 0)) {
 				continue;
 			}
