@@ -162,10 +162,8 @@ is searched at:
 - The directory given with the *+set basedir /path/to/quake2_installation/*
   commandline argument.
 
-Yamagi Quake II has support for an alternative startup config. It may be a good
-idea to install it, since it sets some global options to sane defaults. Copy
-yq2.cfg to the baseq2/ subdirectory in your gamedata directory. Usually yq2.cfg
-can be found somewhere in /usr/share or /usr/local/share.
+If you're a package maintainer, please look at our documentation at
+[stuff/packaging.md](stuff/packaging.md).
 
 
 ### Compiling from source
