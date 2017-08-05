@@ -65,6 +65,8 @@ int findhandle;
 int argc;
 char *argv[MAX_NUM_ARGVS];
 
+qboolean is_portable;
+
 /* ================================================================ */
 
 void
@@ -647,31 +649,33 @@ void
 Sys_RedirectStdout(void)
 {
 	char *cur;
-	char *home;
 	char *old;
+	char dir[MAX_OSPATH];
 	char path_stdout[MAX_OSPATH];
 	char path_stderr[MAX_OSPATH];
+	const char *tmp;
 
-	if (portable->value)
+	if (is_portable) {
+		tmp = Sys_GetBinaryDir();
+		Q_strlcpy(dir, tmp, sizeof(dir));
+	} else {
+		tmp = Sys_GetHomeDir();
+		Q_strlcpy(dir, tmp, sizeof(dir));
+	}
+
+	if (dir == NULL)
 	{
 		return;
 	}
 
-	home = Sys_GetHomeDir();
-
-	if (home == NULL)
-	{
-		return;
-	}
-
-	cur = old = home;
+	cur = old = dir;
 
 	while (cur != NULL)
 	{
 		if ((cur - old) > 1)
 		{
 			*cur = '\0';
-			Sys_Mkdir(home);
+			Sys_Mkdir(dir);
 			*cur = '/';
 		}
 
@@ -679,8 +683,8 @@ Sys_RedirectStdout(void)
 		cur = strchr(old + 1, '/');
 	}
 
-	snprintf(path_stdout, sizeof(path_stdout), "%s/%s", home, "stdout.txt");
-	snprintf(path_stderr, sizeof(path_stderr), "%s/%s", home, "stderr.txt");
+	snprintf(path_stdout, sizeof(path_stdout), "%s/%s", dir, "stdout.txt");
+	snprintf(path_stderr, sizeof(path_stderr), "%s/%s", dir, "stderr.txt");
 
 	freopen(path_stdout, "w", stdout);
 	freopen(path_stderr, "w", stderr);
@@ -755,7 +759,21 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	/* Force DPI awareness */
 	Sys_SetHighDPIMode();
 
-	/* FIXME: No one can see this! */
+	/* Parse the command line arguments */
+	ParseCommandLine(lpCmdLine);
+
+	/* Are we portable? */
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "-portable") == 0) {
+			is_portable = true;
+		}
+	}
+
+	/* Need to redirect stdout before anything happens. */
+#ifndef DEDICATED_ONLY
+	Sys_RedirectStdout();
+#endif
+
 	printf("Yamagi Quake II v%s\n", YQ2VERSION);
 	printf("=====================\n\n");
 
@@ -791,11 +809,9 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	printf("Platform: %s\n", YQ2OSTYPE);
 	printf("Architecture: %s\n", YQ2ARCH);
 
+
 	/* Seed PRNG */
 	randk_seed();
-
-	/* Parse the command line arguments */
-	ParseCommandLine(lpCmdLine);
 
 	/* Call the initialization code */
 	Qcommon_Init(argc, argv);

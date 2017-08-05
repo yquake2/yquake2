@@ -33,6 +33,8 @@
 #include "../../common/header/common.h"
 #include "header/unix.h"
 
+qboolean is_portable;
+
 int
 main(int argc, char **argv)
 {
@@ -46,6 +48,13 @@ main(int argc, char **argv)
 
 	/* register signal handler */
 	registerHandler();
+
+	/* Are we portable? */
+	for (i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "-portable") == 0) {
+			is_portable = true;
+		}
+	}
 
 	/* Prevent running Quake II as root. Only very mad
 	   minded or stupid people even think about it. :) */

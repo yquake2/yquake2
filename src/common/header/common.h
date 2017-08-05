@@ -643,7 +643,7 @@ void Pmove(pmove_t *pmove);
 
 #define SFF_INPACK 0x20
 
-extern int file_from_pak;
+extern qboolean file_from_pak;
 
 typedef int fileHandle_t;
 
@@ -680,7 +680,7 @@ char **FS_ListFiles2(char *findname, int *numfiles,
 void FS_FreeList(char **list, int nfiles);
 
 void FS_InitFilesystem(void);
-void FS_SetGamedir(char *dir);
+void FS_BuildGameSpecificSearchPath(char *dir);
 char *FS_Gamedir(void);
 char *FS_NextPath(char *prevpath);
 int FS_LoadFile(char *path, void **buffer);
@@ -726,7 +726,9 @@ extern cvar_t *modder;
 extern cvar_t *dedicated;
 extern cvar_t *host_speeds;
 extern cvar_t *log_stats;
-extern cvar_t *portable;
+
+/* Hack for portable client */
+extern qboolean is_portable;
 
 extern FILE *log_stats_file;
 

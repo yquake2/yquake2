@@ -785,7 +785,7 @@ Key_WriteConsoleHistory()
 	int i;
 	char path[MAX_OSPATH];
 
-	if (portable->value)
+	if (is_portable)
 	{
 		Com_sprintf(path, sizeof(path), "%sconsole_history.txt", Sys_GetBinaryDir());
 	}
@@ -832,7 +832,7 @@ Key_ReadConsoleHistory()
 
 	char path[MAX_OSPATH];
 
-	if (portable->value)
+	if (is_portable)
 	{
 		Com_sprintf(path, sizeof(path), "%sconsole_history.txt", Sys_GetBinaryDir());
 	}
