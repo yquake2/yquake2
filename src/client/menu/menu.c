@@ -4393,8 +4393,6 @@ M_Keydown(int key)
         if ((s = m_keyfunc(key)) != 0)
         {
             S_StartLocalSound((char *)s);
-            if (s)
-                Haptic_Feedback(HARPIC_MENU_CLICK);
         }
     }
 }

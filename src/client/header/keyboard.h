@@ -311,7 +311,7 @@ extern int		chat_bufferlen;
 extern int		chat_cursorpos;
 extern qboolean	chat_team;
 
-void Haptic_Feedback(int type);
+void Haptic_Feedback(char *name);
 void Char_Event(int key);
 void Key_Event(int key, qboolean down, qboolean special);
 void Key_Init(void);
