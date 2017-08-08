@@ -136,7 +136,7 @@ Com_VPrintf(int print_level, const char *fmt, va_list argptr)
 		/* logfile */
 		if (logfile_active && logfile_active->value)
 		{
-			char name[MAX_QPATH];
+			char name[MAX_OSPATH];
 
 			if (!logfile)
 			{
