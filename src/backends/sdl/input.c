@@ -809,6 +809,7 @@ IN_Haptic_Effect_Init(int dir, int period, int magnitude, int length, int attack
 	 * South - 18000
 	 * West - 27000
 	 */
+	 int effect_id;
 	static SDL_HapticEffect haptic_effect;
 	SDL_memset(&haptic_effect, 0, sizeof(SDL_HapticEffect)); // 0 is safe default
 	haptic_effect.type = SDL_HAPTIC_SINE;
@@ -819,7 +820,12 @@ IN_Haptic_Effect_Init(int dir, int period, int magnitude, int length, int attack
 	haptic_effect.periodic.length = length;
 	haptic_effect.periodic.attack_length = attack;
 	haptic_effect.periodic.fade_length = fade;
-	return SDL_HapticNewEffect(joystick_haptic, &haptic_effect);
+	effect_id = SDL_HapticNewEffect(joystick_haptic, &haptic_effect);
+	if (effect_id < 0)
+	{
+		Com_Printf ("SDL_HapticNewEffect failed: %s", SDL_GetError());
+	}
+	return effect_id;
 }
 
 static void
@@ -833,88 +839,129 @@ IN_Haptic_Effects_Init(void)
 	if ((SDL_HapticQuery(joystick_haptic) & SDL_HAPTIC_SINE)==0)
 		return;
 
+	int hapric_volume = joy_haptic_level->value * 255; // * 128 = 32767 max strength;
+	if (hapric_volume > 255)
+		hapric_volume = 255;
+	else if (hapric_volume < 0)
+		hapric_volume = 0;
+
 	/* North */
 	haptic_menu_effect_id = IN_Haptic_Effect_Init(
-		0/* Force comes from N*/, 500/* 500 ms*/, 9000/* 9000/32767 strength*/,
+		0/* Force comes from N*/, 500/* 500 ms*/, hapric_volume * 32,
 		200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	haptic_pain_effect_id = IN_Haptic_Effect_Init(
-		0/* Force comes from N*/, 500/* 500 ms*/, 15000/* 15000/32767 strength*/,
+		0/* Force comes from N*/, 500/* 500 ms*/, hapric_volume * 64,
 		200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	haptic_step_effect_id = IN_Haptic_Effect_Init(
-		0/* Force comes from N*/, 500/* 500 ms*/, 10000/* 10000/32767 strength*/,
+		0/* Force comes from N*/, 500/* 500 ms*/, hapric_volume * 48,
 		200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	/* Force by circle */
 	/* 30 degrees */
 	haptic_blaster_effect_id = IN_Haptic_Effect_Init(
-		2000/* Force comes from NNE*/, 500/* 500 ms*/, 15000/* 15000/32767 strength */,
+		2000/* Force comes from NNE*/, 500/* 500 ms*/, hapric_volume * 64,
 		200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	haptic_hyper_blaster_effect_id = IN_Haptic_Effect_Init(
-		4000/* Force comes from NNE*/, 500/* 500 ms*/, 15000/* 15000/32767 strength*/,
+		4000/* Force comes from NNE*/, 500/* 500 ms*/, hapric_volume * 64,
 		200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	/* 60 degrees */
 	haptic_etfrifle_effect_id = IN_Haptic_Effect_Init(
-		5000/* Force comes from NEE*/, 500/* 500 ms*/, 15000/* 15000/32767 strength*/,
+		5000/* Force comes from NEE*/, 500/* 500 ms*/, hapric_volume * 64,
 		200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	haptic_tracker_effect_id = IN_Haptic_Effect_Init(
-		7000/* Force comes from NEE*/, 500/* 500 ms*/, 15000/* 15000/32767 strength*/,
+		7000/* Force comes from NEE*/, 500/* 500 ms*/, hapric_volume * 64,
 		200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	/* 90 degrees */
 	haptic_machineguin_effect_id = IN_Haptic_Effect_Init(
-		9000/* Force comes from E*/, 800/* 800 ms*/, 20000/* 20000/32767 strength*/,
+		9000/* Force comes from E*/, 800/* 800 ms*/, hapric_volume * 88,
 		600/* 0.6 seconds long */, 200/* Takes 0.2 second to get max strength */,
 		400/* Takes 0.4 second to fade away */);
 	/* 120 degrees */
 	haptic_shotgun_effect_id = IN_Haptic_Effect_Init(
-		12000/* Force comes from EES*/, 700/* 700 ms*/, 25000/* 15000/32767 strength*/,
+		12000/* Force comes from EES*/, 700/* 700 ms*/, hapric_volume * 100,
 		500/* 0.5 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		200/* Takes 0.2 second to fade away */);
 	/* 150 degrees */
 	haptic_shotgun2_effect_id = IN_Haptic_Effect_Init(
-		14000/* Force comes from ESS*/, 700/* 700 ms*/, 24000/* 20000/32767 strength*/,
+		14000/* Force comes from ESS*/, 700/* 700 ms*/, hapric_volume * 96,
 		500/* 0.5 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	haptic_sshotgun_effect_id = IN_Haptic_Effect_Init(
-		16000/* Force comes from ESS*/, 700/* 700 ms*/, 24000/* 20000/32767 strength*/,
+		16000/* Force comes from ESS*/, 700/* 700 ms*/, hapric_volume * 96,
 		500/* 0.5 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	/* 180 degrees */
 	haptic_railgun_effect_id = IN_Haptic_Effect_Init(
-		18000/* Force comes from S*/, 700/* 700 ms*/, 15000/* 15000/32767 strength*/,
+		18000/* Force comes from S*/, 700/* 700 ms*/, hapric_volume * 64,
 		400/* 0.4 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	/* 210 degrees */
 	haptic_rocketgun_effect_id = IN_Haptic_Effect_Init(
-		21000/* Force comes from SSW*/, 700/* 700 ms*/, 30000/* 15000/32767 strength*/,
+		21000/* Force comes from SSW*/, 700/* 700 ms*/, hapric_volume * 128,
 		400/* 0.4 seconds long */, 300/* Takes 0.3 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	/* 240 degrees */
 	haptic_grenade_effect_id = IN_Haptic_Effect_Init(
-		24000/* Force comes from SWW*/, 500/* 500 ms*/, 15000/* 15000/32767 strength*/,
+		24000/* Force comes from SWW*/, 500/* 500 ms*/, hapric_volume * 64,
 		200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	/* 270 degrees */
 	haptic_bfg_effect_id = IN_Haptic_Effect_Init(
-		27000/* Force comes from W*/, 800/* 800 ms*/, 25000/* 25000/32767 strength*/,
+		27000/* Force comes from W*/, 800/* 800 ms*/, hapric_volume * 100,
 		600/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	/* 300 degrees */
 	haptic_palanx_effect_id = IN_Haptic_Effect_Init(
-		30000/* Force comes from WWN*/, 500/* 500 ms*/, 15000/* 15000/32767 strength*/,
+		30000/* Force comes from WWN*/, 500/* 500 ms*/, hapric_volume * 64,
 		200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 	/* 330 degrees */
 	haptic_ionripper_effect_id = IN_Haptic_Effect_Init(
-		33000/* Force comes from WNN*/, 500/* 500 ms*/, 15000/* 15000/32767 strength*/,
+		33000/* Force comes from WNN*/, 500/* 500 ms*/, hapric_volume * 64,
 		200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 		100/* Takes 0.1 second to fade away */);
 }
+
+/*
+ * Shuts the backend down
+ */
+static void
+IN_Haptic_Effect_Shutdown(int * effect_id)
+{
+	if (*effect_id)
+		SDL_HapticDestroyEffect(joystick_haptic, *effect_id);
+	*effect_id = -1;
+}
+
+static void
+IN_Haptic_Effects_Shotdown(void)
+{
+	IN_Haptic_Effect_Shutdown(&haptic_blaster_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_menu_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_hyper_blaster_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_machineguin_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_shotgun_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_sshotgun_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_railgun_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_rocketgun_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_grenade_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_bfg_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_palanx_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_ionripper_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_etfrifle_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_shotgun2_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_tracker_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_pain_effect_id);
+	IN_Haptic_Effect_Shutdown(&haptic_step_effect_id);
+}
+
+static int last_haptic = 0;
 
 void
 Haptic_Feedback(char *name)
@@ -923,6 +970,16 @@ Haptic_Feedback(char *name)
 
 	if (joy_haptic_level->value <= 0)
 		return;
+
+	if (!joystick_haptic)
+		return;
+
+	if (last_haptic != (joy_haptic_level->value * 255))
+	{
+		IN_Haptic_Effects_Shotdown();
+		IN_Haptic_Effects_Init();
+	}
+	last_haptic = joy_haptic_level->value * 255;
 
 	if (strstr(name, "misc/menu"))
 	{
@@ -956,15 +1013,7 @@ Haptic_Feedback(char *name)
 	{
 		effect_id = haptic_rocketgun_effect_id;
 	}
-	else if (strstr(name, "weapons/rocklf1a"))
-	{
-		effect_id = haptic_rocketgun_effect_id;
-	}
-	else if (strstr(name, "weapons/grenlf1a"))
-	{
-		effect_id = haptic_grenade_effect_id;
-	}
-	else if (strstr(name, "weapons/grenlf1a"))
+	else if (strstr(name, "weapons/grenlf1a") || strstr(name, "weapons/hgrent1a"))
 	{
 		effect_id = haptic_grenade_effect_id;
 	}
@@ -975,10 +1024,6 @@ Haptic_Feedback(char *name)
 	else if (strstr(name, "weapons/plasshot"))
 	{
 		effect_id = haptic_palanx_effect_id;
-	}
-	else if (strstr(name, "weapons/rippfire"))
-	{
-		effect_id = haptic_ionripper_effect_id;
 	}
 	else if (strstr(name, "weapons/rippfire"))
 	{
@@ -1000,13 +1045,12 @@ Haptic_Feedback(char *name)
 	{
 		effect_id = haptic_pain_effect_id;
 	}
-	else if (strstr(name, "player/step"))
+	else if (strstr(name, "player/step") || strstr(name, "weapons/trapcock"))
 	{
 		effect_id = haptic_step_effect_id;
 	}
-
-	if (effect_id >= 0 && joystick_haptic)
-		SDL_HapticRunEffect(joystick_haptic, effect_id, (int)joy_haptic_level->value);
+	if (effect_id >= 0)
+		SDL_HapticRunEffect(joystick_haptic, effect_id, 1);
 }
 
 /*
@@ -1091,10 +1135,6 @@ IN_Init(void)
 					joystick_haptic = SDL_HapticOpenFromJoystick(joystick);
 					if (joystick_haptic == NULL)
 						Com_Printf ("Most likely joystick isn't haptic\n");
-					else
-					{
-						IN_Haptic_Effects_Init();
-					}
 
 					if(SDL_IsGameController(i))
 					{
@@ -1134,25 +1174,10 @@ IN_Init(void)
 				joystick_haptic = SDL_HapticOpenFromMouse();
 				if (joystick_haptic == NULL)
 					Com_Printf ("Most likely mouse isn't haptic\n");
-				else
-				{
-					IN_Haptic_Effects_Init();
-				}
 			}
 		}
 	}
 #endif
-}
-
-/*
- * Shuts the backend down
- */
-static void
-IN_Haptic_Effect_Shutdown(int * effect_id)
-{
-	if (*effect_id)
-		SDL_HapticDestroyEffect(joystick_haptic, *effect_id);
-	*effect_id = -1;
 }
 
 void
@@ -1166,26 +1191,7 @@ IN_Shutdown(void)
 
 	if (joystick_haptic)
 	{
-		if (haptic_blaster_effect_id >=0)
-			SDL_HapticDestroyEffect(joystick_haptic, haptic_blaster_effect_id);
-		haptic_blaster_effect_id = -1;
-
-		IN_Haptic_Effect_Shutdown(&haptic_menu_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_hyper_blaster_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_machineguin_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_shotgun_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_sshotgun_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_railgun_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_rocketgun_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_grenade_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_bfg_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_palanx_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_ionripper_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_etfrifle_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_shotgun2_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_tracker_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_pain_effect_id);
-		IN_Haptic_Effect_Shutdown(&haptic_step_effect_id);
+		IN_Haptic_Effects_Shotdown();
 
 		SDL_HapticClose(joystick_haptic);
 		joystick_haptic = NULL;
