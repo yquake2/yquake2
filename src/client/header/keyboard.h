@@ -37,12 +37,6 @@
  * instead of % so -1 wraps to NUM_KEY_LINES-1 */
 #define NUM_KEY_LINES 32
 
-/* Haptic feedback types */
-enum HARPICTYPES {
-	HARPIC_CLICK = 0,
-	HARPIC_MENU_CLICK = 1
-};
-
 /* these are the key numbers that should be passed to Key_Event
    they must be mached by the low level key event processing! */
 enum QKEYS {
