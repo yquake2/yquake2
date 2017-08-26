@@ -960,12 +960,17 @@ IN_Haptic_Effects_To_Id(int haptic_effect)
 }
 
 static void
-IN_Haptic_Effects_Init(void)
+IN_Haptic_Effects_Info(void)
 {
 	Com_Printf ("Joystic/Mouse haptic:\n");
 	Com_Printf (" * %d effects\n", SDL_HapticNumEffects(joystick_haptic));
 	Com_Printf (" * %d effects in same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
 	Com_Printf (" * %d haptic axis\n", SDL_HapticNumAxes(joystick_haptic));
+}
+
+static void
+IN_Haptic_Effects_Init(void)
+{
 	last_haptic_efffect_size = SDL_HapticNumEffectsPlaying(joystick_haptic);
 	if (last_haptic_efffect_size > HAPTIC_EFFECT_LAST)
 		last_haptic_efffect_size = HAPTIC_EFFECT_LAST;
@@ -1187,6 +1192,8 @@ IN_Init(void)
 					joystick_haptic = SDL_HapticOpenFromJoystick(joystick);
 					if (joystick_haptic == NULL)
 						Com_Printf ("Most likely joystick isn't haptic\n");
+					else
+						IN_Haptic_Effects_Info();
 
 					if(SDL_IsGameController(i))
 					{
@@ -1226,6 +1233,8 @@ IN_Init(void)
 				joystick_haptic = SDL_HapticOpenFromMouse();
 				if (joystick_haptic == NULL)
 					Com_Printf ("Most likely mouse isn't haptic\n");
+				else
+					IN_Haptic_Effects_Info();
 			}
 		}
 	}
