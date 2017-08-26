@@ -96,6 +96,10 @@ enum QHARPICTYPES {
 	HAPTIC_EFFECT_TRAPCOCK,
 	HAPTIC_EFFECT_LAST
 };
+static int last_haptic_volume = 0;
+static int last_haptic_efffect[HAPTIC_EFFECT_LAST] = {-1};
+static int last_haptic_efffect_size = HAPTIC_EFFECT_LAST;
+static int last_haptic_efffect_pos = 0;
 
 /* Joystick */
 static SDL_Haptic *joystick_haptic = NULL;
@@ -814,7 +818,7 @@ IN_Haptic_Effect_Init(int dir, int period, int magnitude, int length, int attack
 	 * South - 18000
 	 * West - 27000
 	 */
-	 int effect_id;
+	int effect_id;
 	static SDL_HapticEffect haptic_effect;
 	SDL_memset(&haptic_effect, 0, sizeof(SDL_HapticEffect)); // 0 is safe default
 	haptic_effect.type = SDL_HAPTIC_SINE;
@@ -956,6 +960,13 @@ IN_Haptic_Effects_Init(void)
 	Com_Printf (" * %d effects\n", SDL_HapticNumEffects(joystick_haptic));
 	Com_Printf (" * %d effects in same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
 	Com_Printf (" * %d haptic axis\n", SDL_HapticNumAxes(joystick_haptic));
+	last_haptic_efffect_size = SDL_HapticNumEffectsPlaying(joystick_haptic);
+	if (last_haptic_efffect_size > HAPTIC_EFFECT_LAST)
+		last_haptic_efffect_size = HAPTIC_EFFECT_LAST;
+	for (int i=0; i<HAPTIC_EFFECT_LAST; i++)
+	{
+		last_haptic_efffect[i] = -1;
+	}
 }
 
 /*
@@ -964,18 +975,20 @@ IN_Haptic_Effects_Init(void)
 static void
 IN_Haptic_Effect_Shutdown(int * effect_id)
 {
-	if (*effect_id && *effect_id >= 0)
+	if (!effect_id)
+		return;
+	if (*effect_id >= 0)
 		SDL_HapticDestroyEffect(joystick_haptic, *effect_id);
 	*effect_id = -1;
 }
 
-static int last_haptic_volume = 0;
-static int last_haptic_efffect = -1;
-
 static void
 IN_Haptic_Effects_Shotdown(void)
 {
-	IN_Haptic_Effect_Shutdown(&last_haptic_efffect);
+	for (int i=0; i<HAPTIC_EFFECT_LAST; i++)
+	{
+		IN_Haptic_Effect_Shutdown(&last_haptic_efffect[i]);
+	}
 }
 
 void
@@ -989,7 +1002,7 @@ Haptic_Feedback(char *name)
 	if (!joystick_haptic)
 		return;
 
-	if (last_haptic_volume != (joy_haptic_level->value * 255))
+	if (last_haptic_volume != (int)(joy_haptic_level->value * 255))
 	{
 		IN_Haptic_Effects_Shotdown();
 		IN_Haptic_Effects_Init();
@@ -1071,9 +1084,11 @@ Haptic_Feedback(char *name)
 
 	if (effect_id != HAPTIC_EFFECT_UNKNOWN)
 	{
-		IN_Haptic_Effect_Shutdown(&last_haptic_efffect);
-		last_haptic_efffect = IN_Haptic_Effects_To_Id(effect_id);
-		SDL_HapticRunEffect(joystick_haptic, last_haptic_efffect, 1);
+		// FIFO for effects
+		last_haptic_efffect_pos = (last_haptic_efffect_pos+1) % last_haptic_efffect_size;
+		IN_Haptic_Effect_Shutdown(&last_haptic_efffect[last_haptic_efffect_pos]);
+		last_haptic_efffect[last_haptic_efffect_pos] = IN_Haptic_Effects_To_Id(effect_id);
+		SDL_HapticRunEffect(joystick_haptic, last_haptic_efffect[last_haptic_efffect_pos], 1);
 	}
 }
 
