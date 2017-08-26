@@ -96,8 +96,14 @@ enum QHARPICTYPES {
 	HAPTIC_EFFECT_TRAPCOCK,
 	HAPTIC_EFFECT_LAST
 };
+
+struct hapric_effects_cache {
+    int effect_type;
+    int effect_id;
+};
+
 static int last_haptic_volume = 0;
-static int last_haptic_efffect[HAPTIC_EFFECT_LAST] = {-1};
+static struct hapric_effects_cache last_haptic_efffect[HAPTIC_EFFECT_LAST];
 static int last_haptic_efffect_size = HAPTIC_EFFECT_LAST;
 static int last_haptic_efffect_pos = 0;
 
@@ -965,7 +971,8 @@ IN_Haptic_Effects_Init(void)
 		last_haptic_efffect_size = HAPTIC_EFFECT_LAST;
 	for (int i=0; i<HAPTIC_EFFECT_LAST; i++)
 	{
-		last_haptic_efffect[i] = -1;
+		last_haptic_efffect[i].effect_type = HAPTIC_EFFECT_UNKNOWN;
+		last_haptic_efffect[i].effect_id = -1;
 	}
 }
 
@@ -987,14 +994,15 @@ IN_Haptic_Effects_Shotdown(void)
 {
 	for (int i=0; i<HAPTIC_EFFECT_LAST; i++)
 	{
-		IN_Haptic_Effect_Shutdown(&last_haptic_efffect[i]);
+		last_haptic_efffect[i].effect_type = HAPTIC_EFFECT_UNKNOWN;
+		IN_Haptic_Effect_Shutdown(&last_haptic_efffect[i].effect_id);
 	}
 }
 
 void
 Haptic_Feedback(char *name)
 {
-	int effect_id = HAPTIC_EFFECT_UNKNOWN;
+	int effect_type = HAPTIC_EFFECT_UNKNOWN;
 
 	if (joy_haptic_level->value <= 0)
 		return;
@@ -1011,84 +1019,89 @@ Haptic_Feedback(char *name)
 
 	if (strstr(name, "misc/menu"))
 	{
-		effect_id = HAPTIC_EFFECT_MENY;
+		effect_type = HAPTIC_EFFECT_MENY;
 	}
 	else if (strstr(name, "weapons/blastf1a"))
 	{
-		effect_id = HAPTIC_EFFECT_BLASTER;
+		effect_type = HAPTIC_EFFECT_BLASTER;
 	}
 	else if (strstr(name, "weapons/hyprbf1a"))
 	{
-		effect_id = HAPTIC_EFFECT_HYPER_BLASTER;
+		effect_type = HAPTIC_EFFECT_HYPER_BLASTER;
 	}
 	else if (strstr(name, "weapons/machgf"))
 	{
-		effect_id = HAPTIC_EFFECT_MACHINEGUN;
+		effect_type = HAPTIC_EFFECT_MACHINEGUN;
 	}
 	else if (strstr(name, "weapons/shotgf1b"))
 	{
-		effect_id = HAPTIC_EFFECT_SHOTGUN;
+		effect_type = HAPTIC_EFFECT_SHOTGUN;
 	}
 	else if (strstr(name, "weapons/sshotf1b"))
 	{
-		effect_id = HAPTIC_EFFECT_SSHOTGUN;
+		effect_type = HAPTIC_EFFECT_SSHOTGUN;
 	}
 	else if (strstr(name, "weapons/railgf1a"))
 	{
-		effect_id = HAPTIC_EFFECT_RAILGUN;
+		effect_type = HAPTIC_EFFECT_RAILGUN;
 	}
 	else if (strstr(name, "weapons/rocklf1a"))
 	{
-		effect_id = HAPTIC_EFFECT_ROCKETGUN;
+		effect_type = HAPTIC_EFFECT_ROCKETGUN;
 	}
 	else if (strstr(name, "weapons/grenlf1a") || strstr(name, "weapons/hgrent1a"))
 	{
-		effect_id = HAPTIC_EFFECT_GRENADE;
+		effect_type = HAPTIC_EFFECT_GRENADE;
 	}
 	else if (strstr(name, "weapons/bfg__f1y"))
 	{
-		effect_id = HAPTIC_EFFECT_BFG;
+		effect_type = HAPTIC_EFFECT_BFG;
 	}
 	else if (strstr(name, "weapons/plasshot"))
 	{
-		effect_id = HAPTIC_EFFECT_PALANX;
+		effect_type = HAPTIC_EFFECT_PALANX;
 	}
 	else if (strstr(name, "weapons/rippfire"))
 	{
-		effect_id = HAPTIC_EFFECT_IONRIPPER;
+		effect_type = HAPTIC_EFFECT_IONRIPPER;
 	}
 	else if (strstr(name, "weapons/nail1"))
 	{
-		effect_id = HAPTIC_EFFECT_ETFRIFLE;
+		effect_type = HAPTIC_EFFECT_ETFRIFLE;
 	}
 	else if (strstr(name, "weapons/shotg2"))
 	{
-		effect_id = HAPTIC_EFFECT_SHOTGUN2;
+		effect_type = HAPTIC_EFFECT_SHOTGUN2;
 	}
 	else if (strstr(name, "weapons/disint2"))
 	{
-		effect_id = HAPTIC_EFFECT_TRACKER;
+		effect_type = HAPTIC_EFFECT_TRACKER;
 	}
 	else if (strstr(name, "player/male/pain") || strstr(name, "player/female/pain"))
 	{
-		effect_id = HAPTIC_EFFECT_PAIN;
+		effect_type = HAPTIC_EFFECT_PAIN;
 	}
 	else if (strstr(name, "player/step"))
 	{
-		effect_id = HAPTIC_EFFECT_STEP;
+		effect_type = HAPTIC_EFFECT_STEP;
 	}
 	else if (strstr(name, "weapons/trapcock"))
 	{
-		effect_id = HAPTIC_EFFECT_TRAPCOCK;
+		effect_type = HAPTIC_EFFECT_TRAPCOCK;
 	}
 
-	if (effect_id != HAPTIC_EFFECT_UNKNOWN)
+	if (effect_type != HAPTIC_EFFECT_UNKNOWN)
 	{
-		// FIFO for effects
-		last_haptic_efffect_pos = (last_haptic_efffect_pos+1) % last_haptic_efffect_size;
-		IN_Haptic_Effect_Shutdown(&last_haptic_efffect[last_haptic_efffect_pos]);
-		last_haptic_efffect[last_haptic_efffect_pos] = IN_Haptic_Effects_To_Id(effect_id);
-		SDL_HapticRunEffect(joystick_haptic, last_haptic_efffect[last_haptic_efffect_pos], 1);
+		// check last effect for reuse
+		if (last_haptic_efffect[last_haptic_efffect_pos].effect_type != effect_type)
+		{
+			// FIFO for effects
+			last_haptic_efffect_pos = (last_haptic_efffect_pos+1) % last_haptic_efffect_size;
+			IN_Haptic_Effect_Shutdown(&last_haptic_efffect[last_haptic_efffect_pos].effect_id);
+			last_haptic_efffect[last_haptic_efffect_pos].effect_type = effect_type;
+			last_haptic_efffect[last_haptic_efffect_pos].effect_id = IN_Haptic_Effects_To_Id(effect_type);
+		}
+		SDL_HapticRunEffect(joystick_haptic, last_haptic_efffect[last_haptic_efffect_pos].effect_id, 1);
 	}
 }
 
