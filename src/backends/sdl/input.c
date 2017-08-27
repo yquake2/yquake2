@@ -70,8 +70,10 @@ static int joystick_up;
 static int old_mouse_x, old_mouse_y;
 static char last_hat = SDL_HAT_CENTERED;
 static qboolean mlooking;
-static qboolean left_trigger = false;
-static qboolean right_trigger = false;
+static qboolean left_trigger_min = false;
+static qboolean left_trigger_max = false;
+static qboolean right_trigger_min = false;
+static qboolean right_trigger_max = false;
 
 /* Haptic feedback types */
 enum QHARPICTYPES {
@@ -601,20 +603,32 @@ IN_Update(void)
 
 				if (strcmp(direction_type, "triggerleft") == 0)
 				{
-					qboolean new_left_trigger = abs(axis_value) > (32767 / 4);
-					if (new_left_trigger != left_trigger)
+					qboolean new_left_trigger_max = axis_value > (32767 / 4);
+					if (new_left_trigger_max != left_trigger_max)
 					{
-						left_trigger = new_left_trigger;
-						Key_Event(K_TRIG_LEFT, left_trigger, true);
+						left_trigger_max = new_left_trigger_max;
+						Key_Event(K_TRIG_LEFT_MAX, left_trigger_max, true);
+					}
+					qboolean new_left_trigger_min = axis_value < (-32767 / 4);
+					if (new_left_trigger_min != left_trigger_min)
+					{
+						left_trigger_min = new_left_trigger_min;
+						Key_Event(K_TRIG_LEFT_MIN, left_trigger_min, true);
 					}
 				}
 				else if (strcmp(direction_type, "triggerright") == 0)
 				{
-					qboolean new_right_trigger = abs(axis_value) > (32767 / 4);
-					if (new_right_trigger != right_trigger)
+					qboolean new_right_trigger_max = axis_value > (32767 / 4);
+					if (new_right_trigger_max != right_trigger_max)
 					{
-						right_trigger = new_right_trigger;
-						Key_Event(K_TRIG_RIGHT, right_trigger, true);
+						right_trigger_max = new_right_trigger_max;
+						Key_Event(K_TRIG_RIGHT_MAX, right_trigger_max, true);
+					}
+					qboolean new_right_trigger_min = axis_value < (-32767 / 4);
+					if (new_right_trigger_min != right_trigger_min)
+					{
+						right_trigger_min = new_right_trigger_min;
+						Key_Event(K_TRIG_RIGHT_MIN, right_trigger_min, true);
 					}
 				}
 			}

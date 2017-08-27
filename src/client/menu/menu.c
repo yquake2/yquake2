@@ -234,13 +234,15 @@ Key_GetMenuKey(int key)
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:
 		case K_HAT_LEFT:
-		case K_TRIG_LEFT:
+		case K_TRIG_LEFT_MAX:
+		case K_TRIG_LEFT_MIN:
 			return K_LEFTARROW;
 
 		case K_KP_RIGHTARROW:
 		case K_RIGHTARROW:
 		case K_HAT_RIGHT:
-		case K_TRIG_RIGHT:
+		case K_TRIG_RIGHT_MAX:
+		case K_TRIG_RIGHT_MIN:
 			return K_RIGHTARROW;
 
 		case K_MOUSE1:
