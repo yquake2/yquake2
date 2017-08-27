@@ -857,20 +857,16 @@ IN_Haptic_Effects_To_Id(int haptic_effect)
 
 	switch(haptic_effect) {
 	case HAPTIC_EFFECT_MENY:
+	case HAPTIC_EFFECT_TRAPCOCK:
+	case HAPTIC_EFFECT_STEP:
 		/* North */
 		return IN_Haptic_Effect_Init(
-			0/* Force comes from N*/, 500/* 500 ms*/, hapric_volume * 32,
+			0/* Force comes from N*/, 500/* 500 ms*/, hapric_volume * 48,
 			200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 			100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_PAIN:
 		return IN_Haptic_Effect_Init(
-			0/* Force comes from N*/, 500/* 500 ms*/, hapric_volume * 64,
-			200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
-	case HAPTIC_EFFECT_TRAPCOCK:
-	case HAPTIC_EFFECT_STEP:
-		return IN_Haptic_Effect_Init(
-			0/* Force comes from N*/, 500/* 500 ms*/, hapric_volume * 48,
+			0/* Force comes from N*/, 500/* 500 ms*/, hapric_volume * 96,
 			200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
 			100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_BLASTER:
@@ -1082,11 +1078,15 @@ Haptic_Feedback(char *name)
 	{
 		effect_type = HAPTIC_EFFECT_TRACKER;
 	}
-	else if (strstr(name, "player/male/pain") || strstr(name, "player/female/pain"))
+	else if (strstr(name, "player/male/pain") ||
+		strstr(name, "player/female/pain") ||
+		strstr(name, "players/male/pain") ||
+		strstr(name, "players/female/pain"))
 	{
 		effect_type = HAPTIC_EFFECT_PAIN;
 	}
-	else if (strstr(name, "player/step"))
+	else if (strstr(name, "player/step") ||
+		strstr(name, "player/land"))
 	{
 		effect_type = HAPTIC_EFFECT_STEP;
 	}
