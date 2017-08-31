@@ -1389,6 +1389,9 @@ void FS_BuildGenericSearchPath(void) {
 	// distinguish generic and specialized directories.
 	fs_baseSearchPaths = fs_searchPaths;
 
+	// We need to create the game directory.
+	Sys_Mkdir(fs_gamedir);
+
 	// We need to create the screenshot directory since the
 	// render dll doesn't link the filesystem stuff.
 	Com_sprintf(path, sizeof(path), "%s/scrnshot", fs_gamedir);
@@ -1492,6 +1495,9 @@ FS_BuildGameSpecificSearchPath(char *dir)
 			search = search->next;
 		}
 	}
+
+	// Create the game directory.
+	Sys_Mkdir(fs_gamedir);
 
 	// We need to create the screenshot directory since the
 	// render dll doesn't link the filesystem stuff.
