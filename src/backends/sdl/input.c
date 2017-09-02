@@ -827,7 +827,7 @@ IN_Move(usercmd_t *cmd)
 
 	if (joystick_sidemove)
 	{
-		cmd->sidemove += (m_side->value * joystick_sidemove) / 32768;
+		cmd->sidemove -= (m_side->value * joystick_sidemove) / 32768;
 	}
 
 	if (joystick_up)
