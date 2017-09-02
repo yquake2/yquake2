@@ -49,9 +49,9 @@ static menuframework_s s_opengl_menu;
 
 static menulist_s s_renderer_list;
 static menulist_s s_mode_list;
-static menulist_s s_aspect_list;
 static menulist_s s_uiscale_list;
 static menuslider_s s_brightness_slider;
+static menuslider_s s_fov_slider;
 static menulist_s s_fs_box;
 static menulist_s s_vsync_list;
 static menulist_s s_af_list;
@@ -110,6 +110,12 @@ BrightnessCallback(void *s)
 }
 
 static void
+FOVCallback(void *s) {
+	menuslider_s *slider = (menuslider_s *)s;
+	Cvar_SetValue("fov", slider->curvalue);
+}
+
+static void
 AnisotropicCallback(void *s)
 {
 	menulist_s *list = (menulist_s *)s;
@@ -163,56 +169,6 @@ ApplyChanges(void *unused)
 	{
 		/* Restarts automatically */
 		Cvar_SetValue("gl_mode", -1);
-	}
-
-	/* horplus */
-	if (s_aspect_list.curvalue == 0)
-	{
-		if (horplus->value != 1)
-		{
-			Cvar_SetValue("horplus", 1);
-		}
-	}
-	else
-	{
-		if (horplus->value != 0)
-		{
-			Cvar_SetValue("horplus", 0);
-		}
-	}
-
-	/* fov */
-	if (s_aspect_list.curvalue == 0 || s_aspect_list.curvalue == 1)
-	{
-		if (fov->value != 90)
-		{
-			/* Restarts automatically */
-			Cvar_SetValue("fov", 90);
-		}
-	}
-	else if (s_aspect_list.curvalue == 2)
-	{
-		if (fov->value != 86)
-		{
-			/* Restarts automatically */
-			Cvar_SetValue("fov", 86);
-		}
-	}
-	else if (s_aspect_list.curvalue == 3)
-	{
-		if (fov->value != 100)
-		{
-			/* Restarts automatically */
-			Cvar_SetValue("fov", 100);
-		}
-	}
-	else if (s_aspect_list.curvalue == 4)
-	{
-		if (fov->value != 106)
-		{
-			/* Restarts automatically */
-			Cvar_SetValue("fov", 106);
-		}
 	}
 
 	/* UI scaling */
@@ -310,16 +266,6 @@ VID_MenuInit(void)
 		0
 	};
 
-	static const char *aspect_names[] = {
-		"auto",
-		"4:3",
-		"5:4",
-		"16:10",
-		"16:9",
-		"custom",
-		0
-	};
-
 	static const char *uiscale_names[] = {
 		"auto",
 		"1x",
@@ -377,11 +323,6 @@ VID_MenuInit(void)
 	if (!crosshair_scale)
 	{
 		crosshair_scale = Cvar_Get("crosshair_scale", "-1", CVAR_ARCHIVE);
-	}
-
-	if (!horplus)
-	{
-		horplus = Cvar_Get("horplus", "1", CVAR_ARCHIVE);
 	}
 
 	if (!fov)
@@ -447,35 +388,14 @@ VID_MenuInit(void)
 	s_brightness_slider.maxvalue = 20;
 	s_brightness_slider.curvalue = vid_gamma->value * 10;
 
-	s_aspect_list.generic.type = MTYPE_SPINCONTROL;
-	s_aspect_list.generic.name = "aspect ratio";
-	s_aspect_list.generic.x = 0;
-	s_aspect_list.generic.y = (y += 20);
-	s_aspect_list.itemnames = aspect_names;
-	if (horplus->value == 1)
-	{
-		s_aspect_list.curvalue = 0;
-	}
-	else if (fov->value == 90)
-	{
-		s_aspect_list.curvalue = 1;
-	}
-	else if (fov->value == 86)
-	{
-		s_aspect_list.curvalue = 2;
-	}
-	else if (fov->value == 100)
-	{
-		s_aspect_list.curvalue = 3;
-	}
-	else if (fov->value == 106)
-	{
-		s_aspect_list.curvalue = 4;
-	}
-	else
-	{
-		s_aspect_list.curvalue = GetCustomValue(&s_aspect_list);
-	}
+	s_fov_slider.generic.type = MTYPE_SLIDER;
+	s_fov_slider.generic.x = 0;
+	s_fov_slider.generic.y = (y += 10);
+	s_fov_slider.generic.name = "field of view";
+	s_fov_slider.generic.callback = FOVCallback;
+	s_fov_slider.minvalue = 60;
+	s_fov_slider.maxvalue = 120;
+	s_fov_slider.curvalue = fov->value;
 
 	s_uiscale_list.generic.type = MTYPE_SPINCONTROL;
 	s_uiscale_list.generic.name = "ui scale";
@@ -565,7 +485,7 @@ VID_MenuInit(void)
 	Menu_AddItem(&s_opengl_menu, (void *)&s_renderer_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_mode_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_brightness_slider);
-	Menu_AddItem(&s_opengl_menu, (void *)&s_aspect_list);
+	Menu_AddItem(&s_opengl_menu, (void *)&s_fov_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_uiscale_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_fs_box);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_vsync_list);

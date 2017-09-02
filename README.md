@@ -58,7 +58,6 @@ the original executables, documentation and so on. They aren't needed anymore:
 - ref_gl.dll
 - ref_soft.dll
 - baseq2/gamex86.dll
-- baseq2/maps.lst
 - ctf/ctf2.ico
 - ctf/gamex86.dll
 - ctf/readme.txt
