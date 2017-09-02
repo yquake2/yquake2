@@ -1067,6 +1067,7 @@ static menulist_s s_options_lookspring_box;
 static menulist_s s_options_lookstrafe_box;
 static menulist_s s_options_crosshair_box;
 static menuslider_s s_options_sfxvolume_slider;
+static menulist_s s_options_joystick_box;
 #if defined(OGG) || defined(CDA)
 static menulist_s s_options_cdshuffle_box;
 #endif
@@ -1081,6 +1082,11 @@ static void
 CrosshairFunc(void *unused)
 {
     Cvar_SetValue("crosshair", (float)s_options_crosshair_box.curvalue);
+}
+
+static void JoystickFunc(void *unused)
+{
+	Cvar_SetValue("in_joystick", s_options_joystick_box.curvalue);
 }
 
 static void
@@ -1123,6 +1129,8 @@ ClampCvar(float min, float max, float value)
     return value;
 }
 
+extern cvar_t *in_joystick;
+
 static void
 ControlsSetMenuItemValues(void)
 {
@@ -1164,6 +1172,9 @@ ControlsSetMenuItemValues(void)
     s_options_freelook_box.curvalue = (freelook->value != 0);
 
     s_options_crosshair_box.curvalue = ClampCvar(0, 3, crosshair->value);
+
+    Cvar_SetValue("in_joystick", ClampCvar(0, 1, in_joystick->value));
+    s_options_joystick_box.curvalue = in_joystick->value;
 }
 
 static void
@@ -1477,21 +1488,28 @@ Options_MenuInit(void)
     s_options_crosshair_box.generic.callback = CrosshairFunc;
     s_options_crosshair_box.itemnames = crosshair_names;
 
+    s_options_joystick_box.generic.type = MTYPE_SPINCONTROL;
+    s_options_joystick_box.generic.x = 0;
+    s_options_joystick_box.generic.y = 130;
+    s_options_joystick_box.generic.name = "use joystick";
+    s_options_joystick_box.generic.callback = JoystickFunc;
+    s_options_joystick_box.itemnames = yesno_names;
+
     s_options_customize_options_action.generic.type = MTYPE_ACTION;
     s_options_customize_options_action.generic.x = 0;
-    s_options_customize_options_action.generic.y = 140;
+    s_options_customize_options_action.generic.y = 150;
     s_options_customize_options_action.generic.name = "customize controls";
     s_options_customize_options_action.generic.callback = CustomizeControlsFunc;
 
     s_options_defaults_action.generic.type = MTYPE_ACTION;
     s_options_defaults_action.generic.x = 0;
-    s_options_defaults_action.generic.y = 150;
+    s_options_defaults_action.generic.y = 160;
     s_options_defaults_action.generic.name = "reset defaults";
     s_options_defaults_action.generic.callback = ControlsResetDefaultsFunc;
 
     s_options_console_action.generic.type = MTYPE_ACTION;
     s_options_console_action.generic.x = 0;
-    s_options_console_action.generic.y = 160;
+    s_options_console_action.generic.y = 170;
     s_options_console_action.generic.name = "go to console";
     s_options_console_action.generic.callback = ConsoleFunc;
 
@@ -1514,6 +1532,7 @@ Options_MenuInit(void)
     Menu_AddItem(&s_options_menu, (void *)&s_options_lookstrafe_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_freelook_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_crosshair_box);
+    Menu_AddItem(&s_options_menu, (void *)&s_options_joystick_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_customize_options_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_defaults_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_console_action);

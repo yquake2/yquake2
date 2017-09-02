@@ -117,6 +117,7 @@ static SDL_GameController *controller = NULL;
 cvar_t *vid_fullscreen;
 static cvar_t *in_grab;
 static cvar_t *in_mouse;
+cvar_t *in_joystick;
 static cvar_t *exponential_speedup;
 cvar_t *freelook;
 cvar_t *lookstrafe;
@@ -518,53 +519,61 @@ IN_Update(void)
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_JOYAXISMOTION:  /* Handle AXIS fake buttons Motion */
 			{
-					if (controller)
-						// axis mapped to controller
-						break;
+				if (!in_joystick->value)
+					// joystick disabled
+					break;
 
-					unsigned int new_axis = last_axis;
+				if (controller)
+					// axis mapped to controller
+					break;
 
-					unsigned int min_mask = (2 << (event.jaxis.axis * 2));
-					if (event.jaxis.value < (-32767 / 4))
+				unsigned int new_axis = last_axis;
+
+				unsigned int min_mask = (2 << (event.jaxis.axis * 2));
+				if (event.jaxis.value < (-32767 / 4))
+				{
+					new_axis |= min_mask;
+				}
+				else
+				{
+					new_axis &= ~min_mask;
+				}
+
+				unsigned int max_mask = (1 << (event.jaxis.axis * 2));
+				if (event.jaxis.value > (32767 / 4))
+				{
+					new_axis |= max_mask;
+				}
+				else
+				{
+					new_axis &= ~max_mask;
+				}
+
+				unsigned int diff = last_axis ^ new_axis;
+
+				int i;
+				for (i=0; i < 16; i++)
+				{
+					if (diff & (1 << i))
 					{
-						new_axis |= min_mask;
-					}
-					else
-					{
-						new_axis &= ~min_mask;
-					}
+						/* check that we have button up for some bit */
+						if (last_axis & (1 << i))
+							Key_Event(i + K_AXIS0_UP, false, true);
 
-					unsigned int max_mask = (1 << (event.jaxis.axis * 2));
-					if (event.jaxis.value > (32767 / 4))
-					{
-						new_axis |= max_mask;
+						/* check that we have button down for some bit */
+						if (new_axis & (1 << i))
+							Key_Event(i + K_AXIS0_UP, true, true);
 					}
-					else
-					{
-						new_axis &= ~max_mask;
-					}
-
-					unsigned int diff = last_axis ^ new_axis;
-
-					int i;
-					for (i=0; i < 16; i++)
-					{
-						if (diff & (1 << i))
-						{
-							/* check that we have button up for some bit */
-							if (last_axis & (1 << i))
-								Key_Event(i + K_AXIS0_UP, false, true);
-
-							/* check that we have button down for some bit */
-							if (new_axis & (1 << i))
-								Key_Event(i + K_AXIS0_UP, true, true);
-						}
-					}
-					last_axis = new_axis;
+				}
+				last_axis = new_axis;
 			}
 			break;
 			case SDL_CONTROLLERAXISMOTION:  /* Handle Controller Motion */
 			{
+				if (!in_joystick->value)
+					// joystick disabled
+					break;
+
 				char* direction_type;
 				float threshold = 0;
 				float fix_value = 0;
@@ -672,6 +681,10 @@ IN_Update(void)
 			case SDL_JOYBUTTONUP:
 			case SDL_JOYBUTTONDOWN:
 			{
+				if (!in_joystick->value)
+					// joystick disabled
+					break;
+
 				qboolean down = (event.type == SDL_JOYBUTTONDOWN);
 				if(event.jbutton.button <= (K_JOY32 - K_JOY1)) {
 					Key_Event(event.jbutton.button + K_JOY1, down, true);
@@ -679,6 +692,11 @@ IN_Update(void)
 			}
 				break;
 			case SDL_JOYHATMOTION:
+			{
+				if (!in_joystick->value)
+					// joystick disabled
+					break;
+
 				if (last_hat != event.jhat.value)
 				{
 					char diff = last_hat ^ event.jhat.value;
@@ -696,6 +714,7 @@ IN_Update(void)
 					}
 					last_hat = event.jhat.value;
 				}
+			}
 				break;
 #endif
 			case SDL_QUIT:
@@ -1173,6 +1192,7 @@ IN_Init(void)
 	freelook = Cvar_Get("freelook", "1", 0);
 	in_grab = Cvar_Get("in_grab", "2", CVAR_ARCHIVE);
 	in_mouse = Cvar_Get("in_mouse", "0", CVAR_ARCHIVE);
+	in_joystick = Cvar_Get ("in_joystick", "0", CVAR_ARCHIVE);
 	lookstrafe = Cvar_Get("lookstrafe", "0", 0);
 	m_filter = Cvar_Get("m_filter", "0", CVAR_ARCHIVE);
 	m_up = Cvar_Get("m_up", "1", 0);
