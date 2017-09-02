@@ -106,6 +106,65 @@ keyname_t keynames[] = {
 	{"MOUSE4", K_MOUSE4},
 	{"MOUSE5", K_MOUSE5},
 
+	{"JOY1", K_JOY1},
+	{"JOY2", K_JOY2},
+	{"JOY3", K_JOY3},
+	{"JOY4", K_JOY4},
+	{"JOY5", K_JOY5},
+	{"JOY6", K_JOY6},
+	{"JOY7", K_JOY7},
+	{"JOY8", K_JOY8},
+	{"JOY9", K_JOY9},
+	{"JOY10", K_JOY10},
+	{"JOY11", K_JOY11},
+	{"JOY12", K_JOY12},
+	{"JOY13", K_JOY13},
+	{"JOY14", K_JOY14},
+	{"JOY15", K_JOY15},
+	{"JOY16", K_JOY16},
+	{"JOY17", K_JOY17},
+	{"JOY18", K_JOY18},
+	{"JOY19", K_JOY19},
+	{"JOY20", K_JOY20},
+	{"JOY21", K_JOY21},
+	{"JOY22", K_JOY22},
+	{"JOY23", K_JOY23},
+	{"JOY24", K_JOY24},
+	{"JOY25", K_JOY25},
+	{"JOY26", K_JOY26},
+	{"JOY27", K_JOY27},
+	{"JOY28", K_JOY28},
+	{"JOY29", K_JOY29},
+	{"JOY30", K_JOY30},
+	{"JOY31", K_JOY31},
+	{"JOY32", K_JOY32},
+
+	{"HAT_UP", K_HAT_UP},
+	{"HAT_RIGHT", K_HAT_RIGHT},
+	{"HAT_DOWN", K_HAT_DOWN},
+	{"HAT_LEFT", K_HAT_LEFT},
+
+	{"TRIG_LEFT", K_TRIG_LEFT},
+	{"TRIG_RIGHT", K_TRIG_RIGHT},
+
+	{"AXIS0_UP", K_AXIS0_UP},
+	{"AXIS1_UP", K_AXIS1_UP},
+	{"AXIS2_UP", K_AXIS2_UP},
+	{"AXIS3_UP", K_AXIS3_UP},
+	{"AXIS4_UP", K_AXIS4_UP},
+	{"AXIS5_UP", K_AXIS5_UP},
+	{"AXIS6_UP", K_AXIS6_UP},
+	{"AXIS7_UP", K_AXIS7_UP},
+
+	{"AXIS0_DOWN", K_AXIS0_DOWN},
+	{"AXIS1_DOWN", K_AXIS1_DOWN},
+	{"AXIS2_DOWN", K_AXIS2_DOWN},
+	{"AXIS3_DOWN", K_AXIS3_DOWN},
+	{"AXIS4_DOWN", K_AXIS4_DOWN},
+	{"AXIS5_DOWN", K_AXIS5_DOWN},
+	{"AXIS6_DOWN", K_AXIS6_DOWN},
+	{"AXIS7_DOWN", K_AXIS7_DOWN},
+
 	{"AUX1", K_AUX1},
 	{"AUX2", K_AUX2},
 	{"AUX3", K_AUX3},
@@ -562,7 +621,7 @@ Key_Message(int key)
 }
 
 /*
- * Returns a key number to be used to index 
+ * Returns a key number to be used to index
  * keybindings[] by looking at the given string.
  * Single ascii characters return themselves, while
  * the K_* names are matched up.
@@ -773,7 +832,7 @@ Key_WriteBindings(FILE *f)
 	{
 		if (keybindings[i] && keybindings[i][0])
 		{
-			fprintf(f, "bind %s \"%s\"\n", 
+			fprintf(f, "bind %s \"%s\"\n",
 					Key_KeynumToString(i), keybindings[i]);
 		}
 	}

@@ -215,11 +215,136 @@ M_PushMenu(void (*draw)(void), const char *(*key)(int))
     cls.key_dest = key_menu;
 }
 
+int
+Key_GetMenuKey(int key)
+{
+	switch (key)
+	{
+		case K_KP_UPARROW:
+		case K_UPARROW:
+		case K_HAT_UP:
+		// Axis UP
+		case K_AXIS0_UP:
+		case K_AXIS1_UP:
+		case K_AXIS2_UP:
+		case K_AXIS3_UP:
+		case K_AXIS4_UP:
+		case K_AXIS5_UP:
+		case K_AXIS6_UP:
+		case K_AXIS7_UP:
+			return K_UPARROW;
+
+		case K_TAB:
+		case K_KP_DOWNARROW:
+		case K_DOWNARROW:
+		case K_HAT_DOWN:
+		// Axis UP
+		case K_AXIS0_DOWN:
+		case K_AXIS1_DOWN:
+		case K_AXIS2_DOWN:
+		case K_AXIS3_DOWN:
+		case K_AXIS4_DOWN:
+		case K_AXIS5_DOWN:
+		case K_AXIS6_DOWN:
+		case K_AXIS7_DOWN:
+			return K_DOWNARROW;
+
+		case K_KP_LEFTARROW:
+		case K_LEFTARROW:
+		case K_HAT_LEFT:
+		case K_TRIG_LEFT:
+			return K_LEFTARROW;
+
+		case K_KP_RIGHTARROW:
+		case K_RIGHTARROW:
+		case K_HAT_RIGHT:
+		case K_TRIG_RIGHT:
+			return K_RIGHTARROW;
+
+		case K_MOUSE1:
+		case K_MOUSE2:
+		case K_MOUSE3:
+		case K_MOUSE4:
+		case K_MOUSE5:
+
+		case K_JOY1:
+		case K_JOY2:
+		case K_JOY3:
+		case K_JOY4:
+		case K_JOY5:
+		case K_JOY6:
+		case K_JOY7:
+		case K_JOY8:
+		case K_JOY9:
+		case K_JOY10:
+		case K_JOY11:
+		case K_JOY12:
+		case K_JOY13:
+		case K_JOY14:
+		case K_JOY15:
+		case K_JOY16:
+		case K_JOY17:
+		case K_JOY18:
+		case K_JOY19:
+		case K_JOY20:
+		case K_JOY21:
+		case K_JOY22:
+		case K_JOY23:
+		case K_JOY24:
+		case K_JOY25:
+		case K_JOY26:
+		case K_JOY27:
+		case K_JOY28:
+		case K_JOY29:
+		case K_JOY30:
+		case K_JOY31:
+
+		case K_AUX1:
+		case K_AUX2:
+		case K_AUX3:
+		case K_AUX4:
+		case K_AUX5:
+		case K_AUX6:
+		case K_AUX7:
+		case K_AUX8:
+		case K_AUX9:
+		case K_AUX10:
+		case K_AUX11:
+		case K_AUX12:
+		case K_AUX13:
+		case K_AUX14:
+		case K_AUX15:
+		case K_AUX16:
+		case K_AUX17:
+		case K_AUX18:
+		case K_AUX19:
+		case K_AUX20:
+		case K_AUX21:
+		case K_AUX22:
+		case K_AUX23:
+		case K_AUX24:
+		case K_AUX25:
+		case K_AUX26:
+		case K_AUX27:
+		case K_AUX28:
+		case K_AUX29:
+		case K_AUX30:
+		case K_AUX31:
+		case K_AUX32:
+
+		case K_KP_ENTER:
+		case K_ENTER:
+			return K_ENTER;
+	}
+
+	return key;
+}
 const char *
 Default_MenuKey(menuframework_s *m, int key)
 {
     const char *sound = NULL;
     menucommon_s *item;
+    int menu_key = Key_GetMenuKey(key);
 
     if (m)
     {
@@ -235,110 +360,51 @@ Default_MenuKey(menuframework_s *m, int key)
         }
     }
 
-    switch (key)
+    switch (menu_key)
     {
     case K_ESCAPE:
         M_PopMenu();
         return menu_out_sound;
-    case K_KP_UPARROW:
-    case K_UPARROW:
 
+    case K_UPARROW:
         if (m)
         {
             m->cursor--;
             Menu_AdjustCursor(m, -1);
             sound = menu_move_sound;
         }
-
         break;
-    case K_TAB:
 
-        if (m)
-        {
-            m->cursor++;
-            Menu_AdjustCursor(m, 1);
-            sound = menu_move_sound;
-        }
-
-        break;
-    case K_KP_DOWNARROW:
     case K_DOWNARROW:
-
         if (m)
         {
             m->cursor++;
             Menu_AdjustCursor(m, 1);
             sound = menu_move_sound;
         }
-
         break;
-    case K_KP_LEFTARROW:
-    case K_LEFTARROW:
 
+    case K_LEFTARROW:
         if (m)
         {
             Menu_SlideItem(m, -1);
             sound = menu_move_sound;
         }
-
         break;
-    case K_KP_RIGHTARROW:
-    case K_RIGHTARROW:
 
+    case K_RIGHTARROW:
         if (m)
         {
             Menu_SlideItem(m, 1);
             sound = menu_move_sound;
         }
-
         break;
 
-    case K_MOUSE1:
-    case K_MOUSE2:
-    case K_MOUSE3:
-    case K_MOUSE4:
-    case K_MOUSE5:
-    case K_AUX1:
-    case K_AUX2:
-    case K_AUX3:
-    case K_AUX4:
-    case K_AUX5:
-    case K_AUX6:
-    case K_AUX7:
-    case K_AUX8:
-    case K_AUX9:
-    case K_AUX10:
-    case K_AUX11:
-    case K_AUX12:
-    case K_AUX13:
-    case K_AUX14:
-    case K_AUX15:
-    case K_AUX16:
-    case K_AUX17:
-    case K_AUX18:
-    case K_AUX19:
-    case K_AUX20:
-    case K_AUX21:
-    case K_AUX22:
-    case K_AUX23:
-    case K_AUX24:
-    case K_AUX25:
-    case K_AUX26:
-    case K_AUX27:
-    case K_AUX28:
-    case K_AUX29:
-    case K_AUX30:
-    case K_AUX31:
-    case K_AUX32:
-
-    case K_KP_ENTER:
     case K_ENTER:
-
         if (m)
         {
             Menu_SelectItem(m);
         }
-
         sound = menu_move_sound;
         break;
     }
@@ -593,35 +659,29 @@ M_Main_Draw(void)
 const char *
 M_Main_Key(int key)
 {
-    const char *sound = menu_move_sound;
+	const char *sound = menu_move_sound;
+	int menu_key = Key_GetMenuKey(key);
 
-    switch (key)
+    switch (menu_key)
     {
     case K_ESCAPE:
         M_PopMenu();
         break;
 
-    case K_KP_DOWNARROW:
     case K_DOWNARROW:
-
         if (++m_main_cursor >= MAIN_ITEMS)
         {
             m_main_cursor = 0;
         }
-
         return sound;
 
-    case K_KP_UPARROW:
     case K_UPARROW:
-
         if (--m_main_cursor < 0)
         {
             m_main_cursor = MAIN_ITEMS - 1;
         }
-
         return sound;
 
-    case K_KP_ENTER:
     case K_ENTER:
         m_entersound = true;
 
@@ -1007,6 +1067,8 @@ static menulist_s s_options_lookspring_box;
 static menulist_s s_options_lookstrafe_box;
 static menulist_s s_options_crosshair_box;
 static menuslider_s s_options_sfxvolume_slider;
+static menulist_s s_options_joystick_box;
+static menuslider_s s_options_haptic_slider;
 #if defined(OGG) || defined(CDA)
 static menulist_s s_options_cdshuffle_box;
 #endif
@@ -1021,6 +1083,17 @@ static void
 CrosshairFunc(void *unused)
 {
     Cvar_SetValue("crosshair", (float)s_options_crosshair_box.curvalue);
+}
+
+static void JoystickFunc(void *unused)
+{
+    Cvar_SetValue("in_joystick", s_options_joystick_box.curvalue);
+}
+
+static void
+HapticMagnitudeFunc(void *unused)
+{
+    Cvar_SetValue("joy_haptic_magnitude", s_options_haptic_slider.curvalue / 10.0F);
 }
 
 static void
@@ -1104,6 +1177,10 @@ ControlsSetMenuItemValues(void)
     s_options_freelook_box.curvalue = (freelook->value != 0);
 
     s_options_crosshair_box.curvalue = ClampCvar(0, 3, crosshair->value);
+
+    s_options_joystick_box.curvalue = Cvar_VariableValue("in_joystick");
+
+    s_options_haptic_slider.curvalue = Cvar_VariableValue("joy_haptic_magnitude") * 10.0F;
 }
 
 static void
@@ -1321,6 +1398,9 @@ Options_MenuInit(void)
 
 	float scale = SCR_GetMenuScale();
 
+    extern qboolean show_haptic;
+    extern qboolean show_joystick;
+
     /* configure controls menu and menu items */
     s_options_menu.x = viddef.width / 2;
     s_options_menu.y = viddef.height / (2 * scale) - 58;
@@ -1366,6 +1446,14 @@ Options_MenuInit(void)
     s_options_quality_list.generic.name = "sound quality";
     s_options_quality_list.generic.callback = UpdateSoundQualityFunc;
     s_options_quality_list.itemnames = quality_items;
+
+    s_options_haptic_slider.generic.type = MTYPE_SLIDER;
+    s_options_haptic_slider.generic.x = 0;
+    s_options_haptic_slider.generic.y = 50;
+    s_options_haptic_slider.generic.name = "haptic magnitude";
+    s_options_haptic_slider.generic.callback = HapticMagnitudeFunc;
+    s_options_haptic_slider.minvalue = 0;
+    s_options_haptic_slider.maxvalue = 22;
 
     s_options_sensitivity_slider.generic.type = MTYPE_SLIDER;
     s_options_sensitivity_slider.generic.x = 0;
@@ -1417,6 +1505,13 @@ Options_MenuInit(void)
     s_options_crosshair_box.generic.callback = CrosshairFunc;
     s_options_crosshair_box.itemnames = crosshair_names;
 
+    s_options_joystick_box.generic.type = MTYPE_SPINCONTROL;
+    s_options_joystick_box.generic.x = 0;
+    s_options_joystick_box.generic.y = 130;
+    s_options_joystick_box.generic.name = "use joystick";
+    s_options_joystick_box.generic.callback = JoystickFunc;
+    s_options_joystick_box.itemnames = yesno_names;
+
     s_options_customize_options_action.generic.type = MTYPE_ACTION;
     s_options_customize_options_action.generic.x = 0;
     s_options_customize_options_action.generic.y = 140;
@@ -1447,6 +1542,10 @@ Options_MenuInit(void)
     Menu_AddItem(&s_options_menu, (void *)&s_options_cdshuffle_box);
 #endif
     Menu_AddItem(&s_options_menu, (void *)&s_options_quality_list);
+
+    if (show_haptic)
+        Menu_AddItem(&s_options_menu, (void *)&s_options_haptic_slider);
+
     Menu_AddItem(&s_options_menu, (void *)&s_options_sensitivity_slider);
     Menu_AddItem(&s_options_menu, (void *)&s_options_alwaysrun_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_invertmouse_box);
@@ -1454,6 +1553,10 @@ Options_MenuInit(void)
     Menu_AddItem(&s_options_menu, (void *)&s_options_lookstrafe_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_freelook_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_crosshair_box);
+
+    if (show_joystick)
+        Menu_AddItem(&s_options_menu, (void *)&s_options_joystick_box);
+
     Menu_AddItem(&s_options_menu, (void *)&s_options_customize_options_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_defaults_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_console_action);
@@ -2305,10 +2408,10 @@ static const char *
 LoadGame_MenuKey(int key)
 {
     static menuframework_s *m = &s_loadgame_menu;
+    int menu_key = Key_GetMenuKey(key);
 
-    switch (key)
+    switch (menu_key)
     {
-    case K_KP_UPARROW:
     case K_UPARROW:
         if (m->cursor == 0)
         {
@@ -2316,8 +2419,7 @@ LoadGame_MenuKey(int key)
             LoadGame_MenuInit();
         }
         break;
-    case K_TAB:
-    case K_KP_DOWNARROW:
+
     case K_DOWNARROW:
         if (m->cursor == m->nitems - 1)
         {
@@ -2325,16 +2427,17 @@ LoadGame_MenuKey(int key)
             LoadGame_MenuInit();
         }
         break;
-    case K_KP_LEFTARROW:
+
     case K_LEFTARROW:
         LoadSave_AdjustPage(-1);
         LoadGame_MenuInit();
         return menu_move_sound;
-    case K_KP_RIGHTARROW:
+
     case K_RIGHTARROW:
         LoadSave_AdjustPage(1);
         LoadGame_MenuInit();
         return menu_move_sound;
+
     default:
         s_savegame_menu.cursor = s_loadgame_menu.cursor;
         break;
@@ -2416,6 +2519,7 @@ static const char *
 SaveGame_MenuKey(int key)
 {
     static menuframework_s *m = &s_savegame_menu;
+    int menu_key = Key_GetMenuKey(key);
 
     if (m_popup_string)
     {
@@ -2423,9 +2527,8 @@ SaveGame_MenuKey(int key)
         return NULL;
     }
 
-    switch (key)
+    switch (menu_key)
     {
-    case K_KP_UPARROW:
     case K_UPARROW:
         if (m->cursor == 0)
         {
@@ -2433,8 +2536,7 @@ SaveGame_MenuKey(int key)
             SaveGame_MenuInit();
         }
         break;
-    case K_TAB:
-    case K_KP_DOWNARROW:
+
     case K_DOWNARROW:
         if (m->cursor == m->nitems - 1)
         {
@@ -2442,16 +2544,17 @@ SaveGame_MenuKey(int key)
             SaveGame_MenuInit();
         }
         break;
-    case K_KP_LEFTARROW:
+
     case K_LEFTARROW:
         LoadSave_AdjustPage(-1);
         SaveGame_MenuInit();
         return menu_move_sound;
-    case K_KP_RIGHTARROW:
+
     case K_RIGHTARROW:
         LoadSave_AdjustPage(1);
         SaveGame_MenuInit();
         return menu_move_sound;
+
     default:
         s_loadgame_menu.cursor = s_savegame_menu.cursor;
         break;

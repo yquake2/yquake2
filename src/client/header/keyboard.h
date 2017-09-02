@@ -144,6 +144,31 @@ enum QKEYS {
 	K_JOY31,
 	K_JOY32,
 
+	K_AXIS0_UP,
+	K_AXIS0_DOWN,
+	K_AXIS1_UP,
+	K_AXIS1_DOWN,
+	K_AXIS2_UP,
+	K_AXIS2_DOWN,
+	K_AXIS3_UP,
+	K_AXIS3_DOWN,
+	K_AXIS4_UP,
+	K_AXIS4_DOWN,
+	K_AXIS5_UP,
+	K_AXIS5_DOWN,
+	K_AXIS6_UP,
+	K_AXIS6_DOWN,
+	K_AXIS7_UP,
+	K_AXIS7_DOWN,
+
+	K_HAT_UP,
+	K_HAT_RIGHT,
+	K_HAT_DOWN,
+	K_HAT_LEFT,
+
+	K_TRIG_LEFT,
+	K_TRIG_RIGHT,
+
 	K_AUX1,
 	K_AUX2,
 	K_AUX3,
@@ -297,6 +322,7 @@ extern int		chat_bufferlen;
 extern int		chat_cursorpos;
 extern qboolean	chat_team;
 
+void Haptic_Feedback(char *name);
 void Char_Event(int key);
 void Key_Event(int key, qboolean down, qboolean special);
 void Key_Init(void);
@@ -306,5 +332,6 @@ void Key_WriteConsoleHistory();
 void Key_SetBinding(int keynum, char *binding);
 void Key_MarkAllUp(void);
 int Key_GetKey(void);
+int Key_GetMenuKey(int key);
 
 #endif
