@@ -74,6 +74,9 @@ static qboolean mlooking;
 static qboolean left_trigger = false;
 static qboolean right_trigger = false;
 
+qboolean show_joystick = false;
+qboolean show_haptic = false;
+
 /* Haptic feedback types */
 enum QHARPICTYPES {
 	HAPTIC_EFFECT_UNKNOWN = -1,
@@ -116,8 +119,7 @@ static SDL_GameController *controller = NULL;
 /* CVars */
 cvar_t *vid_fullscreen;
 static cvar_t *in_grab;
-static cvar_t *in_mouse;
-cvar_t *in_joystick;
+static cvar_t *in_joystick;
 static cvar_t *exponential_speedup;
 cvar_t *freelook;
 cvar_t *lookstrafe;
@@ -130,27 +132,27 @@ cvar_t *m_yaw;
 cvar_t *sensitivity;
 static cvar_t *windowed_mouse;
 /* Joystick sensitivity */
-cvar_t *joy_yawsensitivity;
-cvar_t *joy_pitchsensitivity;
-cvar_t *joy_forwardsensitivity;
-cvar_t *joy_sidesensitivity;
-cvar_t *joy_upsensitivity;
+static cvar_t *joy_yawsensitivity;
+static cvar_t *joy_pitchsensitivity;
+static cvar_t *joy_forwardsensitivity;
+static cvar_t *joy_sidesensitivity;
+static cvar_t *joy_upsensitivity;
 /* Joystick direction settings */
-cvar_t *joy_axis_leftx;
-cvar_t *joy_axis_lefty;
-cvar_t *joy_axis_rightx;
-cvar_t *joy_axis_righty;
-cvar_t *joy_axis_triggerleft;
-cvar_t *joy_axis_triggerright;
+static cvar_t *joy_axis_leftx;
+static cvar_t *joy_axis_lefty;
+static cvar_t *joy_axis_rightx;
+static cvar_t *joy_axis_righty;
+static cvar_t *joy_axis_triggerleft;
+static cvar_t *joy_axis_triggerright;
 /* Joystick threshold settings */
-cvar_t *joy_axis_leftx_threshold;
-cvar_t *joy_axis_lefty_threshold;
-cvar_t *joy_axis_rightx_threshold;
-cvar_t *joy_axis_righty_threshold;
-cvar_t *joy_axis_triggerleft_threshold;
-cvar_t *joy_axis_triggerright_threshold;
+static cvar_t *joy_axis_leftx_threshold;
+static cvar_t *joy_axis_lefty_threshold;
+static cvar_t *joy_axis_rightx_threshold;
+static cvar_t *joy_axis_righty_threshold;
+static cvar_t *joy_axis_triggerleft_threshold;
+static cvar_t *joy_axis_triggerright_threshold;
 /* Joystick haptic */
-cvar_t *joy_haptic_level;
+static cvar_t *joy_haptic_level;
 
 extern void GLimp_GrabInput(qboolean grab);
 
@@ -1025,6 +1027,7 @@ IN_Haptic_Effects_To_Id(int haptic_effect)
 static void
 IN_Haptic_Effects_Info(void)
 {
+	show_haptic = true;
 	Com_Printf ("Joystic/Mouse haptic:\n");
 	Com_Printf (" * %d effects\n", SDL_HapticNumEffects(joystick_haptic));
 	Com_Printf (" * %d effects in same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
@@ -1191,7 +1194,6 @@ IN_Init(void)
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 	freelook = Cvar_Get("freelook", "1", 0);
 	in_grab = Cvar_Get("in_grab", "2", CVAR_ARCHIVE);
-	in_mouse = Cvar_Get("in_mouse", "0", CVAR_ARCHIVE);
 	in_joystick = Cvar_Get ("in_joystick", "0", CVAR_ARCHIVE);
 	lookstrafe = Cvar_Get("lookstrafe", "0", 0);
 	m_filter = Cvar_Get("m_filter", "0", CVAR_ARCHIVE);
@@ -1251,11 +1253,15 @@ IN_Init(void)
 				int i;
 				for (i=0; i<SDL_NumJoysticks(); i ++) {
 					joystick = SDL_JoystickOpen(i);
+					show_joystick = true;
 					Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(joystick));
 					Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
 					Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
 					Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(joystick));
 					Com_Printf ("Number of Hats: %d\n", SDL_JoystickNumHats(joystick));
+
+					if (!in_joystick->value)
+						Com_Printf ("Joystick usage is disabled in menu.\n");
 
 					joystick_haptic = SDL_HapticOpenFromJoystick(joystick);
 					if (joystick_haptic == NULL)

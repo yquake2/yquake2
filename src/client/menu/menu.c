@@ -1068,6 +1068,7 @@ static menulist_s s_options_lookstrafe_box;
 static menulist_s s_options_crosshair_box;
 static menuslider_s s_options_sfxvolume_slider;
 static menulist_s s_options_joystick_box;
+static menuslider_s s_options_haptic_slider;
 #if defined(OGG) || defined(CDA)
 static menulist_s s_options_cdshuffle_box;
 #endif
@@ -1086,7 +1087,13 @@ CrosshairFunc(void *unused)
 
 static void JoystickFunc(void *unused)
 {
-	Cvar_SetValue("in_joystick", s_options_joystick_box.curvalue);
+    Cvar_SetValue("in_joystick", s_options_joystick_box.curvalue);
+}
+
+static void
+HapticVolumeFunc(void *unused)
+{
+    Cvar_SetValue("joy_haptic_level", s_options_haptic_slider.curvalue / 10.0F);
 }
 
 static void
@@ -1128,8 +1135,6 @@ ClampCvar(float min, float max, float value)
 
     return value;
 }
-
-extern cvar_t *in_joystick;
 
 static void
 ControlsSetMenuItemValues(void)
@@ -1173,8 +1178,9 @@ ControlsSetMenuItemValues(void)
 
     s_options_crosshair_box.curvalue = ClampCvar(0, 3, crosshair->value);
 
-    Cvar_SetValue("in_joystick", ClampCvar(0, 1, in_joystick->value));
-    s_options_joystick_box.curvalue = in_joystick->value;
+    s_options_joystick_box.curvalue = Cvar_VariableValue("in_joystick");
+
+    s_options_haptic_slider.curvalue = Cvar_VariableValue("joy_haptic_level") * 10.0F;
 }
 
 static void
@@ -1392,6 +1398,9 @@ Options_MenuInit(void)
 
 	float scale = SCR_GetMenuScale();
 
+    extern qboolean show_haptic;
+    extern qboolean show_joystick;
+
     /* configure controls menu and menu items */
     s_options_menu.x = viddef.width / 2;
     s_options_menu.y = viddef.height / (2 * scale) - 58;
@@ -1437,6 +1446,14 @@ Options_MenuInit(void)
     s_options_quality_list.generic.name = "sound quality";
     s_options_quality_list.generic.callback = UpdateSoundQualityFunc;
     s_options_quality_list.itemnames = quality_items;
+
+    s_options_haptic_slider.generic.type = MTYPE_SLIDER;
+    s_options_haptic_slider.generic.x = 0;
+    s_options_haptic_slider.generic.y = 50;
+    s_options_haptic_slider.generic.name = "haptic volume";
+    s_options_haptic_slider.generic.callback = HapticVolumeFunc;
+    s_options_haptic_slider.minvalue = 0;
+    s_options_haptic_slider.maxvalue = 22;
 
     s_options_sensitivity_slider.generic.type = MTYPE_SLIDER;
     s_options_sensitivity_slider.generic.x = 0;
@@ -1497,19 +1514,19 @@ Options_MenuInit(void)
 
     s_options_customize_options_action.generic.type = MTYPE_ACTION;
     s_options_customize_options_action.generic.x = 0;
-    s_options_customize_options_action.generic.y = 150;
+    s_options_customize_options_action.generic.y = 140;
     s_options_customize_options_action.generic.name = "customize controls";
     s_options_customize_options_action.generic.callback = CustomizeControlsFunc;
 
     s_options_defaults_action.generic.type = MTYPE_ACTION;
     s_options_defaults_action.generic.x = 0;
-    s_options_defaults_action.generic.y = 160;
+    s_options_defaults_action.generic.y = 150;
     s_options_defaults_action.generic.name = "reset defaults";
     s_options_defaults_action.generic.callback = ControlsResetDefaultsFunc;
 
     s_options_console_action.generic.type = MTYPE_ACTION;
     s_options_console_action.generic.x = 0;
-    s_options_console_action.generic.y = 170;
+    s_options_console_action.generic.y = 160;
     s_options_console_action.generic.name = "go to console";
     s_options_console_action.generic.callback = ConsoleFunc;
 
@@ -1525,6 +1542,10 @@ Options_MenuInit(void)
     Menu_AddItem(&s_options_menu, (void *)&s_options_cdshuffle_box);
 #endif
     Menu_AddItem(&s_options_menu, (void *)&s_options_quality_list);
+
+    if (show_haptic)
+        Menu_AddItem(&s_options_menu, (void *)&s_options_haptic_slider);
+
     Menu_AddItem(&s_options_menu, (void *)&s_options_sensitivity_slider);
     Menu_AddItem(&s_options_menu, (void *)&s_options_alwaysrun_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_invertmouse_box);
@@ -1532,7 +1553,10 @@ Options_MenuInit(void)
     Menu_AddItem(&s_options_menu, (void *)&s_options_lookstrafe_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_freelook_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_crosshair_box);
-    Menu_AddItem(&s_options_menu, (void *)&s_options_joystick_box);
+
+    if (show_joystick)
+        Menu_AddItem(&s_options_menu, (void *)&s_options_joystick_box);
+
     Menu_AddItem(&s_options_menu, (void *)&s_options_customize_options_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_defaults_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_console_action);
