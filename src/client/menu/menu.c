@@ -1091,9 +1091,9 @@ static void JoystickFunc(void *unused)
 }
 
 static void
-HapticVolumeFunc(void *unused)
+HapticMagnitudeFunc(void *unused)
 {
-    Cvar_SetValue("joy_haptic_level", s_options_haptic_slider.curvalue / 10.0F);
+    Cvar_SetValue("joy_haptic_magnitude", s_options_haptic_slider.curvalue / 10.0F);
 }
 
 static void
@@ -1180,7 +1180,7 @@ ControlsSetMenuItemValues(void)
 
     s_options_joystick_box.curvalue = Cvar_VariableValue("in_joystick");
 
-    s_options_haptic_slider.curvalue = Cvar_VariableValue("joy_haptic_level") * 10.0F;
+    s_options_haptic_slider.curvalue = Cvar_VariableValue("joy_haptic_magnitude") * 10.0F;
 }
 
 static void
@@ -1450,8 +1450,8 @@ Options_MenuInit(void)
     s_options_haptic_slider.generic.type = MTYPE_SLIDER;
     s_options_haptic_slider.generic.x = 0;
     s_options_haptic_slider.generic.y = 50;
-    s_options_haptic_slider.generic.name = "haptic volume";
-    s_options_haptic_slider.generic.callback = HapticVolumeFunc;
+    s_options_haptic_slider.generic.name = "haptic magnitude";
+    s_options_haptic_slider.generic.callback = HapticMagnitudeFunc;
     s_options_haptic_slider.minvalue = 0;
     s_options_haptic_slider.maxvalue = 22;
 

@@ -152,7 +152,7 @@ static cvar_t *joy_axis_righty_threshold;
 static cvar_t *joy_axis_triggerleft_threshold;
 static cvar_t *joy_axis_triggerright_threshold;
 /* Joystick haptic */
-static cvar_t *joy_haptic_level;
+static cvar_t *joy_haptic_magnitude;
 
 extern void GLimp_GrabInput(qboolean grab);
 
@@ -918,7 +918,7 @@ IN_Haptic_Effects_To_Id(int haptic_effect)
 	if ((SDL_HapticQuery(joystick_haptic) & SDL_HAPTIC_SINE)==0)
 		return -1;
 
-	int hapric_volume = joy_haptic_level->value * 255; // * 128 = 32767 max strength;
+	int hapric_volume = joy_haptic_magnitude->value * 255; // * 128 = 32767 max strength;
 	if (hapric_volume > 255)
 		hapric_volume = 255;
 	else if (hapric_volume < 0)
@@ -1075,18 +1075,18 @@ Haptic_Feedback(char *name)
 {
 	int effect_type = HAPTIC_EFFECT_UNKNOWN;
 
-	if (joy_haptic_level->value <= 0)
+	if (joy_haptic_magnitude->value <= 0)
 		return;
 
 	if (!joystick_haptic)
 		return;
 
-	if (last_haptic_volume != (int)(joy_haptic_level->value * 255))
+	if (last_haptic_volume != (int)(joy_haptic_magnitude->value * 255))
 	{
 		IN_Haptic_Effects_Shotdown();
 		IN_Haptic_Effects_Init();
 	}
-	last_haptic_volume = joy_haptic_level->value * 255;
+	last_haptic_volume = joy_haptic_magnitude->value * 255;
 
 	if (strstr(name, "misc/menu"))
 	{
@@ -1204,7 +1204,7 @@ IN_Init(void)
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
 
-	joy_haptic_level = Cvar_Get("joy_haptic_level", "0.0", CVAR_ARCHIVE);
+	joy_haptic_magnitude = Cvar_Get("joy_haptic_magnitude", "0.0", CVAR_ARCHIVE);
 
 	joy_yawsensitivity = Cvar_Get("joy_yawsensitivity", "1.0", CVAR_ARCHIVE);
 	joy_pitchsensitivity = Cvar_Get("joy_pitchsensitivity", "1.0", CVAR_ARCHIVE);
