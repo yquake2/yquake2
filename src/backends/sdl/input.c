@@ -69,11 +69,10 @@ static int joystick_forwardmove, joystick_sidemove;
 static int joystick_up;
 static int old_mouse_x, old_mouse_y;
 static char last_hat = SDL_HAT_CENTERED;
+static unsigned int last_axis = 0x0;
 static qboolean mlooking;
-static qboolean left_trigger_min = false;
-static qboolean left_trigger_max = false;
-static qboolean right_trigger_min = false;
-static qboolean right_trigger_max = false;
+static qboolean left_trigger = false;
+static qboolean right_trigger = false;
 
 /* Haptic feedback types */
 enum QHARPICTYPES {
@@ -517,6 +516,53 @@ IN_Update(void)
 #endif
 				break;
 #if SDL_VERSION_ATLEAST(2, 0, 0)
+			case SDL_JOYAXISMOTION:  /* Handle AXIS fake buttons Motion */
+			{
+					if (controller)
+						// axis mapped to controller
+						break;
+
+					unsigned int new_axis = last_axis;
+
+					unsigned int min_mask = (2 << (event.jaxis.axis * 2));
+					if (event.jaxis.value < (-32767 / 4))
+					{
+						new_axis |= min_mask;
+					}
+					else
+					{
+						new_axis &= ~min_mask;
+					}
+
+					unsigned int max_mask = (1 << (event.jaxis.axis * 2));
+					if (event.jaxis.value > (32767 / 4))
+					{
+						new_axis |= max_mask;
+					}
+					else
+					{
+						new_axis &= ~max_mask;
+					}
+
+					unsigned int diff = last_axis ^ new_axis;
+
+					int i;
+					for (i=0; i < 16; i++)
+					{
+						if (diff & (1 << i))
+						{
+							/* check that we have button up for some bit */
+							if (last_axis & (1 << i))
+								Key_Event(i + K_AXIS0_UP, false, true);
+
+							/* check that we have button down for some bit */
+							if (new_axis & (1 << i))
+								Key_Event(i + K_AXIS0_UP, true, true);
+						}
+					}
+					last_axis = new_axis;
+			}
+			break;
 			case SDL_CONTROLLERAXISMOTION:  /* Handle Controller Motion */
 			{
 				char* direction_type;
@@ -603,32 +649,20 @@ IN_Update(void)
 
 				if (strcmp(direction_type, "triggerleft") == 0)
 				{
-					qboolean new_left_trigger_max = axis_value > (32767 / 4);
-					if (new_left_trigger_max != left_trigger_max)
+					qboolean new_left_trigger = abs(axis_value) > (32767 / 4);
+					if (new_left_trigger != left_trigger)
 					{
-						left_trigger_max = new_left_trigger_max;
-						Key_Event(K_TRIG_LEFT_MAX, left_trigger_max, true);
-					}
-					qboolean new_left_trigger_min = axis_value < (-32767 / 4);
-					if (new_left_trigger_min != left_trigger_min)
-					{
-						left_trigger_min = new_left_trigger_min;
-						Key_Event(K_TRIG_LEFT_MIN, left_trigger_min, true);
+						left_trigger = new_left_trigger;
+						Key_Event(K_TRIG_LEFT, left_trigger, true);
 					}
 				}
 				else if (strcmp(direction_type, "triggerright") == 0)
 				{
-					qboolean new_right_trigger_max = axis_value > (32767 / 4);
-					if (new_right_trigger_max != right_trigger_max)
+					qboolean new_right_trigger = abs(axis_value) > (32767 / 4);
+					if (new_right_trigger != right_trigger)
 					{
-						right_trigger_max = new_right_trigger_max;
-						Key_Event(K_TRIG_RIGHT_MAX, right_trigger_max, true);
-					}
-					qboolean new_right_trigger_min = axis_value < (-32767 / 4);
-					if (new_right_trigger_min != right_trigger_min)
-					{
-						right_trigger_min = new_right_trigger_min;
-						Key_Event(K_TRIG_RIGHT_MIN, right_trigger_min, true);
+						right_trigger = new_right_trigger;
+						Key_Event(K_TRIG_RIGHT, right_trigger, true);
 					}
 				}
 			}
@@ -1239,6 +1273,7 @@ IN_Init(void)
 						SDL_JoystickGetGUIDString(guid, joystick_guid, 255);
 						Com_Printf ("For use joystic as game contoller please set SDL_GAMECONTROLLERCONFIG:\n");
 						Com_Printf ("e.g.: SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,...\n", joystick_guid, SDL_JoystickName(joystick));
+						Com_Printf ("or bind AXIS*_{UP,DOWN} events.\n");
 					}
 				}
 			}

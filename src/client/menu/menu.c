@@ -223,26 +223,42 @@ Key_GetMenuKey(int key)
 		case K_KP_UPARROW:
 		case K_UPARROW:
 		case K_HAT_UP:
+		// Axis UP
+		case K_AXIS0_UP:
+		case K_AXIS1_UP:
+		case K_AXIS2_UP:
+		case K_AXIS3_UP:
+		case K_AXIS4_UP:
+		case K_AXIS5_UP:
+		case K_AXIS6_UP:
+		case K_AXIS7_UP:
 			return K_UPARROW;
 
 		case K_TAB:
 		case K_KP_DOWNARROW:
 		case K_DOWNARROW:
 		case K_HAT_DOWN:
+		// Axis UP
+		case K_AXIS0_DOWN:
+		case K_AXIS1_DOWN:
+		case K_AXIS2_DOWN:
+		case K_AXIS3_DOWN:
+		case K_AXIS4_DOWN:
+		case K_AXIS5_DOWN:
+		case K_AXIS6_DOWN:
+		case K_AXIS7_DOWN:
 			return K_DOWNARROW;
 
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:
 		case K_HAT_LEFT:
-		case K_TRIG_LEFT_MAX:
-		case K_TRIG_LEFT_MIN:
+		case K_TRIG_LEFT:
 			return K_LEFTARROW;
 
 		case K_KP_RIGHTARROW:
 		case K_RIGHTARROW:
 		case K_HAT_RIGHT:
-		case K_TRIG_RIGHT_MAX:
-		case K_TRIG_RIGHT_MIN:
+		case K_TRIG_RIGHT:
 			return K_RIGHTARROW;
 
 		case K_MOUSE1:
