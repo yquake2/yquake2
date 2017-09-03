@@ -1410,89 +1410,6 @@ SCR_DrawLayout(void)
 	SCR_ExecuteLayoutString(cl.layout);
 }
 
-<<<<<<< HEAD
-||||||| parent of 12f21e2... Fix Sys_Microseconds(), on Unix use it in Sys_Milliseconds()
-// ----
-
-void
-SCR_Framecounter(void) {
-	long long newtime;
-	static int frame;
-	static int frametimes[60] = {0};
-	static long long oldtime;
-
-	newtime = Sys_Microseconds();
-	frametimes[frame] = (int)(newtime - oldtime);
-	float scale = SCR_GetConsoleScale();
-
-	if (cl_drawfps->value == 1) {
-		// Calculate average of frames.
-		int avg = 0;
-		int num = 0;
-
-		for (int i = 0; i < 60; i++) {
-			if (frametimes[i] != 0) {
-				avg += frametimes[i];
-				num++;
-			}
-		}
-
-
-		char str[10];
-		snprintf(str, sizeof(str), "%3.2ffps", (1000.0 * 1000.0) / (avg / num));
-		DrawStringScaled(scale*(viddef.width - 80), 0, str, scale);
-	} else if (cl_drawfps->value >= 2) {
-		// Calculate average of frames.
-		int avg = 0;
-		int num = 0;
-
-		for (int i = 0; i < 60; i++) {
-			if (frametimes[i] != 0) {
-				avg += frametimes[i];
-				num++;
-			}
-		}
-
-
-		// Find lowest and highest
-		int min = frametimes[0];
-		int max = frametimes[1];
-
-		for (int i = 1; i < 60; i++) {
-			if ((frametimes[i] > 0) &&  (min < frametimes[i])) {
-				min = frametimes[i];
-			}
-
-			if ((frametimes[i] > 0) && (max > frametimes[i])) {
-				max = frametimes[i];
-			}
-		}
-
-		char str[64];
-		snprintf(str, sizeof(str), "Min: %7.2ffps, Max: %7.2ffps, Avg: %7.2ffps",
-		         (1000.0 * 1000.0) / min, (1000.0 * 1000.0) / max, (1000.0 * 1000.0) / (avg / num));
-		DrawStringScaled(viddef.width - scale*(strlen(str)*8 + 2), 0, str, scale);
-
-		if (cl_drawfps->value > 2)
-		{
-			snprintf(str, sizeof(str), "Max: %5.2fms, Min: %5.2fms, Avg: %5.2fms",
-			         0.001f*min, 0.001f*max, 0.001f*(avg / num));
-			DrawStringScaled(viddef.width - scale*(strlen(str)*8 + 2), scale*10, str, scale);
-		}
-	}
-
-	frame++;
-
-	if (frame > 59) {
-		frame = 0;
-	}
-
-	oldtime = newtime;
-}
-
-// ----
-
-=======
 // ----
 
 void
@@ -1571,8 +1488,6 @@ SCR_Framecounter(void) {
 }
 
 // ----
-
->>>>>>> 12f21e2... Fix Sys_Microseconds(), on Unix use it in Sys_Milliseconds()
 /*
  * This is called every frame, and can also be called
  * explicitly to flush text to the screen.
@@ -1698,13 +1613,6 @@ SCR_UpdateScreen(void)
 			SCR_DrawNet();
 			SCR_CheckDrawCenterString();
 
-			if (cl_drawfps->value)
-			{
-				char s[8];
-				sprintf(s, "%3.0ffps", 1 / cls.rframetime);
-				DrawString(viddef.width - 64, 0, s);
-			}
-
 			if (scr_timegraph->value)
 			{
 				SCR_DebugGraph(cls.rframetime * 300, 0);
@@ -1726,6 +1634,7 @@ SCR_UpdateScreen(void)
 		}
 	}
 
+	SCR_Framecounter();
 	R_EndFrame();
 }
 

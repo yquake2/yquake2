@@ -812,22 +812,6 @@ CL_Frame(int msec)
 			{
 				miscframe = false;
 			}
-
-			// Evil hack for vsync. Because the vsync is effectively a break, delaying each frame
-			// by up 1000.0 / display_hz milliseconds we can't effort to lose even more time with
-			// synchronizing between render- and packageframes. This lost time would accumulate,
-			// delaying the renderframe which leads to microstuttering. Bite the bullet and force
-			// renderframe == clientframe. But only if rframetime and nframetime differ, otherwise
-			// the movement predictions breaks.
-			if (R_IsVSyncActive())
-			{
-				if ((packetframe || renderframe) && (cls.nframetime != cls.rframetime))
-				{
-					renderframe = true;
-					packetframe = true;
-					miscframe = true;
-				}
-			}
 		}
 		else
 		{
