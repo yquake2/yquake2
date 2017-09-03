@@ -1344,6 +1344,17 @@ R_SetMode(void)
 		else if (err == rserr_invalid_mode)
 		{
 			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
+			if (gl_msaa_samples->value != 0.0f)
+			{
+				R_Printf(PRINT_ALL, "gl_msaa_samples was %d - will try again with gl_msaa_samples = 0\n", (int)gl_msaa_samples->value);
+				ri.Cvar_SetValue("gl_msaa_samples", 0.0f);
+				gl_msaa_samples->modified = false;
+
+				if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value, 0)) == rserr_ok)
+				{
+					return true;
+				}
+			}
 			if(gl_mode->value == gl_state.prev_mode)
 			{
 				// trying again would result in a crash anyway, give up already

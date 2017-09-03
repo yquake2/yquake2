@@ -360,6 +360,11 @@ int RI_PrepareForWindow(void)
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 		}
 	}
+	else
+	{
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+	}
 
 	/* Initiate the flags */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -409,6 +414,14 @@ int RI_InitContext(void* win)
 	// context is created implicitly with window, nothing to do here
 
 #endif
+
+	const char* glver = (char *)glGetString(GL_VERSION);
+	sscanf(glver, "%d.%d", &gl_config.major_version, &gl_config.minor_version);
+	if (gl_config.major_version < 1 || (gl_config.major_version == 1 && gl_config.minor_version < 4))
+	{
+		R_Printf(PRINT_ALL, "R_InitContext(): Got an OpenGL version %d.%d context - need (at least) 1.4!\n", gl_config.major_version, gl_config.minor_version);
+		return false;
+	}
 
 	if (gl_msaa_samples->value)
 	{
