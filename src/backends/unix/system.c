@@ -79,22 +79,35 @@ Sys_Init(void)
 {
 }
 
+long long
+Sys_Microseconds(void)
+{
+	static struct timespec last;
+	struct timespec now;
+
+	clock_gettime(CLOCK_REALTIME, &now);
+	if(last.tv_sec == 0)
+	{
+		clock_gettime(CLOCK_REALTIME, &last);
+		return last.tv_nsec / 1000ll;
+	}
+
+	long long sec = now.tv_sec - last.tv_sec;
+	long long nsec = now.tv_nsec - last.tv_nsec;
+	if(nsec < 0)
+	{
+		nsec += 1000000000ll; // 1s in ns
+		--sec;
+	}
+
+	return sec*1000000ll + nsec/1000ll;
+}
+
 int
 Sys_Milliseconds(void)
 {
-	struct timeval tp;
-	struct timezone tzp;
-	static long secbase;
+	curtime = (int)(Sys_Microseconds()/1000ll);
 
-	gettimeofday(&tp, &tzp);
-
-	if (!secbase)
-	{
-		secbase = tp.tv_sec;
-		return (int)(tp.tv_usec / 1000);
-	}
-
-	curtime = (int)((tp.tv_sec - secbase) * 1000 + tp.tv_usec / 1000);
 	return curtime;
 }
 

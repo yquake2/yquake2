@@ -431,6 +431,35 @@ Sys_Milliseconds(void)
 	return curtime;
 }
 
+long long
+Sys_Microseconds(void)
+{
+	long long microseconds;
+	long long seconds;
+	static long long uSecbase;
+
+	FILETIME ft;
+	unsigned long long tmpres = 0;
+
+	GetSystemTimeAsFileTime(&ft);
+
+	tmpres |= ft.dwHighDateTime;
+	tmpres <<= 32;
+	tmpres |= ft.dwLowDateTime;
+
+	tmpres /= 10; // Convert to microseconds.
+	tmpres -= 11644473600000000ULL; // ...and to unix epoch.
+
+	microseconds = tmpres;
+
+	if (!uSecbase)
+	{
+		uSecbase = microseconds - 1001;
+	}
+
+	return microseconds - uSecbase;
+}
+
 void
 Sys_Sleep(int msec)
 {

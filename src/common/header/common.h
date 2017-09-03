@@ -767,7 +767,7 @@ void Sys_Quit(void);
 char *Sys_GetHomeDir(void);
 const char *Sys_GetBinaryDir(void);
 void Sys_Sleep(int msec);
-
+long long Sys_Microseconds(void);
 void Sys_FreeLibrary(void *handle);
 void *Sys_LoadLibrary(const char *path, const char *sym, void **handle);
 void *Sys_GetProcAddress(void *handle, const char *sym);
