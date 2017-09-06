@@ -380,7 +380,7 @@ Qcommon_Frame(int msec)
 	}
 #endif
 
-	SV_Frame(msec);
+	SV_Frame();
 
 #ifndef DEDICATED_ONLY
 	if (host_speeds->value)
