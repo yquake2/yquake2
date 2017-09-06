@@ -38,13 +38,9 @@ qboolean is_portable;
 int
 main(int argc, char **argv)
 {
-	long long time, oldtime, newtime;
 	int verLen, i;
+	long long oldtime, newtime;
 	const char* versionString;
-
-#ifndef BUSY_WAIT
-	struct timespec t;
-#endif
 
 	/* register signal handler */
 	registerHandler();
@@ -135,26 +131,12 @@ main(int argc, char **argv)
 	fcntl(fileno(stdin), F_SETFL, fcntl(fileno(stdin), F_GETFL, NULL) | FNDELAY);
 
 	oldtime = Sys_Microseconds();
-	t.tv_sec = 0;
 
-	/* The legendary Quake II mainloop */
+	/* The mainloop. The legend. */
 	while (1)
 	{
-		/* find time spent rendering last frame */
-		do
-		{
-#ifndef BUSY_WAIT
-			/* Sleep 10 microseconds */
-			t.tv_nsec = 10000;
-			nanosleep(&t, NULL);
-#endif
-
-			newtime = Sys_Microseconds();
-			time = newtime - oldtime;
-		}
-		while (time < 1000);
-
-		Qcommon_Frame(time);
+		newtime = Sys_Microseconds();
+		Qcommon_Frame(newtime - oldtime);
 		oldtime = newtime;
 	}
 
