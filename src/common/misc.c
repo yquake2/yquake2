@@ -51,8 +51,10 @@ extern jmp_buf abortframe; /* an ERR_DROP occured, exit the entire frame */
 extern zhead_t z_chain;
 
 // Forward declarations
+#ifndef DEDICATED_ONLY
 int GLimp_GetRefreshRate(void);
 qboolean R_IsVSyncActive(void);
+#endif
 
 static byte chktbl[1024] = {
 	0x84, 0x47, 0x51, 0xc1, 0x93, 0x22, 0x21, 0x24, 0x2f, 0x66, 0x60, 0x4d, 0xb0, 0x7c, 0xda,
@@ -417,6 +419,7 @@ Qcommon_Frame(int msec)
 
 
 	// Calculate target packet- and renderframerate.
+#ifndef DEDICATED_ONLY
 	if (R_IsVSyncActive())
 	{
 		rfps = GLimp_GetRefreshRate();
@@ -432,6 +435,10 @@ Qcommon_Frame(int msec)
 	}
 
 	pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
+#else
+	pfps = (int)cl_maxfps->value;
+	rfps = (int)gl_maxfps->value;
+#endif
 
 
 	// Calculate timings.
