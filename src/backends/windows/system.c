@@ -414,19 +414,39 @@ ParseCommandLine(LPSTR lpCmdLine)
 
 /* ======================================================================= */
 
+long long
+Sys_Microseconds(void)
+{
+	long long microseconds;
+	static long long uSecbase;
+
+	FILETIME ft;
+	unsigned long long tmpres = 0;
+
+	GetSystemTimeAsFileTime(&ft);
+
+	tmpres |= ft.dwHighDateTime;
+	tmpres <<= 32;
+	tmpres |= ft.dwLowDateTime;
+
+	tmpres /= 10; // Convert to microseconds.
+	tmpres -= 11644473600000000ULL; // ...and to unix epoch.
+
+	microseconds = tmpres;
+
+	if (!uSecbase)
+	{
+		uSecbase = microseconds - 1001;
+	}
+
+	curtime = (int)((microseconds - uSecbase) / 1000ll);
+	return microseconds - uSecbase;
+}
+
 int
 Sys_Milliseconds(void)
 {
-	static int base;
-	static qboolean initialized = false;
-
-	if (!initialized)
-	{   /* let base retain 16 bits of effectively random data */
-		base = timeGetTime() & 0xffff0000;
-		initialized = true;
-	}
-
-	curtime = timeGetTime() - base;
+	curtime = (int)(Sys_Microseconds()/1000ll);
 
 	return curtime;
 }
@@ -435,6 +455,22 @@ void
 Sys_Sleep(int msec)
 {
 	Sleep(msec);
+}
+
+void Sys_Nanosleep(int nanosec)
+{
+	HANDLE timer;
+	LARGE_INTEGER li;
+
+	timer = CreateWaitableTimer(NULL, TRUE, NULL);
+
+	// Windows has a max. resolution of 100ns.
+	li.QuadPart = -nanosec / 100;
+
+	SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE);
+	WaitForSingleObject(timer, INFINITE);
+
+	CloseHandle(timer);
 }
 
 /* ======================================================================= */
@@ -745,7 +781,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		LPSTR lpCmdLine, int nCmdShow)
 {
 	MSG msg;
-	int time, oldtime, newtime;
+	long long oldtime, newtime;
 
 	/* Previous instances do not exist in Win32 */
 	if (hPrevInstance)
@@ -817,7 +853,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	Qcommon_Init(argc, argv);
 
 	/* Save our time */
-	oldtime = Sys_Milliseconds();
+	oldtime = Sys_Microseconds();
 
 	/* The legendary main loop */
 	while (1)
@@ -840,14 +876,11 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 			DispatchMessage(&msg);
 		}
 
-		do
-		{
-			newtime = Sys_Milliseconds();
-			time = newtime - oldtime;
-		}
-		while (time < 1);
+		// Throttle the game a little bit
+		Sys_Nanosleep(5000);
 
-		Qcommon_Frame(time);
+		newtime = Sys_Microseconds();
+		Qcommon_Frame(newtime - oldtime);
 		oldtime = newtime;
 	}
 

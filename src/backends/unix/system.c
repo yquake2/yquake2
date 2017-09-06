@@ -44,6 +44,7 @@
 #include <errno.h>
 #include <dlfcn.h>
 #include <dirent.h>
+#include <time.h>
 
 #include "../../common/header/common.h"
 #include "../../common/header/glob.h"
@@ -79,30 +80,39 @@ Sys_Init(void)
 {
 }
 
+long long
+Sys_Microseconds(void)
+{
+	static struct timespec last;
+	struct timespec now;
+
+	clock_gettime(CLOCK_MONOTONIC, &now);
+
+	if(last.tv_sec == 0)
+	{
+		clock_gettime(CLOCK_MONOTONIC, &last);
+		return last.tv_nsec / 1000ll;
+	}
+
+	long long sec = now.tv_sec - last.tv_sec;
+	long long nsec = now.tv_nsec - last.tv_nsec;
+
+	if(nsec < 0)
+	{
+		nsec += 1000000000ll; // 1s in ns
+		--sec;
+	}
+
+	curtime = (int)((sec*1000000ll + nsec/1000ll) / 1000ll);
+	return sec*1000000ll + nsec/1000ll;
+}
+
 int
 Sys_Milliseconds(void)
 {
-	struct timeval tp;
-	struct timezone tzp;
-	static int secbase;
-
-	gettimeofday(&tp, &tzp);
-
-	if (!secbase)
-	{
-		secbase = tp.tv_sec;
-		return tp.tv_usec / 1000;
-	}
-
-	curtime = (tp.tv_sec - secbase) * 1000 + tp.tv_usec / 1000;
+	curtime = (int)(Sys_Microseconds()/1000ll);
 
 	return curtime;
-}
-
-void
-Sys_Sleep(int msec)
-{
-	usleep((unsigned int)1000 * msec);
 }
 
 void

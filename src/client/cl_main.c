@@ -44,21 +44,18 @@ cvar_t *cl_noskins;
 cvar_t *cl_footsteps;
 cvar_t *cl_timeout;
 cvar_t *cl_predict;
-cvar_t *cl_maxfps;
 cvar_t *cl_drawfps;
 cvar_t *cl_gun;
 cvar_t *cl_add_particles;
 cvar_t *cl_add_lights;
 cvar_t *cl_add_entities;
 cvar_t *cl_add_blend;
-cvar_t *cl_async;
 
 cvar_t *cl_shownet;
 cvar_t *cl_showmiss;
 cvar_t *cl_showclamp;
 
 cvar_t *cl_paused;
-cvar_t *cl_timedemo;
 
 cvar_t *lookspring;
 cvar_t *lookstrafe;
@@ -82,8 +79,6 @@ cvar_t *msg;
 cvar_t *hand;
 cvar_t *gender;
 cvar_t *gender_auto;
-
-cvar_t *gl_maxfps;
 
 cvar_t	*gl_stereo;
 cvar_t	*gl_stereo_separation;
@@ -484,9 +479,7 @@ CL_InitLocal(void)
 	cl_footsteps = Cvar_Get("cl_footsteps", "1", 0);
 	cl_noskins = Cvar_Get("cl_noskins", "0", 0);
 	cl_predict = Cvar_Get("cl_predict", "1", 0);
-	cl_maxfps = Cvar_Get("cl_maxfps", "60", CVAR_ARCHIVE);
 	cl_drawfps = Cvar_Get("cl_drawfps", "0", CVAR_ARCHIVE);
-	cl_async = Cvar_Get("cl_async", "1", CVAR_ARCHIVE);
 
 	cl_upspeed = Cvar_Get("cl_upspeed", "200", 0);
 	cl_forwardspeed = Cvar_Get("cl_forwardspeed", "200", 0);
@@ -511,9 +504,6 @@ CL_InitLocal(void)
 	cl_showclamp = Cvar_Get("showclamp", "0", 0);
 	cl_timeout = Cvar_Get("cl_timeout", "120", 0);
 	cl_paused = Cvar_Get("paused", "0", 0);
-	cl_timedemo = Cvar_Get("timedemo", "0", 0);
-
-	gl_maxfps = Cvar_Get("gl_maxfps", "95", CVAR_ARCHIVE);
 
 	gl_stereo = Cvar_Get( "gl_stereo", "0", CVAR_ARCHIVE );
 	gl_stereo_separation = Cvar_Get( "gl_stereo_separation", "1", CVAR_ARCHIVE );
@@ -711,60 +701,25 @@ CL_UpdateWindowedMouse(void)
 	}
 }
 
-int GLimp_GetRefreshRate(void);
-qboolean R_IsVSyncActive(void);
-
 void
-CL_Frame(int msec)
+CL_Frame(int packetdelta, int renderdelta, int miscdelta, int timedelta,
+         qboolean packetframe, qboolean renderframe, qboolean miscframe)
 {
-	int nfps;
-	int rfps;
-
 	static int lasttimecalled;
 
-	static int packetdelta = 1000;
-	static int renderdelta = 1000;
-	static int miscdelta = 1000;
-
-	qboolean packetframe = true;
-	qboolean renderframe = true;
-	qboolean miscframe = true;
-
+	// Dedicated?
 	if (dedicated->value)
 	{
 		return;
 	}
 
-	// Target render frame rate
-	if (R_IsVSyncActive())
-	{
-		rfps = GLimp_GetRefreshRate();
-
-		if (rfps > gl_maxfps->value)
-		{
-			rfps = (int)gl_maxfps->value;
-		}
-	}
-	else
-	{
-		rfps = (int)gl_maxfps->value;
-	}
-
-	// The network framerate must not be higher then the render framerate
-	nfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
-
-	// Adjust deltas
-	packetdelta += msec;
-	renderdelta += msec;
-	miscdelta += msec;
-
-	// Calculate simulation time
-	cls.nframetime = packetdelta * 0.001f;
-	cls.rframetime = renderdelta * 0.001f;
+	// Calculate simulation time.
+	cls.nframetime = packetdelta / 1000000.0f;
+	cls.rframetime = renderdelta / 1000000.0f;
 	cls.realtime = curtime;
-	cl.time += msec;
+	cl.time += timedelta / 1000;
 
-	// Don't extrapolate too far ahead
+	// Don't extrapolate too far ahead.
 	if (cls.nframetime > 0.5f)
 	{
 		cls.nframetime = 0.5f;
@@ -775,72 +730,19 @@ CL_Frame(int msec)
 		cls.rframetime = 0.5f;
 	}
 
-	/* if in the debugger last frame, don't timeout */
-	if (msec > 5000)
+	// if in the debugger last frame, don't timeout.
+	if (timedelta > 5000000)
 	{
 		cls.netchan.last_received = Sys_Milliseconds();
 	}
 
 	if (!cl_timedemo->value)
 	{
-		// Don't flood while connecting
-		if ((cls.state == ca_connected) && (packetdelta < 100))
+		// Don't throttle too much when connecting / loading.
+		if ((cls.state == ca_connected) && (packetdelta > 100000))
 		{
-			packetframe = false;
+			packetframe = true;
 		}
-
-		if (cl_async->value)
-		{
-			// Network frames
-			if (packetdelta < (1000.0f / nfps))
-			{
-				packetframe = false;
-			}
-			else if (cls.nframetime == cls.rframetime)
-			{
-				packetframe = false;
-			}
-
-			// Render frames
-			if (renderdelta < (1000.0f / rfps))
-			{
-				renderframe = false;
-			}
-
-			// Misc. stuff at 10 FPS
-			if (miscdelta < 100.0f)
-			{
-				miscframe = false;
-			}
-		}
-		else
-		{
-			// Cap frames at gl_maxfps
-			if (renderdelta < (1000.0f / rfps))
-			{
-				renderframe = false;
-				packetframe = false;
-				miscframe = false;
-			}
-		}
-
-		// Throttle the game a little bit. 1000 FPS are enough.
-		if (!packetframe && !renderframe && !cls.forcePacket && !userinfo_modified)
-		{
-			double frametime = (1000.0 / cl_maxfps->value - packetdelta) <= (1000.0 / gl_maxfps->value - renderdelta) ?
-							   (1000.0 / cl_maxfps->value - packetdelta) : (1000.0 / gl_maxfps->value - renderdelta);
-
-			if (frametime > 1) // FIXME: why > ??
-			{
-				Sys_Sleep(1);
-			}
-
-			return;
-		}
-	}
-	else if (msec < 1)
-	{
-		return;
 	}
 
 	// Update input stuff
@@ -870,20 +772,14 @@ CL_Frame(int msec)
 
 	if (packetframe)
 	{
-		packetdelta = 0;
-
 		CL_SendCmd();
 		CL_CheckForResend();
 	}
 
 	if (renderframe)
 	{
-		renderdelta = 0;
-
 		if (miscframe)
 		{
-			miscdelta = 0;
-
 			VID_CheckChanges();
 		}
 

@@ -388,7 +388,7 @@ SV_Frame(int msec)
 		return;
 	}
 
-	svs.realtime += msec;
+	svs.realtime += msec / 1000;
 
 	/* keep the random time dependent */
 	randk();
