@@ -40,6 +40,7 @@ cvar_t *fixedtime;
 cvar_t *cl_maxfps;
 cvar_t *gl_maxfps;
 cvar_t *cl_async;
+cvar_t *cl_timedemo;
 
 #ifndef DEDICATED_ONLY
 cvar_t *showtrace;
@@ -244,6 +245,7 @@ Qcommon_Init(int argc, char **argv)
 	timescale = Cvar_Get("timescale", "1", 0);
 	fixedtime = Cvar_Get("fixedtime", "0", 0);
 	logfile_active = Cvar_Get("logfile", "1", CVAR_ARCHIVE);
+	cl_timedemo = Cvar_Get("timedemo", "0", 0);
 #ifndef DEDICATED_ONLY
 	showtrace = Cvar_Get("showtrace", "0", 0);
 #endif
@@ -448,35 +450,34 @@ Qcommon_Frame(int msec)
 	clienttimedelta += msec;
 	servertimedelta += msec;
 
-	if (cl_async->value)
-	{
-		// Network frames..
-		if (packetdelta < (1000000.0f / pfps))
-		{
-			packetframe = false;
-		}
+	if (!cl_timedemo->value) {
+		if (cl_async->value) {
+			// Network frames..
+			if (packetdelta < (1000000.0f / pfps)) {
+				packetframe = false;
+			}
 
-		// Render frames.
-		if (renderdelta < (1000000.0f / rfps))
-		{
-			renderframe = false;
-		}
+			// Render frames.
+			if (renderdelta < (1000000.0f / rfps)) {
+				renderframe = false;
+			}
 
-		// Misc. frames.
-		if (miscdelta < 100000.0f)
-		{
-			miscframe = false;
+			// Misc. frames.
+			if (miscdelta < 100000.0f) {
+				miscframe = false;
+			}
+		} else {
+			// Cap frames at target framerate.
+			if (renderdelta < (1000000.0f / rfps)) {
+				renderframe = false;
+				packetframe = false;
+				miscframe = false;
+			}
 		}
 	}
-	else
+	else if (clienttimedelta < 1000 || servertimedelta < 1000)
 	{
-		// Cap frames at target framerate.
-		if (renderdelta < (1000000.0f / rfps))
-		{
-			renderframe = false;
-			packetframe = false;
-			miscframe = false;
-		}
+		return;
 	}
 
 

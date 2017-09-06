@@ -56,7 +56,6 @@ cvar_t *cl_showmiss;
 cvar_t *cl_showclamp;
 
 cvar_t *cl_paused;
-cvar_t *cl_timedemo;
 
 cvar_t *lookspring;
 cvar_t *lookstrafe;
@@ -505,7 +504,6 @@ CL_InitLocal(void)
 	cl_showclamp = Cvar_Get("showclamp", "0", 0);
 	cl_timeout = Cvar_Get("cl_timeout", "120", 0);
 	cl_paused = Cvar_Get("paused", "0", 0);
-	cl_timedemo = Cvar_Get("timedemo", "0", 0);
 
 	gl_stereo = Cvar_Get( "gl_stereo", "0", CVAR_ARCHIVE );
 	gl_stereo_separation = Cvar_Get( "gl_stereo_separation", "1", CVAR_ARCHIVE );
@@ -745,14 +743,6 @@ CL_Frame(int packetdelta, int renderdelta, int miscdelta, int timedelta,
 		{
 			packetframe = true;
 		}
-	}
-	else
-	{
-		/* If we're running a timedemo ignore the global timing
-		   and pump out as many frames as we can. */
-		packetframe = true;
-		renderframe = true;
-		miscframe = true;
 	}
 
 	// Update input stuff
