@@ -38,7 +38,7 @@ qboolean is_portable;
 int
 main(int argc, char **argv)
 {
-	int time, oldtime, newtime;
+	long long time, oldtime, newtime;
 	int verLen, i;
 	const char* versionString;
 
@@ -134,7 +134,7 @@ main(int argc, char **argv)
 	/* Do not delay reads on stdin*/
 	fcntl(fileno(stdin), F_SETFL, fcntl(fileno(stdin), F_GETFL, NULL) | FNDELAY);
 
-	oldtime = Sys_Milliseconds();
+	oldtime = Sys_Microseconds();
 	t.tv_sec = 0;
 
 	/* The legendary Quake II mainloop */
@@ -149,10 +149,10 @@ main(int argc, char **argv)
 			nanosleep(&t, NULL);
 #endif
 
-			newtime = Sys_Milliseconds();
+			newtime = Sys_Microseconds();
 			time = newtime - oldtime;
 		}
-		while (time < 1);
+		while (time < 1000);
 
 		Qcommon_Frame(time);
 		oldtime = newtime;

@@ -388,7 +388,7 @@ Qcommon_Frame(int msec)
 		time_between = Sys_Milliseconds();
 	}
 
-	CL_Frame(msec);
+	CL_Frame(msec / 1000);
 
 	if (host_speeds->value)
 	{
