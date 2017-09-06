@@ -327,8 +327,11 @@ Qcommon_Frame(int msec)
 	// Time since last misc. frame in microsec.
 	static int miscdelta = 100000;
 
-	// Accumulated time since last (packet|render|misc|time) frame.
-	static int timedelta = 1001;
+	// Accumulated time since last client run.
+	static int clienttimedelta = 0;
+
+	// Accumulated time since last server run.
+	static int servertimedelta = 0;
 
 	/* A packetframe runs the server and the client,
 	   but not the renderer. The minimal interval of
@@ -347,12 +350,6 @@ Qcommon_Frame(int msec)
 	   loading sound samples for the background music.
 	   An interval of 100.000 microseconds is enough. */
 	qboolean miscframe = true;
-
-	/* Timeframes are empty frames. We need to call the
-	   client at regular intervals to forward several
-	   internal timers, even if there's nothing to do.
-	   This is also necessary to speed up loading times. */
-	qboolean timeframe = true;
 
 
 	/* In case of ERR_DROP we're jumping here. Don't know
@@ -441,7 +438,8 @@ Qcommon_Frame(int msec)
 	packetdelta += msec;
 	renderdelta += msec;
 	miscdelta += msec;
-	timedelta += msec;
+	clienttimedelta += msec;
+	servertimedelta += msec;
 
 	if (cl_async->value)
 	{
@@ -474,24 +472,17 @@ Qcommon_Frame(int msec)
 		}
 	}
 
-	if (timedelta < 1001)
-	{
-		timeframe = false;
-	}
 
+	// Dedicated server terminal console.
+	do {
+		s = Sys_ConsoleInput();
 
-	// No need to run the terminal console too often.
-	if (timeframe) {
-		do {
-			s = Sys_ConsoleInput();
+		if (s) {
+			Cbuf_AddText(va("%s\n", s));
+		}
+	} while (s);
 
-			if (s) {
-				Cbuf_AddText(va("%s\n", s));
-			}
-		} while (s);
-
-		Cbuf_Execute();
-	}
+	Cbuf_Execute();
 
 
 #ifndef DEDICATED_ONLY
@@ -504,7 +495,8 @@ Qcommon_Frame(int msec)
 
 	// Run the serverframe.
 	if (packetframe) {
-		SV_Frame();
+		SV_Frame(servertimedelta);
+		servertimedelta = 0;
 	}
 
 
@@ -516,9 +508,10 @@ Qcommon_Frame(int msec)
 
 
 	// Run the client frame.
-	if (packetframe || renderframe || miscframe || timeframe) {
-		CL_Frame(packetdelta, renderdelta, miscdelta, timedelta,
+	if (packetframe || renderframe || miscframe) {
+		CL_Frame(packetdelta, renderdelta, miscdelta, clienttimedelta,
 		         packetframe, renderframe, miscframe);
+		clienttimedelta = 0;
 	}
 
 
@@ -551,10 +544,6 @@ Qcommon_Frame(int msec)
 
 	if (miscframe) {
 		miscdelta = 0;
-	}
-
-	if (timeframe) {
-		timedelta = 0;
 	}
 }
 

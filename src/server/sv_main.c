@@ -376,7 +376,7 @@ SV_RunGameFrame(void)
 }
 
 void
-SV_Frame()
+SV_Frame(int msec)
 {
 #ifndef DEDICATED_ONLY
 	time_before_game = time_after_game = 0;
@@ -388,7 +388,7 @@ SV_Frame()
 		return;
 	}
 
-	svs.realtime = curtime;
+	svs.realtime += msec / 1000;
 
 	/* keep the random time dependent */
 	randk();
