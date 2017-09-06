@@ -35,7 +35,11 @@ cvar_t *developer;
 cvar_t *modder;
 cvar_t *timescale;
 cvar_t *fixedtime;
-cvar_t *portable;
+
+// For timing calculations.
+cvar_t *cl_maxfps;
+cvar_t *gl_maxfps;
+cvar_t *cl_async;
 
 #ifndef DEDICATED_ONLY
 cvar_t *showtrace;
@@ -45,6 +49,10 @@ cvar_t *dedicated;
 extern cvar_t *logfile_active;
 extern jmp_buf abortframe; /* an ERR_DROP occured, exit the entire frame */
 extern zhead_t z_chain;
+
+// Forward declarations
+int GLimp_GetRefreshRate(void);
+qboolean R_IsVSyncActive(void);
 
 static byte chktbl[1024] = {
 	0x84, 0x47, 0x51, 0xc1, 0x93, 0x22, 0x21, 0x24, 0x2f, 0x66, 0x60, 0x4d, 0xb0, 0x7c, 0xda,
@@ -244,6 +252,11 @@ Qcommon_Init(int argc, char **argv)
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET);
 #endif
 
+	// For timing calculations.
+	cl_maxfps = Cvar_Get("cl_maxfps", "60", CVAR_ARCHIVE);
+	gl_maxfps = Cvar_Get("gl_maxfps", "95", CVAR_ARCHIVE);
+	cl_async = Cvar_Get("cl_async", "1", CVAR_ARCHIVE);
+
 	s = va("%s %s %s %s", YQ2VERSION, YQ2ARCH, BUILD_DATE, YQ2OSTYPE);
 	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
@@ -299,10 +312,57 @@ Qcommon_Frame(int msec)
 	int time_after;
 #endif
 
+	// Target packetframerate.
+	int pfps;
+
+	//Target renderframerate.
+	int rfps;
+
+	// Time since last packetframe in microsec.
+	static int packetdelta = 1000000;
+
+	// Time since last renderframe in microsec.
+	static int renderdelta = 1000000;
+
+	// Time since last misc. frame in microsec.
+	static int miscdelta = 100000;
+
+	// Accumulated time since last (packet|render|misc|time) frame.
+	static int timedelta = 1001;
+
+	/* A packetframe runs the server and the client,
+	   but not the renderer. The minimal interval of
+	   packetframes is about 10.000 microsec. If run
+	   more often the movement prediction in pmove.c
+	   breaks. That's the Q2 variant if the famous
+	   125hz bug. */
+	qboolean packetframe = true;
+
+	/* A rendererframe runs the renderer, but not the
+	   client. The minimal interval is about 1000
+	   microseconds. */
+	qboolean renderframe = true;
+
+	/* A miscframe runs several maintenance task like
+	   loading sound samples for the background music.
+	   An interval of 100.000 microseconds is enough. */
+	qboolean miscframe = true;
+
+	/* Timeframes are empty frames. We need to call the
+	   client at regular intervals to forward several
+	   internal timers, even if there's nothing to do.
+	   This is also necessary to speed up loading times. */
+	qboolean timeframe = true;
+
+
+	/* In case of ERR_DROP we're jumping here. Don't know
+	   if that' really save but it seems to work. So leave
+	   it alone. */
 	if (setjmp(abortframe))
 	{
-		return; /* an ERR_DROP was thrown */
+		return;
 	}
+
 
 	if (log_stats->modified)
 	{
@@ -360,6 +420,68 @@ Qcommon_Frame(int msec)
 	}
 #endif
 
+
+	// Calculate target packet- and renderframerate.
+	if (R_IsVSyncActive())
+	{
+		rfps = GLimp_GetRefreshRate();
+
+		if (rfps > gl_maxfps->value)
+		{
+			rfps = (int)gl_maxfps->value;
+		}
+	}
+	else
+	{
+		rfps = (int)gl_maxfps->value;
+	}
+
+	pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
+
+
+	// Calculate timings.
+	packetdelta += msec;
+	renderdelta += msec;
+	miscdelta += msec;
+	timedelta += msec;
+
+	if (cl_async->value)
+	{
+		// Network frames..
+		if (packetdelta < (1000000.0f / pfps))
+		{
+			packetframe = false;
+		}
+
+		// Render frames.
+		if (renderdelta < (1000000.0f / rfps))
+		{
+			renderframe = false;
+		}
+
+		// Misc. frames.
+		if (miscdelta < 100000.0f)
+		{
+			miscframe = false;
+		}
+	}
+	else
+	{
+		// Cap frames at target framerate.
+		if (renderdelta < (1000000.0f / rfps))
+		{
+			renderframe = false;
+			packetframe = false;
+			miscframe = false;
+		}
+	}
+
+	if (timedelta < 1001)
+	{
+		timeframe = false;
+	}
+
+
 	do
 	{
 		s = Sys_ConsoleInput();
@@ -380,7 +502,9 @@ Qcommon_Frame(int msec)
 	}
 #endif
 
-	SV_Frame();
+	if (packetframe) {
+		SV_Frame();
+	}
 
 #ifndef DEDICATED_ONLY
 	if (host_speeds->value)
@@ -388,7 +512,10 @@ Qcommon_Frame(int msec)
 		time_between = Sys_Milliseconds();
 	}
 
-	CL_Frame(msec / 1000);
+	if (packetframe || renderframe || miscframe || timeframe) {
+		CL_Frame(packetdelta, renderdelta, miscdelta, timedelta,
+		         packetframe, renderframe, miscframe);
+	}
 
 	if (host_speeds->value)
 	{
@@ -406,6 +533,25 @@ Qcommon_Frame(int msec)
 				all, sv, gm, cl, rf);
 	}
 #endif
+
+
+	// Reset deltas if necessary.
+	if (packetframe) {
+		packetdelta = 0;
+	}
+
+	if (renderframe) {
+		renderdelta = 0;
+	}
+
+	if (miscframe) {
+		miscdelta = 0;
+	}
+
+	if (timeframe) {
+		timedelta = 0;
+	}
+
 }
 
 void

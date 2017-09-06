@@ -766,7 +766,6 @@ void Sys_Error(char *error, ...);
 void Sys_Quit(void);
 char *Sys_GetHomeDir(void);
 const char *Sys_GetBinaryDir(void);
-void Sys_Sleep(int msec);
 long long Sys_Microseconds(void);
 void Sys_FreeLibrary(void *handle);
 void *Sys_LoadLibrary(const char *path, const char *sym, void **handle);
@@ -778,7 +777,8 @@ void Sys_RedirectStdout(void);
 void CL_Init(void);
 void CL_Drop(void);
 void CL_Shutdown(void);
-void CL_Frame(int msec);
+void CL_Frame(int packetdelta, int renderdelta, int miscdelta, int timedelta, qboolean packetframe, qboolean renderframe,
+              qboolean miscframe);
 void Con_Print(char *text);
 void SCR_BeginLoadingPlaque(void);
 

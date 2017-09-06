@@ -112,12 +112,6 @@ Sys_Milliseconds(void)
 }
 
 void
-Sys_Sleep(int msec)
-{
-	usleep((unsigned int)1000 * msec);
-}
-
-void
 Sys_Mkdir(char *path)
 {
 	mkdir(path, 0755);
