@@ -393,19 +393,17 @@ Qcommon_Frame(int msec)
 		}
 	}
 
+
+	// Timing debug crap. Just for historical reasons.
 	if (fixedtime->value)
 	{
-		msec = fixedtime->value;
+		msec = (int)fixedtime->value;
 	}
 	else if (timescale->value)
 	{
 		msec *= timescale->value;
-
-		if (msec < 1)
-		{
-			msec = 1;
-		}
 	}
+
 
 #ifndef DEDICATED_ONLY
 	if (showtrace->value)
@@ -482,18 +480,19 @@ Qcommon_Frame(int msec)
 	}
 
 
-	do
-	{
-		s = Sys_ConsoleInput();
+	// No need to run the terminal console too often.
+	if (timeframe) {
+		do {
+			s = Sys_ConsoleInput();
 
-		if (s)
-		{
-			Cbuf_AddText(va("%s\n", s));
-		}
+			if (s) {
+				Cbuf_AddText(va("%s\n", s));
+			}
+		} while (s);
+
+		Cbuf_Execute();
 	}
-	while (s);
 
-	Cbuf_Execute();
 
 #ifndef DEDICATED_ONLY
 	if (host_speeds->value)
@@ -502,9 +501,12 @@ Qcommon_Frame(int msec)
 	}
 #endif
 
+
+	// Run the serverframe.
 	if (packetframe) {
 		SV_Frame();
 	}
+
 
 #ifndef DEDICATED_ONLY
 	if (host_speeds->value)
@@ -512,10 +514,13 @@ Qcommon_Frame(int msec)
 		time_between = Sys_Milliseconds();
 	}
 
+
+	// Run the client frame.
 	if (packetframe || renderframe || miscframe || timeframe) {
 		CL_Frame(packetdelta, renderdelta, miscdelta, timedelta,
 		         packetframe, renderframe, miscframe);
 	}
+
 
 	if (host_speeds->value)
 	{
@@ -551,7 +556,6 @@ Qcommon_Frame(int msec)
 	if (timeframe) {
 		timedelta = 0;
 	}
-
 }
 
 void
