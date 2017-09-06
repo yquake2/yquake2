@@ -135,6 +135,9 @@ main(int argc, char **argv)
 	/* The mainloop. The legend. */
 	while (1)
 	{
+		struct timespec t = {0, 5000};
+		nanosleep(&t, NULL);
+
 		newtime = Sys_Microseconds();
 		Qcommon_Frame(newtime - oldtime);
 		oldtime = newtime;
