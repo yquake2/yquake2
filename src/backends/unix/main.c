@@ -41,6 +41,7 @@ main(int argc, char **argv)
 	int verLen, i;
 	long long oldtime, newtime;
 	const char* versionString;
+	struct timespec t = {0, 5000};
 
 	/* register signal handler */
 	registerHandler();
@@ -135,7 +136,7 @@ main(int argc, char **argv)
 	/* The mainloop. The legend. */
 	while (1)
 	{
-		struct timespec t = {0, 5000};
+		// Throttle the game a little bit.
 		nanosleep(&t, NULL);
 
 		newtime = Sys_Microseconds();
