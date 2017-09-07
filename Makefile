@@ -764,7 +764,7 @@ CLIENT_OBJS_ := \
 	src/common/glob.o \
 	src/common/md4.o \
 	src/common/movemsg.o \
-	src/common/misc.o \
+	src/common/frame.o \
 	src/common/netchan.o \
 	src/common/pmove.o \
 	src/common/szone.o \
@@ -876,7 +876,7 @@ SERVER_OBJS_ := \
 	src/common/filesystem.o \
 	src/common/glob.o \
 	src/common/md4.o \
-	src/common/misc.o \
+	src/common/frame.o \
 	src/common/movemsg.o \
 	src/common/netchan.o \
 	src/common/pmove.o \

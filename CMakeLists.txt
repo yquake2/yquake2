@@ -174,7 +174,7 @@ set(Backends-Unix-Header
 	)
 
 set(Backends-Windows-Source
-	${BACKENDS_SRC_DIR}/generic/misc.c
+	${BACKENDS_SRC_DIR}/generic/frame.c
 	${BACKENDS_SRC_DIR}/windows/icon.rc
 	${BACKENDS_SRC_DIR}/windows/network.c
 	${BACKENDS_SRC_DIR}/windows/system.c
@@ -322,7 +322,7 @@ set(Client-Source
 	${COMMON_SRC_DIR}/glob.c
 	${COMMON_SRC_DIR}/md4.c
 	${COMMON_SRC_DIR}/movemsg.c
-	${COMMON_SRC_DIR}/misc.c
+	${COMMON_SRC_DIR}/frame.c
 	${COMMON_SRC_DIR}/netchan.c
 	${COMMON_SRC_DIR}/pmove.c
 	${COMMON_SRC_DIR}/szone.c
@@ -377,7 +377,7 @@ set(Server-Source
 	${COMMON_SRC_DIR}/filesystem.c
 	${COMMON_SRC_DIR}/glob.c
 	${COMMON_SRC_DIR}/md4.c
-	${COMMON_SRC_DIR}/misc.c
+	${COMMON_SRC_DIR}/frame.c
 	${COMMON_SRC_DIR}/movemsg.c
 	${COMMON_SRC_DIR}/netchan.c
 	${COMMON_SRC_DIR}/pmove.c
