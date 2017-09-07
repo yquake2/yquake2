@@ -76,8 +76,6 @@ void SCR_EndLoadingPlaque(void);
 void
 Qcommon_Init(int argc, char **argv)
 {
-	char *s;
-
 	// Jump point used in emergency situations.
 	if (setjmp(abortframe))
 	{
@@ -132,6 +130,7 @@ Qcommon_Init(int argc, char **argv)
 	modder = Cvar_Get("modder", "0", 0);
 	timescale = Cvar_Get("timescale", "1", 0);
 
+	char *s;
 	s = va("%s %s %s %s", YQ2VERSION, YQ2ARCH, BUILD_DATE, YQ2OSTYPE);
 	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
@@ -186,16 +185,17 @@ Qcommon_Init(int argc, char **argv)
 	Com_Printf("*************************************\n\n");
 }
 
+#ifndef DEDICATED_ONLY
 void
 Qcommon_Frame(int msec)
 {
+	// Used for the dedicated server console.
 	char *s;
 
-#ifndef DEDICATED_ONLY
+	// Statistics.
 	int time_before = 0;
 	int time_between = 0;
 	int time_after;
-#endif
 
 	// Target packetframerate.
 	int pfps;
@@ -287,7 +287,6 @@ Qcommon_Frame(int msec)
 	}
 
 
-#ifndef DEDICATED_ONLY
 	if (showtrace->value)
 	{
 		extern int c_traces, c_brush_traces;
@@ -298,11 +297,9 @@ Qcommon_Frame(int msec)
 		c_brush_traces = 0;
 		c_pointcontents = 0;
 	}
-#endif
 
 
 	// Calculate target packet- and renderframerate.
-#ifndef DEDICATED_ONLY
 	if (R_IsVSyncActive())
 	{
 		rfps = GLimp_GetRefreshRate();
@@ -318,10 +315,6 @@ Qcommon_Frame(int msec)
 	}
 
 	pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
-#else
-	pfps = (int)cl_maxfps->value;
-	rfps = (int)gl_maxfps->value;
-#endif
 
 
 	// Calculate timings.
@@ -374,12 +367,10 @@ Qcommon_Frame(int msec)
 	Cbuf_Execute();
 
 
-#ifndef DEDICATED_ONLY
 	if (host_speeds->value)
 	{
 		time_before = Sys_Milliseconds();
 	}
-#endif
 
 
 	// Run the serverframe.
@@ -389,7 +380,6 @@ Qcommon_Frame(int msec)
 	}
 
 
-#ifndef DEDICATED_ONLY
 	if (host_speeds->value)
 	{
 		time_between = Sys_Milliseconds();
@@ -419,7 +409,6 @@ Qcommon_Frame(int msec)
 		Com_Printf("all:%3i sv:%3i gm:%3i cl:%3i rf:%3i\n",
 				all, sv, gm, cl, rf);
 	}
-#endif
 
 
 	// Reset deltas if necessary.
@@ -435,4 +424,87 @@ Qcommon_Frame(int msec)
 		miscdelta = 0;
 	}
 }
+#else
+void
+Qcommon_Frame(int msec)
+{
+	// For the dedicated server terminal console.
+	char *s;
 
+	// Target packetframerate.
+	int pfps;
+
+	// Time since last packetframe in microsec.
+	static int packetdelta = 1000000;
+
+	// Accumulated time since last server run.
+	static int servertimedelta = 0;
+
+	/* A packetframe runs the server and the client,
+	   but not the renderer. The minimal interval of
+	   packetframes is about 10.000 microsec. If run
+	   more often the movement prediction in pmove.c
+	   breaks. That's the Q2 variant if the famous
+	   125hz bug. */
+	qboolean packetframe = true;
+
+
+	/* In case of ERR_DROP we're jumping here. Don't know
+	   if that' really save but it seems to work. So leave
+	   it alone. */
+	if (setjmp(abortframe))
+	{
+		return;
+	}
+
+
+	// Timing debug crap. Just for historical reasons.
+	if (fixedtime->value)
+	{
+		msec = (int)fixedtime->value;
+	}
+	else if (timescale->value)
+	{
+		msec *= timescale->value;
+	}
+
+
+	pfps = (int)cl_maxfps->value;
+
+
+	// Calculate timings.
+	packetdelta += msec;
+	servertimedelta += msec;
+
+
+	// Network frame time.
+	if (packetdelta < (1000000.0f / pfps)) {
+		packetframe = false;
+	}
+
+
+	// Dedicated server terminal console.
+	do {
+		s = Sys_ConsoleInput();
+
+		if (s) {
+			Cbuf_AddText(va("%s\n", s));
+		}
+	} while (s);
+
+	Cbuf_Execute();
+
+
+	// Run the serverframe.
+	if (packetframe) {
+		SV_Frame(servertimedelta);
+		servertimedelta = 0;
+	}
+
+
+	// Reset deltas if necessary.
+	if (packetframe) {
+		packetdelta = 0;
+	}
+}
+#endif
