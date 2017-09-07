@@ -871,8 +871,10 @@ ai_run_melee(edict_t *self)
 
 	if (FacingIdeal(self))
 	{
-		self->monsterinfo.melee(self);
-		self->monsterinfo.attack_state = AS_STRAIGHT;
+		if (self->monsterinfo.melee) {
+			self->monsterinfo.melee(self);
+			self->monsterinfo.attack_state = AS_STRAIGHT;
+		}
 	}
 }
 
@@ -893,8 +895,10 @@ ai_run_missile(edict_t *self)
 
 	if (FacingIdeal(self))
 	{
-		self->monsterinfo.attack(self);
-		self->monsterinfo.attack_state = AS_STRAIGHT;
+		if (self->monsterinfo.attack) {
+			self->monsterinfo.attack(self);
+			self->monsterinfo.attack_state = AS_STRAIGHT;
+		}
 	}
 }
 
