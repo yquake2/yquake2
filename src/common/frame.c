@@ -71,16 +71,6 @@ void Key_Init(void);
 void SCR_EndLoadingPlaque(void);
 #endif
 
-/*
- * Just throw a fatal error to
- * test error shutdown procedures
- */
-void
-Com_Error_f(void)
-{
-	Com_Error(ERR_FATAL, "%s", Cmd_Argv(1));
-}
-
 void
 Qcommon_Init(int argc, char **argv)
 {
@@ -126,7 +116,6 @@ Qcommon_Init(int argc, char **argv)
 
 	/* init commands and vars */
 	Cmd_AddCommand("z_stats", Z_Stats_f);
-	Cmd_AddCommand("error", Com_Error_f);
 
 	host_speeds = Cvar_Get("host_speeds", "0", 0);
 	log_stats = Cvar_Get("log_stats", "0", 0);
