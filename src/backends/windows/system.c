@@ -79,8 +79,6 @@ Sys_Error(char *error, ...)
 	CL_Shutdown();
 #endif
 
-	Qcommon_Shutdown();
-
 	va_start(argptr, error);
 	vsprintf(text, error, argptr);
 	va_end(argptr);
@@ -114,7 +112,6 @@ Sys_Quit(void)
 	CL_Shutdown();
 #endif
 
-	Qcommon_Shutdown();
 	CloseHandle(qwclsemaphore);
 
 	if (dedicated && dedicated->value)

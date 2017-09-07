@@ -745,7 +745,6 @@ void Z_FreeTags(int tag);
 
 void Qcommon_Init(int argc, char **argv);
 void Qcommon_Frame(int msec);
-void Qcommon_Shutdown(void);
 
 #define NUMVERTEXNORMALS 162
 extern vec3_t bytedirs[NUMVERTEXNORMALS];
