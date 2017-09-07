@@ -71,25 +71,26 @@ void Key_Init(void);
 void SCR_EndLoadingPlaque(void);
 #endif
 
+// ----
+
 void
 Qcommon_Init(int argc, char **argv)
 {
 	char *s;
 
+	// Jump point used in emergency situations.
 	if (setjmp(abortframe))
 	{
 		Sys_Error("Error during initialization");
 	}
 
+	// Initialize zone malloc().
 	z_chain.next = z_chain.prev = &z_chain;
 
-	/* prepare enough of the subsystems to handle
-	   cvar and command buffer management */
+	// Start early subsystems.
 	COM_InitArgv(argc, argv);
-
 	Swap_Init();
 	Cbuf_Init();
-
 	Cmd_Init();
 	Cvar_Init();
 
@@ -104,50 +105,50 @@ Qcommon_Init(int argc, char **argv)
 	Cbuf_AddEarlyCommands(false);
 	Cbuf_Execute();
 
+	// The filesystems needs to be initialized after the cvars.
 	FS_InitFilesystem();
 
+	// Add and execute configuration files.
 	Cbuf_AddText("exec default.cfg\n");
 	Cbuf_AddText("exec yq2.cfg\n");
 	Cbuf_AddText("exec config.cfg\n");
 	Cbuf_AddText("exec autoexec.cfg\n");
-
 	Cbuf_AddEarlyCommands(true);
 	Cbuf_Execute();
 
-	/* init commands and vars */
+	// Zone malloc statistics.
 	Cmd_AddCommand("z_stats", Z_Stats_f);
 
+	// cvars
+	cl_async = Cvar_Get("cl_async", "1", CVAR_ARCHIVE);
+	cl_maxfps = Cvar_Get("cl_maxfps", "60", CVAR_ARCHIVE);
+	cl_timedemo = Cvar_Get("timedemo", "0", 0);
+	developer = Cvar_Get("developer", "0", 0);
+	fixedtime = Cvar_Get("fixedtime", "0", 0);
+	gl_maxfps = Cvar_Get("gl_maxfps", "95", CVAR_ARCHIVE);
 	host_speeds = Cvar_Get("host_speeds", "0", 0);
 	log_stats = Cvar_Get("log_stats", "0", 0);
-	developer = Cvar_Get("developer", "0", 0);
+	logfile_active = Cvar_Get("logfile", "1", CVAR_ARCHIVE);
 	modder = Cvar_Get("modder", "0", 0);
 	timescale = Cvar_Get("timescale", "1", 0);
-	fixedtime = Cvar_Get("fixedtime", "0", 0);
-	logfile_active = Cvar_Get("logfile", "1", CVAR_ARCHIVE);
-	cl_timedemo = Cvar_Get("timedemo", "0", 0);
-#ifndef DEDICATED_ONLY
-	showtrace = Cvar_Get("showtrace", "0", 0);
-#endif
-
-#ifdef DEDICATED_ONLY
-	dedicated = Cvar_Get("dedicated", "1", CVAR_NOSET);
-#else
-	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET);
-#endif
-
-	// For timing calculations.
-	cl_maxfps = Cvar_Get("cl_maxfps", "60", CVAR_ARCHIVE);
-	gl_maxfps = Cvar_Get("gl_maxfps", "95", CVAR_ARCHIVE);
-	cl_async = Cvar_Get("cl_async", "1", CVAR_ARCHIVE);
 
 	s = va("%s %s %s %s", YQ2VERSION, YQ2ARCH, BUILD_DATE, YQ2OSTYPE);
 	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
+#ifndef DEDICATED_ONLY
+	showtrace = Cvar_Get("showtrace", "0", 0);
+	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET);
+#else
+	dedicated = Cvar_Get("dedicated", "1", CVAR_NOSET);
+#endif
+
+	// We can't use the clients "quit" command when running dedicated.
 	if (dedicated->value)
 	{
 		Cmd_AddCommand("quit", Com_Quit);
 	}
 
+	// Start late subsystem.
 	Sys_Init();
 	NET_Init();
 	Netchan_Init();
@@ -156,16 +157,17 @@ Qcommon_Init(int argc, char **argv)
 	CL_Init();
 #endif
 
-	/* add + commands from command line */
+	// Everythings up, let's add + cmds from command line.
 	if (!Cbuf_AddLateCommands())
 	{
-		/* if the user didn't give any commands, run default action */
 		if (!dedicated->value)
 		{
+			// Start demo loop...
 			Cbuf_AddText("d1\n");
 		}
 		else
 		{
+			// ...or dedicated server.
 			Cbuf_AddText("dedicated_start\n");
 		}
 
