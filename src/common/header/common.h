@@ -475,6 +475,8 @@ void Cvar_WriteVariables(char *path);
 
 void Cvar_Init(void);
 
+void Cvar_Fini(void);
+
 char *Cvar_Userinfo(void);
 
 /* returns an info string containing all the CVAR_USERINFO cvars */
