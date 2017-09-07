@@ -19,7 +19,7 @@
  *
  * =======================================================================
  *
- * This file implements some generic funktions
+ * This file implements some generic functions.
  *
  * =======================================================================
  */
@@ -27,10 +27,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined(__linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
-#include <unistd.h> // readlink(), amongst others
 #include "../../common/header/shared.h"
 
+#if defined(__linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#include <unistd.h> // readlink(), amongst others
 #endif
 
 #ifdef __FreeBSD__
@@ -50,7 +50,6 @@
 // longer paths anyway.. this might not be the maximum allowed length, but is
 // hopefully good enough for realistic usecases
 #define PATH_MAX 4096
-#define _DG__DEFINED_PATH_MAX
 #endif
 
 static void SetExecutablePath(char* exePath)
