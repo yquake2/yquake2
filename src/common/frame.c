@@ -520,3 +520,8 @@ Qcommon_Frame(int msec)
 	}
 }
 #endif
+
+void
+Qcommon_Shutdown(void)
+{
+}

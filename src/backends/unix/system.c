@@ -259,6 +259,7 @@ Sys_Quit(void)
 		logfile = NULL;
 	}
 
+	Qcommon_Shutdown();
 	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) & ~FNDELAY);
 
 	printf("------------------------------------\n");
@@ -278,6 +279,7 @@ Sys_Error(char *error, ...)
 #ifndef DEDICATED_ONLY
 	CL_Shutdown();
 #endif
+	Qcommon_Shutdown();
 
 	va_start(argptr, error);
 	vsnprintf(string, 1024, error, argptr);
