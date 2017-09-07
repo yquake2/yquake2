@@ -28,28 +28,27 @@
 #include "header/zone.h"
 #include <setjmp.h>
 
-FILE *log_stats_file;
-cvar_t *host_speeds;
-cvar_t *log_stats;
 cvar_t *developer;
 cvar_t *modder;
 cvar_t *timescale;
 cvar_t *fixedtime;
-
-// For timing calculations.
 cvar_t *cl_maxfps;
-cvar_t *gl_maxfps;
-cvar_t *cl_async;
-cvar_t *cl_timedemo;
-
-#ifndef DEDICATED_ONLY
-cvar_t *showtrace;
-#endif
 cvar_t *dedicated;
+
 
 extern cvar_t *logfile_active;
 extern jmp_buf abortframe; /* an ERR_DROP occured, exit the entire frame */
 extern zhead_t z_chain;
+
+#ifndef DEDICATED_ONLY
+FILE *log_stats_file;
+cvar_t *cl_async;
+cvar_t *cl_timedemo;
+cvar_t *gl_maxfps;
+cvar_t *host_speeds;
+cvar_t *log_stats;
+cvar_t *showtrace;
+#endif
 
 // Forward declarations
 #ifndef DEDICATED_ONLY
@@ -57,14 +56,11 @@ int GLimp_GetRefreshRate(void);
 qboolean R_IsVSyncActive(void);
 #endif
 
-
-
 /* host_speeds times */
 int time_before_game;
 int time_after_game;
 int time_before_ref;
 int time_after_ref;
-
 
 #ifndef DEDICATED_ONLY
 void Key_Init(void);
@@ -118,14 +114,14 @@ Qcommon_Init(int argc, char **argv)
 	Cmd_AddCommand("z_stats", Z_Stats_f);
 
 	// cvars
-	cl_async = Cvar_Get("cl_async", "1", CVAR_ARCHIVE);
+
 	cl_maxfps = Cvar_Get("cl_maxfps", "60", CVAR_ARCHIVE);
-	cl_timedemo = Cvar_Get("timedemo", "0", 0);
+
 	developer = Cvar_Get("developer", "0", 0);
 	fixedtime = Cvar_Get("fixedtime", "0", 0);
-	gl_maxfps = Cvar_Get("gl_maxfps", "95", CVAR_ARCHIVE);
-	host_speeds = Cvar_Get("host_speeds", "0", 0);
-	log_stats = Cvar_Get("log_stats", "0", 0);
+
+
+
 	logfile_active = Cvar_Get("logfile", "1", CVAR_ARCHIVE);
 	modder = Cvar_Get("modder", "0", 0);
 	timescale = Cvar_Get("timescale", "1", 0);
@@ -135,8 +131,13 @@ Qcommon_Init(int argc, char **argv)
 	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
 
 #ifndef DEDICATED_ONLY
-	showtrace = Cvar_Get("showtrace", "0", 0);
+	cl_async = Cvar_Get("cl_async", "1", CVAR_ARCHIVE);
+	cl_timedemo = Cvar_Get("timedemo", "0", 0);
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET);
+	gl_maxfps = Cvar_Get("gl_maxfps", "95", CVAR_ARCHIVE);
+	host_speeds = Cvar_Get("host_speeds", "0", 0);
+	log_stats = Cvar_Get("log_stats", "0", 0);
+	showtrace = Cvar_Get("showtrace", "0", 0);
 #else
 	dedicated = Cvar_Get("dedicated", "1", CVAR_NOSET);
 #endif
