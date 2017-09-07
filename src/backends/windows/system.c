@@ -82,10 +82,7 @@ Sys_Error(char *error, ...)
 	va_start(argptr, error);
 	vsprintf(text, error, argptr);
 	va_end(argptr);
-
-#ifndef DEDICATED_ONLY
 	fprintf(stderr, "Error: %s\n", text);
-#endif
 
 	MessageBox(NULL, text, "Error", 0 /* MB_OK */);
 

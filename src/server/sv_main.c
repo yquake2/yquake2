@@ -333,12 +333,10 @@ void
 SV_RunGameFrame(void)
 {
 #ifndef DEDICATED_ONLY
-
 	if (host_speeds->value)
 	{
 		time_before_game = Sys_Milliseconds();
 	}
-
 #endif
 
 	/* we always need to bump framenum, even if we
@@ -366,12 +364,10 @@ SV_RunGameFrame(void)
 	}
 
 #ifndef DEDICATED_ONLY
-
 	if (host_speeds->value)
 	{
 		time_after_game = Sys_Milliseconds();
 	}
-
 #endif
 }
 
