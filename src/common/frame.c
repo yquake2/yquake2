@@ -35,7 +35,6 @@ cvar_t *fixedtime;
 cvar_t *cl_maxfps;
 cvar_t *dedicated;
 
-
 extern cvar_t *logfile_active;
 extern jmp_buf abortframe; /* an ERR_DROP occured, exit the entire frame */
 extern zhead_t z_chain;
@@ -61,6 +60,9 @@ int time_before_game;
 int time_after_game;
 int time_before_ref;
 int time_after_ref;
+
+// Used in the network- and input pathes.
+int curtime;
 
 #ifndef DEDICATED_ONLY
 void Key_Init(void);
@@ -300,6 +302,10 @@ Qcommon_Frame(int msec)
 	}
 
 
+	// Save global time for network- und input code.
+	curtime = Sys_Milliseconds();
+
+
 	// Calculate target packet- and renderframerate.
 	if (R_IsVSyncActive())
 	{
@@ -470,6 +476,11 @@ Qcommon_Frame(int msec)
 	}
 
 
+	// Save global time for network- und input code.
+	curtime = Sys_Milliseconds();
+
+
+	// Target framerate.
 	pfps = (int)cl_maxfps->value;
 
 

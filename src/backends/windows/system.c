@@ -41,7 +41,6 @@
 
 #define MAX_NUM_ARGVS 128
 
-int curtime;
 int starttime;
 qboolean ActiveApp;
 qboolean Minimized;
@@ -430,19 +429,16 @@ Sys_Microseconds(void)
 
 	if (!uSecbase)
 	{
-		uSecbase = microseconds - 1001;
+		uSecbase = microseconds / 1000ll;
 	}
 
-	curtime = (int)((microseconds - uSecbase) / 1000ll);
 	return microseconds - uSecbase;
 }
 
 int
 Sys_Milliseconds(void)
 {
-	curtime = (int)(Sys_Microseconds()/1000ll);
-
-	return curtime;
+	return (int)(Sys_Microseconds()/1000ll);
 }
 
 void

@@ -52,7 +52,6 @@
 #include "header/unix.h"
 
 unsigned sys_frame_time;
-int curtime;
 static void *game_library;
 
 static char findbase[MAX_OSPATH];
@@ -103,16 +102,13 @@ Sys_Microseconds(void)
 		--sec;
 	}
 
-	curtime = (int)((sec*1000000ll + nsec/1000ll) / 1000ll);
 	return sec*1000000ll + nsec/1000ll;
 }
 
 int
 Sys_Milliseconds(void)
 {
-	curtime = (int)(Sys_Microseconds()/1000ll);
-
-	return curtime;
+	return (int)(Sys_Microseconds()/1000ll);
 }
 
 void
