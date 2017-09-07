@@ -41,7 +41,13 @@ main(int argc, char **argv)
 	int verLen, i;
 	long long oldtime, newtime;
 	const char* versionString;
+
+	// Time slept each frame.
+#ifndef DEDICATED_ONLY
 	struct timespec t = {0, 5000};
+#else
+	struct timespec t = {0, 850000};
+#endif
 
 	/* register signal handler */
 	registerHandler();
