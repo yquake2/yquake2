@@ -341,11 +341,11 @@ Qcommon_Frame(int msec)
 			// Render frames.
 			if (renderdelta < (1000000.0f / rfps)) {
 				renderframe = false;
-			}
 
-			// Misc. frames.
-			if (miscdelta < 100000.0f) {
-				miscframe = false;
+				// Misc. frames.
+				if (miscdelta < 100000.0f) {
+					miscframe = false;
+				}
 			}
 		} else {
 			// Cap frames at target framerate.
