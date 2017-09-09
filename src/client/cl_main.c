@@ -702,8 +702,7 @@ CL_UpdateWindowedMouse(void)
 }
 
 void
-CL_Frame(int packetdelta, int renderdelta, int miscdelta, int timedelta,
-         qboolean packetframe, qboolean renderframe, qboolean miscframe)
+CL_Frame(int packetdelta, int renderdelta, int timedelta, qboolean packetframe, qboolean renderframe)
 {
 	static int lasttimecalled;
 
@@ -778,11 +777,7 @@ CL_Frame(int packetdelta, int renderdelta, int miscdelta, int timedelta,
 
 	if (renderframe)
 	{
-		if (miscframe)
-		{
-			VID_CheckChanges();
-		}
-
+		VID_CheckChanges();
 		CL_PredictMovement();
 
 		if (!cl.refresh_prepped && (cls.state == ca_active))
@@ -807,10 +802,7 @@ CL_Frame(int packetdelta, int renderdelta, int miscdelta, int timedelta,
 		S_Update(cl.refdef.vieworg, cl.v_forward, cl.v_right, cl.v_up);
 
 #ifdef CDA
-		if (miscframe)
-		{
-			CDAudio_Update();
-		}
+		CDAudio_Update();
 #endif
 
 		/* advance local effects for next frame */

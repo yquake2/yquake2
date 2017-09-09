@@ -212,9 +212,6 @@ Qcommon_Frame(int msec)
 	// Time since last renderframe in microsec.
 	static int renderdelta = 1000000;
 
-	// Time since last misc. frame in microsec.
-	static int miscdelta = 100000;
-
 	// Accumulated time since last client run.
 	static int clienttimedelta = 0;
 
@@ -233,11 +230,6 @@ Qcommon_Frame(int msec)
 	   client. The minimal interval is about 1000
 	   microseconds. */
 	qboolean renderframe = true;
-
-	/* A miscframe runs several maintenance task like
-	   loading sound samples for the background music.
-	   An interval of 100.000 microseconds is enough. */
-	qboolean miscframe = true;
 
 
 	/* In case of ERR_DROP we're jumping here. Don't know
@@ -327,7 +319,6 @@ Qcommon_Frame(int msec)
 	// Calculate timings.
 	packetdelta += msec;
 	renderdelta += msec;
-	miscdelta += msec;
 	clienttimedelta += msec;
 	servertimedelta += msec;
 
@@ -341,18 +332,12 @@ Qcommon_Frame(int msec)
 			// Render frames.
 			if (renderdelta < (1000000.0f / rfps)) {
 				renderframe = false;
-
-				// Misc. frames.
-				if (miscdelta < 100000.0f) {
-					miscframe = false;
-				}
 			}
 		} else {
 			// Cap frames at target framerate.
 			if (renderdelta < (1000000.0f / rfps)) {
 				renderframe = false;
 				packetframe = false;
-				miscframe = false;
 			}
 		}
 	}
@@ -394,9 +379,8 @@ Qcommon_Frame(int msec)
 
 
 	// Run the client frame.
-	if (packetframe || renderframe || miscframe) {
-		CL_Frame(packetdelta, renderdelta, miscdelta, clienttimedelta,
-		         packetframe, renderframe, miscframe);
+	if (packetframe || renderframe) {
+		CL_Frame(packetdelta, renderdelta, clienttimedelta, packetframe, renderframe);
 		clienttimedelta = 0;
 	}
 
@@ -425,10 +409,6 @@ Qcommon_Frame(int msec)
 
 	if (renderframe) {
 		renderdelta = 0;
-	}
-
-	if (miscframe) {
-		miscdelta = 0;
 	}
 }
 #else

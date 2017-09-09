@@ -779,8 +779,7 @@ void Sys_RedirectStdout(void);
 void CL_Init(void);
 void CL_Drop(void);
 void CL_Shutdown(void);
-void CL_Frame(int packetdelta, int renderdelta, int miscdelta, int timedelta, qboolean packetframe, qboolean renderframe,
-              qboolean miscframe);
+void CL_Frame(int packetdelta, int renderdelta, int timedelta, qboolean packetframe, qboolean renderframe);
 void Con_Print(char *text);
 void SCR_BeginLoadingPlaque(void);
 
