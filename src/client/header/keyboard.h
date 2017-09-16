@@ -144,6 +144,14 @@ enum QKEYS {
 	K_JOY31,
 	K_JOY32,
 
+	K_HAT_UP,
+	K_HAT_RIGHT,
+	K_HAT_DOWN,
+	K_HAT_LEFT,
+
+	K_TRIG_LEFT,
+	K_TRIG_RIGHT,
+
 	K_AUX1,
 	K_AUX2,
 	K_AUX3,
@@ -305,6 +313,7 @@ void Key_ReadConsoleHistory();
 void Key_WriteConsoleHistory();
 void Key_SetBinding(int keynum, char *binding);
 void Key_MarkAllUp(void);
-int Key_GetKey(void);
+void Haptic_Feedback(char *name);
+int Key_GetMenuKey(int key);
 
 #endif
