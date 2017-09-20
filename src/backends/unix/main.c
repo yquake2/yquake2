@@ -52,6 +52,9 @@ main(int argc, char **argv)
 	/* register signal handler */
 	registerHandler();
 
+	/* Setup FPU if necessary */
+	Sys_SetupFPU();
+
 	/* Are we portable? */
 	for (i = 0; i < argc; i++) {
 		if (strcmp(argv[i], "-portable") == 0) {

@@ -785,6 +785,9 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	/* Make the current instance global */
 	global_hInstance = hInstance;
 
+	/* Setup FPU if necessary */
+	Sys_SetupFPU();
+
 	/* Force DPI awareness */
 	Sys_SetHighDPIMode();
 

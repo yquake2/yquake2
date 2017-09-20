@@ -154,3 +154,26 @@ const char *Sys_GetBinaryDir(void)
 
 	return exeDir;
 }
+
+#if defined (__GNUC__) && (__i386 || __x86_64__)
+void Sys_SetupFPU(void) {
+	// Get current x87 control word
+	volatile unsigned short old_cw = 0;
+	asm ("fstcw %0" : : "m" (*&old_cw));
+	unsigned short new_cw = old_cw;
+
+	// The precision is set through bit 8 and 9. For
+	// double precision bit 8 must unset and bit 9 set.
+	new_cw &= ~(1 << 8);
+	new_cw |= (1 << 9);
+
+	// Setting the control word is expensive since it
+	// resets the FPU state. Do it only if necessary.
+	if (new_cw != old_cw) {
+		asm ("fldcw %0" : : "m" (*&new_cw));
+	}
+}
+#else
+void Sys_SetupFPU(void) {
+}
+#endif

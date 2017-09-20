@@ -773,6 +773,7 @@ void Sys_FreeLibrary(void *handle);
 void *Sys_LoadLibrary(const char *path, const char *sym, void **handle);
 void *Sys_GetProcAddress(void *handle, const char *sym);
 void Sys_RedirectStdout(void);
+void Sys_SetupFPU(void);
 
 /* CLIENT / SERVER SYSTEMS */
 
