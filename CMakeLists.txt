@@ -144,6 +144,21 @@ list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
 include_directories(${yquake2IncludeDirectories} ${CMAKE_SOURCE_DIR}/src/client/refresh/gl3/glad/include)
 link_directories(${yquake2LinkerDirectories})
 
+# If we're building with gcc for i386 let's define -ffloat-store.
+# This helps the old and crappy x87 FPU to produce correct values.
+# Would be nice if Clang had something comparable.
+if ("${ARCH}" STREQUAL "i386")
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffloat-store")
+	endif()
+endif()
+
+# Force SSE math on x86_64. All sane compilers should do this
+# anyway, just to protect us from broken Linux distros.
+if ("${ARCH}" STREQUAL "x86_64")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse")
+endif()
+
 set(Backends-Generic-Source
 	${BACKENDS_SRC_DIR}/generic/misc.c
 	${BACKENDS_SRC_DIR}/generic/qal.c
