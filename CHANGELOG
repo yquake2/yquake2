@@ -1,3 +1,28 @@
+Quake II 7.01 to 7.02:
+- Fix several corner cases regarding render library loading. The game
+  should now always fall back to the OpenGL 1.4 renderer if the new
+  OpenGL 3.2 renderer can't be initialized. Also the game aborts if no
+  useable OpenGL implementation exists.
+- Refactor the search path code. This should fix several bugs with
+  Quake II writing to the wrong directories or being unable to find
+  some / all assets.
+- Reimplement portable binaries. If called with the -portable command
+  line option Quake II saves all data (configs, savegames, screenshorts
+  etc.) into it's systemwide installation directory and not users home
+  directory. In contrast to the old implementation on Windows stdout.txt
+  contains all output, the first lines are no longer missing.
+- vid_fullscreen set to 1 now keeps the desktops resolution. Set it to 2
+  to change the resolution.
+- Instead of a list with precalculated FOV values the video menu now
+  shows a slider with possible values from 60 to 120. Horplus is now
+  always enabled, set the horplus cvar to 0 to disable it.
+- The game is now able to hold the requested framerate (either by the
+  vsync or the gl_maxfps cvar) with an accuracy of about +/- 1% as long
+  as the hardware is fast enough.  The framecounter was reimplemented
+  to be much more precise.
+- Fix misspredictions if an original client running on Win32 connects
+  to a Yamagi Quake II server running on Linux/i386.
+
 Quake II 7.00 to 7.01:
 - Fix build of GL3 for platforms without SSE.
 - Fix Jennel Jaquays name in credits and quit screen.
