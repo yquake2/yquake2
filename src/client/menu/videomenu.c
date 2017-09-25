@@ -261,6 +261,14 @@ VID_MenuInit(void)
 		"[1920 1080 ]",
 		"[1920 1200 ]",
 		"[2048 1536 ]",
+		"[2560x1080 ]",
+		"[2560x1440 ]",
+		"[2560x1600 ]",
+		"[3440x1440 ]",
+		"[3840x1600 ]",
+		"[3840x2160 ]",
+		"[4096x2160 ]",
+		"[5120x2880 ]",
 		"[custom    ]",
 		0
 	};
@@ -522,8 +530,9 @@ VID_MenuKey(int key)
 
 	menuframework_s *m = &s_opengl_menu;
 	static const char *sound = "misc/menu1.wav";
+	int menu_key = Key_GetMenuKey(key);
 
-	switch (key)
+	switch (menu_key)
 	{
 		case K_ESCAPE:
 			M_PopMenu();
