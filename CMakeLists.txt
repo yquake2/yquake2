@@ -531,6 +531,7 @@ set_target_properties(game PROPERTIES
 		PREFIX ""
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
+		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
 		)
 target_link_libraries(game ${yquake2LinkerFlags})
 
@@ -540,6 +541,7 @@ set_target_properties(ref_gl1 PROPERTIES
 		PREFIX ""
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
 		)
 target_link_libraries(ref_gl1 ${yquake2LinkerFlags} ${yquake2OpenGLLinkerFlags} ${yquake2SDLLinkerFlags})
 
@@ -549,5 +551,6 @@ set_target_properties(ref_gl3 PROPERTIES
 		PREFIX ""
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
 		)
 target_link_libraries(ref_gl3 ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
