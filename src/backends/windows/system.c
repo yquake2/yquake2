@@ -432,7 +432,7 @@ Sys_Microseconds(void)
 
 	if (!uSecbase)
 	{
-		uSecbase = microseconds / 1000ll;
+		uSecbase = microseconds - 1001ll;
 	}
 
 	return microseconds - uSecbase;
