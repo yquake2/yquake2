@@ -46,6 +46,11 @@
 #include <dirent.h>
 #include <time.h>
 
+#ifdef __APPLE__
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
+
 #include "../../common/header/common.h"
 #include "../../common/header/glob.h"
 #include "../generic/header/input.h"
@@ -79,22 +84,54 @@ Sys_Init(void)
 {
 }
 
+#ifdef __APPLE__
 long long
 Sys_Microseconds(void)
 {
-	static struct timespec last;
-	struct timespec now;
+	clock_serv_t cclock;
+	mach_timespec_t now;
+	static mach_timespec_t first;
 
-	clock_gettime(CLOCK_MONOTONIC, &now);
+	host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &cclock);
+	clock_get_time(cclock, &now);
 
-	if(last.tv_sec == 0)
-	{
-		clock_gettime(CLOCK_MONOTONIC, &last);
-		return last.tv_nsec / 1000ll;
+	if (first == 0) {
+		clock_get_time(cclock, &first);
+		mach_port_deallocate(mach_task_self(), cclock);
+
+		return (first / 1000ll) - 1001ll;
 	}
 
-	long long sec = now.tv_sec - last.tv_sec;
-	long long nsec = now.tv_nsec - last.tv_nsec;
+	mach_port_deallocate(mach_task_self(), cclock);
+
+	return (now - first) / 1000ll;
+}
+#else // !__APPLE__
+long long
+Sys_Microseconds(void)
+{
+	static struct timespec first;
+	struct timespec now;
+
+#ifdef _POSIX_MONOTONIC_CLOCK
+	clock_gettime(CLOCK_MONOTONIC, &now);
+#else
+	clock_gettime(CLOCK_REALTIME, &now);
+#endif
+
+	if(first.tv_sec == 0)
+	{
+#ifdef _POSIX_MONOTONIC_CLOCK
+		clock_gettime(CLOCK_MONOTONIC, &first);
+#else
+		clock_gettime(CLOCK_REALTIME, &first);
+#endif
+
+		return (first.tv_nsec / 1000ll) - 1001ll;
+	}
+
+	long long sec = now.tv_sec - first.tv_sec;
+	long long nsec = now.tv_nsec - first.tv_nsec;
 
 	if(nsec < 0)
 	{
@@ -104,6 +141,7 @@ Sys_Microseconds(void)
 
 	return sec*1000000ll + nsec/1000ll;
 }
+#endif // __APPLE__
 
 int
 Sys_Milliseconds(void)
