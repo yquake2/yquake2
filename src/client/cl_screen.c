@@ -1445,7 +1445,7 @@ SCR_Framecounter(void) {
 
 		char str[10];
 		snprintf(str, sizeof(str), "%3.2ffps", (1000.0 * 1000.0) / (avg / num));
-		DrawStringScaled(scale*(viddef.width - 80), 0, str, scale);
+		DrawStringScaled(viddef.width - scale*(strlen(str)*8 + 2), 0, str, scale);
 	} else if (cl_drawfps->value >= 2) {
 		// Calculate average of frames.
 		int avg = 0;
