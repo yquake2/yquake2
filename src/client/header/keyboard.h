@@ -152,6 +152,9 @@ enum QKEYS {
 	K_TRIG_LEFT,
 	K_TRIG_RIGHT,
 
+	/* Can't be mapped to any action */
+	K_JOY_BACK,
+
 	K_AUX1,
 	K_AUX2,
 	K_AUX3,

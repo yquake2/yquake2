@@ -317,6 +317,10 @@ Key_GetMenuKey(int key)
 		case K_KP_ENTER:
 		case K_ENTER:
 			return K_ENTER;
+
+		case K_ESCAPE:
+		case K_JOY_BACK:
+			return K_ESCAPE;
 	}
 
 	return key;
@@ -4317,7 +4321,8 @@ M_Menu_PlayerConfig_f(void)
 static const char *
 M_Quit_Key(int key)
 {
-    switch (key)
+    int menu_key = Key_GetMenuKey(key);
+    switch (menu_key)
     {
     case K_ESCAPE:
     case 'n':
@@ -4325,6 +4330,7 @@ M_Quit_Key(int key)
         M_PopMenu();
         break;
 
+    case K_ENTER:
     case 'Y':
     case 'y':
         cls.key_dest = key_console;

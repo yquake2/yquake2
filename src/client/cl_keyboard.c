@@ -147,6 +147,8 @@ keyname_t keynames[] = {
 	{"TRIG_LEFT", K_TRIG_LEFT},
 	{"TRIG_RIGHT", K_TRIG_RIGHT},
 
+	{"JOY_BACK", K_JOY_BACK},
+
 	{"AUX1", K_AUX1},
 	{"AUX2", K_AUX2},
 	{"AUX3", K_AUX3},
@@ -756,7 +758,7 @@ Key_Bind_f(void)
 	}
 
 	/* don't allow binding escape or the special console keys */
-	if(b == K_ESCAPE || b == '^' || b == '`' || b == '~')
+	if(b == K_ESCAPE || b == '^' || b == '`' || b == '~' || b == K_JOY_BACK)
 	{
 		if(doneWithDefaultCfg)
 		{
@@ -1102,12 +1104,12 @@ Key_Event(int key, qboolean down, qboolean special)
 	}
 
 	/* Key is unbound */
-	if ((key >= K_MOUSE1) && !keybindings[key] && (cls.key_dest != key_console))
+	if ((key >= K_MOUSE1 && key != K_JOY_BACK) && !keybindings[key] && (cls.key_dest != key_console))
 	{
 		Com_Printf("%s is unbound, hit F4 to set.\n", Key_KeynumToString(key));
 	}
 
-    /* While in attract loop all keys besides F1 to F12 (to
+	/* While in attract loop all keys besides F1 to F12 (to
 	   allow quick load and the like) are treated like escape. */
 	if (cl.attractloop && (cls.key_dest != key_menu) &&
 		!((key >= K_F1) && (key <= K_F12)))
@@ -1122,10 +1124,11 @@ Key_Event(int key, qboolean down, qboolean special)
 	   - moves one menu level up
 	   - closes the menu
 	   - closes the help computer
-	   - closes the chat window */
+	   - closes the chat window
+	   Fully same logic for K_JOY_BACK */
 	if (!cls.disable_screen)
 	{
-		if (key == K_ESCAPE)
+		if (key == K_ESCAPE || key == K_JOY_BACK)
 		{
 			if (!down)
 			{
