@@ -58,6 +58,7 @@ cvar_t *s_show;
 cvar_t *s_ambient;
 cvar_t* s_underwater;
 cvar_t* s_underwater_gain_hf;
+cvar_t* s_doppler;
 
 channel_t channels[MAX_CHANNELS];
 int num_sfx;
@@ -668,6 +669,16 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 		ps->fixed_origin = false;
 	}
 
+	if (sfx->name[0])
+	{
+		// with !fixed we have all sounds related directly to player,
+		// e.g. players fire, pain, menu
+		if (!ps->fixed_origin)
+		{
+			Haptic_Feedback(sfx->name);
+		}
+	}
+
 	ps->entnum = entnum;
 	ps->entchannel = entchannel;
 	ps->attenuation = attenuation;
@@ -1020,6 +1031,7 @@ S_Init(void)
 	s_ambient = Cvar_Get("s_ambient", "1", 0);
     s_underwater = Cvar_Get("s_underwater", "1", CVAR_ARCHIVE);
     s_underwater_gain_hf = Cvar_Get("s_underwater_gain_hf", "0.25", CVAR_ARCHIVE);
+	s_doppler = Cvar_Get("s_doppler", "1", CVAR_ARCHIVE);
 
 	Cmd_AddCommand("play", S_Play);
 	Cmd_AddCommand("stopsound", S_StopAllSounds);

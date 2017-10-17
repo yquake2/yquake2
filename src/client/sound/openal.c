@@ -43,12 +43,16 @@
 #define AL_UnpackVector(v) - v[1], v[2], -v[0]
 #define AL_CopyVector(a, b) ((b)[0] = -(a)[1], (b)[1] = (a)[2], (b)[2] = -(a)[0])
 
+// avg US male height / q2PlayerHeight = 1.764f / 56.0f = 0.0315f
+// see: https://en.wikipedia.org/wiki/List_of_average_human_height_worldwide
+// see: PutClientInServer(edict_t *ent) bbox
+#define AL_METER_OF_Q2_UNIT 0.0315f
+
 /* The OpenAL implementation should support
    at least this number of sources */
 #define MIN_CHANNELS 16
 
 /* Globals */
-cvar_t *s_openal_maxgain;
 int active_buffers;
 qboolean streamPlaying;
 static ALuint s_srcnums[MAX_CHANNELS - 1];
@@ -91,25 +95,28 @@ AL_StreamUpdate(void)
 	int numBuffers;
 	ALint state;
 
-	/* Un-queue any buffers, and delete them */
-	qalGetSourcei(streamSource, AL_BUFFERS_PROCESSED, &numBuffers);
-
-	while (numBuffers--)
-	{
-		ALuint buffer;
-		qalSourceUnqueueBuffers(streamSource, 1, &buffer);
-		qalDeleteBuffers(1, &buffer);
-		active_buffers--;
-	}
-
-	/* Start the streamSource playing if necessary */
-	qalGetSourcei(streamSource, AL_BUFFERS_QUEUED, &numBuffers);
 	qalGetSourcei(streamSource, AL_SOURCE_STATE, &state);
 
 	if (state == AL_STOPPED)
 	{
 		streamPlaying = false;
 	}
+	else
+	{
+		/* Un-queue any already pleyed buffers and delete them */
+		qalGetSourcei(streamSource, AL_BUFFERS_PROCESSED, &numBuffers);
+
+		while (numBuffers--)
+		{
+			ALuint buffer;
+			qalSourceUnqueueBuffers(streamSource, 1, &buffer);
+			qalDeleteBuffers(1, &buffer);
+			active_buffers--;
+		}
+	}
+
+	/* Start the streamSource playing if necessary */
+	qalGetSourcei(streamSource, AL_BUFFERS_QUEUED, &numBuffers);
 
 	if (!streamPlaying && numBuffers)
 	{
@@ -197,6 +204,7 @@ static void
 AL_Spatialize(channel_t *ch)
 {
 	vec3_t origin;
+  vec3_t velocity;
 
 	if ((ch->entnum == -1) || (ch->entnum == cl.playernum + 1) || !ch->dist_mult)
 	{
@@ -216,6 +224,13 @@ AL_Spatialize(channel_t *ch)
 	{
 		CL_GetEntitySoundOrigin(ch->entnum, origin);
 		qalSource3f(ch->srcnum, AL_POSITION, AL_UnpackVector(origin));
+
+		if (s_doppler->value) {
+			CL_GetEntitySoundVelocity(ch->entnum, velocity);
+			VectorScale(velocity, AL_METER_OF_Q2_UNIT, velocity);
+			qalSource3f(ch->srcnum, AL_VELOCITY, AL_UnpackVector(velocity));
+		}
+
 		return;
 	}
 
@@ -601,16 +616,22 @@ AL_Update(void)
 	int i;
 	channel_t *ch;
 	vec_t orientation[6];
+	vec3_t listener_velocity;
 
 	paintedtime = cls.realtime;
 
 	/* set listener (player) parameters */
 	AL_CopyVector(listener_forward, orientation);
 	AL_CopyVector(listener_up, orientation + 3);
-	qalListenerf(AL_MAX_GAIN, s_openal_maxgain->value);
 	qalDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
 	qalListener3f(AL_POSITION, AL_UnpackVector(listener_origin));
 	qalListenerfv(AL_ORIENTATION, orientation);
+
+	if (s_doppler->value) {
+		CL_GetViewVelocity(listener_velocity);
+		VectorScale(listener_velocity, AL_METER_OF_Q2_UNIT, listener_velocity);
+		qalListener3f(AL_VELOCITY, AL_UnpackVector(listener_velocity));
+	}
 
 	/* update spatialization for dynamic sounds */
 	ch = channels;
@@ -667,7 +688,7 @@ AL_Update(void)
 	AL_StreamUpdate();
 	AL_IssuePlaysounds();
 
-    oal_update_underwater();
+	oal_update_underwater();
 }
 
 /* ----------------------------------------------------------------- */
@@ -685,8 +706,8 @@ AL_Underwater()
 		return;
 	}
 
-    if (underwaterFilter == 0)
-        return;
+	if (underwaterFilter == 0)
+		return;
 
 	/* Apply to all sources */
 	for (i = 0; i < s_numchannels; i++)
@@ -708,8 +729,8 @@ AL_Overwater()
 		return;
 	}
 
-    if (underwaterFilter == 0)
-        return;
+	if (underwaterFilter == 0)
+		return;
 
 	/* Apply to all sources */
 	for (i = 0; i < s_numchannels; i++)
@@ -741,10 +762,10 @@ AL_InitStreamSource()
 static void
 AL_InitUnderwaterFilter()
 {
-    underwaterFilter = 0;
+	underwaterFilter = 0;
 
-    if (!(qalGenFilters && qalFilteri && qalFilterf && qalDeleteFilters))
-        return;
+	if (!(qalGenFilters && qalFilteri && qalFilterf && qalDeleteFilters))
+		return;
 
 	/* Generate a filter */
 	qalGenFilters(1, &underwaterFilter);
@@ -783,8 +804,6 @@ AL_Init(void)
 		Com_Printf("ERROR: OpenAL failed to initialize.\n");
 		return false;
 	}
-
-	s_openal_maxgain = Cvar_Get("s_openal_maxgain", "1.0", CVAR_ARCHIVE);
 
 	/* check for linear distance extension */
 	if (!qalIsExtensionPresent("AL_EXT_LINEAR_DISTANCE"))
@@ -831,6 +850,12 @@ AL_Init(void)
 	AL_InitUnderwaterFilter();
 
 	Com_Printf("Number of OpenAL sources: %d\n\n", s_numchannels);
+
+	// exaggerate 2x because realistic is barely noticeable
+	if (s_doppler->value) {
+		qalDopplerFactor(2.0f);
+	}
+
 	return true;
 }
 

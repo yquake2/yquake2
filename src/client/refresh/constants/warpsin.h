@@ -24,6 +24,20 @@
  * =======================================================================
  */
 
+#if 0
+// In case you wonder how these were generated/what they mean:
+for (int i = 0; i < 256; i++) {
+	r_turbsin[i] = 8.0 * sin( (float)i / TURBSCALE ); // TURBSCALE = 256.0 / (2.0 * M_PI)
+}
+// so r_turbsin[i] is 8 * sin( i/TURBSCALE );
+// however, the values are multiplied with 0.5 in RI_Init()
+// so what's actually used is 4 * sin(i/TURBSCALE)
+// in R_EmitWaterPolys() something like
+s = os + r_turbsin [ (int) ( ( ot * 0.125 + r_newrefdef.time ) * TURBSCALE ) & 255 ];
+// is used; which should (except for rounding errors from lookup table) be equivalent to
+s = os + 4.0*sin( ot*0.125 + r_newrefdef.time );
+#endif // 0
+
 0, 0.19633, 0.392541, 0.588517, 0.784137, 0.979285, 1.17384, 1.3677,
 1.56072, 1.75281, 1.94384, 2.1337, 2.32228, 2.50945, 2.69512, 2.87916,
 3.06147, 3.24193, 3.42044, 3.59689, 3.77117, 3.94319, 4.11282, 4.27998,

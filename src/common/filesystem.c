@@ -114,26 +114,28 @@ fsPackTypes_t fs_packtypes[] = {
 };
 
 char fs_gamedir[MAX_OSPATH];
-static char fs_currentGame[MAX_QPATH];
+qboolean file_from_pak;
 
-static char fs_fileInPath[MAX_OSPATH];
-static qboolean fs_fileInPack;
-
-/* Set by FS_FOpenFile. */
-int file_from_pak = 0;
-#ifdef ZIP
-int file_from_pk3 = 0;
-char file_from_pk3_name[MAX_QPATH];
-#endif
-
-cvar_t *fs_homepath;
 cvar_t *fs_basedir;
 cvar_t *fs_cddir;
 cvar_t *fs_gamedirvar;
 cvar_t *fs_debug;
 
 fsHandle_t *FS_GetFileByHandle(fileHandle_t f);
-char *Sys_GetCurrentDirectory(void);
+
+// --------
+
+// Raw search path, the actual search
+// bath is build from this one.
+typedef struct fsRawPath_s {
+	char path[MAX_OSPATH];
+	qboolean create;
+	struct fsRawPath_s *next;
+} fsRawPath_t;
+
+fsRawPath_t *fs_rawPath;
+
+// --------
 
 /*
  * All of Quake's data access is through a hierchal file system, but the
@@ -330,27 +332,6 @@ FS_FCloseFile(fileHandle_t f)
 	memset(handle, 0, sizeof(*handle));
 }
 
-int
-Developer_searchpath(int who)
-{
-	fsSearchPath_t *search;
-
-	for (search = fs_searchPaths; search; search = search->next)
-	{
-		if (strstr(search->path, "xatrix"))
-		{
-			return 1;
-		}
-
-		if (strstr(search->path, "rogue"))
-		{
-			return 2;
-		}
-	}
-
-	return 0;
-}
-
 /*
  * Finds the file in the search path. Returns filesize and an open FILE *. Used
  * for streaming data out of either a pak file or a seperate file.
@@ -364,11 +345,7 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 	fsSearchPath_t *search;
 	int i;
 
-	file_from_pak = 0;
-#ifdef ZIP
-	file_from_pk3 = 0;
-#endif
-
+	file_from_pak = false;
 	handle = FS_HandleForFile(name, f);
 	Q_strlcpy(handle->name, name, sizeof(handle->name));
 	handle->mode = FS_READ;
@@ -384,6 +361,14 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 			}
 		}
 
+		// Evil hack for maps.lst and players/
+		// TODO: A flag to ignore paks would be better
+		if ((strcmp(fs_gamedirvar->string, "") == 0) && search->pack) {
+			if ((strcmp(name, "maps.lst") == 0)|| (strncmp(name, "players/", 8) == 0)) {
+				continue;
+			}
+		}
+
 		/* Search inside a pack file. */
 		if (search->pack)
 		{
@@ -394,19 +379,16 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 				if (Q_stricmp(pack->files[i].name, handle->name) == 0)
 				{
 					/* Found it! */
-					Com_FilePath(pack->name, fs_fileInPath, sizeof(fs_fileInPath));
-					fs_fileInPack = true;
-
 					if (fs_debug->value)
 					{
 						Com_Printf("FS_FOpenFile: '%s' (found in '%s').\n",
-								   handle->name, pack->name);
+						           handle->name, pack->name);
 					}
 
 					if (pack->pak)
 					{
 						/* PAK */
-						file_from_pak = 1;
+						file_from_pak = true;
 						handle->file = fopen(pack->name, "rb");
 
 						if (handle->file)
@@ -419,8 +401,7 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 					else if (pack->pk3)
 					{
 						/* PK3 */
-						file_from_pk3 = 1;
-						Q_strlcpy(file_from_pk3_name, strrchr(pack->name, '/') + 1, sizeof(file_from_pk3_name));
+						file_from_pak = true;
 						handle->zip = unzOpen(pack->name);
 
 						if (handle->zip)
@@ -462,10 +443,6 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 
 			if (handle->file)
 			{
-				/* Found it! */
-				Q_strlcpy(fs_fileInPath, search->path, sizeof(fs_fileInPath));
-				fs_fileInPack = false;
-
 				if (fs_debug->value)
 				{
 					Com_Printf("FS_FOpenFile: '%s' (found in '%s').\n",
@@ -476,11 +453,6 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 			}
 		}
 	}
-
-	/* Not found! */
-	fs_fileInPath[0] = 0;
-	fs_fileInPack = false;
-
 	if (fs_debug->value)
 	{
 		Com_Printf("FS_FOpenFile: couldn't find '%s'.\n", handle->name);
@@ -745,7 +717,7 @@ FS_LoadPAK(const char *packPath)
 	pack->numFiles = numFiles;
 	pack->files = files;
 
-	Com_Printf("Added packfile '%s' (%i files).\n", pack, numFiles);
+	Com_Printf("Added packfile '%s' (%i files).\n", pack->name, numFiles);
 
 	return pack;
 }
@@ -816,171 +788,11 @@ FS_LoadPK3(const char *packPath)
 	pack->numFiles = numFiles;
 	pack->files = files;
 
-	Com_Printf("Added packfile '%s' (%i files).\n", pack, numFiles);
+	Com_Printf("Added packfile '%s' (%i files).\n", pack->name, numFiles);
 
 	return pack;
 }
 #endif
-
-/*
- * Adds the directory to the head of the path, then loads and adds pak1.pak
- * pak2.pak ...
- *
- * Extended all functionality to include Quake III .pk3
- */
-void
-FS_AddGameDirectory(const char *dir)
-{
-	char **list; /* File list. */
-	char path[MAX_OSPATH]; /* Path to PAK / PK3. */
-	int i, j; /* Loop counters. */
-	int nfiles; /* Number of files in list. */
-	fsSearchPath_t *search; /* Search path. */
-	fsPack_t *pack; /* PAK / PK3 file. */
-
-	pack = NULL;
-
-	/* Set game directory. */
-	Q_strlcpy(fs_gamedir, dir, sizeof(fs_gamedir));
-
-	/* Create directory if it does not exist. */
-	FS_CreatePath(fs_gamedir);
-
-	/* Add the directory to the search path. */
-	search = Z_Malloc(sizeof(fsSearchPath_t));
-	Q_strlcpy(search->path, dir, sizeof(search->path));
-	search->next = fs_searchPaths;
-	fs_searchPaths = search;
-
-	/* Add numbered pack files in sequence. */
-	for (i = 0; i < sizeof(fs_packtypes) / sizeof(fs_packtypes[0]); i++)
-	{
-		for (j = 0; j < MAX_PAKS; j++)
-		{
-			Com_sprintf(path, sizeof(path), "%s/pak%d.%s",
-					dir, j, fs_packtypes[i].suffix);
-
-			switch (fs_packtypes[i].format)
-			{
-				case PAK:
-					pack = FS_LoadPAK(path);
-					break;
-#ifdef ZIP
-				case PK3:
-					pack = FS_LoadPK3(path);
-					break;
-#endif
-			}
-
-			if (pack == NULL)
-			{
-				continue;
-			}
-
-			search = Z_Malloc(sizeof(fsSearchPath_t));
-			search->pack = pack;
-			search->next = fs_searchPaths;
-			fs_searchPaths = search;
-		}
-	}
-
-	/* Add not numbered pack files. */
-	for (i = 0; i < sizeof(fs_packtypes) / sizeof(fs_packtypes[0]); i++)
-	{
-		Com_sprintf(path, sizeof(path), "%s/*.%s", dir, fs_packtypes[i].suffix);
-
-		if ((list = FS_ListFiles(path, &nfiles, 0, SFF_SUBDIR)) == NULL)
-		{
-			continue;
-		}
-
-		Com_sprintf(path, sizeof(path), "%s/pak*.%s",
-				dir, fs_packtypes[i].suffix);
-
-		for (j = 0; j < nfiles - 1; j++)
-		{
-			/* Skip all packs starting with "pak" */
-			if (glob_match(path, list[j]))
-			{
-				continue;
-			}
-
-			switch (fs_packtypes[i].format)
-			{
-				case PAK:
-					pack = FS_LoadPAK(list[j]);
-					break;
-#ifdef ZIP
-				case PK3:
-					pack = FS_LoadPK3(list[j]);
-					break;
-#endif
-			}
-
-			if (pack == NULL)
-			{
-				continue;
-			}
-
-			search = Z_Malloc(sizeof(fsSearchPath_t));
-			search->pack = pack;
-			search->next = fs_searchPaths;
-			fs_searchPaths = search;
-		}
-
-		FS_FreeList(list, nfiles);
-	}
-}
-
-/*
- * Use ~/.quake2/dir as fs_gamedir.
- */
-void
-FS_AddHomeAsGameDirectory(char *dir)
-{
-	char *home;
-	char gdir[MAX_OSPATH];
-	size_t len;
-
-	home = Sys_GetHomeDir();
-
-	if (home == NULL)
-	{
-		return;
-	}
-
-	len = snprintf(gdir, sizeof(gdir), "%s%s/", home, dir);
-	FS_CreatePath(gdir);
-
-	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len - 1] == '/'))
-	{
-		gdir[len - 1] = 0;
-	}
-
-	Q_strlcpy(fs_gamedir, gdir, sizeof(fs_gamedir));
-
-	FS_AddGameDirectory(gdir);
-}
-
-void FS_AddBinaryDirAsGameDirectory(const char* dir)
-{
-	char gdir[MAX_OSPATH];
-	const char *datadir = Sys_GetBinaryDir();
-	if(datadir[0] == '\0')
-	{
-		return;
-	}
-	int len = snprintf(gdir, sizeof(gdir), "%s%s/", datadir, dir);
-
-	printf("Using binary dir %s to fetch paks\n", gdir);
-
-	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len - 1] == '/'))
-	{
-		gdir[len - 1] = 0;
-	}
-
-	FS_AddGameDirectory(gdir);
-}
 
 /*
  * Allows enumerating all of the directories in the search path.
@@ -1066,90 +878,6 @@ FS_Path_f(void)
 #else
 	Com_Printf("%i files in PAK/PK2 files.\n", totalFiles);
 #endif
-}
-
-/*
- * Sets the gamedir and path to a different directory.
- */
-void
-FS_SetGamedir(char *dir)
-{
-	int i;
-	fsSearchPath_t *next;
-
-	if (!*dir || !strcmp(dir, ".") || strstr(dir, "..") || strstr(dir, "/"))
-	{
-		Com_Printf("Gamedir should be a single filename, not a path.\n");
-		return;
-	}
-
-	/* Free up any current game dir info. */
-	while (fs_searchPaths != fs_baseSearchPaths)
-	{
-		if (fs_searchPaths->pack)
-		{
-			if (fs_searchPaths->pack->pak)
-			{
-				fclose(fs_searchPaths->pack->pak);
-			}
-
-#ifdef ZIP
-			if (fs_searchPaths->pack->pk3)
-			{
-				unzClose(fs_searchPaths->pack->pk3);
-			}
-#endif
-
-			Z_Free(fs_searchPaths->pack->files);
-			Z_Free(fs_searchPaths->pack);
-		}
-
-		next = fs_searchPaths->next;
-		Z_Free(fs_searchPaths);
-		fs_searchPaths = next;
-	}
-
-	/* Close open files for game dir. */
-	for (i = 0; i < MAX_HANDLES; i++)
-	{
-		if (strstr(fs_handles[i].name, dir) &&
-			((fs_handles[i].file != NULL)
-#ifdef ZIP
-			  || (fs_handles[i].zip != NULL)
-#endif
-			))
-		{
-			FS_FCloseFile(i);
-		}
-	}
-
-	/* Flush all data, so it will be forced to reload. */
-	if ((dedicated != NULL) && (dedicated->value != 1))
-	{
-		Cbuf_AddText("vid_restart\nsnd_restart\n");
-	}
-
-	Com_sprintf(fs_gamedir, sizeof(fs_gamedir), "%s/%s",
-			fs_basedir->string, dir);
-
-	if ((strcmp(dir, BASEDIRNAME) == 0) || (*dir == 0))
-	{
-		Cvar_FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
-		Cvar_FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
-	}
-	else
-	{
-		Cvar_FullSet("gamedir", dir, CVAR_SERVERINFO | CVAR_NOSET);
-
-		if (fs_cddir->string[0] == '\0')
-		{
-			FS_AddGameDirectory(va("%s/%s", fs_cddir->string, dir));
-		}
-
-		FS_AddGameDirectory(va("%s/%s", fs_basedir->string, dir));
-		FS_AddBinaryDirAsGameDirectory(dir);
-		FS_AddHomeAsGameDirectory(dir);
-	}
 }
 
 /*
@@ -1524,59 +1252,333 @@ FS_Dir_f(void)
 	}
 }
 
+// --------
+
+void
+FS_AddDirToSearchPath(char *dir, qboolean create) {
+	char **list;
+	char path[MAX_OSPATH];
+	int i, j;
+	int nfiles;
+	fsPack_t *pack = NULL;
+	fsSearchPath_t *search;
+	size_t len = strlen(dir);
+
+	// The directory must not end with an /. It would
+	// f*ck up the logic in other parts of the game...
+	if (dir[len - 1] == '/')
+	{
+		dir[len - 1] = '\0';
+	}
+	else if (dir[len - 1] == '\\') {
+		dir[len - 1] = '\0';
+	}
+
+	// Set the current directory as game directory. This
+	// is somewhat fragile since the game directory MUST
+	// be the last directory added to the search path.
+	Q_strlcpy(fs_gamedir, dir, sizeof(fs_gamedir));
+
+	if (create) {
+		FS_CreatePath(fs_gamedir);
+	}
+
+	// Add the directory itself.
+	search = Z_Malloc(sizeof(fsSearchPath_t));
+	Q_strlcpy(search->path, dir, sizeof(search->path));
+	search->next = fs_searchPaths;
+	fs_searchPaths = search;
+
+	// We need to add numbered paks in te directory in
+	// sequence and all other paks after them. Otherwise
+	// the gamedata may break.
+	for (i = 0; i < sizeof(fs_packtypes) / sizeof(fs_packtypes[0]); i++) {
+		for (j = 0; j < MAX_PAKS; j++) {
+			Com_sprintf(path, sizeof(path), "%s/pak%d.%s", dir, j, fs_packtypes[i].suffix);
+
+			switch (fs_packtypes[i].format)
+			{
+				case PAK:
+					pack = FS_LoadPAK(path);
+					break;
+#ifdef ZIP
+				case PK3:
+					pack = FS_LoadPK3(path);
+					break;
+#endif
+			}
+
+			if (pack == NULL)
+			{
+				continue;
+			}
+
+			search = Z_Malloc(sizeof(fsSearchPath_t));
+			search->pack = pack;
+			search->next = fs_searchPaths;
+			fs_searchPaths = search;
+		}
+	}
+
+	// And as said above all other pak files.
+	for (i = 0; i < sizeof(fs_packtypes) / sizeof(fs_packtypes[0]); i++) {
+		Com_sprintf(path, sizeof(path), "%s/*.%s", dir, fs_packtypes[i].suffix);
+
+		// Nothing here, next pak type please.
+		if ((list = FS_ListFiles(path, &nfiles, 0, SFF_SUBDIR)) == NULL)
+		{
+			continue;
+		}
+
+		Com_sprintf(path, sizeof(path), "%s/pak*.%s", dir, fs_packtypes[i].suffix);
+
+		for (j = 0; j < nfiles - 1; j++)
+		{
+			// If the pak starts with the string 'pak' it's ignored.
+			// This is somewhat stupid, it would be better to ignore
+			// just pak%d...
+			if (glob_match(path, list[j]))
+			{
+				continue;
+			}
+
+			switch (fs_packtypes[i].format)
+			{
+				case PAK:
+					pack = FS_LoadPAK(list[j]);
+					break;
+#ifdef ZIP
+				case PK3:
+					pack = FS_LoadPK3(list[j]);
+					break;
+#endif
+			}
+
+			if (pack == NULL)
+			{
+				continue;
+			}
+
+			search = Z_Malloc(sizeof(fsSearchPath_t));
+			search->pack = pack;
+			search->next = fs_searchPaths;
+			fs_searchPaths = search;
+		}
+
+		FS_FreeList(list, nfiles);
+	}
+}
+
+void FS_BuildGenericSearchPath(void) {
+	// We may not use the va() function from shared.c
+	// since it's buffersize is 1024 while most OS have
+	// a maximum path size of 4096...
+	char path[MAX_OSPATH];
+
+	fsRawPath_t *search = fs_rawPath;
+
+	while (search != NULL) {
+		Com_sprintf(path, sizeof(path), "%s/%s", search->path, BASEDIRNAME);
+		FS_AddDirToSearchPath(path, search->create);
+
+		search = search->next;
+	}
+
+	// Until here we've added the generic directories to the
+	// search path. Save the current head node so we can
+	// distinguish generic and specialized directories.
+	fs_baseSearchPaths = fs_searchPaths;
+
+	// We need to create the game directory.
+	Sys_Mkdir(fs_gamedir);
+
+	// We need to create the screenshot directory since the
+	// render dll doesn't link the filesystem stuff.
+	Com_sprintf(path, sizeof(path), "%s/scrnshot", fs_gamedir);
+	Sys_Mkdir(path);
+}
+
+void
+FS_BuildGameSpecificSearchPath(char *dir)
+{
+	// We may not use the va() function from shared.c
+	// since it's buffersize is 1024 while most OS have
+	// a maximum path size of 4096...
+	char path[MAX_OSPATH];
+	int i;
+	fsRawPath_t *search;
+	fsSearchPath_t *next;
+
+	// This is against PEBCAK. The user may give us paths like
+	// xatrix/ or even /home/stupid/quake2/xatrix.
+	if (!*dir || !strcmp(dir, ".") || strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\"))
+	{
+		Com_Printf("Gamedir should be a single filename, not a path.\n");
+		return;
+	}
+
+	// BASEDIR is already added as a generic directory. Adding it
+	// again as a specialised directory breaks the logic in other
+	// parts of the code. This may happen if the user does something
+	// like ./quake2 +set game baseq2
+	if(!Q_stricmp(dir, BASEDIRNAME))
+	{
+		return;
+	}
+
+	// We may already have specialised directories in our search
+	// path. This can happen if the server changes the mod. Let's
+	// remove them.
+	while (fs_searchPaths != fs_baseSearchPaths)
+	{
+		if (fs_searchPaths->pack)
+		{
+			if (fs_searchPaths->pack->pak)
+			{
+				fclose(fs_searchPaths->pack->pak);
+			}
+
+#ifdef ZIP
+			if (fs_searchPaths->pack->pk3)
+			{
+				unzClose(fs_searchPaths->pack->pk3);
+			}
+#endif
+
+			Z_Free(fs_searchPaths->pack->files);
+			Z_Free(fs_searchPaths->pack);
+		}
+
+		next = fs_searchPaths->next;
+		Z_Free(fs_searchPaths);
+		fs_searchPaths = next;
+	}
+
+	/* Close open files for game dir. */
+	for (i = 0; i < MAX_HANDLES; i++)
+	{
+		if (strstr(fs_handles[i].name, dir) &&
+				((fs_handles[i].file != NULL)
+#ifdef ZIP
+				|| (fs_handles[i].zip != NULL)
+#endif
+		))
+		{
+			FS_FCloseFile(i);
+		}
+	}
+
+	// Enforce a renderer and sound backend restart to
+	// purge all internal caches. This is rather hacky
+	// but Quake II doesn't have a better mechanism...
+	if ((dedicated != NULL) && (dedicated->value != 1))
+	{
+		Cbuf_AddText("vid_restart\nsnd_restart\n");
+	}
+
+	// The game was reset to baseq2. Nothing to do here.
+	if ((Q_stricmp(dir, BASEDIRNAME) == 0) || (*dir == 0)) {
+		Cvar_FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
+		Cvar_FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
+
+		// fs_gamedir must be reset to the last
+		// dir of the generic search path.
+		Q_strlcpy(fs_gamedir, fs_baseSearchPaths->path, sizeof(fs_gamedir));
+	} else {
+		Cvar_FullSet("gamedir", dir, CVAR_SERVERINFO | CVAR_NOSET);
+		search = fs_rawPath;
+
+		while (search != NULL) {
+			Com_sprintf(path, sizeof(path), "%s/%s", search->path, dir);
+			FS_AddDirToSearchPath(path, search->create);
+
+			search = search->next;
+		}
+	}
+
+	// Create the game directory.
+	Sys_Mkdir(fs_gamedir);
+
+	// We need to create the screenshot directory since the
+	// render dll doesn't link the filesystem stuff.
+	Com_sprintf(path, sizeof(path), "%s/scrnshot", fs_gamedir);
+	Sys_Mkdir(path);
+}
+
+// --------
+
+void FS_AddDirToRawPath (const char *dir, qboolean create) {
+	fsRawPath_t *search;
+
+	// Add the directory
+	search = Z_Malloc(sizeof(fsRawPath_t));
+	Q_strlcpy(search->path, dir, sizeof(search->path));
+	search->create = create;
+	search->next = fs_rawPath;
+	fs_rawPath = search;
+}
+
+
+void FS_BuildRawPath(void) {
+	// Add $HOME/.yq2 (MUST be the last dir!)
+	if (!is_portable) {
+		const char *homedir = Sys_GetHomeDir();
+
+		if (homedir != NULL) {
+			FS_AddDirToRawPath(homedir, true);
+		}
+	}
+
+	// Add $binarydir
+	const char *binarydir = Sys_GetBinaryDir();
+
+	if(binarydir[0] != '\0')
+	{
+		FS_AddDirToRawPath(binarydir, false);
+	}
+
+	// Add $basedir/
+	FS_AddDirToRawPath(fs_basedir->string, false);
+
+	// Add SYSTEMDIR
+#ifdef SYSTEMWIDE
+	FS_AddDirToRawPath(SYSTEMDIR, false);
+#endif
+
+	// The CD must be the last directory of the path,
+	// otherwise we cannot be sure that the game won't
+	// stream the videos from the CD.
+	if (fs_cddir->string[0] != '\0') {
+		FS_AddDirToRawPath(fs_cddir->string, false);
+	}
+}
+
+// --------
+
 void
 FS_InitFilesystem(void)
 {
-	/* Register FS commands. */
+	// Register FS commands.
 	Cmd_AddCommand("path", FS_Path_f);
 	Cmd_AddCommand("link", FS_Link_f);
 	Cmd_AddCommand("dir", FS_Dir_f);
 
-	/* basedir <path> Allows the game to run from outside the data tree.  */
-	fs_basedir = Cvar_Get("basedir",
-#ifdef SYSTEMWIDE
-		SYSTEMDIR,
-#else
-		".",
-#endif
-		CVAR_NOSET);
-
-	/* cddir <path> Logically concatenates the cddir after the basedir to
-	   allow the game to run from outside the data tree. */
+	// Register cvars
+	fs_basedir = Cvar_Get("basedir", ".", CVAR_NOSET);
 	fs_cddir = Cvar_Get("cddir", "", CVAR_NOSET);
-
-	if (fs_cddir->string[0] != '\0')
-	{
-		FS_AddGameDirectory(va("%s/" BASEDIRNAME, fs_cddir->string));
-	}
-
-	/* Debug flag. */
+	fs_gamedirvar = Cvar_Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
 	fs_debug = Cvar_Get("fs_debug", "0", 0);
 
-	/* Game directory. */
-	fs_gamedirvar = Cvar_Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
+	// Build search path
+	FS_BuildRawPath();
+	FS_BuildGenericSearchPath();
 
-	/* Current directory. */
-	fs_homepath = Cvar_Get("homepath", Sys_GetCurrentDirectory(), CVAR_NOSET);
-
-	/* Add baseq2 to search path. */
-	FS_AddGameDirectory(va("%s/" BASEDIRNAME, fs_basedir->string));
-	FS_AddBinaryDirAsGameDirectory(BASEDIRNAME);
-	FS_AddHomeAsGameDirectory(BASEDIRNAME);
-
-	/* Any set gamedirs will be freed up to here. */
-	fs_baseSearchPaths = fs_searchPaths;
-	Q_strlcpy(fs_currentGame, BASEDIRNAME, sizeof(fs_currentGame));
-
-	/* Check for game override. */
 	if (fs_gamedirvar->string[0] != '\0')
 	{
-		FS_SetGamedir(fs_gamedirvar->string);
+		FS_BuildGameSpecificSearchPath(fs_gamedirvar->string);
 	}
 
-	/* Create directory if it does not exist. */
-	FS_CreatePath(fs_gamedir);
-
+	// Debug output
 	Com_Printf("Using '%s' for writing.\n", fs_gamedir);
 }
 

@@ -224,7 +224,11 @@ ai_charge(edict_t *self, float dist)
 		return;
 	}
 
-	VectorSubtract(self->enemy->s.origin, self->s.origin, v);
+	if(self->enemy)
+	{
+		VectorSubtract(self->enemy->s.origin, self->s.origin, v);
+	}
+
 	self->ideal_yaw = vectoyaw(v);
 	M_ChangeYaw(self);
 
@@ -411,7 +415,11 @@ HuntTarget(edict_t *self)
 		self->monsterinfo.run(self);
 	}
 
-	VectorSubtract(self->enemy->s.origin, self->s.origin, vec);
+	if(visible(self, self->enemy))
+	{
+		VectorSubtract(self->enemy->s.origin, self->s.origin, vec);
+	}
+
 	self->ideal_yaw = vectoyaw(vec);
 
 	/* wait a while before first attack */
@@ -424,7 +432,7 @@ HuntTarget(edict_t *self)
 void
 FoundTarget(edict_t *self)
 {
-	if (!self)
+	if (!self|| !self->enemy || !self->enemy->inuse)
 	{
 		return;
 	}
@@ -733,7 +741,7 @@ M_CheckAttack(edict_t *self)
 	float chance;
 	trace_t tr;
 
-	if (!self)
+	if (!self || !self->enemy || !self->enemy->inuse)
 	{
 		return false;
 	}
@@ -863,8 +871,10 @@ ai_run_melee(edict_t *self)
 
 	if (FacingIdeal(self))
 	{
-		self->monsterinfo.melee(self);
-		self->monsterinfo.attack_state = AS_STRAIGHT;
+		if (self->monsterinfo.melee) {
+			self->monsterinfo.melee(self);
+			self->monsterinfo.attack_state = AS_STRAIGHT;
+		}
 	}
 }
 
@@ -885,8 +895,10 @@ ai_run_missile(edict_t *self)
 
 	if (FacingIdeal(self))
 	{
-		self->monsterinfo.attack(self);
-		self->monsterinfo.attack_state = AS_STRAIGHT;
+		if (self->monsterinfo.attack) {
+			self->monsterinfo.attack(self);
+			self->monsterinfo.attack_state = AS_STRAIGHT;
+		}
 	}
 }
 
@@ -936,8 +948,10 @@ ai_checkattack(edict_t *self)
 	vec3_t temp;
 	qboolean hesDeadJim;
 
-	if (!self)
+	if (!self || !self->enemy || !self->enemy->inuse)
 	{
+		enemy_vis = false;
+
 		return false;
 	}
 
@@ -971,7 +985,7 @@ ai_checkattack(edict_t *self)
 				if (self->monsterinfo.aiflags & AI_TEMP_STAND_GROUND)
 				{
 					self->monsterinfo.aiflags &=
-						~(AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
+							~(AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
 				}
 			}
 			else
@@ -1069,10 +1083,13 @@ ai_checkattack(edict_t *self)
 		}
 	}
 
-	enemy_infront = infront(self, self->enemy);
-	enemy_range = range(self, self->enemy);
-	VectorSubtract(self->enemy->s.origin, self->s.origin, temp);
-	enemy_yaw = vectoyaw(temp);
+	if (self->enemy)
+	{
+		enemy_infront = infront(self, self->enemy);
+		enemy_range = range(self, self->enemy);
+		VectorSubtract(self->enemy->s.origin, self->s.origin, temp);
+		enemy_yaw = vectoyaw(temp);
+	}
 
 	if (self->monsterinfo.attack_state == AS_MISSILE)
 	{
@@ -1114,7 +1131,7 @@ ai_run(edict_t *self, float dist)
 	float left, center, right;
 	vec3_t left_target, right_target;
 
-	if (!self)
+	if (!self || !self->enemy || !self->enemy->inuse)
 	{
 		return;
 	}

@@ -31,7 +31,7 @@
 
 #include <ctype.h>
 #include "../header/client.h"
-#include "../header/keyboard.h"
+#include "../sound/header/local.h"
 #include "header/qmenu.h"
 
 static int m_main_cursor;
@@ -78,6 +78,19 @@ typedef struct
 
 menulayer_t m_layers[MAX_MENU_DEPTH];
 int m_menudepth;
+
+static qboolean
+M_IsGame(const char *gamename)
+{
+	cvar_t *game = Cvar_Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
+
+	if (strcmp(game->string, gamename) == 0)
+	{
+		return true;
+	}
+
+	return false;
+}
 
 static void
 M_Banner(char *name)
@@ -151,6 +164,13 @@ M_PushMenu(void (*draw)(void), const char *(*key)(int))
         Cvar_Set("paused", "1");
     }
 
+#ifdef USE_OPENAL
+    if (cl.cinematic_file)
+    {
+        AL_UnqueueRawSamples();
+    }
+#endif
+
     /* if this menu is already open (and on top),
        close it => toggling behaviour */
     if ((m_drawfunc == draw) && (m_keyfunc == key))
@@ -195,11 +215,118 @@ M_PushMenu(void (*draw)(void), const char *(*key)(int))
     cls.key_dest = key_menu;
 }
 
+int
+Key_GetMenuKey(int key)
+{
+	switch (key)
+	{
+		case K_KP_UPARROW:
+		case K_UPARROW:
+		case K_HAT_UP:
+			return K_UPARROW;
+
+		case K_TAB:
+		case K_KP_DOWNARROW:
+		case K_DOWNARROW:
+		case K_HAT_DOWN:
+			return K_DOWNARROW;
+
+		case K_KP_LEFTARROW:
+		case K_LEFTARROW:
+		case K_HAT_LEFT:
+		case K_TRIG_LEFT:
+			return K_LEFTARROW;
+
+		case K_KP_RIGHTARROW:
+		case K_RIGHTARROW:
+		case K_HAT_RIGHT:
+		case K_TRIG_RIGHT:
+			return K_RIGHTARROW;
+
+		case K_MOUSE1:
+		case K_MOUSE2:
+		case K_MOUSE3:
+		case K_MOUSE4:
+		case K_MOUSE5:
+
+		case K_JOY1:
+		case K_JOY2:
+		case K_JOY3:
+		case K_JOY4:
+		case K_JOY5:
+		case K_JOY6:
+		case K_JOY7:
+		case K_JOY8:
+		case K_JOY9:
+		case K_JOY10:
+		case K_JOY11:
+		case K_JOY12:
+		case K_JOY13:
+		case K_JOY14:
+		case K_JOY15:
+		case K_JOY16:
+		case K_JOY17:
+		case K_JOY18:
+		case K_JOY19:
+		case K_JOY20:
+		case K_JOY21:
+		case K_JOY22:
+		case K_JOY23:
+		case K_JOY24:
+		case K_JOY25:
+		case K_JOY26:
+		case K_JOY27:
+		case K_JOY28:
+		case K_JOY29:
+		case K_JOY30:
+		case K_JOY31:
+
+		case K_AUX1:
+		case K_AUX2:
+		case K_AUX3:
+		case K_AUX4:
+		case K_AUX5:
+		case K_AUX6:
+		case K_AUX7:
+		case K_AUX8:
+		case K_AUX9:
+		case K_AUX10:
+		case K_AUX11:
+		case K_AUX12:
+		case K_AUX13:
+		case K_AUX14:
+		case K_AUX15:
+		case K_AUX16:
+		case K_AUX17:
+		case K_AUX18:
+		case K_AUX19:
+		case K_AUX20:
+		case K_AUX21:
+		case K_AUX22:
+		case K_AUX23:
+		case K_AUX24:
+		case K_AUX25:
+		case K_AUX26:
+		case K_AUX27:
+		case K_AUX28:
+		case K_AUX29:
+		case K_AUX30:
+		case K_AUX31:
+		case K_AUX32:
+
+		case K_KP_ENTER:
+		case K_ENTER:
+			return K_ENTER;
+	}
+
+	return key;
+}
 const char *
 Default_MenuKey(menuframework_s *m, int key)
 {
     const char *sound = NULL;
     menucommon_s *item;
+    int menu_key = Key_GetMenuKey(key);
 
     if (m)
     {
@@ -215,110 +342,51 @@ Default_MenuKey(menuframework_s *m, int key)
         }
     }
 
-    switch (key)
+    switch (menu_key)
     {
     case K_ESCAPE:
         M_PopMenu();
         return menu_out_sound;
-    case K_KP_UPARROW:
-    case K_UPARROW:
 
+    case K_UPARROW:
         if (m)
         {
             m->cursor--;
             Menu_AdjustCursor(m, -1);
             sound = menu_move_sound;
         }
-
         break;
-    case K_TAB:
 
-        if (m)
-        {
-            m->cursor++;
-            Menu_AdjustCursor(m, 1);
-            sound = menu_move_sound;
-        }
-
-        break;
-    case K_KP_DOWNARROW:
     case K_DOWNARROW:
-
         if (m)
         {
             m->cursor++;
             Menu_AdjustCursor(m, 1);
             sound = menu_move_sound;
         }
-
         break;
-    case K_KP_LEFTARROW:
-    case K_LEFTARROW:
 
+    case K_LEFTARROW:
         if (m)
         {
             Menu_SlideItem(m, -1);
             sound = menu_move_sound;
         }
-
         break;
-    case K_KP_RIGHTARROW:
-    case K_RIGHTARROW:
 
+    case K_RIGHTARROW:
         if (m)
         {
             Menu_SlideItem(m, 1);
             sound = menu_move_sound;
         }
-
         break;
 
-    case K_MOUSE1:
-    case K_MOUSE2:
-    case K_MOUSE3:
-    case K_MOUSE4:
-    case K_MOUSE5:
-    case K_AUX1:
-    case K_AUX2:
-    case K_AUX3:
-    case K_AUX4:
-    case K_AUX5:
-    case K_AUX6:
-    case K_AUX7:
-    case K_AUX8:
-    case K_AUX9:
-    case K_AUX10:
-    case K_AUX11:
-    case K_AUX12:
-    case K_AUX13:
-    case K_AUX14:
-    case K_AUX15:
-    case K_AUX16:
-    case K_AUX17:
-    case K_AUX18:
-    case K_AUX19:
-    case K_AUX20:
-    case K_AUX21:
-    case K_AUX22:
-    case K_AUX23:
-    case K_AUX24:
-    case K_AUX25:
-    case K_AUX26:
-    case K_AUX27:
-    case K_AUX28:
-    case K_AUX29:
-    case K_AUX30:
-    case K_AUX31:
-    case K_AUX32:
-
-    case K_KP_ENTER:
     case K_ENTER:
-
         if (m)
         {
             Menu_SelectItem(m);
         }
-
         sound = menu_move_sound;
         break;
     }
@@ -573,35 +641,29 @@ M_Main_Draw(void)
 const char *
 M_Main_Key(int key)
 {
-    const char *sound = menu_move_sound;
+	const char *sound = menu_move_sound;
+	int menu_key = Key_GetMenuKey(key);
 
-    switch (key)
+    switch (menu_key)
     {
     case K_ESCAPE:
         M_PopMenu();
         break;
 
-    case K_KP_DOWNARROW:
     case K_DOWNARROW:
-
         if (++m_main_cursor >= MAIN_ITEMS)
         {
             m_main_cursor = 0;
         }
-
         return sound;
 
-    case K_KP_UPARROW:
     case K_UPARROW:
-
         if (--m_main_cursor < 0)
         {
             m_main_cursor = MAIN_ITEMS - 1;
         }
-
         return sound;
 
-    case K_KP_ENTER:
     case K_ENTER:
         m_entersound = true;
 
@@ -983,10 +1045,12 @@ static menuslider_s s_options_sensitivity_slider;
 static menulist_s s_options_freelook_box;
 static menulist_s s_options_alwaysrun_box;
 static menulist_s s_options_invertmouse_box;
-static menulist_s s_options_lookspring_box;
 static menulist_s s_options_lookstrafe_box;
 static menulist_s s_options_crosshair_box;
 static menuslider_s s_options_sfxvolume_slider;
+#ifdef SDL2
+static menuslider_s s_options_haptic_slider;
+#endif
 #if defined(OGG) || defined(CDA)
 static menulist_s s_options_cdshuffle_box;
 #endif
@@ -1002,6 +1066,14 @@ CrosshairFunc(void *unused)
 {
     Cvar_SetValue("crosshair", (float)s_options_crosshair_box.curvalue);
 }
+
+#ifdef SDL2
+static void
+HapticMagnitudeFunc(void *unused)
+{
+    Cvar_SetValue("joy_haptic_magnitude", s_options_haptic_slider.curvalue / 10.0F);
+}
+#endif
 
 static void
 CustomizeControlsFunc(void *unused)
@@ -1077,13 +1149,15 @@ ControlsSetMenuItemValues(void)
 
     s_options_invertmouse_box.curvalue = (m_pitch->value < 0);
 
-    s_options_lookspring_box.curvalue = (lookspring->value != 0);
-
     s_options_lookstrafe_box.curvalue = (lookstrafe->value != 0);
 
     s_options_freelook_box.curvalue = (freelook->value != 0);
 
     s_options_crosshair_box.curvalue = ClampCvar(0, 3, crosshair->value);
+
+#ifdef SDL2
+    s_options_haptic_slider.curvalue = Cvar_VariableValue("joy_haptic_magnitude") * 10.0F;
+#endif
 }
 
 static void
@@ -1100,12 +1174,6 @@ static void
 InvertMouseFunc(void *unused)
 {
     Cvar_SetValue("m_pitch", -m_pitch->value);
-}
-
-static void
-LookspringFunc(void *unused)
-{
-    Cvar_SetValue("lookspring", (float)!lookspring->value);
 }
 
 static void
@@ -1137,7 +1205,6 @@ CDShuffleFunc(void *unused)
         if (ogg->value)
         {
             OGG_ParseCmd("?");
-            OGG_Stop();
         }
     }
     else
@@ -1146,11 +1213,10 @@ CDShuffleFunc(void *unused)
 
         if (ogg->value)
         {
-            if ((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL,
-                            10) < 10)
+            if ((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10) < 10)
             {
-                char tmp[3] = "0";
-                OGG_ParseCmd(strcat(tmp, cl.configstrings[CS_CDTRACK]));
+                char tmp[3] = {'0', cl.configstrings[CS_CDTRACK][0], '\0'};
+                OGG_ParseCmd(tmp);
             }
             else
             {
@@ -1253,7 +1319,7 @@ UpdateSoundQualityFunc(void *unused)
     M_Popup();
 
     /* the text box won't show up unless we do a buffer swap */
-    GLimp_EndFrame();
+    R_EndFrame();
 
     CL_Snd_Restart_f();
 }
@@ -1301,7 +1367,11 @@ Options_MenuInit(void)
         0
     };
 
-	float scale = SCR_GetMenuScale();
+    float scale = SCR_GetMenuScale();
+
+#ifdef SDL2
+    extern qboolean show_haptic;
+#endif
 
     /* configure controls menu and menu items */
     s_options_menu.x = viddef.width / 2;
@@ -1371,33 +1441,36 @@ Options_MenuInit(void)
     s_options_invertmouse_box.generic.callback = InvertMouseFunc;
     s_options_invertmouse_box.itemnames = yesno_names;
 
-    s_options_lookspring_box.generic.type = MTYPE_SPINCONTROL;
-    s_options_lookspring_box.generic.x = 0;
-    s_options_lookspring_box.generic.y = 90;
-    s_options_lookspring_box.generic.name = "lookspring";
-    s_options_lookspring_box.generic.callback = LookspringFunc;
-    s_options_lookspring_box.itemnames = yesno_names;
-
     s_options_lookstrafe_box.generic.type = MTYPE_SPINCONTROL;
     s_options_lookstrafe_box.generic.x = 0;
-    s_options_lookstrafe_box.generic.y = 100;
+    s_options_lookstrafe_box.generic.y = 90;
     s_options_lookstrafe_box.generic.name = "lookstrafe";
     s_options_lookstrafe_box.generic.callback = LookstrafeFunc;
     s_options_lookstrafe_box.itemnames = yesno_names;
 
     s_options_freelook_box.generic.type = MTYPE_SPINCONTROL;
     s_options_freelook_box.generic.x = 0;
-    s_options_freelook_box.generic.y = 110;
+    s_options_freelook_box.generic.y = 100;
     s_options_freelook_box.generic.name = "free look";
     s_options_freelook_box.generic.callback = FreeLookFunc;
     s_options_freelook_box.itemnames = yesno_names;
 
     s_options_crosshair_box.generic.type = MTYPE_SPINCONTROL;
     s_options_crosshair_box.generic.x = 0;
-    s_options_crosshair_box.generic.y = 120;
+    s_options_crosshair_box.generic.y = 110;
     s_options_crosshair_box.generic.name = "crosshair";
     s_options_crosshair_box.generic.callback = CrosshairFunc;
     s_options_crosshair_box.itemnames = crosshair_names;
+
+#ifdef SDL2
+    s_options_haptic_slider.generic.type = MTYPE_SLIDER;
+    s_options_haptic_slider.generic.x = 0;
+    s_options_haptic_slider.generic.y = 120;
+    s_options_haptic_slider.generic.name = "haptic magnitude";
+    s_options_haptic_slider.generic.callback = HapticMagnitudeFunc;
+    s_options_haptic_slider.minvalue = 0;
+    s_options_haptic_slider.maxvalue = 22;
+#endif
 
     s_options_customize_options_action.generic.type = MTYPE_ACTION;
     s_options_customize_options_action.generic.x = 0;
@@ -1432,10 +1505,15 @@ Options_MenuInit(void)
     Menu_AddItem(&s_options_menu, (void *)&s_options_sensitivity_slider);
     Menu_AddItem(&s_options_menu, (void *)&s_options_alwaysrun_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_invertmouse_box);
-    Menu_AddItem(&s_options_menu, (void *)&s_options_lookspring_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_lookstrafe_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_freelook_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_crosshair_box);
+
+#ifdef SDL2
+    if (show_haptic)
+        Menu_AddItem(&s_options_menu, (void *)&s_options_haptic_slider);
+#endif
+
     Menu_AddItem(&s_options_menu, (void *)&s_options_customize_options_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_defaults_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_console_action);
@@ -1504,7 +1582,7 @@ static const char *idcredits[] = {
 	"Tim Willits",
 	"American McGee",
 	"Christian Antkow",
-	"Paul Jaquays",
+	"Jennell Jaquays",
 	"Brandon James",
 	"",
 	"+BIZ",
@@ -1662,7 +1740,7 @@ static const char *xatcredits[] =
     "Paul Steed",
     "Tim Willits",
     "Christian Antkow",
-    "Paul Jaquays",
+    "Jennell Jaquays",
     "Brandon James",
     "Todd Hollenshead",
     "Barrett (Bear) Alexander",
@@ -1786,7 +1864,7 @@ static const char *roguecredits[] =
     "Paul Steed",
     "Tim Willits",
     "Christian Antkow",
-    "Paul Jaquays",
+    "Jennell Jaquays",
     "Brandon James",
     "Todd Hollenshead",
     "Barrett (Bear) Alexander",
@@ -1912,15 +1990,12 @@ M_Credits_Key(int key)
     return menu_out_sound;
 }
 
-extern int Developer_searchpath(void);
-
 static void
 M_Menu_Credits_f(void)
 {
     int n;
     int count;
     char *p;
-    int isdeveloper = 0;
 
     creditsBuffer = NULL;
     count = FS_LoadFile("credits", (void **)&creditsBuffer);
@@ -1966,14 +2041,12 @@ M_Menu_Credits_f(void)
     }
     else
     {
-        isdeveloper = Developer_searchpath();
-
-        if (isdeveloper == 1) /* Xatrix - The Reckoning */
+        if (M_IsGame("xatrix")) /* Xatrix - The Reckoning */
         {
             credits = xatcredits;
         }
 
-        else if (isdeveloper == 2) /* Rogue - Ground Zero */
+        else if (M_IsGame("rogue")) /* Rogue - Ground Zero */
         {
             credits = roguecredits;
         }
@@ -2292,10 +2365,10 @@ static const char *
 LoadGame_MenuKey(int key)
 {
     static menuframework_s *m = &s_loadgame_menu;
+    int menu_key = Key_GetMenuKey(key);
 
-    switch (key)
+    switch (menu_key)
     {
-    case K_KP_UPARROW:
     case K_UPARROW:
         if (m->cursor == 0)
         {
@@ -2303,8 +2376,7 @@ LoadGame_MenuKey(int key)
             LoadGame_MenuInit();
         }
         break;
-    case K_TAB:
-    case K_KP_DOWNARROW:
+
     case K_DOWNARROW:
         if (m->cursor == m->nitems - 1)
         {
@@ -2312,16 +2384,17 @@ LoadGame_MenuKey(int key)
             LoadGame_MenuInit();
         }
         break;
-    case K_KP_LEFTARROW:
+
     case K_LEFTARROW:
         LoadSave_AdjustPage(-1);
         LoadGame_MenuInit();
         return menu_move_sound;
-    case K_KP_RIGHTARROW:
+
     case K_RIGHTARROW:
         LoadSave_AdjustPage(1);
         LoadGame_MenuInit();
         return menu_move_sound;
+
     default:
         s_savegame_menu.cursor = s_loadgame_menu.cursor;
         break;
@@ -2403,6 +2476,7 @@ static const char *
 SaveGame_MenuKey(int key)
 {
     static menuframework_s *m = &s_savegame_menu;
+    int menu_key = Key_GetMenuKey(key);
 
     if (m_popup_string)
     {
@@ -2410,9 +2484,8 @@ SaveGame_MenuKey(int key)
         return NULL;
     }
 
-    switch (key)
+    switch (menu_key)
     {
-    case K_KP_UPARROW:
     case K_UPARROW:
         if (m->cursor == 0)
         {
@@ -2420,8 +2493,7 @@ SaveGame_MenuKey(int key)
             SaveGame_MenuInit();
         }
         break;
-    case K_TAB:
-    case K_KP_DOWNARROW:
+
     case K_DOWNARROW:
         if (m->cursor == m->nitems - 1)
         {
@@ -2429,16 +2501,17 @@ SaveGame_MenuKey(int key)
             SaveGame_MenuInit();
         }
         break;
-    case K_KP_LEFTARROW:
+
     case K_LEFTARROW:
         LoadSave_AdjustPage(-1);
         SaveGame_MenuInit();
         return menu_move_sound;
-    case K_KP_RIGHTARROW:
+
     case K_RIGHTARROW:
         LoadSave_AdjustPage(1);
         SaveGame_MenuInit();
         return menu_move_sound;
+
     default:
         s_loadgame_menu.cursor = s_savegame_menu.cursor;
         break;
@@ -2568,7 +2641,7 @@ SearchLocalGames(void)
     M_Popup();
 
     /* the text box won't show up unless we do a buffer swap */
-    GLimp_EndFrame();
+    R_EndFrame();
 
     /* send out info packets */
     CL_PingServers_f();
@@ -2606,8 +2679,8 @@ JoinServer_MenuInit(void)
 
     s_joinserver_server_title.generic.type = MTYPE_SEPARATOR;
     s_joinserver_server_title.generic.name = "connect to...";
-    s_joinserver_server_title.generic.x = 80 * scale;
-    s_joinserver_server_title.generic.y = 30;
+	s_joinserver_server_title.generic.y = 30;
+	s_joinserver_server_title.generic.x = 80 * scale;
 
     for (i = 0; i < MAX_LOCAL_SERVERS; i++)
     {
@@ -2695,7 +2768,7 @@ RulesChangeFunc(void *self)
     }
 
     /* Ground Zero game modes */
-    else if (Developer_searchpath() == 2)
+    else if (M_IsGame("rogue"))
     {
         if (s_rules_box.curvalue == 2)
         {
@@ -2725,7 +2798,7 @@ StartServerActionFunc(void *self)
     Cvar_SetValue("fraglimit", ClampCvar(0, fraglimit, fraglimit));
     Cvar_Set("hostname", s_hostname_field.buffer);
 
-    if ((s_rules_box.curvalue < 2) || (Developer_searchpath() != 2))
+    if ((s_rules_box.curvalue < 2) || M_IsGame("rogue"))
     {
         Cvar_SetValue("deathmatch", (float)!s_rules_box.curvalue);
         Cvar_SetValue("coop", (float)s_rules_box.curvalue);
@@ -2814,38 +2887,23 @@ StartServer_MenuInit(void)
         "tag",
         0
     };
+
     char *buffer;
-    char mapsname[1024];
     char *s;
     int length;
     int i;
-    FILE *fp;
     float scale = SCR_GetMenuScale();
 
     /* initialize list of maps once, reuse it afterwards (=> it isn't freed) */
     if (mapnames == NULL)
     {
         /* load the list of map names */
-        Com_sprintf(mapsname, sizeof(mapsname), "%s/maps.lst", FS_Gamedir());
-
-        if ((fp = fopen(mapsname, "rb")) == 0)
+        if ((length = FS_LoadFile("maps.lst", (void **)&buffer)) == -1)
         {
-            if ((length = FS_LoadFile("maps.lst", (void **)&buffer)) == -1)
-            {
-                Com_Error(ERR_DROP, "couldn't find maps.lst\n");
-            }
-        }
-        else
-        {
-            fseek(fp, 0, SEEK_END);
-            length = ftell(fp);
-            fseek(fp, 0, SEEK_SET);
-            buffer = malloc(length);
-            fread(buffer, length, 1, fp);
+            Com_Error(ERR_DROP, "couldn't find maps.lst\n");
         }
 
         s = buffer;
-
         i = 0;
 
         while (i < length)
@@ -2891,17 +2949,7 @@ StartServer_MenuInit(void)
         }
 
         mapnames[nummaps] = 0;
-
-        if (fp != 0)
-        {
-            fclose(fp);
-            fp = 0;
-            free(buffer);
-        }
-        else
-        {
-            FS_FreeFile(buffer);
-        }
+        FS_FreeFile(buffer);
     }
 
     /* initialize the menu stuff */
@@ -2920,7 +2968,7 @@ StartServer_MenuInit(void)
     s_rules_box.generic.name = "rules";
 
     /* Ground Zero games only available with rogue game */
-    if (Developer_searchpath() == 2)
+    if (M_IsGame("rogue"))
     {
         s_rules_box.itemnames = dm_coop_names_rogue;
     }
@@ -3203,7 +3251,7 @@ DMFlagCallback(void *self)
     {
         bit = DF_QUAD_DROP;
     }
-    else if (Developer_searchpath() == 2)
+    else if (M_IsGame("rogue"))
     {
         if (f == &s_no_mines_box)
         {
@@ -3379,7 +3427,7 @@ DMOptions_MenuInit(void)
     s_friendlyfire_box.itemnames = yes_no_names;
     s_friendlyfire_box.curvalue = (dmflags & DF_NO_FRIENDLY_FIRE) == 0;
 
-    if (Developer_searchpath() == 2)
+    if (M_IsGame("rogue"))
     {
         s_no_mines_box.generic.type = MTYPE_SPINCONTROL;
         s_no_mines_box.generic.x = 0;
@@ -3430,7 +3478,7 @@ DMOptions_MenuInit(void)
     Menu_AddItem(&s_dmoptions_menu, &s_quad_drop_box);
     Menu_AddItem(&s_dmoptions_menu, &s_friendlyfire_box);
 
-    if (Developer_searchpath() == 2)
+    if (M_IsGame("rogueg"))
     {
         Menu_AddItem(&s_dmoptions_menu, &s_no_mines_box);
         Menu_AddItem(&s_dmoptions_menu, &s_no_nukes_box);

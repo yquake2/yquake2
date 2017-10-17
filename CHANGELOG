@@ -1,3 +1,49 @@
+Quake II 7.01 to 7.02:
+- Fix several corner cases regarding render library loading. The game
+  should now always fall back to the OpenGL 1.4 renderer if the new
+  OpenGL 3.2 renderer can't be initialized. Also the game aborts if no
+  useable OpenGL implementation exists.
+- Refactor the search path code. This should fix several bugs with
+  Quake II writing to the wrong directories or being unable to find
+  some / all assets.
+- Reimplement portable binaries. If called with the -portable command
+  line option Quake II saves all data (configs, savegames, screenshorts
+  etc.) into it's systemwide installation directory and not users home
+  directory. In contrast to the old implementation on Windows stdout.txt
+  contains all output, the first lines are no longer missing.
+- vid_fullscreen set to 1 now keeps the desktops resolution. Set it to 2
+  to change the resolution.
+- Instead of a list with precalculated FOV values the video menu now
+  shows a slider with possible values from 60 to 120. Horplus is now
+  always enabled, set the horplus cvar to 0 to disable it.
+- The game is now able to hold the requested framerate (either by the
+  vsync or the gl_maxfps cvar) with an accuracy of about +/- 1% as long
+  as the hardware is fast enough.  The framecounter was reimplemented
+  to be much more precise.
+- Fix misspredictions if an original client running on Win32 connects
+  to a Yamagi Quake II server running on Linux/i386.
+
+Quake II 7.00 to 7.01:
+- Fix build of GL3 for platforms without SSE.
+- Fix Jennel Jaquays name in credits and quit screen.
+- Make Quake II high DPI aware on Window Vista and above.
+- Fix some problems with loading dependend librarys on Windows.
+
+Quake II 6.00 to 7.00:
+- Remove the broken multitexturing render path from the OpenGL 1.4
+  renderer. It was switched off by default in 6.00.
+- Reimplement the support for shared renderer libraries. Please note
+  the this is an incompatible implementation with an custom API. The
+  original renderer libraries will not work!
+- Implement an OpenGL 3.2 renderer. This renderer has the same look
+  and feel as the old OpenGL 1.4 renderer but makes heavy use of
+  modern OpenGL and GPU features. An OpenGL 3.2 capable GPU (Intel
+  starting with Ivy Bridge on Windows or Sandy Bridge on Linux, Nvidia
+  staring with G80 and AMD starting with R600 / HD2000) is required.
+- Fix OpenAL compatibility with modern openal-soft versions.
+- Several fixes and optimizations to OpenAL, implement support for
+  doppler effects. (by xorw)
+
 Quake II 5.34 to 6.00:
 - Make the client asynchronous. The old behaviour can be forced by
   setting cl_async to 0. Please note that asynchronicity can lead to

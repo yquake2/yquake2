@@ -54,5 +54,7 @@ struct sfx_s *S_FindName(char *name, qboolean create);
    entitiy position information, so entities can be 
    dynamically re-spatialized */
 void CL_GetEntitySoundOrigin(int ent, vec3_t org);
+void CL_GetEntitySoundVelocity(int ent, vec3_t vel);
+void CL_GetViewVelocity(vec3_t vel);
 
 #endif

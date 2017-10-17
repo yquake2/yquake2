@@ -24,49 +24,18 @@
  * =======================================================================
  */
 
-#include "../header/local.h"
+#include "../ref_shared.h"
 
-image_t *
-LoadWal(char *origname)
-{
-	miptex_t *mt;
-	int width, height, ofs;
-	image_t *image;
-	char name[256];
-
-	Q_strlcpy(name, origname, sizeof(name));
-
-	/* Add the extension */
-	if (strcmp(COM_FileExtension(name), "wal"))
-	{
-		Q_strlcat(name, ".wal", sizeof(name));
-	}
-
-	FS_LoadFile(name, (void **)&mt);
-
-	if (!mt)
-	{
-		VID_Printf(PRINT_ALL, "LoadWall: can't load %s\n", name);
-		return r_notexture;
-	}
-
-	width = LittleLong(mt->width);
-	height = LittleLong(mt->height);
-	ofs = LittleLong(mt->offsets[0]);
-
-	image = R_LoadPic(name, (byte *)mt + ofs, width, 0, height, 0, it_wall, 8);
-
-	FS_FreeFile((void *)mt);
-
-	return image;
-}
+/*
+ * NOTE: LoadWal() is in *_image.c because it needs the renderer-specific image_t
+ */
 
 void
 GetWalInfo(char *name, int *width, int *height)
 {
 	miptex_t *mt;
 
-	FS_LoadFile(name, (void **)&mt);
+	ri.FS_LoadFile(name, (void **)&mt);
 
 	if (!mt)
 	{
@@ -76,7 +45,7 @@ GetWalInfo(char *name, int *width, int *height)
 	*width = LittleLong(mt->width);
 	*height = LittleLong(mt->height);
 
-	FS_FreeFile((void *)mt);
+	ri.FS_FreeFile((void *)mt);
 
 	return;
 }

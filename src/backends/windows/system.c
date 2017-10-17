@@ -41,7 +41,6 @@
 
 #define MAX_NUM_ARGVS 128
 
-int curtime;
 int starttime;
 qboolean ActiveApp;
 qboolean Minimized;
@@ -65,6 +64,8 @@ int findhandle;
 int argc;
 char *argv[MAX_NUM_ARGVS];
 
+qboolean is_portable;
+
 /* ================================================================ */
 
 void
@@ -82,10 +83,7 @@ Sys_Error(char *error, ...)
 	va_start(argptr, error);
 	vsprintf(text, error, argptr);
 	va_end(argptr);
-
-#ifndef DEDICATED_ONLY
 	fprintf(stderr, "Error: %s\n", text);
-#endif
 
 	MessageBox(NULL, text, "Error", 0 /* MB_OK */);
 
@@ -412,27 +410,60 @@ ParseCommandLine(LPSTR lpCmdLine)
 
 /* ======================================================================= */
 
+long long
+Sys_Microseconds(void)
+{
+	long long microseconds;
+	static long long uSecbase;
+
+	FILETIME ft;
+	unsigned long long tmpres = 0;
+
+	GetSystemTimeAsFileTime(&ft);
+
+	tmpres |= ft.dwHighDateTime;
+	tmpres <<= 32;
+	tmpres |= ft.dwLowDateTime;
+
+	tmpres /= 10; // Convert to microseconds.
+	tmpres -= 11644473600000000ULL; // ...and to unix epoch.
+
+	microseconds = tmpres;
+
+	if (!uSecbase)
+	{
+		uSecbase = microseconds - 1001ll;
+	}
+
+	return microseconds - uSecbase;
+}
+
 int
 Sys_Milliseconds(void)
 {
-	static int base;
-	static qboolean initialized = false;
-
-	if (!initialized)
-	{   /* let base retain 16 bits of effectively random data */
-		base = timeGetTime() & 0xffff0000;
-		initialized = true;
-	}
-
-	curtime = timeGetTime() - base;
-
-	return curtime;
+	return (int)(Sys_Microseconds()/1000ll);
 }
 
 void
 Sys_Sleep(int msec)
 {
 	Sleep(msec);
+}
+
+void Sys_Nanosleep(int nanosec)
+{
+	HANDLE timer;
+	LARGE_INTEGER li;
+
+	timer = CreateWaitableTimer(NULL, TRUE, NULL);
+
+	// Windows has a max. resolution of 100ns.
+	li.QuadPart = -nanosec / 100;
+
+	SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE);
+	WaitForSingleObject(timer, INFINITE);
+
+	CloseHandle(timer);
 }
 
 /* ======================================================================= */
@@ -647,31 +678,33 @@ void
 Sys_RedirectStdout(void)
 {
 	char *cur;
-	char *home;
 	char *old;
+	char dir[MAX_OSPATH];
 	char path_stdout[MAX_OSPATH];
 	char path_stderr[MAX_OSPATH];
+	const char *tmp;
 
-	if (dedicated && dedicated->value)
+	if (is_portable) {
+		tmp = Sys_GetBinaryDir();
+		Q_strlcpy(dir, tmp, sizeof(dir));
+	} else {
+		tmp = Sys_GetHomeDir();
+		Q_strlcpy(dir, tmp, sizeof(dir));
+	}
+
+	if (dir == NULL)
 	{
 		return;
 	}
 
-	home = Sys_GetHomeDir();
-
-	if (home == NULL)
-	{
-		return;
-	}
-
-	cur = old = home;
+	cur = old = dir;
 
 	while (cur != NULL)
 	{
 		if ((cur - old) > 1)
 		{
 			*cur = '\0';
-			Sys_Mkdir(home);
+			Sys_Mkdir(dir);
 			*cur = '/';
 		}
 
@@ -679,11 +712,55 @@ Sys_RedirectStdout(void)
 		cur = strchr(old + 1, '/');
 	}
 
-	snprintf(path_stdout, sizeof(path_stdout), "%s/%s", home, "stdout.txt");
-	snprintf(path_stderr, sizeof(path_stderr), "%s/%s", home, "stderr.txt");
+	snprintf(path_stdout, sizeof(path_stdout), "%s/%s", dir, "stdout.txt");
+	snprintf(path_stderr, sizeof(path_stderr), "%s/%s", dir, "stderr.txt");
 
 	freopen(path_stdout, "w", stdout);
 	freopen(path_stderr, "w", stderr);
+}
+
+/* ======================================================================= */
+
+typedef enum YQ2_PROCESS_DPI_AWARENESS {
+	YQ2_PROCESS_DPI_UNAWARE = 0,
+	YQ2_PROCESS_SYSTEM_DPI_AWARE = 1,
+	YQ2_PROCESS_PER_MONITOR_DPI_AWARE = 2
+} YQ2_PROCESS_DPI_AWARENESS;
+
+void
+Sys_SetHighDPIMode(void)
+{
+	/* For Vista, Win7 and Win8 */
+	BOOL(WINAPI *SetProcessDPIAware)(void) = NULL;
+
+	/* Win8.1 and later */
+	HRESULT(WINAPI *SetProcessDpiAwareness)(YQ2_PROCESS_DPI_AWARENESS dpiAwareness) = NULL;
+
+
+	HINSTANCE userDLL = LoadLibrary("USER32.DLL");
+
+	if (userDLL)
+	{
+		SetProcessDPIAware = (BOOL(WINAPI *)(void)) GetProcAddress(userDLL,
+				"SetProcessDPIAware");
+	}
+
+
+	HINSTANCE shcoreDLL = LoadLibrary("SHCORE.DLL");
+
+	if (shcoreDLL)
+	{
+		SetProcessDpiAwareness = (HRESULT(WINAPI *)(YQ2_PROCESS_DPI_AWARENESS))
+			GetProcAddress(shcoreDLL, "SetProcessDpiAwareness");
+	}
+
+
+	if (SetProcessDpiAwareness) {
+		SetProcessDpiAwareness(YQ2_PROCESS_PER_MONITOR_DPI_AWARE);
+	}
+	else if (SetProcessDPIAware) {
+		SetProcessDPIAware();
+	}
 }
 
 /* ======================================================================= */
@@ -697,7 +774,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		LPSTR lpCmdLine, int nCmdShow)
 {
 	MSG msg;
-	int time, oldtime, newtime;
+	long long oldtime, newtime;
 
 	/* Previous instances do not exist in Win32 */
 	if (hPrevInstance)
@@ -708,7 +785,23 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	/* Make the current instance global */
 	global_hInstance = hInstance;
 
-	/* Redirect stdout and stderr into a file */
+	/* Setup FPU if necessary */
+	Sys_SetupFPU();
+
+	/* Force DPI awareness */
+	Sys_SetHighDPIMode();
+
+	/* Parse the command line arguments */
+	ParseCommandLine(lpCmdLine);
+
+	/* Are we portable? */
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "-portable") == 0) {
+			is_portable = true;
+		}
+	}
+
+	/* Need to redirect stdout before anything happens. */
 #ifndef DEDICATED_ONLY
 	Sys_RedirectStdout();
 #endif
@@ -748,17 +841,15 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	printf("Platform: %s\n", YQ2OSTYPE);
 	printf("Architecture: %s\n", YQ2ARCH);
 
+
 	/* Seed PRNG */
 	randk_seed();
-
-	/* Parse the command line arguments */
-	ParseCommandLine(lpCmdLine);
 
 	/* Call the initialization code */
 	Qcommon_Init(argc, argv);
 
 	/* Save our time */
-	oldtime = Sys_Milliseconds();
+	oldtime = Sys_Microseconds();
 
 	/* The legendary main loop */
 	while (1)
@@ -781,14 +872,11 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 			DispatchMessage(&msg);
 		}
 
-		do
-		{
-			newtime = Sys_Milliseconds();
-			time = newtime - oldtime;
-		}
-		while (time < 1);
+		// Throttle the game a little bit
+		Sys_Nanosleep(5000);
 
-		Qcommon_Frame(time);
+		newtime = Sys_Microseconds();
+		Qcommon_Frame(newtime - oldtime);
 		oldtime = newtime;
 	}
 

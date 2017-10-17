@@ -30,13 +30,13 @@
 #define SHADEDOT_QUANT 16
 
 float r_avertexnormals[NUMVERTEXNORMALS][3] = {
-#include "constants/anorms.h"
+#include "../constants/anorms.h"
 };
 
 /* precalculated dot products for quantized angles */
-float r_avertexnormal_dots[SHADEDOT_QUANT][256] =
-#include "constants/anormtab.h"
-;
+float r_avertexnormal_dots[SHADEDOT_QUANT][256] = {
+#include "../constants/anormtab.h"
+};
 
 typedef float vec4_t[4];
 static vec4_t s_lerped[MAX_VERTS];
@@ -345,14 +345,14 @@ R_CullAliasModel(vec3_t bbox[8], entity_t *e)
 
 	if ((e->frame >= paliashdr->num_frames) || (e->frame < 0))
 	{
-		VID_Printf(PRINT_DEVELOPER, "R_CullAliasModel %s: no such frame %d\n",
+		R_Printf(PRINT_DEVELOPER, "R_CullAliasModel %s: no such frame %d\n",
 				currentmodel->name, e->frame);
 		e->frame = 0;
 	}
 
 	if ((e->oldframe >= paliashdr->num_frames) || (e->oldframe < 0))
 	{
-		VID_Printf(PRINT_DEVELOPER, "R_CullAliasModel %s: no such oldframe %d\n",
+		R_Printf(PRINT_DEVELOPER, "R_CullAliasModel %s: no such oldframe %d\n",
 				currentmodel->name, e->oldframe);
 		e->oldframe = 0;
 	}
@@ -727,7 +727,7 @@ R_DrawAliasModel(entity_t *e)
 	if ((currententity->frame >= paliashdr->num_frames) ||
 		(currententity->frame < 0))
 	{
-		VID_Printf(PRINT_DEVELOPER, "R_DrawAliasModel %s: no such frame %d\n",
+		R_Printf(PRINT_DEVELOPER, "R_DrawAliasModel %s: no such frame %d\n",
 				currentmodel->name, currententity->frame);
 		currententity->frame = 0;
 		currententity->oldframe = 0;
@@ -736,7 +736,7 @@ R_DrawAliasModel(entity_t *e)
 	if ((currententity->oldframe >= paliashdr->num_frames) ||
 		(currententity->oldframe < 0))
 	{
-		VID_Printf(PRINT_DEVELOPER, "R_DrawAliasModel %s: no such oldframe %d\n",
+		R_Printf(PRINT_DEVELOPER, "R_DrawAliasModel %s: no such oldframe %d\n",
 				currentmodel->name, currententity->oldframe);
 		currententity->frame = 0;
 		currententity->oldframe = 0;
@@ -753,6 +753,24 @@ R_DrawAliasModel(entity_t *e)
 	glShadeModel(GL_FLAT);
 
 	glPopMatrix();
+
+	if (gl_showbbox->value)
+	{
+		glDisable(GL_CULL_FACE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glDisable(GL_TEXTURE_2D);
+		glBegin(GL_TRIANGLE_STRIP);
+
+		for (i = 0; i < 8; i++)
+		{
+			glVertex3fv(bbox[i]);
+		}
+
+		glEnd();
+		glEnable(GL_TEXTURE_2D);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_CULL_FACE);
+	}
 
 	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
 	{

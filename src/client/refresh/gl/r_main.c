@@ -103,12 +103,15 @@ cvar_t *gl_customheight;
 
 cvar_t *gl_retexturing;
 
+cvar_t *gl_nolerp_list;
+
 cvar_t *gl_dynamic;
 cvar_t *gl_modulate;
 cvar_t *gl_nobind;
 cvar_t *gl_round_down;
 cvar_t *gl_picmip;
 cvar_t *gl_showtris;
+cvar_t *gl_showbbox;
 cvar_t *gl_ztrick;
 cvar_t *gl_zfix;
 cvar_t *gl_finish;
@@ -132,6 +135,9 @@ cvar_t *gl_stereo;
 cvar_t *gl_stereo_separation;
 cvar_t *gl_stereo_anaglyph_colors;
 cvar_t *gl_stereo_convergence;
+
+
+refimport_t ri;
 
 /*
  * Returns true if the box is completely outside the frustom
@@ -171,7 +177,7 @@ void
 R_DrawSpriteModel(entity_t *e)
 {
 	float alpha = 1.0F;
-    vec3_t point[4];
+	vec3_t point[4];
 	dsprframe_t *frame;
 	float *up, *right;
 	dsprite_t *psprite;
@@ -355,7 +361,7 @@ R_DrawEntitiesOnList(void)
 					R_DrawSpriteModel(currententity);
 					break;
 				default:
-					VID_Error(ERR_DROP, "Bad modeltype");
+					ri.Sys_Error(ERR_DROP, "Bad modeltype");
 					break;
 			}
 		}
@@ -401,7 +407,7 @@ R_DrawEntitiesOnList(void)
 					R_DrawSpriteModel(currententity);
 					break;
 				default:
-					VID_Error(ERR_DROP, "Bad modeltype");
+					ri.Sys_Error(ERR_DROP, "Bad modeltype");
 					break;
 			}
 		}
@@ -527,7 +533,8 @@ R_DrawParticles(void)
 		glEnable(GL_BLEND);
 		glDisable(GL_TEXTURE_2D);
 
-		glPointSize(LittleFloat(gl_particle_size->value));
+		// assume the particle size looks good with window height 480px and scale according to real resolution
+		glPointSize(gl_particle_size->value * (float)r_newrefdef.height/480.0f);
 
 		for ( i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++ )
 		{
@@ -1064,7 +1071,7 @@ R_RenderView(refdef_t *fd)
 
 	if (!r_worldmodel && !(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
-		VID_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
+		ri.Sys_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
 	}
 
 	if (gl_speeds->value)
@@ -1102,12 +1109,14 @@ R_RenderView(refdef_t *fd)
 
 	if (gl_speeds->value)
 	{
-		VID_Printf(PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
+		R_Printf(PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
 				c_brush_polys, c_alias_polys, c_visible_textures,
 				c_visible_lightmaps);
 	}
 
 	switch (gl_state.stereo_mode) {
+		case STEREO_MODE_NONE:
+			break;
 		case STEREO_MODE_ANAGLYPH:
 			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 			break;
@@ -1121,7 +1130,8 @@ R_RenderView(refdef_t *fd)
 	}
 }
 
-enum opengl_special_buffer_modes GL_GetSpecialBufferModeForStereoMode(enum stereo_modes stereo_mode) {
+enum opengl_special_buffer_modes
+GL_GetSpecialBufferModeForStereoMode(enum stereo_modes stereo_mode) {
 	switch (stereo_mode) {
 		case STEREO_MODE_NONE:
 		case STEREO_SPLIT_HORIZONTAL:
@@ -1178,7 +1188,7 @@ R_SetLightLevel(void)
 }
 
 void
-R_RenderFrame(refdef_t *fd)
+RI_RenderFrame(refdef_t *fd)
 {
 	R_RenderView(fd);
 	R_SetLightLevel();
@@ -1188,86 +1198,115 @@ R_RenderFrame(refdef_t *fd)
 void
 R_Register(void)
 {
-	gl_lefthand = Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
-	gl_farsee = Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
-	gl_norefresh = Cvar_Get("gl_norefresh", "0", 0);
-	gl_fullbright = Cvar_Get("gl_fullbright", "0", 0);
-	gl_drawentities = Cvar_Get("gl_drawentities", "1", 0);
-	gl_drawworld = Cvar_Get("gl_drawworld", "1", 0);
-	gl_novis = Cvar_Get("gl_novis", "0", 0);
-	gl_lerpmodels = Cvar_Get("gl_lerpmodels", "1", 0);
-	gl_speeds = Cvar_Get("gl_speeds", "0", 0);
+	gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+	gl_farsee = ri.Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
+	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
+	gl_fullbright = ri.Cvar_Get("gl_fullbright", "0", 0);
+	gl_drawentities = ri.Cvar_Get("gl_drawentities", "1", 0);
+	gl_drawworld = ri.Cvar_Get("gl_drawworld", "1", 0);
+	gl_novis = ri.Cvar_Get("gl_novis", "0", 0);
+	gl_lerpmodels = ri.Cvar_Get("gl_lerpmodels", "1", 0);
+	gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
 
-	gl_lightlevel = Cvar_Get("gl_lightlevel", "0", 0);
-	gl_overbrightbits = Cvar_Get("gl_overbrightbits", "0", CVAR_ARCHIVE);
+	gl_lightlevel = ri.Cvar_Get("gl_lightlevel", "0", 0);
+	gl_overbrightbits = ri.Cvar_Get("gl_overbrightbits", "0", CVAR_ARCHIVE);
 
-	gl_particle_min_size = Cvar_Get("gl_particle_min_size", "2", CVAR_ARCHIVE);
-	gl_particle_max_size = Cvar_Get("gl_particle_max_size", "40", CVAR_ARCHIVE);
-	gl_particle_size = Cvar_Get("gl_particle_size", "40", CVAR_ARCHIVE);
-	gl_particle_att_a = Cvar_Get("gl_particle_att_a", "0.01", CVAR_ARCHIVE);
-	gl_particle_att_b = Cvar_Get("gl_particle_att_b", "0.0", CVAR_ARCHIVE);
-	gl_particle_att_c = Cvar_Get("gl_particle_att_c", "0.01", CVAR_ARCHIVE);
+	gl_particle_min_size = ri.Cvar_Get("gl_particle_min_size", "2", CVAR_ARCHIVE);
+	gl_particle_max_size = ri.Cvar_Get("gl_particle_max_size", "40", CVAR_ARCHIVE);
+	gl_particle_size = ri.Cvar_Get("gl_particle_size", "40", CVAR_ARCHIVE);
+	gl_particle_att_a = ri.Cvar_Get("gl_particle_att_a", "0.01", CVAR_ARCHIVE);
+	gl_particle_att_b = ri.Cvar_Get("gl_particle_att_b", "0.0", CVAR_ARCHIVE);
+	gl_particle_att_c = ri.Cvar_Get("gl_particle_att_c", "0.01", CVAR_ARCHIVE);
 
-	gl_modulate = Cvar_Get("gl_modulate", "1", CVAR_ARCHIVE);
-	gl_mode = Cvar_Get("gl_mode", "4", CVAR_ARCHIVE);
-	gl_lightmap = Cvar_Get("gl_lightmap", "0", 0);
-	gl_shadows = Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
-	gl_stencilshadow = Cvar_Get("gl_stencilshadow", "0", CVAR_ARCHIVE);
-	gl_dynamic = Cvar_Get("gl_dynamic", "1", 0);
-	gl_nobind = Cvar_Get("gl_nobind", "0", 0);
-	gl_round_down = Cvar_Get("gl_round_down", "1", 0);
-	gl_picmip = Cvar_Get("gl_picmip", "0", 0);
-	gl_showtris = Cvar_Get("gl_showtris", "0", 0);
-	gl_ztrick = Cvar_Get("gl_ztrick", "0", 0);
-	gl_zfix = Cvar_Get("gl_zfix", "0", 0);
-	gl_finish = Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
-	gl_clear = Cvar_Get("gl_clear", "0", 0);
-	gl_cull = Cvar_Get("gl_cull", "1", 0);
-	gl_polyblend = Cvar_Get("gl_polyblend", "1", 0);
-	gl_flashblend = Cvar_Get("gl_flashblend", "0", 0);
+	gl_modulate = ri.Cvar_Get("gl_modulate", "1", CVAR_ARCHIVE);
+	gl_mode = ri.Cvar_Get("gl_mode", "4", CVAR_ARCHIVE);
+	gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
+	gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
+	gl_stencilshadow = ri.Cvar_Get("gl_stencilshadow", "0", CVAR_ARCHIVE);
+	gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);
+	gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
+	gl_round_down = ri.Cvar_Get("gl_round_down", "1", 0);
+	gl_picmip = ri.Cvar_Get("gl_picmip", "0", 0);
+	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
+	gl_showbbox = ri.Cvar_Get("gl_showbbox", "0", 0);
+	gl_ztrick = ri.Cvar_Get("gl_ztrick", "0", 0);
+	gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
+	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
+	gl_clear = ri.Cvar_Get("gl_clear", "0", 0);
+	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
+	gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", 0);
+	gl_flashblend = ri.Cvar_Get("gl_flashblend", "0", 0);
 
-	gl_texturemode = Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
-	gl_texturealphamode = Cvar_Get("gl_texturealphamode", "default", CVAR_ARCHIVE);
-	gl_texturesolidmode = Cvar_Get("gl_texturesolidmode", "default", CVAR_ARCHIVE);
-	gl_anisotropic = Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
-	gl_lockpvs = Cvar_Get("gl_lockpvs", "0", 0);
+	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
+	gl_texturealphamode = ri.Cvar_Get("gl_texturealphamode", "default", CVAR_ARCHIVE);
+	gl_texturesolidmode = ri.Cvar_Get("gl_texturesolidmode", "default", CVAR_ARCHIVE);
+	gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
+	gl_lockpvs = ri.Cvar_Get("gl_lockpvs", "0", 0);
 
-	gl_palettedtexture = Cvar_Get("gl_palettedtexture", "0", CVAR_ARCHIVE);
-	gl_pointparameters = Cvar_Get("gl_pointparameters", "1", CVAR_ARCHIVE);
+	gl_palettedtexture = ri.Cvar_Get("gl_palettedtexture", "0", CVAR_ARCHIVE);
+	gl_pointparameters = ri.Cvar_Get("gl_pointparameters", "1", CVAR_ARCHIVE);
 
-	gl_drawbuffer = Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
-	gl_swapinterval = Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
+	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
+	gl_swapinterval = ri.Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
 
-	gl_saturatelighting = Cvar_Get("gl_saturatelighting", "0", 0);
+	gl_saturatelighting = ri.Cvar_Get("gl_saturatelighting", "0", 0);
 
-	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
-	vid_gamma = Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
+	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+	vid_gamma = ri.Cvar_Get("vid_gamma", "1.2", CVAR_ARCHIVE);
 
-	gl_customwidth = Cvar_Get("gl_customwidth", "1024", CVAR_ARCHIVE);
-	gl_customheight = Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
-	gl_msaa_samples = Cvar_Get ( "gl_msaa_samples", "0", CVAR_ARCHIVE );
+	gl_customwidth = ri.Cvar_Get("gl_customwidth", "1024", CVAR_ARCHIVE);
+	gl_customheight = ri.Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
+	gl_msaa_samples = ri.Cvar_Get ( "gl_msaa_samples", "0", CVAR_ARCHIVE );
 
-	gl_retexturing = Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
+	gl_retexturing = ri.Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
 
+	/* don't bilerp characters and crosshairs */
+	gl_nolerp_list = ri.Cvar_Get("gl_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
 
-	gl_stereo = Cvar_Get( "gl_stereo", "0", CVAR_ARCHIVE );
-	gl_stereo_separation = Cvar_Get( "gl_stereo_separation", "-0.4", CVAR_ARCHIVE );
-	gl_stereo_anaglyph_colors = Cvar_Get( "gl_stereo_anaglyph_colors", "rc", CVAR_ARCHIVE );
-	gl_stereo_convergence = Cvar_Get( "gl_stereo_convergence", "1", CVAR_ARCHIVE );
+	gl_stereo = ri.Cvar_Get( "gl_stereo", "0", CVAR_ARCHIVE );
+	gl_stereo_separation = ri.Cvar_Get( "gl_stereo_separation", "-0.4", CVAR_ARCHIVE );
+	gl_stereo_anaglyph_colors = ri.Cvar_Get( "gl_stereo_anaglyph_colors", "rc", CVAR_ARCHIVE );
+	gl_stereo_convergence = ri.Cvar_Get( "gl_stereo_convergence", "1", CVAR_ARCHIVE );
 
-	Cmd_AddCommand("imagelist", R_ImageList_f);
-	Cmd_AddCommand("screenshot", R_ScreenShot);
-	Cmd_AddCommand("modellist", Mod_Modellist_f);
-	Cmd_AddCommand("gl_strings", R_Strings);
+	ri.Cmd_AddCommand("imagelist", R_ImageList_f);
+	ri.Cmd_AddCommand("screenshot", R_ScreenShot);
+	ri.Cmd_AddCommand("modellist", Mod_Modellist_f);
+	ri.Cmd_AddCommand("gl_strings", R_Strings);
+}
+
+/*
+ * Changes the video mode
+ */
+static int
+SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
+{
+	R_Printf(PRINT_ALL, "setting mode %d:", mode);
+
+	/* mode -1 is not in the vid mode table - so we keep the values in pwidth
+	   and pheight and don't even try to look up the mode info */
+	if ((mode != -1) && !ri.Vid_GetModeInfo(pwidth, pheight, mode))
+	{
+		R_Printf(PRINT_ALL, " invalid mode\n");
+		return rserr_invalid_mode;
+	}
+
+	R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
+
+	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
+	{
+		return rserr_invalid_mode;
+	}
+
+	return rserr_ok;
 }
 
 qboolean
 R_SetMode(void)
 {
 	rserr_t err;
-	qboolean fullscreen;
+	int fullscreen;
 
-	fullscreen = vid_fullscreen->value;
+	fullscreen = (int)vid_fullscreen->value;
 
 	vid_fullscreen->modified = false;
 	gl_mode->modified = false;
@@ -1277,7 +1316,7 @@ R_SetMode(void)
 	vid.width = gl_customwidth->value;
 	vid.height = gl_customheight->value;
 
-	if ((err = GLimp_SetMode(&vid.width, &vid.height, gl_mode->value,
+	if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value,
 					 fullscreen)) == rserr_ok)
 	{
 		if (gl_mode->value == -1)
@@ -1293,26 +1332,32 @@ R_SetMode(void)
 	{
 		if (err == rserr_invalid_fullscreen)
 		{
-			Cvar_SetValue("vid_fullscreen", 0);
+			ri.Cvar_SetValue("vid_fullscreen", 0);
 			vid_fullscreen->modified = false;
-			VID_Printf(PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
+			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
 
-			if ((err = GLimp_SetMode(&vid.width, &vid.height, gl_mode->value, false)) == rserr_ok)
+			if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value, 0)) == rserr_ok)
 			{
 				return true;
 			}
 		}
 		else if (err == rserr_invalid_mode)
 		{
-			Cvar_SetValue("gl_mode", gl_state.prev_mode);
+			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
+			if(gl_mode->value == gl_state.prev_mode)
+			{
+				// trying again would result in a crash anyway, give up already
+				// (this would happen if your initing fails at all and your resolution already was 640x480)
+				return false;
+			}
+			ri.Cvar_SetValue("gl_mode", gl_state.prev_mode);
 			gl_mode->modified = false;
-			VID_Printf(PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
 		}
 
 		/* try setting it back to something safe */
-		if ((err = GLimp_SetMode(&vid.width, &vid.height, gl_state.prev_mode, false)) != rserr_ok)
+		if ((err = SetMode_impl(&vid.width, &vid.height, gl_state.prev_mode, 0)) != rserr_ok)
 		{
-			VID_Printf(PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
+			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
 			return false;
 		}
 	}
@@ -1320,8 +1365,8 @@ R_SetMode(void)
 	return true;
 }
 
-int
-R_Init(void *hinstance, void *hWnd)
+qboolean
+RI_Init()
 {
 	int j;
 	extern float r_turbsin[256];
@@ -1333,18 +1378,19 @@ R_Init(void *hinstance, void *hWnd)
 		r_turbsin[j] *= 0.5;
 	}
 
-	/* Options */
-	VID_Printf(PRINT_ALL, "Refresher build options:\n");
+	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
+	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
 
-	VID_Printf(PRINT_ALL, " + Retexturing support\n");
+	/* Options */
+	R_Printf(PRINT_ALL, "Refresher build options:\n");
+
+	R_Printf(PRINT_ALL, " + Retexturing support\n");
 
 #ifdef X11GAMMA
-	VID_Printf(PRINT_ALL, " + Gamma via X11\n");
+	R_Printf(PRINT_ALL, " + Gamma via X11\n\n");
 #else
-	VID_Printf(PRINT_ALL, " - Gamma via X11\n");
+	R_Printf(PRINT_ALL, " - Gamma via X11\n\n");
 #endif
-
-	VID_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
 
 	Draw_GetPalette();
 
@@ -1354,10 +1400,10 @@ R_Init(void *hinstance, void *hWnd)
 	QGL_Init();
 
 	/* initialize OS-specific parts of OpenGL */
-	if (!GLimp_Init())
+	if (!ri.GLimp_Init())
 	{
 		QGL_Shutdown();
-		return -1;
+		return false;
 	}
 
 	/* set our "safe" mode */
@@ -1368,28 +1414,28 @@ R_Init(void *hinstance, void *hWnd)
 	if (!R_SetMode())
 	{
 		QGL_Shutdown();
-		VID_Printf(PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n");
-		return -1;
+		R_Printf(PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n");
+		return false;
 	}
 
-	VID_MenuInit();
+	ri.Vid_MenuInit();
 
 	// --------
 
 	/* get our various GL strings */
-	VID_Printf(PRINT_ALL, "\nOpenGL setting:\n", gl_config.vendor_string);
+	R_Printf(PRINT_ALL, "\nOpenGL setting:\n");
 
 	gl_config.vendor_string = (char *)glGetString(GL_VENDOR);
-	VID_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string);
+	R_Printf(PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string);
 
 	gl_config.renderer_string = (char *)glGetString(GL_RENDERER);
-	VID_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string);
+	R_Printf(PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string);
 
 	gl_config.version_string = (char *)glGetString(GL_VERSION);
-	VID_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string);
+	R_Printf(PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string);
 
 	gl_config.extensions_string = (char *)glGetString(GL_EXTENSIONS);
-	VID_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
+	R_Printf(PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string);
 
 	sscanf(gl_config.version_string, "%d.%d", &gl_config.major_version, &gl_config.minor_version);
 
@@ -1398,18 +1444,18 @@ R_Init(void *hinstance, void *hWnd)
 		if (gl_config.minor_version < 4)
 		{
 			QGL_Shutdown();
-			VID_Printf(PRINT_ALL, "Support for OpenGL 1.4 is not available\n");
+			R_Printf(PRINT_ALL, "Support for OpenGL 1.4 is not available\n");
 
-			return -1;
+			return false;
 		}
 	}
 
-	VID_Printf(PRINT_ALL, "\n\nProbing for OpenGL extensions:\n");
+	R_Printf(PRINT_ALL, "\n\nProbing for OpenGL extensions:\n");
 
 	// ----
 
 	/* Point parameters */
-	VID_Printf(PRINT_ALL, " - Point parameters: ");
+	R_Printf(PRINT_ALL, " - Point parameters: ");
 
 	if (strstr(gl_config.extensions_string, "GL_ARB_point_parameters"))
 	{
@@ -1424,22 +1470,22 @@ R_Init(void *hinstance, void *hWnd)
 		if (qglPointParameterfARB && qglPointParameterfvARB)
 		{
 			gl_config.pointparameters = true;
-			VID_Printf(PRINT_ALL, "Okay\n");
+			R_Printf(PRINT_ALL, "Okay\n");
 		}
 		else
 		{
-			VID_Printf(PRINT_ALL, "Failed\n");
+			R_Printf(PRINT_ALL, "Failed\n");
 		}
 	}
 	else
 	{
-		VID_Printf(PRINT_ALL, "Disabled\n");
+		R_Printf(PRINT_ALL, "Disabled\n");
 	}
 
 	// ----
 
 	/* Paletted texture */
-	VID_Printf(PRINT_ALL, " - Paletted texture: ");
+	R_Printf(PRINT_ALL, " - Paletted texture: ");
 
 	if (strstr(gl_config.extensions_string, "GL_EXT_paletted_texture") &&
 		strstr(gl_config.extensions_string, "GL_EXT_shared_texture_palette"))
@@ -1455,52 +1501,52 @@ R_Init(void *hinstance, void *hWnd)
 		if (qglColorTableEXT)
 		{
 			gl_config.palettedtexture = true;
-			VID_Printf(PRINT_ALL, "Okay\n");
+			R_Printf(PRINT_ALL, "Okay\n");
 		}
 		else
 		{
-			VID_Printf(PRINT_ALL, "Failed\n");
+			R_Printf(PRINT_ALL, "Failed\n");
 		}
 	}
 	else
 	{
-		VID_Printf(PRINT_ALL, "Disabled\n");
+		R_Printf(PRINT_ALL, "Disabled\n");
 	}
 
 	// --------
 
 	/* Anisotropic */
-	VID_Printf(PRINT_ALL, " - Anisotropic: ");
+	R_Printf(PRINT_ALL, " - Anisotropic: ");
 
 	if (strstr(gl_config.extensions_string, "GL_EXT_texture_filter_anisotropic"))
 	{
 		gl_config.anisotropic = true;
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gl_config.max_anisotropy);
 
-		VID_Printf(PRINT_ALL, "%ux\n", (int)gl_config.max_anisotropy);
+		R_Printf(PRINT_ALL, "%ux\n", (int)gl_config.max_anisotropy);
 	}
 	else
 	{
 		gl_config.anisotropic = false;
 		gl_config.max_anisotropy = 0.0;
 
-		VID_Printf(PRINT_ALL, "Failed\n");
+		R_Printf(PRINT_ALL, "Failed\n");
 	}
 
 	// ----
 
 	/* Non power of two textures */
-	VID_Printf(PRINT_ALL, " - Non power of two textures: ");
+	R_Printf(PRINT_ALL, " - Non power of two textures: ");
 
 	if (strstr(gl_config.extensions_string, "GL_ARB_texture_non_power_of_two"))
 	{
 		gl_config.npottextures = true;
-		VID_Printf(PRINT_ALL, "Okay\n");
+		R_Printf(PRINT_ALL, "Okay\n");
 	}
 	else
 	{
 		gl_config.npottextures = false;
-		VID_Printf(PRINT_ALL, "Failed\n");
+		R_Printf(PRINT_ALL, "Failed\n");
 	}
 
 	// ----
@@ -1516,28 +1562,29 @@ R_Init(void *hinstance, void *hWnd)
 }
 
 void
-R_Shutdown(void)
+RI_Shutdown(void)
 {
-	Cmd_RemoveCommand("modellist");
-	Cmd_RemoveCommand("screenshot");
-	Cmd_RemoveCommand("imagelist");
-	Cmd_RemoveCommand("gl_strings");
+	ri.Cmd_RemoveCommand("modellist");
+	ri.Cmd_RemoveCommand("screenshot");
+	ri.Cmd_RemoveCommand("imagelist");
+	ri.Cmd_RemoveCommand("gl_strings");
 
 	Mod_FreeAll();
 
 	R_ShutdownImages();
 
 	/* shutdown OS specific OpenGL stuff like contexts, etc.  */
-	GLimp_Shutdown();
+	RI_ShutdownWindow(false);
 
 	/* shutdown our QGL subsystem */
 	QGL_Shutdown();
 }
 
 extern void UpdateHardwareGamma();
+extern void RI_SetSwapInterval(void);
 
 void
-R_BeginFrame(float camera_separation)
+RI_BeginFrame(float camera_separation)
 {
 	gl_state.camera_separation = camera_separation;
 
@@ -1555,9 +1602,9 @@ R_BeginFrame(float camera_separation)
 		}
 		else
 		{
-			VID_Printf(PRINT_ALL, "stereo supermode changed, restarting video!\n");
+			R_Printf(PRINT_ALL, "stereo supermode changed, restarting video!\n");
 			cvar_t	*ref;
-			ref = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+			ref = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 			ref->modified = true;
 		}
 	}
@@ -1577,17 +1624,19 @@ R_BeginFrame(float camera_separation)
 	{
 		if (gl_overbrightbits->value > 2 && gl_overbrightbits->value < 4)
 		{
-			Cvar_Set("gl_overbrightbits", "2");
+			ri.Cvar_Set("gl_overbrightbits", "2");
 		}
 		else if (gl_overbrightbits->value > 4)
 		{
-			Cvar_Set("gl_overbrightbits", "4");
+			ri.Cvar_Set("gl_overbrightbits", "4");
 		}
 
 		gl_overbrightbits->modified = false;
 	}
 
 	/* go into 2D mode */
+
+	// FIXME: just call R_SetGL2D();
 
 	int x, w, y, h;
 	qboolean drawing_left_eye = gl_state.camera_separation < 0;
@@ -1659,12 +1708,18 @@ R_BeginFrame(float camera_separation)
 		gl_texturesolidmode->modified = false;
 	}
 
+	if (gl_swapinterval->modified)
+	{
+		gl_swapinterval->modified = false;
+		RI_SetSwapInterval();
+	}
+
 	/* clear screen if desired */
 	R_Clear();
 }
 
 void
-R_SetPalette(const unsigned char *palette)
+RI_SetPalette(const unsigned char *palette)
 {
 	int i;
 
@@ -1788,3 +1843,107 @@ R_DrawBeam(entity_t *e)
 	glDepthMask(GL_TRUE);
 }
 
+extern int RI_PrepareForWindow(void);
+extern int RI_InitContext(void* win);
+
+extern void RI_BeginRegistration(char *model);
+extern struct model_s * RI_RegisterModel(char *name);
+extern struct image_s * RI_RegisterSkin(char *name);
+
+extern void RI_SetSky(char *name, float rotate, vec3_t axis);
+extern void RI_EndRegistration(void);
+
+extern void RI_RenderFrame(refdef_t *fd);
+
+extern image_t * RDraw_FindPic(char *name);
+extern void RDraw_GetPicSize(int *w, int *h, char *pic);
+extern void RDraw_PicScaled(int x, int y, char *pic, float factor);
+extern void RDraw_StretchPic(int x, int y, int w, int h, char *pic);
+extern void RDraw_CharScaled(int x, int y, int num, float scale);
+extern void RDraw_TileClear(int x, int y, int w, int h, char *pic);
+extern void RDraw_Fill(int x, int y, int w, int h, int c);
+extern void RDraw_FadeScreen(void);
+extern void RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
+
+extern void RI_SetPalette(const unsigned char *palette);
+extern qboolean RI_IsVSyncActive(void);
+extern void RI_EndFrame(void);
+
+Q2_DLL_EXPORTED refexport_t
+GetRefAPI(refimport_t imp)
+{
+	refexport_t re = {0};
+
+	ri = imp;
+
+	re.api_version = API_VERSION;
+
+	re.Init = RI_Init;
+	re.Shutdown = RI_Shutdown;
+	re.PrepareForWindow = RI_PrepareForWindow;
+	re.InitContext = RI_InitContext;
+	re.ShutdownWindow = RI_ShutdownWindow;
+	re.IsVSyncActive = RI_IsVSyncActive;
+	re.BeginRegistration = RI_BeginRegistration;
+	re.RegisterModel = RI_RegisterModel;
+	re.RegisterSkin = RI_RegisterSkin;
+
+	re.SetSky = RI_SetSky;
+	re.EndRegistration = RI_EndRegistration;
+
+	re.RenderFrame = RI_RenderFrame;
+
+	re.DrawFindPic = RDraw_FindPic;
+
+	re.DrawGetPicSize = RDraw_GetPicSize;
+	//re.DrawPic = Draw_Pic;
+	re.DrawPicScaled = RDraw_PicScaled;
+	re.DrawStretchPic = RDraw_StretchPic;
+	//re.DrawChar = Draw_Char;
+	re.DrawCharScaled = RDraw_CharScaled;
+	re.DrawTileClear = RDraw_TileClear;
+	re.DrawFill = RDraw_Fill;
+	re.DrawFadeScreen = RDraw_FadeScreen;
+
+	re.DrawStretchRaw = RDraw_StretchRaw;
+
+	re.SetPalette = RI_SetPalette;
+	re.BeginFrame = RI_BeginFrame;
+	re.EndFrame = RI_EndFrame;
+
+	return re;
+}
+
+void R_Printf(int level, const char* msg, ...)
+{
+	va_list argptr;
+	va_start(argptr, msg);
+	ri.Com_VPrintf(level, msg, argptr);
+	va_end(argptr);
+}
+
+/*
+ * this is only here so the functions in shared source files
+ * (shared.c, rand.c, flash.c, mem.c/hunk.c) can link
+ */
+void
+Sys_Error(char *error, ...)
+{
+	va_list argptr;
+	char text[4096]; // MAXPRINTMSG == 4096
+
+	va_start(argptr, error);
+	vsprintf(text, error, argptr);
+	va_end(argptr);
+
+	ri.Sys_Error(ERR_FATAL, "%s", text);
+}
+
+void
+Com_Printf(char *msg, ...)
+{
+	va_list argptr;
+	va_start(argptr, msg);
+	ri.Com_VPrintf(PRINT_ALL, msg, argptr);
+	va_end(argptr);
+}

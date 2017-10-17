@@ -93,8 +93,6 @@ S_RegisterSexedModel(entity_state_t *ent, char *base)
 	return md2;
 }
 
-extern int Developer_searchpath(int who);
-
 void
 CL_AddPacketEntities(frame_t *frame)
 {
@@ -107,6 +105,9 @@ CL_AddPacketEntities(frame_t *frame)
 	int autoanim;
 	clientinfo_t *ci;
 	unsigned int effects, renderfx;
+
+	/* To distinguish baseq2, xatrix and rogue. */
+	cvar_t *game = Cvar_Get("game",  "", CVAR_LATCH | CVAR_SERVERINFO);
 
 	/* bonus items rotate at a fixed rate */
 	autorotate = anglemod(cl.time * 0.1f);
@@ -377,7 +378,7 @@ CL_AddPacketEntities(frame_t *frame)
 			   something special */
 			if (renderfx & RF_SHELL_HALF_DAM)
 			{
-				if (Developer_searchpath(2) == 2)
+				if (strcmp(game->string, "rogue") == 0)
 				{
 					/* ditch the half damage shell if any of red, blue, or double are on */
 					if (renderfx & (RF_SHELL_RED | RF_SHELL_BLUE | RF_SHELL_DOUBLE))
@@ -389,7 +390,7 @@ CL_AddPacketEntities(frame_t *frame)
 
 			if (renderfx & RF_SHELL_DOUBLE)
 			{
-				if (Developer_searchpath(2) == 2)
+				if (strcmp(game->string, "rogue") == 0)
 				{
 					/* lose the yellow shell if we have a red, blue, or green shell */
 					if (renderfx & (RF_SHELL_RED | RF_SHELL_BLUE | RF_SHELL_GREEN))
@@ -915,3 +916,31 @@ CL_GetEntitySoundOrigin(int ent, vec3_t org)
 	VectorCopy(old->lerp_origin, org);
 }
 
+/*
+ * Called to get the sound spatialization
+ */
+void
+CL_GetEntitySoundVelocity(int ent, vec3_t vel)
+{
+	centity_t *old;
+
+	if ((ent < 0) || (ent >= MAX_EDICTS))
+	{
+		Com_Error(ERR_DROP, "CL_GetEntitySoundVelocity: bad ent");
+	}
+
+	old = &cl_entities[ent];
+
+	VectorSubtract(old->current.origin, old->prev.origin, vel);
+}
+
+void
+CL_GetViewVelocity(vec3_t vel)
+{
+	// restore value from 12.3 fixed point
+	const float scale_factor = 1.0f / 8.0f;
+
+	vel[0] = (float)cl.frame.playerstate.pmove.velocity[0] * scale_factor;
+	vel[1] = (float)cl.frame.playerstate.pmove.velocity[1] * scale_factor;
+	vel[2] = (float)cl.frame.playerstate.pmove.velocity[2] * scale_factor;
+}

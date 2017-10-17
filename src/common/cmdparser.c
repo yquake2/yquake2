@@ -849,7 +849,7 @@ Cmd_CompleteCommand(char *partial)
 		/* Sort it */
 		qsort(pmatch, i, sizeof(pmatch[0]), qsort_strcomp);
 
-		Com_Printf("\n\n", partial);
+		Com_Printf("\n\n");
 
 		for (o = 0; o < i; o++)
 		{

@@ -44,6 +44,7 @@
 #include <errno.h>
 #include <dlfcn.h>
 #include <dirent.h>
+#include <time.h>
 
 #include "../../common/header/common.h"
 #include "../../common/header/glob.h"
@@ -51,7 +52,6 @@
 #include "header/unix.h"
 
 unsigned sys_frame_time;
-int curtime;
 static void *game_library;
 
 static char findbase[MAX_OSPATH];
@@ -79,30 +79,36 @@ Sys_Init(void)
 {
 }
 
+long long
+Sys_Microseconds(void)
+{
+	static struct timespec last;
+	struct timespec now;
+
+	clock_gettime(CLOCK_MONOTONIC, &now);
+
+	if(last.tv_sec == 0)
+	{
+		clock_gettime(CLOCK_MONOTONIC, &last);
+		return last.tv_nsec / 1000ll;
+	}
+
+	long long sec = now.tv_sec - last.tv_sec;
+	long long nsec = now.tv_nsec - last.tv_nsec;
+
+	if(nsec < 0)
+	{
+		nsec += 1000000000ll; // 1s in ns
+		--sec;
+	}
+
+	return sec*1000000ll + nsec/1000ll;
+}
+
 int
 Sys_Milliseconds(void)
 {
-	struct timeval tp;
-	struct timezone tzp;
-	static int secbase;
-
-	gettimeofday(&tp, &tzp);
-
-	if (!secbase)
-	{
-		secbase = tp.tv_sec;
-		return tp.tv_usec / 1000;
-	}
-
-	curtime = (tp.tv_sec - secbase) * 1000 + tp.tv_usec / 1000;
-
-	return curtime;
-}
-
-void
-Sys_Sleep(int msec)
-{
-	usleep((unsigned int)1000 * msec);
+	return (int)(Sys_Microseconds()/1000ll);
 }
 
 void
@@ -550,3 +556,12 @@ Sys_FreeLibrary(void *handle)
 	}
 }
 
+/*
+ * Just a dummy. There's no need on unixoid systems to
+ * redirect stdout and stderr.
+ */
+void
+Sys_RedirectStdout(void)
+{
+	return;
+}

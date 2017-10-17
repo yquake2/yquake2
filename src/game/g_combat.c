@@ -146,7 +146,7 @@ Killed(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 			}
 
 			/* medics won't heal monsters that they kill themselves */
-			if (strcmp(attacker->classname, "monster_medic") == 0)
+			if (attacker && attacker->classname && strcmp(attacker->classname, "monster_medic") == 0)
 			{
 				targ->owner = attacker;
 			}

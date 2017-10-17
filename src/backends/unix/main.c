@@ -33,16 +33,34 @@
 #include "../../common/header/common.h"
 #include "header/unix.h"
 
+qboolean is_portable;
+
 int
 main(int argc, char **argv)
 {
-	int time, oldtime, newtime;
 	int verLen, i;
+	long long oldtime, newtime;
 	const char* versionString;
-	struct timespec t;
+
+	// Time slept each frame.
+#ifndef DEDICATED_ONLY
+	struct timespec t = {0, 5000};
+#else
+	struct timespec t = {0, 850000};
+#endif
 
 	/* register signal handler */
 	registerHandler();
+
+	/* Setup FPU if necessary */
+	Sys_SetupFPU();
+
+	/* Are we portable? */
+	for (i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "-portable") == 0) {
+			is_portable = true;
+		}
+	}
 
 	/* Prevent running Quake II as root. Only very mad
 	   minded or stupid people even think about it. :) */
@@ -122,25 +140,16 @@ main(int argc, char **argv)
 	/* Do not delay reads on stdin*/
 	fcntl(fileno(stdin), F_SETFL, fcntl(fileno(stdin), F_GETFL, NULL) | FNDELAY);
 
-	oldtime = Sys_Milliseconds();
-	t.tv_sec = 0;
+	oldtime = Sys_Microseconds();
 
-	/* The legendary Quake II mainloop */
+	/* The mainloop. The legend. */
 	while (1)
 	{
-		/* find time spent rendering last frame */
-		do
-		{
-			/* Sleep 10 microseconds */
-			t.tv_nsec = 10000;
-			nanosleep(&t, NULL);
+		// Throttle the game a little bit.
+		nanosleep(&t, NULL);
 
-			newtime = Sys_Milliseconds();
-			time = newtime - oldtime;
-		}
-		while (time < 1);
-
-		Qcommon_Frame(time);
+		newtime = Sys_Microseconds();
+		Qcommon_Frame(newtime - oldtime);
 		oldtime = newtime;
 	}
 

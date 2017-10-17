@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 1997-2001 Id Software, Inc.
+ * Copyright (C) 2016-2017 Daniel Gibson
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,37 +20,27 @@
  *
  * =======================================================================
  *
- * Model loading and caching. Includes the .bsp file format
+ * Model loading and caching for OpenGL3. Includes the .bsp file format
  *
  * =======================================================================
  */
 
 #include "header/local.h"
 
-#define MAX_MOD_KNOWN 512
+enum { MAX_MOD_KNOWN = 512 };
 
-model_t *loadmodel;
-int modfilelen;
-byte mod_novis[MAX_MAP_LEAFS / 8];
-model_t mod_known[MAX_MOD_KNOWN];
-int mod_numknown;
+static gl3model_t *loadmodel;
+static byte mod_novis[MAX_MAP_LEAFS / 8];
+gl3model_t mod_known[MAX_MOD_KNOWN];
+static int mod_numknown;
 int registration_sequence;
-byte *mod_base;
-
-void LoadSP2(model_t *mod, void *buffer);
-void Mod_LoadBrushModel(model_t *mod, void *buffer);
-void LoadMD2(model_t *mod, void *buffer);
-model_t *Mod_LoadModel(model_t *mod, qboolean crash);
-void LM_BuildPolygonFromSurface(msurface_t *fa);
-void LM_CreateSurfaceLightmap(msurface_t *surf);
-void LM_EndBuildingLightmaps(void);
-void LM_BeginBuildingLightmaps(model_t *m);
+static byte *mod_base;
 
 /* the inline * models from the current map are kept seperate */
-model_t mod_inline[MAX_MOD_KNOWN];
+gl3model_t mod_inline[MAX_MOD_KNOWN];
 
 mleaf_t *
-Mod_PointInLeaf(vec3_t p, model_t *model)
+GL3_Mod_PointInLeaf(vec3_t p, gl3model_t *model)
 {
 	mnode_t *node;
 	float d;
@@ -57,7 +48,7 @@ Mod_PointInLeaf(vec3_t p, model_t *model)
 
 	if (!model || !model->nodes)
 	{
-		VID_Error(ERR_DROP, "Mod_PointInLeaf: bad model");
+		ri.Sys_Error(ERR_DROP, "Mod_PointInLeaf: bad model");
 	}
 
 	node = model->nodes;
@@ -85,8 +76,8 @@ Mod_PointInLeaf(vec3_t p, model_t *model)
 	return NULL; /* never reached */
 }
 
-byte *
-Mod_DecompressVis(byte *in, model_t *model)
+static byte *
+Mod_DecompressVis(byte *in, gl3model_t *model)
 {
 	static byte decompressed[MAX_MAP_LEAFS / 8];
 	int c;
@@ -130,8 +121,8 @@ Mod_DecompressVis(byte *in, model_t *model)
 	return decompressed;
 }
 
-byte *
-Mod_ClusterPVS(int cluster, model_t *model)
+byte*
+GL3_Mod_ClusterPVS(int cluster, gl3model_t *model)
 {
 	if ((cluster == -1) || !model->vis)
 	{
@@ -144,14 +135,14 @@ Mod_ClusterPVS(int cluster, model_t *model)
 }
 
 void
-Mod_Modellist_f(void)
+GL3_Mod_Modellist_f(void)
 {
 	int i;
-	model_t *mod;
+	gl3model_t *mod;
 	int total;
 
 	total = 0;
-	VID_Printf(PRINT_ALL, "Loaded models:\n");
+	R_Printf(PRINT_ALL, "Loaded models:\n");
 
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 	{
@@ -160,131 +151,20 @@ Mod_Modellist_f(void)
 			continue;
 		}
 
-		VID_Printf(PRINT_ALL, "%8i : %s\n", mod->extradatasize, mod->name);
+		R_Printf(PRINT_ALL, "%8i : %s\n", mod->extradatasize, mod->name);
 		total += mod->extradatasize;
 	}
 
-	VID_Printf(PRINT_ALL, "Total resident: %i\n", total);
+	R_Printf(PRINT_ALL, "Total resident: %i\n", total);
 }
 
 void
-Mod_Init(void)
+GL3_Mod_Init(void)
 {
 	memset(mod_novis, 0xff, sizeof(mod_novis));
 }
 
-/*
- * Loads in a model for the given name
- */
-model_t *
-Mod_ForName(char *name, qboolean crash)
-{
-	model_t *mod;
-	unsigned *buf;
-	int i;
-
-	if (!name[0])
-	{
-		VID_Error(ERR_DROP, "Mod_ForName: NULL name");
-	}
-
-	/* inline models are grabbed only from worldmodel */
-	if (name[0] == '*')
-	{
-		i = (int)strtol(name + 1, (char **)NULL, 10);
-
-		if ((i < 1) || !r_worldmodel || (i >= r_worldmodel->numsubmodels))
-		{
-			VID_Error(ERR_DROP, "bad inline model number");
-		}
-
-		return &mod_inline[i];
-	}
-
-	/* search the currently loaded models */
-	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
-	{
-		if (!mod->name[0])
-		{
-			continue;
-		}
-
-		if (!strcmp(mod->name, name))
-		{
-			return mod;
-		}
-	}
-
-	/* find a free model slot spot */
-	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
-	{
-		if (!mod->name[0])
-		{
-			break; /* free spot */
-		}
-	}
-
-	if (i == mod_numknown)
-	{
-		if (mod_numknown == MAX_MOD_KNOWN)
-		{
-			VID_Error(ERR_DROP, "mod_numknown == MAX_MOD_KNOWN");
-		}
-
-		mod_numknown++;
-	}
-
-	strcpy(mod->name, name);
-
-	/* load the file */
-	modfilelen = FS_LoadFile(mod->name, (void **)&buf);
-
-	if (!buf)
-	{
-		if (crash)
-		{
-			VID_Error(ERR_DROP, "Mod_NumForName: %s not found", mod->name);
-		}
-
-		memset(mod->name, 0, sizeof(mod->name));
-		return NULL;
-	}
-
-	loadmodel = mod;
-
-	/* call the apropriate loader */
-	switch (LittleLong(*(unsigned *)buf))
-	{
-		case IDALIASHEADER:
-			loadmodel->extradata = Hunk_Begin(0x200000);
-			LoadMD2(mod, buf);
-			break;
-
-		case IDSPRITEHEADER:
-			loadmodel->extradata = Hunk_Begin(0x10000);
-			LoadSP2(mod, buf);
-			break;
-
-		case IDBSPHEADER:
-			loadmodel->extradata = Hunk_Begin(0x1000000);
-			Mod_LoadBrushModel(mod, buf);
-			break;
-
-		default:
-			VID_Error(ERR_DROP,
-				"Mod_NumForName: unknown fileid for %s",
-				mod->name);
-			break;
-	}
-
-	loadmodel->extradatasize = Hunk_End();
-
-	FS_FreeFile(buf);
-
-	return mod;
-}
-
-void
+static void
 Mod_LoadLighting(lump_t *l)
 {
 	if (!l->filelen)
@@ -297,7 +177,7 @@ Mod_LoadLighting(lump_t *l)
 	memcpy(loadmodel->lightdata, mod_base + l->fileofs, l->filelen);
 }
 
-void
+static void
 Mod_LoadVisibility(lump_t *l)
 {
 	int i;
@@ -320,7 +200,7 @@ Mod_LoadVisibility(lump_t *l)
 	}
 }
 
-void
+static void
 Mod_LoadVertexes(lump_t *l)
 {
 	dvertex_t *in;
@@ -331,7 +211,7 @@ Mod_LoadVertexes(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		VID_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
+		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
 				loadmodel->name);
 	}
 
@@ -349,7 +229,7 @@ Mod_LoadVertexes(lump_t *l)
 	}
 }
 
-float
+static float
 Mod_RadiusFromBounds(vec3_t mins, vec3_t maxs)
 {
 	int i;
@@ -363,7 +243,7 @@ Mod_RadiusFromBounds(vec3_t mins, vec3_t maxs)
 	return VectorLength(corner);
 }
 
-void
+static void
 Mod_LoadSubmodels(lump_t *l)
 {
 	dmodel_t *in;
@@ -374,7 +254,7 @@ Mod_LoadSubmodels(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		VID_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
+		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
 				loadmodel->name);
 	}
 
@@ -401,7 +281,7 @@ Mod_LoadSubmodels(lump_t *l)
 	}
 }
 
-void
+static void
 Mod_LoadEdges(lump_t *l)
 {
 	dedge_t *in;
@@ -412,7 +292,7 @@ Mod_LoadEdges(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		VID_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
+		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
 				loadmodel->name);
 	}
 
@@ -429,7 +309,7 @@ Mod_LoadEdges(lump_t *l)
 	}
 }
 
-void
+static void
 Mod_LoadTexinfo(lump_t *l)
 {
 	texinfo_t *in;
@@ -442,7 +322,7 @@ Mod_LoadTexinfo(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		VID_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
+		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
 				loadmodel->name);
 	}
 
@@ -474,12 +354,12 @@ Mod_LoadTexinfo(lump_t *l)
 
 		Com_sprintf(name, sizeof(name), "textures/%s.wal", in->texture);
 
-		out->image = R_FindImage(name, it_wall);
+		out->image = GL3_FindImage(name, it_wall);
 
 		if (!out->image)
 		{
-			VID_Printf(PRINT_ALL, "Couldn't load %s\n", name);
-			out->image = r_notexture;
+			R_Printf(PRINT_ALL, "Couldn't load %s\n", name);
+			out->image = gl3_notexture;
 		}
 	}
 
@@ -499,7 +379,7 @@ Mod_LoadTexinfo(lump_t *l)
 /*
  * Fills in s->texturemins[] and s->extents[]
  */
-void
+static void
 Mod_CalcSurfaceExtents(msurface_t *s)
 {
 	float mins[2], maxs[2], val;
@@ -555,7 +435,10 @@ Mod_CalcSurfaceExtents(msurface_t *s)
 	}
 }
 
-void
+extern void
+GL3_SubdivideSurface(msurface_t *fa, gl3model_t* loadmodel);
+
+static void
 Mod_LoadFaces(lump_t *l)
 {
 	dface_t *in;
@@ -568,7 +451,7 @@ Mod_LoadFaces(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		VID_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
+		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
 				loadmodel->name);
 	}
 
@@ -580,7 +463,7 @@ Mod_LoadFaces(lump_t *l)
 
 	currentmodel = loadmodel;
 
-	LM_BeginBuildingLightmaps(loadmodel);
+	GL3_LM_BeginBuildingLightmaps(loadmodel);
 
 	for (surfnum = 0; surfnum < count; surfnum++, in++, out++)
 	{
@@ -603,7 +486,7 @@ Mod_LoadFaces(lump_t *l)
 
 		if ((ti < 0) || (ti >= loadmodel->numtexinfo))
 		{
-			VID_Error(ERR_DROP, "MOD_LoadBmodel: bad texinfo number");
+			ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: bad texinfo number");
 		}
 
 		out->texinfo = loadmodel->texinfo + ti;
@@ -611,7 +494,7 @@ Mod_LoadFaces(lump_t *l)
 		Mod_CalcSurfaceExtents(out);
 
 		/* lighting info */
-		for (i = 0; i < MAXLIGHTMAPS; i++)
+		for (i = 0; i < MAX_LIGHTMAPS_PER_SURFACE; i++)
 		{
 			out->styles[i] = in->styles[i];
 		}
@@ -638,26 +521,25 @@ Mod_LoadFaces(lump_t *l)
 				out->texturemins[i] = -8192;
 			}
 
-			R_SubdivideSurface(out); /* cut up polygon for warps */
+			GL3_SubdivideSurface(out, loadmodel); /* cut up polygon for warps */
 		}
 
 		/* create lightmaps and polygons */
-		if (!(out->texinfo->flags &
-			  (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
+		if (!(out->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
 		{
-			LM_CreateSurfaceLightmap(out);
+			GL3_LM_CreateSurfaceLightmap(out);
 		}
 
 		if (!(out->texinfo->flags & SURF_WARP))
 		{
-			LM_BuildPolygonFromSurface(out);
+			GL3_LM_BuildPolygonFromSurface(out);
 		}
 	}
 
-	LM_EndBuildingLightmaps();
+	GL3_LM_EndBuildingLightmaps();
 }
 
-void
+static void
 Mod_SetParent(mnode_t *node, mnode_t *parent)
 {
 	node->parent = parent;
@@ -671,7 +553,7 @@ Mod_SetParent(mnode_t *node, mnode_t *parent)
 	Mod_SetParent(node->children[1], node);
 }
 
-void
+static void
 Mod_LoadNodes(lump_t *l)
 {
 	int i, j, count, p;
@@ -682,7 +564,7 @@ Mod_LoadNodes(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		VID_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
+		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
 				loadmodel->name);
 	}
 
@@ -725,7 +607,7 @@ Mod_LoadNodes(lump_t *l)
 	Mod_SetParent(loadmodel->nodes, NULL); /* sets nodes and leafs */
 }
 
-void
+static void
 Mod_LoadLeafs(lump_t *l)
 {
 	dleaf_t *in;
@@ -736,7 +618,7 @@ Mod_LoadLeafs(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		VID_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
+		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
 				loadmodel->name);
 	}
 
@@ -766,7 +648,7 @@ Mod_LoadLeafs(lump_t *l)
 	}
 }
 
-void
+static void
 Mod_LoadMarksurfaces(lump_t *l)
 {
 	int i, j, count;
@@ -777,7 +659,7 @@ Mod_LoadMarksurfaces(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		VID_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
+		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
 				loadmodel->name);
 	}
 
@@ -793,14 +675,14 @@ Mod_LoadMarksurfaces(lump_t *l)
 
 		if ((j < 0) || (j >= loadmodel->numsurfaces))
 		{
-			VID_Error(ERR_DROP, "Mod_ParseMarksurfaces: bad surface number");
+			ri.Sys_Error(ERR_DROP, "Mod_ParseMarksurfaces: bad surface number");
 		}
 
 		out[i] = loadmodel->surfaces + j;
 	}
 }
 
-void
+static void
 Mod_LoadSurfedges(lump_t *l)
 {
 	int i, count;
@@ -810,7 +692,7 @@ Mod_LoadSurfedges(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		VID_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
+		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
 				loadmodel->name);
 	}
 
@@ -818,7 +700,7 @@ Mod_LoadSurfedges(lump_t *l)
 
 	if ((count < 1) || (count >= MAX_MAP_SURFEDGES))
 	{
-		VID_Error(ERR_DROP, "MOD_LoadBmodel: bad surfedges count in %s: %i",
+		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: bad surfedges count in %s: %i",
 				loadmodel->name, count);
 	}
 
@@ -833,7 +715,7 @@ Mod_LoadSurfedges(lump_t *l)
 	}
 }
 
-void
+static void
 Mod_LoadPlanes(lump_t *l)
 {
 	int i, j;
@@ -846,7 +728,7 @@ Mod_LoadPlanes(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		VID_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
+		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",
 				loadmodel->name);
 	}
 
@@ -876,8 +758,8 @@ Mod_LoadPlanes(lump_t *l)
 	}
 }
 
-void
-Mod_LoadBrushModel(model_t *mod, void *buffer)
+static void
+Mod_LoadBrushModel(gl3model_t *mod, void *buffer)
 {
 	int i;
 	dheader_t *header;
@@ -887,7 +769,7 @@ Mod_LoadBrushModel(model_t *mod, void *buffer)
 
 	if (loadmodel != mod_known)
 	{
-		VID_Error(ERR_DROP, "Loaded a brush model after the world");
+		ri.Sys_Error(ERR_DROP, "Loaded a brush model after the world");
 	}
 
 	header = (dheader_t *)buffer;
@@ -896,7 +778,7 @@ Mod_LoadBrushModel(model_t *mod, void *buffer)
 
 	if (i != BSPVERSION)
 	{
-		VID_Error(ERR_DROP, "Mod_LoadBrushModel: %s has wrong version number (%i should be %i)",
+		ri.Sys_Error(ERR_DROP, "Mod_LoadBrushModel: %s has wrong version number (%i should be %i)",
 				mod->name, i, BSPVERSION);
 	}
 
@@ -926,7 +808,7 @@ Mod_LoadBrushModel(model_t *mod, void *buffer)
 	/* set up the submodels */
 	for (i = 0; i < mod->numsubmodels; i++)
 	{
-		model_t *starmod;
+		gl3model_t *starmod;
 
 		bm = &mod->submodels[i];
 		starmod = &mod_inline[i];
@@ -939,7 +821,7 @@ Mod_LoadBrushModel(model_t *mod, void *buffer)
 
 		if (starmod->firstnode >= loadmodel->numnodes)
 		{
-			VID_Error(ERR_DROP, "Inline model %i has bad firstnode", i);
+			ri.Sys_Error(ERR_DROP, "Inline model %i has bad firstnode", i);
 		}
 
 		VectorCopy(bm->maxs, starmod->maxs);
@@ -955,15 +837,15 @@ Mod_LoadBrushModel(model_t *mod, void *buffer)
 	}
 }
 
-void
-Mod_Free(model_t *mod)
+static void
+Mod_Free(gl3model_t *mod)
 {
 	Hunk_Free(mod->extradata);
 	memset(mod, 0, sizeof(*mod));
 }
 
 void
-Mod_FreeAll(void)
+GL3_Mod_FreeAll(void)
 {
 	int i;
 
@@ -976,39 +858,155 @@ Mod_FreeAll(void)
 	}
 }
 
+extern void GL3_LoadMD2(gl3model_t *mod, void *buffer);
+extern void GL3_LoadSP2(gl3model_t *mod, void *buffer, int modfilelen);
+
+/*
+ * Loads in a model for the given name
+ */
+static gl3model_t *
+Mod_ForName(char *name, qboolean crash)
+{
+	gl3model_t *mod;
+	unsigned *buf;
+	int i;
+
+	if (!name[0])
+	{
+		ri.Sys_Error(ERR_DROP, "Mod_ForName: NULL name");
+	}
+
+	/* inline models are grabbed only from worldmodel */
+	if (name[0] == '*')
+	{
+		i = (int)strtol(name + 1, (char **)NULL, 10);
+
+		if ((i < 1) || !gl3_worldmodel || (i >= gl3_worldmodel->numsubmodels))
+		{
+			ri.Sys_Error(ERR_DROP, "bad inline model number");
+		}
+
+		return &mod_inline[i];
+	}
+
+	/* search the currently loaded models */
+	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
+	{
+		if (!mod->name[0])
+		{
+			continue;
+		}
+
+		if (!strcmp(mod->name, name))
+		{
+			return mod;
+		}
+	}
+
+	/* find a free model slot spot */
+	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
+	{
+		if (!mod->name[0])
+		{
+			break; /* free spot */
+		}
+	}
+
+	if (i == mod_numknown)
+	{
+		if (mod_numknown == MAX_MOD_KNOWN)
+		{
+			ri.Sys_Error(ERR_DROP, "mod_numknown == MAX_MOD_KNOWN");
+		}
+
+		mod_numknown++;
+	}
+
+	strcpy(mod->name, name);
+
+	/* load the file */
+	int modfilelen = ri.FS_LoadFile(mod->name, (void **)&buf);
+
+	if (!buf)
+	{
+		if (crash)
+		{
+			ri.Sys_Error(ERR_DROP, "Mod_NumForName: %s not found", mod->name);
+		}
+
+		memset(mod->name, 0, sizeof(mod->name));
+		return NULL;
+	}
+
+	loadmodel = mod;
+
+	/* call the apropriate loader */
+	switch (LittleLong(*(unsigned *)buf))
+	{
+		case IDALIASHEADER:
+			loadmodel->extradata = Hunk_Begin(0x200000);
+			GL3_LoadMD2(mod, buf);
+			break;
+
+		case IDSPRITEHEADER:
+			loadmodel->extradata = Hunk_Begin(0x10000);
+			GL3_LoadSP2(mod, buf, modfilelen);
+			break;
+
+		case IDBSPHEADER:
+			loadmodel->extradata = Hunk_Begin(0x1000000);
+			Mod_LoadBrushModel(mod, buf);
+			break;
+
+		default:
+			ri.Sys_Error(ERR_DROP,
+				"Mod_NumForName: unknown fileid for %s",
+				mod->name);
+			break;
+	}
+
+	loadmodel->extradatasize = Hunk_End();
+
+	ri.FS_FreeFile(buf);
+
+	return mod;
+}
+
 /*
  * Specifies the model that will be used as the world
  */
 void
-R_BeginRegistration(char *model)
+GL3_BeginRegistration(char *model)
 {
 	char fullname[MAX_QPATH];
 	cvar_t *flushmap;
 
 	registration_sequence++;
-	r_oldviewcluster = -1; /* force markleafs */
+	gl3_oldviewcluster = -1; /* force markleafs */
+
+	gl3state.currentlightmap = -1;
 
 	Com_sprintf(fullname, sizeof(fullname), "maps/%s.bsp", model);
 
 	/* explicitly free the old map if different
 	   this guarantees that mod_known[0] is the
 	   world map */
-	flushmap = Cvar_Get("flushmap", "0", 0);
+	flushmap = ri.Cvar_Get("flushmap", "0", 0);
 
 	if (strcmp(mod_known[0].name, fullname) || flushmap->value)
 	{
 		Mod_Free(&mod_known[0]);
 	}
 
-	r_worldmodel = Mod_ForName(fullname, true);
+	gl3_worldmodel = Mod_ForName(fullname, true);
 
-	r_viewcluster = -1;
+	gl3_viewcluster = -1;
 }
 
 struct model_s *
-R_RegisterModel(char *name)
+GL3_RegisterModel(char *name)
 {
-	model_t *mod;
+	gl3model_t *mod;
 	int i;
 	dsprite_t *sprout;
 	dmdl_t *pheader;
@@ -1026,7 +1024,7 @@ R_RegisterModel(char *name)
 
 			for (i = 0; i < sprout->numframes; i++)
 			{
-				mod->skins[i] = R_FindImage(sprout->frames[i].name, it_sprite);
+				mod->skins[i] = GL3_FindImage(sprout->frames[i].name, it_sprite);
 			}
 		}
 		else if (mod->type == mod_alias)
@@ -1035,8 +1033,7 @@ R_RegisterModel(char *name)
 
 			for (i = 0; i < pheader->num_skins; i++)
 			{
-				mod->skins[i] = R_FindImage((char *)pheader + pheader->ofs_skins +
-					   	i * MAX_SKINNAME, it_skin);
+				mod->skins[i] = GL3_FindImage((char *)pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
 			}
 
 			mod->numframes = pheader->num_frames;
@@ -1045,8 +1042,7 @@ R_RegisterModel(char *name)
 		{
 			for (i = 0; i < mod->numtexinfo; i++)
 			{
-				mod->texinfo[i].image->registration_sequence =
-					registration_sequence;
+				mod->texinfo[i].image->registration_sequence = registration_sequence;
 			}
 		}
 	}
@@ -1055,10 +1051,10 @@ R_RegisterModel(char *name)
 }
 
 void
-R_EndRegistration(void)
+GL3_EndRegistration(void)
 {
 	int i;
-	model_t *mod;
+	gl3model_t *mod;
 
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 	{
@@ -1074,6 +1070,5 @@ R_EndRegistration(void)
 		}
 	}
 
-	R_FreeUnusedImages();
+	GL3_FreeUnusedImages();
 }
-

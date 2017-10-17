@@ -25,6 +25,7 @@
  */
 
 #include <assert.h>
+
 #include "header/local.h"
 
 int c_visible_lightmaps;
@@ -382,7 +383,7 @@ R_BlendLightmaps(void)
 				/* try uploading the block now */
 				if (!LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
 				{
-					VID_Error(ERR_FATAL,
+					ri.Sys_Error(ERR_FATAL,
 							"Consecutive calls to LM_AllocBlock(%d,%d) failed (dynamic)\n",
 							smax, tmax);
 				}
@@ -441,7 +442,7 @@ R_RenderBrushPoly(msurface_t *fa)
 		R_Bind(image->texnum);
 
 		/* This is a hack ontop of a hack. Warping surfaces like those generated
-		   by R_EmitWaterPolys() don't have a lightmap. Original Quake II therefor
+		   by R_EmitWaterPolys() don't have a lightmap. Original Quake II therefore
 		   negated the global intensity on those surfaces, because otherwise they
 		   would show up much too bright. When we implemented overbright bits this
 		   hack modified the global GL state in an incompatible way. So implement
@@ -514,7 +515,8 @@ R_RenderBrushPoly(msurface_t *fa)
 
 	if (is_dynamic)
 	{
-		if (((fa->styles[maps] >= 32) ||
+		if (maps < MAXLIGHTMAPS &&
+			((fa->styles[maps] >= 32) ||
 			 (fa->styles[maps] == 0)) &&
 			  (fa->dlightframe != r_framecount))
 		{

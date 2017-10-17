@@ -25,6 +25,7 @@
  */
 
 #include "header/client.h"
+#include "sound/header/local.h"
 #include <time.h>
 
 console_t con;
@@ -35,12 +36,6 @@ extern int edit_line;
 extern int key_linepos;
 
 void
-DrawString(int x, int y, char *s)
-{
-	DrawStringScaled(x, y, s, 1.0f);
-}
-
-void
 DrawStringScaled(int x, int y, char *s, float factor)
 {
 	while (*s)
@@ -49,12 +44,6 @@ DrawStringScaled(int x, int y, char *s, float factor)
 		x += 8*factor;
 		s++;
 	}
-}
-
-void
-DrawAltString(int x, int y, char *s)
-{
-	DrawAltStringScaled(x, y, s, 1.0f);
 }
 
 void
@@ -95,6 +84,13 @@ Con_ToggleConsole_f(void)
 
 	Key_ClearTyping();
 	Con_ClearNotify();
+
+#ifdef USE_OPENAL
+	if (cl.cinematic_file)
+	{
+		AL_UnqueueRawSamples();
+	}
+#endif
 
 	if (cls.key_dest == key_console)
 	{
@@ -442,29 +438,6 @@ Con_Print(char *txt)
 				break;
 		}
 	}
-}
-
-void
-Con_CenteredPrint(char *text)
-{
-	int l;
-	char buffer[1024];
-
-	l = strlen(text);
-	l = (con.linewidth - l) / 2;
-
-	if (l <= 0)
-	{
-		l = 0;
-	}
-	else
-	{
-		memset(buffer, ' ', l);
-	}
-
-	strcpy(buffer + l, text);
-	strcat(buffer, "\n");
-	Con_Print(buffer);
 }
 
 /*

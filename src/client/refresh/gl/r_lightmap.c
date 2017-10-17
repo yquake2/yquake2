@@ -81,7 +81,7 @@ LM_UploadBlock(qboolean dynamic)
 
 		if (++gl_lms.current_lightmap_texture == MAX_LIGHTMAPS)
 		{
-			VID_Error(ERR_DROP,
+			ri.Sys_Error(ERR_DROP,
 					"LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n");
 		}
 	}
@@ -227,7 +227,7 @@ LM_CreateSurfaceLightmap(msurface_t *surf)
 
 		if (!LM_AllocBlock(smax, tmax, &surf->light_s, &surf->light_t))
 		{
-			VID_Error(ERR_FATAL, "Consecutive calls to LM_AllocBlock(%d,%d) failed\n",
+			ri.Sys_Error(ERR_FATAL, "Consecutive calls to LM_AllocBlock(%d,%d) failed\n",
 					smax, tmax);
 		}
 	}

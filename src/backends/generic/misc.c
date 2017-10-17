@@ -19,13 +19,15 @@
  *
  * =======================================================================
  *
- * This file implements some generic funktions
+ * This file implements some generic functions.
  *
  * =======================================================================
  */
 
 #include <stdio.h>
 #include <string.h>
+
+#include "../../common/header/shared.h"
 
 #if defined(__linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 #include <unistd.h> // readlink(), amongst others
@@ -48,7 +50,6 @@
 // longer paths anyway.. this might not be the maximum allowed length, but is
 // hopefully good enough for realistic usecases
 #define PATH_MAX 4096
-#define _DG__DEFINED_PATH_MAX
 #endif
 
 static void SetExecutablePath(char* exePath)
@@ -64,11 +65,12 @@ static void SetExecutablePath(char* exePath)
 		exePath[0] = '\0';
 	}
 
-#elif defined(__linux) || defined(__NetBSD__) || defined(__OpenBSD__)
+#elif defined(__linux) || defined(__NetBSD__)
 
 	// all the platforms that have /proc/$pid/exe or similar that symlink the
 	// real executable - basiscally Linux and the BSDs except for FreeBSD which
-	// doesn't enable proc by default and has a sysctl() for this
+	// doesn't enable proc by default and has a sysctl() for this. OpenBSD once
+	// had /proc but removed it for security reasons.
 	char buf[PATH_MAX] = {0};
 #ifdef __linux
 	snprintf(buf, sizeof(buf), "/proc/%d/exe", getpid());
@@ -115,7 +117,13 @@ static void SetExecutablePath(char* exePath)
 
 #else
 
-#error "Unsupported Platform!" // feel free to add implementation for your platform and send me a patch
+	// Several platforms (for example OpenBSD) donn't provide a
+	// reliable way to determine the executable path. Just return
+	// an empty string.
+	exePath[0] = '\0';
+
+// feel free to add implementation for your platform and send a pull request.
+#warning "SetExecutablePath() is unimplemented on this platform"
 
 #endif
 }
@@ -124,18 +132,48 @@ const char *Sys_GetBinaryDir(void)
 {
 	static char exeDir[PATH_MAX] = {0};
 
-	if(exeDir[0] != '\0') return exeDir;
+	if(exeDir[0] != '\0') {
+		return exeDir;
+	}
 
 	SetExecutablePath(exeDir);
 
-	// cut off executable name
-	char* lastSlash = strrchr(exeDir, '/');
+	if (exeDir[0] == '\0') {
+		Com_Printf("Couldn't determine executable path. Using ./ instead.\n");
+		Q_strlcpy(exeDir, "./", sizeof(exeDir));
+	} else {
+		// cut off executable name
+		char *lastSlash = strrchr(exeDir, '/');
 #ifdef _WIN32
-	char* lastBackSlash = strrchr(exeDir, '\\');
-	if(lastSlash == NULL || lastBackSlash > lastSlash) lastSlash = lastBackSlash;
+		char* lastBackSlash = strrchr(exeDir, '\\');
+		if(lastSlash == NULL || lastBackSlash > lastSlash) lastSlash = lastBackSlash;
 #endif // _WIN32
 
-	if(lastSlash != NULL) lastSlash[1] = '\0'; // cut off after last (back)slash
+		if (lastSlash != NULL) lastSlash[1] = '\0'; // cut off after last (back)slash
+	}
 
 	return exeDir;
 }
+
+#if defined (__GNUC__) && (__i386 || __x86_64__)
+void Sys_SetupFPU(void) {
+	// Get current x87 control word
+	volatile unsigned short old_cw = 0;
+	asm ("fstcw %0" : : "m" (*&old_cw));
+	unsigned short new_cw = old_cw;
+
+	// The precision is set through bit 8 and 9. For
+	// double precision bit 8 must unset and bit 9 set.
+	new_cw &= ~(1 << 8);
+	new_cw |= (1 << 9);
+
+	// Setting the control word is expensive since it
+	// resets the FPU state. Do it only if necessary.
+	if (new_cw != old_cw) {
+		asm ("fldcw %0" : : "m" (*&new_cw));
+	}
+}
+#else
+void Sys_SetupFPU(void) {
+}
+#endif

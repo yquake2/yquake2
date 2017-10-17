@@ -33,7 +33,7 @@
  * =======================================================================
  */
 
-#include "../../client/refresh/header/local.h"
+#include "header/local.h"
 
 /*
  * GL extensions
