@@ -42,7 +42,7 @@ WITH_OGG:=yes
 # To use it your system needs libopenal.so.1
 # or openal32.dll (we recommend openal-soft)
 # installed
-WITH_OPENAL:=no
+WITH_OPENAL:=yes
 
 # Enables optional runtime loading of OpenAL (dlopen or
 # similar). If set to "no", the library is linked in at
@@ -277,7 +277,7 @@ endif
 CFLAGS += -fvisibility=hidden
 LDFLAGS += -fvisibility=hidden
 
-ifneq ($(YQ2_OSTYPE), $(filter $(YQ2_OSTYPE), Darwin, OpenBSD))
+ifneq ($(YQ2_OSTYPE), $(filter $(YQ2_OSTYPE), Darwin OpenBSD))
 # for some reason the OSX & OpenBSD linker doesn't support this
 LDFLAGS += -Wl,--no-undefined
 endif
@@ -431,7 +431,7 @@ ifeq ($(YQ2_OSTYPE), Darwin)
 build/client/%.o : %.m
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) $(OSX_ARCH) $(SDLCFLAGS) $(INCLUDE) -x objective-c -c $< -o $@
+	${Q}$(CC) $(OSX_ARCH) -x objective-c -c $< -o $@
 endif
 
 release/quake2 : CFLAGS += -Wno-unused-result
