@@ -277,7 +277,7 @@ endif
 CFLAGS += -fvisibility=hidden
 LDFLAGS += -fvisibility=hidden
 
-ifneq ($(YQ2_OSTYPE), $(filter $(YQ2_OSTYPE), Darwin, OpenBSD))
+ifneq ($(YQ2_OSTYPE), $(filter $(YQ2_OSTYPE), Darwin OpenBSD))
 # for some reason the OSX & OpenBSD linker doesn't support this
 LDFLAGS += -Wl,--no-undefined
 endif
@@ -451,7 +451,7 @@ ifeq ($(YQ2_OSTYPE), OpenBSD)
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so"' -DDLOPEN_OPENAL
 else ifeq ($(YQ2_OSTYPE), Darwin)
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.dylib"' -I/usr/local/opt/openal-soft/include -DDLOPEN_OPENAL
-release/quake2 : LDFLAGS += -L/usr/local/opt/openal-soft/lib
+release/quake2 : LDFLAGS += -L/usr/local/opt/openal-soft/lib -rpath /usr/local/opt/openal-soft/lib
 else
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"' -DDLOPEN_OPENAL
 endif
@@ -460,7 +460,7 @@ release/quake2 : CFLAGS += -DUSE_OPENAL
 release/quake2 : LDFLAGS += -lopenal
 ifeq ($(YQ2_OSTYPE), Darwin)
 release/quake2 : CFLAGS += -I/usr/local/opt/openal-soft/include
-release/quake2 : LDFLAGS += -L/usr/local/opt/openal-soft/lib
+release/quake2 : LDFLAGS += -L/usr/local/opt/openal-soft/lib -rpath /usr/local/opt/openal-soft/lib
 endif # Darwin
 endif # !DLOPEN_OPENAL
 endif # WITH_OPENAL
