@@ -761,7 +761,10 @@ OGG_PauseCmd(void)
 	}
 
 #ifdef USE_OPENAL
-	AL_UnqueueRawSamples();
+	if (sound_started == SS_OAL)
+	{
+		AL_UnqueueRawSamples();
+	}
 #endif
 }
 
