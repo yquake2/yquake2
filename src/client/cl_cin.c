@@ -66,7 +66,7 @@ SCR_LoadPCX(char *filename, byte **pic, byte **palette, int *width, int *height)
 	byte *raw;
 	pcx_t *pcx;
 	int x, y;
-	int len;
+	int len, full_size;
 	int dataByte, runLength;
 	byte *out, *pix;
 
@@ -75,7 +75,7 @@ SCR_LoadPCX(char *filename, byte **pic, byte **palette, int *width, int *height)
 	/* load the file */
 	len = FS_LoadFile(filename, (void **)&raw);
 
-	if (!raw)
+	if (!raw || len < sizeof(pcx_t))
 	{
 		return;
 	}
@@ -95,7 +95,8 @@ SCR_LoadPCX(char *filename, byte **pic, byte **palette, int *width, int *height)
 		return;
 	}
 
-	out = Z_Malloc((pcx->ymax + 1) * (pcx->xmax + 1));
+	full_size = (pcx->ymax + 1) * (pcx->xmax + 1);
+	out = Z_Malloc(full_size);
 
 	*pic = out;
 
@@ -135,7 +136,15 @@ SCR_LoadPCX(char *filename, byte **pic, byte **palette, int *width, int *height)
 
 			while (runLength-- > 0)
 			{
-				pix[x++] = dataByte;
+				if ((*pic + full_size) <= (pix + x))
+				{
+					x += runLength;
+					runLength = 0;
+				}
+				else
+				{
+					pix[x++] = dataByte;
+				}
 			}
 		}
 	}
