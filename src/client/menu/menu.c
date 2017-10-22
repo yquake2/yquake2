@@ -165,7 +165,7 @@ M_PushMenu(void (*draw)(void), const char *(*key)(int))
     }
 
 #ifdef USE_OPENAL
-    if (cl.cinematic_file)
+    if (cl.cinematic_file && sound_started == SS_OAL)
     {
         AL_UnqueueRawSamples();
     }
