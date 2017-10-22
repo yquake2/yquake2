@@ -122,7 +122,9 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	byte *raw;
 	pcx_t *pcx;
 	int x, y;
-	int len;
+	int len, full_size;
+	int pcx_width, pcx_height;
+	qboolean image_issues = false;
 	int dataByte, runLength;
 	byte *out, *pix;
 	char filename[256];
@@ -145,7 +147,7 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	/* load the file */
 	len = ri.FS_LoadFile(filename, (void **)&raw);
 
-	if (!raw)
+	if (!raw || len < sizeof(pcx_t))
 	{
 		R_Printf(PRINT_DEVELOPER, "Bad pcx file %s\n", filename);
 		return;
@@ -165,15 +167,19 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 
 	raw = &pcx->data;
 
+	pcx_width = pcx->xmax - pcx->xmin;
+	pcx_height = pcx->ymax - pcx->ymin;
+
 	if ((pcx->manufacturer != 0x0a) || (pcx->version != 5) ||
 		(pcx->encoding != 1) || (pcx->bits_per_pixel != 8) ||
-		(pcx->xmax >= 640) || (pcx->ymax >= 480))
+		(pcx_width >= 4096) || (pcx_height >= 4096))
 	{
 		R_Printf(PRINT_ALL, "Bad pcx file %s\n", filename);
 		return;
 	}
 
-	out = malloc((pcx->ymax + 1) * (pcx->xmax + 1));
+	full_size = (pcx_height + 1) * (pcx_width + 1);
+	out = malloc(full_size);
 
 	*pic = out;
 
@@ -182,28 +188,49 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	if (palette)
 	{
 		*palette = malloc(768);
-		memcpy(*palette, (byte *)pcx + len - 768, 768);
+		if (len > 768)
+		{
+			memcpy(*palette, (byte *)pcx + len - 768, 768);
+		}
+		else
+		{
+			image_issues = true;
+		}
 	}
 
 	if (width)
 	{
-		*width = pcx->xmax + 1;
+		*width = pcx_width + 1;
 	}
 
 	if (height)
 	{
-		*height = pcx->ymax + 1;
+		*height = pcx_height + 1;
 	}
 
-	for (y = 0; y <= pcx->ymax; y++, pix += pcx->xmax + 1)
+	for (y = 0; y <= pcx_height; y++, pix += pcx_width + 1)
 	{
-		for (x = 0; x <= pcx->xmax; )
+		for (x = 0; x <= pcx_width; )
 		{
+			if (raw - (byte *)pcx > len)
+			{
+				// no place for read
+				image_issues = true;
+				x = pcx_width;
+				break;
+			}
 			dataByte = *raw++;
 
 			if ((dataByte & 0xC0) == 0xC0)
 			{
 				runLength = dataByte & 0x3F;
+				if (raw - (byte *)pcx > len)
+				{
+					// no place for read
+					image_issues = true;
+					x = pcx_width;
+					break;
+				}
 				dataByte = *raw++;
 			}
 			else
@@ -213,7 +240,17 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 
 			while (runLength-- > 0)
 			{
-				pix[x++] = dataByte;
+				if ((*pic + full_size) <= (pix + x))
+				{
+					// no place for write
+					image_issues = true;
+					x += runLength;
+					runLength = 0;
+				}
+				else
+				{
+					pix[x++] = dataByte;
+				}
 			}
 		}
 	}
@@ -224,13 +261,18 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 		free(*pic);
 		*pic = NULL;
 	}
-	else if(pcx->xmax == 319 && pcx->ymax == 239
+	else if(pcx_width == 319 && pcx_height == 239
 			&& Q_strcasecmp(origname, "pics/quit.pcx") == 0
 			&& Com_BlockChecksum(pcx, len) == 3329419434u)
 	{
 		// it's the quit screen, and the baseq2 one (identified by checksum)
 		// so fix it
 		fixQuitScreen(*pic);
+	}
+
+	if (image_issues)
+	{
+		R_Printf(PRINT_ALL, "PCX file %s has possible size issues.\n", filename);
 	}
 
 	ri.FS_FreeFile(pcx);

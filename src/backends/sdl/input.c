@@ -73,6 +73,7 @@ static qboolean mlooking;
 static int joystick_yaw, joystick_pitch;
 static int joystick_forwardmove, joystick_sidemove;
 static int joystick_up;
+static int back_button_id = -1;
 static char last_hat = SDL_HAT_CENTERED;
 static qboolean left_trigger = false;
 static qboolean right_trigger = false;
@@ -523,6 +524,15 @@ IN_Update(void)
 #endif
 				break;
 #if SDL_VERSION_ATLEAST(2, 0, 0)
+			case SDL_CONTROLLERBUTTONUP:
+			case SDL_CONTROLLERBUTTONDOWN: /* Handle Controller Back button */
+			{
+				qboolean down = (event.type == SDL_CONTROLLERBUTTONDOWN);
+				if(event.cbutton.button == SDL_CONTROLLER_BUTTON_BACK) {
+					Key_Event(K_JOY_BACK, down, true);
+				}
+			}
+				break;
 			case SDL_CONTROLLERAXISMOTION:  /* Handle Controller Motion */
 			{
 				char* direction_type;
@@ -635,6 +645,9 @@ IN_Update(void)
 			case SDL_JOYBUTTONDOWN:
 			{
 				qboolean down = (event.type == SDL_JOYBUTTONDOWN);
+				/* Ignore back button, we dont need event for such button */
+				if (back_button_id == event.jbutton.button)
+					return;
 				if(event.jbutton.button <= (K_JOY32 - K_JOY1)) {
 					Key_Event(event.jbutton.button + K_JOY1, down, true);
 				}
@@ -824,6 +837,11 @@ IN_MLookUp(void)
 }
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
+/*
+ * Shutdown haptic functionality
+ */
+static void IN_Haptic_Shutdown(void);
+
 /* ------------------------------------------------------------------ */
 /*
  * Init haptic effects
@@ -852,7 +870,9 @@ IN_Haptic_Effect_Init(int dir, int period, int magnitude, int length, int attack
 	effect_id = SDL_HapticNewEffect(joystick_haptic, &haptic_effect);
 	if (effect_id < 0)
 	{
-		Com_Printf ("SDL_HapticNewEffect failed: %s", SDL_GetError());
+		Com_Printf ("SDL_HapticNewEffect failed: %s\n", SDL_GetError());
+		Com_Printf ("Please try to rerun game. Effects will be disabled for now.\n");
+		IN_Haptic_Shutdown();
 	}
 	return effect_id;
 }
@@ -1006,7 +1026,7 @@ IN_Haptic_Effect_Shutdown(int * effect_id)
 }
 
 static void
-IN_Haptic_Effects_Shotdown(void)
+IN_Haptic_Effects_Shutdown(void)
 {
 	for (int i=0; i<HAPTIC_EFFECT_LAST; i++)
 	{
@@ -1030,7 +1050,7 @@ Haptic_Feedback(char *name)
 
 	if (last_haptic_volume != (int)(joy_haptic_magnitude->value * 255))
 	{
-		IN_Haptic_Effects_Shotdown();
+		IN_Haptic_Effects_Shutdown();
 		IN_Haptic_Effects_Init();
 	}
 	last_haptic_volume = joy_haptic_magnitude->value * 255;
@@ -1217,6 +1237,7 @@ IN_Init(void)
 
 					if(SDL_IsGameController(i))
 					{
+						SDL_GameControllerButtonBind backBind;
 						controller = SDL_GameControllerOpen(i);
 						Com_Printf ("Controller settings: %s\n", SDL_GameControllerMapping(controller));
 						Com_Printf ("Controller axis: \n");
@@ -1235,6 +1256,12 @@ IN_Init(void)
 						Com_Printf (" * triggerleft = %f\n", joy_axis_triggerleft_threshold->value);
 						Com_Printf (" * triggerright = %f\n", joy_axis_triggerright_threshold->value);
 
+						backBind = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_BACK);
+
+						if (backBind.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON) {
+							back_button_id = backBind.value.button;
+							Com_Printf ("\nBack button JOY%d will be unbindable.\n", back_button_id+1);
+						}
 						break;
 					}
 					else
@@ -1244,7 +1271,7 @@ IN_Init(void)
 						guid = SDL_JoystickGetDeviceGUID(i);
 						SDL_JoystickGetGUIDString(guid, joystick_guid, 255);
 						Com_Printf ("For use joystic as game contoller please set SDL_GAMECONTROLLERCONFIG:\n");
-						Com_Printf ("e.g.: SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,...\n", joystick_guid, SDL_JoystickName(joystick));
+						Com_Printf ("e.g.: SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,back:b1,...\n", joystick_guid, SDL_JoystickName(joystick));
 					}
 				}
 			}
@@ -1266,6 +1293,18 @@ IN_Init(void)
 /*
  * Shuts the backend down
  */
+static void
+IN_Haptic_Shutdown(void)
+{
+	if (joystick_haptic)
+	{
+		IN_Haptic_Effects_Shutdown();
+
+		SDL_HapticClose(joystick_haptic);
+		joystick_haptic = NULL;
+	}
+}
+
 void
 IN_Shutdown(void)
 {
@@ -1276,16 +1315,11 @@ IN_Shutdown(void)
 	Com_Printf("Shutting down input.\n");
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	if (joystick_haptic)
-	{
-		IN_Haptic_Effects_Shotdown();
-
-		SDL_HapticClose(joystick_haptic);
-		joystick_haptic = NULL;
-	}
+	IN_Haptic_Shutdown();
 
 	if (controller)
 	{
+		back_button_id = -1;
 		SDL_GameControllerClose(controller);
 		controller  = NULL;
 	}
