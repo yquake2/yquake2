@@ -119,7 +119,7 @@ vec3_t trace_extents;
 int		c_pointcontents;
 int		c_traces, c_brush_traces;
 #endif
- 
+
 /* 1/32 epsilon to keep floating point happy */
 #define DIST_EPSILON (0.03125f)
 
@@ -738,7 +738,7 @@ CM_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1,
 }
 
 void
-CM_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1, 
+CM_TestBoxInBrush(vec3_t mins, vec3_t maxs, vec3_t p1,
 		trace_t *trace, cbrush_t *brush)
 {
 	int i, j;
@@ -1186,7 +1186,7 @@ CMod_LoadSubmodels(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error(ERR_DROP, "Mod_LoadSubmodels: funny lump size");
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1230,7 +1230,7 @@ CMod_LoadSurfaces(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error(ERR_DROP, "Mod_LoadSurfaces: funny lump size");
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1269,7 +1269,7 @@ CMod_LoadNodes(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error(ERR_DROP, "Mod_LoadNodes: funny lump size");
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1311,7 +1311,7 @@ CMod_LoadBrushes(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error(ERR_DROP, "Mod_LoadBrushes: funny lump size");
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1345,7 +1345,7 @@ CMod_LoadLeafs(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error(ERR_DROP, "Mod_LoadLeafs: funny lump size");
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1415,7 +1415,7 @@ CMod_LoadPlanes(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error(ERR_DROP, "Mod_LoadPlanes: funny lump size");
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1466,7 +1466,7 @@ CMod_LoadLeafBrushes(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error(ERR_DROP, "Mod_LoadLeafBrushes: funny lump size");
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1504,7 +1504,7 @@ CMod_LoadBrushSides(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error(ERR_DROP, "Mod_LoadBrushSides: funny lump size");
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1545,7 +1545,7 @@ CMod_LoadAreas(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error(ERR_DROP, "Mod_LoadAreas: funny lump size");
 	}
 
 	count = l->filelen / sizeof(*in);
@@ -1578,7 +1578,7 @@ CMod_LoadAreaPortals(lump_t *l)
 
 	if (l->filelen % sizeof(*in))
 	{
-		Com_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size");
+		Com_Error(ERR_DROP, "Mod_LoadAreaPortals: funny lump size");
 	}
 
 	count = l->filelen / sizeof(*in);
