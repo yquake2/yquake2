@@ -636,18 +636,12 @@ OGG_Stream(void)
 			/* Calculate the number of buffers used
 			   for storing decoded OGG/Vorbis data.
 			   We take the number of active buffers
-			   at startup (at this point most of the
-			   samples should be precached and loaded
-			   into buffers) and add 64. Empircal
-			   testing showed, that at most times
-			   at least 52 buffers remain available
-			   for OGG/Vorbis, enough for about 3
-			   seconds playback. The music won't
-			   stutter as long as the framerate
-			   stayes over 1 FPS. */
-			if (ogg_numbufs == 0)
+			   and add 256. 256 are about 12 seconds
+			   worth of sound, more than enough to
+			   be resilent against underruns. */
+			if (ogg_numbufs == 0 || active_buffers < ogg_numbufs - 256)
 			{
-				ogg_numbufs = active_buffers + 64;
+				ogg_numbufs = active_buffers + 256;
 			}
 
 			/* active_buffers are all active OpenAL buffers,
