@@ -1290,6 +1290,7 @@ IN_Init(void)
 	Com_Printf("------------------------------------\n\n");
 }
 
+#if SDL_VERSION_ATLEAST(2, 0, 0)
 /*
  * Shuts the backend down
  */
@@ -1304,6 +1305,7 @@ IN_Haptic_Shutdown(void)
 		joystick_haptic = NULL;
 	}
 }
+#endif
 
 void
 IN_Shutdown(void)
