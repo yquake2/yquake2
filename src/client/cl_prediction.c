@@ -231,6 +231,7 @@ CL_PredictMovement(void)
 	pmove_t pm;
 	int i;
 	int step;
+	vec3_t tmp;
 
 	if (cls.state != ca_active)
 	{
@@ -296,9 +297,10 @@ CL_PredictMovement(void)
 	}
 
 	step = pm.s.origin[2] - (int)(cl.predicted_origin[2] * 8);
+	VectorCopy(tmp, pm.s.velocity);
 
 	if (((step > 126 && step < 130))
-		&& !VectorCompare((float *)pm.s.velocity, vec3_origin)
+		&& !VectorCompare(tmp, vec3_origin)
 		&& (pm.s.pm_flags & PMF_ON_GROUND))
 	{
 		cl.predicted_step = step * 0.125f;
