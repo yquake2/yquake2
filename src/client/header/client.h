@@ -249,6 +249,11 @@ typedef struct
 
 extern client_static_t	cls;
 
+/*Evil hack against too many power screen and power
+  shield impact sounds. For example if the player
+  fires his shotgun onto a Brain. */
+extern int num_power_sounds;
+
 /* cvars */
 extern	cvar_t	*gl_stereo_separation;
 extern	cvar_t	*gl_stereo_convergence;
