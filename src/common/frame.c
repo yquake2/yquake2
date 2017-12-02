@@ -293,6 +293,22 @@ Qcommon_Frame(int msec)
 		c_pointcontents = 0;
 	}
 
+	// gl_maxfps > 1000 breaks things, and so does <= 0
+	// so cap to 1000 and treat <= 0 as "as fast as possible", which is 1000
+	if (gl_maxfps->value > 1000 || gl_maxfps->value < 1)
+	{
+		Cvar_SetValue("gl_maxfps", 1000);
+	}
+
+	if(cl_maxfps->value > 250)
+	{
+		Cvar_SetValue("cl_maxfps", 130);
+	}
+	else if(cl_maxfps->value < 1)
+	{
+		Cvar_SetValue("cl_maxfps", 60);
+	}
+
 
 	// Save global time for network- und input code.
 	curtime = Sys_Milliseconds();
