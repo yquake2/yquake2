@@ -24,7 +24,9 @@
  * =======================================================================
  */
 
+#include <SDL2/SDL_scancode.h>
 #include "header/client.h"
+#include "sound/header/local.h"
 
 typedef enum
 {
@@ -716,7 +718,23 @@ CL_ParseTEnt(void)
 				CL_ParticleEffect(pos, dir, 0xb0, 40);
 			}
 
-			S_StartSound(pos, 0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
+			num_power_sounds++;
+
+			/* If too many of these sounds are started in one frame (for
+			 * example if the player shoots with the super shotgun into
+			 * the power screen of a Brain) things get too loud and OpenAL
+			 * is forced to scale the volume of several other sounds and
+			 * the background music down. That leads to a noticable and
+			 * annoying drop in the overall volume.
+			 *
+			 * Work around that by limiting the number of sounds started.
+			 * 16 was choosen by empirical testing.
+			 */
+			if (sound_started == SS_OAL && num_power_sounds < 16)
+			{
+				S_StartSound(pos, 0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
+			}
+
 			break;
 
 		case TE_SHOTGUN: /* bullet hitting wall */

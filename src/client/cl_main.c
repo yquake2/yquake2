@@ -92,6 +92,11 @@ centity_t cl_entities[MAX_EDICTS];
 
 entity_state_t cl_parse_entities[MAX_PARSE_ENTITIES];
 
+/*Evil hack against too many power screen and power
+  shield impact sounds. For example if the player
+  fires his shotgun onto a Brain. */
+int num_power_sounds;
+
 extern cvar_t *allow_download;
 extern cvar_t *allow_download_players;
 extern cvar_t *allow_download_models;
@@ -732,6 +737,9 @@ CL_Frame(int packetdelta, int renderdelta, int timedelta, qboolean packetframe, 
 	{
 		cls.netchan.last_received = Sys_Milliseconds();
 	}
+
+	// Reset power shield / power screen sound counter.
+	num_power_sounds = 0;
 
 	if (!cl_timedemo->value)
 	{
