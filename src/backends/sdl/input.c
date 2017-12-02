@@ -70,9 +70,9 @@ static int old_mouse_x, old_mouse_y;
 static qboolean mlooking;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-static int joystick_yaw, joystick_pitch;
-static int joystick_forwardmove, joystick_sidemove;
-static int joystick_up;
+static float joystick_yaw, joystick_pitch;
+static float joystick_forwardmove, joystick_sidemove;
+static float joystick_up;
 static int back_button_id = -1;
 static char last_hat = SDL_HAT_CENTERED;
 static qboolean left_trigger = false;
@@ -594,13 +594,14 @@ IN_Update(void)
 					if (strcmp(direction_type, "sidemove") == 0)
 					{
 						joystick_sidemove = axis_value * joy_sidesensitivity->value;
-						joystick_sidemove *= cl_sidespeed->value;
+						// We need to be twice faster because with joystic we run...
+						joystick_sidemove *= cl_sidespeed->value * 2.0f;
 					}
 					else if (strcmp(direction_type, "forwardmove") == 0)
 					{
 						joystick_forwardmove = axis_value * joy_forwardsensitivity->value;
 						// We need to be twice faster because with joystic we run...
-						joystick_forwardmove *= cl_forwardspeed->value * 2;
+						joystick_forwardmove *= cl_forwardspeed->value * 2.0f;
 					}
 					else if (strcmp(direction_type, "yaw") == 0)
 					{
@@ -788,14 +789,20 @@ IN_Move(usercmd_t *cmd)
 	}
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
+	// to make the the viewangles changes independent of framerate
+	// we need to scale with frametime (assuming the configured values are for 60hz)
+	// 1/32768 is to normalize the input values from SDL (they're between -32768 and 32768 and we want -1 to 1)
+	// (for movement this is not needed, as those are absolute values independent of framerate)
+	float joyViewFactor = (1.0f/32768.0f) * (cls.rframetime/0.01666f);
+
 	if (joystick_yaw)
 	{
-		cl.viewangles[YAW] -= (m_yaw->value * joystick_yaw) / 32768;
+		cl.viewangles[YAW] -= (m_yaw->value * joystick_yaw) * joyViewFactor;
 	}
 
 	if(joystick_pitch)
 	{
-		cl.viewangles[PITCH] += (m_pitch->value * joystick_pitch) / 32768;
+		cl.viewangles[PITCH] += (m_pitch->value * joystick_pitch) * joyViewFactor;
 	}
 
 	if (joystick_forwardmove)
