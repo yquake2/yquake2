@@ -113,6 +113,11 @@ int GL3_PrepareForWindow(void)
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 		}
 	}
+	else
+	{
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+	}
 
 	/* Initiate the flags */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -131,7 +136,7 @@ enum {
 	QGL_DEBUG_SEVERITY_NOTIFICATION = 0x826B
 };
 
-static void
+static void APIENTRY
 DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
               const GLchar *message, const void *userParam)
 {
@@ -230,12 +235,17 @@ int GL3_InitContext(void* win)
 
 	if(!gladLoadGLLoader(SDL_GL_GetProcAddress))
 	{
-		R_Printf(PRINT_ALL, "R_InitContext(): loading OpenGL function pointers failed!\n");
+		R_Printf(PRINT_ALL, "GL3_InitContext(): ERROR: loading OpenGL function pointers failed!\n");
+		return false;
+	}
+	else if (GLVersion.major < 3 || (GLVersion.major == 3 && GLVersion.minor < 2))
+	{
+		R_Printf(PRINT_ALL, "GL3_InitContext(): ERROR: glad only got GL version %d.%d!\n", GLVersion.major, GLVersion.minor);
 		return false;
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "Successfully loaded OpenGL function pointers using glad!\n");
+		R_Printf(PRINT_ALL, "Successfully loaded OpenGL function pointers using glad, got version %d.%d!\n", GLVersion.major, GLVersion.minor);
 	}
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)

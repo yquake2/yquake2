@@ -185,11 +185,18 @@ VID_CheckChanges(void)
 		cls.disable_screen = true;
 
 		// Proceed to reboot the refresher
-		if(!VID_LoadRefresh() && (strcmp(vid_renderer->string, "gl1") != 0))
+		if(!VID_LoadRefresh())
 		{
-			Com_Printf("\n ... trying again with standard OpenGL1.x renderer ... \n\n");
-			Cvar_Set("vid_renderer", "gl1");
-			VID_LoadRefresh();
+			if (strcmp(vid_renderer->string, "gl1") != 0)
+			{
+				Com_Printf("\n ... trying again with standard OpenGL1.x renderer ... \n\n");
+				Cvar_Set("vid_renderer", "gl1");
+				VID_LoadRefresh();
+			}
+			else
+			{
+				Com_Error(ERR_FATAL, "Couldn't load a rendering backend!\n");
+			}
 		}
 		cls.disable_screen = false;
 	}

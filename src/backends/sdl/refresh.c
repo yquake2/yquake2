@@ -232,6 +232,7 @@ static qboolean GetWindowSize(int* w, int* h)
 	return true;
 }
 
+static qboolean initSuccessful = false;
 
 /*
  * Initializes the OpenGL window
@@ -257,7 +258,9 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	}
 #endif
 
-	if (GetWindowSize(&curWidth, &curHeight) && (curWidth == width) && (curHeight == height))
+	// only do this if we already have a working window and fully initialized rendering backend
+	// (GLimp_InitGraphics() is also called when recovering if creating GL context fails or the one we got is unusable)
+	if (initSuccessful && GetWindowSize(&curWidth, &curHeight) && (curWidth == width) && (curHeight == height))
 	{
 		/* If we want fullscreen, but aren't */
 		if (fullscreen != IsFullscreen())
@@ -319,20 +322,17 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	{
 		if (!CreateSDLWindow(flags, width, height))
 		{
-			if (flags & SDL_OPENGL)
+			if((flags & SDL_OPENGL) && gl_msaa_samples->value)
 			{
-				if (gl_msaa_samples->value)
-				{
-					Com_Printf("SDL SetVideoMode failed: %s\n", SDL_GetError());
-					Com_Printf("Reverting to %s gl_mode %i (%ix%i) without MSAA.\n",
-					           (flags & fs_flag) ? "fullscreen" : "windowed",
-					           (int) Cvar_VariableValue("gl_mode"), width, height);
+				Com_Printf("SDL SetVideoMode failed: %s\n", SDL_GetError());
+				Com_Printf("Reverting to %s gl_mode %i (%ix%i) without MSAA.\n",
+					        (flags & fs_flag) ? "fullscreen" : "windowed",
+					        (int) Cvar_VariableValue("gl_mode"), width, height);
 
-					/* Try to recover */
-					Cvar_SetValue("gl_msaa_samples", 0);
-					SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
-					SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-				}
+				/* Try to recover */
+				Cvar_SetValue("gl_msaa_samples", 0);
+				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 			}
 			else if (width != 640 || height != 480 || (flags & fs_flag))
 			{
@@ -373,6 +373,8 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 
 	/* No cursor */
 	SDL_ShowCursor(0);
+
+	initSuccessful = true;
 
 	return true;
 }
@@ -452,6 +454,8 @@ VID_ShutdownWindow(void)
 	window = NULL;
 	// make sure that after vid_restart the refreshrate will be queried from SDL2 again.
 	glimp_refreshRate = -1;
+
+	initSuccessful = false; // not initialized anymore
 
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)
 	{
