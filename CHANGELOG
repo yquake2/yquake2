@@ -1,3 +1,18 @@
+Quake II 7.02 to 7.10:
+- Joystick support including haptic feedback. This fantastic work was
+  done by Denis Pauk. The dirty work is done by SDL, how good or bad
+  a joystick or gamepad is supported depends on SDLs support for it.
+- Fix the old SDL sound backend, s_openal set to 0 is working again.
+- Fix possible Vorbis buffer underruns if too many sound samples are
+  in flight. This occured only in large multi player games with at
+  least 6 custom models.
+- Fix a possible crash on Windows if MSAA was set to a value not
+  supported by the driver.
+- It's now possible to play through the whole game on a Raspberry PI
+  and other ARM boards. Please note that the RPIs hardware is really
+  limited. Only the OpenGL 1.4 renderer is supported and the framerate
+  is highly dependend on the screen resolution.
+
 Quake II 7.01 to 7.02:
 - Fix several corner cases regarding render library loading. The game
   should now always fall back to the OpenGL 1.4 renderer if the new
