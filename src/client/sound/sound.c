@@ -290,7 +290,7 @@ S_RegisterSound(char *name)
 {
 	sfx_t *sfx;
 
-	if (!sound_started)
+	if (sound_started == SS_NOT)
 	{
 		return NULL;
 	}
@@ -310,8 +310,6 @@ struct sfx_s *
 S_RegisterSexedSound(entity_state_t *ent, char *base)
 {
 	int n;
-	char *p;
-	int len;
 	struct sfx_s *sfx;
 	char model[MAX_QPATH];
 	char sexedFilename[MAX_QPATH];
@@ -323,6 +321,7 @@ S_RegisterSexedSound(entity_state_t *ent, char *base)
 
 	if (cl.configstrings[n][0])
 	{
+		char *p;
 		p = strchr(cl.configstrings[n], '\\');
 
 		if (p)
@@ -351,6 +350,8 @@ S_RegisterSexedSound(entity_state_t *ent, char *base)
 
 	if (!sfx)
 	{
+		int len;
+
 		/* no, so see if it exists */
 		len = FS_LoadFile(&sexedFilename[1], NULL);
 
@@ -622,7 +623,7 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 	sfxcache_t *sc;
 	playsound_t *ps, *sort;
 
-	if (!sound_started)
+	if (sound_started == SS_NOT)
 	{
 		return;
 	}
@@ -724,7 +725,7 @@ S_StartLocalSound(char *sound)
 {
 	sfx_t *sfx;
 
-	if (!sound_started)
+	if (sound_started == SS_NOT)
 	{
 		return;
 	}
@@ -748,7 +749,7 @@ S_StopAllSounds(void)
 {
 	int i;
 
-	if (!sound_started)
+	if (sound_started == SS_NOT)
 	{
 		return;
 	}
@@ -828,7 +829,7 @@ void
 S_RawSamples(int samples, int rate, int width,
 		int channels, byte *data, float volume)
 {
-	if (!sound_started)
+	if (sound_started == SS_NOT)
 	{
 		return;
 	}
@@ -862,7 +863,7 @@ void
 S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 {
 
-	if (!sound_started)
+	if (sound_started == SS_NOT)
 	{
 		return;
 	}
@@ -984,7 +985,7 @@ S_SoundList(void)
 void
 S_SoundInfo_f(void)
 {
-	if (!sound_started)
+	if (sound_started == SS_NOT)
 	{
 		Com_Printf("Sound system not started\n");
 		return;
@@ -1086,7 +1087,7 @@ S_Shutdown(void)
 	int i;
 	sfx_t *sfx;
 
-	if (!sound_started)
+	if (sound_started == SS_NOT)
 	{
 		return;
 	}

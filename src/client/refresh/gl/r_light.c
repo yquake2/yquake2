@@ -299,17 +299,19 @@ R_RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 
 		if (lightmap)
 		{
-			vec3_t scale;
+			vec3_t	scale;
 
 			lightmap += 3 * (dt * ((surf->extents[0] >> 4) + 1) + ds);
 
 			for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255;
 				 maps++)
 			{
-				for (i = 0; i < 3; i++)
+				int j;
+
+				for (j = 0; j < 3; j++)
 				{
-					scale[i] = gl_modulate->value *
-							   r_newrefdef.lightstyles[surf->styles[maps]].rgb[i];
+					scale[j] = gl_modulate->value *
+							r_newrefdef.lightstyles[surf->styles[maps]].rgb[j];
 				}
 
 				pointcolor[0] += lightmap[0] * scale[0] * (1.0 / 255);

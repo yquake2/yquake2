@@ -27,6 +27,9 @@
 # User configurable options
 # -------------------------
 
+# Build soft render
+WITH_REFSOFT:=no
+
 # Enables CD audio playback. CD audio playback is used
 # for the background music and doesn't add any further
 # dependencies. It should work on all platforms where
@@ -326,12 +329,12 @@ endif
 # ----------
 
 # Phony targets
-.PHONY : all client game icon server ref_gl1 ref_gl3
+.PHONY : all client game icon server ref_gl1 ref_gl3 ref_soft
 
 # ----------
 
 # Builds everything
-all: config client server game ref_gl1 ref_gl3
+all: config client server game ref_gl1 ref_gl3 ref_soft
 
 # ----------
 
@@ -346,6 +349,7 @@ config:
 	@echo "WITH_ZIP = $(WITH_ZIP)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
+	@echo "WITH_REFSOFT = $(WITH_REFSOFT)"
 	@echo "============================"
 	@echo ""
 ifeq ($(WITH_SDL2),yes)
@@ -354,7 +358,7 @@ ifeq ($(CDA_DISABLED),yes)
 	@echo ""
 endif
 endif
-	
+
 # ----------
 
 # Special target to compile
@@ -407,6 +411,10 @@ endif
 ifeq ($(WITH_ZIP),yes)
 release/quake2.exe : CFLAGS += -DZIP -DNOUNCRYPT
 release/quake2.exe : LDFLAGS += -lz
+endif
+
+ifeq ($(WITH_REFSOFT),yes)
+release/quake2.exe : CFLAGS += -DREFSOFT
 endif
 
 ifeq ($(WITH_SDL2),yes)
@@ -472,6 +480,10 @@ endif
 
 ifeq ($(WITH_X11GAMMA),yes)
 release/quake2 : CFLAGS += -DX11GAMMA
+endif
+
+ifeq ($(WITH_REFSOFT),yes)
+release/quake2 : CFLAGS += -DREFSOFT
 endif
 
 ifeq ($(WITH_SDL2),yes)
@@ -651,6 +663,70 @@ build/ref_gl3/%.o: %.c
 
 # ----------
 
+# The soft renderer lib
+
+ifeq ($(YQ2_OSTYPE), Windows)
+
+ifeq ($(WITH_REFSOFT),yes)
+ref_soft:
+	@echo "===> Building ref_soft.dll"
+	$(MAKE) release/ref_soft.dll
+else
+ref_soft:
+	@echo "===> No soft render"
+endif
+
+ifeq ($(WITH_SDL2),yes)
+release/ref_soft.dll : CFLAGS += -DSDL2
+endif
+
+release/ref_soft.dll : LDFLAGS += -shared
+
+else ifeq ($(YQ2_OSTYPE), Darwin)
+
+ifeq ($(WITH_REFSOFT),yes)
+ref_soft:
+	@echo "===> Building ref_soft.dylib"
+	$(MAKE) release/ref_soft.dylib
+else
+ref_soft:
+	@echo "===> No soft render"
+endif
+
+
+ifeq ($(WITH_SDL2),yes)
+release/ref_soft.dylib : CFLAGS += -DSDL2
+endif
+
+release/ref_soft.dylib : LDFLAGS += -shared
+
+else # not Windows or Darwin
+
+ifeq ($(WITH_REFSOFT),yes)
+ref_soft:
+	@echo "===> Building ref_soft.so"
+	$(MAKE) release/ref_soft.so
+else
+ref_soft:
+	@echo "===> No soft render"
+endif
+
+release/ref_soft.so : CFLAGS += -fPIC
+release/ref_soft.so : LDFLAGS += -shared
+
+ifeq ($(WITH_SDL2),yes)
+release/ref_soft.so : CFLAGS += -DSDL2
+endif
+
+endif # OS specific ref_soft shit
+
+build/ref_soft/%.o: %.c
+	@echo "===> CC $<"
+	${Q}mkdir -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) $(GLAD_INCLUDE) -o $@ $<
+
+# ----------
+
 # The baseq2 game
 ifeq ($(YQ2_OSTYPE), Windows)
 game:
@@ -809,7 +885,7 @@ CLIENT_OBJS_ := \
 	src/server/sv_save.o \
 	src/server/sv_send.o \
 	src/server/sv_user.o \
-	src/server/sv_world.o 
+	src/server/sv_world.o
 
 ifeq ($(YQ2_OSTYPE), Windows)
 CLIENT_OBJS_ += \
@@ -848,7 +924,7 @@ REFGL1_OBJS_ := \
 	src/client/refresh/files/wal.o \
 	src/common/shared/shared.o \
 	src/common/md4.o
-	
+
 ifeq ($(YQ2_OSTYPE), Windows)
 REFGL1_OBJS_ += \
 	src/backends/windows/shared/mem.o
@@ -886,6 +962,40 @@ REFGL3_OBJS_ += \
 	src/backends/windows/shared/mem.o
 else # not Windows
 REFGL3_OBJS_ += \
+	src/backends/unix/shared/hunk.o
+endif
+
+# ----------
+
+REFSOFT_OBJS_ := \
+	src/client/refresh/soft/r_aclip.o \
+	src/client/refresh/soft/r_alias.o \
+	src/client/refresh/soft/r_bsp.o \
+	src/client/refresh/soft/r_draw.o \
+	src/client/refresh/soft/r_edge.o \
+	src/client/refresh/soft/r_image.o \
+	src/client/refresh/soft/r_light.o \
+	src/client/refresh/soft/r_main.o \
+	src/client/refresh/soft/r_misc.o \
+	src/client/refresh/soft/r_model.o \
+	src/client/refresh/soft/r_part.o \
+	src/client/refresh/soft/r_poly.o \
+	src/client/refresh/soft/r_polyse.o \
+	src/client/refresh/soft/r_rast.o \
+	src/client/refresh/soft/r_scan.o \
+	src/client/refresh/soft/r_sprite.o \
+	src/client/refresh/soft/r_surf.o \
+	src/client/refresh/files/pcx.o \
+	src/client/refresh/files/stb.o \
+	src/client/refresh/files/wal.o \
+	src/common/shared/shared.o \
+	src/common/md4.o
+
+ifeq ($(YQ2_OSTYPE), Windows)
+REFSOFT_OBJS_ += \
+	src/backends/windows/shared/mem.o
+else # not Windows
+REFSOFT_OBJS_ += \
 	src/backends/unix/shared/hunk.o
 endif
 
@@ -944,6 +1054,7 @@ endif
 CLIENT_OBJS = $(patsubst %,build/client/%,$(CLIENT_OBJS_))
 REFGL1_OBJS = $(patsubst %,build/ref_gl1/%,$(REFGL1_OBJS_))
 REFGL3_OBJS = $(patsubst %,build/ref_gl3/%,$(REFGL3_OBJS_))
+REFSOFT_OBJS = $(patsubst %,build/ref_soft/%,$(REFSOFT_OBJS_))
 SERVER_OBJS = $(patsubst %,build/server/%,$(SERVER_OBJS_))
 GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 
@@ -953,6 +1064,7 @@ GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 CLIENT_DEPS= $(CLIENT_OBJS:.o=.d)
 REFGL1_DEPS= $(REFGL1_OBJS:.o=.d)
 REFGL3_DEPS= $(REFGL3_OBJS:.o=.d)
+REFSOFT_DEPS= $(REFSOFT_OBJS:.o=.d)
 SERVER_DEPS= $(SERVER_OBJS:.o=.d)
 GAME_DEPS= $(GAME_OBJS:.o=.d)
 
@@ -1021,6 +1133,22 @@ else
 release/ref_gl3.so : $(REFGL3_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(REFGL3_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+endif
+
+# release/ref_soft.so
+ifeq ($(YQ2_OSTYPE), Windows)
+release/ref_soft.dll : $(REFSOFT_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(REFSOFT_OBJS) $(LDFLAGS) $(DLL_SDLLDFLAGS) -o $@
+	$(Q)strip $@
+else ifeq ($(YQ2_OSTYPE), Darwin)
+release/ref_soft.dylib : $(REFSOFT_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(REFSOFT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+else
+release/ref_soft.so : $(REFSOFT_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(REFSOFT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/baseq2/game.so

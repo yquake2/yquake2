@@ -32,6 +32,9 @@
 extern void M_ForceMenuOff(void);
 
 static cvar_t *gl_mode;
+#ifdef REFSOFT
+static cvar_t *sw_mode;
+#endif
 static cvar_t *gl_hudscale;
 static cvar_t *gl_consolescale;
 static cvar_t *gl_menuscale;
@@ -73,10 +76,21 @@ GetRenderer(void)
 	{
 		return 1;
 	}
+#ifdef REFSOFT
+	else if (Q_stricmp(vid_renderer->string, "soft") == 0)
+	{
+		return 2;
+	}
+	else
+	{
+		return 3;
+	}
+#else
 	else
 	{
 		return 2;
 	}
+#endif
 }
 
 static int
@@ -157,8 +171,31 @@ ApplyChanges(void *unused)
 			Cvar_Set("vid_renderer", "gl3");
 			restart = true;
 		}
+#ifdef REFSOFT
+		else if (s_renderer_list.curvalue == 2)
+		{
+			Cvar_Set("vid_renderer", "soft");
+			restart = true;
+		}
+#endif
 	}
 
+#ifdef REFSOFT
+	if (s_renderer_list.curvalue == 2) {
+		/* custom mode */
+		if (s_mode_list.curvalue != GetCustomValue(&s_mode_list))
+		{
+			/* Restarts automatically */
+			Cvar_SetValue("sw_mode", s_mode_list.curvalue);
+		}
+		else
+		{
+			/* Restarts automatically */
+			Cvar_SetValue("sw_mode", -1);
+		}
+	}
+	else
+#endif
 	/* custom mode */
 	if (s_mode_list.curvalue != GetCustomValue(&s_mode_list))
 	{
@@ -224,6 +261,20 @@ ApplyChanges(void *unused)
 	M_ForceMenuOff();
 }
 
+#ifdef REFSOFT
+static void DriverCallback( void *unused )
+{
+	if (s_renderer_list.curvalue == 2)
+	{
+		s_mode_list.curvalue = sw_mode->value;
+	}
+	else
+	{
+		s_mode_list.curvalue = gl_mode->value;
+	}
+}
+#endif
+
 void
 VID_MenuInit(void)
 {
@@ -232,6 +283,9 @@ VID_MenuInit(void)
 	static const char *renderers[] = {
 			"[OpenGL 1.4]",
 			"[OpenGL 3.2]",
+#ifdef REFSOFT
+			"[SDL Soft  ]",
+#endif
 			"[Custom    ]",
 			0
 	};
@@ -261,14 +315,14 @@ VID_MenuInit(void)
 		"[1920 1080 ]",
 		"[1920 1200 ]",
 		"[2048 1536 ]",
-		"[2560x1080 ]",
-		"[2560x1440 ]",
-		"[2560x1600 ]",
-		"[3440x1440 ]",
-		"[3840x1600 ]",
-		"[3840x2160 ]",
-		"[4096x2160 ]",
-		"[5120x2880 ]",
+		"[2560 1080 ]",
+		"[2560 1440 ]",
+		"[2560 1600 ]",
+		"[3440 1440 ]",
+		"[3840 1600 ]",
+		"[3840 2160 ]",
+		"[4096 2160 ]",
+		"[5120 2880 ]",
 		"[custom    ]",
 		0
 	};
@@ -311,6 +365,13 @@ VID_MenuInit(void)
 	{
 		gl_mode = Cvar_Get("gl_mode", "4", 0);
 	}
+
+#ifdef REFSOFT
+	if (!sw_mode)
+	{
+		sw_mode = Cvar_Get("sw_mode", "4", 0);
+	}
+#endif
 
 	if (!gl_hudscale)
 	{
@@ -371,12 +432,23 @@ VID_MenuInit(void)
 	s_renderer_list.generic.y = (y = 0);
 	s_renderer_list.itemnames = renderers;
 	s_renderer_list.curvalue = GetRenderer();
+#ifdef REFSOFT
+	s_renderer_list.generic.callback = DriverCallback;
+#endif
 
 	s_mode_list.generic.type = MTYPE_SPINCONTROL;
 	s_mode_list.generic.name = "video mode";
 	s_mode_list.generic.x = 0;
 	s_mode_list.generic.y = (y += 10);
 	s_mode_list.itemnames = resolutions;
+
+#ifdef REFSOFT
+	if (s_renderer_list.curvalue == 2 && sw_mode->value >= 0)
+	{
+		s_mode_list.curvalue = sw_mode->value;
+	}
+	else
+#endif
 	if (gl_mode->value >= 0)
 	{
 		s_mode_list.curvalue = gl_mode->value;
