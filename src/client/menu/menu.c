@@ -1650,6 +1650,7 @@ static const char *idcredits[] = {
 	"Yamagi Burmeister",
 	"Daniel Gibson",
 	"Sander van Dijk",
+	"Denis Pauk",
 	"",
 	"Quake II(tm) (C)1997 Id Software, Inc.",
 	"All Rights Reserved.  Distributed by",

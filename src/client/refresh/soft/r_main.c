@@ -1205,7 +1205,8 @@ void Draw_BuildGammaTable (void)
 	if(overbright > 4.0)
 		overbright = 4.0;
 
-	g = vid_gamma->value;
+	g = (2.1 - vid_gamma->value);
+
 
 	if (g == 1.0)
 	{

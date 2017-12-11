@@ -505,6 +505,31 @@ SCR_RunCinematic(void)
 	}
 }
 
+static int
+SCR_MinimalColor(void)
+{
+	int i, min_color, min_index;
+
+	min_color = 255 * 3;
+	min_index = 0;
+
+	for(i=0; i<255; i++)
+	{
+		int current_color = (cl.cinematicpalette[i*3+0] +
+				     cl.cinematicpalette[i*3+1] +
+				     cl.cinematicpalette[i*3+2]);
+
+		if (min_color > current_color)
+		{
+			min_color = current_color;
+			min_index = i;
+		}
+	}
+
+	return min_index;
+}
+
+
 /*
  * Returns true if a cinematic is active, meaning the
  * view rendering should be skipped
@@ -512,7 +537,7 @@ SCR_RunCinematic(void)
 qboolean
 SCR_DrawCinematic(void)
 {
-	int x, y, w, h;
+	int x, y, w, h, color;
 
 	if (cl.cinematictime <= 0)
 	{
@@ -557,21 +582,23 @@ SCR_DrawCinematic(void)
 		h = viddef.height;
 	}
 
+	color = SCR_MinimalColor();
+
 	if (x > 0)
 	{
-		Draw_Fill(0, 0, x, viddef.height, 0);
+		Draw_Fill(0, 0, x, viddef.height, color);
 	}
 	if (x + w < viddef.width)
 	{
-		Draw_Fill(x + w, 0, viddef.width - (x + w), viddef.height, 0);
+		Draw_Fill(x + w, 0, viddef.width - (x + w), viddef.height, color);
 	}
 	if (y > 0)
 	{
-		Draw_Fill(x, 0, w, y, 0);
+		Draw_Fill(x, 0, w, y, color);
 	}
 	if (y + h < viddef.height)
 	{
-		Draw_Fill(x, y + h, w, viddef.height - (y + h), 0);
+		Draw_Fill(x, y + h, w, viddef.height - (y + h), color);
 	}
 
 	Draw_StretchRaw(x, y, w, h, cin.width, cin.height, cin.pic);
