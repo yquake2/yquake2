@@ -1621,7 +1621,7 @@ static qboolean CreateSDLWindow(int flags, int w, int h)
 	// TODO: support fullscreen on different displays with SDL_WINDOWPOS_UNDEFINED_DISPLAY(displaynum)
 	window = SDL_CreateWindow("Yamagi Quake II", windowPos, windowPos, w, h, flags);
 
-	renderer = SDL_CreateRenderer(window, -1, 0);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	surface = SDL_CreateRGBSurface(0, w, h, bpp, Rmask, Gmask, Bmask, Amask);
 
 	texture = SDL_CreateTexture(renderer,
