@@ -127,22 +127,6 @@ Sys_Quit(void)
 	exit(0);
 }
 
-void
-WinError(void)
-{
-	LPVOID lpMsgBuf;
-
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-			NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			(LPTSTR)&lpMsgBuf, 0, NULL);
-
-	/* Display the string. */
-	MessageBox(NULL, lpMsgBuf, "GetLastError", MB_OK | MB_ICONINFORMATION);
-
-	/* Free the buffer. */
-	LocalFree(lpMsgBuf);
-}
-
 /* ================================================================ */
 
 void
