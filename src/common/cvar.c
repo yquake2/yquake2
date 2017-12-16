@@ -433,17 +433,17 @@ Cvar_Set_f(void)
 
 	firstarg = Cmd_Argv(1);
 
-	/* An ugly hack to rewrite CVARs loaded from config.cfg */
-	if (!doneWithCfg)
+	/* An ugly hack to rewrite changed CVARs */
+	for (i = 0; i < sizeof(replacements) / sizeof(replacement_t); i++)
 	{
-		for (i = 0; i < sizeof(replacements) / sizeof(replacement_t); i++)
+		if (!strcmp(firstarg, replacements[i].old))
 		{
-			if (!strcmp(firstarg, replacements[i].old))
-			{
-				firstarg = replacements[i].new;
-			}
+			Com_Printf("cvar %s ist deprecated, use %s instead\n", replacements[i].old, replacements[i].new);
+
+			firstarg = replacements[i].new;
 		}
 	}
+
 	if (c == 4)
 	{
 		if (!strcmp(Cmd_Argv(3), "u"))

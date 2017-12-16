@@ -924,9 +924,6 @@ Cmd_IsComplete(char *command)
 /* ugly hack to suppress warnings from default.cfg in Key_Bind_f() */
 qboolean doneWithDefaultCfg;
 
-/* Another ugly hack, this time to rewrite CVARs loaded from config.cfg */
-qboolean doneWithCfg;
-
 /*
  * A complete command line has been parsed, so try to execute it
  */
@@ -948,12 +945,6 @@ Cmd_ExecuteString(char *text)
 	{
 		/* exec yq2.cfg is done directly after exec default.cfg, see Qcommon_Init() */
 		doneWithDefaultCfg = true;
-	}
-
-	if(Cmd_Argc() > 1 && Q_strcasecmp(cmd_argv[0], "exec") == 0 && Q_strcasecmp(cmd_argv[1], "autoexec.cfg") == 0)
-	{
-		/* exec autoexec.cfg is done directly after exec config.cfg, see Qcommon_Init() */
-		doneWithCfg = true;
 	}
 
 	/* check functions */

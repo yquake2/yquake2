@@ -313,9 +313,6 @@ enum clc_ops_e
 #define EXEC_INSERT 1       /* insert at current position, but don't run yet */
 #define EXEC_APPEND 2       /* add to end of the command buffer */
 
-/* An ugly hack to rewrite CVARs loaded from config.cfg */
-extern qboolean doneWithCfg;
-
 void Cbuf_Init(void);
 
 /* allocates an initial text buffer that will grow as needed */
