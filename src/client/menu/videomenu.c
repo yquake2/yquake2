@@ -284,7 +284,7 @@ VID_MenuInit(void)
 			"[OpenGL 1.4]",
 			"[OpenGL 3.2]",
 #ifdef REFSOFT
-			"[SDL Soft  ]",
+			"[Software  ]",
 #endif
 			"[Custom    ]",
 			0
