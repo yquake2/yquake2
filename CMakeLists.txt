@@ -40,6 +40,7 @@ string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 option(ZIP_SUPPORT "ZIP support" ON)
 option(OGG_SUPPORT "OGG Vorbis playback support (Music)" ON)
 option(OPENAL_SUPPORT "OpenAL support" ON)
+option(SOFTRENDERER_SUPPORT "Enabled the software renderer" ON)
 option(SYSTEMWIDE_SUPPORT "Enable systemwide installation of game assets" OFF)
 
 # These variables will act as our list of include folders and linker flags
@@ -58,7 +59,7 @@ set(COMMON_SRC_DIR ${SOURCE_DIR}/common)
 set(GAME_SRC_DIR ${SOURCE_DIR}/game)
 set(SERVER_SRC_DIR ${SOURCE_DIR}/server)
 set(CLIENT_SRC_DIR ${SOURCE_DIR}/client)
-set(GL_SRC_DIR ${SOURCE_DIR}/client/refresh)
+set(REF_SRC_DIR ${SOURCE_DIR}/client/refresh)
 
 # Operating system
 set(YQ2OSTYPE "${CMAKE_SYSTEM_NAME}" CACHE STRING "Override operation system type")
@@ -131,6 +132,10 @@ if(${OPENAL_SUPPORT})
 	endif()
 endif()
 
+if (${SOFTRENDERER_SUPPORT})
+	add_definitions(-DREFSOFT)
+endif()
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	list(APPEND yquake2LinkerFlags "-lm -static-libgcc")
 else()
@@ -201,21 +206,21 @@ set(Backends-Windows-Header
 	${BACKENDS_SRC_DIR}/windows/header/winquake.h
 	)
 
-set(GL-Windows-Source
+set(REF-Windows-Source
 	${BACKENDS_SRC_DIR}/windows/shared/mem.c
 	)
 
-set(GL-Unix-Source
+set(REF-Unix-Source
 	${BACKENDS_SRC_DIR}/unix/shared/hunk.c
 	)
 
 # Set the nessesary platform specific source
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set(Platform-Specific-Source ${Backends-Windows-Source} ${Backends-Windows-Header})
-	set(GL-Platform-Specific-Source ${GL-Windows-Source})
+	set(REF-Platform-Specific-Source ${REF-Windows-Source})
 else()
 	set(Platform-Specific-Source ${Backends-Unix-Source} ${Backends-Unix-Header})
-	set(GL-Platform-Specific-Source ${GL-Unix-Source})
+	set(REF-Platform-Specific-Source ${REF-Unix-Source})
 endif()
 
 set(Game-Source
@@ -427,77 +432,111 @@ set(Server-Header
 	)
 
 set(GL1-Source
-	${GL_SRC_DIR}/gl/qgl.c
-	${GL_SRC_DIR}/gl/r_draw.c
-	${GL_SRC_DIR}/gl/r_image.c
-	${GL_SRC_DIR}/gl/r_light.c
-	${GL_SRC_DIR}/gl/r_lightmap.c
-	${GL_SRC_DIR}/gl/r_main.c
-	${GL_SRC_DIR}/gl/r_mesh.c
-	${GL_SRC_DIR}/gl/r_misc.c
-	${GL_SRC_DIR}/gl/r_model.c
-	${GL_SRC_DIR}/gl/r_scrap.c
-	${GL_SRC_DIR}/gl/r_surf.c
-	${GL_SRC_DIR}/gl/r_warp.c
-	${GL_SRC_DIR}/gl/r_sdl.c
-	${GL_SRC_DIR}/gl/r_md2.c
-	${GL_SRC_DIR}/gl/r_sp2.c
-	${GL_SRC_DIR}/files/pcx.c
-	${GL_SRC_DIR}/files/stb.c
-	${GL_SRC_DIR}/files/wal.c
+	${REF_SRC_DIR}/gl/qgl.c
+	${REF_SRC_DIR}/gl/r_draw.c
+	${REF_SRC_DIR}/gl/r_image.c
+	${REF_SRC_DIR}/gl/r_light.c
+	${REF_SRC_DIR}/gl/r_lightmap.c
+	${REF_SRC_DIR}/gl/r_main.c
+	${REF_SRC_DIR}/gl/r_mesh.c
+	${REF_SRC_DIR}/gl/r_misc.c
+	${REF_SRC_DIR}/gl/r_model.c
+	${REF_SRC_DIR}/gl/r_scrap.c
+	${REF_SRC_DIR}/gl/r_surf.c
+	${REF_SRC_DIR}/gl/r_warp.c
+	${REF_SRC_DIR}/gl/r_sdl.c
+	${REF_SRC_DIR}/gl/r_md2.c
+	${REF_SRC_DIR}/gl/r_sp2.c
+	${REF_SRC_DIR}/files/pcx.c
+	${REF_SRC_DIR}/files/stb.c
+	${REF_SRC_DIR}/files/wal.c
 	${COMMON_SRC_DIR}/shared/shared.c
 	${COMMON_SRC_DIR}/md4.c
 	)
 
 set(GL1-Header
-	${GL_SRC_DIR}/ref_shared.h
-	${GL_SRC_DIR}/constants/anorms.h
-	${GL_SRC_DIR}/constants/anormtab.h
-	${GL_SRC_DIR}/constants/warpsin.h
-	${GL_SRC_DIR}/files/stb_image.h
-	${GL_SRC_DIR}/gl/header/local.h
-	${GL_SRC_DIR}/gl/header/model.h
-	${GL_SRC_DIR}/gl/header/qgl.h
+	${REF_SRC_DIR}/ref_shared.h
+	${REF_SRC_DIR}/constants/anorms.h
+	${REF_SRC_DIR}/constants/anormtab.h
+	${REF_SRC_DIR}/constants/warpsin.h
+	${REF_SRC_DIR}/files/stb_image.h
+	${REF_SRC_DIR}/gl/header/local.h
+	${REF_SRC_DIR}/gl/header/model.h
+	${REF_SRC_DIR}/gl/header/qgl.h
 	${COMMON_SRC_DIR}/header/shared.h
 	)
 
 set(GL3-Source
-	${GL_SRC_DIR}/gl3/gl3_draw.c
-	${GL_SRC_DIR}/gl3/gl3_image.c
-	${GL_SRC_DIR}/gl3/gl3_light.c
-	${GL_SRC_DIR}/gl3/gl3_lightmap.c
-	${GL_SRC_DIR}/gl3/gl3_main.c
-	${GL_SRC_DIR}/gl3/gl3_mesh.c
-	${GL_SRC_DIR}/gl3/gl3_misc.c
-	${GL_SRC_DIR}/gl3/gl3_model.c
-	${GL_SRC_DIR}/gl3/gl3_sdl.c
-	${GL_SRC_DIR}/gl3/gl3_surf.c
-	${GL_SRC_DIR}/gl3/gl3_warp.c
-	${GL_SRC_DIR}/gl3/gl3_shaders.c
-	${GL_SRC_DIR}/gl3/gl3_md2.c
-	${GL_SRC_DIR}/gl3/gl3_sp2.c
-	${GL_SRC_DIR}/gl3/glad/src/glad.c
-	${GL_SRC_DIR}/files/pcx.c
-	${GL_SRC_DIR}/files/stb.c
-	${GL_SRC_DIR}/files/wal.c
+	${REF_SRC_DIR}/gl3/gl3_draw.c
+	${REF_SRC_DIR}/gl3/gl3_image.c
+	${REF_SRC_DIR}/gl3/gl3_light.c
+	${REF_SRC_DIR}/gl3/gl3_lightmap.c
+	${REF_SRC_DIR}/gl3/gl3_main.c
+	${REF_SRC_DIR}/gl3/gl3_mesh.c
+	${REF_SRC_DIR}/gl3/gl3_misc.c
+	${REF_SRC_DIR}/gl3/gl3_model.c
+	${REF_SRC_DIR}/gl3/gl3_sdl.c
+	${REF_SRC_DIR}/gl3/gl3_surf.c
+	${REF_SRC_DIR}/gl3/gl3_warp.c
+	${REF_SRC_DIR}/gl3/gl3_shaders.c
+	${REF_SRC_DIR}/gl3/gl3_md2.c
+	${REF_SRC_DIR}/gl3/gl3_sp2.c
+	${REF_SRC_DIR}/gl3/glad/src/glad.c
+	${REF_SRC_DIR}/files/pcx.c
+	${REF_SRC_DIR}/files/stb.c
+	${REF_SRC_DIR}/files/wal.c
 	${COMMON_SRC_DIR}/shared/shared.c
 	${COMMON_SRC_DIR}/md4.c
 	)
 
 set(GL3-Header
-	${GL_SRC_DIR}/ref_shared.h
-	${GL_SRC_DIR}/constants/anorms.h
-	${GL_SRC_DIR}/constants/anormtab.h
-	${GL_SRC_DIR}/constants/warpsin.h
-	${GL_SRC_DIR}/files/stb_image.h
-	${GL_SRC_DIR}/gl3/glad/include/glad/glad.h
-	${GL_SRC_DIR}/gl3/glad/include/KHR/khrplatform.h
-	${GL_SRC_DIR}/gl3/header/DG_dynarr.h
-	${GL_SRC_DIR}/gl3/header/HandmadeMath.h
-	${GL_SRC_DIR}/gl3/header/local.h
-	${GL_SRC_DIR}/gl3/header/model.h
+	${REF_SRC_DIR}/ref_shared.h
+	${REF_SRC_DIR}/constants/anorms.h
+	${REF_SRC_DIR}/constants/anormtab.h
+	${REF_SRC_DIR}/constants/warpsin.h
+	${REF_SRC_DIR}/files/stb_image.h
+	${REF_SRC_DIR}/gl3/glad/include/glad/glad.h
+	${REF_SRC_DIR}/gl3/glad/include/KHR/khrplatform.h
+	${REF_SRC_DIR}/gl3/header/DG_dynarr.h
+	${REF_SRC_DIR}/gl3/header/HandmadeMath.h
+	${REF_SRC_DIR}/gl3/header/local.h
+	${REF_SRC_DIR}/gl3/header/model.h
 	${COMMON_SRC_DIR}/header/shared.h
 	)
+
+if (${SOFTRENDERER_SUPPORT})
+	set(SOFT-Source
+		${REF_SRC_DIR}/soft/r_aclip.c
+		${REF_SRC_DIR}/soft/r_alias.c
+		${REF_SRC_DIR}/soft/r_bsp.c
+		${REF_SRC_DIR}/soft/r_draw.c
+		${REF_SRC_DIR}/soft/r_edge.c
+		${REF_SRC_DIR}/soft/r_image.c
+		${REF_SRC_DIR}/soft/r_light.c
+		${REF_SRC_DIR}/soft/r_main.c
+		${REF_SRC_DIR}/soft/r_misc.c
+		${REF_SRC_DIR}/soft/r_model.c
+		${REF_SRC_DIR}/soft/r_part.c
+		${REF_SRC_DIR}/soft/r_poly.c
+		${REF_SRC_DIR}/soft/r_polyse.c
+		${REF_SRC_DIR}/soft/r_rast.c
+		${REF_SRC_DIR}/soft/r_scan.c
+		${REF_SRC_DIR}/soft/r_sprite.c
+		${REF_SRC_DIR}/soft/r_surf.c
+		${REF_SRC_DIR}/files/pcx.c
+		${REF_SRC_DIR}/files/stb.c
+		${REF_SRC_DIR}/files/wal.c
+		${COMMON_SRC_DIR}/shared/shared.c
+		${COMMON_SRC_DIR}/md4.c
+		)
+
+	set(SOFT-Header
+		${REF_SRC_DIR}/soft/adivtab.h
+		${REF_SRC_DIR}/soft/r_local.h
+		${REF_SRC_DIR}/soft/r_model.h
+		${COMMON_SRC_DIR}/header/shared.h
+		)
+endif ()
 
 # Main Quake 2 executable
 add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
@@ -536,7 +575,7 @@ set_target_properties(game PROPERTIES
 target_link_libraries(game ${yquake2LinkerFlags})
 
 # Build the GL1 dynamic library
-add_library(ref_gl1 MODULE ${GL1-Source} ${GL1-Header} ${GL-Platform-Specific-Source})
+add_library(ref_gl1 MODULE ${GL1-Source} ${GL1-Header} ${REF-Platform-Specific-Source})
 set_target_properties(ref_gl1 PROPERTIES
 		PREFIX ""
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
@@ -546,7 +585,7 @@ set_target_properties(ref_gl1 PROPERTIES
 target_link_libraries(ref_gl1 ${yquake2LinkerFlags} ${yquake2OpenGLLinkerFlags} ${yquake2SDLLinkerFlags})
 
 # Build the GL3 dynamic library
-add_library(ref_gl3 MODULE ${GL3-Source} ${GL3-Header} ${GL-Platform-Specific-Source})
+add_library(ref_gl3 MODULE ${GL3-Source} ${GL3-Header} ${REF-Platform-Specific-Source})
 set_target_properties(ref_gl3 PROPERTIES
 		PREFIX ""
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
@@ -554,3 +593,15 @@ set_target_properties(ref_gl3 PROPERTIES
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
 		)
 target_link_libraries(ref_gl3 ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
+
+# Build the soft renderer dynamic library
+if (${SOFTRENDERER_SUPPORT})
+	add_library(ref_soft MODULE ${SOFT-Source} ${SOFT-Header} ${REF-Platform-Specific-Source})
+	set_target_properties(ref_soft PROPERTIES
+			PREFIX ""
+			LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+			SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
+			)
+	target_link_libraries(ref_soft ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
+endif()
