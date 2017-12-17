@@ -18,7 +18,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // r_misc.c
-#include "SDL.h"
+#ifdef SDL2
+#include <SDL2/SDL.h>
+#else // SDL1.2
+#include <SDL/SDL.h>
+#endif //SDL2
+
 #include "r_local.h"
 
 #define NUM_MIPS	4
