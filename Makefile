@@ -382,8 +382,10 @@ cleanall:
 # The client
 ifeq ($(YQ2_OSTYPE), Windows)
 client:
-	@echo "===> Building quake2.exe"
+	@echo "===> Building yquake2.exe"
 	${Q}mkdir -p release
+	$(MAKE) release/yquake2.exe
+	@echo "===> Building quake2.exe Wrapper"
 	$(MAKE) release/quake2.exe
 
 build/client/%.o: %.c
@@ -392,28 +394,28 @@ build/client/%.o: %.c
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 ifeq ($(WITH_CDA),yes)
-release/quake2.exe : CFLAGS += -DCDA
+release/yquake2.exe : CFLAGS += -DCDA
 endif
 
 ifeq ($(WITH_OGG),yes)
-release/quake2.exe : CFLAGS += -DOGG
-release/quake2.exe : LDFLAGS += -lvorbisfile -lvorbis -logg
+release/yquake2.exe : CFLAGS += -DOGG
+release/yquake2.exe : LDFLAGS += -lvorbisfile -lvorbis -logg
 endif
 
 ifeq ($(WITH_OPENAL),yes)
-release/quake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"' -DDLOPEN_OPENAL
+release/yquake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"' -DDLOPEN_OPENAL
 endif
 
 ifeq ($(WITH_ZIP),yes)
-release/quake2.exe : CFLAGS += -DZIP -DNOUNCRYPT
-release/quake2.exe : LDFLAGS += -lz
+release/yquake2.exe : CFLAGS += -DZIP -DNOUNCRYPT
+release/yquake2.exe : LDFLAGS += -lz
 endif
 
 ifeq ($(WITH_SDL2),yes)
-release/quake2.exe : CFLAGS += -DSDL2
+release/yquake2.exe : CFLAGS += -DSDL2
 endif
 
-release/quake2.exe : LDFLAGS += -mwindows
+release/yquake2.exe : LDFLAGS += -mwindows
 
 else # not Windows
 
@@ -1053,9 +1055,13 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 
 # release/quake2
 ifeq ($(YQ2_OSTYPE), Windows)
-release/quake2.exe : $(CLIENT_OBJS) icon
+release/yquake2.exe : $(CLIENT_OBJS) icon
 	@echo "===> LD $@"
 	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	$(Q)strip $@
+# the wrappper, quick'n'dirty
+release/quake2.exe : src/win-wrapper/wrapper.c
+	$(Q)$(CC) -Wall src/win-wrapper/wrapper.c -o $@
 	$(Q)strip $@
 else
 release/quake2 : $(CLIENT_OBJS)
