@@ -1060,8 +1060,8 @@ release/yquake2.exe : $(CLIENT_OBJS) icon
 	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 	$(Q)strip $@
 # the wrappper, quick'n'dirty
-release/quake2.exe : src/win-wrapper/wrapper.c
-	$(Q)$(CC) -Wall src/win-wrapper/wrapper.c -o $@
+release/quake2.exe : src/win-wrapper/wrapper.c icon
+	$(Q)$(CC) -Wall build/icon/icon.res src/win-wrapper/wrapper.c -o $@
 	$(Q)strip $@
 else
 release/quake2 : $(CLIENT_OBJS)
