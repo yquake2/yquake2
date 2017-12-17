@@ -243,10 +243,10 @@ image_t	*R_FindImage (char *name, imagetype_t type)
 
 /*
 ===============
-R_RegisterSkin
+RE_RegisterSkin
 ===============
 */
-struct image_s *R_RegisterSkin (char *name)
+struct image_s *RE_RegisterSkin (char *name)
 {
 	return R_FindImage (name, it_skin);
 }

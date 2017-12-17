@@ -313,7 +313,7 @@ void R_UnRegister (void)
 R_Init
 ===============
 */
-qboolean R_Init(void)
+qboolean RE_Init(void)
 {
 	R_InitImages ();
 	Mod_Init ();
@@ -338,7 +338,7 @@ qboolean R_Init(void)
 		return false;
 
 	// create the window
-	R_BeginFrame( 0 );
+	RE_BeginFrame( 0 );
 
 	R_Printf(PRINT_ALL, "ref_soft version: "REF_VERSION"\n");
 
@@ -347,10 +347,10 @@ qboolean R_Init(void)
 
 /*
 ===============
-R_Shutdown
+RE_Shutdown
 ===============
 */
-void R_Shutdown (void)
+void RE_Shutdown (void)
 {
 	// free z buffer
 	if (d_pzbuffer)
@@ -976,11 +976,11 @@ void R_SetLightLevel (void)
 
 /*
 ================
-R_RenderFrame
+RE_RenderFrame
 
 ================
 */
-void R_RenderFrame (refdef_t *fd)
+void RE_RenderFrame (refdef_t *fd)
 {
 	r_newrefdef = *fd;
 
@@ -1082,9 +1082,9 @@ void R_InitGraphics( int width, int height )
 }
 
 /*
-** R_BeginFrame
+** RE_BeginFrame
 */
-void R_BeginFrame( float camera_separation )
+void RE_BeginFrame( float camera_separation )
 {
 	extern void Draw_BuildGammaTable( void );
 
@@ -1121,19 +1121,19 @@ void R_BeginFrame( float camera_separation )
 			if ( err == rserr_invalid_mode )
 			{
 				ri.Cvar_SetValue( "sw_mode", sw_state.prev_mode );
-				R_Printf( PRINT_ALL, "ref_soft::R_BeginFrame() - could not set mode\n" );
+				R_Printf( PRINT_ALL, "ref_soft::RE_BeginFrame() - could not set mode\n" );
 			}
 			else if ( err == rserr_invalid_fullscreen )
 			{
 				R_InitGraphics( vid.width, vid.height );
 
 				ri.Cvar_SetValue( "vid_fullscreen", 0);
-				R_Printf( PRINT_ALL, "ref_soft::R_BeginFrame() - fullscreen unavailable in this mode\n" );
+				R_Printf( PRINT_ALL, "ref_soft::RE_BeginFrame() - fullscreen unavailable in this mode\n" );
 				sw_state.prev_mode = sw_mode->value;
 			}
 			else
 			{
-				ri.Sys_Error( ERR_FATAL, "ref_soft::R_BeginFrame() - catastrophic mode change failure\n" );
+				ri.Sys_Error( ERR_FATAL, "ref_soft::RE_BeginFrame() - catastrophic mode change failure\n" );
 			}
 		}
 	}
@@ -1155,9 +1155,9 @@ void R_GammaCorrectAndSetPalette( const unsigned char *palette )
 }
 
 /*
-** R_SetPalette
+** RE_SetPalette
 */
-void R_SetPalette(const unsigned char *palette)
+void RE_SetPalette(const unsigned char *palette)
 {
 	byte palette32[1024];
 	int i;
@@ -1166,7 +1166,7 @@ void R_SetPalette(const unsigned char *palette)
 	memset(vid_buffer, 0, vid.height * vid.width * sizeof(pixel_t));
 
 	// flush it to the screen
-	SWimp_EndFrame ();
+	RE_EndFrame ();
 
 	if (palette)
 	{
@@ -1292,14 +1292,14 @@ void R_DrawBeam( entity_t *e )
 
 /*
 ============
-R_SetSky
+RE_SetSky
 ============
 */
 // 3dstudio environment map names
 char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 int	r_skysideimage[6] = {5, 2, 4, 1, 0, 3};
 extern	mtexinfo_t		r_skytexinfo[6];
-void R_SetSky (char *name, float rotate, vec3_t axis)
+void RE_SetSky (char *name, float rotate, vec3_t axis)
 {
 	int		i;
 	char	pathname[MAX_QPATH];
@@ -1349,7 +1349,7 @@ void Draw_GetPalette (void)
 	free (pal);
 }
 
-struct image_s *R_RegisterSkin (char *name);
+struct image_s *RE_RegisterSkin (char *name);
 
 void R_Printf(int level, const char* msg, ...)
 {
@@ -1359,7 +1359,7 @@ void R_Printf(int level, const char* msg, ...)
 	va_end(argptr);
 }
 
-qboolean SWimp_IsVsyncActive(void)
+qboolean RE_IsVsyncActive(void)
 {
 	return true;
 }
@@ -1379,33 +1379,33 @@ GetRefAPI(refimport_t imp)
 
 	re.api_version = API_VERSION;
 
-	re.BeginRegistration = R_BeginRegistration;
-	re.RegisterModel = R_RegisterModel;
-	re.RegisterSkin = R_RegisterSkin;
-	re.DrawFindPic = Draw_FindPic;
-	re.SetSky = R_SetSky;
-	re.EndRegistration = R_EndRegistration;
+	re.BeginRegistration = RE_BeginRegistration;
+	re.RegisterModel = RE_RegisterModel;
+	re.RegisterSkin = RE_RegisterSkin;
+	re.DrawFindPic = RE_Draw_FindPic;
+	re.SetSky = RE_SetSky;
+	re.EndRegistration = RE_EndRegistration;
 
-	re.RenderFrame = R_RenderFrame;
+	re.RenderFrame = RE_RenderFrame;
 
-	re.DrawGetPicSize = Draw_GetPicSize;
+	re.DrawGetPicSize = RE_Draw_GetPicSize;
 
-	re.DrawPicScaled = Draw_PicScaled;
-	re.DrawStretchPic = Draw_StretchPic;
-	re.DrawCharScaled = Draw_CharScaled;
-	re.DrawTileClear = Draw_TileClear;
-	re.DrawFill = Draw_Fill;
-	re.DrawFadeScreen= Draw_FadeScreen;
+	re.DrawPicScaled = RE_Draw_PicScaled;
+	re.DrawStretchPic = RE_Draw_StretchPic;
+	re.DrawCharScaled = RE_Draw_CharScaled;
+	re.DrawTileClear = RE_Draw_TileClear;
+	re.DrawFill = RE_Draw_Fill;
+	re.DrawFadeScreen = RE_Draw_FadeScreen;
 
-	re.DrawStretchRaw = Draw_StretchRaw;
+	re.DrawStretchRaw = RE_Draw_StretchRaw;
 
-	re.Init = R_Init;
-	re.IsVSyncActive = SWimp_IsVsyncActive;
-	re.Shutdown = R_Shutdown;
+	re.Init = RE_Init;
+	re.IsVSyncActive = RE_IsVsyncActive;
+	re.Shutdown = RE_Shutdown;
 
-	re.SetPalette = R_SetPalette;
-	re.BeginFrame = R_BeginFrame;
-	re.EndFrame = SWimp_EndFrame;
+	re.SetPalette = RE_SetPalette;
+	re.BeginFrame = RE_BeginFrame;
+	re.EndFrame = RE_EndFrame;
 
 	Swap_Init ();
 
@@ -1901,14 +1901,14 @@ static qboolean SWimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheigh
 }
 
 /*
-** SWimp_EndFrame
+** RE_EndFrame
 **
 ** This does an implementation specific copy from the backbuffer to the
 ** front buffer.  In the Win32 case it uses BitBlt or BltFast depending
 ** on whether we're using DIB sections/GDI or DDRAW.
 */
 
-void SWimp_EndFrame (void)
+void RE_EndFrame (void)
 {
 	int y,x, i;
 	const unsigned char *pallete = sw_state.currentpalette;

@@ -1134,12 +1134,12 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer)
 
 /*
 @@@@@@@@@@@@@@@@@@@@@
-R_BeginRegistration
+RE_BeginRegistration
 
 Specifies the model that will be used as the world
 @@@@@@@@@@@@@@@@@@@@@
 */
-void R_BeginRegistration (char *model)
+void RE_BeginRegistration (char *model)
 {
 	char	fullname[MAX_QPATH];
 	cvar_t	*flushmap;
@@ -1154,18 +1154,18 @@ void R_BeginRegistration (char *model)
 	flushmap = ri.Cvar_Get ("flushmap", "0", 0);
 	if ( strcmp(mod_known[0].name, fullname) || flushmap->value)
 		Mod_Free (&mod_known[0]);
-	r_worldmodel = R_RegisterModel (fullname);
+	r_worldmodel = RE_RegisterModel (fullname);
 	R_NewMap ();
 }
 
 
 /*
 @@@@@@@@@@@@@@@@@@@@@
-R_RegisterModel
+RE_RegisterModel
 
 @@@@@@@@@@@@@@@@@@@@@
 */
-struct model_s *R_RegisterModel (char *name)
+struct model_s *RE_RegisterModel (char *name)
 {
 	model_t	*mod;
 
@@ -1207,11 +1207,11 @@ struct model_s *R_RegisterModel (char *name)
 
 /*
 @@@@@@@@@@@@@@@@@@@@@
-R_EndRegistration
+RE_EndRegistration
 
 @@@@@@@@@@@@@@@@@@@@@
 */
-void R_EndRegistration (void)
+void RE_EndRegistration (void)
 {
 	int	i;
 	model_t	*mod;

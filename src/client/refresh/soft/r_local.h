@@ -668,34 +668,34 @@ void R_NewMap (void);
 void R_Register (void);
 void R_UnRegister (void);
 void Draw_InitLocal(void);
-qboolean R_Init(void);
-void R_Shutdown(void);
+qboolean RE_Init(void);
+void RE_Shutdown(void);
 void R_InitCaches(void);
 void D_FlushCaches(void);
 
 void	R_ScreenShot_f( void );
-void	R_BeginRegistration (char *map);
-struct model_s  *R_RegisterModel (char *name);
-void	R_EndRegistration (void);
+void	RE_BeginRegistration (char *map);
+struct model_s  *RE_RegisterModel (char *name);
+void	RE_EndRegistration (void);
 
-void	R_RenderFrame (refdef_t *fd);
+void	RE_RenderFrame (refdef_t *fd);
 
-struct image_s	*Draw_FindPic (char *name);
+struct image_s	*RE_Draw_FindPic (char *name);
 
-void	Draw_GetPicSize (int *w, int *h, char *name);
-void	Draw_PicScaled (int x, int y, char *name, float factor);
-void	Draw_StretchPic (int x, int y, int w, int h, char *name);
-void	Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data);
-void	Draw_CharScaled (int x, int y, int c, float scale);
-void	Draw_TileClear (int x, int y, int w, int h, char *name);
-void	Draw_Fill (int x, int y, int w, int h, int c);
-void	Draw_FadeScreen (void);
+void	RE_Draw_GetPicSize (int *w, int *h, char *name);
+void	RE_Draw_PicScaled (int x, int y, char *name, float factor);
+void	RE_Draw_StretchPic (int x, int y, int w, int h, char *name);
+void	RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data);
+void	RE_Draw_CharScaled (int x, int y, int c, float scale);
+void	RE_Draw_TileClear (int x, int y, int w, int h, char *name);
+void	RE_Draw_Fill (int x, int y, int w, int h, int c);
+void	RE_Draw_FadeScreen (void);
 
 void	Draw_GetPalette (void);
 
-void	R_BeginFrame( float camera_separation );
+void	RE_BeginFrame( float camera_separation );
 
-void	R_SetPalette( const unsigned char *palette );
+void	RE_SetPalette( const unsigned char *palette );
 
 extern unsigned d_8to24table[256]; // base
 
@@ -746,9 +746,9 @@ IMPLEMENTATION FUNCTIONS
 ====================================================================
 */
 void	SWimp_BeginFrame(float camera_separation);
-void	SWimp_EndFrame(void);
+void	RE_EndFrame(void);
 int	SWimp_Init(void);
-void	SWimp_SetPalette(const unsigned char *palette);
+void	RE_SetPalette(const unsigned char *palette);
 void	SWimp_Shutdown(void );
 rserr_t	SWimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen);
 

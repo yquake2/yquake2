@@ -29,10 +29,10 @@ image_t		*draw_chars;	// 8*8 graphic characters
 
 /*
 ================
-Draw_FindPic
+RE_Draw_FindPic
 ================
 */
-image_t *Draw_FindPic (char *name)
+image_t *RE_Draw_FindPic (char *name)
 {
 	image_t	*image;
 
@@ -58,7 +58,7 @@ Draw_InitLocal
 */
 void Draw_InitLocal (void)
 {
-	draw_chars = Draw_FindPic ("conchars");
+	draw_chars = RE_Draw_FindPic ("conchars");
 }
 
 
@@ -72,7 +72,7 @@ It can be clipped to the top of the screen to allow the console to be
 smoothly scrolled off.
 ================
 */
-void Draw_CharScaled(int x, int y, int num, float scale)
+void RE_Draw_CharScaled(int x, int y, int num, float scale)
 {
 	pixel_t	*dest;
 	byte	*source;
@@ -128,14 +128,14 @@ void Draw_CharScaled(int x, int y, int num, float scale)
 
 /*
 =============
-Draw_GetPicSize
+RE_Draw_GetPicSize
 =============
 */
-void Draw_GetPicSize (int *w, int *h, char *pic)
+void RE_Draw_GetPicSize (int *w, int *h, char *pic)
 {
 	image_t *gl;
 
-	gl = Draw_FindPic (pic);
+	gl = RE_Draw_FindPic (pic);
 	if (!gl)
 	{
 		*w = *h = -1;
@@ -147,10 +147,10 @@ void Draw_GetPicSize (int *w, int *h, char *pic)
 
 /*
 =============
-Draw_StretchPicImplementation
+RE_Draw_StretchPicImplementation
 =============
 */
-void Draw_StretchPicImplementation (int x, int y, int w, int h, image_t	*pic)
+void RE_Draw_StretchPicImplementation (int x, int y, int w, int h, image_t	*pic)
 {
 	pixel_t	*dest;
 	byte	*source;
@@ -199,35 +199,35 @@ void Draw_StretchPicImplementation (int x, int y, int w, int h, image_t	*pic)
 
 /*
 =============
-Draw_StretchPic
+RE_Draw_StretchPic
 =============
 */
-void Draw_StretchPic (int x, int y, int w, int h, char *name)
+void RE_Draw_StretchPic (int x, int y, int w, int h, char *name)
 {
 	image_t	*pic;
 
-	pic = Draw_FindPic (name);
+	pic = RE_Draw_FindPic (name);
 	if (!pic)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", name);
 		return;
 	}
-	Draw_StretchPicImplementation (x, y, w, h, pic);
+	RE_Draw_StretchPicImplementation (x, y, w, h, pic);
 }
 
 /*
 =============
-Draw_StretchRaw
+RE_Draw_StretchRaw
 =============
 */
-void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
+void RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
 {
 	image_t	pic;
 
 	pic.pixels[0] = data;
 	pic.width = cols;
 	pic.height = rows;
-	Draw_StretchPicImplementation (x, y, w, h, &pic);
+	RE_Draw_StretchPicImplementation (x, y, w, h, &pic);
 }
 
 /*
@@ -235,7 +235,7 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 Draw_Pic
 =============
 */
-void Draw_PicScaled(int x, int y, char *name, float scale)
+void RE_Draw_PicScaled(int x, int y, char *name, float scale)
 {
 	image_t		*pic;
 	pixel_t		*dest;
@@ -244,7 +244,7 @@ void Draw_PicScaled(int x, int y, char *name, float scale)
 	int			height;
 
 	iscale = (int)scale;
-	pic = Draw_FindPic (name);
+	pic = RE_Draw_FindPic (name);
 	if (!pic)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", name);
@@ -311,13 +311,13 @@ void Draw_PicScaled(int x, int y, char *name, float scale)
 
 /*
 =============
-Draw_TileClear
+RE_Draw_TileClear
 
 This repeats a 64*64 tile graphic to fill the screen around a sized down
 refresh window.
 =============
 */
-void Draw_TileClear (int x, int y, int w, int h, char *name)
+void RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 {
 	int			i, j;
 	byte		*psrc;
@@ -342,7 +342,7 @@ void Draw_TileClear (int x, int y, int w, int h, char *name)
 	if (w <= 0 || h <= 0)
 		return;
 
-	pic = Draw_FindPic (name);
+	pic = RE_Draw_FindPic (name);
 	if (!pic)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", name);
@@ -361,12 +361,12 @@ void Draw_TileClear (int x, int y, int w, int h, char *name)
 
 /*
 =============
-Draw_Fill
+RE_Draw_Fill
 
 Fills a box of pixels with a single color
 =============
 */
-void Draw_Fill (int x, int y, int w, int h, int c)
+void RE_Draw_Fill (int x, int y, int w, int h, int c)
 {
 	pixel_t	*dest;
 	int		u, v;
@@ -399,11 +399,11 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 
 /*
 ================
-Draw_FadeScreen
+RE_Draw_FadeScreen
 
 ================
 */
-void Draw_FadeScreen (void)
+void RE_Draw_FadeScreen (void)
 {
 	int x,y;
 
