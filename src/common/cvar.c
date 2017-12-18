@@ -28,6 +28,18 @@
 
 cvar_t *cvar_vars;
 
+
+typedef struct
+{
+	char *old;
+	char *new;
+} replacement_t;
+
+/* An ugly hack to rewrite CVARs loaded from config.cfg */
+replacement_t replacements[] = {
+};
+
+
 static qboolean
 Cvar_InfoValidate(char *s)
 {
@@ -408,8 +420,8 @@ Cvar_Command(void)
 void
 Cvar_Set_f(void)
 {
-	int c;
-	int flags;
+	char *firstarg;
+	int c, flags, i;
 
 	c = Cmd_Argc();
 
@@ -417,6 +429,19 @@ Cvar_Set_f(void)
 	{
 		Com_Printf("usage: set <variable> <value> [u / s]\n");
 		return;
+	}
+
+	firstarg = Cmd_Argv(1);
+
+	/* An ugly hack to rewrite changed CVARs */
+	for (i = 0; i < sizeof(replacements) / sizeof(replacement_t); i++)
+	{
+		if (!strcmp(firstarg, replacements[i].old))
+		{
+			Com_Printf("cvar %s ist deprecated, use %s instead\n", replacements[i].old, replacements[i].new);
+
+			firstarg = replacements[i].new;
+		}
 	}
 
 	if (c == 4)
@@ -437,12 +462,11 @@ Cvar_Set_f(void)
 			return;
 		}
 
-		Cvar_FullSet(Cmd_Argv(1), Cmd_Argv(2), flags);
+		Cvar_FullSet(firstarg, Cmd_Argv(2), flags);
 	}
-
 	else
 	{
-		Cvar_Set(Cmd_Argv(1), Cmd_Argv(2));
+		Cvar_Set(firstarg, Cmd_Argv(2));
 	}
 }
 
