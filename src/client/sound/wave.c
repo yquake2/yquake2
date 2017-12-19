@@ -100,7 +100,6 @@ wavinfo_t
 GetWavinfo(char *name, byte *wav, int wavlength)
 {
 	wavinfo_t info;
-	int i;
 	int format;
 	int samples;
 
@@ -156,7 +155,7 @@ GetWavinfo(char *name, byte *wav, int wavlength)
 		data_p += 32;
 		info.loopstart = GetLittleLong();
 
-		/* if the next chunk is a LIST chunk, 
+		/* if the next chunk is a LIST chunk,
 		   look for a cue length marker */
 		FindNextChunk("LIST");
 
@@ -165,7 +164,9 @@ GetWavinfo(char *name, byte *wav, int wavlength)
 			if (((data_p - wav) + 32 <= wavlength) &&
 				!strncmp((const char *)data_p + 28, "mark", 4))
 			{
-				/* this is not a proper parse, 
+				int i;
+
+				/* this is not a proper parse,
 				   but it works with cooledit... */
 				data_p += 24;
 				i = GetLittleLong(); /* samples in loop */

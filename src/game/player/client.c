@@ -488,7 +488,7 @@ ClientObituary(edict_t *self, edict_t *inflictor /* unused */,
 		return;
 	}
 
-	if (coop->value && attacker->client)
+	if (coop->value && attacker && attacker->client)
 	{
 		meansOfDeath |= MOD_FRIENDLY_FIRE;
 	}

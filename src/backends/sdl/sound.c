@@ -811,7 +811,7 @@ SDL_ClearBuffer(void)
 	int i;
 	unsigned char *ptr = sound.buffer;
 
-	if (!sound_started)
+	if (sound_started == SS_NOT)
 	{
 		return;
 	}
@@ -1460,7 +1460,7 @@ SDL_BackendInit(void)
 
 	soundtime = 0;
 	snd_inited = 1;
-	
+
 	return 1;
 }
 

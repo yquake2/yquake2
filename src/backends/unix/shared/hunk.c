@@ -160,10 +160,10 @@ Hunk_End(void)
 void
 Hunk_Free(void *base)
 {
-	byte *m;
-
 	if (base)
 	{
+		byte *m;
+
 		m = ((byte *)base) - sizeof(int);
 
 		if (munmap(m, *((int *)m)))

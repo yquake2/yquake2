@@ -117,7 +117,7 @@ Sys_Microseconds(void)
 		long long sec = now.tv_sec;
 		// set back first by 1ms so neither this function nor Sys_Milliseconds()
 		// (which calls this) will ever return 0
-		nsec -= 1000000; 
+		nsec -= 1000000;
 		if(nsec < 0)
 		{
 			nsec += 1000000000ll; // 1s in ns => definitely positive now
@@ -411,7 +411,6 @@ Sys_GetGameAPI(void *parms)
 {
 	void *(*GetGameAPI)(void *);
 
-	FILE *fp;
 	char name[MAX_OSPATH];
 	char *path;
 	char *str_p;
@@ -436,6 +435,8 @@ Sys_GetGameAPI(void *parms)
 
 	while (1)
 	{
+		FILE *fp;
+
 		path = FS_NextPath(path);
 
 		if (!path)

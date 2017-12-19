@@ -227,7 +227,7 @@ SV_LinkEdict(edict_t *ent)
 
 	/* set the abs box */
 	if ((ent->solid == SOLID_BSP) &&
-		(ent->s.angles[0] || ent->s.angles[1] || 
+		(ent->s.angles[0] || ent->s.angles[1] ||
 		 ent->s.angles[2]))
 	{
 		/* expand for rotation */
@@ -527,18 +527,18 @@ typedef struct
 
 /*
  * Returns a headnode that can be used for testing or clipping an
- * object of mins/maxs size. Offset is filled in to contain the 
+ * object of mins/maxs size. Offset is filled in to contain the
  * adjustment that must be added to the testing object's origin
  * to get a point to use with the returned hull.
  */
 int
 SV_HullForEntity(edict_t *ent)
 {
-	cmodel_t *model;
-
 	/* decide which clipping hull to use, based on the size */
 	if (ent->solid == SOLID_BSP)
 	{
+		cmodel_t *model;
+
 		/* explicit hulls in the BSP model */
 		model = sv.models[ent->s.modelindex];
 

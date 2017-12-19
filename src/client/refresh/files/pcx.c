@@ -175,11 +175,18 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 		(pcx_width >= 4096) || (pcx_height >= 4096))
 	{
 		R_Printf(PRINT_ALL, "Bad pcx file %s\n", filename);
+		ri.FS_FreeFile(pcx);
 		return;
 	}
 
 	full_size = (pcx_height + 1) * (pcx_width + 1);
 	out = malloc(full_size);
+	if (!out)
+	{
+		R_Printf(PRINT_ALL, "Can't allocate\n");
+		ri.FS_FreeFile(pcx);
+		return;
+	}
 
 	*pic = out;
 
@@ -188,6 +195,13 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	if (palette)
 	{
 		*palette = malloc(768);
+		if (!(*palette))
+		{
+			R_Printf(PRINT_ALL, "Can't allocate\n");
+			free(out);
+			ri.FS_FreeFile(pcx);
+			return;
+		}
 		if (len > 768)
 		{
 			memcpy(*palette, (byte *)pcx + len - 768, 768);
