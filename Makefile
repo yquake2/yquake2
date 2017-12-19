@@ -28,7 +28,7 @@
 # -------------------------
 
 # Build soft render
-WITH_REFSOFT:=yes
+WITH_REFSOFT:=no
 
 # Enables CD audio playback. CD audio playback is used
 # for the background music and doesn't add any further

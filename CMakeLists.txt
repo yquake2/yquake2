@@ -40,7 +40,7 @@ string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 option(ZIP_SUPPORT "ZIP support" ON)
 option(OGG_SUPPORT "OGG Vorbis playback support (Music)" ON)
 option(OPENAL_SUPPORT "OpenAL support" ON)
-option(SOFTRENDERER_SUPPORT "Enabled the software renderer" ON)
+option(SOFTRENDERER_SUPPORT "Enabled the software renderer" OFF)
 option(SYSTEMWIDE_SUPPORT "Enable systemwide installation of game assets" OFF)
 
 # These variables will act as our list of include folders and linker flags
