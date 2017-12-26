@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 ** use a real variable to control lerping
 */
 #include <stdint.h>
-#include "r_local.h"
+#include "header/local.h"
 
 #define LIGHT_MIN	5	// lowest light value we'll allow, to avoid the
 				//  need for inner-loop light clamping

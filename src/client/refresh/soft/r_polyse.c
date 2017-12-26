@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // d_polyset.c: routines for drawing sets of polygons sharing the same
 // texture (used for Alias models)
 
-#include "r_local.h"
+#include "header/local.h"
 
 #define MASK_1K	0x3FF
 
@@ -89,7 +89,7 @@ typedef struct {
 } adivtab_t;
 
 static adivtab_t	adivtab[32*32] = {
-#include "adivtab.h"
+#include "header/adivtab.h"
 };
 
 byte	*skintable[MAX_LBM_HEIGHT];

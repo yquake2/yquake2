@@ -531,9 +531,9 @@ if (${SOFTRENDERER_SUPPORT})
 		)
 
 	set(SOFT-Header
-		${REF_SRC_DIR}/soft/adivtab.h
-		${REF_SRC_DIR}/soft/r_local.h
-		${REF_SRC_DIR}/soft/r_model.h
+		${REF_SRC_DIR}/soft/header/adivtab.h
+		${REF_SRC_DIR}/soft/header/local.h
+		${REF_SRC_DIR}/soft/header/model.h
 		${COMMON_SRC_DIR}/header/shared.h
 		)
 endif ()

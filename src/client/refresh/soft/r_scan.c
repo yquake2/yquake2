@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 // Portable C scan-level rasterization code, all pixel depths.
 
-#include "r_local.h"
+#include "header/local.h"
 
 pixel_t	*r_turb_pbase, *r_turb_pdest;
 int		r_turb_s, r_turb_t, r_turb_sstep, r_turb_tstep;

@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdint.h>
 #include <assert.h>
 
-#include "r_local.h"
+#include "header/local.h"
 
 #define MAXLEFTCLIPEDGES	100
 

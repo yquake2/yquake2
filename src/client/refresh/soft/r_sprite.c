@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // r_sprite.c
-#include "r_local.h"
+#include "header/local.h"
 
 extern polydesc_t r_polydesc;
 
