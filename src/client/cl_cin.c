@@ -28,6 +28,8 @@
 #include "header/client.h"
 #include "../backends/generic/header/input.h"
 
+extern cvar_t *vid_renderer;
+
 cvar_t *cin_force43;
 
 typedef struct
@@ -582,7 +584,19 @@ SCR_DrawCinematic(void)
 		h = viddef.height;
 	}
 
-	color = SCR_MinimalColor();
+	if (!vid_renderer)
+	{
+		vid_renderer = Cvar_Get("vid_renderer", "gl1", CVAR_ARCHIVE);
+	}
+
+	if (Q_stricmp(vid_renderer->string, "soft") == 0)
+	{
+		color = SCR_MinimalColor();
+	}
+	else
+	{
+		color = 0;
+	}
 
 	if (x > 0)
 	{
