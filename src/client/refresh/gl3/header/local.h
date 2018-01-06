@@ -505,7 +505,7 @@ extern cvar_t *gl3_intensity;
 extern cvar_t *gl3_intensity_2D;
 extern cvar_t *gl_anisotropic;
 
-extern cvar_t *gl_lightlevel;
+extern cvar_t *r_lightlevel;
 extern cvar_t *gl3_overbrightbits;
 extern cvar_t *gl3_particle_fade_factor;
 extern cvar_t *gl3_particle_square;

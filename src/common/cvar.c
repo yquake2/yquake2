@@ -40,7 +40,9 @@ replacement_t replacements[] = {
 	{"cl_drawfps", "cl_showfps"},
 	{"gl_drawentities", "r_drawentities"},
 	{"gl_drawworld", "r_drawworld"},
-	{"gl_fullbright", "r_fullbright"}
+	{"gl_fullbright", "r_fullbright"},
+	{"gl_lerpmodels", "r_lerpmodels"},
+	{"gl_lightlevel", "r_lightlevel"}
 };
 
 

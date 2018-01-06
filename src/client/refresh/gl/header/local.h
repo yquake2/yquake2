@@ -174,7 +174,7 @@ extern cvar_t *r_fullbright;
 extern cvar_t *gl_novis;
 extern cvar_t *r_lerpmodels;
 
-extern cvar_t *gl_lightlevel;
+extern cvar_t *r_lightlevel;
 extern cvar_t *gl_overbrightbits;
 
 extern cvar_t *gl_palettedtexture;

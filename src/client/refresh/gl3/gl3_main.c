@@ -103,7 +103,7 @@ cvar_t *gl_farsee;
 
 cvar_t *gl3_intensity;
 cvar_t *gl3_intensity_2D;
-cvar_t *gl_lightlevel;
+cvar_t *r_lightlevel;
 cvar_t *gl3_overbrightbits;
 
 cvar_t *gl_norefresh;
@@ -228,7 +228,7 @@ GL3_Register(void)
 	gl3_intensity = ri.Cvar_Get("gl3_intensity", "1.5", CVAR_ARCHIVE);
 	gl3_intensity_2D = ri.Cvar_Get("gl3_intensity_2D", "1.5", CVAR_ARCHIVE);
 
-	gl_lightlevel = ri.Cvar_Get("gl_lightlevel", "0", 0);
+	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
 	gl3_overbrightbits = ri.Cvar_Get("gl3_overbrightbits", "1.3", CVAR_ARCHIVE);
 
 	gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
@@ -257,7 +257,7 @@ GL3_Register(void)
 	//r_lerpmodels = ri.Cvar_Get("r_lerpmodels", "1", 0); NOTE: screw this, it looks horrible without
 	//gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
 
-	//gl_lightlevel = ri.Cvar_Get("gl_lightlevel", "0", 0);
+	//r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
 	//gl_overbrightbits = ri.Cvar_Get("gl_overbrightbits", "0", CVAR_ARCHIVE);
 
 	gl_particle_min_size = ri.Cvar_Get("gl_particle_min_size", "2", CVAR_ARCHIVE);
@@ -1525,22 +1525,22 @@ GL3_SetLightLevel(void)
 	{
 		if (shadelight[0] > shadelight[2])
 		{
-			gl_lightlevel->value = 150 * shadelight[0];
+			r_lightlevel->value = 150 * shadelight[0];
 		}
 		else
 		{
-			gl_lightlevel->value = 150 * shadelight[2];
+			r_lightlevel->value = 150 * shadelight[2];
 		}
 	}
 	else
 	{
 		if (shadelight[1] > shadelight[2])
 		{
-			gl_lightlevel->value = 150 * shadelight[1];
+			r_lightlevel->value = 150 * shadelight[1];
 		}
 		else
 		{
-			gl_lightlevel->value = 150 * shadelight[2];
+			r_lightlevel->value = 150 * shadelight[2];
 		}
 	}
 }

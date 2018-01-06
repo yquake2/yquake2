@@ -515,7 +515,7 @@ CL_InitLocal(void)
 	rcon_client_password = Cvar_Get("rcon_password", "", 0);
 	rcon_address = Cvar_Get("rcon_address", "", 0);
 
-	cl_lightlevel = Cvar_Get("gl_lightlevel", "0", 0);
+	cl_lightlevel = Cvar_Get("r_lightlevel", "0", 0);
 
 	/* userinfo */
 	name = Cvar_Get("name", "unnamed", CVAR_USERINFO | CVAR_ARCHIVE);
