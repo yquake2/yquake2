@@ -113,7 +113,7 @@ cvar_t *gl_nolerp_list;
 cvar_t *gl_nobind;
 cvar_t *gl_lockpvs;
 cvar_t *r_novis;
-cvar_t *gl_speeds;
+cvar_t *r_speeds;
 cvar_t *gl_finish;
 
 cvar_t *gl_cull;
@@ -240,7 +240,7 @@ GL3_Register(void)
 	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
 	gl_lockpvs = ri.Cvar_Get("gl_lockpvs", "0", 0);
 	r_novis = ri.Cvar_Get("r_novis", "0", 0);
-	gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
+	r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
 	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
 
 	gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);
@@ -255,7 +255,7 @@ GL3_Register(void)
 	//r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
 	//r_novis = ri.Cvar_Get("r_novis", "0", 0);
 	//r_lerpmodels = ri.Cvar_Get("r_lerpmodels", "1", 0); NOTE: screw this, it looks horrible without
-	//gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
+	//r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
 
 	//r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
 	//gl_overbrightbits = ri.Cvar_Get("gl_overbrightbits", "0", CVAR_ARCHIVE);
@@ -1427,7 +1427,7 @@ GL3_RenderView(refdef_t *fd)
 		ri.Sys_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
 	}
 
-	if (gl_speeds->value)
+	if (r_speeds->value)
 	{
 		c_brush_polys = 0;
 		c_alias_polys = 0;
@@ -1461,7 +1461,7 @@ GL3_RenderView(refdef_t *fd)
 
 	// Note: R_Flash() is now GL3_Draw_Flash() and called from GL3_RenderFrame()
 
-	if (gl_speeds->value)
+	if (r_speeds->value)
 	{
 		R_Printf(PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
 				c_brush_polys, c_alias_polys, c_visible_textures,

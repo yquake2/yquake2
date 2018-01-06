@@ -72,7 +72,7 @@ unsigned r_rawpalette[256];
 cvar_t *r_norefresh;
 cvar_t *r_drawentities;
 cvar_t *r_drawworld;
-cvar_t *gl_speeds;
+cvar_t *r_speeds;
 cvar_t *r_fullbright;
 cvar_t *r_novis;
 cvar_t *r_lerpmodels;
@@ -1074,7 +1074,7 @@ R_RenderView(refdef_t *fd)
 		ri.Sys_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
 	}
 
-	if (gl_speeds->value)
+	if (r_speeds->value)
 	{
 		c_brush_polys = 0;
 		c_alias_polys = 0;
@@ -1107,7 +1107,7 @@ R_RenderView(refdef_t *fd)
 
 	R_Flash();
 
-	if (gl_speeds->value)
+	if (r_speeds->value)
 	{
 		R_Printf(PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
 				c_brush_polys, c_alias_polys, c_visible_textures,
@@ -1206,7 +1206,7 @@ R_Register(void)
 	r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
 	r_novis = ri.Cvar_Get("r_novis", "0", 0);
 	r_lerpmodels = ri.Cvar_Get("r_lerpmodels", "1", 0);
-	gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
+	r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
 
 	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
 	gl_overbrightbits = ri.Cvar_Get("gl_overbrightbits", "0", CVAR_ARCHIVE);
