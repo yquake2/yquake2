@@ -120,40 +120,6 @@ Cvar_VariableString(const char *var_name)
 	return var->string;
 }
 
-char *
-Cvar_CompleteVariable(char *partial)
-{
-	cvar_t *cvar;
-	int len;
-
-	len = (int)strlen(partial);
-
-	if (!len)
-	{
-		return NULL;
-	}
-
-	/* check exact match */
-	for (cvar = cvar_vars; cvar; cvar = cvar->next)
-	{
-		if (!strcmp(partial, cvar->name))
-		{
-			return cvar->name;
-		}
-	}
-
-	/* check partial match */
-	for (cvar = cvar_vars; cvar; cvar = cvar->next)
-	{
-		if (!strncmp(partial, cvar->name, len))
-		{
-			return cvar->name;
-		}
-	}
-
-	return NULL;
-}
-
 /*
  * If the variable already exists, the value will not be set
  * The flags will be or'ed in if the variable exists.
