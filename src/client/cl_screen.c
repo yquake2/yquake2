@@ -64,7 +64,7 @@ dirty_t scr_dirty, scr_old_dirty[2];
 char crosshair_pic[MAX_QPATH];
 int crosshair_width, crosshair_height;
 
-extern cvar_t *cl_drawfps;
+extern cvar_t *cl_showfps;
 extern cvar_t *crosshair_scale;
 
 void SCR_TimeRefresh_f(void);
@@ -1430,7 +1430,7 @@ SCR_Framecounter(void) {
 
 	float scale = SCR_GetConsoleScale();
 
-	if (cl_drawfps->value == 1) {
+	if (cl_showfps->value == 1) {
 		// Calculate average of frames.
 		int avg = 0;
 		int num = 0;
@@ -1446,7 +1446,7 @@ SCR_Framecounter(void) {
 		char str[10];
 		snprintf(str, sizeof(str), "%3.2ffps", (1000.0 * 1000.0) / (avg / num));
 		DrawStringScaled(viddef.width - scale*(strlen(str)*8 + 2), 0, str, scale);
-	} else if (cl_drawfps->value >= 2) {
+	} else if (cl_showfps->value >= 2) {
 		// Calculate average of frames.
 		int avg = 0;
 		int num = 0;
@@ -1478,7 +1478,7 @@ SCR_Framecounter(void) {
 		         (1000.0 * 1000.0) / min, (1000.0 * 1000.0) / max, (1000.0 * 1000.0) / (avg / num));
 		DrawStringScaled(viddef.width - scale*(strlen(str)*8 + 2), 0, str, scale);
 
-		if (cl_drawfps->value > 2)
+		if (cl_showfps->value > 2)
 		{
 			snprintf(str, sizeof(str), "Max: %5.2fms, Min: %5.2fms, Avg: %5.2fms",
 			         0.001f*min, 0.001f*max, 0.001f*(avg / num));

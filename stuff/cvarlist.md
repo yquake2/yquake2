@@ -27,7 +27,7 @@ General:
   If *cl_async* is set to `0` *gl_maxfps* is the same as *cl_maxfps*, use
   *cl_maxfps* to set the framerate.
 
-* **cl_drawfps**: Shows the framecounter. The shown value is rather
+* **cl_showfps**: Shows the framecounter. The shown value is rather
   inaccurate and gets less precise with higher framerates, as it only
   measures full milliseconds.
 
