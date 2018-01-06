@@ -70,7 +70,7 @@ extern qboolean have_stencil;
 unsigned r_rawpalette[256];
 
 cvar_t *gl_norefresh;
-cvar_t *gl_drawentities;
+cvar_t *r_drawentities;
 cvar_t *gl_drawworld;
 cvar_t *gl_speeds;
 cvar_t *gl_fullbright;
@@ -320,7 +320,7 @@ R_DrawEntitiesOnList(void)
 {
 	int i;
 
-	if (!gl_drawentities->value)
+	if (!r_drawentities->value)
 	{
 		return;
 	}
@@ -1202,7 +1202,7 @@ R_Register(void)
 	gl_farsee = ri.Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
 	gl_fullbright = ri.Cvar_Get("gl_fullbright", "0", 0);
-	gl_drawentities = ri.Cvar_Get("gl_drawentities", "1", 0);
+	r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 	gl_drawworld = ri.Cvar_Get("gl_drawworld", "1", 0);
 	gl_novis = ri.Cvar_Get("gl_novis", "0", 0);
 	gl_lerpmodels = ri.Cvar_Get("gl_lerpmodels", "1", 0);
