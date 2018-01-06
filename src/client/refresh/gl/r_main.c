@@ -74,7 +74,7 @@ cvar_t *r_drawentities;
 cvar_t *r_drawworld;
 cvar_t *gl_speeds;
 cvar_t *r_fullbright;
-cvar_t *gl_novis;
+cvar_t *r_novis;
 cvar_t *r_lerpmodels;
 cvar_t *gl_lefthand;
 cvar_t *gl_farsee;
@@ -1204,7 +1204,7 @@ R_Register(void)
 	r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
 	r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 	r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
-	gl_novis = ri.Cvar_Get("gl_novis", "0", 0);
+	r_novis = ri.Cvar_Get("r_novis", "0", 0);
 	r_lerpmodels = ri.Cvar_Get("r_lerpmodels", "1", 0);
 	gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
 

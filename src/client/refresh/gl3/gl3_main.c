@@ -112,7 +112,7 @@ cvar_t *r_drawworld;
 cvar_t *gl_nolerp_list;
 cvar_t *gl_nobind;
 cvar_t *gl_lockpvs;
-cvar_t *gl_novis;
+cvar_t *r_novis;
 cvar_t *gl_speeds;
 cvar_t *gl_finish;
 
@@ -239,7 +239,7 @@ GL3_Register(void)
 	gl_clear = ri.Cvar_Get("gl_clear", "0", 0);
 	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
 	gl_lockpvs = ri.Cvar_Get("gl_lockpvs", "0", 0);
-	gl_novis = ri.Cvar_Get("gl_novis", "0", 0);
+	r_novis = ri.Cvar_Get("r_novis", "0", 0);
 	gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
 	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
 
@@ -253,7 +253,7 @@ GL3_Register(void)
 	//r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
 	//r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 	//r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
-	//gl_novis = ri.Cvar_Get("gl_novis", "0", 0);
+	//r_novis = ri.Cvar_Get("r_novis", "0", 0);
 	//r_lerpmodels = ri.Cvar_Get("r_lerpmodels", "1", 0); NOTE: screw this, it looks horrible without
 	//gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);
 

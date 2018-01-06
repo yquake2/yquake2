@@ -984,7 +984,7 @@ R_MarkLeaves(void)
 
 	if ((r_oldviewcluster == r_viewcluster) &&
 		(r_oldviewcluster2 == r_viewcluster2) &&
-		!gl_novis->value &&
+		!r_novis->value &&
 		(r_viewcluster != -1))
 	{
 		return;
@@ -1001,7 +1001,7 @@ R_MarkLeaves(void)
 	r_oldviewcluster = r_viewcluster;
 	r_oldviewcluster2 = r_viewcluster2;
 
-	if (gl_novis->value || (r_viewcluster == -1) || !r_worldmodel->vis)
+	if (r_novis->value || (r_viewcluster == -1) || !r_worldmodel->vis)
 	{
 		/* mark everything */
 		for (i = 0; i < r_worldmodel->numleafs; i++)

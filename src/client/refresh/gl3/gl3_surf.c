@@ -855,7 +855,7 @@ GL3_MarkLeaves(void)
 
 	if ((gl3_oldviewcluster == gl3_viewcluster) &&
 		(gl3_oldviewcluster2 == gl3_viewcluster2) &&
-		!gl_novis->value &&
+		!r_novis->value &&
 		(gl3_viewcluster != -1))
 	{
 		return;
@@ -872,7 +872,7 @@ GL3_MarkLeaves(void)
 	gl3_oldviewcluster = gl3_viewcluster;
 	gl3_oldviewcluster2 = gl3_viewcluster2;
 
-	if (gl_novis->value || (gl3_viewcluster == -1) || !gl3_worldmodel->vis)
+	if (r_novis->value || (gl3_viewcluster == -1) || !gl3_worldmodel->vis)
 	{
 		/* mark everything */
 		for (i = 0; i < gl3_worldmodel->numleafs; i++)

@@ -489,7 +489,7 @@ extern cvar_t *gl_customheight;
 extern cvar_t *gl_nolerp_list;
 extern cvar_t *gl_nobind;
 extern cvar_t *gl_lockpvs;
-extern cvar_t *gl_novis;
+extern cvar_t *r_novis;
 
 extern cvar_t *gl_cull;
 extern cvar_t *gl_zfix;

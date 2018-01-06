@@ -43,7 +43,8 @@ replacement_t replacements[] = {
 	{"gl_fullbright", "r_fullbright"},
 	{"gl_lerpmodels", "r_lerpmodels"},
 	{"gl_lightlevel", "r_lightlevel"},
-	{"gl_norefresh", "r_norefresh"}
+	{"gl_norefresh", "r_norefresh"},
+	{"gl_novis", "r_novis"}
 };
 
 
