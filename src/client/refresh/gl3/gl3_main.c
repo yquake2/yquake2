@@ -118,7 +118,7 @@ cvar_t *gl_finish;
 
 cvar_t *gl_cull;
 cvar_t *gl_zfix;
-cvar_t *gl_fullbright;
+cvar_t *r_fullbright;
 cvar_t *gl_modulate;
 cvar_t *gl_lightmap;
 cvar_t *gl_shadows;
@@ -214,7 +214,7 @@ GL3_Register(void)
 	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
 	r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 	r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
-	gl_fullbright = ri.Cvar_Get("gl_fullbright", "0", 0);
+	r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
 
 	/* don't bilerp characters and crosshairs */
 	gl_nolerp_list = ri.Cvar_Get("gl_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
@@ -250,7 +250,7 @@ GL3_Register(void)
 	//gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	//gl_farsee = ri.Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 	//gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
-	//gl_fullbright = ri.Cvar_Get("gl_fullbright", "0", 0);
+	//r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
 	//r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 	//r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
 	//gl_novis = ri.Cvar_Get("gl_novis", "0", 0);

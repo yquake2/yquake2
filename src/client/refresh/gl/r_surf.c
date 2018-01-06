@@ -251,7 +251,7 @@ R_BlendLightmaps(void)
 	msurface_t *surf, *newdrawsurf = 0;
 
 	/* don't bother if we're set to fullbright */
-	if (gl_fullbright->value)
+	if (r_fullbright->value)
 	{
 		return;
 	}

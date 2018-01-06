@@ -634,7 +634,7 @@ cheatvar_t cheatvars[] = {
 	{"timedemo", "0"},
 	{"r_drawworld", "1"},
 	{"cl_testlights", "0"},
-	{"gl_fullbright", "0"},
+	{"r_fullbright", "0"},
 	{"gl_drawflat", "0"},
 	{"paused", "0"},
 	{"fixedtime", "0"},

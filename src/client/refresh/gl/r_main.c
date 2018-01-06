@@ -73,7 +73,7 @@ cvar_t *gl_norefresh;
 cvar_t *r_drawentities;
 cvar_t *r_drawworld;
 cvar_t *gl_speeds;
-cvar_t *gl_fullbright;
+cvar_t *r_fullbright;
 cvar_t *gl_novis;
 cvar_t *gl_lerpmodels;
 cvar_t *gl_lefthand;
@@ -1201,7 +1201,7 @@ R_Register(void)
 	gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	gl_farsee = ri.Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
-	gl_fullbright = ri.Cvar_Get("gl_fullbright", "0", 0);
+	r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
 	r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 	r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
 	gl_novis = ri.Cvar_Get("gl_novis", "0", 0);
