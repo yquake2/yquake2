@@ -495,7 +495,7 @@ extern cvar_t *gl_cull;
 extern cvar_t *gl_zfix;
 extern cvar_t *r_fullbright;
 
-extern cvar_t *gl_norefresh;
+extern cvar_t *r_norefresh;
 extern cvar_t *gl_lefthand;
 extern cvar_t *gl_farsee;
 extern cvar_t *r_drawworld;

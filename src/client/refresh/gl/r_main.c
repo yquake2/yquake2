@@ -69,7 +69,7 @@ int r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 extern qboolean have_stencil;
 unsigned r_rawpalette[256];
 
-cvar_t *gl_norefresh;
+cvar_t *r_norefresh;
 cvar_t *r_drawentities;
 cvar_t *r_drawworld;
 cvar_t *gl_speeds;
@@ -1062,7 +1062,7 @@ R_RenderView(refdef_t *fd)
 	}
 
 
-	if (gl_norefresh->value)
+	if (r_norefresh->value)
 	{
 		return;
 	}
@@ -1200,7 +1200,7 @@ R_Register(void)
 {
 	gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	gl_farsee = ri.Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
-	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
+	r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
 	r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
 	r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 	r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);

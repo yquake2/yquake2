@@ -42,7 +42,8 @@ replacement_t replacements[] = {
 	{"gl_drawworld", "r_drawworld"},
 	{"gl_fullbright", "r_fullbright"},
 	{"gl_lerpmodels", "r_lerpmodels"},
-	{"gl_lightlevel", "r_lightlevel"}
+	{"gl_lightlevel", "r_lightlevel"},
+	{"gl_norefresh", "r_norefresh"}
 };
 
 

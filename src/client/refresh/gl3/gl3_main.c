@@ -106,7 +106,7 @@ cvar_t *gl3_intensity_2D;
 cvar_t *r_lightlevel;
 cvar_t *gl3_overbrightbits;
 
-cvar_t *gl_norefresh;
+cvar_t *r_norefresh;
 cvar_t *r_drawentities;
 cvar_t *r_drawworld;
 cvar_t *gl_nolerp_list;
@@ -211,7 +211,7 @@ GL3_Register(void)
 	gl3_particle_fade_factor = ri.Cvar_Get("gl3_particle_fade_factor", "1.2", CVAR_ARCHIVE);
 	gl3_particle_square = ri.Cvar_Get("gl3_particle_square", "0", CVAR_ARCHIVE);
 
-	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
+	r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
 	r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 	r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
 	r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
@@ -249,7 +249,7 @@ GL3_Register(void)
 #if 0 // TODO!
 	//gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	//gl_farsee = ri.Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
-	//gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
+	//r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
 	//r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
 	//r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 	//r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
@@ -1415,7 +1415,7 @@ GL3_RenderView(refdef_t *fd)
 	}
 #endif // 0 (stereo stuff)
 
-	if (gl_norefresh->value)
+	if (r_norefresh->value)
 	{
 		return;
 	}
