@@ -172,7 +172,7 @@ extern cvar_t *r_drawworld;
 extern cvar_t *gl_speeds;
 extern cvar_t *r_fullbright;
 extern cvar_t *gl_novis;
-extern cvar_t *gl_lerpmodels;
+extern cvar_t *r_lerpmodels;
 
 extern cvar_t *gl_lightlevel;
 extern cvar_t *gl_overbrightbits;

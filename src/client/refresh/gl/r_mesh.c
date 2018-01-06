@@ -742,7 +742,7 @@ R_DrawAliasModel(entity_t *e)
 		currententity->oldframe = 0;
 	}
 
-	if (!gl_lerpmodels->value)
+	if (!r_lerpmodels->value)
 	{
 		currententity->backlerp = 0;
 	}
