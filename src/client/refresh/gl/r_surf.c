@@ -934,7 +934,7 @@ R_DrawWorld(void)
 {
 	entity_t ent;
 
-	if (!gl_drawworld->value)
+	if (!r_drawworld->value)
 	{
 		return;
 	}

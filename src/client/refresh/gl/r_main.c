@@ -71,7 +71,7 @@ unsigned r_rawpalette[256];
 
 cvar_t *gl_norefresh;
 cvar_t *r_drawentities;
-cvar_t *gl_drawworld;
+cvar_t *r_drawworld;
 cvar_t *gl_speeds;
 cvar_t *gl_fullbright;
 cvar_t *gl_novis;
@@ -1203,7 +1203,7 @@ R_Register(void)
 	gl_norefresh = ri.Cvar_Get("gl_norefresh", "0", 0);
 	gl_fullbright = ri.Cvar_Get("gl_fullbright", "0", 0);
 	r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
-	gl_drawworld = ri.Cvar_Get("gl_drawworld", "1", 0);
+	r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
 	gl_novis = ri.Cvar_Get("gl_novis", "0", 0);
 	gl_lerpmodels = ri.Cvar_Get("gl_lerpmodels", "1", 0);
 	gl_speeds = ri.Cvar_Get("gl_speeds", "0", 0);

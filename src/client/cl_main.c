@@ -632,7 +632,7 @@ typedef struct
 cheatvar_t cheatvars[] = {
 	{"timescale", "1"},
 	{"timedemo", "0"},
-	{"gl_drawworld", "1"},
+	{"r_drawworld", "1"},
 	{"cl_testlights", "0"},
 	{"gl_fullbright", "0"},
 	{"gl_drawflat", "0"},
