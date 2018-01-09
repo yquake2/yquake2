@@ -270,7 +270,7 @@ R_BlendLightmaps(void)
 	{
 		glEnable(GL_BLEND);
 
-		if (gl_saturatelighting->value)
+		if (gl1_saturatelighting->value)
 		{
 			glBlendFunc(GL_ONE, GL_ONE);
 		}

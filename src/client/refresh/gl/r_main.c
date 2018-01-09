@@ -119,7 +119,7 @@ cvar_t *r_clear;
 cvar_t *gl_cull;
 cvar_t *gl1_polyblend;
 cvar_t *gl1_flashblend;
-cvar_t *gl_saturatelighting;
+cvar_t *gl1_saturatelighting;
 cvar_t *gl_swapinterval;
 cvar_t *gl_texturemode;
 cvar_t *gl_texturealphamode;
@@ -1249,7 +1249,7 @@ R_Register(void)
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
 	gl_swapinterval = ri.Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
 
-	gl_saturatelighting = ri.Cvar_Get("gl_saturatelighting", "0", 0);
+	gl1_saturatelighting = ri.Cvar_Get("gl1_saturatelighting", "0", 0);
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.2", CVAR_ARCHIVE);

@@ -70,7 +70,8 @@ replacement_t replacements[] = {
 	{"gl_picmip", "gl1_picmip"},
 	{"gl_pointparameters", "gl1_pointparameters"},
 	{"gl_polyblend", "gl1_polyblend"},
-	{"gl_round_down", "gl1_round_down"}
+	{"gl_round_down", "gl1_round_down"},
+	{"gl_saturatelightning", "gl1_saturatelightning"}
 };
 
 

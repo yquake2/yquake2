@@ -218,7 +218,7 @@ extern cvar_t *gl_anisotropic;
 extern cvar_t *gl_texturemode;
 extern cvar_t *gl_texturealphamode;
 extern cvar_t *gl_texturesolidmode;
-extern cvar_t *gl_saturatelighting;
+extern cvar_t *gl1_saturatelighting;
 extern cvar_t *r_lockpvs;
 extern cvar_t *gl_msaa_samples;
 
