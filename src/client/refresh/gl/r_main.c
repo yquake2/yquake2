@@ -90,7 +90,7 @@ cvar_t *gl1_particle_att_b;
 cvar_t *gl1_particle_att_c;
 
 cvar_t *gl1_palettedtexture;
-cvar_t *gl_pointparameters;
+cvar_t *gl1_pointparameters;
 
 cvar_t *gl_drawbuffer;
 cvar_t *gl_lightmap;
@@ -1244,7 +1244,7 @@ R_Register(void)
 	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 
 	gl1_palettedtexture = ri.Cvar_Get("gl1_palettedtexture", "0", CVAR_ARCHIVE);
-	gl_pointparameters = ri.Cvar_Get("gl_pointparameters", "1", CVAR_ARCHIVE);
+	gl1_pointparameters = ri.Cvar_Get("gl1_pointparameters", "1", CVAR_ARCHIVE);
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
 	gl_swapinterval = ri.Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
@@ -1476,7 +1476,7 @@ RI_Init()
 
 	gl_config.pointparameters = false;
 
-	if (gl_pointparameters->value)
+	if (gl1_pointparameters->value)
 	{
 		if (qglPointParameterfARB && qglPointParameterfvARB)
 		{
