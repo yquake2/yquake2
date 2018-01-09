@@ -597,7 +597,7 @@ R_MakeSkyVec(float s, float t, int axis)
 	vec3_t v, b;
 	int j, k;
 
-	if (gl_farsee->value == 0)
+	if (r_farsee->value == 0)
 	{
 		b[0] = s * 2300;
 		b[1] = t * 2300;

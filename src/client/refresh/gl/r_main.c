@@ -77,7 +77,7 @@ cvar_t *r_fullbright;
 cvar_t *r_novis;
 cvar_t *r_lerpmodels;
 cvar_t *gl_lefthand;
-cvar_t *gl_farsee;
+cvar_t *r_farsee;
 
 cvar_t *r_lightlevel;
 cvar_t *gl_overbrightbits;
@@ -793,7 +793,7 @@ R_SetupGL(void)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	if (gl_farsee->value == 0)
+	if (r_farsee->value == 0)
 	{
 		R_MYgluPerspective(r_newrefdef.fov_y, screenaspect, 4, 4096);
 	}
@@ -1199,7 +1199,7 @@ void
 R_Register(void)
 {
 	gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
-	gl_farsee = ri.Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
+	r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 	r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
 	r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
 	r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);

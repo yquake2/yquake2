@@ -99,7 +99,7 @@ cvar_t *gl3_particle_fade_factor;
 cvar_t *gl3_particle_square;
 
 cvar_t *gl_lefthand;
-cvar_t *gl_farsee;
+cvar_t *r_farsee;
 
 cvar_t *gl3_intensity;
 cvar_t *gl3_intensity_2D;
@@ -195,7 +195,7 @@ static void
 GL3_Register(void)
 {
 	gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
-	gl_farsee = ri.Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
+	r_farsee = ri.Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
 	gl_swapinterval = ri.Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
@@ -1242,7 +1242,7 @@ SetupGL(void)
 	/* set up projection matrix (eye coordinates -> clip coordinates) */
 	{
 		float screenaspect = (float)gl3_newrefdef.width / gl3_newrefdef.height;
-		float dist = (gl_farsee->value == 0) ? 4096.0f : 8192.0f;
+		float dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
 		gl3_projectionMatrix = GL3_MYgluPerspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
 	}
 

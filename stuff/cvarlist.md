@@ -115,7 +115,7 @@ Graphics (all renderers):
   *r_customwidth* pixels wide. Set *gl_mode* to `-1` to use the custom
   resolution.
 
-* **gl_farsee**: Normally Quake II renders only up to 4096 units. If set
+* **r_farsee**: Normally Quake II renders only up to 4096 units. If set
   to `1` the limit is increased to 8192 units.
 
 * **gl_maxfps**: The maximum framerate, if `cl_async` is `1`. Otherwise

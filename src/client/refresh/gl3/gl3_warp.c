@@ -606,7 +606,7 @@ MakeSkyVec(float s, float t, int axis, gl3_3D_vtx_t* vert)
 	vec3_t v, b;
 	int j, k;
 
-	float dist = (gl_farsee->value == 0) ? 2300.0f : 4096.0f;
+	float dist = (r_farsee->value == 0) ? 2300.0f : 4096.0f;
 
 	b[0] = s * dist;
 	b[1] = t * dist;
