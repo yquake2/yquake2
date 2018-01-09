@@ -21,10 +21,10 @@ General:
   This makes it possible to renderer as many frames as desired without
   any physics and movement problems. The client framerate is controlled
   by *cl_maxfps*, set to `60` by defaut. The renderer framerate is
-  controlled by *gl_maxfps*. There are two constraints: *gl_maxfps* must
+  controlled by *vid_maxfps*. There are two constraints: *vid_maxfps* must
   be the same or greater than *cl_maxfps*. In case that the vsync is
-  active, *gl_maxfps* must not be lower than the display refresh rate.
-  If *cl_async* is set to `0` *gl_maxfps* is the same as *cl_maxfps*, use
+  active, *vid_maxfps* must not be lower than the display refresh rate.
+  If *cl_async* is set to `0` *vid_maxfps* is the same as *cl_maxfps*, use
   *cl_maxfps* to set the framerate.
 
 * **cl_showfps**: Shows the framecounter. The shown value is rather
@@ -118,7 +118,7 @@ Graphics (all renderers):
 * **r_farsee**: Normally Quake II renders only up to 4096 units. If set
   to `1` the limit is increased to 8192 units.
 
-* **gl_maxfps**: The maximum framerate, if `cl_async` is `1`. Otherwise
+* **vid_maxfps**: The maximum framerate, if `cl_async` is `1`. Otherwise
   `cl_maxfps` is used as maximum framerate. See `cl_async` description
   above for more information.  
   *Note* that vsync (`gl_swapinterval`) also restricts the framerate to

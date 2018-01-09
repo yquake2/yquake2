@@ -43,7 +43,7 @@ extern zhead_t z_chain;
 FILE *log_stats_file;
 cvar_t *cl_async;
 cvar_t *cl_timedemo;
-cvar_t *gl_maxfps;
+cvar_t *vid_maxfps;
 cvar_t *host_speeds;
 cvar_t *log_stats;
 cvar_t *showtrace;
@@ -136,7 +136,7 @@ Qcommon_Init(int argc, char **argv)
 	cl_async = Cvar_Get("cl_async", "1", CVAR_ARCHIVE);
 	cl_timedemo = Cvar_Get("timedemo", "0", 0);
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET);
-	gl_maxfps = Cvar_Get("gl_maxfps", "95", CVAR_ARCHIVE);
+	vid_maxfps = Cvar_Get("vid_maxfps", "95", CVAR_ARCHIVE);
 	host_speeds = Cvar_Get("host_speeds", "0", 0);
 	log_stats = Cvar_Get("log_stats", "0", 0);
 	showtrace = Cvar_Get("showtrace", "0", 0);
@@ -293,11 +293,11 @@ Qcommon_Frame(int msec)
 		c_pointcontents = 0;
 	}
 
-	// gl_maxfps > 1000 breaks things, and so does <= 0
+	// vid_maxfps > 1000 breaks things, and so does <= 0
 	// so cap to 1000 and treat <= 0 as "as fast as possible", which is 1000
-	if (gl_maxfps->value > 1000 || gl_maxfps->value < 1)
+	if (vid_maxfps->value > 1000 || vid_maxfps->value < 1)
 	{
-		Cvar_SetValue("gl_maxfps", 1000);
+		Cvar_SetValue("vid_maxfps", 1000);
 	}
 
 	if(cl_maxfps->value > 250)
@@ -319,14 +319,14 @@ Qcommon_Frame(int msec)
 	{
 		rfps = GLimp_GetRefreshRate();
 
-		if (rfps > gl_maxfps->value)
+		if (rfps > vid_maxfps->value)
 		{
-			rfps = (int)gl_maxfps->value;
+			rfps = (int)vid_maxfps->value;
 		}
 	}
 	else
 	{
-		rfps = (int)gl_maxfps->value;
+		rfps = (int)vid_maxfps->value;
 	}
 
 	pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
