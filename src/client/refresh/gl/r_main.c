@@ -120,7 +120,7 @@ cvar_t *gl_cull;
 cvar_t *gl1_polyblend;
 cvar_t *gl1_flashblend;
 cvar_t *gl1_saturatelighting;
-cvar_t *gl_swapinterval;
+cvar_t *r_vsync;
 cvar_t *gl_texturemode;
 cvar_t *gl_texturealphamode;
 cvar_t *gl_texturesolidmode;
@@ -1247,7 +1247,7 @@ R_Register(void)
 	gl1_pointparameters = ri.Cvar_Get("gl1_pointparameters", "1", CVAR_ARCHIVE);
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
-	gl_swapinterval = ri.Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
+	r_vsync = ri.Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
 
 	gl1_saturatelighting = ri.Cvar_Get("gl1_saturatelighting", "0", 0);
 
@@ -1719,9 +1719,9 @@ RI_BeginFrame(float camera_separation)
 		gl_texturesolidmode->modified = false;
 	}
 
-	if (gl_swapinterval->modified)
+	if (r_vsync->modified)
 	{
-		gl_swapinterval->modified = false;
+		r_vsync->modified = false;
 		RI_SetSwapInterval();
 	}
 

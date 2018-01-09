@@ -41,7 +41,7 @@ extern cvar_t *scr_viewsize;
 extern cvar_t *vid_gamma;
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_renderer;
-static cvar_t *gl_swapinterval;
+static cvar_t *r_vsync;
 static cvar_t *gl_anisotropic;
 static cvar_t *gl_msaa_samples;
 
@@ -210,9 +210,9 @@ ApplyChanges(void *unused)
 	Cvar_SetValue("vid_fullscreen", s_fs_box.curvalue);
 
 	/* vertical sync */
-	if (gl_swapinterval->value != s_vsync_list.curvalue)
+	if (r_vsync->value != s_vsync_list.curvalue)
 	{
-		Cvar_SetValue("gl_swapinterval", s_vsync_list.curvalue);
+		Cvar_SetValue("r_vsync", s_vsync_list.curvalue);
 		restart = true;
 	}
 
@@ -368,9 +368,9 @@ VID_MenuInit(void)
 		vid_renderer = Cvar_Get("vid_renderer", "gl1", CVAR_ARCHIVE);
 	}
 
-	if (!gl_swapinterval)
+	if (!r_vsync)
 	{
-		gl_swapinterval = Cvar_Get("gl_swapinterval", "1", CVAR_ARCHIVE);
+		r_vsync = Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
 	}
 
 	if (!gl_anisotropic)
@@ -464,7 +464,7 @@ VID_MenuInit(void)
 	s_vsync_list.generic.x = 0;
 	s_vsync_list.generic.y = (y += 10);
 	s_vsync_list.itemnames = yesno_names;
-	s_vsync_list.curvalue = (gl_swapinterval->value != 0);
+	s_vsync_list.curvalue = (r_vsync->value != 0);
 
 	s_af_list.generic.type = MTYPE_SPINCONTROL;
 	s_af_list.generic.name = "aniso filtering";

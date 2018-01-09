@@ -91,7 +91,7 @@ int GL3_PrepareForWindow(void)
 
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
 	/* Set vsync - For SDL1.2, this must be done before creating the window */
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, gl_swapinterval->value ? 1 : 0);
+	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, r_vsync->value ? 1 : 0);
 #endif
 
 	if (gl_msaa_samples->value)
@@ -219,7 +219,7 @@ int GL3_InitContext(void* win)
 	/* For SDL2, this must be done after creating the window */
 	GL3_SetSwapInterval();
 #else // SDL1.2 - set vsyncActive to whatever is configured, hoping it was actually set
-	vsyncActive = gl_swapinterval->value ? 1 : 0;
+	vsyncActive = r_vsync->value ? 1 : 0;
 #endif
 
 	/* Initialize the stencil buffer */
@@ -287,10 +287,10 @@ void GL3_SetSwapInterval(void)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	/* Set vsync - TODO: -1 could be set for "late swap tearing" */
-	SDL_GL_SetSwapInterval(gl_swapinterval->value ? 1 : 0);
+	SDL_GL_SetSwapInterval(r_vsync->value ? 1 : 0);
 	vsyncActive = SDL_GL_GetSwapInterval() != 0;
 #else
-	R_Printf(PRINT_ALL, "SDL1.2 requires a vid_restart to apply changes to gl_swapinterval (vsync)!\n");
+	R_Printf(PRINT_ALL, "SDL1.2 requires a vid_restart to apply changes to r_vsync (vsync)!\n");
 #endif
 }
 

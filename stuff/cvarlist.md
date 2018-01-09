@@ -121,7 +121,7 @@ Graphics (all renderers):
 * **vid_maxfps**: The maximum framerate, if `cl_async` is `1`. Otherwise
   `cl_maxfps` is used as maximum framerate. See `cl_async` description
   above for more information.  
-  *Note* that vsync (`gl_swapinterval`) also restricts the framerate to
+  *Note* that vsync (`r_vsync`) also restricts the framerate to
   the monitor refresh rate, so if vsync is enabled, you won't get more than
   60fps on most displays (or 120 on a 120hz display etc).
 
@@ -142,7 +142,7 @@ Graphics (all renderers):
 * **gl_shadows**: Enables rendering of shadows. Quake IIs shadows are
   very simple and are prone to render errors.
 
-* **gl_swapinterval**: Enables the vsync: frames are synchronized with
+* **r_vsync**: Enables the vsync: frames are synchronized with
   display refresh rate, should (but doesn't always) prevent tearing.
 
 * **gl_zfix**: Sometimes two or even more surfaces overlap and flicker.
