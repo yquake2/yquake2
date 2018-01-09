@@ -60,7 +60,13 @@ replacement_t replacements[] = {
 	{"gl_mode", "r_mode"},
 	{"gl_modulate", "r_modulate"},
 	{"gl_overbrightbits", "gl1_overbrightbits"},
-	{"gl_palettedtextures", "gl1_palettedtextures"}
+	{"gl_palettedtextures", "gl1_palettedtextures"},
+	{"gl_particle_min_size", "gl1_particle_min_size"},
+	{"gl_particle_max_size", "gl1_particle_max_size"},
+	{"gl_particle_size", "gl1_particle_size"},
+	{"gl_particle_att_a", "gl1_particle_att_a"},
+	{"gl_particle_att_b", "gl1_particle_att_b"},
+	{"gl_particle_att_c", "gl1_particle_att_c"}
 };
 
 

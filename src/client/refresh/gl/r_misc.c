@@ -185,17 +185,17 @@ R_SetDefaultState(void)
 	{
 		float attenuations[3];
 
-		attenuations[0] = gl_particle_att_a->value;
-		attenuations[1] = gl_particle_att_b->value;
-		attenuations[2] = gl_particle_att_c->value;
+		attenuations[0] = gl1_particle_att_a->value;
+		attenuations[1] = gl1_particle_att_b->value;
+		attenuations[2] = gl1_particle_att_c->value;
 
 		/* GL_POINT_SMOOTH is not implemented by some OpenGL
 		   drivers, especially the crappy Mesa3D backends like
 		   i915.so. That the points are squares and not circles
 		   is not a problem by Quake II! */
 		glEnable(GL_POINT_SMOOTH);
-		qglPointParameterfARB(GL_POINT_SIZE_MIN_EXT, gl_particle_min_size->value);
-		qglPointParameterfARB(GL_POINT_SIZE_MAX_EXT, gl_particle_max_size->value);
+		qglPointParameterfARB(GL_POINT_SIZE_MIN_EXT, gl1_particle_min_size->value);
+		qglPointParameterfARB(GL_POINT_SIZE_MAX_EXT, gl1_particle_max_size->value);
 		qglPointParameterfvARB(GL_DISTANCE_ATTENUATION_EXT, attenuations);
 	}
 

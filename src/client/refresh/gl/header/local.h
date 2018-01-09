@@ -180,12 +180,12 @@ extern cvar_t *gl1_overbrightbits;
 extern cvar_t *gl1_palettedtexture;
 extern cvar_t *gl_pointparameters;
 
-extern cvar_t *gl_particle_min_size;
-extern cvar_t *gl_particle_max_size;
-extern cvar_t *gl_particle_size;
-extern cvar_t *gl_particle_att_a;
-extern cvar_t *gl_particle_att_b;
-extern cvar_t *gl_particle_att_c;
+extern cvar_t *gl1_particle_min_size;
+extern cvar_t *gl1_particle_max_size;
+extern cvar_t *gl1_particle_size;
+extern cvar_t *gl1_particle_att_a;
+extern cvar_t *gl1_particle_att_b;
+extern cvar_t *gl1_particle_att_c;
 
 extern cvar_t *r_mode;
 extern cvar_t *r_customwidth;

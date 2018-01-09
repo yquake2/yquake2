@@ -82,12 +82,12 @@ cvar_t *r_farsee;
 cvar_t *r_lightlevel;
 cvar_t *gl1_overbrightbits;
 
-cvar_t *gl_particle_min_size;
-cvar_t *gl_particle_max_size;
-cvar_t *gl_particle_size;
-cvar_t *gl_particle_att_a;
-cvar_t *gl_particle_att_b;
-cvar_t *gl_particle_att_c;
+cvar_t *gl1_particle_min_size;
+cvar_t *gl1_particle_max_size;
+cvar_t *gl1_particle_size;
+cvar_t *gl1_particle_att_a;
+cvar_t *gl1_particle_att_b;
+cvar_t *gl1_particle_att_c;
 
 cvar_t *gl1_palettedtexture;
 cvar_t *gl_pointparameters;
@@ -534,7 +534,7 @@ R_DrawParticles(void)
 		glDisable(GL_TEXTURE_2D);
 
 		// assume the particle size looks good with window height 480px and scale according to real resolution
-		glPointSize(gl_particle_size->value * (float)r_newrefdef.height/480.0f);
+		glPointSize(gl1_particle_size->value * (float)r_newrefdef.height/480.0f);
 
 		for ( i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++ )
 		{
@@ -1211,12 +1211,12 @@ R_Register(void)
 	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
 	gl1_overbrightbits = ri.Cvar_Get("gl1_overbrightbits", "0", CVAR_ARCHIVE);
 
-	gl_particle_min_size = ri.Cvar_Get("gl_particle_min_size", "2", CVAR_ARCHIVE);
-	gl_particle_max_size = ri.Cvar_Get("gl_particle_max_size", "40", CVAR_ARCHIVE);
-	gl_particle_size = ri.Cvar_Get("gl_particle_size", "40", CVAR_ARCHIVE);
-	gl_particle_att_a = ri.Cvar_Get("gl_particle_att_a", "0.01", CVAR_ARCHIVE);
-	gl_particle_att_b = ri.Cvar_Get("gl_particle_att_b", "0.0", CVAR_ARCHIVE);
-	gl_particle_att_c = ri.Cvar_Get("gl_particle_att_c", "0.01", CVAR_ARCHIVE);
+	gl1_particle_min_size = ri.Cvar_Get("gl1_particle_min_size", "2", CVAR_ARCHIVE);
+	gl1_particle_max_size = ri.Cvar_Get("gl1_particle_max_size", "40", CVAR_ARCHIVE);
+	gl1_particle_size = ri.Cvar_Get("gl1_particle_size", "40", CVAR_ARCHIVE);
+	gl1_particle_att_a = ri.Cvar_Get("gl1_particle_att_a", "0.01", CVAR_ARCHIVE);
+	gl1_particle_att_b = ri.Cvar_Get("gl1_particle_att_b", "0.0", CVAR_ARCHIVE);
+	gl1_particle_att_c = ri.Cvar_Get("gl1_particle_att_c", "0.01", CVAR_ARCHIVE);
 
 	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
 	r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
