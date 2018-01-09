@@ -1,0 +1,12 @@
+* Softrenderer importieren 
+  * In Makefile aktiviert
+  * cmake-Unterstützung für das Ding bauen
+* Nach dem Softrenderer das lange erwartete cvar-Cleanup
+* SDL 1.2 entfernen, da überholt
+* SDL_main() zumindest für Windows
+* UTF-8 für Pfade unter Windows. In Client und Server könnte man
+  dafür fopen() und co. durch Wrapper ersetzen, die UTF-16 von der
+  WinAPI entsprechend wandeln und umgekehrt. Für die game.dll
+  kann vor dem Aufruf der dortigen Save-Funktionen das Working-
+  Dir ändern und einen relatien Pfad übergeben.
+
