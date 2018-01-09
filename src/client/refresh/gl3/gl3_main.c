@@ -122,8 +122,6 @@ cvar_t *r_fullbright;
 cvar_t *r_modulate;
 cvar_t *gl_lightmap;
 cvar_t *gl_shadows;
-// no gl_stencilshadows, always use stencil (if available)
-
 cvar_t *gl3_debugcontext;
 
 // Yaw-Pitch-Roll
@@ -266,7 +264,6 @@ GL3_Register(void)
 	//r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
 	//gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
 	//gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
-	//gl_stencilshadow = ri.Cvar_Get("gl_stencilshadow", "0", CVAR_ARCHIVE);
 	//gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
 	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
 	gl_showbbox = Cvar_Get("gl_showbbox", "0", 0);
@@ -300,10 +297,10 @@ GL3_Register(void)
 	//gl_retexturing = ri.Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
 
 
-	gl_stereo = ri.Cvar_Get( "gl_stereo", "0", CVAR_ARCHIVE );
-	gl_stereo_separation = ri.Cvar_Get( "gl_stereo_separation", "-0.4", CVAR_ARCHIVE );
-	gl_stereo_anaglyph_colors = ri.Cvar_Get( "gl_stereo_anaglyph_colors", "rc", CVAR_ARCHIVE );
-	gl_stereo_convergence = ri.Cvar_Get( "gl_stereo_convergence", "1", CVAR_ARCHIVE );
+	gl1_stereo = ri.Cvar_Get( "gl1_stereo", "0", CVAR_ARCHIVE );
+	gl1_stereo_separation = ri.Cvar_Get( "gl1_stereo_separation", "-0.4", CVAR_ARCHIVE );
+	gl1_stereo_anaglyph_colors = ri.Cvar_Get( "gl1_stereo_anaglyph_colors", "rc", CVAR_ARCHIVE );
+	gl1_stereo_convergence = ri.Cvar_Get( "gl1_stereo_convergence", "1", CVAR_ARCHIVE );
 #endif // 0
 
 	ri.Cmd_AddCommand("imagelist", GL3_ImageList_f);
@@ -467,7 +464,7 @@ GL3_Init(void)
 
 	/* set our "safe" mode */
 	gl3state.prev_mode = 4;
-	//gl_state.stereo_mode = gl_stereo->value;
+	//gl_state.stereo_mode = gl1_stereo->value;
 
 	/* create the window and set up the context */
 	if (!GL3_SetMode())
@@ -1183,8 +1180,8 @@ GL3_MYgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zF
 	right = top * aspect;
 
 	// TODO:  stereo stuff
-	// left += - gl_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
-	// right += - gl_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
+	// left += - gl1_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
+	// right += - gl1_stereo_convergence->value * (2 * gl_state.camera_separation) / zNear;
 
 	// the following emulates glFrustum(left, right, bottom, top, zNear, zFar)
 	// see https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
@@ -1306,12 +1303,12 @@ GL3_RenderView(refdef_t *fd)
 					// Work out the colour for each eye.
 					int anaglyph_colours[] = { 0x4, 0x3 }; // Left = red, right = cyan.
 
-					if (strlen(gl_stereo_anaglyph_colors->string) == 2) {
+					if (strlen(gl1_stereo_anaglyph_colors->string) == 2) {
 						int eye, colour, missing_bits;
 						// Decode the colour name from its character.
 						for (eye = 0; eye < 2; ++eye) {
 							colour = 0;
-							switch (toupper(gl_stereo_anaglyph_colors->string[eye])) {
+							switch (toupper(gl1_stereo_anaglyph_colors->string[eye])) {
 								case 'B': ++colour; // 001 Blue
 								case 'G': ++colour; // 010 Green
 								case 'C': ++colour; // 011 Cyan
@@ -1611,11 +1608,11 @@ GL3_BeginFrame(float camera_separation)
 
 #if 0 // TODO: stereo stuff
 	gl_state.camera_separation = camera_separation;
-	// force a vid_restart if gl_stereo has been modified.
-	if ( gl_state.stereo_mode != gl_stereo->value ) {
+	// force a vid_restart if gl1_stereo has been modified.
+	if ( gl_state.stereo_mode != gl1_stereo->value ) {
 		// If we've gone from one mode to another with the same special buffer requirements there's no need to restart.
-		if ( GL_GetSpecialBufferModeForStereoMode( gl_state.stereo_mode ) == GL_GetSpecialBufferModeForStereoMode( gl_stereo->value )  ) {
-			gl_state.stereo_mode = gl_stereo->value;
+		if ( GL_GetSpecialBufferModeForStereoMode( gl_state.stereo_mode ) == GL_GetSpecialBufferModeForStereoMode( gl1_stereo->value )  ) {
+			gl_state.stereo_mode = gl1_stereo->value;
 		}
 		else
 		{

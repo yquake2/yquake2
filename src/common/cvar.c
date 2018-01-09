@@ -71,7 +71,12 @@ replacement_t replacements[] = {
 	{"gl_pointparameters", "gl1_pointparameters"},
 	{"gl_polyblend", "gl1_polyblend"},
 	{"gl_round_down", "gl1_round_down"},
-	{"gl_saturatelightning", "gl1_saturatelightning"}
+	{"gl_saturatelightning", "gl1_saturatelightning"},
+	{"gl_stencilshadows", "gl1_stencilshadows"},
+	{"gl_stereo", "gl1_stereo"},
+	{"gl_stereo_separation", "gl1_stereo_separation"},
+	{"gl_stereo_anaglyph_colors", "gl1_stereo_anaglyph_colors"},
+	{"gl_stereo_convergence", "gl1_stereo_convergence"}
 };
 
 

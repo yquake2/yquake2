@@ -163,7 +163,7 @@ Graphics (GL1 only):
   for water), `2` (scale by factor 2) and `3` (scale by factor 3).  
   Applied in realtime, does not need `vid_restart`.
 
-* **gl_stencilshadow**: If `gl_shadows` is set to `1`, this makes them
+* **gl1_stencilshadow**: If `gl_shadows` is set to `1`, this makes them
   look a bit better (no flickering) by using the stencil buffer.
   (This is always done in GL3, so not configurable there)
 

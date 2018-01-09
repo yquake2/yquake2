@@ -1518,11 +1518,11 @@ SCR_UpdateScreen(void)
 		return; /* not initialized yet */
 	}
 
-	if ( gl_stereo->value )
+	if ( gl1_stereo->value )
 	{
 		numframes = 2;
-		separation[0] = -gl_stereo_separation->value / 2;
-		separation[1] = +gl_stereo_separation->value / 2;
+		separation[0] = -gl1_stereo_separation->value / 2;
+		separation[1] = +gl1_stereo_separation->value / 2;
 	}		
 	else
 	{

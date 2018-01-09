@@ -266,7 +266,7 @@ R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 	height = -lheight + 0.1f;
 
 	/* stencilbuffer shadows */
-	if (have_stencil && gl_stencilshadow->value)
+	if (have_stencil && gl1_stencilshadow->value)
 	{
 		glEnable(GL_STENCIL_TEST);
 		glStencilFunc(GL_EQUAL, 1, 2);
@@ -324,7 +324,7 @@ R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 	}
 
 	/* stencilbuffer shadows */
-	if (have_stencil && gl_stencilshadow->value)
+	if (have_stencil && gl1_stencilshadow->value)
 	{
 		glDisable(GL_STENCIL_TEST);
 	}

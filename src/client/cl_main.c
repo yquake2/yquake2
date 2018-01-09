@@ -79,9 +79,9 @@ cvar_t *hand;
 cvar_t *gender;
 cvar_t *gender_auto;
 
-cvar_t	*gl_stereo;
-cvar_t	*gl_stereo_separation;
-cvar_t	*gl_stereo_convergence;
+cvar_t	*gl1_stereo;
+cvar_t	*gl1_stereo_separation;
+cvar_t	*gl1_stereo_convergence;
 
 cvar_t *cl_vwep;
 
@@ -508,9 +508,9 @@ CL_InitLocal(void)
 	cl_timeout = Cvar_Get("cl_timeout", "120", 0);
 	cl_paused = Cvar_Get("paused", "0", 0);
 
-	gl_stereo = Cvar_Get( "gl_stereo", "0", CVAR_ARCHIVE );
-	gl_stereo_separation = Cvar_Get( "gl_stereo_separation", "1", CVAR_ARCHIVE );
-	gl_stereo_convergence = Cvar_Get( "gl_stereo_convergence", "1.4", CVAR_ARCHIVE );
+	gl1_stereo = Cvar_Get( "gl1_stereo", "0", CVAR_ARCHIVE );
+	gl1_stereo_separation = Cvar_Get( "gl1_stereo_separation", "1", CVAR_ARCHIVE );
+	gl1_stereo_convergence = Cvar_Get( "gl1_stereo_convergence", "1.4", CVAR_ARCHIVE );
 
 	rcon_client_password = Cvar_Get("rcon_password", "", 0);
 	rcon_address = Cvar_Get("rcon_address", "", 0);
