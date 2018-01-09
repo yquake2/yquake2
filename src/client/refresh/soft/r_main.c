@@ -147,6 +147,8 @@ cvar_t  *r_lerpmodels;
 cvar_t  *r_novis;
 cvar_t  *r_modulate;
 cvar_t  *r_vsync;
+cvar_t  *r_customwidth;
+cvar_t  *r_customheight;
 
 cvar_t	*r_speeds;
 cvar_t	*r_lightlevel;	//FIXME HACK
@@ -288,6 +290,8 @@ void R_Register (void)
 	r_novis = ri.Cvar_Get( "r_novis", "0", 0 );
 	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
 	r_vsync = ri.Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
+	r_customwidth = ri.Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
+	r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
 
 	vid_fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", CVAR_ARCHIVE );
 	vid_gamma = ri.Cvar_Get( "vid_gamma", "1.0", CVAR_ARCHIVE );
@@ -1108,6 +1112,12 @@ void RE_BeginFrame( float camera_separation )
 	{
 		rserr_t err;
 
+		if (r_mode->value == -1)
+		{
+			vid.width = r_customwidth->value;
+			vid.height = r_customheight->value;
+		}
+
 		/*
 		** if this returns rserr_invalid_fullscreen then it set the mode but not as a
 		** fullscreen mode, e.g. 320x200 on a system that doesn't support that res
@@ -1125,7 +1135,7 @@ void RE_BeginFrame( float camera_separation )
 		{
 			if ( err == rserr_invalid_mode )
 			{
-				ri.Cvar_SetValue( "sw_mode", sw_state.prev_mode );
+				ri.Cvar_SetValue( "r_mode", sw_state.prev_mode );
 				R_Printf( PRINT_ALL, "ref_soft::RE_BeginFrame() - could not set mode\n" );
 			}
 			else if ( err == rserr_invalid_fullscreen )
@@ -1990,7 +2000,7 @@ rserr_t SWimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen )
 
 	R_Printf (PRINT_ALL, "setting mode %d:", mode );
 
-	if ( !ri.Vid_GetModeInfo( pwidth, pheight, mode ) )
+	if ((mode != -1) && !ri.Vid_GetModeInfo( pwidth, pheight, mode ) )
 	{
 		R_Printf( PRINT_ALL, " invalid mode\n" );
 		return rserr_invalid_mode;
