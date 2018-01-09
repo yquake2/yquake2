@@ -98,8 +98,8 @@ cvar_t *gl_shadows;
 cvar_t *gl_stencilshadow;
 cvar_t *gl_mode;
 
-cvar_t *gl_customwidth;
-cvar_t *gl_customheight;
+cvar_t *r_customwidth;
+cvar_t *r_customheight;
 
 cvar_t *gl_retexturing;
 
@@ -1254,8 +1254,8 @@ R_Register(void)
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.2", CVAR_ARCHIVE);
 
-	gl_customwidth = ri.Cvar_Get("gl_customwidth", "1024", CVAR_ARCHIVE);
-	gl_customheight = ri.Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
+	r_customwidth = ri.Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
+	r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
 	gl_msaa_samples = ri.Cvar_Get ( "gl_msaa_samples", "0", CVAR_ARCHIVE );
 
 	gl_retexturing = ri.Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
@@ -1313,8 +1313,8 @@ R_SetMode(void)
 
 	/* a bit hackish approach to enable custom resolutions:
 	   Glimp_SetMode needs these values set for mode -1 */
-	vid.width = gl_customwidth->value;
-	vid.height = gl_customheight->value;
+	vid.width = r_customwidth->value;
+	vid.height = r_customheight->value;
 
 	if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value,
 					 fullscreen)) == rserr_ok)

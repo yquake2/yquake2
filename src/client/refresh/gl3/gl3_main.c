@@ -87,8 +87,8 @@ cvar_t *gl_swapinterval;
 cvar_t *gl_retexturing;
 cvar_t *vid_fullscreen;
 cvar_t *gl_mode;
-cvar_t *gl_customwidth;
-cvar_t *gl_customheight;
+cvar_t *r_customwidth;
+cvar_t *r_customheight;
 cvar_t *vid_gamma;
 cvar_t *gl_anisotropic;
 cvar_t *gl_texturemode;
@@ -205,8 +205,8 @@ GL3_Register(void)
 	gl_retexturing = ri.Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
 	gl3_debugcontext = ri.Cvar_Get("gl3_debugcontext", "0", 0);
 	gl_mode = ri.Cvar_Get("gl_mode", "4", CVAR_ARCHIVE);
-	gl_customwidth = ri.Cvar_Get("gl_customwidth", "1024", CVAR_ARCHIVE);
-	gl_customheight = ri.Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
+	r_customwidth = ri.Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
+	r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
 	gl3_particle_size = ri.Cvar_Get("gl3_particle_size", "40", CVAR_ARCHIVE);
 	gl3_particle_fade_factor = ri.Cvar_Get("gl3_particle_fade_factor", "1.2", CVAR_ARCHIVE);
 	gl3_particle_square = ri.Cvar_Get("gl3_particle_square", "0", CVAR_ARCHIVE);
@@ -303,8 +303,8 @@ GL3_Register(void)
 	//vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	//vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
 
-	//gl_customwidth = ri.Cvar_Get("gl_customwidth", "1024", CVAR_ARCHIVE);
-	//gl_customheight = ri.Cvar_Get("gl_customheight", "768", CVAR_ARCHIVE);
+	//r_customwidth = ri.Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
+	//r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
 	//gl_msaa_samples = ri.Cvar_Get ( "gl_msaa_samples", "0", CVAR_ARCHIVE );
 
 	//gl_retexturing = ri.Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
@@ -374,8 +374,8 @@ GL3_SetMode(void)
 
 	/* a bit hackish approach to enable custom resolutions:
 	   Glimp_SetMode needs these values set for mode -1 */
-	vid.width = gl_customwidth->value;
-	vid.height = gl_customheight->value;
+	vid.width = r_customwidth->value;
+	vid.height = r_customheight->value;
 
 	if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value,
 					 fullscreen)) == rserr_ok)

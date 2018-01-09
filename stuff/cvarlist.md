@@ -110,9 +110,9 @@ Graphics (all renderers):
   `1` make the objects bigger, values lower 1 smaller. The special value
   `-1` sets the optimal scaling factor for the current resolution.
 
-* **gl_customheight** / **gl_customwidth**: Specifies a custom
-  resolution, the windows will be *gl_customheight* pixels high and
-  *gl_customwidth* pixels wide. Set *gl_mode* to `-1` to use the custom
+* **r_customheight** / **r_customwidth**: Specifies a custom
+  resolution, the windows will be *r_customheight* pixels high and
+  *r_customwidth* pixels wide. Set *gl_mode* to `-1` to use the custom
   resolution.
 
 * **gl_farsee**: Normally Quake II renders only up to 4096 units. If set

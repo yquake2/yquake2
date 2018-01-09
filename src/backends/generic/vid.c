@@ -142,7 +142,7 @@ VID_ListModes_f(void)
 	{
 		Com_Printf("  %s\n", vid_modes[i].description);
 	}
-	Com_Printf("  Mode -1: gl_customwidth x gl_customheight\n");
+	Com_Printf("  Mode -1: r_customwidth x r_customheight\n");
 }
 
 qboolean

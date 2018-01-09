@@ -49,7 +49,9 @@ replacement_t replacements[] = {
 	{"gl_clear", "r_clear"},
 	{"gl_consolescale", "r_consolescale"},
 	{"gl_hudscale", "r_hudscale"},
-	{"gl_menuscale", "r_scale"}
+	{"gl_menuscale", "r_scale"},
+	{"gl_customheight", "r_customheight"},
+	{"gl_customwidth", "r_customheight"}
 };
 
 

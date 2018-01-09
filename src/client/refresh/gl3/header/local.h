@@ -483,8 +483,8 @@ extern cvar_t *gl_swapinterval;
 extern cvar_t *gl_retexturing;
 extern cvar_t *vid_fullscreen;
 extern cvar_t *gl_mode;
-extern cvar_t *gl_customwidth;
-extern cvar_t *gl_customheight;
+extern cvar_t *r_customwidth;
+extern cvar_t *r_customheight;
 
 extern cvar_t *gl_nolerp_list;
 extern cvar_t *gl_nobind;
