@@ -211,7 +211,7 @@ extern cvar_t *r_clear;
 extern cvar_t *gl_cull;
 extern cvar_t *gl_polyblend;
 extern cvar_t *gl1_flashblend;
-extern cvar_t *gl_modulate;
+extern cvar_t *r_modulate;
 extern cvar_t *gl_drawbuffer;
 extern cvar_t *gl_swapinterval;
 extern cvar_t *gl_anisotropic;

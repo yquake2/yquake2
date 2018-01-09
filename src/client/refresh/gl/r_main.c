@@ -106,7 +106,7 @@ cvar_t *gl_retexturing;
 cvar_t *gl_nolerp_list;
 
 cvar_t *gl1_dynamic;
-cvar_t *gl_modulate;
+cvar_t *r_modulate;
 cvar_t *gl_nobind;
 cvar_t *gl_round_down;
 cvar_t *gl_picmip;
@@ -1218,7 +1218,7 @@ R_Register(void)
 	gl_particle_att_b = ri.Cvar_Get("gl_particle_att_b", "0.0", CVAR_ARCHIVE);
 	gl_particle_att_c = ri.Cvar_Get("gl_particle_att_c", "0.01", CVAR_ARCHIVE);
 
-	gl_modulate = ri.Cvar_Get("gl_modulate", "1", CVAR_ARCHIVE);
+	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
 	r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
 	gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
 	gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);

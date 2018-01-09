@@ -119,7 +119,7 @@ cvar_t *gl_finish;
 cvar_t *gl_cull;
 cvar_t *gl_zfix;
 cvar_t *r_fullbright;
-cvar_t *gl_modulate;
+cvar_t *r_modulate;
 cvar_t *gl_lightmap;
 cvar_t *gl_shadows;
 // no gl_stencilshadows, always use stencil (if available)
@@ -232,7 +232,7 @@ GL3_Register(void)
 	gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
 	gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
 
-	gl_modulate = ri.Cvar_Get("gl_modulate", "1", CVAR_ARCHIVE);
+	r_modulate = ri.Cvar_Get("gl_modulate", "1", CVAR_ARCHIVE);
 	gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
 	r_clear = ri.Cvar_Get("r_clear", "0", 0);
 	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);

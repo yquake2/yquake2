@@ -235,7 +235,7 @@ RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 			{
 				for (i = 0; i < 3; i++)
 				{
-					scale[i] = gl_modulate->value *
+					scale[i] = r_modulate->value *
 							   gl3_newrefdef.lightstyles[surf->styles[maps]].rgb[i];
 				}
 
@@ -304,7 +304,7 @@ GL3_LightPoint(vec3_t p, vec3_t color)
 		}
 	}
 
-	VectorScale(color, gl_modulate->value, color);
+	VectorScale(color, r_modulate->value, color);
 }
 
 

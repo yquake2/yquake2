@@ -310,7 +310,7 @@ R_RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 
 				for (j = 0; j < 3; j++)
 				{
-					scale[j] = gl_modulate->value *
+					scale[j] = r_modulate->value *
 							r_newrefdef.lightstyles[surf->styles[maps]].rgb[j];
 				}
 
@@ -376,7 +376,7 @@ R_LightPoint(vec3_t p, vec3_t color)
 		}
 	}
 
-	VectorScale(color, gl_modulate->value, color);
+	VectorScale(color, r_modulate->value, color);
 }
 
 void
@@ -544,7 +544,7 @@ R_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 
 			for (i = 0; i < 3; i++)
 			{
-				scale[i] = gl_modulate->value *
+				scale[i] = r_modulate->value *
 						   r_newrefdef.lightstyles[surf->styles[maps]].rgb[i];
 			}
 
@@ -584,7 +584,7 @@ R_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 
 			for (i = 0; i < 3; i++)
 			{
-				scale[i] = gl_modulate->value *
+				scale[i] = r_modulate->value *
 						   r_newrefdef.lightstyles[surf->styles[maps]].rgb[i];
 			}
 
