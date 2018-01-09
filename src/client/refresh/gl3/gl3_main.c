@@ -1648,7 +1648,7 @@ GL3_BeginFrame(float camera_separation)
 
 		if(gl3_overbrightbits->value < 0.0f)
 		{
-			ri.Cvar_Set("gl_overbrightbits", "0");
+			ri.Cvar_Set("gl3_overbrightbits", "0");
 		}
 
 		gl3state.uni3DData.overbrightbits = (gl3_overbrightbits->value <= 0.0f) ? 1.0f : gl3_overbrightbits->value;

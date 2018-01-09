@@ -58,7 +58,8 @@ replacement_t replacements[] = {
 	{"gl_lockpvs", "r_lockpvs"},
 	{"gl_maxfps", "vid_maxfps"},
 	{"gl_mode", "r_mode"},
-	{"gl_modulate", "r_modulate"}
+	{"gl_modulate", "r_modulate"},
+	{"gl_overbrightbits", "gl1_overbrightbits"}
 };
 
 

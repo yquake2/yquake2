@@ -972,7 +972,7 @@ static void initUBOs(void)
 	gl3state.uni3DData.scroll = 0.0f;
 	gl3state.uni3DData.time = 0.0f;
 	gl3state.uni3DData.alpha = 1.0f;
-	// gl_overbrightbits 0 means "no scaling" which is equivalent to multiplying with 1
+	// gl3_overbrightbits 0 means "no scaling" which is equivalent to multiplying with 1
 	gl3state.uni3DData.overbrightbits = (gl3_overbrightbits->value <= 0.0f) ? 1.0f : gl3_overbrightbits->value;
 	gl3state.uni3DData.particleFadeFactor = gl3_particle_fade_factor->value;
 

@@ -157,7 +157,7 @@ Graphics (GL1 only):
   Must be a floating point value, at least `1.0` - default is `2.0`.  
   Applied when textures are loaded, so it needs a `vid_restart`!
 
-* **gl_overbrightbits**: Enables overbright bits, brightness scaling of
+* **gl1_overbrightbits**: Enables overbright bits, brightness scaling of
   lightmaps and models. Higher values make shadows less dark.  
   Possible values are `0` (no overbright bits), `1` (correct lighting
   for water), `2` (scale by factor 2) and `3` (scale by factor 3).  
@@ -184,7 +184,7 @@ Graphics (GL3 only):
 
 * **gl3_overbrightbits**: Enables overbright bits, brightness scaling of
   lightmaps and models. Higher values make shadows less dark.  
-  Similar to GL1's `gl_overbrightbits`, but allows any floating point number.  
+  Similar to GL1's `gl1_overbrightbits`, but allows any floating point number.  
   Default is `1.3`. In the OpenGL3.2 renderer, no lighting fixes for water
   are needed, so `1.0` has no special meaning.
 

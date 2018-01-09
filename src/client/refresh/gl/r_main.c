@@ -80,7 +80,7 @@ cvar_t *gl_lefthand;
 cvar_t *r_farsee;
 
 cvar_t *r_lightlevel;
-cvar_t *gl_overbrightbits;
+cvar_t *gl1_overbrightbits;
 
 cvar_t *gl_particle_min_size;
 cvar_t *gl_particle_max_size;
@@ -1209,7 +1209,7 @@ R_Register(void)
 	r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
 
 	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
-	gl_overbrightbits = ri.Cvar_Get("gl_overbrightbits", "0", CVAR_ARCHIVE);
+	gl1_overbrightbits = ri.Cvar_Get("gl1_overbrightbits", "0", CVAR_ARCHIVE);
 
 	gl_particle_min_size = ri.Cvar_Get("gl_particle_min_size", "2", CVAR_ARCHIVE);
 	gl_particle_max_size = ri.Cvar_Get("gl_particle_max_size", "40", CVAR_ARCHIVE);
@@ -1631,18 +1631,18 @@ RI_BeginFrame(float camera_separation)
 	}
 
 	// Clamp overbrightbits
-	if (gl_overbrightbits->modified)
+	if (gl1_overbrightbits->modified)
 	{
-		if (gl_overbrightbits->value > 2 && gl_overbrightbits->value < 4)
+		if (gl1_overbrightbits->value > 2 && gl1_overbrightbits->value < 4)
 		{
-			ri.Cvar_Set("gl_overbrightbits", "2");
+			ri.Cvar_Set("r_overbrightbits", "2");
 		}
-		else if (gl_overbrightbits->value > 4)
+		else if (gl1_overbrightbits->value > 4)
 		{
-			ri.Cvar_Set("gl_overbrightbits", "4");
+			ri.Cvar_Set("r_overbrightbits", "4");
 		}
 
-		gl_overbrightbits->modified = false;
+		gl1_overbrightbits->modified = false;
 	}
 
 	/* go into 2D mode */

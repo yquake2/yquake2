@@ -304,10 +304,10 @@ R_BlendLightmaps(void)
 				if (surf->polys)
 				{
 					// Apply overbright bits to the static lightmaps
-					if (gl_overbrightbits->value)
+					if (gl1_overbrightbits->value)
 					{
 						R_TexEnv(GL_COMBINE_EXT);
-						glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
+						glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl1_overbrightbits->value);
 					}
 
 					R_DrawGLPolyChain(surf->polys, 0, 0);
@@ -363,10 +363,10 @@ R_BlendLightmaps(void)
 					if (drawsurf->polys)
 					{
 						// Apply overbright bits to the dynamic lightmaps
-						if (gl_overbrightbits->value)
+						if (gl1_overbrightbits->value)
 						{
 							R_TexEnv(GL_COMBINE_EXT);
-							glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
+							glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl1_overbrightbits->value);
 						}
 
 						R_DrawGLPolyChain(drawsurf->polys,
@@ -407,10 +407,10 @@ R_BlendLightmaps(void)
 			if (surf->polys)
 			{
 				// Apply overbright bits to the remainder lightmaps
-				if (gl_overbrightbits->value)
+				if (gl1_overbrightbits->value)
 				{
 					R_TexEnv(GL_COMBINE_EXT);
-					glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl_overbrightbits->value);
+					glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl1_overbrightbits->value);
 				}
 
 				R_DrawGLPolyChain(surf->polys,
@@ -447,14 +447,14 @@ R_RenderBrushPoly(msurface_t *fa)
 		   would show up much too bright. When we implemented overbright bits this
 		   hack modified the global GL state in an incompatible way. So implement
 		   a new hack, based on overbright bits... Depending on the value set to
-		   gl_overbrightbits the result is different:
+		   gl1_overbrightbits the result is different:
 
 		    0: Old behaviour.
 		    1: No overbright bits on the global scene but correct lightning on
 		       warping surfaces.
 		    2: Overbright bits on the global scene but not on warping surfaces.
 		        They oversaturate otherwise. */
-		if (gl_overbrightbits->value)
+		if (gl1_overbrightbits->value)
 		{
 			R_TexEnv(GL_COMBINE_EXT);
 			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 1);
