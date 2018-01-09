@@ -122,8 +122,8 @@ cvar_t *gl1_flashblend;
 cvar_t *gl1_saturatelighting;
 cvar_t *r_vsync;
 cvar_t *gl_texturemode;
-cvar_t *gl_texturealphamode;
-cvar_t *gl_texturesolidmode;
+cvar_t *gl1_texturealphamode;
+cvar_t *gl1_texturesolidmode;
 cvar_t *gl_anisotropic;
 cvar_t *r_lockpvs;
 cvar_t *gl_msaa_samples;
@@ -1238,8 +1238,8 @@ R_Register(void)
 	gl1_flashblend = ri.Cvar_Get("gl1_flashblend", "0", 0);
 
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
-	gl_texturealphamode = ri.Cvar_Get("gl_texturealphamode", "default", CVAR_ARCHIVE);
-	gl_texturesolidmode = ri.Cvar_Get("gl_texturesolidmode", "default", CVAR_ARCHIVE);
+	gl1_texturealphamode = ri.Cvar_Get("gl1_texturealphamode", "default", CVAR_ARCHIVE);
+	gl1_texturesolidmode = ri.Cvar_Get("gl1_texturesolidmode", "default", CVAR_ARCHIVE);
 	gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
 	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 
@@ -1707,16 +1707,16 @@ RI_BeginFrame(float camera_separation)
 		gl_anisotropic->modified = false;
 	}
 
-	if (gl_texturealphamode->modified)
+	if (gl1_texturealphamode->modified)
 	{
-		R_TextureAlphaMode(gl_texturealphamode->string);
-		gl_texturealphamode->modified = false;
+		R_TextureAlphaMode(gl1_texturealphamode->string);
+		gl1_texturealphamode->modified = false;
 	}
 
-	if (gl_texturesolidmode->modified)
+	if (gl1_texturesolidmode->modified)
 	{
-		R_TextureSolidMode(gl_texturesolidmode->string);
-		gl_texturesolidmode->modified = false;
+		R_TextureSolidMode(gl1_texturesolidmode->string);
+		gl1_texturesolidmode->modified = false;
 	}
 
 	if (r_vsync->modified)

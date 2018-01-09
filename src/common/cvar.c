@@ -77,7 +77,9 @@ replacement_t replacements[] = {
 	{"gl_stereo_separation", "gl1_stereo_separation"},
 	{"gl_stereo_anaglyph_colors", "gl1_stereo_anaglyph_colors"},
 	{"gl_stereo_convergence", "gl1_stereo_convergence"},
-	{"gl_swapinterval", "r_vsync"}
+	{"gl_swapinterval", "r_vsync"},
+	{"gl_texturealphamode", "gl1_texturealphamode"},
+	{"gl_texturesolidmode", "gl1_texturesolidmode"}
 };
 
 
