@@ -268,7 +268,6 @@ GL3_Register(void)
 	//gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
 	//gl_stencilshadow = ri.Cvar_Get("gl_stencilshadow", "0", CVAR_ARCHIVE);
 	//gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
-	gl_round_down = ri.Cvar_Get("gl_round_down", "1", 0);
 	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
 	gl_showbbox = Cvar_Get("gl_showbbox", "0", 0);
 	//gl_ztrick = ri.Cvar_Get("gl_ztrick", "0", 0); NOTE: dump this.

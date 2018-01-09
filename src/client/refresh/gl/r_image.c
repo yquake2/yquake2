@@ -599,7 +599,7 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 	{
 	}
 
-	if (gl_round_down->value && (scaled_width > width) && mipmap)
+	if (gl1_round_down->value && (scaled_width > width) && mipmap)
 	{
 		scaled_width >>= 1;
 	}
@@ -608,7 +608,7 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 	{
 	}
 
-	if (gl_round_down->value && (scaled_height > height) && mipmap)
+	if (gl1_round_down->value && (scaled_height > height) && mipmap)
 	{
 		scaled_height >>= 1;
 	}
