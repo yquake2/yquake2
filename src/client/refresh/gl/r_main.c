@@ -89,7 +89,7 @@ cvar_t *gl_particle_att_a;
 cvar_t *gl_particle_att_b;
 cvar_t *gl_particle_att_c;
 
-cvar_t *gl_palettedtexture;
+cvar_t *gl1_palettedtexture;
 cvar_t *gl_pointparameters;
 
 cvar_t *gl_drawbuffer;
@@ -1243,7 +1243,7 @@ R_Register(void)
 	gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
 	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 
-	gl_palettedtexture = ri.Cvar_Get("gl_palettedtexture", "0", CVAR_ARCHIVE);
+	gl1_palettedtexture = ri.Cvar_Get("gl1_palettedtexture", "0", CVAR_ARCHIVE);
 	gl_pointparameters = ri.Cvar_Get("gl_pointparameters", "1", CVAR_ARCHIVE);
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
@@ -1507,7 +1507,7 @@ RI_Init()
 
 	gl_config.palettedtexture = false;
 
-	if (gl_palettedtexture->value)
+	if (gl1_palettedtexture->value)
 	{
 		if (qglColorTableEXT)
 		{

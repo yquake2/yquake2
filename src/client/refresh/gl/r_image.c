@@ -669,7 +669,7 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 	{
 		if (!mipmap)
 		{
-			if (qglColorTableEXT && gl_palettedtexture->value &&
+			if (qglColorTableEXT && gl1_palettedtexture->value &&
 				(samples == gl_solid_format))
 			{
 				uploaded_paletted = true;
@@ -699,7 +699,7 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 
 	R_LightScaleTexture(scaled, scaled_width, scaled_height, !mipmap);
 
-	if (qglColorTableEXT && gl_palettedtexture->value &&
+	if (qglColorTableEXT && gl1_palettedtexture->value &&
 		(samples == gl_solid_format))
 	{
 		uploaded_paletted = true;
@@ -740,7 +740,7 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 
 			miplevel++;
 
-			if (qglColorTableEXT && gl_palettedtexture->value &&
+			if (qglColorTableEXT && gl1_palettedtexture->value &&
 				(samples == gl_solid_format))
 			{
 				uploaded_paletted = true;

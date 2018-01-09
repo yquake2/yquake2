@@ -177,7 +177,7 @@ extern cvar_t *r_lerpmodels;
 extern cvar_t *r_lightlevel;
 extern cvar_t *gl1_overbrightbits;
 
-extern cvar_t *gl_palettedtexture;
+extern cvar_t *gl1_palettedtexture;
 extern cvar_t *gl_pointparameters;
 
 extern cvar_t *gl_particle_min_size;
