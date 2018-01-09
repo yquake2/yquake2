@@ -146,6 +146,7 @@ cvar_t	*r_fullbright;
 cvar_t  *r_lerpmodels;
 cvar_t  *r_novis;
 cvar_t  *r_modulate;
+cvar_t  *r_vsync;
 
 cvar_t	*r_speeds;
 cvar_t	*r_lightlevel;	//FIXME HACK
@@ -286,6 +287,7 @@ void R_Register (void)
 	r_lerpmodels = ri.Cvar_Get( "r_lerpmodels", "1", 0 );
 	r_novis = ri.Cvar_Get( "r_novis", "0", 0 );
 	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
+	r_vsync = ri.Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
 
 	vid_fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", CVAR_ARCHIVE );
 	vid_gamma = ri.Cvar_Get( "vid_gamma", "1.0", CVAR_ARCHIVE );
@@ -1102,7 +1104,7 @@ void RE_BeginFrame( float camera_separation )
 		sw_overbrightbits->modified = false;
 	}
 
-	while (r_mode->modified || vid_fullscreen->modified)
+	while (r_mode->modified || vid_fullscreen->modified || r_vsync->modified)
 	{
 		rserr_t err;
 
@@ -1117,6 +1119,7 @@ void RE_BeginFrame( float camera_separation )
 			sw_state.prev_mode = r_mode->value;
 			vid_fullscreen->modified = false;
 			r_mode->modified = false;
+			r_vsync->modified = false;
 		}
 		else
 		{
@@ -1363,7 +1366,14 @@ void R_Printf(int level, const char* msg, ...)
 
 qboolean RE_IsVsyncActive(void)
 {
-	return true;
+	if (r_vsync->value)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 /*
@@ -1623,7 +1633,15 @@ static qboolean CreateSDLWindow(int flags, int w, int h)
 	// TODO: support fullscreen on different displays with SDL_WINDOWPOS_UNDEFINED_DISPLAY(displaynum)
 	window = SDL_CreateWindow("Yamagi Quake II", windowPos, windowPos, w, h, flags);
 
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	if (r_vsync->value)
+	{
+		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	}
+	else
+	{
+		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	}
+
 	surface = SDL_CreateRGBSurface(0, w, h, bpp, Rmask, Gmask, Bmask, Amask);
 
 	texture = SDL_CreateTexture(renderer,
