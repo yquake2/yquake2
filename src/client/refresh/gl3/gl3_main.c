@@ -93,7 +93,7 @@ cvar_t *vid_gamma;
 cvar_t *gl_anisotropic;
 cvar_t *gl_texturemode;
 cvar_t *gl_drawbuffer;
-cvar_t *gl_clear;
+cvar_t *r_clear;
 cvar_t *gl3_particle_size;
 cvar_t *gl3_particle_fade_factor;
 cvar_t *gl3_particle_square;
@@ -236,7 +236,7 @@ GL3_Register(void)
 
 	gl_modulate = ri.Cvar_Get("gl_modulate", "1", CVAR_ARCHIVE);
 	gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
-	gl_clear = ri.Cvar_Get("gl_clear", "0", 0);
+	r_clear = ri.Cvar_Get("r_clear", "0", 0);
 	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
 	gl_lockpvs = ri.Cvar_Get("gl_lockpvs", "0", 0);
 	r_novis = ri.Cvar_Get("r_novis", "0", 0);
@@ -281,7 +281,7 @@ GL3_Register(void)
 	//gl_ztrick = ri.Cvar_Get("gl_ztrick", "0", 0); NOTE: dump this.
 	//gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
 	//gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
-	gl_clear = ri.Cvar_Get("gl_clear", "0", 0);
+	r_clear = ri.Cvar_Get("r_clear", "0", 0);
 //	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
 	gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", 0);
 	//gl_flashblend = ri.Cvar_Get("gl_flashblend", "0", 0);
@@ -1575,7 +1575,7 @@ GL3_Clear(void)
 #endif // 0
 
 
-	if (gl_clear->value)
+	if (r_clear->value)
 	{
 		glClear(GL_COLOR_BUFFER_BIT | stencilFlags | GL_DEPTH_BUFFER_BIT);
 	}

@@ -207,7 +207,7 @@ extern cvar_t *gl_showbbox;
 extern cvar_t *gl_finish;
 extern cvar_t *gl_ztrick;
 extern cvar_t *gl_zfix;
-extern cvar_t *gl_clear;
+extern cvar_t *r_clear;
 extern cvar_t *gl_cull;
 extern cvar_t *gl_polyblend;
 extern cvar_t *gl_flashblend;
