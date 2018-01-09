@@ -863,7 +863,7 @@ GL3_MarkLeaves(void)
 
 	/* development aid to let you run around
 	   and see exactly where the pvs ends */
-	if (gl_lockpvs->value)
+	if (r_lockpvs->value)
 	{
 		return;
 	}

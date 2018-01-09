@@ -53,7 +53,9 @@ replacement_t replacements[] = {
 	{"gl_customheight", "r_customheight"},
 	{"gl_customwidth", "r_customheight"},
 	{"gl_dynamic", "gl1_dynamic"},
-	{"gl_farsee", "r_farsee"}
+	{"gl_farsee", "r_farsee"},
+	{"gl_flashblend", "gl1_flashblend"},
+	{"gl_lockpvs", "r_lockpvs"}
 };
 
 

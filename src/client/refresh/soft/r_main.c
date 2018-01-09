@@ -153,7 +153,7 @@ cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
 
 //PGM
-cvar_t	*sw_lockpvs;
+cvar_t	*r_lockpvs;
 //PGM
 
 #define	STRINGER(x) "x"
@@ -297,7 +297,7 @@ void R_Register (void)
 	sw_overbrightbits->modified = true; // force us to rebuild pallete later
 
 	//PGM
-	sw_lockpvs = ri.Cvar_Get ("sw_lockpvs", "0", 0);
+	r_lockpvs = ri.Cvar_Get ("r_lockpvs", "0", 0);
 	//PGM
 }
 
@@ -453,7 +453,7 @@ void R_MarkLeaves (void)
 
 	// development aid to let you run around and see exactly where
 	// the pvs ends
-	if (sw_lockpvs->value)
+	if (r_lockpvs->value)
 		return;
 
 	r_visframecount++;

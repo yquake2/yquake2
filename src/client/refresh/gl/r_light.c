@@ -92,7 +92,7 @@ R_RenderDlights(void)
 	int i;
 	dlight_t *l;
 
-	if (!gl_flashblend->value)
+	if (!gl1_flashblend->value)
 	{
 		return;
 	}
@@ -189,7 +189,7 @@ R_PushDlights(void)
 	int i;
 	dlight_t *l;
 
-	if (gl_flashblend->value)
+	if (gl1_flashblend->value)
 	{
 		return;
 	}

@@ -111,7 +111,7 @@ cvar_t *r_drawentities;
 cvar_t *r_drawworld;
 cvar_t *gl_nolerp_list;
 cvar_t *gl_nobind;
-cvar_t *gl_lockpvs;
+cvar_t *r_lockpvs;
 cvar_t *r_novis;
 cvar_t *r_speeds;
 cvar_t *gl_finish;
@@ -236,7 +236,7 @@ GL3_Register(void)
 	gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
 	r_clear = ri.Cvar_Get("r_clear", "0", 0);
 	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
-	gl_lockpvs = ri.Cvar_Get("gl_lockpvs", "0", 0);
+	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 	r_novis = ri.Cvar_Get("r_novis", "0", 0);
 	r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
 	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
@@ -278,13 +278,13 @@ GL3_Register(void)
 	r_clear = ri.Cvar_Get("r_clear", "0", 0);
 //	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
 	gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", 0);
-	//gl_flashblend = ri.Cvar_Get("gl_flashblend", "0", 0);
+	//gl1_flashblend = ri.Cvar_Get("gl1_flashblend", "0", 0);
 
 	//gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl_texturealphamode = ri.Cvar_Get("gl_texturealphamode", "default", CVAR_ARCHIVE);
 	gl_texturesolidmode = ri.Cvar_Get("gl_texturesolidmode", "default", CVAR_ARCHIVE);
 	//gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
-	//gl_lockpvs = ri.Cvar_Get("gl_lockpvs", "0", 0);
+	//r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 
 	//gl_palettedtexture = ri.Cvar_Get("gl_palettedtexture", "0", CVAR_ARCHIVE); NOPE.
 	gl_pointparameters = ri.Cvar_Get("gl_pointparameters", "1", CVAR_ARCHIVE);
@@ -1446,7 +1446,7 @@ GL3_RenderView(refdef_t *fd)
 
 	GL3_DrawEntitiesOnList();
 
-	// kick the silly gl_flashblend poly lights
+	// kick the silly gl1_flashblend poly lights
 	// GL3_RenderDlights();
 
 	GL3_DrawParticles();

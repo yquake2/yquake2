@@ -210,7 +210,7 @@ extern cvar_t *gl_zfix;
 extern cvar_t *r_clear;
 extern cvar_t *gl_cull;
 extern cvar_t *gl_polyblend;
-extern cvar_t *gl_flashblend;
+extern cvar_t *gl1_flashblend;
 extern cvar_t *gl_modulate;
 extern cvar_t *gl_drawbuffer;
 extern cvar_t *gl_swapinterval;
@@ -219,7 +219,7 @@ extern cvar_t *gl_texturemode;
 extern cvar_t *gl_texturealphamode;
 extern cvar_t *gl_texturesolidmode;
 extern cvar_t *gl_saturatelighting;
-extern cvar_t *gl_lockpvs;
+extern cvar_t *r_lockpvs;
 extern cvar_t *gl_msaa_samples;
 
 extern cvar_t *vid_fullscreen;

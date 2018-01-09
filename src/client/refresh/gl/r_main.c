@@ -118,14 +118,14 @@ cvar_t *gl_finish;
 cvar_t *r_clear;
 cvar_t *gl_cull;
 cvar_t *gl_polyblend;
-cvar_t *gl_flashblend;
+cvar_t *gl1_flashblend;
 cvar_t *gl_saturatelighting;
 cvar_t *gl_swapinterval;
 cvar_t *gl_texturemode;
 cvar_t *gl_texturealphamode;
 cvar_t *gl_texturesolidmode;
 cvar_t *gl_anisotropic;
-cvar_t *gl_lockpvs;
+cvar_t *r_lockpvs;
 cvar_t *gl_msaa_samples;
 
 cvar_t *vid_fullscreen;
@@ -1235,13 +1235,13 @@ R_Register(void)
 	r_clear = ri.Cvar_Get("r_clear", "0", 0);
 	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
 	gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", 0);
-	gl_flashblend = ri.Cvar_Get("gl_flashblend", "0", 0);
+	gl1_flashblend = ri.Cvar_Get("gl1_flashblend", "0", 0);
 
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl_texturealphamode = ri.Cvar_Get("gl_texturealphamode", "default", CVAR_ARCHIVE);
 	gl_texturesolidmode = ri.Cvar_Get("gl_texturesolidmode", "default", CVAR_ARCHIVE);
 	gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
-	gl_lockpvs = ri.Cvar_Get("gl_lockpvs", "0", 0);
+	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 
 	gl_palettedtexture = ri.Cvar_Get("gl_palettedtexture", "0", CVAR_ARCHIVE);
 	gl_pointparameters = ri.Cvar_Get("gl_pointparameters", "1", CVAR_ARCHIVE);
