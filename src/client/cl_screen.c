@@ -50,9 +50,9 @@ cvar_t *scr_graphscale;
 cvar_t *scr_graphshift;
 cvar_t *scr_drawall;
 
-cvar_t *gl_hudscale; /* named for consistency with R1Q2 */
-cvar_t *gl_consolescale;
-cvar_t *gl_menuscale;
+cvar_t *r_hudscale; /* named for consistency with R1Q2 */
+cvar_t *r_consolescale;
+cvar_t *r_menuscale;
 
 typedef struct
 {
@@ -431,9 +431,9 @@ SCR_Init(void)
 	scr_graphscale = Cvar_Get("graphscale", "1", 0);
 	scr_graphshift = Cvar_Get("graphshift", "0", 0);
 	scr_drawall = Cvar_Get("scr_drawall", "0", 0);
-	gl_hudscale = Cvar_Get("gl_hudscale", "-1", CVAR_ARCHIVE);
-	gl_consolescale = Cvar_Get("gl_consolescale", "-1", CVAR_ARCHIVE);
-	gl_menuscale = Cvar_Get("gl_menuscale", "-1", CVAR_ARCHIVE);
+	r_hudscale = Cvar_Get("r_hudscale", "-1", CVAR_ARCHIVE);
+	r_consolescale = Cvar_Get("r_consolescale", "-1", CVAR_ARCHIVE);
+	r_menuscale = Cvar_Get("r_menuscale", "-1", CVAR_ARCHIVE);
 
 	/* register our commands */
 	Cmd_AddCommand("timerefresh", SCR_TimeRefresh_f);
@@ -1725,17 +1725,17 @@ SCR_GetHUDScale(void)
 	{
 		scale = 1;
 	}
-	else if (gl_hudscale->value < 0)
+	else if (r_hudscale->value < 0)
 	{
 		scale = SCR_GetDefaultScale();
 	}
-	else if (gl_hudscale->value == 0) /* HACK: allow scale 0 to hide the HUD */
+	else if (r_hudscale->value == 0) /* HACK: allow scale 0 to hide the HUD */
 	{
 		scale = 0;
 	}
 	else
 	{
-		scale = SCR_ClampScale(gl_hudscale->value);
+		scale = SCR_ClampScale(r_hudscale->value);
 	}
 
 	return scale;
@@ -1750,13 +1750,13 @@ SCR_GetConsoleScale(void)
 	{
 		scale = 1;
 	}
-	else if (gl_consolescale->value < 0)
+	else if (r_consolescale->value < 0)
 	{
 		scale = SCR_GetDefaultScale();
 	}
 	else
 	{
-		scale = SCR_ClampScale(gl_consolescale->value);
+		scale = SCR_ClampScale(r_consolescale->value);
 	}
 
 	return scale;
@@ -1771,13 +1771,13 @@ SCR_GetMenuScale(void)
 	{
 		scale = 1;
 	}
-	else if (gl_menuscale->value < 0)
+	else if (r_menuscale->value < 0)
 	{
 		scale = SCR_GetDefaultScale();
 	}
 	else
 	{
-		scale = SCR_ClampScale(gl_menuscale->value);
+		scale = SCR_ClampScale(r_menuscale->value);
 	}
 
 	return scale;

@@ -35,9 +35,9 @@ static cvar_t *gl_mode;
 #ifdef REFSOFT
 static cvar_t *sw_mode;
 #endif
-static cvar_t *gl_hudscale;
-static cvar_t *gl_consolescale;
-static cvar_t *gl_menuscale;
+static cvar_t *r_hudscale;
+static cvar_t *r_consolescale;
+static cvar_t *r_menuscale;
 static cvar_t *crosshair_scale;
 static cvar_t *fov;
 extern cvar_t *scr_viewsize;
@@ -211,18 +211,18 @@ ApplyChanges(void *unused)
 	/* UI scaling */
 	if (s_uiscale_list.curvalue == 0)
 	{
-		Cvar_SetValue("gl_hudscale", -1);
+		Cvar_SetValue("r_hudscale", -1);
 	}
 	else if (s_uiscale_list.curvalue < GetCustomValue(&s_uiscale_list))
 	{
-		Cvar_SetValue("gl_hudscale", s_uiscale_list.curvalue);
+		Cvar_SetValue("r_hudscale", s_uiscale_list.curvalue);
 	}
 
 	if (s_uiscale_list.curvalue != GetCustomValue(&s_uiscale_list))
 	{
-		Cvar_SetValue("gl_consolescale", gl_hudscale->value);
-		Cvar_SetValue("gl_menuscale", gl_hudscale->value);
-		Cvar_SetValue("crosshair_scale", gl_hudscale->value);
+		Cvar_SetValue("r_consolescale", r_hudscale->value);
+		Cvar_SetValue("r_menuscale", r_hudscale->value);
+		Cvar_SetValue("crosshair_scale", r_hudscale->value);
 	}
 
 	/* Restarts automatically */
@@ -373,19 +373,19 @@ VID_MenuInit(void)
 	}
 #endif
 
-	if (!gl_hudscale)
+	if (!r_hudscale)
 	{
-		gl_hudscale = Cvar_Get("gl_hudscale", "-1", CVAR_ARCHIVE);
+		r_hudscale = Cvar_Get("r_hudscale", "-1", CVAR_ARCHIVE);
 	}
 
-	if (!gl_consolescale)
+	if (!r_consolescale)
 	{
-		gl_consolescale = Cvar_Get("gl_consolescale", "-1", CVAR_ARCHIVE);
+		r_consolescale = Cvar_Get("r_consolescale", "-1", CVAR_ARCHIVE);
 	}
 
-	if (!gl_menuscale)
+	if (!r_menuscale)
 	{
-		gl_menuscale = Cvar_Get("gl_menuscale", "-1", CVAR_ARCHIVE);
+		r_menuscale = Cvar_Get("r_menuscale", "-1", CVAR_ARCHIVE);
 	}
 
 	if (!crosshair_scale)
@@ -481,21 +481,21 @@ VID_MenuInit(void)
 	s_uiscale_list.generic.x = 0;
 	s_uiscale_list.generic.y = (y += 10);
 	s_uiscale_list.itemnames = uiscale_names;
-	if (gl_hudscale->value != gl_consolescale->value ||
-		gl_hudscale->value != gl_menuscale->value ||
-		gl_hudscale->value != crosshair_scale->value)
+	if (r_hudscale->value != r_consolescale->value ||
+		r_hudscale->value != r_menuscale->value ||
+		r_hudscale->value != crosshair_scale->value)
 	{
 		s_uiscale_list.curvalue = GetCustomValue(&s_uiscale_list);
 	}
-	else if (gl_hudscale->value < 0)
+	else if (r_hudscale->value < 0)
 	{
 		s_uiscale_list.curvalue = 0;
 	}
-	else if (gl_hudscale->value > 0 &&
-			gl_hudscale->value < GetCustomValue(&s_uiscale_list) &&
-			gl_hudscale->value == (int)gl_hudscale->value)
+	else if (r_hudscale->value > 0 &&
+			r_hudscale->value < GetCustomValue(&s_uiscale_list) &&
+			r_hudscale->value == (int)r_hudscale->value)
 	{
-		s_uiscale_list.curvalue = gl_hudscale->value;
+		s_uiscale_list.curvalue = r_hudscale->value;
 	}
 	else
 	{

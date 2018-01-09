@@ -46,7 +46,10 @@ replacement_t replacements[] = {
 	{"gl_norefresh", "r_norefresh"},
 	{"gl_novis", "r_novis"},
 	{"gl_speeds", "r_speeds"},
-	{"gl_clear", "r_clear"}
+	{"gl_clear", "r_clear"},
+	{"gl_consolescale", "r_consolescale"},
+	{"gl_hudscale", "r_hudscale"},
+	{"gl_menuscale", "r_scale"}
 };
 
 

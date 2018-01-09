@@ -104,7 +104,7 @@ Graphics (all renderers):
   and `16`. Anisotropic filtering gives a huge improvement to texture
   quality by a negligible performance impact.
 
-* **gl_consolescale** / **gl_hudscale** / **gl_menuscale**, **crosshair_scale**:
+* **r_consolescale** / **r_hudscale** / **r_menuscale**, **crosshair_scale**:
   Scale the console, the HUD, the menu and the crosshair. The value given
   is the scale factor, a factor of `1` means no scaling. Values greater
   `1` make the objects bigger, values lower 1 smaller. The special value
