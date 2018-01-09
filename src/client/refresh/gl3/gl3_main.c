@@ -276,7 +276,6 @@ GL3_Register(void)
 	//gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
 	r_clear = ri.Cvar_Get("r_clear", "0", 0);
 //	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
-	gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", 0);
 	//gl1_flashblend = ri.Cvar_Get("gl1_flashblend", "0", 0);
 
 	//gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);

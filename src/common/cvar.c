@@ -68,7 +68,8 @@ replacement_t replacements[] = {
 	{"gl_particle_att_b", "gl1_particle_att_b"},
 	{"gl_particle_att_c", "gl1_particle_att_c"},
 	{"gl_picmip", "gl1_picmip"},
-	{"gl_pointparameters", "gl1_pointparameters"}
+	{"gl_pointparameters", "gl1_pointparameters"},
+	{"gl_polyblend", "gl1_polyblend"}
 };
 
 
