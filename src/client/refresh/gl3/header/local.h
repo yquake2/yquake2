@@ -514,8 +514,6 @@ extern cvar_t *gl_modulate;
 extern cvar_t *gl_lightmap;
 extern cvar_t *gl_shadows;
 
-extern cvar_t *gl_dynamic;
-
 extern cvar_t *gl3_debugcontext;
 
 #endif /* SRC_CLIENT_REFRESH_GL3_HEADER_LOCAL_H_ */

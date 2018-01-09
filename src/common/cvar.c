@@ -51,7 +51,8 @@ replacement_t replacements[] = {
 	{"gl_hudscale", "r_hudscale"},
 	{"gl_menuscale", "r_scale"},
 	{"gl_customheight", "r_customheight"},
-	{"gl_customwidth", "r_customheight"}
+	{"gl_customwidth", "r_customheight"},
+	{"gl_dynamic", "gl1_dynamic"}
 };
 
 

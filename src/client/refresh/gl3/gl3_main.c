@@ -124,8 +124,6 @@ cvar_t *gl_lightmap;
 cvar_t *gl_shadows;
 // no gl_stencilshadows, always use stencil (if available)
 
-cvar_t *gl_dynamic;
-
 cvar_t *gl3_debugcontext;
 
 // Yaw-Pitch-Roll
@@ -243,9 +241,6 @@ GL3_Register(void)
 	r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
 	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
 
-	gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);
-
-
 #if 0 // TODO!
 	//gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	//gl_farsee = ri.Cvar_Get("gl_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
@@ -272,7 +267,6 @@ GL3_Register(void)
 	//gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
 	//gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
 	//gl_stencilshadow = ri.Cvar_Get("gl_stencilshadow", "0", CVAR_ARCHIVE);
-	//gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);
 	//gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
 	gl_round_down = ri.Cvar_Get("gl_round_down", "1", 0);
 	gl_picmip = ri.Cvar_Get("gl_picmip", "0", 0);

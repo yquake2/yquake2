@@ -105,7 +105,7 @@ cvar_t *gl_retexturing;
 
 cvar_t *gl_nolerp_list;
 
-cvar_t *gl_dynamic;
+cvar_t *gl1_dynamic;
 cvar_t *gl_modulate;
 cvar_t *gl_nobind;
 cvar_t *gl_round_down;
@@ -1223,7 +1223,7 @@ R_Register(void)
 	gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
 	gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
 	gl_stencilshadow = ri.Cvar_Get("gl_stencilshadow", "0", CVAR_ARCHIVE);
-	gl_dynamic = ri.Cvar_Get("gl_dynamic", "1", 0);
+	gl1_dynamic = ri.Cvar_Get("gl1_dynamic", "1", 0);
 	gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
 	gl_round_down = ri.Cvar_Get("gl_round_down", "1", 0);
 	gl_picmip = ri.Cvar_Get("gl_picmip", "0", 0);

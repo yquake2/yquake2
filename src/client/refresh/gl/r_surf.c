@@ -317,7 +317,7 @@ R_BlendLightmaps(void)
 	}
 
 	/* render dynamic lightmaps */
-	if (gl_dynamic->value)
+	if (gl1_dynamic->value)
 	{
 		LM_InitBlock();
 
@@ -502,7 +502,7 @@ R_RenderBrushPoly(msurface_t *fa)
 	{
 	dynamic:
 
-		if (gl_dynamic->value)
+		if (gl1_dynamic->value)
 		{
 			if (!(fa->texinfo->flags &
 				  (SURF_SKY | SURF_TRANS33 |
