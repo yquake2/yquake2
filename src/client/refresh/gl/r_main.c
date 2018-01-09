@@ -96,7 +96,7 @@ cvar_t *gl_drawbuffer;
 cvar_t *gl_lightmap;
 cvar_t *gl_shadows;
 cvar_t *gl_stencilshadow;
-cvar_t *gl_mode;
+cvar_t *r_mode;
 
 cvar_t *r_customwidth;
 cvar_t *r_customheight;
@@ -1219,7 +1219,7 @@ R_Register(void)
 	gl_particle_att_c = ri.Cvar_Get("gl_particle_att_c", "0.01", CVAR_ARCHIVE);
 
 	gl_modulate = ri.Cvar_Get("gl_modulate", "1", CVAR_ARCHIVE);
-	gl_mode = ri.Cvar_Get("gl_mode", "4", CVAR_ARCHIVE);
+	r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
 	gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
 	gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
 	gl_stencilshadow = ri.Cvar_Get("gl_stencilshadow", "0", CVAR_ARCHIVE);
@@ -1309,23 +1309,23 @@ R_SetMode(void)
 	fullscreen = (int)vid_fullscreen->value;
 
 	vid_fullscreen->modified = false;
-	gl_mode->modified = false;
+	r_mode->modified = false;
 
 	/* a bit hackish approach to enable custom resolutions:
 	   Glimp_SetMode needs these values set for mode -1 */
 	vid.width = r_customwidth->value;
 	vid.height = r_customheight->value;
 
-	if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value,
+	if ((err = SetMode_impl(&vid.width, &vid.height, r_mode->value,
 					 fullscreen)) == rserr_ok)
 	{
-		if (gl_mode->value == -1)
+		if (r_mode->value == -1)
 		{
 			gl_state.prev_mode = 4; /* safe default for custom mode */
 		}
 		else
 		{
-			gl_state.prev_mode = gl_mode->value;
+			gl_state.prev_mode = r_mode->value;
 		}
 	}
 	else
@@ -1336,7 +1336,7 @@ R_SetMode(void)
 			vid_fullscreen->modified = false;
 			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
 
-			if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value, 0)) == rserr_ok)
+			if ((err = SetMode_impl(&vid.width, &vid.height, r_mode->value, 0)) == rserr_ok)
 			{
 				return true;
 			}
@@ -1350,19 +1350,19 @@ R_SetMode(void)
 				ri.Cvar_SetValue("gl_msaa_samples", 0.0f);
 				gl_msaa_samples->modified = false;
 
-				if ((err = SetMode_impl(&vid.width, &vid.height, gl_mode->value, 0)) == rserr_ok)
+				if ((err = SetMode_impl(&vid.width, &vid.height, r_mode->value, 0)) == rserr_ok)
 				{
 					return true;
 				}
 			}
-			if(gl_mode->value == gl_state.prev_mode)
+			if(r_mode->value == gl_state.prev_mode)
 			{
 				// trying again would result in a crash anyway, give up already
 				// (this would happen if your initing fails at all and your resolution already was 640x480)
 				return false;
 			}
-			ri.Cvar_SetValue("gl_mode", gl_state.prev_mode);
-			gl_mode->modified = false;
+			ri.Cvar_SetValue("r_mode", gl_state.prev_mode);
+			r_mode->modified = false;
 		}
 
 		/* try setting it back to something safe */
@@ -1600,7 +1600,7 @@ RI_BeginFrame(float camera_separation)
 	gl_state.camera_separation = camera_separation;
 
 	/* change modes if necessary */
-	if (gl_mode->modified)
+	if (r_mode->modified)
 	{
 		vid_fullscreen->modified = true;
 	}

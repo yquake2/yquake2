@@ -131,7 +131,7 @@ cvar_t	*sw_drawflat;
 cvar_t	*sw_draworder;
 cvar_t	*sw_maxedges;
 cvar_t	*sw_maxsurfs;
-cvar_t  *sw_mode;
+cvar_t  *r_mode;
 cvar_t	*sw_reportedgeout;
 cvar_t	*sw_reportsurfout;
 cvar_t  *sw_stipplealpha;
@@ -273,7 +273,7 @@ void R_Register (void)
 	sw_surfcacheoverride = ri.Cvar_Get ("sw_surfcacheoverride", "0", 0);
 	sw_waterwarp = ri.Cvar_Get ("sw_waterwarp", "1", 0);
 	sw_overbrightbits = ri.Cvar_Get("sw_overbrightbits", "1.0", CVAR_ARCHIVE);
-	sw_mode = ri.Cvar_Get( "sw_mode", "0", CVAR_ARCHIVE );
+	r_mode = ri.Cvar_Get( "r_mode", "0", CVAR_ARCHIVE );
 
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
 	r_speeds = ri.Cvar_Get ("r_speeds", "0", 0);
@@ -292,7 +292,7 @@ void R_Register (void)
 	ri.Cmd_AddCommand("screenshot", R_ScreenShot_f);
 	ri.Cmd_AddCommand("imagelist", R_ImageList_f);
 
-	sw_mode->modified = true; // force us to do mode specific stuff later
+	r_mode->modified = true; // force us to do mode specific stuff later
 	vid_gamma->modified = true; // force us to rebuild the gamma table later
 	sw_overbrightbits->modified = true; // force us to rebuild pallete later
 
@@ -1100,7 +1100,7 @@ void RE_BeginFrame( float camera_separation )
 		sw_overbrightbits->modified = false;
 	}
 
-	while (sw_mode->modified || vid_fullscreen->modified)
+	while (r_mode->modified || vid_fullscreen->modified)
 	{
 		rserr_t err;
 
@@ -1108,13 +1108,13 @@ void RE_BeginFrame( float camera_separation )
 		** if this returns rserr_invalid_fullscreen then it set the mode but not as a
 		** fullscreen mode, e.g. 320x200 on a system that doesn't support that res
 		*/
-		if ((err = SWimp_SetMode( &vid.width, &vid.height, sw_mode->value, vid_fullscreen->value)) == rserr_ok )
+		if ((err = SWimp_SetMode( &vid.width, &vid.height, r_mode->value, vid_fullscreen->value)) == rserr_ok )
 		{
 			R_InitGraphics( vid.width, vid.height );
 
-			sw_state.prev_mode = sw_mode->value;
+			sw_state.prev_mode = r_mode->value;
 			vid_fullscreen->modified = false;
-			sw_mode->modified = false;
+			r_mode->modified = false;
 		}
 		else
 		{
@@ -1129,7 +1129,7 @@ void RE_BeginFrame( float camera_separation )
 
 				ri.Cvar_SetValue( "vid_fullscreen", 0);
 				R_Printf( PRINT_ALL, "ref_soft::RE_BeginFrame() - fullscreen unavailable in this mode\n" );
-				sw_state.prev_mode = sw_mode->value;
+				sw_state.prev_mode = r_mode->value;
 			}
 			else
 			{

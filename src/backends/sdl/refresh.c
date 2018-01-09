@@ -325,9 +325,9 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 			if((flags & SDL_OPENGL) && gl_msaa_samples->value)
 			{
 				Com_Printf("SDL SetVideoMode failed: %s\n", SDL_GetError());
-				Com_Printf("Reverting to %s gl_mode %i (%ix%i) without MSAA.\n",
+				Com_Printf("Reverting to %s r_mode %i (%ix%i) without MSAA.\n",
 					        (flags & fs_flag) ? "fullscreen" : "windowed",
-					        (int) Cvar_VariableValue("gl_mode"), width, height);
+					        (int) Cvar_VariableValue("r_mode"), width, height);
 
 				/* Try to recover */
 				Cvar_SetValue("gl_msaa_samples", 0);
@@ -337,10 +337,10 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 			else if (width != 640 || height != 480 || (flags & fs_flag))
 			{
 				Com_Printf("SDL SetVideoMode failed: %s\n", SDL_GetError());
-				Com_Printf("Reverting to windowed gl_mode 4 (640x480).\n");
+				Com_Printf("Reverting to windowed r_mode 4 (640x480).\n");
 
 				/* Try to recover */
-				Cvar_SetValue("gl_mode", 4);
+				Cvar_SetValue("r_mode", 4);
 				Cvar_SetValue("vid_fullscreen", 0);
 				VID_NewWindow(width, height);
 				*pwidth = width = 640;
@@ -349,7 +349,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 			}
 			else
 			{
-				Com_Error(ERR_FATAL, "Failed to revert to gl_mode 4. Exiting...\n");
+				Com_Error(ERR_FATAL, "Failed to revert to r_mode 4. Exiting...\n");
 				return false;
 			}
 		}

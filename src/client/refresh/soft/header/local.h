@@ -464,7 +464,7 @@ extern cvar_t	*sw_maxedges;
 extern cvar_t	*sw_maxsurfs;
 extern cvar_t	*sw_mipcap;
 extern cvar_t	*sw_mipscale;
-extern cvar_t	*sw_mode;
+extern cvar_t	*r_mode;
 extern cvar_t	*sw_reportsurfout;
 extern cvar_t	*sw_reportedgeout;
 extern cvar_t	*sw_stipplealpha;

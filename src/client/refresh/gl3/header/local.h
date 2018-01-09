@@ -482,7 +482,7 @@ extern cvar_t *gl_msaa_samples;
 extern cvar_t *gl_swapinterval;
 extern cvar_t *gl_retexturing;
 extern cvar_t *vid_fullscreen;
-extern cvar_t *gl_mode;
+extern cvar_t *r_mode;
 extern cvar_t *r_customwidth;
 extern cvar_t *r_customheight;
 

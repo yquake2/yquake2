@@ -137,7 +137,7 @@ void
 VID_ListModes_f(void)
 {
 	int i;
-	Com_Printf("Supported video modes (gl_mode):\n");
+	Com_Printf("Supported video modes (r_mode):\n");
 	for(i=0; i<VID_NUM_MODES; ++i)
 	{
 		Com_Printf("  %s\n", vid_modes[i].description);

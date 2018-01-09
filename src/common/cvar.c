@@ -56,7 +56,8 @@ replacement_t replacements[] = {
 	{"gl_farsee", "r_farsee"},
 	{"gl_flashblend", "gl1_flashblend"},
 	{"gl_lockpvs", "r_lockpvs"},
-	{"gl_maxfps", "vid_maxfps"}
+	{"gl_maxfps", "vid_maxfps"},
+	{"gl_mode", "r_mode"}
 };
 
 

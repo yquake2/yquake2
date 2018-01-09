@@ -31,10 +31,7 @@
 
 extern void M_ForceMenuOff(void);
 
-static cvar_t *gl_mode;
-#ifdef REFSOFT
-static cvar_t *sw_mode;
-#endif
+static cvar_t *r_mode;
 static cvar_t *r_hudscale;
 static cvar_t *r_consolescale;
 static cvar_t *r_menuscale;
@@ -180,32 +177,16 @@ ApplyChanges(void *unused)
 #endif
 	}
 
-#ifdef REFSOFT
-	if (s_renderer_list.curvalue == 2) {
-		/* custom mode */
-		if (s_mode_list.curvalue != GetCustomValue(&s_mode_list))
-		{
-			/* Restarts automatically */
-			Cvar_SetValue("sw_mode", s_mode_list.curvalue);
-		}
-		else
-		{
-			/* Restarts automatically */
-			Cvar_SetValue("sw_mode", -1);
-		}
-	}
-	else
-#endif
 	/* custom mode */
 	if (s_mode_list.curvalue != GetCustomValue(&s_mode_list))
 	{
 		/* Restarts automatically */
-		Cvar_SetValue("gl_mode", s_mode_list.curvalue);
+		Cvar_SetValue("r_mode", s_mode_list.curvalue);
 	}
 	else
 	{
 		/* Restarts automatically */
-		Cvar_SetValue("gl_mode", -1);
+		Cvar_SetValue("r_mode", -1);
 	}
 
 	/* UI scaling */
@@ -260,20 +241,6 @@ ApplyChanges(void *unused)
 
 	M_ForceMenuOff();
 }
-
-#ifdef REFSOFT
-static void DriverCallback( void *unused )
-{
-	if (s_renderer_list.curvalue == 2)
-	{
-		s_mode_list.curvalue = sw_mode->value;
-	}
-	else
-	{
-		s_mode_list.curvalue = gl_mode->value;
-	}
-}
-#endif
 
 void
 VID_MenuInit(void)
@@ -361,17 +328,10 @@ VID_MenuInit(void)
 		0
 	};
 
-	if (!gl_mode)
+	if (!r_mode)
 	{
-		gl_mode = Cvar_Get("gl_mode", "4", 0);
+		r_mode = Cvar_Get("r_mode", "4", 0);
 	}
-
-#ifdef REFSOFT
-	if (!sw_mode)
-	{
-		sw_mode = Cvar_Get("sw_mode", "4", 0);
-	}
-#endif
 
 	if (!r_hudscale)
 	{
@@ -432,9 +392,6 @@ VID_MenuInit(void)
 	s_renderer_list.generic.y = (y = 0);
 	s_renderer_list.itemnames = renderers;
 	s_renderer_list.curvalue = GetRenderer();
-#ifdef REFSOFT
-	s_renderer_list.generic.callback = DriverCallback;
-#endif
 
 	s_mode_list.generic.type = MTYPE_SPINCONTROL;
 	s_mode_list.generic.name = "video mode";
@@ -442,16 +399,9 @@ VID_MenuInit(void)
 	s_mode_list.generic.y = (y += 10);
 	s_mode_list.itemnames = resolutions;
 
-#ifdef REFSOFT
-	if (s_renderer_list.curvalue == 2 && sw_mode->value >= 0)
+	if (r_mode->value >= 0)
 	{
-		s_mode_list.curvalue = sw_mode->value;
-	}
-	else
-#endif
-	if (gl_mode->value >= 0)
-	{
-		s_mode_list.curvalue = gl_mode->value;
+		s_mode_list.curvalue = r_mode->value;
 	}
 	else
 	{
