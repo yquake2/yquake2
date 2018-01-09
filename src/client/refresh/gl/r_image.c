@@ -616,8 +616,8 @@ R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
 	/* let people sample down the world textures for speed */
 	if (mipmap)
 	{
-		scaled_width >>= (int)gl_picmip->value;
-		scaled_height >>= (int)gl_picmip->value;
+		scaled_width >>= (int)gl1_picmip->value;
+		scaled_height >>= (int)gl1_picmip->value;
 	}
 
 	/* don't ever bother with >256 textures */

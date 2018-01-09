@@ -66,7 +66,8 @@ replacement_t replacements[] = {
 	{"gl_particle_size", "gl1_particle_size"},
 	{"gl_particle_att_a", "gl1_particle_att_a"},
 	{"gl_particle_att_b", "gl1_particle_att_b"},
-	{"gl_particle_att_c", "gl1_particle_att_c"}
+	{"gl_particle_att_c", "gl1_particle_att_c"},
+	{"gl_picmip", "gl1_picmip"}
 };
 
 
