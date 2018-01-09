@@ -477,10 +477,9 @@ extern cvar_t	*r_drawentities;
 extern cvar_t	*r_drawworld;
 extern cvar_t	*r_dspeeds;
 extern cvar_t	*r_lerpmodels;
-
 extern cvar_t	*r_speeds;
-
-extern cvar_t	*r_lightlevel;  //FIXME HACK
+extern cvar_t	*r_lightlevel;
+extern cvar_t	*r_modulate;
 
 extern cvar_t	*vid_fullscreen;
 extern cvar_t	*vid_gamma;

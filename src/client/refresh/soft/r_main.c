@@ -145,6 +145,7 @@ cvar_t	*r_dspeeds;
 cvar_t	*r_fullbright;
 cvar_t  *r_lerpmodels;
 cvar_t  *r_novis;
+cvar_t  *r_modulate;
 
 cvar_t	*r_speeds;
 cvar_t	*r_lightlevel;	//FIXME HACK
@@ -284,6 +285,7 @@ void R_Register (void)
 	r_lightlevel = ri.Cvar_Get ("r_lightlevel", "0", 0);
 	r_lerpmodels = ri.Cvar_Get( "r_lerpmodels", "1", 0 );
 	r_novis = ri.Cvar_Get( "r_novis", "0", 0 );
+	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
 
 	vid_fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", CVAR_ARCHIVE );
 	vid_gamma = ri.Cvar_Get( "vid_gamma", "1.0", CVAR_ARCHIVE );
