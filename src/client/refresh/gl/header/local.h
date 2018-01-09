@@ -205,7 +205,7 @@ extern cvar_t *gl1_picmip;
 extern cvar_t *gl_showtris;
 extern cvar_t *gl_showbbox;
 extern cvar_t *gl_finish;
-extern cvar_t *gl_ztrick;
+extern cvar_t *gl1_ztrick;
 extern cvar_t *gl_zfix;
 extern cvar_t *r_clear;
 extern cvar_t *gl_cull;

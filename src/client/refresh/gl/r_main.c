@@ -112,7 +112,7 @@ cvar_t *gl1_round_down;
 cvar_t *gl1_picmip;
 cvar_t *gl_showtris;
 cvar_t *gl_showbbox;
-cvar_t *gl_ztrick;
+cvar_t *gl1_ztrick;
 cvar_t *gl_zfix;
 cvar_t *gl_finish;
 cvar_t *r_clear;
@@ -842,7 +842,7 @@ R_Clear(void)
 		stencilFlags |= GL_STENCIL_BUFFER_BIT;
 	}
 
-	if (gl_ztrick->value)
+	if (gl1_ztrick->value)
 	{
 		static int trickframe;
 
@@ -1229,7 +1229,7 @@ R_Register(void)
 	gl1_picmip = ri.Cvar_Get("gl1_picmip", "0", 0);
 	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);
 	gl_showbbox = ri.Cvar_Get("gl_showbbox", "0", 0);
-	gl_ztrick = ri.Cvar_Get("gl_ztrick", "0", 0);
+	gl1_ztrick = ri.Cvar_Get("gl1_ztrick", "0", 0);
 	gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
 	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
 	r_clear = ri.Cvar_Get("r_clear", "0", 0);
