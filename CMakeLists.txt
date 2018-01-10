@@ -40,7 +40,6 @@ string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 option(ZIP_SUPPORT "ZIP support" ON)
 option(OGG_SUPPORT "OGG Vorbis playback support (Music)" ON)
 option(OPENAL_SUPPORT "OpenAL support" ON)
-option(SOFTRENDERER_SUPPORT "Enabled the software renderer" ON)
 option(SYSTEMWIDE_SUPPORT "Enable systemwide installation of game assets" OFF)
 
 # These variables will act as our list of include folders and linker flags
@@ -130,10 +129,6 @@ if(${OPENAL_SUPPORT})
 			add_definitions(-DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER="libopenal.so.1")
 		endif()
 	endif()
-endif()
-
-if (${SOFTRENDERER_SUPPORT})
-	add_definitions(-DREFSOFT)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -504,39 +499,37 @@ set(GL3-Header
 	${COMMON_SRC_DIR}/header/shared.h
 	)
 
-if (${SOFTRENDERER_SUPPORT})
-	set(SOFT-Source
-		${REF_SRC_DIR}/soft/r_aclip.c
-		${REF_SRC_DIR}/soft/r_alias.c
-		${REF_SRC_DIR}/soft/r_bsp.c
-		${REF_SRC_DIR}/soft/r_draw.c
-		${REF_SRC_DIR}/soft/r_edge.c
-		${REF_SRC_DIR}/soft/r_image.c
-		${REF_SRC_DIR}/soft/r_light.c
-		${REF_SRC_DIR}/soft/r_main.c
-		${REF_SRC_DIR}/soft/r_misc.c
-		${REF_SRC_DIR}/soft/r_model.c
-		${REF_SRC_DIR}/soft/r_part.c
-		${REF_SRC_DIR}/soft/r_poly.c
-		${REF_SRC_DIR}/soft/r_polyse.c
-		${REF_SRC_DIR}/soft/r_rast.c
-		${REF_SRC_DIR}/soft/r_scan.c
-		${REF_SRC_DIR}/soft/r_sprite.c
-		${REF_SRC_DIR}/soft/r_surf.c
-		${REF_SRC_DIR}/files/pcx.c
-		${REF_SRC_DIR}/files/stb.c
-		${REF_SRC_DIR}/files/wal.c
-		${COMMON_SRC_DIR}/shared/shared.c
-		${COMMON_SRC_DIR}/md4.c
-		)
+set(SOFT-Source
+	${REF_SRC_DIR}/soft/r_aclip.c
+	${REF_SRC_DIR}/soft/r_alias.c
+	${REF_SRC_DIR}/soft/r_bsp.c
+	${REF_SRC_DIR}/soft/r_draw.c
+	${REF_SRC_DIR}/soft/r_edge.c
+	${REF_SRC_DIR}/soft/r_image.c
+	${REF_SRC_DIR}/soft/r_light.c
+	${REF_SRC_DIR}/soft/r_main.c
+	${REF_SRC_DIR}/soft/r_misc.c
+	${REF_SRC_DIR}/soft/r_model.c
+	${REF_SRC_DIR}/soft/r_part.c
+	${REF_SRC_DIR}/soft/r_poly.c
+	${REF_SRC_DIR}/soft/r_polyse.c
+	${REF_SRC_DIR}/soft/r_rast.c
+	${REF_SRC_DIR}/soft/r_scan.c
+	${REF_SRC_DIR}/soft/r_sprite.c
+	${REF_SRC_DIR}/soft/r_surf.c
+	${REF_SRC_DIR}/files/pcx.c
+	${REF_SRC_DIR}/files/stb.c
+	${REF_SRC_DIR}/files/wal.c
+	${COMMON_SRC_DIR}/shared/shared.c
+	${COMMON_SRC_DIR}/md4.c
+	)
 
-	set(SOFT-Header
-		${REF_SRC_DIR}/soft/header/adivtab.h
-		${REF_SRC_DIR}/soft/header/local.h
-		${REF_SRC_DIR}/soft/header/model.h
-		${COMMON_SRC_DIR}/header/shared.h
-		)
-endif ()
+set(SOFT-Header
+	${REF_SRC_DIR}/soft/header/adivtab.h
+	${REF_SRC_DIR}/soft/header/local.h
+	${REF_SRC_DIR}/soft/header/model.h
+	${COMMON_SRC_DIR}/header/shared.h
+	)
 
 # Main Quake 2 executable
 add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
@@ -595,13 +588,11 @@ set_target_properties(ref_gl3 PROPERTIES
 target_link_libraries(ref_gl3 ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
 
 # Build the soft renderer dynamic library
-if (${SOFTRENDERER_SUPPORT})
-	add_library(ref_soft MODULE ${SOFT-Source} ${SOFT-Header} ${REF-Platform-Specific-Source})
-	set_target_properties(ref_soft PROPERTIES
-			PREFIX ""
-			LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-			SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
-			)
-	target_link_libraries(ref_soft ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
-endif()
+add_library(ref_soft MODULE ${SOFT-Source} ${SOFT-Header} ${REF-Platform-Specific-Source})
+set_target_properties(ref_soft PROPERTIES
+		PREFIX ""
+		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
+		)
+target_link_libraries(ref_soft ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})

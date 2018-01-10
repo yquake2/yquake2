@@ -27,9 +27,6 @@
 # User configurable options
 # -------------------------
 
-# Build soft render
-WITH_REFSOFT:=yes
-
 # Enables CD audio playback. CD audio playback is used
 # for the background music and doesn't add any further
 # dependencies. It should work on all platforms where
@@ -349,7 +346,6 @@ config:
 	@echo "WITH_ZIP = $(WITH_ZIP)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
-	@echo "WITH_REFSOFT = $(WITH_REFSOFT)"
 	@echo "============================"
 	@echo ""
 ifeq ($(WITH_SDL2),yes)
@@ -411,10 +407,6 @@ endif
 ifeq ($(WITH_ZIP),yes)
 release/quake2.exe : CFLAGS += -DZIP -DNOUNCRYPT
 release/quake2.exe : LDFLAGS += -lz
-endif
-
-ifeq ($(WITH_REFSOFT),yes)
-release/quake2.exe : CFLAGS += -DREFSOFT
 endif
 
 ifeq ($(WITH_SDL2),yes)
@@ -480,10 +472,6 @@ endif
 
 ifeq ($(WITH_X11GAMMA),yes)
 release/quake2 : CFLAGS += -DX11GAMMA
-endif
-
-ifeq ($(WITH_REFSOFT),yes)
-release/quake2 : CFLAGS += -DREFSOFT
 endif
 
 ifeq ($(WITH_SDL2),yes)
@@ -667,14 +655,9 @@ build/ref_gl3/%.o: %.c
 
 ifeq ($(YQ2_OSTYPE), Windows)
 
-ifeq ($(WITH_REFSOFT),yes)
 ref_soft:
 	@echo "===> Building ref_soft.dll"
 	$(MAKE) release/ref_soft.dll
-else
-ref_soft:
-	@echo "===> No soft render"
-endif
 
 ifeq ($(WITH_SDL2),yes)
 release/ref_soft.dll : CFLAGS += -DSDL2
@@ -684,15 +667,9 @@ release/ref_soft.dll : LDFLAGS += -shared
 
 else ifeq ($(YQ2_OSTYPE), Darwin)
 
-ifeq ($(WITH_REFSOFT),yes)
 ref_soft:
 	@echo "===> Building ref_soft.dylib"
 	$(MAKE) release/ref_soft.dylib
-else
-ref_soft:
-	@echo "===> No soft render"
-endif
-
 
 ifeq ($(WITH_SDL2),yes)
 release/ref_soft.dylib : CFLAGS += -DSDL2
@@ -702,14 +679,9 @@ release/ref_soft.dylib : LDFLAGS += -shared
 
 else # not Windows or Darwin
 
-ifeq ($(WITH_REFSOFT),yes)
 ref_soft:
 	@echo "===> Building ref_soft.so"
 	$(MAKE) release/ref_soft.so
-else
-ref_soft:
-	@echo "===> No soft render"
-endif
 
 release/ref_soft.so : CFLAGS += -fPIC
 release/ref_soft.so : LDFLAGS += -shared

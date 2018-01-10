@@ -73,7 +73,6 @@ GetRenderer(void)
 	{
 		return 1;
 	}
-#ifdef REFSOFT
 	else if (Q_stricmp(vid_renderer->string, "soft") == 0)
 	{
 		return 2;
@@ -82,12 +81,6 @@ GetRenderer(void)
 	{
 		return 3;
 	}
-#else
-	else
-	{
-		return 2;
-	}
-#endif
 }
 
 static int
@@ -168,13 +161,11 @@ ApplyChanges(void *unused)
 			Cvar_Set("vid_renderer", "gl3");
 			restart = true;
 		}
-#ifdef REFSOFT
 		else if (s_renderer_list.curvalue == 2)
 		{
 			Cvar_Set("vid_renderer", "soft");
 			restart = true;
 		}
-#endif
 	}
 
 	/* custom mode */
@@ -250,9 +241,7 @@ VID_MenuInit(void)
 	static const char *renderers[] = {
 			"[OpenGL 1.4]",
 			"[OpenGL 3.2]",
-#ifdef REFSOFT
 			"[Software  ]",
-#endif
 			"[Custom    ]",
 			0
 	};
