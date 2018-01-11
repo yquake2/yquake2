@@ -877,20 +877,20 @@ endif
 
 REFGL1_OBJS_ := \
 	src/client/refresh/gl/qgl.o \
-	src/client/refresh/gl/r_draw.o \
-	src/client/refresh/gl/r_image.o \
-	src/client/refresh/gl/r_light.o \
-	src/client/refresh/gl/r_lightmap.o \
-	src/client/refresh/gl/r_main.o \
-	src/client/refresh/gl/r_mesh.o \
-	src/client/refresh/gl/r_misc.o \
-	src/client/refresh/gl/r_model.o \
-	src/client/refresh/gl/r_scrap.o \
-	src/client/refresh/gl/r_surf.o \
-	src/client/refresh/gl/r_warp.o \
-	src/client/refresh/gl/r_sdl.o \
-	src/client/refresh/gl/r_md2.o \
-	src/client/refresh/gl/r_sp2.o \
+	src/client/refresh/gl/gl1_draw.o \
+	src/client/refresh/gl/gl1_image.o \
+	src/client/refresh/gl/gl1_light.o \
+	src/client/refresh/gl/gl1_lightmap.o \
+	src/client/refresh/gl/gl1_main.o \
+	src/client/refresh/gl/gl1_mesh.o \
+	src/client/refresh/gl/gl1_misc.o \
+	src/client/refresh/gl/gl1_model.o \
+	src/client/refresh/gl/gl1_scrap.o \
+	src/client/refresh/gl/gl1_surf.o \
+	src/client/refresh/gl/gl1_warp.o \
+	src/client/refresh/gl/gl1_sdl.o \
+	src/client/refresh/gl/gl1_md2.o \
+	src/client/refresh/gl/gl1_sp2.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \

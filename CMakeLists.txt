@@ -428,20 +428,20 @@ set(Server-Header
 
 set(GL1-Source
 	${REF_SRC_DIR}/gl/qgl.c
-	${REF_SRC_DIR}/gl/r_draw.c
-	${REF_SRC_DIR}/gl/r_image.c
-	${REF_SRC_DIR}/gl/r_light.c
-	${REF_SRC_DIR}/gl/r_lightmap.c
-	${REF_SRC_DIR}/gl/r_main.c
-	${REF_SRC_DIR}/gl/r_mesh.c
-	${REF_SRC_DIR}/gl/r_misc.c
-	${REF_SRC_DIR}/gl/r_model.c
-	${REF_SRC_DIR}/gl/r_scrap.c
-	${REF_SRC_DIR}/gl/r_surf.c
-	${REF_SRC_DIR}/gl/r_warp.c
-	${REF_SRC_DIR}/gl/r_sdl.c
-	${REF_SRC_DIR}/gl/r_md2.c
-	${REF_SRC_DIR}/gl/r_sp2.c
+	${REF_SRC_DIR}/gl/gl1_draw.c
+	${REF_SRC_DIR}/gl/gl1_image.c
+	${REF_SRC_DIR}/gl/gl1_light.c
+	${REF_SRC_DIR}/gl/gl1_lightmap.c
+	${REF_SRC_DIR}/gl/gl1_main.c
+	${REF_SRC_DIR}/gl/gl1_mesh.c
+	${REF_SRC_DIR}/gl/gl1_misc.c
+	${REF_SRC_DIR}/gl/gl1_model.c
+	${REF_SRC_DIR}/gl/gl1_scrap.c
+	${REF_SRC_DIR}/gl/gl1_surf.c
+	${REF_SRC_DIR}/gl/gl1_warp.c
+	${REF_SRC_DIR}/gl/gl1_sdl.c
+	${REF_SRC_DIR}/gl/gl1_md2.c
+	${REF_SRC_DIR}/gl/gl1_sp2.c
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
 	${REF_SRC_DIR}/files/wal.c
