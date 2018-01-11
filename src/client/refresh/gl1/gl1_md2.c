@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "../gl/header/local.h"
+#include "header/local.h"
 
 void
 LoadMD2(model_t *mod, void *buffer)

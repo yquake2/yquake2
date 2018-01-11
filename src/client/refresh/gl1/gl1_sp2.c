@@ -24,7 +24,7 @@
  * =======================================================================
  */
 
-#include "../gl/header/local.h"
+#include "header/local.h"
 
 extern int modfilelen;
 
