@@ -500,23 +500,23 @@ set(GL3-Header
 	)
 
 set(SOFT-Source
-	${REF_SRC_DIR}/soft/r_aclip.c
-	${REF_SRC_DIR}/soft/r_alias.c
-	${REF_SRC_DIR}/soft/r_bsp.c
-	${REF_SRC_DIR}/soft/r_draw.c
-	${REF_SRC_DIR}/soft/r_edge.c
-	${REF_SRC_DIR}/soft/r_image.c
-	${REF_SRC_DIR}/soft/r_light.c
-	${REF_SRC_DIR}/soft/r_main.c
-	${REF_SRC_DIR}/soft/r_misc.c
-	${REF_SRC_DIR}/soft/r_model.c
-	${REF_SRC_DIR}/soft/r_part.c
-	${REF_SRC_DIR}/soft/r_poly.c
-	${REF_SRC_DIR}/soft/r_polyse.c
-	${REF_SRC_DIR}/soft/r_rast.c
-	${REF_SRC_DIR}/soft/r_scan.c
-	${REF_SRC_DIR}/soft/r_sprite.c
-	${REF_SRC_DIR}/soft/r_surf.c
+	${REF_SRC_DIR}/soft/sw_aclip.c
+	${REF_SRC_DIR}/soft/sw_alias.c
+	${REF_SRC_DIR}/soft/sw_bsp.c
+	${REF_SRC_DIR}/soft/sw_draw.c
+	${REF_SRC_DIR}/soft/sw_edge.c
+	${REF_SRC_DIR}/soft/sw_image.c
+	${REF_SRC_DIR}/soft/sw_light.c
+	${REF_SRC_DIR}/soft/sw_main.c
+	${REF_SRC_DIR}/soft/sw_misc.c
+	${REF_SRC_DIR}/soft/sw_model.c
+	${REF_SRC_DIR}/soft/sw_part.c
+	${REF_SRC_DIR}/soft/sw_poly.c
+	${REF_SRC_DIR}/soft/sw_polyse.c
+	${REF_SRC_DIR}/soft/sw_rast.c
+	${REF_SRC_DIR}/soft/sw_scan.c
+	${REF_SRC_DIR}/soft/sw_sprite.c
+	${REF_SRC_DIR}/soft/sw_surf.c
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
 	${REF_SRC_DIR}/files/wal.c

@@ -940,23 +940,23 @@ endif
 # ----------
 
 REFSOFT_OBJS_ := \
-	src/client/refresh/soft/r_aclip.o \
-	src/client/refresh/soft/r_alias.o \
-	src/client/refresh/soft/r_bsp.o \
-	src/client/refresh/soft/r_draw.o \
-	src/client/refresh/soft/r_edge.o \
-	src/client/refresh/soft/r_image.o \
-	src/client/refresh/soft/r_light.o \
-	src/client/refresh/soft/r_main.o \
-	src/client/refresh/soft/r_misc.o \
-	src/client/refresh/soft/r_model.o \
-	src/client/refresh/soft/r_part.o \
-	src/client/refresh/soft/r_poly.o \
-	src/client/refresh/soft/r_polyse.o \
-	src/client/refresh/soft/r_rast.o \
-	src/client/refresh/soft/r_scan.o \
-	src/client/refresh/soft/r_sprite.o \
-	src/client/refresh/soft/r_surf.o \
+	src/client/refresh/soft/sw_aclip.o \
+	src/client/refresh/soft/sw_alias.o \
+	src/client/refresh/soft/sw_bsp.o \
+	src/client/refresh/soft/sw_draw.o \
+	src/client/refresh/soft/sw_edge.o \
+	src/client/refresh/soft/sw_image.o \
+	src/client/refresh/soft/sw_light.o \
+	src/client/refresh/soft/sw_main.o \
+	src/client/refresh/soft/sw_misc.o \
+	src/client/refresh/soft/sw_model.o \
+	src/client/refresh/soft/sw_part.o \
+	src/client/refresh/soft/sw_poly.o \
+	src/client/refresh/soft/sw_polyse.o \
+	src/client/refresh/soft/sw_rast.o \
+	src/client/refresh/soft/sw_scan.o \
+	src/client/refresh/soft/sw_sprite.o \
+	src/client/refresh/soft/sw_surf.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
