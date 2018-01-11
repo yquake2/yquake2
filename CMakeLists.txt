@@ -525,7 +525,7 @@ set(SOFT-Source
 	)
 
 set(SOFT-Header
-	${REF_SRC_DIR}/soft/header/adivtab.h
+	${REF_SRC_DIR}/constants/adivtab.h
 	${REF_SRC_DIR}/soft/header/local.h
 	${REF_SRC_DIR}/soft/header/model.h
 	${COMMON_SRC_DIR}/header/shared.h
