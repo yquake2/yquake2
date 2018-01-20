@@ -1207,7 +1207,7 @@ SCR_ExecuteLayoutString(char *s)
 
 			else
 			{
-				DrawAltStringScaled(x, y, block, scale);
+				DrawStringScaled(x, y, block, scale);
 			}
 
 			continue;
