@@ -46,7 +46,7 @@ R_RenderDlight(dlight_t *light)
 	GLfloat vtx[3*18];
 	GLfloat clr[4*18];
 
-	unsigned int index_vtx = 4;
+	unsigned int index_vtx = 3;
 	unsigned int index_clr = 0;
 
 	glEnableClientState( GL_VERTEX_ARRAY );
