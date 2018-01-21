@@ -531,16 +531,36 @@ set(SOFT-Header
 	${COMMON_SRC_DIR}/header/shared.h
 	)
 
-# Main Quake 2 executable
-add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
-		${Backends-Generic-Source} ${Backends-Generic-Header})
-set_target_properties(quake2 PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-	)
+# Wrapper for the Windows binary
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_link_libraries(quake2 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
+	set(Wrapper-Source
+	src/win-wrapper/wrapper.c
+	${BACKENDS_SRC_DIR}/windows/icon.rc
+	)
+endif()
+
+# Main Quake 2 executable
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	add_executable(yquake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
+			${Backends-Generic-Source} ${Backends-Generic-Header})
+	set_target_properties(yquake2 PROPERTIES
+			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+			)
+	target_link_libraries(yquake2 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
 			${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
+
+	# Wrapper for the Windows binary
+	add_executable(quake2 ${Wrapper-Source})
+	set_target_properties(quake2 PROPERTIES
+			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+			)
 else()
+	add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
+			${Backends-Generic-Source} ${Backends-Generic-Header})
+	set_target_properties(quake2 PROPERTIES
+			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+			)
 	target_link_libraries(quake2 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
 			${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags})
 endif()
