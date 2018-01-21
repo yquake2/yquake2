@@ -353,7 +353,6 @@ VARS
 
 ====================================================
 */
-extern int	d_spanpixcount;
 extern int	r_framecount; // sequence # of current frame since Quake
 			      //  started
 extern float	r_aliasuvscale; // scale-up factor for screen u and v
@@ -362,11 +361,7 @@ extern qboolean	r_dowarp;
 
 extern affinetridesc_t	r_affinetridesc;
 
-extern vec3_t	r_pright, r_pup, r_ppn;
-
-void D_DrawSurfaces(void);
 void R_DrawParticle(void);
-void D_ViewChanged(void);
 void D_WarpScreen(void);
 void R_PolysetUpdateTables(void);
 
@@ -376,25 +371,15 @@ void R_PolysetUpdateTables(void);
 
 extern drawsurf_t	r_drawsurf;
 
-void R_DrawSurface(void);
-
 extern int		c_surf;
 
 extern pixel_t		*r_warpbuffer;
 
 extern float		scale_for_mip;
 
-extern qboolean		d_roverwrapped;
-extern surfcache_t	*sc_rover;
-extern surfcache_t	*d_initial_rover;
-
 extern float	d_sdivzstepu, d_tdivzstepu, d_zistepu;
 extern float	d_sdivzstepv, d_tdivzstepv, d_zistepv;
 extern float	d_sdivzorigin, d_tdivzorigin, d_ziorigin;
-
-extern  int	sadjust, tadjust;
-extern  int	bbextents, bbextentt;
-
 
 void D_DrawSpans16(espan_t *pspans);
 void D_DrawZSpans(espan_t *pspans);
@@ -409,7 +394,7 @@ extern int	d_pix_min, d_pix_max, d_pix_shift;
 
 extern pixel_t	*d_viewbuffer;
 extern zvalue_t	*d_pzbuffer;
-extern unsigned int d_zrowbytes, d_zwidth;
+extern unsigned int d_zwidth;
 
 extern int	d_minmip;
 extern float	d_scalemip[3];
@@ -440,50 +425,30 @@ extern surf_t	*surfaces, *surface_p, *surf_max;
 
 //===================================================================
 
-extern vec3_t	sxformaxis[4];  // s axis transformed into viewspace
-extern vec3_t	txformaxis[4];  // t axis transformed into viewspac
-
 extern float	xcenter, ycenter;
 extern float	xscale, yscale;
 extern float	xscaleinv, yscaleinv;
 extern float	xscaleshrink, yscaleshrink;
 
 extern void TransformVector(vec3_t in, vec3_t out);
-extern void SetUpForLineScan(fixed8_t startvertu, fixed8_t startvertv,
-	fixed8_t endvertu, fixed8_t endvertv);
-
-extern int	ubasestep, errorterm, erroradjustup, erroradjustdown;
 
 //===========================================================================
 
-extern cvar_t	*sw_aliasstats;
 extern cvar_t	*sw_clearcolor;
 extern cvar_t	*sw_drawflat;
 extern cvar_t	*sw_draworder;
-extern cvar_t	*sw_maxedges;
-extern cvar_t	*sw_maxsurfs;
 extern cvar_t	*sw_mipcap;
 extern cvar_t	*sw_mipscale;
-extern cvar_t	*r_mode;
-extern cvar_t	*sw_reportsurfout;
-extern cvar_t	*sw_reportedgeout;
 extern cvar_t	*sw_stipplealpha;
 extern cvar_t	*sw_surfcacheoverride;
 extern cvar_t	*sw_waterwarp;
 
 extern cvar_t	*r_fullbright;
 extern cvar_t	*r_lefthand;
-extern cvar_t	*r_drawentities;
 extern cvar_t	*r_drawworld;
-extern cvar_t	*r_dspeeds;
 extern cvar_t	*r_lerpmodels;
-extern cvar_t	*r_speeds;
 extern cvar_t	*r_lightlevel;
 extern cvar_t	*r_modulate;
-extern cvar_t	*r_vsync;
-
-extern cvar_t	*vid_fullscreen;
-extern cvar_t	*vid_gamma;
 
 
 extern clipplane_t	view_clipplanes[4];
@@ -506,17 +471,11 @@ extern entity_t	 *currententity;
 extern vec3_t	modelorg;
 extern vec3_t	r_entorigin;
 
-extern float	verticalFieldOfView;
-extern float	xOrigin, yOrigin;
-
 extern  int	r_visframecount;
 
 extern msurface_t	*r_alpha_surfaces;
 
 //=============================================================================
-
-void R_ClearPolyList(void);
-void R_DrawPolyList(void);
 
 //
 // current entity info
@@ -526,58 +485,29 @@ extern  qboolean	insubmodel;
 void R_DrawAlphaSurfaces(void);
 
 void R_DrawSprite(void);
-void R_DrawBeam(entity_t *e);
 
 void R_RenderFace(msurface_t *fa, int clipflags);
 void R_RenderBmodelFace(bedge_t *pedges, msurface_t *psurf);
-void R_TransformPlane(mplane_t *p, float *normal, float *dist);
 void R_TransformFrustum(void);
-void R_DrawSurfaceBlock16(void);
-void R_DrawSurfaceBlock8(void);
 
-void R_GenSkyTile(void *pdest);
-void R_GenSkyTile16(void *pdest);
-void R_Surf8Patch(void);
-void R_Surf16Patch(void);
 void R_DrawSubmodelPolygons(model_t *pmodel, int clipflags, mnode_t *topnode);
 void R_DrawSolidClippedSubmodelPolygons(model_t *pmodel, mnode_t *topnode);
 
-void R_AddPolygonEdges(emitpoint_t *pverts, int numverts, int miplevel);
-surf_t *R_GetSurf(void);
 void R_AliasDrawModel(void);
 void R_BeginEdgeFrame(void);
 void R_ScanEdges(void);
-void D_DrawSurfaces(void);
-void R_InsertNewEdges(edge_t *edgestoadd, edge_t *edgelist);
-void R_StepActiveU(edge_t *pedge);
-void R_RemoveEdges(edge_t *pedge);
 void R_PushDlights(model_t *model);
-
-extern void R_Surf8Start(void);
-extern void R_Surf8End(void);
-extern void R_Surf16Start(void);
-extern void R_Surf16End(void);
-extern void R_EdgeCodeStart (void);
-extern void R_EdgeCodeEnd (void);
 
 extern void R_RotateBmodel (void);
 
 extern int	c_faceclip;
 extern int	r_polycount;
-extern int	r_wholepolycount;
-
-extern int	ubasestep, errorterm, erroradjustup, erroradjustdown;
 
 extern int	sadjust, tadjust;
 extern int	bbextents, bbextentt;
 
-extern mvertex_t	*r_ptverts, *r_ptvertsmax;
-
-extern float	entity_rotation[3][3];
 extern int	r_currentkey;
 extern int	r_currentbkey;
-
-void R_InitTurb (void);
 
 void R_DrawParticles (void);
 
@@ -611,7 +541,6 @@ extern int              r_outofsurfaces;
 extern int              r_outofedges;
 
 extern mvertex_t        *r_pcurrentvertbase;
-extern int                      r_maxvalidedgeoffset;
 
 typedef struct
 {
@@ -621,7 +550,6 @@ typedef struct
 extern aliastriangleparms_t aliastriangleparms;
 
 void R_DrawTriangle( void );
-//void R_DrawTriangle (finalvert_t *index0, finalvert_t *index1, finalvert_t *index2);
 void R_AliasClipTriangle (finalvert_t *index0, finalvert_t *index1, finalvert_t *index2);
 
 
@@ -629,16 +557,10 @@ extern float	r_time1;
 extern float	da_time1, da_time2;
 extern float	dp_time1, dp_time2, db_time1, db_time2, rw_time1, rw_time2;
 extern float	se_time1, se_time2, de_time1, de_time2, dv_time1, dv_time2;
-extern int	r_frustum_indexes[4*6];
-extern int	r_maxsurfsseen, r_maxedgesseen, r_cnumsurfs;
-extern qboolean r_surfsonstack;
-
-extern mleaf_t *r_viewleaf;
 extern int r_viewcluster, r_oldviewcluster;
 
 extern int r_clipflags;
 extern int r_dlightframecount;
-extern qboolean r_fov_greater_than_90;
 
 extern image_t		 *r_notexture_mip;
 extern model_t		 *r_worldmodel;
@@ -646,39 +568,25 @@ extern model_t		 *r_worldmodel;
 void R_PrintAliasStats (void);
 void R_PrintTimes (void);
 void R_PrintDSpeeds (void);
-void R_AnimateLight (void);
 void R_LightPoint (vec3_t p, vec3_t color);
 void R_SetupFrame (void);
-void R_cshift_f (void);
-void R_EmitEdge (mvertex_t *pv0, mvertex_t *pv1);
-void R_ClipEdge (mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip);
-void R_SplitEntityOnNode2 (mnode_t *node);
 
 extern  refdef_t		r_newrefdef;
 
-extern  surfcache_t	 *sc_rover, *sc_base;
+extern  surfcache_t	*sc_base;
 
 extern  void			*colormap;
 
 //====================================================================
 
-float R_DLightPoint (vec3_t p);
-
 void R_NewMap (void);
-void R_Register (void);
-void R_UnRegister (void);
 void Draw_InitLocal(void);
-qboolean RE_Init(void);
-void RE_Shutdown(void);
 void R_InitCaches(void);
 void D_FlushCaches(void);
 
-void	R_ScreenShot_f( void );
 void	RE_BeginRegistration (char *map);
 struct model_s  *RE_RegisterModel (char *name);
 void	RE_EndRegistration (void);
-
-void	RE_RenderFrame (refdef_t *fd);
 
 struct image_s	*RE_Draw_FindPic (char *name);
 
@@ -691,27 +599,12 @@ void	RE_Draw_TileClear (int x, int y, int w, int h, char *name);
 void	RE_Draw_Fill (int x, int y, int w, int h, int c);
 void	RE_Draw_FadeScreen (void);
 
-void	Draw_GetPalette (void);
-
-void	RE_BeginFrame( float camera_separation );
-
-void	RE_SetPalette( const unsigned char *palette );
-
-extern unsigned d_8to24table[256]; // base
-
-void	Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length);
-void	Sys_SetFPCW (void);
-
 void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
 
 void	R_InitImages(void);
 void	R_ShutdownImages(void);
 image_t	*R_FindImage(char *name, imagetype_t type);
 void	R_FreeUnusedImages(void);
-
-void	R_GammaCorrectAndSetPalette(const unsigned char *pal);
-
-extern mtexinfo_t	*sky_texinfo[6];
 
 void R_InitSkyBox(void);
 
@@ -727,8 +620,6 @@ typedef struct swstate_s
 
 void R_IMFlatShadedQuad( vec3_t a, vec3_t b, vec3_t c, vec3_t d, int color, float alpha );
 
-extern swstate_t sw_state;
-
 /*
 ====================================================================
 
@@ -737,19 +628,5 @@ IMPORTED FUNCTIONS
 ====================================================================
 */
 extern  refimport_t     ri;
-
-/*
-====================================================================
-
-IMPLEMENTATION FUNCTIONS
-
-====================================================================
-*/
-void	SWimp_BeginFrame(float camera_separation);
-void	RE_EndFrame(void);
-int	SWimp_Init(void);
-void	RE_SetPalette(const unsigned char *palette);
-void	SWimp_Shutdown(void );
-rserr_t	SWimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen);
 
 #endif

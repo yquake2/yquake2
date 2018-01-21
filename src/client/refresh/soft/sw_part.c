@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include "header/local.h"
 
-vec3_t r_pright, r_pup, r_ppn;
+static vec3_t r_pright, r_pup, r_ppn;
 
 #define PARTICLE_33     0
 #define PARTICLE_66     1

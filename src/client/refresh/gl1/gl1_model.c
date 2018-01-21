@@ -39,7 +39,6 @@ byte *mod_base;
 void LoadSP2(model_t *mod, void *buffer);
 void Mod_LoadBrushModel(model_t *mod, void *buffer);
 void LoadMD2(model_t *mod, void *buffer);
-model_t *Mod_LoadModel(model_t *mod, qboolean crash);
 void LM_BuildPolygonFromSurface(msurface_t *fa);
 void LM_CreateSurfaceLightmap(msurface_t *surf);
 void LM_EndBuildingLightmaps(void);

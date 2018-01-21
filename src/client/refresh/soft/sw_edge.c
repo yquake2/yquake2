@@ -41,38 +41,36 @@ surf_t	*surfaces, *surface_p, *surf_max;
 
 edge_t	**newedges;
 edge_t	**removeedges;
+espan_t	*edge_basespans;
 
-espan_t	*span_p, *max_span_p;
+static espan_t	*span_p, *max_span_p;
 
 int	r_currentkey;
 
-shift20_t	current_iv;
-shift20_t	edge_head_u_shift20, edge_tail_u_shift20;
+static shift20_t	current_iv;
+static shift20_t	edge_head_u_shift20, edge_tail_u_shift20;
 
 static void (*pdrawfunc)(void);
 
-edge_t	edge_head;
-edge_t	edge_tail;
-edge_t	edge_aftertail;
-edge_t	edge_sentinel;
-
-float	fv;
-
+static edge_t	edge_head;
+static edge_t	edge_tail;
+static edge_t	edge_aftertail;
+static edge_t	edge_sentinel;
+static float	fv;
 static int	miplevel;
 
 float	scale_for_mip;
-int	ubasestep, errorterm, erroradjustup, erroradjustdown;
 
 // FIXME: should go away
 extern void	R_RotateBmodel (void);
 extern void	R_TransformFrustum (void);
 
-void R_GenerateSpans (void);
-void R_GenerateSpansBackward (void);
+static void R_GenerateSpans (void);
+static void R_GenerateSpansBackward (void);
 
-void R_LeadingEdge (edge_t *edge);
-void R_LeadingEdgeBackwards (edge_t *edge);
-void R_TrailingEdge (surf_t *surf, edge_t *edge);
+static void R_LeadingEdge (edge_t *edge);
+static void R_LeadingEdgeBackwards (edge_t *edge);
+static void R_TrailingEdge (surf_t *surf, edge_t *edge);
 
 /*
 ===============================================================================
@@ -130,7 +128,8 @@ sentinel at the end (actually, this is the active edge table starting at
 edge_head.next).
 ==============
 */
-void R_InsertNewEdges (edge_t *edgestoadd, edge_t *edgelist)
+static void
+R_InsertNewEdges (edge_t *edgestoadd, edge_t *edgelist)
 {
 	edge_t	*next_edge;
 
@@ -166,7 +165,7 @@ addedge:
 R_RemoveEdges
 ==============
 */
-void R_RemoveEdges (edge_t *pedge)
+static void R_RemoveEdges (edge_t *pedge)
 {
 
 	do
@@ -181,7 +180,8 @@ void R_RemoveEdges (edge_t *pedge)
 R_StepActiveU
 ==============
 */
-void R_StepActiveU (edge_t *pedge)
+static void
+R_StepActiveU (edge_t *pedge)
 {
 	edge_t	*pnext_edge, *pwedge;
 
@@ -235,7 +235,8 @@ void R_StepActiveU (edge_t *pedge)
 R_CleanupSpan
 ==============
 */
-void R_CleanupSpan (void)
+static void
+R_CleanupSpan (void)
 {
 	surf_t		*surf;
 	shift20_t	iu;
@@ -269,7 +270,8 @@ void R_CleanupSpan (void)
 R_LeadingEdgeBackwards
 ==============
 */
-void R_LeadingEdgeBackwards (edge_t *edge)
+static void
+R_LeadingEdgeBackwards (edge_t *edge)
 {
 	espan_t		*span;
 	surf_t		*surf, *surf2;
@@ -348,7 +350,8 @@ gotposition:
 R_TrailingEdge
 ==============
 */
-void R_TrailingEdge (surf_t *surf, edge_t *edge)
+static void
+R_TrailingEdge (surf_t *surf, edge_t *edge)
 {
 	espan_t *span;
 
@@ -387,7 +390,8 @@ void R_TrailingEdge (surf_t *surf, edge_t *edge)
 R_LeadingEdge
 ==============
 */
-void R_LeadingEdge (edge_t *edge)
+static void
+R_LeadingEdge (edge_t *edge)
 {
 	if (edge->surfs[1])
 	{
@@ -511,7 +515,8 @@ gotposition:
 R_GenerateSpans
 ==============
 */
-void R_GenerateSpans (void)
+static void
+R_GenerateSpans (void)
 {
 	edge_t			*edge;
 	surf_t			*surf;
@@ -545,7 +550,8 @@ void R_GenerateSpans (void)
 R_GenerateSpansBackward
 ==============
 */
-void R_GenerateSpansBackward (void)
+static void
+R_GenerateSpansBackward (void)
 {
 	edge_t			*edge;
 
@@ -565,6 +571,8 @@ void R_GenerateSpansBackward (void)
 
 	R_CleanupSpan ();
 }
+
+static void D_DrawSurfaces (void);
 
 /*
 ==============
@@ -687,18 +695,19 @@ SURFACE FILLING
 =========================================================================
 */
 
-msurface_t		*pface;
-surfcache_t		*pcurrentcache;
-vec3_t			transformed_modelorg;
-vec3_t			world_transformed_modelorg;
-vec3_t			local_modelorg;
+static msurface_t		*pface;
+static surfcache_t		*pcurrentcache;
+static vec3_t			transformed_modelorg;
+static vec3_t			world_transformed_modelorg;
+static vec3_t			local_modelorg;
 
 /*
 =============
 D_MipLevelForScale
 =============
 */
-int D_MipLevelForScale (float scale)
+static int
+D_MipLevelForScale (float scale)
 {
 	int		lmiplevel;
 
@@ -725,7 +734,8 @@ D_FlatFillSurface
 Simple single color fill with no texture mapping
 ==============
 */
-void D_FlatFillSurface (surf_t *surf, int color)
+static void
+D_FlatFillSurface (surf_t *surf, int color)
 {
 	espan_t	*span;
 
@@ -748,7 +758,8 @@ void D_FlatFillSurface (surf_t *surf, int color)
 D_CalcGradients
 ==============
 */
-void D_CalcGradients (msurface_t *pface)
+static void
+D_CalcGradients (msurface_t *pface)
 {
 	float		mipscale;
 	vec3_t		p_temp1;
@@ -808,7 +819,8 @@ D_BackgroundSurf
 The grey background filler seen when there is a hole in the map
 ==============
 */
-void D_BackgroundSurf (surf_t *s)
+static void
+D_BackgroundSurf (surf_t *s)
 {
 	// set up a gradient for the background surface that places it
 	// effectively at infinity distance from the viewpoint
@@ -825,7 +837,8 @@ void D_BackgroundSurf (surf_t *s)
 D_TurbulentSurf
 =================
 */
-void D_TurbulentSurf (surf_t *s)
+static void
+D_TurbulentSurf (surf_t *s)
 {
 	d_zistepu = s->d_zistepu;
 	d_zistepv = s->d_zistepv;
@@ -886,7 +899,8 @@ void D_TurbulentSurf (surf_t *s)
 D_SkySurf
 ==============
 */
-void D_SkySurf (surf_t *s)
+static void
+D_SkySurf (surf_t *s)
 {
 	pface = s->msurf;
 	miplevel = 0;
@@ -919,7 +933,8 @@ D_SolidSurf
 Normal surface cached, texture mapped surface
 ==============
 */
-void D_SolidSurf (surf_t *s)
+static void
+D_SolidSurf (surf_t *s)
 {
 	d_zistepu = s->d_zistepu;
 	d_zistepv = s->d_zistepv;
@@ -979,7 +994,8 @@ D_DrawflatSurfaces
 To allow developers to see the polygon carving of the world
 =============
 */
-void D_DrawflatSurfaces (void)
+static void
+D_DrawflatSurfaces (void)
 {
 	surf_t			*s;
 	int color = 0;
@@ -1010,7 +1026,8 @@ Rasterize all the span lists.  Guaranteed zero overdraw.
 May be called more than once a frame if the surf list overflows (higher res)
 ==============
 */
-void D_DrawSurfaces (void)
+static void
+D_DrawSurfaces (void)
 {
 	// currententity = NULL;
 	// &r_worldentity;

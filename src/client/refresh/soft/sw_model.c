@@ -25,24 +25,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "header/local.h"
 
 model_t	*loadmodel;
-char	loadname[32];	// for hunk tags
 
-void Mod_LoadSpriteModel (model_t *mod, void *buffer);
-void Mod_LoadBrushModel (model_t *mod, void *buffer);
-void Mod_LoadAliasModel (model_t *mod, void *buffer);
-model_t *Mod_LoadModel (model_t *mod, qboolean crash);
+static void Mod_LoadSpriteModel (model_t *mod, void *buffer);
+static void Mod_LoadBrushModel (model_t *mod, void *buffer);
+static void Mod_LoadAliasModel (model_t *mod, void *buffer);
 
-byte	mod_novis[MAX_MAP_LEAFS/8];
+static byte	mod_novis[MAX_MAP_LEAFS/8];
 
 #define	MAX_MOD_KNOWN	256
-model_t	mod_known[MAX_MOD_KNOWN];
-int	mod_numknown;
+static model_t	mod_known[MAX_MOD_KNOWN];
+static int	mod_numknown;
 
 // the inline * models from the current map are kept seperate
-model_t	mod_inline[MAX_MOD_KNOWN];
+static model_t	mod_inline[MAX_MOD_KNOWN];
 
 int	registration_sequence;
-int	modfilelen;
+static int	modfilelen;
 
 //===============================================================================
 
@@ -87,7 +85,8 @@ Mod_ForName
 Loads in a model for the given name
 ==================
 */
-model_t *Mod_ForName (char *name, qboolean crash)
+static model_t *
+Mod_ForName (char *name, qboolean crash)
 {
 	model_t	*mod;
 	unsigned *buf;
@@ -217,7 +216,8 @@ mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
 Mod_DecompressVis
 ===================
 */
-byte *Mod_DecompressVis (byte *in, model_t *model)
+static byte *
+Mod_DecompressVis (byte *in, model_t *model)
 {
 	static byte	decompressed[MAX_MAP_LEAFS/8];
 	int		c;
@@ -290,7 +290,8 @@ Converts the 24 bit lighting down to 8 bit
 by taking the brightest component
 =================
 */
-void Mod_LoadLighting (lump_t *l)
+static void
+Mod_LoadLighting (lump_t *l)
 {
 	int		i, size;
 	byte	*in;
@@ -315,9 +316,9 @@ void Mod_LoadLighting (lump_t *l)
 }
 
 
-int r_leaftovis[MAX_MAP_LEAFS];
-int r_vistoleaf[MAX_MAP_LEAFS];
-int r_numvisleafs;
+static int r_leaftovis[MAX_MAP_LEAFS];
+static int r_vistoleaf[MAX_MAP_LEAFS];
+static int r_numvisleafs;
 
 void	R_NumberLeafs (mnode_t *node)
 {
@@ -346,7 +347,8 @@ void	R_NumberLeafs (mnode_t *node)
 Mod_LoadVisibility
 =================
 */
-void Mod_LoadVisibility (lump_t *l)
+static void
+Mod_LoadVisibility (lump_t *l)
 {
 	int		i;
 
@@ -372,7 +374,8 @@ void Mod_LoadVisibility (lump_t *l)
 Mod_LoadVertexes
 =================
 */
-void Mod_LoadVertexes (lump_t *l)
+static void
+Mod_LoadVertexes (lump_t *l)
 {
 	dvertex_t	*in;
 	mvertex_t	*out;
@@ -408,7 +411,8 @@ void Mod_LoadVertexes (lump_t *l)
 Mod_LoadSubmodels
 =================
 */
-void Mod_LoadSubmodels (lump_t *l)
+static void
+Mod_LoadSubmodels (lump_t *l)
 {
 	dmodel_t	*in;
 	dmodel_t	*out;
@@ -442,7 +446,8 @@ void Mod_LoadSubmodels (lump_t *l)
 Mod_LoadEdges
 =================
 */
-void Mod_LoadEdges (lump_t *l)
+static void
+Mod_LoadEdges (lump_t *l)
 {
 	dedge_t *in;
 	medge_t *out;
@@ -469,7 +474,8 @@ void Mod_LoadEdges (lump_t *l)
 Mod_LoadTexinfo
 =================
 */
-void Mod_LoadTexinfo (lump_t *l)
+static void
+Mod_LoadTexinfo (lump_t *l)
 {
 	texinfo_t *in;
 	mtexinfo_t *out, *step;
@@ -549,7 +555,8 @@ CalcSurfaceExtents
 Fills in s->texturemins[] and s->extents[]
 ================
 */
-void CalcSurfaceExtents (msurface_t *s)
+static void
+CalcSurfaceExtents (msurface_t *s)
 {
 	float	mins[2], maxs[2], val;
 	int		i;
@@ -605,7 +612,8 @@ void CalcSurfaceExtents (msurface_t *s)
 Mod_LoadFaces
 =================
 */
-void Mod_LoadFaces (lump_t *l)
+static void
+Mod_LoadFaces (lump_t *l)
 {
 	dface_t		*in;
 	msurface_t 	*out;
@@ -696,7 +704,8 @@ void Mod_LoadFaces (lump_t *l)
 Mod_SetParent
 =================
 */
-void Mod_SetParent (mnode_t *node, mnode_t *parent)
+static void
+Mod_SetParent (mnode_t *node, mnode_t *parent)
 {
 	node->parent = parent;
 	if (node->contents != -1)
@@ -710,7 +719,8 @@ void Mod_SetParent (mnode_t *node, mnode_t *parent)
 Mod_LoadNodes
 =================
 */
-void Mod_LoadNodes (lump_t *l)
+static void
+Mod_LoadNodes (lump_t *l)
 {
 	int		i, count;
 	dnode_t		*in;
@@ -760,7 +770,8 @@ void Mod_LoadNodes (lump_t *l)
 Mod_LoadLeafs
 =================
 */
-void Mod_LoadLeafs (lump_t *l)
+static void
+Mod_LoadLeafs (lump_t *l)
 {
 	dleaf_t 	*in;
 	mleaf_t 	*out;
@@ -799,7 +810,8 @@ void Mod_LoadLeafs (lump_t *l)
 Mod_LoadMarksurfaces
 =================
 */
-void Mod_LoadMarksurfaces (lump_t *l)
+static void
+Mod_LoadMarksurfaces (lump_t *l)
 {
 	int		i, count;
 	short		*in;
@@ -829,7 +841,8 @@ void Mod_LoadMarksurfaces (lump_t *l)
 Mod_LoadSurfedges
 =================
 */
-void Mod_LoadSurfedges (lump_t *l)
+static void
+Mod_LoadSurfedges (lump_t *l)
 {
 	int		i, count;
 	int		*in, *out;
@@ -852,7 +865,8 @@ void Mod_LoadSurfedges (lump_t *l)
 Mod_LoadPlanes
 =================
 */
-void Mod_LoadPlanes (lump_t *l)
+static void
+Mod_LoadPlanes (lump_t *l)
 {
 	int i;
 	mplane_t	*out;
@@ -892,7 +906,8 @@ void Mod_LoadPlanes (lump_t *l)
 Mod_LoadBrushModel
 =================
 */
-void Mod_LoadBrushModel (model_t *mod, void *buffer)
+static void
+Mod_LoadBrushModel (model_t *mod, void *buffer)
 {
 	int			i;
 	dheader_t	*header;
@@ -971,7 +986,8 @@ ALIAS MODELS
 Mod_LoadAliasModel
 =================
 */
-void Mod_LoadAliasModel (model_t *mod, void *buffer)
+static void
+Mod_LoadAliasModel (model_t *mod, void *buffer)
 {
 	int					i, j;
 	dmdl_t				*pinmodel, *pheader;
@@ -1096,7 +1112,8 @@ SPRITE MODELS
 Mod_LoadSpriteModel
 =================
 */
-void Mod_LoadSpriteModel (model_t *mod, void *buffer)
+static void
+Mod_LoadSpriteModel (model_t *mod, void *buffer)
 {
 	dsprite_t	*sprin, *sprout;
 	int			i;

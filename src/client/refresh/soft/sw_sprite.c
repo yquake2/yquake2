@@ -22,11 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 extern polydesc_t r_polydesc;
 
-void R_BuildPolygonFromSurface(msurface_t *fa);
-void R_PolygonCalculateGradients (void);
-
-extern void R_PolyChooseSpanletRoutine( float alpha, qboolean isturbulent );
-
 extern vec5_t	r_clip_verts[2][MAXWORKINGVERTS+2];
 
 extern void	R_ClipAndDrawPoly( float alpha, qboolean isturbulent, qboolean textured );

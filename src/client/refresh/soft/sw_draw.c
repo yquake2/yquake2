@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "header/local.h"
 
 
-image_t		*draw_chars;	// 8*8 graphic characters
+static image_t	*draw_chars;	// 8*8 graphic characters
 
 //=============================================================================
 

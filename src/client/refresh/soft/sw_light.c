@@ -37,7 +37,8 @@ DYNAMIC LIGHTS
 R_MarkLights
 =============
 */
-void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
+static void
+R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 {
 	mplane_t	*splitplane;
 	float		dist;
@@ -113,11 +114,11 @@ LIGHT SAMPLING
 =============================================================================
 */
 
-vec3_t	pointcolor;
-mplane_t	*lightplane; // used as shadow plane
-vec3_t		lightspot;
+static vec3_t	pointcolor;
+static vec3_t	lightspot;
 
-int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
+static int
+RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 {
 	float		front, back, frac;
 	qboolean	side;
@@ -164,7 +165,6 @@ int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 
 	// check for impact on this node
 	VectorCopy (mid, lightspot);
-	lightplane = plane;
 
 	surf = r_worldmodel->surfaces + node->firstsurface;
 	for (i=0 ; i<node->numsurfaces ; i++, surf++)
@@ -280,7 +280,8 @@ unsigned	blocklights[1024];	// allow some very large lightmaps
 R_AddDynamicLights
 ===============
 */
-void R_AddDynamicLights (void)
+static void
+R_AddDynamicLights (void)
 {
 	msurface_t 	*surf;
 	int		lnum;

@@ -39,14 +39,12 @@ pixel_t		*vid_alphamap = NULL;
 
 refimport_t	ri;
 
-unsigned	d_8to24table[256];
+static unsigned	d_8to24table[256];
 
 entity_t	r_worldentity;
 
 char		skyname[MAX_QPATH];
-float		skyrotate;
 vec3_t		skyaxis;
-image_t		*sky_images[6];
 
 refdef_t	r_newrefdef;
 model_t		*currentmodel;
@@ -55,11 +53,9 @@ model_t		*r_worldmodel;
 
 pixel_t		*r_warpbuffer;
 
-swstate_t sw_state;
+static swstate_t sw_state;
 
 void		*colormap;
-vec3_t		viewlightvec;
-alight_t	r_viewlighting = {128, 192, viewlightvec};
 float		r_time1;
 int			r_numallocatededges;
 float		r_aliasuvscale = 1.0;
@@ -71,9 +67,9 @@ qboolean	r_dowarp;
 mvertex_t	*r_pcurrentvertbase;
 
 int			c_surf;
-int			r_maxsurfsseen, r_maxedgesseen, r_cnumsurfs;
-qboolean	r_surfsonstack;
-int			r_clipflags;
+static int	r_maxsurfsseen, r_maxedgesseen, r_cnumsurfs;
+static qboolean	r_surfsonstack;
+int	r_clipflags;
 
 //
 // view origin
@@ -87,16 +83,12 @@ vec3_t	r_origin;
 // screen size info
 //
 oldrefdef_t	r_refdef;
-float		xcenter, ycenter;
 float		xscale, yscale;
 float		xscaleinv, yscaleinv;
 float		xscaleshrink, yscaleshrink;
 float		aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
 
 int		r_screenwidth;
-
-float	verticalFieldOfView;
-float	xOrigin, yOrigin;
 
 mplane_t	screenedge[4];
 
@@ -105,15 +97,10 @@ mplane_t	screenedge[4];
 //
 int		r_framecount = 1;	// so frame counts initialized to 0 don't match
 int		r_visframecount;
-int		d_spanpixcount;
 int		r_polycount;
 int		r_drawnpolycount;
-int		r_wholepolycount;
 
-int			*pfrustum_indexes[4];
-int			r_frustum_indexes[4*6];
-
-mleaf_t		*r_viewleaf;
+int		*pfrustum_indexes[4];
 int			r_viewcluster, r_oldviewcluster;
 
 image_t  	*r_notexture_mip;
@@ -121,43 +108,40 @@ image_t  	*r_notexture_mip;
 float	da_time1, da_time2, dp_time1, dp_time2, db_time1, db_time2, rw_time1, rw_time2;
 float	se_time1, se_time2, de_time1, de_time2;
 
-void R_MarkLeaves (void);
-
 cvar_t	*r_lefthand;
-cvar_t	*sw_aliasstats;
-cvar_t	*sw_allow_modex;
+static cvar_t	*sw_aliasstats;
 cvar_t	*sw_clearcolor;
 cvar_t	*sw_drawflat;
 cvar_t	*sw_draworder;
-cvar_t	*sw_maxedges;
-cvar_t	*sw_maxsurfs;
-cvar_t  *r_mode;
-cvar_t	*sw_reportedgeout;
-cvar_t	*sw_reportsurfout;
+static cvar_t	*sw_maxedges;
+static cvar_t	*sw_maxsurfs;
+static cvar_t  *r_mode;
+static cvar_t	*sw_reportedgeout;
+static cvar_t	*sw_reportsurfout;
 cvar_t  *sw_stipplealpha;
 cvar_t	*sw_surfcacheoverride;
 cvar_t	*sw_waterwarp;
-cvar_t	*sw_overbrightbits;
+static cvar_t	*sw_overbrightbits;
 
 cvar_t	*r_drawworld;
-cvar_t	*r_drawentities;
-cvar_t	*r_dspeeds;
+static cvar_t	*r_drawentities;
+static cvar_t	*r_dspeeds;
 cvar_t	*r_fullbright;
 cvar_t  *r_lerpmodels;
-cvar_t  *r_novis;
+static cvar_t  *r_novis;
 cvar_t  *r_modulate;
-cvar_t  *r_vsync;
-cvar_t  *r_customwidth;
-cvar_t  *r_customheight;
+static cvar_t  *r_vsync;
+static cvar_t  *r_customwidth;
+static cvar_t  *r_customheight;
 
-cvar_t	*r_speeds;
+static cvar_t	*r_speeds;
 cvar_t	*r_lightlevel;	//FIXME HACK
 
-cvar_t	*vid_fullscreen;
-cvar_t	*vid_gamma;
+static cvar_t	*vid_fullscreen;
+static cvar_t	*vid_gamma;
 
 //PGM
-cvar_t	*r_lockpvs;
+static cvar_t	*r_lockpvs;
 //PGM
 
 #define	STRINGER(x) "x"
@@ -197,20 +181,26 @@ pixel_t		*cacheblock;
 int		cachewidth;
 pixel_t		*d_viewbuffer;
 zvalue_t	*d_pzbuffer;
-unsigned int	d_zrowbytes;
 unsigned int	d_zwidth;
 
-struct texture_buffer {
+static struct texture_buffer {
 	image_t	image;
 	byte	buffer[1024];
 } r_notexture_buffer;
+
+static void Draw_GetPalette (void);
+static void RE_BeginFrame( float camera_separation );
+static void Draw_BuildGammaTable( void );
+static void RE_EndFrame(void);
+static void R_DrawBeam(entity_t *e);
 
 /*
 ==================
 R_InitTextures
 ==================
 */
-void	R_InitTextures (void)
+static void
+R_InitTextures (void)
 {
 	int		x,y, m;
 
@@ -246,7 +236,8 @@ void	R_InitTextures (void)
 R_InitTurb
 ================
 */
-void R_InitTurb (void)
+static void
+R_InitTurb (void)
 {
 	int		i;
 
@@ -259,11 +250,12 @@ void R_InitTurb (void)
 }
 
 void R_ImageList_f( void );
+static void R_ScreenShot_f( void );
 
-void R_Register (void)
+static void
+R_Register (void)
 {
 	sw_aliasstats = ri.Cvar_Get ("sw_polymodelstats", "0", 0);
-	sw_allow_modex = ri.Cvar_Get( "sw_allow_modex", "1", CVAR_ARCHIVE );
 	sw_clearcolor = ri.Cvar_Get ("sw_clearcolor", "2", 0);
 	sw_drawflat = ri.Cvar_Get ("sw_drawflat", "0", 0);
 	sw_draworder = ri.Cvar_Get ("sw_draworder", "0", 0);
@@ -309,19 +301,24 @@ void R_Register (void)
 	//PGM
 }
 
-void R_UnRegister (void)
+static void
+R_UnRegister (void)
 {
 	ri.Cmd_RemoveCommand( "screenshot" );
 	ri.Cmd_RemoveCommand ("modellist");
 	ri.Cmd_RemoveCommand( "imagelist" );
 }
 
+static int SWimp_Init(void);
+static void SWimp_Shutdown(void );
+
 /*
 ===============
 R_Init
 ===============
 */
-qboolean RE_Init(void)
+static qboolean
+RE_Init(void)
 {
 	R_InitImages ();
 	Mod_Init ();
@@ -358,7 +355,8 @@ qboolean RE_Init(void)
 RE_Shutdown
 ===============
 */
-void RE_Shutdown (void)
+static void
+RE_Shutdown (void)
 {
 	// free z buffer
 	if (d_pzbuffer)
@@ -449,7 +447,8 @@ Mark the leaves and nodes that are in the PVS for the current
 cluster
 ===============
 */
-void R_MarkLeaves (void)
+static void
+R_MarkLeaves (void)
 {
 	byte	*vis;
 	mnode_t	*node;
@@ -505,7 +504,8 @@ void R_MarkLeaves (void)
 **
 ** IMPLEMENT THIS!
 */
-void R_DrawNullModel( void )
+static void
+R_DrawNullModel( void )
 {
 }
 
@@ -514,7 +514,8 @@ void R_DrawNullModel( void )
 R_DrawEntitiesOnList
 =============
 */
-void R_DrawEntitiesOnList (void)
+static void
+R_DrawEntitiesOnList (void)
 {
 	int			i;
 	qboolean	translucent_entities = false;
@@ -620,7 +621,8 @@ void R_DrawEntitiesOnList (void)
 R_BmodelCheckBBox
 =============
 */
-int R_BmodelCheckBBox (float *minmaxs)
+static int
+R_BmodelCheckBBox (float *minmaxs)
 {
 	int i, clipflags;
 
@@ -669,7 +671,8 @@ R_FindTopnode
 Find the first node that splits the given box
 ===================
 */
-mnode_t *R_FindTopnode (vec3_t mins, vec3_t maxs)
+static mnode_t *
+R_FindTopnode (vec3_t mins, vec3_t maxs)
 {
 	mnode_t *node;
 
@@ -713,7 +716,8 @@ RotatedBBox
 Returns an axially aligned box that contains the input box at the given rotation
 =============
 */
-void RotatedBBox (vec3_t mins, vec3_t maxs, vec3_t angles, vec3_t tmins, vec3_t tmaxs)
+static void
+RotatedBBox (vec3_t mins, vec3_t maxs, vec3_t angles, vec3_t tmins, vec3_t tmaxs)
 {
 	vec3_t	tmp, v;
 	int		i, j;
@@ -771,7 +775,8 @@ void RotatedBBox (vec3_t mins, vec3_t maxs, vec3_t angles, vec3_t tmins, vec3_t 
 R_DrawBEntitiesOnList
 =============
 */
-void R_DrawBEntitiesOnList (void)
+static void
+R_DrawBEntitiesOnList (void)
 {
 	int			i, clipflags;
 	vec3_t		oldorigin;
@@ -850,15 +855,16 @@ void R_DrawBEntitiesOnList (void)
 	insubmodel = false;
 }
 
-edge_t	*ledges;
-surf_t	*lsurfs;
+static edge_t	*ledges;
+static surf_t	*lsurfs;
 
 /*
 ================
 R_EdgeDrawing
 ================
 */
-void R_EdgeDrawing (void)
+static void
+R_EdgeDrawing (void)
 {
 	if ( r_newrefdef.rdflags & RDF_NOWORLDMODEL )
 		return;
@@ -909,6 +915,7 @@ void R_EdgeDrawing (void)
 
 //=======================================================================
 
+static void	R_GammaCorrectAndSetPalette(const unsigned char *pal);
 
 /*
 =============
@@ -916,7 +923,8 @@ R_CalcPalette
 
 =============
 */
-void R_CalcPalette (void)
+static void
+R_CalcPalette (void)
 {
 	static qboolean modified;
 	byte	palette[256][4], *in, *out;
@@ -966,7 +974,8 @@ void R_CalcPalette (void)
 
 //=======================================================================
 
-void R_SetLightLevel (void)
+static void
+R_SetLightLevel (void)
 {
 	vec3_t		light;
 
@@ -988,7 +997,8 @@ RE_RenderFrame
 
 ================
 */
-void RE_RenderFrame (refdef_t *fd)
+static void
+RE_RenderFrame (refdef_t *fd)
 {
 	r_newrefdef = *fd;
 
@@ -1062,7 +1072,8 @@ void RE_RenderFrame (refdef_t *fd)
 /*
 ** R_InitGraphics
 */
-void R_InitGraphics( int width, int height )
+static void
+R_InitGraphics( int width, int height )
 {
 	vid.width  = width;
 	vid.height = height;
@@ -1089,13 +1100,14 @@ void R_InitGraphics( int width, int height )
 	R_GammaCorrectAndSetPalette((const unsigned char *)d_8to24table);
 }
 
+static rserr_t	SWimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen);
+
 /*
 ** RE_BeginFrame
 */
-void RE_BeginFrame( float camera_separation )
+static void
+RE_BeginFrame( float camera_separation )
 {
-	extern void Draw_BuildGammaTable( void );
-
 	/*
 	** rebuild the gamma correction palette if necessary
 	*/
@@ -1157,7 +1169,8 @@ void RE_BeginFrame( float camera_separation )
 /*
 ** R_GammaCorrectAndSetPalette
 */
-void R_GammaCorrectAndSetPalette( const unsigned char *palette )
+static void
+R_GammaCorrectAndSetPalette( const unsigned char *palette )
 {
 	int i;
 
@@ -1172,7 +1185,8 @@ void R_GammaCorrectAndSetPalette( const unsigned char *palette )
 /*
 ** RE_SetPalette
 */
-void RE_SetPalette(const unsigned char *palette)
+static void
+RE_SetPalette(const unsigned char *palette)
 {
 	byte palette32[1024];
 	int i;
@@ -1206,7 +1220,8 @@ void RE_SetPalette(const unsigned char *palette)
 Draw_BuildGammaTable
 ================
 */
-void Draw_BuildGammaTable (void)
+static void
+Draw_BuildGammaTable (void)
 {
 	int i;
 	float	g;
@@ -1221,7 +1236,6 @@ void Draw_BuildGammaTable (void)
 		overbright = 4.0;
 
 	g = (2.1 - vid_gamma->value);
-
 
 	if (g == 1.0)
 	{
@@ -1255,7 +1269,8 @@ void Draw_BuildGammaTable (void)
 /*
 ** R_DrawBeam
 */
-void R_DrawBeam( entity_t *e )
+static void
+R_DrawBeam( entity_t *e )
 {
 #define NUM_BEAM_SEGS 6
 
@@ -1312,15 +1327,16 @@ RE_SetSky
 */
 // 3dstudio environment map names
 char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
-int	r_skysideimage[6] = {5, 2, 4, 1, 0, 3};
+static int	r_skysideimage[6] = {5, 2, 4, 1, 0, 3};
 extern	mtexinfo_t		r_skytexinfo[6];
-void RE_SetSky (char *name, float rotate, vec3_t axis)
+
+static void
+RE_SetSky (char *name, float rotate, vec3_t axis)
 {
 	int		i;
 	char	pathname[MAX_QPATH];
 
 	strncpy (skyname, name, sizeof(skyname)-1);
-	skyrotate = rotate;
 	VectorCopy (axis, skyaxis);
 
 	for (i=0 ; i<6 ; i++)
@@ -1330,13 +1346,13 @@ void RE_SetSky (char *name, float rotate, vec3_t axis)
 	}
 }
 
-
 /*
 ===============
 Draw_GetPalette
 ===============
 */
-void Draw_GetPalette (void)
+static void
+Draw_GetPalette (void)
 {
 	byte	*pal, *out;
 	int		i;
@@ -1364,7 +1380,16 @@ void Draw_GetPalette (void)
 	free (pal);
 }
 
-struct image_s *RE_RegisterSkin (char *name);
+/*
+===============
+RE_RegisterSkin
+===============
+*/
+static struct image_s *
+RE_RegisterSkin (char *name)
+{
+	return R_FindImage (name, it_skin);
+}
 
 void R_Printf(int level, const char* msg, ...)
 {
@@ -1374,7 +1399,8 @@ void R_Printf(int level, const char* msg, ...)
 	va_end(argptr);
 }
 
-qboolean RE_IsVsyncActive(void)
+static qboolean
+RE_IsVsyncActive(void)
 {
 	if (r_vsync->value)
 	{
@@ -1450,7 +1476,8 @@ static qboolean X11_active = false;
 ** This routine is responsible for initializing the implementation
 ** specific stuff in a software rendering subsystem.
 */
-int SWimp_Init(void)
+static int
+SWimp_Init(void)
 {
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 	{
@@ -1567,7 +1594,8 @@ SetSDLIcon()
 }
 #endif /* SDL 1.2 */
 
-static int IsFullscreen()
+static int
+IsFullscreen()
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	if (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN_DESKTOP) {
@@ -1582,7 +1610,8 @@ static int IsFullscreen()
 #endif
 }
 
-static qboolean GetWindowSize(int* w, int* h)
+static qboolean
+GetWindowSize(int* w, int* h)
 {
 	if(window == NULL || w == NULL || h == NULL)
 		return false;
@@ -1604,7 +1633,8 @@ static qboolean GetWindowSize(int* w, int* h)
 	return true;
 }
 
-int R_InitContext(void* win)
+static int
+R_InitContext(void* win)
 {
 	char title[40] = {0};
 
@@ -1804,7 +1834,8 @@ char shift_size;
 ** The necessary width and height parameters are grabbed from
 ** vid.width and vid.height.
 */
-static qboolean SWimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
+static qboolean
+SWimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
 {
 	int flags;
 	int curWidth, curHeight;
@@ -1938,7 +1969,8 @@ static qboolean SWimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheigh
 ** on whether we're using DIB sections/GDI or DDRAW.
 */
 
-void RE_EndFrame (void)
+static void
+RE_EndFrame (void)
 {
 	int y,x, i;
 	const unsigned char *pallete = sw_state.currentpalette;
@@ -1994,7 +2026,8 @@ void RE_EndFrame (void)
 /*
 ** SWimp_SetMode
 */
-rserr_t SWimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen )
+static rserr_t
+SWimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen )
 {
 	rserr_t retval = rserr_ok;
 
@@ -2025,7 +2058,8 @@ rserr_t SWimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen )
 ** DIBs or DDRAW surfaces as appropriate.
 */
 
-void SWimp_Shutdown( void )
+static void
+SWimp_Shutdown( void )
 {
 	SWimp_DestroyRender();
 
@@ -2075,7 +2109,7 @@ SCREEN SHOTS
 R_ScreenShot_f
 ==================
 */
-void
+static void
 R_ScreenShot_f(void)
 {
 	int x, y;
