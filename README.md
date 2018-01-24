@@ -45,7 +45,7 @@ patch. Please note that the patch is **required** for all full versions of the
 game, even the newer ones like Steam. Without it Yamagi Quake II will not work!
 
 1. Download the patch:
-   http://deponie.yamagi.org/quake2/idstuff/q2-3.20-x86-full-ctf.exe
+   https://deponie.yamagi.org/quake2/idstuff/q2-3.20-x86-full-ctf.exe
 2. Extract the patch into an empty directory. The patch is just an ordinary
    self-extracting ZIP file. On Windows it can be extracted by double clicking
    on it, on other systems an archiver or even the *unzip* command can be used.
@@ -79,7 +79,7 @@ If you own the optional addons you'll need to copy their gamedata too:
 
 #### The demo version
 
-1. Get the demo from http://deponie.yamagi.org/quake2/idstuff/q2-314-demo-x86.exe
+1. Get the demo from https://deponie.yamagi.org/quake2/idstuff/q2-314-demo-x86.exe
    and extract it. It's just an ordinary, self-extract ZIP file. On Windows it
    can be extracted by double clicking on it, on other system an archiver or
    even the *unzip* command can be used.
@@ -140,7 +140,7 @@ How the Yamagi Quake II executables are installed depends on the platform:
 
 #### Microsoft Windows
 
-1. Get the latest release from http://www.yamagi.org/quake2
+1. Get the latest release from https://www.yamagi.org/quake2
 2. Extract it into the gamedata directory created above. quake2.exe must be
    placed next to the baseq2/ subdirectory.
 
@@ -193,7 +193,7 @@ On debian based distributions (including Ubuntu and Mint) the dependencies can
 be installed with: `apt-get install build-essential libgl1-mesa-dev libsdl2-dev
 libogg-dev libvorbis-dev libopenal-dev zlib1g-dev`
 
-On OS X we recommend using [homebrew](http://brew.sh) to install the
+On OS X we recommend using [homebrew](https://brew.sh) to install the
 dependencies: `brew install sdl2 libvorbis libogg openal-soft`
 
 On FreeBSD you'll need something like: `pkg install gmake libGL sdl2 libogg
@@ -203,7 +203,7 @@ libvorbis openal-soft`
 #### On Windows
 
 On Windows a MinGW environment is needed. A preinstalled environment with all
-dependencies can be found at http://deponie.yamagi.org/quake2/windows/build/
+dependencies can be found at https://deponie.yamagi.org/quake2/windows/build/
 Just extract it into C:\MSYS2\ and start either the 32 bit or 64 bit version
 through *C:\MSYS2\msys32.exe* or *C:\MSYS2\msys64.exe*. With the preinstalled
 MinGW environment GNU Make is highly recommended, CMake requires further
@@ -213,7 +213,7 @@ Visual Studio.
 
 #### Compiling
 
-Download the latest release from http://www.yamagi.org/quake2 or clone the
+Download the latest release from https://www.yamagi.org/quake2 or clone the
 source from https://github.com/yquake2/yquake2.git, change into the yquake2/
 source directory and type *make*. After that copy everything from the release/
 directory to your Yamagi Quake II installation directory.
