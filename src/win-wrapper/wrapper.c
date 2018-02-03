@@ -31,7 +31,7 @@
 
 static const WCHAR WRAPPED_EXE[] = L"yquake2.exe";
 
-int main(int argc, char** argv)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	WCHAR* cmdLine = GetCommandLineW();
 	WCHAR exePath[2048];
