@@ -198,7 +198,6 @@ set(Backends-Windows-Source
 
 set(Backends-Windows-Header
 	${BACKENDS_SRC_DIR}/windows/header/resource.h
-	${BACKENDS_SRC_DIR}/windows/header/winquake.h
 	)
 
 set(REF-Windows-Source

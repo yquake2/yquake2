@@ -24,8 +24,9 @@
  * =======================================================================
  */
 
+#include <windows.h>
+
 #include "../../../common/header/common.h"
-#include "../header/winquake.h"
 
 byte *membase;
 int hunkcount;
