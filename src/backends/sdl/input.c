@@ -384,7 +384,7 @@ IN_Update(void)
 {
 	qboolean want_grab;
 	SDL_Event event;
- 	unsigned int key;
+	unsigned int key;
 
 	/* Get and process an event */
 	while (SDL_PollEvent(&event))
@@ -415,7 +415,7 @@ IN_Update(void)
 #endif
 				/* fall-through */
 			case SDL_MOUSEBUTTONUP:
-				switch( event.button.button )
+				switch (event.button.button)
 				{
 					case SDL_BUTTON_LEFT:
 						key = K_MOUSE1;
@@ -440,16 +440,17 @@ IN_Update(void)
 				break;
 
 			case SDL_MOUSEMOTION:
-                if (cls.key_dest == key_game && (int)cl_paused->value == 0) {
-                    mouse_x += event.motion.xrel;
-                    mouse_y += event.motion.yrel;
-                }
+				if (cls.key_dest == key_game && (int) cl_paused->value == 0)
+				{
+					mouse_x += event.motion.xrel;
+					mouse_y += event.motion.yrel;
+				}
 				break;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_TEXTINPUT:
-				if((event.text.text[0] >= ' ') &&
-				   (event.text.text[0] <= '~'))
+				if ((event.text.text[0] >= ' ') &&
+					(event.text.text[0] <= '~'))
 				{
 					Char_Event(event.text.text[0]);
 				}
@@ -475,13 +476,13 @@ IN_Update(void)
 				 * always map those physical keys (scancodes) to those keycodes anyway
 				 * see also https://bugzilla.libsdl.org/show_bug.cgi?id=3188 */
 				SDL_Scancode sc = event.key.keysym.scancode;
-				if(sc >= SDL_SCANCODE_1 && sc <= SDL_SCANCODE_0)
+				if (sc >= SDL_SCANCODE_1 && sc <= SDL_SCANCODE_0)
 				{
 					/* Note that the SDL_SCANCODEs are SDL_SCANCODE_1, _2, ..., _9, SDL_SCANCODE_0
 					 * while in ASCII it's '0', '1', ..., '9' => handle 0 and 1-9 separately
 					 * (quake2 uses the ASCII values for those keys) */
 					int key = '0'; /* implicitly handles SDL_SCANCODE_0 */
-					if(sc <= SDL_SCANCODE_9)
+					if (sc <= SDL_SCANCODE_9)
 					{
 						key = '1' + (sc - SDL_SCANCODE_1);
 					}
@@ -489,8 +490,8 @@ IN_Update(void)
 				}
 				else
 #endif /* SDL2; (SDL1.2 doesn't have scancodes so nothing we can do there) */
-				   if((event.key.keysym.sym >= SDLK_SPACE) &&
-				      (event.key.keysym.sym < SDLK_DELETE))
+				if ((event.key.keysym.sym >= SDLK_SPACE) &&
+					(event.key.keysym.sym < SDLK_DELETE))
 				{
 					Key_Event(event.key.keysym.sym, down, false);
 				}
@@ -503,12 +504,12 @@ IN_Update(void)
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_WINDOWEVENT:
-				if(event.window.event == SDL_WINDOWEVENT_FOCUS_LOST ||
-						event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
+				if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST ||
+					event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
 				{
 					Key_MarkAllUp();
 				}
-				else if(event.window.event == SDL_WINDOWEVENT_MOVED)
+				else if (event.window.event == SDL_WINDOWEVENT_MOVED)
 				{
 					// make sure GLimp_GetRefreshRate() will query from SDL again - the window might
 					// be on another display now!
@@ -528,14 +529,15 @@ IN_Update(void)
 			case SDL_CONTROLLERBUTTONDOWN: /* Handle Controller Back button */
 			{
 				qboolean down = (event.type == SDL_CONTROLLERBUTTONDOWN);
-				if(event.cbutton.button == SDL_CONTROLLER_BUTTON_BACK) {
+				if (event.cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
+				{
 					Key_Event(K_JOY_BACK, down, true);
 				}
 			}
 				break;
 			case SDL_CONTROLLERAXISMOTION:  /* Handle Controller Motion */
 			{
-				char* direction_type;
+				char *direction_type;
 				float threshold = 0;
 				float fix_value = 0;
 				int axis_value = event.caxis.value;
@@ -546,17 +548,17 @@ IN_Update(void)
 						direction_type = joy_axis_leftx->string;
 						threshold = joy_axis_leftx_threshold->value;
 						break;
-					/* top/bottom */
+						/* top/bottom */
 					case SDL_CONTROLLER_AXIS_LEFTY:
 						direction_type = joy_axis_lefty->string;
 						threshold = joy_axis_lefty_threshold->value;
 						break;
-					/* second left/right */
+						/* second left/right */
 					case SDL_CONTROLLER_AXIS_RIGHTX:
 						direction_type = joy_axis_rightx->string;
 						threshold = joy_axis_rightx_threshold->value;
 						break;
-					/* second top/bottom */
+						/* second top/bottom */
 					case SDL_CONTROLLER_AXIS_RIGHTY:
 						direction_type = joy_axis_righty->string;
 						threshold = joy_axis_righty_threshold->value;
@@ -583,13 +585,13 @@ IN_Update(void)
 
 				// Smoothly ramp from dead zone to maximum value (from ioquake)
 				// https://github.com/ioquake/ioq3/blob/master/code/sdl/sdl_input.c
-				fix_value = ((float)abs(axis_value) / 32767.0f - threshold) / (1.0f - threshold);
+				fix_value = ((float) abs(axis_value) / 32767.0f - threshold) / (1.0f - threshold);
 				if (fix_value < 0.0f)
 					fix_value = 0.0f;
 
-				axis_value = (int)(32767 * ((axis_value < 0) ? -fix_value : fix_value));
+				axis_value = (int) (32767 * ((axis_value < 0) ? -fix_value : fix_value));
 
-				if (cls.key_dest == key_game && (int)cl_paused->value == 0)
+				if (cls.key_dest == key_game && (int) cl_paused->value == 0)
 				{
 					if (strcmp(direction_type, "sidemove") == 0)
 					{
@@ -640,8 +642,8 @@ IN_Update(void)
 				}
 			}
 				break;
-			/* Joystick can have more buttons than on general game controller
-			 * so try to map not free buttons */
+				/* Joystick can have more buttons than on general game controller
+				 * so try to map not free buttons */
 			case SDL_JOYBUTTONUP:
 			case SDL_JOYBUTTONDOWN:
 			{
@@ -649,7 +651,8 @@ IN_Update(void)
 				/* Ignore back button, we dont need event for such button */
 				if (back_button_id == event.jbutton.button)
 					return;
-				if(event.jbutton.button <= (K_JOY32 - K_JOY1)) {
+				if (event.jbutton.button <= (K_JOY32 - K_JOY1))
+				{
 					Key_Event(event.jbutton.button + K_JOY1, down, true);
 				}
 			}
@@ -658,10 +661,12 @@ IN_Update(void)
 			{
 				if (last_hat != event.jhat.value)
 				{
-					char diff = last_hat ^ event.jhat.value;
+					char diff = last_hat ^event.jhat.value;
 					int i;
-					for (i=0; i < 4; i++) {
-						if (diff & (1 << i)) {
+					for (i = 0; i < 4; i++)
+					{
+						if (diff & (1 << i))
+						{
 							/* check that we have button up for some bit */
 							if (last_hat & (1 << i))
 								Key_Event(i + K_HAT_UP, false, true);
@@ -683,10 +688,18 @@ IN_Update(void)
 		}
 	}
 
-	/* Grab and ungrab the mouse if the* console or the menu is opened */
-	want_grab = (vid_fullscreen->value || in_grab->value == 1 ||
+	/* Grab and ungrab the mouse if the console or the menu is opened */
+	if (in_grab->value == 3)
+	{
+		want_grab = windowed_mouse->value;
+	}
+	else
+	{
+		want_grab = (vid_fullscreen->value || in_grab->value == 1 ||
 			(in_grab->value == 2 && windowed_mouse->value));
-	/* calling GLimp_GrabInput() each is a but ugly but simple and should work.
+	}
+
+	/* calling GLimp_GrabInput() each is a bit ugly but simple and should work.
 	 * + the called SDL functions return after a cheap check, if there's
 	 * nothing to do, anyway
 	 */
