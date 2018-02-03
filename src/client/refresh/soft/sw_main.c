@@ -1100,7 +1100,7 @@ R_InitGraphics( int width, int height )
 	R_GammaCorrectAndSetPalette((const unsigned char *)d_8to24table);
 }
 
-static rserr_t	SWimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen);
+static rserr_t	SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen);
 
 /*
 ** RE_BeginFrame
@@ -1835,7 +1835,7 @@ char shift_size;
 ** vid.width and vid.height.
 */
 static qboolean
-SWimp_InitGraphics(qboolean fullscreen, int *pwidth, int *pheight)
+SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 {
 	int flags;
 	int curWidth, curHeight;
@@ -2027,7 +2027,7 @@ RE_EndFrame (void)
 ** SWimp_SetMode
 */
 static rserr_t
-SWimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen )
+SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 {
 	rserr_t retval = rserr_ok;
 
