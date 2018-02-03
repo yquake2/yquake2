@@ -169,7 +169,7 @@ R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 	return BBOX_MUST_CLIP_XY;
 }
 
-static qboolean
+static int
 R_AliasCheckBBox (void)
 {
 	unsigned long ccodes[2] = { 0, 0 };
