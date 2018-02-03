@@ -306,7 +306,7 @@ void VID_WriteScreenshot( int width, int height, int comp, const void* data )
 		case 0: success = stbi_write_tga(checkname, width, height, comp, data); break;
 		case 1: success = stbi_write_bmp(checkname, width, height, comp, data); break;
 		case 2:
-			stbi_png_level = (quality <= 10) ? quality : 7;
+			stbi_write_png_compression_level = (quality <= 10) ? quality : 7;
 			success = stbi_write_png(checkname, width, height, comp, data, 0);
 			break;
 		case 3: success = stbi_write_jpg(checkname, width, height, comp, data, quality); break;
