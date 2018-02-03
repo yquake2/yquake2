@@ -54,7 +54,6 @@
 #include "../../common/header/common.h"
 #include "../../common/header/glob.h"
 #include "../generic/header/input.h"
-#include "header/unix.h"
 
 unsigned sys_frame_time;
 static void *game_library;
@@ -600,4 +599,11 @@ void
 Sys_RedirectStdout(void)
 {
 	return;
+}
+
+void
+Sys_Nanosleep(int nanosec)
+{
+	struct timespec t = {0, nanosec};
+	nanosleep(&t, NULL);
 }

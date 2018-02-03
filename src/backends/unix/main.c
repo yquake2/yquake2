@@ -19,44 +19,32 @@
  *
  * =======================================================================
  *
- * This file is the starting point of the program and implements
- * the main loop
+ * This file is the starting point of the program. It does some platform
+ * specific initialization stuff and calls the common initialization code.
  *
  * =======================================================================
  */
 
 #include <fcntl.h>
-#include <sys/types.h>
-#include <time.h>
 #include <unistd.h>
 
 #include "../../common/header/common.h"
-#include "header/unix.h"
+
+void registerHandler(void);
 
 qboolean is_portable;
 
 int
 main(int argc, char **argv)
 {
-	int verLen, i;
-	long long oldtime, newtime;
-	const char* versionString;
-
-	// Time slept each frame.
-#ifndef DEDICATED_ONLY
-	struct timespec t = {0, 5000};
-#else
-	struct timespec t = {0, 850000};
-#endif
-
-	/* register signal handler */
+	// register signal handler
 	registerHandler();
 
-	/* Setup FPU if necessary */
+	// Setup FPU if necessary
 	Sys_SetupFPU();
 
-	/* Are we portable? */
-	for (i = 0; i < argc; i++) {
+	// Are we portable?
+	for (int i = 0; i < argc; i++) {
 		if (strcmp(argv[i], "-portable") == 0) {
 			is_portable = true;
 		}
@@ -73,8 +61,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	/* Enforce the real UID to
-	   prevent setuid crap */
+	// Enforce the real UID to prevent setuid crap
 	if (getuid() != geteuid())
 	{
 		printf("The effective UID is not the real UID! Your binary is probably marked\n");
@@ -85,73 +72,15 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	/* enforce C locale */
+	// enforce C locale
 	setenv("LC_ALL", "C", 1);
 
-	versionString = va("Yamagi Quake II v%s", YQ2VERSION);
-	verLen = strlen(versionString);
-
-	printf("\n%s\n", versionString);
-	for(i=0; i<verLen; ++i)
-	{
-		putc('=', stdout);
-	}
-	puts("\n");
-
-#ifndef DEDICATED_ONLY
-	printf("Client build options:\n");
-#ifdef SDL2
-	printf(" + SDL2\n");
-#else
-	printf(" - SDL2 (using 1.2)\n");
-#endif
-
-#ifdef CDA
-	printf(" + CD audio\n");
-#else
-	printf(" - CD audio\n");
-#endif
-#ifdef OGG
-	printf(" + OGG/Vorbis\n");
-#else
-	printf(" - OGG/Vorbis\n");
-#endif
-#ifdef USE_OPENAL
-	printf(" + OpenAL audio\n");
-#else
-	printf(" - OpenAL audio\n");
-#endif
-#ifdef ZIP
-	printf(" + Zip file support\n");
-#else
-	printf(" - Zip file support\n");
-#endif
-#endif
-
-	printf("Platform: %s\n", YQ2OSTYPE);
-	printf("Architecture: %s\n", YQ2ARCH);
-
-	/* Seed PRNG */
-	randk_seed();
-
-	/* Initialze the game */
-	Qcommon_Init(argc, argv);
-
-	/* Do not delay reads on stdin*/
+	/// Do not delay reads on stdin
 	fcntl(fileno(stdin), F_SETFL, fcntl(fileno(stdin), F_GETFL, NULL) | FNDELAY);
 
-	oldtime = Sys_Microseconds();
-
-	/* The mainloop. The legend. */
-	while (1)
-	{
-		// Throttle the game a little bit.
-		nanosleep(&t, NULL);
-
-		newtime = Sys_Microseconds();
-		Qcommon_Frame(newtime - oldtime);
-		oldtime = newtime;
-	}
+	// Initialize the game.
+	// Never returns.
+	Qcommon_Init(argc, argv);
 
 	return 0;
 }

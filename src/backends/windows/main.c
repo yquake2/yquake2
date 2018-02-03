@@ -19,14 +19,48 @@
  *
  * =======================================================================
  *
- * A header file for some of the plattform dependend stuff.
+ * This file is the starting point of the program. It does some platform
+ * specific initialization stuff and calls the common initialization code.
  *
  * =======================================================================
  */
 
-#ifndef UNIX_UNIX_H
-#define UNIX_UNIX_H
+#include <windows.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_Main.h>
 
-void registerHandler(void);
+#include "../../common/header/common.h"
 
+qboolean is_portable;
+
+/*
+ * Windows main function. Containts the
+ * initialization code and the main loop
+ */
+int
+main(int argc, char **argv)
+{
+	// Setup FPU if necessary.
+	Sys_SetupFPU();
+
+	// Force DPI awareness.
+	Sys_SetHighDPIMode();
+
+	// Are we portable?
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], "-portable") == 0) {
+			is_portable = true;
+		}
+	}
+
+	// Need to redirect stdout before anything happens.
+#ifndef DEDICATED_ONLY
+	Sys_RedirectStdout();
 #endif
+
+	// Call the initialization code.
+	// Never returns.
+	Qcommon_Init(argc, argv);
+
+	return 0;
+}

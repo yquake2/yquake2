@@ -35,9 +35,6 @@
 #include <shlobj.h>
 #include <windows.h>
 
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_Main.h"
-
 #include "../../common/header/common.h"
 #include "../generic/header/input.h"
 #include "header/resource.h"
@@ -701,93 +698,6 @@ Sys_SetHighDPIMode(void)
 }
 
 /* ======================================================================= */
-
-/*
- * Windows main function. Containts the
- * initialization code and the main loop
- */
-int
-main(int argc, char *argv[])
-{
-	long long oldtime, newtime;
-
-	/* Setup FPU if necessary */
-	Sys_SetupFPU();
-
-	/* Force DPI awareness */
-	Sys_SetHighDPIMode();
-
-	/* Are we portable? */
-	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "-portable") == 0) {
-			is_portable = true;
-		}
-	}
-
-	/* Need to redirect stdout before anything happens. */
-#ifndef DEDICATED_ONLY
-	Sys_RedirectStdout();
-#endif
-
-	printf("Yamagi Quake II v%s\n", YQ2VERSION);
-	printf("=====================\n\n");
-
-#ifndef DEDICATED_ONLY
-	printf("Client build options:\n");
-#ifdef SDL2
-	printf(" + SDL2\n");
-#else
-	printf(" - SDL2 (using 1.2)\n");
-#endif
-#ifdef CDA
-	printf(" + CD audio\n");
-#else
-	printf(" - CD audio\n");
-#endif
-#ifdef OGG
-	printf(" + OGG/Vorbis\n");
-#else
-	printf(" - OGG/Vorbis\n");
-#endif
-#ifdef USE_OPENAL
-	printf(" + OpenAL audio\n");
-#else
-	printf(" - OpenAL audio\n");
-#endif
-#ifdef ZIP
-	printf(" + Zip file support\n");
-#else
-	printf(" - Zip file support\n");
-#endif
-#endif
-
-	printf("Platform: %s\n", YQ2OSTYPE);
-	printf("Architecture: %s\n", YQ2ARCH);
-
-
-	/* Seed PRNG */
-	randk_seed();
-
-	/* Call the initialization code */
-	Qcommon_Init(argc, argv);
-
-	/* Save our time */
-	oldtime = Sys_Microseconds();
-
-	/* The legendary main loop */
-	while (1)
-	{
-		// Throttle the game a little bit
-		Sys_Nanosleep(5000);
-
-		newtime = Sys_Microseconds();
-		Qcommon_Frame(newtime - oldtime);
-		oldtime = newtime;
-	}
-
-	/* never gets here */
-	return TRUE;
-}
 
 void
 Sys_FreeLibrary(void *handle)

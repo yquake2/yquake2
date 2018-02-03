@@ -755,12 +755,13 @@ extern vec3_t bytedirs[NUMVERTEXNORMALS];
 /* this is in the client code, but can be used for debugging from server */
 void SCR_DebugGraph(float value, int color);
 
+void *Sys_GetGameAPI(void *parms);
 /* NON-PORTABLE OSTYPE SERVICES */
+
+
 
 void Sys_Init(void);
 void Sys_UnloadGame(void);
-void *Sys_GetGameAPI(void *parms);
-
 char *Sys_ConsoleInput(void);
 void Sys_ConsoleOutput(char *string);
 void Sys_SendKeyEvents(void);
@@ -774,6 +775,7 @@ void *Sys_LoadLibrary(const char *path, const char *sym, void **handle);
 void *Sys_GetProcAddress(void *handle, const char *sym);
 void Sys_RedirectStdout(void);
 void Sys_SetupFPU(void);
+void Sys_Nanosleep(int);
 
 /* CLIENT / SERVER SYSTEMS */
 

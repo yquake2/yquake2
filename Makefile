@@ -863,6 +863,7 @@ CLIENT_OBJS_ := \
 
 ifeq ($(YQ2_OSTYPE), Windows)
 CLIENT_OBJS_ += \
+	src/backends/windows/main.o \
 	src/backends/windows/network.o \
 	src/backends/windows/system.o \
 	src/backends/windows/shared/mem.o
@@ -1010,6 +1011,7 @@ SERVER_OBJS_ := \
 
 ifeq ($(YQ2_OSTYPE), Windows)
 SERVER_OBJS_ += \
+	src/backends/windows/main.o \
 	src/backends/windows/network.o \
 	src/backends/windows/system.o \
 	src/backends/windows/shared/mem.o

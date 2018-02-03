@@ -19,7 +19,7 @@
  *
  * =======================================================================
  *
- * Generic frame handling.
+ * Platform independent initialization, main loop and frame handling.
  *
  * =======================================================================
  */
@@ -71,6 +71,83 @@ void SCR_EndLoadingPlaque(void);
 
 // ----
 
+static void
+Qcommon_Buildstring(void)
+{
+	int i;
+	int verLen;
+	const char* versionString;
+
+
+	versionString = va("Yamagi Quake II v%s", YQ2VERSION);
+	verLen = strlen(versionString);
+
+	printf("\n%s\n", versionString);
+
+	for( i = 0; i < verLen; ++i)
+	{
+		printf("=");
+	}
+
+	printf("\n");
+
+
+#ifndef DEDICATED_ONLY
+	printf("Client build options:\n");
+#ifdef SDL2
+	printf(" + SDL2\n");
+#else
+	printf(" - SDL2 (using 1.2)\n");
+#endif
+
+#ifdef CDA
+	printf(" + CD audio\n");
+#else
+	printf(" - CD audio\n");
+#endif
+#ifdef OGG
+	printf(" + OGG/Vorbis\n");
+#else
+	printf(" - OGG/Vorbis\n");
+#endif
+#ifdef USE_OPENAL
+	printf(" + OpenAL audio\n");
+#else
+	printf(" - OpenAL audio\n");
+#endif
+#ifdef ZIP
+	printf(" + Zip file support\n");
+#else
+	printf(" - Zip file support\n");
+#endif
+#endif
+
+	printf("Platform: %s\n", YQ2OSTYPE);
+	printf("Architecture: %s\n", YQ2ARCH);
+}
+
+void
+Qcommon_Mainloop(void)
+{
+	long long newtime;
+	long long oldtime = Sys_Microseconds();
+
+	/* The mainloop. The legend. */
+	while (1)
+	{
+		// Throttle the game a little bit.
+#ifdef DEDICATED_ONLY
+		Sys_Nanosleep(850000);
+#else
+		Sys_Nanosleep(5000);
+#endif
+
+		newtime = Sys_Microseconds();
+		Qcommon_Frame(newtime - oldtime);
+		oldtime = newtime;
+	}
+}
+
 void
 Qcommon_Init(int argc, char **argv)
 {
@@ -79,6 +156,12 @@ Qcommon_Init(int argc, char **argv)
 	{
 		Sys_Error("Error during initialization");
 	}
+
+	// Print the build and version string
+	Qcommon_Buildstring();
+
+	// Seed PRNG
+	randk_seed();
 
 	// Initialize zone malloc().
 	z_chain.next = z_chain.prev = &z_chain;
@@ -186,6 +269,9 @@ Qcommon_Init(int argc, char **argv)
 
 	Com_Printf("==== Yamagi Quake II Initialized ====\n\n");
 	Com_Printf("*************************************\n\n");
+
+	// Call the main loop
+	Qcommon_Mainloop();
 }
 
 #ifndef DEDICATED_ONLY
