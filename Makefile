@@ -1073,7 +1073,7 @@ endif
 ifeq ($(YQ2_OSTYPE), Windows)
 release/q2ded.exe : $(SERVER_OBJS) icon
 	@echo "===> LD $@.exe"
-	${Q}$(CC) build/icon/icon.res $(SERVER_OBJS) $(LDFLAGS) -o $@
+	${Q}$(CC) build/icon/icon.res $(SERVER_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 	$(Q)strip $@
 else
 release/q2ded : $(SERVER_OBJS)

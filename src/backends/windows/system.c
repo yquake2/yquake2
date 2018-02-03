@@ -33,25 +33,21 @@
 #include <io.h>
 #include <conio.h>
 #include <shlobj.h>
+#include <windows.h>
+
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_Main.h"
 
 #include "../../common/header/common.h"
 #include "../generic/header/input.h"
 #include "header/resource.h"
-#include "header/winquake.h"
-
-#define MAX_NUM_ARGVS 128
 
 int starttime;
-qboolean ActiveApp;
-qboolean Minimized;
 
 static HANDLE hinput, houtput;
-static HANDLE qwclsemaphore;
 
-HINSTANCE global_hInstance;
 static HINSTANCE game_library;
 
-unsigned int sys_msg_time;
 unsigned int sys_frame_time;
 
 static char console_text[256];
@@ -60,9 +56,6 @@ static int console_textlen;
 char findbase[MAX_OSPATH];
 char findpath[MAX_OSPATH];
 int findhandle;
-
-int argc;
-char *argv[MAX_NUM_ARGVS];
 
 qboolean is_portable;
 
@@ -87,11 +80,6 @@ Sys_Error(char *error, ...)
 
 	MessageBox(NULL, text, "Error", 0 /* MB_OK */);
 
-	if (qwclsemaphore)
-	{
-		CloseHandle(qwclsemaphore);
-	}
-
 	/* Close stdout and stderr */
 #ifndef DEDICATED_ONLY
 	fclose(stdout);
@@ -111,7 +99,6 @@ Sys_Quit(void)
 #endif
 
 	Qcommon_Shutdown();
-	CloseHandle(qwclsemaphore);
 
 	if (dedicated && dedicated->value)
 	{
@@ -356,40 +343,6 @@ Sys_GetGameAPI(void *parms)
 	}
 
 	return GetGameAPI(parms);
-}
-
-/* ======================================================================= */
-
-void
-ParseCommandLine(LPSTR lpCmdLine)
-{
-	argc = 1;
-	argv[0] = "exe";
-
-	while (*lpCmdLine && (argc < MAX_NUM_ARGVS))
-	{
-		while (*lpCmdLine && ((*lpCmdLine <= 32) || (*lpCmdLine > 126)))
-		{
-			lpCmdLine++;
-		}
-
-		if (*lpCmdLine)
-		{
-			argv[argc] = lpCmdLine;
-			argc++;
-
-			while (*lpCmdLine && ((*lpCmdLine > 32) && (*lpCmdLine <= 126)))
-			{
-				lpCmdLine++;
-			}
-
-			if (*lpCmdLine)
-			{
-				*lpCmdLine = 0;
-				lpCmdLine++;
-			}
-		}
-	}
 }
 
 /* ======================================================================= */
@@ -753,30 +706,16 @@ Sys_SetHighDPIMode(void)
  * Windows main function. Containts the
  * initialization code and the main loop
  */
-int WINAPI
-WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-		LPSTR lpCmdLine, int nCmdShow)
+int
+main(int argc, char *argv[])
 {
-	MSG msg;
 	long long oldtime, newtime;
-
-	/* Previous instances do not exist in Win32 */
-	if (hPrevInstance)
-	{
-		return 0;
-	}
-
-	/* Make the current instance global */
-	global_hInstance = hInstance;
 
 	/* Setup FPU if necessary */
 	Sys_SetupFPU();
 
 	/* Force DPI awareness */
 	Sys_SetHighDPIMode();
-
-	/* Parse the command line arguments */
-	ParseCommandLine(lpCmdLine);
 
 	/* Are we portable? */
 	for (int i = 0; i < argc; i++) {
@@ -838,24 +777,6 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	/* The legendary main loop */
 	while (1)
 	{
-		/* If at a full screen console, don't update unless needed */
-		if (Minimized || (dedicated && dedicated->value))
-		{
-			Sleep(1);
-		}
-
-		while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
-		{
-			if (!GetMessage(&msg, NULL, 0, 0))
-			{
-				Com_Quit();
-			}
-
-			sys_msg_time = msg.time;
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-
 		// Throttle the game a little bit
 		Sys_Nanosleep(5000);
 
