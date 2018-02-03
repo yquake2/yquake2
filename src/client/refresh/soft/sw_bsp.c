@@ -31,7 +31,7 @@ vec3_t		modelorg;	// modelorg is the viewpoint reletive to
 vec3_t		r_entorigin;	// the currently rendering entity in world
 				// coordinates
 
-float		entity_rotation[3][3];
+static float	entity_rotation[3][3];
 
 int		r_currentbkey;
 
@@ -58,7 +58,8 @@ static qboolean		makeclippededge;
 R_EntityRotate
 ================
 */
-void R_EntityRotate (vec3_t vec)
+static void
+R_EntityRotate (vec3_t vec)
 {
 	vec3_t	tvec;
 
@@ -155,7 +156,8 @@ R_RecursiveClipBPoly
 Clip a bmodel poly down the world bsp tree
 ================
 */
-void R_RecursiveClipBPoly (bedge_t *pedges, mnode_t *pnode, msurface_t *psurf)
+static void
+R_RecursiveClipBPoly (bedge_t *pedges, mnode_t *pnode, msurface_t *psurf)
 {
 	bedge_t		*psideedges[2], *pnextedge, *ptedge;
 	int		i, side, lastside;
@@ -336,7 +338,8 @@ R_DrawSolidClippedSubmodelPolygons
 Bmodel crosses multiple leafs
 ================
 */
-void R_DrawSolidClippedSubmodelPolygons (model_t *pmodel, mnode_t *topnode)
+void
+R_DrawSolidClippedSubmodelPolygons (model_t *pmodel, mnode_t *topnode)
 {
 	int			i, j, lindex;
 	vec_t		dot;
@@ -414,7 +417,8 @@ R_DrawSubmodelPolygons
 All in one leaf
 ================
 */
-void R_DrawSubmodelPolygons (model_t *pmodel, int clipflags, mnode_t *topnode)
+void
+R_DrawSubmodelPolygons (model_t *pmodel, int clipflags, mnode_t *topnode)
 {
 	int			i;
 	vec_t		dot;
@@ -446,14 +450,15 @@ void R_DrawSubmodelPolygons (model_t *pmodel, int clipflags, mnode_t *topnode)
 }
 
 
-int c_drawnode;
+static int c_drawnode;
 
 /*
 ================
 R_RecursiveWorldNode
 ================
 */
-void R_RecursiveWorldNode (mnode_t *node, int clipflags)
+static void
+R_RecursiveWorldNode (mnode_t *node, int clipflags)
 {
 	int c;
 	vec3_t acceptpt, rejectpt;

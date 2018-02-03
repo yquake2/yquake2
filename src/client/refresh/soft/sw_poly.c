@@ -34,7 +34,7 @@ typedef struct
 	unsigned	u, v;
 } spanletvars_t;
 
-spanletvars_t	s_spanletvars;
+static spanletvars_t	s_spanletvars;
 
 static int	r_polyblendcolor;
 
@@ -46,7 +46,7 @@ extern int	*r_turb_turb;
 
 static int	clip_current;
 vec5_t		r_clip_verts[2][MAXWORKINGVERTS+2];
-emitpoint_t	outverts[MAXWORKINGVERTS+3];
+static emitpoint_t	outverts[MAXWORKINGVERTS+3];
 
 static int	s_minindex, s_maxindex;
 
@@ -55,7 +55,8 @@ static void R_DrawPoly(int iswater);
 /*
 ** R_DrawSpanletOpaque
 */
-void R_DrawSpanletOpaque( void )
+static void
+R_DrawSpanletOpaque( void )
 {
 	do
 	{
@@ -86,7 +87,8 @@ void R_DrawSpanletOpaque( void )
 /*
 ** R_DrawSpanletTurbulentStipple33
 */
-void R_DrawSpanletTurbulentStipple33( void )
+static void
+R_DrawSpanletTurbulentStipple33( void )
 {
 	pixel_t		*pdest = s_spanletvars.pdest;
 	zvalue_t	*pz    = s_spanletvars.pz;
@@ -144,7 +146,8 @@ void R_DrawSpanletTurbulentStipple33( void )
 /*
 ** R_DrawSpanletTurbulentStipple66
 */
-void R_DrawSpanletTurbulentStipple66( void )
+static void
+R_DrawSpanletTurbulentStipple66( void )
 {
 	unsigned	btemp;
 	int		sturb, tturb;
@@ -231,7 +234,8 @@ void R_DrawSpanletTurbulentStipple66( void )
 /*
 ** R_DrawSpanletTurbulentBlended
 */
-void R_DrawSpanletTurbulentBlended66( void )
+static void
+R_DrawSpanletTurbulentBlended66( void )
 {
 	do
 	{
@@ -255,7 +259,8 @@ void R_DrawSpanletTurbulentBlended66( void )
 	} while ( --s_spanletvars.spancount > 0 );
 }
 
-void R_DrawSpanletTurbulentBlended33( void )
+static void
+R_DrawSpanletTurbulentBlended33( void )
 {
 	do
 	{
@@ -282,7 +287,8 @@ void R_DrawSpanletTurbulentBlended33( void )
 /*
 ** R_DrawSpanlet33
 */
-void R_DrawSpanlet33( void )
+static void
+R_DrawSpanlet33( void )
 {
 	do
 	{
@@ -310,7 +316,8 @@ void R_DrawSpanlet33( void )
 	} while (--s_spanletvars.spancount > 0);
 }
 
-void R_DrawSpanletConstant33( void )
+static void
+R_DrawSpanletConstant33( void )
 {
 	do
 	{
@@ -328,7 +335,8 @@ void R_DrawSpanletConstant33( void )
 /*
 ** R_DrawSpanlet66
 */
-void R_DrawSpanlet66( void )
+static void
+R_DrawSpanlet66( void )
 {
 	do
 	{
@@ -359,7 +367,8 @@ void R_DrawSpanlet66( void )
 /*
 ** R_DrawSpanlet33Stipple
 */
-void R_DrawSpanlet33Stipple( void )
+static void
+R_DrawSpanlet33Stipple( void )
 {
 	pixel_t		*pdest	= s_spanletvars.pdest;
 	zvalue_t	*pz	= s_spanletvars.pz;
@@ -418,7 +427,8 @@ void R_DrawSpanlet33Stipple( void )
 /*
 ** R_DrawSpanlet66Stipple
 */
-void R_DrawSpanlet66Stipple( void )
+static void
+R_DrawSpanlet66Stipple( void )
 {
 	unsigned	btemp;
 	pixel_t		*pdest = s_spanletvars.pdest;
@@ -505,7 +515,8 @@ void R_DrawSpanlet66Stipple( void )
 ** Clips the winding at clip_verts[clip_current] and changes clip_current
 ** Throws out the back side
 */
-int R_ClipPolyFace (int nump, clipplane_t *pclipplane)
+static int
+R_ClipPolyFace (int nump, clipplane_t *pclipplane)
 {
 	int		i, outcount;
 	float	dists[MAXWORKINGVERTS+3];
@@ -581,7 +592,8 @@ int R_ClipPolyFace (int nump, clipplane_t *pclipplane)
 ** R_PolygonDrawSpans
 */
 // PGM - iswater was qboolean. changed to allow passing more flags
-void R_PolygonDrawSpans(espan_t *pspan, int iswater )
+static void
+R_PolygonDrawSpans(espan_t *pspan, int iswater )
 {
 	int	count;
 	int	snext, tnext;
@@ -747,7 +759,8 @@ void R_PolygonDrawSpans(espan_t *pspan, int iswater )
 ** Goes through the polygon and scans the left edge, filling in
 ** screen coordinate data for the spans
 */
-void R_PolygonScanLeftEdge (espan_t *s_polygon_spans)
+static void
+R_PolygonScanLeftEdge (espan_t *s_polygon_spans)
 {
 	int			i, v, itop, ibottom, lmaxindex;
 	emitpoint_t	*pvert, *pnext;
@@ -812,7 +825,8 @@ void R_PolygonScanLeftEdge (espan_t *s_polygon_spans)
 ** Goes through the polygon and scans the right edge, filling in
 ** count values.
 */
-void R_PolygonScanRightEdge(espan_t *s_polygon_spans)
+static void
+R_PolygonScanRightEdge(espan_t *s_polygon_spans)
 {
 	int			i, v, itop, ibottom;
 	emitpoint_t	*pvert, *pnext;
@@ -1007,7 +1021,8 @@ void R_ClipAndDrawPoly ( float alpha, int isturbulent, qboolean textured )
 /*
 ** R_BuildPolygonFromSurface
 */
-void R_BuildPolygonFromSurface(msurface_t *fa)
+static void
+R_BuildPolygonFromSurface(msurface_t *fa)
 {
 	int			i, lnumverts;
 	medge_t		*pedges, *r_pedge;
@@ -1092,7 +1107,8 @@ void R_BuildPolygonFromSurface(msurface_t *fa)
 /*
 ** R_PolygonCalculateGradients
 */
-void R_PolygonCalculateGradients (void)
+static void
+R_PolygonCalculateGradients (void)
 {
 	vec3_t		p_normal, p_saxis, p_taxis;
 	float		distinv;

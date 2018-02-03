@@ -38,15 +38,15 @@ typedef struct {
 
 aliastriangleparms_t aliastriangleparms;
 
-int	r_p0[6], r_p1[6], r_p2[6];
+static int	ubasestep, errorterm, erroradjustup, erroradjustdown;
 
-byte	*d_pcolormap;
-int	d_aflatcolor;
-int	d_xdenom;
+static int	r_p0[6], r_p1[6], r_p2[6];
 
-edgetable	*pedgetable;
+static int	d_xdenom;
 
-edgetable	edgetables[12] = {
+static edgetable *pedgetable;
+
+static edgetable edgetables[12] = {
 	{0, 1, r_p0, r_p2, NULL, 2, r_p0, r_p1, r_p2},
 	{0, 2, r_p1, r_p0, r_p2, 1, r_p1, r_p2, NULL},
 	{1, 1, r_p0, r_p2, NULL, 1, r_p1, r_p2, NULL},
@@ -62,10 +62,10 @@ edgetable	edgetables[12] = {
 };
 
 // FIXME: some of these can become statics
-int	a_sstepxfrac, a_tstepxfrac, r_lstepx, a_ststepxwhole;
-int	r_sstepx, r_tstepx, r_lstepy, r_sstepy, r_tstepy;
-int	r_zistepx, r_zistepy;
-int	d_aspancount, d_countextrastep;
+static int	a_sstepxfrac, a_tstepxfrac, r_lstepx, a_ststepxwhole;
+static int	r_sstepx, r_tstepx, r_lstepy, r_sstepy, r_tstepy;
+static int	r_zistepx, r_zistepy;
+static int	d_aspancount, d_countextrastep;
 
 static spanpackage_t	*a_spans;
 static spanpackage_t	*d_pedgespanpackage;
@@ -73,15 +73,15 @@ static spanpackage_t	*d_pedgespanpackage;
 spanpackage_t	*triangle_spans;
 
 static int	ystart;
-pixel_t		*d_pdest, *d_ptex;
-zvalue_t	*d_pz;
-int		d_sfrac, d_tfrac, d_light, d_zi;
-int		d_ptexextrastep, d_sfracextrastep;
-int		d_tfracextrastep, d_lightextrastep, d_pdestextrastep;
-int		d_lightbasestep, d_pdestbasestep, d_ptexbasestep;
-int		d_sfracbasestep, d_tfracbasestep;
-int		d_ziextrastep, d_zibasestep;
-int		d_pzextrastep, d_pzbasestep;
+static pixel_t	*d_pdest, *d_ptex;
+static zvalue_t	*d_pz;
+static int	d_sfrac, d_tfrac, d_light, d_zi;
+static int	d_ptexextrastep, d_sfracextrastep;
+static int	d_tfracextrastep, d_lightextrastep, d_pdestextrastep;
+static int	d_lightbasestep, d_pdestbasestep, d_ptexbasestep;
+static int	d_sfracbasestep, d_tfracbasestep;
+static int	d_ziextrastep, d_zibasestep;
+static int	d_pzextrastep, d_pzbasestep;
 
 typedef struct {
 	int		quotient;
@@ -92,9 +92,9 @@ static adivtab_t	adivtab[32*32] = {
 #include "../constants/adivtab.h"
 };
 
-byte	*skintable[MAX_LBM_HEIGHT];
+static byte	*skintable[MAX_LBM_HEIGHT];
 int		skinwidth;
-byte	*skinstart;
+static byte	*skinstart;
 
 void	(*d_pdrawspans)(spanpackage_t *pspanpackage);
 
@@ -102,18 +102,14 @@ void R_PolysetDrawSpans8_33 (spanpackage_t *pspanpackage);
 void R_PolysetDrawSpans8_66 (spanpackage_t *pspanpackage);
 void R_PolysetDrawSpans8_Opaque (spanpackage_t *pspanpackage);
 
-void R_PolysetDrawThreshSpans8 (spanpackage_t *pspanpackage);
-void R_PolysetCalcGradients (int skinwidth);
-void R_DrawNonSubdiv (void);
-void R_PolysetSetEdgeTable (void);
-void R_RasterizeAliasPolySmooth (void);
-void R_PolysetScanLeftEdge(int height);
-void R_PolysetScanLeftEdge_C(int height);
+static void R_PolysetCalcGradients (int skinwidth);
+static void R_PolysetSetEdgeTable (void);
+static void R_RasterizeAliasPolySmooth (void);
+static void R_PolysetScanLeftEdge_C(int height);
 
 // ======================
 // PGM
 // 64 65 66 67 68 69 70 71   72 73 74 75 76 77 78 79
-byte iractive = 0;
 byte irtable[256] = { 79, 78, 77, 76, 75, 74, 73, 72,		// black/white
 		      71, 70, 69, 68, 67, 66, 65, 64,
 		      64, 65, 66, 67, 68, 69, 70, 71,		// dark taupe
@@ -243,7 +239,7 @@ void R_DrawTriangle( void )
 R_PolysetScanLeftEdge_C
 ====================
 */
-void R_PolysetScanLeftEdge_C(int height)
+static void R_PolysetScanLeftEdge_C(int height)
 {
 	do
 	{
@@ -313,7 +309,8 @@ quotient must fit in 32 bits.
 FIXME: GET RID OF THIS! (FloorDivMod)
 ====================
 */
-void FloorDivMod (float numer, float denom, int *quotient,
+static void
+FloorDivMod (float numer, float denom, int *quotient,
 		int *rem)
 {
 	int		q, r;
@@ -351,7 +348,8 @@ void FloorDivMod (float numer, float denom, int *quotient,
 R_PolysetSetUpForLineScan
 ====================
 */
-void R_PolysetSetUpForLineScan(fixed8_t startvertu, fixed8_t startvertv,
+static void
+R_PolysetSetUpForLineScan(fixed8_t startvertu, fixed8_t startvertv,
 		fixed8_t endvertu, fixed8_t endvertv)
 {
 	int		tm, tn;
@@ -392,7 +390,7 @@ void R_PolysetSetUpForLineScan(fixed8_t startvertu, fixed8_t startvertv,
 R_PolysetCalcGradients
 ================
 */
-void R_PolysetCalcGradients (int skinwidth)
+static void R_PolysetCalcGradients (int skinwidth)
 {
 	float	xstepdenominv, ystepdenominv, t0, t1;
 	float	p01_minus_p21, p11_minus_p21, p00_minus_p20, p10_minus_p20;
@@ -443,72 +441,6 @@ void R_PolysetCalcGradients (int skinwidth)
 	}
 
 	a_ststepxwhole = skinwidth * (r_tstepx >> 16) + (r_sstepx >> 16);
-}
-
-/*
-================
-R_PolysetDrawThreshSpans8
-
-Random fizzle fade rasterizer
-================
-*/
-void R_PolysetDrawThreshSpans8 (spanpackage_t *pspanpackage)
-{
-	byte		*lpdest;
-	byte		*lptex;
-	int		lsfrac, ltfrac;
-	int		llight;
-	int		lzi;
-	zvalue_t	*lpz;
-
-	do
-	{
-		int lcount;
-
-		lcount = d_aspancount - pspanpackage->count;
-
-		errorterm += erroradjustup;
-		if (errorterm >= 0)
-		{
-			d_aspancount += d_countextrastep;
-			errorterm -= erroradjustdown;
-		}
-		else
-		{
-			d_aspancount += ubasestep;
-		}
-
-		if (lcount)
-		{
-			lpdest = pspanpackage->pdest;
-			lptex = pspanpackage->ptex;
-			lpz = pspanpackage->pz;
-			lsfrac = pspanpackage->sfrac;
-			ltfrac = pspanpackage->tfrac;
-			llight = pspanpackage->light;
-			lzi = pspanpackage->zi;
-
-			do
-			{
-				lpdest++;
-				lzi += r_zistepx;
-				lpz++;
-				llight += r_lstepx;
-				lptex += a_ststepxwhole;
-				lsfrac += a_sstepxfrac;
-				lptex += lsfrac >> 16;
-				lsfrac &= 0xFFFF;
-				ltfrac += a_tstepxfrac;
-				if (ltfrac & 0x10000)
-				{
-					lptex += r_affinetridesc.skinwidth;
-					ltfrac &= 0xFFFF;
-				}
-			} while (--lcount);
-		}
-
-		pspanpackage++;
-	} while (pspanpackage->count != -999999);
 }
 
 
@@ -809,46 +741,11 @@ void R_PolysetDrawSpans8_Opaque (spanpackage_t *pspanpackage)
 
 /*
 ================
-R_PolysetFillSpans8
-================
-*/
-void R_PolysetFillSpans8 (spanpackage_t *pspanpackage)
-{
-	int color;
-
-	// FIXME: do z buffering
-	color = d_aflatcolor++;
-
-	while (1)
-	{
-		int lcount;
-
-		lcount = pspanpackage->count;
-		if (lcount == -1)
-			return;
-
-		if (lcount)
-		{
-			byte *lpdest;
-
-			lpdest = pspanpackage->pdest;
-
-			do
-			{
-				*lpdest++ = color;
-			} while (--lcount);
-		}
-
-		pspanpackage++;
-	}
-}
-
-/*
-================
 R_RasterizeAliasPolySmooth
 ================
 */
-void R_RasterizeAliasPolySmooth (void)
+static void
+R_RasterizeAliasPolySmooth (void)
 {
 	int	initialleftheight, initialrightheight;
 	int	*plefttop, *prighttop, *pleftbottom, *prightbottom;
@@ -1086,7 +983,8 @@ void R_RasterizeAliasPolySmooth (void)
 R_PolysetSetEdgeTable
 ================
 */
-void R_PolysetSetEdgeTable (void)
+static void
+R_PolysetSetEdgeTable (void)
 {
 	int			edgetableindex;
 

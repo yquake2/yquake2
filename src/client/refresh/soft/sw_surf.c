@@ -21,25 +21,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/local.h"
 
-drawsurf_t	r_drawsurf;
+drawsurf_t		r_drawsurf;
+static int		lightleft, blocksize, sourcetstep;
+static int		lightright, lightleftstep, lightrightstep, blockdivshift;
+static void		*prowdestbase;
+static unsigned char	*pbasesource;
+static int		surfrowbytes;	// used by ASM files
+static int		r_stepback;
+static int		r_lightwidth;
+static int		r_numhblocks, r_numvblocks;
+static unsigned char	*r_source, *r_sourcemax;
+static unsigned		*r_lightptr;
 
-int		lightleft, sourcesstep, blocksize, sourcetstep;
-int		lightdelta, lightdeltastep;
-int		lightright, lightleftstep, lightrightstep, blockdivshift;
-unsigned	blockdivmask;
-void		*prowdestbase;
-unsigned char	*pbasesource;
-int		surfrowbytes;	// used by ASM files
-unsigned	*r_lightptr;
-int		r_stepback;
-int		r_lightwidth;
-int		r_numhblocks, r_numvblocks;
-unsigned char	*r_source, *r_sourcemax;
 
-void R_DrawSurfaceBlock8_mip0 (void);
-void R_DrawSurfaceBlock8_mip1 (void);
-void R_DrawSurfaceBlock8_mip2 (void);
-void R_DrawSurfaceBlock8_mip3 (void);
+static void R_DrawSurfaceBlock8_mip0 (void);
+static void R_DrawSurfaceBlock8_mip1 (void);
+static void R_DrawSurfaceBlock8_mip2 (void);
+static void R_DrawSurfaceBlock8_mip3 (void);
 
 static void (*surfmiptable[4])(void) = {
 	R_DrawSurfaceBlock8_mip0,
@@ -51,11 +49,11 @@ static void (*surfmiptable[4])(void) = {
 void R_BuildLightMap (void);
 extern	unsigned	blocklights[1024];	// allow some very large lightmaps
 
-float		surfscale;
-qboolean	r_cache_thrash;	// set if surface cache is thrashing
+static	float	surfscale;
 
-int		sc_size;
-surfcache_t	*sc_rover, *sc_base;
+static int	sc_size;
+static surfcache_t	*sc_rover;
+surfcache_t	*sc_base;
 
 /*
 ===============
@@ -64,7 +62,7 @@ R_TextureAnimation
 Returns the proper texture for a given time and base texture
 ===============
 */
-image_t *R_TextureAnimation (mtexinfo_t *tex)
+static image_t *R_TextureAnimation (mtexinfo_t *tex)
 {
 	int c;
 
@@ -87,7 +85,7 @@ image_t *R_TextureAnimation (mtexinfo_t *tex)
 R_DrawSurface
 ===============
 */
-void R_DrawSurface (void)
+static void R_DrawSurface (void)
 {
 	unsigned char	*basetptr;
 	int		smax, tmax, twidth;
@@ -111,7 +109,6 @@ void R_DrawSurface (void)
 
 	blocksize = 16 >> r_drawsurf.surfmip;
 	blockdivshift = 4 - r_drawsurf.surfmip;
-	blockdivmask = (1 << blockdivshift) - 1;
 
 	r_lightwidth = (r_drawsurf.surf->extents[0]>>4)+1;
 
@@ -168,7 +165,7 @@ void R_DrawSurface (void)
 R_DrawSurfaceBlock8_mip0
 ================
 */
-void R_DrawSurfaceBlock8_mip0 (void)
+static void R_DrawSurfaceBlock8_mip0 (void)
 {
 	int		v, i, b, lightstep, lighttemp, light;
 	unsigned char	pix, *psource, *prowdest;
@@ -218,7 +215,7 @@ void R_DrawSurfaceBlock8_mip0 (void)
 R_DrawSurfaceBlock8_mip1
 ================
 */
-void R_DrawSurfaceBlock8_mip1 (void)
+static void R_DrawSurfaceBlock8_mip1 (void)
 {
 	int		v, i, b, lightstep, lighttemp, light;
 	unsigned char	pix, *psource, *prowdest;
@@ -268,7 +265,7 @@ void R_DrawSurfaceBlock8_mip1 (void)
 R_DrawSurfaceBlock8_mip2
 ================
 */
-void R_DrawSurfaceBlock8_mip2 (void)
+static void R_DrawSurfaceBlock8_mip2 (void)
 {
 	int		v, i, b, lightstep, lighttemp, light;
 	unsigned char	pix, *psource, *prowdest;
@@ -318,7 +315,7 @@ void R_DrawSurfaceBlock8_mip2 (void)
 R_DrawSurfaceBlock8_mip3
 ================
 */
-void R_DrawSurfaceBlock8_mip3 (void)
+static void R_DrawSurfaceBlock8_mip3 (void)
 {
 	int		v, i, b, lightstep, lighttemp, light;
 	unsigned char	pix, *psource, *prowdest;
@@ -435,10 +432,9 @@ void D_FlushCaches (void)
 D_SCAlloc
 =================
 */
-surfcache_t     *D_SCAlloc (int width, int size)
+static surfcache_t     *D_SCAlloc (int width, int size)
 {
 	surfcache_t	*new;
-	qboolean	wrapped_this_time;
 
 	if ((width < 0) || (width > 256))
 		ri.Sys_Error (ERR_FATAL,"D_SCAlloc: bad cache width %d\n", width);
@@ -453,14 +449,8 @@ surfcache_t     *D_SCAlloc (int width, int size)
 		ri.Sys_Error (ERR_FATAL,"D_SCAlloc: %i > cache size of %i",size, sc_size);
 
 	// if there is not size bytes after the rover, reset to the start
-	wrapped_this_time = false;
-
 	if ( !sc_rover || (byte *)sc_rover - (byte *)sc_base > sc_size - size)
 	{
-		if (sc_rover)
-		{
-			wrapped_this_time = true;
-		}
 		sc_rover = sc_base;
 	}
 
@@ -503,45 +493,7 @@ surfcache_t     *D_SCAlloc (int width, int size)
 
 	new->owner = NULL; // should be set properly after return
 
-	if (d_roverwrapped)
-	{
-		if (wrapped_this_time || (sc_rover >= d_initial_rover))
-			r_cache_thrash = true;
-	}
-	else if (wrapped_this_time)
-	{
-		d_roverwrapped = true;
-	}
-
 	return new;
-}
-
-//=============================================================================
-
-// if the num is not a power of 2, assume it will not repeat
-
-int     MaskForNum (int num)
-{
-	if (num==128)
-		return 127;
-	if (num==64)
-		return 63;
-	if (num==32)
-		return 31;
-	if (num==16)
-		return 15;
-	return 255;
-}
-
-int D_log2 (int num)
-{
-	int     c;
-
-	c = 0;
-
-	while (num>>=1)
-		c++;
-	return c;
 }
 
 //=============================================================================

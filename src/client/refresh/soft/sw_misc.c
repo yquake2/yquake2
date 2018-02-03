@@ -31,41 +31,29 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 cvar_t	*sw_mipcap;
 cvar_t	*sw_mipscale;
 
-surfcache_t		*d_initial_rover;
-qboolean		d_roverwrapped;
-int				d_minmip;
-float			d_scalemip[NUM_MIPS-1];
+float		verticalFieldOfView;
+int		d_minmip;
+float		d_scalemip[NUM_MIPS-1];
+static mleaf_t	*r_viewleaf;
 
+static int	r_frustum_indexes[4*6];
 static float	basemip[NUM_MIPS-1] = {1.0, 0.5*0.8, 0.25*0.8};
-
-extern int			d_aflatcolor;
-
 int	d_vrectx, d_vrecty, d_vrectright_particle, d_vrectbottom_particle;
-
+float	xcenter, ycenter;
 int	d_pix_min, d_pix_max, d_pix_shift;
 
-/*
-================
-D_Patch
-================
-*/
-void D_Patch (void)
-{
-}
 /*
 ================
 D_ViewChanged
 ================
 */
-unsigned char *alias_colormap;
-
-void D_ViewChanged (void)
+static void
+D_ViewChanged (void)
 {
 	scale_for_mip = xscale;
 	if (yscale > xscale)
 		scale_for_mip = yscale;
 
-	d_zrowbytes = vid.width * 2;
 	d_zwidth = vid.width;
 
 	d_pix_min = r_refdef.vrect.width / 320;
@@ -91,10 +79,6 @@ void D_ViewChanged (void)
 		memset( d_pzbuffer, 0xff, vid.width * vid.height * sizeof(zvalue_t) );
 		RE_Draw_Fill( r_newrefdef.x, r_newrefdef.y, r_newrefdef.width, r_newrefdef.height,( int ) sw_clearcolor->value & 0xff );
 	}
-
-	alias_colormap = vid_colormap;
-
-	D_Patch ();
 }
 
 
@@ -195,27 +179,12 @@ void TransformVector (vec3_t in, vec3_t out)
 }
 
 /*
-================
-R_TransformPlane
-================
-*/
-void R_TransformPlane (mplane_t *p, float *normal, float *dist)
-{
-	float	d;
-
-	d = DotProduct (r_origin, p->normal);
-	*dist = p->dist - d;
-// TODO: when we have rotating entities, this will need to use the view matrix
-	TransformVector (p->normal, normal);
-}
-
-
-/*
 ===============
 R_SetUpFrustumIndexes
 ===============
 */
-void R_SetUpFrustumIndexes (void)
+static void
+R_SetUpFrustumIndexes (void)
 {
 	int		i, j, *pindex;
 
@@ -251,9 +220,11 @@ Called every time the vid structure or r_refdef changes.
 Guaranteed to be called before the first refresh
 ===============
 */
-void R_ViewChanged (vrect_t *vr)
+static void
+R_ViewChanged (vrect_t *vr)
 {
 	int		i;
+	float		xOrigin, yOrigin;
 
 	r_refdef.vrect = *vr;
 
@@ -413,18 +384,13 @@ void R_SetupFrame (void)
 
 	// clear frame counts
 	c_faceclip = 0;
-	d_spanpixcount = 0;
 	r_polycount = 0;
 	r_drawnpolycount = 0;
-	r_wholepolycount = 0;
 	r_amodels_drawn = 0;
 	r_outofsurfaces = 0;
 	r_outofedges = 0;
 
 	// d_setup
-	d_roverwrapped = false;
-	d_initial_rover = sc_rover;
-
 	d_minmip = sw_mipcap->value;
 	if (d_minmip > 3)
 		d_minmip = 3;
@@ -433,6 +399,4 @@ void R_SetupFrame (void)
 
 	for (i=0 ; i<(NUM_MIPS-1) ; i++)
 		d_scalemip[i] = basemip[i] * sw_mipscale->value;
-
-	d_aflatcolor = 0;
 }

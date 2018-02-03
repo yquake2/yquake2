@@ -28,29 +28,24 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define LIGHT_MIN	5	// lowest light value we'll allow, to avoid the
 				//  need for inner-loop light clamping
 
-//PGM
-extern byte iractive;
-//PGM
-
 int				r_amodels_drawn;
 
 affinetridesc_t	r_affinetridesc;
 
-vec3_t			r_plightvec;
-vec3_t          r_lerped[1024];
-vec3_t          r_lerp_frontv, r_lerp_backv, r_lerp_move;
+static vec3_t	r_plightvec;
+static vec3_t	r_lerp_frontv, r_lerp_backv, r_lerp_move;
 
-int				r_ambientlight;
-int				r_aliasblendcolor;
-float			r_shadelight;
+static int	r_ambientlight;
+int		r_aliasblendcolor;
+static float		r_shadelight;
 
 
-daliasframe_t	*r_thisframe, *r_lastframe;
-dmdl_t			*s_pmdl;
+static daliasframe_t	*r_thisframe, *r_lastframe;
+static dmdl_t	*s_pmdl;
 
-float	aliastransform[3][4];
-float   aliasworldtransform[3][4];
-float   aliasoldworldtransform[3][4];
+static float	aliastransform[3][4];
+static float	aliasworldtransform[3][4];
+static float	aliasoldworldtransform[3][4];
 
 static float	s_ziscale;
 static vec3_t	s_alias_forward, s_alias_right, s_alias_up;
@@ -58,19 +53,16 @@ static vec3_t	s_alias_forward, s_alias_right, s_alias_up;
 
 #define NUMVERTEXNORMALS	162
 
-float	r_avertexnormals[NUMVERTEXNORMALS][3] = {
+static float	r_avertexnormals[NUMVERTEXNORMALS][3] = {
 #include "../constants/anorms.h"
 };
 
 
-void R_AliasSetUpLerpData( dmdl_t *pmdl, float backlerp );
-void R_AliasSetUpTransform (void);
-void R_AliasTransformVector (vec3_t in, vec3_t out, float m[3][4] );
-void R_AliasProjectAndClipTestFinalVert (finalvert_t *fv);
+static void R_AliasTransformVector(vec3_t in, vec3_t out, float m[3][4]);
+static void R_AliasTransformFinalVerts(int numpoints, finalvert_t *fv, dtrivertx_t *oldv, dtrivertx_t *newv );
 
-void R_AliasTransformFinalVerts( int numpoints, finalvert_t *fv, dtrivertx_t *oldv, dtrivertx_t *newv );
+void R_AliasProjectAndClipTestFinalVert(finalvert_t *fv);
 
-void R_AliasLerpFrames( dmdl_t *paliashdr, float backlerp );
 
 /*
 ================
@@ -88,7 +80,8 @@ R_AliasCheckBBox
 **
 ** Checks a specific alias frame bounding box
 */
-unsigned long R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
+static unsigned long
+R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 {
 	unsigned long aggregate_and_clipcode = ~0U,
 		          aggregate_or_clipcode = 0;
@@ -176,7 +169,8 @@ unsigned long R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 	return BBOX_MUST_CLIP_XY;
 }
 
-qboolean R_AliasCheckBBox (void)
+static qboolean
+R_AliasCheckBBox (void)
 {
 	unsigned long ccodes[2] = { 0, 0 };
 
@@ -211,7 +205,8 @@ qboolean R_AliasCheckBBox (void)
 R_AliasTransformVector
 ================
 */
-void R_AliasTransformVector(vec3_t in, vec3_t out, float xf[3][4] )
+static void
+R_AliasTransformVector(vec3_t in, vec3_t out, float xf[3][4] )
 {
 	out[0] = DotProduct(in, xf[0]) + xf[0][3];
 	out[1] = DotProduct(in, xf[1]) + xf[1][3];
@@ -234,23 +229,17 @@ typedef struct
 	finalvert_t *dest_verts; // destination for transformed verts
 } aliasbatchedtransformdata_t;
 
-aliasbatchedtransformdata_t aliasbatchedtransformdata;
+static aliasbatchedtransformdata_t aliasbatchedtransformdata;
 finalvert_t	*finalverts;
 
-void R_AliasPreparePoints (void)
+static void
+R_AliasPreparePoints (void)
 {
 	int			i;
 	dstvert_t	*pstverts;
 	dtriangle_t	*ptri;
 	finalvert_t	*pfv[3];
 	finalvert_t	*pfinalverts;
-
-	// PGM
-	iractive = (r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags & RF_IR_VISIBLE);
-	// iractive = 0;
-	// if(r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags & RF_IR_VISIBLE)
-	// iractive = 1;
-	// PGM
 
 	// put work vertexes on stack, cache aligned
 	pfinalverts = finalverts;
@@ -348,7 +337,8 @@ void R_AliasPreparePoints (void)
 R_AliasSetUpTransform
 ================
 */
-void R_AliasSetUpTransform (void)
+static void
+R_AliasSetUpTransform (void)
 {
 	int				i;
 	static float	viewmatrix[3][4];
@@ -416,7 +406,8 @@ void R_AliasSetUpTransform (void)
 R_AliasTransformFinalVerts
 ================
 */
-void R_AliasTransformFinalVerts( int numpoints, finalvert_t *fv, dtrivertx_t *oldv, dtrivertx_t *newv )
+static void
+R_AliasTransformFinalVerts( int numpoints, finalvert_t *fv, dtrivertx_t *oldv, dtrivertx_t *newv )
 {
 	int i;
 
@@ -550,7 +541,8 @@ R_AliasSetupLighting
   FIXME: put lighting into tables
 ================
 */
-void R_AliasSetupLighting (void)
+static void
+R_AliasSetupLighting (void)
 {
 	alight_t lighting;
 	float lightvec[3] = {-1, 0, 0};
@@ -641,7 +633,8 @@ R_AliasSetupFrames
 
 =================
 */
-void R_AliasSetupFrames( dmdl_t *pmdl )
+static void
+R_AliasSetupFrames( dmdl_t *pmdl )
 {
 	int thisframe = currententity->frame;
 	int lastframe = currententity->oldframe;
@@ -671,7 +664,8 @@ void R_AliasSetupFrames( dmdl_t *pmdl )
 **
 ** Precomputes lerp coefficients used for the whole frame.
 */
-void R_AliasSetUpLerpData( dmdl_t *pmdl, float backlerp )
+static void
+R_AliasSetUpLerpData( dmdl_t *pmdl, float backlerp )
 {
 	float	frontlerp;
 	vec3_t	translation, vectors[3];

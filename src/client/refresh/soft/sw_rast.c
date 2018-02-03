@@ -29,53 +29,50 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FULLY_CLIPPED_CACHED	0x80000000
 #define FRAMECOUNT_MASK		0x7FFFFFFF
 
-unsigned int	cacheoffset;
+static unsigned int	cacheoffset;
 
 int	c_faceclip;	// number of faces clipped
 
-
-clipplane_t	*entity_clipplanes;
 clipplane_t	view_clipplanes[4];
-clipplane_t	world_clipplanes[16];
 
 medge_t			*r_pedge;
 
-qboolean		r_leftclipped, r_rightclipped;
+static qboolean	r_leftclipped, r_rightclipped;
 static qboolean	makeleftedge, makerightedge;
-qboolean		r_nearzionly;
+static qboolean	r_nearzionly;
 
 int		*sintable;
 int		*intsintable;
 int		*blanktable; // PGM
 
-mvertex_t	r_leftenter, r_leftexit;
-mvertex_t	r_rightenter, r_rightexit;
+static mvertex_t	r_leftenter, r_leftexit;
+static mvertex_t	r_rightenter, r_rightexit;
 
-int			r_emitted;
-float			r_nearzi;
-float			r_u1, r_v1, r_lzi1;
-int				r_ceilv1;
+static int	r_emitted;
+static float	r_nearzi;
+static float	r_u1, r_v1, r_lzi1;
+static int	r_ceilv1;
 
-qboolean		r_lastvertvalid;
-int				r_skyframe;
+static qboolean		r_lastvertvalid;
+static int		r_skyframe;
 
-msurface_t		*r_skyfaces;
-mplane_t		r_skyplanes[6];
+static msurface_t	*r_skyfaces;
+static mplane_t		r_skyplanes[6];
 mtexinfo_t		r_skytexinfo[6];
-mvertex_t		*r_skyverts;
-medge_t			*r_skyedges;
-int				*r_skysurfedges;
+static mvertex_t	*r_skyverts;
+static medge_t		*r_skyedges;
+static int		*r_skysurfedges;
 
 // I just copied this data from a box map...
-int skybox_planes[12] = {2,-128, 0,-128, 2,128, 1,128, 0,128, 1,-128};
+static int skybox_planes[12] = {2,-128, 0,-128, 2,128, 1,128, 0,128, 1,-128};
 
-int box_surfedges[24] = { 1,2,3,4,  -1,5,6,7,  8,9,-6,10,  -2,-7,-9,11,
+static int box_surfedges[24] = { 1,2,3,4,  -1,5,6,7,  8,9,-6,10,  -2,-7,-9,11,
   12,-3,-11,-8,  -12,-10,-5,-4};
-int box_edges[24] = { 1,2, 2,3, 3,4, 4,1, 1,5, 5,6, 6,2, 7,8, 8,6, 5,7, 8,3, 7,4};
+static int box_edges[24] = { 1,2, 2,3, 3,4, 4,1, 1,5, 5,6, 6,2, 7,8, 8,6, 5,7, 8,3, 7,4};
 
-int	box_faces[6] = {0,0,2,2,2,0};
+static int	box_faces[6] = {0,0,2,2,2,0};
 
-vec3_t	box_vecs[6][2] = {
+static vec3_t	box_vecs[6][2] = {
 	{	{0,-1,0}, {-1,0,0} },
 	{ {0,1,0}, {0,0,-1} },
 	{	{0,-1,0}, {1,0,0} },
@@ -84,7 +81,7 @@ vec3_t	box_vecs[6][2] = {
 	{ {-1,0,0}, {0,0,-1} }
 };
 
-float	box_verts[8][3] = {
+static float	box_verts[8][3] = {
 	{-1,-1,-1},
 	{-1,1,-1},
 	{1,1,-1},
@@ -161,7 +158,8 @@ void R_InitSkyBox (void)
 R_EmitSkyBox
 ================
 */
-void R_EmitSkyBox (void)
+static void
+R_EmitSkyBox (void)
 {
 	int		i, j;
 	int		oldkey;
@@ -207,7 +205,8 @@ void R_EmitSkyBox (void)
 R_EmitEdge
 ================
 */
-void R_EmitEdge (mvertex_t *pv0, mvertex_t *pv1)
+static void
+R_EmitEdge (mvertex_t *pv0, mvertex_t *pv1)
 {
 	edge_t	*edge, *pcheck;
 	int		u_check;
@@ -386,7 +385,8 @@ void R_EmitEdge (mvertex_t *pv0, mvertex_t *pv1)
 R_ClipEdge
 ================
 */
-void R_ClipEdge (mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip)
+static void
+R_ClipEdge (mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip)
 {
 	if (clip)
 	{
@@ -486,7 +486,8 @@ void R_ClipEdge (mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip)
 R_EmitCachedEdge
 ================
 */
-void R_EmitCachedEdge (void)
+static void
+R_EmitCachedEdge (void)
 {
 	edge_t		*pedge_t;
 
