@@ -319,63 +319,12 @@ void Sys_Nanosleep(int nanosec)
 
 /* ================================================================ */
 
+/* The musthave and canhave arguments are unused in YQ2. We
+   can't remove them since Sys_FindFirst() and Sys_FindNext()
+   are defined in shared.h and may be used in custom game DLLs. */
+
 // TODO: Still uses broken DOS functions.
 // Have a look at FindFirstFile(), FindNextFile() and FindClose().
-static qboolean
-CompareAttributes(unsigned found, unsigned musthave, unsigned canthave)
-{
-	if ((found & _A_RDONLY) && (canthave & SFF_RDONLY))
-	{
-		return false;
-	}
-
-	if ((found & _A_HIDDEN) && (canthave & SFF_HIDDEN))
-	{
-		return false;
-	}
-
-	if ((found & _A_SYSTEM) && (canthave & SFF_SYSTEM))
-	{
-		return false;
-	}
-
-	if ((found & _A_SUBDIR) && (canthave & SFF_SUBDIR))
-	{
-		return false;
-	}
-
-	if ((found & _A_ARCH) && (canthave & SFF_ARCH))
-	{
-		return false;
-	}
-
-	if ((musthave & SFF_RDONLY) && !(found & _A_RDONLY))
-	{
-		return false;
-	}
-
-	if ((musthave & SFF_HIDDEN) && !(found & _A_HIDDEN))
-	{
-		return false;
-	}
-
-	if ((musthave & SFF_SYSTEM) && !(found & _A_SYSTEM))
-	{
-		return false;
-	}
-
-	if ((musthave & SFF_SUBDIR) && !(found & _A_SUBDIR))
-	{
-		return false;
-	}
-
-	if ((musthave & SFF_ARCH) && !(found & _A_ARCH))
-	{
-		return false;
-	}
-
-	return true;
-}
 
 char *
 Sys_FindFirst(char *path, unsigned musthave, unsigned canthave)
@@ -397,11 +346,6 @@ Sys_FindFirst(char *path, unsigned musthave, unsigned canthave)
 		return NULL;
 	}
 
-	if (!CompareAttributes(findinfo.attrib, musthave, canthave))
-	{
-		return NULL;
-	}
-
 	Com_sprintf(findpath, sizeof(findpath), "%s/%s", findbase, findinfo.name);
 	return findpath;
 }
@@ -417,11 +361,6 @@ Sys_FindNext(unsigned musthave, unsigned canthave)
 	}
 
 	if (_findnext(findhandle, &findinfo) == -1)
-	{
-		return NULL;
-	}
-
-	if (!CompareAttributes(findinfo.attrib, musthave, canthave))
 	{
 		return NULL;
 	}

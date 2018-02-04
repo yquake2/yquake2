@@ -239,17 +239,9 @@ Sys_Nanosleep(int nanosec)
 
 /* ================================================================ */
 
-static qboolean
-CompareAttributes(char *path, char *name, unsigned musthave, unsigned canthave)
-{
-	/* . and .. never match */
-	if ((strcmp(name, ".") == 0) || (strcmp(name, "..") == 0))
-	{
-		return false;
-	}
-
-	return true;
-}
+/* The musthave and canhave arguments are unused in YQ2. We
+   can't remove them since Sys_FindFirst() and Sys_FindNext()
+   are defined in shared.h and may be used in custom game DLLs. */
 
 char *
 Sys_FindFirst(char *path, unsigned musthave, unsigned canhave)
@@ -288,7 +280,7 @@ Sys_FindFirst(char *path, unsigned musthave, unsigned canhave)
 	{
 		if (!*findpattern || glob_match(findpattern, d->d_name))
 		{
-			if (CompareAttributes(findbase, d->d_name, musthave, canhave))
+			if ((strcmp(d->d_name, ".") != 0) || (strcmp(d->d_name, "..") != 0))
 			{
 				sprintf(findpath, "%s/%s", findbase, d->d_name);
 				return findpath;
@@ -313,7 +305,7 @@ Sys_FindNext(unsigned musthave, unsigned canhave)
 	{
 		if (!*findpattern || glob_match(findpattern, d->d_name))
 		{
-			if (CompareAttributes(findbase, d->d_name, musthave, canhave))
+			if ((strcmp(d->d_name, ".") != 0) || (strcmp(d->d_name, "..") != 0))
 			{
 				sprintf(findpath, "%s/%s", findbase, d->d_name);
 				return findpath;

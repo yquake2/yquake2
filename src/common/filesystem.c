@@ -1325,7 +1325,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 		Com_sprintf(path, sizeof(path), "%s/*.%s", dir, fs_packtypes[i].suffix);
 
 		// Nothing here, next pak type please.
-		if ((list = FS_ListFiles(path, &nfiles, 0, SFF_SUBDIR)) == NULL)
+		if ((list = FS_ListFiles(path, &nfiles, 0, 0)) == NULL)
 		{
 			continue;
 		}

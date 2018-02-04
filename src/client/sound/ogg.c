@@ -302,8 +302,7 @@ OGG_LoadFileList(void)
 
 	/* Get file list. */
 	list = FS_ListFiles2(va("%s/*.ogg", OGG_DIR),
-		   	&ogg_numfiles, 0, SFF_SUBDIR | SFF_HIDDEN |
-			SFF_SYSTEM);
+		   	&ogg_numfiles, 0, 0);
 	ogg_numfiles--;
 
 	/* Check if there are posible Ogg files. */

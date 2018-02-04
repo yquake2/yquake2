@@ -3844,7 +3844,7 @@ PlayerConfig_ScanDirectories(void)
 	s_numplayermodels = 0;
 
 	/* get a list of directories */
-	if ((dirnames = FS_ListFiles2("players/*", &ndirs, SFF_SUBDIR, 0)) == NULL)
+	if ((dirnames = FS_ListFiles2("players/*", &ndirs, 0, 0)) == NULL)
 	{
 		return false;
 	}
@@ -3891,7 +3891,7 @@ PlayerConfig_ScanDirectories(void)
 		strcpy(scratch, dirnames[i]);
 		strcat(scratch, "/*.pcx");
 
-		if ((pcxnames = FS_ListFiles2(scratch, &npcxfiles, 0, SFF_SUBDIR | SFF_HIDDEN | SFF_SYSTEM)) == NULL)
+		if ((pcxnames = FS_ListFiles2(scratch, &npcxfiles, 0, 0)) == NULL)
 		{
 			free(dirnames[i]);
 			dirnames[i] = 0;
