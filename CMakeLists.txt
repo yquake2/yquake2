@@ -190,7 +190,7 @@ set(Backends-Windows-Source
 	${BACKENDS_SRC_DIR}/windows/main.c
 	${BACKENDS_SRC_DIR}/windows/network.c
 	${BACKENDS_SRC_DIR}/windows/system.c
-	${BACKENDS_SRC_DIR}/windows/shared/mem.c
+	${BACKENDS_SRC_DIR}/windows/shared/hunk.c
 	)
 
 set(Backends-Windows-Header
@@ -198,7 +198,7 @@ set(Backends-Windows-Header
 	)
 
 set(REF-Windows-Source
-	${BACKENDS_SRC_DIR}/windows/shared/mem.c
+	${BACKENDS_SRC_DIR}/windows/shared/hunk.c
 	)
 
 set(REF-Unix-Source

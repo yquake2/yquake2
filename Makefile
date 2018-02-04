@@ -866,7 +866,7 @@ CLIENT_OBJS_ += \
 	src/backends/windows/main.o \
 	src/backends/windows/network.o \
 	src/backends/windows/system.o \
-	src/backends/windows/shared/mem.o
+	src/backends/windows/shared/hunk.o
 else
 CLIENT_OBJS_ += \
 	src/backends/unix/main.o \
@@ -902,7 +902,7 @@ REFGL1_OBJS_ := \
 
 ifeq ($(YQ2_OSTYPE), Windows)
 REFGL1_OBJS_ += \
-	src/backends/windows/shared/mem.o
+	src/backends/windows/shared/hunk.o
 else # not Windows
 REFGL1_OBJS_ += \
 	src/backends/unix/shared/hunk.o
@@ -934,7 +934,7 @@ REFGL3_OBJS_ := \
 
 ifeq ($(YQ2_OSTYPE), Windows)
 REFGL3_OBJS_ += \
-	src/backends/windows/shared/mem.o
+	src/backends/windows/shared/hunk.o
 else # not Windows
 REFGL3_OBJS_ += \
 	src/backends/unix/shared/hunk.o
@@ -968,7 +968,7 @@ REFSOFT_OBJS_ := \
 
 ifeq ($(YQ2_OSTYPE), Windows)
 REFSOFT_OBJS_ += \
-	src/backends/windows/shared/mem.o
+	src/backends/windows/shared/hunk.o
 else # not Windows
 REFSOFT_OBJS_ += \
 	src/backends/unix/shared/hunk.o
@@ -1014,7 +1014,7 @@ SERVER_OBJS_ += \
 	src/backends/windows/main.o \
 	src/backends/windows/network.o \
 	src/backends/windows/system.o \
-	src/backends/windows/shared/mem.o
+	src/backends/windows/shared/hunk.o
 else # not Windows
 SERVER_OBJS_ += \
 	src/backends/unix/main.o \
