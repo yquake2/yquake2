@@ -473,9 +473,7 @@ Sys_GetHomeDir(void)
 	char *cur;
 	char *old;
 	char profile[MAX_PATH];
-	int len;
 	static char gdir[MAX_OSPATH];
-	WCHAR sprofile[MAX_PATH];
 	WCHAR uprofile[MAX_PATH];
 
 	/* The following lines implement a horrible
@@ -489,24 +487,7 @@ Sys_GetHomeDir(void)
 	/* Get the path to "My Documents" directory */
 	SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, 0, uprofile);
 
-	/* Create a UTF-16 DOS path */
-    len = GetShortPathNameW(uprofile, sprofile, sizeof(sprofile));
-
-	if (len == 0)
-	{
-		return NULL;
-	}
-
-	/* Since the DOS path contains no UTF-16 characters, just convert it to ASCII */
-	WideCharToMultiByte(CP_ACP, 0, sprofile, -1, profile, sizeof(profile), NULL, NULL);
-
-	if (len == 0)
-	{
-		return NULL;
-	}
-
-	/* Check if path is too long */
-    if ((len + strlen(CFGDIR) + 3) >= 256)
+	if (WideCharToMultiByte(CP_UTF8, 0, uprofile, -1, profile, sizeof(profile), NULL, NULL) == 0)
 	{
 		return NULL;
 	}
