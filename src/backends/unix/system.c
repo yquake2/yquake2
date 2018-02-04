@@ -47,12 +47,6 @@
 // Pointer to game library
 static void *game_library;
 
-// File searching
-static char findbase[MAX_OSPATH];
-static char findpath[MAX_OSPATH];
-static char findpattern[MAX_OSPATH];
-static DIR *fdir;
-
 // Evil hack to determine if stdin is available
 qboolean stdin_active = true;
 
@@ -242,6 +236,11 @@ Sys_Nanosleep(int nanosec)
 /* The musthave and canhave arguments are unused in YQ2. We
    can't remove them since Sys_FindFirst() and Sys_FindNext()
    are defined in shared.h and may be used in custom game DLLs. */
+
+static char findbase[MAX_OSPATH];
+static char findpath[MAX_OSPATH];
+static char findpattern[MAX_OSPATH];
+static DIR *fdir;
 
 char *
 Sys_FindFirst(char *path, unsigned musthave, unsigned canhave)

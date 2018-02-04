@@ -48,11 +48,6 @@ static HINSTANCE game_library;
 static char console_text[256];
 static size_t console_textlen;
 
-// File searching
-char findbase[MAX_OSPATH];
-char findpath[MAX_OSPATH];
-int findhandle;
-
 // TODO
 qboolean is_portable;
 unsigned int sys_frame_time;
@@ -301,7 +296,8 @@ Sys_Milliseconds(void)
 	return (int)(Sys_Microseconds()/1000ll);
 }
 
-void Sys_Nanosleep(int nanosec)
+void
+Sys_Nanosleep(int nanosec)
 {
 	HANDLE timer;
 	LARGE_INTEGER li;
@@ -323,58 +319,67 @@ void Sys_Nanosleep(int nanosec)
    can't remove them since Sys_FindFirst() and Sys_FindNext()
    are defined in shared.h and may be used in custom game DLLs. */
 
-// TODO: Still uses broken DOS functions.
-// Have a look at FindFirstFile(), FindNextFile() and FindClose().
+// File searching
+static char findbase[MAX_OSPATH];
+static char findpath[MAX_OSPATH];
+static HANDLE findhandle;
 
 char *
 Sys_FindFirst(char *path, unsigned musthave, unsigned canthave)
 {
-	struct _finddata_t findinfo;
-
 	if (findhandle)
 	{
 		Sys_Error("Sys_BeginFind without close");
 	}
 
-	findhandle = 0;
-
 	COM_FilePath(path, findbase);
-	findhandle = _findfirst(path, &findinfo);
 
-	if (findhandle == -1)
+	WCHAR wpath[MAX_QPATH] = {0};
+	MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_QPATH);
+
+	WIN32_FIND_DATAW findinfo;
+	findhandle = FindFirstFileW(wpath, &findinfo);
+
+	if (findhandle == INVALID_HANDLE_VALUE)
 	{
 		return NULL;
 	}
 
-	Com_sprintf(findpath, sizeof(findpath), "%s/%s", findbase, findinfo.name);
+	CHAR cFileName[MAX_QPATH];
+	WideCharToMultiByte(CP_UTF8, 0, findinfo.cFileName, -1, cFileName, MAX_QPATH, NULL, NULL);
+
+	Com_sprintf(findpath, sizeof(findpath), "%s/%s", findbase, cFileName);
 	return findpath;
 }
 
 char *
 Sys_FindNext(unsigned musthave, unsigned canthave)
 {
-	struct _finddata_t findinfo;
+	WIN32_FIND_DATAW findinfo;
 
-	if (findhandle == -1)
+	if (findhandle == INVALID_HANDLE_VALUE)
 	{
 		return NULL;
 	}
 
-	if (_findnext(findhandle, &findinfo) == -1)
+	if (!FindNextFileW(findhandle, &findinfo))
 	{
 		return NULL;
 	}
 
-	Com_sprintf(findpath, sizeof(findpath), "%s/%s", findbase, findinfo.name);
+	CHAR cFileName[MAX_QPATH];
+	WideCharToMultiByte(CP_UTF8, 0, findinfo.cFileName, -1, cFileName, MAX_QPATH, NULL, NULL);
+
+	Com_sprintf(findpath, sizeof(findpath), "%s/%s", findbase, cFileName);
 	return findpath;
 }
 
 void
 Sys_FindClose(void)
 {
-	if (findhandle != -1)
+	if (findhandle != INVALID_HANDLE_VALUE)
 	{
-		_findclose(findhandle);
+		FindClose(findhandle);
 	}
 
 	findhandle = 0;
