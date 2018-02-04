@@ -25,6 +25,7 @@
  */
 
 #include "header/client.h"
+#include "../backends/generic/header/input.h"
 
 void CL_DownloadFileName(char *dest, int destlen, char *fn);
 void CL_ParseDownload(void);
@@ -73,7 +74,7 @@ CL_RegisterSounds(void)
 		}
 
 		cl.sound_precache[i] = S_RegisterSound(cl.configstrings[CS_SOUNDS + i]);
-		Sys_SendKeyEvents();
+		IN_Update();
 	}
 
 	S_EndRegistration();

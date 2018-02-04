@@ -789,9 +789,6 @@ void *Sys_LoadLibrary(const char *path, const char *sym, void **handle);
 void *Sys_GetGameAPI(void *parms);
 void Sys_UnloadGame(void);
 
-// TODO: Remove
-void Sys_SendKeyEvents(void);
-
 // Windows only (system.c)
 #ifdef _WIN32
 void Sys_RedirectStdout(void);

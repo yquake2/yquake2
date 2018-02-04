@@ -68,6 +68,7 @@
 static int mouse_x, mouse_y;
 static int old_mouse_x, old_mouse_y;
 static qboolean mlooking;
+int sys_frame_time;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 static float joystick_yaw, joystick_pitch;
@@ -701,9 +702,12 @@ IN_Update(void)
 
 	/* calling GLimp_GrabInput() each is a bit ugly but simple and should work.
 	 * + the called SDL functions return after a cheap check, if there's
-	 * nothing to do, anyway
-	 */
+	 * nothing to do, anyway. */
 	GLimp_GrabInput(want_grab);
+
+	/* We need to save the frame time so other subsystems know the
+	 * exact time of the last input events. */
+	sys_frame_time = Sys_Milliseconds();
 }
 
 /*

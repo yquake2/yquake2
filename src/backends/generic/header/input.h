@@ -30,6 +30,11 @@
 #include "../../../common/header/shared.h"
 
 /*
+ * Saves the time of the last input event.
+ */
+extern int sys_frame_time;
+
+/*
  * Initializes the input backend
  */
 void IN_Init(void);

@@ -53,9 +53,6 @@ qboolean stdin_active = true;
 // Console logfile
 extern FILE	*logfile;
 
-// TODO
-unsigned sys_frame_time;
-
 /* ================================================================ */
 
 void
@@ -525,19 +522,4 @@ Sys_LoadLibrary(const char *path, const char *sym, void **handle)
 	*handle = module;
 
 	return entry;
-}
-
-/* ================================================================ */
-
-// TODO: Remove.
-
-void
-Sys_SendKeyEvents(void)
-{
-#ifndef DEDICATED_ONLY
-	IN_Update();
-#endif
-
-	/* grab frame time */
-	sys_frame_time = Sys_Milliseconds();
 }

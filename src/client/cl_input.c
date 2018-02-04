@@ -30,7 +30,6 @@
 
 cvar_t *cl_nodelta;
 
-extern unsigned sys_frame_time;
 unsigned frame_msec;
 unsigned old_sys_frame_time;
 

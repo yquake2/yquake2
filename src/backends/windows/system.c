@@ -50,7 +50,6 @@ static size_t console_textlen;
 
 // TODO
 qboolean is_portable;
-unsigned int sys_frame_time;
 
 /* ================================================================ */
 
@@ -671,19 +670,4 @@ Sys_SetHighDPIMode(void)
 	else if (SetProcessDPIAware) {
 		SetProcessDPIAware();
 	}
-}
-
-/* ======================================================================= */
-
-// TODO: Remove.
-
-void
-Sys_SendKeyEvents(void)
-{
-#ifndef DEDICATED_ONLY
-	IN_Update();
-#endif
-
-	/* grab frame time */
-	sys_frame_time = timeGetTime();
 }

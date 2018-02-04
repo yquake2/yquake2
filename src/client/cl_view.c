@@ -25,6 +25,7 @@
  */
 
 #include "header/client.h"
+#include "../backends/generic/header/input.h"
 
 /* development tools for weapons */
 int gun_frame;
@@ -281,7 +282,7 @@ CL_PrepRefresh(void)
 		}
 
 		SCR_UpdateScreen();
-		Sys_SendKeyEvents();
+		IN_Update();
 
 		if (name[0] == '#')
 		{
@@ -321,7 +322,7 @@ CL_PrepRefresh(void)
 	for (i = 1; i < MAX_IMAGES && cl.configstrings[CS_IMAGES + i][0]; i++)
 	{
 		cl.image_precache[i] = Draw_FindPic(cl.configstrings[CS_IMAGES + i]);
-		Sys_SendKeyEvents();
+		IN_Update();
 	}
 
 	Com_Printf("                                     \r");
@@ -335,7 +336,7 @@ CL_PrepRefresh(void)
 
 		Com_Printf("client %i\r", i);
 		SCR_UpdateScreen();
-		Sys_SendKeyEvents();
+		IN_Update();
 		CL_ParseClientinfo(i);
 		Com_Printf("                                     \r");
 	}

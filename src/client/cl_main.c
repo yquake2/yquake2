@@ -365,7 +365,7 @@ CL_Skins_f(void)
 
 		SCR_UpdateScreen();
 
-		Sys_SendKeyEvents();  /* pump message loop */
+		IN_Update();  /* pump message loop */
 
 		CL_ParseClientinfo(i);
 	}
@@ -755,7 +755,7 @@ CL_Frame(int packetdelta, int renderdelta, int timedelta, qboolean packetframe, 
 	{
 		CL_ReadPackets();
 		CL_UpdateWindowedMouse();
-		Sys_SendKeyEvents();
+		IN_Update();
 		Cbuf_Execute();
 		CL_FixCvarCheats();
 
