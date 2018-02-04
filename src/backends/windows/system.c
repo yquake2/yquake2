@@ -383,8 +383,6 @@ Sys_FindClose(void)
 
 /* ================================================================ */
 
-// TODO: Unnecessary, use generic functions instead.
-
 void
 Sys_UnloadGame(void)
 {
@@ -401,6 +399,7 @@ Sys_GetGameAPI(void *parms)
 {
 	void *(*GetGameAPI)(void *);
 	char name[MAX_OSPATH];
+	WCHAR wname[MAX_OSPATH];
 	char *path = NULL;
 
 	if (game_library)
@@ -422,7 +421,8 @@ Sys_GetGameAPI(void *parms)
 
 		/* Try game.dll */
 		Com_sprintf(name, sizeof(name), "%s/%s", path, "game.dll");
-		game_library = LoadLibrary(name);
+		MultiByteToWideChar(CP_UTF8, 0, name, -1, wname, MAX_OSPATH);
+		game_library = LoadLibraryW(wname);
 
 		if (game_library)
 		{
@@ -432,7 +432,8 @@ Sys_GetGameAPI(void *parms)
 
 		/* Try gamex86.dll as fallback */
  		Com_sprintf(name, sizeof(name), "%s/%s", path, "gamex86.dll");
-		game_library = LoadLibrary(name);
+		MultiByteToWideChar(CP_UTF8, 0, name, -1, wname, MAX_OSPATH);
+		game_library = LoadLibraryW(wname);
 
 		if (game_library)
 		{
@@ -538,10 +539,12 @@ Sys_LoadLibrary(const char *path, const char *sym, void **handle)
 {
 	HMODULE module;
 	void *entry;
+	WCHAR wpath[MAX_OSPATH];
 
 	*handle = NULL;
 
-	module = LoadLibraryA(path);
+	MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_OSPATH);
+	module = LoadLibraryW(wpath);
 
 	if (!module)
 	{

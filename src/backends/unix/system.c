@@ -325,8 +325,6 @@ Sys_FindClose(void)
 
 /* ================================================================ */
 
-// TODO: Unnecessary, use generic functions instead.
-
 void
 Sys_UnloadGame(void)
 {
