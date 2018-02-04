@@ -19,32 +19,21 @@
  *
  * =======================================================================
  *
- * This file implements all system dependend generic funktions
+ * This file implements all system dependent generic functions.
  *
  * =======================================================================
  */
 
-#include <unistd.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <dirent.h>
+#include <dlfcn.h>
 #include <fcntl.h>
+#include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <sys/stat.h>
 #include <string.h>
-#include <ctype.h>
-#include <sys/wait.h>
-#include <sys/mman.h>
-#include <errno.h>
-#include <dlfcn.h>
-#include <dirent.h>
 #include <time.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #ifdef __APPLE__
 #include <mach/clock.h>
@@ -55,33 +44,129 @@
 #include "../../common/header/glob.h"
 #include "../generic/header/input.h"
 
-unsigned sys_frame_time;
+// Pointer to game library
 static void *game_library;
 
+// File searching
 static char findbase[MAX_OSPATH];
 static char findpath[MAX_OSPATH];
 static char findpattern[MAX_OSPATH];
 static DIR *fdir;
 
+// Evil hack to determine if stdin is available
 qboolean stdin_active = true;
+
+// Console logfile
 extern FILE	*logfile;
 
-static qboolean
-CompareAttributes(char *path, char *name, unsigned musthave, unsigned canthave)
+// TODO
+unsigned sys_frame_time;
+
+/* ================================================================ */
+
+void
+Sys_Error(char *error, ...)
 {
-	/* . and .. never match */
-	if ((strcmp(name, ".") == 0) || (strcmp(name, "..") == 0))
+	va_list argptr;
+	char string[1024];
+
+	/* change stdin to non blocking */
+	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) & ~FNDELAY);
+
+#ifndef DEDICATED_ONLY
+	CL_Shutdown();
+#endif
+	Qcommon_Shutdown();
+
+	va_start(argptr, error);
+	vsnprintf(string, 1024, error, argptr);
+	va_end(argptr);
+	fprintf(stderr, "Error: %s\n", string);
+
+	exit(1);
+}
+
+void
+Sys_Quit(void)
+{
+#ifndef DEDICATED_ONLY
+	CL_Shutdown();
+#endif
+
+	if (logfile)
 	{
-		return false;
+		fclose(logfile);
+		logfile = NULL;
 	}
 
-	return true;
+	Qcommon_Shutdown();
+	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) & ~FNDELAY);
+
+	printf("------------------------------------\n");
+
+	exit(0);
 }
 
 void
 Sys_Init(void)
 {
 }
+
+/* ================================================================ */
+
+char *
+Sys_ConsoleInput(void)
+{
+	static char text[256];
+	int len;
+	fd_set fdset;
+	struct timeval timeout;
+
+	if (!dedicated || !dedicated->value)
+	{
+		return NULL;
+	}
+
+	if (!stdin_active)
+	{
+		return NULL;
+	}
+
+	FD_ZERO(&fdset);
+	FD_SET(0, &fdset); /* stdin */
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 0;
+
+	if ((select(1, &fdset, NULL, NULL, &timeout) == -1) || !FD_ISSET(0, &fdset))
+	{
+		return NULL;
+	}
+
+	len = read(0, text, sizeof(text));
+
+	if (len == 0)   /* eof! */
+	{
+		stdin_active = false;
+		return NULL;
+	}
+
+	if (len < 1)
+	{
+		return NULL;
+	}
+
+	text[len - 1] = 0; /* rip off the /n and terminate */
+
+	return text;
+}
+
+void
+Sys_ConsoleOutput(char *string)
+{
+	fputs(string, stdout);
+}
+
+/* ================================================================ */
 
 long long
 Sys_Microseconds(void)
@@ -102,11 +187,11 @@ Sys_Microseconds(void)
 
 	struct timespec now;
 	static struct timespec first;
-  #ifdef _POSIX_MONOTONIC_CLOCK
+#ifdef _POSIX_MONOTONIC_CLOCK
 	clock_gettime(CLOCK_MONOTONIC, &now);
-  #else
+#else
 	clock_gettime(CLOCK_REALTIME, &now);
-  #endif
+#endif
 
 #endif // not __APPLE__
 
@@ -146,22 +231,24 @@ Sys_Milliseconds(void)
 }
 
 void
-Sys_Mkdir(char *path)
+Sys_Nanosleep(int nanosec)
 {
-	mkdir(path, 0755);
+	struct timespec t = {0, nanosec};
+	nanosleep(&t, NULL);
 }
 
-char *
-Sys_GetCurrentDirectory(void)
-{
-	static char dir[MAX_OSPATH];
+/* ================================================================ */
 
-	if (!getcwd(dir, sizeof(dir)))
+static qboolean
+CompareAttributes(char *path, char *name, unsigned musthave, unsigned canthave)
+{
+	/* . and .. never match */
+	if ((strcmp(name, ".") == 0) || (strcmp(name, "..") == 0))
 	{
-		Sys_Error("Couldn't get current working directory");
+		return false;
 	}
 
-	return dir;
+	return true;
 }
 
 char *
@@ -248,148 +335,9 @@ Sys_FindClose(void)
 	fdir = NULL;
 }
 
-void
-Sys_ConsoleOutput(char *string)
-{
-	fputs(string, stdout);
-}
+/* ================================================================ */
 
-void
-Sys_Printf(char *fmt, ...)
-{
-	va_list argptr;
-	char text[1024];
-	unsigned char *p;
-
-	va_start(argptr, fmt);
-	vsnprintf(text, 1024, fmt, argptr);
-	va_end(argptr);
-
-	for (p = (unsigned char *)text; *p; p++)
-	{
-		*p &= 0x7f;
-
-		if (((*p > 128) || (*p < 32)) && (*p != 10) && (*p != 13) && (*p != 9))
-		{
-			printf("[%02x]", *p);
-		}
-		else
-		{
-			putc(*p, stdout);
-		}
-	}
-}
-
-void
-Sys_Quit(void)
-{
-#ifndef DEDICATED_ONLY
-	CL_Shutdown();
-#endif
-
-	if (logfile)
-	{
-		fclose(logfile);
-		logfile = NULL;
-	}
-
-	Qcommon_Shutdown();
-	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) & ~FNDELAY);
-
-	printf("------------------------------------\n");
-
-	exit(0);
-}
-
-void
-Sys_Error(char *error, ...)
-{
-	va_list argptr;
-	char string[1024];
-
-	/* change stdin to non blocking */
-	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) & ~FNDELAY);
-
-#ifndef DEDICATED_ONLY
-	CL_Shutdown();
-#endif
-	Qcommon_Shutdown();
-
-	va_start(argptr, error);
-	vsnprintf(string, 1024, error, argptr);
-	va_end(argptr);
-	fprintf(stderr, "Error: %s\n", string);
-
-	exit(1);
-}
-
-/*
- * returns -1 if not present
- */
-int
-Sys_FileTime(char *path)
-{
-	struct  stat buf;
-
-	if (stat(path, &buf) == -1)
-	{
-		return -1;
-	}
-
-	return buf.st_mtime;
-}
-
-void
-floating_point_exception_handler(int whatever)
-{
-	signal(SIGFPE, floating_point_exception_handler);
-}
-
-char *
-Sys_ConsoleInput(void)
-{
-	static char text[256];
-	int len;
-	fd_set fdset;
-	struct timeval timeout;
-
-	if (!dedicated || !dedicated->value)
-	{
-		return NULL;
-	}
-
-	if (!stdin_active)
-	{
-		return NULL;
-	}
-
-	FD_ZERO(&fdset);
-	FD_SET(0, &fdset); /* stdin */
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 0;
-
-	if ((select(1, &fdset, NULL, NULL, &timeout) == -1) || !FD_ISSET(0, &fdset))
-	{
-		return NULL;
-	}
-
-	len = read(0, text, sizeof(text));
-
-	if (len == 0)   /* eof! */
-	{
-		stdin_active = false;
-		return NULL;
-	}
-
-	if (len < 1)
-	{
-		return NULL;
-	}
-
-	text[len - 1] = 0; /* rip off the /n and terminate */
-
-	return text;
-}
+// TODO: Unnecessary, use generic functions instead.
 
 void
 Sys_UnloadGame(void)
@@ -402,9 +350,6 @@ Sys_UnloadGame(void)
 	game_library = NULL;
 }
 
-/*
- * Loads the game dll
- */
 void *
 Sys_GetGameAPI(void *parms)
 {
@@ -413,11 +358,11 @@ Sys_GetGameAPI(void *parms)
 	char name[MAX_OSPATH];
 	char *path;
 	char *str_p;
-    #ifdef __APPLE__
-        const char *gamename = "game.dylib";
-    #else
-        const char *gamename = "game.so";
-    #endif
+#ifdef __APPLE__
+	const char *gamename = "game.dylib";
+#else
+	const char *gamename = "game.so";
+#endif
 
 	setreuid(getuid(), getuid());
 	setegid(getgid());
@@ -495,16 +440,14 @@ Sys_GetGameAPI(void *parms)
 	return GetGameAPI(parms);
 }
 
-void
-Sys_SendKeyEvents(void)
-{
-#ifndef DEDICATED_ONLY
-	IN_Update();
-#endif
+/* ================================================================ */
 
-	/* grab frame time */
-	sys_frame_time = Sys_Milliseconds();
+void
+Sys_Mkdir(char *path)
+{
+	mkdir(path, 0755);
 }
+
 
 char *
 Sys_GetHomeDir(void)
@@ -524,6 +467,8 @@ Sys_GetHomeDir(void)
 	return gdir;
 }
 
+/* ================================================================ */
+
 void *
 Sys_GetProcAddress(void *handle, const char *sym)
 {
@@ -542,6 +487,15 @@ Sys_GetProcAddress(void *handle, const char *sym)
 #endif
     }
     return dlsym(handle, sym);
+}
+
+void
+Sys_FreeLibrary(void *handle)
+{
+	if (handle && dlclose(handle))
+	{
+		Com_Error(ERR_FATAL, "dlclose failed on %p: %s", handle, dlerror());
+	}
 }
 
 void *
@@ -582,28 +536,17 @@ Sys_LoadLibrary(const char *path, const char *sym, void **handle)
 	return entry;
 }
 
-void
-Sys_FreeLibrary(void *handle)
-{
-	if (handle && dlclose(handle))
-	{
-		Com_Error(ERR_FATAL, "dlclose failed on %p: %s", handle, dlerror());
-	}
-}
+/* ================================================================ */
 
-/*
- * Just a dummy. There's no need on unixoid systems to
- * redirect stdout and stderr.
- */
-void
-Sys_RedirectStdout(void)
-{
-	return;
-}
+// TODO: Remove.
 
 void
-Sys_Nanosleep(int nanosec)
+Sys_SendKeyEvents(void)
 {
-	struct timespec t = {0, nanosec};
-	nanosleep(&t, NULL);
+#ifndef DEDICATED_ONLY
+	IN_Update();
+#endif
+
+	/* grab frame time */
+	sys_frame_time = Sys_Milliseconds();
 }

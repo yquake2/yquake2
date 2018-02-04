@@ -755,28 +755,6 @@ extern vec3_t bytedirs[NUMVERTEXNORMALS];
 /* this is in the client code, but can be used for debugging from server */
 void SCR_DebugGraph(float value, int color);
 
-void *Sys_GetGameAPI(void *parms);
-/* NON-PORTABLE OSTYPE SERVICES */
-
-
-
-void Sys_Init(void);
-void Sys_UnloadGame(void);
-char *Sys_ConsoleInput(void);
-void Sys_ConsoleOutput(char *string);
-void Sys_SendKeyEvents(void);
-void Sys_Error(char *error, ...);
-void Sys_Quit(void);
-char *Sys_GetHomeDir(void);
-const char *Sys_GetBinaryDir(void);
-long long Sys_Microseconds(void);
-void Sys_FreeLibrary(void *handle);
-void *Sys_LoadLibrary(const char *path, const char *sym, void **handle);
-void *Sys_GetProcAddress(void *handle, const char *sym);
-void Sys_RedirectStdout(void);
-void Sys_SetupFPU(void);
-void Sys_Nanosleep(int);
-
 /* CLIENT / SERVER SYSTEMS */
 
 void CL_Init(void);
@@ -789,5 +767,41 @@ void SCR_BeginLoadingPlaque(void);
 void SV_Init(void);
 void SV_Shutdown(char *finalmsg, qboolean reconnect);
 void SV_Frame(int msec);
+
+/* ======================================================================= */
+
+// Platform specific functions.
+
+// system.c
+char *Sys_ConsoleInput(void);
+void Sys_ConsoleOutput(char *string);
+void Sys_Error(char *error, ...);
+void Sys_Quit(void);
+void Sys_Init(void);
+char *Sys_GetHomeDir(void);
+long long Sys_Microseconds(void);
+void Sys_Nanosleep(int);
+void *Sys_GetProcAddress(void *handle, const char *sym);
+void Sys_FreeLibrary(void *handle);
+void *Sys_LoadLibrary(const char *path, const char *sym, void **handle);
+
+// TODO: Use generic functions instead
+void *Sys_GetGameAPI(void *parms);
+void Sys_UnloadGame(void);
+
+// TODO: Remove
+void Sys_SendKeyEvents(void);
+
+// Windows only (system.c)
+#ifdef _WIN32
+void Sys_RedirectStdout(void);
+void Sys_SetHighDPIMode(void);
+#endif
+
+// misc.c
+const char *Sys_GetBinaryDir(void);
+void Sys_SetupFPU(void);
+
+/* ======================================================================= */
 
 #endif

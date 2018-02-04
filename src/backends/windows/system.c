@@ -19,42 +19,43 @@
  *
  * =======================================================================
  *
- * This file is the starting point of the program and implements
- * several support functions and the main loop.
+ * This file implements all system dependent generic functions.
  *
  * =======================================================================
  */
 
+#include <conio.h>
+#include <direct.h>
 #include <errno.h>
 #include <float.h>
 #include <fcntl.h>
-#include <stdio.h>
-#include <direct.h>
 #include <io.h>
-#include <conio.h>
 #include <shlobj.h>
+#include <stdio.h>
 #include <windows.h>
 
 #include "../../common/header/common.h"
 #include "../generic/header/input.h"
 #include "header/resource.h"
 
-int starttime;
-
+// stdin and stdout handles
 static HANDLE hinput, houtput;
 
+// Game library handle
 static HINSTANCE game_library;
 
-unsigned int sys_frame_time;
-
+// Buffer for the dedicated server console
 static char console_text[256];
-static int console_textlen;
+static size_t console_textlen;
 
+// File searching
 char findbase[MAX_OSPATH];
 char findpath[MAX_OSPATH];
 int findhandle;
 
+// TODO
 qboolean is_portable;
+unsigned int sys_frame_time;
 
 /* ================================================================ */
 
@@ -108,10 +109,10 @@ Sys_Quit(void)
 	fclose(stderr);
 #endif
 
+	printf("------------------------------------\n");
+
 	exit(0);
 }
-
-/* ================================================================ */
 
 void
 Sys_Init(void)
@@ -131,8 +132,8 @@ Sys_Init(void)
 	   above. Testing older version would be a
 	   PITA. */
 	if (!((vinfo.dwMajorVersion > 5) ||
-		  ((vinfo.dwMajorVersion == 5) &&
-		   (vinfo.dwMinorVersion >= 1))))
+		((vinfo.dwMajorVersion == 5) &&
+			(vinfo.dwMinorVersion >= 1))))
 	{
 		Sys_Error("Yamagi Quake II needs Windows XP or higher!\n");
 	}
@@ -146,6 +147,8 @@ Sys_Init(void)
 		houtput = GetStdHandle(STD_OUTPUT_HANDLE);
 	}
 }
+
+/* ================================================================ */
 
 char *
 Sys_ConsoleInput(void)
@@ -262,87 +265,7 @@ Sys_ConsoleOutput(char *string)
 	}
 }
 
-void
-Sys_SendKeyEvents(void)
-{
-#ifndef DEDICATED_ONLY
-	IN_Update();
-#endif
-
-	/* grab frame time */
-	sys_frame_time = timeGetTime();
-}
-
 /* ================================================================ */
-
-void
-Sys_UnloadGame(void)
-{
-	if (!FreeLibrary(game_library))
-	{
-		Com_Error(ERR_FATAL, "FreeLibrary failed for game library");
-	}
-
-	game_library = NULL;
-}
-
-void *
-Sys_GetGameAPI(void *parms)
-{
-	void *(*GetGameAPI)(void *);
-	char name[MAX_OSPATH];
-	char *path = NULL;
-
-	if (game_library)
-	{
-		Com_Error(ERR_FATAL, "Sys_GetGameAPI without Sys_UnloadingGame");
-	}
-
-	/* now run through the search paths */
-	path = NULL;
-
-	while (1)
-	{
-		path = FS_NextPath(path);
-
-		if (!path)
-		{
-			return NULL; /* couldn't find one anywhere */
-		}
-
-		/* Try game.dll */
-		Com_sprintf(name, sizeof(name), "%s/%s", path, "game.dll");
-		game_library = LoadLibrary(name);
-
-		if (game_library)
-		{
-			Com_DPrintf("LoadLibrary (%s)\n", name);
-			break;
-		}
-
-		/* Try gamex86.dll as fallback */
- 		Com_sprintf(name, sizeof(name), "%s/%s", path, "gamex86.dll");
-		game_library = LoadLibrary(name);
-
-		if (game_library)
-		{
-			Com_DPrintf("LoadLibrary (%s)\n", name);
-			break;
-		}
-	}
-
-	GetGameAPI = (void *)GetProcAddress(game_library, "GetGameAPI");
-
-	if (!GetGameAPI)
-	{
-		Sys_UnloadGame();
-		return NULL;
-	}
-
-	return GetGameAPI(parms);
-}
-
-/* ======================================================================= */
 
 long long
 Sys_Microseconds(void)
@@ -378,12 +301,6 @@ Sys_Milliseconds(void)
 	return (int)(Sys_Microseconds()/1000ll);
 }
 
-void
-Sys_Sleep(int msec)
-{
-	Sleep(msec);
-}
-
 void Sys_Nanosleep(int nanosec)
 {
 	HANDLE timer;
@@ -400,8 +317,10 @@ void Sys_Nanosleep(int nanosec)
 	CloseHandle(timer);
 }
 
-/* ======================================================================= */
+/* ================================================================ */
 
+// TODO: Still uses broken DOS functions.
+// Have a look at FindFirstFile(), FindNextFile() and FindClose().
 static qboolean
 CompareAttributes(unsigned found, unsigned musthave, unsigned canthave)
 {
@@ -522,23 +441,84 @@ Sys_FindClose(void)
 	findhandle = 0;
 }
 
+/* ================================================================ */
+
+// TODO: Unnecessary, use generic functions instead.
+
+void
+Sys_UnloadGame(void)
+{
+	if (!FreeLibrary(game_library))
+	{
+		Com_Error(ERR_FATAL, "FreeLibrary failed for game library");
+	}
+
+	game_library = NULL;
+}
+
+void *
+Sys_GetGameAPI(void *parms)
+{
+	void *(*GetGameAPI)(void *);
+	char name[MAX_OSPATH];
+	char *path = NULL;
+
+	if (game_library)
+	{
+		Com_Error(ERR_FATAL, "Sys_GetGameAPI without Sys_UnloadingGame");
+	}
+
+	/* now run through the search paths */
+	path = NULL;
+
+	while (1)
+	{
+		path = FS_NextPath(path);
+
+		if (!path)
+		{
+			return NULL; /* couldn't find one anywhere */
+		}
+
+		/* Try game.dll */
+		Com_sprintf(name, sizeof(name), "%s/%s", path, "game.dll");
+		game_library = LoadLibrary(name);
+
+		if (game_library)
+		{
+			Com_DPrintf("LoadLibrary (%s)\n", name);
+			break;
+		}
+
+		/* Try gamex86.dll as fallback */
+ 		Com_sprintf(name, sizeof(name), "%s/%s", path, "gamex86.dll");
+		game_library = LoadLibrary(name);
+
+		if (game_library)
+		{
+			Com_DPrintf("LoadLibrary (%s)\n", name);
+			break;
+		}
+	}
+
+	GetGameAPI = (void *)GetProcAddress(game_library, "GetGameAPI");
+
+	if (!GetGameAPI)
+	{
+		Sys_UnloadGame();
+		return NULL;
+	}
+
+	return GetGameAPI(parms);
+}
+
+/* ======================================================================= */
+
 void
 Sys_Mkdir(char *path)
 {
+	// TODO: Use CreateDirectory() instead
 	_mkdir(path);
-}
-
-char *
-Sys_GetCurrentDirectory(void)
-{
-	static char dir[MAX_OSPATH];
-
-	if (!_getcwd(dir, sizeof(dir)))
-	{
-		Sys_Error("Couldn't get current working directory");
-	}
-
-	return dir;
 }
 
 char *
@@ -608,6 +588,73 @@ Sys_GetHomeDir(void)
 	return gdir;
 }
 
+/* ======================================================================= */
+
+void *
+Sys_GetProcAddress(void *handle, const char *sym)
+{
+	return GetProcAddress(handle, sym);
+}
+
+void
+Sys_FreeLibrary(void *handle)
+{
+	if (!handle)
+	{
+		return;
+	}
+
+	if (!FreeLibrary(handle))
+	{
+		Com_Error(ERR_FATAL, "FreeLibrary failed on %p", handle);
+	}
+}
+
+void *
+Sys_LoadLibrary(const char *path, const char *sym, void **handle)
+{
+	HMODULE module;
+	void *entry;
+
+	*handle = NULL;
+
+	module = LoadLibraryA(path);
+
+	if (!module)
+	{
+		Com_Printf("%s failed: LoadLibrary returned %lu on %s\n",
+		           __func__, GetLastError(), path);
+		return NULL;
+	}
+
+	if (sym)
+	{
+		entry = GetProcAddress(module, sym);
+
+		if (!entry)
+		{
+			Com_Printf("%s failed: GetProcAddress returned %lu on %s\n",
+			           __func__, GetLastError(), path);
+			FreeLibrary(module);
+			return NULL;
+		}
+	}
+	else
+	{
+		entry = NULL;
+	}
+
+	*handle = module;
+
+	Com_DPrintf("%s succeeded: %s\n", __func__, path);
+
+	return entry;
+}
+
+/* ======================================================================= */
+
+// This one is Windows specific.
+
 void
 Sys_RedirectStdout(void)
 {
@@ -655,6 +702,8 @@ Sys_RedirectStdout(void)
 
 /* ======================================================================= */
 
+// This one is windows specific.
+
 typedef enum YQ2_PROCESS_DPI_AWARENESS {
 	YQ2_PROCESS_DPI_UNAWARE = 0,
 	YQ2_PROCESS_SYSTEM_DPI_AWARE = 1,
@@ -699,64 +748,15 @@ Sys_SetHighDPIMode(void)
 
 /* ======================================================================= */
 
+// TODO: Remove.
+
 void
-Sys_FreeLibrary(void *handle)
+Sys_SendKeyEvents(void)
 {
-	if (!handle)
-	{
-		return;
-	}
+#ifndef DEDICATED_ONLY
+	IN_Update();
+#endif
 
-	if (!FreeLibrary(handle))
-	{
-		Com_Error(ERR_FATAL, "FreeLibrary failed on %p", handle);
-	}
+	/* grab frame time */
+	sys_frame_time = timeGetTime();
 }
-
-void *
-Sys_LoadLibrary(const char *path, const char *sym, void **handle)
-{
-	HMODULE module;
-	void *entry;
-
-	*handle = NULL;
-
-	module = LoadLibraryA(path);
-
-	if (!module)
-	{
-		Com_Printf("%s failed: LoadLibrary returned %lu on %s\n",
-				__func__, GetLastError(), path);
-		return NULL;
-	}
-
-	if (sym)
-	{
-		entry = GetProcAddress(module, sym);
-
-		if (!entry)
-		{
-			Com_Printf("%s failed: GetProcAddress returned %lu on %s\n",
-					__func__, GetLastError(), path);
-			FreeLibrary(module);
-			return NULL;
-		}
-	}
-	else
-	{
-		entry = NULL;
-	}
-
-	*handle = module;
-
-	Com_DPrintf("%s succeeded: %s\n", __func__, path);
-
-	return entry;
-}
-
-void *
-Sys_GetProcAddress(void *handle, const char *sym)
-{
-	return GetProcAddress(handle, sym);
-}
-
