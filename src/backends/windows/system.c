@@ -461,8 +461,10 @@ Sys_GetGameAPI(void *parms)
 void
 Sys_Mkdir(char *path)
 {
-	// TODO: Use CreateDirectory() instead
-	_mkdir(path);
+	WCHAR wpath[MAX_OSPATH] = {0};
+	MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_OSPATH);
+
+	CreateDirectoryW(wpath, NULL);
 }
 
 char *
