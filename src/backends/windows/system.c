@@ -334,8 +334,8 @@ Sys_FindFirst(char *path, unsigned musthave, unsigned canthave)
 
 	COM_FilePath(path, findbase);
 
-	WCHAR wpath[MAX_QPATH] = {0};
-	MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_QPATH);
+	WCHAR wpath[MAX_OSPATH] = {0};
+	MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_OSPATH);
 
 	WIN32_FIND_DATAW findinfo;
 	findhandle = FindFirstFileW(wpath, &findinfo);
@@ -345,8 +345,8 @@ Sys_FindFirst(char *path, unsigned musthave, unsigned canthave)
 		return NULL;
 	}
 
-	CHAR cFileName[MAX_QPATH];
-	WideCharToMultiByte(CP_UTF8, 0, findinfo.cFileName, -1, cFileName, MAX_QPATH, NULL, NULL);
+	CHAR cFileName[MAX_OSPATH];
+	WideCharToMultiByte(CP_UTF8, 0, findinfo.cFileName, -1, cFileName, MAX_OSPATH, NULL, NULL);
 
 	Com_sprintf(findpath, sizeof(findpath), "%s/%s", findbase, cFileName);
 	return findpath;
@@ -367,8 +367,8 @@ Sys_FindNext(unsigned musthave, unsigned canthave)
 		return NULL;
 	}
 
-	CHAR cFileName[MAX_QPATH];
-	WideCharToMultiByte(CP_UTF8, 0, findinfo.cFileName, -1, cFileName, MAX_QPATH, NULL, NULL);
+	CHAR cFileName[MAX_OSPATH];
+	WideCharToMultiByte(CP_UTF8, 0, findinfo.cFileName, -1, cFileName, MAX_OSPATH, NULL, NULL);
 
 	Com_sprintf(findpath, sizeof(findpath), "%s/%s", findbase, cFileName);
 	return findpath;
