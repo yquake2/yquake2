@@ -48,9 +48,6 @@ static HINSTANCE game_library;
 static char console_text[256];
 static size_t console_textlen;
 
-// TODO
-qboolean is_portable;
-
 /* ================================================================ */
 
 void

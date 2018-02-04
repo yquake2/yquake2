@@ -31,8 +31,6 @@
 
 #include "../../common/header/common.h"
 
-qboolean is_portable;
-
 /*
  * Windows main function. Containts the
  * initialization code and the main loop

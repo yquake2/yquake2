@@ -32,8 +32,6 @@
 
 void registerHandler(void);
 
-qboolean is_portable;
-
 int
 main(int argc, char **argv)
 {

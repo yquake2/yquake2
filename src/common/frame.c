@@ -69,6 +69,9 @@ void Key_Init(void);
 void SCR_EndLoadingPlaque(void);
 #endif
 
+// Is the game portable?
+qboolean is_portable;
+
 // ----
 
 static void
