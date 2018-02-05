@@ -404,7 +404,7 @@ void R_NewMap (void)
 		surfaces = malloc (r_cnumsurfs * sizeof(surf_t));
 		if (!surfaces)
 		{
-		    R_Printf(PRINT_ALL, "R_NewMap: Couldn't malloc %ld bytes\n", r_cnumsurfs * sizeof(surf_t));
+		    R_Printf(PRINT_ALL, "R_NewMap: Couldn't malloc %d bytes\n", (int)(r_cnumsurfs * sizeof(surf_t)));
 		    return;
 		}
 
