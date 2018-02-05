@@ -1145,6 +1145,35 @@ Q_strlcat(char *dst, const char *src, int size)
 }
 
 /*
+ * An unicode compatible fopen() Wrapper for Windows.
+ */
+#ifdef _WIN32
+#include <windows.h>
+
+FILE *Q_fopen(const char *file, const char *mode)
+{
+	WCHAR wfile[MAX_OSPATH];
+	WCHAR wmode[16];
+
+	int len = MultiByteToWideChar(CP_UTF8, 0, file, -1, wfile, MAX_OSPATH);
+
+	if (len > 0)
+	{
+		if (MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 16) > 0)
+		{
+			FILE *ret;
+			if(_wfopen_s(&ret, wfile, wmode) == 0)
+			{
+				return ret;
+			}
+		}
+	}
+
+	return NULL;
+}
+#endif
+
+/*
  * =====================================================================
  *
  * INFO STRINGS

@@ -257,7 +257,7 @@ int Q_strlcat(char *dst, const char *src, int size);
 /* Unicode wrappers around fopen(). */
 
 #ifdef _WIN32
-#error "Not implemented yet"
+FILE *Q_fopen(const char *file, const char *mode);
 #else
 #define Q_fopen(file, mode) fopen(file, mode)
 #endif
