@@ -57,8 +57,12 @@ static void SetExecutablePath(char* exePath)
 	// !!! this assumes that exePath can hold PATH_MAX chars !!!
 
 #ifdef _WIN32
+	WCHAR wexePath[PATH_MAX];
+	DWORD len;
 
-	DWORD len = GetModuleFileNameA(NULL, exePath, PATH_MAX);
+	GetModuleFileNameW(NULL, wexePath, PATH_MAX);
+	len = WideCharToMultiByte(CP_UTF8, 0, wexePath, -1, exePath, PATH_MAX, NULL, NULL);
+
 	if(len <= 0 || len == PATH_MAX)
 	{
 		// an error occured, clear exe path
