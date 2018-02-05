@@ -111,19 +111,19 @@ Cvar_FindVar(const char *var_name)
 	cvar_t *var;
 	int i;
 
+	/* An ugly hack to rewrite changed CVARs */
+	for (i = 0; i < sizeof(replacements) / sizeof(replacement_t); i++)
+	{
+		if (!strcmp(var_name, replacements[i].old))
+		{
+			Com_Printf("cvar %s ist deprecated, use %s instead\n", replacements[i].old, replacements[i].new);
+
+			var_name = replacements[i].new;
+		}
+	}
+
 	for (var = cvar_vars; var; var = var->next)
 	{
-		/* An ugly hack to rewrite changed CVARs */
-		for (i = 0; i < sizeof(replacements) / sizeof(replacement_t); i++)
-		{
-			if (!strcmp(var_name, replacements[i].old))
-			{
-				Com_Printf("cvar %s ist deprecated, use %s instead\n", replacements[i].old, replacements[i].new);
-
-				var_name = replacements[i].new;
-			}
-		}
-
 		if (!strcmp(var_name, var->name))
 		{
 			return var;
