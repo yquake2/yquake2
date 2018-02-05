@@ -615,11 +615,11 @@ Sys_SetWorkDir(char *path)
 void
 Sys_RedirectStdout(void)
 {
-	char *cur;
-	char *old;
 	char dir[MAX_OSPATH];
 	char path_stdout[MAX_OSPATH];
 	char path_stderr[MAX_OSPATH];
+	WCHAR wpath_stdout[MAX_OSPATH];
+	WCHAR wpath_stderr[MAX_OSPATH];
 	const char *tmp;
 
 	if (is_portable) {
@@ -635,26 +635,14 @@ Sys_RedirectStdout(void)
 		return;
 	}
 
-	cur = old = dir;
-
-	while (cur != NULL)
-	{
-		if ((cur - old) > 1)
-		{
-			*cur = '\0';
-			Sys_Mkdir(dir);
-			*cur = '/';
-		}
-
-		old = cur;
-		cur = strchr(old + 1, '/');
-	}
-
 	snprintf(path_stdout, sizeof(path_stdout), "%s/%s", dir, "stdout.txt");
 	snprintf(path_stderr, sizeof(path_stderr), "%s/%s", dir, "stderr.txt");
 
-	freopen(path_stdout, "w", stdout);
-	freopen(path_stderr, "w", stderr);
+	MultiByteToWideChar(CP_UTF8, 0, path_stdout, -1, wpath_stdout, sizeof(wpath_stdout));
+	MultiByteToWideChar(CP_UTF8, 0, path_stderr, -1, wpath_stderr, sizeof(wpath_stderr));
+
+	_wfreopen(wpath_stdout, L"w", stdout);
+	_wfreopen(wpath_stderr, L"w", stderr);
 }
 
 /* ======================================================================= */
