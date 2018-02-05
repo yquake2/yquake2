@@ -165,7 +165,7 @@ Con_Dump_f(void)
 
 	Com_Printf("Dumped console text to %s.\n", name);
 	FS_CreatePath(name);
-	f = fopen(name, "w");
+	f = Q_fopen(name, "w");
 
 	if (!f)
 	{

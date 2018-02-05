@@ -501,7 +501,7 @@ Cvar_WriteVariables(char *path)
 	char buffer[1024];
 	FILE *f;
 
-	f = fopen(path, "a");
+	f = Q_fopen(path, "a");
 
 	for (var = cvar_vars; var; var = var->next)
 	{

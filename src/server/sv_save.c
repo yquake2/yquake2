@@ -80,14 +80,14 @@ CopyFile(char *src, char *dst)
 
 	Com_DPrintf("CopyFile (%s, %s)\n", src, dst);
 
-	f1 = fopen(src, "rb");
+	f1 = Q_fopen(src, "rb");
 
 	if (!f1)
 	{
 		return;
 	}
 
-	f2 = fopen(dst, "wb");
+	f2 = Q_fopen(dst, "wb");
 
 	if (!f2)
 	{
@@ -168,7 +168,7 @@ SV_WriteLevelFile(void)
 
 	Com_sprintf(name, sizeof(name), "%s/save/current/%s.sv2",
 				FS_Gamedir(), sv.name);
-	f = fopen(name, "wb");
+	f = Q_fopen(name, "wb");
 
 	if (!f)
 	{
@@ -224,7 +224,7 @@ SV_WriteServerFile(qboolean autosave)
 	Com_DPrintf("SV_WriteServerFile(%s)\n", autosave ? "true" : "false");
 
 	Com_sprintf(name, sizeof(name), "%s/save/current/server.ssv", FS_Gamedir());
-	f = fopen(name, "wb");
+	f = Q_fopen(name, "wb");
 
 	if (!f)
 	{
@@ -367,7 +367,7 @@ SV_Loadgame_f(void)
 	/* make sure the server.ssv file exists */
 	Com_sprintf(name, sizeof(name), "%s/save/%s/server.ssv",
 				FS_Gamedir(), Cmd_Argv(1));
-	f = fopen(name, "rb");
+	f = Q_fopen(name, "rb");
 
 	if (!f)
 	{

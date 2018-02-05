@@ -293,7 +293,7 @@ SVCmd_WriteIP_f(void)
 
 	gi.cprintf(NULL, PRINT_HIGH, "Writing %s.\n", name);
 
-	f = fopen(name, "wb");
+	f = Q_fopen(name, "wb");
 
 	if (!f)
 	{

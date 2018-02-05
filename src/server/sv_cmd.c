@@ -509,7 +509,7 @@ SV_ServerRecord_f(void)
 
 	Com_Printf("recording to %s.\n", name);
 	FS_CreatePath(name);
-	svs.demofile = fopen(name, "wb");
+	svs.demofile = Q_fopen(name, "wb");
 
 	if (!svs.demofile)
 	{

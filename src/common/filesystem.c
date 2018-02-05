@@ -389,7 +389,7 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 					{
 						/* PAK */
 						file_from_pak = true;
-						handle->file = fopen(pack->name, "rb");
+						handle->file = Q_fopen(pack->name, "rb");
 
 						if (handle->file)
 						{
@@ -428,12 +428,12 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 			/* Search in a directory tree. */
 			Com_sprintf(path, sizeof(path), "%s/%s", search->path, handle->name);
 
-			handle->file = fopen(path, "rb");
+			handle->file = Q_fopen(path, "rb");
 
 			if (!handle->file)
 			{
 				Q_strlwr(path);
-				handle->file = fopen(path, "rb");
+				handle->file = Q_fopen(path, "rb");
 			}
 
 			if (!handle->file)
@@ -668,7 +668,7 @@ FS_LoadPAK(const char *packPath)
 	dpackheader_t header; /* PAK file header. */
 	dpackfile_t info[MAX_FILES_IN_PACK]; /* PAK info. */
 
-	handle = fopen(packPath, "rb");
+	handle = Q_fopen(packPath, "rb");
 
 	if (handle == NULL)
 	{

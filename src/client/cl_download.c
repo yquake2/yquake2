@@ -477,7 +477,7 @@ CL_CheckOrDownloadFile(char *filename)
 	   not opened yet */
 	CL_DownloadFileName(name, sizeof(name), cls.downloadtempname);
 
-	fp = fopen(name, "r+b");
+	fp = Q_fopen(name, "r+b");
 
 	if (fp)
 	{
@@ -587,7 +587,7 @@ CL_ParseDownload(void)
 
 		FS_CreatePath(name);
 
-		cls.download = fopen(name, "wb");
+		cls.download = Q_fopen(name, "wb");
 
 		if (!cls.download)
 		{

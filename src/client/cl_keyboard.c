@@ -837,7 +837,7 @@ Key_WriteConsoleHistory()
 		Com_sprintf(path, sizeof(path), "%sconsole_history.txt", Sys_GetHomeDir());
 	}
 
-	FILE* f = fopen(path, "w");
+	FILE* f = Q_fopen(path, "w");
 
 	if(f==NULL)
 	{
@@ -884,7 +884,7 @@ Key_ReadConsoleHistory()
 		Com_sprintf(path, sizeof(path), "%sconsole_history.txt", Sys_GetHomeDir());
 	}
 
-	FILE* f = fopen(path, "r");
+	FILE* f = Q_fopen(path, "r");
 	if(f==NULL)
 	{
 		Com_DPrintf("Opening console history %s for reading failed!\n", path);

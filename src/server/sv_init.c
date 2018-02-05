@@ -141,7 +141,7 @@ SV_CheckForSavegame(void)
 
 	Com_sprintf(name, sizeof(name), "%s/save/current/%s.sav",
 			FS_Gamedir(), sv.name);
-	f = fopen(name, "rb");
+	f = Q_fopen(name, "rb");
 
 	if (!f)
 	{

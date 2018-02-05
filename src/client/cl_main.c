@@ -178,7 +178,7 @@ CL_Record_f(void)
 
 	Com_Printf("recording to %s.\n", name);
 	FS_CreatePath(name);
-	cls.demofile = fopen(name, "wb");
+	cls.demofile = Q_fopen(name, "wb");
 
 	if (!cls.demofile)
 	{
@@ -604,7 +604,7 @@ CL_WriteConfiguration(void)
 
 	Com_sprintf(path, sizeof(path), "%s/config.cfg", FS_Gamedir());
 
-	f = fopen(path, "w");
+	f = Q_fopen(path, "w");
 
 	if (!f)
 	{

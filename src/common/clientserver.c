@@ -144,12 +144,12 @@ Com_VPrintf(int print_level, const char *fmt, va_list argptr)
 
 				if (logfile_active->value > 2)
 				{
-					logfile = fopen(name, "a");
+					logfile = Q_fopen(name, "a");
 				}
 
 				else
 				{
-					logfile = fopen(name, "w");
+					logfile = Q_fopen(name, "w");
 				}
 			}
 

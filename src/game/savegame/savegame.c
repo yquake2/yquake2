@@ -772,7 +772,7 @@ WriteGame(const char *filename, qboolean autosave)
 		SaveClientData();
 	}
 
-	f = fopen(filename, "wb");
+	f = Q_fopen(filename, "wb");
 
 	if (!f)
 	{
@@ -824,7 +824,7 @@ ReadGame(const char *filename)
 
 	gi.FreeTags(TAG_GAME);
 
-	f = fopen(filename, "rb");
+	f = Q_fopen(filename, "rb");
 
 	if (!f)
 	{
@@ -980,7 +980,7 @@ WriteLevel(const char *filename)
 	edict_t *ent;
 	FILE *f;
 
-	f = fopen(filename, "wb");
+	f = Q_fopen(filename, "wb");
 
 	if (!f)
 	{
@@ -1071,7 +1071,7 @@ ReadLevel(const char *filename)
 	int i;
 	edict_t *ent;
 
-	f = fopen(filename, "rb");
+	f = Q_fopen(filename, "rb");
 
 	if (!f)
 	{

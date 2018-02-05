@@ -342,7 +342,7 @@ Qcommon_Frame(int msec)
 				log_stats_file = 0;
 			}
 
-			log_stats_file = fopen("stats.log", "w");
+			log_stats_file = Q_fopen("stats.log", "w");
 
 			if (log_stats_file)
 			{

@@ -284,7 +284,7 @@ void VID_WriteScreenshot( int width, int height, int comp, const void* data )
 	{
 		FILE *f;
 		Com_sprintf(checkname, sizeof(checkname), "%s/scrnshot/q2_%04d.%s", gameDir, i, supportedFormats[format]);
-		f = fopen(checkname, "rb");
+		f = Q_fopen(checkname, "rb");
 
 		if (!f)
 		{
