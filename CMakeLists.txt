@@ -454,6 +454,7 @@ set(GL1-Header
 	${REF_SRC_DIR}/gl1/header/local.h
 	${REF_SRC_DIR}/gl1/header/model.h
 	${REF_SRC_DIR}/gl1/header/qgl.h
+	${BACKENDS_SRC_DIR}/generic/header/stb_image_write.h
 	${COMMON_SRC_DIR}/header/shared.h
 	)
 
@@ -492,6 +493,7 @@ set(GL3-Header
 	${REF_SRC_DIR}/gl3/header/HandmadeMath.h
 	${REF_SRC_DIR}/gl3/header/local.h
 	${REF_SRC_DIR}/gl3/header/model.h
+	${BACKENDS_SRC_DIR}/generic/header/stb_image_write.h
 	${COMMON_SRC_DIR}/header/shared.h
 	)
 
