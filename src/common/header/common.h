@@ -732,6 +732,9 @@ extern cvar_t *log_stats;
 /* Hack for portable client */
 extern qboolean is_portable;
 
+/* Hack fo external datadir */
+extern char datadir[MAX_OSPATH];
+
 extern FILE *log_stats_file;
 
 /* host_speeds times */

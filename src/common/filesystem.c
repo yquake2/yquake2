@@ -113,6 +113,7 @@ fsPackTypes_t fs_packtypes[] = {
 #endif
 };
 
+char datadir[MAX_OSPATH];
 char fs_gamedir[MAX_OSPATH];
 qboolean file_from_pak;
 
@@ -1538,7 +1539,7 @@ void FS_BuildRawPath(void) {
 	}
 
 	// Add $basedir/
-	FS_AddDirToRawPath(fs_basedir->string, false);
+	FS_AddDirToRawPath(datadir, false);
 
 	// Add SYSTEMDIR
 #ifdef SYSTEMWIDE
@@ -1568,6 +1569,17 @@ FS_InitFilesystem(void)
 	fs_cddir = Cvar_Get("cddir", "", CVAR_NOSET);
 	fs_gamedirvar = Cvar_Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
 	fs_debug = Cvar_Get("fs_debug", "0", 0);
+
+	// Deprecation warning, can be removed at a later time.
+	if (strcmp(fs_basedir->string, ".") != 0)
+	{
+		Com_Printf("+set basedir is deprecated, use -datadir instead\n");
+		strcpy(datadir, fs_basedir->string);
+	}
+	else if (strlen(datadir) == 0)
+	{
+		strcpy(datadir, ".");
+	}
 
 	// Build search path
 	FS_BuildRawPath();

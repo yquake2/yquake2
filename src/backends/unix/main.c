@@ -27,6 +27,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "../../common/header/common.h"
 
@@ -41,10 +42,46 @@ main(int argc, char **argv)
 	// Setup FPU if necessary
 	Sys_SetupFPU();
 
-	// Are we portable?
-	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "-portable") == 0) {
+	// Implement command line options that the rather
+	// crappy argument parser can't parse.
+	for (int i = 0; i < argc; i++)
+	{
+		// Are we portable?
+		if (strcmp(argv[i], "-portable") == 0)
+		{
 			is_portable = true;
+		}
+
+		// Inject a custom data dir.
+		if (strcmp(argv[i], "-datadir") == 0)
+		{
+			// Mkay, did the user give us an argument?
+			if (i != (argc - 1))
+			{
+				// Check if it exists.
+				struct stat sb;
+
+				if (stat(argv[i + 1], &sb) == 0)
+				{
+					if (!S_ISDIR(sb.st_mode))
+					{
+						printf("-datadir %s is not a directory\n", argv[i + 1]);
+						return 1;
+					}
+
+					realpath(argv[i + 1], datadir);
+				}
+				else
+				{
+					printf("-datadir %s could not be found\n", argv[i + 1]);
+					return 1;
+				}
+			}
+			else
+			{
+				printf("-datadir needs an argument\n");
+				return 1;
+			}
 		}
 	}
 

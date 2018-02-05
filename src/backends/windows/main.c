@@ -44,10 +44,48 @@ main(int argc, char **argv)
 	// Force DPI awareness.
 	Sys_SetHighDPIMode();
 
-	// Are we portable?
-	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "-portable") == 0) {
+	// crappy argument parser can't parse.
+	for (int i = 0; i < argc; i++)
+	{
+		// Are we portable?
+		if (strcmp(argv[i], "-portable") == 0)
+		{
 			is_portable = true;
+		}
+
+		// Inject a custom data dir.
+		if (strcmp(argv[i], "-datadir") == 0)
+		{
+			// Mkay, did the user give us an argument?
+			if (i != (argc - 1))
+			{
+				DWORD attrib;
+				WCHAR wpath[MAX_OSPATH];
+
+				MultiByteToWideChar(CP_UTF8, 0, argv[i + 1], -1, wpath, MAX_OSPATH);
+				attrib = GetFileAttributesW(wpath);
+
+				if (attrib != INVALID_FILE_ATTRIBUTES)
+				{
+					if (!(attrib & FILE_ATTRIBUTE_DIRECTORY))
+					{
+						printf("-datadir %s is not a directory\n", argv[i + 1]);
+						return 1;
+					}
+
+					Q_strlcpy(datadir, argv[i + 1], MAX_OSPATH);
+				}
+				else
+				{
+					printf("-datadir %s could not be found\n", argv[i + 1]);
+					return 1;
+				}
+			}
+			else
+			{
+				printf("-datadir needs an argument\n");
+				return 1;
+			}
 		}
 	}
 
