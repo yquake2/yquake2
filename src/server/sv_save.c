@@ -162,6 +162,7 @@ void
 SV_WriteLevelFile(void)
 {
 	char name[MAX_OSPATH];
+	char workdir[MAX_OSPATH];
 	FILE *f;
 
 	Com_DPrintf("SV_WriteLevelFile()\n");
@@ -180,15 +181,28 @@ SV_WriteLevelFile(void)
 	CM_WritePortalState(f);
 	fclose(f);
 
-	Com_sprintf(name, sizeof(name), "%s/save/current/%s.sav",
-				FS_Gamedir(), sv.name);
+	Com_sprintf(name, sizeof(name), "%s/save/current", FS_Gamedir());
+	Sys_GetWorkDir(workdir, sizeof(workdir));
+	Sys_Mkdir(name);
+
+	if (!Sys_SetWorkDir(name))
+	{
+		Com_Printf("Couldn't change to %s\n", name);
+		Sys_SetWorkDir(workdir);
+		return;
+	}
+
+	Com_sprintf(name, sizeof(name), "%s.sav", sv.name);
 	ge->WriteLevel(name);
+
+	Sys_SetWorkDir(workdir);
 }
 
 void
 SV_ReadLevelFile(void)
 {
 	char name[MAX_OSPATH];
+	char workdir[MAX_OSPATH];
 	fileHandle_t f;
 
 	Com_DPrintf("SV_ReadLevelFile()\n");
@@ -206,9 +220,20 @@ SV_ReadLevelFile(void)
 	CM_ReadPortalState(f);
 	FS_FCloseFile(f);
 
-	Com_sprintf(name, sizeof(name), "%s/save/current/%s.sav",
-				FS_Gamedir(), sv.name);
+	Com_sprintf(name, sizeof(name), "%s/save/current", FS_Gamedir());
+	Sys_GetWorkDir(workdir, sizeof(workdir));
+
+	if (!Sys_SetWorkDir(name))
+	{
+		Com_Printf("Couldn't change to %s\n", name);
+		Sys_SetWorkDir(workdir);
+		return;
+	}
+
+	Com_sprintf(name, sizeof(name), "%s.sav", sv.name);
 	ge->ReadLevel(name);
+
+	Sys_SetWorkDir(workdir);
 }
 
 void
@@ -217,6 +242,7 @@ SV_WriteServerFile(qboolean autosave)
 	FILE *f;
 	cvar_t *var;
 	char name[MAX_OSPATH], string[128];
+	char workdir[MAX_OSPATH];
 	char comment[32];
 	time_t aclock;
 	struct tm *newtime;
@@ -285,8 +311,20 @@ SV_WriteServerFile(qboolean autosave)
 	fclose(f);
 
 	/* write game state */
-	Com_sprintf(name, sizeof(name), "%s/save/current/game.ssv", FS_Gamedir());
-	ge->WriteGame(name, autosave);
+	Com_sprintf(name, sizeof(name), "%s/save/current", FS_Gamedir());
+	Sys_GetWorkDir(workdir, sizeof(workdir));
+	Sys_Mkdir(name);
+
+	if (!Sys_SetWorkDir(name))
+	{
+		Com_Printf("Couldn't change to %s\n", name);
+		Sys_SetWorkDir(workdir);
+		return;
+	}
+
+	ge->WriteGame("game.ssv", autosave);
+
+	Sys_SetWorkDir(workdir);
 }
 
 void
@@ -294,6 +332,7 @@ SV_ReadServerFile(void)
 {
 	fileHandle_t f;
 	char name[MAX_OSPATH], string[128];
+	char workdir[MAX_OSPATH];
 	char comment[32];
 	char mapcmd[MAX_TOKEN_CHARS];
 
@@ -338,8 +377,19 @@ SV_ReadServerFile(void)
 	strcpy(svs.mapcmd, mapcmd);
 
 	/* read game state */
-	Com_sprintf(name, sizeof(name), "%s/save/current/game.ssv", FS_Gamedir());
-	ge->ReadGame(name);
+	Com_sprintf(name, sizeof(name), "%s/save/current", FS_Gamedir());
+	Sys_GetWorkDir(workdir, sizeof(workdir));
+
+	if (!Sys_SetWorkDir(name))
+	{
+		Com_Printf("Couldn't change to %s\n", name);
+		Sys_SetWorkDir(workdir);
+		return;
+	}
+
+	ge->ReadGame("game.ssv");
+
+	Sys_SetWorkDir(workdir);
 }
 
 void

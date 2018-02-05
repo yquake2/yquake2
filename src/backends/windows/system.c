@@ -579,6 +579,37 @@ Sys_LoadLibrary(const char *path, const char *sym, void **handle)
 
 /* ======================================================================= */
 
+void
+Sys_GetWorkDir(char *buffer, size_t len)
+{
+	WCHAR wbuffer[MAX_OSPATH];
+
+	if (GetCurrentDirectoryW(sizeof(wbuffer), wbuffer) != 0)
+	{
+		WideCharToMultiByte(CP_UTF8, 0, wbuffer, -1, buffer, len, NULL, NULL);
+		return;
+	}
+
+	buffer[0] = '\0';
+}
+
+qboolean
+Sys_SetWorkDir(char *path)
+{
+	WCHAR wpath[MAX_OSPATH];
+
+	MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, sizeof(wpath));
+
+	if (SetCurrentDirectoryW(wpath) != 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+/* ======================================================================= */
+
 // This one is Windows specific.
 
 void

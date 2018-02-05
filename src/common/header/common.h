@@ -787,10 +787,10 @@ void Sys_Nanosleep(int);
 void *Sys_GetProcAddress(void *handle, const char *sym);
 void Sys_FreeLibrary(void *handle);
 void *Sys_LoadLibrary(const char *path, const char *sym, void **handle);
-
-// TODO: Use generic functions instead
 void *Sys_GetGameAPI(void *parms);
 void Sys_UnloadGame(void);
+void Sys_GetWorkDir(char *buffer, size_t len);
+qboolean Sys_SetWorkDir(char *path);
 
 // Windows only (system.c)
 #ifdef _WIN32

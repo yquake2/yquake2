@@ -521,3 +521,27 @@ Sys_LoadLibrary(const char *path, const char *sym, void **handle)
 
 	return entry;
 }
+
+/* ================================================================ */
+
+void
+Sys_GetWorkDir(char *buffer, size_t len)
+{
+	if (getcwd(buffer, len) != 0)
+	{
+		return;
+	}
+
+	buffer[0] = '\0';
+}
+
+qboolean
+Sys_SetWorkDir(char *path)
+{
+	if (chdir(path) == 0)
+	{
+		return true;
+	}
+
+	return false;
+}
