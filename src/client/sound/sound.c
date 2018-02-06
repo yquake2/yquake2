@@ -672,12 +672,33 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 
 	if (sfx->name[0])
 	{
+		vec3_t orientation, direction;
+		vec_t distance_direction;
+		int dir_x, dir_y, dir_z;
+
+		VectorSubtract(listener_forward, listener_up, orientation);
+
 		// with !fixed we have all sounds related directly to player,
 		// e.g. players fire, pain, menu
 		if (!ps->fixed_origin)
 		{
-			Haptic_Feedback(sfx->name);
+			VectorCopy(orientation, direction);
+			distance_direction = 0;
 		}
+		else
+		{
+			VectorSubtract(listener_origin, ps->origin, direction);
+			distance_direction = VectorLength(direction);
+		}
+
+		VectorNormalize(direction);
+		VectorNormalize(orientation);
+
+		dir_x = 16 * orientation[0] * direction[0];
+		dir_y = 16 * orientation[1] * direction[1];
+		dir_z = 16 * orientation[2] * direction[2];
+
+		Haptic_Feedback(sfx->name, 16 - distance_direction / 32, dir_x, dir_y, dir_z);
 	}
 
 	ps->entnum = entnum;

@@ -316,7 +316,7 @@ void Key_ReadConsoleHistory();
 void Key_WriteConsoleHistory();
 void Key_SetBinding(int keynum, char *binding);
 void Key_MarkAllUp(void);
-void Haptic_Feedback(char *name);
+void Haptic_Feedback(char *name, int effect_volume, int effect_x, int effect_y, int effect_z);
 int Key_GetMenuKey(int key);
 
 #endif
