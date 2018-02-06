@@ -138,6 +138,49 @@ fsRawPath_t *fs_rawPath;
 
 // --------
 
+#ifdef ZIP
+#if _WIN32
+/*
+ * We need some trickery to make minizip Unicode compatible...
+ */
+
+#include <windows.h>
+#include "unzip/ioapi.h"
+
+zlib_filefunc_def zlib_file_api;
+
+static voidpf ZCALLBACK fopen_file_func_utf(voidpf opaque, const char *filename, int mode)
+{
+	FILE* file = NULL;
+	WCHAR *mode_fopen = NULL;
+	WCHAR wfilename[MAX_OSPATH];
+
+	if ((mode & ZLIB_FILEFUNC_MODE_READWRITEFILTER) == ZLIB_FILEFUNC_MODE_READ)
+	{
+		mode_fopen = L"rb";
+	}
+	else if (mode & ZLIB_FILEFUNC_MODE_EXISTING)
+	{
+		mode_fopen = L"r+b";
+	}
+	else if (mode & ZLIB_FILEFUNC_MODE_CREATE)
+	{
+		mode_fopen = L"wb";
+	}
+
+	if (!((filename == NULL) || (mode_fopen == NULL)))
+	{
+		MultiByteToWideChar(CP_UTF8, 0, filename, -1, wfilename, sizeof(wfilename));
+		file = _wfopen((const wchar_t *) wfilename, mode_fopen);
+	}
+
+	return file;
+}
+#endif
+#endif
+
+// --------
+
 /*
  * All of Quake's data access is through a hierchal file system, but the
  * contents of the file system can be transparently merged from several
@@ -403,7 +446,12 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 					{
 						/* PK3 */
 						file_from_pak = true;
+
+#ifdef _WIN32
+						handle->zip = unzOpen2(pack->name, &zlib_file_api);
+#else
 						handle->zip = unzOpen(pack->name);
+#endif
 
 						if (handle->zip)
 						{
@@ -743,7 +791,11 @@ FS_LoadPK3(const char *packPath)
 	unz_file_info info; /* Zip file info. */
 	unz_global_info global; /* Zip file global info. */
 
+#ifdef _WIN32
+	handle = unzOpen2(packPath, &zlib_file_api);
+#else
 	handle = unzOpen(packPath);
+#endif
 
 	if (handle == NULL)
 	{
@@ -1580,6 +1632,12 @@ FS_InitFilesystem(void)
 	{
 		strcpy(datadir, ".");
 	}
+
+#ifdef _WIN32
+	// setup minizip for Unicode compatibility
+	fill_fopen_filefunc(&zlib_file_api);
+	zlib_file_api.zopen_file = fopen_file_func_utf;
+#endif
 
 	// Build search path
 	FS_BuildRawPath();
