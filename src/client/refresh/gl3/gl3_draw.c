@@ -38,6 +38,10 @@ GL3_Draw_InitLocal(void)
 {
 	/* load console characters */
 	draw_chars = GL3_FindImage("pics/conchars.pcx", it_pic);
+	if (!draw_chars)
+	{
+		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/conchars.pcx");
+	}
 
 	// set up attribute layout for 2D textured rendering
 	glGenVertexArrays(1, &vao2D);
