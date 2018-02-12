@@ -56,8 +56,9 @@ static SDL_Surface* window = NULL;
 // some compatibility defines
 #define SDL_SRCCOLORKEY SDL_TRUE
 #define SDL_OPENGL SDL_WINDOW_OPENGL
-
 #endif
+
+cvar_t *vid_displayrefreshrate;
 
 /*
  * Initializes the SDL video subsystem
@@ -65,6 +66,8 @@ static SDL_Surface* window = NULL;
 int
 GLimp_Init(void)
 {
+	vid_displayrefreshrate = Cvar_Get("vid_displayrefreshrate", "-1", CVAR_ARCHIVE);
+
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 	{
 
@@ -406,6 +409,11 @@ int glimp_refreshRate = -1;
  */
 int GLimp_GetRefreshRate(void)
 {
+	if (vid_displayrefreshrate->value > -1)
+	{
+		glimp_refreshRate = ceil(vid_displayrefreshrate->value);
+	}
+
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 
 	// do this only once, assuming people don't change their display settings
@@ -425,6 +433,13 @@ int GLimp_GetRefreshRate(void)
 			glimp_refreshRate = 60; // apparently the stuff above failed, use default
 		}
 	}
+
+	/* The value reported by SDL may be one frame too low, for example
+	   on my old Radeon R7 360 the driver returns 59hz for my 59.95hz
+	   display. And Quake II isn't that accurate, we loose a little bit
+	   here and there. Since it doesn't really hurt if we're running a
+	   litte bit too fast just return one frame more than we really have. */
+	glimp_refreshRate++;
 
 	return glimp_refreshRate;
 #else
