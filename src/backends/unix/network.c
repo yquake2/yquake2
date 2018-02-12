@@ -366,7 +366,7 @@ NET_AdrToString(netadr_t a)
 }
 
 qboolean
-NET_StringToSockaddr(char *s, struct sockaddr_storage *sadr)
+NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 {
 	char copy[128];
 	char *addrs, *space;
@@ -440,7 +440,7 @@ NET_StringToSockaddr(char *s, struct sockaddr_storage *sadr)
 }
 
 qboolean
-NET_StringToAdr(char *s, netadr_t *a)
+NET_StringToAdr(const char *s, netadr_t *a)
 {
 	struct sockaddr_storage sadr;
 
