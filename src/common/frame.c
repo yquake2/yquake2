@@ -34,6 +34,7 @@ cvar_t *timescale;
 cvar_t *fixedtime;
 cvar_t *cl_maxfps;
 cvar_t *dedicated;
+cvar_t *busywait;
 
 extern cvar_t *logfile_active;
 extern jmp_buf abortframe; /* an ERR_DROP occured, exit the entire frame */
@@ -129,6 +130,12 @@ Qcommon_Buildstring(void)
 	printf("Architecture: %s\n", YQ2ARCH);
 }
 
+#ifndef DEDICATED_ONLY
+#define FRAMEDELAY 5
+#else
+#define FRAMEDELAY 850
+#endif
+
 void
 Qcommon_Mainloop(void)
 {
@@ -139,11 +146,31 @@ Qcommon_Mainloop(void)
 	while (1)
 	{
 		// Throttle the game a little bit.
-#ifdef DEDICATED_ONLY
-		Sys_Nanosleep(850000);
-#else
-		Sys_Nanosleep(5000);
+		if (busywait->value)
+		{
+			long long spintime = Sys_Microseconds();
+
+			while (1)
+			{
+#if defined (__GNUC__) && (__i386 || __x86_64__)
+				/* Give the CPU a hint that this is a very tight
+				   spinloop. One PAUSE instruction each loop is
+				   enough to reduce power consumption and head
+				   dispersion a lot, it's 95°C against 67°C on
+				   a Kaby Lake laptop. */
+				asm("pause");
 #endif
+
+				if (Sys_Microseconds() - spintime >= FRAMEDELAY)
+				{
+					break;
+				}
+			}
+		}
+		else
+		{
+			Sys_Nanosleep(FRAMEDELAY * 1000);
+		}
 
 		newtime = Sys_Microseconds();
 		Qcommon_Frame(newtime - oldtime);
@@ -226,6 +253,7 @@ Qcommon_Init(int argc, char **argv)
 	host_speeds = Cvar_Get("host_speeds", "0", 0);
 	log_stats = Cvar_Get("log_stats", "0", 0);
 	showtrace = Cvar_Get("showtrace", "0", 0);
+	busywait = Cvar_Get("busywait", "1", CVAR_ARCHIVE);
 #else
 	dedicated = Cvar_Get("dedicated", "1", CVAR_NOSET);
 #endif
