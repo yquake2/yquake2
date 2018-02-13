@@ -4380,6 +4380,15 @@ M_Init(void)
     Cmd_AddCommand("menu_options", M_Menu_Options_f);
     Cmd_AddCommand("menu_keys", M_Menu_Keys_f);
     Cmd_AddCommand("menu_quit", M_Menu_Quit_f);
+
+    /* initialize the server address book cvars (adr0, adr1, ...)
+     * so the entries are not lost if you don't open the address book */
+    for (int index = 0; index < NUM_ADDRESSBOOK_ENTRIES; index++)
+    {
+        char buffer[20];
+        Com_sprintf(buffer, sizeof(buffer), "adr%d", index);
+        Cvar_Get(buffer, "", CVAR_ARCHIVE);
+    }
 }
 
 void

@@ -531,7 +531,7 @@ qboolean NET_CompareAdr(netadr_t a, netadr_t b);
 qboolean NET_CompareBaseAdr(netadr_t a, netadr_t b);
 qboolean NET_IsLocalAddress(netadr_t adr);
 char *NET_AdrToString(netadr_t a);
-qboolean NET_StringToAdr(char *s, netadr_t *a);
+qboolean NET_StringToAdr(const char *s, netadr_t *a);
 void NET_Sleep(int msec);
 
 /*=================================================================== */
