@@ -244,6 +244,7 @@ Qcommon_Init(int argc, char **argv)
 	char *s;
 	s = va("%s %s %s %s", YQ2VERSION, YQ2ARCH, BUILD_DATE, YQ2OSTYPE);
 	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
+	busywait = Cvar_Get("busywait", "1", CVAR_ARCHIVE);
 
 #ifndef DEDICATED_ONLY
 	cl_async = Cvar_Get("cl_async", "1", CVAR_ARCHIVE);
@@ -253,7 +254,6 @@ Qcommon_Init(int argc, char **argv)
 	host_speeds = Cvar_Get("host_speeds", "0", 0);
 	log_stats = Cvar_Get("log_stats", "0", 0);
 	showtrace = Cvar_Get("showtrace", "0", 0);
-	busywait = Cvar_Get("busywait", "1", CVAR_ARCHIVE);
 #else
 	dedicated = Cvar_Get("dedicated", "1", CVAR_NOSET);
 #endif
