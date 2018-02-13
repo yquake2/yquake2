@@ -348,6 +348,16 @@ Qcommon_Frame(int msec)
 	   microseconds. */
 	qboolean renderframe = true;
 
+	// Average time needed to process a render frame.
+	static int avgrenderframetime;
+	static int renderframetimes[60];
+	static qboolean last_was_renderframe;
+
+	// Average time needed to process a packet frame.
+	static int avgpacketframetime;
+	static int packetframetimes[60];
+	static qboolean last_was_packetframe;
+
 
 	/* In case of ERR_DROP we're jumping here. Don't know
 	   if that' really save but it seems to work. So leave
@@ -446,7 +456,82 @@ Qcommon_Frame(int msec)
 		rfps = (int)vid_maxfps->value;
 	}
 
-	pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
+	/* The target render frame rate may be too high. The current
+	   scene may be more complex than the previous one and SDL
+	   may give us a 1 or 2 frames too low display refresh rate.
+	   Add a security magin of 5%, e.g. 60fps * 0.95 = 57fps. */
+	pfps = (cl_maxfps->value > rfps) ? floor(rfps * 0.95) : cl_maxfps->value;
+
+
+	/* Calculate average time spend to process a render
+	   frame. This is highly depended on the GPU and the
+	   scenes complexity. Take the last 60 pure render
+	   frames (frames that are only render frames and
+	   nothing else) into account and add a security
+	   margin of 2%. */
+	if (last_was_renderframe && !last_was_packetframe)
+	{
+		int measuredframes = 0;
+		static int renderframenum;
+
+		renderframetimes[renderframenum] = msec;
+
+		for (int i = 0; i < 60; i++)
+		{
+			if (renderframetimes[i] != 0)
+			{
+				avgrenderframetime += renderframetimes[i];
+				measuredframes++;
+			}
+		}
+
+		avgrenderframetime /= measuredframes;
+		avgrenderframetime += (avgrenderframetime * 0.02f);
+
+		renderframenum++;
+
+		if (renderframenum > 59)
+		{
+			renderframenum = 0;
+		}
+
+		last_was_renderframe = false;
+	}
+
+	/* Calculate the average time spend to process a packet
+	   frame. Packet frames are mostly dependend on the CPU
+	   speed and the network delay. Take the last 60 pure
+	   packet frames (frames that are only packet frames ans
+	   nothing else) into account and add a security margin
+	   of 2%. */
+	if (last_was_packetframe && last_was_renderframe)
+	{
+		int measuredframes = 0;
+		static int packetframenum;
+
+		packetframetimes[packetframenum] = msec;
+
+		for (int i = 0; i < 60; i++)
+		{
+			if (packetframetimes[i] != 0)
+			{
+				avgpacketframetime += packetframetimes[i];
+				measuredframes++;
+			}
+		}
+
+		avgpacketframetime /= measuredframes;
+		avgpacketframetime += (avgpacketframetime * 0.02f);
+
+		packetframenum++;
+
+		if (packetframenum > 59)
+		{
+			packetframenum = 0;
+		}
+
+		last_was_packetframe = false;
+	}
 
 
 	// Calculate timings.
@@ -458,12 +543,12 @@ Qcommon_Frame(int msec)
 	if (!cl_timedemo->value) {
 		if (cl_async->value) {
 			// Network frames..
-			if (packetdelta < (1000000.0f / pfps)) {
+			if (packetdelta < ((1000000.0f - avgpacketframetime) / pfps)) {
 				packetframe = false;
 			}
 
 			// Render frames.
-			if (renderdelta < (1000000.0f / rfps)) {
+			if (renderdelta < ((1000000.0f - avgrenderframetime) / rfps)) {
 				renderframe = false;
 			}
 		} else {
@@ -535,13 +620,15 @@ Qcommon_Frame(int msec)
 	}
 
 
-	// Reset deltas if necessary.
+	// Reset deltas and mark frame.
 	if (packetframe) {
 		packetdelta = 0;
+		last_was_packetframe = true;
 	}
 
 	if (renderframe) {
 		renderdelta = 0;
+		last_was_renderframe = true;
 	}
 }
 #else
