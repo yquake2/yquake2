@@ -3,18 +3,48 @@ Yamagi Quake II Console Variables
 
 This lists explains most console variables (cvars) added by Yamagi
 Quake II. Most of the original clients (Vanilla Quake II) cvars are
-still in place, however the `r_*` renderer cvars have been renamed
-to `gl_*` and there are cvars specific to the OpenGL3.2 renderer that
-start with `gl3_`.
-Please note: There's normally no need to change any cvar! Use the menu instead.
+still in place, however due to architectural changes some of them
+have been renamed. The prefixes are:
+
+* No prefix: General stuff.
+* `cl_`: Client.
+* `gl_`: Common to all OpenGL renderers.
+* `gl1_`: OpenGL 1.4 renderer.
+* `gl3_`: OpenGL 3.2 renderer.
+* `ogg_`: Ogg/Vorbis music playback.
+* `r_`: All renderers.
+* `s_`: Sound system.
+* `vid_`: Video backend.
+
+
+Command line arguments
+----------------------
+
+These are not console variables, they cannot be entered into the
+console only be given at the command line at startup. While cvars
+are prefixed with a `+` arguments are starting with a `-`. For 
+example it's `+set busywait 0` (setting the `busywait` cvar) and
+`-portable` (setting the `portable` argument).
+
+* **datadir**: Directory from which the game data is loaded. Can be used
+  in startup scripts, to test binaries, etc. If not set, the directory
+  containing the binaries is used.
+
+* **portable**: Makes Quake II portable, all runtime data like the
+  the config, savegames and so on is stored next to the executable and
+  not in the users home directory.
+
 
 General:
 --------
 
-* **basedir**: Directory from which the game data is loaded. Can be used
-  in startup scripts, to test binaries, etc. If not set, the directory
-  containing the binaries is used.  
-  To use this cvar, set it at startup, like `./quake2 +set basedir /path/to/quake2`
+* **busywait**: By default this is set to `1`. causing Quake II to spin
+  in a very tight loop until it's time to process the next frame. This is
+  a very accurate way to determine the internal timing but comes with a
+  relatively high CPU usage. If set to `0` Quake II lays itself to sleep
+  and tells the operating system to send a wakeup signal when it's time
+  for the next frame. The later is more CPU friendly but rather inaccurate,
+  especially on Windows. Use with care.  
 
 * **cl_async**: If set to `1` (the default) the client is asynchronous.
   The client framerate is fixed, the renderer framerate is variable.
@@ -99,11 +129,6 @@ Graphics (all renderers):
   (on all platforms).  
   This is also set by the brightness slider in the video menu.
 
-* **gl_anisotropic**: Anisotropic filtering. Possible values are
-  dependent on the GPU driver, most of them support `1`, `2`, `4`, `8`
-  and `16`. Anisotropic filtering gives a huge improvement to texture
-  quality by a negligible performance impact.
-
 * **r_consolescale** / **r_hudscale** / **r_menuscale**, **crosshair_scale**:
   Scale the console, the HUD, the menu and the crosshair. The value given
   is the scale factor, a factor of `1` means no scaling. Values greater
@@ -125,6 +150,18 @@ Graphics (all renderers):
   the monitor refresh rate, so if vsync is enabled, you won't get more than
   60fps on most displays (or 120 on a 120hz display etc).
 
+* **r_vsync**: Enables the vsync: frames are synchronized with
+  display refresh rate, should (but doesn't always) prevent tearing.
+
+
+Graphics (GL renderers only):
+-----------------------------
+
+* **gl_anisotropic**: Anisotropic filtering. Possible values are
+  dependent on the GPU driver, most of them support `1`, `2`, `4`, `8`
+  and `16`. Anisotropic filtering gives a huge improvement to texture
+  quality by a negligible performance impact.
+
 * **gl_msaa_samples**: Full scene anti aliasing samples. The number of
   samples depends on the GPU driver, most drivers support at least
   `2`, `4` and `8` samples. If an invalid value is set, the value is
@@ -142,13 +179,11 @@ Graphics (all renderers):
 * **gl_shadows**: Enables rendering of shadows. Quake IIs shadows are
   very simple and are prone to render errors.
 
-* **r_vsync**: Enables the vsync: frames are synchronized with
-  display refresh rate, should (but doesn't always) prevent tearing.
-
 * **gl_zfix**: Sometimes two or even more surfaces overlap and flicker.
   If this cvar is set to `1` the renderer inserts a small gap between
   the overlapping surfaces to mitigate the flickering. This may lead to
   small render errors.
+
 
 Graphics (GL1 only):
 --------------------
@@ -166,6 +201,7 @@ Graphics (GL1 only):
 * **gl1_stencilshadow**: If `gl_shadows` is set to `1`, this makes them
   look a bit better (no flickering) by using the stencil buffer.
   (This is always done in GL3, so not configurable there)
+
 
 Graphics (GL3 only):
 --------------------
@@ -196,5 +232,3 @@ Graphics (GL3 only):
 
 * **gl3_particle_square**: If set to `1`, particles are rendered as squares,
   like in the old software renderer or Quake1. Default is `0`.
-
-
