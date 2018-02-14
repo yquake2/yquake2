@@ -188,7 +188,7 @@ Graphics (GL renderers only):
 Graphics (GL1 only):
 --------------------
 
-* **intensity**: Sets the color intensity used for 3D rendering.
+* **gl1_intensity**: Sets the color intensity used for 3D rendering.
   Must be a floating point value, at least `1.0` - default is `2.0`.  
   Applied when textures are loaded, so it needs a `vid_restart`!
 

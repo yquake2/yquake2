@@ -1290,11 +1290,11 @@ R_InitImages(void)
 	registration_sequence = 1;
 
 	/* init intensity conversions */
-	intensity = ri.Cvar_Get("intensity", "2", CVAR_ARCHIVE);
+	intensity = ri.Cvar_Get("gl1_intensity", "2", CVAR_ARCHIVE);
 
 	if (intensity->value <= 1)
 	{
-		ri.Cvar_Set("intensity", "1");
+		ri.Cvar_Set("gl1_intensity", "1");
 	}
 
 	gl_state.inverse_intensity = 1 / intensity->value;

@@ -80,7 +80,8 @@ replacement_t replacements[] = {
 	{"gl_swapinterval", "r_vsync"},
 	{"gl_texturealphamode", "gl1_texturealphamode"},
 	{"gl_texturesolidmode", "gl1_texturesolidmode"},
-	{"gl_ztrick", "gl1_ztrick"}
+	{"gl_ztrick", "gl1_ztrick"},
+	{"intensity", "gl1_intensity"}
 };
 
 
