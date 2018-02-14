@@ -309,7 +309,6 @@ R_UnRegister (void)
 	ri.Cmd_RemoveCommand( "imagelist" );
 }
 
-static int SWimp_Init(void);
 static void SWimp_Shutdown(void );
 
 /*
@@ -339,7 +338,7 @@ RE_Init(void)
 
 	R_Register ();
 	Draw_GetPalette ();
-	if (SWimp_Init() == false)
+	if (!ri.GLimp_Init())
 		return false;
 
 	// create the window
@@ -1469,41 +1468,6 @@ static SDL_Renderer *renderer = NULL;
 static SDL_Surface* window = NULL;
 #endif
 static qboolean X11_active = false;
-
-/*
-** SWimp_Init
-**
-** This routine is responsible for initializing the implementation
-** specific stuff in a software rendering subsystem.
-*/
-static int
-SWimp_Init(void)
-{
-	if (!SDL_WasInit(SDL_INIT_VIDEO))
-	{
-
-		if (SDL_Init(SDL_INIT_VIDEO) == -1)
-		{
-			Com_Printf("Couldn't init SDL video: %s.\n", SDL_GetError());
-			return false;
-		}
-
-		SDL_version version;
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-		SDL_GetVersion(&version);
-		const char* driverName = SDL_GetCurrentVideoDriver();
-#else
-		char driverName[64];
-		SDL_VideoDriverName(driverName, sizeof(driverName));
-		version = *SDL_Linked_Version();
-#endif
-		Com_Printf("SDL version is: %i.%i.%i\n", (int)version.major, (int)version.minor, (int)version.patch);
-		Com_Printf("SDL video driver is \"%s\".\n", driverName);
-	}
-
-	return true;
-}
 
 /*
  * Sets the window icon
