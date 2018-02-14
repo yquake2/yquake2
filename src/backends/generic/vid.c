@@ -261,7 +261,7 @@ void VID_WriteScreenshot( int width, int height, int comp, const void* data )
 				if(q[i] < '0' || q[i] > '9')
 				{
 					Com_Printf("the (optional!) third argument to 'screenshot' is jpg quality, a number between 1 and 100\n");
-					Com_Printf("  or png compression level, between 0 and 10!\n");
+					Com_Printf("  or png compression level, between 0 and 9!\n");
 					return;
 				}
 			}
@@ -269,7 +269,7 @@ void VID_WriteScreenshot( int width, int height, int comp, const void* data )
 			if(format == 2) // png
 			{
 				if(quality < 0)  quality = 0;
-				else if(quality > 10)  quality = 10;
+				else if(quality > 9)  quality = 9;
 			}
 			else if(format == 3) // jpg
 			{
@@ -306,7 +306,7 @@ void VID_WriteScreenshot( int width, int height, int comp, const void* data )
 		case 0: success = stbi_write_tga(checkname, width, height, comp, data); break;
 		case 1: success = stbi_write_bmp(checkname, width, height, comp, data); break;
 		case 2:
-			stbi_write_png_compression_level = (quality <= 10) ? quality : 7;
+			stbi_write_png_compression_level = (quality < 10) ? quality : 7;
 			success = stbi_write_png(checkname, width, height, comp, data, 0);
 			break;
 		case 3: success = stbi_write_jpg(checkname, width, height, comp, data, quality); break;
