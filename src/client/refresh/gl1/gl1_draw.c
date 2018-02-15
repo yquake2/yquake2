@@ -38,6 +38,10 @@ Draw_InitLocal(void)
 {
 	/* load console characters */
 	draw_chars = R_FindImage("pics/conchars.pcx", it_pic);
+	if (!draw_chars)
+	{
+		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/conchars.pcx");
+	}
 }
 
 /*

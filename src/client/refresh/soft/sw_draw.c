@@ -59,6 +59,10 @@ Draw_InitLocal
 void Draw_InitLocal (void)
 {
 	draw_chars = RE_Draw_FindPic ("conchars");
+	if (!draw_chars)
+	{
+		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/conchars.pcx");
+	}
 }
 
 
