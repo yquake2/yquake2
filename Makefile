@@ -171,6 +171,10 @@ CFLAGS += $(OSX_ARCH)
 else
 CFLAGS := -std=gnu99 -O2 -fno-strict-aliasing \
 		  -Wall -pipe -g -ggdb -MMD -fwrapv
+# BSD does not have fopen*64 variants
+ifneq ($(YQ2_OSTYPE), $(filter $(YQ2_OSTYPE), Linux))
+CFLAGS += -DIOAPI_NO_64
+endif
 endif
 
 # ----------

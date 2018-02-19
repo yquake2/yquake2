@@ -134,6 +134,11 @@ endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	list(APPEND yquake2LinkerFlags "-lm -static-libgcc")
 else()
+
+	# BSD does not have fopen*64 variants
+	if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux")
+	  add_definitions(-DIOAPI_NO_64)
+	endif()
 	list(APPEND yquake2LinkerFlags "-lm -rdynamic")
 endif()
 
