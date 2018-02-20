@@ -100,6 +100,10 @@ if(${ZIP_SUPPORT})
 	list(APPEND yquake2IncludeDirectories ${ZLIB_INCLUDE_DIRS})
 	list(APPEND yquake2ZLibLinkerFlags ${ZLIB_LIBRARIES})
 	add_definitions(-DZIP -DNOUNCRYPT)
+
+	if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux" OR NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+		add_definitions(-DIOAPI_NO_64)
+	endif()
 endif()
 
 if(${OGG_SUPPORT})

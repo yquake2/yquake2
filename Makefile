@@ -222,6 +222,25 @@ endif
 
 # ----------
 
+# Just set IOAPI_NO_64 on everything that's not Linux or Windows,
+# otherwise minizip will use fopen64(), fseek64() and friends that
+# may be unavailable. This is - of course - not really correct, in
+# a better world we would set -DIOAPI_NO_64 to force everything to
+# fopen(), fseek() and so on and -D_FILE_OFFSET_BITS=64 to let the
+# libc headers do their work. Currently we can't do that because
+# Quake II uses nearly everywere int instead of off_t...
+#
+# This may have the side effect that ZIP files larger than 2GB are
+# unsupported. But I doubt that anyone has such large files, they
+# would likely hit other internal limits.
+ifneq ($(YQ2_OSTYPE),Windows)
+ifneq ($(YQ2_OSTYPE),Linux)
+ZIPCFLAGS += -DIOAPI_NO_64
+endif
+endif
+
+# ----------
+
 # Extra CFLAGS for SDL
 ifeq ($(WITH_SDL2),yes)
 SDLCFLAGS := $(shell sdl2-config --cflags)
@@ -468,7 +487,7 @@ endif # !DLOPEN_OPENAL
 endif # WITH_OPENAL
 
 ifeq ($(WITH_ZIP),yes)
-release/quake2 : CFLAGS += -DZIP -DNOUNCRYPT
+release/quake2 : CFLAGS += $(ZIPCFLAGS) -DZIP -DNOUNCRYPT
 release/quake2 : LDFLAGS += -lz
 endif
 
@@ -542,7 +561,7 @@ build/server/%.o: %.c
 release/q2ded : CFLAGS += -DDEDICATED_ONLY -Wno-unused-result
 
 ifeq ($(WITH_ZIP),yes)
-release/q2ded : CFLAGS += -DZIP -DNOUNCRYPT
+release/q2ded : CFLAGS += $(ZIPCFLAGS) -DZIP -DNOUNCRYPT
 release/q2ded : LDFLAGS += -lz
 endif
 endif
