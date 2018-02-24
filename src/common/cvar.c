@@ -205,6 +205,13 @@ Cvar_Get(char *var_name, char *var_value, int flags)
 		}
 	}
 
+	// if $game is the default one ("baseq2"), then use "" instead because
+	// other code assumes this behavior (e.g. FS_BuildGameSpecificSearchPath())
+	if(strcmp(var_name, "game") == 0 && strcmp(var_value, BASEDIRNAME) == 0)
+	{
+		var_value = "";
+	}
+
 	var = Z_Malloc(sizeof(*var));
 	var->name = CopyString(var_name);
 	var->string = CopyString(var_value);
@@ -246,6 +253,13 @@ Cvar_Set2(char *var_name, char *value, qboolean force)
 		}
 	}
 
+	// if $game is the default one ("baseq2"), then use "" instead because
+	// other code assumes this behavior (e.g. FS_BuildGameSpecificSearchPath())
+	if(strcmp(var_name, "game") == 0 && strcmp(value, BASEDIRNAME) == 0)
+	{
+		value = "";
+	}
+
 	if (!force)
 	{
 		if (var->flags & CVAR_NOSET)
@@ -264,8 +278,8 @@ Cvar_Set2(char *var_name, char *value, qboolean force)
 				}
 
 				Z_Free(var->latched_string);
+				var->latched_string = NULL;
 			}
-
 			else
 			{
 				if (strcmp(value, var->string) == 0)
@@ -279,7 +293,6 @@ Cvar_Set2(char *var_name, char *value, qboolean force)
 				Com_Printf("%s will be changed for next game.\n", var_name);
 				var->latched_string = CopyString(value);
 			}
-
 			else
 			{
 				var->string = CopyString(value);
@@ -294,7 +307,6 @@ Cvar_Set2(char *var_name, char *value, qboolean force)
 			return var;
 		}
 	}
-
 	else
 	{
 		if (var->latched_string)
@@ -353,6 +365,13 @@ Cvar_FullSet(char *var_name, char *value, int flags)
 	if (var->flags & CVAR_USERINFO)
 	{
 		userinfo_modified = true;
+	}
+
+	// if $game is the default one ("baseq2"), then use "" instead because
+	// other code assumes this behavior (e.g. FS_BuildGameSpecificSearchPath())
+	if(strcmp(var_name, "game") == 0 && strcmp(value, BASEDIRNAME) == 0)
+	{
+		value = "";
 	}
 
 	Z_Free(var->string);

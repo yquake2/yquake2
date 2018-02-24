@@ -178,6 +178,27 @@ Qcommon_Mainloop(void)
 	}
 }
 
+void Qcommon_ExecConfigs(qboolean gameStartUp)
+{
+	Cbuf_AddText("exec default.cfg\n");
+	Cbuf_AddText("exec yq2.cfg\n");
+	Cbuf_AddText("exec config.cfg\n");
+	if(gameStartUp)
+	{
+		// only when the game is first started we execute autoexec.cfg and set the cvars from commandline
+		Cbuf_AddText("exec autoexec.cfg\n");
+		Cbuf_AddEarlyCommands(true);
+	}
+	Cbuf_Execute();
+}
+
+static char initialGame[MAX_QPATH];
+
+const char* Qcommon_GetInitialGame(void)
+{
+	return initialGame;
+}
+
 void
 Qcommon_Init(int argc, char **argv)
 {
@@ -214,16 +235,22 @@ Qcommon_Init(int argc, char **argv)
 	Cbuf_AddEarlyCommands(false);
 	Cbuf_Execute();
 
+	// remember the initial game name that might have been set on commandline
+	{
+		cvar_t* gameCvar = Cvar_Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
+		const char* game = "";
+		if(gameCvar->string && gameCvar->string[0])
+		{
+			game = gameCvar->string;
+		}
+		Q_strlcpy(initialGame, game, sizeof(initialGame));
+	}
+
 	// The filesystems needs to be initialized after the cvars.
 	FS_InitFilesystem();
 
 	// Add and execute configuration files.
-	Cbuf_AddText("exec default.cfg\n");
-	Cbuf_AddText("exec yq2.cfg\n");
-	Cbuf_AddText("exec config.cfg\n");
-	Cbuf_AddText("exec autoexec.cfg\n");
-	Cbuf_AddEarlyCommands(true);
-	Cbuf_Execute();
+	Qcommon_ExecConfigs(true);
 
 	// Zone malloc statistics.
 	Cmd_AddCommand("z_stats", Z_Stats_f);

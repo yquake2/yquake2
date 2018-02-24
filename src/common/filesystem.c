@@ -1462,20 +1462,17 @@ FS_BuildGameSpecificSearchPath(char *dir)
 	fsRawPath_t *search;
 	fsSearchPath_t *next;
 
-	// This is against PEBCAK. The user may give us paths like
-	// xatrix/ or even /home/stupid/quake2/xatrix.
-	if (!*dir || !strcmp(dir, ".") || strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\"))
+	// empty string means baseq2
+	if(dir[0] == '\0')
 	{
-		Com_Printf("Gamedir should be a single filename, not a path.\n");
-		return;
+		dir = BASEDIRNAME;
 	}
 
-	// BASEDIR is already added as a generic directory. Adding it
-	// again as a specialised directory breaks the logic in other
-	// parts of the code. This may happen if the user does something
-	// like ./quake2 +set game baseq2
-	if(!Q_stricmp(dir, BASEDIRNAME))
+	// This is against PEBCAK. The user may give us paths like
+	// xatrix/ or even /home/stupid/quake2/xatrix.
+	if (!strcmp(dir, ".") || strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\"))
 	{
+		Com_Printf("Gamedir should be a single filename, not a path.\n");
 		return;
 	}
 
@@ -1556,6 +1553,9 @@ FS_BuildGameSpecificSearchPath(char *dir)
 	// render dll doesn't link the filesystem stuff.
 	Com_sprintf(path, sizeof(path), "%s/scrnshot", fs_gamedir);
 	Sys_Mkdir(path);
+
+	// the gamedir has changed, so read in the corresponding configs
+	Qcommon_ExecConfigs(false);
 }
 
 // --------

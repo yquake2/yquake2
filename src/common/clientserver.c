@@ -243,7 +243,6 @@ Com_Error(int code, char *fmt, ...)
 		recursive = false;
 		longjmp(abortframe, -1);
 	}
-
 	else if (code == ERR_DROP)
 	{
 		Com_Printf("********************\nERROR: %s\n********************\n",
@@ -255,7 +254,6 @@ Com_Error(int code, char *fmt, ...)
 		recursive = false;
 		longjmp(abortframe, -1);
 	}
-
 	else
 	{
 		SV_Shutdown(va("Server fatal crashed: %s\n", msg), false);

@@ -285,6 +285,8 @@ CL_Rcon_f(void)
 	NET_SendPacket(NS_CLIENT, strlen(message) + 1, message, to);
 }
 
+void CL_WriteConfiguration(void);
+
 /*
  * Goes from a connected state to full screen
  * console state Sends a disconnect message to
@@ -357,6 +359,13 @@ CL_Disconnect(void)
 	cls.state = ca_disconnected;
 
 	snd_is_underwater = false;
+
+	// save config for old game/mod
+	CL_WriteConfiguration();
+
+	// we disconnected, so revert to default game/mod (might have been different mod on MP server)
+	const char* game = Qcommon_GetInitialGame();
+	Cvar_Set("game", (char*)game);
 }
 
 void
