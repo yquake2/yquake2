@@ -735,6 +735,9 @@ extern qboolean is_portable;
 /* Hack fo external datadir */
 extern char datadir[MAX_OSPATH];
 
+/* Hack for working 'game' cmd */
+extern char userGivenGame[MAX_QPATH];
+
 extern FILE *log_stats_file;
 
 /* host_speeds times */

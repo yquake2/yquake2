@@ -73,6 +73,9 @@ void SCR_EndLoadingPlaque(void);
 // Is the game portable?
 qboolean is_portable;
 
+// Game given by user
+char userGivenGame[MAX_QPATH];
+
 // ----
 
 static void
@@ -192,13 +195,6 @@ void Qcommon_ExecConfigs(qboolean gameStartUp)
 	Cbuf_Execute();
 }
 
-static char initialGame[MAX_QPATH];
-
-const char* Qcommon_GetInitialGame(void)
-{
-	return initialGame;
-}
-
 void
 Qcommon_Init(int argc, char **argv)
 {
@@ -239,11 +235,13 @@ Qcommon_Init(int argc, char **argv)
 	{
 		cvar_t* gameCvar = Cvar_Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
 		const char* game = "";
+
 		if(gameCvar->string && gameCvar->string[0])
 		{
 			game = gameCvar->string;
 		}
-		Q_strlcpy(initialGame, game, sizeof(initialGame));
+
+		Q_strlcpy(userGivenGame, game, sizeof(userGivenGame));
 	}
 
 	// The filesystems needs to be initialized after the cvars.
@@ -261,8 +259,6 @@ Qcommon_Init(int argc, char **argv)
 
 	developer = Cvar_Get("developer", "0", 0);
 	fixedtime = Cvar_Get("fixedtime", "0", 0);
-
-
 
 	logfile_active = Cvar_Get("logfile", "1", CVAR_ARCHIVE);
 	modder = Cvar_Get("modder", "0", 0);

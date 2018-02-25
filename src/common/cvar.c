@@ -452,6 +452,14 @@ Cvar_Command(void)
 		return true;
 	}
 
+	/* Another evil hack: The user has just changed 'game' trough
+	   the console. We reset userGivenGame to that value, otherwise
+	   we would revert to the initialy given game at disconnect. */
+	if (strcmp(v->name, "game") == 0)
+	{
+		Q_strlcpy(userGivenGame, Cmd_Argv(1), sizeof(userGivenGame));
+	}
+
 	Cvar_Set(v->name, Cmd_Argv(1));
 	return true;
 }

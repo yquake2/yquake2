@@ -364,8 +364,7 @@ CL_Disconnect(void)
 	CL_WriteConfiguration();
 
 	// we disconnected, so revert to default game/mod (might have been different mod on MP server)
-	const char* game = Qcommon_GetInitialGame();
-	Cvar_Set("game", (char*)game);
+	Cvar_Set("game", userGivenGame);
 }
 
 void
