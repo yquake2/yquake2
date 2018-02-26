@@ -99,6 +99,12 @@ Graphics (all renderers):
 
 * Most old `r_*` cvars, but renamed to `gl_*`
 
+* **vid_displayrefreshrate**: Sets the displays refresh rate. The 
+  default `-1` let the game determine the refresh rate automatically.
+  There's little need to change that. If you do make sure that the refresh
+  rate is rounded up, e.g. with a display of 59.95hz you should set `60`.
+  Otherwise the game will render too few frames.
+
 * **vid_renderer**: Selects the renderer library. Possible options are
   `gl1` (the default) for the old OpenGL 1.4 renderer and `gl3` for 
   the new OpenGL 3.2 renderer.

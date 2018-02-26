@@ -2,9 +2,9 @@ Quake II 7.10 to 7.20:
 - Add the soft renderer back. This feature is considered experimental.
   The porting of the old soft renderer code to SDL and it's cleanup
   were done by Denis Pauk.
-- Rename several cvars to be consistent with other Quake II source
-  ports. The configuration file will be converted at the first start,
-  when an old cvar name is used a message is printed.
+- Rename several cvars to be consistent across different renderers.
+  The configuration file will be converted at the first start, when an
+  old cvar name is used a message is printed.
 - Make the client unicode compatible. Yamagi Quake II can now be 
   installed into pathes with unicode characters in it. On Windows the
   user name of the current account may contain unicode characters.
