@@ -189,13 +189,15 @@ CL_CheckForResend(void)
 void
 CL_Connect_f(void)
 {
-	char *server;
+	char server[256];
 
 	if (Cmd_Argc() != 2)
 	{
 		Com_Printf("usage: connect <server>\n");
 		return;
 	}
+
+	Q_strlcpy(server, Cmd_Argv(1), sizeof(server));
 
 	if (Com_ServerState())
 	{
@@ -204,15 +206,7 @@ CL_Connect_f(void)
 		SV_Shutdown("Server quit\n", false);
 	}
 
-	else
-	{
-		CL_Disconnect();
-	}
-
-	server = Cmd_Argv(1);
-
 	NET_Config(true); /* allow remote */
-
 	CL_Disconnect();
 
 	cls.state = ca_connecting;
