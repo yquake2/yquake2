@@ -2085,6 +2085,11 @@ static menuseparator_s s_blankline;
 static void
 StartGame(void)
 {
+	if (cls.state != ca_disconnected && cls.state != ca_uninitialized)
+	{
+		CL_Disconnect();
+	}
+
     /* disable updates and start the cinematic going */
     cl.servercount = -1;
     M_ForceMenuOff();
