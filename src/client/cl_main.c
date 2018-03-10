@@ -464,6 +464,11 @@ CL_Precache_f(void)
 	CL_RequestNextDownload();
 }
 
+void CL_CurrentMap_f(void)
+{
+	Com_Printf("%s\n", cl.configstrings[CS_MODELS + 1]);
+}
+
 void
 CL_InitLocal(void)
 {
@@ -562,6 +567,8 @@ CL_InitLocal(void)
 	Cmd_AddCommand("precache", CL_Precache_f);
 
 	Cmd_AddCommand("download", CL_Download_f);
+
+	Cmd_AddCommand("currentmap", CL_CurrentMap_f);
 
 	/* forward to server commands
 	 * the only thing this does is allow command completion
