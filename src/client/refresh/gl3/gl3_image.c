@@ -550,10 +550,10 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 }
 
 static gl3image_t *
-LoadWal(char *origname)
+LoadWal(char *origname, imagetype_t type)
 {
 	miptex_t *mt;
-	int width, height, ofs;
+	int width, height, ofs, size;
 	gl3image_t *image;
 	char name[256];
 
@@ -565,7 +565,7 @@ LoadWal(char *origname)
 		Q_strlcat(name, ".wal", sizeof(name));
 	}
 
-	ri.FS_LoadFile(name, (void **)&mt);
+	size = ri.FS_LoadFile(name, (void **)&mt);
 
 	if (!mt)
 	{
@@ -573,11 +573,26 @@ LoadWal(char *origname)
 		return gl3_notexture;
 	}
 
+	if (size < sizeof(miptex_t))
+	{
+		R_Printf(PRINT_ALL, "LoadWal: can't load %s, small header\n", name);
+		ri.FS_FreeFile((void *)mt);
+		return gl3_notexture;
+	}
+
 	width = LittleLong(mt->width);
 	height = LittleLong(mt->height);
 	ofs = LittleLong(mt->offsets[0]);
 
-	image = GL3_LoadPic(name, (byte *)mt + ofs, width, 0, height, 0, it_wall, 8);
+	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
+	    (((size - ofs) / height) < width))
+	{
+		R_Printf(PRINT_ALL, "LoadWal: can't load %s, small body\n", name);
+		ri.FS_FreeFile((void *)mt);
+		return gl3_notexture;
+	}
+
+	image = GL3_LoadPic(name, (byte *)mt + ofs, width, 0, height, 0, type, 8);
 
 	ri.FS_FreeFile((void *)mt);
 
@@ -615,7 +630,7 @@ GL3_FindImage(char *name, imagetype_t type)
 
 	/* Remove the extension */
 	memset(namewe, 0, 256);
-	memcpy(namewe, name, len - 4);
+	memcpy(namewe, name, len - (strlen(ext) + 1));
 
 	if (len < 5)
 	{
@@ -711,7 +726,7 @@ GL3_FindImage(char *name, imagetype_t type)
 			else
 			{
 				/* WAL if no TGA/PNG/JPEG available (exists always) */
-				image = LoadWal(namewe);
+				image = LoadWal(namewe, type);
 			}
 
 			if (!image)
@@ -722,7 +737,7 @@ GL3_FindImage(char *name, imagetype_t type)
 		}
 		else /* gl_retexture is not set */
 		{
-			image = LoadWal(name);
+			image = LoadWal(name, type);
 
 			if (!image)
 			{
