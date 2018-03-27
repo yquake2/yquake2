@@ -32,8 +32,6 @@ typedef struct
 	int         color;
 } partparms_t;
 
-static partparms_t partparms;
-
 /*
 ** R_DrawParticle
 **
@@ -47,10 +45,10 @@ static partparms_t partparms;
 ** function pointer route.  This exacts some overhead, but
 ** it pays off in clean and easy to understand code.
 */
-void R_DrawParticle( void )
+static void R_DrawParticle(partparms_t *partparms)
 {
-	particle_t	*pparticle = partparms.particle;
-	int		level = partparms.level;
+	particle_t	*pparticle = partparms->particle;
+	int		level = partparms->level;
 	vec3_t		local, transformed;
 	float		zi;
 	byte		*pdest;
@@ -165,6 +163,8 @@ void R_DrawParticle( void )
 */
 void R_DrawParticles (void)
 {
+	partparms_t partparms;
+
 	particle_t *p;
 	int         i;
 
@@ -185,6 +185,6 @@ void R_DrawParticles (void)
 		partparms.particle = p;
 		partparms.color    = p->color;
 
-		R_DrawParticle();
+		R_DrawParticle(&partparms);
 	}
 }

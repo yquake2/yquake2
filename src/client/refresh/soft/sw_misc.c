@@ -64,17 +64,17 @@ D_ViewChanged (void)
 	if (d_pix_max < 1)
 		d_pix_max = 1;
 
-	if(r_newrefdef.width >= 800)
+	if(r_newrefdef.height >= 600)
 	{
-		d_pix_shift = 16 - (int)((float)r_refdef.vrect.width / 320.0 + 0.5);
+		d_pix_shift = 16 - (int)((float)r_refdef.vrect.height / 240.0 + 0.5);
 	}
-	else if(r_newrefdef.width >= 640)
+	else if(r_newrefdef.height >= 480)
 	{
-		d_pix_shift = 12 - (int)((float)r_refdef.vrect.width / 320.0 + 0.5);
+		d_pix_shift = 12 - (int)((float)r_refdef.vrect.height / 240.0 + 0.5);
 	}
 	else
 	{
-		d_pix_shift = 8 - (int)((float)r_refdef.vrect.width / 320.0 + 0.5);
+		d_pix_shift = 8 - (int)((float)r_refdef.vrect.height / 240.0 + 0.5);
 	}
 
 	d_vrectx = r_refdef.vrect.x;

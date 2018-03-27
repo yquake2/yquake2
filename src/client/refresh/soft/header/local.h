@@ -361,7 +361,6 @@ extern qboolean	r_dowarp;
 
 extern affinetridesc_t	r_affinetridesc;
 
-void R_DrawParticle(void);
 void D_WarpScreen(void);
 void R_PolysetUpdateTables(void);
 
