@@ -34,6 +34,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/select.h> /* for fd_set */
 
 #ifdef __APPLE__
 #include <mach/clock.h>
