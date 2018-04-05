@@ -56,11 +56,11 @@ D_ViewChanged (void)
 
 	d_zwidth = vid.width;
 
-	d_pix_min = r_refdef.vrect.width / 320;
+	d_pix_min = r_refdef.vrect.height / 240;
 	if (d_pix_min < 1)
 		d_pix_min = 1;
 
-	d_pix_max = (int)((float)r_refdef.vrect.width / (320.0 / 4.0) + 0.5);
+	d_pix_max = (int)((float)r_refdef.vrect.height / (240.0 / 4.0) + 0.5);
 	if (d_pix_max < 1)
 		d_pix_max = 1;
 
