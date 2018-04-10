@@ -96,7 +96,7 @@ static void R_DrawParticle(partparms_t *partparms)
 	** determine the screen area covered by the particle,
 	** which also means clamping to a min and max
 	*/
-	pix = izi >> d_pix_shift;
+	pix = (izi * d_pix_mul) >> 8;
 	if (pix < d_pix_min)
 		pix = d_pix_min;
 	else if (pix > d_pix_max)
@@ -124,6 +124,8 @@ static void R_DrawParticle(partparms_t *partparms)
 		break;
 
 	case PARTICLE_66 :
+	{
+		int color_part = (color<<8);
 		for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
 		{
 			for (i=0 ; i<pix ; i++)
@@ -131,11 +133,12 @@ static void R_DrawParticle(partparms_t *partparms)
 				if (pz[i] <= izi)
 				{
 					pz[i]	= izi;
-					pdest[i] = vid_alphamap[(color<<8) + (int)pdest[i]];
+					pdest[i] = vid_alphamap[color_part + (int)pdest[i]];
 				}
 			}
 		}
 		break;
+	}
 
 	default:  //100
 		for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)

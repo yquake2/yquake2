@@ -40,7 +40,7 @@ static int	r_frustum_indexes[4*6];
 static float	basemip[NUM_MIPS-1] = {1.0, 0.5*0.8, 0.25*0.8};
 int	d_vrectx, d_vrecty, d_vrectright_particle, d_vrectbottom_particle;
 float	xcenter, ycenter;
-int	d_pix_min, d_pix_max, d_pix_shift;
+int	d_pix_min, d_pix_max, d_pix_mul;
 
 /*
 ================
@@ -64,18 +64,7 @@ D_ViewChanged (void)
 	if (d_pix_max < 1)
 		d_pix_max = 1;
 
-	if(r_newrefdef.height >= 600)
-	{
-		d_pix_shift = 16 - (int)((float)r_refdef.vrect.height / 240.0 + 0.5);
-	}
-	else if(r_newrefdef.height >= 480)
-	{
-		d_pix_shift = 12 - (int)((float)r_refdef.vrect.height / 240.0 + 0.5);
-	}
-	else
-	{
-		d_pix_shift = 8 - (int)((float)r_refdef.vrect.height / 240.0 + 0.5);
-	}
+	d_pix_mul = (int)((float)r_refdef.vrect.height / 240.0 + 0.5);
 
 	d_vrectx = r_refdef.vrect.x;
 	d_vrecty = r_refdef.vrect.y;
