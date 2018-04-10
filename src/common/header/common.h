@@ -708,7 +708,7 @@ void FS_CreatePath(char *path);
 #define PRINT_ALL 0
 #define PRINT_DEVELOPER 1   /* only print when "developer 1" */
 
-void Com_BeginRedirect(int target, char *buffer, int buffersize, void (*flush));
+void Com_BeginRedirect(int target, char *buffer, int buffersize, void (*flush)(int, char *));
 void Com_EndRedirect(void);
 void Com_Printf(char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 void Com_DPrintf(char *fmt, ...) __attribute__ ((format (printf, 1, 2)));

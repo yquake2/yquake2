@@ -54,7 +54,7 @@ static void R_DrawParticle(partparms_t *partparms)
 	byte		*pdest;
 	zvalue_t	*pz;
 	int		color = pparticle->color;
-	int		i, izi, pix, count, u, v;
+	int		i, izi, pix, count, u, v, min_int, max_int;
 
 	/*
 	** transform the particle
@@ -107,6 +107,9 @@ static void R_DrawParticle(partparms_t *partparms)
 	*/
 	count = pix;
 
+	min_int = pix / 2;
+	max_int = (pix * 2) - min_int;
+
 	switch (level) {
 	case PARTICLE_33 :
 		for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
@@ -114,7 +117,8 @@ static void R_DrawParticle(partparms_t *partparms)
 			//FIXME--do it in blocks of 8?
 			for (i=0 ; i<pix ; i++)
 			{
-				if (pz[i] <= izi)
+				int pos = i + count;
+				if (pos >= min_int && pos <= max_int && pz[i] <= izi)
 				{
 					pz[i]	= izi;
 					pdest[i] = vid_alphamap[color + ((int)pdest[i]<<8)];
@@ -130,7 +134,8 @@ static void R_DrawParticle(partparms_t *partparms)
 		{
 			for (i=0 ; i<pix ; i++)
 			{
-				if (pz[i] <= izi)
+				int pos = i + count;
+				if (pos >= min_int && pos <= max_int && pz[i] <= izi)
 				{
 					pz[i]	= izi;
 					pdest[i] = vid_alphamap[color_part + (int)pdest[i]];
@@ -145,7 +150,8 @@ static void R_DrawParticle(partparms_t *partparms)
 		{
 			for (i=0 ; i<pix ; i++)
 			{
-				if (pz[i] <= izi)
+				int pos = i + count;
+				if (pos >= min_int && pos <= max_int && pz[i] <= izi)
 				{
 					pz[i]	= izi;
 					pdest[i] = color;
