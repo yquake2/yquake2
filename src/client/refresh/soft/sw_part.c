@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "header/local.h"
 
 static vec3_t r_pright, r_pup, r_ppn;
+extern cvar_t	*sw_custom_particles;
 
 #define PARTICLE_33     0
 #define PARTICLE_66     1
@@ -54,7 +55,8 @@ static void R_DrawParticle(partparms_t *partparms)
 	byte		*pdest;
 	zvalue_t	*pz;
 	int		color = pparticle->color;
-	int		i, izi, pix, count, u, v, min_int, max_int;
+	int		i, izi, pix, count, u, v;
+	int 		custom_particle = (int)sw_custom_particles->value;
 
 	/*
 	** transform the particle
@@ -96,7 +98,7 @@ static void R_DrawParticle(partparms_t *partparms)
 	** determine the screen area covered by the particle,
 	** which also means clamping to a min and max
 	*/
-	pix = (izi * d_pix_mul) >> 8;
+	pix = (izi * d_pix_mul) >> 7;
 	if (pix < d_pix_min)
 		pix = d_pix_min;
 	else if (pix > d_pix_max)
@@ -107,58 +109,112 @@ static void R_DrawParticle(partparms_t *partparms)
 	*/
 	count = pix;
 
-	min_int = pix / 2;
-	max_int = (pix * 2) - min_int;
-
-	switch (level) {
-	case PARTICLE_33 :
-		for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
-		{
-			//FIXME--do it in blocks of 8?
-			for (i=0 ; i<pix ; i++)
-			{
-				int pos = i + count;
-				if (pos >= min_int && pos <= max_int && pz[i] <= izi)
-				{
-					pz[i]	= izi;
-					pdest[i] = vid_alphamap[color + ((int)pdest[i]<<8)];
-				}
-			}
-		}
-		break;
-
-	case PARTICLE_66 :
+	if (custom_particle == 0)
 	{
-		int color_part = (color<<8);
-		for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
-		{
-			for (i=0 ; i<pix ; i++)
+		switch (level) {
+		case PARTICLE_33 :
+			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
 			{
-				int pos = i + count;
-				if (pos >= min_int && pos <= max_int && pz[i] <= izi)
+				//FIXME--do it in blocks of 8?
+				for (i=0 ; i<pix ; i++)
 				{
-					pz[i]	= izi;
-					pdest[i] = vid_alphamap[color_part + (int)pdest[i]];
+					if (pz[i] <= izi)
+					{
+						pz[i]	= izi;
+						pdest[i] = vid_alphamap[color + ((int)pdest[i]<<8)];
+					}
 				}
 			}
-		}
-		break;
-	}
+			break;
 
-	default:  //100
-		for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+		case PARTICLE_66 :
 		{
-			for (i=0 ; i<pix ; i++)
+			int color_part = (color<<8);
+			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
 			{
-				int pos = i + count;
-				if (pos >= min_int && pos <= max_int && pz[i] <= izi)
+				for (i=0 ; i<pix ; i++)
 				{
-					pz[i]	= izi;
-					pdest[i] = color;
+					if (pz[i] <= izi)
+					{
+						pz[i]	= izi;
+						pdest[i] = vid_alphamap[color_part + (int)pdest[i]];
+					}
 				}
 			}
+			break;
 		}
-		break;
+
+		default:  //100
+			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			{
+				for (i=0 ; i<pix ; i++)
+				{
+					if (pz[i] <= izi)
+					{
+						pz[i]	= izi;
+						pdest[i] = color;
+					}
+				}
+			}
+			break;
+		}
+	}
+	else
+	{
+		int min_int, max_int;
+		min_int = pix / 2;
+		max_int = (pix * 2) - min_int;
+
+		switch (level) {
+		case PARTICLE_33 :
+			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			{
+				//FIXME--do it in blocks of 8?
+				for (i=0 ; i<pix ; i++)
+				{
+					int pos = i + count;
+					if (pos >= min_int && pos <= max_int && pz[i] <= izi)
+					{
+						pz[i]	= izi;
+						pdest[i] = vid_alphamap[color + ((int)pdest[i]<<8)];
+					}
+				}
+			}
+			break;
+
+		case PARTICLE_66 :
+		{
+			int color_part = (color<<8);
+			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			{
+				for (i=0 ; i<pix ; i++)
+				{
+					int pos = i + count;
+					if (pos >= min_int && pos <= max_int && pz[i] <= izi)
+					{
+						pz[i]	= izi;
+						pdest[i] = vid_alphamap[color_part + (int)pdest[i]];
+					}
+				}
+			}
+			break;
+		}
+
+		default:  //100
+			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			{
+				for (i=0 ; i<pix ; i++)
+				{
+					int pos = i + count;
+					if (pos >= min_int && pos <= max_int && pz[i] <= izi)
+					{
+						pz[i]	= izi;
+						pdest[i] = color;
+					}
+				}
+			}
+			break;
+		}
 	}
 }
 
