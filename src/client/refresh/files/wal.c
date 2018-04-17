@@ -34,11 +34,18 @@ void
 GetWalInfo(char *name, int *width, int *height)
 {
 	miptex_t *mt;
+	int size;
 
-	ri.FS_LoadFile(name, (void **)&mt);
+	size = ri.FS_LoadFile(name, (void **)&mt);
 
 	if (!mt)
 	{
+		return;
+	}
+
+	if (size < sizeof(miptex_t))
+	{
+		ri.FS_FreeFile((void *)mt);
 		return;
 	}
 

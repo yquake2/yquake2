@@ -133,23 +133,43 @@ R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
 	return image;
 }
 
+static void
+R_Restore_Mip(unsigned char* src, unsigned char *dst, int height, int width)
+{
+	int x, y;
+	for (y=0; y<height; y++)
+	{
+		for (x=0; x<width; x++)
+		{
+			dst[x + y * width] = src[(x  + y * width)*2];
+		}
+	}
+}
+
 /*
 ================
 R_LoadWal
 ================
 */
 static image_t *
-R_LoadWal (char *name)
+R_LoadWal (char *name, imagetype_t type)
 {
 	miptex_t	*mt;
-	int			ofs;
+	int		ofs;
 	image_t		*image;
-	int			size;
+	int		size, file_size;
 
-	ri.FS_LoadFile (name, (void **)&mt);
+	file_size = ri.FS_LoadFile (name, (void **)&mt);
 	if (!mt)
 	{
 		R_Printf(PRINT_ALL, "R_LoadWal: can't load %s\n", name);
+		return r_notexture_mip;
+	}
+
+	if (file_size < sizeof(miptex_t))
+	{
+		R_Printf(PRINT_ALL, "R_LoadWal: can't load %s, small header\n", name);
+		ri.FS_FreeFile ((void *)mt);
 		return r_notexture_mip;
 	}
 
@@ -157,17 +177,36 @@ R_LoadWal (char *name)
 	strcpy (image->name, name);
 	image->width = LittleLong (mt->width);
 	image->height = LittleLong (mt->height);
-	image->type = it_wall;
+	image->type = type;
 	image->registration_sequence = registration_sequence;
+	ofs = LittleLong (mt->offsets[0]);
+	size = image->width * image->height * (256+64+16+4)/256;
 
-	size = image->width*image->height * (256+64+16+4)/256;
+	if ((ofs <= 0) || (image->width <= 0) || (image->height <= 0) ||
+	    ((file_size - ofs) / image->width < image->height))
+	{
+		R_Printf(PRINT_ALL, "LoadWal: can't load %s, small body\n", name);
+		ri.FS_FreeFile((void *)mt);
+		return r_notexture_mip;
+	}
+
 	image->pixels[0] = malloc (size);
 	image->pixels[1] = image->pixels[0] + image->width*image->height;
 	image->pixels[2] = image->pixels[1] + image->width*image->height/4;
 	image->pixels[3] = image->pixels[2] + image->width*image->height/16;
 
-	ofs = LittleLong (mt->offsets[0]);
-	memcpy ( image->pixels[0], (byte *)mt + ofs, size);
+	if (size > (file_size - ofs))
+	{
+		memcpy ( image->pixels[0], (byte *)mt + ofs, file_size - ofs);
+		// looks to short restore everything from first image
+		R_Restore_Mip(image->pixels[0], image->pixels[1], image->height/2, image->width/2);
+		R_Restore_Mip(image->pixels[1], image->pixels[2], image->height/4, image->width/4);
+		R_Restore_Mip(image->pixels[2], image->pixels[3], image->height/8, image->width/8);
+	}
+	else
+	{
+		memcpy ( image->pixels[0], (byte *)mt + ofs, size);
+	}
 
 	ri.FS_FreeFile ((void *)mt);
 
@@ -228,7 +267,7 @@ image_t	*R_FindImage (char *name, imagetype_t type)
 	}
 	else if (!strcmp(name+len-4, ".wal"))
 	{
-		image = R_LoadWal (name);
+		image = R_LoadWal (name, type);
 	}
 	else if (!strcmp(name+len-4, ".tga"))
 		return NULL; // ri.Sys_Error (ERR_DROP, "R_FindImage: can't load %s in software renderer", name);

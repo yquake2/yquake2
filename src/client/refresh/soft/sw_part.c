@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "header/local.h"
 
 static vec3_t r_pright, r_pup, r_ppn;
+extern cvar_t	*sw_custom_particles;
 
 #define PARTICLE_33     0
 #define PARTICLE_66     1
@@ -31,8 +32,6 @@ typedef struct
 	int         level;
 	int         color;
 } partparms_t;
-
-static partparms_t partparms;
 
 /*
 ** R_DrawParticle
@@ -47,16 +46,17 @@ static partparms_t partparms;
 ** function pointer route.  This exacts some overhead, but
 ** it pays off in clean and easy to understand code.
 */
-void R_DrawParticle( void )
+static void R_DrawParticle(partparms_t *partparms)
 {
-	particle_t	*pparticle = partparms.particle;
-	int		level = partparms.level;
+	particle_t	*pparticle = partparms->particle;
+	int		level = partparms->level;
 	vec3_t		local, transformed;
 	float		zi;
 	byte		*pdest;
 	zvalue_t	*pz;
 	int		color = pparticle->color;
 	int		i, izi, pix, count, u, v;
+	int 		custom_particle = (int)sw_custom_particles->value;
 
 	/*
 	** transform the particle
@@ -98,7 +98,7 @@ void R_DrawParticle( void )
 	** determine the screen area covered by the particle,
 	** which also means clamping to a min and max
 	*/
-	pix = izi >> d_pix_shift;
+	pix = (izi * d_pix_mul) >> 7;
 	if (pix < d_pix_min)
 		pix = d_pix_min;
 	else if (pix > d_pix_max)
@@ -109,49 +109,112 @@ void R_DrawParticle( void )
 	*/
 	count = pix;
 
-	switch (level) {
-	case PARTICLE_33 :
-		for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
-		{
-			//FIXME--do it in blocks of 8?
-			for (i=0 ; i<pix ; i++)
+	if (custom_particle == 0)
+	{
+		switch (level) {
+		case PARTICLE_33 :
+			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
 			{
-				if (pz[i] <= izi)
+				//FIXME--do it in blocks of 8?
+				for (i=0 ; i<pix ; i++)
 				{
-					pz[i]	= izi;
-					pdest[i] = vid_alphamap[color + ((int)pdest[i]<<8)];
+					if (pz[i] <= izi)
+					{
+						pz[i]	= izi;
+						pdest[i] = vid_alphamap[color + ((int)pdest[i]<<8)];
+					}
 				}
 			}
-		}
-		break;
+			break;
 
-	case PARTICLE_66 :
-		for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+		case PARTICLE_66 :
 		{
-			for (i=0 ; i<pix ; i++)
+			int color_part = (color<<8);
+			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
 			{
-				if (pz[i] <= izi)
+				for (i=0 ; i<pix ; i++)
 				{
-					pz[i]	= izi;
-					pdest[i] = vid_alphamap[(color<<8) + (int)pdest[i]];
+					if (pz[i] <= izi)
+					{
+						pz[i]	= izi;
+						pdest[i] = vid_alphamap[color_part + (int)pdest[i]];
+					}
 				}
 			}
+			break;
 		}
-		break;
 
-	default:  //100
-		for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
-		{
-			for (i=0 ; i<pix ; i++)
+		default:  //100
+			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
 			{
-				if (pz[i] <= izi)
+				for (i=0 ; i<pix ; i++)
 				{
-					pz[i]	= izi;
-					pdest[i] = color;
+					if (pz[i] <= izi)
+					{
+						pz[i]	= izi;
+						pdest[i] = color;
+					}
 				}
 			}
+			break;
 		}
-		break;
+	}
+	else
+	{
+		int min_int, max_int;
+		min_int = pix / 2;
+		max_int = (pix * 2) - min_int;
+
+		switch (level) {
+		case PARTICLE_33 :
+			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			{
+				//FIXME--do it in blocks of 8?
+				for (i=0 ; i<pix ; i++)
+				{
+					int pos = i + count;
+					if (pos >= min_int && pos <= max_int && pz[i] <= izi)
+					{
+						pz[i]	= izi;
+						pdest[i] = vid_alphamap[color + ((int)pdest[i]<<8)];
+					}
+				}
+			}
+			break;
+
+		case PARTICLE_66 :
+		{
+			int color_part = (color<<8);
+			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			{
+				for (i=0 ; i<pix ; i++)
+				{
+					int pos = i + count;
+					if (pos >= min_int && pos <= max_int && pz[i] <= izi)
+					{
+						pz[i]	= izi;
+						pdest[i] = vid_alphamap[color_part + (int)pdest[i]];
+					}
+				}
+			}
+			break;
+		}
+
+		default:  //100
+			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			{
+				for (i=0 ; i<pix ; i++)
+				{
+					int pos = i + count;
+					if (pos >= min_int && pos <= max_int && pz[i] <= izi)
+					{
+						pz[i]	= izi;
+						pdest[i] = color;
+					}
+				}
+			}
+			break;
+		}
 	}
 }
 
@@ -165,6 +228,8 @@ void R_DrawParticle( void )
 */
 void R_DrawParticles (void)
 {
+	partparms_t partparms;
+
 	particle_t *p;
 	int         i;
 
@@ -185,6 +250,6 @@ void R_DrawParticles (void)
 		partparms.particle = p;
 		partparms.color    = p->color;
 
-		R_DrawParticle();
+		R_DrawParticle(&partparms);
 	}
 }
