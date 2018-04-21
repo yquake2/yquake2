@@ -1656,7 +1656,7 @@ CL_AddPlayerBeams(void)
 
 			if (cl_mod_heatbeam && (b->model == cl_mod_heatbeam))
 			{
-				ent.flags = RF_FULLBRIGHT;
+				ent.flags = RF_FULLBRIGHT|RF_WEAPONMODEL; // DG: fix rogue heatbeam high FOV rendering
 				ent.angles[0] = -pitch;
 				ent.angles[1] = yaw + 180.0f;
 				ent.angles[2] = (float)((cl.time) % 360);
