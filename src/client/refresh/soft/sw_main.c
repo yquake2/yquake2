@@ -109,6 +109,7 @@ float	da_time1, da_time2, dp_time1, dp_time2, db_time1, db_time2, rw_time1, rw_t
 float	se_time1, se_time2, de_time1, de_time2;
 
 cvar_t	*r_lefthand;
+cvar_t	*r_gunfov;
 static cvar_t	*sw_aliasstats;
 cvar_t	*sw_clearcolor;
 cvar_t	*sw_drawflat;
@@ -274,6 +275,7 @@ R_Register (void)
 	r_mode = ri.Cvar_Get( "r_mode", "0", CVAR_ARCHIVE );
 
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
+	r_gunfov = ri.Cvar_Get( "r_gunfov", "80", CVAR_USERINFO | CVAR_ARCHIVE );
 	r_speeds = ri.Cvar_Get ("r_speeds", "0", 0);
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", 0);
 	r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0);

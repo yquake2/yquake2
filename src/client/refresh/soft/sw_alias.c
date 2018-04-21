@@ -723,12 +723,22 @@ void R_AliasDrawModel (void)
 	if ( r_lerpmodels->value == 0 )
 		currententity->backlerp = 0;
 
+	float oldAliasxscale = aliasxscale;
+	float oldAliasyscale = aliasyscale;
+
 	if ( currententity->flags & RF_WEAPONMODEL )
 	{
+		if ( r_lefthand->value == 2.0F )
+		{
+			return;
+		}
+
+		float fov = 2.0*tan((r_gunfov->value*(4.0/3.0))/360.0*M_PI);
+		aliasxscale = ((float)r_refdef.vrect.width / fov) * r_aliasuvscale;
+		aliasyscale = aliasxscale;
+
 		if ( r_lefthand->value == 1.0F )
 			aliasxscale = -aliasxscale;
-		else if ( r_lefthand->value == 2.0F )
-			return;
 	}
 
 	/*
@@ -851,8 +861,9 @@ void R_AliasDrawModel (void)
 
 	R_AliasPreparePoints ();
 
-	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
+	if ( currententity->flags & RF_WEAPONMODEL )
 	{
-		aliasxscale = -aliasxscale;
+		aliasxscale = oldAliasxscale;
+		aliasyscale = oldAliasyscale;
 	}
 }
