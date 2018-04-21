@@ -663,7 +663,7 @@ R_DrawAliasModel(entity_t *e)
 		glDepthRange(gldepthmin, gldepthmin + 0.3 * (gldepthmax - gldepthmin));
 	}
 
-	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
+	if (currententity->flags & RF_WEAPONMODEL)
 	{
 		extern void R_MYgluPerspective(GLdouble fovy, GLdouble aspect,
 				GLdouble zNear, GLdouble zFar);
@@ -671,13 +671,16 @@ R_DrawAliasModel(entity_t *e)
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
 		glLoadIdentity();
-		glScalef(-1, 1, 1);
-		R_MYgluPerspective(r_newrefdef.fov_y,
+		if (gl_lefthand->value == 1.0F)
+			glScalef(-1, 1, 1);
+
+		R_MYgluPerspective(r_gunfov->value, // render weapon with a different FOV so it's not distorted at high view FOV
 				(float)r_newrefdef.width / r_newrefdef.height,
 				4, 4096);
 		glMatrixMode(GL_MODELVIEW);
 
-		glCullFace(GL_BACK);
+		if (gl_lefthand->value == 1.0F)
+			glCullFace(GL_BACK);
 	}
 
 	glPushMatrix();
@@ -772,12 +775,13 @@ R_DrawAliasModel(entity_t *e)
 		glEnable(GL_CULL_FACE);
 	}
 
-	if ((currententity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
+	if (currententity->flags & RF_WEAPONMODEL)
 	{
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
-		glCullFace(GL_FRONT);
+		if (gl_lefthand->value == 1.0F)
+			glCullFace(GL_FRONT);
 	}
 
 	if (currententity->flags & RF_TRANSLUCENT)

@@ -809,18 +809,29 @@ GL3_DrawAliasModel(entity_t *entity)
 		glDepthRange(gl3depthmin, gl3depthmin + 0.3 * (gl3depthmax - gl3depthmin));
 	}
 
-	if ((entity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
+	if (entity->flags & RF_WEAPONMODEL)
 	{
-		origProjMat = gl3state.uni3DData.transProjMat4;
-		// to mirror gun so it's rendered left-handed, just invert X-axis column
-		// of projection matrix
-		for(int i=0; i<4; ++i)
-		{
-			gl3state.uni3DData.transProjMat4.Elements[0][i] = -gl3state.uni3DData.transProjMat4.Elements[0][i];
-		}
-		//GL3_UpdateUBO3D(); Note: GL3_RotateForEntity() will call this,no need to do it twice before drawing
+		extern hmm_mat4 GL3_MYgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar);
 
-		glCullFace(GL_BACK);
+		origProjMat = gl3state.uni3DData.transProjMat4;
+
+		// render weapon with a different FOV (r_gunfov) so it's not distorted at high view FOV
+		float screenaspect = (float)gl3_newrefdef.width / gl3_newrefdef.height;
+		float dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
+		gl3state.uni3DData.transProjMat4 = GL3_MYgluPerspective(r_gunfov->value, screenaspect, 4, dist);
+
+		if(gl_lefthand->value == 1.0F)
+		{
+			// to mirror gun so it's rendered left-handed, just invert X-axis column
+			// of projection matrix
+			for(int i=0; i<4; ++i)
+			{
+				gl3state.uni3DData.transProjMat4.Elements[0][i] = -gl3state.uni3DData.transProjMat4.Elements[0][i];
+			}
+			//GL3_UpdateUBO3D(); Note: GL3_RotateForEntity() will call this,no need to do it twice before drawing
+
+			glCullFace(GL_BACK);
+		}
 	}
 
 
@@ -891,11 +902,12 @@ GL3_DrawAliasModel(entity_t *entity)
 	gl3state.uni3DData.transModelMat4 = origModelMat;
 	GL3_UpdateUBO3D();
 
-	if ((entity->flags & RF_WEAPONMODEL) && (gl_lefthand->value == 1.0F))
+	if (entity->flags & RF_WEAPONMODEL)
 	{
 		gl3state.uni3DData.transProjMat4 = origProjMat;
 		GL3_UpdateUBO3D();
-		glCullFace(GL_FRONT);
+		if(gl_lefthand->value == 1.0F)
+			glCullFace(GL_FRONT);
 	}
 
 	if (entity->flags & RF_TRANSLUCENT)

@@ -63,9 +63,6 @@ vec3_t vpn;
 vec3_t vright;
 vec3_t gl3_origin;
 
-hmm_mat4 gl3_projectionMatrix; // eye cord -> clip coord
-hmm_mat4 gl3_world_matrix; // the view matrix: world coord -> eye coord
-
 int gl3_visframecount; /* bumped when going to a new PVS */
 int gl3_framecount; /* used for dlight push checking */
 
@@ -99,6 +96,7 @@ cvar_t *gl3_particle_fade_factor;
 cvar_t *gl3_particle_square;
 
 cvar_t *gl_lefthand;
+cvar_t *r_gunfov;
 cvar_t *r_farsee;
 
 cvar_t *gl3_intensity;
@@ -193,6 +191,7 @@ static void
 GL3_Register(void)
 {
 	gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+	r_gunfov = ri.Cvar_Get("r_gunfov", "80", CVAR_USERINFO | CVAR_ARCHIVE);
 	r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
@@ -1164,7 +1163,7 @@ static hmm_mat4 rotAroundAxisXYZ(float aroundXdeg, float aroundYdeg, float aroun
 }
 
 // equivalent to R_MYgluPerspective() but returning a matrix instead of setting internal OpenGL state
-static hmm_mat4
+hmm_mat4
 GL3_MYgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
 {
 	// calculation of left, right, bottom, top is from R_MYgluPerspective() of old gl backend
@@ -1236,7 +1235,7 @@ SetupGL(void)
 	{
 		float screenaspect = (float)gl3_newrefdef.width / gl3_newrefdef.height;
 		float dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
-		gl3_projectionMatrix = GL3_MYgluPerspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
+		gl3state.uni3DData.transProjMat4 = GL3_MYgluPerspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
 	}
 
 	glCullFace(GL_FRONT);
@@ -1260,11 +1259,9 @@ SetupGL(void)
 		hmm_vec3 trans = HMM_Vec3(-gl3_newrefdef.vieworg[0], -gl3_newrefdef.vieworg[1], -gl3_newrefdef.vieworg[2]);
 		viewMat = HMM_MultiplyMat4( viewMat, HMM_Translate(trans) );
 
-		gl3_world_matrix = viewMat;
+		gl3state.uni3DData.transViewMat4 = viewMat;
 	}
 
-	gl3state.uni3DData.transProjMat4 = gl3_projectionMatrix;
-	gl3state.uni3DData.transViewMat4 = gl3_world_matrix;
 	gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
 
 	gl3state.uni3DData.time = gl3_newrefdef.time;

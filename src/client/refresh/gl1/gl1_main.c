@@ -77,6 +77,7 @@ cvar_t *r_fullbright;
 cvar_t *r_novis;
 cvar_t *r_lerpmodels;
 cvar_t *gl_lefthand;
+cvar_t *r_gunfov;
 cvar_t *r_farsee;
 
 cvar_t *r_lightlevel;
@@ -1199,6 +1200,7 @@ void
 R_Register(void)
 {
 	gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+	r_gunfov = ri.Cvar_Get("r_gunfov", "80", CVAR_USERINFO | CVAR_ARCHIVE);
 	r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 	r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
 	r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);

@@ -305,9 +305,6 @@ extern cplane_t frustum[4];
 
 extern vec3_t gl3_origin;
 
-hmm_mat4 gl3_projectionMatrix; // eye cord -> clip coord
-hmm_mat4 gl3_world_matrix; // the view matrix: world coord -> eye coord
-
 extern gl3image_t *gl3_notexture; /* use for bad textures */
 extern gl3image_t *gl3_particletexture; /* little dot for particles */
 
@@ -497,6 +494,7 @@ extern cvar_t *r_fullbright;
 
 extern cvar_t *r_norefresh;
 extern cvar_t *gl_lefthand;
+extern cvar_t *r_gunfov;
 extern cvar_t *r_farsee;
 extern cvar_t *r_drawworld;
 

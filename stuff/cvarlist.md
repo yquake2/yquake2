@@ -119,8 +119,12 @@ Graphics (all renderers):
   to `2` the gun is drawn regardless of the FOV. This is the default
   in Yamagi Quake II.
 
-* **fov**: Sets the field of view. If the *horplus* cvar is set to `1`,
-  this is forced to 90.
+* **fov**: Sets the field of view.
+
+* **r_gunfov**: The weapons are rendered with a custom field of view,
+  independently of the global **fov**, so they are not distorted at high FOVs.
+  A value of `75` should look identical to the old code at `fov 90`,
+  it defaults to `80` because that looks a bit better.
 
 * **horplus**: If set to 1 (the default) the horplus algorithm is used
   to calculate an optimal horizontal and vertical field of view, independent
