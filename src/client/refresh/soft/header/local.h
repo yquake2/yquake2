@@ -140,9 +140,6 @@ extern oldrefdef_t	r_refdef;
 #define MAXWORKINGVERTS	(MAXVERTS+4)    // max points in an intermediate
 					//  polygon (while processing)
 
-#define WARP_WIDTH		320
-#define WARP_HEIGHT		240
-
 #define PARTICLE_Z_CLIP 8.0
 
 #define TRANSPARENT_COLOR	0xFF

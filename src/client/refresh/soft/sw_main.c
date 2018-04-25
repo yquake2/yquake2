@@ -1907,7 +1907,7 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	finalverts = malloc((MAXALIASVERTS + 3) * sizeof(finalvert_t));
 	ledges = malloc((NUMSTACKEDGES + 1) * sizeof(edge_t));
 	lsurfs = malloc((NUMSTACKSURFACES + 1) * sizeof(surf_t));
-	r_warpbuffer = malloc(WARP_WIDTH * WARP_HEIGHT * sizeof(pixel_t));
+	r_warpbuffer = malloc(vid.height * vid.width * sizeof(pixel_t));
 
 	if ((vid.width >= 2048) && (sizeof(shift20_t) == 4)) // 2k+ resolution and 32 == shift20_t
 	{

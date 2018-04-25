@@ -355,11 +355,11 @@ void R_SetupFrame (void)
 		// warp into off screen buffer
 		vrect.x = 0;
 		vrect.y = 0;
-		vrect.width = r_newrefdef.width < WARP_WIDTH ? r_newrefdef.width : WARP_WIDTH;
-		vrect.height = r_newrefdef.height < WARP_HEIGHT ? r_newrefdef.height : WARP_HEIGHT;
+		vrect.width = r_newrefdef.width;
+		vrect.height = r_newrefdef.height;
 
 		d_viewbuffer = r_warpbuffer;
-		r_screenwidth = WARP_WIDTH;
+		r_screenwidth = vid.width;
 	}
 	else
 	{
