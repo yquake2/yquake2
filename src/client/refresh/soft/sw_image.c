@@ -122,13 +122,14 @@ R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
 	image->transparent = false;
 	for (i=0 ; i<c ; i++)
 	{
-		int b;
-
-		b = pic[i];
-		if (b == 255)
+		if (pic[i] == 255)
+		{
 			image->transparent = true;
-		image->pixels[0][i] = b;
+			break;
+		}
 	}
+
+	memcpy(image->pixels[0], pic, c);
 
 	return image;
 }
