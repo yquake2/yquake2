@@ -382,6 +382,19 @@ void NonTurbulent8 (espan_t *pspan)
 //PGM
 //====================
 
+// Enable custom filtering
+extern cvar_t	*sw_texture_filtering;
+static int filtering_kernel[2][2][2] = {
+	{
+		{16384,	0},
+		{49152,	32768}
+	},
+	{
+		{32768,	49152},
+		{0,	16384}
+	}
+};
+
 /*
 =============
 D_DrawSpans16
@@ -505,15 +518,46 @@ void D_DrawSpans16 (espan_t *pspan)
 				}
 			}
 
-			do
+			// Drawing phrase
+			if (sw_texture_filtering->value == 0.0f)
 			{
-				*pdest++ = *(pbase + (s >> 16) + (t >> 16) * cachewidth);
-				s += sstep;
-				t += tstep;
-			} while (--spancount > 0);
+				do
+				{
+					*pdest++ = *(pbase + (s >> 16) + (t >> 16) * cachewidth);
+					s += sstep;
+					t += tstep;
+				} while (--spancount > 0);
 
-			s = snext;
-			t = tnext;
+				s = snext;
+				t = tnext;
+			}
+			else if (sw_texture_filtering->value == 1.0f)
+			{
+				do
+				{
+					int idiths = s;
+					int iditht = t;
+
+					int X = (pspan->u + spancount) & 1;
+					int Y = (pspan->v)&1;
+
+					//Using the kernel
+					idiths += filtering_kernel[X][Y][0];
+					iditht += filtering_kernel[X][Y][1];
+
+					idiths = idiths >> 16;
+					idiths = idiths ? idiths -1 : idiths;
+
+
+					iditht = iditht >> 16;
+					iditht = iditht ? iditht -1 : iditht;
+
+
+					*pdest++ = *(pbase + idiths + iditht * cachewidth);
+					s += sstep;
+					t += tstep;
+				} while (--spancount > 0);
+			}
 
 		} while (count > 0);
 

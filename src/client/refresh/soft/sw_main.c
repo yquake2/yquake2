@@ -124,6 +124,7 @@ cvar_t	*sw_surfcacheoverride;
 cvar_t	*sw_waterwarp;
 static cvar_t	*sw_overbrightbits;
 cvar_t	*sw_custom_particles;
+cvar_t	*sw_texture_filtering;
 
 cvar_t	*r_drawworld;
 static cvar_t	*r_drawentities;
@@ -272,6 +273,7 @@ R_Register (void)
 	sw_waterwarp = ri.Cvar_Get ("sw_waterwarp", "1", 0);
 	sw_overbrightbits = ri.Cvar_Get("sw_overbrightbits", "1.0", CVAR_ARCHIVE);
 	sw_custom_particles = ri.Cvar_Get("sw_custom_particles", "0", CVAR_ARCHIVE);
+	sw_texture_filtering = ri.Cvar_Get("sw_texture_filtering", "0", CVAR_ARCHIVE);
 	r_mode = ri.Cvar_Get( "r_mode", "0", CVAR_ARCHIVE );
 
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
