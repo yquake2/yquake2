@@ -275,7 +275,7 @@ R_Register (void)
 	r_mode = ri.Cvar_Get( "r_mode", "0", CVAR_ARCHIVE );
 
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
-	r_gunfov = ri.Cvar_Get( "r_gunfov", "80", CVAR_USERINFO | CVAR_ARCHIVE );
+	r_gunfov = ri.Cvar_Get( "r_gunfov", "80", CVAR_ARCHIVE );
 	r_speeds = ri.Cvar_Get ("r_speeds", "0", 0);
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", 0);
 	r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0);

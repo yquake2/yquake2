@@ -733,7 +733,7 @@ void R_AliasDrawModel (void)
 			return;
 		}
 
-		float fov = 2.0*tan((r_gunfov->value*(4.0/3.0))/360.0*M_PI);
+		float fov = 2.0*tan(r_gunfov->value*((4.0/3.0)*M_PI/360.0));
 		aliasxscale = ((float)r_refdef.vrect.width / fov) * r_aliasuvscale;
 		aliasyscale = aliasxscale;
 
@@ -752,9 +752,10 @@ void R_AliasDrawModel (void)
 	// trivial accept status
 	if ( R_AliasCheckBBox() == BBOX_TRIVIAL_REJECT )
 	{
-		if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
+		if ( currententity->flags & RF_WEAPONMODEL )
 		{
-			aliasxscale = -aliasxscale;
+			aliasxscale = oldAliasxscale;
+			aliasyscale = oldAliasyscale;
 		}
 		return;
 	}
@@ -764,6 +765,8 @@ void R_AliasDrawModel (void)
 	{
 		R_Printf( PRINT_ALL, "R_AliasDrawModel %s: NULL skin found\n",
 			currentmodel->name);
+		aliasxscale = oldAliasxscale;
+		aliasyscale = oldAliasyscale;
 		return;
 	}
 
