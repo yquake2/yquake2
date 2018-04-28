@@ -709,16 +709,16 @@ D_MipLevelForScale
 static int
 D_MipLevelForScale (float scale)
 {
-	int		lmiplevel;
+	int	lmiplevel = NUM_MIPS-1, i;
 
-	if (scale >= d_scalemip[0] )
-		lmiplevel = 0;
-	else if (scale >= d_scalemip[1] )
-		lmiplevel = 1;
-	else if (scale >= d_scalemip[2] )
-		lmiplevel = 2;
-	else
-		lmiplevel = 3;
+	for (i=0; i < NUM_MIPS-1; i ++)
+	{
+		if (scale >= d_scalemip[i])
+		{
+			lmiplevel = i;
+			break;
+		}
+	}
 
 	if (lmiplevel < d_minmip)
 		lmiplevel = d_minmip;

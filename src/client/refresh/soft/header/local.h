@@ -56,6 +56,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#define NUM_MIPS	4
+
 typedef struct image_s
 {
 	char		name[MAX_QPATH];	// game path, including extension
@@ -63,7 +65,7 @@ typedef struct image_s
 	int		width, height;
 	qboolean	transparent;		// true if any 255 pixels in image
 	int		registration_sequence;  // 0 = free
-	byte		*pixels[4];		// mip levels
+	byte		*pixels[NUM_MIPS];		// mip levels
 } image_t;
 
 
@@ -393,7 +395,7 @@ extern zvalue_t	*d_pzbuffer;
 extern unsigned int d_zwidth;
 
 extern int	d_minmip;
-extern float	d_scalemip[3];
+extern float	d_scalemip[NUM_MIPS-1];
 
 //===================================================================
 

@@ -96,7 +96,7 @@ static void R_DrawSurface (void)
 	texwidth = mt->width >> r_drawsurf.surfmip;
 
 	blocksize = 16 >> r_drawsurf.surfmip;
-	blockdivshift = 4 - r_drawsurf.surfmip;
+	blockdivshift = NUM_MIPS - r_drawsurf.surfmip;
 
 	r_lightwidth = (r_drawsurf.surf->extents[0]>>4)+1;
 
@@ -134,7 +134,7 @@ static void R_DrawSurface (void)
 
 		pbasesource = basetptr + soffset;
 
-		R_DrawSurfaceBlock8_anymip(4-r_drawsurf.surfmip);
+		R_DrawSurfaceBlock8_anymip(NUM_MIPS - r_drawsurf.surfmip);
 
 		soffset = soffset + blocksize;
 		if (soffset >= smax)
