@@ -136,23 +136,13 @@ R_InsertNewEdges (edge_t *edgestoadd, edge_t *edgelist)
 	do
 	{
 		next_edge = edgestoadd->next;
-edgesearch:
-		if (edgelist->u >= edgestoadd->u)
-			goto addedge;
-		edgelist=edgelist->next;
-		if (edgelist->u >= edgestoadd->u)
-			goto addedge;
-		edgelist=edgelist->next;
-		if (edgelist->u >= edgestoadd->u)
-			goto addedge;
-		edgelist=edgelist->next;
-		if (edgelist->u >= edgestoadd->u)
-			goto addedge;
-		edgelist=edgelist->next;
-		goto edgesearch;
+
+		while (edgelist->u < edgestoadd->u)
+		{
+			edgelist = edgelist->next;
+		}
 
 		// insert edgestoadd before edgelist
-addedge:
 		edgestoadd->next = edgelist;
 		edgestoadd->prev = edgelist->prev;
 		edgelist->prev->next = edgestoadd;
@@ -267,15 +257,38 @@ R_CleanupSpan (void)
 
 /*
 ==============
+D_SurfSearchBackwards
+==============
+*/
+static surf_t*
+D_SurfSearchBackwards(surf_t *surf, surf_t *surf2)
+{
+	do
+	{
+		do
+		{
+			surf2 = surf2->next;
+		} while (surf->key < surf2->key);
+
+		// if it's two surfaces on the same plane, the one that's already
+		// active is in front, so keep going unless it's a bmodel
+		// must be two bmodels in the same leaf; don't care which is really
+		// in front, because they'll never be farthest anyway
+	} while (surf->key == surf2->key && !surf->insubmodel);
+
+	return surf2;
+}
+
+
+/*
+==============
 R_LeadingEdgeBackwards
 ==============
 */
 static void
 R_LeadingEdgeBackwards (edge_t *edge)
 {
-	espan_t		*span;
 	surf_t		*surf, *surf2;
-	shift20_t	iu;
 
 	// it's adding a new surface in, so find the correct place
 	surf = &surfaces[edge->surfs[1]];
@@ -285,6 +298,8 @@ R_LeadingEdgeBackwards (edge_t *edge)
 	// end edge)
 	if (++surf->spanstate == 1)
 	{
+		shift20_t	iu;
+
 		surf2 = surfaces[1].next;
 
 		if (surf->key > surf2->key)
@@ -299,31 +314,17 @@ R_LeadingEdgeBackwards (edge_t *edge)
 			goto newtop;
 		}
 
-continue_search:
-		do
-		{
-			surf2 = surf2->next;
-		} while (surf->key < surf2->key);
-
-		if (surf->key == surf2->key)
-		{
-		// if it's two surfaces on the same plane, the one that's already
-		// active is in front, so keep going unless it's a bmodel
-			if (!surf->insubmodel)
-				goto continue_search;
-
-		// must be two bmodels in the same leaf; don't care which is really
-		// in front, because they'll never be farthest anyway
-		}
+		surf2 = D_SurfSearchBackwards(surf, surf2);
 
 		goto gotposition;
-
 newtop:
 		// emit a span (obscures current top)
 		iu = edge->u >> shift_size;
 
 		if (iu > surf2->last_u)
 		{
+			espan_t		*span;
+
 			span = span_p++;
 			span->u = surf2->last_u;
 			span->count = iu - span->u;
@@ -387,6 +388,27 @@ R_TrailingEdge (surf_t *surf, edge_t *edge)
 
 /*
 ==============
+D_SurfSearchForward
+==============
+*/
+static surf_t*
+D_SurfSearchForward(surf_t *surf, surf_t *surf2)
+{
+	do
+	{
+		do
+		{
+			surf2 = surf2->next;
+		} while (surf->key > surf2->key);
+		// if it's two surfaces on the same plane, the one that's already
+		// active is in front, so keep going unless it's a bmodel
+	} while (surf->key == surf2->key && !surf->insubmodel);
+
+	return surf2;
+}
+
+/*
+==============
 R_LeadingEdge
 ==============
 */
@@ -395,7 +417,6 @@ R_LeadingEdge (edge_t *edge)
 {
 	if (edge->surfs[1])
 	{
-		espan_t		*span;
 		surf_t		*surf, *surf2;
 		shift20_t	iu;
 		float		fu, newzi, testzi, newzitop, newzibottom;
@@ -442,19 +463,10 @@ R_LeadingEdge (edge_t *edge)
 			}
 
 continue_search:
-
-			do
-			{
-				surf2 = surf2->next;
-			} while (surf->key > surf2->key);
+			surf2 = D_SurfSearchForward(surf, surf2);
 
 			if (surf->key == surf2->key)
 			{
-				// if it's two surfaces on the same plane, the one that's already
-				// active is in front, so keep going unless it's a bmodel
-				if (!surf->insubmodel)
-					goto continue_search;
-
 				// must be two bmodels in the same leaf; sort on 1/z
 				fu = (float)(edge->u - (1<<shift_size) + 1) * (1.0 / (1<<shift_size));
 				newzi = surf->d_ziorigin + fv*surf->d_zistepv +
@@ -489,6 +501,8 @@ newtop:
 
 			if (iu > surf2->last_u)
 			{
+				espan_t	*span;
+
 				span = span_p++;
 				span->u = surf2->last_u;
 				span->count = iu - span->u;
