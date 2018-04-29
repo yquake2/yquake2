@@ -300,7 +300,6 @@ void R_FreeUnusedImages (void)
 	{
 		if (image->registration_sequence == registration_sequence)
 		{
-			Com_PageInMemory ((byte *)image->pixels[0], image->width*image->height);
 			continue; // used this sequence
 		}
 		if (!image->registration_sequence)

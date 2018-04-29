@@ -1150,11 +1150,11 @@ Mod_LoadSpriteModel (model_t *mod, void *buffer)
 //=============================================================================
 
 /*
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 RE_BeginRegistration
 
 Specifies the model that will be used as the world
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 */
 void RE_BeginRegistration (char *model)
 {
@@ -1177,10 +1177,10 @@ void RE_BeginRegistration (char *model)
 
 
 /*
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 RE_RegisterModel
 
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 */
 struct model_s *RE_RegisterModel (char *name)
 {
@@ -1223,10 +1223,10 @@ struct model_s *RE_RegisterModel (char *name)
 }
 
 /*
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 RE_EndRegistration
 
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 */
 void RE_EndRegistration (void)
 {
@@ -1241,10 +1241,6 @@ void RE_EndRegistration (void)
 		{	// don't need this model
 			Hunk_Free (mod->extradata);
 			memset (mod, 0, sizeof(*mod));
-		}
-		else
-		{	// make sure it is paged in
-			Com_PageInMemory (mod->extradata, mod->extradatasize);
 		}
 	}
 

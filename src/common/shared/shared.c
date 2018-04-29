@@ -1007,7 +1007,7 @@ done:
 	return com_token;
 }
 
-int paged_total;
+static int paged_total = 0;
 
 void
 Com_PageInMemory(byte *buffer, int size)
