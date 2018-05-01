@@ -436,6 +436,8 @@ NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 			return 0;
 	}
 
+	freeaddrinfo(resultp);
+
 	return true;
 }
 
@@ -706,6 +708,7 @@ NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 
 				/* sockaddr_in6 should now have a valid scope_id. */
 				memcpy(s6, res->ai_addr, res->ai_addrlen);
+				freeaddrinfo(res);
 			}
 			else
 			{
