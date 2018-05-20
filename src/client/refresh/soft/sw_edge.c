@@ -806,29 +806,29 @@ D_CalcGradients (msurface_t *pface)
 
 	VectorScale (transformed_modelorg, mipscale, p_temp1);
 
-	t = 0x10000*mipscale;
-	sadjust = ((int)(DotProduct (p_temp1, p_saxis) * 0x10000 + 0.5)) -
-			((pface->texturemins[0] << 16) >> miplevel)
+	t = SHIFT16XYZ_MULT * mipscale;
+	sadjust = ((int)(DotProduct (p_temp1, p_saxis) * SHIFT16XYZ_MULT + 0.5)) -
+			((pface->texturemins[0] << SHIFT16XYZ) >> miplevel)
 			+ pface->texinfo->vecs[0][3]*t;
-	tadjust = ((int)(DotProduct (p_temp1, p_taxis) * 0x10000 + 0.5)) -
-			((pface->texturemins[1] << 16) >> miplevel)
+	tadjust = ((int)(DotProduct (p_temp1, p_taxis) * SHIFT16XYZ_MULT + 0.5)) -
+			((pface->texturemins[1] << SHIFT16XYZ) >> miplevel)
 			+ pface->texinfo->vecs[1][3]*t;
 
 	// PGM - changing flow speed for non-warping textures.
 	if (pface->texinfo->flags & SURF_FLOWING)
 	{
 		if(pface->texinfo->flags & SURF_WARP)
-			sadjust += 0x10000 * (-128 * ( (r_newrefdef.time * 0.25) - (int)(r_newrefdef.time * 0.25) ));
+			sadjust += SHIFT16XYZ_MULT * (-128 * ( (r_newrefdef.time * 0.25) - (int)(r_newrefdef.time * 0.25) ));
 		else
-			sadjust += 0x10000 * (-128 * ( (r_newrefdef.time * 0.77) - (int)(r_newrefdef.time * 0.77) ));
+			sadjust += SHIFT16XYZ_MULT * (-128 * ( (r_newrefdef.time * 0.77) - (int)(r_newrefdef.time * 0.77) ));
 	}
 	// PGM
 
 	//
 	// -1 (-epsilon) so we never wander off the edge of the texture
 	//
-	bbextents = ((pface->extents[0] << 16) >> miplevel) - 1;
-	bbextentt = ((pface->extents[1] << 16) >> miplevel) - 1;
+	bbextents = ((pface->extents[0] << SHIFT16XYZ) >> miplevel) - 1;
+	bbextentt = ((pface->extents[1] << SHIFT16XYZ) >> miplevel) - 1;
 }
 
 

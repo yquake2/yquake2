@@ -75,6 +75,10 @@ typedef unsigned char pixel_t;
 typedef int	shift20_t;
 typedef int	zvalue_t;
 
+// xyz-prescale to 16.16 fixed-point
+#define SHIFT16XYZ 16
+#define SHIFT16XYZ_MULT (1 << SHIFT16XYZ)
+
 typedef enum
 {
 	rserr_ok,

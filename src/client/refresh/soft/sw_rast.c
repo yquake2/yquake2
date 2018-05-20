@@ -195,7 +195,7 @@ R_EmitSkyBox (void)
 	r_currentkey = 0x7ffffff0;
  	for (i=0 ; i<6 ; i++)
 	{
-		R_RenderFace (r_skyfaces + i, 15);
+		R_RenderFace (r_skyfaces + i, ALIAS_XY_CLIP_MASK);
 	}
 	r_currentkey = oldkey;	// bsp sorting order
 }

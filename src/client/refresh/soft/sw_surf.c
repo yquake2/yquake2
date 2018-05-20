@@ -120,9 +120,9 @@ static void R_DrawSurface (void)
 	basetoffset = r_drawsurf.surf->texturemins[1];
 
 	// << 16 components are to guarantee positive values for %
-	soffset = ((soffset >> r_drawsurf.surfmip) + (smax << 16)) % smax;
+	soffset = ((soffset >> r_drawsurf.surfmip) + (smax << SHIFT16XYZ)) % smax;
 	basetptr = &r_source[((((basetoffset >> r_drawsurf.surfmip)
-		+ (tmax << 16)) % tmax) * twidth)];
+		+ (tmax << SHIFT16XYZ)) % tmax) * twidth)];
 
 	pcolumndest = r_drawsurf.surfdat;
 

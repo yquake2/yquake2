@@ -190,7 +190,7 @@ void RE_Draw_StretchPicImplementation (int x, int y, int w, int h, image_t	*pic)
 		else
 		{
 			f = 0;
-			fstep = pic->width*0x10000/w;
+			fstep = (pic->width * SHIFT16XYZ_MULT) / w;
 			for (u=0 ; u<w ; u++)
 			{
 				dest[u] = source[f>>16];
