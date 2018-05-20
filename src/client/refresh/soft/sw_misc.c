@@ -339,6 +339,8 @@ void R_SetupFrame (void)
 	// current viewleaf
 	if ( !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
 	{
+		// Determine what is the current view cluster (walking the BSP tree)
+		// and store it in r_viewcluster
 		r_viewleaf = Mod_PointInLeaf (r_origin, r_worldmodel);
 		r_viewcluster = r_viewleaf->cluster;
 	}

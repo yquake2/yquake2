@@ -223,17 +223,6 @@ typedef struct finalvert_s {
 	float   xyz[3];         // eye space
 } finalvert_t;
 
-#define FINALVERT_V0     0
-#define FINALVERT_V1     4
-#define FINALVERT_V2     8
-#define FINALVERT_V3    12
-#define FINALVERT_V4    16
-#define FINALVERT_V5    20
-#define FINALVERT_FLAGS 24
-#define FINALVERT_X     28
-#define FINALVERT_Y     32
-#define FINALVERT_Z     36
-#define FINALVERT_SIZE  40
 
 typedef struct
 {

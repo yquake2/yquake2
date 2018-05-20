@@ -302,41 +302,34 @@ R_LeadingEdgeBackwards (edge_t *edge)
 
 		surf2 = surfaces[1].next;
 
-		if (surf->key > surf2->key)
-			goto newtop;
-
 		// if it's two surfaces on the same plane, the one that's already
 		// active is in front, so keep going unless it's a bmodel
-		if (surf->insubmodel && (surf->key == surf2->key))
-		{
 		// must be two bmodels in the same leaf; don't care, because they'll
 		// never be farthest anyway
-			goto newtop;
+		if (surf->key > surf2->key || (surf->insubmodel && (surf->key == surf2->key))) {
+			// emit a span (obscures current top)
+			iu = edge->u >> shift_size;
+
+			if (iu > surf2->last_u)
+			{
+				espan_t	*span;
+
+				span = span_p++;
+				span->u = surf2->last_u;
+				span->count = iu - span->u;
+				span->v = current_iv;
+				span->pnext = surf2->spans;
+				surf2->spans = span;
+			}
+
+			// set last_u on the new span
+			surf->last_u = iu;
 		}
-
-		surf2 = D_SurfSearchBackwards(surf, surf2);
-
-		goto gotposition;
-newtop:
-		// emit a span (obscures current top)
-		iu = edge->u >> shift_size;
-
-		if (iu > surf2->last_u)
+		else
 		{
-			espan_t		*span;
-
-			span = span_p++;
-			span->u = surf2->last_u;
-			span->count = iu - span->u;
-			span->v = current_iv;
-			span->pnext = surf2->spans;
-			surf2->spans = span;
+			surf2 = D_SurfSearchBackwards(surf, surf2);
 		}
 
-		// set last_u on the new span
-		surf->last_u = iu;
-
-gotposition:
 		// insert before surf2
 		surf->next = surf2;
 		surf->prev = surf2->prev;
@@ -409,6 +402,42 @@ D_SurfSearchForward(surf_t *surf, surf_t *surf2)
 
 /*
 ==============
+R_LeadingEdgeSearch
+==============
+*/
+static surf_t*
+R_LeadingEdgeSearch (edge_t *edge, surf_t *surf, surf_t *surf2)
+{
+	float	fu, newzi, testzi, newzitop, newzibottom;
+
+	do
+	{
+		surf2 = D_SurfSearchForward(surf, surf2);
+
+		if (surf->key != surf2->key)
+			return surf2;
+
+		// must be two bmodels in the same leaf; sort on 1/z
+		fu = (float)(edge->u - (1<<shift_size) + 1) * (1.0 / (1<<shift_size));
+		newzi = surf->d_ziorigin + fv*surf->d_zistepv +
+				fu*surf->d_zistepu;
+		newzibottom = newzi * 0.99;
+
+		testzi = surf2->d_ziorigin + fv*surf2->d_zistepv +
+				fu*surf2->d_zistepu;
+
+		if (newzibottom < testzi)
+			return surf2;
+
+		newzitop = newzi * 1.01;
+	}
+	while(newzitop < testzi || surf->d_zistepu < surf2->d_zistepu);
+
+	return surf2;
+}
+
+/*
+==============
 R_LeadingEdge
 ==============
 */
@@ -419,7 +448,6 @@ R_LeadingEdge (edge_t *edge)
 	{
 		surf_t		*surf, *surf2;
 		shift20_t	iu;
-		float		fu, newzi, testzi, newzitop, newzibottom;
 
 		// it's adding a new surface in, so find the correct place
 		surf = &surfaces[edge->surfs[1]];
@@ -438,6 +466,8 @@ R_LeadingEdge (edge_t *edge)
 			// active is in front, so keep going unless it's a bmodel
 			if (surf->insubmodel && (surf->key == surf2->key))
 			{
+				float	fu, newzi, testzi, newzitop, newzibottom;
+
 				// must be two bmodels in the same leaf; sort on 1/z
 				fu = (float)(edge->u - (1<<shift_size) + 1) * (1.0 / (1<<shift_size));
 				newzi = surf->d_ziorigin + fv*surf->d_zistepv +
@@ -462,39 +492,8 @@ R_LeadingEdge (edge_t *edge)
 				}
 			}
 
-continue_search:
-			surf2 = D_SurfSearchForward(surf, surf2);
-
-			if (surf->key == surf2->key)
-			{
-				// must be two bmodels in the same leaf; sort on 1/z
-				fu = (float)(edge->u - (1<<shift_size) + 1) * (1.0 / (1<<shift_size));
-				newzi = surf->d_ziorigin + fv*surf->d_zistepv +
-						fu*surf->d_zistepu;
-				newzibottom = newzi * 0.99;
-
-				testzi = surf2->d_ziorigin + fv*surf2->d_zistepv +
-						fu*surf2->d_zistepu;
-
-				if (newzibottom >= testzi)
-				{
-					goto gotposition;
-				}
-
-				newzitop = newzi * 1.01;
-				if (newzitop >= testzi)
-				{
-					if (surf->d_zistepu >= surf2->d_zistepu)
-					{
-						goto gotposition;
-					}
-				}
-
-				goto continue_search;
-			}
-
+			surf2 = R_LeadingEdgeSearch (edge, surf, surf2);
 			goto gotposition;
-
 newtop:
 			// emit a span (obscures current top)
 			iu = edge->u >> shift_size;
