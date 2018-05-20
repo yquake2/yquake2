@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 // current entity info
 //
-qboolean	insubmodel;
 entity_t	*currententity;
 vec3_t		modelorg;	// modelorg is the viewpoint reletive to
 				// the currently rendering entity
@@ -643,5 +642,5 @@ void R_RenderWorld (void)
 	currentmodel = r_worldmodel;
 	r_pcurrentvertbase = currentmodel->vertexes;
 
-	R_RecursiveWorldNode (currentmodel->nodes, 15);
+	R_RecursiveWorldNode (currentmodel->nodes, ALIAS_XY_CLIP_MASK);
 }

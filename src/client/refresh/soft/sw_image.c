@@ -104,8 +104,8 @@ R_LoadPic
 static image_t*
 R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
 {
-	image_t *image;
-	int i, c;
+	image_t	*image;
+	size_t	i, size;
 
 	image = R_FindFreeImage ();
 	if (strlen(name) >= sizeof(image->name))
@@ -117,10 +117,10 @@ R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
 	image->height = height;
 	image->type = type;
 
-	c = width*height;
-	image->pixels[0] = malloc (c);
+	size = width*height;
+	image->pixels[0] = malloc (size);
 	image->transparent = false;
-	for (i=0 ; i<c ; i++)
+	for (i=0 ; i<size ; i++)
 	{
 		if (pic[i] == 255)
 		{
@@ -129,8 +129,7 @@ R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
 		}
 	}
 
-	memcpy(image->pixels[0], pic, c);
-
+	memcpy(image->pixels[0], pic, size);
 	return image;
 }
 
@@ -240,7 +239,7 @@ image_t	*R_FindImage (char *name, imagetype_t type)
 
 	// fix backslashes
 	while ((ptr=strchr(name,'\\'))) {
-	  *ptr = '/';
+		*ptr = '/';
 	}
 #endif
 

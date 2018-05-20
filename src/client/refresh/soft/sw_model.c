@@ -192,13 +192,11 @@ mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
 		ri.Sys_Error (ERR_DROP, "Mod_PointInLeaf: bad model");
 
 	node = model->nodes;
-	while (1)
+	while (node->contents == -1)
 	{
 		float d;
 		mplane_t *plane;
 
-		if (node->contents != -1)
-			return (mleaf_t *)node;
 		plane = node->plane;
 		d = DotProduct (p,plane->normal) - plane->dist;
 		if (d > 0)
@@ -207,7 +205,7 @@ mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
 			node = node->children[1];
 	}
 
-	return NULL;	// never reached
+	return (mleaf_t *)node;
 }
 
 

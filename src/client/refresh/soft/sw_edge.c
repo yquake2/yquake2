@@ -659,15 +659,18 @@ void R_ScanEdges (void)
 
 		if (newedges[iv])
 		{
+			// Update AET with GET event
 			R_InsertNewEdges (newedges[iv], edge_head.next);
 		}
 
+		// Generate spans
 		(*pdrawfunc) ();
 
 		// flush the span list if we can't be sure we have enough spans left for
 		// the next scan
 		if (span_p > max_span_p)
 		{
+			// Draw stuff on screen
 			D_DrawSurfaces ();
 
 			// clear the surface span pointers
@@ -691,9 +694,12 @@ void R_ScanEdges (void)
 	// mark that the head (background start) span is pre-included
 	surfaces[1].spanstate = 1;
 
+	// Flush span buffer
 	if (newedges[iv])
+		// Update AET with GET event
 		R_InsertNewEdges (newedges[iv], edge_head.next);
 
+	// Update AET with GET event
 	(*pdrawfunc) ();
 
 	// draw whatever's left in the span list

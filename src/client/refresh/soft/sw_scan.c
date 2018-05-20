@@ -65,7 +65,7 @@ void D_WarpScreen (void)
 			int v2;
 
 			v2 = (int)((float)v/(h + AMP2 * 2) * r_refdef.vrect.height);
-			warp_rowptr[v] = r_warpbuffer + (r_refdef.vrect.width * v2);
+			warp_rowptr[v] = r_warpbuffer + (vid.width * v2);
 		}
 
 		for (u=0 ; u<w+AMP2*2 ; u++)
