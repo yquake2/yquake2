@@ -26,8 +26,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/local.h"
 
-#define NUM_MIPS	4
-
 cvar_t	*sw_mipcap;
 cvar_t	*sw_mipscale;
 
@@ -341,6 +339,8 @@ void R_SetupFrame (void)
 	// current viewleaf
 	if ( !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
 	{
+		// Determine what is the current view cluster (walking the BSP tree)
+		// and store it in r_viewcluster
 		r_viewleaf = Mod_PointInLeaf (r_origin, r_worldmodel);
 		r_viewcluster = r_viewleaf->cluster;
 	}
@@ -355,11 +355,11 @@ void R_SetupFrame (void)
 		// warp into off screen buffer
 		vrect.x = 0;
 		vrect.y = 0;
-		vrect.width = r_newrefdef.width < WARP_WIDTH ? r_newrefdef.width : WARP_WIDTH;
-		vrect.height = r_newrefdef.height < WARP_HEIGHT ? r_newrefdef.height : WARP_HEIGHT;
+		vrect.width = r_newrefdef.width;
+		vrect.height = r_newrefdef.height;
 
 		d_viewbuffer = r_warpbuffer;
-		r_screenwidth = WARP_WIDTH;
+		r_screenwidth = vid.width;
 	}
 	else
 	{

@@ -65,7 +65,7 @@ void D_WarpScreen (void)
 			int v2;
 
 			v2 = (int)((float)v/(h + AMP2 * 2) * r_refdef.vrect.height);
-			warp_rowptr[v] = r_warpbuffer + (WARP_WIDTH * v2);
+			warp_rowptr[v] = r_warpbuffer + (vid.width * v2);
 		}
 
 		for (u=0 ; u<w+AMP2*2 ; u++)
@@ -149,7 +149,7 @@ void Turbulent8 (espan_t *pspan)
 		sdivz = d_sdivzorigin + dv*d_sdivzstepv + du*d_sdivzstepu;
 		tdivz = d_tdivzorigin + dv*d_tdivzstepv + du*d_tdivzstepu;
 		zi = d_ziorigin + dv*d_zistepv + du*d_zistepu;
-		z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+		z = (float)SHIFT16XYZ_MULT / zi;	// prescale to 16.16 fixed-point
 
 		r_turb_s = (int)(sdivz * z) + sadjust;
 		if (r_turb_s > bbextents)
@@ -180,7 +180,7 @@ void Turbulent8 (espan_t *pspan)
 				sdivz += sdivz16stepu;
 				tdivz += tdivz16stepu;
 				zi += zi16stepu;
-				z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+				z = (float)SHIFT16XYZ_MULT / zi;	// prescale to 16.16 fixed-point
 
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
@@ -209,7 +209,7 @@ void Turbulent8 (espan_t *pspan)
 				sdivz += d_sdivzstepu * spancountminus1;
 				tdivz += d_tdivzstepu * spancountminus1;
 				zi += d_zistepu * spancountminus1;
-				z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+				z = (float)SHIFT16XYZ_MULT / zi;	// prescale to 16.16 fixed-point
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
@@ -285,7 +285,7 @@ void NonTurbulent8 (espan_t *pspan)
 		sdivz = d_sdivzorigin + dv*d_sdivzstepv + du*d_sdivzstepu;
 		tdivz = d_tdivzorigin + dv*d_tdivzstepv + du*d_tdivzstepu;
 		zi = d_ziorigin + dv*d_zistepv + du*d_zistepu;
-		z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+		z = (float)SHIFT16XYZ_MULT / zi;	// prescale to 16.16 fixed-point
 
 		r_turb_s = (int)(sdivz * z) + sadjust;
 		if (r_turb_s > bbextents)
@@ -316,7 +316,7 @@ void NonTurbulent8 (espan_t *pspan)
 				sdivz += sdivz16stepu;
 				tdivz += tdivz16stepu;
 				zi += zi16stepu;
-				z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+				z = (float)SHIFT16XYZ_MULT / zi;	// prescale to 16.16 fixed-point
 
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
@@ -345,7 +345,7 @@ void NonTurbulent8 (espan_t *pspan)
 				sdivz += d_sdivzstepu * spancountminus1;
 				tdivz += d_tdivzstepu * spancountminus1;
 				zi += d_zistepu * spancountminus1;
-				z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+				z = (float)SHIFT16XYZ_MULT / zi;	// prescale to 16.16 fixed-point
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
@@ -381,6 +381,19 @@ void NonTurbulent8 (espan_t *pspan)
 }
 //PGM
 //====================
+
+// Enable custom filtering
+extern cvar_t	*sw_texture_filtering;
+static int filtering_kernel[2][2][2] = {
+	{
+		{16384,	0},
+		{49152,	32768}
+	},
+	{
+		{32768,	49152},
+		{0,	16384}
+	}
+};
 
 /*
 =============
@@ -423,7 +436,7 @@ void D_DrawSpans16 (espan_t *pspan)
 		sdivz = d_sdivzorigin + dv*d_sdivzstepv + du*d_sdivzstepu;
 		tdivz = d_tdivzorigin + dv*d_tdivzstepv + du*d_tdivzstepu;
 		zi = d_ziorigin + dv*d_zistepv + du*d_zistepu;
-		z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+		z = (float)SHIFT16XYZ_MULT / zi;	// prescale to 16.16 fixed-point
 
 		s = (int)(sdivz * z) + sadjust;
 		if (s > bbextents)
@@ -454,7 +467,7 @@ void D_DrawSpans16 (espan_t *pspan)
 				sdivz += sdivz8stepu;
 				tdivz += tdivz8stepu;
 				zi += zi8stepu;
-				z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+				z = (float)SHIFT16XYZ_MULT / zi;	// prescale to 16.16 fixed-point
 
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
@@ -483,7 +496,7 @@ void D_DrawSpans16 (espan_t *pspan)
 				sdivz += d_sdivzstepu * spancountminus1;
 				tdivz += d_tdivzstepu * spancountminus1;
 				zi += d_zistepu * spancountminus1;
-				z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+				z = (float)SHIFT16XYZ_MULT / zi;	// prescale to 16.16 fixed-point
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
@@ -505,15 +518,46 @@ void D_DrawSpans16 (espan_t *pspan)
 				}
 			}
 
-			do
+			// Drawing phrase
+			if (sw_texture_filtering->value == 0.0f)
 			{
-				*pdest++ = *(pbase + (s >> 16) + (t >> 16) * cachewidth);
-				s += sstep;
-				t += tstep;
-			} while (--spancount > 0);
+				do
+				{
+					*pdest++ = *(pbase + (s >> SHIFT16XYZ) + (t >> SHIFT16XYZ) * cachewidth);
+					s += sstep;
+					t += tstep;
+				} while (--spancount > 0);
 
-			s = snext;
-			t = tnext;
+				s = snext;
+				t = tnext;
+			}
+			else if (sw_texture_filtering->value == 1.0f)
+			{
+				do
+				{
+					int idiths = s;
+					int iditht = t;
+
+					int X = (pspan->u + spancount) & 1;
+					int Y = (pspan->v)&1;
+
+					//Using the kernel
+					idiths += filtering_kernel[X][Y][0];
+					iditht += filtering_kernel[X][Y][1];
+
+					idiths = idiths >> SHIFT16XYZ;
+					idiths = idiths ? idiths -1 : idiths;
+
+
+					iditht = iditht >> SHIFT16XYZ;
+					iditht = iditht ? iditht -1 : iditht;
+
+
+					*pdest++ = *(pbase + idiths + iditht * cachewidth);
+					s += sstep;
+					t += tstep;
+				} while (--spancount > 0);
+			}
 
 		} while (count > 0);
 
@@ -531,7 +575,7 @@ void D_DrawZSpans (espan_t *pspan)
 
 	// FIXME: check for clamping/range problems
 	// we count on FP exceptions being turned off to avoid range problems
-	izistep = (int)(d_zistepu * 0x8000 * 0x10000);
+	izistep = (int)(d_zistepu * 0x8000 * (float)SHIFT16XYZ_MULT);
 
 	do
 	{
@@ -551,11 +595,11 @@ void D_DrawZSpans (espan_t *pspan)
 
 		zi = d_ziorigin + dv*d_zistepv + du*d_zistepu;
 		// we count on FP exceptions being turned off to avoid range problems
-		izi = (int)(zi * 0x8000 * 0x10000);
+		izi = (int)(zi * 0x8000 * (float)SHIFT16XYZ_MULT);
 
 		while (count > 0)
 		{
-			*pdest++ = izi >> 16;
+			*pdest++ = izi >> SHIFT16XYZ;
 			izi += izistep;
 			count--;
 		}

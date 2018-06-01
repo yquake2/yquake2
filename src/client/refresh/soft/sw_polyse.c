@@ -265,7 +265,7 @@ static void R_PolysetScanLeftEdge_C(int height)
 			d_aspancount += d_countextrastep;
 			d_ptex += d_ptexextrastep;
 			d_sfrac += d_sfracextrastep;
-			d_ptex += d_sfrac >> 16;
+			d_ptex += d_sfrac >> SHIFT16XYZ;
 
 			d_sfrac &= 0xFFFF;
 			d_tfrac += d_tfracextrastep;
@@ -285,7 +285,7 @@ static void R_PolysetScanLeftEdge_C(int height)
 			d_aspancount += ubasestep;
 			d_ptex += d_ptexbasestep;
 			d_sfrac += d_sfracbasestep;
-			d_ptex += d_sfrac >> 16;
+			d_ptex += d_sfrac >> SHIFT16XYZ;
 			d_sfrac &= 0xFFFF;
 			d_tfrac += d_tfracbasestep;
 			if (d_tfrac & 0x10000)
@@ -440,7 +440,7 @@ static void R_PolysetCalcGradients (int skinwidth)
 		a_tstepxfrac = r_tstepx & 0xFFFF;
 	}
 
-	a_ststepxwhole = skinwidth * (r_tstepx >> 16) + (r_sstepx >> 16);
+	a_ststepxwhole = skinwidth * (r_tstepx >> SHIFT16XYZ) + (r_sstepx >> SHIFT16XYZ);
 }
 
 
@@ -487,7 +487,7 @@ void R_PolysetDrawSpans8_33( spanpackage_t *pspanpackage)
 
 			do
 			{
-				if ((lzi >> 16) >= *lpz)
+				if ((lzi >> SHIFT16XYZ) >= *lpz)
 				{
 					int temp = vid_colormap[*lptex + ( llight & 0xFF00 )];
 
@@ -499,7 +499,7 @@ void R_PolysetDrawSpans8_33( spanpackage_t *pspanpackage)
 				llight += r_lstepx;
 				lptex += a_ststepxwhole;
 				lsfrac += a_sstepxfrac;
-				lptex += lsfrac >> 16;
+				lptex += lsfrac >> SHIFT16XYZ;
 				lsfrac &= 0xFFFF;
 				ltfrac += a_tstepxfrac;
 				if (ltfrac & 0x10000)
@@ -545,7 +545,7 @@ void R_PolysetDrawSpansConstant8_33( spanpackage_t *pspanpackage)
 
 			do
 			{
-				if ((lzi >> 16) >= *lpz)
+				if ((lzi >> SHIFT16XYZ) >= *lpz)
 				{
 					*lpdest = vid_alphamap[r_aliasblendcolor + *lpdest*256];
 				}
@@ -597,12 +597,12 @@ void R_PolysetDrawSpans8_66(spanpackage_t *pspanpackage)
 
 			do
 			{
-				if ((lzi >> 16) >= *lpz)
+				if ((lzi >> SHIFT16XYZ) >= *lpz)
 				{
 					int temp = vid_colormap[*lptex + ( llight & 0xFF00 )];
 
 					*lpdest = vid_alphamap[temp*256 + *lpdest];
-					*lpz = lzi >> 16;
+					*lpz = lzi >> SHIFT16XYZ;
 				}
 				lpdest++;
 				lzi += r_zistepx;
@@ -610,7 +610,7 @@ void R_PolysetDrawSpans8_66(spanpackage_t *pspanpackage)
 				llight += r_lstepx;
 				lptex += a_ststepxwhole;
 				lsfrac += a_sstepxfrac;
-				lptex += lsfrac >> 16;
+				lptex += lsfrac >> SHIFT16XYZ;
 				lsfrac &= 0xFFFF;
 				ltfrac += a_tstepxfrac;
 				if (ltfrac & 0x10000)
@@ -656,7 +656,7 @@ void R_PolysetDrawSpansConstant8_66( spanpackage_t *pspanpackage)
 
 			do
 			{
-				if ((lzi >> 16) >= *lpz)
+				if ((lzi >> SHIFT16XYZ) >= *lpz)
 				{
 					*lpdest = vid_alphamap[r_aliasblendcolor*256 + *lpdest];
 				}
@@ -707,7 +707,7 @@ void R_PolysetDrawSpans8_Opaque (spanpackage_t *pspanpackage)
 
 			do
 			{
-				if ((lzi >> 16) >= *lpz)
+				if ((lzi >> SHIFT16XYZ) >= *lpz)
 				{
 					//PGM
 					if(r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags & RF_IR_VISIBLE)
@@ -716,7 +716,7 @@ void R_PolysetDrawSpans8_Opaque (spanpackage_t *pspanpackage)
 						*lpdest = ((byte *)vid_colormap)[*lptex + (llight & 0xFF00)];
 					//PGM
 
-					*lpz = lzi >> 16;
+					*lpz = lzi >> SHIFT16XYZ;
 				}
 				lpdest++;
 				lzi += r_zistepx;
@@ -724,7 +724,7 @@ void R_PolysetDrawSpans8_Opaque (spanpackage_t *pspanpackage)
 				llight += r_lstepx;
 				lptex += a_ststepxwhole;
 				lsfrac += a_sstepxfrac;
-				lptex += lsfrac >> 16;
+				lptex += lsfrac >> SHIFT16XYZ;
 				lsfrac &= 0xFFFF;
 				ltfrac += a_tstepxfrac;
 				if (ltfrac & 0x10000)
@@ -777,8 +777,8 @@ R_RasterizeAliasPolySmooth (void)
 	ystart = plefttop[1];
 	d_aspancount = plefttop[0] - prighttop[0];
 
-	d_ptex = (byte *)r_affinetridesc.pskin + (plefttop[2] >> 16) +
-			(plefttop[3] >> 16) * r_affinetridesc.skinwidth;
+	d_ptex = (byte *)r_affinetridesc.pskin + (plefttop[2] >> SHIFT16XYZ) +
+			(plefttop[3] >> SHIFT16XYZ) * r_affinetridesc.skinwidth;
 	{
 		d_sfrac = plefttop[2] & 0xFFFF;
 		d_tfrac = plefttop[3] & 0xFFFF;
@@ -828,8 +828,8 @@ R_RasterizeAliasPolySmooth (void)
 			working_lstepx = r_lstepx;
 
 		d_countextrastep = ubasestep + 1;
-		d_ptexbasestep = ((r_sstepy + r_sstepx * ubasestep) >> 16) +
-				((r_tstepy + r_tstepx * ubasestep) >> 16) *
+		d_ptexbasestep = ((r_sstepy + r_sstepx * ubasestep) >> SHIFT16XYZ) +
+				((r_tstepy + r_tstepx * ubasestep) >> SHIFT16XYZ) *
 				r_affinetridesc.skinwidth;
 		{
 			d_sfracbasestep = (r_sstepy + r_sstepx * ubasestep) & 0xFFFF;
@@ -838,8 +838,8 @@ R_RasterizeAliasPolySmooth (void)
 		d_lightbasestep = r_lstepy + working_lstepx * ubasestep;
 		d_zibasestep = r_zistepy + r_zistepx * ubasestep;
 
-		d_ptexextrastep = ((r_sstepy + r_sstepx * d_countextrastep) >> 16) +
-				((r_tstepy + r_tstepx * d_countextrastep) >> 16) *
+		d_ptexextrastep = ((r_sstepy + r_sstepx * d_countextrastep) >> SHIFT16XYZ) +
+				((r_tstepy + r_tstepx * d_countextrastep) >> SHIFT16XYZ) *
 				r_affinetridesc.skinwidth;
 		{
 			d_sfracextrastep = (r_sstepy + r_sstepx*d_countextrastep) & 0xFFFF;
@@ -869,8 +869,8 @@ R_RasterizeAliasPolySmooth (void)
 
 		ystart = plefttop[1];
 		d_aspancount = plefttop[0] - prighttop[0];
-		d_ptex = (byte *)r_affinetridesc.pskin + (plefttop[2] >> 16) +
-				(plefttop[3] >> 16) * r_affinetridesc.skinwidth;
+		d_ptex = (byte *)r_affinetridesc.pskin + (plefttop[2] >> SHIFT16XYZ) +
+				(plefttop[3] >> SHIFT16XYZ) * r_affinetridesc.skinwidth;
 		d_sfrac = 0;
 		d_tfrac = 0;
 		d_light = plefttop[4];
@@ -914,8 +914,8 @@ R_RasterizeAliasPolySmooth (void)
 				working_lstepx = r_lstepx;
 
 			d_countextrastep = ubasestep + 1;
-			d_ptexbasestep = ((r_sstepy + r_sstepx * ubasestep) >> 16) +
-					((r_tstepy + r_tstepx * ubasestep) >> 16) *
+			d_ptexbasestep = ((r_sstepy + r_sstepx * ubasestep) >> SHIFT16XYZ) +
+					((r_tstepy + r_tstepx * ubasestep) >> SHIFT16XYZ) *
 					r_affinetridesc.skinwidth;
 			{
 				d_sfracbasestep = (r_sstepy + r_sstepx * ubasestep) & 0xFFFF;
@@ -924,8 +924,8 @@ R_RasterizeAliasPolySmooth (void)
 			d_lightbasestep = r_lstepy + working_lstepx * ubasestep;
 			d_zibasestep = r_zistepy + r_zistepx * ubasestep;
 
-			d_ptexextrastep = ((r_sstepy + r_sstepx * d_countextrastep) >> 16) +
-					((r_tstepy + r_tstepx * d_countextrastep) >> 16) *
+			d_ptexextrastep = ((r_sstepy + r_sstepx * d_countextrastep) >> SHIFT16XYZ) +
+					((r_tstepy + r_tstepx * d_countextrastep) >> SHIFT16XYZ) *
 					r_affinetridesc.skinwidth;
 			{
 				d_sfracextrastep = (r_sstepy+r_sstepx*d_countextrastep) & 0xFFFF;

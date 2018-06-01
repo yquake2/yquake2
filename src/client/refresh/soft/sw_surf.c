@@ -96,7 +96,7 @@ static void R_DrawSurface (void)
 	texwidth = mt->width >> r_drawsurf.surfmip;
 
 	blocksize = 16 >> r_drawsurf.surfmip;
-	blockdivshift = 4 - r_drawsurf.surfmip;
+	blockdivshift = NUM_MIPS - r_drawsurf.surfmip;
 
 	r_lightwidth = (r_drawsurf.surf->extents[0]>>4)+1;
 
@@ -120,9 +120,9 @@ static void R_DrawSurface (void)
 	basetoffset = r_drawsurf.surf->texturemins[1];
 
 	// << 16 components are to guarantee positive values for %
-	soffset = ((soffset >> r_drawsurf.surfmip) + (smax << 16)) % smax;
+	soffset = ((soffset >> r_drawsurf.surfmip) + (smax << SHIFT16XYZ)) % smax;
 	basetptr = &r_source[((((basetoffset >> r_drawsurf.surfmip)
-		+ (tmax << 16)) % tmax) * twidth)];
+		+ (tmax << SHIFT16XYZ)) % tmax) * twidth)];
 
 	pcolumndest = r_drawsurf.surfdat;
 
@@ -134,7 +134,7 @@ static void R_DrawSurface (void)
 
 		pbasesource = basetptr + soffset;
 
-		R_DrawSurfaceBlock8_anymip(4-r_drawsurf.surfmip);
+		R_DrawSurfaceBlock8_anymip(NUM_MIPS - r_drawsurf.surfmip);
 
 		soffset = soffset + blocksize;
 		if (soffset >= smax)

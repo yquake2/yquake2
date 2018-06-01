@@ -56,6 +56,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#define NUM_MIPS	4
+
 typedef struct image_s
 {
 	char		name[MAX_QPATH];	// game path, including extension
@@ -63,7 +65,7 @@ typedef struct image_s
 	int		width, height;
 	qboolean	transparent;		// true if any 255 pixels in image
 	int		registration_sequence;  // 0 = free
-	byte		*pixels[4];		// mip levels
+	byte		*pixels[NUM_MIPS];		// mip levels
 } image_t;
 
 
@@ -72,6 +74,10 @@ typedef struct image_s
 typedef unsigned char pixel_t;
 typedef int	shift20_t;
 typedef int	zvalue_t;
+
+// xyz-prescale to 16.16 fixed-point
+#define SHIFT16XYZ 16
+#define SHIFT16XYZ_MULT (1 << SHIFT16XYZ)
 
 typedef enum
 {
@@ -139,9 +145,6 @@ extern oldrefdef_t	r_refdef;
 #define MAXVERTS	64              // max points in a surface polygon
 #define MAXWORKINGVERTS	(MAXVERTS+4)    // max points in an intermediate
 					//  polygon (while processing)
-
-#define WARP_WIDTH		320
-#define WARP_HEIGHT		240
 
 #define PARTICLE_Z_CLIP 8.0
 
@@ -220,17 +223,6 @@ typedef struct finalvert_s {
 	float   xyz[3];         // eye space
 } finalvert_t;
 
-#define FINALVERT_V0     0
-#define FINALVERT_V1     4
-#define FINALVERT_V2     8
-#define FINALVERT_V3    12
-#define FINALVERT_V4    16
-#define FINALVERT_V5    20
-#define FINALVERT_FLAGS 24
-#define FINALVERT_X     28
-#define FINALVERT_Y     32
-#define FINALVERT_Z     36
-#define FINALVERT_SIZE  40
 
 typedef struct
 {
@@ -396,7 +388,7 @@ extern zvalue_t	*d_pzbuffer;
 extern unsigned int d_zwidth;
 
 extern int	d_minmip;
-extern float	d_scalemip[3];
+extern float	d_scalemip[NUM_MIPS-1];
 
 //===================================================================
 

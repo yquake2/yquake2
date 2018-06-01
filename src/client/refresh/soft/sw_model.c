@@ -192,13 +192,11 @@ mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
 		ri.Sys_Error (ERR_DROP, "Mod_PointInLeaf: bad model");
 
 	node = model->nodes;
-	while (1)
+	while (node->contents == -1)
 	{
 		float d;
 		mplane_t *plane;
 
-		if (node->contents != -1)
-			return (mleaf_t *)node;
 		plane = node->plane;
 		d = DotProduct (p,plane->normal) - plane->dist;
 		if (d > 0)
@@ -207,7 +205,7 @@ mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
 			node = node->children[1];
 	}
 
-	return NULL;	// never reached
+	return (mleaf_t *)node;
 }
 
 
@@ -1150,11 +1148,11 @@ Mod_LoadSpriteModel (model_t *mod, void *buffer)
 //=============================================================================
 
 /*
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 RE_BeginRegistration
 
 Specifies the model that will be used as the world
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 */
 void RE_BeginRegistration (char *model)
 {
@@ -1177,10 +1175,10 @@ void RE_BeginRegistration (char *model)
 
 
 /*
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 RE_RegisterModel
 
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 */
 struct model_s *RE_RegisterModel (char *name)
 {
@@ -1223,10 +1221,10 @@ struct model_s *RE_RegisterModel (char *name)
 }
 
 /*
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 RE_EndRegistration
 
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 */
 void RE_EndRegistration (void)
 {
@@ -1241,10 +1239,6 @@ void RE_EndRegistration (void)
 		{	// don't need this model
 			Hunk_Free (mod->extradata);
 			memset (mod, 0, sizeof(*mod));
-		}
-		else
-		{	// make sure it is paged in
-			Com_PageInMemory (mod->extradata, mod->extradatasize);
 		}
 	}
 

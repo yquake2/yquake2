@@ -271,14 +271,14 @@ R_AliasPreparePoints (void)
 				continue;	// completely clipped
 
 			// insert s/t coordinates
-			pfv[0]->s = pstverts[ptri->index_st[0]].s << 16;
-			pfv[0]->t = pstverts[ptri->index_st[0]].t << 16;
+			pfv[0]->s = pstverts[ptri->index_st[0]].s << SHIFT16XYZ;
+			pfv[0]->t = pstverts[ptri->index_st[0]].t << SHIFT16XYZ;
 
-			pfv[1]->s = pstverts[ptri->index_st[1]].s << 16;
-			pfv[1]->t = pstverts[ptri->index_st[1]].t << 16;
+			pfv[1]->s = pstverts[ptri->index_st[1]].s << SHIFT16XYZ;
+			pfv[1]->t = pstverts[ptri->index_st[1]].t << SHIFT16XYZ;
 
-			pfv[2]->s = pstverts[ptri->index_st[2]].s << 16;
-			pfv[2]->t = pstverts[ptri->index_st[2]].t << 16;
+			pfv[2]->s = pstverts[ptri->index_st[2]].s << SHIFT16XYZ;
+			pfv[2]->t = pstverts[ptri->index_st[2]].t << SHIFT16XYZ;
 
 			if ( ! (pfv[0]->flags | pfv[1]->flags | pfv[2]->flags) )
 			{	// totally unclipped
@@ -306,14 +306,14 @@ R_AliasPreparePoints (void)
 				continue;	// completely clipped
 
 			// insert s/t coordinates
-			pfv[0]->s = pstverts[ptri->index_st[0]].s << 16;
-			pfv[0]->t = pstverts[ptri->index_st[0]].t << 16;
+			pfv[0]->s = pstverts[ptri->index_st[0]].s << SHIFT16XYZ;
+			pfv[0]->t = pstverts[ptri->index_st[0]].t << SHIFT16XYZ;
 
-			pfv[1]->s = pstverts[ptri->index_st[1]].s << 16;
-			pfv[1]->t = pstverts[ptri->index_st[1]].t << 16;
+			pfv[1]->s = pstverts[ptri->index_st[1]].s << SHIFT16XYZ;
+			pfv[1]->t = pstverts[ptri->index_st[1]].t << SHIFT16XYZ;
 
-			pfv[2]->s = pstverts[ptri->index_st[2]].s << 16;
-			pfv[2]->t = pstverts[ptri->index_st[2]].t << 16;
+			pfv[2]->s = pstverts[ptri->index_st[2]].s << SHIFT16XYZ;
+			pfv[2]->t = pstverts[ptri->index_st[2]].t << SHIFT16XYZ;
 
 			if ( ! (pfv[0]->flags | pfv[1]->flags | pfv[2]->flags) )
 			{	// totally unclipped
@@ -858,9 +858,9 @@ void R_AliasDrawModel (void)
 	R_AliasSetUpLerpData( s_pmdl, currententity->backlerp );
 
 	if (currententity->flags & RF_DEPTHHACK)
-		s_ziscale = (float)0x8000 * (float)0x10000 * 3.0;
+		s_ziscale = (float)0x8000 * (float)SHIFT16XYZ_MULT * 3.0;
 	else
-		s_ziscale = (float)0x8000 * (float)0x10000;
+		s_ziscale = (float)0x8000 * (float)SHIFT16XYZ_MULT;
 
 	R_AliasPreparePoints ();
 

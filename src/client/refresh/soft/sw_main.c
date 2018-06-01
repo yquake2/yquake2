@@ -124,6 +124,7 @@ cvar_t	*sw_surfcacheoverride;
 cvar_t	*sw_waterwarp;
 static cvar_t	*sw_overbrightbits;
 cvar_t	*sw_custom_particles;
+cvar_t	*sw_texture_filtering;
 
 cvar_t	*r_drawworld;
 static cvar_t	*r_drawentities;
@@ -184,6 +185,8 @@ int		cachewidth;
 pixel_t		*d_viewbuffer;
 zvalue_t	*d_pzbuffer;
 unsigned int	d_zwidth;
+
+qboolean	insubmodel;
 
 static struct texture_buffer {
 	image_t	image;
@@ -272,6 +275,7 @@ R_Register (void)
 	sw_waterwarp = ri.Cvar_Get ("sw_waterwarp", "1", 0);
 	sw_overbrightbits = ri.Cvar_Get("sw_overbrightbits", "1.0", CVAR_ARCHIVE);
 	sw_custom_particles = ri.Cvar_Get("sw_custom_particles", "0", CVAR_ARCHIVE);
+	sw_texture_filtering = ri.Cvar_Get("sw_texture_filtering", "0", CVAR_ARCHIVE);
 	r_mode = ri.Cvar_Get( "r_mode", "0", CVAR_ARCHIVE );
 
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
@@ -309,7 +313,7 @@ static void
 R_UnRegister (void)
 {
 	ri.Cmd_RemoveCommand( "screenshot" );
-	ri.Cmd_RemoveCommand ("modellist");
+	ri.Cmd_RemoveCommand( "modellist" );
 	ri.Cmd_RemoveCommand( "imagelist" );
 }
 
@@ -781,7 +785,7 @@ R_DrawBEntitiesOnList
 static void
 R_DrawBEntitiesOnList (void)
 {
-	int			i, clipflags;
+	int		i, clipflags;
 	vec3_t		oldorigin;
 	vec3_t		mins, maxs;
 	float		minmaxs[6];
@@ -864,6 +868,8 @@ static surf_t	*lsurfs;
 /*
 ================
 R_EdgeDrawing
+
+Render the map
 ================
 */
 static void
@@ -890,6 +896,7 @@ R_EdgeDrawing (void)
 		surfaces--;
 	}
 
+	// Set function pointer pdrawfunc used later in this function
 	R_BeginEdgeFrame ();
 
 	if (r_dspeeds->value)
@@ -897,6 +904,8 @@ R_EdgeDrawing (void)
 		rw_time1 = SDL_GetTicks();
 	}
 
+	// Build the Global Edget Table
+	// Also populate the surface stack and count # surfaces to render (surf_max is the max)
 	R_RenderWorld ();
 
 	if (r_dspeeds->value)
@@ -913,6 +922,8 @@ R_EdgeDrawing (void)
 		se_time1 = db_time2;
 	}
 
+	// Use the Global Edge Table to maintin the Active Edge Table: Draw the world as scanlines
+	// Write the Z-Buffer (but no read)
 	R_ScanEdges ();
 }
 
@@ -1016,10 +1027,15 @@ RE_RenderFrame (refdef_t *fd)
 
 	R_SetupFrame ();
 
+	// Using the current view cluster (r_viewcluster), retrieve and decompress
+	// the PVS (Potentially Visible Set)
 	R_MarkLeaves ();	// done here so we know if we're in water
 
+	// For each dlight_t* passed via r_newrefdef.dlights, mark polygons affected by a light.
 	R_PushDlights (r_worldmodel);
 
+	// Build the Global Edge Table and render it via the Active Edge Table
+	// Render the map
 	R_EdgeDrawing ();
 
 	if (r_dspeeds->value)
@@ -1028,6 +1044,8 @@ RE_RenderFrame (refdef_t *fd)
 		de_time1 = se_time2;
 	}
 
+	// Draw enemies, barrel etc...
+	// Use Z-Buffer in read mode only.
 	R_DrawEntitiesOnList ();
 
 	if (r_dspeeds->value)
@@ -1036,13 +1054,16 @@ RE_RenderFrame (refdef_t *fd)
 		dp_time1 = SDL_GetTicks();
 	}
 
+	// Duh !
 	R_DrawParticles ();
 
 	if (r_dspeeds->value)
 		dp_time2 = SDL_GetTicks();
 
+	// Perform pixel palette blending ia the pics/colormap.pcx lower part lookup table.
 	R_DrawAlphaSurfaces();
 
+	// Save off light value for server to look at (BIG HACK!)
 	R_SetLightLevel ();
 
 	if (r_dowarp)
@@ -1054,6 +1075,7 @@ RE_RenderFrame (refdef_t *fd)
 	if (r_dspeeds->value)
 		da_time2 = SDL_GetTicks();
 
+	// Modify the palette (when taking hit or pickup item) so all colors are modified
 	R_CalcPalette ();
 
 	if (sw_aliasstats->value)
@@ -1312,11 +1334,11 @@ R_DrawBeam( entity_t *e )
 	for ( i = 0; i < NUM_BEAM_SEGS; i++ )
 	{
 		R_IMFlatShadedQuad( start_points[i],
-		                    end_points[i],
-							end_points[(i+1)%NUM_BEAM_SEGS],
-							start_points[(i+1)%NUM_BEAM_SEGS],
-							e->skinnum & 0xFF,
-							e->alpha );
+				    end_points[i],
+				    end_points[(i+1)%NUM_BEAM_SEGS],
+				    start_points[(i+1)%NUM_BEAM_SEGS],
+				    e->skinnum & 0xFF,
+				    e->alpha );
 	}
 }
 
@@ -1907,7 +1929,7 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	finalverts = malloc((MAXALIASVERTS + 3) * sizeof(finalvert_t));
 	ledges = malloc((NUMSTACKEDGES + 1) * sizeof(edge_t));
 	lsurfs = malloc((NUMSTACKSURFACES + 1) * sizeof(surf_t));
-	r_warpbuffer = malloc(WARP_WIDTH * WARP_HEIGHT * sizeof(pixel_t));
+	r_warpbuffer = malloc(vid.height * vid.width * sizeof(pixel_t));
 
 	if ((vid.width >= 2048) && (sizeof(shift20_t) == 4)) // 2k+ resolution and 32 == shift20_t
 	{

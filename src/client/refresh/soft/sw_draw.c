@@ -93,7 +93,6 @@ void RE_Draw_CharScaled(int x, int y, int num, float scale)
 	if (y <= -8)
 		return;	// totally off screen
 
-	//	if ( ( y + 8 ) >= vid.height )
 	if ( ( y + 8 ) > vid.height )	// PGM - status text was missing in sw...
 		return;
 
@@ -191,7 +190,7 @@ void RE_Draw_StretchPicImplementation (int x, int y, int w, int h, image_t	*pic)
 		else
 		{
 			f = 0;
-			fstep = pic->width*0x10000/w;
+			fstep = (pic->width * SHIFT16XYZ_MULT) / w;
 			for (u=0 ; u<w ; u++)
 			{
 				dest[u] = source[f>>16];
