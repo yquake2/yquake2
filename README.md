@@ -133,6 +133,9 @@ and copy the resulting music/ directory to:
 How the Yamagi Quake II executables are installed depends on the platform:
 
 - For Windows a package with all Yamagi Quake II executables is provided.
+  There're two executables in the package. yquake.exe is the Yamagi Quake II
+  client and should be preferred. quake2.exe is a simple wrapper, it's only
+  provided to stay compatible with existing setups.
 - Some Linux distributions and BSD systems provide Yamagi Quake II packages.
 - On OS X you need to compile from source.
 - Of course Yamagi Quake II can be compiled from source on all platforms.
