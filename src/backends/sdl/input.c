@@ -31,6 +31,32 @@
 #include "../generic/header/input.h"
 #include "../../client/header/client.h"
 
+/*
+ * SDL 1.2 has been superseded by it's successor SDL 2.0 years ago.
+ * When we first ported Yamagi Quake II to SDL 2.0 we decided to
+ * support both APIs, the old SDL 1.2 and the newer 2.0. That was
+ * done to give both sides, SDL itself and our backends, time to
+ * mature and to evolve. After we enabled SDL 2.0 as default there
+ * was no big point in keeping SDL 1.2 around. We did it anyways,
+ * the code was there and it was a big help for the users of older
+ * Linux distribution. But now, several years forward, SDL 1.2 is
+ * becoming a burden. SDL 1.2 is lacking features, in fact some
+ * not so corner cases are broken with it. For example an enabled
+ * vsync on displays with another refresh rate than 60 hz. And
+ * it adding a lot of complications to the code. Last but least
+ * SDL 1.2 doesn't support modern MacOS, Windows and Wayland. It's
+ * finally time to let it go. The next release - 7.21 - will be
+ * the last Yamagi Quake II release supporting SDL 1.2. Support
+ * for it will be removed soon afterwards.
+ *
+ * Until then: Remove the statement below to build with SDL 1.2.
+ */
+#ifndef SDL2
+#error "Support for SDL 1.2 is deprecated, and will be removed in \
+the near future. Migrate to SDL 2.0 now. To build the client with \
+SDL 1.2 remove this statement!"
+#endif
+
 /* There's no sdl-config on OS X and Windows */
 #ifdef SDL2
 #include <SDL2/SDL.h>
