@@ -1307,6 +1307,24 @@ FS_Dir_f(void)
 
 // --------
 
+const char*
+FS_GetNextRawPath(const char* lastRawPath)
+{
+	assert(fs_rawPath != NULL && "Don't call this if before FS_InitFilesystem()");
+	if(lastRawPath == NULL)
+	{
+		return fs_rawPath->path;
+	}
+	for(fsRawPath_t* rp = fs_rawPath; rp != NULL; rp = rp->next)
+	{
+		if(rp->path == lastRawPath)
+		{
+			return (rp->next != NULL) ? rp->next->path : NULL;
+		}
+	}
+	return NULL;
+}
+
 void
 FS_AddDirToSearchPath(char *dir, qboolean create) {
 	char **list;
