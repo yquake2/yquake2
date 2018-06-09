@@ -372,22 +372,14 @@ CL_PrepRefresh(void)
 	}
 	else
 	{
+		int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
  #ifdef CDA
-		CDAudio_Play((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10), true);
+		CDAudio_Play(track, (char **)NULL, 10), true);
  #endif
 
  #ifdef OGG
 
-		/* OGG/Vorbis */
-		if ((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10) < 10)
-		{
-			char tmp[3] = "0";
-			OGG_ParseCmd(strcat(tmp, cl.configstrings[CS_CDTRACK]));
-		}
-		else
-		{
-			OGG_ParseCmd(cl.configstrings[CS_CDTRACK]);
-		}
+		OGG_PlayTrack(track);
 
  #endif
 	}

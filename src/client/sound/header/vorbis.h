@@ -48,15 +48,11 @@ typedef enum
 
 void OGG_Init(void);
 void OGG_Shutdown(void);
-void OGG_Reinit(void);
 qboolean OGG_Check(char *name);
-void OGG_Seek(ogg_seek_t type, double offset);
 void OGG_LoadFileList(void);
-void OGG_LoadPlaylist(char *name);
 qboolean OGG_Open(ogg_seek_t type, int offset);
 qboolean OGG_OpenName(char *filename);
 int OGG_Read(void);
-void OGG_Sequence(void);
 void OGG_Stop(void);
 void OGG_Stream(void);
 void S_RawSamplesVol(int samples, int rate, int width,
@@ -64,9 +60,9 @@ void S_RawSamplesVol(int samples, int rate, int width,
 
 /* Console commands. */
 void OGG_ListCmd(void);
-void OGG_ParseCmd(char *arg);
 void OGG_PauseCmd(void);
 void OGG_PlayCmd(void);
+void OGG_PlayTrack(int track);
 void OGG_ResumeCmd(void);
 void OGG_SeekCmd(void);
 void OGG_StatusCmd(void);

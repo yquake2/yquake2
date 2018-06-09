@@ -51,9 +51,7 @@ int ogg_curfile;				/* Index of currently played file. */
 int ogg_numfiles;				/* Number of Ogg Vorbis files. */
 int ovSection;					/* Position in Ogg Vorbis file. */
 ogg_status_t ogg_status;		/* Status indicator. */
-cvar_t *ogg_autoplay;			/* Play this song when started. */
 cvar_t *ogg_check;				/* Check Ogg files or not. */
-cvar_t *ogg_playlist;			/* Playlist. */
 cvar_t *ogg_sequence;			/* Sequence play indicator. */
 cvar_t *ogg_volume;				/* Music volume. */
 cvar_t *ogg_ignoretrack0;		/* Toggle track 0 playing */
@@ -91,9 +89,7 @@ OGG_Init(void)
 	}
 
 	/* Cvars. */
-	ogg_autoplay = Cvar_Get("ogg_autoplay", "?", CVAR_ARCHIVE);
 	ogg_check = Cvar_Get("ogg_check", "0", CVAR_ARCHIVE);
-	ogg_playlist = Cvar_Get("ogg_playlist", "playlist", CVAR_ARCHIVE);
 	ogg_sequence = Cvar_Get("ogg_sequence", "loop", CVAR_ARCHIVE);
 	ogg_volume = Cvar_Get("ogg_volume", "0.7", CVAR_ARCHIVE);
 	ogg_ignoretrack0 = Cvar_Get("ogg_ignoretrack0", "0", CVAR_ARCHIVE);
@@ -102,24 +98,14 @@ OGG_Init(void)
 	Cmd_AddCommand("ogg_list", OGG_ListCmd);
 	Cmd_AddCommand("ogg_pause", OGG_PauseCmd);
 	Cmd_AddCommand("ogg_play", OGG_PlayCmd);
-	Cmd_AddCommand("ogg_reinit", OGG_Reinit);
 	Cmd_AddCommand("ogg_resume", OGG_ResumeCmd);
-	Cmd_AddCommand("ogg_seek", OGG_SeekCmd);
 	Cmd_AddCommand("ogg_status", OGG_StatusCmd);
 	Cmd_AddCommand("ogg_stop", OGG_Stop);
 
 	/* Build list of files. */
 	ogg_numfiles = 0;
 
-	if (ogg_playlist->string[0] != '\0')
-	{
-		OGG_LoadPlaylist(ogg_playlist->string);
-	}
-
-	if (ogg_numfiles == 0)
-	{
-		OGG_LoadFileList();
-	}
+	OGG_LoadFileList(); // FIXME: call whenever $game changes
 
 	/* Check if we have Ogg Vorbis files. */
 	if (ogg_numfiles <= 0)
@@ -143,12 +129,6 @@ OGG_Init(void)
 	ogg_started = true;
 
 	Com_Printf("%d Ogg Vorbis files found.\n", ogg_numfiles);
-
-	/* Autoplay support. */
-	if (ogg_autoplay->string[0] != '\0')
-	{
-		OGG_ParseCmd(ogg_autoplay->string);
-	}
 }
 
 /*
@@ -173,23 +153,11 @@ OGG_Shutdown(void)
 	Cmd_RemoveCommand("ogg_list");
 	Cmd_RemoveCommand("ogg_pause");
 	Cmd_RemoveCommand("ogg_play");
-	Cmd_RemoveCommand("ogg_reinit");
 	Cmd_RemoveCommand("ogg_resume");
-	Cmd_RemoveCommand("ogg_seek");
 	Cmd_RemoveCommand("ogg_status");
 	Cmd_RemoveCommand("ogg_stop");
 
 	ogg_started = false;
-}
-
-/*
- * Reinitialize the Ogg Vorbis subsystem.
- */
-void
-OGG_Reinit(void)
-{
-	OGG_Shutdown();
-	OGG_Init();
 }
 
 /*
@@ -225,76 +193,10 @@ OGG_Check(char *name)
 }
 
 /*
- * Change position in the file.
- */
-void
-OGG_Seek(ogg_seek_t type, double offset)
-{
-	double pos; /* Position in file (in seconds). */
-	double total; /* Length of file (in seconds). */
-
-	/* Check if the file is seekable. */
-	if (ov_seekable(&ovFile) == 0)
-	{
-		Com_Printf("OGG_Seek: file is not seekable.\n");
-		return;
-	}
-
-	/* Get file information. */
-	pos = ov_time_tell(&ovFile);
-	total = ov_time_total(&ovFile, -1);
-
-	switch (type)
-	{
-		case ABS:
-
-			if ((offset >= 0) && (offset <= total))
-			{
-				if (ov_time_seek(&ovFile, offset) != 0)
-				{
-					Com_Printf("OGG_Seek: could not seek.\n");
-				}
-
-				else
-				{
-					Com_Printf("%0.2f -> %0.2f of %0.2f.\n", pos, offset, total);
-				}
-			}
-			else
-			{
-				Com_Printf("OGG_Seek: invalid offset.\n");
-			}
-
-			break;
-		case REL:
-
-			if ((pos + offset >= 0) && (pos + offset <= total))
-			{
-				if (ov_time_seek(&ovFile, pos + offset) != 0)
-				{
-					Com_Printf("OGG_Seek: could not seek.\n");
-				}
-
-				else
-				{
-					Com_Printf("%0.2f -> %0.2f of %0.2f.\n",
-							pos, pos + offset, total);
-				}
-			}
-			else
-			{
-				Com_Printf("OGG_Seek: invalid offset.\n");
-			}
-
-			break;
-	}
-}
-
-/*
  * Load list of Ogg Vorbis files in "music".
  */
 void
-OGG_LoadFileList(void)
+OGG_LoadFileList(void) // FIXME: call whenever $game changes, rename: OGG_InitTrackList() or sth
 {
 	char **list; /* List of .ogg files. */
 	int i;		 /* Loop counter. */
@@ -333,61 +235,6 @@ OGG_LoadFileList(void)
 	   space for invalid music files). */
 	ogg_numfiles = j;
 	ogg_filelist = realloc(ogg_filelist, sizeof(char *) * ogg_numfiles);
-}
-
-/*
- * Load playlist.
- */
-void
-OGG_LoadPlaylist(char *playlist)
-{
-	byte *buffer; /* Buffer to read the file. */
-	char *ptr;    /* Pointer for parsing the file. */
-	int i;		  /* Loop counter. */
-	int size;     /* Length of buffer and strings. */
-
-	/* Open playlist. */
-	if ((size = FS_LoadFile(va("%s/%s.lst", OGG_DIR, 
-				  ogg_playlist->string), (void **)&buffer)) < 0)
-	{
-		Com_Printf("OGG_LoadPlaylist: could not open playlist: %s.\n",
-				strerror(errno));
-		return;
-	}
-
-	/* Count the files in playlist. */
-	for (ptr = strtok((char *)buffer, "\n");
-		 ptr != NULL;
-		 ptr = strtok(NULL, "\n"))
-	{
-		if ((byte *)ptr != buffer)
-		{
-			ptr[-1] = '\n';
-		}
-
-		if (OGG_Check(va("%s/%s", OGG_DIR, ptr)))
-		{
-			ogg_numfiles++;
-		}
-	}
-
-	/* Allocate file list. */
-	ogg_filelist = malloc(sizeof(char *) * ogg_numfiles);
-
-	i = 0;
-
-	for (ptr = strtok((char *)buffer, "\n");
-		 ptr != NULL;
-		 ptr = strtok(NULL, "\n"))
-	{
-		if (OGG_Check(va("%s/%s", OGG_DIR, ptr)))
-		{
-			ogg_filelist[i++] = strdup(va("%s/%s", OGG_DIR, ptr));
-		}
-	}
-
-	/* Free file buffer. */
-	FS_FreeFile(buffer);
 }
 
 /*
@@ -547,43 +394,11 @@ OGG_Read(void)
 	if (res == 0)
 	{
 		OGG_Stop();
-		OGG_Sequence();
-	}
-
-	return res;
-}
-
-/*
- * Play files in sequence.
- */
-void
-OGG_Sequence(void)
-{
-	if (strcmp(ogg_sequence->string, "next") == 0)
-	{
-		OGG_Open(REL, 1);
-	}
-
-	else if (strcmp(ogg_sequence->string, "prev") == 0)
-	{
-		OGG_Open(REL, -1);
-	}
-
-	else if (strcmp(ogg_sequence->string, "random") == 0)
-	{
-		OGG_Open(ABS, randk() % ogg_numfiles);
-	}
-
-	else if (strcmp(ogg_sequence->string, "loop") == 0)
-	{
+		//OGG_Sequence();
 		OGG_Open(REL, 0);
 	}
 
-	else if (strcmp(ogg_sequence->string, "none") != 0)
-	{
-		Com_Printf("Invalid value of ogg_sequence: %s\n", ogg_sequence->string);
-		Cvar_Set("ogg_sequence", "none");
-	}
+	return res;
 }
 
 /*
@@ -684,60 +499,26 @@ OGG_ListCmd(void)
 	Com_Printf("%d Ogg Vorbis files.\n", ogg_numfiles);
 }
 
-/*
- * Parse play controls.
- */
+// TODO: document
 void
-OGG_ParseCmd(char *arg)
+OGG_PlayTrack(int track)
 {
-	int n;
-	cvar_t *ogg_enable;
-
-	ogg_enable = Cvar_Get("ogg_enable", "1", CVAR_ARCHIVE);
-
-	switch (arg[0])
+	if(track == 0)
 	{
-		case '#':
-			n = (int)strtol(arg + 1, (char **)NULL, 10) - 1;
-			OGG_Open(ABS, n);
-			break;
-		case '?':
-			OGG_Open(ABS, randk() % ogg_numfiles);
-			break;
-		case '>':
-
-			if (strlen(arg) > 1)
-			{
-				OGG_Open(REL, (int)strtol(arg + 1, (char **)NULL, 10));
-			}
-
-			else
-			{
-				OGG_Open(REL, 1);
-			}
-
-			break;
-		case '<':
-
-			if (strlen(arg) > 1)
-			{
-				OGG_Open(REL, -(int)strtol(arg + 1, (char **)NULL, 10));
-			}
-
-			else
-			{
-				OGG_Open(REL, -1);
-			}
-
-			break;
-		default:
-
-			if (ogg_enable->value != 0)
-			{
-				OGG_OpenName(arg);
-			}
-
-			break;
+		if(ogg_ignoretrack0->value == 0)
+		{
+			OGG_PauseCmd();
+		}
+	}
+	else if(track == -1) // randon track
+	{
+		OGG_Open(ABS, randk() % ogg_numfiles);
+	}
+	else
+	{
+		// TODO: support other naming schemes etc
+		char name[3] = { '0' + track / 10, '0' + track % 10, '\0' };
+		OGG_OpenName(name);
 	}
 }
 
@@ -773,49 +554,19 @@ OGG_PlayCmd(void)
 		return;
 	}
 
-	OGG_ParseCmd(Cmd_Argv(1));
+	//OGG_ParseCmd(Cmd_Argv(1));
+	// TODO: selber parsen, nur noch track nummer oder garnix anbieten
 }
 
 /*
  * Resume current song.
  */
 void
-OGG_ResumeCmd(void)
+OGG_ResumeCmd(void) // TODO: OGG_TogglePlay?
 {
 	if (ogg_status == PAUSE)
 	{
 		ogg_status = PLAY;
-	}
-}
-
-/*
- * Change position in the file being played.
- */
-void
-OGG_SeekCmd(void)
-{
-	if (ogg_status != STOP)
-	{
-		return;
-	}
-
-	if (Cmd_Argc() < 2)
-	{
-		Com_Printf("Usage: ogg_seek {n | <n | >n}\n");
-		return;
-	}
-
-	switch (Cmd_Argv(1)[0])
-	{
-		case '>':
-			OGG_Seek(REL, strtod(Cmd_Argv(1) + 1, (char **)NULL));
-			break;
-		case '<':
-			OGG_Seek(REL, -strtod(Cmd_Argv(1) + 1, (char **)NULL));
-			break;
-		default:
-			OGG_Seek(ABS, strtod(Cmd_Argv(1), (char **)NULL));
-			break;
 	}
 }
 
@@ -832,18 +583,18 @@ OGG_StatusCmd(void)
 				ogg_curfile + 1, ogg_filelist[ogg_curfile],
 				ov_time_tell(&ovFile));
 			break;
+
 		case PAUSE:
 			Com_Printf("Paused file %d (%s) at %0.2f seconds.\n",
 				ogg_curfile + 1, ogg_filelist[ogg_curfile],
 				ov_time_tell(&ovFile));
 			break;
-		case STOP:
 
+		case STOP:
 			if (ogg_curfile == -1)
 			{
 				Com_Printf("Stopped.\n");
 			}
-
 			else
 			{
 				Com_Printf("Stopped file %d (%s).\n",
