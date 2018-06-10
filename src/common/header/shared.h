@@ -272,7 +272,7 @@ float BigFloat(float l);
 float LittleFloat(float l);
 
 void Swap_Init(void);
-char *va(char *format, ...);
+char *va(char *format, ...)  __attribute__ ((format (printf, 1, 2)));
 
 /* ============================================= */
 
@@ -306,6 +306,8 @@ extern int curtime; /* time returned by last Sys_Milliseconds */
 
 int Sys_Milliseconds(void);
 void Sys_Mkdir(char *path);
+qboolean Sys_IsDir(const char *path);
+qboolean Sys_IsFile(const char *path);
 
 /* large block stack allocation routines */
 void *Hunk_Begin(int maxsize);

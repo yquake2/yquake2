@@ -41,23 +41,30 @@
 #include "header/local.h"
 #include "header/vorbis.h"
 
-qboolean ogg_first_init = true; /* First initialization flag. */
-qboolean ogg_started = false;   /* Initialization flag. */
-int ogg_bigendian = 0;
-byte *ogg_buffer;				/* File buffer. */
-char **ogg_filelist;			/* List of Ogg Vorbis files. */
-char ovBuf[4096];               /* Buffer for sound. */
-int ogg_curfile;				/* Index of currently played file. */
-int ogg_numfiles;				/* Number of Ogg Vorbis files. */
-int ovSection;					/* Position in Ogg Vorbis file. */
-ogg_status_t ogg_status;		/* Status indicator. */
-cvar_t *ogg_check;				/* Check Ogg files or not. */
-cvar_t *ogg_sequence;			/* Sequence play indicator. */
-cvar_t *ogg_volume;				/* Music volume. */
-cvar_t *ogg_ignoretrack0;		/* Toggle track 0 playing */
-OggVorbis_File ovFile;			/* Ogg Vorbis file. */
-vorbis_info *ogg_info;			/* Ogg Vorbis file information */
-int ogg_numbufs;				/* Number of buffers for OpenAL */
+static qboolean ogg_first_init = true; /* First initialization flag. */
+static qboolean ogg_started = false;   /* Initialization flag. */
+static int ogg_bigendian = 0;
+static char ovBuf[4096];               /* Buffer for sound. */
+static int ogg_curfile;				/* Index of currently played file. */
+static int ovSection;					/* Position in Ogg Vorbis file. */
+static ogg_status_t ogg_status;		/* Status indicator. */
+static cvar_t *ogg_check;				/* Check Ogg files or not. */
+static cvar_t *ogg_sequence;			/* Sequence play indicator. */
+static cvar_t *ogg_volume;				/* Music volume. */
+static cvar_t *ogg_ignoretrack0;		/* Toggle track 0 playing */
+static OggVorbis_File ovFile;			/* Ogg Vorbis file. */
+static vorbis_info *ogg_info;			/* Ogg Vorbis file information */
+static int ogg_numbufs;				/* Number of buffers for OpenAL */
+
+enum { MAX_NUM_OGGTRACKS = 32 };
+static char* oggTracks[MAX_NUM_OGGTRACKS];
+static int oggMaxFileIndex;
+
+enum GameType {
+	other, // incl. baseq2
+	xatrix,
+	rogue
+};
 
 /*
  * Initialize the Ogg Vorbis subsystem.
@@ -102,24 +109,9 @@ OGG_Init(void)
 	Cmd_AddCommand("ogg_status", OGG_StatusCmd);
 	Cmd_AddCommand("ogg_stop", OGG_Stop);
 
-	/* Build list of files. */
-	ogg_numfiles = 0;
-
-	OGG_LoadFileList(); // FIXME: call whenever $game changes
-
-	/* Check if we have Ogg Vorbis files. */
-	if (ogg_numfiles <= 0)
-	{
-		Com_Printf("No Ogg Vorbis files found.\n");
-		ogg_started = true; /* For OGG_Shutdown(). */
-		OGG_Shutdown();
-		return;
-	}
-
 	/* Initialize variables. */
 	if (ogg_first_init)
 	{
-		ogg_buffer = NULL;
 		ogg_curfile = -1;
 		ogg_info = NULL;
 		ogg_status = STOP;
@@ -127,8 +119,6 @@ OGG_Init(void)
 	}
 
 	ogg_started = true;
-
-	Com_Printf("%d Ogg Vorbis files found.\n", ogg_numfiles);
 }
 
 /*
@@ -147,7 +137,15 @@ OGG_Shutdown(void)
 	OGG_Stop();
 
 	/* Free the list of files. */
-	FS_FreeList(ogg_filelist, ogg_numfiles + 1);
+	for(int i=0; i<MAX_NUM_OGGTRACKS; ++i)
+	{
+		if(oggTracks[i] != NULL)
+		{
+			free(oggTracks[i]);
+			oggTracks[i] = NULL;
+		}
+	}
+	oggMaxFileIndex = 0;
 
 	/* Remove console commands. */
 	Cmd_RemoveCommand("ogg_list");
@@ -161,217 +159,148 @@ OGG_Shutdown(void)
 }
 
 /*
- * Check if the file is a valid Ogg Vorbis file.
+ * The GOG version of Quake2 has the music tracks in music/TrackXX.ogg
+ * That music/ dir is next to baseq/ (not in it) and contains Track02.ogg to Track21.ogg
+ * There
+ * - Track02 to Track11 correspond to Quake2 (baseq2) CD tracks 2-11
+ * - Track12 to Track21 correspond to the Ground Zero (rogue) addon's CD tracks 2-11
+ * - The "The Reckoning" (xatrix) addon also had 11 tracks, that were a mix of the ones
+ *   from the main game (baseq2) and the rogue addon.
+ *   See below how the CD track is mapped to GOG track numbers
  */
-qboolean
-OGG_Check(char *name)
+static int getMappedGOGtrack(int track, enum GameType gameType)
 {
-	qboolean res;        /* Return value. */
-	byte *buffer;        /* File buffer. */
-	int size;            /* File size. */
-	OggVorbis_File ovf;  /* Ogg Vorbis file. */
+	if(track <= 0)
+		return 0;
 
-	if (ogg_check->value == 0)
+	if(track == 1)
+		return 0; // 1 is illegal (=> data track on CD), 0 means "no track"
+
+	if(gameType == other)
+		return track;
+	if(gameType == rogue)
+		return track + 10;
+
+	// apparently it's xatrix => map the track to the corresponding TrackXX.ogg from GOG
+	switch(track)
 	{
-		return true;
+		case  2: return 9;  // baseq2 9
+		case  3: return 13; // rogue  3
+		case  4: return 14; // rogue  4
+		case  5: return 7;  // baseq2 6
+		case  6: return 16; // rogue  6
+		case  7: return 2;  // baseq2 2
+		case  8: return 15; // rogue  5
+		case  9: return 3;  // baseq2 3
+		case 10: return 4;  // baseq2 4
+		case 11: return 18; // rogue  8
+		default:
+			return track;
 	}
-
-	res = false;
-
-	if ((size = FS_LoadFile(name, (void **)&buffer)) > 0)
-	{
-		if (ov_test(NULL, &ovf, (char *)buffer, size) == 0)
-		{
-			res = true;
-			ov_clear(&ovf);
-		}
-
-		FS_FreeFile(buffer);
-	}
-
-	return res;
 }
 
 /*
- * Load list of Ogg Vorbis files in "music".
+ * Load list of Ogg Vorbis files in "music/".
  */
 void
-OGG_LoadFileList(void) // FIXME: call whenever $game changes, rename: OGG_InitTrackList() or sth
+OGG_InitTrackList(void)
 {
-	char **list; /* List of .ogg files. */
-	int i;		 /* Loop counter. */
-	int j;		 /* Real position in list. */
-
-	/* Get file list. */
-	list = FS_ListFiles2(va("%s/*.ogg", OGG_DIR),
-		   	&ogg_numfiles, 0, 0);
-	ogg_numfiles--;
-
-	/* Check if there are posible Ogg files. */
-	if (list == NULL)
+	for(int i=0; i<MAX_NUM_OGGTRACKS; ++i)
 	{
-		return;
-	}
-
-	/* Allocate list of files. */
-	ogg_filelist = malloc(sizeof(char *) * ogg_numfiles);
-
-	/* Add valid Ogg Vorbis file to the list. */
-	for (i = 0, j = 0; i < ogg_numfiles; i++)
-	{
-		if (!OGG_Check(list[i]))
+		if(oggTracks[i] != NULL)
 		{
-			free(list[i]);
-			continue;
+			free(oggTracks[i]);
+			oggTracks[i] = NULL;
 		}
-
-		ogg_filelist[j++] = list[i];
 	}
 
-	/* Free the file list. */
-	free(list);
+	oggMaxFileIndex = 0;
 
-	/* Adjust the list size (remove 
-	   space for invalid music files). */
-	ogg_numfiles = j;
-	ogg_filelist = realloc(ogg_filelist, sizeof(char *) * ogg_numfiles);
-}
-
-/*
- * Play Ogg Vorbis file (with absolute or relative index).
- */
-qboolean
-OGG_Open(ogg_seek_t type, int offset)
-{
-	int size;     /* File size. */
-	int pos = -1; /* Absolute position. */
-	int res;      /* Error indicator. */
-
-	switch (type)
+	const char* potMusicDirs[3] = {0};
+	char gameMusicDir[MAX_QPATH] = {0}; // e.g. "xatrix/music"
+	cvar_t* gameCvar = Cvar_Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
+	if(gameCvar == NULL || gameCvar->string[0] == '\0' || strcmp(BASEDIRNAME, gameCvar->string) == 0)
 	{
-		case ABS:
+		// baseq2 => only 2 dirs in searchPath
+		potMusicDirs[0] = BASEDIRNAME "/music/"; // baseq2/music/
+		potMusicDirs[1] = "music/"; // global music dir (GOG)
+		potMusicDirs[2] = NULL;
+	}
+	else // some other mod/addon
+	{
+		snprintf(gameMusicDir, MAX_QPATH, "%s/music/", gameCvar->string);
+		potMusicDirs[0] = gameMusicDir; // $mod/music/
+		potMusicDirs[1] = "music/"; // global music dir (GOG)
+		potMusicDirs[2] = BASEDIRNAME "/music/"; // baseq2/music/
+	}
 
-			/* Absolute index. */
-			if ((offset < 0) || (offset >= ogg_numfiles))
-			{
-				Com_Printf("OGG_Open: %d out of range.\n", offset + 1);
-				return false;
-			}
-			else
-			{
-				pos = offset;
-			}
+	enum GameType gameType = other;
 
+	if(strcmp("xatrix", gameCvar->string) == 0)
+		gameType = xatrix;
+	else if(strcmp("rogue", gameCvar->string) == 0)
+		gameType = rogue;
+
+	for(int potMusicDirIdx = 0; potMusicDirIdx < sizeof(potMusicDirs)/sizeof(potMusicDirs[0]); ++potMusicDirIdx)
+	{
+		const char* musicDir = potMusicDirs[potMusicDirIdx];
+		if(musicDir == NULL)
 			break;
-		case REL:
-
-			/* Simulate a loopback. */
-			if ((ogg_curfile == -1) && (offset < 0))
+		for(const char* rawPath = FS_GetNextRawPath(NULL); rawPath != NULL; rawPath = FS_GetNextRawPath(rawPath))
+		{
+			char fullMusicPath[MAX_OSPATH] = {0};
+			snprintf(fullMusicPath, MAX_OSPATH, "%s/%s", rawPath, musicDir);
+			if(!Sys_IsDir(fullMusicPath))
 			{
-				offset++;
+				continue;
 			}
 
-			while (ogg_curfile + offset < 0)
+			char testFileName[MAX_OSPATH];
+
+			// the simple case (like before: $mod/music/02.ogg - 11.ogg or whatever)
+			snprintf(testFileName, MAX_OSPATH, "%s02.ogg", fullMusicPath);
+			if(Sys_IsFile(testFileName))
 			{
-				offset += ogg_numfiles;
+				oggTracks[2] = strdup(testFileName);
+				for(int i=3; i<MAX_NUM_OGGTRACKS; ++i)
+				{
+					snprintf(testFileName, MAX_OSPATH, "%s%02i.ogg", fullMusicPath, i);
+					if(Sys_IsFile(testFileName))
+					{
+						oggTracks[i] = strdup(testFileName);
+						oggMaxFileIndex = i;
+					}
+				}
+				return;
 			}
 
-			while (ogg_curfile + offset >= ogg_numfiles)
+			// the GOG case: music/Track02.ogg to Track21.ogg
+			int gogTrack = getMappedGOGtrack(8, gameType);
+			snprintf(testFileName, MAX_OSPATH, "%sTrack%02i.ogg", fullMusicPath, gogTrack);
+			if(Sys_IsFile(testFileName))
 			{
-				offset -= ogg_numfiles;
+				for(int i=2; i<MAX_NUM_OGGTRACKS; ++i)
+				{
+					int gogTrack = getMappedGOGtrack(i, gameType);
+					snprintf(testFileName, MAX_OSPATH, "%sTrack%02i.ogg", fullMusicPath, gogTrack);
+					if(Sys_IsFile(testFileName))
+					{
+						oggTracks[i] = strdup(testFileName);
+						oggMaxFileIndex = i;
+					}
+				}
+				return;
 			}
-
-			pos = ogg_curfile + offset;
-			break;
-	}
-
-	/* Check running music. */
-	if (ogg_status == PLAY)
-	{
-		if (ogg_curfile == pos)
-		{
-			return true;
-		}
-
-		else
-		{
-			OGG_Stop();
-		}
-	}
-
-	/* Find file. */
-	if ((size = FS_LoadFile(ogg_filelist[pos], (void **)&ogg_buffer)) == -1)
-	{
-		Com_Printf("OGG_Open: could not open %d (%s): %s.\n",
-				pos, ogg_filelist[pos], strerror(errno));
-		return false;
-	}
-
-	/* Open ogg vorbis file. */
-	if ((res = ov_open(NULL, &ovFile, (char *)ogg_buffer, size)) < 0)
-	{
-		Com_Printf("OGG_Open: '%s' is not a valid Ogg Vorbis file (error %i).\n",
-				ogg_filelist[pos], res); FS_FreeFile(ogg_buffer);
-		ogg_buffer = NULL;
-		return false;
-	}
-
-	ogg_info = ov_info(&ovFile, 0);
-
-	if (!ogg_info)
-	{
-		Com_Printf("OGG_Open: Unable to get stream information for %s.\n",
-				ogg_filelist[pos]);
-		ov_clear(&ovFile);
-		FS_FreeFile(ogg_buffer);
-		ogg_buffer = NULL;
-		return false;
-	}
-
-	/* Play file. */
-	ovSection = 0;
-	ogg_curfile = pos;
-	ogg_status = PLAY;
-
-	return true;
-}
-
-/*
- * Play Ogg Vorbis file (with name only).
- */
-qboolean
-OGG_OpenName(char *filename)
-{
-	char *name; /* File name. */
-	int i;		/* Loop counter. */
-
-	/* If the track name is '00', and ogg_ignoretrack0 is set to 0, stop playback */
-	if ((!strncmp(filename, "00", sizeof(char) * 3)) && ogg_ignoretrack0->value == 0)
-	{
-		OGG_PauseCmd();
-		return false;
-	}
-
-	name = va("%s/%s.ogg", OGG_DIR, filename);
-
-	for (i = 0; i < ogg_numfiles; i++)
-	{
-		if (strcmp(name, ogg_filelist[i]) == 0)
-		{
-			break;
 		}
 	}
 
-	if (i < ogg_numfiles)
-	{
-		return OGG_Open(ABS, i);
-	}
+	// if tracks have been found above, we would've returned there
+	Com_Printf("No Ogg Vorbis music tracks have been found, so there will be no music.\n");
 
-	else
-	{
-		Com_Printf("OGG_OpenName: '%s' not in the list.\n", filename);
-		return false;
-	}
+
+	// TODO: maybe shutdown ogg if nothing was found?
+	//       => need to reinit it if game changes and sth is found then
+
 }
 
 /*
@@ -394,8 +323,7 @@ OGG_Read(void)
 	if (res == 0)
 	{
 		OGG_Stop();
-		//OGG_Sequence();
-		OGG_Open(REL, 0);
+		OGG_PlayTrack(ogg_curfile);
 	}
 
 	return res;
@@ -423,12 +351,6 @@ OGG_Stop(void)
 	ogg_status = STOP;
 	ogg_info = NULL;
 	ogg_numbufs = 0;
-
-	if (ogg_buffer != NULL)
-	{
-		FS_FreeFile(ogg_buffer);
-		ogg_buffer = NULL;
-	}
 }
 
 /*
@@ -489,37 +411,117 @@ OGG_Stream(void)
 void
 OGG_ListCmd(void)
 {
-	int i;
+	int numFiles = 0;
 
-	for (i = 0; i < ogg_numfiles; i++)
+	for (int i = 2; i <= oggMaxFileIndex; i++)
 	{
-		Com_Printf("%d %s\n", i + 1, ogg_filelist[i]);
+		if(oggTracks[i])
+		{
+			Com_Printf("%d %s\n", i, oggTracks[i]);
+			++numFiles;
+		}
+		else
+		{
+			Com_Printf("%d <none>\n", i);
+		}
 	}
 
-	Com_Printf("%d Ogg Vorbis files.\n", ogg_numfiles);
+	Com_Printf("%d Ogg Vorbis files.\n", oggMaxFileIndex+1);
 }
 
-// TODO: document
+/*
+ * play the ogg file that corresponds to the CD track with the given number
+ */
 void
-OGG_PlayTrack(int track)
+OGG_PlayTrack(int trackNo)
 {
-	if(track == 0)
+	if(trackNo == 0)
 	{
 		if(ogg_ignoretrack0->value == 0)
 		{
 			OGG_PauseCmd();
+			return;
 		}
 	}
-	else if(track == -1) // randon track
+	else if(trackNo == -1) // random track
 	{
-		OGG_Open(ABS, randk() % ogg_numfiles);
+		if(oggMaxFileIndex >= 0)
+		{
+			trackNo = randk() % (oggMaxFileIndex+1);
+			int retries = 100;
+			while(oggTracks[trackNo] == NULL && retries-- > 0)
+			{
+				trackNo = randk() % (oggMaxFileIndex+1);
+			}
+		}
 	}
-	else
+
+	if(oggMaxFileIndex == 0)
 	{
-		// TODO: support other naming schemes etc
-		char name[3] = { '0' + track / 10, '0' + track % 10, '\0' };
-		OGG_OpenName(name);
+		return; // no ogg files at all, ignore this silently instead of printing warnings all the time
 	}
+
+	if ((trackNo < 2) || (trackNo > oggMaxFileIndex))
+	{
+		Com_Printf("OGG_PlayTrack: %d out of range.\n", trackNo);
+		return;
+	}
+
+	if(oggTracks[trackNo] == NULL)
+	{
+		Com_Printf("OGG_PlayTrack: Don't have a .ogg file for track %d\n", trackNo);
+	}
+
+	/* Check running music. */
+	if (ogg_status == PLAY)
+	{
+		if (ogg_curfile == trackNo)
+		{
+			return;
+		}
+		else
+		{
+			OGG_Stop();
+		}
+	}
+
+	if(oggTracks[trackNo] == NULL)
+	{
+		Com_Printf("OGG_PlayTrack: I don't have a file for track %d!\n", trackNo);
+		return;
+	}
+
+	/* Open ogg vorbis file. */
+	FILE* f = Q_fopen(oggTracks[trackNo], "rb");
+	if(f == NULL)
+	{
+		Com_Printf("OGG_PlayTrack: could not open file %s for track %d: %s.\n", oggTracks[trackNo], trackNo, strerror(errno));
+
+		oggTracks[trackNo] = NULL;
+		return;
+	}
+
+	int res = ov_open(f, &ovFile, NULL, 0);
+	if (res < 0)
+	{
+		Com_Printf("OGG_PlayTrack: '%s' is not a valid Ogg Vorbis file (error %i).\n", oggTracks[trackNo], res);
+		fclose(f);
+		return;
+	}
+
+	ogg_info = ov_info(&ovFile, 0);
+
+	if (!ogg_info)
+	{
+		Com_Printf("OGG_PlayTrack: Unable to get stream information for %s.\n", oggTracks[trackNo]);
+		ov_clear(&ovFile); // Note: this will also close f
+		return;
+	}
+
+	/* Play file. */
+	ovSection = 0;
+	ogg_curfile = trackNo;
+	ogg_status = PLAY;
 }
 
 /*
@@ -548,14 +550,28 @@ OGG_PauseCmd(void)
 void
 OGG_PlayCmd(void)
 {
-	if (Cmd_Argc() < 2)
+	if (Cmd_Argc() < 1)
 	{
-		Com_Printf("Usage: ogg_play {filename | #n | ? | >n | <n}\n");
+		Com_Printf("Usage: ogg_play [n]\n");
 		return;
 	}
 
-	//OGG_ParseCmd(Cmd_Argv(1));
-	// TODO: selber parsen, nur noch track nummer oder garnix anbieten
+	if (Cmd_Argc() > 1)
+	{
+		int track = atoi(Cmd_Argv(1));
+		if (track < 2 || track > oggMaxFileIndex)
+		{
+			Com_Printf("invalid track %s, must be an number between 2 and %d\n", Cmd_Argv(1), oggMaxFileIndex);
+		}
+		else
+		{
+			OGG_PlayTrack(track);
+		}
+	}
+	else if (ogg_status == PAUSE) // ogg_play without an argument means resume
+	{
+		ogg_status = PLAY;
+	}
 }
 
 /*
@@ -580,13 +596,13 @@ OGG_StatusCmd(void)
 	{
 		case PLAY:
 			Com_Printf("Playing file %d (%s) at %0.2f seconds.\n",
-				ogg_curfile + 1, ogg_filelist[ogg_curfile],
+				ogg_curfile, oggTracks[ogg_curfile],
 				ov_time_tell(&ovFile));
 			break;
 
 		case PAUSE:
 			Com_Printf("Paused file %d (%s) at %0.2f seconds.\n",
-				ogg_curfile + 1, ogg_filelist[ogg_curfile],
+				ogg_curfile, oggTracks[ogg_curfile],
 				ov_time_tell(&ovFile));
 			break;
 
@@ -598,7 +614,7 @@ OGG_StatusCmd(void)
 			else
 			{
 				Com_Printf("Stopped file %d (%s).\n",
-						ogg_curfile + 1, ogg_filelist[ogg_curfile]);
+						ogg_curfile, oggTracks[ogg_curfile]);
 			}
 
 			break;

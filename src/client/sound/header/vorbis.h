@@ -48,10 +48,6 @@ typedef enum
 
 void OGG_Init(void);
 void OGG_Shutdown(void);
-qboolean OGG_Check(char *name);
-void OGG_LoadFileList(void);
-qboolean OGG_Open(ogg_seek_t type, int offset);
-qboolean OGG_OpenName(char *filename);
 int OGG_Read(void);
 void OGG_Stop(void);
 void OGG_Stream(void);
@@ -64,7 +60,6 @@ void OGG_PauseCmd(void);
 void OGG_PlayCmd(void);
 void OGG_PlayTrack(int track);
 void OGG_ResumeCmd(void);
-void OGG_SeekCmd(void);
 void OGG_StatusCmd(void);
 
 #endif

@@ -558,16 +558,13 @@ FS_Read(void *buffer, int size, fileHandle_t f)
 			else
 			{
 				/* Already tried once. */
-				Com_Error(ERR_FATAL,
-						va("FS_Read: 0 bytes read from '%s'", handle->name));
+				Com_Error(ERR_FATAL, "FS_Read: 0 bytes read from '%s'", handle->name);
 				return size - remaining;
 			}
 		}
 		else if (r == -1)
 		{
-			Com_Error(ERR_FATAL,
-					"FS_Read: -1 bytes read from '%s'",
-					handle->name);
+			Com_Error(ERR_FATAL, "FS_Read: -1 bytes read from '%s'", handle->name);
 		}
 
 		remaining -= r;
@@ -1469,6 +1466,10 @@ void FS_BuildGenericSearchPath(void) {
 	Sys_Mkdir(path);
 }
 
+// FS_BuildGameSpecificSearchPath() seems like the best place to update the list of ogg tracks
+// (it depends on the current mod)
+extern void OGG_InitTrackList(void);
+
 void
 FS_BuildGameSpecificSearchPath(char *dir)
 {
@@ -1574,6 +1575,12 @@ FS_BuildGameSpecificSearchPath(char *dir)
 
 	// the gamedir has changed, so read in the corresponding configs
 	Qcommon_ExecConfigs(false);
+
+#ifndef DEDICATED_ONLY
+	// this function is called whenever the game cvar changes => the player wants to switch to another mod
+	// in that case the list of music tracks needs to be loaded again (=> tracks are possibly from the new mod dir)
+	OGG_InitTrackList();
+#endif
 }
 
 // --------
@@ -1665,6 +1672,13 @@ FS_InitFilesystem(void)
 	{
 		FS_BuildGameSpecificSearchPath(fs_gamedirvar->string);
 	}
+#ifndef DEDICATED_ONLY
+	else
+	{
+		// no mod, but we still need to get the list of OGG tracks for background music
+		OGG_InitTrackList();
+	}
+#endif
 
 	// Debug output
 	Com_Printf("Using '%s' for writing.\n", fs_gamedir);
