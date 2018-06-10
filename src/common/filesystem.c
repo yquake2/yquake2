@@ -26,7 +26,11 @@
  */
 
 #include "header/common.h"
-#include "../common/header/glob.h"
+#include "header/glob.h"
+
+#ifdef OGG
+#include "../client/sound/header/vorbis.h"
+#endif
 
 #ifdef ZIP
  #include "unzip/unzip.h"
@@ -1466,10 +1470,6 @@ void FS_BuildGenericSearchPath(void) {
 	Sys_Mkdir(path);
 }
 
-// FS_BuildGameSpecificSearchPath() seems like the best place to update the list of ogg tracks
-// (it depends on the current mod)
-extern void OGG_InitTrackList(void);
-
 void
 FS_BuildGameSpecificSearchPath(char *dir)
 {
@@ -1576,7 +1576,7 @@ FS_BuildGameSpecificSearchPath(char *dir)
 	// the gamedir has changed, so read in the corresponding configs
 	Qcommon_ExecConfigs(false);
 
-#ifndef DEDICATED_ONLY
+#if !defined(DEDICATED_ONLY) && defined(OGG)
 	// this function is called whenever the game cvar changes => the player wants to switch to another mod
 	// in that case the list of music tracks needs to be loaded again (=> tracks are possibly from the new mod dir)
 	OGG_InitTrackList();
@@ -1672,7 +1672,7 @@ FS_InitFilesystem(void)
 	{
 		FS_BuildGameSpecificSearchPath(fs_gamedirvar->string);
 	}
-#ifndef DEDICATED_ONLY
+#if !defined(DEDICATED_ONLY) && defined(OGG)
 	else
 	{
 		// no mod, but we still need to get the list of OGG tracks for background music
