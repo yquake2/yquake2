@@ -41,16 +41,17 @@
 #include "header/local.h"
 #include "header/vorbis.h"
 
-static char ovBuf[4096];             /* Buffer for sound. */
-static cvar_t *ogg_ignoretrack0;      /* Toggle track 0 playing */
-static cvar_t *ogg_volume;            /* Music volume. */
-static int ogg_curfile;              /* Index of currently played file. */
-static int ogg_numbufs;              /* Number of buffers for OpenAL */
-static int ovSection;                /* Position in Ogg Vorbis file. */
-static ogg_status_t ogg_status;       /* Status indicator. */
-static OggVorbis_File ovFile;         /* Ogg Vorbis file. */
-static qboolean ogg_started = false; /* Initialization flag. */
-static vorbis_info *ogg_info;         /* Ogg Vorbis file information */
+static char ovBuf[4096];        /* Buffer for sound. */
+static cvar_t *cd_shuffle;      /* Shuffle playback */
+static cvar_t *ogg_ignoretrack0; /* Toggle track 0 playing */
+static cvar_t *ogg_volume;       /* Music volume. */
+static int ogg_curfile;          /* Index of currently played file. */
+static int ogg_numbufs;          /* Number of buffers for OpenAL */
+static int ovSection;            /* Position in Ogg Vorbis file. */
+static ogg_status_t ogg_status;  /* Status indicator. */
+static OggVorbis_File ovFile;    /* Ogg Vorbis file. */
+static qboolean ogg_started;     /* Initialization flag. */
+static vorbis_info *ogg_info;    /* Ogg Vorbis file information */
 
 enum { MAX_NUM_OGGTRACKS = 32 };
 static char* oggTracks[MAX_NUM_OGGTRACKS];
@@ -286,6 +287,7 @@ OGG_Stream(void)
 void
 OGG_PlayTrack(int trackNo)
 {
+	// Track 0 means "stop music".
 	if(trackNo == 0)
 	{
 		if(ogg_ignoretrack0->value == 0)
@@ -294,7 +296,9 @@ OGG_PlayTrack(int trackNo)
 			return;
 		}
 	}
-	else if(trackNo == -1) // random track
+
+	// Player has requested shuffle playback.
+	if(cd_shuffle->value)
 	{
 		if(oggMaxFileIndex >= 0)
 		{
@@ -546,8 +550,9 @@ OGG_Init(void)
 	}
 
 	// Cvars
-	ogg_volume = Cvar_Get("ogg_volume", "0.7", CVAR_ARCHIVE);
+	cd_shuffle = Cvar_Get("cd_shuffle", "0", CVAR_ARCHIVE);
 	ogg_ignoretrack0 = Cvar_Get("ogg_ignoretrack0", "0", CVAR_ARCHIVE);
+	ogg_volume = Cvar_Get("ogg_volume", "0.7", CVAR_ARCHIVE);
 
 	// Commands
 	Cmd_AddCommand("ogg", OGG_Cmd);
