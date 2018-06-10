@@ -1059,10 +1059,6 @@ S_Init(void)
 	Cmd_AddCommand("stopsound", S_StopAllSounds);
 	Cmd_AddCommand("soundlist", S_SoundList);
 	Cmd_AddCommand("soundinfo", S_SoundInfo_f);
-#ifdef OGG
-	Cmd_AddCommand("ogg_init", OGG_Init);
-	Cmd_AddCommand("ogg_shutdown", OGG_Shutdown);
-#endif
 
 #if USE_OPENAL
 	cv = Cvar_Get("s_openal", "1", CVAR_ARCHIVE);
@@ -1169,9 +1165,5 @@ S_Shutdown(void)
 	Cmd_RemoveCommand("soundinfo");
 	Cmd_RemoveCommand("play");
 	Cmd_RemoveCommand("stopsound");
-#ifdef OGG
-	Cmd_RemoveCommand("ogg_init");
-	Cmd_RemoveCommand("ogg_shutdown");
-#endif
 }
 

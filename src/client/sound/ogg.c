@@ -65,77 +65,6 @@ enum GameType {
 // --------
 
 /*
- * Initialize the Ogg Vorbis subsystem.
- */
-void
-OGG_Init(void)
-{
-	cvar_t *ogg_enabled = Cvar_Get("ogg_enable", "1", CVAR_ARCHIVE);
-
-	if (ogg_enabled->value != 1)
-	{
-		return;
-	}
-
-	// Cvars
-	ogg_volume = Cvar_Get("ogg_volume", "0.7", CVAR_ARCHIVE);
-	ogg_ignoretrack0 = Cvar_Get("ogg_ignoretrack0", "0", CVAR_ARCHIVE);
-
-	// Commands
-	Cmd_AddCommand("ogg_list", OGG_ListCmd);
-	Cmd_AddCommand("ogg_pause", OGG_PauseCmd);
-	Cmd_AddCommand("ogg_play", OGG_PlayCmd);
-	Cmd_AddCommand("ogg_resume", OGG_ResumeCmd);
-	Cmd_AddCommand("ogg_status", OGG_StatusCmd);
-	Cmd_AddCommand("ogg_stop", OGG_Stop);
-
-	// Global bariables
-	ogg_curfile = -1;
-	ogg_info = NULL;
-	ogg_status = STOP;
-
-	ogg_started = true;
-}
-
-/*
- * Shutdown the Ogg Vorbis subsystem.
- */
-void
-OGG_Shutdown(void)
-{
-	if (!ogg_started)
-	{
-		return;
-	}
-
-	// Music must be stopped.
-	OGG_Stop();
-
-	// Free file lsit.
-	for(int i=0; i<MAX_NUM_OGGTRACKS; ++i)
-	{
-		if(oggTracks[i] != NULL)
-		{
-			free(oggTracks[i]);
-			oggTracks[i] = NULL;
-		}
-	}
-	oggMaxFileIndex = 0;
-
-	// Remove console commands
-	Cmd_RemoveCommand("ogg_list");
-	Cmd_RemoveCommand("ogg_pause");
-	Cmd_RemoveCommand("ogg_play");
-	Cmd_RemoveCommand("ogg_resume");
-	Cmd_RemoveCommand("ogg_status");
-	Cmd_RemoveCommand("ogg_stop");
-
-	ogg_started = false;
-}
-
-// --------
-
-/*
  * The GOG version of Quake2 has the music tracks in music/TrackXX.ogg
  * That music/ dir is next to baseq/ (not in it) and contains Track02.ogg to Track21.ogg
  * There
@@ -361,7 +290,7 @@ OGG_PlayTrack(int trackNo)
 	{
 		if(ogg_ignoretrack0->value == 0)
 		{
-			OGG_PauseCmd();
+			OGG_Stop();
 			return;
 		}
 	}
@@ -449,6 +378,56 @@ OGG_PlayTrack(int trackNo)
 // ----
 
 /*
+ * List Ogg Vorbis files and print current playback state.
+ */
+void
+OGG_Info(void)
+{
+	Com_Printf("Tracks:\n");
+	int numFiles = 0;
+
+	for (int i = 2; i <= oggMaxFileIndex; i++)
+	{
+		if(oggTracks[i])
+		{
+			Com_Printf(" - %02d %s\n", i, oggTracks[i]);
+			++numFiles;
+		}
+		else
+		{
+			Com_Printf(" - %02d <none>\n", i);
+		}
+	}
+
+	Com_Printf("Total: %d Ogg/Vorbis files.\n", oggMaxFileIndex+1);
+
+	switch (ogg_status)
+	{
+		case PLAY:
+			Com_Printf("State: Playing file %d (%s) at %0.2f seconds.\n",
+			           ogg_curfile, oggTracks[ogg_curfile], ov_time_tell(&ovFile));
+			break;
+
+		case PAUSE:
+			Com_Printf("State: Paused file %d (%s) at %0.2f seconds.\n",
+			           ogg_curfile, oggTracks[ogg_curfile], ov_time_tell(&ovFile));
+			break;
+
+		case STOP:
+			if (ogg_curfile == -1)
+			{
+				Com_Printf("State: Stopped.\n");
+			}
+			else
+			{
+				Com_Printf("State: Stopped file %d (%s).\n", ogg_curfile, oggTracks[ogg_curfile]);
+			}
+
+			break;
+	}
+}
+
+/*
  * Stop playing the current file.
  */
 void
@@ -473,124 +452,143 @@ OGG_Stop(void)
 }
 
 /*
- * List Ogg Vorbis files.
+ * Pause or resume playback.
  */
 void
-OGG_ListCmd(void)
-{
-	int numFiles = 0;
-
-	for (int i = 2; i <= oggMaxFileIndex; i++)
-	{
-		if(oggTracks[i])
-		{
-			Com_Printf("%d %s\n", i, oggTracks[i]);
-			++numFiles;
-		}
-		else
-		{
-			Com_Printf("%d <none>\n", i);
-		}
-	}
-
-	Com_Printf("%d Ogg Vorbis files.\n", oggMaxFileIndex+1);
-}
-
-/*
- * Pause current song.
- */
-void
-OGG_PauseCmd(void)
+OGG_TogglePlayback(void)
 {
 	if (ogg_status == PLAY)
 	{
 		ogg_status = PAUSE;
 		ogg_numbufs = 0;
-	}
 
 #ifdef USE_OPENAL
-	if (sound_started == SS_OAL)
-	{
-		AL_UnqueueRawSamples();
-	}
+		if (sound_started == SS_OAL)
+		{
+			AL_UnqueueRawSamples();
+		}
 #endif
+	}
+	else if (ogg_status == PAUSE)
+	{
+		ogg_status = PLAY;
+	}
 }
 
 /*
- * Play control.
+ * The 'ogg' cmd. Gives some control and information about the playback state.
  */
 void
-OGG_PlayCmd(void)
+OGG_Cmd(void)
 {
-	if (Cmd_Argc() < 1)
+	if (Cmd_Argc() < 2)
 	{
-		Com_Printf("Usage: ogg_play [n]\n");
+		Com_Printf("ogg <command> : Control Ogg/Vorbis playback\n");
 		return;
 	}
 
-	if (Cmd_Argc() > 1)
+	if (Q_stricmp(Cmd_Argv(1), "info") == 0)
 	{
-		int track = atoi(Cmd_Argv(1));
+		OGG_Info();
+	}
+	else if (Q_stricmp(Cmd_Argv(1), "play") == 0)
+	{
+		if (Cmd_Argc() != 3)
+		{
+			Com_Printf("ogg play <track> : Play <track>");
+			return;
+		}
+
+		int track = (int)strtol(Cmd_Argv(2), NULL, 10);
+
 		if (track < 2 || track > oggMaxFileIndex)
 		{
 			Com_Printf("invalid track %s, must be an number between 2 and %d\n", Cmd_Argv(1), oggMaxFileIndex);
+			return;
 		}
 		else
 		{
 			OGG_PlayTrack(track);
 		}
 	}
-	else if (ogg_status == PAUSE) // ogg_play without an argument means resume
+	else if (Q_stricmp(Cmd_Argv(1), "stop") == 0)
 	{
-		ogg_status = PLAY;
+		OGG_Stop();
+	}
+	else if (Q_stricmp(Cmd_Argv(1), "toggle") == 0)
+	{
+		OGG_TogglePlayback();
+	}
+	else
+	{
+		Com_Printf("Unknown sub command %s\n\n", Cmd_Argv(1));
+		Com_Printf("Commands:\n");
+		Com_Printf(" - info: Print informations about playback state and tracks\n");
+		Com_Printf(" - play <track>: Play track number <track>\n");
+		Com_Printf(" - stop: Stop playback\n");
+		Com_Printf(" - toggle: Toggle pause\n");
 	}
 }
 
+// --------
+
 /*
- * Resume current song.
+ * Initialize the Ogg Vorbis subsystem.
  */
 void
-OGG_ResumeCmd(void) // TODO: OGG_TogglePlay?
+OGG_Init(void)
 {
-	if (ogg_status == PAUSE)
+	cvar_t *ogg_enabled = Cvar_Get("ogg_enable", "1", CVAR_ARCHIVE);
+
+	if (ogg_enabled->value != 1)
 	{
-		ogg_status = PLAY;
+		return;
 	}
+
+	// Cvars
+	ogg_volume = Cvar_Get("ogg_volume", "0.7", CVAR_ARCHIVE);
+	ogg_ignoretrack0 = Cvar_Get("ogg_ignoretrack0", "0", CVAR_ARCHIVE);
+
+	// Commands
+	Cmd_AddCommand("ogg", OGG_Cmd);
+
+	// Global bariables
+	ogg_curfile = -1;
+	ogg_info = NULL;
+	ogg_status = STOP;
+
+	ogg_started = true;
 }
 
 /*
- * Display status.
+ * Shutdown the Ogg Vorbis subsystem.
  */
 void
-OGG_StatusCmd(void)
+OGG_Shutdown(void)
 {
-	switch (ogg_status)
+	if (!ogg_started)
 	{
-		case PLAY:
-			Com_Printf("Playing file %d (%s) at %0.2f seconds.\n",
-				ogg_curfile, oggTracks[ogg_curfile],
-				ov_time_tell(&ovFile));
-			break;
-
-		case PAUSE:
-			Com_Printf("Paused file %d (%s) at %0.2f seconds.\n",
-				ogg_curfile, oggTracks[ogg_curfile],
-				ov_time_tell(&ovFile));
-			break;
-
-		case STOP:
-			if (ogg_curfile == -1)
-			{
-				Com_Printf("Stopped.\n");
-			}
-			else
-			{
-				Com_Printf("Stopped file %d (%s).\n",
-						ogg_curfile, oggTracks[ogg_curfile]);
-			}
-
-			break;
+		return;
 	}
+
+	// Music must be stopped.
+	OGG_Stop();
+
+	// Free file lsit.
+	for(int i=0; i<MAX_NUM_OGGTRACKS; ++i)
+	{
+		if(oggTracks[i] != NULL)
+		{
+			free(oggTracks[i]);
+			oggTracks[i] = NULL;
+		}
+	}
+	oggMaxFileIndex = 0;
+
+	// Remove console commands
+	Cmd_RemoveCommand("ogg");
+
+	ogg_started = false;
 }
 
 #endif  /* OGG */
