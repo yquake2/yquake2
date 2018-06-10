@@ -505,14 +505,6 @@ Sys_GetHomeDir(void)
 	static char gdir[MAX_OSPATH];
 	WCHAR uprofile[MAX_PATH];
 
-	/* The following lines implement a horrible
-	   hack to connect the UTF-16 WinAPI to the
-	   ASCII Quake II. While this should work in
-	   most cases, it'll fail if the "Windows to
-	   DOS filename translation" is switched off.
-	   In that case the function will return NULL
-	   and no homedir is used. */
-
 	/* Get the path to "My Documents" directory */
 	SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, 0, uprofile);
 

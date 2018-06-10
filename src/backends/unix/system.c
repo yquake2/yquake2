@@ -467,7 +467,6 @@ Sys_IsFile(const char *path)
 	return false;
 }
 
-
 char *
 Sys_GetHomeDir(void)
 {
