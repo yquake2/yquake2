@@ -29,32 +29,28 @@
 
 #ifdef OGG
 
-#define OV_EXCLUDE_STATIC_CALLBACKS
-
 #ifndef _WIN32
 #include <sys/time.h>
 #endif
+
 #include <errno.h>
+
 #include <vorbis/vorbisfile.h>
 
 #include "../header/client.h"
 #include "header/local.h"
 #include "header/vorbis.h"
 
-static qboolean ogg_first_init = true; /* First initialization flag. */
-static qboolean ogg_started = false;   /* Initialization flag. */
-static int ogg_bigendian = 0;
-static char ovBuf[4096];               /* Buffer for sound. */
-static int ogg_curfile;				/* Index of currently played file. */
-static int ovSection;					/* Position in Ogg Vorbis file. */
-static ogg_status_t ogg_status;		/* Status indicator. */
-static cvar_t *ogg_check;				/* Check Ogg files or not. */
-static cvar_t *ogg_sequence;			/* Sequence play indicator. */
-static cvar_t *ogg_volume;				/* Music volume. */
-static cvar_t *ogg_ignoretrack0;		/* Toggle track 0 playing */
-static OggVorbis_File ovFile;			/* Ogg Vorbis file. */
-static vorbis_info *ogg_info;			/* Ogg Vorbis file information */
-static int ogg_numbufs;				/* Number of buffers for OpenAL */
+static char ovBuf[4096];             /* Buffer for sound. */
+static cvar_t *ogg_ignoretrack0;      /* Toggle track 0 playing */
+static cvar_t *ogg_volume;            /* Music volume. */
+static int ogg_curfile;              /* Index of currently played file. */
+static int ogg_numbufs;              /* Number of buffers for OpenAL */
+static int ovSection;                /* Position in Ogg Vorbis file. */
+static ogg_status_t ogg_status;       /* Status indicator. */
+static OggVorbis_File ovFile;         /* Ogg Vorbis file. */
+static qboolean ogg_started = false; /* Initialization flag. */
+static vorbis_info *ogg_info;         /* Ogg Vorbis file information */
 
 enum { MAX_NUM_OGGTRACKS = 32 };
 static char* oggTracks[MAX_NUM_OGGTRACKS];
@@ -66,42 +62,26 @@ enum GameType {
 	rogue
 };
 
+// --------
+
 /*
  * Initialize the Ogg Vorbis subsystem.
  */
 void
 OGG_Init(void)
 {
-	cvar_t *cv; /* Cvar pointer. */
+	cvar_t *ogg_enabled = Cvar_Get("ogg_enable", "1", CVAR_ARCHIVE);
 
-	if (ogg_started)
+	if (ogg_enabled->value != 1)
 	{
 		return;
 	}
 
-	Com_Printf("Starting Ogg Vorbis.\n");
-
-	/* Skip initialization if disabled. */
-	cv = Cvar_Get("ogg_enable", "1", CVAR_ARCHIVE);
-
-	if (cv->value != 1)
-	{
-		Com_Printf("Ogg Vorbis not initializing.\n");
-		return;
-	}
-
-	if (bigendien == true)
-	{
-		ogg_bigendian = 1;
-	}
-
-	/* Cvars. */
-	ogg_check = Cvar_Get("ogg_check", "0", CVAR_ARCHIVE);
-	ogg_sequence = Cvar_Get("ogg_sequence", "loop", CVAR_ARCHIVE);
+	// Cvars
 	ogg_volume = Cvar_Get("ogg_volume", "0.7", CVAR_ARCHIVE);
 	ogg_ignoretrack0 = Cvar_Get("ogg_ignoretrack0", "0", CVAR_ARCHIVE);
 
-	/* Console commands. */
+	// Commands
 	Cmd_AddCommand("ogg_list", OGG_ListCmd);
 	Cmd_AddCommand("ogg_pause", OGG_PauseCmd);
 	Cmd_AddCommand("ogg_play", OGG_PlayCmd);
@@ -109,14 +89,10 @@ OGG_Init(void)
 	Cmd_AddCommand("ogg_status", OGG_StatusCmd);
 	Cmd_AddCommand("ogg_stop", OGG_Stop);
 
-	/* Initialize variables. */
-	if (ogg_first_init)
-	{
-		ogg_curfile = -1;
-		ogg_info = NULL;
-		ogg_status = STOP;
-		ogg_first_init = false;
-	}
+	// Global bariables
+	ogg_curfile = -1;
+	ogg_info = NULL;
+	ogg_status = STOP;
 
 	ogg_started = true;
 }
@@ -132,11 +108,10 @@ OGG_Shutdown(void)
 		return;
 	}
 
-	Com_Printf("Shutting down Ogg Vorbis.\n");
-
+	// Music must be stopped.
 	OGG_Stop();
 
-	/* Free the list of files. */
+	// Free file lsit.
 	for(int i=0; i<MAX_NUM_OGGTRACKS; ++i)
 	{
 		if(oggTracks[i] != NULL)
@@ -147,7 +122,7 @@ OGG_Shutdown(void)
 	}
 	oggMaxFileIndex = 0;
 
-	/* Remove console commands. */
+	// Remove console commands
 	Cmd_RemoveCommand("ogg_list");
 	Cmd_RemoveCommand("ogg_pause");
 	Cmd_RemoveCommand("ogg_play");
@@ -157,6 +132,8 @@ OGG_Shutdown(void)
 
 	ogg_started = false;
 }
+
+// --------
 
 /*
  * The GOG version of Quake2 has the music tracks in music/TrackXX.ogg
@@ -296,61 +273,28 @@ OGG_InitTrackList(void)
 
 	// if tracks have been found above, we would've returned there
 	Com_Printf("No Ogg Vorbis music tracks have been found, so there will be no music.\n");
-
-
-	// TODO: maybe shutdown ogg if nothing was found?
-	//       => need to reinit it if game changes and sth is found then
-
 }
+
+// --------
 
 /*
  * Play a portion of the currently opened file.
  */
-int
+void
 OGG_Read(void)
 {
-	int res; /* Number of bytes read. */
+	long read_bytes = ov_read(&ovFile, ovBuf, sizeof(ovBuf), bigendien, OGG_SAMPLEWIDTH, 1, &ovSection);
 
-	/* Read and resample. */
-	res = ov_read(&ovFile, ovBuf, sizeof(ovBuf),
-			ogg_bigendian, OGG_SAMPLEWIDTH, 1,
-			&ovSection);
-	S_RawSamples(res / (OGG_SAMPLEWIDTH * ogg_info->channels),
-			ogg_info->rate, OGG_SAMPLEWIDTH, ogg_info->channels,
-			(byte *)ovBuf, ogg_volume->value);
-
-	/* Check for end of file. */
-	if (res == 0)
+	if (read_bytes > 0)
+	{
+		S_RawSamples(read_bytes / (OGG_SAMPLEWIDTH * ogg_info->channels), ogg_info->rate, OGG_SAMPLEWIDTH,
+		             ogg_info->channels, (byte *) ovBuf, ogg_volume->value);
+	}
+	else
 	{
 		OGG_Stop();
 		OGG_PlayTrack(ogg_curfile);
 	}
-
-	return res;
-}
-
-/*
- * Stop playing the current file.
- */
-void
-OGG_Stop(void)
-{
-	if (ogg_status == STOP)
-	{
-		return;
-	}
-
-#ifdef USE_OPENAL
-	if (sound_started == SS_OAL)
-	{
-		AL_UnqueueRawSamples();
-	}
-#endif
-
-	ov_clear(&ovFile);
-	ogg_status = STOP;
-	ogg_info = NULL;
-	ogg_numbufs = 0;
 }
 
 /*
@@ -401,33 +345,11 @@ OGG_Stream(void)
 					OGG_Read();
 				}
 			}
-		} /* using SDL */
-	} /* ogg_status == PLAY */
-}
-
-/*
- * List Ogg Vorbis files.
- */
-void
-OGG_ListCmd(void)
-{
-	int numFiles = 0;
-
-	for (int i = 2; i <= oggMaxFileIndex; i++)
-	{
-		if(oggTracks[i])
-		{
-			Com_Printf("%d %s\n", i, oggTracks[i]);
-			++numFiles;
-		}
-		else
-		{
-			Com_Printf("%d <none>\n", i);
 		}
 	}
-
-	Com_Printf("%d Ogg Vorbis files.\n", oggMaxFileIndex+1);
 }
+
+// --------
 
 /*
  * play the ogg file that corresponds to the CD track with the given number
@@ -522,6 +444,56 @@ OGG_PlayTrack(int trackNo)
 	ovSection = 0;
 	ogg_curfile = trackNo;
 	ogg_status = PLAY;
+}
+
+// ----
+
+/*
+ * Stop playing the current file.
+ */
+void
+OGG_Stop(void)
+{
+	if (ogg_status == STOP)
+	{
+		return;
+	}
+
+#ifdef USE_OPENAL
+	if (sound_started == SS_OAL)
+	{
+		AL_UnqueueRawSamples();
+	}
+#endif
+
+	ov_clear(&ovFile);
+	ogg_status = STOP;
+	ogg_info = NULL;
+	ogg_numbufs = 0;
+}
+
+/*
+ * List Ogg Vorbis files.
+ */
+void
+OGG_ListCmd(void)
+{
+	int numFiles = 0;
+
+	for (int i = 2; i <= oggMaxFileIndex; i++)
+	{
+		if(oggTracks[i])
+		{
+			Com_Printf("%d %s\n", i, oggTracks[i]);
+			++numFiles;
+		}
+		else
+		{
+			Com_Printf("%d <none>\n", i);
+		}
+	}
+
+	Com_Printf("%d Ogg Vorbis files.\n", oggMaxFileIndex+1);
 }
 
 /*

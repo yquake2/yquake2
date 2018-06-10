@@ -48,7 +48,7 @@ typedef enum
 
 void OGG_Init(void);
 void OGG_Shutdown(void);
-int OGG_Read(void);
+void OGG_Read(void);
 void OGG_Stop(void);
 void OGG_Stream(void);
 void S_RawSamplesVol(int samples, int rate, int width,
