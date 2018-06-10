@@ -41,17 +41,10 @@ typedef enum
 
 void OGG_Init(void);
 void OGG_PlayTrack(int track);
-void OGG_Shutdown(void);
 void OGG_Read(void);
+void OGG_Shutdown(void);
 void OGG_Stop(void);
 void OGG_Stream(void);
-
-/* Console commands. */
-void OGG_PauseCmd(void);
-void OGG_PlayCmd(void);
-void OGG_PlayTrack(int track);
-void OGG_ResumeCmd(void);
-void OGG_StatusCmd(void);
 
 #endif
 #endif

@@ -56,7 +56,7 @@ enum { MAX_NUM_OGGTRACKS = 32 };
 static char* oggTracks[MAX_NUM_OGGTRACKS];
 static int oggMaxFileIndex;
 
-enum GameType {
+static enum GameType {
 	other, // incl. baseq2
 	xatrix,
 	rogue
@@ -210,7 +210,7 @@ OGG_InitTrackList(void)
  * Play a portion of the currently opened file.
  */
 void
-OGG_Read(void)
+static OGG_Read(void)
 {
 	long read_bytes = ov_read(&ovFile, ovBuf, sizeof(ovBuf), bigendien, OGG_SAMPLEWIDTH, 1, &ovSection);
 
@@ -380,7 +380,7 @@ OGG_PlayTrack(int trackNo)
 /*
  * List Ogg Vorbis files and print current playback state.
  */
-void
+static void
 OGG_Info(void)
 {
 	Com_Printf("Tracks:\n");
@@ -454,7 +454,7 @@ OGG_Stop(void)
 /*
  * Pause or resume playback.
  */
-void
+static void
 OGG_TogglePlayback(void)
 {
 	if (ogg_status == PLAY)
