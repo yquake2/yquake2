@@ -293,12 +293,25 @@ OGG_PlayTrack(int trackNo)
 		if(ogg_ignoretrack0->value == 0)
 		{
 			OGG_Stop();
+		}
+
+		// Special case: If ogg_ignoretrack0 is 0 we stopped the music (see above)
+		// and ogg_curfile is still holding the last track played (track >1). So
+		// this triggers and we return. If ogg_ignoretrack is 1 we didn't stop the
+		// music, as soon as the tracks ends OGG_Read() starts it over. Until here
+		// everything's okay.
+		// But if ogg_ignoretrack0 is 1, the game was just restarted and a save game
+		// load send us trackNo 0, we would end up without music. Since we have no
+		// way to get the last track before trackNo 0 was set just fall through and
+		// shuffle a random track (see below).
+		if (ogg_curfile > 0)
+		{
 			return;
 		}
 	}
 
 	// Player has requested shuffle playback.
-	if(cd_shuffle->value)
+	if((trackNo == 0) || cd_shuffle->value)
 	{
 		if(oggMaxFileIndex >= 0)
 		{
@@ -311,9 +324,7 @@ OGG_PlayTrack(int trackNo)
 		}
 	}
 
-	Com_Printf("Track number: %i\n", trackNo);
-
-	if(oggMaxFileIndex == 0)
+	if(oggMaxFileIndex == -1)
 	{
 		return; // no ogg files at all, ignore this silently instead of printing warnings all the time
 	}
