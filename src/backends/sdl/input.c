@@ -1355,7 +1355,7 @@ IN_Init(void)
 						SDL_JoystickGUID guid;
 						guid = SDL_JoystickGetDeviceGUID(i);
 						SDL_JoystickGetGUIDString(guid, joystick_guid, 255);
-						Com_Printf ("For use joystic as game contoller please set SDL_GAMECONTROLLERCONFIG:\n");
+						Com_Printf ("To use joystick as game controller please set SDL_GAMECONTROLLERCONFIG:\n");
 						Com_Printf ("e.g.: SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,back:b1,...\n", joystick_guid, SDL_JoystickName(joystick));
 					}
 				}
