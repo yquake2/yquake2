@@ -133,6 +133,10 @@ else
 COMPILER := unknown
 endif
 
+# Used to detect libraries. Override to foobar-linux-gnu-pkg-config when
+# cross-compiling.
+PKG_CONFIG ?= pkg-config
+
 # Disable CDA for SDL2
 ifeq ($(WITH_SDL2),yes)
 ifeq ($(WITH_CDA),yes)
@@ -254,8 +258,8 @@ endif # SDL2
 ifneq ($(YQ2_OSTYPE), Windows)
 ifneq ($(YQ2_OSTYPE), Darwin)
 ifeq ($(WITH_X11GAMMA),yes)
-X11CFLAGS := $(shell pkg-config x11 --cflags)
-X11CFLAGS += $(shell pkg-config xxf86vm --cflags)
+X11CFLAGS := $(shell $(PKG_CONFIG) x11 --cflags)
+X11CFLAGS += $(shell $(PKG_CONFIG) xxf86vm --cflags)
 endif
 endif
 endif
@@ -324,9 +328,9 @@ endif # Darwin
 ifneq ($(YQ2_OSTYPE), Windows)
 ifneq ($(YQ2_OSTYPE), Darwin)
 ifeq ($(WITH_X11GAMMA),yes)
-X11LDFLAGS := $(shell pkg-config x11 --libs)
-X11LDFLAGS += $(shell pkg-config xxf86vm --libs)
-X11LDFLAGS += $(shell pkg-config xrandr --libs)
+X11LDFLAGS := $(shell $(PKG_CONFIG) x11 --libs)
+X11LDFLAGS += $(shell $(PKG_CONFIG) xxf86vm --libs)
+X11LDFLAGS += $(shell $(PKG_CONFIG) xrandr --libs)
 endif
 endif
 endif
