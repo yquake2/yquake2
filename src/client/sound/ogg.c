@@ -57,7 +57,7 @@ enum { MAX_NUM_OGGTRACKS = 32 };
 static char* oggTracks[MAX_NUM_OGGTRACKS];
 static int oggMaxFileIndex;
 
-static enum GameType {
+enum GameType {
 	other, // incl. baseq2
 	xatrix,
 	rogue
@@ -310,6 +310,8 @@ OGG_PlayTrack(int trackNo)
 			}
 		}
 	}
+
+	Com_Printf("Track number: %i\n", trackNo);
 
 	if(oggMaxFileIndex == 0)
 	{
