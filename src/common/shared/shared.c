@@ -1161,11 +1161,7 @@ FILE *Q_fopen(const char *file, const char *mode)
 	{
 		if (MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 16) > 0)
 		{
-			FILE *ret;
-			if(_wfopen_s(&ret, wfile, wmode) == 0)
-			{
-				return ret;
-			}
+			return _wfopen(wfile, wmode);
 		}
 	}
 
