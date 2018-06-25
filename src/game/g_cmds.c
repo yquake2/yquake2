@@ -1138,18 +1138,15 @@ Cmd_Say_f(edict_t *ent, qboolean team, qboolean arg0)
 			i = (sizeof(cl->flood_when) / sizeof(cl->flood_when[0])) + i;
 		}
 
-		if (cl->flood_when[i] &&
-			(level.time - cl->flood_when[i] < flood_persecond->value))
+		if (cl->flood_when[i] && (level.time - cl->flood_when[i] < flood_persecond->value))
 		{
 			cl->flood_locktill = level.time + flood_waitdelay->value;
-			gi.cprintf(ent, PRINT_CHAT,
-					"Flood protection:  You can't talk for %d seconds.\n",
+			gi.cprintf(ent, PRINT_CHAT, "Flood protection:  You can't talk for %d seconds.\n",
 					(int)flood_waitdelay->value);
 			return;
 		}
 
-		cl->flood_whenhead = (cl->flood_whenhead + 1) %
-							 (sizeof(cl->flood_when) / sizeof(cl->flood_when[0]));
+		cl->flood_whenhead = (cl->flood_whenhead + 1) % (sizeof(cl->flood_when) / sizeof(cl->flood_when[0]));
 		cl->flood_when[cl->flood_whenhead] = level.time;
 	}
 

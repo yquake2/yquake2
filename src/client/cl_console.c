@@ -565,7 +565,7 @@ Con_DrawNotify(void)
 			x++;
 		}
 
-		Draw_CharScaled(((x + skip) << 3) * scale, v + scale, 10 + ((cls.realtime >> 8) & 1), scale);
+		Draw_CharScaled(((x + skip) << 3) * scale, v * scale, 10 + ((cls.realtime >> 8) & 1), scale);
 		v += 8;
 	}
 
