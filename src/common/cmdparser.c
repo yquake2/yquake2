@@ -257,7 +257,7 @@ Cbuf_AddEarlyCommands(qboolean clear)
 	{
 		s = COM_Argv(i);
 
-		if (strcmp(s, "+set"))
+		if (strcmp(s, "+set") != 0)
 		{
 			continue;
 		}

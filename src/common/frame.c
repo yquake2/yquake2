@@ -195,6 +195,59 @@ void Qcommon_ExecConfigs(qboolean gameStartUp)
 	Cbuf_Execute();
 }
 
+static qboolean checkForHelp(int argc, char **argv)
+{
+	const char* helpArgs[] = { "--help", "-h", "-help", "-?", "/?" };
+	const int numHelpArgs = sizeof(helpArgs)/sizeof(helpArgs[0]);
+
+	for (int i=1; i<argc; ++i)
+	{
+		const char* arg = argv[i];
+		for (int h=0; h<numHelpArgs; ++h)
+		{
+			if (Q_stricmp(arg, helpArgs[h]) == 0)
+			{
+				printf("Yamagi Quake II v%s\n", YQ2VERSION);
+				printf("Most interesting commandline arguments:\n");
+				printf("-h or --help: Show this help\n");
+				printf("-datadir <path>\n");
+				printf("  set path to your Quake2 game data (the directory baseq2/ is in)\n");
+				printf("-portable\n");
+				printf("  Only write (savegames, configs, ...) in current directory\n");
+				printf("+exec <config>\n");
+				printf("  execute the given config (mainly relevant for dedicated servers)\n");
+				printf("+set <cvarname> <value>\n");
+				printf("  Set the given cvar to the given value, e.g. +set vid_fullscreen 0\n");
+
+				printf("\nSome interesting cvars:\n");
+				printf("+set game <gamename>\n");
+				printf("  start the given addon/mod, e.g. +set game xatrix\n");
+#ifndef DEDICATED_ONLY
+				printf("+set vid_fullscreen <0 or 1>\n");
+				printf("  start game in windowed (0) or desktop fullscreen (1)\n");
+				printf("  or classic fullscreen (2) mode\n");
+				printf("+set r_mode <modenumber>\n");
+				printf("  start game in resolution belonging to <modenumber>,\n");
+				printf("  use -1 for custom resolutions:\n");
+				printf("+set r_customwidth <size in pixels>\n");
+				printf("+set r_customheight <size in pixels>\n");
+				printf("  if r_mode is set to -1, these cvars allow you to specify the\n");
+				printf("  width/height of your custom resolution\n");
+				printf("+set vid_renderer <renderer>\n");
+				printf("  Selects the render backend. Currently available:\n");
+				printf("    'gl1'  (old OpenGL 1.x renderer),\n");
+				printf("    'gl3'  (the shiny new OpenGL 3.2 renderer),\n");
+				printf("    'soft' (the experimental software renderer)\n");
+#endif // DEDICATED_ONLY
+				printf("\nSee https://github.com/yquake2/yquake2/blob/master/stuff/cvarlist.md\nfor some more cvars\n");
+
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 void
 Qcommon_Init(int argc, char **argv)
 {
@@ -202,6 +255,13 @@ Qcommon_Init(int argc, char **argv)
 	if (setjmp(abortframe))
 	{
 		Sys_Error("Error during initialization");
+	}
+
+	if (checkForHelp(argc, argv))
+	{
+		// ok, --help or similar commandline option was given
+		// and info was printed, exit the game now
+		exit(1);
 	}
 
 	// Print the build and version string
