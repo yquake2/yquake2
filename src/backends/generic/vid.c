@@ -191,7 +191,10 @@ VID_CheckChanges(void)
 			{
 				Com_Printf("\n ... trying again with standard OpenGL1.x renderer ... \n\n");
 				Cvar_Set("vid_renderer", "gl1");
-				VID_LoadRefresh();
+				if (!VID_LoadRefresh())
+				{
+					Com_Error(ERR_FATAL, "Couldn't even load the gl1 fallback rendering backend!\n");
+				}
 			}
 			else
 			{
