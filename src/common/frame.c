@@ -203,6 +203,7 @@ static qboolean checkForHelp(int argc, char **argv)
 	for (int i=1; i<argc; ++i)
 	{
 		const char* arg = argv[i];
+
 		for (int h=0; h<numHelpArgs; ++h)
 		{
 			if (Q_stricmp(arg, helpArgs[h]) == 0)
@@ -213,7 +214,7 @@ static qboolean checkForHelp(int argc, char **argv)
 				printf("-datadir <path>\n");
 				printf("  set path to your Quake2 game data (the directory baseq2/ is in)\n");
 				printf("-portable\n");
-				printf("  Only write (savegames, configs, ...) in current directory\n");
+				printf("  Write (savegames, configs, ...) in the binary directory\n");
 				printf("+exec <config>\n");
 				printf("  execute the given config (mainly relevant for dedicated servers)\n");
 				printf("+set <cvarname> <value>\n");
@@ -239,12 +240,13 @@ static qboolean checkForHelp(int argc, char **argv)
 				printf("    'gl3'  (the shiny new OpenGL 3.2 renderer),\n");
 				printf("    'soft' (the experimental software renderer)\n");
 #endif // DEDICATED_ONLY
-				printf("\nSee https://github.com/yquake2/yquake2/blob/master/stuff/cvarlist.md\nfor some more cvars\n");
+				printf("\nSee https://github.com/yquake2/yquake2/blob/master/stuff/cvarlist.md\nfor some more cvars");
 
 				return true;
 			}
 		}
 	}
+
 	return false;
 }
 
