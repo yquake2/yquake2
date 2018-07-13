@@ -503,12 +503,8 @@ ifeq ($(WITH_SDL2),yes)
 release/quake2 : CFLAGS += -DSDL2
 endif
 
-ifneq ($(YQ2_OSTYPE), Darwin)
-release/ref_gl1.so : LDFLAGS += -lGL
-endif
-
 ifeq ($(YQ2_OSTYPE), FreeBSD)
-release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib'
+release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib' -lexecinfo
 else ifeq ($(YQ2_OSTYPE), Linux)
 release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib'
 endif
@@ -568,6 +564,10 @@ ifeq ($(WITH_ZIP),yes)
 release/q2ded : CFLAGS += $(ZIPCFLAGS) -DZIP -DNOUNCRYPT
 release/q2ded : LDFLAGS += -lz
 endif
+
+ifeq ($(YQ2_OSTYPE), FreeBSD)
+release/q2ded : LDFLAGS += -lexecinfo
+endif
 endif
 
 # ----------
@@ -611,7 +611,7 @@ ref_gl1:
 
 
 release/ref_gl1.so : CFLAGS += -fPIC
-release/ref_gl1.so : LDFLAGS += -shared
+release/ref_gl1.so : LDFLAGS += -shared -lGL
 
 ifeq ($(WITH_SDL2),yes)
 release/ref_gl1.so : CFLAGS += -DSDL2

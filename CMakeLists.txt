@@ -47,6 +47,7 @@ set(yquake2IncludeDirectories)
 set(yquake2LinkerDirectories)
 set(yquake2LinkerFlags)
 set(yquake2ClientLinkerFlags)
+set(yquake2ServerLinkerFlags)
 set(yquake2OpenGLLinkerFlags)
 set(yquake2SDLLinkerFlags)
 set(yquake2ZLibLinkerFlags)
@@ -94,6 +95,14 @@ endif()
 find_package(OpenGL REQUIRED)
 list(APPEND yquake2IncludeDirectories ${OPENGL_INCLUDE_DIR})
 list(APPEND yquake2OpenGLLinkerFlags ${OPENGL_LIBRARIES})
+
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD")
+	find_library(EXECINFO_LIBRARIES execinfo /usr/lib /usr/local/lib)
+	list(APPEND yquake2ClientLinkerFlags ${EXECINFO_LIBRARIES})
+	list(APPEND yquake2ServerLinkerFlags ${EXECINFO_LIBRARIES})
+endif()
+
+
 
 if(${ZIP_SUPPORT})
 	find_package(ZLIB REQUIRED)
@@ -576,7 +585,7 @@ set_target_properties(q2ded PROPERTIES
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_link_libraries(q2ded ${yquake2LinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
 else()
-	target_link_libraries(q2ded ${yquake2LinkerFlags} ${yquake2ZLibLinkerFlags})
+	target_link_libraries(q2ded ${yquake2LinkerFlags} ${yquake2ServerLinkerFlags} ${yquake2ZLibLinkerFlags})
 endif()
 
 # Build the game dynamic library
