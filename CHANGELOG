@@ -1,3 +1,13 @@
+Quake II 7.20 to 7.21:
+- Fix some render glitches in the software renderer. (by Denis Pauk)
+- Render the weapon independent of the current field of view, otherwise
+  the weapon distorts with very high FOV settings. The weapons FOV can
+  be set through r_gunfov, it defaults to 90.
+- Rework the OGG/Vorbis backend. This fixes several annoying bugs, and
+  adds support for alternative track <=> file mappings. Use this to
+  implement support for the audio tracks supplied by the GOG.com version
+  of Quake II.
+
 Quake II 7.10 to 7.20:
 - Add the soft renderer back. This feature is considered experimental.
   The porting of the old soft renderer code to SDL and it's cleanup
