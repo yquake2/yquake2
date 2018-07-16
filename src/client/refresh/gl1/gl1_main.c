@@ -1399,12 +1399,6 @@ RI_Init()
 
 	R_Printf(PRINT_ALL, " + Retexturing support\n");
 
-#ifdef X11GAMMA
-	R_Printf(PRINT_ALL, " + Gamma via X11\n\n");
-#else
-	R_Printf(PRINT_ALL, " - Gamma via X11\n\n");
-#endif
-
 	Draw_GetPalette();
 
 	R_Register();

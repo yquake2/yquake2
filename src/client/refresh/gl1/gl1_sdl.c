@@ -39,22 +39,6 @@
 #include <GL/gl.h>
 #endif
 
-/* X.org stuff - put this here as more modern renderers wouldn't need it
- * e.g. an OpenGL3 renderer could just apply gamma through a shader */
-#ifdef X11GAMMA
- #include <X11/Xos.h>
- #include <X11/Xlib.h>
- #include <X11/Xutil.h>
- #include <X11/extensions/xf86vmode.h>
- #include <X11/extensions/Xrandr.h>
-
- #include <SDL_syswm.h>
-
- XRRCrtcGamma** gammaRamps = NULL;
- int noGammaRamps = 0;
-#endif
-
-
 #if SDL_VERSION_ATLEAST(2, 0, 0)
  static SDL_Window* window = NULL;
  static SDL_GLContext context = NULL;
@@ -116,68 +100,6 @@ void CalculateGammaRamp(float gamma, Uint16* ramp, int len)
     }
 }
 
-/*
- * Sets the hardware gamma
- */
-#ifdef X11GAMMA
-void
-UpdateHardwareGamma(void)
-{
-	float gamma = (vid_gamma->value);
-	int i;
-
-	Display* dpy = NULL;
-	SDL_SysWMinfo info;
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_VERSION(&info.version);
-	if(!SDL_GetWindowWMInfo(window, &info))
-#else
-	if(SDL_GetWMInfo(&info) != 1)
-#endif
-	{
-		R_Printf(PRINT_ALL, "Couldn't get Window info from SDL\n");
-		return;
-	}
-
-	dpy = info.info.x11.display;
-
-	XRRScreenResources* res = XRRGetScreenResources(dpy, info.info.x11.window);
-	if(res == NULL)
-	{
-		R_Printf(PRINT_ALL, "Unable to get xrandr screen resources.\n");
-		return;
-	}
-
-	for(i=0; i < res->ncrtc; ++i)
-	{
-		int len = XRRGetCrtcGammaSize(dpy, res->crtcs[i]);
-		size_t rampSize = len*sizeof(Uint16);
-		Uint16* ramp = malloc(rampSize); // TODO: check for NULL
-		if(ramp == NULL)
-		{
-			R_Printf(PRINT_ALL, "Couldn't allocate &zd byte of memory for gamma ramp - OOM?!\n", rampSize);
-			return;
-		}
-
-		CalculateGammaRamp(gamma, ramp, len);
-
-		XRRCrtcGamma* gamma = XRRAllocGamma(len);
-
-		memcpy(gamma->red, ramp, rampSize);
-		memcpy(gamma->green, ramp, rampSize);
-		memcpy(gamma->blue, ramp, rampSize);
-
-		free(ramp);
-
-		XRRSetCrtcGamma(dpy, res->crtcs[i], gamma);
-
-		XRRFreeGamma(gamma);
-	}
-
-	XRRFreeScreenResources(res);
-}
-#else // no X11GAMMA
 void
 UpdateHardwareGamma(void)
 {
@@ -193,134 +115,14 @@ UpdateHardwareGamma(void)
 		R_Printf(PRINT_ALL, "Setting gamma failed: %s\n", SDL_GetError());
 	}
 }
-#endif // X11GAMMA
 
 static void InitGamma()
 {
-#ifdef X11GAMMA
-	int i=0;
-	SDL_SysWMinfo info;
-	Display* dpy = NULL;
-
-	if(gammaRamps != NULL) // already saved gamma
-		return;
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_VERSION(&info.version);
-	if(!SDL_GetWindowWMInfo(window, &info))
-#else
-	if(SDL_GetWMInfo(&info) != 1)
-#endif
-	{
-		R_Printf(PRINT_ALL, "Couldn't get Window info from SDL\n");
-		return;
-	}
-
-	dpy = info.info.x11.display;
-
-	XRRScreenResources* res = XRRGetScreenResources(dpy, info.info.x11.window);
-	if(res == NULL)
-	{
-		R_Printf(PRINT_ALL, "Unable to get xrandr screen resources.\n");
-		return;
-	}
-
-	noGammaRamps = res->ncrtc;
-	gammaRamps = calloc(noGammaRamps, sizeof(XRRCrtcGamma*));
-	if(gammaRamps == NULL) {
-		R_Printf(PRINT_ALL, "Couldn't allocate memory for %d gamma ramps - OOM?!\n", noGammaRamps);
-		return;
-	}
-
-	for(i=0; i < noGammaRamps; ++i)
-	{
-		int len = XRRGetCrtcGammaSize(dpy, res->crtcs[i]);
-		size_t rampSize = len*sizeof(Uint16);
-
-		XRRCrtcGamma* origGamma = XRRGetCrtcGamma(dpy, res->crtcs[i]);
-
-		XRRCrtcGamma* gammaCopy = XRRAllocGamma(len);
-
-		memcpy(gammaCopy->red, origGamma->red, rampSize);
-		memcpy(gammaCopy->green, origGamma->green, rampSize);
-		memcpy(gammaCopy->blue, origGamma->blue, rampSize);
-
-		gammaRamps[i] = gammaCopy;
-	}
-
-	XRRFreeScreenResources(res);
-
-	R_Printf(PRINT_ALL, "Using hardware gamma via X11/xRandR.\n");
-#elif __APPLE__
-	gl_state.hwgamma = false;
-	R_Printf(PRINT_ALL, "Using software gamma (needs vid_restart after changes)\n");
-	return;
-#else
 	R_Printf(PRINT_ALL, "Using hardware gamma via SDL.\n");
-#endif
+
 	gl_state.hwgamma = true;
 	vid_gamma->modified = true;
 }
-
-#ifdef X11GAMMA
-static void RestoreGamma()
-{
-	int i=0;
-	SDL_SysWMinfo info;
-	Display* dpy = NULL;
-
-	if(gammaRamps == NULL)
-			return;
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_VERSION(&info.version);
-	if(!SDL_GetWindowWMInfo(window, &info))
-#else
-	if(SDL_GetWMInfo(&info) != 1)
-#endif
-	{
-		R_Printf(PRINT_ALL, "Couldn't get Window info from SDL\n");
-		return;
-	}
-
-	dpy = info.info.x11.display;
-
-	XRRScreenResources* res = XRRGetScreenResources(dpy, info.info.x11.window);
-	if(res == NULL)
-	{
-		R_Printf(PRINT_ALL, "Unable to get xrandr screen resources.\n");
-		return;
-	}
-
-	for(i=0; i < noGammaRamps; ++i)
-	{
-		// in case a display was unplugged or something, noGammaRamps may be > res->ncrtc
-		if(i < res->ncrtc)
-		{
-			int len = XRRGetCrtcGammaSize(dpy, res->crtcs[i]);
-			if(len != gammaRamps[i]->size) {
-				R_Printf(PRINT_ALL, "WTF, gamma ramp size for display %d has changed from %d to %d!\n",
-							   i, gammaRamps[i]->size, len);
-
-				continue;
-			}
-
-			XRRSetCrtcGamma(dpy, res->crtcs[i], gammaRamps[i]);
-		}
-
-		// the ramp needs to be free()d either way
-		XRRFreeGamma(gammaRamps[i]);
-		gammaRamps[i] = NULL;
-
-	}
-	XRRFreeScreenResources(res);
-	free(gammaRamps);
-	gammaRamps = NULL;
-
-	R_Printf(PRINT_ALL, "Restored original Gamma\n");
-}
-#endif // X11GAMMA
-
 
 // called by GLimp_InitGraphics() before creating window,
 // returns flags for SDL window creation
@@ -487,10 +289,6 @@ RI_EndFrame(void)
 void
 RI_ShutdownWindow(qboolean contextOnly)
 {
-#ifdef X11GAMMA
-	RestoreGamma();
-#endif
-
 	/* Clear the backbuffer and make it
 	   current. This may help some broken
 	   video drivers like the AMD Catalyst
