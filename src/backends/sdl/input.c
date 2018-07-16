@@ -27,76 +27,23 @@
  * Joystick threshold code is partially based on http://ioquake3.org code.
  */
 
-#include "../../client/header/keyboard.h"
-#include "../generic/header/input.h"
-#include "../../client/header/client.h"
-
-/*
- * SDL 1.2 has been superseded by it's successor SDL 2.0 years ago.
- * When we first ported Yamagi Quake II to SDL 2.0 we decided to
- * support both APIs, the old SDL 1.2 and the newer 2.0. That was
- * done to give both sides, SDL itself and our backends, time to
- * mature and to evolve. After we enabled SDL 2.0 as default there
- * was no big point in keeping SDL 1.2 around. We did it anyways,
- * the code was there and it was a big help for the users of older
- * Linux distribution. But now, several years forward, SDL 1.2 is
- * becoming a burden. SDL 1.2 is lacking features, in fact some
- * not so corner cases are broken with it. For example an enabled
- * vsync on displays with another refresh rate than 60 hz. And
- * it adding a lot of complications to the code. Last but least
- * SDL 1.2 doesn't support modern MacOS, Windows and Wayland. It's
- * finally time to let it go. The next release - 7.21 - will be
- * the last Yamagi Quake II release supporting SDL 1.2. Support
- * for it will be removed soon afterwards.
- *
- * Until then: Remove the statement below to build with SDL 1.2.
- */
-#ifndef SDL2
-#error "Support for SDL 1.2 is deprecated, and will be removed in \
-the near future. Migrate to SDL 2.0 now. To build the client with \
-SDL 1.2 remove this statement!"
-#endif
-
-/* There's no sdl-config on OS X and Windows */
-#ifdef SDL2
 #include <SDL2/SDL.h>
-#else /* SDL1.2 */
-#include <SDL/SDL.h>
-#endif /*SDL2 */
 
-/* SDL 1.2 <-> 2.0 compatiblity cruft */
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	#define SDLK_KP0 SDLK_KP_0
-	#define SDLK_KP1 SDLK_KP_1
-	#define SDLK_KP2 SDLK_KP_2
-	#define SDLK_KP3 SDLK_KP_3
-	#define SDLK_KP4 SDLK_KP_4
-	#define SDLK_KP5 SDLK_KP_5
-	#define SDLK_KP6 SDLK_KP_6
-	#define SDLK_KP7 SDLK_KP_7
-	#define SDLK_KP8 SDLK_KP_8
-	#define SDLK_KP9 SDLK_KP_9
-
-	#define SDLK_RMETA SDLK_RGUI
-	#define SDLK_LMETA SDLK_LGUI
-
-	#define SDLK_COMPOSE SDLK_APPLICATION
-
-	#define SDLK_PRINT SDLK_PRINTSCREEN
-	#define SDLK_SCROLLOCK SDLK_SCROLLLOCK
-	#define SDLK_NUMLOCK SDLK_NUMLOCKCLEAR
-#endif
+#include "../../client/header/keyboard.h"
+#include "../../client/header/client.h"
+#include "../generic/header/input.h"
 
 #define MOUSE_MAX 3000
 #define MOUSE_MIN 40
+
+
+extern void GLimp_GrabInput(qboolean grab);
 
 /* Globals */
 static int mouse_x, mouse_y;
 static int old_mouse_x, old_mouse_y;
 static qboolean mlooking;
 int sys_frame_time;
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 static float joystick_yaw, joystick_pitch;
 static float joystick_forwardmove, joystick_sidemove;
 static float joystick_up;
@@ -148,7 +95,6 @@ static int last_haptic_efffect_pos = 0;
 static SDL_Haptic *joystick_haptic = NULL;
 static SDL_Joystick *joystick = NULL;
 static SDL_GameController *controller = NULL;
-#endif
 
 /* CVars */
 cvar_t *vid_fullscreen;
@@ -165,13 +111,13 @@ cvar_t *m_yaw;
 cvar_t *sensitivity;
 static cvar_t *windowed_mouse;
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 /* Joystick sensitivity */
 static cvar_t *joy_yawsensitivity;
 static cvar_t *joy_pitchsensitivity;
 static cvar_t *joy_forwardsensitivity;
 static cvar_t *joy_sidesensitivity;
 static cvar_t *joy_upsensitivity;
+
 /* Joystick direction settings */
 static cvar_t *joy_axis_leftx;
 static cvar_t *joy_axis_lefty;
@@ -179,6 +125,7 @@ static cvar_t *joy_axis_rightx;
 static cvar_t *joy_axis_righty;
 static cvar_t *joy_axis_triggerleft;
 static cvar_t *joy_axis_triggerright;
+
 /* Joystick threshold settings */
 static cvar_t *joy_axis_leftx_threshold;
 static cvar_t *joy_axis_lefty_threshold;
@@ -186,11 +133,9 @@ static cvar_t *joy_axis_rightx_threshold;
 static cvar_t *joy_axis_righty_threshold;
 static cvar_t *joy_axis_triggerleft_threshold;
 static cvar_t *joy_axis_triggerright_threshold;
+
 /* Joystick haptic */
 static cvar_t *joy_haptic_magnitude;
-#endif
-
-extern void GLimp_GrabInput(qboolean grab);
 
 /* ------------------------------------------------------------------ */
 
@@ -209,46 +154,46 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 		case SDLK_PAGEUP:
 			key = K_PGUP;
 			break;
-		case SDLK_KP9:
+		case SDLK_KP_9:
 			key = K_KP_PGUP;
 			break;
 		case SDLK_PAGEDOWN:
 			key = K_PGDN;
 			break;
-		case SDLK_KP3:
+		case SDLK_KP_3:
 			key = K_KP_PGDN;
 			break;
-		case SDLK_KP7:
+		case SDLK_KP_7:
 			key = K_KP_HOME;
 			break;
 		case SDLK_HOME:
 			key = K_HOME;
 			break;
-		case SDLK_KP1:
+		case SDLK_KP_1:
 			key = K_KP_END;
 			break;
 		case SDLK_END:
 			key = K_END;
 			break;
-		case SDLK_KP4:
+		case SDLK_KP_4:
 			key = K_KP_LEFTARROW;
 			break;
 		case SDLK_LEFT:
 			key = K_LEFTARROW;
 			break;
-		case SDLK_KP6:
+		case SDLK_KP_6:
 			key = K_KP_RIGHTARROW;
 			break;
 		case SDLK_RIGHT:
 			key = K_RIGHTARROW;
 			break;
-		case SDLK_KP2:
+		case SDLK_KP_2:
 			key = K_KP_DOWNARROW;
 			break;
 		case SDLK_DOWN:
 			key = K_DOWNARROW;
 			break;
-		case SDLK_KP8:
+		case SDLK_KP_8:
 			key = K_KP_UPARROW;
 			break;
 		case SDLK_UP:
@@ -331,21 +276,21 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 		case SDLK_RCTRL:
 			key = K_CTRL;
 			break;
-		case SDLK_RMETA:
-		case SDLK_LMETA:
+		case SDLK_LGUI:
+		case SDLK_RGUI:
 			key = K_COMMAND;
 			break;
 		case SDLK_RALT:
 		case SDLK_LALT:
 			key = K_ALT;
 			break;
-		case SDLK_KP5:
+		case SDLK_KP_5:
 			key = K_KP_5;
 			break;
 		case SDLK_INSERT:
 			key = K_INS;
 			break;
-		case SDLK_KP0:
+		case SDLK_KP_0:
 			key = K_KP_INS;
 			break;
 		case SDLK_KP_MULTIPLY:
@@ -363,13 +308,13 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 		case SDLK_MODE:
 			key = K_MODE;
 			break;
-		case SDLK_COMPOSE:
+		case SDLK_APPLICATION:
 			key = K_COMPOSE;
 			break;
 		case SDLK_HELP:
 			key = K_HELP;
 			break;
-		case SDLK_PRINT:
+		case SDLK_PRINTSCREEN:
 			key = K_PRINT;
 			break;
 		case SDLK_SYSREQ:
@@ -384,10 +329,10 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 		case SDLK_UNDO:
 			key = K_UNDO;
 			break;
-		case SDLK_SCROLLOCK:
+		case SDLK_SCROLLLOCK:
 			key = K_SCROLLOCK;
 			break;
-		case SDLK_NUMLOCK:
+		case SDLK_NUMLOCKCLEAR:
 			key = K_KP_NUMLOCK;
 			break;
 		case SDLK_CAPSLOCK:
@@ -423,28 +368,12 @@ IN_Update(void)
 
 		switch (event.type)
 		{
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_MOUSEWHEEL:
 				Key_Event((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), true, true);
 				Key_Event((event.wheel.y > 0 ? K_MWHEELUP : K_MWHEELDOWN), false, true);
 				break;
-#endif
+
 			case SDL_MOUSEBUTTONDOWN:
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-				if (event.button.button == 4)
-				{
-					Key_Event(K_MWHEELUP, true, true);
-					Key_Event(K_MWHEELUP, false, true);
-					break;
-				}
-				else if (event.button.button == 5)
-				{
-					Key_Event(K_MWHEELDOWN, true, true);
-					Key_Event(K_MWHEELDOWN, false, true);
-					break;
-				}
-#endif
-				/* fall-through */
 			case SDL_MOUSEBUTTONUP:
 				switch (event.button.button)
 				{
@@ -478,7 +407,6 @@ IN_Update(void)
 				}
 				break;
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_TEXTINPUT:
 				if ((event.text.text[0] >= ' ') &&
 					(event.text.text[0] <= '~'))
@@ -487,42 +415,34 @@ IN_Update(void)
 				}
 
 				break;
-#endif
 
 			case SDL_KEYDOWN:
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-				if ((event.key.keysym.unicode >= SDLK_SPACE) &&
-					 (event.key.keysym.unicode < SDLK_DELETE))
-				{
-					Char_Event(event.key.keysym.unicode);
-				}
-#endif
-				/* fall-through */
 			case SDL_KEYUP:
 			{
 				qboolean down = (event.type == SDL_KEYDOWN);
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 				/* workaround for AZERTY-keyboards, which don't have 1, 2, ..., 9, 0 in first row:
 				 * always map those physical keys (scancodes) to those keycodes anyway
 				 * see also https://bugzilla.libsdl.org/show_bug.cgi?id=3188 */
 				SDL_Scancode sc = event.key.keysym.scancode;
+
 				if (sc >= SDL_SCANCODE_1 && sc <= SDL_SCANCODE_0)
 				{
 					/* Note that the SDL_SCANCODEs are SDL_SCANCODE_1, _2, ..., _9, SDL_SCANCODE_0
 					 * while in ASCII it's '0', '1', ..., '9' => handle 0 and 1-9 separately
 					 * (quake2 uses the ASCII values for those keys) */
 					int key = '0'; /* implicitly handles SDL_SCANCODE_0 */
+
 					if (sc <= SDL_SCANCODE_9)
 					{
 						key = '1' + (sc - SDL_SCANCODE_1);
 					}
+
 					Key_Event(key, down, false);
 				}
 				else
-#endif /* SDL2; (SDL1.2 doesn't have scancodes so nothing we can do there) */
-				if ((event.key.keysym.sym >= SDLK_SPACE) &&
-					(event.key.keysym.sym < SDLK_DELETE))
+
+				if ((event.key.keysym.sym >= SDLK_SPACE) && (event.key.keysym.sym < SDLK_DELETE))
 				{
 					Key_Event(event.key.keysym.sym, down, false);
 				}
@@ -533,7 +453,6 @@ IN_Update(void)
 			}
 				break;
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 			case SDL_WINDOWEVENT:
 				if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST ||
 					event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
@@ -546,16 +465,8 @@ IN_Update(void)
 					// be on another display now!
 					glimp_refreshRate = -1;
 				}
-
-#else /* SDL1.2 */
-			case SDL_ACTIVEEVENT:
-				if(event.active.gain == 0 && (event.active.state & SDL_APPINPUTFOCUS))
-				{
-					Key_MarkAllUp();
-				}
-#endif
 				break;
-#if SDL_VERSION_ATLEAST(2, 0, 0)
+
 			case SDL_CONTROLLERBUTTONUP:
 			case SDL_CONTROLLERBUTTONDOWN: /* Handle Controller Back button */
 			{
@@ -711,7 +622,7 @@ IN_Update(void)
 				}
 			}
 				break;
-#endif
+
 			case SDL_QUIT:
 				Com_Quit();
 
@@ -746,13 +657,7 @@ IN_Update(void)
 void
 In_FlushQueue(void)
 {
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
-#else
-	SDL_Event event;
-	while(SDL_PollEvent(&event));
-#endif
-
 	Key_MarkAllUp();
 }
 
@@ -835,7 +740,6 @@ IN_Move(usercmd_t *cmd)
 		mouse_x = mouse_y = 0;
 	}
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	// to make the the viewangles changes independent of framerate
 	// we need to scale with frametime (assuming the configured values are for 60hz)
 	// 1/32768 is to normalize the input values from SDL (they're between -32768 and 32768 and we want -1 to 1)
@@ -866,7 +770,6 @@ IN_Move(usercmd_t *cmd)
 	{
 		cmd->upmove -= (m_up->value * joystick_up) / 32768;
 	}
-#endif
 }
 
 /* ------------------------------------------------------------------ */
@@ -890,7 +793,6 @@ IN_MLookUp(void)
 	IN_CenterView();
 }
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 /*
  * Shutdown haptic functionality
  */
@@ -1098,7 +1000,6 @@ IN_Haptic_Effects_Shutdown(void)
 		IN_Haptic_Effect_Shutdown(&last_haptic_efffect[i].effect_id);
 	}
 }
-#endif
 
 /*
  * Haptic Feedback:
@@ -1109,7 +1010,6 @@ IN_Haptic_Effects_Shutdown(void)
 void
 Haptic_Feedback(char *name, int effect_volume, int effect_x, int effect_y, int effect_z)
 {
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	int effect_type = HAPTIC_EFFECT_UNKNOWN;
 
 	if (joy_haptic_magnitude->value <= 0)
@@ -1230,7 +1130,6 @@ Haptic_Feedback(char *name, int effect_volume, int effect_x, int effect_y, int e
 		}
 		SDL_HapticRunEffect(joystick_haptic, last_haptic_efffect[last_haptic_efffect_pos].effect_id, 1);
 	}
-#endif
 }
 
 /*
@@ -1242,10 +1141,7 @@ IN_Init(void)
 	Com_Printf("------- input initialization -------\n");
 
 	mouse_x = mouse_y = 0;
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	joystick_yaw = joystick_pitch = joystick_forwardmove = joystick_sidemove = 0;
-#endif
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 	freelook = Cvar_Get("freelook", "1", 0);
@@ -1259,7 +1155,6 @@ IN_Init(void)
 	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
 	sensitivity = Cvar_Get("sensitivity", "3", 0);
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	joy_haptic_magnitude = Cvar_Get("joy_haptic_magnitude", "0.0", CVAR_ARCHIVE);
 
 	joy_yawsensitivity = Cvar_Get("joy_yawsensitivity", "1.0", CVAR_ARCHIVE);
@@ -1281,7 +1176,6 @@ IN_Init(void)
 	joy_axis_righty_threshold = Cvar_Get("joy_axis_righty_threshold", "0.15", CVAR_ARCHIVE);
 	joy_axis_triggerleft_threshold = Cvar_Get("joy_axis_triggerleft_threshold", "0.15", CVAR_ARCHIVE);
 	joy_axis_triggerright_threshold = Cvar_Get("joy_axis_triggerright_threshold", "0.15", CVAR_ARCHIVE);
-#endif
 
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
@@ -1289,13 +1183,8 @@ IN_Init(void)
 	Cmd_AddCommand("+mlook", IN_MLookDown);
 	Cmd_AddCommand("-mlook", IN_MLookUp);
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_StartTextInput();
-#else
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-#endif
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	/* joystik init */
 	if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC))
 	{
@@ -1370,12 +1259,10 @@ IN_Init(void)
 			}
 		}
 	}
-#endif
 
 	Com_Printf("------------------------------------\n\n");
 }
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 /*
  * Shuts the backend down
  */
@@ -1390,7 +1277,6 @@ IN_Haptic_Shutdown(void)
 		joystick_haptic = NULL;
 	}
 }
-#endif
 
 void
 IN_Shutdown(void)
@@ -1401,7 +1287,6 @@ IN_Shutdown(void)
 
 	Com_Printf("Shutting down input.\n");
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	IN_Haptic_Shutdown();
 
 	if (controller)
@@ -1416,8 +1301,6 @@ IN_Shutdown(void)
 		SDL_JoystickClose(joystick);
 		joystick = NULL;
 	}
-#endif
 }
 
 /* ------------------------------------------------------------------ */
-
