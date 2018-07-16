@@ -18,13 +18,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
  * 02111-1307, USA.
  *
+ * Joystick threshold code is partially based on http://ioquake3.org code.
+ *
  * =======================================================================
  *
  * This is the Quake II input system backend, implemented with SDL.
  *
  * =======================================================================
- *
- * Joystick threshold code is partially based on http://ioquake3.org code.
  */
 
 #include <SDL2/SDL.h>
@@ -33,25 +33,47 @@
 #include "../../client/header/client.h"
 #include "../generic/header/input.h"
 
+// ----
+
+// Maximal mouse move per frame
 #define MOUSE_MAX 3000
+
+// Minimal mouse move per frame
 #define MOUSE_MIN 40
 
+// ----
 
-extern void GLimp_GrabInput(qboolean grab);
-
-/* Globals */
+// These are used to communicate the events collected by
+// IN_Update() called at the beginning of a frame to the
+// actual movement functions called at a later time.
 static int mouse_x, mouse_y;
-static int old_mouse_x, old_mouse_y;
-static qboolean mlooking;
-int sys_frame_time;
+static int back_button_id = -1;
 static float joystick_yaw, joystick_pitch;
 static float joystick_forwardmove, joystick_sidemove;
 static float joystick_up;
-static int back_button_id = -1;
-static char last_hat = SDL_HAT_CENTERED;
-static qboolean left_trigger = false;
-static qboolean right_trigger = false;
-qboolean show_haptic = false;
+static qboolean mlooking;
+
+// The last time input events were processed.
+// Used throughout the client.
+int sys_frame_time;
+
+// Console Variables
+cvar_t *vid_fullscreen;
+cvar_t *freelook;
+cvar_t *lookstrafe;
+cvar_t *m_forward;
+cvar_t *m_pitch;
+cvar_t *m_side;
+cvar_t *m_up;
+cvar_t *m_yaw;
+cvar_t *sensitivity;
+
+static cvar_t *exponential_speedup;
+static cvar_t *in_grab;
+static cvar_t *m_filter;
+static cvar_t *windowed_mouse;
+
+// ----
 
 /* Haptic feedback types */
 enum QHARPICTYPES {
@@ -86,39 +108,25 @@ struct hapric_effects_cache {
 	int effect_z;
 };
 
-static int last_haptic_volume = 0;
-static struct hapric_effects_cache last_haptic_efffect[HAPTIC_EFFECT_LAST];
-static int last_haptic_efffect_size = HAPTIC_EFFECT_LAST;
-static int last_haptic_efffect_pos = 0;
+qboolean show_haptic;
 
-/* Joystick */
 static SDL_Haptic *joystick_haptic = NULL;
 static SDL_Joystick *joystick = NULL;
 static SDL_GameController *controller = NULL;
 
-/* CVars */
-cvar_t *vid_fullscreen;
-static cvar_t *in_grab;
-static cvar_t *exponential_speedup;
-cvar_t *freelook;
-cvar_t *lookstrafe;
-cvar_t *m_forward;
-static cvar_t *m_filter;
-cvar_t *m_pitch;
-cvar_t *m_side;
-cvar_t *m_up;
-cvar_t *m_yaw;
-cvar_t *sensitivity;
-static cvar_t *windowed_mouse;
+static int last_haptic_volume = 0;
+static int last_haptic_efffect_size = HAPTIC_EFFECT_LAST;
+static int last_haptic_efffect_pos = 0;
+static struct hapric_effects_cache last_haptic_efffect[HAPTIC_EFFECT_LAST];
 
-/* Joystick sensitivity */
+// Joystick sensitivity
 static cvar_t *joy_yawsensitivity;
 static cvar_t *joy_pitchsensitivity;
 static cvar_t *joy_forwardsensitivity;
 static cvar_t *joy_sidesensitivity;
 static cvar_t *joy_upsensitivity;
 
-/* Joystick direction settings */
+// Joystick direction settings
 static cvar_t *joy_axis_leftx;
 static cvar_t *joy_axis_lefty;
 static cvar_t *joy_axis_rightx;
@@ -126,7 +134,7 @@ static cvar_t *joy_axis_righty;
 static cvar_t *joy_axis_triggerleft;
 static cvar_t *joy_axis_triggerright;
 
-/* Joystick threshold settings */
+// Joystick threshold settings
 static cvar_t *joy_axis_leftx_threshold;
 static cvar_t *joy_axis_lefty_threshold;
 static cvar_t *joy_axis_rightx_threshold;
@@ -134,7 +142,7 @@ static cvar_t *joy_axis_righty_threshold;
 static cvar_t *joy_axis_triggerleft_threshold;
 static cvar_t *joy_axis_triggerright_threshold;
 
-/* Joystick haptic */
+// Joystick haptic
 static cvar_t *joy_haptic_magnitude;
 
 /* ------------------------------------------------------------------ */
@@ -338,7 +346,6 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 		case SDLK_CAPSLOCK:
 			key = K_CAPSLOCK;
 			break;
-
 		default:
 			break;
 	}
@@ -348,6 +355,7 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 
 /* ------------------------------------------------------------------ */
 
+extern void GLimp_GrabInput(qboolean grab);
 extern int glimp_refreshRate;
 
 /*
@@ -361,6 +369,10 @@ IN_Update(void)
 	qboolean want_grab;
 	SDL_Event event;
 	unsigned int key;
+
+	static char last_hat = SDL_HAT_CENTERED;
+	static qboolean left_trigger = false;
+	static qboolean right_trigger = false;
 
 	/* Get and process an event */
 	while (SDL_PollEvent(&event))
@@ -408,8 +420,7 @@ IN_Update(void)
 				break;
 
 			case SDL_TEXTINPUT:
-				if ((event.text.text[0] >= ' ') &&
-					(event.text.text[0] <= '~'))
+				if ((event.text.text[0] >= ' ') && (event.text.text[0] <= '~'))
 				{
 					Char_Event(event.text.text[0]);
 				}
@@ -441,17 +452,19 @@ IN_Update(void)
 					Key_Event(key, down, false);
 				}
 				else
+				{
+					if ((event.key.keysym.sym >= SDLK_SPACE) && (event.key.keysym.sym < SDLK_DELETE))
+					{
+						Key_Event(event.key.keysym.sym, down, false);
+					}
+					else
+					{
+						Key_Event(IN_TranslateSDLtoQ2Key(event.key.keysym.sym), down, true);
+					}
+				}
 
-				if ((event.key.keysym.sym >= SDLK_SPACE) && (event.key.keysym.sym < SDLK_DELETE))
-				{
-					Key_Event(event.key.keysym.sym, down, false);
-				}
-				else
-				{
-					Key_Event(IN_TranslateSDLtoQ2Key(event.key.keysym.sym), down, true);
-				}
-			}
 				break;
+			}
 
 			case SDL_WINDOWEVENT:
 				if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST ||
@@ -471,18 +484,22 @@ IN_Update(void)
 			case SDL_CONTROLLERBUTTONDOWN: /* Handle Controller Back button */
 			{
 				qboolean down = (event.type == SDL_CONTROLLERBUTTONDOWN);
+
 				if (event.cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
 				{
 					Key_Event(K_JOY_BACK, down, true);
 				}
-			}
+
 				break;
+			}
+
 			case SDL_CONTROLLERAXISMOTION:  /* Handle Controller Motion */
 			{
 				char *direction_type;
 				float threshold = 0;
 				float fix_value = 0;
 				int axis_value = event.caxis.value;
+
 				switch (event.caxis.axis)
 				{
 					/* left/right */
@@ -490,46 +507,61 @@ IN_Update(void)
 						direction_type = joy_axis_leftx->string;
 						threshold = joy_axis_leftx_threshold->value;
 						break;
-						/* top/bottom */
+
+					/* top/bottom */
 					case SDL_CONTROLLER_AXIS_LEFTY:
 						direction_type = joy_axis_lefty->string;
 						threshold = joy_axis_lefty_threshold->value;
 						break;
-						/* second left/right */
+
+					/* second left/right */
 					case SDL_CONTROLLER_AXIS_RIGHTX:
 						direction_type = joy_axis_rightx->string;
 						threshold = joy_axis_rightx_threshold->value;
 						break;
-						/* second top/bottom */
+
+					/* second top/bottom */
 					case SDL_CONTROLLER_AXIS_RIGHTY:
 						direction_type = joy_axis_righty->string;
 						threshold = joy_axis_righty_threshold->value;
 						break;
+
 					case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
 						direction_type = joy_axis_triggerleft->string;
 						threshold = joy_axis_triggerleft_threshold->value;
 						break;
+
 					case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
 						direction_type = joy_axis_triggerright->string;
 						threshold = joy_axis_triggerright_threshold->value;
 						break;
+
 					default:
 						direction_type = "none";
 				}
 
 				if (threshold > 0.9)
+				{
 					threshold = 0.9;
+				}
 
 				if (axis_value < 0 && (axis_value > (32768 * threshold)))
+				{
 					axis_value = 0;
+				}
 				else if (axis_value > 0 && (axis_value < (32768 * threshold)))
+				{
 					axis_value = 0;
+				}
 
 				// Smoothly ramp from dead zone to maximum value (from ioquake)
 				// https://github.com/ioquake/ioq3/blob/master/code/sdl/sdl_input.c
 				fix_value = ((float) abs(axis_value) / 32767.0f - threshold) / (1.0f - threshold);
+
 				if (fix_value < 0.0f)
+				{
 					fix_value = 0.0f;
+				}
 
 				axis_value = (int) (32767 * ((axis_value < 0) ? -fix_value : fix_value));
 
@@ -538,12 +570,14 @@ IN_Update(void)
 					if (strcmp(direction_type, "sidemove") == 0)
 					{
 						joystick_sidemove = axis_value * joy_sidesensitivity->value;
+
 						// We need to be twice faster because with joystic we run...
 						joystick_sidemove *= cl_sidespeed->value * 2.0f;
 					}
 					else if (strcmp(direction_type, "forwardmove") == 0)
 					{
 						joystick_forwardmove = axis_value * joy_forwardsensitivity->value;
+
 						// We need to be twice faster because with joystic we run...
 						joystick_forwardmove *= cl_forwardspeed->value * 2.0f;
 					}
@@ -567,6 +601,7 @@ IN_Update(void)
 				if (strcmp(direction_type, "triggerleft") == 0)
 				{
 					qboolean new_left_trigger = abs(axis_value) > (32767 / 4);
+
 					if (new_left_trigger != left_trigger)
 					{
 						left_trigger = new_left_trigger;
@@ -576,56 +611,71 @@ IN_Update(void)
 				else if (strcmp(direction_type, "triggerright") == 0)
 				{
 					qboolean new_right_trigger = abs(axis_value) > (32767 / 4);
+
 					if (new_right_trigger != right_trigger)
 					{
 						right_trigger = new_right_trigger;
 						Key_Event(K_TRIG_RIGHT, right_trigger, true);
 					}
 				}
-			}
+
 				break;
-				/* Joystick can have more buttons than on general game controller
-				 * so try to map not free buttons */
+			}
+
+			// Joystick can have more buttons than on general game controller
+			// so try to map not free buttons
 			case SDL_JOYBUTTONUP:
 			case SDL_JOYBUTTONDOWN:
 			{
 				qboolean down = (event.type == SDL_JOYBUTTONDOWN);
-				/* Ignore back button, we dont need event for such button */
+
+				// Ignore back button, we don't need event for such button
 				if (back_button_id == event.jbutton.button)
+				{
 					return;
+				}
+
 				if (event.jbutton.button <= (K_JOY32 - K_JOY1))
 				{
 					Key_Event(event.jbutton.button + K_JOY1, down, true);
 				}
-			}
+
 				break;
+			}
+
 			case SDL_JOYHATMOTION:
 			{
 				if (last_hat != event.jhat.value)
 				{
 					char diff = last_hat ^event.jhat.value;
 					int i;
+
 					for (i = 0; i < 4; i++)
 					{
 						if (diff & (1 << i))
 						{
-							/* check that we have button up for some bit */
+							// check that we have button up for some bit
 							if (last_hat & (1 << i))
+							{
 								Key_Event(i + K_HAT_UP, false, true);
+							}
 
 							/* check that we have button down for some bit */
 							if (event.jhat.value & (1 << i))
+							{
 								Key_Event(i + K_HAT_UP, true, true);
+							}
 						}
 					}
+
 					last_hat = event.jhat.value;
 				}
-			}
+
 				break;
+			}
 
 			case SDL_QUIT:
 				Com_Quit();
-
 				break;
 		}
 	}
@@ -641,13 +691,12 @@ IN_Update(void)
 			(in_grab->value == 2 && windowed_mouse->value));
 	}
 
-	/* calling GLimp_GrabInput() each is a bit ugly but simple and should work.
-	 * + the called SDL functions return after a cheap check, if there's
-	 * nothing to do, anyway. */
+	// calling GLimp_GrabInput() each frame is a bit ugly but simple and should work.
+	// The called SDL functions return after a cheap check, if there's nothing to do.
 	GLimp_GrabInput(want_grab);
 
-	/* We need to save the frame time so other subsystems know the
-	 * exact time of the last input events. */
+	// We need to save the frame time so other subsystems
+	// know the exact time of the last input events.
 	sys_frame_time = Sys_Milliseconds();
 }
 
@@ -667,6 +716,9 @@ In_FlushQueue(void)
 void
 IN_Move(usercmd_t *cmd)
 {
+	static int old_mouse_x;
+	static int old_mouse_y;
+
 	if (m_filter->value)
 	{
 		if ((mouse_x > 1) || (mouse_x < -1))
@@ -718,7 +770,7 @@ IN_Move(usercmd_t *cmd)
 			}
 		}
 
-		/* add mouse X/Y movement to cmd */
+		// add mouse X/Y movement to cmd
 		if ((in_strafe.state & 1) || (lookstrafe->value && mlooking))
 		{
 			cmd->sidemove += m_side->value * mouse_x;
@@ -740,10 +792,12 @@ IN_Move(usercmd_t *cmd)
 		mouse_x = mouse_y = 0;
 	}
 
-	// to make the the viewangles changes independent of framerate
-	// we need to scale with frametime (assuming the configured values are for 60hz)
-	// 1/32768 is to normalize the input values from SDL (they're between -32768 and 32768 and we want -1 to 1)
-	// (for movement this is not needed, as those are absolute values independent of framerate)
+	// To make the the viewangles changes independent of framerate we need to scale
+	// with frametime (assuming the configured values are for 60hz)
+	//
+	// 1/32768 is to normalize the input values from SDL (they're between -32768 and
+	// 32768 and we want -1 to 1) for movement this is not needed, as those are
+	// absolute values independent of framerate
 	float joyViewFactor = (1.0f/32768.0f) * (cls.rframetime/0.01666f);
 
 	if (joystick_yaw)
@@ -793,12 +847,10 @@ IN_MLookUp(void)
 	IN_CenterView();
 }
 
-/*
- * Shutdown haptic functionality
- */
+/* ------------------------------------------------------------------ */
+
 static void IN_Haptic_Shutdown(void);
 
-/* ------------------------------------------------------------------ */
 /*
  * Init haptic effects
  */
@@ -812,9 +864,10 @@ IN_Haptic_Effect_Init(int effect_x, int effect_y, int effect_z, int period, int 
 	 * South - 18000
 	 * West - 27000
 	 */
-	int effect_id;
 	static SDL_HapticEffect haptic_effect;
+
 	SDL_memset(&haptic_effect, 0, sizeof(SDL_HapticEffect)); // 0 is safe default
+
 	haptic_effect.type = SDL_HAPTIC_SINE;
 	haptic_effect.periodic.direction.type = SDL_HAPTIC_CARTESIAN; // Cartesian/3d coordinates
 	haptic_effect.periodic.direction.dir[0] = effect_x;
@@ -825,13 +878,17 @@ IN_Haptic_Effect_Init(int effect_x, int effect_y, int effect_z, int period, int 
 	haptic_effect.periodic.length = length;
 	haptic_effect.periodic.attack_length = attack;
 	haptic_effect.periodic.fade_length = fade;
-	effect_id = SDL_HapticNewEffect(joystick_haptic, &haptic_effect);
+
+	int effect_id = SDL_HapticNewEffect(joystick_haptic, &haptic_effect);
+
 	if (effect_id < 0)
 	{
 		Com_Printf ("SDL_HapticNewEffect failed: %s\n", SDL_GetError());
 		Com_Printf ("Please try to rerun game. Effects will be disabled for now.\n");
+
 		IN_Haptic_Shutdown();
 	}
+
 	return effect_id;
 }
 
@@ -839,109 +896,88 @@ static int
 IN_Haptic_Effects_To_Id(int haptic_effect, int effect_volume, int effect_x, int effect_y, int effect_z)
 {
 	if ((SDL_HapticQuery(joystick_haptic) & SDL_HAPTIC_SINE)==0)
+	{
 		return -1;
+	}
 
 	int hapric_volume = joy_haptic_magnitude->value * effect_volume * 16; // * 128 = 32767 max strength;
+
 	if (hapric_volume > 255)
+	{
 		hapric_volume = 255;
+	}
 	else if (hapric_volume < 0)
+	{
 		hapric_volume = 0;
+	}
 
 	switch(haptic_effect) {
 	case HAPTIC_EFFECT_MENY:
 	case HAPTIC_EFFECT_TRAPCOCK:
 	case HAPTIC_EFFECT_STEP:
-		/* North */
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 48,
-			200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 48,
+		                             200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_PAIN:
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 700/* 700 ms*/, hapric_volume * 196,
-			300/* 0.3 seconds long */, 200/* Takes 0.2 second to get max strength */,
-			200/* Takes 0.2 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 700/* 700 ms*/, hapric_volume * 196,
+		                             300/* 0.3 seconds long */, 200/* Takes 0.2 second to get max strength */,
+		                             200/* Takes 0.2 second to fade away */);
 	case HAPTIC_EFFECT_BLASTER:
-		/* 30 degrees */
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
-			200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
+		                             200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_HYPER_BLASTER:
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
-			200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
+		                             200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_ETFRIFLE:
-		/* 60 degrees */
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
-			200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
+		                             200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_TRACKER:
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
-			200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
+		                             200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_MACHINEGUN:
-		/* 90 degrees */
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 800/* 800 ms*/, hapric_volume * 88,
-			600/* 0.6 seconds long */, 200/* Takes 0.2 second to get max strength */,
-			400/* Takes 0.4 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 800/* 800 ms*/, hapric_volume * 88,
+		                             600/* 0.6 seconds long */, 200/* Takes 0.2 second to get max strength */,
+		                             400/* Takes 0.4 second to fade away */);
 	case HAPTIC_EFFECT_SHOTGUN:
-		/* 120 degrees */
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 700/* 700 ms*/, hapric_volume * 100,
-			500/* 0.5 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			200/* Takes 0.2 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 700/* 700 ms*/, hapric_volume * 100,
+		                             500/* 0.5 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             200/* Takes 0.2 second to fade away */);
 	case HAPTIC_EFFECT_SHOTGUN2:
-		/* 150 degrees */
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 700/* 700 ms*/, hapric_volume * 96,
-			500/* 0.5 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 700/* 700 ms*/, hapric_volume * 96,
+		                             500/* 0.5 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_SSHOTGUN:
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 700/* 700 ms*/, hapric_volume * 96,
-			500/* 0.5 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 700/* 700 ms*/, hapric_volume * 96,
+		                             500/* 0.5 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_RAILGUN:
-		/* 180 degrees */
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 700/* 700 ms*/, hapric_volume * 64,
-			400/* 0.4 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 700/* 700 ms*/, hapric_volume * 64,
+		                             400/* 0.4 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_ROCKETGUN:
-		/* 210 degrees */
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 700/* 700 ms*/, hapric_volume * 128,
-			400/* 0.4 seconds long */, 300/* Takes 0.3 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 700/* 700 ms*/, hapric_volume * 128,
+		                             400/* 0.4 seconds long */, 300/* Takes 0.3 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_GRENADE:
-		/* 240 degrees */
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
-			200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
+		                             200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_BFG:
-		/* 270 degrees */
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 800/* 800 ms*/, hapric_volume * 100,
-			600/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 800/* 800 ms*/, hapric_volume * 100,
+		                             600/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_PALANX:
-		/* 300 degrees */
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
-			200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
+		                             200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	case HAPTIC_EFFECT_IONRIPPER:
-		/* 330 degrees */
-		return IN_Haptic_Effect_Init(
-			effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
-			200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
-			100/* Takes 0.1 second to fade away */);
+		return IN_Haptic_Effect_Init(effect_x, effect_y, effect_z, 500/* 500 ms*/, hapric_volume * 64,
+		                             200/* 0.2 seconds long */, 100/* Takes 0.1 second to get max strength */,
+		                             100/* Takes 0.1 second to fade away */);
 	default:
 		return -1;
 	}
@@ -951,6 +987,7 @@ static void
 IN_Haptic_Effects_Info(void)
 {
 	show_haptic = true;
+
 	Com_Printf ("Joystic/Mouse haptic:\n");
 	Com_Printf (" * %d effects\n", SDL_HapticNumEffects(joystick_haptic));
 	Com_Printf (" * %d effects in same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
@@ -961,8 +998,12 @@ static void
 IN_Haptic_Effects_Init(void)
 {
 	last_haptic_efffect_size = SDL_HapticNumEffectsPlaying(joystick_haptic);
+
 	if (last_haptic_efffect_size > HAPTIC_EFFECT_LAST)
+	{
 		last_haptic_efffect_size = HAPTIC_EFFECT_LAST;
+	}
+
 	for (int i=0; i<HAPTIC_EFFECT_LAST; i++)
 	{
 		last_haptic_efffect[i].effect_type = HAPTIC_EFFECT_UNKNOWN;
@@ -981,9 +1022,15 @@ static void
 IN_Haptic_Effect_Shutdown(int * effect_id)
 {
 	if (!effect_id)
+	{
 		return;
+	}
+
 	if (*effect_id >= 0)
+	{
 		SDL_HapticDestroyEffect(joystick_haptic, *effect_id);
+	}
+
 	*effect_id = -1;
 }
 
@@ -997,6 +1044,7 @@ IN_Haptic_Effects_Shutdown(void)
 		last_haptic_efffect[i].effect_x = 0;
 		last_haptic_efffect[i].effect_y = 0;
 		last_haptic_efffect[i].effect_z = 0;
+
 		IN_Haptic_Effect_Shutdown(&last_haptic_efffect[i].effect_id);
 	}
 }
@@ -1013,19 +1061,26 @@ Haptic_Feedback(char *name, int effect_volume, int effect_x, int effect_y, int e
 	int effect_type = HAPTIC_EFFECT_UNKNOWN;
 
 	if (joy_haptic_magnitude->value <= 0)
+	{
 		return;
+	}
 
 	if (effect_volume <= 0)
+	{
 		return;
+	}
 
 	if (!joystick_haptic)
+	{
 		return;
+	}
 
 	if (last_haptic_volume != (int)(joy_haptic_magnitude->value * 255))
 	{
 		IN_Haptic_Effects_Shutdown();
 		IN_Haptic_Effects_Init();
 	}
+
 	last_haptic_volume = joy_haptic_magnitude->value * 255;
 
 	if (strstr(name, "misc/menu"))
@@ -1128,6 +1183,7 @@ Haptic_Feedback(char *name, int effect_volume, int effect_x, int effect_y, int e
 			last_haptic_efffect[last_haptic_efffect_pos].effect_id = IN_Haptic_Effects_To_Id(
 				effect_type, effect_volume, effect_x, effect_y, effect_z);
 		}
+
 		SDL_HapticRunEffect(joystick_haptic, last_haptic_efffect[last_haptic_efffect_pos].effect_id, 1);
 	}
 }
@@ -1185,18 +1241,21 @@ IN_Init(void)
 
 	SDL_StartTextInput();
 
-	/* joystik init */
+	/* Joystick init */
 	if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC))
 	{
 		if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC) == -1)
 		{
 			Com_Printf ("Couldn't init SDL joystick: %s.\n", SDL_GetError ());
-		} else {
+		}
+		else
+		{
 			Com_Printf ("%i joysticks were found.\n", SDL_NumJoysticks());
+
 			if (SDL_NumJoysticks() > 0) {
-				int i;
-				for (i=0; i<SDL_NumJoysticks(); i ++) {
+				for (int i = 0; i < SDL_NumJoysticks(); i++) {
 					joystick = SDL_JoystickOpen(i);
+
 					Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(joystick));
 					Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
 					Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
@@ -1204,15 +1263,21 @@ IN_Init(void)
 					Com_Printf ("Number of Hats: %d\n", SDL_JoystickNumHats(joystick));
 
 					joystick_haptic = SDL_HapticOpenFromJoystick(joystick);
+
 					if (joystick_haptic == NULL)
-						Com_Printf ("Most likely joystick isn't haptic\n");
+					{
+						Com_Printf("Most likely joystick isn't haptic\n");
+					}
 					else
+					{
 						IN_Haptic_Effects_Info();
+					}
 
 					if(SDL_IsGameController(i))
 					{
 						SDL_GameControllerButtonBind backBind;
 						controller = SDL_GameControllerOpen(i);
+
 						Com_Printf ("Controller settings: %s\n", SDL_GameControllerMapping(controller));
 						Com_Printf ("Controller axis: \n");
 						Com_Printf (" * leftx = %s\n", joy_axis_leftx->string);
@@ -1232,18 +1297,23 @@ IN_Init(void)
 
 						backBind = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_BACK);
 
-						if (backBind.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON) {
+						if (backBind.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON)
+						{
 							back_button_id = backBind.value.button;
 							Com_Printf ("\nBack button JOY%d will be unbindable.\n", back_button_id+1);
 						}
+
 						break;
 					}
 					else
 					{
 						char joystick_guid[256] = {0};
+
 						SDL_JoystickGUID guid;
 						guid = SDL_JoystickGetDeviceGUID(i);
+
 						SDL_JoystickGetGUIDString(guid, joystick_guid, 255);
+
 						Com_Printf ("To use joystick as game controller please set SDL_GAMECONTROLLERCONFIG:\n");
 						Com_Printf ("e.g.: SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,back:b1,...\n", joystick_guid, SDL_JoystickName(joystick));
 					}
@@ -1252,10 +1322,15 @@ IN_Init(void)
 			else
 			{
 				joystick_haptic = SDL_HapticOpenFromMouse();
+
 				if (joystick_haptic == NULL)
-					Com_Printf ("Most likely mouse isn't haptic\n");
+				{
+					Com_Printf("Most likely mouse isn't haptic\n");
+				}
 				else
+				{
 					IN_Haptic_Effects_Info();
+				}
 			}
 		}
 	}
