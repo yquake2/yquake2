@@ -107,11 +107,6 @@ Qcommon_Buildstring(void)
 	printf(" - SDL2 (using 1.2)\n");
 #endif
 
-#ifdef CDA
-	printf(" + CD audio\n");
-#else
-	printf(" - CD audio\n");
-#endif
 #ifdef OGG
 	printf(" + OGG/Vorbis\n");
 #else

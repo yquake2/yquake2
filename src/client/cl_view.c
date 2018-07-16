@@ -361,34 +361,18 @@ CL_PrepRefresh(void)
 	cl.refresh_prepped = true;
 	cl.force_refdef = true; /* make sure we have a valid refdef */
 
-#if defined(OGG) || defined(CDA)
-
+#if defined(OGG)
 	int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
 
 	/* start the cd track */
 	if (Cvar_VariableValue("cd_shuffle"))
 	{
-#ifdef CDA
-		CDAudio_RandomPlay();
-#endif
-
-#ifdef OGG
 		OGG_PlayTrack(track);
-#endif
 	}
 	else
 	{
- #ifdef CDA
-		CDAudio_Play(track, (char **)NULL, 10), true);
- #endif
-
- #ifdef OGG
-
 		OGG_PlayTrack(track);
-
- #endif
 	}
-
 #endif
 }
 

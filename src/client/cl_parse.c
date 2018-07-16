@@ -1078,22 +1078,15 @@ CL_ParseConfigString(void)
 	{
 		CL_SetLightstyle(i - CS_LIGHTS);
 	}
-
+#ifdef OGG
 	else if (i == CS_CDTRACK)
 	{
 		if (cl.refresh_prepped)
 		{
-			int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
-#ifdef CDA
-			CDAudio_Play(track, true);
-#endif
-
-#ifdef OGG
-
-			OGG_PlayTrack(track);
-#endif
+			OGG_PlayTrack((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10));
 		}
 	}
+#endif
 	else if ((i >= CS_MODELS) && (i < CS_MODELS + MAX_MODELS))
 	{
 		if (cl.refresh_prepped)

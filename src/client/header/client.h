@@ -53,7 +53,6 @@
 #include "keyboard.h"
 #include "console.h"
 
-#include "../sound/header/cdaudio.h"
 #include "../sound/header/sound.h"
 #include "../sound/header/vorbis.h"
 
