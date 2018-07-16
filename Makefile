@@ -27,12 +27,6 @@
 # User configurable options
 # -------------------------
 
-# Enables CD audio playback. CD audio playback is used
-# for the background music and doesn't add any further
-# dependencies. It should work on all platforms where
-# CD playback is supported by SDL.
-WITH_CDA:=yes
-
 # Enables OGG/Vorbis support. OGG/Vorbis files can be
 # used as a substitute of CD audio playback. Adds
 # dependencies to libogg, libvorbis and libvorbisfile.
@@ -55,12 +49,6 @@ DLOPEN_OPENAL:=yes
 # On Windows sdl-config isn't used, so make sure that
 # you've got the SDL2 headers and libs installed.
 WITH_SDL2:=yes
-
-# Set the gamma via X11 and not via SDL. This works
-# around problems in some SDL version. Adds dependencies
-# to pkg-config, libX11 and libXxf86vm. Unsupported on
-# Windows and OS X.
-WITH_X11GAMMA:=no
 
 # Enables opening of ZIP files (also known as .pk3 paks).
 # Adds a dependency to libz
@@ -136,18 +124,6 @@ endif
 # Used to detect libraries. Override to foobar-linux-gnu-pkg-config when
 # cross-compiling.
 PKG_CONFIG ?= pkg-config
-
-# Disable CDA for SDL2
-ifeq ($(WITH_SDL2),yes)
-ifeq ($(WITH_CDA),yes)
-WITH_CDA:=no
-
-# Evil hack to tell the "all" target
-# that CDA was disabled because SDL2
-# is enabled.
-CDA_DISABLED:=yes
-endif
-endif
 
 # ----------
 
@@ -254,18 +230,6 @@ endif # SDL2
 
 # ----------
 
-# Extra CFLAGS for X11
-ifneq ($(YQ2_OSTYPE), Windows)
-ifneq ($(YQ2_OSTYPE), Darwin)
-ifeq ($(WITH_X11GAMMA),yes)
-X11CFLAGS := $(shell $(PKG_CONFIG) x11 --cflags)
-X11CFLAGS += $(shell $(PKG_CONFIG) xxf86vm --cflags)
-endif
-endif
-endif
-
-# ----------
-
 # Base include path.
 ifeq ($(YQ2_OSTYPE),Linux)
 INCLUDE := -I/usr/include
@@ -324,19 +288,6 @@ endif # Darwin
 
 # ----------
 
-# Extra LDFLAGS for X11
-ifneq ($(YQ2_OSTYPE), Windows)
-ifneq ($(YQ2_OSTYPE), Darwin)
-ifeq ($(WITH_X11GAMMA),yes)
-X11LDFLAGS := $(shell $(PKG_CONFIG) x11 --libs)
-X11LDFLAGS += $(shell $(PKG_CONFIG) xxf86vm --libs)
-X11LDFLAGS += $(shell $(PKG_CONFIG) xrandr --libs)
-endif
-endif
-endif
-
-# ----------
-
 # When make is invoked by "make VERBOSE=1" print
 # the compiler and linker commands.
 
@@ -362,21 +313,13 @@ all: config client server game ref_gl1 ref_gl3 ref_soft
 config:
 	@echo "Build configuration"
 	@echo "============================"
-	@echo "WITH_CDA = $(WITH_CDA)"
 	@echo "WITH_OPENAL = $(WITH_OPENAL)"
 	@echo "WITH_SDL2 = $(WITH_SDL2)"
-	@echo "WITH_X11GAMMA = $(WITH_X11GAMMA)"
 	@echo "WITH_ZIP = $(WITH_ZIP)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
 	@echo "============================"
 	@echo ""
-ifeq ($(WITH_SDL2),yes)
-ifeq ($(CDA_DISABLED),yes)
-	@echo "WARNING: CDA disabled because SDL2 doesn't support it!"
-	@echo ""
-endif
-endif
 
 # ----------
 
@@ -415,10 +358,6 @@ build/client/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
-
-ifeq ($(WITH_CDA),yes)
-release/yquake2.exe : CFLAGS += -DCDA
-endif
 
 ifeq ($(WITH_OGG),yes)
 release/yquake2.exe : CFLAGS += -DOGG
@@ -461,10 +400,6 @@ endif
 
 release/quake2 : CFLAGS += -Wno-unused-result
 
-ifeq ($(WITH_CDA),yes)
-release/quake2 : CFLAGS += -DCDA
-endif
-
 ifeq ($(WITH_OGG),yes)
 release/quake2 : CFLAGS += -DOGG
 release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg
@@ -493,10 +428,6 @@ endif # WITH_OPENAL
 ifeq ($(WITH_ZIP),yes)
 release/quake2 : CFLAGS += $(ZIPCFLAGS) -DZIP -DNOUNCRYPT
 release/quake2 : LDFLAGS += -lz
-endif
-
-ifeq ($(WITH_X11GAMMA),yes)
-release/quake2 : CFLAGS += -DX11GAMMA
 endif
 
 ifeq ($(WITH_SDL2),yes)
@@ -622,7 +553,7 @@ endif # OS specific ref_gl1 shit
 build/ref_gl1/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(X11CFLAGS) $(INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 # ----------
 
@@ -825,7 +756,6 @@ CLIENT_OBJS_ := \
 	src/backends/generic/misc.o \
 	src/backends/generic/qal.o \
 	src/backends/generic/vid.o \
-	src/backends/sdl/cd.o \
 	src/backends/sdl/input.o \
 	src/backends/sdl/refresh.o \
 	src/backends/sdl/sound.o \
@@ -1094,7 +1024,7 @@ release/quake2.exe : src/win-wrapper/wrapper.c icon
 else
 release/quake2 : $(CLIENT_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) $(X11LDFLAGS) -o $@
+	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/q2ded

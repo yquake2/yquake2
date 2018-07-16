@@ -87,7 +87,6 @@ if(${SDL2_FOUND})
 	list(APPEND yquake2SDLLinkerFlags ${SDL2_LIBRARY})
 else()
 	find_package(SDL REQUIRED)
-	add_definitions(-DWITH_CDA)
 	list(APPEND yquake2IncludeDirectories "${SDL_INCLUDE_DIR}/..")
 	list(APPEND yquake2SDLLinkerFlags ${SDL_LIBRARY})
 endif()
@@ -177,7 +176,6 @@ set(Backends-Generic-Source
 	${BACKENDS_SRC_DIR}/generic/qal.c
 	${BACKENDS_SRC_DIR}/generic/vid.c
 
-	${BACKENDS_SRC_DIR}/sdl/cd.c
 	${BACKENDS_SRC_DIR}/sdl/input.c
 	${BACKENDS_SRC_DIR}/sdl/refresh.c
 	${BACKENDS_SRC_DIR}/sdl/sound.c
@@ -376,7 +374,6 @@ set(Client-Header
 	${CLIENT_SRC_DIR}/header/screen.h
 	${CLIENT_SRC_DIR}/header/vid.h
 	${CLIENT_SRC_DIR}/menu/header/qmenu.h
-	${CLIENT_SRC_DIR}/sound/header/cdaudio.h
 	${CLIENT_SRC_DIR}/sound/header/local.h
 	${CLIENT_SRC_DIR}/sound/header/sound.h
 	${CLIENT_SRC_DIR}/sound/header/vorbis.h
