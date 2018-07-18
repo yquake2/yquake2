@@ -24,7 +24,6 @@
  * =======================================================================
  */
 
-#include <SDL2/SDL_scancode.h>
 #include "header/client.h"
 #include "sound/header/local.h"
 

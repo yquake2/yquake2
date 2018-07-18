@@ -1052,13 +1052,9 @@ static menulist_s s_options_invertmouse_box;
 static menulist_s s_options_lookstrafe_box;
 static menulist_s s_options_crosshair_box;
 static menuslider_s s_options_sfxvolume_slider;
-#ifdef SDL2
 static menuslider_s s_options_haptic_slider;
-#endif
 #if defined(OGG)
 static menulist_s s_options_cdshuffle_box;
-#endif
-#ifdef OGG
 static menuslider_s s_options_oggvolume_slider;
 static menulist_s s_options_enableogg_box;
 #endif
@@ -1071,13 +1067,11 @@ CrosshairFunc(void *unused)
     Cvar_SetValue("crosshair", (float)s_options_crosshair_box.curvalue);
 }
 
-#ifdef SDL2
 static void
 HapticMagnitudeFunc(void *unused)
 {
     Cvar_SetValue("joy_haptic_magnitude", s_options_haptic_slider.curvalue / 10.0F);
 }
-#endif
 
 static void
 CustomizeControlsFunc(void *unused)
@@ -1146,22 +1140,13 @@ ControlsSetMenuItemValues(void)
 #endif
 
     s_options_quality_list.curvalue = (Cvar_VariableValue("s_loadas8bit") == 0);
-
     s_options_sensitivity_slider.curvalue = sensitivity->value * 2;
-
     s_options_alwaysrun_box.curvalue = (cl_run->value != 0);
-
     s_options_invertmouse_box.curvalue = (m_pitch->value < 0);
-
     s_options_lookstrafe_box.curvalue = (lookstrafe->value != 0);
-
     s_options_freelook_box.curvalue = (freelook->value != 0);
-
     s_options_crosshair_box.curvalue = ClampCvar(0, 3, crosshair->value);
-
-#ifdef SDL2
     s_options_haptic_slider.curvalue = Cvar_VariableValue("joy_haptic_magnitude") * 10.0F;
-#endif
 }
 
 static void
@@ -1343,10 +1328,7 @@ Options_MenuInit(void)
     };
 
     float scale = SCR_GetMenuScale();
-
-#ifdef SDL2
     extern qboolean show_haptic;
-#endif
 
     /* configure controls menu and menu items */
     s_options_menu.x = viddef.width / 2;
@@ -1437,7 +1419,6 @@ Options_MenuInit(void)
     s_options_crosshair_box.generic.callback = CrosshairFunc;
     s_options_crosshair_box.itemnames = crosshair_names;
 
-#ifdef SDL2
     s_options_haptic_slider.generic.type = MTYPE_SLIDER;
     s_options_haptic_slider.generic.x = 0;
     s_options_haptic_slider.generic.y = 120;
@@ -1445,7 +1426,6 @@ Options_MenuInit(void)
     s_options_haptic_slider.generic.callback = HapticMagnitudeFunc;
     s_options_haptic_slider.minvalue = 0;
     s_options_haptic_slider.maxvalue = 22;
-#endif
 
     s_options_customize_options_action.generic.type = MTYPE_ACTION;
     s_options_customize_options_action.generic.x = 0;
@@ -1482,10 +1462,8 @@ Options_MenuInit(void)
     Menu_AddItem(&s_options_menu, (void *)&s_options_freelook_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_crosshair_box);
 
-#ifdef SDL2
     if (show_haptic)
         Menu_AddItem(&s_options_menu, (void *)&s_options_haptic_slider);
-#endif
 
     Menu_AddItem(&s_options_menu, (void *)&s_options_customize_options_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_defaults_action);
