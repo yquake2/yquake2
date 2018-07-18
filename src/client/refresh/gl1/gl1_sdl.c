@@ -50,57 +50,16 @@ GLimp_GetProcAddress (const char* proc)
 	return SDL_GL_GetProcAddress ( proc );
 }
 
-/*
- *  from SDL2 SDL_CalculateGammaRamp, adjusted for arbitrary ramp sizes
- *  because xrandr seems to support ramp sizes != 256 (in theory at least)
- */
-void CalculateGammaRamp(float gamma, Uint16* ramp, int len)
-{
-    int i;
-
-    /* Input validation */
-    if (gamma < 0.0f ){
-      return;
-    }
-    if (ramp == NULL) {
-      return;
-    }
-
-    /* 0.0 gamma is all black */
-    if (gamma == 0.0f) {
-        for (i = 0; i < len; ++i) {
-            ramp[i] = 0;
-        }
-        return;
-    } else if (gamma == 1.0f) {
-        /* 1.0 gamma is identity */
-        for (i = 0; i < len; ++i) {
-            ramp[i] = (i << 8) | i;
-        }
-        return;
-    } else {
-        /* Calculate a real gamma ramp */
-        int value;
-        gamma = 1.0f / gamma;
-        for (i = 0; i < len; ++i) {
-            value = (int) (pow((double) i / (double) len, gamma) * 65535.0 + 0.5);
-            if (value > 65535) {
-                value = 65535;
-            }
-            ramp[i] = (Uint16) value;
-        }
-    }
-}
-
 void
 UpdateHardwareGamma(void)
 {
 	float gamma = (vid_gamma->value);
 
 	Uint16 ramp[256];
-	CalculateGammaRamp(gamma, ramp, 256);
+	SDL_CalculateGammaRamp(gamma, ramp);
 
-	if(SDL_SetWindowGammaRamp(window, ramp, ramp, ramp) != 0) {
+	if(SDL_SetWindowGammaRamp(window, ramp, ramp, ramp) != 0)
+	{
 		R_Printf(PRINT_ALL, "Setting gamma failed: %s\n", SDL_GetError());
 	}
 }
