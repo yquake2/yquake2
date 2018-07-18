@@ -30,36 +30,25 @@
 
 #include "header/local.h"
 
-#ifdef SDL2
 #include <SDL2/SDL.h>
-#else // SDL1.2
-#include <SDL/SDL.h>
-#endif //SDL2
 
-
-
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
- static SDL_Window* window = NULL;
- static SDL_GLContext context = NULL;
-#else
- static SDL_Surface* window = NULL;
-#endif
+static SDL_Window* window = NULL;
+static SDL_GLContext context = NULL;
+static qboolean vsyncActive = false;
 
 qboolean have_stencil = false;
-static qboolean vsyncActive = false;
 
 // called by GLimp_InitGraphics() before creating window,
 // returns flags for SDL window creation, -1 on error
 int GL3_PrepareForWindow(void)
 {
-	unsigned int flags = 0;
 	int msaa_samples = 0;
 
 	if(SDL_GL_LoadLibrary(NULL) < 0) // Default OpenGL is fine.
 	{
 		// TODO: is there a better way?
 		ri.Sys_Error(ERR_FATAL, "Couldn't load libGL: %s!", SDL_GetError());
+
 		return -1;
 	}
 
@@ -70,11 +59,12 @@ int GL3_PrepareForWindow(void)
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
 	int contextFlags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+
 	if(gl3_debugcontext && gl3_debugcontext->value)
 	{
 		contextFlags |= SDL_GL_CONTEXT_DEBUG_FLAG;
@@ -83,16 +73,8 @@ int GL3_PrepareForWindow(void)
 	{
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, contextFlags);
 	}
+
 	gl3config.compat_profile = false;
-#else // SDL1.2 doesn't have all this, so we'll have some kind of compatibility profile
-	gl3config.compat_profile = true;
-#endif
-
-
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-	/* Set vsync - For SDL1.2, this must be done before creating the window */
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, r_vsync->value ? 1 : 0);
-#endif
 
 	if (gl_msaa_samples->value)
 	{
@@ -101,14 +83,18 @@ int GL3_PrepareForWindow(void)
 		if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) < 0)
 		{
 			R_Printf(PRINT_ALL, "MSAA is unsupported: %s\n", SDL_GetError());
+
 			ri.Cvar_SetValue ("gl_msaa_samples", 0);
+
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 		}
 		else if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaa_samples) < 0)
 		{
 			R_Printf(PRINT_ALL, "MSAA %ix is unsupported: %s\n", msaa_samples, SDL_GetError());
+
 			ri.Cvar_SetValue("gl_msaa_samples", 0);
+
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 		}
@@ -119,14 +105,7 @@ int GL3_PrepareForWindow(void)
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 	}
 
-	/* Initiate the flags */
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	flags = SDL_WINDOW_OPENGL;
-#else // SDL 1.2
-	flags = SDL_OPENGL;
-#endif
-
-	return flags;
+	return SDL_WINDOW_OPENGL;
 }
 
 enum {
@@ -143,6 +122,7 @@ DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei le
 	const char* sourceStr = "Source: Unknown";
 	const char* typeStr = "Type: Unknown";
 	const char* severityStr = "Severity: Unknown";
+
 	switch(severity)
 	{
 		case QGL_DEBUG_SEVERITY_NOTIFICATION:
@@ -153,26 +133,32 @@ DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei le
 		case GL_DEBUG_SEVERITY_MEDIUM_ARB: severityStr = "Severity: Medium"; break;
 		case GL_DEBUG_SEVERITY_LOW_ARB:    severityStr = "Severity: Low";    break;
 	}
+
 	switch(source)
 	{
 #define SRCCASE(X)  case GL_DEBUG_SOURCE_ ## X ## _ARB: sourceStr = "Source: " #X; break;
+
 		SRCCASE(API);
 		SRCCASE(WINDOW_SYSTEM);
 		SRCCASE(SHADER_COMPILER);
 		SRCCASE(THIRD_PARTY);
 		SRCCASE(APPLICATION);
 		SRCCASE(OTHER);
+
 #undef SRCCASE
 	}
+
 	switch(type)
 	{
 #define TYPECASE(X)  case GL_DEBUG_TYPE_ ## X ## _ARB: typeStr = "Type: " #X; break;
+
 		TYPECASE(ERROR);
 		TYPECASE(DEPRECATED_BEHAVIOR);
 		TYPECASE(UNDEFINED_BEHAVIOR);
 		TYPECASE(PORTABILITY);
 		TYPECASE(PERFORMANCE);
 		TYPECASE(OTHER);
+
 #undef TYPECASE
 	}
 
@@ -188,24 +174,21 @@ int GL3_InitContext(void* win)
 	if(win == NULL)
 	{
 		ri.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
+
 		return false;
 	}
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	window = (SDL_Window*)win;
 
+	window = (SDL_Window*)win;
 	context = SDL_GL_CreateContext(window);
+
 	if(context == NULL)
 	{
 		R_Printf(PRINT_ALL, "GL3_InitContext(): Creating OpenGL Context failed: %s\n", SDL_GetError());
+
 		window = NULL;
+
 		return false;
 	}
-#else // SDL 1.2
-
-	window = (SDL_Surface*)win;
-	// context is created implicitly with window, nothing to do here
-
-#endif
 
 	if (gl_msaa_samples->value)
 	{
@@ -215,12 +198,8 @@ int GL3_InitContext(void* win)
 		}
 	}
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	/* For SDL2, this must be done after creating the window */
 	GL3_SetSwapInterval();
-#else // SDL1.2 - set vsyncActive to whatever is configured, hoping it was actually set
-	vsyncActive = r_vsync->value ? 1 : 0;
-#endif
 
 	/* Initialize the stencil buffer */
 	if (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits) == 0)
@@ -236,11 +215,13 @@ int GL3_InitContext(void* win)
 	if(!gladLoadGLLoader(SDL_GL_GetProcAddress))
 	{
 		R_Printf(PRINT_ALL, "GL3_InitContext(): ERROR: loading OpenGL function pointers failed!\n");
+
 		return false;
 	}
 	else if (GLVersion.major < 3 || (GLVersion.major == 3 && GLVersion.minor < 2))
 	{
 		R_Printf(PRINT_ALL, "GL3_InitContext(): ERROR: glad only got GL version %d.%d!\n", GLVersion.major, GLVersion.minor);
+
 		return false;
 	}
 	else
@@ -248,12 +229,7 @@ int GL3_InitContext(void* win)
 		R_Printf(PRINT_ALL, "Successfully loaded OpenGL function pointers using glad, got version %d.%d!\n", GLVersion.major, GLVersion.minor);
 	}
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	gl3config.debug_output = GLAD_GL_ARB_debug_output != 0;
-#else
-	gl3config.debug_output = 0; // no debug contexts with SDL1.2 - can't set the context flag!
-#endif
-
 	gl3config.anisotropic = GLAD_GL_EXT_texture_filter_anisotropic != 0;
 
 	gl3config.major_version = GLVersion.major;
@@ -272,26 +248,16 @@ int GL3_InitContext(void* win)
 
 	/* Window title - set here so we can display renderer name in it */
 	snprintf(title, sizeof(title), "Yamagi Quake II %s - OpenGL 3.2", YQ2VERSION);
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_SetWindowTitle(window, title);
-#else
-	SDL_WM_SetCaption(title, title);
-#endif
 
 	return true;
 }
 
-
-
 void GL3_SetSwapInterval(void)
 {
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	/* Set vsync - TODO: -1 could be set for "late swap tearing" */
 	SDL_GL_SetSwapInterval(r_vsync->value ? 1 : 0);
 	vsyncActive = SDL_GL_GetSwapInterval() != 0;
-#else
-	R_Printf(PRINT_ALL, "SDL1.2 requires a vid_restart to apply changes to r_vsync (vsync)!\n");
-#endif
 }
 
 qboolean GL3_IsVsyncActive(void)
@@ -304,11 +270,7 @@ qboolean GL3_IsVsyncActive(void)
  */
 void GL3_EndFrame(void)
 {
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_GL_SwapWindow(window);
-#else
-	SDL_GL_SwapBuffers();
-#endif
 }
 
 /*
@@ -316,35 +278,19 @@ void GL3_EndFrame(void)
  */
 void GL3_ShutdownWindow(qboolean contextOnly)
 {
-	/* Clear the backbuffer and make it
-	   current. This may help some broken
-	   video drivers like the AMD Catalyst
-	   to avoid artifacts in unused screen
-	   areas.
-	   Only do this if we have a context, though. */
 	if (window)
 	{
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 		if(context)
 		{
-			glClearColor(0.0, 0.0, 0.0, 0.0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			GL3_EndFrame();
-
 			SDL_GL_DeleteContext(context);
 			context = NULL;
 		}
-#else // SDL1.2
-		glClearColor(0.0, 0.0, 0.0, 0.0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		GL3_EndFrame();
-#endif
-	}
 
-	window = NULL;
+		if (!contextOnly)
+		{
+			ri.Vid_ShutdownWindow();
 
-	if(!contextOnly)
-	{
-		ri.Vid_ShutdownWindow();
+			window = NULL;
+		}
 	}
 }
