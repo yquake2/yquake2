@@ -27,11 +27,7 @@
 
 #include "header/local.h"
 
-#ifdef SDL2
 #include <SDL2/SDL.h>
-#else // SDL1.2
-#include <SDL/SDL.h>
-#endif //SDL2
 
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>
@@ -39,15 +35,11 @@
 #include <GL/gl.h>
 #endif
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
- static SDL_Window* window = NULL;
- static SDL_GLContext context = NULL;
-#else
-static SDL_Surface* window = NULL;
-#endif
+static qboolean vsyncActive = false;
+static SDL_Window* window = NULL;
+static SDL_GLContext context = NULL;
 
 qboolean have_stencil = false;
-static qboolean vsyncActive = false;
 
 /*
  * Returns the adress of a GL function
@@ -67,7 +59,7 @@ void CalculateGammaRamp(float gamma, Uint16* ramp, int len)
     int i;
 
     /* Input validation */
-    if (gamma < 0.0f ) {
+    if (gamma < 0.0f ){
       return;
     }
     if (ramp == NULL) {
@@ -107,11 +99,8 @@ UpdateHardwareGamma(void)
 
 	Uint16 ramp[256];
 	CalculateGammaRamp(gamma, ramp, 256);
-#if SDL_VERSION_ATLEAST(2, 0, 0)
+
 	if(SDL_SetWindowGammaRamp(window, ramp, ramp, ramp) != 0) {
-#else
-	if(SDL_SetGammaRamp(ramp, ramp, ramp) < 0) {
-#endif
 		R_Printf(PRINT_ALL, "Setting gamma failed: %s\n", SDL_GetError());
 	}
 }
@@ -137,11 +126,6 @@ int RI_PrepareForWindow(void)
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-	/* Set vsync - For SDL1.2, this must be done before creating the window */
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, r_vsync->value ? 1 : 0);
-#endif
 
 	if (gl_msaa_samples->value)
 	{
@@ -169,24 +153,16 @@ int RI_PrepareForWindow(void)
 	}
 
 	/* Initiate the flags */
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	flags = SDL_WINDOW_OPENGL;
-#else // SDL 1.2
-	flags = SDL_OPENGL;
-#endif
 
 	return flags;
 }
 
 void RI_SetSwapInterval(void)
 {
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	/* Set vsync - TODO: -1 could be set for "late swap tearing" */
 	SDL_GL_SetSwapInterval(r_vsync->value ? 1 : 0);
 	vsyncActive = SDL_GL_GetSwapInterval() != 0;
-#else
-	R_Printf(PRINT_ALL, "SDL1.2 requires a vid_restart to apply changes to r_vsync (vsync)!\n");
-#endif
 }
 
 int RI_InitContext(void* win)
@@ -200,7 +176,6 @@ int RI_InitContext(void* win)
 		return false;
 	}
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	window = (SDL_Window*)win;
 
 	context = SDL_GL_CreateContext(window);
@@ -210,12 +185,6 @@ int RI_InitContext(void* win)
 		window = NULL;
 		return false;
 	}
-#else // SDL 1.2
-
-	window = (SDL_Surface*)win;
-	// context is created implicitly with window, nothing to do here
-
-#endif
 
 	const char* glver = (char *)glGetString(GL_VERSION);
 	sscanf(glver, "%d.%d", &gl_config.major_version, &gl_config.minor_version);
@@ -233,12 +202,8 @@ int RI_InitContext(void* win)
 		}
 	}
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	/* For SDL2, this must be done after creating the window */
 	RI_SetSwapInterval();
-#else // SDL1.2 - set vsyncActive to whatever is configured, hoping it was actually set
-	vsyncActive = r_vsync->value ? 1 : 0;
-#endif
 
 	/* Initialize the stencil buffer */
 	if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits))
@@ -256,11 +221,7 @@ int RI_InitContext(void* win)
 
 	/* Window title - set here so we can display renderer name in it */
 	snprintf(title, sizeof(title), "Yamagi Quake II %s - OpenGL 1.x", YQ2VERSION);
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_SetWindowTitle(window, title);
-#else
-	SDL_WM_SetCaption(title, title);
-#endif
 
 	return true;
 }
@@ -276,11 +237,7 @@ qboolean RI_IsVSyncActive(void)
 void
 RI_EndFrame(void)
 {
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_GL_SwapWindow(window);
-#else
-	SDL_GL_SwapBuffers();
-#endif
 }
 
 /*
@@ -297,7 +254,6 @@ RI_ShutdownWindow(qboolean contextOnly)
 	   Only do this if we have a context, though. */
 	if (window)
 	{
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 		if(context)
 		{
 			glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -307,11 +263,6 @@ RI_ShutdownWindow(qboolean contextOnly)
 			SDL_GL_DeleteContext(context);
 			context = NULL;
 		}
-#else // SDL 1.2
-		glClearColor(0.0, 0.0, 0.0, 0.0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		RI_EndFrame();
-#endif
 	}
 
 	window = NULL;
