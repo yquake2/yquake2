@@ -34,11 +34,7 @@
  */
 
 /* SDL includes */
-#ifdef SDL2
 #include <SDL2/SDL.h>
-#else // SDL1.2
-#include <SDL/SDL.h>
-#endif //SDL2
 
 /* Local includes */
 #include "../../client/header/client.h"
@@ -64,16 +60,11 @@ static int soundtime;
 
 /* ------------------------------------------------------------------ */
 
-/* =============================== */
-/* Low-pass filter */
-/* Based on OpenAL implementation. */
-
-/* Filter's context */
 typedef struct {
-    float a;
-    float gain_hf;
-    portable_samplepair_t history[2];
-    qboolean is_history_initialized;
+	float a;
+	float gain_hf;
+	portable_samplepair_t history[2];
+	qboolean is_history_initialized;
 } LpfContext;
 
 static const int lpf_reference_frequency = 5000;
@@ -82,100 +73,98 @@ static const float lpf_default_gain_hf = 0.25F;
 static LpfContext lpf_context;
 static qboolean lpf_is_enabled;
 
-static void lpf_initialize(
-    LpfContext* lpf_context,
-    float gain_hf,
-    int target_frequency)
+static void lpf_initialize(LpfContext* lpf_context, float gain_hf, int target_frequency)
 {
-    assert(target_frequency > 0);
-    assert(lpf_context);
+	assert(target_frequency > 0);
+	assert(lpf_context);
 
-    float g;
-    float cw;
-    float a;
+	float g;
+	float cw;
+	float a;
 
-    const float k_2_pi = 6.283185307F;
+	const float k_2_pi = 6.283185307F;
 
-    g = gain_hf;
+	g = gain_hf;
 
-    if (g < 0.01F)
-        g = 0.01F;
-    else if (gain_hf > 1.0F)
-        g = 1.0F;
+	if (g < 0.01F)
+	{
+		g = 0.01F;
+	}
+	else if (gain_hf > 1.0F)
+	{
+		g = 1.0F;
+	}
 
-    cw = cosf((k_2_pi * lpf_reference_frequency) / target_frequency);
+	cw = cosf((k_2_pi * lpf_reference_frequency) / target_frequency);
 
-    a = 0.0F;
+	a = 0.0F;
 
-    if (g < 0.9999F) {
-        a = (1.0F - (g * cw) - sqrtf((2.0F * g * (1.0F - cw)) -
-            (g * g * (1.0F - (cw * cw))))) / (1.0F - g);
-    }
+	if (g < 0.9999F)
+	{
+		a = (1.0F - (g * cw) - sqrtf((2.0F * g * (1.0F - cw)) -
+			(g * g * (1.0F - (cw * cw))))) / (1.0F - g);
+	}
 
-    lpf_context->a = a;
-    lpf_context->gain_hf = gain_hf;
-    lpf_context->is_history_initialized = false;
+	lpf_context->a = a;
+	lpf_context->gain_hf = gain_hf;
+	lpf_context->is_history_initialized = false;
 }
 
-static void lpf_update_samples(
-    LpfContext* lpf_context,
-    int sample_count,
-    portable_samplepair_t* samples)
+static void lpf_update_samples(LpfContext* lpf_context,int sample_count, portable_samplepair_t* samples)
 {
-    assert(lpf_context);
-    assert(sample_count >= 0);
-    assert(samples);
+	assert(lpf_context);
+	assert(sample_count >= 0);
+	assert(samples);
 
-    int s;
-    float a;
-    portable_samplepair_t y;
-    portable_samplepair_t* history;
+	int s;
+	float a;
+	portable_samplepair_t y;
+	portable_samplepair_t* history;
 
-    if (sample_count <= 0)
-        return;
+	if (sample_count <= 0)
+	{
+		return;
+	}
 
-    a = lpf_context->a;
-    history = lpf_context->history;
+	a = lpf_context->a;
+	history = lpf_context->history;
 
-    if (!lpf_context->is_history_initialized) {
-        lpf_context->is_history_initialized = true;
+	if (!lpf_context->is_history_initialized)
+	{
+		lpf_context->is_history_initialized = true;
 
-        for (s = 0; s < 2; ++s) {
-            history[s].left = 0;
-            history[s].right = 0;
-        }
-    }
+		for (s = 0; s < 2; ++s)
+		{
+			history[s].left = 0;
+			history[s].right = 0;
+		}
+	}
 
-    for (s = 0; s < sample_count; ++s) {
-        /* Update left channel */
+	for (s = 0; s < sample_count; ++s)
+	{
+		/* Update left channel */
+		y.left = samples[s].left;
 
-        y.left = samples[s].left;
+		y.left = (int)(y.left + a * (history[0].left - y.left));
+		history[0].left = y.left;
 
-        y.left = (int)(y.left + a * (history[0].left - y.left));
-        history[0].left = y.left;
-
-        y.left = (int)(y.left + a * (history[1].left - y.left));
-        history[1].left = y.left;
-
-
-        /* Update right channel */
-
-        y.right = samples[s].right;
-
-        y.right = (int)(y.right + a * (history[0].right - y.right));
-        history[0].right = y.right;
-
-        y.right = (int)(y.right + a * (history[1].right - y.right));
-        history[1].right = y.right;
+		y.left = (int)(y.left + a * (history[1].left - y.left));
+		history[1].left = y.left;
 
 
-        /* Update sample */
-        samples[s] = y;
-    }
+		/* Update right channel */
+		y.right = samples[s].right;
+
+		y.right = (int)(y.right + a * (history[0].right - y.right));
+		history[0].right = y.right;
+
+		y.right = (int)(y.right + a * (history[1].right - y.right));
+		history[1].right = y.right;
+
+		/* Update sample */
+		samples[s] = y;
+	}
 }
-
-/* End of low-pass filter stuff */
-/* ============================ */
 
 /*
  * Transfers a mixed "paint buffer" to
@@ -453,8 +442,7 @@ SDL_PaintChannels(int endtime)
 			break;
 		}
 
-		memset(paintbuffer, 0, (end - paintedtime)
-				* sizeof(portable_samplepair_t));
+		memset(paintbuffer, 0, (end - paintedtime) * sizeof(portable_samplepair_t));
 
 		/* paint in the channels. */
 		ch = channels;
@@ -584,8 +572,7 @@ SDL_DriftBeginofs(float timeofs)
  * Spatialize a sound effect based on it's origin.
  */
 void
-SDL_SpatializeOrigin(vec3_t origin, float master_vol, float dist_mult,
-		int *left_vol, int *right_vol)
+SDL_SpatializeOrigin(vec3_t origin, float master_vol, float dist_mult, int *left_vol, int *right_vol)
 {
 	vec_t dot;
 	vec_t dist;
@@ -667,8 +654,7 @@ SDL_Spatialize(channel_t *ch)
 		CL_GetEntitySoundOrigin(ch->entnum, origin);
 	}
 
-	SDL_SpatializeOrigin(origin, (float)ch->master_vol, ch->dist_mult,
-			&ch->leftvol, &ch->rightvol);
+	SDL_SpatializeOrigin(origin, (float)ch->master_vol, ch->dist_mult, &ch->leftvol, &ch->rightvol);
 }
 
 /*
@@ -734,8 +720,7 @@ SDL_AddLoopSounds(void)
 		CL_GetEntitySoundOrigin(ent->number, origin);
 
 		/* find the total contribution of all sounds of this type */
-		SDL_SpatializeOrigin(ent->origin, 255.0f, SDL_LOOPATTENUATE,
-				&left_total, &right_total);
+		SDL_SpatializeOrigin(ent->origin, 255.0f, SDL_LOOPATTENUATE, &left_total, &right_total);
 
 		for (j = i + 1; j < cl.frame.num_entities; j++)
 		{
@@ -1003,8 +988,7 @@ SDL_Cache(sfx_t *sfx, wavinfo_t *info, byte *data)
  * and cinematic playback.
  */
 void
-SDL_RawSamples(int samples, int rate, int width,
-		int channels, byte *data, float volume)
+SDL_RawSamples(int samples, int rate, int width, int channels, byte *data, float volume)
 {
 	float scale;
 	int dst;
@@ -1325,11 +1309,7 @@ SDL_BackendInit(void)
 	int sndchans = (Cvar_Get("sndchannels", "2", CVAR_ARCHIVE))->value;
 
 #ifdef _WIN32
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	s_sdldriver = (Cvar_Get("s_sdldriver", "directsound", CVAR_ARCHIVE));
-#else
-	s_sdldriver = (Cvar_Get("s_sdldriver", "dsound", CVAR_ARCHIVE));
-#endif
 #elif __linux__
 	s_sdldriver = (Cvar_Get("s_sdldriver", "alsa", CVAR_ARCHIVE));
 #elif __APPLE__
@@ -1351,21 +1331,11 @@ SDL_BackendInit(void)
 			return 0;
 		}
 	}
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	const char* drivername = SDL_GetCurrentAudioDriver();
 	if(drivername == NULL)
 	{
 		drivername = "(UNKNOWN)";
 	}
-
-#else
-	char drivername[128];
-	if (SDL_AudioDriverName(drivername, sizeof(drivername)) == NULL)
-	{
-		strcpy(drivername, "(UNKNOWN)");
-	}
-#endif
-
 
 	Com_Printf("SDL audio driver is \"%s\".\n", drivername);
 
@@ -1433,6 +1403,7 @@ SDL_BackendInit(void)
 	backend->channels = obtained.channels;
 
 	tmp = (obtained.samples * obtained.channels) * 10;
+
 	if (tmp & (tmp - 1))
 	{	/* make it a power of two */
 		val = 1;
@@ -1441,6 +1412,7 @@ SDL_BackendInit(void)
 
 		tmp = val;
 	}
+
 	backend->samples = tmp;
 
 	backend->submission_chunk = 1;
