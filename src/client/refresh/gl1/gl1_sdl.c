@@ -26,6 +26,7 @@
  */
 
 #include "header/local.h"
+#include "../../header/ref.h"
 
 #include <SDL2/SDL.h>
 
@@ -76,7 +77,6 @@ static void InitGamma()
 // returns flags for SDL window creation
 int RI_PrepareForWindow(void)
 {
-	unsigned int flags = 0;
 	int msaa_samples = 0;
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -93,14 +93,18 @@ int RI_PrepareForWindow(void)
 		if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) < 0)
 		{
 			R_Printf(PRINT_ALL, "MSAA is unsupported: %s\n", SDL_GetError());
+
 			ri.Cvar_SetValue ("gl_msaa_samples", 0);
+
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 		}
 		else if (SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaa_samples) < 0)
 		{
 			R_Printf(PRINT_ALL, "MSAA %ix is unsupported: %s\n", msaa_samples, SDL_GetError());
+
 			ri.Cvar_SetValue("gl_msaa_samples", 0);
+
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 		}
@@ -112,9 +116,7 @@ int RI_PrepareForWindow(void)
 	}
 
 	/* Initiate the flags */
-	flags = SDL_WINDOW_OPENGL;
-
-	return flags;
+	return SDL_WINDOW_OPENGL;
 }
 
 void RI_SetSwapInterval(void)
@@ -132,24 +134,30 @@ int RI_InitContext(void* win)
 	if(win == NULL)
 	{
 		ri.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
+
 		return false;
 	}
 
 	window = (SDL_Window*)win;
 
 	context = SDL_GL_CreateContext(window);
+
 	if(context == NULL)
 	{
 		R_Printf(PRINT_ALL, "R_InitContext(): Creating OpenGL Context failed: %s\n", SDL_GetError());
+
 		window = NULL;
+
 		return false;
 	}
 
 	const char* glver = (char *)glGetString(GL_VERSION);
 	sscanf(glver, "%d.%d", &gl_config.major_version, &gl_config.minor_version);
+
 	if (gl_config.major_version < 1 || (gl_config.major_version == 1 && gl_config.minor_version < 4))
 	{
 		R_Printf(PRINT_ALL, "R_InitContext(): Got an OpenGL version %d.%d context - need (at least) 1.4!\n", gl_config.major_version, gl_config.minor_version);
+
 		return false;
 	}
 
@@ -205,31 +213,21 @@ RI_EndFrame(void)
 void
 RI_ShutdownWindow(qboolean contextOnly)
 {
-	/* Clear the backbuffer and make it
-	   current. This may help some broken
-	   video drivers like the AMD Catalyst
-	   to avoid artifacts in unused screen
-	   areas.
-	   Only do this if we have a context, though. */
 	if (window)
 	{
 		if(context)
 		{
-			glClearColor(0.0, 0.0, 0.0, 0.0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			RI_EndFrame();
-
 			SDL_GL_DeleteContext(context);
 			context = NULL;
 		}
-	}
 
-	window = NULL;
+		if (!contextOnly)
+		{
+			ri.Vid_ShutdownWindow();
 
-	gl_state.hwgamma = false;
+			window = NULL;
+			gl_state.hwgamma = false;
 
-	if(!contextOnly)
-	{
-		ri.Vid_ShutdownWindow();
+		}
 	}
 }
