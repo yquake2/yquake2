@@ -229,7 +229,7 @@ qboolean SDL_BackendInit(void);
 void SDL_BackendShutdown(void);
 
 /*
- * Print informations about
+ * Print information about
  * the SDL backend
  */
 void SDL_SoundInfo(void);

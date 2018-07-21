@@ -511,7 +511,7 @@ QAL_Init()
 
 	Com_Printf("ok\n");
 
-	/* Print OpenAL informations */
+	/* Print OpenAL information */
 	Com_Printf("\n");
 	QAL_SoundInfo();
 	Com_Printf("\n");
