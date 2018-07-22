@@ -429,9 +429,12 @@ void R_NewMap (void)
 	if (r_numallocatededges < NUMSTACKEDGES)
 		r_numallocatededges = NUMSTACKEDGES;
 
-	R_Printf(PRINT_ALL, "%s: Allocated %d edges\n",
-		__func__, r_numallocatededges);
 	r_edges = malloc (r_numallocatededges * sizeof(edge_t));
+
+	R_Printf(PRINT_ALL, "%s: Allocated %d edges\n",
+		 __func__, r_numallocatededges);
+	R_Printf(PRINT_ALL, "%s: Allocated %d surfaces\n",
+		 __func__, r_cnumsurfs);
 }
 
 
@@ -1058,14 +1061,14 @@ RE_RenderFrame (refdef_t *fd)
 	if (sw_reportsurfout->value && r_outofsurfaces)
 		R_Printf(PRINT_ALL,"Short %d surfaces\n", r_outofsurfaces);
 	else if (r_outofsurfaces)
-		R_Printf(PRINT_ALL, "%s: not enough %d surfaces\n",
-				    __func__, r_cnumsurfs);
+		R_Printf(PRINT_ALL, "%s: not enough %d(+%d) surfaces\n",
+				    __func__, r_cnumsurfs, r_outofsurfaces);
 
 	if (sw_reportedgeout->value && r_outofedges)
 		R_Printf(PRINT_ALL,"Short roughly %d edges\n", r_outofedges * 2 / 3);
 	else if (r_outofedges)
-		R_Printf(PRINT_ALL, "%s: not enough %d edges\n",
-				    __func__, r_numallocatededges);
+		R_Printf(PRINT_ALL, "%s: not enough %d(+%d) edges\n",
+				    __func__, r_numallocatededges, r_outofedges * 2 / 3);
 }
 
 /*

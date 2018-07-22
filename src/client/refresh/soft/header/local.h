@@ -158,9 +158,8 @@ extern oldrefdef_t	r_refdef;
 
 #define DS_SPAN_LIST_END	-128
 
-#define NUMSTACKEDGES		2000
-#define NUMSTACKSURFACES	1000
-#define MAXSPANS		3000
+#define NUMSTACKEDGES		3072
+#define NUMSTACKSURFACES	2048
 
 // flags in finalvert_t.flags
 #define ALIAS_LEFT_CLIP		0x0001
@@ -185,7 +184,7 @@ extern oldrefdef_t	r_refdef;
 #define NEAR_CLIP	0.01
 
 
-#define MAXALIASVERTS		2000  // TODO: tune this
+#define MAXALIASVERTS		2048  // TODO: tune this
 #define ALIAS_Z_CLIP_PLANE	4
 
 // turbulence stuff

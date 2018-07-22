@@ -235,7 +235,7 @@ finalvert_t	*finalverts;
 static void
 R_AliasPreparePoints (void)
 {
-	int			i;
+	int		i;
 	dstvert_t	*pstverts;
 	dtriangle_t	*ptri;
 	finalvert_t	*pfv[3];
@@ -250,9 +250,9 @@ R_AliasPreparePoints (void)
 	aliasbatchedtransformdata.dest_verts = pfinalverts;
 
 	R_AliasTransformFinalVerts( aliasbatchedtransformdata.num_points,
-		                        aliasbatchedtransformdata.dest_verts,
-								aliasbatchedtransformdata.last_verts,
-								aliasbatchedtransformdata.this_verts );
+		                    aliasbatchedtransformdata.dest_verts,
+				    aliasbatchedtransformdata.last_verts,
+				    aliasbatchedtransformdata.this_verts );
 
 	// clip and draw all triangles
 	//
