@@ -160,7 +160,6 @@ extern oldrefdef_t	r_refdef;
 
 #define NUMSTACKEDGES		2000
 #define NUMSTACKSURFACES	1000
-#define MINSURFACES		NUMSTACKSURFACES
 #define MAXSPANS		3000
 
 // flags in finalvert_t.flags

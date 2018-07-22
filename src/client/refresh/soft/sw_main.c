@@ -68,7 +68,6 @@ mvertex_t	*r_pcurrentvertbase;
 
 int			c_surf;
 static int	r_maxsurfsseen, r_maxedgesseen, r_cnumsurfs;
-static qboolean	r_surfsonstack;
 int	r_clipflags;
 
 //
@@ -403,10 +402,9 @@ void R_NewMap (void)
 
 	r_cnumsurfs = sw_maxsurfs->value;
 
-	if (r_cnumsurfs <= MINSURFACES)
-		r_cnumsurfs = MINSURFACES;
+	if (r_cnumsurfs <= NUMSTACKSURFACES)
+		r_cnumsurfs = NUMSTACKSURFACES;
 
-	if (r_cnumsurfs > NUMSTACKSURFACES)
 	{
 		surfaces = malloc (r_cnumsurfs * sizeof(surf_t));
 		if (!surfaces)
@@ -418,14 +416,9 @@ void R_NewMap (void)
 
 		surface_p = surfaces;
 		surf_max = &surfaces[r_cnumsurfs];
-		r_surfsonstack = false;
 		// surface 0 doesn't really exist; it's just a dummy because index 0
 		// is used to indicate no edge attached to surface
 		surfaces--;
-	}
-	else
-	{
-		r_surfsonstack = true;
 	}
 
 	r_maxedgesseen = 0;
@@ -858,8 +851,6 @@ R_DrawBEntitiesOnList (void)
 	insubmodel = false;
 }
 
-static surf_t	*lsurfs;
-
 /*
 ================
 R_EdgeDrawing
@@ -872,15 +863,6 @@ R_EdgeDrawing (void)
 {
 	if ( r_newrefdef.rdflags & RDF_NOWORLDMODEL )
 		return;
-
-	if (r_surfsonstack)
-	{
-		surfaces = lsurfs;
-		surf_max = &surfaces[r_cnumsurfs];
-		// surface 0 doesn't really exist; it's just a dummy because index 0
-		// is used to indicate no edge attached to surface
-		surfaces--;
-	}
 
 	// Set function pointer pdrawfunc used later in this function
 	R_BeginEdgeFrame ();
@@ -1075,9 +1057,15 @@ RE_RenderFrame (refdef_t *fd)
 
 	if (sw_reportsurfout->value && r_outofsurfaces)
 		R_Printf(PRINT_ALL,"Short %d surfaces\n", r_outofsurfaces);
+	else if (r_outofsurfaces)
+		R_Printf(PRINT_ALL, "%s: not enough %d surfaces\n",
+				    __func__, r_cnumsurfs);
 
 	if (sw_reportedgeout->value && r_outofedges)
 		R_Printf(PRINT_ALL,"Short roughly %d edges\n", r_outofedges * 2 / 3);
+	else if (r_outofedges)
+		R_Printf(PRINT_ALL, "%s: not enough %d edges\n",
+				    __func__, r_numallocatededges);
 }
 
 /*
@@ -1746,12 +1734,6 @@ static void SWimp_DestroyRender(void)
 	}
 	finalverts = NULL;
 
-	if(lsurfs)
-	{
-		free(lsurfs);
-	}
-	lsurfs = NULL;
-
 	if(r_warpbuffer)
 	{
 		free(r_warpbuffer);
@@ -1907,7 +1889,6 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 
 	edge_basespans = malloc((vid.width*2) * sizeof(espan_t));
 	finalverts = malloc((MAXALIASVERTS + 3) * sizeof(finalvert_t));
-	lsurfs = malloc((NUMSTACKSURFACES + 1) * sizeof(surf_t));
 	r_warpbuffer = malloc(vid.height * vid.width * sizeof(pixel_t));
 
 	if ((vid.width >= 2048) && (sizeof(shift20_t) == 4)) // 2k+ resolution and 32 == shift20_t
