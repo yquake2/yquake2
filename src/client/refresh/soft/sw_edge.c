@@ -30,7 +30,6 @@ have a sentinal at both ends?
 */
 
 
-edge_t	*auxedges;
 edge_t	*r_edges, *edge_p, *edge_max;
 
 surf_t	*surfaces, *surface_p, *surf_max;

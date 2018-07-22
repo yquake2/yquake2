@@ -159,7 +159,6 @@ extern oldrefdef_t	r_refdef;
 #define DS_SPAN_LIST_END	-128
 
 #define NUMSTACKEDGES		2000
-#define MINEDGES		NUMSTACKEDGES
 #define NUMSTACKSURFACES	1000
 #define MINSURFACES		NUMSTACKSURFACES
 #define MAXSPANS		3000
@@ -504,7 +503,6 @@ extern int	r_currentbkey;
 void R_DrawParticles (void);
 
 extern int	r_amodels_drawn;
-extern edge_t	*auxedges;
 extern int	r_numallocatededges;
 extern edge_t	*r_edges, *edge_p, *edge_max;
 

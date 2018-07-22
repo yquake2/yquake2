@@ -546,6 +546,8 @@ void R_RenderFace (msurface_t *fa, int clipflags)
 	// ditto if not enough edges left, or switch to auxedges if possible
 	if ((edge_p + fa->numedges + 4) >= edge_max)
 	{
+		R_Printf(PRINT_ALL, "%s: not enough %d edges\n",
+		         __func__, r_numallocatededges);
 		r_outofedges += fa->numedges;
 		return;
 	}
@@ -752,6 +754,8 @@ void R_RenderBmodelFace (bedge_t *pedges, msurface_t *psurf)
 	// ditto if not enough edges left, or switch to auxedges if possible
 	if ((edge_p + psurf->numedges + 4) >= edge_max)
 	{
+		R_Printf(PRINT_ALL, "%s: not enough %d edges\n",
+		         __func__, r_numallocatededges);
 		r_outofedges += psurf->numedges;
 		return;
 	}

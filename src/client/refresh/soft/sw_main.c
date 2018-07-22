@@ -411,7 +411,8 @@ void R_NewMap (void)
 		surfaces = malloc (r_cnumsurfs * sizeof(surf_t));
 		if (!surfaces)
 		{
-		    R_Printf(PRINT_ALL, "R_NewMap: Couldn't malloc %d bytes\n", (int)(r_cnumsurfs * sizeof(surf_t)));
+		    R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+		             __func__, (int)(r_cnumsurfs * sizeof(surf_t)));
 		    return;
 		}
 
@@ -432,17 +433,12 @@ void R_NewMap (void)
 
 	r_numallocatededges = sw_maxedges->value;
 
-	if (r_numallocatededges < MINEDGES)
-		r_numallocatededges = MINEDGES;
+	if (r_numallocatededges < NUMSTACKEDGES)
+		r_numallocatededges = NUMSTACKEDGES;
 
-	if (r_numallocatededges <= NUMSTACKEDGES)
-	{
-		auxedges = NULL;
-	}
-	else
-	{
-		auxedges = malloc (r_numallocatededges * sizeof(edge_t));
-	}
+	R_Printf(PRINT_ALL, "%s: Allocated %d edges\n",
+		__func__, r_numallocatededges);
+	r_edges = malloc (r_numallocatededges * sizeof(edge_t));
 }
 
 
@@ -862,7 +858,6 @@ R_DrawBEntitiesOnList (void)
 	insubmodel = false;
 }
 
-static edge_t	*ledges;
 static surf_t	*lsurfs;
 
 /*
@@ -877,15 +872,6 @@ R_EdgeDrawing (void)
 {
 	if ( r_newrefdef.rdflags & RDF_NOWORLDMODEL )
 		return;
-
-	if (auxedges)
-	{
-		r_edges = auxedges;
-	}
-	else
-	{
-		r_edges = ledges;
-	}
 
 	if (r_surfsonstack)
 	{
@@ -1760,12 +1746,6 @@ static void SWimp_DestroyRender(void)
 	}
 	finalverts = NULL;
 
-	if(ledges)
-	{
-		free(ledges);
-	}
-	ledges = NULL;
-
 	if(lsurfs)
 	{
 		free(lsurfs);
@@ -1927,7 +1907,6 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 
 	edge_basespans = malloc((vid.width*2) * sizeof(espan_t));
 	finalverts = malloc((MAXALIASVERTS + 3) * sizeof(finalvert_t));
-	ledges = malloc((NUMSTACKEDGES + 1) * sizeof(edge_t));
 	lsurfs = malloc((NUMSTACKSURFACES + 1) * sizeof(surf_t));
 	r_warpbuffer = malloc(vid.height * vid.width * sizeof(pixel_t));
 
