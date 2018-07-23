@@ -55,12 +55,14 @@ pixel_t		*r_warpbuffer;
 
 static swstate_t sw_state;
 
-void		*colormap;
-float		r_time1;
-int			r_numallocatededges;
-float		r_aliasuvscale = 1.0;
-int			r_outofsurfaces;
-int			r_outofedges;
+void	*colormap;
+float	r_time1;
+int	r_numallocatededges;
+int	r_numallocatedverts;
+float	r_aliasuvscale = 1.0;
+int	r_outofsurfaces;
+int	r_outofedges;
+int	r_outofverts;
 
 qboolean	r_dowarp;
 
@@ -431,10 +433,16 @@ void R_NewMap (void)
 
 	r_edges = malloc (r_numallocatededges * sizeof(edge_t));
 
+	r_numallocatedverts = MAXALIASVERTS;
+	finalverts = malloc(r_numallocatedverts * sizeof(finalvert_t));
+	finalverts_max = &finalverts[r_numallocatedverts];
+
 	R_Printf(PRINT_ALL, "%s: Allocated %d edges\n",
 		 __func__, r_numallocatededges);
 	R_Printf(PRINT_ALL, "%s: Allocated %d surfaces\n",
 		 __func__, r_cnumsurfs);
+	R_Printf(PRINT_ALL, "%s: Allocated %d verts\n",
+		 __func__, r_numallocatedverts);
 }
 
 
@@ -1069,6 +1077,10 @@ RE_RenderFrame (refdef_t *fd)
 	else if (r_outofedges)
 		R_Printf(PRINT_ALL, "%s: not enough %d(+%d) edges\n",
 				    __func__, r_numallocatededges, r_outofedges * 2 / 3);
+
+	if (r_outofverts)
+		R_Printf(PRINT_ALL, "%s: not enough %d(+%d) finalverts\n",
+				    __func__, r_numallocatedverts, r_outofverts);
 }
 
 /*
@@ -1891,7 +1903,7 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	warp_column = malloc((vid.width+AMP2*2) * sizeof(int));
 
 	edge_basespans = malloc((vid.width*2) * sizeof(espan_t));
-	finalverts = malloc((MAXALIASVERTS + 3) * sizeof(finalvert_t));
+
 	r_warpbuffer = malloc(vid.height * vid.width * sizeof(pixel_t));
 
 	if ((vid.width >= 2048) && (sizeof(shift20_t) == 4)) // 2k+ resolution and 32 == shift20_t

@@ -160,6 +160,7 @@ extern oldrefdef_t	r_refdef;
 
 #define NUMSTACKEDGES		3072
 #define NUMSTACKSURFACES	2048
+#define MAXALIASVERTS		2048  // TODO: tune this
 
 // flags in finalvert_t.flags
 #define ALIAS_LEFT_CLIP		0x0001
@@ -183,8 +184,6 @@ extern oldrefdef_t	r_refdef;
 
 #define NEAR_CLIP	0.01
 
-
-#define MAXALIASVERTS		2048  // TODO: tune this
 #define ALIAS_Z_CLIP_PLANE	4
 
 // turbulence stuff
@@ -519,16 +518,18 @@ extern spanpackage_t	*triangle_spans;
 extern byte	**warp_rowptr;
 extern int	*warp_column;
 extern espan_t	*edge_basespans;
-extern finalvert_t	*finalverts;
+extern int	r_numallocatedverts;
+extern finalvert_t	*finalverts, *finalverts_max;
 
 extern	int	r_aliasblendcolor;
 
-extern float    aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
+extern float	aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
 
-extern int              r_outofsurfaces;
-extern int              r_outofedges;
+extern int	r_outofsurfaces;
+extern int	r_outofedges;
+extern int	r_outofverts;
 
-extern mvertex_t        *r_pcurrentvertbase;
+extern mvertex_t	*r_pcurrentvertbase;
 
 typedef struct
 {
