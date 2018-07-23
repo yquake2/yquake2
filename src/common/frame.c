@@ -101,11 +101,6 @@ Qcommon_Buildstring(void)
 
 #ifndef DEDICATED_ONLY
 	printf("Client build options:\n");
-#ifdef SDL2
-	printf(" + SDL2\n");
-#else
-	printf(" - SDL2 (using 1.2)\n");
-#endif
 
 #ifdef OGG
 	printf(" + OGG/Vorbis\n");

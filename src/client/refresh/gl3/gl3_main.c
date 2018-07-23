@@ -515,7 +515,6 @@ GL3_Init(void)
 		R_Printf(PRINT_ALL, "Not supported\n");
 	}
 
-#ifdef SDL2
 	if(gl3config.debug_output)
 	{
 		R_Printf(PRINT_ALL, " - OpenGL Debug Output: Supported ");
@@ -532,9 +531,6 @@ GL3_Init(void)
 	{
 		R_Printf(PRINT_ALL, " - OpenGL Debug Output: Not Supported\n");
 	}
-#else // SDL1.2 - no debug output
-	R_Printf(PRINT_ALL, " - OpenGL Debug Output: Not Supported when using SDL1.2\n");
-#endif
 
 	if(gl3config.compat_profile)
 	{
