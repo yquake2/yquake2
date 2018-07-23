@@ -68,8 +68,8 @@ qboolean	r_dowarp;
 
 mvertex_t	*r_pcurrentvertbase;
 
-int			c_surf;
-static int	r_maxsurfsseen, r_maxedgesseen, r_cnumsurfs;
+int		c_surf;
+static int	r_cnumsurfs;
 int	r_clipflags;
 
 //
@@ -407,24 +407,19 @@ void R_NewMap (void)
 	if (r_cnumsurfs <= NUMSTACKSURFACES)
 		r_cnumsurfs = NUMSTACKSURFACES;
 
+	surfaces = malloc (r_cnumsurfs * sizeof(surf_t));
+	if (!surfaces)
 	{
-		surfaces = malloc (r_cnumsurfs * sizeof(surf_t));
-		if (!surfaces)
-		{
-		    R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
-		             __func__, (int)(r_cnumsurfs * sizeof(surf_t)));
-		    return;
-		}
-
-		surface_p = surfaces;
-		surf_max = &surfaces[r_cnumsurfs];
-		// surface 0 doesn't really exist; it's just a dummy because index 0
-		// is used to indicate no edge attached to surface
-		surfaces--;
+	    R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+		     __func__, (int)(r_cnumsurfs * sizeof(surf_t)));
+	    return;
 	}
 
-	r_maxedgesseen = 0;
-	r_maxsurfsseen = 0;
+	surface_p = surfaces;
+	surf_max = &surfaces[r_cnumsurfs];
+	// surface 0 doesn't really exist; it's just a dummy because index 0
+	// is used to indicate no edge attached to surface
+	surfaces--;
 
 	r_numallocatededges = sw_maxedges->value;
 
@@ -432,9 +427,21 @@ void R_NewMap (void)
 		r_numallocatededges = NUMSTACKEDGES;
 
 	r_edges = malloc (r_numallocatededges * sizeof(edge_t));
+	if (!r_edges)
+	{
+	    R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+		     __func__, (int)(r_numallocatededges * sizeof(edge_t)));
+	    return;
+	}
 
 	r_numallocatedverts = MAXALIASVERTS;
 	finalverts = malloc(r_numallocatedverts * sizeof(finalvert_t));
+	if (!finalverts)
+	{
+	    R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+		     __func__, (int)(r_numallocatedverts * sizeof(finalvert_t)));
+	    return;
+	}
 	finalverts_max = &finalverts[r_numallocatedverts];
 
 	R_Printf(PRINT_ALL, "%s: Allocated %d edges\n",
