@@ -235,6 +235,12 @@ R_AliasPreparePoints (void)
 	// put work vertexes on stack, cache aligned
 	pfinalverts = finalverts;
 
+	if ((finalverts + s_pmdl->num_xyz) >= finalverts_max)
+	{
+		r_outofverts += s_pmdl->num_xyz - (finalverts_max - finalverts);
+		return;
+	}
+
 	R_AliasTransformFinalVerts( s_pmdl->num_xyz,
 		                    pfinalverts,	// destination for transformed verts
 				    r_lastframe->verts,	// verts from the last frame
@@ -253,11 +259,6 @@ R_AliasPreparePoints (void)
 			pfv[0] = &pfinalverts[ptri->index_xyz[0]];
 			pfv[1] = &pfinalverts[ptri->index_xyz[1]];
 			pfv[2] = &pfinalverts[ptri->index_xyz[2]];
-
-			if ( pfv[0] >= finalverts_max ||
-			     pfv[1] >= finalverts_max ||
-			     pfv[2] >= finalverts_max )
-				continue;	// not enough verts
 
 			if ( pfv[0]->flags & pfv[1]->flags & pfv[2]->flags )
 				continue;	// completely clipped
@@ -293,11 +294,6 @@ R_AliasPreparePoints (void)
 			pfv[0] = &pfinalverts[ptri->index_xyz[0]];
 			pfv[1] = &pfinalverts[ptri->index_xyz[1]];
 			pfv[2] = &pfinalverts[ptri->index_xyz[2]];
-
-			if ( pfv[0] >= finalverts_max ||
-			     pfv[1] >= finalverts_max ||
-			     pfv[2] >= finalverts_max )
-				continue;	// not enough verts
 
 			if ( pfv[0]->flags & pfv[1]->flags & pfv[2]->flags )
 				continue;	// completely clipped
@@ -413,11 +409,6 @@ R_AliasTransformFinalVerts( int numpoints, finalvert_t *fv, dtrivertx_t *oldv, d
 		int		temp;
 		float	lightcos, *plightnormal;
 		vec3_t  lerped_vert;
-
-		if (fv >= finalverts_max) {
-			r_outofverts ++;
-			continue;
-		}
 
 		lerped_vert[0] = r_lerp_move[0] + oldv->v[0]*r_lerp_backv[0] + newv->v[0]*r_lerp_frontv[0];
 		lerped_vert[1] = r_lerp_move[1] + oldv->v[1]*r_lerp_backv[1] + newv->v[1]*r_lerp_frontv[1];
