@@ -920,6 +920,7 @@ REFGL1_OBJS_ := \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
+	src/client/refresh/files/pvs.o \
 	src/common/shared/shared.o \
 	src/common/md4.o
 
@@ -952,6 +953,7 @@ REFGL3_OBJS_ := \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
+	src/client/refresh/files/pvs.o \
 	src/common/shared/shared.o \
 	src/common/md4.o
 
@@ -986,6 +988,7 @@ REFSOFT_OBJS_ := \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
+	src/client/refresh/files/pvs.o \
 	src/common/shared/shared.o \
 	src/common/md4.o
 

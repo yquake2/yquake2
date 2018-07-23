@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// r_main.c
+// sw_main.c
 #include <stdint.h>
 
 #ifdef SDL2
@@ -150,7 +150,7 @@ static cvar_t	*r_lockpvs;
 
 #define	STRINGER(x) "x"
 
-// r_vars.c
+// sw_vars.c
 
 // all global and static refresh variables are collected in a contiguous block
 // to avoid cache conflicts.

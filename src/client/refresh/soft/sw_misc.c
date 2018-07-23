@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// r_misc.c
+// sw_misc.c
 #ifdef SDL2
 #include <SDL2/SDL.h>
 #else // SDL1.2
