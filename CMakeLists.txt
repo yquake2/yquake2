@@ -19,7 +19,6 @@ if(YQUAKE2LIBS)
 	endif()
 
 	set(ENV{OPENALDIR} ${YQUAKE2LIBS})
-	set(ENV{SDLDIR} ${YQUAKE2LIBS})
 	set(ENV{SDL2DIR} ${YQUAKE2LIBS})
 endif()
 
@@ -80,16 +79,9 @@ endif()
 # Required libraries to build the different components of the binaries. Find
 # them and add the include/linker directories and flags (in case the package
 # manager find it in a weird place)
-find_package(SDL2)
-if(${SDL2_FOUND})
-	add_definitions(-DSDL2)
-	list(APPEND yquake2IncludeDirectories "${SDL2_INCLUDE_DIR}/..")
-	list(APPEND yquake2SDLLinkerFlags ${SDL2_LIBRARY})
-else()
-	find_package(SDL REQUIRED)
-	list(APPEND yquake2IncludeDirectories "${SDL_INCLUDE_DIR}/..")
-	list(APPEND yquake2SDLLinkerFlags ${SDL_LIBRARY})
-endif()
+find_package(SDL2 REQUIRED)
+list(APPEND yquake2IncludeDirectories "${SDL2_INCLUDE_DIR}/..")
+list(APPEND yquake2SDLLinkerFlags ${SDL2_LIBRARY})
 
 find_package(OpenGL REQUIRED)
 list(APPEND yquake2IncludeDirectories ${OPENGL_INCLUDE_DIR})
@@ -100,8 +92,6 @@ if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD")
 	list(APPEND yquake2ClientLinkerFlags ${EXECINFO_LIBRARIES})
 	list(APPEND yquake2ServerLinkerFlags ${EXECINFO_LIBRARIES})
 endif()
-
-
 
 if(${ZIP_SUPPORT})
 	find_package(ZLIB REQUIRED)

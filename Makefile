@@ -7,7 +7,7 @@
 #  - Quake II Game (baseq2)                              #
 #                                                        #
 # Base dependencies:                                     #
-#  - SDL 1.2 or SDL 2.0                                  #
+#  - SDL 2.0                                             #
 #  - libGL                                               #
 #                                                        #
 # Further dependencies:                                  #
@@ -43,12 +43,6 @@ WITH_OPENAL:=yes
 # compile time in the normal way. On Windows this option
 # is ignored, OpenAL is always loaded at runtime.
 DLOPEN_OPENAL:=yes
-
-# Use SDL2 instead of SDL1.2. Disables CD audio support,
-# because SDL2 has none. Use OGG/Vorbis music instead :-)
-# On Windows sdl-config isn't used, so make sure that
-# you've got the SDL2 headers and libs installed.
-WITH_SDL2:=yes
 
 # Enables opening of ZIP files (also known as .pk3 paks).
 # Adds a dependency to libz
@@ -222,11 +216,7 @@ endif
 # ----------
 
 # Extra CFLAGS for SDL
-ifeq ($(WITH_SDL2),yes)
 SDLCFLAGS := $(shell sdl2-config --cflags)
-else # not SDL2
-SDLCFLAGS := $(shell sdl-config --cflags)
-endif # SDL2
 
 # ----------
 
@@ -273,17 +263,9 @@ endif
 
 # Extra LDFLAGS for SDL
 ifeq ($(YQ2_OSTYPE), Darwin)
-ifeq ($(WITH_SDL2),yes)
 SDLLDFLAGS := -lSDL2
-else # not SDL2
-SDLLDFLAGS := -lSDL -framework OpenGL -framework Cocoa
-endif # SDL2
 else # not Darwin
-ifeq ($(WITH_SDL2),yes)
 SDLLDFLAGS := $(shell sdl2-config --libs)
-else # not SDL2
-SDLLDFLAGS := $(shell sdl-config --libs)
-endif # SDL2
 endif # Darwin
 
 # ----------
@@ -314,7 +296,6 @@ config:
 	@echo "Build configuration"
 	@echo "============================"
 	@echo "WITH_OPENAL = $(WITH_OPENAL)"
-	@echo "WITH_SDL2 = $(WITH_SDL2)"
 	@echo "WITH_ZIP = $(WITH_ZIP)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
@@ -373,10 +354,6 @@ release/yquake2.exe : CFLAGS += -DZIP -DNOUNCRYPT
 release/yquake2.exe : LDFLAGS += -lz
 endif
 
-ifeq ($(WITH_SDL2),yes)
-release/yquake2.exe : CFLAGS += -DSDL2
-endif
-
 release/yquake2.exe : LDFLAGS += -mwindows
 
 else # not Windows
@@ -428,10 +405,6 @@ endif # WITH_OPENAL
 ifeq ($(WITH_ZIP),yes)
 release/quake2 : CFLAGS += $(ZIPCFLAGS) -DZIP -DNOUNCRYPT
 release/quake2 : LDFLAGS += -lz
-endif
-
-ifeq ($(WITH_SDL2),yes)
-release/quake2 : CFLAGS += -DSDL2
 endif
 
 ifeq ($(YQ2_OSTYPE), FreeBSD)
@@ -511,10 +484,6 @@ ref_gl1:
 	@echo "===> Building ref_gl1.dll"
 	$(MAKE) release/ref_gl1.dll
 
-ifeq ($(WITH_SDL2),yes)
-release/ref_gl1.dll : CFLAGS += -DSDL2
-endif
-
 release/ref_gl1.dll : LDFLAGS += -lopengl32 -shared
 
 # don't want the dll to link against libSDL2main or libmingw32, and no -mwindows either
@@ -528,10 +497,6 @@ ref_gl1:
 	$(MAKE) release/ref_gl1.dylib
 
 
-ifeq ($(WITH_SDL2),yes)
-release/ref_gl1.dylib : CFLAGS += -DSDL2
-endif
-
 release/ref_gl1.dylib : LDFLAGS += -shared -framework OpenGL
 
 else # not Windows or Darwin
@@ -543,10 +508,6 @@ ref_gl1:
 
 release/ref_gl1.so : CFLAGS += -fPIC
 release/ref_gl1.so : LDFLAGS += -shared -lGL
-
-ifeq ($(WITH_SDL2),yes)
-release/ref_gl1.so : CFLAGS += -DSDL2
-endif
 
 endif # OS specific ref_gl1 shit
 
@@ -565,10 +526,6 @@ ref_gl3:
 	@echo "===> Building ref_gl3.dll"
 	$(MAKE) release/ref_gl3.dll
 
-ifeq ($(WITH_SDL2),yes)
-release/ref_gl3.dll : CFLAGS += -DSDL2
-endif
-
 release/ref_gl3.dll : LDFLAGS += -shared
 
 else ifeq ($(YQ2_OSTYPE), Darwin)
@@ -577,10 +534,6 @@ ref_gl3:
 	@echo "===> Building ref_gl3.dylib"
 	$(MAKE) release/ref_gl3.dylib
 
-
-ifeq ($(WITH_SDL2),yes)
-release/ref_gl3.dylib : CFLAGS += -DSDL2
-endif
 
 release/ref_gl3.dylib : LDFLAGS += -shared
 
@@ -593,10 +546,6 @@ ref_gl3:
 
 release/ref_gl3.so : CFLAGS += -fPIC
 release/ref_gl3.so : LDFLAGS += -shared
-
-ifeq ($(WITH_SDL2),yes)
-release/ref_gl3.so : CFLAGS += -DSDL2
-endif
 
 endif # OS specific ref_gl3 shit
 
@@ -615,10 +564,6 @@ ref_soft:
 	@echo "===> Building ref_soft.dll"
 	$(MAKE) release/ref_soft.dll
 
-ifeq ($(WITH_SDL2),yes)
-release/ref_soft.dll : CFLAGS += -DSDL2
-endif
-
 release/ref_soft.dll : LDFLAGS += -shared
 
 else ifeq ($(YQ2_OSTYPE), Darwin)
@@ -626,10 +571,6 @@ else ifeq ($(YQ2_OSTYPE), Darwin)
 ref_soft:
 	@echo "===> Building ref_soft.dylib"
 	$(MAKE) release/ref_soft.dylib
-
-ifeq ($(WITH_SDL2),yes)
-release/ref_soft.dylib : CFLAGS += -DSDL2
-endif
 
 release/ref_soft.dylib : LDFLAGS += -shared
 
@@ -641,10 +582,6 @@ ref_soft:
 
 release/ref_soft.so : CFLAGS += -fPIC
 release/ref_soft.so : LDFLAGS += -shared
-
-ifeq ($(WITH_SDL2),yes)
-release/ref_soft.so : CFLAGS += -DSDL2
-endif
 
 endif # OS specific ref_soft shit
 
