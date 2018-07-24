@@ -230,13 +230,6 @@ R_AliasPreparePoints (finalvert_t *verts, finalvert_t *verts_max)
 	dtriangle_t	*ptri;
 	finalvert_t	*pfv[3];
 
-	// not fully initialized buffers?
-	if (!verts)
-	{
-		R_Printf(PRINT_ALL, "%s: verts are empty.\n", __func__);
-		return;
-	}
-
 	if ((verts + s_pmdl->num_xyz) >= verts_max)
 	{
 		r_outofverts += s_pmdl->num_xyz - (verts_max - verts);

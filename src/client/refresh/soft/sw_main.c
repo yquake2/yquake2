@@ -426,8 +426,8 @@ R_ReallocateMapBuffers (void)
 
 		if (r_outofsurfaces)
 		{
-			R_Printf(PRINT_ALL, "%s: not enough %d(+%d) surfaces\n",
-					     __func__, r_cnumsurfs, r_outofsurfaces);
+			//R_Printf(PRINT_ALL, "%s: not enough %d(+%d) surfaces\n",
+			//		     __func__, r_cnumsurfs, r_outofsurfaces);
 			r_cnumsurfs *= 2;
 		}
 
@@ -465,8 +465,8 @@ R_ReallocateMapBuffers (void)
 
 		if (r_outofedges)
 		{
-			R_Printf(PRINT_ALL, "%s: not enough %d(+%d) edges\n",
-					    __func__, r_numallocatededges, r_outofedges * 2 / 3);
+			//R_Printf(PRINT_ALL, "%s: not enough %d(+%d) edges\n",
+			//		    __func__, r_numallocatededges, r_outofedges * 2 / 3);
 			r_numallocatededges *= 2;
 		}
 
@@ -497,8 +497,8 @@ R_ReallocateMapBuffers (void)
 
 		if (r_outofverts)
 		{
-			R_Printf(PRINT_ALL, "%s: not enough %d(+%d) finalverts\n",
-					    __func__, r_numallocatedverts, r_outofverts);
+			//R_Printf(PRINT_ALL, "%s: not enough %d(+%d) finalverts\n",
+			//		    __func__, r_numallocatedverts, r_outofverts);
 			r_numallocatedverts *= 2;
 		}
 
@@ -1269,7 +1269,6 @@ static void
 RE_SetPalette(const unsigned char *palette)
 {
 	byte palette32[1024];
-	int i;
 
 	// clear screen to black to avoid any palette flash
 	memset(vid_buffer, 0, vid.height * vid.width * sizeof(pixel_t));
@@ -1279,6 +1278,8 @@ RE_SetPalette(const unsigned char *palette)
 
 	if (palette)
 	{
+		int i;
+
 		for ( i = 0; i < 256; i++ )
 		{
 			palette32[i*4+0] = palette[i*3+0];

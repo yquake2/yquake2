@@ -595,7 +595,6 @@ R_ClipPolyFace (int nump, clipplane_t *pclipplane)
 static void
 R_PolygonDrawSpans(espan_t *pspan, int iswater )
 {
-	int	count;
 	int	snext, tnext;
 	float	sdivz, tdivz, zi, z, du, dv, spancountminus1;
 	float	sdivzspanletstepu, tdivzspanletstepu, zispanletstepu;
@@ -621,6 +620,8 @@ R_PolygonDrawSpans(espan_t *pspan, int iswater )
 
 	do
 	{
+		int	count;
+
 		s_spanletvars.pdest   = d_viewbuffer + (r_screenwidth * pspan->v) + pspan->u;
 		s_spanletvars.pz      = d_pzbuffer + (d_zwidth * pspan->v) + pspan->u;
 		s_spanletvars.u       = pspan->u;

@@ -197,7 +197,7 @@ R_StepActiveU (edge_t *pedge)
 			// find out where the edge goes in the edge list
 			pwedge = pedge->prev->prev;
 
-			while (pwedge && (pwedge->u > pedge->u))
+			while (pwedge->u > pedge->u)
 			{
 				pwedge = pwedge->prev;
 			}
@@ -297,8 +297,6 @@ R_LeadingEdgeBackwards (edge_t *edge)
 	// end edge)
 	if (++surf->spanstate == 1)
 	{
-		shift20_t	iu;
-
 		surf2 = surfaces[1].next;
 
 		// if it's two surfaces on the same plane, the one that's already
@@ -306,6 +304,8 @@ R_LeadingEdgeBackwards (edge_t *edge)
 		// must be two bmodels in the same leaf; don't care, because they'll
 		// never be farthest anyway
 		if (surf->key > surf2->key || (surf->insubmodel && (surf->key == surf2->key))) {
+			shift20_t	iu;
+
 			// emit a span (obscures current top)
 			iu = edge->u >> shift_size;
 
@@ -407,10 +407,12 @@ R_LeadingEdgeSearch
 static surf_t*
 R_LeadingEdgeSearch (edge_t *edge, surf_t *surf, surf_t *surf2)
 {
-	float	fu, newzi, testzi, newzitop, newzibottom;
+	float	testzi, newzitop;
 
 	do
 	{
+		float	fu, newzi, newzibottom;
+
 		surf2 = D_SurfSearchForward(surf, surf2);
 
 		if (surf->key != surf2->key)
