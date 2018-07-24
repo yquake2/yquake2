@@ -31,6 +31,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/local.h"
 
+#define NUMSTACKEDGES		2048
+#define NUMSTACKSURFACES	1024
+#define MAXALIASVERTS		2048
+
 viddef_t	vid;
 pixel_t		*vid_buffer = NULL;
 espan_t		*vid_polygon_spans = NULL;
@@ -403,22 +407,28 @@ void R_NewMap (void)
 	r_viewcluster = -1;
 }
 
-surf_t	*lsurfs;
+static surf_t	*lsurfs;
 
 /*
 ===============
 R_ReallocateMapBuffers
 ===============
 */
-void
+static void
 R_ReallocateMapBuffers (void)
 {
-	if (!r_cnumsurfs)
+	if (!r_cnumsurfs || r_outofsurfaces)
 	{
-
 		if(lsurfs)
 		{
 			free(lsurfs);
+		}
+
+		if (r_outofsurfaces)
+		{
+			R_Printf(PRINT_ALL, "%s: not enough %d(+%d) surfaces\n",
+					     __func__, r_cnumsurfs, r_outofsurfaces);
+			r_cnumsurfs *= 2;
 		}
 
 		if (r_cnumsurfs < NUMSTACKSURFACES)
@@ -446,11 +456,18 @@ R_ReallocateMapBuffers (void)
 
 	}
 
-	if (!r_numallocatededges)
+	if (!r_numallocatededges || r_outofedges)
 	{
 		if (!r_edges)
 		{
 			free(r_edges);
+		}
+
+		if (r_outofedges)
+		{
+			R_Printf(PRINT_ALL, "%s: not enough %d(+%d) edges\n",
+					    __func__, r_numallocatededges, r_outofedges * 2 / 3);
+			r_numallocatededges *= 2;
 		}
 
 		if (r_numallocatededges < NUMSTACKEDGES)
@@ -471,11 +488,18 @@ R_ReallocateMapBuffers (void)
 			 __func__, r_numallocatededges);
 	}
 
-	if (!r_numallocatedverts)
+	if (!r_numallocatedverts || r_outofverts)
 	{
 		if (finalverts)
 		{
 			free(finalverts);
+		}
+
+		if (r_outofverts)
+		{
+			R_Printf(PRINT_ALL, "%s: not enough %d(+%d) finalverts\n",
+					    __func__, r_numallocatedverts, r_outofverts);
+			r_numallocatedverts *= 2;
 		}
 
 		if (r_numallocatedverts < MAXALIASVERTS)
@@ -1118,19 +1142,11 @@ RE_RenderFrame (refdef_t *fd)
 
 	if (sw_reportsurfout->value && r_outofsurfaces)
 		R_Printf(PRINT_ALL,"Short %d surfaces\n", r_outofsurfaces);
-	else if (r_outofsurfaces)
-		R_Printf(PRINT_ALL, "%s: not enough %d(+%d) surfaces\n",
-				    __func__, r_cnumsurfs, r_outofsurfaces);
 
 	if (sw_reportedgeout->value && r_outofedges)
 		R_Printf(PRINT_ALL,"Short roughly %d edges\n", r_outofedges * 2 / 3);
-	else if (r_outofedges)
-		R_Printf(PRINT_ALL, "%s: not enough %d(+%d) edges\n",
-				    __func__, r_numallocatededges, r_outofedges * 2 / 3);
 
-	if (r_outofverts)
-		R_Printf(PRINT_ALL, "%s: not enough %d(+%d) finalverts\n",
-				    __func__, r_numallocatedverts, r_outofverts);
+	R_ReallocateMapBuffers();
 }
 
 /*

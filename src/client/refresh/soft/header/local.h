@@ -158,10 +158,6 @@ extern oldrefdef_t	r_refdef;
 
 #define DS_SPAN_LIST_END	-128
 
-#define NUMSTACKEDGES		3072
-#define NUMSTACKSURFACES	2048
-#define MAXALIASVERTS		2048  // TODO: tune this
-
 // flags in finalvert_t.flags
 #define ALIAS_LEFT_CLIP		0x0001
 #define ALIAS_TOP_CLIP		0x0002
@@ -569,7 +565,6 @@ extern  void			*colormap;
 //====================================================================
 
 void R_NewMap (void);
-void R_ReallocateMapBuffers (void);
 void Draw_InitLocal(void);
 void R_InitCaches(void);
 void D_FlushCaches(void);
