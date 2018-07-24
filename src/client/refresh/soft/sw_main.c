@@ -401,55 +401,98 @@ R_NewMap
 void R_NewMap (void)
 {
 	r_viewcluster = -1;
+}
 
-	r_cnumsurfs = sw_maxsurfs->value;
+surf_t	*lsurfs;
 
-	if (r_cnumsurfs <= NUMSTACKSURFACES)
-		r_cnumsurfs = NUMSTACKSURFACES;
-
-	surfaces = malloc (r_cnumsurfs * sizeof(surf_t));
-	if (!surfaces)
+/*
+===============
+R_ReallocateMapBuffers
+===============
+*/
+void
+R_ReallocateMapBuffers (void)
+{
+	if (!r_cnumsurfs)
 	{
-	    R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
-		     __func__, (int)(r_cnumsurfs * sizeof(surf_t)));
-	    return;
+
+		if(lsurfs)
+		{
+			free(lsurfs);
+		}
+
+		if (r_cnumsurfs < NUMSTACKSURFACES)
+			r_cnumsurfs = NUMSTACKSURFACES;
+
+		if (r_cnumsurfs < sw_maxsurfs->value)
+			r_cnumsurfs = sw_maxsurfs->value;
+
+		lsurfs = malloc (r_cnumsurfs * sizeof(surf_t));
+		if (!lsurfs)
+		{
+			R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+				 __func__, (int)(r_cnumsurfs * sizeof(surf_t)));
+			return;
+		}
+
+		surface_p = surfaces = lsurfs;
+		surf_max = &surfaces[r_cnumsurfs];
+		// surface 0 doesn't really exist; it's just a dummy because index 0
+		// is used to indicate no edge attached to surface
+		surfaces--;
+
+		R_Printf(PRINT_ALL, "%s: Allocated %d surfaces\n",
+			 __func__, r_cnumsurfs);
+
 	}
 
-	surface_p = surfaces;
-	surf_max = &surfaces[r_cnumsurfs];
-	// surface 0 doesn't really exist; it's just a dummy because index 0
-	// is used to indicate no edge attached to surface
-	surfaces--;
-
-	r_numallocatededges = sw_maxedges->value;
-
-	if (r_numallocatededges < NUMSTACKEDGES)
-		r_numallocatededges = NUMSTACKEDGES;
-
-	r_edges = malloc (r_numallocatededges * sizeof(edge_t));
-	if (!r_edges)
+	if (!r_numallocatededges)
 	{
-	    R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
-		     __func__, (int)(r_numallocatededges * sizeof(edge_t)));
-	    return;
+		if (!r_edges)
+		{
+			free(r_edges);
+		}
+
+		if (r_numallocatededges < NUMSTACKEDGES)
+			r_numallocatededges = NUMSTACKEDGES;
+
+		if (r_numallocatededges < sw_maxedges->value)
+		    r_numallocatededges = sw_maxedges->value;
+
+		r_edges = malloc (r_numallocatededges * sizeof(edge_t));
+		if (!r_edges)
+		{
+			R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+				 __func__, (int)(r_numallocatededges * sizeof(edge_t)));
+			return;
+		}
+
+		R_Printf(PRINT_ALL, "%s: Allocated %d edges\n",
+			 __func__, r_numallocatededges);
 	}
 
-	r_numallocatedverts = MAXALIASVERTS;
-	finalverts = malloc(r_numallocatedverts * sizeof(finalvert_t));
-	if (!finalverts)
+	if (!r_numallocatedverts)
 	{
-	    R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
-		     __func__, (int)(r_numallocatedverts * sizeof(finalvert_t)));
-	    return;
-	}
-	finalverts_max = &finalverts[r_numallocatedverts];
+		if (finalverts)
+		{
+			free(finalverts);
+		}
 
-	R_Printf(PRINT_ALL, "%s: Allocated %d edges\n",
-		 __func__, r_numallocatededges);
-	R_Printf(PRINT_ALL, "%s: Allocated %d surfaces\n",
-		 __func__, r_cnumsurfs);
-	R_Printf(PRINT_ALL, "%s: Allocated %d verts\n",
-		 __func__, r_numallocatedverts);
+		if (r_numallocatedverts < MAXALIASVERTS)
+			r_numallocatedverts = MAXALIASVERTS;
+
+		finalverts = malloc(r_numallocatedverts * sizeof(finalvert_t));
+		if (!finalverts)
+		{
+			R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+				 __func__, (int)(r_numallocatedverts * sizeof(finalvert_t)));
+			return;
+		}
+		finalverts_max = &finalverts[r_numallocatedverts];
+
+		R_Printf(PRINT_ALL, "%s: Allocated %d verts\n",
+			 __func__, r_numallocatedverts);
+	}
 }
 
 
@@ -1756,6 +1799,18 @@ static void SWimp_DestroyRender(void)
 	}
 	finalverts = NULL;
 
+	if(r_edges)
+	{
+		free(r_edges);
+	}
+	r_edges = NULL;
+
+	if(lsurfs)
+	{
+		free(lsurfs);
+	}
+	lsurfs = NULL;
+
 	if(r_warpbuffer)
 	{
 		free(r_warpbuffer);
@@ -1910,6 +1965,17 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	warp_column = malloc((vid.width+AMP2*2) * sizeof(int));
 
 	edge_basespans = malloc((vid.width*2) * sizeof(espan_t));
+
+	// count of "out of items"
+	r_outofsurfaces = r_outofedges = r_outofverts = 0;
+	// pointers to allocated buffers
+	finalverts = NULL;
+	r_edges = NULL;
+	lsurfs = NULL;
+	// curently allocated items
+	r_cnumsurfs = r_numallocatededges = r_numallocatedverts = 0;
+
+	R_ReallocateMapBuffers();
 
 	r_warpbuffer = malloc(vid.height * vid.width * sizeof(pixel_t));
 

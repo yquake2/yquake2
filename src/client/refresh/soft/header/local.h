@@ -569,6 +569,7 @@ extern  void			*colormap;
 //====================================================================
 
 void R_NewMap (void);
+void R_ReallocateMapBuffers (void);
 void Draw_InitLocal(void);
 void R_InitCaches(void);
 void D_FlushCaches(void);
