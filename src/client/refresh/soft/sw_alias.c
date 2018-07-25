@@ -457,7 +457,8 @@ R_AliasTransformFinalVerts( int numpoints, finalvert_t *fv, dtrivertx_t *oldv, d
 R_AliasProjectAndClipTestFinalVert
 ================
 */
-void R_AliasProjectAndClipTestFinalVert( finalvert_t *fv )
+void
+R_AliasProjectAndClipTestFinalVert( finalvert_t *fv )
 {
 	float	zi;
 	float	x, y, z;
@@ -488,7 +489,8 @@ void R_AliasProjectAndClipTestFinalVert( finalvert_t *fv )
 R_AliasSetupSkin
 ===============
 */
-static qboolean R_AliasSetupSkin (void)
+static qboolean
+R_AliasSetupSkin (void)
 {
 	image_t *pskindesc;
 
@@ -692,14 +694,15 @@ R_AliasSetUpLerpData( dmdl_t *pmdl, float backlerp )
 	}
 }
 
-finalvert_t *finalverts, *finalverts_max;
+finalvert_t *finalverts = NULL, *finalverts_max = NULL;
 
 /*
 ================
 R_AliasDrawModel
 ================
 */
-void R_AliasDrawModel (void)
+void
+R_AliasDrawModel (void)
 {
 	extern void (*d_pdrawspans)(void *);
 	extern void R_PolysetDrawSpans8_Opaque( void * );

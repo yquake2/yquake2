@@ -29,11 +29,6 @@ low depth complexity -- 1 to 3 or so
 have a sentinal at both ends?
 */
 
-
-edge_t	*r_edges, *edge_p, *edge_max;
-
-surf_t	*surfaces, *surface_p, *surf_max;
-
 // surfaces are generated in back to front order by the bsp, so if a surf
 // pointer is greater than another one, it should be drawn in front
 // surfaces[1] is the background, and is used as the active surface stack
@@ -84,13 +79,9 @@ EDGE SCANNING
 R_BeginEdgeFrame
 ==============
 */
-void R_BeginEdgeFrame (void)
+void
+R_BeginEdgeFrame (void)
 {
-	edge_p = r_edges;
-	edge_max = &r_edges[r_numallocatededges];
-
-	surface_p = &surfaces[2];	// background is surface 1,
-					//  surface 0 is a dummy
 	surfaces[1].spans = NULL;	// no background spans yet
 	surfaces[1].flags = SURF_DRAWBACKGROUND;
 
@@ -154,7 +145,8 @@ R_InsertNewEdges (edge_t *edgestoadd, edge_t *edgelist)
 R_RemoveEdges
 ==============
 */
-static void R_RemoveEdges (edge_t *pedge)
+static void
+R_RemoveEdges (edge_t *pedge)
 {
 
 	do
@@ -586,7 +578,7 @@ R_GenerateSpansBackward (void)
 	R_CleanupSpan ();
 }
 
-static void D_DrawSurfaces (void);
+static void D_DrawSurfaces (surf_t *surface);
 
 /*
 ==============
@@ -601,7 +593,8 @@ Each surface has a linked list of its visible spans
 
 ==============
 */
-void R_ScanEdges (void)
+void
+R_ScanEdges (surf_t *surface)
 {
 	shift20_t	iv, bottom;
 	espan_t		*basespan_p;
@@ -671,10 +664,10 @@ void R_ScanEdges (void)
 		if (span_p > max_span_p)
 		{
 			// Draw stuff on screen
-			D_DrawSurfaces ();
+			D_DrawSurfaces (surface);
 
 			// clear the surface span pointers
-			for (s = &surfaces[1] ; s<surface_p ; s++)
+			for (s = &surfaces[1] ; s<surface ; s++)
 				s->spans = NULL;
 
 			span_p = basespan_p;
@@ -703,7 +696,7 @@ void R_ScanEdges (void)
 	(*pdrawfunc) ();
 
 	// draw whatever's left in the span list
-	D_DrawSurfaces ();
+	D_DrawSurfaces (surface);
 }
 
 
@@ -1015,12 +1008,12 @@ To allow developers to see the polygon carving of the world
 =============
 */
 static void
-D_DrawflatSurfaces (void)
+D_DrawflatSurfaces (surf_t *surface)
 {
 	surf_t			*s;
 	int color = 0;
 
-	for (s = &surfaces[1] ; s<surface_p ; s++)
+	for (s = &surfaces[1] ; s<surface ; s++)
 	{
 		if (!s->spans)
 			continue;
@@ -1047,7 +1040,7 @@ May be called more than once a frame if the surf list overflows (higher res)
 ==============
 */
 static void
-D_DrawSurfaces (void)
+D_DrawSurfaces (surf_t *surface)
 {
 	// currententity = NULL;
 	// &r_worldentity;
@@ -1059,7 +1052,7 @@ D_DrawSurfaces (void)
 	{
 		surf_t *s;
 
-		for (s = &surfaces[1] ; s<surface_p ; s++)
+		for (s = &surfaces[1] ; s<surface ; s++)
 		{
 			if (!s->spans)
 				continue;
@@ -1077,7 +1070,7 @@ D_DrawSurfaces (void)
 		}
 	}
 	else
-		D_DrawflatSurfaces ();
+		D_DrawflatSurfaces (surface);
 
 	currententity = NULL;	//&r_worldentity;
 	VectorSubtract (r_origin, vec3_origin, modelorg);

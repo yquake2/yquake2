@@ -87,7 +87,8 @@ D_ViewChanged (void)
 R_PrintTimes
 =============
 */
-void R_PrintTimes (void)
+void
+R_PrintTimes (void)
 {
 	int		r_time2;
 	int		ms;
@@ -107,7 +108,8 @@ void R_PrintTimes (void)
 R_PrintDSpeeds
 =============
 */
-void R_PrintDSpeeds (void)
+void
+R_PrintDSpeeds (void)
 {
 	int	ms, dp_time, r_time2, rw_time, db_time, se_time, de_time, da_time;
 
@@ -131,7 +133,8 @@ void R_PrintDSpeeds (void)
 R_PrintAliasStats
 =============
 */
-void R_PrintAliasStats (void)
+void
+R_PrintAliasStats (void)
 {
 	R_Printf(PRINT_ALL,"%3i polygon model drawn\n", r_amodels_drawn);
 }
@@ -143,7 +146,8 @@ void R_PrintAliasStats (void)
 R_TransformFrustum
 ===================
 */
-void R_TransformFrustum (void)
+void
+R_TransformFrustum (void)
 {
 	int		i;
 	vec3_t	v, v2;
@@ -170,7 +174,8 @@ void R_TransformFrustum (void)
 TransformVector
 ================
 */
-void TransformVector (vec3_t in, vec3_t out)
+void
+TransformVector (vec3_t in, vec3_t out)
 {
 	out[0] = DotProduct(in,vright);
 	out[1] = DotProduct(in,vup);
@@ -316,7 +321,8 @@ R_ViewChanged (vrect_t *vr)
 R_SetupFrame
 ===============
 */
-void R_SetupFrame (void)
+void
+R_SetupFrame (void)
 {
 	int			i;
 	vrect_t		vrect;

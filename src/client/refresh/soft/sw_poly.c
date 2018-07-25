@@ -911,7 +911,8 @@ R_PolygonScanRightEdge(espan_t *s_polygon_spans)
 ** R_ClipAndDrawPoly
 */
 // PGM - isturbulent was qboolean. changed to int to allow passing more flags
-void R_ClipAndDrawPoly ( float alpha, int isturbulent, qboolean textured )
+void
+R_ClipAndDrawPoly ( float alpha, int isturbulent, qboolean textured )
 {
 	vec_t		*pv;
 	int		i, nump;
@@ -1151,7 +1152,8 @@ R_PolygonCalculateGradients (void)
 ** This should NOT be called externally since it doesn't do clipping!
 */
 // PGM - iswater was qboolean. changed to support passing more flags
-static void R_DrawPoly(int iswater)
+static void
+R_DrawPoly(int iswater)
 {
 	int		i, nump;
 	float		ymin, ymax;
@@ -1207,7 +1209,8 @@ static void R_DrawPoly(int iswater)
 /*
 ** R_DrawAlphaSurfaces
 */
-void R_DrawAlphaSurfaces( void )
+void
+R_DrawAlphaSurfaces( void )
 {
 	msurface_t *s = r_alpha_surfaces;
 
@@ -1245,7 +1248,8 @@ void R_DrawAlphaSurfaces( void )
 /*
 ** R_IMFlatShadedQuad
 */
-void R_IMFlatShadedQuad( vec3_t a, vec3_t b, vec3_t c, vec3_t d, int color, float alpha )
+void
+R_IMFlatShadedQuad( vec3_t a, vec3_t b, vec3_t c, vec3_t d, int color, float alpha )
 {
 	vec3_t s0, s1;
 

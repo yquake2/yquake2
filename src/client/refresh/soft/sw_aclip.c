@@ -170,7 +170,8 @@ R_Alias_clip_bottom (finalvert_t *pfv0, finalvert_t *pfv1,
 }
 
 
-int R_AliasClip (finalvert_t *in, finalvert_t *out, int flag, int count,
+int
+R_AliasClip (finalvert_t *in, finalvert_t *out, int flag, int count,
 	void(*clip)(finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out) )
 {
 	int			i,j,k;
@@ -216,7 +217,8 @@ int R_AliasClip (finalvert_t *in, finalvert_t *out, int flag, int count,
 R_AliasClipTriangle
 ================
 */
-void R_AliasClipTriangle (finalvert_t *index0, finalvert_t *index1, finalvert_t *index2)
+void
+R_AliasClipTriangle (finalvert_t *index0, finalvert_t *index1, finalvert_t *index2)
 {
 	int				i, k, pingpong;
 	unsigned		clipflags;

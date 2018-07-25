@@ -32,7 +32,8 @@ extern void	R_ClipAndDrawPoly( float alpha, qboolean isturbulent, qboolean textu
 ** Draw currententity / currentmodel as a single texture
 ** mapped polygon
 */
-void R_DrawSprite (void)
+void
+R_DrawSprite (void)
 {
 	vec5_t		*pverts;
 	vec3_t		left, up, right, down;

@@ -402,7 +402,8 @@ RE_Shutdown (void)
 R_NewMap
 ===============
 */
-void R_NewMap (void)
+void
+R_NewMap (void)
 {
 	r_viewcluster = -1;
 }
@@ -445,8 +446,10 @@ R_ReallocateMapBuffers (void)
 			return;
 		}
 
-		surface_p = surfaces = lsurfs;
+		surfaces = lsurfs;
+		// set limits
 		surf_max = &surfaces[r_cnumsurfs];
+		surface_p = lsurfs;
 		// surface 0 doesn't really exist; it's just a dummy because index 0
 		// is used to indicate no edge attached to surface
 		surfaces--;
@@ -481,6 +484,10 @@ R_ReallocateMapBuffers (void)
 				 __func__, (int)(r_numallocatededges * sizeof(edge_t)));
 			return;
 		}
+
+		// set limits
+		edge_max = &r_edges[r_numallocatededges];
+		edge_p = r_edges;
 
 		R_Printf(PRINT_ALL, "Allocated %d edges\n", r_numallocatededges);
 	}
@@ -946,6 +953,9 @@ R_EdgeDrawing (void)
 
 	// Set function pointer pdrawfunc used later in this function
 	R_BeginEdgeFrame ();
+	edge_p = r_edges;
+	surface_p = &surfaces[2];	// background is surface 1,
+					//  surface 0 is a dummy
 
 	if (r_dspeeds->value)
 	{
@@ -972,7 +982,7 @@ R_EdgeDrawing (void)
 
 	// Use the Global Edge Table to maintin the Active Edge Table: Draw the world as scanlines
 	// Write the Z-Buffer (but no read)
-	R_ScanEdges ();
+	R_ScanEdges (surface_p);
 }
 
 //=======================================================================
@@ -1702,7 +1712,8 @@ R_InitContext(void* win)
 	return true;
 }
 
-static qboolean CreateSDLWindow(int flags, int w, int h)
+static qboolean
+CreateSDLWindow(int flags, int w, int h)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	Uint32 Rmask, Gmask, Bmask, Amask;
@@ -1737,7 +1748,8 @@ static qboolean CreateSDLWindow(int flags, int w, int h)
 #endif
 }
 
-static void SWimp_DestroyRender(void)
+static void
+SWimp_DestroyRender(void)
 {
 	if (vid_buffer)
 	{
@@ -2122,7 +2134,8 @@ SWimp_Shutdown( void )
 }
 
 // this is only here so the functions in q_shared.c and q_shwin.c can link
-void Sys_Error (char *error, ...)
+void
+Sys_Error (char *error, ...)
 {
 	va_list		argptr;
 	char		text[1024];
@@ -2134,7 +2147,8 @@ void Sys_Error (char *error, ...)
 	ri.Sys_Error (ERR_FATAL, "%s", text);
 }
 
-void Com_Printf (char *fmt, ...)
+void
+Com_Printf (char *fmt, ...)
 {
 	va_list		argptr;
 	char		text[1024];

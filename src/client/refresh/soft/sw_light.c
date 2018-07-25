@@ -89,7 +89,8 @@ R_MarkLights (dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
 R_PushDlights
 =============
 */
-void R_PushDlights (model_t *model)
+void
+R_PushDlights (model_t *model)
 {
 	int		i;
 	dlight_t	*l;
@@ -215,7 +216,8 @@ RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 R_LightPoint
 ===============
 */
-void R_LightPoint (vec3_t p, vec3_t color)
+void
+R_LightPoint (vec3_t p, vec3_t color)
 {
 	vec3_t		end;
 	float		r;

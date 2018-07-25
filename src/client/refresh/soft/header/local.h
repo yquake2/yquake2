@@ -477,7 +477,7 @@ void R_DrawSolidClippedSubmodelPolygons(model_t *pmodel, mnode_t *topnode);
 
 void R_AliasDrawModel(void);
 void R_BeginEdgeFrame(void);
-void R_ScanEdges(void);
+void R_ScanEdges(surf_t *surface);
 void R_PushDlights(model_t *model);
 
 extern void R_RotateBmodel (void);
