@@ -451,9 +451,7 @@ R_ReallocateMapBuffers (void)
 		// is used to indicate no edge attached to surface
 		surfaces--;
 
-		R_Printf(PRINT_ALL, "%s: Allocated %d surfaces\n",
-			 __func__, r_cnumsurfs);
-
+		R_Printf(PRINT_ALL, "Allocated %d surfaces\n", r_cnumsurfs);
 	}
 
 	if (!r_numallocatededges || r_outofedges)
@@ -484,8 +482,7 @@ R_ReallocateMapBuffers (void)
 			return;
 		}
 
-		R_Printf(PRINT_ALL, "%s: Allocated %d edges\n",
-			 __func__, r_numallocatededges);
+		R_Printf(PRINT_ALL, "Allocated %d edges\n", r_numallocatededges);
 	}
 
 	if (!r_numallocatedverts || r_outofverts)
@@ -514,8 +511,7 @@ R_ReallocateMapBuffers (void)
 		}
 		finalverts_max = &finalverts[r_numallocatedverts];
 
-		R_Printf(PRINT_ALL, "%s: Allocated %d verts\n",
-			 __func__, r_numallocatedverts);
+		R_Printf(PRINT_ALL, "Allocated %d verts\n", r_numallocatedverts);
 	}
 }
 
