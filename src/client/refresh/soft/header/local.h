@@ -545,7 +545,6 @@ extern float	se_time1, se_time2, de_time1, de_time2, dv_time1, dv_time2;
 extern int r_viewcluster, r_oldviewcluster;
 
 extern int r_clipflags;
-extern int r_dlightframecount;
 
 extern image_t		 *r_notexture_mip;
 extern model_t		 *r_worldmodel;

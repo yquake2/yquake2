@@ -866,7 +866,6 @@ R_DrawBEntitiesOnList (void)
 
 	VectorCopy (modelorg, oldorigin);
 	insubmodel = true;
-	r_dlightframecount = r_framecount;
 
 	for (i=0 ; i<r_newrefdef.num_entities ; i++)
 	{

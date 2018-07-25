@@ -21,9 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/local.h"
 
-int	r_dlightframecount;
-
-
 /*
 =============================================================================
 
@@ -38,7 +35,7 @@ R_MarkLights
 =============
 */
 static void
-R_MarkLights (dlight_t *light, int bit, mnode_t *node)
+R_MarkLights (dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
 {
 	mplane_t	*splitplane;
 	float		dist;
@@ -61,12 +58,12 @@ R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 
 	if (dist > i)	// PGM (dist > light->intensity)
 	{
-		R_MarkLights (light, bit, node->children[0]);
+		R_MarkLights (light, bit, node->children[0], r_dlightframecount);
 		return;
 	}
 	if (dist < -i)	// PGM (dist < -light->intensity)
 	{
-		R_MarkLights (light, bit, node->children[1]);
+		R_MarkLights (light, bit, node->children[1], r_dlightframecount);
 		return;
 	}
 
@@ -82,8 +79,8 @@ R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 		surf->dlightbits |= bit;
 	}
 
-	R_MarkLights (light, bit, node->children[0]);
-	R_MarkLights (light, bit, node->children[1]);
+	R_MarkLights (light, bit, node->children[0], r_dlightframecount);
+	R_MarkLights (light, bit, node->children[1], r_dlightframecount);
 }
 
 
@@ -97,11 +94,11 @@ void R_PushDlights (model_t *model)
 	int		i;
 	dlight_t	*l;
 
-	r_dlightframecount = r_framecount;
 	for (i=0, l = r_newrefdef.dlights ; i<r_newrefdef.num_dlights ; i++, l++)
 	{
 		R_MarkLights ( l, 1<<i,
-			model->nodes + model->firstnode);
+			model->nodes + model->firstnode,
+			r_framecount);
 	}
 }
 

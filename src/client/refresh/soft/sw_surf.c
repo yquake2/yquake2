@@ -26,14 +26,13 @@ static int		lightleft, blocksize, sourcetstep;
 static int		lightright, lightleftstep, lightrightstep, blockdivshift;
 static void		*prowdestbase;
 static unsigned char	*pbasesource;
-static int		surfrowbytes;	// used by ASM files
 static int		r_stepback;
 static int		r_lightwidth;
 static int		r_numhblocks, r_numvblocks;
 static unsigned char	*r_source, *r_sourcemax;
 static unsigned		*r_lightptr;
 
-static void R_DrawSurfaceBlock8_anymip (int level);
+static void R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes);
 
 void R_BuildLightMap (void);
 extern	unsigned	blocklights[1024];	// allow some very large lightmaps
@@ -51,7 +50,8 @@ R_TextureAnimation
 Returns the proper texture for a given time and base texture
 ===============
 */
-static image_t *R_TextureAnimation (mtexinfo_t *tex)
+static image_t *
+R_TextureAnimation (mtexinfo_t *tex)
 {
 	int c;
 
@@ -74,7 +74,8 @@ static image_t *R_TextureAnimation (mtexinfo_t *tex)
 R_DrawSurface
 ===============
 */
-static void R_DrawSurface (void)
+static void
+R_DrawSurface (void)
 {
 	unsigned char	*basetptr;
 	int		smax, tmax, twidth;
@@ -83,8 +84,6 @@ static void R_DrawSurface (void)
 	int		horzblockstep;
 	unsigned char	*pcolumndest;
 	image_t		*mt;
-
-	surfrowbytes = r_drawsurf.rowbytes;
 
 	mt = r_drawsurf.image;
 
@@ -134,7 +133,7 @@ static void R_DrawSurface (void)
 
 		pbasesource = basetptr + soffset;
 
-		R_DrawSurfaceBlock8_anymip(NUM_MIPS - r_drawsurf.surfmip);
+		R_DrawSurfaceBlock8_anymip(NUM_MIPS - r_drawsurf.surfmip, r_drawsurf.rowbytes);
 
 		soffset = soffset + blocksize;
 		if (soffset >= smax)
@@ -152,7 +151,8 @@ static void R_DrawSurface (void)
 R_DrawSurfaceBlock8_anymip
 ================
 */
-static void R_DrawSurfaceBlock8_anymip (int level)
+static void
+R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 {
 	int		v, i, b, lightstep, lighttemp, light, size;
 	unsigned char	pix, *psource, *prowdest;
@@ -206,7 +206,8 @@ R_InitCaches
 
 ================
 */
-void R_InitCaches (void)
+void
+R_InitCaches (void)
 {
 	int		size;
 
@@ -245,7 +246,8 @@ void R_InitCaches (void)
 D_FlushCaches
 ==================
 */
-void D_FlushCaches (void)
+void
+D_FlushCaches (void)
 {
 	surfcache_t     *c;
 
@@ -269,7 +271,8 @@ void D_FlushCaches (void)
 D_SCAlloc
 =================
 */
-static surfcache_t     *D_SCAlloc (int width, int size)
+static surfcache_t *
+D_SCAlloc (int width, int size)
 {
 	surfcache_t	*new;
 
@@ -340,7 +343,8 @@ static surfcache_t     *D_SCAlloc (int width, int size)
 D_CacheSurface
 ================
 */
-surfcache_t *D_CacheSurface (msurface_t *surface, int miplevel)
+surfcache_t *
+D_CacheSurface (msurface_t *surface, int miplevel)
 {
 	surfcache_t     *cache;
 

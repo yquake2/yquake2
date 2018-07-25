@@ -21,13 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/local.h"
 
-static finalvert_t fv[2][8];
-
 void R_AliasProjectAndClipTestFinalVert (finalvert_t *fv);
-static void R_Alias_clip_top (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out);
-static void R_Alias_clip_bottom (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out);
-static void R_Alias_clip_left (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out);
-static void R_Alias_clip_right (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out);
 
 /*
 ================
@@ -226,6 +220,7 @@ void R_AliasClipTriangle (finalvert_t *index0, finalvert_t *index1, finalvert_t 
 {
 	int				i, k, pingpong;
 	unsigned		clipflags;
+        finalvert_t		fv[2][8];
 
 	// copy vertexes and fix seam texture coordinates
 	fv[0][0] = *index0;
