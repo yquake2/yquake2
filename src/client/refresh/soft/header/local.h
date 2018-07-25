@@ -352,8 +352,6 @@ void R_PolysetUpdateTables(void);
 
 // callbacks to Quake
 
-extern drawsurf_t	r_drawsurf;
-
 extern int		c_surf;
 
 extern pixel_t		*r_warpbuffer;

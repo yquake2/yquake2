@@ -21,7 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/local.h"
 
-drawsurf_t		r_drawsurf;
 static int		lightleft, blocksize, sourcetstep;
 static int		lightright, lightleftstep, lightrightstep, blockdivshift;
 static void		*prowdestbase;
@@ -34,7 +33,7 @@ static unsigned		*r_lightptr;
 
 static void R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes);
 
-void R_BuildLightMap (void);
+void R_BuildLightMap (drawsurf_t *drawsurf);
 extern	unsigned	blocklights[1024];	// allow some very large lightmaps
 
 static	float	surfscale;
@@ -75,7 +74,7 @@ R_DrawSurface
 ===============
 */
 static void
-R_DrawSurface (void)
+R_DrawSurface (drawsurf_t *drawsurf)
 {
 	unsigned char	*basetptr;
 	int		smax, tmax, twidth;
@@ -85,45 +84,45 @@ R_DrawSurface (void)
 	unsigned char	*pcolumndest;
 	image_t		*mt;
 
-	mt = r_drawsurf.image;
+	mt = drawsurf->image;
 
-	r_source = mt->pixels[r_drawsurf.surfmip];
+	r_source = mt->pixels[drawsurf->surfmip];
 
 	// the fractional light values should range from 0 to (VID_GRADES - 1) << 16
 	// from a source range of 0 - 255
 
-	texwidth = mt->width >> r_drawsurf.surfmip;
+	texwidth = mt->width >> drawsurf->surfmip;
 
-	blocksize = 16 >> r_drawsurf.surfmip;
-	blockdivshift = NUM_MIPS - r_drawsurf.surfmip;
+	blocksize = 16 >> drawsurf->surfmip;
+	blockdivshift = NUM_MIPS - drawsurf->surfmip;
 
-	r_lightwidth = (r_drawsurf.surf->extents[0]>>4)+1;
+	r_lightwidth = (drawsurf->surf->extents[0]>>4)+1;
 
-	r_numhblocks = r_drawsurf.surfwidth >> blockdivshift;
-	r_numvblocks = r_drawsurf.surfheight >> blockdivshift;
+	r_numhblocks = drawsurf->surfwidth >> blockdivshift;
+	r_numvblocks = drawsurf->surfheight >> blockdivshift;
 
 	//==============================
 
 	// TODO: only needs to be set when there is a display settings change
 	horzblockstep = blocksize;
 
-	smax = mt->width >> r_drawsurf.surfmip;
+	smax = mt->width >> drawsurf->surfmip;
 	twidth = texwidth;
-	tmax = mt->height >> r_drawsurf.surfmip;
+	tmax = mt->height >> drawsurf->surfmip;
 	sourcetstep = texwidth;
 	r_stepback = tmax * twidth;
 
 	r_sourcemax = r_source + (tmax * smax);
 
-	soffset = r_drawsurf.surf->texturemins[0];
-	basetoffset = r_drawsurf.surf->texturemins[1];
+	soffset = drawsurf->surf->texturemins[0];
+	basetoffset = drawsurf->surf->texturemins[1];
 
 	// << 16 components are to guarantee positive values for %
-	soffset = ((soffset >> r_drawsurf.surfmip) + (smax << SHIFT16XYZ)) % smax;
-	basetptr = &r_source[((((basetoffset >> r_drawsurf.surfmip)
+	soffset = ((soffset >> drawsurf->surfmip) + (smax << SHIFT16XYZ)) % smax;
+	basetptr = &r_source[((((basetoffset >> drawsurf->surfmip)
 		+ (tmax << SHIFT16XYZ)) % tmax) * twidth)];
 
-	pcolumndest = r_drawsurf.surfdat;
+	pcolumndest = drawsurf->surfdat;
 
 	for (u=0 ; u<r_numhblocks; u++)
 	{
@@ -133,7 +132,7 @@ R_DrawSurface (void)
 
 		pbasesource = basetptr + soffset;
 
-		R_DrawSurfaceBlock8_anymip(NUM_MIPS - r_drawsurf.surfmip, r_drawsurf.rowbytes);
+		R_DrawSurfaceBlock8_anymip(NUM_MIPS - drawsurf->surfmip, drawsurf->rowbytes);
 
 		soffset = soffset + blocksize;
 		if (soffset >= smax)
@@ -338,6 +337,8 @@ D_SCAlloc (int width, int size)
 
 //=============================================================================
 
+static drawsurf_t	r_drawsurf;
+
 /*
 ================
 D_CacheSurface
@@ -346,7 +347,7 @@ D_CacheSurface
 surfcache_t *
 D_CacheSurface (msurface_t *surface, int miplevel)
 {
-	surfcache_t     *cache;
+	surfcache_t	*cache;
 
 	//
 	// if the surface is animating or flashing, flush the cache
@@ -412,10 +413,10 @@ D_CacheSurface (msurface_t *surface, int miplevel)
 	c_surf++;
 
 	// calculate the lightings
-	R_BuildLightMap ();
+	R_BuildLightMap (&r_drawsurf);
 
 	// rasterize the surface into the cache
-	R_DrawSurface ();
+	R_DrawSurface (&r_drawsurf);
 
 	return cache;
 }

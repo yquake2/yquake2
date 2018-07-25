@@ -275,7 +275,7 @@ R_AddDynamicLights
 ===============
 */
 static void
-R_AddDynamicLights (void)
+R_AddDynamicLights (drawsurf_t* drawsurf)
 {
 	msurface_t 	*surf;
 	int		lnum;
@@ -289,7 +289,7 @@ R_AddDynamicLights (void)
 	dlight_t	*dl;
 	int		negativeLight;	//PGM
 
-	surf = r_drawsurf.surf;
+	surf = drawsurf->surf;
 	smax = (surf->extents[0]>>4)+1;
 	tmax = (surf->extents[1]>>4)+1;
 	tex = surf->texinfo;
@@ -376,14 +376,15 @@ R_BuildLightMap
 Combine and scale multiple lightmaps into the 8.8 format in blocklights
 ===============
 */
-void R_BuildLightMap (void)
+void
+R_BuildLightMap (drawsurf_t* drawsurf)
 {
 	int			smax, tmax;
 	int			i, size;
 	byte		*lightmap;
 	msurface_t	*surf;
 
-	surf = r_drawsurf.surf;
+	surf = drawsurf->surf;
 
 	smax = (surf->extents[0]>>4)+1;
 	tmax = (surf->extents[1]>>4)+1;
@@ -412,7 +413,7 @@ void R_BuildLightMap (void)
 		{
 			unsigned scale;
 
-			scale = r_drawsurf.lightadj[maps];	// 8.8 fraction
+			scale = drawsurf->lightadj[maps];	// 8.8 fraction
 			for (i=0 ; i<size ; i++)
 				blocklights[i] += lightmap[i] * scale;
 			lightmap += size;	// skip to next lightmap
@@ -421,7 +422,7 @@ void R_BuildLightMap (void)
 
 	// add all the dynamic lights
 	if (surf->dlightframe == r_framecount)
-		R_AddDynamicLights ();
+		R_AddDynamicLights (drawsurf);
 
 	// bound, invert, and shift
 	for (i=0 ; i<size ; i++)
