@@ -57,6 +57,19 @@ model_t		*r_worldmodel;
 
 pixel_t		*r_warpbuffer;
 
+typedef struct swstate_s
+{
+	qboolean	fullscreen;
+	int		prev_mode; // last valid SW mode
+
+	unsigned char	gammatable[256];
+	unsigned char	currentpalette[1024];
+
+	// SDL colors
+	Uint32 	palette_colors[256];
+
+} swstate_t;
+
 static swstate_t sw_state;
 
 void	*colormap;
@@ -193,6 +206,8 @@ unsigned int	d_zwidth;
 
 qboolean	insubmodel;
 
+static qboolean	sdl_palette_outdated;
+
 static struct texture_buffer {
 	image_t	image;
 	byte	buffer[1024];
@@ -307,7 +322,7 @@ R_Register (void)
 
 	r_mode->modified = true; // force us to do mode specific stuff later
 	vid_gamma->modified = true; // force us to rebuild the gamma table later
-	sw_overbrightbits->modified = true; // force us to rebuild pallete later
+	sw_overbrightbits->modified = true; // force us to rebuild palette later
 
 	//PGM
 	r_lockpvs = ri.Cvar_Get ("r_lockpvs", "0", 0);
@@ -1265,6 +1280,8 @@ R_GammaCorrectAndSetPalette( const unsigned char *palette )
 		sw_state.currentpalette[i*4+1] = sw_state.gammatable[palette[i*4+1]];
 		sw_state.currentpalette[i*4+2] = sw_state.gammatable[palette[i*4+2]];
 	}
+
+	sdl_palette_outdated = true;
 }
 
 /*
@@ -1737,9 +1754,9 @@ CreateSDLWindow(int flags, int w, int h)
 	surface = SDL_CreateRGBSurface(0, w, h, bpp, Rmask, Gmask, Bmask, Amask);
 
 	texture = SDL_CreateTexture(renderer,
-								   SDL_PIXELFORMAT_ARGB8888,
-								   SDL_TEXTUREACCESS_STREAMING,
-								   w, h);
+				    SDL_PIXELFORMAT_ARGB8888,
+				    SDL_TEXTUREACCESS_STREAMING,
+				    w, h);
 	return window != NULL;
 #else
 	window = SDL_SetVideoMode(w, h, 0, flags);
@@ -2017,11 +2034,46 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	vid_polygon_spans = malloc(sizeof(espan_t) * (vid.height + 1));
 
 	memset(sw_state.currentpalette, 0, sizeof(sw_state.currentpalette));
+	memset(sw_state.palette_colors, 0, sizeof(sw_state.palette_colors));
 
+	sdl_palette_outdated = true;
 	X11_active = true;
 
 	return true;
 }
+
+
+static void
+RE_SDLPaletteConvert (void)
+{
+	int i;
+	const unsigned char *palette = sw_state.currentpalette;
+	Uint32 *sdl_palette = sw_state.palette_colors;
+
+	if (!sdl_palette_outdated)
+		return;
+
+	sdl_palette_outdated = false;
+	for ( i = 0; i < 256; i++ )
+	{
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		if (surface)
+			sdl_palette[i] = SDL_MapRGB(surface->format,
+						    palette[i * 4 + 0], // red
+						    palette[i * 4 + 1], // green
+						    palette[i * 4 + 2]  //blue
+					);
+#else
+		if (window)
+			sdl_palette[i] = SDL_MapRGB(window->format,
+						    palette[i * 4 + 0], // red
+						    palette[i * 4 + 1], // green
+						    palette[i * 4 + 2]  //blue
+					);
+#endif
+	}
+}
+
 
 /*
 ** RE_EndFrame
@@ -2034,44 +2086,27 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 static void
 RE_EndFrame (void)
 {
-	int y,x, i;
-	const unsigned char *pallete = sw_state.currentpalette;
-	Uint32 pallete_colors[256];
-
-	for(i=0; i < 256; i++)
-	{
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-		pallete_colors[i] = SDL_MapRGB(surface->format,
-					       pallete[i * 4 + 0], // red
-					       pallete[i * 4 + 1], // green
-					       pallete[i * 4 + 2]  //blue
-					);
-#else
-		pallete_colors[i] = SDL_MapRGB(window->format,
-					       pallete[i * 4 + 0], // red
-					       pallete[i * 4 + 1], // green
-					       pallete[i * 4 + 2]  //blue
-					);
-#endif
-	}
+	int y,x, pitch, buffer_pos;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	Uint32 * pixels = (Uint32 *)surface->pixels;
+	pitch = surface->pitch / sizeof(Uint32);
 #else
 	Uint32 * pixels = (Uint32 *)window->pixels;
+	pitch = window->pitch / sizeof(Uint32);
 #endif
+
+	RE_SDLPaletteConvert();
+
+	buffer_pos = 0;
 	for (y=0; y < vid.height;  y++)
 	{
 		for (x=0; x < vid.width; x ++)
 		{
-			int buffer_pos = y * vid.width + x;
-			Uint32 color = pallete_colors[vid_buffer[buffer_pos]];
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-			pixels[y * surface->pitch / sizeof(Uint32) + x] = color;
-#else
-			pixels[y * window->pitch / sizeof(Uint32) + x] = color;
-#endif
+			pixels[x] = sw_state.palette_colors[vid_buffer[buffer_pos + x]];
 		}
+		pixels += pitch;
+		buffer_pos += vid.width;
 	}
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -2178,7 +2213,7 @@ R_ScreenShot_f(void)
 {
 	int x, y;
 	byte *buffer = malloc(vid.width * vid.height * 3);
-	const unsigned char *pallete = sw_state.currentpalette;
+	const unsigned char *palette = sw_state.currentpalette;
 
 	if (!buffer)
 	{
@@ -2190,9 +2225,9 @@ R_ScreenShot_f(void)
 	{
 		for (y=0; y < vid.height; y ++) {
 			int buffer_pos = y * vid.width + x;
-			buffer[buffer_pos * 3 + 0] = pallete[vid_buffer[buffer_pos] * 4 + 0]; // red
-			buffer[buffer_pos * 3 + 1] = pallete[vid_buffer[buffer_pos] * 4 + 1]; // green
-			buffer[buffer_pos * 3 + 2] = pallete[vid_buffer[buffer_pos] * 4 + 2]; // blue
+			buffer[buffer_pos * 3 + 0] = palette[vid_buffer[buffer_pos] * 4 + 0]; // red
+			buffer[buffer_pos * 3 + 1] = palette[vid_buffer[buffer_pos] * 4 + 1]; // green
+			buffer[buffer_pos * 3 + 2] = palette[vid_buffer[buffer_pos] * 4 + 2]; // blue
 		}
 	}
 

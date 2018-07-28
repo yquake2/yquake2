@@ -589,17 +589,6 @@ image_t	*R_FindImage(char *name, imagetype_t type);
 void	R_FreeUnusedImages(void);
 
 void R_InitSkyBox(void);
-
-typedef struct swstate_s
-{
-	qboolean	fullscreen;
-	int		prev_mode; // last valid SW mode
-
-	unsigned char	gammatable[256];
-	unsigned char	currentpalette[1024];
-
-} swstate_t;
-
 void R_IMFlatShadedQuad( vec3_t a, vec3_t b, vec3_t c, vec3_t d, int color, float alpha );
 
 /*
