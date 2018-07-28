@@ -2075,26 +2075,10 @@ RE_SDLPaletteConvert (void)
 }
 
 
-/*
-** RE_EndFrame
-**
-** This does an implementation specific copy from the backbuffer to the
-** front buffer.  In the Win32 case it uses BitBlt or BltFast depending
-** on whether we're using DIB sections/GDI or DDRAW.
-*/
-
 static void
-RE_EndFrame (void)
+RE_CopyFrame (Uint32 * pixels, int pitch)
 {
-	int y,x, pitch, buffer_pos;
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	Uint32 * pixels = (Uint32 *)surface->pixels;
-	pitch = surface->pitch / sizeof(Uint32);
-#else
-	Uint32 * pixels = (Uint32 *)window->pixels;
-	pitch = window->pitch / sizeof(Uint32);
-#endif
+	int y,x, buffer_pos;
 
 	RE_SDLPaletteConvert();
 
@@ -2108,6 +2092,30 @@ RE_EndFrame (void)
 		pixels += pitch;
 		buffer_pos += vid.width;
 	}
+}
+
+/*
+** RE_EndFrame
+**
+** This does an implementation specific copy from the backbuffer to the
+** front buffer.  In the Win32 case it uses BitBlt or BltFast depending
+** on whether we're using DIB sections/GDI or DDRAW.
+*/
+
+static void
+RE_EndFrame (void)
+{
+	int pitch;
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	Uint32 * pixels = (Uint32 *)surface->pixels;
+	pitch = surface->pitch / sizeof(Uint32);
+#else
+	Uint32 * pixels = (Uint32 *)window->pixels;
+	pitch = window->pitch / sizeof(Uint32);
+#endif
+
+	RE_CopyFrame (pixels, pitch);
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
