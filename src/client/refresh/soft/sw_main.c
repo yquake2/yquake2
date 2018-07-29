@@ -2078,19 +2078,38 @@ RE_SDLPaletteConvert (void)
 static void
 RE_CopyFrame (Uint32 * pixels, int pitch)
 {
-	int y,x, buffer_pos;
-
 	RE_SDLPaletteConvert();
 
-	buffer_pos = 0;
-	for (y=0; y < vid.height;  y++)
+	// no gaps between images rows
+	if (pitch == vid.width)
 	{
-		for (x=0; x < vid.width; x ++)
+		int y,x, buffer_pos;
+
+		buffer_pos = 0;
+		for (y=0; y < vid.height;  y++)
 		{
-			pixels[x] = sw_state.palette_colors[vid_buffer[buffer_pos + x]];
+			for (x=0; x < vid.width; x ++)
+			{
+				pixels[x] = sw_state.palette_colors[vid_buffer[buffer_pos + x]];
+			}
+			pixels += pitch;
+			buffer_pos += vid.width;
 		}
-		pixels += pitch;
-		buffer_pos += vid.width;
+	}
+	else
+	{
+		const Uint32	*max_pixels;
+		Uint32	*pixels_pos;
+		pixel_t	*buffer_pos;
+
+		max_pixels = pixels + vid.height * vid.width;
+		buffer_pos = vid_buffer;
+
+		for (pixels_pos = pixels; pixels_pos < max_pixels; pixels_pos++)
+		{
+			*pixels_pos = sw_state.palette_colors[*buffer_pos];
+			buffer_pos++;
+		}
 	}
 }
 
