@@ -749,10 +749,10 @@ ReadClient(FILE *f, gclient_t *client)
 
 /*
  * Writes the game struct into
- * a file. This is called when
- * ever the games goes to e new
- * level or the user saves the
- * game. Saved informations are:
+ * a file. This is called whenever
+ * the game goes to a new level or
+ * the user saves the game. The saved
+ * information consists of:
  * - cross level data
  * - client states
  * - help computer info

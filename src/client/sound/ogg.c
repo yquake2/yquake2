@@ -540,7 +540,7 @@ OGG_Cmd(void)
 	{
 		Com_Printf("Unknown sub command %s\n\n", Cmd_Argv(1));
 		Com_Printf("Commands:\n");
-		Com_Printf(" - info: Print informations about playback state and tracks\n");
+		Com_Printf(" - info: Print information about playback state and tracks\n");
 		Com_Printf(" - play <track>: Play track number <track>\n");
 		Com_Printf(" - stop: Stop playback\n");
 		Com_Printf(" - toggle: Toggle pause\n");
