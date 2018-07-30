@@ -441,8 +441,7 @@ R_LeadingEdge (edge_t *edge)
 {
 	if (edge->surfs[1])
 	{
-		surf_t		*surf, *surf2;
-		shift20_t	iu;
+		surf_t		*surf;
 
 		// it's adding a new surface in, so find the correct place
 		surf = &surfaces[edge->surfs[1]];
@@ -452,6 +451,9 @@ R_LeadingEdge (edge_t *edge)
 		// end edge)
 		if (++surf->spanstate == 1)
 		{
+			surf_t		*surf2;
+			shift20_t	iu;
+
 			surf2 = surfaces[1].next;
 
 			if (surf->key < surf2->key)
