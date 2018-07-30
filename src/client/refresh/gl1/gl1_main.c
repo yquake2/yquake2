@@ -1406,13 +1406,6 @@ RI_Init()
 	/* initialize our QGL dynamic bindings */
 	QGL_Init();
 
-	/* initialize OS-specific parts of OpenGL */
-	if (!ri.GLimp_Init())
-	{
-		QGL_Shutdown();
-		return false;
-	}
-
 	/* set our "safe" mode */
 	gl_state.prev_mode = 4;
 	gl_state.stereo_mode = gl1_stereo->value;

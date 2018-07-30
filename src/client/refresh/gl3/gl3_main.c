@@ -363,8 +363,7 @@ GL3_SetMode(void)
 	vid.width = r_customwidth->value;
 	vid.height = r_customheight->value;
 
-	if ((err = SetMode_impl(&vid.width, &vid.height, r_mode->value,
-					 fullscreen)) == rserr_ok)
+	if ((err = SetMode_impl(&vid.width, &vid.height, r_mode->value, fullscreen)) == rserr_ok)
 	{
 		if (r_mode->value == -1)
 		{
@@ -453,13 +452,6 @@ GL3_Init(void)
 	GL3_Draw_GetPalette();
 
 	GL3_Register();
-
-	/* initialize OS-specific parts of OpenGL */
-	if (!ri.GLimp_Init())
-	{
-		//QGL_Shutdown();
-		return false;
-	}
 
 	/* set our "safe" mode */
 	gl3state.prev_mode = 4;

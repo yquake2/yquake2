@@ -361,8 +361,6 @@ RE_Init(void)
 
 	R_Register ();
 	Draw_GetPalette ();
-	if (!ri.GLimp_Init())
-		return false;
 
 	// create the window
 	RE_BeginFrame( 0 );

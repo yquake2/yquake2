@@ -232,9 +232,8 @@ typedef struct
 	// expects the pixels data to be row-wise, starting at top left
 	void		(IMPORT *Vid_WriteScreenshot)( int width, int height, int comp, const void* data );
 
-	void		(IMPORT *Vid_ShutdownWindow)(void);
-	int			(IMPORT *GLimp_Init)(void);
 	qboolean	(IMPORT *GLimp_InitGraphics)(int fullscreen, int *pwidth, int *pheight);
+	void		(IMPORT *GLimp_ShutdownGraphics)(void);
 } refimport_t;
 
 // this is the only function actually exported at the linker level

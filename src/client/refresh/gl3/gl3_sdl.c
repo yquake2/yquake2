@@ -288,7 +288,7 @@ void GL3_ShutdownWindow(qboolean contextOnly)
 
 		if (!contextOnly)
 		{
-			ri.Vid_ShutdownWindow();
+			ri.GLimp_ShutdownGraphics();
 
 			window = NULL;
 		}

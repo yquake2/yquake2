@@ -205,6 +205,8 @@ VID_CheckChanges(void)
 	}
 }
 
+extern qboolean GLimp_Init(void);
+
 void
 VID_Init(void)
 {
@@ -216,6 +218,12 @@ VID_Init(void)
 	/* Add some console commands that we want to handle */
 	Cmd_AddCommand("vid_restart", VID_Restart_f);
 	Cmd_AddCommand("vid_listmodes", VID_ListModes_f);
+
+	/* Initialize the backend. */
+	if (!GLimp_Init())
+	{
+		Com_Error(ERR_FATAL, "Couldn't initialize the graphics subsystem!\n");
+	}
 
 	/* Start the graphics mode and load refresh DLL */
 	VID_CheckChanges();
@@ -331,10 +339,10 @@ void *reflib_handle = NULL;		// Handle to refresh DLL
 qboolean ref_active = false;    /* Is the refresher being used? */
 
 void Key_MarkAllUp(void);
+void VID_ShutdownRenderer(void);
 
-extern int GLimp_Init(void);
 extern qboolean GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight);
-extern void VID_ShutdownWindow(void);
+extern void GLimp_ShutdownGraphics(void);
 
 qboolean
 VID_LoadRefresh(void)
@@ -354,7 +362,7 @@ VID_LoadRefresh(void)
 
 	// If the refresher is already active
 	// we'll shut it down
-	VID_Shutdown();
+	VID_ShutdownRenderer();
 
 	// Log it!
 	Com_Printf("----- refresher initialization -----\n");
@@ -390,9 +398,8 @@ VID_LoadRefresh(void)
 	ri.Vid_NewWindow = VID_NewWindow;
 	ri.Vid_WriteScreenshot = VID_WriteScreenshot;
 
-	ri.Vid_ShutdownWindow = VID_ShutdownWindow;
-	ri.GLimp_Init = GLimp_Init;
 	ri.GLimp_InitGraphics = GLimp_InitGraphics;
+	ri.GLimp_ShutdownGraphics = GLimp_ShutdownGraphics;
 
 	re = GetRefAPI( ri );
 
@@ -401,14 +408,14 @@ VID_LoadRefresh(void)
 
 	if (re.api_version != API_VERSION)
 	{
-		VID_Shutdown();
+		VID_ShutdownRenderer();
 		Com_Error (ERR_FATAL, "%s has incompatible api_version %d", reflib_name, re.api_version);
 	}
 
 	// Initiate the refresher
 	if (!re.Init())
 	{
-		VID_Shutdown(); // Isn't that just too bad? :(
+		VID_ShutdownRenderer(); // Isn't that just too bad? :(
 		Com_Printf("ERROR: Loading %s as rendering backend failed!\n", reflib_name);
 		Com_Printf("------------------------------------\n\n");
 		return false; // TODO: try again with default renderer?
@@ -423,7 +430,7 @@ VID_LoadRefresh(void)
 }
 
 void
-VID_Shutdown(void)
+VID_ShutdownRenderer(void)
 {
 	if (ref_active)
 	{
@@ -436,6 +443,15 @@ VID_Shutdown(void)
 
 	// Declare the refresher as inactive
 	ref_active = false;
+}
+
+extern void GLimp_Shutdown(void);
+
+void
+VID_Shutdown(void)
+{
+	VID_ShutdownRenderer();
+	GLimp_Shutdown();
 }
 
 // ======== wrappers for functions from refresh lib ========
