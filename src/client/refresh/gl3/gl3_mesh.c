@@ -44,8 +44,6 @@ static float r_avertexnormal_dots[SHADEDOT_QUANT][256] = {
 typedef float vec4_t[4];
 static vec4_t s_lerped[MAX_VERTS];
 extern vec3_t lightspot;
-extern qboolean have_stencil;
-
 
 typedef struct gl3_shadowinfo_s {
 	vec3_t    lightspot;
@@ -920,8 +918,7 @@ GL3_DrawAliasModel(entity_t *entity)
 		glDepthRange(gl3depthmin, gl3depthmax);
 	}
 
-	if (gl_shadows->value &&
-		!(entity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL | RF_NOSHADOW)))
+	if (gl_shadows->value && gl3config.stencil && !(entity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL | RF_NOSHADOW)))
 	{
 		gl3_shadowinfo_t si = {0};
 		VectorCopy(lightspot, si.lightspot);
@@ -951,7 +948,8 @@ void GL3_DrawAliasShadows(void)
 
 	glEnable(GL_BLEND);
 	GL3_UseProgram(gl3state.si3DaliasColor.shaderProgram);
-	if (have_stencil)
+
+	if (gl3config.stencil)
 	{
 		glEnable(GL_STENCIL_TEST);
 		glStencilFunc(GL_EQUAL, 1, 2);
@@ -974,7 +972,7 @@ void GL3_DrawAliasShadows(void)
 		DrawAliasShadow(si);
 	}
 
-	if (have_stencil)
+	if (gl3config.stencil)
 	{
 		glDisable(GL_STENCIL_TEST);
 	}

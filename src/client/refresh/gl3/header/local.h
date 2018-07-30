@@ -96,16 +96,15 @@ typedef struct
 	const char *vendor_string;
 	const char *version_string;
 	const char *glsl_version_string;
-	//const char *extensions_string; deprecated in GL3
 
 	int major_version;
 	int minor_version;
-	qboolean compat_profile;
 
 	// ----
 
 	qboolean anisotropic; // is GL_EXT_texture_filter_anisotropic supported?
 	qboolean debug_output; // is GL_ARB_debug_output supported?
+	qboolean stencil; // Do we have a stencil buffer?
 
 	// ----
 
@@ -355,14 +354,12 @@ extern qboolean GL3_CullBox(vec3_t mins, vec3_t maxs);
 extern void GL3_RotateForEntity(entity_t *e);
 
 // gl3_sdl.c
-extern qboolean have_stencil;
-
-extern int GL3_PrepareForWindow(void);
 extern int GL3_InitContext(void* win);
-extern void GL3_SetSwapInterval(void);
+extern int GL3_PrepareForWindow(void);
 extern qboolean GL3_IsVsyncActive(void);
 extern void GL3_EndFrame(void);
-extern void GL3_ShutdownWindow(qboolean contextOnly);
+extern void GL3_SetVsync(void);
+extern void GL3_ShutdownContext(void);
 
 // gl3_misc.c
 extern void GL3_InitParticleTexture(void);

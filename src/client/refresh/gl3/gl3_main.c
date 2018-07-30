@@ -524,15 +524,6 @@ GL3_Init(void)
 		R_Printf(PRINT_ALL, " - OpenGL Debug Output: Not Supported\n");
 	}
 
-	if(gl3config.compat_profile)
-	{
-		// for some fucking reason particles (GL_POINT) don't work in compatibility profiles
-		// without setting this.. SDL1.2 only gives compat profiles and we might wanna support
-		// them for SDL2 as well, so broken screengrab software etc that uses GL1 functions still works
-		// (GL_POINT_SPRITE is not even part of 3.2core, it was only in GL2 and was deprecated afterwards)
-		glEnable(QGL_POINT_SPRITE);
-	}
-
 	// generate texture handles for all possible lightmaps
 	glGenTextures(MAX_LIGHTMAPS*MAX_LIGHTMAPS_PER_SURFACE, gl3state.lightmap_textureIDs[0]);
 
@@ -583,7 +574,7 @@ GL3_Shutdown(void)
 	}
 
 	/* shutdown OS specific OpenGL stuff like contexts, etc.  */
-	GL3_ShutdownWindow(false);
+	GL3_ShutdownContext();
 }
 
 static void
@@ -1575,7 +1566,7 @@ GL3_Clear(void)
 	}
 
 	/* stencilbuffer shadows */
-	if (gl_shadows->value && have_stencil)
+	if (gl_shadows->value && gl3config.stencil)
 	{
 		glClearStencil(1);
 		glClear(GL_STENCIL_BUFFER_BIT);
@@ -1678,10 +1669,10 @@ GL3_BeginFrame(float camera_separation)
 		gl_anisotropic->modified = false;
 	}
 
-	if(r_vsync->modified)
+	if (r_vsync->modified)
 	{
 		r_vsync->modified = false;
-		GL3_SetSwapInterval();
+		GL3_SetVsync();
 	}
 
 	/* clear screen if desired */
@@ -1733,7 +1724,7 @@ GetRefAPI(refimport_t imp)
 	re.Shutdown = GL3_Shutdown;
 	re.PrepareForWindow = GL3_PrepareForWindow;
 	re.InitContext = GL3_InitContext;
-	re.ShutdownWindow = GL3_ShutdownWindow;
+	re.ShutdownContext = GL3_ShutdownContext;
 	re.IsVSyncActive = GL3_IsVsyncActive;
 
 	re.BeginRegistration = GL3_BeginRegistration;

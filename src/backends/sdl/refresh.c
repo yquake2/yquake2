@@ -123,6 +123,30 @@ SetSDLIcon()
 	SDL_FreeSurface(icon);
 }
 
+// FIXME: We need a header for this.
+// Maybe we could put it in vid.h.
+void GLimp_GrabInput(qboolean grab);
+
+/*
+ * Shuts the SDL render backend down
+ */
+static void
+ShutdownGraphics(void)
+{
+	if (window)
+	{
+		/* cleanly ungrab input (needs window) */
+		GLimp_GrabInput(false);
+		SDL_DestroyWindow(window);
+
+		window = NULL;
+	}
+
+	// make sure that after vid_restart the refreshrate will be queried from SDL2 again.
+	glimp_refreshRate = -1;
+
+	initSuccessful = false; // not initialized anymore
+}
 // --------
 
 /*
@@ -216,8 +240,8 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	/* Is the surface used? */
 	if (window)
 	{
-		re.ShutdownWindow(true);
-		SDL_DestroyWindow(window);
+		re.ShutdownContext();
+		ShutdownGraphics();
 
 		window = NULL;
 	}
@@ -362,25 +386,4 @@ GLimp_GetRefreshRate(void)
 	glimp_refreshRate++;
 
 	return glimp_refreshRate;
-}
-
-/*
- * Shuts the SDL render backend down
- */
-void
-GLimp_ShutdownGraphics(void)
-{
-	if (window)
-	{
-		/* cleanly ungrab input (needs window) */
-		GLimp_GrabInput(false);
-		SDL_DestroyWindow(window);
-
-		window = NULL;
-	}
-
-	// make sure that after vid_restart the refreshrate will be queried from SDL2 again.
-	glimp_refreshRate = -1;
-
-	initSuccessful = false; // not initialized anymore
 }

@@ -145,9 +145,8 @@ typedef struct
 	// returns true (1) on success
 	int		(EXPORT *InitContext)(void* sdl_window);
 
-	// shuts down rendering (OpenGL) context, calls
-	// VID_ShutdownWindow() to shut down window as well, if !contextOnly
-	void	(EXPORT *ShutdownWindow)(qboolean contextOnly);
+	// shuts down rendering (OpenGL) context.
+	void	(EXPORT *ShutdownContext)(void);
 
 	// returns true if vsync is active, else false
 	qboolean (EXPORT *IsVSyncActive)(void);
@@ -233,7 +232,6 @@ typedef struct
 	void		(IMPORT *Vid_WriteScreenshot)( int width, int height, int comp, const void* data );
 
 	qboolean	(IMPORT *GLimp_InitGraphics)(int fullscreen, int *pwidth, int *pheight);
-	void		(IMPORT *GLimp_ShutdownGraphics)(void);
 } refimport_t;
 
 // this is the only function actually exported at the linker level

@@ -222,8 +222,9 @@ RI_ShutdownWindow(qboolean contextOnly)
 		}
 
 		if (!contextOnly)
-		{
-			ri.GLimp_ShutdownGraphics();
+		{   
+			// FIXME
+			//ri.GLimp_ShutdownGraphics();
 
 			window = NULL;
 			gl_state.hwgamma = false;

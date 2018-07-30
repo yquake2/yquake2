@@ -342,7 +342,6 @@ void Key_MarkAllUp(void);
 void VID_ShutdownRenderer(void);
 
 extern qboolean GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight);
-extern void GLimp_ShutdownGraphics(void);
 
 qboolean
 VID_LoadRefresh(void)
@@ -399,7 +398,6 @@ VID_LoadRefresh(void)
 	ri.Vid_WriteScreenshot = VID_WriteScreenshot;
 
 	ri.GLimp_InitGraphics = GLimp_InitGraphics;
-	ri.GLimp_ShutdownGraphics = GLimp_ShutdownGraphics;
 
 	re = GetRefAPI( ri );
 

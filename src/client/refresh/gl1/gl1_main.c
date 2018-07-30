@@ -1882,7 +1882,7 @@ GetRefAPI(refimport_t imp)
 	re.Shutdown = RI_Shutdown;
 	re.PrepareForWindow = RI_PrepareForWindow;
 	re.InitContext = RI_InitContext;
-	re.ShutdownWindow = RI_ShutdownWindow;
+	re.ShutdownContext = RI_ShutdownWindow;
 	re.IsVSyncActive = RI_IsVSyncActive;
 	re.BeginRegistration = RI_BeginRegistration;
 	re.RegisterModel = RI_RegisterModel;
