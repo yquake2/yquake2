@@ -419,8 +419,10 @@ R_LeadingEdgeSearch (edge_t *edge, surf_t *surf, surf_t *surf2)
 		testzi = surf2->d_ziorigin + fv*surf2->d_zistepv +
 				fu*surf2->d_zistepu;
 
-		if (newzibottom < testzi)
+		if (newzibottom >= testzi)
+		{
 			return surf2;
+		}
 
 		newzitop = newzi * 1.01;
 	}
