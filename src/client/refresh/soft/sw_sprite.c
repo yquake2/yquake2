@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// r_sprite.c
+// sw_sprite.c
 #include "header/local.h"
 
 extern polydesc_t r_polydesc;
@@ -32,7 +32,8 @@ extern void	R_ClipAndDrawPoly( float alpha, qboolean isturbulent, qboolean textu
 ** Draw currententity / currentmodel as a single texture
 ** mapped polygon
 */
-void R_DrawSprite (void)
+void
+R_DrawSprite (void)
 {
 	vec5_t		*pverts;
 	vec3_t		left, up, right, down;

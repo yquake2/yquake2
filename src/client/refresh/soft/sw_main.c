@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-// r_main.c
+// sw_main.c
 #include <stdint.h>
 
 #ifdef SDL2
@@ -30,6 +30,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif //SDL2
 
 #include "header/local.h"
+
+#define NUMSTACKEDGES		2048
+#define NUMSTACKSURFACES	1024
+#define MAXALIASVERTS		2048
 
 viddef_t	vid;
 pixel_t		*vid_buffer = NULL;
@@ -53,22 +57,36 @@ model_t		*r_worldmodel;
 
 pixel_t		*r_warpbuffer;
 
+typedef struct swstate_s
+{
+	qboolean	fullscreen;
+	int		prev_mode; // last valid SW mode
+
+	unsigned char	gammatable[256];
+	unsigned char	currentpalette[1024];
+
+	// SDL colors
+	Uint32 	palette_colors[256];
+
+} swstate_t;
+
 static swstate_t sw_state;
 
-void		*colormap;
-float		r_time1;
-int			r_numallocatededges;
-float		r_aliasuvscale = 1.0;
-int			r_outofsurfaces;
-int			r_outofedges;
+void	*colormap;
+float	r_time1;
+int	r_numallocatededges;
+int	r_numallocatedverts;
+float	r_aliasuvscale = 1.0;
+int	r_outofsurfaces;
+int	r_outofedges;
+int	r_outofverts;
 
 qboolean	r_dowarp;
 
 mvertex_t	*r_pcurrentvertbase;
 
-int			c_surf;
-static int	r_maxsurfsseen, r_maxedgesseen, r_cnumsurfs;
-static qboolean	r_surfsonstack;
+int		c_surf;
+static int	r_cnumsurfs;
 int	r_clipflags;
 
 //
@@ -149,7 +167,7 @@ static cvar_t	*r_lockpvs;
 
 #define	STRINGER(x) "x"
 
-// r_vars.c
+// sw_vars.c
 
 // all global and static refresh variables are collected in a contiguous block
 // to avoid cache conflicts.
@@ -187,6 +205,8 @@ zvalue_t	*d_pzbuffer;
 unsigned int	d_zwidth;
 
 qboolean	insubmodel;
+
+static qboolean	sdl_palette_outdated;
 
 static struct texture_buffer {
 	image_t	image;
@@ -302,7 +322,7 @@ R_Register (void)
 
 	r_mode->modified = true; // force us to do mode specific stuff later
 	vid_gamma->modified = true; // force us to rebuild the gamma table later
-	sw_overbrightbits->modified = true; // force us to rebuild pallete later
+	sw_overbrightbits->modified = true; // force us to rebuild palette later
 
 	//PGM
 	r_lockpvs = ri.Cvar_Get ("r_lockpvs", "0", 0);
@@ -397,51 +417,123 @@ RE_Shutdown (void)
 R_NewMap
 ===============
 */
-void R_NewMap (void)
+void
+R_NewMap (void)
 {
 	r_viewcluster = -1;
+}
 
-	r_cnumsurfs = sw_maxsurfs->value;
+static surf_t	*lsurfs;
 
-	if (r_cnumsurfs <= MINSURFACES)
-		r_cnumsurfs = MINSURFACES;
-
-	if (r_cnumsurfs > NUMSTACKSURFACES)
+/*
+===============
+R_ReallocateMapBuffers
+===============
+*/
+static void
+R_ReallocateMapBuffers (void)
+{
+	if (!r_cnumsurfs || r_outofsurfaces)
 	{
-		surfaces = malloc (r_cnumsurfs * sizeof(surf_t));
-		if (!surfaces)
+		if(lsurfs)
 		{
-		    R_Printf(PRINT_ALL, "R_NewMap: Couldn't malloc %d bytes\n", (int)(r_cnumsurfs * sizeof(surf_t)));
-		    return;
+			free(lsurfs);
 		}
 
-		surface_p = surfaces;
+		if (r_outofsurfaces)
+		{
+			//R_Printf(PRINT_ALL, "%s: not enough %d(+%d) surfaces\n",
+			//		     __func__, r_cnumsurfs, r_outofsurfaces);
+			r_cnumsurfs *= 2;
+		}
+
+		if (r_cnumsurfs < NUMSTACKSURFACES)
+			r_cnumsurfs = NUMSTACKSURFACES;
+
+		if (r_cnumsurfs < sw_maxsurfs->value)
+			r_cnumsurfs = sw_maxsurfs->value;
+
+		lsurfs = malloc (r_cnumsurfs * sizeof(surf_t));
+		if (!lsurfs)
+		{
+			R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+				 __func__, (int)(r_cnumsurfs * sizeof(surf_t)));
+			return;
+		}
+
+		surfaces = lsurfs;
+		// set limits
 		surf_max = &surfaces[r_cnumsurfs];
-		r_surfsonstack = false;
+		surface_p = lsurfs;
 		// surface 0 doesn't really exist; it's just a dummy because index 0
 		// is used to indicate no edge attached to surface
 		surfaces--;
-	}
-	else
-	{
-		r_surfsonstack = true;
+
+		R_Printf(PRINT_ALL, "Allocated %d surfaces\n", r_cnumsurfs);
 	}
 
-	r_maxedgesseen = 0;
-	r_maxsurfsseen = 0;
-
-	r_numallocatededges = sw_maxedges->value;
-
-	if (r_numallocatededges < MINEDGES)
-		r_numallocatededges = MINEDGES;
-
-	if (r_numallocatededges <= NUMSTACKEDGES)
+	if (!r_numallocatededges || r_outofedges)
 	{
-		auxedges = NULL;
+		if (!r_edges)
+		{
+			free(r_edges);
+		}
+
+		if (r_outofedges)
+		{
+			//R_Printf(PRINT_ALL, "%s: not enough %d(+%d) edges\n",
+			//		    __func__, r_numallocatededges, r_outofedges * 2 / 3);
+			r_numallocatededges *= 2;
+		}
+
+		if (r_numallocatededges < NUMSTACKEDGES)
+			r_numallocatededges = NUMSTACKEDGES;
+
+		if (r_numallocatededges < sw_maxedges->value)
+		    r_numallocatededges = sw_maxedges->value;
+
+		r_edges = malloc (r_numallocatededges * sizeof(edge_t));
+		if (!r_edges)
+		{
+			R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+				 __func__, (int)(r_numallocatededges * sizeof(edge_t)));
+			return;
+		}
+
+		// set limits
+		edge_max = &r_edges[r_numallocatededges];
+		edge_p = r_edges;
+
+		R_Printf(PRINT_ALL, "Allocated %d edges\n", r_numallocatededges);
 	}
-	else
+
+	if (!r_numallocatedverts || r_outofverts)
 	{
-		auxedges = malloc (r_numallocatededges * sizeof(edge_t));
+		if (finalverts)
+		{
+			free(finalverts);
+		}
+
+		if (r_outofverts)
+		{
+			//R_Printf(PRINT_ALL, "%s: not enough %d(+%d) finalverts\n",
+			//		    __func__, r_numallocatedverts, r_outofverts);
+			r_numallocatedverts *= 2;
+		}
+
+		if (r_numallocatedverts < MAXALIASVERTS)
+			r_numallocatedverts = MAXALIASVERTS;
+
+		finalverts = malloc(r_numallocatedverts * sizeof(finalvert_t));
+		if (!finalverts)
+		{
+			R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+				 __func__, (int)(r_numallocatedverts * sizeof(finalvert_t)));
+			return;
+		}
+		finalverts_max = &finalverts[r_numallocatedverts];
+
+		R_Printf(PRINT_ALL, "Allocated %d verts\n", r_numallocatedverts);
 	}
 }
 
@@ -796,7 +888,6 @@ R_DrawBEntitiesOnList (void)
 
 	VectorCopy (modelorg, oldorigin);
 	insubmodel = true;
-	r_dlightframecount = r_framecount;
 
 	for (i=0 ; i<r_newrefdef.num_entities ; i++)
 	{
@@ -862,9 +953,6 @@ R_DrawBEntitiesOnList (void)
 	insubmodel = false;
 }
 
-static edge_t	*ledges;
-static surf_t	*lsurfs;
-
 /*
 ================
 R_EdgeDrawing
@@ -878,26 +966,11 @@ R_EdgeDrawing (void)
 	if ( r_newrefdef.rdflags & RDF_NOWORLDMODEL )
 		return;
 
-	if (auxedges)
-	{
-		r_edges = auxedges;
-	}
-	else
-	{
-		r_edges = ledges;
-	}
-
-	if (r_surfsonstack)
-	{
-		surfaces = lsurfs;
-		surf_max = &surfaces[r_cnumsurfs];
-		// surface 0 doesn't really exist; it's just a dummy because index 0
-		// is used to indicate no edge attached to surface
-		surfaces--;
-	}
-
 	// Set function pointer pdrawfunc used later in this function
 	R_BeginEdgeFrame ();
+	edge_p = r_edges;
+	surface_p = &surfaces[2];	// background is surface 1,
+					//  surface 0 is a dummy
 
 	if (r_dspeeds->value)
 	{
@@ -924,7 +997,7 @@ R_EdgeDrawing (void)
 
 	// Use the Global Edge Table to maintin the Active Edge Table: Draw the world as scanlines
 	// Write the Z-Buffer (but no read)
-	R_ScanEdges ();
+	R_ScanEdges (surface_p);
 }
 
 //=======================================================================
@@ -1092,6 +1165,8 @@ RE_RenderFrame (refdef_t *fd)
 
 	if (sw_reportedgeout->value && r_outofedges)
 		R_Printf(PRINT_ALL,"Short roughly %d edges\n", r_outofedges * 2 / 3);
+
+	R_ReallocateMapBuffers();
 }
 
 /*
@@ -1205,6 +1280,8 @@ R_GammaCorrectAndSetPalette( const unsigned char *palette )
 		sw_state.currentpalette[i*4+1] = sw_state.gammatable[palette[i*4+1]];
 		sw_state.currentpalette[i*4+2] = sw_state.gammatable[palette[i*4+2]];
 	}
+
+	sdl_palette_outdated = true;
 }
 
 /*
@@ -1214,7 +1291,6 @@ static void
 RE_SetPalette(const unsigned char *palette)
 {
 	byte palette32[1024];
-	int i;
 
 	// clear screen to black to avoid any palette flash
 	memset(vid_buffer, 0, vid.height * vid.width * sizeof(pixel_t));
@@ -1224,6 +1300,8 @@ RE_SetPalette(const unsigned char *palette)
 
 	if (palette)
 	{
+		int i;
+
 		for ( i = 0; i < 256; i++ )
 		{
 			palette32[i*4+0] = palette[i*3+0];
@@ -1651,7 +1729,8 @@ R_InitContext(void* win)
 	return true;
 }
 
-static qboolean CreateSDLWindow(int flags, int w, int h)
+static qboolean
+CreateSDLWindow(int flags, int w, int h)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	Uint32 Rmask, Gmask, Bmask, Amask;
@@ -1675,9 +1754,9 @@ static qboolean CreateSDLWindow(int flags, int w, int h)
 	surface = SDL_CreateRGBSurface(0, w, h, bpp, Rmask, Gmask, Bmask, Amask);
 
 	texture = SDL_CreateTexture(renderer,
-								   SDL_PIXELFORMAT_ARGB8888,
-								   SDL_TEXTUREACCESS_STREAMING,
-								   w, h);
+				    SDL_PIXELFORMAT_ARGB8888,
+				    SDL_TEXTUREACCESS_STREAMING,
+				    w, h);
 	return window != NULL;
 #else
 	window = SDL_SetVideoMode(w, h, 0, flags);
@@ -1686,7 +1765,8 @@ static qboolean CreateSDLWindow(int flags, int w, int h)
 #endif
 }
 
-static void SWimp_DestroyRender(void)
+static void
+SWimp_DestroyRender(void)
 {
 	if (vid_buffer)
 	{
@@ -1760,11 +1840,11 @@ static void SWimp_DestroyRender(void)
 	}
 	finalverts = NULL;
 
-	if(ledges)
+	if(r_edges)
 	{
-		free(ledges);
+		free(r_edges);
 	}
-	ledges = NULL;
+	r_edges = NULL;
 
 	if(lsurfs)
 	{
@@ -1926,9 +2006,18 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	warp_column = malloc((vid.width+AMP2*2) * sizeof(int));
 
 	edge_basespans = malloc((vid.width*2) * sizeof(espan_t));
-	finalverts = malloc((MAXALIASVERTS + 3) * sizeof(finalvert_t));
-	ledges = malloc((NUMSTACKEDGES + 1) * sizeof(edge_t));
-	lsurfs = malloc((NUMSTACKSURFACES + 1) * sizeof(surf_t));
+
+	// count of "out of items"
+	r_outofsurfaces = r_outofedges = r_outofverts = 0;
+	// pointers to allocated buffers
+	finalverts = NULL;
+	r_edges = NULL;
+	lsurfs = NULL;
+	// curently allocated items
+	r_cnumsurfs = r_numallocatededges = r_numallocatedverts = 0;
+
+	R_ReallocateMapBuffers();
+
 	r_warpbuffer = malloc(vid.height * vid.width * sizeof(pixel_t));
 
 	if ((vid.width >= 2048) && (sizeof(shift20_t) == 4)) // 2k+ resolution and 32 == shift20_t
@@ -1945,10 +2034,83 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	vid_polygon_spans = malloc(sizeof(espan_t) * (vid.height + 1));
 
 	memset(sw_state.currentpalette, 0, sizeof(sw_state.currentpalette));
+	memset(sw_state.palette_colors, 0, sizeof(sw_state.palette_colors));
 
+	sdl_palette_outdated = true;
 	X11_active = true;
 
 	return true;
+}
+
+
+static void
+RE_SDLPaletteConvert (void)
+{
+	int i;
+	const unsigned char *palette = sw_state.currentpalette;
+	Uint32 *sdl_palette = sw_state.palette_colors;
+
+	if (!sdl_palette_outdated)
+		return;
+
+	sdl_palette_outdated = false;
+	for ( i = 0; i < 256; i++ )
+	{
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		if (surface)
+			sdl_palette[i] = SDL_MapRGB(surface->format,
+						    palette[i * 4 + 0], // red
+						    palette[i * 4 + 1], // green
+						    palette[i * 4 + 2]  //blue
+					);
+#else
+		if (window)
+			sdl_palette[i] = SDL_MapRGB(window->format,
+						    palette[i * 4 + 0], // red
+						    palette[i * 4 + 1], // green
+						    palette[i * 4 + 2]  //blue
+					);
+#endif
+	}
+}
+
+
+static void
+RE_CopyFrame (Uint32 * pixels, int pitch)
+{
+	RE_SDLPaletteConvert();
+
+	// no gaps between images rows
+	if (pitch == vid.width)
+	{
+		int y,x, buffer_pos;
+
+		buffer_pos = 0;
+		for (y=0; y < vid.height;  y++)
+		{
+			for (x=0; x < vid.width; x ++)
+			{
+				pixels[x] = sw_state.palette_colors[vid_buffer[buffer_pos + x]];
+			}
+			pixels += pitch;
+			buffer_pos += vid.width;
+		}
+	}
+	else
+	{
+		const Uint32	*max_pixels;
+		Uint32	*pixels_pos;
+		pixel_t	*buffer_pos;
+
+		max_pixels = pixels + vid.height * vid.width;
+		buffer_pos = vid_buffer;
+
+		for (pixels_pos = pixels; pixels_pos < max_pixels; pixels_pos++)
+		{
+			*pixels_pos = sw_state.palette_colors[*buffer_pos];
+			buffer_pos++;
+		}
+	}
 }
 
 /*
@@ -1962,45 +2124,17 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 static void
 RE_EndFrame (void)
 {
-	int y,x, i;
-	const unsigned char *pallete = sw_state.currentpalette;
-	Uint32 pallete_colors[256];
-
-	for(i=0; i < 256; i++)
-	{
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-		pallete_colors[i] = SDL_MapRGB(surface->format,
-					       pallete[i * 4 + 0], // red
-					       pallete[i * 4 + 1], // green
-					       pallete[i * 4 + 2]  //blue
-					);
-#else
-		pallete_colors[i] = SDL_MapRGB(window->format,
-					       pallete[i * 4 + 0], // red
-					       pallete[i * 4 + 1], // green
-					       pallete[i * 4 + 2]  //blue
-					);
-#endif
-	}
+	int pitch;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	Uint32 * pixels = (Uint32 *)surface->pixels;
+	pitch = surface->pitch / sizeof(Uint32);
 #else
 	Uint32 * pixels = (Uint32 *)window->pixels;
+	pitch = window->pitch / sizeof(Uint32);
 #endif
-	for (y=0; y < vid.height;  y++)
-	{
-		for (x=0; x < vid.width; x ++)
-		{
-			int buffer_pos = y * vid.width + x;
-			Uint32 color = pallete_colors[vid_buffer[buffer_pos]];
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-			pixels[y * surface->pitch / sizeof(Uint32) + x] = color;
-#else
-			pixels[y * window->pitch / sizeof(Uint32) + x] = color;
-#endif
-		}
-	}
+
+	RE_CopyFrame (pixels, pitch);
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
@@ -2062,7 +2196,8 @@ SWimp_Shutdown( void )
 }
 
 // this is only here so the functions in q_shared.c and q_shwin.c can link
-void Sys_Error (char *error, ...)
+void
+Sys_Error (char *error, ...)
 {
 	va_list		argptr;
 	char		text[1024];
@@ -2074,7 +2209,8 @@ void Sys_Error (char *error, ...)
 	ri.Sys_Error (ERR_FATAL, "%s", text);
 }
 
-void Com_Printf (char *fmt, ...)
+void
+Com_Printf (char *fmt, ...)
 {
 	va_list		argptr;
 	char		text[1024];
@@ -2104,7 +2240,7 @@ R_ScreenShot_f(void)
 {
 	int x, y;
 	byte *buffer = malloc(vid.width * vid.height * 3);
-	const unsigned char *pallete = sw_state.currentpalette;
+	const unsigned char *palette = sw_state.currentpalette;
 
 	if (!buffer)
 	{
@@ -2116,9 +2252,9 @@ R_ScreenShot_f(void)
 	{
 		for (y=0; y < vid.height; y ++) {
 			int buffer_pos = y * vid.width + x;
-			buffer[buffer_pos * 3 + 0] = pallete[vid_buffer[buffer_pos] * 4 + 0]; // red
-			buffer[buffer_pos * 3 + 1] = pallete[vid_buffer[buffer_pos] * 4 + 1]; // green
-			buffer[buffer_pos * 3 + 2] = pallete[vid_buffer[buffer_pos] * 4 + 2]; // blue
+			buffer[buffer_pos * 3 + 0] = palette[vid_buffer[buffer_pos] * 4 + 0]; // red
+			buffer[buffer_pos * 3 + 1] = palette[vid_buffer[buffer_pos] * 4 + 1]; // green
+			buffer[buffer_pos * 3 + 2] = palette[vid_buffer[buffer_pos] * 4 + 2]; // blue
 		}
 	}
 

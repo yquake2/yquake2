@@ -32,7 +32,8 @@ static image_t	*draw_chars;	// 8*8 graphic characters
 RE_Draw_FindPic
 ================
 */
-image_t *RE_Draw_FindPic (char *name)
+image_t *
+RE_Draw_FindPic (char *name)
 {
 	image_t	*image;
 
@@ -56,7 +57,8 @@ image_t *RE_Draw_FindPic (char *name)
 Draw_InitLocal
 ===============
 */
-void Draw_InitLocal (void)
+void
+Draw_InitLocal (void)
 {
 	draw_chars = RE_Draw_FindPic ("conchars");
 	if (!draw_chars)
@@ -76,7 +78,8 @@ It can be clipped to the top of the screen to allow the console to be
 smoothly scrolled off.
 ================
 */
-void RE_Draw_CharScaled(int x, int y, int num, float scale)
+void
+RE_Draw_CharScaled(int x, int y, int num, float scale)
 {
 	pixel_t	*dest;
 	byte	*source;
@@ -134,7 +137,8 @@ void RE_Draw_CharScaled(int x, int y, int num, float scale)
 RE_Draw_GetPicSize
 =============
 */
-void RE_Draw_GetPicSize (int *w, int *h, char *pic)
+void
+RE_Draw_GetPicSize (int *w, int *h, char *pic)
 {
 	image_t *gl;
 
@@ -153,7 +157,8 @@ void RE_Draw_GetPicSize (int *w, int *h, char *pic)
 RE_Draw_StretchPicImplementation
 =============
 */
-void RE_Draw_StretchPicImplementation (int x, int y, int w, int h, image_t	*pic)
+void
+RE_Draw_StretchPicImplementation (int x, int y, int w, int h, image_t	*pic)
 {
 	pixel_t	*dest;
 	byte	*source;
@@ -205,7 +210,8 @@ void RE_Draw_StretchPicImplementation (int x, int y, int w, int h, image_t	*pic)
 RE_Draw_StretchPic
 =============
 */
-void RE_Draw_StretchPic (int x, int y, int w, int h, char *name)
+void
+RE_Draw_StretchPic (int x, int y, int w, int h, char *name)
 {
 	image_t	*pic;
 
@@ -223,7 +229,8 @@ void RE_Draw_StretchPic (int x, int y, int w, int h, char *name)
 RE_Draw_StretchRaw
 =============
 */
-void RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
+void
+RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
 {
 	image_t	pic;
 
@@ -238,7 +245,8 @@ void RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *d
 Draw_Pic
 =============
 */
-void RE_Draw_PicScaled(int x, int y, char *name, float scale)
+void
+RE_Draw_PicScaled(int x, int y, char *name, float scale)
 {
 	image_t		*pic;
 	pixel_t		*dest;
@@ -320,7 +328,8 @@ This repeats a 64*64 tile graphic to fill the screen around a sized down
 refresh window.
 =============
 */
-void RE_Draw_TileClear (int x, int y, int w, int h, char *name)
+void
+RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 {
 	int			i, j;
 	byte		*psrc;
@@ -369,7 +378,8 @@ RE_Draw_Fill
 Fills a box of pixels with a single color
 =============
 */
-void RE_Draw_Fill (int x, int y, int w, int h, int c)
+void
+RE_Draw_Fill (int x, int y, int w, int h, int c)
 {
 	pixel_t	*dest;
 	int		u, v;
@@ -406,7 +416,8 @@ RE_Draw_FadeScreen
 
 ================
 */
-void RE_Draw_FadeScreen (void)
+void
+RE_Draw_FadeScreen (void)
 {
 	int x,y;
 

@@ -17,17 +17,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// r_aclip.c: clip routines for drawing Alias models directly to the screen
+// sw_aclip.c: clip routines for drawing Alias models directly to the screen
 
 #include "header/local.h"
 
-static finalvert_t fv[2][8];
-
 void R_AliasProjectAndClipTestFinalVert (finalvert_t *fv);
-static void R_Alias_clip_top (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out);
-static void R_Alias_clip_bottom (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out);
-static void R_Alias_clip_left (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out);
-static void R_Alias_clip_right (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out);
 
 /*
 ================
@@ -176,7 +170,8 @@ R_Alias_clip_bottom (finalvert_t *pfv0, finalvert_t *pfv1,
 }
 
 
-int R_AliasClip (finalvert_t *in, finalvert_t *out, int flag, int count,
+int
+R_AliasClip (finalvert_t *in, finalvert_t *out, int flag, int count,
 	void(*clip)(finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out) )
 {
 	int			i,j,k;
@@ -222,10 +217,12 @@ int R_AliasClip (finalvert_t *in, finalvert_t *out, int flag, int count,
 R_AliasClipTriangle
 ================
 */
-void R_AliasClipTriangle (finalvert_t *index0, finalvert_t *index1, finalvert_t *index2)
+void
+R_AliasClipTriangle (finalvert_t *index0, finalvert_t *index1, finalvert_t *index2)
 {
 	int				i, k, pingpong;
 	unsigned		clipflags;
+        finalvert_t		fv[2][8];
 
 	// copy vertexes and fix seam texture coordinates
 	fv[0][0] = *index0;

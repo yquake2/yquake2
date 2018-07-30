@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// r_edge.c
+// sw_edge.c
 #include <limits.h>
 #include <stdint.h>
 #include "header/local.h"
@@ -28,12 +28,6 @@ low depth complexity -- 1 to 3 or so
 
 have a sentinal at both ends?
 */
-
-
-edge_t	*auxedges;
-edge_t	*r_edges, *edge_p, *edge_max;
-
-surf_t	*surfaces, *surface_p, *surf_max;
 
 // surfaces are generated in back to front order by the bsp, so if a surf
 // pointer is greater than another one, it should be drawn in front
@@ -85,13 +79,9 @@ EDGE SCANNING
 R_BeginEdgeFrame
 ==============
 */
-void R_BeginEdgeFrame (void)
+void
+R_BeginEdgeFrame (void)
 {
-	edge_p = r_edges;
-	edge_max = &r_edges[r_numallocatededges];
-
-	surface_p = &surfaces[2];	// background is surface 1,
-					//  surface 0 is a dummy
 	surfaces[1].spans = NULL;	// no background spans yet
 	surfaces[1].flags = SURF_DRAWBACKGROUND;
 
@@ -155,7 +145,8 @@ R_InsertNewEdges (edge_t *edgestoadd, edge_t *edgelist)
 R_RemoveEdges
 ==============
 */
-static void R_RemoveEdges (edge_t *pedge)
+static void
+R_RemoveEdges (edge_t *pedge)
 {
 
 	do
@@ -198,7 +189,7 @@ R_StepActiveU (edge_t *pedge)
 			// find out where the edge goes in the edge list
 			pwedge = pedge->prev->prev;
 
-			while (pwedge && (pwedge->u > pedge->u))
+			while (pwedge->u > pedge->u)
 			{
 				pwedge = pwedge->prev;
 			}
@@ -298,8 +289,6 @@ R_LeadingEdgeBackwards (edge_t *edge)
 	// end edge)
 	if (++surf->spanstate == 1)
 	{
-		shift20_t	iu;
-
 		surf2 = surfaces[1].next;
 
 		// if it's two surfaces on the same plane, the one that's already
@@ -307,6 +296,8 @@ R_LeadingEdgeBackwards (edge_t *edge)
 		// must be two bmodels in the same leaf; don't care, because they'll
 		// never be farthest anyway
 		if (surf->key > surf2->key || (surf->insubmodel && (surf->key == surf2->key))) {
+			shift20_t	iu;
+
 			// emit a span (obscures current top)
 			iu = edge->u >> shift_size;
 
@@ -408,10 +399,12 @@ R_LeadingEdgeSearch
 static surf_t*
 R_LeadingEdgeSearch (edge_t *edge, surf_t *surf, surf_t *surf2)
 {
-	float	fu, newzi, testzi, newzitop, newzibottom;
+	float	testzi, newzitop;
 
 	do
 	{
+		float	fu, newzi, newzibottom;
+
 		surf2 = D_SurfSearchForward(surf, surf2);
 
 		if (surf->key != surf2->key)
@@ -426,8 +419,10 @@ R_LeadingEdgeSearch (edge_t *edge, surf_t *surf, surf_t *surf2)
 		testzi = surf2->d_ziorigin + fv*surf2->d_zistepv +
 				fu*surf2->d_zistepu;
 
-		if (newzibottom < testzi)
+		if (newzibottom >= testzi)
+		{
 			return surf2;
+		}
 
 		newzitop = newzi * 1.01;
 	}
@@ -585,7 +580,7 @@ R_GenerateSpansBackward (void)
 	R_CleanupSpan ();
 }
 
-static void D_DrawSurfaces (void);
+static void D_DrawSurfaces (surf_t *surface);
 
 /*
 ==============
@@ -600,7 +595,8 @@ Each surface has a linked list of its visible spans
 
 ==============
 */
-void R_ScanEdges (void)
+void
+R_ScanEdges (surf_t *surface)
 {
 	shift20_t	iv, bottom;
 	espan_t		*basespan_p;
@@ -670,10 +666,10 @@ void R_ScanEdges (void)
 		if (span_p > max_span_p)
 		{
 			// Draw stuff on screen
-			D_DrawSurfaces ();
+			D_DrawSurfaces (surface);
 
 			// clear the surface span pointers
-			for (s = &surfaces[1] ; s<surface_p ; s++)
+			for (s = &surfaces[1] ; s<surface ; s++)
 				s->spans = NULL;
 
 			span_p = basespan_p;
@@ -702,7 +698,7 @@ void R_ScanEdges (void)
 	(*pdrawfunc) ();
 
 	// draw whatever's left in the span list
-	D_DrawSurfaces ();
+	D_DrawSurfaces (surface);
 }
 
 
@@ -1014,12 +1010,12 @@ To allow developers to see the polygon carving of the world
 =============
 */
 static void
-D_DrawflatSurfaces (void)
+D_DrawflatSurfaces (surf_t *surface)
 {
 	surf_t			*s;
 	int color = 0;
 
-	for (s = &surfaces[1] ; s<surface_p ; s++)
+	for (s = &surfaces[1] ; s<surface ; s++)
 	{
 		if (!s->spans)
 			continue;
@@ -1046,7 +1042,7 @@ May be called more than once a frame if the surf list overflows (higher res)
 ==============
 */
 static void
-D_DrawSurfaces (void)
+D_DrawSurfaces (surf_t *surface)
 {
 	// currententity = NULL;
 	// &r_worldentity;
@@ -1058,7 +1054,7 @@ D_DrawSurfaces (void)
 	{
 		surf_t *s;
 
-		for (s = &surfaces[1] ; s<surface_p ; s++)
+		for (s = &surfaces[1] ; s<surface ; s++)
 		{
 			if (!s->spans)
 				continue;
@@ -1076,7 +1072,7 @@ D_DrawSurfaces (void)
 		}
 	}
 	else
-		D_DrawflatSurfaces ();
+		D_DrawflatSurfaces (surface);
 
 	currententity = NULL;	//&r_worldentity;
 	VectorSubtract (r_origin, vec3_origin, modelorg);

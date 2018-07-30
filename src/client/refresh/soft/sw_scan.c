@@ -41,7 +41,8 @@ this performs a slight compression of the screen at the same time as
 the sine warp, to keep the edges from wrapping
 =============
 */
-void D_WarpScreen (void)
+void
+D_WarpScreen (void)
 {
 	int	w, h;
 	int	u,v;
@@ -98,7 +99,8 @@ void D_WarpScreen (void)
 D_DrawTurbulent8Span
 =============
 */
-static void D_DrawTurbulent8Span (void)
+static void
+D_DrawTurbulent8Span (void)
 {
 	do
 	{
@@ -116,7 +118,8 @@ static void D_DrawTurbulent8Span (void)
 Turbulent8
 =============
 */
-void Turbulent8 (espan_t *pspan)
+void
+Turbulent8 (espan_t *pspan)
 {
 	int		snext, tnext;
 	float	spancountminus1;
@@ -252,7 +255,8 @@ NonTurbulent8 - this is for drawing scrolling textures. they're warping water te
 	but the turbulence is automatically 0.
 =============
 */
-void NonTurbulent8 (espan_t *pspan)
+void
+NonTurbulent8 (espan_t *pspan)
 {
 	int snext, tnext;
 	float spancountminus1;
@@ -402,7 +406,8 @@ D_DrawSpans16
   FIXME: actually make this subdivide by 16 instead of 8!!!
 =============
 */
-void D_DrawSpans16 (espan_t *pspan)
+void
+D_DrawSpans16 (espan_t *pspan)
 {
 	int spancount;
 	unsigned char *pbase;
@@ -569,7 +574,8 @@ void D_DrawSpans16 (espan_t *pspan)
 D_DrawZSpans
 =============
 */
-void D_DrawZSpans (espan_t *pspan)
+void
+D_DrawZSpans (espan_t *pspan)
 {
 	int izistep;
 

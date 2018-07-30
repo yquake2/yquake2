@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// r_rast.c
+// sw_rast.c
 
 #include <stdint.h>
 #include <assert.h>
@@ -36,6 +36,9 @@ int	c_faceclip;	// number of faces clipped
 clipplane_t	view_clipplanes[4];
 
 medge_t			*r_pedge;
+
+edge_t	*r_edges = NULL, *edge_p = NULL, *edge_max = NULL;
+surf_t	*surfaces = NULL, *surface_p = NULL, *surf_max = NULL;
 
 static qboolean	r_leftclipped, r_rightclipped;
 static qboolean	makeleftedge, makerightedge;
@@ -101,7 +104,8 @@ R_InitSkyBox
 
 ================
 */
-void R_InitSkyBox (void)
+void
+R_InitSkyBox (void)
 {
 	int		i;
 	extern model_t *loadmodel;
@@ -510,7 +514,8 @@ R_EmitCachedEdge (void)
 R_RenderFace
 ================
 */
-void R_RenderFace (msurface_t *fa, int clipflags)
+void
+R_RenderFace (msurface_t *fa, int clipflags)
 {
 	int		i;
 	unsigned	mask;
@@ -725,7 +730,8 @@ void R_RenderFace (msurface_t *fa, int clipflags)
 R_RenderBmodelFace
 ================
 */
-void R_RenderBmodelFace (bedge_t *pedges, msurface_t *psurf)
+void
+R_RenderBmodelFace (bedge_t *pedges, msurface_t *psurf)
 {
 	int			i;
 	unsigned	mask;

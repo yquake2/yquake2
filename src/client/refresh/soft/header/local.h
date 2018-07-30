@@ -158,12 +158,6 @@ extern oldrefdef_t	r_refdef;
 
 #define DS_SPAN_LIST_END	-128
 
-#define NUMSTACKEDGES		2000
-#define MINEDGES		NUMSTACKEDGES
-#define NUMSTACKSURFACES	1000
-#define MINSURFACES		NUMSTACKSURFACES
-#define MAXSPANS		3000
-
 // flags in finalvert_t.flags
 #define ALIAS_LEFT_CLIP		0x0001
 #define ALIAS_TOP_CLIP		0x0002
@@ -186,8 +180,6 @@ extern oldrefdef_t	r_refdef;
 
 #define NEAR_CLIP	0.01
 
-
-#define MAXALIASVERTS		2000  // TODO: tune this
 #define ALIAS_Z_CLIP_PLANE	4
 
 // turbulence stuff
@@ -360,8 +352,6 @@ void R_PolysetUpdateTables(void);
 
 // callbacks to Quake
 
-extern drawsurf_t	r_drawsurf;
-
 extern int		c_surf;
 
 extern pixel_t		*r_warpbuffer;
@@ -487,7 +477,7 @@ void R_DrawSolidClippedSubmodelPolygons(model_t *pmodel, mnode_t *topnode);
 
 void R_AliasDrawModel(void);
 void R_BeginEdgeFrame(void);
-void R_ScanEdges(void);
+void R_ScanEdges(surf_t *surface);
 void R_PushDlights(model_t *model);
 
 extern void R_RotateBmodel (void);
@@ -504,7 +494,6 @@ extern int	r_currentbkey;
 void R_DrawParticles (void);
 
 extern int	r_amodels_drawn;
-extern edge_t	*auxedges;
 extern int	r_numallocatededges;
 extern edge_t	*r_edges, *edge_p, *edge_max;
 
@@ -523,16 +512,18 @@ extern spanpackage_t	*triangle_spans;
 extern byte	**warp_rowptr;
 extern int	*warp_column;
 extern espan_t	*edge_basespans;
-extern finalvert_t	*finalverts;
+extern int	r_numallocatedverts;
+extern finalvert_t	*finalverts, *finalverts_max;
 
 extern	int	r_aliasblendcolor;
 
-extern float    aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
+extern float	aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
 
-extern int              r_outofsurfaces;
-extern int              r_outofedges;
+extern int	r_outofsurfaces;
+extern int	r_outofedges;
+extern int	r_outofverts;
 
-extern mvertex_t        *r_pcurrentvertbase;
+extern mvertex_t	*r_pcurrentvertbase;
 
 typedef struct
 {
@@ -552,7 +543,6 @@ extern float	se_time1, se_time2, de_time1, de_time2, dv_time1, dv_time2;
 extern int r_viewcluster, r_oldviewcluster;
 
 extern int r_clipflags;
-extern int r_dlightframecount;
 
 extern image_t		 *r_notexture_mip;
 extern model_t		 *r_worldmodel;
@@ -599,17 +589,6 @@ image_t	*R_FindImage(char *name, imagetype_t type);
 void	R_FreeUnusedImages(void);
 
 void R_InitSkyBox(void);
-
-typedef struct swstate_s
-{
-	qboolean	fullscreen;
-	int		prev_mode; // last valid SW mode
-
-	unsigned char	gammatable[256];
-	unsigned char	currentpalette[1024];
-
-} swstate_t;
-
 void R_IMFlatShadedQuad( vec3_t a, vec3_t b, vec3_t c, vec3_t d, int color, float alpha );
 
 /*

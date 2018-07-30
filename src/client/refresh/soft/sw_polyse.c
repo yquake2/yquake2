@@ -110,45 +110,45 @@ static void R_PolysetScanLeftEdge_C(int height);
 // ======================
 // PGM
 // 64 65 66 67 68 69 70 71   72 73 74 75 76 77 78 79
-byte irtable[256] = { 79, 78, 77, 76, 75, 74, 73, 72,		// black/white
-		      71, 70, 69, 68, 67, 66, 65, 64,
-		      64, 65, 66, 67, 68, 69, 70, 71,		// dark taupe
-		      72, 73, 74, 75, 76, 77, 78, 79,
+static byte irtable[256] = { 79, 78, 77, 76, 75, 74, 73, 72,		// black/white
+			     71, 70, 69, 68, 67, 66, 65, 64,
+			     64, 65, 66, 67, 68, 69, 70, 71,		// dark taupe
+			     72, 73, 74, 75, 76, 77, 78, 79,
 
-		      64, 65, 66, 67, 68, 69, 70, 71,		// slate grey
-		      72, 73, 74, 75, 76, 77, 78, 79,
-		      208, 208, 208, 208, 208, 208, 208, 208,	// unused?'
-		      64, 66, 68, 70, 72, 74, 76, 78,		// dark yellow
+			     64, 65, 66, 67, 68, 69, 70, 71,		// slate grey
+			     72, 73, 74, 75, 76, 77, 78, 79,
+			     208, 208, 208, 208, 208, 208, 208, 208,	// unused?'
+			     64, 66, 68, 70, 72, 74, 76, 78,		// dark yellow
 
-		      64, 65, 66, 67, 68, 69, 70, 71,		// dark red
-		      72, 73, 74, 75, 76, 77, 78, 79,
-		      64, 65, 66, 67, 68, 69, 70, 71,		// grey/tan
-		      72, 73, 74, 75, 76, 77, 78, 79,
+			     64, 65, 66, 67, 68, 69, 70, 71,		// dark red
+			     72, 73, 74, 75, 76, 77, 78, 79,
+			     64, 65, 66, 67, 68, 69, 70, 71,		// grey/tan
+			     72, 73, 74, 75, 76, 77, 78, 79,
 
-		      64, 66, 68, 70, 72, 74, 76, 78,		// chocolate
-		      68, 67, 66, 65, 64, 65, 66, 67,		// mauve / teal
-		      68, 69, 70, 71, 72, 73, 74, 75,
-		      76, 76, 77, 77, 78, 78, 79, 79,
+			     64, 66, 68, 70, 72, 74, 76, 78,		// chocolate
+			     68, 67, 66, 65, 64, 65, 66, 67,		// mauve / teal
+			     68, 69, 70, 71, 72, 73, 74, 75,
+			     76, 76, 77, 77, 78, 78, 79, 79,
 
-		      64, 65, 66, 67, 68, 69, 70, 71,		// more mauve
-		      72, 73, 74, 75, 76, 77, 78, 79,
-		      64, 65, 66, 67, 68, 69, 70, 71,		// olive
-		      72, 73, 74, 75, 76, 77, 78, 79,
+			     64, 65, 66, 67, 68, 69, 70, 71,		// more mauve
+			     72, 73, 74, 75, 76, 77, 78, 79,
+			     64, 65, 66, 67, 68, 69, 70, 71,		// olive
+			     72, 73, 74, 75, 76, 77, 78, 79,
 
-		      64, 65, 66, 67, 68, 69, 70, 71,		// maroon
-		      72, 73, 74, 75, 76, 77, 78, 79,
-		      64, 65, 66, 67, 68, 69, 70, 71,		// sky blue
-		      72, 73, 74, 75, 76, 77, 78, 79,
+			     64, 65, 66, 67, 68, 69, 70, 71,		// maroon
+			     72, 73, 74, 75, 76, 77, 78, 79,
+			     64, 65, 66, 67, 68, 69, 70, 71,		// sky blue
+			     72, 73, 74, 75, 76, 77, 78, 79,
 
-		      64, 65, 66, 67, 68, 69, 70, 71,		// olive again
-		      72, 73, 74, 75, 76, 77, 78, 79,
-		      64, 65, 66, 67, 68, 69, 70, 71,		// nuclear green
-		      64, 65, 66, 67, 68, 69, 70, 71,		// bright yellow
+			     64, 65, 66, 67, 68, 69, 70, 71,		// olive again
+			     72, 73, 74, 75, 76, 77, 78, 79,
+			     64, 65, 66, 67, 68, 69, 70, 71,		// nuclear green
+			     64, 65, 66, 67, 68, 69, 70, 71,		// bright yellow
 
-		      64, 65, 66, 67, 68, 69, 70, 71,		// fire colors
-		      72, 73, 74, 75, 76, 77, 78, 79,
-		      208, 208, 64, 64, 70, 71, 72, 64,		// mishmash1
-		      66, 68, 70, 64, 65, 66, 67, 68};		// mishmash2
+			     64, 65, 66, 67, 68, 69, 70, 71,		// fire colors
+			     72, 73, 74, 75, 76, 77, 78, 79,
+			     208, 208, 64, 64, 70, 71, 72, 64,		// mishmash1
+			     66, 68, 70, 64, 65, 66, 67, 68};		// mishmash2
 // PGM
 // ======================
 
@@ -157,7 +157,8 @@ byte irtable[256] = { 79, 78, 77, 76, 75, 74, 73, 72,		// black/white
 R_PolysetUpdateTables
 ================
 */
-void R_PolysetUpdateTables (void)
+void
+R_PolysetUpdateTables (void)
 {
 	byte	*s;
 
@@ -179,7 +180,8 @@ void R_PolysetUpdateTables (void)
 R_DrawTriangle
 ================
 */
-void R_DrawTriangle( void )
+void
+R_DrawTriangle( void )
 {
 	int dv1_ab, dv0_ac;
 	int dv0_ab, dv1_ac;
@@ -239,7 +241,8 @@ void R_DrawTriangle( void )
 R_PolysetScanLeftEdge_C
 ====================
 */
-static void R_PolysetScanLeftEdge_C(int height)
+static void
+R_PolysetScanLeftEdge_C(int height)
 {
 	do
 	{
@@ -390,7 +393,8 @@ R_PolysetSetUpForLineScan(fixed8_t startvertu, fixed8_t startvertv,
 R_PolysetCalcGradients
 ================
 */
-static void R_PolysetCalcGradients (int skinwidth)
+static void
+R_PolysetCalcGradients (int skinwidth)
 {
 	float	xstepdenominv, ystepdenominv, t0, t1;
 	float	p01_minus_p21, p11_minus_p21, p00_minus_p20, p10_minus_p20;
@@ -449,7 +453,8 @@ static void R_PolysetCalcGradients (int skinwidth)
 R_PolysetDrawSpans8
 ================
 */
-void R_PolysetDrawSpans8_33( spanpackage_t *pspanpackage)
+void
+R_PolysetDrawSpans8_33( spanpackage_t *pspanpackage)
 {
 	byte		*lpdest;
 	byte		*lptex;
@@ -514,7 +519,8 @@ void R_PolysetDrawSpans8_33( spanpackage_t *pspanpackage)
 	} while (pspanpackage->count != -999999);
 }
 
-void R_PolysetDrawSpansConstant8_33( spanpackage_t *pspanpackage)
+void
+R_PolysetDrawSpansConstant8_33( spanpackage_t *pspanpackage)
 {
 	pixel_t		*lpdest;
 	int		lzi;
@@ -559,7 +565,8 @@ void R_PolysetDrawSpansConstant8_33( spanpackage_t *pspanpackage)
 	} while (pspanpackage->count != -999999);
 }
 
-void R_PolysetDrawSpans8_66(spanpackage_t *pspanpackage)
+void
+R_PolysetDrawSpans8_66(spanpackage_t *pspanpackage)
 {
 	pixel_t		*lpdest;
 	pixel_t		*lptex;
@@ -625,7 +632,8 @@ void R_PolysetDrawSpans8_66(spanpackage_t *pspanpackage)
 	} while (pspanpackage->count != -999999);
 }
 
-void R_PolysetDrawSpansConstant8_66( spanpackage_t *pspanpackage)
+void
+R_PolysetDrawSpansConstant8_66( spanpackage_t *pspanpackage)
 {
 	pixel_t		*lpdest;
 	int		lzi;
@@ -670,7 +678,8 @@ void R_PolysetDrawSpansConstant8_66( spanpackage_t *pspanpackage)
 	} while (pspanpackage->count != -999999);
 }
 
-void R_PolysetDrawSpans8_Opaque (spanpackage_t *pspanpackage)
+void
+R_PolysetDrawSpans8_Opaque (spanpackage_t *pspanpackage)
 {
 	do
 	{

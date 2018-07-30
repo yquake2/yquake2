@@ -454,6 +454,7 @@ set(GL1-Source
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
 	${REF_SRC_DIR}/files/wal.c
+	${REF_SRC_DIR}/files/pvs.c
 	${COMMON_SRC_DIR}/shared/shared.c
 	${COMMON_SRC_DIR}/md4.c
 	)
@@ -490,6 +491,7 @@ set(GL3-Source
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
 	${REF_SRC_DIR}/files/wal.c
+	${REF_SRC_DIR}/files/pvs.c
 	${COMMON_SRC_DIR}/shared/shared.c
 	${COMMON_SRC_DIR}/md4.c
 	)
@@ -531,6 +533,7 @@ set(SOFT-Source
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
 	${REF_SRC_DIR}/files/wal.c
+	${REF_SRC_DIR}/files/pvs.c
 	${COMMON_SRC_DIR}/shared/shared.c
 	${COMMON_SRC_DIR}/md4.c
 	)

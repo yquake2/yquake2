@@ -85,51 +85,6 @@ Mod_PointInLeaf(vec3_t p, model_t *model)
 }
 
 byte *
-Mod_DecompressVis(byte *in, model_t *model)
-{
-	static byte decompressed[MAX_MAP_LEAFS / 8];
-	int c;
-	byte *out;
-	int row;
-
-	row = (model->vis->numclusters + 7) >> 3;
-	out = decompressed;
-
-	if (!in)
-	{
-		/* no vis info, so make all visible */
-		while (row)
-		{
-			*out++ = 0xff;
-			row--;
-		}
-
-		return decompressed;
-	}
-
-	do
-	{
-		if (*in)
-		{
-			*out++ = *in++;
-			continue;
-		}
-
-		c = in[1];
-		in += 2;
-
-		while (c)
-		{
-			*out++ = 0;
-			c--;
-		}
-	}
-	while (out - decompressed < row);
-
-	return decompressed;
-}
-
-byte *
 Mod_ClusterPVS(int cluster, model_t *model)
 {
 	if ((cluster == -1) || !model->vis)
@@ -139,7 +94,7 @@ Mod_ClusterPVS(int cluster, model_t *model)
 
 	return Mod_DecompressVis((byte *)model->vis +
 			model->vis->bitofs[cluster][DVIS_PVS],
-			model);
+			(model->vis->numclusters + 7) >> 3);
 }
 
 void

@@ -26,13 +26,6 @@ extern cvar_t	*sw_custom_particles;
 #define PARTICLE_66     1
 #define PARTICLE_OPAQUE 2
 
-typedef struct
-{
-	particle_t *particle;
-	int         level;
-	int         color;
-} partparms_t;
-
 /*
 ** R_DrawParticle
 **
@@ -46,10 +39,9 @@ typedef struct
 ** function pointer route.  This exacts some overhead, but
 ** it pays off in clean and easy to understand code.
 */
-static void R_DrawParticle(partparms_t *partparms)
+static void
+R_DrawParticle(particle_t *pparticle, int level)
 {
-	particle_t	*pparticle = partparms->particle;
-	int		level = partparms->level;
 	vec3_t		local, transformed;
 	float		zi;
 	byte		*pdest;
@@ -226,10 +218,9 @@ static void R_DrawParticle(partparms_t *partparms)
 ** if we're using the asm path, it simply assigns a function pointer
 ** and goes.
 */
-void R_DrawParticles (void)
+void
+R_DrawParticles (void)
 {
-	partparms_t partparms;
-
 	particle_t *p;
 	int         i;
 
@@ -239,17 +230,15 @@ void R_DrawParticles (void)
 
 	for (p=r_newrefdef.particles, i=0 ; i<r_newrefdef.num_particles ; i++,p++)
 	{
+		int level;
 
 		if ( p->alpha > 0.66 )
-			partparms.level = PARTICLE_OPAQUE;
+			level = PARTICLE_OPAQUE;
 		else if ( p->alpha > 0.33 )
-			partparms.level = PARTICLE_66;
+			level = PARTICLE_66;
 		else
-			partparms.level = PARTICLE_33;
+			level = PARTICLE_33;
 
-		partparms.particle = p;
-		partparms.color    = p->color;
-
-		R_DrawParticle(&partparms);
+		R_DrawParticle(p, level);
 	}
 }

@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// r_alias.c: routines for setting up to draw alias models
+// sw_alias.c: routines for setting up to draw alias models
 
 /*
 ** use a real variable to control lerping
@@ -221,38 +221,26 @@ R_AliasPreparePoints
 General clipped case
 ================
 */
-typedef struct
-{
-	int          num_points;
-	dtrivertx_t *last_verts; // verts from the last frame
-	dtrivertx_t *this_verts; // verts from this frame
-	finalvert_t *dest_verts; // destination for transformed verts
-} aliasbatchedtransformdata_t;
-
-static aliasbatchedtransformdata_t aliasbatchedtransformdata;
-finalvert_t	*finalverts;
 
 static void
-R_AliasPreparePoints (void)
+R_AliasPreparePoints (finalvert_t *verts, finalvert_t *verts_max)
 {
-	int			i;
+	int		i;
 	dstvert_t	*pstverts;
 	dtriangle_t	*ptri;
 	finalvert_t	*pfv[3];
-	finalvert_t	*pfinalverts;
 
-	// put work vertexes on stack, cache aligned
-	pfinalverts = finalverts;
+	if ((verts + s_pmdl->num_xyz) >= verts_max)
+	{
+		r_outofverts += s_pmdl->num_xyz - (verts_max - verts);
+		return;
+	}
 
-	aliasbatchedtransformdata.num_points = s_pmdl->num_xyz;
-	aliasbatchedtransformdata.last_verts = r_lastframe->verts;
-	aliasbatchedtransformdata.this_verts = r_thisframe->verts;
-	aliasbatchedtransformdata.dest_verts = pfinalverts;
-
-	R_AliasTransformFinalVerts( aliasbatchedtransformdata.num_points,
-		                        aliasbatchedtransformdata.dest_verts,
-								aliasbatchedtransformdata.last_verts,
-								aliasbatchedtransformdata.this_verts );
+	R_AliasTransformFinalVerts( s_pmdl->num_xyz,
+		                    verts,	// destination for transformed verts
+				    r_lastframe->verts,	// verts from the last frame
+				    r_thisframe->verts	// verts from this frame
+				);
 
 	// clip and draw all triangles
 	//
@@ -263,9 +251,9 @@ R_AliasPreparePoints (void)
 	{
 		for (i=0 ; i<s_pmdl->num_tris ; i++, ptri++)
 		{
-			pfv[0] = &pfinalverts[ptri->index_xyz[0]];
-			pfv[1] = &pfinalverts[ptri->index_xyz[1]];
-			pfv[2] = &pfinalverts[ptri->index_xyz[2]];
+			pfv[0] = &verts[ptri->index_xyz[0]];
+			pfv[1] = &verts[ptri->index_xyz[1]];
+			pfv[2] = &verts[ptri->index_xyz[2]];
 
 			if ( pfv[0]->flags & pfv[1]->flags & pfv[2]->flags )
 				continue;	// completely clipped
@@ -298,9 +286,9 @@ R_AliasPreparePoints (void)
 	{
 		for (i=0 ; i<s_pmdl->num_tris ; i++, ptri++)
 		{
-			pfv[0] = &pfinalverts[ptri->index_xyz[0]];
-			pfv[1] = &pfinalverts[ptri->index_xyz[1]];
-			pfv[2] = &pfinalverts[ptri->index_xyz[2]];
+			pfv[0] = &verts[ptri->index_xyz[0]];
+			pfv[1] = &verts[ptri->index_xyz[1]];
+			pfv[2] = &verts[ptri->index_xyz[2]];
 
 			if ( pfv[0]->flags & pfv[1]->flags & pfv[2]->flags )
 				continue;	// completely clipped
@@ -469,7 +457,8 @@ R_AliasTransformFinalVerts( int numpoints, finalvert_t *fv, dtrivertx_t *oldv, d
 R_AliasProjectAndClipTestFinalVert
 ================
 */
-void R_AliasProjectAndClipTestFinalVert( finalvert_t *fv )
+void
+R_AliasProjectAndClipTestFinalVert( finalvert_t *fv )
 {
 	float	zi;
 	float	x, y, z;
@@ -500,7 +489,8 @@ void R_AliasProjectAndClipTestFinalVert( finalvert_t *fv )
 R_AliasSetupSkin
 ===============
 */
-static qboolean R_AliasSetupSkin (void)
+static qboolean
+R_AliasSetupSkin (void)
 {
 	image_t *pskindesc;
 
@@ -704,12 +694,15 @@ R_AliasSetUpLerpData( dmdl_t *pmdl, float backlerp )
 	}
 }
 
+finalvert_t *finalverts = NULL, *finalverts_max = NULL;
+
 /*
 ================
 R_AliasDrawModel
 ================
 */
-void R_AliasDrawModel (void)
+void
+R_AliasDrawModel (void)
 {
 	extern void (*d_pdrawspans)(void *);
 	extern void R_PolysetDrawSpans8_Opaque( void * );
@@ -862,7 +855,7 @@ void R_AliasDrawModel (void)
 	else
 		s_ziscale = (float)0x8000 * (float)SHIFT16XYZ_MULT;
 
-	R_AliasPreparePoints ();
+	R_AliasPreparePoints (finalverts, finalverts_max);
 
 	if ( currententity->flags & RF_WEAPONMODEL )
 	{

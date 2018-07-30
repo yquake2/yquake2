@@ -50,7 +50,8 @@ static int	modfilelen;
 Mod_Modellist_f
 ================
 */
-void Mod_Modellist_f (void)
+void
+Mod_Modellist_f (void)
 {
 	int		i;
 	model_t	*mod;
@@ -73,7 +74,8 @@ void Mod_Modellist_f (void)
 Mod_Init
 ===============
 */
-void Mod_Init (void)
+void
+Mod_Init (void)
 {
 	memset (mod_novis, 0xff, sizeof(mod_novis));
 }
@@ -184,7 +186,8 @@ Mod_ForName (char *name, qboolean crash)
 Mod_PointInLeaf
 ===============
 */
-mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
+mleaf_t *
+Mod_PointInLeaf (vec3_t p, model_t *model)
 {
 	mnode_t		*node;
 
@@ -210,63 +213,18 @@ mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
 
 
 /*
-===================
-Mod_DecompressVis
-===================
-*/
-static byte *
-Mod_DecompressVis (byte *in, model_t *model)
-{
-	static byte	decompressed[MAX_MAP_LEAFS/8];
-	int		c;
-	byte	*out;
-	int		row;
-
-	row = (model->vis->numclusters+7)>>3;
-	out = decompressed;
-
-	if (!in)
-	{
-		// no vis info, so make all visible
-		while (row)
-		{
-			*out++ = 0xff;
-			row--;
-		}
-		return decompressed;
-	}
-
-	do
-	{
-		if (*in)
-		{
-			*out++ = *in++;
-			continue;
-		}
-
-		c = in[1];
-		in += 2;
-		while (c)
-		{
-			*out++ = 0;
-			c--;
-		}
-	} while (out - decompressed < row);
-
-	return decompressed;
-}
-
-/*
 ==============
 Mod_ClusterPVS
 ==============
 */
-byte *Mod_ClusterPVS (int cluster, model_t *model)
+byte *
+Mod_ClusterPVS (int cluster, model_t *model)
 {
 	if (cluster == -1 || !model->vis)
 		return mod_novis;
-	return Mod_DecompressVis ( (byte *)model->vis + model->vis->bitofs[cluster][DVIS_PVS],
-		model);
+	return Mod_DecompressVis ( (byte *)model->vis +
+		model->vis->bitofs[cluster][DVIS_PVS],
+		(model->vis->numclusters+7)>>3);
 }
 
 /*
@@ -318,7 +276,8 @@ static int r_leaftovis[MAX_MAP_LEAFS];
 static int r_vistoleaf[MAX_MAP_LEAFS];
 static int r_numvisleafs;
 
-void	R_NumberLeafs (mnode_t *node)
+void
+R_NumberLeafs (mnode_t *node)
 {
 	if (node->contents != -1)
 	{
@@ -1154,7 +1113,8 @@ RE_BeginRegistration
 Specifies the model that will be used as the world
 =====================
 */
-void RE_BeginRegistration (char *model)
+void
+RE_BeginRegistration (char *model)
 {
 	char	fullname[MAX_QPATH];
 	cvar_t	*flushmap;
@@ -1180,7 +1140,8 @@ RE_RegisterModel
 
 =====================
 */
-struct model_s *RE_RegisterModel (char *name)
+struct model_s *
+RE_RegisterModel (char *name)
 {
 	model_t	*mod;
 
@@ -1226,7 +1187,8 @@ RE_EndRegistration
 
 =====================
 */
-void RE_EndRegistration (void)
+void
+RE_EndRegistration (void)
 {
 	int	i;
 	model_t	*mod;
@@ -1253,7 +1215,8 @@ void RE_EndRegistration (void)
 Mod_Free
 ================
 */
-void Mod_Free (model_t *mod)
+void
+Mod_Free (model_t *mod)
 {
 	Hunk_Free (mod->extradata);
 	memset (mod, 0, sizeof(*mod));
@@ -1264,7 +1227,8 @@ void Mod_Free (model_t *mod)
 Mod_FreeAll
 ================
 */
-void Mod_FreeAll (void)
+void
+Mod_FreeAll (void)
 {
 	int		i;
 

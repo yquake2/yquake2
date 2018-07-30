@@ -31,7 +31,8 @@ static int		numr_images;
 R_ImageList_f
 ===============
 */
-void	R_ImageList_f (void)
+void
+R_ImageList_f (void)
 {
 	int		i;
 	image_t	*image;
@@ -72,8 +73,8 @@ void	R_ImageList_f (void)
 
 //=======================================================
 
-static image_t
-*R_FindFreeImage (void)
+static image_t *
+R_FindFreeImage (void)
 {
 	image_t		*image;
 	int			i;
@@ -101,7 +102,7 @@ R_LoadPic
 
 ================
 */
-static image_t*
+static image_t *
 R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
 {
 	image_t	*image;
@@ -221,7 +222,8 @@ R_FindImage
 Finds or loads the given image
 ===============
 */
-image_t	*R_FindImage (char *name, imagetype_t type)
+image_t	*
+R_FindImage (char *name, imagetype_t type)
 {
 	image_t	*image;
 	int		i, len;
@@ -290,7 +292,8 @@ Any image that was not touched on this registration sequence
 will be freed.
 ================
 */
-void R_FreeUnusedImages (void)
+void
+R_FreeUnusedImages (void)
 {
 	int		i;
 	image_t	*image;
@@ -318,7 +321,8 @@ void R_FreeUnusedImages (void)
 R_InitImages
 ===============
 */
-void	R_InitImages (void)
+void
+R_InitImages (void)
 {
 	registration_sequence = 1;
 }
@@ -328,7 +332,8 @@ void	R_InitImages (void)
 R_ShutdownImages
 ===============
 */
-void	R_ShutdownImages (void)
+void
+R_ShutdownImages (void)
 {
 	int		i;
 	image_t	*image;
