@@ -250,6 +250,9 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	viddef.width = width;
 	viddef.height = height;
 
+	/* Reset SDL. */
+	SDL_GL_ResetAttributes();
+
 	/* Let renderer prepare things (set OpenGL attributes) */
 	flags = re.PrepareForWindow();
 
