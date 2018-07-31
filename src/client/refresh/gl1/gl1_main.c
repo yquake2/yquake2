@@ -66,7 +66,6 @@ float r_base_world_matrix[16];
 refdef_t r_newrefdef;
 
 int r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
-extern qboolean have_stencil;
 unsigned r_rawpalette[256];
 
 cvar_t *r_norefresh;
@@ -898,7 +897,7 @@ R_Clear(void)
 	}
 
 	/* stencilbuffer shadows */
-	if (gl_shadows->value && have_stencil && gl1_stencilshadow->value)
+	if (gl_shadows->value && gl_state.stencil && gl1_stencilshadow->value)
 	{
 		glClearStencil(1);
 		glClear(GL_STENCIL_BUFFER_BIT);
@@ -1459,8 +1458,8 @@ RI_Init()
 
 	if (strstr(gl_config.extensions_string, "GL_ARB_point_parameters"))
 	{
-			qglPointParameterfARB = (void (APIENTRY *)(GLenum, GLfloat))GLimp_GetProcAddress ( "glPointParameterfARB" );
-			qglPointParameterfvARB = (void (APIENTRY *)(GLenum, const GLfloat *))GLimp_GetProcAddress ( "glPointParameterfvARB" );
+			qglPointParameterfARB = (void (APIENTRY *)(GLenum, GLfloat))RI_GetProcAddress ( "glPointParameterfARB" );
+			qglPointParameterfvARB = (void (APIENTRY *)(GLenum, const GLfloat *))RI_GetProcAddress ( "glPointParameterfvARB" );
 	}
 
 	gl_config.pointparameters = false;
@@ -1491,7 +1490,7 @@ RI_Init()
 		strstr(gl_config.extensions_string, "GL_EXT_shared_texture_palette"))
 	{
 			qglColorTableEXT = (void (APIENTRY *)(GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid * ))
-					GLimp_GetProcAddress ("glColorTableEXT");
+					RI_GetProcAddress ("glColorTableEXT");
 	}
 
 	gl_config.palettedtexture = false;
@@ -1574,14 +1573,11 @@ RI_Shutdown(void)
 	R_ShutdownImages();
 
 	/* shutdown OS specific OpenGL stuff like contexts, etc.  */
-	RI_ShutdownWindow(false);
+	RI_ShutdownContext();
 
 	/* shutdown our QGL subsystem */
 	QGL_Shutdown();
 }
-
-extern void UpdateHardwareGamma();
-extern void RI_SetSwapInterval(void);
 
 void
 RI_BeginFrame(float camera_separation)
@@ -1612,11 +1608,7 @@ RI_BeginFrame(float camera_separation)
 	if (vid_gamma->modified)
 	{
 		vid_gamma->modified = false;
-
-		if (gl_state.hwgamma)
-		{
-			UpdateHardwareGamma();
-		}
+		RI_UpdateGamma();
 	}
 
 	// Clamp overbrightbits
@@ -1711,7 +1703,7 @@ RI_BeginFrame(float camera_separation)
 	if (r_vsync->modified)
 	{
 		r_vsync->modified = false;
-		RI_SetSwapInterval();
+		RI_SetVsync();
 	}
 
 	/* clear screen if desired */
@@ -1882,7 +1874,7 @@ GetRefAPI(refimport_t imp)
 	re.Shutdown = RI_Shutdown;
 	re.PrepareForWindow = RI_PrepareForWindow;
 	re.InitContext = RI_InitContext;
-	re.ShutdownContext = RI_ShutdownWindow;
+	re.ShutdownContext = RI_ShutdownContext;
 	re.IsVSyncActive = RI_IsVSyncActive;
 	re.BeginRegistration = RI_BeginRegistration;
 	re.RegisterModel = RI_RegisterModel;

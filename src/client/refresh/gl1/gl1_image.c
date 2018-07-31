@@ -1299,8 +1299,6 @@ void
 R_InitImages(void)
 {
 	int i, j;
-	// use 1/gamma so higher value is brighter, to match HW gamma settings
-	float g = 1.0f/vid_gamma->value;
 
 	registration_sequence = 1;
 
@@ -1328,28 +1326,7 @@ R_InitImages(void)
 
 	for (i = 0; i < 256; i++)
 	{
-		if ((g == 1) || gl_state.hwgamma)
-		{
-			gammatable[i] = i;
-		}
-		else
-		{
-			float inf;
-
-			inf = 255 * pow((i + 0.5) / 255.5, g) + 0.5;
-
-			if (inf < 0)
-			{
-				inf = 0;
-			}
-
-			if (inf > 255)
-			{
-				inf = 255;
-			}
-
-			gammatable[i] = inf;
-		}
+		gammatable[i] = i;
 	}
 
 	for (i = 0; i < 256; i++)

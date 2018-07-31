@@ -20,13 +20,12 @@
  *
  * =======================================================================
  *
- * SDL-specific OpenGL shit formerly in refresh.c
+ * SDL backend for the GL1 renderer.
  *
  * =======================================================================
  */
 
 #include "header/local.h"
-#include "../../header/ref.h"
 
 #include <SDL2/SDL.h>
 
@@ -36,55 +35,63 @@
 #include <GL/gl.h>
 #endif
 
-static qboolean vsyncActive = false;
 static SDL_Window* window = NULL;
 static SDL_GLContext context = NULL;
+static qboolean vsyncActive = false;
 
-qboolean have_stencil = false;
+// ----
+
+/*
+ * Swaps the buffers and shows the next frame.
+ */
+void
+RI_EndFrame(void)
+{
+	SDL_GL_SwapWindow(window);
+}
 
 /*
  * Returns the adress of a GL function
  */
 void *
-GLimp_GetProcAddress (const char* proc)
+RI_GetProcAddress(const char* proc)
 {
-	return SDL_GL_GetProcAddress ( proc );
+	return SDL_GL_GetProcAddress(proc);
 }
 
-void
-UpdateHardwareGamma(void)
+/*
+ * Returns whether the vsync is enabled.
+ */
+qboolean RI_IsVSyncActive(void)
 {
-	float gamma = (vid_gamma->value);
-
-	Uint16 ramp[256];
-	SDL_CalculateGammaRamp(gamma, ramp);
-
-	if(SDL_SetWindowGammaRamp(window, ramp, ramp, ramp) != 0)
-	{
-		R_Printf(PRINT_ALL, "Setting gamma failed: %s\n", SDL_GetError());
-	}
+	return vsyncActive;
 }
 
-static void InitGamma()
-{
-	R_Printf(PRINT_ALL, "Using hardware gamma via SDL.\n");
-
-	gl_state.hwgamma = true;
-	vid_gamma->modified = true;
-}
-
-// called by GLimp_InitGraphics() before creating window,
-// returns flags for SDL window creation
+/*
+ * This function returns the flags used at the SDL window
+ * creation by GLimp_InitGraphics(). In case of error -1
+ * is returned.
+ */
 int RI_PrepareForWindow(void)
 {
-	int msaa_samples = 0;
-
+	// Set GL context attributs bound to the window.
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+	if (SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8) < 0)
+	{
+		gl_state.stencil = true;
+	}
+	else
+	{
+		gl_state.stencil = false;
+	}
+
+	// Let's see if the driver supports MSAA.
+	int msaa_samples = 0;
 
 	if (gl_msaa_samples->value)
 	{
@@ -115,23 +122,43 @@ int RI_PrepareForWindow(void)
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 	}
 
-	/* Initiate the flags */
 	return SDL_WINDOW_OPENGL;
 }
-
-void RI_SetSwapInterval(void)
+ 
+/*
+ * Enables or disabes the vsync.
+ */
+void RI_SetVsync(void)
 {
-	/* Set vsync - TODO: -1 could be set for "late swap tearing" */
 	SDL_GL_SetSwapInterval(r_vsync->value ? 1 : 0);
 	vsyncActive = SDL_GL_GetSwapInterval() != 0;
 }
 
+/*
+ * Updates the gamma ramp.
+ */
+void
+RI_UpdateGamma(void)
+{
+	float gamma = (vid_gamma->value);
+
+	Uint16 ramp[256];
+	SDL_CalculateGammaRamp(gamma, ramp);
+
+	if (SDL_SetWindowGammaRamp(window, ramp, ramp, ramp) != 0)
+	{
+		R_Printf(PRINT_ALL, "Setting gamma failed: %s\n", SDL_GetError());
+	}
+}
+
+/*
+ * Initializes the OpenGL context. Returns true at
+ * success and false at failure.
+ */
 int RI_InitContext(void* win)
 {
-	int msaa_samples = 0, stencil_bits = 0;
-	char title[40] = {0};
-
-	if(win == NULL)
+	// Coders are stupid.
+	if (win == NULL)
 	{
 		ri.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
 
@@ -140,9 +167,10 @@ int RI_InitContext(void* win)
 
 	window = (SDL_Window*)win;
 
+	// Initialize GL context.
 	context = SDL_GL_CreateContext(window);
 
-	if(context == NULL)
+	if (context == NULL)
 	{
 		R_Printf(PRINT_ALL, "R_InitContext(): Creating OpenGL Context failed: %s\n", SDL_GetError());
 
@@ -151,6 +179,7 @@ int RI_InitContext(void* win)
 		return false;
 	}
 
+	// Check if it's really OpenGL 1.4.
 	const char* glver = (char *)glGetString(GL_VERSION);
 	sscanf(glver, "%d.%d", &gl_config.major_version, &gl_config.minor_version);
 
@@ -161,6 +190,9 @@ int RI_InitContext(void* win)
 		return false;
 	}
 
+	// Check if we've got the requested MSAA.
+	int msaa_samples = 0;
+
 	if (gl_msaa_samples->value)
 	{
 		if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &msaa_samples) == 0)
@@ -169,49 +201,37 @@ int RI_InitContext(void* win)
 		}
 	}
 
-	/* For SDL2, this must be done after creating the window */
-	RI_SetSwapInterval();
+	// Enable vsync if requested.
+	RI_SetVsync();
 
-	/* Initialize the stencil buffer */
-	if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits))
+	// Check if we've got 8 stencil bits.
+	int stencil_bits = 0;
+
+	if (gl_state.stencil)
 	{
-		R_Printf(PRINT_ALL, "Got %d bits of stencil.\n", stencil_bits);
-
-		if (stencil_bits >= 1)
+		if (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits) != 8)
 		{
-			have_stencil = true;
+			gl_state.stencil = false;
 		}
 	}
 
-	/* Initialize hardware gamma */
-	InitGamma();
+	// Initialize gamma.
+	vid_gamma->modified = true;
 
-	/* Window title - set here so we can display renderer name in it */
-	snprintf(title, sizeof(title), "Yamagi Quake II %s - OpenGL 1.x", YQ2VERSION);
+	// Window title - set here so we can display renderer name in it.
+	char title[40] = {0};
+
+	snprintf(title, sizeof(title), "Yamagi Quake II %s - OpenGL 1.4", YQ2VERSION);
 	SDL_SetWindowTitle(window, title);
 
 	return true;
 }
 
-qboolean RI_IsVSyncActive(void)
-{
-	return vsyncActive;
-}
-
 /*
- * Swaps the buffers to show the new frame
+ * Shuts the GL context down.
  */
 void
-RI_EndFrame(void)
-{
-	SDL_GL_SwapWindow(window);
-}
-
-/*
- * Shuts the SDL render backend down
- */
-void
-RI_ShutdownWindow(qboolean contextOnly)
+RI_ShutdownContext(void)
 {
 	if (window)
 	{
@@ -219,16 +239,6 @@ RI_ShutdownWindow(qboolean contextOnly)
 		{
 			SDL_GL_DeleteContext(context);
 			context = NULL;
-		}
-
-		if (!contextOnly)
-		{   
-			// FIXME
-			//ri.GLimp_ShutdownGraphics();
-
-			window = NULL;
-			gl_state.hwgamma = false;
-
 		}
 	}
 }
