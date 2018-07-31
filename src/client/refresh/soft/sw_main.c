@@ -1556,6 +1556,20 @@ GetRefAPI(refimport_t imp)
 	return re;
 }
 
+/*
+ * FIXME: The following functions implement the render backend
+ * through SDL renderer. Only small parts belong here, refresh.c
+ * (at client side) needs to grow support funtions for software
+ * renderers and the renderer must use them. What's left here
+ * should be moved to a new file sw_sdl.c.
+ *
+ * Very, very problematic is at least the SDL initalization and
+ * window creation in this code. That is guaranteed to clash with
+ * the GL renderers (when switching GL -> Soft or the other way
+ * round) and works only by pure luck. And only as long as there
+ * is only one software renderer.
+ */
+
 static SDL_Window* window = NULL;
 static SDL_Surface *surface = NULL;
 static SDL_Texture *texture = NULL;

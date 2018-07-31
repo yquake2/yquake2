@@ -253,7 +253,10 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	/* Reset SDL. */
 	SDL_GL_ResetAttributes();
 
-	/* Let renderer prepare things (set OpenGL attributes) */
+	/* Let renderer prepare things (set OpenGL attributes).
+	   FIXME: This is no longer necessary, the renderer
+	   could and should pass the flags when calling this
+	   function. */
 	flags = re.PrepareForWindow();
 
 	if (flags == -1)

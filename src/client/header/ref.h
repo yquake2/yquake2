@@ -117,7 +117,7 @@ typedef struct {
 } refdef_t;
 
 // FIXME: bump API_VERSION?
-#define	API_VERSION		4
+#define	API_VERSION		5
 #define EXPORT
 #define IMPORT
 

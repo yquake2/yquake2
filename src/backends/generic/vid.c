@@ -19,18 +19,7 @@
  *
  * =======================================================================
  *
- * This is the "heart" of the id Tech 2 refresh engine. This file
- * implements the main window in which Quake II is running. The window
- * itself is created by the SDL backend, but here the refresh module is
- * loaded, initialized and it's interaction with the operating system
- * implemented. This code is also the interconnect between the input
- * system (the mouse) and the keyboard system, both are here tied
- * together with the refresher. The direct interaction between the
- * refresher and those subsystems are the main cause for the very
- * acurate and precise input controls of the id Tech 2.
- *
- * This implementation works for Windows and unixoid systems, but
- * other platforms may need an own implementation!
+ * API between the client and renderers.
  *
  * =======================================================================
  */
@@ -318,7 +307,7 @@ void *reflib_handle = NULL;
 qboolean ref_active = false;
 
 /*
- * FIXME: Not with vid_fullscreen...
+ * Restarts the renderer.
  */
 void
 VID_Restart_f(void)
@@ -327,7 +316,9 @@ VID_Restart_f(void)
 }
 
 /*
- * FIXME: This is only used by the softrenderer. Remove it.
+ * FIXME: This is only used by the softrenderer. The software
+ * renderer should be ported to the API provided by refresh.c
+ * and this call removed.
  */
 void
 VID_NewWindow(int width, int height)
@@ -462,7 +453,10 @@ VID_LoadRenderer(void)
 void
 VID_CheckChanges(void)
 {
-	// FIXME: Not with vid_fullscreen
+	// FIXME: Not with vid_fullscreen, should be a dedicated variable.
+	// Sounds easy but this vid_fullscreen hack is really messy and
+	// interacts with several critical places in both the client and
+	// the renderers...
 	if (vid_fullscreen->modified)
 	{
 		// Stop sound, because the clients blocks while
