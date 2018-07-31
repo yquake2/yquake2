@@ -355,9 +355,6 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 
 /* ------------------------------------------------------------------ */
 
-extern void GLimp_GrabInput(qboolean grab);
-extern int glimp_refreshRate;
-
 /*
  * Updates the input queue state. Called every
  * frame by the client and does nearly all the

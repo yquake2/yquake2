@@ -246,8 +246,9 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 		window = NULL;
 	}
 
-	/* Create the window */
-	VID_NewWindow(width, height);
+	/* We need the window size for the menu, the HUD, etc. */
+	viddef.width = width;
+	viddef.height = height;
 
 	/* Let renderer prepare things (set OpenGL attributes) */
 	flags = re.PrepareForWindow();
@@ -291,8 +292,6 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 				/* Try to recover */
 				Cvar_SetValue("r_mode", 4);
 				Cvar_SetValue("vid_fullscreen", 0);
-
-				VID_NewWindow(width, height);
 
 				*pwidth = width = 640;
 				*pheight = height = 480;

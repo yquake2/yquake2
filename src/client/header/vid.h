@@ -19,7 +19,7 @@
  *
  * =======================================================================
  *
- * ABI to the video oute driver
+ * API between client and renderer.
  *
  * =======================================================================
  */
@@ -27,17 +27,23 @@
 #ifndef CL_VID_H
 #define CL_VID_H
 
+#include "../../common/header/common.h"
+
+// FIXME: Remove it, it's unused. 
 typedef struct vrect_s {
 	int				x,y,width,height;
 } vrect_t;
 
+// Hold the video state.
 typedef struct {
-	int		width, height; /* coordinates from main game */
+	int height;
+	int	width;
 } viddef_t;
 
-extern	viddef_t	viddef; /* global video state */
+// Global video state.
+extern viddef_t viddef;
 
-/* Video module initialisation, etc */
+// Generic stuff.
 void	VID_Init(void);
 void	VID_Shutdown(void);
 void	VID_CheckChanges(void);
@@ -46,7 +52,13 @@ void	VID_MenuInit(void);
 void	VID_MenuDraw(void);
 const char *VID_MenuKey(int);
 
-void VID_NewWindow(int width, int height);
-qboolean VID_GetModeInfo(int *width, int *height, int mode);
+// Stuff provided by platform backend.
+extern int glimp_refreshRate;
+
+qboolean GLimp_Init(void);
+void GLimp_Shutdown(void);
+qboolean GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight);
+void GLimp_GrabInput(qboolean grab);
+int GLimp_GetRefreshRate(void);
 
 #endif
