@@ -62,8 +62,6 @@ extern void	R_TransformFrustum (void);
 static void R_GenerateSpans (void);
 static void R_GenerateSpansBackward (void);
 
-static void R_LeadingEdge (edge_t *edge);
-static void R_LeadingEdgeBackwards (edge_t *edge);
 static void R_TrailingEdge (surf_t *surf, edge_t *edge);
 
 /*
@@ -252,7 +250,7 @@ D_SurfSearchBackwards
 ==============
 */
 static surf_t*
-D_SurfSearchBackwards(surf_t *surf, surf_t *surf2)
+D_SurfSearchBackwards(const surf_t *surf, surf_t *surf2)
 {
 	do
 	{
@@ -277,7 +275,7 @@ R_LeadingEdgeBackwards
 ==============
 */
 static void
-R_LeadingEdgeBackwards (edge_t *edge)
+R_LeadingEdgeBackwards (const edge_t *edge)
 {
 	surf_t		*surf, *surf2;
 
@@ -376,7 +374,7 @@ D_SurfSearchForward
 ==============
 */
 static surf_t*
-D_SurfSearchForward(surf_t *surf, surf_t *surf2)
+D_SurfSearchForward(const surf_t *surf, surf_t *surf2)
 {
 	do
 	{
@@ -397,7 +395,7 @@ R_LeadingEdgeSearch
 ==============
 */
 static surf_t*
-R_LeadingEdgeSearch (edge_t *edge, surf_t *surf, surf_t *surf2)
+R_LeadingEdgeSearch (const edge_t *edge, const surf_t *surf, surf_t *surf2)
 {
 	float	testzi, newzitop;
 
@@ -433,11 +431,56 @@ R_LeadingEdgeSearch (edge_t *edge, surf_t *surf, surf_t *surf2)
 
 /*
 ==============
+R_InsertBeforeSurf
+==============
+*/
+static void
+R_InsertBeforeSurf(surf_t *surf, surf_t *surf2)
+{
+	surf->next = surf2;
+	surf->prev = surf2->prev;
+	surf2->prev->next = surf;
+	surf2->prev = surf;
+}
+
+/*
+==============
+R_EmitSpanBeforeTop
+==============
+*/
+static void
+R_EmitSpanBeforeTop(const edge_t *edge, surf_t *surf, surf_t *surf2)
+{
+	shift20_t	iu;
+
+	iu = edge->u >> shift_size;
+
+	if (iu > surf2->last_u)
+	{
+		espan_t	*span;
+
+		span = span_p++;
+		span->u = surf2->last_u;
+		span->count = iu - span->u;
+		span->v = current_iv;
+		span->pnext = surf2->spans;
+		surf2->spans = span;
+	}
+
+	// set last_u on the new span
+	surf->last_u = iu;
+
+	// insert before surf2
+	R_InsertBeforeSurf(surf, surf2);
+}
+
+/*
+==============
 R_LeadingEdge
 ==============
 */
 static void
-R_LeadingEdge (edge_t *edge)
+R_LeadingEdge (const edge_t *edge)
 {
 	if (edge->surfs[1])
 	{
@@ -452,12 +495,15 @@ R_LeadingEdge (edge_t *edge)
 		if (++surf->spanstate == 1)
 		{
 			surf_t		*surf2;
-			shift20_t	iu;
 
 			surf2 = surfaces[1].next;
 
 			if (surf->key < surf2->key)
-				goto newtop;
+			{
+				// emit a span (obscures current top)
+				R_EmitSpanBeforeTop(edge, surf, surf2);
+				return;
+			}
 
 			// if it's two surfaces on the same plane, the one that's already
 			// active is in front, so keep going unless it's a bmodel
@@ -476,7 +522,9 @@ R_LeadingEdge (edge_t *edge)
 
 				if (newzibottom >= testzi)
 				{
-					goto newtop;
+					// emit a span (obscures current top)
+					R_EmitSpanBeforeTop(edge, surf, surf2);
+					return;
 				}
 
 				newzitop = newzi * 1.01;
@@ -484,38 +532,16 @@ R_LeadingEdge (edge_t *edge)
 				{
 					if (surf->d_zistepu >= surf2->d_zistepu)
 					{
-						goto newtop;
+						// emit a span (obscures current top)
+						R_EmitSpanBeforeTop(edge, surf, surf2);
+						return;
 					}
 				}
 			}
 
 			surf2 = R_LeadingEdgeSearch (edge, surf, surf2);
-			goto gotposition;
-newtop:
-			// emit a span (obscures current top)
-			iu = edge->u >> shift_size;
-
-			if (iu > surf2->last_u)
-			{
-				espan_t	*span;
-
-				span = span_p++;
-				span->u = surf2->last_u;
-				span->count = iu - span->u;
-				span->v = current_iv;
-				span->pnext = surf2->spans;
-				surf2->spans = span;
-			}
-
-			// set last_u on the new span
-			surf->last_u = iu;
-
-gotposition:
 			// insert before surf2
-			surf->next = surf2;
-			surf->prev = surf2->prev;
-			surf2->prev->next = surf;
-			surf2->prev = surf;
+			R_InsertBeforeSurf(surf, surf2);
 		}
 	}
 }
@@ -871,7 +897,7 @@ D_TurbulentSurf (surf_t *s)
 		// FIXME: we don't want to do all this for every polygon!
 		// TODO: store once at start of frame
 		currententity = s->entity;	//FIXME: make this passed in to
-									// R_RotateBmodel ()
+						// R_RotateBmodel ()
 		VectorSubtract (r_origin, currententity->origin,
 				local_modelorg);
 		TransformVector (local_modelorg, transformed_modelorg);
