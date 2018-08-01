@@ -53,12 +53,12 @@ static vec3_t	s_alias_forward, s_alias_right, s_alias_up;
 
 #define NUMVERTEXNORMALS	162
 
-static float	r_avertexnormals[NUMVERTEXNORMALS][3] = {
+static const float	r_avertexnormals[NUMVERTEXNORMALS][3] = {
 #include "../constants/anorms.h"
 };
 
 
-static void R_AliasTransformVector(vec3_t in, vec3_t out, float m[3][4]);
+static void R_AliasTransformVector(const vec3_t in, vec3_t out, const float m[3][4]);
 static void R_AliasTransformFinalVerts(int numpoints, finalvert_t *fv, dtrivertx_t *oldv, dtrivertx_t *newv );
 
 void R_AliasProjectAndClipTestFinalVert(finalvert_t *fv);
@@ -206,7 +206,7 @@ R_AliasTransformVector
 ================
 */
 static void
-R_AliasTransformVector(vec3_t in, vec3_t out, float xf[3][4] )
+R_AliasTransformVector(const vec3_t in, vec3_t out, const float xf[3][4] )
 {
 	out[0] = DotProduct(in, xf[0]) + xf[0][3];
 	out[1] = DotProduct(in, xf[1]) + xf[1][3];
@@ -223,7 +223,7 @@ General clipped case
 */
 
 static void
-R_AliasPreparePoints (finalvert_t *verts, finalvert_t *verts_max)
+R_AliasPreparePoints (finalvert_t *verts, const finalvert_t *verts_max)
 {
 	int		i;
 	dstvert_t	*pstverts;
@@ -402,7 +402,8 @@ R_AliasTransformFinalVerts( int numpoints, finalvert_t *fv, dtrivertx_t *oldv, d
 	for ( i = 0; i < numpoints; i++, fv++, oldv++, newv++ )
 	{
 		int		temp;
-		float	lightcos, *plightnormal;
+		float	lightcos;
+		const float	*plightnormal;
 		vec3_t  lerped_vert;
 
 		lerped_vert[0] = r_lerp_move[0] + oldv->v[0]*r_lerp_backv[0] + newv->v[0]*r_lerp_frontv[0];

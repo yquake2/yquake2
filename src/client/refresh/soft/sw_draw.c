@@ -158,7 +158,7 @@ RE_Draw_StretchPicImplementation
 =============
 */
 void
-RE_Draw_StretchPicImplementation (int x, int y, int w, int h, image_t	*pic)
+RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic)
 {
 	pixel_t	*dest;
 	byte	*source;

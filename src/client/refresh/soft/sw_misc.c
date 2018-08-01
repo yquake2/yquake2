@@ -30,7 +30,7 @@ float		d_scalemip[NUM_MIPS-1];
 static mleaf_t	*r_viewleaf;
 
 static int	r_frustum_indexes[4*6];
-static float	basemip[NUM_MIPS-1] = {1.0, 0.5*0.8, 0.25*0.8};
+static const float	basemip[NUM_MIPS-1] = {1.0, 0.5*0.8, 0.25*0.8};
 int	d_vrectx, d_vrecty, d_vrectright_particle, d_vrectbottom_particle;
 float	xcenter, ycenter;
 int	d_pix_min, d_pix_max, d_pix_mul;

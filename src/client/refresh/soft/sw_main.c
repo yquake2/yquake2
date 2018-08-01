@@ -1422,8 +1422,8 @@ RE_SetSky
 ============
 */
 // 3dstudio environment map names
-char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
-static int	r_skysideimage[6] = {5, 2, 4, 1, 0, 3};
+static const char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
+static const int	r_skysideimage[6] = {5, 2, 4, 1, 0, 3};
 extern	mtexinfo_t		r_skytexinfo[6];
 
 static void

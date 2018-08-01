@@ -388,14 +388,14 @@ NonTurbulent8 (espan_t *pspan)
 
 // Enable custom filtering
 extern cvar_t	*sw_texture_filtering;
-static int filtering_kernel[2][2][2] = {
+static const int filtering_kernel[2][2][2] = {
 	{
-		{16384,	0},
-		{49152,	32768}
+		{0x1 << (SHIFT16XYZ-2), 0x0},
+		{0xC << (SHIFT16XYZ-4), 0x1 << (SHIFT16XYZ-1)}
 	},
 	{
-		{32768,	49152},
-		{0,	16384}
+		{0x1 << (SHIFT16XYZ-1), 0xC << (SHIFT16XYZ-4)},
+		{0x0, 0x1 << (SHIFT16XYZ-2)}
 	}
 };
 

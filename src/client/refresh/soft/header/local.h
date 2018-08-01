@@ -138,7 +138,7 @@ extern oldrefdef_t	r_refdef;
 #define VID_GRADES	(1 << VID_CBITS)
 
 
-// r_shared.h: general refresh-related stuff shared between the refresh and the
+// sw_local.h: general refresh-related stuff shared between the refresh and the
 // driver
 
 
@@ -279,7 +279,7 @@ typedef struct espan_s
 } espan_t;
 extern espan_t	*vid_polygon_spans; // space for spans in r_poly
 
-// used by the polygon drawer (R_POLY.C) and sprite setup code (R_SPRITE.C)
+// used by the polygon drawer (sw_poly.c) and sprite setup code (sw_sprite.c)
 typedef struct
 {
 	int	nump;
@@ -402,7 +402,7 @@ extern surf_t	*surfaces, *surface_p, *surf_max;
 // pointer is greater than another one, it should be drawn in front
 // surfaces[1] is the background, and is used as the active surface stack.
 // surfaces[0] is a dummy, because index 0 is used to indicate no surface
-//  attached to an edge_t
+// attached to an edge_t
 
 //===================================================================
 
@@ -533,7 +533,7 @@ typedef struct
 extern aliastriangleparms_t aliastriangleparms;
 
 void R_DrawTriangle( void );
-void R_AliasClipTriangle (finalvert_t *index0, finalvert_t *index1, finalvert_t *index2);
+void R_AliasClipTriangle (const finalvert_t *index0, const finalvert_t *index1, finalvert_t *index2);
 
 
 extern float	r_time1;

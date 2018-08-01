@@ -31,7 +31,7 @@ pfv0 is the unclipped vertex, pfv1 is the z-clipped vertex
 ================
 */
 static void
-R_Alias_clip_z (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
+R_Alias_clip_z (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t *out)
 {
 	float scale;
 
@@ -50,7 +50,7 @@ R_Alias_clip_z (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 }
 
 static void
-R_Alias_clip_left (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
+R_Alias_clip_left (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t *out)
 {
 	float		scale;
 
@@ -79,7 +79,7 @@ R_Alias_clip_left (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 }
 
 static void
-R_Alias_clip_right (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
+R_Alias_clip_right (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t *out)
 {
 	float scale;
 
@@ -108,7 +108,7 @@ R_Alias_clip_right (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 }
 
 static void
-R_Alias_clip_top (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
+R_Alias_clip_top (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t *out)
 {
 	float		scale;
 
@@ -138,8 +138,7 @@ R_Alias_clip_top (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 
 
 static void
-R_Alias_clip_bottom (finalvert_t *pfv0, finalvert_t *pfv1,
-	finalvert_t *out)
+R_Alias_clip_bottom (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t *out)
 {
 	float		scale;
 
@@ -171,8 +170,8 @@ R_Alias_clip_bottom (finalvert_t *pfv0, finalvert_t *pfv1,
 
 
 int
-R_AliasClip (finalvert_t *in, finalvert_t *out, int flag, int count,
-	void(*clip)(finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out) )
+R_AliasClip (const finalvert_t *in, finalvert_t *out, int flag, int count,
+	void(*clip)(const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t *out) )
 {
 	int			i,j,k;
 
@@ -218,7 +217,7 @@ R_AliasClipTriangle
 ================
 */
 void
-R_AliasClipTriangle (finalvert_t *index0, finalvert_t *index1, finalvert_t *index2)
+R_AliasClipTriangle (const finalvert_t *index0, const finalvert_t *index1, finalvert_t *index2)
 {
 	int				i, k, pingpong;
 	unsigned		clipflags;
