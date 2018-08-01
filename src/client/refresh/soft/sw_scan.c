@@ -409,17 +409,19 @@ D_DrawSpans16
 void
 D_DrawSpans16 (espan_t *pspan)
 {
-	int spancount;
-	unsigned char *pbase;
-	int snext, tnext, sstep, tstep;
-	float spancountminus1;
-	float sdivz8stepu, tdivz8stepu, zi8stepu;
+	int 	spancount;
+	pixel_t	*pbase;
+	int	snext, tnext, sstep, tstep;
+	float	spancountminus1;
+	float	sdivz8stepu, tdivz8stepu, zi8stepu;
+	int	texture_filtering;
 
 	sstep = 0;	// keep compiler happy
 	tstep = 0;	// ditto
 
 	pbase = (unsigned char *)cacheblock;
 
+	texture_filtering = (int)sw_texture_filtering->value;
 	sdivz8stepu = d_sdivzstepu * 8;
 	tdivz8stepu = d_tdivzstepu * 8;
 	zi8stepu = d_zistepu * 8;
@@ -524,19 +526,44 @@ D_DrawSpans16 (espan_t *pspan)
 			}
 
 			// Drawing phrase
-			if (sw_texture_filtering->value == 0.0f)
+			if (texture_filtering == 0)
 			{
-				do
+				// horisontal span (span in same row)
+				if (((t + tstep * spancount) >> SHIFT16XYZ) == (t >> SHIFT16XYZ))
 				{
-					*pdest++ = *(pbase + (s >> SHIFT16XYZ) + (t >> SHIFT16XYZ) * cachewidth);
-					s += sstep;
-					t += tstep;
-				} while (--spancount > 0);
+					// position in texture
+					const pixel_t *tbase = pbase + (t >> SHIFT16XYZ) * cachewidth;
 
-				s = snext;
-				t = tnext;
+					do
+					{
+						*pdest++ = *(tbase + (s >> SHIFT16XYZ));
+						s += sstep;
+					} while (--spancount > 0);
+				}
+				// vertical span (span in same column)
+				else if (((s + sstep * spancount) >> SHIFT16XYZ) == (s >> SHIFT16XYZ))
+				{
+					// position in texture
+					const pixel_t *tbase = pbase + (s >> SHIFT16XYZ);
+
+					do
+					{
+						*pdest++ = *(tbase + (t >> SHIFT16XYZ) * cachewidth);
+						t += tstep;
+					} while (--spancount > 0);
+				}
+				// diagonal span
+				else
+				{
+					do
+					{
+						*pdest++ = *(pbase + (s >> SHIFT16XYZ) + (t >> SHIFT16XYZ) * cachewidth);
+						s += sstep;
+						t += tstep;
+					} while (--spancount > 0);
+				}
 			}
-			else if (sw_texture_filtering->value == 1.0f)
+			else
 			{
 				do
 				{
@@ -563,6 +590,8 @@ D_DrawSpans16 (espan_t *pspan)
 					t += tstep;
 				} while (--spancount > 0);
 			}
+			s = snext;
+			t = tnext;
 
 		} while (count > 0);
 
