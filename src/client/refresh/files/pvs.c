@@ -74,3 +74,17 @@ Mod_DecompressVis(byte *in, int row)
 
 	return decompressed;
 }
+
+float
+Mod_RadiusFromBounds(const vec3_t mins, const vec3_t maxs)
+{
+	int i;
+	vec3_t corner;
+
+	for (i = 0; i < 3; i++)
+	{
+		corner[i] = fabs(mins[i]) > fabs(maxs[i]) ? fabs(mins[i]) : fabs(maxs[i]);
+	}
+
+	return VectorLength(corner);
+}
