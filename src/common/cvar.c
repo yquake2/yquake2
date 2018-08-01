@@ -37,6 +37,7 @@ typedef struct
 
 /* An ugly hack to rewrite CVARs loaded from config.cfg */
 replacement_t replacements[] = {
+	{"cd_shuffle", "ogg_shuffle"},
 	{"cl_drawfps", "cl_showfps"},
 	{"gl_drawentities", "r_drawentities"},
 	{"gl_drawworld", "r_drawworld"},

@@ -42,7 +42,7 @@
 #define STB_VORBIS_NO_PUSHDATA_API
 #include "header/stb_vorbis.h"
 
-static cvar_t *cd_shuffle;        /* Shuffle playback */
+static cvar_t *ogg_shuffle;        /* Shuffle playback */
 static cvar_t *ogg_ignoretrack0;  /* Toggle track 0 playing */
 static cvar_t *ogg_volume;        /* Music volume. */
 static int ogg_curfile;           /* Index of currently played file. */
@@ -332,7 +332,7 @@ OGG_PlayTrack(int trackNo)
 	}
 
 	// Player has requested shuffle playback.
-	if((trackNo == 0) || cd_shuffle->value)
+	if((trackNo == 0) || ogg_shuffle->value)
 	{
 		if(ogg_maxfileindex >= 0)
 		{
@@ -573,7 +573,7 @@ void
 OGG_Init(void)
 {
 	// Cvars
-	cd_shuffle = Cvar_Get("cd_shuffle", "0", CVAR_ARCHIVE);
+	ogg_shuffle = Cvar_Get("ogg_shuffle", "0", CVAR_ARCHIVE);
 	ogg_ignoretrack0 = Cvar_Get("ogg_ignoretrack0", "0", CVAR_ARCHIVE);
 	ogg_volume = Cvar_Get("ogg_volume", "0.7", CVAR_ARCHIVE);
 

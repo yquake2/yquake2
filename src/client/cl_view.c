@@ -365,7 +365,7 @@ CL_PrepRefresh(void)
 	int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
 
 	/* start the cd track */
-	if (Cvar_VariableValue("cd_shuffle"))
+	if (Cvar_VariableValue("ogg_shuffle"))
 	{
 		OGG_PlayTrack(track);
 	}

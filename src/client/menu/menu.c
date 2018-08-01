@@ -1054,9 +1054,9 @@ static menulist_s s_options_crosshair_box;
 static menuslider_s s_options_sfxvolume_slider;
 static menuslider_s s_options_haptic_slider;
 #if defined(OGG)
-static menulist_s s_options_cdshuffle_box;
+static menulist_s s_options_oggshuffle_box;
 static menuslider_s s_options_oggvolume_slider;
-static menulist_s s_options_enableogg_box;
+static menulist_s s_options_oggenable_box;
 #endif
 static menulist_s s_options_quality_list;
 static menulist_s s_options_console_action;
@@ -1119,23 +1119,20 @@ ControlsSetMenuItemValues(void)
     s_options_sfxvolume_slider.curvalue = Cvar_VariableValue("s_volume") * 10;
 
 #if defined(OGG)
-    s_options_cdshuffle_box.curvalue = (Cvar_VariableValue("cd_shuffle") != 0);
-#endif
-
-#ifdef OGG
+    s_options_oggshuffle_box.curvalue = (Cvar_VariableValue("ogg_shuffle") != 0);
     s_options_oggvolume_slider.curvalue = Cvar_VariableValue("ogg_volume") * 10;
-    s_options_enableogg_box.curvalue = (Cvar_VariableValue("ogg_enable") != 0);
+    s_options_oggenable_box.curvalue = (Cvar_VariableValue("ogg_enable") != 0);
 
     cvar_t *ogg;
     ogg = Cvar_Get("ogg_sequence", "loop", CVAR_ARCHIVE);
 
     if (!strcmp(ogg->string, "random"))
     {
-        s_options_cdshuffle_box.curvalue = 1;
+        s_options_oggshuffle_box.curvalue = 1;
     }
     else
     {
-        s_options_cdshuffle_box.curvalue = 0;
+        s_options_oggshuffle_box.curvalue = 0;
     }
 #endif
 
@@ -1179,20 +1176,20 @@ UpdateVolumeFunc(void *unused)
 
 #if defined(OGG)
 static void
-CDShuffleFunc(void *unused)
+OGGShuffleFunc(void *unused)
 {
-    Cvar_SetValue("cd_shuffle", s_options_cdshuffle_box.curvalue);
+    Cvar_SetValue("ogg_shuffle", s_options_oggshuffle_box.curvalue);
 
     cvar_t *ogg_enable= Cvar_Get("ogg_enable", "1", CVAR_ARCHIVE);
 	int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
 
-    if (s_options_cdshuffle_box.curvalue)
+    if (s_options_oggshuffle_box.curvalue)
     {
-        Cvar_Set("cd_shuffle", "1");
+        Cvar_Set("ogg_shuffle", "1");
     }
     else
     {
-        Cvar_Set("cd_shuffle", "0");
+        Cvar_Set("ogg_shuffle", "0");
     }
 
 	if (ogg_enable->value)
@@ -1200,9 +1197,6 @@ CDShuffleFunc(void *unused)
 		OGG_PlayTrack(track);
 	}
 }
-#endif
-
-#ifdef OGG
 
 static void
 UpdateOggVolumeFunc(void *unused)
@@ -1213,9 +1207,9 @@ UpdateOggVolumeFunc(void *unused)
 static void
 EnableOGGMusic(void *unused)
 {
-    Cvar_SetValue("ogg_enable", (float)s_options_enableogg_box.curvalue);
+    Cvar_SetValue("ogg_enable", (float)s_options_oggenable_box.curvalue);
 
-    if (s_options_enableogg_box.curvalue)
+    if (s_options_oggenable_box.curvalue)
     {
         OGG_Init();
         OGG_InitTrackList();
@@ -1229,7 +1223,6 @@ EnableOGGMusic(void *unused)
         OGG_Shutdown();
     }
 }
-
 #endif
 
 extern void Key_ClearTyping(void);
@@ -1295,10 +1288,8 @@ Options_MenuInit(void)
         "enabled",
         0
     };
-#endif
 
-#if defined(OGG)
-    static const char *cd_shuffle[] =
+    static const char *ogg_shuffle[] =
     {
         "disabled",
         "enabled",
@@ -1352,21 +1343,19 @@ Options_MenuInit(void)
     s_options_oggvolume_slider.minvalue = 0;
     s_options_oggvolume_slider.maxvalue = 10;
 
-    s_options_enableogg_box.generic.type = MTYPE_SPINCONTROL;
-    s_options_enableogg_box.generic.x = 0;
-    s_options_enableogg_box.generic.y = 20;
-    s_options_enableogg_box.generic.name = "OGG music";
-    s_options_enableogg_box.generic.callback = EnableOGGMusic;
-    s_options_enableogg_box.itemnames = ogg_music_items;
-#endif
+    s_options_oggenable_box.generic.type = MTYPE_SPINCONTROL;
+    s_options_oggenable_box.generic.x = 0;
+    s_options_oggenable_box.generic.y = 20;
+    s_options_oggenable_box.generic.name = "OGG music";
+    s_options_oggenable_box.generic.callback = EnableOGGMusic;
+    s_options_oggenable_box.itemnames = ogg_music_items;
 
-#if defined(OGG)
-    s_options_cdshuffle_box.generic.type = MTYPE_SPINCONTROL;
-    s_options_cdshuffle_box.generic.x = 0;
-    s_options_cdshuffle_box.generic.y = 30;
-    s_options_cdshuffle_box.generic.name = "Shuffle";
-    s_options_cdshuffle_box.generic.callback = CDShuffleFunc;
-    s_options_cdshuffle_box.itemnames = cd_shuffle;
+    s_options_oggshuffle_box.generic.type = MTYPE_SPINCONTROL;
+    s_options_oggshuffle_box.generic.x = 0;
+    s_options_oggshuffle_box.generic.y = 30;
+    s_options_oggshuffle_box.generic.name = "Shuffle";
+    s_options_oggshuffle_box.generic.callback = OGGShuffleFunc;
+    s_options_oggshuffle_box.itemnames = ogg_shuffle;
 #endif
 
     s_options_quality_list.generic.type = MTYPE_SPINCONTROL;
@@ -1451,8 +1440,8 @@ Options_MenuInit(void)
 
 #ifdef OGG
     Menu_AddItem(&s_options_menu, (void *)&s_options_oggvolume_slider);
-    Menu_AddItem(&s_options_menu, (void *)&s_options_enableogg_box);
-    Menu_AddItem(&s_options_menu, (void *)&s_options_cdshuffle_box);
+    Menu_AddItem(&s_options_menu, (void *)&s_options_oggenable_box);
+    Menu_AddItem(&s_options_menu, (void *)&s_options_oggshuffle_box);
 #endif
     Menu_AddItem(&s_options_menu, (void *)&s_options_quality_list);
     Menu_AddItem(&s_options_menu, (void *)&s_options_sensitivity_slider);
