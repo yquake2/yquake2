@@ -401,6 +401,89 @@ static const int filtering_kernel[2][2][2] = {
 
 /*
 =============
+D_DrawSpan
+=============
+*/
+static pixel_t *
+D_DrawSpan(pixel_t *pdest, pixel_t *pbase, int s, int t, int sstep, int tstep, int spancount)
+{
+	// horisontal span (span in same row)
+	if (((t + tstep * spancount) >> SHIFT16XYZ) == (t >> SHIFT16XYZ))
+	{
+		// position in texture
+		const pixel_t *tbase = pbase + (t >> SHIFT16XYZ) * cachewidth;
+
+		do
+		{
+			*pdest++ = *(tbase + (s >> SHIFT16XYZ));
+			s += sstep;
+		} while (--spancount > 0);
+	}
+	// vertical span (span in same column)
+	else if (((s + sstep * spancount) >> SHIFT16XYZ) == (s >> SHIFT16XYZ))
+	{
+		// position in texture
+		const pixel_t *tbase = pbase + (s >> SHIFT16XYZ);
+
+		do
+		{
+			*pdest++ = *(tbase + (t >> SHIFT16XYZ) * cachewidth);
+			t += tstep;
+		} while (--spancount > 0);
+	}
+	// diagonal span
+	else
+	{
+		do
+		{
+			*pdest++ = *(pbase + (s >> SHIFT16XYZ) + (t >> SHIFT16XYZ) * cachewidth);
+			s += sstep;
+			t += tstep;
+		} while (--spancount > 0);
+	}
+
+	return pdest;
+}
+
+/*
+=============
+D_DrawSpanFiltered
+=============
+*/
+static pixel_t *
+D_DrawSpanFiltered(pixel_t *pdest, pixel_t *pbase, int s, int t, int sstep, int tstep, int spancount,
+	   const espan_t *pspan)
+{
+	do
+	{
+		int idiths = s;
+		int iditht = t;
+
+		int X = (pspan->u + spancount) & 1;
+		int Y = (pspan->v)&1;
+
+		//Using the kernel
+		idiths += filtering_kernel[X][Y][0];
+		iditht += filtering_kernel[X][Y][1];
+
+		idiths = idiths >> SHIFT16XYZ;
+		idiths = idiths ? idiths -1 : idiths;
+
+
+		iditht = iditht >> SHIFT16XYZ;
+		iditht = iditht ? iditht -1 : iditht;
+
+
+		*pdest++ = *(pbase + idiths + iditht * cachewidth);
+		s += sstep;
+		t += tstep;
+	} while (--spancount > 0);
+
+	return pdest;
+}
+
+/*
+=============
 D_DrawSpans16
 
   FIXME: actually make this subdivide by 16 instead of 8!!!
@@ -411,13 +494,10 @@ D_DrawSpans16 (espan_t *pspan)
 {
 	int 	spancount;
 	pixel_t	*pbase;
-	int	snext, tnext, sstep, tstep;
+	int	snext, tnext;
 	float	spancountminus1;
 	float	sdivz8stepu, tdivz8stepu, zi8stepu;
 	int	texture_filtering;
-
-	sstep = 0;	// keep compiler happy
-	tstep = 0;	// ditto
 
 	pbase = (unsigned char *)cacheblock;
 
@@ -429,7 +509,7 @@ D_DrawSpans16 (espan_t *pspan)
 	do
 	{
 		pixel_t	*pdest;
-		int		count, s, t;
+		int	count, s, t;
 		float	sdivz, tdivz, zi, z, du, dv;
 
 		pdest = d_viewbuffer + (r_screenwidth * pspan->v) + pspan->u;
@@ -459,6 +539,8 @@ D_DrawSpans16 (espan_t *pspan)
 
 		do
 		{
+			int	sstep, tstep;
+
 			// calculate s and t at the far end of the span
 			if (count >= 8)
 				spancount = 8;
@@ -528,68 +610,15 @@ D_DrawSpans16 (espan_t *pspan)
 			// Drawing phrase
 			if (texture_filtering == 0)
 			{
-				// horisontal span (span in same row)
-				if (((t + tstep * spancount) >> SHIFT16XYZ) == (t >> SHIFT16XYZ))
-				{
-					// position in texture
-					const pixel_t *tbase = pbase + (t >> SHIFT16XYZ) * cachewidth;
-
-					do
-					{
-						*pdest++ = *(tbase + (s >> SHIFT16XYZ));
-						s += sstep;
-					} while (--spancount > 0);
-				}
-				// vertical span (span in same column)
-				else if (((s + sstep * spancount) >> SHIFT16XYZ) == (s >> SHIFT16XYZ))
-				{
-					// position in texture
-					const pixel_t *tbase = pbase + (s >> SHIFT16XYZ);
-
-					do
-					{
-						*pdest++ = *(tbase + (t >> SHIFT16XYZ) * cachewidth);
-						t += tstep;
-					} while (--spancount > 0);
-				}
-				// diagonal span
-				else
-				{
-					do
-					{
-						*pdest++ = *(pbase + (s >> SHIFT16XYZ) + (t >> SHIFT16XYZ) * cachewidth);
-						s += sstep;
-						t += tstep;
-					} while (--spancount > 0);
-				}
+				pdest = D_DrawSpan(pdest, pbase, s, t, sstep, tstep,
+						   spancount);
 			}
 			else
 			{
-				do
-				{
-					int idiths = s;
-					int iditht = t;
-
-					int X = (pspan->u + spancount) & 1;
-					int Y = (pspan->v)&1;
-
-					//Using the kernel
-					idiths += filtering_kernel[X][Y][0];
-					iditht += filtering_kernel[X][Y][1];
-
-					idiths = idiths >> SHIFT16XYZ;
-					idiths = idiths ? idiths -1 : idiths;
-
-
-					iditht = iditht >> SHIFT16XYZ;
-					iditht = iditht ? iditht -1 : iditht;
-
-
-					*pdest++ = *(pbase + idiths + iditht * cachewidth);
-					s += sstep;
-					t += tstep;
-				} while (--spancount > 0);
+				pdest = D_DrawSpanFiltered(pdest, pbase, s, t, sstep, tstep,
+						   spancount, pspan);
 			}
+
 			s = snext;
 			t = tnext;
 
