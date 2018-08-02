@@ -42,7 +42,7 @@ polydesc_t	r_polydesc;
 
 msurface_t	*r_alpha_surfaces;
 
-extern int	*r_turb_turb;
+static int	*r_turb_turb;
 
 static int	clip_current;
 vec5_t		r_clip_verts[2][MAXWORKINGVERTS+2];

@@ -27,7 +27,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define SPANSTEP_SHIFT	4
 #define SPANSTEP	(1 << SPANSTEP_SHIFT)
 
-int	*r_turb_turb;
 byte	**warp_rowptr;
 int	*warp_column;
 
@@ -94,25 +93,26 @@ D_WarpScreen (void)
 
 /*
 =============
-D_DrawTurbulentPow2Span
+D_DrawTurbulentSpan
 =============
 */
 static pixel_t *
-D_DrawTurbulentPow2Span (pixel_t *r_turb_pdest, const pixel_t *r_turb_pbase,
-			 int r_turb_s, int r_turb_t,
-			 int r_turb_sstep, int r_turb_tstep,
-			 int r_turb_spancount)
+D_DrawTurbulentSpan (pixel_t *pdest, const pixel_t *pbase,
+			 int s, int t,
+			 int sstep, int tstep,
+			 int spancount,
+			 int *turb)
 {
 	do
 	{
 		int sturb, tturb;
-		sturb = ((r_turb_s + r_turb_turb[(r_turb_t>>SHIFT16XYZ)&(CYCLE-1)])>>16)&63;
-		tturb = ((r_turb_t + r_turb_turb[(r_turb_s>>SHIFT16XYZ)&(CYCLE-1)])>>16)&63;
-		*r_turb_pdest++ = *(r_turb_pbase + (tturb<<6) + sturb);
-		r_turb_s += r_turb_sstep;
-		r_turb_t += r_turb_tstep;
-	} while (--r_turb_spancount > 0);
-	return r_turb_pdest;
+		sturb = ((s + turb[(t>>SHIFT16XYZ)&(CYCLE-1)])>>16)&63;
+		tturb = ((t + turb[(s>>SHIFT16XYZ)&(CYCLE-1)])>>16)&63;
+		*pdest++ = *(pbase + (tturb<<6) + sturb);
+		s += sstep;
+		t += tstep;
+	} while (--spancount > 0);
+	return pdest;
 }
 
 /*
@@ -127,6 +127,7 @@ TurbulentPow2 (espan_t *pspan)
 	float	sdivzpow2stepu, tdivzpow2stepu, zipow2stepu;
 	pixel_t	*r_turb_pbase, *r_turb_pdest;
 	int	r_turb_s, r_turb_t;
+	int	*r_turb_turb;
 
 	r_turb_turb = sintable + ((int)(r_newrefdef.time*SPEED)&(CYCLE-1));
 
@@ -248,10 +249,11 @@ TurbulentPow2 (espan_t *pspan)
 			r_turb_s = r_turb_s & ((CYCLE<<SHIFT16XYZ)-1);
 			r_turb_t = r_turb_t & ((CYCLE<<SHIFT16XYZ)-1);
 
-			r_turb_pdest = D_DrawTurbulentPow2Span (r_turb_pdest, r_turb_pbase,
-								r_turb_s, r_turb_t,
-								r_turb_sstep, r_turb_tstep,
-								r_turb_spancount);
+			r_turb_pdest = D_DrawTurbulentSpan (r_turb_pdest, r_turb_pbase,
+							    r_turb_s, r_turb_t,
+							    r_turb_sstep, r_turb_tstep,
+							    r_turb_spancount,
+							    r_turb_turb);
 
 			r_turb_s = snext;
 			r_turb_t = tnext;
@@ -276,6 +278,7 @@ NonTurbulentPow2 (espan_t *pspan)
 	float sdivzpow2stepu, tdivzpow2stepu, zipow2stepu;
 	pixel_t	*r_turb_pbase, *r_turb_pdest;
 	int	r_turb_s, r_turb_t;
+	int	*r_turb_turb;
 
 	r_turb_turb = blanktable;
 
@@ -397,10 +400,11 @@ NonTurbulentPow2 (espan_t *pspan)
 			r_turb_s = r_turb_s & ((CYCLE<<SHIFT16XYZ)-1);
 			r_turb_t = r_turb_t & ((CYCLE<<SHIFT16XYZ)-1);
 
-			r_turb_pdest = D_DrawTurbulentPow2Span (r_turb_pdest, r_turb_pbase,
-								r_turb_s, r_turb_t,
-								r_turb_sstep, r_turb_tstep,
-								r_turb_spancount);
+			r_turb_pdest = D_DrawTurbulentSpan (r_turb_pdest, r_turb_pbase,
+							    r_turb_s, r_turb_t,
+							    r_turb_sstep, r_turb_tstep,
+							    r_turb_spancount,
+							    r_turb_turb);
 
 			r_turb_s = snext;
 			r_turb_t = tnext;
