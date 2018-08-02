@@ -61,9 +61,17 @@ Mod_Modellist_f (void)
 	R_Printf(PRINT_ALL,"Loaded models:\n");
 	for (i=0, mod=mod_known ; i < mod_numknown ; i++, mod++)
 	{
+		char *in_use = "";
+
+		if (mod->registration_sequence == registration_sequence)
+		{
+			in_use = "*";
+		}
+
 		if (!mod->name[0])
 			continue;
-		R_Printf(PRINT_ALL, "%8i : %s\n",mod->extradatasize, mod->name);
+		R_Printf(PRINT_ALL, "%8i : %s %s\n",
+			 mod->extradatasize, mod->name, in_use);
 		total += mod->extradatasize;
 	}
 	R_Printf(PRINT_ALL, "Total resident: %i\n", total);
