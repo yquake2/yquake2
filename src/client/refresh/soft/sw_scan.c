@@ -27,13 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define SPANSTEP_SHIFT	4
 #define SPANSTEP	(1 << SPANSTEP_SHIFT)
 
-static pixel_t	*r_turb_pbase, *r_turb_pdest;
-static int	r_turb_s, r_turb_t, r_turb_sstep, r_turb_tstep;
-int		*r_turb_turb;
-static int	r_turb_spancount;
-
-static void D_DrawTurbulentPow2Span (void);
-
+int	*r_turb_turb;
 byte	**warp_rowptr;
 int	*warp_column;
 
@@ -103,8 +97,11 @@ D_WarpScreen (void)
 D_DrawTurbulentPow2Span
 =============
 */
-static void
-D_DrawTurbulentPow2Span (void)
+static pixel_t *
+D_DrawTurbulentPow2Span (pixel_t *r_turb_pdest, const pixel_t *r_turb_pbase,
+			 int r_turb_s, int r_turb_t,
+			 int r_turb_sstep, int r_turb_tstep,
+			 int r_turb_spancount)
 {
 	do
 	{
@@ -115,6 +112,7 @@ D_DrawTurbulentPow2Span (void)
 		r_turb_s += r_turb_sstep;
 		r_turb_t += r_turb_tstep;
 	} while (--r_turb_spancount > 0);
+	return r_turb_pdest;
 }
 
 /*
@@ -125,14 +123,12 @@ TurbulentPow2
 void
 TurbulentPow2 (espan_t *pspan)
 {
-	int	snext, tnext;
 	float	spancountminus1;
 	float	sdivzpow2stepu, tdivzpow2stepu, zipow2stepu;
+	pixel_t	*r_turb_pbase, *r_turb_pdest;
+	int	r_turb_s, r_turb_t;
 
 	r_turb_turb = sintable + ((int)(r_newrefdef.time*SPEED)&(CYCLE-1));
-
-	r_turb_sstep = 0;	// keep compiler happy
-	r_turb_tstep = 0;	// ditto
 
 	r_turb_pbase = (unsigned char *)cacheblock;
 
@@ -172,6 +168,13 @@ TurbulentPow2 (espan_t *pspan)
 
 		do
 		{
+			int snext, tnext;
+			int r_turb_sstep, r_turb_tstep;
+			int r_turb_spancount;
+
+			r_turb_sstep = 0;	// keep compiler happy
+			r_turb_tstep = 0;	// ditto
+
 			// calculate s and t at the far end of the span
 			if (count >= SPANSTEP)
 				r_turb_spancount = SPANSTEP;
@@ -245,7 +248,10 @@ TurbulentPow2 (espan_t *pspan)
 			r_turb_s = r_turb_s & ((CYCLE<<SHIFT16XYZ)-1);
 			r_turb_t = r_turb_t & ((CYCLE<<SHIFT16XYZ)-1);
 
-			D_DrawTurbulentPow2Span ();
+			r_turb_pdest = D_DrawTurbulentPow2Span (r_turb_pdest, r_turb_pbase,
+								r_turb_s, r_turb_t,
+								r_turb_sstep, r_turb_tstep,
+								r_turb_spancount);
 
 			r_turb_s = snext;
 			r_turb_t = tnext;
@@ -266,14 +272,12 @@ NonTurbulentPow2 - this is for drawing scrolling textures. they're warping water
 void
 NonTurbulentPow2 (espan_t *pspan)
 {
-	int snext, tnext;
 	float spancountminus1;
 	float sdivzpow2stepu, tdivzpow2stepu, zipow2stepu;
+	pixel_t	*r_turb_pbase, *r_turb_pdest;
+	int	r_turb_s, r_turb_t;
 
 	r_turb_turb = blanktable;
-
-	r_turb_sstep = 0;	// keep compiler happy
-	r_turb_tstep = 0;	// ditto
 
 	r_turb_pbase = (unsigned char *)cacheblock;
 
@@ -313,6 +317,13 @@ NonTurbulentPow2 (espan_t *pspan)
 
 		do
 		{
+			int snext, tnext;
+			int r_turb_sstep, r_turb_tstep;
+			int r_turb_spancount;
+
+			r_turb_sstep = 0;	// keep compiler happy
+			r_turb_tstep = 0;	// ditto
+
 			// calculate s and t at the far end of the span
 			if (count >= SPANSTEP)
 				r_turb_spancount = SPANSTEP;
@@ -386,7 +397,10 @@ NonTurbulentPow2 (espan_t *pspan)
 			r_turb_s = r_turb_s & ((CYCLE<<SHIFT16XYZ)-1);
 			r_turb_t = r_turb_t & ((CYCLE<<SHIFT16XYZ)-1);
 
-			D_DrawTurbulentPow2Span ();
+			r_turb_pdest = D_DrawTurbulentPow2Span (r_turb_pdest, r_turb_pbase,
+								r_turb_s, r_turb_t,
+								r_turb_sstep, r_turb_tstep,
+								r_turb_spancount);
 
 			r_turb_s = snext;
 			r_turb_t = tnext;
@@ -417,7 +431,7 @@ D_DrawSpan
 =============
 */
 static pixel_t *
-D_DrawSpan(pixel_t *pdest, pixel_t *pbase, int s, int t, int sstep, int tstep, int spancount)
+D_DrawSpan(pixel_t *pdest, const pixel_t *pbase, int s, int t, int sstep, int tstep, int spancount)
 {
 	// horisontal span (span in same row)
 	if (((t + tstep * spancount) >> SHIFT16XYZ) == (t >> SHIFT16XYZ))
@@ -550,6 +564,9 @@ D_DrawSpansPow2 (espan_t *pspan)
 		do
 		{
 			int	sstep, tstep;
+
+			sstep = 0;	// keep compiler happy
+			tstep = 0;	// ditto
 
 			// calculate s and t at the far end of the span
 			if (count >= SPANSTEP)
