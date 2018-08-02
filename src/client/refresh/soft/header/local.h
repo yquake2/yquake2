@@ -362,10 +362,10 @@ extern float	d_sdivzstepu, d_tdivzstepu, d_zistepu;
 extern float	d_sdivzstepv, d_tdivzstepv, d_zistepv;
 extern float	d_sdivzorigin, d_tdivzorigin, d_ziorigin;
 
-void D_DrawSpans16(espan_t *pspans);
+void D_DrawSpansPow2(espan_t *pspans);
 void D_DrawZSpans(espan_t *pspans);
-void Turbulent8(espan_t *pspan);
-void NonTurbulent8(espan_t *pspan); //PGM
+void TurbulentPow2(espan_t *pspan);
+void NonTurbulentPow2(espan_t *pspan); //PGM
 
 surfcache_t *D_CacheSurface (msurface_t *surface, int miplevel);
 

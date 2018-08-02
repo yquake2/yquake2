@@ -910,11 +910,11 @@ D_TurbulentSurf (surf_t *s)
 
 	//============
 	//PGM
-	// textures that aren't warping are just flowing. Use NonTurbulent8 instead
+	// textures that aren't warping are just flowing. Use NonTurbulentPow2 instead
 	if(!(pface->texinfo->flags & SURF_WARP))
-		NonTurbulent8 (s->spans);
+		NonTurbulentPow2 (s->spans);
 	else
-		Turbulent8 (s->spans);
+		TurbulentPow2 (s->spans);
 	//PGM
 	//============
 
@@ -958,7 +958,7 @@ D_SkySurf (surf_t *s)
 
 	D_CalcGradients (pface);
 
-	D_DrawSpans16 (s->spans);
+	D_DrawSpansPow2 (s->spans);
 
 	// set up a gradient for the background surface that places it
 	// effectively at infinity distance from the viewpoint
@@ -1009,7 +1009,7 @@ D_SolidSurf (surf_t *s)
 
 	D_CalcGradients (pface);
 
-	D_DrawSpans16 (s->spans);
+	D_DrawSpansPow2 (s->spans);
 
 	D_DrawZSpans (s->spans);
 

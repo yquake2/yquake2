@@ -23,12 +23,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/local.h"
 
+
+#define SPANSTEP_SHIFT	4
+#define SPANSTEP	(1 << SPANSTEP_SHIFT)
+
 static pixel_t	*r_turb_pbase, *r_turb_pdest;
 static int	r_turb_s, r_turb_t, r_turb_sstep, r_turb_tstep;
 int		*r_turb_turb;
 static int	r_turb_spancount;
 
-static void D_DrawTurbulent8Span (void);
+static void D_DrawTurbulentPow2Span (void);
 
 byte	**warp_rowptr;
 int	*warp_column;
@@ -96,17 +100,17 @@ D_WarpScreen (void)
 
 /*
 =============
-D_DrawTurbulent8Span
+D_DrawTurbulentPow2Span
 =============
 */
 static void
-D_DrawTurbulent8Span (void)
+D_DrawTurbulentPow2Span (void)
 {
 	do
 	{
 		int sturb, tturb;
-		sturb = ((r_turb_s + r_turb_turb[(r_turb_t>>16)&(CYCLE-1)])>>16)&63;
-		tturb = ((r_turb_t + r_turb_turb[(r_turb_s>>16)&(CYCLE-1)])>>16)&63;
+		sturb = ((r_turb_s + r_turb_turb[(r_turb_t>>SHIFT16XYZ)&(CYCLE-1)])>>16)&63;
+		tturb = ((r_turb_t + r_turb_turb[(r_turb_s>>SHIFT16XYZ)&(CYCLE-1)])>>16)&63;
 		*r_turb_pdest++ = *(r_turb_pbase + (tturb<<6) + sturb);
 		r_turb_s += r_turb_sstep;
 		r_turb_t += r_turb_tstep;
@@ -115,15 +119,15 @@ D_DrawTurbulent8Span (void)
 
 /*
 =============
-Turbulent8
+TurbulentPow2
 =============
 */
 void
-Turbulent8 (espan_t *pspan)
+TurbulentPow2 (espan_t *pspan)
 {
-	int		snext, tnext;
+	int	snext, tnext;
 	float	spancountminus1;
-	float	sdivz16stepu, tdivz16stepu, zi16stepu;
+	float	sdivzpow2stepu, tdivzpow2stepu, zipow2stepu;
 
 	r_turb_turb = sintable + ((int)(r_newrefdef.time*SPEED)&(CYCLE-1));
 
@@ -132,9 +136,9 @@ Turbulent8 (espan_t *pspan)
 
 	r_turb_pbase = (unsigned char *)cacheblock;
 
-	sdivz16stepu = d_sdivzstepu * 16;
-	tdivz16stepu = d_tdivzstepu * 16;
-	zi16stepu = d_zistepu * 16;
+	sdivzpow2stepu = d_sdivzstepu * SPANSTEP;
+	tdivzpow2stepu = d_tdivzstepu * SPANSTEP;
+	zipow2stepu = d_zistepu * SPANSTEP;
 
 	do
 	{
@@ -169,8 +173,8 @@ Turbulent8 (espan_t *pspan)
 		do
 		{
 			// calculate s and t at the far end of the span
-			if (count >= 16)
-				r_turb_spancount = 16;
+			if (count >= SPANSTEP)
+				r_turb_spancount = SPANSTEP;
 			else
 				r_turb_spancount = count;
 
@@ -180,27 +184,29 @@ Turbulent8 (espan_t *pspan)
 			{
 				// calculate s/z, t/z, zi->fixed s and t at far end of span,
 				// calculate s and t steps across span by shifting
-				sdivz += sdivz16stepu;
-				tdivz += tdivz16stepu;
-				zi += zi16stepu;
+				sdivz += sdivzpow2stepu;
+				tdivz += tdivzpow2stepu;
+				zi += zipow2stepu;
 				z = (float)SHIFT16XYZ_MULT / zi;	// prescale to 16.16 fixed-point
 
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
-				else if (snext < 16)
-					snext = 16;	// prevent round-off error on <0 steps from
-							//  from causing overstepping & running off the
-							//  edge of the texture
+				else if (snext < SPANSTEP)
+					// prevent round-off error on <0 steps from
+					//  from causing overstepping & running off the
+					//  edge of the texture
+					snext = SPANSTEP;
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
-				else if (tnext < 16)
-					tnext = 16;	// guard against round-off error on <0 steps
+				else if (tnext < SPANSTEP)
+					// guard against round-off error on <0 steps
+					tnext = SPANSTEP;
 
-				r_turb_sstep = (snext - r_turb_s) >> 4;
-				r_turb_tstep = (tnext - r_turb_t) >> 4;
+				r_turb_sstep = (snext - r_turb_s) >> SPANSTEP_SHIFT;
+				r_turb_tstep = (tnext - r_turb_t) >> SPANSTEP_SHIFT;
 			}
 			else
 			{
@@ -216,16 +222,18 @@ Turbulent8 (espan_t *pspan)
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
-				else if (snext < 16)
-					snext = 16;	// prevent round-off error on <0 steps from
-							//  from causing overstepping & running off the
-							//  edge of the texture
+				else if (snext < SPANSTEP)
+					// prevent round-off error on <0 steps from
+					//  from causing overstepping & running off the
+					//  edge of the texture
+					snext = SPANSTEP;
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
-				else if (tnext < 16)
-					tnext = 16;	// guard against round-off error on <0 steps
+				else if (tnext < SPANSTEP)
+					// guard against round-off error on <0 steps
+					tnext = SPANSTEP;
 
 				if (r_turb_spancount > 1)
 				{
@@ -234,10 +242,10 @@ Turbulent8 (espan_t *pspan)
 				}
 			}
 
-			r_turb_s = r_turb_s & ((CYCLE<<16)-1);
-			r_turb_t = r_turb_t & ((CYCLE<<16)-1);
+			r_turb_s = r_turb_s & ((CYCLE<<SHIFT16XYZ)-1);
+			r_turb_t = r_turb_t & ((CYCLE<<SHIFT16XYZ)-1);
 
-			D_DrawTurbulent8Span ();
+			D_DrawTurbulentPow2Span ();
 
 			r_turb_s = snext;
 			r_turb_t = tnext;
@@ -251,16 +259,16 @@ Turbulent8 (espan_t *pspan)
 //PGM
 /*
 =============
-NonTurbulent8 - this is for drawing scrolling textures. they're warping water textures
+NonTurbulentPow2 - this is for drawing scrolling textures. they're warping water textures
 	but the turbulence is automatically 0.
 =============
 */
 void
-NonTurbulent8 (espan_t *pspan)
+NonTurbulentPow2 (espan_t *pspan)
 {
 	int snext, tnext;
 	float spancountminus1;
-	float sdivz16stepu, tdivz16stepu, zi16stepu;
+	float sdivzpow2stepu, tdivzpow2stepu, zipow2stepu;
 
 	r_turb_turb = blanktable;
 
@@ -269,9 +277,9 @@ NonTurbulent8 (espan_t *pspan)
 
 	r_turb_pbase = (unsigned char *)cacheblock;
 
-	sdivz16stepu = d_sdivzstepu * 16;
-	tdivz16stepu = d_tdivzstepu * 16;
-	zi16stepu = d_zistepu * 16;
+	sdivzpow2stepu = d_sdivzstepu * SPANSTEP;
+	tdivzpow2stepu = d_tdivzstepu * SPANSTEP;
+	zipow2stepu = d_zistepu * SPANSTEP;
 
 	do
 	{
@@ -306,8 +314,8 @@ NonTurbulent8 (espan_t *pspan)
 		do
 		{
 			// calculate s and t at the far end of the span
-			if (count >= 16)
-				r_turb_spancount = 16;
+			if (count >= SPANSTEP)
+				r_turb_spancount = SPANSTEP;
 			else
 				r_turb_spancount = count;
 
@@ -317,27 +325,29 @@ NonTurbulent8 (espan_t *pspan)
 			{
 				// calculate s/z, t/z, zi->fixed s and t at far end of span,
 				// calculate s and t steps across span by shifting
-				sdivz += sdivz16stepu;
-				tdivz += tdivz16stepu;
-				zi += zi16stepu;
+				sdivz += sdivzpow2stepu;
+				tdivz += tdivzpow2stepu;
+				zi += zipow2stepu;
 				z = (float)SHIFT16XYZ_MULT / zi;	// prescale to 16.16 fixed-point
 
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
-				else if (snext < 16)
-					snext = 16;	// prevent round-off error on <0 steps from
-							//  from causing overstepping & running off the
-							//  edge of the texture
+				else if (snext < SPANSTEP)
+					// prevent round-off error on <0 steps from
+					//  from causing overstepping & running off the
+					//  edge of the texture
+					snext = SPANSTEP;
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
-				else if (tnext < 16)
-					tnext = 16;	// guard against round-off error on <0 steps
+				else if (tnext < SPANSTEP)
+					// guard against round-off error on <0 steps
+					tnext = SPANSTEP;
 
-				r_turb_sstep = (snext - r_turb_s) >> 4;
-				r_turb_tstep = (tnext - r_turb_t) >> 4;
+				r_turb_sstep = (snext - r_turb_s) >> SPANSTEP_SHIFT;
+				r_turb_tstep = (tnext - r_turb_t) >> SPANSTEP_SHIFT;
 			}
 			else
 			{
@@ -353,16 +363,18 @@ NonTurbulent8 (espan_t *pspan)
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
-				else if (snext < 16)
-					snext = 16;	// prevent round-off error on <0 steps from
-							//  from causing overstepping & running off the
-							//  edge of the texture
+				else if (snext < SPANSTEP)
+					// prevent round-off error on <0 steps from
+					//  from causing overstepping & running off the
+					//  edge of the texture
+					snext = SPANSTEP;
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
-				else if (tnext < 16)
-					tnext = 16;	// guard against round-off error on <0 steps
+				else if (tnext < SPANSTEP)
+					// guard against round-off error on <0 steps
+					tnext = SPANSTEP;
 
 				if (r_turb_spancount > 1)
 				{
@@ -371,10 +383,10 @@ NonTurbulent8 (espan_t *pspan)
 				}
 			}
 
-			r_turb_s = r_turb_s & ((CYCLE<<16)-1);
-			r_turb_t = r_turb_t & ((CYCLE<<16)-1);
+			r_turb_s = r_turb_s & ((CYCLE<<SHIFT16XYZ)-1);
+			r_turb_t = r_turb_t & ((CYCLE<<SHIFT16XYZ)-1);
 
-			D_DrawTurbulent8Span ();
+			D_DrawTurbulentPow2Span ();
 
 			r_turb_s = snext;
 			r_turb_t = tnext;
@@ -484,27 +496,25 @@ D_DrawSpanFiltered(pixel_t *pdest, pixel_t *pbase, int s, int t, int sstep, int 
 
 /*
 =============
-D_DrawSpans16
-
-  FIXME: actually make this subdivide by 16 instead of 8!!!
+D_DrawSpansPow2
 =============
 */
 void
-D_DrawSpans16 (espan_t *pspan)
+D_DrawSpansPow2 (espan_t *pspan)
 {
 	int 	spancount;
 	pixel_t	*pbase;
 	int	snext, tnext;
 	float	spancountminus1;
-	float	sdivz8stepu, tdivz8stepu, zi8stepu;
+	float	sdivzpow2stepu, tdivzpow2stepu, zipow2stepu;
 	int	texture_filtering;
 
 	pbase = (unsigned char *)cacheblock;
 
 	texture_filtering = (int)sw_texture_filtering->value;
-	sdivz8stepu = d_sdivzstepu * 8;
-	tdivz8stepu = d_tdivzstepu * 8;
-	zi8stepu = d_zistepu * 8;
+	sdivzpow2stepu = d_sdivzstepu * SPANSTEP;
+	tdivzpow2stepu = d_tdivzstepu * SPANSTEP;
+	zipow2stepu = d_zistepu * SPANSTEP;
 
 	do
 	{
@@ -542,8 +552,8 @@ D_DrawSpans16 (espan_t *pspan)
 			int	sstep, tstep;
 
 			// calculate s and t at the far end of the span
-			if (count >= 8)
-				spancount = 8;
+			if (count >= SPANSTEP)
+				spancount = SPANSTEP;
 			else
 				spancount = count;
 
@@ -553,27 +563,27 @@ D_DrawSpans16 (espan_t *pspan)
 			{
 				// calculate s/z, t/z, zi->fixed s and t at far end of span,
 				// calculate s and t steps across span by shifting
-				sdivz += sdivz8stepu;
-				tdivz += tdivz8stepu;
-				zi += zi8stepu;
+				sdivz += sdivzpow2stepu;
+				tdivz += tdivzpow2stepu;
+				zi += zipow2stepu;
 				z = (float)SHIFT16XYZ_MULT / zi;	// prescale to 16.16 fixed-point
 
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
-				else if (snext < 8)
-					snext = 8;	// prevent round-off error on <0 steps from
-							//  from causing overstepping & running off the
-							//  edge of the texture
+				else if (snext < SPANSTEP)
+					snext = SPANSTEP;	// prevent round-off error on <0 steps from
+									//  from causing overstepping & running off the
+									//  edge of the texture
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
-				else if (tnext < 8)
-					tnext = 8;	// guard against round-off error on <0 steps
+				else if (tnext < SPANSTEP)
+					tnext = SPANSTEP;	// guard against round-off error on <0 steps
 
-				sstep = (snext - s) >> 3;
-				tstep = (tnext - t) >> 3;
+				sstep = (snext - s) >> SPANSTEP_SHIFT;
+				tstep = (tnext - t) >> SPANSTEP_SHIFT;
 			}
 			else
 			{
@@ -589,16 +599,16 @@ D_DrawSpans16 (espan_t *pspan)
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
-				else if (snext < 8)
-					snext = 8;	// prevent round-off error on <0 steps from
+				else if (snext < SPANSTEP)
+					snext = SPANSTEP;	// prevent round-off error on <0 steps from
 							//  from causing overstepping & running off the
 							//  edge of the texture
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
-				else if (tnext < 8)
-					tnext = 8;	// guard against round-off error on <0 steps
+				else if (tnext < SPANSTEP)
+					tnext = SPANSTEP;	// guard against round-off error on <0 steps
 
 				if (spancount > 1)
 				{
