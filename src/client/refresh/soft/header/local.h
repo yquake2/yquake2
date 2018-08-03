@@ -291,7 +291,7 @@ typedef struct
 	float	dist;
 	float	s_offset, t_offset;
 	float	viewer_position[3];
-	void	(*drawspanlet)(void);
+	void	(*drawspanlet)(const int *r_turb_turb);
 	int	stipple_parity;
 } polydesc_t;
 

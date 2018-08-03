@@ -42,8 +42,6 @@ polydesc_t	r_polydesc;
 
 msurface_t	*r_alpha_surfaces;
 
-static int	*r_turb_turb;
-
 static int	clip_current;
 vec5_t		r_clip_verts[2][MAXWORKINGVERTS+2];
 static emitpoint_t	outverts[MAXWORKINGVERTS+3];
@@ -56,7 +54,7 @@ static void R_DrawPoly(int iswater);
 ** R_DrawSpanletOpaque
 */
 static void
-R_DrawSpanletOpaque( void )
+R_DrawSpanletOpaque(const int *r_turb_turb)
 {
 	do
 	{
@@ -88,7 +86,7 @@ R_DrawSpanletOpaque( void )
 ** R_DrawSpanletTurbulentStipple33
 */
 static void
-R_DrawSpanletTurbulentStipple33( void )
+R_DrawSpanletTurbulentStipple33(const int *r_turb_turb)
 {
 	pixel_t		*pdest = s_spanletvars.pdest;
 	zvalue_t	*pz    = s_spanletvars.pz;
@@ -147,7 +145,7 @@ R_DrawSpanletTurbulentStipple33( void )
 ** R_DrawSpanletTurbulentStipple66
 */
 static void
-R_DrawSpanletTurbulentStipple66( void )
+R_DrawSpanletTurbulentStipple66(const int *r_turb_turb)
 {
 	unsigned	btemp;
 	int		sturb, tturb;
@@ -235,7 +233,7 @@ R_DrawSpanletTurbulentStipple66( void )
 ** R_DrawSpanletTurbulentBlended
 */
 static void
-R_DrawSpanletTurbulentBlended66( void )
+R_DrawSpanletTurbulentBlended66(const int *r_turb_turb)
 {
 	do
 	{
@@ -260,7 +258,7 @@ R_DrawSpanletTurbulentBlended66( void )
 }
 
 static void
-R_DrawSpanletTurbulentBlended33( void )
+R_DrawSpanletTurbulentBlended33(const int *r_turb_turb)
 {
 	do
 	{
@@ -288,7 +286,7 @@ R_DrawSpanletTurbulentBlended33( void )
 ** R_DrawSpanlet33
 */
 static void
-R_DrawSpanlet33( void )
+R_DrawSpanlet33(const int *r_turb_turb)
 {
 	do
 	{
@@ -317,7 +315,7 @@ R_DrawSpanlet33( void )
 }
 
 static void
-R_DrawSpanletConstant33( void )
+R_DrawSpanletConstant33(const int *r_turb_turb)
 {
 	do
 	{
@@ -336,7 +334,7 @@ R_DrawSpanletConstant33( void )
 ** R_DrawSpanlet66
 */
 static void
-R_DrawSpanlet66( void )
+R_DrawSpanlet66(const int *r_turb_turb)
 {
 	do
 	{
@@ -368,7 +366,7 @@ R_DrawSpanlet66( void )
 ** R_DrawSpanlet33Stipple
 */
 static void
-R_DrawSpanlet33Stipple( void )
+R_DrawSpanlet33Stipple(const int *r_turb_turb)
 {
 	pixel_t		*pdest	= s_spanletvars.pdest;
 	zvalue_t	*pz	= s_spanletvars.pz;
@@ -428,7 +426,7 @@ R_DrawSpanlet33Stipple( void )
 ** R_DrawSpanlet66Stipple
 */
 static void
-R_DrawSpanlet66Stipple( void )
+R_DrawSpanlet66Stipple(const int *r_turb_turb)
 {
 	unsigned	btemp;
 	pixel_t		*pdest = s_spanletvars.pdest;
@@ -598,13 +596,15 @@ R_PolygonDrawSpans(espan_t *pspan, int iswater )
 	int	snext, tnext;
 	float	sdivz, tdivz, zi, z, du, dv, spancountminus1;
 	float	sdivzspanletstepu, tdivzspanletstepu, zispanletstepu;
+	int	*r_turb_turb;
 
 	s_spanletvars.pbase = cacheblock;
 
 	//PGM
 	if ( iswater & SURF_WARP)
 		r_turb_turb = sintable + ((int)(r_newrefdef.time*SPEED)&(CYCLE-1));
-	else if (iswater & SURF_FLOWING)
+	else
+		// iswater & SURF_FLOWING
 		r_turb_turb = blanktable;
 	//PGM
 
@@ -740,7 +740,7 @@ R_PolygonDrawSpans(espan_t *pspan, int iswater )
 					s_spanletvars.t = s_spanletvars.t & ((CYCLE<<16)-1);
 				}
 
-				r_polydesc.drawspanlet();
+				r_polydesc.drawspanlet(r_turb_turb);
 
 				s_spanletvars.s = snext;
 				s_spanletvars.t = tnext;

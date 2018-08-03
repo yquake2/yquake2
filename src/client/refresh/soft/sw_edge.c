@@ -778,20 +778,16 @@ Simple single color fill with no texture mapping
 ==============
 */
 static void
-D_FlatFillSurface (surf_t *surf, int color)
+D_FlatFillSurface (surf_t *surf, pixel_t color)
 {
 	espan_t	*span;
 
 	for (span=surf->spans ; span ; span=span->pnext)
 	{
 		pixel_t   *pdest;
-		shift20_t u, u2;
 
-		pdest = d_viewbuffer + r_screenwidth*span->v;
-		u = span->u;
-		u2 = span->u + span->count - 1;
-		for ( ; u <= u2 ; u++)
-			pdest[u] = color;
+		pdest = d_viewbuffer + r_screenwidth*span->v + span->u;
+		memset(pdest,  color&0xFF, span->count * sizeof(pixel_t));
 	}
 }
 

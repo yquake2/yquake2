@@ -125,8 +125,7 @@ TurbulentPow2 (espan_t *pspan)
 {
 	float	spancountminus1;
 	float	sdivzpow2stepu, tdivzpow2stepu, zipow2stepu;
-	pixel_t	*r_turb_pbase, *r_turb_pdest;
-	int	r_turb_s, r_turb_t;
+	pixel_t	*r_turb_pbase;
 	int	*r_turb_turb;
 
 	r_turb_turb = sintable + ((int)(r_newrefdef.time*SPEED)&(CYCLE-1));
@@ -139,8 +138,9 @@ TurbulentPow2 (espan_t *pspan)
 
 	do
 	{
-		int count;
+		int count, r_turb_s, r_turb_t;
 		float sdivz, tdivz, zi, z, du, dv;
+		pixel_t	*r_turb_pdest;
 
 		r_turb_pdest = d_viewbuffer + (r_screenwidth * pspan->v) + pspan->u;
 
@@ -276,8 +276,7 @@ NonTurbulentPow2 (espan_t *pspan)
 {
 	float spancountminus1;
 	float sdivzpow2stepu, tdivzpow2stepu, zipow2stepu;
-	pixel_t	*r_turb_pbase, *r_turb_pdest;
-	int	r_turb_s, r_turb_t;
+	pixel_t	*r_turb_pbase;
 	int	*r_turb_turb;
 
 	r_turb_turb = blanktable;
@@ -290,8 +289,9 @@ NonTurbulentPow2 (espan_t *pspan)
 
 	do
 	{
-		int count;
+		int count, r_turb_s, r_turb_t;
 		float sdivz, tdivz, zi, z, dv, du;
+		pixel_t	*r_turb_pdest;
 
 		r_turb_pdest = d_viewbuffer + (r_screenwidth * pspan->v) + pspan->u;
 
