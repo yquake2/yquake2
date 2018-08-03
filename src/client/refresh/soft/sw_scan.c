@@ -593,15 +593,17 @@ D_DrawSpansPow2 (espan_t *pspan)
 				if (snext > bbextents)
 					snext = bbextents;
 				else if (snext < SPANSTEP)
-					snext = SPANSTEP;	// prevent round-off error on <0 steps from
-									//  from causing overstepping & running off the
-									//  edge of the texture
+					// prevent round-off error on <0 steps from
+					//  from causing overstepping & running off the
+					//  edge of the texture
+					snext = SPANSTEP;
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
 				else if (tnext < SPANSTEP)
-					tnext = SPANSTEP;	// guard against round-off error on <0 steps
+					// guard against round-off error on <0 steps
+					tnext = SPANSTEP;
 
 				sstep = (snext - s) >> SPANSTEP_SHIFT;
 				tstep = (tnext - t) >> SPANSTEP_SHIFT;
@@ -621,15 +623,17 @@ D_DrawSpansPow2 (espan_t *pspan)
 				if (snext > bbextents)
 					snext = bbextents;
 				else if (snext < SPANSTEP)
-					snext = SPANSTEP;	// prevent round-off error on <0 steps from
-							//  from causing overstepping & running off the
-							//  edge of the texture
+					// prevent round-off error on <0 steps from
+					//  from causing overstepping & running off the
+					//  edge of the texture
+					snext = SPANSTEP;
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
 				else if (tnext < SPANSTEP)
-					tnext = SPANSTEP;	// guard against round-off error on <0 steps
+					// guard against round-off error on <0 steps
+					tnext = SPANSTEP;
 
 				if (spancount > 1)
 				{
