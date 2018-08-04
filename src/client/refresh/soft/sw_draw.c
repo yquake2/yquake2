@@ -118,13 +118,25 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 	{
 		for (ypos=0; ypos < iscale; ypos ++)
 		{
-			for(u=0; u < 8; u++)
+			if (iscale == 1)
 			{
-				if (source[u] != TRANSPARENT_COLOR)
-					for (xpos=0; xpos < iscale; xpos ++)
+				for(u=0; u < 8; u++)
+				{
+					if (source[u] != TRANSPARENT_COLOR)
 					{
-						dest[u * iscale + xpos] = source[u];
+						dest[u] = source[u];
 					}
+				}
+			}
+			else
+			{
+				for(u=0; u < 8; u++)
+				{
+					if (source[u] != TRANSPARENT_COLOR)
+					{
+						memset(dest + u * iscale, source[u], iscale);
+					}
+				}
 			}
 			dest += vid.width;
 		}
@@ -285,16 +297,21 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 	{
 		for (v=0; v<height; v++)
 		{
-			for(ypos=0; ypos < iscale; ypos++)
+			if (iscale == 1)
 			{
-				for (u=0; u<pic->width; u++)
-				{
-					for(xpos=0; xpos < iscale; xpos++)
-					{
-						dest[u * iscale + xpos] = source[u];
-					}
-				}
+				memcpy(dest, source, pic->width);
 				dest += vid.width;
+			}
+			else
+			{
+				for(ypos=0; ypos < iscale; ypos++)
+				{
+					for (u=0; u<pic->width; u++)
+					{
+						memset(dest + u * iscale, source[u], iscale);
+					}
+					dest += vid.width;
+				}
 			}
 			source += pic->width;
 		}
@@ -303,17 +320,26 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 	{
 		for (v=0; v<height; v++)
 		{
-			for(ypos=0; ypos < iscale; ypos++)
+			if (iscale == 1)
 			{
 				for (u=0; u<pic->width; u++)
 				{
 					if (source[u] != TRANSPARENT_COLOR)
-						for(xpos=0; xpos < iscale; xpos++)
-						{
-							dest[u * iscale + xpos] = source[u];
-						}
+						dest[u] = source[u];
 				}
 				dest += vid.width;
+			}
+			else
+			{
+				for(ypos=0; ypos < iscale; ypos++)
+				{
+					for (u=0; u<pic->width; u++)
+					{
+						if (source[u] != TRANSPARENT_COLOR)
+							memset(dest + u * iscale, source[u], iscale);
+					}
+					dest += vid.width;
+				}
 			}
 			source += pic->width;
 		}
@@ -405,8 +431,7 @@ RE_Draw_Fill (int x, int y, int w, int h, int c)
 
 	dest = vid_buffer + y * vid.width + x;
 	for (v=0 ; v<h ; v++, dest += vid.width)
-		for (u=0 ; u<w ; u++)
-			dest[u] = c;
+		memset(dest, c, w);
 }
 //=============================================================================
 
