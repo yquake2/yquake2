@@ -36,8 +36,6 @@ typedef struct {
 	int	*prightedgevert2;
 } edgetable;
 
-aliastriangleparms_t aliastriangleparms;
-
 static int	ubasestep, errorterm, erroradjustup, erroradjustdown;
 
 static int	r_p0[6], r_p1[6], r_p2[6];
@@ -183,24 +181,24 @@ R_DrawTriangle
 ================
 */
 void
-R_DrawTriangle( void )
+R_DrawTriangle(const finalvert_t *a, const finalvert_t *b, const finalvert_t *c)
 {
 	int dv1_ab, dv0_ac;
 	int dv0_ab, dv1_ac;
 
 	/*
-	d_xdenom = ( aliastriangleparms.a->v[1] - aliastriangleparms.b->v[1] ) * ( aliastriangleparms.a->v[0] - aliastriangleparms.c->v[0] ) -
-			   ( aliastriangleparms.a->v[0] - aliastriangleparms.b->v[0] ) * ( aliastriangleparms.a->v[1] - aliastriangleparms.c->v[1] );
+	d_xdenom = ( a->v[1] - b->v[1] ) * ( a->v[0] - c->v[0] ) -
+			   ( a->v[0] - b->v[0] ) * ( a->v[1] - c->v[1] );
 	*/
 
-	dv0_ab = aliastriangleparms.a->u - aliastriangleparms.b->u;
-	dv1_ab = aliastriangleparms.a->v - aliastriangleparms.b->v;
+	dv0_ab = a->u - b->u;
+	dv1_ab = a->v - b->v;
 
 	if ( !( dv0_ab | dv1_ab ) )
 		return;
 
-	dv0_ac = aliastriangleparms.a->u - aliastriangleparms.c->u;
-	dv1_ac = aliastriangleparms.a->v - aliastriangleparms.c->v;
+	dv0_ac = a->u - c->u;
+	dv1_ac = a->v - c->v;
 
 	if ( !( dv0_ac | dv1_ac ) )
 		return;
@@ -211,26 +209,26 @@ R_DrawTriangle( void )
 	{
 		a_spans = triangle_spans;
 
-		r_p0[0] = aliastriangleparms.a->u;	// u
-		r_p0[1] = aliastriangleparms.a->v;	// v
-		r_p0[2] = aliastriangleparms.a->s;	// s
-		r_p0[3] = aliastriangleparms.a->t;	// t
-		r_p0[4] = aliastriangleparms.a->l;	// light
-		r_p0[5] = aliastriangleparms.a->zi;	// iz
+		r_p0[0] = a->u;	// u
+		r_p0[1] = a->v;	// v
+		r_p0[2] = a->s;	// s
+		r_p0[3] = a->t;	// t
+		r_p0[4] = a->l;	// light
+		r_p0[5] = a->zi;	// iz
 
-		r_p1[0] = aliastriangleparms.b->u;
-		r_p1[1] = aliastriangleparms.b->v;
-		r_p1[2] = aliastriangleparms.b->s;
-		r_p1[3] = aliastriangleparms.b->t;
-		r_p1[4] = aliastriangleparms.b->l;
-		r_p1[5] = aliastriangleparms.b->zi;
+		r_p1[0] = b->u;
+		r_p1[1] = b->v;
+		r_p1[2] = b->s;
+		r_p1[3] = b->t;
+		r_p1[4] = b->l;
+		r_p1[5] = b->zi;
 
-		r_p2[0] = aliastriangleparms.c->u;
-		r_p2[1] = aliastriangleparms.c->v;
-		r_p2[2] = aliastriangleparms.c->s;
-		r_p2[3] = aliastriangleparms.c->t;
-		r_p2[4] = aliastriangleparms.c->l;
-		r_p2[5] = aliastriangleparms.c->zi;
+		r_p2[0] = c->u;
+		r_p2[1] = c->v;
+		r_p2[2] = c->s;
+		r_p2[3] = c->t;
+		r_p2[4] = c->l;
+		r_p2[5] = c->zi;
 
 		R_PolysetSetEdgeTable ();
 		R_RasterizeAliasPolySmooth ();

@@ -269,12 +269,9 @@ R_AliasPreparePoints (finalvert_t *verts, const finalvert_t *verts_max)
 			pfv[2]->t = pstverts[ptri->index_st[2]].t << SHIFT16XYZ;
 
 			if ( ! (pfv[0]->flags | pfv[1]->flags | pfv[2]->flags) )
-			{	// totally unclipped
-				aliastriangleparms.a = pfv[2];
-				aliastriangleparms.b = pfv[1];
-				aliastriangleparms.c = pfv[0];
-
-				R_DrawTriangle();
+			{
+				// totally unclipped
+				R_DrawTriangle(pfv[2], pfv[1], pfv[0]);
 			}
 			else
 			{
@@ -304,12 +301,9 @@ R_AliasPreparePoints (finalvert_t *verts, const finalvert_t *verts_max)
 			pfv[2]->t = pstverts[ptri->index_st[2]].t << SHIFT16XYZ;
 
 			if ( ! (pfv[0]->flags | pfv[1]->flags | pfv[2]->flags) )
-			{	// totally unclipped
-				aliastriangleparms.a = pfv[0];
-				aliastriangleparms.b = pfv[1];
-				aliastriangleparms.c = pfv[2];
-
-				R_DrawTriangle();
+			{
+				// totally unclipped
+				R_DrawTriangle(pfv[0], pfv[1], pfv[2]);
 			}
 			else
 			{	// partially clipped

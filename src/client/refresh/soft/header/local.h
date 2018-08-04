@@ -525,14 +525,7 @@ extern int	r_outofverts;
 
 extern mvertex_t	*r_pcurrentvertbase;
 
-typedef struct
-{
-	finalvert_t *a, *b, *c;
-} aliastriangleparms_t;
-
-extern aliastriangleparms_t aliastriangleparms;
-
-void R_DrawTriangle( void );
+void R_DrawTriangle(const finalvert_t *a, const finalvert_t *b, const finalvert_t *c);
 void R_AliasClipTriangle (const finalvert_t *index0, const finalvert_t *index1, finalvert_t *index2);
 
 

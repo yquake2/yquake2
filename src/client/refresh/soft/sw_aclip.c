@@ -304,9 +304,6 @@ R_AliasClipTriangle (const finalvert_t *index0, const finalvert_t *index1, final
 	// draw triangles
 	for (i=1 ; i<k-1 ; i++)
 	{
-		aliastriangleparms.a = &fv[pingpong][0];
-		aliastriangleparms.b = &fv[pingpong][i];
-		aliastriangleparms.c = &fv[pingpong][i+1];
-		R_DrawTriangle();
+		R_DrawTriangle(&fv[pingpong][0], &fv[pingpong][i], &fv[pingpong][i+1]);
 	}
 }
