@@ -118,25 +118,13 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 	{
 		for (ypos=0; ypos < iscale; ypos ++)
 		{
-			if (iscale == 1)
+			for(u=0; u < 8; u++)
 			{
-				for(u=0; u < 8; u++)
-				{
-					if (source[u] != TRANSPARENT_COLOR)
+				if (source[u] != TRANSPARENT_COLOR)
+					for (xpos=0; xpos < iscale; xpos ++)
 					{
-						dest[u] = source[u];
+						dest[u * iscale + xpos] = source[u];
 					}
-				}
-			}
-			else
-			{
-				for(u=0; u < 8; u++)
-				{
-					if (source[u] != TRANSPARENT_COLOR)
-					{
-						memset(dest + u * iscale, source[u], iscale);
-					}
-				}
 			}
 			dest += vid.width;
 		}
@@ -295,32 +283,39 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 
 	if (!pic->transparent)
 	{
-		for (v=0; v<height; v++)
+		if (iscale == 1)
 		{
-			if (iscale == 1)
+			for (v=0; v<height; v++)
 			{
 				memcpy(dest, source, pic->width);
 				dest += vid.width;
+				source += pic->width;
 			}
-			else
+		}
+		else
+		{
+			for (v=0; v<height; v++)
 			{
 				for(ypos=0; ypos < iscale; ypos++)
 				{
 					for (u=0; u<pic->width; u++)
 					{
-						memset(dest + u * iscale, source[u], iscale);
+						for(xpos=0; xpos < iscale; xpos++)
+						{
+							dest[u * iscale + xpos] = source[u];
+						}
 					}
 					dest += vid.width;
 				}
+				source += pic->width;
 			}
-			source += pic->width;
 		}
 	}
 	else
 	{
-		for (v=0; v<height; v++)
+		if (iscale == 1)
 		{
-			if (iscale == 1)
+			for (v=0; v<height; v++)
 			{
 				for (u=0; u<pic->width; u++)
 				{
@@ -328,20 +323,27 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 						dest[u] = source[u];
 				}
 				dest += vid.width;
+				source += pic->width;
 			}
-			else
+		}
+		else
+		{
+			for (v=0; v<height; v++)
 			{
 				for(ypos=0; ypos < iscale; ypos++)
 				{
 					for (u=0; u<pic->width; u++)
 					{
 						if (source[u] != TRANSPARENT_COLOR)
-							memset(dest + u * iscale, source[u], iscale);
+							for(xpos=0; xpos < iscale; xpos++)
+							{
+								dest[u * iscale + xpos] = source[u];
+							}
 					}
 					dest += vid.width;
 				}
+				source += pic->width;
 			}
-			source += pic->width;
 		}
 	}
 }
@@ -408,7 +410,7 @@ void
 RE_Draw_Fill (int x, int y, int w, int h, int c)
 {
 	pixel_t	*dest;
-	int		u, v;
+	int	v;
 
 	if (x+w > vid.width)
 		w = vid.width - x;
