@@ -437,6 +437,8 @@ D_DrawSpan
 static pixel_t *
 D_DrawSpan(pixel_t *pdest, const pixel_t *pbase, int s, int t, int sstep, int tstep, int spancount)
 {
+	const pixel_t *tdest_max = pdest + spancount;
+
 	// horisontal span (span in same row)
 	if (((t + tstep * spancount) >> SHIFT16XYZ) == (t >> SHIFT16XYZ))
 	{
@@ -447,7 +449,7 @@ D_DrawSpan(pixel_t *pdest, const pixel_t *pbase, int s, int t, int sstep, int ts
 		{
 			*pdest++ = *(tbase + (s >> SHIFT16XYZ));
 			s += sstep;
-		} while (--spancount > 0);
+		} while (pdest < tdest_max);
 	}
 	// vertical span (span in same column)
 	else if (((s + sstep * spancount) >> SHIFT16XYZ) == (s >> SHIFT16XYZ))
@@ -459,7 +461,7 @@ D_DrawSpan(pixel_t *pdest, const pixel_t *pbase, int s, int t, int sstep, int ts
 		{
 			*pdest++ = *(tbase + (t >> SHIFT16XYZ) * cachewidth);
 			t += tstep;
-		} while (--spancount > 0);
+		} while (pdest < tdest_max);
 	}
 	// diagonal span
 	else
@@ -469,7 +471,7 @@ D_DrawSpan(pixel_t *pdest, const pixel_t *pbase, int s, int t, int sstep, int ts
 			*pdest++ = *(pbase + (s >> SHIFT16XYZ) + (t >> SHIFT16XYZ) * cachewidth);
 			s += sstep;
 			t += tstep;
-		} while (--spancount > 0);
+		} while (pdest < tdest_max);
 	}
 
 	return pdest;

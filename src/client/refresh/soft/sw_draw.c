@@ -298,13 +298,18 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 			{
 				for(ypos=0; ypos < iscale; ypos++)
 				{
-					for (u=0; u<pic->width; u++)
+					pixel_t *dest_u = dest;
+					pixel_t *source_u = source;
+					u = pic->width;
+					do
 					{
-						for(xpos=0; xpos < iscale; xpos++)
+						xpos = iscale;
+						do
 						{
-							dest[u * iscale + xpos] = source[u];
-						}
-					}
+							*dest_u++ = *source_u;
+						} while (--xpos > 0);
+						source_u++;
+					} while (--u > 0);
 					dest += vid.width;
 				}
 				source += pic->width;
