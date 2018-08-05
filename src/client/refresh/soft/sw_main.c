@@ -1979,21 +1979,6 @@ RE_CopyFrame (Uint32 * pixels, int pitch)
 	// no gaps between images rows
 	if (pitch == vid.width)
 	{
-		int y,x, buffer_pos;
-
-		buffer_pos = 0;
-		for (y=0; y < vid.height;  y++)
-		{
-			for (x=0; x < vid.width; x ++)
-			{
-				pixels[x] = sw_state.palette_colors[vid_buffer[buffer_pos + x]];
-			}
-			pixels += pitch;
-			buffer_pos += vid.width;
-		}
-	}
-	else
-	{
 		const Uint32	*max_pixels;
 		Uint32	*pixels_pos;
 		pixel_t	*buffer_pos;
@@ -2005,6 +1990,21 @@ RE_CopyFrame (Uint32 * pixels, int pitch)
 		{
 			*pixels_pos = sw_state.palette_colors[*buffer_pos];
 			buffer_pos++;
+		}
+	}
+	else
+	{
+		int y,x, buffer_pos;
+
+		buffer_pos = 0;
+		for (y=0; y < vid.height;  y++)
+		{
+			for (x=0; x < vid.width; x ++)
+			{
+				pixels[x] = sw_state.palette_colors[vid_buffer[buffer_pos + x]];
+			}
+			pixels += pitch;
+			buffer_pos += vid.width;
 		}
 	}
 }
