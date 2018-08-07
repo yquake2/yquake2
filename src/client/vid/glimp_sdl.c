@@ -28,7 +28,7 @@
  */
 
 #include "../../common/header/common.h"
-#include "../../client/header/ref.h"
+#include "header/ref.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>

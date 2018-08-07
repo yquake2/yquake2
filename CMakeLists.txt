@@ -318,7 +318,7 @@ set(Client-Source
 	${CLIENT_SRC_DIR}/sound/sound.c
 	${CLIENT_SRC_DIR}/sound/wave.c
 	${CLIENT_SRC_DIR}/vid/glimp_sdl.c
-	${CLIENR_SRC_DIR}/vid/vid.c
+	${CLIENT_SRC_DIR}/vid/vid.c
 	${COMMON_SRC_DIR}/argproc.c
 	${COMMON_SRC_DIR}/clientserver.c
 	${COMMON_SRC_DIR}/collision.c
@@ -355,7 +355,6 @@ set(Client-Header
 	${CLIENT_SRC_DIR}/header/client.h
 	${CLIENT_SRC_DIR}/header/console.h
 	${CLIENT_SRC_DIR}/header/keyboard.h
-	${CLIENT_SRC_DIR}/header/ref.h
 	${CLIENT_SRC_DIR}/header/screen.h
 	${CLIENT_SRC_DIR}/input/header/input.h
 	${CLIENT_SRC_DIR}/menu/header/qmenu.h
@@ -363,6 +362,7 @@ set(Client-Header
 	${CLIENT_SRC_DIR}/sound/header/qal.h
 	${CLIENT_SRC_DIR}/sound/header/sound.h
 	${CLIENT_SRC_DIR}/sound/header/vorbis.h
+	${CLIENT_SRC_DIR}/vid/header/ref.h
 	${CLIENT_SRC_DIR}/vid/header/vid.h
 	${COMMON_SRC_DIR}/header/common.h
 	${COMMON_SRC_DIR}/header/crc.h

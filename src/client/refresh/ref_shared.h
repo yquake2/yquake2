@@ -27,7 +27,7 @@
 #ifndef SRC_CLIENT_REFRESH_REF_SHARED_H_
 #define SRC_CLIENT_REFRESH_REF_SHARED_H_
 
-#include "../header/ref.h"
+#include "../vid/header/ref.h"
 
 /*
  * skins will be outline flood filled and mip mapped
