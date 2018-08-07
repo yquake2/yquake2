@@ -164,7 +164,6 @@ endif()
 
 set(Backends-Generic-Source
 	${BACKENDS_SRC_DIR}/generic/misc.c
-	${BACKENDS_SRC_DIR}/generic/qal.c
 	${BACKENDS_SRC_DIR}/generic/vid.c
 
 	${BACKENDS_SRC_DIR}/sdl/input.c
@@ -174,7 +173,6 @@ set(Backends-Generic-Source
 
 set(Backends-Generic-Header
 	${BACKENDS_SRC_DIR}/generic/header/input.h
-	${BACKENDS_SRC_DIR}/generic/header/qal.h
 	)
 
 set(Backends-Unix-Source
@@ -323,6 +321,7 @@ set(Client-Source
 	${CLIENT_SRC_DIR}/menu/videomenu.c
 	${CLIENT_SRC_DIR}/sound/ogg.c
 	${CLIENT_SRC_DIR}/sound/openal.c
+	${CLIENT_SRC_DIR}/sound/qal.c
 	${CLIENT_SRC_DIR}/sound/sound.c
 	${CLIENT_SRC_DIR}/sound/wave.c
 	${COMMON_SRC_DIR}/argproc.c
@@ -366,6 +365,7 @@ set(Client-Header
 	${CLIENT_SRC_DIR}/header/vid.h
 	${CLIENT_SRC_DIR}/menu/header/qmenu.h
 	${CLIENT_SRC_DIR}/sound/header/local.h
+	${CLIENT_SRC_DIR}/sound/header/qal.h
 	${CLIENT_SRC_DIR}/sound/header/sound.h
 	${CLIENT_SRC_DIR}/sound/header/vorbis.h
 	${COMMON_SRC_DIR}/header/common.h

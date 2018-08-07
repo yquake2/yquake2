@@ -691,7 +691,6 @@ GAME_OBJS_ = \
 # Used by the client
 CLIENT_OBJS_ := \
 	src/backends/generic/misc.o \
-	src/backends/generic/qal.o \
 	src/backends/generic/vid.o \
 	src/backends/sdl/input.o \
 	src/backends/sdl/refresh.o \
@@ -718,6 +717,7 @@ CLIENT_OBJS_ := \
 	src/client/menu/videomenu.o \
 	src/client/sound/ogg.o \
 	src/client/sound/openal.o \
+	src/client/sound/qal.o \
 	src/client/sound/sound.o \
 	src/client/sound/wave.o \
 	src/common/argproc.o \

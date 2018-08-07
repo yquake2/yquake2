@@ -29,8 +29,8 @@
  */
 
 #include "../header/client.h"
-#include "../../backends/generic/header/qal.h"
 #include "header/local.h"
+#include "header/qal.h"
 #include "header/vorbis.h"
 
 /* During registration it is possible to have more sounds
