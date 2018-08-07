@@ -25,7 +25,7 @@
  */
 
 #include "header/client.h"
-#include "../backends/generic/header/input.h"
+#include "input/header/input.h"
 
 /* development tools for weapons */
 int gun_frame;

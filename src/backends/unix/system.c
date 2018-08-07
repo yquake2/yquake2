@@ -43,7 +43,6 @@
 
 #include "../../common/header/common.h"
 #include "../../common/header/glob.h"
-#include "../generic/header/input.h"
 
 // Pointer to game library
 static void *game_library;

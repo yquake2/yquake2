@@ -29,9 +29,9 @@
 
 #include <SDL2/SDL.h>
 
+#include "header/input.h"
 #include "../../client/header/keyboard.h"
 #include "../../client/header/client.h"
-#include "../generic/header/input.h"
 
 // ----
 

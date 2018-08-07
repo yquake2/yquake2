@@ -165,13 +165,7 @@ endif()
 set(Backends-Generic-Source
 	${BACKENDS_SRC_DIR}/generic/misc.c
 	${BACKENDS_SRC_DIR}/generic/vid.c
-
-	${BACKENDS_SRC_DIR}/sdl/input.c
 	${BACKENDS_SRC_DIR}/sdl/refresh.c
-	)
-
-set(Backends-Generic-Header
-	${BACKENDS_SRC_DIR}/generic/header/input.h
 	)
 
 set(Backends-Unix-Source
@@ -315,6 +309,7 @@ set(Client-Source
 	${CLIENT_SRC_DIR}/cl_screen.c
 	${CLIENT_SRC_DIR}/cl_tempentities.c
 	${CLIENT_SRC_DIR}/cl_view.c
+	${CLIENT_SRC_DIR}/input/sdl.c
 	${CLIENT_SRC_DIR}/menu/menu.c
 	${CLIENT_SRC_DIR}/menu/qmenu.c
 	${CLIENT_SRC_DIR}/menu/videomenu.c
@@ -363,6 +358,7 @@ set(Client-Header
 	${CLIENT_SRC_DIR}/header/ref.h
 	${CLIENT_SRC_DIR}/header/screen.h
 	${CLIENT_SRC_DIR}/header/vid.h
+	${CLIENT_SRC_DIR}/input/header/input.h
 	${CLIENT_SRC_DIR}/menu/header/qmenu.h
 	${CLIENT_SRC_DIR}/sound/header/local.h
 	${CLIENT_SRC_DIR}/sound/header/qal.h
@@ -545,7 +541,7 @@ endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	add_executable(yquake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
-			${Backends-Generic-Source} ${Backends-Generic-Header})
+			${Backends-Generic-Source})
 	set_target_properties(yquake2 PROPERTIES
 			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 			)
@@ -559,7 +555,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 			)
 else()
 	add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
-			${Backends-Generic-Source} ${Backends-Generic-Header})
+			${Backends-Generic-Source})
 	set_target_properties(quake2 PROPERTIES
 			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 			)

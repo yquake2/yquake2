@@ -26,7 +26,7 @@
  */
 
 #include "header/client.h"
-#include "../backends/generic/header/input.h"
+#include "input/header/input.h"
 
 void CL_ForwardToServer_f(void);
 void CL_Changing_f(void);

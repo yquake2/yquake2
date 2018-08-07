@@ -692,7 +692,6 @@ GAME_OBJS_ = \
 CLIENT_OBJS_ := \
 	src/backends/generic/misc.o \
 	src/backends/generic/vid.o \
-	src/backends/sdl/input.o \
 	src/backends/sdl/refresh.o \
 	src/client/cl_cin.o \
 	src/client/cl_console.o \
@@ -711,6 +710,7 @@ CLIENT_OBJS_ := \
 	src/client/cl_screen.o \
 	src/client/cl_tempentities.o \
 	src/client/cl_view.o \
+	src/client/input/sdl.o \
 	src/client/menu/menu.o \
 	src/client/menu/qmenu.o \
 	src/client/menu/videomenu.o \

@@ -26,7 +26,7 @@
  */
 
 #include "header/client.h"
-#include "../backends/generic/header/input.h"
+#include "input/header/input.h"
 
 extern cvar_t *vid_renderer;
 
