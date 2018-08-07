@@ -97,7 +97,7 @@ GetWindowSize(int* w, int* h)
 static void
 SetSDLIcon()
 {
-	#include "../../backends/sdl/icon/q2icon64.h" // 64x64 32 Bit
+	#include "icon/q2icon64.h" // 64x64 32 Bit
 
 	/* these masks are needed to tell SDL_CreateRGBSurface(From)
 	   to assume the data it gets is byte-wise RGB(A) data */

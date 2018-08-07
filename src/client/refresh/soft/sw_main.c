@@ -1580,7 +1580,7 @@ static qboolean X11_active = false;
  * Sets the window icon
  */
 /* The 64x64 32bit window icon */
-#include "../../../backends/sdl/icon/q2icon64.h"
+#include "../../vid/icon/q2icon64.h"
 
 static void
 SetSDLIcon()
@@ -2026,6 +2026,7 @@ RE_EndFrame (void)
 	pitch = surface->pitch / sizeof(Uint32);
 
 	RE_CopyFrame (pixels, pitch);
+
 
 	SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
 	SDL_RenderClear(renderer);
