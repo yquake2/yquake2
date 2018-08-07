@@ -168,7 +168,6 @@ set(Backends-Generic-Source
 
 	${BACKENDS_SRC_DIR}/sdl/input.c
 	${BACKENDS_SRC_DIR}/sdl/refresh.c
-	${BACKENDS_SRC_DIR}/sdl/sound.c
 	)
 
 set(Backends-Generic-Header
@@ -322,6 +321,7 @@ set(Client-Source
 	${CLIENT_SRC_DIR}/sound/ogg.c
 	${CLIENT_SRC_DIR}/sound/openal.c
 	${CLIENT_SRC_DIR}/sound/qal.c
+	${CLIENT_SRC_DIR}/sound/sdl.c
 	${CLIENT_SRC_DIR}/sound/sound.c
 	${CLIENT_SRC_DIR}/sound/wave.c
 	${COMMON_SRC_DIR}/argproc.c

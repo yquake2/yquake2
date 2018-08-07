@@ -694,7 +694,6 @@ CLIENT_OBJS_ := \
 	src/backends/generic/vid.o \
 	src/backends/sdl/input.o \
 	src/backends/sdl/refresh.o \
-	src/backends/sdl/sound.o \
 	src/client/cl_cin.o \
 	src/client/cl_console.o \
 	src/client/cl_download.o \
@@ -715,6 +714,7 @@ CLIENT_OBJS_ := \
 	src/client/menu/menu.o \
 	src/client/menu/qmenu.o \
 	src/client/menu/videomenu.o \
+	src/client/sound/sdl.o \
 	src/client/sound/ogg.o \
 	src/client/sound/openal.o \
 	src/client/sound/qal.o \
