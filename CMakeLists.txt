@@ -83,6 +83,7 @@ find_package(SDL2 REQUIRED)
 list(APPEND yquake2IncludeDirectories "${SDL2_INCLUDE_DIR}/..")
 list(APPEND yquake2SDLLinkerFlags ${SDL2_LIBRARY})
 
+set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 list(APPEND yquake2IncludeDirectories ${OPENGL_INCLUDE_DIR})
 list(APPEND yquake2OpenGLLinkerFlags ${OPENGL_LIBRARIES})
