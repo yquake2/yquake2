@@ -164,7 +164,6 @@ endif()
 
 set(Backends-Generic-Source
 	${BACKENDS_SRC_DIR}/generic/misc.c
-	${BACKENDS_SRC_DIR}/sdl/refresh.c
 	)
 
 set(Backends-Unix-Source
@@ -318,6 +317,7 @@ set(Client-Source
 	${CLIENT_SRC_DIR}/sound/sdl.c
 	${CLIENT_SRC_DIR}/sound/sound.c
 	${CLIENT_SRC_DIR}/sound/wave.c
+	${CLIENT_SRC_DIR}/vid/glimp_sdl.c
 	${CLIENR_SRC_DIR}/vid/vid.c
 	${COMMON_SRC_DIR}/argproc.c
 	${COMMON_SRC_DIR}/clientserver.c
