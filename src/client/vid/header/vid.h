@@ -27,7 +27,7 @@
 #ifndef CL_VID_H
 #define CL_VID_H
 
-#include "../../common/header/common.h"
+#include "../../../common/header/common.h"
 
 // FIXME: Remove it, it's unused. 
 typedef struct vrect_s {

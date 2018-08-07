@@ -164,7 +164,6 @@ endif()
 
 set(Backends-Generic-Source
 	${BACKENDS_SRC_DIR}/generic/misc.c
-	${BACKENDS_SRC_DIR}/generic/vid.c
 	${BACKENDS_SRC_DIR}/sdl/refresh.c
 	)
 
@@ -319,6 +318,7 @@ set(Client-Source
 	${CLIENT_SRC_DIR}/sound/sdl.c
 	${CLIENT_SRC_DIR}/sound/sound.c
 	${CLIENT_SRC_DIR}/sound/wave.c
+	${CLIENR_SRC_DIR}/vid/vid.c
 	${COMMON_SRC_DIR}/argproc.c
 	${COMMON_SRC_DIR}/clientserver.c
 	${COMMON_SRC_DIR}/collision.c
@@ -357,13 +357,13 @@ set(Client-Header
 	${CLIENT_SRC_DIR}/header/keyboard.h
 	${CLIENT_SRC_DIR}/header/ref.h
 	${CLIENT_SRC_DIR}/header/screen.h
-	${CLIENT_SRC_DIR}/header/vid.h
 	${CLIENT_SRC_DIR}/input/header/input.h
 	${CLIENT_SRC_DIR}/menu/header/qmenu.h
 	${CLIENT_SRC_DIR}/sound/header/local.h
 	${CLIENT_SRC_DIR}/sound/header/qal.h
 	${CLIENT_SRC_DIR}/sound/header/sound.h
 	${CLIENT_SRC_DIR}/sound/header/vorbis.h
+	${CLIENT_SRC_DIR}/vid/header/vid.h
 	${COMMON_SRC_DIR}/header/common.h
 	${COMMON_SRC_DIR}/header/crc.h
 	${COMMON_SRC_DIR}/header/files.h
