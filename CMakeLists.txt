@@ -562,7 +562,8 @@ else()
 endif()
 
 # Quake 2 Dedicated Server
-add_executable(q2ded ${Server-Source} ${Server-Header} ${Platform-Specific-Source})
+add_executable(q2ded ${Server-Source} ${Server-Header} ${Platform-Specific-Source}
+		${Backends-Generic-Source})
 set_target_properties(q2ded PROPERTIES
 	COMPILE_DEFINITIONS "DEDICATED_ONLY"
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
