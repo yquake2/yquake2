@@ -167,7 +167,6 @@ set(Backends-Generic-Source
 	)
 
 set(Backends-Unix-Source
-	${BACKENDS_SRC_DIR}/generic/misc.c
 	${BACKENDS_SRC_DIR}/unix/main.c
 	${BACKENDS_SRC_DIR}/unix/network.c
 	${BACKENDS_SRC_DIR}/unix/signalhandler.c
@@ -363,6 +362,7 @@ set(Client-Header
 	${CLIENT_SRC_DIR}/sound/header/sound.h
 	${CLIENT_SRC_DIR}/sound/header/vorbis.h
 	${CLIENT_SRC_DIR}/vid/header/ref.h
+	${CLIENT_SRC_DIR}/vid/header/stb_image_write.h
 	${CLIENT_SRC_DIR}/vid/header/vid.h
 	${COMMON_SRC_DIR}/header/common.h
 	${COMMON_SRC_DIR}/header/crc.h
@@ -452,7 +452,6 @@ set(GL1-Header
 	${REF_SRC_DIR}/gl1/header/local.h
 	${REF_SRC_DIR}/gl1/header/model.h
 	${REF_SRC_DIR}/gl1/header/qgl.h
-	${BACKENDS_SRC_DIR}/generic/header/stb_image_write.h
 	${COMMON_SRC_DIR}/header/shared.h
 	)
 
@@ -492,7 +491,6 @@ set(GL3-Header
 	${REF_SRC_DIR}/gl3/header/HandmadeMath.h
 	${REF_SRC_DIR}/gl3/header/local.h
 	${REF_SRC_DIR}/gl3/header/model.h
-	${BACKENDS_SRC_DIR}/generic/header/stb_image_write.h
 	${COMMON_SRC_DIR}/header/shared.h
 	)
 

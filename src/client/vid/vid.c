@@ -67,7 +67,7 @@ compress_for_stbiw(unsigned char *data, int data_len, int *out_len, int quality)
 #endif
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "../../backends/generic/header/stb_image_write.h"
+#include "header/stb_image_write.h"
 
 /*
  * Writes a screenshot. This function is called with raw image data of

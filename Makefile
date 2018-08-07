@@ -871,6 +871,7 @@ endif
 
 # Used by the server
 SERVER_OBJS_ := \
+	src/backends/generic/misc.o \
 	src/common/argproc.o \
 	src/common/clientserver.o \
 	src/common/collision.o \
@@ -899,8 +900,7 @@ SERVER_OBJS_ := \
 	src/server/sv_save.o \
 	src/server/sv_send.o \
 	src/server/sv_user.o \
-	src/server/sv_world.o \
-	src/backends/generic/misc.o
+	src/server/sv_world.o
 
 ifeq ($(YQ2_OSTYPE), Windows)
 SERVER_OBJS_ += \
