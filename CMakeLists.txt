@@ -106,12 +106,7 @@ if(${ZIP_SUPPORT})
 endif()
 
 if(${OGG_SUPPORT})
-	find_package(OggVorbis)
-	if(${OGGVORBIS_FOUND})
-		add_definitions(-DOGG)
-		list(APPEND yquake2IncludeDirectories ${VORBIS_INCLUDE_DIR})
-		list(APPEND yquake2ClientLinkerFlags ${OGG_LIBRARY} ${VORBIS_LIBRARY} ${VORBISFILE_LIBRARY})
-	endif()
+	add_definitions(-DOGG)
 endif()
 
 if(${OPENAL_SUPPORT})
@@ -360,6 +355,7 @@ set(Client-Header
 	${CLIENT_SRC_DIR}/sound/header/local.h
 	${CLIENT_SRC_DIR}/sound/header/qal.h
 	${CLIENT_SRC_DIR}/sound/header/sound.h
+	${CLIENT_SRC_DIR}/sound/header/stb_vorbis.h
 	${CLIENT_SRC_DIR}/sound/header/vorbis.h
 	${CLIENT_SRC_DIR}/vid/header/ref.h
 	${CLIENT_SRC_DIR}/vid/header/stb_image_write.h

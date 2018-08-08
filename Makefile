@@ -11,8 +11,6 @@
 #  - libGL                                               #
 #                                                        #
 # Further dependencies:                                  #
-#  - libogg                                              #
-#  - libvorbis                                           #
 #  - OpenAL                                              #
 #  - zlib                                                #
 #                                                        #
@@ -28,8 +26,7 @@
 # -------------------------
 
 # Enables OGG/Vorbis support. OGG/Vorbis files can be
-# used as a substitute of CD audio playback. Adds
-# dependencies to libogg, libvorbis and libvorbisfile.
+# used as a substitute of CD audio playback.
 WITH_OGG:=yes
 
 # Enables the optional OpenAL sound system.
@@ -342,7 +339,6 @@ build/client/%.o: %.c
 
 ifeq ($(WITH_OGG),yes)
 release/yquake2.exe : CFLAGS += -DOGG
-release/yquake2.exe : LDFLAGS += -lvorbisfile -lvorbis -logg
 endif
 
 ifeq ($(WITH_OPENAL),yes)
@@ -379,7 +375,6 @@ release/quake2 : CFLAGS += -Wno-unused-result
 
 ifeq ($(WITH_OGG),yes)
 release/quake2 : CFLAGS += -DOGG
-release/quake2 : LDFLAGS += -lvorbis -lvorbisfile -logg
 endif
 
 ifeq ($(WITH_OPENAL),yes)
