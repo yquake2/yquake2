@@ -90,7 +90,7 @@ R_DrawSpanletTurbulentStipple33(const int *r_turb_turb)
 {
 	pixel_t		*pdest = s_spanletvars.pdest;
 	zvalue_t	*pz    = s_spanletvars.pz;
-	int		izi   = s_spanletvars.izi;
+	zvalue_t	izi   = s_spanletvars.izi;
 
 	if ( s_spanletvars.v & 1 )
 	{
@@ -151,7 +151,7 @@ R_DrawSpanletTurbulentStipple66(const int *r_turb_turb)
 	int		sturb, tturb;
 	pixel_t		*pdest = s_spanletvars.pdest;
 	zvalue_t	*pz    = s_spanletvars.pz;
-	int		izi   = s_spanletvars.izi;
+	zvalue_t	izi   = s_spanletvars.izi;
 
 	if ( !( s_spanletvars.v & 1 ) )
 	{
@@ -370,7 +370,7 @@ R_DrawSpanlet33Stipple(const int *r_turb_turb)
 {
 	pixel_t		*pdest	= s_spanletvars.pdest;
 	zvalue_t	*pz	= s_spanletvars.pz;
-	int		izi	= s_spanletvars.izi;
+	zvalue_t	izi	= s_spanletvars.izi;
 
 	if ( r_polydesc.stipple_parity ^ ( s_spanletvars.v & 1 ) )
 	{
@@ -431,7 +431,7 @@ R_DrawSpanlet66Stipple(const int *r_turb_turb)
 	unsigned	btemp;
 	pixel_t		*pdest = s_spanletvars.pdest;
 	zvalue_t	*pz = s_spanletvars.pz;
-	int		izi = s_spanletvars.izi;
+	zvalue_t	izi = s_spanletvars.izi;
 
 	s_spanletvars.pdest += s_spanletvars.spancount;
 	s_spanletvars.pz    += s_spanletvars.spancount;

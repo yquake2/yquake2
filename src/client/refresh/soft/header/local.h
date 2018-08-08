@@ -208,11 +208,11 @@ typedef struct
 ** listed after it!
 */
 typedef struct finalvert_s {
-	int             u, v, s, t;
-	int             l;
-	int             zi;
-	int             flags;
-	float   xyz[3];         // eye space
+	int		u, v, s, t;
+	int		l;
+	zvalue_t	zi;
+	int		flags;
+	float		xyz[3];         // eye space
 } finalvert_t;
 
 
@@ -505,7 +505,8 @@ typedef struct {
 	zvalue_t	*pz;
 	int		count;
 	pixel_t		*ptex;
-	int		sfrac, tfrac, light, zi;
+	int		sfrac, tfrac, light;
+	zvalue_t	zi;
 } spanpackage_t;
 extern spanpackage_t	*triangle_spans;
 

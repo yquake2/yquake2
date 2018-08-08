@@ -672,7 +672,7 @@ D_DrawZSpans
 void
 D_DrawZSpans (espan_t *pspan)
 {
-	int izistep;
+	zvalue_t	izistep;
 
 	// FIXME: check for clamping/range problems
 	// we count on FP exceptions being turned off to avoid range problems
@@ -681,7 +681,7 @@ D_DrawZSpans (espan_t *pspan)
 	do
 	{
 		int		count;
-		int		izi;
+		zvalue_t	izi;
 		zvalue_t	*pdest;
 		float		zi;
 		float		du, dv;

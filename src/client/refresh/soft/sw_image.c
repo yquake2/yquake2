@@ -343,7 +343,7 @@ R_ShutdownImages
 void
 R_ShutdownImages (void)
 {
-	int		i;
+	int	i;
 	image_t	*image;
 
 	for (i=0, image=r_images ; i<numr_images ; i++, image++)

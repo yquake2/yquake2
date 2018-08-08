@@ -62,7 +62,7 @@ static edgetable edgetables[12] = {
 // FIXME: some of these can become statics
 static int	a_sstepxfrac, a_tstepxfrac, r_lstepx, a_ststepxwhole;
 static int	r_sstepx, r_tstepx, r_lstepy, r_sstepy, r_tstepy;
-static int	r_zistepx, r_zistepy;
+static zvalue_t	r_zistepx, r_zistepy;
 static int	d_aspancount, d_countextrastep;
 
 static spanpackage_t	*a_spans;
@@ -73,13 +73,14 @@ spanpackage_t	*triangle_spans;
 static int	ystart;
 static pixel_t	*d_pdest, *d_ptex;
 static zvalue_t	*d_pz;
-static int	d_sfrac, d_tfrac, d_light, d_zi;
+static int	d_sfrac, d_tfrac, d_light;
+static zvalue_t	d_zi;
 static int	d_ptexextrastep, d_sfracextrastep;
 static int	d_tfracextrastep, d_lightextrastep, d_pdestextrastep;
 static int	d_lightbasestep, d_pdestbasestep, d_ptexbasestep;
 static int	d_sfracbasestep, d_tfracbasestep;
-static int	d_ziextrastep, d_zibasestep;
-static int	d_pzextrastep, d_pzbasestep;
+static zvalue_t	d_ziextrastep, d_zibasestep;
+static zvalue_t	d_pzextrastep, d_pzbasestep;
 
 typedef struct {
 	int		quotient;
@@ -460,7 +461,7 @@ R_PolysetDrawSpans8_33( spanpackage_t *pspanpackage)
 	byte		*lptex;
 	int		lsfrac, ltfrac;
 	int		llight;
-	int		lzi;
+	zvalue_t	lzi;
 	zvalue_t	*lpz;
 
 	do
@@ -572,7 +573,7 @@ R_PolysetDrawSpans8_66(spanpackage_t *pspanpackage)
 	pixel_t		*lptex;
 	int		lsfrac, ltfrac;
 	int		llight;
-	int		lzi;
+	zvalue_t	lzi;
 	zvalue_t	*lpz;
 
 	do
@@ -636,7 +637,7 @@ void
 R_PolysetDrawSpansConstant8_66( spanpackage_t *pspanpackage)
 {
 	pixel_t		*lpdest;
-	int		lzi;
+	zvalue_t	lzi;
 	zvalue_t	*lpz;
 
 	do
@@ -703,7 +704,7 @@ R_PolysetDrawSpans8_Opaque (spanpackage_t *pspanpackage)
 			pixel_t		*lpdest;
 			pixel_t		*lptex;
 			int		llight;
-			int		lzi;
+			zvalue_t	lzi;
 			zvalue_t	*lpz;
 
 			lpdest = pspanpackage->pdest;
