@@ -91,6 +91,48 @@ D_WarpScreen (void)
 	}
 }
 
+
+/*
+=============
+D_DrawSpanGetStep
+
+Return safe span step for u/z and v/z
+=============
+*/
+static int
+D_DrawSpanGetStep(float d_zistepu, float d_zistepv, int cachewidth)
+{
+	int	spanzshift = SPANSTEP_SHIFT;
+	int	spanzshift_value = (1 << spanzshift);
+	float	d_zistepu_shifted, d_zistepv_shifted;
+
+	d_zistepu_shifted = d_zistepu * SHIFT16XYZ_MULT;
+	d_zistepv_shifted = d_zistepv * SHIFT16XYZ_MULT;
+
+	// check that we can draw parallel surfaces to screen surface
+	// (both ends have same z value)
+	if ((int)(d_zistepu_shifted * spanzshift_value) == 0 &&
+	    (int)(d_zistepv_shifted * spanzshift_value) == 0)
+	{
+		// search next safe value
+		while (spanzshift_value < cachewidth &&
+		       (int)(d_zistepu_shifted * spanzshift_value) == 0 &&
+		       (int)(d_zistepv_shifted * spanzshift_value) == 0)
+		{
+			spanzshift ++;
+			spanzshift_value <<= 1;
+		}
+
+		// step back to last safe value
+		if ((int)(d_zistepu_shifted * spanzshift_value) != 0 ||
+		    (int)(d_zistepv_shifted * spanzshift_value) != 0)
+		{
+			spanzshift --;
+		}
+	}
+	return spanzshift;
+}
+
 /*
 =============
 D_DrawTurbulentSpan
@@ -528,13 +570,17 @@ D_DrawSpansPow2 (espan_t *pspan)
 	float	spancountminus1;
 	float	sdivzpow2stepu, tdivzpow2stepu, zipow2stepu;
 	int	texture_filtering;
+	int	spanstep_shift, spanstep_value;
+
+	spanstep_shift = D_DrawSpanGetStep(d_zistepu, d_zistepv, cachewidth);
+	spanstep_value = (1 << spanstep_shift);
 
 	pbase = (unsigned char *)cacheblock;
 
 	texture_filtering = (int)sw_texture_filtering->value;
-	sdivzpow2stepu = d_sdivzstepu * SPANSTEP;
-	tdivzpow2stepu = d_tdivzstepu * SPANSTEP;
-	zipow2stepu = d_zistepu * SPANSTEP;
+	sdivzpow2stepu = d_sdivzstepu * spanstep_value;
+	tdivzpow2stepu = d_tdivzstepu * spanstep_value;
+	zipow2stepu = d_zistepu * spanstep_value;
 
 	do
 	{
@@ -575,8 +621,8 @@ D_DrawSpansPow2 (espan_t *pspan)
 			tstep = 0;	// ditto
 
 			// calculate s and t at the far end of the span
-			if (count >= SPANSTEP)
-				spancount = SPANSTEP;
+			if (count >= spanstep_value)
+				spancount = spanstep_value;
 			else
 				spancount = count;
 
@@ -594,21 +640,21 @@ D_DrawSpansPow2 (espan_t *pspan)
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
-				else if (snext < SPANSTEP)
+				else if (snext < spanstep_value)
 					// prevent round-off error on <0 steps from
 					//  from causing overstepping & running off the
 					//  edge of the texture
-					snext = SPANSTEP;
+					snext = spanstep_value;
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
-				else if (tnext < SPANSTEP)
+				else if (tnext < spanstep_value)
 					// guard against round-off error on <0 steps
-					tnext = SPANSTEP;
+					tnext = spanstep_value;
 
-				sstep = (snext - s) >> SPANSTEP_SHIFT;
-				tstep = (tnext - t) >> SPANSTEP_SHIFT;
+				sstep = (snext - s) >> spanstep_shift;
+				tstep = (tnext - t) >> spanstep_shift;
 			}
 			else
 			{
@@ -624,18 +670,18 @@ D_DrawSpansPow2 (espan_t *pspan)
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
-				else if (snext < SPANSTEP)
+				else if (snext < spanstep_value)
 					// prevent round-off error on <0 steps from
 					//  from causing overstepping & running off the
 					//  edge of the texture
-					snext = SPANSTEP;
+					snext = spanstep_value;
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
-				else if (tnext < SPANSTEP)
+				else if (tnext < spanstep_value)
 					// guard against round-off error on <0 steps
-					tnext = SPANSTEP;
+					tnext = spanstep_value;
 
 				if (spancount > 1)
 				{
@@ -655,10 +701,8 @@ D_DrawSpansPow2 (espan_t *pspan)
 				pdest = D_DrawSpanFiltered(pdest, pbase, s, t, sstep, tstep,
 						   spancount, pspan);
 			}
-
 			s = snext;
 			t = tnext;
-
 		} while (count > 0);
 
 	} while ((pspan = pspan->pnext) != NULL);
