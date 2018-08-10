@@ -115,7 +115,7 @@ D_DrawSpanGetStep(float d_zistepu, float d_zistepv, int cachewidth)
 	    (int)(d_zistepv_shifted * spanzshift_value) == 0)
 	{
 		// search next safe value
-		while (spanzshift_value < cachewidth &&
+		while (spanzshift_value < vid.width &&
 		       (int)(d_zistepu_shifted * spanzshift_value) == 0 &&
 		       (int)(d_zistepv_shifted * spanzshift_value) == 0)
 		{

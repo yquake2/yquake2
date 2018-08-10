@@ -1210,7 +1210,7 @@ R_DrawPoly(int iswater)
 ** R_DrawAlphaSurfaces
 */
 void
-R_DrawAlphaSurfaces( void )
+R_DrawAlphaSurfaces(void)
 {
 	msurface_t *s = r_alpha_surfaces;
 

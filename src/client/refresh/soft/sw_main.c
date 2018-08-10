@@ -210,9 +210,9 @@ static struct texture_buffer {
 
 static void Draw_GetPalette (void);
 static void RE_BeginFrame( float camera_separation );
-static void Draw_BuildGammaTable( void );
+static void Draw_BuildGammaTable(void);
 static void RE_EndFrame(void);
-static void R_DrawBeam(entity_t *e);
+static void R_DrawBeam(const entity_t *e);
 
 /*
 ==================
@@ -269,8 +269,8 @@ R_InitTurb (void)
 	}
 }
 
-void R_ImageList_f( void );
-static void R_ScreenShot_f( void );
+void R_ImageList_f(void);
+static void R_ScreenShot_f(void);
 
 static void
 R_Register (void)
@@ -332,7 +332,7 @@ R_UnRegister (void)
 	ri.Cmd_RemoveCommand( "imagelist" );
 }
 
-static void SWimp_Shutdown(void );
+static void SWimp_DestroyRender(void);
 
 /*
 ===============
@@ -402,7 +402,7 @@ RE_Shutdown (void)
 	Mod_FreeAll ();
 	R_ShutdownImages ();
 
-	SWimp_Shutdown();
+	SWimp_DestroyRender();
 }
 
 /*
@@ -597,7 +597,7 @@ R_MarkLeaves (void)
 ** IMPLEMENT THIS!
 */
 static void
-R_DrawNullModel( void )
+R_DrawNullModel(void)
 {
 }
 
@@ -714,7 +714,7 @@ R_BmodelCheckBBox
 =============
 */
 static int
-R_BmodelCheckBBox (float *minmaxs)
+R_BmodelCheckBBox (const float *minmaxs)
 {
 	int i, clipflags;
 
@@ -809,7 +809,7 @@ Returns an axially aligned box that contains the input box at the given rotation
 =============
 */
 static void
-RotatedBBox (vec3_t mins, vec3_t maxs, vec3_t angles, vec3_t tmins, vec3_t tmaxs)
+RotatedBBox (const vec3_t mins, const vec3_t maxs, vec3_t angles, vec3_t tmins, vec3_t tmaxs)
 {
 	vec3_t	tmp, v;
 	int		i, j;
@@ -1366,7 +1366,7 @@ Draw_BuildGammaTable (void)
 ** R_DrawBeam
 */
 static void
-R_DrawBeam( entity_t *e )
+R_DrawBeam(const entity_t *e)
 {
 #define NUM_BEAM_SEGS 6
 
@@ -1570,21 +1570,20 @@ GetRefAPI(refimport_t imp)
  * is only one software renderer.
  */
 
-static SDL_Window* window = NULL;
-static SDL_Surface *surface = NULL;
-static SDL_Texture *texture = NULL;
-static SDL_Renderer *renderer = NULL;
-static qboolean X11_active = false;
+static SDL_Window	*window = NULL;
+static SDL_Surface	*surface = NULL;
+static SDL_Texture	*texture = NULL;
+static SDL_Renderer	*renderer = NULL;
 
 /*
  * Sets the window icon
  */
-/* The 64x64 32bit window icon */
-#include "../../vid/icon/q2icon64.h"
-
 static void
 SetSDLIcon()
 {
+	/* The 64x64 32bit window icon */
+	#include "../../vid/icon/q2icon64.h"
+
 	/* these masks are needed to tell SDL_CreateRGBSurface(From)
 	   to assume the data it gets is byte-wise RGB(A) data */
 	Uint32 rmask, gmask, bmask, amask;
@@ -1641,7 +1640,7 @@ GetWindowSize(int* w, int* h)
 }
 
 static int
-R_InitContext(void* win)
+R_InitContext(SDL_Window *win)
 {
 	char title[40] = {0};
 
@@ -1651,7 +1650,7 @@ R_InitContext(void* win)
 		return false;
 	}
 
-	window = (SDL_Window*)win;
+	window = win;
 
 	/* Window title - set here so we can display renderer name in it */
 	snprintf(title, sizeof(title), "Yamagi Quake II %s - Soft Render", YQ2VERSION);
@@ -1941,7 +1940,6 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	memset(sw_state.palette_colors, 0, sizeof(sw_state.palette_colors));
 
 	sdl_palette_outdated = true;
-	X11_active = true;
 
 	return true;
 }
@@ -2027,7 +2025,6 @@ RE_EndFrame (void)
 
 	RE_CopyFrame (pixels, pitch);
 
-
 	SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
 	SDL_RenderClear(renderer);
 	SDL_RenderCopy(renderer, texture, NULL, NULL);
@@ -2060,21 +2057,6 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 	R_GammaCorrectAndSetPalette( ( const unsigned char * ) d_8to24table );
 
 	return retval;
-}
-
-/*
-** SWimp_Shutdown
-**
-** System specific graphics subsystem shutdown routine.  Destroys
-** DIBs or DDRAW surfaces as appropriate.
-*/
-
-static void
-SWimp_Shutdown( void )
-{
-	SWimp_DestroyRender();
-
-	X11_active = false;
 }
 
 // this is only here so the functions in q_shared.c and q_shwin.c can link
