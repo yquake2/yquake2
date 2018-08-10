@@ -39,7 +39,7 @@
 // If we build with zip support, zlib is available and
 // we can use that for better PNG compression.
 
-#include <zlib.h>
+#include "../../common/unzip/miniz.h"
 
 static unsigned char*
 compress_for_stbiw(unsigned char *data, int data_len, int *out_len, int quality)

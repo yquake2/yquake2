@@ -43,7 +43,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "zlib.h"
+#include "miniz.h"
+#include "minizconf.h"
 
 #if defined(USE_FILE32API)
 #define fopen64 fopen

@@ -95,9 +95,6 @@ if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD")
 endif()
 
 if(${ZIP_SUPPORT})
-	find_package(ZLIB REQUIRED)
-	list(APPEND yquake2IncludeDirectories ${ZLIB_INCLUDE_DIRS})
-	list(APPEND yquake2ZLibLinkerFlags ${ZLIB_LIBRARIES})
 	add_definitions(-DZIP -DNOUNCRYPT)
 
 	if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux" OR NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
@@ -332,6 +329,7 @@ set(Client-Source
 	${COMMON_SRC_DIR}/shared/rand.c
 	${COMMON_SRC_DIR}/shared/shared.c
 	${COMMON_SRC_DIR}/unzip/ioapi.c
+	${COMMON_SRC_DIR}/unzip/miniz.c
 	${COMMON_SRC_DIR}/unzip/unzip.c
 	${SERVER_SRC_DIR}/sv_cmd.c
 	${SERVER_SRC_DIR}/sv_conless.c
@@ -367,6 +365,8 @@ set(Client-Header
 	${COMMON_SRC_DIR}/header/shared.h
 	${COMMON_SRC_DIR}/header/zone.h
 	${COMMON_SRC_DIR}/unzip/ioapi.h
+	${COMMON_SRC_DIR}/unzip/miniz.h
+	${COMMON_SRC_DIR}/unzip/minizconf.h
 	${COMMON_SRC_DIR}/unzip/unzip.h
 	${SERVER_SRC_DIR}/header/server.h
 	)
@@ -390,6 +390,7 @@ set(Server-Source
 	${COMMON_SRC_DIR}/shared/rand.c
 	${COMMON_SRC_DIR}/shared/shared.c
 	${COMMON_SRC_DIR}/unzip/ioapi.c
+	${COMMON_SRC_DIR}/unzip/miniz.c
 	${COMMON_SRC_DIR}/unzip/unzip.c
 	${SERVER_SRC_DIR}/sv_cmd.c
 	${SERVER_SRC_DIR}/sv_conless.c
@@ -411,6 +412,8 @@ set(Server-Header
 	${COMMON_SRC_DIR}/header/shared.h
 	${COMMON_SRC_DIR}/header/zone.h
 	${COMMON_SRC_DIR}/unzip/ioapi.h
+	${COMMON_SRC_DIR}/unzip/miniz.h
+	${COMMON_SRC_DIR}/unzip/minizconf.h
 	${COMMON_SRC_DIR}/unzip/unzip.h
 	${SERVER_SRC_DIR}/header/server.h
 	)

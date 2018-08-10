@@ -347,7 +347,6 @@ endif
 
 ifeq ($(WITH_ZIP),yes)
 release/yquake2.exe : CFLAGS += -DZIP -DNOUNCRYPT
-release/yquake2.exe : LDFLAGS += -lz
 endif
 
 release/yquake2.exe : LDFLAGS += -mwindows
@@ -399,7 +398,6 @@ endif # WITH_OPENAL
 
 ifeq ($(WITH_ZIP),yes)
 release/quake2 : CFLAGS += $(ZIPCFLAGS) -DZIP -DNOUNCRYPT
-release/quake2 : LDFLAGS += -lz
 endif
 
 ifeq ($(YQ2_OSTYPE), FreeBSD)
@@ -440,11 +438,9 @@ build/server/%.o: %.c
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 release/q2ded.exe : CFLAGS += -DDEDICATED_ONLY
-release/q2ded.exe : LDFLAGS += -lz
 
 ifeq ($(WITH_ZIP),yes)
 release/q2ded.exe : CFLAGS += -DZIP -DNOUNCRYPT
-release/q2ded.exe : LDFLAGS += -lz
 endif
 else # not Windows
 server:
@@ -461,7 +457,6 @@ release/q2ded : CFLAGS += -DDEDICATED_ONLY -Wno-unused-result
 
 ifeq ($(WITH_ZIP),yes)
 release/q2ded : CFLAGS += $(ZIPCFLAGS) -DZIP -DNOUNCRYPT
-release/q2ded : LDFLAGS += -lz
 endif
 
 ifeq ($(YQ2_OSTYPE), FreeBSD)
@@ -734,6 +729,7 @@ CLIENT_OBJS_ := \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o \
 	src/common/unzip/ioapi.o \
+	src/common/unzip/miniz.o \
 	src/common/unzip/unzip.o \
 	src/server/sv_cmd.o \
 	src/server/sv_conless.o \
@@ -885,6 +881,7 @@ SERVER_OBJS_ := \
 	src/common/shared/rand.o \
 	src/common/shared/shared.o \
 	src/common/unzip/ioapi.o \
+	src/common/unzip/miniz.o \
 	src/common/unzip/unzip.o \
 	src/server/sv_cmd.o \
 	src/server/sv_conless.o \
