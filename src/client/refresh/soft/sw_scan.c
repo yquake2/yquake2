@@ -459,7 +459,7 @@ NonTurbulentPow2 (espan_t *pspan)
 //====================
 
 // Enable custom filtering
-extern cvar_t	*sw_texture_filtering;
+extern cvar_t	*r_anisotropic;
 static const int filtering_kernel[2][2][2] = {
 	{
 		{0x1 << (SHIFT16XYZ-2), 0x0},
@@ -577,7 +577,7 @@ D_DrawSpansPow2 (espan_t *pspan)
 
 	pbase = (unsigned char *)cacheblock;
 
-	texture_filtering = (int)sw_texture_filtering->value;
+	texture_filtering = (int)r_anisotropic->value;
 	sdivzpow2stepu = d_sdivzstepu * spanstep_value;
 	tdivzpow2stepu = d_tdivzstepu * spanstep_value;
 	zipow2stepu = d_zistepu * spanstep_value;
