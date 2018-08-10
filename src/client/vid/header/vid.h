@@ -58,6 +58,7 @@ extern int glimp_refreshRate;
 qboolean GLimp_Init(void);
 void GLimp_Shutdown(void);
 qboolean GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight);
+void GLimp_ShutdownGraphics(void);
 void GLimp_GrabInput(qboolean grab);
 int GLimp_GetRefreshRate(void);
 

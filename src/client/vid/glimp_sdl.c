@@ -185,6 +185,8 @@ GLimp_Init(void)
 void
 GLimp_Shutdown(void)
 {
+	ShutdownGraphics();
+
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)
 	{
 		SDL_Quit();
@@ -330,6 +332,16 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	initSuccessful = true;
 
 	return true;
+}
+
+/*
+ * Shuts the window down.
+ */
+void
+GLimp_ShutdownGraphics(void)
+{
+	SDL_GL_ResetAttributes();
+	ShutdownGraphics();
 }
 
 /*
