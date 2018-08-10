@@ -5,7 +5,7 @@ copys for each license:
 - Quake II: GPLv2
 - Info-ZIP (unzip): Info-ZIP License
 - Cocoa SDL entry points
-- stb_image.h, stb_image_write.h
+- stb_image.h, stb_image_write.h, stb_vorbis.h
 
 Parts of other Quake II Clients were included into the source. They
 covered by the same GPLv2 license as Quake II itself:
@@ -447,7 +447,8 @@ Feel free to customize this file to suit your needs
 
 ===============================================================================
 
- stb single-file public domain libraries (stb_image.h, stb_image_write.h)
+ stb single-file public domain libraries
+ (stb_image.h, stb_image_write.h, stb_vorbis.h)
  https://github.com/nothings/stb/
  Dual-Licensed: Public Domain (Unlicense) or MIT License:
  
