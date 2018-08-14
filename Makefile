@@ -2,17 +2,17 @@
 # Makefile for the "Yamagi Quake 2 Client"               #
 #                                                        #
 # Just type "make" to compile the                        #
-#  - SDL Client (quake2)                                 #
+#  - Client (quake2)                                     #
 #  - Server (q2ded)                                      #
 #  - Quake II Game (baseq2)                              #
+#  - Renderer libraries (gl1, gl3, soft)                 #
 #                                                        #
 # Base dependencies:                                     #
 #  - SDL 2.0                                             #
 #  - libGL                                               #
 #                                                        #
-# Further dependencies:                                  #
+# Optional dependencies:                                 #
 #  - OpenAL                                              #
-#  - zlib                                                #
 #                                                        #
 # Platforms:                                             #
 #  - FreeBSD                                             #
@@ -89,18 +89,21 @@ else
 YQ2_ARCH ?= $(shell uname -m | sed -e 's/i.86/i386/' -e 's/amd64/x86_64/' -e 's/^arm.*/arm/')
 endif
 
+# On Windows / MinGW $(CC) is undefined by default.
+ifeq ($(YQ2_OSTYPE),Windows)
+CC := gcc
+endif
+
 # Detect the compiler
 ifeq ($(shell $(CC) -v 2>&1 | grep -c "clang version"), 1)
 COMPILER := clang
-else ifeq ($(shell $(CC) -v 2>&1 | grep -c "gcc version"), 1)
+COMPILERVER := $(shell $(CC)  -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/')
+else ifeq ($(shell $(CC) -v 2>&1 | grep -c -E "(gcc version|gcc-Version)"), 1)
 COMPILER := gcc
+COMPILERVER := $(shell $(CC)  -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/')
 else
 COMPILER := unknown
 endif
-
-# Used to detect libraries. Override to foobar-linux-gnu-pkg-config when
-# cross-compiling.
-PKG_CONFIG ?= pkg-config
 
 # ----------
 
@@ -121,6 +124,9 @@ PKG_CONFIG ?= pkg-config
 #
 # -MMD to generate header dependencies. (They cannot be
 #  generated if building universal binaries on OSX)
+#
+# -fwrapv for defined integer wrapping. MSVC6 did this
+#  and the game code requires it.
 ifeq ($(YQ2_OSTYPE), Darwin)
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 		  -Wall -pipe -g -fwrapv
@@ -132,11 +138,28 @@ endif
 
 # ----------
 
+# Switch of some annoying warnings.
+ifeq ($(COMPILER), clang)
+	# -Wno-missing-braces because otherwise clang complains
+	#  about totally valid 'vec3_t bla = {0}' constructs.
+	CFLAGS += -Wno-missing-braces
+else ifeq ($(COMPILER), gcc)
+	# GCC 8.0 or higher.
+	ifeq ($(shell test $(COMPILERVER) -ge 80000; echo $$?),0)
+	    # -Wno-format-truncation and -Wno-format-overflow
+		# because GCC spams about 50 false positives.
+    	CFLAGS += -Wno-format-truncation -Wno-format-overflow
+	endif
+endif
+
+# ----------
+
 # Defines the operating system and architecture
 CFLAGS += -DYQ2OSTYPE=\"$(YQ2_OSTYPE)\" -DYQ2ARCH=\"$(YQ2_ARCH)\"
 
 # ----------
 
+# Fore reproduceable builds, look here for details:
 # https://reproducible-builds.org/specs/source-date-epoch/
 ifdef SOURCE_DATE_EPOCH
 CFLAGS += -DBUILD_DATE=\"$(shell date --utc --date="@${SOURCE_DATE_EPOCH}" +"%b %_d %Y" | sed -e 's/ /\\ /g')\"
@@ -161,20 +184,12 @@ endif
 
 # ----------
 
-# Systemwide installation
+# Systemwide installation.
 ifeq ($(WITH_SYSTEMWIDE),yes)
 CFLAGS += -DSYSTEMWIDE
 ifneq ($(WITH_SYSTEMDIR),"")
 CFLAGS += -DSYSTEMDIR=\"$(WITH_SYSTEMDIR)\"
 endif
-endif
-
-# ----------
-
-# On Windows / MinGW $(CC) is
-# undefined by default.
-ifeq ($(YQ2_OSTYPE),Windows)
-CC := gcc
 endif
 
 # ----------
@@ -201,7 +216,7 @@ ZIPCFLAGS += -DNOUNCRYPT
 
 # ----------
 
-# Extra CFLAGS for SDL
+# Extra CFLAGS for SDL.
 SDLCFLAGS := $(shell sdl2-config --cflags)
 
 # ----------
@@ -219,7 +234,7 @@ endif
 
 # ----------
 
-# Extra includes for GLAD
+# Local includes for GLAD.
 GLAD_INCLUDE = -Isrc/client/refresh/gl3/glad/include
 
 # ----------
@@ -237,12 +252,15 @@ else ifeq ($(YQ2_OSTYPE), Darwin)
 LDFLAGS := $(OSX_ARCH) -lm
 endif
 
+# Keep symbols hidden.
 CFLAGS += -fvisibility=hidden
 LDFLAGS += -fvisibility=hidden
 
-ifneq ($(YQ2_OSTYPE), $(filter $(YQ2_OSTYPE), Darwin OpenBSD))
-# for some reason the OSX & OpenBSD linker doesn't support this
+ifneq ($(YQ2_OSTYPE), Darwin)
+ifneq ($(YQ2_OSTYPE), OpenBSD)
+# for some reason the OSX & OpenBSD linker doesn't support this...
 LDFLAGS += -Wl,--no-undefined
+endif
 endif
 
 # ----------
@@ -254,11 +272,15 @@ else # not Darwin
 SDLLDFLAGS := $(shell sdl2-config --libs)
 endif # Darwin
 
+# The renderer libs don't need libSDL2main, libmingw32 or -mwindows.
+ifeq ($(YQ2_OSTYPE), Windows)
+DLL_SDLLDFLAGS = $(subst -mwindows,,$(subst -lmingw32,,$(subst -lSDL2main,,$(SDLLDFLAGS))))
+endif
+
 # ----------
 
 # When make is invoked by "make VERBOSE=1" print
 # the compiler and linker commands.
-
 ifdef VERBOSE
 Q :=
 else
@@ -289,8 +311,7 @@ config:
 
 # ----------
 
-# Special target to compile
-# the icon on Windows
+# Special target to compile the icon on Windows
 ifeq ($(YQ2_OSTYPE), Windows)
 icon:
 	@echo "===> WR build/icon/icon.res"
@@ -325,11 +346,11 @@ build/client/%.o: %.c
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(ZIPCFLAGS) $(INCLUDE) -o $@ $<
 
+release/yquake2.exe : LDFLAGS += -mwindows
+
 ifeq ($(WITH_OPENAL),yes)
 release/yquake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"'
 endif
-
-release/yquake2.exe : LDFLAGS += -mwindows
 
 else # not Windows
 
@@ -338,16 +359,16 @@ client:
 	${Q}mkdir -p release
 	$(MAKE) release/quake2
 
-build/client/%.o: %.c
-	@echo "===> CC $<"
-	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(ZIPCFLAGS) $(INCLUDE) -o $@ $<
-
 ifeq ($(YQ2_OSTYPE), Darwin)
 build/client/%.o : %.m
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) $(OSX_ARCH) -x objective-c -c $< -o $@
+else
+build/client/%.o: %.c
+	@echo "===> CC $<"
+	${Q}mkdir -p $(@D)
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(ZIPCFLAGS) $(INCLUDE) -o $@ $<
 endif
 
 release/quake2 : CFLAGS += -Wno-unused-result
@@ -361,7 +382,11 @@ release/quake2 : LDFLAGS += -L/usr/local/opt/openal-soft/lib -rpath /usr/local/o
 else
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
 endif
-endif # WITH_OPENAL
+endif
+
+ifeq ($(YQ2_OSTYPE), FreeBSD)
+release/quake2 : LDFLAGS += -lexecinfo
+endif
 
 ifeq ($(YQ2_OSTYPE), FreeBSD)
 release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib' -lexecinfo
@@ -433,10 +458,6 @@ ref_gl1:
 
 release/ref_gl1.dll : LDFLAGS += -lopengl32 -shared
 
-# don't want the dll to link against libSDL2main or libmingw32, and no -mwindows either
-# that's for the .exe only
-DLL_SDLLDFLAGS = $(subst -mwindows,,$(subst -lmingw32,,$(subst -lSDL2main,,$(SDLLDFLAGS))))
-
 else ifeq ($(YQ2_OSTYPE), Darwin)
 
 ref_gl1:
@@ -456,7 +477,7 @@ ref_gl1:
 release/ref_gl1.so : CFLAGS += -fPIC
 release/ref_gl1.so : LDFLAGS += -shared -lGL
 
-endif # OS specific ref_gl1 shit
+endif # OS specific ref_gl1 stuff
 
 build/ref_gl1/%.o: %.c
 	@echo "===> CC $<"
@@ -494,7 +515,7 @@ ref_gl3:
 release/ref_gl3.so : CFLAGS += -fPIC
 release/ref_gl3.so : LDFLAGS += -shared
 
-endif # OS specific ref_gl3 shit
+endif # OS specific ref_gl3 stuff
 
 build/ref_gl3/%.o: %.c
 	@echo "===> CC $<"
@@ -530,7 +551,7 @@ ref_soft:
 release/ref_soft.so : CFLAGS += -fPIC
 release/ref_soft.so : LDFLAGS += -shared
 
-endif # OS specific ref_soft shit
+endif # OS specific ref_soft stuff
 
 build/ref_soft/%.o: %.c
 	@echo "===> CC $<"
@@ -552,7 +573,9 @@ build/baseq2/%.o: %.c
 	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 release/baseq2/game.dll : LDFLAGS += -shared
+
 else ifeq ($(YQ2_OSTYPE), Darwin)
+
 game:
 	@echo "===> Building baseq2/game.dylib"
 	${Q}mkdir -p release/baseq2
@@ -565,7 +588,9 @@ build/baseq2/%.o: %.c
 
 release/baseq2/game.dylib : CFLAGS += -fPIC
 release/baseq2/game.dylib : LDFLAGS += -shared
+
 else # not Windows or Darwin
+
 game:
 	@echo "===> Building baseq2/game.so"
 	${Q}mkdir -p release/baseq2
@@ -868,7 +893,7 @@ endif
 
 # ----------
 
-# Rewrite pathes to our object directory
+# Rewrite pathes to our object directory.
 CLIENT_OBJS = $(patsubst %,build/client/%,$(CLIENT_OBJS_))
 REFGL1_OBJS = $(patsubst %,build/ref_gl1/%,$(REFGL1_OBJS_))
 REFGL3_OBJS = $(patsubst %,build/ref_gl3/%,$(REFGL3_OBJS_))
@@ -878,7 +903,7 @@ GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 
 # ----------
 
-# Generate header dependencies
+# Generate header dependencies.
 CLIENT_DEPS= $(CLIENT_OBJS:.o=.d)
 REFGL1_DEPS= $(REFGL1_OBJS:.o=.d)
 REFGL3_DEPS= $(REFGL3_OBJS:.o=.d)
@@ -886,9 +911,7 @@ REFSOFT_DEPS= $(REFSOFT_OBJS:.o=.d)
 SERVER_DEPS= $(SERVER_OBJS:.o=.d)
 GAME_DEPS= $(GAME_OBJS:.o=.d)
 
-# ----------
-
-# Suck header dependencies in
+# Suck header dependencies in.
 -include $(CLIENT_DEPS)
 -include $(REFGL1_DEPS)
 -include $(REFGL3_DEPS)
@@ -903,7 +926,6 @@ release/yquake2.exe : $(CLIENT_OBJS) icon
 	@echo "===> LD $@"
 	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 	$(Q)strip $@
-# the wrappper, quick'n'dirty
 release/quake2.exe : src/win-wrapper/wrapper.c icon
 	$(Q)$(CC) -Wall -mwindows build/icon/icon.res src/win-wrapper/wrapper.c -o $@
 	$(Q)strip $@
