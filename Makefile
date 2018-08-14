@@ -25,10 +25,6 @@
 # User configurable options
 # -------------------------
 
-# Enables OGG/Vorbis support. OGG/Vorbis files can be
-# used as a substitute of CD audio playback.
-WITH_OGG:=yes
-
 # Enables the optional OpenAL sound system.
 # To use it your system needs libopenal.so.1
 # or openal32.dll (we recommend openal-soft)
@@ -337,10 +333,6 @@ build/client/%.o: %.c
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
-ifeq ($(WITH_OGG),yes)
-release/yquake2.exe : CFLAGS += -DOGG
-endif
-
 ifeq ($(WITH_OPENAL),yes)
 release/yquake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"' -DDLOPEN_OPENAL
 endif
@@ -371,10 +363,6 @@ build/client/%.o : %.m
 endif
 
 release/quake2 : CFLAGS += -Wno-unused-result
-
-ifeq ($(WITH_OGG),yes)
-release/quake2 : CFLAGS += -DOGG
-endif
 
 ifeq ($(WITH_OPENAL),yes)
 ifeq ($(DLOPEN_OPENAL),yes)

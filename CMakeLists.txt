@@ -37,7 +37,6 @@ string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
 # yquake2 compilation options
 option(ZIP_SUPPORT "ZIP support" ON)
-option(OGG_SUPPORT "OGG Vorbis playback support (Music)" ON)
 option(OPENAL_SUPPORT "OpenAL support" ON)
 option(SYSTEMWIDE_SUPPORT "Enable systemwide installation of game assets" OFF)
 
@@ -100,10 +99,6 @@ if(${ZIP_SUPPORT})
 	if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux" OR NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
 		add_definitions(-DIOAPI_NO_64)
 	endif()
-endif()
-
-if(${OGG_SUPPORT})
-	add_definitions(-DOGG)
 endif()
 
 if(${OPENAL_SUPPORT})

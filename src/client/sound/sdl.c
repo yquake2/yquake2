@@ -1168,10 +1168,8 @@ SDL_Update(void)
 		Com_Printf("----(%i)---- painted: %i\n", total, paintedtime);
 	}
 
-#ifdef OGG
 	/* stream music */
 	OGG_Stream();
-#endif
 
 	if (!sound.buffer)
 	{

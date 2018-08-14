@@ -906,9 +906,8 @@ CL_Shutdown(void)
 
 	Key_WriteConsoleHistory();
 
-#ifdef OGG
 	OGG_Stop();
-#endif
+
 	S_Shutdown();
 	IN_Shutdown();
 	VID_Shutdown();

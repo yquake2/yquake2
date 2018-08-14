@@ -321,9 +321,7 @@ CL_Disconnect(void)
 
 	SCR_StopCinematic();
 
-#ifdef OGG
 	OGG_Stop();
-#endif
 
 	if (cls.demorecording)
 	{

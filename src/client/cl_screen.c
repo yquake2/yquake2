@@ -567,9 +567,8 @@ SCR_BeginLoadingPlaque(void)
 {
 	S_StopAllSounds();
 	cl.sound_prepped = false; /* don't play ambients */
-#ifdef OGG
+
 	OGG_Stop();
-#endif
 
 	if (cls.disable_screen)
 	{
