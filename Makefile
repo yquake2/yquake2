@@ -37,10 +37,6 @@ WITH_OPENAL:=yes
 # is ignored, OpenAL is always loaded at runtime.
 DLOPEN_OPENAL:=yes
 
-# Enables opening of ZIP files (also known as .pk3 paks).
-# Adds a dependency to libz
-WITH_ZIP:=yes
-
 # Enable systemwide installation of game assets
 WITH_SYSTEMWIDE:=no
 
@@ -206,6 +202,9 @@ ZIPCFLAGS += -DIOAPI_NO_64
 endif
 endif
 
+# We don't support encrypted ZIP files.
+ZIPCFLAGS += -DNOUNCRYPT
+
 # ----------
 
 # Extra CFLAGS for SDL
@@ -289,7 +288,6 @@ config:
 	@echo "Build configuration"
 	@echo "============================"
 	@echo "WITH_OPENAL = $(WITH_OPENAL)"
-	@echo "WITH_ZIP = $(WITH_ZIP)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
 	@echo "============================"
@@ -331,14 +329,10 @@ client:
 build/client/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(ZIPCFLAGS) $(INCLUDE) -o $@ $<
 
 ifeq ($(WITH_OPENAL),yes)
 release/yquake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"' -DDLOPEN_OPENAL
-endif
-
-ifeq ($(WITH_ZIP),yes)
-release/yquake2.exe : CFLAGS += -DZIP -DNOUNCRYPT
 endif
 
 release/yquake2.exe : LDFLAGS += -mwindows
@@ -353,7 +347,7 @@ client:
 build/client/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(ZIPCFLAGS) $(INCLUDE) -o $@ $<
 
 ifeq ($(YQ2_OSTYPE), Darwin)
 build/client/%.o : %.m
@@ -383,10 +377,6 @@ release/quake2 : LDFLAGS += -L/usr/local/opt/openal-soft/lib -rpath /usr/local/o
 endif # Darwin
 endif # !DLOPEN_OPENAL
 endif # WITH_OPENAL
-
-ifeq ($(WITH_ZIP),yes)
-release/quake2 : CFLAGS += $(ZIPCFLAGS) -DZIP -DNOUNCRYPT
-endif
 
 ifeq ($(YQ2_OSTYPE), FreeBSD)
 release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib' -lexecinfo
@@ -423,14 +413,12 @@ server:
 build/server/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(ZIPCFLAGS) $(INCLUDE) -o $@ $<
 
 release/q2ded.exe : CFLAGS += -DDEDICATED_ONLY
 
-ifeq ($(WITH_ZIP),yes)
-release/q2ded.exe : CFLAGS += -DZIP -DNOUNCRYPT
-endif
 else # not Windows
+
 server:
 	@echo "===> Building q2ded"
 	${Q}mkdir -p release
@@ -439,13 +427,9 @@ server:
 build/server/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(ZIPCFLAGS) $(INCLUDE) -o $@ $<
 
 release/q2ded : CFLAGS += -DDEDICATED_ONLY -Wno-unused-result
-
-ifeq ($(WITH_ZIP),yes)
-release/q2ded : CFLAGS += $(ZIPCFLAGS) -DZIP -DNOUNCRYPT
-endif
 
 ifeq ($(YQ2_OSTYPE), FreeBSD)
 release/q2ded : LDFLAGS += -lexecinfo

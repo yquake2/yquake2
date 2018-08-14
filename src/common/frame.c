@@ -107,11 +107,6 @@ Qcommon_Buildstring(void)
 #else
 	printf(" - OpenAL audio\n");
 #endif
-#ifdef ZIP
-	printf(" + Zip file support\n");
-#else
-	printf(" - Zip file support\n");
-#endif
 #endif
 
 	printf("Platform: %s\n", YQ2OSTYPE);

@@ -35,10 +35,6 @@
 // Screenshots
 // -----------
 
-#ifdef ZIP
-// If we build with zip support, zlib is available and
-// we can use that for better PNG compression.
-
 #include "../../common/unzip/miniz.h"
 
 static unsigned char*
@@ -64,8 +60,6 @@ compress_for_stbiw(unsigned char *data, int data_len, int *out_len, int quality)
 }
 
 #define STBIW_ZLIB_COMPRESS compress_for_stbiw
-#endif
-
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "header/stb_image_write.h"
 

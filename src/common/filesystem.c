@@ -27,12 +27,10 @@
 
 #include "header/common.h"
 #include "header/glob.h"
+#include "unzip/unzip.h"
 
 #include "../client/sound/header/vorbis.h"
 
-#ifdef ZIP
- #include "unzip/unzip.h"
-#endif
 
 #define MAX_HANDLES 512
 #define MAX_PAKS 100
@@ -48,9 +46,7 @@ typedef struct
 	char name[MAX_QPATH];
 	fsMode_t mode;
 	FILE *file;           /* Only one will be used. */
-#ifdef ZIP
 	unzFile *zip;        /* (file or zip) */
-#endif
 } fsHandle_t;
 
 typedef struct fsLink_s
@@ -73,9 +69,7 @@ typedef struct
 	char name[MAX_OSPATH];
 	int numFiles;
 	FILE *pak;
-#ifdef ZIP
 	unzFile *pk3;
-#endif
 	fsPackFile_t *files;
 } fsPack_t;
 
@@ -89,9 +83,7 @@ typedef struct fsSearchPath_s
 typedef enum
 {
 	PAK,
-#ifdef ZIP
 	PK3
-#endif
 } fsPackFormat_t;
 
 typedef struct
@@ -108,11 +100,9 @@ fsSearchPath_t *fs_baseSearchPaths;
 /* Pack formats / suffixes. */
 fsPackTypes_t fs_packtypes[] = {
 	{"pak", PAK},
-#ifdef ZIP
 	{"pk2", PK3},
 	{"pk3", PK3},
 	{"zip", PK3}
-#endif
 };
 
 char datadir[MAX_OSPATH];
@@ -140,7 +130,6 @@ fsRawPath_t *fs_rawPath;
 
 // --------
 
-#ifdef ZIP
 #if _WIN32
 /*
  * We need some trickery to make minizip Unicode compatible...
@@ -178,7 +167,6 @@ static voidpf ZCALLBACK fopen_file_func_utf(voidpf opaque, const char *filename,
 
 	return file;
 }
-#endif
 #endif
 
 // --------
@@ -316,11 +304,7 @@ FS_HandleForFile(const char *path, fileHandle_t *f)
 
 	for (i = 0; i < MAX_HANDLES; i++, handle++)
 	{
-		if ((handle->file == NULL)
-#ifdef ZIP
-			 && (handle->zip == NULL)
-#endif
-			)
+		if ((handle->file == NULL) && (handle->zip == NULL))
 		{
 			Q_strlcpy(handle->name, path, sizeof(handle->name));
 			*f = i + 1;
@@ -367,13 +351,11 @@ FS_FCloseFile(fileHandle_t f)
 	{
 		fclose(handle->file);
 	}
-#ifdef ZIP
 	else if (handle->zip)
 	{
 		unzCloseCurrentFile(handle->zip);
 		unzClose(handle->zip);
 	}
-#endif
 
 	memset(handle, 0, sizeof(*handle));
 }
@@ -443,7 +425,6 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 							return pack->files[i].size;
 						}
 					}
-#ifdef ZIP
 					else if (pack->pk3)
 					{
 						/* PK3 */
@@ -468,7 +449,6 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 							unzClose(handle->zip);
 						}
 					}
-#endif
 
 					Com_Error(ERR_FATAL, "Couldn't reopen '%s'", pack->name);
 				}
@@ -539,12 +519,10 @@ FS_Read(void *buffer, int size, fileHandle_t f)
 		{
 			r = fread(buf, 1, remaining, handle->file);
 		}
-#ifdef ZIP
 		else if (handle->zip)
 		{
 			r = unzReadCurrentFile(handle->zip, buf, remaining);
 		}
-#endif
 		else
 		{
 			return 0;
@@ -607,12 +585,10 @@ FS_FRead(void *buffer, int size, int count, fileHandle_t f)
 			{
 				r = fread(buf, 1, remaining, handle->file);
 			}
-#ifdef ZIP
 			else if (handle->zip)
 			{
 				r = unzReadCurrentFile(handle->zip, buf, remaining);
 			}
-#endif
 			else
 			{
 				return 0;
@@ -759,9 +735,7 @@ FS_LoadPAK(const char *packPath)
 	pack = Z_Malloc(sizeof(fsPack_t));
 	Q_strlcpy(pack->name, packPath, sizeof(pack->name));
 	pack->pak = handle;
-#ifdef ZIP
 	pack->pk3 = NULL;
-#endif
 	pack->numFiles = numFiles;
 	pack->files = files;
 
@@ -770,7 +744,6 @@ FS_LoadPAK(const char *packPath)
 	return pack;
 }
 
-#ifdef ZIP
 /*
  * Takes an explicit (not game tree related) path to a pack file.
  *
@@ -844,7 +817,6 @@ FS_LoadPK3(const char *packPath)
 
 	return pack;
 }
-#endif
 
 /*
  * Allows enumerating all of the directories in the search path.
@@ -909,11 +881,7 @@ FS_Path_f(void)
 
 	for (i = 0, handle = fs_handles; i < MAX_HANDLES; i++, handle++)
 	{
-		if ((handle->file != NULL)
-#ifdef ZIP
-			 || (handle->zip != NULL)
-#endif
-			)
+		if ((handle->file != NULL) || (handle->zip != NULL))
 		{
 			Com_Printf("Handle %i: '%s'.\n", i + 1, handle->name);
 		}
@@ -925,11 +893,8 @@ FS_Path_f(void)
 	}
 
 	Com_Printf("----------------------\n");
-#ifdef ZIP
+
 	Com_Printf("%i files in PAK/PK2/PK3/ZIP files.\n", totalFiles);
-#else
-	Com_Printf("%i files in PAK/PK2 files.\n", totalFiles);
-#endif
 }
 
 /*
@@ -1371,11 +1336,9 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 				case PAK:
 					pack = FS_LoadPAK(path);
 					break;
-#ifdef ZIP
 				case PK3:
 					pack = FS_LoadPK3(path);
 					break;
-#endif
 			}
 
 			if (pack == NULL)
@@ -1417,11 +1380,9 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 				case PAK:
 					pack = FS_LoadPAK(list[j]);
 					break;
-#ifdef ZIP
 				case PK3:
 					pack = FS_LoadPK3(list[j]);
 					break;
-#endif
 			}
 
 			if (pack == NULL)
@@ -1505,12 +1466,10 @@ FS_BuildGameSpecificSearchPath(char *dir)
 				fclose(fs_searchPaths->pack->pak);
 			}
 
-#ifdef ZIP
 			if (fs_searchPaths->pack->pk3)
 			{
 				unzClose(fs_searchPaths->pack->pk3);
 			}
-#endif
 
 			Z_Free(fs_searchPaths->pack->files);
 			Z_Free(fs_searchPaths->pack);
@@ -1524,12 +1483,7 @@ FS_BuildGameSpecificSearchPath(char *dir)
 	/* Close open files for game dir. */
 	for (i = 0; i < MAX_HANDLES; i++)
 	{
-		if (strstr(fs_handles[i].name, dir) &&
-				((fs_handles[i].file != NULL)
-#ifdef ZIP
-				|| (fs_handles[i].zip != NULL)
-#endif
-		))
+		if (strstr(fs_handles[i].name, dir) && ((fs_handles[i].file != NULL) || (fs_handles[i].zip != NULL)))
 		{
 			FS_FCloseFile(i);
 		}

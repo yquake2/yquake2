@@ -36,7 +36,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrap
 string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
 # yquake2 compilation options
-option(ZIP_SUPPORT "ZIP support" ON)
 option(OPENAL_SUPPORT "OpenAL support" ON)
 option(SYSTEMWIDE_SUPPORT "Enable systemwide installation of game assets" OFF)
 
@@ -75,6 +74,13 @@ if(${SYSTEMWIDE_SUPPORT})
     add_definitions(-DSYSTEMWIDE)
 endif()
 
+# We need to pass some options to minizip / unzip
+add_definitions(-DNOUNCRYPT)
+
+if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux" OR NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+	add_definitions(-DIOAPI_NO_64)
+endif()
+
 # Required libraries to build the different components of the binaries. Find
 # them and add the include/linker directories and flags (in case the package
 # manager find it in a weird place)
@@ -91,14 +97,6 @@ if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD")
 	find_library(EXECINFO_LIBRARIES execinfo /usr/lib /usr/local/lib)
 	list(APPEND yquake2ClientLinkerFlags ${EXECINFO_LIBRARIES})
 	list(APPEND yquake2ServerLinkerFlags ${EXECINFO_LIBRARIES})
-endif()
-
-if(${ZIP_SUPPORT})
-	add_definitions(-DZIP -DNOUNCRYPT)
-
-	if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux" OR NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
-		add_definitions(-DIOAPI_NO_64)
-	endif()
 endif()
 
 if(${OPENAL_SUPPORT})
