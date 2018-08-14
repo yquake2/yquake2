@@ -435,11 +435,6 @@ GL3_Init(void)
 	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
 	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
 
-	/* Options */
-	R_Printf(PRINT_ALL, "Refresher build options:\n");
-	R_Printf(PRINT_ALL, " + Retexturing support\n\n");
-
-
 	if(sizeof(float) != sizeof(GLfloat))
 	{
 		// if this ever happens, things would explode because we feed vertex arrays and UBO data
