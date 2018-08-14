@@ -31,12 +31,6 @@
 # installed
 WITH_OPENAL:=yes
 
-# Enables optional runtime loading of OpenAL (dlopen or
-# similar). If set to "no", the library is linked in at
-# compile time in the normal way. On Windows this option
-# is ignored, OpenAL is always loaded at runtime.
-DLOPEN_OPENAL:=yes
-
 # Enable systemwide installation of game assets
 WITH_SYSTEMWIDE:=no
 
@@ -332,7 +326,7 @@ build/client/%.o: %.c
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(ZIPCFLAGS) $(INCLUDE) -o $@ $<
 
 ifeq ($(WITH_OPENAL),yes)
-release/yquake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"' -DDLOPEN_OPENAL
+release/yquake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"'
 endif
 
 release/yquake2.exe : LDFLAGS += -mwindows
@@ -359,23 +353,14 @@ endif
 release/quake2 : CFLAGS += -Wno-unused-result
 
 ifeq ($(WITH_OPENAL),yes)
-ifeq ($(DLOPEN_OPENAL),yes)
 ifeq ($(YQ2_OSTYPE), OpenBSD)
-release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so"' -DDLOPEN_OPENAL
+release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so"'
 else ifeq ($(YQ2_OSTYPE), Darwin)
-release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.dylib"' -I/usr/local/opt/openal-soft/include -DDLOPEN_OPENAL
+release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.dylib"' -I/usr/local/opt/openal-soft/include
 release/quake2 : LDFLAGS += -L/usr/local/opt/openal-soft/lib -rpath /usr/local/opt/openal-soft/lib
 else
-release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"' -DDLOPEN_OPENAL
+release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
 endif
-else # !DLOPEN_OPENAL
-release/quake2 : CFLAGS += -DUSE_OPENAL
-release/quake2 : LDFLAGS += -lopenal
-ifeq ($(YQ2_OSTYPE), Darwin)
-release/quake2 : CFLAGS += -I/usr/local/opt/openal-soft/include
-release/quake2 : LDFLAGS += -L/usr/local/opt/openal-soft/lib -rpath /usr/local/opt/openal-soft/lib
-endif # Darwin
-endif # !DLOPEN_OPENAL
 endif # WITH_OPENAL
 
 ifeq ($(YQ2_OSTYPE), FreeBSD)
