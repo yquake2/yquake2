@@ -186,33 +186,26 @@ To compile Yamagi Quake II from source, you need the following dependencies,
 including development headers:
 
 - A GCC-compatible compiler like GCC, MinGW (see below) or Clang.
-- GNU make or cmake.
+- GNU make.
 - A libGL implementation with OpenGL system headers.
 - SDL 2.0.
-- libogg, libvorbis and libvorbisfile.
 - A OpenAL implementation, openal-soft is highly recommended.
-- zlib.
 
-Yamagi Quake II has 2 build systems:
-
-- A classic GNU Makefile.
-- A CMakeFile.
-
-Both build system provide the same options and features, it's up to the user to
-decide which one to use.
-
+While Yamagi Quake II ships with an optional CMakeFile using GNU make for
+release builds is highly recommended. The GNU Makefile offers more options
+and is well tested.
+ 
 
 #### On Linux distribution or BSD systems
 
 On debian based distributions (including Ubuntu and Mint) the dependencies can
 be installed with: `apt-get install build-essential libgl1-mesa-dev libsdl2-dev
-libogg-dev libvorbis-dev libopenal-dev zlib1g-dev`
+libopenal-dev`
 
 On OS X we recommend using Homebrew - https://brew.sh - to install the
-dependencies: `brew install sdl2 libvorbis libogg openal-soft`
+dependencies: `brew install sdl2 openal-soft`
 
-On FreeBSD you'll need something like: `pkg install gmake libGL sdl2 libogg
-libvorbis openal-soft`
+On FreeBSD you'll need something like: `pkg install gmake libGL sdl2 openal-soft`
 
 
 #### On Windows
