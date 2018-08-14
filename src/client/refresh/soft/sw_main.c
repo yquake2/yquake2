@@ -59,10 +59,6 @@ typedef struct swstate_s
 
 	unsigned char	gammatable[256];
 	unsigned char	currentpalette[1024];
-
-	// SDL colors
-	Uint32 	palette_colors[256];
-
 } swstate_t;
 
 static swstate_t sw_state;
@@ -200,8 +196,6 @@ zvalue_t	*d_pzbuffer;
 unsigned int	d_zwidth;
 
 qboolean	insubmodel;
-
-static qboolean	sdl_palette_outdated;
 
 static struct texture_buffer {
 	image_t	image;
@@ -1273,8 +1267,6 @@ R_GammaCorrectAndSetPalette( const unsigned char *palette )
 		sw_state.currentpalette[i*4+1] = sw_state.gammatable[palette[i*4+1]];
 		sw_state.currentpalette[i*4+2] = sw_state.gammatable[palette[i*4+2]];
 	}
-
-	sdl_palette_outdated = true;
 }
 
 /*
@@ -1643,6 +1635,20 @@ static int
 R_InitContext(SDL_Window *win)
 {
 	char title[40] = {0};
+	Uint32 Rmask, Gmask, Bmask, Amask, format;
+	int bpp;
+
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+	format = SDL_PIXELFORMAT_RGBA8888;
+#else /* little endian, like x86 */
+	format = SDL_PIXELFORMAT_ABGR8888;
+#endif
+
+	if (!SDL_PixelFormatEnumToMasks(format, &bpp, &Rmask, &Gmask, &Bmask, &Amask))
+	{
+		ri.Sys_Error(ERR_FATAL, "R_InitContext() cant't use RGBA pixel format!");
+		return false;
+	}
 
 	if(win == NULL)
 	{
@@ -1656,17 +1662,20 @@ R_InitContext(SDL_Window *win)
 	snprintf(title, sizeof(title), "Yamagi Quake II %s - Soft Render", YQ2VERSION);
 	SDL_SetWindowTitle(window, title);
 
+	surface = SDL_CreateRGBSurface(0, vid.width, vid.height, bpp, Rmask, Gmask, Bmask, Amask);
+
+	texture = SDL_CreateTexture(renderer,
+				    format,
+				    SDL_TEXTUREACCESS_STREAMING,
+				    vid.width, vid.height);
+
 	return true;
 }
 
 static qboolean
 CreateSDLWindow(int flags, int w, int h)
 {
-	Uint32 Rmask, Gmask, Bmask, Amask;
-	int bpp;
 	int windowPos = SDL_WINDOWPOS_UNDEFINED;
-	if (!SDL_PixelFormatEnumToMasks(SDL_PIXELFORMAT_ARGB8888, &bpp, &Rmask, &Gmask, &Bmask, &Amask))
-		return 0;
 
 	// TODO: support fullscreen on different displays with SDL_WINDOWPOS_UNDEFINED_DISPLAY(displaynum)
 	window = SDL_CreateWindow("Yamagi Quake II", windowPos, windowPos, w, h, flags);
@@ -1679,13 +1688,6 @@ CreateSDLWindow(int flags, int w, int h)
 	{
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	}
-
-	surface = SDL_CreateRGBSurface(0, w, h, bpp, Rmask, Gmask, Bmask, Amask);
-
-	texture = SDL_CreateTexture(renderer,
-				    SDL_PIXELFORMAT_ARGB8888,
-				    SDL_TEXTUREACCESS_STREAMING,
-				    w, h);
 	return window != NULL;
 }
 
@@ -1937,42 +1939,15 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	vid_polygon_spans = malloc(sizeof(espan_t) * (vid.height + 1));
 
 	memset(sw_state.currentpalette, 0, sizeof(sw_state.currentpalette));
-	memset(sw_state.palette_colors, 0, sizeof(sw_state.palette_colors));
-
-	sdl_palette_outdated = true;
 
 	return true;
 }
 
 
 static void
-RE_SDLPaletteConvert (void)
-{
-	int i;
-	const unsigned char *palette = sw_state.currentpalette;
-	Uint32 *sdl_palette = sw_state.palette_colors;
-
-	if (!sdl_palette_outdated)
-		return;
-
-	sdl_palette_outdated = false;
-	for ( i = 0; i < 256; i++ )
-	{
-		if (surface)
-		{
-			sdl_palette[i] = SDL_MapRGB(surface->format,
-					palette[i * 4 + 0], // red
-					palette[i * 4 + 1], // green
-					palette[i * 4 + 2]  //blue
-					);
-		}
-	}
-}
-
-static void
 RE_CopyFrame (Uint32 * pixels, int pitch)
 {
-	RE_SDLPaletteConvert();
+	Uint32 *sdl_palette = (Uint32 *)sw_state.currentpalette;
 
 	// no gaps between images rows
 	if (pitch == vid.width)
@@ -1986,7 +1961,7 @@ RE_CopyFrame (Uint32 * pixels, int pitch)
 
 		for (pixels_pos = pixels; pixels_pos < max_pixels; pixels_pos++)
 		{
-			*pixels_pos = sw_state.palette_colors[*buffer_pos];
+			*pixels_pos = sdl_palette[*buffer_pos];
 			buffer_pos++;
 		}
 	}
@@ -1999,7 +1974,7 @@ RE_CopyFrame (Uint32 * pixels, int pitch)
 		{
 			for (x=0; x < vid.width; x ++)
 			{
-				pixels[x] = sw_state.palette_colors[vid_buffer[buffer_pos + x]];
+				pixels[x] = sdl_palette[vid_buffer[buffer_pos + x]];
 			}
 			pixels += pitch;
 			buffer_pos += vid.width;
