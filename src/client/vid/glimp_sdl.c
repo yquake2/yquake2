@@ -219,10 +219,10 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	}
 
 	/* Only do this if we already have a working window and a fully
-       initialized rendering backend GLimp_InitGraphics() is also
-       called when recovering if creating GL context fails or the
-       one we got is unusable. */
-	if (initSuccessful && GetWindowSize(&curWidth, &curHeight) 
+	initialized rendering backend GLimp_InitGraphics() is also
+	called when recovering if creating GL context fails or the
+	one we got is unusable. */
+	if (initSuccessful && GetWindowSize(&curWidth, &curHeight)
 			&& (curWidth == width) && (curHeight == height))
 	{
 		/* If we want fullscreen, but aren't */

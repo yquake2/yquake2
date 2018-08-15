@@ -327,6 +327,7 @@ R_UnRegister (void)
 }
 
 static void SWimp_DestroyRender(void);
+static void SWimp_CreateRender(void);
 
 /*
 ===============
@@ -1500,6 +1501,12 @@ RE_IsVsyncActive(void)
 	}
 }
 
+static int RE_PrepareForWindow(void)
+{
+	int flags = SDL_SWSURFACE;
+	return flags;
+}
+
 /*
 ===============
 GetRefAPI
@@ -1538,6 +1545,7 @@ GetRefAPI(refimport_t imp)
 	re.Init = RE_Init;
 	re.IsVSyncActive = RE_IsVsyncActive;
 	re.Shutdown = RE_Shutdown;
+	re.PrepareForWindow = RE_PrepareForWindow;
 
 	re.SetPalette = RE_SetPalette;
 	re.BeginFrame = RE_BeginFrame;
@@ -1662,6 +1670,15 @@ R_InitContext(SDL_Window *win)
 	snprintf(title, sizeof(title), "Yamagi Quake II %s - Soft Render", YQ2VERSION);
 	SDL_SetWindowTitle(window, title);
 
+	if (r_vsync->value)
+	{
+		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	}
+	else
+	{
+		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	}
+
 	surface = SDL_CreateRGBSurface(0, vid.width, vid.height, bpp, Rmask, Gmask, Bmask, Amask);
 
 	texture = SDL_CreateTexture(renderer,
@@ -1680,14 +1697,6 @@ CreateSDLWindow(int flags, int w, int h)
 	// TODO: support fullscreen on different displays with SDL_WINDOWPOS_UNDEFINED_DISPLAY(displaynum)
 	window = SDL_CreateWindow("Yamagi Quake II", windowPos, windowPos, w, h, flags);
 
-	if (r_vsync->value)
-	{
-		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	}
-	else
-	{
-		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	}
 	return window != NULL;
 }
 
@@ -1863,7 +1872,7 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	// let the sound and input subsystems know about the new window
 	ri.Vid_NewWindow (vid.width, vid.height);
 
-	flags = SDL_SWSURFACE;
+	flags = RE_PrepareForWindow();
 	if (fs_flag)
 	{
 		flags |= fs_flag;
@@ -1894,51 +1903,6 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 
 	/* No cursor */
 	SDL_ShowCursor(0);
-
-	vid_buffer = malloc(vid.height * vid.width * sizeof(pixel_t));
-
-	sintable = malloc((vid.width+CYCLE) * sizeof(int));
-	intsintable = malloc((vid.width+CYCLE) * sizeof(int));
-	blanktable = malloc((vid.width+CYCLE) * sizeof(int));
-
-	newedges = malloc(vid.width * sizeof(edge_t *));
-	removeedges = malloc(vid.width * sizeof(edge_t *));
-
-	// 1 extra for spanpackage that marks end
-	triangle_spans = malloc((vid.width + 1) * sizeof(spanpackage_t));
-
-	warp_rowptr = malloc((vid.width+AMP2*2) * sizeof(byte*));
-	warp_column = malloc((vid.width+AMP2*2) * sizeof(int));
-
-	edge_basespans = malloc((vid.width*2) * sizeof(espan_t));
-
-	// count of "out of items"
-	r_outofsurfaces = r_outofedges = r_outofverts = 0;
-	// pointers to allocated buffers
-	finalverts = NULL;
-	r_edges = NULL;
-	lsurfs = NULL;
-	// curently allocated items
-	r_cnumsurfs = r_numallocatededges = r_numallocatedverts = 0;
-
-	R_ReallocateMapBuffers();
-
-	r_warpbuffer = malloc(vid.height * vid.width * sizeof(pixel_t));
-
-	if ((vid.width >= 2048) && (sizeof(shift20_t) == 4)) // 2k+ resolution and 32 == shift20_t
-	{
-		shift_size = 18;
-	}
-	else
-	{
-		shift_size = 20;
-	}
-
-	R_InitTurb ();
-
-	vid_polygon_spans = malloc(sizeof(espan_t) * (vid.height + 1));
-
-	memset(sw_state.currentpalette, 0, sizeof(sw_state.currentpalette));
 
 	return true;
 }
@@ -2029,9 +1993,60 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 		return rserr_invalid_mode;
 	}
 
-	R_GammaCorrectAndSetPalette( ( const unsigned char * ) d_8to24table );
+	SWimp_CreateRender();
 
 	return retval;
+}
+
+static void
+SWimp_CreateRender(void)
+{
+	vid_buffer = malloc(vid.height * vid.width * sizeof(pixel_t));
+
+	sintable = malloc((vid.width+CYCLE) * sizeof(int));
+	intsintable = malloc((vid.width+CYCLE) * sizeof(int));
+	blanktable = malloc((vid.width+CYCLE) * sizeof(int));
+
+	newedges = malloc(vid.width * sizeof(edge_t *));
+	removeedges = malloc(vid.width * sizeof(edge_t *));
+
+	// 1 extra for spanpackage that marks end
+	triangle_spans = malloc((vid.width + 1) * sizeof(spanpackage_t));
+
+	warp_rowptr = malloc((vid.width+AMP2*2) * sizeof(byte*));
+	warp_column = malloc((vid.width+AMP2*2) * sizeof(int));
+
+	edge_basespans = malloc((vid.width*2) * sizeof(espan_t));
+
+	// count of "out of items"
+	r_outofsurfaces = r_outofedges = r_outofverts = 0;
+	// pointers to allocated buffers
+	finalverts = NULL;
+	r_edges = NULL;
+	lsurfs = NULL;
+	// curently allocated items
+	r_cnumsurfs = r_numallocatededges = r_numallocatedverts = 0;
+
+	R_ReallocateMapBuffers();
+
+	r_warpbuffer = malloc(vid.height * vid.width * sizeof(pixel_t));
+
+	if ((vid.width >= 2048) && (sizeof(shift20_t) == 4)) // 2k+ resolution and 32 == shift20_t
+	{
+		shift_size = 18;
+	}
+	else
+	{
+		shift_size = 20;
+	}
+
+	R_InitTurb ();
+
+	vid_polygon_spans = malloc(sizeof(espan_t) * (vid.height + 1));
+
+	memset(sw_state.currentpalette, 0, sizeof(sw_state.currentpalette));
+
+	R_GammaCorrectAndSetPalette( ( const unsigned char * ) d_8to24table );
 }
 
 // this is only here so the functions in q_shared.c and q_shwin.c can link
