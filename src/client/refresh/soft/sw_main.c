@@ -326,8 +326,9 @@ R_UnRegister (void)
 	ri.Cmd_RemoveCommand( "imagelist" );
 }
 
-static void SWimp_DestroyRender(void);
+static void RE_ShutdownContext(void);
 static void SWimp_CreateRender(void);
+static int RE_InitContext(void *win);
 
 /*
 ===============
@@ -397,7 +398,7 @@ RE_Shutdown (void)
 	Mod_FreeAll ();
 	R_ShutdownImages ();
 
-	SWimp_DestroyRender();
+	RE_ShutdownContext();
 }
 
 /*
@@ -1545,6 +1546,8 @@ GetRefAPI(refimport_t imp)
 	re.Init = RE_Init;
 	re.IsVSyncActive = RE_IsVsyncActive;
 	re.Shutdown = RE_Shutdown;
+	re.InitContext = RE_InitContext;
+	re.ShutdownContext = RE_ShutdownContext;
 	re.PrepareForWindow = RE_PrepareForWindow;
 
 	re.SetPalette = RE_SetPalette;
@@ -1640,7 +1643,7 @@ GetWindowSize(int* w, int* h)
 }
 
 static int
-R_InitContext(SDL_Window *win)
+RE_InitContext(void *win)
 {
 	char title[40] = {0};
 	Uint32 Rmask, Gmask, Bmask, Amask, format;
@@ -1654,17 +1657,17 @@ R_InitContext(SDL_Window *win)
 
 	if (!SDL_PixelFormatEnumToMasks(format, &bpp, &Rmask, &Gmask, &Bmask, &Amask))
 	{
-		ri.Sys_Error(ERR_FATAL, "R_InitContext() cant't use RGBA pixel format!");
+		ri.Sys_Error(ERR_FATAL, "RE_InitContext() cant't use RGBA pixel format!");
 		return false;
 	}
 
 	if(win == NULL)
 	{
-		ri.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
+		ri.Sys_Error(ERR_FATAL, "RE_InitContext() must not be called with NULL argument!");
 		return false;
 	}
 
-	window = win;
+	window = (SDL_Window *)win;
 
 	/* Window title - set here so we can display renderer name in it */
 	snprintf(title, sizeof(title), "Yamagi Quake II %s - Soft Render", YQ2VERSION);
@@ -1701,7 +1704,7 @@ CreateSDLWindow(int flags, int w, int h)
 }
 
 static void
-SWimp_DestroyRender(void)
+RE_ShutdownContext(void)
 {
 	if (vid_buffer)
 	{
@@ -1812,11 +1815,11 @@ SWimp_DestroyRender(void)
 	renderer = NULL;
 
 	/* Is the surface used? */
-	if (window)
+	/*if (window)
 	{
 		SDL_DestroyWindow(window);
 	}
-	window = NULL;
+	window = NULL;*/
 }
 
 /*
@@ -1867,7 +1870,7 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 		}
 	}
 
-	SWimp_DestroyRender();
+	RE_ShutdownContext();
 
 	// let the sound and input subsystems know about the new window
 	ri.Vid_NewWindow (vid.width, vid.height);
@@ -1891,7 +1894,7 @@ SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 		}
 	}
 
-	if(!R_InitContext(window))
+	if(!RE_InitContext(window))
 	{
 		// InitContext() should have logged an error
 		return false;
@@ -1988,7 +1991,8 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 
 	R_Printf( PRINT_ALL, " %d %d\n", *pwidth, *pheight);
 
-	if ( !SWimp_InitGraphics(fullscreen, pwidth, pheight) ) {
+	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
+	{
 		// failed to set a valid mode in windowed mode
 		return rserr_invalid_mode;
 	}

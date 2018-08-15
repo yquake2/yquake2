@@ -36,6 +36,7 @@
 cvar_t *vid_displayrefreshrate;
 int glimp_refreshRate = -1;
 
+static int last_flags = 0;
 static SDL_Window* window = NULL;
 static qboolean initSuccessful = false;
 
@@ -252,8 +253,11 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	viddef.width = width;
 	viddef.height = height;
 
-	/* Reset SDL. */
-	SDL_GL_ResetAttributes();
+	if(last_flags != -1 && (last_flags & SDL_WINDOW_OPENGL))
+	{
+		/* Reset SDL. */
+		SDL_GL_ResetAttributes();
+	}
 
 	/* Let renderer prepare things (set OpenGL attributes).
 	   FIXME: This is no longer necessary, the renderer
@@ -316,6 +320,8 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 			break;
 		}
 	}
+
+	last_flags = flags;
 
 	if (!re.InitContext(window))
 	{
