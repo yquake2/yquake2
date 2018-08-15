@@ -1053,11 +1053,9 @@ static menulist_s s_options_lookstrafe_box;
 static menulist_s s_options_crosshair_box;
 static menuslider_s s_options_sfxvolume_slider;
 static menuslider_s s_options_haptic_slider;
-#if defined(OGG)
 static menulist_s s_options_oggshuffle_box;
 static menuslider_s s_options_oggvolume_slider;
 static menulist_s s_options_oggenable_box;
-#endif
 static menulist_s s_options_quality_list;
 static menulist_s s_options_console_action;
 
@@ -1117,8 +1115,6 @@ static void
 ControlsSetMenuItemValues(void)
 {
     s_options_sfxvolume_slider.curvalue = Cvar_VariableValue("s_volume") * 10;
-
-#if defined(OGG)
     s_options_oggshuffle_box.curvalue = (Cvar_VariableValue("ogg_shuffle") != 0);
     s_options_oggvolume_slider.curvalue = Cvar_VariableValue("ogg_volume") * 10;
     s_options_oggenable_box.curvalue = (Cvar_VariableValue("ogg_enable") != 0);
@@ -1134,7 +1130,6 @@ ControlsSetMenuItemValues(void)
     {
         s_options_oggshuffle_box.curvalue = 0;
     }
-#endif
 
     s_options_quality_list.curvalue = (Cvar_VariableValue("s_loadas8bit") == 0);
     s_options_sensitivity_slider.curvalue = sensitivity->value * 2;
@@ -1174,7 +1169,6 @@ UpdateVolumeFunc(void *unused)
     Cvar_SetValue("s_volume", s_options_sfxvolume_slider.curvalue / 10);
 }
 
-#if defined(OGG)
 static void
 OGGShuffleFunc(void *unused)
 {
@@ -1223,7 +1217,6 @@ EnableOGGMusic(void *unused)
         OGG_Shutdown();
     }
 }
-#endif
 
 extern void Key_ClearTyping(void);
 
@@ -1280,8 +1273,6 @@ UpdateSoundQualityFunc(void *unused)
 static void
 Options_MenuInit(void)
 {
-
-#ifdef OGG
     static const char *ogg_music_items[] =
     {
         "disabled",
@@ -1295,7 +1286,6 @@ Options_MenuInit(void)
         "enabled",
         0
     };
-#endif
 
     static const char *quality_items[] =
     {
@@ -1334,7 +1324,6 @@ Options_MenuInit(void)
     s_options_sfxvolume_slider.minvalue = 0;
     s_options_sfxvolume_slider.maxvalue = 10;
 
-#ifdef OGG
     s_options_oggvolume_slider.generic.type = MTYPE_SLIDER;
     s_options_oggvolume_slider.generic.x = 0;
     s_options_oggvolume_slider.generic.y = 10;
@@ -1356,7 +1345,6 @@ Options_MenuInit(void)
     s_options_oggshuffle_box.generic.name = "Shuffle";
     s_options_oggshuffle_box.generic.callback = OGGShuffleFunc;
     s_options_oggshuffle_box.itemnames = ogg_shuffle;
-#endif
 
     s_options_quality_list.generic.type = MTYPE_SPINCONTROL;
     s_options_quality_list.generic.x = 0;
@@ -1438,11 +1426,9 @@ Options_MenuInit(void)
 
     Menu_AddItem(&s_options_menu, (void *)&s_options_sfxvolume_slider);
 
-#ifdef OGG
     Menu_AddItem(&s_options_menu, (void *)&s_options_oggvolume_slider);
     Menu_AddItem(&s_options_menu, (void *)&s_options_oggenable_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_oggshuffle_box);
-#endif
     Menu_AddItem(&s_options_menu, (void *)&s_options_quality_list);
     Menu_AddItem(&s_options_menu, (void *)&s_options_sensitivity_slider);
     Menu_AddItem(&s_options_menu, (void *)&s_options_alwaysrun_box);

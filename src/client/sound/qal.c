@@ -43,9 +43,7 @@
 static ALCcontext *context;
 static ALCdevice *device;
 static cvar_t *al_device;
-#ifdef DLOPEN_OPENAL
 static cvar_t *al_driver;
-#endif
 static void *handle;
 
 /* Function pointers for OpenAL management */
@@ -341,7 +339,6 @@ QAL_Init()
 {
 	al_device = Cvar_Get("al_device", "", CVAR_ARCHIVE);
 
-#ifdef DLOPEN_OPENAL
 	/* DEFAULT_OPENAL_DRIVER is defined at compile time via the compiler */
 	al_driver = Cvar_Get("al_driver", DEFAULT_OPENAL_DRIVER, CVAR_ARCHIVE);
 
@@ -355,11 +352,8 @@ QAL_Init()
 		Com_Printf("Loading %s failed! Disabling OpenAL.\n", al_driver->string);
 		return false;
 	}
-#	define ALSYMBOL(handle, sym) Sys_GetProcAddress(handle, #sym)
-#else
-	handle = NULL;
-#	define ALSYMBOL(handle, sym) sym
-#endif
+
+	#define ALSYMBOL(handle, sym) Sys_GetProcAddress(handle, #sym)
 
 	/* Connect function pointers to management functions */
 	qalcCreateContext = ALSYMBOL(handle, alcCreateContext);

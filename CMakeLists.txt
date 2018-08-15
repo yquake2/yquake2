@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-# Enforce "Debug" as standard build type
+# Enforce "Debug" as standard build type.
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
-# CMake project configuration
+# CMake project configuration.
 project(yquake2)
 
-# Cmake module search path
+# Cmake module search path.
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/stuff/cmake/modules ${CMAKE_MODULE_PATH})
 
 if(YQUAKE2LIBS)
@@ -22,26 +22,32 @@ if(YQUAKE2LIBS)
 	set(ENV{SDL2DIR} ${YQUAKE2LIBS})
 endif()
 
-# Add extended path for FreeBSD and Homebrew on OS X
+# Add extended path for FreeBSD and Homebrew on OS X.
 list(APPEND CMAKE_PREFIX_PATH /usr/local)
 
-# Enforce compiler flags (GCC / Clang compatible, yquake2
-# won't build with another compiler anyways)
+# Enforce compiler flags:
 #  -Wall                -> More warnings
 #  -fno-strict-aliasing -> Quake 2 is far away from strict aliasing
 #  -fwrapv              -> Make signed integer overflows defined
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrapv")
 
+# Switch of some annoying warnings
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-missing-braces")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	if (CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 8.0)
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format-truncation -Wno-format-overflow")
+	endif()
+endif()
+
 # Use -O2 as maximum optimization level. -O3 has it's problems with yquake2.
 string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
-# yquake2 compilation options
-option(ZIP_SUPPORT "ZIP support" ON)
-option(OGG_SUPPORT "OGG Vorbis playback support (Music)" ON)
+# Compilation time options.
 option(OPENAL_SUPPORT "OpenAL support" ON)
 option(SYSTEMWIDE_SUPPORT "Enable systemwide installation of game assets" OFF)
 
-# These variables will act as our list of include folders and linker flags
+# These variables will act as our list of include folders and linker flags.
 set(yquake2IncludeDirectories)
 set(yquake2LinkerDirectories)
 set(yquake2LinkerFlags)
@@ -60,57 +66,54 @@ set(SERVER_SRC_DIR ${SOURCE_DIR}/server)
 set(CLIENT_SRC_DIR ${SOURCE_DIR}/client)
 set(REF_SRC_DIR ${SOURCE_DIR}/client/refresh)
 
-# Operating system
+# Operating system.
 set(YQ2OSTYPE "${CMAKE_SYSTEM_NAME}" CACHE STRING "Override operation system type")
 add_definitions(-DYQ2OSTYPE="${YQ2OSTYPE}")
 
-# Architecture string
+# Architecture string.
 set(YQ2ARCH "${CMAKE_SYSTEM_PROCESSOR}" CACHE STRING "Override CPU architecture")
 string(REGEX REPLACE "amd64" "x86_64" ARCH ${YQ2ARCH})
 string(REGEX REPLACE "i.86" "i386" ARCH ${ARCH})
 string(REGEX REPLACE "^arm.*" "arm" ARCH ${ARCH})
 add_definitions(-DYQ2ARCH="${ARCH}")
 
-# Systemwide installation of game assets
+# Systemwide installation of game assets.
 if(${SYSTEMWIDE_SUPPORT})
     add_definitions(-DSYSTEMWIDE)
 endif()
 
+# We need to pass some options to minizip / unzip.
+add_definitions(-DNOUNCRYPT)
+
+if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux" OR NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+	add_definitions(-DIOAPI_NO_64)
+endif()
+
 # Required libraries to build the different components of the binaries. Find
 # them and add the include/linker directories and flags (in case the package
-# manager find it in a weird place)
+# manager find it in a weird place).
 find_package(SDL2 REQUIRED)
 list(APPEND yquake2IncludeDirectories "${SDL2_INCLUDE_DIR}/..")
 list(APPEND yquake2SDLLinkerFlags ${SDL2_LIBRARY})
 
+# We need an OpenGL implementation.
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 list(APPEND yquake2IncludeDirectories ${OPENGL_INCLUDE_DIR})
 list(APPEND yquake2OpenGLLinkerFlags ${OPENGL_LIBRARIES})
 
+# FreeBSD needs libexecinfo.
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD")
 	find_library(EXECINFO_LIBRARIES execinfo /usr/lib /usr/local/lib)
 	list(APPEND yquake2ClientLinkerFlags ${EXECINFO_LIBRARIES})
 	list(APPEND yquake2ServerLinkerFlags ${EXECINFO_LIBRARIES})
 endif()
 
-if(${ZIP_SUPPORT})
-	add_definitions(-DZIP -DNOUNCRYPT)
-
-	if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux" OR NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
-		add_definitions(-DIOAPI_NO_64)
-	endif()
-endif()
-
-if(${OGG_SUPPORT})
-	add_definitions(-DOGG)
-endif()
-
+# OpenAL support.
 if(${OPENAL_SUPPORT})
 	find_package(OpenAL)
 
-	# TODO: OS X is still missing here
-	if(${OPENAL_FOUND} AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+	if(${OPENAL_FOUND})
 		list(APPEND yquake2IncludeDirectories "${OPENAL_INCLUDE_DIR}")
 		list(APPEND yquake2ClientLinkerFlags ${OPENAL_LIBRARY})
 
@@ -126,6 +129,7 @@ if(${OPENAL_SUPPORT})
 	endif()
 endif()
 
+# General linker flags.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	list(APPEND yquake2LinkerFlags "-lm -static-libgcc")
 else()

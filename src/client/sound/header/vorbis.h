@@ -22,15 +22,8 @@
  * =======================================================================
  */
 
-#ifdef OGG
-
 #ifndef CL_SOUND_VORBIS_H
 #define CL_SOUND_VORBIS_H
-
-/* The OGG codec can return the samples in a number
- * of different formats, we use the standard signed
- * short format. */
-#define OGG_SAMPLEWIDTH 2
 
 typedef enum
 {
@@ -46,5 +39,4 @@ void OGG_Shutdown(void);
 void OGG_Stop(void);
 void OGG_Stream(void);
 
-#endif
 #endif

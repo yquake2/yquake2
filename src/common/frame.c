@@ -102,20 +102,10 @@ Qcommon_Buildstring(void)
 #ifndef DEDICATED_ONLY
 	printf("Client build options:\n");
 
-#ifdef OGG
-	printf(" + OGG/Vorbis\n");
-#else
-	printf(" - OGG/Vorbis\n");
-#endif
 #ifdef USE_OPENAL
 	printf(" + OpenAL audio\n");
 #else
 	printf(" - OpenAL audio\n");
-#endif
-#ifdef ZIP
-	printf(" + Zip file support\n");
-#else
-	printf(" - Zip file support\n");
 #endif
 #endif
 

@@ -8,7 +8,7 @@
 
 =============================================================================== 
 
-At this time there're no open tasks regaring Quake II. Nevertheless the hints
+At this time there're no open tasks regaring Quake II. Nevertheless some hints
 for working with the code:
 
 - Sign up for a Github account and fork our yquake2 repository. This allows the
@@ -22,7 +22,7 @@ for working with the code:
   it's still a disaster. Therefore: 
   - Do only one change at a time!
   - Test after each change (play at least through base1.bsp)
-  - Commit early and commit often to create a fine grained history.  This helps
+  - Commit early and commit often to create a fine grained history. This helps
     "git bisect" to find bugs and errors.
   - Do not try to clean up things or even rewrite code that you do not
     understand to 110%! Even small behavioral changes can introduce gameplay
