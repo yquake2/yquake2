@@ -67,15 +67,15 @@ static medge_t		*r_skyedges;
 static int		*r_skysurfedges;
 
 // I just copied this data from a box map...
-static int skybox_planes[12] = {2,-128, 0,-128, 2,128, 1,128, 0,128, 1,-128};
+static const int	skybox_planes[12] = {2,-128, 0,-128, 2,128, 1,128, 0,128, 1,-128};
 
-static int box_surfedges[24] = { 1,2,3,4,  -1,5,6,7,  8,9,-6,10,  -2,-7,-9,11,
+static const int	box_surfedges[24] = { 1,2,3,4,  -1,5,6,7,  8,9,-6,10,  -2,-7,-9,11,
   12,-3,-11,-8,  -12,-10,-5,-4};
-static int box_edges[24] = { 1,2, 2,3, 3,4, 4,1, 1,5, 5,6, 6,2, 7,8, 8,6, 5,7, 8,3, 7,4};
+static const int	box_edges[24] = { 1,2, 2,3, 3,4, 4,1, 1,5, 5,6, 6,2, 7,8, 8,6, 5,7, 8,3, 7,4};
 
-static int	box_faces[6] = {0,0,2,2,2,0};
+static const int	box_faces[6] = {0,0,2,2,2,0};
 
-static vec3_t	box_vecs[6][2] = {
+static const vec3_t	box_vecs[6][2] = {
 	{	{0,-1,0}, {-1,0,0} },
 	{ {0,1,0}, {0,0,-1} },
 	{	{0,-1,0}, {1,0,0} },
@@ -84,7 +84,7 @@ static vec3_t	box_vecs[6][2] = {
 	{ {-1,0,0}, {0,0,-1} }
 };
 
-static float	box_verts[8][3] = {
+static const float	box_verts[8][3] = {
 	{-1,-1,-1},
 	{-1,1,-1},
 	{1,1,-1},

@@ -158,7 +158,7 @@ RE_Draw_StretchPicImplementation
 =============
 */
 void
-RE_Draw_StretchPicImplementation (int x, int y, int w, int h, image_t	*pic)
+RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic)
 {
 	pixel_t	*dest;
 	byte	*source;
@@ -283,39 +283,72 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 
 	if (!pic->transparent)
 	{
-		for (v=0; v<height; v++)
+		if (iscale == 1)
 		{
-			for(ypos=0; ypos < iscale; ypos++)
+			for (v=0; v<height; v++)
 			{
-				for (u=0; u<pic->width; u++)
-				{
-					for(xpos=0; xpos < iscale; xpos++)
-					{
-						dest[u * iscale + xpos] = source[u];
-					}
-				}
+				memcpy(dest, source, pic->width);
 				dest += vid.width;
+				source += pic->width;
 			}
-			source += pic->width;
+		}
+		else
+		{
+			for (v=0; v<height; v++)
+			{
+				for(ypos=0; ypos < iscale; ypos++)
+				{
+					pixel_t *dest_u = dest;
+					pixel_t *source_u = source;
+					u = pic->width;
+					do
+					{
+						xpos = iscale;
+						do
+						{
+							*dest_u++ = *source_u;
+						} while (--xpos > 0);
+						source_u++;
+					} while (--u > 0);
+					dest += vid.width;
+				}
+				source += pic->width;
+			}
 		}
 	}
 	else
 	{
-		for (v=0; v<height; v++)
+		if (iscale == 1)
 		{
-			for(ypos=0; ypos < iscale; ypos++)
+			for (v=0; v<height; v++)
 			{
 				for (u=0; u<pic->width; u++)
 				{
 					if (source[u] != TRANSPARENT_COLOR)
-						for(xpos=0; xpos < iscale; xpos++)
-						{
-							dest[u * iscale + xpos] = source[u];
-						}
+						dest[u] = source[u];
 				}
 				dest += vid.width;
+				source += pic->width;
 			}
-			source += pic->width;
+		}
+		else
+		{
+			for (v=0; v<height; v++)
+			{
+				for(ypos=0; ypos < iscale; ypos++)
+				{
+					for (u=0; u<pic->width; u++)
+					{
+						if (source[u] != TRANSPARENT_COLOR)
+							for(xpos=0; xpos < iscale; xpos++)
+							{
+								dest[u * iscale + xpos] = source[u];
+							}
+					}
+					dest += vid.width;
+				}
+				source += pic->width;
+			}
 		}
 	}
 }
@@ -382,7 +415,7 @@ void
 RE_Draw_Fill (int x, int y, int w, int h, int c)
 {
 	pixel_t	*dest;
-	int		u, v;
+	int	v;
 
 	if (x+w > vid.width)
 		w = vid.width - x;
@@ -405,8 +438,7 @@ RE_Draw_Fill (int x, int y, int w, int h, int c)
 
 	dest = vid_buffer + y * vid.width + x;
 	for (v=0 ; v<h ; v++, dest += vid.width)
-		for (u=0 ; u<w ; u++)
-			dest[u] = c;
+		memset(dest, c, w);
 }
 //=============================================================================
 

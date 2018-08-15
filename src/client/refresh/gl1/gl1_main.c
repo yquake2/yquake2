@@ -124,7 +124,7 @@ cvar_t *r_vsync;
 cvar_t *gl_texturemode;
 cvar_t *gl1_texturealphamode;
 cvar_t *gl1_texturesolidmode;
-cvar_t *gl_anisotropic;
+cvar_t *r_anisotropic;
 cvar_t *r_lockpvs;
 cvar_t *gl_msaa_samples;
 
@@ -425,7 +425,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	vec3_t up, right;
 	float scale;
 	byte color[4];
- 
+
 	GLfloat vtx[3*num_particles*3];
 	GLfloat tex[2*num_particles*3];
 	GLfloat clr[4*num_particles*3];
@@ -433,7 +433,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	unsigned int index_tex = 0;
 	unsigned int index_clr = 0;
 	unsigned int j;
- 
+
 	R_Bind(r_particletexture->texnum);
 	glDepthMask(GL_FALSE); /* no z buffering */
 	glEnable(GL_BLEND);
@@ -505,7 +505,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	glDisableClientState( GL_VERTEX_ARRAY );
 	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 	glDisableClientState( GL_COLOR_ARRAY );
- 
+
 	glDisable(GL_BLEND);
 	glColor4f(1, 1, 1, 1);
 	glDepthMask(1); /* back to normal Z buffering */
@@ -523,12 +523,12 @@ R_DrawParticles(void)
 		int i;
 		unsigned char color[4];
 		const particle_t *p;
- 
+
 		GLfloat vtx[3*r_newrefdef.num_particles];
 		GLfloat clr[4*r_newrefdef.num_particles];
 		unsigned int index_vtx = 0;
 		unsigned int index_clr = 0;
-  
+
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
 		glDisable(GL_TEXTURE_2D);
@@ -1241,7 +1241,7 @@ R_Register(void)
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl1_texturealphamode = ri.Cvar_Get("gl1_texturealphamode", "default", CVAR_ARCHIVE);
 	gl1_texturesolidmode = ri.Cvar_Get("gl1_texturesolidmode", "default", CVAR_ARCHIVE);
-	gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
+	r_anisotropic = ri.Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
 	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 
 	gl1_palettedtexture = ri.Cvar_Get("gl1_palettedtexture", "0", CVAR_ARCHIVE);
@@ -1681,11 +1681,11 @@ RI_BeginFrame(float camera_separation)
 	}
 
 	/* texturemode stuff */
-	if (gl_texturemode->modified || (gl_config.anisotropic && gl_anisotropic->modified))
+	if (gl_texturemode->modified || (gl_config.anisotropic && r_anisotropic->modified))
 	{
 		R_TextureMode(gl_texturemode->string);
 		gl_texturemode->modified = false;
-		gl_anisotropic->modified = false;
+		r_anisotropic->modified = false;
 	}
 
 	if (gl1_texturealphamode->modified)
@@ -1756,11 +1756,11 @@ R_DrawBeam(entity_t *e)
 	vec3_t direction, normalized_direction;
 	vec3_t start_points[NUM_BEAM_SEGS], end_points[NUM_BEAM_SEGS];
 	vec3_t oldorigin, origin;
- 
+
 	GLfloat vtx[3*NUM_BEAM_SEGS*4];
 	unsigned int index_vtx = 0;
 	unsigned int pointb;
- 
+
 	oldorigin[0] = e->oldorigin[0];
 	oldorigin[1] = e->oldorigin[1];
 	oldorigin[2] = e->oldorigin[2];

@@ -36,8 +36,6 @@ typedef struct {
 	int	*prightedgevert2;
 } edgetable;
 
-aliastriangleparms_t aliastriangleparms;
-
 static int	ubasestep, errorterm, erroradjustup, erroradjustdown;
 
 static int	r_p0[6], r_p1[6], r_p2[6];
@@ -64,7 +62,7 @@ static edgetable edgetables[12] = {
 // FIXME: some of these can become statics
 static int	a_sstepxfrac, a_tstepxfrac, r_lstepx, a_ststepxwhole;
 static int	r_sstepx, r_tstepx, r_lstepy, r_sstepy, r_tstepy;
-static int	r_zistepx, r_zistepy;
+static zvalue_t	r_zistepx, r_zistepy;
 static int	d_aspancount, d_countextrastep;
 
 static spanpackage_t	*a_spans;
@@ -75,13 +73,14 @@ spanpackage_t	*triangle_spans;
 static int	ystart;
 static pixel_t	*d_pdest, *d_ptex;
 static zvalue_t	*d_pz;
-static int	d_sfrac, d_tfrac, d_light, d_zi;
+static int	d_sfrac, d_tfrac, d_light;
+static zvalue_t	d_zi;
 static int	d_ptexextrastep, d_sfracextrastep;
 static int	d_tfracextrastep, d_lightextrastep, d_pdestextrastep;
 static int	d_lightbasestep, d_pdestbasestep, d_ptexbasestep;
 static int	d_sfracbasestep, d_tfracbasestep;
-static int	d_ziextrastep, d_zibasestep;
-static int	d_pzextrastep, d_pzbasestep;
+static zvalue_t	d_ziextrastep, d_zibasestep;
+static zvalue_t	d_pzextrastep, d_pzbasestep;
 
 typedef struct {
 	int		quotient;
@@ -110,45 +109,47 @@ static void R_PolysetScanLeftEdge_C(int height);
 // ======================
 // PGM
 // 64 65 66 67 68 69 70 71   72 73 74 75 76 77 78 79
-static byte irtable[256] = { 79, 78, 77, 76, 75, 74, 73, 72,		// black/white
-			     71, 70, 69, 68, 67, 66, 65, 64,
-			     64, 65, 66, 67, 68, 69, 70, 71,		// dark taupe
-			     72, 73, 74, 75, 76, 77, 78, 79,
+static const byte irtable[256] = {
+	79, 78, 77, 76, 75, 74, 73, 72,		// black/white
+	71, 70, 69, 68, 67, 66, 65, 64,
+	64, 65, 66, 67, 68, 69, 70, 71,		// dark taupe
+	72, 73, 74, 75, 76, 77, 78, 79,
 
-			     64, 65, 66, 67, 68, 69, 70, 71,		// slate grey
-			     72, 73, 74, 75, 76, 77, 78, 79,
-			     208, 208, 208, 208, 208, 208, 208, 208,	// unused?'
-			     64, 66, 68, 70, 72, 74, 76, 78,		// dark yellow
+	64, 65, 66, 67, 68, 69, 70, 71,		// slate grey
+	72, 73, 74, 75, 76, 77, 78, 79,
+	208, 208, 208, 208, 208, 208, 208, 208,	// unused?'
+	64, 66, 68, 70, 72, 74, 76, 78,		// dark yellow
 
-			     64, 65, 66, 67, 68, 69, 70, 71,		// dark red
-			     72, 73, 74, 75, 76, 77, 78, 79,
-			     64, 65, 66, 67, 68, 69, 70, 71,		// grey/tan
-			     72, 73, 74, 75, 76, 77, 78, 79,
+	64, 65, 66, 67, 68, 69, 70, 71,		// dark red
+	72, 73, 74, 75, 76, 77, 78, 79,
+	64, 65, 66, 67, 68, 69, 70, 71,		// grey/tan
+	72, 73, 74, 75, 76, 77, 78, 79,
 
-			     64, 66, 68, 70, 72, 74, 76, 78,		// chocolate
-			     68, 67, 66, 65, 64, 65, 66, 67,		// mauve / teal
-			     68, 69, 70, 71, 72, 73, 74, 75,
-			     76, 76, 77, 77, 78, 78, 79, 79,
+	64, 66, 68, 70, 72, 74, 76, 78,		// chocolate
+	68, 67, 66, 65, 64, 65, 66, 67,		// mauve / teal
+	68, 69, 70, 71, 72, 73, 74, 75,
+	76, 76, 77, 77, 78, 78, 79, 79,
 
-			     64, 65, 66, 67, 68, 69, 70, 71,		// more mauve
-			     72, 73, 74, 75, 76, 77, 78, 79,
-			     64, 65, 66, 67, 68, 69, 70, 71,		// olive
-			     72, 73, 74, 75, 76, 77, 78, 79,
+	64, 65, 66, 67, 68, 69, 70, 71,		// more mauve
+	72, 73, 74, 75, 76, 77, 78, 79,
+	64, 65, 66, 67, 68, 69, 70, 71,		// olive
+	72, 73, 74, 75, 76, 77, 78, 79,
 
-			     64, 65, 66, 67, 68, 69, 70, 71,		// maroon
-			     72, 73, 74, 75, 76, 77, 78, 79,
-			     64, 65, 66, 67, 68, 69, 70, 71,		// sky blue
-			     72, 73, 74, 75, 76, 77, 78, 79,
+	64, 65, 66, 67, 68, 69, 70, 71,		// maroon
+	72, 73, 74, 75, 76, 77, 78, 79,
+	64, 65, 66, 67, 68, 69, 70, 71,		// sky blue
+	72, 73, 74, 75, 76, 77, 78, 79,
 
-			     64, 65, 66, 67, 68, 69, 70, 71,		// olive again
-			     72, 73, 74, 75, 76, 77, 78, 79,
-			     64, 65, 66, 67, 68, 69, 70, 71,		// nuclear green
-			     64, 65, 66, 67, 68, 69, 70, 71,		// bright yellow
+	64, 65, 66, 67, 68, 69, 70, 71,		// olive again
+	72, 73, 74, 75, 76, 77, 78, 79,
+	64, 65, 66, 67, 68, 69, 70, 71,		// nuclear green
+	64, 65, 66, 67, 68, 69, 70, 71,		// bright yellow
 
-			     64, 65, 66, 67, 68, 69, 70, 71,		// fire colors
-			     72, 73, 74, 75, 76, 77, 78, 79,
-			     208, 208, 64, 64, 70, 71, 72, 64,		// mishmash1
-			     66, 68, 70, 64, 65, 66, 67, 68};		// mishmash2
+	64, 65, 66, 67, 68, 69, 70, 71,		// fire colors
+	72, 73, 74, 75, 76, 77, 78, 79,
+	208, 208, 64, 64, 70, 71, 72, 64,		// mishmash1
+	66, 68, 70, 64, 65, 66, 67, 68};		// mishmash2
+
 // PGM
 // ======================
 
@@ -181,24 +182,24 @@ R_DrawTriangle
 ================
 */
 void
-R_DrawTriangle( void )
+R_DrawTriangle(const finalvert_t *a, const finalvert_t *b, const finalvert_t *c)
 {
 	int dv1_ab, dv0_ac;
 	int dv0_ab, dv1_ac;
 
 	/*
-	d_xdenom = ( aliastriangleparms.a->v[1] - aliastriangleparms.b->v[1] ) * ( aliastriangleparms.a->v[0] - aliastriangleparms.c->v[0] ) -
-			   ( aliastriangleparms.a->v[0] - aliastriangleparms.b->v[0] ) * ( aliastriangleparms.a->v[1] - aliastriangleparms.c->v[1] );
+	d_xdenom = ( a->v[1] - b->v[1] ) * ( a->v[0] - c->v[0] ) -
+			   ( a->v[0] - b->v[0] ) * ( a->v[1] - c->v[1] );
 	*/
 
-	dv0_ab = aliastriangleparms.a->u - aliastriangleparms.b->u;
-	dv1_ab = aliastriangleparms.a->v - aliastriangleparms.b->v;
+	dv0_ab = a->u - b->u;
+	dv1_ab = a->v - b->v;
 
 	if ( !( dv0_ab | dv1_ab ) )
 		return;
 
-	dv0_ac = aliastriangleparms.a->u - aliastriangleparms.c->u;
-	dv1_ac = aliastriangleparms.a->v - aliastriangleparms.c->v;
+	dv0_ac = a->u - c->u;
+	dv1_ac = a->v - c->v;
 
 	if ( !( dv0_ac | dv1_ac ) )
 		return;
@@ -209,26 +210,26 @@ R_DrawTriangle( void )
 	{
 		a_spans = triangle_spans;
 
-		r_p0[0] = aliastriangleparms.a->u;	// u
-		r_p0[1] = aliastriangleparms.a->v;	// v
-		r_p0[2] = aliastriangleparms.a->s;	// s
-		r_p0[3] = aliastriangleparms.a->t;	// t
-		r_p0[4] = aliastriangleparms.a->l;	// light
-		r_p0[5] = aliastriangleparms.a->zi;	// iz
+		r_p0[0] = a->u;	// u
+		r_p0[1] = a->v;	// v
+		r_p0[2] = a->s;	// s
+		r_p0[3] = a->t;	// t
+		r_p0[4] = a->l;	// light
+		r_p0[5] = a->zi;	// iz
 
-		r_p1[0] = aliastriangleparms.b->u;
-		r_p1[1] = aliastriangleparms.b->v;
-		r_p1[2] = aliastriangleparms.b->s;
-		r_p1[3] = aliastriangleparms.b->t;
-		r_p1[4] = aliastriangleparms.b->l;
-		r_p1[5] = aliastriangleparms.b->zi;
+		r_p1[0] = b->u;
+		r_p1[1] = b->v;
+		r_p1[2] = b->s;
+		r_p1[3] = b->t;
+		r_p1[4] = b->l;
+		r_p1[5] = b->zi;
 
-		r_p2[0] = aliastriangleparms.c->u;
-		r_p2[1] = aliastriangleparms.c->v;
-		r_p2[2] = aliastriangleparms.c->s;
-		r_p2[3] = aliastriangleparms.c->t;
-		r_p2[4] = aliastriangleparms.c->l;
-		r_p2[5] = aliastriangleparms.c->zi;
+		r_p2[0] = c->u;
+		r_p2[1] = c->v;
+		r_p2[2] = c->s;
+		r_p2[3] = c->t;
+		r_p2[4] = c->l;
+		r_p2[5] = c->zi;
 
 		R_PolysetSetEdgeTable ();
 		R_RasterizeAliasPolySmooth ();
@@ -460,7 +461,7 @@ R_PolysetDrawSpans8_33( spanpackage_t *pspanpackage)
 	byte		*lptex;
 	int		lsfrac, ltfrac;
 	int		llight;
-	int		lzi;
+	zvalue_t	lzi;
 	zvalue_t	*lpz;
 
 	do
@@ -572,7 +573,7 @@ R_PolysetDrawSpans8_66(spanpackage_t *pspanpackage)
 	pixel_t		*lptex;
 	int		lsfrac, ltfrac;
 	int		llight;
-	int		lzi;
+	zvalue_t	lzi;
 	zvalue_t	*lpz;
 
 	do
@@ -636,7 +637,7 @@ void
 R_PolysetDrawSpansConstant8_66( spanpackage_t *pspanpackage)
 {
 	pixel_t		*lpdest;
-	int		lzi;
+	zvalue_t	lzi;
 	zvalue_t	*lpz;
 
 	do
@@ -703,7 +704,7 @@ R_PolysetDrawSpans8_Opaque (spanpackage_t *pspanpackage)
 			pixel_t		*lpdest;
 			pixel_t		*lptex;
 			int		llight;
-			int		lzi;
+			zvalue_t	lzi;
 			zvalue_t	*lpz;
 
 			lpdest = pspanpackage->pdest;

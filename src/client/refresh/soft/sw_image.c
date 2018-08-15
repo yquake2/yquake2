@@ -43,6 +43,13 @@ R_ImageList_f (void)
 
 	for (i=0, image=r_images ; i<numr_images ; i++, image++)
 	{
+		char *in_use = "";
+
+		if (image->registration_sequence == registration_sequence)
+		{
+			in_use = "*";
+		}
+
 		if (image->registration_sequence <= 0)
 			continue;
 		texels += image->width*image->height;
@@ -65,8 +72,9 @@ R_ImageList_f (void)
 			break;
 		}
 
-		R_Printf(PRINT_ALL,  " %3i %3i : %s\n",
-			image->width, image->height, image->name);
+		R_Printf(PRINT_ALL,  " %3i %3i : %s %s\n",
+			image->width, image->height, image->name,
+			in_use);
 	}
 	R_Printf(PRINT_ALL, "Total texel count: %i\n", texels);
 }
@@ -335,7 +343,7 @@ R_ShutdownImages
 void
 R_ShutdownImages (void)
 {
-	int		i;
+	int	i;
 	image_t	*image;
 
 	for (i=0, image=r_images ; i<numr_images ; i++, image++)

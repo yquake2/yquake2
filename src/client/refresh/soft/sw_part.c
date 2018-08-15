@@ -47,7 +47,8 @@ R_DrawParticle(particle_t *pparticle, int level)
 	byte		*pdest;
 	zvalue_t	*pz;
 	int		color = pparticle->color;
-	int		i, izi, pix, count, u, v;
+	int		i, pix, count, u, v;
+	zvalue_t	izi;
 	int 		custom_particle = (int)sw_custom_particles->value;
 
 	/*

@@ -337,6 +337,7 @@ VID_ShutdownRenderer(void)
 	{
 		/* Shut down the renderer */
 		re.Shutdown();
+		GLimp_ShutdownGraphics();
 		Sys_FreeLibrary(reflib_handle);
 		reflib_handle = NULL;
 		memset(&re, 0, sizeof(re));
