@@ -1578,70 +1578,6 @@ static SDL_Surface	*surface = NULL;
 static SDL_Texture	*texture = NULL;
 static SDL_Renderer	*renderer = NULL;
 
-/*
- * Sets the window icon
- */
-static void
-SetSDLIcon()
-{
-	/* The 64x64 32bit window icon */
-	#include "../../vid/icon/q2icon64.h"
-
-	/* these masks are needed to tell SDL_CreateRGBSurface(From)
-	   to assume the data it gets is byte-wise RGB(A) data */
-	Uint32 rmask, gmask, bmask, amask;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	int shift = (q2icon64.bytes_per_pixel == 3) ? 8 : 0;
-	rmask = 0xff000000 >> shift;
-	gmask = 0x00ff0000 >> shift;
-	bmask = 0x0000ff00 >> shift;
-	amask = 0x000000ff >> shift;
-#else /* little endian, like x86 */
-	rmask = 0x000000ff;
-	gmask = 0x0000ff00;
-	bmask = 0x00ff0000;
-	amask = (q2icon64.bytes_per_pixel == 3) ? 0 : 0xff000000;
-#endif
-
-	SDL_Surface* icon = SDL_CreateRGBSurfaceFrom((void*)q2icon64.pixel_data, q2icon64.width,
-		q2icon64.height, q2icon64.bytes_per_pixel*8, q2icon64.bytes_per_pixel*q2icon64.width,
-		rmask, gmask, bmask, amask);
-
-	SDL_SetWindowIcon(window, icon);
-
-	SDL_FreeSurface(icon);
-}
-
-static int
-IsFullscreen()
-{
-	if (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN_DESKTOP) {
-		return 1;
-	} else if (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN) {
-		return 2;
-	} else {
-		return 0;
-	}
-}
-
-static qboolean
-GetWindowSize(int* w, int* h)
-{
-	if(window == NULL || w == NULL || h == NULL)
-		return false;
-
-	SDL_DisplayMode m;
-	if(SDL_GetWindowDisplayMode(window, &m) != 0)
-	{
-		Com_Printf("Can't get Displaymode: %s\n", SDL_GetError());
-		return false;
-	}
-	*w = m.w;
-	*h = m.h;
-
-	return true;
-}
-
 static int
 RE_InitContext(void *win)
 {
@@ -1690,17 +1626,6 @@ RE_InitContext(void *win)
 				    vid.width, vid.height);
 
 	return true;
-}
-
-static qboolean
-CreateSDLWindow(int flags, int w, int h)
-{
-	int windowPos = SDL_WINDOWPOS_UNDEFINED;
-
-	// TODO: support fullscreen on different displays with SDL_WINDOWPOS_UNDEFINED_DISPLAY(displaynum)
-	window = SDL_CreateWindow("Yamagi Quake II", windowPos, windowPos, w, h, flags);
-
-	return window != NULL;
 }
 
 static void
@@ -1813,13 +1738,6 @@ RE_ShutdownContext(void)
 		SDL_DestroyRenderer(renderer);
 	}
 	renderer = NULL;
-
-	/* Is the surface used? */
-	/*if (window)
-	{
-		SDL_DestroyWindow(window);
-	}
-	window = NULL;*/
 }
 
 /*
@@ -1827,89 +1745,6 @@ be careful if you ever want to change width: 12.20 fixed
 point math used in R_ScanEdges() overflows at width 2048 !!
 */
 char shift_size;
-
-/*
-** SWimp_InitGraphics
-**
-** This initializes the software refresh's implementation specific
-** graphics subsystem.  In the case of Windows it creates DIB or
-** DDRAW surfaces.
-**
-** The necessary width and height parameters are grabbed from
-** vid.width and vid.height.
-*/
-static qboolean
-SWimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
-{
-	int flags;
-	int curWidth, curHeight;
-	int width = *pwidth;
-	int height = *pheight;
-	unsigned int fs_flag = 0;
-
-	if (fullscreen == 1) {
-		fs_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
-	} else if (fullscreen == 2) {
-		fs_flag = SDL_WINDOW_FULLSCREEN;
-	}
-
-	if (GetWindowSize(&curWidth, &curHeight) && (curWidth == width) && (curHeight == height))
-	{
-		/* If we want fullscreen, but aren't */
-		if (fullscreen != IsFullscreen())
-		{
-			SDL_SetWindowFullscreen(window, fs_flag);
-
-			ri.Cvar_SetValue("vid_fullscreen", fullscreen);
-		}
-
-		/* Are we now? */
-		if (fullscreen == IsFullscreen())
-		{
-			return true;
-		}
-	}
-
-	RE_ShutdownContext();
-
-	// let the sound and input subsystems know about the new window
-	ri.Vid_NewWindow (vid.width, vid.height);
-
-	flags = RE_PrepareForWindow();
-	if (fs_flag)
-	{
-		flags |= fs_flag;
-	}
-
-	while (1)
-	{
-		if (!CreateSDLWindow(flags, width, height))
-		{
-			Sys_Error("(SOFTSDL) SDL SetVideoMode failed: %s\n", SDL_GetError());
-			return false;
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	if(!RE_InitContext(window))
-	{
-		// InitContext() should have logged an error
-		return false;
-	}
-
-	/* Note: window title is now set in re.InitContext() to include renderer name */
-	/* Set the window icon - For SDL2, this must be done after creating the window */
-	SetSDLIcon();
-
-	/* No cursor */
-	SDL_ShowCursor(0);
-
-	return true;
-}
-
 
 static void
 RE_CopyFrame (Uint32 * pixels, int pitch)
