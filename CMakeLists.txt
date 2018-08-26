@@ -35,7 +35,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrap
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-missing-braces")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	if (CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 8.0)
+	if (CMAKE_CXX_COMPILER_VERSION GREATER 7.99)
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format-truncation -Wno-format-overflow")
 	endif()
 endif()
