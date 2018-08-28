@@ -456,7 +456,7 @@ VID_CheckChanges(void)
 		// Mkay, let's try our luck.
 		while (!VID_LoadRenderer())
 		{
-            // We try: gl3 -> gl1 -> soft.
+			// We try: gl3 -> gl1 -> soft.
 			if (strcmp(vid_renderer->string, "gl3") == 0)
 			{
 				Com_Printf("Retrying with gl1...\n");
@@ -467,7 +467,7 @@ VID_CheckChanges(void)
 				Com_Printf("Retrying with soft...\n");
 				Cvar_Set("vid_renderer", "soft");
 			}
-			else if (strcmp("vid_renderer", "soft") == 0)
+			else if (strcmp(vid_renderer->string, "soft") == 0)
 			{
 				// Sorry, no usable renderer found.
 				Com_Error(ERR_FATAL, "No usable renderer found!\n");
