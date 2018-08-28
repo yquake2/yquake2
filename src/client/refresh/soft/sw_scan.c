@@ -184,7 +184,7 @@ TurbulentPow2 (espan_t *pspan)
 		float sdivz, tdivz, zi, z, du, dv;
 		pixel_t	*r_turb_pdest;
 
-		r_turb_pdest = d_viewbuffer + (r_screenwidth * pspan->v) + pspan->u;
+		r_turb_pdest = d_viewbuffer + (vid.width * pspan->v) + pspan->u;
 
 		count = pspan->count;
 
@@ -335,7 +335,7 @@ NonTurbulentPow2 (espan_t *pspan)
 		float sdivz, tdivz, zi, z, dv, du;
 		pixel_t	*r_turb_pdest;
 
-		r_turb_pdest = d_viewbuffer + (r_screenwidth * pspan->v) + pspan->u;
+		r_turb_pdest = d_viewbuffer + (vid.width * pspan->v) + pspan->u;
 
 		count = pspan->count;
 
@@ -588,7 +588,7 @@ D_DrawSpansPow2 (espan_t *pspan)
 		int	count, s, t;
 		float	sdivz, tdivz, zi, z, du, dv;
 
-		pdest = d_viewbuffer + (r_screenwidth * pspan->v) + pspan->u;
+		pdest = d_viewbuffer + (vid.width * pspan->v) + pspan->u;
 
 		count = pspan->count;
 
@@ -730,7 +730,7 @@ D_DrawZSpans (espan_t *pspan)
 		float		zi;
 		float		du, dv;
 
-		pdest = d_pzbuffer + (d_zwidth * pspan->v) + pspan->u;
+		pdest = d_pzbuffer + (vid.width * pspan->v) + pspan->u;
 
 		count = pspan->count;
 

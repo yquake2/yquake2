@@ -375,7 +375,6 @@ extern int	d_pix_min, d_pix_max, d_pix_mul;
 
 extern pixel_t	*d_viewbuffer;
 extern zvalue_t	*d_pzbuffer;
-extern unsigned int d_zwidth;
 
 extern int	d_minmip;
 extern float	d_scalemip[NUM_MIPS-1];
@@ -384,7 +383,6 @@ extern float	d_scalemip[NUM_MIPS-1];
 
 extern int	cachewidth;
 extern pixel_t	*cacheblock;
-extern int	r_screenwidth;
 
 extern int	r_drawnpolycount;
 

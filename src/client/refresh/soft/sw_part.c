@@ -83,8 +83,8 @@ R_DrawParticle(particle_t *pparticle, int level)
 	** compute addresses of zbuffer, framebuffer, and
 	** compute the Z-buffer reference value.
 	*/
-	pz = d_pzbuffer + (d_zwidth * v) + u;
-	pdest = d_viewbuffer + r_screenwidth * v + u;
+	pz = d_pzbuffer + (vid.width * v) + u;
+	pdest = d_viewbuffer + vid.width * v + u;
 	izi = (int)(zi * 0x8000);
 
 	/*
@@ -106,7 +106,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 	{
 		switch (level) {
 		case PARTICLE_33 :
-			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			for ( ; count ; count--, pz += vid.width, pdest += vid.width)
 			{
 				//FIXME--do it in blocks of 8?
 				for (i=0 ; i<pix ; i++)
@@ -123,7 +123,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 		case PARTICLE_66 :
 		{
 			int color_part = (color<<8);
-			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			for ( ; count ; count--, pz += vid.width, pdest += vid.width)
 			{
 				for (i=0 ; i<pix ; i++)
 				{
@@ -138,7 +138,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 		}
 
 		default:  //100
-			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			for ( ; count ; count--, pz += vid.width, pdest += vid.width)
 			{
 				for (i=0 ; i<pix ; i++)
 				{
@@ -160,7 +160,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 
 		switch (level) {
 		case PARTICLE_33 :
-			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			for ( ; count ; count--, pz += vid.width, pdest += vid.width)
 			{
 				//FIXME--do it in blocks of 8?
 				for (i=0 ; i<pix ; i++)
@@ -178,7 +178,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 		case PARTICLE_66 :
 		{
 			int color_part = (color<<8);
-			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			for ( ; count ; count--, pz += vid.width, pdest += vid.width)
 			{
 				for (i=0 ; i<pix ; i++)
 				{
@@ -194,7 +194,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 		}
 
 		default:  //100
-			for ( ; count ; count--, pz += d_zwidth, pdest += r_screenwidth)
+			for ( ; count ; count--, pz += vid.width, pdest += vid.width)
 			{
 				for (i=0 ; i<pix ; i++)
 				{

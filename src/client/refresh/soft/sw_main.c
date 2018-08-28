@@ -97,8 +97,6 @@ float		xscaleinv, yscaleinv;
 float		xscaleshrink, yscaleshrink;
 float		aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
 
-int		r_screenwidth;
-
 mplane_t	screenedge[4];
 
 //
@@ -193,7 +191,6 @@ pixel_t		*cacheblock;
 int		cachewidth;
 pixel_t		*d_viewbuffer;
 zvalue_t	*d_pzbuffer;
-unsigned int	d_zwidth;
 
 qboolean	insubmodel;
 

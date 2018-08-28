@@ -796,8 +796,8 @@ R_RasterizeAliasPolySmooth (void)
 	d_light = plefttop[4];
 	d_zi = plefttop[5];
 
-	d_pdest = d_viewbuffer + ystart * r_screenwidth + plefttop[0];
-	d_pz = d_pzbuffer + ystart * d_zwidth + plefttop[0];
+	d_pdest = d_viewbuffer + ystart * vid.width + plefttop[0];
+	d_pz = d_pzbuffer + ystart * vid.width + plefttop[0];
 
 	if (initialleftheight == 1)
 	{
@@ -820,11 +820,11 @@ R_RasterizeAliasPolySmooth (void)
 		R_PolysetSetUpForLineScan(plefttop[0], plefttop[1],
 					  pleftbottom[0], pleftbottom[1]);
 		{
-			d_pzbasestep = d_zwidth + ubasestep;
+			d_pzbasestep = vid.width + ubasestep;
 			d_pzextrastep = d_pzbasestep + 1;
 		}
 
-		d_pdestbasestep = r_screenwidth + ubasestep;
+		d_pdestbasestep = vid.width + ubasestep;
 		d_pdestextrastep = d_pdestbasestep + 1;
 
 		// TODO: can reuse partial expressions here
@@ -886,8 +886,8 @@ R_RasterizeAliasPolySmooth (void)
 		d_light = plefttop[4];
 		d_zi = plefttop[5];
 
-		d_pdest = d_viewbuffer + ystart * r_screenwidth + plefttop[0];
-		d_pz = d_pzbuffer + ystart * d_zwidth + plefttop[0];
+		d_pdest = d_viewbuffer + ystart * vid.width + plefttop[0];
+		d_pz = d_pzbuffer + ystart * vid.width + plefttop[0];
 
 		if (height == 1)
 		{
@@ -910,11 +910,11 @@ R_RasterizeAliasPolySmooth (void)
 			R_PolysetSetUpForLineScan(plefttop[0], plefttop[1],
 								  pleftbottom[0], pleftbottom[1]);
 
-			d_pdestbasestep = r_screenwidth + ubasestep;
+			d_pdestbasestep = vid.width + ubasestep;
 			d_pdestextrastep = d_pdestbasestep + 1;
 
 			{
-				d_pzbasestep = d_zwidth + ubasestep;
+				d_pzbasestep = vid.width + ubasestep;
 				d_pzextrastep = d_pzbasestep + 1;
 			}
 
