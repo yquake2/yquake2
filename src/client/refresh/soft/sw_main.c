@@ -1262,9 +1262,10 @@ R_GammaCorrectAndSetPalette( const unsigned char *palette )
 
 	for ( i = 0; i < 256; i++ )
 	{
-		sw_state.currentpalette[i*4+0] = sw_state.gammatable[palette[i*4+0]];
-		sw_state.currentpalette[i*4+1] = sw_state.gammatable[palette[i*4+1]];
-		sw_state.currentpalette[i*4+2] = sw_state.gammatable[palette[i*4+2]];
+		sw_state.currentpalette[i*4+0] = sw_state.gammatable[palette[i*4+2]]; // blue
+		sw_state.currentpalette[i*4+1] = sw_state.gammatable[palette[i*4+1]]; // green
+		sw_state.currentpalette[i*4+2] = sw_state.gammatable[palette[i*4+0]]; // red
+		sw_state.currentpalette[i*4+3] = 0xFF; // alpha
 	}
 }
 
@@ -1571,7 +1572,6 @@ GetRefAPI(refimport_t imp)
  */
 
 static SDL_Window	*window = NULL;
-static SDL_Surface	*surface = NULL;
 static SDL_Texture	*texture = NULL;
 static SDL_Renderer	*renderer = NULL;
 
@@ -1579,20 +1579,6 @@ static int
 RE_InitContext(void *win)
 {
 	char title[40] = {0};
-	Uint32 Rmask, Gmask, Bmask, Amask, format;
-	int bpp;
-
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	format = SDL_PIXELFORMAT_RGBA8888;
-#else /* little endian, like x86 */
-	format = SDL_PIXELFORMAT_ABGR8888;
-#endif
-
-	if (!SDL_PixelFormatEnumToMasks(format, &bpp, &Rmask, &Gmask, &Bmask, &Amask))
-	{
-		ri.Sys_Error(ERR_FATAL, "RE_InitContext() cant't use RGBA pixel format!");
-		return false;
-	}
 
 	if(win == NULL)
 	{
@@ -1615,10 +1601,18 @@ RE_InitContext(void *win)
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	}
 
-	surface = SDL_CreateRGBSurface(0, vid.width, vid.height, bpp, Rmask, Gmask, Bmask, Amask);
+	/* Select the color for drawing. It is set to black here. */
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+
+	/* Clear the entire screen to our selected color. */
+	SDL_RenderClear(renderer);
+
+	/* Up until now everything was drawn behind the scenes.
+	   This will show the new, black contents of the window. */
+	SDL_RenderPresent(renderer);
 
 	texture = SDL_CreateTexture(renderer,
-				    format,
+				    SDL_PIXELFORMAT_BGRA32,
 				    SDL_TEXTUREACCESS_STREAMING,
 				    vid.width, vid.height);
 
@@ -1724,12 +1718,6 @@ RE_ShutdownContext(void)
 	}
 	texture = NULL;
 
-	if (surface)
-	{
-		SDL_FreeSurface(surface);
-	}
-	surface = NULL;
-
 	if (renderer)
 	{
 		SDL_DestroyRenderer(renderer);
@@ -1793,14 +1781,16 @@ static void
 RE_EndFrame (void)
 {
 	int pitch;
+	Uint32 * pixels;
 
-	Uint32 * pixels = (Uint32 *)surface->pixels;
-	pitch = surface->pitch / sizeof(Uint32);
+	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
+	{
+		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
+		return;
+	}
+	RE_CopyFrame (pixels, pitch / sizeof(Uint32));
+	SDL_UnlockTexture(texture);
 
-	RE_CopyFrame (pixels, pitch);
-
-	SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
-	SDL_RenderClear(renderer);
 	SDL_RenderCopy(renderer, texture, NULL, NULL);
 	SDL_RenderPresent(renderer);
 }
@@ -1942,9 +1932,9 @@ R_ScreenShot_f(void)
 	{
 		for (y=0; y < vid.height; y ++) {
 			int buffer_pos = y * vid.width + x;
-			buffer[buffer_pos * 3 + 0] = palette[vid_buffer[buffer_pos] * 4 + 0]; // red
+			buffer[buffer_pos * 3 + 0] = palette[vid_buffer[buffer_pos] * 4 + 2]; // red
 			buffer[buffer_pos * 3 + 1] = palette[vid_buffer[buffer_pos] * 4 + 1]; // green
-			buffer[buffer_pos * 3 + 2] = palette[vid_buffer[buffer_pos] * 4 + 2]; // blue
+			buffer[buffer_pos * 3 + 2] = palette[vid_buffer[buffer_pos] * 4 + 0]; // blue
 		}
 	}
 
