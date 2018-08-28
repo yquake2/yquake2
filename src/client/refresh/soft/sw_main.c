@@ -67,10 +67,12 @@ void	*colormap;
 float	r_time1;
 int	r_numallocatededges;
 int	r_numallocatedverts;
+int	r_numallocatedtriangles;
 float	r_aliasuvscale = 1.0;
 int	r_outofsurfaces;
 int	r_outofedges;
 int	r_outofverts;
+int	r_outoftriangles;
 
 qboolean	r_dowarp;
 
@@ -521,6 +523,35 @@ R_ReallocateMapBuffers (void)
 
 		R_Printf(PRINT_ALL, "Allocated %d verts\n", r_numallocatedverts);
 	}
+
+	if (!r_numallocatedtriangles || r_outoftriangles)
+	{
+		if (triangle_spans)
+		{
+			free(triangle_spans);
+		}
+
+		if (r_outoftriangles)
+		{
+			//R_Printf(PRINT_ALL, "%s: not enough %d(+%d) triangles\n",
+			//		    __func__, r_numallocatedtriangles, r_outoftriangles);
+			r_numallocatedtriangles *= 2;
+		}
+
+		if (r_numallocatedtriangles < vid.height)
+			r_numallocatedtriangles = vid.height;
+
+		triangle_spans  = malloc(r_numallocatedtriangles * sizeof(spanpackage_t));
+		if (!triangle_spans)
+		{
+			R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+				 __func__, (int)(r_numallocatedtriangles * sizeof(spanpackage_t)));
+			return;
+		}
+		triangles_max = &triangle_spans[r_numallocatedtriangles];
+
+		R_Printf(PRINT_ALL, "Allocated %d triangles\n", r_numallocatedtriangles);
+	}
 }
 
 
@@ -802,7 +833,7 @@ Returns an axially aligned box that contains the input box at the given rotation
 =============
 */
 static void
-RotatedBBox (const vec3_t mins, const vec3_t maxs, vec3_t angles, vec3_t tmins, vec3_t tmaxs)
+RotatedBBox (const vec3_t mins, const vec3_t maxs, const vec3_t angles, vec3_t tmins, vec3_t tmaxs)
 {
 	vec3_t	tmp, v;
 	int		i, j;
@@ -1836,22 +1867,20 @@ SWimp_CreateRender(void)
 	newedges = malloc(vid.width * sizeof(edge_t *));
 	removeedges = malloc(vid.width * sizeof(edge_t *));
 
-	// 1 extra for spanpackage that marks end
-	triangle_spans = malloc((vid.width + 1) * sizeof(spanpackage_t));
-
 	warp_rowptr = malloc((vid.width+AMP2*2) * sizeof(byte*));
 	warp_column = malloc((vid.width+AMP2*2) * sizeof(int));
 
 	edge_basespans = malloc((vid.width*2) * sizeof(espan_t));
 
 	// count of "out of items"
-	r_outofsurfaces = r_outofedges = r_outofverts = 0;
+	r_outofsurfaces = r_outofedges = r_outofverts = r_outoftriangles = 0;
 	// pointers to allocated buffers
 	finalverts = NULL;
 	r_edges = NULL;
 	lsurfs = NULL;
+	triangle_spans = NULL;
 	// curently allocated items
-	r_cnumsurfs = r_numallocatededges = r_numallocatedverts = 0;
+	r_cnumsurfs = r_numallocatededges = r_numallocatedverts = r_numallocatedtriangles = 0;
 
 	R_ReallocateMapBuffers();
 

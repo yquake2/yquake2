@@ -506,7 +506,7 @@ typedef struct {
 	int		sfrac, tfrac, light;
 	zvalue_t	zi;
 } spanpackage_t;
-extern spanpackage_t	*triangle_spans;
+extern spanpackage_t	*triangle_spans, *triangles_max;
 
 extern byte	**warp_rowptr;
 extern int	*warp_column;
@@ -521,6 +521,7 @@ extern float	aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
 extern int	r_outofsurfaces;
 extern int	r_outofedges;
 extern int	r_outofverts;
+extern int	r_outoftriangles;
 
 extern mvertex_t	*r_pcurrentvertbase;
 
