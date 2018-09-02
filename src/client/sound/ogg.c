@@ -241,7 +241,15 @@ static OGG_Read(void)
 	}
 	else
 	{
-		OGG_Stop();
+		// We cannot call OGG_Stop() here. It flushes the OpenAL sample
+		// queue, thus about 12 seconds of music are lost. Instead we
+		// just set the OGG state to stop and open a new file. The new
+		// files content is added to the sample queue after the remaining
+		// samples from the old file.
+		stb_vorbis_close(ogg_file);
+		ogg_status = STOP;
+		ogg_numbufs = 0;
+
 		OGG_PlayTrack(ogg_curfile);
 	}
 }
@@ -478,8 +486,6 @@ OGG_Stop(void)
 
 	stb_vorbis_close(ogg_file);
 	ogg_status = STOP;
-	// FIXME
-	//ogg_info = NULL;
 	ogg_numbufs = 0;
 }
 
