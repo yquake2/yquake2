@@ -1643,7 +1643,11 @@ RE_InitContext(void *win)
 	SDL_RenderPresent(renderer);
 
 	texture = SDL_CreateTexture(renderer,
-				    SDL_PIXELFORMAT_BGRA32,
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+				    SDL_PIXELFORMAT_BGRA8888,
+#else
+				    SDL_PIXELFORMAT_ARGB8888,
+#endif
 				    SDL_TEXTUREACCESS_STREAMING,
 				    vid.width, vid.height);
 
