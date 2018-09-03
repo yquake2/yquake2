@@ -22,7 +22,7 @@ Command line arguments
 
 These are not console variables, they cannot be entered into the
 console only be given at the command line at startup. While cvars
-are prefixed with a `+` arguments are starting with a `-`. For
+are prefixed with a `+` arguments are starting with a `-`. For 
 example it's `+set busywait 0` (setting the `busywait` cvar) and
 `-portable` (setting the `portable` argument).
 
@@ -44,7 +44,7 @@ General:
   relatively high CPU usage. If set to `0` Quake II lays itself to sleep
   and tells the operating system to send a wakeup signal when it's time
   for the next frame. The later is more CPU friendly but rather inaccurate,
-  especially on Windows. Use with care.
+  especially on Windows. Use with care.  
 
 * **cl_async**: If set to `1` (the default) the client is asynchronous.
   The client framerate is fixed, the renderer framerate is variable.
@@ -81,7 +81,7 @@ Audio:
 * **ogg_enable**: Enable Ogg/Vorbis music playback.
 
 * **ogg_ignoretrack0**: Normally Quake II disabled the background music
-  if a major objective has been archived by setting the music track to 0.
+  if a major objective has been archived by setting the music track to 0.  
   Setting this cvar to `1` disables this behavior, the music keeps playing.
 
 * **s_doppler**: If set to `1` (the default) doppler effects are enabled.
@@ -99,14 +99,14 @@ Graphics (all renderers):
 
 * Most old `r_*` cvars, but renamed to `gl_*`
 
-* **vid_displayrefreshrate**: Sets the displays refresh rate. The
+* **vid_displayrefreshrate**: Sets the displays refresh rate. The 
   default `-1` let the game determine the refresh rate automatically.
   There's little need to change that. If you do make sure that the refresh
   rate is rounded up, e.g. with a display of 59.95hz you should set `60`.
   Otherwise the game will render too few frames.
 
 * **vid_renderer**: Selects the renderer library. Possible options are
-  `gl1` (the default) for the old OpenGL 1.4 renderer and `gl3` for
+  `gl1` (the default) for the old OpenGL 1.4 renderer and `gl3` for 
   the new OpenGL 3.2 renderer.
 
 * **cin_force43**: If set to `1` (the default) cinematics are displayed
@@ -128,7 +128,7 @@ Graphics (all renderers):
 
 * **horplus**: If set to 1 (the default) the horplus algorithm is used
   to calculate an optimal horizontal and vertical field of view, independent
-  of the window or screen aspect ratio or resolution.
+  of the window or screen aspect ratio or resolution.  
   If enabled *fov* is forced to `90`.
 
 * **vid_gamma**: The value used for gamma correction. Higher value looks
@@ -136,7 +136,7 @@ Graphics (all renderers):
   your whole screen to this value in realtime (except on OSX where it's
   applied to textures on load and thus needs a `vid_restart` after changing).
   The GL3 renderer applies this to the window in realtime via shaders
-  (on all platforms).
+  (on all platforms).  
   This is also set by the brightness slider in the video menu.
 
 * **r_consolescale** / **r_hudscale** / **r_menuscale**, **crosshair_scale**:
@@ -155,7 +155,7 @@ Graphics (all renderers):
 
 * **vid_maxfps**: The maximum framerate, if `cl_async` is `1`. Otherwise
   `cl_maxfps` is used as maximum framerate. See `cl_async` description
-  above for more information.
+  above for more information.  
   *Note* that vsync (`r_vsync`) also restricts the framerate to
   the monitor refresh rate, so if vsync is enabled, you won't get more than
   60fps on most displays (or 120 on a 120hz display etc).
@@ -163,14 +163,14 @@ Graphics (all renderers):
 * **r_vsync**: Enables the vsync: frames are synchronized with
   display refresh rate, should (but doesn't always) prevent tearing.
 
-* **r_anisotropic**: Anisotropic filtering. Possible values are
-  dependent on the GPU driver, most of them support `1`, `2`, `4`, `8`
-  and `16`. Anisotropic filtering gives a huge improvement to texture
-  quality by a negligible performance impact.
-
 
 Graphics (GL renderers only):
 -----------------------------
+
+* **gl_anisotropic**: Anisotropic filtering. Possible values are
+  dependent on the GPU driver, most of them support `1`, `2`, `4`, `8`
+  and `16`. Anisotropic filtering gives a huge improvement to texture
+  quality by a negligible performance impact.
 
 * **gl_msaa_samples**: Full scene anti aliasing samples. The number of
   samples depends on the GPU driver, most drivers support at least
@@ -199,13 +199,13 @@ Graphics (GL1 only):
 --------------------
 
 * **gl1_intensity**: Sets the color intensity used for 3D rendering.
-  Must be a floating point value, at least `1.0` - default is `2.0`.
+  Must be a floating point value, at least `1.0` - default is `2.0`.  
   Applied when textures are loaded, so it needs a `vid_restart`!
 
 * **gl1_overbrightbits**: Enables overbright bits, brightness scaling of
-  lightmaps and models. Higher values make shadows less dark.
+  lightmaps and models. Higher values make shadows less dark.  
   Possible values are `0` (no overbright bits), `1` (correct lighting
-  for water), `2` (scale by factor 2) and `3` (scale by factor 3).
+  for water), `2` (scale by factor 2) and `3` (scale by factor 3).  
   Applied in realtime, does not need `vid_restart`.
 
 * **gl1_stencilshadow**: If `gl_shadows` is set to `1`, this makes them
@@ -217,7 +217,7 @@ Graphics (GL3 only):
 --------------------
 
 * **gl3_debugcontext**: Enables the OpenGL 3.2 renderers debug context,
-  e.g. prints warnings and errors emmitted by the GPU driver.
+  e.g. prints warnings and errors emmitted by the GPU driver.  
   Not supported on OSX. This is a pure debug cvar and slows down rendering.
 
 * **gl3_intensity**: Sets the color intensity used for 3D rendering.
@@ -229,15 +229,15 @@ Graphics (GL3 only):
 * **gl3_intensity_2D**: The same for 2D rendering (HUD, menu, console, videos)
 
 * **gl3_overbrightbits**: Enables overbright bits, brightness scaling of
-  lightmaps and models. Higher values make shadows less dark.
-  Similar to GL1's `gl1_overbrightbits`, but allows any floating point number.
+  lightmaps and models. Higher values make shadows less dark.  
+  Similar to GL1's `gl1_overbrightbits`, but allows any floating point number.  
   Default is `1.3`. In the OpenGL3.2 renderer, no lighting fixes for water
   are needed, so `1.0` has no special meaning.
 
 * **gl3_particle_size**: The size of particles - Default is `40`.
 
 * **gl3_particle_fade_factor**: "softness" of particles: higher values
-  look less soft. Defaults to `1.2`.
+  look less soft. Defaults to `1.2`.  
   A value of `10` looks similar to the GL1 particles.
 
 * **gl3_particle_square**: If set to `1`, particles are rendered as squares,

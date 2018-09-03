@@ -42,7 +42,7 @@ extern cvar_t *vid_gamma;
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_renderer;
 static cvar_t *r_vsync;
-static cvar_t *r_anisotropic;
+static cvar_t *gl_anisotropic;
 static cvar_t *gl_msaa_samples;
 
 static menuframework_s s_opengl_menu;
@@ -126,11 +126,11 @@ AnisotropicCallback(void *s)
 
 	if (list->curvalue == 0)
 	{
-		Cvar_SetValue("r_anisotropic", 0);
+		Cvar_SetValue("gl_anisotropic", 0);
 	}
 	else
 	{
-		Cvar_SetValue("r_anisotropic", pow(2, list->curvalue));
+		Cvar_SetValue("gl_anisotropic", pow(2, list->curvalue));
 	}
 }
 
@@ -362,9 +362,9 @@ VID_MenuInit(void)
 		r_vsync = Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
 	}
 
-	if (!r_anisotropic)
+	if (!gl_anisotropic)
 	{
-		r_anisotropic = Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
+		gl_anisotropic = Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
 	}
 
 	if (!gl_msaa_samples)
@@ -462,13 +462,13 @@ VID_MenuInit(void)
 	s_af_list.generic.callback = AnisotropicCallback;
 	s_af_list.itemnames = pow2_names;
 	s_af_list.curvalue = 0;
-	if (r_anisotropic->value)
+	if (gl_anisotropic->value)
 	{
 		do
 		{
 			s_af_list.curvalue++;
 		} while (pow2_names[s_af_list.curvalue] &&
-				pow(2, s_af_list.curvalue) <= r_anisotropic->value);
+				pow(2, s_af_list.curvalue) <= gl_anisotropic->value);
 		s_af_list.curvalue--;
 	}
 

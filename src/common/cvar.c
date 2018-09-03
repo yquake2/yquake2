@@ -39,7 +39,6 @@ typedef struct
 replacement_t replacements[] = {
 	{"cd_shuffle", "ogg_shuffle"},
 	{"cl_drawfps", "cl_showfps"},
-	{"gl_anisotropic", "r_anisotropic"},
 	{"gl_drawentities", "r_drawentities"},
 	{"gl_drawworld", "r_drawworld"},
 	{"gl_fullbright", "r_fullbright"},
