@@ -220,7 +220,7 @@ static qboolean checkForHelp(int argc, char **argv)
 				printf("    'gl3'  (the shiny new OpenGL 3.2 renderer),\n");
 				printf("    'soft' (the experimental software renderer)\n");
 #endif // DEDICATED_ONLY
-				printf("\nSee https://github.com/yquake2/yquake2/blob/master/stuff/cvarlist.md\nfor some more cvars");
+				printf("\nSee https://github.com/yquake2/yquake2/blob/master/stuff/cvarlist.md\nfor some more cvars\n");
 
 				return true;
 			}
