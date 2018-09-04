@@ -514,6 +514,20 @@ OGG_TogglePlayback(void)
 }
 
 /*
+ * Prints a help message for the 'ogg' cmd.
+ */
+void
+OGG_HelpMsg(void)
+{
+	Com_Printf("Unknown sub command %s\n\n", Cmd_Argv(1));
+	Com_Printf("Commands:\n");
+	Com_Printf(" - info: Print information about playback state and tracks\n");
+	Com_Printf(" - play <track>: Play track number <track>\n");
+	Com_Printf(" - stop: Stop playback\n");
+	Com_Printf(" - toggle: Toggle pause\n");
+}
+
+/*
  * The 'ogg' cmd. Gives some control and information about the playback state.
  */
 void
@@ -521,7 +535,7 @@ OGG_Cmd(void)
 {
 	if (Cmd_Argc() < 2)
 	{
-		Com_Printf("ogg <command> : Control Ogg/Vorbis playback\n");
+		OGG_HelpMsg();
 		return;
 	}
 
@@ -559,12 +573,7 @@ OGG_Cmd(void)
 	}
 	else
 	{
-		Com_Printf("Unknown sub command %s\n\n", Cmd_Argv(1));
-		Com_Printf("Commands:\n");
-		Com_Printf(" - info: Print information about playback state and tracks\n");
-		Com_Printf(" - play <track>: Play track number <track>\n");
-		Com_Printf(" - stop: Stop playback\n");
-		Com_Printf(" - toggle: Toggle pause\n");
+		OGG_HelpMsg();
 	}
 }
 
