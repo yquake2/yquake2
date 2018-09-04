@@ -144,12 +144,14 @@ D_DrawZSpanGetStepValue(zvalue_t izistep)
 {
 	// check that we can draw parallel surfaces to screen surface
 	// (both ends have same z value)
-	// current step too small to current screen width
-	if (izistep < (SHIFT16XYZ_MULT / vid.width))
-		return vid.width;
+	int	count = 1;
 
-	// look to what is maxumum for current step
-	return SHIFT16XYZ_MULT / izistep;
+	while ((izistep * count) >> SHIFT16XYZ == 0 && count < vid.width)
+	{
+		count <<= 1;
+	}
+
+	return count;
 }
 
 /*
@@ -744,7 +746,7 @@ void
 D_DrawZSpans (espan_t *pspan)
 {
 	zvalue_t	izistep;
-	int	safe_step;
+	int		safe_step;
 
 	// FIXME: check for clamping/range problems
 	// we count on FP exceptions being turned off to avoid range problems
@@ -771,13 +773,19 @@ D_DrawZSpans (espan_t *pspan)
 		// we count on FP exceptions being turned off to avoid range problems
 		izi = (int)(zi * 0x8000 * (float)SHIFT16XYZ_MULT);
 
-		if (safe_step > count)
+		if (safe_step > 1)
 		{
-			zvalue_t izi_shifted = izi >> SHIFT16XYZ;
 			const zvalue_t *tdest_max = pdest + count;
 			do
 			{
-				*pdest++ = izi_shifted;
+				int	step;
+				zvalue_t izi_shifted = izi >> SHIFT16XYZ;
+
+				for(step = 0; (step < safe_step) && (pdest < tdest_max); step++)
+				{
+					*pdest++ = izi_shifted;
+				}
+				izi += (izistep * safe_step);
 			} while (pdest < tdest_max);
 		}
 		else

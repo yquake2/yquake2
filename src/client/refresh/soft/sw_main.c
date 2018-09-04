@@ -833,7 +833,7 @@ Returns an axially aligned box that contains the input box at the given rotation
 =============
 */
 static void
-RotatedBBox (const vec3_t mins, const vec3_t maxs, const vec3_t angles, vec3_t tmins, vec3_t tmaxs)
+RotatedBBox (const vec3_t mins, const vec3_t maxs, vec3_t angles, vec3_t tmins, vec3_t tmaxs)
 {
 	vec3_t	tmp, v;
 	int		i, j;
