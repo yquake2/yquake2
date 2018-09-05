@@ -103,7 +103,7 @@ R_DrawSurface (drawsurf_t *drawsurf)
 	//==============================
 
 	// TODO: only needs to be set when there is a display settings change
-	blocksize = blocksize;
+	// blocksize = blocksize;
 
 	smax = mt->width >> drawsurf->surfmip;
 	twidth = texwidth;
