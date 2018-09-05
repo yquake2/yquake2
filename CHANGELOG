@@ -1,3 +1,11 @@
+Quake II 7.21 to 7.30:
+- Removed support for SDL 1.2.
+- Removed static dependencies to libogg, libvorbis and libz.
+- Fixed several bugs regarding render- and fullscreen switch.
+- A lot of fixes and improvements to the software renderer. It's now
+  able to render the whole game without artifacts and much faster than
+  before. (by Denis Pauk)
+
 Quake II 7.20 to 7.21:
 - Fix some render glitches in the software renderer. (by Denis Pauk)
 - Render the weapon independent of the current field of view, otherwise
