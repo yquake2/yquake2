@@ -163,14 +163,14 @@ Graphics (all renderers):
 * **r_vsync**: Enables the vsync: frames are synchronized with
   display refresh rate, should (but doesn't always) prevent tearing.
 
-* **r_anisotropic**: Anisotropic filtering. Possible values are
-  dependent on the GPU driver, most of them support `1`, `2`, `4`, `8`
-  and `16`. Anisotropic filtering gives a huge improvement to texture
-  quality by a negligible performance impact.
-
 
 Graphics (GL renderers only):
 -----------------------------
+
+* **gl_anisotropic**: Anisotropic filtering. Possible values are
+  dependent on the GPU driver, most of them support `1`, `2`, `4`, `8`
+  and `16`. Anisotropic filtering gives a huge improvement to texture
+  quality by a negligible performance impact.
 
 * **gl_msaa_samples**: Full scene anti aliasing samples. The number of
   samples depends on the GPU driver, most drivers support at least

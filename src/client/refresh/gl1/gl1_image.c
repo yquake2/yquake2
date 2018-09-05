@@ -202,18 +202,18 @@ R_TextureMode(char *string)
 	/* clamp selected anisotropy */
 	if (gl_config.anisotropic)
 	{
-		if (r_anisotropic->value > gl_config.max_anisotropy)
+		if (gl_anisotropic->value > gl_config.max_anisotropy)
 		{
-			ri.Cvar_SetValue("r_anisotropic", gl_config.max_anisotropy);
+			ri.Cvar_SetValue("gl_anisotropic", gl_config.max_anisotropy);
 		}
-		else if (r_anisotropic->value < 1.0)
+		else if (gl_anisotropic->value < 1.0)
 		{
-			ri.Cvar_SetValue("r_anisotropic", 1.0);
+			ri.Cvar_SetValue("gl_anisotropic", 1.0);
 		}
 	}
 	else
 	{
-		ri.Cvar_SetValue("r_anisotropic", 0.0);
+		ri.Cvar_SetValue("gl_anisotropic", 0.0);
 	}
 
 	/* change all the existing mipmap texture objects */
@@ -228,10 +228,10 @@ R_TextureMode(char *string)
 					gl_filter_max);
 
 			/* Set anisotropic filter if supported and enabled */
-			if (gl_config.anisotropic && r_anisotropic->value)
+			if (gl_config.anisotropic && gl_anisotropic->value)
 			{
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-						r_anisotropic->value);
+						gl_anisotropic->value);
 			}
 		}
 	}
@@ -788,10 +788,10 @@ R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 	}
 
-	if (mipmap && gl_config.anisotropic && r_anisotropic->value)
+	if (mipmap && gl_config.anisotropic && gl_anisotropic->value)
 	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-				r_anisotropic->value);
+				gl_anisotropic->value);
 	}
 	return res;
 }

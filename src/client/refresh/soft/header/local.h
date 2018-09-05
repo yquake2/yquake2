@@ -375,7 +375,6 @@ extern int	d_pix_min, d_pix_max, d_pix_mul;
 
 extern pixel_t	*d_viewbuffer;
 extern zvalue_t	*d_pzbuffer;
-extern unsigned int d_zwidth;
 
 extern int	d_minmip;
 extern float	d_scalemip[NUM_MIPS-1];
@@ -384,7 +383,6 @@ extern float	d_scalemip[NUM_MIPS-1];
 
 extern int	cachewidth;
 extern pixel_t	*cacheblock;
-extern int	r_screenwidth;
 
 extern int	r_drawnpolycount;
 
@@ -508,7 +506,7 @@ typedef struct {
 	int		sfrac, tfrac, light;
 	zvalue_t	zi;
 } spanpackage_t;
-extern spanpackage_t	*triangle_spans;
+extern spanpackage_t	*triangle_spans, *triangles_max;
 
 extern byte	**warp_rowptr;
 extern int	*warp_column;
@@ -523,6 +521,7 @@ extern float	aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
 extern int	r_outofsurfaces;
 extern int	r_outofedges;
 extern int	r_outofverts;
+extern int	r_outoftriangles;
 
 extern mvertex_t	*r_pcurrentvertbase;
 

@@ -47,8 +47,6 @@ D_ViewChanged (void)
 	if (yscale > xscale)
 		scale_for_mip = yscale;
 
-	d_zwidth = vid.width;
-
 	d_pix_min = r_refdef.vrect.height / 240;
 	if (d_pix_min < 1)
 		d_pix_min = 1;
@@ -360,7 +358,6 @@ R_SetupFrame (void)
 		vrect.height = r_newrefdef.height;
 
 		d_viewbuffer = r_warpbuffer;
-		r_screenwidth = vid.width;
 	}
 	else
 	{
@@ -370,7 +367,6 @@ R_SetupFrame (void)
 		vrect.height = r_newrefdef.height;
 
 		d_viewbuffer = vid_buffer;
-		r_screenwidth = vid.width;
 	}
 
 	R_ViewChanged (&vrect);
@@ -392,6 +388,7 @@ R_SetupFrame (void)
 	r_outofsurfaces = 0;
 	r_outofverts = 0;
 	r_outofedges = 0;
+	r_outoftriangles = 0;
 
 	// d_setup
 	d_minmip = sw_mipcap->value;

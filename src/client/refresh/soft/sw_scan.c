@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
 #define SPANSTEP_SHIFT	4
-#define SPANSTEP	(1 << SPANSTEP_SHIFT)
 
 byte	**warp_rowptr;
 int	*warp_column;
@@ -100,7 +99,7 @@ Return safe span step for u/z and v/z
 =============
 */
 static int
-D_DrawSpanGetStep(float d_zistepu, float d_zistepv, int cachewidth)
+D_DrawSpanGetStep(float d_zistepu, float d_zistepv)
 {
 	int	spanzshift = SPANSTEP_SHIFT;
 	int	spanzshift_value = (1 << spanzshift);
@@ -115,22 +114,44 @@ D_DrawSpanGetStep(float d_zistepu, float d_zistepv, int cachewidth)
 	    (int)(d_zistepv_shifted * spanzshift_value) == 0)
 	{
 		// search next safe value
-		while (spanzshift_value < vid.width &&
-		       (int)(d_zistepu_shifted * spanzshift_value) == 0 &&
-		       (int)(d_zistepv_shifted * spanzshift_value) == 0)
+		do
 		{
 			spanzshift ++;
 			spanzshift_value <<= 1;
-		}
 
-		// step back to last safe value
-		if ((int)(d_zistepu_shifted * spanzshift_value) != 0 ||
-		    (int)(d_zistepv_shifted * spanzshift_value) != 0)
-		{
-			spanzshift --;
+			if ((int)(d_zistepu_shifted * spanzshift_value) != 0 ||
+			    (int)(d_zistepv_shifted * spanzshift_value) != 0)
+			{
+				// step back to last safe value
+				return spanzshift - 1;
+			}
+
 		}
+		while (spanzshift_value < vid.width);
 	}
 	return spanzshift;
+}
+
+/*
+=============
+D_DrawZSpanGetStepValue
+
+Return safe span step for izistep
+=============
+*/
+static int
+D_DrawZSpanGetStepValue(zvalue_t izistep)
+{
+	// check that we can draw parallel surfaces to screen surface
+	// (both ends have same z value)
+	int	count = 1;
+
+	while ((izistep * count) >> SHIFT16XYZ == 0 && count < vid.width)
+	{
+		count <<= 1;
+	}
+
+	return count;
 }
 
 /*
@@ -169,14 +190,18 @@ TurbulentPow2 (espan_t *pspan)
 	float	sdivzpow2stepu, tdivzpow2stepu, zipow2stepu;
 	pixel_t	*r_turb_pbase;
 	int	*r_turb_turb;
+	int	spanstep_shift, spanstep_value;
+
+	spanstep_shift = D_DrawSpanGetStep(d_zistepu, d_zistepv);
+	spanstep_value = (1 << spanstep_shift);
 
 	r_turb_turb = sintable + ((int)(r_newrefdef.time*SPEED)&(CYCLE-1));
 
 	r_turb_pbase = (unsigned char *)cacheblock;
 
-	sdivzpow2stepu = d_sdivzstepu * SPANSTEP;
-	tdivzpow2stepu = d_tdivzstepu * SPANSTEP;
-	zipow2stepu = d_zistepu * SPANSTEP;
+	sdivzpow2stepu = d_sdivzstepu * spanstep_value;
+	tdivzpow2stepu = d_tdivzstepu * spanstep_value;
+	zipow2stepu = d_zistepu * spanstep_value;
 
 	do
 	{
@@ -184,7 +209,7 @@ TurbulentPow2 (espan_t *pspan)
 		float sdivz, tdivz, zi, z, du, dv;
 		pixel_t	*r_turb_pdest;
 
-		r_turb_pdest = d_viewbuffer + (r_screenwidth * pspan->v) + pspan->u;
+		r_turb_pdest = d_viewbuffer + (vid.width * pspan->v) + pspan->u;
 
 		count = pspan->count;
 
@@ -219,8 +244,8 @@ TurbulentPow2 (espan_t *pspan)
 			r_turb_tstep = 0;	// ditto
 
 			// calculate s and t at the far end of the span
-			if (count >= SPANSTEP)
-				r_turb_spancount = SPANSTEP;
+			if (count >= spanstep_value)
+				r_turb_spancount = spanstep_value;
 			else
 				r_turb_spancount = count;
 
@@ -238,21 +263,21 @@ TurbulentPow2 (espan_t *pspan)
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
-				else if (snext < SPANSTEP)
+				else if (snext < spanstep_value)
 					// prevent round-off error on <0 steps from
 					//  from causing overstepping & running off the
 					//  edge of the texture
-					snext = SPANSTEP;
+					snext = spanstep_value;
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
-				else if (tnext < SPANSTEP)
+				else if (tnext < spanstep_value)
 					// guard against round-off error on <0 steps
-					tnext = SPANSTEP;
+					tnext = spanstep_value;
 
-				r_turb_sstep = (snext - r_turb_s) >> SPANSTEP_SHIFT;
-				r_turb_tstep = (tnext - r_turb_t) >> SPANSTEP_SHIFT;
+				r_turb_sstep = (snext - r_turb_s) >> spanstep_shift;
+				r_turb_tstep = (tnext - r_turb_t) >> spanstep_shift;
 			}
 			else
 			{
@@ -268,18 +293,18 @@ TurbulentPow2 (espan_t *pspan)
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
-				else if (snext < SPANSTEP)
+				else if (snext < spanstep_value)
 					// prevent round-off error on <0 steps from
 					//  from causing overstepping & running off the
 					//  edge of the texture
-					snext = SPANSTEP;
+					snext = spanstep_value;
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
-				else if (tnext < SPANSTEP)
+				else if (tnext < spanstep_value)
 					// guard against round-off error on <0 steps
-					tnext = SPANSTEP;
+					tnext = spanstep_value;
 
 				if (r_turb_spancount > 1)
 				{
@@ -320,14 +345,18 @@ NonTurbulentPow2 (espan_t *pspan)
 	float sdivzpow2stepu, tdivzpow2stepu, zipow2stepu;
 	pixel_t	*r_turb_pbase;
 	int	*r_turb_turb;
+	int	spanstep_shift, spanstep_value;
+
+	spanstep_shift = D_DrawSpanGetStep(d_zistepu, d_zistepv);
+	spanstep_value = (1 << spanstep_shift);
 
 	r_turb_turb = blanktable;
 
 	r_turb_pbase = (unsigned char *)cacheblock;
 
-	sdivzpow2stepu = d_sdivzstepu * SPANSTEP;
-	tdivzpow2stepu = d_tdivzstepu * SPANSTEP;
-	zipow2stepu = d_zistepu * SPANSTEP;
+	sdivzpow2stepu = d_sdivzstepu * spanstep_value;
+	tdivzpow2stepu = d_tdivzstepu * spanstep_value;
+	zipow2stepu = d_zistepu * spanstep_value;
 
 	do
 	{
@@ -335,7 +364,7 @@ NonTurbulentPow2 (espan_t *pspan)
 		float sdivz, tdivz, zi, z, dv, du;
 		pixel_t	*r_turb_pdest;
 
-		r_turb_pdest = d_viewbuffer + (r_screenwidth * pspan->v) + pspan->u;
+		r_turb_pdest = d_viewbuffer + (vid.width * pspan->v) + pspan->u;
 
 		count = pspan->count;
 
@@ -370,8 +399,8 @@ NonTurbulentPow2 (espan_t *pspan)
 			r_turb_tstep = 0;	// ditto
 
 			// calculate s and t at the far end of the span
-			if (count >= SPANSTEP)
-				r_turb_spancount = SPANSTEP;
+			if (count >= spanstep_value)
+				r_turb_spancount = spanstep_value;
 			else
 				r_turb_spancount = count;
 
@@ -389,21 +418,21 @@ NonTurbulentPow2 (espan_t *pspan)
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
-				else if (snext < SPANSTEP)
+				else if (snext < spanstep_value)
 					// prevent round-off error on <0 steps from
 					//  from causing overstepping & running off the
 					//  edge of the texture
-					snext = SPANSTEP;
+					snext = spanstep_value;
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
-				else if (tnext < SPANSTEP)
+				else if (tnext < spanstep_value)
 					// guard against round-off error on <0 steps
-					tnext = SPANSTEP;
+					tnext = spanstep_value;
 
-				r_turb_sstep = (snext - r_turb_s) >> SPANSTEP_SHIFT;
-				r_turb_tstep = (tnext - r_turb_t) >> SPANSTEP_SHIFT;
+				r_turb_sstep = (snext - r_turb_s) >> spanstep_shift;
+				r_turb_tstep = (tnext - r_turb_t) >> spanstep_shift;
 			}
 			else
 			{
@@ -419,18 +448,18 @@ NonTurbulentPow2 (espan_t *pspan)
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
-				else if (snext < SPANSTEP)
+				else if (snext < spanstep_value)
 					// prevent round-off error on <0 steps from
 					//  from causing overstepping & running off the
 					//  edge of the texture
-					snext = SPANSTEP;
+					snext = spanstep_value;
 
 				tnext = (int)(tdivz * z) + tadjust;
 				if (tnext > bbextentt)
 					tnext = bbextentt;
-				else if (tnext < SPANSTEP)
+				else if (tnext < spanstep_value)
 					// guard against round-off error on <0 steps
-					tnext = SPANSTEP;
+					tnext = spanstep_value;
 
 				if (r_turb_spancount > 1)
 				{
@@ -459,7 +488,7 @@ NonTurbulentPow2 (espan_t *pspan)
 //====================
 
 // Enable custom filtering
-extern cvar_t	*r_anisotropic;
+extern cvar_t	*sw_texture_filtering;
 static const int filtering_kernel[2][2][2] = {
 	{
 		{0x1 << (SHIFT16XYZ-2), 0x0},
@@ -572,12 +601,12 @@ D_DrawSpansPow2 (espan_t *pspan)
 	int	texture_filtering;
 	int	spanstep_shift, spanstep_value;
 
-	spanstep_shift = D_DrawSpanGetStep(d_zistepu, d_zistepv, cachewidth);
+	spanstep_shift = D_DrawSpanGetStep(d_zistepu, d_zistepv);
 	spanstep_value = (1 << spanstep_shift);
 
 	pbase = (unsigned char *)cacheblock;
 
-	texture_filtering = (int)r_anisotropic->value;
+	texture_filtering = (int)sw_texture_filtering->value;
 	sdivzpow2stepu = d_sdivzstepu * spanstep_value;
 	tdivzpow2stepu = d_tdivzstepu * spanstep_value;
 	zipow2stepu = d_zistepu * spanstep_value;
@@ -588,7 +617,7 @@ D_DrawSpansPow2 (espan_t *pspan)
 		int	count, s, t;
 		float	sdivz, tdivz, zi, z, du, dv;
 
-		pdest = d_viewbuffer + (r_screenwidth * pspan->v) + pspan->u;
+		pdest = d_viewbuffer + (vid.width * pspan->v) + pspan->u;
 
 		count = pspan->count;
 
@@ -717,10 +746,12 @@ void
 D_DrawZSpans (espan_t *pspan)
 {
 	zvalue_t	izistep;
+	int		safe_step;
 
 	// FIXME: check for clamping/range problems
 	// we count on FP exceptions being turned off to avoid range problems
 	izistep = (int)(d_zistepu * 0x8000 * (float)SHIFT16XYZ_MULT);
+	safe_step = D_DrawZSpanGetStepValue(izistep);
 
 	do
 	{
@@ -730,7 +761,7 @@ D_DrawZSpans (espan_t *pspan)
 		float		zi;
 		float		du, dv;
 
-		pdest = d_pzbuffer + (d_zwidth * pspan->v) + pspan->u;
+		pdest = d_pzbuffer + (vid.width * pspan->v) + pspan->u;
 
 		count = pspan->count;
 
@@ -742,11 +773,29 @@ D_DrawZSpans (espan_t *pspan)
 		// we count on FP exceptions being turned off to avoid range problems
 		izi = (int)(zi * 0x8000 * (float)SHIFT16XYZ_MULT);
 
-		while (count > 0)
+		if (safe_step > 1)
 		{
-			*pdest++ = izi >> SHIFT16XYZ;
-			izi += izistep;
-			count--;
+			const zvalue_t *tdest_max = pdest + count;
+			do
+			{
+				int	step;
+				zvalue_t izi_shifted = izi >> SHIFT16XYZ;
+
+				for(step = 0; (step < safe_step) && (pdest < tdest_max); step++)
+				{
+					*pdest++ = izi_shifted;
+				}
+				izi += (izistep * safe_step);
+			} while (pdest < tdest_max);
+		}
+		else
+		{
+			while (count > 0)
+			{
+				*pdest++ = izi >> SHIFT16XYZ;
+				izi += izistep;
+				count--;
+			}
 		}
 	} while ((pspan = pspan->pnext) != NULL);
 }

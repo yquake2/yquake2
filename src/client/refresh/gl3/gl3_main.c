@@ -87,7 +87,7 @@ cvar_t *r_mode;
 cvar_t *r_customwidth;
 cvar_t *r_customheight;
 cvar_t *vid_gamma;
-cvar_t *r_anisotropic;
+cvar_t *gl_anisotropic;
 cvar_t *gl_texturemode;
 cvar_t *gl_drawbuffer;
 cvar_t *r_clear;
@@ -216,7 +216,7 @@ GL3_Register(void)
 	gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
 
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
-	r_anisotropic = ri.Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
+	gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.2", CVAR_ARCHIVE);
@@ -276,7 +276,7 @@ GL3_Register(void)
 	//gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl1_texturealphamode = ri.Cvar_Get("gl1_texturealphamode", "default", CVAR_ARCHIVE);
 	gl1_texturesolidmode = ri.Cvar_Get("gl1_texturesolidmode", "default", CVAR_ARCHIVE);
-	//r_anisotropic = ri.Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
+	//gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
 	//r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 
 	//gl1_palettedtexture = ri.Cvar_Get("gl1_palettedtexture", "0", CVAR_ARCHIVE); NOPE.
@@ -1657,11 +1657,11 @@ GL3_BeginFrame(float camera_separation)
 	}
 
 	/* texturemode stuff */
-	if (gl_texturemode->modified || (gl3config.anisotropic && r_anisotropic->modified))
+	if (gl_texturemode->modified || (gl3config.anisotropic && gl_anisotropic->modified))
 	{
 		GL3_TextureMode(gl_texturemode->string);
 		gl_texturemode->modified = false;
-		r_anisotropic->modified = false;
+		gl_anisotropic->modified = false;
 	}
 
 	if (r_vsync->modified)

@@ -42,7 +42,7 @@ compress_for_stbiw(unsigned char *data, int data_len, int *out_len, int quality)
 {
 	uLongf bufSize = compressBound(data_len);
 	unsigned char* buf = malloc(bufSize);
-	
+
 	if (buf == NULL)
 	{
 		return NULL;
@@ -192,7 +192,7 @@ void VID_WriteScreenshot(int width, int height, int comp, const void* data)
 	{
 		Com_Printf("SCR_ScreenShot_f: Couldn't write %s\n", picname);
 	}
-} 
+}
 
 // --------
 
@@ -310,18 +310,6 @@ VID_Restart_f(void)
 }
 
 /*
- * FIXME: This is only used by the softrenderer. The software
- * renderer should be ported to the API provided by refresh.c
- * and this call removed.
- */
-void
-VID_NewWindow(int width, int height)
-{
-	viddef.width = width;
-	viddef.height = height;
-}
-
-/*
  * Shuts the renderer down and unloads it.
  */
 void
@@ -402,7 +390,6 @@ VID_LoadRenderer(void)
 	ri.Sys_Error = Com_Error;
 	ri.Vid_GetModeInfo = VID_GetModeInfo;
 	ri.Vid_MenuInit = VID_MenuInit;
-	ri.Vid_NewWindow = VID_NewWindow;
 	ri.Vid_WriteScreenshot = VID_WriteScreenshot;
 
 	// Exchange our export struct with the renderers import struct.
@@ -440,7 +427,7 @@ VID_LoadRenderer(void)
 
 	return true;
 }
- 
+
 /*
  * Checks if a renderer changes was requested and executes it.
  * Inclusive fallback through all renderers. :)
@@ -469,7 +456,7 @@ VID_CheckChanges(void)
 		// Mkay, let's try our luck.
 		while (!VID_LoadRenderer())
 		{
-            // We try: gl3 -> gl1 -> soft.
+			// We try: gl3 -> gl1 -> soft.
 			if (strcmp(vid_renderer->string, "gl3") == 0)
 			{
 				Com_Printf("Retrying with gl1...\n");
@@ -480,7 +467,7 @@ VID_CheckChanges(void)
 				Com_Printf("Retrying with soft...\n");
 				Cvar_Set("vid_renderer", "soft");
 			}
-			else if (strcmp("vid_renderer", "soft") == 0)
+			else if (strcmp(vid_renderer->string, "soft") == 0)
 			{
 				// Sorry, no usable renderer found.
 				Com_Error(ERR_FATAL, "No usable renderer found!\n");

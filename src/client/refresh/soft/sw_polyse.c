@@ -65,10 +65,9 @@ static int	r_sstepx, r_tstepx, r_lstepy, r_sstepy, r_tstepy;
 static zvalue_t	r_zistepx, r_zistepy;
 static int	d_aspancount, d_countextrastep;
 
-static spanpackage_t	*a_spans;
 static spanpackage_t	*d_pedgespanpackage;
 
-spanpackage_t	*triangle_spans;
+spanpackage_t	*triangle_spans, *triangles_max;
 
 static int	ystart;
 static pixel_t	*d_pdest, *d_ptex;
@@ -208,8 +207,6 @@ R_DrawTriangle(const finalvert_t *a, const finalvert_t *b, const finalvert_t *c)
 
 	if ( d_xdenom < 0 )
 	{
-		a_spans = triangle_spans;
-
 		r_p0[0] = a->u;	// u
 		r_p0[1] = a->v;	// v
 		r_p0[2] = a->s;	// s
@@ -236,6 +233,30 @@ R_DrawTriangle(const finalvert_t *a, const finalvert_t *b, const finalvert_t *c)
 	}
 }
 
+static void
+R_PushEdgesSpan()
+{
+	if (d_pedgespanpackage >= triangles_max)
+	{
+		// no space any more
+		r_outoftriangles++;
+		return;
+	}
+
+	d_pedgespanpackage->pdest = d_pdest;
+	d_pedgespanpackage->pz = d_pz;
+	d_pedgespanpackage->count = d_aspancount;
+	d_pedgespanpackage->ptex = d_ptex;
+
+	d_pedgespanpackage->sfrac = d_sfrac;
+	d_pedgespanpackage->tfrac = d_tfrac;
+
+	// FIXME: need to clamp l, s, t, at both ends?
+	d_pedgespanpackage->light = d_light;
+	d_pedgespanpackage->zi = d_zi;
+
+	d_pedgespanpackage++;
+}
 
 /*
 ===================
@@ -247,19 +268,7 @@ R_PolysetScanLeftEdge_C(int height)
 {
 	do
 	{
-		d_pedgespanpackage->pdest = d_pdest;
-		d_pedgespanpackage->pz = d_pz;
-		d_pedgespanpackage->count = d_aspancount;
-		d_pedgespanpackage->ptex = d_ptex;
-
-		d_pedgespanpackage->sfrac = d_sfrac;
-		d_pedgespanpackage->tfrac = d_tfrac;
-
-		// FIXME: need to clamp l, s, t, at both ends?
-		d_pedgespanpackage->light = d_light;
-		d_pedgespanpackage->zi = d_zi;
-
-		d_pedgespanpackage++;
+		R_PushEdgesSpan();
 
 		errorterm += erroradjustup;
 		if (errorterm >= 0)
@@ -358,8 +367,6 @@ R_PolysetSetUpForLineScan(fixed8_t startvertu, fixed8_t startvertv,
 {
 	int		tm, tn;
 	adivtab_t	*ptemp;
-
-	// TODO: implement x86 version
 
 	errorterm = -1;
 
@@ -782,7 +789,7 @@ R_RasterizeAliasPolySmooth (void)
 	//
 	// scan out the top (and possibly only) part of the left edge
 	//
-	d_pedgespanpackage = a_spans;
+	d_pedgespanpackage = triangle_spans;
 
 	ystart = plefttop[1];
 	d_aspancount = plefttop[0] - prighttop[0];
@@ -796,35 +803,23 @@ R_RasterizeAliasPolySmooth (void)
 	d_light = plefttop[4];
 	d_zi = plefttop[5];
 
-	d_pdest = d_viewbuffer + ystart * r_screenwidth + plefttop[0];
-	d_pz = d_pzbuffer + ystart * d_zwidth + plefttop[0];
+	d_pdest = d_viewbuffer + ystart * vid.width + plefttop[0];
+	d_pz = d_pzbuffer + ystart * vid.width + plefttop[0];
 
 	if (initialleftheight == 1)
 	{
-		d_pedgespanpackage->pdest = d_pdest;
-		d_pedgespanpackage->pz = d_pz;
-		d_pedgespanpackage->count = d_aspancount;
-		d_pedgespanpackage->ptex = d_ptex;
-
-		d_pedgespanpackage->sfrac = d_sfrac;
-		d_pedgespanpackage->tfrac = d_tfrac;
-
-		// FIXME: need to clamp l, s, t, at both ends?
-		d_pedgespanpackage->light = d_light;
-		d_pedgespanpackage->zi = d_zi;
-
-		d_pedgespanpackage++;
+		R_PushEdgesSpan();
 	}
 	else
 	{
 		R_PolysetSetUpForLineScan(plefttop[0], plefttop[1],
 					  pleftbottom[0], pleftbottom[1]);
 		{
-			d_pzbasestep = d_zwidth + ubasestep;
+			d_pzbasestep = vid.width + ubasestep;
 			d_pzextrastep = d_pzbasestep + 1;
 		}
 
-		d_pdestbasestep = r_screenwidth + ubasestep;
+		d_pdestbasestep = vid.width + ubasestep;
 		d_pdestextrastep = d_pdestbasestep + 1;
 
 		// TODO: can reuse partial expressions here
@@ -886,35 +881,23 @@ R_RasterizeAliasPolySmooth (void)
 		d_light = plefttop[4];
 		d_zi = plefttop[5];
 
-		d_pdest = d_viewbuffer + ystart * r_screenwidth + plefttop[0];
-		d_pz = d_pzbuffer + ystart * d_zwidth + plefttop[0];
+		d_pdest = d_viewbuffer + ystart * vid.width + plefttop[0];
+		d_pz = d_pzbuffer + ystart * vid.width + plefttop[0];
 
 		if (height == 1)
 		{
-			d_pedgespanpackage->pdest = d_pdest;
-			d_pedgespanpackage->pz = d_pz;
-			d_pedgespanpackage->count = d_aspancount;
-			d_pedgespanpackage->ptex = d_ptex;
-
-			d_pedgespanpackage->sfrac = d_sfrac;
-			d_pedgespanpackage->tfrac = d_tfrac;
-
-			// FIXME: need to clamp l, s, t, at both ends?
-			d_pedgespanpackage->light = d_light;
-			d_pedgespanpackage->zi = d_zi;
-
-			d_pedgespanpackage++;
+			R_PushEdgesSpan();
 		}
 		else
 		{
 			R_PolysetSetUpForLineScan(plefttop[0], plefttop[1],
 								  pleftbottom[0], pleftbottom[1]);
 
-			d_pdestbasestep = r_screenwidth + ubasestep;
+			d_pdestbasestep = vid.width + ubasestep;
 			d_pdestextrastep = d_pdestbasestep + 1;
 
 			{
-				d_pzbasestep = d_zwidth + ubasestep;
+				d_pzbasestep = vid.width + ubasestep;
 				d_pzextrastep = d_pzbasestep + 1;
 			}
 
@@ -952,15 +935,21 @@ R_RasterizeAliasPolySmooth (void)
 
 	// scan out the top (and possibly only) part of the right edge, updating the
 	// count field
-	d_pedgespanpackage = a_spans;
+	d_pedgespanpackage = triangle_spans;
 
 	R_PolysetSetUpForLineScan(prighttop[0], prighttop[1],
 						  prightbottom[0], prightbottom[1]);
 	d_aspancount = 0;
 	d_countextrastep = ubasestep + 1;
-	originalcount = a_spans[initialrightheight].count;
-	a_spans[initialrightheight].count = -999999; // mark end of the spanpackages
-	(*d_pdrawspans) (a_spans);
+	if ((triangle_spans + initialrightheight) >= triangles_max)
+	{
+		// we dont have enough triangles for save full height
+		r_outoftriangles++;
+		return;
+	}
+	originalcount = triangle_spans[initialrightheight].count;
+	triangle_spans[initialrightheight].count = -999999; // mark end of the spanpackages
+	(*d_pdrawspans) (triangle_spans);
 
 	// scan out the bottom part of the right edge, if it exists
 	if (pedgetable->numrightedges == 2)
@@ -968,7 +957,7 @@ R_RasterizeAliasPolySmooth (void)
 		int				height;
 		spanpackage_t	*pstart;
 
-		pstart = a_spans + initialrightheight;
+		pstart = triangle_spans + initialrightheight;
 		pstart->count = originalcount;
 
 		d_aspancount = prightbottom[0] - prighttop[0];
@@ -982,7 +971,14 @@ R_RasterizeAliasPolySmooth (void)
 							  prightbottom[0], prightbottom[1]);
 
 		d_countextrastep = ubasestep + 1;
-		a_spans[initialrightheight + height].count = -999999; // mark end of the spanpackages
+
+		if ((triangle_spans + initialrightheight + height) >= triangles_max)
+		{
+			// we dont have enough triangles for save full height
+			r_outoftriangles++;
+			return;
+		}
+		triangle_spans[initialrightheight + height].count = -999999; // mark end of the spanpackages
 		(*d_pdrawspans) (pstart);
 	}
 }

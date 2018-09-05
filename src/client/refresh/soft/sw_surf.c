@@ -80,7 +80,6 @@ R_DrawSurface (drawsurf_t *drawsurf)
 	int		smax, tmax, twidth;
 	int		u;
 	int		soffset, basetoffset, texwidth;
-	int		horzblockstep;
 	unsigned char	*pcolumndest;
 	image_t		*mt;
 
@@ -104,7 +103,7 @@ R_DrawSurface (drawsurf_t *drawsurf)
 	//==============================
 
 	// TODO: only needs to be set when there is a display settings change
-	horzblockstep = blocksize;
+	blocksize = blocksize;
 
 	smax = mt->width >> drawsurf->surfmip;
 	twidth = texwidth;
@@ -138,7 +137,7 @@ R_DrawSurface (drawsurf_t *drawsurf)
 		if (soffset >= smax)
 			soffset = 0;
 
-		pcolumndest += horzblockstep;
+		pcolumndest += blocksize;
 	}
 }
 
