@@ -360,10 +360,10 @@ client:
 	$(MAKE) release/quake2
 
 ifeq ($(YQ2_OSTYPE), Darwin)
-build/client/%.o : %.m
+build/client/%.o : %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) $(OSX_ARCH) -x objective-c -c $< -o $@
+	${Q}$(CC) $(OSX_ARCH) -x objective-c -c $(CFLAGS) $(SDLCFLAGS) $(ZIPCFLAGS) $(INCLUDE)  $< -o $@
 else
 build/client/%.o: %.c
 	@echo "===> CC $<"
