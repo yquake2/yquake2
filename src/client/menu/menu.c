@@ -2011,7 +2011,14 @@ StartGame(void)
 	{
 		CL_Disconnect();
 	}
-
+/*
+	if (!CM_MapWillLoad ("base1"))
+	{
+		Com_Printf ("ERROR: Your Quake II installation is missing the single player data, you cannot start a single player game.\n", LOG_GENERAL);
+		M_PopMenu ();
+		return;
+	}
+*/
     /* disable updates and start the cinematic going */
     cl.servercount = -1;
     M_ForceMenuOff();
