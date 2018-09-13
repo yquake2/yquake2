@@ -199,8 +199,19 @@ SV_GameMap_f(void)
 		SV_WipeSavegame("current");
 	}
 	else
-	{
-		/* save the map just exited */
+	{	// save the map just exited
+		if (!strchr (map, '.') && !strchr (map, '$'))
+		{
+			Com_sprintf (expanded, sizeof(expanded), "maps/%s.bsp", map);
+
+			//r1: check it exists
+            		//if (FS_LoadFile (expanded, NULL) == -1)
+			if (!CM_MapWillLoad (expanded))
+			{
+				Com_Printf ("Can't find map '%s'\n", LOG_GENERAL, map);
+				return;
+			}
+		}		
 		if (sv.state == ss_game)
 		{
 			/* clear all the client inuse flags before saving so that
