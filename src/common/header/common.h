@@ -613,6 +613,8 @@ int CM_PointLeafnum(vec3_t p);
 int CM_BoxLeafnums(vec3_t mins, vec3_t maxs, int *list,
 		int listsize, int *topnode);
 
+qboolean CM_MapWillLoad (const char *name);
+
 int CM_LeafContents(int leafnum);
 int CM_LeafCluster(int leafnum);
 int CM_LeafArea(int leafnum);
