@@ -1622,6 +1622,26 @@ CMod_LoadEntityString(lump_t *l)
 	memcpy(map_entitystring, cmod_base + l->fileofs, l->filelen);
 }
 
+/* Backport from r1q2: load .override files */
+qboolean CM_MapWillLoad (const char *name)
+{
+	char			csname[MAX_QPATH];
+
+	if (!name || !name[0])
+		return true;
+
+	Com_sprintf (csname, sizeof(csname), "%s.override", name);
+
+	if (FS_LoadFile (csname, NULL) != -1)
+		return true;
+
+	if (FS_LoadFile (name, NULL) != -1)
+		return true;
+
+	return false;
+}
+/* End backport */
+
 /*
  * Loads in the map and all submodels
  */
@@ -1668,6 +1688,46 @@ CM_LoadMap(char *name, qboolean clientload, unsigned *checksum)
 		*checksum = 0;
 		return &map_cmodels[0]; /* cinematic servers won't have anything at all */
 	}
+	/* Backport from r1q2: load .override files */
+		//r1: allow transparent server-side map entity replacement
+	if (!clientload)
+	{
+		FILE			*script;
+		char			csname[MAX_QPATH];
+		qboolean		closeFile;
+
+		Com_sprintf (csname, sizeof(csname), "%s.override", name);
+		
+		FS_FOpenFile (csname, &script, HANDLE_OPEN, &closeFile);
+
+		if (script)
+		{
+			Com_Printf ("Using override file: %s\n", LOG_GENERAL, name);
+			FS_Read (&override_bits, sizeof(override_bits), script);
+
+			if (override_bits & 1)
+				FS_Read (newname, sizeof(newname), script);
+
+			if (override_bits & 2)
+				FS_Read (&last_checksum, sizeof(last_checksum), script);
+
+			if (override_bits & 4)
+			{
+				FS_Read (&length, sizeof(length), script);
+				if (!length || length >= MAX_MAP_ENTSTRING)
+				{
+					FS_FCloseFile (script);
+					Com_Error (ERR_DROP, "CM_LoadMap: bad entity string size %u", length);
+				}
+				FS_Read (map_entitystring, length, script);
+			}
+
+			if (closeFile)
+				FS_FCloseFile (script);
+			name = newname;
+		}
+	}
+	/* End backport */
 
 	length = FS_LoadFile(name, (void **)&buf);
 
