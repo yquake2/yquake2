@@ -330,6 +330,7 @@ R_AliasSetUpTransform(const entity_t *currententity)
 	// TODO: should use a look-up table
 	// TODO: could cache lazily, stored in the entity
 	//
+	// AngleVectors never change angles, we can convert from const
 	AngleVectors((float *)currententity->angles, s_alias_forward, s_alias_right, s_alias_up );
 
 	// TODO: can do this with simple matrix rearrangement
