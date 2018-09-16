@@ -496,14 +496,16 @@ extern edge_t	**newedges;
 extern edge_t	**removeedges;
 
 typedef struct {
-	pixel_t		*pdest;
-	zvalue_t	*pz;
-	int		count;
+	int		u, v, count;
 	pixel_t		*ptex;
 	int		sfrac, tfrac, light;
 	zvalue_t	zi;
 } spanpackage_t;
 extern spanpackage_t	*triangle_spans, *triangles_max;
+
+void R_PolysetDrawSpans8_33(const entity_t *currententity, spanpackage_t *pspanpackage);
+void R_PolysetDrawSpans8_66(const entity_t *currententity, spanpackage_t *pspanpackage);
+void R_PolysetDrawSpans8_Opaque(const entity_t *currententity, spanpackage_t *pspanpackage);
 
 extern byte	**warp_rowptr;
 extern int	*warp_column;
