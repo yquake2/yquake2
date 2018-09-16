@@ -482,7 +482,7 @@ R_AliasSetupSkin
 ===============
 */
 static qboolean
-R_AliasSetupSkin(const entity_t *currententity)
+R_AliasSetupSkin(const entity_t *currententity, const model_t *currentmodel)
 {
 	image_t *pskindesc;
 
@@ -616,7 +616,7 @@ R_AliasSetupFrames
 =================
 */
 static void
-R_AliasSetupFrames(const entity_t *currententity, dmdl_t *pmdl)
+R_AliasSetupFrames(const entity_t *currententity, const model_t *currentmodel, dmdl_t *pmdl)
 {
 	int thisframe = currententity->frame;
 	int lastframe = currententity->oldframe;
@@ -701,7 +701,7 @@ R_AliasDrawModel
 ================
 */
 void
-R_AliasDrawModel(entity_t *currententity)
+R_AliasDrawModel(entity_t *currententity, const model_t *currentmodel)
 {
 	s_pmdl = (dmdl_t *)currentmodel->extradata;
 
@@ -730,7 +730,7 @@ R_AliasDrawModel(entity_t *currententity)
 	** we have to set our frame pointers and transformations before
 	** doing any real work
 	*/
-	R_AliasSetupFrames(currententity, s_pmdl);
+	R_AliasSetupFrames(currententity, currentmodel, s_pmdl);
 	R_AliasSetUpTransform(currententity);
 
 	// see if the bounding box lets us trivially reject, also sets
@@ -746,7 +746,7 @@ R_AliasDrawModel(entity_t *currententity)
 	}
 
 	// set up the skin and verify it exists
-	if ( !R_AliasSetupSkin(currententity) )
+	if ( !R_AliasSetupSkin(currententity, currentmodel) )
 	{
 		R_Printf( PRINT_ALL, "R_AliasDrawModel %s: NULL skin found\n",
 			currentmodel->name);

@@ -163,7 +163,7 @@ R_EmitSkyBox
 ================
 */
 static void
-R_EmitSkyBox(entity_t *currententity)
+R_EmitSkyBox(entity_t *currententity, const model_t *currentmodel)
 {
 	int		i, j;
 	int		oldkey;
@@ -199,7 +199,7 @@ R_EmitSkyBox(entity_t *currententity)
 	r_currentkey = 0x7ffffff0;
  	for (i=0 ; i<6 ; i++)
 	{
-		R_RenderFace(currententity, r_skyfaces + i, ALIAS_XY_CLIP_MASK);
+		R_RenderFace(currententity, currentmodel, r_skyfaces + i, ALIAS_XY_CLIP_MASK);
 	}
 	r_currentkey = oldkey;	// bsp sorting order
 }
@@ -519,7 +519,7 @@ R_RenderFace
 ================
 */
 void
-R_RenderFace (entity_t *currententity, msurface_t *fa, int clipflags)
+R_RenderFace (entity_t *currententity, const model_t *currentmodel, msurface_t *fa, int clipflags)
 {
 	int		i;
 	unsigned	mask;
@@ -541,7 +541,7 @@ R_RenderFace (entity_t *currententity, msurface_t *fa, int clipflags)
 	// environment box surfaces to be emited
 	if ( fa->texinfo->flags & SURF_SKY )
 	{
-		R_EmitSkyBox (currententity);
+		R_EmitSkyBox (currententity, currentmodel);
 		return;
 	}
 

@@ -46,7 +46,6 @@ char		skyname[MAX_QPATH];
 vec3_t		skyaxis;
 
 refdef_t	r_newrefdef;
-model_t		*currentmodel;
 
 model_t		*r_worldmodel;
 
@@ -655,12 +654,12 @@ R_DrawEntitiesOnList (void)
 			modelorg[0] = -r_origin[0];
 			modelorg[1] = -r_origin[1];
 			modelorg[2] = -r_origin[2];
-			VectorCopy( vec3_origin, r_entorigin );
-			R_DrawBeam( currententity );
+			VectorCopy(vec3_origin, r_entorigin);
+			R_DrawBeam(currententity);
 		}
 		else
 		{
-			currentmodel = currententity->model;
+			const model_t *currentmodel = currententity->model;
 			if (!currentmodel)
 			{
 				R_DrawNullModel();
@@ -672,11 +671,11 @@ R_DrawEntitiesOnList (void)
 			switch (currentmodel->type)
 			{
 			case mod_sprite:
-				R_DrawSprite(currententity);
+				R_DrawSprite(currententity, currentmodel);
 				break;
 
 			case mod_alias:
-				R_AliasDrawModel(currententity);
+				R_AliasDrawModel(currententity, currentmodel);
 				break;
 
 			default:
@@ -705,7 +704,7 @@ R_DrawEntitiesOnList (void)
 		}
 		else
 		{
-			currentmodel = currententity->model;
+			const model_t *currentmodel = currententity->model;
 			if (!currentmodel)
 			{
 				R_DrawNullModel();
@@ -717,11 +716,11 @@ R_DrawEntitiesOnList (void)
 			switch (currentmodel->type)
 			{
 			case mod_sprite:
-				R_DrawSprite(currententity);
+				R_DrawSprite(currententity, currentmodel);
 				break;
 
 			case mod_alias:
-				R_AliasDrawModel(currententity);
+				R_AliasDrawModel(currententity, currentmodel);
 				break;
 
 			default:
@@ -909,7 +908,7 @@ R_DrawBEntitiesOnList (void)
 	for (i=0 ; i<r_newrefdef.num_entities ; i++)
 	{
 		entity_t *currententity = &r_newrefdef.entities[i];
-		currentmodel = currententity->model;
+		const model_t *currentmodel = currententity->model;
 		if (!currentmodel)
 			continue;
 		if (currentmodel->nummodelsurfaces == 0)

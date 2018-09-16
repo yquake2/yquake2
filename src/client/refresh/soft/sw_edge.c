@@ -738,7 +738,6 @@ static msurface_t		*pface;
 static surfcache_t		*pcurrentcache;
 static vec3_t			transformed_modelorg;
 static vec3_t			world_transformed_modelorg;
-static vec3_t			local_modelorg;
 
 /*
 =============
@@ -887,6 +886,7 @@ D_TurbulentSurf(surf_t *s)
 	if (s->insubmodel)
 	{
 		entity_t *currententity;
+		vec3_t local_modelorg;
 
 		// FIXME: we don't want to do all this for every polygon!
 		// TODO: store once at start of frame
@@ -979,6 +979,8 @@ D_SolidSurf (surf_t *s)
 
 	if (s->insubmodel)
 	{
+		vec3_t local_modelorg;
+
 		// FIXME: we don't want to do all this for every polygon!
 		// TODO: store once at start of frame
 		currententity = s->entity;

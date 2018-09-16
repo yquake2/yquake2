@@ -1026,9 +1026,9 @@ R_ClipAndDrawPoly ( float alpha, int isturbulent, qboolean textured )
 ** R_BuildPolygonFromSurface
 */
 static void
-R_BuildPolygonFromSurface(const entity_t *currententity, msurface_t *fa)
+R_BuildPolygonFromSurface(const entity_t *currententity, const model_t *currentmodel, msurface_t *fa)
 {
-	int			i, lnumverts;
+	int		i, lnumverts;
 	medge_t		*pedges, *r_pedge;
 	float		*vec;
 	vec5_t     *pverts;
@@ -1213,8 +1213,7 @@ void
 R_DrawAlphaSurfaces(const entity_t *currententity)
 {
 	msurface_t *s = r_alpha_surfaces;
-
-	currentmodel = r_worldmodel;
+	const model_t *currentmodel = r_worldmodel;
 
 	modelorg[0] = -r_origin[0];
 	modelorg[1] = -r_origin[1];
@@ -1222,7 +1221,7 @@ R_DrawAlphaSurfaces(const entity_t *currententity)
 
 	while ( s )
 	{
-		R_BuildPolygonFromSurface(currententity, s);
+		R_BuildPolygonFromSurface(currententity, currentmodel, s);
 
 		//=======
 		//PGM

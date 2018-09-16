@@ -338,7 +338,7 @@ Bmodel crosses multiple leafs
 ================
 */
 void
-R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *pmodel, mnode_t *topnode)
+R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, mnode_t *topnode)
 {
 	int			i, j, lindex;
 	vec_t		dot;
@@ -348,9 +348,9 @@ R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *pmode
 	medge_t		*pedge, *pedges;
 
 	// FIXME: use bounding-box-based frustum clipping info?
-	psurf = &pmodel->surfaces[pmodel->firstmodelsurface];
-	numsurfaces = pmodel->nummodelsurfaces;
-	pedges = pmodel->edges;
+	psurf = &currentmodel->surfaces[currentmodel->firstmodelsurface];
+	numsurfaces = currentmodel->nummodelsurfaces;
+	pedges = currentmodel->edges;
 
 	for (i=0 ; i<numsurfaces ; i++, psurf++)
 	{
@@ -380,7 +380,7 @@ R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *pmode
 
 		for (j=0 ; j<psurf->numedges ; j++)
 		{
-		   lindex = pmodel->surfedges[psurf->firstedge+j];
+		   lindex = currentmodel->surfedges[psurf->firstedge+j];
 
 			if (lindex > 0)
 			{
@@ -417,7 +417,7 @@ All in one leaf
 ================
 */
 void
-R_DrawSubmodelPolygons(entity_t *currententity, const model_t *pmodel, int clipflags, mnode_t *topnode)
+R_DrawSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, int clipflags, mnode_t *topnode)
 {
 	int			i;
 	vec_t		dot;
@@ -425,8 +425,8 @@ R_DrawSubmodelPolygons(entity_t *currententity, const model_t *pmodel, int clipf
 	int numsurfaces;
 
 	// FIXME: use bounding-box-based frustum clipping info?
-	psurf = &pmodel->surfaces[pmodel->firstmodelsurface];
-	numsurfaces = pmodel->nummodelsurfaces;
+	psurf = &currentmodel->surfaces[currentmodel->firstmodelsurface];
+	numsurfaces = currentmodel->nummodelsurfaces;
 
 	for (i=0 ; i<numsurfaces ; i++, psurf++)
 	{
@@ -443,7 +443,7 @@ R_DrawSubmodelPolygons(entity_t *currententity, const model_t *pmodel, int clipf
 			r_currentkey = ((mleaf_t *)topnode)->key;
 
 			// FIXME: use bounding-box-based frustum clipping info?
-			R_RenderFace(currententity, psurf, clipflags);
+			R_RenderFace(currententity, currentmodel, psurf, clipflags);
 		}
 	}
 }
@@ -457,7 +457,7 @@ R_RecursiveWorldNode
 ================
 */
 static void
-R_RecursiveWorldNode (entity_t *currententity, mnode_t *node, int clipflags)
+R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnode_t *node, int clipflags)
 {
 	int c;
 	vec3_t acceptpt, rejectpt;
@@ -570,7 +570,7 @@ R_RecursiveWorldNode (entity_t *currententity, mnode_t *node, int clipflags)
 			side = 1;
 
 		// recurse down the children, front side first
-		R_RecursiveWorldNode (currententity, node->children[side], clipflags);
+		R_RecursiveWorldNode (currententity, currentmodel, node->children[side], clipflags);
 
 		// draw stuff
 		c = node->numsurfaces;
@@ -588,7 +588,7 @@ R_RecursiveWorldNode (entity_t *currententity, mnode_t *node, int clipflags)
 					if ((surf->flags & SURF_PLANEBACK) &&
 						(surf->visframe == r_framecount))
 					{
-						R_RenderFace (currententity, surf, clipflags);
+						R_RenderFace (currententity, currentmodel, surf, clipflags);
 					}
 
 					surf++;
@@ -601,7 +601,7 @@ R_RecursiveWorldNode (entity_t *currententity, mnode_t *node, int clipflags)
 					if (!(surf->flags & SURF_PLANEBACK) &&
 						(surf->visframe == r_framecount))
 					{
-						R_RenderFace (currententity, surf, clipflags);
+						R_RenderFace (currententity, currentmodel, surf, clipflags);
 					}
 
 					surf++;
@@ -613,7 +613,7 @@ R_RecursiveWorldNode (entity_t *currententity, mnode_t *node, int clipflags)
 		}
 
 		// recurse down the back side
-		R_RecursiveWorldNode (currententity, node->children[!side], clipflags);
+		R_RecursiveWorldNode (currententity, currentmodel, node->children[!side], clipflags);
 	}
 }
 
@@ -625,6 +625,7 @@ R_RenderWorld
 void
 R_RenderWorld (void)
 {
+	const model_t *currentmodel = r_worldmodel;
 
 	if (!r_drawworld->value)
 		return;
@@ -637,8 +638,7 @@ R_RenderWorld (void)
 	r_worldentity.frame = (int)(r_newrefdef.time*2);
 
 	VectorCopy (r_origin, modelorg);
-	currentmodel = r_worldmodel;
 	r_pcurrentvertbase = currentmodel->vertexes;
 
-	R_RecursiveWorldNode (&r_worldentity, currentmodel->nodes, ALIAS_XY_CLIP_MASK);
+	R_RecursiveWorldNode (&r_worldentity, currentmodel, currentmodel->nodes, ALIAS_XY_CLIP_MASK);
 }
