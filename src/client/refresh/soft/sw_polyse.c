@@ -94,15 +94,15 @@ static byte	*skintable[MAX_LBM_HEIGHT];
 int		skinwidth;
 static byte	*skinstart;
 
-void	(*d_pdrawspans)(spanpackage_t *pspanpackage);
+void	(*d_pdrawspans)(const entity_t *currententity, spanpackage_t *pspanpackage);
 
-void R_PolysetDrawSpans8_33 (spanpackage_t *pspanpackage);
-void R_PolysetDrawSpans8_66 (spanpackage_t *pspanpackage);
-void R_PolysetDrawSpans8_Opaque (spanpackage_t *pspanpackage);
+void R_PolysetDrawSpans8_33 (const entity_t *currententity, spanpackage_t *pspanpackage);
+void R_PolysetDrawSpans8_66 (const entity_t *currententity, spanpackage_t *pspanpackage);
+void R_PolysetDrawSpans8_Opaque (const entity_t *currententity, spanpackage_t *pspanpackage);
 
 static void R_PolysetCalcGradients (int skinwidth);
 static void R_PolysetSetEdgeTable (void);
-static void R_RasterizeAliasPolySmooth (void);
+static void R_RasterizeAliasPolySmooth(const entity_t *currententity);
 static void R_PolysetScanLeftEdge_C(int height);
 
 // ======================
@@ -181,7 +181,7 @@ R_DrawTriangle
 ================
 */
 void
-R_DrawTriangle(const finalvert_t *a, const finalvert_t *b, const finalvert_t *c)
+R_DrawTriangle(const entity_t *currententity, const finalvert_t *a, const finalvert_t *b, const finalvert_t *c)
 {
 	int dv1_ab, dv0_ac;
 	int dv0_ab, dv1_ac;
@@ -229,7 +229,7 @@ R_DrawTriangle(const finalvert_t *a, const finalvert_t *b, const finalvert_t *c)
 		r_p2[5] = c->zi;
 
 		R_PolysetSetEdgeTable ();
-		R_RasterizeAliasPolySmooth ();
+		R_RasterizeAliasPolySmooth(currententity);
 	}
 }
 
@@ -462,7 +462,7 @@ R_PolysetDrawSpans8
 ================
 */
 void
-R_PolysetDrawSpans8_33( spanpackage_t *pspanpackage)
+R_PolysetDrawSpans8_33(const entity_t *currententity, spanpackage_t *pspanpackage)
 {
 	byte		*lpdest;
 	byte		*lptex;
@@ -528,7 +528,7 @@ R_PolysetDrawSpans8_33( spanpackage_t *pspanpackage)
 }
 
 void
-R_PolysetDrawSpansConstant8_33( spanpackage_t *pspanpackage)
+R_PolysetDrawSpansConstant8_33(const entity_t *currententity, spanpackage_t *pspanpackage)
 {
 	pixel_t		*lpdest;
 	int		lzi;
@@ -574,7 +574,7 @@ R_PolysetDrawSpansConstant8_33( spanpackage_t *pspanpackage)
 }
 
 void
-R_PolysetDrawSpans8_66(spanpackage_t *pspanpackage)
+R_PolysetDrawSpans8_66(const entity_t *currententity, spanpackage_t *pspanpackage)
 {
 	pixel_t		*lpdest;
 	pixel_t		*lptex;
@@ -641,7 +641,7 @@ R_PolysetDrawSpans8_66(spanpackage_t *pspanpackage)
 }
 
 void
-R_PolysetDrawSpansConstant8_66( spanpackage_t *pspanpackage)
+R_PolysetDrawSpansConstant8_66(const entity_t *currententity, spanpackage_t *pspanpackage)
 {
 	pixel_t		*lpdest;
 	zvalue_t	lzi;
@@ -687,7 +687,7 @@ R_PolysetDrawSpansConstant8_66( spanpackage_t *pspanpackage)
 }
 
 void
-R_PolysetDrawSpans8_Opaque (spanpackage_t *pspanpackage)
+R_PolysetDrawSpans8_Opaque (const entity_t *currententity, spanpackage_t *pspanpackage)
 {
 	do
 	{
@@ -762,7 +762,7 @@ R_RasterizeAliasPolySmooth
 ================
 */
 static void
-R_RasterizeAliasPolySmooth (void)
+R_RasterizeAliasPolySmooth(const entity_t *currententity)
 {
 	int	initialleftheight, initialrightheight;
 	int	*plefttop, *prighttop, *pleftbottom, *prightbottom;
@@ -949,7 +949,7 @@ R_RasterizeAliasPolySmooth (void)
 	}
 	originalcount = triangle_spans[initialrightheight].count;
 	triangle_spans[initialrightheight].count = -999999; // mark end of the spanpackages
-	(*d_pdrawspans) (triangle_spans);
+	(*d_pdrawspans) (currententity, triangle_spans);
 
 	// scan out the bottom part of the right edge, if it exists
 	if (pedgetable->numrightedges == 2)
@@ -979,7 +979,7 @@ R_RasterizeAliasPolySmooth (void)
 			return;
 		}
 		triangle_spans[initialrightheight + height].count = -999999; // mark end of the spanpackages
-		(*d_pdrawspans) (pstart);
+		(*d_pdrawspans) (currententity, pstart);
 	}
 }
 

@@ -50,7 +50,7 @@ Returns the proper texture for a given time and base texture
 ===============
 */
 static image_t *
-R_TextureAnimation (mtexinfo_t *tex)
+R_TextureAnimation (const entity_t *currententity, mtexinfo_t *tex)
 {
 	int c;
 
@@ -344,14 +344,14 @@ D_CacheSurface
 ================
 */
 surfcache_t *
-D_CacheSurface (msurface_t *surface, int miplevel)
+D_CacheSurface (const entity_t *currententity, msurface_t *surface, int miplevel)
 {
 	surfcache_t	*cache;
 
 	//
 	// if the surface is animating or flashing, flush the cache
 	//
-	r_drawsurf.image = R_TextureAnimation (surface->texinfo);
+	r_drawsurf.image = R_TextureAnimation (currententity, surface->texinfo);
 	r_drawsurf.lightadj[0] = r_newrefdef.lightstyles[surface->styles[0]].white*128;
 	r_drawsurf.lightadj[1] = r_newrefdef.lightstyles[surface->styles[1]].white*128;
 	r_drawsurf.lightadj[2] = r_newrefdef.lightstyles[surface->styles[2]].white*128;

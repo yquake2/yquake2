@@ -642,7 +642,7 @@ R_DrawEntitiesOnList (void)
 	// all bmodels have already been drawn by the edge list
 	for (i=0 ; i<r_newrefdef.num_entities ; i++)
 	{
-		currententity = &r_newrefdef.entities[i];
+		entity_t *currententity = &r_newrefdef.entities[i];
 
 		if ( currententity->flags & RF_TRANSLUCENT )
 		{
@@ -672,11 +672,11 @@ R_DrawEntitiesOnList (void)
 			switch (currentmodel->type)
 			{
 			case mod_sprite:
-				R_DrawSprite ();
+				R_DrawSprite(currententity);
 				break;
 
 			case mod_alias:
-				R_AliasDrawModel ();
+				R_AliasDrawModel(currententity);
 				break;
 
 			default:
@@ -690,7 +690,7 @@ R_DrawEntitiesOnList (void)
 
 	for (i=0 ; i<r_newrefdef.num_entities ; i++)
 	{
-		currententity = &r_newrefdef.entities[i];
+		entity_t *currententity = &r_newrefdef.entities[i];
 
 		if ( !( currententity->flags & RF_TRANSLUCENT ) )
 			continue;
@@ -717,11 +717,11 @@ R_DrawEntitiesOnList (void)
 			switch (currentmodel->type)
 			{
 			case mod_sprite:
-				R_DrawSprite ();
+				R_DrawSprite(currententity);
 				break;
 
 			case mod_alias:
-				R_AliasDrawModel ();
+				R_AliasDrawModel(currententity);
 				break;
 
 			default:
@@ -908,7 +908,7 @@ R_DrawBEntitiesOnList (void)
 
 	for (i=0 ; i<r_newrefdef.num_entities ; i++)
 	{
-		currententity = &r_newrefdef.entities[i];
+		entity_t *currententity = &r_newrefdef.entities[i];
 		currentmodel = currententity->model;
 		if (!currentmodel)
 			continue;
@@ -939,7 +939,7 @@ R_DrawBEntitiesOnList (void)
 		r_pcurrentvertbase = currentmodel->vertexes;
 
 		// FIXME: stop transforming twice
-		R_RotateBmodel ();
+		R_RotateBmodel(currententity);
 
 		// calculate dynamic lighting for bmodel
 		R_PushDlights (currentmodel);
@@ -948,14 +948,14 @@ R_DrawBEntitiesOnList (void)
 		{
 			// not a leaf; has to be clipped to the world BSP
 			r_clipflags = clipflags;
-			R_DrawSolidClippedSubmodelPolygons (currentmodel, topnode);
+			R_DrawSolidClippedSubmodelPolygons(currententity, currentmodel, topnode);
 		}
 		else
 		{
 			// falls entirely in one leaf, so we just put all the
 			// edges in the edge list and let 1/z sorting handle
 			// drawing order
-			R_DrawSubmodelPolygons (currentmodel, clipflags, topnode);
+			R_DrawSubmodelPolygons(currententity, currentmodel, clipflags, topnode);
 		}
 
 		// put back world rotation and frustum clipping
@@ -1079,7 +1079,7 @@ R_CalcPalette (void)
 //=======================================================================
 
 static void
-R_SetLightLevel (void)
+R_SetLightLevel (const entity_t *currententity)
 {
 	vec3_t		light;
 
@@ -1090,7 +1090,7 @@ R_SetLightLevel (void)
 	}
 
 	// save off light value for server to look at (BIG HACK!)
-	R_LightPoint (r_newrefdef.vieworg, light);
+	R_LightPoint (currententity, r_newrefdef.vieworg, light);
 	r_lightlevel->value = 150.0 * light[0];
 }
 
@@ -1151,10 +1151,10 @@ RE_RenderFrame (refdef_t *fd)
 		dp_time2 = SDL_GetTicks();
 
 	// Perform pixel palette blending ia the pics/colormap.pcx lower part lookup table.
-	R_DrawAlphaSurfaces();
+	R_DrawAlphaSurfaces(&r_worldentity);
 
 	// Save off light value for server to look at (BIG HACK!)
-	R_SetLightLevel ();
+	R_SetLightLevel (&r_worldentity);
 
 	if (r_dowarp)
 		D_WarpScreen ();

@@ -33,7 +33,7 @@ extern void	R_ClipAndDrawPoly( float alpha, qboolean isturbulent, qboolean textu
 ** mapped polygon
 */
 void
-R_DrawSprite (void)
+R_DrawSprite(entity_t *currententity)
 {
 	vec5_t		*pverts;
 	vec3_t		left, up, right, down;

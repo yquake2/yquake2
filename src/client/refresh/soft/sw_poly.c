@@ -1026,7 +1026,7 @@ R_ClipAndDrawPoly ( float alpha, int isturbulent, qboolean textured )
 ** R_BuildPolygonFromSurface
 */
 static void
-R_BuildPolygonFromSurface(msurface_t *fa)
+R_BuildPolygonFromSurface(const entity_t *currententity, msurface_t *fa)
 {
 	int			i, lnumverts;
 	medge_t		*pedges, *r_pedge;
@@ -1084,7 +1084,7 @@ R_BuildPolygonFromSurface(msurface_t *fa)
 	{
 		surfcache_t *scache;
 
-		scache = D_CacheSurface( fa, 0 );
+		scache = D_CacheSurface(currententity, fa, 0);
 
 		r_polydesc.pixels       = scache->data;
 		r_polydesc.pixel_width  = scache->width;
@@ -1210,7 +1210,7 @@ R_DrawPoly(int iswater)
 ** R_DrawAlphaSurfaces
 */
 void
-R_DrawAlphaSurfaces(void)
+R_DrawAlphaSurfaces(const entity_t *currententity)
 {
 	msurface_t *s = r_alpha_surfaces;
 
@@ -1222,7 +1222,7 @@ R_DrawAlphaSurfaces(void)
 
 	while ( s )
 	{
-		R_BuildPolygonFromSurface( s );
+		R_BuildPolygonFromSurface(currententity, s);
 
 		//=======
 		//PGM
