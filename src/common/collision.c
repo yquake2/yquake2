@@ -1610,16 +1610,60 @@ CMod_LoadVisibility(lump_t *l)
 }
 
 void
-CMod_LoadEntityString(lump_t *l)
+CMod_LoadEntityString(lump_t *l, char *name)
 {
+	// Knightmare- .ent file support
+	if (sv_entfile->value)
+	{
+		char	s[MAX_QPATH];
+		char	*buffer = NULL;
+		int		nameLen, bufLen;
+
+		nameLen = strlen(name);
+		strcpy(s, name);
+		s[nameLen-3] = 'e';	s[nameLen-2] = 'n';	s[nameLen-1] = 't';
+		bufLen = FS_LoadFile (s, (void **)&buffer);
+		if (buffer != NULL && bufLen > 1)
+		{
+			if (bufLen + 1 > sizeof(map_entitystring)) // jit fix
+			{
+				Com_Printf ("CMod_LoadEntityString: .ent file %s too large: %i > %i.\n", s, bufLen, sizeof(map_entitystring));
+				FS_FreeFile (buffer);
+			}
+			else
+			{
+				Com_Printf ("CMod_LoadEntityString: .ent file %s loaded.\n", s);
+				numentitychars = bufLen;
+				memcpy (map_entitystring, buffer, bufLen);
+				map_entitystring[bufLen] = 0; // jit entity bug - null terminate the entity string! 
+				FS_FreeFile (buffer);
+				return;
+			}
+		}
+		else if (bufLen != -1)	// catch too-small entfile
+		{
+			Com_Printf ("CMod_LoadEntityString: .ent file %s too small.\n", s);
+			FS_FreeFile (buffer);
+		}
+		// fall back to bsp entity string if no .ent file loaded
+	}
+	// end Knightmare
+
 	numentitychars = l->filelen;
 
-	if (l->filelen > MAX_MAP_ENTSTRING)
+/*	if (l->filelen > MAX_MAP_ENTSTRING)
 	{
 		Com_Error(ERR_DROP, "Map has too large entity lump");
 	}
 
 	memcpy(map_entitystring, cmod_base + l->fileofs, l->filelen);
+*/
+	if (l->filelen + 1 > sizeof(map_entitystring)) // jit fix
+	//if (l->filelen > MAX_MAP_ENTSTRING)
+		Com_Error (ERR_DROP, "Map has too large entity lump");
+
+	memcpy (map_entitystring, cmod_base + l->fileofs, l->filelen);
+	map_entitystring[l->filelen] = 0; // jit entity bug - null terminate the entity string! 
 }
 
 /*
@@ -1707,7 +1751,7 @@ CM_LoadMap(char *name, qboolean clientload, unsigned *checksum)
 	CMod_LoadAreas(&header.lumps[LUMP_AREAS]);
 	CMod_LoadAreaPortals(&header.lumps[LUMP_AREAPORTALS]);
 	CMod_LoadVisibility(&header.lumps[LUMP_VISIBILITY]);
-	CMod_LoadEntityString(&header.lumps[LUMP_ENTITIES]);
+	CMod_LoadEntityString(&header.lumps[LUMP_ENTITIES], name);
 
 	FS_FreeFile(buf);
 
@@ -1716,7 +1760,7 @@ CM_LoadMap(char *name, qboolean clientload, unsigned *checksum)
 	memset(portalopen, 0, sizeof(portalopen));
 	FloodAreaConnections();
 
-	strcpy(map_name, name);
+	strcpy (map_name, name);
 
 	return &map_cmodels[0];
 }

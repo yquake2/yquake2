@@ -49,6 +49,7 @@ cvar_t *maxclients; /* rename sv_maxclients */
 cvar_t *sv_showclamp;
 cvar_t *hostname;
 cvar_t *public_server; /* should heartbeats be sent */
+cvar_t	*sv_entfile;			// whether to use .ent file
 
 void Master_Shutdown(void);
 void SV_ConnectionlessPacket(void);
@@ -608,6 +609,8 @@ SV_Init(void)
 	sv_airaccelerate = Cvar_Get("sv_airaccelerate", "0", CVAR_LATCH);
 
 	public_server = Cvar_Get("public", "0", 0);
+
+	sv_entfile = Cvar_Get ("sv_entfile", "1", CVAR_ARCHIVE); // whether to use .ent file
 
 	SZ_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
 }
