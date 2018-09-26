@@ -54,7 +54,7 @@ void *
 Hunk_Begin(int maxsize)
 {
 	/* reserve a huge chunk of memory, but don't commit any yet */
-	maxhunksize = maxsize + sizeof(int);
+	maxhunksize = maxsize + sizeof(size_t);
 	curhunksize = 0;
 
 	membase = mmap(0, maxhunksize, PROT_READ | PROT_WRITE,
@@ -76,7 +76,7 @@ Hunk_Alloc(int size)
 	byte *buf;
 
 	/* round to cacheline */
-	size = (size + 31) & ~31;
+	size = (size + 63) & ~63;
 
 	if (curhunksize + size > maxhunksize)
 	{

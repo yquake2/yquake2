@@ -172,7 +172,7 @@ Mod_ForName (char *name, qboolean crash)
 		break;
 
 	case IDBSPHEADER:
-		loadmodel->extradata = Hunk_Begin (0x1000000);
+		loadmodel->extradata = Hunk_Begin (0x2000000);
 		Mod_LoadBrushModel (mod, buf);
 		break;
 
@@ -753,6 +753,8 @@ Mod_LoadLeafs (lump_t *l)
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
+		unsigned firstleafface;
+
 		for (j=0 ; j<3 ; j++)
 		{
 			out->minmaxs[j] = LittleShort (in->mins[j]);
@@ -763,9 +765,15 @@ Mod_LoadLeafs (lump_t *l)
 		out->cluster = LittleShort(in->cluster);
 		out->area = LittleShort(in->area);
 
-		out->firstmarksurface = loadmodel->marksurfaces +
-			LittleShort(in->firstleafface);
-		out->nummarksurfaces = LittleShort(in->numleaffaces);
+		// make unsigned long from signed short
+		firstleafface = LittleShort(in->firstleafface) & 0xFFFF;
+		out->nummarksurfaces = LittleShort(in->numleaffaces) & 0xFFFF;
+
+		out->firstmarksurface = loadmodel->marksurfaces + firstleafface;
+		if ((firstleafface + out->nummarksurfaces) > loadmodel->nummarksurfaces)
+		{
+			ri.Sys_Error (ERR_DROP,"MOD_LoadBmodel: wrong marksurfaces position in %s",loadmodel->name);
+		}
 	}
 }
 

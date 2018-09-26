@@ -46,9 +46,6 @@ static bedge_t		bedges[MAX_BMODEL_EDGES];
 
 static mvertex_t	*pfrontenter, *pfrontexit;
 
-static qboolean		makeclippededge;
-
-
 //===========================================================================
 
 /*
@@ -164,7 +161,8 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 	mplane_t	*splitplane, tplane;
 	mvertex_t	*pvert, *plastvert, *ptvert;
 	mnode_t		*pn;
-	int			area;
+	int		area;
+	qboolean	makeclippededge;
 
 	psideedges[0] = psideedges[1] = NULL;
 
@@ -252,13 +250,12 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 			{
 				// entering for front, exiting for back
 				pfrontenter = ptvert;
-				makeclippededge = true;
 			}
 			else
 			{
 				pfrontexit = ptvert;
-				makeclippededge = true;
 			}
+			makeclippededge = true;
 		}
 		else
 		{
