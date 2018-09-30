@@ -131,7 +131,6 @@ CL_AllocDlight(int key)
 		{
 			if (dl->key == key)
 			{
-				dl->key = key;
 				return dl;
 			}
 		}
@@ -185,7 +184,7 @@ CL_RunDLights(void)
 		if (dl->die < cl.time)
 		{
 			dl->radius = 0;
-			return;
+			continue;
 		}
 
 		dl->radius -= cls.rframetime * dl->decay;
