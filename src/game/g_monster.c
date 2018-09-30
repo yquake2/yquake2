@@ -262,7 +262,9 @@ M_CheckGround(edict_t *ent)
 		VectorCopy(trace.endpos, ent->s.origin);
 		ent->groundentity = trace.ent;
 		ent->groundentity_linkcount = trace.ent->linkcount;
-		ent->velocity[2] = trace.ent->velocity[2];
+
+		// FIXME
+		ent->velocity[2] = 0;
 	}
 }
 

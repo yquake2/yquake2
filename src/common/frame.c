@@ -525,8 +525,7 @@ Qcommon_Frame(int msec)
 	   scene may be more complex than the previous one and SDL
 	   may give us a 1 or 2 frames too low display refresh rate.
 	   Add a security magin of 5%, e.g. 60fps * 0.95 = 57fps. */
-	pfps = (cl_maxfps->value > rfps) ? floor(rfps * 0.95) : cl_maxfps->value;
-
+	pfps = (cl_maxfps->value > (rfps * 0.95)) ? floor(rfps * 0.95) : cl_maxfps->value;
 
 	/* Calculate average time spend to process a render
 	   frame. This is highly depended on the GPU and the

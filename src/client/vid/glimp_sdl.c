@@ -401,12 +401,5 @@ GLimp_GetRefreshRate(void)
 		}
 	}
 
-	/* The value reported by SDL may be one frame too low, for example
-	   on my old Radeon R7 360 the driver returns 59hz for my 59.95hz
-	   display. And Quake II isn't that accurate, we loose a little bit
-	   here and there. Since it doesn't really hurt if we're running a
-	   litte bit too fast just return one frame more than we really have. */
-	glimp_refreshRate++;
-
 	return glimp_refreshRate;
 }
