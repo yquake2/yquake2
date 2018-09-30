@@ -484,6 +484,12 @@ Sys_GetHomeDir(void)
 	return gdir;
 }
 
+void
+Sys_Remove(const char *path)
+{
+	remove(path);
+}
+
 /* ================================================================ */
 
 void *

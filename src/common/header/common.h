@@ -778,6 +778,7 @@ void Sys_Error(char *error, ...);
 void Sys_Quit(void);
 void Sys_Init(void);
 char *Sys_GetHomeDir(void);
+void Sys_Remove(const char *path);
 long long Sys_Microseconds(void);
 void Sys_Nanosleep(int);
 void *Sys_GetProcAddress(void *handle, const char *sym);

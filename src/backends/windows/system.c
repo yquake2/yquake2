@@ -535,6 +535,14 @@ Sys_GetHomeDir(void)
 	return gdir;
 }
 
+Sys_Remove(const char *path)
+{
+	WCHAR wpath[MAX_OSPATH] = {0};
+	MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_OSPATH);
+
+	_wremove(wpath);
+}
+
 /* ======================================================================= */
 
 void *

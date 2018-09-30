@@ -42,19 +42,19 @@ SV_WipeSavegame(char *savename)
 	Com_sprintf(name, sizeof(name), "%s/save/%s/server.ssv",
 				FS_Gamedir(), savename);
 
-	remove(name);
+	Sys_Remove(name);
 
 	Com_sprintf(name, sizeof(name), "%s/save/%s/game.ssv",
 				FS_Gamedir(), savename);
 
-	remove(name);
+	Sys_Remove(name);
 
 	Com_sprintf(name, sizeof(name), "%s/save/%s/*.sav", FS_Gamedir(), savename);
 	s = Sys_FindFirst(name, 0, 0);
 
 	while (s)
 	{
-		remove(s);
+		Sys_Remove(s);
 		s = Sys_FindNext(0, 0);
 	}
 
@@ -64,7 +64,7 @@ SV_WipeSavegame(char *savename)
 
 	while (s)
 	{
-		remove(s);
+		Sys_Remove(s);
 		s = Sys_FindNext(0, 0);
 	}
 
