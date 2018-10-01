@@ -1612,7 +1612,7 @@ CMod_LoadVisibility(lump_t *l)
 void
 CMod_LoadEntityString(lump_t *l, char *name)
 {
-	// Knightmare- .ent file support
+	// Port from Knightmare's kmquake2: support for .ent files.
 	if (sv_entfile->value)
 	{
 		char	s[MAX_QPATH];
@@ -1640,27 +1640,22 @@ CMod_LoadEntityString(lump_t *l, char *name)
 				return;
 			}
 		}
-		else if (bufLen != -1)	// catch too-small entfile
+		else if (bufLen != -1)	// If the .ent file is too small, don't load.
 		{
 			Com_Printf ("CMod_LoadEntityString: .ent file %s too small.\n", s);
 			FS_FreeFile (buffer);
 		}
 		// fall back to bsp entity string if no .ent file loaded
 	}
-	// end Knightmare
+	// End of the kmquake2 .ent file support port.
 
 	numentitychars = l->filelen;
 
-/*	if (l->filelen > MAX_MAP_ENTSTRING)
-	{
-		Com_Error(ERR_DROP, "Map has too large entity lump");
-	}
-
-	memcpy(map_entitystring, cmod_base + l->fileofs, l->filelen);
-*/
+	// if (l->filelen > MAX_MAP_ENTSTRING)
 	if (l->filelen + 1 > sizeof(map_entitystring)) // jit fix
-	//if (l->filelen > MAX_MAP_ENTSTRING)
+	{
 		Com_Error (ERR_DROP, "Map has too large entity lump");
+	}
 
 	memcpy (map_entitystring, cmod_base + l->fileofs, l->filelen);
 	map_entitystring[l->filelen] = 0; // jit entity bug - null terminate the entity string! 
@@ -1751,7 +1746,7 @@ CM_LoadMap(char *name, qboolean clientload, unsigned *checksum)
 	CMod_LoadAreas(&header.lumps[LUMP_AREAS]);
 	CMod_LoadAreaPortals(&header.lumps[LUMP_AREAPORTALS]);
 	CMod_LoadVisibility(&header.lumps[LUMP_VISIBILITY]);
-	CMod_LoadEntityString(&header.lumps[LUMP_ENTITIES], name);
+	CMod_LoadEntityString(&header.lumps[LUMP_ENTITIES], name); // Adding the last parameter from the .ent support kmquake2 port.
 
 	FS_FreeFile(buf);
 
@@ -1760,7 +1755,7 @@ CM_LoadMap(char *name, qboolean clientload, unsigned *checksum)
 	memset(portalopen, 0, sizeof(portalopen));
 	FloodAreaConnections();
 
-	strcpy (map_name, name);
+	strcpy(map_name, name);
 
 	return &map_cmodels[0];
 }
