@@ -829,7 +829,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 	if (!net_interface || !net_interface[0] ||
 		!Q_stricmp(net_interface, "localhost"))
 	{
-		Host = (family == AF_INET6) ? "::" : "0.0.0.0";
+		Host = (family == AF_INET6) ? "::/128" : "0.0.0.0";
 	}
 	else
 	{
