@@ -610,7 +610,7 @@ SV_Init(void)
 
 	public_server = Cvar_Get("public", "0", 0);
 
-	sv_entfile = Cvar_Get ("sv_entfile", "1", CVAR_ARCHIVE); // whether to use .ent file
+	sv_entfile = Cvar_Get("sv_entfile", "1", CVAR_ARCHIVE); // From kmquake2: whether to use .ent file
 
 	SZ_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
 }
