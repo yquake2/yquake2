@@ -49,7 +49,7 @@ cvar_t *maxclients; /* rename sv_maxclients */
 cvar_t *sv_showclamp;
 cvar_t *hostname;
 cvar_t *public_server; /* should heartbeats be sent */
-cvar_t	*sv_entfile;			// whether to use .ent file
+cvar_t *sv_entfile;			// whether to use .ent file
 
 void Master_Shutdown(void);
 void SV_ConnectionlessPacket(void);
