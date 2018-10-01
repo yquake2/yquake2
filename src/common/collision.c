@@ -1654,10 +1654,10 @@ CMod_LoadEntityString(lump_t *l, char *name)
 	// if (l->filelen > MAX_MAP_ENTSTRING)
 	if (l->filelen + 1 > sizeof(map_entitystring)) // jit fix
 	{
-		Com_Error (ERR_DROP, "Map has too large entity lump");
+		Com_Error(ERR_DROP, "Map has too large entity lump");
 	}
 
-	memcpy (map_entitystring, cmod_base + l->fileofs, l->filelen);
+	memcpy(map_entitystring, cmod_base + l->fileofs, l->filelen);
 	map_entitystring[l->filelen] = 0; // jit entity bug - null terminate the entity string! 
 }
 
