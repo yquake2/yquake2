@@ -49,7 +49,7 @@ cvar_t *maxclients; /* rename sv_maxclients */
 cvar_t *sv_showclamp;
 cvar_t *hostname;
 cvar_t *public_server; /* should heartbeats be sent */
-cvar_t *sv_entfile;			// whether to use .ent file
+cvar_t *sv_entfile; /* From kmquake2: whether to use .ent file */
 
 void Master_Shutdown(void);
 void SV_ConnectionlessPacket(void);
@@ -610,7 +610,8 @@ SV_Init(void)
 
 	public_server = Cvar_Get("public", "0", 0);
 
-	sv_entfile = Cvar_Get("sv_entfile", "1", CVAR_ARCHIVE); // From kmquake2: whether to use .ent file
+	/* From kmquake2: whether to use .ent file. */
+	sv_entfile = Cvar_Get("sv_entfile", "1", CVAR_ARCHIVE);
 
 	SZ_Init(&net_message, net_message_buffer, sizeof(net_message_buffer));
 }
