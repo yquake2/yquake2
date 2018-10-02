@@ -27,7 +27,7 @@
 #include "header/local.h"
 
 void
-LoadMD2(model_t *mod, void *buffer)
+LoadMD2(model_t *mod, void *buffer, int modfilelen)
 {
 	int i, j;
 	dmdl_t *pinmodel, *pheader;
@@ -36,6 +36,7 @@ LoadMD2(model_t *mod, void *buffer)
 	daliasframe_t *pinframe, *poutframe;
 	int *pincmd, *poutcmd;
 	int version;
+	int ofs_end;
 
 	pinmodel = (dmdl_t *)buffer;
 
@@ -47,7 +48,13 @@ LoadMD2(model_t *mod, void *buffer)
 				mod->name, version, ALIAS_VERSION);
 	}
 
-	pheader = Hunk_Alloc(LittleLong(pinmodel->ofs_end));
+	ofs_end = LittleLong(pinmodel->ofs_end);
+	if (ofs_end < 0 || ofs_end > modfilelen)
+		ri.Sys_Error (ERR_DROP, "model %s file size(%d) too small, should be %d", mod->name,
+				   modfilelen, ofs_end);
+
+	mod->extradata = Hunk_Begin(modfilelen);
+	pheader = Hunk_Alloc(ofs_end);
 
 	/* byte swap the header fields and sanity check */
 	for (i = 0; i < sizeof(dmdl_t) / 4; i++)

@@ -708,12 +708,15 @@ Mod_LoadPlanes(lump_t *l)
 }
 
 static void
-Mod_LoadBrushModel(gl3model_t *mod, void *buffer)
+Mod_LoadBrushModel(gl3model_t *mod, void *buffer, int modfilelen)
 {
 	int i;
 	dheader_t *header;
 	mmodel_t *bm;
 
+	// map use short indexes that we convert to pointers
+	// pointer size / 2 bytes
+	loadmodel->extradata = Hunk_Begin(modfilelen * sizeof(void*) / 2);
 	loadmodel->type = mod_brush;
 
 	if (loadmodel != mod_known)
@@ -807,7 +810,7 @@ GL3_Mod_FreeAll(void)
 	}
 }
 
-extern void GL3_LoadMD2(gl3model_t *mod, void *buffer);
+extern void GL3_LoadMD2(gl3model_t *mod, void *buffer, int modfilelen);
 extern void GL3_LoadSP2(gl3model_t *mod, void *buffer, int modfilelen);
 
 /*
@@ -893,18 +896,15 @@ Mod_ForName(char *name, qboolean crash)
 	switch (LittleLong(*(unsigned *)buf))
 	{
 		case IDALIASHEADER:
-			loadmodel->extradata = Hunk_Begin(0x200000);
-			GL3_LoadMD2(mod, buf);
+			GL3_LoadMD2(mod, buf, modfilelen);
 			break;
 
 		case IDSPRITEHEADER:
-			loadmodel->extradata = Hunk_Begin(0x10000);
 			GL3_LoadSP2(mod, buf, modfilelen);
 			break;
 
 		case IDBSPHEADER:
-			loadmodel->extradata = Hunk_Begin(0x2000000);
-			Mod_LoadBrushModel(mod, buf);
+			Mod_LoadBrushModel(mod, buf, modfilelen);
 			break;
 
 		default:

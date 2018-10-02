@@ -36,9 +36,9 @@ int mod_numknown;
 int registration_sequence;
 byte *mod_base;
 
-void LoadSP2(model_t *mod, void *buffer);
-void Mod_LoadBrushModel(model_t *mod, void *buffer);
-void LoadMD2(model_t *mod, void *buffer);
+void LoadSP2(model_t *mod, void *buffer, int modfilelen);
+void Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen);
+void LoadMD2(model_t *mod, void *buffer, int modfilelen);
 void LM_BuildPolygonFromSurface(msurface_t *fa);
 void LM_CreateSurfaceLightmap(msurface_t *surf);
 void LM_EndBuildingLightmaps(void);
@@ -210,18 +210,15 @@ Mod_ForName(char *name, qboolean crash)
 	switch (LittleLong(*(unsigned *)buf))
 	{
 		case IDALIASHEADER:
-			loadmodel->extradata = Hunk_Begin(0x200000);
-			LoadMD2(mod, buf);
+			LoadMD2(mod, buf, modfilelen);
 			break;
 
 		case IDSPRITEHEADER:
-			loadmodel->extradata = Hunk_Begin(0x10000);
-			LoadSP2(mod, buf);
+			LoadSP2(mod, buf, modfilelen);
 			break;
 
 		case IDBSPHEADER:
-			loadmodel->extradata = Hunk_Begin(0x2000000);
-			Mod_LoadBrushModel(mod, buf);
+			Mod_LoadBrushModel(mod, buf, modfilelen);
 			break;
 
 		default:
@@ -825,12 +822,15 @@ Mod_LoadPlanes(lump_t *l)
 }
 
 void
-Mod_LoadBrushModel(model_t *mod, void *buffer)
+Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 {
 	int i;
 	dheader_t *header;
 	mmodel_t *bm;
 
+	// map use short indexes that we convert to pointers
+	// pointer size / 2 bytes
+	loadmodel->extradata = Hunk_Begin(modfilelen * sizeof(void*) / 2);
 	loadmodel->type = mod_brush;
 
 	if (loadmodel != mod_known)
