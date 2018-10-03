@@ -532,6 +532,7 @@ infantry_die(edict_t *self, edict_t *inflictor /* unused */,
 	/* regular death */
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
+	self->s.skinnum = 1; /* switch to bloody skin */
 
 	n = randk() % 3;
 
