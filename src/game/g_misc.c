@@ -26,8 +26,8 @@
 
 #include "header/local.h"
 
+int debristhisframe;
 int gibsthisframe;
-int lastgibframe;
 
 void
 Use_Areaportal(edict_t *ent, edict_t *other /* unused */, edict_t *activator /* unused */)
@@ -196,15 +196,9 @@ ThrowGib(edict_t *self, char *gibname, int damage, int type)
 		return;
 	}
 
-	if (level.framenum > lastgibframe)
-	{
-		gibsthisframe = 0;
-		lastgibframe = level.framenum;
-	}
-
 	gibsthisframe++;
 
-	if (gibsthisframe > 20)
+	if (gibsthisframe > MAX_GIBS)
 	{
 		return;
 	}
@@ -223,6 +217,7 @@ ThrowGib(edict_t *self, char *gibname, int damage, int type)
 	gib->flags |= FL_NO_KNOCKBACK;
 	gib->takedamage = DAMAGE_YES;
 	gib->die = gib_die;
+	gib->health = 500;
 
 	if (type == GIB_ORGANIC)
 	{
@@ -378,15 +373,9 @@ ThrowDebris(edict_t *self, char *modelname, float speed, vec3_t origin)
 		return;
 	}
 
-	if (level.framenum > lastgibframe)
-	{
-		gibsthisframe = 0;
-		lastgibframe = level.framenum;
-	}
+	debristhisframe++;
 
-	gibsthisframe++;
-
-	if (gibsthisframe > 20)
+	if (debristhisframe > MAX_DEBRIS)
 	{
 		return;
 	}
