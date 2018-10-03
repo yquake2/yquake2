@@ -217,7 +217,7 @@ ThrowGib(edict_t *self, char *gibname, int damage, int type)
 	gib->flags |= FL_NO_KNOCKBACK;
 	gib->takedamage = DAMAGE_YES;
 	gib->die = gib_die;
-	gib->health = 500;
+	gib->health = 250;
 
 	if (type == GIB_ORGANIC)
 	{
@@ -399,6 +399,7 @@ ThrowDebris(edict_t *self, char *modelname, float speed, vec3_t origin)
 	chunk->classname = "debris";
 	chunk->takedamage = DAMAGE_YES;
 	chunk->die = debris_die;
+	chunk->health = 250;
 	gi.linkentity(chunk);
 }
 
