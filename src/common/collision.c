@@ -1612,58 +1612,51 @@ CMod_LoadVisibility(lump_t *l)
 void
 CMod_LoadEntityString(lump_t *l, char *name)
 {
-	/*
-	 * Port from Knightmare's kmquake2: support for .ent files.
-	 */
 	if (sv_entfile->value)
 	{
-		char	s[MAX_QPATH];
-		char	*buffer = NULL;
-		int		nameLen, bufLen;
+		char s[MAX_QPATH];
+		char *buffer = NULL;
+		int nameLen, bufLen;
 
 		nameLen = strlen(name);
 		strcpy(s, name);
 		s[nameLen-3] = 'e';	s[nameLen-2] = 'n';	s[nameLen-1] = 't';
-		bufLen = FS_LoadFile (s, (void **)&buffer);
+		bufLen = FS_LoadFile(s, (void **)&buffer);
+
 		if (buffer != NULL && bufLen > 1)
 		{
-			if (bufLen + 1 > sizeof(map_entitystring)) /* jit fix */
+			if (bufLen + 1 > sizeof(map_entitystring))
 			{
-				Com_Printf ("CMod_LoadEntityString: .ent file %s too large: %i > %i.\n", s, bufLen, sizeof(map_entitystring));
-				FS_FreeFile (buffer);
+				Com_Printf("CMod_LoadEntityString: .ent file %s too large: %i > %lu.\n", s, bufLen, sizeof(map_entitystring));
+				FS_FreeFile(buffer);
 			}
 			else
 			{
 				Com_Printf ("CMod_LoadEntityString: .ent file %s loaded.\n", s);
 				numentitychars = bufLen;
-				memcpy (map_entitystring, buffer, bufLen);
+				memcpy(map_entitystring, buffer, bufLen);
 				map_entitystring[bufLen] = 0; /* jit entity bug - null terminate the entity string! */
-				FS_FreeFile (buffer);
+				FS_FreeFile(buffer);
 				return;
 			}
 		}
-		/* If the .ent file is too small, don't load. */
 		else if (bufLen != -1)
 		{
-			Com_Printf ("CMod_LoadEntityString: .ent file %s too small.\n", s);
-			FS_FreeFile (buffer);
+			/* If the .ent file is too small, don't load. */
+			Com_Printf("CMod_LoadEntityString: .ent file %s too small.\n", s);
+			FS_FreeFile(buffer);
 		}
-		/* Fall back to bsp entity string if no .ent file loaded */
 	}
-	/* 
-	 * End of the kmquake2 .ent file support port.
-	 */
 
 	numentitychars = l->filelen;
 
-	/* if (l->filelen > MAX_MAP_ENTSTRING) */
-	if (l->filelen + 1 > sizeof(map_entitystring)) /* jit fix */
+	if (l->filelen + 1 > sizeof(map_entitystring))
 	{
 		Com_Error(ERR_DROP, "Map has too large entity lump");
 	}
 
 	memcpy(map_entitystring, cmod_base + l->fileofs, l->filelen);
-	map_entitystring[l->filelen] = 0; /* jit entity bug - null terminate the entity string! */
+	map_entitystring[l->filelen] = 0;
 }
 
 /*
