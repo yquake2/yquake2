@@ -404,6 +404,7 @@ ExitLevel(void)
 		}
 	}
 
+	debristhisframe = 0;
 	gibsthisframe = 0;
 }
 
