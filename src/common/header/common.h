@@ -720,6 +720,9 @@ extern cvar_t *dedicated;
 extern cvar_t *host_speeds;
 extern cvar_t *log_stats;
 
+/* Ported from kmquake2: .ent file support - whether to use .ent file or not */
+extern cvar_t *sv_entfile;
+
 /* Hack for portable client */
 extern qboolean is_portable;
 
