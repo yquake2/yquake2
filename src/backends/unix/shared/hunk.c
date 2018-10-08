@@ -97,55 +97,28 @@ Hunk_End(void)
 
 #if defined(__linux__)
 	n = (byte *)mremap(membase, maxhunksize, curhunksize + sizeof(size_t), 0);
-#elif defined(__FreeBSD__)
-	size_t old_size = maxhunksize;
-	size_t new_size = curhunksize + sizeof(size_t);
-	void *unmap_base;
-	size_t unmap_len;
-
-	new_size = round_page(new_size);
-	old_size = round_page(old_size);
-
-	if (new_size > old_size)
-	{
-		n = 0; /* error */
-	}
-	else if (new_size < old_size)
-	{
-		unmap_base = (caddr_t)(membase + new_size);
-		unmap_len = old_size - new_size;
-		n = munmap(unmap_base, unmap_len) + membase;
-	}
 #else
  #ifndef round_page
- #define round_page(x) (((size_t)(x) + (page_size - 1)) / page_size) * \
-	     page_size
+ #define round_page(x) ((((size_t)(x)) + sysconf(_SC_PAGESIZE)) & ~(_SC_PAGESIZE))
  #endif
 
-	size_t old_size = maxhunksize;
-	size_t new_size = curhunksize + sizeof(size_t);
-	void *unmap_base;
-	size_t unmap_len;
-	long page_size;
-
-	page_size = sysconf(_SC_PAGESIZE);
-	if (page_size == -1)
-	{
-		Sys_Error("Hunk_End: sysconf _SC_PAGESIZE failed (%d)", errno);
-	}
-
-	new_size = round_page(new_size);
-	old_size = round_page(old_size);
+	size_t old_size = round_page(maxhunksize);
+	size_t new_size = round_page(curhunksize + sizeof(size_t));
 
 	if (new_size > old_size)
 	{
-		n = 0; /* error */
+		/* Can never happen. If it happens something's very wrong. */
+		n = 0;
 	}
 	else if (new_size < old_size)
 	{
-		unmap_base = (caddr_t)(membase + new_size);
-		unmap_len = old_size - new_size;
-		n = munmap(unmap_base, unmap_len) + membase;
+		/* Hunk is to big, we need to shrink it. */
+		n = munmap(membase + new_size, old_size - new_size) + membase;
+	}
+	else
+	{
+		/* No change necessary. */
+		n = membase;
 	}
 #endif
 
