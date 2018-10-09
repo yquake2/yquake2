@@ -99,7 +99,8 @@ Hunk_End(void)
 	n = (byte *)mremap(membase, maxhunksize, curhunksize + sizeof(size_t), 0);
 #else
  #ifndef round_page
- #define round_page(x) ((((size_t)(x)) + sysconf(_SC_PAGESIZE)) & ~(_SC_PAGESIZE))
+ size_t page_size = sysconf(_SC_PAGESIZE);
+ #define round_page(x) ((((size_t)(x)) + page_size-1) & ~(page_size-1))
  #endif
 
 	size_t old_size = round_page(maxhunksize);
