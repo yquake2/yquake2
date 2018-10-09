@@ -217,7 +217,7 @@ R_AliasClipTriangle
 ================
 */
 void
-R_AliasClipTriangle (const finalvert_t *index0, const finalvert_t *index1, finalvert_t *index2)
+R_AliasClipTriangle(const entity_t *currententity, const finalvert_t *index0, const finalvert_t *index1, finalvert_t *index2)
 {
 	int				i, k, pingpong;
 	unsigned		clipflags;
@@ -304,6 +304,6 @@ R_AliasClipTriangle (const finalvert_t *index0, const finalvert_t *index1, final
 	// draw triangles
 	for (i=1 ; i<k-1 ; i++)
 	{
-		R_DrawTriangle(&fv[pingpong][0], &fv[pingpong][i], &fv[pingpong][i+1]);
+		R_DrawTriangle(currententity, &fv[pingpong][0], &fv[pingpong][i], &fv[pingpong][i+1]);
 	}
 }

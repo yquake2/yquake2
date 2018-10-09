@@ -24,7 +24,7 @@ extern polydesc_t r_polydesc;
 
 extern vec5_t	r_clip_verts[2][MAXWORKINGVERTS+2];
 
-extern void	R_ClipAndDrawPoly( float alpha, qboolean isturbulent, qboolean textured );
+extern void R_ClipAndDrawPoly(float alpha, qboolean isturbulent, qboolean textured);
 
 /*
 ** R_DrawSprite
@@ -33,7 +33,7 @@ extern void	R_ClipAndDrawPoly( float alpha, qboolean isturbulent, qboolean textu
 ** mapped polygon
 */
 void
-R_DrawSprite (void)
+R_DrawSprite(entity_t *currententity, const model_t *currentmodel)
 {
 	vec5_t		*pverts;
 	vec3_t		left, up, right, down;

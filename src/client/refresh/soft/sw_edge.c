@@ -55,10 +55,6 @@ static int	miplevel;
 
 float	scale_for_mip;
 
-// FIXME: should go away
-extern void	R_RotateBmodel (void);
-extern void	R_TransformFrustum (void);
-
 static void R_GenerateSpans (void);
 static void R_GenerateSpansBackward (void);
 
@@ -691,7 +687,7 @@ R_ScanEdges (surf_t *surface)
 
 		// flush the span list if we can't be sure we have enough spans left for
 		// the next scan
-		if (span_p > max_span_p)
+		if (span_p >= max_span_p)
 		{
 			// Draw stuff on screen
 			D_DrawSurfaces (surface);
@@ -742,7 +738,6 @@ static msurface_t		*pface;
 static surfcache_t		*pcurrentcache;
 static vec3_t			transformed_modelorg;
 static vec3_t			world_transformed_modelorg;
-static vec3_t			local_modelorg;
 
 /*
 =============
@@ -877,7 +872,7 @@ D_TurbulentSurf
 =================
 */
 static void
-D_TurbulentSurf (surf_t *s)
+D_TurbulentSurf(surf_t *s)
 {
 	d_zistepu = s->d_zistepu;
 	d_zistepv = s->d_zistepv;
@@ -890,16 +885,18 @@ D_TurbulentSurf (surf_t *s)
 
 	if (s->insubmodel)
 	{
+		entity_t *currententity;
+		vec3_t local_modelorg;
+
 		// FIXME: we don't want to do all this for every polygon!
 		// TODO: store once at start of frame
-		currententity = s->entity;	//FIXME: make this passed in to
-						// R_RotateBmodel ()
+		currententity = s->entity;
 		VectorSubtract (r_origin, currententity->origin,
 				local_modelorg);
 		TransformVector (local_modelorg, transformed_modelorg);
 
-		R_RotateBmodel ();	// FIXME: don't mess with the frustum,
-							// make entity passed in
+		R_RotateBmodel(currententity);	// FIXME: don't mess with the frustum,
+						// make entity passed in
 	}
 
 	D_CalcGradients (pface);
@@ -923,7 +920,6 @@ D_TurbulentSurf (surf_t *s)
 		// FIXME: we don't want to do this every time!
 		// TODO: speed up
 		//
-		currententity = NULL;	// &r_worldentity;
 		VectorCopy (world_transformed_modelorg,
 					transformed_modelorg);
 		VectorCopy (base_vpn, vpn);
@@ -975,20 +971,23 @@ Normal surface cached, texture mapped surface
 static void
 D_SolidSurf (surf_t *s)
 {
+	entity_t *currententity;
+
 	d_zistepu = s->d_zistepu;
 	d_zistepv = s->d_zistepv;
 	d_ziorigin = s->d_ziorigin;
 
 	if (s->insubmodel)
 	{
+		vec3_t local_modelorg;
+
 		// FIXME: we don't want to do all this for every polygon!
 		// TODO: store once at start of frame
-		currententity = s->entity;	// FIXME: make this passed in to
-						// R_RotateBmodel ()
-		VectorSubtract (r_origin, currententity->origin, local_modelorg);
-		TransformVector (local_modelorg, transformed_modelorg);
+		currententity = s->entity;
+		VectorSubtract(r_origin, currententity->origin, local_modelorg);
+		TransformVector(local_modelorg, transformed_modelorg);
 
-		R_RotateBmodel ();	// FIXME: don't mess with the frustum,
+		R_RotateBmodel(currententity);	// FIXME: don't mess with the frustum,
 					// make entity passed in
 	}
 	else
@@ -998,7 +997,7 @@ D_SolidSurf (surf_t *s)
 	miplevel = D_MipLevelForScale(s->nearzi * scale_for_mip * pface->texinfo->mipadjust);
 
 	// FIXME: make this passed in to D_CacheSurface
-	pcurrentcache = D_CacheSurface (pface, miplevel);
+	pcurrentcache = D_CacheSurface (currententity, pface, miplevel);
 
 	cacheblock = (pixel_t *)pcurrentcache->data;
 	cachewidth = pcurrentcache->width;
@@ -1022,7 +1021,6 @@ D_SolidSurf (surf_t *s)
 		VectorCopy (base_vup, vup);
 		VectorCopy (base_vright, vright);
 		R_TransformFrustum ();
-		currententity = NULL;	//&r_worldentity;
 	}
 }
 
@@ -1068,8 +1066,6 @@ May be called more than once a frame if the surf list overflows (higher res)
 static void
 D_DrawSurfaces (surf_t *surface)
 {
-	// currententity = NULL;
-	// &r_worldentity;
 	VectorSubtract (r_origin, vec3_origin, modelorg);
 	TransformVector (modelorg, transformed_modelorg);
 	VectorCopy (transformed_modelorg, world_transformed_modelorg);
@@ -1098,7 +1094,6 @@ D_DrawSurfaces (surf_t *surface)
 	else
 		D_DrawflatSurfaces (surface);
 
-	currententity = NULL;	//&r_worldentity;
 	VectorSubtract (r_origin, vec3_origin, modelorg);
 	R_TransformFrustum ();
 }

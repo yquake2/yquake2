@@ -367,7 +367,7 @@ void D_DrawZSpans(espan_t *pspans);
 void TurbulentPow2(espan_t *pspan);
 void NonTurbulentPow2(espan_t *pspan); //PGM
 
-surfcache_t *D_CacheSurface (msurface_t *surface, int miplevel);
+surfcache_t *D_CacheSurface(const entity_t *currententity, msurface_t *surface, int miplevel);
 
 extern int	d_vrectx, d_vrecty, d_vrectright_particle, d_vrectbottom_particle;
 
@@ -446,8 +446,6 @@ extern mplane_t        screenedge[4];
 extern vec3_t  r_origin;
 
 extern entity_t	r_worldentity;
-extern model_t	*currentmodel;
-extern entity_t	 *currententity;
 extern vec3_t	modelorg;
 extern vec3_t	r_entorigin;
 
@@ -462,23 +460,22 @@ extern msurface_t	*r_alpha_surfaces;
 //
 extern  qboolean	insubmodel;
 
-void R_DrawAlphaSurfaces(void);
+void R_DrawAlphaSurfaces(const entity_t *currententity);
 
-void R_DrawSprite(void);
+void R_DrawSprite(entity_t *currententity, const model_t *currentmodel);
 
-void R_RenderFace(msurface_t *fa, int clipflags);
-void R_RenderBmodelFace(bedge_t *pedges, msurface_t *psurf);
+void R_RenderFace(entity_t *currententity, const model_t *currentmodel, msurface_t *fa, int clipflags);
+void R_RenderBmodelFace(entity_t *currententity, bedge_t *pedges, msurface_t *psurf);
 void R_TransformFrustum(void);
 
-void R_DrawSubmodelPolygons(model_t *pmodel, int clipflags, mnode_t *topnode);
-void R_DrawSolidClippedSubmodelPolygons(model_t *pmodel, mnode_t *topnode);
+void R_DrawSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, int clipflags, mnode_t *topnode);
+void R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, mnode_t *topnode);
 
-void R_AliasDrawModel(void);
+void R_AliasDrawModel(entity_t *currententity, const model_t *currentmodel);
 void R_BeginEdgeFrame(void);
 void R_ScanEdges(surf_t *surface);
-void R_PushDlights(model_t *model);
-
-extern void R_RotateBmodel (void);
+void R_PushDlights(const model_t *model);
+void R_RotateBmodel(const entity_t *currententity);
 
 extern int	c_faceclip;
 extern int	r_polycount;
@@ -499,14 +496,16 @@ extern edge_t	**newedges;
 extern edge_t	**removeedges;
 
 typedef struct {
-	pixel_t		*pdest;
-	zvalue_t	*pz;
-	int		count;
+	int		u, v, count;
 	pixel_t		*ptex;
 	int		sfrac, tfrac, light;
 	zvalue_t	zi;
 } spanpackage_t;
 extern spanpackage_t	*triangle_spans, *triangles_max;
+
+void R_PolysetDrawSpans8_33(const entity_t *currententity, spanpackage_t *pspanpackage);
+void R_PolysetDrawSpans8_66(const entity_t *currententity, spanpackage_t *pspanpackage);
+void R_PolysetDrawSpans8_Opaque(const entity_t *currententity, spanpackage_t *pspanpackage);
 
 extern byte	**warp_rowptr;
 extern int	*warp_column;
@@ -525,8 +524,8 @@ extern int	r_outoftriangles;
 
 extern mvertex_t	*r_pcurrentvertbase;
 
-void R_DrawTriangle(const finalvert_t *a, const finalvert_t *b, const finalvert_t *c);
-void R_AliasClipTriangle (const finalvert_t *index0, const finalvert_t *index1, finalvert_t *index2);
+void R_DrawTriangle(const entity_t *currententity, const finalvert_t *a, const finalvert_t *b, const finalvert_t *c);
+void R_AliasClipTriangle(const entity_t *currententity, const finalvert_t *index0, const finalvert_t *index1, finalvert_t *index2);
 
 
 extern float	r_time1;
@@ -543,7 +542,7 @@ extern model_t		 *r_worldmodel;
 void R_PrintAliasStats (void);
 void R_PrintTimes (void);
 void R_PrintDSpeeds (void);
-void R_LightPoint (vec3_t p, vec3_t color);
+void R_LightPoint (const entity_t *currententity, vec3_t p, vec3_t color);
 void R_SetupFrame (void);
 
 extern  refdef_t		r_newrefdef;

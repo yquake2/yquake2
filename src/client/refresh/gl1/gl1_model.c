@@ -36,9 +36,9 @@ int mod_numknown;
 int registration_sequence;
 byte *mod_base;
 
-void LoadSP2(model_t *mod, void *buffer);
-void Mod_LoadBrushModel(model_t *mod, void *buffer);
-void LoadMD2(model_t *mod, void *buffer);
+void LoadSP2(model_t *mod, void *buffer, int modfilelen);
+void Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen);
+void LoadMD2(model_t *mod, void *buffer, int modfilelen);
 void LM_BuildPolygonFromSurface(msurface_t *fa);
 void LM_CreateSurfaceLightmap(msurface_t *surf);
 void LM_EndBuildingLightmaps(void);
@@ -210,18 +210,15 @@ Mod_ForName(char *name, qboolean crash)
 	switch (LittleLong(*(unsigned *)buf))
 	{
 		case IDALIASHEADER:
-			loadmodel->extradata = Hunk_Begin(0x200000);
-			LoadMD2(mod, buf);
+			LoadMD2(mod, buf, modfilelen);
 			break;
 
 		case IDSPRITEHEADER:
-			loadmodel->extradata = Hunk_Begin(0x10000);
-			LoadSP2(mod, buf);
+			LoadSP2(mod, buf, modfilelen);
 			break;
 
 		case IDBSPHEADER:
-			loadmodel->extradata = Hunk_Begin(0x1000000);
-			Mod_LoadBrushModel(mod, buf);
+			Mod_LoadBrushModel(mod, buf, modfilelen);
 			break;
 
 		default:
@@ -688,6 +685,8 @@ Mod_LoadLeafs(lump_t *l)
 
 	for (i = 0; i < count; i++, in++, out++)
 	{
+		unsigned firstleafface;
+
 		for (j = 0; j < 3; j++)
 		{
 			out->minmaxs[j] = LittleShort(in->mins[j]);
@@ -700,9 +699,15 @@ Mod_LoadLeafs(lump_t *l)
 		out->cluster = LittleShort(in->cluster);
 		out->area = LittleShort(in->area);
 
-		out->firstmarksurface = loadmodel->marksurfaces +
-								LittleShort(in->firstleafface);
-		out->nummarksurfaces = LittleShort(in->numleaffaces);
+		// make unsigned long from signed short
+		firstleafface = LittleShort(in->firstleafface) & 0xFFFF;
+		out->nummarksurfaces = LittleShort(in->numleaffaces) & 0xFFFF;
+
+		out->firstmarksurface = loadmodel->marksurfaces + firstleafface;
+		if ((firstleafface + out->nummarksurfaces) > loadmodel->nummarksurfaces)
+		{
+			ri.Sys_Error (ERR_DROP,"MOD_LoadBmodel: wrong marksurfaces position in %s",loadmodel->name);
+		}
 	}
 }
 
@@ -817,12 +822,15 @@ Mod_LoadPlanes(lump_t *l)
 }
 
 void
-Mod_LoadBrushModel(model_t *mod, void *buffer)
+Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 {
 	int i;
 	dheader_t *header;
 	mmodel_t *bm;
 
+	// map use short indexes that we convert to pointers
+	// pointer size / 2 bytes
+	loadmodel->extradata = Hunk_Begin(modfilelen * sizeof(void*) / 2);
 	loadmodel->type = mod_brush;
 
 	if (loadmodel != mod_known)

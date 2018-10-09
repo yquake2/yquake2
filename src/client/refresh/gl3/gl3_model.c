@@ -571,6 +571,8 @@ Mod_LoadLeafs(lump_t *l)
 
 	for (i = 0; i < count; i++, in++, out++)
 	{
+		unsigned firstleafface;
+
 		for (j = 0; j < 3; j++)
 		{
 			out->minmaxs[j] = LittleShort(in->mins[j]);
@@ -583,9 +585,15 @@ Mod_LoadLeafs(lump_t *l)
 		out->cluster = LittleShort(in->cluster);
 		out->area = LittleShort(in->area);
 
-		out->firstmarksurface = loadmodel->marksurfaces +
-								LittleShort(in->firstleafface);
-		out->nummarksurfaces = LittleShort(in->numleaffaces);
+		// make unsigned long from signed short
+		firstleafface = LittleShort(in->firstleafface) & 0xFFFF;
+		out->nummarksurfaces = LittleShort(in->numleaffaces) & 0xFFFF;
+
+		out->firstmarksurface = loadmodel->marksurfaces + firstleafface;
+		if ((firstleafface + out->nummarksurfaces) > loadmodel->nummarksurfaces)
+		{
+			ri.Sys_Error (ERR_DROP,"MOD_LoadBmodel: wrong marksurfaces position in %s",loadmodel->name);
+		}
 	}
 }
 
@@ -700,12 +708,15 @@ Mod_LoadPlanes(lump_t *l)
 }
 
 static void
-Mod_LoadBrushModel(gl3model_t *mod, void *buffer)
+Mod_LoadBrushModel(gl3model_t *mod, void *buffer, int modfilelen)
 {
 	int i;
 	dheader_t *header;
 	mmodel_t *bm;
 
+	// map use short indexes that we convert to pointers
+	// pointer size / 2 bytes
+	loadmodel->extradata = Hunk_Begin(modfilelen * sizeof(void*) / 2);
 	loadmodel->type = mod_brush;
 
 	if (loadmodel != mod_known)
@@ -799,7 +810,7 @@ GL3_Mod_FreeAll(void)
 	}
 }
 
-extern void GL3_LoadMD2(gl3model_t *mod, void *buffer);
+extern void GL3_LoadMD2(gl3model_t *mod, void *buffer, int modfilelen);
 extern void GL3_LoadSP2(gl3model_t *mod, void *buffer, int modfilelen);
 
 /*
@@ -885,18 +896,15 @@ Mod_ForName(char *name, qboolean crash)
 	switch (LittleLong(*(unsigned *)buf))
 	{
 		case IDALIASHEADER:
-			loadmodel->extradata = Hunk_Begin(0x200000);
-			GL3_LoadMD2(mod, buf);
+			GL3_LoadMD2(mod, buf, modfilelen);
 			break;
 
 		case IDSPRITEHEADER:
-			loadmodel->extradata = Hunk_Begin(0x10000);
 			GL3_LoadSP2(mod, buf, modfilelen);
 			break;
 
 		case IDBSPHEADER:
-			loadmodel->extradata = Hunk_Begin(0x1000000);
-			Mod_LoadBrushModel(mod, buf);
+			Mod_LoadBrushModel(mod, buf, modfilelen);
 			break;
 
 		default:

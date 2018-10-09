@@ -163,7 +163,7 @@ R_EmitSkyBox
 ================
 */
 static void
-R_EmitSkyBox (void)
+R_EmitSkyBox(entity_t *currententity, const model_t *currentmodel)
 {
 	int		i, j;
 	int		oldkey;
@@ -199,7 +199,7 @@ R_EmitSkyBox (void)
 	r_currentkey = 0x7ffffff0;
  	for (i=0 ; i<6 ; i++)
 	{
-		R_RenderFace (r_skyfaces + i, ALIAS_XY_CLIP_MASK);
+		R_RenderFace(currententity, currentmodel, r_skyfaces + i, ALIAS_XY_CLIP_MASK);
 	}
 	r_currentkey = oldkey;	// bsp sorting order
 }
@@ -354,9 +354,13 @@ R_EmitEdge (mvertex_t *pv0, mvertex_t *pv1)
 	// the edge of the screen
 	// FIXME: is this actually needed?
 	if (edge->u < r_refdef.vrect_x_adj_shift20)
+	{
 		edge->u = r_refdef.vrect_x_adj_shift20;
-	if (edge->u > r_refdef.vrectright_adj_shift20)
+	}
+	else if (edge->u > r_refdef.vrectright_adj_shift20)
+	{
 		edge->u = r_refdef.vrectright_adj_shift20;
+	}
 
 	//
 	// sort the edge in normally
@@ -515,7 +519,7 @@ R_RenderFace
 ================
 */
 void
-R_RenderFace (msurface_t *fa, int clipflags)
+R_RenderFace (entity_t *currententity, const model_t *currentmodel, msurface_t *fa, int clipflags)
 {
 	int		i;
 	unsigned	mask;
@@ -537,7 +541,7 @@ R_RenderFace (msurface_t *fa, int clipflags)
 	// environment box surfaces to be emited
 	if ( fa->texinfo->flags & SURF_SKY )
 	{
-		R_EmitSkyBox ();
+		R_EmitSkyBox (currententity, currentmodel);
 		return;
 	}
 
@@ -731,7 +735,7 @@ R_RenderBmodelFace
 ================
 */
 void
-R_RenderBmodelFace (bedge_t *pedges, msurface_t *psurf)
+R_RenderBmodelFace(entity_t *currententity, bedge_t *pedges, msurface_t *psurf)
 {
 	int			i;
 	unsigned	mask;

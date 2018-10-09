@@ -35,6 +35,7 @@ LoadSP2(model_t *mod, void *buffer)
 	int i;
 
 	sprin = (dsprite_t *)buffer;
+	mod->extradata = Hunk_Begin(modfilelen);
 	sprout = Hunk_Alloc(modfilelen);
 
 	sprout->ident = LittleLong(sprin->ident);
