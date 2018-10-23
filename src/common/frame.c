@@ -532,12 +532,13 @@ Qcommon_Frame(int msec)
 	   scenes complexity. Take the last 60 pure render
 	   frames (frames that are only render frames and
 	   nothing else) into account and add a security
-	   margin of 2%. */
+	   margin of 1%. */
 	if (last_was_renderframe && !last_was_packetframe)
 	{
 		int measuredframes = 0;
 		static int renderframenum;
 
+		avgrenderframetime = 0;
 		renderframetimes[renderframenum] = msec;
 
 		for (int i = 0; i < 60; i++)
@@ -550,7 +551,7 @@ Qcommon_Frame(int msec)
 		}
 
 		avgrenderframetime /= measuredframes;
-		avgrenderframetime += (avgrenderframetime * 0.02f);
+		avgrenderframetime += (avgrenderframetime * 0.01f);
 
 		renderframenum++;
 
@@ -567,12 +568,13 @@ Qcommon_Frame(int msec)
 	   speed and the network delay. Take the last 60 pure
 	   packet frames (frames that are only packet frames ans
 	   nothing else) into account and add a security margin
-	   of 2%. */
+	   of 1%. */
 	if (last_was_packetframe && last_was_renderframe)
 	{
 		int measuredframes = 0;
 		static int packetframenum;
 
+		avgpacketframetime = 0;
 		packetframetimes[packetframenum] = msec;
 
 		for (int i = 0; i < 60; i++)
@@ -585,7 +587,7 @@ Qcommon_Frame(int msec)
 		}
 
 		avgpacketframetime /= measuredframes;
-		avgpacketframetime += (avgpacketframetime * 0.02f);
+		avgpacketframetime += (avgpacketframetime * 0.01f);
 
 		packetframenum++;
 
