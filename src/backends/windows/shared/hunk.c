@@ -30,17 +30,18 @@
 
 byte *membase;
 int hunkcount;
-int hunkmaxsize;
-int cursize;
+size_t hunkmaxsize;
+size_t cursize;
 
 void *
 Hunk_Begin(int maxsize)
 {
-	/* reserve a huge chunk of memory,
-	   but don't commit any yet */
+	/* reserve a huge chunk of memory, but don't commit any yet */
+	/* plus 32 bytes for cacheline */
+	hunkmaxsize = maxsize + sizeof(size_t) + 32;
 	cursize = 0;
-	hunkmaxsize = maxsize;
-	membase = VirtualAlloc(NULL, maxsize, MEM_RESERVE, PAGE_NOACCESS);
+
+	membase = VirtualAlloc(NULL, hunkmaxsize, MEM_RESERVE, PAGE_NOACCESS);
 
 	if (!membase)
 	{
@@ -63,10 +64,7 @@ Hunk_Alloc(int size)
 
 	if (!buf)
 	{
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-				NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-				(LPTSTR)&buf, 0, NULL);
-		Sys_Error("VirtualAlloc commit failed.\n%s", buf);
+		Sys_Error("VirtualAlloc commit failed.\n");
 	}
 
 	cursize += size;
@@ -97,4 +95,3 @@ Hunk_Free(void *base)
 
 	hunkcount--;
 }
-
