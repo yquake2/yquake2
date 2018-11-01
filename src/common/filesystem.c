@@ -367,7 +367,7 @@ FS_FCloseFile(fileHandle_t f)
 int
 FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 {
-	char path[MAX_OSPATH];
+	char path[MAX_OSPATH], lwrName[MAX_OSPATH];
 	fsHandle_t *handle;
 	fsPack_t *pack;
 	fsSearchPath_t *search;
@@ -463,7 +463,9 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 
 			if (!handle->file)
 			{
-				Q_strlwr(path);
+				Com_sprintf(lwrName, sizeof(lwrName), "%s", handle->name);
+				Q_strlwr(lwrName);
+				Com_sprintf(path, sizeof(path), "%s/%s", search->path, lwrName);
 				handle->file = Q_fopen(path, "rb");
 			}
 
