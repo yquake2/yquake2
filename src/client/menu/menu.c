@@ -3397,7 +3397,7 @@ DMOptions_MenuInit(void)
     Menu_AddItem(&s_dmoptions_menu, &s_quad_drop_box);
     Menu_AddItem(&s_dmoptions_menu, &s_friendlyfire_box);
 
-    if (M_IsGame("rogueg"))
+    if (M_IsGame("rogue"))
     {
         Menu_AddItem(&s_dmoptions_menu, &s_no_mines_box);
         Menu_AddItem(&s_dmoptions_menu, &s_no_nukes_box);
