@@ -2665,6 +2665,7 @@ static menuaction_s s_startserver_start_action;
 static menuaction_s s_startserver_dmoptions_action;
 static menufield_s s_timelimit_field;
 static menufield_s s_fraglimit_field;
+static menufield_s s_capturelimit_field;
 static menufield_s s_maxclients_field;
 static menufield_s s_hostname_field;
 static menulist_s s_startmap_list;
@@ -2703,6 +2704,7 @@ StartServerActionFunc(void *self)
     char startmap[1024];
     float timelimit;
     float fraglimit;
+    float capturelimit;
     float maxclients;
     char *spot;
 
@@ -2711,6 +2713,12 @@ StartServerActionFunc(void *self)
     maxclients = (float)strtod(s_maxclients_field.buffer, (char **)NULL);
     timelimit = (float)strtod(s_timelimit_field.buffer, (char **)NULL);
     fraglimit = (float)strtod(s_fraglimit_field.buffer, (char **)NULL);
+
+    if (M_IsGame("ctf"))
+    {
+        capturelimit = (float)strtod(s_capturelimit_field.buffer, (char **)NULL);
+        Cvar_SetValue("capturelimit", ClampCvar(0, capturelimit, capturelimit));
+    }
 
     Cvar_SetValue("maxclients", ClampCvar(0, maxclients, maxclients));
     Cvar_SetValue("timelimit", ClampCvar(0, timelimit, timelimit));
@@ -2877,35 +2885,55 @@ StartServer_MenuInit(void)
 
     s_startmap_list.generic.type = MTYPE_SPINCONTROL;
     s_startmap_list.generic.x = 0;
-    s_startmap_list.generic.y = 0;
+
+    if (M_IsGame("ctf"))
+        s_startmap_list.generic.y = -8;
+    else
+        s_startmap_list.generic.y = 0;
+
     s_startmap_list.generic.name = "initial map";
     s_startmap_list.itemnames = (const char **)mapnames;
 
-    s_rules_box.generic.type = MTYPE_SPINCONTROL;
-    s_rules_box.generic.x = 0;
-    s_rules_box.generic.y = 20;
-    s_rules_box.generic.name = "rules";
-
-    /* Ground Zero games only available with rogue game */
-    if (M_IsGame("rogue"))
+    if (M_IsGame("ctf"))
     {
-        s_rules_box.itemnames = dm_coop_names_rogue;
+        s_capturelimit_field.generic.type = MTYPE_FIELD;
+        s_capturelimit_field.generic.name = "capture limit";
+        s_capturelimit_field.generic.flags = QMF_NUMBERSONLY;
+        s_capturelimit_field.generic.x = 0;
+        s_capturelimit_field.generic.y = 18;
+        s_capturelimit_field.generic.statusbar = "0 = no limit";
+        s_capturelimit_field.length = 3;
+        s_capturelimit_field.visible_length = 3;
+        strcpy(s_capturelimit_field.buffer, Cvar_VariableString("capturelimit"));
     }
     else
     {
-        s_rules_box.itemnames = dm_coop_names;
-    }
+        s_rules_box.generic.type = MTYPE_SPINCONTROL;
+        s_rules_box.generic.x = 0;
+        s_rules_box.generic.y = 20;
+        s_rules_box.generic.name = "rules";
 
-    if (Cvar_VariableValue("coop"))
-    {
-        s_rules_box.curvalue = 1;
-    }
-    else
-    {
-        s_rules_box.curvalue = 0;
-    }
+        /* Ground Zero games only available with rogue game */
+        if (M_IsGame("rogue"))
+        {
+            s_rules_box.itemnames = dm_coop_names_rogue;
+        }
+        else
+        {
+            s_rules_box.itemnames = dm_coop_names;
+        }
 
-    s_rules_box.generic.callback = RulesChangeFunc;
+        if (Cvar_VariableValue("coop"))
+        {
+            s_rules_box.curvalue = 1;
+        }
+        else
+        {
+            s_rules_box.curvalue = 0;
+        }
+
+        s_rules_box.generic.callback = RulesChangeFunc;
+    }
 
     s_timelimit_field.generic.type = MTYPE_FIELD;
     s_timelimit_field.generic.name = "time limit";
@@ -2975,7 +3003,12 @@ StartServer_MenuInit(void)
     s_startserver_start_action.generic.callback = StartServerActionFunc;
 
     Menu_AddItem(&s_startserver_menu, &s_startmap_list);
-    Menu_AddItem(&s_startserver_menu, &s_rules_box);
+
+    if (M_IsGame("ctf"))
+        Menu_AddItem(&s_startserver_menu, &s_capturelimit_field);
+    else
+        Menu_AddItem(&s_startserver_menu, &s_rules_box);
+
     Menu_AddItem(&s_startserver_menu, &s_timelimit_field);
     Menu_AddItem(&s_startserver_menu, &s_fraglimit_field);
     Menu_AddItem(&s_startserver_menu, &s_maxclients_field);
@@ -3189,6 +3222,21 @@ DMFlagCallback(void *self)
             bit = DF_NO_SPHERES;
         }
     }
+    else if (M_IsGame("ctf"))
+    {
+        if (f == &s_no_mines_box)
+        {
+            bit = DF_NO_MINES;          /* Equivalent to DF_CTF_FORCEJOIN in CTF */
+        }
+        else if (f == &s_no_nukes_box)
+        {
+            bit = DF_NO_NUKES;          /* Equivalent to DF_CTF_NO_TECH   in CTF */
+        }
+        else if (f == &s_stack_double_box)
+        {
+            bit = DF_NO_STACK_DOUBLE;   /* Equivalent to DF_ARMOR_PROTECT in CTF */
+        }
+    }
 
     if (f)
     {
@@ -3299,12 +3347,15 @@ DMOptions_MenuInit(void)
     s_force_respawn_box.itemnames = yes_no_names;
     s_force_respawn_box.curvalue = (dmflags & DF_FORCE_RESPAWN) != 0;
 
-    s_teamplay_box.generic.type = MTYPE_SPINCONTROL;
-    s_teamplay_box.generic.x = 0;
-    s_teamplay_box.generic.y = y += 10;
-    s_teamplay_box.generic.name = "teamplay";
-    s_teamplay_box.generic.callback = DMFlagCallback;
-    s_teamplay_box.itemnames = teamplay_names;
+    if (!M_IsGame("ctf"))
+    {
+        s_teamplay_box.generic.type = MTYPE_SPINCONTROL;
+        s_teamplay_box.generic.x = 0;
+        s_teamplay_box.generic.y = y += 10;
+        s_teamplay_box.generic.name = "teamplay";
+        s_teamplay_box.generic.callback = DMFlagCallback;
+        s_teamplay_box.itemnames = teamplay_names;
+    }
 
     s_allow_exit_box.generic.type = MTYPE_SPINCONTROL;
     s_allow_exit_box.generic.x = 0;
@@ -3338,13 +3389,16 @@ DMOptions_MenuInit(void)
     s_quad_drop_box.itemnames = yes_no_names;
     s_quad_drop_box.curvalue = (dmflags & DF_QUAD_DROP) != 0;
 
-    s_friendlyfire_box.generic.type = MTYPE_SPINCONTROL;
-    s_friendlyfire_box.generic.x = 0;
-    s_friendlyfire_box.generic.y = y += 10;
-    s_friendlyfire_box.generic.name = "friendly fire";
-    s_friendlyfire_box.generic.callback = DMFlagCallback;
-    s_friendlyfire_box.itemnames = yes_no_names;
-    s_friendlyfire_box.curvalue = (dmflags & DF_NO_FRIENDLY_FIRE) == 0;
+    if (!M_IsGame("ctf"))
+    {
+        s_friendlyfire_box.generic.type = MTYPE_SPINCONTROL;
+        s_friendlyfire_box.generic.x = 0;
+        s_friendlyfire_box.generic.y = y += 10;
+        s_friendlyfire_box.generic.name = "friendly fire";
+        s_friendlyfire_box.generic.callback = DMFlagCallback;
+        s_friendlyfire_box.itemnames = yes_no_names;
+        s_friendlyfire_box.curvalue = (dmflags & DF_NO_FRIENDLY_FIRE) == 0;
+    }
 
     if (M_IsGame("rogue"))
     {
@@ -3380,6 +3434,32 @@ DMOptions_MenuInit(void)
         s_no_spheres_box.itemnames = yes_no_names;
         s_no_spheres_box.curvalue = (dmflags & DF_NO_SPHERES) != 0;
     }
+    else if (M_IsGame("ctf"))
+    {
+        s_no_mines_box.generic.type = MTYPE_SPINCONTROL;
+        s_no_mines_box.generic.x = 0;
+        s_no_mines_box.generic.y = y += 10;
+        s_no_mines_box.generic.name = "force join";
+        s_no_mines_box.generic.callback = DMFlagCallback;
+        s_no_mines_box.itemnames = yes_no_names;
+        s_no_mines_box.curvalue = (dmflags & DF_NO_MINES) != 0;
+
+        s_stack_double_box.generic.type = MTYPE_SPINCONTROL;
+        s_stack_double_box.generic.x = 0;
+        s_stack_double_box.generic.y = y += 10;
+        s_stack_double_box.generic.name = "armor protect";
+        s_stack_double_box.generic.callback = DMFlagCallback;
+        s_stack_double_box.itemnames = yes_no_names;
+        s_stack_double_box.curvalue = (dmflags & DF_NO_STACK_DOUBLE) != 0;
+
+        s_no_nukes_box.generic.type = MTYPE_SPINCONTROL;
+        s_no_nukes_box.generic.x = 0;
+        s_no_nukes_box.generic.y = y += 10;
+        s_no_nukes_box.generic.name = "techs off";
+        s_no_nukes_box.generic.callback = DMFlagCallback;
+        s_no_nukes_box.itemnames = yes_no_names;
+        s_no_nukes_box.curvalue = (dmflags & DF_NO_NUKES) != 0;
+    }
 
     Menu_AddItem(&s_dmoptions_menu, &s_falls_box);
     Menu_AddItem(&s_dmoptions_menu, &s_weapons_stay_box);
@@ -3390,12 +3470,17 @@ DMOptions_MenuInit(void)
     Menu_AddItem(&s_dmoptions_menu, &s_spawn_farthest_box);
     Menu_AddItem(&s_dmoptions_menu, &s_samelevel_box);
     Menu_AddItem(&s_dmoptions_menu, &s_force_respawn_box);
-    Menu_AddItem(&s_dmoptions_menu, &s_teamplay_box);
+
+    if (!M_IsGame("ctf"))
+        Menu_AddItem(&s_dmoptions_menu, &s_teamplay_box);
+
     Menu_AddItem(&s_dmoptions_menu, &s_allow_exit_box);
     Menu_AddItem(&s_dmoptions_menu, &s_infinite_ammo_box);
     Menu_AddItem(&s_dmoptions_menu, &s_fixed_fov_box);
     Menu_AddItem(&s_dmoptions_menu, &s_quad_drop_box);
-    Menu_AddItem(&s_dmoptions_menu, &s_friendlyfire_box);
+
+    if (!M_IsGame("ctf"))
+        Menu_AddItem(&s_dmoptions_menu, &s_friendlyfire_box);
 
     if (M_IsGame("rogue"))
     {
@@ -3403,6 +3488,12 @@ DMOptions_MenuInit(void)
         Menu_AddItem(&s_dmoptions_menu, &s_no_nukes_box);
         Menu_AddItem(&s_dmoptions_menu, &s_stack_double_box);
         Menu_AddItem(&s_dmoptions_menu, &s_no_spheres_box);
+    }
+    else if (M_IsGame("ctf"))
+    {
+        Menu_AddItem(&s_dmoptions_menu, &s_no_mines_box);
+        Menu_AddItem(&s_dmoptions_menu, &s_stack_double_box);
+        Menu_AddItem(&s_dmoptions_menu, &s_no_nukes_box);
     }
 
     Menu_Center(&s_dmoptions_menu);
