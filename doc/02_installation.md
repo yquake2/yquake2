@@ -127,6 +127,13 @@ needs to be copied into the game data directory. The target directory is
 just *music/*, next to *baseq2/*. **Not** inside *baseq2/*.
 
 
+### Alternate Startup Configuration
+
+Yamagi Quake II ships with an alternative startup config that overrides
+some gloibal settings to saner defaults. To use is copy *stuff/yq2.cfg*
+into the *baseq2/* directory.
+
+
 ## The Demo Version
 
 A free demo version of Quake II is available and supported by Yamagi
@@ -202,7 +209,7 @@ system. The gamedata is searched at:
 - In *$HOME/.yq2*
 
 If you're a package maintainer, please look at our documentation at
-https://github.com/yquake2/yquake2/blob/master/doc/packaging.md
+https://github.com/yquake2/yquake2/blob/master/doc/05_packaging.md
 
 
 ## Compiling from source
