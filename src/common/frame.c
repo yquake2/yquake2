@@ -485,18 +485,21 @@ Qcommon_Frame(int msec)
 		c_pointcontents = 0;
 	}
 
-	// vid_maxfps > 1000 breaks things, and so does <= 0
-	// so cap to 1000 and treat <= 0 as "as fast as possible", which is 1000
-	if (vid_maxfps->value > 1000 || vid_maxfps->value < 1)
+
+	/* We can at maximum render 1000 frames, because the minimum
+	   frametime of the engine is 1 millisecond. And of course we
+	   need to render something, the framerate can never be less
+	   then 1. Cap vid_maxfps between 999 and 1.a */
+	if (vid_maxfps->value > 999 || vid_maxfps->value < 1)
 	{
-		Cvar_SetValue("vid_maxfps", 1000);
+		Cvar_SetValue("vid_maxfps", 999);
 	}
 
-	if(cl_maxfps->value > 250)
+	if (cl_maxfps->value > 250)
 	{
-		Cvar_SetValue("cl_maxfps", 130);
+		Cvar_SetValue("cl_maxfps", 250);
 	}
-	else if(cl_maxfps->value < 1)
+	else if (cl_maxfps->value < 1)
 	{
 		Cvar_SetValue("cl_maxfps", 60);
 	}
@@ -522,7 +525,7 @@ Qcommon_Frame(int msec)
 	}
 
 	/* The target render frame rate may be too high. The current
-	   scene may be more complex than the previous one and SDL
+	   scene may be more complex then the previous one and SDL
 	   may give us a 1 or 2 frames too low display refresh rate.
 	   Add a security magin of 5%, e.g. 60fps * 0.95 = 57fps. */
 	pfps = (cl_maxfps->value > (rfps * 0.95)) ? floor(rfps * 0.95) : cl_maxfps->value;
@@ -565,11 +568,11 @@ Qcommon_Frame(int msec)
 
 	/* Calculate the average time spend to process a packet
 	   frame. Packet frames are mostly dependend on the CPU
-	   speed and the network delay. Take the last 60 pure
-	   packet frames (frames that are only packet frames ans
+	   speed and the network delay. Take the last 60 packet
+	   frames (frames that are only packet frames and
 	   nothing else) into account and add a security margin
 	   of 1%. */
-	if (last_was_packetframe && last_was_renderframe)
+	if (last_was_packetframe && !last_was_renderframe)
 	{
 		int measuredframes = 0;
 		static int packetframenum;
@@ -681,8 +684,7 @@ Qcommon_Frame(int msec)
 		rf = time_after_ref - time_before_ref;
 		sv -= gm;
 		cl -= rf;
-		Com_Printf("all:%3i sv:%3i gm:%3i cl:%3i rf:%3i\n",
-				all, sv, gm, cl, rf);
+		Com_Printf("all:%3i sv:%3i gm:%3i cl:%3i rf:%3i\n", all, sv, gm, cl, rf);
 	}
 
 
