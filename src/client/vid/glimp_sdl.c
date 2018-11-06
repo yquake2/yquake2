@@ -369,7 +369,22 @@ GLimp_GrabInput(qboolean grab)
 }
 
 /*
- * Returns the current display refresh rate.
+ * Returns the current display refresh rate. There're 2 limitations:
+ *
+ * * The timing code in frame.c only understands full integers, so
+ *   values given by vid_displayrefreshrate are always round up. For
+ *   example 59.95 become 60. Rounding up is the better choice for
+ *   most users because assuming a too high display refresh rate
+ *   avoids micro stuttering caused by missed frames if the vsync
+ *   is enabled. The price are small and hard to notice timing
+ *   problems.
+ *
+ * * SDL returns only full integer. In most cases they're rounded
+ *   up, but in some cases - likely depending on the GPU driver -
+ *   they're rounded down. If the value is rounded up, we'll see
+ *   some small and nard to notice timing problems. If the value
+ *   is rounded down frames will be missed. Both is only relevant
+ *   if the vsync is enabled.
  */
 int
 GLimp_GetRefreshRate(void)
@@ -380,23 +395,20 @@ GLimp_GetRefreshRate(void)
 		glimp_refreshRate = ceil(vid_displayrefreshrate->value);
 	}
 
-	/* Do this only once. We asume that no one will change their
-	   refresh rate or plug new display hardware in while the
-	   game is running. */
 	if (glimp_refreshRate == -1)
 	{
 		SDL_DisplayMode mode;
 
 		int i = SDL_GetWindowDisplayIndex(window);
 
-		if(i >= 0 && SDL_GetCurrentDisplayMode(i, &mode) == 0)
+		if (i >= 0 && SDL_GetCurrentDisplayMode(i, &mode) == 0)
 		{
 			glimp_refreshRate = mode.refresh_rate;
 		}
 
+		// Something went wrong, use default.
 		if (glimp_refreshRate <= 0)
 		{
-			/* Apparently the stuff above failed, use default */
 			glimp_refreshRate = 60;
 		}
 	}
