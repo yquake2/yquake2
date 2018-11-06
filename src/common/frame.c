@@ -315,7 +315,7 @@ Qcommon_Init(int argc, char **argv)
 	cl_async = Cvar_Get("cl_async", "1", CVAR_ARCHIVE);
 	cl_timedemo = Cvar_Get("timedemo", "0", 0);
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET);
-	vid_maxfps = Cvar_Get("vid_maxfps", "95", CVAR_ARCHIVE);
+	vid_maxfps = Cvar_Get("vid_maxfps", "300", CVAR_ARCHIVE);
 	host_speeds = Cvar_Get("host_speeds", "0", 0);
 	log_stats = Cvar_Get("log_stats", "0", 0);
 	showtrace = Cvar_Get("showtrace", "0", 0);
