@@ -21,3 +21,4 @@ The documentation is split into several documents:
 * [Configuration Guide](03_configuration.md)
 * [List Of All New Console Variables](04_cvarlist.md)
 * [Packaging Guide For Maintainers](05_packaging.md)
+* [Contributing Guide](06_contributing.md)
