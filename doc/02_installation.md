@@ -209,8 +209,7 @@ system. The gamedata is searched at:
 - In *$HOME/.yq2*
 
 If you're a package maintainer, please look at our documentation at
-https://github.com/yquake2/yquake2/blob/master/doc/05_packaging.md
-
+the [Packaging Guide](05_packaging.md)
 
 ## Compiling from source
 

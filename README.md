@@ -17,10 +17,10 @@ LICENSE file for further information.
 ## Documentation
 
 Before asking any questions read through the documentation! The current
-version can be found here: [Documentation](docs/01_index.md)
+version can be found here: [doc/01_index.md](doc/01_index.md)
 
 
 ## Releases
 
-The official releases (including Windows binaries) can be found at out
-homepage: https://www.yamagi.org
+The official releases (including Windows binaries) can be found at our
+homepage: https://www.yamagi.org/quake2
