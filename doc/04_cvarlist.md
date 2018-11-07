@@ -45,19 +45,19 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   a relatively high CPU usage. If set to `0` Quake II lays itself to
   sleep and tells the operating system to send a wakeup signal when it's
   time for the next frame. The later is more CPU friendly but rather
-  inaccurate, especially on Windows. Use with care.  
+  inaccurate, especially on Windows. Use with care.
 
 * **cl_async**: If set to `1` (the default) the client is asynchronous.
   The client framerate is fixed, the renderer framerate is variable.
   This makes it possible to renderer as many frames as desired without
   any physics and movement problems. The client framerate is controlled
-  by *cl_maxfps*, set to `60` by defaut. The renderer framerate is
+  by *cl_maxfps*, set to `60` by default. The renderer framerate is
   controlled by *vid_maxfps*. There are two constraints:
 
   * *vid_maxfps* must be the same or greater than *cl_maxfps*.
   * In case that the vsync is active, *vid_maxfps* must not be lower
 	than the display refresh rate.
-	
+
 	If *cl_async* is set to `0` *vid_maxfps* is the same as *cl_maxfps*,
 	use *cl_maxfps* to set the framerate.
 
@@ -75,7 +75,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **al_device**: OpenAL device to use. In most cases there's no need to
   change this, since the default device is normally the correct choice.
 
-* **al_driver**: OpenAL library to use. This is usefull if for some
+* **al_driver**: OpenAL library to use. This is useful if for some
    reasons several OpenAL libraries are available and Quake II picks the
    wrong one. The given value is the name of the library, for example
    `libopenal.so.1`.
@@ -181,7 +181,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   anti aliasing is expensive and can lead to a huge performance hit, so
   try setting it to a lower value if the framerate is too low.
 
-* **gl_nolerp_list**: list seperate by spaces of textures ommitted from
+* **gl_nolerp_list**: list separate by spaces of textures omitted from
   bilinear filtering. Used by default to exclude the console and HUD
   fonts.  Make sure to include the default values when extending the
   list.
@@ -218,8 +218,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 ## Graphics (OpenGL 3.2 only)
 
 * **gl3_debugcontext**: Enables the OpenGL 3.2 renderers debug context,
-  e.g. prints warnings and errors emmitted by the GPU driver.  Not
-  supported on MacSO. This is a pure debug cvar and slows down
+  e.g. prints warnings and errors emitted by the GPU driver.  Not
+  supported on macOS. This is a pure debug cvar and slows down
   rendering.
 
 * **gl3_intensity**: Sets the color intensity used for 3D rendering.

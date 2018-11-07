@@ -55,7 +55,7 @@ most Linux distributions.
 
 The `SYSTEMDIR` is meant to contain only the game data and *not* the
 binaries. It allows several Quake2 source ports to share the same game
-data.  
+data.
 
 
 ## Alternative startup config

@@ -96,7 +96,7 @@ the GPU driver and the preferences of the player.
   synchronization will always cause tearing!
 * `cl_maxfps` must be set to a value lower than `vid_maxfps`. The margin
   between the two values should be at least 3 frames per second, better
-  5 frames per second. Yamagi Quake II internally enforces a marging of
+  5 frames per second. Yamagi Quake II internally enforces a margin of
   5%. If `cl_maxfps` is set too high (above 90) the good old 125hz bug
   will trigger and the physics will be off. That may be desired.
 * `vid_displayrefreshrate` must be set to the framerate of the display.
@@ -126,7 +126,7 @@ configurations that can be used as a baseline for experiments:
   * `cl_maxfps` set to `60`.
   * `vid_displayrefreshrate` set to the displays refresh rate minus 1.
   * `vid_maxfps` set to `300`.
-* Precise timing at the cost of tearing: 
+* Precise timing at the cost of tearing:
   * `busywait` set to `1`.
   * `r_vsync` set to `0`.
   * `cl_maxfps` set to `60`.
@@ -137,7 +137,7 @@ And there's always the option to disable the asynchronous client all
 together by setting `cl_async` to `1`. In that case `cl_maxfps` and
 `vid_maxfps` are tight together, like in the original Quake II release
 each renderframe is a clientframe. With that both precise timings and
-tearing / micro stuttering free rendering can be archieved by setting 
+tearing / micro stuttering free rendering can be archieved by setting
 `cl_maxfps` to a value higher then the displays refresh rate and
 activating the vertical syncrhonization by setting `r_vsync` to `1`.
 But if `cl_maxfps` is set above about 90 frames per second the 125hz
@@ -188,7 +188,7 @@ applied to everything.
 ### 4/3 Cinematics
 
 While the original Quake II client stretched cinematics over the whole
-window, Yamagi Quake II renders them always with 4/3 aspect. The old
+window, Yamagi Quake II always renders them with 4/3 aspect. The old
 behavior can be enforced by setting `cin_force43` to `0`.
 
 
@@ -199,7 +199,7 @@ one and OpenAL. Additionally some new sound effects were added. We
 recommend to stay with OpenAL, even if the stereo rendering is somewhat
 different to the old sound system. OpenAL is much more distortion free
 and more reliable, especially on modern platforms like Windows 10 or
-Linux with Pulseaudio.
+Linux with PulseAudio.
 
 The new sound effects can be disabled with:
 
@@ -212,7 +212,7 @@ The new sound effects can be disabled with:
 While Yamagi Quake II still supports the Software renderer, configuring
 one of the OpenGL renderers to give a classic look and feel is often the
 better choice. The OpenGL renderers are much faster, more reliable and
-support colored lightning.
+support colored lighting.
 
 General cvars:
 

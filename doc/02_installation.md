@@ -28,7 +28,7 @@ The easiest way to install Yamagi Quake II is to start with the patch.
 Please note that the patch is **required** for all full versions of the
 game. Without the patch the game won't work correctly!
 
-1. Download the patch from our mirror or somewhere else. It's md5
+1. Download the patch from our mirror or somewhere else. Its MD5
    checksum is `490557d4a90ff346a175d865a2bade87`:
    https://deponie.yamagi.org/quake2/idstuff/q2-3.20-x86-full-ctf.exe
 2. Extract the patch into an empty directory. The patch comes as an
@@ -65,7 +65,7 @@ If the optional addons are available their gamedata must be copied too:
   *video/* subdirectory from the addon distribution into the *rogue/*
   subdirectory.
 
-The md5 checksums of the pakfiles are:
+The MD5 checksums of the pakfiles are:
 
 * *baseq2/pak0.pak*: `1ec55a724dc3109fd50dde71ab581d70`
 * *baseq2/pak1.pak*: `42663ea709b7cd3eb9b634b36cfecb1a`
@@ -85,7 +85,7 @@ files.
 Later Quake II releases, for example the one included with Quake IV and
 the one available through Steam, lack the soundtrack. Nevertheless
 Yamagi Quake II can play it if the files are copied into the directories
-mentioned below. 
+mentioned below.
 
 Some digital distributed versions are special, they includes the
 soundtrack as OGG/Vorbis files, but in a non standard format. Yamagi
@@ -138,12 +138,12 @@ into the *baseq2/* directory.
 
 A free demo version of Quake II is available and supported by Yamagi
 Quake II. This demo contains the first few levels, but no videos and
-no soundtrack. 
+no soundtrack.
 
 
 ### Game Data Setup
 
-1. Download the demo from our mirror or somewhere else. It's md5
+1. Download the demo from our mirror or somewhere else. Its MD5
    checksum is `4d1cd4618e80a38db59304132ea0856c`:
    https://deponie.yamagi.org/quake2/idstuff/q2-314-demo-x86.exe
 2. Extract the downloaded file. It's an ordinary, self-extract ZIP
@@ -155,7 +155,7 @@ no soundtrack.
 
 The demo **must not** be patched! Patching the demo will break it!
 
-The md5 checksums of the pakfiles are:
+The MD5 checksums of the pakfiles are:
 
 * *baseq2/pak0.pak*: `27d77240466ec4f3253256832b54db8a`
 
@@ -214,7 +214,7 @@ the [Packaging Guide](05_packaging.md)
 ## Compiling from source
 
 To compile Yamagi Quake II from source the following dependencies
-(including development headers) are neede:
+(including development headers) are needed:
 
 * A GCC compatible compiler like *gcc*, *clang* or *mingw*.
 * A LibGL implementation with system headers.
