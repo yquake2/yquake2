@@ -129,6 +129,7 @@ cvar_t	*sw_waterwarp;
 static cvar_t	*sw_overbrightbits;
 cvar_t	*sw_custom_particles;
 cvar_t	*sw_texture_filtering;
+cvar_t	*sw_retexturing;
 
 cvar_t	*r_drawworld;
 static cvar_t	*r_drawentities;
@@ -259,7 +260,7 @@ void R_ImageList_f(void);
 static void R_ScreenShot_f(void);
 
 static void
-R_Register (void)
+R_RegisterVariables (void)
 {
 	sw_aliasstats = ri.Cvar_Get ("sw_polymodelstats", "0", 0);
 	sw_clearcolor = ri.Cvar_Get ("sw_clearcolor", "2", 0);
@@ -273,6 +274,7 @@ R_Register (void)
 	sw_overbrightbits = ri.Cvar_Get("sw_overbrightbits", "1.0", CVAR_ARCHIVE);
 	sw_custom_particles = ri.Cvar_Get("sw_custom_particles", "0", CVAR_ARCHIVE);
 	sw_texture_filtering = ri.Cvar_Get("sw_texture_filtering", "0", CVAR_ARCHIVE);
+	sw_retexturing = ri.Cvar_Get("sw_retexturing", "0", CVAR_ARCHIVE);
 	r_mode = ri.Cvar_Get( "r_mode", "0", CVAR_ARCHIVE );
 
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
@@ -326,6 +328,7 @@ R_Init
 static qboolean
 RE_Init(void)
 {
+	R_RegisterVariables ();
 	R_InitImages ();
 	Mod_Init ();
 	Draw_InitLocal ();
@@ -343,7 +346,6 @@ RE_Init(void)
 
 	r_aliasuvscale = 1.0;
 
-	R_Register ();
 	Draw_GetPalette ();
 
 	// create the window
