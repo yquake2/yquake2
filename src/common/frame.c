@@ -532,11 +532,14 @@ Qcommon_Frame(int msec)
 
 	/* Calculate average time spend to process a render
 	   frame. This is highly depended on the GPU and the
-	   scenes complexity. Take the last 60 pure render
-	   frames (frames that are only render frames and
-	   nothing else) into account and add a security
-	   margin of 1%. */
-	if (last_was_renderframe && !last_was_packetframe)
+	   scenes complexity. Take last 60 render frames
+	   into account and add a security margin of 1%.
+
+	   Note: We don't take only pure render frames, but
+	   all render frames into account because on the
+	   popular 60hz displays at least all render frames
+	   are also packet frames if the vsync is enabled. */
+	if (last_was_renderframe)
 	{
 		int measuredframes = 0;
 		static int renderframenum;
@@ -568,11 +571,15 @@ Qcommon_Frame(int msec)
 
 	/* Calculate the average time spend to process a packet
 	   frame. Packet frames are mostly dependend on the CPU
-	   speed and the network delay. Take the last 60 packet
-	   frames (frames that are only packet frames and
-	   nothing else) into account and add a security margin
-	   of 1%. */
-	if (last_was_packetframe && !last_was_renderframe)
+	   speed and the network delay. Take the last packet
+	   frames into account and add a security margin of 1%.
+
+	   Note: Like with the render frames we take all packet
+	   frames into account and not only pure packet frames.
+	   The reasons are the same, on popular 60hz displays
+	   most packet frames are also render frames.
+	   */
+	if (last_was_packetframe)
 	{
 		int measuredframes = 0;
 		static int packetframenum;
@@ -612,12 +619,12 @@ Qcommon_Frame(int msec)
 	if (!cl_timedemo->value) {
 		if (cl_async->value) {
 			// Network frames..
-			if (packetdelta < ((1000000.0f - avgpacketframetime) / pfps)) {
+			if (packetdelta < ((1000000.0f + avgpacketframetime) / pfps)) {
 				packetframe = false;
 			}
 
 			// Render frames.
-			if (renderdelta < ((1000000.0f - avgrenderframetime) / rfps)) {
+			if (renderdelta < ((1000000.0f + avgrenderframetime) / rfps)) {
 				renderframe = false;
 			}
 		} else {
