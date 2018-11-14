@@ -122,17 +122,14 @@ static cvar_t	*sw_aliasstats;
 cvar_t	*sw_clearcolor;
 cvar_t	*sw_drawflat;
 cvar_t	*sw_draworder;
-static cvar_t	*sw_maxedges;
-static cvar_t	*sw_maxsurfs;
 static cvar_t  *r_mode;
-static cvar_t	*sw_reportedgeout;
-static cvar_t	*sw_reportsurfout;
 cvar_t  *sw_stipplealpha;
 cvar_t	*sw_surfcacheoverride;
 cvar_t	*sw_waterwarp;
 static cvar_t	*sw_overbrightbits;
 cvar_t	*sw_custom_particles;
 cvar_t	*sw_texture_filtering;
+cvar_t	*sw_retexturing;
 
 cvar_t	*r_drawworld;
 static cvar_t	*r_drawentities;
@@ -154,8 +151,6 @@ static cvar_t	*vid_gamma;
 //PGM
 static cvar_t	*r_lockpvs;
 //PGM
-
-#define	STRINGER(x) "x"
 
 // sw_vars.c
 
@@ -265,24 +260,21 @@ void R_ImageList_f(void);
 static void R_ScreenShot_f(void);
 
 static void
-R_Register (void)
+R_RegisterVariables (void)
 {
 	sw_aliasstats = ri.Cvar_Get ("sw_polymodelstats", "0", 0);
 	sw_clearcolor = ri.Cvar_Get ("sw_clearcolor", "2", 0);
 	sw_drawflat = ri.Cvar_Get ("sw_drawflat", "0", 0);
 	sw_draworder = ri.Cvar_Get ("sw_draworder", "0", 0);
-	sw_maxedges = ri.Cvar_Get ("sw_maxedges", STRINGER(MAXSTACKSURFACES), 0);
-	sw_maxsurfs = ri.Cvar_Get ("sw_maxsurfs", "0", 0);
 	sw_mipcap = ri.Cvar_Get ("sw_mipcap", "0", 0);
 	sw_mipscale = ri.Cvar_Get ("sw_mipscale", "1", 0);
-	sw_reportedgeout = ri.Cvar_Get ("sw_reportedgeout", "0", 0);
-	sw_reportsurfout = ri.Cvar_Get ("sw_reportsurfout", "0", 0);
 	sw_stipplealpha = ri.Cvar_Get( "sw_stipplealpha", "0", CVAR_ARCHIVE );
 	sw_surfcacheoverride = ri.Cvar_Get ("sw_surfcacheoverride", "0", 0);
 	sw_waterwarp = ri.Cvar_Get ("sw_waterwarp", "1", 0);
 	sw_overbrightbits = ri.Cvar_Get("sw_overbrightbits", "1.0", CVAR_ARCHIVE);
 	sw_custom_particles = ri.Cvar_Get("sw_custom_particles", "0", CVAR_ARCHIVE);
 	sw_texture_filtering = ri.Cvar_Get("sw_texture_filtering", "0", CVAR_ARCHIVE);
+	sw_retexturing = ri.Cvar_Get("sw_retexturing", "0", CVAR_ARCHIVE);
 	r_mode = ri.Cvar_Get( "r_mode", "0", CVAR_ARCHIVE );
 
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
@@ -336,6 +328,7 @@ R_Init
 static qboolean
 RE_Init(void)
 {
+	R_RegisterVariables ();
 	R_InitImages ();
 	Mod_Init ();
 	Draw_InitLocal ();
@@ -353,7 +346,6 @@ RE_Init(void)
 
 	r_aliasuvscale = 1.0;
 
-	R_Register ();
 	Draw_GetPalette ();
 
 	// create the window
@@ -437,9 +429,6 @@ R_ReallocateMapBuffers (void)
 		if (r_cnumsurfs < NUMSTACKSURFACES)
 			r_cnumsurfs = NUMSTACKSURFACES;
 
-		if (r_cnumsurfs < sw_maxsurfs->value)
-			r_cnumsurfs = sw_maxsurfs->value;
-
 		lsurfs = malloc (r_cnumsurfs * sizeof(surf_t));
 		if (!lsurfs)
 		{
@@ -475,9 +464,6 @@ R_ReallocateMapBuffers (void)
 
 		if (r_numallocatededges < NUMSTACKEDGES)
 			r_numallocatededges = NUMSTACKEDGES;
-
-		if (r_numallocatededges < sw_maxedges->value)
-		    r_numallocatededges = sw_maxedges->value;
 
 		r_edges = malloc (r_numallocatededges * sizeof(edge_t));
 		if (!r_edges)
@@ -1175,12 +1161,6 @@ RE_RenderFrame (refdef_t *fd)
 
 	if (r_dspeeds->value)
 		R_PrintDSpeeds ();
-
-	if (sw_reportsurfout->value && r_outofsurfaces)
-		R_Printf(PRINT_ALL,"Short %d surfaces\n", r_outofsurfaces);
-
-	if (sw_reportedgeout->value && r_outofedges)
-		R_Printf(PRINT_ALL,"Short roughly %d edges\n", r_outofedges * 2 / 3);
 
 	R_ReallocateMapBuffers();
 }

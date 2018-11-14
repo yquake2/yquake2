@@ -176,10 +176,6 @@ SockadrToNetadr(struct sockaddr_storage *s, netadr_t *a)
 			a->scope_id = s6->sin6_scope_id;
 		}
 	}
-	else
-	{
-		s = NULL;
-	}
 }
 
 void
@@ -273,7 +269,7 @@ NET_CompareBaseAdr(netadr_t a, netadr_t b)
 char *
 NET_BaseAdrToString(netadr_t a)
 {
-	static char s[64], tmp[64];
+	static char s[64];
 	struct sockaddr_storage ss;
 	struct sockaddr_in6 *s6;
 
@@ -332,6 +328,8 @@ NET_BaseAdrToString(netadr_t a)
 					IN6_IS_ADDR_LINKLOCAL(&((struct sockaddr_in6 *)&ss)->
 								sin6_addr))
 				{
+					char tmp[64];
+
 					/* If the address is multicast (link) or a
 					   link-local, need to carry the scope. The string
 					   format of the IPv6 address is used by the
@@ -662,11 +660,13 @@ NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 		{
 			struct addrinfo hints;
 			struct addrinfo *res;
-			char tmp[128], mcast_addr[128], mcast_port[10];
-			int error;
+			char tmp[128];
 
 			if (multicast_interface != NULL)
 			{
+				int error;
+				char mcast_addr[128], mcast_port[10];
+
 				/* Do a getnameinfo/getaddrinfo cycle
 				   to calculate the scope_id of the
 				   multicast address. getaddrinfo is
@@ -772,10 +772,10 @@ NET_OpenIP(void)
 void
 NET_Config(qboolean multiplayer)
 {
-	int i;
-
 	if (!multiplayer)
 	{
+		int i;
+
 		/* shut down any existing sockets */
 		for (i = 0; i < 2; i++)
 		{

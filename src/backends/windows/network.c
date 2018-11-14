@@ -144,7 +144,7 @@ NetadrToSockadr(netadr_t *a, struct sockaddr_storage *s)
 		case NA_LOOPBACK:
 		case NA_IPX:
 		case NA_BROADCAST_IPX:
-			/* no handling of NA_LOOPBACK, 
+			/* no handling of NA_LOOPBACK,
 			   NA_IPX, NA_BROADCAST_IPX */
 			break;
 	}
@@ -181,10 +181,6 @@ SockadrToNetadr(struct sockaddr_storage *s, netadr_t *a)
 			a->scope_id = s6->sin6_scope_id;
 		}
 	}
-	else
-	{
-		s = NULL;
-	}
 }
 
 qboolean
@@ -203,7 +199,7 @@ NET_CompareAdr(netadr_t a, netadr_t b)
 	if (a.type == NA_IP)
 	{
 		if ((a.ip[0] == b.ip[0]) && (a.ip[1] == b.ip[1]) &&
-			(a.ip[2] == b.ip[2]) && (a.ip[3] == b.ip[3]) && 
+			(a.ip[2] == b.ip[2]) && (a.ip[3] == b.ip[3]) &&
 			(a.port == b.port))
 		{
 			return true;
@@ -284,7 +280,7 @@ NET_CompareBaseAdr(netadr_t a, netadr_t b)
 char *
 NET_BaseAdrToString(netadr_t a)
 {
-	static char s[64], tmp[64];
+	static char s[64];
 	struct sockaddr_storage ss;
 	struct sockaddr_in6 *s6;
 
@@ -342,6 +338,8 @@ NET_BaseAdrToString(netadr_t a)
 					   already return scoped IPv6 address. */
 					if (strchr(s, '%') == NULL)
 					{
+						char tmp[64];
+
 						Com_sprintf(tmp, sizeof(tmp), "%s%%%d", s,
 								s6->sin6_scope_id);
 						memcpy(s, tmp, sizeof(s));
@@ -698,13 +696,13 @@ NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 	{
 		struct sockaddr_in6 *s6 = (struct sockaddr_in6 *)&addr;
 
-		/* If multicast socket, must specify scope. 
+		/* If multicast socket, must specify scope.
 		   So multicast_interface must be specified */
 		if (IN6_IS_ADDR_MULTICAST(&s6->sin6_addr))
 		{
 			struct addrinfo hints;
 			struct addrinfo *res;
-			char tmp[128], mcast_addr[128], mcast_port[10];
+			char tmp[128];
 			int error;
 
 			/* Do a getnameinfo/getaddrinfo cycle
@@ -726,6 +724,8 @@ NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 
 			if (multicast_interface != NULL)
 			{
+				char mcast_addr[128], mcast_port[10]
+
 				Com_sprintf(mcast_addr, sizeof(mcast_addr), "%s", tmp);
 				Com_sprintf(mcast_port, sizeof(mcast_port), "%d",
 						ntohs(s6->sin6_port));
@@ -1046,10 +1046,11 @@ NET_IPXSocket(int port)
 	int newsocket;
 	struct sockaddr_ipx address;
 	unsigned long t = 1;
-	int err;
 
 	if ((newsocket = socket(PF_IPX, SOCK_DGRAM, NSPROTO_IPX)) == -1)
 	{
+		int err;
+
 		err = WSAGetLastError();
 
 		if (err != WSAEAFNOSUPPORT)
@@ -1154,13 +1155,12 @@ NET_OpenIPX(void)
 }
 
 /*
- * A single player game will 
+ * A single player game will
  * only use the loopback code
  */
 void
 NET_Config(qboolean multiplayer)
 {
-	int i;
 	static qboolean old_config;
 
 	if (old_config == multiplayer)
@@ -1171,7 +1171,9 @@ NET_Config(qboolean multiplayer)
 	old_config = multiplayer;
 
 	if (!multiplayer)
-	{   
+	{
+		int i;
+
 		/* shut down any existing sockets */
 		for (i = 0; i < 2; i++)
 		{
@@ -1209,7 +1211,7 @@ NET_Config(qboolean multiplayer)
 	}
 }
 
-/* 
+/*
  * sleeps msec or until
  * net socket is ready
  */
