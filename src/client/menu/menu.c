@@ -3538,6 +3538,11 @@ static menuframework_s s_downloadoptions_menu;
 
 static menuseparator_s s_download_title;
 static menulist_s s_allow_download_box;
+
+#ifdef USE_CURL
+static menulist_s s_allow_download_http_box;
+#endif
+
 static menulist_s s_allow_download_maps_box;
 static menulist_s s_allow_download_models_box;
 static menulist_s s_allow_download_players_box;
@@ -3552,6 +3557,12 @@ DownloadCallback(void *self)
     {
         Cvar_SetValue("allow_download", (float)f->curvalue);
     }
+#ifdef USE_CURL
+	else if (f == &s_allow_download_http_box)
+	{
+		Cvar_SetValue("cl_http_downloads", f->curvalue);
+	}
+#endif
     else if (f == &s_allow_download_maps_box)
     {
         Cvar_SetValue("allow_download_maps", (float)f->curvalue);
@@ -3596,9 +3607,21 @@ DownloadOptions_MenuInit(void)
     s_allow_download_box.itemnames = yes_no_names;
     s_allow_download_box.curvalue = (Cvar_VariableValue("allow_download") != 0);
 
+#ifdef USE_CURL
+	s_allow_download_http_box.generic.type = MTYPE_SPINCONTROL;
+	s_allow_download_http_box.generic.x	= 0;
+	s_allow_download_http_box.generic.y	= y += 20;
+	s_allow_download_http_box.generic.name	= "http downloading";
+	s_allow_download_http_box.generic.callback = DownloadCallback;
+	s_allow_download_http_box.itemnames = yes_no_names;
+	s_allow_download_http_box.curvalue = (Cvar_VariableValue("cl_http_downloads") != 0);
+#else
+	y += 10;
+#endif
+
     s_allow_download_maps_box.generic.type = MTYPE_SPINCONTROL;
     s_allow_download_maps_box.generic.x = 0;
-    s_allow_download_maps_box.generic.y = y += 20;
+    s_allow_download_maps_box.generic.y = y += 10;
     s_allow_download_maps_box.generic.name = "maps";
     s_allow_download_maps_box.generic.callback = DownloadCallback;
     s_allow_download_maps_box.itemnames = yes_no_names;
@@ -3634,6 +3657,11 @@ DownloadOptions_MenuInit(void)
 
     Menu_AddItem(&s_downloadoptions_menu, &s_download_title);
     Menu_AddItem(&s_downloadoptions_menu, &s_allow_download_box);
+
+#ifdef USE_CURL
+	Menu_AddItem(&s_downloadoptions_menu, &s_allow_download_http_box);
+#endif
+
     Menu_AddItem(&s_downloadoptions_menu, &s_allow_download_maps_box);
     Menu_AddItem(&s_downloadoptions_menu, &s_allow_download_players_box);
     Menu_AddItem(&s_downloadoptions_menu, &s_allow_download_models_box);

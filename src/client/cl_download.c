@@ -103,6 +103,14 @@ CL_RequestNextDownload(void)
 					precache_model_skin = 1;
 				}
 
+#ifdef USE_CURL
+				/* Wait for the models to download before checking * skins. */
+				if (CL_PendingHTTPDownloads())
+				{
+					return;
+				}
+#endif
+
 				/* checking for skins in the model */
 				if (!precache_model)
 				{
@@ -338,6 +346,14 @@ CL_RequestNextDownload(void)
 		precache_check = ENV_CNT;
 	}
 
+#ifdef USE_CURL
+	/* Wait for pending downloads. */
+	if (CL_PendingHTTPDownloads())
+	{
+		return;
+	}
+#endif
+
 	if (precache_check == ENV_CNT)
 	{
 		precache_check = ENV_CNT + 1;
@@ -412,8 +428,15 @@ CL_RequestNextDownload(void)
 		precache_check = TEXTURE_CNT + 999;
 	}
 
-	CL_RegisterSounds();
+#ifdef USE_CURL
+	/* Wait for pending downloads. */
+	if (CL_PendingHTTPDownloads())
+	{
+		return;
+	}
+#endif
 
+	CL_RegisterSounds();
 	CL_PrepRefresh();
 
 	MSG_WriteByte(&cls.netchan.message, clc_stringcmd);
@@ -463,6 +486,18 @@ CL_CheckOrDownloadFile(char *filename)
 		Com_Printf("Refusing to download a path with ..: %s\n", filename);
 		return true;
 	}
+
+#ifdef USE_CURL
+	if (CL_QueueHTTPDownload(filename))
+	{
+		/* We return true so that the precache check
+		   keeps feeding us more files. Since we have
+		   multiple HTTP connections we want to
+		   minimize latency and be constantly sending
+		   requests, not one at a time. */
+		return true;
+	}
+#endif
 
 	strcpy(cls.downloadname, filename);
 

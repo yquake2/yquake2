@@ -25,6 +25,10 @@
 # User configurable options
 # -------------------------
 
+# Enables HTTP support through cURL. Used for
+# HTTP download.
+WITH_CURL:=yes
+
 # Enables the optional OpenAL sound system.
 # To use it your system needs libopenal.so.1
 # or openal32.dll (we recommend openal-soft)
@@ -373,6 +377,11 @@ endif
 
 release/quake2 : CFLAGS += -Wno-unused-result
 
+ifeq ($(WITH_CURL),yes)
+release/quake2 : CFLAGS += -DUSE_CURL
+release/quake2 : LDFLAGS += -lcurl
+endif
+
 ifeq ($(WITH_OPENAL),yes)
 ifeq ($(YQ2_OSTYPE), OpenBSD)
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so"'
@@ -668,6 +677,7 @@ CLIENT_OBJS_ := \
 	src/client/cl_download.o \
 	src/client/cl_effects.o \
 	src/client/cl_entities.o \
+	src/client/cl_http.o \
 	src/client/cl_input.o \
 	src/client/cl_inventory.o \
 	src/client/cl_keyboard.o \

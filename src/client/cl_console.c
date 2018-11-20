@@ -678,7 +678,11 @@ Con_DrawConsole(float frac)
 	}
 
 	/* draw the download bar, figure out width */
+#ifdef USE_CURL
+	if (cls.downloadname[0] && (cls.download || cls.downloadposition))
+#else
 	if (cls.download)
+#endif
 	{
 		if ((text = strrchr(cls.downloadname, '/')) != NULL)
 		{

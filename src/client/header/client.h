@@ -54,6 +54,7 @@
 #include "../vid/header/ref.h"
 #include "../vid/header/vid.h"
 
+#include "http.h"
 #include "screen.h"
 #include "keyboard.h"
 #include "console.h"
@@ -240,12 +241,22 @@ typedef struct
 	char		downloadname[MAX_OSPATH];
 	int			downloadnumber;
 	dltype_t	downloadtype;
+	size_t		downloadposition;
 	int			downloadpercent;
 
 	/* demo recording info must be here, so it isn't cleared on level change */
 	qboolean	demorecording;
 	qboolean	demowaiting; /* don't record until a non-delta message is received */
 	FILE		*demofile;
+
+#ifdef USE_CURL
+	/* http downloading */
+	dlqueue_t  downloadQueue; /* queues with files to download. */
+	dlhandle_t HTTPHandles[MAX_HTTP_HANDLES]; /* download handles. */
+	char	   downloadServer[512]; /* URL prefix to dowload from .*/
+	char	   downloadServerRetry[512]; /* retry count. */
+	char	   downloadReferer[32]; /* referer string. */
+#endif
 } client_static_t;
 
 extern client_static_t	cls;
