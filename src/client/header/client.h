@@ -442,6 +442,7 @@ void CL_GetChallengePacket (void);
 void CL_PingServers_f (void);
 void CL_Snd_Restart_f (void);
 void CL_RequestNextDownload (void);
+void CL_ResetPrecacheCheck (void);
 
 typedef struct
 {

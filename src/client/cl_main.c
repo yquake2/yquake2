@@ -434,8 +434,14 @@ int precache_check;
 int precache_spawncount;
 int precache_tex;
 int precache_model_skin;
-
 byte *precache_model;
+
+void CL_ResetPrecacheCheck (void)
+{
+	precache_check = CS_MODELS;
+	precache_model = 0;
+	precache_model_skin = 0;
+}
 
 /*
  * The server will send this command right

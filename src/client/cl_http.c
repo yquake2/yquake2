@@ -442,8 +442,7 @@ void CL_CancelHTTPDownloads (qboolean permKill)
 
 	if (permKill)
 	{
-		// TODO CURL: Haben wir was ähnliches?
-		//CL_ResetPrecacheCheck ();
+		CL_ResetPrecacheCheck();
 		abortDownloads = HTTPDL_ABORT_HARD;
 	}
 	else
@@ -676,9 +675,7 @@ static void CL_CheckAndQueueDownload (char *path)
 		}
 		else
 		{
-			// TODO CURL: Wir haben kein FS_LocalFileExists()
-			//exists = FS_LocalFileExists (path);
-			exists = true;
+			exists = FS_FileInGamedir(path);
 
 		}
 
@@ -1019,18 +1016,14 @@ static void CL_FinishHTTPDownload (void)
 
 			//a pak file is very special...
 			i = strlen (tempName);
-			if ( !strcmp (tempName + i - 4, ".pak") /*|| !strcmp (tempName + i - 4, ".pk3")*/ )
-			{
-			//	FS_FlushCache ();
-			//	FS_ReloadPAKs ();
-				// Knightmare- just add the pk3/ pak file
-//				if (!strcmp (tempName + i - 4, ".pk3")) 
-//					FS_AddPK3File (tempName);
-//				else
-					// TODO CURL: Wir haben kein FS_AddPAKFile(). 
-					//FS_AddPAKFile (tempName);
 
+			// The list of file types must be consistent with fs_packtypes in filesystem.c.
+			if ( !strcmp (tempName + i - 4, ".pak") || !strcmp (tempName + i - 4, ".pk2") ||
+					!strcmp (tempName + i - 4, ".pk3") || !strcmp (tempName + i - 4, ".zip") )
+			{
+				FS_AddPAKFromGamedir(dl->queueEntry->quakePath);
 				CL_ReVerifyHTTPQueue ();
+
 				downloading_pak = false;
 			}
 		}

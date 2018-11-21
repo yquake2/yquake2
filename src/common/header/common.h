@@ -676,6 +676,8 @@ void FS_BuildGameSpecificSearchPath(char *dir);
 char *FS_Gamedir(void);
 char *FS_NextPath(char *prevpath);
 int FS_LoadFile(char *path, void **buffer);
+qboolean FS_FileInGamedir(const char *file);
+qboolean FS_AddPAKFromGamedir(const char *pak);
 const char* FS_GetNextRawPath(const char* lastRawPath);
 
 /* a null buffer will just return the file length without loading */
