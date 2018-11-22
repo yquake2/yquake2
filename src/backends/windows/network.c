@@ -724,7 +724,8 @@ NET_SendPacket(netsrc_t sock, int length, void *data, netadr_t to)
 
 			if (multicast_interface != NULL)
 			{
-				char mcast_addr[128], mcast_port[10]
+				char mcast_addr[128];
+				char mcast_port[10];
 
 				Com_sprintf(mcast_addr, sizeof(mcast_addr), "%s", tmp);
 				Com_sprintf(mcast_port, sizeof(mcast_port), "%d",
