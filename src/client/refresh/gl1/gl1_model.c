@@ -828,9 +828,15 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	dheader_t *header;
 	mmodel_t *bm;
 
-	// map use short indexes that we convert to pointers
-	// pointer size / 2 bytes
-	loadmodel->extradata = Hunk_Begin(modfilelen * sizeof(void*) / 2);
+	/* Because Quake II is is sometimes so ... "optimized" this
+	 * is going to be somewhat dirty. The map data contains indices
+	 * that we're converting into pointers. Yeah. No comments. The
+	 * indices are 32 bit long, they just encode the offset between
+	 * the hunks base address and the position in the hunk, so 32 bit
+	 * pointers should be enough. But let's play save, waste some
+	 * allocations and just take the plattforms pointer size instead
+	 * of relying on assumptions. */
+	loadmodel->extradata = Hunk_Begin(modfilelen * sizeof(void*));
 	loadmodel->type = mod_brush;
 
 	if (loadmodel != mod_known)
