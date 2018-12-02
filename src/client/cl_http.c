@@ -59,21 +59,6 @@ on the HTTP server should ideally be gzipped to conserve
 bandwidth.
 */
 
-
-/*
-===============
-CL_HTTP_Reset_KBps_counter
-
-Just a wrapper for CL_Download_Reset_KBps_counter(),
-also resets prevSize.
-===============
-*/
-static void CL_HTTP_Reset_KBps_counter (void)
-{
-	prevSize = 0;
-	//CL_Download_Reset_KBps_counter ();
-}
-
 /*
 ===============
 CL_HTTP_Calculate_KBps
@@ -164,39 +149,27 @@ static size_t /*EXPORT*/ CL_HTTP_Header (void *ptr, size_t size, size_t nmemb, v
 	return bytes;
 }
 
-/*void CL_RemoveHTTPDownload (const char *quakePath)
-{
-
-}*/
-
 /*
-===============
-CL_EscapeHTTPPath
-
-Properly escapes a path with HTTP %encoding. libcurl's function
-seems to treat '/' and such as illegal chars and encodes almost
-the entire URL...
-===============
-*/
-static void CL_EscapeHTTPPath (const char *filePath, char *escaped)
+ * Escapes a path with HTTP enconding. We can't use the
+ * function provided by CURL because it encodes to many
+ * characters and filter some characters needed by Quake
+ * out. Oh Yeah.
+ */
+static void CL_EscapeHTTPPath(const char *filePath, char *escaped)
 {
-	int		i;
-	size_t	len;
-	char	*p;
+	char *p = escaped;
+	size_t len = strlen (filePath);
 
-	p = escaped;
-
-	len = strlen (filePath);
-	for (i = 0; i < len; i++)
+	for (int i = 0; i < len; i++)
 	{
-		if (!isalnum (filePath[i]) && filePath[i] != ';' && filePath[i] != '/' &&
+		if (!isalnum(filePath[i]) && filePath[i] != ';' && filePath[i] != '/' &&
 			filePath[i] != '?' && filePath[i] != ':' && filePath[i] != '@' && filePath[i] != '&' &&
 			filePath[i] != '=' && filePath[i] != '+' && filePath[i] != '$' && filePath[i] != ',' &&
 			filePath[i] != '[' && filePath[i] != ']' && filePath[i] != '-' && filePath[i] != '_' &&
 			filePath[i] != '.' && filePath[i] != '!' && filePath[i] != '~' && filePath[i] != '*' &&
 			filePath[i] != '\'' && filePath[i] != '(' && filePath[i] != ')')
 		{
-			sprintf (p, "%%%02x", filePath[i]);
+			sprintf(p, "%%%02x", filePath[i]);
 			p += 3;
 		}
 		else
@@ -205,12 +178,16 @@ static void CL_EscapeHTTPPath (const char *filePath, char *escaped)
 			p++;
 		}
 	}
+
 	p[0] = 0;
 
-	//using ./ in a url is legal, but all browsers condense the path and some IDS / request
-	//filtering systems act a bit funky if http requests come in with uncondensed paths.
+	// Ising ./ in a url is legal, but all browsers condense
+	// the path and some IDS / request filtering systems act
+	// a bit funky if http requests come in with uncondensed
+	// paths.
 	len = strlen(escaped);
 	p = escaped;
+
 	while ((p = strstr (p, "./")))
 	{
 		memmove (p, p+2, len - (p - escaped) - 1);
@@ -284,89 +261,93 @@ handle.
 */
 static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 {
-	size_t		len;
-	char		tempFile[MAX_OSPATH];
-	char		escapedFilePath[MAX_QPATH*4];
+	char tempFile[MAX_OSPATH];
+	char escapedFilePath[MAX_QPATH*4];
 	
-	//yet another hack to accomodate filelists, how i wish i could push :(
-	//NULL file handle indicates filelist.
-	len = strlen (entry->quakePath);
-	if (len > 9 && !strcmp (entry->quakePath + len - 9, ".filelist"))
+	size_t len = strlen(entry->quakePath);
+
+	if (len > 9 && !strncmp(entry->quakePath + len - 9, ".filelist", len))
 	{
+		// Special case for filelists. The code identifies
+		// filelist by the special handle NULL...
 		dl->file = NULL;
-		CL_EscapeHTTPPath (entry->quakePath, escapedFilePath);
+		CL_EscapeHTTPPath(entry->quakePath, escapedFilePath);
 	}
 	else
 	{
-		CL_HTTP_Reset_KBps_counter ();	// Knightmare- for KB/s counter
-
+		// Full path to the local file.
 		Com_sprintf (dl->filePath, sizeof(dl->filePath), "%s/%s", FS_Gamedir(), entry->quakePath);
 
+		// Full path to the remote file.
 		Com_sprintf (tempFile, sizeof(tempFile), "%s/%s", cl.gamedir, entry->quakePath);
-		CL_EscapeHTTPPath (dl->filePath, escapedFilePath);
+		CL_EscapeHTTPPath (tempFile, escapedFilePath);
 
-	//	strncat (dl->filePath, ".tmp");
+		// Create a temporary file where the downloaded data is stored...
 		Q_strlcat(dl->filePath, ".tmp", sizeof(dl->filePath));
-
 		FS_CreatePath (dl->filePath);
 
-		//don't bother with http resume... too annoying if server doesn't support it.
-		dl->file = fopen (dl->filePath, "wb");
+		// ...and put it into the download handle.
+		dl->file = Q_fopen(dl->filePath, "wb");
+
 		if (!dl->file)
 		{
-			Com_Printf ("CL_StartHTTPDownload: Couldn't open %s for writing.\n", dl->filePath);
+			Com_Printf("CL_StartHTTPDownload: Couldn't open %s for writing.\n", dl->filePath);
 			entry->state = DLQ_STATE_DONE;
-			pendingCount--; /* FS: This is needed or it gets stuck in limbo forever.  I hope someone else sees this as this bug persists in R1Q2 and anyone who uses his code. :( */
-			//CL_RemoveHTTPDownload (entry->quakePath);
+			pendingCount--;
+
 			return;
 		}
 	}
 
+	// Make sure that the download handle is in empty state.
 	dl->tempBuffer = NULL;
-	dl->speed = 0;
 	dl->fileSize = 0;
 	dl->position = 0;
 	dl->queueEntry = entry;
 
+	// Setup and configure the CURL part of our download handle.
 	if (!dl->curl)
-		dl->curl = curl_easy_init ();
+	{
+		dl->curl = curl_easy_init();
+	}
 
-	Com_sprintf (dl->URL, sizeof(dl->URL), "%s%s", cls.downloadServer, escapedFilePath);
+	Com_sprintf(dl->URL, sizeof(dl->URL), "%s%s", cls.downloadServer, escapedFilePath);
 
-	curl_easy_setopt (dl->curl, CURLOPT_ENCODING, "");
-	//curl_easy_setopt (dl->curl, CURLOPT_DEBUGFUNCTION, CL_CURL_Debug);
-	//curl_easy_setopt (dl->curl, CURLOPT_VERBOSE, 1);
-	curl_easy_setopt (dl->curl, CURLOPT_NOPROGRESS, 0);
+	curl_easy_setopt(dl->curl, CURLOPT_ENCODING, "");
+	curl_easy_setopt(dl->curl, CURLOPT_NOPROGRESS, 0);
+
 	if (dl->file)
 	{
-		curl_easy_setopt (dl->curl, CURLOPT_WRITEDATA, dl->file);
-		curl_easy_setopt (dl->curl, CURLOPT_WRITEFUNCTION, NULL);
+		curl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl->file);
+		curl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, NULL);
 	}
 	else
 	{
-		curl_easy_setopt (dl->curl, CURLOPT_WRITEDATA, dl);
-		curl_easy_setopt (dl->curl, CURLOPT_WRITEFUNCTION, CL_HTTP_Recv);
+		curl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl);
+		curl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, CL_HTTP_Recv);
 	}
-	curl_easy_setopt (dl->curl, CURLOPT_PROXY, cl_http_proxy->string);
-	curl_easy_setopt (dl->curl, CURLOPT_FOLLOWLOCATION, 1);
-	curl_easy_setopt (dl->curl, CURLOPT_MAXREDIRS, 5);
-	curl_easy_setopt (dl->curl, CURLOPT_WRITEHEADER, dl);
-	curl_easy_setopt (dl->curl, CURLOPT_HEADERFUNCTION, CL_HTTP_Header);
-	curl_easy_setopt (dl->curl, CURLOPT_PROGRESSFUNCTION, CL_HTTP_Progress);
-	curl_easy_setopt (dl->curl, CURLOPT_PROGRESSDATA, dl);
-	curl_easy_setopt (dl->curl, CURLOPT_USERAGENT, Cvar_VariableString ("version"));
-	curl_easy_setopt (dl->curl, CURLOPT_REFERER, cls.downloadReferer);
-	curl_easy_setopt (dl->curl, CURLOPT_URL, dl->URL);
+
+	curl_easy_setopt(dl->curl, CURLOPT_PROXY, cl_http_proxy->string);
+	curl_easy_setopt(dl->curl, CURLOPT_FOLLOWLOCATION, 1);
+	curl_easy_setopt(dl->curl, CURLOPT_MAXREDIRS, 5);
+	curl_easy_setopt(dl->curl, CURLOPT_WRITEHEADER, dl);
+	curl_easy_setopt(dl->curl, CURLOPT_HEADERFUNCTION, CL_HTTP_Header);
+	curl_easy_setopt(dl->curl, CURLOPT_PROGRESSFUNCTION, CL_HTTP_Progress);
+	curl_easy_setopt(dl->curl, CURLOPT_PROGRESSDATA, dl);
+	curl_easy_setopt(dl->curl, CURLOPT_USERAGENT, Cvar_VariableString ("version"));
+	curl_easy_setopt(dl->curl, CURLOPT_REFERER, cls.downloadReferer);
+	curl_easy_setopt(dl->curl, CURLOPT_URL, dl->URL);
 
 	if (curl_multi_add_handle (multi, dl->curl) != CURLM_OK)
 	{
 		Com_Printf ("curl_multi_add_handle: error\n");
 		dl->queueEntry->state = DLQ_STATE_DONE;
+
 		return;
 	}
 
 	handleCount++;
-	//Com_Printf ("started dl: hc = %d\n", LOG_GENERAL, handleCount);
+
 	Com_DPrintf("CL_StartHTTPDownload: Fetching %s...\n", dl->URL);
 	dl->queueEntry->state = DLQ_STATE_RUNNING;
 }

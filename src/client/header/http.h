@@ -53,7 +53,6 @@ typedef struct dlhandle_s
 	dlqueue_t *queueEntry;
 	size_t fileSize;
 	size_t position;
-	double speed;
 	char URL[576];
 	char *tempBuffer;
 } dlhandle_t;
