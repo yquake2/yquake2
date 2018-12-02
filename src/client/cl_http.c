@@ -18,31 +18,30 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#include <ctype.h> /* FS: For isalnum */
+#include <ctype.h>
 #include "header/client.h"
 
 #ifdef USE_CURL
 
-cvar_t	*cl_http_downloads;
-cvar_t	*cl_http_filelists;
-cvar_t	*cl_http_proxy;
-cvar_t	*cl_http_max_connections;
+cvar_t *cl_http_downloads;
+cvar_t *cl_http_filelists;
+cvar_t *cl_http_proxy;
+cvar_t *cl_http_max_connections;
 
 typedef enum
 {
 	HTTPDL_ABORT_NONE,
 	HTTPDL_ABORT_SOFT,
 	HTTPDL_ABORT_HARD
-}http_abort_t;
+} http_abort_t;
 
-static CURLM	*multi = NULL;
-static int		handleCount = 0;
-static int		pendingCount = 0;
-static int		abortDownloads = HTTPDL_ABORT_NONE;
+static CURLM  *multi = NULL;
+static int handleCount = 0;
+static int pendingCount = 0;
+static int abortDownloads = HTTPDL_ABORT_NONE;
 static qboolean	downloading_pak = false;
 static qboolean	httpDown = false;
-static qboolean	thisMapAbort = false; // Knightmare- whether to fall back to UDP for this map
-static int		prevSize;			// Knightmare- for KBps counter
+static qboolean	thisMapAbort = false;
 
 /*
 ===============================
@@ -59,55 +58,6 @@ on the HTTP server should ideally be gzipped to conserve
 bandwidth.
 */
 
-/*
-===============
-CL_HTTP_Calculate_KBps
-
-Essentially a wrapper for CL_Download_Calcualte_KBps(),
-calcuates bytes since last update and calls the above.
-===============
-*/
-static void CL_HTTP_Calculate_KBps (int curSize, int totalSize)
-{
-	int byteDistance = curSize - prevSize;
-
-	//CL_Download_Calculate_KBps (byteDistance, totalSize);
-	prevSize = curSize;
-}
-
-/*
-===============
-CL_HTTP_Progress
-
-libcurl callback to update progress info. Mainly just used as
-a way to cancel the transfer if required.
-===============
-*/
-static int /*EXPORT*/ CL_HTTP_Progress (void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
-{
-	dlhandle_t *dl;
-
-	dl = (dlhandle_t *)clientp;
-
-	dl->position = (unsigned)dlnow;
-
-	// don't care which download shows as long as something does :)
-	if (!abortDownloads)
-	{
-		Q_strlcpy(cls.downloadname, dl->queueEntry->quakePath, sizeof(cls.downloadname));
-		cls.downloadposition = dl->position;
-
-		if (dltotal)
-		{
-			CL_HTTP_Calculate_KBps ((int)dlnow, (int)dltotal);	// Knightmare- added KB/s counter
-			cls.downloadpercent = (int)((dlnow / dltotal) * 100.0f);
-		}
-		else
-			cls.downloadpercent = 0;
-	}
-
-	return abortDownloads;
-}
 
 /*
 ===============
@@ -332,7 +282,6 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 	curl_easy_setopt(dl->curl, CURLOPT_MAXREDIRS, 5);
 	curl_easy_setopt(dl->curl, CURLOPT_WRITEHEADER, dl);
 	curl_easy_setopt(dl->curl, CURLOPT_HEADERFUNCTION, CL_HTTP_Header);
-	curl_easy_setopt(dl->curl, CURLOPT_PROGRESSFUNCTION, CL_HTTP_Progress);
 	curl_easy_setopt(dl->curl, CURLOPT_PROGRESSDATA, dl);
 	curl_easy_setopt(dl->curl, CURLOPT_USERAGENT, Cvar_VariableString ("version"));
 	curl_easy_setopt(dl->curl, CURLOPT_REFERER, cls.downloadReferer);
