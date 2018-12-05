@@ -57,45 +57,6 @@ static qboolean	thisMapAbort = false; // TODO CURL: Raußreißen?
 // -----------------------
 
 /*
- * Determines the file size based upon
- * the HTTP header send by the server.
- */
-static size_t CL_HTTP_Header(void *ptr, size_t size, size_t nmemb, void *stream)
-{
-	char headerBuff[1024];
-	size_t bytes = size * nmemb;
-	size_t len;
-
-	if (bytes <= 16)
-	{
-		return bytes;
-	}
-
-	if (bytes < sizeof(headerBuff)-1)
-	{
-		len = bytes;
-	}
-	else
-	{
-		len = sizeof(headerBuff)-1;
-	}
-
-	Q_strlcpy(headerBuff, ptr, len);
-
-	if (!Q_strncasecmp (headerBuff, "Content-Length: ", 16))
-	{
-		dlhandle_t	*dl = (dlhandle_t *)stream;
-
-		if (dl->file)
-		{
-			dl->fileSize = strtoul (headerBuff + 16, NULL, 10);
-		}
-	}
-
-	return bytes;
-}
-
-/*
  * In memory buffer for receiving files. Used
  * as special CURL callback for filelists.
  */
@@ -106,16 +67,26 @@ static size_t CL_HTTP_Recv(void *ptr, size_t size, size_t nmemb, void *stream)
 
 	if (!dl->fileSize)
 	{
-		dl->fileSize = bytes > 131072 ? bytes : 131072;
-		dl->tempBuffer = Z_TagMalloc ((int)dl->fileSize, 0);
+		double length = 0;
+
+		curl_easy_getinfo(dl->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &length);
+
+		// Mkay, the remote file should be at least one byte long.
+		// Since this is used for paclists only we assume that the
+		// file cannot be longer then 256k. Everythings else is
+		// considered malicious or a broken server.
+        if (length < 1 || length > 262144)
+		{
+			length = 262144.0f;
+		}
+
+		dl->fileSize = ceil(length) + 1;
+		dl->tempBuffer = malloc(dl->fileSize);
 	}
-	else if (dl->position + bytes >= dl->fileSize - 1)
+	else if (dl->position + bytes >= dl->fileSize)
 	{
-		char *tmp = dl->tempBuffer;
-		dl->tempBuffer = Z_TagMalloc ((int)(dl->fileSize*2), 0);
-		memcpy (dl->tempBuffer, tmp, dl->fileSize);
-		Z_Free (tmp);
 		dl->fileSize *= 2;
+		realloc(dl->tempBuffer, dl->fileSize);
 	}
 
 	memcpy (dl->tempBuffer + dl->position, ptr, bytes);
@@ -252,8 +223,6 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 	curl_easy_setopt(dl->curl, CURLOPT_PROXY, cl_http_proxy->string);
 	curl_easy_setopt(dl->curl, CURLOPT_FOLLOWLOCATION, 1);
 	curl_easy_setopt(dl->curl, CURLOPT_MAXREDIRS, 5);
-	curl_easy_setopt(dl->curl, CURLOPT_WRITEHEADER, dl);
-	curl_easy_setopt(dl->curl, CURLOPT_HEADERFUNCTION, CL_HTTP_Header);
 	curl_easy_setopt(dl->curl, CURLOPT_PROGRESSDATA, dl);
 	curl_easy_setopt(dl->curl, CURLOPT_USERAGENT, Cvar_VariableString ("version"));
 	curl_easy_setopt(dl->curl, CURLOPT_REFERER, cls.downloadReferer);
@@ -459,7 +428,7 @@ static void CL_ParseFileList(dlhandle_t *dl)
 		}
 	}
 
-	Z_Free(dl->tempBuffer);
+	free(dl->tempBuffer);
 	dl->tempBuffer = NULL;
 }
 
@@ -1082,7 +1051,7 @@ void CL_RunHTTPDownloads(void)
 	// Kick CURL into action.
 	do
 	{
-		ret = curl_multi_perform (multi, &newHandleCount);
+		ret = curl_multi_perform(multi, &newHandleCount);
 
 		if (newHandleCount < handleCount)
 		{
