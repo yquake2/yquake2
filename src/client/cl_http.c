@@ -47,8 +47,6 @@ static int handleCount = 0;
 static int pendingCount = 0;
 static int abortDownloads = HTTPDL_ABORT_NONE;
 static qboolean	httpDown = false;
-static qboolean	thisMapAbort = false; // TODO CURL: Raußreißen?
-
 
 // --------
 
@@ -576,17 +574,6 @@ static void CL_FinishHTTPDownload(void)
 					// TODO CURL: Rausreißen?
 					Com_Printf ("HTTP(%s): 404 File Not Found [%d remaining files]\n", dl->queueEntry->quakePath, pendingCount);
 
-					// TODO CURL: Rausreißen?
-					if (!strncmp(dl->queueEntry->quakePath, "maps/", 5) && !strcmp(dl->queueEntry->quakePath + i - 4, ".bsp"))
-					{
-							Com_Printf("HTTP: failed to download %s, falling back to UDP until next map.\n", dl->queueEntry->quakePath);
-
-							CL_CancelHTTPDownloads (false);
-							CL_ResetPrecacheCheck ();
-
-							thisMapAbort = true;
-					}
-
 					continue;
 				}
 				else if (responseCode == 200)
@@ -635,7 +622,7 @@ static void CL_FinishHTTPDownload(void)
 
 			default:
 				// TODO CURL: Rausreißen?
-				Com_Printf ("HTTP download failed: %s\n", curl_easy_strerror (result));
+				Com_Printf ("HTTP download failed: %s\n", curl_easy_strerror(result));
 
 				i = strlen(dl->queueEntry->quakePath);
 
@@ -915,7 +902,7 @@ qboolean CL_QueueHTTPDownload(const char *quakePath)
 {
 	// Not HTTP servers were send by the server, HTTP is disabled
 	// or the client is shutting down and we're wrapping up.
-	if (!cls.downloadServer[0] || abortDownloads || thisMapAbort || !cl_http_downloads->value)
+	if (!cls.downloadServer[0] || abortDownloads || !cl_http_downloads->value)
 	{
 		return false;
 	}
@@ -953,7 +940,7 @@ qboolean CL_QueueHTTPDownload(const char *quakePath)
 	// Let's download the generic filelist if necessary.
 	if (needList)
 	{
-		CL_QueueHTTPDownload (va("%s.filelist", cl.gamedir));
+		CL_QueueHTTPDownload("/.filelist");
 	}
 
 	// If we just queued a .bsp file ask for it's map
@@ -973,7 +960,7 @@ qboolean CL_QueueHTTPDownload(const char *quakePath)
 		COM_StripExtension (filePath, listPath);
 		Q_strlcat(listPath, ".filelist", sizeof(listPath));
 
-		CL_QueueHTTPDownload (listPath);
+		CL_QueueHTTPDownload(listPath);
 	}
 
 	// If we're here CL_FinishHTTPDownload() is guaranteed to be called.
@@ -996,14 +983,6 @@ qboolean CL_PendingHTTPDownloads(void)
 	}
 
 	return pendingCount + handleCount;
-}
-
-/*
- * Resets the map abort state.
- */
-void CL_HTTP_ResetMapAbort (void)
-{
-	thisMapAbort = false;
 }
 
 /*

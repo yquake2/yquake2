@@ -467,10 +467,6 @@ CL_Precache_f(void)
 	precache_model = 0;
 	precache_model_skin = 0;
 
-#ifdef USE_CURL
-	CL_HTTP_ResetMapAbort();
-#endif
-
 	CL_RequestNextDownload();
 }
 

@@ -69,6 +69,5 @@ void CL_RunHTTPDownloads(void);
 qboolean CL_PendingHTTPDownloads(void);
 void CL_SetHTTPServer(const char *URL);
 void CL_HTTP_Cleanup(qboolean fullShutdown);
-void CL_HTTP_ResetMapAbort(void);
 
 #endif
