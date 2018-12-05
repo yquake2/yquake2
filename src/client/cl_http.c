@@ -46,7 +46,6 @@ static CURLM  *multi = NULL;
 static int handleCount = 0;
 static int pendingCount = 0;
 static int abortDownloads = HTTPDL_ABORT_NONE;
-static qboolean	downloading_pak = false; // TODO CURL: Rausreißen?
 static qboolean	httpDown = false;
 static qboolean	thisMapAbort = false; // TODO CURL: Raußreißen?
 
@@ -565,13 +564,6 @@ static void CL_FinishHTTPDownload(void)
 				{
 					i = strlen(dl->queueEntry->quakePath);
 
-					// These must be consistent with fs_packtypes in filesystem.c.
-					if (!strcmp(dl->queueEntry->quakePath + i - 4, ".pak") || !strcmp(dl->queueEntry->quakePath + i - 4, ".pk2") ||
-							!strcmp(dl->queueEntry->quakePath + i - 4, ".pk3") || !strcmp(dl->queueEntry->quakePath + i - 4, ".zip"))
-					{
-						downloading_pak = false;
-					}
-
 					// We got a 404, remove the target file.
 					if (isFile)
 					{
@@ -647,13 +639,6 @@ static void CL_FinishHTTPDownload(void)
 
 				i = strlen(dl->queueEntry->quakePath);
 
-				// These must be consistent with fs_packtypes in filesystem.c.
-				if (!strcmp(dl->queueEntry->quakePath + i - 4, ".pak") || !strcmp(dl->queueEntry->quakePath + i - 4, ".pk2") ||
-						!strcmp(dl->queueEntry->quakePath + i - 4, ".pk3") || !strcmp(dl->queueEntry->quakePath + i - 4, ".zip"))
-				{
-					downloading_pak = false;
-				}
-
 				// The download failed. Remove the temporary file...
 				if (isFile)
 				{
@@ -683,8 +668,6 @@ static void CL_FinishHTTPDownload(void)
 			{
 				FS_AddPAKFromGamedir(dl->queueEntry->quakePath);
 				CL_ReVerifyHTTPQueue ();
-
-				downloading_pak = false;
 			}
 		}
 
@@ -763,15 +746,6 @@ static void CL_StartNextHTTPDownload(void)
 			}
 
 			CL_StartHTTPDownload(q, dl);
-
-			// These must be consistent with fs_packtypes in filesystem.c.
-			size_t len = strlen (q->quakePath);
-
-			if (!strcmp(dl->queueEntry->quakePath + len - 4, ".pak") || !strcmp(dl->queueEntry->quakePath + len - 4, ".pk2") ||
-					!strcmp(dl->queueEntry->quakePath + len- 4, ".pk3") || !strcmp(dl->queueEntry->quakePath + len - 4, ".zip"))
-			{
-				downloading_pak = true;
-			}
 
 			break;
 		}
@@ -1070,7 +1044,7 @@ void CL_RunHTTPDownloads(void)
 
 	// Not enough downloads running, start some more.
 	if (pendingCount && abortDownloads == HTTPDL_ABORT_NONE &&
-		!downloading_pak && handleCount < cl_http_max_connections->value)
+			handleCount < cl_http_max_connections->value)
 	{
 		CL_StartNextHTTPDownload();
 	}
