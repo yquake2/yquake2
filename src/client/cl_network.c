@@ -351,8 +351,6 @@ CL_Disconnect(void)
 	cls.downloadReferer[0] = 0;
 	cls.downloadname[0] = 0;
 	cls.downloadposition = 0;
-	// TODO CURL: Rausreißen?
-	// CL_Download_Reset_KBps_counter();
 #endif
 
 	cls.state = ca_disconnected;
@@ -596,17 +594,13 @@ CL_ConnectionlessPacket(void)
 		}
 
 		Netchan_Setup(NS_CLIENT, &cls.netchan, net_from, cls.quakePort);
-
-		// TODO CURL: Das erscheint mir sinnlos kompliziert und ist für
-		// den Fall ohne CURL wahrscheinlich recht spammy.
-
 		char *buff = NET_AdrToString(cls.netchan.remote_address);
 
-		for (int i = 1; i < Cmd_Argc(); i++)
+		for(int i = 1; i < Cmd_Argc(); i++)
 		{
 			char *p = Cmd_Argv(i);
 
-			if (!strncmp (p, "dlserver=", 9))
+			if(!strncmp(p, "dlserver=", 9))
 			{
 #ifdef USE_CURL
 				p += 9;

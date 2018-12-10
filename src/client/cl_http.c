@@ -181,7 +181,7 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 
 		if (!dl->file)
 		{
-			Com_Printf("CL_StartHTTPDownload: Couldn't open %s for writing.\n", dl->filePath);
+			Com_Printf("HTTP download: Couldn't open %s for writing\n", dl->filePath);
 			entry->state = DLQ_STATE_DONE;
 			pendingCount--;
 
@@ -204,7 +204,6 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 	Com_sprintf(dl->URL, sizeof(dl->URL), "%s%s", cls.downloadServer, escapedFilePath);
 
 	curl_easy_setopt(dl->curl, CURLOPT_ENCODING, "");
-	curl_easy_setopt(dl->curl, CURLOPT_NOPROGRESS, 0);
 
 	if (dl->file)
 	{
@@ -227,7 +226,7 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 
 	if (curl_multi_add_handle (multi, dl->curl) != CURLM_OK)
 	{
-		Com_Printf ("curl_multi_add_handle: error\n");
+		Com_Printf("HTTP download: cURL error\n");
 		dl->queueEntry->state = DLQ_STATE_DONE;
 
 		return;
@@ -301,7 +300,7 @@ static void CL_CheckAndQueueDownload(char *path)
 		strcmp(ext, "bsp") && strcmp(ext, "ent") && strcmp(ext, "txt") && strcmp(ext, "dm2") &&
 		strcmp(ext, "loc"))
 	{
-		Com_Printf ("WARNING: Illegal file type '%s' in filelist.\n", ext);
+		Com_Printf ("HTTP download: Illegal file type '%s' in filelist\n", ext);
 
 		return;
 	}
@@ -316,7 +315,7 @@ static void CL_CheckAndQueueDownload(char *path)
 	{
 		if (pak)
 		{
-			Com_Printf("WARNING: @ prefix used on a pak file '%s' in filelist.\n", path);
+			Com_Printf("HTTP download: @ prefix used on a pak file '%s' in filelist\n", path);
 
 			return;
 		}
@@ -342,7 +341,7 @@ static void CL_CheckAndQueueDownload(char *path)
 	if (strstr (path, "..") || strstr(path, "//") || strchr (path, '\\') ||
 			(!pak && !strchr(path, '/')) || (pak && strchr(path, '/')))
 	{
-		Com_Printf("WARNING: Illegal path '%s' in filelist.\n", path);
+		Com_Printf("HTTP download: Illegal path '%s' in filelist\n", path);
 
 		return;
 	}
@@ -464,16 +463,12 @@ static void CL_ReVerifyHTTPQueue (void)
  */
 static void CL_FinishHTTPDownload(void)
 {
-	// TODO CURL: Einige können davon sicher noch weg.
-	size_t		i;
-	int			msgs_in_queue;
-	dlhandle_t	*dl = NULL;
-	double		timeTaken;
-	double		fileSize;
-	char		tempName[MAX_OSPATH];
-
 	CURL *curl;
+	char tempName[MAX_OSPATH];
+	dlhandle_t *dl = NULL;
+	int	msgs_in_queue;
 	qboolean isFile;
+	size_t i;
 
 	do
 	{
@@ -569,10 +564,9 @@ static void CL_FinishHTTPDownload(void)
 					}
 
 					// ...and remove it from the CURL multihandle.
-					curl_multi_remove_handle (multi, dl->curl);
+					curl_multi_remove_handle(multi, dl->curl);
 
-					// TODO CURL: Rausreißen?
-					Com_Printf ("HTTP(%s): 404 File Not Found [%d remaining files]\n", dl->queueEntry->quakePath, pendingCount);
+					Com_Printf("HTTP download: %s - File Not Found\n", dl->queueEntry->quakePath);
 
 					continue;
 				}
@@ -584,18 +578,17 @@ static void CL_FinishHTTPDownload(void)
 						CL_ParseFileList(dl);
 					}
 
+					Com_Printf("HTTP download: %s - OK\n", dl->queueEntry->quakePath);
+
 					break;
 				}
 
-				// Everything that's not 200 and 404 is fatal, fall through.
-				// TODO CURL: Rausreißen?
-				Com_Printf("Bad HTTP response code %ld for %s, aborting HTTP downloading.\n", responseCode, dl->queueEntry->quakePath);
 
+			// Everything that's not 200 and 404 is fatal, fall through.
 			case CURLE_COULDNT_RESOLVE_HOST:
 			case CURLE_COULDNT_CONNECT:
 			case CURLE_COULDNT_RESOLVE_PROXY:
-				// TODO CURL: Rausreißen?
-				Com_Printf ("Fatal HTTP error: %s\n", curl_easy_strerror (result));
+				Com_Printf("HTTP download: %s - Server broken, aborting\n", dl->queueEntry->quakePath);
 
 				// The download failed. Remove the temporary file...
 				if (isFile)
@@ -621,8 +614,7 @@ static void CL_FinishHTTPDownload(void)
 				break;
 
 			default:
-				// TODO CURL: Rausreißen?
-				Com_Printf ("HTTP download failed: %s\n", curl_easy_strerror(result));
+				Com_Printf ("HTTP download: cURL error - %s\n", curl_easy_strerror(result));
 
 				i = strlen(dl->queueEntry->quakePath);
 
@@ -657,11 +649,6 @@ static void CL_FinishHTTPDownload(void)
 				CL_ReVerifyHTTPQueue ();
 			}
 		}
-
-		// TODO CURL: Rausreißen?
-		curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &timeTaken);
-		curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &fileSize);
-		Com_Printf("HTTP(%s): %.f bytes, %.2fkB/sec [%d remaining files]\n", dl->queueEntry->quakePath, fileSize, (fileSize / 1024.0) / timeTaken, pendingCount);
 
 		// Remove the file fo CURLs multihandle.
 		curl_multi_remove_handle (multi, dl->curl);
@@ -851,7 +838,7 @@ void CL_SetHTTPServer (const char *URL)
 	// Initializes a new multihandle.
 	if (multi)
 	{
-		Com_Error (ERR_DROP, "CL_SetHTTPServer: Still have old handle");
+		Com_Error(ERR_DROP, "HTTP download: Still have old handle?!");
 	}
 
 	multi = curl_multi_init();
@@ -966,6 +953,8 @@ qboolean CL_QueueHTTPDownload(const char *quakePath)
 	// If we're here CL_FinishHTTPDownload() is guaranteed to be called.
 	pendingCount++;
 
+	Com_Printf("HTTP download: %s - Queued\n", q->quakePath);
+
 	return true;
 }
 
@@ -1017,7 +1006,7 @@ void CL_RunHTTPDownloads(void)
 	// Somethings gone very wrong.
 	if (ret != CURLM_OK)
 	{
-		Com_Printf("curl_multi_perform error. Aborting HTTP downloads.\n");
+		Com_Printf("HTTP download: cURL error\n");
 		CL_CancelHTTPDownloads(true);
 	}
 
