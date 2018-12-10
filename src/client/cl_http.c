@@ -72,7 +72,7 @@ static size_t CL_HTTP_Recv(void *ptr, size_t size, size_t nmemb, void *stream)
 		// Since this is used for paclists only we assume that the
 		// file cannot be longer then 256k. Everythings else is
 		// considered malicious or a broken server.
-        if (length < 1 || length > 262144)
+		if (length < 1 || length > 262144)
 		{
 			length = 262144.0f;
 		}
@@ -153,7 +153,7 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 {
 	char tempFile[MAX_OSPATH];
 	char escapedFilePath[MAX_QPATH*4];
-	
+
 	size_t len = strlen(entry->quakePath);
 
 	if (len > 9 && !strncmp(entry->quakePath + len - 9, ".filelist", len))
@@ -328,16 +328,16 @@ static void CL_CheckAndQueueDownload(char *path)
 	// Make sure that there're no evil pathes in the filelist. Most
 	// of these should be pretty okay with YQ2 since we've got a much
 	// better filesystem as other clients but let's stay consistent.
-    //
+	//
 	// .. -> Don't change to upper dirs.
 	// // -> Should be okay
 	// \\ -> May fuck some string functions and CURL up. They
-	//       aren't valid URL characters anyways.
+	//		 aren't valid URL characters anyways.
 	//
 	// !pak && !strchr (path, '/') -> Plain files are always loaded
-	//                                from and into subdirs.
-	//  (pak && strchr(path, '/') -> Paks are always loaded from and
-	//                               into the toplevel dir.
+	//								  from and into subdirs.
+	//	(pak && strchr(path, '/') -> Paks are always loaded from and
+	//								 into the toplevel dir.
 	if (strstr (path, "..") || strstr(path, "//") || strchr (path, '\\') ||
 			(!pak && !strchr(path, '/')) || (pak && strchr(path, '/')))
 	{
@@ -509,7 +509,7 @@ static void CL_FinishHTTPDownload(void)
 
 		// Some files aren't saved but read
 		// into memory buffers. This is used
-	    // for filelists only.
+		// for filelists only.
 		if (dl->file)
 		{
 			isFile = true;
@@ -542,7 +542,7 @@ static void CL_FinishHTTPDownload(void)
 		cls.downloadname[0] = 0;
 		cls.downloadposition = 0;
 
-		// Get the download result (success, some 
+		// Get the download result (success, some
 		// error, etc.) from CURL and process it.
 		CURLcode result = msg->data.result;
 		long responseCode = 0;
@@ -596,7 +596,7 @@ static void CL_FinishHTTPDownload(void)
 					remove (dl->filePath);
 				}
 
-                // ...and the handle from CURLs mutihandle.
+				// ...and the handle from CURLs mutihandle.
 				curl_multi_remove_handle (multi, dl->curl);
 
 				// Special case: We're already aborting HTTP downloading,
@@ -607,7 +607,7 @@ static void CL_FinishHTTPDownload(void)
 					continue;
 				}
 
-                // Abort all HTTP downloads.
+				// Abort all HTTP downloads.
 				CL_CancelHTTPDownloads (true);
 
 				continue;
@@ -624,7 +624,7 @@ static void CL_FinishHTTPDownload(void)
 					remove (dl->filePath);
 				}
 
-                // ...and the handle from CURLs mutihandle.
+				// ...and the handle from CURLs mutihandle.
 				curl_multi_remove_handle (multi, dl->curl);
 
 				continue;
@@ -680,7 +680,7 @@ static void CL_FinishHTTPDownload(void)
 		CL_RequestNextDownload();
 	}
 }
- 
+
 /*
  * Returns a free download handle.
  */
@@ -894,7 +894,7 @@ qboolean CL_QueueHTTPDownload(const char *quakePath)
 		return false;
 	}
 
-    // Mkay, now that the first download is queued we want
+	// Mkay, now that the first download is queued we want
 	// the generic(!) filelist.
 	qboolean needList = false;
 
@@ -1017,5 +1017,5 @@ void CL_RunHTTPDownloads(void)
 		CL_StartNextHTTPDownload();
 	}
 }
- 
+
 #endif /* USE_CURL */
