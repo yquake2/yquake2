@@ -27,6 +27,7 @@
 
 #include <ctype.h>
 #include "header/client.h"
+#include "curl/header/qcurl.h"
 
 #ifdef USE_CURL
 
@@ -66,7 +67,7 @@ static size_t CL_HTTP_Recv(void *ptr, size_t size, size_t nmemb, void *stream)
 	{
 		double length = 0;
 
-		curl_easy_getinfo(dl->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &length);
+		qcurl_easy_getinfo(dl->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &length);
 
 		// Mkay, the remote file should be at least one byte long.
 		// Since this is used for paclists only we assume that the
@@ -198,33 +199,33 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 	// Setup and configure the CURL part of our download handle.
 	if (!dl->curl)
 	{
-		dl->curl = curl_easy_init();
+		dl->curl = qcurl_easy_init();
 	}
 
 	Com_sprintf(dl->URL, sizeof(dl->URL), "%s%s", cls.downloadServer, escapedFilePath);
 
-	curl_easy_setopt(dl->curl, CURLOPT_ENCODING, "");
+	qcurl_easy_setopt(dl->curl, CURLOPT_ENCODING, "");
 
 	if (dl->file)
 	{
-		curl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl->file);
-		curl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, NULL);
+		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl->file);
+		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, NULL);
 	}
 	else
 	{
-		curl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl);
-		curl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, CL_HTTP_Recv);
+		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl);
+		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, CL_HTTP_Recv);
 	}
 
-	curl_easy_setopt(dl->curl, CURLOPT_PROXY, cl_http_proxy->string);
-	curl_easy_setopt(dl->curl, CURLOPT_FOLLOWLOCATION, 1);
-	curl_easy_setopt(dl->curl, CURLOPT_MAXREDIRS, 5);
-	curl_easy_setopt(dl->curl, CURLOPT_PROGRESSDATA, dl);
-	curl_easy_setopt(dl->curl, CURLOPT_USERAGENT, Cvar_VariableString ("version"));
-	curl_easy_setopt(dl->curl, CURLOPT_REFERER, cls.downloadReferer);
-	curl_easy_setopt(dl->curl, CURLOPT_URL, dl->URL);
+	qcurl_easy_setopt(dl->curl, CURLOPT_PROXY, cl_http_proxy->string);
+	qcurl_easy_setopt(dl->curl, CURLOPT_FOLLOWLOCATION, 1);
+	qcurl_easy_setopt(dl->curl, CURLOPT_MAXREDIRS, 5);
+	qcurl_easy_setopt(dl->curl, CURLOPT_PROGRESSDATA, dl);
+	qcurl_easy_setopt(dl->curl, CURLOPT_USERAGENT, Cvar_VariableString ("version"));
+	qcurl_easy_setopt(dl->curl, CURLOPT_REFERER, cls.downloadReferer);
+	qcurl_easy_setopt(dl->curl, CURLOPT_URL, dl->URL);
 
-	if (curl_multi_add_handle (multi, dl->curl) != CURLM_OK)
+	if (qcurl_multi_add_handle(multi, dl->curl) != CURLM_OK)
 	{
 		Com_Printf("HTTP download: cURL error\n");
 		dl->queueEntry->state = DLQ_STATE_DONE;
@@ -473,7 +474,7 @@ static void CL_FinishHTTPDownload(void)
 	do
 	{
 		// Get a message from CURL.
-		CURLMsg *msg = curl_multi_info_read(multi, &msgs_in_queue);
+		CURLMsg *msg = qcurl_multi_info_read(multi, &msgs_in_queue);
 
 		if (!msg)
 		{
@@ -551,7 +552,7 @@ static void CL_FinishHTTPDownload(void)
 		{
 			case CURLE_HTTP_RETURNED_ERROR:
 			case CURLE_OK:
-				curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
+				qcurl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
 
 				if (responseCode == 404)
 				{
@@ -564,7 +565,7 @@ static void CL_FinishHTTPDownload(void)
 					}
 
 					// ...and remove it from the CURL multihandle.
-					curl_multi_remove_handle(multi, dl->curl);
+					qcurl_multi_remove_handle(multi, dl->curl);
 
 					Com_Printf("HTTP download: %s - File Not Found\n", dl->queueEntry->quakePath);
 
@@ -597,7 +598,7 @@ static void CL_FinishHTTPDownload(void)
 				}
 
 				// ...and the handle from CURLs mutihandle.
-				curl_multi_remove_handle (multi, dl->curl);
+				qcurl_multi_remove_handle(multi, dl->curl);
 
 				// Special case: We're already aborting HTTP downloading,
 				// so we can't just kill everything. Otherwise we'll get
@@ -614,7 +615,7 @@ static void CL_FinishHTTPDownload(void)
 				break;
 
 			default:
-				Com_Printf ("HTTP download: cURL error - %s\n", curl_easy_strerror(result));
+				Com_Printf ("HTTP download: cURL error - %s\n", qcurl_easy_strerror(result));
 
 				i = strlen(dl->queueEntry->quakePath);
 
@@ -625,7 +626,7 @@ static void CL_FinishHTTPDownload(void)
 				}
 
 				// ...and the handle from CURLs mutihandle.
-				curl_multi_remove_handle (multi, dl->curl);
+				qcurl_multi_remove_handle (multi, dl->curl);
 
 				continue;
 				break;
@@ -651,7 +652,7 @@ static void CL_FinishHTTPDownload(void)
 		}
 
 		// Remove the file fo CURLs multihandle.
-		curl_multi_remove_handle (multi, dl->curl);
+		qcurl_multi_remove_handle (multi, dl->curl);
 
 	} while (msgs_in_queue > 0);
 
@@ -736,7 +737,11 @@ static void CL_StartNextHTTPDownload(void)
  */
 void CL_InitHTTPDownloads (void)
 {
-	curl_global_init (CURL_GLOBAL_NOTHING);
+	// We're initializing the cURL backend here because
+	// currently we're the only user. As soon as there
+	// are other users this must be moved up into the
+	// global client intialization.
+	qcurlInit();
 }
 
 /*
@@ -771,8 +776,11 @@ void CL_HTTP_Cleanup(qboolean fullShutdown)
 		if (dl->curl)
 		{
 			if (multi)
-				curl_multi_remove_handle (multi, dl->curl);
-			curl_easy_cleanup (dl->curl);
+			{
+				qcurl_multi_remove_handle(multi, dl->curl);
+			}
+
+			qcurl_easy_cleanup(dl->curl);
 			dl->curl = NULL;
 		}
 
@@ -782,14 +790,17 @@ void CL_HTTP_Cleanup(qboolean fullShutdown)
 	// Cleanup CURL multihandle.
 	if (multi)
 	{
-		curl_multi_cleanup(multi);
+		qcurl_multi_cleanup(multi);
 		multi = NULL;
 	}
 
 	// Shutdown CURL.
 	if (fullShutdown)
 	{
-		curl_global_cleanup ();
+		// This must be moved up into the generic
+		// client shutdown as soon as there're
+		// other users of the cURL backend.
+		qcurlShutdown();
 		httpDown = true;
 	}
 }
@@ -806,6 +817,16 @@ void CL_SetHTTPServer (const char *URL)
 {
 	dlqueue_t *last = NULL;
 	dlqueue_t *q = &cls.downloadQueue;
+
+	// This code abuses the download server setting to
+	// determine if HTTP downloads are possible. So if
+	// we don't set a download server, no downloads are
+	// queued and run. :)
+	if (!qcurlInitialized)
+	{
+		cls.downloadServer[0] = 0;
+		return;
+	}
 
 	CL_HTTP_Cleanup(false);
 
@@ -841,7 +862,7 @@ void CL_SetHTTPServer (const char *URL)
 		Com_Error(ERR_DROP, "HTTP download: Still have old handle?!");
 	}
 
-	multi = curl_multi_init();
+	multi = qcurl_multi_init();
 }
 
 /*
@@ -981,10 +1002,10 @@ qboolean CL_PendingHTTPDownloads(void)
  */
 void CL_RunHTTPDownloads(void)
 {
-	int			newHandleCount;
-	CURLMcode	ret;
+	int	newHandleCount;
+	CURLMcode ret;
 
-	// No HTTP server given.
+	// No HTTP server given or not initialized.
 	if (!cls.downloadServer[0])
 	{
 		return;
@@ -993,7 +1014,7 @@ void CL_RunHTTPDownloads(void)
 	// Kick CURL into action.
 	do
 	{
-		ret = curl_multi_perform(multi, &newHandleCount);
+		ret = qcurl_multi_perform(multi, &newHandleCount);
 
 		if (newHandleCount < handleCount)
 		{

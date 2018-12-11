@@ -352,6 +352,10 @@ build/client/%.o: %.c
 
 release/yquake2.exe : LDFLAGS += -mwindows
 
+ifeq ($(WITH_CURL),yes)
+release/quake2 : CFLAGS += -DUSE_CURL
+endif
+
 ifeq ($(WITH_OPENAL),yes)
 release/yquake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"'
 endif
@@ -379,7 +383,6 @@ release/quake2 : CFLAGS += -Wno-unused-result
 
 ifeq ($(WITH_CURL),yes)
 release/quake2 : CFLAGS += -DUSE_CURL
-release/quake2 : LDFLAGS += -lcurl
 endif
 
 ifeq ($(WITH_OPENAL),yes)
@@ -690,6 +693,7 @@ CLIENT_OBJS_ := \
 	src/client/cl_screen.o \
 	src/client/cl_tempentities.o \
 	src/client/cl_view.o \
+	src/client/curl/qcurl.o \
 	src/client/input/sdl.o \
 	src/client/menu/menu.o \
 	src/client/menu/qmenu.o \
