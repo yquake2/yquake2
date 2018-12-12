@@ -353,7 +353,7 @@ build/client/%.o: %.c
 release/yquake2.exe : LDFLAGS += -mwindows
 
 ifeq ($(WITH_CURL),yes)
-release/quake2 : CFLAGS += -DUSE_CURL
+release/yquake2.exe : CFLAGS += -DUSE_CURL
 endif
 
 ifeq ($(WITH_OPENAL),yes)
