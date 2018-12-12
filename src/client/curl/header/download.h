@@ -26,10 +26,14 @@
 
 #ifdef USE_CURL
 
+#ifndef DOWNLOAD_H
+#define DOWNLOAD_H
+
 // Number of max. parallel downloads.
 #define MAX_HTTP_HANDLES 16
 
 #include <curl/curl.h>
+#include "../../../common/header/common.h"
 
 typedef enum
 {
@@ -70,4 +74,5 @@ qboolean CL_PendingHTTPDownloads(void);
 void CL_SetHTTPServer(const char *URL);
 void CL_HTTP_Cleanup(qboolean fullShutdown);
 
-#endif
+#endif // DOWNLOAD_H
+#endif // USE_CURL
