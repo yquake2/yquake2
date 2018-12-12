@@ -680,7 +680,6 @@ CLIENT_OBJS_ := \
 	src/client/cl_download.o \
 	src/client/cl_effects.o \
 	src/client/cl_entities.o \
-	src/client/cl_http.o \
 	src/client/cl_input.o \
 	src/client/cl_inventory.o \
 	src/client/cl_keyboard.o \
@@ -693,6 +692,7 @@ CLIENT_OBJS_ := \
 	src/client/cl_screen.o \
 	src/client/cl_tempentities.o \
 	src/client/cl_view.o \
+	src/client/curl/download.o \
 	src/client/curl/qcurl.o \
 	src/client/input/sdl.o \
 	src/client/menu/menu.o \

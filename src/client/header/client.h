@@ -49,12 +49,12 @@
 
 #include "../../common/header/common.h"
 
+#include "../curl/header/download.h"
 #include "../sound/header/sound.h"
 #include "../sound/header/vorbis.h"
 #include "../vid/header/ref.h"
 #include "../vid/header/vid.h"
 
-#include "http.h"
 #include "screen.h"
 #include "keyboard.h"
 #include "console.h"

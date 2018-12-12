@@ -26,8 +26,8 @@
  */
 
 #include <ctype.h>
-#include "header/client.h"
-#include "curl/header/qcurl.h"
+#include "../header/client.h"
+#include "header/qcurl.h"
 
 #ifdef USE_CURL
 
