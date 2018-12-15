@@ -146,6 +146,31 @@ static void CL_EscapeHTTPPath(const char *filePath, char *escaped)
 }
 
 /*
+ * Removes an entry from the download queue.
+ */
+static qboolean CL_RemoveFromQueue(dlqueue_t *entry)
+{
+	dlqueue_t *last = &cls.downloadQueue;
+	dlqueue_t *cur = last->next;
+
+	while (cur)
+	{
+		if (last->next == entry)
+		{
+			last->next = cur->next;
+			Z_Free(cur);
+
+			return true;
+		}
+
+		last = cur;
+		cur = cur->next;
+	}
+
+	return false;
+}
+
+/*
  * Starts a download. Generates an URL, brings the
  * download handle into defined state and adds it
  * to the CURL multihandle.
@@ -183,7 +208,7 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 		if (!dl->file)
 		{
 			Com_Printf("HTTP download: Couldn't open %s for writing\n", dl->filePath);
-			entry->state = DLQ_STATE_DONE;
+			CL_RemoveFromQueue(entry);
 			pendingCount--;
 
 			return;
@@ -225,10 +250,12 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 	qcurl_easy_setopt(dl->curl, CURLOPT_REFERER, cls.downloadReferer);
 	qcurl_easy_setopt(dl->curl, CURLOPT_URL, dl->URL);
 
-	if (qcurl_multi_add_handle(multi, dl->curl) != CURLM_OK)
+	size_t ret;
+
+	if ((ret = qcurl_multi_add_handle(multi, dl->curl)) != CURLM_OK)
 	{
-		Com_Printf("HTTP download: cURL error\n");
-		dl->queueEntry->state = DLQ_STATE_DONE;
+		Com_Printf("HTTP download: cURL error - %s\n", qcurl_easy_strerror(ret));
+		CL_RemoveFromQueue(entry);
 
 		return;
 	}
@@ -448,7 +475,7 @@ static void CL_ReVerifyHTTPQueue (void)
 		{
 			if (FS_LoadFile (q->quakePath, NULL) != -1)
 			{
-				q->state = DLQ_STATE_DONE;
+				CL_RemoveFromQueue(q);
 			}
 			else
 			{
@@ -503,11 +530,6 @@ static void CL_FinishHTTPDownload(void)
 			Com_Error(ERR_DROP, "CL_FinishHTTPDownload: Handle not found");
 		}
 
-		// We mark everything as done, even if the file
-		// threw an error. That's easier then communicating
-		// the error upstream.
-		dl->queueEntry->state = DLQ_STATE_DONE;
-
 		// Some files aren't saved but read
 		// into memory buffers. This is used
 		// for filelists only.
@@ -525,7 +547,6 @@ static void CL_FinishHTTPDownload(void)
 			isFile = false;
 		}
 
-
 		// All downloads might have been aborted.
 		// This is the case if the backend (or the
 		// whole client) shuts down.
@@ -538,10 +559,6 @@ static void CL_FinishHTTPDownload(void)
 		// handle it's now empty and ready for
 		// reuse.
 		handleCount--;
-
-		// Clear download progress bar state.
-		cls.downloadname[0] = 0;
-		cls.downloadposition = 0;
 
 		// Get the download result (success, some
 		// error, etc.) from CURL and process it.
@@ -556,30 +573,35 @@ static void CL_FinishHTTPDownload(void)
 
 				if (responseCode == 404)
 				{
-					i = strlen(dl->queueEntry->quakePath);
+					Com_Printf("HTTP download: %s - File Not Found\n", dl->queueEntry->quakePath);
 
 					// We got a 404, remove the target file.
 					if (isFile)
 					{
 						remove(dl->filePath);
+						isFile = false;
 					}
 
 					// ...and remove it from the CURL multihandle.
 					qcurl_multi_remove_handle(multi, dl->curl);
+					CL_RemoveFromQueue(dl->queueEntry);
+					dl->queueEntry = NULL;
 
-					Com_Printf("HTTP download: %s - File Not Found\n", dl->queueEntry->quakePath);
 
-					continue;
+					break;
+
 				}
 				else if (responseCode == 200)
 				{
+					Com_Printf("HTTP download: %s - OK\n", dl->queueEntry->quakePath);
+
 					// This wasn't a file, so it must be a filelist.
 					if (!isFile && !abortDownloads)
 					{
 						CL_ParseFileList(dl);
+						CL_RemoveFromQueue(dl->queueEntry);
+						dl->queueEntry = NULL;
 					}
-
-					Com_Printf("HTTP download: %s - OK\n", dl->queueEntry->quakePath);
 
 					break;
 				}
@@ -594,7 +616,8 @@ static void CL_FinishHTTPDownload(void)
 				// The download failed. Remove the temporary file...
 				if (isFile)
 				{
-					remove (dl->filePath);
+					remove(dl->filePath);
+					isFile = false;
 				}
 
 				// ...and the handle from CURLs mutihandle.
@@ -605,42 +628,44 @@ static void CL_FinishHTTPDownload(void)
 				// stuck.
 				if (abortDownloads)
 				{
-					continue;
+					CL_RemoveFromQueue(dl->queueEntry);
+					dl->queueEntry = NULL;
 				}
 
 				// Abort all HTTP downloads.
 				CL_CancelHTTPDownloads (true);
+				CL_RemoveFromQueue(dl->queueEntry);
+				dl->queueEntry = NULL;
 
-				continue;
 				break;
 
 			default:
 				Com_Printf ("HTTP download: cURL error - %s\n", qcurl_easy_strerror(result));
 
-				i = strlen(dl->queueEntry->quakePath);
-
 				// The download failed. Remove the temporary file...
 				if (isFile)
 				{
-					remove (dl->filePath);
+					remove(dl->filePath);
+					isFile = false;
 				}
 
 				// ...and the handle from CURLs mutihandle.
 				qcurl_multi_remove_handle (multi, dl->curl);
+				CL_RemoveFromQueue(dl->queueEntry);
+				dl->queueEntry = NULL;
 
-				continue;
 				break;
 		}
 
 		if (isFile)
 		{
 			// Rename the temporary file to it's final location
-			Com_sprintf (tempName, sizeof(tempName), "%s/%s", FS_Gamedir(), dl->queueEntry->quakePath);
+			Com_sprintf(tempName, sizeof(tempName), "%s/%s", FS_Gamedir(), dl->queueEntry->quakePath);
 			rename(dl->filePath, tempName);
 
 			// Pak files are special because they contain
 			// other files that we may be downloading...
-			i = strlen (tempName);
+			i = strlen(tempName);
 
 			// The list of file types must be consistent with fs_packtypes in filesystem.c.
 			if ( !strcmp (tempName + i - 4, ".pak") || !strcmp (tempName + i - 4, ".pk2") ||
@@ -649,11 +674,13 @@ static void CL_FinishHTTPDownload(void)
 				FS_AddPAKFromGamedir(dl->queueEntry->quakePath);
 				CL_ReVerifyHTTPQueue ();
 			}
+
+			CL_RemoveFromQueue(dl->queueEntry);
+			dl->queueEntry = NULL;
 		}
 
 		// Remove the file fo CURLs multihandle.
 		qcurl_multi_remove_handle (multi, dl->curl);
-
 	} while (msgs_in_queue > 0);
 
 
@@ -691,7 +718,7 @@ static dlhandle_t *CL_GetFreeDLHandle(void)
 	{
 		dlhandle_t *dl = &cls.HTTPHandles[i];
 
-		if (!dl->queueEntry || dl->queueEntry->state == DLQ_STATE_DONE)
+		if (!dl->queueEntry)
 		{
 			return dl;
 		}
@@ -785,6 +812,27 @@ void CL_HTTP_Cleanup(qboolean fullShutdown)
 		}
 
 		dl->queueEntry = NULL;
+	}
+
+	// Cleanup download queue.
+	dlqueue_t *q = &cls.downloadQueue;
+	dlqueue_t *last = NULL;
+
+	while (q->next)
+	{
+		q = q->next;
+
+		if (last)
+		{
+			Z_Free (last);
+		}
+
+		last = q;
+	}
+
+	if (last)
+	{
+		Z_Free (last);
 	}
 
 	// Cleanup CURL multihandle.
@@ -888,7 +936,7 @@ void CL_CancelHTTPDownloads(qboolean permKill)
 
 		if (q->state == DLQ_STATE_NOT_STARTED)
 		{
-			q->state = DLQ_STATE_DONE;
+			CL_RemoveFromQueue(q);
 		}
 	}
 
@@ -1027,7 +1075,7 @@ void CL_RunHTTPDownloads(void)
 	// Somethings gone very wrong.
 	if (ret != CURLM_OK)
 	{
-		Com_Printf("HTTP download: cURL error\n");
+		Com_Printf("HTTP download: cURL error - %s\n", qcurl_easy_strerror(ret));
 		CL_CancelHTTPDownloads(true);
 	}
 

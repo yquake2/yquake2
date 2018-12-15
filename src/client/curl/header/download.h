@@ -38,8 +38,7 @@
 typedef enum
 {
 	DLQ_STATE_NOT_STARTED,
-	DLQ_STATE_RUNNING,
-	DLQ_STATE_DONE
+	DLQ_STATE_RUNNING
 } dlq_state;
 
 typedef struct dlqueue_s

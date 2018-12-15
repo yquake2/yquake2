@@ -202,7 +202,7 @@ void qcurlShutdown(void)
 	qcurl_global_cleanup = NULL;
 	qcurl_global_init = NULL;
 
-    qcurl_multi_add_handle = NULL;
+	qcurl_multi_add_handle = NULL;
 	qcurl_multi_cleanup = NULL;
 	qcurl_multi_info_read = NULL;
 	qcurl_multi_init = NULL;
