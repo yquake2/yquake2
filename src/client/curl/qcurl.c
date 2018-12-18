@@ -89,10 +89,11 @@ qboolean qcurlInit(void)
 #ifdef __APPLE__
 	const char *libcurl[] = { "libcurl.dylib", NULL };
 #elif __linux__
-	const char *libcurl[] = { "libcurl.so", "libcurl.so.3", "libcurl.so.4", "libcurl-gnutls.so.3",
-		"libcurl-gnutls.so.4", "libcurl-nss.so.3", "libcurl-nss.so.4", NULL };
+	const char *libcurl[] = { "libcurl.so.3", "libcurl.so.4", "libcurl-gnutls.so.3",
+		"libcurl-gnutls.so.4", "libcurl-nss.so.3", "libcurl-nss.so.4", "libcurl.so",
+		NULL };
 #elif _WIN32
-	const char *libcurl[] = { "curl.dll", NULL };
+	const char *libcurl[] = { "curl.dll", "libcurl.dll", NULL };
 #else
 	const char *libcurl[] = { "libcurl.so", NULL };
 #endif
