@@ -76,6 +76,10 @@ qboolean is_portable;
 // Game given by user
 char userGivenGame[MAX_QPATH];
 
+// Game should quit next frame.
+// Hack for the signal handlers.
+qboolean quitnextframe;
+
 // ----
 
 static void
@@ -424,6 +428,14 @@ Qcommon_Frame(int msec)
 	static qboolean last_was_packetframe;
 
 
+	/* Tells the client to shutdown.
+	   Used by the signal handlers. */
+	if (quitnextframe)
+	{
+		Cbuf_AddText("quit");
+	}
+
+
 	/* In case of ERR_DROP we're jumping here. Don't know
 	   if that' really save but it seems to work. So leave
 	   it alone. */
@@ -729,6 +741,14 @@ Qcommon_Frame(int msec)
 	   breaks. That's the Q2 variant if the famous
 	   125hz bug. */
 	qboolean packetframe = true;
+
+
+	/* Tells the client to shutdown.
+	   Used by the signal handlers. */
+	if (quitnextframe)
+	{
+		Cbuf_AddText("quit");
+	}
 
 
 	/* In case of ERR_DROP we're jumping here. Don't know

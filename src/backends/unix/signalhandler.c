@@ -118,10 +118,12 @@ signalhandler(int sig)
 	raise(sig);
 }
 
+extern qboolean quitnextframe;
+
 void
 terminate(int sig)
 {
-	Cbuf_AddText("quit");
+	quitnextframe = true;
 }
 
 void
