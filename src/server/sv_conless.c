@@ -303,7 +303,14 @@ gotnewcl:
 	SV_UserinfoChanged(newcl);
 
 	/* send the connect packet to the client */
-	Netchan_OutOfBandPrint(NS_SERVER, adr, "client_connect");
+	if (sv_downloadserver->string[0])
+	{
+		Netchan_OutOfBandPrint(NS_SERVER, adr, "client_connect dlserver=%s", sv_downloadserver->string);
+	}
+	else
+	{
+		Netchan_OutOfBandPrint(NS_SERVER, adr, "client_connect");
+	}
 
 	Netchan_Setup(NS_SERVER, &newcl->netchan, adr, qport);
 

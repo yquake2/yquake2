@@ -167,6 +167,7 @@ static qboolean CL_RemoveFromQueue(dlqueue_t *entry)
 		cur = cur->next;
 	}
 
+
 	return false;
 }
 
