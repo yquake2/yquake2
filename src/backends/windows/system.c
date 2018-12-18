@@ -535,12 +535,25 @@ Sys_GetHomeDir(void)
 	return gdir;
 }
 
+void
 Sys_Remove(const char *path)
 {
 	WCHAR wpath[MAX_OSPATH] = {0};
 	MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_OSPATH);
 
 	_wremove(wpath);
+}
+
+int
+Sys_Rename(const char *from, const char *to)
+{
+	WCHAR wfrom[MAX_OSPATH] = {0};
+	MultiByteToWideChar(CP_UTF8, 0, from, -1, wfrom, MAX_OSPATH);
+
+	WCHAR wto[MAX_OSPATH] = {0};
+	MultiByteToWideChar(CP_UTF8, 0, to, -1, wto, MAX_OSPATH);
+
+	return _wrename(wfrom, wto);
 }
 
 /* ======================================================================= */

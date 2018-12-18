@@ -578,7 +578,7 @@ static void CL_FinishHTTPDownload(void)
 					// We got a 404, remove the target file.
 					if (isFile)
 					{
-						remove(dl->filePath);
+						Sys_Remove(dl->filePath);
 						isFile = false;
 					}
 
@@ -616,7 +616,7 @@ static void CL_FinishHTTPDownload(void)
 				// The download failed. Remove the temporary file...
 				if (isFile)
 				{
-					remove(dl->filePath);
+					Sys_Remove(dl->filePath);
 					isFile = false;
 				}
 
@@ -645,7 +645,7 @@ static void CL_FinishHTTPDownload(void)
 				// The download failed. Remove the temporary file...
 				if (isFile)
 				{
-					remove(dl->filePath);
+					Sys_Remove(dl->filePath);
 					isFile = false;
 				}
 
@@ -661,7 +661,7 @@ static void CL_FinishHTTPDownload(void)
 		{
 			// Rename the temporary file to it's final location
 			Com_sprintf(tempName, sizeof(tempName), "%s/%s", FS_Gamedir(), dl->queueEntry->quakePath);
-			rename(dl->filePath, tempName);
+			Sys_Rename(dl->filePath, tempName);
 
 			// Pak files are special because they contain
 			// other files that we may be downloading...
@@ -790,7 +790,7 @@ void CL_HTTP_Cleanup(qboolean fullShutdown)
 		if (dl->file)
 		{
 			fclose (dl->file);
-			remove (dl->filePath);
+			Sys_Remove (dl->filePath);
 			dl->file = NULL;
 		}
 

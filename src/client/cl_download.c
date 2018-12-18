@@ -655,7 +655,7 @@ CL_ParseDownload(void)
 		/* rename the temp file to it's final name */
 		CL_DownloadFileName(oldn, sizeof(oldn), cls.downloadtempname);
 		CL_DownloadFileName(newn, sizeof(newn), cls.downloadname);
-		r = rename(oldn, newn);
+		r = Sys_Rename(oldn, newn);
 
 		if (r)
 		{

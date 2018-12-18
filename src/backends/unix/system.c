@@ -487,6 +487,12 @@ Sys_Remove(const char *path)
 	remove(path);
 }
 
+int
+Sys_Rename(const char *from, const char *to)
+{
+	return rename(from, to);
+}
+
 /* ================================================================ */
 
 void *
