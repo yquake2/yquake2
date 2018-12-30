@@ -487,6 +487,25 @@ Sys_Remove(const char *path)
 	remove(path);
 }
 
+void
+Sys_RemoveDir(const char *path)
+{
+	DIR *directory = opendir(path);
+	struct dirent *file;
+
+	if (Sys_IsDir(path))
+	{
+		while ((file = readdir(directory)) != NULL)
+		{
+			Sys_Remove(va("%s%s", path, file->d_name));
+		}
+
+		closedir(directory);
+
+		Sys_Remove(path);
+	}
+}
+
 /* ================================================================ */
 
 void *
