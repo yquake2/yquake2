@@ -2156,6 +2156,89 @@ M_Menu_Game_f(void)
 }
 
 /*
+ * CONFIRM DELETE MENU
+ */
+
+static void LoadGame_MenuInit(void);
+
+static menuframework_s s_confirmdeletesavegame_menu;
+static menuaction_s s_deletesavegame_label;
+static menuaction_s s_confirmdeletesavegame_action;
+static menuaction_s s_canceldeletesavegame_action;
+
+void (*ParentInitFunc)(void);
+
+static void
+DeleteSaveGameCallback(void *self)
+{
+	char name[MAX_OSPATH];
+	menuaction_s *item = (menuaction_s *)self;
+
+	Com_sprintf(name, sizeof(name), "%s/save/save%d/", FS_Gamedir(), item->generic.localdata[0]);
+	Sys_RemoveDir(name);
+
+	ParentInitFunc();
+	M_PopMenu();
+}
+
+static void
+CancelDeleteSaveGameCallback(void *unused)
+{
+	M_PopMenu();
+}
+
+static const char *
+DeleteSaveGame_MenuKey(int key)
+{
+    return Default_MenuKey(&s_confirmdeletesavegame_menu, key);
+}
+
+static void
+DeleteSaveGame_MenuDraw(void)
+{
+    //M_Banner("m_banner_load_game");
+    Menu_AdjustCursor(&s_confirmdeletesavegame_menu, 1);
+    Menu_Draw(&s_confirmdeletesavegame_menu);
+}
+
+static void
+ConfirmDeleteSaveGame_MenuInit(int i, void (*callback)(void))
+{
+	float scale = SCR_GetMenuScale();
+
+	ParentInitFunc = callback;
+
+	s_confirmdeletesavegame_menu.x = viddef.width / 2 - (120 * scale);
+	s_confirmdeletesavegame_menu.y = viddef.height / (2 * scale) - 58;
+	s_confirmdeletesavegame_menu.nitems = 0;
+
+	s_deletesavegame_label.generic.type = MTYPE_ACTION;
+	s_deletesavegame_label.generic.name = "Are you sure you want to delete?";
+	s_deletesavegame_label.generic.x = 0;
+	s_deletesavegame_label.generic.y = 0;
+	s_deletesavegame_label.generic.flags = QMF_LEFT_JUSTIFY;
+	Menu_AddItem(&s_confirmdeletesavegame_menu, &s_deletesavegame_label);
+
+	s_confirmdeletesavegame_action.generic.type = MTYPE_ACTION;
+	s_confirmdeletesavegame_action.generic.name = "yes";
+	s_confirmdeletesavegame_action.generic.x = 20;
+	s_confirmdeletesavegame_action.generic.y = 10;
+	s_confirmdeletesavegame_action.generic.localdata[0] = i;
+	s_confirmdeletesavegame_action.generic.flags = QMF_LEFT_JUSTIFY;
+	s_confirmdeletesavegame_action.generic.callback = DeleteSaveGameCallback;
+	Menu_AddItem(&s_confirmdeletesavegame_menu, &s_confirmdeletesavegame_action);
+
+	s_canceldeletesavegame_action.generic.type = MTYPE_ACTION;
+	s_canceldeletesavegame_action.generic.name = "no";
+	s_canceldeletesavegame_action.generic.x = 20;
+	s_canceldeletesavegame_action.generic.y = 20;
+	s_canceldeletesavegame_action.generic.flags = QMF_LEFT_JUSTIFY;
+	s_canceldeletesavegame_action.generic.callback = CancelDeleteSaveGameCallback;
+	Menu_AddItem(&s_confirmdeletesavegame_menu, &s_canceldeletesavegame_action);
+}
+
+
+/*
  * LOADGAME MENU
  */
 
@@ -2293,6 +2376,7 @@ LoadGame_MenuKey(int key)
 {
     static menuframework_s *m = &s_loadgame_menu;
     int menu_key = Key_GetMenuKey(key);
+    menucommon_s *item;
 
     switch (menu_key)
     {
@@ -2321,6 +2405,19 @@ LoadGame_MenuKey(int key)
         LoadSave_AdjustPage(1);
         LoadGame_MenuInit();
         return menu_move_sound;
+
+    case K_DEL:
+
+		if ((item = Menu_ItemAtCursor(m)) != 0)
+		{
+			if (item->type == MTYPE_ACTION)
+			{
+				ConfirmDeleteSaveGame_MenuInit(item->localdata[0], LoadGame_MenuInit);
+				M_PushMenu(DeleteSaveGame_MenuDraw, DeleteSaveGame_MenuKey);
+			}
+		}
+
+		return menu_move_sound;
 
     default:
         s_savegame_menu.cursor = s_loadgame_menu.cursor;
@@ -2404,6 +2501,7 @@ SaveGame_MenuKey(int key)
 {
     static menuframework_s *m = &s_savegame_menu;
     int menu_key = Key_GetMenuKey(key);
+    menucommon_s *item;
 
     if (m_popup_string)
     {
@@ -2439,6 +2537,18 @@ SaveGame_MenuKey(int key)
         SaveGame_MenuInit();
         return menu_move_sound;
 
+    case K_DEL:
+
+		if ((item = Menu_ItemAtCursor(m)) != 0)
+		{
+			if (item->type == MTYPE_ACTION)
+			{
+				ConfirmDeleteSaveGame_MenuInit(item->localdata[0], SaveGame_MenuInit);
+				M_PushMenu(DeleteSaveGame_MenuDraw, DeleteSaveGame_MenuKey);
+			}
+		}
+
+		return menu_move_sound;
     default:
         s_loadgame_menu.cursor = s_savegame_menu.cursor;
         break;

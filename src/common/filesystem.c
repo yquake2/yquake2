@@ -1504,7 +1504,7 @@ void FS_BuildGenericSearchPath(void) {
 	fsRawPath_t *search = fs_rawPath;
 
 	while (search != NULL) {
-		Com_sprintf(path, sizeof(path), "%s/%s", search->path, BASEDIRNAME);
+		Com_sprintf(path, sizeof(path), "%s%s", search->path, BASEDIRNAME);
 		FS_AddDirToSearchPath(path, search->create);
 
 		search = search->next;
