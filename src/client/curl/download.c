@@ -94,6 +94,12 @@ static size_t CL_HTTP_Recv(void *ptr, size_t size, size_t nmemb, void *stream)
 	return bytes;
 }
 
+static size_t CL_HTTP_CurlWriteCB(char* data, size_t size, size_t nmemb, void* userdata)
+{
+	dlhandle_t *dl = (dlhandle_t *)userdata;
+	return fwrite(data, size, nmemb, dl->file);
+}
+
 // --------
 
 // Helper functions
@@ -234,8 +240,8 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 
 	if (dl->file)
 	{
-		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl->file);
-		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, NULL);
+		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl);
+		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, CL_HTTP_CurlWriteCB);
 	}
 	else
 	{
