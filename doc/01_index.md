@@ -22,3 +22,4 @@ The documentation is split into several documents:
 * [List Of All New Console Variables](04_cvarlist.md)
 * [Packaging Guide For Maintainers](05_packaging.md)
 * [Contributing Guide](06_contributing.md)
+* [Multiplayer Server Configuration](07_multiplayer.md)
