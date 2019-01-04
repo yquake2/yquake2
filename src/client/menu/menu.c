@@ -2408,7 +2408,7 @@ LoadGame_MenuKey(int key)
 
     case K_DEL:
 
-		if ((item = Menu_ItemAtCursor(m)) != 0)
+		if ((item = Menu_ItemAtCursor(m)) != NULL)
 		{
 			if (item->type == MTYPE_ACTION)
 			{
@@ -2539,7 +2539,7 @@ SaveGame_MenuKey(int key)
 
     case K_DEL:
 
-		if ((item = Menu_ItemAtCursor(m)) != 0)
+		if ((item = Menu_ItemAtCursor(m)) != NULL)
 		{
 			if (item->type == MTYPE_ACTION)
 			{
