@@ -490,6 +490,7 @@ Sys_Remove(const char *path)
 void
 Sys_RemoveDir(const char *path)
 {
+	char filepath[MAX_OSPATH];
 	DIR *directory = opendir(path);
 	struct dirent *file;
 
@@ -497,11 +498,11 @@ Sys_RemoveDir(const char *path)
 	{
 		while ((file = readdir(directory)) != NULL)
 		{
-			Sys_Remove(va("%s%s", path, file->d_name));
+			sprintf(filepath, "%s/%s", path, file->d_name);
+			Sys_Remove(filepath);
 		}
 
 		closedir(directory);
-
 		Sys_Remove(path);
 	}
 }
