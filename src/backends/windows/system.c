@@ -543,6 +543,37 @@ Sys_Remove(const char *path)
 	_wremove(wpath);
 }
 
+void
+Sys_RemoveDir(const char *path)
+{
+	WCHAR wpath[MAX_OSPATH] = {0};
+	WCHAR wpathwithwildcard[MAX_OSPATH] = {0};
+	WCHAR wpathwithfilename[MAX_OSPATH] = {0};
+	WIN32_FIND_DATAW fd;
+	
+	MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_OSPATH);
+
+	wcscat_s(wpathwithwildcard, MAX_OSPATH, wpath);
+	wcscat_s(wpathwithwildcard, MAX_OSPATH, L"\\*.*");
+	
+	HANDLE hFind = FindFirstFileW(wpathwithwildcard, &fd);
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			wmemset(wpathwithfilename, 0, MAX_OSPATH);
+			wcscat_s(wpathwithfilename, MAX_OSPATH, wpath);
+			wcscat_s(wpathwithfilename, MAX_OSPATH, fd.cFileName);
+			
+			DeleteFileW(wpathwithfilename);
+		}
+		while (FindNextFileW(hFind, &fd));
+		FindClose(hFind);
+	}
+	
+	RemoveDirectoryW(wpath);
+}
+
 /* ======================================================================= */
 
 void *
