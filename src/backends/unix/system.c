@@ -504,7 +504,7 @@ Sys_RemoveDir(const char *path)
 	{
 		while ((file = readdir(directory)) != NULL)
 		{
-			sprintf(filepath, "%s/%s", path, file->d_name);
+			snprintf(filepath, MAX_OSPATH, "%s/%s", path, file->d_name);
 			Sys_Remove(filepath);
 		}
 
