@@ -112,6 +112,7 @@ endif()
 
 # cURL support.
 if (${CURL_SUPPORT})
+	find_package(CURL REQUIRED)
 	add_definitions(-DUSE_CURL)
 endif()
 
