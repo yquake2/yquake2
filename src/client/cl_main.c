@@ -425,9 +425,15 @@ CL_Userinfo_f(void)
 void
 CL_Snd_Restart_f(void)
 {
+	OGG_SaveState();
+
 	S_Shutdown();
 	S_Init();
+
 	CL_RegisterSounds();
+
+	OGG_InitTrackList();
+	OGG_RecoverState();
 }
 
 int precache_check;

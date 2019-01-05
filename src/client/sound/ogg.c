@@ -45,6 +45,7 @@ static cvar_t *ogg_ignoretrack0;  /* Toggle track 0 playing */
 static cvar_t *ogg_volume;        /* Music volume. */
 static int ogg_curfile;           /* Index of currently played file. */
 static int ogg_numbufs;           /* Number of buffers for OpenAL */
+static int ogg_numsamples;        /* Number of sambles read from the current file */
 static ogg_status_t ogg_status;   /* Status indicator. */
 static stb_vorbis *ogg_file;      /* Ogg Vorbis file. */
 static qboolean ogg_started;      /* Initialization flag. */
@@ -58,6 +59,12 @@ enum GameType {
 	xatrix,
 	rogue
 };
+
+struct {
+	qboolean saved;
+	int curfile;
+	int numsamples;
+} ogg_saved_state;
 
 // --------
 
@@ -236,6 +243,8 @@ static OGG_Read(void)
 
 	if (read_samples > 0)
 	{
+		ogg_numsamples += read_samples;
+
 		S_RawSamples(read_samples, ogg_file->sample_rate, ogg_file->channels, ogg_file->channels,
 			(byte *)samples, ogg_volume->value);
 	}
@@ -249,6 +258,7 @@ static OGG_Read(void)
 		stb_vorbis_close(ogg_file);
 		ogg_status = STOP;
 		ogg_numbufs = 0;
+		ogg_numsamples = 0;
 
 		OGG_PlayTrack(ogg_curfile);
 	}
@@ -411,6 +421,7 @@ OGG_PlayTrack(int trackNo)
 
 	/* Play file. */
 	ogg_curfile = trackNo;
+	ogg_numsamples = 0;
 	ogg_status = PLAY;
 }
 
@@ -577,6 +588,48 @@ OGG_Cmd(void)
 	}
 }
 
+/*
+ * Saves the current state of the subsystem.
+ */
+void
+OGG_SaveState(void)
+{
+	if (ogg_status != PLAY)
+	{
+		ogg_saved_state.saved = false;
+
+		return;
+	}
+
+	ogg_saved_state.saved = true;
+	ogg_saved_state.curfile = ogg_curfile;
+	ogg_saved_state.numsamples = ogg_numsamples;
+}
+
+/*
+ * Recover the previously saved state.
+ */
+void
+OGG_RecoverState(void)
+{
+	if (!ogg_saved_state.saved)
+	{
+		return;
+	}
+
+	// Mkay, ultra evil hack to recover the state in case of
+	// shuffled playback. OGG_PlayTrack() does the shuffeling,
+	// so switch it of before and enable after state recovery.
+	int shuffle_state = ogg_shuffle->value;
+	Cvar_SetValue("ogg_shuffle", 0);
+
+	OGG_PlayTrack(ogg_saved_state.curfile);
+	stb_vorbis_seek_frame(ogg_file, ogg_saved_state.numsamples);
+	ogg_numsamples = ogg_saved_state.numsamples;
+
+	Cvar_SetValue("ogg_shuffle", shuffle_state);
+}
+
 // --------
 
 /*
@@ -602,6 +655,7 @@ OGG_Init(void)
 
 	// Global variables
 	ogg_curfile = -1;
+	ogg_numsamples = 0;
 	ogg_status = STOP;
 
 	ogg_started = true;
