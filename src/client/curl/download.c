@@ -48,6 +48,7 @@ static int handleCount = 0;
 static int pendingCount = 0;
 static int abortDownloads = HTTPDL_ABORT_NONE;
 static qboolean	httpDown = false;
+static qboolean downloadError = false;
 
 // --------
 
@@ -582,18 +583,23 @@ static void CL_FinishHTTPDownload(void)
 				{
 					Com_Printf("HTTP download: %s - File Not Found\n", dl->queueEntry->quakePath);
 
-					// We got a 404, remove the target file.
+					// We got a 404, remove the target file...
 					if (isFile)
 					{
 						Sys_Remove(dl->filePath);
-						isFile = false;
 					}
 
-					// ...and remove it from the CURL multihandle.
+					// ...remove it from the CURL multihandle...
 					qcurl_multi_remove_handle(multi, dl->curl);
 					CL_RemoveFromQueue(dl->queueEntry);
 					dl->queueEntry = NULL;
 
+					// ...and communicate the error.
+					if (isFile)
+					{
+						downloadError = true;
+						isFile = false;
+					}
 
 					break;
 
@@ -1048,6 +1054,22 @@ qboolean CL_PendingHTTPDownloads(void)
 	}
 
 	return pendingCount + handleCount;
+}
+
+/* Checks if there was an error. Returns
+ * true if yes, and false if not.
+ */
+qboolean CL_CheckHTTPError()
+{
+	if (downloadError)
+	{
+		downloadError = false;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 /*

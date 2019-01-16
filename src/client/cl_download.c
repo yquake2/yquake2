@@ -39,6 +39,9 @@ extern int precache_model_skin;
 
 extern byte *precache_model;
 
+// Forces all downloads to UDP.
+qboolean forceudp = false;
+
 static const char *env_suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 
 #define PLAYER_MULT 5
@@ -341,10 +344,8 @@ CL_RequestNextDownload(void)
 				}
 			}
 		}
-
-		/* precache phase completed */
-		precache_check = ENV_CNT;
 	}
+
 
 #ifdef USE_CURL
 	/* Wait for pending downloads. */
@@ -352,7 +353,22 @@ CL_RequestNextDownload(void)
 	{
 		return;
 	}
+
+
+	if (CL_CheckHTTPError())
+	{
+		/* Mkay, there were download errors. Let's start over,
+		   this time with UDP. This will reuse all files that
+		   succeeded over HTTP. */
+		forceudp = true;
+		CL_ResetPrecacheCheck();
+		CL_RequestNextDownload();
+		return;
+	}
 #endif
+
+	/* precache phase completed */
+	precache_check = ENV_CNT;
 
 	if (precache_check == ENV_CNT)
 	{
@@ -436,6 +452,9 @@ CL_RequestNextDownload(void)
 	}
 #endif
 
+	/* This map was done, allow HTTP again for next map. */
+	forceudp = false;
+
 	CL_RegisterSounds();
 	CL_PrepRefresh();
 
@@ -488,17 +507,31 @@ CL_CheckOrDownloadFile(char *filename)
 	}
 
 #ifdef USE_CURL
-	if (CL_QueueHTTPDownload(filename))
+	if (!forceudp)
 	{
-		/* We return true so that the precache check
-		   keeps feeding us more files. Since we have
-		   multiple HTTP connections we want to
-		   minimize latency and be constantly sending
-		   requests, not one at a time. */
-		return true;
+		if (CL_QueueHTTPDownload(filename))
+		{
+			/* We return true so that the precache check
+			   keeps feeding us more files. Since we have
+			   multiple HTTP connections we want to
+			   minimize latency and be constantly sending
+			   requests, not one at a time. */
+			return true;
+		}
+	}
+	else
+	{
+		/* There're 2 cases:
+			- forceudp was set after a 404. In this case we
+			  want to retry that single file over UDP and
+			  all later files over HTTP.
+			- forceudp was set after another error code.
+			  In that case the HTTP code aborts all HTTP
+			  downloads and CL_QueueHTTPDownload() returns
+			  false. */
+		forceudp = false;
 	}
 #endif
-
 	strcpy(cls.downloadname, filename);
 
 	/* download to a temp name, and only rename
