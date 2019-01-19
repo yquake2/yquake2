@@ -2162,7 +2162,7 @@ M_Menu_Game_f(void)
 static void LoadGame_MenuInit(void);
 
 static menuframework_s s_confirmdeletesavegame_menu;
-static menuaction_s s_deletesavegame_label;
+static menuseparator_s s_deletesavegame_label;
 static menuaction_s s_confirmdeletesavegame_action;
 static menuaction_s s_canceldeletesavegame_action;
 
@@ -2196,7 +2196,6 @@ DeleteSaveGame_MenuKey(int key)
 static void
 DeleteSaveGame_MenuDraw(void)
 {
-    //M_Banner("m_banner_load_game");
     Menu_AdjustCursor(&s_confirmdeletesavegame_menu, 1);
     Menu_Draw(&s_confirmdeletesavegame_menu);
 }
@@ -2208,21 +2207,22 @@ ConfirmDeleteSaveGame_MenuInit(int i, void (*callback)(void))
 
 	ParentInitFunc = callback;
 
-	s_confirmdeletesavegame_menu.x = viddef.width / 2 - (120 * scale);
+	// 32 = strlen("Are you sure...")
+	s_confirmdeletesavegame_menu.x = viddef.width / 2 - (8 * 32 * scale / 2);
 	s_confirmdeletesavegame_menu.y = viddef.height / (2 * scale) - 58;
 	s_confirmdeletesavegame_menu.nitems = 0;
 
-	s_deletesavegame_label.generic.type = MTYPE_ACTION;
+	s_deletesavegame_label.generic.type = MTYPE_SEPARATOR;
 	s_deletesavegame_label.generic.name = "Are you sure you want to delete?";
-	s_deletesavegame_label.generic.x = 0;
+	s_deletesavegame_label.generic.x = 8 * scale * 32;
 	s_deletesavegame_label.generic.y = 0;
 	s_deletesavegame_label.generic.flags = QMF_LEFT_JUSTIFY;
 	Menu_AddItem(&s_confirmdeletesavegame_menu, &s_deletesavegame_label);
 
 	s_confirmdeletesavegame_action.generic.type = MTYPE_ACTION;
 	s_confirmdeletesavegame_action.generic.name = "yes";
-	s_confirmdeletesavegame_action.generic.x = 20;
-	s_confirmdeletesavegame_action.generic.y = 10;
+	s_confirmdeletesavegame_action.generic.x = scale * 32;
+	s_confirmdeletesavegame_action.generic.y = 20;
 	s_confirmdeletesavegame_action.generic.localdata[0] = i;
 	s_confirmdeletesavegame_action.generic.flags = QMF_LEFT_JUSTIFY;
 	s_confirmdeletesavegame_action.generic.callback = DeleteSaveGameCallback;
@@ -2230,8 +2230,8 @@ ConfirmDeleteSaveGame_MenuInit(int i, void (*callback)(void))
 
 	s_canceldeletesavegame_action.generic.type = MTYPE_ACTION;
 	s_canceldeletesavegame_action.generic.name = "no";
-	s_canceldeletesavegame_action.generic.x = 20;
-	s_canceldeletesavegame_action.generic.y = 20;
+	s_canceldeletesavegame_action.generic.x = scale * 32;
+	s_canceldeletesavegame_action.generic.y = 30;
 	s_canceldeletesavegame_action.generic.flags = QMF_LEFT_JUSTIFY;
 	s_canceldeletesavegame_action.generic.callback = CancelDeleteSaveGameCallback;
 	Menu_AddItem(&s_confirmdeletesavegame_menu, &s_canceldeletesavegame_action);
@@ -2406,8 +2406,9 @@ LoadGame_MenuKey(int key)
         LoadGame_MenuInit();
         return menu_move_sound;
 
+    case K_BACKSPACE:
     case K_DEL:
-
+    case K_KP_DEL:
 		if ((item = Menu_ItemAtCursor(m)) != NULL)
 		{
 			if (item->type == MTYPE_ACTION)
@@ -2537,8 +2538,9 @@ SaveGame_MenuKey(int key)
         SaveGame_MenuInit();
         return menu_move_sound;
 
+    case K_BACKSPACE:
     case K_DEL:
-
+    case K_KP_DEL:
 		if ((item = Menu_ItemAtCursor(m)) != NULL)
 		{
 			if (item->type == MTYPE_ACTION)
