@@ -2955,7 +2955,7 @@ StartServer_MenuInit(void)
 
         while (i < length)
         {
-            if (s[i] == '\r')
+            if (s[i] == '\n')
             {
                 nummaps++;
             }
