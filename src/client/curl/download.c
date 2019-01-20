@@ -165,7 +165,8 @@ static qboolean CL_RemoveFromQueue(dlqueue_t *entry)
 		if (last->next == entry)
 		{
 			last->next = cur->next;
-			Z_Free(cur);
+			free(cur);
+			cur = NULL;
 
 			return true;
 		}
@@ -809,7 +810,7 @@ void CL_HTTP_Cleanup(qboolean fullShutdown)
 
 		if (dl->tempBuffer)
 		{
-			Z_Free (dl->tempBuffer);
+			free(dl->tempBuffer);
 			dl->tempBuffer = NULL;
 		}
 
@@ -837,7 +838,8 @@ void CL_HTTP_Cleanup(qboolean fullShutdown)
 
 		if (last)
 		{
-			Z_Free (last);
+			free(last);
+			last = NULL;
 		}
 
 		last = q;
@@ -845,7 +847,8 @@ void CL_HTTP_Cleanup(qboolean fullShutdown)
 
 	if (last)
 	{
-		Z_Free (last);
+		free(last);
+		last = NULL;
 	}
 
 	// Cleanup CURL multihandle.
@@ -898,7 +901,8 @@ void CL_SetHTTPServer (const char *URL)
 
 		if (last)
 		{
-			Z_Free (last);
+			free(last);
+			last = NULL;
 		}
 
 		last = q;
@@ -906,7 +910,8 @@ void CL_SetHTTPServer (const char *URL)
 
 	if (last)
 	{
-		Z_Free (last);
+		free(last);
+		last = NULL;
 	}
 
 	memset (&cls.downloadQueue, 0, sizeof(cls.downloadQueue));
@@ -1000,7 +1005,7 @@ qboolean CL_QueueHTTPDownload(const char *quakePath)
 		}
 	}
 
-	q->next = Z_TagMalloc(sizeof(*q), 0);
+	q->next = malloc(sizeof(*q));
 	q = q->next;
 	q->next = NULL;
 	q->state = DLQ_STATE_NOT_STARTED;
