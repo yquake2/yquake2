@@ -920,7 +920,18 @@ void CL_SetHTTPServer (const char *URL)
 	abortDownloads = HTTPDL_ABORT_NONE;
 	handleCount = pendingCount = 0;
 	cls.downloadServerRetry[0] = 0;
-	Q_strlcpy(cls.downloadServer, URL, sizeof(cls.downloadServer) - 1);
+
+	// Remove trailing / from URL if any.
+	size_t urllen = strlen(URL);
+	char *cleanURL = strdup(URL);
+
+	if (cleanURL[urllen - 1] == '/')
+	{
+		cleanURL[urllen - 1] = '\0';
+	}
+
+	Q_strlcpy(cls.downloadServer, cleanURL, sizeof(cls.downloadServer) - 1);
+	free(cleanURL);
 
 	// Initializes a new multihandle.
 	if (multi)
