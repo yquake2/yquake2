@@ -1,4 +1,4 @@
-# Yamagi Quake II
+# Yamagi Quake II  [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/yquake2/yquake2?branch=master&svg=true)](https://ci.appveyor.com/project/yquake2/yquake2)
 
 This is the Yamagi Quake II Client, an enhanced version of id Software's Quake
 II with focus on offline and coop gameplay. Both the gameplay and the graphics
