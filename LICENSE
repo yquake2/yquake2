@@ -5,7 +5,7 @@ copys for each license:
 - Quake II
 - Info-ZIP
 - Cocoa SDL entry points
-- stb_image.h, stb_image_write.h, stb_vorbis.h
+- stb_image.h, stb_image_write.h, stb_image_resize.h, stb_vorbis.h
 - miniz
 
 Parts of other Quake II Clients were included into the source. They
