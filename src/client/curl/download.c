@@ -205,7 +205,16 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 		Com_sprintf (dl->filePath, sizeof(dl->filePath), "%s/%s", FS_Gamedir(), entry->quakePath);
 
 		// Full path to the remote file.
-		Com_sprintf (tempFile, sizeof(tempFile), "%s/%s", cl.gamedir, entry->quakePath);
+		// TODO CURL: Hack q2pro support into this crap
+		if (cl.gamedir[0] == '\0')
+		{
+			Com_sprintf (tempFile, sizeof(tempFile), "/%s", entry->quakePath);
+		}
+		else
+		{
+			Com_sprintf (tempFile, sizeof(tempFile), "/%s/%s", cl.gamedir, entry->quakePath);
+		}
+
 		CL_EscapeHTTPPath (tempFile, escapedFilePath);
 
 		// Create a temporary file where the downloaded data is stored...
