@@ -9,7 +9,7 @@ install:
   - cmake --version
   - cmake c:\projects\yquake2
 
-build_script: msbuild "C:\projects\mozjpeg\cmake_build\yquake2.sln"
+build_script: msbuild "C:\projects\yquake2\cmake_build\yquake2.sln"
 
 artifacts:
  - path: cmake_build\Release\**\*.*
