@@ -7,6 +7,8 @@ install:
   - mkdir cmake_build
   - cd cmake_build
   - cmake --version
+  - find_package(SDL2 REQUIRED)
+  - include_directories(${SDL2_INCLUDE_DIR})
   - cmake c:\projects\yquake2
 
 build_script: msbuild "C:\projects\yquake2\cmake_build\yquake2.sln"
