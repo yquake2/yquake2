@@ -455,6 +455,9 @@ CL_RequestNextDownload(void)
 	/* This map was done, allow HTTP again for next map. */
 	forceudp = false;
 
+	/* And generic filelists for next map. */
+	CL_HTTP_EnableGenericFilelist();
+
 	CL_RegisterSounds();
 	CL_PrepRefresh();
 

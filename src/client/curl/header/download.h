@@ -73,6 +73,7 @@ qboolean CL_PendingHTTPDownloads(void);
 void CL_SetHTTPServer(const char *URL);
 void CL_HTTP_Cleanup(qboolean fullShutdown);
 qboolean CL_CheckHTTPError();
+void CL_HTTP_EnableGenericFilelist(void);
 
 #endif // DOWNLOAD_H
 #endif // USE_CURL

@@ -49,6 +49,7 @@ static int pendingCount = 0;
 static int abortDownloads = HTTPDL_ABORT_NONE;
 static qboolean	httpDown = false;
 static qboolean downloadError = false;
+static qboolean downloadFilelist = true;
 
 // --------
 
@@ -996,9 +997,10 @@ qboolean CL_QueueHTTPDownload(const char *quakePath)
 	// the generic(!) filelist.
 	qboolean needList = false;
 
-	if (!cls.downloadQueue.next && cl_http_filelists->value)
+	if (downloadFilelist && cl_http_filelists->value)
 	{
 		needList = true;
+		downloadFilelist = false;
 	}
 
 	// Queue the download.
@@ -1072,10 +1074,11 @@ qboolean CL_PendingHTTPDownloads(void)
 	return pendingCount + handleCount;
 }
 
-/* Checks if there was an error. Returns
+/*
+ * Checks if there was an error. Returns
  * true if yes, and false if not.
  */
-qboolean CL_CheckHTTPError()
+qboolean CL_CheckHTTPError(void)
 {
 	if (downloadError)
 	{
@@ -1086,6 +1089,15 @@ qboolean CL_CheckHTTPError()
 	{
 		return false;
 	}
+}
+
+/*
+ * Enables generic file list download starting
+ * with the next file. Yes, this is dirty.
+ */
+void CL_HTTP_EnableGenericFilelist(void)
+{
+	downloadFilelist = true;
 }
 
 /*
