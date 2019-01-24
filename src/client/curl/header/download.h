@@ -74,6 +74,7 @@ void CL_SetHTTPServer(const char *URL);
 void CL_HTTP_Cleanup(qboolean fullShutdown);
 qboolean CL_CheckHTTPError();
 void CL_HTTP_EnableGenericFilelist(void);
+void CL_HTTP_SetDownloadGamedir(const char *gamedir);
 
 #endif // DOWNLOAD_H
 #endif // USE_CURL

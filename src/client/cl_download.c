@@ -57,6 +57,49 @@ CL_RequestNextDownload(void)
 	char fn[MAX_OSPATH];
 	dmdl_t *pheader;
 
+	/* This - and some more code downn below - are the 'Crazy Fallback
+	   Magic'. First we're trying to download all files over HTTP with
+	   r1q2-style URLs. If we encountered errors we reset the complete
+	   precacher state and retry with HTTP and q2pro-style URLs. If we
+	   still got errors we're falling back to UDP. So:
+	     - 0: Virgin state, r1q2-style URLs.
+		 - 1: Second iteration, q2pro-style URL.
+		 - 3: Third iteration, UDP downloads. */
+	static unsigned int precacherIteration;
+
+	if (precacherIteration == 0)
+	{
+#if USE_CURL
+		// r1q2-style URLs.
+		CL_HTTP_SetDownloadGamedir(cl.gamedir);
+#endif
+	}
+	else if (precacherIteration == 1)
+	{
+#if USE_CURL
+		// q2pro-style URLs.
+		if (cl.gamedir[0] == '\0')
+		{
+			CL_HTTP_SetDownloadGamedir(BASEDIRNAME);
+		}
+		else
+		{
+			CL_HTTP_SetDownloadGamedir(cl.gamedir);
+		}
+#endif
+	}
+	else if (precacherIteration == 2)
+	{
+		// UDP Fallback.
+		forceudp = true;
+	}
+	else
+	{
+		// Cannot get here.
+		assert(1 && "Recursed from UDP fallback case");
+	}
+
+
 	if (cls.state != ca_connected)
 	{
 		return;
@@ -357,10 +400,8 @@ CL_RequestNextDownload(void)
 
 	if (CL_CheckHTTPError())
 	{
-		/* Mkay, there were download errors. Let's start over,
-		   this time with UDP. This will reuse all files that
-		   succeeded over HTTP. */
-		forceudp = true;
+		/* Mkay, there were download errors. Let's start over. */
+		precacherIteration++;
 		CL_ResetPrecacheCheck();
 		CL_RequestNextDownload();
 		return;
@@ -452,12 +493,11 @@ CL_RequestNextDownload(void)
 	}
 #endif
 
-	/* This map was done, allow HTTP again for next map. */
+	/* This map is done, start over for next map. */
 	forceudp = false;
+	precacherIteration = 0;
 
-	/* And generic filelists for next map. */
 	CL_HTTP_EnableGenericFilelist();
-
 	CL_RegisterSounds();
 	CL_PrepRefresh();
 

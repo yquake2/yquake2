@@ -50,6 +50,7 @@ static int abortDownloads = HTTPDL_ABORT_NONE;
 static qboolean	httpDown = false;
 static qboolean downloadError = false;
 static qboolean downloadFilelist = true;
+static char downloadGamedir[MAX_QPATH];
 
 // --------
 
@@ -205,14 +206,13 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 		Com_sprintf (dl->filePath, sizeof(dl->filePath), "%s/%s", FS_Gamedir(), entry->quakePath);
 
 		// Full path to the remote file.
-		// TODO CURL: Hack q2pro support into this crap
-		if (cl.gamedir[0] == '\0')
+		if (downloadGamedir[0] == '\0')
 		{
 			Com_sprintf (tempFile, sizeof(tempFile), "/%s", entry->quakePath);
 		}
 		else
 		{
-			Com_sprintf (tempFile, sizeof(tempFile), "/%s/%s", cl.gamedir, entry->quakePath);
+			Com_sprintf (tempFile, sizeof(tempFile), "/%s/%s", downloadGamedir, entry->quakePath);
 		}
 
 		CL_EscapeHTTPPath (tempFile, escapedFilePath);
@@ -1053,7 +1053,15 @@ qboolean CL_QueueHTTPDownload(const char *quakePath)
 		char listPath[MAX_OSPATH];
 		char filePath[MAX_OSPATH];
 
-		Com_sprintf (filePath, sizeof(filePath), "%s/%s", cl.gamedir, quakePath);
+		if (downloadGamedir[0] == '\0')
+		{
+			Com_sprintf (filePath, sizeof(filePath), "/%s", quakePath);
+		}
+		else
+		{
+			Com_sprintf (filePath, sizeof(filePath), "/%s/%s", downloadGamedir, quakePath);
+		}
+
 		COM_StripExtension (filePath, listPath);
 		Q_strlcat(listPath, ".filelist", sizeof(listPath));
 
@@ -1108,6 +1116,16 @@ qboolean CL_CheckHTTPError(void)
 void CL_HTTP_EnableGenericFilelist(void)
 {
 	downloadFilelist = true;
+}
+
+/*
+ * Sets the gamedir to be used by the URL
+ * generator to determine the remote file
+ * path.
+ */
+void CL_HTTP_SetDownloadGamedir(const char *gamedir)
+{
+	Q_strlcpy(downloadGamedir, gamedir, sizeof(downloadGamedir));
 }
 
 /*
