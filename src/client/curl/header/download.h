@@ -67,7 +67,7 @@ extern cvar_t *cl_http_max_connections;
 
 void CL_CancelHTTPDownloads(qboolean permKill);
 void CL_InitHTTPDownloads(void);
-qboolean CL_QueueHTTPDownload(const char *quakePath);
+qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist);
 void CL_RunHTTPDownloads(void);
 qboolean CL_PendingHTTPDownloads(void);
 void CL_SetHTTPServer(const char *URL);

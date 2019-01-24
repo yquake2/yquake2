@@ -42,6 +42,19 @@ extern byte *precache_model;
 // Forces all downloads to UDP.
 qboolean forceudp = false;
 
+/* This - and some more code downn below - are the 'Crazy Fallback
+   Magic'. First we're trying to download all files over HTTP with
+   r1q2-style URLs. If we encountered errors we reset the complete
+   precacher state and retry with HTTP and q2pro-style URLs. If we
+   still got errors we're falling back to UDP. So:
+     - 0: Virgin state, r1q2-style URLs.
+     - 1: Second iteration, q2pro-style URL.
+     - 3: Third iteration, UDP downloads. */
+static unsigned int precacherIteration;
+
+// r1q2 searches the global filelist at /, q2pro at /gamedir...
+static qboolean gamedirForFilelist = false;
+
 static const char *env_suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 
 #define PLAYER_MULT 5
@@ -56,16 +69,6 @@ CL_RequestNextDownload(void)
 	unsigned int map_checksum; /* for detecting cheater maps */
 	char fn[MAX_OSPATH];
 	dmdl_t *pheader;
-
-	/* This - and some more code downn below - are the 'Crazy Fallback
-	   Magic'. First we're trying to download all files over HTTP with
-	   r1q2-style URLs. If we encountered errors we reset the complete
-	   precacher state and retry with HTTP and q2pro-style URLs. If we
-	   still got errors we're falling back to UDP. So:
-	     - 0: Virgin state, r1q2-style URLs.
-		 - 1: Second iteration, q2pro-style URL.
-		 - 3: Third iteration, UDP downloads. */
-	static unsigned int precacherIteration;
 
 	if (precacherIteration == 0)
 	{
@@ -86,6 +89,10 @@ CL_RequestNextDownload(void)
 		{
 			CL_HTTP_SetDownloadGamedir(cl.gamedir);
 		}
+
+		// Force another try with the filelist.
+		CL_HTTP_EnableGenericFilelist();
+		gamedirForFilelist = true;
 #endif
 	}
 	else if (precacherIteration == 2)
@@ -496,6 +503,7 @@ CL_RequestNextDownload(void)
 	/* This map is done, start over for next map. */
 	forceudp = false;
 	precacherIteration = 0;
+	gamedirForFilelist = false;
 
 	CL_HTTP_EnableGenericFilelist();
 	CL_RegisterSounds();
@@ -552,7 +560,7 @@ CL_CheckOrDownloadFile(char *filename)
 #ifdef USE_CURL
 	if (!forceudp)
 	{
-		if (CL_QueueHTTPDownload(filename))
+		if (CL_QueueHTTPDownload(filename, gamedirForFilelist))
 		{
 			/* We return true so that the precache check
 			   keeps feeding us more files. Since we have
@@ -573,6 +581,11 @@ CL_CheckOrDownloadFile(char *filename)
 			  downloads and CL_QueueHTTPDownload() returns
 			  false. */
 		forceudp = false;
+
+		/* We might be connected to an r1q2-style HTTP server
+		   that missed just one file. So reset the precacher
+		   iteration counter to start over. */
+		precacherIteration = 0;
 	}
 #endif
 	strcpy(cls.downloadname, filename);

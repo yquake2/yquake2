@@ -422,7 +422,7 @@ static void CL_CheckAndQueueDownload(char *path)
 		if (!exists)
 		{
 			// Queue the file for download.
-			CL_QueueHTTPDownload(path);
+			CL_QueueHTTPDownload(path, false);
 		}
 	}
 	else
@@ -994,7 +994,7 @@ void CL_CancelHTTPDownloads(qboolean permKill)
  * for the requested files are possible. Queues the download
  * and returns true if yes, returns fales if not.
  */
-qboolean CL_QueueHTTPDownload(const char *quakePath)
+qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist)
 {
 	// Not HTTP servers were send by the server, HTTP is disabled
 	// or the client is shutting down and we're wrapping up.
@@ -1037,7 +1037,17 @@ qboolean CL_QueueHTTPDownload(const char *quakePath)
 	// Let's download the generic filelist if necessary.
 	if (needList)
 	{
-		CL_QueueHTTPDownload("/.filelist");
+		if (gamedirForFilelist)
+		{
+			char fileList[MAX_OSPATH];
+
+			Com_sprintf(fileList, sizeof(fileList), "/%s/%s", downloadGamedir, ".filelist");
+			CL_QueueHTTPDownload(fileList, false);
+		}
+		else
+		{
+			CL_QueueHTTPDownload("/.filelist", false);
+		}
 	}
 
 	// If we just queued a .bsp file ask for it's map
@@ -1065,7 +1075,7 @@ qboolean CL_QueueHTTPDownload(const char *quakePath)
 		COM_StripExtension (filePath, listPath);
 		Q_strlcat(listPath, ".filelist", sizeof(listPath));
 
-		CL_QueueHTTPDownload(listPath);
+		CL_QueueHTTPDownload(listPath, false);
 	}
 
 	// If we're here CL_FinishHTTPDownload() is guaranteed to be called.
