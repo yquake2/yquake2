@@ -930,6 +930,7 @@ void CL_SetHTTPServer (const char *URL)
 	abortDownloads = HTTPDL_ABORT_NONE;
 	handleCount = pendingCount = 0;
 	cls.downloadServerRetry[0] = 0;
+	downloadError = false;
 
 	// Remove trailing / from URL if any.
 	size_t urllen = strlen(URL);
