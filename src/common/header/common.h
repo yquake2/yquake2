@@ -635,8 +635,6 @@ void Pmove(pmove_t *pmove);
 
 #define SFF_INPACK 0x20
 
-extern qboolean file_from_pak;
-
 typedef int fileHandle_t;
 
 typedef enum

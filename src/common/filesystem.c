@@ -70,6 +70,7 @@ typedef struct
 	int numFiles;
 	FILE *pak;
 	unzFile *pk3;
+	qboolean isProtectedPak;
 	fsPackFile_t *files;
 } fsPack_t;
 
@@ -107,7 +108,7 @@ fsPackTypes_t fs_packtypes[] = {
 
 char datadir[MAX_OSPATH];
 char fs_gamedir[MAX_OSPATH];
-qboolean file_from_pak;
+qboolean file_from_protected_pak;
 
 cvar_t *fs_basedir;
 cvar_t *fs_cddir;
@@ -373,7 +374,7 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 	fsSearchPath_t *search;
 	int i;
 
-	file_from_pak = false;
+	file_from_protected_pak = false;
 	handle = FS_HandleForFile(name, f);
 	Q_strlcpy(handle->name, name, sizeof(handle->name));
 	handle->mode = FS_READ;
@@ -416,7 +417,11 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 					if (pack->pak)
 					{
 						/* PAK */
-						file_from_pak = true;
+						if (pack->isProtectedPak)
+						{
+							file_from_protected_pak = true;
+						}
+
 						handle->file = Q_fopen(pack->name, "rb");
 
 						if (handle->file)
@@ -428,7 +433,10 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 					else if (pack->pk3)
 					{
 						/* PK3 */
-						file_from_pak = true;
+						if (pack->isProtectedPak)
+						{
+							file_from_protected_pak = true;
+						}
 
 #ifdef _WIN32
 						handle->zip = unzOpen2(pack->name, &zlib_file_api);
@@ -1430,9 +1438,12 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 			{
 				case PAK:
 					pack = FS_LoadPAK(path);
+					pack->isProtectedPak = true;
+
 					break;
 				case PK3:
 					pack = FS_LoadPK3(path);
+					pack->isProtectedPak = false;
 					break;
 			}
 
@@ -1484,6 +1495,8 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 			{
 				continue;
 			}
+
+			pack->isProtectedPak = false;
 
 			search = Z_Malloc(sizeof(fsSearchPath_t));
 			search->pack = pack;

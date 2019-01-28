@@ -296,7 +296,7 @@ SV_BeginDownload_f(void)
 	extern cvar_t *allow_download_models;
 	extern cvar_t *allow_download_sounds;
 	extern cvar_t *allow_download_maps;
-	extern qboolean file_from_pak;
+	extern qboolean file_from_protected_pak;
 	int offset = 0;
 
 	name = Cmd_Argv(1);
@@ -343,7 +343,7 @@ SV_BeginDownload_f(void)
 		sv_client->downloadcount = sv_client->downloadsize;
 	}
 
-	if (!sv_client->download || ((strncmp(name, "maps/", 5) == 0) && file_from_pak))
+	if (!sv_client->download || ((strncmp(name, "maps/", 5) == 0) && file_from_protected_pak))
 	{
 		Com_DPrintf("Couldn't download %s to %s\n", name, sv_client->name);
 
