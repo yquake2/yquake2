@@ -1438,12 +1438,21 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 			{
 				case PAK:
 					pack = FS_LoadPAK(path);
-					pack->isProtectedPak = true;
+
+					if (pack)
+					{
+						pack->isProtectedPak = true;
+					}
 
 					break;
 				case PK3:
 					pack = FS_LoadPK3(path);
-					pack->isProtectedPak = false;
+
+					if (pack)
+					{
+						pack->isProtectedPak = false;
+					}
+
 					break;
 			}
 
