@@ -202,43 +202,6 @@ static void RE_EndFrame(void);
 static void R_DrawBeam(const entity_t *e);
 
 /*
-==================
-R_InitTextures
-==================
-*/
-static void
-R_InitTextures (void)
-{
-	int		x,y, m;
-
-	// create a simple checkerboard texture for the default
-	r_notexture_mip = &r_notexture_buffer.image;
-
-	r_notexture_mip->width = r_notexture_mip->height = 16;
-	r_notexture_mip->pixels[0] = r_notexture_buffer.buffer;
-	r_notexture_mip->pixels[1] = r_notexture_mip->pixels[0] + 16*16;
-	r_notexture_mip->pixels[2] = r_notexture_mip->pixels[1] + 8*8;
-	r_notexture_mip->pixels[3] = r_notexture_mip->pixels[2] + 4*4;
-
-	for (m=0 ; m<4 ; m++)
-	{
-		byte	*dest;
-
-		dest = r_notexture_mip->pixels[m];
-		for (y=0 ; y< (16>>m) ; y++)
-			for (x=0 ; x< (16>>m) ; x++)
-			{
-				if (  (y< (8>>m) ) ^ (x< (8>>m) ) )
-
-					*dest++ = 0;
-				else
-					*dest++ = 0xff;
-			}
-	}
-}
-
-
-/*
 ================
 R_InitTurb
 ================
@@ -332,7 +295,6 @@ RE_Init(void)
 	R_InitImages ();
 	Mod_Init ();
 	Draw_InitLocal ();
-	R_InitTextures ();
 
 	view_clipplanes[0].leftedge = true;
 	view_clipplanes[1].rightedge = true;
