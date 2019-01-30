@@ -190,11 +190,6 @@ zvalue_t	*d_pzbuffer;
 
 qboolean	insubmodel;
 
-static struct texture_buffer {
-	image_t	image;
-	byte	buffer[1024];
-} r_notexture_buffer;
-
 static void Draw_GetPalette (void);
 static void RE_BeginFrame( float camera_separation );
 static void Draw_BuildGammaTable(void);
