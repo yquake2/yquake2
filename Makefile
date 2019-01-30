@@ -834,7 +834,7 @@ REFSOFT_OBJS_ := \
 	src/client/refresh/soft/sw_model.o \
 	src/client/refresh/soft/sw_part.o \
 	src/client/refresh/soft/sw_poly.o \
-	src/client/refresh/soft/sw_polyse.o \
+	src/client/refresh/soft/sw_polyset.o \
 	src/client/refresh/soft/sw_rast.o \
 	src/client/refresh/soft/sw_scan.o \
 	src/client/refresh/soft/sw_sprite.o \

@@ -521,7 +521,7 @@ set(SOFT-Source
 	${REF_SRC_DIR}/soft/sw_model.c
 	${REF_SRC_DIR}/soft/sw_part.c
 	${REF_SRC_DIR}/soft/sw_poly.c
-	${REF_SRC_DIR}/soft/sw_polyse.c
+	${REF_SRC_DIR}/soft/sw_polyset.c
 	${REF_SRC_DIR}/soft/sw_rast.c
 	${REF_SRC_DIR}/soft/sw_scan.c
 	${REF_SRC_DIR}/soft/sw_sprite.c
@@ -535,7 +535,6 @@ set(SOFT-Source
 	)
 
 set(SOFT-Header
-	${REF_SRC_DIR}/constants/adivtab.h
 	${REF_SRC_DIR}/soft/header/local.h
 	${REF_SRC_DIR}/soft/header/model.h
 	${COMMON_SRC_DIR}/header/shared.h

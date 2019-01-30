@@ -17,12 +17,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// d_polyset.c: routines for drawing sets of polygons sharing the same
+// sw_polyset.c: routines for drawing sets of polygons sharing the same
 // texture (used for Alias models)
 
 #include "header/local.h"
-
-#define MASK_1K	0x3FF
 
 typedef struct {
 	int	isflattop;
@@ -76,15 +74,6 @@ static int	d_tfracextrastep, d_lightextrastep;
 static int	d_lightbasestep, d_ptexbasestep;
 static int	d_sfracbasestep, d_tfracbasestep;
 static zvalue_t	d_ziextrastep, d_zibasestep;
-
-typedef struct {
-	int		quotient;
-	int		remainder;
-} adivtab_t;
-
-static adivtab_t	adivtab[32*32] = {
-#include "../constants/adivtab.h"
-};
 
 static byte	*skintable[MAX_LBM_HEIGHT];
 int		skinwidth;
@@ -359,33 +348,16 @@ static void
 R_PolysetSetUpForLineScan(fixed8_t startvertu, fixed8_t startvertv,
 		fixed8_t endvertu, fixed8_t endvertv)
 {
-	int		tm, tn;
-	adivtab_t	*ptemp;
+	float		tm, tn;
 
 	errorterm = -1;
 
 	tm = endvertu - startvertu;
 	tn = endvertv - startvertv;
 
-	if (((tm <= 16) && (tm >= -15)) &&
-		((tn <= 16) && (tn >= -15)))
-	{
-		ptemp = &adivtab[((tm+15) << 5) + (tn+15)];
-		ubasestep = ptemp->quotient;
-		erroradjustup = ptemp->remainder;
-		erroradjustdown = tn;
-	}
-	else
-	{
-		float dm, dn;
+	FloorDivMod (tm, tn, &ubasestep, &erroradjustup);
 
-		dm = tm;
-		dn = tn;
-
-		FloorDivMod (dm, dn, &ubasestep, &erroradjustup);
-
-		erroradjustdown = dn;
-	}
+	erroradjustdown = tn;
 }
 
 
