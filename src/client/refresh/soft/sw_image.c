@@ -318,8 +318,10 @@ R_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t 
 	{
 		if (width >= realwidth && height >= realheight)
 		{
+			// resulted image
 			byte* pic8 = NULL;
-			size_t size;
+			// resulted image memory size
+			size_t size8;
 
 			if (realheight == 0 || realwidth == 0)
 			{
@@ -327,14 +329,33 @@ R_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t 
 				realwidth = width;
 			}
 
-			size = R_GetImageMipsSize(width * height);
-			pic8 = malloc(size);
-			R_Convert32To8bit(pic, pic8, width * height);
+			size8 = R_GetImageMipsSize(width * height);
+			pic8 = malloc(size8);
+
 			if (width != realwidth || height != realheight)
 			{
-				R_ImageShrink(pic8, pic8, width, realwidth, height, realheight);
+				// temporary place for shrinked image
+				byte* pic32 = NULL;
+				// temporary image memory size
+				size_t size32;
+
+				// resize image
+				size32 = width * height * 4;
+				pic32 = malloc(size32);
+
+				if (ResizeSTB(pic, width, height,
+					      pic32, realwidth, realheight))
+				{
+					R_Convert32To8bit(pic32, pic8, realwidth * realheight);
+					image = R_LoadPic(name, pic8, realwidth, realheight, type);
+				}
+				free(pic32);
 			}
-			image = R_LoadPic(name, pic8, realwidth, realheight, type);
+			else
+			{
+				R_Convert32To8bit(pic, pic8, width * height);
+				image = R_LoadPic(name, pic8, width, height, type);
+			}
 			free(pic8);
 		}
 	}
@@ -353,7 +374,7 @@ R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 	image_t	*image = NULL;
 
 	// with retexturing and not skin
-	if (sw_retexturing->value && type != it_skin)
+	if (sw_retexturing->value)
 	{
 		image = R_LoadHiColorImage(name, namewe, ext, type);
 	}
