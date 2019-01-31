@@ -55,6 +55,9 @@ R_TextureAnimation (const entity_t *currententity, mtexinfo_t *tex)
 	if (!tex->next)
 		return tex->image;
 
+	if (!currententity)
+		return tex->image;
+
 	c = currententity->frame % tex->numframes;
 	while (c)
 	{
@@ -269,16 +272,22 @@ D_SCAlloc (int width, int size)
 	surfcache_t	*new;
 
 	if ((width < 0) || (width > 256))
-		ri.Sys_Error (ERR_FATAL,"D_SCAlloc: bad cache width %d\n", width);
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: bad cache width %d\n", __func__, width);
+	}
 
 	if ((size <= 0) || (size > 0x10000))
-		ri.Sys_Error (ERR_FATAL,"D_SCAlloc: bad cache size %d\n", size);
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: bad cache size %d\n", __func__, size);
+	}
 
 	// Add header size
 	size += ((char*)sc_base->data - (char*)sc_base);
 	size = (size + 3) & ~3;
 	if (size > sc_size)
-		ri.Sys_Error (ERR_FATAL,"D_SCAlloc: %i > cache size of %i",size, sc_size);
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: %i > cache size of %i", __func__, size, sc_size);
+	}
 
 	// if there is not size bytes after the rover, reset to the start
 	if ( !sc_rover || (byte *)sc_rover - (byte *)sc_base > sc_size - size)
@@ -296,7 +305,9 @@ D_SCAlloc (int width, int size)
 		// free another
 		sc_rover = sc_rover->next;
 		if (!sc_rover)
-			ri.Sys_Error (ERR_FATAL,"D_SCAlloc: hit the end of memory");
+		{
+			ri.Sys_Error(ERR_FATAL, "%s: hit the end of memory", __func__);
+		}
 		if (sc_rover->owner)
 			*sc_rover->owner = NULL;
 

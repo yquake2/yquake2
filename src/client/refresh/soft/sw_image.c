@@ -97,7 +97,7 @@ R_FindFreeImage (void)
 	if (i == numr_images)
 	{
 		if (numr_images == MAX_RIMAGES)
-			ri.Sys_Error(ERR_DROP, "MAX_RIMAGES");
+			ri.Sys_Error(ERR_DROP, "%s: Max images", __func__);
 		numr_images++;
 	}
 	image = &r_images[i];
@@ -176,7 +176,7 @@ R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
 
 	image = R_FindFreeImage();
 	if (strlen(name) >= sizeof(image->name))
-		ri.Sys_Error(ERR_DROP, "Draw_LoadPic: \"%s\" is too long", name);
+		ri.Sys_Error(ERR_DROP, "%s: '%s' is too long", __func__, name);
 	strcpy (image->name, name);
 	image->registration_sequence = registration_sequence;
 
@@ -556,7 +556,7 @@ R_InitImages (void)
 
 	if ( !table16to8 )
 	{
-		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/16to8.dat");
+		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/16to8.dat", __func__);
 	}
 	d_16to8table = malloc(0x10000);
 	memcpy(d_16to8table, table16to8, 0x10000);

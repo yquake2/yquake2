@@ -63,7 +63,7 @@ Draw_InitLocal (void)
 	draw_chars = RE_Draw_FindPic ("conchars");
 	if (!draw_chars)
 	{
-		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/conchars.pcx");
+		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx", __func__);
 	}
 }
 
@@ -171,7 +171,7 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 		(x + w > vid.width) ||
 		(y + h > vid.height))
 	{
-		ri.Sys_Error (ERR_FATAL,"Draw_Pic: bad coordinates");
+		ri.Sys_Error(ERR_FATAL, "%s: bad coordinates", __func__);
 	}
 
 	height = h;

@@ -315,8 +315,6 @@ typedef struct surf_s
 	float		nearzi; // nearest 1/z on surface, for mipmapping
 	qboolean	insubmodel;
 	float		d_ziorigin, d_zistepu, d_zistepv;
-
-	int		pad[2]; // to 64 bytes
 } surf_t;
 
 typedef struct edge_s
