@@ -719,8 +719,8 @@ R_AliasDrawModel(entity_t *currententity, const model_t *currentmodel)
 			return;
 		}
 
-		float fov = 2.0*tan(r_gunfov->value*((4.0/3.0)*M_PI/360.0));
-		aliasxscale = ((float)r_refdef.vrect.width / fov) * r_aliasuvscale;
+		float gunfov = 2 * tan((float)r_gunfov->value / 360 * M_PI);
+		aliasxscale = ((float)r_refdef.vrect.width / gunfov) * r_aliasuvscale;
 		aliasyscale = aliasxscale;
 
 		if ( r_lefthand->value == 1.0F )
