@@ -21,20 +21,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/local.h"
 
-static int		lightleft, sourcetstep;
-static int		lightright, lightleftstep, lightrightstep, blockdivshift;
+static int		sourcetstep;
 static void		*prowdestbase;
 static unsigned char	*pbasesource;
 static int		r_stepback;
 static int		r_lightwidth;
-static int		r_numhblocks, r_numvblocks;
+static int		r_numvblocks;
 static unsigned char	*r_source, *r_sourcemax;
 static unsigned		*r_lightptr;
 
 void R_BuildLightMap (drawsurf_t *drawsurf);
 extern	unsigned	blocklights[1024];	// allow some very large lightmaps
-
-static	float	surfscale;
 
 static int	sc_size;
 static surfcache_t	*sc_rover;
@@ -86,7 +83,9 @@ R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 
 	for (v=0 ; v<r_numvblocks ; v++)
 	{
-		// FIXME: make these locals?
+		int	lightleft, lightright;
+		int	lightleftstep, lightrightstep;
+
 		// FIXME: use delta rather than both right and left, like ASM?
 		lightleft = r_lightptr[0];
 		lightright = r_lightptr[1];
@@ -136,6 +135,8 @@ R_DrawSurface (drawsurf_t *drawsurf)
 	int		blocksize;
 	unsigned char	*pcolumndest;
 	image_t		*mt;
+	int		blockdivshift;
+	int		r_numhblocks;
 
 	mt = drawsurf->image;
 
@@ -352,6 +353,7 @@ surfcache_t *
 D_CacheSurface (const entity_t *currententity, msurface_t *surface, int miplevel)
 {
 	surfcache_t	*cache;
+	float		surfscale;
 
 	//
 	// if the surface is animating or flashing, flush the cache
