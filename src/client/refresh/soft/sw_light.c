@@ -298,6 +298,7 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 
 	for (lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++)
 	{
+		light_t *plightdest = blocklights;
 		if (!(surf->dlightbits & (1<<lnum)))
 			continue;	// not lit by this light
 
@@ -355,17 +356,18 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 				if(!negativeLight)
 				{
 					if (dist < minlight)
-						blocklights[t*smax + s] += (rad - dist)*256;
+						*plightdest += (rad - dist)*256;
 				}
 				else
 				{
 					if (dist < minlight)
-						blocklights[t*smax + s] -= (rad - dist)*256;
-					if(blocklights[t*smax + s] < minlight)
-						blocklights[t*smax + s] = minlight;
+						*plightdest -= (rad - dist)*256;
+					if(*plightdest < minlight)
+						*plightdest = minlight;
 				}
 				//PGM
 				//====
+				plightdest ++;
 			}
 		}
 	}
@@ -394,15 +396,12 @@ R_BuildLightMap (drawsurf_t* drawsurf)
 
 	if (r_fullbright->value || !r_worldmodel->lightdata)
 	{
-		for (i=0 ; i<size ; i++)
-			blocklights[i] = 0;
+		memset(blocklights, 0, size * sizeof(light_t));
 		return;
 	}
 
 	// clear to no light
-	for (i=0 ; i<size ; i++)
-		blocklights[i] = 0;
-
+	memset(blocklights, 0, size * sizeof(light_t));
 
 	// add all the lightmaps
 	lightmap = surf->samples;

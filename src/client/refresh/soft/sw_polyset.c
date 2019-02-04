@@ -17,12 +17,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// d_polyset.c: routines for drawing sets of polygons sharing the same
+// sw_polyset.c: routines for drawing sets of polygons sharing the same
 // texture (used for Alias models)
 
 #include "header/local.h"
-
-#define MASK_1K	0x3FF
+#include <limits.h>
 
 typedef struct {
 	int	isflattop;
@@ -76,15 +75,6 @@ static int	d_tfracextrastep, d_lightextrastep;
 static int	d_lightbasestep, d_ptexbasestep;
 static int	d_sfracbasestep, d_tfracbasestep;
 static zvalue_t	d_ziextrastep, d_zibasestep;
-
-typedef struct {
-	int		quotient;
-	int		remainder;
-} adivtab_t;
-
-static adivtab_t	adivtab[32*32] = {
-#include "../constants/adivtab.h"
-};
 
 static byte	*skintable[MAX_LBM_HEIGHT];
 int		skinwidth;
@@ -359,33 +349,16 @@ static void
 R_PolysetSetUpForLineScan(fixed8_t startvertu, fixed8_t startvertv,
 		fixed8_t endvertu, fixed8_t endvertv)
 {
-	int		tm, tn;
-	adivtab_t	*ptemp;
+	float		tm, tn;
 
 	errorterm = -1;
 
 	tm = endvertu - startvertu;
 	tn = endvertv - startvertv;
 
-	if (((tm <= 16) && (tm >= -15)) &&
-		((tn <= 16) && (tn >= -15)))
-	{
-		ptemp = &adivtab[((tm+15) << 5) + (tn+15)];
-		ubasestep = ptemp->quotient;
-		erroradjustup = ptemp->remainder;
-		erroradjustdown = tn;
-	}
-	else
-	{
-		float dm, dn;
+	FloorDivMod (tm, tn, &ubasestep, &erroradjustup);
 
-		dm = tm;
-		dn = tn;
-
-		FloorDivMod (dm, dn, &ubasestep, &erroradjustup);
-
-		erroradjustdown = dn;
-	}
+	erroradjustdown = tn;
 }
 
 
@@ -481,7 +454,7 @@ R_PolysetDrawSpans8_33(const entity_t *currententity, spanpackage_t *pspanpackag
 			errorterm -= erroradjustdown;
 		}
 
-		if (lcount)
+		if (lcount > 0)
 		{
 			int	pos_shift = (pspanpackage->v * vid.width) + pspanpackage->u;
 
@@ -519,7 +492,7 @@ R_PolysetDrawSpans8_33(const entity_t *currententity, spanpackage_t *pspanpackag
 		}
 
 		pspanpackage++;
-	} while (pspanpackage->count != -999999);
+	} while ((pspanpackage < triangles_max) && (pspanpackage->count != INT_MIN));
 }
 
 void
@@ -545,7 +518,7 @@ R_PolysetDrawSpansConstant8_33(const entity_t *currententity, spanpackage_t *psp
 			errorterm -= erroradjustdown;
 		}
 
-		if (lcount)
+		if (lcount > 0)
 		{
 			int	pos_shift = (pspanpackage->v * vid.width) + pspanpackage->u;
 
@@ -566,7 +539,7 @@ R_PolysetDrawSpansConstant8_33(const entity_t *currententity, spanpackage_t *psp
 		}
 
 		pspanpackage++;
-	} while (pspanpackage->count != -999999);
+	} while ((pspanpackage < triangles_max) && (pspanpackage->count != INT_MIN));
 }
 
 void
@@ -595,7 +568,7 @@ R_PolysetDrawSpans8_66(const entity_t *currententity, spanpackage_t *pspanpackag
 			errorterm -= erroradjustdown;
 		}
 
-		if (lcount)
+		if (lcount > 0)
 		{
 			int	pos_shift = (pspanpackage->v * vid.width) + pspanpackage->u;
 
@@ -634,7 +607,7 @@ R_PolysetDrawSpans8_66(const entity_t *currententity, spanpackage_t *pspanpackag
 		}
 
 		pspanpackage++;
-	} while (pspanpackage->count != -999999);
+	} while ((pspanpackage < triangles_max) && (pspanpackage->count != INT_MIN));
 }
 
 void
@@ -660,7 +633,7 @@ R_PolysetDrawSpansConstant8_66(const entity_t *currententity, spanpackage_t *psp
 			errorterm -= erroradjustdown;
 		}
 
-		if (lcount)
+		if (lcount > 0)
 		{
 			int	pos_shift = (pspanpackage->v * vid.width) + pspanpackage->u;
 
@@ -681,7 +654,7 @@ R_PolysetDrawSpansConstant8_66(const entity_t *currententity, spanpackage_t *psp
 		}
 
 		pspanpackage++;
-	} while (pspanpackage->count != -999999);
+	} while ((pspanpackage < triangles_max) && (pspanpackage->count != INT_MIN));
 }
 
 void
@@ -702,7 +675,7 @@ R_PolysetDrawSpans8_Opaque (const entity_t *currententity, spanpackage_t *pspanp
 			errorterm -= erroradjustdown;
 		}
 
-		if (lcount)
+		if (lcount > 0)
 		{
 			int		lsfrac, ltfrac;
 			pixel_t		*lpdest;
@@ -752,7 +725,7 @@ R_PolysetDrawSpans8_Opaque (const entity_t *currententity, spanpackage_t *pspanp
 		}
 
 		pspanpackage++;
-	} while (pspanpackage->count != -999999);
+	} while ((pspanpackage < triangles_max) && (pspanpackage->count != INT_MIN));
 }
 
 /*
@@ -922,7 +895,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		return;
 	}
 	originalcount = triangle_spans[initialrightheight].count;
-	triangle_spans[initialrightheight].count = -999999; // mark end of the spanpackages
+	triangle_spans[initialrightheight].count = INT_MIN; // mark end of the spanpackages
 	(*d_pdrawspans) (currententity, triangle_spans);
 
 	// scan out the bottom part of the right edge, if it exists
@@ -950,7 +923,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 			r_outoftriangles++;
 			return;
 		}
-		triangle_spans[initialrightheight + height].count = -999999; // mark end of the spanpackages
+		triangle_spans[initialrightheight + height].count = INT_MIN; // mark end of the spanpackages
 		(*d_pdrawspans) (currententity, pstart);
 	}
 }

@@ -377,7 +377,7 @@ R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *curre
 
 		for (j=0 ; j<psurf->numedges ; j++)
 		{
-		   lindex = currentmodel->surfedges[psurf->firstedge+j];
+			lindex = currentmodel->surfedges[psurf->firstedge+j];
 
 			if (lindex > 0)
 			{
@@ -399,9 +399,14 @@ R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *curre
 		pbedge[j-1].pnext = NULL; // mark end of edges
 
 		if ( !( psurf->texinfo->flags & ( SURF_TRANS66 | SURF_TRANS33 ) ) )
+		{
+			// FIXME: Fan broken in borehole
 			R_RecursiveClipBPoly(currententity, pbedge, topnode, psurf);
+		}
 		else
+		{
 			R_RenderBmodelFace(currententity, pbedge, psurf );
+		}
 	}
 }
 

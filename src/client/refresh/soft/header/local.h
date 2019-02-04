@@ -74,6 +74,7 @@ typedef struct image_s
 typedef unsigned char pixel_t;
 typedef int	shift20_t;
 typedef int	zvalue_t;
+typedef unsigned int	light_t;
 
 // xyz-prescale to 16.16 fixed-point
 #define SHIFT16XYZ 16
@@ -314,8 +315,6 @@ typedef struct surf_s
 	float		nearzi; // nearest 1/z on surface, for mipmapping
 	qboolean	insubmodel;
 	float		d_ziorigin, d_zistepu, d_zistepv;
-
-	int		pad[2]; // to 64 bytes
 } surf_t;
 
 typedef struct edge_s

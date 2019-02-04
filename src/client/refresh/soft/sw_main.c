@@ -190,53 +190,11 @@ zvalue_t	*d_pzbuffer;
 
 qboolean	insubmodel;
 
-static struct texture_buffer {
-	image_t	image;
-	byte	buffer[1024];
-} r_notexture_buffer;
-
 static void Draw_GetPalette (void);
 static void RE_BeginFrame( float camera_separation );
 static void Draw_BuildGammaTable(void);
 static void RE_EndFrame(void);
 static void R_DrawBeam(const entity_t *e);
-
-/*
-==================
-R_InitTextures
-==================
-*/
-static void
-R_InitTextures (void)
-{
-	int		x,y, m;
-
-	// create a simple checkerboard texture for the default
-	r_notexture_mip = &r_notexture_buffer.image;
-
-	r_notexture_mip->width = r_notexture_mip->height = 16;
-	r_notexture_mip->pixels[0] = r_notexture_buffer.buffer;
-	r_notexture_mip->pixels[1] = r_notexture_mip->pixels[0] + 16*16;
-	r_notexture_mip->pixels[2] = r_notexture_mip->pixels[1] + 8*8;
-	r_notexture_mip->pixels[3] = r_notexture_mip->pixels[2] + 4*4;
-
-	for (m=0 ; m<4 ; m++)
-	{
-		byte	*dest;
-
-		dest = r_notexture_mip->pixels[m];
-		for (y=0 ; y< (16>>m) ; y++)
-			for (x=0 ; x< (16>>m) ; x++)
-			{
-				if (  (y< (8>>m) ) ^ (x< (8>>m) ) )
-
-					*dest++ = 0;
-				else
-					*dest++ = 0xff;
-			}
-	}
-}
-
 
 /*
 ================
@@ -332,7 +290,6 @@ RE_Init(void)
 	R_InitImages ();
 	Mod_Init ();
 	Draw_InitLocal ();
-	R_InitTextures ();
 
 	view_clipplanes[0].leftedge = true;
 	view_clipplanes[1].rightedge = true;
@@ -421,8 +378,6 @@ R_ReallocateMapBuffers (void)
 
 		if (r_outofsurfaces)
 		{
-			//R_Printf(PRINT_ALL, "%s: not enough %d(+%d) surfaces\n",
-			//		     __func__, r_cnumsurfs, r_outofsurfaces);
 			r_cnumsurfs *= 2;
 		}
 
@@ -457,8 +412,6 @@ R_ReallocateMapBuffers (void)
 
 		if (r_outofedges)
 		{
-			//R_Printf(PRINT_ALL, "%s: not enough %d(+%d) edges\n",
-			//		    __func__, r_numallocatededges, r_outofedges * 2 / 3);
 			r_numallocatededges *= 2;
 		}
 
@@ -489,8 +442,6 @@ R_ReallocateMapBuffers (void)
 
 		if (r_outofverts)
 		{
-			//R_Printf(PRINT_ALL, "%s: not enough %d(+%d) finalverts\n",
-			//		    __func__, r_numallocatedverts, r_outofverts);
 			r_numallocatedverts *= 2;
 		}
 
@@ -518,8 +469,6 @@ R_ReallocateMapBuffers (void)
 
 		if (r_outoftriangles)
 		{
-			//R_Printf(PRINT_ALL, "%s: not enough %d(+%d) triangles\n",
-			//		    __func__, r_numallocatedtriangles, r_outoftriangles);
 			r_numallocatedtriangles *= 2;
 		}
 
@@ -685,8 +634,8 @@ R_DrawEntitiesOnList (void)
 			modelorg[0] = -r_origin[0];
 			modelorg[1] = -r_origin[1];
 			modelorg[2] = -r_origin[2];
-			VectorCopy( vec3_origin, r_entorigin );
-			R_DrawBeam( currententity );
+			VectorCopy(vec3_origin, r_entorigin);
+			R_DrawBeam(currententity);
 		}
 		else
 		{
@@ -1092,7 +1041,9 @@ RE_RenderFrame (refdef_t *fd)
 	r_newrefdef = *fd;
 
 	if (!r_worldmodel && !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
-		ri.Sys_Error (ERR_FATAL,"R_RenderView: NULL worldmodel");
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: NULL worldmodel", __func__);
+	}
 
 	VectorCopy (fd->vieworg, r_refdef.vieworg);
 	VectorCopy (fd->viewangles, r_refdef.viewangles);
@@ -1120,7 +1071,7 @@ RE_RenderFrame (refdef_t *fd)
 	}
 
 	// Draw enemies, barrel etc...
-	// Use Z-Buffer in read mode only.
+	// Use Z-Buffer mostly in read mode only.
 	R_DrawEntitiesOnList ();
 
 	if (r_dspeeds->value)
@@ -1244,19 +1195,21 @@ RE_BeginFrame( float camera_separation )
 			if ( err == rserr_invalid_mode )
 			{
 				ri.Cvar_SetValue( "r_mode", sw_state.prev_mode );
-				R_Printf( PRINT_ALL, "ref_soft::RE_BeginFrame() - could not set mode\n" );
+				R_Printf(PRINT_ALL, "%s: could not set mode", __func__);
 			}
 			else if ( err == rserr_invalid_fullscreen )
 			{
 				R_InitGraphics( vid.width, vid.height );
 
 				ri.Cvar_SetValue( "vid_fullscreen", 0);
-				R_Printf( PRINT_ALL, "ref_soft::RE_BeginFrame() - fullscreen unavailable in this mode\n" );
+				R_Printf(PRINT_ALL, "%s: fullscreen unavailable in this mode",
+						__func__);
 				sw_state.prev_mode = r_mode->value;
 			}
 			else
 			{
-				ri.Sys_Error( ERR_FATAL, "ref_soft::RE_BeginFrame() - catastrophic mode change failure\n" );
+				ri.Sys_Error(ERR_FATAL, "%s: Catastrophic mode change failure",
+						__func__);
 			}
 		}
 	}

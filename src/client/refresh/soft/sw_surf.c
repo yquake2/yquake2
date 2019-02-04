@@ -21,20 +21,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/local.h"
 
-static int		lightleft, sourcetstep;
-static int		lightright, lightleftstep, lightrightstep, blockdivshift;
+static int		sourcetstep;
 static void		*prowdestbase;
 static unsigned char	*pbasesource;
 static int		r_stepback;
 static int		r_lightwidth;
-static int		r_numhblocks, r_numvblocks;
+static int		r_numvblocks;
 static unsigned char	*r_source, *r_sourcemax;
 static unsigned		*r_lightptr;
 
 void R_BuildLightMap (drawsurf_t *drawsurf);
 extern	unsigned	blocklights[1024];	// allow some very large lightmaps
-
-static	float	surfscale;
 
 static int	sc_size;
 static surfcache_t	*sc_rover;
@@ -53,6 +50,9 @@ R_TextureAnimation (const entity_t *currententity, mtexinfo_t *tex)
 	int c;
 
 	if (!tex->next)
+		return tex->image;
+
+	if (!currententity)
 		return tex->image;
 
 	c = currententity->frame % tex->numframes;
@@ -83,7 +83,9 @@ R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 
 	for (v=0 ; v<r_numvblocks ; v++)
 	{
-		// FIXME: make these locals?
+		int	lightleft, lightright;
+		int	lightleftstep, lightrightstep;
+
 		// FIXME: use delta rather than both right and left, like ASM?
 		lightleft = r_lightptr[0];
 		lightright = r_lightptr[1];
@@ -133,6 +135,8 @@ R_DrawSurface (drawsurf_t *drawsurf)
 	int		blocksize;
 	unsigned char	*pcolumndest;
 	image_t		*mt;
+	int		blockdivshift;
+	int		r_numhblocks;
 
 	mt = drawsurf->image;
 
@@ -269,16 +273,22 @@ D_SCAlloc (int width, int size)
 	surfcache_t	*new;
 
 	if ((width < 0) || (width > 256))
-		ri.Sys_Error (ERR_FATAL,"D_SCAlloc: bad cache width %d\n", width);
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: bad cache width %d\n", __func__, width);
+	}
 
 	if ((size <= 0) || (size > 0x10000))
-		ri.Sys_Error (ERR_FATAL,"D_SCAlloc: bad cache size %d\n", size);
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: bad cache size %d\n", __func__, size);
+	}
 
 	// Add header size
 	size += ((char*)sc_base->data - (char*)sc_base);
 	size = (size + 3) & ~3;
 	if (size > sc_size)
-		ri.Sys_Error (ERR_FATAL,"D_SCAlloc: %i > cache size of %i",size, sc_size);
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: %i > cache size of %i", __func__, size, sc_size);
+	}
 
 	// if there is not size bytes after the rover, reset to the start
 	if ( !sc_rover || (byte *)sc_rover - (byte *)sc_base > sc_size - size)
@@ -296,7 +306,9 @@ D_SCAlloc (int width, int size)
 		// free another
 		sc_rover = sc_rover->next;
 		if (!sc_rover)
-			ri.Sys_Error (ERR_FATAL,"D_SCAlloc: hit the end of memory");
+		{
+			ri.Sys_Error(ERR_FATAL, "%s: hit the end of memory", __func__);
+		}
 		if (sc_rover->owner)
 			*sc_rover->owner = NULL;
 
@@ -341,6 +353,7 @@ surfcache_t *
 D_CacheSurface (const entity_t *currententity, msurface_t *surface, int miplevel)
 {
 	surfcache_t	*cache;
+	float		surfscale;
 
 	//
 	// if the surface is animating or flashing, flush the cache

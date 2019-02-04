@@ -97,7 +97,7 @@ R_FindFreeImage (void)
 	if (i == numr_images)
 	{
 		if (numr_images == MAX_RIMAGES)
-			ri.Sys_Error(ERR_DROP, "MAX_RIMAGES");
+			ri.Sys_Error(ERR_DROP, "%s: Max images", __func__);
 		numr_images++;
 	}
 	image = &r_images[i];
@@ -124,6 +124,44 @@ R_ImageShrink(const unsigned char* src, unsigned char *dst, int width, int realw
 	}
 }
 
+static void
+R_RestoreMips(image_t *image, int min_mips)
+{
+	int i;
+
+	for (i=min_mips+1; i<NUM_MIPS; i++)
+	{
+		R_ImageShrink(image->pixels[i-1], image->pixels[i],
+			      image->height / (1 << (i - 1)), image->height / (1 << i),
+			      image->width / (1 << (i - 1)), image->width / (1 << i));
+	}
+}
+
+static size_t
+R_GetImageMipsSize(size_t mip1_size)
+{
+	size_t full_size = 0;
+	int i;
+
+	for (i=0; i<NUM_MIPS; i++)
+	{
+		full_size += mip1_size >> (i * 2);
+	}
+	return full_size;
+}
+
+static void
+R_RestoreImagePointers(image_t *image, int min_mips)
+{
+	int i;
+
+	for (i=min_mips+1; i<NUM_MIPS; i++)
+	{
+		image->pixels[i] = image->pixels[i - 1] + (
+			image->width * image->height / (1 << ((i - 1) * 2)));
+	}
+}
+
 /*
 ================
 R_LoadPic
@@ -138,7 +176,7 @@ R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
 
 	image = R_FindFreeImage();
 	if (strlen(name) >= sizeof(image->name))
-		ri.Sys_Error(ERR_DROP, "Draw_LoadPic: \"%s\" is too long", name);
+		ri.Sys_Error(ERR_DROP, "%s: '%s' is too long", __func__, name);
 	strcpy (image->name, name);
 	image->registration_sequence = registration_sequence;
 
@@ -147,7 +185,7 @@ R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
 	image->type = type;
 
 	size = width * height;
-	full_size = size * (256+64+16+4)/256;
+	full_size = R_GetImageMipsSize(size);
 	image->pixels[0] = malloc(full_size);
 	image->transparent = false;
 	for (i=0 ; i<size ; i++)
@@ -161,19 +199,9 @@ R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
 
 	memcpy(image->pixels[0], pic, size);
 	// restore mips
-	image->pixels[1] = image->pixels[0] + image->width*image->height;
-	image->pixels[2] = image->pixels[1] + image->width*image->height/4;
-	image->pixels[3] = image->pixels[2] + image->width*image->height/16;
+	R_RestoreImagePointers(image, 0);
 	// restore everything from first image
-	R_ImageShrink(image->pixels[0], image->pixels[1],
-		      image->height, image->height/2,
-		      image->width, image->width/2);
-	R_ImageShrink(image->pixels[1], image->pixels[2],
-		      image->height/2, image->height/4,
-		      image->width/2, image->width/4);
-	R_ImageShrink(image->pixels[2], image->pixels[3],
-		      image->height/4, image->height/8,
-		      image->width/4, image->width/8);
+	R_RestoreMips(image, 0);
 	return image;
 }
 
@@ -188,7 +216,7 @@ R_LoadWal (char *name, imagetype_t type)
 	miptex_t	*mt;
 	int		ofs;
 	image_t		*image;
-	int		size, file_size;
+	size_t		size, file_size;
 
 	file_size = ri.FS_LoadFile (name, (void **)&mt);
 	if (!mt)
@@ -211,7 +239,7 @@ R_LoadWal (char *name, imagetype_t type)
 	image->type = type;
 	image->registration_sequence = registration_sequence;
 	ofs = LittleLong(mt->offsets[0]);
-	size = image->width * image->height * (256+64+16+4)/256;
+	size = R_GetImageMipsSize(image->width * image->height);
 
 	if ((ofs <= 0) || (image->width <= 0) || (image->height <= 0) ||
 	    ((file_size - ofs) / image->width < image->height))
@@ -222,23 +250,13 @@ R_LoadWal (char *name, imagetype_t type)
 	}
 
 	image->pixels[0] = malloc (size);
-	image->pixels[1] = image->pixels[0] + image->width*image->height;
-	image->pixels[2] = image->pixels[1] + image->width*image->height/4;
-	image->pixels[3] = image->pixels[2] + image->width*image->height/16;
+	R_RestoreImagePointers(image, 0);
 
 	if (size > (file_size - ofs))
 	{
 		memcpy(image->pixels[0], (byte *)mt + ofs, file_size - ofs);
 		// looks short, restore everything from first image
-		R_ImageShrink(image->pixels[0], image->pixels[1],
-			      image->height, image->height/2,
-			      image->width, image->width/2);
-		R_ImageShrink(image->pixels[1], image->pixels[2],
-			      image->height/2, image->height/4,
-			      image->width/2, image->width/4);
-		R_ImageShrink(image->pixels[2], image->pixels[3],
-			      image->height/4, image->height/8,
-			      image->width/4, image->width/8);
+		R_RestoreMips(image, 0);
 	}
 	else
 	{
@@ -300,8 +318,10 @@ R_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t 
 	{
 		if (width >= realwidth && height >= realheight)
 		{
+			// resulted image
 			byte* pic8 = NULL;
-			int size;
+			// resulted image memory size
+			size_t size8;
 
 			if (realheight == 0 || realwidth == 0)
 			{
@@ -309,14 +329,33 @@ R_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t 
 				realwidth = width;
 			}
 
-			size = width * height * (256+64+16+4)/256;
-			pic8 = malloc(size);
-			R_Convert32To8bit(pic, pic8, width * height);
+			size8 = R_GetImageMipsSize(width * height);
+			pic8 = malloc(size8);
+
 			if (width != realwidth || height != realheight)
 			{
-				R_ImageShrink(pic8, pic8, width, realwidth, height, realheight);
+				// temporary place for shrinked image
+				byte* pic32 = NULL;
+				// temporary image memory size
+				size_t size32;
+
+				// resize image
+				size32 = width * height * 4;
+				pic32 = malloc(size32);
+
+				if (ResizeSTB(pic, width, height,
+					      pic32, realwidth, realheight))
+				{
+					R_Convert32To8bit(pic32, pic8, realwidth * realheight);
+					image = R_LoadPic(name, pic8, realwidth, realheight, type);
+				}
+				free(pic32);
 			}
-			image = R_LoadPic(name, pic8, realwidth, realheight, type);
+			else
+			{
+				R_Convert32To8bit(pic, pic8, width * height);
+				image = R_LoadPic(name, pic8, width, height, type);
+			}
 			free(pic8);
 		}
 	}
@@ -335,7 +374,7 @@ R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 	image_t	*image = NULL;
 
 	// with retexturing and not skin
-	if (sw_retexturing->value && type != it_skin)
+	if (sw_retexturing->value)
 	{
 		image = R_LoadHiColorImage(name, namewe, ext, type);
 	}
@@ -461,6 +500,46 @@ R_FreeUnusedImages (void)
 	}
 }
 
+static struct texture_buffer {
+	image_t	image;
+	byte	buffer[4096];
+} r_notexture_buffer;
+
+/*
+==================
+R_InitTextures
+==================
+*/
+static void
+R_InitTextures (void)
+{
+	int		x,y, m;
+
+	// create a simple checkerboard texture for the default
+	r_notexture_mip = &r_notexture_buffer.image;
+
+	r_notexture_mip->width = r_notexture_mip->height = 16;
+
+	r_notexture_mip->pixels[0] = r_notexture_buffer.buffer;
+	R_RestoreImagePointers(r_notexture_mip, 0);
+
+	for (m=0 ; m<NUM_MIPS ; m++)
+	{
+		byte	*dest;
+
+		dest = r_notexture_mip->pixels[m];
+		for (y=0 ; y< (16>>m) ; y++)
+			for (x=0 ; x< (16>>m) ; x++)
+			{
+				if (  (y< (8>>m) ) ^ (x< (8>>m) ) )
+
+					*dest++ = 0;
+				else
+					*dest++ = 0xff;
+			}
+	}
+}
+
 /*
 ===============
 R_InitImages
@@ -477,11 +556,13 @@ R_InitImages (void)
 
 	if ( !table16to8 )
 	{
-		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/16to8.dat");
+		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/16to8.dat", __func__);
 	}
 	d_16to8table = malloc(0x10000);
 	memcpy(d_16to8table, table16to8, 0x10000);
 	ri.FS_FreeFile((void *)table16to8);
+
+	R_InitTextures ();
 }
 
 /*

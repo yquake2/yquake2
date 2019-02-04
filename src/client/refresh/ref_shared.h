@@ -64,6 +64,8 @@ extern void LoadPCX(char *origname, byte **pic, byte **palette, int *width, int 
 extern void GetPCXInfo(char *filename, int *width, int *height);
 
 extern qboolean LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *height);
+extern qboolean ResizeSTB(byte *input_pixels, int input_width, int input_height,
+			  byte *output_pixels, int output_width, int output_height);
 
 extern void GetWalInfo(char *name, int *width, int *height);
 
