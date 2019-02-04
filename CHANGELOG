@@ -1,3 +1,23 @@
+Quake II 7.30 to 7.40:
+- Add support for HTTP downloads. Both the r1q2 and q2pro URL schemes
+  are supported, if a file is unavailable over HTTP the download code
+  falls back to UDP.
+- Savegames can be removed through the menu by pressing 'del' on the
+  selected savegame. (by Jonathan Bergeron)
+- Support external entity files. This was submitted by @NeonKnightOA.
+- Some fixes to OGG/Vorbis music playback. The music keeps playing after
+  s_restart and ogg_shuffle is handled correctly by the menu.
+- Another round of timing fixes. Average frame times are now taken into
+  account when taking an educated guess on the next frames render time.
+  And the display refresh rate detection no longer cripple working GPU
+  drivers in an efford to work around bugs in older version of AMDs.
+- A lot of fixes to the internal memory management. The game is now
+  much more memory efficient, this allows playing of extremly big maps
+  without crashes. This is largly based upon work done by Denis Pauk.
+- New and much more detailed documentation.
+- Enhancements to the software renderer. Retexturing packs are now
+  supported, general cleanup and bugfixes. (by Denis Pauk)
+
 Quake II 7.21 to 7.30:
 - Removed support for SDL 1.2.
 - Removed static dependencies to libogg, libvorbis and libz.
