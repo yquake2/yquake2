@@ -1627,7 +1627,7 @@ CMod_LoadEntityString(lump_t *l, char *name)
 		{
 			if (bufLen + 1 > sizeof(map_entitystring))
 			{
-				Com_Printf("CMod_LoadEntityString: .ent file %s too large: %i > %zu.\n", s, bufLen, sizeof(map_entitystring));
+				Com_Printf("CMod_LoadEntityString: .ent file %s too large: %i > %lu.\n", s, bufLen, (unsigned long)sizeof(map_entitystring));
 				FS_FreeFile(buffer);
 			}
 			else
