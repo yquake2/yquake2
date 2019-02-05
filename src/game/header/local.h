@@ -573,7 +573,7 @@ typedef struct
 	int ofs;
 	fieldtype_t type;
 	int flags;
-	short save_ver; // currently only used by clientfields[]
+	short save_ver;
 } field_t;
 
 extern field_t fields[];

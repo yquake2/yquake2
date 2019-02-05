@@ -33,7 +33,7 @@ extern void WriteLevelLocals ( FILE * f ) ;
 extern void WriteEdict ( FILE * f , edict_t * ent ) ;
 extern void ReadGame ( const char * filename ) ;
 extern void WriteGame ( const char * filename , qboolean autosave ) ;
-extern void ReadClient ( FILE * f , gclient_t * client, short save_ver ) ;
+extern void ReadClient ( FILE * f , gclient_t * client , short save_ver ) ;
 extern void WriteClient ( FILE * f , gclient_t * client ) ;
 extern void ReadField ( FILE * f , field_t * field , byte * base ) ;
 extern void WriteField2 ( FILE * f , field_t * field , byte * base ) ;

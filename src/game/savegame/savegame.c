@@ -741,12 +741,12 @@ ReadClient(FILE *f, gclient_t *client, short save_ver)
 
 	for (field = clientfields; field->name; field++)
 	{
-		if(field->save_ver <= save_ver)
+		if (field->save_ver <= save_ver)
 		{
 			ReadField(f, field, (byte *)client);
 		}
 	}
-	if(save_ver < 3)
+	if (save_ver < 3)
 	{
 		InitClientResp(client);
 	}
@@ -849,6 +849,7 @@ ReadGame(const char *filename)
 	if (!strcmp(str_ver, SAVEGAMEVER))
 	{
 		save_ver = 3;
+
 		if (strcmp(str_game, GAMEVERSION))
 		{
 			fclose(f);
@@ -868,6 +869,7 @@ ReadGame(const char *filename)
 	else if (!strcmp(str_ver, "YQ2-2"))
 	{
 		save_ver = 2;
+
 		if (strcmp(str_game, GAMEVERSION))
 		{
 			fclose(f);
@@ -887,6 +889,7 @@ ReadGame(const char *filename)
 	else if (!strcmp(str_ver, "YQ2-1"))
 	{
 		save_ver = 1;
+
 		if (strcmp(str_game, GAMEVERSION))
 		{
 			fclose(f);
