@@ -505,7 +505,10 @@ CL_RequestNextDownload(void)
 	precacherIteration = 0;
 	gamedirForFilelist = false;
 
+#ifdef USE_CURL
 	CL_HTTP_EnableGenericFilelist();
+#endif
+
 	CL_RegisterSounds();
 	CL_PrepRefresh();
 
