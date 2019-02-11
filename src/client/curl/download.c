@@ -1041,7 +1041,7 @@ qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist
 		{
 			char fileList[MAX_OSPATH];
 
-			Com_sprintf(fileList, sizeof(fileList), "/%s/%s", downloadGamedir, ".filelist");
+			Com_sprintf(fileList, sizeof(fileList), "/%s%s", downloadGamedir, ".filelist");
 			CL_QueueHTTPDownload(fileList, false);
 		}
 		else
