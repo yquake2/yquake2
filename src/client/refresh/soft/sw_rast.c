@@ -548,14 +548,14 @@ R_RenderFace (entity_t *currententity, const model_t *currentmodel, msurface_t *
 	// skip out if no more surfs
 	if ((surface_p) >= surf_max)
 	{
-		r_outofsurfaces++;
+		r_outofsurfaces = true;
 		return;
 	}
 
 	// ditto if not enough edges left, or switch to auxedges if possible
 	if ((edge_p + fa->numedges + 4) >= edge_max)
 	{
-		r_outofedges += fa->numedges;
+		r_outofedges = true;
 		return;
 	}
 
@@ -755,14 +755,14 @@ R_RenderBmodelFace(entity_t *currententity, bedge_t *pedges, msurface_t *psurf)
 	// skip out if no more surfs
 	if (surface_p >= surf_max)
 	{
-		r_outofsurfaces++;
+		r_outofsurfaces = true;
 		return;
 	}
 
 	// ditto if not enough edges left, or switch to auxedges if possible
 	if ((edge_p + psurf->numedges + 4) >= edge_max)
 	{
-		r_outofedges += psurf->numedges;
+		r_outofedges = true;
 		return;
 	}
 

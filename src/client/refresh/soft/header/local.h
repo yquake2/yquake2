@@ -516,10 +516,10 @@ extern	int	r_aliasblendcolor;
 
 extern float	aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
 
-extern int	r_outofsurfaces;
-extern int	r_outofedges;
-extern int	r_outofverts;
-extern int	r_outoftriangles;
+extern qboolean	r_outofsurfaces;
+extern qboolean	r_outofedges;
+extern qboolean	r_outofverts;
+extern qboolean	r_outoftriangles;
 
 extern mvertex_t	*r_pcurrentvertbase;
 

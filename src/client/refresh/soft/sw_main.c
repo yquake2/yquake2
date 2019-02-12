@@ -68,10 +68,10 @@ int	r_numallocatededges;
 int	r_numallocatedverts;
 int	r_numallocatedtriangles;
 float	r_aliasuvscale = 1.0;
-int	r_outofsurfaces;
-int	r_outofedges;
-int	r_outofverts;
-int	r_outoftriangles;
+qboolean	r_outofsurfaces;
+qboolean	r_outofedges;
+qboolean	r_outofverts;
+qboolean	r_outoftriangles;
 
 qboolean	r_dowarp;
 
@@ -379,6 +379,7 @@ R_ReallocateMapBuffers (void)
 		if (r_outofsurfaces)
 		{
 			r_cnumsurfs *= 2;
+			r_outofsurfaces = false;
 		}
 
 		if (r_cnumsurfs < NUMSTACKSURFACES)
@@ -413,6 +414,7 @@ R_ReallocateMapBuffers (void)
 		if (r_outofedges)
 		{
 			r_numallocatededges *= 2;
+			r_outofedges = false;
 		}
 
 		if (r_numallocatededges < NUMSTACKEDGES)
@@ -443,6 +445,7 @@ R_ReallocateMapBuffers (void)
 		if (r_outofverts)
 		{
 			r_numallocatedverts *= 2;
+			r_outofverts = false;
 		}
 
 		if (r_numallocatedverts < MAXALIASVERTS)
@@ -470,6 +473,7 @@ R_ReallocateMapBuffers (void)
 		if (r_outoftriangles)
 		{
 			r_numallocatedtriangles *= 2;
+			r_outoftriangles = false;
 		}
 
 		if (r_numallocatedtriangles < vid.height)
@@ -1809,7 +1813,7 @@ SWimp_CreateRender(void)
 	edge_basespans = malloc((vid.width*2) * sizeof(espan_t));
 
 	// count of "out of items"
-	r_outofsurfaces = r_outofedges = r_outofverts = r_outoftriangles = 0;
+	r_outofsurfaces = r_outofedges = r_outofverts = r_outoftriangles = false;
 	// pointers to allocated buffers
 	finalverts = NULL;
 	r_edges = NULL;

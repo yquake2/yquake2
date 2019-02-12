@@ -232,7 +232,7 @@ R_AliasPreparePoints (const entity_t *currententity, finalvert_t *verts, const f
 
 	if ((verts + s_pmdl->num_xyz) >= verts_max)
 	{
-		r_outofverts += s_pmdl->num_xyz - (verts_max - verts);
+		r_outofverts = true;
 		return;
 	}
 
