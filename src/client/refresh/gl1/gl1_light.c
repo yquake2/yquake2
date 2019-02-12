@@ -339,7 +339,7 @@ R_LightPoint(vec3_t p, vec3_t color)
 	vec3_t dist;
 	float add;
 
-	if (!r_worldmodel->lightdata)
+	if (!r_worldmodel->lightdata || !currententity)
 	{
 		color[0] = color[1] = color[2] = 1.0;
 		return;
