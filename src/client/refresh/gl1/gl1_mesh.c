@@ -80,14 +80,18 @@ R_LerpVerts(int nverts, dtrivertx_t *v, dtrivertx_t *ov,
 	}
 }
 
+extern int	maxSurfaces;
+extern qboolean	outofsurfaces;
+extern GLfloat	*surf_vtx_buf3, *surf_tex_buf2, *surf_clr_buf4;
+
 /*
  * Interpolates between two frames and origins
  */
 void
 R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 {
-    unsigned short total;
-    GLenum type;
+	unsigned short total;
+	GLenum type;
 	float l;
 	daliasframe_t *frame, *oldframe;
 	dtrivertx_t *v, *ov, *verts;
@@ -168,17 +172,21 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 			{
 				count = -count;
 
-                type = GL_TRIANGLE_FAN;
+				type = GL_TRIANGLE_FAN;
 			}
 			else
 			{
-                type = GL_TRIANGLE_STRIP;
+				type = GL_TRIANGLE_STRIP;
 			}
 
+			if (count > maxSurfaces)
+			{
+				outofsurfaces = true;
+
+				// Need to reallocate particles buffer
+				break;
+			}
 			total = count;
-			GLfloat vtx[3*total];
-			GLfloat tex[2*total];
-			GLfloat clr[4 * total];
 			unsigned int index_vtx = 0;
 			unsigned int index_tex = 0;
 			unsigned int index_clr = 0;
@@ -191,14 +199,14 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 					index_xyz = order[2];
 					order += 3;
 
-					clr[index_clr++] = shadelight[0];
-					clr[index_clr++] = shadelight[1];
-					clr[index_clr++] = shadelight[2];
-					clr[index_clr++] = alpha;
+					surf_clr_buf4[index_clr++] = shadelight[0];
+					surf_clr_buf4[index_clr++] = shadelight[1];
+					surf_clr_buf4[index_clr++] = shadelight[2];
+					surf_clr_buf4[index_clr++] = alpha;
 
-					vtx[index_vtx++] = s_lerped[index_xyz][0];
-					vtx[index_vtx++] = s_lerped[index_xyz][1];
-					vtx[index_vtx++] = s_lerped[index_xyz][2];
+					surf_vtx_buf3[index_vtx++] = s_lerped[index_xyz][0];
+					surf_vtx_buf3[index_vtx++] = s_lerped[index_xyz][1];
+					surf_vtx_buf3[index_vtx++] = s_lerped[index_xyz][2];
 				}
 				while (--count);
 			}
@@ -207,8 +215,8 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 				do
 				{
 					/* texture coordinates come from the draw list */
-					tex[index_tex++] = ((float *) order)[0];
-					tex[index_tex++] = ((float *) order)[1];
+					surf_tex_buf2[index_tex++] = ((float *) order)[0];
+					surf_tex_buf2[index_tex++] = ((float *) order)[1];
 
 					index_xyz = order[2];
 					order += 3;
@@ -216,14 +224,14 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 					/* normals and vertexes come from the frame list */
 					l = shadedots[verts[index_xyz].lightnormalindex];
 
-					clr[index_clr++] = l * shadelight[0];
-					clr[index_clr++] = l * shadelight[1];
-					clr[index_clr++] = l * shadelight[2];
-					clr[index_clr++] = alpha;
+					surf_clr_buf4[index_clr++] = l * shadelight[0];
+					surf_clr_buf4[index_clr++] = l * shadelight[1];
+					surf_clr_buf4[index_clr++] = l * shadelight[2];
+					surf_clr_buf4[index_clr++] = alpha;
 
-					vtx[index_vtx++] = s_lerped[index_xyz][0];
-					vtx[index_vtx++] = s_lerped[index_xyz][1];
-					vtx[index_vtx++] = s_lerped[index_xyz][2];
+					surf_vtx_buf3[index_vtx++] = s_lerped[index_xyz][0];
+					surf_vtx_buf3[index_vtx++] = s_lerped[index_xyz][1];
+					surf_vtx_buf3[index_vtx++] = s_lerped[index_xyz][2];
 				}
 				while (--count);
 			}
@@ -232,9 +240,9 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 			glEnableClientState(GL_COLOR_ARRAY);
 
-			glVertexPointer(3, GL_FLOAT, 0, vtx);
-			glTexCoordPointer(2, GL_FLOAT, 0, tex);
-			glColorPointer(4, GL_FLOAT, 0, clr);
+			glVertexPointer(3, GL_FLOAT, 0, surf_vtx_buf3);
+			glTexCoordPointer(2, GL_FLOAT, 0, surf_tex_buf2);
+			glColorPointer(4, GL_FLOAT, 0, surf_clr_buf4);
 			glDrawArrays(type, 0, total);
 
 			glDisableClientState(GL_VERTEX_ARRAY);
@@ -253,8 +261,8 @@ R_DrawAliasFrameLerp(dmdl_t *paliashdr, float backlerp)
 void
 R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 {
-    unsigned short total;
-    GLenum type;
+	unsigned short total;
+	GLenum type;
 	int *order;
 	vec3_t point;
 	float height = 0, lheight;
@@ -285,17 +293,23 @@ R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 		if (count < 0)
 		{
 			count = -count;
-			
-            type = GL_TRIANGLE_FAN;
+
+			type = GL_TRIANGLE_FAN;
 		}
 		else
 		{
-            type = GL_TRIANGLE_STRIP;
+			type = GL_TRIANGLE_STRIP;
 		}
 
-        total = count;
-        GLfloat vtx[3*total];
-        unsigned int index_vtx = 0;
+		if (count > maxSurfaces)
+		{
+			outofsurfaces = true;
+
+			// Need to reallocate particles buffer
+			break;
+		}
+		total = count;
+		unsigned int index_vtx = 0;
 
 		do
 		{
@@ -306,20 +320,20 @@ R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 			point[1] -= shadevector[1] * (point[2] + lheight);
 			point[2] = height;
 
-            vtx[index_vtx++] = point [ 0 ];
-            vtx[index_vtx++] = point [ 1 ];
-            vtx[index_vtx++] = point [ 2 ];
+			surf_vtx_buf3[index_vtx++] = point [ 0 ];
+			surf_vtx_buf3[index_vtx++] = point [ 1 ];
+			surf_vtx_buf3[index_vtx++] = point [ 2 ];
 
 			order += 3;
 		}
 		while (--count);
 
-        glEnableClientState( GL_VERTEX_ARRAY );
+		glEnableClientState( GL_VERTEX_ARRAY );
 
-        glVertexPointer( 3, GL_FLOAT, 0, vtx );
-        glDrawArrays( type, 0, total );
+		glVertexPointer( 3, GL_FLOAT, 0, surf_vtx_buf3 );
+		glDrawArrays( type, 0, total );
 
-        glDisableClientState( GL_VERTEX_ARRAY );
+		glDisableClientState( GL_VERTEX_ARRAY );
 	}
 
 	/* stencilbuffer shadows */
@@ -631,7 +645,7 @@ R_DrawAliasModel(entity_t *e)
             shadelight[i] *= gl1_overbrightbits->value;
         }
     }
-    
+
 
 
 	/* ir goggles color override */

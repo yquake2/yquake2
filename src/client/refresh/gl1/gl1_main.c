@@ -416,6 +416,89 @@ R_DrawEntitiesOnList(void)
 	glDepthMask(1); /* back to writing */
 }
 
+#define MAXVERTS	2048
+#define NUMSURFACES	1024
+
+// Used in gl1_mesh
+int	maxSurfaces;
+qboolean	outofsurfaces;
+GLfloat	*surf_vtx_buf3, *surf_tex_buf2, *surf_clr_buf4;
+// Used in gl1_surf, gl1_warp
+GLfloat	*poly_tex_buf;
+int	maxVerts;
+qboolean	outofnumverts;
+
+static void
+R_ReallocateMapBuffers(void)
+{
+	if (!poly_tex_buf || outofnumverts)
+	{
+		if (poly_tex_buf)
+		{
+			free(poly_tex_buf);
+		}
+
+		if (outofnumverts)
+		{
+			maxVerts *= 2;
+			outofnumverts = false;
+		}
+
+		if (maxVerts < MAXVERTS)
+			maxVerts = MAXVERTS;
+
+		poly_tex_buf = malloc (maxVerts * sizeof(GLfloat));
+		if (!poly_tex_buf)
+		{
+			R_Printf(PRINT_ALL, "%s: Couldn't malloc %d verts\n",
+				 __func__, maxVerts);
+			return;
+		}
+
+		R_Printf(PRINT_ALL, "Allocated %d verts\n", maxVerts);
+	}
+
+	if (!surf_vtx_buf3 || !surf_tex_buf2 || !surf_clr_buf4 || outofsurfaces)
+	{
+
+		if(surf_vtx_buf3)
+		{
+			free(surf_vtx_buf3);
+		}
+
+		if(surf_tex_buf2)
+		{
+			free(surf_tex_buf2);
+		}
+
+		if(surf_clr_buf4)
+		{
+			free(surf_clr_buf4);
+		}
+
+		if (outofsurfaces)
+		{
+			maxSurfaces *= 2;
+			outofsurfaces = false;
+		}
+
+		if (maxSurfaces < NUMSURFACES)
+			maxSurfaces = NUMSURFACES;
+
+		surf_vtx_buf3 = malloc (maxSurfaces * sizeof(GLfloat) * 3);
+		surf_tex_buf2 = malloc (maxSurfaces * sizeof(GLfloat) * 2);
+		surf_clr_buf4 = malloc (maxSurfaces * sizeof(GLfloat) * 4);
+		if (!surf_vtx_buf3 || !surf_tex_buf2 || !surf_clr_buf4)
+		{
+			R_Printf(PRINT_ALL, "%s: Couldn't malloc %d surfaces\n",
+				 __func__, maxSurfaces);
+			return;
+		}
+
+		R_Printf(PRINT_ALL, "Allocated %d surfaces\n", maxSurfaces);
+	}
+}
+
 void
 R_DrawParticles2(int num_particles, const particle_t particles[],
 		const unsigned colortable[768])
@@ -425,15 +508,20 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	vec3_t up, right;
 	float scale;
 	byte color[4];
- 
-	GLfloat vtx[3*num_particles*3];
-	GLfloat tex[2*num_particles*3];
-	GLfloat clr[4*num_particles*3];
+
+	if (num_particles * 3 > maxSurfaces)
+	{
+		outofsurfaces = true;
+
+		// Need to reallocate particles buffer
+		return;
+	}
+
 	unsigned int index_vtx = 0;
 	unsigned int index_tex = 0;
 	unsigned int index_clr = 0;
 	unsigned int j;
- 
+
 	R_Bind(r_particletexture->texnum);
 	glDepthMask(GL_FALSE); /* no z buffering */
 	glEnable(GL_BLEND);
@@ -462,50 +550,50 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 
 		for (j=0; j<3; j++) // Copy the color for each point
 		{
-			clr[index_clr++] = color[0]/255.0f;
-			clr[index_clr++] = color[1]/255.0f;
-			clr[index_clr++] = color[2]/255.0f;
-			clr[index_clr++] = p->alpha;
+			surf_clr_buf4[index_clr++] = color[0]/255.0f;
+			surf_clr_buf4[index_clr++] = color[1]/255.0f;
+			surf_clr_buf4[index_clr++] = color[2]/255.0f;
+			surf_clr_buf4[index_clr++] = p->alpha;
 		}
 
 		// point 0
-		tex[index_tex++] = 0.0625f;
-		tex[index_tex++] = 0.0625f;
+		surf_tex_buf2[index_tex++] = 0.0625f;
+		surf_tex_buf2[index_tex++] = 0.0625f;
 
-		vtx[index_vtx++] = p->origin[0];
-		vtx[index_vtx++] = p->origin[1];
-		vtx[index_vtx++] = p->origin[2];
+		surf_vtx_buf3[index_vtx++] = p->origin[0];
+		surf_vtx_buf3[index_vtx++] = p->origin[1];
+		surf_vtx_buf3[index_vtx++] = p->origin[2];
 
 		// point 1
-		tex[index_tex++] = 1.0625f;
-		tex[index_tex++] = 0.0625f;
+		surf_tex_buf2[index_tex++] = 1.0625f;
+		surf_tex_buf2[index_tex++] = 0.0625f;
 
-		vtx[index_vtx++] = p->origin [ 0 ] + up [ 0 ] * scale;
-		vtx[index_vtx++] = p->origin [ 1 ] + up [ 1 ] * scale;
-		vtx[index_vtx++] = p->origin [ 2 ] + up [ 2 ] * scale;
+		surf_vtx_buf3[index_vtx++] = p->origin [ 0 ] + up [ 0 ] * scale;
+		surf_vtx_buf3[index_vtx++] = p->origin [ 1 ] + up [ 1 ] * scale;
+		surf_vtx_buf3[index_vtx++] = p->origin [ 2 ] + up [ 2 ] * scale;
 
 		// point 2
-		tex[index_tex++] = 0.0625f;
-		tex[index_tex++] = 1.0625f;
+		surf_tex_buf2[index_tex++] = 0.0625f;
+		surf_tex_buf2[index_tex++] = 1.0625f;
 
-		vtx[index_vtx++] = p->origin [ 0 ] + right [ 0 ] * scale;
-		vtx[index_vtx++] = p->origin [ 1 ] + right [ 1 ] * scale;
-		vtx[index_vtx++] = p->origin [ 2 ] + right [ 2 ] * scale;
+		surf_vtx_buf3[index_vtx++] = p->origin [ 0 ] + right [ 0 ] * scale;
+		surf_vtx_buf3[index_vtx++] = p->origin [ 1 ] + right [ 1 ] * scale;
+		surf_vtx_buf3[index_vtx++] = p->origin [ 2 ] + right [ 2 ] * scale;
 	}
 
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 	glEnableClientState( GL_COLOR_ARRAY );
 
-	glVertexPointer( 3, GL_FLOAT, 0, vtx );
-	glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-	glColorPointer( 4, GL_FLOAT, 0, clr );
+	glVertexPointer( 3, GL_FLOAT, 0, surf_vtx_buf3 );
+	glTexCoordPointer( 2, GL_FLOAT, 0, surf_tex_buf2 );
+	glColorPointer( 4, GL_FLOAT, 0, surf_clr_buf4 );
 	glDrawArrays( GL_TRIANGLES, 0, num_particles*3 );
 
 	glDisableClientState( GL_VERTEX_ARRAY );
 	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 	glDisableClientState( GL_COLOR_ARRAY );
- 
+
 	glDisable(GL_BLEND);
 	glColor4f(1, 1, 1, 1);
 	glDepthMask(1); /* back to normal Z buffering */
@@ -523,12 +611,18 @@ R_DrawParticles(void)
 		int i;
 		unsigned char color[4];
 		const particle_t *p;
- 
-		GLfloat vtx[3*r_newrefdef.num_particles];
-		GLfloat clr[4*r_newrefdef.num_particles];
+
 		unsigned int index_vtx = 0;
 		unsigned int index_clr = 0;
-  
+
+		if (r_newrefdef.num_particles > maxSurfaces)
+		{
+			outofsurfaces = true;
+
+			// Need to reallocate particles buffer
+			return;
+		}
+
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
 		glDisable(GL_TEXTURE_2D);
@@ -539,21 +633,21 @@ R_DrawParticles(void)
 		for ( i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++ )
 		{
 			*(int *) color = d_8to24table [ p->color & 0xFF ];
-			clr[index_clr++] = color[0]/255.0f;
-			clr[index_clr++] = color[1]/255.0f;
-			clr[index_clr++] = color[2]/255.0f;
-			clr[index_clr++] = p->alpha;
+			surf_clr_buf4[index_clr++] = color[0]/255.0f;
+			surf_clr_buf4[index_clr++] = color[1]/255.0f;
+			surf_clr_buf4[index_clr++] = color[2]/255.0f;
+			surf_clr_buf4[index_clr++] = p->alpha;
 
-			vtx[index_vtx++] = p->origin[0];
-			vtx[index_vtx++] = p->origin[1];
-			vtx[index_vtx++] = p->origin[2];
+			surf_vtx_buf3[index_vtx++] = p->origin[0];
+			surf_vtx_buf3[index_vtx++] = p->origin[1];
+			surf_vtx_buf3[index_vtx++] = p->origin[2];
 		}
 
 		glEnableClientState( GL_VERTEX_ARRAY );
 		glEnableClientState( GL_COLOR_ARRAY );
 
-		glVertexPointer( 3, GL_FLOAT, 0, vtx );
-		glColorPointer( 4, GL_FLOAT, 0, clr );
+		glVertexPointer( 3, GL_FLOAT, 0, surf_vtx_buf3 );
+		glColorPointer( 4, GL_FLOAT, 0, surf_clr_buf4 );
 		glDrawArrays( GL_POINTS, 0, r_newrefdef.num_particles );
 
 		glDisableClientState( GL_VERTEX_ARRAY );
@@ -1193,6 +1287,8 @@ RI_RenderFrame(refdef_t *fd)
 	R_RenderView(fd);
 	R_SetLightLevel();
 	R_SetGL2D();
+
+	R_ReallocateMapBuffers();
 }
 
 void
@@ -1549,6 +1645,12 @@ RI_Init()
 
 	R_InitImages();
 	Mod_Init();
+
+	poly_tex_buf = surf_vtx_buf3 = surf_tex_buf2 = surf_clr_buf4 = NULL;
+	maxVerts = maxSurfaces = 0;
+	outofnumverts = outofsurfaces = false;
+
+	R_ReallocateMapBuffers();
 	R_InitParticleTexture();
 	Draw_InitLocal();
 
@@ -1572,6 +1674,26 @@ RI_Shutdown(void)
 
 	/* shutdown our QGL subsystem */
 	QGL_Shutdown();
+
+	if (surf_vtx_buf3)
+	{
+		free(surf_vtx_buf3);
+	}
+
+	if (surf_tex_buf2)
+	{
+		free(surf_tex_buf2);
+	}
+
+	if (surf_clr_buf4)
+	{
+		free(surf_clr_buf4);
+	}
+
+	if (poly_tex_buf)
+	{
+		free(poly_tex_buf);
+	}
 }
 
 void
@@ -1751,11 +1873,11 @@ R_DrawBeam(entity_t *e)
 	vec3_t direction, normalized_direction;
 	vec3_t start_points[NUM_BEAM_SEGS], end_points[NUM_BEAM_SEGS];
 	vec3_t oldorigin, origin;
- 
+
 	GLfloat vtx[3*NUM_BEAM_SEGS*4];
 	unsigned int index_vtx = 0;
 	unsigned int pointb;
- 
+
 	oldorigin[0] = e->oldorigin[0];
 	oldorigin[1] = e->oldorigin[1];
 	oldorigin[2] = e->oldorigin[2];

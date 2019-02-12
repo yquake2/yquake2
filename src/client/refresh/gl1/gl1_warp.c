@@ -38,12 +38,12 @@ vec3_t skyaxis;
 image_t *sky_images[6];
 msurface_t *warpface;
 int skytexorder[6] = {0, 2, 1, 3, 4, 5};
- 
+
 GLfloat vtx_sky[12];
 GLfloat tex_sky[8];
 unsigned int index_vtx = 0;
 unsigned int index_tex = 0;
- 
+
 /* 3dstudio environment map names */
 char *suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 
@@ -276,6 +276,10 @@ R_SubdivideSurface(msurface_t *fa)
 	R_SubdividePolygon(numverts, verts[0]);
 }
 
+extern GLfloat	*poly_tex_buf;
+extern int	maxVerts;
+extern qboolean	outofnumverts;
+
 /*
  * Does a water warp on the pre-fragmented glpoly_t chain
  */
@@ -300,10 +304,17 @@ R_EmitWaterPolys(msurface_t *fa)
 
 	for (bp = fa->polys; bp; bp = bp->next)
 	{
+		unsigned int index_tex = 0;
+
 		p = bp;
 
-        GLfloat tex[2*p->numverts];
-        unsigned int index_tex = 0;
+		if (2*p->numverts > maxVerts)
+		{
+			outofnumverts = true;
+
+			// Need to reallocate vertex buffer
+			continue;
+		}
 
 		for ( i = 0, v = p->verts [ 0 ]; i < p->numverts; i++, v += VERTEXSIZE )
 		{
@@ -312,23 +323,23 @@ R_EmitWaterPolys(msurface_t *fa)
 
 			s = os + r_turbsin [ (int) ( ( ot * 0.125 + r_newrefdef.time ) * TURBSCALE ) & 255 ];
 			s += scroll;
-			tex[index_tex++] = s * ( 1.0 / 64 );
+			poly_tex_buf[index_tex++] = s * ( 1.0 / 64 );
 
 			t = ot + r_turbsin [ (int) ( ( os * 0.125 + rdt ) * TURBSCALE ) & 255 ];
-			tex[index_tex++] = t * ( 1.0 / 64 );
+			poly_tex_buf[index_tex++] = t * ( 1.0 / 64 );
 		}
 
 		v = p->verts [ 0 ];
 
-        glEnableClientState( GL_VERTEX_ARRAY );
-        glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+		glEnableClientState( GL_VERTEX_ARRAY );
+		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
-        glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
-        glTexCoordPointer( 2, GL_FLOAT, 0, tex );
-        glDrawArrays( GL_TRIANGLE_FAN, 0, p->numverts );
+		glVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
+		glTexCoordPointer( 2, GL_FLOAT, 0, poly_tex_buf );
+		glDrawArrays( GL_TRIANGLE_FAN, 0, p->numverts );
 
-        glDisableClientState( GL_VERTEX_ARRAY );
-        glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+		glDisableClientState( GL_VERTEX_ARRAY );
+		glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 	}
 }
 
