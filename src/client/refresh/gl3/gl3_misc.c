@@ -116,6 +116,8 @@ GL3_ScreenShot(void)
 {
 	int w=vid.width, h=vid.height;
 	byte *buffer = malloc(w*h*3);
+	size_t bytesPerRow = 3*w;
+	byte *rowBuffer = malloc(bytesPerRow*sizeof(byte));
 
 	if (!buffer)
 	{
@@ -130,8 +132,6 @@ GL3_ScreenShot(void)
 	// but we need them row-wise left to right, top to bottom.
 	// so swap bottom rows with top rows
 	{
-		size_t bytesPerRow = 3*w;
-		byte rowBuffer[bytesPerRow];
 		byte *curRowL = buffer; // first byte of first row
 		byte *curRowH = buffer + bytesPerRow*(h-1); // first byte of last row
 		while(curRowL < curRowH)
@@ -148,4 +148,5 @@ GL3_ScreenShot(void)
 	ri.Vid_WriteScreenshot(w, h, 3, buffer);
 
 	free(buffer);
+	free(rowBuffer);
 }

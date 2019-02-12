@@ -427,6 +427,54 @@ GL3_SetMode(void)
 // only needed (and allowed!) if using OpenGL compatibility profile, it's not in 3.2 core
 enum { QGL_POINT_SPRITE = 0x8861 };
 
+typedef struct part_vtx {
+	GLfloat pos[3];
+	GLfloat size;
+	GLfloat dist;
+	GLfloat color[4];
+} part_vtx;
+
+static part_vtx	*part_vtx_buf;
+static qboolean	outofparticles;
+static int	maxParticles;
+
+/*
+===============
+GL3_ReallocateMapBuffers
+===============
+*/
+static void
+GL3_ReallocateMapBuffers(void)
+{
+	if (!part_vtx_buf || outofparticles)
+	{
+
+		if(part_vtx_buf)
+		{
+			free(part_vtx_buf);
+		}
+
+		if (outofparticles)
+		{
+			maxParticles *= 2;
+			outofparticles = false;
+		}
+
+		if (maxParticles < MAX_PARTICLES)
+			maxParticles = MAX_PARTICLES;
+
+		part_vtx_buf = malloc (maxParticles * sizeof(part_vtx));
+		if (!part_vtx_buf)
+		{
+			R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+				 __func__, (int)(maxParticles * sizeof(part_vtx)));
+			return;
+		}
+
+		R_Printf(PRINT_ALL, "Allocated %d particles\n", maxParticles);
+	}
+}
+
 static qboolean
 GL3_Init(void)
 {
@@ -538,6 +586,14 @@ GL3_Init(void)
 
 	GL3_Mod_Init();
 
+	part_vtx_buf = NULL;
+	outofparticles = false;
+	maxParticles = 0;
+
+	assert(sizeof(part_vtx)==9*sizeof(float)); // remember to update GL3_SurfInit() if this changes!
+
+	GL3_ReallocateMapBuffers();
+
 	GL3_InitParticleTexture();
 
 	GL3_Draw_InitLocal();
@@ -570,6 +626,11 @@ GL3_Shutdown(void)
 
 	/* shutdown OS specific OpenGL stuff like contexts, etc.  */
 	GL3_ShutdownContext();
+
+	if (part_vtx_buf)
+	{
+		free(part_vtx_buf);
+	}
 }
 
 static void
@@ -799,15 +860,13 @@ GL3_DrawParticles(void)
 		// assume the size looks good with window height 480px and scale according to real resolution
 		float pointSize = gl3_particle_size->value * (float)gl3_newrefdef.height/480.0f;
 
-		typedef struct part_vtx {
-			GLfloat pos[3];
-			GLfloat size;
-			GLfloat dist;
-			GLfloat color[4];
-		} part_vtx;
-		assert(sizeof(part_vtx)==9*sizeof(float)); // remember to update GL3_SurfInit() if this changes!
+		if (numParticles > maxParticles)
+		{
+			outofparticles = true;
 
-		part_vtx buf[numParticles];
+			// Need to reallocate particles buffer
+			return;
+		}
 
 		// TODO: viewOrg could be in UBO
 		vec3_t viewOrg;
@@ -822,7 +881,7 @@ GL3_DrawParticles(void)
 		for ( i = 0, p = gl3_newrefdef.particles; i < numParticles; i++, p++ )
 		{
 			*(int *) color = d_8to24table [ p->color & 0xFF ];
-			part_vtx* cur = &buf[i];
+			part_vtx* cur = part_vtx_buf + i;
 			vec3_t offset; // between viewOrg and particle position
 			VectorSubtract(viewOrg, p->origin, offset);
 
@@ -837,7 +896,7 @@ GL3_DrawParticles(void)
 
 		GL3_BindVAO(gl3state.vaoParticle);
 		GL3_BindVBO(gl3state.vboParticle);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(part_vtx)*numParticles, buf, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(part_vtx)*numParticles, part_vtx_buf, GL_STREAM_DRAW);
 		glDrawArrays(GL_POINTS, 0, numParticles);
 
 
@@ -1517,6 +1576,8 @@ GL3_RenderFrame(refdef_t *fd)
 
 		GL3_Draw_Flash(v_blend, x, y, gl3_newrefdef.width, gl3_newrefdef.height);
 	}
+
+	GL3_ReallocateMapBuffers();
 }
 
 
