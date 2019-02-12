@@ -220,7 +220,7 @@ R_PushEdgesSpan(int u, int v, int count,
 	if (d_pedgespanpackage >= triangles_max)
 	{
 		// no space any more
-		r_outoftriangles++;
+		r_outoftriangles = true;
 		return;
 	}
 
@@ -891,7 +891,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 	if ((triangle_spans + initialrightheight) >= triangles_max)
 	{
 		// we dont have enough triangles for save full height
-		r_outoftriangles++;
+		r_outoftriangles = true;
 		return;
 	}
 	originalcount = triangle_spans[initialrightheight].count;
@@ -920,7 +920,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		if ((triangle_spans + initialrightheight + height) >= triangles_max)
 		{
 			// we dont have enough triangles for save full height
-			r_outoftriangles++;
+			r_outoftriangles = true;
 			return;
 		}
 		triangle_spans[initialrightheight + height].count = INT_MIN; // mark end of the spanpackages
