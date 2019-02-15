@@ -417,7 +417,6 @@ R_DrawEntitiesOnList(void)
 }
 
 #define MAXVERTS	2048
-#define NUMSURFACES	1024
 
 // Used in gl1_mesh
 int	maxSurfaces;
@@ -482,8 +481,8 @@ R_ReallocateMapBuffers(void)
 			outofsurfaces = false;
 		}
 
-		if (maxSurfaces < NUMSURFACES)
-			maxSurfaces = NUMSURFACES;
+		if (maxSurfaces < MAX_PARTICLES)
+			maxSurfaces = MAX_PARTICLES;
 
 		surf_vtx_buf3 = malloc (maxSurfaces * sizeof(GLfloat) * 3);
 		surf_tex_buf2 = malloc (maxSurfaces * sizeof(GLfloat) * 2);
