@@ -29,8 +29,11 @@
 
 #include "../../common/header/shared.h" /* for qboolean etc */
 
-/* max length of a console command line */
-#define MAXCMDLINE 256
+/* Max length of a console command line. 1024
+ * chars allow for a vertical resolution of
+ * 8192 pixel which should be enough for the
+ * years to come. */
+#define MAXCMDLINE 1024
 
 /* number of console command lines saved in history,
  * must be a power of two, because we use & (NUM_KEY_LINES-1)

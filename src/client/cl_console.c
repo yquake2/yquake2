@@ -259,7 +259,14 @@ Con_CheckResize(void)
 	char tbuf[CON_TEXTSIZE];
 	float scale = SCR_GetConsoleScale();
 
-	width = ((int)(viddef.width / scale) >> 3) - 2;
+	/* We need to clamp the line width to MAXCMDLINE - 2,
+	   otherwise we may overflow the text buffer if the
+	   vertical resultion / 8 (one char == 8 pixels) is
+	   bigger then MAXCMDLINE.
+	   MAXCMDLINE - 2 because 1 for the prompt and 1 for
+	   the terminating \0. */
+	width = ((int)(viddef.width / scale) / 8) - 2;
+	width = width > MAXCMDLINE - 2 ? MAXCMDLINE - 2 : width;
 
 	if (width == con.linewidth)
 	{
