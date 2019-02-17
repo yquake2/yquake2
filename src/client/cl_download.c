@@ -42,7 +42,7 @@ extern byte *precache_model;
 // Forces all downloads to UDP.
 qboolean forceudp = false;
 
-/* This - and some more code downn below - are the 'Crazy Fallback
+/* This - and some more code down below - is the 'Crazy Fallback
    Magic'. First we're trying to download all files over HTTP with
    r1q2-style URLs. If we encountered errors we reset the complete
    precacher state and retry with HTTP and q2pro-style URLs. If we
@@ -74,7 +74,7 @@ CL_RequestNextDownload(void)
 	{
 #if USE_CURL
 		// r1q2-style URLs.
-		CL_HTTP_SetDownloadGamedir(cl.gamedir);
+		Q_strlcpy(dlquirks.gamedir, cl.gamedir, sizeof(dlquirks.gamedir));
 #endif
 	}
 	else if (precacherIteration == 1)
@@ -83,15 +83,15 @@ CL_RequestNextDownload(void)
 		// q2pro-style URLs.
 		if (cl.gamedir[0] == '\0')
 		{
-			CL_HTTP_SetDownloadGamedir(BASEDIRNAME);
+			Q_strlcpy(dlquirks.gamedir, BASEDIRNAME, sizeof(dlquirks.gamedir));
 		}
 		else
 		{
-			CL_HTTP_SetDownloadGamedir(cl.gamedir);
+			Q_strlcpy(dlquirks.gamedir, cl.gamedir, sizeof(dlquirks.gamedir));
 		}
 
 		// Force another try with the filelist.
-		CL_HTTP_EnableGenericFilelist();
+		dlquirks.filelist = true;
 		gamedirForFilelist = true;
 #endif
 	}
@@ -405,8 +405,10 @@ CL_RequestNextDownload(void)
 	}
 
 
-	if (CL_CheckHTTPError())
+	if (dlquirks.error)
 	{
+		dlquirks.error = false;
+
 		/* Mkay, there were download errors. Let's start over. */
 		precacherIteration++;
 		CL_ResetPrecacheCheck();
@@ -506,7 +508,7 @@ CL_RequestNextDownload(void)
 	gamedirForFilelist = false;
 
 #ifdef USE_CURL
-	CL_HTTP_EnableGenericFilelist();
+	dlquirks.filelist = true;
 #endif
 
 	CL_RegisterSounds();

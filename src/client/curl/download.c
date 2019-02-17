@@ -36,6 +36,8 @@ cvar_t *cl_http_filelists;
 cvar_t *cl_http_proxy;
 cvar_t *cl_http_max_connections;
 
+dlquirks_t dlquirks = { .error = false, .filelist = true, .gamedir = '\0' };
+
 typedef enum
 {
 	HTTPDL_ABORT_NONE,
@@ -48,9 +50,6 @@ static int handleCount = 0;
 static int pendingCount = 0;
 static int abortDownloads = HTTPDL_ABORT_NONE;
 static qboolean	httpDown = false;
-static qboolean downloadError = false;
-static qboolean downloadFilelist = true;
-static char downloadGamedir[MAX_QPATH];
 
 // --------
 
@@ -206,13 +205,13 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 		Com_sprintf (dl->filePath, sizeof(dl->filePath), "%s/%s", FS_Gamedir(), entry->quakePath);
 
 		// Full path to the remote file.
-		if (downloadGamedir[0] == '\0')
+		if (dlquirks.gamedir[0] == '\0')
 		{
 			Com_sprintf (tempFile, sizeof(tempFile), "/%s", entry->quakePath);
 		}
 		else
 		{
-			Com_sprintf (tempFile, sizeof(tempFile), "/%s/%s", downloadGamedir, entry->quakePath);
+			Com_sprintf (tempFile, sizeof(tempFile), "/%s/%s", dlquirks.gamedir, entry->quakePath);
 		}
 
 		CL_EscapeHTTPPath (tempFile, escapedFilePath);
@@ -608,7 +607,7 @@ static void CL_FinishHTTPDownload(void)
 					// ...and communicate the error.
 					if (isFile)
 					{
-						downloadError = true;
+						dlquirks.error = true;
 						isFile = false;
 					}
 
@@ -930,7 +929,7 @@ void CL_SetHTTPServer (const char *URL)
 	abortDownloads = HTTPDL_ABORT_NONE;
 	handleCount = pendingCount = 0;
 	cls.downloadServerRetry[0] = 0;
-	downloadError = false;
+	dlquirks.error = false;
 
 	// Remove trailing / from URL if any.
 	size_t urllen = strlen(URL);
@@ -1007,10 +1006,10 @@ qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist
 	// the generic(!) filelist.
 	qboolean needList = false;
 
-	if (downloadFilelist && cl_http_filelists->value)
+	if (dlquirks.filelist && cl_http_filelists->value)
 	{
 		needList = true;
-		downloadFilelist = false;
+		dlquirks.filelist = false;
 	}
 
 	// Queue the download.
@@ -1041,7 +1040,7 @@ qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist
 		{
 			char fileList[MAX_OSPATH];
 
-			Com_sprintf(fileList, sizeof(fileList), "/%s%s", downloadGamedir, ".filelist");
+			Com_sprintf(fileList, sizeof(fileList), "/%s%s", dlquirks.gamedir, ".filelist");
 			CL_QueueHTTPDownload(fileList, false);
 		}
 		else
@@ -1063,13 +1062,13 @@ qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist
 		char listPath[MAX_OSPATH];
 		char filePath[MAX_OSPATH];
 
-		if (downloadGamedir[0] == '\0')
+		if (dlquirks.gamedir[0] == '\0')
 		{
 			Com_sprintf (filePath, sizeof(filePath), "/%s", quakePath);
 		}
 		else
 		{
-			Com_sprintf (filePath, sizeof(filePath), "/%s/%s", downloadGamedir, quakePath);
+			Com_sprintf (filePath, sizeof(filePath), "/%s/%s", dlquirks.gamedir, quakePath);
 		}
 
 		COM_StripExtension (filePath, listPath);
@@ -1100,42 +1099,6 @@ qboolean CL_PendingHTTPDownloads(void)
 	}
 
 	return pendingCount + handleCount;
-}
-
-/*
- * Checks if there was an error. Returns
- * true if yes, and false if not.
- */
-qboolean CL_CheckHTTPError(void)
-{
-	if (downloadError)
-	{
-		downloadError = false;
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-/*
- * Enables generic file list download starting
- * with the next file. Yes, this is dirty.
- */
-void CL_HTTP_EnableGenericFilelist(void)
-{
-	downloadFilelist = true;
-}
-
-/*
- * Sets the gamedir to be used by the URL
- * generator to determine the remote file
- * path.
- */
-void CL_HTTP_SetDownloadGamedir(const char *gamedir)
-{
-	Q_strlcpy(downloadGamedir, gamedir, sizeof(downloadGamedir));
 }
 
 /*
