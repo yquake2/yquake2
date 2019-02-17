@@ -49,6 +49,7 @@ static CURLM  *multi = NULL;
 static int handleCount = 0;
 static int pendingCount = 0;
 static int abortDownloads = HTTPDL_ABORT_NONE;
+static qboolean downloadingPak = false;
 static qboolean	httpDown = false;
 
 // --------
@@ -593,7 +594,18 @@ static void CL_FinishHTTPDownload(void)
 				{
 					Com_Printf("HTTP download: %s - File Not Found\n", dl->queueEntry->quakePath);
 
-					// We got a 404, remove the target file...
+					// We got a 404, reset pak downloading state...
+					size_t len = strlen(dl->queueEntry->quakePath);
+
+					if (!strcmp(dl->queueEntry->quakePath + len - 4, ".pak")
+							|| !strcmp(dl->queueEntry->quakePath + len - 4, ".pk2")
+							|| !strcmp(dl->queueEntry->quakePath + len - 4, ".pk3")
+							|| !strcmp(dl->queueEntry->quakePath + len - 4, ".zip"))
+					{
+						downloadingPak = false;
+					}
+
+					// ...remove the target file...
 					if (isFile)
 					{
 						Sys_Remove(dl->filePath);
@@ -636,7 +648,18 @@ static void CL_FinishHTTPDownload(void)
 			case CURLE_COULDNT_RESOLVE_PROXY:
 				Com_Printf("HTTP download: %s - Server broken, aborting\n", dl->queueEntry->quakePath);
 
-				// The download failed. Remove the temporary file...
+				// The download failed. Reset pak downloading state...
+				size_t len = strlen(dl->queueEntry->quakePath);
+
+				if (!strcmp(dl->queueEntry->quakePath + len - 4, ".pak")
+						|| !strcmp(dl->queueEntry->quakePath + len - 4, ".pk2")
+						|| !strcmp(dl->queueEntry->quakePath + len - 4, ".pk3")
+						|| !strcmp(dl->queueEntry->quakePath + len - 4, ".zip"))
+				{
+					downloadingPak = false;
+				}
+
+				// remove the temporary file...
 				if (isFile)
 				{
 					Sys_Remove(dl->filePath);
@@ -665,7 +688,7 @@ static void CL_FinishHTTPDownload(void)
 			default:
 				Com_Printf ("HTTP download: cURL error - %s\n", qcurl_easy_strerror(result));
 
-				// The download failed. Remove the temporary file...
+				// The download failed. Clear the Remove the temporary file...
 				if (isFile)
 				{
 					Sys_Remove(dl->filePath);
@@ -696,6 +719,7 @@ static void CL_FinishHTTPDownload(void)
 			{
 				FS_AddPAKFromGamedir(dl->queueEntry->quakePath);
 				CL_ReVerifyHTTPQueue ();
+				downloadingPak = false;
 			}
 
 			CL_RemoveFromQueue(dl->queueEntry);
@@ -771,6 +795,16 @@ static void CL_StartNextHTTPDownload(void)
 			}
 
 			CL_StartHTTPDownload(q, dl);
+
+			size_t len = strlen(q->quakePath);
+
+			if (!strcmp(q->quakePath + len - 4, ".pak")
+					|| !strcmp(q->quakePath + len - 4, ".pk2")
+					|| !strcmp(q->quakePath + len - 4, ".pk3")
+					|| !strcmp(q->quakePath + len - 4, ".zip"))
+			{
+				downloadingPak = true;
+			}
 
 			break;
 		}
@@ -1139,7 +1173,8 @@ void CL_RunHTTPDownloads(void)
 
 	// Not enough downloads running, start some more.
 	if (pendingCount && abortDownloads == HTTPDL_ABORT_NONE &&
-			handleCount < cl_http_max_connections->value)
+			handleCount < cl_http_max_connections->value &&
+			!downloadingPak)
 	{
 		CL_StartNextHTTPDownload();
 	}

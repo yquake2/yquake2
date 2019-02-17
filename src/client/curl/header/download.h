@@ -30,7 +30,7 @@
 #define DOWNLOAD_H
 
 // Number of max. parallel downloads.
-#define MAX_HTTP_HANDLES 1
+#define MAX_HTTP_HANDLES 4
 
 #include <curl/curl.h>
 #include "../../../common/header/common.h"
