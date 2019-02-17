@@ -414,6 +414,11 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 						           handle->name, pack->name);
 					}
 
+					// save the name with *correct case* in the handle
+					// (relevant for savegames, when starting map with wrong case but it's still found
+					//  because it's from pak, but save/bla/MAPname.sav/sv2 will have wrong case and can't be found then)
+					Q_strlcpy(handle->name, pack->files[i].name, sizeof(handle->name));
+
 					if (pack->pak)
 					{
 						/* PAK */
@@ -1652,6 +1657,18 @@ FS_BuildGameSpecificSearchPath(char *dir)
 	// are possibly from the new mod dir)
 	OGG_InitTrackList();
 #endif
+}
+
+// returns the filename used to open f, but (if opened from pack) in correct case
+// returns NULL if f is no valid handle
+const char* FS_GetFilenameForHandle(fileHandle_t f)
+{
+	fsHandle_t* fsh = FS_GetFileByHandle(f);
+	if(fsh)
+	{
+		return fsh->name;
+	}
+	return NULL;
 }
 
 // --------

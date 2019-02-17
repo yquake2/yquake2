@@ -70,7 +70,7 @@ struct {
 
 /*
  * The GOG version of Quake2 has the music tracks in music/TrackXX.ogg
- * That music/ dir is next to baseq/ (not in it) and contains Track02.ogg to Track21.ogg
+ * That music/ dir is next to baseq2/ (not in it) and contains Track02.ogg to Track21.ogg
  * There
  * - Track02 to Track11 correspond to Quake2 (baseq2) CD tracks 2-11
  * - Track12 to Track21 correspond to the Ground Zero (rogue) addon's CD tracks 2-11

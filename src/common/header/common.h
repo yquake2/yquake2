@@ -663,6 +663,11 @@ int FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only);
 void FS_FCloseFile(fileHandle_t f);
 int FS_Read(void *buffer, int size, fileHandle_t f);
 int FS_FRead(void *buffer, int size, int count, fileHandle_t f);
+
+// returns the filename used to open f, but (if opened from pack) in correct case
+// returns NULL if f is no valid handle
+const char* FS_GetFilenameForHandle(fileHandle_t f);
+
 char **FS_ListFiles(char *findname, int *numfiles,
 		unsigned musthave, unsigned canthave);
 char **FS_ListFiles2(char *findname, int *numfiles,
