@@ -493,6 +493,81 @@ Mod_CalcSurfaceExtents(msurface_t *s)
 	}
 }
 
+static int calcTexinfoAndFacesSize(const lump_t *fl, const lump_t *tl)
+{
+	dface_t* face_in = (void *)(mod_base + fl->fileofs);
+	texinfo_t* texinfo_in = (void *)(mod_base + tl->fileofs);
+
+	if (fl->filelen % sizeof(*face_in) || tl->filelen % sizeof(*texinfo_in))
+	{
+		// will error out when actually loading it
+		return 0;
+	}
+
+	int ret = 0;
+
+	int face_count = fl->filelen / sizeof(*face_in);
+	int texinfo_count = tl->filelen / sizeof(*texinfo_in);
+
+	{
+		// out = Hunk_Alloc(count * sizeof(*out));
+		int baseSize = face_count * sizeof(msurface_t);
+		baseSize = (baseSize + 31) & ~31;
+		ret += baseSize;
+
+		int ti_size = texinfo_count * sizeof(mtexinfo_t);
+		ti_size = (ti_size + 31) & ~31;
+		ret += ti_size;
+	}
+
+	int numWarpFaces = 0;
+
+	for (int surfnum = 0; surfnum < face_count; surfnum++, face_in++)
+	{
+		int numverts = LittleShort(face_in->numedges);
+		int ti = LittleShort(face_in->texinfo);
+		if ((ti < 0) || (ti >= texinfo_count))
+		{
+			return 0; // will error out
+		}
+		int texFlags = LittleLong(texinfo_in[ti].flags);
+
+		/* set the drawing flags */
+		if (texFlags & SURF_WARP)
+		{
+			if (numverts > 60)
+				return 0; // will error out in R_SubdividePolygon()
+
+			// GL3_SubdivideSurface(out, loadmodel); /* cut up polygon for warps */
+			// for each (pot. recursive) call to R_SubdividePolygon():
+			//   sizeof(glpoly_t) + ((numverts - 4) + 2) * sizeof(gl3_3D_vtx_t)
+
+			// this is tricky, how much is allocated depends on the size of the surface
+			// which we don't know (we'd need the vertices etc to know, but we can't load
+			// those without allocating...)
+			// so we just count warped faces and use a generous estimate below
+
+			++numWarpFaces;
+		}
+		else
+		{
+			// LM_BuildPolygonFromSurface(out);
+			// => poly = Hunk_Alloc(sizeof(glpoly_t) + (numverts - 4) * VERTEXSIZE * sizeof(float));
+			int polySize = sizeof(glpoly_t) + (numverts - 4) * VERTEXSIZE * sizeof(float);
+			polySize = (polySize + 31) & ~31;
+			ret += polySize;
+		}
+	}
+
+	// yeah, this is a bit hacky, but it looks like for each warped face
+	// 256-55000 bytes are allocated (usually on the lower end),
+	// so just assume 48k per face to be safe
+	ret += numWarpFaces * 49152;
+	ret += 1000000; // and 1MB extra just in case
+
+	return ret;
+}
+
 void
 Mod_LoadFaces(lump_t *l)
 {
@@ -825,23 +900,32 @@ Mod_LoadPlanes(lump_t *l)
 	}
 }
 
+// calculate the size that Hunk_Alloc(), called by Mod_Load*() from Mod_LoadBrushModel(),
+// will use (=> includes its padding), so we'll know how big the hunk needs to be
+static int calcLumpHunkSize(const lump_t *l, int inSize, int outSize)
+{
+	if (l->filelen % inSize)
+	{
+		// Mod_Load*() will error out on this because of "funny size"
+		// don't error out here because in Mod_Load*() it can print the functionname
+		// (=> tells us what kind of lump) before shutting down the game
+		return 0;
+	}
+
+	int count = l->filelen / inSize;
+	int size = count * outSize;
+
+	// round to cacheline, like Hunk_Alloc() does
+	size = (size + 31) & ~31;
+	return size;
+}
+
 void
 Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 {
 	int i;
 	dheader_t *header;
 	mmodel_t *bm;
-
-	/* Because Quake II is is sometimes so ... "optimized" this
-	 * is going to be somewhat dirty. The map data contains indices
-	 * that we're converting into pointers. Yeah. No comments. The
-	 * indices are 32 bit long, they just encode the offset between
-	 * the hunks base address and the position in the hunk, so 32 bit
-	 * pointers should be enough. But let's play save, waste some
-	 * allocations and just take the plattforms pointer size instead
-	 * of relying on assumptions. */
-	loadmodel->extradata = Hunk_Begin(modfilelen * sizeof(void*));
-	loadmodel->type = mod_brush;
 
 	if (loadmodel != mod_known)
 	{
@@ -865,6 +949,26 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	{
 		((int *)header)[i] = LittleLong(((int *)header)[i]);
 	}
+
+	// calculate the needed hunksize from the lumps
+	int hunkSize = 0;
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VERTEXES], sizeof(dvertex_t), sizeof(mvertex_t));
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_EDGES], sizeof(dedge_t), sizeof(medge_t));
+	hunkSize += sizeof(medge_t) + 31; // for count+1 in Mod_LoadEdges()
+	float surfEdgeCount = header->lumps[LUMP_SURFEDGES].filelen/sizeof(int);
+	if(surfEdgeCount < MAX_MAP_SURFEDGES) // else it errors out later anyway
+		hunkSize += calcLumpHunkSize(&header->lumps[LUMP_SURFEDGES], sizeof(int), sizeof(int));
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LIGHTING], 1, 1);
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_PLANES], sizeof(dplane_t), sizeof(cplane_t)*2);
+	hunkSize += calcTexinfoAndFacesSize(&header->lumps[LUMP_FACES], &header->lumps[LUMP_TEXINFO]);
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFFACES], sizeof(short), sizeof(msurface_t *)); // yes, out is indeeed a pointer!
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VISIBILITY], 1, 1);
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFS], sizeof(dleaf_t), sizeof(mleaf_t));
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_NODES], sizeof(dnode_t), sizeof(mnode_t));
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(mmodel_t));
+
+	loadmodel->extradata = Hunk_Begin(hunkSize);
+	loadmodel->type = mod_brush;
 
 	/* load into heap */
 	Mod_LoadVertexes(&header->lumps[LUMP_VERTEXES]);
