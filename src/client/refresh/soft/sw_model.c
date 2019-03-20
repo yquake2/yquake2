@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // models are the only shared resource between a client and server running
 // on the same machine.
 
+#include <limits.h>
 #include "header/local.h"
 
 model_t	*loadmodel;
@@ -366,7 +367,7 @@ Mod_LoadVertexes (lump_t *l)
 	count = l->filelen / sizeof(*in);
 	out = Hunk_Alloc((count+8)*sizeof(*out));		// extra for skybox
 	/*
-	 * This patch fixes the problem where the games dumped core
+	 * Fix for the problem where the games dumped core
 	 * when changing levels.
 	 */
 	memset( out, 0, (count + 6) * sizeof( *out ) );
@@ -509,7 +510,7 @@ Mod_LoadTexinfo (lump_t *l)
 		if (next > 0)
 			out->next = loadmodel->texinfo + next;
 		/*
-		 * This patch fixes the problem where the game
+		 * Fix for the problem where the game
 		 * domed core when loading a new level.
 		 */
 		else {
@@ -550,8 +551,8 @@ CalcSurfaceExtents (msurface_t *s)
 	mtexinfo_t	*tex;
 	int		bmins[2], bmaxs[2];
 
-	mins[0] = mins[1] = 999999;
-	maxs[0] = maxs[1] = -99999;
+	mins[0] = mins[1] = INT_MAX; // Set maximum values for world range
+	maxs[0] = maxs[1] = INT_MIN; // Set minimal values for world range
 
 	tex = s->texinfo;
 

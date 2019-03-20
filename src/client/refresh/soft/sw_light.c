@@ -48,9 +48,9 @@ R_MarkLights (dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
 	splitplane = node->plane;
 	dist = DotProduct (light->origin, splitplane->normal) - splitplane->dist;
 
-	i=light->intensity;
-	if(i<0)
-		i=-i;
+	i = light->intensity;
+	if( i< 0)
+		i = -i;
 
 	if (dist > i)	// (dist > light->intensity)
 	{

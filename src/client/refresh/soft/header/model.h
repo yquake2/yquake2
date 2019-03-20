@@ -118,7 +118,7 @@ typedef struct msurface_s
 #define	CONTENTS_NODE	-1
 typedef struct mnode_s
 {
-// common with leaf
+	// common with leaf
 	int		contents;	// CONTENTS_NODE, to differentiate from leafs
 	int		visframe;	// node needs to be traversed if current
 

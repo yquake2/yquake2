@@ -411,7 +411,7 @@ R_ClipEdge (mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip)
 				// point 0 is unclipped
 				if (d1 >= 0)
 				{
-				// both points are unclipped
+					// both points are unclipped
 					continue;
 				}
 

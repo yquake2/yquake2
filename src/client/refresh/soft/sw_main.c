@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // sw_main.c
 #include <stdint.h>
+#include <limits.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
@@ -782,8 +783,8 @@ RotatedBBox (const vec3_t mins, const vec3_t maxs, vec3_t angles, vec3_t tmins, 
 
 	for (i=0 ; i<3 ; i++)
 	{
-		tmins[i] = 99999;
-		tmaxs[i] = -99999;
+		tmins[i] = INT_MAX; // Set maximum values for world range
+		tmaxs[i] = INT_MIN;  // Set minimal values for world range
 	}
 
 	AngleVectors (angles, forward, right, up);
@@ -1469,6 +1470,9 @@ static int RE_PrepareForWindow(void)
 	return flags;
 }
 
+// Declared in vid/header/ref.h
+refexport_t	re;
+
 /*
 ===============
 GetRefAPI
@@ -1477,8 +1481,6 @@ GetRefAPI
 Q2_DLL_EXPORTED refexport_t
 GetRefAPI(refimport_t imp)
 {
-	refexport_t	re;
-
 	memset(&re, 0, sizeof(refexport_t));
 	ri = imp;
 

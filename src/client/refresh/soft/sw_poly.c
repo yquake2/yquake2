@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #include <assert.h>
+#include <limits.h>
 #include "header/local.h"
 
 #define AFFINE_SPANLET_SIZE      16
@@ -48,7 +49,7 @@ static emitpoint_t	outverts[MAXWORKINGVERTS+3];
 
 static int	s_minindex, s_maxindex;
 
-static void R_DrawPoly(int iswater);
+static void R_DrawPoly(int iswater, espan_t *spans);
 
 /*
 ** R_DrawSpanletOpaque
@@ -1019,7 +1020,7 @@ R_ClipAndDrawPoly ( float alpha, int isturbulent, qboolean textured )
 	r_polydesc.nump = nump;
 	r_polydesc.pverts = outverts;
 
-	R_DrawPoly(isturbulent);
+	R_DrawPoly(isturbulent, vid_polygon_spans);
 }
 
 /*
@@ -1151,18 +1152,16 @@ R_PolygonCalculateGradients (void)
 */
 // iswater was qboolean. changed to support passing more flags
 static void
-R_DrawPoly(int iswater)
+R_DrawPoly(int iswater, espan_t *spans)
 {
 	int		i, nump;
 	float		ymin, ymax;
 	emitpoint_t	*pverts;
-	espan_t		*spans;
-	spans = vid_polygon_spans;
 
 	// find the top and bottom vertices, and make sure there's at least one scan to
 	// draw
-	ymin = 999999.9;
-	ymax = -999999.9;
+	ymin = INT_MAX; // Set maximum values for world range
+	ymax = INT_MIN; // Set minimal values for world range
 	pverts = r_polydesc.pverts;
 
 	for (i=0 ; i<r_polydesc.nump ; i++)
@@ -1198,8 +1197,8 @@ R_DrawPoly(int iswater)
 	pverts[nump] = pverts[0];
 
 	R_PolygonCalculateGradients();
-	R_PolygonScanLeftEdge(vid_polygon_spans);
-	R_PolygonScanRightEdge(vid_polygon_spans);
+	R_PolygonScanLeftEdge(spans);
+	R_PolygonScanRightEdge(spans);
 
 	R_PolygonDrawSpans(spans, iswater);
 }

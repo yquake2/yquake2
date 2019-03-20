@@ -174,6 +174,9 @@ R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
 	image_t	*image;
 	size_t	i, size, full_size;
 
+	if (!pic)
+		return NULL;
+
 	image = R_FindFreeImage();
 	if (strlen(name) >= sizeof(image->name))
 		ri.Sys_Error(ERR_DROP, "%s: '%s' is too long", __func__, name);

@@ -38,13 +38,9 @@ typedef enum {touchessolid, drawnode, nodrawnode} solidstate_t;
 #define MAX_BMODEL_VERTS	500	// 6K
 #define MAX_BMODEL_EDGES	1000	// 12K
 
-static mvertex_t	*pbverts;
-static bedge_t		*pbedges;
 static int		numbverts, numbedges;
 static mvertex_t	bverts[MAX_BMODEL_VERTS];
 static bedge_t		bedges[MAX_BMODEL_EDGES];
-
-static mvertex_t	*pfrontenter, *pfrontexit;
 
 //===========================================================================
 
@@ -157,12 +153,11 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 {
 	bedge_t		*psideedges[2], *pnextedge, *ptedge;
 	int		i, side, lastside;
-	float		frac;
 	mplane_t	*splitplane, tplane;
 	mvertex_t	*pvert, *plastvert, *ptvert;
 	mnode_t		*pn;
-	int		area;
 	qboolean	makeclippededge;
+	mvertex_t	*pfrontenter = bverts, *pfrontexit = bverts;
 
 	psideedges[0] = psideedges[1] = NULL;
 
@@ -206,13 +201,15 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 
 		if (side != lastside)
 		{
+			float	frac;
+
 			// clipped
 			if (numbverts >= MAX_BMODEL_VERTS)
 				return;
 
 			// generate the clipped vertex
 			frac = lastdist / (lastdist - dist);
-			ptvert = &pbverts[numbverts++];
+			ptvert = &bverts[numbverts++];
 			ptvert->position[0] = plastvert->position[0] +
 					frac * (pvert->position[0] -
 					plastvert->position[0]);
@@ -232,13 +229,13 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 				return;
 			}
 
-			ptedge = &pbedges[numbedges];
+			ptedge = &bedges[numbedges];
 			ptedge->pnext = psideedges[lastside];
 			psideedges[lastside] = ptedge;
 			ptedge->v[0] = plastvert;
 			ptedge->v[1] = ptvert;
 
-			ptedge = &pbedges[numbedges + 1];
+			ptedge = &bedges[numbedges + 1];
 			ptedge->pnext = psideedges[side];
 			psideedges[side] = ptedge;
 			ptedge->v[0] = ptvert;
@@ -267,7 +264,7 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 
 	// if anything was clipped, reconstitute and add the edges along the clip
 	// plane to both sides (but in opposite directions)
-	if (makeclippededge)
+	if (makeclippededge && pfrontexit != pfrontenter)
 	{
 		if (numbedges >= (MAX_BMODEL_EDGES - 2))
 		{
@@ -275,13 +272,13 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 			return;
 		}
 
-		ptedge = &pbedges[numbedges];
+		ptedge = &bedges[numbedges];
 		ptedge->pnext = psideedges[0];
 		psideedges[0] = ptedge;
 		ptedge->v[0] = pfrontexit;
 		ptedge->v[1] = pfrontenter;
 
-		ptedge = &pbedges[numbedges + 1];
+		ptedge = &bedges[numbedges + 1];
 		ptedge->pnext = psideedges[1];
 		psideedges[1] = ptedge;
 		ptedge->v[0] = pfrontenter;
@@ -308,6 +305,8 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 					{
 						if (r_newrefdef.areabits)
 						{
+							int	area;
+
 							area = ((mleaf_t *)pn)->area;
 							if (! (r_newrefdef.areabits[area>>3] & (1<<(area&7)) ) )
 								continue;		// not visible
@@ -337,12 +336,10 @@ Bmodel crosses multiple leafs
 void
 R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, mnode_t *topnode)
 {
-	int			i, j, lindex;
-	vec_t		dot;
+	int		i;
 	msurface_t	*psurf;
-	int			numsurfaces;
-	bedge_t		*pbedge;
-	medge_t		*pedge, *pedges;
+	int		numsurfaces;
+	medge_t		*pedges;
 
 	// FIXME: use bounding-box-based frustum clipping info?
 	psurf = &currentmodel->surfaces[currentmodel->firstmodelsurface];
@@ -352,6 +349,10 @@ R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *curre
 	for (i=0 ; i<numsurfaces ; i++, psurf++)
 	{
 		mplane_t *pplane;
+		bedge_t  *pbedge;
+		medge_t  *pedge;
+		vec_t    dot;
+		int      j;
 
 		// find which side of the node we are on
 		pplane = psurf->plane;
@@ -369,14 +370,14 @@ R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *curre
 		// clockwise winding
 		// FIXME: if edges and vertices get caches, these assignments must move
 		// outside the loop, and overflow checking must be done here
-		pbverts = bverts;
-		pbedges = bedges;
 		numbverts = numbedges = 0;
 		pbedge = &bedges[numbedges];
 		numbedges += psurf->numedges;
 
 		for (j=0 ; j<psurf->numedges ; j++)
 		{
+			int	lindex;
+
 			lindex = currentmodel->surfedges[psurf->firstedge+j];
 
 			if (lindex > 0)

@@ -65,7 +65,7 @@ typedef struct image_s
 	int		width, height;
 	qboolean	transparent;		// true if any 255 pixels in image
 	int		registration_sequence;  // 0 = free
-	byte		*pixels[NUM_MIPS];		// mip levels
+	byte		*pixels[NUM_MIPS];	// mip levels
 } image_t;
 
 

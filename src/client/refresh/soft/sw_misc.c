@@ -203,7 +203,7 @@ R_SetUpFrustumIndexes (void)
 			}
 		}
 
-	// FIXME: do just once at start
+		// FIXME: do just once at start
 		pfrustum_indexes[i] = pindex;
 		pindex += 6;
 	}
