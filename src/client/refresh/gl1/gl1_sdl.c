@@ -124,7 +124,7 @@ int RI_PrepareForWindow(void)
 
 	return SDL_WINDOW_OPENGL;
 }
- 
+
 /*
  * Enables or disabes the vsync.
  */
@@ -241,4 +241,28 @@ RI_ShutdownContext(void)
 			context = NULL;
 		}
 	}
+}
+
+/*
+ * Detect default desktop mode
+ */
+qboolean
+RI_GetDesktopMode(int *pwidth, int *pheight)
+{
+	// Declare display mode structure to be filled in.
+	SDL_DisplayMode current;
+
+	// We can't get desktop where we start, so use first desktop
+	if(SDL_GetDesktopDisplayMode(0, &current) != 0)
+	{
+		// In case of error...
+		R_Printf(PRINT_ALL, "Can't detect default desktop mode: %s\n",
+				SDL_GetError());
+		return false;
+	}
+	*pwidth = current.w;
+	*pheight = current.h;
+	R_Printf(PRINT_ALL, " %dx%dpx @ %dhz.\n",
+		current.w, current.h, current.refresh_rate);
+	return true;
 }

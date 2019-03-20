@@ -1767,6 +1767,30 @@ RE_EndFrame (void)
 }
 
 /*
+ * Detect current Mode
+ */
+qboolean
+SWimp_GetDesktopMode(int *pwidth, int *pheight)
+{
+	// Declare display mode structure to be filled in.
+	SDL_DisplayMode current;
+
+	// We can't get desktop where we start, so use first desktop
+	if(SDL_GetDesktopDisplayMode(0, &current) != 0)
+	{
+		// In case of error...
+		R_Printf(PRINT_ALL, "Can't detect default desktop mode: %s\n",
+				SDL_GetError());
+		return false;
+	}
+	*pwidth = current.w;
+	*pheight = current.h;
+	R_Printf(PRINT_ALL, " %dx%dpx @ %dhz.\n",
+		current.w, current.h, current.refresh_rate);
+	return true;
+}
+
+/*
 ** SWimp_SetMode
 */
 static rserr_t
@@ -1776,13 +1800,25 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 
 	R_Printf (PRINT_ALL, "setting mode %d:", mode );
 
-	if ((mode != -1) && !ri.Vid_GetModeInfo( pwidth, pheight, mode ) )
+	if ((mode >= 0) && !ri.Vid_GetModeInfo( pwidth, pheight, mode ) )
 	{
 		R_Printf( PRINT_ALL, " invalid mode\n" );
 		return rserr_invalid_mode;
 	}
 
-	R_Printf( PRINT_ALL, " %d %d\n", *pwidth, *pheight);
+	/* We trying to get resolution from desktop */
+	if (mode == -2)
+	{
+		if(!SWimp_GetDesktopMode(pwidth, pheight))
+		{
+			R_Printf( PRINT_ALL, " can't detect mode\n" );
+			return rserr_invalid_mode;
+		}
+	}
+	else
+	{
+		R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
+	}
 
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
 	{
