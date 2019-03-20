@@ -96,7 +96,7 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 	if (y <= -8)
 		return;	// totally off screen
 
-	if ( ( y + 8 ) > vid.height )	// PGM - status text was missing in sw...
+	if ( ( y + 8 ) > vid.height )	// status text was missing in sw...
 		return;
 
 	row = num>>4;

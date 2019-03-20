@@ -46,7 +46,7 @@ static qboolean	r_nearzionly;
 
 int		*sintable;
 int		*intsintable;
-int		*blanktable; // PGM
+int		*blanktable;
 
 static mvertex_t	r_leftenter, r_leftexit;
 static mvertex_t	r_rightenter, r_rightexit;

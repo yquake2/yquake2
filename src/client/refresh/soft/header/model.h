@@ -68,7 +68,7 @@ typedef struct mplane_s
 #define SURF_DRAWBACKGROUND	0x40
 #define SURF_DRAWSKYBOX		0x80	// sky box
 
-#define SURF_FLOW		0x100	//PGM
+#define SURF_FLOW		0x100
 
 typedef struct
 {

@@ -364,7 +364,7 @@ extern float	d_sdivzorigin, d_tdivzorigin, d_ziorigin;
 void D_DrawSpansPow2(espan_t *pspans);
 void D_DrawZSpans(espan_t *pspans);
 void TurbulentPow2(espan_t *pspan);
-void NonTurbulentPow2(espan_t *pspan); //PGM
+void NonTurbulentPow2(espan_t *pspan);
 
 surfcache_t *D_CacheSurface(const entity_t *currententity, msurface_t *surface, int miplevel);
 
@@ -387,7 +387,7 @@ extern int	r_drawnpolycount;
 
 extern int	*sintable;
 extern int	*intsintable;
-extern int	*blanktable; // PGM
+extern int	*blanktable;
 
 extern vec3_t	vup, base_vup;
 extern vec3_t	vpn, base_vpn;

@@ -148,9 +148,7 @@ cvar_t	*r_lightlevel;	//FIXME HACK
 static cvar_t	*vid_fullscreen;
 static cvar_t	*vid_gamma;
 
-//PGM
 static cvar_t	*r_lockpvs;
-//PGM
 
 // sw_vars.c
 
@@ -261,9 +259,7 @@ R_RegisterVariables (void)
 	vid_gamma->modified = true; // force us to rebuild the gamma table later
 	sw_overbrightbits->modified = true; // force us to rebuild palette later
 
-	//PGM
 	r_lockpvs = ri.Cvar_Get ("r_lockpvs", "0", 0);
-	//PGM
 }
 
 static void

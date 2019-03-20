@@ -1559,6 +1559,11 @@ static const char *idcredits[] = {
 	"Marty Stratton",
 	"Henk Hartong",
 	"",
+	"+Patches authors:"
+	"PGM",
+	"PMM",
+	"eliasm",
+	"",
 	"+YAMAGI QUAKE II BY",
 	"Yamagi Burmeister",
 	"Daniel Gibson",

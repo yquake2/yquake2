@@ -828,7 +828,7 @@ D_CalcGradients (msurface_t *pface)
 			((pface->texturemins[1] << SHIFT16XYZ) >> miplevel)
 			+ pface->texinfo->vecs[1][3]*t;
 
-	// PGM - changing flow speed for non-warping textures.
+	// changing flow speed for non-warping textures.
 	if (pface->texinfo->flags & SURF_FLOWING)
 	{
 		if(pface->texinfo->flags & SURF_WARP)
@@ -836,7 +836,6 @@ D_CalcGradients (msurface_t *pface)
 		else
 			sadjust += SHIFT16XYZ_MULT * (-128 * ( (r_newrefdef.time * 0.77) - (int)(r_newrefdef.time * 0.77) ));
 	}
-	// PGM
 
 	//
 	// -1 (-epsilon) so we never wander off the edge of the texture
@@ -902,13 +901,11 @@ D_TurbulentSurf(surf_t *s)
 	D_CalcGradients (pface);
 
 	//============
-	//PGM
 	// textures that aren't warping are just flowing. Use NonTurbulentPow2 instead
 	if(!(pface->texinfo->flags & SURF_WARP))
 		NonTurbulentPow2 (s->spans);
 	else
 		TurbulentPow2 (s->spans);
-	//PGM
 	//============
 
 	D_DrawZSpans (s->spans);

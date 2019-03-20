@@ -331,7 +331,6 @@ TurbulentPow2 (espan_t *pspan)
 }
 
 //====================
-//PGM
 /*
 =============
 NonTurbulentPow2 - this is for drawing scrolling textures. they're warping water textures
@@ -484,7 +483,7 @@ NonTurbulentPow2 (espan_t *pspan)
 
 	} while ((pspan = pspan->pnext) != NULL);
 }
-//PGM
+
 //====================
 
 // Enable custom filtering

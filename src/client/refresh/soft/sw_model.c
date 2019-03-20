@@ -365,14 +365,11 @@ Mod_LoadVertexes (lump_t *l)
 
 	count = l->filelen / sizeof(*in);
 	out = Hunk_Alloc((count+8)*sizeof(*out));		// extra for skybox
-        /*
-         * PATCH: eliasm
-         *
-         * This patch fixes the problem where the games dumped core
-         * when changing levels.
-         */
-        memset( out, 0, (count + 6) * sizeof( *out ) );
-        /* END OF PATCH */
+	/*
+	 * This patch fixes the problem where the games dumped core
+	 * when changing levels.
+	 */
+	memset( out, 0, (count + 6) * sizeof( *out ) );
 
 	loadmodel->vertexes = out;
 	loadmodel->numvertexes = count;
@@ -512,15 +509,12 @@ Mod_LoadTexinfo (lump_t *l)
 		if (next > 0)
 			out->next = loadmodel->texinfo + next;
 		/*
-		 * PATCH: eliasm
-		 *
 		 * This patch fixes the problem where the game
 		 * domed core when loading a new level.
 		 */
 		else {
 			out->next = NULL;
 		}
-		/* END OF PATCH */
 
 		Com_sprintf (name, sizeof(name), "textures/%s.wal", in->texture);
 		out->image = R_FindImage (name, it_wall);
@@ -683,7 +677,6 @@ Mod_LoadFaces (lump_t *l)
 		}
 
 		//==============
-		//PGM
 		// this marks flowing surfaces as turbulent, but with the new
 		// SURF_FLOW flag.
 		if (out->texinfo->flags & SURF_FLOWING)
@@ -696,7 +689,6 @@ Mod_LoadFaces (lump_t *l)
 			}
 			continue;
 		}
-		//PGM
 		//==============
 	}
 }
@@ -1339,9 +1331,7 @@ RE_RegisterModel (char *name)
 			pheader = (dmdl_t *)mod->extradata;
 			for (i=0 ; i<pheader->num_skins ; i++)
 				mod->skins[i] = R_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME, it_skin);
-			//PGM
 			mod->numframes = pheader->num_frames;
-			//PGM
 		}
 		else if (mod->type == mod_brush)
 		{
