@@ -1559,7 +1559,7 @@ static const char *idcredits[] = {
 	"Marty Stratton",
 	"Henk Hartong",
 	"",
-	"+Patches authors:",
+	"+PATCHES AUTHORS",
 	"PGM",
 	"PMM",
 	"eliasm",
