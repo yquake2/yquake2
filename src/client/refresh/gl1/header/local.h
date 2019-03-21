@@ -392,9 +392,4 @@ void RI_ShutdownContext(void);
  */
 void *RI_GetProcAddress (const char* proc);
 
-/*
- * Detect default desktop mode
- */
-qboolean RI_GetDesktopMode(int *pwidth, int *pheight);
-
 #endif

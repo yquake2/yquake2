@@ -1470,8 +1470,9 @@ static int RE_PrepareForWindow(void)
 	return flags;
 }
 
-// Declared in vid/header/ref.h
-refexport_t	re;
+// struct for save refexport callbacks, copy of re struct from main file
+// used different variable name for prevent confusion
+static refexport_t	refexport;
 
 /*
 ===============
@@ -1481,45 +1482,45 @@ GetRefAPI
 Q2_DLL_EXPORTED refexport_t
 GetRefAPI(refimport_t imp)
 {
-	memset(&re, 0, sizeof(refexport_t));
+	memset(&refexport, 0, sizeof(refexport_t));
 	ri = imp;
 
-	re.api_version = API_VERSION;
+	refexport.api_version = API_VERSION;
 
-	re.BeginRegistration = RE_BeginRegistration;
-	re.RegisterModel = RE_RegisterModel;
-	re.RegisterSkin = RE_RegisterSkin;
-	re.DrawFindPic = RE_Draw_FindPic;
-	re.SetSky = RE_SetSky;
-	re.EndRegistration = RE_EndRegistration;
+	refexport.BeginRegistration = RE_BeginRegistration;
+	refexport.RegisterModel = RE_RegisterModel;
+	refexport.RegisterSkin = RE_RegisterSkin;
+	refexport.DrawFindPic = RE_Draw_FindPic;
+	refexport.SetSky = RE_SetSky;
+	refexport.EndRegistration = RE_EndRegistration;
 
-	re.RenderFrame = RE_RenderFrame;
+	refexport.RenderFrame = RE_RenderFrame;
 
-	re.DrawGetPicSize = RE_Draw_GetPicSize;
+	refexport.DrawGetPicSize = RE_Draw_GetPicSize;
 
-	re.DrawPicScaled = RE_Draw_PicScaled;
-	re.DrawStretchPic = RE_Draw_StretchPic;
-	re.DrawCharScaled = RE_Draw_CharScaled;
-	re.DrawTileClear = RE_Draw_TileClear;
-	re.DrawFill = RE_Draw_Fill;
-	re.DrawFadeScreen = RE_Draw_FadeScreen;
+	refexport.DrawPicScaled = RE_Draw_PicScaled;
+	refexport.DrawStretchPic = RE_Draw_StretchPic;
+	refexport.DrawCharScaled = RE_Draw_CharScaled;
+	refexport.DrawTileClear = RE_Draw_TileClear;
+	refexport.DrawFill = RE_Draw_Fill;
+	refexport.DrawFadeScreen = RE_Draw_FadeScreen;
 
-	re.DrawStretchRaw = RE_Draw_StretchRaw;
+	refexport.DrawStretchRaw = RE_Draw_StretchRaw;
 
-	re.Init = RE_Init;
-	re.IsVSyncActive = RE_IsVsyncActive;
-	re.Shutdown = RE_Shutdown;
-	re.InitContext = RE_InitContext;
-	re.ShutdownContext = RE_ShutdownContext;
-	re.PrepareForWindow = RE_PrepareForWindow;
+	refexport.Init = RE_Init;
+	refexport.IsVSyncActive = RE_IsVsyncActive;
+	refexport.Shutdown = RE_Shutdown;
+	refexport.InitContext = RE_InitContext;
+	refexport.ShutdownContext = RE_ShutdownContext;
+	refexport.PrepareForWindow = RE_PrepareForWindow;
 
-	re.SetPalette = RE_SetPalette;
-	re.BeginFrame = RE_BeginFrame;
-	re.EndFrame = RE_EndFrame;
+	refexport.SetPalette = RE_SetPalette;
+	refexport.BeginFrame = RE_BeginFrame;
+	refexport.EndFrame = RE_EndFrame;
 
 	Swap_Init ();
 
-	return re;
+	return refexport;
 }
 
 /*
@@ -1765,30 +1766,6 @@ RE_EndFrame (void)
 }
 
 /*
- * Detect current Mode
- */
-qboolean
-SWimp_GetDesktopMode(int *pwidth, int *pheight)
-{
-	// Declare display mode structure to be filled in.
-	SDL_DisplayMode current;
-
-	// We can't get desktop where we start, so use first desktop
-	if(SDL_GetDesktopDisplayMode(0, &current) != 0)
-	{
-		// In case of error...
-		R_Printf(PRINT_ALL, "Can't detect default desktop mode: %s\n",
-				SDL_GetError());
-		return false;
-	}
-	*pwidth = current.w;
-	*pheight = current.h;
-	R_Printf(PRINT_ALL, " %dx%dpx @ %dhz.\n",
-		current.w, current.h, current.refresh_rate);
-	return true;
-}
-
-/*
 ** SWimp_SetMode
 */
 static rserr_t
@@ -1807,16 +1784,14 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 	/* We trying to get resolution from desktop */
 	if (mode == -2)
 	{
-		if(!SWimp_GetDesktopMode(pwidth, pheight))
+		if(!ri.GLimp_GetDesktopMode(pwidth, pheight))
 		{
 			R_Printf( PRINT_ALL, " can't detect mode\n" );
 			return rserr_invalid_mode;
 		}
 	}
-	else
-	{
-		R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
-	}
+
+	R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
 
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
 	{

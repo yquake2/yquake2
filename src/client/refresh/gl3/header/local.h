@@ -360,7 +360,6 @@ extern qboolean GL3_IsVsyncActive(void);
 extern void GL3_EndFrame(void);
 extern void GL3_SetVsync(void);
 extern void GL3_ShutdownContext(void);
-extern qboolean GL3_GetDesktopMode(int *pwidth, int *pheight);
 
 // gl3_misc.c
 extern void GL3_InitParticleTexture(void);

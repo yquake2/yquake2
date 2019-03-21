@@ -415,3 +415,38 @@ GLimp_GetRefreshRate(void)
 
 	return glimp_refreshRate;
 }
+
+/*
+ * Detect current desktop mode
+ */
+qboolean
+GLimp_GetDesktopMode(int *pwidth, int *pheight)
+{
+	// Declare display mode structure to be filled in.
+	SDL_DisplayMode mode;
+	int display_id = 0;
+
+	if (window)
+	{
+		display_id = SDL_GetWindowDisplayIndex(window);
+		if (display_id < 0)
+		{
+			// In case of error...
+			Com_Printf("Can't detect current desktop: %s\n",
+					SDL_GetError());
+			display_id = 0;
+		}
+	}
+
+	// We can't get desktop where we start, so use first desktop
+	if(SDL_GetDesktopDisplayMode(0, &mode) != 0)
+	{
+		// In case of error...
+		Com_Printf("Can't detect default desktop mode: %s\n",
+				SDL_GetError());
+		return false;
+	}
+	*pwidth = mode.w;
+	*pheight = mode.h;
+	return true;
+}

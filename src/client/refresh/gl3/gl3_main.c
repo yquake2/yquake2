@@ -340,16 +340,14 @@ SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 	/* We trying to get resolution from desktop */
 	if (mode == -2)
 	{
-		if(!GL3_GetDesktopMode(pwidth, pheight))
+		if(!ri.GLimp_GetDesktopMode(pwidth, pheight))
 		{
 			R_Printf( PRINT_ALL, " can't detect mode\n" );
 			return rserr_invalid_mode;
 		}
 	}
-	else
-	{
-		R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
-	}
+
+	R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
 
 
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
