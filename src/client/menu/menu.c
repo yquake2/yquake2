@@ -1560,8 +1560,6 @@ static const char *idcredits[] = {
 	"Henk Hartong",
 	"",
 	"+PATCHES AUTHORS",
-	"PGM",
-	"PMM",
 	"eliasm",
 	"",
 	"+YAMAGI QUAKE II BY",

@@ -37,6 +37,9 @@ cvar_t *vid_displayrefreshrate;
 int glimp_refreshRate = -1;
 
 static int last_flags = 0;
+static int last_display = 0;
+static int last_position_x = SDL_WINDOWPOS_UNDEFINED;
+static int last_position_y = SDL_WINDOWPOS_UNDEFINED;
 static SDL_Window* window = NULL;
 static qboolean initSuccessful = false;
 
@@ -45,9 +48,16 @@ static qboolean initSuccessful = false;
 static qboolean
 CreateSDLWindow(int flags, int w, int h)
 {
-	int windowPos = SDL_WINDOWPOS_UNDEFINED;
-
-	window = SDL_CreateWindow("Yamagi Quake II", windowPos, windowPos, w, h, flags);
+	window = SDL_CreateWindow("Yamagi Quake II",
+				  last_position_x, last_position_y,
+				  w, h, flags);
+	if (window)
+	{
+		/* save current display as default */
+		last_display = SDL_GetWindowDisplayIndex(window);
+		SDL_GetWindowPosition(window,
+				      &last_position_x, &last_position_y);
+	}
 
 	return window != NULL;
 }
@@ -136,6 +146,10 @@ ShutdownGraphics(void)
 {
 	if (window)
 	{
+		/* save current display as default */
+		last_display = SDL_GetWindowDisplayIndex(window);
+		SDL_GetWindowPosition(window,
+				      &last_position_x, &last_position_y);
 		/* cleanly ungrab input (needs window) */
 		GLimp_GrabInput(false);
 		SDL_DestroyWindow(window);
@@ -424,22 +438,24 @@ GLimp_GetDesktopMode(int *pwidth, int *pheight)
 {
 	// Declare display mode structure to be filled in.
 	SDL_DisplayMode mode;
-	int display_id = 0;
 
 	if (window)
 	{
-		display_id = SDL_GetWindowDisplayIndex(window);
-		if (display_id < 0)
-		{
-			// In case of error...
-			Com_Printf("Can't detect current desktop: %s\n",
-					SDL_GetError());
-			display_id = 0;
-		}
+		/* save current display as default */
+		last_display = SDL_GetWindowDisplayIndex(window);
+		SDL_GetWindowPosition(window,
+				      &last_position_x, &last_position_y);
+	}
+
+	if (last_display < 0)
+	{
+		// In case of error...
+		Com_Printf("Can't detect current desktop.\n");
+		last_display = 0;
 	}
 
 	// We can't get desktop where we start, so use first desktop
-	if(SDL_GetDesktopDisplayMode(0, &mode) != 0)
+	if(SDL_GetDesktopDisplayMode(last_display, &mode) != 0)
 	{
 		// In case of error...
 		Com_Printf("Can't detect default desktop mode: %s\n",
