@@ -1470,10 +1470,6 @@ static int RE_PrepareForWindow(void)
 	return flags;
 }
 
-// struct for save refexport callbacks, copy of re struct from main file
-// used different variable name for prevent confusion
-static refexport_t	refexport;
-
 /*
 ===============
 GetRefAPI
@@ -1482,6 +1478,10 @@ GetRefAPI
 Q2_DLL_EXPORTED refexport_t
 GetRefAPI(refimport_t imp)
 {
+	// struct for save refexport callbacks, copy of re struct from main file
+	// used different variable name for prevent confusion and cppcheck warnings
+	refexport_t	refexport;
+
 	memset(&refexport, 0, sizeof(refexport_t));
 	ri = imp;
 

@@ -77,7 +77,7 @@ smoothly scrolled off.
 void
 RE_Draw_CharScaled(int x, int y, int num, float scale)
 {
-	pixel_t	*dest;
+	pixel_t	*dest, *dest_max;
 	byte	*source;
 	int		drawline;
 	int		row, col, u, xpos, ypos, iscale;
@@ -109,6 +109,7 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 		drawline = 8;
 
 	dest = vid_buffer + y * vid.width + x;
+	dest_max = vid_buffer + vid.height * vid.width;
 
 	while (drawline--)
 	{
@@ -123,6 +124,12 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 					}
 			}
 			dest += vid.width;
+
+			// clipped last lines
+			if (dest >= dest_max)
+			{
+				return;
+			}
 		}
 		source += 128;
 	}
