@@ -583,6 +583,18 @@ GL3_Shutdown(void)
 	GL3_ShutdownContext();
 }
 
+// assumes gl3state.v[ab]o3D are bound
+// buffers and draws gl3_3D_vtx_t vertices
+// drawMode is something like GL_TRIANGLE_STRIP or GL_TRIANGLE_FAN or whatever
+void
+GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode)
+{
+	// TODO: do something more efficient, maybe with glMapBufferRange() + GL_MAP_UNSYNCHRONIZED_BIT
+	//       and glBindBufferRange()
+	glBufferData( GL_ARRAY_BUFFER, sizeof(gl3_3D_vtx_t)*numVerts, verts, GL_STREAM_DRAW );
+	glDrawArrays( drawMode, 0, numVerts );
+}
+
 static void
 GL3_DrawBeam(entity_t *e)
 {
@@ -658,8 +670,7 @@ GL3_DrawBeam(entity_t *e)
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STREAM_DRAW);
-	glDrawArrays( GL_TRIANGLE_STRIP, 0, NUM_BEAM_SEGS*4 );
+	GL3_BufferAndDraw3D(verts, NUM_BEAM_SEGS*4, GL_TRIANGLE_STRIP);
 
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
@@ -734,8 +745,7 @@ GL3_DrawSpriteModel(entity_t *e)
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
 
-	glBufferData(GL_ARRAY_BUFFER, 4*sizeof(gl3_3D_vtx_t), verts, GL_STREAM_DRAW);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	GL3_BufferAndDraw3D(verts, 4, GL_TRIANGLE_FAN);
 
 	if (alpha != 1.0F)
 	{
@@ -779,16 +789,14 @@ GL3_DrawNullModel(void)
 		{{16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0}, {0,0}, {0,0}}
 	};
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vtxA), vtxA, GL_STREAM_DRAW);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 6);
+	GL3_BufferAndDraw3D(vtxA, 6, GL_TRIANGLE_FAN);
 
 	gl3_3D_vtx_t vtxB[6] = {
 		{{0, 0, 16}, {0,0}, {0,0}},
 		vtxA[5], vtxA[4], vtxA[3], vtxA[2], vtxA[1]
 	};
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vtxB), vtxB, GL_STREAM_DRAW);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 6);
+	GL3_BufferAndDraw3D(vtxB, 6, GL_TRIANGLE_FAN);
 
 	gl3state.uni3DData.transModelMat4 = origModelMat;
 	GL3_UpdateUBO3D();
