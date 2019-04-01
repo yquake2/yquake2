@@ -261,29 +261,24 @@ Sys_ConsoleOutput(char *string)
 long long
 Sys_Microseconds(void)
 {
-	long long microseconds;
-	static long long uSecbase;
+	static LARGE_INTEGER freq = { 0 };
+	static LARGE_INTEGER base = { 0 };
 
-	FILETIME ft;
-	unsigned long long tmpres = 0;
-
-	GetSystemTimeAsFileTime(&ft);
-
-	tmpres |= ft.dwHighDateTime;
-	tmpres <<= 32;
-	tmpres |= ft.dwLowDateTime;
-
-	tmpres /= 10; // Convert to microseconds.
-	tmpres -= 11644473600000000ULL; // ...and to unix epoch.
-
-	microseconds = tmpres;
-
-	if (!uSecbase)
+    if (!freq.QuadPart)
 	{
-		uSecbase = microseconds - 1001ll;
+		QueryPerformanceFrequency(&freq);
 	}
 
-	return microseconds - uSecbase;
+	if (!base.QuadPart)
+	{
+		QueryPerformanceCounter(&base);
+		base.QuadPart -= 1001;
+	}
+
+	LARGE_INTEGER cur;
+	QueryPerformanceCounter(&cur);
+
+	return (cur.QuadPart - base.QuadPart) * 1000000 / freq.QuadPart;
 }
 
 int
