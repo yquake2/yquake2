@@ -390,9 +390,11 @@ int
 GLimp_GetRefreshRate(void)
 {
 
-	if (vid_displayrefreshrate->value > -1)
+	if (vid_displayrefreshrate->value > -1 ||
+			vid_displayrefreshrate->modified)
 	{
 		glimp_refreshRate = ceil(vid_displayrefreshrate->value);
+		vid_displayrefreshrate->modified = false;
 	}
 
 	if (glimp_refreshRate == -1)
