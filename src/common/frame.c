@@ -376,7 +376,7 @@ Qcommon_Init(int argc, char **argv)
 
 #ifndef DEDICATED_ONLY
 void
-Qcommon_Frame(int msec)
+Qcommon_Frame(int usec)
 {
 	// Used for the dedicated server console.
 	char *s;
@@ -478,11 +478,11 @@ Qcommon_Frame(int msec)
 	// Timing debug crap. Just for historical reasons.
 	if (fixedtime->value)
 	{
-		msec = (int)fixedtime->value;
+		usec = (int)fixedtime->value;
 	}
 	else if (timescale->value)
 	{
-		msec *= timescale->value;
+		usec *= timescale->value;
 	}
 
 
@@ -558,7 +558,7 @@ Qcommon_Frame(int msec)
 		static int renderframenum;
 
 		avgrenderframetime = 0;
-		renderframetimes[renderframenum] = msec;
+		renderframetimes[renderframenum] = usec;
 
 		for (int i = 0; i < 60; i++)
 		{
@@ -598,7 +598,7 @@ Qcommon_Frame(int msec)
 		static int packetframenum;
 
 		avgpacketframetime = 0;
-		packetframetimes[packetframenum] = msec;
+		packetframetimes[packetframenum] = usec;
 
 		for (int i = 0; i < 60; i++)
 		{
@@ -624,10 +624,10 @@ Qcommon_Frame(int msec)
 
 
 	// Calculate timings.
-	packetdelta += msec;
-	renderdelta += msec;
-	clienttimedelta += msec;
-	servertimedelta += msec;
+	packetdelta += usec;
+	renderdelta += usec;
+	clienttimedelta += usec;
+	servertimedelta += usec;
 
 	if (!cl_timedemo->value) {
 		if (cl_async->value) {
@@ -721,7 +721,7 @@ Qcommon_Frame(int msec)
 }
 #else
 void
-Qcommon_Frame(int msec)
+Qcommon_Frame(int usec)
 {
 	// For the dedicated server terminal console.
 	char *s;
@@ -764,11 +764,11 @@ Qcommon_Frame(int msec)
 	// Timing debug crap. Just for historical reasons.
 	if (fixedtime->value)
 	{
-		msec = (int)fixedtime->value;
+		usec = (int)fixedtime->value;
 	}
 	else if (timescale->value)
 	{
-		msec *= timescale->value;
+		usec *= timescale->value;
 	}
 
 
@@ -781,8 +781,8 @@ Qcommon_Frame(int msec)
 
 
 	// Calculate timings.
-	packetdelta += msec;
-	servertimedelta += msec;
+	packetdelta += usec;
+	servertimedelta += usec;
 
 
 	// Network frame time.
