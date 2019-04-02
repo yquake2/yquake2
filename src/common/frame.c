@@ -413,8 +413,8 @@ Qcommon_Frame(int msec)
 	qboolean packetframe = true;
 
 	/* A rendererframe runs the renderer, but not the
-	   client. The minimal interval is about 1000
-	   microseconds. */
+	   client or the server. The minimal interval is
+	   about 1000 microseconds. */
 	qboolean renderframe = true;
 
 	// Average time needed to process a render frame.
@@ -437,7 +437,7 @@ Qcommon_Frame(int msec)
 
 
 	/* In case of ERR_DROP we're jumping here. Don't know
-	   if that' really save but it seems to work. So leave
+	   if that's really save but it seems to work. So leave
 	   it alone. */
 	if (setjmp(abortframe))
 	{
@@ -498,10 +498,10 @@ Qcommon_Frame(int msec)
 	}
 
 
-	/* We can at maximum render 1000 frames, because the minimum
-	   frametime of the engine is 1 millisecond. And of course we
+	/* We can render 1000 frames at maximum, because the minimum
+	   frametime of the client is 1 millisecond. And of course we
 	   need to render something, the framerate can never be less
-	   then 1. Cap vid_maxfps between 999 and 1.a */
+	   then 1. Cap vid_maxfps between 1 and 999. */
 	if (vid_maxfps->value > 999 || vid_maxfps->value < 1)
 	{
 		Cvar_SetValue("vid_maxfps", 999);
@@ -521,7 +521,7 @@ Qcommon_Frame(int msec)
 	curtime = Sys_Milliseconds();
 
 
-	// Calculate target packet- and renderframerate.
+	// Calculate target and renderframerate.
 	if (R_IsVSyncActive())
 	{
 		rfps = GLimp_GetRefreshRate();
@@ -542,9 +542,10 @@ Qcommon_Frame(int msec)
 	   Add a security magin of 5%, e.g. 60fps * 0.95 = 57fps. */
 	pfps = (cl_maxfps->value > (rfps * 0.95)) ? floor(rfps * 0.95) : cl_maxfps->value;
 
+
 	/* Calculate average time spend to process a render
 	   frame. This is highly depended on the GPU and the
-	   scenes complexity. Take last 60 render frames
+	   scenes complexity. Take the last 60 render frames
 	   into account and add a security margin of 1%.
 
 	   Note: We don't take only pure render frames, but
@@ -583,7 +584,7 @@ Qcommon_Frame(int msec)
 
 	/* Calculate the average time spend to process a packet
 	   frame. Packet frames are mostly dependend on the CPU
-	   speed and the network delay. Take the last packet
+	   speed and the network delay. Take the last 60 packet
 	   frames into account and add a security margin of 1%.
 
 	   Note: Like with the render frames we take all packet
@@ -630,7 +631,7 @@ Qcommon_Frame(int msec)
 
 	if (!cl_timedemo->value) {
 		if (cl_async->value) {
-			// Network frames..
+			// Network frames.
 			if (packetdelta < ((1000000.0f + avgpacketframetime) / pfps)) {
 				packetframe = false;
 			}
