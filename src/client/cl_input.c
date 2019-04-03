@@ -60,6 +60,7 @@ kbutton_t in_left, in_right, in_forward, in_back;
 kbutton_t in_lookup, in_lookdown, in_moveleft, in_moveright;
 kbutton_t in_strafe, in_speed, in_use, in_attack;
 kbutton_t in_up, in_down;
+kbutton_t in_weaponselector;
 
 int in_impulse;
 
@@ -192,6 +193,18 @@ IN_KLookDown(void)
 
 void
 IN_KLookUp(void)
+{
+	KeyUp(&in_klook);
+}
+
+void
+IN_WeaponSelectorDown(void)
+{
+	KeyDown(&in_weaponselector);
+}
+
+void
+IN_WeaponSelectoUp(void)
 {
 	KeyUp(&in_klook);
 }
@@ -627,6 +640,8 @@ CL_InitInput(void)
 	Cmd_AddCommand("impulse", IN_Impulse);
 	Cmd_AddCommand("+klook", IN_KLookDown);
 	Cmd_AddCommand("-klook", IN_KLookUp);
+	Cmd_AddCommand("+weaponselector", IN_WeaponSelectorDown);
+	Cmd_AddCommand("-weaponselector", IN_WeaponSelectoUp);
 
 	cl_nodelta = Cvar_Get("cl_nodelta", "0", 0);
 }

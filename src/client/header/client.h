@@ -455,6 +455,7 @@ typedef struct
 extern	kbutton_t	in_mlook, in_klook;
 extern 	kbutton_t 	in_strafe;
 extern 	kbutton_t 	in_speed;
+extern	kbutton_t	in_weaponselector;
 
 void CL_InitInput (void);
 void CL_RefreshCmd(void);

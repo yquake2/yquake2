@@ -1104,8 +1104,27 @@ Key_Event(int key, qboolean down, qboolean special)
 	}
 
 	/* Special binding for walking through weapons using a controller */
-	if(down && keydown[K_JOY6])
+
+	// This is a bit ugly, but perhaps needed if we want to allow the key to be rebinded?
+	// we simply need to re-iterate the list and locate the key for +weaponselector
+	// Or is there some smarter way of doing this that I am missing?
+	int keyWeaponSelector = -1;	
+	for(int i = 0; i < K_LAST; i++)
 	{
+		if(keybindings[i] && Q_stricmp(keybindings[i], "+weaponselector") == 0)
+		{
+			keyWeaponSelector = i;
+		}
+	}
+	if(down && keyWeaponSelector > 0 && keydown[keyWeaponSelector])
+	{
+		// For testing, udalit pashalsta
+		if(key == 'm')
+		{
+			Cbuf_AddText("use Grenade Launcher\n");
+			return;
+		}
+
 		if(key == K_HAT_LEFT)
 		{
 			Cbuf_AddText("use Grenade Launcher\n");
