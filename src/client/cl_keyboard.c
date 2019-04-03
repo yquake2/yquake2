@@ -1103,6 +1103,31 @@ Key_Event(int key, qboolean down, qboolean special)
 		return;
 	}
 
+	/* Special binding for walking through weapons using a controller */
+	if(down && keydown[K_JOY6])
+	{
+		if(key == K_HAT_LEFT)
+		{
+			Cbuf_AddText("use Grenade Launcher\n");
+			return;
+		}
+		if(key == K_HAT_UP)
+		{
+			Cbuf_AddText("use Rocket Launcher\n");
+			return;
+		}
+		if(key == K_HAT_RIGHT)
+		{
+			Cbuf_AddText("use HyperBlaster\n");
+			return;
+		}
+		if(key == K_HAT_DOWN)
+		{
+			Cbuf_AddText("use Railgun\n");
+			return;
+		}
+	}	
+
 	/* Key is unbound */
 	if ((key >= K_MOUSE1 && key != K_JOY_BACK) && !keybindings[key] && (cls.key_dest != key_console))
 	{
