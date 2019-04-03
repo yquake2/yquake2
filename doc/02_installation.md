@@ -1,8 +1,7 @@
 # Installation
 
-This guide shows how to install Yamagi Quake II from scratch. All
-fully supported platforms and both the full version and the demo
-version are covered.
+This guide shows how to install Yamagi Quake II from scratch. All fully
+supported platforms, both the full and the demo version are covered.
 
 
 ## The Full Version
@@ -16,7 +15,7 @@ Over the years Quake II was distributed in a myriad of ways:
 * etc.
 
 Yamagi Quake II is compatible with all of these versions. While some of
-these versions come with all patches applied it's highly recommended to
+these versions come with all patches applied, it's highly recommended to
 follow this guide step by step and to reapply the patch by hand. Not all
 distributors patched the game correctly, leading to serve problems like
 missing assets or even crashes.
@@ -130,7 +129,7 @@ just *music/*, next to *baseq2/*. **Not** inside *baseq2/*.
 ### Alternate Startup Configuration
 
 Yamagi Quake II ships with an alternative startup config that overrides
-some gloibal settings to saner defaults. To use is copy *stuff/yq2.cfg*
+some global settings to saner defaults. To use is copy *stuff/yq2.cfg*
 into the *baseq2/* directory.
 
 
@@ -208,8 +207,9 @@ system. The gamedata is searched at:
   commandline argument.
 - In *$HOME/.yq2*
 
-If you're a package maintainer, please look at our documentation at
-the [Packaging Guide](05_packaging.md)
+If you're a package maintainer, please look at our packaging guide at
+the [Packaging Guide](05_packaging.md).
+
 
 ## Compiling from source
 
@@ -220,7 +220,7 @@ To compile Yamagi Quake II from source the following dependencies
 * A LibGL implementation with system headers.
 * An OpenAL implementation, *openal-soft* is highly recommended.
 * SDL 2.0.
-* libcurl
+* libcurl.
 
 While Yamagi Quake II ships with an CMakeFile.txt using the GNU Makefile
 for release builds is recommended. The GNU Makefile offers more options
@@ -233,9 +233,10 @@ On Windows a MinGW environment is needed. A preconfigured environment
 with all necessary dependencies and compatibles compilers can be found
 at: https://deponie.yamagi.org/quake2/windows/build/
 
-The environment must be extracted into *C:\MSYS2\* (other directory will
-likely work but are unsupported). Either the 32 bit version can be
-started through *C:\MSYS2\msys32.exe* or the 64 bit version through
+The environment must be extracted into *C:\MSYS2\*. Other directores
+will likely work, but are unsupported. So don't complain if you
+experience problems. Either the 32 bit version can be started through
+*C:\MSYS2\msys32.exe* or the 64 bit version through
 *C:\MSYS2\msys64.exe*.
 
 At this time Yamagi Quake II can't be compiled with Microsoft Visual
@@ -252,7 +253,7 @@ The build dependencies can be installed with:
 * On MacOS the dependencies can be installed with Homebrew (from
   https://brew.sh): `brew install sdl2 openal-soft`
 
-Other distributions or platforms often have package names similar to the
+Other distributions or platforms often have package named similar to the
 Debian or FreeBSD packages.
 
 
@@ -261,7 +262,7 @@ Debian or FreeBSD packages.
 Download the latest release from https://www.yamagi.org/quake2 or clone
 the source from https://github.com/yquake2/yquake2.git, change into the
 *yquake2/* source directory and type *make* (Linux, MacOS and Windows)
-or *gmake* (FreeBSD). After the build finished copy everything from the
+or *gmake* (FreeBSD). After the build finished, copy everything from the
 *release/* directory to the Yamagi Quake II installation directory.
 
 For the addons download or clone their source, change into the source

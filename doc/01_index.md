@@ -9,10 +9,10 @@ Some general hints:
 * No matter what's the current keyboard layout or on which platform the
   game is running, the console is always opened and closed by pressing
   **Left Shift + Escape**.
-* Yamagi Quake II saves its configuration, savegames and screenshots
-  to *~/.yq2* (unixoid platforms) or *My Documents\YamagiQ2* (Windows).
-  If Yamagi Quake II is started with the `-portable` switch all data
-  is saved in the same directory as the executables.
+* Yamagi Quake II saves its configuration, savegames and screenshots to
+  *~/.yq2/* (unixoid platforms) or *My Documents\YamagiQ2\* (Windows).
+  If Yamagi Quake II is started with the `-portable` switch all data is
+  saved in the same directory as the executables.
 
 The documentation is split into several documents:
 

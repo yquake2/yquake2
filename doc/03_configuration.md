@@ -11,23 +11,23 @@ with the defaults and the options that can be set through the menu.
 Yamagi Quake II ships with 3 renderers:
 
 * The **OpenGL 3.2** renderer: This renderer was developed for the needs
-  of modern hardware and is usually the best choice for OpenGL 3.2
-  capable graphics cards. It provides a very detailed look and feel,
+  of modern graphics hardware and is usually the best choice for OpenGL
+  3.2 capable graphics cards. It provides a very detailed look and feel,
   matching the dark and dirty atmosphere on Stroggos. The texturing
-  renderer of the OpenGL 3.2 renderer looks mostly the same on all GPU
-  drivers. The default lighting may be too bright or too dark, it can be
+  renderer looks mostly the same on all GPU drivers. Depending on the
+  display the default lighting may be too bright or too dark, it can be
   adjusted through the menu or through the *vid_gamma* cvar.
 * The **OpenGL 1.4** renderer: This is a slightly enhanced version of
-  the original OpenGL renderer shipped in 1997 with Quake II. It's
-  provided for older graphics cards, not able to run the OpenGL 3.2
+  the original OpenGL renderer shipped in 1997 with the retail release.
+  It's provided for older graphics cards, not able to run the OpenGL 3.2
   renderer. The OpenGL 1.4 renderer has some limitations. The look and
   feel is highly dependent on the GPU driver and the platforms OpenGL
   implementation, especially the texture rendering may vary to a wide
   margin. The global lighting may not be rendered correctly, especially
   liquids may be too dark or too bright.
 * The **Software** renderer: Shipped for historical reasons only.
-  Setting the OpenGL 3.2 renderer to match the software renderers looks
-  and feel is often the better choice since it's faster and provides
+  Setting the OpenGL 3.2 renderer to match the software renderers look
+  and feel is often the better choice, since it's faster and provides
   colored lighting. The software renderer may show some rendering errors
   on widescreen resolutions.
 
@@ -37,15 +37,15 @@ Yamagi Quake II ships with 3 renderers:
 Yamagi Quake II ships with 2 sound system:
 
 * The **OpenAL** sound system: This is the default and highly
-  recommended. It provides full surround sound support and even HRTF.
-  But also the plain stereo playback is much better then in the original
-  sound system. The setup is done mostly through OpenAL, have a look at
-  the documentation of your OpenAL library.
+  recommended. It provides full surround sound support and even HRTF for
+  headphones. But also the plain stereo playback is much better than in
+  the original sound system. The setup is done mostly through OpenAL,
+  have a look at the documentation of your OpenAL library.
 * The **SDL** sound system: This is the classic sound system, providing
   an experience like the original client. Set `s_openal` to `0` and
-  execute an `snd_restart` to activate it. The classic sound system
-  may be problematic on modern systems like Windows 10 or Linux with
-  Pulseaudio.
+  execute an `snd_restart` to activate it. The classic sound system may
+  be somewhat problematic on modern systems like Windows 10 or Linux
+  with Pulseaudio.
 
 
 ## Tuning for Precise Timings
@@ -62,9 +62,9 @@ network protocol and the whole look and feel depends on them. We can
 just try work around them.
 
 Additionally modern high resolution LCD displays are much more prone to
-tearing and missed frames then the low resolution CRT displays of the
-1990th. This is a big problem because precise timings and keeping the
-frame rate constant are at least partly mutual exclusive. So players
+tearing and missed frames than the low resolution CRT displays of the
+late 1990th. This is a big problem, because precise timings and keeping
+the frame rate constant are at least partly mutual exclusive. So players
 have the choice:
 
 * Keep an accurate frame rate, rendering exactly as many frames as the
@@ -89,27 +89,28 @@ the GPU driver and the preferences of the player.
   You'll never get precise timing and tearing- and / or micro stuttering
   free gameplay with busy waits switched off!
 * `r_vsync` can be set to `0`. Enabling the  vertical synchronization
-  allows the GPU driver to wait for the display, thus stealing time from
-  Yamagi Quake II. This stolen time is missing to the internal time
-  accounting, while Yamagi Quake II tries to determine how much time was
-  lost that's always an imprecise guess. Disabling vertical
-  synchronization will always cause tearing!
-* `cl_maxfps` must be set to a value lower than `vid_maxfps`. The margin
-  between the two values should be at least 3 frames per second, better
-  5 frames per second. Yamagi Quake II internally enforces a margin of
-  5%. If `cl_maxfps` is set too high (above 90) the good old 125hz bug
-  will trigger and the physics will be off. That may be desired.
+  allows the GPU driver to wait for the display, thus "stealing" time
+  from Yamagi Quake II. This stolen time may add some variance to the
+  internal timing. Disabling vertical synchronization will always cause
+  tearing!
+* `cl_maxfps` must be set to a value lower than the renderer frame rate.
+  With `r_vsync` set to 1 that's the display refresh rate and otherwise
+  the value of `vid_maxfps`. Yamagi Quake II enforces this restriction
+  with an margin of 5%. For example, if `r_vsync` is set to 1 on an 60hz
+  display 60 * 0.95 = 57 FPS. if `cl_maxfps` is set too high (above 90)
+  the famous 125hz bug will trigger and the physics will be off. That
+  may be desired.
 * `vid_displayrefreshrate` must be set to the framerate of the display.
   The default is `-1` which means autodetect. In most cases that's okay,
   but for precise timings it's a good idea to override the autodetected
   value and set the display refresh rate by hand. The displays EDID info
-  or the GPU driver may be lying. Only full numbers can be given. If
-  round up there's a risk for imprecise timing. When round down the risk
-  if micro stuttering increases.
-* When running with vertical synchronisation enabled `vid_maxfps` can be
-  set to any value higher then the display refresh rate. If the vertical
-  synchronisation is disabled `vid_maxfps` should be set to the desired
-  target frame rate.
+  or the GPU driver may be lying. Only full numbers can be given, e.g.
+  59 or 60 for a 59.95hz display. If round up there's a small risk for
+  imprecise timing. If round down micro stuttering may occure.
+* When running with vertical synchronisation enabled, `vid_maxfps` can
+  be set to any value higher than the display refresh rate. If the
+  vertical synchronisation is disabled `vid_maxfps` should be set to the
+  desired target frame rate.
 
 Putting it all together we come up with three so to say standard
 configurations that can be used as a baseline for experiments:
@@ -135,15 +136,15 @@ configurations that can be used as a baseline for experiments:
 
 And there's always the option to disable the asynchronous client all
 together by setting `cl_async` to `1`. In that case `cl_maxfps` and
-`vid_maxfps` are tight together, like in the original Quake II release
-each renderframe is a clientframe. With that both precise timings and
+`vid_maxfps` are tied together, just like with the original client each
+renderframe is also a clientframe. With that both precise timings and
 tearing / micro stuttering free rendering can be archieved by setting
 `cl_maxfps` to a value higher then the displays refresh rate and
-activating the vertical syncrhonization by setting `r_vsync` to `1`.
-But if `cl_maxfps` is set above about 90 frames per second the 125hz
-bug will trigger and the physics will be off. Additionally it will
-flood servers with packages, at least one package per frame. That may
-be considered abuse.
+activating the vertical synrchonization by setting `r_vsync` to `1`.
+But if `cl_maxfps` is set too high (about 90) second the 125hz bug will
+trigger and the physics will be off. Additionally it will flood servers
+with packages, at least one package per frame. That may be considered
+abuse.
 
 
 ## Getting a classic look and feel
@@ -216,15 +217,15 @@ support colored lighting.
 
 General cvars:
 
-* `cl_lights` set to `0` disables the dynamic lights.
-* `gl_texturemode` set to `GL_NEAREST_MIPMAP_LINEAR` disabled the
-  texture filtering, giving a nice pixel look.
+* `cl_lights` set to `0` disables the dynamic lightning.
+* `gl_texturemode` set to `GL_NEAREST_MIPMAP_LINEAR` disables the
+  texture filtering, giving a classic pixel look.
 
 The OpenGL 1.4 renderer:
 
 * `gl1_pointparameters`: When set to `0` the particles are rendered as
-  squares. May be already the case if the GPU driver doesn't support
-  point parameters.
+  blurry octagon. May be already the case if the GPU driver doesn't
+  support point parameters.
 
 The OpenGL 3.2 renderer:
 

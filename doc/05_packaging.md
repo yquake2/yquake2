@@ -35,7 +35,7 @@ but if it's not found in the binary directory, it will look for it in
 all directories that are also searched for game data.  This is for
 better compatibility with mods that might ship their own game.so.
 
-You can **just symlink the executables to a directory into the $PATH**,
+You can **just symlink the executables to a directory in the $PATH**,
 like */usr/bin/*. There's one exception to this rule: OpenBSD does not
 provide a way to get the executable path, so a wrapper script is needed.
 
