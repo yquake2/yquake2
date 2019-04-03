@@ -488,8 +488,14 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 					float distLightToPos = length(lightToPos);
 					float fact = max(0, intens - distLightToPos - 52);
 
+					// move the light source a bit further above the surface
+					// => helps if the lightsource is so close to the surface (e.g. grenades, rockets)
+					//    that the dot product below would return 0
+					// (light sources that are below the surface are filtered out by lightFlags)
+					lightToPos += passNormal*32.0;
+
 					// also factor in angle between light and point on surface
-					fact *= max(0, dot(passNormal, lightToPos/distLightToPos));
+					fact *= max(0, dot(passNormal, normalize(lightToPos)));
 
 
 					lmTex.rgb += dynLights[i].lightColor.rgb * fact * (1.0/256.0);
