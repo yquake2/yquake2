@@ -31,6 +31,11 @@
 
 static cvar_t *cfg_unbindall;
 
+static cvar_t *weaponselector_1;
+static cvar_t *weaponselector_2;
+static cvar_t *weaponselector_3;
+static cvar_t *weaponselector_4;
+
 /*
  * key up events are sent even if in console mode
  */
@@ -669,6 +674,29 @@ Key_KeynumToString(int keynum)
 	return "<UNKNOWN KEYNUM>";
 }
 
+/*
+	Returns the key bound to binding, if such a binding was found in keybindings,
+	else returns -1
+*/	
+int
+Key_BindingToKey(char* binding)
+{
+	int retValue = -1;
+	int i = 0;
+	qboolean found = false;
+	while(i < K_LAST && !found)
+	{
+		if(keybindings[i] && Q_stricmp(keybindings[i], binding) == 0)
+		{
+			retValue = i;
+			found = true;
+		}
+		i++;
+	}
+
+	return retValue;
+}
+
 void
 Key_SetBinding(int keynum, char *binding)
 {
@@ -988,6 +1016,11 @@ Key_Init(void)
 	/* register our variables */
 	cfg_unbindall = Cvar_Get("cfg_unbindall", "1", CVAR_ARCHIVE);
 
+	weaponselector_1 = Cvar_Get("weaponselector_weapon1", "Grenade Launcher", CVAR_ARCHIVE);
+	weaponselector_2 = Cvar_Get("weaponselector_weapon2", "Rocket Launcher", CVAR_ARCHIVE);
+	weaponselector_3 = Cvar_Get("weaponselector_weapon3", "HyperBlaster", CVAR_ARCHIVE);
+	weaponselector_4 = Cvar_Get("weaponselector_weapon4", "Railgun", CVAR_ARCHIVE);
+	
 	/* register our functions */
 	Cmd_AddCommand("bind", Key_Bind_f);
 	Cmd_AddCommand("unbind", Key_Unbind_f);
@@ -1103,47 +1136,67 @@ Key_Event(int key, qboolean down, qboolean special)
 		return;
 	}
 
-	/* Special binding for walking through weapons using a controller */
+	/*	Special binding for walking through weapons using a controller
+		
+		Use the regular binding mechanism to address first 4 weapons for
+		in config.cfg, ex:
+		bind HAT_LEFT "use Shotgun"
+		bind HAT_UP "use Super Shotgun"
+		bind HAT_RIGHT "use Shotgun"
+		bind HAT_DOWN "use Machinegun"
 
-	// This is a bit ugly, but perhaps needed if we want to allow the key to be rebinded?
-	// we simply need to re-iterate the list and locate the key for +weaponselector
-	// Or is there some smarter way of doing this that I am missing?
-	int keyWeaponSelector = -1;	
-	for(int i = 0; i < K_LAST; i++)
+		If player presses the "weaponselector" button, allow him
+		to reach an additional 4 weapons
+	*/		
+	int key_weaponselector = Key_BindingToKey("weaponselector");	
+	if(down && key_weaponselector > 0 && keydown[key_weaponselector])
 	{
-		if(keybindings[i] && Q_stricmp(keybindings[i], "+weaponselector") == 0)
+		cvar_t *weaponselector_current = NULL;
+		switch(key)
 		{
-			keyWeaponSelector = i;
-		}
-	}
-	if(down && keyWeaponSelector > 0 && keydown[keyWeaponSelector])
-	{
-		// For testing, udalit pashalsta
-		if(key == 'm')
-		{
-			Cbuf_AddText("use Grenade Launcher\n");
-			return;
+			case K_HAT_LEFT:
+				weaponselector_current = weaponselector_1;
+			break;
+
+			case K_HAT_UP:
+				weaponselector_current = weaponselector_2;
+			break;
+
+			case K_HAT_RIGHT:
+				weaponselector_current = weaponselector_3;
+			break;
+
+			case K_HAT_DOWN:
+				weaponselector_current = weaponselector_4;
+			break;
+
+			default:
+				weaponselector_current = NULL;
+			break;		
 		}
 
-		if(key == K_HAT_LEFT)
+		if(weaponselector_current)
 		{
-			Cbuf_AddText("use Grenade Launcher\n");
-			return;
-		}
-		if(key == K_HAT_UP)
-		{
-			Cbuf_AddText("use Rocket Launcher\n");
-			return;
-		}
-		if(key == K_HAT_RIGHT)
-		{
-			Cbuf_AddText("use HyperBlaster\n");
-			return;
-		}
-		if(key == K_HAT_DOWN)
-		{
-			Cbuf_AddText("use Railgun\n");
-			return;
+			const int use_weapon_cmd_length = 64;		
+			int max_weapon_name_length = use_weapon_cmd_length - 7; // leave space for "use " and "\n" and
+																	// null-terminating marker
+			char use_weapon_cmd[use_weapon_cmd_length];
+			memset(use_weapon_cmd, '\0', sizeof(char) * use_weapon_cmd_length);
+			strcpy(use_weapon_cmd, "use ");
+			
+			int weapon_name_length = strlen(weaponselector_current->string);
+			if(weapon_name_length < max_weapon_name_length)
+			{
+				strcpy(use_weapon_cmd + 4, weaponselector_current->string);
+				strcpy(use_weapon_cmd + 4 + weapon_name_length, "\n");
+				Cbuf_AddText(use_weapon_cmd);
+				return;
+			}
+			else
+			{
+				Com_Printf("'%s' weapon name to long, max length is %i\n", weaponselector_current->string, 
+																		max_weapon_name_length);
+			}						
 		}
 	}	
 

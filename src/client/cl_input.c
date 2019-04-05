@@ -198,15 +198,9 @@ IN_KLookUp(void)
 }
 
 void
-IN_WeaponSelectorDown(void)
+IN_WeaponSelector(void)
 {
-	KeyDown(&in_weaponselector);
-}
-
-void
-IN_WeaponSelectoUp(void)
-{
-	KeyUp(&in_klook);
+	
 }
 
 void
@@ -608,6 +602,7 @@ CL_InitInput(void)
 {
 	Cmd_AddCommand("centerview", IN_CenterView);
 	Cmd_AddCommand("force_centerview", IN_ForceCenterView);
+	Cmd_AddCommand("weaponselector", IN_WeaponSelector);
 
 	Cmd_AddCommand("+moveup", IN_UpDown);
 	Cmd_AddCommand("-moveup", IN_UpUp);
@@ -640,8 +635,6 @@ CL_InitInput(void)
 	Cmd_AddCommand("impulse", IN_Impulse);
 	Cmd_AddCommand("+klook", IN_KLookDown);
 	Cmd_AddCommand("-klook", IN_KLookUp);
-	Cmd_AddCommand("+weaponselector", IN_WeaponSelectorDown);
-	Cmd_AddCommand("-weaponselector", IN_WeaponSelectoUp);
 
 	cl_nodelta = Cvar_Get("cl_nodelta", "0", 0);
 }
