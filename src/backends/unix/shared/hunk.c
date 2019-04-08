@@ -97,6 +97,8 @@ Hunk_End(void)
 
 #if defined(__linux__)
 	n = (byte *)mremap(membase, maxhunksize, curhunksize + sizeof(size_t), 0);
+#elif defined(__NetBSD__)
+	n = (byte *)mremap(membase, maxhunksize, NULL, curhunksize + sizeof(size_t), 0);
 #else
  #ifndef round_page
  size_t page_size = sysconf(_SC_PAGESIZE);
