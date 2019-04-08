@@ -36,6 +36,12 @@ static cvar_t *weaponselector_2;
 static cvar_t *weaponselector_3;
 static cvar_t *weaponselector_4;
 
+static cvar_t *weaponselector_key_1;
+static cvar_t *weaponselector_key_2;
+static cvar_t *weaponselector_key_3;
+static cvar_t *weaponselector_key_4;
+
+
 /*
  * key up events are sent even if in console mode
  */
@@ -1020,6 +1026,11 @@ Key_Init(void)
 	weaponselector_2 = Cvar_Get("weaponselector_weapon2", "Rocket Launcher", CVAR_ARCHIVE);
 	weaponselector_3 = Cvar_Get("weaponselector_weapon3", "HyperBlaster", CVAR_ARCHIVE);
 	weaponselector_4 = Cvar_Get("weaponselector_weapon4", "Railgun", CVAR_ARCHIVE);
+
+	weaponselector_key_1 = Cvar_Get("weaponselector_key_1", "HAT_UP", CVAR_ARCHIVE);
+	weaponselector_key_2 = Cvar_Get("weaponselector_key_2", "HAT_UP", CVAR_ARCHIVE);
+	weaponselector_key_3 = Cvar_Get("weaponselector_key_3", "HAT_RIGHT", CVAR_ARCHIVE);
+	weaponselector_key_4 = Cvar_Get("weaponselector_key_4", "HAT_DOWN", CVAR_ARCHIVE);
 	
 	/* register our functions */
 	Cmd_AddCommand("bind", Key_Bind_f);
@@ -1152,6 +1163,26 @@ Key_Event(int key, qboolean down, qboolean special)
 	if(down && key_weaponselector > 0 && keydown[key_weaponselector])
 	{
 		cvar_t *weaponselector_current = NULL;
+		char* keyName = Key_KeynumToString(key);
+
+		if(strcmp(keyName, weaponselector_key_1->string) == 0)
+		{
+			weaponselector_current = weaponselector_1;
+		}
+		else if(strcmp(keyName, weaponselector_key_2->string) == 0)
+		{
+			weaponselector_current = weaponselector_2;
+		}
+		else if(strcmp(keyName, weaponselector_key_3->string) == 0)
+		{
+			weaponselector_current = weaponselector_3;
+		}
+		else if(strcmp(keyName, weaponselector_key_4->string) == 0)
+		{
+			weaponselector_current = weaponselector_4;
+		}
+
+		/*
 		switch(key)
 		{
 			case K_HAT_LEFT:
@@ -1174,6 +1205,7 @@ Key_Event(int key, qboolean down, qboolean special)
 				weaponselector_current = NULL;
 			break;		
 		}
+		*/
 
 		if(weaponselector_current)
 		{

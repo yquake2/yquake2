@@ -58,6 +58,7 @@ static void M_Menu_DMOptions_f(void);
 static void M_Menu_Video_f(void);
 static void M_Menu_Options_f(void);
 static void M_Menu_Keys_f(void);
+static void M_Menu_Keys_Alt_f(void);
 static void M_Menu_Quit_f(void);
 
 void M_Menu_Credits(void);
@@ -828,11 +829,24 @@ char *bindnames[][2] =
 };
 #define NUM_BINDNAMES (sizeof bindnames / sizeof bindnames[0])
 
+
+char *altKeyMenu[] =
+{
+    "weapon 1",
+    "weapon 2",
+    "weapon 3",
+    "weapon 4"
+};
+#define NUM_ALT_KEYS 4
+
 int keys_cursor;
 static int bind_grab;
 
 static menuframework_s s_keys_menu;
 static menuaction_s s_keys_actions[NUM_BINDNAMES];
+
+static menuframework_s s_keys_alt_menu;
+static menuaction_s s_keys_alt_actions[NUM_ALT_KEYS];
 
 static void
 M_UnbindCommand(char *command)
@@ -917,6 +931,8 @@ DrawKeyBindingFunc(void *self)
     menuaction_s *a = (menuaction_s *)self;
     float scale = SCR_GetMenuScale();
 
+
+
     M_FindKeysForCommand(bindnames[a->generic.localdata[0]][0], keys);
 
     if (keys[0] == -1)
@@ -948,6 +964,50 @@ DrawKeyBindingFunc(void *self)
 }
 
 static void
+DrawKeyBindingAltFunc(void *self)
+{
+    menuaction_s *a = (menuaction_s *)self;
+    float scale = SCR_GetMenuScale();
+
+	cvar_t *weaponselector_key_1 = Cvar_Get("weaponselector_key_1", "HAT_UP", CVAR_ARCHIVE);
+	cvar_t *weaponselector_key_2 = Cvar_Get("weaponselector_key_2", "HAT_UP", CVAR_ARCHIVE);
+	cvar_t *weaponselector_key_3 = Cvar_Get("weaponselector_key_3", "HAT_RIGHT", CVAR_ARCHIVE);
+	cvar_t *weaponselector_key_4 = Cvar_Get("weaponselector_key_4", "HAT_DOWN", CVAR_ARCHIVE);
+
+    char* name = NULL;
+
+    switch(a->generic.localdata[0])
+    {
+        case 0:
+            name = weaponselector_key_1->string;
+        break;
+
+        case 1:
+            name = weaponselector_key_2->string;
+        break;
+
+        case 2:
+            name = weaponselector_key_3->string;
+        break;
+
+        case 3:
+            name = weaponselector_key_4->string;
+        break;
+
+        default:
+            name = NULL;
+        break;
+    }
+
+    if(name)
+    {
+        Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
+                        a->generic.y + a->generic.parent->y, name);
+    }
+}
+
+
+static void
 KeyBindingFunc(void *self)
 {
     menuaction_s *a = (menuaction_s *)self;
@@ -963,6 +1023,13 @@ KeyBindingFunc(void *self)
     bind_grab = true;
 
     Menu_SetStatusBar(&s_keys_menu, "press a key or button for this action");
+}
+
+static void
+KeyBindingAltFunc(void *self)
+{
+    bind_grab = true;
+    Menu_SetStatusBar(&s_keys_alt_menu, "press a key or button for this action");
 }
 
 static void
@@ -992,10 +1059,45 @@ Keys_MenuInit(void)
 }
 
 static void
+Keys_MenuAltInit(void)
+{
+    int i;
+
+    s_keys_alt_menu.x = (int)(viddef.width * 0.50f);
+    s_keys_alt_menu.nitems = 0;
+    s_keys_alt_menu.cursordraw = KeyCursorDrawFunc;
+
+    // Add the 4 cvars that we control
+    for (i = 0; i < NUM_ALT_KEYS; i++)
+    {
+        s_keys_alt_actions[i].generic.type = MTYPE_ACTION;
+        s_keys_alt_actions[i].generic.flags = QMF_GRAYED;
+        s_keys_alt_actions[i].generic.x = 0;
+        s_keys_alt_actions[i].generic.y = (i * 9);
+        s_keys_alt_actions[i].generic.ownerdraw = DrawKeyBindingAltFunc;
+        s_keys_alt_actions[i].generic.localdata[0] = i;
+        s_keys_alt_actions[i].generic.name = altKeyMenu[i];
+
+        Menu_AddItem(&s_keys_alt_menu, (void *)&s_keys_alt_actions[i]);
+    }
+
+    Menu_SetStatusBar(&s_keys_alt_menu, "ENTER to change");
+    Menu_Center(&s_keys_alt_menu);
+}
+
+
+static void
 Keys_MenuDraw(void)
 {
     Menu_AdjustCursor(&s_keys_menu, 1);
     Menu_Draw(&s_keys_menu);
+}
+
+static void
+KeysAlt_MenuDraw(void)
+{
+    Menu_AdjustCursor(&s_keys_alt_menu, 1);
+    Menu_Draw(&s_keys_alt_menu);
 }
 
 static const char *
@@ -1035,11 +1137,82 @@ Keys_MenuKey(int key)
     }
 }
 
+static const char *
+Keys_MenuKeyAlt(int key)
+{
+    menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_keys_alt_menu);
+
+    if (bind_grab)
+    {
+        cvar_t *weaponselector_key_1 = Cvar_Get("weaponselector_key_1", "HAT_UP", CVAR_ARCHIVE);
+        cvar_t *weaponselector_key_2 = Cvar_Get("weaponselector_key_2", "HAT_UP", CVAR_ARCHIVE);
+        cvar_t *weaponselector_key_3 = Cvar_Get("weaponselector_key_3", "HAT_RIGHT", CVAR_ARCHIVE);
+        cvar_t *weaponselector_key_4 = Cvar_Get("weaponselector_key_4", "HAT_DOWN", CVAR_ARCHIVE); 
+
+        cvar_t *weaponselector_key_current = NULL;
+
+        switch(item->generic.localdata[0])
+        {
+            case 0:
+                weaponselector_key_current = weaponselector_key_1;
+            break;
+
+            case 1:
+                weaponselector_key_current = weaponselector_key_2;
+            break;
+
+            case 2:
+                weaponselector_key_current = weaponselector_key_3;
+            break;
+
+            case 3:
+                weaponselector_key_current = weaponselector_key_4;
+            break;
+
+            default:
+                weaponselector_key_current = NULL;
+            break;
+        }
+        
+        if(weaponselector_key_current)
+        {
+            if ((key != K_ESCAPE) && (key != '`'))
+            {
+                char cmd[1024];
+
+                Com_sprintf(cmd, sizeof(cmd), "set %s \"%s\"\n",
+                            weaponselector_key_current->name, Key_KeynumToString(key));
+                Cbuf_InsertText(cmd);
+            }
+        }
+
+        Menu_SetStatusBar(&s_keys_menu, "ENTER to change");
+        bind_grab = false;
+        return menu_out_sound;
+    }
+
+    switch (key)
+    {
+    case K_KP_ENTER:
+    case K_ENTER:
+        KeyBindingAltFunc(item);
+        return menu_in_sound;
+    default:
+        return Default_MenuKey(&s_keys_alt_menu, key);
+    }
+}
+
 static void
 M_Menu_Keys_f(void)
 {
     Keys_MenuInit();
     M_PushMenu(Keys_MenuDraw, Keys_MenuKey);
+}
+
+static void M_Menu_Keys_Alt_f(void)
+{
+    Keys_MenuAltInit();
+    M_PushMenu(KeysAlt_MenuDraw, Keys_MenuKeyAlt);   
 }
 
 /*
@@ -1049,6 +1222,7 @@ M_Menu_Keys_f(void)
 static menuframework_s s_options_menu;
 static menuaction_s s_options_defaults_action;
 static menuaction_s s_options_customize_options_action;
+static menuaction_s s_options_customize_options_alt_action;
 static menuslider_s s_options_sensitivity_slider;
 static menulist_s s_options_freelook_box;
 static menulist_s s_options_alwaysrun_box;
@@ -1079,6 +1253,12 @@ static void
 CustomizeControlsFunc(void *unused)
 {
     M_Menu_Keys_f();
+}
+
+static void
+CustomizeControlsAltFunc(void *unused)
+{
+    M_Menu_Keys_Alt_f();
 }
 
 static void
@@ -1401,15 +1581,21 @@ Options_MenuInit(void)
     s_options_customize_options_action.generic.name = "customize controls";
     s_options_customize_options_action.generic.callback = CustomizeControlsFunc;
 
+    s_options_customize_options_alt_action.generic.type = MTYPE_ACTION;
+    s_options_customize_options_alt_action.generic.x = 0;
+    s_options_customize_options_alt_action.generic.y = 150;
+    s_options_customize_options_alt_action.generic.name = "customize controls alt function";
+    s_options_customize_options_alt_action.generic.callback = CustomizeControlsAltFunc;
+
     s_options_defaults_action.generic.type = MTYPE_ACTION;
     s_options_defaults_action.generic.x = 0;
-    s_options_defaults_action.generic.y = 150;
+    s_options_defaults_action.generic.y = 160;
     s_options_defaults_action.generic.name = "reset defaults";
     s_options_defaults_action.generic.callback = ControlsResetDefaultsFunc;
 
     s_options_console_action.generic.type = MTYPE_ACTION;
     s_options_console_action.generic.x = 0;
-    s_options_console_action.generic.y = 160;
+    s_options_console_action.generic.y = 170;
     s_options_console_action.generic.name = "go to console";
     s_options_console_action.generic.callback = ConsoleFunc;
 
@@ -1432,6 +1618,7 @@ Options_MenuInit(void)
         Menu_AddItem(&s_options_menu, (void *)&s_options_haptic_slider);
 
     Menu_AddItem(&s_options_menu, (void *)&s_options_customize_options_action);
+    Menu_AddItem(&s_options_menu, (void *)&s_options_customize_options_alt_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_defaults_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_console_action);
 }
