@@ -425,7 +425,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	vec3_t up, right;
 	float scale;
 	byte color[4];
- 
+
 	GLfloat vtx[3*num_particles*3];
 	GLfloat tex[2*num_particles*3];
 	GLfloat clr[4*num_particles*3];
@@ -433,7 +433,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	unsigned int index_tex = 0;
 	unsigned int index_clr = 0;
 	unsigned int j;
- 
+
 	R_Bind(r_particletexture->texnum);
 	glDepthMask(GL_FALSE); /* no z buffering */
 	glEnable(GL_BLEND);
@@ -505,7 +505,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	glDisableClientState( GL_VERTEX_ARRAY );
 	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 	glDisableClientState( GL_COLOR_ARRAY );
- 
+
 	glDisable(GL_BLEND);
 	glColor4f(1, 1, 1, 1);
 	glDepthMask(1); /* back to normal Z buffering */
@@ -523,12 +523,12 @@ R_DrawParticles(void)
 		int i;
 		unsigned char color[4];
 		const particle_t *p;
- 
+
 		GLfloat vtx[3*r_newrefdef.num_particles];
 		GLfloat clr[4*r_newrefdef.num_particles];
 		unsigned int index_vtx = 0;
 		unsigned int index_clr = 0;
-  
+
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
 		glDisable(GL_TEXTURE_2D);
@@ -1285,10 +1285,20 @@ SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 
 	/* mode -1 is not in the vid mode table - so we keep the values in pwidth
 	   and pheight and don't even try to look up the mode info */
-	if ((mode != -1) && !ri.Vid_GetModeInfo(pwidth, pheight, mode))
+	if ((mode >= 0) && !ri.Vid_GetModeInfo(pwidth, pheight, mode))
 	{
 		R_Printf(PRINT_ALL, " invalid mode\n");
 		return rserr_invalid_mode;
+	}
+
+	/* We trying to get resolution from desktop */
+	if (mode == -2)
+	{
+		if(!ri.GLimp_GetDesktopMode(pwidth, pheight))
+		{
+			R_Printf( PRINT_ALL, " can't detect mode\n" );
+			return rserr_invalid_mode;
+		}
 	}
 
 	R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
@@ -1751,11 +1761,11 @@ R_DrawBeam(entity_t *e)
 	vec3_t direction, normalized_direction;
 	vec3_t start_points[NUM_BEAM_SEGS], end_points[NUM_BEAM_SEGS];
 	vec3_t oldorigin, origin;
- 
+
 	GLfloat vtx[3*NUM_BEAM_SEGS*4];
 	unsigned int index_vtx = 0;
 	unsigned int pointb;
- 
+
 	oldorigin[0] = e->oldorigin[0];
 	oldorigin[1] = e->oldorigin[1];
 	oldorigin[2] = e->oldorigin[2];

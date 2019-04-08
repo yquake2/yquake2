@@ -48,20 +48,16 @@ R_MarkLights (dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
 	splitplane = node->plane;
 	dist = DotProduct (light->origin, splitplane->normal) - splitplane->dist;
 
-	//=====
-	//PGM
-	i=light->intensity;
-	if(i<0)
-		i=-i;
-	//PGM
-	//=====
+	i = light->intensity;
+	if( i< 0)
+		i = -i;
 
-	if (dist > i)	// PGM (dist > light->intensity)
+	if (dist > i)	// (dist > light->intensity)
 	{
 		R_MarkLights (light, bit, node->children[0], r_dlightframecount);
 		return;
 	}
-	if (dist < -i)	// PGM (dist < -light->intensity)
+	if (dist < -i)	// (dist < -light->intensity)
 	{
 		R_MarkLights (light, bit, node->children[1], r_dlightframecount);
 		return;
@@ -289,7 +285,7 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 	int		smax, tmax;
 	mtexinfo_t	*tex;
 	dlight_t	*dl;
-	int		negativeLight;	//PGM
+	int		negativeLight;
 
 	surf = drawsurf->surf;
 	smax = (surf->extents[0]>>4)+1;
@@ -306,14 +302,12 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 		rad = dl->intensity;
 
 		//=====
-		//PGM
 		negativeLight = 0;
 		if(rad < 0)
 		{
 			negativeLight = 1;
 			rad = -rad;
 		}
-		//PGM
 		//=====
 
 		dist = DotProduct (dl->origin, surf->plane->normal) -
@@ -352,7 +346,6 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 					dist = td + (sd>>1);
 
 				//====
-				//PGM
 				if(!negativeLight)
 				{
 					if (dist < minlight)
@@ -365,7 +358,6 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 					if(*plightdest < minlight)
 						*plightdest = minlight;
 				}
-				//PGM
 				//====
 				plightdest ++;
 			}

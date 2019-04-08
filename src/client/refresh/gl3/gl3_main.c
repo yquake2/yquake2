@@ -331,13 +331,24 @@ SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 
 	/* mode -1 is not in the vid mode table - so we keep the values in pwidth
 	   and pheight and don't even try to look up the mode info */
-	if ((mode != -1) && !ri.Vid_GetModeInfo(pwidth, pheight, mode))
+	if ((mode >= 0) && !ri.Vid_GetModeInfo(pwidth, pheight, mode))
 	{
 		R_Printf(PRINT_ALL, " invalid mode\n");
 		return rserr_invalid_mode;
 	}
 
+	/* We trying to get resolution from desktop */
+	if (mode == -2)
+	{
+		if(!ri.GLimp_GetDesktopMode(pwidth, pheight))
+		{
+			R_Printf( PRINT_ALL, " can't detect mode\n" );
+			return rserr_invalid_mode;
+		}
+	}
+
 	R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
+
 
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
 	{

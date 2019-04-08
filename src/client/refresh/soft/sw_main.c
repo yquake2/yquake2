@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // sw_main.c
 #include <stdint.h>
+#include <limits.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
@@ -68,10 +69,10 @@ int	r_numallocatededges;
 int	r_numallocatedverts;
 int	r_numallocatedtriangles;
 float	r_aliasuvscale = 1.0;
-int	r_outofsurfaces;
-int	r_outofedges;
-int	r_outofverts;
-int	r_outoftriangles;
+qboolean	r_outofsurfaces;
+qboolean	r_outofedges;
+qboolean	r_outofverts;
+qboolean	r_outoftriangles;
 
 qboolean	r_dowarp;
 
@@ -148,9 +149,7 @@ cvar_t	*r_lightlevel;	//FIXME HACK
 static cvar_t	*vid_fullscreen;
 static cvar_t	*vid_gamma;
 
-//PGM
 static cvar_t	*r_lockpvs;
-//PGM
 
 // sw_vars.c
 
@@ -261,9 +260,7 @@ R_RegisterVariables (void)
 	vid_gamma->modified = true; // force us to rebuild the gamma table later
 	sw_overbrightbits->modified = true; // force us to rebuild palette later
 
-	//PGM
 	r_lockpvs = ri.Cvar_Get ("r_lockpvs", "0", 0);
-	//PGM
 }
 
 static void
@@ -379,6 +376,7 @@ R_ReallocateMapBuffers (void)
 		if (r_outofsurfaces)
 		{
 			r_cnumsurfs *= 2;
+			r_outofsurfaces = false;
 		}
 
 		if (r_cnumsurfs < NUMSTACKSURFACES)
@@ -413,6 +411,7 @@ R_ReallocateMapBuffers (void)
 		if (r_outofedges)
 		{
 			r_numallocatededges *= 2;
+			r_outofedges = false;
 		}
 
 		if (r_numallocatededges < NUMSTACKEDGES)
@@ -443,6 +442,7 @@ R_ReallocateMapBuffers (void)
 		if (r_outofverts)
 		{
 			r_numallocatedverts *= 2;
+			r_outofverts = false;
 		}
 
 		if (r_numallocatedverts < MAXALIASVERTS)
@@ -470,6 +470,7 @@ R_ReallocateMapBuffers (void)
 		if (r_outoftriangles)
 		{
 			r_numallocatedtriangles *= 2;
+			r_outoftriangles = false;
 		}
 
 		if (r_numallocatedtriangles < vid.height)
@@ -782,8 +783,8 @@ RotatedBBox (const vec3_t mins, const vec3_t maxs, vec3_t angles, vec3_t tmins, 
 
 	for (i=0 ; i<3 ; i++)
 	{
-		tmins[i] = 99999;
-		tmaxs[i] = -99999;
+		tmins[i] = INT_MAX; // Set maximum values for world range
+		tmaxs[i] = INT_MIN;  // Set minimal values for world range
 	}
 
 	AngleVectors (angles, forward, right, up);
@@ -1477,47 +1478,49 @@ GetRefAPI
 Q2_DLL_EXPORTED refexport_t
 GetRefAPI(refimport_t imp)
 {
-	refexport_t	re;
+	// struct for save refexport callbacks, copy of re struct from main file
+	// used different variable name for prevent confusion and cppcheck warnings
+	refexport_t	refexport;
 
-	memset(&re, 0, sizeof(refexport_t));
+	memset(&refexport, 0, sizeof(refexport_t));
 	ri = imp;
 
-	re.api_version = API_VERSION;
+	refexport.api_version = API_VERSION;
 
-	re.BeginRegistration = RE_BeginRegistration;
-	re.RegisterModel = RE_RegisterModel;
-	re.RegisterSkin = RE_RegisterSkin;
-	re.DrawFindPic = RE_Draw_FindPic;
-	re.SetSky = RE_SetSky;
-	re.EndRegistration = RE_EndRegistration;
+	refexport.BeginRegistration = RE_BeginRegistration;
+	refexport.RegisterModel = RE_RegisterModel;
+	refexport.RegisterSkin = RE_RegisterSkin;
+	refexport.DrawFindPic = RE_Draw_FindPic;
+	refexport.SetSky = RE_SetSky;
+	refexport.EndRegistration = RE_EndRegistration;
 
-	re.RenderFrame = RE_RenderFrame;
+	refexport.RenderFrame = RE_RenderFrame;
 
-	re.DrawGetPicSize = RE_Draw_GetPicSize;
+	refexport.DrawGetPicSize = RE_Draw_GetPicSize;
 
-	re.DrawPicScaled = RE_Draw_PicScaled;
-	re.DrawStretchPic = RE_Draw_StretchPic;
-	re.DrawCharScaled = RE_Draw_CharScaled;
-	re.DrawTileClear = RE_Draw_TileClear;
-	re.DrawFill = RE_Draw_Fill;
-	re.DrawFadeScreen = RE_Draw_FadeScreen;
+	refexport.DrawPicScaled = RE_Draw_PicScaled;
+	refexport.DrawStretchPic = RE_Draw_StretchPic;
+	refexport.DrawCharScaled = RE_Draw_CharScaled;
+	refexport.DrawTileClear = RE_Draw_TileClear;
+	refexport.DrawFill = RE_Draw_Fill;
+	refexport.DrawFadeScreen = RE_Draw_FadeScreen;
 
-	re.DrawStretchRaw = RE_Draw_StretchRaw;
+	refexport.DrawStretchRaw = RE_Draw_StretchRaw;
 
-	re.Init = RE_Init;
-	re.IsVSyncActive = RE_IsVsyncActive;
-	re.Shutdown = RE_Shutdown;
-	re.InitContext = RE_InitContext;
-	re.ShutdownContext = RE_ShutdownContext;
-	re.PrepareForWindow = RE_PrepareForWindow;
+	refexport.Init = RE_Init;
+	refexport.IsVSyncActive = RE_IsVsyncActive;
+	refexport.Shutdown = RE_Shutdown;
+	refexport.InitContext = RE_InitContext;
+	refexport.ShutdownContext = RE_ShutdownContext;
+	refexport.PrepareForWindow = RE_PrepareForWindow;
 
-	re.SetPalette = RE_SetPalette;
-	re.BeginFrame = RE_BeginFrame;
-	re.EndFrame = RE_EndFrame;
+	refexport.SetPalette = RE_SetPalette;
+	refexport.BeginFrame = RE_BeginFrame;
+	refexport.EndFrame = RE_EndFrame;
 
 	Swap_Init ();
 
-	return re;
+	return refexport;
 }
 
 /*
@@ -1772,13 +1775,23 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 
 	R_Printf (PRINT_ALL, "setting mode %d:", mode );
 
-	if ((mode != -1) && !ri.Vid_GetModeInfo( pwidth, pheight, mode ) )
+	if ((mode >= 0) && !ri.Vid_GetModeInfo( pwidth, pheight, mode ) )
 	{
 		R_Printf( PRINT_ALL, " invalid mode\n" );
 		return rserr_invalid_mode;
 	}
 
-	R_Printf( PRINT_ALL, " %d %d\n", *pwidth, *pheight);
+	/* We trying to get resolution from desktop */
+	if (mode == -2)
+	{
+		if(!ri.GLimp_GetDesktopMode(pwidth, pheight))
+		{
+			R_Printf( PRINT_ALL, " can't detect mode\n" );
+			return rserr_invalid_mode;
+		}
+	}
+
+	R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
 
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
 	{
@@ -1809,7 +1822,7 @@ SWimp_CreateRender(void)
 	edge_basespans = malloc((vid.width*2) * sizeof(espan_t));
 
 	// count of "out of items"
-	r_outofsurfaces = r_outofedges = r_outofverts = r_outoftriangles = 0;
+	r_outofsurfaces = r_outofedges = r_outofverts = r_outoftriangles = false;
 	// pointers to allocated buffers
 	finalverts = NULL;
 	r_edges = NULL;

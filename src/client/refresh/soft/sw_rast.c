@@ -46,7 +46,7 @@ static qboolean	r_nearzionly;
 
 int		*sintable;
 int		*intsintable;
-int		*blanktable; // PGM
+int		*blanktable;
 
 static mvertex_t	r_leftenter, r_leftexit;
 static mvertex_t	r_rightenter, r_rightexit;
@@ -411,7 +411,7 @@ R_ClipEdge (mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip)
 				// point 0 is unclipped
 				if (d1 >= 0)
 				{
-				// both points are unclipped
+					// both points are unclipped
 					continue;
 				}
 
@@ -548,14 +548,14 @@ R_RenderFace (entity_t *currententity, const model_t *currentmodel, msurface_t *
 	// skip out if no more surfs
 	if ((surface_p) >= surf_max)
 	{
-		r_outofsurfaces++;
+		r_outofsurfaces = true;
 		return;
 	}
 
 	// ditto if not enough edges left, or switch to auxedges if possible
 	if ((edge_p + fa->numedges + 4) >= edge_max)
 	{
-		r_outofedges += fa->numedges;
+		r_outofedges = true;
 		return;
 	}
 
@@ -755,14 +755,14 @@ R_RenderBmodelFace(entity_t *currententity, bedge_t *pedges, msurface_t *psurf)
 	// skip out if no more surfs
 	if (surface_p >= surf_max)
 	{
-		r_outofsurfaces++;
+		r_outofsurfaces = true;
 		return;
 	}
 
 	// ditto if not enough edges left, or switch to auxedges if possible
 	if ((edge_p + psurf->numedges + 4) >= edge_max)
 	{
-		r_outofedges += psurf->numedges;
+		r_outofedges = true;
 		return;
 	}
 

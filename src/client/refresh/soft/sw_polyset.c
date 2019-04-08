@@ -86,7 +86,6 @@ static void R_PolysetSetEdgeTable(void);
 static void R_RasterizeAliasPolySmooth(const entity_t *currententity);
 
 // ======================
-// PGM
 // 64 65 66 67 68 69 70 71   72 73 74 75 76 77 78 79
 static const byte irtable[256] = {
 	79, 78, 77, 76, 75, 74, 73, 72,		// black/white
@@ -129,7 +128,6 @@ static const byte irtable[256] = {
 	208, 208, 64, 64, 70, 71, 72, 64,		// mishmash1
 	66, 68, 70, 64, 65, 66, 67, 68};		// mishmash2
 
-// PGM
 // ======================
 
 /*
@@ -220,7 +218,7 @@ R_PushEdgesSpan(int u, int v, int count,
 	if (d_pedgespanpackage >= triangles_max)
 	{
 		// no space any more
-		r_outoftriangles++;
+		r_outoftriangles = true;
 		return;
 	}
 
@@ -698,12 +696,10 @@ R_PolysetDrawSpans8_Opaque (const entity_t *currententity, spanpackage_t *pspanp
 			{
 				if ((lzi >> SHIFT16XYZ) >= *lpz)
 				{
-					//PGM
 					if(r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags & RF_IR_VISIBLE)
 						*lpdest = ((byte *)vid_colormap)[irtable[*lptex]];
 					else
 						*lpdest = ((byte *)vid_colormap)[*lptex + (llight & 0xFF00)];
-					//PGM
 
 					*lpz = lzi >> SHIFT16XYZ;
 				}
@@ -891,7 +887,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 	if ((triangle_spans + initialrightheight) >= triangles_max)
 	{
 		// we dont have enough triangles for save full height
-		r_outoftriangles++;
+		r_outoftriangles = true;
 		return;
 	}
 	originalcount = triangle_spans[initialrightheight].count;
@@ -920,7 +916,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		if ((triangle_spans + initialrightheight + height) >= triangles_max)
 		{
 			// we dont have enough triangles for save full height
-			r_outoftriangles++;
+			r_outoftriangles = true;
 			return;
 		}
 		triangle_spans[initialrightheight + height].count = INT_MIN; // mark end of the spanpackages

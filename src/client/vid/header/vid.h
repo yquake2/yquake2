@@ -29,7 +29,7 @@
 
 #include "../../../common/header/common.h"
 
-// FIXME: Remove it, it's unused. 
+// FIXME: Remove it, it's unused.
 typedef struct vrect_s {
 	int				x,y,width,height;
 } vrect_t;
@@ -61,5 +61,6 @@ qboolean GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight);
 void GLimp_ShutdownGraphics(void);
 void GLimp_GrabInput(qboolean grab);
 int GLimp_GetRefreshRate(void);
+qboolean GLimp_GetDesktopMode(int *pwidth, int *pheight);
 
 #endif

@@ -65,7 +65,7 @@ typedef struct image_s
 	int		width, height;
 	qboolean	transparent;		// true if any 255 pixels in image
 	int		registration_sequence;  // 0 = free
-	byte		*pixels[NUM_MIPS];		// mip levels
+	byte		*pixels[NUM_MIPS];	// mip levels
 } image_t;
 
 
@@ -364,7 +364,7 @@ extern float	d_sdivzorigin, d_tdivzorigin, d_ziorigin;
 void D_DrawSpansPow2(espan_t *pspans);
 void D_DrawZSpans(espan_t *pspans);
 void TurbulentPow2(espan_t *pspan);
-void NonTurbulentPow2(espan_t *pspan); //PGM
+void NonTurbulentPow2(espan_t *pspan);
 
 surfcache_t *D_CacheSurface(const entity_t *currententity, msurface_t *surface, int miplevel);
 
@@ -387,7 +387,7 @@ extern int	r_drawnpolycount;
 
 extern int	*sintable;
 extern int	*intsintable;
-extern int	*blanktable; // PGM
+extern int	*blanktable;
 
 extern vec3_t	vup, base_vup;
 extern vec3_t	vpn, base_vpn;
@@ -516,10 +516,10 @@ extern	int	r_aliasblendcolor;
 
 extern float	aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
 
-extern int	r_outofsurfaces;
-extern int	r_outofedges;
-extern int	r_outofverts;
-extern int	r_outoftriangles;
+extern qboolean	r_outofsurfaces;
+extern qboolean	r_outofedges;
+extern qboolean	r_outofverts;
+extern qboolean	r_outoftriangles;
 
 extern mvertex_t	*r_pcurrentvertbase;
 

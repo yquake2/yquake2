@@ -35,19 +35,15 @@ RE_Draw_FindPic
 image_t *
 RE_Draw_FindPic (char *name)
 {
-	image_t	*image;
-
 	if (name[0] != '/' && name[0] != '\\')
 	{
 		char fullname[MAX_QPATH];
 
 		Com_sprintf (fullname, sizeof(fullname), "pics/%s.pcx", name);
-		image = R_FindImage (fullname, it_pic);
+		return R_FindImage (fullname, it_pic);
 	}
 	else
-		image = R_FindImage (name+1, it_pic);
-
-	return image;
+		return R_FindImage (name+1, it_pic);
 }
 
 
@@ -81,7 +77,7 @@ smoothly scrolled off.
 void
 RE_Draw_CharScaled(int x, int y, int num, float scale)
 {
-	pixel_t	*dest;
+	pixel_t	*dest, *dest_max;
 	byte	*source;
 	int		drawline;
 	int		row, col, u, xpos, ypos, iscale;
@@ -96,7 +92,7 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 	if (y <= -8)
 		return;	// totally off screen
 
-	if ( ( y + 8 ) > vid.height )	// PGM - status text was missing in sw...
+	if ( ( y + 8 ) > vid.height )	// status text was missing in sw...
 		return;
 
 	row = num>>4;
@@ -113,6 +109,7 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 		drawline = 8;
 
 	dest = vid_buffer + y * vid.width + x;
+	dest_max = vid_buffer + vid.height * vid.width;
 
 	while (drawline--)
 	{
@@ -127,6 +124,12 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 					}
 			}
 			dest += vid.width;
+
+			// clipped last lines
+			if (dest >= dest_max)
+			{
+				return;
+			}
 		}
 		source += 128;
 	}
