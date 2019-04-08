@@ -493,7 +493,7 @@ void
 VID_Init(void)
 {
 	// Console variables
-	vid_fullscreen = Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
+	vid_gamma = Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_renderer = Cvar_Get("vid_renderer", "gl1", CVAR_ARCHIVE);
 
