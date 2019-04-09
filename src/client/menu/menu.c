@@ -829,15 +829,6 @@ char *bindnames[][2] =
 };
 #define NUM_BINDNAMES (sizeof bindnames / sizeof bindnames[0])
 
-/*
-char *altKeyMenu[] =
-{
-    "weapon 1",
-    "weapon 2",
-    "weapon 3",
-    "weapon 4"
-};
-*/
 #define NUM_ALT_KEYS 7
 
 int keys_cursor;
