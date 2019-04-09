@@ -825,11 +825,11 @@ char *bindnames[][2] =
     {"invprev", "prev item"},
     {"invnext", "next item"},    
     {"cmd help", "help computer"},
-    {"weaponselector", "select weapon"},
+    {"altselector", "alternative button action"},
 };
 #define NUM_BINDNAMES (sizeof bindnames / sizeof bindnames[0])
 
-
+/*
 char *altKeyMenu[] =
 {
     "weapon 1",
@@ -837,7 +837,8 @@ char *altKeyMenu[] =
     "weapon 3",
     "weapon 4"
 };
-#define NUM_ALT_KEYS 4
+*/
+#define NUM_ALT_KEYS 7
 
 int keys_cursor;
 static int bind_grab;
@@ -969,29 +970,45 @@ DrawKeyBindingAltFunc(void *self)
     menuaction_s *a = (menuaction_s *)self;
     float scale = SCR_GetMenuScale();
 
-	cvar_t *weaponselector_key_1 = Cvar_Get("weaponselector_key_1", "HAT_UP", CVAR_ARCHIVE);
-	cvar_t *weaponselector_key_2 = Cvar_Get("weaponselector_key_2", "HAT_UP", CVAR_ARCHIVE);
-	cvar_t *weaponselector_key_3 = Cvar_Get("weaponselector_key_3", "HAT_RIGHT", CVAR_ARCHIVE);
-	cvar_t *weaponselector_key_4 = Cvar_Get("weaponselector_key_4", "HAT_DOWN", CVAR_ARCHIVE);
+	cvar_t *altselector_weapon1_key = Cvar_Get("altselector_weapon1_key", "HAT_LEFT", CVAR_ARCHIVE);
+	cvar_t *altselector_weapon2_key = Cvar_Get("altselector_weapon2_key", "HAT_UP", CVAR_ARCHIVE);
+	cvar_t *altselector_weapon3_key = Cvar_Get("altselector_weapon3_key", "HAT_RIGHT", CVAR_ARCHIVE);
+	cvar_t *altselector_weapon4_key = Cvar_Get("altselector_weapon4_key", "HAT_DOWN", CVAR_ARCHIVE);
+
+    cvar_t *altselector_invuse_key = Cvar_Get("altselector_invuse_key", "JOY1", CVAR_ARCHIVE);
+	cvar_t *altselector_invprev_key = Cvar_Get("altselector_invprev_key", "JOY3", CVAR_ARCHIVE);
+	cvar_t *altselector_invnext_key = Cvar_Get("altselector_invnext_key", "JOY4", CVAR_ARCHIVE);
 
     char* name = NULL;
 
     switch(a->generic.localdata[0])
     {
-        case 0:
-            name = weaponselector_key_1->string;
+        case 0: // Weapon 1
+            name = altselector_weapon1_key->string;
         break;
 
-        case 1:
-            name = weaponselector_key_2->string;
+        case 1: // Weapon 2
+            name = altselector_weapon2_key->string;
         break;
 
-        case 2:
-            name = weaponselector_key_3->string;
+        case 2: // Weapon 3
+            name = altselector_weapon3_key->string;
         break;
 
-        case 3:
-            name = weaponselector_key_4->string;
+        case 3: // Weapon 4
+            name = altselector_weapon4_key->string;
+        break;
+
+        case 4: // use item
+            name = altselector_invuse_key->string;
+        break;
+
+        case 5: // prev item
+            name = altselector_invprev_key->string;
+        break;
+
+        case 6: // next item
+            name = altselector_invnext_key->string;
         break;
 
         default:
@@ -999,10 +1016,15 @@ DrawKeyBindingAltFunc(void *self)
         break;
     }
 
-    if(name)
+    if(name && strlen(name) > 0)
     {
         Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
                         a->generic.y + a->generic.parent->y, name);
+    }
+    else
+    {
+        Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
+                        a->generic.y + a->generic.parent->y, "???");        
     }
 }
 
@@ -1067,7 +1089,20 @@ Keys_MenuAltInit(void)
     s_keys_alt_menu.nitems = 0;
     s_keys_alt_menu.cursordraw = KeyCursorDrawFunc;
 
-    // Add the 4 cvars that we control
+    const int nrWeapons = 4;
+	cvar_t *altselector_weapons[4]; 
+    altselector_weapons[0] = Cvar_Get("altselector_weapon1", "Grenade Launcher", CVAR_ARCHIVE);
+	altselector_weapons[1] = Cvar_Get("altselector_weapon2", "Rocket Launcher", CVAR_ARCHIVE);
+	altselector_weapons[2] = Cvar_Get("altselector_weapon3", "HyperBlaster", CVAR_ARCHIVE);
+	altselector_weapons[3] = Cvar_Get("altselector_weapon4", "Railgun", CVAR_ARCHIVE);
+    
+    char *inventoryActions[] =
+    {
+        "use item",
+        "prev item",
+        "next item"
+    };  
+
     for (i = 0; i < NUM_ALT_KEYS; i++)
     {
         s_keys_alt_actions[i].generic.type = MTYPE_ACTION;
@@ -1076,12 +1111,19 @@ Keys_MenuAltInit(void)
         s_keys_alt_actions[i].generic.y = (i * 9);
         s_keys_alt_actions[i].generic.ownerdraw = DrawKeyBindingAltFunc;
         s_keys_alt_actions[i].generic.localdata[0] = i;
-        s_keys_alt_actions[i].generic.name = altKeyMenu[i];
+        if(i < 4)
+        {
+            s_keys_alt_actions[i].generic.name = altselector_weapons[i]->string;
+        }
+        else
+        {
+            s_keys_alt_actions[i].generic.name = inventoryActions[i - nrWeapons];
+        }            
 
         Menu_AddItem(&s_keys_alt_menu, (void *)&s_keys_alt_actions[i]);
     }
 
-    Menu_SetStatusBar(&s_keys_alt_menu, "ENTER to change");
+    Menu_SetStatusBar(&s_keys_alt_menu, "ENTER to change, BACKSPACE to clear");
     Menu_Center(&s_keys_alt_menu);
 }
 
@@ -1137,6 +1179,61 @@ Keys_MenuKey(int key)
     }
 }
 
+
+static cvar_t*
+Get_Alt_Selector()
+{
+    menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_keys_alt_menu);
+    
+    cvar_t *altselector_weapon1_key = Cvar_Get("altselector_weapon1_key", "HAT_LEFT", CVAR_ARCHIVE);
+    cvar_t *altselector_weapon2_key = Cvar_Get("altselector_weapon2_key", "HAT_UP", CVAR_ARCHIVE);
+    cvar_t *altselector_weapon3_key = Cvar_Get("altselector_weapon3_key", "HAT_RIGHT", CVAR_ARCHIVE);
+    cvar_t *altselector_weapon4_key = Cvar_Get("altselector_weapon4_key", "HAT_DOWN", CVAR_ARCHIVE); 
+
+    cvar_t *altselector_invuse_key = Cvar_Get("altselector_invuse_key", "JOY1", CVAR_ARCHIVE);
+    cvar_t *altselector_invprev_key = Cvar_Get("altselector_invprev_key", "JOY3", CVAR_ARCHIVE);
+    cvar_t *altselector_invnext_key = Cvar_Get("altselector_invnext_key", "JOY4", CVAR_ARCHIVE);        
+
+    cvar_t *altselector_key_current = NULL;
+
+    switch(item->generic.localdata[0])
+    {
+        case 0: // Weapon 1
+            altselector_key_current = altselector_weapon1_key;
+        break;
+
+        case 1: // Weapon 2
+            altselector_key_current = altselector_weapon2_key;
+        break;
+
+        case 2: // Weapon 3
+            altselector_key_current = altselector_weapon3_key;
+        break;
+
+        case 3: // Weapon 4
+            altselector_key_current = altselector_weapon4_key;
+        break;
+
+        case 4: // use item
+            altselector_key_current = altselector_invuse_key;
+        break;
+
+        case 5: // prev item
+            altselector_key_current = altselector_invprev_key;
+        break;
+
+        case 6: // next item
+            altselector_key_current = altselector_invnext_key;
+        break;
+        
+        default:
+            altselector_key_current = NULL;
+        break;
+    }
+    
+    return altselector_key_current;
+}
+
 static const char *
 Keys_MenuKeyAlt(int key)
 {
@@ -1144,49 +1241,20 @@ Keys_MenuKeyAlt(int key)
 
     if (bind_grab)
     {
-        cvar_t *weaponselector_key_1 = Cvar_Get("weaponselector_key_1", "HAT_UP", CVAR_ARCHIVE);
-        cvar_t *weaponselector_key_2 = Cvar_Get("weaponselector_key_2", "HAT_UP", CVAR_ARCHIVE);
-        cvar_t *weaponselector_key_3 = Cvar_Get("weaponselector_key_3", "HAT_RIGHT", CVAR_ARCHIVE);
-        cvar_t *weaponselector_key_4 = Cvar_Get("weaponselector_key_4", "HAT_DOWN", CVAR_ARCHIVE); 
-
-        cvar_t *weaponselector_key_current = NULL;
-
-        switch(item->generic.localdata[0])
-        {
-            case 0:
-                weaponselector_key_current = weaponselector_key_1;
-            break;
-
-            case 1:
-                weaponselector_key_current = weaponselector_key_2;
-            break;
-
-            case 2:
-                weaponselector_key_current = weaponselector_key_3;
-            break;
-
-            case 3:
-                weaponselector_key_current = weaponselector_key_4;
-            break;
-
-            default:
-                weaponselector_key_current = NULL;
-            break;
-        }
-        
-        if(weaponselector_key_current)
+        cvar_t *altselector_key_current = Get_Alt_Selector();       
+        if(altselector_key_current)
         {
             if ((key != K_ESCAPE) && (key != '`'))
             {
                 char cmd[1024];
 
                 Com_sprintf(cmd, sizeof(cmd), "set %s \"%s\"\n",
-                            weaponselector_key_current->name, Key_KeynumToString(key));
+                            altselector_key_current->name, Key_KeynumToString(key));
                 Cbuf_InsertText(cmd);
             }
         }
 
-        Menu_SetStatusBar(&s_keys_menu, "ENTER to change");
+        Menu_SetStatusBar(&s_keys_alt_menu, "ENTER to change, BACKSPACE to clear");
         bind_grab = false;
         return menu_out_sound;
     }
@@ -1197,6 +1265,22 @@ Keys_MenuKeyAlt(int key)
     case K_ENTER:
         KeyBindingAltFunc(item);
         return menu_in_sound;
+    case K_BACKSPACE: /* delete bindings */
+    case K_DEL: /* delete bindings */
+    case K_KP_DEL:
+    {
+        cvar_t *altselector_key_current = Get_Alt_Selector();       
+        if(altselector_key_current)
+        {
+            char cmd[1024];
+
+            Com_sprintf(cmd, sizeof(cmd), "set %s \"\"\n",
+                        altselector_key_current->name, Key_KeynumToString(key));
+            Cbuf_InsertText(cmd);
+        }
+
+        return menu_out_sound;       
+    }
     default:
         return Default_MenuKey(&s_keys_alt_menu, key);
     }
@@ -1584,7 +1668,7 @@ Options_MenuInit(void)
     s_options_customize_options_alt_action.generic.type = MTYPE_ACTION;
     s_options_customize_options_alt_action.generic.x = 0;
     s_options_customize_options_alt_action.generic.y = 150;
-    s_options_customize_options_alt_action.generic.name = "customize controls alt function";
+    s_options_customize_options_alt_action.generic.name = "alternative button controls";
     s_options_customize_options_alt_action.generic.callback = CustomizeControlsAltFunc;
 
     s_options_defaults_action.generic.type = MTYPE_ACTION;

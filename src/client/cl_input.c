@@ -197,7 +197,7 @@ IN_KLookUp(void)
 }
 
 void
-IN_WeaponSelector(void)
+IN_AltSelector(void)
 {
 	
 }
@@ -601,7 +601,7 @@ CL_InitInput(void)
 {
 	Cmd_AddCommand("centerview", IN_CenterView);
 	Cmd_AddCommand("force_centerview", IN_ForceCenterView);
-	Cmd_AddCommand("weaponselector", IN_WeaponSelector);
+	Cmd_AddCommand("altselector", IN_AltSelector);
 
 	Cmd_AddCommand("+moveup", IN_UpDown);
 	Cmd_AddCommand("-moveup", IN_UpUp);

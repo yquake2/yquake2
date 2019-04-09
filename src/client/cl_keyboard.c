@@ -31,15 +31,20 @@
 
 static cvar_t *cfg_unbindall;
 
-static cvar_t *weaponselector_1;
-static cvar_t *weaponselector_2;
-static cvar_t *weaponselector_3;
-static cvar_t *weaponselector_4;
+static cvar_t *altselector_weapon1;
+static cvar_t *altselector_weapon2;
+static cvar_t *altselector_weapon3;
+static cvar_t *altselector_weapon4;
 
-static cvar_t *weaponselector_key_1;
-static cvar_t *weaponselector_key_2;
-static cvar_t *weaponselector_key_3;
-static cvar_t *weaponselector_key_4;
+static cvar_t *altselector_weapon1_key;
+static cvar_t *altselector_weapon2_key;
+static cvar_t *altselector_weapon3_key;
+static cvar_t *altselector_weapon4_key;
+
+static cvar_t *altselector_invuse_key;
+static cvar_t *altselector_invprev_key;
+static cvar_t *altselector_invnext_key;
+
 
 
 /*
@@ -1022,15 +1027,20 @@ Key_Init(void)
 	/* register our variables */
 	cfg_unbindall = Cvar_Get("cfg_unbindall", "1", CVAR_ARCHIVE);
 
-	weaponselector_1 = Cvar_Get("weaponselector_weapon1", "Grenade Launcher", CVAR_ARCHIVE);
-	weaponselector_2 = Cvar_Get("weaponselector_weapon2", "Rocket Launcher", CVAR_ARCHIVE);
-	weaponselector_3 = Cvar_Get("weaponselector_weapon3", "HyperBlaster", CVAR_ARCHIVE);
-	weaponselector_4 = Cvar_Get("weaponselector_weapon4", "Railgun", CVAR_ARCHIVE);
+	altselector_weapon1 = Cvar_Get("altselector_weapon1", "Grenade Launcher", CVAR_ARCHIVE);
+	altselector_weapon2 = Cvar_Get("altselector_weapon2", "Rocket Launcher", CVAR_ARCHIVE);
+	altselector_weapon3 = Cvar_Get("altselector_weapon3", "HyperBlaster", CVAR_ARCHIVE);
+	altselector_weapon4 = Cvar_Get("altselector_weapon4", "Railgun", CVAR_ARCHIVE);
 
-	weaponselector_key_1 = Cvar_Get("weaponselector_key_1", "HAT_UP", CVAR_ARCHIVE);
-	weaponselector_key_2 = Cvar_Get("weaponselector_key_2", "HAT_UP", CVAR_ARCHIVE);
-	weaponselector_key_3 = Cvar_Get("weaponselector_key_3", "HAT_RIGHT", CVAR_ARCHIVE);
-	weaponselector_key_4 = Cvar_Get("weaponselector_key_4", "HAT_DOWN", CVAR_ARCHIVE);
+	altselector_weapon1_key = Cvar_Get("altselector_weapon1_key", "HAT_LEFT", CVAR_ARCHIVE);
+	altselector_weapon2_key = Cvar_Get("altselector_weapon2_key", "HAT_UP", CVAR_ARCHIVE);
+	altselector_weapon3_key = Cvar_Get("altselector_weapon3_key", "HAT_RIGHT", CVAR_ARCHIVE);
+	altselector_weapon4_key = Cvar_Get("altselector_weapon4_key", "HAT_DOWN", CVAR_ARCHIVE);
+
+	altselector_invuse_key = Cvar_Get("altselector_invuse_key", "JOY1", CVAR_ARCHIVE);
+	altselector_invprev_key = Cvar_Get("altselector_invprev_key", "JOY3", CVAR_ARCHIVE);
+	altselector_invnext_key = Cvar_Get("altselector_invnext_key", "JOY4", CVAR_ARCHIVE);
+
 	
 	/* register our functions */
 	Cmd_AddCommand("bind", Key_Bind_f);
@@ -1083,6 +1093,82 @@ Char_Event(int key)
 			break;
 	}
 }
+
+qboolean
+Alt_Inventory_Selection(int key)
+{
+	qboolean retValue = false;
+	char* keyName = Key_KeynumToString(key);
+	if(strcmp(keyName, altselector_invuse_key->string) == 0)
+	{
+		Cbuf_AddText("invuse\n");
+		retValue = true;	
+	}
+	else if(strcmp(keyName, altselector_invprev_key->string) == 0)
+	{
+		Cbuf_AddText("invprev\n");
+		retValue = true;
+	}
+	else if(strcmp(keyName, altselector_invnext_key->string) == 0)
+	{
+		Cbuf_AddText("invnext\n");
+		retValue = true;
+	}
+
+	return retValue;
+}
+
+qboolean
+Alt_Weapon_Selection(int key)
+{
+	qboolean retValue = false;
+	cvar_t *altselector_weapon_current = NULL;
+	char* keyName = Key_KeynumToString(key);
+
+	if(strcmp(keyName, altselector_weapon1_key->string) == 0)
+	{
+		altselector_weapon_current = altselector_weapon1;
+	}
+	else if(strcmp(keyName, altselector_weapon2_key->string) == 0)
+	{
+		altselector_weapon_current = altselector_weapon2;
+	}
+	else if(strcmp(keyName, altselector_weapon3_key->string) == 0)
+	{
+		altselector_weapon_current = altselector_weapon3;
+	}
+	else if(strcmp(keyName, altselector_weapon4_key->string) == 0)
+	{
+		altselector_weapon_current = altselector_weapon4;
+	}
+
+	if(altselector_weapon_current)
+	{
+		const int use_weapon_cmd_length = 64;		
+		int max_weapon_name_length = use_weapon_cmd_length - 7; // leave space for "use " and "\n" and
+																// null-terminating marker
+		char use_weapon_cmd[use_weapon_cmd_length];
+		memset(use_weapon_cmd, '\0', sizeof(char) * use_weapon_cmd_length);
+		strcpy(use_weapon_cmd, "use ");
+		
+		int weapon_name_length = strlen(altselector_weapon_current->string);
+		if(weapon_name_length < max_weapon_name_length)
+		{
+			strcpy(use_weapon_cmd + 4, altselector_weapon_current->string);
+			strcpy(use_weapon_cmd + 4 + weapon_name_length, "\n");
+			Cbuf_AddText(use_weapon_cmd);
+			retValue = true;
+		}
+		else
+		{
+			Com_Printf("'%s' weapon name to long, max length is %i\n", altselector_weapon_current->string, 
+																	max_weapon_name_length);
+		}						
+	}
+
+	return retValue;	
+}
+
 
 /*
  * Called every frame for every detected keypress.
@@ -1147,8 +1233,11 @@ Key_Event(int key, qboolean down, qboolean special)
 		return;
 	}
 
-	/*	Special binding for walking through weapons using a controller
+	/*	Special binding for using a controller, using the "alternate" key
+		to give the player ability to cycle through weapons and inventory
+		with ease.
 		
+		Ex:
 		Use the regular binding mechanism to address first 4 weapons for
 		in config.cfg, ex:
 		bind HAT_LEFT "use Shotgun"
@@ -1156,79 +1245,21 @@ Key_Event(int key, qboolean down, qboolean special)
 		bind HAT_RIGHT "use Shotgun"
 		bind HAT_DOWN "use Machinegun"
 
-		If player presses the "weaponselector" button, allow him
+		If player presses the "alternate" button, allow him
 		to reach an additional 4 weapons
 	*/		
-	int key_weaponselector = Key_BindingToKey("weaponselector");	
-	if(down && key_weaponselector > 0 && keydown[key_weaponselector])
+	int key_altselector = Key_BindingToKey("altselector");	
+	if(down && key_altselector > 0 && keydown[key_altselector])
 	{
-		cvar_t *weaponselector_current = NULL;
-		char* keyName = Key_KeynumToString(key);
-
-		if(strcmp(keyName, weaponselector_key_1->string) == 0)
+		// First check if we tried to change weapon
+		if(Alt_Weapon_Selection(key))
 		{
-			weaponselector_current = weaponselector_1;
+			return;
 		}
-		else if(strcmp(keyName, weaponselector_key_2->string) == 0)
+		// Then check if we tried to use the inventory
+		else if(Alt_Inventory_Selection(key))
 		{
-			weaponselector_current = weaponselector_2;
-		}
-		else if(strcmp(keyName, weaponselector_key_3->string) == 0)
-		{
-			weaponselector_current = weaponselector_3;
-		}
-		else if(strcmp(keyName, weaponselector_key_4->string) == 0)
-		{
-			weaponselector_current = weaponselector_4;
-		}
-
-		/*
-		switch(key)
-		{
-			case K_HAT_LEFT:
-				weaponselector_current = weaponselector_1;
-			break;
-
-			case K_HAT_UP:
-				weaponselector_current = weaponselector_2;
-			break;
-
-			case K_HAT_RIGHT:
-				weaponselector_current = weaponselector_3;
-			break;
-
-			case K_HAT_DOWN:
-				weaponselector_current = weaponselector_4;
-			break;
-
-			default:
-				weaponselector_current = NULL;
-			break;		
-		}
-		*/
-
-		if(weaponselector_current)
-		{
-			const int use_weapon_cmd_length = 64;		
-			int max_weapon_name_length = use_weapon_cmd_length - 7; // leave space for "use " and "\n" and
-																	// null-terminating marker
-			char use_weapon_cmd[use_weapon_cmd_length];
-			memset(use_weapon_cmd, '\0', sizeof(char) * use_weapon_cmd_length);
-			strcpy(use_weapon_cmd, "use ");
-			
-			int weapon_name_length = strlen(weaponselector_current->string);
-			if(weapon_name_length < max_weapon_name_length)
-			{
-				strcpy(use_weapon_cmd + 4, weaponselector_current->string);
-				strcpy(use_weapon_cmd + 4 + weapon_name_length, "\n");
-				Cbuf_AddText(use_weapon_cmd);
-				return;
-			}
-			else
-			{
-				Com_Printf("'%s' weapon name to long, max length is %i\n", weaponselector_current->string, 
-																		max_weapon_name_length);
-			}						
+			return;
 		}
 	}	
 
