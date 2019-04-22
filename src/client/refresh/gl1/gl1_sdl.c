@@ -81,7 +81,7 @@ int RI_PrepareForWindow(void)
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	if (SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8) < 0)
+	if (SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8) == 0)
 	{
 		gl_state.stencil = true;
 	}
@@ -209,7 +209,7 @@ int RI_InitContext(void* win)
 
 	if (gl_state.stencil)
 	{
-		if (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits) != 8)
+		if (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits) < 0 || stencil_bits < 8)
 		{
 			gl_state.stencil = false;
 		}
