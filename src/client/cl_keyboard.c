@@ -147,6 +147,49 @@ keyname_t keynames[] = {
 	{"TRIG_LEFT", K_TRIG_LEFT},
 	{"TRIG_RIGHT", K_TRIG_RIGHT},
 
+	// virtual keys you get by pressing the corresponding normal joy key
+	// and the altselector key
+	{"JOY1_ALT", K_JOY1_ALT},
+	{"JOY2_ALT", K_JOY2_ALT},
+	{"JOY3_ALT", K_JOY3_ALT},
+	{"JOY4_ALT", K_JOY4_ALT},
+	{"JOY5_ALT", K_JOY5_ALT},
+	{"JOY6_ALT", K_JOY6_ALT},
+	{"JOY7_ALT", K_JOY7_ALT},
+	{"JOY8_ALT", K_JOY8_ALT},
+	{"JOY9_ALT", K_JOY9_ALT},
+	{"JOY10_ALT", K_JOY10_ALT},
+	{"JOY11_ALT", K_JOY11_ALT},
+	{"JOY12_ALT", K_JOY12_ALT},
+	{"JOY13_ALT", K_JOY13_ALT},
+	{"JOY14_ALT", K_JOY14_ALT},
+	{"JOY15_ALT", K_JOY15_ALT},
+	{"JOY16_ALT", K_JOY16_ALT},
+	{"JOY17_ALT", K_JOY17_ALT},
+	{"JOY18_ALT", K_JOY18_ALT},
+	{"JOY19_ALT", K_JOY19_ALT},
+	{"JOY20_ALT", K_JOY20_ALT},
+	{"JOY21_ALT", K_JOY21_ALT},
+	{"JOY22_ALT", K_JOY22_ALT},
+	{"JOY23_ALT", K_JOY23_ALT},
+	{"JOY24_ALT", K_JOY24_ALT},
+	{"JOY25_ALT", K_JOY25_ALT},
+	{"JOY26_ALT", K_JOY26_ALT},
+	{"JOY27_ALT", K_JOY27_ALT},
+	{"JOY28_ALT", K_JOY28_ALT},
+	{"JOY29_ALT", K_JOY29_ALT},
+	{"JOY30_ALT", K_JOY30_ALT},
+	{"JOY31_ALT", K_JOY31_ALT},
+	{"JOY32_ALT", K_JOY32_ALT},
+
+	{"HAT_UP_ALT", K_HAT_UP_ALT},
+	{"HAT_RIGHT_ALT", K_HAT_RIGHT_ALT},
+	{"HAT_DOWN_ALT", K_HAT_DOWN_ALT},
+	{"HAT_LEFT_ALT", K_HAT_LEFT_ALT},
+
+	{"TRIG_LEFT", K_TRIG_LEFT_ALT},
+	{"TRIG_RIGHT", K_TRIG_RIGHT_ALT},
+
 	{"JOY_BACK", K_JOY_BACK},
 
 	{"AUX1", K_AUX1},
@@ -1053,7 +1096,20 @@ Key_Event(int key, qboolean down, qboolean special)
 	cvar_t *fullscreen;
 	unsigned int time = Sys_Milliseconds();
 
-    /* Track if key is down */
+	// evil hack for the joystick key altselector, which turns K_JOYx into K_JOYx_ALT
+	if(joy_altselector_pressed && key >= K_JOY1 && key <= K_JOY_LAST_REGULAR)
+	{
+		// make sure key is not the altselector itself (which we won't turn into *_ALT)
+		if(keybindings[key] == NULL || strcmp(keybindings[key], "+joyaltselector") != 0)
+		{
+			int altkey = key + (K_JOY1_ALT - K_JOY1);
+			// allow fallback to binding with non-alt key
+			if(keybindings[altkey] != NULL || keybindings[key] == NULL)
+				key = altkey;
+		}
+	}
+
+	/* Track if key is down */
 	keydown[key] = down;
 
 	/* Ignore most autorepeats */
