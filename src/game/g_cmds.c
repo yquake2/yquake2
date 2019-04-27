@@ -249,6 +249,7 @@ Cmd_Give_f(edict_t *ent)
 		if (gi.argc() == 3)
 		{
 			ent->health = (int)strtol(gi.argv(2), (char **)NULL, 10);
+		    ent->health = ent->health < 1 ? 1 : ent->health; 
 		}
 		else
 		{
