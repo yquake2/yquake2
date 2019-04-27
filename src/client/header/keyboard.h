@@ -40,6 +40,12 @@
  * instead of % so -1 wraps to NUM_KEY_LINES-1 */
 #define NUM_KEY_LINES 32
 
+/*
+ * the joystick altselector key is pressed
+ * => K_JOYx turns into K_JOYx_ALT
+ */
+extern qboolean joy_altselector_pressed;
+
 /* these are the key numbers that should be passed to Key_Event
    they must be mached by the low level key event processing! */
 enum QKEYS {
@@ -155,8 +161,56 @@ enum QKEYS {
 	K_TRIG_LEFT,
 	K_TRIG_RIGHT,
 
-	/* Can't be mapped to any action */
+	// add other joystick/controller keys before this one
+	// and adjust it accordingly, also remember to add corresponding _ALT key below!
+	K_JOY_LAST_REGULAR = K_TRIG_RIGHT,
+
+	/* Can't be mapped to any action (=> not regular) */
 	K_JOY_BACK,
+
+	K_JOY1_ALT,
+	K_JOY2_ALT,
+	K_JOY3_ALT,
+	K_JOY4_ALT,
+	K_JOY5_ALT,
+	K_JOY6_ALT,
+	K_JOY7_ALT,
+	K_JOY8_ALT,
+	K_JOY9_ALT,
+	K_JOY10_ALT,
+	K_JOY11_ALT,
+	K_JOY12_ALT,
+	K_JOY13_ALT,
+	K_JOY14_ALT,
+	K_JOY15_ALT,
+	K_JOY16_ALT,
+	K_JOY17_ALT,
+	K_JOY18_ALT,
+	K_JOY19_ALT,
+	K_JOY20_ALT,
+	K_JOY21_ALT,
+	K_JOY22_ALT,
+	K_JOY23_ALT,
+	K_JOY24_ALT,
+	K_JOY25_ALT,
+	K_JOY26_ALT,
+	K_JOY27_ALT,
+	K_JOY28_ALT,
+	K_JOY29_ALT,
+	K_JOY30_ALT,
+	K_JOY31_ALT,
+	K_JOY32_ALT,
+
+	K_HAT_UP_ALT,
+	K_HAT_RIGHT_ALT,
+	K_HAT_DOWN_ALT,
+	K_HAT_LEFT_ALT,
+
+	K_TRIG_LEFT_ALT,
+	K_TRIG_RIGHT_ALT,
+
+	// add other joystick/controller keys before this one and adjust it accordingly
+	K_JOY_LAST_REGULAR_ALT = K_TRIG_RIGHT_ALT,
 
 	K_AUX1,
 	K_AUX2,

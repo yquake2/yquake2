@@ -57,6 +57,10 @@ static qboolean mlooking;
 // Used throughout the client.
 int sys_frame_time;
 
+// the joystick altselector that turns K_JOYX into K_JOYX_ALT
+// is pressed
+qboolean joy_altselector_pressed = false;
+
 // Console Variables
 cvar_t *vid_fullscreen;
 cvar_t *freelook;
@@ -844,6 +848,18 @@ IN_MLookUp(void)
 	IN_CenterView();
 }
 
+static void
+IN_JoyAltSelectorDown(void)
+{
+	joy_altselector_pressed = true;
+}
+
+static void
+IN_JoyAltSelectorUp(void)
+{
+	joy_altselector_pressed = false;
+}
+
 /* ------------------------------------------------------------------ */
 
 static void IN_Haptic_Shutdown(void);
@@ -1235,6 +1251,9 @@ IN_Init(void)
 
 	Cmd_AddCommand("+mlook", IN_MLookDown);
 	Cmd_AddCommand("-mlook", IN_MLookUp);
+
+	Cmd_AddCommand("+joyaltselector", IN_JoyAltSelectorDown);
+	Cmd_AddCommand("-joyaltselector", IN_JoyAltSelectorUp);
 
 	SDL_StartTextInput();
 
