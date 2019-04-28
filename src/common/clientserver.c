@@ -82,8 +82,13 @@ Com_VPrintf(int print_level, const char *fmt, va_list argptr)
 	{
 		int i;
 		char msg[MAXPRINTMSG];
+
 		int msgLen = vsnprintf(msg, MAXPRINTMSG, fmt, argptr);
-		if(msgLen >= MAXPRINTMSG)  msgLen = MAXPRINTMSG-1;
+		if (msgLen >= MAXPRINTMSG || msgLen < 0) {
+			msgLen = MAXPRINTMSG-1;
+			msg[msgLen] = '\0';
+		}
+
 		if (rd_target)
 		{
 			if ((msgLen + strlen(rd_buffer)) > (rd_buffersize - 1))
