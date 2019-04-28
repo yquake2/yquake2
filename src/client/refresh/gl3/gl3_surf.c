@@ -52,6 +52,13 @@ void GL3_SurfInit(void)
 	glGenBuffers(1, &gl3state.vbo3D);
 	GL3_BindVBO(gl3state.vbo3D);
 
+	if(gl3config.useBigVBO)
+	{
+		gl3state.vbo3Dsize = 5*1024*1024; // a 5MB buffer seems to work well?
+		gl3state.vbo3DcurOffset = 0;
+		glBufferData(GL_ARRAY_BUFFER, gl3state.vbo3Dsize, NULL, GL_STREAM_DRAW); // allocate/reserve that data
+	}
+
 	glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
 	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(gl3_3D_vtx_t), 0);
 

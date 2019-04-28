@@ -121,6 +121,7 @@ cvar_t *r_modulate;
 cvar_t *gl_lightmap;
 cvar_t *gl_shadows;
 cvar_t *gl3_debugcontext;
+cvar_t *gl3_usebigvbo;
 
 // Yaw-Pitch-Roll
 // equivalent to R_z * R_y * R_x where R_x is the trans matrix for rotating around X axis for aroundXdeg
@@ -205,6 +206,11 @@ GL3_Register(void)
 	gl3_particle_size = ri.Cvar_Get("gl3_particle_size", "40", CVAR_ARCHIVE);
 	gl3_particle_fade_factor = ri.Cvar_Get("gl3_particle_fade_factor", "1.2", CVAR_ARCHIVE);
 	gl3_particle_square = ri.Cvar_Get("gl3_particle_square", "0", CVAR_ARCHIVE);
+
+	//  0: use lots of calls to glBufferData()
+	//  1: reduce calls to glBufferData() with one big VBO (see GL3_BufferAndDraw3D())
+	// -1: auto (let yq2 choose to enable/disable this based on detected driver)
+	gl3_usebigvbo = ri.Cvar_Get("gl3_usebigvbo", "-1", CVAR_ARCHIVE);
 
 	r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
 	r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
@@ -530,6 +536,34 @@ GL3_Init(void)
 		R_Printf(PRINT_ALL, " - OpenGL Debug Output: Not Supported\n");
 	}
 
+	gl3config.useBigVBO = false;
+	if(gl3_usebigvbo->value == 1.0f)
+	{
+		R_Printf(PRINT_ALL, "Enabling useBigVBO workaround because gl3_usebigvbo = 1\n");
+		gl3config.useBigVBO = true;
+	}
+	else if(gl3_usebigvbo->value == -1.0f)
+	{
+		// enable for AMDs proprietary Windows and Linux drivers
+		// TODO: should we match a version number? does the workaround
+		//       slow down legacy drivers that work fine without it?
+		// This workaround is is tested with the following configuration:
+		// RX580, Win10, driver version "Adrenalin 2019 Edition 19.4.x"
+#ifdef _WIN32
+		if(gl3config.vendor_string != NULL && strstr(gl3config.vendor_string, "ATI") != NULL)
+		{
+			R_Printf(PRINT_ALL, "Detected AMD Windows GPU driver, enabling useBigVBO workaround\n");
+			gl3config.useBigVBO = true;
+		}
+#elif defined(__linux__)
+		if(gl3config.vendor_string != NULL && strstr(gl3config.vendor_string, "Advanced Micro Devices, Inc.") != NULL)
+		{
+			R_Printf(PRINT_ALL, "Detected proprietary AMD GPU driver, enabling useBigVBO workaround\n");
+			gl3config.useBigVBO = true;
+		}
+#endif
+	}
+
 	// generate texture handles for all possible lightmaps
 	glGenTextures(MAX_LIGHTMAPS*MAX_LIGHTMAPS_PER_SURFACE, gl3state.lightmap_textureIDs[0]);
 
@@ -589,10 +623,72 @@ GL3_Shutdown(void)
 void
 GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode)
 {
-	// TODO: do something more efficient, maybe with glMapBufferRange() + GL_MAP_UNSYNCHRONIZED_BIT
-	//       and glBindBufferRange()
-	glBufferData( GL_ARRAY_BUFFER, sizeof(gl3_3D_vtx_t)*numVerts, verts, GL_STREAM_DRAW );
-	glDrawArrays( drawMode, 0, numVerts );
+	if(!gl3config.useBigVBO)
+	{
+		glBufferData( GL_ARRAY_BUFFER, sizeof(gl3_3D_vtx_t)*numVerts, verts, GL_STREAM_DRAW );
+		glDrawArrays( drawMode, 0, numVerts );
+	}
+	else // gl3config.useBigVBO == true
+	{
+		/*
+		 * For some reason, AMD's Windows driver doesn't seem to like lots of
+		 * calls to glBufferData() (some of them seem to take very long then).
+		 * GL3_BufferAndDraw3D() is called a lot when drawing world geometry
+		 * (once for each visible face I think?).
+		 * The simple code above caused noticeable slowdowns - even a fast
+		 * quadcore CPU and a Radeon RX580 weren't able to maintain 60fps..
+		 * The workaround is to not call glBufferData() with small data all the time,
+		 * but to allocate a big buffer and on each call to GL3_BufferAndDraw3D()
+		 * to use a different region of that buffer, resulting in a lot less calls
+		 * to glBufferData() (=> a lot less buffer allocations in the driver).
+		 * Only when the buffer is full and at the end of a frame (=> GL3_EndFrame())
+		 * we get a fresh buffer.
+		 *
+		 * BTW, we couldn't observe this kind of problem with any other driver:
+		 * Neither nvidias driver, nor AMDs or Intels Open Source Linux drivers,
+		 * not even Intels Windows driver seem to care that much about the
+		 * glBufferData() calls.. However, at least nvidias driver doesn't like
+		 * this workaround (with glMapBufferRange()), the framerate dropped
+		 * significantly - that's why both methods are available and
+		 * selectable at runtime.
+		 */
+#if 0
+		// I /think/ doing it with glBufferSubData() didn't really help
+		const int bufSize = gl3state.vbo3Dsize;
+		int neededSize = numVerts*sizeof(gl3_3D_vtx_t);
+		int curOffset = gl3state.vbo3DcurOffset;
+		if(curOffset + neededSize > gl3state.vbo3Dsize)
+			curOffset = 0;
+		int curIdx = curOffset / sizeof(gl3_3D_vtx_t);
+
+		gl3state.vbo3DcurOffset = curOffset + neededSize;
+
+		glBufferSubData( GL_ARRAY_BUFFER, curOffset, neededSize, verts );
+		glDrawArrays( drawMode, curIdx, numVerts );
+#else
+		int curOffset = gl3state.vbo3DcurOffset;
+		int neededSize = numVerts*sizeof(gl3_3D_vtx_t);
+		if(curOffset+neededSize > gl3state.vbo3Dsize)
+		{
+			// buffer is full, need to start again from the beginning
+			// => need to sync or get fresh buffer
+			// (getting fresh buffer seems easier)
+			glBufferData(GL_ARRAY_BUFFER, gl3state.vbo3Dsize, NULL, GL_STREAM_DRAW);
+			curOffset = 0;
+		}
+
+		// as we make sure to use a previously unused part of the buffer,
+		// doing it unsynchronized should be safe..
+		GLbitfield accessBits = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT;
+		void* data = glMapBufferRange(GL_ARRAY_BUFFER, curOffset, neededSize, accessBits);
+		memcpy(data, verts, neededSize);
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+
+		glDrawArrays(drawMode, curOffset/sizeof(gl3_3D_vtx_t), numVerts);
+
+		gl3state.vbo3DcurOffset = curOffset + neededSize; // TODO: padding or sth needed?
+#endif
+	}
 }
 
 static void

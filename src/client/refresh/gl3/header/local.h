@@ -106,6 +106,8 @@ typedef struct
 	qboolean debug_output; // is GL_ARB_debug_output supported?
 	qboolean stencil; // Do we have a stencil buffer?
 
+	qboolean useBigVBO; // workaround for AMDs windows driver for fewer calls to glBufferData()
+
 	// ----
 
 	float max_anisotropy;
@@ -226,6 +228,11 @@ typedef struct
 	gl3ShaderInfo_t siParticle; // for particles. surprising, right?
 
 	GLuint vao3D, vbo3D; // for brushes etc, using 10 floats and one uint as vertex input (x,y,z, s,t, lms,lmt, normX,normY,normZ ; lightFlags)
+
+	// the next two are for gl3config.useBigVBO == true
+	int vbo3Dsize;
+	int vbo3DcurOffset;
+
 	GLuint vaoAlias, vboAlias, eboAlias; // for models, using 9 floats as (x,y,z, s,t, r,g,b,a)
 	GLuint vaoParticle, vboParticle; // for particles, using 9 floats (x,y,z, size,distance, r,g,b,a)
 
