@@ -541,6 +541,11 @@ Mod_LoadFaces(lump_t *l)
 			GL3_SubdivideSurface(out, loadmodel); /* cut up polygon for warps */
 		}
 
+		if (out->texinfo->flags & SURF_SKY)
+		{
+			out->flags |= SURF_DRAWSKY;
+		}
+
 		/* create lightmaps and polygons */
 		if (!(out->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
 		{
