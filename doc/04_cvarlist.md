@@ -177,6 +177,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   and `16`. Anisotropic filtering gives a huge improvement to texture
   quality by a negligible performance impact.
 
+* **gl_fixsurfsky**: Some maps misuse sky surfaces for interior
+  lightning. The original renderer had a bug that made such surfaces
+  mess up the lightning of entities near them. If set to `0` (the
+  default) the bug is there and maps look like their developers
+  intended. If set to `1` the bug is fixed and the lightning correct.
+
 * **gl_msaa_samples**: Full scene anti aliasing samples. The number of
   samples depends on the GPU driver, most drivers support at least `2`,
   `4` and `8` samples. If an invalid value is set, the value is reverted
