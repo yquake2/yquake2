@@ -1149,7 +1149,9 @@ Q_strlcat(char *dst, const char *src, int size)
  */
 #ifdef _WIN32
 #include <windows.h>
-
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
 FILE *Q_fopen(const char *file, const char *mode)
 {
 	WCHAR wfile[MAX_OSPATH];
@@ -1161,11 +1163,32 @@ FILE *Q_fopen(const char *file, const char *mode)
 	{
 		if (MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 16) > 0)
 		{
-			return _wfopen(wfile, wmode);
+			// make sure it's a regular file and not a directory or sth, see #394
+			struct _stat buf;
+			int statret = _wstat(wfile, &buf);
+			if((statret == 0 && (buf.st_mode & _S_IFREG) != 0) || (statret == -1 && errno == ENOENT))
+			{
+				return _wfopen(wfile, wmode);
+			}
 		}
 	}
 
 	return NULL;
+}
+#else
+#include <sys/stat.h>
+#include <errno.h>
+FILE *Q_fopen(const char *file, const char *mode)
+{
+	// make sure it's a regular file and not a directory or sth, see #394
+	struct stat statbuf;
+	int statret = stat(file, &statbuf);
+	// (it's ok if it doesn't exist though, maybe we wanna write/create)
+	if((statret == -1 && errno != ENOENT) || (statret == 0 && (statbuf.st_mode & S_IFREG) == 0))
+	{
+		return NULL;
+	}
+	return fopen(file, mode);
 }
 #endif
 
