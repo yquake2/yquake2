@@ -545,20 +545,33 @@ GL3_Init(void)
 	else if(gl3_usebigvbo->value == -1.0f)
 	{
 		// enable for AMDs proprietary Windows and Linux drivers
-		// TODO: should we match a version number? does the workaround
-		//       slow down legacy drivers that work fine without it?
-		// This workaround is is tested with the following configuration:
-		// RX580, Win10, driver version "Adrenalin 2019 Edition 19.4.x"
 #ifdef _WIN32
-		if(gl3config.vendor_string != NULL && strstr(gl3config.vendor_string, "ATI") != NULL)
+		if(gl3config.version_string != NULL && gl3config.vendor_string != NULL
+		   && strstr(gl3config.vendor_string, "ATI Technologies Inc") != NULL)
 		{
-			R_Printf(PRINT_ALL, "Detected AMD Windows GPU driver, enabling useBigVBO workaround\n");
-			gl3config.useBigVBO = true;
+			int a, b, ver;
+			if(sscanf(gl3config.version_string, " %d.%d.%d ", &a, &b, &ver) >= 3 && ver >= 13431)
+			{
+				// turns out the legacy driver is a lot faster *without* the workaround :-/
+				// GL_VERSION for legacy 16.2.1 Beta driver: 3.2.13399 Core Profile Forward-Compatible Context 15.200.1062.1004
+				//            (this is the last version that supports the Radeon HD 6950)
+				// GL_VERSION for (non-legacy) 16.3.1 driver on Radeon R9 200: 4.5.13431 Compatibility Profile Context 16.150.2111.0
+				// GL_VERSION for non-legacy 17.7.2 WHQL driver: 4.5.13491 Compatibility Profile/Debug Context 22.19.662.4
+				// GL_VERSION for 18.10.1 driver: 4.6.13541 Compatibility Profile/Debug Context 25.20.14003.1010
+				// GL_VERSION for (current) 19.3.2 driver: 4.6.13547 Compatibility Profile/Debug Context 25.20.15027.5007
+				// (the 3.2/4.5/4.6 can probably be ignored, might depend on the card and what kind of context was requested
+				//  but AFAIK the number behind that can be used to roughly match the driver version)
+				// => let's try matching for x.y.z with z >= 13431
+				// (no, I don't feel like testing which release since 16.2.1 has introduced the slowdown.)
+				R_Printf(PRINT_ALL, "Detected AMD Windows GPU driver, enabling useBigVBO workaround\n");
+				gl3config.useBigVBO = true;
+			}
 		}
 #elif defined(__linux__)
 		if(gl3config.vendor_string != NULL && strstr(gl3config.vendor_string, "Advanced Micro Devices, Inc.") != NULL)
 		{
 			R_Printf(PRINT_ALL, "Detected proprietary AMD GPU driver, enabling useBigVBO workaround\n");
+			R_Printf(PRINT_ALL, "(consider using the open source RadeonSI drivers, they tend to work better overall)\n");
 			gl3config.useBigVBO = true;
 		}
 #endif
