@@ -44,13 +44,20 @@ extern int numgl3textures;
 void GL3_SurfInit(void)
 {
 	// init the VAO and VBO for the standard vertexdata: 10 floats and 1 uint
-	// (X, Y, Z), (S, T), (LMS, LMT), (normX, normY, normZ) - last two groups for lightmap/dynlights
+	// (X, Y, Z), (S, T), (LMS, LMT), (normX, normY, normZ) ; lightFlags - last two groups for lightmap/dynlights
 
 	glGenVertexArrays(1, &gl3state.vao3D);
 	GL3_BindVAO(gl3state.vao3D);
 
 	glGenBuffers(1, &gl3state.vbo3D);
 	GL3_BindVBO(gl3state.vbo3D);
+
+	if(gl3config.useBigVBO)
+	{
+		gl3state.vbo3Dsize = 5*1024*1024; // a 5MB buffer seems to work well?
+		gl3state.vbo3DcurOffset = 0;
+		glBufferData(GL_ARRAY_BUFFER, gl3state.vbo3Dsize, NULL, GL_STREAM_DRAW); // allocate/reserve that data
+	}
 
 	glEnableVertexAttribArray(GL3_ATTRIB_POSITION);
 	qglVertexAttribPointer(GL3_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(gl3_3D_vtx_t), 0);
@@ -212,9 +219,8 @@ GL3_DrawGLPoly(msurface_t *fa)
 
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(gl3_3D_vtx_t)*p->numverts, p->vertices, GL_STREAM_DRAW);
 
-	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
+	GL3_BufferAndDraw3D(p->vertices, p->numverts, GL_TRIANGLE_FAN);
 }
 
 void
@@ -241,8 +247,7 @@ GL3_DrawGLFlowingPoly(msurface_t *fa)
 	GL3_BindVAO(gl3state.vao3D);
 	GL3_BindVBO(gl3state.vbo3D);
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(gl3_3D_vtx_t)*p->numverts, p->vertices, GL_STREAM_DRAW);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, p->numverts);
+	GL3_BufferAndDraw3D(p->vertices, p->numverts, GL_TRIANGLE_FAN);
 }
 
 static void
