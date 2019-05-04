@@ -626,7 +626,7 @@ static const char* fragmentSrcAlias = MULTILINE_STRING(
 			// apply gamma correction and intensity
 			texel.rgb *= intensity;
 			texel.a *= alpha; // is alpha even used here?
-			texel *= min(vec4(3.0), passColor);
+			texel *= min(vec4(1.5), passColor);
 
 			outColor.rgb = pow(texel.rgb, vec3(gamma));
 			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
