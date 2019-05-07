@@ -178,7 +178,6 @@ set(Backends-Unix-Source
 	)
 
 set(Backends-Windows-Source
-	${BACKENDS_SRC_DIR}/generic/frame.c
 	${BACKENDS_SRC_DIR}/windows/icon.rc
 	${BACKENDS_SRC_DIR}/windows/main.c
 	${BACKENDS_SRC_DIR}/windows/network.c
