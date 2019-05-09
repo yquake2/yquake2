@@ -31,6 +31,26 @@
 
 static const WCHAR WRAPPED_EXE[] = L"yquake2.exe";
 
+// the struct and OnGetWindowByProcess taken from https://stackoverflow.com/a/17166455
+typedef struct {
+	DWORD pid;
+	HWND hwnd;
+} WINDOWPROCESSINFO;
+
+static BOOL CALLBACK OnGetWindowByProcess(HWND hwnd, LPARAM lParam)
+{
+	WINDOWPROCESSINFO *infoPtr = (WINDOWPROCESSINFO *)lParam;
+	DWORD check = 0;
+	BOOL br = TRUE;
+	GetWindowThreadProcessId(hwnd, &check);
+	if (check == infoPtr->pid)
+	{
+		infoPtr->hwnd = hwnd;
+		br = FALSE;
+	}
+	return br;
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	WCHAR* cmdLine = GetCommandLineW();
@@ -81,6 +101,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			fprintf(stderr, "Couldn't CreateProcess() (%ld).\n", GetLastError());
 			return 1;
+		}
+
+		Sleep(1000); // wait until yq2 should have created the window
+
+		// send window to foreground, as shown in https://stackoverflow.com/a/17166455
+
+		// first we need to get its HWND
+		WINDOWPROCESSINFO info;
+		info.pid = GetProcessId(pi.hProcess);
+		info.hwnd = 0;
+		AllowSetForegroundWindow(info.pid);
+		EnumWindows(OnGetWindowByProcess, (LPARAM)&info);
+		if (info.hwnd != 0)
+		{
+			SetForegroundWindow(info.hwnd);
+			SetActiveWindow(info.hwnd);
 		}
 
 		// wait for wrapped exe to exit
