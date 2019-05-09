@@ -3110,6 +3110,7 @@ StartServer_MenuInit(void)
     s_hostname_field.length = 12;
     s_hostname_field.visible_length = 12;
     strcpy(s_hostname_field.buffer, Cvar_VariableString("hostname"));
+    s_hostname_field.cursor = strlen(s_hostname_field.buffer);
 
     s_startserver_dmoptions_action.generic.type = MTYPE_ACTION;
     s_startserver_dmoptions_action.generic.name = " deathmatch flags";
