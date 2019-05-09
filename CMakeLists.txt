@@ -178,7 +178,6 @@ set(Backends-Unix-Source
 	)
 
 set(Backends-Windows-Source
-	${BACKENDS_SRC_DIR}/generic/frame.c
 	${BACKENDS_SRC_DIR}/windows/icon.rc
 	${BACKENDS_SRC_DIR}/windows/main.c
 	${BACKENDS_SRC_DIR}/windows/network.c
@@ -585,7 +584,7 @@ set_target_properties(q2ded PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 	)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_link_libraries(q2ded ${yquake2LinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
+	target_link_libraries(q2ded ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
 else()
 	target_link_libraries(q2ded ${yquake2LinkerFlags} ${yquake2ServerLinkerFlags} ${yquake2ZLibLinkerFlags})
 endif()
