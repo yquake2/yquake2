@@ -23,4 +23,6 @@ version can be found here: [doc/01_index.md](doc/01_index.md)
 ## Releases
 
 The official releases (including Windows binaries) can be found at our
-homepage: https://www.yamagi.org/quake2
+homepage: https://www.yamagi.org/quake2  
+**Unsupported** preview builds for Windows can be found at
+https://deponie.yamagi.org/quake2/misc/
