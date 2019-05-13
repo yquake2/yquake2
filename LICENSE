@@ -1,6 +1,6 @@
 Yamagi Quake II contains software developed by multiple individuals,
 projects and organisations. Following is a list of this software and
-copys for each license:
+copys of each license:
 
 - Quake II
 - Info-ZIP
@@ -8,7 +8,7 @@ copys for each license:
 - stb_image.h, stb_image_write.h, stb_image_resize.h, stb_vorbis.h
 - miniz
 
-Parts of other Quake II Clients were included into the source. They
+Parts of other Quake II Clients were included into the source. They're
 covered by the same GPLv2 license as Quake II itself:
 
 - Hecatomb
@@ -23,6 +23,7 @@ covered by the same GPLv2 license as Quake II itself:
 The following code is used in library form and thus not part of Yamagi
 Quake II:
 
+- cURL
 - libGL
 - libopenal
 - SDL
@@ -445,7 +446,7 @@ Feel free to customize this file to suit your needs
 ===============================================================================
 
  stb single-file public domain libraries
- (stb_image.h, stb_image_write.h, stb_vorbis.h)
+ (stb_image.h, stb_image_resize.h, stb_image_write.h, stb_vorbis.h)
  https://github.com/nothings/stb/
  Dual-Licensed: Public Domain (Unlicense) or MIT License:
  
