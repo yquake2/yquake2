@@ -454,14 +454,12 @@ extern msurface_t	*r_alpha_surfaces;
 //
 // current entity info
 //
-extern  qboolean	insubmodel;
-
 void R_DrawAlphaSurfaces(const entity_t *currententity);
 
 void R_DrawSprite(entity_t *currententity, const model_t *currentmodel);
 
-void R_RenderFace(entity_t *currententity, const model_t *currentmodel, msurface_t *fa, int clipflags);
-void R_RenderBmodelFace(entity_t *currententity, bedge_t *pedges, msurface_t *psurf);
+void R_RenderFace(entity_t *currententity, const model_t *currentmodel, msurface_t *fa, int clipflags, qboolean insubmodel);
+void R_RenderBmodelFace(entity_t *currententity, bedge_t *pedges, msurface_t *psurf, int r_currentbkey);
 void R_TransformFrustum(void);
 
 void R_DrawSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, int clipflags, mnode_t *topnode);
@@ -480,7 +478,6 @@ extern int	sadjust, tadjust;
 extern int	bbextents, bbextentt;
 
 extern int	r_currentkey;
-extern int	r_currentbkey;
 
 void R_DrawParticles (void);
 
@@ -506,7 +503,9 @@ void R_PolysetDrawSpans8_Opaque(const entity_t *currententity, spanpackage_t *ps
 extern byte	**warp_rowptr;
 extern int	*warp_column;
 extern espan_t	*edge_basespans;
+extern espan_t	*max_span_p;
 extern int	r_numallocatedverts;
+extern int	r_numallocatededgebasespans;
 extern finalvert_t	*finalverts, *finalverts_max;
 
 extern	int	r_aliasblendcolor;
@@ -517,6 +516,7 @@ extern qboolean	r_outofsurfaces;
 extern qboolean	r_outofedges;
 extern qboolean	r_outofverts;
 extern qboolean	r_outoftriangles;
+extern qboolean	r_outedgebasespans;
 
 extern mvertex_t	*r_pcurrentvertbase;
 
@@ -527,7 +527,7 @@ void R_AliasClipTriangle(const entity_t *currententity, const finalvert_t *index
 extern float	r_time1;
 extern float	da_time1, da_time2;
 extern float	dp_time1, dp_time2, db_time1, db_time2, rw_time1, rw_time2;
-extern float	se_time1, se_time2, de_time1, de_time2, dv_time1, dv_time2;
+extern float	se_time1, se_time2, de_time1, de_time2;
 extern int r_viewcluster, r_oldviewcluster;
 
 extern int r_clipflags;
@@ -586,6 +586,6 @@ IMPORTED FUNCTIONS
 
 ====================================================================
 */
-extern  refimport_t     ri;
+extern refimport_t	ri;
 
 #endif

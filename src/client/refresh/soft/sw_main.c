@@ -68,11 +68,13 @@ float	r_time1;
 int	r_numallocatededges;
 int	r_numallocatedverts;
 int	r_numallocatedtriangles;
+int	r_numallocatededgebasespans;
 float	r_aliasuvscale = 1.0;
 qboolean	r_outofsurfaces;
 qboolean	r_outofedges;
 qboolean	r_outofverts;
 qboolean	r_outoftriangles;
+qboolean	r_outedgebasespans;
 
 qboolean	r_dowarp;
 
@@ -186,8 +188,6 @@ pixel_t		*cacheblock;
 int		cachewidth;
 pixel_t		*d_viewbuffer;
 zvalue_t	*d_pzbuffer;
-
-qboolean	insubmodel;
 
 static void Draw_GetPalette (void);
 static void RE_BeginFrame( float camera_separation );
@@ -401,10 +401,12 @@ R_ReallocateMapBuffers (void)
 		surfaces = lsurfs;
 		// set limits
 		surf_max = &surfaces[r_cnumsurfs];
-		surface_p = lsurfs;
 		// surface 0 doesn't really exist; it's just a dummy because index 0
 		// is used to indicate no edge attached to surface
 		surfaces--;
+
+		surface_p = &surfaces[2];	// background is surface 1,
+						//  surface 0 is a dummy
 
 		R_Printf(PRINT_ALL, "Allocated %d surfaces\n", r_cnumsurfs);
 	}
@@ -494,6 +496,35 @@ R_ReallocateMapBuffers (void)
 		triangles_max = &triangle_spans[r_numallocatedtriangles];
 
 		R_Printf(PRINT_ALL, "Allocated %d triangles\n", r_numallocatedtriangles);
+	}
+
+	if (!r_numallocatededgebasespans || r_outedgebasespans)
+	{
+		if (edge_basespans)
+		{
+			free(edge_basespans);
+		}
+
+		if (r_outedgebasespans)
+		{
+			r_numallocatededgebasespans *= 2;
+			r_outedgebasespans = false;
+		}
+
+		// used up to 8 * width spans for render, allocate once  before use
+		if (r_numallocatededgebasespans < vid.width * 8)
+			r_numallocatededgebasespans = vid.width * 8;
+
+		edge_basespans  = malloc(r_numallocatededgebasespans * sizeof(espan_t));
+		if (!edge_basespans)
+		{
+			R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+				 __func__, (int)(r_numallocatededgebasespans * sizeof(espan_t)));
+			return;
+		}
+		max_span_p = &edge_basespans[r_numallocatededgebasespans];
+
+		R_Printf(PRINT_ALL, "Allocated %d edgespans\n", r_numallocatededgebasespans);
 	}
 }
 
@@ -847,7 +878,6 @@ R_DrawBEntitiesOnList (void)
 		return;
 
 	VectorCopy (modelorg, oldorigin);
-	insubmodel = true;
 
 	for (i=0 ; i<r_newrefdef.num_entities ; i++)
 	{
@@ -909,8 +939,6 @@ R_DrawBEntitiesOnList (void)
 		VectorCopy (oldorigin, modelorg);
 		R_TransformFrustum ();
 	}
-
-	insubmodel = false;
 }
 
 /*
@@ -1827,17 +1855,24 @@ SWimp_CreateRender(void)
 	warp_rowptr = malloc((vid.width+AMP2*2) * sizeof(byte*));
 	warp_column = malloc((vid.width+AMP2*2) * sizeof(int));
 
-	edge_basespans = malloc((vid.width*2) * sizeof(espan_t));
-
 	// count of "out of items"
-	r_outofsurfaces = r_outofedges = r_outofverts = r_outoftriangles = false;
+	r_outofsurfaces = false;
+	r_outofedges = false;
+	r_outofverts = false;
+	r_outoftriangles = false;
+	r_outedgebasespans = false;
 	// pointers to allocated buffers
 	finalverts = NULL;
 	r_edges = NULL;
 	lsurfs = NULL;
 	triangle_spans = NULL;
+	edge_basespans = NULL;
 	// curently allocated items
-	r_cnumsurfs = r_numallocatededges = r_numallocatedverts = r_numallocatedtriangles = 0;
+	r_cnumsurfs = 0;
+	r_numallocatededges = 0;
+	r_numallocatedverts = 0;
+	r_numallocatedtriangles = 0;
+	r_numallocatededgebasespans = 0;
 
 	R_ReallocateMapBuffers();
 
