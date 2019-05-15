@@ -151,13 +151,7 @@ extern oldrefdef_t	r_refdef;
 
 #define TRANSPARENT_COLOR	0xFF
 
-#define TURB_TEX_SIZE		64 // base turbulent texture size
-
 #define CYCLE			128 // turbulent cycle size
-
-#define SCANBUFFERPAD		0x1000
-
-#define DS_SPAN_LIST_END	-128
 
 // flags in finalvert_t.flags
 #define ALIAS_LEFT_CLIP		0x0001
@@ -175,8 +169,6 @@ extern oldrefdef_t	r_refdef;
 #define XCENTERING	(1.0 / 2.0)
 #define YCENTERING	(1.0 / 2.0)
 
-#define CLIP_EPSILON	0.001
-
 #define BACKFACE_EPSILON	0.01
 
 #define NEAR_CLIP	0.01
@@ -184,9 +176,9 @@ extern oldrefdef_t	r_refdef;
 #define ALIAS_Z_CLIP_PLANE	4
 
 // turbulence stuff
-#define AMP             8*0x10000
-#define AMP2    3
-#define SPEED   20
+#define AMP	8*0x10000
+#define AMP2	3
+#define SPEED	20
 
 
 /*
@@ -310,19 +302,24 @@ typedef struct surf_s
 				   // -1 = in inverted span (end before
 				   //  start)
 	int		flags;	   // currentface flags
-	msurface_t      *msurf;
+	msurface_t	*msurf;
 	entity_t	*entity;
 	float		nearzi; // nearest 1/z on surface, for mipmapping
 	qboolean	insubmodel;
 	float		d_ziorigin, d_zistepu, d_zistepv;
 } surf_t;
 
+typedef unsigned short	surfindex_t;
+
+// surface index size
+#define SURFINDEX_MAX	(1 << (sizeof(surfindex_t) * 8))
+
 typedef struct edge_s
 {
 	shift20_t	u;
 	shift20_t	u_step;
 	struct edge_s	*prev, *next;
-	unsigned short	surfs[2];
+	surfindex_t	surfs[2];
 	struct edge_s	*nextremove;
 	float		nearzi;
 	medge_t		*owner;

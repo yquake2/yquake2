@@ -382,6 +382,14 @@ R_ReallocateMapBuffers (void)
 		if (r_cnumsurfs < NUMSTACKSURFACES)
 			r_cnumsurfs = NUMSTACKSURFACES;
 
+		// edge_t->surf limited size to short
+		if (r_cnumsurfs > SURFINDEX_MAX)
+		{
+			r_cnumsurfs = SURFINDEX_MAX;
+			R_Printf(PRINT_ALL, "%s: Code has limitation to surfaces count.\n",
+				 __func__);
+		}
+
 		lsurfs = malloc (r_cnumsurfs * sizeof(surf_t));
 		if (!lsurfs)
 		{

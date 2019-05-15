@@ -46,11 +46,6 @@ typedef struct
 	vec3_t		position;
 } mvertex_t;
 
-#define	SIDE_FRONT	0
-#define	SIDE_BACK	1
-#define	SIDE_ON		2
-
-
 // plane_t structure
 typedef struct mplane_s
 {
@@ -231,9 +226,6 @@ typedef struct model_s
 //============================================================================
 
 void	Mod_Init(void);
-void	Mod_ClearAll(void);
-void	*Mod_Extradata(model_t *mod);	// handles caching
-void	Mod_TouchModel(char *name);
 
 mleaf_t *Mod_PointInLeaf(float *p, model_t *model);
 byte	*Mod_ClusterPVS(int cluster, model_t *model);

@@ -1226,6 +1226,8 @@ SPRITE MODELS
 /*
 =================
 Mod_LoadSpriteModel
+
+support for .sp2 sprites
 =================
 */
 static void

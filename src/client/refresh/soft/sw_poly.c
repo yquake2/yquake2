@@ -749,7 +749,7 @@ R_PolygonDrawSpans(espan_t *pspan, int iswater )
 
 		pspan++;
 
-	} while (pspan->count != DS_SPAN_LIST_END);
+	} while (pspan->count != INT_MIN);
 }
 
 /*
@@ -818,6 +818,8 @@ R_PolygonScanLeftEdge (espan_t *s_polygon_spans)
 			i = r_polydesc.nump;
 
 	} while (i != lmaxindex);
+
+	pspan->count = INT_MIN;	// mark the end of the span list
 }
 
 /*
@@ -903,7 +905,7 @@ R_PolygonScanRightEdge(espan_t *s_polygon_spans)
 
 	} while (i != s_maxindex);
 
-	pspan->count = DS_SPAN_LIST_END;	// mark the end of the span list
+	pspan->count = INT_MIN;	// mark the end of the span list
 }
 
 /*
