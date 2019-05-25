@@ -1,18 +1,21 @@
 Quake II 7.40 to 7.41:
 - Some bugfixes to HTTP downloads introduced in 7.40.
-- Fix several crashed when loading savegames in coop games.
+- Fix several crashes when loading savegames in coop.
 - Fix some out of memory aborts when loading maps with a lot surfaces.
 - Allow autodetection of the desktop resolution. Set 'r_mode' to '-2' to
   enable that. (by Denis Pauk)
 - Several fixes to the OpenGL 3.2 renderer. Some dynamic lights were
   missing, for example for most explosions. Stencil shadows were broken
-  under some conditions. Performance was bad with the AMD legacy driver
-  under Windows. Under some conditions lights were too bright.
-- Add an optional fix for lighting problems in maps that missuse sky
+  under some conditions. Performance was bad with the AMD driver under
+  Windows. Intel Ivy Bridge didn't work. Under some conditions lights
+  were too bright.
+- Add an optional fix for lighting problems in maps that misuse sky
   surfaces for interior lighting. Set 'gl_fixsurfsky' to '1' to enable
   it.
 - Another bunch of timing fixes. The game should now hold the framerate
-  under all conditions, even under Windows with crappy GPU drivers.
+  under all conditions, even with crappy Windows GPU drivers.
+- The quake2.exe wrapper forces the Quake II into focus. This prevents
+  Quake II starting in background.
 
 Quake II 7.30 to 7.40:
 - Add support for HTTP downloads. Both the r1q2 and q2pro URL schemes
