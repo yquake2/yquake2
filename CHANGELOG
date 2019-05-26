@@ -14,8 +14,8 @@ Quake II 7.40 to 7.41:
   it.
 - Another bunch of timing fixes. The game should now hold the framerate
   under all conditions, even with crappy Windows GPU drivers.
-- The quake2.exe wrapper forces the Quake II into focus. This prevents
-  Quake II starting in background.
+- The quake2.exe wrapper forces the Quake II window into focus. This
+  prevents Quake II starting in background.
 
 Quake II 7.30 to 7.40:
 - Add support for HTTP downloads. Both the r1q2 and q2pro URL schemes
