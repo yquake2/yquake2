@@ -1242,11 +1242,6 @@ Info_ValueForKey(char *s, char *key)
 
 		while (*s != '\\' && *s)
 		{
-			if (!*s)
-			{
-				return "";
-			}
-
 			*o++ = *s++;
 		}
 
@@ -1307,11 +1302,6 @@ Info_RemoveKey(char *s, char *key)
 
 		while (*s != '\\' && *s)
 		{
-			if (!*s)
-			{
-				return;
-			}
-
 			*o++ = *s++;
 		}
 
