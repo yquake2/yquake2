@@ -778,7 +778,7 @@ D_CalcGradients
 ==============
 */
 static void
-D_CalcGradients (msurface_t *pface)
+D_CalcGradients (msurface_t *pface, float d_ziorigin, float d_zistepu, float d_zistepv)
 {
 	float		mipscale;
 	vec3_t		p_temp1;
@@ -840,14 +840,10 @@ The grey background filler seen when there is a hole in the map
 static void
 D_BackgroundSurf (surf_t *s)
 {
+	D_FlatFillSurface (s, (int)sw_clearcolor->value & 0xFF);
 	// set up a gradient for the background surface that places it
 	// effectively at infinity distance from the viewpoint
-	d_zistepu = 0;
-	d_zistepv = 0;
-	d_ziorigin = -0.9;
-
-	D_FlatFillSurface (s, (int)sw_clearcolor->value & 0xFF);
-	D_DrawZSpans (s->spans);
+	D_DrawZSpans (s->spans, -0.9, 0, 0);
 }
 
 /*
@@ -858,10 +854,6 @@ D_TurbulentSurf
 static void
 D_TurbulentSurf(surf_t *s)
 {
-	d_zistepu = s->d_zistepu;
-	d_zistepv = s->d_zistepv;
-	d_ziorigin = s->d_ziorigin;
-
 	pface = s->msurf;
 	miplevel = 0;
 	cacheblock = pface->texinfo->image->pixels[0];
@@ -883,17 +875,17 @@ D_TurbulentSurf(surf_t *s)
 						// make entity passed in
 	}
 
-	D_CalcGradients (pface);
+	D_CalcGradients (pface, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
 	//============
 	// textures that aren't warping are just flowing. Use NonTurbulentPow2 instead
 	if(!(pface->texinfo->flags & SURF_WARP))
-		NonTurbulentPow2 (s->spans);
+		NonTurbulentPow2 (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 	else
-		TurbulentPow2 (s->spans);
+		TurbulentPow2 (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 	//============
 
-	D_DrawZSpans (s->spans);
+	D_DrawZSpans (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
 	if (s->insubmodel)
 	{
@@ -926,21 +918,13 @@ D_SkySurf (surf_t *s)
 	cacheblock = pface->texinfo->image->pixels[0];
 	cachewidth = 256;
 
-	d_zistepu = s->d_zistepu;
-	d_zistepv = s->d_zistepv;
-	d_ziorigin = s->d_ziorigin;
+	D_CalcGradients (pface, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
-	D_CalcGradients (pface);
-
-	D_DrawSpansPow2 (s->spans);
+	D_DrawSpansPow2 (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
 	// set up a gradient for the background surface that places it
 	// effectively at infinity distance from the viewpoint
-	d_zistepu = 0;
-	d_zistepv = 0;
-	d_ziorigin = -0.9;
-
-	D_DrawZSpans (s->spans);
+	D_DrawZSpans (s->spans, -0.9, 0, 0);
 }
 
 /*
@@ -954,10 +938,6 @@ static void
 D_SolidSurf (surf_t *s)
 {
 	entity_t *currententity;
-
-	d_zistepu = s->d_zistepu;
-	d_zistepv = s->d_zistepv;
-	d_ziorigin = s->d_ziorigin;
 
 	if (s->insubmodel)
 	{
@@ -984,11 +964,11 @@ D_SolidSurf (surf_t *s)
 	cacheblock = (pixel_t *)pcurrentcache->data;
 	cachewidth = pcurrentcache->width;
 
-	D_CalcGradients (pface);
+	D_CalcGradients (pface, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
-	D_DrawSpansPow2 (s->spans);
+	D_DrawSpansPow2 (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
-	D_DrawZSpans (s->spans);
+	D_DrawZSpans (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
 	if (s->insubmodel)
 	{
@@ -1024,14 +1004,10 @@ D_DrawflatSurfaces (surf_t *surface)
 		if (!s->spans)
 			continue;
 
-		d_zistepu = s->d_zistepu;
-		d_zistepv = s->d_zistepv;
-		d_ziorigin = s->d_ziorigin;
-
 		// make a stable color for each surface by taking the low
 		// bits of the msurface pointer
 		D_FlatFillSurface (s, color & 0xFF);
-		D_DrawZSpans (s->spans);
+		D_DrawZSpans (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
 		color ++;
 	}

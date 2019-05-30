@@ -354,14 +354,14 @@ extern pixel_t		*r_warpbuffer;
 
 extern float		scale_for_mip;
 
-extern float	d_sdivzstepu, d_tdivzstepu, d_zistepu;
-extern float	d_sdivzstepv, d_tdivzstepv, d_zistepv;
-extern float	d_sdivzorigin, d_tdivzorigin, d_ziorigin;
+extern float	d_sdivzstepu, d_tdivzstepu;
+extern float	d_sdivzstepv, d_tdivzstepv;
+extern float	d_sdivzorigin, d_tdivzorigin;
 
-void D_DrawSpansPow2(espan_t *pspans);
-void D_DrawZSpans(espan_t *pspans);
-void TurbulentPow2(espan_t *pspan);
-void NonTurbulentPow2(espan_t *pspan);
+void D_DrawSpansPow2(espan_t *pspans, float d_ziorigin, float d_zistepu, float d_zistepv);
+void D_DrawZSpans(espan_t *pspans, float d_ziorigin, float d_zistepu, float d_zistepv);
+void TurbulentPow2(espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zistepv);
+void NonTurbulentPow2(espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zistepv);
 
 surfcache_t *D_CacheSurface(const entity_t *currententity, msurface_t *surface, int miplevel);
 

@@ -178,9 +178,9 @@ static cvar_t	*r_lockpvs;
 // FIXME: make into one big structure, like cl or sv
 // FIXME: do separately for refresh engine and driver
 
-float	d_sdivzstepu, d_tdivzstepu, d_zistepu;
-float	d_sdivzstepv, d_tdivzstepv, d_zistepv;
-float	d_sdivzorigin, d_tdivzorigin, d_ziorigin;
+float	d_sdivzstepu, d_tdivzstepu;
+float	d_sdivzstepv, d_tdivzstepv;
+float	d_sdivzorigin, d_tdivzorigin;
 
 int	sadjust, tadjust, bbextents, bbextentt;
 
