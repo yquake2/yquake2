@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define NUMSTACKEDGES		2048
 #define NUMSTACKSURFACES	1024
 #define MAXALIASVERTS		2048
+#define MAXLIGHTS		1024 // allow some very large lightmaps
 
 viddef_t	vid;
 pixel_t		*vid_buffer = NULL;
@@ -68,12 +69,14 @@ float	r_time1;
 int	r_numallocatededges;
 int	r_numallocatedverts;
 int	r_numallocatedtriangles;
+int	r_numallocatedlights;
 int	r_numallocatededgebasespans;
 float	r_aliasuvscale = 1.0;
 qboolean	r_outofsurfaces;
 qboolean	r_outofedges;
 qboolean	r_outofverts;
 qboolean	r_outoftriangles;
+qboolean	r_outoflights;
 qboolean	r_outedgebasespans;
 
 qboolean	r_dowarp;
@@ -409,6 +412,36 @@ R_ReallocateMapBuffers (void)
 						//  surface 0 is a dummy
 
 		R_Printf(PRINT_ALL, "Allocated %d surfaces\n", r_cnumsurfs);
+	}
+
+	if (!r_numallocatedlights || r_outoflights)
+	{
+		if (!blocklights)
+		{
+			free(blocklights);
+		}
+
+		if (r_outoflights)
+		{
+			r_numallocatedlights *= 2;
+			r_outoflights = false;
+		}
+
+		if (r_numallocatedlights < MAXLIGHTS)
+			r_numallocatedlights = MAXLIGHTS;
+
+		blocklights = malloc (r_numallocatedlights * sizeof(light_t));
+		if (!blocklights)
+		{
+			R_Printf(PRINT_ALL, "%s: Couldn't malloc %d bytes\n",
+				 __func__, (int)(r_numallocatedlights * sizeof(light_t)));
+			return;
+		}
+
+		// set limits
+		blocklight_max = &blocklights[r_numallocatedlights];
+
+		R_Printf(PRINT_ALL, "Allocated %d lights\n", r_numallocatedlights);
 	}
 
 	if (!r_numallocatededges || r_outofedges)
@@ -1700,6 +1733,12 @@ RE_ShutdownContext(void)
 	}
 	finalverts = NULL;
 
+	if(blocklights)
+	{
+		free(blocklights);
+	}
+	blocklights = NULL;
+
 	if(r_edges)
 	{
 		free(r_edges);
@@ -1860,18 +1899,21 @@ SWimp_CreateRender(void)
 	r_outofedges = false;
 	r_outofverts = false;
 	r_outoftriangles = false;
+	r_outoflights = false;
 	r_outedgebasespans = false;
 	// pointers to allocated buffers
 	finalverts = NULL;
 	r_edges = NULL;
 	lsurfs = NULL;
 	triangle_spans = NULL;
+	blocklights = NULL;
 	edge_basespans = NULL;
 	// curently allocated items
 	r_cnumsurfs = 0;
 	r_numallocatededges = 0;
 	r_numallocatedverts = 0;
 	r_numallocatedtriangles = 0;
+	r_numallocatedlights = 0;
 	r_numallocatededgebasespans = 0;
 
 	R_ReallocateMapBuffers();
