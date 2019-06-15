@@ -535,6 +535,14 @@ retry:
 	VectorCopy(trace.endpos, ent->s.origin);
 	gi.linkentity(ent);
 
+	/* Push slightly away from non-horizontal surfaces,
+	   prevent origin stuck in the plane which causes
+	   the entity to be rendered in full black. */
+	if (trace.plane.type != 2)
+	{
+		VectorAdd(ent->s.origin, trace.plane.normal, ent->s.origin);
+	}
+
 	if (trace.fraction != 1.0)
 	{
 		SV_Impact(ent, &trace);
