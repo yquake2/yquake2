@@ -34,6 +34,7 @@
 #include <SDL2/SDL_video.h>
 
 cvar_t *vid_displayrefreshrate;
+static cvar_t *vid_displayindex;
 int glimp_refreshRate = -1;
 
 static int last_flags = 0;
@@ -42,14 +43,77 @@ static int last_position_x = SDL_WINDOWPOS_UNDEFINED;
 static int last_position_y = SDL_WINDOWPOS_UNDEFINED;
 static SDL_Window* window = NULL;
 static qboolean initSuccessful = false;
+static char **displayindices = NULL;
+static int num_displays = 0;
+
+const char**
+GLimp_GetDisplayIndices(void)
+{
+	return (const char**)displayindices;
+}
+
+int
+GLimp_GetWindowDisplayIndex(void)
+{
+	return last_display;
+}
+
+int
+GLimp_GetNumVideoDisplays(void)
+{
+	return num_displays;
+}
+
+static void
+ClearDisplayIndices(void)
+{
+	if ( displayindices )
+	{
+		for ( int i = 0; i < num_displays; i++ )
+			free( displayindices[ i ] );
+
+		free( displayindices );
+		displayindices = NULL;
+	}
+}
+
+static void
+InitDisplayIndices(qboolean ClearExisting)
+{
+	if ( ClearExisting )
+		ClearDisplayIndices();
+
+	displayindices = malloc( ( num_displays + 1 ) * sizeof( char* ) );
+	for ( int i = 0; i < num_displays; i++ )
+	{
+		displayindices[ i ] = malloc( 11 * sizeof( char ) ); // There are a maximum of 10 digits in 32 bit int + 1 for the NULL terminator
+		snprintf( displayindices[ i ], 11, "%d", i );
+	}
+
+	// The last entry is NULL to indicate the list of strings ends
+	displayindices[ num_displays ] = 0;
+}
 
 // --------
 
 static qboolean
 CreateSDLWindow(int flags, int w, int h)
 {
+	num_displays = SDL_GetNumVideoDisplays();
+	int displayindex = 0;
+
+	if ( vid_displayindex->value < 0 || vid_displayindex->value >= num_displays)
+		Cvar_SetValue( "vid_displayindex", 0 );
+	else
+	{
+		displayindex = vid_displayindex->value;
+	}
+
+	// last_position_x and last_position_y aren't really used...
+	const int windowpos = SDL_WINDOWPOS_UNDEFINED_DISPLAY( displayindex );
+
 	window = SDL_CreateWindow("Yamagi Quake II",
-				  last_position_x, last_position_y,
+				  windowpos, windowpos,
 				  w, h, flags);
 	if (window)
 	{
@@ -57,6 +121,8 @@ CreateSDLWindow(int flags, int w, int h)
 		last_display = SDL_GetWindowDisplayIndex(window);
 		SDL_GetWindowPosition(window,
 				      &last_position_x, &last_position_y);
+		
+		InitDisplayIndices( true );
 	}
 
 	return window != NULL;
@@ -157,6 +223,8 @@ ShutdownGraphics(void)
 		window = NULL;
 	}
 
+	ClearDisplayIndices();
+
 	// make sure that after vid_restart the refreshrate will be queried from SDL2 again.
 	glimp_refreshRate = -1;
 
@@ -172,6 +240,7 @@ qboolean
 GLimp_Init(void)
 {
 	vid_displayrefreshrate = Cvar_Get("vid_displayrefreshrate", "-1", CVAR_ARCHIVE);
+	vid_displayindex = Cvar_Get("vid_displayindex", "0", CVAR_ARCHIVE);
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 	{
