@@ -78,11 +78,8 @@ ClearDisplayIndices(void)
 }
 
 static void
-InitDisplayIndices(qboolean ClearExisting)
+InitDisplayIndices()
 {
-	if ( ClearExisting )
-		ClearDisplayIndices();
-
 	displayindices = malloc( ( num_displays + 1 ) * sizeof( char* ) );
 	for ( int i = 0; i < num_displays; i++ )
 	{
@@ -99,17 +96,12 @@ InitDisplayIndices(qboolean ClearExisting)
 static qboolean
 CreateSDLWindow(int flags, int w, int h)
 {
-	int displayindex = 0;
-
+	// Reset display index Cvar if out of bounds
 	if ( vid_displayindex->value < 0 || vid_displayindex->value >= num_displays)
 		Cvar_SetValue( "vid_displayindex", 0 );
-	else
-	{
-		displayindex = vid_displayindex->value;
-	}
 
 	// last_position_x and last_position_y aren't really used...
-	const int windowpos = SDL_WINDOWPOS_UNDEFINED_DISPLAY( displayindex );
+	const int windowpos = SDL_WINDOWPOS_UNDEFINED_DISPLAY( (int)vid_displayindex->value );
 
 	window = SDL_CreateWindow("Yamagi Quake II",
 				  windowpos, windowpos,
@@ -120,8 +112,6 @@ CreateSDLWindow(int flags, int w, int h)
 		last_display = SDL_GetWindowDisplayIndex(window);
 		SDL_GetWindowPosition(window,
 				      &last_position_x, &last_position_y);
-		
-		InitDisplayIndices( true );
 	}
 
 	return window != NULL;
@@ -222,8 +212,6 @@ ShutdownGraphics(void)
 		window = NULL;
 	}
 
-	ClearDisplayIndices();
-
 	// make sure that after vid_restart the refreshrate will be queried from SDL2 again.
 	glimp_refreshRate = -1;
 
@@ -257,6 +245,7 @@ GLimp_Init(void)
 		Com_Printf("SDL video driver is \"%s\".\n", SDL_GetCurrentVideoDriver());
 
 		num_displays = SDL_GetNumVideoDisplays();
+		InitDisplayIndices();
 	}
 
 	return true;
@@ -280,6 +269,8 @@ GLimp_Shutdown(void)
 	{
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	}
+
+	ClearDisplayIndices();
 }
 
 /*
