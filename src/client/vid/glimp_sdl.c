@@ -64,6 +64,16 @@ GLimp_GetNumVideoDisplays(void)
 	return num_displays;
 }
 
+/*
+ * Resets the display index Cvar if out of bounds
+ */
+static void
+ClampDisplayIndexCvar(void)
+{
+	if (vid_displayindex->value < 0 || vid_displayindex->value >= num_displays)
+		Cvar_SetValue("vid_displayindex", 0);
+}
+
 static void
 ClearDisplayIndices(void)
 {
@@ -96,15 +106,12 @@ InitDisplayIndices()
 static qboolean
 CreateSDLWindow(int flags, int w, int h)
 {
-	// Reset display index Cvar if out of bounds
-	if ( vid_displayindex->value < 0 || vid_displayindex->value >= num_displays)
-		Cvar_SetValue( "vid_displayindex", 0 );
-
-	// last_position_x and last_position_y aren't really used...
-	const int windowpos = SDL_WINDOWPOS_UNDEFINED_DISPLAY( (int)vid_displayindex->value );
+	if (SDL_WINDOWPOS_ISUNDEFINED(last_position_x) || SDL_WINDOWPOS_ISUNDEFINED(last_position_y)) {
+		last_position_x = last_position_y = SDL_WINDOWPOS_UNDEFINED_DISPLAY((int)vid_displayindex->value);
+	}
 
 	window = SDL_CreateWindow("Yamagi Quake II",
-				  windowpos, windowpos,
+				  last_position_x, last_position_y,
 				  w, h, flags);
 	if (window)
 	{
@@ -199,12 +206,23 @@ void GLimp_GrabInput(qboolean grab);
 static void
 ShutdownGraphics(void)
 {
+	ClampDisplayIndexCvar();
+
 	if (window)
 	{
 		/* save current display as default */
 		last_display = SDL_GetWindowDisplayIndex(window);
+
+		/* or if current display isn't the desired default */
+		if (last_display != vid_displayindex->value) {
+			last_position_x = last_position_y = SDL_WINDOWPOS_UNDEFINED;
+			last_display = vid_displayindex->value;
+		}
+		else {
 		SDL_GetWindowPosition(window,
 				      &last_position_x, &last_position_y);
+		}
+
 		/* cleanly ungrab input (needs window) */
 		GLimp_GrabInput(false);
 		SDL_DestroyWindow(window);
@@ -246,6 +264,7 @@ GLimp_Init(void)
 
 		num_displays = SDL_GetNumVideoDisplays();
 		InitDisplayIndices();
+		ClampDisplayIndexCvar();
 	}
 
 	return true;
