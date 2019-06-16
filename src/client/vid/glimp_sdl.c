@@ -99,7 +99,6 @@ InitDisplayIndices(qboolean ClearExisting)
 static qboolean
 CreateSDLWindow(int flags, int w, int h)
 {
-	num_displays = SDL_GetNumVideoDisplays();
 	int displayindex = 0;
 
 	if ( vid_displayindex->value < 0 || vid_displayindex->value >= num_displays)
@@ -256,6 +255,8 @@ GLimp_Init(void)
 		SDL_GetVersion(&version);
 		Com_Printf("SDL version is: %i.%i.%i\n", (int)version.major, (int)version.minor, (int)version.patch);
 		Com_Printf("SDL video driver is \"%s\".\n", SDL_GetCurrentVideoDriver());
+
+		num_displays = SDL_GetNumVideoDisplays();
 	}
 
 	return true;
