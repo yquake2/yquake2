@@ -169,7 +169,6 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 	byte	*source;
 	int		v, u;
 	int		height;
-	int		f, fstep;
 	int		skip;
 
 	if ((x < 0) ||
@@ -191,16 +190,24 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 
 	dest = vid_buffer + y * vid.width + x;
 
-	for (v=0 ; v<height ; v++, dest += vid.width)
+	if (w == pic->width)
 	{
-		int sv = (skip + v)*pic->height/h;
-		source = pic->pixels[0] + sv*pic->width;
-		if (w == pic->width)
-			memcpy (dest, source, w);
-		else
+		for (v=0 ; v<height ; v++, dest += vid.width)
 		{
+			int sv = (skip + v)*pic->height/h;
+			source = pic->pixels[0] + sv*pic->width;
+			memcpy (dest, source, w);
+		}
+	}
+	else
+	{
+		for (v=0 ; v<height ; v++, dest += vid.width)
+		{
+			int f, fstep;
+			int sv = (skip + v)*pic->height/h;
+			source = pic->pixels[0] + sv*pic->width;
 			f = 0;
-			fstep = (pic->width * SHIFT16XYZ_MULT) / w;
+			fstep = (pic->width << SHIFT16XYZ) / w;
 			for (u=0 ; u<w ; u++)
 			{
 				dest[u] = source[f>>16];

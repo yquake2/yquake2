@@ -34,6 +34,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 viddef_t	vid;
 pixel_t		*vid_buffer = NULL;
+static pixel_t	*swap_buffers = NULL;
+static pixel_t	*swap_frames[2] = {NULL, NULL};
+static int	swap_current = 0;
 espan_t		*vid_polygon_spans = NULL;
 pixel_t		*vid_colormap = NULL;
 pixel_t		*vid_alphamap = NULL;
@@ -195,6 +198,8 @@ zvalue_t	*d_pzbuffer;
 static void Draw_GetPalette (void);
 static void RE_BeginFrame( float camera_separation );
 static void Draw_BuildGammaTable(void);
+static void RE_FlushFrame(int vmin);
+static void RE_CleanFrame(void);
 static void RE_EndFrame(void);
 static void R_DrawBeam(const entity_t *e);
 
@@ -1311,10 +1316,7 @@ RE_SetPalette(const unsigned char *palette)
 	byte palette32[1024];
 
 	// clear screen to black to avoid any palette flash
-	memset(vid_buffer, 0, vid.height * vid.width * sizeof(pixel_t));
-
-	// flush it to the screen
-	RE_EndFrame ();
+	RE_CleanFrame();
 
 	if (palette)
 	{
@@ -1661,11 +1663,14 @@ RE_InitContext(void *win)
 static void
 RE_ShutdownContext(void)
 {
-	if (vid_buffer)
+	if (swap_buffers)
 	{
-		free(vid_buffer);
+		free(swap_buffers);
 	}
+	swap_buffers = NULL;
 	vid_buffer = NULL;
+	swap_frames[0] = NULL;
+	swap_frames[1] = NULL;
 
 	if (sintable)
 	{
@@ -1777,7 +1782,7 @@ point math used in R_ScanEdges() overflows at width 2048 !!
 char shift_size;
 
 static void
-RE_CopyFrame (Uint32 * pixels, int pitch)
+RE_CopyFrame (Uint32 * pixels, int pitch, int vmin, int vmax)
 {
 	Uint32 *sdl_palette = (Uint32 *)sw_state.currentpalette;
 
@@ -1788,10 +1793,10 @@ RE_CopyFrame (Uint32 * pixels, int pitch)
 		Uint32	*pixels_pos;
 		pixel_t	*buffer_pos;
 
-		max_pixels = pixels + vid.height * vid.width;
-		buffer_pos = vid_buffer;
+		max_pixels = pixels + vmax * vid.width;
+		buffer_pos = vid_buffer + vmin * vid.width;
 
-		for (pixels_pos = pixels; pixels_pos < max_pixels; pixels_pos++)
+		for (pixels_pos = pixels + vmin * vid.width; pixels_pos < max_pixels; pixels_pos++)
 		{
 			*pixels_pos = sdl_palette[*buffer_pos];
 			buffer_pos++;
@@ -1802,7 +1807,7 @@ RE_CopyFrame (Uint32 * pixels, int pitch)
 		int y,x, buffer_pos;
 
 		buffer_pos = 0;
-		for (y=0; y < vid.height;  y++)
+		for (y=vmin; y < vmax;  y++)
 		{
 			for (x=0; x < vid.width; x ++)
 			{
@@ -1814,30 +1819,87 @@ RE_CopyFrame (Uint32 * pixels, int pitch)
 	}
 }
 
-/*
-** RE_EndFrame
-**
-** This does an implementation specific copy from the backbuffer to the
-** front buffer.  In the Win32 case it uses BitBlt or BltFast depending
-** on whether we're using DIB sections/GDI or DDRAW.
-*/
+static int
+RE_BufferDifferenceStart(int vmin, int vmax)
+{
+	int *front_buffer, *back_buffer, *back_max;
+
+	back_buffer = (int*)swap_frames[0] + vmin * vid.width;
+	front_buffer = (int*)swap_frames[1] + vmin * vid.width;
+	back_max = (int*)swap_frames[0] + vmax * vid.width;
+
+	while (back_buffer < back_max && *back_buffer == *front_buffer) {
+		back_buffer ++;
+		front_buffer ++;
+	}
+	return ((pixel_t*)back_buffer - swap_frames[0]) / vid.width;
+}
 
 static void
-RE_EndFrame (void)
+RE_CleanFrame(void)
 {
 	int pitch;
-	Uint32 * pixels;
+	Uint32 *pixels;
+
+	memset(swap_buffers, 0, vid.height * vid.width * sizeof(pixel_t) * 2);
 
 	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
 	{
 		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
 		return;
 	}
-	RE_CopyFrame (pixels, pitch / sizeof(Uint32));
+	memset(pixels, 0, pitch * vid.height);
 	SDL_UnlockTexture(texture);
 
 	SDL_RenderCopy(renderer, texture, NULL, NULL);
 	SDL_RenderPresent(renderer);
+}
+
+static void
+RE_FlushFrame(int vmin)
+{
+	int pitch;
+	Uint32 *pixels;
+	SDL_Rect copy_rect;
+
+	copy_rect.x = 0;
+	copy_rect.y = vmin;
+	copy_rect.w = vid.width;
+	copy_rect.h = vid.height - vmin;
+
+	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
+	{
+		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
+		return;
+	}
+	RE_CopyFrame (pixels, pitch / sizeof(Uint32), vmin, vid.height);
+	SDL_UnlockTexture(texture);
+
+	SDL_RenderCopy(renderer, texture, &copy_rect, &copy_rect);
+	SDL_RenderPresent(renderer);
+
+	// replace use next buffer
+	swap_current ++;
+	vid_buffer = swap_frames[swap_current&1];
+}
+
+/*
+** RE_EndFrame
+**
+** This does an implementation specific copy from the backbuffer to the
+** front buffer.
+*/
+static void
+RE_EndFrame (void)
+{
+	int vmin;
+
+	vmin = RE_BufferDifferenceStart(0, vid.height);
+	if (vmin >= vid.height)
+	{
+		return;
+	}
+	RE_FlushFrame(vmin);
 }
 
 /*
@@ -1882,7 +1944,11 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 static void
 SWimp_CreateRender(void)
 {
-	vid_buffer = malloc(vid.height * vid.width * sizeof(pixel_t));
+	swap_current = 0;
+	swap_buffers = malloc(vid.height * vid.width * sizeof(pixel_t) * 2);
+	swap_frames[0] = swap_buffers;
+	swap_frames[1] = swap_buffers + vid.height * vid.width * sizeof(pixel_t);
+	vid_buffer = swap_frames[swap_current&1];
 
 	sintable = malloc((vid.width+CYCLE) * sizeof(int));
 	intsintable = malloc((vid.width+CYCLE) * sizeof(int));
