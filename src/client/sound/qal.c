@@ -148,6 +148,14 @@ LPALGENFILTERS qalGenFilters;
 LPALFILTERI qalFilteri;
 LPALFILTERF qalFilterf;
 LPALDELETEFILTERS qalDeleteFilters;
+LPALGENEFFECTS qalGenEffects;
+LPALEFFECTF qalEffectf;
+LPALEFFECTI qalEffecti;
+LPALEFFECTFV qalEffectfv;
+LPALAUXILIARYEFFECTSLOTI qalAuxiliaryEffectSloti;
+LPALGENAUXILIARYEFFECTSLOTS qalGenAuxiliaryEffectSlots;
+LPALDELETEAUXILIARYEFFECTSLOTS qalDeleteAuxiliaryEffectSlots;
+LPALDELETEEFFECTS qalDeleteEffects;
 
 /*
  * Gives information over the OpenAL
@@ -552,11 +560,27 @@ QAL_Init()
 		qalFilteri = qalGetProcAddress("alFilteri");
 		qalFilterf = qalGetProcAddress("alFilterf");
 		qalDeleteFilters = qalGetProcAddress("alDeleteFilters");
+		qalAuxiliaryEffectSloti = qalGetProcAddress("alAuxiliaryEffectSloti");
+		qalGenEffects = qalGetProcAddress("alGenEffects");
+		qalGenAuxiliaryEffectSlots = qalGetProcAddress("alGenAuxiliaryEffectSlots");
+		qalEffectf = qalGetProcAddress("alEffectf");
+		qalEffecti = qalGetProcAddress("alEffecti");
+		qalEffectfv = qalGetProcAddress("alEffectfv");
+		qalDeleteAuxiliaryEffectSlots = qalGetProcAddress("alDeleteAuxiliaryEffectSlots");
+		qalDeleteEffects = qalGetProcAddress("alDeleteEffects");
 	} else {
 		qalGenFilters = NULL;
 		qalFilteri = NULL;
 		qalFilterf = NULL;
 		qalDeleteFilters = NULL;
+		qalAuxiliaryEffectSloti = NULL;
+		qalGenEffects = NULL;
+		qalGenAuxiliaryEffectSlots = NULL;
+		qalEffectf = NULL;
+		qalEffecti = NULL;
+		qalEffectfv = NULL;
+		qalDeleteAuxiliaryEffectSlots = NULL;
+		qalDeleteEffects = NULL;
 	}
 
 	Com_Printf("ok\n");
