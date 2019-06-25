@@ -165,6 +165,43 @@ GetWindowSize(int* w, int* h)
 }
 
 /*
+ * Lists all available display modes. At this
+ * time it's  used only for debugging purposes.
+ */
+static void
+PrintDisplayModes(void)
+{
+	int curdisplay = SDL_GetWindowDisplayIndex(window);
+
+	// On X11 (at least for me)
+	// curdisplay is always -1.
+	if (curdisplay < 0) {
+		curdisplay = 0;
+	}
+
+	int nummodes = SDL_GetNumDisplayModes(curdisplay);
+
+	if (nummodes < 1)
+	{
+		Com_Printf("Can't get display modes: %s\n", SDL_GetError());
+		return;
+	}
+
+	for (int i = 0; i < nummodes; i++)
+	{
+		SDL_DisplayMode mode;
+
+		if (SDL_GetDisplayMode(curdisplay, i, &mode) != 0)
+		{
+			Com_Printf("Can't get display mode: %s\n", SDL_GetError());
+			return;
+		}
+
+		Com_Printf(" - Mode %2i: %ix%i@%i\n", i, mode.w, mode.h, mode.refresh_rate);
+	}
+}
+
+/*
  * Sets the window icon
  */
 static void
@@ -265,6 +302,9 @@ GLimp_Init(void)
 		num_displays = SDL_GetNumVideoDisplays();
 		InitDisplayIndices();
 		ClampDisplayIndexCvar();
+		Com_Printf("SDL didplay modes:\n");
+
+		PrintDisplayModes();
 	}
 
 	return true;
@@ -417,6 +457,27 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 
 	last_flags = flags;
 
+	/* Now that we've got a working window print it's mode. */
+	int curdisplay = SDL_GetWindowDisplayIndex(window);
+
+    if (curdisplay < 0) {
+		curdisplay = 0;
+	}
+
+	SDL_DisplayMode mode;
+
+	if (SDL_GetCurrentDisplayMode(curdisplay, &mode) != 0)
+	{
+		Com_Printf("Can't get current display mode: %s\n", SDL_GetError());
+	}
+	else
+	{
+		Com_Printf("Real display mode: %ix%i@%i (vid_fullscreen: %i)\n", mode.w, mode.h,
+				mode.refresh_rate, fullscreen);
+	}
+
+
+    /* Initialize rendering context. */
 	if (!re.InitContext(window))
 	{
 		/* InitContext() should have logged an error. */
@@ -473,7 +534,7 @@ GLimp_GrabInput(qboolean grab)
  *   is enabled. The price are small and hard to notice timing
  *   problems.
  *
- * * SDL returns only full integer. In most cases they're rounded
+ * * SDL returns only full integers. In most cases they're rounded
  *   up, but in some cases - likely depending on the GPU driver -
  *   they're rounded down. If the value is rounded up, we'll see
  *   some small and nard to notice timing problems. If the value
