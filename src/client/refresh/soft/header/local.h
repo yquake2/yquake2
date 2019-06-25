@@ -151,13 +151,7 @@ extern oldrefdef_t	r_refdef;
 
 #define TRANSPARENT_COLOR	0xFF
 
-#define TURB_TEX_SIZE		64 // base turbulent texture size
-
 #define CYCLE			128 // turbulent cycle size
-
-#define SCANBUFFERPAD		0x1000
-
-#define DS_SPAN_LIST_END	-128
 
 // flags in finalvert_t.flags
 #define ALIAS_LEFT_CLIP		0x0001
@@ -175,8 +169,6 @@ extern oldrefdef_t	r_refdef;
 #define XCENTERING	(1.0 / 2.0)
 #define YCENTERING	(1.0 / 2.0)
 
-#define CLIP_EPSILON	0.001
-
 #define BACKFACE_EPSILON	0.01
 
 #define NEAR_CLIP	0.01
@@ -184,9 +176,9 @@ extern oldrefdef_t	r_refdef;
 #define ALIAS_Z_CLIP_PLANE	4
 
 // turbulence stuff
-#define AMP             8*0x10000
-#define AMP2    3
-#define SPEED   20
+#define AMP	8*0x10000
+#define AMP2	3
+#define SPEED	20
 
 
 /*
@@ -310,19 +302,24 @@ typedef struct surf_s
 				   // -1 = in inverted span (end before
 				   //  start)
 	int		flags;	   // currentface flags
-	msurface_t      *msurf;
+	msurface_t	*msurf;
 	entity_t	*entity;
 	float		nearzi; // nearest 1/z on surface, for mipmapping
 	qboolean	insubmodel;
 	float		d_ziorigin, d_zistepu, d_zistepv;
 } surf_t;
 
+typedef unsigned short	surfindex_t;
+
+// surface index size
+#define SURFINDEX_MAX	(1 << (sizeof(surfindex_t) * 8))
+
 typedef struct edge_s
 {
 	shift20_t	u;
 	shift20_t	u_step;
 	struct edge_s	*prev, *next;
-	unsigned short	surfs[2];
+	surfindex_t	surfs[2];
 	struct edge_s	*nextremove;
 	float		nearzi;
 	medge_t		*owner;
@@ -357,14 +354,14 @@ extern pixel_t		*r_warpbuffer;
 
 extern float		scale_for_mip;
 
-extern float	d_sdivzstepu, d_tdivzstepu, d_zistepu;
-extern float	d_sdivzstepv, d_tdivzstepv, d_zistepv;
-extern float	d_sdivzorigin, d_tdivzorigin, d_ziorigin;
+extern float	d_sdivzstepu, d_tdivzstepu;
+extern float	d_sdivzstepv, d_tdivzstepv;
+extern float	d_sdivzorigin, d_tdivzorigin;
 
-void D_DrawSpansPow2(espan_t *pspans);
-void D_DrawZSpans(espan_t *pspans);
-void TurbulentPow2(espan_t *pspan);
-void NonTurbulentPow2(espan_t *pspan);
+void D_DrawSpansPow2(espan_t *pspans, float d_ziorigin, float d_zistepu, float d_zistepv);
+void D_DrawZSpans(espan_t *pspans, float d_ziorigin, float d_zistepu, float d_zistepv);
+void TurbulentPow2(espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zistepv);
+void NonTurbulentPow2(espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zistepv);
 
 surfcache_t *D_CacheSurface(const entity_t *currententity, msurface_t *surface, int miplevel);
 
@@ -394,6 +391,8 @@ extern vec3_t	vpn, base_vpn;
 extern vec3_t	vright, base_vright;
 
 extern surf_t	*surfaces, *surface_p, *surf_max;
+// allow some very large lightmaps
+extern light_t	*blocklights, *blocklight_max;
 
 // surfaces are generated in back to front order by the bsp, so if a surf
 // pointer is greater than another one, it should be drawn in front
@@ -457,14 +456,12 @@ extern msurface_t	*r_alpha_surfaces;
 //
 // current entity info
 //
-extern  qboolean	insubmodel;
-
 void R_DrawAlphaSurfaces(const entity_t *currententity);
 
 void R_DrawSprite(entity_t *currententity, const model_t *currentmodel);
 
-void R_RenderFace(entity_t *currententity, const model_t *currentmodel, msurface_t *fa, int clipflags);
-void R_RenderBmodelFace(entity_t *currententity, bedge_t *pedges, msurface_t *psurf);
+void R_RenderFace(entity_t *currententity, const model_t *currentmodel, msurface_t *fa, int clipflags, qboolean insubmodel);
+void R_RenderBmodelFace(entity_t *currententity, bedge_t *pedges, msurface_t *psurf, int r_currentbkey);
 void R_TransformFrustum(void);
 
 void R_DrawSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, int clipflags, mnode_t *topnode);
@@ -483,7 +480,6 @@ extern int	sadjust, tadjust;
 extern int	bbextents, bbextentt;
 
 extern int	r_currentkey;
-extern int	r_currentbkey;
 
 void R_DrawParticles (void);
 
@@ -509,7 +505,9 @@ void R_PolysetDrawSpans8_Opaque(const entity_t *currententity, spanpackage_t *ps
 extern byte	**warp_rowptr;
 extern int	*warp_column;
 extern espan_t	*edge_basespans;
+extern espan_t	*max_span_p;
 extern int	r_numallocatedverts;
+extern int	r_numallocatededgebasespans;
 extern finalvert_t	*finalverts, *finalverts_max;
 
 extern	int	r_aliasblendcolor;
@@ -520,6 +518,8 @@ extern qboolean	r_outofsurfaces;
 extern qboolean	r_outofedges;
 extern qboolean	r_outofverts;
 extern qboolean	r_outoftriangles;
+extern qboolean	r_outoflights;
+extern qboolean	r_outedgebasespans;
 
 extern mvertex_t	*r_pcurrentvertbase;
 
@@ -530,7 +530,7 @@ void R_AliasClipTriangle(const entity_t *currententity, const finalvert_t *index
 extern float	r_time1;
 extern float	da_time1, da_time2;
 extern float	dp_time1, dp_time2, db_time1, db_time2, rw_time1, rw_time2;
-extern float	se_time1, se_time2, de_time1, de_time2, dv_time1, dv_time2;
+extern float	se_time1, se_time2, de_time1, de_time2;
 extern int r_viewcluster, r_oldviewcluster;
 
 extern int r_clipflags;
@@ -589,6 +589,6 @@ IMPORTED FUNCTIONS
 
 ====================================================================
 */
-extern  refimport_t     ri;
+extern refimport_t	ri;
 
 #endif

@@ -36,8 +36,9 @@ have a sentinal at both ends?
 edge_t	**newedges;
 edge_t	**removeedges;
 espan_t	*edge_basespans;
+espan_t	*max_span_p;
 
-static espan_t	*span_p, *max_span_p;
+static espan_t	*span_p;
 
 int	r_currentkey;
 
@@ -107,7 +108,8 @@ R_BeginEdgeFrame (void)
 R_InsertNewEdges
 
 Adds the edges in the linked list edgestoadd, adding them to the edges in the
-linked list edgelist.  edgestoadd is assumed to be sorted on u, and non-empty (this is actually newedges[v]).  edgelist is assumed to be sorted on u, with a
+linked list edgelist.  edgestoadd is assumed to be sorted on u, and non-empty
+(this is actually newedges[v]).  edgelist is assumed to be sorted on u, with a
 sentinel at the end (actually, this is the active edge table starting at
 edge_head.next).
 ==============
@@ -205,6 +207,22 @@ R_StepActiveU (edge_t *pedge)
 	}
 }
 
+static void
+R_InsertSpan (surf_t *surf, shift20_t iu)
+{
+	if (iu > surf->last_u)
+	{
+		espan_t *span;
+
+		span = span_p++;
+		span->u = surf->last_u;
+		span->count = iu - span->u;
+		span->v = current_iv;
+		span->pnext = surf->spans;
+		surf->spans = span;
+	}
+}
+
 /*
 ==============
 R_CleanupSpan
@@ -214,22 +232,11 @@ static void
 R_CleanupSpan (void)
 {
 	surf_t		*surf;
-	shift20_t	iu;
-	espan_t		*span;
 
 	// now that we've reached the right edge of the screen, we're done with any
 	// unfinished surfaces, so emit a span for whatever's on top
 	surf = surfaces[1].next;
-	iu = edge_tail_u_shift20;
-	if (iu > surf->last_u)
-	{
-		span = span_p++;
-		span->u = surf->last_u;
-		span->count = iu - span->u;
-		span->v = current_iv;
-		span->pnext = surf->spans;
-		surf->spans = span;
-	}
+	R_InsertSpan (surf, edge_tail_u_shift20);
 
 	// reset spanstate for all surfaces in the surface stack
 	do
@@ -295,17 +302,7 @@ R_LeadingEdgeBackwards (const edge_t *edge)
 			// emit a span (obscures current top)
 			iu = edge->u >> shift_size;
 
-			if (iu > surf2->last_u)
-			{
-				espan_t	*span;
-
-				span = span_p++;
-				span->u = surf2->last_u;
-				span->count = iu - span->u;
-				span->v = current_iv;
-				span->pnext = surf2->spans;
-				surf2->spans = span;
-			}
+			R_InsertSpan (surf2, iu);
 
 			// set last_u on the new span
 			surf->last_u = iu;
@@ -332,8 +329,6 @@ R_TrailingEdge
 static void
 R_TrailingEdge (surf_t *surf, edge_t *edge)
 {
-	espan_t *span;
-
 	// don't generate a span if this is an inverted span, with the end
 	// edge preceding the start edge (that is, we haven't seen the
 	// start edge yet)
@@ -345,15 +340,7 @@ R_TrailingEdge (surf_t *surf, edge_t *edge)
 
 			// emit a span (current top going away)
 			iu = edge->u >> shift_size;
-			if (iu > surf->last_u)
-			{
-				span = span_p++;
-				span->u = surf->last_u;
-				span->count = iu - span->u;
-				span->v = current_iv;
-				span->pnext = surf->spans;
-				surf->spans = span;
-			}
+			R_InsertSpan (surf, iu);
 
 			// set last_u on the surface below
 			surf->next->last_u = iu;
@@ -451,17 +438,7 @@ R_EmitSpanBeforeTop(const edge_t *edge, surf_t *surf, surf_t *surf2)
 
 	iu = edge->u >> shift_size;
 
-	if (iu > surf2->last_u)
-	{
-		espan_t	*span;
-
-		span = span_p++;
-		span->u = surf2->last_u;
-		span->count = iu - span->u;
-		span->v = current_iv;
-		span->pnext = surf2->spans;
-		surf2->spans = span;
-	}
+	R_InsertSpan (surf2, iu);
 
 	// set last_u on the new span
 	surf->last_u = iu;
@@ -623,18 +600,23 @@ void
 R_ScanEdges (surf_t *surface)
 {
 	shift20_t	iv, bottom;
-	espan_t		*basespan_p;
 	surf_t		*s;
 
-	basespan_p = edge_basespans;
-	max_span_p = edge_basespans + vid.width * 2 - r_refdef.vrect.width;
-	if ((vid.width * 2 - r_refdef.vrect.width) < 0)
+	// clear the surface span pointers
+	for (s = &surfaces[1] ; s<surf_max ; s++)
 	{
-		R_Printf(PRINT_ALL,"No space in edge_basespans\n");
-		return;
+		s->last_u = 0;
+		s->spans = NULL;
 	}
 
-	span_p = basespan_p;
+	span_p = edge_basespans;
+	if (span_p + r_refdef.vrect.width >= max_span_p)
+	{
+		// Need to more space
+		r_outedgebasespans = true;
+
+		return;
+	}
 
 	// clear active edges to just the background edges around the whole screen
 	// FIXME: most of this only needs to be set up once
@@ -687,7 +669,7 @@ R_ScanEdges (surf_t *surface)
 
 		// flush the span list if we can't be sure we have enough spans left for
 		// the next scan
-		if (span_p >= max_span_p)
+		if (span_p + r_refdef.vrect.width >= max_span_p)
 		{
 			// Draw stuff on screen
 			D_DrawSurfaces (surface);
@@ -696,7 +678,10 @@ R_ScanEdges (surf_t *surface)
 			for (s = &surfaces[1] ; s<surface ; s++)
 				s->spans = NULL;
 
-			span_p = basespan_p;
+			span_p = edge_basespans;
+
+			// Need to more space
+			r_outedgebasespans = true;
 		}
 
 		if (removeedges[iv])
@@ -793,7 +778,7 @@ D_CalcGradients
 ==============
 */
 static void
-D_CalcGradients (msurface_t *pface)
+D_CalcGradients (msurface_t *pface, float d_ziorigin, float d_zistepu, float d_zistepv)
 {
 	float		mipscale;
 	vec3_t		p_temp1;
@@ -855,14 +840,10 @@ The grey background filler seen when there is a hole in the map
 static void
 D_BackgroundSurf (surf_t *s)
 {
+	D_FlatFillSurface (s, (int)sw_clearcolor->value & 0xFF);
 	// set up a gradient for the background surface that places it
 	// effectively at infinity distance from the viewpoint
-	d_zistepu = 0;
-	d_zistepv = 0;
-	d_ziorigin = -0.9;
-
-	D_FlatFillSurface (s, (int)sw_clearcolor->value & 0xFF);
-	D_DrawZSpans (s->spans);
+	D_DrawZSpans (s->spans, -0.9, 0, 0);
 }
 
 /*
@@ -873,10 +854,6 @@ D_TurbulentSurf
 static void
 D_TurbulentSurf(surf_t *s)
 {
-	d_zistepu = s->d_zistepu;
-	d_zistepv = s->d_zistepv;
-	d_ziorigin = s->d_ziorigin;
-
 	pface = s->msurf;
 	miplevel = 0;
 	cacheblock = pface->texinfo->image->pixels[0];
@@ -898,17 +875,17 @@ D_TurbulentSurf(surf_t *s)
 						// make entity passed in
 	}
 
-	D_CalcGradients (pface);
+	D_CalcGradients (pface, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
 	//============
 	// textures that aren't warping are just flowing. Use NonTurbulentPow2 instead
 	if(!(pface->texinfo->flags & SURF_WARP))
-		NonTurbulentPow2 (s->spans);
+		NonTurbulentPow2 (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 	else
-		TurbulentPow2 (s->spans);
+		TurbulentPow2 (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 	//============
 
-	D_DrawZSpans (s->spans);
+	D_DrawZSpans (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
 	if (s->insubmodel)
 	{
@@ -941,21 +918,13 @@ D_SkySurf (surf_t *s)
 	cacheblock = pface->texinfo->image->pixels[0];
 	cachewidth = 256;
 
-	d_zistepu = s->d_zistepu;
-	d_zistepv = s->d_zistepv;
-	d_ziorigin = s->d_ziorigin;
+	D_CalcGradients (pface, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
-	D_CalcGradients (pface);
-
-	D_DrawSpansPow2 (s->spans);
+	D_DrawSpansPow2 (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
 	// set up a gradient for the background surface that places it
 	// effectively at infinity distance from the viewpoint
-	d_zistepu = 0;
-	d_zistepv = 0;
-	d_ziorigin = -0.9;
-
-	D_DrawZSpans (s->spans);
+	D_DrawZSpans (s->spans, -0.9, 0, 0);
 }
 
 /*
@@ -969,10 +938,6 @@ static void
 D_SolidSurf (surf_t *s)
 {
 	entity_t *currententity;
-
-	d_zistepu = s->d_zistepu;
-	d_zistepv = s->d_zistepv;
-	d_ziorigin = s->d_ziorigin;
 
 	if (s->insubmodel)
 	{
@@ -999,11 +964,11 @@ D_SolidSurf (surf_t *s)
 	cacheblock = (pixel_t *)pcurrentcache->data;
 	cachewidth = pcurrentcache->width;
 
-	D_CalcGradients (pface);
+	D_CalcGradients (pface, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
-	D_DrawSpansPow2 (s->spans);
+	D_DrawSpansPow2 (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
-	D_DrawZSpans (s->spans);
+	D_DrawZSpans (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
 	if (s->insubmodel)
 	{
@@ -1039,14 +1004,10 @@ D_DrawflatSurfaces (surf_t *surface)
 		if (!s->spans)
 			continue;
 
-		d_zistepu = s->d_zistepu;
-		d_zistepv = s->d_zistepv;
-		d_ziorigin = s->d_ziorigin;
-
 		// make a stable color for each surface by taking the low
 		// bits of the msurface pointer
 		D_FlatFillSurface (s, color & 0xFF);
-		D_DrawZSpans (s->spans);
+		D_DrawZSpans (s->spans, s->d_ziorigin, s->d_zistepu, s->d_zistepv);
 
 		color ++;
 	}

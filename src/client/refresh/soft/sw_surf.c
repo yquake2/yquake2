@@ -31,7 +31,6 @@ static unsigned char	*r_source, *r_sourcemax;
 static unsigned		*r_lightptr;
 
 void R_BuildLightMap (drawsurf_t *drawsurf);
-extern	unsigned	blocklights[1024];	// allow some very large lightmaps
 
 static int	sc_size;
 static surfcache_t	*sc_rover;
@@ -178,6 +177,12 @@ R_DrawSurface (drawsurf_t *drawsurf)
 	for (u=0 ; u<r_numhblocks; u++)
 	{
 		r_lightptr = blocklights + u;
+
+		if (r_lightptr >= blocklight_max)
+		{
+			r_outoflights = true;
+			continue;
+		}
 
 		prowdestbase = pcolumndest;
 

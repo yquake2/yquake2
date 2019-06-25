@@ -43,9 +43,7 @@ D_ViewChanged
 static void
 D_ViewChanged (void)
 {
-	scale_for_mip = xscale;
-	if (yscale > xscale)
-		scale_for_mip = yscale;
+	scale_for_mip = sqrt(xscale*xscale + yscale*yscale);
 
 	d_pix_min = r_refdef.vrect.height / 240;
 	if (d_pix_min < 1)

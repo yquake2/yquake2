@@ -31,8 +31,6 @@ vec3_t		r_entorigin;	// the currently rendering entity in world
 
 static float	entity_rotation[3][3];
 
-int		r_currentbkey;
-
 typedef enum {touchessolid, drawnode, nodrawnode} solidstate_t;
 
 #define MAX_BMODEL_VERTS	500	// 6K
@@ -141,6 +139,24 @@ R_RotateBmodel(const entity_t *currententity)
 }
 
 
+static qboolean
+R_AreaVisible(mleaf_t *pleaf)
+{
+	int area;
+
+	// check for door connected areas
+	if (!r_newrefdef.areabits)
+		return true;
+
+	area = pleaf->area;
+
+	if ((r_newrefdef.areabits[area>>3] & (1<<(area&7))))
+		return true;
+
+	return false; // not visible
+}
+
+
 /*
 ================
 R_RecursiveClipBPoly
@@ -223,25 +239,23 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 			// split into two edges, one on each side, and remember entering
 			// and exiting points
 			// FIXME: share the clip edge by having a winding direction flag?
-			if (numbedges >= (MAX_BMODEL_EDGES - 1))
-			{
-				R_Printf(PRINT_ALL,"Out of edges for bmodel\n");
-				return;
-			}
-
-			ptedge = &bedges[numbedges];
+			ptedge = &bedges[numbedges++];
 			ptedge->pnext = psideedges[lastside];
 			psideedges[lastside] = ptedge;
 			ptedge->v[0] = plastvert;
 			ptedge->v[1] = ptvert;
 
-			ptedge = &bedges[numbedges + 1];
+			ptedge = &bedges[numbedges++];
 			ptedge->pnext = psideedges[side];
 			psideedges[side] = ptedge;
 			ptedge->v[0] = ptvert;
 			ptedge->v[1] = pvert;
 
-			numbedges += 2;
+			if (numbedges >= MAX_BMODEL_EDGES)
+			{
+				R_Printf(PRINT_ALL,"Out of edges for bmodel\n");
+				return;
+			}
 
 			if (side == 0)
 			{
@@ -266,25 +280,23 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 	// plane to both sides (but in opposite directions)
 	if (makeclippededge && pfrontexit != pfrontenter)
 	{
-		if (numbedges >= (MAX_BMODEL_EDGES - 2))
-		{
-			R_Printf(PRINT_ALL,"Out of edges for bmodel\n");
-			return;
-		}
-
-		ptedge = &bedges[numbedges];
+		ptedge = &bedges[numbedges++];
 		ptedge->pnext = psideedges[0];
 		psideedges[0] = ptedge;
 		ptedge->v[0] = pfrontexit;
 		ptedge->v[1] = pfrontenter;
 
-		ptedge = &bedges[numbedges + 1];
+		ptedge = &bedges[numbedges++];
 		ptedge->pnext = psideedges[1];
 		psideedges[1] = ptedge;
 		ptedge->v[0] = pfrontenter;
 		ptedge->v[1] = pfrontexit;
 
-		numbedges += 2;
+		if (numbedges >= MAX_BMODEL_EDGES)
+		{
+			R_Printf(PRINT_ALL,"Out of edges for bmodel\n");
+			return;
+		}
 	}
 
 	// draw or recurse further
@@ -303,17 +315,13 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 				{
 					if (pn->contents != CONTENTS_SOLID)
 					{
-						if (r_newrefdef.areabits)
-						{
-							int	area;
+						int r_currentbkey;
 
-							area = ((mleaf_t *)pn)->area;
-							if (! (r_newrefdef.areabits[area>>3] & (1<<(area&7)) ) )
-								continue;		// not visible
-						}
+						if (!R_AreaVisible((mleaf_t *)pn))
+							continue;
 
 						r_currentbkey = ((mleaf_t *)pn)->key;
-						R_RenderBmodelFace(currententity, psideedges[i], psurf);
+						R_RenderBmodelFace(currententity, psideedges[i], psurf, r_currentbkey);
 					}
 				}
 				else
@@ -399,14 +407,14 @@ R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *curre
 
 		pbedge[j-1].pnext = NULL; // mark end of edges
 
-		if ( !( psurf->texinfo->flags & ( SURF_TRANS66 | SURF_TRANS33 ) ) )
+		if ( !( psurf->texinfo->flags & ( SURF_TRANS66 | SURF_TRANS33 ) ))
 		{
 			// FIXME: Fan broken in borehole
 			R_RecursiveClipBPoly(currententity, pbedge, topnode, psurf);
 		}
 		else
 		{
-			R_RenderBmodelFace(currententity, pbedge, psurf );
+			R_RenderBmodelFace(currententity, pbedge, psurf, ((mleaf_t *)topnode)->key);
 		}
 	}
 }
@@ -446,7 +454,7 @@ R_DrawSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, int
 			r_currentkey = ((mleaf_t *)topnode)->key;
 
 			// FIXME: use bounding-box-based frustum clipping info?
-			R_RenderFace(currententity, currentmodel, psurf, clipflags);
+			R_RenderFace(currententity, currentmodel, psurf, clipflags, true);
 		}
 	}
 }
@@ -460,7 +468,8 @@ R_RecursiveWorldNode
 ================
 */
 static void
-R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnode_t *node, int clipflags)
+R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnode_t *node,
+	int clipflags, qboolean insubmodel)
 {
 	int c;
 	vec3_t acceptpt, rejectpt;
@@ -519,12 +528,8 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 		msurface_t **mark;
 		pleaf = (mleaf_t *)node;
 
-		// check for door connected areas
-		if (r_newrefdef.areabits)
-		{
-			if (! (r_newrefdef.areabits[pleaf->area>>3] & (1<<(pleaf->area&7)) ) )
-				return;	// not visible
-		}
+		if (!R_AreaVisible(pleaf))
+			return;	// not visible
 
 		mark = pleaf->firstmarksurface;
 		c = pleaf->nummarksurfaces;
@@ -573,7 +578,7 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 			side = 1;
 
 		// recurse down the children, front side first
-		R_RecursiveWorldNode (currententity, currentmodel, node->children[side], clipflags);
+		R_RecursiveWorldNode (currententity, currentmodel, node->children[side], clipflags, insubmodel);
 
 		// draw stuff
 		c = node->numsurfaces;
@@ -591,7 +596,7 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 					if ((surf->flags & SURF_PLANEBACK) &&
 						(surf->visframe == r_framecount))
 					{
-						R_RenderFace (currententity, currentmodel, surf, clipflags);
+						R_RenderFace (currententity, currentmodel, surf, clipflags, insubmodel);
 					}
 
 					surf++;
@@ -604,7 +609,7 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 					if (!(surf->flags & SURF_PLANEBACK) &&
 						(surf->visframe == r_framecount))
 					{
-						R_RenderFace (currententity, currentmodel, surf, clipflags);
+						R_RenderFace (currententity, currentmodel, surf, clipflags, insubmodel);
 					}
 
 					surf++;
@@ -616,7 +621,7 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 		}
 
 		// recurse down the back side
-		R_RecursiveWorldNode (currententity, currentmodel, node->children[!side], clipflags);
+		R_RecursiveWorldNode (currententity, currentmodel, node->children[!side], clipflags, insubmodel);
 	}
 }
 
@@ -643,5 +648,5 @@ R_RenderWorld (void)
 	VectorCopy (r_origin, modelorg);
 	r_pcurrentvertbase = currentmodel->vertexes;
 
-	R_RecursiveWorldNode (&r_worldentity, currentmodel, currentmodel->nodes, ALIAS_XY_CLIP_MASK);
+	R_RecursiveWorldNode (&r_worldentity, currentmodel, currentmodel->nodes, ALIAS_XY_CLIP_MASK, false);
 }

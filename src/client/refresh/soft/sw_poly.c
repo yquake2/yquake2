@@ -592,7 +592,7 @@ R_ClipPolyFace (int nump, clipplane_t *pclipplane)
 */
 // iswater was qboolean. changed to allow passing more flags
 static void
-R_PolygonDrawSpans(espan_t *pspan, int iswater )
+R_PolygonDrawSpans(espan_t *pspan, int iswater, float d_ziorigin, float d_zistepu, float d_zistepv)
 {
 	int	snext, tnext;
 	float	sdivz, tdivz, zi, z, du, dv, spancountminus1;
@@ -749,7 +749,7 @@ R_PolygonDrawSpans(espan_t *pspan, int iswater )
 
 		pspan++;
 
-	} while (pspan->count != DS_SPAN_LIST_END);
+	} while (pspan->count != INT_MIN);
 }
 
 /*
@@ -818,6 +818,8 @@ R_PolygonScanLeftEdge (espan_t *s_polygon_spans)
 			i = r_polydesc.nump;
 
 	} while (i != lmaxindex);
+
+	pspan->count = INT_MIN;	// mark the end of the span list
 }
 
 /*
@@ -903,7 +905,7 @@ R_PolygonScanRightEdge(espan_t *s_polygon_spans)
 
 	} while (i != s_maxindex);
 
-	pspan->count = DS_SPAN_LIST_END;	// mark the end of the span list
+	pspan->count = INT_MIN;	// mark the end of the span list
 }
 
 /*
@@ -1111,10 +1113,11 @@ R_BuildPolygonFromSurface(const entity_t *currententity, const model_t *currentm
 ** R_PolygonCalculateGradients
 */
 static void
-R_PolygonCalculateGradients (void)
+R_PolygonCalculateGradients (float *p_ziorigin, float *p_zistepu, float *p_zistepv)
 {
-	vec3_t		p_normal, p_saxis, p_taxis;
-	float		distinv;
+	vec3_t	p_normal, p_saxis, p_taxis;
+	float	distinv;
+	float	d_ziorigin, d_zistepu, d_zistepv;
 
 	TransformVector (r_polydesc.vpn, p_normal);
 	TransformVector (r_polydesc.vright, p_saxis);
@@ -1140,6 +1143,10 @@ R_PolygonCalculateGradients (void)
 	// -1 (-epsilon) so we never wander off the edge of the texture
 	bbextents = (r_polydesc.pixel_width << SHIFT16XYZ) - 1;
 	bbextentt = (r_polydesc.pixel_height << SHIFT16XYZ) - 1;
+
+	*p_zistepu = d_zistepu;
+	*p_zistepv = d_zistepv;
+	*p_ziorigin = d_ziorigin;
 }
 
 /*
@@ -1157,6 +1164,7 @@ R_DrawPoly(int iswater, espan_t *spans)
 	int		i, nump;
 	float		ymin, ymax;
 	emitpoint_t	*pverts;
+	float	d_ziorigin, d_zistepu, d_zistepv;
 
 	// find the top and bottom vertices, and make sure there's at least one scan to
 	// draw
@@ -1196,11 +1204,11 @@ R_DrawPoly(int iswater, espan_t *spans)
 	pverts = r_polydesc.pverts;
 	pverts[nump] = pverts[0];
 
-	R_PolygonCalculateGradients();
+	R_PolygonCalculateGradients(&d_ziorigin, &d_zistepu, &d_zistepv);
 	R_PolygonScanLeftEdge(spans);
 	R_PolygonScanRightEdge(spans);
 
-	R_PolygonDrawSpans(spans, iswater);
+	R_PolygonDrawSpans(spans, iswater, d_ziorigin, d_zistepu, d_zistepv);
 }
 
 /*

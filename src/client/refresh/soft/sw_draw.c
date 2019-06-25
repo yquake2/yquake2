@@ -77,12 +77,15 @@ smoothly scrolled off.
 void
 RE_Draw_CharScaled(int x, int y, int num, float scale)
 {
-	pixel_t	*dest, *dest_max;
+	pixel_t	*dest;
 	byte	*source;
-	int		drawline;
-	int		row, col, u, xpos, ypos, iscale;
+	int	drawline;
+	int	row, col, u, xpos, ypos, iscale;
 
 	iscale = (int) scale;
+
+	if (iscale < 1)
+		return;
 
 	num &= 255;
 
@@ -109,7 +112,12 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 		drawline = 8;
 
 	dest = vid_buffer + y * vid.width + x;
-	dest_max = vid_buffer + vid.height * vid.width;
+
+	// clipped last lines
+	if ((y + iscale * (drawline + 1)) > vid.height)
+	{
+		drawline = (vid.height - y) / iscale;
+	}
 
 	while (drawline--)
 	{
@@ -124,12 +132,6 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 					}
 			}
 			dest += vid.width;
-
-			// clipped last lines
-			if (dest >= dest_max)
-			{
-				return;
-			}
 		}
 		source += 128;
 	}
@@ -160,14 +162,13 @@ RE_Draw_GetPicSize (int *w, int *h, char *pic)
 RE_Draw_StretchPicImplementation
 =============
 */
-void
+static void
 RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic)
 {
 	pixel_t	*dest;
 	byte	*source;
 	int		v, u;
 	int		height;
-	int		f, fstep;
 	int		skip;
 
 	if ((x < 0) ||
@@ -189,16 +190,24 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 
 	dest = vid_buffer + y * vid.width + x;
 
-	for (v=0 ; v<height ; v++, dest += vid.width)
+	if (w == pic->width)
 	{
-		int sv = (skip + v)*pic->height/h;
-		source = pic->pixels[0] + sv*pic->width;
-		if (w == pic->width)
-			memcpy (dest, source, w);
-		else
+		for (v=0 ; v<height ; v++, dest += vid.width)
 		{
+			int sv = (skip + v)*pic->height/h;
+			source = pic->pixels[0] + sv*pic->width;
+			memcpy (dest, source, w);
+		}
+	}
+	else
+	{
+		for (v=0 ; v<height ; v++, dest += vid.width)
+		{
+			int f, fstep;
+			int sv = (skip + v)*pic->height/h;
+			source = pic->pixels[0] + sv*pic->width;
 			f = 0;
-			fstep = (pic->width * SHIFT16XYZ_MULT) / w;
+			fstep = (pic->width << SHIFT16XYZ) / w;
 			for (u=0 ; u<w ; u++)
 			{
 				dest[u] = source[f>>16];
@@ -266,8 +275,8 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 	}
 
 	if ((x < 0) ||
-		(x + pic->width > vid.width) ||
-		(y + pic->height > vid.height))
+		(x + pic->width * scale > vid.width) ||
+		(y + pic->height * scale > vid.height))
 	{
 		R_Printf(PRINT_ALL, "Draw_Pic: bad coordinates\n");
 		return;
