@@ -40,6 +40,29 @@ static int sound_hook_hit;
 static int sound_hook_heal;
 static int sound_hook_retract;
 
+static int  sound_step;
+static int  sound_step2;
+
+static void
+medic_footstep(edict_t *self)
+{
+	if (!g_monsterfootsteps->value)
+		return;
+
+	int     i;
+	i = rand() % (1 + 1 - 0) + 0;
+
+	if (i == 0)
+	{
+		gi.sound(self, CHAN_BODY, sound_step, 1, ATTN_NORM, 0);
+	}
+	else if (i == 1)
+	{
+		gi.sound(self, CHAN_BODY, sound_step2, 1, ATTN_NORM, 0);
+	}
+}
+
+
 edict_t *
 medic_FindDeadMonster(edict_t *self)
 {
@@ -280,13 +303,13 @@ medic_stand(edict_t *self)
 
 mframe_t medic_frames_walk[] = {
 	{ai_walk, 6.2, NULL},
-	{ai_walk, 18.1, NULL},
+	{ai_walk, 18.1, medic_footstep},
 	{ai_walk, 1, NULL},
 	{ai_walk, 9, NULL},
 	{ai_walk, 10, NULL},
 	{ai_walk, 9, NULL},
 	{ai_walk, 11, NULL},
-	{ai_walk, 11.6, NULL},
+	{ai_walk, 11.6, medic_footstep},
 	{ai_walk, 2, NULL},
 	{ai_walk, 9.9, NULL},
 	{ai_walk, 14, NULL},
@@ -313,11 +336,11 @@ medic_walk(edict_t *self)
 }
 
 mframe_t medic_frames_run[] = {
-	{ai_run, 18, NULL},
+	{ai_run, 18, medic_footstep},
 	{ai_run, 22.5, NULL},
 	{ai_run, 25.4, NULL},
 	{ai_run, 23.4, NULL},
-	{ai_run, 24, NULL},
+	{ai_run, 24, medic_footstep},
 	{ai_run, 35.6, NULL}
 };
 
@@ -387,6 +410,7 @@ mframe_t medic_frames_pain2[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
+	{ai_move, 0, medic_footstep},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -397,8 +421,7 @@ mframe_t medic_frames_pain2[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
-	{ai_move, 0, NULL},
-	{ai_move, 0, NULL}
+	{ai_move, 0, medic_footstep}
 };
 
 mmove_t medic_move_pain2 =
@@ -914,7 +937,7 @@ mframe_t medic_frames_attackCable[] = {
 	{ai_charge, 4.7, NULL},
 	{ai_charge, 5, NULL},
 	{ai_charge, 6, NULL},
-	{ai_charge, 4, NULL},
+	{ai_charge, 4, medic_footstep},
 	{ai_charge, 0, NULL},
 	{ai_move, 0, medic_hook_launch},
 	{ai_move, 0, medic_cable_attack},
@@ -928,7 +951,7 @@ mframe_t medic_frames_attackCable[] = {
 	{ai_move, 0, medic_cable_attack},
 	{ai_move, -15, medic_hook_retract},
 	{ai_move, -1.5, NULL},
-	{ai_move, -1.2, NULL},
+	{ai_move, -1.2, medic_footstep},
 	{ai_move, -3, NULL},
 	{ai_move, -2, NULL},
 	{ai_move, 0.3, NULL},
@@ -1007,6 +1030,9 @@ SP_monster_medic(edict_t *self)
 	sound_hook_hit = gi.soundindex("medic/medatck3.wav");
 	sound_hook_heal = gi.soundindex("medic/medatck4.wav");
 	sound_hook_retract = gi.soundindex("medic/medatck5.wav");
+
+	sound_step = gi.soundindex("medic/step1.wav");
+	sound_step2 = gi.soundindex("medic/step2.wav");
 
 	gi.soundindex("medic/medatck1.wav");
 

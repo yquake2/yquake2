@@ -205,6 +205,9 @@ Set `0` by default.
   may not be generated in all circumstances, especially when the player
   is moving over stairs and slopes.
 
+* **g_monsterfootsteps**: If set to `1` monster footstep are generated.
+  By default this cvar is disabled (set to 0).
+
 * **g_fix_triggered**: This cvar, when set to `1`, forces monsters to
   spawn in normally if they are set to a triggered spawn but do not
   have a targetname. There are a few cases of this in GroundZero and

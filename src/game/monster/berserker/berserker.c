@@ -34,6 +34,29 @@ static int sound_punch;
 static int sound_sight;
 static int sound_search;
 
+static int  sound_step;
+static int  sound_step2;
+
+static void
+berserk_footstep(edict_t *self)
+{
+	if (!g_monsterfootsteps->value)
+		return;
+
+	int     i;
+	i = rand() % (1 + 1 - 0) + 0;
+
+	if (i == 0)
+	{
+		gi.sound(self, CHAN_BODY, sound_step, 1, ATTN_NORM, 0);
+	}
+	else if (i == 1)
+	{
+		gi.sound(self, CHAN_BODY, sound_step2, 1, ATTN_NORM, 0);
+	}
+}
+
+
 void
 berserk_sight(edict_t *self, edict_t *other /* unused */)
 {
@@ -146,12 +169,12 @@ mframe_t berserk_frames_walk[] = {
 	{ai_walk, 9.1, NULL},
 	{ai_walk, 6.3, NULL},
 	{ai_walk, 4.9, NULL},
-	{ai_walk, 6.7, NULL},
+	{ai_walk, 6.7, berserk_footstep},
 	{ai_walk, 6.0, NULL},
 	{ai_walk, 8.2, NULL},
 	{ai_walk, 7.2, NULL},
 	{ai_walk, 6.1, NULL},
-	{ai_walk, 4.9, NULL},
+	{ai_walk, 4.9, berserk_footstep},
 	{ai_walk, 4.7, NULL},
 	{ai_walk, 4.7, NULL},
 	{ai_walk, 4.8, NULL}
@@ -177,10 +200,10 @@ berserk_walk(edict_t *self)
 
 mframe_t berserk_frames_run1[] = {
 	{ai_run, 21, NULL},
-	{ai_run, 11, NULL},
+	{ai_run, 11, berserk_footstep},
 	{ai_run, 21, NULL},
 	{ai_run, 25, NULL},
-	{ai_run, 18, NULL},
+	{ai_run, 18, berserk_footstep},
 	{ai_run, 19, NULL}
 };
 
@@ -270,7 +293,7 @@ berserk_attack_club(edict_t *self)
 mframe_t berserk_frames_attack_club[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
-	{ai_charge, 0, NULL},
+	{ai_charge, 0, berserk_footstep},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, berserk_swing},
 	{ai_charge, 0, NULL},
@@ -300,18 +323,18 @@ berserk_strike(edict_t *self)
 mframe_t berserk_frames_attack_strike[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
-	{ai_move, 0, NULL},
+	{ai_move, 0, berserk_footstep},
 	{ai_move, 0, berserk_swing},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, berserk_strike},
-	{ai_move, 0, NULL},
+	{ai_move, 0, berserk_footstep},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 9.7, NULL},
-	{ai_move, 13.6, NULL}
+	{ai_move, 13.6, berserk_footstep}
 };
 
 mmove_t berserk_move_attack_strike =
@@ -556,6 +579,9 @@ SP_monster_berserk(edict_t *self)
 	sound_punch = gi.soundindex("berserk/attack.wav");
 	sound_search = gi.soundindex("berserk/bersrch1.wav");
 	sound_sight = gi.soundindex("berserk/sight.wav");
+
+	sound_step = gi.soundindex("berserk/step1.wav");
+	sound_step2 = gi.soundindex("berserk/step2.wav");
 
 	self->s.modelindex = gi.modelindex("models/monsters/berserk/tris.md2");
 	VectorSet(self->mins, -16, -16, -24);

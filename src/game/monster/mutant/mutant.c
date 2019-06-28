@@ -225,13 +225,13 @@ mutant_idle(edict_t *self)
 void mutant_walk(edict_t *self);
 
 mframe_t mutant_frames_walk[] = {
-	{ai_walk, 3, NULL},
+	{ai_walk, 3, mutant_step},
 	{ai_walk, 1, NULL},
-	{ai_walk, 5, NULL},
+	{ai_walk, 5, mutant_step},
 	{ai_walk, 10, NULL},
 	{ai_walk, 13, NULL},
 	{ai_walk, 10, NULL},
-	{ai_walk, 0, NULL},
+	{ai_walk, 0, mutant_step},
 	{ai_walk, 5, NULL},
 	{ai_walk, 6, NULL},
 	{ai_walk, 16, NULL},
@@ -261,7 +261,7 @@ mutant_walk_loop(edict_t *self)
 mframe_t mutant_frames_start_walk[] = {
 	{ai_walk, 5, NULL},
 	{ai_walk, 5, NULL},
-	{ai_walk, -2, NULL},
+	{ai_walk, -2, mutant_step},
 	{ai_walk, 1, NULL}
 };
 
