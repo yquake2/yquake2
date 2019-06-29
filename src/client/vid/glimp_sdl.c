@@ -34,6 +34,7 @@
 #include <SDL2/SDL_video.h>
 
 cvar_t *vid_displayrefreshrate;
+static cvar_t *vid_displayindex;
 int glimp_refreshRate = -1;
 
 static int last_flags = 0;
@@ -42,12 +43,73 @@ static int last_position_x = SDL_WINDOWPOS_UNDEFINED;
 static int last_position_y = SDL_WINDOWPOS_UNDEFINED;
 static SDL_Window* window = NULL;
 static qboolean initSuccessful = false;
+static char **displayindices = NULL;
+static int num_displays = 0;
+
+const char**
+GLimp_GetDisplayIndices(void)
+{
+	return (const char**)displayindices;
+}
+
+int
+GLimp_GetWindowDisplayIndex(void)
+{
+	return last_display;
+}
+
+int
+GLimp_GetNumVideoDisplays(void)
+{
+	return num_displays;
+}
+
+/*
+ * Resets the display index Cvar if out of bounds
+ */
+static void
+ClampDisplayIndexCvar(void)
+{
+	if (vid_displayindex->value < 0 || vid_displayindex->value >= num_displays)
+		Cvar_SetValue("vid_displayindex", 0);
+}
+
+static void
+ClearDisplayIndices(void)
+{
+	if ( displayindices )
+	{
+		for ( int i = 0; i < num_displays; i++ )
+			free( displayindices[ i ] );
+
+		free( displayindices );
+		displayindices = NULL;
+	}
+}
+
+static void
+InitDisplayIndices()
+{
+	displayindices = malloc( ( num_displays + 1 ) * sizeof( char* ) );
+	for ( int i = 0; i < num_displays; i++ )
+	{
+		displayindices[ i ] = malloc( 11 * sizeof( char ) ); // There are a maximum of 10 digits in 32 bit int + 1 for the NULL terminator
+		snprintf( displayindices[ i ], 11, "%d", i );
+	}
+
+	// The last entry is NULL to indicate the list of strings ends
+	displayindices[ num_displays ] = 0;
+}
 
 // --------
 
 static qboolean
 CreateSDLWindow(int flags, int w, int h)
 {
+	if (SDL_WINDOWPOS_ISUNDEFINED(last_position_x) || SDL_WINDOWPOS_ISUNDEFINED(last_position_y)) {
+		last_position_x = last_position_y = SDL_WINDOWPOS_UNDEFINED_DISPLAY((int)vid_displayindex->value);
+	}
+
 	window = SDL_CreateWindow("Yamagi Quake II",
 				  last_position_x, last_position_y,
 				  w, h, flags);
@@ -144,12 +206,23 @@ void GLimp_GrabInput(qboolean grab);
 static void
 ShutdownGraphics(void)
 {
+	ClampDisplayIndexCvar();
+
 	if (window)
 	{
 		/* save current display as default */
 		last_display = SDL_GetWindowDisplayIndex(window);
-		SDL_GetWindowPosition(window,
+
+		/* or if current display isn't the desired default */
+		if (last_display != vid_displayindex->value) {
+			last_position_x = last_position_y = SDL_WINDOWPOS_UNDEFINED;
+			last_display = vid_displayindex->value;
+		}
+		else {
+			SDL_GetWindowPosition(window,
 				      &last_position_x, &last_position_y);
+		}
+
 		/* cleanly ungrab input (needs window) */
 		GLimp_GrabInput(false);
 		SDL_DestroyWindow(window);
@@ -172,6 +245,7 @@ qboolean
 GLimp_Init(void)
 {
 	vid_displayrefreshrate = Cvar_Get("vid_displayrefreshrate", "-1", CVAR_ARCHIVE);
+	vid_displayindex = Cvar_Get("vid_displayindex", "0", CVAR_ARCHIVE);
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 	{
@@ -187,6 +261,10 @@ GLimp_Init(void)
 		SDL_GetVersion(&version);
 		Com_Printf("SDL version is: %i.%i.%i\n", (int)version.major, (int)version.minor, (int)version.patch);
 		Com_Printf("SDL video driver is \"%s\".\n", SDL_GetCurrentVideoDriver());
+
+		num_displays = SDL_GetNumVideoDisplays();
+		InitDisplayIndices();
+		ClampDisplayIndexCvar();
 	}
 
 	return true;
@@ -210,6 +288,8 @@ GLimp_Shutdown(void)
 	{
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	}
+
+	ClearDisplayIndices();
 }
 
 /*
