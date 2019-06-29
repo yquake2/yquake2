@@ -219,7 +219,7 @@ ShutdownGraphics(void)
 			last_display = vid_displayindex->value;
 		}
 		else {
-		SDL_GetWindowPosition(window,
+			SDL_GetWindowPosition(window,
 				      &last_position_x, &last_position_y);
 		}
 
