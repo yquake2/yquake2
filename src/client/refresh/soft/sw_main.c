@@ -139,6 +139,7 @@ static cvar_t	*sw_overbrightbits;
 cvar_t	*sw_custom_particles;
 cvar_t	*sw_texture_filtering;
 cvar_t	*sw_retexturing;
+static cvar_t	*sw_partialflush;
 
 cvar_t	*r_drawworld;
 static cvar_t	*r_drawentities;
@@ -198,7 +199,7 @@ zvalue_t	*d_pzbuffer;
 static void Draw_GetPalette (void);
 static void RE_BeginFrame( float camera_separation );
 static void Draw_BuildGammaTable(void);
-static void RE_FlushFrame(int vmin);
+static void RE_FlushFrame(int vmin, int vmax);
 static void RE_CleanFrame(void);
 static void RE_EndFrame(void);
 static void R_DrawBeam(const entity_t *e);
@@ -240,6 +241,7 @@ R_RegisterVariables (void)
 	sw_custom_particles = ri.Cvar_Get("sw_custom_particles", "0", CVAR_ARCHIVE);
 	sw_texture_filtering = ri.Cvar_Get("sw_texture_filtering", "0", CVAR_ARCHIVE);
 	sw_retexturing = ri.Cvar_Get("sw_retexturing", "0", CVAR_ARCHIVE);
+	sw_partialflush = ri.Cvar_Get("sw_partialflush", "0", CVAR_ARCHIVE);
 	r_mode = ri.Cvar_Get( "r_mode", "0", CVAR_ARCHIVE );
 
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
@@ -1806,7 +1808,8 @@ RE_CopyFrame (Uint32 * pixels, int pitch, int vmin, int vmax)
 	{
 		int y,x, buffer_pos;
 
-		buffer_pos = 0;
+		buffer_pos = vmin * vid.width;
+		pixels += vmin * pitch;
 		for (y=vmin; y < vmax;  y++)
 		{
 			for (x=0; x < vid.width; x ++)
@@ -1824,9 +1827,9 @@ RE_BufferDifferenceStart(int vmin, int vmax)
 {
 	int *front_buffer, *back_buffer, *back_max;
 
-	back_buffer = (int*)swap_frames[0] + vmin * vid.width;
-	front_buffer = (int*)swap_frames[1] + vmin * vid.width;
-	back_max = (int*)swap_frames[0] + vmax * vid.width;
+	back_buffer = (int*)(swap_frames[0] + vmin * vid.width);
+	front_buffer = (int*)(swap_frames[1] + vmin * vid.width);
+	back_max = (int*)(swap_frames[0] + vmax * vid.width);
 
 	while (back_buffer < back_max && *back_buffer == *front_buffer) {
 		back_buffer ++;
@@ -1856,7 +1859,7 @@ RE_CleanFrame(void)
 }
 
 static void
-RE_FlushFrame(int vmin)
+RE_FlushFrame(int vmin, int vmax)
 {
 	int pitch;
 	Uint32 *pixels;
@@ -1865,14 +1868,14 @@ RE_FlushFrame(int vmin)
 	copy_rect.x = 0;
 	copy_rect.y = vmin;
 	copy_rect.w = vid.width;
-	copy_rect.h = vid.height - vmin;
+	copy_rect.h = vmax - vmin;
 
 	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
 	{
 		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
 		return;
 	}
-	RE_CopyFrame (pixels, pitch / sizeof(Uint32), vmin, vid.height);
+	RE_CopyFrame (pixels, pitch / sizeof(Uint32), vmin, vmax);
 	SDL_UnlockTexture(texture);
 
 	SDL_RenderCopy(renderer, texture, &copy_rect, &copy_rect);
@@ -1899,7 +1902,13 @@ RE_EndFrame (void)
 	{
 		return;
 	}
-	RE_FlushFrame(vmin);
+
+	// flush whole buffer
+	if (!sw_partialflush->value)
+	{
+		vmin = 0;
+	}
+	RE_FlushFrame(vmin, vid.height);
 }
 
 /*
