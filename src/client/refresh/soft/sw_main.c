@@ -1838,6 +1838,22 @@ RE_BufferDifferenceStart(int vmin, int vmax)
 	return ((pixel_t*)back_buffer - swap_frames[0]) / vid.width;
 }
 
+static int
+RE_BufferDifferenceEnd(int vmin, int vmax)
+{
+	int *front_buffer, *back_buffer, *back_min;
+
+	back_buffer = (int*)(swap_frames[0] + vmax * vid.width);
+	front_buffer = (int*)(swap_frames[1] + vmax * vid.width);
+	back_min = (int*)(swap_frames[0] + vmin * vid.width);
+
+	while (back_buffer > back_min && *back_buffer == *front_buffer) {
+		back_buffer --;
+		front_buffer --;
+	}
+	return ((pixel_t*)back_buffer - swap_frames[0]) / vid.width;
+}
+
 static void
 RE_CleanFrame(void)
 {
@@ -1863,12 +1879,13 @@ RE_FlushFrame(int vmin, int vmax)
 {
 	int pitch;
 	Uint32 *pixels;
-	SDL_Rect copy_rect;
 
-	copy_rect.x = 0;
-	copy_rect.y = vmin;
-	copy_rect.w = vid.width;
-	copy_rect.h = vmax - vmin;
+	// flush whole buffer
+	if (!sw_partialflush->value)
+	{
+		vmin = 0;
+		vmax = vid.height;
+	}
 
 	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
 	{
@@ -1878,7 +1895,7 @@ RE_FlushFrame(int vmin, int vmax)
 	RE_CopyFrame (pixels, pitch / sizeof(Uint32), vmin, vmax);
 	SDL_UnlockTexture(texture);
 
-	SDL_RenderCopy(renderer, texture, &copy_rect, &copy_rect);
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
 	SDL_RenderPresent(renderer);
 
 	// replace use next buffer
@@ -1895,20 +1912,23 @@ RE_FlushFrame(int vmin, int vmax)
 static void
 RE_EndFrame (void)
 {
-	int vmin;
+	int vmin, vmax;
 
 	vmin = RE_BufferDifferenceStart(0, vid.height);
-	if (vmin >= vid.height)
+	// +1 for fully cover line with changes
+	vmax = RE_BufferDifferenceEnd(vmin, vid.height) + 1;
+	if (vmax > vid.height)
+	{
+		vmax = vid.height;
+	}
+
+	// no differences found
+	if (vmin >= vmax)
 	{
 		return;
 	}
 
-	// flush whole buffer
-	if (!sw_partialflush->value)
-	{
-		vmin = 0;
-	}
-	RE_FlushFrame(vmin, vid.height);
+	RE_FlushFrame(vmin, vmax);
 }
 
 /*
