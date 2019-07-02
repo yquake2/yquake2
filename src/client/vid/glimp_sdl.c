@@ -46,24 +46,6 @@ static qboolean initSuccessful = false;
 static char **displayindices = NULL;
 static int num_displays = 0;
 
-const char**
-GLimp_GetDisplayIndices(void)
-{
-	return (const char**)displayindices;
-}
-
-int
-GLimp_GetWindowDisplayIndex(void)
-{
-	return last_display;
-}
-
-int
-GLimp_GetNumVideoDisplays(void)
-{
-	return num_displays;
-}
-
 /*
  * Resets the display index Cvar if out of bounds
  */
@@ -71,7 +53,9 @@ static void
 ClampDisplayIndexCvar(void)
 {
 	if (vid_displayindex->value < 0 || vid_displayindex->value >= num_displays)
+	{
 		Cvar_SetValue("vid_displayindex", 0);
+	}
 }
 
 static void
@@ -80,28 +64,14 @@ ClearDisplayIndices(void)
 	if ( displayindices )
 	{
 		for ( int i = 0; i < num_displays; i++ )
+		{
 			free( displayindices[ i ] );
+		}
 
 		free( displayindices );
 		displayindices = NULL;
 	}
 }
-
-static void
-InitDisplayIndices()
-{
-	displayindices = malloc( ( num_displays + 1 ) * sizeof( char* ) );
-	for ( int i = 0; i < num_displays; i++ )
-	{
-		displayindices[ i ] = malloc( 11 * sizeof( char ) ); // There are a maximum of 10 digits in 32 bit int + 1 for the NULL terminator
-		snprintf( displayindices[ i ], 11, "%d", i );
-	}
-
-	// The last entry is NULL to indicate the list of strings ends
-	displayindices[ num_displays ] = 0;
-}
-
-// --------
 
 static qboolean
 CreateSDLWindow(int flags, int w, int h)
@@ -164,9 +134,24 @@ GetWindowSize(int* w, int* h)
 	return true;
 }
 
+static void
+InitDisplayIndices()
+{
+	displayindices = malloc((num_displays + 1) * sizeof(char *));
+
+	for ( int i = 0; i < num_displays; i++ )
+	{
+		/* There are a maximum of 10 digits in 32 bit int + 1 for the NULL terminator. */
+		displayindices[ i ] = malloc(11 * sizeof( char ));
+		snprintf( displayindices[ i ], 11, "%d", i );
+	}
+
+	/* The last entry is NULL to indicate the list of strings ends. */
+	displayindices[ num_displays ] = 0;
+}
+
 /*
- * Lists all available display modes. At this
- * time it's  used only for debugging purposes.
+ * Lists all available display modes.
  */
 static void
 PrintDisplayModes(void)
@@ -586,8 +571,7 @@ GLimp_GetDesktopMode(int *pwidth, int *pheight)
 	{
 		/* save current display as default */
 		last_display = SDL_GetWindowDisplayIndex(window);
-		SDL_GetWindowPosition(window,
-				      &last_position_x, &last_position_y);
+		SDL_GetWindowPosition(window, &last_position_x, &last_position_y);
 	}
 
 	if (last_display < 0)
@@ -608,4 +592,22 @@ GLimp_GetDesktopMode(int *pwidth, int *pheight)
 	*pwidth = mode.w;
 	*pheight = mode.h;
 	return true;
+}
+
+const char**
+GLimp_GetDisplayIndices(void)
+{
+	return (const char**)displayindices;
+}
+
+int
+GLimp_GetNumVideoDisplays(void)
+{
+	return num_displays;
+}
+
+int
+GLimp_GetWindowDisplayIndex(void)
+{
+	return last_display;
 }
