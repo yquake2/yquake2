@@ -33,9 +33,11 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
 
-cvar_t *vid_displayrefreshrate;
-static cvar_t *vid_displayindex;
 int glimp_refreshRate = -1;
+
+static cvar_t *vid_displayrefreshrate;
+static cvar_t *vid_displayindex;
+static cvar_t *vid_rate;
 
 static int last_flags = 0;
 static int last_display = 0;
@@ -76,22 +78,88 @@ ClearDisplayIndices(void)
 static qboolean
 CreateSDLWindow(int flags, int w, int h)
 {
-	if (SDL_WINDOWPOS_ISUNDEFINED(last_position_x) || SDL_WINDOWPOS_ISUNDEFINED(last_position_y)) {
+	if (SDL_WINDOWPOS_ISUNDEFINED(last_position_x) || SDL_WINDOWPOS_ISUNDEFINED(last_position_y))
+	{
 		last_position_x = last_position_y = SDL_WINDOWPOS_UNDEFINED_DISPLAY((int)vid_displayindex->value);
 	}
 
-	window = SDL_CreateWindow("Yamagi Quake II",
-				  last_position_x, last_position_y,
-				  w, h, flags);
+	window = SDL_CreateWindow("Yamagi Quake II", last_position_x, last_position_y, w, h, flags);
+
 	if (window)
 	{
+
 		/* save current display as default */
 		last_display = SDL_GetWindowDisplayIndex(window);
-		SDL_GetWindowPosition(window,
-				      &last_position_x, &last_position_y);
+		SDL_GetWindowPosition(window, &last_position_x, &last_position_y);
+
+		/* Check if we're really in the requested diplay mode. There is
+		   (or was) an SDL bug were SDL switched into the wrong mode
+		   without giving an error code. See the bug report for details:
+		   https://bugzilla.libsdl.org/show_bug.cgi?id=4700 */
+		SDL_DisplayMode mode;
+
+		if (SDL_GetWindowDisplayMode(window, &mode) != 0)
+		{
+			SDL_DestroyWindow(window);
+			window = NULL;
+
+			Com_Printf("Can't get display mode: %s\n", SDL_GetError());
+
+			return false;
+		}
+
+		if ((mode.w != w) || (mode.h != h))
+		{
+			SDL_DestroyWindow(window);
+			window = NULL;
+
+			Com_Printf("Current display mode isn't requested display mode\n");
+
+			return false;
+		}
+
+        /* Normally SDL stays at desktop refresh rate or chooses
+		   something sane. Some player may want to override that. */
+		if (flags & SDL_WINDOW_FULLSCREEN)
+		{
+			if (vid_rate->value > 0)
+			{
+				SDL_DisplayMode closest_mode;
+				SDL_DisplayMode requested_mode = mode;
+
+				requested_mode.refresh_rate = (int)vid_rate->value;
+
+				if (SDL_GetClosestDisplayMode(last_display, &requested_mode, &closest_mode) == NULL)
+				{
+					Com_Printf("SDL was unable to find a mode close to %ix%i@%i\n", w, h, requested_mode.refresh_rate);
+					Cvar_SetValue("vid_rate", -1);
+				}
+				else
+				{
+					Com_Printf("User requested %ix%i@%i, setting closest mode %ix%i@%i\n", 
+							w, h, requested_mode.refresh_rate, w, h, closest_mode.refresh_rate);
+
+					if (SDL_SetWindowDisplayMode(window, &closest_mode) != 0)
+					{
+						Com_Printf("Couldn't switch to mode %ix%i@%i, staying at current mode\n",
+								w, h, closest_mode.refresh_rate);
+						Cvar_SetValue("vid_rate", -1);
+					}
+					else
+					{
+						Cvar_SetValue("vid_rate", closest_mode.refresh_rate);
+					}
+				}
+
+			}
+		}
+	}
+	else
+	{
+		return false;
 	}
 
-	return window != NULL;
+	return true;
 }
 
 static int
@@ -268,6 +336,7 @@ GLimp_Init(void)
 {
 	vid_displayrefreshrate = Cvar_Get("vid_displayrefreshrate", "-1", CVAR_ARCHIVE);
 	vid_displayindex = Cvar_Get("vid_displayindex", "0", CVAR_ARCHIVE);
+	vid_rate = Cvar_Get("vid_rate", "-1", CVAR_ARCHIVE);
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
 	{
@@ -424,6 +493,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 				Cvar_SetValue("r_mode", 4);
 				Cvar_SetValue("vid_fullscreen", 0);
 
+				fullscreen = 0;
 				*pwidth = width = 640;
 				*pheight = height = 480;
 				flags &= ~fs_flag;
