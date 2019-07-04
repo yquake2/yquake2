@@ -96,9 +96,9 @@ CreateSDLWindow(int flags, int w, int h)
 		   (or was) an SDL bug were SDL switched into the wrong mode
 		   without giving an error code. See the bug report for details:
 		   https://bugzilla.libsdl.org/show_bug.cgi?id=4700 */
-		SDL_DisplayMode mode;
+		SDL_DisplayMode real_mode;
 
-		if (SDL_GetWindowDisplayMode(window, &mode) != 0)
+		if (SDL_GetWindowDisplayMode(window, &real_mode) != 0)
 		{
 			SDL_DestroyWindow(window);
 			window = NULL;
@@ -108,14 +108,53 @@ CreateSDLWindow(int flags, int w, int h)
 			return false;
 		}
 
-		if ((mode.w != w) || (mode.h != h))
+		if ((real_mode.w != w) || (real_mode.h != h))
 		{
-			SDL_DestroyWindow(window);
-			window = NULL;
 
 			Com_Printf("Current display mode isn't requested display mode\n");
+			Com_Printf("Likely SDL bug #4700, trying to work around it\n");
 
-			return false;
+			/* Mkay, try to hack around that. */
+			SDL_DisplayMode wanted_mode = {};
+
+			wanted_mode.w = w;
+			wanted_mode.h = h;
+
+			if (SDL_SetWindowDisplayMode(window, &wanted_mode) != 0)
+			{
+				SDL_DestroyWindow(window);
+				window = NULL;
+
+				Com_Printf("Can't force resolution to %ix%i: %s\n", w, h, SDL_GetError());
+
+				return false;
+			}
+
+			/* The SDL doku says, that SDL_SetWindowSize() shouldn't be
+			   used on fullscreen windows. But at least in my test with
+			   SDL 2.0.9 the subsequent SDL_GetWindowDisplayMode() fails
+			   if I don't call it. */
+			SDL_SetWindowSize(window, wanted_mode.w, wanted_mode.h);
+
+			if (SDL_GetWindowDisplayMode(window, &real_mode) != 0)
+			{
+				SDL_DestroyWindow(window);
+				window = NULL;
+
+				Com_Printf("Can't get display mode: %s\n", SDL_GetError());
+
+				return false;
+			}
+
+			if ((real_mode.w != w) || (real_mode.h != h))
+			{
+				SDL_DestroyWindow(window);
+				window = NULL;
+
+				Com_Printf("Can't get display mode: %s\n", SDL_GetError());
+
+				return false;
+			}
 		}
 
         /* Normally SDL stays at desktop refresh rate or chooses
@@ -125,7 +164,7 @@ CreateSDLWindow(int flags, int w, int h)
 			if (vid_rate->value > 0)
 			{
 				SDL_DisplayMode closest_mode;
-				SDL_DisplayMode requested_mode = mode;
+				SDL_DisplayMode requested_mode = real_mode;
 
 				requested_mode.refresh_rate = (int)vid_rate->value;
 
