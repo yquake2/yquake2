@@ -40,6 +40,7 @@ static int	swap_current = 0;
 espan_t		*vid_polygon_spans = NULL;
 pixel_t		*vid_colormap = NULL;
 pixel_t		*vid_alphamap = NULL;
+static int	vid_minu, vid_minv, vid_maxu, vid_maxv;
 
 refimport_t	ri;
 
@@ -203,6 +204,56 @@ static void RE_FlushFrame(int vmin, int vmax);
 static void RE_CleanFrame(void);
 static void RE_EndFrame(void);
 static void R_DrawBeam(const entity_t *e);
+
+/*
+================
+Damage_VIDBuffer
+
+Mark VID buffer as damaged and need to be rewritten
+================
+*/
+void
+VID_DamageBuffer(int u, int v)
+{
+	// update U
+	if (vid_minu > u)
+	{
+		vid_minu = u;
+	}
+	if (vid_maxu < u)
+	{
+		vid_maxu = u;
+	}
+	// update V
+	if (vid_minv > v)
+	{
+		vid_minv = v;
+	}
+	if (vid_maxv < v)
+	{
+		vid_maxv = v;
+	}
+}
+
+// clean damage state
+static void
+VID_NoDamageBuffer(void)
+{
+	vid_minu = vid.width;
+	vid_maxu = 0;
+	vid_minv = vid.height;
+	vid_maxv = 0;
+}
+
+// Need to rewrite whole buffer
+static void
+VID_WholeDamageBuffer(void)
+{
+	vid_minu = 0;
+	vid_maxu = vid.width;
+	vid_minv = 0;
+	vid_maxv = vid.height;
+}
 
 /*
 ================
@@ -1122,6 +1173,9 @@ RE_RenderFrame (refdef_t *fd)
 		ri.Sys_Error(ERR_FATAL, "%s: NULL worldmodel", __func__);
 	}
 
+	// Need to rerender whole frame
+	VID_WholeDamageBuffer();
+
 	VectorCopy (fd->vieworg, r_refdef.vieworg);
 	VectorCopy (fd->viewangles, r_refdef.viewangles);
 
@@ -1872,6 +1926,9 @@ RE_CleanFrame(void)
 
 	SDL_RenderCopy(renderer, texture, NULL, NULL);
 	SDL_RenderPresent(renderer);
+
+	// All changes flushed
+	VID_NoDamageBuffer();
 }
 
 static void
@@ -1901,6 +1958,9 @@ RE_FlushFrame(int vmin, int vmax)
 	// replace use next buffer
 	swap_current ++;
 	vid_buffer = swap_frames[swap_current&1];
+
+	// All changes flushed
+	VID_NoDamageBuffer();
 }
 
 /*
@@ -1914,9 +1974,29 @@ RE_EndFrame (void)
 {
 	int vmin, vmax;
 
-	vmin = RE_BufferDifferenceStart(0, vid.height);
+	// fix possible issue with min/max
+	if (vid_minu < 0)
+	{
+		vid_minu = 0;
+	}
+	if (vid_minv < 0)
+	{
+		vid_minv = 0;
+	}
+	if (vid_maxu > vid.width)
+	{
+		vid_maxu = vid.width;
+	}
+	if (vid_maxv > vid.height)
+	{
+		vid_maxv = vid.height;
+	}
+
+	// search real begin/end of difference
+	vmin = RE_BufferDifferenceStart(vid_minv, vid_maxv);
+
 	// +1 for fully cover line with changes
-	vmax = RE_BufferDifferenceEnd(vmin, vid.height) + 1;
+	vmax = RE_BufferDifferenceEnd(vmin, vid_maxv) + 1;
 	if (vmax > vid.height)
 	{
 		vmax = vid.height;
@@ -1978,6 +2058,8 @@ SWimp_CreateRender(void)
 	swap_frames[0] = swap_buffers;
 	swap_frames[1] = swap_buffers + vid.height * vid.width * sizeof(pixel_t);
 	vid_buffer = swap_frames[swap_current&1];
+	// Need to rewrite whole frame
+	VID_WholeDamageBuffer();
 
 	sintable = malloc((vid.width+CYCLE) * sizeof(int));
 	intsintable = malloc((vid.width+CYCLE) * sizeof(int));

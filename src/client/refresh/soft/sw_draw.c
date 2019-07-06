@@ -119,6 +119,9 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 		drawline = (vid.height - y) / iscale;
 	}
 
+	VID_DamageBuffer(x, y);
+	VID_DamageBuffer(x + (iscale << 3), y + (iscale * drawline));
+
 	while (drawline--)
 	{
 		for (ypos=0; ypos < iscale; ypos ++)
@@ -177,6 +180,9 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 	{
 		ri.Sys_Error(ERR_FATAL, "%s: bad coordinates", __func__);
 	}
+
+	VID_DamageBuffer(x, y);
+	VID_DamageBuffer(x + w, y + h);
 
 	height = h;
 	if (y < 0)
@@ -293,6 +299,9 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 
 	dest = vid_buffer + y * vid.width + x;
 
+	VID_DamageBuffer(x, y);
+	VID_DamageBuffer(x + iscale * pic->width, y + iscale * pic->height);
+
 	if (!pic->transparent)
 	{
 		if (iscale == 1)
@@ -399,6 +408,9 @@ RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 	if (w <= 0 || h <= 0)
 		return;
 
+	VID_DamageBuffer(x, y);
+	VID_DamageBuffer(x + w, y + h);
+
 	pic = RE_Draw_FindPic (name);
 	if (!pic)
 	{
@@ -448,6 +460,9 @@ RE_Draw_Fill (int x, int y, int w, int h, int c)
 	if (w < 0 || h < 0)
 		return;
 
+	VID_DamageBuffer(x, y);
+	VID_DamageBuffer(x + w, y + h);
+
 	dest = vid_buffer + y * vid.width + x;
 	for (v=0 ; v<h ; v++, dest += vid.width)
 		memset(dest, c, w);
@@ -464,6 +479,9 @@ void
 RE_Draw_FadeScreen (void)
 {
 	int x,y;
+
+	VID_DamageBuffer(0, 0);
+	VID_DamageBuffer(vid.width, vid.height);
 
 	for (y=0 ; y<vid.height ; y++)
 	{
