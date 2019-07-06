@@ -1849,10 +1849,10 @@ RE_CopyFrame (Uint32 * pixels, int pitch, int vmin, int vmax)
 		Uint32	*pixels_pos;
 		pixel_t	*buffer_pos;
 
-		max_pixels = pixels + vmax * vid.width;
-		buffer_pos = vid_buffer + vmin * vid.width;
+		max_pixels = pixels + vmax;
+		buffer_pos = vid_buffer + vmin;
 
-		for (pixels_pos = pixels + vmin * vid.width; pixels_pos < max_pixels; pixels_pos++)
+		for (pixels_pos = pixels + vmin; pixels_pos < max_pixels; pixels_pos++)
 		{
 			*pixels_pos = sdl_palette[*buffer_pos];
 			buffer_pos++;
@@ -1860,11 +1860,14 @@ RE_CopyFrame (Uint32 * pixels, int pitch, int vmin, int vmax)
 	}
 	else
 	{
-		int y,x, buffer_pos;
+		int y,x, buffer_pos, ymin, ymax;
 
-		buffer_pos = vmin * vid.width;
-		pixels += vmin * pitch;
-		for (y=vmin; y < vmax;  y++)
+		ymin = vmin / vid.width;
+		ymax = vmax / vid.width;
+
+		buffer_pos = ymin * vid.width;
+		pixels += ymin * pitch;
+		for (y=ymin; y < ymax;  y++)
 		{
 			for (x=0; x < vid.width; x ++)
 			{
@@ -1881,15 +1884,15 @@ RE_BufferDifferenceStart(int vmin, int vmax)
 {
 	int *front_buffer, *back_buffer, *back_max;
 
-	back_buffer = (int*)(swap_frames[0] + vmin * vid.width);
-	front_buffer = (int*)(swap_frames[1] + vmin * vid.width);
-	back_max = (int*)(swap_frames[0] + vmax * vid.width);
+	back_buffer = (int*)(swap_frames[0] + vmin);
+	front_buffer = (int*)(swap_frames[1] + vmin);
+	back_max = (int*)(swap_frames[0] + vmax);
 
 	while (back_buffer < back_max && *back_buffer == *front_buffer) {
 		back_buffer ++;
 		front_buffer ++;
 	}
-	return ((pixel_t*)back_buffer - swap_frames[0]) / vid.width;
+	return (pixel_t*)back_buffer - swap_frames[0];
 }
 
 static int
@@ -1897,15 +1900,16 @@ RE_BufferDifferenceEnd(int vmin, int vmax)
 {
 	int *front_buffer, *back_buffer, *back_min;
 
-	back_buffer = (int*)(swap_frames[0] + vmax * vid.width);
-	front_buffer = (int*)(swap_frames[1] + vmax * vid.width);
-	back_min = (int*)(swap_frames[0] + vmin * vid.width);
+	back_buffer = (int*)(swap_frames[0] + vmax);
+	front_buffer = (int*)(swap_frames[1] + vmax);
+	back_min = (int*)(swap_frames[0] + vmin);
 
-	while (back_buffer > back_min && *back_buffer == *front_buffer) {
+	do {
 		back_buffer --;
 		front_buffer --;
-	}
-	return ((pixel_t*)back_buffer - swap_frames[0]) / vid.width;
+	} while (back_buffer > back_min && *back_buffer == *front_buffer);
+        // +1 for fully cover changes
+	return (pixel_t*)back_buffer - swap_frames[0] + sizeof(int);
 }
 
 static void
@@ -1941,7 +1945,7 @@ RE_FlushFrame(int vmin, int vmax)
 	if (!sw_partialflush->value)
 	{
 		vmin = 0;
-		vmax = vid.height;
+		vmax = vid.height * vid.width;
 	}
 
 	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
@@ -1992,14 +1996,16 @@ RE_EndFrame (void)
 		vid_maxv = vid.height;
 	}
 
-	// search real begin/end of difference
-	vmin = RE_BufferDifferenceStart(vid_minv, vid_maxv);
+	vmin = vid_minu + vid_minv  * vid.width;
+	vmax = vid_maxu + vid_maxv  * vid.width;
 
-	// +1 for fully cover line with changes
-	vmax = RE_BufferDifferenceEnd(vmin, vid_maxv) + 1;
-	if (vmax > vid.height)
+	// search real begin/end of difference
+	vmin = RE_BufferDifferenceStart(vmin, vmax);
+
+	vmax = RE_BufferDifferenceEnd(vmin, vmax);
+	if (vmax > (vid.height * vid.width))
 	{
-		vmax = vid.height;
+		vmax = vid.height * vid.width;
 	}
 
 	// no differences found
