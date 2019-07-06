@@ -140,7 +140,6 @@ static cvar_t	*sw_overbrightbits;
 cvar_t	*sw_custom_particles;
 cvar_t	*sw_texture_filtering;
 cvar_t	*sw_retexturing;
-static cvar_t	*sw_partialflush;
 
 cvar_t	*r_drawworld;
 static cvar_t	*r_drawentities;
@@ -292,7 +291,6 @@ R_RegisterVariables (void)
 	sw_custom_particles = ri.Cvar_Get("sw_custom_particles", "0", CVAR_ARCHIVE);
 	sw_texture_filtering = ri.Cvar_Get("sw_texture_filtering", "0", CVAR_ARCHIVE);
 	sw_retexturing = ri.Cvar_Get("sw_retexturing", "0", CVAR_ARCHIVE);
-	sw_partialflush = ri.Cvar_Get("sw_partialflush", "0", CVAR_ARCHIVE);
 	r_mode = ri.Cvar_Get( "r_mode", "0", CVAR_ARCHIVE );
 
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
@@ -1941,13 +1939,6 @@ RE_FlushFrame(int vmin, int vmax)
 	int pitch;
 	Uint32 *pixels;
 
-	// flush whole buffer
-	if (!sw_partialflush->value)
-	{
-		vmin = 0;
-		vmax = vid.height * vid.width;
-	}
-
 	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
 	{
 		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
@@ -1999,19 +1990,26 @@ RE_EndFrame (void)
 	vmin = vid_minu + vid_minv  * vid.width;
 	vmax = vid_maxu + vid_maxv  * vid.width;
 
-	// search real begin/end of difference
-	vmin = RE_BufferDifferenceStart(vmin, vmax);
-
-	vmax = RE_BufferDifferenceEnd(vmin, vmax);
+	// fix to correct limit
 	if (vmax > (vid.height * vid.width))
 	{
 		vmax = vid.height * vid.width;
 	}
 
+	// search real begin/end of difference
+	vmin = RE_BufferDifferenceStart(vmin, vmax);
+
 	// no differences found
 	if (vmin >= vmax)
 	{
 		return;
+	}
+
+	// search difference end
+	vmax = RE_BufferDifferenceEnd(vmin, vmax);
+	if (vmax > (vid.height * vid.width))
+	{
+		vmax = vid.height * vid.width;
 	}
 
 	RE_FlushFrame(vmin, vmax);
