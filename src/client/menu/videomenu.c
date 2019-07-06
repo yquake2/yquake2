@@ -264,6 +264,7 @@ VID_MenuInit(void)
 			0
 	};
 
+	// must be kept in sync with vid_modes[] in vid.c
 	static const char *resolutions[] = {
 		"[320 240   ]",
 		"[400 300   ]",

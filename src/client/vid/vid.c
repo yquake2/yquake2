@@ -206,7 +206,7 @@ typedef struct vidmode_s
 	int mode;
 } vidmode_t;
 
-// This must be the same as in videomenu.c!
+// This must be the same as VID_MenuInit()->resolutions[] in videomenu.c!
 vidmode_t vid_modes[] = {
 	{"Mode  0:  320x240", 320, 240, 0},
 	{"Mode  1:  400x300", 400, 300, 1},

@@ -531,6 +531,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 				/* Try to recover */
 				Cvar_SetValue("r_mode", 4);
 				Cvar_SetValue("vid_fullscreen", 0);
+				Cvar_SetValue("vid_rate", -1);
 
 				fullscreen = 0;
 				*pwidth = width = 640;
