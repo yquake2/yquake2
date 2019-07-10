@@ -108,7 +108,7 @@ CreateSDLWindow(int flags, int w, int h)
 			return false;
 		}
 
-		if ((real_mode.w != w) || (real_mode.h != h))
+		if ((flags & SDL_WINDOW_FULLSCREEN) && ((real_mode.w != w) || (real_mode.h != h)))
 		{
 
 			Com_Printf("Current display mode isn't requested display mode\n");
