@@ -40,6 +40,7 @@ static int	swap_current = 0;
 espan_t		*vid_polygon_spans = NULL;
 pixel_t		*vid_colormap = NULL;
 pixel_t		*vid_alphamap = NULL;
+static int	vid_minu, vid_minv, vid_maxu, vid_maxv;
 
 refimport_t	ri;
 
@@ -198,10 +199,60 @@ zvalue_t	*d_pzbuffer;
 static void Draw_GetPalette (void);
 static void RE_BeginFrame( float camera_separation );
 static void Draw_BuildGammaTable(void);
-static void RE_FlushFrame(int vmin);
+static void RE_FlushFrame(int vmin, int vmax);
 static void RE_CleanFrame(void);
 static void RE_EndFrame(void);
 static void R_DrawBeam(const entity_t *e);
+
+/*
+================
+Damage_VIDBuffer
+
+Mark VID buffer as damaged and need to be rewritten
+================
+*/
+void
+VID_DamageBuffer(int u, int v)
+{
+	// update U
+	if (vid_minu > u)
+	{
+		vid_minu = u;
+	}
+	if (vid_maxu < u)
+	{
+		vid_maxu = u;
+	}
+	// update V
+	if (vid_minv > v)
+	{
+		vid_minv = v;
+	}
+	if (vid_maxv < v)
+	{
+		vid_maxv = v;
+	}
+}
+
+// clean damage state
+static void
+VID_NoDamageBuffer(void)
+{
+	vid_minu = vid.width;
+	vid_maxu = 0;
+	vid_minv = vid.height;
+	vid_maxv = 0;
+}
+
+// Need to rewrite whole buffer
+static void
+VID_WholeDamageBuffer(void)
+{
+	vid_minu = 0;
+	vid_maxu = vid.width;
+	vid_minv = 0;
+	vid_maxv = vid.height;
+}
 
 /*
 ================
@@ -1120,6 +1171,9 @@ RE_RenderFrame (refdef_t *fd)
 		ri.Sys_Error(ERR_FATAL, "%s: NULL worldmodel", __func__);
 	}
 
+	// Need to rerender whole frame
+	VID_WholeDamageBuffer();
+
 	VectorCopy (fd->vieworg, r_refdef.vieworg);
 	VectorCopy (fd->viewangles, r_refdef.viewangles);
 
@@ -1793,10 +1847,10 @@ RE_CopyFrame (Uint32 * pixels, int pitch, int vmin, int vmax)
 		Uint32	*pixels_pos;
 		pixel_t	*buffer_pos;
 
-		max_pixels = pixels + vmax * vid.width;
-		buffer_pos = vid_buffer + vmin * vid.width;
+		max_pixels = pixels + vmax;
+		buffer_pos = vid_buffer + vmin;
 
-		for (pixels_pos = pixels + vmin * vid.width; pixels_pos < max_pixels; pixels_pos++)
+		for (pixels_pos = pixels + vmin; pixels_pos < max_pixels; pixels_pos++)
 		{
 			*pixels_pos = sdl_palette[*buffer_pos];
 			buffer_pos++;
@@ -1804,10 +1858,14 @@ RE_CopyFrame (Uint32 * pixels, int pitch, int vmin, int vmax)
 	}
 	else
 	{
-		int y,x, buffer_pos;
+		int y,x, buffer_pos, ymin, ymax;
 
-		buffer_pos = 0;
-		for (y=vmin; y < vmax;  y++)
+		ymin = vmin / vid.width;
+		ymax = vmax / vid.width;
+
+		buffer_pos = ymin * vid.width;
+		pixels += ymin * pitch;
+		for (y=ymin; y < ymax;  y++)
 		{
 			for (x=0; x < vid.width; x ++)
 			{
@@ -1824,15 +1882,32 @@ RE_BufferDifferenceStart(int vmin, int vmax)
 {
 	int *front_buffer, *back_buffer, *back_max;
 
-	back_buffer = (int*)swap_frames[0] + vmin * vid.width;
-	front_buffer = (int*)swap_frames[1] + vmin * vid.width;
-	back_max = (int*)swap_frames[0] + vmax * vid.width;
+	back_buffer = (int*)(swap_frames[0] + vmin);
+	front_buffer = (int*)(swap_frames[1] + vmin);
+	back_max = (int*)(swap_frames[0] + vmax);
 
 	while (back_buffer < back_max && *back_buffer == *front_buffer) {
 		back_buffer ++;
 		front_buffer ++;
 	}
-	return ((pixel_t*)back_buffer - swap_frames[0]) / vid.width;
+	return (pixel_t*)back_buffer - swap_frames[0];
+}
+
+static int
+RE_BufferDifferenceEnd(int vmin, int vmax)
+{
+	int *front_buffer, *back_buffer, *back_min;
+
+	back_buffer = (int*)(swap_frames[0] + vmax);
+	front_buffer = (int*)(swap_frames[1] + vmax);
+	back_min = (int*)(swap_frames[0] + vmin);
+
+	do {
+		back_buffer --;
+		front_buffer --;
+	} while (back_buffer > back_min && *back_buffer == *front_buffer);
+        // +1 for fully cover changes
+	return (pixel_t*)back_buffer - swap_frames[0] + sizeof(int);
 }
 
 static void
@@ -1853,34 +1928,34 @@ RE_CleanFrame(void)
 
 	SDL_RenderCopy(renderer, texture, NULL, NULL);
 	SDL_RenderPresent(renderer);
+
+	// All changes flushed
+	VID_NoDamageBuffer();
 }
 
 static void
-RE_FlushFrame(int vmin)
+RE_FlushFrame(int vmin, int vmax)
 {
 	int pitch;
 	Uint32 *pixels;
-	SDL_Rect copy_rect;
-
-	copy_rect.x = 0;
-	copy_rect.y = vmin;
-	copy_rect.w = vid.width;
-	copy_rect.h = vid.height - vmin;
 
 	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
 	{
 		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
 		return;
 	}
-	RE_CopyFrame (pixels, pitch / sizeof(Uint32), vmin, vid.height);
+	RE_CopyFrame (pixels, pitch / sizeof(Uint32), vmin, vmax);
 	SDL_UnlockTexture(texture);
 
-	SDL_RenderCopy(renderer, texture, &copy_rect, &copy_rect);
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
 	SDL_RenderPresent(renderer);
 
 	// replace use next buffer
 	swap_current ++;
 	vid_buffer = swap_frames[swap_current&1];
+
+	// All changes flushed
+	VID_NoDamageBuffer();
 }
 
 /*
@@ -1892,14 +1967,52 @@ RE_FlushFrame(int vmin)
 static void
 RE_EndFrame (void)
 {
-	int vmin;
+	int vmin, vmax;
 
-	vmin = RE_BufferDifferenceStart(0, vid.height);
-	if (vmin >= vid.height)
+	// fix possible issue with min/max
+	if (vid_minu < 0)
+	{
+		vid_minu = 0;
+	}
+	if (vid_minv < 0)
+	{
+		vid_minv = 0;
+	}
+	if (vid_maxu > vid.width)
+	{
+		vid_maxu = vid.width;
+	}
+	if (vid_maxv > vid.height)
+	{
+		vid_maxv = vid.height;
+	}
+
+	vmin = vid_minu + vid_minv  * vid.width;
+	vmax = vid_maxu + vid_maxv  * vid.width;
+
+	// fix to correct limit
+	if (vmax > (vid.height * vid.width))
+	{
+		vmax = vid.height * vid.width;
+	}
+
+	// search real begin/end of difference
+	vmin = RE_BufferDifferenceStart(vmin, vmax);
+
+	// no differences found
+	if (vmin >= vmax)
 	{
 		return;
 	}
-	RE_FlushFrame(vmin);
+
+	// search difference end
+	vmax = RE_BufferDifferenceEnd(vmin, vmax);
+	if (vmax > (vid.height * vid.width))
+	{
+		vmax = vid.height * vid.width;
+	}
+
+	RE_FlushFrame(vmin, vmax);
 }
 
 /*
@@ -1949,6 +2062,8 @@ SWimp_CreateRender(void)
 	swap_frames[0] = swap_buffers;
 	swap_frames[1] = swap_buffers + vid.height * vid.width * sizeof(pixel_t);
 	vid_buffer = swap_frames[swap_current&1];
+	// Need to rewrite whole frame
+	VID_WholeDamageBuffer();
 
 	sintable = malloc((vid.width+CYCLE) * sizeof(int));
 	intsintable = malloc((vid.width+CYCLE) * sizeof(int));
