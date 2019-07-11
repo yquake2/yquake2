@@ -238,6 +238,7 @@ keyname_t keynames[] = {
 	{"KP_INS", K_KP_INS},
 	{"KP_DEL", K_KP_DEL},
 	{"KP_SLASH", K_KP_SLASH},
+	{"KP_STAR", K_KP_STAR},
 	{"KP_MINUS", K_KP_MINUS},
 	{"KP_PLUS", K_KP_PLUS},
 
@@ -1013,6 +1014,7 @@ Key_Init(void)
 	consolekeys[K_KP_INS] = true;
 	consolekeys[K_KP_DEL] = true;
 	consolekeys[K_KP_SLASH] = true;
+	consolekeys[K_KP_STAR] = true;
 	consolekeys[K_KP_PLUS] = true;
 	consolekeys[K_KP_MINUS] = true;
 	consolekeys[K_KP_5] = true;
