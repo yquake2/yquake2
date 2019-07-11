@@ -673,7 +673,6 @@ SDL_AddLoopSounds(void)
 	sfxcache_t *sc;
 	int num;
 	entity_state_t *ent;
-	vec3_t origin;
 
 	if (cl_paused->value)
 	{
@@ -716,8 +715,6 @@ SDL_AddLoopSounds(void)
 
 		num = (cl.frame.parse_entities + i) & (MAX_PARSE_ENTITIES - 1);
 		ent = &cl_parse_entities[num];
-
-		CL_GetEntitySoundOrigin(ent->number, origin);
 
 		/* find the total contribution of all sounds of this type */
 		SDL_SpatializeOrigin(ent->origin, 255.0f, SDL_LOOPATTENUATE, &left_total, &right_total);
