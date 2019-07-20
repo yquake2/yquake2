@@ -87,7 +87,13 @@ static size_t CL_HTTP_Recv(void *ptr, size_t size, size_t nmemb, void *stream)
 	else if (dl->position + bytes >= dl->fileSize)
 	{
 		dl->fileSize *= 2;
-		realloc(dl->tempBuffer, dl->fileSize);
+		char *tempBuffer = realloc(dl->tempBuffer, dl->fileSize);
+		if (!tempBuffer) {
+			free(dl->tempBuffer);
+			dl->tempBuffer = 0;
+			return 0;
+		}
+		dl->tempBuffer = tempBuffer;
 	}
 
 	memcpy (dl->tempBuffer + dl->position, ptr, bytes);
