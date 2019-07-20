@@ -46,7 +46,7 @@
 // These are used to communicate the events collected by
 // IN_Update() called at the beginning of a frame to the
 // actual movement functions called at a later time.
-static int mouse_x, mouse_y;
+static float mouse_x, mouse_y;
 static int back_button_id = -1;
 static float joystick_yaw, joystick_pitch;
 static float joystick_forwardmove, joystick_sidemove;
@@ -717,8 +717,8 @@ In_FlushQueue(void)
 void
 IN_Move(usercmd_t *cmd)
 {
-	static int old_mouse_x;
-	static int old_mouse_y;
+	static float old_mouse_x;
+	static float old_mouse_y;
 
 	if (m_filter->value)
 	{
