@@ -482,11 +482,6 @@ FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
 				handle->file = Q_fopen(path, "rb");
 			}
 
-			if (!handle->file)
-			{
-				continue;
-			}
-
 			if (handle->file)
 			{
 				if (fs_debug->value)
@@ -1001,6 +996,10 @@ FS_ListFiles(char *findname, int *numfiles,
 
 	/* Allocate the list. */
 	list = calloc(nfiles, sizeof(char *));
+	if(list == NULL)
+	{
+		Com_Error(ERR_FATAL, "calloc() failed in %s() - out of memory?!\n", __func__);
+	}
 
 	/* Fill the list. */
 	s = Sys_FindFirst(findname, musthave, canthave);
@@ -1103,6 +1102,10 @@ FS_ListFiles2(char *findname, int *numfiles,
 
 	nfiles = 0;
 	list = malloc(sizeof(char *));
+	if(list == NULL)
+	{
+		Com_Error(ERR_FATAL, "malloc() failed in %s() - out of memory?!\n", __func__);
+	}
 
 	for (search = fs_searchPaths; search != NULL; search = search->next)
 	{
@@ -1129,6 +1132,10 @@ FS_ListFiles2(char *findname, int *numfiles,
 
 			nfiles += j;
 			list = realloc(list, nfiles * sizeof(char *));
+			if(list == NULL)
+			{
+				Com_Error(ERR_FATAL, "realloc() failed in %s() - out of memory?!\n", __func__);
+			}
 
 			for (i = 0, j = nfiles - j; i < search->pack->numFiles; i++)
 			{
@@ -1153,6 +1160,10 @@ FS_ListFiles2(char *findname, int *numfiles,
 			tmpnfiles--;
 			nfiles += tmpnfiles;
 			list = realloc(list, nfiles * sizeof(char *));
+			if(list == NULL)
+			{
+				Com_Error(ERR_FATAL, "realloc() failed in %s() - out of memory?!\n", __func__);
+			}
 
 			for (i = 0, j = nfiles - tmpnfiles; i < tmpnfiles; i++, j++)
 			{
@@ -1189,6 +1200,10 @@ FS_ListFiles2(char *findname, int *numfiles,
 	{
 		nfiles -= tmpnfiles;
 		tmplist = malloc(nfiles * sizeof(char *));
+		if(tmplist == NULL)
+		{
+			Com_Error(ERR_FATAL, "malloc(nfiles * sizeof(char *)) failed in %s() - out of memory?!\n", __func__);
+		}
 
 		for (i = 0, j = 0; i < nfiles + tmpnfiles; i++)
 		{
@@ -1207,6 +1222,10 @@ FS_ListFiles2(char *findname, int *numfiles,
 	{
 		nfiles++;
 		list = realloc(list, nfiles * sizeof(char *));
+		if(list == NULL)
+		{
+			Com_Error(ERR_FATAL, "realloc() failed in %s() - out of memory?!\n", __func__);
+		}
 		list[nfiles - 1] = NULL;
 	}
 
@@ -1620,7 +1639,7 @@ FS_BuildGameSpecificSearchPath(char *dir)
 	}
 
 	// The game was reset to baseq2. Nothing to do here.
-	if ((Q_stricmp(dir, BASEDIRNAME) == 0) || (*dir == 0)) {
+	if (Q_stricmp(dir, BASEDIRNAME) == 0) {
 		Cvar_FullSet("gamedir", "", CVAR_SERVERINFO | CVAR_NOSET);
 		Cvar_FullSet("game", "", CVAR_LATCH | CVAR_SERVERINFO);
 

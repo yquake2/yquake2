@@ -1673,8 +1673,8 @@ CM_LoadMap(char *name, qboolean clientload, unsigned *checksum)
 
 	map_noareas = Cvar_Get("map_noareas", "0", 0);
 
-	if (!strcmp(map_name,
-				name) && (clientload || !Cvar_VariableValue("flushmap")))
+	if (strcmp(map_name, name) == 0
+		&& (clientload || !Cvar_VariableValue("flushmap")))
 	{
 		*checksum = last_checksum;
 
@@ -1697,7 +1697,7 @@ CM_LoadMap(char *name, qboolean clientload, unsigned *checksum)
 	map_entitystring[0] = 0;
 	map_name[0] = 0;
 
-	if (!name || !name[0])
+	if (!name[0])
 	{
 		numleafs = 1;
 		numclusters = 1;
