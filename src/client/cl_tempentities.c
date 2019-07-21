@@ -672,7 +672,6 @@ CL_ParseTEnt(void)
 			{
 				CL_ParticleEffect(pos, dir, 0, 40);
 			}
-
 			else
 			{
 				CL_ParticleEffect(pos, dir, 0xe0, 6);
@@ -688,12 +687,10 @@ CL_ParseTEnt(void)
 				{
 					S_StartSound(pos, 0, 0, cl_sfx_ric1, 1, ATTN_NORM, 0);
 				}
-
 				else if (cnt == 2)
 				{
 					S_StartSound(pos, 0, 0, cl_sfx_ric2, 1, ATTN_NORM, 0);
 				}
-
 				else if (cnt == 3)
 				{
 					S_StartSound(pos, 0, 0, cl_sfx_ric3, 1, ATTN_NORM, 0);
@@ -753,7 +750,6 @@ CL_ParseTEnt(void)
 			{
 				color = 0x00;
 			}
-
 			else
 			{
 				color = splash_color[r];
@@ -769,12 +765,10 @@ CL_ParseTEnt(void)
 				{
 					S_StartSound(pos, 0, 0, cl_sfx_spark5, 1, ATTN_STATIC, 0);
 				}
-
 				else if (r == 1)
 				{
 					S_StartSound(pos, 0, 0, cl_sfx_spark6, 1, ATTN_STATIC, 0);
 				}
-
 				else
 				{
 					S_StartSound(pos, 0, 0, cl_sfx_spark7, 1, ATTN_STATIC, 0);
@@ -815,12 +809,10 @@ CL_ParseTEnt(void)
 			{
 				ex->ent.angles[1] = 90;
 			}
-
 			else if (dir[1] < 0)
 			{
 				ex->ent.angles[1] = 270;
 			}
-
 			else
 			{
 				ex->ent.angles[1] = 0;
@@ -867,7 +859,6 @@ CL_ParseTEnt(void)
 			{
 				S_StartSound(pos, 0, 0, cl_sfx_watrexp, 1, ATTN_NORM, 0);
 			}
-
 			else
 			{
 				S_StartSound(pos, 0, 0, cl_sfx_grenexp, 1, ATTN_NORM, 0);
@@ -920,7 +911,6 @@ CL_ParseTEnt(void)
 			{
 				ex->ent.model = cl_mod_explo4;
 			}
-
 			else
 			{
 				ex->ent.model = cl_mod_explo4_big;
@@ -942,7 +932,6 @@ CL_ParseTEnt(void)
 			{
 				S_StartSound(pos, 0, 0, cl_sfx_watrexp, 1, ATTN_NORM, 0);
 			}
-
 			else
 			{
 				S_StartSound(pos, 0, 0, cl_sfx_rockexp, 1, ATTN_NORM, 0);
@@ -1041,7 +1030,6 @@ CL_ParseTEnt(void)
 			{
 				CL_BlasterParticles2(pos, dir, 0xd0);
 			}
-
 			else
 			{
 				CL_BlasterParticles2(pos, dir, 0x6f);
@@ -1055,7 +1043,6 @@ CL_ParseTEnt(void)
 			{
 				ex->ent.angles[1] = (float)atan2(dir[1], dir[0]) / M_PI * 180;
 			}
-
 			else if (dir[1] > 0)
 			{
 				ex->ent.angles[1] = 90;
@@ -1065,7 +1052,6 @@ CL_ParseTEnt(void)
 			{
 				ex->ent.angles[1] = 270;
 			}
-
 			else
 			{
 				ex->ent.angles[1] = 0;
@@ -1078,7 +1064,6 @@ CL_ParseTEnt(void)
 			{
 				ex->ent.skinnum = 1;
 			}
-
 			else /* flechette */
 			{
 				ex->ent.skinnum = 2;
@@ -1091,7 +1076,6 @@ CL_ParseTEnt(void)
 			{
 				ex->lightcolor[1] = 1;
 			}
-
 			else
 			{
 				/* flechette */
@@ -1139,15 +1123,7 @@ CL_ParseTEnt(void)
 
 			ex->frames = 15;
 
-			if (type == TE_ROCKET_EXPLOSION_WATER)
-			{
-				S_StartSound(pos, 0, 0, cl_sfx_watrexp, 1, ATTN_NORM, 0);
-			}
-
-			else
-			{
-				S_StartSound(pos, 0, 0, cl_sfx_rockexp, 1, ATTN_NORM, 0);
-			}
+			S_StartSound(pos, 0, 0, cl_sfx_rockexp, 1, ATTN_NORM, 0);
 
 			break;
 

@@ -974,6 +974,10 @@ void CL_SetHTTPServer (const char *URL)
 	// Remove trailing / from URL if any.
 	size_t urllen = strlen(URL);
 	char *cleanURL = strdup(URL);
+	if(cleanURL == NULL)
+	{
+		Sys_Error("strdup(URL) failed: out of memory (in %s())!\n", __func__);
+	}
 
 	if (cleanURL[urllen - 1] == '/')
 	{
@@ -1068,6 +1072,12 @@ qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist
 	}
 
 	q->next = malloc(sizeof(*q));
+
+	if(q->next == NULL)
+	{
+		Sys_Error("malloc(sizeof(*q)) failed, out of memory (in %s())\n", __func__);
+	}
+
 	q = q->next;
 	q->next = NULL;
 	q->state = DLQ_STATE_NOT_STARTED;

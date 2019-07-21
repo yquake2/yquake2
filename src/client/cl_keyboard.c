@@ -1308,12 +1308,8 @@ Key_Event(int key, qboolean down, qboolean special)
 		return;
 	}
 
-	/* All input subsystems handled after this
-	   point only care for key down events. */
-	if (!down)
-	{
-		return;
-	}
+	/* All input subsystems handled after this point only
+	   care for key down events (=> if(!down) returns above). */
 
 	/* Everything that's not a special char
 	   is processed by Char_Event(). */

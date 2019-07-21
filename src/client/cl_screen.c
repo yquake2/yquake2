@@ -1104,7 +1104,7 @@ SCR_ExecuteLayoutString(char *s)
 				Com_Error(ERR_DROP, "Pic >= MAX_IMAGES");
 			}
 
-			if (cl.configstrings[CS_IMAGES + value])
+			if (cl.configstrings[CS_IMAGES + value][0] != '\0')
 			{
 				SCR_AddDirtyPoint(x, y);
 				SCR_AddDirtyPoint(x + 23*scale, y + 23*scale);

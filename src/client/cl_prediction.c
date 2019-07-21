@@ -158,10 +158,6 @@ CL_ClipMoveToEntities(vec3_t start, vec3_t mins, vec3_t maxs,
 				*tr = trace;
 			}
 		}
-		else if (trace.startsolid)
-		{
-			tr->startsolid = true;
-		}
 	}
 }
 
