@@ -2973,6 +2973,11 @@ StartServer_MenuInit(void)
         }
 
         mapnames = malloc(sizeof(char *) * (nummaps + 1));
+        if(mapnames == NULL)
+        {
+            Sys_Error("malloc(sizeof(char *) * (nummaps + 1)) failed in %s()!\n", __func__);
+        }
+
         memset(mapnames, 0, sizeof(char *) * (nummaps + 1));
 
         s = buffer;
@@ -2996,6 +3001,11 @@ StartServer_MenuInit(void)
             Com_sprintf(scratch, sizeof(scratch), "%s\n%s", longname, shortname);
 
             mapnames[i] = malloc(strlen(scratch) + 1);
+            if(mapnames == NULL)
+            {
+               Sys_Error("malloc(strlen(scratch) + 1) failed in %s()!\n", __func__);
+            }
+
             strcpy(mapnames[i], scratch);
         }
 
@@ -4073,6 +4083,11 @@ PlayerConfig_ScanDirectories(void)
 		}
 
 		skinnames = malloc(sizeof(char *) * (nskins + 1));
+		if(skinnames == NULL)
+		{
+			Sys_Error("malloc(sizeof(char *) * (nskins + 1)) failed in %s()!\n", __func__);
+		}
+
 		memset(skinnames, 0, sizeof(char *) * (nskins + 1));
 
 		/* copy the valid skins */
@@ -4137,10 +4152,7 @@ PlayerConfig_ScanDirectories(void)
 		s_numplayermodels++;
 	}
 
-	if (dirnames)
-	{
-		FreeFileList(dirnames, ndirs);
-	}
+	FreeFileList(dirnames, ndirs);
 
 	return true;
 }
