@@ -73,9 +73,9 @@ add_definitions(-DYQ2OSTYPE="${YQ2OSTYPE}")
 
 # Architecture string.
 set(YQ2ARCH "${CMAKE_SYSTEM_PROCESSOR}" CACHE STRING "Override CPU architecture")
-string(REGEX REPLACE "amd64" "x86_64" ARCH ${YQ2ARCH})
-string(REGEX REPLACE "i.86" "i386" ARCH ${ARCH})
-string(REGEX REPLACE "^arm.*" "arm" ARCH ${ARCH})
+string(REGEX REPLACE "amd64" "x86_64" ARCH "${YQ2ARCH}")
+string(REGEX REPLACE "i.86" "i386" ARCH "${ARCH}")
+string(REGEX REPLACE "^arm.*" "arm" ARCH "${ARCH}")
 add_definitions(-DYQ2ARCH="${ARCH}")
 
 # Systemwide installation of game assets.
