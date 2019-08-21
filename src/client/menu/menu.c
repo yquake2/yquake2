@@ -2973,10 +2973,8 @@ StartServer_MenuInit(void)
         }
 
         mapnames = malloc(sizeof(char *) * (nummaps + 1));
-        if(mapnames == NULL)
-        {
-            Sys_Error("malloc(sizeof(char *) * (nummaps + 1)) failed in %s()!\n", __func__);
-        }
+
+        YQ2_COM_CHECK_OOM(mapnames, "malloc(sizeof(char *) * (nummaps + 1))", sizeof(char *) * (nummaps + 1))
 
         memset(mapnames, 0, sizeof(char *) * (nummaps + 1));
 
@@ -3001,10 +2999,7 @@ StartServer_MenuInit(void)
             Com_sprintf(scratch, sizeof(scratch), "%s\n%s", longname, shortname);
 
             mapnames[i] = malloc(strlen(scratch) + 1);
-            if(mapnames == NULL)
-            {
-               Sys_Error("malloc(strlen(scratch) + 1) failed in %s()!\n", __func__);
-            }
+            YQ2_COM_CHECK_OOM(mapnames, "malloc()", strlen(scratch)+1)
 
             strcpy(mapnames[i], scratch);
         }
@@ -4083,10 +4078,7 @@ PlayerConfig_ScanDirectories(void)
 		}
 
 		skinnames = malloc(sizeof(char *) * (nskins + 1));
-		if(skinnames == NULL)
-		{
-			Sys_Error("malloc(sizeof(char *) * (nskins + 1)) failed in %s()!\n", __func__);
-		}
+		YQ2_COM_CHECK_OOM(skinnames, "malloc()", sizeof(char *) * (nskins + 1))
 
 		memset(skinnames, 0, sizeof(char *) * (nskins + 1));
 

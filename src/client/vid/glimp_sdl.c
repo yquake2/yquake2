@@ -250,10 +250,7 @@ InitDisplayIndices()
 	{
 		/* There are a maximum of 10 digits in 32 bit int + 1 for the NULL terminator. */
 		displayindices[ i ] = malloc(11 * sizeof( char ));
-		if(displayindices[i] == NULL)
-		{
-			Sys_Error("malloc(11 * sizeof( char )) failed in %s() - out of memory!\n", __func__);
-		}
+		YQ2_COM_CHECK_OOM(displayindices[i], "malloc()", 11 * sizeof( char ))
 
 		snprintf( displayindices[ i ], 11, "%d", i );
 	}
