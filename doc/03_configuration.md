@@ -54,7 +54,7 @@ Yamagi Quake II comes with a highly evolved asynchronous client. While
 the default settings are usually good, some players may want to tune for
 more precise timing or better vertical synchronization accuracy.
 
-Quake II was never mend to run on todays hardware. Modern hardware is
+Quake II was never meant to run on todays hardware. Modern hardware is
 hundred times faster than the hardware of 1997. With faster hardware
 inaccuracies scattered all over the code become visible and a problem.
 We're unable to fix those inaccuracies, because the game data, the
