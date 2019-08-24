@@ -25,6 +25,7 @@
  * =======================================================================
  */
 
+#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -69,7 +70,11 @@ main(int argc, char **argv)
 						return 1;
 					}
 
-					realpath(argv[i + 1], datadir);
+					if(realpath(argv[i + 1], datadir) == NULL)
+					{
+						printf("realpath(datadir) failed: %s\n", strerror(errno));
+						datadir[0] = '\0';
+					}
 				}
 				else
 				{
