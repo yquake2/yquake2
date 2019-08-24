@@ -374,21 +374,6 @@ SCR_ReadNextFrame(void)
 	int r;
 	int command;
 
-	// TODO: in case we need this anywhere else, put it in a header!
-#if __STDC_VERSION__ >= 201112L // C11 or newer
-	#define YQ2_ALIGNAS_SIZE(SIZE)  _Alignas(SIZE)
-	#define YQ2_ALIGNAS_TYPE(TYPE)  _Alignas(TYPE)
-#elif defined(__GNUC__) // GCC and clang should support this attribute
-	#define YQ2_ALIGNAS_SIZE(SIZE)  __attribute__(( __aligned__(SIZE) ))
-	#define YQ2_ALIGNAS_TYPE(TYPE)  __attribute__(( __aligned__(__alignof__(TYPE)) ))
-#elif defined(_MSC_VER)
-	#define YQ2_ALIGNAS_SIZE(SIZE)  __declspec( align(SIZE) )
-	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec( align( __alignof(TYPE) ) )
-#else
-	#warning "Please add a case for your compiler here to align correctly"
-	#define YQ2_ALIGNAS_TYPE(TYPE)
-#endif
-
 	// the samples array is used as bytes or shorts, depending on bitrate (cin.s_width)
 	// so we need to make sure to align it correctly
 	YQ2_ALIGNAS_TYPE(short) byte samples[22050 / 14 * 4];

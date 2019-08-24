@@ -28,7 +28,7 @@
 
 #include "header/server.h"
 
-byte fatpvs[65536 / 8];
+static YQ2_ALIGNAS_TYPE(long) byte fatpvs[65536 / 8];
 
 /*
  * Writes a delta update of an entity_state_t list to the message.
