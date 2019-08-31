@@ -1131,7 +1131,7 @@ ai_run(edict_t *self, float dist)
 	float left, center, right;
 	vec3_t left_target, right_target;
 
-	if (!self || !self->enemy || !self->enemy->inuse)
+	if (!self)
 	{
 		return;
 	}
@@ -1149,8 +1149,7 @@ ai_run(edict_t *self, float dist)
 
 		if (VectorLength(v) < 64)
 		{
-			self->monsterinfo.aiflags |=
-				(AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
+			self->monsterinfo.aiflags |= (AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
 			self->monsterinfo.stand(self);
 			return;
 		}
