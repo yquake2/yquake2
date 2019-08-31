@@ -123,12 +123,22 @@ PlayerNoise(edict_t *who, vec3_t where, int type)
 
 	if ((type == PNOISE_SELF) || (type == PNOISE_WEAPON))
 	{
+		if (level.framenum <= (level.sound_entity_framenum + 3))
+		{
+			return;
+		}
+
 		noise = who->mynoise;
 		level.sound_entity = noise;
 		level.sound_entity_framenum = level.framenum;
 	}
 	else
 	{
+		if (level.framenum <= (level.sound2_entity_framenum + 3))
+		{
+			return;
+		}
+
 		noise = who->mynoise2;
 		level.sound2_entity = noise;
 		level.sound2_entity_framenum = level.framenum;
