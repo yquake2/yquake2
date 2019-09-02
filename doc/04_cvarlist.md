@@ -261,6 +261,12 @@ cvar operations are special commands that allow the programmatic
 manipulation of cvar values. They can be used for scripting and the
 like.
 
+* **dec <cvar> [val]**: Decrements the given cvar by `1` or the optional
+  value `val`.
+
+* **inc <cvar> [val]**: Increments the given cvar by `1` or the optional
+  value `val`.
+
 * **reset <cvar>**: Reset the given cvar to it's default value.
 
 * **resetall**: Reset all known cvar to their default values.

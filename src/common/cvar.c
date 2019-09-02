@@ -135,6 +135,37 @@ Cvar_FindVar(const char *var_name)
 	return NULL;
 }
 
+static qboolean
+Cvar_IsFloat(const char *s)
+{
+    int c, dot = '.';
+
+    if (*s == '-')
+	{
+        s++;
+    }
+
+    if (!*s)
+	{
+        return false;
+    }
+
+    do {
+        c = *s++;
+
+        if (c == dot)
+		{
+            dot = 0;
+        }
+		else if (!(c >= '0' || c <= '9'))
+		{
+            return false;
+        }
+    } while (*s);
+
+    return true;
+}
+
 float
 Cvar_VariableValue(char *var_name)
 {
@@ -651,6 +682,50 @@ Cvar_Serverinfo(void)
 }
 
 /*
+ * Increments the given cvar by 1 or adds the
+ * optional given float value to it.
+ */
+void Cvar_Inc_f(void)
+{
+	char string[MAX_QPATH];
+    cvar_t *var;
+    float value;
+
+    if (Cmd_Argc() < 2)
+	{
+        Com_Printf("Usage: %s <cvar> [value]\n", Cmd_Argv(0));
+        return;
+    }
+
+    var = Cvar_FindVar(Cmd_Argv(1));
+
+    if (!var)
+	{
+        Com_Printf("%s is not a cvar\n", Cmd_Argv(1));
+        return;
+    }
+
+    if (!Cvar_IsFloat(var->string))
+	{
+        Com_Printf("\"%s\" is \"%s\", can't %s\n", var->name, var->string, Cmd_Argv(0));
+        return;
+    }
+
+    value = 1;
+
+    if (Cmd_Argc() > 2) {
+        value = atof(Cmd_Argv(2));
+    }
+
+    if (!strcmp(Cmd_Argv(0), "dec")) {
+        value = -value;
+    }
+
+	Com_sprintf(string, sizeof(string), "%f", var->value + value);
+    Cvar_Set(var->name, string);
+}
+
+/*
  * Resets a cvar to its default value.
  */
 void Cvar_Reset_f(void)
@@ -759,6 +834,8 @@ void
 Cvar_Init(void)
 {
 	Cmd_AddCommand("cvarlist", Cvar_List_f);
+	Cmd_AddCommand("dec", Cvar_Inc_f);
+	Cmd_AddCommand("inc", Cvar_Inc_f);
 	Cmd_AddCommand("reset", Cvar_Reset_f);
 	Cmd_AddCommand("resetall", Cvar_ResetAll_f);
 	Cmd_AddCommand("set", Cvar_Set_f);
@@ -783,6 +860,8 @@ Cvar_Fini(void)
 	}
 
 	Cmd_RemoveCommand("cvarlist");
+	Cmd_RemoveCommand("dec");
+	Cmd_RemoveCommand("inc");
 	Cmd_RemoveCommand("reset");
 	Cmd_RemoveCommand("resetall");
 	Cmd_RemoveCommand("set");
