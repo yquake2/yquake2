@@ -253,3 +253,13 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **gl3_particle_square**: If set to `1`, particles are rendered as
   squares, like in the old software renderer or Quake 1. Default is `0`.
+
+
+## cvar operations
+
+cvar operations are special commands that allow the manipulation of cvar
+values. They can be used for simple scripts and the like.
+
+* **reset <cvar>**: Reset the cvar to it's default value.
+
+* **resetall**: Reset all known cvar to their default values.

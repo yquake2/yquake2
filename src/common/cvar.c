@@ -189,6 +189,7 @@ Cvar_Get(char *var_name, char *var_value, int flags)
 	if (var)
 	{
 		var->flags |= flags;
+		var->default_string = CopyString(var_value);
 		return var;
 	}
 
@@ -216,6 +217,7 @@ Cvar_Get(char *var_name, char *var_value, int flags)
 	var = Z_Malloc(sizeof(*var));
 	var->name = CopyString(var_name);
 	var->string = CopyString(var_value);
+	var->default_string = CopyString(var_value);
 	var->modified = true;
 	var->value = strtod(var->string, (char **)NULL);
 
@@ -649,13 +651,59 @@ Cvar_Serverinfo(void)
 }
 
 /*
+ * Resets a cvar to its default value.
+ */
+void Cvar_Reset_f(void)
+{
+    cvar_t *var;
+
+    if (Cmd_Argc() < 2)
+	{
+        Com_Printf("Usage: %s <cvar>\n", Cmd_Argv(0));
+        return;
+    }
+
+    var = Cvar_FindVar(Cmd_Argv(1));
+
+    if (!var)
+	{
+        Com_Printf("%s is not a cvar\n", Cmd_Argv(1));
+        return;
+    }
+
+	Com_Printf("%s: %s\n", var->name, var->default_string);
+    Cvar_Set(var->name, var->default_string);
+}
+
+void Cvar_ResetAll_f(void)
+{
+    cvar_t *var;
+
+    for (var = cvar_vars; var; var = var->next)
+	{
+        if ((var->flags & CVAR_NOSET))
+		{
+            continue;
+		}
+		else if (strcmp(var->name, "game") == 0)
+		{
+            continue;
+		}
+
+        Cvar_Set(var->name, var->default_string);
+    }
+}
+
+/*
  * Reads in all archived cvars
  */
 void
 Cvar_Init(void)
 {
-	Cmd_AddCommand("set", Cvar_Set_f);
 	Cmd_AddCommand("cvarlist", Cvar_List_f);
+	Cmd_AddCommand("reset", Cvar_Reset_f);
+	Cmd_AddCommand("resetall", Cvar_ResetAll_f);
+	Cmd_AddCommand("set", Cvar_Set_f);
 }
 
 /*
@@ -676,6 +724,8 @@ Cvar_Fini(void)
 	}
 
 	Cmd_RemoveCommand("cvarlist");
+	Cmd_RemoveCommand("reset");
+	Cmd_RemoveCommand("resetall");
 	Cmd_RemoveCommand("set");
 }
 

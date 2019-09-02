@@ -354,6 +354,9 @@ typedef struct cvar_s
 	qboolean modified; /* set each time the cvar is changed */
 	float value;
 	struct cvar_s *next;
+
+	/* Added by YQ2. Must be at the end to preserve ABI. */
+	char *default_string;
 } cvar_t;
 
 #endif /* CVAR */
