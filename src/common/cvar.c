@@ -675,6 +675,10 @@ void Cvar_Reset_f(void)
     Cvar_Set(var->name, var->default_string);
 }
 
+/*
+ * Resets all known cvar (with the exception of `game') to
+ * their default values.
+ */
 void Cvar_ResetAll_f(void)
 {
     cvar_t *var;
@@ -695,6 +699,60 @@ void Cvar_ResetAll_f(void)
 }
 
 /*
+ * Toggles a cvar between 0 and 1 or the given values.
+ */
+void Cvar_Toggle_f(void)
+{
+    cvar_t *var;
+    int i, argc = Cmd_Argc();
+
+    if (argc < 2)
+	{
+        Com_Printf("Usage: %s <cvar> [values]\n", Cmd_Argv(0));
+        return;
+    }
+
+    var = Cvar_FindVar(Cmd_Argv(1));
+
+    if (!var)
+	{
+        Com_Printf("%s is not a cvar\n", Cmd_Argv(1));
+        return;
+    }
+
+    if (argc < 3)
+	{
+        if (!strcmp(var->string, "0"))
+		{
+            Cvar_Set(var->name, "1");
+        }
+		else if (!strcmp(var->string, "1"))
+		{
+            Cvar_Set(var->name, "0");
+        }
+		else
+		{
+            Com_Printf("\"%s\" is \"%s\", can't toggle\n", var->name, var->string);
+        }
+
+        return;
+    }
+
+    for (i = 0; i < argc - 2; i++)
+	{
+        if (!Q_stricmp(var->string, Cmd_Argv(2 + i)))
+		{
+            i = (i + 1) % (argc - 2);
+            Cvar_Set(var->name, Cmd_Argv(2 + i));
+
+            return;
+        }
+    }
+
+    Com_Printf("\"%s\" is \"%s\", can't cycle\n", var->name, var->string);
+}
+
+/*
  * Reads in all archived cvars
  */
 void
@@ -704,6 +762,7 @@ Cvar_Init(void)
 	Cmd_AddCommand("reset", Cvar_Reset_f);
 	Cmd_AddCommand("resetall", Cvar_ResetAll_f);
 	Cmd_AddCommand("set", Cvar_Set_f);
+	Cmd_AddCommand("toggle", Cvar_Toggle_f);
 }
 
 /*
@@ -727,5 +786,6 @@ Cvar_Fini(void)
 	Cmd_RemoveCommand("reset");
 	Cmd_RemoveCommand("resetall");
 	Cmd_RemoveCommand("set");
+	Cmd_RemoveCommand("toggle");
 }
 

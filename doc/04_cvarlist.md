@@ -257,9 +257,14 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 ## cvar operations
 
-cvar operations are special commands that allow the manipulation of cvar
-values. They can be used for simple scripts and the like.
+cvar operations are special commands that allow the programmatic
+manipulation of cvar values. They can be used for scripting and the
+like.
 
-* **reset <cvar>**: Reset the cvar to it's default value.
+* **reset <cvar>**: Reset the given cvar to it's default value.
 
 * **resetall**: Reset all known cvar to their default values.
+
+* **toggle <cvar> [val0] [val1]**: Toggle the given cvar between `0` and
+  `1`. If the optional arguments `val0` and `val1` are given the given
+  cvar is toggled between them.
