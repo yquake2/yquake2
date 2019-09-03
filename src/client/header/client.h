@@ -297,6 +297,7 @@ extern	cvar_t	*m_side;
 extern	cvar_t	*freelook;
 extern	cvar_t	*cl_lightlevel;
 extern	cvar_t	*cl_paused;
+extern	cvar_t	*cl_loadpaused;
 extern	cvar_t	*cl_timedemo;
 extern	cvar_t	*cl_vwep;
 extern	cvar_t  *horplus;
@@ -320,6 +321,8 @@ extern	entity_state_t	cl_parse_entities[MAX_PARSE_ENTITIES];
 
 extern	netadr_t	net_from;
 extern	sizebuf_t	net_message;
+
+extern qboolean paused_at_load;
 
 void DrawString (int x, int y, char *s);
 void DrawStringScaled(int x, int y, char *s, float factor);

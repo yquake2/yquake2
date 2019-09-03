@@ -56,6 +56,7 @@ cvar_t *cl_showmiss;
 cvar_t *cl_showclamp;
 
 cvar_t *cl_paused;
+cvar_t *cl_loadpaused;
 
 cvar_t *lookstrafe;
 cvar_t *sensitivity;
@@ -96,6 +97,11 @@ entity_state_t cl_parse_entities[MAX_PARSE_ENTITIES];
   shield impact sounds. For example if the player
   fires his shotgun onto a Brain. */
 int num_power_sounds;
+
+/* Used to communicate if we entered paused mode
+   during server connect or if we were already in
+   it. */
+qboolean paused_at_load;
 
 extern cvar_t *allow_download;
 extern cvar_t *allow_download_players;
@@ -524,6 +530,7 @@ CL_InitLocal(void)
 	cl_showclamp = Cvar_Get("showclamp", "0", 0);
 	cl_timeout = Cvar_Get("cl_timeout", "120", 0);
 	cl_paused = Cvar_Get("paused", "0", 0);
+	cl_loadpaused = Cvar_Get("cl_loadpaused", "1", CVAR_ARCHIVE);
 
 	gl1_stereo = Cvar_Get( "gl1_stereo", "0", CVAR_ARCHIVE );
 	gl1_stereo_separation = Cvar_Get( "gl1_stereo_separation", "1", CVAR_ARCHIVE );

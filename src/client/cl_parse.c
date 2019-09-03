@@ -798,6 +798,14 @@ CL_ParseFrame(void)
 			}
 
 			cl.sound_prepped = true;
+
+			if (paused_at_load)
+			{
+				if (cl_loadpaused->value == 1)
+				{
+					Cvar_Set("paused", "0");
+				}
+			}
 		}
 
 		/* fire entity events */

@@ -63,6 +63,13 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   If *cl_async* is set to `0` *vid_maxfps* is the same as *cl_maxfps*,
   use *cl_maxfps* to set the framerate.
 
+* **cl_loadpaused**: If set to `1` (the default) the client is put into
+  pause mode during single player savegame load. This prevents monsters
+  and the environment from hurting the player while the client is still
+  connecting. If set to `2` the client stays in pause mode after
+  loading. If set to `0` pause mode is never entered, this is the
+  Vanilla Quake II behaviour.
+
 * **cl_showfps**: Shows the framecounter. Set to `2` for more and to
   `3` for even more informations.
 

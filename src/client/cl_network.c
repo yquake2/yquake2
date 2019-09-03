@@ -617,6 +617,40 @@ CL_ConnectionlessPacket(void)
 			}
 		}
 
+		/* Put client into pause mode when connecting to a local server.
+		   This prevents the world from being forwarded while the client
+		   is connecting, loading assets, etc. It's not 100%, there're
+		   still 4 world frames (for baseq2) processed in the game and
+		   100 frames by the server if the player enters a level that he
+		   or she already visited. In practise both shouldn't be a big
+		   problem. 4 frames are hardly enough for monsters staring to
+		   attack and in most levels the starting area in unreachable by
+		   monsters and free from environmental effects.
+
+		   Com_Serverstate() returns > 1 if the server is local, otherwise
+		   0. If it's a local server, maxclients aus either 0 (for single
+		   player), or 2 to 8 (coop and deathmatch) if we're reaching this
+		   code. For remote servers it's always 1. So this should trigger
+		   only if it's a local single player server.
+
+		   Since the player can load savegames from a paused state (e.g.
+		   through the console) we'll need to communicate if we entered
+		   paused mode (and it should left as soon as the player joined
+		   the server) or if it was already there.
+
+		   Last but not least this can be disabled by cl_loadpaused 0. */
+		if (Com_ServerState() || (Cvar_VariableValue("maxclients") <= 1))
+		{
+			if (cl_loadpaused->value)
+			{
+				if (!cl_paused->value)
+				{
+					paused_at_load = true;
+					Cvar_Set("paused", "1");
+				}
+			}
+		}
+
 		MSG_WriteChar(&cls.netchan.message, clc_stringcmd);
 		MSG_WriteString(&cls.netchan.message, "new");
 		cls.state = ca_connected;
