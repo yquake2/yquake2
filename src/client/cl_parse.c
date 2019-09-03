@@ -805,6 +805,8 @@ CL_ParseFrame(void)
 				{
 					Cvar_Set("paused", "0");
 				}
+
+				paused_at_load = false;
 			}
 		}
 
