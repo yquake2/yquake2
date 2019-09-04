@@ -36,7 +36,7 @@ cvar_t *cl_http_filelists;
 cvar_t *cl_http_proxy;
 cvar_t *cl_http_max_connections;
 
-dlquirks_t dlquirks = { .error = false, .filelist = true, .gamedir = '\0' };
+dlquirks_t dlquirks = { .error = false, .filelist = true, .gamedir = {'\0'} };
 
 typedef enum
 {
@@ -255,15 +255,14 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 	Com_sprintf(dl->URL, sizeof(dl->URL), "%s%s", cls.downloadServer, escapedFilePath);
 
 	qcurl_easy_setopt(dl->curl, CURLOPT_ENCODING, "");
+	qcurl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl);
 
 	if (dl->file)
 	{
-		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl);
 		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, CL_HTTP_CurlWriteCB);
 	}
 	else
 	{
-		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEDATA, dl);
 		qcurl_easy_setopt(dl->curl, CURLOPT_WRITEFUNCTION, CL_HTTP_Recv);
 	}
 
