@@ -40,7 +40,11 @@ extern int precache_model_skin;
 extern byte *precache_model;
 
 // Forces all downloads to UDP.
-qboolean forceudp = false;
+static qboolean forceudp;
+
+// Gives HTTP downloads a second chance after
+// we've fallen trough to UDP downloads.
+static qboolean httpSecondChance = true;
 
 /* This - and some more code down below - is the 'Crazy Fallback
    Magic'. First we're trying to download all files over HTTP with
@@ -53,7 +57,7 @@ qboolean forceudp = false;
 static unsigned int precacherIteration;
 
 // r1q2 searches the global filelist at /, q2pro at /gamedir...
-static qboolean gamedirForFilelist = false;
+static qboolean gamedirForFilelist;
 
 static const char *env_suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 
@@ -506,6 +510,7 @@ CL_RequestNextDownload(void)
 	forceudp = false;
 	precacherIteration = 0;
 	gamedirForFilelist = false;
+	httpSecondChance = true;
 
 #ifdef USE_CURL
 	dlquirks.filelist = true;
@@ -587,10 +592,24 @@ CL_CheckOrDownloadFile(char *filename)
 			  false. */
 		forceudp = false;
 
-		/* We might be connected to an r1q2-style HTTP server
-		   that missed just one file. So reset the precacher
-		   iteration counter to start over. */
-		precacherIteration = 0;
+		/* This is one of the nasty special cases. A r1q2
+		   server might miss only one file. This missing
+		   file may lead to a fallthrough to q2pro URLs,
+		   since it isn't a q2pro server all files would
+		   yield error 404 and we're falling back to UDP
+		   downloads. To work around this we need to start
+		   over with the r1q2 case and see what happens.
+		   But we can't do that unconditionally, because
+		   we would run in endless loops r1q2 -> q2pro ->
+		   UDP -> r1q2. So hack in a variable that allows
+		   for one and only one second chance. If the r1q2
+		   server is missing more than file we've lost and
+		   we're doing unnecessary UDP downloads. */
+		if (httpSecondChance)
+		{
+			precacherIteration = 0;
+			httpSecondChance = false;
+		}
 	}
 #endif
 	strcpy(cls.downloadname, filename);
