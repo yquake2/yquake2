@@ -1277,6 +1277,124 @@ Cmd_Teleport_f(edict_t *ent)
 }
 
 void
+Cmd_ListEntities_f(edict_t *ent)
+{
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
+	{
+		gi.cprintf(ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
+		return;
+	}
+
+	if (gi.argc() < 2)
+	{
+		gi.cprintf(ent, PRINT_HIGH, "Usage: listentities <all|ammo|items|keys|monsters|weapons>\n");
+		return;
+	}
+
+	/* What to print? */
+	qboolean all = false;
+	qboolean ammo = false;
+	qboolean items = false;
+	qboolean keys = false;
+	qboolean monsters = false;
+	qboolean weapons = false;
+
+	for (int i = 1; i < gi.argc(); i++)
+	{
+		const char *arg = gi.argv(i);
+
+		if (Q_stricmp(arg, "all") == 0)
+		{
+			all = true;
+		}
+		else if (Q_stricmp(arg, "ammo") == 0)
+		{
+			ammo = true;
+		}
+		else if (Q_stricmp(arg, "items") == 0)
+		{
+			items = true;
+		}
+		else if (Q_stricmp(arg, "keys") == 0)
+		{
+			keys = true;
+		}
+		else if (Q_stricmp(arg, "monsters") == 0)
+		{
+			monsters = true;
+		}
+		else if (Q_stricmp(arg, "weapons") == 0)
+		{
+			weapons = true;
+		}
+		else
+		{
+			gi.cprintf(ent, PRINT_HIGH, "Usage: listentities <all|ammo|items|keys|monsters|weapons>\n");
+		}
+	}
+
+	/* Print what's requested. */
+	for (int i = 0; i < globals.num_edicts; i++)
+	{
+		edict_t *cur = &g_edicts[i];
+		qboolean print = false;
+
+		if (all)
+		{
+			print = true;
+		}
+		else
+		{
+			if (ammo)
+			{
+				if (strncmp(cur->classname, "ammo_", 5) == 0)
+				{
+					print = true;
+				}
+			}
+
+			if (items)
+			{
+				if (strncmp(cur->classname, "item_", 5) == 0)
+				{
+					print = true;
+				}
+			}
+
+			if (keys)
+			{
+				if (strncmp(cur->classname, "key_", 4) == 0)
+				{
+					print = true;
+				}
+			}
+
+			if (monsters)
+			{
+				if (strncmp(cur->classname, "monster_", 8) == 0)
+				{
+					print = true;
+				}
+			}
+
+			if (weapons)
+			{
+				if (strncmp(cur->classname, "weapon_", 7) == 0)
+				{
+					print = true;
+				}
+			}
+		}
+
+		if (print)
+		{
+			/* We use dprintf() because cprintf() may flood the server... */
+			gi.dprintf("%s: %f %f %f\n", cur->classname, cur->s.origin[0], cur->s.origin[1], cur->s.origin[2]);
+		}
+	}
+}
+
+void
 ClientCommand(edict_t *ent)
 {
 	char *cmd;
@@ -1419,6 +1537,10 @@ ClientCommand(edict_t *ent)
 	else if (Q_stricmp(cmd, "teleport") == 0)
 	{
 		Cmd_Teleport_f(ent);
+	}
+	else if (Q_stricmp(cmd, "listentities") == 0)
+	{
+		Cmd_ListEntities_f(ent);
 	}
 	else /* anything that doesn't match a command will be a chat */
 	{
