@@ -41,6 +41,12 @@ espan_t		*vid_polygon_spans = NULL;
 pixel_t		*vid_colormap = NULL;
 pixel_t		*vid_alphamap = NULL;
 static int	vid_minu, vid_minv, vid_maxu, vid_maxv;
+static int	vid_zminu, vid_zminv, vid_zmaxu, vid_zmaxv;
+
+// last position  on map
+static vec3_t	lastvieworg;
+static vec3_t	lastviewangles;
+qboolean	fastmoving;
 
 refimport_t	ri;
 
@@ -206,7 +212,81 @@ static void R_DrawBeam(const entity_t *e);
 
 /*
 ================
-Damage_VIDBuffer
+VID_DamageZBuffer
+
+Mark VID Z buffer as damaged and need to be recalculated
+================
+*/
+void
+VID_DamageZBuffer(int u, int v)
+{
+	// update U
+	if (vid_zminu > u)
+	{
+		vid_zminu = u;
+	}
+	if (vid_zmaxu < u)
+	{
+		vid_zmaxu = u;
+	}
+
+	// update V
+	if (vid_zminv > v)
+	{
+		vid_zminv = v;
+	}
+	if (vid_zmaxv < v)
+	{
+		vid_zmaxv = v;
+	}
+}
+
+// clean z damage state
+static void
+VID_NoDamageZBuffer(void)
+{
+	vid_zminu = vid.width;
+	vid_zmaxu = 0;
+	vid_zminv = vid.height;
+	vid_zmaxv = 0;
+}
+
+qboolean
+VID_CheckDamageZBuffer(int u, int v, int ucount, int vcount)
+{
+	if (vid_zminv > (v + vcount) || vid_zmaxv < v)
+	{
+		// can be used previous zbuffer
+		return false;
+	}
+
+	if (vid_zminu > u && vid_zminu > (u + ucount))
+	{
+		// can be used previous zbuffer
+		return false;
+	}
+
+	if (vid_zmaxu < u && vid_zmaxu < (u + ucount))
+	{
+		// can be used previous zbuffer
+		return false;
+	}
+	return true;
+}
+
+// Need to recalculate whole z buffer
+static void
+VID_WholeDamageZBuffer(void)
+{
+	vid_zminu = 0;
+	vid_zmaxu = vid.width;
+	vid_zminv = 0;
+	vid_zmaxv = vid.height;
+}
+
+/*
+================
+VID_DamageBuffer
 
 Mark VID buffer as damaged and need to be rewritten
 ================
@@ -1154,6 +1234,16 @@ R_SetLightLevel (const entity_t *currententity)
 	r_lightlevel->value = 150.0 * light[0];
 }
 
+static int
+VectorCompareRound(vec3_t v1, vec3_t v2)
+{
+	if ((int)(v1[0] - v2[0]) || (int)(v1[1] - v2[1]) || (int)(v1[2] - v2[2]))
+	{
+		return 0;
+	}
+
+	return 1;
+}
 
 /*
 ================
@@ -1177,6 +1267,21 @@ RE_RenderFrame (refdef_t *fd)
 	VectorCopy (fd->vieworg, r_refdef.vieworg);
 	VectorCopy (fd->viewangles, r_refdef.viewangles);
 
+	// compare current possition with old
+	if (!VectorCompareRound(fd->vieworg, lastvieworg) ||
+	    !VectorCompare(fd->viewangles, lastviewangles))
+	{
+		fastmoving = true;
+	}
+	else
+	{
+		fastmoving = false;
+	}
+
+	// save possition for next check
+	VectorCopy (fd->vieworg, lastvieworg);
+	VectorCopy (fd->viewangles, lastviewangles);
+
 	if (r_speeds->value || r_dspeeds->value)
 		r_time1 = SDL_GetTicks();
 
@@ -1199,6 +1304,16 @@ RE_RenderFrame (refdef_t *fd)
 		de_time1 = se_time2;
 	}
 
+	if (fastmoving)
+	{
+		// redraw all
+		VID_WholeDamageZBuffer();
+	}
+	else
+	{
+		// No Z rewrite required
+		VID_NoDamageZBuffer();
+	}
 	// Draw enemies, barrel etc...
 	// Use Z-Buffer mostly in read mode only.
 	R_DrawEntitiesOnList ();

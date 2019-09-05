@@ -107,6 +107,10 @@ R_DrawParticle(particle_t *pparticle, int level)
 		return;
 	}
 
+	// zbuffer particles damage
+	VID_DamageZBuffer(u, v);
+	VID_DamageZBuffer(u + count, v + count);
+
 	if (custom_particle == 0)
 	{
 		switch (level) {

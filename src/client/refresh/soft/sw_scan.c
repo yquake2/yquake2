@@ -719,7 +719,7 @@ D_DrawSpansPow2 (espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zist
 			}
 
 			// Drawing phrase
-			if (texture_filtering == 0)
+			if (texture_filtering == 0 || fastmoving)
 			{
 				pdest = D_DrawSpan(pdest, pbase, s, t, sstep, tstep,
 						   spancount);
@@ -759,6 +759,15 @@ D_DrawZSpans (espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zistepv
 		zvalue_t	*pdest;
 		float		zi;
 		float		du, dv;
+
+		if (!VID_CheckDamageZBuffer(pspan->u, pspan->v, pspan->count, 0))
+		{
+			continue;
+		}
+
+		// solid map walls damage
+		VID_DamageZBuffer(pspan->u, pspan->v);
+		VID_DamageZBuffer(pspan->u + pspan->count, pspan->v);
 
 		pdest = d_pzbuffer + (vid.width * pspan->v) + pspan->u;
 

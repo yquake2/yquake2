@@ -629,6 +629,10 @@ R_PolygonDrawSpans(espan_t *pspan, int iswater, float d_ziorigin, float d_zistep
 
 		if (count > 0)
 		{
+			// transparent spans damage z buffer
+			VID_DamageZBuffer(pspan->u, pspan->v);
+			VID_DamageZBuffer(pspan->u + count, pspan->v);
+
 			// calculate the initial s/z, t/z, 1/z, s, and t and clamp
 			du = (float)pspan->u;
 			dv = (float)pspan->v;
