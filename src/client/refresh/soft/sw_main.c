@@ -1923,11 +1923,9 @@ RE_CleanFrame(void)
 		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
 		return;
 	}
+	// only cleanup texture without flush texture to screen
 	memset(pixels, 0, pitch * vid.height);
 	SDL_UnlockTexture(texture);
-
-	SDL_RenderCopy(renderer, texture, NULL, NULL);
-	SDL_RenderPresent(renderer);
 
 	// All changes flushed
 	VID_NoDamageBuffer();
