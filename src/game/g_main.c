@@ -398,9 +398,9 @@ ExitLevel(void)
 			continue;
 		}
 
-		if (ent->health > ent->client->pers.max_health)
+		if (ent->health > ent->max_health)
 		{
-			ent->health = ent->client->pers.max_health;
+			ent->health = ent->max_health;
 		}
 	}
 
