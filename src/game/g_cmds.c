@@ -1339,6 +1339,12 @@ Cmd_ListEntities_f(edict_t *ent)
 		edict_t *cur = &g_edicts[i];
 		qboolean print = false;
 
+		/* Ensure that the entity is valid. */
+		if (!cur->classname)
+		{
+			continue;
+		}
+
 		if (all)
 		{
 			print = true;
