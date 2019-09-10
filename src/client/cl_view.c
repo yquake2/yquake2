@@ -565,18 +565,18 @@ V_RenderView(float stereo_separation)
 				sizeof(cl.refdef.entities[0]), (int (*)(const void *, const void *))
 				entitycmpfnc);
 	} else if (cl.frame.valid && cl_paused->value && gl1_stereo->value) {
-		// We need to adjust the refdef in stereo mode when paused.  
-		vec3_t tmp;  
-		CL_CalcViewValues();  
-		VectorScale( cl.v_right, stereo_separation, tmp );  
-		VectorAdd( cl.refdef.vieworg, tmp, cl.refdef.vieworg );  
-		  
-		cl.refdef.vieworg[0] += 1.0/16;  
-		cl.refdef.vieworg[1] += 1.0/16;  
-		cl.refdef.vieworg[2] += 1.0/16;  
+		// We need to adjust the refdef in stereo mode when paused.
+		vec3_t tmp;
+		CL_CalcViewValues();
+		VectorScale( cl.v_right, stereo_separation, tmp );
+		VectorAdd( cl.refdef.vieworg, tmp, cl.refdef.vieworg );
 
-		cl.refdef.time = cl.time*0.001;  
-	}  
+		cl.refdef.vieworg[0] += 1.0/16;
+		cl.refdef.vieworg[1] += 1.0/16;
+		cl.refdef.vieworg[2] += 1.0/16;
+
+		cl.refdef.time = cl.time*0.001;
+	}
 
 	cl.refdef.x = scr_vrect.x;
 	cl.refdef.y = scr_vrect.y;
@@ -606,7 +606,7 @@ V_RenderView(float stereo_separation)
 	SCR_DrawCrosshair();
 }
 
-void 
+void
 V_Render3dCrosshair(void)
 {
 	trace_t crosshair_trace;
@@ -614,7 +614,7 @@ V_Render3dCrosshair(void)
 
 	crosshair_3d = Cvar_Get("crosshair_3d", "0", CVAR_ARCHIVE);
 	crosshair_3d_glow = Cvar_Get("crosshair_3d_glow", "0", CVAR_ARCHIVE);
-	
+
 
 	if(crosshair_3d->value || crosshair_3d_glow->value){
 		VectorMA(cl.refdef.vieworg,8192,cl.v_forward,end);
@@ -626,10 +626,10 @@ V_Render3dCrosshair(void)
 			crosshair_3d_glow_b = Cvar_Get("crosshair_3d_glow_b", "4", CVAR_ARCHIVE);
 
 			V_AddLight(
-				crosshair_trace.endpos, 
-				crosshair_3d_glow->value, 
-				crosshair_3d_glow_r->value, 
-				crosshair_3d_glow_g->value, 
+				crosshair_trace.endpos,
+				crosshair_3d_glow->value,
+				crosshair_3d_glow_r->value,
+				crosshair_3d_glow_g->value,
 				crosshair_3d_glow_b->value
 			);
 		}
@@ -655,9 +655,11 @@ V_Render3dCrosshair(void)
 void
 V_Viewpos_f(void)
 {
-	Com_Printf("(%i %i %i) : %i\n", (int)cl.refdef.vieworg[0],
-			(int)cl.refdef.vieworg[1], (int)cl.refdef.vieworg[2],
-			(int)cl.refdef.viewangles[YAW]);
+	Com_Printf("position: %i %i %i, angles: %i %i %i\n",
+			(int)cl.refdef.vieworg[0], (int)cl.refdef.vieworg[1],
+			(int)cl.refdef.vieworg[2],
+			(int)cl.refdef.viewangles[PITCH], (int)cl.refdef.viewangles[YAW],
+			(int)cl.refdef.viewangles[ROLL]);
 }
 
 void
