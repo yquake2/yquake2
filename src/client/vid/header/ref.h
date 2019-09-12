@@ -99,7 +99,7 @@ typedef struct {
 	float		vieworg[3];
 	float		viewangles[3];
 	float		blend[4]; /* rgba 0-1 full screen blend */
-	float		time; /* time is uesed to auto animate */
+	float		time; /* time is used to auto animate */
 	int			rdflags; /* RDF_UNDERWATER, etc */
 
 	byte		*areabits; /* if not NULL, only areas with set bits will be drawn */
