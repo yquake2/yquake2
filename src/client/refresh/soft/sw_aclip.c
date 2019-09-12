@@ -177,7 +177,7 @@ R_AliasClip (const finalvert_t *in, finalvert_t *out, int flag, int count,
 
 	j = count-1;
 	k = 0;
-	for (i=0 ; i<count ; j = i, i++)
+	for (i=0 ; i<count ; i++)
 	{
 		int flags, oldflags;
 
@@ -185,7 +185,10 @@ R_AliasClip (const finalvert_t *in, finalvert_t *out, int flag, int count,
 		flags = in[i].flags & flag;
 
 		if (flags && oldflags)
+		{
+			j = i;
 			continue;
+		}
 		if (oldflags ^ flags)
 		{
 			clip (&in[j], &in[i], &out[k]);
@@ -205,6 +208,7 @@ R_AliasClip (const finalvert_t *in, finalvert_t *out, int flag, int count,
 			out[k] = in[i];
 			k++;
 		}
+		j = i;
 	}
 
 	return k;

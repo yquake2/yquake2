@@ -1159,7 +1159,7 @@ R_EdgeDrawing (void)
 
 //=======================================================================
 
-static void	R_GammaCorrectAndSetPalette(const unsigned char *pal);
+static void	R_GammaCorrectAndSetPalette(const unsigned char *palette);
 
 /*
 =============
@@ -1267,7 +1267,7 @@ RE_RenderFrame (refdef_t *fd)
 	VectorCopy (fd->vieworg, r_refdef.vieworg);
 	VectorCopy (fd->viewangles, r_refdef.viewangles);
 
-	// compare current possition with old
+	// compare current position with old
 	if (!VectorCompareRound(fd->vieworg, lastvieworg) ||
 	    !VectorCompare(fd->viewangles, lastviewangles))
 	{
@@ -1278,7 +1278,7 @@ RE_RenderFrame (refdef_t *fd)
 		fastmoving = false;
 	}
 
-	// save possition for next check
+	// save position for next check
 	VectorCopy (fd->vieworg, lastvieworg);
 	VectorCopy (fd->viewangles, lastviewangles);
 
@@ -1340,10 +1340,10 @@ RE_RenderFrame (refdef_t *fd)
 		D_WarpScreen ();
 
 	if (r_dspeeds->value)
+	{
 		da_time1 = SDL_GetTicks();
-
-	if (r_dspeeds->value)
 		da_time2 = SDL_GetTicks();
+	}
 
 	// Modify the palette (when taking hit or pickup item) so all colors are modified
 	R_CalcPalette ();
@@ -2172,6 +2172,12 @@ SWimp_CreateRender(void)
 {
 	swap_current = 0;
 	swap_buffers = malloc(vid.height * vid.width * sizeof(pixel_t) * 2);
+	if (!swap_buffers)
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: Can't allocate swapbuffer.", __func__);
+		// code never returns after ERR_FATAL
+		return;
+	}
 	swap_frames[0] = swap_buffers;
 	swap_frames[1] = swap_buffers + vid.height * vid.width * sizeof(pixel_t);
 	vid_buffer = swap_frames[swap_current&1];
