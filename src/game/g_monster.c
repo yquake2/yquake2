@@ -996,7 +996,10 @@ flymonster_start_go(edict_t *self)
 		self->yaw_speed = 10;
 	}
 
-	self->viewheight = 25;
+	if (!self->viewheight)
+	{
+		self->viewheight = 25;
+	}
 
 	monster_start_go(self);
 
@@ -1032,7 +1035,10 @@ swimmonster_start_go(edict_t *self)
 		self->yaw_speed = 10;
 	}
 
-	self->viewheight = 10;
+	if (!self->viewheight)
+	{
+		self->viewheight = 10;
+	}
 
 	monster_start_go(self);
 
