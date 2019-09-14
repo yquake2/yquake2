@@ -358,8 +358,8 @@ extern float	d_sdivzstepu, d_tdivzstepu;
 extern float	d_sdivzstepv, d_tdivzstepv;
 extern float	d_sdivzorigin, d_tdivzorigin;
 
-void D_DrawSpansPow2(espan_t *pspans, float d_ziorigin, float d_zistepu, float d_zistepv);
-void D_DrawZSpans(espan_t *pspans, float d_ziorigin, float d_zistepu, float d_zistepv);
+void D_DrawSpansPow2(espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zistepv);
+void D_DrawZSpans(espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zistepv);
 void TurbulentPow2(espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zistepv);
 void NonTurbulentPow2(espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zistepv);
 
@@ -557,14 +557,14 @@ void Draw_InitLocal(void);
 void R_InitCaches(void);
 void D_FlushCaches(void);
 
-void	RE_BeginRegistration (char *map);
-struct model_s  *RE_RegisterModel (char *name);
+void	RE_BeginRegistration (char *model);
+struct model_s	*RE_RegisterModel (char *name);
 void	RE_EndRegistration (void);
 
 struct image_s	*RE_Draw_FindPic (char *name);
 
 void	RE_Draw_GetPicSize (int *w, int *h, char *name);
-void	RE_Draw_PicScaled (int x, int y, char *name, float factor);
+void	RE_Draw_PicScaled (int x, int y, char *name, float scale);
 void	RE_Draw_StretchPic (int x, int y, int w, int h, char *name);
 void	RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data);
 void	RE_Draw_CharScaled (int x, int y, int c, float scale);

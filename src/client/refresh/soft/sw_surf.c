@@ -234,6 +234,12 @@ R_InitCaches (void)
 
 	sc_size = size;
 	sc_base = (surfcache_t *)malloc(size);
+	if (!sc_base)
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: Can't allocate cache.", __func__);
+		// code never returns after ERR_FATAL
+		return;
+	}
 	sc_rover = sc_base;
 
 	sc_base->next = NULL;

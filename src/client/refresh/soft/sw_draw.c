@@ -75,7 +75,7 @@ smoothly scrolled off.
 ================
 */
 void
-RE_Draw_CharScaled(int x, int y, int num, float scale)
+RE_Draw_CharScaled(int x, int y, int c, float scale)
 {
 	pixel_t	*dest;
 	byte	*source;
@@ -87,9 +87,9 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 	if (iscale < 1)
 		return;
 
-	num &= 255;
+	c &= 255;
 
-	if (num == 32 || num == 32+128)
+	if (c == 32 || c == 32+128)
 		return;
 
 	if (y <= -8)
@@ -98,8 +98,8 @@ RE_Draw_CharScaled(int x, int y, int num, float scale)
 	if ( ( y + 8 ) > vid.height )	// status text was missing in sw...
 		return;
 
-	row = num>>4;
-	col = num&15;
+	row = c>>4;
+	col = c&15;
 	source = draw_chars->pixels[0] + (row<<10) + (col<<3);
 
 	if (y < 0)
@@ -146,11 +146,11 @@ RE_Draw_GetPicSize
 =============
 */
 void
-RE_Draw_GetPicSize (int *w, int *h, char *pic)
+RE_Draw_GetPicSize (int *w, int *h, char *name)
 {
 	image_t *gl;
 
-	gl = RE_Draw_FindPic (pic);
+	gl = RE_Draw_FindPic (name);
 	if (!gl)
 	{
 		*w = *h = -1;
@@ -170,7 +170,6 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 {
 	pixel_t	*dest;
 	byte	*source;
-	int		v, u;
 	int		height;
 	int		skip;
 
@@ -198,6 +197,8 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 
 	if (w == pic->width)
 	{
+		int v;
+
 		for (v=0 ; v<height ; v++, dest += vid.width)
 		{
 			int sv = (skip + v)*pic->height/h;
@@ -207,9 +208,10 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 	}
 	else
 	{
+		int v;
 		for (v=0 ; v<height ; v++, dest += vid.width)
 		{
-			int f, fstep;
+			int f, fstep, u;
 			int sv = (skip + v)*pic->height/h;
 			source = pic->pixels[0] + sv*pic->width;
 			f = 0;
