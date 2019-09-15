@@ -724,7 +724,7 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 
 	/* sort into the pending sound list */
 	for (sort = s_pendingplays.next;
-		 sort != &s_pendingplays && sort->begin < ps->begin;
+		 sort != &s_pendingplays && sort->begin <= ps->begin;
 		 sort = sort->next)
 	{
 	}
