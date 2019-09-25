@@ -28,7 +28,8 @@
 
 #include "header/server.h"
 
-static YQ2_ALIGNAS_TYPE(long) byte fatpvs[65536 / 8];
+// DG: is casted to int32_t* in SV_FatPVS() so align accordingly
+static YQ2_ALIGNAS_TYPE(int32_t) byte fatpvs[65536 / 8];
 
 /*
  * Writes a delta update of an entity_state_t list to the message.
@@ -433,7 +434,8 @@ SV_FatPVS(vec3_t org)
 {
 	int leafs[64];
 	int i, j, count;
-	int longs;
+	// DG: used to be called "longs" and long was used which isn't really correct on 64bit
+	int32_t numInt32s;
 	byte *src;
 	vec3_t mins, maxs;
 
@@ -450,7 +452,7 @@ SV_FatPVS(vec3_t org)
 		Com_Error(ERR_FATAL, "SV_FatPVS: count < 1");
 	}
 
-	longs = (CM_NumClusters() + 31) >> 5;
+	numInt32s = (CM_NumClusters() + 31) >> 5;
 
 	/* convert leafs to clusters */
 	for (i = 0; i < count; i++)
@@ -458,7 +460,7 @@ SV_FatPVS(vec3_t org)
 		leafs[i] = CM_LeafCluster(leafs[i]);
 	}
 
-	memcpy(fatpvs, CM_ClusterPVS(leafs[0]), longs << 2);
+	memcpy(fatpvs, CM_ClusterPVS(leafs[0]), numInt32s << 2);
 
 	/* or in all the other leaf bits */
 	for (i = 1; i < count; i++)
@@ -478,9 +480,9 @@ SV_FatPVS(vec3_t org)
 
 		src = CM_ClusterPVS(leafs[i]);
 
-		for (j = 0; j < longs; j++)
+		for (j = 0; j < numInt32s; j++)
 		{
-			((long *)fatpvs)[j] |= ((long *)src)[j];
+			((int32_t *)fatpvs)[j] |= ((int32_t *)src)[j];
 		}
 	}
 }

@@ -66,7 +66,8 @@ typedef struct
 
 byte *cmod_base;
 byte map_visibility[MAX_MAP_VISIBILITY];
-byte pvsrow[MAX_MAP_LEAFS / 8];
+// DG: is casted to int32_t* in SV_FatPVS() so align accordingly
+static YQ2_ALIGNAS_TYPE(int32_t) byte pvsrow[MAX_MAP_LEAFS / 8];
 byte phsrow[MAX_MAP_LEAFS / 8];
 carea_t	map_areas[MAX_MAP_AREAS];
 cbrush_t map_brushes[MAX_MAP_BRUSHES];
@@ -1885,7 +1886,6 @@ CM_ClusterPVS(int cluster)
 	{
 		memset(pvsrow, 0, (numclusters + 7) >> 3);
 	}
-
 	else
 	{
 		CM_DecompressVis(map_visibility +
