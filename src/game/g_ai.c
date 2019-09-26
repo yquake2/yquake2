@@ -948,7 +948,7 @@ ai_checkattack(edict_t *self)
 	vec3_t temp;
 	qboolean hesDeadJim;
 
-	if (!self || !self->enemy || !self->enemy->inuse)
+	if (!self)
 	{
 		enemy_vis = false;
 
