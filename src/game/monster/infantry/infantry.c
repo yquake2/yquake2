@@ -637,6 +637,7 @@ infantry_dodge(edict_t *self, edict_t *attacker, float eta /* unused */)
 	if (!self->enemy)
 	{
 		self->enemy = attacker;
+		FoundTarget(self);
 	}
 
 	self->monsterinfo.currentmove = &infantry_move_duck;
