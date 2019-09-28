@@ -665,7 +665,7 @@ floater_zap(edict_t *self)
 	gi.WriteByte(1); /* sparks */
 	gi.multicast(origin, MULTICAST_PVS);
 
-	if (range(self, self->enemy) && infront(self, self->enemy) &&
+	if (range(self, self->enemy) == RANGE_MELEE && infront(self, self->enemy) &&
 			visible(self, self->enemy))
 	{
 		T_Damage(self->enemy, self, self, dir, self->enemy->s.origin,
