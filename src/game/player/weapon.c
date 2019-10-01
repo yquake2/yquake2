@@ -663,6 +663,9 @@ weapon_grenade_fire(edict_t *ent, qboolean held)
 	if (is_quad)
 	{
 		damage *= 4;
+
+		gi.sound(ent, CHAN_ITEM, gi.soundindex(
+				"items/damage3.wav"), 1, ATTN_NORM, 0);
 	}
 
 	VectorSet(offset, 8, 8, ent->viewheight - 8);
