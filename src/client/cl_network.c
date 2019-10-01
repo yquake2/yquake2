@@ -627,11 +627,13 @@ CL_ConnectionlessPacket(void)
 		   attack and in most levels the starting area in unreachable by
 		   monsters and free from environmental effects.
 
-		   Com_Serverstate() returns > 1 if the server is local, otherwise
-		   0. If it's a local server, maxclients aus either 0 (for single
-		   player), or 2 to 8 (coop and deathmatch) if we're reaching this
-		   code. For remote servers it's always 1. So this should trigger
-		   only if it's a local single player server.
+		   Com_Serverstate() returns 2 if the server is local and we're
+		   running a real game and no timedemo, cinematic, etc. The 2 is
+		   taken from the server_state_t enum value 'ss_game'. If it's a
+		   local server, maxclients aus either 0 (for single player), or
+		   2 to 8 (coop and deathmatch) if we're reaching this code.
+		   For remote servers it's always 1. So this should trigger only
+		   if it's a local single player server.
 
 		   Since the player can load savegames from a paused state (e.g.
 		   through the console) we'll need to communicate if we entered
@@ -639,7 +641,7 @@ CL_ConnectionlessPacket(void)
 		   the server) or if it was already there.
 
 		   Last but not least this can be disabled by cl_loadpaused 0. */
-		if (Com_ServerState() || (Cvar_VariableValue("maxclients") <= 1))
+		if (Com_ServerState() == 2 && (Cvar_VariableValue("maxclients") <= 1))
 		{
 			if (cl_loadpaused->value)
 			{
