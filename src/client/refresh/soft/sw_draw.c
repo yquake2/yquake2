@@ -209,6 +209,9 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 	else
 	{
 		int v;
+		// size of screen tile to pic pixel
+		int picupscale = h / pic->height;
+
 		for (v=0 ; v<height ; v++, dest += vid.width)
 		{
 			int f, fstep, u;
@@ -220,6 +223,21 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 			{
 				dest[u] = source[f>>16];
 				f += fstep;
+			}
+			if (picupscale > 1)
+			{
+				int i;
+				pixel_t	*dest_orig = dest;
+
+				// copy first line to fill whole sector
+				for (i=1; i < picupscale; i++)
+				{
+					// go to next line
+					dest += vid.width;
+					memcpy (dest, dest_orig, w);
+				}
+				// skip updated lines
+				v += (picupscale - 1);
 			}
 		}
 	}
