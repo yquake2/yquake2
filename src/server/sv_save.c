@@ -26,6 +26,13 @@
 
 #include "header/server.h"
 
+/* save types */
+enum SaveType {
+	othersave,
+	autosave,
+	quicksave
+};
+
 void CM_ReadPortalState(fileHandle_t f);
 
 /*
@@ -237,17 +244,17 @@ SV_ReadLevelFile(void)
 }
 
 void
-SV_WriteServerFile(qboolean autosave)
+SV_WriteServerFile(enum SaveType save)
 {
 	FILE *f;
 	cvar_t *var;
 	char name[MAX_OSPATH], string[128];
 	char workdir[MAX_OSPATH];
-	char comment[32];
+	char comment[64];
 	time_t aclock;
 	struct tm *newtime;
 
-	Com_DPrintf("SV_WriteServerFile(%s)\n", autosave ? "true" : "false");
+	Com_DPrintf("SV_WriteServerFile(%s)\n", (save == autosave) ? "true" : "false");
 
 	Com_sprintf(name, sizeof(name), "%s/save/current/server.ssv", FS_Gamedir());
 	f = Q_fopen(name, "wb");
@@ -261,7 +268,7 @@ SV_WriteServerFile(qboolean autosave)
 	/* write the comment field */
 	memset(comment, 0, sizeof(comment));
 
-	if (!autosave)
+	if (save == othersave)
 	{
 		time(&aclock);
 		newtime = localtime(&aclock);
@@ -270,6 +277,16 @@ SV_WriteServerFile(qboolean autosave)
 				newtime->tm_min % 10, newtime->tm_mon + 1,
 				newtime->tm_mday);
 		Q_strlcat(comment, sv.configstrings[CS_NAME], sizeof(comment));
+	}
+	else if (save == quicksave)
+	{
+        time(&aclock);
+        newtime = localtime(&aclock);
+        Com_sprintf(comment, sizeof(comment), "%2i:%i%i %2i/%2i  ", newtime->tm_hour
+            , newtime->tm_min / 10, newtime->tm_min % 10,
+            newtime->tm_mon + 1, newtime->tm_mday);
+        Com_sprintf(comment, sizeof(comment), "%s%s QUICKSAVE", comment,
+            sv.configstrings[CS_NAME]);
 	}
 	else
 	{
@@ -322,7 +339,7 @@ SV_WriteServerFile(qboolean autosave)
 		return;
 	}
 
-	ge->WriteGame("game.ssv", autosave);
+	ge->WriteGame("game.ssv", (save == autosave));
 
 	Sys_SetWorkDir(workdir);
 }
@@ -505,11 +522,25 @@ SV_Savegame_f(void)
 	   a connecting client */
 	SV_WriteLevelFile();
 
-	/* save server state */
-	SV_WriteServerFile(false);
+	if (!strcmp(Cmd_Argv(1), "quick"))
+	{
+		/* save server state */
+		SV_WriteServerFile(quicksave);
 
-	/* copy it off */
-	SV_CopySaveGame("current", dir);
+		/* copy it off */
+		SV_CopySaveGame("current", dir);
+
+		/* copy it off */
+		SV_CopySaveGame("quick", "save1");
+	}
+	else
+	{
+		/* save server state */
+		SV_WriteServerFile(othersave);
+
+		/* copy it off */
+		SV_CopySaveGame("current", dir);
+	}
 
 	Com_Printf("Done.\n");
 }

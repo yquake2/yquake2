@@ -2249,7 +2249,7 @@ ConfirmDeleteSaveGame_MenuInit(int i, void (*callback)(void))
 #define MAX_SAVESLOTS 16
 #define MAX_SAVEPAGES 2
 
-static char m_savestrings[MAX_SAVESLOTS][32];
+static char m_savestrings[MAX_SAVESLOTS][64];
 static qboolean m_savevalid[MAX_SAVESLOTS];
 
 static int m_loadsave_page;
