@@ -20,6 +20,7 @@ The documentation is split into several documents:
 * [Installation Guide](020_installation.md)
 * [Configuration Guide](030_configuration.md)
 * [List Of All New Console Variables](040_cvarlist.md)
+* [List Of All New Commands](050_commands.md)
 * [Multiplayer Server Configuration](060_multiplayer.md)
 * [Packaging Guide For Maintainers](070_packaging.md)
 * [Contributing Guide](080_contributing.md)
