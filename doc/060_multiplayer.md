@@ -17,6 +17,7 @@ crashed frequently anyways and  Win9x had the same bug and crashed after
 Apart from this, we'll only document changes/additions here.
 
 
+
 ## HTTP Downloads
 
 Like r1q2 and some other Quake II source ports, we allow downloading
@@ -99,3 +100,13 @@ options).
 This CVar will be set to connecting Multiplayer Clients and if they
 support HTTP downloading they will try to load missing game data from
 that server.
+
+
+
+## Map rotation
+
+Map rotations are configured through the `sv_maplist` CVar added with
+Quake II patch 3.15. The map list must be enclosed in quotation marks
+and all maps must exist. Start the game with the first map.
+
+For example: `q2ded +set sv_maplist '"q2dm1 q2dm2 q2dm3"' +map q2dm1`
