@@ -2246,8 +2246,14 @@ ConfirmDeleteSaveGame_MenuInit(int i, void (*callback)(void))
  * LOADGAME MENU
  */
 
-#define MAX_SAVESLOTS 16
-#define MAX_SAVEPAGES 2
+#define MAX_SAVESLOTS 14
+#define MAX_SAVEPAGES 4
+
+// The magic comment string length of 32 is the same as
+// the comment string length set in SV_WriteServerFile()!
+
+static char m_quicksavestring[32];
+static qboolean m_quicksavevalid;
 
 static char m_savestrings[MAX_SAVESLOTS][32];
 static qboolean m_savevalid[MAX_SAVESLOTS];
@@ -2256,10 +2262,10 @@ static int m_loadsave_page;
 static char m_loadsave_statusbar[32];
 
 static menuframework_s s_loadgame_menu;
-static menuaction_s s_loadgame_actions[MAX_SAVESLOTS];
+static menuaction_s s_loadgame_actions[MAX_SAVESLOTS + 1]; // One for quick
 
 static menuframework_s s_savegame_menu;
-static menuaction_s s_savegame_actions[MAX_SAVESLOTS];
+static menuaction_s s_savegame_actions[MAX_SAVESLOTS + 1]; // One for quick
 
 static void
 Create_Savestrings(void)
@@ -2267,7 +2273,38 @@ Create_Savestrings(void)
 	int i;
 	fileHandle_t f;
 	char name[MAX_OSPATH];
+	char tmp[32]; // Same length as m_quicksavestring-
 
+	// The quicksave slot...
+	FS_FOpenFile("save/quick/server.ssv", &f, true);
+
+	if (!f)
+	{
+		strcpy(m_quicksavestring, "QUICKSAVE <empty>");
+		m_quicksavevalid = false;
+	}
+	else
+	{
+		FS_Read(tmp, sizeof(tmp), f);
+		FS_FCloseFile(f);
+
+		if (strlen(name) > 12)
+		{
+			/* Horrible hack to construct a nice looking 'QUICKSAVE Level Name'
+			   comment string matching the 'ENTERING Level Name' comment string
+			   of autosaves. The comment field is in format 'HH:MM mm:dd  Level
+			   Name'. Remove the date (the first 13) characters and replace it
+			   with 'QUICKSAVE'. */
+			Com_sprintf(m_quicksavestring, sizeof(m_quicksavestring), "QUICKSAVE %s", tmp + 13);
+		}
+		else
+		{
+			Q_strlcpy(m_quicksavestring, name, sizeof(m_quicksavestring));
+		}
+		m_quicksavevalid = true;
+	}
+
+	// ... and everything else.
 	for (i = 0; i < MAX_SAVESLOTS; i++)
 	{
 		Com_sprintf(name, sizeof(name), "save/save%i/server.ssv", m_loadsave_page * MAX_SAVESLOTS + i);
@@ -2328,7 +2365,15 @@ LoadGameCallback(void *self)
 {
     menuaction_s *a = (menuaction_s *)self;
 
-    Cbuf_AddText(va("load save%i\n", a->generic.localdata[0]));
+	if (a->generic.localdata[0] == -1)
+	{
+		Cbuf_AddText("load quick\n");
+	}
+	else
+	{
+		Cbuf_AddText(va("load save%i\n", a->generic.localdata[0]));
+	}
+
     M_ForceMenuOff();
 }
 
@@ -2344,24 +2389,45 @@ LoadGame_MenuInit(void)
 
     Create_Savestrings();
 
+	// The quicksave slot...
+	s_loadgame_actions[0].generic.type = MTYPE_ACTION;
+	s_loadgame_actions[0].generic.name = m_quicksavestring;
+	s_loadgame_actions[0].generic.x = 0;
+	s_loadgame_actions[0].generic.y = 0;
+	s_loadgame_actions[0].generic.localdata[0] = -1;
+	s_loadgame_actions[0].generic.flags = QMF_LEFT_JUSTIFY;
+
+	if (!m_quicksavevalid)
+	{
+		s_loadgame_actions[0].generic.callback = NULL;
+	}
+	else
+	{
+		s_loadgame_actions[0].generic.callback = LoadGameCallback;
+	}
+
+	Menu_AddItem(&s_loadgame_menu, &s_loadgame_actions[0]);
+
+	// ...and everything else.
     for (i = 0; i < MAX_SAVESLOTS; i++)
     {
-        s_loadgame_actions[i].generic.type = MTYPE_ACTION;
-        s_loadgame_actions[i].generic.name = m_savestrings[i];
-        s_loadgame_actions[i].generic.x = 0;
-        s_loadgame_actions[i].generic.y = i * 10;
-        s_loadgame_actions[i].generic.localdata[0] = i + m_loadsave_page * MAX_SAVESLOTS;
-        s_loadgame_actions[i].generic.flags = QMF_LEFT_JUSTIFY;
+        s_loadgame_actions[i + 1].generic.type = MTYPE_ACTION;
+        s_loadgame_actions[i + 1].generic.name = m_savestrings[i];
+        s_loadgame_actions[i + 1].generic.x = 0;
+        s_loadgame_actions[i + 1].generic.y = i * 10 + 20;
+        s_loadgame_actions[i + 1].generic.localdata[0] = i + m_loadsave_page * MAX_SAVESLOTS;
+        s_loadgame_actions[i + 1].generic.flags = QMF_LEFT_JUSTIFY;
+
         if (!m_savevalid[i])
         {
-            s_loadgame_actions[i].generic.callback = NULL;
+            s_loadgame_actions[i + 1].generic.callback = NULL;
         }
         else
         {
-            s_loadgame_actions[i].generic.callback = LoadGameCallback;
+            s_loadgame_actions[i + 1].generic.callback = LoadGameCallback;
         }
 
-        Menu_AddItem(&s_loadgame_menu, &s_loadgame_actions[i]);
+        Menu_AddItem(&s_loadgame_menu, &s_loadgame_actions[i + 1]);
     }
 
     Menu_SetStatusBar(&s_loadgame_menu, m_loadsave_statusbar);
@@ -2449,7 +2515,16 @@ SaveGameCallback(void *self)
 {
     menuaction_s *a = (menuaction_s *)self;
 
-    if (a->generic.localdata[0] == 0)
+    if (a->generic.localdata[0] == -1)
+	{
+        m_popup_string = "This slot is reserved for\n"
+                         "quicksaving, so please select\n"
+                         "another one.";
+        m_popup_endtime = cls.realtime + 2000;
+        M_Popup();
+        return;
+	}
+	else if (a->generic.localdata[0] == 0)
     {
         m_popup_string = "This slot is reserved for\n"
                          "autosaving, so please select\n"
@@ -2484,18 +2559,29 @@ SaveGame_MenuInit(void)
 
     Create_Savestrings();
 
-    /* don't include the autosave slot */
+	// The quicksave slot...
+	s_savegame_actions[0].generic.type = MTYPE_ACTION;
+	s_savegame_actions[0].generic.name = m_quicksavestring;
+	s_savegame_actions[0].generic.x = 0;
+	s_savegame_actions[0].generic.y = 0;
+	s_savegame_actions[0].generic.localdata[0] = -1;
+	s_savegame_actions[0].generic.flags = QMF_LEFT_JUSTIFY;
+	s_savegame_actions[0].generic.callback = SaveGameCallback;
+
+	Menu_AddItem(&s_savegame_menu, &s_savegame_actions[0]);
+
+	// ...and everything else.
     for (i = 0; i < MAX_SAVESLOTS; i++)
     {
-        s_savegame_actions[i].generic.type = MTYPE_ACTION;
-        s_savegame_actions[i].generic.name = m_savestrings[i];
-        s_savegame_actions[i].generic.x = 0;
-        s_savegame_actions[i].generic.y = i * 10;
-        s_savegame_actions[i].generic.localdata[0] = i + m_loadsave_page * MAX_SAVESLOTS;
-        s_savegame_actions[i].generic.flags = QMF_LEFT_JUSTIFY;
-        s_savegame_actions[i].generic.callback = SaveGameCallback;
+        s_savegame_actions[i + 1].generic.type = MTYPE_ACTION;
+        s_savegame_actions[i + 1].generic.name = m_savestrings[i];
+        s_savegame_actions[i + 1].generic.x = 0;
+        s_savegame_actions[i + 1].generic.y = i * 10 + 20;
+        s_savegame_actions[i + 1].generic.localdata[0] = i + m_loadsave_page * MAX_SAVESLOTS;
+        s_savegame_actions[i + 1].generic.flags = QMF_LEFT_JUSTIFY;
+        s_savegame_actions[i + 1].generic.callback = SaveGameCallback;
 
-        Menu_AddItem(&s_savegame_menu, &s_savegame_actions[i]);
+        Menu_AddItem(&s_savegame_menu, &s_savegame_actions[i + 1]);
     }
 
     Menu_SetStatusBar(&s_savegame_menu, m_loadsave_statusbar);
