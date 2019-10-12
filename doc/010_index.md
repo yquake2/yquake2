@@ -16,11 +16,11 @@ Some general hints:
 
 The documentation is split into several documents:
 
-* [Index File](01_index.md)
-* [Installation Guide](02_installation.md)
-* [Configuration Guide](03_configuration.md)
-* [List Of All New Console Variables](04_cvarlist.md)
-* [Packaging Guide For Maintainers](05_packaging.md)
-* [Contributing Guide](06_contributing.md)
-* [Multiplayer Server Configuration](07_multiplayer.md)
-* [File Listings](08_filelists.md)
+* [Index File](010_index.md)
+* [Installation Guide](020_installation.md)
+* [Configuration Guide](030_configuration.md)
+* [List Of All New Console Variables](040_cvarlist.md)
+* [Multiplayer Server Configuration](060_multiplayer.md)
+* [Packaging Guide For Maintainers](070_packaging.md)
+* [Contributing Guide](080_contributing.md)
+* [File Listings](090_filelists.md)
