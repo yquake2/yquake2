@@ -19,6 +19,10 @@ have been renamed. The prefixes are:
 All cvars may be given at command line trough `+set cvar value` or typed
 into the console. The console can be opended with *Left Shift + Esc*.
 
+Keep in mind that some cvar need quotation marks around the arguments.
+When giving such cvars at the command line the argument string must be
+surrounded by ticks. For example `+set sv_maplist '"q2dm1 q2dm2"'`.
+
 
 ## Command line arguments
 
