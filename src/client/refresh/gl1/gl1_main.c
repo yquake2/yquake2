@@ -88,6 +88,7 @@ cvar_t *gl1_particle_size;
 cvar_t *gl1_particle_att_a;
 cvar_t *gl1_particle_att_b;
 cvar_t *gl1_particle_att_c;
+cvar_t *gl1_particle_use_pointparams;
 
 cvar_t *gl1_palettedtexture;
 cvar_t *gl1_pointparameters;
@@ -517,6 +518,12 @@ R_DrawParticles(void)
 {
 	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
 	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+
+	if (!gl1_particle_use_pointparams->value) {
+		R_DrawParticles2(r_newrefdef.num_particles,
+				r_newrefdef.particles, d_8to24table);
+		return;
+	}
 
 	if (gl_config.pointparameters && !(stereo_split_tb || stereo_split_lr))
 	{
@@ -1218,6 +1225,7 @@ R_Register(void)
 	gl1_particle_att_a = ri.Cvar_Get("gl1_particle_att_a", "0.01", CVAR_ARCHIVE);
 	gl1_particle_att_b = ri.Cvar_Get("gl1_particle_att_b", "0.0", CVAR_ARCHIVE);
 	gl1_particle_att_c = ri.Cvar_Get("gl1_particle_att_c", "0.01", CVAR_ARCHIVE);
+	gl1_particle_use_pointparams = ri.Cvar_Get("gl1_particle_use_pointparams", "1", CVAR_ARCHIVE);
 
 	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
 	r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
