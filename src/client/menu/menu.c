@@ -2289,7 +2289,7 @@ Create_Savestrings(void)
 		FS_Read(tmp, sizeof(tmp), f);
 		FS_FCloseFile(f);
 
-		if (strlen(name) > 12)
+		if (strlen(tmp) > 12)
 		{
 			/* Horrible hack to construct a nice looking 'QUICKSAVE Level Name'
 			   comment string matching the 'ENTERING Level Name' comment string
@@ -2300,7 +2300,7 @@ Create_Savestrings(void)
 		}
 		else
 		{
-			Q_strlcpy(m_quicksavestring, name, sizeof(m_quicksavestring));
+			Q_strlcpy(m_quicksavestring, tmp, sizeof(m_quicksavestring));
 		}
 		m_quicksavevalid = true;
 	}
