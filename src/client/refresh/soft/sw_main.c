@@ -1406,6 +1406,10 @@ RE_BeginFrame( float camera_separation )
 	{
 		Draw_BuildGammaTable();
 		R_GammaCorrectAndSetPalette((const unsigned char * )d_8to24table);
+		// we need redraw everything
+		VID_WholeDamageBuffer();
+		// and backbuffer should be zeroed
+		memset(swap_buffers + ((swap_current + 1)&1), 0, vid.height * vid.width * sizeof(pixel_t));
 
 		vid_gamma->modified = false;
 		sw_overbrightbits->modified = false;
