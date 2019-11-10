@@ -66,7 +66,8 @@ typedef struct
 
 byte *cmod_base;
 byte map_visibility[MAX_MAP_VISIBILITY];
-byte pvsrow[MAX_MAP_LEAFS / 8];
+// DG: is casted to int32_t* in SV_FatPVS() so align accordingly
+static YQ2_ALIGNAS_TYPE(int32_t) byte pvsrow[MAX_MAP_LEAFS / 8];
 byte phsrow[MAX_MAP_LEAFS / 8];
 carea_t	map_areas[MAX_MAP_AREAS];
 cbrush_t map_brushes[MAX_MAP_BRUSHES];
@@ -1673,8 +1674,8 @@ CM_LoadMap(char *name, qboolean clientload, unsigned *checksum)
 
 	map_noareas = Cvar_Get("map_noareas", "0", 0);
 
-	if (!strcmp(map_name,
-				name) && (clientload || !Cvar_VariableValue("flushmap")))
+	if (strcmp(map_name, name) == 0
+		&& (clientload || !Cvar_VariableValue("flushmap")))
 	{
 		*checksum = last_checksum;
 
@@ -1697,7 +1698,7 @@ CM_LoadMap(char *name, qboolean clientload, unsigned *checksum)
 	map_entitystring[0] = 0;
 	map_name[0] = 0;
 
-	if (!name || !name[0])
+	if (!name[0])
 	{
 		numleafs = 1;
 		numclusters = 1;
@@ -1885,7 +1886,6 @@ CM_ClusterPVS(int cluster)
 	{
 		memset(pvsrow, 0, (numclusters + 7) >> 3);
 	}
-
 	else
 	{
 		CM_DecompressVis(map_visibility +

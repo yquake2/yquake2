@@ -481,7 +481,7 @@ Menu_DrawStatusBar(const char *string)
 	if (string)
 	{
 		int l = (int)strlen(string);
-		float col = (VID_WIDTH / 2) - (l*8 / 2) * scale;
+		int col = (VID_WIDTH / 2) - (l*8 / 2) * scale;
 
 		Draw_Fill(0, VID_HEIGHT - 8 * scale, VID_WIDTH, 8 * scale, 4);
 		Menu_DrawString(col, VID_HEIGHT / scale - 8, string);

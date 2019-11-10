@@ -208,6 +208,8 @@ SV_GameMap_f(void)
 			   at spawn points instead of occupying body shells */
 			savedInuse = malloc(maxclients->value * sizeof(qboolean));
 
+			YQ2_COM_CHECK_OOM(savedInuse, "malloc()", maxclients->value * sizeof(qboolean))
+
 			for (i = 0, cl = svs.clients; i < maxclients->value; i++, cl++)
 			{
 				savedInuse[i] = cl->edict->inuse;

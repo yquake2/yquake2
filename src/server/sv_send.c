@@ -227,7 +227,7 @@ SV_Multicast(vec3_t origin, multicast_t to)
 				continue;
 			}
 
-			if (mask && (!(mask[cluster >> 3] & (1 << (cluster & 7)))))
+			if (!(mask[cluster >> 3] & (1 << (cluster & 7))))
 			{
 				continue;
 			}

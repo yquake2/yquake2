@@ -282,7 +282,6 @@ SDL_TransferPaintBuffer(int endtime)
 				{
 					val = 0x7fff;
 				}
-
 				else if (val < -32768)
 				{
 					val = -32768;
@@ -305,12 +304,14 @@ SDL_TransferPaintBuffer(int endtime)
 				{
 					val = 0x7fff;
 				}
-
 				else if (val < -32768)
 				{
 					val = -32768;
 				}
 
+				// FIXME: val might be negative and right-shifting it is implementation defined
+				//        on x86 it does sign extension (=> fills up with 1 bits from the left)
+				//        so this /might/ break on other platforms - if it does, look at this code again.
 				out[out_idx] = (val >> 8) + 128;
 				out_idx = (out_idx + 1) & out_mask;
 			}
@@ -474,13 +475,12 @@ SDL_PaintChannels(int endtime)
 					break;
 				}
 
-				if ((count > 0) && ch->sfx)
+				if (count > 0)
 				{
 					if (sc->width == 1)
 					{
 						SDL_PaintChannelFrom8(ch, sc, count, ltime - paintedtime);
 					}
-
 					else
 					{
 						SDL_PaintChannelFrom16(ch, sc, count, ltime - paintedtime);

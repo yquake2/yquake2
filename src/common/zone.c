@@ -41,9 +41,8 @@ Z_Free(void *ptr)
 
 	if (z->magic != Z_MAGIC)
 	{
-		printf("free: %p failed\n", ptr);
+		Com_Printf("ERROR: Z_free(%p) failed: bad magic\n", ptr);
 		abort();
-		Com_Error(ERR_FATAL, "Z_Free: bad magic");
 	}
 
 	z->prev->next = z->next;

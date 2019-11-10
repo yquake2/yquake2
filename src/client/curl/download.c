@@ -973,6 +973,7 @@ void CL_SetHTTPServer (const char *URL)
 	// Remove trailing / from URL if any.
 	size_t urllen = strlen(URL);
 	char *cleanURL = strdup(URL);
+	YQ2_COM_CHECK_OOM(cleanURL, "strdup(URL)", strlen(URL))
 
 	if (cleanURL[urllen - 1] == '/')
 	{
@@ -1067,6 +1068,9 @@ qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist
 	}
 
 	q->next = malloc(sizeof(*q));
+
+	YQ2_COM_CHECK_OOM(q->next, "malloc(sizeof(*q))", sizeof(*q))
+
 	q = q->next;
 	q->next = NULL;
 	q->state = DLQ_STATE_NOT_STARTED;
