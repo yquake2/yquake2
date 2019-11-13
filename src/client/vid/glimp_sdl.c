@@ -108,7 +108,9 @@ CreateSDLWindow(int flags, int w, int h)
 			return false;
 		}
 
-		if ((flags & SDL_WINDOW_FULLSCREEN) && ((real_mode.w != w) || (real_mode.h != h)))
+		/* SDL_WINDOW_FULLSCREEN_DESKTOP implies SDL_WINDOW_FULLSCREEN! */
+		if (((flags & SDL_WINDOW_FULLSCREEN) && (~flags & SDL_WINDOW_FULLSCREEN_DESKTOP))
+				&& ((real_mode.w != w) || (real_mode.h != h)))
 		{
 
 			Com_Printf("Current display mode isn't requested display mode\n");
@@ -157,9 +159,11 @@ CreateSDLWindow(int flags, int w, int h)
 			}
 		}
 
-        /* Normally SDL stays at desktop refresh rate or chooses
-		   something sane. Some player may want to override that. */
-		if (flags & SDL_WINDOW_FULLSCREEN)
+        /* Normally SDL stays at desktop refresh rate or chooses something
+		   sane. Some player may want to override that.
+
+		   Reminder: SDL_WINDOW_FULLSCREEN_DESKTOP implies SDL_WINDOW_FULLSCREEN! */
+		if ((flags & SDL_WINDOW_FULLSCREEN) && (~flags & SDL_WINDOW_FULLSCREEN_DESKTOP))
 		{
 			if (vid_rate->value > 0)
 			{
