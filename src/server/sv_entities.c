@@ -26,6 +26,8 @@
  * =======================================================================
  */
 
+#include <stdint.h>
+
 #include "header/server.h"
 
 // DG: is casted to int32_t* in SV_FatPVS() so align accordingly

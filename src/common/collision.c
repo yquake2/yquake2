@@ -25,6 +25,8 @@
  * =======================================================================
  */
 
+#include <stdint.h>
+
 #include "header/common.h"
 
 typedef struct
