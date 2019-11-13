@@ -729,11 +729,19 @@ void Com_MDPrintf(char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 void Com_Error(int code, char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 void Com_Quit(void);
 
+/* Ugly hack: Apprently (our?) MinGW-gcc under Windows
+   doesn't support %zd and requires %Id. */
+#ifdef WIN32
+#define YQ2_COM_PRIdS "%Id"
+#else
+#define YQ2_COM_PRIdS "%zd"
+#endif
+
 // terminate yq2 (with Com_Error()) if VAR is NULL (after malloc() or similar)
 // and print message about it
 #define YQ2_COM_CHECK_OOM(VAR, ALLOC_FN_NAME, ALLOC_SIZE) \
 	if(VAR == NULL) { \
-		Com_Error(ERR_FATAL, "%s for %zd bytes failed in %s() (%s == NULL)! Out of Memory?!\n", \
+		Com_Error(ERR_FATAL, "%s for " YQ2_COM_PRIdS " bytes failed in %s() (%s == NULL)! Out of Memory?!\n", \
 		                     ALLOC_FN_NAME, (size_t)ALLOC_SIZE, __func__, #VAR); }
 
 int Com_ServerState(void);              /* this should have just been a cvar... */
