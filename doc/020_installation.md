@@ -231,7 +231,7 @@ and is well tested.
 
 On Windows a MinGW environment is needed. A preconfigured environment
 with all necessary dependencies and compatibles compilers can be found
-at: https://deponie.yamagi.org/quake2/windows/build/
+at: https://deponie.yamagi.org/quake2/windows/buildenv/
 
 The environment must be extracted into *C:\MSYS2\*. Other directores
 will likely work, but are unsupported. So don't complain if you
