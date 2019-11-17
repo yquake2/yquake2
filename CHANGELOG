@@ -14,6 +14,7 @@ Quake II 7.41 to 7.42:
 * Fix loading of config files not ending in newlines.
 * A lot of fixes for subtle, long standing AI and game play bugs. (by
   BjossiAlfreds)
+* Quicksaves can now be loaded and saved throught the savegame menus.
 
 Quake II 7.40 to 7.41:
 - Some bugfixes to HTTP downloads introduced in 7.40.
