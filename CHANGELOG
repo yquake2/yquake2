@@ -1,21 +1,21 @@
 Quake II 7.41 to 7.42:
-* The console can now be scrolled with the mouse wheel. (by maxcrofts)
-* Fix entities on non-horizontal surfaces rendered in full black.
-* Add an option to choose the display Quake II runs on. (by Spirrwell)
-* Add an option to specify the display refresh rate used in fullscreen.
-* Allow mouse 'sensitivity' to be set to non-integral values.
-* Port cvar operations from q2pro. These allow the manipulation of cvar
+- The console can now be scrolled with the mouse wheel. (by maxcrofts)
+- Fix entities on non-horizontal surfaces rendered in full black.
+- Add an option to choose the display Quake II runs on. (by Spirrwell)
+- Add an option to specify the display refresh rate used in fullscreen.
+- Allow mouse 'sensitivity' to be set to non-integral values.
+- Port cvar operations from q2pro. These allow the manipulation of cvar
   values, supported are: dec, inc, reset, resetall and toggle
-* Put the client into pause mode during savegame load. This prevents the
+- Put the client into pause mode during savegame load. This prevents the
   world getting forwarded about 100 frames during load, time in which
   the player might be hurt by monsters or the environment.
-* New commands: 'listentities' allows listing of entities. 'teleport'
+- New commands: 'listentities' allows listing of entities. 'teleport'
   teleports the player to the given coordinates.
-* Fix loading of config files not ending in newlines.
-* A lot of fixes for subtle, long standing AI and game play bugs. (by
+- Fix loading of config files not ending in newlines.
+- A lot of fixes for subtle, long standing AI and game play bugs. (by
   BjossiAlfreds)
-* Quicksaves can now be loaded and saved throught the savegame menus.
-* The software renderer now skips frames with no changes. This improves
+- Quicksaves can now be loaded and saved throught the savegame menus.
+- The software renderer now skips frames with no changes. This improves
   performance quite a bit, especially on slow CPUs. (by Denis Pauk)
 
 Quake II 7.40 to 7.41:
