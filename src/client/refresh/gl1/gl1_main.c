@@ -88,6 +88,7 @@ cvar_t *gl1_particle_size;
 cvar_t *gl1_particle_att_a;
 cvar_t *gl1_particle_att_b;
 cvar_t *gl1_particle_att_c;
+cvar_t *gl1_particle_square;
 
 cvar_t *gl1_palettedtexture;
 cvar_t *gl1_pointparameters;
@@ -1218,6 +1219,7 @@ R_Register(void)
 	gl1_particle_att_a = ri.Cvar_Get("gl1_particle_att_a", "0.01", CVAR_ARCHIVE);
 	gl1_particle_att_b = ri.Cvar_Get("gl1_particle_att_b", "0.0", CVAR_ARCHIVE);
 	gl1_particle_att_c = ri.Cvar_Get("gl1_particle_att_c", "0.01", CVAR_ARCHIVE);
+	gl1_particle_square = ri.Cvar_Get("gl1_particle_square", "0", CVAR_ARCHIVE);
 
 	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
 	r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
@@ -1666,6 +1668,26 @@ RI_BeginFrame(float camera_separation)
 	glDisable(GL_BLEND);
 	glEnable(GL_ALPHA_TEST);
 	glColor4f(1, 1, 1, 1);
+
+	if (gl1_particle_square->modified)
+	{
+		gl1_particle_square->modified = false;
+
+		/* yamagi: GL_POINT_SMOOTH is not implemented by some
+		   OpenGL drivers, especially the crappy Mesa3D backends
+		   like i915.so. That the points are squares and not
+		   circles is not a problem by Quake II! */
+
+		switch ((int)gl1_particle_square->value)
+		{
+			default:
+				glDisable(GL_POINT_SMOOTH);
+				break;
+			case 0:
+				glEnable(GL_POINT_SMOOTH);
+				break;
+		}
+	}
 
 	/* draw buffer stuff */
 	if (gl_drawbuffer->modified)
