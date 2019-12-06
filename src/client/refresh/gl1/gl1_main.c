@@ -1672,6 +1672,20 @@ RI_BeginFrame(float camera_separation)
 	if (gl1_particle_square->modified)
 	{
 		R_InitParticleTexture();
+
+		/* GL_POINT_SMOOTH is not implemented by some OpenGL
+		   drivers, especially the crappy Mesa3D backends like
+		   i915.so. That the points are squares and not circles
+		   is not a problem by Quake II! */
+		if (gl1_particle_square->value)
+		{
+			glDisable(GL_POINT_SMOOTH);
+		}
+		else
+		{
+			glEnable(GL_POINT_SMOOTH);
+		}
+
 		gl1_particle_square->modified = false;
 	}
 
