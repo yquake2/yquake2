@@ -45,6 +45,25 @@ static byte dottexture[16][16] = {
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
 
+static byte squaretexture[16][16] = {
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0},
+	{0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0},
+	{0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0},
+	{0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0},
+	{0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0},
+	{0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0},
+	{0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0},
+	{0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+};
+
 static byte notex[4][4] = {
 	{0, 0, 0, 0},
 	{0, 0, 1, 1},
@@ -68,6 +87,13 @@ R_InitParticleTexture(void)
 	byte partData[16][16][4];
 	byte notexData[8][8][4];
 
+	byte (*sourcetexture)[16][16] = &dottexture;
+
+	if (gl1_particle_square->value)
+	{
+		sourcetexture = &squaretexture;
+	}
+
 	/* particle texture */
 	for (x = 0; x < 16; x++)
 	{
@@ -76,7 +102,7 @@ R_InitParticleTexture(void)
 			partData[y][x][0] = 255;
 			partData[y][x][1] = 255;
 			partData[y][x][2] = 255;
-			partData[y][x][3] = dottexture[x][y] * 85;
+			partData[y][x][3] = *sourcetexture[x][y] * 85;
 		}
 	}
 
@@ -188,6 +214,19 @@ R_SetDefaultState(void)
 		attenuations[0] = gl1_particle_att_a->value;
 		attenuations[1] = gl1_particle_att_b->value;
 		attenuations[2] = gl1_particle_att_c->value;
+
+		/* GL_POINT_SMOOTH is not implemented by some OpenGL
+		   drivers, especially the crappy Mesa3D backends like
+		   i915.so. That the points are squares and not circles
+		   is not a problem by Quake II! */
+		if (gl1_particle_square->value)
+		{
+			glDisable(GL_POINT_SMOOTH);
+		}
+		else
+		{
+			glEnable(GL_POINT_SMOOTH);
+		}
 
 		qglPointParameterfARB(GL_POINT_SIZE_MIN_EXT, gl1_particle_min_size->value);
 		qglPointParameterfARB(GL_POINT_SIZE_MAX_EXT, gl1_particle_max_size->value);

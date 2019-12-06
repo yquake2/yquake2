@@ -187,6 +187,7 @@ extern cvar_t *gl1_particle_size;
 extern cvar_t *gl1_particle_att_a;
 extern cvar_t *gl1_particle_att_b;
 extern cvar_t *gl1_particle_att_c;
+extern cvar_t *gl1_particle_square;
 
 extern cvar_t *r_mode;
 extern cvar_t *r_customwidth;
