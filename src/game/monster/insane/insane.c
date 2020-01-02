@@ -65,7 +65,7 @@ insane_moan(edict_t *self)
 	}
 
 	/* suppress screaming so pain sound can play */
-	if (self->delay > level.time)
+	if (self->fly_sound_debounce_time > level.time)
 	{
 		return;
 	}
@@ -82,7 +82,7 @@ insane_scream(edict_t *self)
 	}
 
 	/* suppress screaming so pain sound can play */
-	if (self->delay > level.time)
+	if (self->fly_sound_debounce_time > level.time)
 	{
 		return;
 	}
@@ -697,7 +697,7 @@ insane_pain(edict_t *self, edict_t *other /* unused */,
 							l, r)), 1, ATTN_IDLE, 0);
 
 	/* suppress screaming and moaning for 1 second so pain sound plays */
-	self->delay = level.time + 1;
+	self->fly_sound_debounce_time = level.time + 1;
 
 	if (skill->value == 3)
 	{
