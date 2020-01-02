@@ -102,7 +102,15 @@ R_InitParticleTexture(void)
 			partData[y][x][0] = 255;
 			partData[y][x][1] = 255;
 			partData[y][x][2] = 255;
-			partData[y][x][3] = *sourcetexture[x][y] * 85;
+
+			if (!gl1_particle_square->value)
+			{
+				partData[y][x][3] = dottexture[x][y] * 85;
+			}
+			else
+			{
+				partData[y][x][3] = squaretexture[x][y] * 85;
+			}
 		}
 	}
 
