@@ -1015,7 +1015,7 @@ struct edict_s
 	float touch_debounce_time;
 	float pain_debounce_time;
 	float damage_debounce_time;
-	float fly_sound_debounce_time;
+	float fly_sound_debounce_time;	/* now also used by insane marines to store pain sound timeout */
 	float last_move_time;
 
 	int health;
