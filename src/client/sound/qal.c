@@ -44,6 +44,7 @@ static ALCcontext *context;
 static ALCdevice *device;
 static cvar_t *al_device;
 static cvar_t *al_driver;
+static qboolean hasAlcExtDisconnect;
 static void *handle;
 
 /* Function pointers for OpenAL management */
@@ -195,6 +196,61 @@ void QAL_SoundInfo()
 		else
 		{
 			Com_Printf("- %s\n", devs);
+		}
+	}
+}
+
+/*
+ * Checks if the output device is still connected. Returns true
+ * if it is, false otherwise. Should be called every frame, if
+ * disconnected a 'snd_restart' is injected after waiting for 2.5
+ * seconds.
+ *
+ * This is mostly a work around for broken Sound driver. For
+ * example the _good_ Intel display driver for Windows 10
+ * destroys the DisplayPort sound device when the display
+ * resolution changes and recreates it after an unspecified
+ * amount of time...
+ */
+qboolean
+QAL_RecoverLostDevice()
+{
+	static int discoCount = 0;
+
+	if (!hasAlcExtDisconnect)
+	{
+		return true;
+	}
+
+	if (discoCount == 0)
+	{
+		ALCint connected;
+		qalcGetIntegerv(device, ALC_CONNECTED, 1, &connected);
+
+		if (!connected)
+		{
+			discoCount++;
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	else
+	{
+		/* Wait for about 2.5 seconds
+		   before trying to reconnect. */
+		if (discoCount < (int)(Cvar_VariableValue("cl_maxfps") * 2.5))
+		{
+			discoCount++;
+			return false;
+		}
+		else
+		{
+			Cbuf_AddText("snd_restart\n");
+			discoCount = 0;
+			return false;
 		}
 	}
 }
@@ -509,6 +565,13 @@ QAL_Init()
 	Com_Printf("\n");
 	QAL_SoundInfo();
 	Com_Printf("\n");
+
+	/*  Check extensions */
+	if (qalcIsExtensionPresent(device, "ALC_EXT_disconnect") != AL_FALSE)
+	{
+		hasAlcExtDisconnect = true;
+	}
+
 
     return true;
 }

@@ -121,6 +121,20 @@ extern LPALDELETEFILTERS qalDeleteFilters;
 void QAL_SoundInfo(void);
 
 /*
+ * Checks if the output device is still connected. Returns true
+ * if it is, false otherwise. Should be called every frame, if
+ * disconnected a 'snd_restart' is injected after waiting for 50
+ * frame.
+ *
+ * This is mostly a work around for broken Sound driver. For
+ * example the _good_ Intel display driver for Windows 10
+ * destroys the DisplayPort sound device when the display
+ * resolution changes and recreates it after an unspecified
+ * amount of time...
+ */
+qboolean QAL_RecoverLostDevice();
+
+/*
  * Loads the OpenAL shared lib, creates
  * a context and device handle.
  */
