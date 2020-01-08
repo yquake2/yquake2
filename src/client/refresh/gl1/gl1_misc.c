@@ -87,13 +87,6 @@ R_InitParticleTexture(void)
 	byte partData[16][16][4];
 	byte notexData[8][8][4];
 
-	byte (*sourcetexture)[16][16] = &dottexture;
-
-	if (gl1_particle_square->value)
-	{
-		sourcetexture = &squaretexture;
-	}
-
 	/* particle texture */
 	for (x = 0; x < 16; x++)
 	{
