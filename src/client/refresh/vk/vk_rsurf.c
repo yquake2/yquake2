@@ -9,7 +9,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // vk_rsurf.c: surface-related refresh code
 #include <assert.h>
 
-#include "vk_local.h"
+#include "header/vk_local.h"
 
 static vec3_t	modelorg;		// relative to viewpoint
 
@@ -332,7 +332,7 @@ void R_RenderBrushPoly (msurface_t *fa, float *modelMatrix, float alpha)
 			R_SetCacheState(fa);
 
 			QVk_UpdateTextureData(&vk_state.lightmap_textures[fa->lightmaptexturenum], (unsigned char*)temp, fa->light_s, fa->light_t, smax, tmax);
-			
+
 			fa->lightmapchain = vk_lms.lightmap_surfaces[fa->lightmaptexturenum];
 			vk_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
 		}
@@ -820,7 +820,7 @@ void R_RecursiveWorldNode (mnode_t *node)
 		return;
 	if (R_CullBox (node->minmaxs, node->minmaxs+3))
 		return;
-	
+
 // if a leaf node, draw stuff
 	if (node->contents != -1)
 	{
@@ -1015,7 +1015,7 @@ void R_MarkLeaves (void)
 			((int *)fatvis)[i] |= ((int *)vis)[i];
 		vis = fatvis;
 	}
-	
+
 	for (i=0,leaf=r_worldmodel->leafs ; i<r_worldmodel->numleafs ; i++, leaf++)
 	{
 		cluster = leaf->cluster;
