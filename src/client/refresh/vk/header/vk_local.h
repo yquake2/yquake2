@@ -149,11 +149,11 @@ extern	cvar_t	*r_fullbright;
 extern	cvar_t	*r_novis;
 extern	cvar_t	*r_nocull;
 extern	cvar_t	*r_lerpmodels;
+extern	cvar_t	*r_mode;
 
 extern	cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
 extern	cvar_t	*vk_validation;
-extern	cvar_t	*vk_mode;
 extern	cvar_t	*vk_bitdepth;
 extern	cvar_t	*vk_log;
 extern	cvar_t	*vk_picmip;

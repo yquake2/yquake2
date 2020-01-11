@@ -88,11 +88,12 @@ cvar_t	*r_novis;
 cvar_t	*r_nocull;
 cvar_t	*r_lerpmodels;
 cvar_t	*r_lefthand;
+cvar_t	*r_vsync;
+cvar_t	*r_mode;
 
 cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
 cvar_t	*vk_validation;
-cvar_t	*vk_mode;
 cvar_t	*vk_bitdepth;
 cvar_t	*vk_picmip;
 cvar_t	*vk_skymip;
@@ -124,10 +125,8 @@ cvar_t	*vk_sampleshading;
 cvar_t	*vk_vsync;
 cvar_t	*vk_device_idx;
 
-cvar_t  *r_vsync;
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
-cvar_t	*vid_ref;
 cvar_t	*viewsize;
 
 /*
@@ -1033,12 +1032,13 @@ void R_Register( void )
 	r_lerpmodels = ri.Cvar_Get("r_lerpmodels", "1", 0);
 	r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
 	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
+	r_mode = ri.Cvar_Get("r_mode", "11", CVAR_ARCHIVE);
+	r_vsync = ri.Cvar_Get("r_vsync", "0", CVAR_ARCHIVE);
 #if defined(_DEBUG)
 	vk_validation = ri.Cvar_Get("vk_validation", "2", 0);
 #else
 	vk_validation = ri.Cvar_Get("vk_validation", "0", 0);
 #endif
-	vk_mode = ri.Cvar_Get("vk_mode", "11", CVAR_ARCHIVE);
 	vk_bitdepth = ri.Cvar_Get("vk_bitdepth", "0", 0);
 	vk_picmip = ri.Cvar_Get("vk_picmip", "0", 0);
 	vk_skymip = ri.Cvar_Get("vk_skymip", "0", 0);
@@ -1075,10 +1075,8 @@ void R_Register( void )
 	else if (vk_msaa->value > 4)
 		ri.Cvar_Set("vk_msaa", "4");
 
-	r_vsync = ri.Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
-	vid_ref = ri.Cvar_Get("vid_ref", "soft", CVAR_ARCHIVE);
 	viewsize = ri.Cvar_Get("viewsize", "100", CVAR_ARCHIVE);
 
 	ri.Cmd_AddCommand("vk_strings", Vk_Strings_f);
@@ -1131,14 +1129,13 @@ qboolean R_SetMode (void)
 	rserr_t err;
 	int fullscreen;
 
+	r_mode->modified = false;
+	r_vsync->modified = false;
+
 	fullscreen = (int)vid_fullscreen->value;
-
 	vid_fullscreen->modified = false;
-	vk_mode->modified = false;
-
 	vid_gamma->modified = false;
-	vid_fullscreen->modified = false;
-	vk_mode->modified = false;
+
 	vk_msaa->modified = false;
 	vk_clear->modified = false;
 	vk_validation->modified = false;
@@ -1151,9 +1148,9 @@ qboolean R_SetMode (void)
 	vk_texturemode->modified = true;
 	vk_lmaptexturemode->modified = true;
 
-	if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_mode->value, fullscreen)) == rserr_ok)
+	if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, r_mode->value, fullscreen)) == rserr_ok)
 	{
-		vk_state.prev_mode = vk_mode->value;
+		vk_state.prev_mode = r_mode->value;
 	}
 	else
 	{
@@ -1162,13 +1159,13 @@ qboolean R_SetMode (void)
 			ri.Cvar_SetValue("vid_fullscreen", 0);
 			vid_fullscreen->modified = false;
 			R_Printf(PRINT_ALL, "ref_vk::R_SetMode() - fullscreen unavailable in this mode\n");
-			if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_mode->value, false)) == rserr_ok)
+			if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, r_mode->value, false)) == rserr_ok)
 				return true;
 		}
 		else if (err == rserr_invalid_mode)
 		{
-			ri.Cvar_SetValue("vk_mode", vk_state.prev_mode);
-			vk_mode->modified = false;
+			ri.Cvar_SetValue("r_mode", vk_state.prev_mode);
+			r_mode->modified = false;
 			R_Printf(PRINT_ALL, "ref_vk::R_SetMode() - invalid mode\n");
 		}
 
@@ -1195,7 +1192,7 @@ qboolean R_Init( void )
 	R_Register();
 
 	// set our "safe" modes
-	vk_state.prev_mode = 6;
+	vk_state.prev_mode = 4;
 	// set video mode/screen resolution
 	if (!R_SetMode())
 	{
@@ -1265,7 +1262,7 @@ void R_BeginFrame( float camera_separation )
 	/*
 	** change modes if necessary
 	*/
-	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || vk_picmip->modified ||
+	if (r_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || vk_picmip->modified ||
 		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified || vid_gamma->modified ||
 		vk_mip_nearfilter->modified || vk_sampleshading->modified || vk_vsync->modified || vk_device_idx->modified)
 	{
@@ -1286,8 +1283,7 @@ void R_BeginFrame( float camera_separation )
 		}
 		else
 		{
-			cvar_t	*ref = ri.Cvar_Get("vid_ref", "vk", 0);
-			ref->modified = true;
+			vid_fullscreen->modified = true;
 		}
 	}
 
@@ -1297,8 +1293,8 @@ void R_BeginFrame( float camera_separation )
 	// if the swapchain is invalid, just recreate the video system and revert to safe windowed mode
 	if (swapChainValid != VK_SUCCESS)
 	{
-		vid_ref->modified = true;
 		vid_fullscreen->value = false;
+		vid_fullscreen->modified = true;
 		ri.Cvar_SetValue("vid_fullscreen", 0);
 	}
 	else
