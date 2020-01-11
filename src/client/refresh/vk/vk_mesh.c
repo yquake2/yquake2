@@ -9,7 +9,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // vk_mesh.c: triangle model functions
 
-#include "vk_local.h"
+#include "header/vk_local.h"
 
 /*
 =============================================================
@@ -32,8 +32,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define NUMVERTEXNORMALS	162
 
-float	r_avertexnormals[NUMVERTEXNORMALS][3] = {
-#include "anorms.h"
+static float r_avertexnormals[NUMVERTEXNORMALS][3] = {
+#include "../constants/anorms.h"
 };
 
 typedef float vec4_t[4];
@@ -45,9 +45,9 @@ float	shadelight[3];
 
 // precalculated dot products for quantized angles
 #define SHADEDOT_QUANT 16
-float	r_avertexnormal_dots[SHADEDOT_QUANT][256] =
-#include "anormtab.h"
-;
+static float r_avertexnormal_dots[SHADEDOT_QUANT][256] = {
+#include "../constants/anormtab.h"
+};
 
 float	*shadedots = r_avertexnormal_dots[0];
 
@@ -75,7 +75,7 @@ void Vk_LerpVerts( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *ver
 
 			lerp[0] = move[0] + ov->v[0]*backv[0] + v->v[0]*frontv[0] + normal[0] * POWERSUIT_SCALE;
 			lerp[1] = move[1] + ov->v[1]*backv[1] + v->v[1]*frontv[1] + normal[1] * POWERSUIT_SCALE;
-			lerp[2] = move[2] + ov->v[2]*backv[2] + v->v[2]*frontv[2] + normal[2] * POWERSUIT_SCALE; 
+			lerp[2] = move[2] + ov->v[2]*backv[2] + v->v[2]*frontv[2] + normal[2] * POWERSUIT_SCALE;
 		}
 	}
 	else
@@ -113,11 +113,11 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 	int		index_xyz;
 	float	*lerp;
 
-	frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames 
+	frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames
 		+ currententity->frame * paliashdr->framesize);
 	verts = v = frame->verts;
 
-	oldframe = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames 
+	oldframe = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames
 		+ currententity->oldframe * paliashdr->framesize);
 	ov = oldframe->verts;
 
@@ -310,13 +310,11 @@ extern	vec3_t			lightspot;
 
 void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 {
-	dtrivertx_t	*verts;
 	int		*order;
 	vec3_t	point;
 	float	height, lheight;
 	int		count;
 	int		i;
-	daliasframe_t	*frame;
 	qvkpipeline_t pipelines[2] = { vk_shadowsPipelineStrip, vk_shadowsPipelineFan };
 
 	enum {
@@ -325,10 +323,6 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 	} pipelineIdx;
 
 	lheight = currententity->origin[2] - lightspot[2];
-
-	frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames 
-		+ currententity->frame * paliashdr->framesize);
-	verts = frame->verts;
 
 	height = 0;
 
@@ -419,22 +413,22 @@ static qboolean R_CullAliasModel( vec3_t bbox[8], entity_t *e )
 
 	if ( ( e->frame >= paliashdr->num_frames ) || ( e->frame < 0 ) )
 	{
-		R_Printf(PRINT_ALL, "R_CullAliasModel %s: no such frame %d\n", 
+		R_Printf(PRINT_ALL, "R_CullAliasModel %s: no such frame %d\n",
 			currentmodel->name, e->frame);
 		e->frame = 0;
 	}
 	if ( ( e->oldframe >= paliashdr->num_frames ) || ( e->oldframe < 0 ) )
 	{
-		R_Printf(PRINT_ALL, "R_CullAliasModel %s: no such oldframe %d\n", 
+		R_Printf(PRINT_ALL, "R_CullAliasModel %s: no such oldframe %d\n",
 			currentmodel->name, e->oldframe);
 		e->oldframe = 0;
 	}
 
-	pframe = ( daliasframe_t * ) ( ( byte * ) paliashdr + 
+	pframe = ( daliasframe_t * ) ( ( byte * ) paliashdr +
 		                              paliashdr->ofs_frames +
 									  e->frame * paliashdr->framesize);
 
-	poldframe = ( daliasframe_t * ) ( ( byte * ) paliashdr + 
+	poldframe = ( daliasframe_t * ) ( ( byte * ) paliashdr +
 		                              paliashdr->ofs_frames +
 									  e->oldframe * paliashdr->framesize);
 
@@ -670,11 +664,11 @@ void R_DrawAliasModel (entity_t *e)
 		shadelight[1] = 0.0;
 		shadelight[2] = 0.0;
 	}
-// PGM	
+// PGM
 // =================
 
 	shadedots = r_avertexnormal_dots[((int)(currententity->angles[1] * (SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1)];
-	
+
 	an = currententity->angles[1]/180*M_PI;
 	shadevector[0] = cos(-an);
 	shadevector[1] = sin(-an);
@@ -733,7 +727,7 @@ void R_DrawAliasModel (entity_t *e)
 		skin = r_notexture;	// fallback...
 
 	// draw it
-	if ( (currententity->frame >= paliashdr->num_frames) 
+	if ( (currententity->frame >= paliashdr->num_frames)
 		|| (currententity->frame < 0) )
 	{
 		R_Printf(PRINT_ALL, "R_DrawAliasModel %s: no such frame %d\n",

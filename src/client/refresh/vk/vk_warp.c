@@ -9,7 +9,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // vk_warp.c -- sky and water polygons
-#include "vk_local.h"
+#include "header/vk_local.h"
 
 extern	model_t	*loadmodel;
 
@@ -282,7 +282,7 @@ vec3_t	skyclip[6] = {
 	{0,-1,1},
 	{0,1,1},
 	{1,0,1},
-	{-1,0,1} 
+	{-1,0,1}
 };
 int	c_sky;
 
@@ -634,7 +634,7 @@ void R_DrawSkyBox (void)
 		VkDeviceSize vboOffset;
 		uint8_t *vertData = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
 		memcpy(vertData, verts, sizeof(verts));
-		
+
 		VkDescriptorSet descriptorSets[] = { sky_images[skytexorder[i]]->vk_texture.descriptorSet, uboDescriptorSet };
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSkyboxPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
