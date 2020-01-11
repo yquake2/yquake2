@@ -239,6 +239,9 @@ static qboolean checkForHelp(int argc, char **argv)
 				printf("    'gl1'  (the OpenGL 1.x renderer),\n");
 				printf("    'gl3'  (the OpenGL 3.2 renderer),\n");
 				printf("    'soft' (the software renderer)\n");
+#ifdef USE_REFVK
+				printf("    'vulkan' (the experimental Vulkan renderer)\n");
+#endif
 #endif // DEDICATED_ONLY
 				printf("\nSee https://github.com/yquake2/yquake2/blob/master/doc/04_cvarlist.md\nfor some more cvars\n");
 
