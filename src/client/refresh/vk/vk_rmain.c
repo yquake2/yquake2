@@ -124,6 +124,7 @@ cvar_t	*vk_mip_nearfilter;
 cvar_t	*vk_sampleshading;
 cvar_t	*vk_vsync;
 cvar_t	*vk_device_idx;
+cvar_t	*vk_retexturing;
 
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
@@ -1069,6 +1070,8 @@ void R_Register( void )
 	vk_sampleshading = ri.Cvar_Get("vk_sampleshading", "1", CVAR_ARCHIVE);
 	vk_vsync = ri.Cvar_Get("vk_vsync", "0", CVAR_ARCHIVE);
 	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
+	vk_retexturing = ri.Cvar_Get("vk_retexturing", "0", CVAR_ARCHIVE);
+
 	// clamp vk_msaa to accepted range so that video menu doesn't crash on us
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");
@@ -1109,7 +1112,6 @@ Vkimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen)
 	}
 
 	R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
-
 
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
 	{
