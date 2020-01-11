@@ -251,7 +251,6 @@ VkDescriptorSetLayout vk_samplerDescSetLayout;
 VkDescriptorSetLayout vk_samplerLightmapDescSetLayout;
 
 extern cvar_t *vk_msaa;
-extern cvar_t *vid_ref;
 
 VkFormat QVk_FindDepthFormat()
 {
@@ -1928,7 +1927,7 @@ VkResult QVk_EndFrame(qboolean force)
 	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || renderResult == VK_ERROR_SURFACE_LOST_KHR)
 	{
 		R_Printf(PRINT_ALL, "QVk_EndFrame(): received %s after vkQueuePresentKHR - restarting video!\n", QVk_GetError(renderResult));
-		vid_ref->modified = true;
+		vid_fullscreen->modified = true;
 	}
 	else if (renderResult != VK_SUCCESS)
 	{
