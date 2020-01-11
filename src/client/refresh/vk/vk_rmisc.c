@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_misc.c
 
-#include "vk_local.h"
+#include "header/vk_local.h"
 
 /*
 ==================
@@ -92,9 +92,7 @@ Vk_ScreenShot_f
 void Vk_ScreenShot_f (void)
 {
 	byte		*buffer;
-	char		picname[80];
-	char		checkname[MAX_OSPATH];
-	int			i, temp;
+	int		i, temp;
 	size_t		buffSize = vid.width * vid.height * 4;
 
 	buffer = malloc(buffSize);

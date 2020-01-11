@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 
-#include "vk_local.h"
+#include "header/vk_local.h"
 
 viddef_t	vid;
 
