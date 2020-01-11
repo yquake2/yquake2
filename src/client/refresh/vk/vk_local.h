@@ -9,7 +9,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -39,7 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <vulkan/vulkan.h>
 #include <math.h>
 
-#include "../client/ref.h"
+#include "../ref_shared.h"
 
 #include "qvk.h"
 
@@ -51,7 +51,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define VK_VERIFY(x) { \
 		VkResult res = (x); \
 		if(res != VK_SUCCESS) { \
-			ri.Con_Printf(PRINT_ALL, "VkResult verification failed: %s in %s:%d\n", QVk_GetError(res), __FILE__, __LINE__); \
+			R_Printf(PRINT_ALL, "VkResult verification failed: %s in %s:%d\n", QVk_GetError(res), __FILE__, __LINE__); \
 			assert(res == VK_SUCCESS && "VkResult verification failed!"); \
 		} \
 }
@@ -75,35 +75,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
-typedef struct
-{
-	unsigned		width, height;			// coordinates from main game
-} viddef_t;
-
 extern	viddef_t	vid;
-
-
-/*
-
-  skins will be outline flood filled and mip mapped
-  pics and sprites with alpha will be outline flood filled
-  pic won't be mip mapped
-
-  model skin
-  sprite frame
-  wall texture
-  pic
-
-*/
-
-typedef enum 
-{
-	it_skin,
-	it_sprite,
-	it_wall,
-	it_pic,
-	it_sky
-} imagetype_t;
 
 typedef struct image_s
 {
@@ -234,7 +206,7 @@ extern	int		registration_sequence;
 extern	qvksampler_t vk_current_sampler;
 extern	qvksampler_t vk_current_lmap_sampler;
 
-qboolean R_Init( void *hinstance, void *hWnd );
+qboolean R_Init( void );
 void	 R_Shutdown( void );
 
 void R_RenderView (refdef_t *fd);
@@ -263,9 +235,9 @@ void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
 void COM_StripExtension (char *in, char *out);
 
 void	Draw_GetPicSize (int *w, int *h, char *name);
-void	Draw_Pic (int x, int y, char *name);
+void	Draw_PicScaled (int x, int y, char *name, float scale);
 void	Draw_StretchPic (int x, int y, int w, int h, char *name);
-void	Draw_Char (int x, int y, int c);
+void	Draw_CharScaled (int x, int y, int c, float scale);
 void	Draw_TileClear (int x, int y, int w, int h, char *name);
 void	Draw_Fill (int x, int y, int w, int h, int c);
 void	Draw_FadeScreen (void);
@@ -273,6 +245,7 @@ void	Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 
 void	R_BeginFrame( float camera_separation );
 void	R_EndFrame( void );
+void	R_EndWorldRenderpass( void );
 void	R_SetPalette ( const unsigned char *palette);
 
 int		Draw_GetPalette (void);
@@ -373,10 +346,7 @@ void		Vkimp_BeginFrame( float camera_separation );
 void		Vkimp_EndFrame( void );
 int 		Vkimp_Init( void *hinstance, void *hWnd );
 void		Vkimp_Shutdown( void );
-int			Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen );
 void		Vkimp_AppActivate( qboolean active );
-void		Vkimp_EnableLogging( qboolean enable );
-void		Vkimp_LogNewFrame( void );
 void		Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount);
 VkResult	Vkimp_CreateSurface(void);
 

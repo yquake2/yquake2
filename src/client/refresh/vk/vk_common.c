@@ -9,7 +9,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -29,18 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 ** QVk_Shutdown() - unloads libraries, NULLs function pointers
 */
 #include <float.h>
-#include "../ref_vk/vk_local.h"
-#ifdef _WIN32
-#include "../win32/vk_win.h"
-#endif
-#ifdef __linux__
-#include "../linux/vk_linux.h"
-#endif
-#ifdef __APPLE__
-#include "../macos/vk_macos.h"
-#endif
-
-FILE *vk_logfp = NULL;
+#include "vk_local.h"
 
 // Vulkan instance, surface and memory allocator
 VkInstance vk_instance  = VK_NULL_HANDLE;
@@ -414,7 +403,7 @@ static VkResult CreateFramebuffers()
 
 			if (res != VK_SUCCESS)
 			{
-				ri.Con_Printf(PRINT_ALL, "CreateFramebuffers(): framebuffer #%d create error: %s\n", j, QVk_GetError(res));
+				R_Printf(PRINT_ALL, "CreateFramebuffers(): framebuffer #%d create error: %s\n", j, QVk_GetError(res));
 				DestroyFramebuffers();
 				return res;
 			}
@@ -692,7 +681,7 @@ static VkResult CreateRenderpasses()
 		VkResult res = vkCreateRenderPass(vk_device.logical, &rpCreateInfos[i], NULL, &vk_renderpasses[i].rp);
 		if (res != VK_SUCCESS)
 		{
-			ri.Con_Printf(PRINT_ALL, "CreateRenderpasses(): renderpass #%d create error: %s\n", i, QVk_GetError(res));
+			R_Printf(PRINT_ALL, "CreateRenderpasses(): renderpass #%d create error: %s\n", i, QVk_GetError(res));
 			return res;
 		}
 	}
@@ -708,15 +697,15 @@ static VkResult CreateRenderpasses()
 static void CreateDrawBuffers()
 {
 	QVk_CreateDepthBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_depthbuffer);
-	ri.Con_Printf(PRINT_ALL, "...created world depth buffer\n");
+	R_Printf(PRINT_ALL, "...created world depth buffer\n");
 	QVk_CreateDepthBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_ui_depthbuffer);
-	ri.Con_Printf(PRINT_ALL, "...created UI depth buffer\n");
+	R_Printf(PRINT_ALL, "...created UI depth buffer\n");
 	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbuffer, VK_IMAGE_USAGE_SAMPLED_BIT);
-	ri.Con_Printf(PRINT_ALL, "...created world color buffer\n");
+	R_Printf(PRINT_ALL, "...created world color buffer\n");
 	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbufferWarp, VK_IMAGE_USAGE_SAMPLED_BIT);
-	ri.Con_Printf(PRINT_ALL, "...created world postpocess color buffer\n");
+	R_Printf(PRINT_ALL, "...created world postpocess color buffer\n");
 	QVk_CreateColorBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_msaaColorbuffer, 0);
-	ri.Con_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n", vk_renderpasses[RP_WORLD].sampleCount);
+	R_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n", vk_renderpasses[RP_WORLD].sampleCount);
 
 	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.image, VK_OBJECT_TYPE_IMAGE, "Depth Buffer: World");
 	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: World Depth Buffer");
@@ -1130,7 +1119,7 @@ static void CreatePipelines()
 	VK_VERTINFO(RG_RG, sizeof(float) * 4,	VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0),
 											VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 2));
 
-	VK_VERTINFO(RGB_RG, sizeof(float) * 5,	VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0), 
+	VK_VERTINFO(RGB_RG, sizeof(float) * 5,	VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
 											VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3));
 
 	VK_VERTINFO(RGB_RGB, sizeof(float) * 6,	VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
@@ -1377,7 +1366,7 @@ void QVk_Shutdown( void )
 {
 	if (vk_instance != VK_NULL_HANDLE)
 	{
-		ri.Con_Printf(PRINT_ALL, "Shutting down Vulkan\n");
+		R_Printf(PRINT_ALL, "Shutting down Vulkan\n");
 
 		for (int i = 0; i < 2; ++i)
 		{
@@ -1499,13 +1488,23 @@ void QVk_Shutdown( void )
 	}
 }
 
-#	pragma warning (disable : 4113 4133 4047 )
+void Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount)
+{
+	if (extensions)
+	{
+		extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
+		extensions[1] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
+	}
+
+	if (extCount)
+		*extCount = 2;
+}
 
 /*
 ** QVk_Init
 **
 ** This is responsible for initializing Vulkan.
-** 
+**
 */
 qboolean QVk_Init()
 {
@@ -1565,13 +1564,13 @@ qboolean QVk_Init()
 		wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 #endif
 
-	ri.Con_Printf(PRINT_ALL, "Enabled extensions: ");
+	R_Printf(PRINT_ALL, "Enabled extensions: ");
 	for (int i = 0; i < extCount; i++)
 	{
-		ri.Con_Printf(PRINT_ALL, "%s ", wantedExtensions[i]);
+		R_Printf(PRINT_ALL, "%s ", wantedExtensions[i]);
 		vk_config.extensions[i] = wantedExtensions[i];
 	}
-	ri.Con_Printf(PRINT_ALL, "\n");
+	R_Printf(PRINT_ALL, "\n");
 
 	VkInstanceCreateInfo createInfo = {
 		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -1604,10 +1603,10 @@ qboolean QVk_Init()
 
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan instance: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan instance: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created Vulkan instance\n");
+	R_Printf(PRINT_ALL, "...created Vulkan instance\n");
 
 	// initialize function pointers
 	qvkCreateDebugUtilsMessengerEXT  = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vk_instance, "vkCreateDebugUtilsMessengerEXT");
@@ -1624,10 +1623,10 @@ qboolean QVk_Init()
 	res = Vkimp_CreateSurface();
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan surface: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan surface: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created Vulkan surface\n");
+	R_Printf(PRINT_ALL, "...created Vulkan surface\n");
 
 	// create Vulkan device - see if the user prefers any specific device if there's more than one GPU in the system
 	QVk_CreateDevice((int)vk_device_idx->value);
@@ -1650,19 +1649,19 @@ qboolean QVk_Init()
 	res = vmaCreateAllocator(&allocInfo, &vk_malloc);
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan memory allocator: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan memory allocator: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created Vulkan memory allocator\n");
+	R_Printf(PRINT_ALL, "...created Vulkan memory allocator\n");
 
 	// setup swapchain
 	res = QVk_CreateSwapchain();
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan swapchain: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan swapchain: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created Vulkan swapchain\n");
+	R_Printf(PRINT_ALL, "...created Vulkan swapchain\n");
 
 	// set viewport and scissor
 	vk_viewport.x = 0.f;
@@ -1696,7 +1695,7 @@ qboolean QVk_Init()
 		QVk_DebugSetObjectName((uint64_t)vk_imageAvailableSemaphores[i], VK_OBJECT_TYPE_SEMAPHORE, va("Semaphore: image available #%d", i));
 		QVk_DebugSetObjectName((uint64_t)vk_renderFinishedSemaphores[i], VK_OBJECT_TYPE_SEMAPHORE, va("Semaphore: render finished #%d", i));
 	}
-	ri.Con_Printf(PRINT_ALL, "...created synchronization objects\n");
+	R_Printf(PRINT_ALL, "...created synchronization objects\n");
 
 	// setup render passes
 	for (int i = 0; i < RP_COUNT; ++i)
@@ -1708,7 +1707,7 @@ qboolean QVk_Init()
 	VkSampleCountFlagBits supportedMsaa = vk_device.properties.limits.framebufferColorSampleCounts;
 	if (!(supportedMsaa & msaaMode))
 	{
-		ri.Con_Printf(PRINT_ALL, "MSAAx%d mode not supported, aborting...\n", msaaMode);
+		R_Printf(PRINT_ALL, "MSAAx%d mode not supported, aborting...\n", msaaMode);
 		ri.Cvar_Set("vk_msaa", "0");
 		msaaMode = VK_SAMPLE_COUNT_1_BIT;
 		// avoid secondary video reload
@@ -1721,28 +1720,28 @@ qboolean QVk_Init()
 	res = CreateRenderpasses();
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan render passes: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan render passes: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan render passes\n", RP_COUNT);
+	R_Printf(PRINT_ALL, "...created %d Vulkan render passes\n", RP_COUNT);
 
 	// setup command pools
 	res = QVk_CreateCommandPool(&vk_commandPool, vk_device.gfxFamilyIndex);
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan command pool for graphics: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan command pool for graphics: %s\n", QVk_GetError(res));
 		return false;
 	}
 	res = QVk_CreateCommandPool(&vk_transferCommandPool, vk_device.transferFamilyIndex);
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan command pool for transfer: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan command pool for transfer: %s\n", QVk_GetError(res));
 		return false;
 	}
 
 	QVk_DebugSetObjectName((uint64_t)vk_commandPool, VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Graphics");
 	QVk_DebugSetObjectName((uint64_t)vk_transferCommandPool, VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Transfer");
-	ri.Con_Printf(PRINT_ALL, "...created Vulkan command pools\n");
+	R_Printf(PRINT_ALL, "...created Vulkan command pools\n");
 
 	// setup draw buffers
 	CreateDrawBuffers();
@@ -1751,19 +1750,19 @@ qboolean QVk_Init()
 	res = CreateImageViews();
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan image views: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan image views: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan image view(s)\n", vk_swapchain.imageCount);
+	R_Printf(PRINT_ALL, "...created %d Vulkan image view(s)\n", vk_swapchain.imageCount);
 
 	// setup framebuffers
 	res = CreateFramebuffers();
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan framebuffers: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan framebuffers: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan framebuffers\n", vk_swapchain.imageCount);
+	R_Printf(PRINT_ALL, "...created %d Vulkan framebuffers\n", vk_swapchain.imageCount);
 
 	// setup command buffers (double buffering)
 	vk_commandbuffers = (VkCommandBuffer *)malloc(NUM_CMDBUFFERS * sizeof(VkCommandBuffer));
@@ -1779,12 +1778,12 @@ qboolean QVk_Init()
 	res = vkAllocateCommandBuffers(vk_device.logical, &cbInfo, vk_commandbuffers);
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan commandbuffers: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan commandbuffers: %s\n", QVk_GetError(res));
 		free(vk_commandbuffers);
 		vk_commandbuffers = NULL;
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan commandbuffers\n", NUM_CMDBUFFERS);
+	R_Printf(PRINT_ALL, "...created %d Vulkan commandbuffers\n", NUM_CMDBUFFERS);
 
 	// initialize tracker variables
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
@@ -1849,7 +1848,7 @@ VkResult QVk_BeginFrame()
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_BeginFrame(): received %s after vkAcquireNextImageKHR - restarting video!\n", QVk_GetError(result));
+		R_Printf(PRINT_ALL, "QVk_BeginFrame(): received %s after vkAcquireNextImageKHR - restarting video!\n", QVk_GetError(result));
 		return result;
 	}
 	else if (result != VK_SUCCESS)
@@ -1885,7 +1884,6 @@ VkResult QVk_EndFrame(qboolean force)
 	// this may happen if Sys_Error is issued mid-frame, so we need to properly advance the draw pipeline
 	if (force)
 	{
-		extern void R_EndWorldRenderpass(void);
 		R_EndWorldRenderpass();
 	}
 
@@ -1929,7 +1927,7 @@ VkResult QVk_EndFrame(qboolean force)
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
 	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || renderResult == VK_ERROR_SURFACE_LOST_KHR)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_EndFrame(): received %s after vkQueuePresentKHR - restarting video!\n", QVk_GetError(renderResult));
+		R_Printf(PRINT_ALL, "QVk_EndFrame(): received %s after vkQueuePresentKHR - restarting video!\n", QVk_GetError(renderResult));
 		vid_ref->modified = true;
 	}
 	else if (renderResult != VK_SUCCESS)
@@ -2022,7 +2020,7 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 	{
 		vk_config.vertex_buffer_size = max(vk_config.vertex_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
-		ri.Con_Printf(PRINT_ALL, "Resizing dynamic vertex buffer to %ukB\n", vk_config.vertex_buffer_size / 1024);
+		R_Printf(PRINT_ALL, "Resizing dynamic vertex buffer to %ukB\n", vk_config.vertex_buffer_size / 1024);
 		int swapBufferOffset = vk_swapBuffersCnt[vk_activeSwapBufferIdx];
 		vk_swapBuffersCnt[vk_activeSwapBufferIdx] += NUM_DYNBUFFERS;
 
@@ -2051,7 +2049,7 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 	vk_config.vertex_buffer_usage = vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset;
 	if (vk_config.vertex_buffer_max_usage < vk_config.vertex_buffer_usage)
 		vk_config.vertex_buffer_max_usage = vk_config.vertex_buffer_usage;
-	
+
 	return (uint8_t *)vk_dynVertexBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
 }
 
@@ -2065,7 +2063,7 @@ uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 	{
 		vk_config.index_buffer_size = max(vk_config.index_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
-		ri.Con_Printf(PRINT_ALL, "Resizing dynamic index buffer to %ukB\n", vk_config.index_buffer_size / 1024);
+		R_Printf(PRINT_ALL, "Resizing dynamic index buffer to %ukB\n", vk_config.index_buffer_size / 1024);
 		int swapBufferOffset = vk_swapBuffersCnt[vk_activeSwapBufferIdx];
 		vk_swapBuffersCnt[vk_activeSwapBufferIdx] += NUM_DYNBUFFERS;
 
@@ -2107,7 +2105,7 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 	{
 		vk_config.uniform_buffer_size = max(vk_config.uniform_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
-		ri.Con_Printf(PRINT_ALL, "Resizing dynamic uniform buffer to %ukB\n", vk_config.uniform_buffer_size / 1024);
+		R_Printf(PRINT_ALL, "Resizing dynamic uniform buffer to %ukB\n", vk_config.uniform_buffer_size / 1024);
 		int swapBufferOffset   = vk_swapBuffersCnt[vk_activeSwapBufferIdx];
 		int swapDescSetsOffset = vk_swapDescSetsCnt[vk_activeSwapBufferIdx];
 		vk_swapBuffersCnt[vk_activeSwapBufferIdx]  += NUM_DYNBUFFERS;
@@ -2206,7 +2204,7 @@ VkBuffer QVk_GetTriangleFanIbo(VkDeviceSize indexCount)
 	if (indexCount > vk_config.triangle_fan_index_count)
 	{
 		vk_config.triangle_fan_index_count *= BUFFER_RESIZE_FACTOR;
-		ri.Con_Printf(PRINT_ALL, "Resizing triangle fan index buffer to %u indices.\n", vk_config.triangle_fan_index_count);
+		R_Printf(PRINT_ALL, "Resizing triangle fan index buffer to %u indices.\n", vk_config.triangle_fan_index_count);
 		RebuildTriangleFanIndexBuffer();
 	}
 
@@ -2323,37 +2321,4 @@ const char *QVk_GetError(VkResult errorCode)
 	}
 #undef ERRSTR
 	return "UNKNOWN ERROR";
-}
-
-void Vkimp_EnableLogging(qboolean enable)
-{
-	if (enable)
-	{
-		if (!vkw_state.log_fp)
-		{
-			struct tm *newtime;
-			time_t aclock;
-			char buffer[1024];
-
-			time(&aclock);
-			newtime = localtime(&aclock);
-
-			asctime(newtime);
-
-			Com_sprintf(buffer, sizeof(buffer), "%s/vk.log", ri.FS_Gamedir());
-			vkw_state.log_fp = fopen(buffer, "wt");
-
-			fprintf(vkw_state.log_fp, "%s\n", asctime(newtime));
-		}
-		vk_logfp = vkw_state.log_fp;
-	}
-	else
-	{
-		vk_logfp = NULL;
-	}
-}
-
-void Vkimp_LogNewFrame( void )
-{
-	fprintf( vkw_state.log_fp, "*** R_BeginFrame ***\n" );
 }

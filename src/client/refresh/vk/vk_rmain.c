@@ -9,7 +9,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -19,6 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // vk_rmain.c
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_vulkan.h>
+
 #include "vk_local.h"
 
 viddef_t	vid;
@@ -90,7 +94,6 @@ cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 cvar_t	*vk_validation;
 cvar_t	*vk_mode;
 cvar_t	*vk_bitdepth;
-cvar_t	*vk_log;
 cvar_t	*vk_picmip;
 cvar_t	*vk_skymip;
 cvar_t	*vk_round_down;
@@ -121,6 +124,7 @@ cvar_t	*vk_sampleshading;
 cvar_t	*vk_vsync;
 cvar_t	*vk_device_idx;
 
+cvar_t  *r_vsync;
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
 cvar_t	*vid_ref;
@@ -219,7 +223,7 @@ void R_DrawSpriteModel (entity_t *e)
 	VkDeviceSize vboOffset;
 	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(quadVerts), &vbo, &vboOffset);
 	memcpy(vertData, quadVerts, sizeof(quadVerts));
-	
+
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSpritePipeline.layout, 0, 1, &currentmodel->skins[e->frame]->vk_texture.descriptorSet, 0, NULL);
 	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
@@ -408,7 +412,7 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 	typedef struct {
 		float x,y,z,r,g,b,a,u,v;
 	} pvertex;
-	
+
 	static pvertex visibleParticles[MAX_PARTICLES*3];
 
 	for (p = particles, i = 0; i < num_particles; i++, p++)
@@ -914,7 +918,7 @@ void R_RenderView (refdef_t *fd)
 
 	if (r_speeds->value)
 	{
-		ri.Con_Printf(PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
+		R_Printf(PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
 			c_brush_polys,
 			c_alias_polys,
 			c_visible_textures,
@@ -1004,10 +1008,10 @@ void R_SetLightLevel (void)
 }
 
 /*
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 R_RenderFrame
 
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 */
 void R_RenderFrame (refdef_t *fd)
 {
@@ -1036,7 +1040,6 @@ void R_Register( void )
 #endif
 	vk_mode = ri.Cvar_Get("vk_mode", "11", CVAR_ARCHIVE);
 	vk_bitdepth = ri.Cvar_Get("vk_bitdepth", "0", 0);
-	vk_log = ri.Cvar_Get("vk_log", "0", 0);
 	vk_picmip = ri.Cvar_Get("vk_picmip", "0", 0);
 	vk_skymip = ri.Cvar_Get("vk_skymip", "0", 0);
 	vk_round_down = ri.Cvar_Get("vk_round_down", "1", 0);
@@ -1072,6 +1075,7 @@ void R_Register( void )
 	else if (vk_msaa->value > 4)
 		ri.Cvar_Set("vk_msaa", "4");
 
+	r_vsync = ri.Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
 	vid_ref = ri.Cvar_Get("vid_ref", "soft", CVAR_ARCHIVE);
@@ -1083,6 +1087,40 @@ void R_Register( void )
 	ri.Cmd_AddCommand("screenshot", Vk_ScreenShot_f);
 }
 
+static int
+Vkimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen)
+{
+	R_Printf(PRINT_ALL, "setting mode %d:", mode);
+
+	/* mode -1 is not in the vid mode table - so we keep the values in pwidth
+	   and pheight and don't even try to look up the mode info */
+	if ((mode >= 0) && !ri.Vid_GetModeInfo(pwidth, pheight, mode))
+	{
+		R_Printf(PRINT_ALL, " invalid mode\n");
+		return rserr_invalid_mode;
+	}
+
+	/* We trying to get resolution from desktop */
+	if (mode == -2)
+	{
+		if(!ri.GLimp_GetDesktopMode(pwidth, pheight))
+		{
+			R_Printf( PRINT_ALL, " can't detect mode\n" );
+			return rserr_invalid_mode;
+		}
+	}
+
+	R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
+
+
+	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
+	{
+		return rserr_invalid_mode;
+	}
+
+	return rserr_ok;
+}
+
 /*
 ==================
 R_SetMode
@@ -1091,9 +1129,12 @@ R_SetMode
 qboolean R_SetMode (void)
 {
 	rserr_t err;
-	qboolean fullscreen;
+	int fullscreen;
 
-	fullscreen = vid_fullscreen->value;
+	fullscreen = (int)vid_fullscreen->value;
+
+	vid_fullscreen->modified = false;
+	vk_mode->modified = false;
 
 	vid_gamma->modified = false;
 	vid_fullscreen->modified = false;
@@ -1120,7 +1161,7 @@ qboolean R_SetMode (void)
 		{
 			ri.Cvar_SetValue("vid_fullscreen", 0);
 			vid_fullscreen->modified = false;
-			ri.Con_Printf(PRINT_ALL, "ref_vk::R_SetMode() - fullscreen unavailable in this mode\n");
+			R_Printf(PRINT_ALL, "ref_vk::R_SetMode() - fullscreen unavailable in this mode\n");
 			if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_mode->value, false)) == rserr_ok)
 				return true;
 		}
@@ -1128,13 +1169,13 @@ qboolean R_SetMode (void)
 		{
 			ri.Cvar_SetValue("vk_mode", vk_state.prev_mode);
 			vk_mode->modified = false;
-			ri.Con_Printf(PRINT_ALL, "ref_vk::R_SetMode() - invalid mode\n");
+			R_Printf(PRINT_ALL, "ref_vk::R_SetMode() - invalid mode\n");
 		}
 
 		// try setting it back to something safe
 		if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_state.prev_mode, false)) != rserr_ok)
 		{
-			ri.Con_Printf(PRINT_ALL, "ref_vk::R_SetMode() - could not revert to safe mode\n");
+			R_Printf(PRINT_ALL, "ref_vk::R_SetMode() - could not revert to safe mode\n");
 			return false;
 		}
 	}
@@ -1146,24 +1187,19 @@ qboolean R_SetMode (void)
 R_Init
 ===============
 */
-qboolean R_Init( void *hinstance, void *hWnd )
+qboolean R_Init( void )
 {
-	ri.Con_Printf(PRINT_ALL, "ref_vk version: "REF_VERSION"\n");
+
+	R_Printf(PRINT_ALL, "ref_vk version: "REF_VERSION"\n");
 
 	R_Register();
-
-	// create the window (OS-specific)
-	if (!Vkimp_Init(hinstance, hWnd))
-	{
-		return false;
-	}
 
 	// set our "safe" modes
 	vk_state.prev_mode = 6;
 	// set video mode/screen resolution
 	if (!R_SetMode())
 	{
-		ri.Con_Printf(PRINT_ALL, "ref_vk::R_Init() - could not R_SetMode()\n");
+		R_Printf(PRINT_ALL, "ref_vk::R_Init() - could not R_SetMode()\n");
 		return false;
 	}
 	ri.Vid_MenuInit();
@@ -1171,11 +1207,11 @@ qboolean R_Init( void *hinstance, void *hWnd )
 	// window is ready, initialize Vulkan now
 	if (!QVk_Init())
 	{
-		ri.Con_Printf(PRINT_ALL, "ref_vk::R_Init() - could not initialize Vulkan!\n");
+		R_Printf(PRINT_ALL, "ref_vk::R_Init() - could not initialize Vulkan!\n");
 		return false;
 	}
 
-	ri.Con_Printf(PRINT_ALL, "Successfully initialized Vulkan!\n");
+	R_Printf(PRINT_ALL, "Successfully initialized Vulkan!\n");
 	// print device information during startup
 	Vk_Strings_f();
 
@@ -1210,12 +1246,17 @@ void R_Shutdown (void)
 	Vkimp_Shutdown();
 }
 
-
+/*
+** Vkimp_BeginFrame
+*/
+void Vkimp_BeginFrame( float camera_seperation )
+{
+}
 
 /*
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 R_BeginFrame
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 */
 void R_BeginFrame( float camera_separation )
 {
@@ -1250,17 +1291,6 @@ void R_BeginFrame( float camera_separation )
 		}
 	}
 
-	if (vk_log->modified)
-	{
-		Vkimp_EnableLogging(vk_log->value);
-		vk_log->modified = false;
-	}
-
-	if (vk_log->value)
-	{
-		Vkimp_LogNewFrame();
-	}
-
 	Vkimp_BeginFrame(camera_separation);
 
 	VkResult swapChainValid = QVk_BeginFrame();
@@ -1275,12 +1305,17 @@ void R_BeginFrame( float camera_separation )
 	{
 		QVk_BeginRenderpass(RP_WORLD);
 	}
+
+	if (!r_worldmodel && !(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
+	{
+		R_EndWorldRenderpass();
+	}
 }
 
 /*
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 R_EndFrame
-@@@@@@@@@@@@@@@@@@@@@
+=====================
 */
 void R_EndFrame( void )
 {
@@ -1431,79 +1466,156 @@ void	Draw_TileClear (int x, int y, int w, int h, char *name);
 void	Draw_Fill (int x, int y, int w, int h, int c);
 void	Draw_FadeScreen (void);
 
-/*
-@@@@@@@@@@@@@@@@@@@@@
-GetRefAPI
+static SDL_Window	*window = NULL;
 
-@@@@@@@@@@@@@@@@@@@@@
-*/
-refexport_t GetRefAPI (refimport_t rimp )
+static int
+R_InitContext(void *win)
 {
-	refexport_t	re;
+	char title[40] = {0};
 
-	ri = rimp;
+	if(win == NULL)
+	{
+		ri.Sys_Error(ERR_FATAL, "%s() must not be called with NULL argument!", __func__);
+		return false;
+	}
 
-	re.api_version = API_VERSION;
+	window = (SDL_Window *)win;
 
-	re.BeginRegistration = R_BeginRegistration;
-	re.RegisterModel = R_RegisterModel;
-	re.RegisterSkin = R_RegisterSkin;
-	re.RegisterPic = Draw_FindPic;
-	re.SetSky = R_SetSky;
-	re.EndRegistration = R_EndRegistration;
+	/* Window title - set here so we can display renderer name in it */
+	snprintf(title, sizeof(title), "Yamagi Quake II %s - Vulkan Render", YQ2VERSION);
+	SDL_SetWindowTitle(window, title);
 
-	re.RenderFrame = R_RenderFrame;
+	return true;
+}
 
-	re.DrawGetPicSize = Draw_GetPicSize;
-	re.DrawPic = Draw_Pic;
-	re.DrawStretchPic = Draw_StretchPic;
-	re.DrawChar = Draw_Char;
-	re.DrawTileClear = Draw_TileClear;
-	re.DrawFill = Draw_Fill;
-	re.DrawFadeScreen= Draw_FadeScreen;
+/*
+** Vkimp_Shutdown
+**
+** This routine does all OS specific shutdown procedures for the Vulkan
+** subsystem.
+**
+*/
+void Vkimp_Shutdown( void )
+{
+	window = NULL;
+}
 
-	re.DrawStretchRaw = Draw_StretchRaw;
+VkResult Vkimp_CreateSurface()
+{
+	if (!SDL_Vulkan_CreateSurface(window, vk_instance, &vk_surface))
+	{
+		ri.Sys_Error(ERR_FATAL, "%s() SDL_Vulkan_CreateSurface failed", __func__);
+		return VK_ERROR_SURFACE_LOST_KHR;
+	}
+	return VK_SUCCESS;
+}
 
-	re.Init = R_Init;
-	re.Shutdown = R_Shutdown;
+static void
+R_ShutdownContext(void)
+{
+}
 
-	re.CinematicSetPalette = R_SetPalette;
-	re.BeginFrame = R_BeginFrame;
-	re.EndFrame = R_EndFrame;
-	re.EndWorldRenderpass = R_EndWorldRenderpass;
+static qboolean
+R_IsVsyncActive(void)
+{
+	if (r_vsync->value)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 
-	re.AppActivate = Vkimp_AppActivate;
+static int R_PrepareForWindow(void)
+{
+	return SDL_WINDOW_VULKAN;
+}
+
+/*
+===============
+GetRefAPI
+===============
+*/
+Q2_DLL_EXPORTED refexport_t
+GetRefAPI(refimport_t imp)
+{
+	// struct for save refexport callbacks, copy of re struct from main file
+	// used different variable name for prevent confusion and cppcheck warnings
+	refexport_t	refexport;
+
+	memset(&refexport, 0, sizeof(refexport_t));
+	ri = imp;
+
+	refexport.api_version = API_VERSION;
+
+	refexport.BeginRegistration = R_BeginRegistration;
+	refexport.RegisterModel = R_RegisterModel;
+	refexport.RegisterSkin = R_RegisterSkin;
+	refexport.DrawFindPic = Draw_FindPic;
+	refexport.SetSky = R_SetSky;
+	refexport.EndRegistration = R_EndRegistration;
+
+	refexport.RenderFrame = R_RenderFrame;
+
+	refexport.DrawGetPicSize = Draw_GetPicSize;
+	refexport.DrawPicScaled = Draw_PicScaled;
+	refexport.DrawStretchPic = Draw_StretchPic;
+	refexport.DrawCharScaled = Draw_CharScaled;
+	refexport.DrawTileClear = Draw_TileClear;
+	refexport.DrawFill = Draw_Fill;
+	refexport.DrawFadeScreen= Draw_FadeScreen;
+
+	refexport.DrawStretchRaw = Draw_StretchRaw;
+
+	refexport.Init = R_Init;
+	refexport.IsVSyncActive = R_IsVsyncActive;
+	refexport.Shutdown = R_Shutdown;
+	refexport.InitContext = R_InitContext;
+	refexport.ShutdownContext = R_ShutdownContext;
+	refexport.PrepareForWindow = R_PrepareForWindow;
+
+	refexport.SetPalette = R_SetPalette;
+	refexport.BeginFrame = R_BeginFrame;
+	refexport.EndFrame = R_EndFrame;
 
 	Swap_Init ();
 
-	return re;
+	return refexport;
 }
 
-
-#ifndef REF_HARD_LINKED
 // this is only here so the functions in q_shared.c and q_shwin.c can link
-void Sys_Error (char *error, ...)
+void R_Printf(int level, const char* msg, ...)
+{
+	va_list argptr;
+	va_start(argptr, msg);
+	ri.Com_VPrintf(level, msg, argptr);
+	va_end(argptr);
+}
+
+void
+Sys_Error (char *error, ...)
 {
 	va_list		argptr;
 	char		text[1024];
 
 	va_start (argptr, error);
-	vsnprintf (text, 1024, error, argptr);
+	vsprintf (text, error, argptr);
 	va_end (argptr);
 
 	ri.Sys_Error (ERR_FATAL, "%s", text);
 }
 
-void Com_Printf (char *fmt, ...)
+void
+Com_Printf (char *fmt, ...)
 {
 	va_list		argptr;
 	char		text[1024];
 
 	va_start (argptr, fmt);
-	vsnprintf (text, 1024, fmt, argptr);
+	vsprintf (text, fmt, argptr);
 	va_end (argptr);
 
-	ri.Con_Printf (PRINT_ALL, "%s", text);
+	R_Printf(PRINT_ALL, "%s", text);
 }
-
-#endif
