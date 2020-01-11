@@ -1388,6 +1388,123 @@ image_t *Vk_LoadWal (char *name)
 	return image;
 }
 
+static image_t	*
+Vk_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t type, qvksampler_t *samplerType)
+{
+	image_t	*image = NULL;
+	byte *pic = NULL;
+	int realwidth = 0, realheight = 0;
+	int width = 0, height = 0;
+
+	if (strcmp(ext, "pcx") == 0)
+	{
+		/* Get size of the original texture */
+		GetPCXInfo(name, &realwidth, &realheight);
+	}
+	else if (strcmp(ext, "wal") == 0)
+	{
+		/* Get size of the original texture */
+		GetWalInfo(name, &realwidth, &realheight);
+	}
+
+	/* try to load a tga, png or jpg (in that order/priority) */
+	if (  LoadSTB(namewe, "tga", &pic, &width, &height)
+	   || LoadSTB(namewe, "png", &pic, &width, &height)
+	   || LoadSTB(namewe, "jpg", &pic, &width, &height) )
+	{
+		if (width >= realwidth && height >= realheight)
+		{
+			if (realheight == 0 || realwidth == 0)
+			{
+				realheight = height;
+				realwidth = width;
+			}
+
+			if (width != realwidth || height != realheight)
+			{
+				// temporary place for shrinked image
+				byte* pic32 = NULL;
+				// temporary image memory size
+				size_t size32;
+
+				// resize image
+				size32 = width * height * 4;
+				pic32 = malloc(size32);
+
+				if (ResizeSTB(pic, width, height,
+					      pic32, realwidth, realheight))
+				{
+					image = Vk_LoadPic (name, pic32, realwidth, realheight, type, 32, samplerType);
+				}
+				free(pic32);
+			}
+			else
+			{
+				image = Vk_LoadPic (name, pic, width, height, type, 32, samplerType);
+			}
+		}
+	}
+
+	if (pic)
+	{
+		free(pic);
+	}
+
+	return image;
+}
+
+static image_t*
+Vk_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type, qvksampler_t *samplerType)
+{
+	image_t	*image = NULL;
+
+	// with retexturing and not skin
+	if (vk_retexturing->value)
+	{
+		image = Vk_LoadHiColorImage(name, namewe, ext, type, samplerType);
+	}
+
+	if (!image)
+	{
+		byte	*pic;
+		int	width, height;
+
+		//
+		// load the pic from disk
+		//
+		pic = NULL;
+		if (!strcmp(ext, "pcx"))
+		{
+			byte	*palette;
+			palette = NULL;
+
+			LoadPCX (name, &pic, &palette, &width, &height);
+			if (!pic)
+				return NULL;
+			image = Vk_LoadPic (name, pic, width, height, type, 8, samplerType);
+
+			if (palette)
+				free(palette);
+		}
+		else if (!strcmp(ext, "wal"))
+		{
+			image = Vk_LoadWal (name);
+		}
+		else if (!strcmp(ext, "tga"))
+		{
+			LoadTGA (name, &pic, &width, &height);
+			if (!pic)
+				return NULL;
+			image = Vk_LoadPic (name, pic, width, height, type, 32, samplerType);
+		}
+
+		if (pic)
+			free(pic);
+	}
+
+	return image;
+}
+
 /*
 ===============
 Vk_FindImage
@@ -1398,15 +1515,39 @@ Finds or loads the given image
 image_t	*Vk_FindImage (char *name, imagetype_t type, qvksampler_t *samplerType)
 {
 	image_t	*image;
-	int		i, len;
-	byte	*pic, *palette;
-	int		width, height;
+	int	i, len;
+	char *ptr;
+	char namewe[256];
+	const char* ext;
 
 	if (!name)
-		return NULL;	//	ri.Sys_Error (ERR_DROP, "Vk_FindImage: NULL name");
-	len = (int)strlen(name);
-	if (len<5)
-		return NULL;	//	ri.Sys_Error (ERR_DROP, "Vk_FindImage: bad name: %s", name);
+	{
+		return NULL;
+	}
+
+	ext = COM_FileExtension(name);
+	if(!ext[0])
+	{
+		/* file has no extension */
+		return NULL;
+	}
+
+	len = strlen(name);
+
+	/* Remove the extension */
+	memset(namewe, 0, 256);
+	memcpy(namewe, name, len - (strlen(ext) + 1));
+
+	if (len < 5)
+	{
+		return NULL;
+	}
+
+	/* fix backslashes */
+	while ((ptr = strchr(name, '\\')))
+	{
+		*ptr = '/';
+	}
 
 	// look for it
 	for (i=0, image=vktextures ; i<numvktextures ; i++,image++)
@@ -1421,38 +1562,8 @@ image_t	*Vk_FindImage (char *name, imagetype_t type, qvksampler_t *samplerType)
 	//
 	// load the pic from disk
 	//
-	pic = NULL;
-	palette = NULL;
-	if (!strcmp(name+len-4, ".pcx"))
-	{
-		LoadPCX (name, &pic, &palette, &width, &height);
-		if (!pic)
-			return NULL;
-		image = Vk_LoadPic (name, pic, width, height, type, 8, samplerType);
-	}
-	else if (!strcmp(name+len-4, ".wal"))
-	{
-		image = Vk_LoadWal (name);
-	}
-	else if (!strcmp(name+len-4, ".tga"))
-	{
-		LoadTGA (name, &pic, &width, &height);
-		if (!pic)
-			return NULL;
-		image = Vk_LoadPic (name, pic, width, height, type, 32, samplerType);
-	}
-	else
-		return NULL;
-
-
-	if (pic)
-		free(pic);
-	if (palette)
-		free(palette);
-
-	return image;
+	return Vk_LoadImage(name, namewe, ext, type, samplerType);
 }
-
 
 
 /*
