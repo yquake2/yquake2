@@ -167,7 +167,14 @@ endif
 #
 # -fwrapv for defined integer wrapping. MSVC6 did this
 #  and the game code requires it.
-CPPFLAGS := -O2 -pipe -g -fwrapv
+ifeq ($(YQ2_OSTYPE), Darwin)
+CPPFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
+		  -Wall -pipe -g -fwrapv
+CPPFLAGS += $(OSX_ARCH)
+else
+CPPFLAGS := -O2 -fno-strict-aliasing \
+		  -Wall -pipe -g -ggdb -MMD -fwrapv
+endif
 
 # ----------
 
@@ -640,6 +647,7 @@ ref_vk:
 	$(MAKE) release/ref_vk.so
 
 release/ref_vk.so : CFLAGS += -fPIC
+release/ref_vk.so : CPPFLAGS += -fPIC
 release/ref_vk.so : LDFLAGS += -shared -lm -lvulkan -lstdc++
 else
 ref_vk:
@@ -658,7 +666,7 @@ build/ref_vk/%.o: %.c
 build/ref_vk/%.o: %.cpp
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) $(GLAD_INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CPPFLAGS) $(SDLCFLAGS) $(INCLUDE) $(GLAD_INCLUDE) -o $@ $<
 
 # ----------
 

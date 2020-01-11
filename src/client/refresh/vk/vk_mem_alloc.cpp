@@ -20,4 +20,4 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define VMA_IMPLEMENTATION
 #include <vulkan/vulkan.h>
-#include "vk_mem_alloc.h"
+#include "header/vk_mem_alloc.h"
