@@ -41,17 +41,17 @@ void Draw_InitLocal (void)
 
 /*
 ================
-Draw_Char
+Draw_CharScaled
 
 Draws one 8*8 graphics character with 0 being transparent.
 It can be clipped to the top of the screen to allow the console to be
 smoothly scrolled off.
 ================
 */
-void Draw_Char (int x, int y, int num)
+void Draw_CharScaled (int x, int y, int num, float scale)
 {
-	int				row, col;
-	float			frow, fcol, size;
+	int	row, col;
+	float	frow, fcol, size;
 
 	num &= 255;
 
@@ -61,8 +61,6 @@ void Draw_Char (int x, int y, int num)
 	if (y <= -8)
 		return;			// totally off screen
 
-	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
-
 	row = num >> 4;
 	col = num & 15;
 
@@ -71,7 +69,7 @@ void Draw_Char (int x, int y, int num)
 	size = 0.0625;
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
-							 8.f * scale->value / vid.width, 8.f * scale->value / vid.height,
+							 8.f * scale / vid.width, 8.f * scale / vid.height,
 							 fcol, frow, size, size };
 	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &draw_chars->vk_texture);
 }
@@ -113,10 +111,8 @@ void Draw_GetPicSize (int *w, int *h, char *pic)
 		return;
 	}
 
-	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
-
-	*w = vk->width * scale->value;
-	*h = vk->height * scale->value;
+	*w = vk->width;
+	*h = vk->height;
 }
 
 /*
@@ -131,7 +127,7 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 	vk = Draw_FindPic(pic);
 	if (!vk)
 	{
-		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
 		return;
 	}
 
@@ -145,22 +141,21 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 
 /*
 =============
-Draw_Pic
+Draw_PicScaled
 =============
 */
-void Draw_Pic (int x, int y, char *pic)
+void Draw_PicScaled (int x, int y, char *pic, float scale)
 {
 	image_t *vk;
-	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
 
 	vk = Draw_FindPic(pic);
 	if (!vk)
 	{
-		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
 		return;
 	}
 
-	Draw_StretchPic(x, y, vk->width*scale->value, vk->height*scale->value, pic);
+	Draw_StretchPic(x, y, vk->width*scale, vk->height*scale, pic);
 }
 
 /*
@@ -178,7 +173,7 @@ void Draw_TileClear (int x, int y, int w, int h, char *pic)
 	image = Draw_FindPic(pic);
 	if (!image)
 	{
-		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
 		return;
 	}
 
