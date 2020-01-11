@@ -68,7 +68,7 @@ static VkPresentModeKHR getSwapPresentMode(const VkPresentModeKHR *presentModes,
 		if (presentModes[i] == desiredMode)
 		{
 			vk_config.present_mode = presentModeString(desiredMode);
-			ri.Con_Printf(PRINT_ALL, "...using present mode: %s\n", vk_config.present_mode);
+			R_Printf(PRINT_ALL, "...using present mode: %s\n", vk_config.present_mode);
 			return desiredMode;
 		}
 	}
@@ -91,7 +91,7 @@ static VkPresentModeKHR getSwapPresentMode(const VkPresentModeKHR *presentModes,
 	}
 
 	vk_config.present_mode = presentModeString(usedPresentMode);
-	ri.Con_Printf(PRINT_ALL, "...present mode %s not supported, using present mode: %s\n", presentModeString(desiredMode), vk_config.present_mode);
+	R_Printf(PRINT_ALL, "...present mode %s not supported, using present mode: %s\n", presentModeString(desiredMode), vk_config.present_mode);
 	return usedPresentMode;
 }
 
@@ -135,13 +135,13 @@ VkResult QVk_CreateSwapchain()
 		presentModes = (VkPresentModeKHR *)malloc(presentModesCount * sizeof(VkPresentModeKHR));
 		VK_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(vk_device.physical, vk_surface, &presentModesCount, presentModes));
 
-		ri.Con_Printf(PRINT_ALL, "Supported present modes: ");
+		R_Printf(PRINT_ALL, "Supported present modes: ");
 		for (int i = 0; i < presentModesCount; i++)
 		{
-			ri.Con_Printf(PRINT_ALL, "%s ", presentModeString(presentModes[i]));
+			R_Printf(PRINT_ALL, "%s ", presentModeString(presentModes[i]));
 			vk_config.supported_present_modes[i] = presentModeString(presentModes[i]);
 		}
-		ri.Con_Printf(PRINT_ALL, "\n");
+		R_Printf(PRINT_ALL, "\n");
 	}
 
 	VkSurfaceFormatKHR swapSurfaceFormat = getSwapSurfaceFormat(surfaceFormats, formatCount);
@@ -196,8 +196,8 @@ VkResult QVk_CreateSwapchain()
 
 	vk_swapchain.format = swapSurfaceFormat.format;
 	vk_swapchain.extent = extent;
-	ri.Con_Printf(PRINT_ALL, "...trying swapchain extent: %dx%d\n", vk_swapchain.extent.width, vk_swapchain.extent.height);
-	ri.Con_Printf(PRINT_ALL, "...trying swapchain image format: %d\n", vk_swapchain.format);
+	R_Printf(PRINT_ALL, "...trying swapchain extent: %dx%d\n", vk_swapchain.extent.width, vk_swapchain.extent.height);
+	R_Printf(PRINT_ALL, "...trying swapchain image format: %d\n", vk_swapchain.format);
 
 	VkResult res = vkCreateSwapchainKHR(vk_device.logical, &scCreateInfo, NULL, &vk_swapchain.sc);
 	if (res != VK_SUCCESS)

@@ -79,10 +79,21 @@ GetRenderer(void)
 	{
 		return 2;
 	}
+#ifdef USE_REFVK
+	else if (Q_stricmp(vid_renderer->string, "vk") == 0)
+	{
+		return 3;
+	}
+	else
+	{
+		return 4;
+	}
+#else
 	else
 	{
 		return 3;
 	}
+#endif
 }
 
 static int
@@ -171,6 +182,13 @@ ApplyChanges(void *unused)
 			Cvar_Set("vid_renderer", "soft");
 			restart = true;
 		}
+#ifdef USE_REFVK
+		else if (s_renderer_list.curvalue == 3)
+		{
+			Cvar_Set("vid_renderer", "vk");
+			restart = true;
+		}
+#endif
 	}
 
 	/* auto mode */
@@ -260,6 +278,9 @@ VID_MenuInit(void)
 			"[OpenGL 1.4]",
 			"[OpenGL 3.2]",
 			"[Software  ]",
+#ifdef USE_REFVK
+			"[Vulkan    ]",
+#endif
 			CUSTOM_MODE_NAME,
 			0
 	};

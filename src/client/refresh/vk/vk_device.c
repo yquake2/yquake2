@@ -136,11 +136,11 @@ static qboolean selectPhysicalDevice(int preferredDeviceIdx)
 
 	if (physicalDeviceCount == 0)
 	{
-		ri.Con_Printf(PRINT_ALL, "No Vulkan-capable devices found!\n");
+		R_Printf(PRINT_ALL, "No Vulkan-capable devices found!\n");
 		return false;
 	}
 
-	ri.Con_Printf(PRINT_ALL, "...found %d Vulkan-capable device(s)\n", physicalDeviceCount);
+	R_Printf(PRINT_ALL, "...found %d Vulkan-capable device(s)\n", physicalDeviceCount);
 
 	VkPhysicalDevice *physicalDevices = (VkPhysicalDevice *)malloc(physicalDeviceCount * sizeof(VkPhysicalDevice));
 	VK_VERIFY(vkEnumeratePhysicalDevices(vk_instance, &physicalDeviceCount, physicalDevices));
@@ -150,7 +150,7 @@ static qboolean selectPhysicalDevice(int preferredDeviceIdx)
 
 	if (vk_device.physical == VK_NULL_HANDLE)
 	{
-		ri.Con_Printf(PRINT_ALL, "Could not find a suitable physical device!\n");
+		R_Printf(PRINT_ALL, "Could not find a suitable physical device!\n");
 		return false;
 	}
 
@@ -272,7 +272,7 @@ qboolean QVk_CreateDevice(int preferredDeviceIdx)
 	VkResult res = createLogicalDevice();
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "Could not create Vulkan logical device: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "Could not create Vulkan logical device: %s\n", QVk_GetError(res));
 		return false;
 	}
 
