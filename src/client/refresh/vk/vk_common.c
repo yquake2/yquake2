@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 ** QVk_Shutdown() - unloads libraries, NULLs function pointers
 */
 #include <float.h>
-#include "vk_local.h"
+#include "header/vk_local.h"
 
 // Vulkan instance, surface and memory allocator
 VkInstance vk_instance  = VK_NULL_HANDLE;
