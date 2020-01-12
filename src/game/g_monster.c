@@ -522,11 +522,19 @@ M_MoveFrame(edict_t *self)
 		(self->monsterinfo.nextframe >= move->firstframe) &&
 		(self->monsterinfo.nextframe <= move->lastframe))
 	{
-		self->s.frame = self->monsterinfo.nextframe;
+		if (self->s.frame != self->monsterinfo.nextframe)
+		{
+			self->s.frame = self->monsterinfo.nextframe;
+			self->monsterinfo.aiflags &= ~AI_HOLD_FRAME;
+		}
+
 		self->monsterinfo.nextframe = 0;
 	}
 	else
 	{
+		/* prevent nextframe from leaking into a future move */
+		self->monsterinfo.nextframe = 0;
+
 		if (self->s.frame == move->lastframe)
 		{
 			if (move->endfunc)
