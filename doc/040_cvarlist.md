@@ -243,6 +243,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   water), `2` (scale by factor 2) and `3` (scale by factor 3). Applied
   in realtime, does not need `vid_restart`.
 
+* **gl1_particle_square**: If set to `1` particles are rendered as
+  squares.
+
 * **gl1_stencilshadow**: If `gl_shadows` is set to `1`, this makes them
   look a bit better (no flickering) by using the stencil buffer.
 
