@@ -91,7 +91,10 @@ typedef struct
 #define QVVKTEXTURE_INIT     { \
 	.image = VK_NULL_HANDLE, \
 	.allocation = VK_NULL_HANDLE, \
-	.allocInfo = VK_NULL_HANDLE, \
+	.allocInfo = { \
+		.pMappedData = VK_NULL_HANDLE, \
+		.pUserData = VK_NULL_HANDLE, \
+	}, \
 	.vmaFlags = 0, \
 	.imageView = VK_NULL_HANDLE, \
 	.sharingMode = VK_SHARING_MODE_MAX_ENUM, \
