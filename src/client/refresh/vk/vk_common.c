@@ -1142,7 +1142,7 @@ static void CreatePipelines()
 	VkDescriptorSetLayout samplerUboLmapDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout, vk_samplerLightmapDescSetLayout };
 
 	// shader array (vertex and fragment, no compute... yet)
-	qvkshader_t shaders[2] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
+	qvkshader_t shaders[2] = {0};
 
 	// push constant sizes accomodate for maximum number of uploaded elements (should probably be checked against the hardware's maximum supported value)
 	VkPushConstantRange pushConstantRangeVert = {
@@ -1527,9 +1527,9 @@ qboolean QVk_Init()
 
 	uint32_t extCount;
 	char **wantedExtensions;
-	memset((char*)vk_config.supported_present_modes, 0, 256);
-	memset((char*)vk_config.extensions, 0, 256);
-	memset((char*)vk_config.layers, 0, 256);
+	memset(vk_config.supported_present_modes, 0, sizeof(vk_config.supported_present_modes));
+	memset(vk_config.extensions, 0, sizeof(vk_config.extensions));
+	memset(vk_config.layers, 0, sizeof(vk_config.layers));
 	vk_config.vk_version = instanceVersion;
 	vk_config.vertex_buffer_usage  = 0;
 	vk_config.vertex_buffer_max_usage = 0;
@@ -1943,9 +1943,9 @@ VkResult QVk_EndFrame(qboolean force)
 void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 {
 	VkClearValue clearColors[3] = {
-		{.color = { 1.f, .0f, .5f, 1.f } },
+		{.color = {.float32 = { 1.f, .0f, .5f, 1.f } } },
 		{.depthStencil = { 1.f, 0 } },
-		{.color = { 1.f, .0f, .5f, 1.f } },
+		{.color = {.float32 = { 1.f, .0f, .5f, 1.f } } },
 	};
 
 	VkRenderPassBeginInfo renderBeginInfo[] = {
