@@ -187,8 +187,6 @@ extern	cvar_t	*vk_retexturing;
 extern	cvar_t	*vid_fullscreen;
 extern	cvar_t	*vid_gamma;
 
-extern	cvar_t	*intensity;
-
 extern	int		c_visible_lightmaps;
 extern	int		c_visible_textures;
 
