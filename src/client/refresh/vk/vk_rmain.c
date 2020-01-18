@@ -1245,7 +1245,10 @@ void R_Shutdown (void)
 	ri.Cmd_RemoveCommand("imagelist");
 	ri.Cmd_RemoveCommand("screenshot");
 
-	vkDeviceWaitIdle(vk_device.logical);
+	if (vk_device.logical != VK_NULL_HANDLE)
+	{
+		vkDeviceWaitIdle(vk_device.logical);
+	}
 
 	Mod_FreeAll();
 	Vk_ShutdownImages();
