@@ -131,7 +131,7 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 	vk = Draw_FindPic(pic);
 	if (!vk)
 	{
-		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		R_Printf(PRINT_ALL, "%s(): Can't find pic: %s\n", __func__, pic);
 		return;
 	}
 
@@ -157,7 +157,7 @@ void Draw_PicScaled (int x, int y, char *pic, float scale)
 	vk = Draw_FindPic(pic);
 	if (!vk)
 	{
-		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		R_Printf(PRINT_ALL, "%s(): Can't find pic: %s\n", __func__, pic);
 		return;
 	}
 
@@ -181,7 +181,7 @@ void Draw_TileClear (int x, int y, int w, int h, char *pic)
 	image = Draw_FindPic(pic);
 	if (!image)
 	{
-		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		R_Printf(PRINT_ALL, "%s(): Can't find pic: %s\n", __func__, pic);
 		return;
 	}
 

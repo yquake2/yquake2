@@ -1171,7 +1171,7 @@ qboolean R_SetMode (void)
 		{
 			ri.Cvar_SetValue("vid_fullscreen", 0);
 			vid_fullscreen->modified = false;
-			R_Printf(PRINT_ALL, "ref_vk::R_SetMode() - fullscreen unavailable in this mode\n");
+			R_Printf(PRINT_ALL, "%s() - fullscreen unavailable in this mode\n", __func__);
 			if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, r_mode->value, false)) == rserr_ok)
 				return true;
 		}
@@ -1179,13 +1179,13 @@ qboolean R_SetMode (void)
 		{
 			ri.Cvar_SetValue("r_mode", vk_state.prev_mode);
 			r_mode->modified = false;
-			R_Printf(PRINT_ALL, "ref_vk::R_SetMode() - invalid mode\n");
+			R_Printf(PRINT_ALL, "%s() - invalid mode\n", __func__);
 		}
 
 		// try setting it back to something safe
 		if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_state.prev_mode, false)) != rserr_ok)
 		{
-			R_Printf(PRINT_ALL, "ref_vk::R_SetMode() - could not revert to safe mode\n");
+			R_Printf(PRINT_ALL, "%s() - could not revert to safe mode\n", __func__);
 			return false;
 		}
 	}
@@ -1209,7 +1209,7 @@ qboolean R_Init( void )
 	// set video mode/screen resolution
 	if (!R_SetMode())
 	{
-		R_Printf(PRINT_ALL, "ref_vk::R_Init() - could not R_SetMode()\n");
+		R_Printf(PRINT_ALL, "%s() - could not R_SetMode()\n", __func__);
 		return false;
 	}
 	ri.Vid_MenuInit();
@@ -1217,7 +1217,7 @@ qboolean R_Init( void )
 	// window is ready, initialize Vulkan now
 	if (!QVk_Init())
 	{
-		R_Printf(PRINT_ALL, "ref_vk::R_Init() - could not initialize Vulkan!\n");
+		R_Printf(PRINT_ALL, "%s() - could not initialize Vulkan!\n", __func__);
 		return false;
 	}
 
@@ -1605,24 +1605,20 @@ void
 Sys_Error (char *error, ...)
 {
 	va_list		argptr;
-	char		text[1024];
+	char		text[4096]; // MAXPRINTMSG == 4096
 
-	va_start (argptr, error);
-	vsprintf (text, error, argptr);
-	va_end (argptr);
+	va_start(argptr, error);
+	vsnprintf(text, sizeof(text), error, argptr);
+	va_end(argptr);
 
 	ri.Sys_Error (ERR_FATAL, "%s", text);
 }
 
 void
-Com_Printf (char *fmt, ...)
+Com_Printf (char *msg, ...)
 {
-	va_list		argptr;
-	char		text[1024];
-
-	va_start (argptr, fmt);
-	vsprintf (text, fmt, argptr);
-	va_end (argptr);
-
-	R_Printf(PRINT_ALL, "%s", text);
+	va_list argptr;
+	va_start(argptr, msg);
+	ri.Com_VPrintf(PRINT_ALL, msg, argptr);
+	va_end(argptr);
 }
