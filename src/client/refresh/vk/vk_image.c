@@ -22,15 +22,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "header/vk_local.h"
 
 image_t		vktextures[MAX_VKTEXTURES];
-int			numvktextures;
-int			base_textureid;		// gltextures[i] = base_textureid+i
+int		numvktextures;
 // texture for storing raw image data (cinematics, endscreens, etc.)
 qvktexture_t vk_rawTexture = QVVKTEXTURE_INIT;
 
 static byte			 intensitytable[256];
 static unsigned char gammatable[256];
 
-cvar_t		*intensity;
+static cvar_t	*intensity;
 extern cvar_t	*vk_mip_nearfilter;
 
 unsigned	d_8to24table[256];
@@ -1660,10 +1659,10 @@ void	Vk_InitImages (void)
 	registration_sequence = 1;
 
 	// init intensity conversions
-	intensity = ri.Cvar_Get("intensity", "2", 0);
+	intensity = ri.Cvar_Get("vk_intensity", "2", 0);
 
 	if (intensity->value <= 1)
-		ri.Cvar_Set("intensity", "1");
+		ri.Cvar_Set("vk_intensity", "1");
 
 	vk_state.inverse_intensity = 1 / intensity->value;
 
