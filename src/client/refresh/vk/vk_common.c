@@ -1490,25 +1490,13 @@ void QVk_Shutdown( void )
 	}
 }
 
-void Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount)
-{
-	if (extensions)
-	{
-		extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
-		extensions[1] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
-	}
-
-	if (extCount)
-		*extCount = 2;
-}
-
 /*
 ** QVk_Init
 **
 ** This is responsible for initializing Vulkan.
 **
 */
-qboolean QVk_Init()
+qboolean QVk_Init(SDL_Window *window)
 {
 	PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion = (PFN_vkEnumerateInstanceVersion)vkGetInstanceProcAddr(NULL, "vkEnumerateInstanceVersion");
 	uint32_t instanceVersion = VK_API_VERSION_1_0;
@@ -1529,7 +1517,7 @@ qboolean QVk_Init()
 	};
 
 	uint32_t extCount;
-	char **wantedExtensions;
+	const char **wantedExtensions;
 	memset(vk_config.supported_present_modes, 0, sizeof(vk_config.supported_present_modes));
 	memset(vk_config.extensions, 0, sizeof(vk_config.extensions));
 	memset(vk_config.layers, 0, sizeof(vk_config.layers));
@@ -1547,7 +1535,12 @@ qboolean QVk_Init()
 	vk_config.triangle_fan_index_max_usage = 0;
 	vk_config.triangle_fan_index_count = TRIANGLE_FAN_INDEX_CNT;
 
-	Vkimp_GetSurfaceExtensions(NULL, &extCount);
+	if (!SDL_Vulkan_GetInstanceExtensions(window, &extCount, NULL))
+	{
+		ri.Sys_Error(ERR_FATAL, "%s() SDL_Vulkan_GetInstanceExtensions failed: %s",
+				__func__, SDL_GetError());
+		return false;
+	}
 
 	if (vk_validation->value)
 		extCount++;
@@ -1556,8 +1549,13 @@ qboolean QVk_Init()
 		extCount++;
 #endif
 
-	wantedExtensions = (char **)malloc(extCount * sizeof(const char *));
-	Vkimp_GetSurfaceExtensions(wantedExtensions, NULL);
+	wantedExtensions = malloc(extCount * sizeof(const char *));
+	if (!SDL_Vulkan_GetInstanceExtensions(window, &extCount, wantedExtensions))
+	{
+		ri.Sys_Error(ERR_FATAL, "%s() SDL_Vulkan_GetInstanceExtensions failed: %s",
+				__func__, SDL_GetError());
+		return false;
+	}
 
 	if (vk_validation->value)
 		wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
