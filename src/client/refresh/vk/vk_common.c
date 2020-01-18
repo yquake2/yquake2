@@ -1458,11 +1458,14 @@ void QVk_Shutdown( void )
 			vk_swapchain.images = NULL;
 			vk_swapchain.imageCount = 0;
 		}
-		for (int i = 0; i < NUM_CMDBUFFERS; ++i)
+		if (vk_device.logical != VK_NULL_HANDLE)
 		{
-			vkDestroySemaphore(vk_device.logical, vk_imageAvailableSemaphores[i], NULL);
-			vkDestroySemaphore(vk_device.logical, vk_renderFinishedSemaphores[i], NULL);
-			vkDestroyFence(vk_device.logical, vk_fences[i], NULL);
+			for (int i = 0; i < NUM_CMDBUFFERS; ++i)
+			{
+				vkDestroySemaphore(vk_device.logical, vk_imageAvailableSemaphores[i], NULL);
+				vkDestroySemaphore(vk_device.logical, vk_renderFinishedSemaphores[i], NULL);
+				vkDestroyFence(vk_device.logical, vk_fences[i], NULL);
+			}
 		}
 		if (vk_malloc != VK_NULL_HANDLE)
 			vmaDestroyAllocator(vk_malloc);
@@ -1626,7 +1629,10 @@ qboolean QVk_Init()
 	R_Printf(PRINT_ALL, "...created Vulkan surface\n");
 
 	// create Vulkan device - see if the user prefers any specific device if there's more than one GPU in the system
-	QVk_CreateDevice((int)vk_device_idx->value);
+	if (!QVk_CreateDevice((int)vk_device_idx->value))
+	{
+		return false;
+	}
 	QVk_DebugSetObjectName((uint64_t)vk_device.physical, VK_OBJECT_TYPE_PHYSICAL_DEVICE, va("Physical Device: %s", vk_config.vendor_name));
 
 	// create memory allocator
