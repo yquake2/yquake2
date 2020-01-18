@@ -447,7 +447,10 @@ void QVk_UpdateTextureData(qvktexture_t *texture, const unsigned char *data, uin
 void QVk_ReleaseTexture(qvktexture_t *texture)
 {
 	QVk_SubmitStagingBuffers();
-	vkDeviceWaitIdle(vk_device.logical);
+	if (vk_device.logical != VK_NULL_HANDLE)
+	{
+		vkDeviceWaitIdle(vk_device.logical);
+	}
 
 	if (texture->image != VK_NULL_HANDLE)
 		vmaDestroyImage(vk_malloc, texture->image, texture->allocation);
