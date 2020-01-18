@@ -25,6 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/vk_local.h"
 
+// world rendered readdy to render 2d elements
+static qboolean	world_rendered;
+
 viddef_t	vid;
 
 refimport_t	ri;
@@ -928,6 +931,14 @@ void R_RenderView (refdef_t *fd)
 
 void R_EndWorldRenderpass(void)
 {
+	// 3d world has alredy rendered and 2d already initialized
+	if (world_rendered)
+	{
+		return;
+	}
+
+	world_rendered = true;
+
 	// this may happen if swapchain image acquisition fails
 	if (!vk_frameStarted)
 		return;
@@ -1259,6 +1270,9 @@ R_BeginFrame
 */
 void R_BeginFrame( float camera_separation )
 {
+	// world has not rendered yet
+	world_rendered = false;
+
 	// if ri.Sys_Error() had been issued mid-frame, we might end up here without properly submitting the image, so call QVk_EndFrame to be safe
 	QVk_EndFrame(true);
 	/*
@@ -1302,11 +1316,6 @@ void R_BeginFrame( float camera_separation )
 	else
 	{
 		QVk_BeginRenderpass(RP_WORLD);
-	}
-
-	if (!r_worldmodel && !(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
-	{
-		R_EndWorldRenderpass();
 	}
 }
 
