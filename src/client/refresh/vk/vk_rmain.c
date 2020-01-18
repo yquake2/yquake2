@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/vk_local.h"
 
-// world rendered readdy to render 2d elements
+// world rendered and ready to render 2d elements
 static qboolean	world_rendered;
 
 viddef_t	vid;
@@ -1257,13 +1257,6 @@ void R_Shutdown (void)
 }
 
 /*
-** Vkimp_BeginFrame
-*/
-void Vkimp_BeginFrame( float camera_seperation )
-{
-}
-
-/*
 =====================
 R_BeginFrame
 =====================
@@ -1302,8 +1295,6 @@ void R_BeginFrame( float camera_separation )
 			vid_fullscreen->modified = true;
 		}
 	}
-
-	Vkimp_BeginFrame(camera_separation);
 
 	VkResult swapChainValid = QVk_BeginFrame();
 	// if the swapchain is invalid, just recreate the video system and revert to safe windowed mode
@@ -1507,14 +1498,15 @@ void Vkimp_Shutdown( void )
 	window = NULL;
 }
 
-VkResult Vkimp_CreateSurface()
+qboolean Vkimp_CreateSurface()
 {
 	if (!SDL_Vulkan_CreateSurface(window, vk_instance, &vk_surface))
 	{
-		ri.Sys_Error(ERR_FATAL, "%s() SDL_Vulkan_CreateSurface failed", __func__);
-		return VK_ERROR_SURFACE_LOST_KHR;
+		ri.Sys_Error(ERR_FATAL, "%s() SDL_Vulkan_CreateSurface failed: %s",
+				__func__, SDL_GetError());
+		return false;
 	}
-	return VK_SUCCESS;
+	return true;
 }
 
 static void
