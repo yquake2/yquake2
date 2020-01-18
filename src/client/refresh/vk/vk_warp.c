@@ -23,16 +23,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 extern	model_t	*loadmodel;
 
-char	skyname[MAX_QPATH];
-float	skyrotate;
-vec3_t	skyaxis;
-image_t	*sky_images[6];
+static char	skyname[MAX_QPATH];
+static float	skyrotate;
+static vec3_t	skyaxis;
+static image_t	*sky_images[6];
 
-msurface_t	*warpface;
+static msurface_t	*warpface;
 
 #define	SUBDIVIDE_SIZE	64
 
-void BoundPoly (int numverts, float *verts, vec3_t mins, vec3_t maxs)
+static void BoundPoly (int numverts, float *verts, vec3_t mins, vec3_t maxs)
 {
 	int		i, j;
 	float	*v;
@@ -50,7 +50,7 @@ void BoundPoly (int numverts, float *verts, vec3_t mins, vec3_t maxs)
 		}
 }
 
-void SubdividePolygon (int numverts, float *verts)
+static void SubdividePolygon (int numverts, float *verts)
 {
 	int		i, j, k;
 	vec3_t	mins, maxs;
@@ -276,7 +276,7 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float
 //===================================================================
 
 
-vec3_t	skyclip[6] = {
+static vec3_t	skyclip[6] = {
 	{1,1,0},
 	{1,-1,0},
 	{0,-1,1},
@@ -284,10 +284,9 @@ vec3_t	skyclip[6] = {
 	{1,0,1},
 	{-1,0,1}
 };
-int	c_sky;
 
 // 1 = s, 2 = t, 3 = 2048
-int	st_to_vec[6][3] =
+static int	st_to_vec[6][3] =
 {
 	{3,-1,2},
 	{-3,1,2},
@@ -303,7 +302,7 @@ int	st_to_vec[6][3] =
 };
 
 // s = [0]/[2], t = [1]/[2]
-int	vec_to_st[6][3] =
+static int	vec_to_st[6][3] =
 {
 	{-2,3,1},
 	{2,3,-1},
@@ -318,18 +317,16 @@ int	vec_to_st[6][3] =
 //	{1,2,-3}
 };
 
-float	skymins[2][6], skymaxs[2][6];
-float	sky_min, sky_max;
+static float	skymins[2][6], skymaxs[2][6];
+static float	sky_min, sky_max;
 
-void DrawSkyPolygon (int nump, vec3_t vecs)
+static void DrawSkyPolygon (int nump, vec3_t vecs)
 {
 	int		i,j;
 	vec3_t	v, av;
 	float	s, t, dv;
 	int		axis;
 	float	*vp;
-
-	c_sky++;
 
 	// decide which face it maps to
 	VectorCopy (vec3_origin, v);
@@ -396,7 +393,7 @@ void DrawSkyPolygon (int nump, vec3_t vecs)
 
 #define	ON_EPSILON		0.1			// point on plane side epsilon
 #define	MAX_CLIP_VERTS	64
-void ClipSkyPolygon (int nump, vec3_t vecs, int stage)
+static void ClipSkyPolygon (int nump, vec3_t vecs, int stage)
 {
 	float	*norm;
 	float	*v;
@@ -527,7 +524,7 @@ void R_ClearSkyBox (void)
 }
 
 
-void MakeSkyVec (float s, float t, int axis, float *vertexData)
+static void MakeSkyVec (float s, float t, int axis, float *vertexData)
 {
 	vec3_t		v, b;
 	int			j, k;
@@ -572,7 +569,7 @@ void MakeSkyVec (float s, float t, int axis, float *vertexData)
 R_DrawSkyBox
 ==============
 */
-int	skytexorder[6] = {0,2,1,3,4,5};
+static int	skytexorder[6] = {0,2,1,3,4,5};
 void R_DrawSkyBox (void)
 {
 	int		i;
@@ -649,7 +646,7 @@ R_SetSky
 ============
 */
 // 3dstudio environment map names
-char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
+static char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 void R_SetSky (char *name, float rotate, vec3_t axis)
 {
 	int		i;
