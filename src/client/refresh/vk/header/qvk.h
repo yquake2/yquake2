@@ -266,7 +266,7 @@ extern PFN_vkCmdEndDebugUtilsLabelEXT qvkCmdEndDebugUtilsLabelEXT;
 extern PFN_vkCmdInsertDebugUtilsLabelEXT qvkInsertDebugUtilsLabelEXT;
 
 // The Interface Functions (tm)
-qboolean	QVk_Init(void);
+qboolean	QVk_Init(SDL_Window *window);
 void		QVk_Shutdown(void);
 void		QVk_CreateValidationLayers(void);
 void		QVk_DestroyValidationLayers(void);
