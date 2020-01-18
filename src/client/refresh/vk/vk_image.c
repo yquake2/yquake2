@@ -1161,7 +1161,7 @@ uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 	upload_height = scaled_height;
 
 	if (scaled_width * scaled_height > sizeof(scaled) / 4)
-		ri.Sys_Error(ERR_DROP, "Vk_Upload32: too big");
+		ri.Sys_Error(ERR_DROP, "%s: too big", __func__);
 
 	if (scaled_width == width && scaled_height == height)
 	{
@@ -1216,7 +1216,7 @@ uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboole
 	s = width * height;
 
 	if (s > sizeof(trans) / 4)
-		ri.Sys_Error(ERR_DROP, "Vk_Upload8: too large");
+		ri.Sys_Error(ERR_DROP, "%s: too large", __func__);
 
 	for (i = 0; i < s; i++)
 	{
@@ -1269,13 +1269,13 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	if (i == numvktextures)
 	{
 		if (numvktextures == MAX_VKTEXTURES)
-			ri.Sys_Error(ERR_DROP, "MAX_VKTEXTURES");
+			ri.Sys_Error(ERR_DROP, "%s: MAX_VKTEXTURES", __func__);
 		numvktextures++;
 	}
 	image = &vktextures[i];
 
 	if (strlen(name) >= sizeof(image->name))
-		ri.Sys_Error(ERR_DROP, "Draw_LoadPic: \"%s\" is too long", name);
+		ri.Sys_Error(ERR_DROP, "%s: \"%s\" is too long", __func__, name);
 	strcpy(image->name, name);
 	image->registration_sequence = registration_sequence;
 	// zero-clear Vulkan texture handle

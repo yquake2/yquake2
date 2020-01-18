@@ -66,7 +66,7 @@ void SubdividePolygon (int numverts, float *verts)
 	float	total_s, total_t;
 
 	if (numverts > 60)
-		ri.Sys_Error (ERR_DROP, "numverts = %i", numverts);
+		ri.Sys_Error (ERR_DROP, "%s: numverts = %i", __func__, numverts);
 
 	BoundPoly (numverts, verts, mins, maxs);
 
@@ -409,7 +409,7 @@ void ClipSkyPolygon (int nump, vec3_t vecs, int stage)
 	int		i, j;
 
 	if (nump > MAX_CLIP_VERTS-2)
-		ri.Sys_Error (ERR_DROP, "ClipSkyPolygon: MAX_CLIP_VERTS");
+		ri.Sys_Error (ERR_DROP, "%s: MAX_CLIP_VERTS", __func__);
 	if (stage == 6)
 	{	// fully clipped, so draw it
 		DrawSkyPolygon (nump, vecs);
