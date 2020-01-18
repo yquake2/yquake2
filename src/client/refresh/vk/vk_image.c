@@ -775,7 +775,7 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 	length = ri.FS_LoadFile (name, (void **)&buffer);
 	if (!length || !buffer)
 	{
-		R_Printf(PRINT_DEVELOPER, "Bad tga file %s\n", name);
+		R_Printf(PRINT_DEVELOPER, "%s(): Bad tga file %s\n", __func__, name);
 		return;
 	}
 
@@ -1291,7 +1291,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	if (image->type == it_pic && bits == 8
 		&& image->width < 64 && image->height < 64)
 	{
-		int		x, y;
+		int		x = 0, y = 0;
 		int		i, j, k;
 		int		texnum;
 
@@ -1372,7 +1372,7 @@ image_t *Vk_LoadWal (char *name)
 	ri.FS_LoadFile (name, (void **)&mt);
 	if (!mt)
 	{
-		R_Printf(PRINT_ALL, "Vk_FindImage: can't load %s\n", name);
+		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
 		return r_notexture;
 	}
 
