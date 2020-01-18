@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/vk_local.h"
 
-int	r_dlightframecount;
+static int	r_dlightframecount;
 
 #define	DLIGHT_CUTOFF	64
 
