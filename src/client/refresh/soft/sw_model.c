@@ -140,7 +140,7 @@ Mod_ForName (char *name, qboolean crash)
 	if (i == mod_numknown)
 	{
 		if (mod_numknown == MAX_MOD_KNOWN)
-			ri.Sys_Error(ERR_DROP, "mod_numknown == MAX_MOD_KNOWN");
+			ri.Sys_Error(ERR_DROP, "%s: mod_numknown == MAX_MOD_KNOWN", __func__);
 		mod_numknown++;
 	}
 	strcpy (mod->name, name);
@@ -962,7 +962,7 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	dmodel_t 	*bm;
 
 	if (loadmodel != mod_known)
-		ri.Sys_Error(ERR_DROP, "Loaded a brush model after the world");
+		ri.Sys_Error(ERR_DROP, "%s: Loaded a brush model after the world", __func__);
 
 	header = (dheader_t *)buffer;
 
