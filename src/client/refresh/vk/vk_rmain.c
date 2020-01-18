@@ -20,9 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // vk_rmain.c
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_vulkan.h>
-
 #include "header/vk_local.h"
 
 // world rendered and ready to render 2d elements
@@ -1192,6 +1189,8 @@ qboolean R_SetMode (void)
 	return true;
 }
 
+static SDL_Window	*window = NULL;
+
 /*
 ===============
 R_Init
@@ -1215,7 +1214,7 @@ qboolean R_Init( void )
 	ri.Vid_MenuInit();
 
 	// window is ready, initialize Vulkan now
-	if (!QVk_Init())
+	if (!QVk_Init(window))
 	{
 		R_Printf(PRINT_ALL, "%s() - could not initialize Vulkan!\n", __func__);
 		return false;
@@ -1231,6 +1230,18 @@ qboolean R_Init( void )
 	Draw_InitLocal();
 
 	return true;
+}
+
+/*
+** R_ShutdownContext
+**
+** This routine does all OS specific shutdown procedures for the Vulkan
+** subsystem.
+**
+*/
+static void R_ShutdownContext( void )
+{
+	window = NULL;
 }
 
 /*
@@ -1256,7 +1267,7 @@ void R_Shutdown (void)
 	// Shutdown Vulkan subsystem
 	QVk_Shutdown();
 	// shut down OS specific Vulkan stuff (in our case: window)
-	Vkimp_Shutdown();
+	R_ShutdownContext();
 }
 
 /*
@@ -1467,8 +1478,6 @@ void	Draw_TileClear (int x, int y, int w, int h, char *name);
 void	Draw_Fill (int x, int y, int w, int h, int c);
 void	Draw_FadeScreen (void);
 
-static SDL_Window	*window = NULL;
-
 static int
 R_InitContext(void *win)
 {
@@ -1489,18 +1498,6 @@ R_InitContext(void *win)
 	return true;
 }
 
-/*
-** Vkimp_Shutdown
-**
-** This routine does all OS specific shutdown procedures for the Vulkan
-** subsystem.
-**
-*/
-void Vkimp_Shutdown( void )
-{
-	window = NULL;
-}
-
 qboolean Vkimp_CreateSurface()
 {
 	if (!SDL_Vulkan_CreateSurface(window, vk_instance, &vk_surface))
@@ -1510,11 +1507,6 @@ qboolean Vkimp_CreateSurface()
 		return false;
 	}
 	return true;
-}
-
-static void
-R_ShutdownContext(void)
-{
 }
 
 static qboolean
