@@ -402,7 +402,7 @@ static VkResult CreateFramebuffers()
 
 			if (res != VK_SUCCESS)
 			{
-				R_Printf(PRINT_ALL, "CreateFramebuffers(): framebuffer #%d create error: %s\n", j, QVk_GetError(res));
+				R_Printf(PRINT_ALL, "%s(): framebuffer #%d create error: %s\n", __func__, j, QVk_GetError(res));
 				DestroyFramebuffers();
 				return res;
 			}
@@ -680,7 +680,7 @@ static VkResult CreateRenderpasses()
 		VkResult res = vkCreateRenderPass(vk_device.logical, &rpCreateInfos[i], NULL, &vk_renderpasses[i].rp);
 		if (res != VK_SUCCESS)
 		{
-			R_Printf(PRINT_ALL, "CreateRenderpasses(): renderpass #%d create error: %s\n", i, QVk_GetError(res));
+			R_Printf(PRINT_ALL, "%s(): renderpass #%d create error: %s\n", __func__, i, QVk_GetError(res));
 			return res;
 		}
 	}
@@ -1602,7 +1602,7 @@ qboolean QVk_Init()
 
 	if (res != VK_SUCCESS)
 	{
-		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan instance: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan instance: %s\n", __func__, QVk_GetError(res));
 		return false;
 	}
 	R_Printf(PRINT_ALL, "...created Vulkan instance\n");
@@ -1622,7 +1622,7 @@ qboolean QVk_Init()
 	res = Vkimp_CreateSurface();
 	if (res != VK_SUCCESS)
 	{
-		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan surface: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan surface: %s\n", __func__, QVk_GetError(res));
 		return false;
 	}
 	R_Printf(PRINT_ALL, "...created Vulkan surface\n");
@@ -1648,7 +1648,7 @@ qboolean QVk_Init()
 	res = vmaCreateAllocator(&allocInfo, &vk_malloc);
 	if (res != VK_SUCCESS)
 	{
-		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan memory allocator: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan memory allocator: %s\n", __func__, QVk_GetError(res));
 		return false;
 	}
 	R_Printf(PRINT_ALL, "...created Vulkan memory allocator\n");
@@ -1657,7 +1657,7 @@ qboolean QVk_Init()
 	res = QVk_CreateSwapchain();
 	if (res != VK_SUCCESS)
 	{
-		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan swapchain: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan swapchain: %s\n", __func__, QVk_GetError(res));
 		return false;
 	}
 	R_Printf(PRINT_ALL, "...created Vulkan swapchain\n");
@@ -1719,7 +1719,7 @@ qboolean QVk_Init()
 	res = CreateRenderpasses();
 	if (res != VK_SUCCESS)
 	{
-		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan render passes: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan render passes: %s\n", __func__, QVk_GetError(res));
 		return false;
 	}
 	R_Printf(PRINT_ALL, "...created %d Vulkan render passes\n", RP_COUNT);
@@ -1728,13 +1728,13 @@ qboolean QVk_Init()
 	res = QVk_CreateCommandPool(&vk_commandPool, vk_device.gfxFamilyIndex);
 	if (res != VK_SUCCESS)
 	{
-		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan command pool for graphics: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan command pool for graphics: %s\n", __func__, QVk_GetError(res));
 		return false;
 	}
 	res = QVk_CreateCommandPool(&vk_transferCommandPool, vk_device.transferFamilyIndex);
 	if (res != VK_SUCCESS)
 	{
-		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan command pool for transfer: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan command pool for transfer: %s\n", __func__, QVk_GetError(res));
 		return false;
 	}
 
@@ -1749,7 +1749,7 @@ qboolean QVk_Init()
 	res = CreateImageViews();
 	if (res != VK_SUCCESS)
 	{
-		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan image views: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan image views: %s\n", __func__, QVk_GetError(res));
 		return false;
 	}
 	R_Printf(PRINT_ALL, "...created %d Vulkan image view(s)\n", vk_swapchain.imageCount);
@@ -1758,7 +1758,7 @@ qboolean QVk_Init()
 	res = CreateFramebuffers();
 	if (res != VK_SUCCESS)
 	{
-		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan framebuffers: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan framebuffers: %s\n", __func__, QVk_GetError(res));
 		return false;
 	}
 	R_Printf(PRINT_ALL, "...created %d Vulkan framebuffers\n", vk_swapchain.imageCount);
@@ -1777,7 +1777,7 @@ qboolean QVk_Init()
 	res = vkAllocateCommandBuffers(vk_device.logical, &cbInfo, vk_commandbuffers);
 	if (res != VK_SUCCESS)
 	{
-		R_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan commandbuffers: %s\n", QVk_GetError(res));
+		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan commandbuffers: %s\n", __func__, QVk_GetError(res));
 		free(vk_commandbuffers);
 		vk_commandbuffers = NULL;
 		return false;
@@ -1847,12 +1847,12 @@ VkResult QVk_BeginFrame()
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR)
 	{
-		R_Printf(PRINT_ALL, "QVk_BeginFrame(): received %s after vkAcquireNextImageKHR - restarting video!\n", QVk_GetError(result));
+		R_Printf(PRINT_ALL, "%s(): received %s after vkAcquireNextImageKHR - restarting video!\n", __func__, QVk_GetError(result));
 		return result;
 	}
 	else if (result != VK_SUCCESS)
 	{
-		Sys_Error("QVk_BeginFrame(): unexpected error after vkAcquireNextImageKHR: %s", QVk_GetError(result));
+		Sys_Error("%s(): unexpected error after vkAcquireNextImageKHR: %s", __func__, QVk_GetError(result));
 	}
 
 	VK_VERIFY(vkWaitForFences(vk_device.logical, 1, &vk_fences[vk_activeBufferIdx], VK_TRUE, UINT32_MAX));
@@ -1926,12 +1926,12 @@ VkResult QVk_EndFrame(qboolean force)
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
 	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || renderResult == VK_ERROR_SURFACE_LOST_KHR)
 	{
-		R_Printf(PRINT_ALL, "QVk_EndFrame(): received %s after vkQueuePresentKHR - restarting video!\n", QVk_GetError(renderResult));
+		R_Printf(PRINT_ALL, "%s(): received %s after vkQueuePresentKHR - restarting video!\n", __func__, QVk_GetError(renderResult));
 		vid_fullscreen->modified = true;
 	}
 	else if (renderResult != VK_SUCCESS)
 	{
-		Sys_Error("QVk_EndFrame(): unexpected error after vkQueuePresentKHR: %s", QVk_GetError(renderResult));
+		Sys_Error("%s(): unexpected error after vkQueuePresentKHR: %s", __func__, QVk_GetError(renderResult));
 	}
 
 	vk_activeBufferIdx = (vk_activeBufferIdx + 1) % NUM_CMDBUFFERS;
