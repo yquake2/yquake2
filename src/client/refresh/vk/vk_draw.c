@@ -211,7 +211,7 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 	R_EndWorldRenderpass();
 
 	if ((unsigned)c > 255)
-		ri.Sys_Error(ERR_FATAL, "Draw_Fill: bad color");
+		ri.Sys_Error(ERR_FATAL, "%s: bad color", __func__);
 
 	color.c = d_8to24table[c];
 

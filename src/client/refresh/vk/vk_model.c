@@ -212,7 +212,7 @@ model_t *Mod_ForName (char *name, qboolean crash)
 		break;
 
 	case IDBSPHEADER:
-		loadmodel->extradata = Hunk_Begin (0x1000000);
+		loadmodel->extradata = Hunk_Begin (0x2000000);
 		Mod_LoadBrushModel (mod, buf);
 		break;
 
@@ -295,7 +295,7 @@ void Mod_LoadVertexes (lump_t *l)
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",loadmodel->name);
+		ri.Sys_Error (ERR_DROP, "%s: funny lump size in %s", __func__, loadmodel->name);
 	count = l->filelen / sizeof(*in);
 	out = Hunk_Alloc ( count*sizeof(*out));
 
@@ -342,7 +342,7 @@ void Mod_LoadSubmodels (lump_t *l)
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",loadmodel->name);
+		ri.Sys_Error (ERR_DROP, "%s: funny lump size in %s", __func__, loadmodel->name);
 	count = l->filelen / sizeof(*in);
 	out = Hunk_Alloc ( count*sizeof(*out));
 
@@ -377,7 +377,7 @@ void Mod_LoadEdges (lump_t *l)
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",loadmodel->name);
+		ri.Sys_Error (ERR_DROP, "%s: funny lump size in %s", __func__, loadmodel->name);
 	count = l->filelen / sizeof(*in);
 	out = Hunk_Alloc ( (count + 1) * sizeof(*out));
 
@@ -519,7 +519,7 @@ void Mod_LoadFaces (lump_t *l)
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
-		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
+		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s", __func__, loadmodel->name);
 	count = l->filelen / sizeof(*in);
 	out = Hunk_Alloc(count * sizeof(*out));
 
@@ -546,7 +546,7 @@ void Mod_LoadFaces (lump_t *l)
 
 		ti = LittleShort(in->texinfo);
 		if (ti < 0 || ti >= loadmodel->numtexinfo)
-			ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: bad texinfo number");
+			ri.Sys_Error(ERR_DROP, "%s: bad texinfo number", __func__);
 		out->texinfo = loadmodel->texinfo + ti;
 
 		CalcSurfaceExtents(out);
@@ -614,7 +614,7 @@ void Mod_LoadNodes (lump_t *l)
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",loadmodel->name);
+		ri.Sys_Error (ERR_DROP, "%s: funny lump size in %s", __func__, loadmodel->name);
 	count = l->filelen / sizeof(*in);
 	out = Hunk_Alloc ( count*sizeof(*out));
 
@@ -659,11 +659,10 @@ void Mod_LoadLeafs (lump_t *l)
 	dleaf_t 	*in;
 	mleaf_t 	*out;
 	int			i, j, count, p;
-//	glpoly_t	*poly;
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",loadmodel->name);
+		ri.Sys_Error (ERR_DROP, "%s: funny lump size in %s", __func__, loadmodel->name);
 	count = l->filelen / sizeof(*in);
 	out = Hunk_Alloc ( count*sizeof(*out));
 
@@ -672,6 +671,8 @@ void Mod_LoadLeafs (lump_t *l)
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
+		unsigned firstleafface;
+
 		for (j=0 ; j<3 ; j++)
 		{
 			out->minmaxs[j] = LittleShort (in->mins[j]);
@@ -684,9 +685,15 @@ void Mod_LoadLeafs (lump_t *l)
 		out->cluster = LittleShort(in->cluster);
 		out->area = LittleShort(in->area);
 
-		out->firstmarksurface = loadmodel->marksurfaces +
-			LittleShort(in->firstleafface);
-		out->nummarksurfaces = LittleShort(in->numleaffaces);
+		// make unsigned long from signed short
+		firstleafface = LittleShort(in->firstleafface) & 0xFFFF;
+		out->nummarksurfaces = LittleShort(in->numleaffaces) & 0xFFFF;
+
+		out->firstmarksurface = loadmodel->marksurfaces + firstleafface;
+		if ((firstleafface + out->nummarksurfaces) > loadmodel->nummarksurfaces)
+		{
+			ri.Sys_Error (ERR_DROP, "%s: wrong marksurfaces position in %s", __func__, loadmodel->name);
+		}
 
 		// gl underwater warp
 #if 0
@@ -716,7 +723,7 @@ void Mod_LoadMarksurfaces (lump_t *l)
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",loadmodel->name);
+		ri.Sys_Error (ERR_DROP, "%s: funny lump size in %s", __func__, loadmodel->name);
 	count = l->filelen / sizeof(*in);
 	out = Hunk_Alloc ( count*sizeof(*out));
 
@@ -744,11 +751,11 @@ void Mod_LoadSurfedges (lump_t *l)
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",loadmodel->name);
+		ri.Sys_Error (ERR_DROP, "%s: funny lump size in %s", __func__, loadmodel->name);
 	count = l->filelen / sizeof(*in);
 	if (count < 1 || count >= MAX_MAP_SURFEDGES)
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: bad surfedges count in %s: %i",
-		loadmodel->name, count);
+		ri.Sys_Error (ERR_DROP, "%s: bad surfedges count in %s: %i",
+		__func__, loadmodel->name, count);
 
 	out = Hunk_Alloc ( count*sizeof(*out));
 
@@ -775,7 +782,7 @@ void Mod_LoadPlanes (lump_t *l)
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
-		ri.Sys_Error (ERR_DROP, "MOD_LoadBmodel: funny lump size in %s",loadmodel->name);
+		ri.Sys_Error (ERR_DROP, "%s: funny lump size in %s", __func__, loadmodel->name);
 	count = l->filelen / sizeof(*in);
 	out = Hunk_Alloc ( count*2*sizeof(*out));
 
@@ -817,7 +824,7 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer)
 
 	i = LittleLong (header->version);
 	if (i != BSPVERSION)
-		ri.Sys_Error (ERR_DROP, "Mod_LoadBrushModel: %s has wrong version number (%i should be %i)", mod->name, i, BSPVERSION);
+		ri.Sys_Error (ERR_DROP, "%s: %s has wrong version number (%i should be %i)", __func__, mod->name, i, BSPVERSION);
 
 // swap all the lumps
 	mod_base = (byte *)header;
