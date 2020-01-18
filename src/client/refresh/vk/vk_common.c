@@ -1619,10 +1619,8 @@ qboolean QVk_Init()
 	if (vk_validation->value)
 		QVk_CreateValidationLayers();
 
-	res = Vkimp_CreateSurface();
-	if (res != VK_SUCCESS)
+	if (!Vkimp_CreateSurface())
 	{
-		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan surface: %s\n", __func__, QVk_GetError(res));
 		return false;
 	}
 	R_Printf(PRINT_ALL, "...created Vulkan surface\n");

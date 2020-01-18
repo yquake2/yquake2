@@ -341,12 +341,8 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 ====================================================================
 */
 
-void		Vkimp_BeginFrame( float camera_separation );
-void		Vkimp_EndFrame( void );
-int 		Vkimp_Init( void *hinstance, void *hWnd );
 void		Vkimp_Shutdown( void );
-void		Vkimp_AppActivate( qboolean active );
 void		Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount);
-VkResult	Vkimp_CreateSurface(void);
+qboolean	Vkimp_CreateSurface(void);
 
 #endif
