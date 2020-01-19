@@ -143,6 +143,7 @@ extern	cvar_t	*r_mode;
 
 extern	cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
+extern	cvar_t	*vk_overbrightbits;
 extern	cvar_t	*vk_validation;
 extern	cvar_t	*vk_bitdepth;
 extern	cvar_t	*vk_log;
