@@ -93,6 +93,7 @@ cvar_t	*r_mode;
 
 cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
+cvar_t	*vk_overbrightbits;
 cvar_t	*vk_validation;
 cvar_t	*vk_bitdepth;
 cvar_t	*vk_picmip;
@@ -971,7 +972,7 @@ void R_SetVulkan2D (void)
 	// skip this step if we're in player config screen since it uses RP_UI and draws directly to swapchain
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
-		float pushConsts[] = { vk_postprocess->value, vid_gamma->value };
+		float pushConsts[] = { vk_postprocess->value, (2.1 - vid_gamma->value)};
 		vkCmdPushConstants(vk_activeCmdbuffer, vk_postprocessPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConsts), pushConsts);
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_postprocessPipeline.layout, 0, 1, &vk_colorbufferWarp.descriptorSet, 0, NULL);
 		QVk_BindPipeline(&vk_postprocessPipeline);
@@ -1043,6 +1044,8 @@ void R_Register( void )
 	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
 	r_mode = ri.Cvar_Get("r_mode", "11", CVAR_ARCHIVE);
 	r_vsync = ri.Cvar_Get("r_vsync", "0", CVAR_ARCHIVE);
+
+	vk_overbrightbits = ri.Cvar_Get("vk_overbrightbits", "1.0", CVAR_ARCHIVE);
 #if defined(_DEBUG)
 	vk_validation = ri.Cvar_Get("vk_validation", "2", 0);
 #else
@@ -1154,6 +1157,7 @@ qboolean R_SetMode (void)
 	vk_vsync->modified = false;
 	vk_device_idx->modified = false;
 	vk_picmip->modified = false;
+	vk_overbrightbits->modified = false;
 	// refresh texture samplers
 	vk_texturemode->modified = true;
 	vk_lmaptexturemode->modified = true;
@@ -1287,7 +1291,7 @@ void R_BeginFrame( float camera_separation )
 	*/
 	if (r_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || vk_picmip->modified ||
 		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified || vid_gamma->modified ||
-		vk_mip_nearfilter->modified || vk_sampleshading->modified || vk_vsync->modified || vk_device_idx->modified)
+		vk_mip_nearfilter->modified || vk_sampleshading->modified || vk_vsync->modified || vk_device_idx->modified || vk_overbrightbits->modified)
 	{
 		if (vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified)
 		{

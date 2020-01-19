@@ -1655,8 +1655,9 @@ Vk_InitImages
 */
 void	Vk_InitImages (void)
 {
-	int		i, j;
-	float	g = vid_gamma->value;
+	int	i, j;
+	float	g;
+	float	overbright;
 
 	registration_sequence = 1;
 
@@ -1668,27 +1669,6 @@ void	Vk_InitImages (void)
 
 	vk_state.inverse_intensity = 1 / intensity->value;
 
-	Draw_GetPalette();
-
-	for (i = 0; i < 256; i++)
-	{
-		if (g == 1)
-		{
-			gammatable[i] = i;
-		}
-		else
-		{
-			float inf;
-
-			inf = 255 * pow((i + 0.5) / 255.5, g) + 0.5;
-			if (inf < 0)
-				inf = 0;
-			if (inf > 255)
-				inf = 255;
-			gammatable[i] = inf;
-		}
-	}
-
 	for (i = 0; i<256; i++)
 	{
 		j = i * intensity->value;
@@ -1696,6 +1676,46 @@ void	Vk_InitImages (void)
 			j = 255;
 		intensitytable[i] = j;
 	}
+
+	Draw_GetPalette();
+
+	overbright = vk_overbrightbits->value;
+
+	if(overbright < 0.5)
+		overbright = 0.5;
+
+	if(overbright > 4.0)
+		overbright = 4.0;
+
+	g = (2.1 - vid_gamma->value);
+
+	if (g == 1.0)
+	{
+		for (i=0 ; i<256 ; i++) {
+			int inf;
+
+			inf = i * overbright;
+
+			if (inf < 0)
+				inf = 0;
+			if (inf > 255)
+				inf = 255;
+
+			gammatable[i] = inf;
+		}
+	}
+	else
+		for (i=0 ; i<256 ; i++)
+		{
+			int inf;
+
+			inf = (255 * pow ( (i+0.5)/255.5 , g ) + 0.5) * overbright;
+			if (inf < 0)
+				inf = 0;
+			if (inf > 255)
+				inf = 255;
+			gammatable[i] = inf;
+		}
 }
 
 /*
