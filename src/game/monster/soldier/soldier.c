@@ -488,7 +488,7 @@ soldier_pain(edict_t *self, edict_t *other /* unused */,
 		return;
 	}
 
-	if (skill->value == 3)
+	if (skill->value == SKILL_HARDPLUS)
 	{
 		return; /* no pain anims in nightmare */
 	}
@@ -662,7 +662,7 @@ soldier_attack1_refire1(edict_t *self)
 		return;
 	}
 
-	if (((skill->value == 3) &&
+	if (((skill->value == SKILL_HARDPLUS) &&
 		 (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
 	{
 		self->monsterinfo.nextframe = FRAME_attak102;
@@ -691,7 +691,7 @@ soldier_attack1_refire2(edict_t *self)
 		return;
 	}
 
-	if (((skill->value == 3) &&
+	if (((skill->value == SKILL_HARDPLUS) &&
 		 (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
 	{
 		self->monsterinfo.nextframe = FRAME_attak102;
@@ -751,7 +751,7 @@ soldier_attack2_refire1(edict_t *self)
 		return;
 	}
 
-	if (((skill->value == 3) &&
+	if (((skill->value == SKILL_HARDPLUS) &&
 		 (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
 	{
 		self->monsterinfo.nextframe = FRAME_attak204;
@@ -780,7 +780,7 @@ soldier_attack2_refire2(edict_t *self)
 		return;
 	}
 
-	if (((skill->value == 3) &&
+	if (((skill->value == SKILL_HARDPLUS) &&
 		 (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE))
 	{
 		self->monsterinfo.nextframe = FRAME_attak204;
@@ -956,7 +956,7 @@ soldier_attack6_refire(edict_t *self)
 		return;
 	}
 
-	if (skill->value == 3)
+	if (skill->value == SKILL_HARDPLUS)
 	{
 		self->monsterinfo.nextframe = FRAME_runs03;
 	}
@@ -1029,7 +1029,7 @@ soldier_sight(edict_t *self, edict_t *other /* unused */)
 		gi.sound(self, CHAN_VOICE, sound_sight2, 1, ATTN_NORM, 0);
 	}
 
-	if ((skill->value > 0) && (range(self, self->enemy) >= RANGE_MID))
+	if ((skill->value > SKILL_EASY) && (range(self, self->enemy) >= RANGE_MID))
 	{
 		if (random() > 0.5)
 		{
@@ -1095,7 +1095,7 @@ soldier_dodge(edict_t *self, edict_t *attacker, float eta)
 		FoundTarget(self);
 	}
 
-	if (skill->value == 0)
+	if (skill->value == SKILL_EASY)
 	{
 		self->monsterinfo.currentmove = &soldier_move_duck;
 		return;
@@ -1104,7 +1104,7 @@ soldier_dodge(edict_t *self, edict_t *attacker, float eta)
 	self->monsterinfo.pausetime = level.time + eta + 0.3;
 	r = random();
 
-	if (skill->value == 1)
+	if (skill->value == SKILL_MEDIUM)
 	{
 		if (r > 0.33)
 		{
@@ -1118,7 +1118,7 @@ soldier_dodge(edict_t *self, edict_t *attacker, float eta)
 		return;
 	}
 
-	if (skill->value >= 2)
+	if (skill->value >= SKILL_HARD)
 	{
 		if (r > 0.66)
 		{

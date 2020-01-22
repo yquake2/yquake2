@@ -347,15 +347,15 @@ HelpComputerMessage(edict_t *ent)
 		return;
 	}
 
-	if (skill->value == 0)
+	if (skill->value == SKILL_EASY)
 	{
 		sk = "easy";
 	}
-	else if (skill->value == 1)
+	else if (skill->value == SKILL_MEDIUM)
 	{
 		sk = "medium";
 	}
-	else if (skill->value == 2)
+	else if (skill->value == SKILL_HARD)
 	{
 		sk = "hard";
 	}

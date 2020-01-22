@@ -699,7 +699,7 @@ insane_pain(edict_t *self, edict_t *other /* unused */,
 	/* suppress screaming and moaning for 1 second so pain sound plays */
 	self->fly_sound_debounce_time = level.time + 1;
 
-	if (skill->value == 3)
+	if (skill->value == SKILL_HARDPLUS)
 	{
 		return; /* no pain anims in nightmare */
 	}
