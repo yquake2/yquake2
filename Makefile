@@ -57,7 +57,7 @@ OSX_ARCH:=-arch $(shell uname -m | sed -e s/i.86/i386/)
 OSX_APP:=yes
 
 # Build vulkan render
-WITH_REFVK:=no
+WITH_REFVK:=yes
 
 # This is an optional configuration file, it'll be used in
 # case of presence.
@@ -612,9 +612,16 @@ build/ref_soft/%.o: %.c
 # ----------
 
 # The vk renderer lib
+#
+ifeq ($(YQ2_OSTYPE), Windows)
+ref_vk:
+	@echo "===> Building ref_vk.dll"
+	$(MAKE) release/ref_vk.dll
 
-ifeq ($(YQ2_OSTYPE), Linux)
-ifeq ($(WITH_REFVK),yes)
+release/ref_vk.dll : CFLAGS += -fPIC
+release/ref_vk.dll : CPPFLAGS += -fPIC
+release/ref_vk.dll : LDFLAGS += -shared -lm -lvulkan -lstdc++
+else
 ref_vk:
 	@echo "===> Building ref_vk.so"
 	$(MAKE) release/ref_vk.so
@@ -622,14 +629,7 @@ ref_vk:
 release/ref_vk.so : CFLAGS += -fPIC
 release/ref_vk.so : CPPFLAGS += -fPIC
 release/ref_vk.so : LDFLAGS += -shared -lm -lvulkan -lstdc++
-else
-ref_vk:
-	@echo "===> Vulkan render disabled"
 endif
-else
-ref_vk:
-	@echo "===> Vulkan render unsupported"
-endif # OS specific ref_vk stuff
 
 build/ref_vk/%.o: %.c
 	@echo "===> CC $<"
@@ -1118,7 +1118,11 @@ release/ref_soft.so : $(REFSOFT_OBJS)
 endif
 
 # release/ref_vk.so
-ifeq ($(YQ2_OSTYPE), Linux)
+ifeq ($(YQ2_OSTYPE), Windows)
+release/ref_vk.dll : $(REFVK_OBJS)
+	@echo "===> LD $@"
+	${Q}$(CC) $(REFVK_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+else
 release/ref_vk.so : $(REFVK_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(REFVK_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
