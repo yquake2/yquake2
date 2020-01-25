@@ -61,7 +61,7 @@ WITH_REFVK:=yes
 
 # This is an optional configuration file, it'll be used in
 # case of presence.
-CONFIG_FILE := config.mk
+CONFIG_FILE:=config.mk
 
 # ----------
 
@@ -99,6 +99,7 @@ endif
 # On Windows / MinGW $(CC) is undefined by default.
 ifeq ($(YQ2_OSTYPE),Windows)
 CC := gcc
+CXX := g++
 endif
 
 # Detect the compiler
@@ -140,27 +141,6 @@ CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
 CFLAGS += $(OSX_ARCH)
 else
 CFLAGS := -std=gnu99 -O2 -fno-strict-aliasing \
-		  -Wall -pipe -g -ggdb -MMD -fwrapv
-endif
-
-# ----------
-
-# Base CPPFLAGS.
-#
-# -O2 are enough optimizations.
-#
-# -g to build always with debug symbols. Please DO NOT
-#  CHANGE THIS, since it's our only chance to debug this
-#  crap when random crashes happen!
-#
-# -fwrapv for defined integer wrapping. MSVC6 did this
-#  and the game code requires it.
-ifeq ($(YQ2_OSTYPE), Darwin)
-CPPFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -pipe -g -fwrapv
-CPPFLAGS += $(OSX_ARCH)
-else
-CPPFLAGS := -O2 -fno-strict-aliasing \
 		  -Wall -pipe -g -ggdb -MMD -fwrapv
 endif
 
@@ -602,34 +582,35 @@ build/ref_soft/%.o: %.c
 # ----------
 
 # The vk renderer lib
-#
 ifeq ($(YQ2_OSTYPE), Windows)
 ref_vk:
 	@echo "===> Building ref_vk.dll"
 	$(MAKE) release/ref_vk.dll
 
-release/ref_vk.dll : CFLAGS += -fPIC
-release/ref_vk.dll : CPPFLAGS += -fPIC
-release/ref_vk.dll : LDFLAGS += -shared -lm -lvulkan -lstdc++
+release/ref_vk.dll : LDFLAGS += -shared -lvulkan
 else
 ref_vk:
 	@echo "===> Building ref_vk.so"
 	$(MAKE) release/ref_vk.so
 
 release/ref_vk.so : CFLAGS += -fPIC
-release/ref_vk.so : CPPFLAGS += -fPIC
-release/ref_vk.so : LDFLAGS += -shared -lm -lvulkan -lstdc++
+release/ref_vk.so : LDFLAGS += -shared -lvulkan
 endif
 
 build/ref_vk/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) $(GLAD_INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
+# The Vulkan memory allocator must be build as C++.
+# Because of this we need to link the lib with the
+# C++ frontend and not the C frontend... Assume that
+# the system uses the same compiler for both C and
+# C++, e.g. clang and clang++. Not gcc and clang++.
 build/ref_vk/%.o: %.cpp
-	@echo "===> CC $<"
+	@echo "===> CXX $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CPPFLAGS) $(SDLCFLAGS) $(INCLUDE) $(GLAD_INCLUDE) -o $@ $<
+	${Q}$(CXX) -c $(subst gnu99,c++11,$(CFLAGS)) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 # ----------
 
@@ -1108,14 +1089,17 @@ release/ref_soft.so : $(REFSOFT_OBJS)
 endif
 
 # release/ref_vk.so
+#
+# Must be linked with the C++ frontend, because the
+# Vulkan memory allocator is compiled as C++ source.
 ifeq ($(YQ2_OSTYPE), Windows)
 release/ref_vk.dll : $(REFVK_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFVK_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CXX) $(REFVK_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
 release/ref_vk.so : $(REFVK_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFVK_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CXX) $(REFVK_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/baseq2/game.so
