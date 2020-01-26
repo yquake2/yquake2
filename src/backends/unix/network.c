@@ -417,13 +417,8 @@ NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 	switch (resultp->ai_family)
 	{
 		case AF_INET:
-			/* convert to ipv4 addr */
-			memset(sadr, 0, sizeof(struct sockaddr_storage));
-			memcpy(sadr, resultp->ai_addr, resultp->ai_addrlen);
-			break;
-
 		case AF_INET6:
-			/* convert to ipv6 addr */
+			/* convert to ipv4/ipv6 addr */
 			memset(sadr, 0, sizeof(struct sockaddr_storage));
 			memcpy(sadr, resultp->ai_addr, resultp->ai_addrlen);
 			break;
@@ -875,6 +870,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 			{
 				Com_Printf("ERROR: NET_Socket: setsockopt SO_BROADCAST:%s\n",
 						NET_ErrorString());
+				freeaddrinfo(res);
 				return 0;
 			}
 		}
@@ -885,6 +881,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 		{
 			Com_Printf("ERROR: NET_Socket: setsockopt SO_REUSEADDR:%s\n",
 					NET_ErrorString());
+			freeaddrinfo(res);
 			return 0;
 		}
 
