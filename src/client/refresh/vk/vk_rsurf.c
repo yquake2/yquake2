@@ -987,7 +987,7 @@ void R_MarkLeaves (void)
 
 	// development aid to let you run around and see exactly where
 	// the pvs ends
-	if (vk_lockpvs->value)
+	if (r_lockpvs->value)
 		return;
 
 	r_visframecount++;

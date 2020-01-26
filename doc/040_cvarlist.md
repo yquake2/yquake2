@@ -322,6 +322,95 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   custom gun field of few is used. Defaults to `8`, which is more or
   less optimal for the default gun field of view of 80.
 
+## Graphics (Vulkan only)
+
+* **vk_validation**: Toggle validation layers:
+  * `0` - disabled (default in Release)
+  * `1` - only errors and warnings
+  * `2` - full validation (default in Debug)
+
+* **vk_strings**: Print some basic Vulkan/GPU information.
+
+* **vk_mem**: Print dynamic vertex/index/uniform/triangle fan buffer
+  memory usage statistics.
+
+* **vk_device**: Specify index of the preferred Vulkan device on systems
+  with multiple GPUs:
+  * `-1` - prefer first DISCRETE_GPU (default)
+  * `0..n` - use device #n (full list of devices is returned by
+    `vk_strings` command)
+
+* **vk_msaa**: Toggle MSAA:
+  * `0` - off (default)
+  * `1` - MSAAx2
+  * `2` - MSAAx4
+  * `3` - MSAAx8
+  * `4` - MSAAx16
+
+* **vk_sampleshading**: Toggle sample shading for MSAA. (default: `1`)
+
+* **vk_flashblend**: Toggle the blending of lights onto the environment.
+  (default: `0`)
+
+* **vk_polyblend**: Blend fullscreen effects: blood, powerups etc.
+  (default: `1`)
+
+* **vk_skymip**: Toggle the usage of mipmap information for the sky
+  graphics. (default: `0`)
+
+* **vk_finish**: Inserts a `vkDeviceWaitIdle()` call on frame render
+  start (default: `0`). Don't use this, it's there just for the sake of
+  having a `gl_finish` equivalent!
+
+* **vk_point_particles**: Toggle between using POINT_LIST and textured
+  triangles for particle rendering. (default: `1`)
+
+* **vk_particle_size**: Rendered particle size. (default: `40`)
+
+* **vk_particle_att_a**: Intensity of the particle A attribute.
+  (default: `0.01`)
+
+* **vk_particle_att_b**: Intensity of the particle B attribute.
+  (default: `0`)
+
+* **vk_particle_att_c**: Intensity of the particle C attribute.
+ (default: `0.01`)
+
+* **vk_particle_min_size**: The minimum size of a rendered particle.
+ (default: `2`)
+
+* **vk_particle_max_size**: The maximum size of a rendered particle.
+  (default: `40`)
+
+* **vk_shadows**: Draw experimental entity shadows. (default: `0`)
+
+* **vk_picmip**: Shrink factor for the textures. (default: `0`)
+
+* **vk_round_down**: Toggle the rounding of texture sizes. (default: `1`)
+
+* **vk_dynamic**: Use dynamic lighting. (default: `1`)
+
+* **vk_showtris**: Display mesh triangles. (default: `0`)
+
+* **vk_lightmap**: Display lightmaps. (default: `0`)
+
+* **vk_aniso**: Toggle anisotropic filtering. (default: `1`)
+
+* **vk_postprocess**: Toggle additional color/gamma correction.
+  (default: `1`)
+
+* **vk_mip_nearfilter**: Use nearest-neighbor filtering for mipmaps.
+  (default: `0`)
+
+* **vk_texturemode**: Change current texture filtering mode:
+  * `VK_NEAREST` - nearest-neighbor interpolation, no mipmaps
+  * `VK_LINEAR` - linear interpolation, no mipmaps
+  * `VK_MIPMAP_NEAREST` - nearest-neighbor interpolation with mipmaps
+  * `VK_MIPMAP_LINEAR` - linear interpolation with mipmaps (default)
+
+* **vk_lmaptexturemode**: Same as `vk_texturemode` but applied to
+  lightmap textures.
+
 ## cvar operations
 
 cvar operations are special commands that allow the programmatic
