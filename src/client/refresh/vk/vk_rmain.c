@@ -1214,13 +1214,6 @@ qboolean R_Init( void )
 	}
 	ri.Vid_MenuInit();
 
-	// window is ready, initialize Vulkan now
-	if (!QVk_Init(window))
-	{
-		R_Printf(PRINT_ALL, "%s() - could not initialize Vulkan!\n", __func__);
-		return false;
-	}
-
 	R_Printf(PRINT_ALL, "Successfully initialized Vulkan!\n");
 	// print device information during startup
 	Vk_Strings_f();
@@ -1242,6 +1235,10 @@ qboolean R_Init( void )
 */
 static void R_ShutdownContext( void )
 {
+
+	// Shutdown Vulkan subsystem
+	QVk_Shutdown();
+
 	window = NULL;
 }
 
@@ -1264,19 +1261,15 @@ void R_Shutdown (void)
 
 	Mod_FreeAll();
 	Vk_ShutdownImages();
-
-	// Shutdown Vulkan subsystem
-	QVk_Shutdown();
-	// shut down OS specific Vulkan stuff (in our case: window)
-	R_ShutdownContext();
 }
 
 /*
 =====================
-R_BeginFrame
+RE_BeginFrame
 =====================
 */
-void R_BeginFrame( float camera_separation )
+static void
+RE_BeginFrame( float camera_separation )
 {
 	// world has not rendered yet
 	world_rendered = false;
@@ -1327,22 +1320,24 @@ void R_BeginFrame( float camera_separation )
 
 /*
 =====================
-R_EndFrame
+RE_EndFrame
 =====================
 */
-void R_EndFrame( void )
+static void
+RE_EndFrame( void )
 {
 	QVk_EndFrame(false);
 }
 
 /*
 =============
-R_SetPalette
+RE_SetPalette
 =============
 */
 unsigned r_rawpalette[256];
 
-void R_SetPalette ( const unsigned char *palette)
+static void
+RE_SetPalette (const unsigned char *palette)
 {
 	int		i;
 
@@ -1496,6 +1491,13 @@ R_InitContext(void *win)
 	snprintf(title, sizeof(title), "Yamagi Quake II %s - Vulkan Render", YQ2VERSION);
 	SDL_SetWindowTitle(window, title);
 
+	// window is ready, initialize Vulkan now
+	if (!QVk_Init(window))
+	{
+		R_Printf(PRINT_ALL, "%s() - could not initialize Vulkan!\n", __func__);
+		return false;
+	}
+
 	return true;
 }
 
@@ -1571,9 +1573,9 @@ GetRefAPI(refimport_t imp)
 	refexport.ShutdownContext = R_ShutdownContext;
 	refexport.PrepareForWindow = R_PrepareForWindow;
 
-	refexport.SetPalette = R_SetPalette;
-	refexport.BeginFrame = R_BeginFrame;
-	refexport.EndFrame = R_EndFrame;
+	refexport.SetPalette = RE_SetPalette;
+	refexport.BeginFrame = RE_BeginFrame;
+	refexport.EndFrame = RE_EndFrame;
 
 	Swap_Init ();
 
