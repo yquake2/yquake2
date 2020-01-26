@@ -444,7 +444,7 @@ void QVk_UpdateTextureData(qvktexture_t *texture, const unsigned char *data, uin
 	}
 }
 
-void QVk_ReleaseTexture(qvktexture_t *texture)
+static void QVk_ReleaseTexture(qvktexture_t *texture)
 {
 	QVk_SubmitStagingBuffers();
 	if (vk_device.logical != VK_NULL_HANDLE)
@@ -595,7 +595,7 @@ byte		scrap_texels[MAX_SCRAPS][BLOCK_WIDTH*BLOCK_HEIGHT];
 qvktexture_t vk_scrapTextures[MAX_SCRAPS] = { QVVKTEXTURE_INIT };
 
 // returns a texture number and the position inside it
-int Scrap_AllocBlock (int w, int h, int *x, int *y)
+static int Scrap_AllocBlock (int w, int h, int *x, int *y)
 {
 	int		i, j;
 	int		best, best2;
@@ -758,7 +758,7 @@ typedef struct _TargaHeader {
 LoadTGA
 =============
 */
-void LoadTGA (char *name, byte **pic, int *width, int *height)
+static void LoadTGA (char *name, byte **pic, int *width, int *height)
 {
 	int		columns, rows, numPixels;
 	byte	*pixbuf;
@@ -980,7 +980,7 @@ typedef struct
 	else if (pos[off] != 255) fdc = pos[off]; \
 }
 
-void R_FloodFillSkin( byte *skin, int skinwidth, int skinheight )
+static void R_FloodFillSkin( byte *skin, int skinwidth, int skinheight )
 {
 	byte				fillcolor = *skin; // assume this is the pixel to fill
 	floodfill_t			fifo[FLOODFILL_FIFO_SIZE];
@@ -1615,7 +1615,7 @@ void Vk_FreeUnusedImages (void)
 Draw_GetPalette
 ===============
 */
-int Draw_GetPalette (void)
+static int Draw_GetPalette (void)
 {
 	int		i;
 	int		r, g, b;

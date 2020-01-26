@@ -281,7 +281,6 @@ void		QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *col
 void		QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvksampler_t samplerType);
 void		QVk_UpdateTextureData(qvktexture_t *texture, const unsigned char *data, uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height);
 VkSampler	QVk_UpdateTextureSampler(qvktexture_t *texture, qvksampler_t samplerType);
-void		QVk_ReleaseTexture(qvktexture_t *texture);
 void		QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height);
 VkResult	QVk_BeginCommand(const VkCommandBuffer *commandBuffer);
 void		QVk_SubmitCommand(const VkCommandBuffer *commandBuffer, const VkQueue *queue);
@@ -290,7 +289,6 @@ const char*	QVk_GetError(VkResult errorCode);
 VkResult	QVk_BeginFrame(void);
 VkResult	QVk_EndFrame(qboolean force);
 void		QVk_BeginRenderpass(qvkrenderpasstype_t rpType);
-void		QVk_RecreateSwapchain(void);
 VkResult	QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbufferopts_t options);
 void		QVk_FreeBuffer(qvkbuffer_t *buffer);
 VkResult	QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags);
@@ -301,12 +299,11 @@ qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, V
 void		QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t desLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo, qvkpipeline_t *pipeline, const qvkrenderpass_t *renderpass, const qvkshader_t *shaders, uint32_t shaderCount, VkPushConstantRange *pcRange);
 void		QVk_DestroyPipeline(qvkpipeline_t *pipeline);
 uint8_t*	QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSize *dstOffset);
-uint8_t*	QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset);
 uint8_t*	QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet);
 uint8_t*	QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer *cmdBuffer, VkBuffer *buffer, uint32_t *dstOffset);
 VkBuffer	QVk_GetTriangleFanIbo(VkDeviceSize indexCount);
 void		QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize, qvkrenderpasstype_t rpType);
-void		QVk_DrawTexRect(float *ubo, VkDeviceSize uboSize, qvktexture_t *texture);
+void		QVk_DrawTexRect(const float *ubo, VkDeviceSize uboSize, qvktexture_t *texture);
 void		QVk_BindPipeline(qvkpipeline_t *pipeline);
 void		QVk_SubmitStagingBuffers(void);
 // debug label related functions
