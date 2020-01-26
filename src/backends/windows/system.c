@@ -63,7 +63,7 @@ Sys_Error(char *error, ...)
 	Qcommon_Shutdown();
 
 	va_start(argptr, error);
-	vsprintf(text, error, argptr);
+	vsnprintf(text, sizeof(text), error, argptr);
 	va_end(argptr);
 	fprintf(stderr, "Error: %s\n", text);
 
