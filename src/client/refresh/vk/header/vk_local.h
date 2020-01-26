@@ -236,8 +236,6 @@ void	R_EndFrame( void );
 void	R_EndWorldRenderpass( void );
 void	R_SetPalette ( const unsigned char *palette);
 
-int	Draw_GetPalette (void);
-
 void Vk_ResampleTexture (unsigned *in, int inwidth, int inheight, unsigned *out,  int outwidth, int outheight);
 
 struct image_s *R_RegisterSkin (char *name);

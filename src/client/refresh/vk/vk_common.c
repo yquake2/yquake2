@@ -989,6 +989,7 @@ static int NextPow2(int v)
 }
 
 // internal helper
+static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset);
 static void RebuildTriangleFanIndexBuffer()
 {
 	int idx = 0;
@@ -2000,6 +2001,7 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 	vkCmdBeginRenderPass(vk_commandbuffers[vk_activeBufferIdx], &renderBeginInfo[rpType], VK_SUBPASS_CONTENTS_INLINE);
 }
 
+#if 0
 void QVk_RecreateSwapchain()
 {
 	vkDeviceWaitIdle( vk_device.logical );
@@ -2014,6 +2016,7 @@ void QVk_RecreateSwapchain()
 	VK_VERIFY(CreateImageViews());
 	VK_VERIFY(CreateFramebuffers());
 }
+#endif
 
 uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSize *dstOffset)
 {
@@ -2054,7 +2057,7 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 	return (uint8_t *)vk_dynVertexBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
 }
 
-uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
+static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 {
 	// align to 4 bytes, so that we can reuse the buffer for both VK_INDEX_TYPE_UINT16 and VK_INDEX_TYPE_UINT32
 	const int align_mod = size % 4;
@@ -2264,7 +2267,7 @@ void QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize, qvkrenderpasstype_t rpT
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 }
 
-void QVk_DrawTexRect(float *ubo, VkDeviceSize uboSize, qvktexture_t *texture)
+void QVk_DrawTexRect(const float *ubo, VkDeviceSize uboSize, qvktexture_t *texture)
 {
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
