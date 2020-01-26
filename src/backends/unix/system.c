@@ -278,7 +278,7 @@ Sys_FindFirst(char *path, unsigned musthave, unsigned canhave)
 		{
 			if ((strcmp(d->d_name, ".") != 0) || (strcmp(d->d_name, "..") != 0))
 			{
-				sprintf(findpath, "%s/%s", findbase, d->d_name);
+				snprintf(findpath, sizeof(findpath), "%s/%s", findbase, d->d_name);
 				return findpath;
 			}
 		}
@@ -303,7 +303,7 @@ Sys_FindNext(unsigned musthave, unsigned canhave)
 		{
 			if ((strcmp(d->d_name, ".") != 0) || (strcmp(d->d_name, "..") != 0))
 			{
-				sprintf(findpath, "%s/%s", findbase, d->d_name);
+				snprintf(findpath, sizeof(findpath), "%s/%s", findbase, d->d_name);
 				return findpath;
 			}
 		}
