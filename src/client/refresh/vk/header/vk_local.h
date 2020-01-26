@@ -220,8 +220,6 @@ void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
 void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
 
-void COM_StripExtension (char *in, char *out);
-
 void	Draw_GetPicSize (int *w, int *h, char *name);
 void	Draw_PicScaled (int x, int y, char *name, float scale);
 void	Draw_StretchPic (int x, int y, int w, int h, char *name);
@@ -231,10 +229,7 @@ void	Draw_Fill (int x, int y, int w, int h, int c);
 void	Draw_FadeScreen (void);
 void	Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data);
 
-void	R_BeginFrame( float camera_separation );
-void	R_EndFrame( void );
 void	R_EndWorldRenderpass( void );
-void	R_SetPalette ( const unsigned char *palette);
 
 void Vk_ResampleTexture (unsigned *in, int inwidth, int inheight, unsigned *out,  int outwidth, int outheight);
 
