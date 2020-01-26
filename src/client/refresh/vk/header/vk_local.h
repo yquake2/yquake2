@@ -140,22 +140,21 @@ extern	cvar_t	*r_novis;
 extern	cvar_t	*r_nocull;
 extern	cvar_t	*r_lerpmodels;
 extern	cvar_t	*r_mode;
-
+extern	cvar_t	*r_lockpvs;
+extern	cvar_t	*r_modulate;
+extern	cvar_t	*r_vsync;
+extern	cvar_t	*r_clear;
 extern	cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
 extern	cvar_t	*vk_overbrightbits;
 extern	cvar_t	*vk_validation;
 extern	cvar_t	*vk_bitdepth;
-extern	cvar_t	*vk_log;
 extern	cvar_t	*vk_picmip;
 extern	cvar_t	*vk_skymip;
 extern	cvar_t	*vk_round_down;
 extern	cvar_t	*vk_flashblend;
 extern	cvar_t	*vk_finish;
-extern	cvar_t	*vk_clear;
-extern	cvar_t	*vk_lockpvs;
 extern	cvar_t	*vk_polyblend;
-extern	cvar_t	*vk_modulate;
 extern	cvar_t	*vk_shadows;
 extern	cvar_t	*vk_particle_size;
 extern	cvar_t	*vk_particle_att_a;
@@ -171,7 +170,6 @@ extern	cvar_t	*vk_texturemode;
 extern	cvar_t	*vk_lmaptexturemode;
 extern	cvar_t	*vk_aniso;
 extern	cvar_t	*vk_sampleshading;
-extern	cvar_t	*vk_vsync;
 extern	cvar_t	*vk_device_idx;
 extern	cvar_t	*vk_retexturing;
 
