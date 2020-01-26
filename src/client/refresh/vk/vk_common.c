@@ -1701,7 +1701,7 @@ qboolean QVk_Init(SDL_Window *window)
 	// setup render passes
 	for (int i = 0; i < RP_COUNT; ++i)
 	{
-		vk_renderpasses[i].colorLoadOp = vk_clear->value ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		vk_renderpasses[i].colorLoadOp = r_clear->value ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	}
 
 	VkSampleCountFlagBits msaaMode = GetSampleCount();
