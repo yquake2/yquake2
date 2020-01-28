@@ -101,10 +101,10 @@ cvar_t	*vk_skymip;
 cvar_t	*vk_round_down;
 cvar_t	*vk_flashblend;
 cvar_t	*vk_finish;
-cvar_t	*vk_clear;
-cvar_t	*vk_lockpvs;
+cvar_t	*r_clear;
+cvar_t	*r_lockpvs;
 cvar_t	*vk_polyblend;
-cvar_t	*vk_modulate;
+cvar_t	*r_modulate;
 cvar_t	*vk_shadows;
 cvar_t	*vk_particle_size;
 cvar_t	*vk_particle_att_a;
@@ -123,7 +123,6 @@ cvar_t	*vk_lmaptexturemode;
 cvar_t	*vk_aniso;
 cvar_t	*vk_mip_nearfilter;
 cvar_t	*vk_sampleshading;
-cvar_t	*vk_vsync;
 cvar_t	*vk_device_idx;
 cvar_t	*vk_retexturing;
 
@@ -1057,10 +1056,10 @@ void R_Register( void )
 	vk_round_down = ri.Cvar_Get("vk_round_down", "1", 0);
 	vk_flashblend = ri.Cvar_Get("vk_flashblend", "0", 0);
 	vk_finish = ri.Cvar_Get("vk_finish", "0", CVAR_ARCHIVE);
-	vk_clear = ri.Cvar_Get("vk_clear", "0", CVAR_ARCHIVE);
-	vk_lockpvs = ri.Cvar_Get("vk_lockpvs", "0", 0);
+	r_clear = ri.Cvar_Get("r_clear", "0", CVAR_ARCHIVE);
+	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 	vk_polyblend = ri.Cvar_Get("vk_polyblend", "1", 0);
-	vk_modulate = ri.Cvar_Get("vk_modulate", "1", CVAR_ARCHIVE);
+	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
 	vk_shadows = ri.Cvar_Get("vk_shadows", "0", CVAR_ARCHIVE);
 	vk_particle_size = ri.Cvar_Get("vk_particle_size", "40", CVAR_ARCHIVE);
 	vk_particle_att_a = ri.Cvar_Get("vk_particle_att_a", "0.01", CVAR_ARCHIVE);
@@ -1079,7 +1078,6 @@ void R_Register( void )
 	vk_aniso = ri.Cvar_Get("vk_aniso", "1", CVAR_ARCHIVE);
 	vk_mip_nearfilter = ri.Cvar_Get("vk_mip_nearfilter", "0", CVAR_ARCHIVE);
 	vk_sampleshading = ri.Cvar_Get("vk_sampleshading", "1", CVAR_ARCHIVE);
-	vk_vsync = ri.Cvar_Get("vk_vsync", "0", CVAR_ARCHIVE);
 	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
 	vk_retexturing = ri.Cvar_Get("vk_retexturing", "0", CVAR_ARCHIVE);
 
@@ -1150,11 +1148,10 @@ qboolean R_SetMode (void)
 	vid_gamma->modified = false;
 
 	vk_msaa->modified = false;
-	vk_clear->modified = false;
+	r_clear->modified = false;
 	vk_validation->modified = false;
 	vk_mip_nearfilter->modified = false;
 	vk_sampleshading->modified = false;
-	vk_vsync->modified = false;
 	vk_device_idx->modified = false;
 	vk_picmip->modified = false;
 	vk_overbrightbits->modified = false;
@@ -1217,13 +1214,6 @@ qboolean R_Init( void )
 	}
 	ri.Vid_MenuInit();
 
-	// window is ready, initialize Vulkan now
-	if (!QVk_Init(window))
-	{
-		R_Printf(PRINT_ALL, "%s() - could not initialize Vulkan!\n", __func__);
-		return false;
-	}
-
 	R_Printf(PRINT_ALL, "Successfully initialized Vulkan!\n");
 	// print device information during startup
 	Vk_Strings_f();
@@ -1245,6 +1235,10 @@ qboolean R_Init( void )
 */
 static void R_ShutdownContext( void )
 {
+
+	// Shutdown Vulkan subsystem
+	QVk_Shutdown();
+
 	window = NULL;
 }
 
@@ -1267,19 +1261,15 @@ void R_Shutdown (void)
 
 	Mod_FreeAll();
 	Vk_ShutdownImages();
-
-	// Shutdown Vulkan subsystem
-	QVk_Shutdown();
-	// shut down OS specific Vulkan stuff (in our case: window)
-	R_ShutdownContext();
 }
 
 /*
 =====================
-R_BeginFrame
+RE_BeginFrame
 =====================
 */
-void R_BeginFrame( float camera_separation )
+static void
+RE_BeginFrame( float camera_separation )
 {
 	// world has not rendered yet
 	world_rendered = false;
@@ -1289,9 +1279,9 @@ void R_BeginFrame( float camera_separation )
 	/*
 	** change modes if necessary
 	*/
-	if (r_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || vk_picmip->modified ||
+	if (r_mode->modified || vid_fullscreen->modified || vk_msaa->modified || r_clear->modified || vk_picmip->modified ||
 		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified || vid_gamma->modified ||
-		vk_mip_nearfilter->modified || vk_sampleshading->modified || vk_vsync->modified || vk_device_idx->modified || vk_overbrightbits->modified)
+		vk_mip_nearfilter->modified || vk_sampleshading->modified || r_vsync->modified || vk_device_idx->modified || vk_overbrightbits->modified)
 	{
 		if (vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified)
 		{
@@ -1330,22 +1320,24 @@ void R_BeginFrame( float camera_separation )
 
 /*
 =====================
-R_EndFrame
+RE_EndFrame
 =====================
 */
-void R_EndFrame( void )
+static void
+RE_EndFrame( void )
 {
 	QVk_EndFrame(false);
 }
 
 /*
 =============
-R_SetPalette
+RE_SetPalette
 =============
 */
 unsigned r_rawpalette[256];
 
-void R_SetPalette ( const unsigned char *palette)
+static void
+RE_SetPalette (const unsigned char *palette)
 {
 	int		i;
 
@@ -1499,6 +1491,13 @@ R_InitContext(void *win)
 	snprintf(title, sizeof(title), "Yamagi Quake II %s - Vulkan Render", YQ2VERSION);
 	SDL_SetWindowTitle(window, title);
 
+	// window is ready, initialize Vulkan now
+	if (!QVk_Init(window))
+	{
+		R_Printf(PRINT_ALL, "%s() - could not initialize Vulkan!\n", __func__);
+		return false;
+	}
+
 	return true;
 }
 
@@ -1574,9 +1573,9 @@ GetRefAPI(refimport_t imp)
 	refexport.ShutdownContext = R_ShutdownContext;
 	refexport.PrepareForWindow = R_PrepareForWindow;
 
-	refexport.SetPalette = R_SetPalette;
-	refexport.BeginFrame = R_BeginFrame;
-	refexport.EndFrame = R_EndFrame;
+	refexport.SetPalette = RE_SetPalette;
+	refexport.BeginFrame = RE_BeginFrame;
+	refexport.EndFrame = RE_EndFrame;
 
 	Swap_Init ();
 

@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/vk_local.h"
 
-image_t		*draw_chars;
+static image_t	*draw_chars;
 
 /*
 ===============
@@ -35,6 +35,11 @@ void Draw_InitLocal (void)
 	// load console characters (don't bilerp characters)
 	qvksampler_t samplerType = S_NEAREST;
 	draw_chars = Vk_FindImage("pics/conchars.pcx", it_pic, &samplerType);
+	if (!draw_chars)
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx", __func__);
+	}
+
 }
 
 

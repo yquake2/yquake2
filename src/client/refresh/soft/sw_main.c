@@ -413,6 +413,7 @@ R_UnRegister (void)
 static void RE_ShutdownContext(void);
 static void SWimp_CreateRender(void);
 static int RE_InitContext(void *win);
+static qboolean RE_SetMode(void);
 
 /*
 ===============
@@ -441,8 +442,18 @@ RE_Init(void)
 
 	Draw_GetPalette ();
 
+	/* set our "safe" mode */
+	sw_state.prev_mode = 4;
+
+	/* create the window and set up the context */
+	if (!RE_SetMode())
+	{
+		R_Printf(PRINT_ALL, "%s() could not R_SetMode()\n", __func__);
+		return false;
+	}
+
 	// create the window
-	RE_BeginFrame( 0 );
+	ri.Vid_MenuInit();
 
 	R_Printf(PRINT_ALL, "ref_soft version: "REF_VERSION"\n");
 
@@ -1399,6 +1410,11 @@ static rserr_t	SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen
 static void
 RE_BeginFrame( float camera_separation )
 {
+	while (r_mode->modified || vid_fullscreen->modified || r_vsync->modified)
+	{
+		RE_SetMode();
+	}
+
 	/*
 	** rebuild the gamma correction palette if necessary
 	*/
@@ -1414,53 +1430,85 @@ RE_BeginFrame( float camera_separation )
 		vid_gamma->modified = false;
 		sw_overbrightbits->modified = false;
 	}
+}
 
-	while (r_mode->modified || vid_fullscreen->modified || r_vsync->modified)
+/*
+==================
+R_SetMode
+==================
+*/
+static qboolean
+RE_SetMode(void)
+{
+	int err;
+	int fullscreen;
+
+	fullscreen = (int)vid_fullscreen->value;
+
+	vid_fullscreen->modified = false;
+	r_mode->modified = false;
+	r_vsync->modified = false;
+
+	/* a bit hackish approach to enable custom resolutions:
+	   Glimp_SetMode needs these values set for mode -1 */
+	vid.width = r_customwidth->value;
+	vid.height = r_customheight->value;
+
+	/*
+	** if this returns rserr_invalid_fullscreen then it set the mode but not as a
+	** fullscreen mode, e.g. 320x200 on a system that doesn't support that res
+	*/
+	if ((err = SWimp_SetMode(&vid.width, &vid.height, r_mode->value, fullscreen)) == rserr_ok)
 	{
-		rserr_t err;
-
+		R_InitGraphics( vid.width, vid.height );
 		if (r_mode->value == -1)
 		{
-			vid.width = r_customwidth->value;
-			vid.height = r_customheight->value;
-		}
-
-		/*
-		** if this returns rserr_invalid_fullscreen then it set the mode but not as a
-		** fullscreen mode, e.g. 320x200 on a system that doesn't support that res
-		*/
-		if ((err = SWimp_SetMode( &vid.width, &vid.height, r_mode->value, vid_fullscreen->value)) == rserr_ok )
-		{
-			R_InitGraphics( vid.width, vid.height );
-
-			sw_state.prev_mode = r_mode->value;
-			vid_fullscreen->modified = false;
-			r_mode->modified = false;
-			r_vsync->modified = false;
+			sw_state.prev_mode = 4; /* safe default for custom mode */
 		}
 		else
 		{
-			if ( err == rserr_invalid_mode )
-			{
-				ri.Cvar_SetValue( "r_mode", sw_state.prev_mode );
-				R_Printf(PRINT_ALL, "%s: could not set mode", __func__);
-			}
-			else if ( err == rserr_invalid_fullscreen )
-			{
-				R_InitGraphics( vid.width, vid.height );
-
-				ri.Cvar_SetValue( "vid_fullscreen", 0);
-				R_Printf(PRINT_ALL, "%s: fullscreen unavailable in this mode",
-						__func__);
-				sw_state.prev_mode = r_mode->value;
-			}
-			else
-			{
-				ri.Sys_Error(ERR_FATAL, "%s: Catastrophic mode change failure",
-						__func__);
-			}
+			sw_state.prev_mode = r_mode->value;
 		}
 	}
+	else
+	{
+		if (err == rserr_invalid_fullscreen)
+		{
+			R_InitGraphics( vid.width, vid.height );
+
+			ri.Cvar_SetValue("vid_fullscreen", 0);
+			vid_fullscreen->modified = false;
+			R_Printf(PRINT_ALL, "%s() - fullscreen unavailable in this mode\n", __func__);
+
+			if ((err = SWimp_SetMode(&vid.width, &vid.height, r_mode->value, 0)) == rserr_ok)
+			{
+				return true;
+			}
+		}
+		else if (err == rserr_invalid_mode)
+		{
+			R_Printf(PRINT_ALL, "%s() - invalid mode\n", __func__);
+
+			if(r_mode->value == sw_state.prev_mode)
+			{
+				// trying again would result in a crash anyway, give up already
+				// (this would happen if your initing fails at all and your resolution already was 640x480)
+				return false;
+			}
+
+			ri.Cvar_SetValue("r_mode", sw_state.prev_mode);
+			r_mode->modified = false;
+		}
+
+		/* try setting it back to something safe */
+		if ((err = SWimp_SetMode(&vid.width, &vid.height, sw_state.prev_mode, 0)) != rserr_ok)
+		{
+			R_Printf(PRINT_ALL, "%s() - could not revert to safe mode\n", __func__);
+			return false;
+		}
+	}
+
+	return true;
 }
 
 /*
@@ -2247,26 +2295,22 @@ void
 Sys_Error (char *error, ...)
 {
 	va_list		argptr;
-	char		text[1024];
+	char		text[4096]; // MAXPRINTMSG == 4096
 
-	va_start (argptr, error);
-	vsprintf (text, error, argptr);
-	va_end (argptr);
+	va_start(argptr, error);
+	vsnprintf(text, sizeof(text), error, argptr);
+	va_end(argptr);
 
 	ri.Sys_Error (ERR_FATAL, "%s", text);
 }
 
 void
-Com_Printf (char *fmt, ...)
+Com_Printf(char *msg, ...)
 {
-	va_list		argptr;
-	char		text[1024];
-
-	va_start (argptr, fmt);
-	vsprintf (text, fmt, argptr);
-	va_end (argptr);
-
-	R_Printf(PRINT_ALL, "%s", text);
+	va_list	argptr;
+	va_start(argptr, msg);
+	ri.Com_VPrintf(PRINT_ALL, msg, argptr);
+	va_end(argptr);
 }
 
 /*
