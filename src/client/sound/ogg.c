@@ -324,6 +324,11 @@ OGG_Stream(void)
 void
 OGG_PlayTrack(int trackNo)
 {
+	if (sound_started == SS_NOT)
+	{
+		return; // sound is not initialized
+	}
+
 	// Track 0 means "stop music".
 	if(trackNo == 0)
 	{
