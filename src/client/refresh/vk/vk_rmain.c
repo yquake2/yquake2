@@ -926,19 +926,23 @@ void R_RenderView (refdef_t *fd)
 	}
 }
 
-void R_EndWorldRenderpass(void)
+qboolean R_EndWorldRenderpass(void)
 {
+	// still some issues?
+	if (!vk_frameStarted)
+	{
+		R_Printf(PRINT_ALL, "\nSwapchain issue?\n");
+		// we can't start 2d rendering
+		return false;
+	}
+
 	// 3d world has alredy rendered and 2d already initialized
 	if (world_rendered)
 	{
-		return;
+		return true;
 	}
 
 	world_rendered = true;
-
-	// this may happen if swapchain image acquisition fails
-	if (!vk_frameStarted)
-		return;
 
 	// finish rendering world view to offsceen buffer
 	vkCmdEndRenderPass(vk_activeCmdbuffer);
@@ -954,13 +958,17 @@ void R_EndWorldRenderpass(void)
 
 	// start drawing UI
 	QVk_BeginRenderpass(RP_UI);
+
+	return true;
 }
 
 void R_SetVulkan2D (void)
 {
 	// player configuration screen renders a model using the UI renderpass, so skip finishing RP_WORLD twice
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
-		R_EndWorldRenderpass();
+		if(!R_EndWorldRenderpass())
+			// buffers is not initialized
+			return;
 
 	extern VkViewport vk_viewport;
 	extern VkRect2D vk_scissor;
@@ -1327,6 +1335,8 @@ static void
 RE_EndFrame( void )
 {
 	QVk_EndFrame(false);
+	// world has not rendered yet
+	world_rendered = false;
 }
 
 /*
