@@ -58,7 +58,9 @@ void Draw_CharScaled (int x, int y, int num, float scale)
 	int	row, col;
 	float	frow, fcol, size;
 
-	R_EndWorldRenderpass();
+	if(!R_EndWorldRenderpass())
+		// buffers is not initialized
+		return;
 
 	num &= 255;
 
@@ -131,7 +133,9 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 {
 	image_t *vk;
 
-	R_EndWorldRenderpass();
+	if(!R_EndWorldRenderpass())
+		// buffers is not initialized
+		return;
 
 	vk = Draw_FindPic(pic);
 	if (!vk)
@@ -157,7 +161,9 @@ void Draw_PicScaled (int x, int y, char *pic, float scale)
 {
 	image_t *vk;
 
-	R_EndWorldRenderpass();
+	if(!R_EndWorldRenderpass())
+		// buffers is not initialized
+		return;
 
 	vk = Draw_FindPic(pic);
 	if (!vk)
@@ -181,7 +187,9 @@ void Draw_TileClear (int x, int y, int w, int h, char *pic)
 {
 	image_t	*image;
 
-	R_EndWorldRenderpass();
+	if(!R_EndWorldRenderpass())
+		// buffers is not initialized
+		return;
 
 	image = Draw_FindPic(pic);
 	if (!image)
@@ -213,7 +221,9 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 		byte		v[4];
 	} color;
 
-	R_EndWorldRenderpass();
+	if(!R_EndWorldRenderpass())
+		// buffers is not initialized
+		return;
 
 	if ((unsigned)c > 255)
 		ri.Sys_Error(ERR_FATAL, "%s: bad color", __func__);
@@ -238,7 +248,9 @@ void Draw_FadeScreen (void)
 {
 	float imgTransform[] = { 0.f, 0.f, vid.width, vid.height, 0.f, 0.f, 0.f, .8f };
 
-	R_EndWorldRenderpass();
+	if(!R_EndWorldRenderpass())
+		// buffers is not initialized
+		return;
 
 	QVk_DrawColorRect(imgTransform, sizeof(imgTransform), RP_UI);
 }
@@ -265,7 +277,9 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 	int			row;
 	float		t;
 
-	R_EndWorldRenderpass();
+	if(!R_EndWorldRenderpass())
+		// buffers is not initialized
+		return;
 
 	if (rows <= 256)
 	{
