@@ -53,22 +53,6 @@
  #define CFGDIR ".yq2"
 #endif
 
-// stuff to align variables/arrays
-#if __STDC_VERSION__ >= 201112L // C11 or newer
-	#define YQ2_ALIGNAS_SIZE(SIZE)  _Alignas(SIZE)
-	#define YQ2_ALIGNAS_TYPE(TYPE)  _Alignas(TYPE)
-#elif defined(__GNUC__) // GCC and clang should support this attribute
-	#define YQ2_ALIGNAS_SIZE(SIZE)  __attribute__(( __aligned__(SIZE) ))
-	#define YQ2_ALIGNAS_TYPE(TYPE)  __attribute__(( __aligned__(__alignof__(TYPE)) ))
-#elif defined(_MSC_VER)
-	#define YQ2_ALIGNAS_SIZE(SIZE)  __declspec( align(SIZE) )
-	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec( align( __alignof(TYPE) ) )
-#else
-	#warning "Please add a case for your compiler here to align correctly"
-	#define YQ2_ALIGNAS_TYPE(TYPE)
-#endif
-
-
 /* ================================================================== */
 
 typedef struct sizebuf_s
