@@ -53,19 +53,26 @@ typedef unsigned char byte;
  #define NULL ((void *)0)
 #endif
 
-// stuff to align variables/arrays
+// stuff to align variables/arrays and for noreturn
 #if __STDC_VERSION__ >= 201112L // C11 or newer
 	#define YQ2_ALIGNAS_SIZE(SIZE)  _Alignas(SIZE)
 	#define YQ2_ALIGNAS_TYPE(TYPE)  _Alignas(TYPE)
+	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
+	#define YQ2_ATTR_NORETURN       _Noreturn
 #elif defined(__GNUC__) // GCC and clang should support this attribute
 	#define YQ2_ALIGNAS_SIZE(SIZE)  __attribute__(( __aligned__(SIZE) ))
 	#define YQ2_ALIGNAS_TYPE(TYPE)  __attribute__(( __aligned__(__alignof__(TYPE)) ))
+	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
+	#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
 #elif defined(_MSC_VER)
 	#define YQ2_ALIGNAS_SIZE(SIZE)  __declspec( align(SIZE) )
 	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec( align( __alignof(TYPE) ) )
+	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
+	#define YQ2_ATTR_NORETURN       __declspec(noreturn)
 #else
 	#warning "Please add a case for your compiler here to align correctly"
 	#define YQ2_ALIGNAS_TYPE(TYPE)
+	#define YQ2_ATTR_NORETURN
 #endif
 
 /* angle indexes */
@@ -338,7 +345,7 @@ char *Sys_FindNext(unsigned musthave, unsigned canthave);
 void Sys_FindClose(void);
 
 /* this is only here so the functions in shared source files can link */
-void Sys_Error(char *error, ...);
+YQ2_ATTR_NORETURN void Sys_Error(char *error, ...);
 void Com_Printf(char *msg, ...);
 
 /*

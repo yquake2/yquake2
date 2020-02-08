@@ -241,8 +241,6 @@ void SV_WriteFrameToClient(client_t *client, sizebuf_t *msg);
 void SV_RecordDemoMessage(void);
 void SV_BuildClientFrame(client_t *client);
 
-void SV_Error(char *error, ...);
-
 extern game_export_t *ge;
 
 void SV_InitGameProgs(void);

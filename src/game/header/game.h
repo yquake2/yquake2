@@ -120,7 +120,7 @@ typedef struct
 	   they connect, and changes are sent to all connected clients. */
 	void (*configstring)(int num, char *string);
 
-	void (*error)(char *fmt, ...);
+	YQ2_ATTR_NORETURN void (*error)(char *fmt, ...);
 
 	/* the *index functions create configstrings
 	   and some internal server state */
