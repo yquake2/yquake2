@@ -35,7 +35,7 @@ Mod_DecompressVis
 byte *
 Mod_DecompressVis(byte *in, int row)
 {
-	static byte decompressed[MAX_MAP_LEAFS / 8];
+	YQ2_ALIGNAS_TYPE(int) static byte decompressed[MAX_MAP_LEAFS / 8];
 	int c;
 	byte *out;
 
