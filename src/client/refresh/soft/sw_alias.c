@@ -83,6 +83,7 @@ R_AliasCheckBBox
 static unsigned long
 R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 {
+	// FIXME: should this really be using long and not int32_t or sth?
 	unsigned long aggregate_and_clipcode = ~0U,
 		          aggregate_or_clipcode = 0;
 	int           i;

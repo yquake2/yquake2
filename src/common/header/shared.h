@@ -179,6 +179,7 @@ extern vec3_t vec3_origin;
 
 #define IS_NAN(x) (((*(int *)&x) & nanmask) == nanmask)
 
+// FIXME: use int instead of long, it's only used with int anyway?
 #define Q_ftol(f) (long)(f)
 
 #define DotProduct(x, y) (x[0] * y[0] + x[1] * y[1] + x[2] * y[2])

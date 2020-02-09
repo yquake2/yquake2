@@ -738,11 +738,8 @@ Qcommon_Frame(int usec)
 	if (packetframe) {
 		SV_Frame(servertimedelta);
 		servertimedelta = 0;
-	}
 
-
-	// Reset deltas if necessary.
-	if (packetframe) {
+		// Reset deltas if necessary.
 		packetdelta = 0;
 	}
 }
