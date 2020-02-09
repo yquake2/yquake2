@@ -30,7 +30,7 @@
 enum { MAX_MOD_KNOWN = 512 };
 
 static gl3model_t *loadmodel;
-static byte mod_novis[MAX_MAP_LEAFS / 8];
+YQ2_ALIGNAS_TYPE(int) static byte mod_novis[MAX_MAP_LEAFS / 8];
 gl3model_t mod_known[MAX_MOD_KNOWN];
 static int mod_numknown;
 int registration_sequence;
@@ -849,7 +849,7 @@ Mod_LoadBrushModel(gl3model_t *mod, void *buffer, int modfilelen)
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VERTEXES], sizeof(dvertex_t), sizeof(mvertex_t));
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_EDGES], sizeof(dedge_t), sizeof(medge_t));
 	hunkSize += sizeof(medge_t) + 31; // for count+1 in Mod_LoadEdges()
-	float surfEdgeCount = header->lumps[LUMP_SURFEDGES].filelen/sizeof(int);
+	int surfEdgeCount = (header->lumps[LUMP_SURFEDGES].filelen+sizeof(int)-1)/sizeof(int);
 	if(surfEdgeCount < MAX_MAP_SURFEDGES) // else it errors out later anyway
 		hunkSize += calcLumpHunkSize(&header->lumps[LUMP_SURFEDGES], sizeof(int), sizeof(int));
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LIGHTING], 1, 1);

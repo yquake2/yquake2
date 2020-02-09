@@ -806,10 +806,8 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	return true;
 
 err_cleanup:
-	if(shaders2D[0] != 0)  glDeleteShader(shaders2D[0]);
-	if(shaders2D[1] != 0)  glDeleteShader(shaders2D[1]);
 
-	if(prog != 0)  glDeleteProgram(prog);
+	glDeleteProgram(prog);
 
 	return false;
 }
@@ -948,8 +946,8 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 
 err_cleanup:
 
-	if(shaders3D[0] != 0)  glDeleteShader(shaders3D[0]);
-	if(shaders3D[1] != 0)  glDeleteShader(shaders3D[1]);
+	glDeleteShader(shaders3D[0]);
+	glDeleteShader(shaders3D[1]);
 
 	if(prog != 0)  glDeleteProgram(prog);
 

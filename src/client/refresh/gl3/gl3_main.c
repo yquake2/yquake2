@@ -324,7 +324,6 @@ enum
 {
 	rserr_ok,
 
-	rserr_invalid_fullscreen,
 	rserr_invalid_mode,
 
 	rserr_unknown
@@ -393,18 +392,7 @@ GL3_SetMode(void)
 	}
 	else
 	{
-		if (err == rserr_invalid_fullscreen)
-		{
-			ri.Cvar_SetValue("vid_fullscreen", 0);
-			vid_fullscreen->modified = false;
-			R_Printf(PRINT_ALL, "ref_gl3::GL3_SetMode() - fullscreen unavailable in this mode\n");
-
-			if ((err = SetMode_impl(&vid.width, &vid.height, r_mode->value, 0)) == rserr_ok)
-			{
-				return true;
-			}
-		}
-		else if (err == rserr_invalid_mode)
+		if (err == rserr_invalid_mode)
 		{
 			R_Printf(PRINT_ALL, "ref_gl3::GL3_SetMode() - invalid mode\n");
 
@@ -922,7 +910,7 @@ GL3_DrawParticles(void)
 	{
 		int i;
 		int numParticles = gl3_newrefdef.num_particles;
-		unsigned char color[4];
+		YQ2_ALIGNAS_TYPE(unsigned) byte color[4];
 		const particle_t *p;
 		// assume the size looks good with window height 480px and scale according to real resolution
 		float pointSize = gl3_particle_size->value * (float)gl3_newrefdef.height/480.0f;

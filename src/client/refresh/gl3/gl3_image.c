@@ -312,21 +312,16 @@ FloodFillSkin(byte *skin, int skinwidth, int skinheight)
 	byte fillcolor = *skin; /* assume this is the pixel to fill */
 	floodfill_t fifo[FLOODFILL_FIFO_SIZE];
 	int inpt = 0, outpt = 0;
-	int filledcolor = -1;
+	int filledcolor = 0;
 	int i;
 
-	if (filledcolor == -1)
+	/* attempt to find opaque black */
+	for (i = 0; i < 256; ++i)
 	{
-		filledcolor = 0;
-
-		/* attempt to find opaque black */
-		for (i = 0; i < 256; ++i)
+		if (LittleLong(d_8to24table[i]) == (255 << 0)) /* alpha 1.0 */
 		{
-			if (LittleLong(d_8to24table[i]) == (255 << 0)) /* alpha 1.0 */
-			{
-				filledcolor = i;
-				break;
-			}
+			filledcolor = i;
+			break;
 		}
 	}
 
