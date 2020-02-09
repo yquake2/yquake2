@@ -644,9 +644,7 @@ insane_run(edict_t *self)
 	{
 		self->monsterinfo.currentmove = &insane_move_runcrawl;
 	}
-	else
-
-	if (random() <= 0.5) /* Else, mix it up */
+	else if (frandk() <= 0.5) /* Else, mix it up */
 	{
 		self->monsterinfo.currentmove = &insane_move_run_normal;
 	}

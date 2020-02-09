@@ -193,11 +193,6 @@ GaldiatorMelee(edict_t *self)
 		return;
 	}
 
-	if (!self)
-	{
-		return;
-	}
-
 	VectorSet(aim, MELEE_DISTANCE, self->mins[0], -4);
 
 	if (fire_hit(self, aim, (20 + (randk() % 5)), 300))

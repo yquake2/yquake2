@@ -85,8 +85,8 @@ StringToFilter(char *s, ipfilter_t *f)
 {
 	char num[128];
 	int i, j;
-	byte b[4];
-	byte m[4];
+	YQ2_ALIGNAS_TYPE(unsigned) byte b[4];
+	YQ2_ALIGNAS_TYPE(unsigned) byte m[4];
 
 	if (!s || !f)
 	{
@@ -141,7 +141,7 @@ SV_FilterPacket(char *from)
 {
 	int i;
 	unsigned in;
-	byte m[4];
+	YQ2_ALIGNAS_TYPE(unsigned) byte m[4];
 	char *p;
 
 	if (!from)
@@ -259,7 +259,7 @@ void
 SVCmd_ListIP_f(void)
 {
 	int i;
-	byte b[4];
+	YQ2_ALIGNAS_TYPE(unsigned) byte b[4];
 
 	gi.cprintf(NULL, PRINT_HIGH, "Filter list:\n");
 
@@ -276,7 +276,7 @@ SVCmd_WriteIP_f(void)
 {
 	FILE *f;
 	char name[MAX_OSPATH];
-	byte b[4];
+	YQ2_ALIGNAS_TYPE(unsigned) byte b[4];
 	int i;
 	cvar_t *game;
 

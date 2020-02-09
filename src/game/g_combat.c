@@ -146,7 +146,7 @@ Killed(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 			}
 
 			/* medics won't heal monsters that they kill themselves */
-			if (attacker && attacker->classname && strcmp(attacker->classname, "monster_medic") == 0)
+			if (attacker->classname && strcmp(attacker->classname, "monster_medic") == 0)
 			{
 				targ->owner = attacker;
 			}
@@ -490,7 +490,7 @@ M_ReactToDamage(edict_t *targ, edict_t *attacker)
 	}
 	/* otherwise get mad at whoever they are mad
 	   at (help our buddy) unless it is us! */
-	else if (attacker->enemy && (attacker->enemy != targ))
+	else if (attacker->enemy)
 	{
 		if (targ->enemy && targ->enemy->client)
 		{
@@ -654,12 +654,6 @@ T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker,
 
 	/* treat cheat/powerup savings the same as armor */
 	asave += save;
-
-	/* team damage avoidance */
-	if (!(dflags & DAMAGE_NO_PROTECTION) && false)
-	{
-		return;
-	}
 
 	/* do the damage */
 	if (take)

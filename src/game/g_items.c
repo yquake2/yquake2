@@ -1301,13 +1301,13 @@ Drop_Item(edict_t *ent, gitem_t *item)
 	dropped->s.effects = item->world_model_flags;
 	dropped->s.renderfx = RF_GLOW;
 
-	if (randk() > 0.5)
+	if (frandk() > 0.5)
 	{
-		dropped->s.angles[1] += randk()*45;
+		dropped->s.angles[1] += frandk()*45;
 	}
 	else
 	{
-		dropped->s.angles[1] -= randk()*45;
+		dropped->s.angles[1] -= frandk()*45;
 	}
 
 	VectorSet (dropped->mins, -16, -16, -16);
