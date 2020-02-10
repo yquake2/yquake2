@@ -1288,8 +1288,9 @@ RE_BeginFrame( float camera_separation )
 	** change modes if necessary
 	*/
 	if (r_mode->modified || vid_fullscreen->modified || vk_msaa->modified || r_clear->modified || vk_picmip->modified ||
-		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified || vid_gamma->modified ||
-		vk_mip_nearfilter->modified || vk_sampleshading->modified || r_vsync->modified || vk_device_idx->modified || vk_overbrightbits->modified)
+		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified ||
+		vk_mip_nearfilter->modified || vk_sampleshading->modified || r_vsync->modified || vk_device_idx->modified ||
+		vk_overbrightbits->modified)
 	{
 		if (vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified)
 		{
