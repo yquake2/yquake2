@@ -58,9 +58,22 @@ Hunk_Begin(int maxsize)
 	/* plus 32 bytes for cacheline */
 	maxhunksize = maxsize + sizeof(size_t) + 32;
 	curhunksize = 0;
+	int flags = MAP_PRIVATE | MAP_ANONYMOUS;
+
+#if defined(MAP_ALIGNED_SUPER)
+	const size_t hgpagesize = 1UL<<21;
+	size_t page_size = sysconf(_SC_PAGESIZE);
+
+	/* Archs supported has 2MB for super pages size */
+	if (maxhunksize >= hgpagesize)
+	{
+		maxhunksize = (maxhunksize & ~(page_size-1)) + page_size;
+		flags |= MAP_ALIGNED_SUPER;
+	}
+#endif
 
 	membase = mmap(0, maxhunksize, PROT_READ | PROT_WRITE,
-			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+			flags, -1, 0);
 
 	if ((membase == NULL) || (membase == (byte *)-1))
 	{
