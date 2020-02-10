@@ -341,6 +341,13 @@ R_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t 
 			size8 = R_GetImageMipsSize(width * height);
 			pic8 = malloc(size8);
 
+			if (!pic8)
+			{
+				ri.Sys_Error(ERR_FATAL, "%s: Can't allocate image.", __func__);
+				// code never returns after ERR_FATAL
+				return NULL;
+			}
+
 			if (width != realwidth || height != realheight)
 			{
 				// temporary place for shrinked image
@@ -566,7 +573,14 @@ R_InitImages (void)
 		// code never returns after ERR_FATAL
 		return;
 	}
+
 	d_16to8table = malloc(0x10000);
+	if ( !d_16to8table )
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: Couldn't allocate memory for d_16to8table", __func__);
+		// code never returns after ERR_FATAL
+		return;
+	}
 	memcpy(d_16to8table, table16to8, 0x10000);
 	ri.FS_FreeFile((void *)table16to8);
 

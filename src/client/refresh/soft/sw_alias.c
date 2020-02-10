@@ -89,7 +89,7 @@ R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 	int           i;
 	vec3_t        mins, maxs;
 	vec3_t        transformed_min, transformed_max;
-	qboolean      zclipped = false, zfullyclipped = true;
+	qboolean      zfullyclipped = true;
 
 	/*
 	** get the exact frame bounding box
@@ -114,10 +114,6 @@ R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 	if ( zfullyclipped )
 	{
 		return BBOX_TRIVIAL_REJECT;
-	}
-	if ( zclipped )
-	{
-		return ( BBOX_MUST_CLIP_XY | BBOX_MUST_CLIP_Z );
 	}
 
 	/*
@@ -593,9 +589,6 @@ R_AliasSetupLighting(entity_t *currententity)
 		r_ambientlight = LIGHT_MIN;
 
 	r_ambientlight = (255 - r_ambientlight) << VID_CBITS;
-
-	if (r_ambientlight < LIGHT_MIN)
-		r_ambientlight = LIGHT_MIN;
 
 	r_shadelight = lighting.shadelight;
 
