@@ -62,7 +62,6 @@ int sys_frame_time;
 qboolean joy_altselector_pressed = false;
 
 // Console Variables
-cvar_t *vid_fullscreen;
 cvar_t *freelook;
 cvar_t *lookstrafe;
 cvar_t *m_forward;
@@ -1246,7 +1245,6 @@ IN_Init(void)
 	joy_axis_triggerleft_threshold = Cvar_Get("joy_axis_triggerleft_threshold", "0.15", CVAR_ARCHIVE);
 	joy_axis_triggerright_threshold = Cvar_Get("joy_axis_triggerright_threshold", "0.15", CVAR_ARCHIVE);
 
-	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
 	Cmd_AddCommand("+mlook", IN_MLookDown);
