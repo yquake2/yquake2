@@ -35,8 +35,6 @@ void CL_Connect_f(void);
 void CL_Rcon_f(void);
 void CL_CheckForResend(void);
 
-cvar_t *freelook;
-
 cvar_t *rcon_client_password;
 cvar_t *rcon_address;
 
@@ -57,14 +55,6 @@ cvar_t *cl_showclamp;
 
 cvar_t *cl_paused;
 cvar_t *cl_loadpaused;
-
-cvar_t *lookstrafe;
-cvar_t *sensitivity;
-
-cvar_t *m_pitch;
-cvar_t *m_yaw;
-cvar_t *m_forward;
-cvar_t *m_side;
 
 cvar_t *cl_lightlevel;
 
@@ -516,14 +506,6 @@ CL_InitLocal(void)
 	cl_anglespeedkey = Cvar_Get("cl_anglespeedkey", "1.5", 0);
 
 	cl_run = Cvar_Get("cl_run", "0", CVAR_ARCHIVE);
-	freelook = Cvar_Get("freelook", "1", CVAR_ARCHIVE);
-	lookstrafe = Cvar_Get("lookstrafe", "0", CVAR_ARCHIVE);
-	sensitivity = Cvar_Get("sensitivity", "3", CVAR_ARCHIVE);
-
-	m_pitch = Cvar_Get("m_pitch", "0.022", CVAR_ARCHIVE);
-	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
-	m_forward = Cvar_Get("m_forward", "1", 0);
-	m_side = Cvar_Get("m_side", "1", 0);
 
 	cl_shownet = Cvar_Get("cl_shownet", "0", 0);
 	cl_showmiss = Cvar_Get("cl_showmiss", "0", 0);
