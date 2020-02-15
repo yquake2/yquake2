@@ -76,7 +76,7 @@ R_TextureAnimation
 Returns the proper texture for a given time and base texture
 ===============
 */
-image_t *R_TextureAnimation (mtexinfo_t *tex)
+static image_t *R_TextureAnimation (mtexinfo_t *tex)
 {
 	int		c;
 
@@ -98,7 +98,7 @@ image_t *R_TextureAnimation (mtexinfo_t *tex)
 DrawVkPoly
 ================
 */
-void DrawVkPoly (vkpoly_t *p, image_t *texture, float *color)
+static void DrawVkPoly (vkpoly_t *p, image_t *texture, float *color)
 {
 	int		i;
 	float	*v;
@@ -145,7 +145,7 @@ void DrawVkPoly (vkpoly_t *p, image_t *texture, float *color)
 DrawVkFlowingPoly -- version of DrawVkPoly that handles scrolling texture
 ================
 */
-void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
+static void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
 {
 	int		i;
 	float	*v;
@@ -198,7 +198,7 @@ void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
 /*
 ** R_DrawTriangleOutlines
 */
-void R_DrawTriangleOutlines (void)
+static void R_DrawTriangleOutlines (void)
 {
 	int			i, j, k;
 	vkpoly_t	*p;
@@ -268,7 +268,7 @@ void R_DrawTriangleOutlines (void)
 R_RenderBrushPoly
 ================
 */
-void R_RenderBrushPoly (msurface_t *fa, float *modelMatrix, float alpha)
+static void R_RenderBrushPoly (msurface_t *fa, float *modelMatrix, float alpha)
 {
 	int			maps;
 	image_t		*image;
@@ -393,7 +393,7 @@ void R_DrawAlphaSurfaces (void)
 DrawTextureChains
 ================
 */
-void DrawTextureChains (void)
+static void DrawTextureChains (void)
 {
 	int		i;
 	msurface_t	*s;
@@ -673,7 +673,7 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 R_DrawInlineBModel
 =================
 */
-void R_DrawInlineBModel (float *modelMatrix)
+static void R_DrawInlineBModel (float *modelMatrix)
 {
 	int			i, k;
 	cplane_t	*pplane;
@@ -804,7 +804,7 @@ void R_DrawBrushModel (entity_t *e)
 R_RecursiveWorldNode
 ================
 */
-void R_RecursiveWorldNode (mnode_t *node)
+static void R_RecursiveWorldNode (mnode_t *node)
 {
 	int			c, side, sidebit;
 	cplane_t	*plane;
@@ -821,7 +821,7 @@ void R_RecursiveWorldNode (mnode_t *node)
 	if (R_CullBox (node->minmaxs, node->minmaxs+3))
 		return;
 
-// if a leaf node, draw stuff
+	// if a leaf node, draw stuff
 	if (node->contents != -1)
 	{
 		pleaf = (mleaf_t *)node;
@@ -848,9 +848,8 @@ void R_RecursiveWorldNode (mnode_t *node)
 		return;
 	}
 
-// node is just a decision point, so go down the apropriate sides
-
-// find which side of the node we are on
+	// node is just a decision point, so go down the apropriate sides
+	// find which side of the node we are on
 	plane = node->plane;
 
 	switch (plane->type)
@@ -880,7 +879,7 @@ void R_RecursiveWorldNode (mnode_t *node)
 		sidebit = SURF_PLANEBACK;
 	}
 
-// recurse down the children, front side first
+	// recurse down the children, front side first
 	R_RecursiveWorldNode (node->children[side]);
 
 	// draw stuff
