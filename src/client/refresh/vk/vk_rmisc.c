@@ -18,7 +18,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// r_misc.c
+// vk_misc.c
 
 #include "header/vk_local.h"
 
@@ -129,9 +129,6 @@ void Vk_ScreenShot_f (void)
 void Vk_Strings_f(void)
 {
 	int i = 0;
-	char ver[] = { "vkQuake2 v"VKQUAKE2_VERSION };
-	for (i = 0; i < strlen(ver); i++)
-		ver[i] += 128;
 
 	uint32_t numDevices = 0;
 	int usedDevice = 0;
@@ -161,7 +158,6 @@ void Vk_Strings_f(void)
 
 	if (preferredDevice >= numDevices) preferredDevice = -1;
 
-	R_Printf(PRINT_ALL, "\n%s\n", ver);
 	R_Printf(PRINT_ALL, "------------------------------------\n");
 	R_Printf(PRINT_ALL, "Vulkan API: %d.%d\n",  VK_VERSION_MAJOR(vk_config.vk_version),
 													 VK_VERSION_MINOR(vk_config.vk_version));
