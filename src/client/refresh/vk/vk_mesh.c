@@ -62,7 +62,7 @@ static float r_vulkan_correction_dh[16] = { 1.f,  0.f, 0.f, 0.f,
 											0.f,  0.f, .3f, 1.f
 										  };
 
-void Vk_LerpVerts( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, float *lerp, float move[3], float frontv[3], float backv[3] )
+static void Vk_LerpVerts( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, float *lerp, float move[3], float frontv[3], float backv[3] )
 {
 	int i;
 
@@ -98,7 +98,7 @@ interpolates between two frames and origins
 FIXME: batch lerp all vertexes
 =============
 */
-void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, float *modelMatrix, int leftHandOffset, int translucentIdx)
+static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, float *modelMatrix, int leftHandOffset, int translucentIdx)
 {
 	float 	l;
 	daliasframe_t	*frame, *oldframe;
@@ -308,7 +308,7 @@ Vk_DrawAliasShadow
 */
 extern	vec3_t			lightspot;
 
-void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
+static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 {
 	int		*order;
 	vec3_t	point;
