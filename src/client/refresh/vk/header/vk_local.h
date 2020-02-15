@@ -33,21 +33,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "qvk.h"
 
-#define	REF_VERSION	"Vulkan (vkQuake2 v"VKQUAKE2_VERSION")"
-#define VKQUAKE2_VERSION "1.4.3"
-
 // verify if VkResult is VK_SUCCESS
-#ifdef _DEBUG
 #define VK_VERIFY(x) { \
 		VkResult res = (x); \
 		if(res != VK_SUCCESS) { \
-			R_Printf(PRINT_ALL, "VkResult verification failed: %s in %s:%d\n", QVk_GetError(res), __FILE__, __LINE__); \
-			assert(res == VK_SUCCESS && "VkResult verification failed!"); \
+			R_Printf(PRINT_ALL, "%s:%d: VkResult verification failed: %s\n", \
+                                 __func__, __LINE__, QVk_GetError(res)); \
 		} \
 }
-#else
-#	define VK_VERIFY(x) (void)(x)
-#endif
 
 // up / down
 #define	PITCH	0
@@ -197,7 +190,6 @@ extern	qvksampler_t vk_current_lmap_sampler;
 qboolean R_Init( void );
 void	 R_Shutdown( void );
 
-void R_RenderView (refdef_t *fd);
 void Vk_ScreenShot_f (void);
 void R_DrawAliasModel (entity_t *e);
 void R_DrawBrushModel (entity_t *e);
@@ -206,7 +198,6 @@ void R_DrawBeam( entity_t *e );
 void R_DrawWorld (void);
 void R_RenderDlights (void);
 void R_DrawAlphaSurfaces (void);
-void R_RenderBrushPoly (msurface_t *fa, float *modelMatrix, float alpha);
 void R_InitParticleTexture (void);
 void Draw_InitLocal (void);
 void Vk_SubdivideSurface (msurface_t *fa);
@@ -219,6 +210,8 @@ void R_AddSkySurface (msurface_t *fa);
 void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
 void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
+
+struct image_s	*Draw_FindPic (char *name);
 
 void	Draw_GetPicSize (int *w, int *h, char *name);
 void	Draw_PicScaled (int x, int y, char *name, float scale);
@@ -244,6 +237,12 @@ void	Vk_InitImages (void);
 void	Vk_ShutdownImages (void);
 void	Vk_FreeUnusedImages (void);
 void	Vk_DrawParticles( int n, const particle_t particles[], const unsigned colortable[768] );
+
+void	R_BeginRegistration (char *model);
+struct model_s	*R_RegisterModel (char *name);
+struct image_s	*R_RegisterSkin (char *name);
+void	R_SetSky (char *name, float rotate, vec3_t axis);
+void	R_EndRegistration (void);
 
 void Mat_Identity(float *matrix);
 void Mat_Mul(float *m1, float *m2, float *res);
