@@ -31,6 +31,7 @@
 extern cvar_t *vid_renderer;
 
 cvar_t *cin_force43;
+int abort_cinematic;
 
 typedef struct
 {
@@ -321,8 +322,7 @@ Huff1Decompress(cblock_t in)
 	int *hnodes, *hnodesbase;
 
 	/* get decompressed count */
-	count = in.data[0] +
-			(in.data[1] << 8) + (in.data[2] << 16) + (in.data[3] << 24);
+	count = in.data[0] + (in.data[1] << 8) + (in.data[2] << 16) + (in.data[3] << 24);
 	input = in.data + 4;
 	out_p = out.data = Z_Malloc(count);
 
@@ -632,6 +632,7 @@ SCR_PlayCinematic(char *arg)
 	char name[MAX_OSPATH], *dot;
 
 	In_FlushQueue();
+	abort_cinematic = INT_MAX;
 
 	/* make sure background music is not playing */
 	OGG_Stop();
