@@ -103,6 +103,8 @@ fsPackTypes_t fs_packtypes[] = {
 	{"pak", PAK},
 	{"pk2", PK3},
 	{"pk3", PK3},
+	// For compatibility with Q2PRO, as PKZ is the only ZIP-like extension supported by that source port.
+	{"pkz", PK3},
 	{"zip", PK3}
 };
 
@@ -1772,4 +1774,3 @@ FS_InitFilesystem(void)
 	// Debug output
 	Com_Printf("Using '%s' for writing.\n", fs_gamedir);
 }
-
