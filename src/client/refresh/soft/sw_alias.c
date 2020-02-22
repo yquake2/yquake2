@@ -360,9 +360,18 @@ R_AliasSetUpTransform(const entity_t *currententity)
 	VectorInverse (viewmatrix[1]);
 	VectorCopy (vpn, viewmatrix[2]);
 
-	viewmatrix[0][3] = 0;
-	viewmatrix[1][3] = 0;
-	viewmatrix[2][3] = 0;
+	if ( currententity->flags & RF_WEAPONMODEL )
+	{
+		viewmatrix[0][3] = 0;
+		viewmatrix[1][3] = 0;
+		viewmatrix[2][3] = 8;
+	}
+	else
+	{
+		viewmatrix[0][3] = 0;
+		viewmatrix[1][3] = 0;
+		viewmatrix[2][3] = 0;
+	}
 
 	// memcpy( aliasworldtransform, rotationmatrix, sizeof( aliastransform ) );
 
@@ -440,6 +449,7 @@ R_AliasTransformFinalVerts(const entity_t *currententity, int numpoints, finalve
 			R_AliasProjectAndClipTestFinalVert( fv );
 		}
 	}
+
 }
 
 /*
