@@ -103,6 +103,7 @@ fsPackTypes_t fs_packtypes[] = {
 	{"pak", PAK},
 	{"pk2", PK3},
 	{"pk3", PK3},
+	{"pkz", PK3},
 	{"zip", PK3}
 };
 
