@@ -1822,6 +1822,16 @@ GL3_SetPalette(const unsigned char *palette)
 	glClearColor(1, 0, 0.5, 0.5);
 }
 
+/*
+=====================
+GL3_EndWorldRenderpass
+=====================
+*/
+static void
+GL3_EndWorldRenderpass( void )
+{
+}
+
 Q2_DLL_EXPORTED refexport_t
 GetRefAPI(refimport_t imp)
 {
@@ -1862,6 +1872,7 @@ GetRefAPI(refimport_t imp)
 	re.SetPalette = GL3_SetPalette;
 
 	re.BeginFrame = GL3_BeginFrame;
+	re.EndWorldRenderpass = GL3_EndWorldRenderpass;
 	re.EndFrame = GL3_EndFrame;
 
 	return re;

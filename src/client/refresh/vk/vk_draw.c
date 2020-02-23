@@ -58,7 +58,7 @@ void Draw_CharScaled (int x, int y, int num, float scale)
 	int	row, col;
 	float	frow, fcol, size;
 
-	if(!R_EndWorldRenderpass())
+	if(!R_EndWorldRenderReady())
 		// buffers is not initialized
 		return;
 
@@ -133,7 +133,7 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 {
 	image_t *vk;
 
-	if(!R_EndWorldRenderpass())
+	if(!R_EndWorldRenderReady())
 		// buffers is not initialized
 		return;
 
@@ -161,7 +161,7 @@ void Draw_PicScaled (int x, int y, char *pic, float scale)
 {
 	image_t *vk;
 
-	if(!R_EndWorldRenderpass())
+	if(!R_EndWorldRenderReady())
 		// buffers is not initialized
 		return;
 
@@ -187,7 +187,7 @@ void Draw_TileClear (int x, int y, int w, int h, char *pic)
 {
 	image_t	*image;
 
-	if(!R_EndWorldRenderpass())
+	if(!R_EndWorldRenderReady())
 		// buffers is not initialized
 		return;
 
@@ -221,7 +221,7 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 		byte		v[4];
 	} color;
 
-	if(!R_EndWorldRenderpass())
+	if(!R_EndWorldRenderReady())
 		// buffers is not initialized
 		return;
 
@@ -248,7 +248,7 @@ void Draw_FadeScreen (void)
 {
 	float imgTransform[] = { 0.f, 0.f, vid.width, vid.height, 0.f, 0.f, 0.f, .8f };
 
-	if(!R_EndWorldRenderpass())
+	if(!R_EndWorldRenderReady())
 		// buffers is not initialized
 		return;
 
@@ -277,7 +277,7 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 	int			row;
 	float		t;
 
-	if(!R_EndWorldRenderpass())
+	if(!R_EndWorldRenderReady())
 		// buffers is not initialized
 		return;
 
