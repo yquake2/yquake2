@@ -931,7 +931,7 @@ static void RE_RenderView (refdef_t *fd)
 	}
 }
 
-qboolean R_EndWorldRenderpass(void)
+qboolean R_EndWorldRenderReady(void)
 {
 	// still some issues?
 	if (!vk_frameStarted)
@@ -970,7 +970,7 @@ static void R_SetVulkan2D (void)
 {
 	// player configuration screen renders a model using the UI renderpass, so skip finishing RP_WORLD twice
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
-		if(!R_EndWorldRenderpass())
+		if(!R_EndWorldRenderReady())
 			// buffers is not initialized
 			return;
 
@@ -1352,6 +1352,21 @@ RE_EndFrame( void )
 }
 
 /*
+=====================
+RE_EndWorldRenderpass
+=====================
+*/
+static void
+RE_EndWorldRenderpass( void )
+{
+	if (R_EndWorldRenderReady())
+	{
+		R_Printf(PRINT_ALL, "%s(): Buffers are not initilized.\n",
+			 __func__);
+	}
+}
+
+/*
 =============
 RE_SetPalette
 =============
@@ -1580,6 +1595,7 @@ GetRefAPI(refimport_t imp)
 
 	refexport.SetPalette = RE_SetPalette;
 	refexport.BeginFrame = RE_BeginFrame;
+	refexport.EndWorldRenderpass = RE_EndWorldRenderpass;
 	refexport.EndFrame = RE_EndFrame;
 
 	Swap_Init ();
