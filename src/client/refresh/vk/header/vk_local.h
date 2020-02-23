@@ -35,18 +35,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // verify if VkResult is VK_SUCCESS
 #define VK_VERIFY(x) { \
-		VkResult res = (x); \
-		if(res != VK_SUCCESS) { \
-			R_Printf(PRINT_ALL, "%s:%d: VkResult verification failed: %s\n", \
-                                 __func__, __LINE__, QVk_GetError(res)); \
-		} \
+	VkResult res = (x); \
+	if(res != VK_SUCCESS) { \
+		R_Printf(PRINT_ALL, "%s:%d: VkResult verification failed: %s\n", \
+			 __func__, __LINE__, QVk_GetError(res)); \
+	} \
 }
 
 // up / down
 #define	PITCH	0
 
 // left / right
-#define	YAW		1
+#define	YAW	1
 
 // fall over
 #define	ROLL	2
