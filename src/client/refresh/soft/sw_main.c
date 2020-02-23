@@ -423,6 +423,9 @@ R_Init
 static qboolean
 RE_Init(void)
 {
+	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
+	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
+
 	R_RegisterVariables ();
 	R_InitImages ();
 	Mod_Init ();
@@ -454,8 +457,6 @@ RE_Init(void)
 
 	// create the window
 	ri.Vid_MenuInit();
-
-	R_Printf(PRINT_ALL, "ref_soft version: "REF_VERSION"\n");
 
 	return true;
 }
@@ -1480,7 +1481,7 @@ RE_SetMode(void)
 			vid_fullscreen->modified = false;
 			R_Printf(PRINT_ALL, "%s() - fullscreen unavailable in this mode\n", __func__);
 
-			if ((err = SWimp_SetMode(&vid.width, &vid.height, r_mode->value, 0)) == rserr_ok)
+			if ((SWimp_SetMode(&vid.width, &vid.height, r_mode->value, 0)) == rserr_ok)
 			{
 				return true;
 			}
@@ -1501,7 +1502,7 @@ RE_SetMode(void)
 		}
 
 		/* try setting it back to something safe */
-		if ((err = SWimp_SetMode(&vid.width, &vid.height, sw_state.prev_mode, 0)) != rserr_ok)
+		if ((SWimp_SetMode(&vid.width, &vid.height, sw_state.prev_mode, 0)) != rserr_ok)
 		{
 			R_Printf(PRINT_ALL, "%s() - could not revert to safe mode\n", __func__);
 			return false;
