@@ -35,8 +35,11 @@
 #define DG_DYNARR_IMPLEMENTATION
 #include "header/DG_dynarr.h"
 
-
-#define REF_VERSION "Yamagi Quake II OpenGL3 Refresher"
+#ifdef YQ2_GL3_GLES3
+  #define REF_VERSION "Yamagi Quake II OpenGL ES3 Refresher"
+#else
+  #define REF_VERSION "Yamagi Quake II OpenGL3 Refresher"
+#endif
 
 refimport_t ri;
 

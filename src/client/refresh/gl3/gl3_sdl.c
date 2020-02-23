@@ -236,7 +236,11 @@ int GL3_PrepareForWindow(void)
 #endif
 
 	// Set GL context flags.
-	int contextFlags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+	int contextFlags = 0;
+
+#ifndef YQ2_GL3_GLES // Desktop GL (at least RPi4 doesn't like this for GLES3)
+	contextFlags |= SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+#endif
 
 	if (gl3_debugcontext && gl3_debugcontext->value)
 	{
@@ -347,7 +351,11 @@ int GL3_InitContext(void* win)
 
 		return false;
 	}
+#ifdef YQ2_GL3_GLES3
+	else if (GLVersion.major < 3)
+#else // Desktop GL
 	else if (GLVersion.major < 3 || (GLVersion.major == 3 && GLVersion.minor < 2))
+#endif
 	{
 		R_Printf(PRINT_ALL, "GL3_InitContext(): ERROR: glad only got GL version %d.%d!\n", GLVersion.major, GLVersion.minor);
 

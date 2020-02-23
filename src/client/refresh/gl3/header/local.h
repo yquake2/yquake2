@@ -94,10 +94,11 @@ enum {
 	GL3_ATTRIB_LIGHTFLAGS = 5  // uint, each set bit means "dyn light i affects this surface"
 };
 
-// TODO: do we need the following configurable?
-static const int gl3_solid_format = GL_RGB;
+// always using RGBA now, GLES3 on RPi4 doesn't work otherwise
+// and I think all modern GPUs prefer 4byte pixels over 3bytes
+static const int gl3_solid_format = GL_RGBA;
 static const int gl3_alpha_format = GL_RGBA;
-static const int gl3_tex_solid_format = GL_RGB;
+static const int gl3_tex_solid_format = GL_RGBA;
 static const int gl3_tex_alpha_format = GL_RGBA;
 
 extern unsigned gl3_rawpalette[256];
