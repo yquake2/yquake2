@@ -1361,8 +1361,10 @@ RE_EndWorldRenderpass( void )
 {
 	if (R_EndWorldRenderReady())
 	{
+/*
 		R_Printf(PRINT_ALL, "%s(): Buffers are not initilized.\n",
 			 __func__);
+*/
 	}
 }
 
