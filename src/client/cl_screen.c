@@ -1519,7 +1519,7 @@ SCR_UpdateScreen(void)
 		numframes = 2;
 		separation[0] = -gl1_stereo_separation->value / 2;
 		separation[1] = +gl1_stereo_separation->value / 2;
-	}		
+	}
 	else
 	{
 		separation[0] = 0;
@@ -1571,6 +1571,7 @@ SCR_UpdateScreen(void)
 					R_SetPalette(NULL);
 					cl.cinematicpalette_active = false;
 				}
+
 				R_EndWorldRenderpass();
 				SCR_DrawConsole();
 			}

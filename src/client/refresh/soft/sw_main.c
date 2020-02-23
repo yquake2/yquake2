@@ -423,9 +423,6 @@ R_Init
 static qboolean
 RE_Init(void)
 {
-	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
-	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
-
 	R_RegisterVariables ();
 	R_InitImages ();
 	Mod_Init ();
@@ -457,6 +454,8 @@ RE_Init(void)
 
 	// create the window
 	ri.Vid_MenuInit();
+
+	R_Printf(PRINT_ALL, "ref_soft version: "REF_VERSION"\n");
 
 	return true;
 }
