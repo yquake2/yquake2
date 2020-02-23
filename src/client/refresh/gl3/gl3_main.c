@@ -961,7 +961,12 @@ GL3_DrawParticles(void)
 
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
+
+#ifndef YQ2_GL3_GLES
+		// GLES doesn't have this, maybe it's always enabled? (https://gamedev.stackexchange.com/a/15528 says it works)
+		// luckily we don't use glPointSize() but set gl_PointSize in shader anyway
 		glEnable(GL_PROGRAM_POINT_SIZE);
+#endif
 
 		GL3_UseProgram(gl3state.siParticle.shaderProgram);
 
@@ -989,7 +994,9 @@ GL3_DrawParticles(void)
 
 		glDisable(GL_BLEND);
 		glDepthMask(GL_TRUE);
+#ifndef YQ2_GL3_GLES
 		glDisable(GL_PROGRAM_POINT_SIZE);
+#endif
 
 		YQ2_VLAFREE(buf);
 	}
@@ -1862,14 +1869,12 @@ GL3_BeginFrame(float camera_separation)
 		// TODO: stereo stuff
 		//if ((gl3state.camera_separation == 0) || gl3state.stereo_mode != STEREO_MODE_OPENGL)
 		{
+			GLenum drawBuffer = GL_BACK;
 			if (Q_stricmp(gl_drawbuffer->string, "GL_FRONT") == 0)
 			{
-				glDrawBuffer(GL_FRONT);
+				drawBuffer = GL_FRONT;
 			}
-			else
-			{
-				glDrawBuffer(GL_BACK);
-			}
+			glDrawBuffers(1, &drawBuffer);
 		}
 	}
 

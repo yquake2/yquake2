@@ -34,11 +34,24 @@
   // using system headers for their parsers/indexers but glad for real build
   // (in glad glFoo is just a #define to glad_glFoo or sth, which screws up autocompletion)
   // (you may have to configure your IDE to #define IN_IDE_PARSER, but not for building!)
+#ifdef YQ2_GL3_GLES3
+  #include <GLES3/gl32.h>
+#else // desktop GL3
   #define GL_GLEXT_PROTOTYPES 1
   #include <GL/gl.h>
   #include <GL/glext.h>
+#endif
+
 #else
+
+#ifdef YQ2_GL3_GLES3
+  #include "../glad-gles3/include/glad/glad.h"
+  // yes, this is a bit hacky, but it works :-P
+  #define glDepthRange glDepthRangef
+#else // desktop GL3
   #include "../glad/include/glad/glad.h"
+#endif
+
 #endif
 
 #include "../../ref_shared.h"

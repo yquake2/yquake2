@@ -26,6 +26,7 @@
  */
 
 #include <assert.h>
+#include <stddef.h> // ofsetof()
 
 #include "header/local.h"
 

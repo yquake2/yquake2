@@ -53,6 +53,9 @@ WITH_OPENAL:=yes
 # or libopenal.so. Not supported on Windows.
 WITH_RPATH:=yes
 
+# if set to yes, use OpenGL ES 3.0 instead of desktop OpenGL 3
+GL3_GLES3:=no
+
 # Enable systemwide installation of game assets.
 WITH_SYSTEMWIDE:=no
 
@@ -301,7 +304,11 @@ endif
 # ----------
 
 # Local includes for GLAD.
+ifeq ($(GL3_GLES3),yes)
+GLAD_INCLUDE = -Isrc/client/refresh/gl3/glad-gles3/include
+else
 GLAD_INCLUDE = -Isrc/client/refresh/gl3/glad/include
+endif
 
 # ----------
 
@@ -406,6 +413,7 @@ config:
 	@echo "WITH_RPATH = $(WITH_RPATH)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
+	@echo "GL3_GLES3 = $(GL3_GLES3)"
 	@echo "============================"
 	@echo ""
 
@@ -620,6 +628,12 @@ ref_gl3:
 
 release/ref_gl3.dll : LDFLAGS += -shared
 
+ifeq ($(GL3_GLES3),yes)
+# YQ2_GL3_GLES3 is for GLES3, DYQ2_GL3_GLES is for things that are identical
+# in both GLES3 and GLES2 (in case we ever support that)
+release/ref_gl3.dll : CFLAGS += -DYQ2_GL3_GLES3 -DYQ2_GL3_GLES
+endif
+
 else ifeq ($(YQ2_OSTYPE), Darwin)
 
 ref_gl3:
@@ -628,6 +642,12 @@ ref_gl3:
 
 
 release/ref_gl3.dylib : LDFLAGS += -shared
+
+ifeq ($(GL3_GLES3),yes)
+# YQ2_GL3_GLES3 is for GLES3, DYQ2_GL3_GLES is for things that are identical
+# in both GLES3 and GLES2 (in case we ever support that)
+release/ref_gl3.dylib : CFLAGS += -DYQ2_GL3_GLES3 -DYQ2_GL3_GLES
+endif
 
 else # not Windows or Darwin
 
@@ -638,6 +658,12 @@ ref_gl3:
 
 release/ref_gl3.so : CFLAGS += -fPIC
 release/ref_gl3.so : LDFLAGS += -shared
+
+ifeq ($(GL3_GLES3),yes)
+# YQ2_GL3_GLES3 is for GLES3, DYQ2_GL3_GLES is for things that are identical
+# in both GLES3 and GLES2 (in case we ever support that)
+release/ref_gl3.so : CFLAGS += -DYQ2_GL3_GLES3 -DYQ2_GL3_GLES
+endif
 
 endif # OS specific ref_gl3 stuff
 
@@ -680,7 +706,7 @@ endif # OS specific ref_soft stuff
 build/ref_soft/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) $(GLAD_INCLUDE) -o $@ $<
+	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
 # ----------
 
@@ -915,13 +941,20 @@ REFGL3_OBJS_ := \
 	src/client/refresh/gl3/gl3_shaders.o \
 	src/client/refresh/gl3/gl3_md2.o \
 	src/client/refresh/gl3/gl3_sp2.o \
-	src/client/refresh/gl3/glad/src/glad.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
 	src/client/refresh/files/pvs.o \
 	src/common/shared/shared.o \
 	src/common/md4.o
+
+ifeq ($(GL3_GLES3),yes)
+REFGL3_OBJS_ += \
+	src/client/refresh/gl3/glad-gles3/src/glad.o
+else # desktop GL3 (not ES)
+REFGL3_OBJS_ += \
+	src/client/refresh/gl3/glad/src/glad.o
+endif
 
 ifeq ($(YQ2_OSTYPE), Windows)
 REFGL3_OBJS_ += \
