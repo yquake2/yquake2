@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <string.h>
 #include <stdarg.h>
 
-#define REF_VERSION	"Yamagi Quake II Software Refresher"
+#define REF_VERSION	"SOFT 0.01"
 
 // up / down
 #define PITCH	0
