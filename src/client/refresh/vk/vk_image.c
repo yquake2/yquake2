@@ -34,9 +34,6 @@ extern cvar_t	*vk_mip_nearfilter;
 
 unsigned	d_8to24table[256];
 
-uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky );
-uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap);
-
 // default global texture and lightmap samplers
 qvksampler_t vk_current_sampler = S_MIPMAP_LINEAR;
 qvksampler_t vk_current_lmap_sampler = S_MIPMAP_LINEAR;
@@ -1025,56 +1022,6 @@ static void R_FloodFillSkin( byte *skin, int skinwidth, int skinheight )
 	}
 }
 
-//=======================================================
-
-
-/*
-================
-Vk_ResampleTexture
-================
-*/
-void Vk_ResampleTexture (unsigned *in, int inwidth, int inheight, unsigned *out,  int outwidth, int outheight)
-{
-	int		i, j;
-	unsigned	*inrow, *inrow2;
-	unsigned	frac, fracstep;
-	unsigned	p1[1024], p2[1024];
-	byte		*pix1, *pix2, *pix3, *pix4;
-
-	fracstep = inwidth*0x10000/outwidth;
-
-	frac = fracstep>>2;
-	for (i=0 ; i<outwidth ; i++)
-	{
-		p1[i] = 4*(frac>>16);
-		frac += fracstep;
-	}
-	frac = 3*(fracstep>>2);
-	for (i=0 ; i<outwidth ; i++)
-	{
-		p2[i] = 4*(frac>>16);
-		frac += fracstep;
-	}
-
-	for (i=0 ; i<outheight ; i++, out += outwidth)
-	{
-		inrow = in + inwidth*(int)((i+0.25)*inheight/outheight);
-		inrow2 = in + inwidth*(int)((i+0.75)*inheight/outheight);
-
-		for (j=0 ; j<outwidth ; j++)
-		{
-			pix1 = (byte *)inrow + p1[j];
-			pix2 = (byte *)inrow + p2[j];
-			pix3 = (byte *)inrow2 + p1[j];
-			pix4 = (byte *)inrow2 + p2[j];
-			((byte *)(out+j))[0] = (pix1[0] + pix2[0] + pix3[0] + pix4[0])>>2;
-			((byte *)(out+j))[1] = (pix1[1] + pix2[1] + pix3[1] + pix4[1])>>2;
-			((byte *)(out+j))[2] = (pix1[2] + pix2[2] + pix3[2] + pix4[2])>>2;
-			((byte *)(out+j))[3] = (pix1[3] + pix2[3] + pix3[3] + pix4[3])>>2;
-		}
-	}
-}
-
 /*
 ================
 Vk_LightScaleTexture
@@ -1083,7 +1030,7 @@ Scale up the pixel values in a texture to increase the
 lighting range
 ================
 */
-void Vk_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean only_gamma )
+static void Vk_LightScaleTexture (byte *in, int inwidth, int inheight, qboolean only_gamma )
 {
 	if ( only_gamma )
 	{
@@ -1127,9 +1074,9 @@ Returns number of mip levels
 int		upload_width, upload_height;
 unsigned int texBuffer[256 * 256];
 
-uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
+static uint32_t Vk_Upload32 (byte *data, int width, int height, qboolean mipmap)
 {
-	unsigned	scaled[256 * 256];
+	byte		scaled[256 * 256 * 4];
 	int			scaled_width, scaled_height;
 
 	for (scaled_width = 1; scaled_width < width; scaled_width <<= 1)
@@ -1175,7 +1122,10 @@ uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 		memcpy(scaled, data, width*height * 4);
 	}
 	else
-		Vk_ResampleTexture(data, width, height, scaled, scaled_width, scaled_height);
+	{
+		ResizeSTB(data, width, height,
+				  scaled, scaled_width, scaled_height);
+	}
 
 	Vk_LightScaleTexture(scaled, scaled_width, scaled_height, !mipmap);
 
@@ -1209,7 +1159,7 @@ Returns number of mip levels
 ===============
 */
 
-uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky )
+static uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky )
 {
 	static unsigned	trans[512 * 256];
 	int			i, s;
@@ -1246,7 +1196,7 @@ uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboole
 		}
 	}
 
-	return Vk_Upload32(trans, width, height, mipmap);
+	return Vk_Upload32((byte *)trans, width, height, mipmap);
 }
 
 
@@ -1340,7 +1290,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		if (bits == 8)
 			image->vk_texture.mipLevels = Vk_Upload8(pic, width, height, (image->type != it_pic && image->type != it_sky), image->type == it_sky);
 		else
-			image->vk_texture.mipLevels = Vk_Upload32((unsigned *)pic, width, height, (image->type != it_pic && image->type != it_sky));
+			image->vk_texture.mipLevels = Vk_Upload32(pic, width, height, (image->type != it_pic && image->type != it_sky));
 
 		image->upload_width = upload_width;		// after power of 2 and scales
 		image->upload_height = upload_height;
@@ -1365,7 +1315,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 Vk_LoadWal
 ================
 */
-image_t *Vk_LoadWal (char *name)
+static image_t *Vk_LoadWal (char *name)
 {
 	miptex_t	*mt;
 	int			width, height, ofs;
