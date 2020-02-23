@@ -125,7 +125,16 @@ void
 GL3_ScreenShot(void)
 {
 	int w=vid.width, h=vid.height;
-	byte *buffer = malloc(w*h*3);
+
+#ifdef YQ2_GL3_GLES
+	// My RPi4's GLES3 doesn't like GL_RGB, so use GL_RGBA with GLES
+	// TODO: we could convert the screenshot to RGB before writing
+	//       so the resulting file is smaller
+	static const int comps = 4;
+#else // Desktop GL
+	static const int comps = 3;
+#endif
+	byte *buffer = malloc(w*h*comps);
 
 	if (!buffer)
 	{
@@ -134,13 +143,13 @@ GL3_ScreenShot(void)
 	}
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+	glReadPixels(0, 0, w, h, (comps == 4) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
 	// the pixels are now row-wise left to right, bottom to top,
 	// but we need them row-wise left to right, top to bottom.
 	// so swap bottom rows with top rows
 	{
-		size_t bytesPerRow = 3*w;
+		size_t bytesPerRow = comps*w;
 		YQ2_VLA(byte, rowBuffer, bytesPerRow);
 		byte *curRowL = buffer; // first byte of first row
 		byte *curRowH = buffer + bytesPerRow*(h-1); // first byte of last row
@@ -156,7 +165,7 @@ GL3_ScreenShot(void)
 		YQ2_VLAFREE(rowBuffer);
 	}
 
-	ri.Vid_WriteScreenshot(w, h, 3, buffer);
+	ri.Vid_WriteScreenshot(w, h, comps, buffer);
 
 	free(buffer);
 }

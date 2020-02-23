@@ -191,15 +191,11 @@ GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 {
 	qboolean res;
 
-	int samples;
-	int i, c;
-	byte *scan;
-	int comp;
-
-	c = width * height;
-	scan = ((byte *)data) + 3;
-	samples = gl3_solid_format;
-	comp = gl3_tex_solid_format;
+	int i;
+	int c = width * height;
+	byte *scan = ((byte *)data) + 3;
+	int comp = gl3_tex_solid_format;
+	int samples = gl3_solid_format;
 
 	for (i = 0; i < c; i++, scan += 4)
 	{

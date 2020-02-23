@@ -217,6 +217,7 @@ CreateSDLWindow(int flags, int w, int h)
 	}
 	else
 	{
+		Com_Printf("Creating window failed: %s\n", SDL_GetError());
 		return false;
 	}
 
