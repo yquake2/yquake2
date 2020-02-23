@@ -1790,6 +1790,16 @@ static int RE_PrepareForWindow(void)
 }
 
 /*
+=====================
+RE_EndWorldRenderpass
+=====================
+*/
+static void
+RE_EndWorldRenderpass( void )
+{
+}
+
+/*
 ===============
 GetRefAPI
 ===============
@@ -1835,6 +1845,7 @@ GetRefAPI(refimport_t imp)
 
 	refexport.SetPalette = RE_SetPalette;
 	refexport.BeginFrame = RE_BeginFrame;
+	refexport.EndWorldRenderpass = RE_EndWorldRenderpass;
 	refexport.EndFrame = RE_EndFrame;
 
 	Swap_Init ();
