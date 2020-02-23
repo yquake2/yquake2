@@ -1877,6 +1877,16 @@ extern void RI_SetPalette(const unsigned char *palette);
 extern qboolean RI_IsVSyncActive(void);
 extern void RI_EndFrame(void);
 
+/*
+=====================
+RI_EndWorldRenderpass
+=====================
+*/
+static void
+RI_EndWorldRenderpass( void )
+{
+}
+
 Q2_DLL_EXPORTED refexport_t
 GetRefAPI(refimport_t imp)
 {
@@ -1917,6 +1927,7 @@ GetRefAPI(refimport_t imp)
 
 	re.SetPalette = RI_SetPalette;
 	re.BeginFrame = RI_BeginFrame;
+	re.EndWorldRenderpass = RI_EndWorldRenderpass;
 	re.EndFrame = RI_EndFrame;
 
 	return re;

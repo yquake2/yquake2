@@ -192,6 +192,7 @@ typedef struct
 	void	(EXPORT *SetPalette)( const unsigned char *palette);	// NULL = game palette
 	void	(EXPORT *BeginFrame)( float camera_separation );
 	void	(EXPORT *EndFrame) (void);
+	void	(EXPORT *EndWorldRenderpass) (void); // finish world rendering, apply postprocess and switch to UI render pass
 
 	//void	(EXPORT *AppActivate)( qboolean activate );
 } refexport_t;
@@ -266,6 +267,7 @@ void Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 //void R_Shutdown(void);
 void R_SetPalette(const unsigned char *palette);
 void R_BeginFrame(float camera_separation);
+void R_EndWorldRenderpass(void);
 void R_EndFrame(void);
 
 #endif

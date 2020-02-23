@@ -688,6 +688,15 @@ R_BeginFrame(float camera_separation)
 }
 
 void
+R_EndWorldRenderpass(void)
+{
+	if(ref_active)
+	{
+		re.EndWorldRenderpass();
+	}
+}
+
+void
 R_EndFrame(void)
 {
 	if(ref_active)
