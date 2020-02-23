@@ -222,7 +222,7 @@ void	Draw_Fill (int x, int y, int w, int h, int c);
 void	Draw_FadeScreen (void);
 void	Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data);
 
-qboolean	R_EndWorldRenderpass( void );
+qboolean	R_EndWorldRenderReady( void );
 
 struct image_s *R_RegisterSkin (char *name);
 

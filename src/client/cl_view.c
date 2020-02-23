@@ -443,12 +443,14 @@ V_RenderView(float stereo_separation)
 {
 	if (cls.state != ca_active)
 	{
+		R_EndWorldRenderpass();
 		return;
 	}
 
 	if (!cl.refresh_prepped)
 	{
-		return;
+		R_EndWorldRenderpass();
+		return;			// still loading
 	}
 
 	if (cl_timedemo->value)
