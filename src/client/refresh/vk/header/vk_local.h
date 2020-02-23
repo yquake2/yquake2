@@ -231,8 +231,6 @@ void	Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 
 qboolean	R_EndWorldRenderpass( void );
 
-void Vk_ResampleTexture (unsigned *in, int inwidth, int inheight, unsigned *out,  int outwidth, int outheight);
-
 struct image_s *R_RegisterSkin (char *name);
 
 void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
