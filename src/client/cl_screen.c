@@ -1536,6 +1536,7 @@ SCR_UpdateScreen(void)
 			/* loading plaque over black screen */
 			int w, h;
 
+			R_EndWorldRenderpass();
 			if(i == 0){
 				R_SetPalette(NULL);
 			}
@@ -1560,6 +1561,7 @@ SCR_UpdateScreen(void)
 					cl.cinematicpalette_active = false;
 				}
 
+				R_EndWorldRenderpass();
 				M_Draw();
 			}
 			else if (cls.key_dest == key_console)
@@ -1569,11 +1571,12 @@ SCR_UpdateScreen(void)
 					R_SetPalette(NULL);
 					cl.cinematicpalette_active = false;
 				}
-
+				R_EndWorldRenderpass();
 				SCR_DrawConsole();
 			}
 			else
 			{
+				R_EndWorldRenderpass();
 				SCR_DrawCinematic();
 			}
 		}
