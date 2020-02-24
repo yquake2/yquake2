@@ -32,7 +32,7 @@
 #include "shared.h"
 #include "crc.h"
 
-#define YQ2VERSION "7.43"
+#define YQ2VERSION "7.44pre"
 #define BASEDIRNAME "baseq2"
 
 #ifndef YQ2OSTYPE
