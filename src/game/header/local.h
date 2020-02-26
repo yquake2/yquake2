@@ -485,6 +485,12 @@ extern int gibsthisframe;
 #define MOD_TARGET_BLASTER 33
 #define MOD_FRIENDLY_FIRE 0x8000000
 
+/* Easier handling of AI skill levels */
+#define SKILL_EASY 0
+#define SKILL_MEDIUM 1
+#define SKILL_HARD 2
+#define SKILL_HARDPLUS 3
+
 extern int meansOfDeath;
 
 extern edict_t *g_edicts;

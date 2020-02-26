@@ -801,7 +801,7 @@ LookAtKiller(edict_t *self, edict_t *inflictor, edict_t *attacker)
 {
 	vec3_t dir;
 
-	if (!self || !inflictor || !attacker)
+	if (!self)
 	{
 		return;
 	}

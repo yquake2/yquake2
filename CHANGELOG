@@ -1,3 +1,15 @@
+Quake II 7.42 to 7.43:
+- Recover from a lost sound device, do not crash of no sound device is
+  available. This fixes several problem with DisplayPort and HDMI audio,
+  especially with the Intel Windows GPU drivers.
+- Several small game logic fixes. This includes a fix for a potential
+  progress blocker in 'The Torture Chambers' introduced in the last
+  release. (by BjossiAlfreds)
+- Add the 'gl1_particle_square' cvar, it forces square particles in
+  the GL1 renderer. (by Mason UnixBeard)
+- The software renderer is no longer experimental.
+- Add an option to configure the gun Z offset in the software renderer.
+
 Quake II 7.41 to 7.42:
 - The console can now be scrolled with the mouse wheel. (by maxcrofts)
 - Fix entities on non-horizontal surfaces rendered in full black.

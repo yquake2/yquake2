@@ -643,10 +643,6 @@ SV_ClipMoveToEntities(moveclip_t *clip)
 				clip->trace = trace;
 			}
 		}
-		else if (trace.startsolid)
-		{
-			clip->trace.startsolid = true;
-		}
 	}
 }
 

@@ -261,10 +261,15 @@ typedef struct
 
 extern client_static_t	cls;
 
-/*Evil hack against too many power screen and power
-  shield impact sounds. For example if the player
-  fires his shotgun onto a Brain. */
+/* Evil hack against too many power screen and power
+   shield impact sounds. For example if the player
+   fires his shotgun onto a Brain. */
 extern int num_power_sounds;
+
+/* Even more evil hack against spurious cinematic
+   aborts caused by an unspeakable evil hack right
+   out of the deeps of hell... Aeh... KeyEvent(). */
+extern int abort_cinematic;
 
 /* cvars */
 extern	cvar_t	*gl1_stereo_separation;
@@ -302,6 +307,7 @@ extern	cvar_t	*cl_timedemo;
 extern	cvar_t	*cl_vwep;
 extern	cvar_t  *horplus;
 extern	cvar_t	*cin_force43;
+extern	cvar_t	*vid_fullscreen;
 
 typedef struct
 {

@@ -138,7 +138,7 @@ gib_think(edict_t *self)
 void
 gib_touch(edict_t *self, edict_t *other /* unused */, cplane_t *plane, csurface_t *surf /* unused */)
 {
-	if (!self || !plane)
+	if (!self)
 	{
 		return;
 	}
@@ -892,13 +892,9 @@ void
 func_object_touch(edict_t *self, edict_t *other, cplane_t *plane,
 		csurface_t *surf /* unused */)
 {
-	if (!self || !other || !plane)
-	{
-		return;
-	}
-
 	/* only squash thing we fall on top of */
-	if (!plane)
+
+	if (!self || !other || !plane)
 	{
 		return;
 	}

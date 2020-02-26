@@ -382,7 +382,7 @@ chick_pain(edict_t *self, edict_t *other /* unused */,
 		gi.sound(self, CHAN_VOICE, sound_pain3, 1, ATTN_NORM, 0);
 	}
 
-	if (skill->value == 3)
+	if (skill->value == SKILL_HARDPLUS)
 	{
 		return; /* no pain anims in nightmare */
 	}

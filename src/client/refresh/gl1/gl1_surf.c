@@ -190,12 +190,6 @@ R_DrawGLPolyChain(glpoly_t *p, float soffset, float toffset)
 
 			v = p->verts[0];
 
-			if (v == NULL)
-			{
-				fprintf(stderr, "BUGFIX: R_DrawGLPolyChain: v==NULL\n");
-				return;
-			}
-
             glEnableClientState( GL_VERTEX_ARRAY );
             glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
@@ -976,7 +970,7 @@ void
 R_MarkLeaves(void)
 {
 	byte *vis;
-	byte fatvis[MAX_MAP_LEAFS / 8];
+	YQ2_ALIGNAS_TYPE(int) byte fatvis[MAX_MAP_LEAFS / 8];
 	mnode_t *node;
 	int i, c;
 	mleaf_t *leaf;

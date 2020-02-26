@@ -83,12 +83,13 @@ R_AliasCheckBBox
 static unsigned long
 R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 {
+	// FIXME: should this really be using long and not int32_t or sth?
 	unsigned long aggregate_and_clipcode = ~0U,
 		          aggregate_or_clipcode = 0;
 	int           i;
 	vec3_t        mins, maxs;
 	vec3_t        transformed_min, transformed_max;
-	qboolean      zclipped = false, zfullyclipped = true;
+	qboolean      zfullyclipped = true;
 
 	/*
 	** get the exact frame bounding box
@@ -113,10 +114,6 @@ R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 	if ( zfullyclipped )
 	{
 		return BBOX_TRIVIAL_REJECT;
-	}
-	if ( zclipped )
-	{
-		return ( BBOX_MUST_CLIP_XY | BBOX_MUST_CLIP_Z );
 	}
 
 	/*
@@ -363,9 +360,18 @@ R_AliasSetUpTransform(const entity_t *currententity)
 	VectorInverse (viewmatrix[1]);
 	VectorCopy (vpn, viewmatrix[2]);
 
-	viewmatrix[0][3] = 0;
-	viewmatrix[1][3] = 0;
-	viewmatrix[2][3] = 0;
+	if ( currententity->flags & RF_WEAPONMODEL )
+	{
+		viewmatrix[0][3] = 0;
+		viewmatrix[1][3] = 0;
+		viewmatrix[2][3] = 8;
+	}
+	else
+	{
+		viewmatrix[0][3] = 0;
+		viewmatrix[1][3] = 0;
+		viewmatrix[2][3] = 0;
+	}
 
 	// memcpy( aliasworldtransform, rotationmatrix, sizeof( aliastransform ) );
 
@@ -443,6 +449,7 @@ R_AliasTransformFinalVerts(const entity_t *currententity, int numpoints, finalve
 			R_AliasProjectAndClipTestFinalVert( fv );
 		}
 	}
+
 }
 
 /*
@@ -592,9 +599,6 @@ R_AliasSetupLighting(entity_t *currententity)
 		r_ambientlight = LIGHT_MIN;
 
 	r_ambientlight = (255 - r_ambientlight) << VID_CBITS;
-
-	if (r_ambientlight < LIGHT_MIN)
-		r_ambientlight = LIGHT_MIN;
 
 	r_shadelight = lighting.shadelight;
 

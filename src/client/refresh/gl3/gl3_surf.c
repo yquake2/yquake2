@@ -852,7 +852,7 @@ void
 GL3_MarkLeaves(void)
 {
 	byte *vis;
-	byte fatvis[MAX_MAP_LEAFS / 8];
+	YQ2_ALIGNAS_TYPE(int) byte fatvis[MAX_MAP_LEAFS / 8];
 	mnode_t *node;
 	int i, c;
 	mleaf_t *leaf;

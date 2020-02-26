@@ -540,7 +540,15 @@ retry:
 	   the entity to be rendered in full black. */
 	if (trace.plane.type != 2)
 	{
-		VectorAdd(ent->s.origin, trace.plane.normal, ent->s.origin);
+		/* Limit the fix to gibs, debris and dead monsters.
+		   Everything else may break existing maps. Items
+		   may slide to unreachable locations, monsters may
+		   get stuck, etc. */
+		if (((strncmp(ent->classname, "monster_", 8) == 0) && ent->health < 1) ||
+				(strcmp(ent->classname, "debris") == 0) || (ent->s.effects & EF_GIB))
+		{
+			VectorAdd(ent->s.origin, trace.plane.normal, ent->s.origin);
+		}
 	}
 
 	if (trace.fraction != 1.0)

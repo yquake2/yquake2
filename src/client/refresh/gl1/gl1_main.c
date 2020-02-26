@@ -425,7 +425,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	int i;
 	vec3_t up, right;
 	float scale;
-	byte color[4];
+	YQ2_ALIGNAS_TYPE(unsigned) byte color[4];
 
 	GLfloat vtx[3*num_particles*3];
 	GLfloat tex[2*num_particles*3];
@@ -459,7 +459,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 			scale = 1 + scale * 0.004;
 		}
 
-		*(int *) color = colortable [ p->color ];
+		*(unsigned *) color = colortable [ p->color ];
 
 		for (j=0; j<3; j++) // Copy the color for each point
 		{
@@ -522,7 +522,7 @@ R_DrawParticles(void)
 	if (gl_config.pointparameters && !(stereo_split_tb || stereo_split_lr))
 	{
 		int i;
-		unsigned char color[4];
+		YQ2_ALIGNAS_TYPE(unsigned) byte color[4];
 		const particle_t *p;
 
 		GLfloat vtx[3*r_newrefdef.num_particles];
@@ -1343,18 +1343,7 @@ R_SetMode(void)
 	}
 	else
 	{
-		if (err == rserr_invalid_fullscreen)
-		{
-			ri.Cvar_SetValue("vid_fullscreen", 0);
-			vid_fullscreen->modified = false;
-			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
-
-			if ((err = SetMode_impl(&vid.width, &vid.height, r_mode->value, 0)) == rserr_ok)
-			{
-				return true;
-			}
-		}
-		else if (err == rserr_invalid_mode)
+		if (err == rserr_invalid_mode)
 		{
 			R_Printf(PRINT_ALL, "ref_gl::R_SetMode() - invalid mode\n");
 			if (gl_msaa_samples->value != 0.0f)

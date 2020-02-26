@@ -219,6 +219,7 @@ R_RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 	byte *lightmap;
 	int maps;
 	int r;
+	vec3_t	scale;
 
 	if (node->contents != -1)
 	{
@@ -297,29 +298,24 @@ R_RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 		lightmap = surf->samples;
 		VectorCopy(vec3_origin, pointcolor);
 
-		if (lightmap)
+		lightmap += 3 * (dt * ((surf->extents[0] >> 4) + 1) + ds);
+
+		for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255;
+			 maps++)
 		{
-			vec3_t	scale;
+			int j;
 
-			lightmap += 3 * (dt * ((surf->extents[0] >> 4) + 1) + ds);
-
-			for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255;
-				 maps++)
+			for (j = 0; j < 3; j++)
 			{
-				int j;
-
-				for (j = 0; j < 3; j++)
-				{
-					scale[j] = r_modulate->value *
-							r_newrefdef.lightstyles[surf->styles[maps]].rgb[j];
-				}
-
-				pointcolor[0] += lightmap[0] * scale[0] * (1.0 / 255);
-				pointcolor[1] += lightmap[1] * scale[1] * (1.0 / 255);
-				pointcolor[2] += lightmap[2] * scale[2] * (1.0 / 255);
-				lightmap += 3 * ((surf->extents[0] >> 4) + 1) *
-							((surf->extents[1] >> 4) + 1);
+				scale[j] = r_modulate->value *
+						r_newrefdef.lightstyles[surf->styles[maps]].rgb[j];
 			}
+
+			pointcolor[0] += lightmap[0] * scale[0] * (1.0 / 255);
+			pointcolor[1] += lightmap[1] * scale[1] * (1.0 / 255);
+			pointcolor[2] += lightmap[2] * scale[2] * (1.0 / 255);
+			lightmap += 3 * ((surf->extents[0] >> 4) + 1) *
+						((surf->extents[1] >> 4) + 1);
 		}
 
 		return 1;

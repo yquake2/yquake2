@@ -119,7 +119,6 @@ typedef enum
 {
 	rserr_ok,
 
-	rserr_invalid_fullscreen,
 	rserr_invalid_mode,
 
 	rserr_unknown

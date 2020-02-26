@@ -776,8 +776,7 @@ CL_SendCmd(void)
 
 	if (cls.state == ca_connected)
 	{
-		if (cls.netchan.message.cursize ||
-			(curtime - cls.netchan.last_sent > 1000))
+		if (cls.netchan.message.cursize || (curtime - cls.netchan.last_sent > 1000))
 		{
 			Netchan_Transmit(&cls.netchan, 0, buf.data);
 		}
@@ -796,8 +795,9 @@ CL_SendCmd(void)
 
 	SZ_Init(&buf, data, sizeof(data));
 
-	if (cmd->buttons && (cl.cinematictime > 0) && !cl.attractloop &&
-		(cls.realtime - cl.cinematictime > 1000))
+	if ((cls.realtime > abort_cinematic) && (cl.cinematictime > 0) &&
+			!cl.attractloop && (cls.realtime - cl.cinematictime > 1000) &&
+			(cls.key_dest == key_game))
 	{
 		/* skip the rest of the cinematic */
 		SCR_FinishCinematic();

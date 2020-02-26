@@ -216,7 +216,7 @@ G_UseTargets(edict_t *ent, edict_t *activator)
 {
 	edict_t *t;
 
-	if (!ent || !activator)
+	if (!ent)
 	{
 		return;
 	}
@@ -239,6 +239,11 @@ G_UseTargets(edict_t *ent, edict_t *activator)
 		t->message = ent->message;
 		t->target = ent->target;
 		t->killtarget = ent->killtarget;
+		return;
+	}
+
+	if (!activator)
+	{
 		return;
 	}
 

@@ -1461,6 +1461,7 @@ RE_SetMode(void)
 	if ((err = SWimp_SetMode(&vid.width, &vid.height, r_mode->value, fullscreen)) == rserr_ok)
 	{
 		R_InitGraphics( vid.width, vid.height );
+
 		if (r_mode->value == -1)
 		{
 			sw_state.prev_mode = 4; /* safe default for custom mode */
