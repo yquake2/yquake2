@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/vk_local.h"
 
+#define	REF_VERSION	"Yamagi Quake II Vulkan Refresher (based on vkQuake2 v1.4.3)"
+
 // world rendered and ready to render 2d elements
 static qboolean	world_rendered;
 
@@ -572,7 +574,8 @@ void R_PolyBlend (void)
 
 //=======================================================================
 
-int SignbitsForPlane (cplane_t *out)
+static int
+SignbitsForPlane (cplane_t *out)
 {
 	int	bits, j;
 
@@ -588,7 +591,8 @@ int SignbitsForPlane (cplane_t *out)
 }
 
 
-void R_SetFrustum (float fovx, float fovy)
+static void
+R_SetFrustum (float fovx, float fovy)
 {
 	// rotate VPN right by FOV_X/2 degrees
 	RotatePointAroundVector(frustum[0].normal, vup, vpn, -(90 - fovx / 2));
@@ -808,7 +812,8 @@ void Mat_Ortho(float *matrix, float left, float right, float bottom, float top,
 R_SetupVulkan
 =============
 */
-void R_SetupVulkan (void)
+static void
+R_SetupVulkan (void)
 {
 	int		x, x2, y2, y, w, h;
 
@@ -864,12 +869,12 @@ void R_Flash( void )
 
 /*
 ================
-R_RenderView
+RE_RenderView
 
 r_newrefdef must be set before the first call
 ================
 */
-void R_RenderView (refdef_t *fd)
+static void RE_RenderView (refdef_t *fd)
 {
 	if (r_norefresh->value)
 		return;
@@ -926,19 +931,22 @@ void R_RenderView (refdef_t *fd)
 	}
 }
 
-void R_EndWorldRenderpass(void)
+qboolean R_EndWorldRenderReady(void)
 {
+	// still some issues?
+	if (!vk_frameStarted)
+	{
+		// we can't start 2d rendering
+		return false;
+	}
+
 	// 3d world has alredy rendered and 2d already initialized
 	if (world_rendered)
 	{
-		return;
+		return true;
 	}
 
 	world_rendered = true;
-
-	// this may happen if swapchain image acquisition fails
-	if (!vk_frameStarted)
-		return;
 
 	// finish rendering world view to offsceen buffer
 	vkCmdEndRenderPass(vk_activeCmdbuffer);
@@ -954,13 +962,17 @@ void R_EndWorldRenderpass(void)
 
 	// start drawing UI
 	QVk_BeginRenderpass(RP_UI);
+
+	return true;
 }
 
-void R_SetVulkan2D (void)
+static void R_SetVulkan2D (void)
 {
 	// player configuration screen renders a model using the UI renderpass, so skip finishing RP_WORLD twice
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
-		R_EndWorldRenderpass();
+		if(!R_EndWorldRenderReady())
+			// buffers is not initialized
+			return;
 
 	extern VkViewport vk_viewport;
 	extern VkRect2D vk_scissor;
@@ -986,7 +998,8 @@ R_SetLightLevel
 
 ====================
 */
-void R_SetLightLevel (void)
+static void
+R_SetLightLevel (void)
 {
 	vec3_t		shadelight;
 
@@ -1017,19 +1030,21 @@ void R_SetLightLevel (void)
 
 /*
 =====================
-R_RenderFrame
+RE_RenderFrame
 
 =====================
 */
-void R_RenderFrame (refdef_t *fd)
+static void
+RE_RenderFrame (refdef_t *fd)
 {
-	R_RenderView( fd );
+	RE_RenderView( fd );
 	R_SetLightLevel ();
 	R_SetVulkan2D ();
 }
 
 
-void R_Register( void )
+static void
+R_Register( void )
 {
 	r_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
@@ -1095,6 +1110,7 @@ void R_Register( void )
 	ri.Cmd_AddCommand("vk_mem", Vk_Mem_f);
 	ri.Cmd_AddCommand("imagelist", Vk_ImageList_f);
 	ri.Cmd_AddCommand("screenshot", Vk_ScreenShot_f);
+	ri.Cmd_AddCommand("modellist", Mod_Modellist_f);
 }
 
 static int
@@ -1200,7 +1216,8 @@ R_Init
 qboolean R_Init( void )
 {
 
-	R_Printf(PRINT_ALL, "ref_vk version: "REF_VERSION"\n");
+	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
+	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
 
 	R_Register();
 
@@ -1214,7 +1231,6 @@ qboolean R_Init( void )
 	}
 	ri.Vid_MenuInit();
 
-	R_Printf(PRINT_ALL, "Successfully initialized Vulkan!\n");
 	// print device information during startup
 	Vk_Strings_f();
 
@@ -1222,6 +1238,8 @@ qboolean R_Init( void )
 	Mod_Init();
 	R_InitParticleTexture();
 	Draw_InitLocal();
+
+	R_Printf(PRINT_ALL, "Successfully initialized Vulkan!\n");
 
 	return true;
 }
@@ -1253,6 +1271,7 @@ void R_Shutdown (void)
 	ri.Cmd_RemoveCommand("vk_mem");
 	ri.Cmd_RemoveCommand("imagelist");
 	ri.Cmd_RemoveCommand("screenshot");
+	ri.Cmd_RemoveCommand( "modellist" );
 
 	if (vk_device.logical != VK_NULL_HANDLE)
 	{
@@ -1280,8 +1299,9 @@ RE_BeginFrame( float camera_separation )
 	** change modes if necessary
 	*/
 	if (r_mode->modified || vid_fullscreen->modified || vk_msaa->modified || r_clear->modified || vk_picmip->modified ||
-		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified || vid_gamma->modified ||
-		vk_mip_nearfilter->modified || vk_sampleshading->modified || r_vsync->modified || vk_device_idx->modified || vk_overbrightbits->modified)
+		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified ||
+		vk_mip_nearfilter->modified || vk_sampleshading->modified || r_vsync->modified || vk_device_idx->modified ||
+		vk_overbrightbits->modified)
 	{
 		if (vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified)
 		{
@@ -1327,6 +1347,25 @@ static void
 RE_EndFrame( void )
 {
 	QVk_EndFrame(false);
+	// world has not rendered yet
+	world_rendered = false;
+}
+
+/*
+=====================
+RE_EndWorldRenderpass
+=====================
+*/
+static void
+RE_EndWorldRenderpass( void )
+{
+	if (R_EndWorldRenderReady())
+	{
+/*
+		R_Printf(PRINT_ALL, "%s(): Buffers are not initilized.\n",
+			 __func__);
+*/
+	}
 }
 
 /*
@@ -1457,23 +1496,6 @@ void R_DrawBeam( entity_t *e )
 
 //===================================================================
 
-
-void	R_BeginRegistration (char *map);
-struct model_s	*R_RegisterModel (char *name);
-struct image_s	*R_RegisterSkin (char *name);
-void R_SetSky (char *name, float rotate, vec3_t axis);
-void	R_EndRegistration (void);
-
-void	R_RenderFrame (refdef_t *fd);
-
-struct image_s	*Draw_FindPic (char *name);
-
-void	Draw_Pic (int x, int y, char *name);
-void	Draw_Char (int x, int y, int c);
-void	Draw_TileClear (int x, int y, int w, int h, char *name);
-void	Draw_Fill (int x, int y, int w, int h, int c);
-void	Draw_FadeScreen (void);
-
 static int
 R_InitContext(void *win)
 {
@@ -1554,7 +1576,7 @@ GetRefAPI(refimport_t imp)
 	refexport.SetSky = R_SetSky;
 	refexport.EndRegistration = R_EndRegistration;
 
-	refexport.RenderFrame = R_RenderFrame;
+	refexport.RenderFrame = RE_RenderFrame;
 
 	refexport.DrawGetPicSize = Draw_GetPicSize;
 	refexport.DrawPicScaled = Draw_PicScaled;
@@ -1575,6 +1597,7 @@ GetRefAPI(refimport_t imp)
 
 	refexport.SetPalette = RE_SetPalette;
 	refexport.BeginFrame = RE_BeginFrame;
+	refexport.EndWorldRenderpass = RE_EndWorldRenderpass;
 	refexport.EndFrame = RE_EndFrame;
 
 	Swap_Init ();
