@@ -282,9 +282,6 @@ void R_SwapBuffers(int);
 
 int Draw_GetPalette(void);
 
-void R_ResampleTexture(unsigned *in, int inwidth, int inheight,
-		unsigned *out, int outwidth, int outheight);
-
 image_t *R_LoadPic(char *name, byte *pic, int width, int realwidth,
 		int height, int realheight, imagetype_t type, int bits);
 image_t *R_FindImage(char *name, imagetype_t type);
