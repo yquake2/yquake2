@@ -44,6 +44,11 @@ WITH_SYSTEMWIDE:=no
 # MUST NOT be surrounded by quotation marks!
 WITH_SYSTEMDIR:=""
 
+# If yes, set build options so that the executable will find libraries
+# in non-standard locations. Distributions that control the linker path
+# might want to turn this off.
+WITH_RPATH:=yes
+
 # This will set the architectures of the OSX-binaries.
 # You have to make sure your libs/frameworks supports
 # these architectures! To build an universal ppc-compatible
@@ -410,6 +415,7 @@ ifeq ($(YQ2_OSTYPE), FreeBSD)
 release/quake2 : YQ2_LDFLAGS += -lexecinfo
 endif
 
+ifeq ($(WITH_RPATH),yes)
 ifeq ($(YQ2_OSTYPE), FreeBSD)
 release/quake2 : YQ2_LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib' -lexecinfo
 else ifeq ($(YQ2_OSTYPE), Linux)
@@ -431,7 +437,8 @@ release/quake2 : YQ2_LDFLAGS += -Wl,-z,origin,-rpath='/usr/share/games/quake2/li
 endif
 endif
 endif
-endif
+endif # WITH_RPATH
+endif # not Windows
 
 # ----------
 
