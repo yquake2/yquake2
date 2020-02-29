@@ -1316,6 +1316,7 @@ GL3_MYgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zF
 
 	// the following emulates glFrustum(left, right, bottom, top, zNear, zFar)
 	// see https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
+	//  or http://docs.gl/gl2/glFrustum#description (looks better in non-Firefox browsers)
 	A = (right+left)/(right-left);
 	B = (top+bottom)/(top-bottom);
 	C = -(zFar+zNear)/(zFar-zNear);
@@ -1431,7 +1432,7 @@ SetupGL(void)
 	{
 		float screenaspect = (float)gl3_newrefdef.width / gl3_newrefdef.height;
 		float dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
-		gl3state.uni3DData.transProjMat4 = GL3_MYgluPerspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
+		gl3state.projMat3D = GL3_MYgluPerspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
 	}
 
 	glCullFace(GL_FRONT);
@@ -1440,7 +1441,7 @@ SetupGL(void)
 	{
 		// first put Z axis going up
 		hmm_mat4 viewMat = {{
-			{  0, 0, -1, 0 }, // first *column* (the matrix is colum-major)
+			{  0, 0, -1, 0 }, // first *column* (the matrix is column-major)
 			{ -1, 0,  0, 0 },
 			{  0, 1,  0, 0 },
 			{  0, 0,  0, 1 }
@@ -1455,8 +1456,12 @@ SetupGL(void)
 		hmm_vec3 trans = HMM_Vec3(-gl3_newrefdef.vieworg[0], -gl3_newrefdef.vieworg[1], -gl3_newrefdef.vieworg[2]);
 		viewMat = HMM_MultiplyMat4( viewMat, HMM_Translate(trans) );
 
-		gl3state.uni3DData.transViewMat4 = viewMat;
+		gl3state.viewMat3D = viewMat;
 	}
+
+	// just use one projection-view-matrix (premultiplied here)
+	// so we have one less mat4 multiplication in the 3D shaders
+	gl3state.uni3DData.transProjViewMat4 = HMM_MultiplyMat4(gl3state.projMat3D, gl3state.viewMat3D);
 
 	gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
 

@@ -155,8 +155,7 @@ typedef struct
 
 typedef struct
 {
-	hmm_mat4 transProjMat4;
-	hmm_mat4 transViewMat4;
+	hmm_mat4 transProjViewMat4; // gl3state.projMat3D * gl3state.viewMat3D - so we don't have to do this in the shader
 	hmm_mat4 transModelMat4;
 
 	GLfloat scroll; // for SURF_FLOWING
@@ -269,6 +268,8 @@ typedef struct
 	GLuint uni3DUBO;
 	GLuint uniLightsUBO;
 
+	hmm_mat4 projMat3D;
+	hmm_mat4 viewMat3D;
 } gl3state_t;
 
 extern gl3config_t gl3config;
