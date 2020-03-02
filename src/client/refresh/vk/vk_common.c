@@ -34,7 +34,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Vulkan instance, surface and memory allocator
 VkInstance vk_instance  = VK_NULL_HANDLE;
 VkSurfaceKHR vk_surface = VK_NULL_HANDLE;
-VmaAllocator vk_malloc  = VK_NULL_HANDLE;
 
 // Vulkan device
 qvkdevice_t vk_device = {
@@ -726,11 +725,11 @@ static void CreateDrawBuffers()
 // internal helper
 static void DestroyDrawBuffer(qvktexture_t *drawBuffer)
 {
-	if (drawBuffer->image != VK_NULL_HANDLE)
+	if (drawBuffer->resource.image != VK_NULL_HANDLE)
 	{
-		vmaDestroyImage(vk_malloc, drawBuffer->image, drawBuffer->allocation);
+		image_destroy(&drawBuffer->resource);
 		vkDestroyImageView(vk_device.logical, drawBuffer->imageView, NULL);
-		drawBuffer->image = VK_NULL_HANDLE;
+		drawBuffer->resource.image = VK_NULL_HANDLE;
 		drawBuffer->imageView = VK_NULL_HANDLE;
 	}
 }
@@ -933,11 +932,11 @@ static void CreateDynamicBuffers()
 		QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size, &vk_dynIndexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 		VK_VERIFY(QVk_CreateUniformBuffer(vk_config.uniform_buffer_size, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
 		// keep dynamic buffers persistently mapped
-		VK_VERIFY(vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData));
-		VK_VERIFY(vmaMapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation, &vk_dynIndexBuffers[i].allocInfo.pMappedData));
-		VK_VERIFY(vmaMapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation, &vk_dynUniformBuffers[i].allocInfo.pMappedData));
+		vk_dynVertexBuffers[i].pMappedData = buffer_map(&vk_dynVertexBuffers[i].resource);
+		vk_dynIndexBuffers[i].pMappedData = buffer_map(&vk_dynIndexBuffers[i].resource);
+		vk_dynUniformBuffers[i].pMappedData = buffer_map(&vk_dynUniformBuffers[i].resource);
 		// create descriptor set for the uniform buffer
-		CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].buffer);
+		CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].resource.buffer);
 
 		QVk_DebugSetObjectName((uint64_t)vk_uboDescriptorSets[i], VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Dynamic UBO Descriptor Set #%d", i));
 		QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Vertex Buffer #%d", i));
@@ -1009,15 +1008,15 @@ static void RebuildTriangleFanIndexBuffer()
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
 		vk_activeDynBufferIdx = (vk_activeDynBufferIdx + 1) % NUM_DYNBUFFERS;
-		vmaInvalidateAllocation(vk_malloc, vk_dynIndexBuffers[i].allocation, 0, VK_WHOLE_SIZE);
+		VK_VERIFY(buffer_invalidate(&vk_dynIndexBuffers[i].resource));
 
 		iboData = (uint16_t *)QVk_GetIndexBuffer(bufferSize, &dstOffset);
 		memcpy(iboData, fanData, bufferSize);
 
-		vmaFlushAllocation(vk_malloc, vk_dynIndexBuffers[i].allocation, 0, VK_WHOLE_SIZE);
+		VK_VERIFY(buffer_flush(&vk_dynIndexBuffers[i].resource));
 	}
 
-	vk_triangleFanIbo = &vk_dynIndexBuffers[vk_activeDynBufferIdx].buffer;
+	vk_triangleFanIbo = &vk_dynIndexBuffers[vk_activeDynBufferIdx].resource.buffer;
 	vk_triangleFanIboUsage = ((bufferSize % 4) == 0) ? bufferSize : (bufferSize + 4 - (bufferSize % 4));
 	free(fanData);
 }
@@ -1035,8 +1034,8 @@ static void CreateStagingBuffers()
 
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
-		VK_VERIFY(QVk_CreateStagingBuffer(STAGING_BUFFER_MAXSIZE, &vk_stagingBuffers[i].buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
-		VK_VERIFY(vmaMapMemory(vk_malloc, vk_stagingBuffers[i].buffer.allocation, &vk_stagingBuffers[i].buffer.allocInfo.pMappedData));
+		VK_VERIFY(QVk_CreateStagingBuffer(STAGING_BUFFER_MAXSIZE, &vk_stagingBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
+		vk_stagingBuffers[i].pMappedData = buffer_map(&vk_stagingBuffers[i].resource);
 		vk_stagingBuffers[i].submitted = false;
 
 		VK_VERIFY(vkCreateFence(vk_device.logical, &fCreateInfo, NULL, &vk_stagingBuffers[i].fence));
@@ -1399,25 +1398,25 @@ void QVk_Shutdown( void )
 		QVk_FreeBuffer(&vk_rectIbo);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
-			if (vk_dynUniformBuffers[i].buffer != VK_NULL_HANDLE)
+			if (vk_dynUniformBuffers[i].resource.buffer != VK_NULL_HANDLE)
 			{
-				vmaUnmapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation);
+				buffer_unmap(&vk_dynUniformBuffers[i].resource);
 				QVk_FreeBuffer(&vk_dynUniformBuffers[i]);
 			}
-			if (vk_dynIndexBuffers[i].buffer != VK_NULL_HANDLE)
+			if (vk_dynIndexBuffers[i].resource.buffer != VK_NULL_HANDLE)
 			{
-				vmaUnmapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation);
+				buffer_unmap(&vk_dynIndexBuffers[i].resource);
 				QVk_FreeBuffer(&vk_dynIndexBuffers[i]);
 			}
-			if (vk_dynVertexBuffers[i].buffer != VK_NULL_HANDLE)
+			if (vk_dynVertexBuffers[i].resource.buffer != VK_NULL_HANDLE)
 			{
-				vmaUnmapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation);
+				buffer_unmap(&vk_dynVertexBuffers[i].resource);
 				QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
 			}
-			if (vk_stagingBuffers[i].buffer.buffer != VK_NULL_HANDLE)
+			if (vk_stagingBuffers[i].resource.buffer != VK_NULL_HANDLE)
 			{
-				vmaUnmapMemory(vk_malloc, vk_stagingBuffers[i].buffer.allocation);
-				QVk_FreeBuffer(&vk_stagingBuffers[i].buffer);
+				buffer_unmap(&vk_stagingBuffers[i].resource);
+				QVk_FreeStagingBuffer(&vk_stagingBuffers[i]);
 				vkDestroyFence(vk_device.logical, vk_stagingBuffers[i].fence, NULL);
 			}
 		}
@@ -1468,8 +1467,6 @@ void QVk_Shutdown( void )
 				vkDestroyFence(vk_device.logical, vk_fences[i], NULL);
 			}
 		}
-		if (vk_malloc != VK_NULL_HANDLE)
-			vmaDestroyAllocator(vk_malloc);
 		if (vk_device.logical != VK_NULL_HANDLE)
 			vkDestroyDevice(vk_device.logical, NULL);
 		if(vk_surface != VK_NULL_HANDLE)
@@ -1629,28 +1626,6 @@ qboolean QVk_Init(SDL_Window *window)
 		return false;
 	}
 	QVk_DebugSetObjectName((uint64_t)vk_device.physical, VK_OBJECT_TYPE_PHYSICAL_DEVICE, va("Physical Device: %s", vk_config.vendor_name));
-
-	// create memory allocator
-	VmaAllocatorCreateInfo allocInfo = {
-		.flags = 0,
-		.physicalDevice = vk_device.physical,
-		.device = vk_device.logical,
-		.preferredLargeHeapBlockSize = 0,
-		.pAllocationCallbacks = NULL,
-		.pDeviceMemoryCallbacks = NULL,
-		.frameInUseCount = 0,
-		.pHeapSizeLimit = NULL,
-		.pVulkanFunctions = NULL,
-		.pRecordSettings = NULL
-	};
-
-	res = vmaCreateAllocator(&allocInfo, &vk_malloc);
-	if (res != VK_SUCCESS)
-	{
-		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan memory allocator: %s\n", __func__, QVk_GetError(res));
-		return false;
-	}
-	R_Printf(PRINT_ALL, "...created Vulkan memory allocator\n");
 
 	// setup swapchain
 	res = QVk_CreateSwapchain();
@@ -1839,9 +1814,9 @@ VkResult QVk_BeginFrame()
 	vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset = 0;
 	// triangle fan index data is placed in the beginning of the buffer
 	vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset = vk_triangleFanIboUsage;
-	vmaInvalidateAllocation(vk_malloc, vk_dynUniformBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
-	vmaInvalidateAllocation(vk_malloc, vk_dynVertexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
-	vmaInvalidateAllocation(vk_malloc, vk_dynIndexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
+	VK_VERIFY(buffer_invalidate(&vk_dynUniformBuffers[vk_activeDynBufferIdx].resource));
+	VK_VERIFY(buffer_invalidate(&vk_dynVertexBuffers[vk_activeDynBufferIdx].resource));
+	VK_VERIFY(buffer_invalidate(&vk_dynIndexBuffers[vk_activeDynBufferIdx].resource));
 
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR)
@@ -1889,9 +1864,9 @@ VkResult QVk_EndFrame(qboolean force)
 
 	// submit
 	QVk_SubmitStagingBuffers();
-	vmaFlushAllocation(vk_malloc, vk_dynUniformBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
-	vmaFlushAllocation(vk_malloc, vk_dynVertexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
-	vmaFlushAllocation(vk_malloc, vk_dynIndexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
+	VK_VERIFY(buffer_flush(&vk_dynUniformBuffers[vk_activeDynBufferIdx].resource));
+	VK_VERIFY(buffer_flush(&vk_dynVertexBuffers[vk_activeDynBufferIdx].resource));
+	VK_VERIFY(buffer_flush(&vk_dynIndexBuffers[vk_activeDynBufferIdx].resource));
 
 	vkCmdEndRenderPass(vk_commandbuffers[vk_activeBufferIdx]);
 	QVk_DebugLabelEnd(&vk_commandbuffers[vk_activeBufferIdx]);
@@ -2034,10 +2009,10 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
 			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynVertexBuffers[i];
-			vmaUnmapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation);
+			buffer_unmap(&vk_dynVertexBuffers[i].resource);
 
 			QVk_CreateVertexBuffer(NULL, vk_config.vertex_buffer_size, &vk_dynVertexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-			VK_VERIFY(vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData));
+			vk_dynVertexBuffers[i].pMappedData = buffer_map(&vk_dynVertexBuffers[i].resource);
 
 			QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Vertex Buffer #%d", i));
 			QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Vertex Buffer #%d", i));
@@ -2045,14 +2020,14 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 	}
 
 	*dstOffset = vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset;
-	*dstBuffer = vk_dynVertexBuffers[vk_activeDynBufferIdx].buffer;
+	*dstBuffer = vk_dynVertexBuffers[vk_activeDynBufferIdx].resource.buffer;
 	vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset += size;
 
 	vk_config.vertex_buffer_usage = vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset;
 	if (vk_config.vertex_buffer_max_usage < vk_config.vertex_buffer_usage)
 		vk_config.vertex_buffer_max_usage = vk_config.vertex_buffer_usage;
 
-	return (uint8_t *)vk_dynVertexBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
+	return (uint8_t *)vk_dynVertexBuffers[vk_activeDynBufferIdx].pMappedData + (*dstOffset);
 }
 
 static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
@@ -2077,10 +2052,10 @@ static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
 			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynIndexBuffers[i];
-			vmaUnmapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation);
+			buffer_unmap(&vk_dynIndexBuffers[i].resource);
 
 			QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size, &vk_dynIndexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-			VK_VERIFY(vmaMapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation, &vk_dynIndexBuffers[i].allocInfo.pMappedData));
+			vk_dynIndexBuffers[i].pMappedData = buffer_map(&vk_dynIndexBuffers[i].resource);
 
 			QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Index Buffer #%d", i));
 			QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Index Buffer #%d", i));
@@ -2094,7 +2069,7 @@ static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 	if (vk_config.index_buffer_max_usage < vk_config.index_buffer_usage)
 		vk_config.index_buffer_max_usage = vk_config.index_buffer_usage;
 
-	return (uint8_t *)vk_dynIndexBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
+	return (uint8_t *)vk_dynIndexBuffers[vk_activeDynBufferIdx].pMappedData + (*dstOffset);
 }
 
 uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet)
@@ -2126,12 +2101,12 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
 			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynUniformBuffers[i];
-			vk_swapDescriptorSets[vk_activeSwapBufferIdx][swapDescSetsOffset + i] = vk_uboDescriptorSets[i];;
-			vmaUnmapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation);
+			vk_swapDescriptorSets[vk_activeSwapBufferIdx][swapDescSetsOffset + i] = vk_uboDescriptorSets[i];
+			buffer_unmap(&vk_dynUniformBuffers[i].resource);
 
 			VK_VERIFY(QVk_CreateUniformBuffer(vk_config.uniform_buffer_size, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
-			VK_VERIFY(vmaMapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation, &vk_dynUniformBuffers[i].allocInfo.pMappedData));
-			CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].buffer);
+			vk_dynUniformBuffers[i].pMappedData = buffer_map(&vk_dynUniformBuffers[i].resource);
+			CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].resource.buffer);
 
 			QVk_DebugSetObjectName((uint64_t)vk_uboDescriptorSets[i], VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Dynamic UBO Descriptor Set #%d", i));
 			QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Uniform Buffer #%d", i));
@@ -2147,20 +2122,20 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 	if (vk_config.uniform_buffer_max_usage < vk_config.uniform_buffer_usage)
 		vk_config.uniform_buffer_max_usage = vk_config.uniform_buffer_usage;
 
-	return (uint8_t *)vk_dynUniformBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
+	return (uint8_t *)vk_dynUniformBuffers[vk_activeDynBufferIdx].pMappedData + (*dstOffset);
 }
 
 uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer *cmdBuffer, VkBuffer *buffer, uint32_t *dstOffset)
 {
 	qvkstagingbuffer_t * stagingBuffer = &vk_stagingBuffers[vk_activeStagingBuffer];
-	const int align_mod = stagingBuffer->buffer.currentOffset % alignment;
-	stagingBuffer->buffer.currentOffset = ((stagingBuffer->buffer.currentOffset % alignment) == 0)
-		? stagingBuffer->buffer.currentOffset : (stagingBuffer->buffer.currentOffset + alignment - align_mod);
+	const int align_mod = stagingBuffer->currentOffset % alignment;
+	stagingBuffer->currentOffset = ((stagingBuffer->currentOffset % alignment) == 0)
+		? stagingBuffer->currentOffset : (stagingBuffer->currentOffset + alignment - align_mod);
 
 	if (size > STAGING_BUFFER_MAXSIZE)
 		Sys_Error("QVk_GetStagingBuffer(): Cannot allocate staging buffer space!");
 
-	if ((stagingBuffer->buffer.currentOffset + size) >= STAGING_BUFFER_MAXSIZE && !stagingBuffer->submitted)
+	if ((stagingBuffer->currentOffset + size) >= STAGING_BUFFER_MAXSIZE && !stagingBuffer->submitted)
 		SubmitStagingBuffer(vk_activeStagingBuffer);
 
 	stagingBuffer = &vk_stagingBuffers[vk_activeStagingBuffer];
@@ -2169,7 +2144,7 @@ uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer 
 		VK_VERIFY(vkWaitForFences(vk_device.logical, 1, &stagingBuffer->fence, VK_TRUE, UINT64_MAX));
 		VK_VERIFY(vkResetFences(vk_device.logical, 1, &stagingBuffer->fence));
 
-		stagingBuffer->buffer.currentOffset = 0;
+		stagingBuffer->currentOffset = 0;
 		stagingBuffer->submitted = false;
 
 		VkCommandBufferBeginInfo beginInfo = {
@@ -2185,12 +2160,12 @@ uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer 
 	if (cmdBuffer)
 		*cmdBuffer = stagingBuffer->cmdBuffer;
 	if (buffer)
-		*buffer = stagingBuffer->buffer.buffer;
+		*buffer = stagingBuffer->resource.buffer;
 	if (dstOffset)
-		*dstOffset = stagingBuffer->buffer.currentOffset;
+		*dstOffset = stagingBuffer->currentOffset;
 
-	unsigned char *data = (uint8_t *)stagingBuffer->buffer.allocInfo.pMappedData + stagingBuffer->buffer.currentOffset;
-	stagingBuffer->buffer.currentOffset += size;
+	unsigned char *data = (uint8_t *)stagingBuffer->pMappedData + stagingBuffer->currentOffset;
+	stagingBuffer->currentOffset += size;
 
 	return data;
 }
@@ -2217,7 +2192,7 @@ void QVk_SubmitStagingBuffers()
 {
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
-		if (!vk_stagingBuffers[i].submitted && vk_stagingBuffers[i].buffer.currentOffset > 0)
+		if (!vk_stagingBuffers[i].submitted && vk_stagingBuffers[i].currentOffset > 0)
 			SubmitStagingBuffer(i);
 	}
 }
@@ -2260,8 +2235,8 @@ void QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize, qvkrenderpasstype_t rpT
 	QVk_BindPipeline(&vk_drawColorQuadPipeline[rpType]);
 	VkDeviceSize offsets = 0;
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline[rpType].layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_colorRectVbo.buffer, &offsets);
-	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_colorRectVbo.resource.buffer, &offsets);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.resource.buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 }
 
@@ -2276,8 +2251,8 @@ void QVk_DrawTexRect(const float *ubo, VkDeviceSize uboSize, qvktexture_t *textu
 	VkDeviceSize offsets = 0;
 	VkDescriptorSet descriptorSets[] = { texture->descriptorSet, uboDescriptorSet };
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_texRectVbo.buffer, &offsets);
-	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_texRectVbo.resource.buffer, &offsets);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.resource.buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 }
 
