@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #include <vulkan/vulkan.h>
-#include "vk_mem_alloc.h"
+#include "vk_util.h"
 #include "vk_shaders.h"
 
 // Vulkan device
@@ -77,10 +77,8 @@ typedef enum
 // texture object
 typedef struct
 {
-	VkImage image;
-	VmaAllocation allocation;
-	VmaAllocationInfo allocInfo;
-	VmaAllocationCreateFlags vmaFlags;
+	ImageResource_t resource;
+
 	VkImageView   imageView;
 	VkSharingMode sharingMode;
 	VkSampleCountFlagBits sampleCount;
@@ -90,13 +88,11 @@ typedef struct
 } qvktexture_t;
 
 #define QVVKTEXTURE_INIT     { \
-	.image = VK_NULL_HANDLE, \
-	.allocation = VK_NULL_HANDLE, \
-	.allocInfo = { \
-		.pMappedData = VK_NULL_HANDLE, \
-		.pUserData = VK_NULL_HANDLE, \
+	.resource = { \
+		.image = VK_NULL_HANDLE, \
+		.memory = VK_NULL_HANDLE, \
+		.size = 0, \
 	}, \
-	.vmaFlags = 0, \
 	.imageView = VK_NULL_HANDLE, \
 	.sharingMode = VK_SHARING_MODE_MAX_ENUM, \
 	.sampleCount = VK_SAMPLE_COUNT_1_BIT, \
@@ -106,9 +102,9 @@ typedef struct
 }
 
 #define QVVKTEXTURE_CLEAR(i)     { \
-	(i).image = VK_NULL_HANDLE; \
-	(i).allocation = VK_NULL_HANDLE; \
-	(i).vmaFlags = 0; \
+	(i).resource.image = VK_NULL_HANDLE; \
+	(i).resource.memory = VK_NULL_HANDLE; \
+	(i).resource.size = 0; \
 	(i).imageView = VK_NULL_HANDLE; \
 	(i).sharingMode = VK_SHARING_MODE_MAX_ENUM; \
 	(i).sampleCount = VK_SAMPLE_COUNT_1_BIT; \
@@ -127,19 +123,22 @@ typedef struct
 // Vulkan buffer
 typedef struct
 {
-	VkBuffer buffer;
-	VmaAllocation allocation;
-	VmaAllocationInfo allocInfo;
 	VkDeviceSize currentOffset;
+
+	BufferResource_t resource;
+	void *pMappedData;
 } qvkbuffer_t;
 
 // Vulkan staging buffer
 typedef struct
 {
-	qvkbuffer_t buffer;
+	VkDeviceSize currentOffset;
 	VkCommandBuffer cmdBuffer;
 	VkFence fence;
 	qboolean submitted;
+
+	BufferResource_t resource;
+	void *pMappedData;
 } qvkstagingbuffer_t;
 
 // Vulkan buffer options
@@ -148,8 +147,6 @@ typedef struct
 	VkBufferUsageFlags usage;
 	VkMemoryPropertyFlags reqMemFlags;
 	VkMemoryPropertyFlags prefMemFlags;
-	VmaMemoryUsage vmaUsage;
-	VmaAllocationCreateFlags vmaFlags;
 } qvkbufferopts_t;
 
 // Vulkan pipeline
@@ -209,8 +206,6 @@ extern VkInstance vk_instance;
 extern VkSurfaceKHR vk_surface;
 // Vulkan device
 extern qvkdevice_t vk_device;
-// Vulkan memory allocator
-extern VmaAllocator vk_malloc;
 // Vulkan swapchain
 extern qvkswapchain_t vk_swapchain;
 // Vulkan command buffer currently in use
@@ -276,7 +271,7 @@ VkResult	QVk_CreateSwapchain(void);
 VkFormat	QVk_FindDepthFormat(void);
 VkResult	QVk_CreateCommandPool(VkCommandPool *commandPool, uint32_t queueFamilyIndex);
 VkResult	QVk_CreateImageView(const VkImage *image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format, uint32_t mipLevels);
-VkResult	QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, qvktexture_t *texture);
+VkResult	QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, qvktexture_t *texture);
 void		QVk_CreateDepthBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *depthBuffer);
 void		QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colorBuffer, int extraFlags);
 void		QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvksampler_t samplerType);
@@ -290,9 +285,10 @@ const char*	QVk_GetError(VkResult errorCode);
 VkResult	QVk_BeginFrame(void);
 VkResult	QVk_EndFrame(qboolean force);
 void		QVk_BeginRenderpass(qvkrenderpasstype_t rpType);
+void		QVk_FreeStagingBuffer(qvkstagingbuffer_t *buffer);
 VkResult	QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbufferopts_t options);
 void		QVk_FreeBuffer(qvkbuffer_t *buffer);
-VkResult	QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags);
+VkResult	QVk_CreateStagingBuffer(VkDeviceSize size, qvkstagingbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags);
 VkResult	QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags);
 void		QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags);
 void		QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags);

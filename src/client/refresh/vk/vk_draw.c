@@ -311,7 +311,7 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 		}
 	}
 
-	if (vk_rawTexture.image != VK_NULL_HANDLE)
+	if (vk_rawTexture.resource.image != VK_NULL_HANDLE)
 	{
 		QVk_UpdateTextureData(&vk_rawTexture, (unsigned char*)&image32, 0, 0, 256, 256);
 	}
