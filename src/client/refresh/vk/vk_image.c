@@ -65,7 +65,7 @@ static void transitionImageLayout(const VkCommandBuffer *cmdBuffer, const VkQueu
 		.newLayout = newLayout,
 		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.image = texture->image,
+		.image = texture->resource.image,
 		.subresourceRange.baseMipLevel = 0, // no mip mapping levels
 		.subresourceRange.baseArrayLayer = 0,
 		.subresourceRange.layerCount = 1,
@@ -173,7 +173,7 @@ static void generateMipmaps(const VkCommandBuffer *cmdBuffer, const qvktexture_t
 		.pNext = NULL,
 		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.image = texture->image,
+		.image = texture->resource.image,
 		.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
 		.subresourceRange.levelCount = 1,
 		.subresourceRange.baseArrayLayer = 0,
@@ -208,8 +208,8 @@ static void generateMipmaps(const VkCommandBuffer *cmdBuffer, const qvktexture_t
 		};
 
 		// src image == dst image, because we're blitting between different mip levels of the same image
-		vkCmdBlitImage(*cmdBuffer, texture->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-			texture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, mipFilter);
+		vkCmdBlitImage(*cmdBuffer, texture->resource.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			texture->resource.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, mipFilter);
 
 		imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 		imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -250,7 +250,7 @@ static void createTextureImage(qvktexture_t *dstTex, const unsigned char *data, 
 	if (dstTex->mipLevels > 1)
 		imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
-	VK_VERIFY(QVk_CreateImage(width, height, dstTex->format, VK_IMAGE_TILING_OPTIMAL, imageUsage, VMA_MEMORY_USAGE_GPU_ONLY, dstTex));
+	VK_VERIFY(QVk_CreateImage(width, height, dstTex->format, VK_IMAGE_TILING_OPTIMAL, imageUsage, dstTex));
 
 	transitionImageLayout(&command_buffer, &vk_device.transferQueue, dstTex, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	// copy buffer to image
@@ -266,7 +266,7 @@ static void createTextureImage(qvktexture_t *dstTex, const unsigned char *data, 
 		.imageExtent = { width, height, 1 }
 	};
 
-	vkCmdCopyBufferToImage(command_buffer, staging_buffer, dstTex->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+	vkCmdCopyBufferToImage(command_buffer, staging_buffer, dstTex->resource.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 	if (dstTex->mipLevels > 1)
 	{
@@ -309,7 +309,7 @@ VkResult QVk_CreateImageView(const VkImage *image, VkImageAspectFlags aspectFlag
 	return vkCreateImageView(vk_device.logical, &ivCreateInfo, NULL, imageView);
 }
 
-VkResult QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, qvktexture_t *texture)
+VkResult QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, qvktexture_t *texture)
 {
 	VkImageCreateInfo imageInfo = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -336,49 +336,32 @@ VkResult QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkIma
 		imageInfo.pQueueFamilyIndices = queueFamilies;
 	}
 
-	VmaAllocationCreateInfo vmallocInfo = {
-		.flags = texture->vmaFlags,
-		.usage = memUsage
-	};
-
 	texture->sharingMode = imageInfo.sharingMode;
-	return vmaCreateImage(vk_malloc, &imageInfo, &vmallocInfo, &texture->image, &texture->allocation, &texture->allocInfo);
+	return image_create(&texture->resource, imageInfo, /*mem_properties*/ 0, /*mem_preferences*/ 0);
 }
 
 void QVk_CreateDepthBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *depthBuffer)
 {
 	depthBuffer->format = QVk_FindDepthFormat();
 	depthBuffer->sampleCount = sampleCount;
-	// On 64-bit builds, Intel drivers throw a warning:
-	// "Mapping an image with layout VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL can result in undefined behavior if this memory is used by the device. Only GENERAL or PREINITIALIZED should be used."
-	// Minor annoyance but we don't want any validation warnings, so we create dedicated allocation for depth buffer.
-	// more details: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/issues/34
-	// Note that this is a false positive which in other cases could be ignored: https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/general_considerations.html#general_considerations_validation_layer_warnings
-	depthBuffer->vmaFlags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
 
-	VK_VERIFY(QVk_CreateImage(vk_swapchain.extent.width, vk_swapchain.extent.height, depthBuffer->format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, depthBuffer));
-	VK_VERIFY(QVk_CreateImageView(&depthBuffer->image, getDepthStencilAspect(depthBuffer->format), &depthBuffer->imageView, depthBuffer->format, depthBuffer->mipLevels));
+	VK_VERIFY(QVk_CreateImage(vk_swapchain.extent.width, vk_swapchain.extent.height, depthBuffer->format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, depthBuffer));
+	VK_VERIFY(QVk_CreateImageView(&depthBuffer->resource.image, getDepthStencilAspect(depthBuffer->format), &depthBuffer->imageView, depthBuffer->format, depthBuffer->mipLevels));
 }
 
 void QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colorBuffer, int extraFlags)
 {
 	colorBuffer->format = vk_swapchain.format;
 	colorBuffer->sampleCount = sampleCount;
-	// On 64-bit builds, Intel drivers throw a warning:
-	// "Mapping an image with layout VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL can result in undefined behavior if this memory is used by the device. Only GENERAL or PREINITIALIZED should be used."
-	// Minor annoyance but we don't want any validation warnings, so we create dedicated allocation for color buffer.
-	// more details: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/issues/34
-	// Note that this is a false positive which in other cases could be ignored: https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/general_considerations.html#general_considerations_validation_layer_warnings
-	colorBuffer->vmaFlags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
 
-	VK_VERIFY(QVk_CreateImage(vk_swapchain.extent.width, vk_swapchain.extent.height, colorBuffer->format, VK_IMAGE_TILING_OPTIMAL, extraFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, colorBuffer));
-	VK_VERIFY(QVk_CreateImageView(&colorBuffer->image, VK_IMAGE_ASPECT_COLOR_BIT, &colorBuffer->imageView, colorBuffer->format, colorBuffer->mipLevels));
+	VK_VERIFY(QVk_CreateImage(vk_swapchain.extent.width, vk_swapchain.extent.height, colorBuffer->format, VK_IMAGE_TILING_OPTIMAL, extraFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, colorBuffer));
+	VK_VERIFY(QVk_CreateImageView(&colorBuffer->resource.image, VK_IMAGE_ASPECT_COLOR_BIT, &colorBuffer->imageView, colorBuffer->format, colorBuffer->mipLevels));
 }
 
 void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvksampler_t samplerType)
 {
 	createTextureImage(texture, data, width, height);
-	VK_VERIFY(QVk_CreateImageView(&texture->image, VK_IMAGE_ASPECT_COLOR_BIT, &texture->imageView, texture->format, texture->mipLevels));
+	VK_VERIFY(QVk_CreateImageView(&texture->resource.image, VK_IMAGE_ASPECT_COLOR_BIT, &texture->imageView, texture->format, texture->mipLevels));
 
 	// create descriptor set for the texture
 	VkDescriptorSetAllocateInfo dsAllocInfo = {
@@ -421,7 +404,7 @@ void QVk_UpdateTextureData(qvktexture_t *texture, const unsigned char *data, uin
 		.imageExtent = { width, height, 1 }
 	};
 
-	vkCmdCopyBufferToImage(command_buffer, staging_buffer, texture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+	vkCmdCopyBufferToImage(command_buffer, staging_buffer, texture->resource.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 	if (texture->mipLevels > 1)
 	{
@@ -449,36 +432,37 @@ static void QVk_ReleaseTexture(qvktexture_t *texture)
 		vkDeviceWaitIdle(vk_device.logical);
 	}
 
-	if (texture->image != VK_NULL_HANDLE)
-		vmaDestroyImage(vk_malloc, texture->image, texture->allocation);
+	if (texture->resource.image != VK_NULL_HANDLE)
+		image_destroy(&texture->resource);
 	if (texture->imageView != VK_NULL_HANDLE)
 		vkDestroyImageView(vk_device.logical, texture->imageView, NULL);
 	if (texture->descriptorSet != VK_NULL_HANDLE)
 		vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &texture->descriptorSet);
 
-	texture->image = VK_NULL_HANDLE;
+	texture->resource.image = VK_NULL_HANDLE;
 	texture->imageView = VK_NULL_HANDLE;
 	texture->descriptorSet = VK_NULL_HANDLE;
 }
 
 void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 {
-	qvkbuffer_t buff;
+	BufferResource_t buff;
+	uint8_t *pMappedData;
 	VkCommandBuffer cmdBuffer;
-	qvkbufferopts_t buffOpts = {
+
+	VkBufferCreateInfo bcInfo = {
+		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.size = width * height * 4,
 		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		.reqMemFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		.prefMemFlags = VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
-		.vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY,
-		// When taking a screenshot on Intel, the Linux driver may throw a warning:
-		// "Mapping an image with layout VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL can result in undefined behavior if this memory is used by the device. Only GENERAL or PREINITIALIZED should be used."
-		// Minor annoyance but we don't want any validation warnings, so we create dedicated allocation for the image buffer.
-		// more details: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/issues/34
-		// Note that this is a false positive which in other cases could be ignored: https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/general_considerations.html#general_considerations_validation_layer_warnings
-		.vmaFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT | VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT
+		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+		.queueFamilyIndexCount = 0,
+		.pQueueFamilyIndices = NULL,
 	};
 
-	VK_VERIFY(QVk_CreateBuffer(width * height * 4, &buff, buffOpts));
+	VK_VERIFY(buffer_create(&buff, width * height * 4, bcInfo, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
+
 	cmdBuffer = QVk_CreateCommandBuffer(&vk_commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 	VK_VERIFY(QVk_BeginCommand(&cmdBuffer));
 
@@ -521,9 +505,11 @@ void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 	QVk_SubmitCommand(&cmdBuffer, &vk_device.gfxQueue);
 
 	// store image in destination buffer
-	memcpy(dstBuffer, (uint8_t *)buff.allocInfo.pMappedData, width * height * 4);
+	pMappedData = buffer_map(&buff);
+	memcpy(dstBuffer, pMappedData, width * height * 4);
+	buffer_unmap(&buff);
 
-	QVk_FreeBuffer(&buff);
+	buffer_destroy(&buff);
 }
 
 /*
@@ -542,7 +528,7 @@ void	Vk_ImageList_f (void)
 
 	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
 	{
-		if (image->vk_texture.image == VK_NULL_HANDLE)
+		if (image->vk_texture.resource.image == VK_NULL_HANDLE)
 			continue;
 		texels += image->upload_width*image->upload_height;
 		switch (image->type)
@@ -682,17 +668,17 @@ void Vk_TextureMode( char *string )
 	for (j = 0, image = vktextures; j < numvktextures; j++, image++)
 	{
 		// skip console characters - we want them unfiltered at all times
-		if (image->vk_texture.image != VK_NULL_HANDLE && Q_stricmp(image->name, "pics/conchars.pcx"))
+		if (image->vk_texture.resource.image != VK_NULL_HANDLE && Q_stricmp(image->name, "pics/conchars.pcx"))
 			QVk_UpdateTextureSampler(&image->vk_texture, i);
 	}
 
 	for (j = 0; j < MAX_SCRAPS; j++)
 	{
-		if (vk_scrapTextures[j].image != VK_NULL_HANDLE)
+		if (vk_scrapTextures[j].resource.image != VK_NULL_HANDLE)
 			QVk_UpdateTextureSampler(&vk_scrapTextures[j], i);
 	}
 
-	if (vk_rawTexture.image != VK_NULL_HANDLE)
+	if (vk_rawTexture.resource.image != VK_NULL_HANDLE)
 		QVk_UpdateTextureSampler(&vk_rawTexture, i);
 }
 
@@ -728,7 +714,7 @@ void Vk_LmapTextureMode( char *string )
 	vkDeviceWaitIdle(vk_device.logical);
 	for (j = 0; j < MAX_LIGHTMAPS*2; j++)
 	{
-		if (vk_state.lightmap_textures[j].image != VK_NULL_HANDLE)
+		if (vk_state.lightmap_textures[j].resource.image != VK_NULL_HANDLE)
 			QVk_UpdateTextureSampler(&vk_state.lightmap_textures[j], i);
 	}
 }
@@ -1236,7 +1222,7 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth, int height, int real
 	// find a free image_t
 	for (i = 0, image = vktextures; i<numvktextures; i++, image++)
 	{
-		if (image->vk_texture.image == VK_NULL_HANDLE && !image->scrap)
+		if (image->vk_texture.resource.image == VK_NULL_HANDLE && !image->scrap)
 			break;
 	}
 	if (i == numvktextures)
@@ -1289,7 +1275,7 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth, int height, int real
 		// update scrap data
 		Vk_Upload8(scrap_texels[texnum], BLOCK_WIDTH, BLOCK_HEIGHT, false, false, &texBuffer, &upload_width, &upload_height);
 
-		if (vk_scrapTextures[texnum].image != VK_NULL_HANDLE)
+		if (vk_scrapTextures[texnum].resource.image != VK_NULL_HANDLE)
 		{
 			QVk_UpdateTextureData(&vk_scrapTextures[texnum], texBuffer, 0, 0, image->upload_width, image->upload_height);
 		}

@@ -1076,7 +1076,7 @@ static void LM_UploadBlock( qboolean dynamic )
 	}
 	else
 	{
-		if (vk_state.lightmap_textures[texture].image != VK_NULL_HANDLE)
+		if (vk_state.lightmap_textures[texture].resource.image != VK_NULL_HANDLE)
 			QVk_UpdateTextureData(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, BLOCK_HEIGHT);
 		else
 		{
@@ -1273,7 +1273,7 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 	/*
 	** initialize the dynamic lightmap textures
 	*/
-	if (vk_state.lightmap_textures[DYNLIGHTMAP_OFFSET].image == VK_NULL_HANDLE)
+	if (vk_state.lightmap_textures[DYNLIGHTMAP_OFFSET].resource.image == VK_NULL_HANDLE)
 	{
 		for (i = DYNLIGHTMAP_OFFSET; i < MAX_LIGHTMAPS*2; i++)
 		{
