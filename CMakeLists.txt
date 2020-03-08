@@ -165,8 +165,9 @@ if ("${ARCH}" STREQUAL "x86_64")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse")
 endif()
 
-if ("${ARCH}" STREQUAL "arm")
+if (YQ2ARCHNATIVE AND "${ARCH}" STREQUAL "arm")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
+	add_definitions(-DYQ2ARCHNATIVE=1)
 endif()
 
 set(Backends-Generic-Source

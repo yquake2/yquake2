@@ -146,7 +146,7 @@ Qcommon_Mainloop(void)
 				   dispersion a lot, it's 95°C against 67°C on
 				   a Kaby Lake laptop. */
 				asm("pause");
-#elif defined(__arm__) || defined(__aarch64__)
+#elif defined(YQ2ARCHNATIVE) && (defined(__arm__) || defined(__aarch64__))
 				asm("yield");
 #endif
 
