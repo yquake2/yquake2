@@ -165,6 +165,10 @@ if ("${ARCH}" STREQUAL "x86_64")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse")
 endif()
 
+if ("${ARCH}" STREQUAL "arm")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
+endif()
+
 set(Backends-Generic-Source
 	${BACKENDS_SRC_DIR}/generic/misc.c
 	)
