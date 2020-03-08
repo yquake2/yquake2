@@ -139,13 +139,15 @@ Qcommon_Mainloop(void)
 
 			while (1)
 			{
-#if defined (__GNUC__) && (__i386 || __x86_64__)
 				/* Give the CPU a hint that this is a very tight
 				   spinloop. One PAUSE instruction each loop is
 				   enough to reduce power consumption and head
 				   dispersion a lot, it's 95°C against 67°C on
 				   a Kaby Lake laptop. */
+#if defined (__GNUC__) && (__i386 || __x86_64__)
 				asm("pause");
+#elif defined(__arm__) || defined(__aarch64__)
+				asm("yield");
 #endif
 
 				if (Sys_Microseconds() - spintime >= FRAMEDELAY)

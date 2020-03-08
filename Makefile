@@ -186,6 +186,16 @@ ifeq ($(YQ2_ARCH), x86_64)
 CFLAGS += -mfpmath=sse
 endif
 
+# In ARM mode it cannot generate yield instruction
+# to cool down the CPU in busy mode
+ifeq ($(YQ2_ARCH), arm)
+CFLAGS += -march=armv6k
+endif
+
+ifeq ($(YQ2_ARCH), aarch64)
+CFLAGS += -march=armv8.0-a
+endif
+
 # ----------
 
 # Systemwide installation.
