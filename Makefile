@@ -111,33 +111,32 @@ endif
 
 # ----------
 
-# Base CFLAGS.
-#
-# -O2 are enough optimizations.
-#
-# -fno-strict-aliasing since the source doesn't comply
-#  with strict aliasing rules and it's next to impossible
-#  to get it there...
-#
-# -fomit-frame-pointer since the framepointer is mostly
-#  useless for debugging Quake II and slows things down.
-#
-# -g to build always with debug symbols. Please DO NOT
-#  CHANGE THIS, since it's our only chance to debug this
-#  crap when random crashes happen!
-#
-# -MMD to generate header dependencies. (They cannot be
-#  generated if building universal binaries on OSX)
-#
-# -fwrapv for defined integer wrapping. MSVC6 did this
-#  and the game code requires it.
-ifeq ($(YQ2_OSTYPE), Darwin)
-CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -pipe -g -fwrapv
-CFLAGS += $(OSX_ARCH)
+# Base CFLAGS. These may be overridden by the environment.
+# Highest supported optimizations are -O2, higher levels
+# will likely break this crappy code.
+ifdef DEBUG
+CFLAGS ?= -O0 -g -Wall -pipe
 else
-CFLAGS := -std=gnu99 -O2 -fno-strict-aliasing \
-		  -Wall -pipe -g -ggdb -MMD -fwrapv
+CFLAGS ?= -O2 -Wall -pipe -fomit-frame-pointer
+endif
+
+# Always needed are:
+#  -fno-strict-aliasing since the source doesn't comply
+#   with strict aliasing rules and it's next to impossible
+#   to get it there...
+#  -fwrapv for defined integer wrapping. MSVC6 did this
+#   and the game code requires it.
+CFLAGS += -std=gnu99 -fno-strict-aliasing -fwrapv
+
+# -MMD to generate header dependencies. Unsupported by
+#  the Clang shipped with OS X.
+ifneq ($(YQ2_OSTYPE), Darwin)
+CFLAGS += -MMD
+endif
+
+# OS X architecture.
+ifeq ($(YQ2_OSTYPE), Darwin)
+CFLAGS += $(OSX_ARCH)
 endif
 
 # ----------
