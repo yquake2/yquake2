@@ -303,18 +303,11 @@ void		QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize, qvkrenderpasstype_t rp
 void		QVk_DrawTexRect(const float *ubo, VkDeviceSize uboSize, qvktexture_t *texture);
 void		QVk_BindPipeline(qvkpipeline_t *pipeline);
 void		QVk_SubmitStagingBuffers(void);
+
 // debug label related functions
-#if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
 void		QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objName);
 void		QVk_DebugSetObjectTag(uint64_t obj, VkObjectType objType, uint64_t tagName, size_t tagSize, const void *tagData);
 void		QVk_DebugLabelBegin(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b);
 void		QVk_DebugLabelEnd(const VkCommandBuffer *cmdBuffer);
 void		QVk_DebugLabelInsert(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b);
-#else
-#define		QVk_DebugSetObjectName(a, b, c)
-#define		QVk_DebugSetObjectTag(a, b, c, d, e)
-#define		QVk_DebugLabelBegin(a, b, c, d, e)
-#define		QVk_DebugLabelEnd(a)
-#define		QVk_DebugLabelInsert(a, b, c, d, e)
-#endif
 #endif

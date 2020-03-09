@@ -1283,10 +1283,10 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth, int height, int real
 		{
 			QVVKTEXTURE_CLEAR(vk_scrapTextures[texnum]);
 			QVk_CreateTexture(&vk_scrapTextures[texnum], texBuffer, image->upload_width, image->upload_height, samplerType ? *samplerType : vk_current_sampler);
-			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].image, VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
+			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].resource.image, VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
 			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].imageView, VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: %s", name));
 			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].descriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: %s", name));
-			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: scrap texture");
+			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: scrap texture");
 		}
 
 		image->vk_texture = vk_scrapTextures[texnum];
@@ -1308,10 +1308,10 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth, int height, int real
 		image->th = 1;
 
 		QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, samplerType ? *samplerType : vk_current_sampler);
-		QVk_DebugSetObjectName((uint64_t)image->vk_texture.image, VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
+		QVk_DebugSetObjectName((uint64_t)image->vk_texture.resource.image, VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
 		QVk_DebugSetObjectName((uint64_t)image->vk_texture.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: %s", name));
 		QVk_DebugSetObjectName((uint64_t)image->vk_texture.descriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: %s", name));
-		QVk_DebugSetObjectName((uint64_t)image->vk_texture.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: game textures");
+		QVk_DebugSetObjectName((uint64_t)image->vk_texture.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: game textures");
 	}
 	if (texBuffer)
 	{
