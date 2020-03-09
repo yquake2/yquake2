@@ -252,17 +252,28 @@ GLAD_INCLUDE = -Isrc/client/refresh/gl3/glad/include
 
 # ----------
 
-# Base LDFLAGS.
+# Base LDFLAGS. This is just the include path.
 ifeq ($(YQ2_OSTYPE),Linux)
-LDFLAGS := -L/usr/lib -lm -ldl -rdynamic
+LDFLAGS ?= -L/usr/lib
 else ifeq ($(YQ2_OSTYPE),FreeBSD)
-LDFLAGS := -L/usr/local/lib -lm
+LDFLAGS ?= -L/usr/local/lib
 else ifeq ($(YQ2_OSTYPE),OpenBSD)
-LDFLAGS := -L/usr/local/lib -lm
+LDFLAGS ?= -L/usr/local/lib
 else ifeq ($(YQ2_OSTYPE),Windows)
-LDFLAGS := -L/usr/lib -lws2_32 -lwinmm -static-libgcc
+LDFLAGS ?= -L/usr/lib
+endif
+
+# Required libraries.
+ifeq ($(YQ2_OSTYPE),Linux)
+LDFLAGS += -lm -ldl -rdynamic
+else ifeq ($(YQ2_OSTYPE),FreeBSD)
+LDFLAGS += -lm
+else ifeq ($(YQ2_OSTYPE),OpenBSD)
+LDFLAGS += -lm
+else ifeq ($(YQ2_OSTYPE),Windows)
+LDFLAGS += -lws2_32 -lwinmm -static-libgcc
 else ifeq ($(YQ2_OSTYPE), Darwin)
-LDFLAGS := $(OSX_ARCH) -lm
+LDFLAGS += $(OSX_ARCH)
 endif
 
 # Keep symbols hidden.
@@ -271,7 +282,8 @@ LDFLAGS += -fvisibility=hidden
 
 ifneq ($(YQ2_OSTYPE), Darwin)
 ifneq ($(YQ2_OSTYPE), OpenBSD)
-# for some reason the OSX & OpenBSD linker doesn't support this...
+# For some reason the OSX & OpenBSD
+# linker doesn't support this...
 LDFLAGS += -Wl,--no-undefined
 endif
 endif
