@@ -285,10 +285,9 @@ qboolean QVk_CreateDevice(int preferredDeviceIdx)
 }
 
 // debug label related functions
-#if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
-
 void QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objName)
 {
+#if defined(_DEBUG)
 	VkDebugUtilsObjectNameInfoEXT oNameInf = {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
 		.pNext = NULL,
@@ -298,10 +297,12 @@ void QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objN
 	};
 
 	qvkSetDebugUtilsObjectNameEXT(vk_device.logical, &oNameInf);
+#endif
 }
 
 void QVk_DebugSetObjectTag(uint64_t obj, VkObjectType objType, uint64_t tagName, size_t tagSize, const void *tagData)
 {
+#if defined(_DEBUG)
 	VkDebugUtilsObjectTagInfoEXT oTagInf = {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_TAG_INFO_EXT,
 		.pNext = NULL,
@@ -313,10 +314,12 @@ void QVk_DebugSetObjectTag(uint64_t obj, VkObjectType objType, uint64_t tagName,
 	};
 
 	qvkSetDebugUtilsObjectTagEXT(vk_device.logical, &oTagInf);
+#endif
 }
 
 void QVk_DebugLabelBegin(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b)
 {
+#if defined(_DEBUG)
 	VkDebugUtilsLabelEXT labelInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
 		.pNext = NULL,
@@ -325,15 +328,19 @@ void QVk_DebugLabelBegin(const VkCommandBuffer *cmdBuffer, const char *labelName
 	};
 
 	qvkCmdBeginDebugUtilsLabelEXT(*cmdBuffer, &labelInfo);
+#endif
 }
 
 void QVk_DebugLabelEnd(const VkCommandBuffer *cmdBuffer)
 {
+#if defined(_DEBUG)
 	qvkCmdEndDebugUtilsLabelEXT(*cmdBuffer);
+#endif
 }
 
 void QVk_DebugLabelInsert(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b)
 {
+#if defined(_DEBUG)
 	VkDebugUtilsLabelEXT labelInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
 		.pNext = NULL,
@@ -342,6 +349,5 @@ void QVk_DebugLabelInsert(const VkCommandBuffer *cmdBuffer, const char *labelNam
 	};
 
 	qvkInsertDebugUtilsLabelEXT(*cmdBuffer, &labelInfo);
-}
-
 #endif
+}
