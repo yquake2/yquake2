@@ -12,6 +12,7 @@
 #  - libGL                                               #
 #                                                        #
 # Optional dependencies:                                 #
+#  - CURL                                                #
 #  - OpenAL                                              #
 #                                                        #
 # Platforms:                                             #
@@ -328,6 +329,7 @@ all: config client server game ref_gl1 ref_gl3 ref_soft
 config:
 	@echo "Build configuration"
 	@echo "============================"
+	@echo "WITH_CURL = $(WITH_CURL)"
 	@echo "WITH_OPENAL = $(WITH_OPENAL)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
