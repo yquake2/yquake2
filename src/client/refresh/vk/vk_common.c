@@ -16,8 +16,8 @@ See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
 */
+
 /*
 ** VK_COMMON.C
 **
@@ -705,21 +705,21 @@ static void CreateDrawBuffers()
 	QVk_CreateColorBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_msaaColorbuffer, 0);
 	R_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n", vk_renderpasses[RP_WORLD].sampleCount);
 
-	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.image, VK_OBJECT_TYPE_IMAGE, "Depth Buffer: World");
+	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.resource.image, VK_OBJECT_TYPE_IMAGE, "Depth Buffer: World");
 	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: World Depth Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: World Depth Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_ui_depthbuffer.image, VK_OBJECT_TYPE_IMAGE, "Depth Buffer: UI");
+	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: World Depth Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_ui_depthbuffer.resource.image, VK_OBJECT_TYPE_IMAGE, "Depth Buffer: UI");
 	QVk_DebugSetObjectName((uint64_t)vk_ui_depthbuffer.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: UI Depth Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_ui_depthbuffer.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: UI Depth Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.image, VK_OBJECT_TYPE_IMAGE, "Color Buffer: World");
+	QVk_DebugSetObjectName((uint64_t)vk_ui_depthbuffer.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: UI Depth Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.resource.image, VK_OBJECT_TYPE_IMAGE, "Color Buffer: World");
 	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: World Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: World Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.image, VK_OBJECT_TYPE_IMAGE, "Color Buffer: Warp Postprocess");
+	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: World Color Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.resource.image, VK_OBJECT_TYPE_IMAGE, "Color Buffer: Warp Postprocess");
 	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: Warp Postprocess Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Warp Postprocess Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.image, VK_OBJECT_TYPE_IMAGE, "Color Buffer: MSAA");
+	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Warp Postprocess Color Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.resource.image, VK_OBJECT_TYPE_IMAGE, "Color Buffer: MSAA");
 	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: MSAA Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: MSAA Color Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: MSAA Color Buffer");
 }
 
 // internal helper
@@ -939,12 +939,12 @@ static void CreateDynamicBuffers()
 		CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].resource.buffer);
 
 		QVk_DebugSetObjectName((uint64_t)vk_uboDescriptorSets[i], VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Dynamic UBO Descriptor Set #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Vertex Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Vertex Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Index Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Index Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Uniform Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Uniform Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Vertex Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Vertex Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Index Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Index Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Uniform Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Uniform Buffer #%d", i));
 	}
 }
 
@@ -1044,8 +1044,8 @@ static void CreateStagingBuffers()
 		VK_VERIFY(QVk_BeginCommand(&vk_stagingBuffers[i].cmdBuffer));
 
 		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].fence, VK_OBJECT_TYPE_FENCE, va("Fence: Staging Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].buffer.buffer, VK_OBJECT_TYPE_BUFFER, va("Staging Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].buffer.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Staging Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Staging Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Staging Buffer #%d", i));
 		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].cmdBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER, va("Command Buffer: Staging Buffer #%d", i));
 	}
 }
@@ -1099,12 +1099,12 @@ static void CreateStaticBuffers()
 	QVk_CreateVertexBuffer(colorVerts, sizeof(colorVerts), &vk_colorRectVbo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
 	QVk_CreateIndexBuffer(indices, sizeof(indices), &vk_rectIbo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
 
-	QVk_DebugSetObjectName((uint64_t)vk_texRectVbo.buffer, VK_OBJECT_TYPE_BUFFER, "Static Buffer: Textured Rectangle VBO");
-	QVk_DebugSetObjectName((uint64_t)vk_texRectVbo.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Textured Rectangle VBO");
-	QVk_DebugSetObjectName((uint64_t)vk_colorRectVbo.buffer, VK_OBJECT_TYPE_BUFFER, "Static Buffer: Colored Rectangle VBO");
-	QVk_DebugSetObjectName((uint64_t)vk_colorRectVbo.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Colored Rectangle VBO");
-	QVk_DebugSetObjectName((uint64_t)vk_rectIbo.buffer, VK_OBJECT_TYPE_BUFFER, "Static Buffer: Rectangle IBO");
-	QVk_DebugSetObjectName((uint64_t)vk_rectIbo.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Rectangle IBO");
+	QVk_DebugSetObjectName((uint64_t)vk_texRectVbo.resource.buffer, VK_OBJECT_TYPE_BUFFER, "Static Buffer: Textured Rectangle VBO");
+	QVk_DebugSetObjectName((uint64_t)vk_texRectVbo.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Textured Rectangle VBO");
+	QVk_DebugSetObjectName((uint64_t)vk_colorRectVbo.resource.buffer, VK_OBJECT_TYPE_BUFFER, "Static Buffer: Colored Rectangle VBO");
+	QVk_DebugSetObjectName((uint64_t)vk_colorRectVbo.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Colored Rectangle VBO");
+	QVk_DebugSetObjectName((uint64_t)vk_rectIbo.resource.buffer, VK_OBJECT_TYPE_BUFFER, "Static Buffer: Rectangle IBO");
+	QVk_DebugSetObjectName((uint64_t)vk_rectIbo.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Rectangle IBO");
 }
 
 // internal helper
@@ -1540,6 +1540,7 @@ qboolean QVk_Init(SDL_Window *window)
 		return false;
 	}
 
+	// add space for validation layer
 	if (vk_validation->value)
 		extCount++;
 
@@ -1957,7 +1958,7 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 		}
 	};
 
-#if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
+#if defined(_DEBUG)
 	if (rpType == RP_WORLD) {
 		QVk_DebugLabelBegin(&vk_commandbuffers[vk_activeBufferIdx], "Draw World", 0.f, 1.f, 0.f);
 	}
@@ -2014,8 +2015,8 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 			QVk_CreateVertexBuffer(NULL, vk_config.vertex_buffer_size, &vk_dynVertexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 			vk_dynVertexBuffers[i].pMappedData = buffer_map(&vk_dynVertexBuffers[i].resource);
 
-			QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Vertex Buffer #%d", i));
-			QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Vertex Buffer #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Vertex Buffer #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Vertex Buffer #%d", i));
 		}
 	}
 
@@ -2057,8 +2058,8 @@ static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 			QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size, &vk_dynIndexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 			vk_dynIndexBuffers[i].pMappedData = buffer_map(&vk_dynIndexBuffers[i].resource);
 
-			QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Index Buffer #%d", i));
-			QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Index Buffer #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Index Buffer #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Index Buffer #%d", i));
 		}
 	}
 
@@ -2109,8 +2110,8 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 			CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].resource.buffer);
 
 			QVk_DebugSetObjectName((uint64_t)vk_uboDescriptorSets[i], VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Dynamic UBO Descriptor Set #%d", i));
-			QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Uniform Buffer #%d", i));
-			QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Uniform Buffer #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Uniform Buffer #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Uniform Buffer #%d", i));
 		}
 	}
 
