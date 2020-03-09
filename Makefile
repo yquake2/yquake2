@@ -59,7 +59,7 @@ OSX_APP:=yes
 
 # This is an optional configuration file, it'll be used in
 # case of presence.
-CONFIG_FILE := config.mk
+CONFIG_FILE:=config.mk
 
 # ----------
 
@@ -70,14 +70,14 @@ endif
 
 # Detect the OS
 ifdef SystemRoot
-YQ2_OSTYPE := Windows
+YQ2_OSTYPE ?= Windows
 else
 YQ2_OSTYPE ?= $(shell uname -s)
 endif
 
 # Special case for MinGW
 ifneq (,$(findstring MINGW,$(YQ2_OSTYPE)))
-YQ2_OSTYPE := Windows
+YQ2_OSTYPE ?= Windows
 endif
 
 # Detect the architecture
@@ -96,7 +96,7 @@ endif
 
 # On Windows / MinGW $(CC) is undefined by default.
 ifeq ($(YQ2_OSTYPE),Windows)
-CC := gcc
+CC ?= gcc
 endif
 
 # Detect the compiler
