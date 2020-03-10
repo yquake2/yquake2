@@ -1028,8 +1028,8 @@ struct edict_s
 	int max_health;
 	int gib_health;
 	int deadflag;
-	int show_hostile;
 
+	float show_hostile;
 	float powerarmor_time;
 
 	char *map; /* target_changelevel */
