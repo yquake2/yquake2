@@ -36,7 +36,12 @@ WITH_CURL:=yes
 # installed
 WITH_OPENAL:=yes
 
-# Enable systemwide installation of game assets
+# Sets an RPATH to $ORIGIN/lib. It can be used to
+# inject custom libraries, e.g. a patches libSDL.so
+# or libopenal.so. Not supported on Windows.
+WITH_RPATH:=yes
+
+# Enable systemwide installation of game assets.
 WITH_SYSTEMWIDE:=no
 
 # This will set the default SYSTEMDIR, a non-empty string
@@ -423,26 +428,8 @@ ifeq ($(YQ2_OSTYPE), FreeBSD)
 release/quake2 : LDFLAGS += -lexecinfo
 endif
 
-ifeq ($(YQ2_OSTYPE), FreeBSD)
-release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib' -lexecinfo
-else ifeq ($(YQ2_OSTYPE), Linux)
+ifeq ($(WITH_RPATH),yes)
 release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib'
-endif
-
-ifeq ($(WITH_SYSTEMWIDE),yes)
-ifneq ($(WITH_SYSTEMDIR),"")
-ifeq ($(YQ2_OSTYPE), FreeBSD)
-release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$(WITH_SYSTEMDIR)/lib'
-else ifeq ($(YQ2_OSTYPE), Linux)
-release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$(WITH_SYSTEMDIR)/lib'
-endif
-else
-ifeq ($(YQ2_OSTYPE), FreeBSD)
-release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='/usr/share/games/quake2/lib'
-else ifeq ($(YQ2_OSTYPE), Linux)
-release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='/usr/share/games/quake2/lib'
-endif
-endif
 endif
 endif
 
