@@ -28,71 +28,28 @@ typedef struct BufferResource_s {
 	int is_mapped;
 } BufferResource_t;
 
-VkResult
-buffer_create(
-		BufferResource_t *buf,
-		VkDeviceSize size, 
-		VkBufferUsageFlags usage,
-		VkMemoryPropertyFlags mem_properties);
+typedef struct ImageResource_s {
+	VkImage image;
+	VkDeviceMemory memory;
+	size_t size;
+} ImageResource_t;
+
+VkResult buffer_create(BufferResource_t *buf,
+		VkDeviceSize size,
+		VkBufferCreateInfo buf_create_info,
+		VkMemoryPropertyFlags mem_properties,
+		VkMemoryPropertyFlags mem_preferences);
 
 VkResult buffer_destroy(BufferResource_t *buf);
 void buffer_unmap(BufferResource_t *buf);
 void *buffer_map(BufferResource_t *buf);
-void buffer_unmap(BufferResource_t *buf);
+VkResult buffer_flush(BufferResource_t *buf);
+VkResult buffer_invalidate(BufferResource_t *buf);
 
-uint32_t get_memory_type(uint32_t mem_req_type_bits, VkMemoryPropertyFlags mem_prop);
-
-#define IMAGE_BARRIER(cmd_buf, ...) \
-	do { \
-		VkImageMemoryBarrier img_mem_barrier = { \
-			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER, \
-			.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED, \
-			.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED, \
-			__VA_ARGS__ \
-		}; \
-		vkCmdPipelineBarrier(cmd_buf, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, \
-				VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, NULL, 0, NULL, \
-				1, &img_mem_barrier); \
-	} while(0)
-
-#define CREATE_PIPELINE_LAYOUT(dev, layout, ...) \
-	do { \
-		VkPipelineLayoutCreateInfo pipeline_layout_info = { \
-			.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, \
-			__VA_ARGS__ \
-		}; \
-		_VK(vkCreatePipelineLayout(dev, &pipeline_layout_info, NULL, layout)); \
-	} while(0) \
-
-const char * vk_format_to_string(VkFormat format);
-
-#ifdef VKPT_ENABLE_VALIDATION
-#define ATTACH_LABEL_VARIABLE(a, type) \
-	do { \
-		/*Com_Printf("attaching object label 0x%08lx %s\n", (uint64_t) a, #a);*/ \
-		VkDebugMarkerObjectNameInfoEXT name_info = { \
-			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT, \
-			.object = (uint64_t) a, \
-			.objectType = VK_DEBUG_REPORT_OBJECT_TYPE_##type##_EXT, \
-			.pObjectName = #a \
-		}; \
-		qvkDebugMarkerSetObjectNameEXT(qvk.device, &name_info); \
-	} while(0)
-
-#define ATTACH_LABEL_VARIABLE_NAME(a, type, name) \
-	do { \
-		/*Com_Printf("attaching object label 0x%08lx %s\n", (uint64_t) a, name);*/ \
-		VkDebugMarkerObjectNameInfoEXT name_info = { \
-			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT, \
-			.object = (uint64_t) a, \
-			.objectType = VK_DEBUG_REPORT_OBJECT_TYPE_##type##_EXT, \
-			.pObjectName = name, \
-		}; \
-		qvkDebugMarkerSetObjectNameEXT(qvk.device, &name_info); \
-	} while(0)
-#else
-#define ATTACH_LABEL_VARIABLE(a, type) do{}while(0)
-#define ATTACH_LABEL_VARIABLE_NAME(a, type, name) do{}while(0)
-#endif
+VkResult image_create(ImageResource_t *img,
+		VkImageCreateInfo img_create_info,
+		VkMemoryPropertyFlags mem_properties,
+		VkMemoryPropertyFlags mem_preferences);
+VkResult image_destroy(ImageResource_t *img);
 
 #endif  /*__VK_UTIL_H__*/
