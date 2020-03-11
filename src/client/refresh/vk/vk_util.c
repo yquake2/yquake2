@@ -16,9 +16,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "shared/shared.h"
-#include "vk_util.h"
-#include "vkpt.h"
+#include "header/vk_util.h"
+#include "header/vk_local.h"
 
 #include <assert.h>
 
@@ -27,7 +26,7 @@ get_memory_type(uint32_t mem_req_type_bits, VkMemoryPropertyFlags mem_prop)
 {
 	for(uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; i++) {
 		if(mem_req_type_bits & (1 << i)) {
-			if((qvk.mem_properties.memoryTypes[i].propertyFlags & mem_prop) == mem_prop)
+			if((vk_device.mem_properties.memoryTypes[i].propertyFlags & mem_prop) == mem_prop)
 				return i;
 		}
 	}
@@ -37,7 +36,7 @@ get_memory_type(uint32_t mem_req_type_bits, VkMemoryPropertyFlags mem_prop)
 VkResult
 buffer_create(
 		BufferResource_t *buf,
-		VkDeviceSize size, 
+		VkDeviceSize size,
 		VkBufferUsageFlags usage,
 		VkMemoryPropertyFlags mem_properties)
 {
@@ -57,14 +56,14 @@ buffer_create(
 	buf->size = size;
 	buf->is_mapped = 0;
 
-	result = vkCreateBuffer(qvk.device, &buf_create_info, NULL, &buf->buffer);
+	result = vkCreateBuffer(vk_device.logical, &buf_create_info, NULL, &buf->buffer);
 	if(result != VK_SUCCESS) {
 		goto fail_buffer;
 	}
 	assert(buf->buffer != VK_NULL_HANDLE);
 
 	VkMemoryRequirements mem_reqs;
-	vkGetBufferMemoryRequirements(qvk.device, buf->buffer, &mem_reqs);
+	vkGetBufferMemoryRequirements(vk_device.logical, buf->buffer, &mem_reqs);
 
 	VkMemoryAllocateInfo mem_alloc_info = {
 		.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -72,14 +71,14 @@ buffer_create(
 		.memoryTypeIndex = get_memory_type(mem_reqs.memoryTypeBits, mem_properties)
 	};
 
-	result = vkAllocateMemory(qvk.device, &mem_alloc_info, NULL, &buf->memory);
+	result = vkAllocateMemory(vk_device.logical, &mem_alloc_info, NULL, &buf->memory);
 	if(result != VK_SUCCESS) {
 		goto fail_mem_alloc;
 	}
 
 	assert(buf->memory != VK_NULL_HANDLE);
 
-	result = vkBindBufferMemory(qvk.device, buf->buffer, buf->memory, 0);
+	result = vkBindBufferMemory(vk_device.logical, buf->buffer, buf->memory, 0);
 	if(result != VK_SUCCESS) {
 		goto fail_bind_buf_memory;
 	}
@@ -87,9 +86,9 @@ buffer_create(
 	return VK_SUCCESS;
 
 fail_bind_buf_memory:
-	vkFreeMemory(qvk.device, buf->memory, NULL);
+	vkFreeMemory(vk_device.logical, buf->memory, NULL);
 fail_mem_alloc:
-	vkDestroyBuffer(qvk.device, buf->buffer, NULL);
+	vkDestroyBuffer(vk_device.logical, buf->buffer, NULL);
 fail_buffer:
 	buf->buffer = VK_NULL_HANDLE;
 	buf->memory = VK_NULL_HANDLE;
@@ -102,9 +101,9 @@ buffer_destroy(BufferResource_t *buf)
 {
 	assert(!buf->is_mapped);
 	if(buf->memory != VK_NULL_HANDLE)
-		vkFreeMemory(qvk.device, buf->memory, NULL);
+		vkFreeMemory(vk_device.logical, buf->memory, NULL);
 	if(buf->buffer != VK_NULL_HANDLE)
-	vkDestroyBuffer(qvk.device, buf->buffer, NULL);
+	vkDestroyBuffer(vk_device.logical, buf->buffer, NULL);
 	buf->buffer = VK_NULL_HANDLE;
 	buf->memory = VK_NULL_HANDLE;
 	buf->size   = 0;
@@ -120,7 +119,7 @@ buffer_map(BufferResource_t *buf)
 	void *ret = NULL;
 	assert(buf->memory != VK_NULL_HANDLE);
 	assert(buf->size > 0);
-	_VK(vkMapMemory(qvk.device, buf->memory, 0 /*offset*/, buf->size, 0 /*flags*/, &ret));
+	VK_VERIFY(vkMapMemory(vk_device.logical, buf->memory, 0 /*offset*/, buf->size, 0 /*flags*/, &ret));
 	return ret;
 }
 
@@ -129,7 +128,7 @@ buffer_unmap(BufferResource_t *buf)
 {
 	assert(buf->is_mapped);
 	buf->is_mapped = 0;
-	vkUnmapMemory(qvk.device, buf->memory);
+	vkUnmapMemory(vk_device.logical, buf->memory);
 }
 
 const char *

@@ -927,6 +927,7 @@ REFVK_OBJS_ := \
 	src/client/refresh/vk/vk_swapchain.o \
 	src/client/refresh/vk/vk_validation.o \
 	src/client/refresh/vk/vk_warp.o \
+	src/client/refresh/vk/vk_util.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
