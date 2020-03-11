@@ -279,6 +279,7 @@ qboolean QVk_CreateDevice(int preferredDeviceIdx)
 	vkGetDeviceQueue(vk_device.logical, vk_device.gfxFamilyIndex, 0, &vk_device.gfxQueue);
 	vkGetDeviceQueue(vk_device.logical, vk_device.presentFamilyIndex, 0, &vk_device.presentQueue);
 	vkGetDeviceQueue(vk_device.logical, vk_device.transferFamilyIndex, 0, &vk_device.transferQueue);
+	vkGetPhysicalDeviceMemoryProperties(vk_device.physical, &vk_device.mem_properties);
 
 	return true;
 }
