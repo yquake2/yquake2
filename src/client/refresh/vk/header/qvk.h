@@ -38,6 +38,7 @@ typedef struct
 {
 	VkPhysicalDevice physical;
 	VkDevice		 logical;
+	VkPhysicalDeviceMemoryProperties mem_properties;
 	VkPhysicalDeviceProperties properties;
 	VkPhysicalDeviceFeatures   features;
 	VkQueue gfxQueue;
