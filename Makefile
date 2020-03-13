@@ -132,17 +132,17 @@ endif
 #   to get it there...
 #  -fwrapv for defined integer wrapping. MSVC6 did this
 #   and the game code requires it.
-CFLAGS += -std=gnu99 -fno-strict-aliasing -fwrapv
+override CFLAGS += -std=gnu99 -fno-strict-aliasing -fwrapv
 
 # -MMD to generate header dependencies. Unsupported by
 #  the Clang shipped with OS X.
 ifneq ($(YQ2_OSTYPE), Darwin)
-CFLAGS += -MMD
+override CFLAGS += -MMD
 endif
 
 # OS X architecture.
 ifeq ($(YQ2_OSTYPE), Darwin)
-CFLAGS += $(OSX_ARCH)
+override CFLAGS += $(OSX_ARCH)
 endif
 
 # ----------
@@ -151,27 +151,27 @@ endif
 ifeq ($(COMPILER), clang)
 	# -Wno-missing-braces because otherwise clang complains
 	#  about totally valid 'vec3_t bla = {0}' constructs.
-	CFLAGS += -Wno-missing-braces
+	override CFLAGS += -Wno-missing-braces
 else ifeq ($(COMPILER), gcc)
 	# GCC 8.0 or higher.
 	ifeq ($(shell test $(COMPILERVER) -ge 80000; echo $$?),0)
 	    # -Wno-format-truncation and -Wno-format-overflow
 		# because GCC spams about 50 false positives.
-    	CFLAGS += -Wno-format-truncation -Wno-format-overflow
+		override CFLAGS += -Wno-format-truncation -Wno-format-overflow
 	endif
 endif
 
 # ----------
 
 # Defines the operating system and architecture
-CFLAGS += -DYQ2OSTYPE=\"$(YQ2_OSTYPE)\" -DYQ2ARCH=\"$(YQ2_ARCH)\"
+override CFLAGS += -DYQ2OSTYPE=\"$(YQ2_OSTYPE)\" -DYQ2ARCH=\"$(YQ2_ARCH)\"
 
 # ----------
 
 # Fore reproduceable builds, look here for details:
 # https://reproducible-builds.org/specs/source-date-epoch/
 ifdef SOURCE_DATE_EPOCH
-CFLAGS += -DBUILD_DATE=\"$(shell date --utc --date="@${SOURCE_DATE_EPOCH}" +"%b %_d %Y" | sed -e 's/ /\\ /g')\"
+override CFLAGS += -DBUILD_DATE=\"$(shell date --utc --date="@${SOURCE_DATE_EPOCH}" +"%b %_d %Y" | sed -e 's/ /\\ /g')\"
 endif
 
 # ----------
@@ -181,14 +181,14 @@ endif
 # Would be nice if Clang had something comparable.
 ifeq ($(YQ2_ARCH), i386)
 ifeq ($(COMPILER), gcc)
-CFLAGS += -ffloat-store
+override CFLAGS += -ffloat-store
 endif
 endif
 
 # Force SSE math on x86_64. All sane compilers should do this
 # anyway, just to protect us from broken Linux distros.
 ifeq ($(YQ2_ARCH), x86_64)
-CFLAGS += -mfpmath=sse
+override CFLAGS += -mfpmath=sse
 endif
 
 # In ARM mode it cannot generate yield instruction
@@ -205,9 +205,9 @@ endif
 
 # Systemwide installation.
 ifeq ($(WITH_SYSTEMWIDE),yes)
-CFLAGS += -DSYSTEMWIDE
+override CFLAGS += -DSYSTEMWIDE
 ifneq ($(WITH_SYSTEMDIR),"")
-CFLAGS += -DSYSTEMDIR=\"$(WITH_SYSTEMDIR)\"
+override CFLAGS += -DSYSTEMDIR=\"$(WITH_SYSTEMDIR)\"
 endif
 endif
 
@@ -271,26 +271,26 @@ endif
 
 # Required libraries.
 ifeq ($(YQ2_OSTYPE),Linux)
-LDFLAGS += -lm -ldl -rdynamic
+override LDFLAGS += -lm -ldl -rdynamic
 else ifeq ($(YQ2_OSTYPE),FreeBSD)
-LDFLAGS += -lm
+override LDFLAGS += -lm
 else ifeq ($(YQ2_OSTYPE),OpenBSD)
-LDFLAGS += -lm
+override LDFLAGS += -lm
 else ifeq ($(YQ2_OSTYPE),Windows)
-LDFLAGS += -lws2_32 -lwinmm -static-libgcc
+override LDFLAGS += -lws2_32 -lwinmm -static-libgcc
 else ifeq ($(YQ2_OSTYPE), Darwin)
-LDFLAGS += $(OSX_ARCH)
+override LDFLAGS += $(OSX_ARCH)
 endif
 
 # Keep symbols hidden.
-CFLAGS += -fvisibility=hidden
-LDFLAGS += -fvisibility=hidden
+override CFLAGS += -fvisibility=hidden
+override LDFLAGS += -fvisibility=hidden
 
 ifneq ($(YQ2_OSTYPE), Darwin)
 ifneq ($(YQ2_OSTYPE), OpenBSD)
 # For some reason the OSX & OpenBSD
 # linker doesn't support this...
-LDFLAGS += -Wl,--no-undefined
+override LDFLAGS += -Wl,--no-undefined
 endif
 endif
 
