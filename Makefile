@@ -213,6 +213,9 @@ endif
 
 # ----------
 
+# We don't support encrypted ZIP files.
+ZIPCFLAGS := -DNOUNCRYPT
+
 # Just set IOAPI_NO_64 on everything that's not Linux or Windows,
 # otherwise minizip will use fopen64(), fseek64() and friends that
 # may be unavailable. This is - of course - not really correct, in
@@ -230,9 +233,6 @@ ZIPCFLAGS += -DIOAPI_NO_64
 endif
 endif
 
-# We don't support encrypted ZIP files.
-ZIPCFLAGS += -DNOUNCRYPT
-
 # ----------
 
 # Extra CFLAGS for SDL.
@@ -242,13 +242,13 @@ SDLCFLAGS := $(shell sdl2-config --cflags)
 
 # Base include path.
 ifeq ($(YQ2_OSTYPE),Linux)
-INCLUDE := -I/usr/include
+INCLUDE ?= -I/usr/include
 else ifeq ($(YQ2_OSTYPE),FreeBSD)
-INCLUDE := -I/usr/local/include
+INCLUDE ?= -I/usr/local/include
 else ifeq ($(YQ2_OSTYPE),OpenBSD)
-INCLUDE := -I/usr/local/include
+INCLUDE ?= -I/usr/local/include
 else ifeq ($(YQ2_OSTYPE),Windows)
-INCLUDE := -I/usr/include
+INCLUDE ?= -I/usr/include
 endif
 
 # ----------
