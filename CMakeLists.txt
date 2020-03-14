@@ -55,6 +55,7 @@ set(yquake2LinkerFlags)
 set(yquake2ClientLinkerFlags)
 set(yquake2ServerLinkerFlags)
 set(yquake2OpenGLLinkerFlags)
+set(yquake2VulkanLinkerFlags)
 set(yquake2SDLLinkerFlags)
 set(yquake2ZLibLinkerFlags)
 
@@ -102,6 +103,11 @@ set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 list(APPEND yquake2IncludeDirectories ${OPENGL_INCLUDE_DIR})
 list(APPEND yquake2OpenGLLinkerFlags ${OPENGL_LIBRARIES})
+
+# We need an OpenGL implementation.
+find_package(Vulkan REQUIRED)
+list(APPEND yquake2IncludeDirectories ${Vulkan_INCLUDE_DIR})
+list(APPEND yquake2VulkanLinkerFlags ${Vulkan_LIBRARIES})
 
 # FreeBSD needs libexecinfo.
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD")
@@ -550,6 +556,45 @@ set(SOFT-Header
 	${COMMON_SRC_DIR}/header/shared.h
 	)
 
+set(VK-Source
+	${REF_SRC_DIR}/vk/vk_buffer.c
+	${REF_SRC_DIR}/vk/vk_cmd.c
+	${REF_SRC_DIR}/vk/vk_common.c
+	${REF_SRC_DIR}/vk/vk_device.c
+	${REF_SRC_DIR}/vk/vk_draw.c
+	${REF_SRC_DIR}/vk/vk_image.c
+	${REF_SRC_DIR}/vk/vk_light.c
+	${REF_SRC_DIR}/vk/vk_mesh.c
+	${REF_SRC_DIR}/vk/vk_model.c
+	${REF_SRC_DIR}/vk/vk_pipeline.c
+	${REF_SRC_DIR}/vk/vk_rmain.c
+	${REF_SRC_DIR}/vk/vk_rmisc.c
+	${REF_SRC_DIR}/vk/vk_rsurf.c
+	${REF_SRC_DIR}/vk/vk_shaders.c
+	${REF_SRC_DIR}/vk/vk_swapchain.c
+	${REF_SRC_DIR}/vk/vk_validation.c
+	${REF_SRC_DIR}/vk/vk_warp.c
+	${REF_SRC_DIR}/vk/vk_util.c
+	${REF_SRC_DIR}/files/pcx.c
+	${REF_SRC_DIR}/files/stb.c
+	${REF_SRC_DIR}/files/wal.c
+	${REF_SRC_DIR}/files/pvs.c
+	${COMMON_SRC_DIR}/shared/shared.c
+	${COMMON_SRC_DIR}/md4.c
+	)
+
+set(VK-Header
+	${REF_SRC_DIR}/ref_shared.h
+	${REF_SRC_DIR}/files/stb_image.h
+	${REF_SRC_DIR}/files/stb_image_resize.h
+	${REF_SRC_DIR}/vk/header/qvk.h
+	${REF_SRC_DIR}/vk/header/local.h
+	${REF_SRC_DIR}/vk/header/model.h
+	${REF_SRC_DIR}/vk/header/shaders.h
+	${REF_SRC_DIR}/vk/header/util.h
+	${COMMON_SRC_DIR}/header/shared.h
+	)
+
 # Wrapper for the Windows binary
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set(Wrapper-Source
@@ -636,3 +681,13 @@ set_target_properties(ref_soft PROPERTIES
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
 		)
 target_link_libraries(ref_soft ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
+
+# Build the vk renderer dynamic library
+add_library(ref_vk MODULE ${VK-Source} ${VK-Header} ${REF-Platform-Specific-Source})
+set_target_properties(ref_vk PROPERTIES
+		PREFIX ""
+		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
+		)
+target_link_libraries(ref_vk ${yquake2LinkerFlags} ${yquake2VulkanLinkerFlags} ${yquake2SDLLinkerFlags})
