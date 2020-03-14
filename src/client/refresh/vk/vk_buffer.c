@@ -38,15 +38,12 @@ static void copyBuffer(const VkBuffer *src, VkBuffer *dst, VkDeviceSize size)
 }
 
 // internal helper
-static void createStagedBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbufferopts_t bufferOpts, qvkbuffer_t *stagingBuffer)
+static void createStagedBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbufferopts_t bufferOpts)
 {
-	qvkbuffer_t *stgBuffer = stagingBuffer;
-	// create/release internal staging buffer if NULL has been passed
-	if (!stagingBuffer)
-	{
-		stgBuffer = (qvkbuffer_t *)malloc(sizeof(qvkbuffer_t));
-		VK_VERIFY(QVk_CreateStagingBuffer(size, stgBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
-	}
+	qvkbuffer_t *stgBuffer;
+	// create/release internal staging buffer
+	stgBuffer = (qvkbuffer_t *)malloc(sizeof(qvkbuffer_t));
+	VK_VERIFY(QVk_CreateStagingBuffer(size, stgBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
 
 	if (data)
 	{
@@ -60,11 +57,8 @@ static void createStagedBuffer(const void *data, VkDeviceSize size, qvkbuffer_t 
 	VK_VERIFY(QVk_CreateBuffer(size, dstBuffer, bufferOpts));
 	copyBuffer(&stgBuffer->buffer, &dstBuffer->buffer, size);
 
-	if (!stagingBuffer)
-	{
-		QVk_FreeBuffer(stgBuffer);
-		free(stgBuffer);
-	}
+	QVk_FreeBuffer(stgBuffer);
+	free(stgBuffer);
 }
 
 VkResult QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbufferopts_t options)
@@ -142,7 +136,7 @@ VkResult QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMe
 	return QVk_CreateBuffer(size, dstBuffer, dstOpts);
 }
 
-void QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags)
+void QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags)
 {
 	qvkbufferopts_t dstOpts = {
 		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -152,10 +146,10 @@ void QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *ds
 		.vmaFlags = 0
 	};
 
-	createStagedBuffer(data, size, dstBuffer, dstOpts, stagingBuffer);
+	createStagedBuffer(data, size, dstBuffer, dstOpts);
 }
 
-void QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags)
+void QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags)
 {
 	qvkbufferopts_t dstOpts = {
 		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
@@ -165,5 +159,5 @@ void QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dst
 		.vmaFlags = 0
 	};
 
-	createStagedBuffer(data, size, dstBuffer, dstOpts, stagingBuffer);
+	createStagedBuffer(data, size, dstBuffer, dstOpts);
 }
