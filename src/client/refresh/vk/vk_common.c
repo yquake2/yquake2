@@ -309,9 +309,12 @@ static VkResult CreateImageViews()
 
 	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
 	{
-		res = QVk_CreateImageView(&vk_swapchain.images[i], VK_IMAGE_ASPECT_COLOR_BIT, &vk_imageviews[i], vk_swapchain.format, 1);
-		QVk_DebugSetObjectName((uint64_t)vk_swapchain.images[i], VK_OBJECT_TYPE_IMAGE, va("Swap Chain Image #%ld", i));
-		QVk_DebugSetObjectName((uint64_t)vk_imageviews[i], VK_OBJECT_TYPE_IMAGE_VIEW, va("Swap Chain Image View #%ld", i));
+		res = QVk_CreateImageView(&vk_swapchain.images[i],
+			VK_IMAGE_ASPECT_COLOR_BIT, &vk_imageviews[i], vk_swapchain.format, 1);
+		QVk_DebugSetObjectName((uint64_t)vk_swapchain.images[i],
+			VK_OBJECT_TYPE_IMAGE, va("Swap Chain Image #%ld", i));
+		QVk_DebugSetObjectName((uint64_t)vk_imageviews[i],
+			VK_OBJECT_TYPE_IMAGE_VIEW, va("Swap Chain Image View #%ld", i));
 
 		if (res != VK_SUCCESS)
 		{
@@ -397,7 +400,9 @@ static VkResult CreateFramebuffers()
 		for (int j = 0; j < RP_COUNT; ++j)
 		{
 			VkResult res = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[j], NULL, &vk_framebuffers[j][i]);
-			QVk_DebugSetObjectName((uint64_t)vk_framebuffers[j][i], VK_OBJECT_TYPE_FRAMEBUFFER, va("Framebuffer #%ld for Render Pass %s", i, j == RP_WORLD ? "RP_WORLD" : j == RP_UI ? "RP_UI" : "RP_WORLD_WARP"));
+			QVk_DebugSetObjectName((uint64_t)vk_framebuffers[j][i],
+				VK_OBJECT_TYPE_FRAMEBUFFER, va("Framebuffer #%ld for Render Pass %s",
+					i, j == RP_WORLD ? "RP_WORLD" : j == RP_UI ? "RP_UI" : "RP_WORLD_WARP"));
 
 			if (res != VK_SUCCESS)
 			{
@@ -694,32 +699,52 @@ static VkResult CreateRenderpasses()
 // internal helper
 static void CreateDrawBuffers()
 {
-	QVk_CreateDepthBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_depthbuffer);
+	QVk_CreateDepthBuffer(vk_renderpasses[RP_WORLD].sampleCount,
+		&vk_depthbuffer);
 	R_Printf(PRINT_ALL, "...created world depth buffer\n");
 	QVk_CreateDepthBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_ui_depthbuffer);
 	R_Printf(PRINT_ALL, "...created UI depth buffer\n");
-	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbuffer, VK_IMAGE_USAGE_SAMPLED_BIT);
+	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbuffer,
+		VK_IMAGE_USAGE_SAMPLED_BIT);
 	R_Printf(PRINT_ALL, "...created world color buffer\n");
-	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbufferWarp, VK_IMAGE_USAGE_SAMPLED_BIT);
+	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbufferWarp,
+		VK_IMAGE_USAGE_SAMPLED_BIT);
 	R_Printf(PRINT_ALL, "...created world postpocess color buffer\n");
-	QVk_CreateColorBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_msaaColorbuffer, 0);
-	R_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n", vk_renderpasses[RP_WORLD].sampleCount);
+	QVk_CreateColorBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_msaaColorbuffer,
+		0);
+	R_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n",
+		vk_renderpasses[RP_WORLD].sampleCount);
 
-	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.resource.image, VK_OBJECT_TYPE_IMAGE, "Depth Buffer: World");
-	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: World Depth Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: World Depth Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_ui_depthbuffer.resource.image, VK_OBJECT_TYPE_IMAGE, "Depth Buffer: UI");
-	QVk_DebugSetObjectName((uint64_t)vk_ui_depthbuffer.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: UI Depth Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_ui_depthbuffer.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: UI Depth Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.resource.image, VK_OBJECT_TYPE_IMAGE, "Color Buffer: World");
-	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: World Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: World Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.resource.image, VK_OBJECT_TYPE_IMAGE, "Color Buffer: Warp Postprocess");
-	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: Warp Postprocess Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Warp Postprocess Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.resource.image, VK_OBJECT_TYPE_IMAGE, "Color Buffer: MSAA");
-	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: MSAA Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: MSAA Color Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.resource.image,
+		VK_OBJECT_TYPE_IMAGE, "Depth Buffer: World");
+	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.imageView,
+		VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: World Depth Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.resource.memory,
+		VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: World Depth Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_ui_depthbuffer.resource.image,
+		VK_OBJECT_TYPE_IMAGE, "Depth Buffer: UI");
+	QVk_DebugSetObjectName((uint64_t)vk_ui_depthbuffer.imageView,
+		VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: UI Depth Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_ui_depthbuffer.resource.memory,
+		VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: UI Depth Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.resource.image,
+		VK_OBJECT_TYPE_IMAGE, "Color Buffer: World");
+	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.imageView,
+		VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: World Color Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.resource.memory,
+		VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: World Color Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.resource.image,
+		VK_OBJECT_TYPE_IMAGE, "Color Buffer: Warp Postprocess");
+	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.imageView,
+		VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: Warp Postprocess Color Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.resource.memory,
+		VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Warp Postprocess Color Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.resource.image,
+		VK_OBJECT_TYPE_IMAGE, "Color Buffer: MSAA");
+	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.imageView,
+		VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: MSAA Color Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.resource.memory,
+		VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: MSAA Color Buffer");
 }
 
 // internal helper
@@ -928,9 +953,13 @@ static void CreateDynamicBuffers()
 {
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
-		QVk_CreateVertexBuffer(NULL, vk_config.vertex_buffer_size, &vk_dynVertexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-		QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size, &vk_dynIndexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-		VK_VERIFY(QVk_CreateUniformBuffer(vk_config.uniform_buffer_size, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
+		QVk_CreateVertexBuffer(NULL, vk_config.vertex_buffer_size, &vk_dynVertexBuffers[i],
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+		QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size, &vk_dynIndexBuffers[i],
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+		VK_VERIFY(QVk_CreateUniformBuffer(vk_config.uniform_buffer_size,
+			&vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+			VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
 		// keep dynamic buffers persistently mapped
 		vk_dynVertexBuffers[i].pMappedData = buffer_map(&vk_dynVertexBuffers[i].resource);
 		vk_dynIndexBuffers[i].pMappedData = buffer_map(&vk_dynIndexBuffers[i].resource);
@@ -938,13 +967,20 @@ static void CreateDynamicBuffers()
 		// create descriptor set for the uniform buffer
 		CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].resource.buffer);
 
-		QVk_DebugSetObjectName((uint64_t)vk_uboDescriptorSets[i], VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Dynamic UBO Descriptor Set #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Vertex Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Vertex Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Index Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Index Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Uniform Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Uniform Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_uboDescriptorSets[i],
+			VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Dynamic UBO Descriptor Set #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].resource.buffer,
+			VK_OBJECT_TYPE_BUFFER, va("Dynamic Vertex Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].resource.memory,
+			VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Vertex Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].resource.buffer,
+			VK_OBJECT_TYPE_BUFFER, va("Dynamic Index Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].resource.memory,
+			VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Index Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].resource.buffer,
+			VK_OBJECT_TYPE_BUFFER, va("Dynamic Uniform Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].resource.memory,
+			VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Uniform Buffer #%d", i));
 	}
 }
 
@@ -1024,8 +1060,10 @@ static void RebuildTriangleFanIndexBuffer()
 // internal helper
 static void CreateStagingBuffers()
 {
-	VK_VERIFY(QVk_CreateCommandPool(&vk_stagingCommandPool, vk_device.gfxFamilyIndex));
-	QVk_DebugSetObjectName((uint64_t)vk_stagingCommandPool, VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Staging Buffers");
+	VK_VERIFY(QVk_CreateCommandPool(&vk_stagingCommandPool,
+		vk_device.gfxFamilyIndex));
+	QVk_DebugSetObjectName((uint64_t)vk_stagingCommandPool,
+		VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Staging Buffers");
 
 	VkFenceCreateInfo fCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -1034,19 +1072,28 @@ static void CreateStagingBuffers()
 
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
-		VK_VERIFY(QVk_CreateStagingBuffer(STAGING_BUFFER_MAXSIZE, &vk_stagingBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
+		VK_VERIFY(QVk_CreateStagingBuffer(STAGING_BUFFER_MAXSIZE,
+			&vk_stagingBuffers[i],
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
 		vk_stagingBuffers[i].pMappedData = buffer_map(&vk_stagingBuffers[i].resource);
 		vk_stagingBuffers[i].submitted = false;
 
-		VK_VERIFY(vkCreateFence(vk_device.logical, &fCreateInfo, NULL, &vk_stagingBuffers[i].fence));
+		VK_VERIFY(vkCreateFence(vk_device.logical, &fCreateInfo,
+			NULL, &vk_stagingBuffers[i].fence));
 
-		vk_stagingBuffers[i].cmdBuffer = QVk_CreateCommandBuffer(&vk_stagingCommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+		vk_stagingBuffers[i].cmdBuffer = QVk_CreateCommandBuffer(&vk_stagingCommandPool,
+			VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 		VK_VERIFY(QVk_BeginCommand(&vk_stagingBuffers[i].cmdBuffer));
 
-		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].fence, VK_OBJECT_TYPE_FENCE, va("Fence: Staging Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Staging Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Staging Buffer #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].cmdBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER, va("Command Buffer: Staging Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].fence,
+			VK_OBJECT_TYPE_FENCE, va("Fence: Staging Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].resource.buffer,
+			VK_OBJECT_TYPE_BUFFER, va("Staging Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].resource.memory,
+			VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Staging Buffer #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].cmdBuffer,
+			VK_OBJECT_TYPE_COMMAND_BUFFER, va("Command Buffer: Staging Buffer #%d", i));
 	}
 }
 
@@ -1095,16 +1142,25 @@ static void CreateStaticBuffers()
 
 	const uint32_t indices[] = { 0, 1, 2, 0, 3, 1 };
 
-	QVk_CreateVertexBuffer(texVerts, sizeof(texVerts), &vk_texRectVbo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
-	QVk_CreateVertexBuffer(colorVerts, sizeof(colorVerts), &vk_colorRectVbo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
-	QVk_CreateIndexBuffer(indices, sizeof(indices), &vk_rectIbo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
+	QVk_CreateVertexBuffer(texVerts, sizeof(texVerts),
+		&vk_texRectVbo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
+	QVk_CreateVertexBuffer(colorVerts, sizeof(colorVerts),
+		&vk_colorRectVbo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
+	QVk_CreateIndexBuffer(indices, sizeof(indices),
+		&vk_rectIbo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
 
-	QVk_DebugSetObjectName((uint64_t)vk_texRectVbo.resource.buffer, VK_OBJECT_TYPE_BUFFER, "Static Buffer: Textured Rectangle VBO");
-	QVk_DebugSetObjectName((uint64_t)vk_texRectVbo.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Textured Rectangle VBO");
-	QVk_DebugSetObjectName((uint64_t)vk_colorRectVbo.resource.buffer, VK_OBJECT_TYPE_BUFFER, "Static Buffer: Colored Rectangle VBO");
-	QVk_DebugSetObjectName((uint64_t)vk_colorRectVbo.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Colored Rectangle VBO");
-	QVk_DebugSetObjectName((uint64_t)vk_rectIbo.resource.buffer, VK_OBJECT_TYPE_BUFFER, "Static Buffer: Rectangle IBO");
-	QVk_DebugSetObjectName((uint64_t)vk_rectIbo.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Rectangle IBO");
+	QVk_DebugSetObjectName((uint64_t)vk_texRectVbo.resource.buffer,
+		VK_OBJECT_TYPE_BUFFER, "Static Buffer: Textured Rectangle VBO");
+	QVk_DebugSetObjectName((uint64_t)vk_texRectVbo.resource.memory,
+		VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Textured Rectangle VBO");
+	QVk_DebugSetObjectName((uint64_t)vk_colorRectVbo.resource.buffer,
+		VK_OBJECT_TYPE_BUFFER, "Static Buffer: Colored Rectangle VBO");
+	QVk_DebugSetObjectName((uint64_t)vk_colorRectVbo.resource.memory,
+		VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Colored Rectangle VBO");
+	QVk_DebugSetObjectName((uint64_t)vk_rectIbo.resource.buffer,
+		VK_OBJECT_TYPE_BUFFER, "Static Buffer: Rectangle IBO");
+	QVk_DebugSetObjectName((uint64_t)vk_rectIbo.resource.memory,
+		VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Rectangle IBO");
 }
 
 // internal helper
@@ -1665,9 +1721,12 @@ qboolean QVk_Init(SDL_Window *window)
 		VK_VERIFY(vkCreateSemaphore(vk_device.logical, &sCreateInfo, NULL, &vk_imageAvailableSemaphores[i]));
 		VK_VERIFY(vkCreateSemaphore(vk_device.logical, &sCreateInfo, NULL, &vk_renderFinishedSemaphores[i]));
 
-		QVk_DebugSetObjectName((uint64_t)vk_fences[i], VK_OBJECT_TYPE_FENCE, va("Fence #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_imageAvailableSemaphores[i], VK_OBJECT_TYPE_SEMAPHORE, va("Semaphore: image available #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_renderFinishedSemaphores[i], VK_OBJECT_TYPE_SEMAPHORE, va("Semaphore: render finished #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_fences[i],
+			VK_OBJECT_TYPE_FENCE, va("Fence #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_imageAvailableSemaphores[i],
+			VK_OBJECT_TYPE_SEMAPHORE, va("Semaphore: image available #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_renderFinishedSemaphores[i],
+			VK_OBJECT_TYPE_SEMAPHORE, va("Semaphore: render finished #%d", i));
 	}
 	R_Printf(PRINT_ALL, "...created synchronization objects\n");
 
@@ -1713,8 +1772,10 @@ qboolean QVk_Init(SDL_Window *window)
 		return false;
 	}
 
-	QVk_DebugSetObjectName((uint64_t)vk_commandPool, VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Graphics");
-	QVk_DebugSetObjectName((uint64_t)vk_transferCommandPool, VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Transfer");
+	QVk_DebugSetObjectName((uint64_t)vk_commandPool,
+		VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Graphics");
+	QVk_DebugSetObjectName((uint64_t)vk_transferCommandPool,
+		VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Transfer");
 	R_Printf(PRINT_ALL, "...created Vulkan command pools\n");
 
 	// setup draw buffers
@@ -1789,8 +1850,10 @@ qboolean QVk_Init(SDL_Window *window)
 	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &vk_colorbufferWarp.descriptorSet));
 	QVk_UpdateTextureSampler(&vk_colorbufferWarp, S_NEAREST);
 
-	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.descriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET, "Descriptor Set: World Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.descriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET, "Descriptor Set: Warp Postprocess Color Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.descriptorSet,
+		VK_OBJECT_TYPE_DESCRIPTOR_SET, "Descriptor Set: World Color Buffer");
+	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.descriptorSet,
+		VK_OBJECT_TYPE_DESCRIPTOR_SET, "Descriptor Set: Warp Postprocess Color Buffer");
 	return true;
 }
 
@@ -2012,11 +2075,14 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynVertexBuffers[i];
 			buffer_unmap(&vk_dynVertexBuffers[i].resource);
 
-			QVk_CreateVertexBuffer(NULL, vk_config.vertex_buffer_size, &vk_dynVertexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+			QVk_CreateVertexBuffer(NULL, vk_config.vertex_buffer_size,
+				&vk_dynVertexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 			vk_dynVertexBuffers[i].pMappedData = buffer_map(&vk_dynVertexBuffers[i].resource);
 
-			QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Vertex Buffer #%d", i));
-			QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Vertex Buffer #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].resource.buffer,
+				VK_OBJECT_TYPE_BUFFER, va("Dynamic Vertex Buffer #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_dynVertexBuffers[i].resource.memory,
+				VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Vertex Buffer #%d", i));
 		}
 	}
 
@@ -2055,11 +2121,14 @@ static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynIndexBuffers[i];
 			buffer_unmap(&vk_dynIndexBuffers[i].resource);
 
-			QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size, &vk_dynIndexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+			QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size,
+				&vk_dynIndexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 			vk_dynIndexBuffers[i].pMappedData = buffer_map(&vk_dynIndexBuffers[i].resource);
 
-			QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Index Buffer #%d", i));
-			QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Index Buffer #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].resource.buffer,
+				VK_OBJECT_TYPE_BUFFER, va("Dynamic Index Buffer #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_dynIndexBuffers[i].resource.memory,
+				VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Index Buffer #%d", i));
 		}
 	}
 
@@ -2105,13 +2174,18 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 			vk_swapDescriptorSets[vk_activeSwapBufferIdx][swapDescSetsOffset + i] = vk_uboDescriptorSets[i];
 			buffer_unmap(&vk_dynUniformBuffers[i].resource);
 
-			VK_VERIFY(QVk_CreateUniformBuffer(vk_config.uniform_buffer_size, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
+			VK_VERIFY(QVk_CreateUniformBuffer(vk_config.uniform_buffer_size,
+				&vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
 			vk_dynUniformBuffers[i].pMappedData = buffer_map(&vk_dynUniformBuffers[i].resource);
-			CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].resource.buffer);
+			CreateUboDescriptorSet(&vk_uboDescriptorSets[i],
+				vk_dynUniformBuffers[i].resource.buffer);
 
-			QVk_DebugSetObjectName((uint64_t)vk_uboDescriptorSets[i], VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Dynamic UBO Descriptor Set #%d", i));
-			QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].resource.buffer, VK_OBJECT_TYPE_BUFFER, va("Dynamic Uniform Buffer #%d", i));
-			QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Uniform Buffer #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_uboDescriptorSets[i],
+				VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Dynamic UBO Descriptor Set #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].resource.buffer,
+				VK_OBJECT_TYPE_BUFFER, va("Dynamic Uniform Buffer #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_dynUniformBuffers[i].resource.memory,
+				VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Dynamic Uniform Buffer #%d", i));
 		}
 	}
 
@@ -2230,14 +2304,18 @@ void QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize, qvkrenderpasstype_t rpT
 {
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
-	uint8_t *vertData = QVk_GetUniformBuffer(uboSize, &uboOffset, &uboDescriptorSet);
+	uint8_t *vertData = QVk_GetUniformBuffer(uboSize,
+		&uboOffset, &uboDescriptorSet);
 	memcpy(vertData, ubo, uboSize);
 
 	QVk_BindPipeline(&vk_drawColorQuadPipeline[rpType]);
 	VkDeviceSize offsets = 0;
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline[rpType].layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_colorRectVbo.resource.buffer, &offsets);
-	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.resource.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+		vk_drawColorQuadPipeline[rpType].layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1,
+		&vk_colorRectVbo.resource.buffer, &offsets);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.resource.buffer,
+		0, VK_INDEX_TYPE_UINT32);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 }
 
@@ -2252,8 +2330,10 @@ void QVk_DrawTexRect(const float *ubo, VkDeviceSize uboSize, qvktexture_t *textu
 	VkDeviceSize offsets = 0;
 	VkDescriptorSet descriptorSets[] = { texture->descriptorSet, uboDescriptorSet };
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_texRectVbo.resource.buffer, &offsets);
-	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.resource.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1,
+		&vk_texRectVbo.resource.buffer, &offsets);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer,
+		vk_rectIbo.resource.buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 }
 
