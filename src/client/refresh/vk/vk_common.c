@@ -1659,14 +1659,27 @@ qboolean QVk_Init(SDL_Window *window)
 	}
 	R_Printf(PRINT_ALL, "...created Vulkan instance\n");
 
-	// initialize function pointers
-	qvkCreateDebugUtilsMessengerEXT  = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vk_instance, "vkCreateDebugUtilsMessengerEXT");
-	qvkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vk_instance, "vkDestroyDebugUtilsMessengerEXT");
-	qvkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(vk_instance, "vkSetDebugUtilsObjectNameEXT");
-	qvkSetDebugUtilsObjectTagEXT  = (PFN_vkSetDebugUtilsObjectTagEXT)vkGetInstanceProcAddr(vk_instance, "vkSetDebugUtilsObjectTagEXT");
-	qvkCmdBeginDebugUtilsLabelEXT = (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdBeginDebugUtilsLabelEXT");
-	qvkCmdEndDebugUtilsLabelEXT   = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdEndDebugUtilsLabelEXT");
-	qvkInsertDebugUtilsLabelEXT   = (PFN_vkCmdInsertDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdInsertDebugUtilsLabelEXT");
+	if (vk_validation->value)
+	{
+		// initialize function pointers
+		qvkCreateDebugUtilsMessengerEXT  = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vk_instance, "vkCreateDebugUtilsMessengerEXT");
+		qvkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vk_instance, "vkDestroyDebugUtilsMessengerEXT");
+		qvkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(vk_instance, "vkSetDebugUtilsObjectNameEXT");
+		qvkSetDebugUtilsObjectTagEXT  = (PFN_vkSetDebugUtilsObjectTagEXT)vkGetInstanceProcAddr(vk_instance, "vkSetDebugUtilsObjectTagEXT");
+		qvkCmdBeginDebugUtilsLabelEXT = (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdBeginDebugUtilsLabelEXT");
+		qvkCmdEndDebugUtilsLabelEXT   = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdEndDebugUtilsLabelEXT");
+		qvkInsertDebugUtilsLabelEXT   = (PFN_vkCmdInsertDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdInsertDebugUtilsLabelEXT");
+	}
+	else
+	{
+		qvkCreateDebugUtilsMessengerEXT  = NULL;
+		qvkDestroyDebugUtilsMessengerEXT = NULL;
+		qvkSetDebugUtilsObjectNameEXT = NULL;
+		qvkSetDebugUtilsObjectTagEXT = NULL;
+		qvkCmdBeginDebugUtilsLabelEXT = NULL;
+		qvkCmdEndDebugUtilsLabelEXT = NULL;
+		qvkInsertDebugUtilsLabelEXT = NULL;
+	}
 
 	if (vk_validation->value)
 		QVk_CreateValidationLayers();
@@ -2021,7 +2034,6 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 		}
 	};
 
-#if defined(_DEBUG)
 	if (rpType == RP_WORLD) {
 		QVk_DebugLabelBegin(&vk_commandbuffers[vk_activeBufferIdx], "Draw World", 0.f, 1.f, 0.f);
 	}
@@ -2033,7 +2045,6 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 		QVk_DebugLabelEnd(&vk_commandbuffers[vk_activeBufferIdx]);
 		QVk_DebugLabelBegin(&vk_commandbuffers[vk_activeBufferIdx], "Draw View Warp", 1.f, 0.f, .5f);
 	}
-#endif
 
 	vkCmdBeginRenderPass(vk_commandbuffers[vk_activeBufferIdx], &renderBeginInfo[rpType], VK_SUBPASS_CONTENTS_INLINE);
 }
