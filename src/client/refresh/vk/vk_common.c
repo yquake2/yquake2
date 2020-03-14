@@ -311,8 +311,8 @@ static VkResult CreateImageViews()
 	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
 	{
 		res = QVk_CreateImageView(&vk_swapchain.images[i], VK_IMAGE_ASPECT_COLOR_BIT, &vk_imageviews[i], vk_swapchain.format, 1);
-		QVk_DebugSetObjectName((uint64_t)vk_swapchain.images[i], VK_OBJECT_TYPE_IMAGE, va("Swap Chain Image #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_imageviews[i], VK_OBJECT_TYPE_IMAGE_VIEW, va("Swap Chain Image View #%d", i));
+		QVk_DebugSetObjectName((uint64_t)vk_swapchain.images[i], VK_OBJECT_TYPE_IMAGE, va("Swap Chain Image #%ld", i));
+		QVk_DebugSetObjectName((uint64_t)vk_imageviews[i], VK_OBJECT_TYPE_IMAGE_VIEW, va("Swap Chain Image View #%ld", i));
 
 		if (res != VK_SUCCESS)
 		{
@@ -398,7 +398,7 @@ static VkResult CreateFramebuffers()
 		for (int j = 0; j < RP_COUNT; ++j)
 		{
 			VkResult res = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[j], NULL, &vk_framebuffers[j][i]);
-			QVk_DebugSetObjectName((uint64_t)vk_framebuffers[j][i], VK_OBJECT_TYPE_FRAMEBUFFER, va("Framebuffer #%d for Render Pass %s", i, j == RP_WORLD ? "RP_WORLD" : j == RP_UI ? "RP_UI" : "RP_WORLD_WARP"));
+			QVk_DebugSetObjectName((uint64_t)vk_framebuffers[j][i], VK_OBJECT_TYPE_FRAMEBUFFER, va("Framebuffer #%ld for Render Pass %s", i, j == RP_WORLD ? "RP_WORLD" : j == RP_UI ? "RP_UI" : "RP_WORLD_WARP"));
 
 			if (res != VK_SUCCESS)
 			{
@@ -1545,10 +1545,6 @@ qboolean QVk_Init(SDL_Window *window)
 
 	if (vk_validation->value)
 		extCount++;
-#if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
-	else
-		extCount++;
-#endif
 
 	wantedExtensions = malloc(extCount * sizeof(const char *));
 	if (!SDL_Vulkan_GetInstanceExtensions(window, &extCount, wantedExtensions))
@@ -1558,12 +1554,12 @@ qboolean QVk_Init(SDL_Window *window)
 		return false;
 	}
 
+	// restore extensions count
+	if (vk_validation->value)
+		extCount++;
+
 	if (vk_validation->value)
 		wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
-#if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
-	else
-		wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
-#endif
 
 	R_Printf(PRINT_ALL, "Enabled extensions: ");
 	for (int i = 0; i < extCount; i++)
