@@ -1043,6 +1043,7 @@ FloodFillSkin(byte *skin, int skinwidth, int skinheight)
 	}
 }
 
+
 /*
 ================
 Vk_LightScaleTexture
@@ -1092,13 +1093,11 @@ Vk_Upload32
 Returns number of mip levels
 ===============
 */
-int		upload_width, upload_height;
-unsigned int texBuffer[256 * 256];
-
-static uint32_t Vk_Upload32 (byte *data, int width, int height, qboolean mipmap)
+static uint32_t Vk_Upload32 (byte *data, int width, int height, qboolean mipmap, byte **texBuffer, int *upload_width, int *upload_height)
 {
-	byte		scaled[256 * 256 * 4];
-	int			scaled_width, scaled_height;
+	int	scaled_width, scaled_height;
+
+	*texBuffer = NULL;
 
 	for (scaled_width = 1; scaled_width < width; scaled_width <<= 1)
 		;
@@ -1116,41 +1115,35 @@ static uint32_t Vk_Upload32 (byte *data, int width, int height, qboolean mipmap)
 		scaled_height >>= (int)vk_picmip->value;
 	}
 
-	// don't ever bother with >256 textures
-	if (scaled_width > 256)
-		scaled_width = 256;
-	if (scaled_height > 256)
-		scaled_height = 256;
-
 	if (scaled_width < 1)
 		scaled_width = 1;
 	if (scaled_height < 1)
 		scaled_height = 1;
 
-	upload_width = scaled_width;
-	upload_height = scaled_height;
-
-	if (scaled_width * scaled_height > sizeof(scaled) / 4)
+	*texBuffer = malloc(scaled_width * scaled_height * 4);
+	if (!*texBuffer)
 		ri.Sys_Error(ERR_DROP, "%s: too big", __func__);
+
+	*upload_width = scaled_width;
+	*upload_height = scaled_height;
 
 	if (scaled_width == width && scaled_height == height)
 	{
+		memcpy(*texBuffer, data, scaled_width * scaled_height * 4);
+		// scale is not required and no mipmap
 		if (!mipmap)
 		{
-			memcpy(texBuffer, data, scaled_width * scaled_height * 4);
 			return 1;
 		}
-		memcpy(scaled, data, width*height * 4);
 	}
 	else
 	{
 		ResizeSTB(data, width, height,
-				  scaled, scaled_width, scaled_height);
+				  *texBuffer, scaled_width, scaled_height);
 	}
 
-	Vk_LightScaleTexture(scaled, scaled_width, scaled_height, !mipmap);
+	Vk_LightScaleTexture(*texBuffer, scaled_width, scaled_height, !mipmap);
 
-	memcpy(texBuffer, scaled, sizeof(scaled));
 	if (mipmap)
 	{
 		int		miplevel = 1;
@@ -1180,15 +1173,17 @@ Returns number of mip levels
 ===============
 */
 
-static uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky )
+static uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky, byte **texBuffer, int *upload_width, int *upload_height)
 {
-	static unsigned	trans[512 * 256];
+	unsigned	*trans;
 	int			i, s;
 	int			p;
+	int 		miplevel;
 
 	s = width * height;
 
-	if (s > sizeof(trans) / 4)
+	trans = malloc(s * sizeof(*trans));
+	if (!trans)
 		ri.Sys_Error(ERR_DROP, "%s: too large", __func__);
 
 	for (i = 0; i < s; i++)
@@ -1217,7 +1212,9 @@ static uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap,
 		}
 	}
 
-	return Vk_Upload32((byte *)trans, width, height, mipmap);
+	miplevel = Vk_Upload32((byte *)trans, width, height, mipmap, texBuffer, upload_width, upload_height);
+	free(trans);
+	return miplevel;
 }
 
 
@@ -1228,10 +1225,13 @@ Vk_LoadPic
 This is also used as an entry point for the generated r_notexture
 ================
 */
-image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, qvksampler_t *samplerType)
+image_t *
+Vk_LoadPic(char *name, byte *pic, int width, int realwidth, int height, int realheight, imagetype_t type, int bits, qvksampler_t *samplerType)
 {
 	image_t		*image;
-	int			i;
+	int		i;
+	byte		*texBuffer;
+	int		upload_width, upload_height;
 
 	// find a free image_t
 	for (i = 0, image = vktextures; i<numvktextures; i++, image++)
@@ -1253,16 +1253,17 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	image->registration_sequence = registration_sequence;
 	// zero-clear Vulkan texture handle
 	QVVKTEXTURE_CLEAR(image->vk_texture);
-	image->width = width;
-	image->height = height;
+	image->width = realwidth;
+	image->height = realheight;
 	image->type = type;
 
 	if (type == it_skin && bits == 8)
 		FloodFillSkin(pic, width, height);
 
-	// load little pics into the scrap
+	// load little not scalled pics into the scrap
 	if (image->type == it_pic && bits == 8
-		&& image->width < 64 && image->height < 64)
+		&& image->width < 64 && image->height < 64
+		&& width < 64 && height < 64)
 	{
 		int		x = 0, y = 0;
 		int		i, j, k;
@@ -1286,16 +1287,16 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		image->upload_height = BLOCK_HEIGHT;
 
 		// update scrap data
-		Vk_Upload8(scrap_texels[texnum], BLOCK_WIDTH, BLOCK_HEIGHT, false, false);
+		Vk_Upload8(scrap_texels[texnum], BLOCK_WIDTH, BLOCK_HEIGHT, false, false, &texBuffer, &upload_width, &upload_height);
 
 		if (vk_scrapTextures[texnum].image != VK_NULL_HANDLE)
 		{
-			QVk_UpdateTextureData(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, 0, 0, image->upload_width, image->upload_height);
+			QVk_UpdateTextureData(&vk_scrapTextures[texnum], texBuffer, 0, 0, image->upload_width, image->upload_height);
 		}
 		else
 		{
 			QVVKTEXTURE_CLEAR(vk_scrapTextures[texnum]);
-			QVk_CreateTexture(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, image->upload_width, image->upload_height, samplerType ? *samplerType : vk_current_sampler);
+			QVk_CreateTexture(&vk_scrapTextures[texnum], texBuffer, image->upload_width, image->upload_height, samplerType ? *samplerType : vk_current_sampler);
 			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].image, VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
 			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].imageView, VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: %s", name));
 			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].descriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: %s", name));
@@ -1309,9 +1310,9 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	nonscrap:
 		image->scrap = false;
 		if (bits == 8)
-			image->vk_texture.mipLevels = Vk_Upload8(pic, width, height, (image->type != it_pic && image->type != it_sky), image->type == it_sky);
+			image->vk_texture.mipLevels = Vk_Upload8(pic, width, height, (image->type != it_pic && image->type != it_sky), image->type == it_sky, &texBuffer, &upload_width, &upload_height);
 		else
-			image->vk_texture.mipLevels = Vk_Upload32(pic, width, height, (image->type != it_pic && image->type != it_sky));
+			image->vk_texture.mipLevels = Vk_Upload32(pic, width, height, (image->type != it_pic && image->type != it_sky), &texBuffer, &upload_width, &upload_height);
 
 		image->upload_width = upload_width;		// after power of 2 and scales
 		image->upload_height = upload_height;
@@ -1326,7 +1327,10 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		QVk_DebugSetObjectName((uint64_t)image->vk_texture.descriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: %s", name));
 		QVk_DebugSetObjectName((uint64_t)image->vk_texture.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: game textures");
 	}
-
+	if (texBuffer)
+	{
+		free(texBuffer);
+	}
 	return image;
 }
 
@@ -1353,14 +1357,14 @@ static image_t *Vk_LoadWal (char *name)
 	height = LittleLong (mt->height);
 	ofs = LittleLong (mt->offsets[0]);
 
-	image = Vk_LoadPic (name, (byte *)mt + ofs, width, height, it_wall, 8, NULL);
+	image = Vk_LoadPic (name, (byte *)mt + ofs, width, width, height, height, it_wall, 8, NULL);
 
 	ri.FS_FreeFile ((void *)mt);
 
 	return image;
 }
 
-static image_t	*
+static image_t*
 Vk_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t type, qvksampler_t *samplerType)
 {
 	image_t	*image = NULL;
@@ -1392,28 +1396,7 @@ Vk_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t
 				realwidth = width;
 			}
 
-			if (width != realwidth || height != realheight)
-			{
-				// temporary place for shrinked image
-				byte* pic32 = NULL;
-				// temporary image memory size
-				size_t size32;
-
-				// resize image
-				size32 = width * height * 4;
-				pic32 = malloc(size32);
-
-				if (ResizeSTB(pic, width, height,
-					      pic32, realwidth, realheight))
-				{
-					image = Vk_LoadPic (name, pic32, realwidth, realheight, type, 32, samplerType);
-				}
-				free(pic32);
-			}
-			else
-			{
-				image = Vk_LoadPic (name, pic, width, height, type, 32, samplerType);
-			}
+			image = Vk_LoadPic (name, pic, width, realwidth, height, realheight, type, 32, samplerType);
 		}
 	}
 
@@ -1453,7 +1436,7 @@ Vk_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type, 
 			LoadPCX (name, &pic, &palette, &width, &height);
 			if (!pic)
 				return NULL;
-			image = Vk_LoadPic (name, pic, width, height, type, 8, samplerType);
+			image = Vk_LoadPic (name, pic, width, width, height, height, type, 8, samplerType);
 
 			if (palette)
 				free(palette);
@@ -1467,7 +1450,7 @@ Vk_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type, 
 			LoadTGA (name, &pic, &width, &height);
 			if (!pic)
 				return NULL;
-			image = Vk_LoadPic (name, pic, width, height, type, 32, samplerType);
+			image = Vk_LoadPic(name, pic, width, width, height, height, type, 32, samplerType);
 		}
 
 		if (pic)
