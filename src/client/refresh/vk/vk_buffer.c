@@ -15,15 +15,16 @@ See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
 */
 
 #include "header/local.h"
 
 // internal helper
-static void copyBuffer(const VkBuffer *src, VkBuffer *dst, VkDeviceSize size)
+static void
+copyBuffer(const VkBuffer * src, VkBuffer * dst, VkDeviceSize size)
 {
-	VkCommandBuffer commandBuffer = QVk_CreateCommandBuffer(&vk_transferCommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+	VkCommandBuffer commandBuffer = QVk_CreateCommandBuffer(&vk_transferCommandPool,
+								VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 	QVk_BeginCommand(&commandBuffer);
 
 	VkBufferCopy copyRegion = {
@@ -34,22 +35,29 @@ static void copyBuffer(const VkBuffer *src, VkBuffer *dst, VkDeviceSize size)
 	vkCmdCopyBuffer(commandBuffer, *src, *dst, 1, &copyRegion);
 
 	QVk_SubmitCommand(&commandBuffer, &vk_device.transferQueue);
-	vkFreeCommandBuffers(vk_device.logical, vk_transferCommandPool, 1, &commandBuffer);
+	vkFreeCommandBuffers(vk_device.logical, vk_transferCommandPool, 1,
+						 &commandBuffer);
 }
 
 // internal helper
-static void createStagedBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbufferopts_t bufferOpts)
+static void
+createStagedBuffer(const void *data, VkDeviceSize size, qvkbuffer_t * dstBuffer,
+				   qvkbufferopts_t bufferOpts)
 {
 	qvkstagingbuffer_t *stgBuffer;
-	stgBuffer = (qvkstagingbuffer_t *)malloc(sizeof(qvkstagingbuffer_t));
-	VK_VERIFY(QVk_CreateStagingBuffer(size, stgBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
+	stgBuffer = (qvkstagingbuffer_t *) malloc(sizeof(qvkstagingbuffer_t));
+	VK_VERIFY(QVk_CreateStagingBuffer(size, stgBuffer,
+			   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+			   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			   VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
 
 	if (data)
 	{
 		void *dst;
-		// staging buffers in vkQuake2 are required to be host coherent, so no flushing/invalidation is involved
+		// staging buffers in vkQuake2 are required to be host coherent,
+		// so no flushing/invalidation is involved
 		dst = buffer_map(&stgBuffer->resource);
-		memcpy(dst, data, (size_t)size);
+		memcpy(dst, data, (size_t) size);
 		buffer_unmap(&stgBuffer->resource);
 	}
 
@@ -60,7 +68,9 @@ static void createStagedBuffer(const void *data, VkDeviceSize size, qvkbuffer_t 
 	free(stgBuffer);
 }
 
-VkResult QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbufferopts_t options)
+VkResult
+QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer,
+				 const qvkbufferopts_t options)
 {
 	VkBufferCreateInfo bcInfo = {
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -73,8 +83,13 @@ VkResult QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbu
 		.pQueueFamilyIndices = NULL,
 	};
 
-	// separate transfer queue makes sense only if the buffer is targetted for being transfered to GPU, so ignore it if it's CPU-only
-	uint32_t queueFamilies[] = { (uint32_t)vk_device.gfxFamilyIndex, (uint32_t)vk_device.transferFamilyIndex };
+	// separate transfer queue makes sense only if the buffer is targetted
+	// for being transfered to GPU, so ignore it if it's CPU-only
+	uint32_t queueFamilies[] = {
+		(uint32_t)vk_device.gfxFamilyIndex,
+		(uint32_t)vk_device.transferFamilyIndex
+	};
+
 	if (vk_device.gfxFamilyIndex != vk_device.transferFamilyIndex)
 	{
 		bcInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -83,24 +98,30 @@ VkResult QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbu
 	}
 
 	dstBuffer->currentOffset = 0;
-	return buffer_create(&dstBuffer->resource, size, bcInfo, options.reqMemFlags, options.prefMemFlags);
+	return buffer_create(&dstBuffer->resource, size, bcInfo,
+						 options.reqMemFlags, options.prefMemFlags);
 }
 
-void QVk_FreeBuffer(qvkbuffer_t *buffer)
+void
+QVk_FreeBuffer(qvkbuffer_t *buffer)
 {
 	buffer_destroy(&buffer->resource);
 	buffer->resource.buffer = VK_NULL_HANDLE;
 	buffer->currentOffset = 0;
 }
 
-void QVk_FreeStagingBuffer(qvkstagingbuffer_t *buffer)
+void
+QVk_FreeStagingBuffer(qvkstagingbuffer_t *buffer)
 {
 	buffer_destroy(&buffer->resource);
 	buffer->resource.buffer = VK_NULL_HANDLE;
 	buffer->currentOffset = 0;
 }
 
-VkResult QVk_CreateStagingBuffer(VkDeviceSize size, qvkstagingbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags)
+VkResult
+QVk_CreateStagingBuffer(VkDeviceSize size, qvkstagingbuffer_t *dstBuffer,
+						VkMemoryPropertyFlags reqMemFlags,
+						VkMemoryPropertyFlags prefMemFlags)
 {
 	VkBufferCreateInfo bcInfo = {
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -114,10 +135,14 @@ VkResult QVk_CreateStagingBuffer(VkDeviceSize size, qvkstagingbuffer_t *dstBuffe
 	};
 
 	dstBuffer->currentOffset = 0;
-	return buffer_create(&dstBuffer->resource, size, bcInfo, reqMemFlags, prefMemFlags);
+	return buffer_create(&dstBuffer->resource, size, bcInfo, reqMemFlags,
+						 prefMemFlags);
 }
 
-VkResult QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags)
+VkResult
+QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer,
+						VkMemoryPropertyFlags reqMemFlags,
+						VkMemoryPropertyFlags prefMemFlags)
 {
 	qvkbufferopts_t dstOpts = {
 		.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -128,10 +153,15 @@ VkResult QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMe
 	return QVk_CreateBuffer(size, dstBuffer, dstOpts);
 }
 
-void QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags)
+void
+QVk_CreateVertexBuffer(const void *data, VkDeviceSize size,
+					   qvkbuffer_t *dstBuffer,
+					   VkMemoryPropertyFlags reqMemFlags,
+					   VkMemoryPropertyFlags prefMemFlags)
 {
 	qvkbufferopts_t dstOpts = {
-		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 		.reqMemFlags = reqMemFlags,
 		.prefMemFlags = prefMemFlags,
 	};
@@ -139,7 +169,11 @@ void QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *ds
 	createStagedBuffer(data, size, dstBuffer, dstOpts);
 }
 
-void QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags)
+void
+QVk_CreateIndexBuffer(const void *data, VkDeviceSize size,
+					  qvkbuffer_t *dstBuffer,
+					  VkMemoryPropertyFlags reqMemFlags,
+					  VkMemoryPropertyFlags prefMemFlags)
 {
 	qvkbufferopts_t dstOpts = {
 		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
