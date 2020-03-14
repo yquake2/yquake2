@@ -16,7 +16,6 @@ See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
 */
 
 #include "header/local.h"
@@ -937,7 +936,7 @@ IMAGE FLOOD FILLING
 
 /*
 =================
-FloodFillSkin
+Mod_FloodFillSkin
 
 Fill background pixels so mipmapping doesn't have haloes
 =================
@@ -1079,7 +1078,8 @@ Vk_Upload32
 Returns number of mip levels
 ===============
 */
-static uint32_t Vk_Upload32 (byte *data, int width, int height, qboolean mipmap, byte **texBuffer, int *upload_width, int *upload_height)
+static uint32_t Vk_Upload32 (byte *data, int width, int height, qboolean mipmap,
+							 byte **texBuffer, int *upload_width, int *upload_height)
 {
 	int	scaled_width, scaled_height;
 
@@ -1159,7 +1159,8 @@ Returns number of mip levels
 ===============
 */
 
-static uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky, byte **texBuffer, int *upload_width, int *upload_height)
+static uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky,
+							byte **texBuffer, int *upload_width, int *upload_height)
 {
 	unsigned	*trans;
 	int			i, s;
@@ -1212,7 +1213,9 @@ This is also used as an entry point for the generated r_notexture
 ================
 */
 image_t *
-Vk_LoadPic(char *name, byte *pic, int width, int realwidth, int height, int realheight, imagetype_t type, int bits, qvksampler_t *samplerType)
+Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
+	   int height, int realheight, imagetype_t type,
+	   int bits, qvksampler_t *samplerType)
 {
 	image_t		*image;
 	int		i;
@@ -1282,11 +1285,17 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth, int height, int real
 		else
 		{
 			QVVKTEXTURE_CLEAR(vk_scrapTextures[texnum]);
-			QVk_CreateTexture(&vk_scrapTextures[texnum], texBuffer, image->upload_width, image->upload_height, samplerType ? *samplerType : vk_current_sampler);
-			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].resource.image, VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
-			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].imageView, VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: %s", name));
-			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].descriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: %s", name));
-			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: scrap texture");
+			QVk_CreateTexture(&vk_scrapTextures[texnum], texBuffer,
+				image->upload_width, image->upload_height,
+				samplerType ? *samplerType : vk_current_sampler);
+			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].resource.image,
+				VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
+			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].imageView,
+				VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: %s", name));
+			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].descriptorSet,
+				VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: %s", name));
+			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].resource.memory,
+				VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: scrap texture");
 		}
 
 		image->vk_texture = vk_scrapTextures[texnum];
@@ -1307,11 +1316,17 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth, int height, int real
 		image->tl = 0;
 		image->th = 1;
 
-		QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, samplerType ? *samplerType : vk_current_sampler);
-		QVk_DebugSetObjectName((uint64_t)image->vk_texture.resource.image, VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
-		QVk_DebugSetObjectName((uint64_t)image->vk_texture.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: %s", name));
-		QVk_DebugSetObjectName((uint64_t)image->vk_texture.descriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: %s", name));
-		QVk_DebugSetObjectName((uint64_t)image->vk_texture.resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: game textures");
+		QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer,
+			image->upload_width, image->upload_height,
+			samplerType ? *samplerType : vk_current_sampler);
+		QVk_DebugSetObjectName((uint64_t)image->vk_texture.resource.image,
+			VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
+		QVk_DebugSetObjectName((uint64_t)image->vk_texture.imageView,
+			VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: %s", name));
+		QVk_DebugSetObjectName((uint64_t)image->vk_texture.descriptorSet,
+			VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: %s", name));
+		QVk_DebugSetObjectName((uint64_t)image->vk_texture.resource.memory,
+			VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: game textures");
 	}
 	if (texBuffer)
 	{
@@ -1343,7 +1358,10 @@ static image_t *Vk_LoadWal (char *name)
 	height = LittleLong (mt->height);
 	ofs = LittleLong (mt->offsets[0]);
 
-	image = Vk_LoadPic (name, (byte *)mt + ofs, width, width, height, height, it_wall, 8, NULL);
+	image = Vk_LoadPic(name, (byte *)mt + ofs,
+			   width, width,
+			   height, height,
+			   it_wall, 8, NULL);
 
 	ri.FS_FreeFile ((void *)mt);
 
@@ -1382,7 +1400,10 @@ Vk_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t
 				realwidth = width;
 			}
 
-			image = Vk_LoadPic (name, pic, width, realwidth, height, realheight, type, 32, samplerType);
+			image = Vk_LoadPic(name, pic,
+					   width, realwidth,
+					   height, realheight,
+					   type, 32, samplerType);
 		}
 	}
 
@@ -1422,7 +1443,10 @@ Vk_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type, 
 			LoadPCX (name, &pic, &palette, &width, &height);
 			if (!pic)
 				return NULL;
-			image = Vk_LoadPic (name, pic, width, width, height, height, type, 8, samplerType);
+			image = Vk_LoadPic(name, pic,
+					   width, width,
+					   height, height,
+					   type, 8, samplerType);
 
 			if (palette)
 				free(palette);
@@ -1436,7 +1460,10 @@ Vk_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type, 
 			LoadTGA (name, &pic, &width, &height);
 			if (!pic)
 				return NULL;
-			image = Vk_LoadPic(name, pic, width, width, height, height, type, 32, samplerType);
+			image = Vk_LoadPic(name, pic,
+					   width, width,
+					   height, height,
+					   type, 32, samplerType);
 		}
 
 		if (pic)
