@@ -80,9 +80,9 @@ typedef unsigned char byte;
 #define YAW 1                       /* left / right */
 #define ROLL 2                      /* fall over */
 
-#define MAX_STRING_CHARS 1024       /* max length of a string passed to Cmd_TokenizeString */
+#define MAX_STRING_CHARS 2048       /* max length of a string passed to Cmd_TokenizeString */
 #define MAX_STRING_TOKENS 80        /* max tokens resulting from Cmd_TokenizeString */
-#define MAX_TOKEN_CHARS 128         /* max length of an individual token */
+#define MAX_TOKEN_CHARS 1024        /* max length of an individual token */
 
 #define MAX_QPATH 64                /* max length of a quake game pathname */
 

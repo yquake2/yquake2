@@ -334,7 +334,7 @@ SV_ReadServerFile(void)
 	char name[MAX_OSPATH], string[128];
 	char workdir[MAX_OSPATH];
 	char comment[32];
-	char mapcmd[MAX_TOKEN_CHARS];
+	char mapcmd[MAX_SAVE_TOKEN_CHARS];
 
 	Com_DPrintf("SV_ReadServerFile()\n");
 

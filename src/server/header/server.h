@@ -39,6 +39,13 @@
    out before legitimate users connected */
 #define MAX_CHALLENGES 1024
 
+/* MAX_TOKEN_CHARS was 128. YQ2 bumped it to 1024, since we
+ * need to support some very long cvars like gl_nolerp_list.
+ * Keep structs used in savegames at 128, otherwise older
+ * savegames would be broken. */
+#define MAX_SAVE_TOKEN_CHARS 128
+
+
 #define SV_OUTPUTBUF_LENGTH (MAX_MSGLEN - 16)
 #define EDICT_NUM(n) ((edict_t *)((byte *)ge->edicts + ge->edict_size * (n)))
 #define NUM_FOR_EDICT(e) (((byte *)(e) - (byte *)ge->edicts) / ge->edict_size)
@@ -152,7 +159,7 @@ typedef struct
 	qboolean initialized;               /* sv_init has completed */
 	int realtime;                       /* always increasing, no clamping, etc */
 
-	char mapcmd[MAX_TOKEN_CHARS];       /* ie: *intro.cin+base */
+	char mapcmd[MAX_SAVE_TOKEN_CHARS];  /* ie: *intro.cin+base */
 
 	int spawncount;                     /* incremented each server start */
 										/* used to check late spawns */
