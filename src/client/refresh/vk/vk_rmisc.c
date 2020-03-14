@@ -135,7 +135,7 @@ void Vk_Strings_f(void)
 
 	uint32_t numDevices = 0;
 	int usedDevice = 0;
-	VkPhysicalDevice physicalDevices[32]; // make an assumption that nobody has more than 32 GPUs :-)
+	VkPhysicalDevice *physicalDevices;
 	VkPhysicalDeviceProperties deviceProperties;
 	qboolean isPreferred = false;
 	int preferredDevice = (int)vk_device_idx->value;
@@ -157,6 +157,15 @@ void Vk_Strings_f(void)
 	}
 
 	VK_VERIFY(vkEnumeratePhysicalDevices(vk_instance, &numDevices, NULL));
+	if (!numDevices)
+	{
+		return;
+	}
+	physicalDevices = malloc(sizeof(VkPhysicalDevice) * numDevices);
+	if (!physicalDevices)
+	{
+		return;
+	}
 	VK_VERIFY(vkEnumeratePhysicalDevices(vk_instance, &numDevices, physicalDevices));
 
 	if (preferredDevice >= numDevices)
@@ -183,6 +192,8 @@ void Vk_Strings_f(void)
 			isPreferred && numDevices > 1 ? "*  " : "   ",
 			i, deviceProperties.deviceName);
 	}
+	free(physicalDevices);
+
 	R_Printf(PRINT_ALL, "Using device #%d:\n", usedDevice);
 	R_Printf(PRINT_ALL, "   deviceName: %s\n", vk_device.properties.deviceName);
 	R_Printf(PRINT_ALL, "   resolution: %dx%d", vid.width, vid.height);
