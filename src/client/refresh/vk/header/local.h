@@ -16,8 +16,8 @@ See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
 */
+
 #ifndef __VK_LOCAL_H__
 #define __VK_LOCAL_H__
 
@@ -227,7 +227,9 @@ qboolean	R_EndWorldRenderReady( void );
 struct image_s *R_RegisterSkin (char *name);
 
 void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
-image_t *Vk_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int realheight, imagetype_t type, int bits, qvksampler_t *samplerType);
+image_t *Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
+		    int height, int realheight, imagetype_t type,
+		    int bits, qvksampler_t *samplerType);
 image_t	*Vk_FindImage (char *name, imagetype_t type, qvksampler_t *samplerType);
 void	Vk_TextureMode( char *string );
 void	Vk_LmapTextureMode( char *string );

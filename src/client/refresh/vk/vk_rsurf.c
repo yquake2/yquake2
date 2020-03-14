@@ -16,8 +16,8 @@ See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
 */
+
 // vk_rsurf.c: surface-related refresh code
 #include <assert.h>
 
@@ -1081,11 +1081,16 @@ static void LM_UploadBlock( qboolean dynamic )
 		else
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
-			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler);
-			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].resource.image, VK_OBJECT_TYPE_IMAGE, va("Image: dynamic lightmap #%d", texture));
-			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].imageView, VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: dynamic lightmap #%d", texture));
-			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].descriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: dynamic lightmap #%d", texture));
-			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: dynamic lightmap #%d", texture));
+			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer,
+				BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler);
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].resource.image,
+				VK_OBJECT_TYPE_IMAGE, va("Image: dynamic lightmap #%d", texture));
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].imageView,
+				VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: dynamic lightmap #%d", texture));
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].descriptorSet,
+				VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: dynamic lightmap #%d", texture));
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].resource.memory,
+				VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: dynamic lightmap #%d", texture));
 		}
 		if ( ++vk_lms.current_lightmap_texture == MAX_LIGHTMAPS )
 			ri.Sys_Error( ERR_DROP, "%s() - MAX_LIGHTMAPS exceeded\n", __func__);
@@ -1278,11 +1283,16 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 		for (i = DYNLIGHTMAP_OFFSET; i < MAX_LIGHTMAPS*2; i++)
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[i]);
-			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler);
-			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].resource.image, VK_OBJECT_TYPE_IMAGE, va("Image: dynamic lightmap #%d", i));
-			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].imageView, VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: dynamic lightmap #%d", i));
-			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].descriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: dynamic lightmap #%d", i));
-			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].resource.memory, VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: dynamic lightmap #%d", i));
+			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy,
+				BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler);
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].resource.image,
+				VK_OBJECT_TYPE_IMAGE, va("Image: dynamic lightmap #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].imageView,
+				VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: dynamic lightmap #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].descriptorSet,
+				VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: dynamic lightmap #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].resource.memory,
+				VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: dynamic lightmap #%d", i));
 		}
 	}
 }
