@@ -286,68 +286,73 @@ qboolean QVk_CreateDevice(int preferredDeviceIdx)
 // debug label related functions
 void QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objName)
 {
-#if defined(_DEBUG)
-	VkDebugUtilsObjectNameInfoEXT oNameInf = {
-		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
-		.pNext = NULL,
-		.objectType = objType,
-		.objectHandle = obj,
-		.pObjectName = objName
-	};
+	if (qvkSetDebugUtilsObjectNameEXT)
+	{
+		VkDebugUtilsObjectNameInfoEXT oNameInf = {
+			.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+			.pNext = NULL,
+			.objectType = objType,
+			.objectHandle = obj,
+			.pObjectName = objName
+		};
 
-	qvkSetDebugUtilsObjectNameEXT(vk_device.logical, &oNameInf);
-#endif
+		qvkSetDebugUtilsObjectNameEXT(vk_device.logical, &oNameInf);
+	}
 }
 
 void QVk_DebugSetObjectTag(uint64_t obj, VkObjectType objType, uint64_t tagName,
 							size_t tagSize, const void *tagData)
 {
-#if defined(_DEBUG)
-	VkDebugUtilsObjectTagInfoEXT oTagInf = {
-		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_TAG_INFO_EXT,
-		.pNext = NULL,
-		.objectType = objType,
-		.objectHandle = obj,
-		.tagName = tagName,
-		.tagSize = tagSize,
-		.pTag = tagData
-	};
+	if (qvkSetDebugUtilsObjectTagEXT)
+	{
+		VkDebugUtilsObjectTagInfoEXT oTagInf = {
+			.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_TAG_INFO_EXT,
+			.pNext = NULL,
+			.objectType = objType,
+			.objectHandle = obj,
+			.tagName = tagName,
+			.tagSize = tagSize,
+			.pTag = tagData
+		};
 
-	qvkSetDebugUtilsObjectTagEXT(vk_device.logical, &oTagInf);
-#endif
+		qvkSetDebugUtilsObjectTagEXT(vk_device.logical, &oTagInf);
+	}
 }
 
 void QVk_DebugLabelBegin(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b)
 {
-#if defined(_DEBUG)
-	VkDebugUtilsLabelEXT labelInfo = {
-		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
-		.pNext = NULL,
-		.pLabelName = labelName,
-		.color = { r, g, b, 1.f }
-	};
+	if (qvkCmdBeginDebugUtilsLabelEXT)
+	{
+		VkDebugUtilsLabelEXT labelInfo = {
+			.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+			.pNext = NULL,
+			.pLabelName = labelName,
+			.color = { r, g, b, 1.f }
+		};
 
-	qvkCmdBeginDebugUtilsLabelEXT(*cmdBuffer, &labelInfo);
-#endif
+		qvkCmdBeginDebugUtilsLabelEXT(*cmdBuffer, &labelInfo);
+	}
 }
 
 void QVk_DebugLabelEnd(const VkCommandBuffer *cmdBuffer)
 {
-#if defined(_DEBUG)
-	qvkCmdEndDebugUtilsLabelEXT(*cmdBuffer);
-#endif
+	if (qvkCmdEndDebugUtilsLabelEXT)
+	{
+		qvkCmdEndDebugUtilsLabelEXT(*cmdBuffer);
+	}
 }
 
 void QVk_DebugLabelInsert(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b)
 {
-#if defined(_DEBUG)
-	VkDebugUtilsLabelEXT labelInfo = {
-		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
-		.pNext = NULL,
-		.pLabelName = labelName,
-		.color = { r, g, b, 1.f }
-	};
+	if (qvkInsertDebugUtilsLabelEXT)
+	{
+		VkDebugUtilsLabelEXT labelInfo = {
+			.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+			.pNext = NULL,
+			.pLabelName = labelName,
+			.color = { r, g, b, 1.f }
+		};
 
-	qvkInsertDebugUtilsLabelEXT(*cmdBuffer, &labelInfo);
-#endif
+		qvkInsertDebugUtilsLabelEXT(*cmdBuffer, &labelInfo);
+	}
 }

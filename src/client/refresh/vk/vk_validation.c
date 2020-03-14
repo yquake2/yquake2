@@ -83,13 +83,16 @@ void QVk_CreateValidationLayers()
 										VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
 	}
 
-	VK_VERIFY(qvkCreateDebugUtilsMessengerEXT(vk_instance, &callbackInfo, NULL, &validationMessenger));
-	R_Printf(PRINT_ALL, "...Vulkan validation layers enabled\n");
+	if (qvkCreateDebugUtilsMessengerEXT)
+	{
+		VK_VERIFY(qvkCreateDebugUtilsMessengerEXT(vk_instance, &callbackInfo, NULL, &validationMessenger));
+		R_Printf(PRINT_ALL, "...Vulkan validation layers enabled\n");
+	}
 }
 
 void QVk_DestroyValidationLayers()
 {
-	if( validationMessenger != VK_NULL_HANDLE )
+	if( validationMessenger != VK_NULL_HANDLE && qvkDestroyDebugUtilsMessengerEXT)
 	{
 		qvkDestroyDebugUtilsMessengerEXT( vk_instance, validationMessenger, NULL );
 		validationMessenger = VK_NULL_HANDLE;
