@@ -99,7 +99,6 @@ endif
 # On Windows / MinGW $(CC) is undefined by default.
 ifeq ($(YQ2_OSTYPE),Windows)
 CC := gcc
-CXX := g++
 endif
 
 # Detect the compiler
@@ -602,16 +601,6 @@ build/ref_vk/%.o: %.c
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
 
-# The Vulkan memory allocator must be build as C++.
-# Because of this we need to link the lib with the
-# C++ frontend and not the C frontend... Assume that
-# the system uses the same compiler for both C and
-# C++, e.g. clang and clang++. Not gcc and clang++.
-build/ref_vk/%.o: %.cpp
-	@echo "===> CXX $<"
-	${Q}mkdir -p $(@D)
-	${Q}$(CXX) -c $(subst gnu99,c++11,$(CFLAGS)) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
-
 # ----------
 
 # The baseq2 game
@@ -899,7 +888,6 @@ endif
 # ----------
 
 REFVK_OBJS_ := \
-	src/client/refresh/vk/vk_mem_alloc.o \
 	src/client/refresh/vk/vk_buffer.o \
 	src/client/refresh/vk/vk_cmd.o \
 	src/client/refresh/vk/vk_common.o \
@@ -1092,17 +1080,14 @@ release/ref_soft.so : $(REFSOFT_OBJS)
 endif
 
 # release/ref_vk.so
-#
-# Must be linked with the C++ frontend, because the
-# Vulkan memory allocator is compiled as C++ source.
 ifeq ($(YQ2_OSTYPE), Windows)
 release/ref_vk.dll : $(REFVK_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CXX) $(REFVK_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(REFVK_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 else
 release/ref_vk.so : $(REFVK_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CXX) $(REFVK_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(REFVK_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/baseq2/game.so
