@@ -1060,11 +1060,7 @@ R_Register( void )
 	r_vsync = ri.Cvar_Get("r_vsync", "0", CVAR_ARCHIVE);
 
 	vk_overbrightbits = ri.Cvar_Get("vk_overbrightbits", "1.0", CVAR_ARCHIVE);
-#if defined(_DEBUG)
-	vk_validation = ri.Cvar_Get("vk_validation", "2", 0);
-#else
 	vk_validation = ri.Cvar_Get("vk_validation", "0", 0);
-#endif
 	vk_bitdepth = ri.Cvar_Get("vk_bitdepth", "0", 0);
 	vk_picmip = ri.Cvar_Get("vk_picmip", "0", 0);
 	vk_skymip = ri.Cvar_Get("vk_skymip", "0", 0);
