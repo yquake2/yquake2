@@ -583,15 +583,18 @@ qvktexture_t vk_scrapTextures[MAX_SCRAPS] = { QVVKTEXTURE_INIT };
 static int Scrap_AllocBlock (int w, int h, int *x, int *y)
 {
 	int		i, j;
-	int		best, best2;
 	int		texnum;
 
 	for (texnum=0 ; texnum<MAX_SCRAPS ; texnum++)
 	{
+		int		best;
+
 		best = BLOCK_HEIGHT;
 
 		for (i=0 ; i<BLOCK_WIDTH-w ; i++)
 		{
+			int	best2;
+
 			best2 = 0;
 
 			for (j=0 ; j<w ; j++)
@@ -1167,7 +1170,6 @@ static uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap,
 {
 	unsigned	*trans;
 	int			i, s;
-	int			p;
 	int 		miplevel;
 
 	s = width * height;
@@ -1178,6 +1180,8 @@ static uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap,
 
 	for (i = 0; i < s; i++)
 	{
+		int	p;
+
 		p = data[i];
 		trans[i] = d_8to24table[p];
 
@@ -1221,23 +1225,25 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
 	   int bits, qvksampler_t *samplerType)
 {
 	image_t		*image;
-	int		i;
 	byte		*texBuffer;
 	int		upload_width, upload_height;
 
-	// find a free image_t
-	for (i = 0, image = vktextures; i<numvktextures; i++, image++)
 	{
-		if (image->vk_texture.resource.image == VK_NULL_HANDLE && !image->scrap)
-			break;
+		int		i;
+		// find a free image_t
+		for (i = 0, image = vktextures; i<numvktextures; i++, image++)
+		{
+			if (image->vk_texture.resource.image == VK_NULL_HANDLE && !image->scrap)
+				break;
+		}
+		if (i == numvktextures)
+		{
+			if (numvktextures == MAX_VKTEXTURES)
+				ri.Sys_Error(ERR_DROP, "%s: MAX_VKTEXTURES", __func__);
+			numvktextures++;
+		}
+		image = &vktextures[i];
 	}
-	if (i == numvktextures)
-	{
-		if (numvktextures == MAX_VKTEXTURES)
-			ri.Sys_Error(ERR_DROP, "%s: MAX_VKTEXTURES", __func__);
-		numvktextures++;
-	}
-	image = &vktextures[i];
 
 	if (strlen(name) >= sizeof(image->name))
 		ri.Sys_Error(ERR_DROP, "%s: \"%s\" is too long", __func__, name);
@@ -1588,8 +1594,6 @@ Draw_GetPalette
 static int Draw_GetPalette (void)
 {
 	int		i;
-	int		r, g, b;
-	unsigned	v;
 	byte	*pic, *pal;
 	int		width, height;
 
@@ -1601,6 +1605,9 @@ static int Draw_GetPalette (void)
 
 	for (i=0 ; i<256 ; i++)
 	{
+		unsigned	v;
+		int	r, g, b;
+
 		r = pal[i*3+0];
 		g = pal[i*3+1];
 		b = pal[i*3+2];
@@ -1625,7 +1632,7 @@ Vk_InitImages
 */
 void	Vk_InitImages (void)
 {
-	int	i, j;
+	int	i;
 	float	overbright;
 
 	registration_sequence = 1;
@@ -1640,6 +1647,8 @@ void	Vk_InitImages (void)
 
 	for (i = 0; i<256; i++)
 	{
+		int	j;
+
 		j = i * intensity->value;
 		if (j > 255)
 			j = 255;
