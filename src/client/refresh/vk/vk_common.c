@@ -1613,10 +1613,10 @@ qboolean QVk_Init(SDL_Window *window)
 
 	// restore extensions count
 	if (vk_validation->value)
+	{
 		extCount++;
-
-	if (vk_validation->value)
 		wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+	}
 
 	R_Printf(PRINT_ALL, "Enabled extensions: ");
 	for (int i = 0; i < extCount; i++)

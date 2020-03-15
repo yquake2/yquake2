@@ -675,16 +675,16 @@ R_DrawInlineBModel
 */
 static void R_DrawInlineBModel (float *modelMatrix)
 {
-	int			i, k;
-	cplane_t	*pplane;
-	float		dot;
+	int			i;
 	msurface_t	*psurf;
-	dlight_t	*lt;
 	float		alpha = 1.f;
 
 	// calculate dynamic lighting for bmodel
 	if (!vk_flashblend->value)
 	{
+		dlight_t	*lt;
+		int	k;
+
 		lt = r_newrefdef.dlights;
 		for (k = 0; k<r_newrefdef.num_dlights; k++, lt++)
 		{
@@ -704,6 +704,9 @@ static void R_DrawInlineBModel (float *modelMatrix)
 	//
 	for (i = 0; i<currentmodel->nummodelsurfaces; i++, psurf++)
 	{
+		float	dot;
+		cplane_t	*pplane;
+
 		// find which side of the node we are on
 		pplane = psurf->plane;
 
@@ -738,7 +741,6 @@ R_DrawBrushModel
 void R_DrawBrushModel (entity_t *e)
 {
 	vec3_t		mins, maxs;
-	int			i;
 	qboolean	rotated;
 
 	if (currentmodel->nummodelsurfaces == 0)
@@ -748,6 +750,8 @@ void R_DrawBrushModel (entity_t *e)
 
 	if (e->angles[0] || e->angles[1] || e->angles[2])
 	{
+		int	i;
+
 		rotated = true;
 		for (i = 0; i<3; i++)
 		{
@@ -808,7 +812,7 @@ static void R_RecursiveWorldNode (mnode_t *node)
 {
 	int			c, side, sidebit;
 	cplane_t	*plane;
-	msurface_t	*surf, **mark;
+	msurface_t	*surf;
 	mleaf_t		*pleaf;
 	float		dot;
 	image_t		*image;
@@ -824,6 +828,8 @@ static void R_RecursiveWorldNode (mnode_t *node)
 	// if a leaf node, draw stuff
 	if (node->contents != -1)
 	{
+		msurface_t	**mark;
+
 		pleaf = (mleaf_t *)node;
 
 		// check for door connected areas
@@ -977,9 +983,8 @@ void R_MarkLeaves (void)
 	byte	*vis;
 	byte	fatvis[MAX_MAP_LEAFS/8];
 	mnode_t	*node;
-	int		i, c;
+	int		i;
 	mleaf_t	*leaf;
-	int		cluster;
 
 	if (r_oldviewcluster == r_viewcluster && r_oldviewcluster2 == r_viewcluster2 && !r_novis->value && r_viewcluster != -1)
 		return;
@@ -1007,6 +1012,8 @@ void R_MarkLeaves (void)
 	// may have to combine two clusters because of solid water boundaries
 	if (r_viewcluster2 != r_viewcluster)
 	{
+		int	c;
+
 		memcpy (fatvis, vis, (r_worldmodel->numleafs+7)/8);
 		vis = Mod_ClusterPVS (r_viewcluster2, r_worldmodel);
 		c = (r_worldmodel->numleafs+31)/32;
@@ -1017,6 +1024,8 @@ void R_MarkLeaves (void)
 
 	for (i=0,leaf=r_worldmodel->leafs ; i<r_worldmodel->numleafs ; i++, leaf++)
 	{
+		int	cluster;
+
 		cluster = leaf->cluster;
 		if (cluster == -1)
 			continue;
@@ -1052,7 +1061,6 @@ static void LM_InitBlock( void )
 static void LM_UploadBlock( qboolean dynamic )
 {
 	int texture;
-	int height = 0;
 
 	if ( dynamic )
 	{
@@ -1066,6 +1074,7 @@ static void LM_UploadBlock( qboolean dynamic )
 	if ( dynamic )
 	{
 		int i;
+		int height = 0;
 
 		for ( i = 0; i < BLOCK_WIDTH; i++ )
 		{
@@ -1100,13 +1109,14 @@ static void LM_UploadBlock( qboolean dynamic )
 // returns a texture number and the position inside it
 static qboolean LM_AllocBlock (int w, int h, int *x, int *y)
 {
-	int		i, j;
-	int		best, best2;
+	int		i, best;
 
 	best = BLOCK_HEIGHT;
 
 	for (i=0 ; i<BLOCK_WIDTH-w ; i++)
 	{
+		int		j, best2;
+
 		best2 = 0;
 
 		for (j=0 ; j<w ; j++)
@@ -1139,14 +1149,13 @@ Vk_BuildPolygonFromSurface
 */
 void Vk_BuildPolygonFromSurface(msurface_t *fa)
 {
-	int			i, lindex, lnumverts;
+	int			i, lnumverts;
 	medge_t		*pedges, *r_pedge;
 	float		*vec;
-	float		s, t;
 	vkpoly_t	*poly;
 	vec3_t		total;
 
-// reconstruct the polygon
+	// reconstruct the polygon
 	pedges = currentmodel->edges;
 	lnumverts = fa->numedges;
 
@@ -1162,6 +1171,9 @@ void Vk_BuildPolygonFromSurface(msurface_t *fa)
 
 	for (i=0 ; i<lnumverts ; i++)
 	{
+		int		lindex;
+		float	s, t;
+
 		lindex = currentmodel->surfedges[fa->firstedge + i];
 
 		if (lindex > 0)
@@ -1254,7 +1266,6 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 {
 	static lightstyle_t	lightstyles[MAX_LIGHTSTYLES];
 	int				i;
-	unsigned		dummy[BLOCK_WIDTH * BLOCK_HEIGHT];
 
 	memset(vk_lms.allocated, 0, sizeof(vk_lms.allocated));
 
@@ -1282,6 +1293,8 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 	{
 		for (i = DYNLIGHTMAP_OFFSET; i < MAX_LIGHTMAPS*2; i++)
 		{
+			unsigned	dummy[BLOCK_WIDTH * BLOCK_HEIGHT];
+
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[i]);
 			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy,
 				BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler);

@@ -104,7 +104,6 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 	daliasframe_t	*frame, *oldframe;
 	dtrivertx_t	*v, *ov, *verts;
 	int		*order;
-	int		count;
 	float	frontlerp;
 	float	alpha;
 	vec3_t	move, delta, vectors[3];
@@ -186,6 +185,8 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 
 	while (1)
 	{
+		int	count;
+
 		// get the vertex count and primitive type
 		count = *order++;
 		if (!count)
@@ -264,7 +265,7 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 	memcpy(uboData, &meshUbo, sizeof(meshUbo));
 
 	// player configuration screen model is using the UI renderpass
-	int pidx = r_newrefdef.rdflags & RDF_NOWORLDMODEL ? RP_UI : RP_WORLD;
+	int pidx = (r_newrefdef.rdflags & RDF_NOWORLDMODEL) ? RP_UI : RP_WORLD;
 	// non-depth write alias models don't occur with RF_WEAPONMODEL set, so no need for additional left-handed pipelines
 	qvkpipeline_t pipelines[2][4] = { { vk_drawModelPipelineStrip[pidx], vk_drawModelPipelineFan[pidx], vk_drawLefthandModelPipelineStrip, vk_drawLefthandModelPipelineFan },
 									  { vk_drawNoDepthModelPipelineStrip, vk_drawNoDepthModelPipelineFan, vk_drawLefthandModelPipelineStrip, vk_drawLefthandModelPipelineFan } };
@@ -313,8 +314,6 @@ static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatr
 	int		*order;
 	vec3_t	point;
 	float	height, lheight;
-	int		count;
-	int		i;
 	qvkpipeline_t pipelines[2] = { vk_shadowsPipelineStrip, vk_shadowsPipelineFan };
 
 	enum {
@@ -338,6 +337,9 @@ static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatr
 	static vec3_t shadowverts[MAX_VERTS];
 	while (1)
 	{
+		int	i;
+		int	count;
+
 		i = 0;
 		// get the vertex count and primitive type
 		count = *order++;
@@ -552,7 +554,6 @@ void R_DrawAliasModel (entity_t *e)
 	dmdl_t		*paliashdr;
 	float		an;
 	vec3_t		bbox[8];
-	image_t		*skin;
 	float		prev_viewproj[16];
 
 	if ( !( e->flags & RF_WEAPONMODEL ) )
@@ -644,11 +645,12 @@ void R_DrawAliasModel (entity_t *e)
 	if ( currententity->flags & RF_GLOW )
 	{	// bonus items will pulse with time
 		float	scale;
-		float	min;
 
 		scale = 0.1 * sin(r_newrefdef.time*7);
 		for (i=0 ; i<3 ; i++)
 		{
+			float	min;
+
 			min = shadelight[i] * 0.8;
 			shadelight[i] += scale;
 			if (shadelight[i] < min)
@@ -704,50 +706,54 @@ void R_DrawAliasModel (entity_t *e)
 	}
 
 	e->angles[PITCH] = -e->angles[PITCH];	// sigh.
-	float model[16];
-	Mat_Identity(model);
-	R_RotateForEntity (e, model);
-	e->angles[PITCH] = -e->angles[PITCH];	// sigh.
-
-	// select skin
-	if (currententity->skin)
-		skin = currententity->skin;	// custom player skin
-	else
 	{
-		if (currententity->skinnum >= MAX_MD2SKINS)
-			skin = currentmodel->skins[0];
+		float model[16];
+		image_t	*skin;
+		Mat_Identity(model);
+		R_RotateForEntity (e, model);
+
+		e->angles[PITCH] = -e->angles[PITCH];	// sigh.
+
+		// select skin
+		if (currententity->skin)
+			skin = currententity->skin;	// custom player skin
 		else
 		{
-			skin = currentmodel->skins[currententity->skinnum];
-			if (!skin)
+			if (currententity->skinnum >= MAX_MD2SKINS)
 				skin = currentmodel->skins[0];
+			else
+			{
+				skin = currentmodel->skins[currententity->skinnum];
+				if (!skin)
+					skin = currentmodel->skins[0];
+			}
 		}
-	}
-	if (!skin)
-		skin = r_notexture;	// fallback...
+		if (!skin)
+			skin = r_notexture;	// fallback...
 
-	// draw it
-	if ( (currententity->frame >= paliashdr->num_frames)
-		|| (currententity->frame < 0) )
-	{
-		R_Printf(PRINT_ALL, "%s %s: no such frame %d\n",
-			__func__, currentmodel->name, currententity->frame);
-		currententity->frame = 0;
-		currententity->oldframe = 0;
-	}
+		// draw it
+		if ( (currententity->frame >= paliashdr->num_frames)
+			|| (currententity->frame < 0) )
+		{
+			R_Printf(PRINT_ALL, "%s %s: no such frame %d\n",
+				__func__, currentmodel->name, currententity->frame);
+			currententity->frame = 0;
+			currententity->oldframe = 0;
+		}
 
-	if ( (currententity->oldframe >= paliashdr->num_frames)
-		|| (currententity->oldframe < 0))
-	{
-		R_Printf(PRINT_ALL, "%s %s: no such oldframe %d\n",
-			__func__, currentmodel->name, currententity->oldframe);
-		currententity->frame = 0;
-		currententity->oldframe = 0;
-	}
+		if ( (currententity->oldframe >= paliashdr->num_frames)
+			|| (currententity->oldframe < 0))
+		{
+			R_Printf(PRINT_ALL, "%s %s: no such oldframe %d\n",
+				__func__, currentmodel->name, currententity->oldframe);
+			currententity->frame = 0;
+			currententity->oldframe = 0;
+		}
 
-	if ( !r_lerpmodels->value )
-		currententity->backlerp = 0;
-	Vk_DrawAliasFrameLerp (paliashdr, currententity->backlerp, skin, model, leftHandOffset, currententity->flags & RF_TRANSLUCENT ? 1 : 0);
+		if ( !r_lerpmodels->value )
+			currententity->backlerp = 0;
+		Vk_DrawAliasFrameLerp (paliashdr, currententity->backlerp, skin, model, leftHandOffset, (currententity->flags & RF_TRANSLUCENT) ? 1 : 0);
+	}
 
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
 	{
