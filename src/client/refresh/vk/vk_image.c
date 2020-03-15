@@ -431,15 +431,18 @@ static void QVk_ReleaseTexture(qvktexture_t *texture)
 		vkDeviceWaitIdle(vk_device.logical);
 	}
 
+	if (texture->imageView != VK_NULL_HANDLE)
+	{
+		vkDestroyImageView(vk_device.logical, texture->imageView, NULL);
+		texture->imageView = VK_NULL_HANDLE;
+	}
+
 	if (texture->resource.image != VK_NULL_HANDLE)
 		image_destroy(&texture->resource);
-	if (texture->imageView != VK_NULL_HANDLE)
-		vkDestroyImageView(vk_device.logical, texture->imageView, NULL);
+
 	if (texture->descriptorSet != VK_NULL_HANDLE)
 		vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &texture->descriptorSet);
 
-	texture->resource.image = VK_NULL_HANDLE;
-	texture->imageView = VK_NULL_HANDLE;
 	texture->descriptorSet = VK_NULL_HANDLE;
 }
 
