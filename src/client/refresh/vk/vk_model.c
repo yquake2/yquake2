@@ -50,8 +50,6 @@ Mod_PointInLeaf
 mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
 {
 	mnode_t		*node;
-	float		d;
-	cplane_t	*plane;
 
 	if (!model || !model->nodes)
 		ri.Sys_Error (ERR_DROP, "Mod_PointInLeaf: bad model");
@@ -59,6 +57,9 @@ mleaf_t *Mod_PointInLeaf (vec3_t p, model_t *model)
 	node = model->nodes;
 	while (1)
 	{
+		cplane_t	*plane;
+		float	d;
+
 		if (node->contents != -1)
 			return (mleaf_t *)node;
 		plane = node->plane;
@@ -404,7 +405,6 @@ static void Mod_LoadTexinfo (lump_t *l)
 	mtexinfo_t *out, *step;
 	int 	i, j, count;
 	char	name[MAX_QPATH];
-	int		next;
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
@@ -417,6 +417,8 @@ static void Mod_LoadTexinfo (lump_t *l)
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
+		int	next;
+
 		for (j=0 ; j<4 ; j++)
 		{
 			out->vecs[0][j] = LittleFloat (in->vecs[0][j]);
@@ -459,7 +461,7 @@ Fills in s->texturemins[] and s->extents[]
 static void CalcSurfaceExtents (msurface_t *s)
 {
 	float	mins[2], maxs[2], val;
-	int		i,j, e;
+	int		i,j;
 	mvertex_t	*v;
 	mtexinfo_t	*tex;
 	int		bmins[2], bmaxs[2];
@@ -471,6 +473,8 @@ static void CalcSurfaceExtents (msurface_t *s)
 
 	for (i=0 ; i<s->numedges ; i++)
 	{
+		int	e;
+
 		e = loadmodel->surfedges[s->firstedge+i];
 		if (e >= 0)
 			v = &loadmodel->vertexes[loadmodel->edges[e].v[0]];
@@ -516,8 +520,6 @@ static void Mod_LoadFaces (lump_t *l)
 	dface_t		*in;
 	msurface_t 	*out;
 	int			i, count, surfnum;
-	int			planenum, side;
-	int			ti;
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
@@ -534,6 +536,10 @@ static void Mod_LoadFaces (lump_t *l)
 
 	for (surfnum = 0; surfnum<count; surfnum++, in++, out++)
 	{
+		int	side;
+		int	ti;
+		int	planenum;
+
 		out->firstedge = LittleLong(in->firstedge);
 		out->numedges = LittleShort(in->numedges);
 		out->flags = 0;
@@ -610,7 +616,7 @@ Mod_LoadNodes
 */
 static void Mod_LoadNodes (lump_t *l)
 {
-	int			i, j, count, p;
+	int			i, j, count;
 	dnode_t		*in;
 	mnode_t 	*out;
 
@@ -625,6 +631,8 @@ static void Mod_LoadNodes (lump_t *l)
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
+		int	p;
+
 		for (j=0 ; j<3 ; j++)
 		{
 			out->minmaxs[j] = LittleShort (in->mins[j]);
@@ -660,7 +668,7 @@ static void Mod_LoadLeafs (lump_t *l)
 {
 	dleaf_t 	*in;
 	mleaf_t 	*out;
-	int			i, j, count, p;
+	int			i, j, count;
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
@@ -673,6 +681,7 @@ static void Mod_LoadLeafs (lump_t *l)
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
+		int	p;
 		unsigned firstleafface;
 
 		for (j=0 ; j<3 ; j++)
@@ -719,7 +728,7 @@ Mod_LoadMarksurfaces
 */
 static void Mod_LoadMarksurfaces (lump_t *l)
 {
-	int		i, j, count;
+	int		i, count;
 	short		*in;
 	msurface_t **out;
 
@@ -734,6 +743,8 @@ static void Mod_LoadMarksurfaces (lump_t *l)
 
 	for ( i=0 ; i<count ; i++)
 	{
+		int	j;
+
 		j = LittleShort(in[i]);
 		if (j < 0 ||  j >= loadmodel->numsurfaces)
 			ri.Sys_Error (ERR_DROP, "Mod_ParseMarksurfaces: bad surface number");
@@ -780,7 +791,6 @@ static void Mod_LoadPlanes (lump_t *l)
 	cplane_t	*out;
 	dplane_t 	*in;
 	int			count;
-	int			bits;
 
 	in = (void *)(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
@@ -793,6 +803,8 @@ static void Mod_LoadPlanes (lump_t *l)
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
+		int	bits;
+
 		bits = 0;
 		for (j=0 ; j<3 ; j++)
 		{
@@ -898,7 +910,6 @@ static void Mod_LoadAliasModel (model_t *mod, void *buffer)
 	dmdl_t				*pinmodel, *pheader;
 	dstvert_t			*pinst, *poutst;
 	dtriangle_t			*pintri, *pouttri;
-	daliasframe_t		*pinframe, *poutframe;
 	int					*pincmd, *poutcmd;
 	int					version;
 
@@ -966,6 +977,8 @@ static void Mod_LoadAliasModel (model_t *mod, void *buffer)
 //
 	for (i=0 ; i<pheader->num_frames ; i++)
 	{
+		daliasframe_t		*pinframe, *poutframe;
+
 		pinframe = (daliasframe_t *) ((byte *)pinmodel
 			+ pheader->ofs_frames + i * pheader->framesize);
 		poutframe = (daliasframe_t *) ((byte *)pheader
@@ -1069,7 +1082,7 @@ Specifies the model that will be used as the world
 =====================
 */
 void
-R_BeginRegistration (char *model)
+R_BeginRegistration (char *map)
 {
 	char	fullname[MAX_QPATH];
 	cvar_t	*flushmap;
@@ -1077,7 +1090,7 @@ R_BeginRegistration (char *model)
 	registration_sequence++;
 	r_oldviewcluster = -1;		// force markleafs
 
-	Com_sprintf (fullname, sizeof(fullname), "maps/%s.bsp", model);
+	Com_sprintf (fullname, sizeof(fullname), "maps/%s.bsp", map);
 
 	// explicitly free the old map if different
 	// this guarantees that mod_known[0] is the world map
@@ -1099,18 +1112,20 @@ R_RegisterModel
 struct model_s *R_RegisterModel (char *name)
 {
 	model_t	*mod;
-	int		i;
-	dsprite_t	*sprout;
 	dmdl_t		*pheader;
 
 	mod = Mod_ForName (name, false);
 	if (mod)
 	{
+		int	i;
+
 		mod->registration_sequence = registration_sequence;
 
 		// register any images used by the models
 		if (mod->type == mod_sprite)
 		{
+			dsprite_t	*sprout;
+
 			sprout = (dsprite_t *)mod->extradata;
 			for (i=0 ; i<sprout->numframes ; i++)
 				mod->skins[i] = Vk_FindImage (sprout->frames[i].name, it_sprite, NULL);
