@@ -179,12 +179,21 @@ VkResult
 buffer_destroy(BufferResource_t *buf)
 {
 	assert(!buf->is_mapped);
-	if(buf->memory != VK_NULL_HANDLE)
-		vkFreeMemory(vk_device.logical, buf->memory, NULL);
+
+	// buffer should be destroed before bound memory
 	if(buf->buffer != VK_NULL_HANDLE)
-	vkDestroyBuffer(vk_device.logical, buf->buffer, NULL);
-	buf->buffer = VK_NULL_HANDLE;
-	buf->memory = VK_NULL_HANDLE;
+	{
+		vkDestroyBuffer(vk_device.logical, buf->buffer, NULL);
+		buf->buffer = VK_NULL_HANDLE;
+	}
+
+	// buffer desroed, we can free up memory
+	if(buf->memory != VK_NULL_HANDLE)
+	{
+		vkFreeMemory(vk_device.logical, buf->memory, NULL);
+		buf->memory = VK_NULL_HANDLE;
+	}
+
 	buf->size   = 0;
 
 	return VK_SUCCESS;
@@ -193,12 +202,20 @@ buffer_destroy(BufferResource_t *buf)
 VkResult
 image_destroy(ImageResource_t *img)
 {
-	if(img->memory != VK_NULL_HANDLE)
-		vkFreeMemory(vk_device.logical, img->memory, NULL);
+	// image should be destroed before bound memory
 	if(img->image != VK_NULL_HANDLE)
-	vkDestroyImage(vk_device.logical, img->image, NULL);
-	img->image = VK_NULL_HANDLE;
-	img->memory = VK_NULL_HANDLE;
+	{
+		vkDestroyImage(vk_device.logical, img->image, NULL);
+		img->image = VK_NULL_HANDLE;
+	}
+
+	// image destroed, we can free up memory
+	if(img->memory != VK_NULL_HANDLE)
+	{
+		vkFreeMemory(vk_device.logical, img->memory, NULL);
+		img->memory = VK_NULL_HANDLE;
+	}
+
 	img->size   = 0;
 
 	return VK_SUCCESS;
