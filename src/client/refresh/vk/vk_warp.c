@@ -54,14 +54,12 @@ static void SubdividePolygon (int numverts, float *verts)
 {
 	int		i, j, k;
 	vec3_t	mins, maxs;
-	float	m;
 	float	*v;
 	vec3_t	front[64], back[64];
 	int		f, b;
 	float	dist[64];
 	float	frac;
 	vkpoly_t	*poly;
-	float	s, t;
 	vec3_t	total;
 	float	total_s, total_t;
 
@@ -72,6 +70,8 @@ static void SubdividePolygon (int numverts, float *verts)
 
 	for (i=0 ; i<3 ; i++)
 	{
+		float	m;
+
 		m = (mins[i] + maxs[i]) * 0.5;
 		m = SUBDIVIDE_SIZE * floor (m/SUBDIVIDE_SIZE + 0.5);
 		if (maxs[i] - m < 8)
@@ -131,6 +131,8 @@ static void SubdividePolygon (int numverts, float *verts)
 	total_t = 0;
 	for (i=0 ; i<numverts ; i++, verts+= 3)
 	{
+		float s, t;
+
 		VectorCopy (verts, poly->verts[i+1]);
 		s = DotProduct (verts, warpface->texinfo->vecs[0]);
 		t = DotProduct (verts, warpface->texinfo->vecs[1]);
@@ -165,7 +167,6 @@ void Vk_SubdivideSurface (msurface_t *fa)
 	vec3_t		verts[64];
 	int			numverts;
 	int			i;
-	int			lindex;
 	float		*vec;
 
 	warpface = fa;
@@ -176,6 +177,8 @@ void Vk_SubdivideSurface (msurface_t *fa)
 	numverts = 0;
 	for (i=0 ; i<fa->numedges ; i++)
 	{
+		int	lindex;
+
 		lindex = loadmodel->surfedges[fa->firstedge + i];
 
 		if (lindex > 0)
@@ -322,7 +325,7 @@ static float	sky_min, sky_max;
 
 static void DrawSkyPolygon (int nump, vec3_t vecs)
 {
-	int		i,j;
+	int		i;
 	vec3_t	v, av;
 	float	s, t, dv;
 	int		axis;
@@ -362,6 +365,8 @@ static void DrawSkyPolygon (int nump, vec3_t vecs)
 	// project new texture coords
 	for (i=0 ; i<nump ; i++, vecs+=3)
 	{
+		int j;
+
 		j = vec_to_st[axis][2];
 		if (j > 0)
 			dv = vecs[j - 1];
@@ -527,7 +532,7 @@ void R_ClearSkyBox (void)
 static void MakeSkyVec (float s, float t, int axis, float *vertexData)
 {
 	vec3_t		v, b;
-	int			j, k;
+	int			j;
 
 	b[0] = s * 2300;
 	b[1] = t * 2300;
@@ -535,6 +540,8 @@ static void MakeSkyVec (float s, float t, int axis, float *vertexData)
 
 	for (j = 0; j<3; j++)
 	{
+		int k;
+
 		k = st_to_vec[axis][j];
 		if (k < 0)
 			v[j] = -b[-k - 1];

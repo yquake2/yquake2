@@ -61,6 +61,14 @@ static VkSurfaceFormatKHR getSwapSurfaceFormat(const VkSurfaceFormatKHR *surface
 // internal helper
 static VkPresentModeKHR getSwapPresentMode(const VkPresentModeKHR *presentModes, uint32_t presentModesCount, VkPresentModeKHR desiredMode)
 {
+	// PRESENT_MODE_FIFO_KHR is guaranteed to exist due to spec requirements
+	VkPresentModeKHR usedPresentMode = VK_PRESENT_MODE_FIFO_KHR;
+
+	if (!presentModes)
+	{
+		return usedPresentMode;
+	}
+
 	// check if the desired present mode is supported
 	for (uint32_t i = 0; i < presentModesCount; ++i)
 	{
@@ -73,8 +81,6 @@ static VkPresentModeKHR getSwapPresentMode(const VkPresentModeKHR *presentModes,
 		}
 	}
 
-	// PRESENT_MODE_FIFO_KHR is guaranteed to exist due to spec requirements
-	VkPresentModeKHR usedPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 	// preferred present mode not found - choose the next best thing
 	for (uint32_t i = 0; i < presentModesCount; ++i)
 	{
@@ -179,7 +185,7 @@ VkResult QVk_CreateSwapchain()
 		.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
 		.queueFamilyIndexCount = 0,
 		.pQueueFamilyIndices = NULL,
-		.preTransform = surfaceCaps.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR ? VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR : surfaceCaps.currentTransform,
+		.preTransform = (surfaceCaps.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) ? VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR : surfaceCaps.currentTransform,
 		.compositeAlpha = getSupportedCompositeAlpha(surfaceCaps.supportedCompositeAlpha),
 		.presentMode = swapPresentMode,
 		.clipped = VK_TRUE,

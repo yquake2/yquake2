@@ -402,7 +402,6 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 	const particle_t *p;
 	int				i;
 	vec3_t			up, right;
-	float			scale;
 	byte			color[4];
 
 	if (!num_particles)
@@ -419,6 +418,8 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 
 	for (p = particles, i = 0; i < num_particles; i++, p++)
 	{
+		float	scale;
+
 		// hack a scale up to keep particles from disapearing
 		scale = (p->origin[0] - r_origin[0]) * vpn[0] +
 				(p->origin[1] - r_origin[1]) * vpn[1] +
@@ -953,7 +954,7 @@ qboolean R_EndWorldRenderReady(void)
 
 	// apply postprocessing effects (underwater view warp if the player is submerged in liquid) to offscreen buffer
 	QVk_BeginRenderpass(RP_WORLD_WARP);
-	float pushConsts[] = { r_newrefdef.rdflags & RDF_UNDERWATER ? r_newrefdef.time : 0.f, viewsize->value / 100, vid.width, vid.height };
+	float pushConsts[] = { (r_newrefdef.rdflags & RDF_UNDERWATER) ? r_newrefdef.time : 0.f, viewsize->value / 100, vid.width, vid.height };
 	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConsts), pushConsts);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_worldWarpPipeline.layout, 0, 1, &vk_colorbuffer.descriptorSet, 0, NULL);
 	QVk_BindPipeline(&vk_worldWarpPipeline);
@@ -1182,7 +1183,7 @@ qboolean R_SetMode (void)
 			ri.Cvar_SetValue("vid_fullscreen", 0);
 			vid_fullscreen->modified = false;
 			R_Printf(PRINT_ALL, "%s() - fullscreen unavailable in this mode\n", __func__);
-			if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, r_mode->value, false)) == rserr_ok)
+			if (Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, r_mode->value, false) == rserr_ok)
 				return true;
 		}
 		else if (err == rserr_invalid_mode)
@@ -1193,7 +1194,7 @@ qboolean R_SetMode (void)
 		}
 
 		// try setting it back to something safe
-		if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_state.prev_mode, false)) != rserr_ok)
+		if (Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_state.prev_mode, false) != rserr_ok)
 		{
 			R_Printf(PRINT_ALL, "%s() - could not revert to safe mode\n", __func__);
 			return false;

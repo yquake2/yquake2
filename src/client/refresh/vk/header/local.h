@@ -238,7 +238,7 @@ void	Vk_ImageList_f (void);
 void	Vk_InitImages (void);
 void	Vk_ShutdownImages (void);
 void	Vk_FreeUnusedImages (void);
-void	Vk_DrawParticles( int n, const particle_t particles[], const unsigned colortable[768] );
+void	Vk_DrawParticles( int num_particles, const particle_t particles[], const unsigned colortable[768] );
 
 void	R_BeginRegistration (char *model);
 struct model_s	*R_RegisterModel (char *name);
