@@ -750,12 +750,15 @@ static void CreateDrawBuffers()
 // internal helper
 static void DestroyDrawBuffer(qvktexture_t *drawBuffer)
 {
+	if (drawBuffer->imageView != VK_NULL_HANDLE)
+	{
+		vkDestroyImageView(vk_device.logical, drawBuffer->imageView, NULL);
+		drawBuffer->imageView = VK_NULL_HANDLE;
+	}
+
 	if (drawBuffer->resource.image != VK_NULL_HANDLE)
 	{
 		image_destroy(&drawBuffer->resource);
-		vkDestroyImageView(vk_device.logical, drawBuffer->imageView, NULL);
-		drawBuffer->resource.image = VK_NULL_HANDLE;
-		drawBuffer->imageView = VK_NULL_HANDLE;
 	}
 }
 
