@@ -37,7 +37,6 @@ DYNAMIC LIGHTS BLEND RENDERING
 void R_RenderDlight (dlight_t *light)
 {
 	int		i, j;
-	float	a;
 	float	rad;
 
 	rad = light->intensity * 0.35;
@@ -56,6 +55,8 @@ void R_RenderDlight (dlight_t *light)
 
 	for (i = 16; i >= 0; i--)
 	{
+		float	a;
+
 		a = i / 16.0 * M_PI * 2;
 		for (j = 0; j < 3; j++)
 		{
@@ -228,9 +229,6 @@ static int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	if (r >= 0)
 		return r;		// hit something
 
-	if ( (back < 0) == side )
-		return -1;		// didn't hit anuthing
-
 // check for impact on this node
 	VectorCopy (mid, lightspot);
 	lightplane = plane;
@@ -303,7 +301,6 @@ void R_LightPoint (vec3_t p, vec3_t color)
 	int			lnum;
 	dlight_t	*dl;
 	vec3_t		dist;
-	float		add;
 
 	if (!r_worldmodel->lightdata || !currententity)
 	{
@@ -332,6 +329,8 @@ void R_LightPoint (vec3_t p, vec3_t color)
 	dl = r_newrefdef.dlights;
 	for (lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++, dl++)
 	{
+		float	add;
+
 		VectorSubtract (currententity->origin,
 						dl->origin,
 						dist);
