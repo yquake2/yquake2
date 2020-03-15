@@ -106,7 +106,6 @@ void
 QVk_FreeBuffer(qvkbuffer_t *buffer)
 {
 	buffer_destroy(&buffer->resource);
-	buffer->resource.buffer = VK_NULL_HANDLE;
 	buffer->currentOffset = 0;
 }
 
@@ -114,7 +113,6 @@ void
 QVk_FreeStagingBuffer(qvkstagingbuffer_t *buffer)
 {
 	buffer_destroy(&buffer->resource);
-	buffer->resource.buffer = VK_NULL_HANDLE;
 	buffer->currentOffset = 0;
 }
 
