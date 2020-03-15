@@ -16,8 +16,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "header/vk_util.h"
-#include "header/vk_local.h"
+#include "header/util.h"
+#include "header/local.h"
 
 #include <assert.h>
 

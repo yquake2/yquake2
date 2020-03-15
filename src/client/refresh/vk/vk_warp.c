@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // vk_warp.c -- sky and water polygons
-#include "header/vk_local.h"
+#include "header/local.h"
 
 extern	model_t	*loadmodel;
 

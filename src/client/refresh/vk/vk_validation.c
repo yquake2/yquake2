@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#include "header/vk_local.h"
+#include "header/local.h"
 
 static VkDebugUtilsMessengerEXT validationMessenger = VK_NULL_HANDLE;
 
