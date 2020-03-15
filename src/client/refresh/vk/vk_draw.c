@@ -90,10 +90,11 @@ Draw_FindPic
 image_t	*Draw_FindPic (char *name)
 {
 	image_t *vk;
-	char	fullname[MAX_QPATH];
 
 	if (name[0] != '/' && name[0] != '\\')
 	{
+		char	fullname[MAX_QPATH];
+
 		Com_sprintf(fullname, sizeof(fullname), "pics/%s.pcx", name);
 		vk = Vk_FindImage(fullname, it_pic, NULL);
 	}
@@ -108,11 +109,11 @@ image_t	*Draw_FindPic (char *name)
 Draw_GetPicSize
 =============
 */
-void Draw_GetPicSize (int *w, int *h, char *pic)
+void Draw_GetPicSize (int *w, int *h, char *name)
 {
 	image_t *vk;
 
-	vk = Draw_FindPic(pic);
+	vk = Draw_FindPic(name);
 	if (!vk)
 	{
 		*w = *h = -1;
@@ -128,7 +129,7 @@ void Draw_GetPicSize (int *w, int *h, char *pic)
 Draw_StretchPic
 =============
 */
-void Draw_StretchPic (int x, int y, int w, int h, char *pic)
+void Draw_StretchPic (int x, int y, int w, int h, char *name)
 {
 	image_t *vk;
 
@@ -136,10 +137,10 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 		// buffers is not initialized
 		return;
 
-	vk = Draw_FindPic(pic);
+	vk = Draw_FindPic(name);
 	if (!vk)
 	{
-		R_Printf(PRINT_ALL, "%s(): Can't find pic: %s\n", __func__, pic);
+		R_Printf(PRINT_ALL, "%s(): Can't find pic: %s\n", __func__, name);
 		return;
 	}
 
@@ -156,7 +157,7 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 Draw_PicScaled
 =============
 */
-void Draw_PicScaled (int x, int y, char *pic, float scale)
+void Draw_PicScaled (int x, int y, char *pic, float factor)
 {
 	image_t *vk;
 
@@ -171,7 +172,7 @@ void Draw_PicScaled (int x, int y, char *pic, float scale)
 		return;
 	}
 
-	Draw_StretchPic(x, y, vk->width*scale, vk->height*scale, pic);
+	Draw_StretchPic(x, y, vk->width*factor, vk->height*factor, pic);
 }
 
 /*
@@ -182,7 +183,7 @@ This repeats a 64*64 tile graphic to fill the screen around a sized down
 refresh window.
 =============
 */
-void Draw_TileClear (int x, int y, int w, int h, char *pic)
+void Draw_TileClear (int x, int y, int w, int h, char *name)
 {
 	image_t	*image;
 
@@ -190,10 +191,10 @@ void Draw_TileClear (int x, int y, int w, int h, char *pic)
 		// buffers is not initialized
 		return;
 
-	image = Draw_FindPic(pic);
+	image = Draw_FindPic(name);
 	if (!image)
 	{
-		R_Printf(PRINT_ALL, "%s(): Can't find pic: %s\n", __func__, pic);
+		R_Printf(PRINT_ALL, "%s(): Can't find pic: %s\n", __func__, name);
 		return;
 	}
 
@@ -270,10 +271,7 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 {
 	unsigned	image32[256 * 256];
 	int			i, j, trows;
-	byte		*source;
-	int			frac, fracstep;
 	float		hscale;
-	int			row;
 	float		t;
 
 	if(!R_EndWorldRenderReady())
@@ -292,10 +290,13 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 	}
 	t = rows * hscale / 256;
 
-	unsigned *dest;
-
 	for (i = 0; i < trows; i++)
 	{
+		unsigned *dest;
+		byte	*source;
+		int	row;
+		int	frac, fracstep;
+
 		row = (int)(i*hscale);
 		if (row > rows)
 			break;

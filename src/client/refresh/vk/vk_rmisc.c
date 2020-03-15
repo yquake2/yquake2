@@ -94,7 +94,7 @@ Vk_ScreenShot_f
 void Vk_ScreenShot_f (void)
 {
 	byte		*buffer;
-	int		i, temp;
+	int		i;
 	size_t		buffSize = vid.width * vid.height * 4;
 
 	buffer = malloc(buffSize);
@@ -114,6 +114,8 @@ void Vk_ScreenShot_f (void)
 	{
 		for (i = 0; i < buffSize; i += 4)
 		{
+			int	temp;
+
 			temp = buffer[i];
 			buffer[i] = buffer[i + 2];
 			buffer[i + 2] = temp;
@@ -137,7 +139,6 @@ void Vk_Strings_f(void)
 	int usedDevice = 0;
 	VkPhysicalDevice *physicalDevices;
 	VkPhysicalDeviceProperties deviceProperties;
-	qboolean isPreferred = false;
 	int preferredDevice = (int)vk_device_idx->value;
 	int msaa = (int)ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE)->value;
 	uint32_t driverMajor = VK_VERSION_MAJOR(vk_device.properties.driverVersion);
@@ -180,6 +181,8 @@ void Vk_Strings_f(void)
 	R_Printf(PRINT_ALL, "Devices found:\n");
 	for (i = 0; i < numDevices; ++i)
 	{
+		qboolean isPreferred = false;
+
 		vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
 		isPreferred = (preferredDevice == i) || (
 			preferredDevice < 0 &&
