@@ -30,8 +30,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #include <vulkan/vulkan.h>
-#include "vk_util.h"
-#include "vk_shaders.h"
+#include "util.h"
+#include "shaders.h"
 
 // Vulkan device
 typedef struct
