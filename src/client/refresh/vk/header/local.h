@@ -88,7 +88,7 @@ typedef enum
 	rserr_unknown
 } rserr_t;
 
-#include "vk_model.h"
+#include "model.h"
 
 #define	MAX_LBM_HEIGHT		480
 
