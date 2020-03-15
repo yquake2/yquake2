@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // vk_rmain.c
 
-#include "header/vk_local.h"
+#include "header/local.h"
 
 #define	REF_VERSION	"Yamagi Quake II Vulkan Refresher (based on vkQuake2 v1.4.3)"
 
