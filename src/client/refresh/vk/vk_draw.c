@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // vk_draw.c
 
-#include "header/vk_local.h"
+#include "header/local.h"
 
 static image_t	*draw_chars;
 
