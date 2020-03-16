@@ -1216,11 +1216,11 @@ IN_Init(void)
 	in_grab = Cvar_Get("in_grab", "2", CVAR_ARCHIVE);
 	lookstrafe = Cvar_Get("lookstrafe", "0", CVAR_ARCHIVE);
 	m_filter = Cvar_Get("m_filter", "0", CVAR_ARCHIVE);
-	m_up = Cvar_Get("m_up", "1", 0);
-	m_forward = Cvar_Get("m_forward", "1", 0);
-	m_pitch = Cvar_Get("m_pitch", "0.022", 0);
-	m_side = Cvar_Get("m_side", "0.8", 0);
-	m_yaw = Cvar_Get("m_yaw", "0.022", 0);
+	m_up = Cvar_Get("m_up", "1", CVAR_ARCHIVE);
+	m_forward = Cvar_Get("m_forward", "1", CVAR_ARCHIVE);
+	m_pitch = Cvar_Get("m_pitch", "0.022", CVAR_ARCHIVE);
+	m_side = Cvar_Get("m_side", "0.8", CVAR_ARCHIVE);
+	m_yaw = Cvar_Get("m_yaw", "0.022", CVAR_ARCHIVE);
 	sensitivity = Cvar_Get("sensitivity", "3", CVAR_ARCHIVE);
 
 	joy_haptic_magnitude = Cvar_Get("joy_haptic_magnitude", "0.0", CVAR_ARCHIVE);
