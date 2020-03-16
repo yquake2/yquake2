@@ -165,9 +165,12 @@ if ("${ARCH}" STREQUAL "x86_64")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse")
 endif()
 
-if (YQ2ARCHNATIVE AND "${ARCH}" STREQUAL "arm")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
-	add_definitions(-DYQ2ARCHNATIVE=1)
+if ("${ARCH}" STREQUAL "arm")
+    if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv6k")
+    else()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv8.0-a")
+    endif()
 endif()
 
 set(Backends-Generic-Source

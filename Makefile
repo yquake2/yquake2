@@ -188,10 +188,12 @@ endif
 
 # In ARM mode it cannot generate yield instruction
 # to cool down the CPU in busy mode
-ifdef YQ2ARCHNATIVE
 ifeq ($(YQ2_ARCH), arm)
-CFLAGS += -march=native -DYQ2ARCHNATIVE=1
+CFLAGS += -march=armv6k
 endif
+
+ifeq ($(YQ2_ARCH), aarch64)
+CFLAGS += -march=armv8.0-a
 endif
 
 # ----------
