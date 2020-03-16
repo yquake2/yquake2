@@ -44,6 +44,9 @@ static HANDLE hinput, houtput;
 // Game library handle
 static HINSTANCE game_library;
 
+// Config dir
+char cfgdir[MAX_OSPATH] = CFGDIR;
+
 // Buffer for the dedicated server console
 static char console_text[256];
 static size_t console_textlen;
@@ -526,7 +529,7 @@ Sys_GetHomeDir(void)
 		}
 	}
 
-	snprintf(gdir, sizeof(gdir), "%s/%s/", profile, CFGDIR);
+	snprintf(gdir, sizeof(gdir), "%s/%s/", profile, cfgdir);
 
 	return gdir;
 }

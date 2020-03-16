@@ -94,10 +94,7 @@ main(int argc, char **argv)
 			// We need an argument.
 			if (i != (argc - 1))
 			{
-				WCHAR wpath[MAX_OSPATH];
-
-				MultiByteToWideChar(CP_UTF8, 0, argv[i + 1], -1, wpath, MAX_OSPATH);
-				Q_strlcpy(cfgdir, wpath, sizeof(cfgdir));
+				Q_strlcpy(cfgdir, argv[i + 1], sizeof(cfgdir));
 			}
 			else
 			{
