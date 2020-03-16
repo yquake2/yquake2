@@ -195,6 +195,8 @@ static qboolean checkForHelp(int argc, char **argv)
 				printf("Yamagi Quake II v%s\n", YQ2VERSION);
 				printf("Most interesting commandline arguments:\n");
 				printf("-h or --help: Show this help\n");
+				printf("-cfgdir <path>\n");
+				printf("  set the name of your config directory\n");
 				printf("-datadir <path>\n");
 				printf("  set path to your Quake2 game data (the directory baseq2/ is in)\n");
 				printf("-portable\n");

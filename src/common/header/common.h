@@ -746,8 +746,11 @@ extern cvar_t *sv_entfile;
 /* Hack for portable client */
 extern qboolean is_portable;
 
-/* Hack fo external datadir */
+/* Hack for external datadir */
 extern char datadir[MAX_OSPATH];
+
+/* Hack for external datadir */
+extern char cfgdir[MAX_OSPATH];
 
 /* Hack for working 'game' cmd */
 extern char userGivenGame[MAX_QPATH];

@@ -50,6 +50,9 @@ static void *game_library;
 // Evil hack to determine if stdin is available
 qboolean stdin_active = true;
 
+// Config dir
+char cfgdir[MAX_OSPATH] = CFGDIR;
+
 // Console logfile
 extern FILE	*logfile;
 
@@ -476,7 +479,7 @@ Sys_GetHomeDir(void)
 		return NULL;
 	}
 
-	snprintf(gdir, sizeof(gdir), "%s/%s/", home, CFGDIR);
+	snprintf(gdir, sizeof(gdir), "%s/%s/", home, cfgdir);
 
 	return gdir;
 }

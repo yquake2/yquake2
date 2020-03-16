@@ -87,6 +87,25 @@ main(int argc, char **argv)
 				return 1;
 			}
 		}
+
+		// Inject a custom config dir.
+		if (strcmp(argv[i], "-cfgdir") == 0)
+		{
+			// We need an argument.
+			if (i != (argc - 1))
+			{
+				WCHAR wpath[MAX_OSPATH];
+
+				MultiByteToWideChar(CP_UTF8, 0, argv[i + 1], -1, wpath, MAX_OSPATH);
+				Q_strlcpy(cfgdir, wpath, sizeof(cfgdir));
+			}
+			else
+			{
+				printf("-cfgdir needs an argument\n");
+				return 1;
+			}
+
+		}
 	}
 
 	// Need to redirect stdout before anything happens.
