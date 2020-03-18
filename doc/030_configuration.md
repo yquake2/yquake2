@@ -135,7 +135,7 @@ configurations that can be used as a baseline for experiments:
   * `vid_maxfps` set to the desired frame rate.
 
 And there's always the option to disable the asynchronous client all
-together by setting `cl_async` to `1`. In that case `cl_maxfps` and
+together by setting `cl_async` to `0`. In that case `cl_maxfps` and
 `vid_maxfps` are tied together, just like with the original client each
 renderframe is also a clientframe. With that both precise timings and
 tearing / micro stuttering free rendering can be archieved by setting
