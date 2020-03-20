@@ -169,7 +169,7 @@ if ("${ARCH}" STREQUAL "arm")
     if (CMAKE_SIZEOF_VOID_P EQUAL 4)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv6k")
     else()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv8.0-a")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv8-a")
     endif()
 endif()
 
