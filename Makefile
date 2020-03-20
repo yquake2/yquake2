@@ -193,7 +193,7 @@ CFLAGS += -march=armv6k
 endif
 
 ifeq ($(YQ2_ARCH), aarch64)
-CFLAGS += -march=armv8.0-a
+CFLAGS += -march=armv8-a
 endif
 
 # ----------
