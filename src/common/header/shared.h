@@ -75,6 +75,16 @@ typedef unsigned char byte;
 	#define YQ2_ATTR_NORETURN
 #endif
 
+#if defined(__GNUC__)
+	/* ISO C11 _Noreturn can't be attached to function pointers, so
+	 * use the gcc/clang-specific version for function pointers, even
+	 * in C11 mode. MSVC __declspec(noreturn) seems to have the same
+	 * restriction as _Noreturn so can't be used here either. */
+	#define YQ2_ATTR_NORETURN_FUNCPTR  __attribute__ ((noreturn))
+#else
+	#define YQ2_ATTR_NORETURN_FUNCPTR  /* nothing */
+#endif
+
 /* angle indexes */
 #define PITCH 0                     /* up / down */
 #define YAW 1                       /* left / right */
