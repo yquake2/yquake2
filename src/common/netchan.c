@@ -24,6 +24,8 @@
  * =======================================================================
  */
 
+#include <time.h>
+
 #include "header/common.h"
 
 /*
@@ -94,8 +96,27 @@ Netchan_Init(void)
 {
 	int port;
 
-	/* pick a port value that should be nice and random */
-	port = Sys_Milliseconds() & 0xffff;
+	/* This is a little bit fishy:
+
+	   The original code used Sys_Milliseconds() as base. It worked
+	   because the original Sys_Milliseconds included some amount of
+	   random data (Windows) or was dependend on seconds since epoche
+	   (Unix). Our Sys_Milliseconds() always starts at 0, so there's a
+	   very high propability - nearly 100 percent for something like
+	   `./quake2 +connect example.com - that two or more clients end up
+	   with the same qport.
+
+	   We can't use rand() because we're always starting with the same
+	   seed. So right after client start we'll nearly always get the
+	   same random numbers. Again there's a high propability that two or
+	   more clients end up with the same qport.
+
+	   Just calling time() should be portable and is more less what
+	   Windows did in the original code. There's still a rather small
+	   propability that two clients end up with the same qport, but
+	   that needs to fixed somewhere else with some kind of fallback
+	   logic. */
+	port = time(NULL) & 0xffff;
 
 	showpackets = Cvar_Get("showpackets", "0", 0);
 	showdrop = Cvar_Get("showdrop", "0", 0);
