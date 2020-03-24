@@ -824,7 +824,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 	if (!net_interface || !net_interface[0] ||
 		!Q_stricmp(net_interface, "localhost"))
 	{
-		Host = (family == AF_INET6) ? "::/128" : "0.0.0.0";
+		Host = (family == AF_INET6) ? "::" : "0.0.0.0";
 	}
 	else
 	{
@@ -848,8 +848,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 
 	for (ai = res; ai != NULL; ai = ai->ai_next)
 	{
-		if ((newsocket =
-				 socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == -1)
+		if ((newsocket = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == -1)
 		{
 			Com_Printf("NET_Socket: socket: %s\n", strerror(errno));
 			continue;

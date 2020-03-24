@@ -846,8 +846,7 @@ NET_IPSocket(char *net_interface, int port, netsrc_t type, int family)
 
 	for (ai = res; ai != NULL; ai = ai->ai_next)
 	{
-		if ((newsocket =
-				 socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == -1)
+		if ((newsocket = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) == -1)
 		{
 			Com_Printf("NET_IPSocket: socket: %s\n", strerror(errno));
 			continue;
