@@ -28,13 +28,9 @@
 
 #include <signal.h>
 
-#if defined(__linux__) || defined(__FreeBSD__)
-
-#endif
-
 #include "../../common/header/common.h"
 
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
 #include <execinfo.h>
 
 void
