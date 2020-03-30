@@ -184,7 +184,8 @@ Pickup_Weapon(edict_t *ent, edict_t *other)
 	if ((((int)(dmflags->value) & DF_WEAPONS_STAY) || coop->value) &&
 		other->client->pers.inventory[index])
 	{
-		if (!(ent->spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM)))
+		if (!(ent->spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM)) &&
+				(!coop_pickup_weapons->value || (ent->flags & FL_COOP_TAKEN)))
 		{
 			return false; /* leave the weapon for others to pickup */
 		}
@@ -223,14 +224,14 @@ Pickup_Weapon(edict_t *ent, edict_t *other)
 			if (coop->value)
 			{
 				ent->flags |= FL_RESPAWN;
+				ent->flags |= FL_COOP_TAKEN;
 			}
 		}
 	}
 
 	if ((other->client->pers.weapon != ent->item) &&
 		(other->client->pers.inventory[index] == 1) &&
-		(!deathmatch->value ||
-		 (other->client->pers.weapon == FindItem("blaster"))))
+		(!deathmatch->value || (other->client->pers.weapon == FindItem("blaster"))))
 	{
 		other->client->newweapon = ent->item;
 	}

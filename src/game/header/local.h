@@ -72,6 +72,7 @@
 #define FL_TEAMSLAVE 0x00000400 /* not the first on the team */
 #define FL_NO_KNOCKBACK 0x00000800
 #define FL_POWER_ARMOR 0x00001000 /* power armor (if any) is active */
+#define FL_COOP_TAKEN 0x00002000 /* Another client has already taken it */
 #define FL_RESPAWN 0x80000000 /* used for item respawning */
 
 #define FRAMETIME 0.1
@@ -507,6 +508,7 @@ extern edict_t *g_edicts;
 extern cvar_t *maxentities;
 extern cvar_t *deathmatch;
 extern cvar_t *coop;
+extern cvar_t *coop_pickup_weapons;
 extern cvar_t *dmflags;
 extern cvar_t *skill;
 extern cvar_t *fraglimit;
