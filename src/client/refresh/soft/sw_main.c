@@ -146,6 +146,7 @@ static cvar_t	*sw_overbrightbits;
 cvar_t	*sw_custom_particles;
 cvar_t	*sw_texture_filtering;
 cvar_t	*sw_retexturing;
+static cvar_t	*sw_partialrefresh;
 
 cvar_t	*r_drawworld;
 static cvar_t	*r_drawentities;
@@ -371,6 +372,16 @@ R_RegisterVariables (void)
 	sw_custom_particles = ri.Cvar_Get("sw_custom_particles", "0", CVAR_ARCHIVE);
 	sw_texture_filtering = ri.Cvar_Get("sw_texture_filtering", "0", CVAR_ARCHIVE);
 	sw_retexturing = ri.Cvar_Get("sw_retexturing", "0", CVAR_ARCHIVE);
+
+	// On MacOS texture is cleaned up after render and code have to copy a whole
+	// screen to texture, other platforms save previous texture content and can be
+	// copied only changed parts
+#if defined(__APPLE__)
+	sw_partialrefresh = ri.Cvar_Get("sw_partialrefresh", "0", CVAR_ARCHIVE);
+#else
+	sw_partialrefresh = ri.Cvar_Get("sw_partialrefresh", "1", CVAR_ARCHIVE);
+#endif
+
 	r_mode = ri.Cvar_Get( "r_mode", "0", CVAR_ARCHIVE );
 
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
@@ -2110,7 +2121,16 @@ RE_FlushFrame(int vmin, int vmax)
 		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
 		return;
 	}
-	RE_CopyFrame (pixels, pitch / sizeof(Uint32), vmin, vmax);
+	if (sw_partialrefresh->value)
+	{
+		RE_CopyFrame (pixels, pitch / sizeof(Uint32), vmin, vmax);
+	}
+	else
+	{
+		// On MacOS texture is cleaned up after render,
+		// code have to copy a whole screen to the texture
+		RE_CopyFrame (pixels, pitch / sizeof(Uint32), 0, vid.height * vid.width);
+	}
 	SDL_UnlockTexture(texture);
 
 	SDL_RenderCopy(renderer, texture, NULL, NULL);
