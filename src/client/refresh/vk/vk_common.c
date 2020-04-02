@@ -1594,7 +1594,7 @@ qboolean QVk_Init(SDL_Window *window)
 
 	if (!SDL_Vulkan_GetInstanceExtensions(window, &extCount, NULL))
 	{
-		ri.Sys_Error(ERR_FATAL, "%s() SDL_Vulkan_GetInstanceExtensions failed: %s",
+		R_Printf(PRINT_ALL, "%s() SDL_Vulkan_GetInstanceExtensions failed: %s",
 				__func__, SDL_GetError());
 		return false;
 	}
@@ -1606,7 +1606,7 @@ qboolean QVk_Init(SDL_Window *window)
 	wantedExtensions = malloc(extCount * sizeof(const char *));
 	if (!SDL_Vulkan_GetInstanceExtensions(window, &extCount, wantedExtensions))
 	{
-		ri.Sys_Error(ERR_FATAL, "%s() SDL_Vulkan_GetInstanceExtensions failed: %s",
+		R_Printf(PRINT_ALL, "%s() SDL_Vulkan_GetInstanceExtensions failed: %s",
 				__func__, SDL_GetError());
 		return false;
 	}
