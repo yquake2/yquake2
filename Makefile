@@ -152,14 +152,10 @@ endif
 # is also the first Raspberry PI generation and older hardware
 # is likely too slow to run the game. We're not enforcing the
 # minimum architecture, but if you're build for something older
-# like arm5 you need to remove the `yield` opcode. It's set in
-# Qcommon_Mainloop() in frame.c via inline assmebly.
+# like arm5 the `yield` opcode isn't compiled in and the game
+# (especially q2ded) will consume more CPU time than necessary.
 ifeq ($(YQ2_ARCH), arm)
 CFLAGS += -march=armv6k
-endif
-
-ifeq ($(YQ2_ARCH), aarch64)
-CFLAGS += -march=armv8.0-a
 endif
 
 # ----------

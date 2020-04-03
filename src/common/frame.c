@@ -146,7 +146,7 @@ Qcommon_Mainloop(void)
 				   a Kaby Lake laptop. */
 #if defined (__GNUC__) && (__i386 || __x86_64__)
 				asm("pause");
-#elif defined(__arm__) || defined(__aarch64__)
+#elif defined(__aarch64__) || (defined(__ARM_ARCH) && __ARM_ARCH >= 7) || defined(__ARM_ARCH_6K__)
 				asm("yield");
 #endif
 
