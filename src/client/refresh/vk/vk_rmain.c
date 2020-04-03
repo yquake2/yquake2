@@ -1500,7 +1500,7 @@ R_InitContext(void *win)
 
 	if(win == NULL)
 	{
-		ri.Sys_Error(ERR_FATAL, "%s() must not be called with NULL argument!", __func__);
+		R_Printf(PRINT_ALL, "%s() must not be called with NULL argument!", __func__);
 		return false;
 	}
 
@@ -1524,7 +1524,7 @@ qboolean Vkimp_CreateSurface()
 {
 	if (!SDL_Vulkan_CreateSurface(window, vk_instance, &vk_surface))
 	{
-		ri.Sys_Error(ERR_FATAL, "%s() SDL_Vulkan_CreateSurface failed: %s",
+		R_Printf(PRINT_ALL, "%s() SDL_Vulkan_CreateSurface failed: %s",
 				__func__, SDL_GetError());
 		return false;
 	}
@@ -1546,6 +1546,13 @@ R_IsVsyncActive(void)
 
 static int R_PrepareForWindow(void)
 {
+#if defined(_WIN32)
+	if (SDL_Vulkan_LoadLibrary("libvulkan-1.dll"))
+	{
+		R_Printf(PRINT_ALL, "%s() Loader import failed: %s",
+				__func__, SDL_GetError());
+	}
+#endif
 	return SDL_WINDOW_VULKAN;
 }
 

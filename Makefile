@@ -370,6 +370,10 @@ ifeq ($(WITH_CURL),yes)
 release/yquake2.exe : CFLAGS += -DUSE_CURL
 endif
 
+ifeq ($(WITH_REFVK),yes)
+release/yquake2.exe : CFLAGS += -DUSE_REFVK
+endif
+
 ifeq ($(WITH_OPENAL),yes)
 release/yquake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"'
 endif
