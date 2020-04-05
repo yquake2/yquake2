@@ -113,6 +113,12 @@ void Vk_ScreenShot_f (void)
 	int		i;
 	size_t		buffSize = vid.width * vid.height * 4;
 
+	if (!vk_device.screenshotSupported)
+	{
+		R_Printf(PRINT_ALL, "%s: Screenshots are not supported by this GPU.\n", __func__);
+		return;
+	}
+
 	buffer = malloc(buffSize);
 
 	QVk_ReadPixels(buffer, vid.width, vid.height);
