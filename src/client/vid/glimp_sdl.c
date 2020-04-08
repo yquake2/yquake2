@@ -595,7 +595,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	/* Now that we've got a working window print it's mode. */
 	int curdisplay = SDL_GetWindowDisplayIndex(window);
 
-    if (curdisplay < 0) {
+	if (curdisplay < 0) {
 		curdisplay = 0;
 	}
 
