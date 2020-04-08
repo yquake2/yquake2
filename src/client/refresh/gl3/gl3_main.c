@@ -1370,8 +1370,6 @@ SetupGL(void)
 	}
 #endif // 0
 
-
-
 	// set up the FBO accordingly, but only if actually rendering the world
 	// (=> don't use FBO when rendering the playermodel in the player menu)
 	// also, only do this when under water, because this has a noticeable overhead on some systems
@@ -1880,6 +1878,12 @@ GL3_BeginFrame(float camera_separation)
 	{
 		gl_drawbuffer->modified = false;
 
+
+#ifdef YQ2_GL3_GLES
+		// OpenGL ES3 only supports GL_NONE, GL_BACK and GL_COLOR_ATTACHMENT*
+		// so this doesn't make sense here, see https://docs.gl/es3/glDrawBuffers
+		R_Printf(PRINT_ALL, "NOTE: gl_drawbuffer not supported by OpenGL ES!\n");
+#else // Desktop GL
 		// TODO: stereo stuff
 		//if ((gl3state.camera_separation == 0) || gl3state.stereo_mode != STEREO_MODE_OPENGL)
 		{
@@ -1888,8 +1892,9 @@ GL3_BeginFrame(float camera_separation)
 			{
 				drawBuffer = GL_FRONT;
 			}
-			glDrawBuffers(1, &drawBuffer);
+			glDrawBuffer(drawBuffer);
 		}
+#endif
 	}
 
 	/* texturemode stuff */
