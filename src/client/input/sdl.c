@@ -369,6 +369,74 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 	return key;
 }
 
+static int
+IN_TranslateScancodeToQ2Key(SDL_Scancode sc)
+{
+
+#define MY_SC_CASE(X) case SDL_SCANCODE_ ## X : return K_SC_ ## X;
+
+	switch( (int)sc ) // cast to int to shut -Wswitch up
+	{
+		// case SDL_SCANCODE_A : return K_SC_A;
+		MY_SC_CASE(A)
+		MY_SC_CASE(B)
+		MY_SC_CASE(C)
+		MY_SC_CASE(D)
+		MY_SC_CASE(E)
+		MY_SC_CASE(F)
+		MY_SC_CASE(G)
+		MY_SC_CASE(H)
+		MY_SC_CASE(I)
+		MY_SC_CASE(J)
+		MY_SC_CASE(K)
+		MY_SC_CASE(L)
+		MY_SC_CASE(M)
+		MY_SC_CASE(N)
+		MY_SC_CASE(O)
+		MY_SC_CASE(P)
+		MY_SC_CASE(Q)
+		MY_SC_CASE(R)
+		MY_SC_CASE(S)
+		MY_SC_CASE(T)
+		MY_SC_CASE(U)
+		MY_SC_CASE(V)
+		MY_SC_CASE(W)
+		MY_SC_CASE(X)
+		MY_SC_CASE(Y)
+		MY_SC_CASE(Z)
+		MY_SC_CASE(MINUS)
+		MY_SC_CASE(EQUALS)
+		MY_SC_CASE(LEFTBRACKET)
+		MY_SC_CASE(RIGHTBRACKET)
+		MY_SC_CASE(BACKSLASH)
+		MY_SC_CASE(NONUSHASH)
+		MY_SC_CASE(SEMICOLON)
+		MY_SC_CASE(APOSTROPHE)
+		MY_SC_CASE(GRAVE)
+		MY_SC_CASE(COMMA)
+		MY_SC_CASE(PERIOD)
+		MY_SC_CASE(SLASH)
+		MY_SC_CASE(NONUSBACKSLASH)
+		MY_SC_CASE(INTERNATIONAL1)
+		MY_SC_CASE(INTERNATIONAL2)
+		MY_SC_CASE(INTERNATIONAL3)
+		MY_SC_CASE(INTERNATIONAL4)
+		MY_SC_CASE(INTERNATIONAL5)
+		MY_SC_CASE(INTERNATIONAL6)
+		MY_SC_CASE(INTERNATIONAL7)
+		MY_SC_CASE(INTERNATIONAL8)
+		MY_SC_CASE(INTERNATIONAL9)
+		MY_SC_CASE(THOUSANDSSEPARATOR)
+		MY_SC_CASE(DECIMALSEPARATOR)
+		MY_SC_CASE(CURRENCYUNIT)
+		MY_SC_CASE(CURRENCYSUBUNIT)
+	}
+
+#undef MY_SC_CASE
+
+	return 0;
+}
+
 /* ------------------------------------------------------------------ */
 
 /*
@@ -466,13 +534,27 @@ IN_Update(void)
 				}
 				else
 				{
-					if ((event.key.keysym.sym >= SDLK_SPACE) && (event.key.keysym.sym < SDLK_DELETE))
+					SDL_Keycode kc = event.key.keysym.sym;
+					if ((kc >= SDLK_SPACE) && (kc < SDLK_DELETE))
 					{
-						Key_Event(event.key.keysym.sym, down, false);
+						Key_Event(kc, down, false);
 					}
 					else
 					{
-						Key_Event(IN_TranslateSDLtoQ2Key(event.key.keysym.sym), down, true);
+						int key = IN_TranslateSDLtoQ2Key(kc);
+						if(key == 0)
+						{
+							// fallback to scancodes if we don't know the keycode
+							key = IN_TranslateScancodeToQ2Key(sc);
+						}
+						if(key != 0)
+						{
+							Key_Event(key, down, true);
+						}
+						else
+						{
+							Com_Printf("Pressed unknown key with SDL_Keycode %d, SDL_Scancode %d.\n", kc, (int)sc);
+						}
 					}
 				}
 

@@ -222,6 +222,69 @@ enum QKEYS {
 	K_MENU,
 	K_UNDO,
 
+	// The following are mapped from SDL_Scancodes, used as a *fallback* for keys
+	// whose SDL_KeyCode we don't have a K_ constant for, like German Umlaut keys.
+	// The scancode name corresponds to the key at that position on US-QWERTY keyboards
+	// *not* the one in the local layout (e.g. German 'Ö' key is K_SC_SEMICOLON)
+	// !!! NOTE: if you add a scancode here, make sure to also add it to:
+	// 1. keynames[] in cl_keyboard.c
+	// 2. IN_TranslateScancodeToQ2Key() in input/sdl.c
+	K_SC_A,
+	K_SC_B,
+	K_SC_C,
+	K_SC_D,
+	K_SC_E,
+	K_SC_F,
+	K_SC_G,
+	K_SC_H,
+	K_SC_I,
+	K_SC_J,
+	K_SC_K,
+	K_SC_L,
+	K_SC_M,
+	K_SC_N,
+	K_SC_O,
+	K_SC_P,
+	K_SC_Q,
+	K_SC_R,
+	K_SC_S,
+	K_SC_T,
+	K_SC_U,
+	K_SC_V,
+	K_SC_W,
+	K_SC_X,
+	K_SC_Y,
+	K_SC_Z,
+	// leaving out SDL_SCANCODE_1 ... _0, we handle them separately already
+	// also return, escape, backspace, tab, space, already handled as keycodes
+	K_SC_MINUS,
+	K_SC_EQUALS,
+	K_SC_LEFTBRACKET,
+	K_SC_RIGHTBRACKET,
+	K_SC_BACKSLASH,
+	K_SC_NONUSHASH,
+	K_SC_SEMICOLON,
+	K_SC_APOSTROPHE,
+	K_SC_GRAVE, // console key
+	K_SC_COMMA,
+	K_SC_PERIOD,
+	K_SC_SLASH,
+	// leaving out lots of key incl. from keypad, we already handle them as normal keys
+	K_SC_NONUSBACKSLASH,
+	K_SC_INTERNATIONAL1, /**< used on Asian keyboards, see footnotes in USB doc */
+	K_SC_INTERNATIONAL2,
+	K_SC_INTERNATIONAL3, /**< Yen */
+	K_SC_INTERNATIONAL4,
+	K_SC_INTERNATIONAL5,
+	K_SC_INTERNATIONAL6,
+	K_SC_INTERNATIONAL7,
+	K_SC_INTERNATIONAL8,
+	K_SC_INTERNATIONAL9,
+	K_SC_THOUSANDSSEPARATOR,
+	K_SC_DECIMALSEPARATOR,
+	K_SC_CURRENCYUNIT,
+	K_SC_CURRENCYSUBUNIT,
+
 	K_LAST
 };
 
