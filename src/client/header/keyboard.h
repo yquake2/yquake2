@@ -56,7 +56,7 @@ enum QKEYS {
 
 	K_BACKSPACE = 127,
 
-	K_COMMAND = 128,
+	K_COMMAND = 128, // "Windows Key"
 	K_CAPSLOCK,
 	K_POWER,
 	K_PAUSE,
@@ -212,7 +212,7 @@ enum QKEYS {
 	// add other joystick/controller keys before this one and adjust it accordingly
 	K_JOY_LAST_REGULAR_ALT = K_TRIG_RIGHT_ALT,
 
-	K_SUPER,
+	K_SUPER, // TODO: what is this? SDL doesn't seem to know it..
 	K_COMPOSE,
 	K_MODE,
 	K_HELP,

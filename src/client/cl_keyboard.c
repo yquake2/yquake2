@@ -64,6 +64,7 @@ keyname_t keynames[] = {
 	{"ENTER", K_ENTER},
 	{"ESCAPE", K_ESCAPE},
 	{"SPACE", K_SPACE},
+	{"SEMICOLON", ';'}, /* because a raw semicolon separates commands */
 	{"BACKSPACE", K_BACKSPACE},
 
 	{"COMMAND", K_COMMAND},
@@ -80,6 +81,13 @@ keyname_t keynames[] = {
 	{"CTRL", K_CTRL},
 	{"SHIFT", K_SHIFT},
 
+	{"INS", K_INS},
+	{"DEL", K_DEL},
+	{"PGDN", K_PGDN},
+	{"PGUP", K_PGUP},
+	{"HOME", K_HOME},
+	{"END", K_END},
+
 	{"F1", K_F1},
 	{"F2", K_F2},
 	{"F3", K_F3},
@@ -92,19 +100,37 @@ keyname_t keynames[] = {
 	{"F10", K_F10},
 	{"F11", K_F11},
 	{"F12", K_F12},
+	{"F13", K_F13},
+	{"F14", K_F14},
+	{"F15", K_F15},
 
-	{"INS", K_INS},
-	{"DEL", K_DEL},
-	{"PGDN", K_PGDN},
-	{"PGUP", K_PGUP},
-	{"HOME", K_HOME},
-	{"END", K_END},
+	{"KP_HOME", K_KP_HOME},
+	{"KP_UPARROW", K_KP_UPARROW},
+	{"KP_PGUP", K_KP_PGUP},
+	{"KP_LEFTARROW", K_KP_LEFTARROW},
+	{"KP_5", K_KP_5},
+	{"KP_RIGHTARROW", K_KP_RIGHTARROW},
+	{"KP_END", K_KP_END},
+	{"KP_DOWNARROW", K_KP_DOWNARROW},
+	{"KP_PGDN", K_KP_PGDN},
+	{"KP_ENTER", K_KP_ENTER},
+	{"KP_INS", K_KP_INS},
+	{"KP_DEL", K_KP_DEL},
+	{"KP_SLASH", K_KP_SLASH},
+	{"KP_MINUS", K_KP_MINUS},
+	{"KP_PLUS", K_KP_PLUS},
+	{"KP_NUMLOCK", K_KP_NUMLOCK},
+	{"KP_STAR", K_KP_STAR},
+	{"KP_EQUALS", K_KP_EQUALS},
 
 	{"MOUSE1", K_MOUSE1},
 	{"MOUSE2", K_MOUSE2},
 	{"MOUSE3", K_MOUSE3},
 	{"MOUSE4", K_MOUSE4},
 	{"MOUSE5", K_MOUSE5},
+
+	{"MWHEELUP", K_MWHEELUP},
+	{"MWHEELDOWN", K_MWHEELDOWN},
 
 	{"JOY1", K_JOY1},
 	{"JOY2", K_JOY2},
@@ -192,29 +218,16 @@ keyname_t keynames[] = {
 
 	{"JOY_BACK", K_JOY_BACK},
 
-	{"KP_HOME", K_KP_HOME},
-	{"KP_UPARROW", K_KP_UPARROW},
-	{"KP_PGUP", K_KP_PGUP},
-	{"KP_LEFTARROW", K_KP_LEFTARROW},
-	{"KP_5", K_KP_5},
-	{"KP_RIGHTARROW", K_KP_RIGHTARROW},
-	{"KP_END", K_KP_END},
-	{"KP_DOWNARROW", K_KP_DOWNARROW},
-	{"KP_PGDN", K_KP_PGDN},
-	{"KP_ENTER", K_KP_ENTER},
-	{"KP_INS", K_KP_INS},
-	{"KP_DEL", K_KP_DEL},
-	{"KP_SLASH", K_KP_SLASH},
-	{"KP_STAR", K_KP_STAR},
-	{"KP_MINUS", K_KP_MINUS},
-	{"KP_PLUS", K_KP_PLUS},
+	{"SUPER", K_SUPER},
+	{"COMPOSE", K_COMPOSE},
+	{"MODE", K_MODE},
+	{"HELP", K_HELP},
+	{"PRINT", K_PRINT},
+	{"SYSREQ", K_SYSREQ},
+	{"SCROLLOCK", K_SCROLLOCK},
+	{"MENU", K_MENU},
+	{"UNDO", K_UNDO},
 
-	{"MWHEELUP", K_MWHEELUP},
-	{"MWHEELDOWN", K_MWHEELDOWN},
-
-	{"PAUSE", K_PAUSE},
-
-	{"SEMICOLON", ';'}, /* because a raw semicolon seperates commands */
 
 	{NULL, 0}
 };
@@ -662,9 +675,9 @@ Key_KeynumToString(int keynum)
 		return "<KEY NOT FOUND>";
 	}
 
-	if ((keynum > 32) && (keynum < 127))
+	if ((keynum > 32) && (keynum < 127) && keynum != ';')
 	{
-		/* printable ascii */
+		/* printable ascii, except for semicolon special case */
 		tinystr[0] = keynum;
 		return tinystr;
 	}
