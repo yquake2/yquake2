@@ -1196,9 +1196,12 @@ Key_Event(int key, qboolean down, qboolean special)
 	}
 
 	/* Toogle console through Shift + Escape or special K_CONSOLE key */
-	if ( down && ( key == K_CONSOLE || (keydown[K_SHIFT] && key == K_ESCAPE) ) )
+	if (key == K_CONSOLE || (keydown[K_SHIFT] && key == K_ESCAPE))
 	{
-		Con_ToggleConsole_f();
+		if (down)
+		{
+			Con_ToggleConsole_f();
+		}
 		return;
 	}
 
@@ -1206,7 +1209,7 @@ Key_Event(int key, qboolean down, qboolean special)
 	if ((key >= K_MOUSE1 && key != K_JOY_BACK) && !keybindings[key] && (cls.key_dest != key_console) &&
 		(cls.state == ca_active))
 	{
-		Com_Printf("%s is unbound, hit F4 to set.\n", Key_KeynumToString(key));
+		Com_Printf("%s (%d) is unbound, hit F4 to set.\n", Key_KeynumToString(key), key);
 	}
 
 	/* While in attract loop all keys besides F1 to F12 (to
