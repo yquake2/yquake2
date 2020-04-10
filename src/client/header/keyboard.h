@@ -265,7 +265,7 @@ enum QKEYS {
 	K_SC_NONUSHASH,
 	K_SC_SEMICOLON,
 	K_SC_APOSTROPHE,
-	K_SC_GRAVE, // console key
+	K_SC_GRAVE,
 	K_SC_COMMA,
 	K_SC_PERIOD,
 	K_SC_SLASH,
@@ -284,6 +284,12 @@ enum QKEYS {
 	K_SC_DECIMALSEPARATOR,
 	K_SC_CURRENCYUNIT,
 	K_SC_CURRENCYSUBUNIT,
+
+	// hardcoded pseudo-key to open the console, emitted when pressing the "console key"
+	// (SDL_SCANCODE_GRAVE, the one between Esc, 1 and Tab) on layouts that don't
+	// have a relevant char there (unlike Brazilian which has quotes there which you
+	// want to be able to type in the console) - the user can't bind this key.
+	K_CONSOLE,
 
 	K_LAST
 };
