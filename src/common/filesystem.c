@@ -701,7 +701,7 @@ FS_LoadPAK(const char *packPath)
 	fsPackFile_t *files; /* List of files in PAK. */
 	fsPack_t *pack; /* PAK file. */
 	dpackheader_t header; /* PAK file header. */
-	dpackfile_t info[MAX_FILES_IN_PACK]; /* PAK info. */
+	dpackfile_t *info = NULL; /* PAK info. */
 
 	handle = Q_fopen(packPath, "rb");
 
@@ -715,7 +715,7 @@ FS_LoadPAK(const char *packPath)
 	if (LittleLong(header.ident) != IDPAKHEADER)
 	{
 		fclose(handle);
-		Com_Error(ERR_FATAL, "FS_LoadPAK: '%s' is not a pack file", packPath);
+		Com_Error(ERR_FATAL, "%s: '%s' is not a pack file", __func__, packPath);
 	}
 
 	header.dirofs = LittleLong(header.dirofs);
@@ -723,11 +723,24 @@ FS_LoadPAK(const char *packPath)
 
 	numFiles = header.dirlen / sizeof(dpackfile_t);
 
-	if ((numFiles > MAX_FILES_IN_PACK) || (numFiles == 0))
+	if ((numFiles == 0) || (header.dirlen < 0) || (header.dirofs < 0))
 	{
 		fclose(handle);
-		Com_Error(ERR_FATAL, "FS_LoadPAK: '%s' has %i files",
-				packPath, numFiles);
+		Com_Error(ERR_FATAL, "%s: '%s' is too short.",
+				__func__, packPath);
+	}
+
+	if (numFiles > MAX_FILES_IN_PACK)
+	{
+		Com_Printf("%s: '%s' has %i > %i files\n",
+				__func__, packPath, numFiles, MAX_FILES_IN_PACK);
+	}
+
+	info = malloc(header.dirlen);
+	if (!info)
+	{
+		Com_Error(ERR_FATAL, "%s: '%s' is to big for read %d",
+				__func__, packPath, header.dirlen);
 	}
 
 	files = Z_Malloc(numFiles * sizeof(fsPackFile_t));
@@ -742,6 +755,7 @@ FS_LoadPAK(const char *packPath)
 		files[i].offset = LittleLong(info[i].filepos);
 		files[i].size = LittleLong(info[i].filelen);
 	}
+	free(info);
 
 	pack = Z_Malloc(sizeof(fsPack_t));
 	Q_strlcpy(pack->name, packPath, sizeof(pack->name));
@@ -793,11 +807,11 @@ FS_LoadPK3(const char *packPath)
 
 	numFiles = global.number_entry;
 
-	if ((numFiles > MAX_FILES_IN_PACK) || (numFiles == 0))
+	if (numFiles <= 0)
 	{
 		unzClose(handle);
-		Com_Error(ERR_FATAL, "FS_LoadPK3: '%s' has %i files",
-				packPath, numFiles);
+		Com_Error(ERR_FATAL, "%s: '%s' has %i files",
+				__func__, packPath, numFiles);
 	}
 
 	files = Z_Malloc(numFiles * sizeof(fsPackFile_t));
