@@ -64,7 +64,10 @@ keyname_t keynames[] = {
 	{"ENTER", K_ENTER},
 	{"ESCAPE", K_ESCAPE},
 	{"SPACE", K_SPACE},
-	{"SEMICOLON", ';'}, /* because a raw semicolon separates commands */
+	{"SEMICOLON", ';'},   /* because a raw semicolon separates commands */
+	{"DOUBLEQUOTE", '"'}, /* because "" has special meaning in configs */
+	{"QUOTE", '\'' },     /* just to be sure */
+	{"DOLLAR", '$'},      /* $ is used in macros => can occur in configs */
 	{"BACKSPACE", K_BACKSPACE},
 
 	{"COMMAND", K_COMMAND},
@@ -733,9 +736,11 @@ Key_KeynumToString(int keynum)
 		return "<KEY NOT FOUND>";
 	}
 
-	if ((keynum > 32) && (keynum < 127) && keynum != ';')
+	if ((keynum > 32) && (keynum < 127) && keynum != ';' && keynum != '"' && keynum != '\'' && keynum != '$')
 	{
-		/* printable ascii, except for semicolon special case */
+		/* printable ASCII, except for special cases that have special meanings
+		   in configs like quotes or ; (separates commands) or $ (used to expand
+		   cvars to their values in macros/commands) and thus need escaping */
 		tinystr[0] = keynum;
 		return tinystr;
 	}

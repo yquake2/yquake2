@@ -47,11 +47,16 @@
 extern qboolean joy_altselector_pressed;
 
 /* these are the key numbers that should be passed to Key_Event
-   they must be mached by the low level key event processing! */
+   they must be matched by the low level key event processing! */
 enum QKEYS {
 	K_TAB = 9,
 	K_ENTER = 13,
 	K_ESCAPE = 27,
+	// Note: ASCII keys are generally valid but don't get constants here,
+	// just use 'a' (yes, lowercase) or '2' or whatever, however there are
+	// some special cases when writing/parsing configs (space or quotes or
+	// also ; and $ have a special meaning there so we use e.g. "SPACE" instead),
+	// see keynames[] in cl_keyboard.c
 	K_SPACE = 32,
 
 	K_BACKSPACE = 127,
