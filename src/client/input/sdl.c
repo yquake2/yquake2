@@ -162,66 +162,77 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 	/* These must be translated */
 	switch (keysym)
 	{
-		case SDLK_PAGEUP:
-			key = K_PGUP;
-			break;
-		case SDLK_KP_9:
-			key = K_KP_PGUP;
-			break;
-		case SDLK_PAGEDOWN:
-			key = K_PGDN;
-			break;
-		case SDLK_KP_3:
-			key = K_KP_PGDN;
-			break;
-		case SDLK_KP_7:
-			key = K_KP_HOME;
-			break;
-		case SDLK_HOME:
-			key = K_HOME;
-			break;
-		case SDLK_KP_1:
-			key = K_KP_END;
-			break;
-		case SDLK_END:
-			key = K_END;
-			break;
-		case SDLK_KP_4:
-			key = K_KP_LEFTARROW;
-			break;
-		case SDLK_LEFT:
-			key = K_LEFTARROW;
-			break;
-		case SDLK_KP_6:
-			key = K_KP_RIGHTARROW;
-			break;
-		case SDLK_RIGHT:
-			key = K_RIGHTARROW;
-			break;
-		case SDLK_KP_2:
-			key = K_KP_DOWNARROW;
-			break;
-		case SDLK_DOWN:
-			key = K_DOWNARROW;
-			break;
-		case SDLK_KP_8:
-			key = K_KP_UPARROW;
-			break;
-		case SDLK_UP:
-			key = K_UPARROW;
-			break;
-		case SDLK_ESCAPE:
-			key = K_ESCAPE;
-			break;
-		case SDLK_KP_ENTER:
-			key = K_KP_ENTER;
+		case SDLK_TAB:
+			key = K_TAB;
 			break;
 		case SDLK_RETURN:
 			key = K_ENTER;
 			break;
-		case SDLK_TAB:
-			key = K_TAB;
+		case SDLK_ESCAPE:
+			key = K_ESCAPE;
 			break;
+		case SDLK_BACKSPACE:
+			key = K_BACKSPACE;
+			break;
+		case SDLK_LGUI:
+		case SDLK_RGUI:
+			key = K_COMMAND; // Win key
+			break;
+		case SDLK_CAPSLOCK:
+			key = K_CAPSLOCK;
+			break;
+		case SDLK_POWER:
+			key = K_POWER;
+			break;
+		case SDLK_PAUSE:
+			key = K_PAUSE;
+			break;
+
+		case SDLK_UP:
+			key = K_UPARROW;
+			break;
+		case SDLK_DOWN:
+			key = K_DOWNARROW;
+			break;
+		case SDLK_LEFT:
+			key = K_LEFTARROW;
+			break;
+		case SDLK_RIGHT:
+			key = K_RIGHTARROW;
+			break;
+
+
+		case SDLK_RALT:
+		case SDLK_LALT:
+			key = K_ALT;
+			break;
+		case SDLK_LCTRL:
+		case SDLK_RCTRL:
+			key = K_CTRL;
+			break;
+		case SDLK_LSHIFT:
+		case SDLK_RSHIFT:
+			key = K_SHIFT;
+			break;
+		case SDLK_INSERT:
+			key = K_INS;
+			break;
+		case SDLK_DELETE:
+			key = K_DEL;
+			break;
+		case SDLK_PAGEDOWN:
+			key = K_PGDN;
+			break;
+		case SDLK_PAGEUP:
+			key = K_PGUP;
+			break;
+		case SDLK_HOME:
+			key = K_HOME;
+			break;
+		case SDLK_END:
+			key = K_END;
+			break;
+
 		case SDLK_F1:
 			key = K_F1;
 			break;
@@ -267,60 +278,70 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 		case SDLK_F15:
 			key = K_F15;
 			break;
-		case SDLK_BACKSPACE:
-			key = K_BACKSPACE;
+
+
+		case SDLK_KP_7:
+			key = K_KP_HOME;
 			break;
-		case SDLK_KP_PERIOD:
-			key = K_KP_DEL;
+		case SDLK_KP_8:
+			key = K_KP_UPARROW;
 			break;
-		case SDLK_DELETE:
-			key = K_DEL;
+		case SDLK_KP_9:
+			key = K_KP_PGUP;
 			break;
-		case SDLK_PAUSE:
-			key = K_PAUSE;
-			break;
-		case SDLK_LSHIFT:
-		case SDLK_RSHIFT:
-			key = K_SHIFT;
-			break;
-		case SDLK_LCTRL:
-		case SDLK_RCTRL:
-			key = K_CTRL;
-			break;
-		case SDLK_LGUI:
-		case SDLK_RGUI:
-			key = K_COMMAND;
-			break;
-		case SDLK_RALT:
-		case SDLK_LALT:
-			key = K_ALT;
+		case SDLK_KP_4:
+			key = K_KP_LEFTARROW;
 			break;
 		case SDLK_KP_5:
 			key = K_KP_5;
 			break;
-		case SDLK_INSERT:
-			key = K_INS;
+		case SDLK_KP_6:
+			key = K_KP_RIGHTARROW;
+			break;
+		case SDLK_KP_1:
+			key = K_KP_END;
+			break;
+		case SDLK_KP_2:
+			key = K_KP_DOWNARROW;
+			break;
+		case SDLK_KP_3:
+			key = K_KP_PGDN;
+			break;
+		case SDLK_KP_ENTER:
+			key = K_KP_ENTER;
 			break;
 		case SDLK_KP_0:
 			key = K_KP_INS;
 			break;
-		case SDLK_KP_MULTIPLY:
-			key = K_KP_STAR;
-			break;
-		case SDLK_KP_PLUS:
-			key = K_KP_PLUS;
-			break;
-		case SDLK_KP_MINUS:
-			key = K_KP_MINUS;
+		case SDLK_KP_PERIOD:
+			key = K_KP_DEL;
 			break;
 		case SDLK_KP_DIVIDE:
 			key = K_KP_SLASH;
 			break;
-		case SDLK_MODE:
-			key = K_MODE;
+		case SDLK_KP_MINUS:
+			key = K_KP_MINUS;
 			break;
+		case SDLK_KP_PLUS:
+			key = K_KP_PLUS;
+			break;
+		case SDLK_NUMLOCKCLEAR:
+			key = K_KP_NUMLOCK;
+			break;
+		case SDLK_KP_MULTIPLY:
+			key = K_KP_STAR;
+			break;
+		case SDLK_KP_EQUALS:
+			key = K_KP_EQUALS;
+			break;
+
+		// TODO: K_SUPER ? Win Key is already K_COMMAND
+
 		case SDLK_APPLICATION:
 			key = K_COMPOSE;
+			break;
+		case SDLK_MODE:
+			key = K_MODE;
 			break;
 		case SDLK_HELP:
 			key = K_HELP;
@@ -331,29 +352,89 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 		case SDLK_SYSREQ:
 			key = K_SYSREQ;
 			break;
+		case SDLK_SCROLLLOCK:
+			key = K_SCROLLOCK;
+			break;
 		case SDLK_MENU:
 			key = K_MENU;
-			break;
-		case SDLK_POWER:
-			key = K_POWER;
 			break;
 		case SDLK_UNDO:
 			key = K_UNDO;
 			break;
-		case SDLK_SCROLLLOCK:
-			key = K_SCROLLOCK;
-			break;
-		case SDLK_NUMLOCKCLEAR:
-			key = K_KP_NUMLOCK;
-			break;
-		case SDLK_CAPSLOCK:
-			key = K_CAPSLOCK;
-			break;
+
 		default:
 			break;
 	}
 
 	return key;
+}
+
+static int
+IN_TranslateScancodeToQ2Key(SDL_Scancode sc)
+{
+
+#define MY_SC_CASE(X) case SDL_SCANCODE_ ## X : return K_SC_ ## X;
+
+	switch( (int)sc ) // cast to int to shut -Wswitch up
+	{
+		// case SDL_SCANCODE_A : return K_SC_A;
+		MY_SC_CASE(A)
+		MY_SC_CASE(B)
+		MY_SC_CASE(C)
+		MY_SC_CASE(D)
+		MY_SC_CASE(E)
+		MY_SC_CASE(F)
+		MY_SC_CASE(G)
+		MY_SC_CASE(H)
+		MY_SC_CASE(I)
+		MY_SC_CASE(J)
+		MY_SC_CASE(K)
+		MY_SC_CASE(L)
+		MY_SC_CASE(M)
+		MY_SC_CASE(N)
+		MY_SC_CASE(O)
+		MY_SC_CASE(P)
+		MY_SC_CASE(Q)
+		MY_SC_CASE(R)
+		MY_SC_CASE(S)
+		MY_SC_CASE(T)
+		MY_SC_CASE(U)
+		MY_SC_CASE(V)
+		MY_SC_CASE(W)
+		MY_SC_CASE(X)
+		MY_SC_CASE(Y)
+		MY_SC_CASE(Z)
+		MY_SC_CASE(MINUS)
+		MY_SC_CASE(EQUALS)
+		MY_SC_CASE(LEFTBRACKET)
+		MY_SC_CASE(RIGHTBRACKET)
+		MY_SC_CASE(BACKSLASH)
+		MY_SC_CASE(NONUSHASH)
+		MY_SC_CASE(SEMICOLON)
+		MY_SC_CASE(APOSTROPHE)
+		MY_SC_CASE(GRAVE)
+		MY_SC_CASE(COMMA)
+		MY_SC_CASE(PERIOD)
+		MY_SC_CASE(SLASH)
+		MY_SC_CASE(NONUSBACKSLASH)
+		MY_SC_CASE(INTERNATIONAL1)
+		MY_SC_CASE(INTERNATIONAL2)
+		MY_SC_CASE(INTERNATIONAL3)
+		MY_SC_CASE(INTERNATIONAL4)
+		MY_SC_CASE(INTERNATIONAL5)
+		MY_SC_CASE(INTERNATIONAL6)
+		MY_SC_CASE(INTERNATIONAL7)
+		MY_SC_CASE(INTERNATIONAL8)
+		MY_SC_CASE(INTERNATIONAL9)
+		MY_SC_CASE(THOUSANDSSEPARATOR)
+		MY_SC_CASE(DECIMALSEPARATOR)
+		MY_SC_CASE(CURRENCYUNIT)
+		MY_SC_CASE(CURRENCYSUBUNIT)
+	}
+
+#undef MY_SC_CASE
+
+	return 0;
 }
 
 /* ------------------------------------------------------------------ */
@@ -373,6 +454,8 @@ IN_Update(void)
 	static char last_hat = SDL_HAT_CENTERED;
 	static qboolean left_trigger = false;
 	static qboolean right_trigger = false;
+
+	static int consoleKeyCode = 0;
 
 	/* Get and process an event */
 	while (SDL_PollEvent(&event))
@@ -420,10 +503,15 @@ IN_Update(void)
 				break;
 
 			case SDL_TEXTINPUT:
-				if ((event.text.text[0] >= ' ') && (event.text.text[0] <= '~'))
+			{
+				int c = event.text.text[0];
+				// also make sure we don't get the char that corresponds to the
+				// "console key" (like "^" or "`") as text input
+				if ((c >= ' ') && (c <= '~') && c != consoleKeyCode)
 				{
-					Char_Event(event.text.text[0]);
+					Char_Event(c);
 				}
+			}
 
 				break;
 
@@ -453,13 +541,43 @@ IN_Update(void)
 				}
 				else
 				{
-					if ((event.key.keysym.sym >= SDLK_SPACE) && (event.key.keysym.sym < SDLK_DELETE))
+					SDL_Keycode kc = event.key.keysym.sym;
+					if(sc == SDL_SCANCODE_GRAVE && kc != '\'' && kc != '"')
 					{
-						Key_Event(event.key.keysym.sym, down, false);
+						// special case/hack: open the console with the "console key"
+						// (beneath Esc, left of 1, above Tab)
+						// but not if the keycode for this is a quote (like on Brazilian
+						// keyboards) - otherwise you couldn't type them in the console
+						if((event.key.keysym.mod & (KMOD_CAPS|KMOD_SHIFT|KMOD_ALT|KMOD_CTRL|KMOD_GUI)) == 0)
+						{
+							// also, only do this if no modifiers like shift or AltGr or whatever are pressed
+							// so kc will most likely be the ascii char generated by this and can be ignored
+							// in case SDL_TEXTINPUT above (so we don't get ^ or whatever as text in console)
+							// (can't just check for mod == 0 because numlock is a KMOD too)
+							Key_Event(K_CONSOLE, down, true);
+							consoleKeyCode = kc;
+						}
+					}
+					else if ((kc >= SDLK_SPACE) && (kc < SDLK_DELETE))
+					{
+						Key_Event(kc, down, false);
 					}
 					else
 					{
-						Key_Event(IN_TranslateSDLtoQ2Key(event.key.keysym.sym), down, true);
+						int key = IN_TranslateSDLtoQ2Key(kc);
+						if(key == 0)
+						{
+							// fallback to scancodes if we don't know the keycode
+							key = IN_TranslateScancodeToQ2Key(sc);
+						}
+						if(key != 0)
+						{
+							Key_Event(key, down, true);
+						}
+						else
+						{
+							Com_Printf("Pressed unknown key with SDL_Keycode %d, SDL_Scancode %d.\n", kc, (int)sc);
+						}
 					}
 				}
 

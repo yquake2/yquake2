@@ -791,7 +791,7 @@ void SCR_BeginLoadingPlaque(void);
 
 void SV_Init(void);
 void SV_Shutdown(char *finalmsg, qboolean reconnect);
-void SV_Frame(int msec);
+void SV_Frame(int usec);
 
 /* ======================================================================= */
 

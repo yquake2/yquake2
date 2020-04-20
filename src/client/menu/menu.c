@@ -281,39 +281,6 @@ Key_GetMenuKey(int key)
 		case K_JOY30:
 		case K_JOY31:
 
-		case K_AUX1:
-		case K_AUX2:
-		case K_AUX3:
-		case K_AUX4:
-		case K_AUX5:
-		case K_AUX6:
-		case K_AUX7:
-		case K_AUX8:
-		case K_AUX9:
-		case K_AUX10:
-		case K_AUX11:
-		case K_AUX12:
-		case K_AUX13:
-		case K_AUX14:
-		case K_AUX15:
-		case K_AUX16:
-		case K_AUX17:
-		case K_AUX18:
-		case K_AUX19:
-		case K_AUX20:
-		case K_AUX21:
-		case K_AUX22:
-		case K_AUX23:
-		case K_AUX24:
-		case K_AUX25:
-		case K_AUX26:
-		case K_AUX27:
-		case K_AUX28:
-		case K_AUX29:
-		case K_AUX30:
-		case K_AUX31:
-		case K_AUX32:
-
 		case K_KP_ENTER:
 		case K_ENTER:
 			return K_ENTER;
@@ -842,7 +809,7 @@ M_UnbindCommand(char *command)
 
     l = strlen(command);
 
-    for (j = 0; j < 256; j++)
+    for (j = 0; j < K_LAST; j++)
     {
         char *b;
         b = keybindings[j];
@@ -870,7 +837,7 @@ M_FindKeysForCommand(char *command, int *twokeys)
     l = strlen(command);
     count = 0;
 
-    for (j = 0; j < 256; j++)
+    for (j = 0; j < K_LAST; j++)
     {
         char *b;
         b = keybindings[j];

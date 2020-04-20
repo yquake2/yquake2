@@ -47,16 +47,21 @@
 extern qboolean joy_altselector_pressed;
 
 /* these are the key numbers that should be passed to Key_Event
-   they must be mached by the low level key event processing! */
+   they must be matched by the low level key event processing! */
 enum QKEYS {
 	K_TAB = 9,
 	K_ENTER = 13,
 	K_ESCAPE = 27,
+	// Note: ASCII keys are generally valid but don't get constants here,
+	// just use 'a' (yes, lowercase) or '2' or whatever, however there are
+	// some special cases when writing/parsing configs (space or quotes or
+	// also ; and $ have a special meaning there so we use e.g. "SPACE" instead),
+	// see keynames[] in cl_keyboard.c
 	K_SPACE = 32,
 
 	K_BACKSPACE = 127,
 
-	K_COMMAND = 128,
+	K_COMMAND = 128, // "Windows Key"
 	K_CAPSLOCK,
 	K_POWER,
 	K_PAUSE,
@@ -212,40 +217,7 @@ enum QKEYS {
 	// add other joystick/controller keys before this one and adjust it accordingly
 	K_JOY_LAST_REGULAR_ALT = K_TRIG_RIGHT_ALT,
 
-	K_AUX1,
-	K_AUX2,
-	K_AUX3,
-	K_AUX4,
-	K_AUX5,
-	K_AUX6,
-	K_AUX7,
-	K_AUX8,
-	K_AUX9,
-	K_AUX10,
-	K_AUX11,
-	K_AUX12,
-	K_AUX13,
-	K_AUX14,
-	K_AUX15,
-	K_AUX16,
-	K_AUX17,
-	K_AUX18,
-	K_AUX19,
-	K_AUX20,
-	K_AUX21,
-	K_AUX22,
-	K_AUX23,
-	K_AUX24,
-	K_AUX25,
-	K_AUX26,
-	K_AUX27,
-	K_AUX28,
-	K_AUX29,
-	K_AUX30,
-	K_AUX31,
-	K_AUX32,
-
-	K_SUPER,
+	K_SUPER, // TODO: what is this? SDL doesn't seem to know it..
 	K_COMPOSE,
 	K_MODE,
 	K_HELP,
@@ -254,6 +226,75 @@ enum QKEYS {
 	K_SCROLLOCK,
 	K_MENU,
 	K_UNDO,
+
+	// The following are mapped from SDL_Scancodes, used as a *fallback* for keys
+	// whose SDL_KeyCode we don't have a K_ constant for, like German Umlaut keys.
+	// The scancode name corresponds to the key at that position on US-QWERTY keyboards
+	// *not* the one in the local layout (e.g. German 'Ö' key is K_SC_SEMICOLON)
+	// !!! NOTE: if you add a scancode here, make sure to also add it to:
+	// 1. keynames[] in cl_keyboard.c
+	// 2. IN_TranslateScancodeToQ2Key() in input/sdl.c
+	K_SC_A,
+	K_SC_B,
+	K_SC_C,
+	K_SC_D,
+	K_SC_E,
+	K_SC_F,
+	K_SC_G,
+	K_SC_H,
+	K_SC_I,
+	K_SC_J,
+	K_SC_K,
+	K_SC_L,
+	K_SC_M,
+	K_SC_N,
+	K_SC_O,
+	K_SC_P,
+	K_SC_Q,
+	K_SC_R,
+	K_SC_S,
+	K_SC_T,
+	K_SC_U,
+	K_SC_V,
+	K_SC_W,
+	K_SC_X,
+	K_SC_Y,
+	K_SC_Z,
+	// leaving out SDL_SCANCODE_1 ... _0, we handle them separately already
+	// also return, escape, backspace, tab, space, already handled as keycodes
+	K_SC_MINUS,
+	K_SC_EQUALS,
+	K_SC_LEFTBRACKET,
+	K_SC_RIGHTBRACKET,
+	K_SC_BACKSLASH,
+	K_SC_NONUSHASH,
+	K_SC_SEMICOLON,
+	K_SC_APOSTROPHE,
+	K_SC_GRAVE,
+	K_SC_COMMA,
+	K_SC_PERIOD,
+	K_SC_SLASH,
+	// leaving out lots of key incl. from keypad, we already handle them as normal keys
+	K_SC_NONUSBACKSLASH,
+	K_SC_INTERNATIONAL1, /**< used on Asian keyboards, see footnotes in USB doc */
+	K_SC_INTERNATIONAL2,
+	K_SC_INTERNATIONAL3, /**< Yen */
+	K_SC_INTERNATIONAL4,
+	K_SC_INTERNATIONAL5,
+	K_SC_INTERNATIONAL6,
+	K_SC_INTERNATIONAL7,
+	K_SC_INTERNATIONAL8,
+	K_SC_INTERNATIONAL9,
+	K_SC_THOUSANDSSEPARATOR,
+	K_SC_DECIMALSEPARATOR,
+	K_SC_CURRENCYUNIT,
+	K_SC_CURRENCYSUBUNIT,
+
+	// hardcoded pseudo-key to open the console, emitted when pressing the "console key"
+	// (SDL_SCANCODE_GRAVE, the one between Esc, 1 and Tab) on layouts that don't
+	// have a relevant char there (unlike Brazilian which has quotes there which you
+	// want to be able to type in the console) - the user can't bind this key.
+	K_CONSOLE,
 
 	K_LAST
 };

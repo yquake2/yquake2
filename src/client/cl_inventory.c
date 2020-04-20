@@ -130,7 +130,7 @@ CL_DrawInventory(void)
 				cl.configstrings[CS_ITEMS + item]);
 		bind = "";
 
-		for (j = 0; j < 256; j++)
+		for (j = 0; j < K_LAST; j++)
 		{
 			if (keybindings[j] && !Q_stricmp(keybindings[j], binding))
 			{
