@@ -193,6 +193,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **r_vsync**: Enables the vsync: frames are synchronized with
   display refresh rate, should (but doesn't always) prevent tearing.
+  Set to `1` for normal vsync and `2` for adaptive vsync.
 
 
 ## Graphics (GL renderers only)
