@@ -215,6 +215,7 @@ typedef struct
 #define IT_STAY_COOP 8
 #define IT_KEY 16
 #define IT_POWERUP 32
+#define IT_INSTANT_USE 64 /* item is insta-used on pickup if dmflag is set */
 
 /* gitem_t->weapmodel for weapons indicates model index */
 #define WEAP_BLASTER 1

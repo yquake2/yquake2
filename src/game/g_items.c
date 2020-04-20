@@ -215,20 +215,6 @@ Pickup_Powerup(edict_t *ent, edict_t *other)
 		{
 			SetRespawn(ent, ent->item->quantity);
 		}
-
-		if (((int)dmflags->value & DF_INSTANT_ITEMS) ||
-			((ent->item->use == Use_Quad) &&
-			 (ent->spawnflags & DROPPED_PLAYER_ITEM)))
-		{
-			if ((ent->item->use == Use_Quad) &&
-				(ent->spawnflags & DROPPED_PLAYER_ITEM))
-			{
-				quad_drop_timeout_hack =
-					(ent->nextthink - level.time) / FRAMETIME;
-			}
-
-			ent->item->use(other, ent->item);
-		}
 	}
 
 	return true;
@@ -1214,6 +1200,29 @@ Touch_Item(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurface_
 			gi.sound(other, CHAN_ITEM, gi.soundindex(
 							ent->item->pickup_sound), 1, ATTN_NORM, 0);
 		}
+
+		/* activate item instantly if appropriate */
+		/* moved down here so activation sounds override the pickup sound */
+		if (deathmatch->value)
+		{
+			if ((((int)dmflags->value & DF_INSTANT_ITEMS) &&
+				 (ent->item->flags & IT_INSTANT_USE)) ||
+				((ent->item->use == Use_Quad) &&
+				 (ent->spawnflags & DROPPED_PLAYER_ITEM)))
+			{
+				if ((ent->item->use == Use_Quad) &&
+					(ent->spawnflags & DROPPED_PLAYER_ITEM))
+				{
+					quad_drop_timeout_hack =
+						(ent->nextthink - level.time) / FRAMETIME;
+				}
+
+				if (ent->item->use)
+				{
+					ent->item->use(other, ent->item);
+				}
+			}
+		}
 	}
 
 	if (!(ent->spawnflags & ITEM_TARGETS_USED))
@@ -2160,7 +2169,7 @@ static const gitem_t gameitemlist[] = {
 		2,
 		60,
 		NULL,
-		IT_POWERUP,
+		IT_POWERUP | IT_INSTANT_USE,
 		0,
 		NULL,
 		0,
@@ -2182,7 +2191,7 @@ static const gitem_t gameitemlist[] = {
 		2,
 		300,
 		NULL,
-		IT_POWERUP,
+		IT_POWERUP | IT_INSTANT_USE,
 		0,
 		NULL,
 		0,
@@ -2204,7 +2213,7 @@ static const gitem_t gameitemlist[] = {
 		2,
 		60,
 		NULL,
-		IT_POWERUP,
+		IT_POWERUP | IT_INSTANT_USE,
 		0,
 		NULL,
 		0,
@@ -2226,7 +2235,7 @@ static const gitem_t gameitemlist[] = {
 		2,
 		60,
 		NULL,
-		IT_STAY_COOP | IT_POWERUP,
+		IT_STAY_COOP | IT_POWERUP | IT_INSTANT_USE,
 		0,
 		NULL,
 		0,
@@ -2248,7 +2257,7 @@ static const gitem_t gameitemlist[] = {
 		2,
 		60,
 		NULL,
-		IT_STAY_COOP | IT_POWERUP,
+		IT_STAY_COOP | IT_POWERUP | IT_INSTANT_USE,
 		0,
 		NULL,
 		0,
