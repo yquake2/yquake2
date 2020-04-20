@@ -364,7 +364,7 @@ R_AliasSetUpTransform(const entity_t *currententity)
 	{
 		viewmatrix[0][3] = 0;
 		viewmatrix[1][3] = 0;
-		viewmatrix[2][3] = 8;
+		viewmatrix[2][3] = sw_gunzposition->value;
 	}
 	else
 	{
@@ -723,9 +723,12 @@ R_AliasDrawModel(entity_t *currententity, const model_t *currentmodel)
 			return;
 		}
 
-		float gunfov = 2 * tan((float)r_gunfov->value / 360 * M_PI);
-		aliasxscale = ((float)r_refdef.vrect.width / gunfov) * r_aliasuvscale;
-		aliasyscale = aliasxscale;
+		if (r_gunfov->value >= 0)
+		{
+			float gunfov = 2 * tan((float)r_gunfov->value / 360 * M_PI);
+			aliasxscale = ((float)r_refdef.vrect.width / gunfov) * r_aliasuvscale;
+			aliasyscale = aliasxscale;
+		}
 
 		if ( r_lefthand->value == 1.0F )
 			aliasxscale = -aliasxscale;

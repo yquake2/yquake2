@@ -816,7 +816,15 @@ GL3_DrawAliasModel(entity_t *entity)
 		// render weapon with a different FOV (r_gunfov) so it's not distorted at high view FOV
 		float screenaspect = (float)gl3_newrefdef.width / gl3_newrefdef.height;
 		float dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
-		gl3state.uni3DData.transProjMat4 = GL3_MYgluPerspective(r_gunfov->value, screenaspect, 4, dist);
+
+		if (r_gunfov->value < 0)
+		{
+			gl3state.uni3DData.transProjMat4 = GL3_MYgluPerspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
+		}
+		else
+		{
+			gl3state.uni3DData.transProjMat4 = GL3_MYgluPerspective(r_gunfov->value, screenaspect, 4, dist);
+		}
 
 		if(gl_lefthand->value == 1.0F)
 		{

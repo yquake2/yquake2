@@ -153,7 +153,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **r_gunfov**: The weapons are rendered with a custom field of view,
   independently of the global **fov**, so they are not distorted at high
   FOVs.  A value of `75` should look identical to the old code at `fov
-  90`, it defaults to `80` because that looks a bit better.
+  90`, it defaults to `80` because that looks a bit better. Set to `-1`
+  for the same value as `fov`.
 
 * **horplus**: If set to 1 (the default) the horplus algorithm is used
   to calculate an optimal horizontal and vertical field of view,
@@ -281,6 +282,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **gl3_particle_square**: If set to `1`, particles are rendered as
   squares, like in the old software renderer or Quake 1. Default is `0`.
 
+## Graphics (Software only)
+
+* **sw_gunzposition**: Z offset for the gun. In the original code this
+  was always `0`, which will draw the gun too near to the player if a
+  custom gun field of few is used. Defaults to `8`, which is more or
+  less optimal for the default gun field of view of 80.
 
 ## cvar operations
 
