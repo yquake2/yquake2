@@ -54,6 +54,12 @@ static int num_displays = 0;
 static void
 ClampDisplayIndexCvar(void)
 {
+	if (!vid_displayindex)
+	{
+		// uninitialized render?
+		return;
+	}
+
 	if (vid_displayindex->value < 0 || vid_displayindex->value >= num_displays)
 	{
 		Cvar_SetValue("vid_displayindex", 0);
@@ -179,7 +185,7 @@ CreateSDLWindow(int flags, int w, int h)
 				}
 				else
 				{
-					Com_Printf("User requested %ix%i@%i, setting closest mode %ix%i@%i\n", 
+					Com_Printf("User requested %ix%i@%i, setting closest mode %ix%i@%i\n",
 							w, h, requested_mode.refresh_rate, w, h, closest_mode.refresh_rate);
 
 					if (SDL_SetWindowDisplayMode(window, &closest_mode) != 0)
