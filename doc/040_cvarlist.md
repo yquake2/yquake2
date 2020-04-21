@@ -130,8 +130,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   0.  Setting this cvar to `1` disables this behavior, the music keeps
   playing.
 
-* **s_doppler**: If set to `1` (the default) doppler effects are
-  enabled. This is only supported by the OpenAL sound backend.
+* **s_doppler**: If set to `1` doppler effects are enabled. This is only
+  supported by the OpenAL sound backend.
 
 * **s_openal**: Use OpenAL for sound playback. This is enabled by
   default. OpenAL gives a huge quality boost over the classic sound
