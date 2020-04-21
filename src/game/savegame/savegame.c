@@ -258,6 +258,9 @@ InitGame(void)
 	/* dm map list */
 	sv_maplist = gi.cvar("sv_maplist", "", 0);
 
+	/* others */
+	aimfix = gi.cvar("aimfix", "0", CVAR_ARCHIVE);
+
 	/* items */
 	InitItems();
 
