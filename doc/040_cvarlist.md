@@ -62,7 +62,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   * In case that the vsync is active, *vid_maxfps* must not be lower
 	than the display refresh rate.
 
-  Both contraints are enforced.
+  Both constraints are enforced.
 
   If *cl_async* is set to `0` *vid_maxfps* is the same as *cl_maxfps*,
   use *cl_maxfps* to set the framerate.
@@ -85,7 +85,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **coop_baseq2 (Ground Zero only)**: In Ground Zero, entity spawnflags
   (which difficulty modes / game modes level entities spawn in) are
-  interpeted a bit differently. In original Quake 2, if an entity is
+  interpreted a bit differently. In original Quake 2, if an entity is
   set to not spawn on any difficulty, it is treated as deathmatch-only,
   however, in Ground Zero this same condition is treated as coop-only.
   This causes maps made for original Quake 2, including the entire
@@ -96,6 +96,18 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   not work correctly when this cvar is enabled so remember to
   disable it again before playing Ground Zero maps in co-op. By
   default this cvar is disabled (set to 0).
+
+* **g_disruptor (Ground Zero only)**: This boolean cvar controls the
+  availability of the Disruptor weapon to players. The Disruptor is
+  a weapon that was cut from Ground Zero during development but all
+  of its code and assets were still present in the source code and
+  the released game. This is basically a player-held version of the
+  2nd Widow boss' tracker weapon - a black-ish ball of energy.
+  When this cvar is set to 1 you can use the "give Disruptor" and
+  "give rounds X" commands to give yourself the weapon and its ammo,
+  and its items, weapon_disintegrator and ammo_disruptor, can be
+  spawned in maps (in fact, some official Ground Zero maps contain
+  these entities). This cvar is set to 0 by default.
 
 ## Audio
 
