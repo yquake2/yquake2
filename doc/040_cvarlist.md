@@ -43,7 +43,11 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 ## General
 
-* **busywait**: By default this is set to `1`. causing Quake II to spin
+* **aimfix**: Fix aiming. When set to to `0` (the default) aiming is
+  slightly inaccurate, bullets and the like have a little drift. When
+  set to `1` they hit exactly were the crosshair is.
+
+* **busywait**: By default this is set to `1`, causing Quake II to spin
   in a very tight loop until it's time to process the next frame. This
   is a very accurate way to determine the internal timing, but comes with
   a relatively high CPU usage. If set to `0` Quake II lays itself to
