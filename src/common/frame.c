@@ -172,12 +172,14 @@ void Qcommon_ExecConfigs(qboolean gameStartUp)
 	Cbuf_AddText("exec default.cfg\n");
 	Cbuf_AddText("exec yq2.cfg\n");
 	Cbuf_AddText("exec config.cfg\n");
-	if(gameStartUp)
+	Cbuf_AddText("exec autoexec.cfg\n");
+
+	if (gameStartUp)
 	{
-		// only when the game is first started we execute autoexec.cfg and set the cvars from commandline
-		Cbuf_AddText("exec autoexec.cfg\n");
+		/* Process cmd arguments only startup. */
 		Cbuf_AddEarlyCommands(true);
 	}
+
 	Cbuf_Execute();
 }
 
