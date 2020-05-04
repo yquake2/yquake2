@@ -40,6 +40,19 @@
 #define MAX_SFX (MAX_SOUNDS * 2)
 #define MAX_PLAYSOUNDS 128
 
+/* Maximum length (seconds) of audio data to test for silence. */
+#define S_MAX_LEN_TO_TEST_FOR_SILENCE_S (2)
+
+/* Minimum length (milliseconds) of audio data to treat as silence. */
+#define S_MIN_LEN_TO_TREAT_AS_SILENCE_MS (3)
+
+/* Minimum amplitude absolute value of unsigned 8-bit audio data to treat as silence. */
+#define S_MIN_ABS_AMP_8_TO_TREAT_AS_SILENCE (1)
+
+/* Minimum amplitude absolute value of signed 16-bit audio data to treat as silence. */
+#define S_MIN_ABS_AMP_16_TO_TREAT_AS_SILENCE (2)
+
+
 vec3_t listener_origin;
 vec3_t listener_forward;
 vec3_t listener_right;
@@ -59,6 +72,7 @@ cvar_t *s_ambient;
 cvar_t* s_underwater;
 cvar_t* s_underwater_gain_hf;
 cvar_t* s_doppler;
+cvar_t* s_ps_sorting;
 
 channel_t channels[MAX_CHANNELS];
 int num_sfx;
@@ -76,6 +90,121 @@ static qboolean s_registering;
 qboolean snd_is_underwater;
 qboolean snd_is_underwater_enabled;
 /* ----------------------------------------------------------------- */
+
+static qboolean
+S_IsShortSilence(const wavinfo_t* info, const void* raw_data)
+{
+	/* Test only mono-audio data. */
+	if (info->channels != 1)
+	{
+		return false;
+	}
+
+	/* Treat it as silence if sample count too small. */
+	if (((info->samples * 1000) / info->rate) <= S_MIN_LEN_TO_TREAT_AS_SILENCE_MS)
+	{
+		return true;
+	}
+
+	/* Test only several second's of audio data. */
+	if (info->samples > (info->rate * S_MAX_LEN_TO_TEST_FOR_SILENCE_S))
+	{
+		return false;
+	}
+
+	if (info->width == 1)
+	{
+		/* Unsigned 8-bit audio data. */
+
+		const unsigned char* samples = (const unsigned char*)raw_data;
+		const int sample_count = info->samples * info->width;
+
+		int i;
+
+		for (i = 0; i < sample_count; ++i)
+		{
+			const int sample = samples[i] - 0x80;
+
+			if (abs(sample) > S_MIN_ABS_AMP_8_TO_TREAT_AS_SILENCE)
+			{
+				return false;
+			}
+		}
+	}
+	else if (info->width == 2)
+	{
+		/* Signed 16-bit audio data. */
+
+		const short* samples = (const short*)raw_data;
+		const int sample_count = info->samples * info->width;
+
+		int i;
+
+		for (i = 0; i < sample_count; ++i)
+		{
+			const int sample = LittleShort(samples[i]);
+
+			if (abs(sample) > S_MIN_ABS_AMP_16_TO_TREAT_AS_SILENCE)
+			{
+				return false;
+			}
+		}
+	}
+	else
+	{
+		/* Unsupported bit depth. */
+		return false;
+	}
+
+	return true;
+}
+
+static qboolean
+S_IsSilencedMuzzleFlash(const wavinfo_t* info, const void* raw_data, const char* name)
+{
+	/* Skip the prefix. */
+	static const size_t base_sound_string_length = strlen("sound/");
+	const char* base_name = name + base_sound_string_length;
+
+	/* Match to well-known muzzle flash sound names. */
+	const qboolean is_name_matched =
+		strcmp(base_name, "weapons/bfg__f1y.wav") == 0 ||
+		strcmp(base_name, "weapons/blastf1a.wav") == 0 ||
+		strcmp(base_name, "weapons/disint2.wav") == 0 ||
+		strcmp(base_name, "weapons/grenlf1a.wav") == 0 ||
+		strcmp(base_name, "weapons/grenlr1b.wav") == 0 ||
+		strcmp(base_name, "weapons/hyprbf1a.wav") == 0 ||
+		strcmp(base_name, "weapons/machgf1b.wav") == 0 ||
+		strcmp(base_name, "weapons/machgf2b.wav") == 0 ||
+		strcmp(base_name, "weapons/machgf3b.wav") == 0 ||
+		strcmp(base_name, "weapons/machgf4b.wav") == 0 ||
+		strcmp(base_name, "weapons/machgf5b.wav") == 0 ||
+		strcmp(base_name, "weapons/nail1.wav") == 0 ||
+		strcmp(base_name, "weapons/plasshot.wav") == 0 ||
+		strcmp(base_name, "weapons/railgf1a.wav") == 0 ||
+		strcmp(base_name, "weapons/rippfire.wav") == 0 ||
+		strcmp(base_name, "weapons/rocklf1a.wav") == 0 ||
+		strcmp(base_name, "weapons/rocklr1b.wav") == 0 ||
+		strcmp(base_name, "weapons/shotg2.wav") == 0 ||
+		strcmp(base_name, "weapons/shotgf1b.wav") == 0 ||
+		strcmp(base_name, "weapons/shotgr1b.wav") == 0 ||
+		strcmp(base_name, "weapons/sshotf1b.wav") == 0 ||
+		false
+	;
+
+	if (!is_name_matched)
+	{
+		return false;
+	}
+
+	/* Now check for silence. */
+	if (!S_IsShortSilence(info, raw_data))
+	{
+		return false;
+	}
+
+	return true;
+}
 
 /*
  * Loads one sample into memory
@@ -139,6 +268,11 @@ S_LoadSound(sfx_t *s)
 		Com_Printf("%s is a stereo sample\n", s->name);
 		FS_FreeFile(data);
 		return NULL;
+	}
+
+	if (S_IsSilencedMuzzleFlash(&info, data, namebuffer))
+	{
+		s->is_silenced_muzzle_flash = true;
 	}
 
 #if USE_OPENAL
@@ -225,6 +359,7 @@ S_FindName(char *name, qboolean create)
 	sfx->truename = NULL;
 	strcpy(sfx->name, name);
 	sfx->registration_sequence = s_registration_sequence;
+	sfx->is_silenced_muzzle_flash = false;
 
 	return sfx;
 }
@@ -551,6 +686,12 @@ S_IssuePlaysound(playsound_t *ps)
 		Com_Printf("Issue %i\n", ps->begin);
 	}
 
+	if (s_ps_sorting->value == 3 && ps->sfx->is_silenced_muzzle_flash)
+	{
+		S_FreePlaysound(ps);
+		return;
+	}
+
 	/* pick a channel to play on */
 	ch = S_PickChannel(ps->entnum, ps->entchannel);
 
@@ -724,9 +865,14 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 
 	cvar_t *game = Cvar_Get("game",  "", CVAR_LATCH | CVAR_SERVERINFO);
 
-	if ((strcmp(game->string, "") == 0) ||
-			(strcmp(game->string, "rogue") == 0) ||
-			(strcmp(game->string, "xatrix") == 0))
+	const qboolean is_mission_pack =
+		(strcmp(game->string, "") == 0) ||
+		(strcmp(game->string, "rogue") == 0) ||
+		(strcmp(game->string, "xatrix") == 0);
+
+	if ((s_ps_sorting->value == 1 && is_mission_pack) ||
+			s_ps_sorting->value == 2 ||
+			s_ps_sorting->value == 3)
 	{
 		for (sort = s_pendingplays.next;
 				sort != &s_pendingplays && sort->begin <= ps->begin;
@@ -734,13 +880,18 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 		{
 		}
 	}
-	else
+	else if (!is_mission_pack && s_ps_sorting->value == 1)
 	{
 		for (sort = s_pendingplays.next;
 				sort != &s_pendingplays && sort->begin < ps->begin;
 				sort = sort->next)
 		{
 		}
+	}
+	else
+	{
+		/* No sorting. Just append at the end. */
+		sort = s_pendingplays.prev;
 	}
 
 	ps->next = sort;
@@ -1068,6 +1219,7 @@ S_Init(void)
     s_underwater = Cvar_Get("s_underwater", "1", CVAR_ARCHIVE);
     s_underwater_gain_hf = Cvar_Get("s_underwater_gain_hf", "0.25", CVAR_ARCHIVE);
 	s_doppler = Cvar_Get("s_doppler", "0", CVAR_ARCHIVE);
+	s_ps_sorting = Cvar_Get("s_ps_sorting", "1", CVAR_ARCHIVE);
 
 	Cmd_AddCommand("play", S_Play);
 	Cmd_AddCommand("stopsound", S_StopAllSounds);
