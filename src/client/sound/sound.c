@@ -862,11 +862,25 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 		}
 	}
 
-	/* sort into the pending sound list */
-	for (sort = s_pendingplays.next;
-		 sort != &s_pendingplays && sort->begin <= ps->begin;
-		 sort = sort->next)
+	cvar_t *game = Cvar_Get("game",  "", CVAR_LATCH | CVAR_SERVERINFO);
+
+	if ((strcmp(game->string, "") == 0) ||
+			(strcmp(game->string, "rogue") == 0) ||
+			(strcmp(game->string, "xatrix") == 0))
 	{
+		for (sort = s_pendingplays.next;
+				sort != &s_pendingplays && sort->begin <= ps->begin;
+				sort = sort->next)
+		{
+		}
+	}
+	else
+	{
+		for (sort = s_pendingplays.next;
+				sort != &s_pendingplays && sort->begin < ps->begin;
+				sort = sort->next)
+		{
+		}
 	}
 
 	ps->next = sort;
