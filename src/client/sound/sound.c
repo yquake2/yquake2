@@ -72,6 +72,7 @@ cvar_t *s_ambient;
 cvar_t* s_underwater;
 cvar_t* s_underwater_gain_hf;
 cvar_t* s_doppler;
+cvar_t* s_ps_sorting;
 
 channel_t channels[MAX_CHANNELS];
 int num_sfx;
@@ -685,7 +686,7 @@ S_IssuePlaysound(playsound_t *ps)
 		Com_Printf("Issue %i\n", ps->begin);
 	}
 
-	if (ps->sfx->is_silenced_muzzle_flash)
+	if (s_ps_sorting->value == 3 && ps->sfx->is_silenced_muzzle_flash)
 	{
 		S_FreePlaysound(ps);
 		return;
@@ -864,9 +865,14 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 
 	cvar_t *game = Cvar_Get("game",  "", CVAR_LATCH | CVAR_SERVERINFO);
 
-	if ((strcmp(game->string, "") == 0) ||
-			(strcmp(game->string, "rogue") == 0) ||
-			(strcmp(game->string, "xatrix") == 0))
+	const qboolean is_mission_pack =
+		(strcmp(game->string, "") == 0) ||
+		(strcmp(game->string, "rogue") == 0) ||
+		(strcmp(game->string, "xatrix") == 0);
+
+	if ((s_ps_sorting->value == 1 && is_mission_pack) ||
+			s_ps_sorting->value == 2 ||
+			s_ps_sorting->value == 3)
 	{
 		for (sort = s_pendingplays.next;
 				sort != &s_pendingplays && sort->begin <= ps->begin;
@@ -874,13 +880,18 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 		{
 		}
 	}
-	else
+	else if (!is_mission_pack && s_ps_sorting->value == 1)
 	{
 		for (sort = s_pendingplays.next;
 				sort != &s_pendingplays && sort->begin < ps->begin;
 				sort = sort->next)
 		{
 		}
+	}
+	else
+	{
+		/* No sorting. Just append at the end. */
+		sort = s_pendingplays.prev;
 	}
 
 	ps->next = sort;
@@ -1208,6 +1219,7 @@ S_Init(void)
     s_underwater = Cvar_Get("s_underwater", "1", CVAR_ARCHIVE);
     s_underwater_gain_hf = Cvar_Get("s_underwater_gain_hf", "0.25", CVAR_ARCHIVE);
 	s_doppler = Cvar_Get("s_doppler", "0", CVAR_ARCHIVE);
+	s_ps_sorting = Cvar_Get("s_ps_sorting", "1", CVAR_ARCHIVE);
 
 	Cmd_AddCommand("play", S_Play);
 	Cmd_AddCommand("stopsound", S_StopAllSounds);
