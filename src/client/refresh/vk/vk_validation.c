@@ -53,7 +53,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsCallback(VkDebugUtilsMessageSeve
 		break;
 	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
 		R_Printf(PRINT_ALL, "VK_WARNING: %s %s\n", callbackData->pMessage, msgToString(msgType));
-		assert(!"Vulkan warning occured!");
 		break;
 	default:
 		R_Printf(PRINT_ALL, "VK_ERROR: %s %s\n", callbackData->pMessage, msgToString(msgType));
