@@ -1645,6 +1645,25 @@ qboolean QVk_Init(SDL_Window *window)
 		.ppEnabledExtensionNames = (const char* const*)wantedExtensions
 	};
 
+// introduced in SDK 1.1.121
+#if VK_HEADER_VERSION > 114
+	VkValidationFeatureEnableEXT validationFeaturesEnable[] = { VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT };
+	VkValidationFeaturesEXT validationFeatures = {
+		.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
+		.pNext = NULL,
+		.enabledValidationFeatureCount = sizeof(validationFeaturesEnable) / sizeof(validationFeaturesEnable[0]),
+		.pEnabledValidationFeatures = validationFeaturesEnable,
+		.disabledValidationFeatureCount = 0,
+		.pDisabledValidationFeatures = NULL
+	};
+
+	if (vk_validation->value > 1)
+	{
+		createInfo.pNext = &validationFeatures;
+	}
+#endif
+
+// introduced in SDK 1.1.106
 #if VK_HEADER_VERSION > 101
 	const char *validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
 #else
