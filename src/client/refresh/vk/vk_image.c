@@ -1576,6 +1576,7 @@ void Vk_FreeUnusedImages (void)
 	// never free r_notexture or particle texture
 	r_notexture->registration_sequence = registration_sequence;
 	r_particletexture->registration_sequence = registration_sequence;
+	r_squaretexture->registration_sequence = registration_sequence;
 
 	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
 	{

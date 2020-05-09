@@ -102,6 +102,7 @@ extern	int			numvktextures;
 
 extern	image_t		*r_notexture;
 extern	image_t		*r_particletexture;
+extern	image_t		*r_squaretexture;
 extern	entity_t	*currententity;
 extern	model_t		*currentmodel;
 extern	int			r_visframecount;
@@ -156,6 +157,7 @@ extern	cvar_t	*vk_particle_att_c;
 extern	cvar_t	*vk_particle_min_size;
 extern	cvar_t	*vk_particle_max_size;
 extern	cvar_t	*vk_point_particles;
+extern	cvar_t	*vk_particle_square;
 extern	cvar_t	*vk_dynamic;
 extern	cvar_t	*vk_msaa;
 extern	cvar_t	*vk_showtris;
@@ -239,7 +241,6 @@ void	Vk_ImageList_f (void);
 void	Vk_InitImages (void);
 void	Vk_ShutdownImages (void);
 void	Vk_FreeUnusedImages (void);
-void	Vk_DrawParticles( int num_particles, const particle_t particles[], const unsigned colortable[768] );
 
 void	R_BeginRegistration (char *model);
 struct model_s	*R_RegisterModel (char *name);
