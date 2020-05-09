@@ -242,6 +242,9 @@ static void createTextureImage(qvktexture_t *dstTex, const unsigned char *data, 
 	VkCommandBuffer command_buffer;
 	uint32_t staging_offset;
 	void *imgData = QVk_GetStagingBuffer(imageSize, 4, &command_buffer, &staging_buffer, &staging_offset);
+	if (!imgData)
+		Sys_Error("%s: Staging buffers is smaller than image: %d.\n", __func__, imageSize);
+
 	memcpy(imgData, data, (size_t)imageSize);
 
 	VkImageUsageFlags imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -387,6 +390,9 @@ void QVk_UpdateTextureData(qvktexture_t *texture, const unsigned char *data, uin
 	VkCommandBuffer command_buffer;
 	uint32_t staging_offset;
 	void *imgData = QVk_GetStagingBuffer(imageSize, 4, &command_buffer, &staging_buffer, &staging_offset);
+	if (!imgData)
+		Sys_Error("%s: Staging buffers is smaller than image: %d.\n", __func__, imageSize);
+
 	memcpy(imgData, data, (size_t)imageSize);
 
 	transitionImageLayout(&command_buffer, &vk_device.transferQueue, texture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -463,7 +469,7 @@ void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 		.pQueueFamilyIndices = NULL,
 	};
 
-	VK_VERIFY(buffer_create(&buff, width * height * 4, bcInfo, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
+	VK_VERIFY(buffer_create(&buff, bcInfo, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
 
 	cmdBuffer = QVk_CreateCommandBuffer(&vk_commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 	VK_VERIFY(QVk_BeginCommand(&cmdBuffer));
