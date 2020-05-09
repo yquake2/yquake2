@@ -215,6 +215,9 @@ extern VkCommandPool vk_commandPool;
 extern VkCommandPool vk_transferCommandPool;
 // Vulkan descriptor pool
 extern VkDescriptorPool vk_descriptorPool;
+// viewport/scissor
+extern VkViewport vk_viewport;
+extern VkRect2D vk_scissor;
 
 // Vulkan descriptor sets
 extern VkDescriptorSetLayout vk_uboDescSetLayout;
@@ -282,7 +285,7 @@ VkResult	QVk_BeginCommand(const VkCommandBuffer *commandBuffer);
 void		QVk_SubmitCommand(const VkCommandBuffer *commandBuffer, const VkQueue *queue);
 VkCommandBuffer QVk_CreateCommandBuffer(const VkCommandPool *commandPool, VkCommandBufferLevel level);
 const char*	QVk_GetError(VkResult errorCode);
-VkResult	QVk_BeginFrame(void);
+VkResult	QVk_BeginFrame(const VkViewport* viewport, const VkRect2D* scissor);
 VkResult	QVk_EndFrame(qboolean force);
 void		QVk_BeginRenderpass(qvkrenderpasstype_t rpType);
 void		QVk_FreeStagingBuffer(qvkstagingbuffer_t *buffer);
