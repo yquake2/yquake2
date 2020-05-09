@@ -220,7 +220,8 @@ void R_DrawSpriteModel (entity_t *e)
 						  spriteQuad[2][0], spriteQuad[2][1], spriteQuad[2][2], 1.f, 0.f,
 						  spriteQuad[3][0], spriteQuad[3][1], spriteQuad[3][2], 1.f, 1.f };
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSpritePipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, sizeof(r_viewproj_matrix), sizeof(float), &alpha);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSpritePipeline.layout,
+		VK_SHADER_STAGE_VERTEX_BIT, sizeof(r_viewproj_matrix), sizeof(float), &alpha);
 	QVk_BindPipeline(&vk_drawSpritePipeline);
 
 	VkBuffer vbo;
@@ -229,6 +230,14 @@ void R_DrawSpriteModel (entity_t *e)
 	memcpy(vertData, quadVerts, sizeof(quadVerts));
 
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+
+	float fragment_constants[17] = {0};
+	memcpy(fragment_constants, r_viewproj_matrix, sizeof(r_viewproj_matrix));
+	fragment_constants[16] = 2.1F - vid_gamma->value;
+
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSpritePipeline.layout,
+		VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(fragment_constants), &fragment_constants);
+
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSpritePipeline.layout, 0, 1, &currentmodel->skins[e->frame]->vk_texture.descriptorSet, 0, NULL);
 	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
 }
@@ -486,6 +495,13 @@ void Vk_DrawParticles(int num_particles, const particle_t particles[], const uns
 	uint8_t *vertData = QVk_GetVertexBuffer((currentvertex - visibleParticles) * sizeof(pvertex), &vbo, &vboOffset);
 	memcpy(vertData, &visibleParticles, (currentvertex - visibleParticles) * sizeof(pvertex));
 
+	float fragment_constants[17] = {0};
+	memcpy(fragment_constants, r_viewproj_matrix, sizeof(r_viewproj_matrix));
+	fragment_constants[16] = 2.1F - vid_gamma->value;
+
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawParticlesPipeline.layout,
+		VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(fragment_constants), &fragment_constants);
+
 	if (particle_square)
 	{
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -498,6 +514,7 @@ void Vk_DrawParticles(int num_particles, const particle_t particles[], const uns
 								vk_drawParticlesPipeline.layout, 0, 1,
 								&r_particletexture->vk_texture.descriptorSet, 0, NULL);
 	}
+
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdDraw(vk_activeCmdbuffer, (currentvertex - visibleParticles), 1, 0, 0);
 }
@@ -1231,7 +1248,7 @@ static SDL_Window	*window = NULL;
 R_Init
 ===============
 */
-qboolean R_Init( void )
+static qboolean R_Init( void )
 {
 
 	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
