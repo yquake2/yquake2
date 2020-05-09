@@ -157,6 +157,7 @@ extern	cvar_t	*vk_particle_min_size;
 extern	cvar_t	*vk_particle_max_size;
 extern	cvar_t	*vk_point_particles;
 extern	cvar_t	*vk_dynamic;
+extern	cvar_t	*vk_msaa;
 extern	cvar_t	*vk_showtris;
 extern	cvar_t	*vk_lightmap;
 extern	cvar_t	*vk_texturemode;

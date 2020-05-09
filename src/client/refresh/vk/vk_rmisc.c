@@ -140,7 +140,7 @@ void Vk_Strings_f(void)
 	VkPhysicalDevice *physicalDevices;
 	VkPhysicalDeviceProperties deviceProperties;
 	int preferredDevice = (int)vk_device_idx->value;
-	int msaa = (int)ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE)->value;
+	int msaa = (int)vk_msaa->value;
 	uint32_t driverMajor = VK_VERSION_MAJOR(vk_device.properties.driverVersion);
 	uint32_t driverMinor = VK_VERSION_MINOR(vk_device.properties.driverVersion);
 	uint32_t driverPatch = VK_VERSION_PATCH(vk_device.properties.driverVersion);
@@ -238,22 +238,24 @@ void Vk_Strings_f(void)
 		vk_device.transferFamilyIndex);
 	R_Printf(PRINT_ALL, "Present mode: %s\n", vk_config.present_mode);
 	R_Printf(PRINT_ALL, "Swapchain image format: %d\n", vk_swapchain.format);
-	R_Printf(PRINT_ALL, "Supported present modes: ");
 
+	R_Printf(PRINT_ALL, "Supported present modes: ");
 	i = 0;
 	while(vk_config.supported_present_modes[i])
 	{
 		R_Printf(PRINT_ALL, "%s ", vk_config.supported_present_modes[i++]);
 	}
-	R_Printf(PRINT_ALL, "\nEnabled extensions: ");
+	R_Printf(PRINT_ALL, "\n");
 
+	R_Printf(PRINT_ALL, "Enabled extensions: ");
 	i = 0;
 	while(vk_config.extensions[i])
 	{
 		R_Printf(PRINT_ALL, "%s ", vk_config.extensions[i++]);
 	}
-	R_Printf(PRINT_ALL, "\nEnabled layers: ");
+	R_Printf(PRINT_ALL, "\n");
 
+	R_Printf(PRINT_ALL, "Enabled layers: ");
 	i = 0;
 	while(vk_config.layers[i])
 	{

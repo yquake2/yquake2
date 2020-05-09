@@ -21,6 +21,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <vulkan/vulkan.h>
 
+#define ROUNDUP(a, b) (((a) + ((b)-1)) & ~((b)-1))
+
 typedef struct BufferResource_s {
 	VkBuffer buffer;
 	VkDeviceMemory memory;
@@ -35,7 +37,6 @@ typedef struct ImageResource_s {
 } ImageResource_t;
 
 VkResult buffer_create(BufferResource_t *buf,
-		VkDeviceSize size,
 		VkBufferCreateInfo buf_create_info,
 		VkMemoryPropertyFlags mem_properties,
 		VkMemoryPropertyFlags mem_preferences);
