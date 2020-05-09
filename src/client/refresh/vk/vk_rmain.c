@@ -38,6 +38,7 @@ vkstate_t  vk_state;
 
 image_t		*r_notexture;		// use for bad textures
 image_t		*r_particletexture;	// little dot for particles
+image_t		*r_squaretexture;	// rectangle for particles
 
 entity_t	*currententity;
 model_t		*currentmodel;
@@ -115,6 +116,7 @@ cvar_t	*vk_particle_att_c;
 cvar_t	*vk_particle_min_size;
 cvar_t	*vk_particle_max_size;
 cvar_t	*vk_point_particles;
+cvar_t	*vk_particle_square;
 cvar_t	*vk_postprocess;
 cvar_t	*vk_dynamic;
 cvar_t	*vk_msaa;
@@ -397,12 +399,17 @@ void R_DrawEntitiesOnList (void)
 ** Vk_DrawParticles
 **
 */
-void Vk_DrawParticles( int num_particles, const particle_t particles[], const unsigned colortable[768] )
+void Vk_DrawParticles(int num_particles, const particle_t particles[], const unsigned colortable[768], int particle_square)
 {
+	typedef struct {
+		float x,y,z,r,g,b,a,u,v;
+	} pvertex;
+
 	const particle_t *p;
 	int				i;
 	vec3_t			up, right;
 	byte			color[4];
+	pvertex*	currentvertex;
 
 	if (!num_particles)
 		return;
@@ -410,12 +417,14 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 	VectorScale(vup, 1.5, up);
 	VectorScale(vright, 1.5, right);
 
-	typedef struct {
-		float x,y,z,r,g,b,a,u,v;
-	} pvertex;
+	static pvertex visibleParticles[MAX_PARTICLES * 3];
 
-	static pvertex visibleParticles[MAX_PARTICLES*3];
+	if (num_particles > MAX_PARTICLES)
+	{
+		num_particles = MAX_PARTICLES;
+	}
 
+	currentvertex = visibleParticles;
 	for (p = particles, i = 0; i < num_particles; i++, p++)
 	{
 		float	scale;
@@ -432,52 +441,65 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 
 		*(int *)color = colortable[p->color];
 
-		int idx = i * 3;
 		float r = color[0] / 255.f;
 		float g = color[1] / 255.f;
 		float b = color[2] / 255.f;
 
-		visibleParticles[idx].x = p->origin[0];
-		visibleParticles[idx].y = p->origin[1];
-		visibleParticles[idx].z = p->origin[2];
-		visibleParticles[idx].r = r;
-		visibleParticles[idx].g = g;
-		visibleParticles[idx].b = b;
-		visibleParticles[idx].a = p->alpha;
-		visibleParticles[idx].u = 0.0625;
-		visibleParticles[idx].v = 0.0625;
+		currentvertex->x = p->origin[0];
+		currentvertex->y = p->origin[1];
+		currentvertex->z = p->origin[2];
+		currentvertex->r = r;
+		currentvertex->g = g;
+		currentvertex->b = b;
+		currentvertex->a = p->alpha;
+		currentvertex->u = 0.0625;
+		currentvertex->v = 0.0625;
+		currentvertex++;
 
-		visibleParticles[idx + 1].x = p->origin[0] + up[0] * scale;
-		visibleParticles[idx + 1].y = p->origin[1] + up[1] * scale;
-		visibleParticles[idx + 1].z = p->origin[2] + up[2] * scale;
-		visibleParticles[idx + 1].r = r;
-		visibleParticles[idx + 1].g = g;
-		visibleParticles[idx + 1].b = b;
-		visibleParticles[idx + 1].a = p->alpha;
-		visibleParticles[idx + 1].u = 1.0625;
-		visibleParticles[idx + 1].v = 0.0625;
+		currentvertex->x = p->origin[0] + up[0] * scale;
+		currentvertex->y = p->origin[1] + up[1] * scale;
+		currentvertex->z = p->origin[2] + up[2] * scale;
+		currentvertex->r = r;
+		currentvertex->g = g;
+		currentvertex->b = b;
+		currentvertex->a = p->alpha;
+		currentvertex->u = 1.0625;
+		currentvertex->v = 0.0625;
+		currentvertex++;
 
-		visibleParticles[idx + 2].x = p->origin[0] + right[0] * scale;
-		visibleParticles[idx + 2].y = p->origin[1] + right[1] * scale;
-		visibleParticles[idx + 2].z = p->origin[2] + right[2] * scale;
-		visibleParticles[idx + 2].r = r;
-		visibleParticles[idx + 2].g = g;
-		visibleParticles[idx + 2].b = b;
-		visibleParticles[idx + 2].a = p->alpha;
-		visibleParticles[idx + 2].u = 0.0625;
-		visibleParticles[idx + 2].v = 1.0625;
+		currentvertex->x = p->origin[0] + right[0] * scale;
+		currentvertex->y = p->origin[1] + right[1] * scale;
+		currentvertex->z = p->origin[2] + right[2] * scale;
+		currentvertex->r = r;
+		currentvertex->g = g;
+		currentvertex->b = b;
+		currentvertex->a = p->alpha;
+		currentvertex->u = 0.0625;
+		currentvertex->v = 1.0625;
+		currentvertex++;
 	}
 
 	QVk_BindPipeline(&vk_drawParticlesPipeline);
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	uint8_t *vertData = QVk_GetVertexBuffer(3 * sizeof(pvertex) * num_particles, &vbo, &vboOffset);
-	memcpy(vertData, &visibleParticles, 3 * sizeof(pvertex) * num_particles);
+	uint8_t *vertData = QVk_GetVertexBuffer((currentvertex - visibleParticles) * sizeof(pvertex), &vbo, &vboOffset);
+	memcpy(vertData, &visibleParticles, (currentvertex - visibleParticles) * sizeof(pvertex));
 
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawParticlesPipeline.layout, 0, 1, &r_particletexture->vk_texture.descriptorSet, 0, NULL);
+	if (particle_square)
+	{
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+								vk_drawParticlesPipeline.layout, 0, 1,
+								&r_squaretexture->vk_texture.descriptorSet, 0, NULL);
+	}
+	else
+	{
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+								vk_drawParticlesPipeline.layout, 0, 1,
+								&r_particletexture->vk_texture.descriptorSet, 0, NULL);
+	}
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-	vkCmdDraw(vk_activeCmdbuffer, 3 * num_particles, 1, 0, 0);
+	vkCmdDraw(vk_activeCmdbuffer, (currentvertex - visibleParticles), 1, 0, 0);
 }
 
 /*
@@ -553,7 +575,7 @@ void R_DrawParticles (void)
 	}
 	else
 	{
-		Vk_DrawParticles(r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table);
+		Vk_DrawParticles(r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table, vk_particle_square->value);
 	}
 }
 
@@ -1078,6 +1100,7 @@ R_Register( void )
 	vk_particle_min_size = ri.Cvar_Get("vk_particle_min_size", "2", CVAR_ARCHIVE);
 	vk_particle_max_size = ri.Cvar_Get("vk_particle_max_size", "40", CVAR_ARCHIVE);
 	vk_point_particles = ri.Cvar_Get("vk_point_particles", "1", CVAR_ARCHIVE);
+	vk_particle_square = ri.Cvar_Get("vk_particle_square", "1", CVAR_ARCHIVE);
 	vk_postprocess = ri.Cvar_Get("vk_postprocess", "1", CVAR_ARCHIVE);
 	vk_dynamic = ri.Cvar_Get("vk_dynamic", "1", 0);
 	vk_msaa = ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE);
