@@ -190,7 +190,6 @@ extern	int		registration_sequence;
 extern	qvksampler_t vk_current_sampler;
 extern	qvksampler_t vk_current_lmap_sampler;
 
-qboolean R_Init( void );
 void	 R_Shutdown( void );
 
 void Vk_ScreenShot_f (void);
