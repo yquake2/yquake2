@@ -2368,6 +2368,14 @@ void QVk_DrawTexRect(const float *ubo, VkDeviceSize uboSize, qvktexture_t *textu
 	QVk_BindPipeline(&vk_drawTexQuadPipeline);
 	VkDeviceSize offsets = 0;
 	VkDescriptorSet descriptorSets[] = { texture->descriptorSet, uboDescriptorSet };
+
+	float fragment_constants[17] = {0};
+	memcpy(fragment_constants, r_viewproj_matrix, sizeof(r_viewproj_matrix));
+	fragment_constants[16] = 2.1F - vid_gamma->value;
+
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
+		VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(fragment_constants), &fragment_constants);
+
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1,
 		&vk_texRectVbo.resource.buffer, &offsets);
