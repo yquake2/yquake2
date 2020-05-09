@@ -967,7 +967,7 @@ qboolean R_EndWorldRenderReady(void)
 	return true;
 }
 
-static void R_SetVulkan2D (void)
+static void R_SetVulkan2D (const VkViewport* viewport, const VkRect2D* scissor)
 {
 	// player configuration screen renders a model using the UI renderpass, so skip finishing RP_WORLD twice
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
@@ -975,10 +975,8 @@ static void R_SetVulkan2D (void)
 			// buffers is not initialized
 			return;
 
-	extern VkViewport vk_viewport;
-	extern VkRect2D vk_scissor;
-	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &vk_viewport);
-	vkCmdSetScissor(vk_activeCmdbuffer, 0, 1, &vk_scissor);
+	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, viewport);
+	vkCmdSetScissor(vk_activeCmdbuffer, 0, 1, scissor);
 
 	// first, blit offscreen color buffer with warped/postprocessed world view
 	// skip this step if we're in player config screen since it uses RP_UI and draws directly to swapchain
@@ -1040,7 +1038,7 @@ RE_RenderFrame (refdef_t *fd)
 {
 	RE_RenderView( fd );
 	R_SetLightLevel ();
-	R_SetVulkan2D ();
+	R_SetVulkan2D (&vk_viewport, &vk_scissor);
 }
 
 
@@ -1321,7 +1319,7 @@ RE_BeginFrame( float camera_separation )
 		}
 	}
 
-	VkResult swapChainValid = QVk_BeginFrame();
+	VkResult swapChainValid = QVk_BeginFrame(&vk_viewport, &vk_scissor);
 	// if the swapchain is invalid, just recreate the video system and revert to safe windowed mode
 	if (swapChainValid != VK_SUCCESS)
 	{

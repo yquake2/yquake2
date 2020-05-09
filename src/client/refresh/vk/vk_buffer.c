@@ -98,7 +98,7 @@ QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer,
 	}
 
 	dstBuffer->currentOffset = 0;
-	return buffer_create(&dstBuffer->resource, size, bcInfo,
+	return buffer_create(&dstBuffer->resource, bcInfo,
 						 options.reqMemFlags, options.prefMemFlags);
 }
 
@@ -125,7 +125,7 @@ QVk_CreateStagingBuffer(VkDeviceSize size, qvkstagingbuffer_t *dstBuffer,
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
 		.pNext = NULL,
 		.flags = 0,
-		.size = size,
+		.size = ROUNDUP(size, 1024),
 		.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 		.queueFamilyIndexCount = 0,
@@ -133,7 +133,7 @@ QVk_CreateStagingBuffer(VkDeviceSize size, qvkstagingbuffer_t *dstBuffer,
 	};
 
 	dstBuffer->currentOffset = 0;
-	return buffer_create(&dstBuffer->resource, size, bcInfo, reqMemFlags,
+	return buffer_create(&dstBuffer->resource, bcInfo, reqMemFlags,
 						 prefMemFlags);
 }
 
