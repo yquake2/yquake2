@@ -35,17 +35,16 @@ get_memory_type(uint32_t mem_req_type_bits, VkMemoryPropertyFlags mem_prop)
 
 VkResult
 buffer_create(BufferResource_t *buf,
-		VkDeviceSize size,
 		VkBufferCreateInfo buf_create_info,
 		VkMemoryPropertyFlags mem_properties,
 		VkMemoryPropertyFlags mem_preferences)
 {
-	assert(size > 0);
+	assert(buf_create_info.size > 0);
 	assert(buf);
 	VkResult result = VK_SUCCESS;
 	int memory_index;
 
-	buf->size = size;
+	buf->size = buf_create_info.size;
 	buf->is_mapped = 0;
 
 	result = vkCreateBuffer(vk_device.logical, &buf_create_info, NULL, &buf->buffer);
