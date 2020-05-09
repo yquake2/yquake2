@@ -362,6 +362,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   start (default: `0`). Don't use this, it's there just for the sake of
   having a `gl_finish` equivalent!
 
+* **vk_particle_square**: If set to `1` particles are rendered as
+  squares.
+
 * **vk_point_particles**: Toggle between using POINT_LIST and textured
   triangles for particle rendering. (default: `1`)
 
