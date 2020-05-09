@@ -47,6 +47,7 @@ static int	vid_zminu, vid_zminv, vid_zmaxu, vid_zmaxv;
 static vec3_t	lastvieworg;
 static vec3_t	lastviewangles;
 qboolean	fastmoving;
+static qboolean	palette_changed;
 
 refimport_t	ri;
 
@@ -1424,6 +1425,9 @@ static rserr_t	SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen
 static void
 RE_BeginFrame( float camera_separation )
 {
+	// pallete without changes
+	palette_changed = false;
+
 	while (r_mode->modified || vid_fullscreen->modified || r_vsync->modified)
 	{
 		RE_SetMode();
@@ -1533,12 +1537,20 @@ R_GammaCorrectAndSetPalette( const unsigned char *palette )
 {
 	int i;
 
+	// Replace palette
 	for ( i = 0; i < 256; i++ )
 	{
-		sw_state.currentpalette[i*4+0] = sw_state.gammatable[palette[i*4+2]]; // blue
-		sw_state.currentpalette[i*4+1] = sw_state.gammatable[palette[i*4+1]]; // green
-		sw_state.currentpalette[i*4+2] = sw_state.gammatable[palette[i*4+0]]; // red
-		sw_state.currentpalette[i*4+3] = 0xFF; // alpha
+		if (sw_state.currentpalette[i*4+0] != sw_state.gammatable[palette[i*4+2]] ||
+			sw_state.currentpalette[i*4+1] != sw_state.gammatable[palette[i*4+1]] ||
+			sw_state.currentpalette[i*4+2] != sw_state.gammatable[palette[i*4+0]])
+		{
+			sw_state.currentpalette[i*4+0] = sw_state.gammatable[palette[i*4+2]]; // blue
+			sw_state.currentpalette[i*4+1] = sw_state.gammatable[palette[i*4+1]]; // green
+			sw_state.currentpalette[i*4+2] = sw_state.gammatable[palette[i*4+0]]; // red
+
+			sw_state.currentpalette[i*4+3] = 0xFF; // alpha
+			palette_changed = true;
+		}
 	}
 }
 
@@ -2087,7 +2099,7 @@ RE_BufferDifferenceEnd(int vmin, int vmax)
 		back_buffer --;
 		front_buffer --;
 	} while (back_buffer > back_min && *back_buffer == *front_buffer);
-        // +1 for fully cover changes
+	// +1 for fully cover changes
 	return (pixel_t*)back_buffer - swap_frames[0] + sizeof(int);
 }
 
@@ -2184,20 +2196,24 @@ RE_EndFrame (void)
 		vmax = vid.height * vid.width;
 	}
 
-	// search real begin/end of difference
-	vmin = RE_BufferDifferenceStart(vmin, vmax);
-
-	// no differences found
-	if (vmin >= vmax)
+	// if palette changed need to flush whole buffer
+	if (!palette_changed)
 	{
-		return;
-	}
+		// search real begin/end of difference
+		vmin = RE_BufferDifferenceStart(vmin, vmax);
 
-	// search difference end
-	vmax = RE_BufferDifferenceEnd(vmin, vmax);
-	if (vmax > (vid.height * vid.width))
-	{
-		vmax = vid.height * vid.width;
+		// no differences found
+		if (vmin >= vmax)
+		{
+			return;
+		}
+
+		// search difference end
+		vmax = RE_BufferDifferenceEnd(vmin, vmax);
+		if (vmax > (vid.height * vid.width))
+		{
+			vmax = vid.height * vid.width;
+		}
 	}
 
 	RE_FlushFrame(vmin, vmax);
