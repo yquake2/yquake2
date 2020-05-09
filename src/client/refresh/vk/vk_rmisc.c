@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 R_InitParticleTexture
 ==================
 */
-byte	dottexture[8][8] =
+static byte	dottexture[8][8] =
 {
 	{0,0,0,0,0,0,0,0},
 	{0,0,1,1,0,0,0,0},
@@ -41,7 +41,7 @@ byte	dottexture[8][8] =
 
 void R_InitParticleTexture (void)
 {
-	int		x,y;
+	int		x,y,i;
 	byte	data[8][8][4];
 
 	//
@@ -58,6 +58,22 @@ void R_InitParticleTexture (void)
 		}
 	}
 	r_particletexture = Vk_LoadPic("***particle***", (byte *)data,
+		8, 8, 8, 8, it_sprite, 32, NULL);
+
+	//
+	// particle texture
+	//
+	for (x=0 ; x<8 ; x++)
+	{
+		for (y=0 ; y<8 ; y++)
+		{
+			for (i=0 ; i<4 ; i++)
+			{
+				data[y][x][i] = ((y < 4) && (x < 4)) ? 255 : 0;
+			}
+		}
+	}
+	r_squaretexture = Vk_LoadPic("***square***", (byte *)data,
 		8, 8, 8, 8, it_sprite, 32, NULL);
 
 	//
