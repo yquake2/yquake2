@@ -971,7 +971,7 @@ static void RE_RenderView (refdef_t *fd)
 	}
 }
 
-qboolean R_EndWorldRenderReady(void)
+qboolean RE_EndWorldRenderpass(void)
 {
 	// still some issues?
 	if (!vk_frameStarted)
@@ -1010,7 +1010,7 @@ static void R_SetVulkan2D (const VkViewport* viewport, const VkRect2D* scissor)
 {
 	// player configuration screen renders a model using the UI renderpass, so skip finishing RP_WORLD twice
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
-		if(!R_EndWorldRenderReady())
+		if(!RE_EndWorldRenderpass())
 			// buffers is not initialized
 			return;
 
@@ -1066,6 +1066,48 @@ R_SetLightLevel (void)
 	}
 }
 
+static void R_CleanuBorders(void)
+{
+	float h_border, v_border;
+	float imgTransform[] = { .0f, .0f, .0f, .0f, .0f, .0f, .0f, 1.f };
+
+	if (vid.height == r_newrefdef.height && vid.width == r_newrefdef.width)
+	{
+		return;
+	}
+
+	h_border = (float)(vid.height - r_newrefdef.height) / vid.height / 2.0f;
+	v_border = (float)(vid.width - r_newrefdef.width) / vid.width / 2.0f;
+
+	// top
+	imgTransform[0] = 0.0f;
+	imgTransform[1] = 0.0f;
+	imgTransform[2] = 1.0f;
+	imgTransform[3] = h_border;
+	QVk_DrawColorRect(imgTransform, sizeof(imgTransform), RP_UI);
+
+	// bottom
+	imgTransform[0] = 0.0f;
+	imgTransform[1] = 1.0f - h_border;
+	imgTransform[2] = 1.0f;
+	imgTransform[3] = h_border;
+	QVk_DrawColorRect(imgTransform, sizeof(imgTransform), RP_UI);
+
+	// left
+	imgTransform[0] = 0.0f;
+	imgTransform[1] = h_border;
+	imgTransform[2] = v_border;
+	imgTransform[3] = 1.0f - (h_border * 2.0f);
+	QVk_DrawColorRect(imgTransform, sizeof(imgTransform), RP_UI);
+
+	// right
+	imgTransform[0] = 1.0f - v_border;
+	imgTransform[1] = h_border;
+	imgTransform[2] = v_border;
+	imgTransform[3] = 1.0f - (h_border * 2.0f);
+	QVk_DrawColorRect(imgTransform, sizeof(imgTransform), RP_UI);
+}
+
 /*
 =====================
 RE_RenderFrame
@@ -1078,6 +1120,8 @@ RE_RenderFrame (refdef_t *fd)
 	RE_RenderView( fd );
 	R_SetLightLevel ();
 	R_SetVulkan2D (&vk_viewport, &vk_scissor);
+
+	R_CleanuBorders();
 }
 
 
@@ -1384,23 +1428,6 @@ RE_EndFrame( void )
 	QVk_EndFrame(false);
 	// world has not rendered yet
 	world_rendered = false;
-}
-
-/*
-=====================
-RE_EndWorldRenderpass
-=====================
-*/
-static void
-RE_EndWorldRenderpass( void )
-{
-	if (R_EndWorldRenderReady())
-	{
-/*
-		R_Printf(PRINT_ALL, "%s(): Buffers are not initilized.\n",
-			 __func__);
-*/
-	}
 }
 
 /*
