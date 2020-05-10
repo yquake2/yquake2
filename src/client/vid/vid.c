@@ -687,13 +687,14 @@ R_BeginFrame(float camera_separation)
 	}
 }
 
-void
+qboolean
 R_EndWorldRenderpass(void)
 {
 	if(ref_active)
 	{
-		re.EndWorldRenderpass();
+		return re.EndWorldRenderpass();
 	}
+	return false;
 }
 
 void

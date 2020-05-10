@@ -514,6 +514,11 @@ M_Popup(void)
         return;
     }
 
+    if (!R_EndWorldRenderpass())
+    {
+        return;
+    }
+
     width = lines = n = 0;
     for (str = m_popup_string; *str; str++)
     {

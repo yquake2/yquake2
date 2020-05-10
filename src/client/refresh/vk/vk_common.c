@@ -1958,7 +1958,7 @@ VkResult QVk_EndFrame(qboolean force)
 	// this may happen if Sys_Error is issued mid-frame, so we need to properly advance the draw pipeline
 	if (force)
 	{
-		if(!R_EndWorldRenderReady())
+		if(!RE_EndWorldRenderpass())
 			// buffers is not initialized
 			return VK_NOT_READY;
 	}

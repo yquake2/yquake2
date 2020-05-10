@@ -1827,9 +1827,10 @@ GL3_SetPalette(const unsigned char *palette)
 GL3_EndWorldRenderpass
 =====================
 */
-static void
+static qboolean
 GL3_EndWorldRenderpass( void )
 {
+	return true;
 }
 
 Q2_DLL_EXPORTED refexport_t
