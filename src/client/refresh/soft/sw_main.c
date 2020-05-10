@@ -1793,9 +1793,10 @@ static int RE_PrepareForWindow(void)
 RE_EndWorldRenderpass
 =====================
 */
-static void
+static qboolean
 RE_EndWorldRenderpass( void )
 {
+	return true;
 }
 
 /*
