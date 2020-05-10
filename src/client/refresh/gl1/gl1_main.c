@@ -1882,9 +1882,10 @@ extern void RI_EndFrame(void);
 RI_EndWorldRenderpass
 =====================
 */
-static void
+static qboolean
 RI_EndWorldRenderpass( void )
 {
+	return true;
 }
 
 Q2_DLL_EXPORTED refexport_t
