@@ -414,7 +414,13 @@ static const char* fragmentSrc3Dwater = MULTILINE_STRING(
 
 		void main()
 		{
-			vec4 texel = texture(tex, passTexCoord);
+			vec2 tc = passTexCoord;
+			tc.s += sin( passTexCoord.t*0.125 + time ) * 4;
+			tc.s += scroll;
+			tc.t += sin( passTexCoord.s*0.125 + time ) * 4;
+			tc *= 1.0/64.0; // do this last
+
+			vec4 texel = texture(tex, tc);
 
 			// apply intensity and gamma
 			texel.rgb *= intensity*0.5;
@@ -586,12 +592,7 @@ static const char* vertexSrc3Dwater = MULTILINE_STRING(
 		// it gets attributes and uniforms from vertexCommon3D
 		void main()
 		{
-			vec2 tc = texCoord;
-			tc.s += sin( texCoord.t*0.125 + time ) * 4;
-			tc.s += scroll;
-			tc.t += sin( texCoord.s*0.125 + time ) * 4;
-			tc *= 1.0/64.0; // do this last
-			passTexCoord = tc;
+			passTexCoord = texCoord;
 
 			gl_Position = transProj * transView * transModel * vec4(position, 1.0);
 		}
