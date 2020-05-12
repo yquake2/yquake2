@@ -38,7 +38,6 @@ void Draw_InitLocal (void)
 	{
 		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx", __func__);
 	}
-
 }
 
 
@@ -243,54 +242,37 @@ Draw_StretchRaw
 extern unsigned	r_rawpalette[256];
 extern qvktexture_t vk_rawTexture;
 
+static unsigned	raw_image32[512 * 512];
+
 void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
 {
-	unsigned	image32[256 * 256];
-	int			i, j, trows;
-	float		hscale;
-	float		t;
 
-	if (rows <= 256)
-	{
-		hscale = 1;
-		trows = rows;
-	}
-	else
-	{
-		hscale = rows / 256.0;
-		trows = 256;
-	}
-	t = rows * hscale / 256;
+	int	i, j;
+	int	hscale, vscale;
 
-	for (i = 0; i < trows; i++)
-	{
-		unsigned *dest;
-		byte	*source;
-		int	row;
-		int	frac, fracstep;
+	hscale = cols * 0x10000 / 512;
+	vscale = rows * 0x10000 / 512;
 
-		row = (int)(i*hscale);
-		if (row > rows)
-			break;
-		source = data + cols * row;
-		dest = &image32[i * 256];
-		fracstep = cols * 0x10000 / 256;
-		frac = fracstep >> 1;
-		for (j = 0; j < 256; j++)
+	unsigned *dest = raw_image32;
+	byte *source = data;
+	for (i = 0; i < 512; i++)
+	{
+		for (j = 0; j < 512; j++)
 		{
-			dest[j] = r_rawpalette[source[frac >> 16]];
-			frac += fracstep;
+			*dest = r_rawpalette[*(source + ((j * hscale) >> 16))];
+			dest ++;
 		}
+		source = data + (((i * vscale) >> 16) * cols);
 	}
 
 	if (vk_rawTexture.resource.image != VK_NULL_HANDLE)
 	{
-		QVk_UpdateTextureData(&vk_rawTexture, (unsigned char*)&image32, 0, 0, 256, 256);
+		QVk_UpdateTextureData(&vk_rawTexture, (unsigned char*)&raw_image32, 0, 0, 512, 512);
 	}
 	else
 	{
 		QVVKTEXTURE_CLEAR(vk_rawTexture);
-		QVk_CreateTexture(&vk_rawTexture, (unsigned char*)&image32, 256, 256,
+		QVk_CreateTexture(&vk_rawTexture, (unsigned char*)&raw_image32, 512, 512,
 			vk_current_sampler);
 		QVk_DebugSetObjectName((uint64_t)vk_rawTexture.resource.image,
 			VK_OBJECT_TYPE_IMAGE, "Image: raw texture");
@@ -304,6 +286,6 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 (float)w / vid.width, (float)h / vid.height,
-							 0.f, 0.f, 1.f, t };
+							 0.f, 0.f, 1.f, 1.0f };
 	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &vk_rawTexture);
 }
