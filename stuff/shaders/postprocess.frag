@@ -3,8 +3,8 @@
 
 layout(push_constant) uniform PushConstant
 {
-	float postprocess;
-	float gamma;
+	layout(offset = 68) float postprocess;
+	layout(offset = 72) float gamma;
 } pc;
 
 layout(set = 0, binding = 0) uniform sampler2D sTexture;
@@ -12,7 +12,7 @@ layout(set = 0, binding = 0) uniform sampler2D sTexture;
 layout(location = 0) in vec2 texCoord;
 layout(location = 0) out vec4 fragmentColor;
 
-void main() 
+void main()
 {
 	// apply any additional world-only postprocessing effects here (if enabled)
 	if (pc.postprocess > 0.0)
