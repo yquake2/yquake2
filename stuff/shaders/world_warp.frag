@@ -5,10 +5,10 @@
 
 layout(push_constant) uniform PushConstant
 {
-	float time;
-	float scale;
-	float scrWidth;
-	float scrHeight;
+	layout(offset = 68) float time;
+	layout(offset = 72) float scale;
+	layout(offset = 76) float scrWidth;
+	layout(offset = 80) float scrHeight;
 } pc;
 
 layout(set = 0, binding = 0) uniform sampler2D sTexture;

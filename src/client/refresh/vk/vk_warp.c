@@ -252,12 +252,10 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float
 	VkDeviceSize vboOffset;
 	VkDescriptorSet descriptorSets[] = { texture->vk_texture.descriptorSet, uboDescriptorSet };
 
-	float fragment_constants[17] = {0};
-	memcpy(fragment_constants, r_viewproj_matrix, sizeof(r_viewproj_matrix));
-	fragment_constants[16] = 2.1F - vid_gamma->value;
+	float gamma = 2.1F - vid_gamma->value;
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawPolyWarpPipeline.layout,
-		VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(fragment_constants), &fragment_constants);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
+		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyWarpPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 
@@ -649,12 +647,10 @@ void R_DrawSkyBox (void)
 
 		VkDescriptorSet descriptorSets[] = { sky_images[skytexorder[i]]->vk_texture.descriptorSet, uboDescriptorSet };
 
-		float fragment_constants[17] = {0};
-		memcpy(fragment_constants, r_viewproj_matrix, sizeof(r_viewproj_matrix));
-		fragment_constants[16] = 2.1F - vid_gamma->value;
+		float gamma = 2.1F - vid_gamma->value;
 
-		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSkyboxPipeline.layout,
-				VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(fragment_constants), &fragment_constants);
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
+			VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			vk_drawSkyboxPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
