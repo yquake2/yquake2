@@ -231,12 +231,10 @@ void R_DrawSpriteModel (entity_t *e)
 
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 
-	float fragment_constants[17] = {0};
-	memcpy(fragment_constants, r_viewproj_matrix, sizeof(r_viewproj_matrix));
-	fragment_constants[16] = 2.1F - vid_gamma->value;
+	float gamma = 2.1F - vid_gamma->value;
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSpritePipeline.layout,
-		VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(fragment_constants), &fragment_constants);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
+		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSpritePipeline.layout, 0, 1, &currentmodel->skins[e->frame]->vk_texture.descriptorSet, 0, NULL);
 	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
@@ -495,12 +493,10 @@ void Vk_DrawParticles(int num_particles, const particle_t particles[], const uns
 	uint8_t *vertData = QVk_GetVertexBuffer((currentvertex - visibleParticles) * sizeof(pvertex), &vbo, &vboOffset);
 	memcpy(vertData, &visibleParticles, (currentvertex - visibleParticles) * sizeof(pvertex));
 
-	float fragment_constants[17] = {0};
-	memcpy(fragment_constants, r_viewproj_matrix, sizeof(r_viewproj_matrix));
-	fragment_constants[16] = 2.1F - vid_gamma->value;
+	float gamma = 2.1F - vid_gamma->value;
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawParticlesPipeline.layout,
-		VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(fragment_constants), &fragment_constants);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
+		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
 	if (particle_square)
 	{
@@ -994,7 +990,8 @@ qboolean RE_EndWorldRenderpass(void)
 	// apply postprocessing effects (underwater view warp if the player is submerged in liquid) to offscreen buffer
 	QVk_BeginRenderpass(RP_WORLD_WARP);
 	float pushConsts[] = { (r_newrefdef.rdflags & RDF_UNDERWATER) ? r_newrefdef.time : 0.f, viewsize->value / 100, vid.width, vid.height };
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConsts), pushConsts);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout,
+		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(pushConsts), pushConsts);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_worldWarpPipeline.layout, 0, 1, &vk_colorbuffer.descriptorSet, 0, NULL);
 	QVk_BindPipeline(&vk_worldWarpPipeline);
 	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
@@ -1022,7 +1019,8 @@ static void R_SetVulkan2D (const VkViewport* viewport, const VkRect2D* scissor)
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
 		float pushConsts[] = { vk_postprocess->value, (2.1 - vid_gamma->value)};
-		vkCmdPushConstants(vk_activeCmdbuffer, vk_postprocessPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConsts), pushConsts);
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_postprocessPipeline.layout,
+			VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(pushConsts), pushConsts);
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_postprocessPipeline.layout, 0, 1, &vk_colorbufferWarp.descriptorSet, 0, NULL);
 		QVk_BindPipeline(&vk_postprocessPipeline);
 		vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
