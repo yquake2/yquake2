@@ -296,7 +296,7 @@ VkResult	QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMe
 void		QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags);
 void		QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags);
 qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, VkShaderStageFlagBits shaderStage);
-void		QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t descLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo, qvkpipeline_t *pipeline, const qvkrenderpass_t *renderpass, const qvkshader_t *shaders, uint32_t shaderCount, VkPushConstantRange *pcRange);
+void		QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t descLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo, qvkpipeline_t *pipeline, const qvkrenderpass_t *renderpass, const qvkshader_t *shaders, uint32_t shaderCount);
 void		QVk_DestroyPipeline(qvkpipeline_t *pipeline);
 uint8_t*	QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSize *dstOffset);
 uint8_t*	QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet);

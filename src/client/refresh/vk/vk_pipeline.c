@@ -49,7 +49,7 @@ qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, V
 }
 
 void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t descLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo,
-						qvkpipeline_t *pipeline, const qvkrenderpass_t *renderpass, const qvkshader_t *shaders, uint32_t shaderCount, VkPushConstantRange *pcRange)
+						qvkpipeline_t *pipeline, const qvkrenderpass_t *renderpass, const qvkshader_t *shaders, uint32_t shaderCount)
 {
 	VkPipelineShaderStageCreateInfo *ssCreateInfos = (VkPipelineShaderStageCreateInfo *)malloc(shaderCount * sizeof(VkPipelineShaderStageCreateInfo));
 	for (int i = 0; i < shaderCount; i++)
@@ -156,14 +156,29 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 		.pDynamicStates = dynamicStates
 	};
 
+	// push constant sizes accomodate for maximum number of uploaded elements (should probably be checked against the hardware's maximum supported value)
+	VkPushConstantRange pushConstantRange[] = {
+		{
+			.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+			.offset = 0,
+			.size = 17 * sizeof(float)
+		},
+		{
+			.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+			.offset = 17 * sizeof(float),
+			.size = 4 * sizeof(float)
+	}};
+
 	VkPipelineLayoutCreateInfo plCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
 		.pNext = NULL,
 		.flags = 0,
 		.setLayoutCount = descLayoutCount,
 		.pSetLayouts = descriptorLayout,
-		.pushConstantRangeCount = pcRange ? 1 : 0, // for simplicity assume only one push constant range is passed, so it's not the most flexible approach
-		.pPushConstantRanges = pcRange
+		// for simplicity assume only two push constant range is passed,
+		// so it's not the most flexible approach
+		.pushConstantRangeCount = 2,
+		.pPushConstantRanges = pushConstantRange
 	};
 
 	VK_VERIFY(vkCreatePipelineLayout(vk_device.logical, &plCreateInfo, NULL, &pipeline->layout));
