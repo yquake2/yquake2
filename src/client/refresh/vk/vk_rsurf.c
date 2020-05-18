@@ -133,12 +133,10 @@ static void DrawVkPoly (vkpoly_t *p, image_t *texture, float *color)
 
 	VkDescriptorSet descriptorSets[] = { texture->vk_texture.descriptorSet, uboDescriptorSet };
 
-	float fragment_constants[17] = {0};
-	memcpy(fragment_constants, r_viewproj_matrix, sizeof(r_viewproj_matrix));
-	fragment_constants[16] = 2.1F - vid_gamma->value;
+	float gamma = 2.1F - vid_gamma->value;
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawPolyPipeline.layout,
-		VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(fragment_constants), &fragment_constants);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
+		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
@@ -196,12 +194,10 @@ static void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
 
 	VkDescriptorSet descriptorSets[] = { texture->vk_texture.descriptorSet, uboDescriptorSet };
 
-	float fragment_constants[17] = {0};
-	memcpy(fragment_constants, r_viewproj_matrix, sizeof(r_viewproj_matrix));
-	fragment_constants[16] = 2.1F - vid_gamma->value;
+	float gamma = 2.1F - vid_gamma->value;
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawPolyPipeline.layout,
-		VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(fragment_constants), &fragment_constants);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
+		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
