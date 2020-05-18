@@ -2,8 +2,8 @@
 
 layout(push_constant) uniform PushConstant
 {
-	mat4 vpMatrix;
-	float gamma;
+	// vertex shader has 'mat4 vpMatrix;' at begin.
+	layout(offset = 68) float gamma;
 } pc;
 
 layout(set = 0, binding = 0) uniform sampler2D sTexture;
