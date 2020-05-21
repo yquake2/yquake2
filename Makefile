@@ -426,7 +426,11 @@ release/quake2 : LDFLAGS += -lexecinfo
 endif
 
 ifeq ($(WITH_RPATH),yes)
+ifeq ($(YQ2_OSTYPE), Darwin)
+release/quake2 : LDFLAGS += -Wl,-rpath,'$$ORIGIN/lib'
+else
 release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib'
+endif
 endif
 endif
 
