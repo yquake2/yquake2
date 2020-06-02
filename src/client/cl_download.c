@@ -56,6 +56,8 @@ static qboolean httpSecondChance = true;
      - 3: Third iteration, UDP downloads. */
 static unsigned int precacherIteration;
 
+static qboolean skip_textures;
+
 // r1q2 searches the global filelist at /, q2pro at /gamedir...
 static qboolean gamedirForFilelist;
 
@@ -422,7 +424,10 @@ CL_RequestNextDownload(void)
 #endif
 
 	/* precache phase completed */
-	precache_check = ENV_CNT + 1;
+	if (!skip_textures)
+	{
+		precache_check = ENV_CNT + 1;
+	}
 
 	CM_LoadMap(cl.configstrings[CS_MODELS + 1], true, &map_checksum);
 
@@ -506,6 +511,7 @@ CL_RequestNextDownload(void)
 	precacherIteration = 0;
 	gamedirForFilelist = false;
 	httpSecondChance = true;
+	skip_textures = false;
 
 #ifdef USE_CURL
 	dlquirks.filelist = true;
@@ -699,9 +705,9 @@ CL_Download_f(void)
 void
 CL_ParseDownload(void)
 {
-	int size, percent;
 	char name[MAX_OSPATH];
-	int r;
+	int r, percent, size;
+	static qboolean second_try;
 
 	/* read the data */
 	size = MSG_ReadShort(&net_message);
@@ -719,9 +725,22 @@ CL_ParseDownload(void)
 			cls.download = NULL;
 		}
 
+		if (second_try)
+		{
+			precache_check = ENV_CNT + 999;
+			skip_textures = true;
+			second_try = false;
+		}
+		else
+		{
+			second_try = true;
+		}
+
 		CL_RequestNextDownload();
 		return;
 	}
+
+	second_try = false;
 
 	/* open the file if not opened yet */
 	if (!cls.download)
