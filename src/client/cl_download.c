@@ -56,7 +56,10 @@ static qboolean httpSecondChance = true;
      - 3: Third iteration, UDP downloads. */
 static unsigned int precacherIteration;
 
-static qboolean skip_textures;
+/* Another quirk: Don't restart texture downloading from the beginning,
+   instead continue after the last requested texture. This is used to
+   skip over a texture missing on the server. */
+static qboolean dont_restart_texture_stage;
 
 // r1q2 searches the global filelist at /, q2pro at /gamedir...
 static qboolean gamedirForFilelist;
@@ -424,7 +427,7 @@ CL_RequestNextDownload(void)
 #endif
 
 	/* precache phase completed */
-	if (!skip_textures)
+	if (!dont_restart_texture_stage)
 	{
 		precache_check = ENV_CNT + 1;
 	}
@@ -511,7 +514,7 @@ CL_RequestNextDownload(void)
 	precacherIteration = 0;
 	gamedirForFilelist = false;
 	httpSecondChance = true;
-	skip_textures = false;
+	dont_restart_texture_stage = false;
 
 #ifdef USE_CURL
 	dlquirks.filelist = true;
@@ -727,8 +730,8 @@ CL_ParseDownload(void)
 
 		if (second_try)
 		{
-			precache_check = ENV_CNT + 999;
-			skip_textures = true;
+			precache_check++;
+			dont_restart_texture_stage = true;
 			second_try = false;
 		}
 		else
