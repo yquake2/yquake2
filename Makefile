@@ -335,6 +335,7 @@ config:
 	@echo "WITH_OPENAL = $(WITH_OPENAL)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
+	@echo "WITH_RPATH = $(WITH_RPATH)"
 	@echo "============================"
 	@echo ""
 
@@ -426,7 +427,11 @@ release/quake2 : LDFLAGS += -lexecinfo
 endif
 
 ifeq ($(WITH_RPATH),yes)
+ifeq ($(YQ2_OSTYPE), Darwin)
+release/quake2 : LDFLAGS += -Wl,-rpath,'@executable_path/lib'
+else
 release/quake2 : LDFLAGS += -Wl,-z,origin,-rpath='$$ORIGIN/lib'
+endif
 endif
 endif
 
