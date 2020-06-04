@@ -1141,13 +1141,23 @@ ai_run(edict_t *self, float dist)
 
 	if (self->monsterinfo.aiflags & AI_SOUND_TARGET)
 	{
-		VectorSubtract(self->s.origin, self->enemy->s.origin, v);
-
-		if (VectorLength(v) < 64)
+		/* Special case: Some projectiles like grenades or rockets are
+		   classified as an enemy. When they explode they generate a
+		   sound entity, triggering this code path. Since they're gone
+		   after the explosion their entity pointer is NULL. Therefor
+		   self->enemy is also NULL and we're crashing. Work around
+		   this by predending that the enemy is still there, and move
+		   to it. */
+		if (self->enemy)
 		{
-			self->monsterinfo.aiflags |= (AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
-			self->monsterinfo.stand(self);
-			return;
+			VectorSubtract(self->s.origin, self->enemy->s.origin, v);
+
+			if (VectorLength(v) < 64)
+			{
+				self->monsterinfo.aiflags |= (AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
+				self->monsterinfo.stand(self);
+				return;
+			}
 		}
 
 		M_MoveToGoal(self, dist);
