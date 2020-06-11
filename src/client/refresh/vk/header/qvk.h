@@ -156,7 +156,6 @@ typedef struct
 	VkPipelineLayout layout;
 	VkPipeline pl;
 	VkPipelineCreateFlags flags;
-	VkPolygonMode mode;
 	VkCullModeFlags cullMode;
 	VkPrimitiveTopology topology;
 	VkPipelineColorBlendAttachmentState blendOpts;
@@ -175,7 +174,6 @@ typedef struct
 	.layout = VK_NULL_HANDLE, \
 	.pl = VK_NULL_HANDLE, \
 	.flags = 0, \
-	.mode = VK_POLYGON_MODE_FILL, \
 	.cullMode = VK_CULL_MODE_BACK_BIT, \
 	.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, \
 	.blendOpts = { \
