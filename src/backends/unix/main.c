@@ -30,6 +30,9 @@
 #include <libgen.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#ifndef FNDELAY
+#define FNDELAY O_NDELAY
+#endif
 
 #include "../../common/header/common.h"
 
