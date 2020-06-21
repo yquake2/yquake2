@@ -136,7 +136,7 @@ static void SetExecutablePath(char* exePath)
 
 	if (ii.type == B_APP_IMAGE)
 	{
-		memcpy(exePath, ii.name, PATH_MAX);
+		Q_strlcpy(exePath, ii.name, PATH_MAX);
 	}
 
 #else
