@@ -34,7 +34,6 @@ cvar_t *timescale;
 cvar_t *fixedtime;
 cvar_t *cl_maxfps;
 cvar_t *dedicated;
-cvar_t *busywait;
 
 extern cvar_t *logfile_active;
 extern jmp_buf abortframe; /* an ERR_DROP occured, exit the entire frame */
@@ -42,6 +41,7 @@ extern zhead_t z_chain;
 
 #ifndef DEDICATED_ONLY
 FILE *log_stats_file;
+cvar_t *busywait;
 cvar_t *cl_async;
 cvar_t *cl_timedemo;
 cvar_t *vid_maxfps;
@@ -117,12 +117,6 @@ Qcommon_Buildstring(void)
 	printf("Architecture: %s\n", YQ2ARCH);
 }
 
-#ifndef DEDICATED_ONLY
-#define FRAMEDELAY 5
-#else
-#define FRAMEDELAY 850
-#endif
-
 void
 Qcommon_Mainloop(void)
 {
@@ -132,6 +126,7 @@ Qcommon_Mainloop(void)
 	/* The mainloop. The legend. */
 	while (1)
 	{
+#ifndef DEDICATED_ONLY
 		// Throttle the game a little bit.
 		if (busywait->value)
 		{
@@ -150,7 +145,7 @@ Qcommon_Mainloop(void)
 				asm("yield");
 #endif
 
-				if (Sys_Microseconds() - spintime >= FRAMEDELAY)
+				if (Sys_Microseconds() - spintime >= 5000)
 				{
 					break;
 				}
@@ -158,8 +153,11 @@ Qcommon_Mainloop(void)
 		}
 		else
 		{
-			Sys_Nanosleep(FRAMEDELAY * 1000);
+			Sys_Nanosleep(5000);
 		}
+#else
+		Sys_Nanosleep(850000);
+#endif
 
 		newtime = Sys_Microseconds();
 		Qcommon_Frame(newtime - oldtime);
@@ -319,9 +317,9 @@ Qcommon_Init(int argc, char **argv)
 	char *s;
 	s = va("%s %s %s %s", YQ2VERSION, YQ2ARCH, BUILD_DATE, YQ2OSTYPE);
 	Cvar_Get("version", s, CVAR_SERVERINFO | CVAR_NOSET);
-	busywait = Cvar_Get("busywait", "1", CVAR_ARCHIVE);
 
 #ifndef DEDICATED_ONLY
+	busywait = Cvar_Get("busywait", "1", CVAR_ARCHIVE);
 	cl_async = Cvar_Get("cl_async", "1", CVAR_ARCHIVE);
 	cl_timedemo = Cvar_Get("timedemo", "0", 0);
 	dedicated = Cvar_Get("dedicated", "0", CVAR_NOSET);
