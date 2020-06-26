@@ -35,6 +35,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/select.h> /* for fd_set */
+#ifndef FNDELAY
+#define FNDELAY O_NDELAY
+#endif
 
 #ifdef __APPLE__
 #include <mach/clock.h>

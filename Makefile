@@ -277,6 +277,8 @@ else ifeq ($(YQ2_OSTYPE),Windows)
 override LDFLAGS += -lws2_32 -lwinmm -static-libgcc
 else ifeq ($(YQ2_OSTYPE), Darwin)
 override LDFLAGS += -arch $(YQ2_ARCH)
+else ifeq ($(YQ2_OSTYPE), Haiku)
+override LDFLAGS += -lm -lnetwork
 endif
 
 # Keep symbols hidden.

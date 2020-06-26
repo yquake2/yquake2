@@ -45,6 +45,10 @@
 #include <mach-o/dyld.h> // _NSGetExecutablePath
 #endif
 
+#ifdef __HAIKU__
+#include <kernel/image.h>
+#endif
+
 #ifndef PATH_MAX
 // this is mostly for windows. windows has a MAX_PATH = 260 #define, but allows
 // longer paths anyway.. this might not be the maximum allowed length, but is
@@ -118,6 +122,22 @@ static void SetExecutablePath(char* exePath)
 
 	// TODO: realpath() ?
 	// TODO: no idea what this is if the executable is in an app bundle
+#elif defined(__HAIKU__)
+	image_info ii;
+	int32_t id = 0;
+
+	exePath[0] = '\0';
+
+	for (; get_next_image_info(0, &id, &ii) == B_OK;)
+	{
+		if (ii.type == B_APP_IMAGE)
+			break;
+	}
+
+	if (ii.type == B_APP_IMAGE)
+	{
+		Q_strlcpy(exePath, ii.name, PATH_MAX);
+	}
 
 #else
 
