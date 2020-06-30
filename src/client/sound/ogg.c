@@ -40,7 +40,8 @@
 #define STB_VORBIS_NO_PUSHDATA_API
 #include "header/stb_vorbis.h"
 
-static cvar_t *ogg_shuffle;        /* Shuffle playback */
+static cvar_t *ogg_enabled;       /* Backend is enabled */
+static cvar_t *ogg_shuffle;       /* Shuffle playback */
 static cvar_t *ogg_ignoretrack0;  /* Toggle track 0 playing */
 static cvar_t *ogg_volume;        /* Music volume. */
 static int ogg_curfile;           /* Index of currently played file. */
@@ -275,6 +276,15 @@ OGG_Stream(void)
 		return;
 	}
 
+	/* OGG playback was disabled since the last package frame.
+	   Shutdown the backend to stop all playing tracks and to
+	   prevend OGG_PLayTrack() from starting new ones. */
+	if (ogg_enabled->value != 1)
+	{
+		OGG_Shutdown();
+		return;
+	}
+
 	if (ogg_status == PLAY)
 	{
 #ifdef USE_OPENAL
@@ -327,6 +337,11 @@ OGG_PlayTrack(int trackNo)
 	if (sound_started == SS_NOT)
 	{
 		return; // sound is not initialized
+	}
+
+	if (ogg_started == false)
+	{
+		return;
 	}
 
 	// Track 0 means "stop music".
@@ -647,8 +662,7 @@ OGG_Init(void)
 	ogg_shuffle = Cvar_Get("ogg_shuffle", "0", CVAR_ARCHIVE);
 	ogg_ignoretrack0 = Cvar_Get("ogg_ignoretrack0", "0", CVAR_ARCHIVE);
 	ogg_volume = Cvar_Get("ogg_volume", "0.7", CVAR_ARCHIVE);
-
-	cvar_t *ogg_enabled = Cvar_Get("ogg_enable", "1", CVAR_ARCHIVE);
+	ogg_enabled = Cvar_Get("ogg_enable", "1", CVAR_ARCHIVE);
 
 	if (ogg_enabled->value != 1)
 	{
@@ -680,7 +694,7 @@ OGG_Shutdown(void)
 	// Music must be stopped.
 	OGG_Stop();
 
-	// Free file lsit.
+	// Free file list.
 	for(int i=0; i<MAX_NUM_OGGTRACKS; ++i)
 	{
 		if(ogg_tracks[i] != NULL)
