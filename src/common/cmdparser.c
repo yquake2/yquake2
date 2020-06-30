@@ -57,8 +57,8 @@ static char *cmd_argv[MAX_STRING_TOKENS];
 static char *cmd_null_string = "";
 static char cmd_args[MAX_STRING_CHARS];
 sizebuf_t cmd_text;
-byte cmd_text_buf[8192];
-char defer_text_buf[8192];
+byte cmd_text_buf[32768];
+char defer_text_buf[32768];
 
 /*
  * Causes execution of the remainder of the command buffer to be delayed
