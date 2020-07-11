@@ -87,6 +87,19 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   during gameplay and released otherwise (in menu, videos, console or if
   game is paused).
 
+* **coop_pickup_weapons**: In coop a weapon can be picked up only once.
+  For example, if the player already has the shotgun they cannot pickup
+  a second shotgun found at a later time, thus not getting the ammo that
+  comes with it. This breaks the balacing. If set to `1` a weapon can be
+  picked up if a) the player doesn't have it or b) it wasn't already
+  picked up by another player. Defaults to `1`.
+
+* **coop_elevator_delay**: In coop it's often hard to get on the same
+  elevator together, because they're immediately triggered once the
+  first player steps on it. This cvar sets a delay for the elevator to
+  wait before moving, so other players have some time to get on it.
+  Defaults to `1.0` (seconds).
+
 * **coop_baseq2 (Ground Zero only)**: In Ground Zero, entity spawnflags
   (which difficulty modes / game modes level entities spawn in) are
   interpreted a bit differently. In original Quake 2, if an entity is
@@ -112,14 +125,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   and its items, weapon_disintegrator and ammo_disruptor, can be
   spawned in maps (in fact, some official Ground Zero maps contain
   these entities). This cvar is set to 0 by default.
-
-* **coop_pickup_weapons**: In coop a weapon can be picked up only once.
-  For example, if the player already has the shotgun they cannot pickup
-  a second shotgun found at a later time, thus not getting the ammo that
-  comes with it. This breaks the balacing. If set to `1` a weapon can be
-  picked up if a) the player doesn't have it or b) it wasn't already
-  picked up by another player. Defaults to `0`.
-
 
 ## Audio
 

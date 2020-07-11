@@ -1048,4 +1048,5 @@
 {"ai_stand", (byte *)ai_stand},
 {"ai_move", (byte *)ai_move},
 {"AI_SetSightClient", (byte *)AI_SetSightClient},
+{"wait_and_change_think", (byte *)wait_and_change_think},
 {0, 0}
