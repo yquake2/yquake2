@@ -220,7 +220,16 @@ Cvar_Get(char *var_name, char *var_value, int flags)
 	if (var)
 	{
 		var->flags |= flags;
-		var->default_string = CopyString(var_value);
+
+		if (!var_value)
+		{
+			var->default_string = CopyString("");
+		}
+		else
+		{
+			var->default_string = CopyString(var_value);
+		}
+
 		return var;
 	}
 
