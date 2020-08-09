@@ -103,11 +103,21 @@ find_package(OpenGL REQUIRED)
 list(APPEND yquake2IncludeDirectories ${OPENGL_INCLUDE_DIR})
 list(APPEND yquake2OpenGLLinkerFlags ${OPENGL_LIBRARIES})
 
-# FreeBSD needs libexecinfo.
-if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD")
-	find_library(EXECINFO_LIBRARIES execinfo /usr/lib /usr/local/lib)
-	list(APPEND yquake2ClientLinkerFlags ${EXECINFO_LIBRARIES})
-	list(APPEND yquake2ServerLinkerFlags ${EXECINFO_LIBRARIES})
+# backtrace lookup
+# Some systems like Linux has it within the libc some like the BSD, Haiku ...
+# into an external libexecinfo library
+include(CheckFunctionExists)
+include(CheckLibraryExists)
+check_function_exists(backtrace HAVE_EXECINFO_SYS)
+IF (NOT HAVE_EXECINFO_SYS)
+	check_library_exists(execinfo backtrace "" HAVE_EXECINFO_LIB)
+    if (HAVE_EXECINFO_LIB)
+        list(APPEND yquake2ClientLinkerFlags execinfo)
+        list(APPEND yquake2ServerLinkerFlags execinfo)
+        add_definitions(-DHAVE_EXECINFO)
+    endif()
+else()
+    add_definitions(-DHAVE_EXECINFO)
 endif()
 
 # cURL support.
