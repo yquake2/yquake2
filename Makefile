@@ -424,7 +424,30 @@ release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1
 endif
 endif
 
+ifeq ($(YQ2_OSTYPE), Linux)
+release/quake2 : CFLAGS += -DHAVE_EXECINFO
+endif
+
+ifeq ($(YQ2_OSTYPE), Darwin)
+release/quake2 : CFLAGS += -DHAVE_EXECINFO
+endif
+
+ifeq ($(YQ2_OSTYPE), SunOS)
+release/quake2 : CFLAGS += -DHAVE_EXECINFO
+endif
+
 ifeq ($(YQ2_OSTYPE), FreeBSD)
+release/quake2 : CFLAGS += -DHAVE_EXECINFO
+release/quake2 : LDFLAGS += -lexecinfo
+endif
+
+ifeq ($(YQ2_OSTYPE), OpenBSD)
+release/quake2 : CFLAGS += -DHAVE_EXECINFO
+release/quake2 : LDFLAGS += -lexecinfo
+endif
+
+ifeq ($(YQ2_OSTYPE), Haiku)
+release/quake2 : CFLAGS += -DHAVE_EXECINFO
 release/quake2 : LDFLAGS += -lexecinfo
 endif
 
