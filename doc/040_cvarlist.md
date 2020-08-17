@@ -55,6 +55,9 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   time for the next frame. The later is more CPU friendly but rather
   inaccurate, especially on Windows. Use with care.
 
+* **cl_anglekicks**: If set to `0` angle kicks (weapon recoil, damage
+  hits and the like) are ignored. Cheat protected. Defaults to `1`.
+
 * **cl_async**: If set to `1` (the default) the client is asynchronous.
   The client framerate is fixed, the renderer framerate is variable.
   This makes it possible to renderer as many frames as desired without

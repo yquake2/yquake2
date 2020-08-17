@@ -308,6 +308,7 @@ extern	cvar_t	*cl_vwep;
 extern	cvar_t  *horplus;
 extern	cvar_t	*cin_force43;
 extern	cvar_t	*vid_fullscreen;
+extern	cvar_t	*cl_anglekicks;
 
 typedef struct
 {

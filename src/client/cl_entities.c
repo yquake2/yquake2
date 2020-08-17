@@ -757,10 +757,13 @@ CL_CalcViewValues(void)
 		}
 	}
 
-	for (i = 0; i < 3; i++)
+	if (cl_anglekicks->value)
 	{
-		cl.refdef.viewangles[i] += LerpAngle(ops->kick_angles[i],
-				ps->kick_angles[i], lerp);
+		for (i = 0; i < 3; i++)
+		{
+			cl.refdef.viewangles[i] += LerpAngle(ops->kick_angles[i],
+					ps->kick_angles[i], lerp);
+		}
 	}
 
 	AngleVectors(cl.refdef.viewangles, cl.v_forward, cl.v_right, cl.v_up);

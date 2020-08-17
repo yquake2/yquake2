@@ -48,6 +48,7 @@ cvar_t *cl_add_particles;
 cvar_t *cl_add_lights;
 cvar_t *cl_add_entities;
 cvar_t *cl_add_blend;
+cvar_t *cl_anglekicks;
 
 cvar_t *cl_shownet;
 cvar_t *cl_showmiss;
@@ -492,6 +493,7 @@ CL_InitLocal(void)
 	cl_add_lights = Cvar_Get("cl_lights", "1", 0);
 	cl_add_particles = Cvar_Get("cl_particles", "1", 0);
 	cl_add_entities = Cvar_Get("cl_entities", "1", 0);
+	cl_anglekicks = Cvar_Get("cl_anglekicks", "1", 0);
 	cl_gun = Cvar_Get("cl_gun", "2", CVAR_ARCHIVE);
 	cl_footsteps = Cvar_Get("cl_footsteps", "1", 0);
 	cl_noskins = Cvar_Get("cl_noskins", "0", 0);
@@ -659,6 +661,7 @@ cheatvar_t cheatvars[] = {
 	{"sw_draworder", "0"},
 	{"gl_lightmap", "0"},
 	{"gl_saturatelighting", "0"},
+	{"cl_anglekicks", "1"},
 	{NULL, NULL}
 };
 
