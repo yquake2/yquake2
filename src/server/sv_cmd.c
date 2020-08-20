@@ -310,6 +310,40 @@ SV_Map_f(void)
 }
 
 /*
+ * Lists available maps for user to load.
+ */
+SV_ListMaps_f(void)
+{
+	char **userMapNames;
+	int nUserMaps = 0;
+	int i;
+	char* mapName;
+
+	Com_Printf("\n");
+
+	if ((userMapNames = FS_ListFiles2("maps/*.bsp", &nUserMaps, 0, 0)) != 0)
+	{
+		for (i = 0; i < nUserMaps - 1; i++)
+		{
+			if (strrchr(userMapNames[i], '/'))
+			{
+				mapName = strrchr(userMapNames[i], '/') + 1;
+			}
+			else
+			{
+				mapName = userMapNames[i];
+			}
+
+			mapName = strtok(mapName, ".");
+
+			Com_Printf("%s\n", mapName);
+		}
+
+		FS_FreeList(userMapNames, nUserMaps);
+	}
+}
+
+/*
  * Kick a user off of the server
  */
 void
@@ -654,6 +688,7 @@ SV_InitOperatorCommands(void)
 	Cmd_AddCommand("dumpuser", SV_DumpUser_f);
 
 	Cmd_AddCommand("map", SV_Map_f);
+	Cmd_AddCommand("listmaps", SV_ListMaps_f);
 	Cmd_AddCommand("demomap", SV_DemoMap_f);
 	Cmd_AddCommand("gamemap", SV_GameMap_f);
 	Cmd_AddCommand("setmaster", SV_SetMaster_f);
