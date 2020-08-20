@@ -364,26 +364,26 @@ level.
 # ----------------------------
 
 # These are for the GOG.com release only.
-/music/02.ogg
-/music/03.ogg
-/music/04.ogg
-/music/05.ogg
-/music/06.ogg
-/music/07.ogg
-/music/08.ogg
-/music/09.ogg
-/music/10.ogg
-/music/11.ogg
-/music/12.ogg
-/music/13.ogg
-/music/14.ogg
-/music/15.ogg
-/music/16.ogg
-/music/17.ogg
-/music/18.ogg
-/music/19.ogg
-/music/20.ogg
-/music/21.ogg
+/music/Track02.ogg
+/music/Track03.ogg
+/music/Track04.ogg
+/music/Track05.ogg
+/music/Track06.ogg
+/music/Track07.ogg
+/music/Track08.ogg
+/music/Track09.ogg
+/music/Track10.ogg
+/music/Track11.ogg
+/music/Track12.ogg
+/music/Track13.ogg
+/music/Track14.ogg
+/music/Track15.ogg
+/music/Track16.ogg
+/music/Track17.ogg
+/music/Track18.ogg
+/music/Track19.ogg
+/music/Track20.ogg
+/music/Track21.ogg
 
 ```
 
