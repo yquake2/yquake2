@@ -145,7 +145,7 @@ Qcommon_Mainloop(void)
 				asm("yield");
 #endif
 
-				if (Sys_Microseconds() - spintime >= 5000)
+				if (Sys_Microseconds() - spintime >= 5)
 				{
 					break;
 				}
