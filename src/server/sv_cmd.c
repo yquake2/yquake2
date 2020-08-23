@@ -312,7 +312,7 @@ SV_Map_f(void)
 /*
  * Lists available maps for user to load.
  */
-SV_ListMaps_f(void)
+void SV_ListMaps_f(void)
 {
 	char **userMapNames;
 	int nUserMaps = 0;
