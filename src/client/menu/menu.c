@@ -2836,8 +2836,8 @@ M_Menu_JoinServer_f(void)
  */
 
 static menuframework_s s_startserver_menu;
-static char **mapnames = NULL;
-static int nummaps = 0;
+char **mapnames = NULL;
+static int nummaps;
 
 static menuaction_s s_startserver_start_action;
 static menuaction_s s_startserver_dmoptions_action;
@@ -2997,10 +2997,13 @@ StartServer_MenuInit(void)
     char *s;
     float scale = SCR_GetMenuScale();
 
-    /* initialize list of maps once, reuse it afterwards (=> it isn't freed) */
+    /* initialize list of maps once, reuse it afterwards (=> it isn't freed unless the game dir is changed) */
     if (mapnames == NULL)
     {
         int i, length;
+
+        nummaps = 0;
+        s_startmap_list.curvalue = 0;
 
         /* load the list of map names */
         if ((length = FS_LoadFile("maps.lst", (void **)&buffer)) == -1)
