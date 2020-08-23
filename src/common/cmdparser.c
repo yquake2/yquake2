@@ -50,7 +50,7 @@ typedef struct cmdalias_s
 char retval[256];
 int alias_count; /* for detecting runaway loops */
 cmdalias_t *cmd_alias;
-qboolean cmd_wait;
+int cmd_wait;
 static int cmd_argc;
 static int cmd_argc;
 static char *cmd_argv[MAX_STRING_TOKENS];
@@ -68,7 +68,7 @@ char defer_text_buf[32768];
 void
 Cmd_Wait_f(void)
 {
-	cmd_wait = true;
+	cmd_wait = Sys_Milliseconds();
 }
 
 void
@@ -173,6 +173,17 @@ Cbuf_Execute(void)
 	char line[1024];
 	int quotes;
 
+	if(cmd_wait > 0)
+	{
+		// make sure that "wait" in scripts waits for ~16.66ms (1 frame at 60fps)
+		// regardless of framerate
+		if (Sys_Milliseconds() - cmd_wait <= 16)
+		{
+			return;
+		}
+		cmd_wait = 0;
+	}
+
 	alias_count = 0; /* don't allow infinite alias loops */
 
 	while (cmd_text.cursize)
@@ -228,11 +239,10 @@ Cbuf_Execute(void)
 		/* execute the command line */
 		Cmd_ExecuteString(line);
 
-		if (cmd_wait)
+		if (cmd_wait > 0)
 		{
 			/* skip out while text still remains in buffer,
-			   leaving it for next frame */
-			cmd_wait = false;
+			   leaving it for after we're done waiting */
 			break;
 		}
 	}
