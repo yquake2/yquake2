@@ -50,6 +50,7 @@ static void M_Menu_SaveGame_f(void);
 static void M_Menu_PlayerConfig_f(void);
 static void M_Menu_DownloadOptions_f(void);
 static void M_Menu_Credits_f(void);
+static void M_Menu_Mods_f(void);
 static void M_Menu_Multiplayer_f(void);
 static void M_Menu_JoinServer_f(void);
 static void M_Menu_AddressBook_f(void);
@@ -84,7 +85,8 @@ M_IsGame(const char *gamename)
 {
 	cvar_t *game = Cvar_Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
 
-	if (strcmp(game->string, gamename) == 0)
+	if (strcmp(game->string, gamename) == 0
+		|| (strcmp(gamename, BASEDIRNAME) == 0 && strcmp(game->string, "") == 0))
 	{
 		return true;
 	}
@@ -1956,6 +1958,140 @@ M_Menu_Credits_f(void)
 }
 
 /*
+ * MODS MENU
+ */
+
+static menuframework_s s_mods_menu;
+static menulist_s s_mods_list;
+static menuaction_s s_mods_apply_action;
+static char mods_statusbar[64];
+
+static char **modnames = NULL;
+static int nummods;
+
+static void
+Mods_NamesInit(void)
+{
+    /* initialize list of mods once, reuse it afterwards (=> it isn't freed) */
+    if (modnames == NULL)
+    {
+        modnames = FS_ListMods(&nummods);
+    }
+}
+
+static void
+ModsListFunc(void *unused)
+{
+    if (strcmp(BASEDIRNAME, modnames[s_mods_list.curvalue]) == 0)
+    {
+        strcpy(mods_statusbar, "Quake II");
+    }
+    else if (strcmp("ctf", modnames[s_mods_list.curvalue]) == 0)
+    {
+        strcpy(mods_statusbar, "Quake II Capture The Flag");
+    }
+    else if (strcmp("rogue", modnames[s_mods_list.curvalue]) == 0)
+    {
+        strcpy(mods_statusbar, "Quake II Mission Pack: Ground Zero");
+    }
+    else if (strcmp("xatrix", modnames[s_mods_list.curvalue]) == 0)
+    {
+        strcpy(mods_statusbar, "Quake II Mission Pack: The Reckoning");
+    }
+    else
+    {
+        strcpy(mods_statusbar, "\0");
+    }
+}
+
+static void
+ModsApplyActionFunc(void *unused)
+{
+    if (!M_IsGame(modnames[s_mods_list.curvalue]))
+    {
+        if(Com_ServerState())
+        {
+            // equivalent to "killserver" cmd, but avoids cvar latching below
+            SV_Shutdown("Server is changing games.\n", false);
+            NET_Config(false);
+        }
+
+        // called via command buffer so that any running server has time to shutdown
+        Cbuf_AddText(va("game %s\n", modnames[s_mods_list.curvalue]));
+
+        // start the demo cycle in the new game directory
+        Cbuf_AddText("d1\n");
+
+        M_ForceMenuOff();
+    }
+}
+
+static void
+Mods_MenuInit(void)
+{
+    int currentmod;
+
+    Mods_NamesInit();
+
+    // pre-select the current mod for display in the list
+    for (currentmod = 0; currentmod < nummods; currentmod++)
+    {
+        if (M_IsGame(modnames[currentmod]))
+        {
+            break;
+        }
+    }
+
+    s_mods_menu.x = (int)(viddef.width * 0.50f);
+    s_mods_menu.nitems = 0;
+
+    s_mods_list.generic.type = MTYPE_SPINCONTROL;
+    s_mods_list.generic.name = "mod";
+    s_mods_list.generic.x = 0;
+    s_mods_list.generic.y = 0;
+    s_mods_list.generic.callback = ModsListFunc;
+    s_mods_list.itemnames = (const char **)modnames;
+    s_mods_list.curvalue = currentmod < nummods ? currentmod : 0;
+
+    s_mods_apply_action.generic.type = MTYPE_ACTION;
+    s_mods_apply_action.generic.flags = QMF_LEFT_JUSTIFY;
+    s_mods_apply_action.generic.name = " apply";
+    s_mods_apply_action.generic.x = 49;
+    s_mods_apply_action.generic.y = 20;
+    s_mods_apply_action.generic.callback = ModsApplyActionFunc;
+
+    Menu_AddItem(&s_mods_menu, (void *)&s_mods_list);
+    Menu_AddItem(&s_mods_menu, (void *)&s_mods_apply_action);
+
+    Menu_Center(&s_mods_menu);
+
+    /* set the original mods statusbar */
+    ModsListFunc(0);
+    Menu_SetStatusBar(&s_mods_menu, mods_statusbar);
+}
+
+static void
+Mods_MenuDraw(void)
+{
+    Menu_AdjustCursor(&s_mods_menu, 1);
+    Menu_Draw(&s_mods_menu);
+    M_Popup();
+}
+
+static const char *
+Mods_MenuKey(int key)
+{
+    return Default_MenuKey(&s_mods_menu, key);
+}
+
+static void
+M_Menu_Mods_f(void)
+{
+    Mods_MenuInit();
+    M_PushMenu(Mods_MenuDraw, Mods_MenuKey);
+}
+
+/*
  * GAME MENU
  */
 
@@ -1969,6 +2105,7 @@ static menuaction_s s_hardp_game_action;
 static menuaction_s s_load_game_action;
 static menuaction_s s_save_game_action;
 static menuaction_s s_credits_action;
+static menuaction_s s_mods_action;
 static menuseparator_s s_blankline;
 
 static void
@@ -2035,9 +2172,17 @@ CreditsFunc(void *unused)
     M_Menu_Credits_f();
 }
 
+static void
+ModsFunc(void *unused)
+{
+    M_Menu_Mods_f();
+}
+
 void
 Game_MenuInit(void)
 {
+    Mods_NamesInit();
+
     s_game_menu.x = (int)(viddef.width * 0.50f);
     s_game_menu.nitems = 0;
 
@@ -2099,8 +2244,20 @@ Game_MenuInit(void)
     Menu_AddItem(&s_game_menu, (void *)&s_blankline);
     Menu_AddItem(&s_game_menu, (void *)&s_load_game_action);
     Menu_AddItem(&s_game_menu, (void *)&s_save_game_action);
-    Menu_AddItem(&s_game_menu, (void *)&s_blankline);
     Menu_AddItem(&s_game_menu, (void *)&s_credits_action);
+
+    if(nummods > 1)
+    {
+        s_mods_action.generic.type = MTYPE_ACTION;
+        s_mods_action.generic.flags = QMF_LEFT_JUSTIFY;
+        s_mods_action.generic.x = 0;
+        s_mods_action.generic.y = 90;
+        s_mods_action.generic.name = "mods";
+        s_mods_action.generic.callback = ModsFunc;
+
+        Menu_AddItem(&s_game_menu, (void *)&s_blankline);
+        Menu_AddItem(&s_game_menu, (void *)&s_mods_action);
+    }
 
     Menu_Center(&s_game_menu);
 }
@@ -2837,7 +2994,7 @@ M_Menu_JoinServer_f(void)
 
 static menuframework_s s_startserver_menu;
 char **mapnames = NULL;
-static int nummaps;
+int nummaps;
 
 static menuaction_s s_startserver_start_action;
 static menuaction_s s_startserver_dmoptions_action;
@@ -4593,6 +4750,7 @@ M_Init(void)
     Cmd_AddCommand("menu_playerconfig", M_Menu_PlayerConfig_f);
     Cmd_AddCommand("menu_downloadoptions", M_Menu_DownloadOptions_f);
     Cmd_AddCommand("menu_credits", M_Menu_Credits_f);
+    Cmd_AddCommand("menu_mods", M_Menu_Mods_f);
     Cmd_AddCommand("menu_multiplayer", M_Menu_Multiplayer_f);
     Cmd_AddCommand("menu_video", M_Menu_Video_f);
     Cmd_AddCommand("menu_options", M_Menu_Options_f);
