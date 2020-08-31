@@ -59,6 +59,7 @@ Hunk_Begin(int maxsize)
 	maxhunksize = maxsize + sizeof(size_t) + 32;
 	curhunksize = 0;
 	int flags = MAP_PRIVATE | MAP_ANONYMOUS;
+	int prot = PROT_READ | PROT_WRITE;
 
 #if defined(MAP_ALIGNED_SUPER)
 	const size_t hgpagesize = 1UL<<21;
@@ -72,7 +73,13 @@ Hunk_Begin(int maxsize)
 	}
 #endif
 
-	membase = mmap(0, maxhunksize, PROT_READ | PROT_WRITE,
+#if defined(PROT_MAX)
+	/* For now it is FreeBSD exclusif but could possibly be extended
+	   to other like DFBSD for example */
+	prot = PROT_MAX(prot);
+#endif
+
+	membase = mmap(0, maxhunksize, prot,
 			flags, -1, 0);
 
 	if ((membase == NULL) || (membase == (byte *)-1))
