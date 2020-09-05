@@ -46,7 +46,7 @@
 #endif
 
 #ifdef __HAIKU__
-#include <kernel/image.h>
+#include <FindDirectory.h>
 #endif
 
 #ifndef PATH_MAX
@@ -123,20 +123,9 @@ static void SetExecutablePath(char* exePath)
 	// TODO: realpath() ?
 	// TODO: no idea what this is if the executable is in an app bundle
 #elif defined(__HAIKU__)
-	image_info ii;
-	int32_t id = 0;
-
-	exePath[0] = '\0';
-
-	for (; get_next_image_info(0, &id, &ii) == B_OK;)
+	if (find_path(B_APP_IMAGE_SYMBOL, B_FIND_PATH_IMAGE_PATH, NULL, exePath, PATH_MAX) != B_OK)
 	{
-		if (ii.type == B_APP_IMAGE)
-			break;
-	}
-
-	if (ii.type == B_APP_IMAGE)
-	{
-		Q_strlcpy(exePath, ii.name, PATH_MAX);
+		exePath[0] = '\0';
 	}
 
 #else
