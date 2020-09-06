@@ -371,6 +371,8 @@ qboolean Cmd_Exists(char *cmd_name);
 
 char *Cmd_CompleteCommand(char *partial);
 
+char *Cmd_CompleteMapCommand(char *partial);
+
 /* attempts to match a partial command for automatic command line completion */
 /* returns NULL if nothing fits */
 

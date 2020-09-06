@@ -888,6 +888,89 @@ Cmd_CompleteCommand(char *partial)
 	return NULL;
 }
 
+char *
+Cmd_CompleteMapCommand(char *partial)
+{
+	char **mapNames;
+	int i, j, k, nbMatches, len, nMaps;
+	char *mapName;
+	char *pmatch[1024];
+	qboolean partialFillContinue = true;
+
+	if ((mapNames = FS_ListFiles2("maps/*.bsp", &nMaps, 0, 0)) != 0)
+	{
+		len = strlen(partial);
+		nbMatches = 0;
+		memset(retval, 0, strlen(retval));
+
+		for (i = 0; i < nMaps - 1; i++)
+		{
+			if (strrchr(mapNames[i], '/'))
+			{
+				mapName = strrchr(mapNames[i], '/') + 1;
+			}
+			else
+			{
+				mapName = mapNames[i];
+			}
+
+			mapName = strtok(mapName, ".");
+
+			/* check for exact match */
+			if (!strcmp(partial, mapName))
+			{
+				strcpy(retval, partial);
+			}
+			/* check for partial match */
+			else if (!strncmp(partial, mapName, len))
+			{
+				pmatch[nbMatches] = mapName;
+				nbMatches++;
+			}
+		}
+
+		if (nbMatches == 1)
+		{
+			strcpy(retval, pmatch[0]);
+		}
+		else if (nbMatches > 1)
+		{
+			Com_Printf("\n=================\n\n");
+
+			for (j = 0; j < nbMatches; j++)
+			{
+				Com_Printf("%s\n", pmatch[j]);
+			}
+
+			//partial complete
+			for (j = 0; j < strlen(pmatch[0]); j++)
+			{
+				for (k = 1; k < nbMatches; k++)
+				{
+					if (j >= strlen(pmatch[k]) || pmatch[0][j] != pmatch[k][j])
+					{
+						partialFillContinue = false;
+						break;
+					}
+				}
+
+				if (partialFillContinue)
+				{
+					retval[j] = pmatch[0][j];
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		FS_FreeList(mapNames, nMaps);
+	}
+
+	return retval;
+}
+
 qboolean
 Cmd_IsComplete(char *command)
 {
