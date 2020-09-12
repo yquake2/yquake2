@@ -1283,8 +1283,6 @@ qboolean R_SetMode (void)
 	return true;
 }
 
-static SDL_Window	*window = NULL;
-
 /*
 ===============
 R_Init
@@ -1333,8 +1331,6 @@ static void R_ShutdownContext( void )
 
 	// Shutdown Vulkan subsystem
 	QVk_Shutdown();
-
-	window = NULL;
 }
 
 /*
@@ -1561,13 +1557,13 @@ R_InitContext(void *win)
 {
 	char title[40] = {0};
 
-	if(win == NULL)
+	SDL_Window *window = (SDL_Window *)win;
+
+	if(window == NULL)
 	{
 		R_Printf(PRINT_ALL, "%s() must not be called with NULL argument!", __func__);
 		return false;
 	}
-
-	window = (SDL_Window *)win;
 
 	/* Window title - set here so we can display renderer name in it */
 	snprintf(title, sizeof(title), "Yamagi Quake II %s - Vulkan Render", YQ2VERSION);
@@ -1583,7 +1579,7 @@ R_InitContext(void *win)
 	return true;
 }
 
-qboolean Vkimp_CreateSurface()
+qboolean Vkimp_CreateSurface(SDL_Window *window)
 {
 	if (!SDL_Vulkan_CreateSurface(window, vk_instance, &vk_surface))
 	{
