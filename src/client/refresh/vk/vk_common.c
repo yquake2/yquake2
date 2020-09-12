@@ -1724,7 +1724,7 @@ qboolean QVk_Init(SDL_Window *window)
 	if (vk_validation->value)
 		QVk_CreateValidationLayers();
 
-	if (!Vkimp_CreateSurface())
+	if (!Vkimp_CreateSurface(window))
 	{
 		return false;
 	}
