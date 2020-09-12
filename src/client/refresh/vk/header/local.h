@@ -323,6 +323,6 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 ====================================================================
 */
 
-qboolean	Vkimp_CreateSurface(void);
+qboolean Vkimp_CreateSurface(SDL_Window *window);
 
 #endif
