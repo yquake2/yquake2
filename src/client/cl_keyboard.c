@@ -325,8 +325,48 @@ CompleteCommand(void)
 		{
 			key_lines[edit_line][key_linepos] = 0;
 		}
+	}
 
-		return;
+	return;
+}
+
+void
+CompleteMapNameCommand(void)
+{
+	int i;
+	char *s, *t, *cmdArg;
+	const char *mapCmdString = "map ";
+
+	s = key_lines[edit_line] + 1;
+
+	if ((*s == '\\') || (*s == '/'))
+	{
+		s++;
+	}
+
+	t = s;
+
+	for (i = 0; i < strlen(mapCmdString); i++)
+	{
+		if (t[i] == mapCmdString[i])
+		{
+			s++;
+		}
+		else
+		{
+			return;
+		}
+	}
+
+	cmdArg = Cmd_CompleteMapCommand(s);
+
+	if (cmdArg)
+	{
+		key_lines[edit_line][1] = '/';
+		strcpy(key_lines[edit_line] + 2, mapCmdString);
+		key_linepos = strlen(key_lines[edit_line]);
+		strcpy(key_lines[edit_line] + key_linepos, cmdArg);
+		key_linepos = key_linepos + strlen(cmdArg);
 	}
 }
 
@@ -407,6 +447,8 @@ Key_Console(int key)
 	{
 		/* command completion */
 		CompleteCommand();
+		CompleteMapNameCommand();
+
 		return;
 	}
 
