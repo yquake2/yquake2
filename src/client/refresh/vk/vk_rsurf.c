@@ -685,7 +685,7 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 R_DrawInlineBModel
 =================
 */
-static void R_DrawInlineBModel (float *modelMatrix)
+static void R_DrawInlineBModel (float *modelMatrix, model_t *currentmodel)
 {
 	int			i;
 	msurface_t	*psurf;
@@ -750,7 +750,7 @@ static void R_DrawInlineBModel (float *modelMatrix)
 R_DrawBrushModel
 =================
 */
-void R_DrawBrushModel (entity_t *e)
+void R_DrawBrushModel (entity_t *e, model_t *currentmodel)
 {
 	vec3_t		mins, maxs;
 	qboolean	rotated;
@@ -804,7 +804,7 @@ void R_DrawBrushModel (entity_t *e)
 	e->angles[0] = -e->angles[0];	// stupid quake bug
 	e->angles[2] = -e->angles[2];	// stupid quake bug
 
-	R_DrawInlineBModel(model);
+	R_DrawInlineBModel(model, currentmodel);
 }
 
 /*
@@ -955,8 +955,6 @@ void R_DrawWorld (void)
 
 	if ( r_newrefdef.rdflags & RDF_NOWORLDMODEL )
 		return;
-
-	currentmodel = r_worldmodel;
 
 	VectorCopy (r_newrefdef.vieworg, modelorg);
 
@@ -1159,7 +1157,7 @@ static qboolean LM_AllocBlock (int w, int h, int *x, int *y)
 Vk_BuildPolygonFromSurface
 ================
 */
-void Vk_BuildPolygonFromSurface(msurface_t *fa)
+void Vk_BuildPolygonFromSurface(msurface_t *fa, model_t *currentmodel)
 {
 	int			i, lnumverts;
 	medge_t		*pedges, *r_pedge;
