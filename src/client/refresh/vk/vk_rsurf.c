@@ -76,7 +76,7 @@ R_TextureAnimation
 Returns the proper texture for a given time and base texture
 ===============
 */
-static image_t *R_TextureAnimation (mtexinfo_t *tex)
+static image_t *R_TextureAnimation (mtexinfo_t *tex, entity_t *currententity)
 {
 	int		c;
 
@@ -280,7 +280,7 @@ static void R_DrawTriangleOutlines (void)
 R_RenderBrushPoly
 ================
 */
-static void R_RenderBrushPoly (msurface_t *fa, float *modelMatrix, float alpha)
+static void R_RenderBrushPoly (msurface_t *fa, float *modelMatrix, float alpha, entity_t *currententity)
 {
 	int			maps;
 	image_t		*image;
@@ -288,7 +288,7 @@ static void R_RenderBrushPoly (msurface_t *fa, float *modelMatrix, float alpha)
 	float		color[4] = { 1.f, 1.f, 1.f, alpha };
 	c_brush_polys++;
 
-	image = R_TextureAnimation(fa->texinfo);
+	image = R_TextureAnimation(fa->texinfo, currententity);
 
 	if (fa->flags & SURF_DRAWTURB)
 	{
@@ -405,7 +405,7 @@ void R_DrawAlphaSurfaces (void)
 DrawTextureChains
 ================
 */
-static void DrawTextureChains (void)
+static void DrawTextureChains (entity_t *currententity)
 {
 	int		i;
 	msurface_t	*s;
@@ -424,7 +424,7 @@ static void DrawTextureChains (void)
 		for (s = image->texturechain; s; s = s->texturechain)
 		{
 			if (!(s->flags & SURF_DRAWTURB))
-				R_RenderBrushPoly(s, NULL, 1.f);
+				R_RenderBrushPoly(s, NULL, 1.f, currententity);
 		}
 	}
 
@@ -439,7 +439,7 @@ static void DrawTextureChains (void)
 		for (; s; s = s->texturechain)
 		{
 			if (s->flags & SURF_DRAWTURB)
-				R_RenderBrushPoly(s, NULL, 1.f);
+				R_RenderBrushPoly(s, NULL, 1.f, currententity);
 		}
 
 		image->texturechain = NULL;
@@ -447,12 +447,12 @@ static void DrawTextureChains (void)
 }
 
 
-static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, float alpha )
+static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, float alpha, entity_t *currententity )
 {
 	int		i, nv = surf->polys->numverts;
 	int		map;
 	float	*v;
-	image_t *image = R_TextureAnimation(surf->texinfo);
+	image_t *image = R_TextureAnimation(surf->texinfo, currententity);
 	qboolean is_dynamic = false;
 	unsigned lmtex = surf->lightmaptexturenum;
 	vkpoly_t *p;
@@ -685,7 +685,7 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 R_DrawInlineBModel
 =================
 */
-static void R_DrawInlineBModel (float *modelMatrix, model_t *currentmodel)
+static void R_DrawInlineBModel (float *modelMatrix, model_t *currentmodel, entity_t *currententity)
 {
 	int			i;
 	msurface_t	*psurf;
@@ -735,11 +735,11 @@ static void R_DrawInlineBModel (float *modelMatrix, model_t *currentmodel)
 			}
 			else if (!(psurf->flags & SURF_DRAWTURB) && !vk_showtris->value)
 			{
-				Vk_RenderLightmappedPoly(psurf, modelMatrix, alpha);
+				Vk_RenderLightmappedPoly(psurf, modelMatrix, alpha, currententity);
 			}
 			else
 			{
-				R_RenderBrushPoly(psurf, modelMatrix, alpha);
+				R_RenderBrushPoly(psurf, modelMatrix, alpha, currententity);
 			}
 		}
 	}
@@ -757,8 +757,6 @@ void R_DrawBrushModel (entity_t *e, model_t *currentmodel)
 
 	if (currentmodel->nummodelsurfaces == 0)
 		return;
-
-	currententity = e;
 
 	if (e->angles[0] || e->angles[1] || e->angles[2])
 	{
@@ -804,7 +802,7 @@ void R_DrawBrushModel (entity_t *e, model_t *currentmodel)
 	e->angles[0] = -e->angles[0];	// stupid quake bug
 	e->angles[2] = -e->angles[2];	// stupid quake bug
 
-	R_DrawInlineBModel(model, currentmodel);
+	R_DrawInlineBModel(model, currentmodel, e);
 }
 
 /*
@@ -820,7 +818,7 @@ void R_DrawBrushModel (entity_t *e, model_t *currentmodel)
 R_RecursiveWorldNode
 ================
 */
-static void R_RecursiveWorldNode (mnode_t *node)
+static void R_RecursiveWorldNode (mnode_t *node, entity_t *currententity)
 {
 	int			c, side, sidebit;
 	cplane_t	*plane;
@@ -898,7 +896,7 @@ static void R_RecursiveWorldNode (mnode_t *node)
 	}
 
 	// recurse down the children, front side first
-	R_RecursiveWorldNode (node->children[side]);
+	R_RecursiveWorldNode (node->children[side], currententity);
 
 	// draw stuff
 	for ( c = node->numsurfaces, surf = r_worldmodel->surfaces + node->firstsurface; c ; c--, surf++)
@@ -922,14 +920,14 @@ static void R_RecursiveWorldNode (mnode_t *node)
 		{
 			if (!(surf->flags & SURF_DRAWTURB) && !vk_showtris->value)
 			{
-				Vk_RenderLightmappedPoly(surf, NULL, 1.f);
+				Vk_RenderLightmappedPoly(surf, NULL, 1.f, currententity);
 			}
 			else
 			{
 				// the polygon is visible, so add it to the texture
 				// sorted chain
 				// FIXME: this is a hack for animation
-				image = R_TextureAnimation(surf->texinfo);
+				image = R_TextureAnimation(surf->texinfo, currententity);
 				surf->texturechain = image->texturechain;
 				image->texturechain = surf;
 			}
@@ -937,7 +935,7 @@ static void R_RecursiveWorldNode (mnode_t *node)
 	}
 
 	// recurse down the back side
-	R_RecursiveWorldNode (node->children[!side]);
+	R_RecursiveWorldNode (node->children[!side], currententity);
 }
 
 
@@ -961,18 +959,17 @@ void R_DrawWorld (void)
 	// auto cycle the world frame for texture animation
 	memset (&ent, 0, sizeof(ent));
 	ent.frame = (int)(r_newrefdef.time*2);
-	currententity = &ent;
 
 	memset (vk_lms.lightmap_surfaces, 0, sizeof(vk_lms.lightmap_surfaces));
 	R_ClearSkyBox ();
 
-	R_RecursiveWorldNode (r_worldmodel->nodes);
+	R_RecursiveWorldNode (r_worldmodel->nodes, &ent);
 
 	/*
 	** theoretically nothing should happen in the next two functions
 	** if multitexture is enabled - in practice, this code renders non-transparent liquids!
 	*/
-	DrawTextureChains ();
+	DrawTextureChains (&ent);
 
 	R_DrawSkyBox ();
 
