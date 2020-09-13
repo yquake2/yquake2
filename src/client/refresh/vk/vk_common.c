@@ -81,7 +81,7 @@ qvkrenderpass_t vk_renderpasses[RP_COUNT] = {
 };
 
 // Vulkan pools
-VkCommandPool vk_commandPool = VK_NULL_HANDLE;
+VkCommandPool vk_commandPool[NUM_CMDBUFFERS] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
 VkCommandPool vk_transferCommandPool = VK_NULL_HANDLE;
 VkDescriptorPool vk_descriptorPool = VK_NULL_HANDLE;
 static VkCommandPool vk_stagingCommandPool = VK_NULL_HANDLE;
@@ -103,7 +103,6 @@ qvktexture_t vk_msaaColorbuffer = QVVKTEXTURE_INIT;
 VkViewport vk_viewport = { .0f, .0f, .0f, .0f, .0f, .0f };
 VkRect2D vk_scissor = { { 0, 0 }, { 0, 0 } };
 
-#define NUM_CMDBUFFERS 2
 // Vulkan command buffers
 VkCommandBuffer *vk_commandbuffers = NULL;
 // command buffer double buffering fences
@@ -1511,14 +1510,21 @@ void QVk_Shutdown( void )
 				vkDestroyRenderPass(vk_device.logical, vk_renderpasses[i].rp, NULL);
 			vk_renderpasses[i].rp = VK_NULL_HANDLE;
 		}
-		if (vk_commandbuffers)
+
+		for (int i = 0; i < NUM_CMDBUFFERS; i++)
 		{
-			vkFreeCommandBuffers(vk_device.logical, vk_commandPool, NUM_CMDBUFFERS, vk_commandbuffers);
+			if (vk_commandPool[i] != VK_NULL_HANDLE)
+			{
+				vkFreeCommandBuffers(vk_device.logical, vk_commandPool[i], 1, &vk_commandbuffers[i]);
+				vkDestroyCommandPool(vk_device.logical, vk_commandPool[i], NULL);
+				vk_commandPool[i] = VK_NULL_HANDLE;
+			}
+		}
+		if (vk_commandbuffers != NULL)
+		{
 			free(vk_commandbuffers);
 			vk_commandbuffers = NULL;
 		}
-		if (vk_commandPool != VK_NULL_HANDLE)
-			vkDestroyCommandPool(vk_device.logical, vk_commandPool, NULL);
 		if (vk_transferCommandPool != VK_NULL_HANDLE)
 			vkDestroyCommandPool(vk_device.logical, vk_transferCommandPool, NULL);
 		if (vk_stagingCommandPool != VK_NULL_HANDLE)
@@ -1557,7 +1563,6 @@ void QVk_Shutdown( void )
 		vk_uboDescSetLayout = VK_NULL_HANDLE;
 		vk_samplerDescSetLayout = VK_NULL_HANDLE;
 		vk_samplerLightmapDescSetLayout = VK_NULL_HANDLE;
-		vk_commandPool = VK_NULL_HANDLE;
 		vk_transferCommandPool = VK_NULL_HANDLE;
 		vk_stagingCommandPool = VK_NULL_HANDLE;
 		vk_activeBufferIdx = 0;
@@ -1812,12 +1817,18 @@ qboolean QVk_Init(SDL_Window *window)
 	R_Printf(PRINT_ALL, "...created %d Vulkan render passes\n", RP_COUNT);
 
 	// setup command pools
-	res = QVk_CreateCommandPool(&vk_commandPool, vk_device.gfxFamilyIndex);
-	if (res != VK_SUCCESS)
+	for (int i = 0; i < NUM_CMDBUFFERS; i++)
 	{
-		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan command pool for graphics: %s\n", __func__, QVk_GetError(res));
-		return false;
+		res = QVk_CreateCommandPool(&vk_commandPool[i], vk_device.gfxFamilyIndex);
+		if (res != VK_SUCCESS)
+		{
+			R_Printf(PRINT_ALL, "%s(): Could not create Vulkan command pool #%d for graphics: %s\n", __func__, i, QVk_GetError(res));
+			return false;
+		}
+		QVk_DebugSetObjectName((uint64_t)vk_commandPool[i],
+			VK_OBJECT_TYPE_COMMAND_POOL, va("Command Pool #%d: Graphics", i));
 	}
+
 	res = QVk_CreateCommandPool(&vk_transferCommandPool, vk_device.transferFamilyIndex);
 	if (res != VK_SUCCESS)
 	{
@@ -1825,8 +1836,6 @@ qboolean QVk_Init(SDL_Window *window)
 		return false;
 	}
 
-	QVk_DebugSetObjectName((uint64_t)vk_commandPool,
-		VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Graphics");
 	QVk_DebugSetObjectName((uint64_t)vk_transferCommandPool,
 		VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Transfer");
 	R_Printf(PRINT_ALL, "...created Vulkan command pools\n");
@@ -1855,21 +1864,24 @@ qboolean QVk_Init(SDL_Window *window)
 	// setup command buffers (double buffering)
 	vk_commandbuffers = (VkCommandBuffer *)malloc(NUM_CMDBUFFERS * sizeof(VkCommandBuffer));
 
-	VkCommandBufferAllocateInfo cbInfo = {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-		.pNext = NULL,
-		.commandPool = vk_commandPool,
-		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-		.commandBufferCount = NUM_CMDBUFFERS
-	};
-
-	res = vkAllocateCommandBuffers(vk_device.logical, &cbInfo, vk_commandbuffers);
-	if (res != VK_SUCCESS)
+	for (int i = 0; i < NUM_CMDBUFFERS; i++)
 	{
-		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan commandbuffers: %s\n", __func__, QVk_GetError(res));
-		free(vk_commandbuffers);
-		vk_commandbuffers = NULL;
-		return false;
+		VkCommandBufferAllocateInfo cbInfo = {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+			.pNext = NULL,
+			.commandPool = vk_commandPool[i],
+			.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+			.commandBufferCount = 1
+		};
+
+		res = vkAllocateCommandBuffers(vk_device.logical, &cbInfo, &vk_commandbuffers[i]);
+		if (res != VK_SUCCESS)
+		{
+			R_Printf(PRINT_ALL, "%s(): Could not create Vulkan commandbuffers: %s\n", __func__, QVk_GetError(res));
+			free(vk_commandbuffers);
+			vk_commandbuffers = NULL;
+			return false;
+		}
 	}
 	R_Printf(PRINT_ALL, "...created %d Vulkan commandbuffers\n", NUM_CMDBUFFERS);
 
@@ -1957,6 +1969,10 @@ VkResult QVk_BeginFrame(const VkViewport* viewport, const VkRect2D* scissor)
 		.pInheritanceInfo = NULL
 	};
 
+	// Command buffers are implicitly reset by vkBeginCommandBuffer if VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT is set - this is expensive.
+	// It's more efficient to reset entire pool instead and it also fixes the VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT performance warning.
+	// see also: https://github.com/KhronosGroup/Vulkan-Samples/blob/master/samples/performance/command_buffer_usage/command_buffer_usage_tutorial.md
+	vkResetCommandPool(vk_device.logical, vk_commandPool[vk_activeBufferIdx], 0);
 	VK_VERIFY(vkBeginCommandBuffer(vk_commandbuffers[vk_activeBufferIdx], &beginInfo));
 
 	vkCmdSetViewport(vk_commandbuffers[vk_activeBufferIdx], 0, 1, viewport);
