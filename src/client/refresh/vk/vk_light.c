@@ -141,7 +141,7 @@ void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 		return;
 	}
 
-// mark the polygons
+	// mark the polygons
 	surf = r_worldmodel->surfaces + node->firstsurface;
 	for (i=0 ; i<node->numsurfaces ; i++, surf++)
 	{
@@ -294,7 +294,7 @@ static int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 R_LightPoint
 ===============
 */
-void R_LightPoint (vec3_t p, vec3_t color)
+void R_LightPoint (vec3_t p, vec3_t color, entity_t *currententity)
 {
 	vec3_t		end;
 	float		r;
