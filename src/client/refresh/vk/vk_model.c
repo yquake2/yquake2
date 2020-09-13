@@ -505,7 +505,7 @@ static void CalcSurfaceExtents (msurface_t *s)
 }
 
 
-void Vk_BuildPolygonFromSurface(msurface_t *fa);
+void Vk_BuildPolygonFromSurface(msurface_t *fa, model_t *currentmodel);
 void Vk_CreateSurfaceLightmap (msurface_t *surf);
 void Vk_EndBuildingLightmaps (void);
 void Vk_BeginBuildingLightmaps (model_t *m);
@@ -529,8 +529,6 @@ static void Mod_LoadFaces (lump_t *l)
 
 	loadmodel->surfaces = out;
 	loadmodel->numsurfaces = count;
-
-	currentmodel = loadmodel;
 
 	Vk_BeginBuildingLightmaps(loadmodel);
 
@@ -587,7 +585,7 @@ static void Mod_LoadFaces (lump_t *l)
 			Vk_CreateSurfaceLightmap(out);
 
 		if (!(out->texinfo->flags & SURF_WARP))
-			Vk_BuildPolygonFromSurface(out);
+			Vk_BuildPolygonFromSurface(out, loadmodel);
 
 	}
 
@@ -840,14 +838,13 @@ static void Mod_LoadBrushModel (model_t *mod, void *buffer)
 	if (i != BSPVERSION)
 		ri.Sys_Error (ERR_DROP, "%s: %s has wrong version number (%i should be %i)", __func__, mod->name, i, BSPVERSION);
 
-// swap all the lumps
+	// swap all the lumps
 	mod_base = (byte *)header;
 
 	for (i=0 ; i<sizeof(dheader_t)/4 ; i++)
 		((int *)header)[i] = LittleLong ( ((int *)header)[i]);
 
-// load into heap
-
+	// load into heap
 	Mod_LoadVertexes (&header->lumps[LUMP_VERTEXES]);
 	Mod_LoadEdges (&header->lumps[LUMP_EDGES]);
 	Mod_LoadSurfedges (&header->lumps[LUMP_SURFEDGES]);
