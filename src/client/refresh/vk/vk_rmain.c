@@ -40,8 +40,6 @@ image_t		*r_notexture;		// use for bad textures
 image_t		*r_particletexture;	// little dot for particles
 image_t		*r_squaretexture;	// rectangle for particles
 
-entity_t	*currententity;
-
 cplane_t	frustum[4];
 
 int			r_visframecount;	// bumped when going to a new PVS
@@ -245,7 +243,7 @@ void R_DrawSpriteModel (entity_t *e, model_t *currentmodel)
 R_DrawNullModel
 =============
 */
-void R_DrawNullModel (void)
+void R_DrawNullModel (entity_t *currententity)
 {
 	vec3_t	shadelight;
 	int		i,j;
@@ -253,7 +251,7 @@ void R_DrawNullModel (void)
 	if (currententity->flags & RF_FULLBRIGHT)
 		shadelight[0] = shadelight[1] = shadelight[2] = 1.0F;
 	else
-		R_LightPoint(currententity->origin, shadelight);
+		R_LightPoint(currententity->origin, shadelight, currententity);
 
 	float model[16];
 	Mat_Identity(model);
@@ -326,7 +324,7 @@ void R_DrawEntitiesOnList (void)
 	// draw non-transparent first
 	for (i = 0; i<r_newrefdef.num_entities; i++)
 	{
-		currententity = &r_newrefdef.entities[i];
+		entity_t	*currententity = &r_newrefdef.entities[i];
 		if (currententity->flags & RF_TRANSLUCENT)
 			continue;	// solid
 
@@ -339,7 +337,7 @@ void R_DrawEntitiesOnList (void)
 			model_t *currentmodel = currententity->model;
 			if (!currentmodel)
 			{
-				R_DrawNullModel();
+				R_DrawNullModel(currententity);
 				continue;
 			}
 			switch (currentmodel->type)
@@ -364,7 +362,7 @@ void R_DrawEntitiesOnList (void)
 	// we could sort these if it ever becomes a problem...
 	for (i = 0; i<r_newrefdef.num_entities; i++)
 	{
-		currententity = &r_newrefdef.entities[i];
+		entity_t	*currententity = &r_newrefdef.entities[i];
 		if (!(currententity->flags & RF_TRANSLUCENT))
 			continue;	// solid
 
@@ -378,7 +376,7 @@ void R_DrawEntitiesOnList (void)
 
 			if (!currentmodel)
 			{
-				R_DrawNullModel();
+				R_DrawNullModel(currententity);
 				continue;
 			}
 			switch (currentmodel->type)
@@ -1042,7 +1040,7 @@ R_SetLightLevel (void)
 
 	// save off light value for server to look at (BIG HACK!)
 
-	R_LightPoint(r_newrefdef.vieworg, shadelight);
+	R_LightPoint(r_newrefdef.vieworg, shadelight, NULL);
 
 	// pick the greatest component, which should be the same
 	// as the mono value returned by software
