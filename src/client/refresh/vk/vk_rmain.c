@@ -115,8 +115,7 @@ cvar_t	*vk_particle_att_b;
 cvar_t	*vk_particle_att_c;
 cvar_t	*vk_particle_min_size;
 cvar_t	*vk_particle_max_size;
-cvar_t	*vk_point_particles;
-cvar_t	*vk_particle_square;
+cvar_t	*vk_custom_particles;
 cvar_t	*vk_postprocess;
 cvar_t	*vk_dynamic;
 cvar_t	*vk_msaa;
@@ -406,7 +405,7 @@ void R_DrawEntitiesOnList (void)
 ** Vk_DrawParticles
 **
 */
-void Vk_DrawParticles(int num_particles, const particle_t particles[], const unsigned colortable[768], int particle_square)
+void Vk_DrawParticles(int num_particles, const particle_t particles[], const unsigned colortable[768])
 {
 	typedef struct {
 		float x,y,z,r,g,b,a,u,v;
@@ -498,7 +497,7 @@ void Vk_DrawParticles(int num_particles, const particle_t particles[], const uns
 	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
 		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
-	if (particle_square)
+	if (vk_custom_particles->value == 2)
 	{
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 								vk_drawParticlesPipeline.layout, 0, 1,
@@ -522,7 +521,7 @@ R_DrawParticles
 */
 void R_DrawParticles (void)
 {
-	if (vk_point_particles->value)
+	if (vk_custom_particles->value == 1)
 	{
 		int i;
 		unsigned char color[4];
@@ -588,7 +587,7 @@ void R_DrawParticles (void)
 	}
 	else
 	{
-		Vk_DrawParticles(r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table, vk_particle_square->value);
+		Vk_DrawParticles(r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table);
 	}
 }
 
@@ -1158,8 +1157,7 @@ R_Register( void )
 	vk_particle_att_c = ri.Cvar_Get("vk_particle_att_c", "0.01", CVAR_ARCHIVE);
 	vk_particle_min_size = ri.Cvar_Get("vk_particle_min_size", "2", CVAR_ARCHIVE);
 	vk_particle_max_size = ri.Cvar_Get("vk_particle_max_size", "40", CVAR_ARCHIVE);
-	vk_point_particles = ri.Cvar_Get("vk_point_particles", "1", CVAR_ARCHIVE);
-	vk_particle_square = ri.Cvar_Get("vk_particle_square", "1", CVAR_ARCHIVE);
+	vk_custom_particles = ri.Cvar_Get("vk_custom_particles", "1", CVAR_ARCHIVE);
 	vk_postprocess = ri.Cvar_Get("vk_postprocess", "1", CVAR_ARCHIVE);
 	vk_dynamic = ri.Cvar_Get("vk_dynamic", "1", 0);
 	vk_msaa = ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE);
