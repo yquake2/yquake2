@@ -457,6 +457,7 @@ void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 	BufferResource_t buff;
 	uint8_t *pMappedData;
 	VkCommandBuffer cmdBuffer;
+	extern int vk_activeBufferIdx;
 
 	VkBufferCreateInfo bcInfo = {
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -471,11 +472,10 @@ void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 
 	VK_VERIFY(buffer_create(&buff, bcInfo, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
 
-	cmdBuffer = QVk_CreateCommandBuffer(&vk_commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+	cmdBuffer = QVk_CreateCommandBuffer(&vk_commandPool[vk_activeBufferIdx], VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 	VK_VERIFY(QVk_BeginCommand(&cmdBuffer));
 
 	// transition the current swapchain image to be a source of data transfer to our buffer
-	extern int vk_activeBufferIdx;
 	VkImageMemoryBarrier imgBarrier = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
 		.pNext = NULL,
