@@ -327,7 +327,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **vk_validation**: Toggle validation layers:
   * `0` - disabled (default in Release)
   * `1` - only errors and warnings
-  * `2` - full validation (default in Debug)
+  * `2` - best-practices validation
 
 * **vk_strings**: Print some basic Vulkan/GPU information.
 
@@ -362,11 +362,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   start (default: `0`). Don't use this, it's there just for the sake of
   having a `gl_finish` equivalent!
 
-* **vk_particle_square**: If set to `1` particles are rendered as
-  squares.
-
-* **vk_point_particles**: Toggle between using POINT_LIST and textured
-  triangles for particle rendering. (default: `1`)
+* **vk_custom_particles**: Toggle particles type:
+  * `0` - textured triangles for particle rendering
+  * `1` - between using POINT_LIST (default)
+  * `2` - textured square for particle rendering
 
 * **vk_particle_size**: Rendered particle size. (default: `40`)
 
