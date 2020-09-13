@@ -62,7 +62,7 @@ static float r_vulkan_correction_dh[16] = { 1.f,  0.f, 0.f, 0.f,
 											0.f,  0.f, .3f, 1.f
 										  };
 
-static void Vk_LerpVerts( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, float *lerp, float move[3], float frontv[3], float backv[3] )
+static void Vk_LerpVerts( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, float *lerp, float move[3], float frontv[3], float backv[3], entity_t *currententity )
 {
 	int i;
 
@@ -98,7 +98,7 @@ interpolates between two frames and origins
 FIXME: batch lerp all vertexes
 =============
 */
-static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, float *modelMatrix, int leftHandOffset, int translucentIdx)
+static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, float *modelMatrix, int leftHandOffset, int translucentIdx, entity_t *currententity)
 {
 	float 	l;
 	daliasframe_t	*frame, *oldframe;
@@ -152,7 +152,7 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 
 	lerp = s_lerped[0];
 
-	Vk_LerpVerts( paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv );
+	Vk_LerpVerts( paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv, currententity );
 
 	enum {
 		TRIANGLE_STRIP = 0,
@@ -309,7 +309,7 @@ Vk_DrawAliasShadow
 */
 extern	vec3_t			lightspot;
 
-static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
+static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix, entity_t *currententity)
 {
 	int		*order;
 	vec3_t	point;
@@ -547,7 +547,7 @@ R_DrawAliasModel
 
 =================
 */
-void R_DrawAliasModel (entity_t *e, model_t *currentmodel)
+void R_DrawAliasModel (entity_t *currententity, model_t *currentmodel)
 {
 	int			i;
 	int			leftHandOffset = 0;
@@ -556,13 +556,13 @@ void R_DrawAliasModel (entity_t *e, model_t *currentmodel)
 	vec3_t		bbox[8];
 	float		prev_viewproj[16];
 
-	if ( !( e->flags & RF_WEAPONMODEL ) )
+	if ( !( currententity->flags & RF_WEAPONMODEL ) )
 	{
-		if ( R_CullAliasModel( bbox, e, currentmodel ) )
+		if ( R_CullAliasModel( bbox, currententity, currentmodel ) )
 			return;
 	}
 
-	if ( e->flags & RF_WEAPONMODEL )
+	if ( currententity->flags & RF_WEAPONMODEL )
 	{
 		if ( r_lefthand->value == 2 )
 			return;
@@ -604,7 +604,7 @@ void R_DrawAliasModel (entity_t *e, model_t *currentmodel)
 	}
 	else
 	{
-		R_LightPoint (currententity->origin, shadelight);
+		R_LightPoint (currententity->origin, shadelight, currententity);
 
 		// player lighting hack for communication back to server
 		// big hack!
@@ -658,16 +658,16 @@ void R_DrawAliasModel (entity_t *e, model_t *currentmodel)
 		}
 	}
 
-// =================
-// PGM	ir goggles color override
+	// =================
+	// PGM	ir goggles color override
 	if ( r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags & RF_IR_VISIBLE)
 	{
 		shadelight[0] = 1.0;
 		shadelight[1] = 0.0;
 		shadelight[2] = 0.0;
 	}
-// PGM
-// =================
+	// PGM
+	// =================
 
 	shadedots = r_avertexnormal_dots[((int)(currententity->angles[1] * (SHADEDOT_QUANT / 360.0))) & (SHADEDOT_QUANT - 1)];
 
@@ -705,14 +705,14 @@ void R_DrawAliasModel (entity_t *e, model_t *currentmodel)
 		leftHandOffset = 2;
 	}
 
-	e->angles[PITCH] = -e->angles[PITCH];	// sigh.
+	currententity->angles[PITCH] = -currententity->angles[PITCH];	// sigh.
 	{
 		float model[16];
 		image_t	*skin;
 		Mat_Identity(model);
-		R_RotateForEntity (e, model);
+		R_RotateForEntity (currententity, model);
 
-		e->angles[PITCH] = -e->angles[PITCH];	// sigh.
+		currententity->angles[PITCH] = -currententity->angles[PITCH];	// sigh.
 
 		// select skin
 		if (currententity->skin)
@@ -752,7 +752,7 @@ void R_DrawAliasModel (entity_t *e, model_t *currentmodel)
 
 		if ( !r_lerpmodels->value )
 			currententity->backlerp = 0;
-		Vk_DrawAliasFrameLerp (paliashdr, currententity->backlerp, skin, model, leftHandOffset, (currententity->flags & RF_TRANSLUCENT) ? 1 : 0);
+		Vk_DrawAliasFrameLerp (paliashdr, currententity->backlerp, skin, model, leftHandOffset, (currententity->flags & RF_TRANSLUCENT) ? 1 : 0, currententity);
 	}
 
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
@@ -771,7 +771,7 @@ void R_DrawAliasModel (entity_t *e, model_t *currentmodel)
 	{
 		float model[16];
 		Mat_Identity(model);
-		R_RotateForEntity(e, model);
-		Vk_DrawAliasShadow (paliashdr, currententity->frame, model);
+		R_RotateForEntity(currententity, model);
+		Vk_DrawAliasShadow (paliashdr, currententity->frame, model, currententity);
 	}
 }

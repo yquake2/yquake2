@@ -103,7 +103,6 @@ extern	int			numvktextures;
 extern	image_t		*r_notexture;
 extern	image_t		*r_particletexture;
 extern	image_t		*r_squaretexture;
-extern	entity_t	*currententity;
 extern	int			r_visframecount;
 extern	int			r_framecount;
 extern	cplane_t	frustum[4];
@@ -175,7 +174,7 @@ extern	int		c_visible_textures;
 
 extern	float	r_viewproj_matrix[16];
 
-void R_LightPoint (vec3_t p, vec3_t color);
+void R_LightPoint (vec3_t p, vec3_t color, entity_t *currententity);
 void R_PushDlights (void);
 
 //====================================================================
