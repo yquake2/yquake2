@@ -857,8 +857,11 @@ static void CreateSamplers()
 	samplerInfo.magFilter = VK_FILTER_NEAREST;
 	samplerInfo.minFilter = VK_FILTER_NEAREST;
 	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-	samplerInfo.anisotropyEnable = VK_TRUE;
-	samplerInfo.maxAnisotropy = vk_device.properties.limits.maxSamplerAnisotropy;
+	if (vk_device.features.samplerAnisotropy)
+	{
+		samplerInfo.anisotropyEnable = VK_TRUE;
+		samplerInfo.maxAnisotropy = vk_device.properties.limits.maxSamplerAnisotropy;
+	}
 	samplerInfo.maxLod = 1.f;
 
 	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &vk_samplers[S_ANISO_NEAREST]));
