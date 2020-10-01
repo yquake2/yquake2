@@ -71,8 +71,13 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferred
 			qboolean extSupported = deviceExtensionsSupported(&devices[i]);
 
 			// no required extensions? try next device
-			if (!extSupported || !deviceFeatures.samplerAnisotropy)
+			if (!extSupported)
 				continue;
+
+			if (!deviceFeatures.samplerAnisotropy)
+			{
+				R_Printf(PRINT_ALL, "...anisotropy filtering is unsupported.\n");
+			}
 
 			// if extensions are fine, query surface formats and present modes to see if the device can be used
 			VK_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(devices[i], vk_surface, &formatCount, NULL));
