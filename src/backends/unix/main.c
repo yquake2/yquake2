@@ -110,6 +110,7 @@ main(int argc, char **argv)
 		}
 	}
 
+#ifndef __HAIKU__
 	/* Prevent running Quake II as root. Only very mad
 	   minded or stupid people even think about it. :) */
 	if (getuid() == 0)
@@ -120,6 +121,7 @@ main(int argc, char **argv)
 
 		return 1;
 	}
+#endif
 
 	// Enforce the real UID to prevent setuid crap
 	if (getuid() != geteuid())
