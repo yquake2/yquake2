@@ -309,9 +309,9 @@ static VkResult CreateImageViews()
 		res = QVk_CreateImageView(&vk_swapchain.images[i],
 			VK_IMAGE_ASPECT_COLOR_BIT, &vk_imageviews[i], vk_swapchain.format, 1);
 		QVk_DebugSetObjectName((uint64_t)vk_swapchain.images[i],
-			VK_OBJECT_TYPE_IMAGE, va("Swap Chain Image #%ld", i));
+			VK_OBJECT_TYPE_IMAGE, va("Swap Chain Image #" YQ2_COM_PRIdS, i));
 		QVk_DebugSetObjectName((uint64_t)vk_imageviews[i],
-			VK_OBJECT_TYPE_IMAGE_VIEW, va("Swap Chain Image View #%ld", i));
+			VK_OBJECT_TYPE_IMAGE_VIEW, va("Swap Chain Image View #" YQ2_COM_PRIdS, i));
 
 		if (res != VK_SUCCESS)
 		{
@@ -398,7 +398,7 @@ static VkResult CreateFramebuffers()
 		{
 			VkResult res = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[j], NULL, &vk_framebuffers[j][i]);
 			QVk_DebugSetObjectName((uint64_t)vk_framebuffers[j][i],
-				VK_OBJECT_TYPE_FRAMEBUFFER, va("Framebuffer #%ld for Render Pass %s",
+				VK_OBJECT_TYPE_FRAMEBUFFER, va("Framebuffer #" YQ2_COM_PRIdS "for Render Pass %s",
 					i, j == RP_WORLD ? "RP_WORLD" : j == RP_UI ? "RP_UI" : "RP_WORLD_WARP"));
 
 			if (res != VK_SUCCESS)
@@ -2280,7 +2280,7 @@ uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer 
 	stagingBuffer = &vk_stagingBuffers[vk_activeStagingBuffer];
 	if (size > stagingBuffer->resource.size)
 	{
-		R_Printf(PRINT_ALL, "%s: %d: Resize stanging buffer %ld -> %ld\n",
+		R_Printf(PRINT_ALL, "%s: %d: Resize stanging buffer" YQ2_COM_PRIdS "%lu\n",
 			__func__, vk_activeStagingBuffer, stagingBuffer->resource.size, size);
 
 		DestroyStagingBuffer(stagingBuffer);
