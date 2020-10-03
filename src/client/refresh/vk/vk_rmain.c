@@ -1348,6 +1348,7 @@ void R_Shutdown (void)
 
 	Mod_FreeAll();
 	Vk_ShutdownImages();
+	R_ShutdownContext();
 }
 
 /*
