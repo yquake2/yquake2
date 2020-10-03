@@ -716,11 +716,13 @@ void Com_MDPrintf(char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 YQ2_ATTR_NORETURN void Com_Error(int code, char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 YQ2_ATTR_NORETURN void Com_Quit(void);
 
-/* Ugly hack: Apprently (our?) MinGW-gcc under Windows
-   doesn't support %zd and requires %Id. */
+/* Ugly work around for unsupported
+ * format specifiers unter mingw. */
 #ifdef WIN32
+#define YQ2_COM_PRId64 "%I64d"
 #define YQ2_COM_PRIdS "%Id"
 #else
+#define YQ2_COM_PRId64 "%ld"
 #define YQ2_COM_PRIdS "%zd"
 #endif
 
