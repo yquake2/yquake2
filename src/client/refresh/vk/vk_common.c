@@ -1095,7 +1095,7 @@ static void CreateStagingBuffer(VkDeviceSize size, qvkstagingbuffer_t *dstBuffer
 		VK_OBJECT_TYPE_BUFFER, va("Staging Buffer #%d", i));
 	QVk_DebugSetObjectName((uint64_t)dstBuffer->resource.memory,
 		VK_OBJECT_TYPE_DEVICE_MEMORY, va("Memory: Staging Buffer #%d", i));
-	QVk_DebugSetObjectName((uint64_t)dstBuffer->cmdBuffer,
+	QVk_DebugSetObjectName((uintptr_t)dstBuffer->cmdBuffer,
 		VK_OBJECT_TYPE_COMMAND_BUFFER, va("Command Buffer: Staging Buffer #%d", i));
 }
 
@@ -1744,7 +1744,7 @@ qboolean QVk_Init(SDL_Window *window)
 	{
 		return false;
 	}
-	QVk_DebugSetObjectName((uint64_t)vk_device.physical, VK_OBJECT_TYPE_PHYSICAL_DEVICE, va("Physical Device: %s", vk_config.vendor_name));
+	QVk_DebugSetObjectName((uintptr_t)vk_device.physical, VK_OBJECT_TYPE_PHYSICAL_DEVICE, va("Physical Device: %s", vk_config.vendor_name));
 
 	// setup swapchain
 	res = QVk_CreateSwapchain();
