@@ -457,8 +457,13 @@ VID_CheckChanges(void)
 		// Mkay, let's try our luck.
 		while (!VID_LoadRenderer())
 		{
-			// We try: gl3 -> gl1 -> soft.
-			if (strcmp(vid_renderer->string, "gl3") == 0)
+			// We try: vk -> gl3 -> gl1 -> soft.
+			if (strcmp(vid_renderer->string, "vk") == 0)
+			{
+				Com_Printf("Retrying with gl3...\n");
+				Cvar_Set("vid_renderer", "gl3");
+			}
+			else if (strcmp(vid_renderer->string, "gl3") == 0)
 			{
 				Com_Printf("Retrying with gl1...\n");
 				Cvar_Set("vid_renderer", "gl1");
