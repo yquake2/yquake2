@@ -1601,13 +1601,13 @@ R_IsVsyncActive(void)
 
 static int R_PrepareForWindow(void)
 {
-#if defined(_WIN32)
-	if (SDL_Vulkan_LoadLibrary("libvulkan-1.dll"))
+	if (SDL_Vulkan_LoadLibrary(NULL))
 	{
-		R_Printf(PRINT_ALL, "%s() Loader import failed: %s",
-				__func__, SDL_GetError());
+		R_Printf(PRINT_ALL, "%s() Loader import failed: %s", __func__, SDL_GetError());
 	}
-#endif
+
+	volkInitializeCustom(SDL_Vulkan_GetVkGetInstanceProcAddr());
+
 	return SDL_WINDOW_VULKAN;
 }
 

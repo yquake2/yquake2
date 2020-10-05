@@ -1701,6 +1701,8 @@ qboolean QVk_Init(SDL_Window *window)
 	VkResult res = vkCreateInstance(&createInfo, NULL, &vk_instance);
 	free(wantedExtensions);
 
+	volkLoadInstance(vk_instance);
+
 	if (res != VK_SUCCESS)
 	{
 		R_Printf(PRINT_ALL, "%s(): Could not create Vulkan instance: %s\n", __func__, QVk_GetError(res));
