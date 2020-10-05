@@ -19,7 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef  __VK_UTIL_H__
 #define  __VK_UTIL_H__
 
-#include <vulkan/vulkan.h>
+#include "../volk/volk.h"
 
 #define ROUNDUP(a, b) (((a) + ((b)-1)) & ~((b)-1))
 

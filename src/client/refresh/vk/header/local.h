@@ -21,16 +21,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef __VK_LOCAL_H__
 #define __VK_LOCAL_H__
 
+#include <math.h>
 #include <stdio.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 
-#include <vulkan/vulkan.h>
-#include <math.h>
 
 #include "../../ref_shared.h"
-
+#include "../volk/volk.h"
 #include "qvk.h"
 
 // verify if VkResult is VK_SUCCESS
