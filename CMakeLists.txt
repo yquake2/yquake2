@@ -595,6 +595,7 @@ set(VK-Source
 	${REF_SRC_DIR}/vk/vk_validation.c
 	${REF_SRC_DIR}/vk/vk_warp.c
 	${REF_SRC_DIR}/vk/vk_util.c
+	${REF_SRC_DIR}/vk/volk/volk.c
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
 	${REF_SRC_DIR}/files/wal.c

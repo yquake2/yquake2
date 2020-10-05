@@ -638,14 +638,14 @@ ref_vk:
 	@echo "===> Building ref_vk.dll"
 	$(MAKE) release/ref_vk.dll
 
-release/ref_vk.dll : LDFLAGS += -shared -lvulkan
+release/ref_vk.dll : LDFLAGS += -shared
 else
 ref_vk:
 	@echo "===> Building ref_vk.so"
 	$(MAKE) release/ref_vk.so
 
 release/ref_vk.so : CFLAGS += -fPIC
-release/ref_vk.so : LDFLAGS += -shared -lvulkan
+release/ref_vk.so : LDFLAGS += -shared
 endif
 
 build/ref_vk/%.o: %.c
@@ -958,6 +958,7 @@ REFVK_OBJS_ := \
 	src/client/refresh/vk/vk_validation.o \
 	src/client/refresh/vk/vk_warp.o \
 	src/client/refresh/vk/vk_util.o \
+	src/client/refresh/vk/volk/volk.o \
 	src/client/refresh/files/pcx.o \
 	src/client/refresh/files/stb.o \
 	src/client/refresh/files/wal.o \
