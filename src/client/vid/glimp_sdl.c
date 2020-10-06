@@ -104,14 +104,17 @@ CreateSDLWindow(int flags, int w, int h)
 		   https://bugzilla.libsdl.org/show_bug.cgi?id=4700 */
 		SDL_DisplayMode real_mode;
 
-		if (SDL_GetWindowDisplayMode(window, &real_mode) != 0)
+		if ((flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)) == SDL_WINDOW_FULLSCREEN)
 		{
-			SDL_DestroyWindow(window);
-			window = NULL;
+			if (SDL_GetWindowDisplayMode(window, &real_mode) != 0)
+			{
+				SDL_DestroyWindow(window);
+				window = NULL;
 
-			Com_Printf("Can't get display mode: %s\n", SDL_GetError());
+				Com_Printf("Can't get display mode: %s\n", SDL_GetError());
 
-			return false;
+				return false;
+			}
 		}
 
 		/* SDL_WINDOW_FULLSCREEN_DESKTOP implies SDL_WINDOW_FULLSCREEN! */
