@@ -33,7 +33,7 @@
 #include <unistd.h> // readlink(), amongst others
 #endif
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__NetBSD__)
 #include <sys/sysctl.h> // for sysctl() to get path to executable
 #endif
 
@@ -73,18 +73,14 @@ static void SetExecutablePath(char* exePath)
 		exePath[0] = '\0';
 	}
 
-#elif defined(__linux) || defined(__NetBSD__)
+#elif defined(__linux)
 
 	// all the platforms that have /proc/$pid/exe or similar that symlink the
 	// real executable - basiscally Linux and the BSDs except for FreeBSD which
 	// doesn't enable proc by default and has a sysctl() for this. OpenBSD once
 	// had /proc but removed it for security reasons.
 	char buf[PATH_MAX] = {0};
-#ifdef __linux
 	snprintf(buf, sizeof(buf), "/proc/%d/exe", getpid());
-#else // the BSDs
-	snprintf(buf, sizeof(buf), "/proc/%d/file", getpid());
-#endif
 	// readlink() doesn't null-terminate!
 	int len = readlink(buf, exePath, PATH_MAX-1);
 	if (len <= 0)
@@ -97,11 +93,15 @@ static void SetExecutablePath(char* exePath)
 		exePath[len] = '\0';
 	}
 
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__NetBSD__)
 
 	// the sysctl should also work when /proc/ is not mounted (which seems to
 	// be common on FreeBSD), so use it..
+#if defined(__FreeBSD__)
 	int name[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+#else
+	int name[4] = {CTL_KERN, KERN_PROC_ARGS, -1, KERN_PROC_PATHNAME};
+#endif
 	size_t len = PATH_MAX-1;
 	int ret = sysctl(name, sizeof(name)/sizeof(name[0]), exePath, &len, NULL, 0);
 	if(ret != 0)
