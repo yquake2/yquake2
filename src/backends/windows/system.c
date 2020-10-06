@@ -717,6 +717,9 @@ Sys_RedirectStdout(void)
 
 	_wfreopen(wpath_stdout, L"w", stdout);
 	_wfreopen(wpath_stderr, L"w", stderr);
+
+	setvbuf(stdout, (char *)NULL, _IOLBF, BUFSIZ);
+	setvbuf(stderr, (char *)NULL, _IOLBF, BUFSIZ);
 }
 
 /* ======================================================================= */
