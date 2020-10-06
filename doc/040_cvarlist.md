@@ -129,6 +129,11 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   spawned in maps (in fact, some official Ground Zero maps contain
   these entities). This cvar is set to 0 by default.
 
+* **nextdemo**: Defines the next command to run after maps from the
+  `nextserver` list. By default this is set to the empty string.
+
+* **nextserver**: Used for looping the introduction demos.
+
 ## Audio
 
 * **al_device**: OpenAL device to use. In most cases there's no need to
