@@ -685,7 +685,7 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 R_DrawInlineBModel
 =================
 */
-static void R_DrawInlineBModel (float *modelMatrix, model_t *currentmodel, entity_t *currententity)
+static void R_DrawInlineBModel (entity_t *currententity, model_t *currentmodel, float *modelMatrix)
 {
 	int			i;
 	msurface_t	*psurf;
@@ -750,7 +750,7 @@ static void R_DrawInlineBModel (float *modelMatrix, model_t *currentmodel, entit
 R_DrawBrushModel
 =================
 */
-void R_DrawBrushModel (entity_t *e, model_t *currentmodel)
+void R_DrawBrushModel (entity_t *currententity, model_t *currentmodel)
 {
 	vec3_t		mins, maxs;
 	qboolean	rotated;
@@ -758,22 +758,22 @@ void R_DrawBrushModel (entity_t *e, model_t *currentmodel)
 	if (currentmodel->nummodelsurfaces == 0)
 		return;
 
-	if (e->angles[0] || e->angles[1] || e->angles[2])
+	if (currententity->angles[0] || currententity->angles[1] || currententity->angles[2])
 	{
 		int	i;
 
 		rotated = true;
 		for (i = 0; i<3; i++)
 		{
-			mins[i] = e->origin[i] - currentmodel->radius;
-			maxs[i] = e->origin[i] + currentmodel->radius;
+			mins[i] = currententity->origin[i] - currentmodel->radius;
+			maxs[i] = currententity->origin[i] + currentmodel->radius;
 		}
 	}
 	else
 	{
 		rotated = false;
-		VectorAdd(e->origin, currentmodel->mins, mins);
-		VectorAdd(e->origin, currentmodel->maxs, maxs);
+		VectorAdd(currententity->origin, currentmodel->mins, mins);
+		VectorAdd(currententity->origin, currentmodel->maxs, maxs);
 	}
 
 	if (R_CullBox(mins, maxs))
@@ -781,28 +781,28 @@ void R_DrawBrushModel (entity_t *e, model_t *currentmodel)
 
 	memset(vk_lms.lightmap_surfaces, 0, sizeof(vk_lms.lightmap_surfaces));
 
-	VectorSubtract(r_newrefdef.vieworg, e->origin, modelorg);
+	VectorSubtract(r_newrefdef.vieworg, currententity->origin, modelorg);
 	if (rotated)
 	{
 		vec3_t	temp;
 		vec3_t	forward, right, up;
 
 		VectorCopy(modelorg, temp);
-		AngleVectors(e->angles, forward, right, up);
+		AngleVectors(currententity->angles, forward, right, up);
 		modelorg[0] = DotProduct(temp, forward);
 		modelorg[1] = -DotProduct(temp, right);
 		modelorg[2] = DotProduct(temp, up);
 	}
 
-	e->angles[0] = -e->angles[0];	// stupid quake bug
-	e->angles[2] = -e->angles[2];	// stupid quake bug
+	currententity->angles[0] = -currententity->angles[0];	// stupid quake bug
+	currententity->angles[2] = -currententity->angles[2];	// stupid quake bug
 	float model[16];
 	Mat_Identity(model);
-	R_RotateForEntity(e, model);
-	e->angles[0] = -e->angles[0];	// stupid quake bug
-	e->angles[2] = -e->angles[2];	// stupid quake bug
+	R_RotateForEntity(currententity, model);
+	currententity->angles[0] = -currententity->angles[0];	// stupid quake bug
+	currententity->angles[2] = -currententity->angles[2];	// stupid quake bug
 
-	R_DrawInlineBModel(model, currentmodel, e);
+	R_DrawInlineBModel(currententity, currentmodel, model);
 }
 
 /*
