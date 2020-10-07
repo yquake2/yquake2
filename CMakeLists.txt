@@ -29,7 +29,7 @@ list(APPEND CMAKE_PREFIX_PATH /usr/local)
 #  -Wall                -> More warnings
 #  -fno-strict-aliasing -> Quake 2 is far away from strict aliasing
 #  -fwrapv              -> Make signed integer overflows defined
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrapv")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden -std=gnu99 -Wall -fno-strict-aliasing -fwrapv")
 
 # Switch of some annoying warnings
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -587,6 +587,7 @@ set(VK-Source
 	${REF_SRC_DIR}/vk/vk_validation.c
 	${REF_SRC_DIR}/vk/vk_warp.c
 	${REF_SRC_DIR}/vk/vk_util.c
+	${REF_SRC_DIR}/vk/volk/volk.c
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
 	${REF_SRC_DIR}/files/wal.c
