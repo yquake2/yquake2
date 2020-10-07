@@ -44,14 +44,14 @@ void Draw_InitLocal (void)
 
 /*
 ================
-Draw_CharScaled
+RE_Draw_CharScaled
 
 Draws one 8*8 graphics character with 0 being transparent.
 It can be clipped to the top of the screen to allow the console to be
 smoothly scrolled off.
 ================
 */
-void Draw_CharScaled (int x, int y, int num, float scale)
+void RE_Draw_CharScaled (int x, int y, int num, float scale)
 {
 	int	row, col;
 	float	frow, fcol, size;
@@ -79,10 +79,10 @@ void Draw_CharScaled (int x, int y, int num, float scale)
 
 /*
 =============
-Draw_FindPic
+RE_Draw_FindPic
 =============
 */
-image_t	*Draw_FindPic (char *name)
+image_t	*RE_Draw_FindPic (char *name)
 {
 	image_t *vk;
 
@@ -101,14 +101,14 @@ image_t	*Draw_FindPic (char *name)
 
 /*
 =============
-Draw_GetPicSize
+RE_Draw_GetPicSize
 =============
 */
-void Draw_GetPicSize (int *w, int *h, char *name)
+void RE_Draw_GetPicSize (int *w, int *h, char *name)
 {
 	image_t *vk;
 
-	vk = Draw_FindPic(name);
+	vk = RE_Draw_FindPic(name);
 	if (!vk)
 	{
 		*w = *h = -1;
@@ -121,14 +121,14 @@ void Draw_GetPicSize (int *w, int *h, char *name)
 
 /*
 =============
-Draw_StretchPic
+RE_Draw_StretchPic
 =============
 */
-void Draw_StretchPic (int x, int y, int w, int h, char *name)
+void RE_Draw_StretchPic (int x, int y, int w, int h, char *name)
 {
 	image_t *vk;
 
-	vk = Draw_FindPic(name);
+	vk = RE_Draw_FindPic(name);
 	if (!vk)
 	{
 		R_Printf(PRINT_ALL, "%s(): Can't find pic: %s\n", __func__, name);
@@ -145,36 +145,36 @@ void Draw_StretchPic (int x, int y, int w, int h, char *name)
 
 /*
 =============
-Draw_PicScaled
+RE_Draw_PicScaled
 =============
 */
-void Draw_PicScaled (int x, int y, char *pic, float factor)
+void RE_Draw_PicScaled (int x, int y, char *pic, float factor)
 {
 	image_t *vk;
 
-	vk = Draw_FindPic(pic);
+	vk = RE_Draw_FindPic(pic);
 	if (!vk)
 	{
 		R_Printf(PRINT_ALL, "%s(): Can't find pic: %s\n", __func__, pic);
 		return;
 	}
 
-	Draw_StretchPic(x, y, vk->width*factor, vk->height*factor, pic);
+	RE_Draw_StretchPic(x, y, vk->width*factor, vk->height*factor, pic);
 }
 
 /*
 =============
-Draw_TileClear
+RE_Draw_TileClear
 
 This repeats a 64*64 tile graphic to fill the screen around a sized down
 refresh window.
 =============
 */
-void Draw_TileClear (int x, int y, int w, int h, char *name)
+void RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 {
 	image_t	*image;
 
-	image = Draw_FindPic(name);
+	image = RE_Draw_FindPic(name);
 	if (!image)
 	{
 		R_Printf(PRINT_ALL, "%s(): Can't find pic: %s\n", __func__, name);
@@ -191,12 +191,12 @@ void Draw_TileClear (int x, int y, int w, int h, char *name)
 
 /*
 =============
-Draw_Fill
+RE_Draw_Fill
 
 Fills a box of pixels with a single color
 =============
 */
-void Draw_Fill (int x, int y, int w, int h, int c)
+void RE_Draw_Fill (int x, int y, int w, int h, int c)
 {
 	union
 	{
@@ -219,11 +219,11 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 
 /*
 ================
-Draw_FadeScreen
+RE_Draw_FadeScreen
 
 ================
 */
-void Draw_FadeScreen (void)
+void RE_Draw_FadeScreen (void)
 {
 	float imgTransform[] = { 0.f, 0.f, vid.width, vid.height, 0.f, 0.f, 0.f, .8f };
 
@@ -236,7 +236,7 @@ void Draw_FadeScreen (void)
 
 /*
 =============
-Draw_StretchRaw
+RE_Draw_StretchRaw
 =============
 */
 extern unsigned	r_rawpalette[256];
@@ -244,7 +244,7 @@ extern qvktexture_t vk_rawTexture;
 
 static unsigned	raw_image32[512 * 512];
 
-void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
+void RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
 {
 
 	int	i, j;

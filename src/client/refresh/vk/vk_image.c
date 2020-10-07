@@ -1551,10 +1551,10 @@ image_t	*Vk_FindImage (char *name, imagetype_t type, qvksampler_t *samplerType)
 
 /*
 ===============
-R_RegisterSkin
+RE_RegisterSkin
 ===============
 */
-struct image_s *R_RegisterSkin (char *name)
+struct image_s *RE_RegisterSkin (char *name)
 {
 	return Vk_FindImage (name, it_skin, NULL);
 }
