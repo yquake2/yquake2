@@ -1356,7 +1356,7 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
 Vk_LoadWal
 ================
 */
-static image_t *Vk_LoadWal (char *name)
+static image_t *Vk_LoadWal (char *name, imagetype_t type)
 {
 	miptex_t	*mt;
 	int			width, height, ofs;
@@ -1376,7 +1376,7 @@ static image_t *Vk_LoadWal (char *name)
 	image = Vk_LoadPic(name, (byte *)mt + ofs,
 			   width, width,
 			   height, height,
-			   it_wall, 8, NULL);
+			   type, 8, NULL);
 
 	ri.FS_FreeFile ((void *)mt);
 
@@ -1468,7 +1468,7 @@ Vk_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type, 
 		}
 		else if (!strcmp(ext, "wal"))
 		{
-			image = Vk_LoadWal (name);
+			image = Vk_LoadWal (name, type);
 		}
 		else if (!strcmp(ext, "tga"))
 		{

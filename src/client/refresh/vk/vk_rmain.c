@@ -174,7 +174,7 @@ R_DrawSpriteModel
 
 =================
 */
-void R_DrawSpriteModel (entity_t *e, model_t *currentmodel)
+void R_DrawSpriteModel (entity_t *currententity, model_t *currentmodel)
 {
 	float alpha = 1.0F;
 	vec3_t	point;
@@ -187,26 +187,26 @@ void R_DrawSpriteModel (entity_t *e, model_t *currentmodel)
 
 	psprite = (dsprite_t *)currentmodel->extradata;
 
-	e->frame %= psprite->numframes;
+	currententity->frame %= psprite->numframes;
 
-	frame = &psprite->frames[e->frame];
+	frame = &psprite->frames[currententity->frame];
 
 	// normal sprite
 	up = vup;
 	right = vright;
 
-	if (e->flags & RF_TRANSLUCENT)
-		alpha = e->alpha;
+	if (currententity->flags & RF_TRANSLUCENT)
+		alpha = currententity->alpha;
 
 	vec3_t spriteQuad[4];
 
-	VectorMA(e->origin, -frame->origin_y, up, point);
+	VectorMA(currententity->origin, -frame->origin_y, up, point);
 	VectorMA(point, -frame->origin_x, right, spriteQuad[0]);
-	VectorMA(e->origin, frame->height - frame->origin_y, up, point);
+	VectorMA(currententity->origin, frame->height - frame->origin_y, up, point);
 	VectorMA(point, -frame->origin_x, right, spriteQuad[1]);
-	VectorMA(e->origin, frame->height - frame->origin_y, up, point);
+	VectorMA(currententity->origin, frame->height - frame->origin_y, up, point);
 	VectorMA(point, frame->width - frame->origin_x, right, spriteQuad[2]);
-	VectorMA(e->origin, -frame->origin_y, up, point);
+	VectorMA(currententity->origin, -frame->origin_y, up, point);
 	VectorMA(point, frame->width - frame->origin_x, right, spriteQuad[3]);
 
 	float quadVerts[] = { spriteQuad[0][0], spriteQuad[0][1], spriteQuad[0][2], 0.f, 1.f,
@@ -232,7 +232,7 @@ void R_DrawSpriteModel (entity_t *e, model_t *currentmodel)
 	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
 		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSpritePipeline.layout, 0, 1, &currentmodel->skins[e->frame]->vk_texture.descriptorSet, 0, NULL);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSpritePipeline.layout, 0, 1, &currentmodel->skins[currententity->frame]->vk_texture.descriptorSet, 0, NULL);
 	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
 }
 
@@ -1459,7 +1459,7 @@ RE_SetPalette (const unsigned char *palette)
 /*
 ** R_DrawBeam
 */
-void R_DrawBeam( entity_t *e )
+void R_DrawBeam( entity_t *currententity )
 {
 #define NUM_BEAM_SEGS 6
 
@@ -1471,13 +1471,13 @@ void R_DrawBeam( entity_t *e )
 	vec3_t	start_points[NUM_BEAM_SEGS], end_points[NUM_BEAM_SEGS];
 	vec3_t oldorigin, origin;
 
-	oldorigin[0] = e->oldorigin[0];
-	oldorigin[1] = e->oldorigin[1];
-	oldorigin[2] = e->oldorigin[2];
+	oldorigin[0] = currententity->oldorigin[0];
+	oldorigin[1] = currententity->oldorigin[1];
+	oldorigin[2] = currententity->oldorigin[2];
 
-	origin[0] = e->origin[0];
-	origin[1] = e->origin[1];
-	origin[2] = e->origin[2];
+	origin[0] = currententity->origin[0];
+	origin[1] = currententity->origin[1];
+	origin[2] = currententity->origin[2];
 
 	normalized_direction[0] = direction[0] = oldorigin[0] - origin[0];
 	normalized_direction[1] = direction[1] = oldorigin[1] - origin[1];
@@ -1487,7 +1487,7 @@ void R_DrawBeam( entity_t *e )
 		return;
 
 	PerpendicularVector(perpvec, normalized_direction);
-	VectorScale(perpvec, e->frame / 2, perpvec);
+	VectorScale(perpvec, currententity->frame / 2, perpvec);
 
 	for (i = 0; i < 6; i++)
 	{
@@ -1496,15 +1496,15 @@ void R_DrawBeam( entity_t *e )
 		VectorAdd(start_points[i], direction, end_points[i]);
 	}
 
-	r = (d_8to24table[e->skinnum & 0xFF]) & 0xFF;
-	g = (d_8to24table[e->skinnum & 0xFF] >> 8) & 0xFF;
-	b = (d_8to24table[e->skinnum & 0xFF] >> 16) & 0xFF;
+	r = (d_8to24table[currententity->skinnum & 0xFF]) & 0xFF;
+	g = (d_8to24table[currententity->skinnum & 0xFF] >> 8) & 0xFF;
+	b = (d_8to24table[currententity->skinnum & 0xFF] >> 16) & 0xFF;
 
 	r *= 1 / 255.0F;
 	g *= 1 / 255.0F;
 	b *= 1 / 255.0F;
 
-	float color[4] = { r, g, b, e->alpha };
+	float color[4] = { r, g, b, currententity->alpha };
 
 	struct {
 		float v[3];
