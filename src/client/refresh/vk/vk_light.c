@@ -224,18 +224,20 @@ static int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	mid[1] = start[1] + (end[1] - start[1])*frac;
 	mid[2] = start[2] + (end[2] - start[2])*frac;
 
-// go down front side
+	// go down front side
 	r = RecursiveLightPoint (node->children[side], start, mid);
 	if (r >= 0)
 		return r;		// hit something
 
-// check for impact on this node
+	// check for impact on this node
 	VectorCopy (mid, lightspot);
 	lightplane = plane;
 
 	surf = r_worldmodel->surfaces + node->firstsurface;
 	for (i=0 ; i<node->numsurfaces ; i++, surf++)
 	{
+		vec3_t scale;
+
 		if (surf->flags&(SURF_DRAWTURB|SURF_DRAWSKY))
 			continue;	// no lightmaps
 
@@ -262,24 +264,20 @@ static int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 
 		lightmap = surf->samples;
 		VectorCopy (vec3_origin, pointcolor);
-		if (lightmap)
+
+		lightmap += 3*(dt * ((surf->extents[0]>>4)+1) + ds);
+
+		for (maps = 0 ; maps < MAXLIGHTMAPS && surf->styles[maps] != 255 ;
+				maps++)
 		{
-			vec3_t scale;
+			for (i=0 ; i<3 ; i++)
+				scale[i] = r_modulate->value*r_newrefdef.lightstyles[surf->styles[maps]].rgb[i];
 
-			lightmap += 3*(dt * ((surf->extents[0]>>4)+1) + ds);
-
-			for (maps = 0 ; maps < MAXLIGHTMAPS && surf->styles[maps] != 255 ;
-					maps++)
-			{
-				for (i=0 ; i<3 ; i++)
-					scale[i] = r_modulate->value*r_newrefdef.lightstyles[surf->styles[maps]].rgb[i];
-
-				pointcolor[0] += lightmap[0] * scale[0] * (1.0/255);
-				pointcolor[1] += lightmap[1] * scale[1] * (1.0/255);
-				pointcolor[2] += lightmap[2] * scale[2] * (1.0/255);
-				lightmap += 3*((surf->extents[0]>>4)+1) *
-						((surf->extents[1]>>4)+1);
-			}
+			pointcolor[0] += lightmap[0] * scale[0] * (1.0/255);
+			pointcolor[1] += lightmap[1] * scale[1] * (1.0/255);
+			pointcolor[2] += lightmap[2] * scale[2] * (1.0/255);
+			lightmap += 3*((surf->extents[0]>>4)+1) *
+					((surf->extents[1]>>4)+1);
 		}
 
 		return 1;
