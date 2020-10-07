@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /*
 ==================
-R_InitParticleTexture
+RE_InitParticleTexture
 ==================
 */
 static byte	dottexture[8][8] =
@@ -39,7 +39,7 @@ static byte	dottexture[8][8] =
 	{0,0,0,0,0,0,0,0},
 };
 
-void R_InitParticleTexture (void)
+void RE_InitParticleTexture (void)
 {
 	int		x,y,i;
 	byte	data[8][8][4];
