@@ -1280,10 +1280,10 @@ qboolean R_SetMode (void)
 
 /*
 ===============
-R_Init
+RE_Init
 ===============
 */
-static qboolean R_Init( void )
+static qboolean RE_Init( void )
 {
 
 	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
@@ -1306,7 +1306,7 @@ static qboolean R_Init( void )
 
 	Vk_InitImages();
 	Mod_Init();
-	R_InitParticleTexture();
+	RE_InitParticleTexture();
 	Draw_InitLocal();
 
 	R_Printf(PRINT_ALL, "Successfully initialized Vulkan!\n");
@@ -1315,13 +1315,13 @@ static qboolean R_Init( void )
 }
 
 /*
-** R_ShutdownContext
+** RE_ShutdownContext
 **
 ** This routine does all OS specific shutdown procedures for the Vulkan
 ** subsystem.
 **
 */
-static void R_ShutdownContext( void )
+static void RE_ShutdownContext( void )
 {
 
 	// Shutdown Vulkan subsystem
@@ -1330,10 +1330,10 @@ static void R_ShutdownContext( void )
 
 /*
 ===============
-R_Shutdown
+RE_Shutdown
 ===============
 */
-void R_Shutdown (void)
+void RE_Shutdown (void)
 {
 	ri.Cmd_RemoveCommand("vk_strings");
 	ri.Cmd_RemoveCommand("vk_mem");
@@ -1348,7 +1348,7 @@ void R_Shutdown (void)
 
 	Mod_FreeAll();
 	Vk_ShutdownImages();
-	R_ShutdownContext();
+	RE_ShutdownContext();
 }
 
 /*
@@ -1549,7 +1549,7 @@ void R_DrawBeam( entity_t *e )
 //===================================================================
 
 static int
-R_InitContext(void *win)
+RE_InitContext(void *win)
 {
 	char title[40] = {0};
 
@@ -1587,7 +1587,7 @@ qboolean Vkimp_CreateSurface(SDL_Window *window)
 }
 
 static qboolean
-R_IsVsyncActive(void)
+RE_IsVsyncActive(void)
 {
 	if (r_vsync->value)
 	{
@@ -1599,7 +1599,7 @@ R_IsVsyncActive(void)
 	}
 }
 
-static int R_PrepareForWindow(void)
+static int RE_PrepareForWindow(void)
 {
 	if (SDL_Vulkan_LoadLibrary(NULL))
 	{
@@ -1628,31 +1628,31 @@ GetRefAPI(refimport_t imp)
 
 	refexport.api_version = API_VERSION;
 
-	refexport.BeginRegistration = R_BeginRegistration;
-	refexport.RegisterModel = R_RegisterModel;
-	refexport.RegisterSkin = R_RegisterSkin;
-	refexport.DrawFindPic = Draw_FindPic;
-	refexport.SetSky = R_SetSky;
-	refexport.EndRegistration = R_EndRegistration;
+	refexport.BeginRegistration = RE_BeginRegistration;
+	refexport.RegisterModel = RE_RegisterModel;
+	refexport.RegisterSkin = RE_RegisterSkin;
+	refexport.DrawFindPic = RE_Draw_FindPic;
+	refexport.SetSky = RE_SetSky;
+	refexport.EndRegistration = RE_EndRegistration;
 
 	refexport.RenderFrame = RE_RenderFrame;
 
-	refexport.DrawGetPicSize = Draw_GetPicSize;
-	refexport.DrawPicScaled = Draw_PicScaled;
-	refexport.DrawStretchPic = Draw_StretchPic;
-	refexport.DrawCharScaled = Draw_CharScaled;
-	refexport.DrawTileClear = Draw_TileClear;
-	refexport.DrawFill = Draw_Fill;
-	refexport.DrawFadeScreen= Draw_FadeScreen;
+	refexport.DrawGetPicSize = RE_Draw_GetPicSize;
+	refexport.DrawPicScaled = RE_Draw_PicScaled;
+	refexport.DrawStretchPic = RE_Draw_StretchPic;
+	refexport.DrawCharScaled = RE_Draw_CharScaled;
+	refexport.DrawTileClear = RE_Draw_TileClear;
+	refexport.DrawFill = RE_Draw_Fill;
+	refexport.DrawFadeScreen= RE_Draw_FadeScreen;
 
-	refexport.DrawStretchRaw = Draw_StretchRaw;
+	refexport.DrawStretchRaw = RE_Draw_StretchRaw;
 
-	refexport.Init = R_Init;
-	refexport.IsVSyncActive = R_IsVsyncActive;
-	refexport.Shutdown = R_Shutdown;
-	refexport.InitContext = R_InitContext;
-	refexport.ShutdownContext = R_ShutdownContext;
-	refexport.PrepareForWindow = R_PrepareForWindow;
+	refexport.Init = RE_Init;
+	refexport.IsVSyncActive = RE_IsVsyncActive;
+	refexport.Shutdown = RE_Shutdown;
+	refexport.InitContext = RE_InitContext;
+	refexport.ShutdownContext = RE_ShutdownContext;
+	refexport.PrepareForWindow = RE_PrepareForWindow;
 
 	refexport.SetPalette = RE_SetPalette;
 	refexport.BeginFrame = RE_BeginFrame;
