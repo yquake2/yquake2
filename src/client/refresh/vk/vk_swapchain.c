@@ -40,6 +40,11 @@ static const char *presentModeString(VkPresentModeKHR presentMode)
 static VkSurfaceFormatKHR getSwapSurfaceFormat(const VkSurfaceFormatKHR *surfaceFormats, uint32_t formatCount)
 {
 	VkSurfaceFormatKHR swapSurfaceFormat;
+	memset(&swapSurfaceFormat, 0, sizeof(swapSurfaceFormat));
+	if (!surfaceFormats || !formatCount)
+	{
+		return swapSurfaceFormat;
+	}
 
 	for (size_t i = 0; i < formatCount; ++i)
 	{
