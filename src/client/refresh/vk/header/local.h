@@ -186,7 +186,7 @@ extern	int		registration_sequence;
 extern	qvksampler_t vk_current_sampler;
 extern	qvksampler_t vk_current_lmap_sampler;
 
-void	 R_Shutdown( void );
+void	 RE_Shutdown( void );
 
 void Vk_ScreenShot_f (void);
 void R_DrawAliasModel (entity_t *e, model_t *currentmodel);
@@ -196,7 +196,7 @@ void R_DrawBeam( entity_t *e );
 void R_DrawWorld (void);
 void R_RenderDlights (void);
 void R_DrawAlphaSurfaces (void);
-void R_InitParticleTexture (void);
+void RE_InitParticleTexture (void);
 void Draw_InitLocal (void);
 void Vk_SubdivideSurface (msurface_t *fa);
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
@@ -209,20 +209,20 @@ void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
 void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
 
-struct image_s	*Draw_FindPic (char *name);
+struct image_s	*RE_Draw_FindPic (char *name);
 
-void	Draw_GetPicSize (int *w, int *h, char *name);
-void	Draw_PicScaled (int x, int y, char *name, float scale);
-void	Draw_StretchPic (int x, int y, int w, int h, char *name);
-void	Draw_CharScaled (int x, int y, int c, float scale);
-void	Draw_TileClear (int x, int y, int w, int h, char *name);
-void	Draw_Fill (int x, int y, int w, int h, int c);
-void	Draw_FadeScreen (void);
-void	Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data);
+void	RE_Draw_GetPicSize (int *w, int *h, char *name);
+void	RE_Draw_PicScaled (int x, int y, char *name, float scale);
+void	RE_Draw_StretchPic (int x, int y, int w, int h, char *name);
+void	RE_Draw_CharScaled (int x, int y, int c, float scale);
+void	RE_Draw_TileClear (int x, int y, int w, int h, char *name);
+void	RE_Draw_Fill (int x, int y, int w, int h, int c);
+void	RE_Draw_FadeScreen (void);
+void	RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data);
 
 qboolean	RE_EndWorldRenderpass( void );
 
-struct image_s *R_RegisterSkin (char *name);
+struct image_s *RE_RegisterSkin (char *name);
 
 void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
 image_t *Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
@@ -237,11 +237,11 @@ void	Vk_InitImages (void);
 void	Vk_ShutdownImages (void);
 void	Vk_FreeUnusedImages (void);
 
-void	R_BeginRegistration (char *model);
-struct model_s	*R_RegisterModel (char *name);
-struct image_s	*R_RegisterSkin (char *name);
-void	R_SetSky (char *name, float rotate, vec3_t axis);
-void	R_EndRegistration (void);
+void	RE_BeginRegistration (char *model);
+struct model_s	*RE_RegisterModel (char *name);
+struct image_s	*RE_RegisterSkin (char *name);
+void	RE_SetSky (char *name, float rotate, vec3_t axis);
+void	RE_EndRegistration (void);
 
 void Mat_Identity(float *matrix);
 void Mat_Mul(float *m1, float *m2, float *res);
