@@ -1079,7 +1079,7 @@ Specifies the model that will be used as the world
 =====================
 */
 void
-RE_BeginRegistration (char *map)
+RE_BeginRegistration (char *model)
 {
 	char	fullname[MAX_QPATH];
 	cvar_t	*flushmap;
@@ -1087,7 +1087,7 @@ RE_BeginRegistration (char *map)
 	registration_sequence++;
 	r_oldviewcluster = -1;		// force markleafs
 
-	Com_sprintf (fullname, sizeof(fullname), "maps/%s.bsp", map);
+	Com_sprintf (fullname, sizeof(fullname), "maps/%s.bsp", model);
 
 	// explicitly free the old map if different
 	// this guarantees that mod_known[0] is the world map
