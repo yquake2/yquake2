@@ -101,7 +101,7 @@ qboolean qcurlInit(void)
 	// Mkay, let's try to find a working libcurl.
 	cl_libcurl = Cvar_Get("cl_libcurl", (char *)libcurl[0], CVAR_ARCHIVE);
 
-	Com_Printf("LoadLibrary(%s)\n", cl_libcurl->string);
+	Com_Printf("Loading library: %s\n", cl_libcurl->string);
 	Sys_LoadLibrary(cl_libcurl->string, NULL, &curlhandle);
 
 	if (!curlhandle)
@@ -116,7 +116,7 @@ qboolean qcurlInit(void)
 				continue;
 			}
 
-			Com_Printf("LoadLibrary(%s)\n", libcurl[i]);
+			Com_Printf("Loading library: %s\n", libcurl[i]);
 			Sys_LoadLibrary(libcurl[i], NULL, &curlhandle);
 
 			if (!curlhandle)

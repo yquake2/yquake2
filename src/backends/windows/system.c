@@ -424,7 +424,7 @@ Sys_GetGameAPI(void *parms)
 
 		if (game_library)
 		{
-			Com_DPrintf("LoadLibrary (%s)\n", name);
+			Com_DPrintf("Loading library: %s\n", name);
 			break;
 		}
 
@@ -435,7 +435,7 @@ Sys_GetGameAPI(void *parms)
 
 		if (game_library)
 		{
-			Com_DPrintf("LoadLibrary (%s)\n", name);
+			Com_DPrintf("Loading library: %s\n", name);
 			break;
 		}
 	}

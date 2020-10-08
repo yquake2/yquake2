@@ -398,7 +398,7 @@ QAL_Init()
 	/* DEFAULT_OPENAL_DRIVER is defined at compile time via the compiler */
 	al_driver = Cvar_Get("al_driver", DEFAULT_OPENAL_DRIVER, CVAR_ARCHIVE);
 
-	Com_Printf("LoadLibrary(%s)\n", al_driver->string);
+	Com_Printf("Loading library: %s\n", al_driver->string);
 
 	/* Load the library */
 	Sys_LoadLibrary(al_driver->string, NULL, &handle);
@@ -510,7 +510,7 @@ QAL_Init()
 	qalDistanceModel = ALSYMBOL(handle, alDistanceModel);
 
 	/* Open the OpenAL device */
-    Com_Printf("...opening OpenAL device:");
+    Com_Printf("...opening OpenAL device: ");
 
 	device = qalcOpenDevice(al_device->string[0] ? al_device->string : NULL);
 

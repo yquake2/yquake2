@@ -1398,7 +1398,7 @@ IN_Init(void)
 
 					if (joystick_haptic == NULL)
 					{
-						Com_Printf("Most likely joystick isn't haptic\n");
+						Com_Printf("Most likely joystick isn't haptic.\n");
 					}
 					else
 					{
@@ -1457,7 +1457,7 @@ IN_Init(void)
 
 				if (joystick_haptic == NULL)
 				{
-					Com_Printf("Most likely mouse isn't haptic\n");
+					Com_Printf("Most likely mouse isn't haptic.\n");
 				}
 				else
 				{

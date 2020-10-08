@@ -389,7 +389,7 @@ Cmd_Exec_f(void)
 		return;
 	}
 
-	Com_Printf("execing %s\n", Cmd_Argv(1));
+	Com_Printf("execing %s.\n", Cmd_Argv(1));
 
 	/* the file doesn't have a trailing 0, so we need to copy it off */
 	/* we also add a newline */

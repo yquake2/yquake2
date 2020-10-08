@@ -332,7 +332,7 @@ enum
 static int
 SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 {
-	R_Printf(PRINT_ALL, "setting mode %d:", mode);
+	R_Printf(PRINT_ALL, "Setting mode %d:", mode);
 
 	/* mode -1 is not in the vid mode table - so we keep the values in pwidth
 	   and pheight and don't even try to look up the mode info */
@@ -352,7 +352,7 @@ SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 		}
 	}
 
-	R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
+	R_Printf(PRINT_ALL, " %dx%d (vid_fullscreen %i)\n", *pwidth, *pheight, fullscreen);
 
 
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
@@ -572,11 +572,11 @@ GL3_Init(void)
 
 	if(GL3_InitShaders())
 	{
-		R_Printf(PRINT_ALL, "Loading shaders succeeded!\n");
+		R_Printf(PRINT_ALL, "Loading shaders succeeded.\n");
 	}
 	else
 	{
-		R_Printf(PRINT_ALL, "Loading shaders failed!\n");
+		R_Printf(PRINT_ALL, "Loading shaders failed.\n");
 		return false;
 	}
 

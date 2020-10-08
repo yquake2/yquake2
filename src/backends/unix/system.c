@@ -361,7 +361,7 @@ Sys_GetGameAPI(void *parms)
 		Com_Error(ERR_FATAL, "Sys_GetGameAPI without Sys_UnloadingGame");
 	}
 
-	Com_Printf("LoadLibrary(\"%s\")\n", gamename);
+	Com_Printf("Loading library: %s\n", gamename);
 
 	/* now run through the search paths */
 	path = NULL;
@@ -393,12 +393,12 @@ Sys_GetGameAPI(void *parms)
 
 		if (game_library)
 		{
-			Com_MDPrintf("LoadLibrary (%s)\n", name);
+			Com_MDPrintf("Loading library: %s\n", name);
 			break;
 		}
 		else
 		{
-			Com_Printf("LoadLibrary (%s):", name);
+			Com_Printf("Loading library: %s\n: ", name);
 
 			path = (char *)dlerror();
 			str_p = strchr(path, ':');   /* skip the path (already shown) */
