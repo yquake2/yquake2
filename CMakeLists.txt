@@ -29,7 +29,8 @@ list(APPEND CMAKE_PREFIX_PATH /usr/local)
 #  -Wall                -> More warnings
 #  -fno-strict-aliasing -> Quake 2 is far away from strict aliasing
 #  -fwrapv              -> Make signed integer overflows defined
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrapv")
+#  -fvisibility=hidden	-> Force defaultsymbol visibility to hidden
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrapv -fvisibility=hidden")
 
 # Switch of some annoying warnings
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -147,17 +148,24 @@ if(${OPENAL_SUPPORT})
 endif()
 
 # General linker flags.
+list(APPEND yquake2LinkerFlags "-lm")
+list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	list(APPEND yquake2LinkerFlags "-lm -static-libgcc")
+	list(APPEND yquake2LinkerFlags "-lws2_32 -lwinmm -static-libgcc")
 else()
 	if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Haiku")
-		list(APPEND yquake2LinkerFlags "-lm -rdynamic")
+		list(APPEND yquake2LinkerFlags "-rdynamic")
 	else()
-		list(APPEND yquake2LinkerFlags "-lm -lnetwork")
+		list(APPEND yquake2LinkerFlags "-lnetwork")
 	endif()
 endif()
 
-list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
+		list(APPEND yquake2LinkerFlags "-Wl,--no-undefined")
+	endif()
+endif()
 
 # With all of those libraries and user defined paths
 # added, lets give them to the compiler and linker.
