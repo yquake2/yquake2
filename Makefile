@@ -109,6 +109,11 @@ else
 COMPILER := unknown
 endif
 
+# ASAN includes DEBUG
+ifdef ASAN
+DEBUG=1
+endif
+
 # ----------
 
 # Base CFLAGS. These may be overridden by the environment.
@@ -116,6 +121,9 @@ endif
 # will likely break this crappy code.
 ifdef DEBUG
 CFLAGS ?= -O0 -g -Wall -pipe
+ifdef ASAN
+CFLAGS += -fsanitize=address
+endif
 else
 CFLAGS ?= -O2 -Wall -pipe -fomit-frame-pointer
 endif
@@ -264,6 +272,11 @@ else ifeq ($(YQ2_OSTYPE),OpenBSD)
 LDFLAGS ?= -L/usr/local/lib
 else ifeq ($(YQ2_OSTYPE),Windows)
 LDFLAGS ?= -L/usr/lib
+endif
+
+# Link address sanitizer if requested.
+ifdef ASAN
+LDFLAGS += -fsanitize=address
 endif
 
 # Required libraries.
