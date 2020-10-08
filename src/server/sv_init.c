@@ -440,7 +440,10 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame)
 	}
 	else
 	{
-		Cvar_Set("nextserver", "");
+		// use next demo command if list of map commands as empty
+		Cvar_Set("nextserver", (char*)Cvar_VariableString("nextdemo"));
+		// and cleanup nextdemo
+		Cvar_Set("nextdemo", "");
 	}
 
 	/* hack for end game screen in coop mode */

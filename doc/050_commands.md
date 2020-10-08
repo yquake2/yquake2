@@ -21,3 +21,5 @@ original clients (Vanilla Quake II) commands are still in place.
 * **listmaps**: Lists available maps for the player to load. Maps from
   loaded pak files will be listed first followed by maps placed in 
   the current game's maps folder.
+
+* **vstr**: Inserts the current value of a variable as command text.

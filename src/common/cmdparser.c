@@ -366,6 +366,9 @@ Cbuf_AddLateCommands(void)
 	return ret;
 }
 
+/*
+ * Execute a script file
+ */
 void
 Cmd_Exec_f(void)
 {
@@ -399,6 +402,21 @@ Cmd_Exec_f(void)
 
 	Z_Free(f2);
 	FS_FreeFile(f);
+}
+
+/*
+ * Inserts the current value of a variable as command text
+ */
+void Cmd_Vstr_f( void ) {
+	const char	*v;
+
+	if (Cmd_Argc() != 2) {
+		Com_Printf("vstr <variablename> : execute a variable command\n");
+		return;
+	}
+
+	v = Cvar_VariableString(Cmd_Argv(1));
+	Cbuf_InsertText(va("%s\n", v));
 }
 
 /*
@@ -1111,6 +1129,7 @@ Cmd_Init(void)
 	/* register our commands */
 	Cmd_AddCommand("cmdlist", Cmd_List_f);
 	Cmd_AddCommand("exec", Cmd_Exec_f);
+	Cmd_AddCommand("vstr", Cmd_Vstr_f);
 	Cmd_AddCommand("echo", Cmd_Echo_f);
 	Cmd_AddCommand("alias", Cmd_Alias_f);
 	Cmd_AddCommand("wait", Cmd_Wait_f);
