@@ -134,7 +134,9 @@ endif
 #   to get it there...
 #  -fwrapv for defined integer wrapping. MSVC6 did this
 #   and the game code requires it.
-override CFLAGS += -std=gnu99 -fno-strict-aliasing -fwrapv
+#  -fvisibility=hidden to keep symbols hidden. This is
+#   mostly best practice and not really necessary.
+override CFLAGS += -std=gnu99 -fno-strict-aliasing -fwrapv -fvisibility=hidden
 
 # -MMD to generate header dependencies. Unsupported by
 #  the Clang shipped with OS X.
@@ -293,10 +295,6 @@ override LDFLAGS += -arch $(YQ2_ARCH)
 else ifeq ($(YQ2_OSTYPE), Haiku)
 override LDFLAGS += -lm -lnetwork
 endif
-
-# Keep symbols hidden.
-override CFLAGS += -fvisibility=hidden
-override LDFLAGS += -fvisibility=hidden
 
 ifneq ($(YQ2_OSTYPE), Darwin)
 ifneq ($(YQ2_OSTYPE), OpenBSD)
