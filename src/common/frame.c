@@ -106,10 +106,22 @@ Qcommon_Buildstring(void)
 #ifndef DEDICATED_ONLY
 	printf("Client build options:\n");
 
+#ifdef USE_CURL
+	printf(" + cURL HTTP downloads\n");
+#else
+	printf(" - cURL HTTP downloads\n");
+#endif
+
 #ifdef USE_OPENAL
 	printf(" + OpenAL audio\n");
 #else
 	printf(" - OpenAL audio\n");
+#endif
+
+#ifdef SYSTEMWIDE
+	printf(" + Systemwide installation\n");
+#else
+	printf(" - Systemwide installation\n");
 #endif
 #endif
 
