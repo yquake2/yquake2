@@ -61,9 +61,6 @@ vec3_t	vright;
 vec3_t	r_origin;
 
 float	r_projection_matrix[16];
-float	r_proj_aspect;
-float	r_proj_fovx;
-float	r_proj_fovy;
 float	r_view_matrix[16];
 float	r_viewproj_matrix[16];
 // correction matrix for perspective in Vulkan
@@ -90,6 +87,8 @@ cvar_t	*r_lerpmodels;
 cvar_t	*r_lefthand;
 cvar_t	*r_vsync;
 cvar_t	*r_mode;
+cvar_t	*r_gunfov;
+cvar_t	*r_farsee;
 
 cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
@@ -847,7 +846,11 @@ R_SetupVulkan
 static void
 R_SetupVulkan (void)
 {
+	float	r_proj_aspect;
+	float	r_proj_fovx;
+	float	r_proj_fovy;
 	int		x, x2, y2, y, w, h;
+	float dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
 
 	//
 	// set up viewport
@@ -874,7 +877,7 @@ R_SetupVulkan (void)
 	r_proj_fovx = r_newrefdef.fov_x;
 	r_proj_fovy = r_newrefdef.fov_y;
 	r_proj_aspect = (float)r_newrefdef.width / r_newrefdef.height;
-	Mat_Perspective(r_projection_matrix, r_vulkan_correction, r_proj_fovy, r_proj_aspect, 4, 4096);
+	Mat_Perspective(r_projection_matrix, r_vulkan_correction, r_proj_fovy, r_proj_aspect, 4, dist);
 
 	R_SetFrustum(r_proj_fovx, r_proj_fovy);
 
@@ -1134,6 +1137,8 @@ R_Register( void )
 	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
 	r_mode = ri.Cvar_Get("r_mode", "11", CVAR_ARCHIVE);
 	r_vsync = ri.Cvar_Get("r_vsync", "0", CVAR_ARCHIVE);
+	r_gunfov = ri.Cvar_Get("r_gunfov", "80", CVAR_ARCHIVE);
+	r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 
 	vk_overbrightbits = ri.Cvar_Get("vk_overbrightbits", "1.0", CVAR_ARCHIVE);
 	vk_validation = ri.Cvar_Get("vk_validation", "0", CVAR_ARCHIVE);
