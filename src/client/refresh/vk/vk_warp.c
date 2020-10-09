@@ -540,9 +540,11 @@ static void MakeSkyVec (float s, float t, int axis, float *vertexData)
 	vec3_t		v, b;
 	int			j;
 
-	b[0] = s * 2300;
-	b[1] = t * 2300;
-	b[2] = 2300;
+	float dist = (r_farsee->value == 0) ? 2300.0f : 4096.0f;
+
+	b[0] = s * dist;
+	b[1] = t * dist;
+	b[2] = dist;
 
 	for (j = 0; j<3; j++)
 	{
