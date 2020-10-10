@@ -33,7 +33,7 @@
 #include <unistd.h> // readlink(), amongst others
 #endif
 
-#if defined(__FreeBSD__) || defined(__NetBSD__)
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
 #include <sys/sysctl.h> // for sysctl() to get path to executable
 #endif
 
@@ -93,11 +93,11 @@ static void SetExecutablePath(char* exePath)
 		exePath[len] = '\0';
 	}
 
-#elif defined(__FreeBSD__) || defined(__NetBSD__)
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
 
 	// the sysctl should also work when /proc/ is not mounted (which seems to
 	// be common on FreeBSD), so use it..
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) || defined(__DragonFly__)
 	int name[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
 #else
 	int name[4] = {CTL_KERN, KERN_PROC_ARGS, -1, KERN_PROC_PATHNAME};
