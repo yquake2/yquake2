@@ -25,15 +25,24 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 typedef struct BufferResource_s {
 	VkBuffer buffer;
+	// shared memory used for image
 	VkDeviceMemory memory;
-	size_t size;
-	int is_mapped;
+	// image size
+	VkDeviceSize size;
+	// posision in shared memory
+	VkDeviceSize offset;
+	// is mapped?
+	VkBool32 is_mapped;
 } BufferResource_t;
 
 typedef struct ImageResource_s {
 	VkImage image;
+	// shared memory used for image
 	VkDeviceMemory memory;
-	size_t size;
+	// image size
+	VkDeviceSize size;
+	// posision in shared memory
+	VkDeviceSize offset;
 } ImageResource_t;
 
 VkResult buffer_create(BufferResource_t *buf,
@@ -52,5 +61,9 @@ VkResult image_create(ImageResource_t *img,
 		VkMemoryPropertyFlags mem_properties,
 		VkMemoryPropertyFlags mem_preferences);
 VkResult image_destroy(ImageResource_t *img);
+
+void vulkan_memory_init(void);
+void vulkan_memory_free_unused(void);
+void vulkan_memory_delete(void);
 
 #endif  /*__VK_UTIL_H__*/
