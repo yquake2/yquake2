@@ -1555,6 +1555,9 @@ void QVk_Shutdown( void )
 				vkDestroyFence(vk_device.logical, vk_fences[i], NULL);
 			}
 		}
+		// free all memory
+		vulkan_memory_delete();
+
 		if (vk_device.logical != VK_NULL_HANDLE)
 			vkDestroyDevice(vk_device.logical, NULL);
 		if(vk_surface != VK_NULL_HANDLE)

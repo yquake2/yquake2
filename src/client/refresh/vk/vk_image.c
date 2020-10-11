@@ -1384,6 +1384,9 @@ void Vk_FreeUnusedImages (void)
 		QVk_ReleaseTexture(&image->vk_texture);
 		memset(image, 0, sizeof(*image));
 	}
+
+	// free all unused blocks
+	vulkan_memory_free_unused();
 }
 
 
