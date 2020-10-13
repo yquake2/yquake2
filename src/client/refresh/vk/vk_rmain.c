@@ -1063,12 +1063,19 @@ R_SetLightLevel (void)
 	}
 }
 
-static void R_CleanuBorders(void)
+static void R_CleanupBorders(void)
 {
 	float h_border, v_border;
 	float imgTransform[] = { .0f, .0f, .0f, .0f, .0f, .0f, .0f, 1.f };
 
+	// without any borders
 	if (vid.height == r_newrefdef.height && vid.width == r_newrefdef.width)
+	{
+		return;
+	}
+
+	// not in game
+	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
 	{
 		return;
 	}
@@ -1118,7 +1125,7 @@ RE_RenderFrame (refdef_t *fd)
 	R_SetLightLevel ();
 	R_SetVulkan2D (&vk_viewport, &vk_scissor);
 
-	R_CleanuBorders();
+	R_CleanupBorders();
 }
 
 
