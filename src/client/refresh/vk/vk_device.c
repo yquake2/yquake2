@@ -284,6 +284,8 @@ qboolean QVk_CreateDevice(int preferredDeviceIdx)
 	vkGetDeviceQueue(vk_device.logical, vk_device.presentFamilyIndex, 0, &vk_device.presentQueue);
 	vkGetDeviceQueue(vk_device.logical, vk_device.transferFamilyIndex, 0, &vk_device.transferQueue);
 	vkGetPhysicalDeviceMemoryProperties(vk_device.physical, &vk_device.mem_properties);
+	// init our memory management
+	vulkan_memory_init();
 
 	return true;
 }
