@@ -1,4 +1,8 @@
-Quake II 7.44 to 7.44:
+Quake II 7.44 to 7.45:
+- Fix a crash under windows when opening the games menu with mods
+  installed.
+
+Quake II 7.43 to 7.44:
 - Fix some input option not getting saved.
 - Limit busywaits to the full client. This lowers the cpu consumption
   of q2ded considerably.
