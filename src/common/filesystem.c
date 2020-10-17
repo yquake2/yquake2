@@ -1830,11 +1830,11 @@ FS_ListMods(int *nummods)
 		// make sure this Raw path ends with a '/' otherwise FS_ListFiles will open its parent dir
 		if(search->path[searchpathlength - 1] != '/')
 		{
-			Com_sprintf(searchpath, sizeof(searchpath), "%s/", search->path);
+			Com_sprintf(searchpath, sizeof(searchpath), "%s/*", search->path);
 		}
 		else
 		{
-			strcpy(searchpath, search->path);
+			Com_sprintf(searchpath, sizeof(searchpath), "%s*", search->path);
 		}
 
 		dirchildren = FS_ListFiles(searchpath, &numdirchildren, 0, 0);
