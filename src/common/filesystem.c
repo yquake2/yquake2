@@ -1802,8 +1802,6 @@ FS_InitFilesystem(void)
 	Com_Printf("Using '%s' for writing.\n", fs_gamedir);
 }
 
-extern int qsort_strcomp(const void *s1, const void *s2);
-
 /*
  * Combs all Raw search paths to find game dirs containing PAK/PK2/PK3 files.
  * Returns an alphabetized array of unique relative dir names.
@@ -1894,7 +1892,7 @@ FS_ListMods(int *nummods)
 
 	modnames[nmods] = 0;
 
-	qsort(modnames, nmods, sizeof(modnames[0]), qsort_strcomp);
+	qsort(modnames, nmods, sizeof(modnames[0]), Q_sort_strcomp);
 
 	*nummods = nmods;
 	return modnames;

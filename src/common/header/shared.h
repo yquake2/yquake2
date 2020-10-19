@@ -290,6 +290,9 @@ int Q_strlcat(char *dst, const char *src, int size);
 /* Unicode wrappers that also make sure it's a regular file around fopen(). */
 FILE *Q_fopen(const char *file, const char *mode);
 
+/* Comparator function for qsort(), compares strings. */
+int Q_sort_strcomp(const void *s1, const void *s2);
+
 /* ============================================= */
 
 short BigShort(short l);

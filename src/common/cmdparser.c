@@ -786,12 +786,6 @@ Cmd_Exists(char *cmd_name)
 	return false;
 }
 
-int
-qsort_strcomp(const void *s1, const void *s2)
-{
-	return strcmp(*(char **)s1, *(char **)s2);
-}
-
 char *
 Cmd_CompleteCommand(char *partial)
 {
@@ -877,7 +871,7 @@ Cmd_CompleteCommand(char *partial)
 		}
 
 		/* Sort it */
-		qsort(pmatch, i, sizeof(pmatch[0]), qsort_strcomp);
+		qsort(pmatch, i, sizeof(pmatch[0]), Q_sort_strcomp);
 
 		Com_Printf("\n\n");
 
