@@ -1837,6 +1837,11 @@ FS_ListMods(int *nummods)
 
 		dirchildren = FS_ListFiles(searchpath, &numdirchildren, 0, 0);
 
+		if (dirchildren == NULL)
+		{
+			continue;
+		}
+
 		// iterate over the children of this Raw path (unless we've already got enough mods)
 		for (int i = 0; i < numdirchildren && nmods < MAX_MODS; i++)
 		{
