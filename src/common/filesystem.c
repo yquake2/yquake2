@@ -1804,15 +1804,40 @@ const char* FS_GetFilenameForHandle(fileHandle_t f)
 
 // --------
 
-void FS_AddDirToRawPath (const char *dir, qboolean create) {
-	fsRawPath_t *search;
+void FS_AddDirToRawPath (const char *rawdir, qboolean create) {
+	// Convert backslashes to forward slashes.
+	char *dir = strdup(rawdir);
+
+	for (int i = 0; i < strlen(dir); i++)
+	{
+		if (dir[i] == '\\')
+		{
+			dir[i] = '/';
+		}
+	}
+
+	// Make sure that the dir doesn't end with a slash
+	for (size_t s = strlen(dir) - 1; s >= 0; s--)
+	{
+		if (dir[s] == '/')
+		{
+			dir[s] = '\0';
+		}
+		else
+		{
+			break;
+		}
+	}
 
 	// Add the directory
-	search = Z_Malloc(sizeof(fsRawPath_t));
+	fsRawPath_t *search = Z_Malloc(sizeof(fsRawPath_t));
 	Q_strlcpy(search->path, dir, sizeof(search->path));
 	search->create = create;
 	search->next = fs_rawPath;
 	fs_rawPath = search;
+
+	// Cleanup
+	free(dir);
 }
 
 
