@@ -1805,9 +1805,12 @@ const char* FS_GetFilenameForHandle(fileHandle_t f)
 // --------
 
 void FS_AddDirToRawPath (const char *rawdir, qboolean create) {
-	// Convert backslashes to forward slashes.
-	char *dir = strdup(rawdir);
+	char dir[MAX_OSPATH] = {0};
 
+	// Get the realpath.
+	Sys_Realpath(rawdir, dir, sizeof(dir));
+
+	// Convert backslashes to forward slashes.
 	for (int i = 0; i < strlen(dir); i++)
 	{
 		if (dir[i] == '\\')
@@ -1835,9 +1838,6 @@ void FS_AddDirToRawPath (const char *rawdir, qboolean create) {
 	search->create = create;
 	search->next = fs_rawPath;
 	fs_rawPath = search;
-
-	// Cleanup
-	free(dir);
 }
 
 

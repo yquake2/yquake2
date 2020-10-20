@@ -519,6 +519,20 @@ Sys_RemoveDir(const char *path)
 	}
 }
 
+void
+Sys_Realpath(const char *in, char *out, size_t size)
+{
+	char *converted = realpath(in, NULL);
+
+	if (converted == NULL)
+	{
+		Com_Error(ERR_FATAL, "Couldn't get realpath for %s\n", in);
+	}
+
+	Q_strlcpy(out, converted, size);
+	free(converted);
+}
+
 /* ================================================================ */
 
 void *
