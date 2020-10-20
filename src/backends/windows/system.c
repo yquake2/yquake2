@@ -454,7 +454,7 @@ Sys_GetGameAPI(void *parms)
 /* ======================================================================= */
 
 void
-Sys_Mkdir(char *path)
+Sys_Mkdir(const char *path)
 {
 	WCHAR wpath[MAX_OSPATH] = {0};
 	MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_OSPATH);

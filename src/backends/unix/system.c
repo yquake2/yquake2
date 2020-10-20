@@ -432,7 +432,7 @@ Sys_GetGameAPI(void *parms)
 /* ================================================================ */
 
 void
-Sys_Mkdir(char *path)
+Sys_Mkdir(const char *path)
 {
 	mkdir(path, 0755);
 }
