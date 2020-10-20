@@ -1819,7 +1819,7 @@ void FS_AddDirToRawPath (const char *rawdir, qboolean create) {
 		}
 	}
 
-	// Make sure that the dir doesn't end with a slash
+	// Make sure that the dir doesn't end with a slash.
 	for (size_t s = strlen(dir) - 1; s >= 0; s--)
 	{
 		if (dir[s] == '/')
@@ -1832,7 +1832,16 @@ void FS_AddDirToRawPath (const char *rawdir, qboolean create) {
 		}
 	}
 
-	// Add the directory
+	// Bail out if the dir was already added.
+	for (fsRawPath_t *search = fs_rawPath; search; search = search->next)
+	{
+		if (strcmp(search->path, dir) == 0)
+		{
+			return;
+		}
+	}
+
+	// Add the directory.
 	fsRawPath_t *search = Z_Malloc(sizeof(fsRawPath_t));
 	Q_strlcpy(search->path, dir, sizeof(search->path));
 	search->create = create;
