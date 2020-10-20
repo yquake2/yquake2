@@ -726,6 +726,8 @@ Sys_RedirectStdout(void)
 		return;
 	}
 
+	Sys_Mkdir(tmp);
+
 	snprintf(path_stdout, sizeof(path_stdout), "%s/%s", dir, "stdout.txt");
 	snprintf(path_stderr, sizeof(path_stderr), "%s/%s", dir, "stderr.txt");
 
