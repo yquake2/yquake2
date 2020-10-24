@@ -20,8 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/local.h"
 
-extern cvar_t *sw_retexturing;
-
 #define	MAX_RIMAGES	1024
 static image_t		r_images[MAX_RIMAGES];
 static int		numr_images;
