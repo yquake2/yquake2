@@ -241,38 +241,85 @@ RE_Draw_StretchRaw
 */
 extern unsigned	r_rawpalette[256];
 extern qvktexture_t vk_rawTexture;
-
-static unsigned	raw_image32[512 * 512];
+static int scaled_size = 512;
 
 void RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
 {
 
 	int	i, j;
 	int	hscale, vscale;
+	unsigned *dest;
+	byte *source;
+	byte *image_scaled;
+	unsigned *raw_image32;
 
-	hscale = cols * 0x10000 / 512;
-	vscale = rows * 0x10000 / 512;
-
-	unsigned *dest = raw_image32;
-	byte *source = data;
-	for (i = 0; i < 512; i++)
+	if (vk_retexturing->value)
 	{
-		for (j = 0; j < 512; j++)
+		// triple scaling
+		if (cols < (vid.width / 3) || rows < (vid.height / 3))
+		{
+			image_scaled = malloc(cols * rows * 9);
+
+			scale3x(data, image_scaled, cols, rows);
+
+			cols = cols * 3;
+			rows = rows * 3;
+		}
+		else
+		// double scaling
+		{
+			image_scaled = malloc(cols * rows * 4);
+
+			scale2x(data, image_scaled, cols, rows);
+
+			cols = cols * 2;
+			rows = rows * 2;
+		}
+	}
+	else
+	{
+		image_scaled = data;
+	}
+
+	if (vk_rawTexture.resource.image == VK_NULL_HANDLE)
+	{
+		// get power of two image size,
+		// could be updated only size only after recreate texture
+		for (scaled_size = 512; scaled_size < cols && scaled_size < rows; scaled_size <<= 1)
+			;
+	}
+
+	raw_image32 = malloc(scaled_size * scaled_size * sizeof(unsigned));
+
+	hscale = cols * 0x10000 / scaled_size;
+	vscale = rows * 0x10000 / scaled_size;
+
+	source = image_scaled;
+	dest = raw_image32;
+	for (i = 0; i < scaled_size; i++)
+	{
+		for (j = 0; j < scaled_size; j++)
 		{
 			*dest = r_rawpalette[*(source + ((j * hscale) >> 16))];
 			dest ++;
 		}
-		source = data + (((i * vscale) >> 16) * cols);
+		source = image_scaled + (((i * vscale) >> 16) * cols);
+	}
+
+	if (vk_retexturing->value)
+	{
+		free(image_scaled);
+		SmoothColorImage(raw_image32, scaled_size * scaled_size, scaled_size >> 7);
 	}
 
 	if (vk_rawTexture.resource.image != VK_NULL_HANDLE)
 	{
-		QVk_UpdateTextureData(&vk_rawTexture, (unsigned char*)&raw_image32, 0, 0, 512, 512);
+		QVk_UpdateTextureData(&vk_rawTexture, (unsigned char*)raw_image32, 0, 0, scaled_size, scaled_size);
 	}
 	else
 	{
 		QVVKTEXTURE_CLEAR(vk_rawTexture);
-		QVk_CreateTexture(&vk_rawTexture, (unsigned char*)&raw_image32, 512, 512,
+		QVk_CreateTexture(&vk_rawTexture, (unsigned char*)raw_image32, scaled_size, scaled_size,
 			vk_current_sampler);
 		QVk_DebugSetObjectName((uint64_t)vk_rawTexture.resource.image,
 			VK_OBJECT_TYPE_IMAGE, "Image: raw texture");
@@ -283,6 +330,7 @@ void RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *d
 		QVk_DebugSetObjectName((uint64_t)vk_rawTexture.resource.memory,
 			VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: raw texture");
 	}
+	free(raw_image32);
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 (float)w / vid.width, (float)h / vid.height,
