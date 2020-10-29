@@ -228,13 +228,13 @@ R_LoadWal (char *name, imagetype_t type)
 	file_size = ri.FS_LoadFile (name, (void **)&mt);
 	if (!mt)
 	{
-		R_Printf(PRINT_ALL, "R_LoadWal: can't load %s\n", name);
+		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
 		return r_notexture_mip;
 	}
 
 	if (file_size < sizeof(miptex_t))
 	{
-		R_Printf(PRINT_ALL, "R_LoadWal: can't load %s, small header\n", name);
+		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
 		ri.FS_FreeFile((void *)mt);
 		return r_notexture_mip;
 	}
@@ -251,7 +251,7 @@ R_LoadWal (char *name, imagetype_t type)
 	if ((ofs <= 0) || (image->width <= 0) || (image->height <= 0) ||
 	    ((file_size - ofs) / image->width < image->height))
 	{
-		R_Printf(PRINT_ALL, "LoadWal: can't load %s, small body\n", name);
+		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
 		ri.FS_FreeFile((void *)mt);
 		return r_notexture_mip;
 	}

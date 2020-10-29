@@ -1293,7 +1293,8 @@ RE_RenderFrame (refdef_t *fd)
 	VectorCopy (fd->viewangles, r_refdef.viewangles);
 
 	// compare current position with old
-	if (!VectorCompareRound(fd->vieworg, lastvieworg) ||
+	if (vid.width <= 640 ||
+	    !VectorCompareRound(fd->vieworg, lastvieworg) ||
 	    !VectorCompare(fd->viewangles, lastviewangles))
 	{
 		fastmoving = true;
@@ -1426,6 +1427,8 @@ RE_BeginFrame( float camera_separation )
 {
 	// pallete without changes
 	palette_changed = false;
+	// run without speed optimization
+	fastmoving = false;
 
 	while (r_mode->modified || vid_fullscreen->modified || r_vsync->modified)
 	{
@@ -2055,10 +2058,13 @@ RE_CopyFrame (Uint32 * pixels, int pitch, int vmin, int vmax)
 		max_pixels = pixels + vmax;
 		buffer_pos = vid_buffer + vmin;
 
-		for (pixels_pos = pixels + vmin; pixels_pos < max_pixels; pixels_pos++)
+		pixels_pos = pixels + vmin;
+
+		while ( pixels_pos < max_pixels)
 		{
 			*pixels_pos = sdl_palette[*buffer_pos];
 			buffer_pos++;
+			pixels_pos++;
 		}
 	}
 	else
@@ -2128,6 +2134,7 @@ RE_CleanFrame(void)
 		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
 		return;
 	}
+
 	// only cleanup texture without flush texture to screen
 	memset(pixels, 0, pitch * vid.height);
 	SDL_UnlockTexture(texture);
@@ -2157,6 +2164,12 @@ RE_FlushFrame(int vmin, int vmax)
 		// code have to copy a whole screen to the texture
 		RE_CopyFrame (pixels, pitch / sizeof(Uint32), 0, vid.height * vid.width);
 	}
+
+	if (((int)sw_texture_filtering->value & 0x01) && !fastmoving)
+	{
+		SmoothColorImage(pixels + vmin, vmax - vmin, vid.width >> 7);
+	}
+
 	SDL_UnlockTexture(texture);
 
 	SDL_RenderCopy(renderer, texture, NULL, NULL);

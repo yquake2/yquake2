@@ -213,18 +213,17 @@ R_InitCaches (void)
 	int		size;
 
 	// calculate size to allocate
-	if (sw_surfcacheoverride->value)
+	int pix;
+	// surface cache size at 320X240
+	size = 1024*768;
+
+	pix = vid.width*vid.height;
+	if (pix > 64000)
+		size += (pix-64000)*3;
+
+	if (sw_surfcacheoverride->value > size)
 	{
 		size = sw_surfcacheoverride->value;
-	}
-	else
-	{
-		int pix;
-		size = SURFCACHE_SIZE_AT_320X240;
-
-		pix = vid.width*vid.height;
-		if (pix > 64000)
-			size += (pix-64000)*3;
 	}
 
 	// round up to page size
