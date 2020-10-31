@@ -72,7 +72,7 @@ printBacktrace(int sig)
 	printf("Compiler:     %s\n", __VERSION__);
 	printf("Signal:       %i\n", sig);
 	printf("\nBacktrace:\n");
-	printf("  Not available on this plattform.\n\n");
+	printf("  Not available on this platform.\n\n");
 }
 
 #endif
