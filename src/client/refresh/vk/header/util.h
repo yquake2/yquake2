@@ -26,7 +26,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 typedef struct BufferResource_s {
 	VkBuffer buffer;
-	// shared memory used for image
+	// shared memory used for buffer
 	VkDeviceMemory memory;
 	// image size
 	VkDeviceSize size;

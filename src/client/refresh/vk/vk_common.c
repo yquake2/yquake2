@@ -2148,8 +2148,9 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
-			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynVertexBuffers[i];
+			// need unmap before copy to swapBuffers
 			buffer_unmap(&vk_dynVertexBuffers[i].resource);
+			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynVertexBuffers[i];
 
 			QVk_CreateVertexBuffer(NULL, vk_config.vertex_buffer_size,
 				&vk_dynVertexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
@@ -2193,8 +2194,9 @@ static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
-			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynIndexBuffers[i];
+			// need unmap before copy to swapBuffers
 			buffer_unmap(&vk_dynIndexBuffers[i].resource);
+			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynIndexBuffers[i];
 
 			QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size,
 				&vk_dynIndexBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
@@ -2244,9 +2246,10 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
+			// need unmap before copy to swapBuffers
+			buffer_unmap(&vk_dynUniformBuffers[i].resource);
 			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynUniformBuffers[i];
 			vk_swapDescriptorSets[vk_activeSwapBufferIdx][swapDescSetsOffset + i] = vk_uboDescriptorSets[i];
-			buffer_unmap(&vk_dynUniformBuffers[i].resource);
 
 			VK_VERIFY(QVk_CreateUniformBuffer(vk_config.uniform_buffer_size,
 				&vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
