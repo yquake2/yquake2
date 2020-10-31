@@ -501,8 +501,7 @@ buffer_destroy(BufferResource_t *buf)
 		buf->memory = VK_NULL_HANDLE;
 	}
 
-	buf->size = 0;
-	buf->offset = 0;
+	memset(buf, 0, sizeof(BufferResource_t));
 
 	return VK_SUCCESS;
 }
@@ -524,8 +523,7 @@ image_destroy(ImageResource_t *img)
 		img->memory = VK_NULL_HANDLE;
 	}
 
-	img->size = 0;
-	img->offset = 0;
+	memset(img, 0, sizeof(ImageResource_t));
 
 	return VK_SUCCESS;
 }
@@ -564,6 +562,7 @@ buffer_invalidate(BufferResource_t *buf)
 void *
 buffer_map(BufferResource_t *buf)
 {
+	assert(buf->memory);
 	assert(!buf->is_mapped);
 	buf->is_mapped = VK_TRUE;
 	void *ret = NULL;
@@ -577,6 +576,7 @@ buffer_map(BufferResource_t *buf)
 void
 buffer_unmap(BufferResource_t *buf)
 {
+	assert(buf->memory);
 	assert(buf->is_mapped);
 	buf->is_mapped = VK_FALSE;
 	vkUnmapMemory(vk_device.logical, buf->memory);
