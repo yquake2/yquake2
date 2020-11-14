@@ -26,6 +26,8 @@
  * =======================================================================
  */
 
+#include <ctype.h>
+
 #include "header/common.h"
 
 #define MAX_ALIAS_NAME 32
@@ -939,12 +941,12 @@ Cmd_CompleteMapCommand(char *partial)
 			mapName = strtok(mapName, ".");
 
 			/* check for exact match */
-			if (!strcmp(partial, mapName))
+			if (!Q_strcasecmp(partial, mapName))
 			{
 				strcpy(retval, partial);
 			}
 			/* check for partial match */
-			else if (!strncmp(partial, mapName, len))
+			else if (!Q_strncasecmp(partial, mapName, len))
 			{
 				pmatch[nbMatches] = mapName;
 				nbMatches++;
@@ -969,7 +971,7 @@ Cmd_CompleteMapCommand(char *partial)
 			{
 				for (k = 1; k < nbMatches; k++)
 				{
-					if (j >= strlen(pmatch[k]) || pmatch[0][j] != pmatch[k][j])
+					if (j >= strlen(pmatch[k]) || tolower(pmatch[0][j]) != tolower(pmatch[k][j]))
 					{
 						partialFillContinue = false;
 						break;
