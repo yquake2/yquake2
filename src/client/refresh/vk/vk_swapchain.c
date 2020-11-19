@@ -64,6 +64,7 @@ static VkSurfaceFormatKHR getSwapSurfaceFormat(const VkSurfaceFormatKHR *surface
 }
 
 // internal helper
+// look to https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPresentModeKHR.html for more information
 static VkPresentModeKHR getSwapPresentMode(const VkPresentModeKHR *presentModes, uint32_t presentModesCount, VkPresentModeKHR desiredMode)
 {
 	// PRESENT_MODE_FIFO_KHR is guaranteed to exist due to spec requirements
@@ -89,12 +90,13 @@ static VkPresentModeKHR getSwapPresentMode(const VkPresentModeKHR *presentModes,
 	// preferred present mode not found - choose the next best thing
 	for (uint32_t i = 0; i < presentModesCount; ++i)
 	{
-		// always prefer mailbox for triple buffering
+		// always prefer mailbox for triple buffering with whole image replace
 		if (presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
 		{
 			usedPresentMode = presentModes[i];
 			break;
 		}
+		// prefer immediate update with tearing
 		else if (presentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR)
 		{
 			usedPresentMode = presentModes[i];
@@ -169,7 +171,7 @@ VkResult QVk_CreateSwapchain()
 
 	// request at least 2 images - this fixes fullscreen crashes on AMD when launching the game in fullscreen
 	uint32_t imageCount = max(2, surfaceCaps.minImageCount);
-	if (swapPresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+	if (swapPresentMode != VK_PRESENT_MODE_FIFO_KHR)
 		imageCount = max(3, surfaceCaps.minImageCount);
 
 	if (surfaceCaps.maxImageCount > 0)
