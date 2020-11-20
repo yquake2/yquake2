@@ -67,32 +67,39 @@ vulkan_memory_init(void)
 	memset(used_memory, 0, used_memory_size * sizeof(MemoryResource_t));
 }
 
+static void
+memory_type_print(VkMemoryPropertyFlags mem_prop)
+{
+#define MPSTR(r, prop) \
+	if((prop & VK_ ##r) != 0) \
+		{ R_Printf(PRINT_ALL, " %s", "VK_"#r); };
+
+	MPSTR(MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mem_prop);
+	MPSTR(MEMORY_PROPERTY_HOST_VISIBLE_BIT, mem_prop);
+	MPSTR(MEMORY_PROPERTY_HOST_COHERENT_BIT, mem_prop);
+	MPSTR(MEMORY_PROPERTY_HOST_CACHED_BIT, mem_prop);
+	MPSTR(MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT, mem_prop);
+	MPSTR(MEMORY_PROPERTY_PROTECTED_BIT, mem_prop);
+	MPSTR(MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD, mem_prop);
+	MPSTR(MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD, mem_prop);
+
+#undef PMSTR
+}
+
 void
 vulkan_memory_types_show(void)
 {
-#define MPSTR(r, i) \
-	if((vk_device.mem_properties.memoryTypes[i].propertyFlags & VK_ ##r) != 0) \
-		{ R_Printf(PRINT_ALL, " %s", "VK_"#r); };
-
-	R_Printf(PRINT_ALL, "\nMemory blocks:\n");
+	R_Printf(PRINT_ALL, "\nMemory blocks:");
 
 	for(uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; i++)
 	{
 		if (vk_device.mem_properties.memoryTypes[i].propertyFlags)
 		{
-			R_Printf(PRINT_ALL, "\n#%d:", i);
-			MPSTR(MEMORY_PROPERTY_DEVICE_LOCAL_BIT, i);
-			MPSTR(MEMORY_PROPERTY_HOST_VISIBLE_BIT, i);
-			MPSTR(MEMORY_PROPERTY_HOST_COHERENT_BIT, i);
-			MPSTR(MEMORY_PROPERTY_HOST_CACHED_BIT, i);
-			MPSTR(MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT, i);
-			MPSTR(MEMORY_PROPERTY_PROTECTED_BIT, i);
-			MPSTR(MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD, i);
-			MPSTR(MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD, i);
+			R_Printf(PRINT_ALL, "\n   #%d:", i);
+			memory_type_print(vk_device.mem_properties.memoryTypes[i].propertyFlags);
 		}
 	}
 	R_Printf(PRINT_ALL, "\n");
-#undef PMSTR
 }
 
 static VkBool32
