@@ -339,7 +339,10 @@ VkResult QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkIma
 	}
 
 	texture->sharingMode = imageInfo.sharingMode;
-	return image_create(&texture->resource, imageInfo, /*mem_properties*/ 0, /*mem_preferences*/ 0);
+	return image_create(
+		&texture->resource, imageInfo,
+		/*mem_properties*/ 0,
+		/*mem_preferences*/ VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
 void QVk_CreateDepthBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *depthBuffer)
