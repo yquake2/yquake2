@@ -64,6 +64,7 @@ VkResult image_create(ImageResource_t *img,
 VkResult image_destroy(ImageResource_t *img);
 
 void vulkan_memory_init(void);
+void vulkan_memory_types_show(void);
 void vulkan_memory_free_unused(void);
 void vulkan_memory_delete(void);
 
