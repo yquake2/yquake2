@@ -132,6 +132,8 @@ QVk_CreateStagingBuffer(VkDeviceSize size, qvkstagingbuffer_t *dstBuffer,
 		.pQueueFamilyIndices = NULL,
 	};
 
+	reqMemFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
 	dstBuffer->currentOffset = 0;
 	return buffer_create(&dstBuffer->resource, bcInfo, reqMemFlags,
 						 prefMemFlags);
@@ -147,6 +149,13 @@ QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer,
 		.reqMemFlags = reqMemFlags,
 		.prefMemFlags = prefMemFlags,
 	};
+
+	dstOpts.reqMemFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+
+	if((dstOpts.prefMemFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
+	{
+		dstOpts.prefMemFlags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	}
 
 	return QVk_CreateBuffer(size, dstBuffer, dstOpts);
 }
@@ -164,6 +173,11 @@ QVk_CreateVertexBuffer(const void *data, VkDeviceSize size,
 		.prefMemFlags = prefMemFlags,
 	};
 
+	if ((dstOpts.prefMemFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
+	{
+		dstOpts.prefMemFlags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	}
+
 	createStagedBuffer(data, size, dstBuffer, dstOpts);
 }
 
@@ -178,6 +192,11 @@ QVk_CreateIndexBuffer(const void *data, VkDeviceSize size,
 		.reqMemFlags = reqMemFlags,
 		.prefMemFlags = prefMemFlags,
 	};
+
+	if ((dstOpts.prefMemFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
+	{
+		dstOpts.prefMemFlags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	}
 
 	createStagedBuffer(data, size, dstBuffer, dstOpts);
 }
