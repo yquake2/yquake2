@@ -67,6 +67,34 @@ vulkan_memory_init(void)
 	memset(used_memory, 0, used_memory_size * sizeof(MemoryResource_t));
 }
 
+void
+vulkan_memory_types_show(void)
+{
+#define MPSTR(r, i) \
+	if((vk_device.mem_properties.memoryTypes[i].propertyFlags & VK_ ##r) != 0) \
+		{ R_Printf(PRINT_ALL, " %s", "VK_"#r); };
+
+	R_Printf(PRINT_ALL, "\nMemory blocks:\n");
+
+	for(uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; i++)
+	{
+		if (vk_device.mem_properties.memoryTypes[i].propertyFlags)
+		{
+			R_Printf(PRINT_ALL, "\n#%d:", i);
+			MPSTR(MEMORY_PROPERTY_DEVICE_LOCAL_BIT, i);
+			MPSTR(MEMORY_PROPERTY_HOST_VISIBLE_BIT, i);
+			MPSTR(MEMORY_PROPERTY_HOST_COHERENT_BIT, i);
+			MPSTR(MEMORY_PROPERTY_HOST_CACHED_BIT, i);
+			MPSTR(MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT, i);
+			MPSTR(MEMORY_PROPERTY_PROTECTED_BIT, i);
+			MPSTR(MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD, i);
+			MPSTR(MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD, i);
+		}
+	}
+	R_Printf(PRINT_ALL, "\n");
+#undef PMSTR
+}
+
 static VkBool32
 vulkan_memory_is_used(int start_pos, int end_pos, VkDeviceMemory memory)
 {
@@ -357,11 +385,13 @@ memory_create_by_property(VkMemoryRequirements* mem_reqs,
 
 	memory_index = get_memory_type(mem_reqs->memoryTypeBits,
 		mem_properties | mem_preferences);
+	// prefered memory allocation
 	if (memory_index == -1)
 	{
 		memory_index = get_memory_type(mem_reqs->memoryTypeBits,
 			mem_properties);
 	}
+	// strictly required
 	if (memory_index == -1)
 	{
 		R_Printf(PRINT_ALL, "%s:%d: Have not found required memory type.\n",
