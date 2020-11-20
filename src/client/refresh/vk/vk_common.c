@@ -1751,6 +1751,9 @@ qboolean QVk_Init(SDL_Window *window)
 	}
 	QVk_DebugSetObjectName((uintptr_t)vk_device.physical, VK_OBJECT_TYPE_PHYSICAL_DEVICE, va("Physical Device: %s", vk_config.vendor_name));
 
+	if (vk_validation->value)
+		vulkan_memory_types_show();
+
 	// setup swapchain
 	res = QVk_CreateSwapchain();
 	if (res != VK_SUCCESS)
