@@ -152,7 +152,8 @@ QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer,
 
 	dstOpts.reqMemFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
-	if((dstOpts.prefMemFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
+	if((vk_device.properties.deviceType != VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) ||
+	   (dstOpts.prefMemFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
 	{
 		dstOpts.prefMemFlags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	}
@@ -173,7 +174,8 @@ QVk_CreateVertexBuffer(const void *data, VkDeviceSize size,
 		.prefMemFlags = prefMemFlags,
 	};
 
-	if ((dstOpts.prefMemFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
+	if((vk_device.properties.deviceType != VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) ||
+	   (dstOpts.prefMemFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
 	{
 		dstOpts.prefMemFlags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	}
@@ -193,7 +195,8 @@ QVk_CreateIndexBuffer(const void *data, VkDeviceSize size,
 		.prefMemFlags = prefMemFlags,
 	};
 
-	if ((dstOpts.prefMemFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
+	if((vk_device.properties.deviceType != VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) ||
+	   (dstOpts.prefMemFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0)
 	{
 		dstOpts.prefMemFlags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	}
