@@ -127,7 +127,7 @@ static void CL_EscapeHTTPPath(const char *filePath, char *escaped)
 
 	for (int i = 0; i < len; i++)
 	{
-		if (!isalnum(filePath[i]) && filePath[i] != ';' && filePath[i] != '/' &&
+		if (!isalnum((unsigned char)filePath[i]) && filePath[i] != ';' && filePath[i] != '/' &&
 			filePath[i] != '?' && filePath[i] != ':' && filePath[i] != '@' && filePath[i] != '&' &&
 			filePath[i] != '=' && filePath[i] != '+' && filePath[i] != '$' && filePath[i] != ',' &&
 			filePath[i] != '[' && filePath[i] != ']' && filePath[i] != '-' && filePath[i] != '_' &&
