@@ -6,8 +6,8 @@ are unchanged, but many bugs in the last official release were fixed and some
 nice to have features like widescreen support and a modern OpenGL 3.2 renderer
 were added. Unlike most other Quake II source ports Yamagi Quake II is fully 64-bit
 clean. It works perfectly on modern processors and operating systems. Yamagi
-Quake II runs on nearly all common platforms; including FreeBSD, Linux, OpenBSD,
-Windows and macOS (experimental).
+Quake II runs on nearly all common platforms; including FreeBSD, Linux, NetBSD,
+OpenBSD, Windows and macOS (experimental).
 
 This code is built upon Icculus Quake II, which itself is based on Quake II
 3.21. Yamagi Quake II is released under the terms of the GPL version 2. See the
