@@ -252,6 +252,8 @@ ifeq ($(YQ2_OSTYPE),Linux)
 INCLUDE ?= -I/usr/include
 else ifeq ($(YQ2_OSTYPE),FreeBSD)
 INCLUDE ?= -I/usr/local/include
+else ifeq ($(YQ2_OSTYPE),NetBSD)
+INCLUDE ?= -I/usr/X11R7/include -I/usr/pkg/include
 else ifeq ($(YQ2_OSTYPE),OpenBSD)
 INCLUDE ?= -I/usr/local/include
 else ifeq ($(YQ2_OSTYPE),Windows)
@@ -270,6 +272,8 @@ ifeq ($(YQ2_OSTYPE),Linux)
 LDFLAGS ?= -L/usr/lib
 else ifeq ($(YQ2_OSTYPE),FreeBSD)
 LDFLAGS ?= -L/usr/local/lib
+else ifeq ($(YQ2_OSTYPE),NetBSD)
+LDFLAGS ?= -L/usr/X11R7/lib -L/usr/pkg/lib
 else ifeq ($(YQ2_OSTYPE),OpenBSD)
 LDFLAGS ?= -L/usr/local/lib
 else ifeq ($(YQ2_OSTYPE),Windows)
@@ -285,6 +289,8 @@ endif
 ifeq ($(YQ2_OSTYPE),Linux)
 override LDFLAGS += -lm -ldl -rdynamic
 else ifeq ($(YQ2_OSTYPE),FreeBSD)
+override LDFLAGS += -lm
+else ifeq ($(YQ2_OSTYPE),NetBSD)
 override LDFLAGS += -lm
 else ifeq ($(YQ2_OSTYPE),OpenBSD)
 override LDFLAGS += -lm
@@ -448,6 +454,11 @@ release/quake2 : CFLAGS += -DHAVE_EXECINFO
 endif
 
 ifeq ($(YQ2_OSTYPE), FreeBSD)
+release/quake2 : CFLAGS += -DHAVE_EXECINFO
+release/quake2 : LDFLAGS += -lexecinfo
+endif
+
+ifeq ($(YQ2_OSTYPE), NetBSD)
 release/quake2 : CFLAGS += -DHAVE_EXECINFO
 release/quake2 : LDFLAGS += -lexecinfo
 endif
