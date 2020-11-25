@@ -3206,7 +3206,7 @@ StartServer_MenuInit(void)
 
             for (j = 0; j < l; j++)
             {
-                shortname[j] = toupper(shortname[j]);
+                shortname[j] = toupper((unsigned char)shortname[j]);
             }
 
             strcpy(longname, COM_Parse(&s));

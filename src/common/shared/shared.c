@@ -1104,7 +1104,7 @@ Q_strlwr ( char *s )
 
 	while ( *s )
 	{
-		*s = tolower( *s );
+		*s = tolower( (unsigned char)*s );
 		s++;
 	}
 

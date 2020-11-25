@@ -971,7 +971,7 @@ Cmd_CompleteMapCommand(char *partial)
 			{
 				for (k = 1; k < nbMatches; k++)
 				{
-					if (j >= strlen(pmatch[k]) || tolower(pmatch[0][j]) != tolower(pmatch[k][j]))
+					if (j >= strlen(pmatch[k]) || tolower((unsigned char)pmatch[0][j]) != tolower((unsigned char)pmatch[k][j]))
 					{
 						partialFillContinue = false;
 						break;
