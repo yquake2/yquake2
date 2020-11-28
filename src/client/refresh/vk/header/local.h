@@ -68,9 +68,6 @@ typedef struct image_s
 	int		registration_sequence;		// 0 = free
 	struct msurface_s	*texturechain;	// for sort-by-texture world drawing
 	qvktexture_t vk_texture;			// Vulkan texture handle
-	float	sl, tl, sh, th;				// 0,0 - 1,1 unless part of the scrap
-	qboolean	scrap;
-
 } image_t;
 
 #define		MAX_VKTEXTURES	1024
