@@ -137,8 +137,7 @@ void RE_Draw_StretchPic (int x, int y, int w, int h, char *name)
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 (float)w / vid.width, (float)h / vid.height,
-							  vk->sl,				vk->tl,
-							  vk->sh - vk->sl,		vk->th - vk->tl };
+							  0, 0, 1, 1 };
 	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &vk->vk_texture);
 }
 

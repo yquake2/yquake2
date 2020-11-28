@@ -567,71 +567,8 @@ void	Vk_ImageList_f (void)
 	R_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i\n", texels);
 }
 
-
-/*
-=============================================================================
-
-  scrap allocation
-
-  Allocate all the little status bar obejcts into a single texture
-  to crutch up inefficient hardware / drivers
-
-=============================================================================
-*/
-
-#define	MAX_SCRAPS		1
 #define	BLOCK_WIDTH		256
 #define	BLOCK_HEIGHT	256
-
-static int	scrap_allocated[MAX_SCRAPS][BLOCK_WIDTH];
-static byte	scrap_texels[MAX_SCRAPS][BLOCK_WIDTH*BLOCK_HEIGHT];
-// textures for storing scrap image data (tiny image atlas)
-static qvktexture_t vk_scrapTextures[MAX_SCRAPS] = { QVVKTEXTURE_INIT };
-
-// returns a texture number and the position inside it
-static int Scrap_AllocBlock (int w, int h, int *x, int *y)
-{
-	int		i, j;
-	int		texnum;
-
-	for (texnum=0 ; texnum<MAX_SCRAPS ; texnum++)
-	{
-		int		best;
-
-		best = BLOCK_HEIGHT;
-
-		for (i=0 ; i<BLOCK_WIDTH-w ; i++)
-		{
-			int	best2;
-
-			best2 = 0;
-
-			for (j=0 ; j<w ; j++)
-			{
-				if (scrap_allocated[texnum][i+j] >= best)
-					break;
-				if (scrap_allocated[texnum][i+j] > best2)
-					best2 = scrap_allocated[texnum][i+j];
-			}
-			if (j == w)
-			{	// this is a valid spot
-				*x = i;
-				*y = best = best2;
-			}
-		}
-
-		if (best + h > BLOCK_HEIGHT)
-			continue;
-
-		for (i=0 ; i<w ; i++)
-			scrap_allocated[texnum][*x + i] = best + h;
-
-		return texnum;
-	}
-
-	return -1;
-//	Sys_Error ("Scrap_AllocBlock: full");
-}
 
 typedef struct
 {
@@ -684,12 +621,6 @@ void Vk_TextureMode( char *string )
 		// skip console characters - we want them unfiltered at all times
 		if (image->vk_texture.resource.image != VK_NULL_HANDLE && Q_stricmp(image->name, "pics/conchars.pcx"))
 			QVk_UpdateTextureSampler(&image->vk_texture, i);
-	}
-
-	for (j = 0; j < MAX_SCRAPS; j++)
-	{
-		if (vk_scrapTextures[j].resource.image != VK_NULL_HANDLE)
-			QVk_UpdateTextureSampler(&vk_scrapTextures[j], i);
 	}
 
 	if (vk_rawTexture.resource.image != VK_NULL_HANDLE)
@@ -1021,7 +952,7 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
 		// find a free image_t
 		for (i = 0, image = vktextures; i<numvktextures; i++, image++)
 		{
-			if (image->vk_texture.resource.image == VK_NULL_HANDLE && !image->scrap)
+			if (image->vk_texture.resource.image == VK_NULL_HANDLE)
 				break;
 		}
 		if (i == numvktextures)
@@ -1046,85 +977,26 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
 	if (type == it_skin && bits == 8)
 		FloodFillSkin(pic, width, height);
 
-	// load little not scalled pics into the scrap
-	if (image->type == it_pic && bits == 8
-		&& image->width < 64 && image->height < 64
-		&& width < 64 && height < 64)
-	{
-		int		x = 0, y = 0;
-		int		i, j, k;
-		int		texnum;
-
-		texnum = Scrap_AllocBlock(image->width, image->height, &x, &y);
-		if (texnum == -1)
-			goto nonscrap;
-
-		// copy the texels into the scrap block
-		k = 0;
-		for (i = 0; i<image->height; i++)
-			for (j = 0; j<image->width; j++, k++)
-				scrap_texels[texnum][(y + i)*BLOCK_WIDTH + x + j] = pic[k];
-		image->scrap = true;
-		image->sl = (x + 0.01) / (float)BLOCK_WIDTH;
-		image->sh = (x + image->width - 0.01) / (float)BLOCK_WIDTH;
-		image->tl = (y + 0.01) / (float)BLOCK_WIDTH;
-		image->th = (y + image->height - 0.01) / (float)BLOCK_WIDTH;
-		image->upload_width = BLOCK_WIDTH;
-		image->upload_height = BLOCK_HEIGHT;
-
-		// update scrap data
-		Vk_Upload8(scrap_texels[texnum], BLOCK_WIDTH, BLOCK_HEIGHT, false, false, &texBuffer, &upload_width, &upload_height);
-
-		if (vk_scrapTextures[texnum].resource.image != VK_NULL_HANDLE)
-		{
-			QVk_UpdateTextureData(&vk_scrapTextures[texnum], texBuffer, 0, 0, image->upload_width, image->upload_height);
-		}
-		else
-		{
-			QVVKTEXTURE_CLEAR(vk_scrapTextures[texnum]);
-			QVk_CreateTexture(&vk_scrapTextures[texnum], texBuffer,
-				image->upload_width, image->upload_height,
-				samplerType ? *samplerType : vk_current_sampler);
-			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].resource.image,
-				VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
-			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].imageView,
-				VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: %s", name));
-			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].descriptorSet,
-				VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: %s", name));
-			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].resource.memory,
-				VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: scrap texture");
-		}
-
-		image->vk_texture = vk_scrapTextures[texnum];
-	}
+	if (bits == 8)
+		image->vk_texture.mipLevels = Vk_Upload8(pic, width, height, (image->type != it_pic && image->type != it_sky), image->type == it_sky, &texBuffer, &upload_width, &upload_height);
 	else
-	{
-	nonscrap:
-		image->scrap = false;
-		if (bits == 8)
-			image->vk_texture.mipLevels = Vk_Upload8(pic, width, height, (image->type != it_pic && image->type != it_sky), image->type == it_sky, &texBuffer, &upload_width, &upload_height);
-		else
-			image->vk_texture.mipLevels = Vk_Upload32(pic, width, height, (image->type != it_pic && image->type != it_sky), &texBuffer, &upload_width, &upload_height);
+		image->vk_texture.mipLevels = Vk_Upload32(pic, width, height, (image->type != it_pic && image->type != it_sky), &texBuffer, &upload_width, &upload_height);
 
-		image->upload_width = upload_width;		// after power of 2 and scales
-		image->upload_height = upload_height;
-		image->sl = 0;
-		image->sh = 1;
-		image->tl = 0;
-		image->th = 1;
+	image->upload_width = upload_width;		// after power of 2 and scales
+	image->upload_height = upload_height;
 
-		QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer,
-			image->upload_width, image->upload_height,
-			samplerType ? *samplerType : vk_current_sampler);
-		QVk_DebugSetObjectName((uint64_t)image->vk_texture.resource.image,
-			VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
-		QVk_DebugSetObjectName((uint64_t)image->vk_texture.imageView,
-			VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: %s", name));
-		QVk_DebugSetObjectName((uint64_t)image->vk_texture.descriptorSet,
-			VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: %s", name));
-		QVk_DebugSetObjectName((uint64_t)image->vk_texture.resource.memory,
-			VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: game textures");
-	}
+	QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer,
+		image->upload_width, image->upload_height,
+		samplerType ? *samplerType : vk_current_sampler);
+	QVk_DebugSetObjectName((uint64_t)image->vk_texture.resource.image,
+		VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
+	QVk_DebugSetObjectName((uint64_t)image->vk_texture.imageView,
+		VK_OBJECT_TYPE_IMAGE_VIEW, va("Image View: %s", name));
+	QVk_DebugSetObjectName((uint64_t)image->vk_texture.descriptorSet,
+		VK_OBJECT_TYPE_DESCRIPTOR_SET, va("Descriptor Set: %s", name));
+	QVk_DebugSetObjectName((uint64_t)image->vk_texture.resource.memory,
+		VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: game textures");
+
 	if (texBuffer)
 	{
 		free(texBuffer);
@@ -1486,16 +1358,12 @@ void	Vk_ShutdownImages (void)
 	{
 		if (!image->registration_sequence)
 			continue;		// free image_t slot
-		// free it (scraps are stored in a separate Vulkan buffer)
-		if (!image->scrap)
-			QVk_ReleaseTexture(&image->vk_texture);
+
+		QVk_ReleaseTexture(&image->vk_texture);
 		memset(image, 0, sizeof(*image));
 	}
 
 	QVk_ReleaseTexture(&vk_rawTexture);
-
-	for(i = 0; i < MAX_SCRAPS; i++)
-		QVk_ReleaseTexture(&vk_scrapTextures[i]);
 
 	for(i = 0; i < MAX_LIGHTMAPS*2; i++)
 		QVk_ReleaseTexture(&vk_state.lightmap_textures[i]);
