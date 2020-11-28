@@ -567,9 +567,6 @@ void	Vk_ImageList_f (void)
 	R_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i\n", texels);
 }
 
-#define	BLOCK_WIDTH		256
-#define	BLOCK_HEIGHT	256
-
 typedef struct
 {
 	char *name;
@@ -799,10 +796,11 @@ Vk_Upload32
 Returns number of mip levels
 ===============
 */
-static uint32_t Vk_Upload32 (byte *data, int width, int height, qboolean mipmap,
+static uint32_t Vk_Upload32 (byte *data, int width, int height, imagetype_t type,
 							 byte **texBuffer, int *upload_width, int *upload_height)
 {
 	int	scaled_width, scaled_height;
+	qboolean	mipmap = (type != it_pic && type != it_sky);
 
 	*texBuffer = NULL;
 
@@ -850,7 +848,7 @@ static uint32_t Vk_Upload32 (byte *data, int width, int height, qboolean mipmap,
 	}
 
 	// world textures
-	if (mipmap)
+	if (type != it_pic && type != it_sky)
 	{
 		Vk_LightScaleTexture(*texBuffer, scaled_width, scaled_height);
 	}
@@ -884,7 +882,7 @@ Returns number of mip levels
 ===============
 */
 
-static uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky,
+static uint32_t Vk_Upload8 (byte *data, int width, int height, imagetype_t type,
 							byte **texBuffer, int *upload_width, int *upload_height)
 {
 	unsigned	*trans;
@@ -903,29 +901,39 @@ static uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap,
 
 		p = data[i];
 		trans[i] = d_8to24table[p];
+	}
 
-		if (p == 255)
-		{	// transparent, so scan around for another color
-			// to avoid alpha fringes
-			// FIXME: do a full flood fill so mips work...
-			if (i > width && data[i - width] != 255)
-				p = data[i - width];
-			else if (i < s - width && data[i + width] != 255)
-				p = data[i + width];
-			else if (i > 0 && data[i - 1] != 255)
-				p = data[i - 1];
-			else if (i < s - 1 && data[i + 1] != 255)
-				p = data[i + 1];
-			else
-				p = 0;
-			// copy rgb components
-			((byte *)&trans[i])[0] = ((byte *)&d_8to24table[p])[0];
-			((byte *)&trans[i])[1] = ((byte *)&d_8to24table[p])[1];
-			((byte *)&trans[i])[2] = ((byte *)&d_8to24table[p])[2];
+	if (type != it_sky && type != it_wall)
+	{
+		for (i = 0; i < s; i++)
+		{
+			int     p;
+
+			p = data[i];
+
+			if (p == 255)
+			{	// transparent, so scan around for another color
+				// to avoid alpha fringes
+				// FIXME: do a full flood fill so mips work...
+				if (i > width && data[i - width] != 255)
+					p = data[i - width];
+				else if (i < s - width && data[i + width] != 255)
+					p = data[i + width];
+				else if (i > 0 && data[i - 1] != 255)
+					p = data[i - 1];
+				else if (i < s - 1 && data[i + 1] != 255)
+					p = data[i + 1];
+				else
+					p = 0;
+				// copy rgb components
+				((byte *)&trans[i])[0] = ((byte *)&d_8to24table[p])[0];
+				((byte *)&trans[i])[1] = ((byte *)&d_8to24table[p])[1];
+				((byte *)&trans[i])[2] = ((byte *)&d_8to24table[p])[2];
+			}
 		}
 	}
 
-	miplevel = Vk_Upload32((byte *)trans, width, height, mipmap, texBuffer, upload_width, upload_height);
+	miplevel = Vk_Upload32((byte *)trans, width, height, type, texBuffer, upload_width, upload_height);
 	free(trans);
 	return miplevel;
 }
@@ -978,9 +986,9 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
 		FloodFillSkin(pic, width, height);
 
 	if (bits == 8)
-		image->vk_texture.mipLevels = Vk_Upload8(pic, width, height, (image->type != it_pic && image->type != it_sky), image->type == it_sky, &texBuffer, &upload_width, &upload_height);
+		image->vk_texture.mipLevels = Vk_Upload8(pic, width, height, image->type, &texBuffer, &upload_width, &upload_height);
 	else
-		image->vk_texture.mipLevels = Vk_Upload32(pic, width, height, (image->type != it_pic && image->type != it_sky), &texBuffer, &upload_width, &upload_height);
+		image->vk_texture.mipLevels = Vk_Upload32(pic, width, height, image->type, &texBuffer, &upload_width, &upload_height);
 
 	image->upload_width = upload_width;		// after power of 2 and scales
 	image->upload_height = upload_height;
