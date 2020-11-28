@@ -26,7 +26,7 @@ int		numvktextures;
 qvktexture_t vk_rawTexture = QVVKTEXTURE_INIT;
 
 static byte			 intensitytable[256];
-static unsigned char gammatable[256];
+static unsigned char overbrightable[256];
 
 static cvar_t	*intensity;
 extern cvar_t	*vk_mip_nearfilter;
@@ -845,37 +845,19 @@ Scale up the pixel values in a texture to increase the
 lighting range
 ================
 */
-static void Vk_LightScaleTexture (byte *in, int inwidth, int inheight, qboolean only_gamma )
+static void Vk_LightScaleTexture (byte *in, int inwidth, int inheight)
 {
-	if ( only_gamma )
+	int		i, c;
+	byte	*p;
+
+	p = (byte *)in;
+
+	c = inwidth*inheight;
+	for (i=0 ; i<c ; i++, p+=4)
 	{
-		int		i, c;
-		byte	*p;
-
-		p = (byte *)in;
-
-		c = inwidth*inheight;
-		for (i=0 ; i<c ; i++, p+=4)
-		{
-			p[0] = gammatable[p[0]];
-			p[1] = gammatable[p[1]];
-			p[2] = gammatable[p[2]];
-		}
-	}
-	else
-	{
-		int		i, c;
-		byte	*p;
-
-		p = (byte *)in;
-
-		c = inwidth*inheight;
-		for (i=0 ; i<c ; i++, p+=4)
-		{
-			p[0] = gammatable[intensitytable[p[0]]];
-			p[1] = gammatable[intensitytable[p[1]]];
-			p[2] = gammatable[intensitytable[p[2]]];
-		}
+		p[0] = overbrightable[intensitytable[p[0]]];
+		p[1] = overbrightable[intensitytable[p[1]]];
+		p[2] = overbrightable[intensitytable[p[2]]];
 	}
 }
 
@@ -936,7 +918,11 @@ static uint32_t Vk_Upload32 (byte *data, int width, int height, qboolean mipmap,
 				  *texBuffer, scaled_width, scaled_height);
 	}
 
-	Vk_LightScaleTexture(*texBuffer, scaled_width, scaled_height, !mipmap);
+	// world textures
+	if (mipmap)
+	{
+		Vk_LightScaleTexture(*texBuffer, scaled_width, scaled_height);
+	}
 
 	if (mipmap)
 	{
@@ -1482,7 +1468,7 @@ void	Vk_InitImages (void)
 		if (inf > 255)
 			inf = 255;
 
-		gammatable[i] = inf;
+		overbrightable[i] = inf;
 	}
 }
 
