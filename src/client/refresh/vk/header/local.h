@@ -141,7 +141,6 @@ extern	cvar_t	*vk_validation;
 extern	cvar_t	*vk_bitdepth;
 extern	cvar_t	*vk_picmip;
 extern	cvar_t	*vk_skymip;
-extern	cvar_t	*vk_round_down;
 extern	cvar_t	*vk_flashblend;
 extern	cvar_t	*vk_finish;
 extern	cvar_t	*vk_polyblend;

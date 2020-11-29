@@ -393,8 +393,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **vk_picmip**: Shrink factor for the textures. (default: `0`)
 
-* **vk_round_down**: Toggle the rounding of texture sizes. (default: `1`)
-
 * **vk_dynamic**: Use dynamic lighting. (default: `1`)
 
 * **vk_showtris**: Display mesh triangles. (default: `0`)

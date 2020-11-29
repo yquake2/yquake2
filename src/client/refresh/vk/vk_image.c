@@ -800,22 +800,17 @@ static uint32_t Vk_Upload32 (byte *data, int width, int height, imagetype_t type
 							 byte **texBuffer, int *upload_width, int *upload_height)
 {
 	int	scaled_width, scaled_height;
-	qboolean	mipmap = (type != it_pic && type != it_sky);
+	int	miplevel = 1;
 
 	*texBuffer = NULL;
 
 	for (scaled_width = 1; scaled_width < width; scaled_width <<= 1)
 		;
-	if (vk_round_down->value && scaled_width > width && mipmap)
-		scaled_width >>= 1;
 	for (scaled_height = 1; scaled_height < height; scaled_height <<= 1)
 		;
-	if (vk_round_down->value && scaled_height > height && mipmap)
-		scaled_height >>= 1;
-
-	// let people sample down the world textures for speed
-	if (mipmap)
+	if (type != it_pic)
 	{
+		// let people sample down the world textures for speed
 		scaled_width >>= (int)vk_picmip->value;
 		scaled_height >>= (int)vk_picmip->value;
 	}
@@ -835,11 +830,6 @@ static uint32_t Vk_Upload32 (byte *data, int width, int height, imagetype_t type
 	if (scaled_width == width && scaled_height == height)
 	{
 		memcpy(*texBuffer, data, scaled_width * scaled_height * 4);
-		// scale is not required and no mipmap
-		if (!mipmap)
-		{
-			return 1;
-		}
 	}
 	else
 	{
@@ -853,25 +843,18 @@ static uint32_t Vk_Upload32 (byte *data, int width, int height, imagetype_t type
 		Vk_LightScaleTexture(*texBuffer, scaled_width, scaled_height);
 	}
 
-	if (mipmap)
+	while (scaled_width > 1 || scaled_height > 1)
 	{
-		int		miplevel = 1;
-
-		while (scaled_width > 1 || scaled_height > 1)
-		{
-			scaled_width >>= 1;
-			scaled_height >>= 1;
-			if (scaled_width < 1)
-				scaled_width = 1;
-			if (scaled_height < 1)
-				scaled_height = 1;
-			miplevel++;
-		}
-
-		return miplevel;
+		scaled_width >>= 1;
+		scaled_height >>= 1;
+		if (scaled_width < 1)
+			scaled_width = 1;
+		if (scaled_height < 1)
+			scaled_height = 1;
+		miplevel++;
 	}
 
-	return 1;
+	return miplevel;
 }
 
 /*
