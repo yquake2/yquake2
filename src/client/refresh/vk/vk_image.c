@@ -916,6 +916,11 @@ static uint32_t Vk_Upload8 (byte *data, int width, int height, imagetype_t type,
 		}
 	}
 
+	if (vk_retexturing->value)
+	{
+		SmoothColorImage(trans, s, s >> 7);
+	}
+
 	miplevel = Vk_Upload32((byte *)trans, width, height, type, texBuffer, upload_width, upload_height);
 	free(trans);
 	return miplevel;
@@ -969,7 +974,19 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
 		FloodFillSkin(pic, width, height);
 
 	if (bits == 8)
-		image->vk_texture.mipLevels = Vk_Upload8(pic, width, height, image->type, &texBuffer, &upload_width, &upload_height);
+	{
+		if (vk_retexturing->value)
+		{
+			byte *image_converted = malloc(width * height * 4);
+			scale2x(pic, image_converted, width, height);
+			image->vk_texture.mipLevels = Vk_Upload8(image_converted, width * 2, height * 2, image->type, &texBuffer, &upload_width, &upload_height);
+			free(image_converted);
+		}
+		else
+		{
+			image->vk_texture.mipLevels = Vk_Upload8(pic, width, height, image->type, &texBuffer, &upload_width, &upload_height);
+		}
+	}
 	else
 		image->vk_texture.mipLevels = Vk_Upload32(pic, width, height, image->type, &texBuffer, &upload_width, &upload_height);
 
