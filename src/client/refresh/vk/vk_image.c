@@ -561,8 +561,9 @@ void	Vk_ImageList_f (void)
 			break;
 		}
 
-		R_Printf(PRINT_ALL, " %3i %3i RGB: %s\n",
-			image->upload_width, image->upload_height, image->name);
+		R_Printf(PRINT_ALL, " %4i %4i RGB: %s (%dx%d)\n",
+			image->upload_width, image->upload_height, image->name,
+			image->width, image->height);
 	}
 	R_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i\n", texels);
 }
