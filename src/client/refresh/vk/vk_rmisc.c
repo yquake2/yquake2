@@ -58,7 +58,7 @@ void RE_InitParticleTexture (void)
 		}
 	}
 	r_particletexture = Vk_LoadPic("***particle***", (byte *)data,
-		8, 8, 8, 8, it_sprite, 32, NULL);
+		8, 8, 8, 8, it_sprite, 32);
 
 	//
 	// particle texture
@@ -74,7 +74,7 @@ void RE_InitParticleTexture (void)
 		}
 	}
 	r_squaretexture = Vk_LoadPic("***square***", (byte *)data,
-		8, 8, 8, 8, it_sprite, 32, NULL);
+		8, 8, 8, 8, it_sprite, 32);
 
 	//
 	// also use this for bad textures, but without alpha
@@ -90,7 +90,7 @@ void RE_InitParticleTexture (void)
 		}
 	}
 	r_notexture = Vk_LoadPic("***r_notexture***", (byte *)data,
-		8, 8, 8, 8, it_wall, 32, NULL);
+		8, 8, 8, 8, it_wall, 32);
 }
 
 

@@ -433,7 +433,7 @@ static void Mod_LoadTexinfo (lump_t *l)
 		    out->next = NULL;
 		Com_sprintf (name, sizeof(name), "textures/%s.wal", in->texture);
 
-		out->image = Vk_FindImage (name, it_wall, NULL);
+		out->image = Vk_FindImage (name, it_wall);
 		if (!out->image)
 		{
 			R_Printf(PRINT_ALL, "Couldn't load %s\n", name);
@@ -1010,7 +1010,7 @@ static void Mod_LoadAliasModel (model_t *mod, void *buffer)
 	for (i=0 ; i<pheader->num_skins ; i++)
 	{
 		mod->skins[i] = Vk_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME
-			, it_skin, NULL);
+			, it_skin);
 	}
 
 	mod->mins[0] = -32;
@@ -1063,7 +1063,7 @@ static void Mod_LoadSpriteModel (model_t *mod, void *buffer)
 		sprout->frames[i].origin_y = LittleLong (sprin->frames[i].origin_y);
 		memcpy (sprout->frames[i].name, sprin->frames[i].name, MAX_SKINNAME);
 		mod->skins[i] = Vk_FindImage (sprout->frames[i].name,
-			it_sprite, NULL);
+			it_sprite);
 	}
 
 	mod->type = mod_sprite;
@@ -1125,13 +1125,13 @@ struct model_s *RE_RegisterModel (char *name)
 
 			sprout = (dsprite_t *)mod->extradata;
 			for (i=0 ; i<sprout->numframes ; i++)
-				mod->skins[i] = Vk_FindImage (sprout->frames[i].name, it_sprite, NULL);
+				mod->skins[i] = Vk_FindImage (sprout->frames[i].name, it_sprite);
 		}
 		else if (mod->type == mod_alias)
 		{
 			pheader = (dmdl_t *)mod->extradata;
 			for (i=0 ; i<pheader->num_skins ; i++)
-				mod->skins[i] = Vk_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME, it_skin, NULL);
+				mod->skins[i] = Vk_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME, it_skin);
 //PGM
 			mod->numframes = pheader->num_frames;
 //PGM

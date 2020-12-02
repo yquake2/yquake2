@@ -939,11 +939,18 @@ This is also used as an entry point for the generated r_notexture
 image_t *
 Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
 	   int height, int realheight, imagetype_t type,
-	   int bits, qvksampler_t *samplerType)
+	   int bits)
 {
 	image_t		*image;
 	byte		*texBuffer;
 	int		upload_width, upload_height;
+
+	qboolean nolerp = false;
+
+	if (vk_nolerp_list != NULL && vk_nolerp_list->string != NULL)
+	{
+		nolerp = strstr(vk_nolerp_list->string, name) != NULL;
+	}
 
 	{
 		int		i;
@@ -998,7 +1005,7 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 	QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer,
 		image->upload_width, image->upload_height,
-		samplerType ? *samplerType : vk_current_sampler);
+		nolerp ? S_NEAREST : vk_current_sampler);
 	QVk_DebugSetObjectName((uint64_t)image->vk_texture.resource.image,
 		VK_OBJECT_TYPE_IMAGE, va("Image: %s", name));
 	QVk_DebugSetObjectName((uint64_t)image->vk_texture.imageView,
@@ -1041,7 +1048,7 @@ static image_t *Vk_LoadWal (char *name, imagetype_t type)
 	image = Vk_LoadPic(name, (byte *)mt + ofs,
 			   width, width,
 			   height, height,
-			   type, 8, NULL);
+			   type, 8);
 
 	ri.FS_FreeFile ((void *)mt);
 
@@ -1049,7 +1056,7 @@ static image_t *Vk_LoadWal (char *name, imagetype_t type)
 }
 
 static image_t*
-Vk_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t type, qvksampler_t *samplerType)
+Vk_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 {
 	image_t	*image = NULL;
 	byte *pic = NULL;
@@ -1083,7 +1090,7 @@ Vk_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t
 			image = Vk_LoadPic(name, pic,
 					   width, realwidth,
 					   height, realheight,
-					   type, 32, samplerType);
+					   type, 32);
 		}
 	}
 
@@ -1096,14 +1103,14 @@ Vk_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t
 }
 
 static image_t*
-Vk_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type, qvksampler_t *samplerType)
+Vk_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 {
 	image_t	*image = NULL;
 
 	// with retexturing
 	if (vk_retexturing->value)
 	{
-		image = Vk_LoadHiColorImage(name, namewe, ext, type, samplerType);
+		image = Vk_LoadHiColorImage(name, namewe, ext, type);
 	}
 
 	if (!image)
@@ -1126,7 +1133,7 @@ Vk_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type, 
 			image = Vk_LoadPic(name, pic,
 					   width, width,
 					   height, height,
-					   type, 8, samplerType);
+					   type, 8);
 
 			if (palette)
 				free(palette);
@@ -1144,7 +1151,7 @@ Vk_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type, 
 			image = Vk_LoadPic(name, pic,
 					   width, width,
 					   height, height,
-					   type, 32, samplerType);
+					   type, 32);
 		}
 
 		if (pic)
@@ -1161,7 +1168,7 @@ Vk_FindImage
 Finds or loads the given image
 ===============
 */
-image_t	*Vk_FindImage (char *name, imagetype_t type, qvksampler_t *samplerType)
+image_t	*Vk_FindImage (char *name, imagetype_t type)
 {
 	image_t	*image;
 	int	i, len;
@@ -1211,7 +1218,7 @@ image_t	*Vk_FindImage (char *name, imagetype_t type, qvksampler_t *samplerType)
 	//
 	// load the pic from disk
 	//
-	return Vk_LoadImage(name, namewe, ext, type, samplerType);
+	return Vk_LoadImage(name, namewe, ext, type);
 }
 
 
@@ -1222,7 +1229,7 @@ RE_RegisterSkin
 */
 struct image_s *RE_RegisterSkin (char *name)
 {
-	return Vk_FindImage (name, it_skin, NULL);
+	return Vk_FindImage (name, it_skin);
 }
 
 

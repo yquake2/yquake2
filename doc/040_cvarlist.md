@@ -341,6 +341,11 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   * `2` - try to load the pack or scale up all 8bit textures if pack is
           not installed.
 
+* **vk_nolerp_list**: list separate by spaces of textures omitted from
+  bilinear filtering. Used by default to exclude the console and HUD
+  fonts.  Make sure to include the default values when extending the
+  list.
+
 * **vk_strings**: Print some basic Vulkan/GPU information.
 
 * **vk_mem**: Print dynamic vertex/index/uniform/triangle fan buffer
