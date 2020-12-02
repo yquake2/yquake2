@@ -1669,6 +1669,8 @@ void FS_BuildGenericSearchPath(void) {
 	Sys_Mkdir(path);
 }
 
+void CL_WriteConfiguration(void);
+
 void
 FS_BuildGameSpecificSearchPath(char *dir)
 {
@@ -1679,6 +1681,12 @@ FS_BuildGameSpecificSearchPath(char *dir)
 	int i;
 	fsRawPath_t *search;
 	fsSearchPath_t *next;
+
+#ifndef DEDICATED_ONLY
+	// Write the config. Otherwise changes made by the
+	// current mod are lost.
+	CL_WriteConfiguration();
+#endif
 
 	// empty string means baseq2
 	if(dir[0] == '\0')
