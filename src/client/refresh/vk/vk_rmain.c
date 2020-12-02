@@ -123,6 +123,7 @@ cvar_t	*vk_mip_nearfilter;
 cvar_t	*vk_sampleshading;
 cvar_t	*vk_device_idx;
 cvar_t	*vk_retexturing;
+cvar_t	*vk_nolerp_list;
 
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
@@ -1177,6 +1178,8 @@ R_Register( void )
 	vk_sampleshading = ri.Cvar_Get("vk_sampleshading", "1", CVAR_ARCHIVE);
 	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
 	vk_retexturing = ri.Cvar_Get("vk_retexturing", "1", CVAR_ARCHIVE);
+	/* don't bilerp characters and crosshairs */
+	vk_nolerp_list = ri.Cvar_Get("vk_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
 
 	// clamp vk_msaa to accepted range so that video menu doesn't crash on us
 	if (vk_msaa->value < 0)
