@@ -334,6 +334,13 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   * `1` - only errors and warnings
   * `2` - best-practices validation
 
+* **vk_retexturing**: Apply retexturing:
+  * `0` - dont use retexturing logic and dont load the high resolution
+          textures,
+  * `1` - load the high resolution textures if pack is installed.
+  * `2` - try to load the pack or scale up all 8bit textures if pack is
+          not installed.
+
 * **vk_strings**: Print some basic Vulkan/GPU information.
 
 * **vk_mem**: Print dynamic vertex/index/uniform/triangle fan buffer
