@@ -123,12 +123,12 @@ static int last_haptic_efffect_pos = 0;
 static struct hapric_effects_cache last_haptic_efffect[HAPTIC_EFFECT_LAST];
 
 // Joystick sensitivity
-static cvar_t *joy_yawsensitivity;
-static cvar_t *joy_pitchsensitivity;
-static cvar_t *joy_forwardsensitivity;
-static cvar_t *joy_sidesensitivity;
+cvar_t *joy_yawsensitivity;
+cvar_t *joy_pitchsensitivity;
+cvar_t *joy_forwardsensitivity;
+cvar_t *joy_sidesensitivity;
 static cvar_t *joy_upsensitivity;
-static cvar_t *joy_expo;
+cvar_t *joy_expo;
 
 // Joystick direction settings
 static cvar_t *joy_axis_leftx;

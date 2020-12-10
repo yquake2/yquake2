@@ -59,6 +59,7 @@ static void M_Menu_DMOptions_f(void);
 static void M_Menu_Video_f(void);
 static void M_Menu_Options_f(void);
 static void M_Menu_Keys_f(void);
+static void M_Menu_Joy_f(void);
 static void M_Menu_Quit_f(void);
 
 void M_Menu_Credits(void);
@@ -801,6 +802,7 @@ int keys_cursor;
 static int bind_grab;
 
 static menuframework_s s_keys_menu;
+static menuframework_s s_joy_menu;
 static menuaction_s s_keys_actions[NUM_BINDNAMES];
 
 static void
@@ -1012,12 +1014,142 @@ M_Menu_Keys_f(void)
 }
 
 /*
+ * JOY MENU
+ */
+static menuslider_s s_joy_expo_slider;
+static menuslider_s s_joy_yawsensitivity_slider;
+static menuslider_s s_joy_pitchsensitivity_slider;
+static menuslider_s s_joy_forwardsensitivity_slider;
+static menuslider_s s_joy_sidesensitivity_slider;
+
+static void
+JoyExpoFunc(void *unused)
+{
+    Cvar_SetValue("joy_expo", s_joy_expo_slider.curvalue / 10.0F);
+}
+
+static void
+JoyYawSensitivityFunc(void *unused)
+{
+    Cvar_SetValue("joy_yawsensitivity", s_joy_yawsensitivity_slider.curvalue / 10.0F);
+}
+
+static void
+JoyPitchSensitivityFunc(void *unused)
+{
+    Cvar_SetValue("joy_pitchsensitivity", s_joy_pitchsensitivity_slider.curvalue / 10.0F);
+}
+
+static void
+JoyForwardSensitivityFunc(void *unused)
+{
+    Cvar_SetValue("joy_forwardsensitivity", s_joy_forwardsensitivity_slider.curvalue / 10.0F);
+}
+
+static void
+JoySideSensitivityFunc(void *unused)
+{
+    Cvar_SetValue("joy_sidesensitivity", s_joy_sidesensitivity_slider.curvalue / 10.0F);
+}
+
+static void
+Joy_MenuInit(void)
+{
+    int y = 0;
+
+    s_joy_menu.x = (int)(viddef.width * 0.50f);
+    s_joy_menu.nitems = 0;
+
+    s_joy_yawsensitivity_slider.curvalue = joy_yawsensitivity->value * 10;
+    s_joy_yawsensitivity_slider.generic.type = MTYPE_SLIDER;
+    s_joy_yawsensitivity_slider.generic.x = 0;
+    s_joy_yawsensitivity_slider.generic.y = y;
+    y += 10;
+    s_joy_yawsensitivity_slider.generic.name = "yaw sensitivity";
+    s_joy_yawsensitivity_slider.generic.callback = JoyYawSensitivityFunc;
+    s_joy_yawsensitivity_slider.minvalue = 0;
+    s_joy_yawsensitivity_slider.maxvalue = 20;
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_yawsensitivity_slider);
+
+    s_joy_pitchsensitivity_slider.curvalue = joy_pitchsensitivity->value * 10;
+    s_joy_pitchsensitivity_slider.generic.type = MTYPE_SLIDER;
+    s_joy_pitchsensitivity_slider.generic.x = 0;
+    s_joy_pitchsensitivity_slider.generic.y = y;
+    y += 10;
+    s_joy_pitchsensitivity_slider.generic.name = "pitch sensitivity";
+    s_joy_pitchsensitivity_slider.generic.callback = JoyPitchSensitivityFunc;
+    s_joy_pitchsensitivity_slider.minvalue = 0;
+    s_joy_pitchsensitivity_slider.maxvalue = 20;
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_pitchsensitivity_slider);
+
+    y += 10;
+
+    s_joy_forwardsensitivity_slider.curvalue = joy_forwardsensitivity->value * 10;
+    s_joy_forwardsensitivity_slider.generic.type = MTYPE_SLIDER;
+    s_joy_forwardsensitivity_slider.generic.x = 0;
+    s_joy_forwardsensitivity_slider.generic.y = y;
+    y += 10;
+    s_joy_forwardsensitivity_slider.generic.name = "forward sensitivity";
+    s_joy_forwardsensitivity_slider.generic.callback = JoyForwardSensitivityFunc;
+    s_joy_forwardsensitivity_slider.minvalue = 0;
+    s_joy_forwardsensitivity_slider.maxvalue = 20;
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_forwardsensitivity_slider);
+
+    s_joy_sidesensitivity_slider.curvalue = joy_sidesensitivity->value * 10;
+    s_joy_sidesensitivity_slider.generic.type = MTYPE_SLIDER;
+    s_joy_sidesensitivity_slider.generic.x = 0;
+    s_joy_sidesensitivity_slider.generic.y = y;
+    y += 10;
+    s_joy_sidesensitivity_slider.generic.name = "side sensitivity";
+    s_joy_sidesensitivity_slider.generic.callback = JoySideSensitivityFunc;
+    s_joy_sidesensitivity_slider.minvalue = 0;
+    s_joy_sidesensitivity_slider.maxvalue = 20;
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_sidesensitivity_slider);
+
+    y += 10;
+
+    s_joy_expo_slider.curvalue = joy_expo->value * 10;
+    s_joy_expo_slider.generic.type = MTYPE_SLIDER;
+    s_joy_expo_slider.generic.x = 0;
+    s_joy_expo_slider.generic.y = y;
+    y += 10;
+    s_joy_expo_slider.generic.name = "expo";
+    s_joy_expo_slider.generic.callback = JoyExpoFunc;
+    s_joy_expo_slider.minvalue = 10;
+    s_joy_expo_slider.maxvalue = 50;
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_expo_slider);
+
+    Menu_Center(&s_joy_menu);
+}
+
+static void
+Joy_MenuDraw(void)
+{
+    Menu_AdjustCursor(&s_joy_menu, 1);
+    Menu_Draw(&s_joy_menu);
+}
+
+static const char *
+Joy_MenuKey(int key)
+{
+    return Default_MenuKey(&s_joy_menu, key);
+}
+
+static void
+M_Menu_Joy_f(void)
+{
+    Joy_MenuInit();
+    M_PushMenu(Joy_MenuDraw, Joy_MenuKey);
+}
+
+/*
  * CONTROLS MENU
  */
 
 static menuframework_s s_options_menu;
 static menuaction_s s_options_defaults_action;
 static menuaction_s s_options_customize_options_action;
+static menuaction_s s_options_customize_joy_action;
 static menuslider_s s_options_sensitivity_slider;
 static menulist_s s_options_freelook_box;
 static menulist_s s_options_alwaysrun_box;
@@ -1048,6 +1180,12 @@ static void
 CustomizeControlsFunc(void *unused)
 {
     M_Menu_Keys_f();
+}
+
+static void
+CustomizeJoyFunc(void *unused)
+{
+    M_Menu_Joy_f();
 }
 
 static void
@@ -1364,6 +1502,12 @@ Options_MenuInit(void)
     s_options_haptic_slider.minvalue = 0;
     s_options_haptic_slider.maxvalue = 22;
 
+    s_options_customize_joy_action.generic.type = MTYPE_ACTION;
+    s_options_customize_joy_action.generic.x = 0;
+    s_options_customize_joy_action.generic.y = 130;
+    s_options_customize_joy_action.generic.name = "customize joystick";
+    s_options_customize_joy_action.generic.callback = CustomizeJoyFunc;
+
     s_options_customize_options_action.generic.type = MTYPE_ACTION;
     s_options_customize_options_action.generic.x = 0;
     s_options_customize_options_action.generic.y = 140;
@@ -1400,6 +1544,7 @@ Options_MenuInit(void)
     if (show_haptic)
         Menu_AddItem(&s_options_menu, (void *)&s_options_haptic_slider);
 
+    Menu_AddItem(&s_options_menu, (void *)&s_options_customize_joy_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_customize_options_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_defaults_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_console_action);
@@ -4755,6 +4900,7 @@ M_Init(void)
     Cmd_AddCommand("menu_video", M_Menu_Video_f);
     Cmd_AddCommand("menu_options", M_Menu_Options_f);
     Cmd_AddCommand("menu_keys", M_Menu_Keys_f);
+    Cmd_AddCommand("menu_joy", M_Menu_Joy_f);
     Cmd_AddCommand("menu_quit", M_Menu_Quit_f);
 
     /* initialize the server address book cvars (adr0, adr1, ...)
