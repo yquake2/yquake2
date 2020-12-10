@@ -128,6 +128,7 @@ static cvar_t *joy_pitchsensitivity;
 static cvar_t *joy_forwardsensitivity;
 static cvar_t *joy_sidesensitivity;
 static cvar_t *joy_upsensitivity;
+static cvar_t *joy_expo;
 
 // Joystick direction settings
 static cvar_t *joy_axis_leftx;
@@ -680,6 +681,9 @@ IN_Update(void)
 				{
 					fix_value = 0.0f;
 				}
+
+				// Apply expo
+				fix_value = pow(fix_value, joy_expo->value);
 
 				axis_value = (int) (32767 * ((axis_value < 0) ? -fix_value : fix_value));
 
@@ -1348,6 +1352,7 @@ IN_Init(void)
 	joy_forwardsensitivity = Cvar_Get("joy_forwardsensitivity", "1.0", CVAR_ARCHIVE);
 	joy_sidesensitivity = Cvar_Get("joy_sidesensitivity", "1.0", CVAR_ARCHIVE);
 	joy_upsensitivity = Cvar_Get("joy_upsensitivity", "1.0", CVAR_ARCHIVE);
+	joy_expo = Cvar_Get("joy_expo", "2.0", CVAR_ARCHIVE);
 
 	joy_axis_leftx = Cvar_Get("joy_axis_leftx", "sidemove", CVAR_ARCHIVE);
 	joy_axis_lefty = Cvar_Get("joy_axis_lefty", "forwardmove", CVAR_ARCHIVE);
