@@ -1136,7 +1136,6 @@ Joy_MenuInit(void)
 
     y += 10;
 
-
     s_joy_expo_slider.curvalue = joy_expo->value * 10;
     s_joy_expo_slider.generic.type = MTYPE_SLIDER;
     s_joy_expo_slider.generic.x = 0;
