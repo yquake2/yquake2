@@ -1456,7 +1456,7 @@ Options_MenuInit(void)
     s_options_sensitivity_slider.generic.y = 60;
     s_options_sensitivity_slider.generic.name = "mouse speed";
     s_options_sensitivity_slider.generic.callback = MouseSpeedFunc;
-    s_options_sensitivity_slider.minvalue = 2;
+    s_options_sensitivity_slider.minvalue = 0;
     s_options_sensitivity_slider.maxvalue = 22;
 
     s_options_alwaysrun_box.generic.type = MTYPE_SPINCONTROL;
