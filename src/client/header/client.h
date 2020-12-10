@@ -300,6 +300,7 @@ extern	cvar_t	*joy_yawsensitivity;
 extern	cvar_t	*joy_pitchsensitivity;
 extern	cvar_t	*joy_forwardsensitivity;
 extern	cvar_t	*joy_sidesensitivity;
+extern	cvar_t	*joy_upsensitivity;
 extern	cvar_t	*m_pitch;
 extern	cvar_t	*m_yaw;
 extern	cvar_t	*m_forward;

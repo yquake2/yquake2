@@ -127,7 +127,7 @@ cvar_t *joy_yawsensitivity;
 cvar_t *joy_pitchsensitivity;
 cvar_t *joy_forwardsensitivity;
 cvar_t *joy_sidesensitivity;
-static cvar_t *joy_upsensitivity;
+cvar_t *joy_upsensitivity;
 cvar_t *joy_expo;
 
 // Joystick direction settings

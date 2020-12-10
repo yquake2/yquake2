@@ -1021,6 +1021,14 @@ static menuslider_s s_joy_yawsensitivity_slider;
 static menuslider_s s_joy_pitchsensitivity_slider;
 static menuslider_s s_joy_forwardsensitivity_slider;
 static menuslider_s s_joy_sidesensitivity_slider;
+static menuslider_s s_joy_upsensitivity_slider;
+static menuslider_s s_joy_haptic_slider;
+
+static void
+HapticMagnitudeFunc(void *unused)
+{
+    Cvar_SetValue("joy_haptic_magnitude", s_joy_haptic_slider.curvalue / 10.0F);
+}
 
 static void
 JoyExpoFunc(void *unused)
@@ -1053,8 +1061,15 @@ JoySideSensitivityFunc(void *unused)
 }
 
 static void
+JoyUpSensitivityFunc(void *unused)
+{
+    Cvar_SetValue("joy_upsensitivity", s_joy_upsensitivity_slider.curvalue / 10.0F);
+}
+
+static void
 Joy_MenuInit(void)
 {
+    extern qboolean show_haptic;
     int y = 0;
 
     s_joy_menu.x = (int)(viddef.width * 0.50f);
@@ -1108,6 +1123,20 @@ Joy_MenuInit(void)
 
     y += 10;
 
+    s_joy_upsensitivity_slider.curvalue = joy_upsensitivity->value * 10;
+    s_joy_upsensitivity_slider.generic.type = MTYPE_SLIDER;
+    s_joy_upsensitivity_slider.generic.x = 0;
+    s_joy_upsensitivity_slider.generic.y = y;
+    y += 10;
+    s_joy_upsensitivity_slider.generic.name = "up sensitivity";
+    s_joy_upsensitivity_slider.generic.callback = JoyUpSensitivityFunc;
+    s_joy_upsensitivity_slider.minvalue = 0;
+    s_joy_upsensitivity_slider.maxvalue = 20;
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_upsensitivity_slider);
+
+    y += 10;
+
+
     s_joy_expo_slider.curvalue = joy_expo->value * 10;
     s_joy_expo_slider.generic.type = MTYPE_SLIDER;
     s_joy_expo_slider.generic.x = 0;
@@ -1118,6 +1147,21 @@ Joy_MenuInit(void)
     s_joy_expo_slider.minvalue = 10;
     s_joy_expo_slider.maxvalue = 50;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_expo_slider);
+
+    if (show_haptic) {
+        y += 10;
+
+        s_joy_haptic_slider.curvalue = Cvar_VariableValue("joy_haptic_magnitude") * 10.0F;
+        s_joy_haptic_slider.generic.type = MTYPE_SLIDER;
+        s_joy_haptic_slider.generic.x = 0;
+        s_joy_haptic_slider.generic.y = y;
+        y += 10;
+        s_joy_haptic_slider.generic.name = "haptic magnitude";
+        s_joy_haptic_slider.generic.callback = HapticMagnitudeFunc;
+        s_joy_haptic_slider.minvalue = 0;
+        s_joy_haptic_slider.maxvalue = 22;
+        Menu_AddItem(&s_joy_menu, (void *)&s_joy_haptic_slider);
+    }
 
     Menu_Center(&s_joy_menu);
 }
@@ -1157,7 +1201,6 @@ static menulist_s s_options_invertmouse_box;
 static menulist_s s_options_lookstrafe_box;
 static menulist_s s_options_crosshair_box;
 static menuslider_s s_options_sfxvolume_slider;
-static menuslider_s s_options_haptic_slider;
 static menulist_s s_options_oggshuffle_box;
 static menuslider_s s_options_oggvolume_slider;
 static menulist_s s_options_oggenable_box;
@@ -1168,12 +1211,6 @@ static void
 CrosshairFunc(void *unused)
 {
     Cvar_SetValue("crosshair", (float)s_options_crosshair_box.curvalue);
-}
-
-static void
-HapticMagnitudeFunc(void *unused)
-{
-    Cvar_SetValue("joy_haptic_magnitude", s_options_haptic_slider.curvalue / 10.0F);
 }
 
 static void
@@ -1236,7 +1273,6 @@ ControlsSetMenuItemValues(void)
     s_options_lookstrafe_box.curvalue = (lookstrafe->value != 0);
     s_options_freelook_box.curvalue = (freelook->value != 0);
     s_options_crosshair_box.curvalue = ClampCvar(0, 3, crosshair->value);
-    s_options_haptic_slider.curvalue = Cvar_VariableValue("joy_haptic_magnitude") * 10.0F;
 }
 
 static void
@@ -1407,7 +1443,6 @@ Options_MenuInit(void)
     };
 
     float scale = SCR_GetMenuScale();
-    extern qboolean show_haptic;
 
     /* configure controls menu and menu items */
     s_options_menu.x = viddef.width / 2;
@@ -1494,14 +1529,6 @@ Options_MenuInit(void)
     s_options_crosshair_box.generic.callback = CrosshairFunc;
     s_options_crosshair_box.itemnames = crosshair_names;
 
-    s_options_haptic_slider.generic.type = MTYPE_SLIDER;
-    s_options_haptic_slider.generic.x = 0;
-    s_options_haptic_slider.generic.y = 120;
-    s_options_haptic_slider.generic.name = "haptic magnitude";
-    s_options_haptic_slider.generic.callback = HapticMagnitudeFunc;
-    s_options_haptic_slider.minvalue = 0;
-    s_options_haptic_slider.maxvalue = 22;
-
     s_options_customize_joy_action.generic.type = MTYPE_ACTION;
     s_options_customize_joy_action.generic.x = 0;
     s_options_customize_joy_action.generic.y = 130;
@@ -1540,9 +1567,6 @@ Options_MenuInit(void)
     Menu_AddItem(&s_options_menu, (void *)&s_options_lookstrafe_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_freelook_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_crosshair_box);
-
-    if (show_haptic)
-        Menu_AddItem(&s_options_menu, (void *)&s_options_haptic_slider);
 
     Menu_AddItem(&s_options_menu, (void *)&s_options_customize_joy_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_customize_options_action);
