@@ -819,16 +819,6 @@ IN_Update(void)
 }
 
 /*
- * Removes all pending events from SDLs queue.
- */
-void
-In_FlushQueue(void)
-{
-	SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
-	Key_MarkAllUp();
-}
-
-/*
  * Move handling
  */
 void
@@ -975,6 +965,17 @@ static void
 IN_JoyAltSelectorUp(void)
 {
 	joy_altselector_pressed = false;
+}
+
+/*
+ * Removes all pending events from SDLs queue.
+ */
+void
+In_FlushQueue(void)
+{
+	SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
+	Key_MarkAllUp();
+	IN_JoyAltSelectorUp();
 }
 
 /* ------------------------------------------------------------------ */

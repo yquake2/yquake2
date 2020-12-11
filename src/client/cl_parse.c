@@ -829,6 +829,9 @@ CL_ParseServerData(void)
 	char *str;
 	int i;
 
+	/* Clear all key states */
+	In_FlushQueue();
+
 	Com_DPrintf("Serverdata packet received.\n");
 
 	/* wipe the client_state_t struct */
