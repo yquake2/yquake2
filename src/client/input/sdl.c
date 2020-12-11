@@ -576,7 +576,7 @@ IN_Update(void)
 						}
 						else
 						{
-							Com_Printf("Pressed unknown key with SDL_Keycode %d, SDL_Scancode %d.\n", kc, (int)sc);
+							Com_DPrintf("Pressed unknown key with SDL_Keycode %d, SDL_Scancode %d.\n", kc, (int)sc);
 						}
 					}
 				}
