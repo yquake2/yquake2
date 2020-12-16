@@ -109,8 +109,8 @@ R_ImageShrink(const unsigned char* src, unsigned char *dst, int width, int realw
 	int x, y;
 	float xstep, ystep;
 
-	xstep = (float)height / realheight;
-	ystep = (float)width / realwidth;
+	xstep = (float)width / realwidth;
+	ystep = (float)height / realheight;
 
 	for (y=0; y<realheight; y++)
 	{
@@ -130,8 +130,8 @@ R_RestoreMips(image_t *image, int min_mips)
 	for (i=min_mips+1; i<NUM_MIPS; i++)
 	{
 		R_ImageShrink(image->pixels[i-1], image->pixels[i],
-			      image->height / (1 << (i - 1)), image->height / (1 << i),
-			      image->width / (1 << (i - 1)), image->width / (1 << i));
+			      image->width >> (i - 1), image->width >> i,
+			      image->height >> (i - 1), image->height >> i);
 	}
 }
 
@@ -153,10 +153,10 @@ R_RestoreImagePointers(image_t *image, int min_mips)
 {
 	int i;
 
-	for (i=min_mips+1; i<NUM_MIPS; i++)
+	for (i=min_mips; i<NUM_MIPS-1; i++)
 	{
-		image->pixels[i] = image->pixels[i - 1] + (
-			image->width * image->height / (1 << ((i - 1) * 2)));
+		image->pixels[i + 1] = image->pixels[i] + (
+			image->width * image->height / (1 << (i * 2)));
 	}
 }
 
