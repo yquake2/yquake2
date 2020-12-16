@@ -135,6 +135,7 @@ float	se_time1, se_time2, de_time1, de_time2;
 
 cvar_t	*r_lefthand;
 cvar_t	*r_gunfov;
+cvar_t	*r_farsee;
 static cvar_t	*sw_aliasstats;
 cvar_t	*sw_clearcolor;
 cvar_t	*sw_drawflat;
@@ -389,6 +390,7 @@ R_RegisterVariables (void)
 
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
 	r_gunfov = ri.Cvar_Get( "r_gunfov", "80", CVAR_ARCHIVE );
+	r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 	r_speeds = ri.Cvar_Get ("r_speeds", "0", 0);
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", 0);
 	r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0);
@@ -543,7 +545,9 @@ R_ReallocateMapBuffers (void)
 			r_outofsurfaces = false;
 		}
 
-		if (r_cnumsurfs < NUMSTACKSURFACES)
+		if ((r_farsee->value > 0) && (r_cnumsurfs < NUMSTACKSURFACES))
+			r_cnumsurfs = NUMSTACKSURFACES * 2;
+		else if (r_cnumsurfs < NUMSTACKSURFACES)
 			r_cnumsurfs = NUMSTACKSURFACES;
 
 		// edge_t->surf limited size to short
@@ -618,7 +622,9 @@ R_ReallocateMapBuffers (void)
 			r_outofedges = false;
 		}
 
-		if (r_numallocatededges < NUMSTACKEDGES)
+		if ((r_farsee->value > 0) && (r_numallocatededges < NUMSTACKEDGES * 2))
+			r_numallocatededges = NUMSTACKEDGES * 2;
+		else if (r_numallocatededges < NUMSTACKEDGES)
 			r_numallocatededges = NUMSTACKEDGES;
 
 		r_edges = malloc (r_numallocatededges * sizeof(edge_t));
@@ -1077,12 +1083,12 @@ R_DrawBEntitiesOnList (void)
 	{
 		entity_t *currententity = &r_newrefdef.entities[i];
 		const model_t *currentmodel = currententity->model;
+		if ( currententity->flags & RF_BEAM )
+			continue;
 		if (!currentmodel)
 			continue;
 		if (currentmodel->nummodelsurfaces == 0)
 			continue;	// clip brush only
-		if ( currententity->flags & RF_BEAM )
-			continue;
 		if (currentmodel->type != mod_brush)
 			continue;
 		// see if the bounding box lets us trivially reject, also sets

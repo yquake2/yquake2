@@ -423,6 +423,7 @@ extern cvar_t	*sw_retexturing;
 extern cvar_t	*r_fullbright;
 extern cvar_t	*r_lefthand;
 extern cvar_t	*r_gunfov;
+extern cvar_t	*r_farsee;
 extern cvar_t	*r_drawworld;
 extern cvar_t	*r_lerpmodels;
 extern cvar_t	*r_lightlevel;

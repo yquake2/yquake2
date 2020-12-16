@@ -221,6 +221,9 @@ R_InitCaches (void)
 	if (pix > 64000)
 		size += (pix-64000)*3;
 
+	if (r_farsee->value > 0)
+		size *= 2;
+
 	if (sw_surfcacheoverride->value > size)
 	{
 		size = sw_surfcacheoverride->value;
