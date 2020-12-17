@@ -187,8 +187,6 @@ typedef struct
 
 	int prev_mode;
 
-	unsigned char *d_16to8table;
-
 	// each lightmap consists of 4 sub-lightmaps allowing changing shadows on the same surface
 	// used for switching on/off light and stuff like that.
 	// most surfaces only have one really and the remaining for are filled with dummy data

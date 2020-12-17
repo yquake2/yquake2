@@ -174,6 +174,31 @@ typedef struct miptex_s
 	int value;
 } miptex_t;
 
+/* .M8 texture file format */
+
+#define M8_MIP_LEVELS 16
+#define M8_VERSION 0x2
+
+typedef struct {
+	unsigned char r;
+	unsigned char g;
+	unsigned char b;
+} rgb_t;
+
+typedef struct m8tex_s
+{
+	unsigned version;
+	char name[32];
+	unsigned width[M8_MIP_LEVELS];
+	unsigned height[M8_MIP_LEVELS];
+	unsigned offsets[M8_MIP_LEVELS]; /* 16 mip maps stored */
+	char animname[32];           /* next frame in animation chain */
+	rgb_t palette[256];
+	int flags;
+	int contents;
+	int value;
+} m8tex_t;
+
 /* .BSP file format */
 
 #define IDBSPHEADER (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') /* little-endian "IBSP" */

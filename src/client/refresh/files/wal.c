@@ -57,3 +57,30 @@ GetWalInfo(char *name, int *width, int *height)
 	return;
 }
 
+void
+GetM8Info(char *name, int *width, int *height)
+{
+	m8tex_t *mt;
+	int size;
+
+	size = ri.FS_LoadFile(name, (void **)&mt);
+
+	if (!mt)
+	{
+		return;
+	}
+
+
+	if (size < sizeof(m8tex_t) || LittleLong (mt->version) != M8_VERSION)
+	{
+		ri.FS_FreeFile((void *)mt);
+		return;
+	}
+
+	*width = LittleLong(mt->width[0]);
+	*height = LittleLong(mt->height[0]);
+
+	ri.FS_FreeFile((void *)mt);
+
+	return;
+}

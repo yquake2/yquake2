@@ -1722,6 +1722,11 @@ RE_SetSky (char *name, float rotate, vec3_t axis)
 	{
 		Com_sprintf (pathname, sizeof(pathname), "env/%s%s.pcx", skyname, suf[r_skysideimage[i]]);
 		r_skytexinfo[i].image = R_FindImage (pathname, it_sky);
+		if (!r_skytexinfo[i].image)
+		{
+			Com_sprintf (pathname, sizeof(pathname), "pics/Skies/%s%s.m8", skyname, suf[r_skysideimage[i]]);
+			r_skytexinfo[i].image = R_FindImage (pathname, it_sky);
+		}
 	}
 }
 

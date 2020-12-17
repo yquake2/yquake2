@@ -434,6 +434,12 @@ static void Mod_LoadTexinfo (lump_t *l)
 		Com_sprintf (name, sizeof(name), "textures/%s.wal", in->texture);
 
 		out->image = Vk_FindImage (name, it_wall);
+		if (!out->image || out->image == r_notexture)
+		{
+			Com_sprintf (name, sizeof(name), "textures/%s.m8", in->texture);
+			out->image = Vk_FindImage (name, it_wall);
+		}
+
 		if (!out->image)
 		{
 			R_Printf(PRINT_ALL, "Couldn't load %s\n", name);

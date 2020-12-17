@@ -748,6 +748,13 @@ RI_SetSky(char *name, float rotate, vec3_t axis)
 
 		sky_images[i] = R_FindImage(pathname, it_sky);
 
+		if (!sky_images[i] || sky_images[i] == r_notexture)
+		{
+			Com_sprintf(pathname, sizeof(pathname), "pics/Skies/%s%s.m8",
+					skyname, suf[i]);
+			sky_images[i] = R_FindImage(pathname, it_sky);
+		}
+
 		if (!sky_images[i])
 		{
 			sky_images[i] = r_notexture;

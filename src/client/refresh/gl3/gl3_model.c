@@ -297,6 +297,12 @@ Mod_LoadTexinfo(lump_t *l)
 
 		out->image = GL3_FindImage(name, it_wall);
 
+		if (!out->image || out->image == gl3_notexture)
+		{
+			Com_sprintf(name, sizeof(name), "textures/%s.m8", in->texture);
+			out->image = GL3_FindImage(name, it_wall);
+		}
+
 		if (!out->image)
 		{
 			R_Printf(PRINT_ALL, "Couldn't load %s\n", name);
