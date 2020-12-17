@@ -1356,7 +1356,12 @@ Info_SetValueForKey(char *s, char *key, char *value)
 	int c;
 	int maxsize = MAX_INFO_STRING;
 
-	if (strstr(key, "\\") || strstr(value, "\\"))
+	if (!key)
+	{
+		return;
+	}
+
+	if (strstr(key, "\\") || (value && strstr(value, "\\")))
 	{
 		Com_Printf("Can't use keys or values with a \\\n");
 		return;
@@ -1368,13 +1373,13 @@ Info_SetValueForKey(char *s, char *key, char *value)
 		return;
 	}
 
-	if (strstr(key, "\"") || strstr(value, "\""))
+	if (strstr(key, "\"") || (value && strstr(value, "\"")))
 	{
 		Com_Printf("Can't use keys or values with a \"\n");
 		return;
 	}
 
-	if ((strlen(key) > MAX_INFO_KEY - 1) || (strlen(value) > MAX_INFO_KEY - 1))
+	if ((strlen(key) > MAX_INFO_KEY - 1) || (value && (strlen(value) > MAX_INFO_KEY - 1)))
 	{
 		Com_Printf("Keys and values must be < 64 characters.\n");
 		return;

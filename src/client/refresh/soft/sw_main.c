@@ -1528,7 +1528,7 @@ RE_SetMode(void)
 		}
 
 		/* try setting it back to something safe */
-		if ((err = SWimp_SetMode(&vid.width, &vid.height, sw_state.prev_mode, 0)) != rserr_ok)
+		if (SWimp_SetMode(&vid.width, &vid.height, sw_state.prev_mode, 0) != rserr_ok)
 		{
 			R_Printf(PRINT_ALL, "%s() - could not revert to safe mode\n", __func__);
 			return false;
