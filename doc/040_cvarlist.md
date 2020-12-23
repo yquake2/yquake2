@@ -405,6 +405,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **vk_picmip**: Shrink factor for the textures. (default: `0`)
 
+* **vk_pixel_size**: Pixel size when rendering the world, used to simulate
+  lower screen resolutions. The value represents the length, in pixels, of the
+  side of each pixel block. For example, with size 2 pixels are 2x2 squares,
+  and at 1600x1200 the image is effectively an upscaled 800x600 image.
+  (default: `1`)
+
 * **vk_dynamic**: Use dynamic lighting. (default: `1`)
 
 * **vk_showtris**: Display mesh triangles. (default: `0`)

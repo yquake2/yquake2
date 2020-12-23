@@ -145,6 +145,7 @@ extern	cvar_t	*vk_flashblend;
 extern	cvar_t	*vk_finish;
 extern	cvar_t	*vk_polyblend;
 extern	cvar_t	*vk_shadows;
+extern	cvar_t	*vk_pixel_size;
 extern	cvar_t	*vk_particle_size;
 extern	cvar_t	*vk_particle_att_a;
 extern	cvar_t	*vk_particle_att_b;
@@ -294,6 +295,7 @@ typedef struct
 	qboolean stereo_enabled;
 
 	VkPipeline current_pipeline;
+	qvkrenderpasstype_t current_renderpass;
 } vkstate_t;
 
 extern vkconfig_t  vk_config;
