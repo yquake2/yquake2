@@ -22,15 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "header/local.h"
 
-model_t	*loadmodel;
-
-static void Mod_LoadSpriteModel(model_t *loadmodel, void *buffer, int modfilelen);
-static void Mod_LoadBrushModel(model_t *loadmodel, void *buffer, int modfilelen);
-static void Mod_LoadAliasModel(model_t *loadmodel, void *buffer, int modfilelen);
-static void Mod_Free (model_t *mod);
-
-
-byte	mod_novis[MAX_MAP_LEAFS/8];
+YQ2_ALIGNAS_TYPE(int) static byte mod_novis[MAX_MAP_LEAFS/8];
 
 #define	MAX_MOD_KNOWN	512
 model_t	mod_known[MAX_MOD_KNOWN];
@@ -124,114 +116,31 @@ void Mod_Init (void)
 	memset (mod_novis, 0xff, sizeof(mod_novis));
 }
 
-
+/*
+================
+Mod_Free
+================
+*/
+static void Mod_Free (model_t *mod)
+{
+	Hunk_Free (mod->extradata);
+	memset (mod, 0, sizeof(*mod));
+}
 
 /*
-==================
-Mod_ForName
-
-Loads in a model for the given name
-==================
+================
+Mod_FreeAll
+================
 */
-static model_t *Mod_ForName (char *name, qboolean crash)
+void Mod_FreeAll (void)
 {
-	model_t	*mod;
-	unsigned *buf;
-	int		i, modfilelen;
+	int		i;
 
-	if (!name[0])
+	for (i=0 ; i<mod_numknown ; i++)
 	{
-		ri.Sys_Error(ERR_DROP, "%s: NULL name", __func__);
+		if (mod_known[i].extradatasize)
+			Mod_Free (&mod_known[i]);
 	}
-
-	//
-	// inline models are grabbed only from worldmodel
-	//
-	if (name[0] == '*')
-	{
-		i = atoi(name+1);
-		if (i < 1 || !r_worldmodel || i >= r_worldmodel->numsubmodels)
-			ri.Sys_Error (ERR_DROP, "bad inline model number");
-		return &mod_inline[i];
-	}
-
-	//
-	// search the currently loaded models
-	//
-	for (i=0 , mod=mod_known ; i<mod_numknown ; i++, mod++)
-	{
-		if (!mod->name[0])
-			continue;
-		if (!strcmp (mod->name, name) )
-			return mod;
-	}
-
-	//
-	// find a free model slot spot
-	//
-	for (i=0 , mod=mod_known ; i<mod_numknown ; i++, mod++)
-	{
-		if (!mod->name[0])
-			break;	// free spot
-	}
-	if (i == mod_numknown)
-	{
-		if (mod_numknown == MAX_MOD_KNOWN)
-			ri.Sys_Error(ERR_DROP, "%s: mod_numknown == MAX_MOD_KNOWN", __func__);
-		mod_numknown++;
-	}
-	strcpy (mod->name, name);
-
-	//
-	// load the file
-	//
-	modfilelen = ri.FS_LoadFile (mod->name, (void **)&buf);
-	if (!buf)
-	{
-		if (crash)
-		{
-			ri.Sys_Error(ERR_DROP, "%s: %s not found",
-					__func__, mod->name);
-		}
-
-		memset (mod->name, 0, sizeof(mod->name));
-		return NULL;
-	}
-
-	loadmodel = mod;
-
-	//
-	// fill it in
-	//
-
-
-	// call the apropriate loader
-
-	switch (LittleLong(*(unsigned *)buf))
-	{
-	case IDALIASHEADER:
-		Mod_LoadAliasModel(mod, buf, modfilelen);
-		break;
-
-	case IDSPRITEHEADER:
-		Mod_LoadSpriteModel(mod, buf, modfilelen);
-		break;
-
-	case IDBSPHEADER:
-		Mod_LoadBrushModel(mod, buf, modfilelen);
-		break;
-
-	default:
-		ri.Sys_Error(ERR_DROP, "%s: unknown fileid for %s",
-				__func__, mod->name);
-		break;
-	}
-
-	mod->extradatasize = Hunk_End ();
-
-	ri.FS_FreeFile(buf);
-
-	return mod;
 }
 
 /*
@@ -242,15 +151,12 @@ static model_t *Mod_ForName (char *name, qboolean crash)
 ===============================================================================
 */
 
-byte	*mod_base;
-
-
 /*
 =================
 Mod_LoadLighting
 =================
 */
-static void Mod_LoadLighting (lump_t *l)
+static void Mod_LoadLighting (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	if (!l->filelen)
 	{
@@ -267,7 +173,7 @@ static void Mod_LoadLighting (lump_t *l)
 Mod_LoadVisibility
 =================
 */
-static void Mod_LoadVisibility (lump_t *l)
+static void Mod_LoadVisibility (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int		i;
 
@@ -293,7 +199,7 @@ static void Mod_LoadVisibility (lump_t *l)
 Mod_LoadVertexes
 =================
 */
-static void Mod_LoadVertexes (lump_t *l)
+static void Mod_LoadVertexes (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dvertex_t	*in;
 	mvertex_t	*out;
@@ -344,7 +250,7 @@ static float RadiusFromBounds (vec3_t mins, vec3_t maxs)
 Mod_LoadSubmodels
 =================
 */
-static void Mod_LoadSubmodels (lump_t *l)
+static void Mod_LoadSubmodels (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dmodel_t	*in;
 	mmodel_t	*out;
@@ -383,7 +289,7 @@ static void Mod_LoadSubmodels (lump_t *l)
 Mod_LoadEdges
 =================
 */
-static void Mod_LoadEdges (lump_t *l)
+static void Mod_LoadEdges (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dedge_t *in;
 	medge_t *out;
@@ -414,7 +320,7 @@ static void Mod_LoadEdges (lump_t *l)
 Mod_LoadTexinfo
 =================
 */
-static void Mod_LoadTexinfo (lump_t *l)
+static void Mod_LoadTexinfo (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	texinfo_t *in;
 	mtexinfo_t *out, *step;
@@ -483,7 +389,7 @@ CalcSurfaceExtents
 Fills in s->texturemins[] and s->extents[]
 ================
 */
-static void CalcSurfaceExtents (msurface_t *s)
+static void CalcSurfaceExtents (model_t *loadmodel, msurface_t *s)
 {
 	float	mins[2], maxs[2], val;
 	int		i;
@@ -615,7 +521,7 @@ static int calcTexinfoAndFacesSize(const lump_t *fl, byte *mod_base, const lump_
 Mod_LoadFaces
 =================
 */
-static void Mod_LoadFaces (lump_t *l)
+static void Mod_LoadFaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dface_t		*in;
 	msurface_t 	*out;
@@ -666,7 +572,7 @@ static void Mod_LoadFaces (lump_t *l)
 		}
 		out->texinfo = loadmodel->texinfo + ti;
 
-		CalcSurfaceExtents(out);
+		CalcSurfaceExtents(loadmodel, out);
 
 		// lighting info
 
@@ -728,7 +634,7 @@ static void Mod_SetParent (mnode_t *node, mnode_t *parent)
 Mod_LoadNodes
 =================
 */
-static void Mod_LoadNodes (lump_t *l)
+static void Mod_LoadNodes (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int			i, j, count;
 	dnode_t		*in;
@@ -782,7 +688,7 @@ static void Mod_LoadNodes (lump_t *l)
 Mod_LoadLeafs
 =================
 */
-static void Mod_LoadLeafs (lump_t *l)
+static void Mod_LoadLeafs (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dleaf_t 	*in;
 	mleaf_t 	*out;
@@ -846,7 +752,7 @@ static void Mod_LoadLeafs (lump_t *l)
 Mod_LoadMarksurfaces
 =================
 */
-static void Mod_LoadMarksurfaces (lump_t *l)
+static void Mod_LoadMarksurfaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int		i, count;
 	short		*in;
@@ -884,7 +790,7 @@ static void Mod_LoadMarksurfaces (lump_t *l)
 Mod_LoadSurfedges
 =================
 */
-static void Mod_LoadSurfedges (lump_t *l)
+static void Mod_LoadSurfedges (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int		i, count;
 	int		*in, *out;
@@ -916,7 +822,7 @@ static void Mod_LoadSurfedges (lump_t *l)
 Mod_LoadPlanes
 =================
 */
-static void Mod_LoadPlanes (lump_t *l)
+static void Mod_LoadPlanes (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int			i;
 	cplane_t	*out;
@@ -981,11 +887,12 @@ static int calcLumpHunkSize(const lump_t *l, int inSize, int outSize)
 Mod_LoadBrushModel
 =================
 */
-static void Mod_LoadBrushModel (model_t *mod, void *buffer, int modfilelen)
+static void Mod_LoadBrushModel (model_t *loadmodel, void *buffer, int modfilelen)
 {
 	int			i;
 	dheader_t	*header;
 	mmodel_t 	*bm;
+	byte		*mod_base;
 
 	if (loadmodel != mod_known)
 		ri.Sys_Error(ERR_DROP, "%s: Loaded a brush model after the world", __func__);
@@ -1029,28 +936,28 @@ static void Mod_LoadBrushModel (model_t *mod, void *buffer, int modfilelen)
 	loadmodel->type = mod_brush;
 
 	// load into heap
-	Mod_LoadVertexes (&header->lumps[LUMP_VERTEXES]);
-	Mod_LoadEdges (&header->lumps[LUMP_EDGES]);
-	Mod_LoadSurfedges (&header->lumps[LUMP_SURFEDGES]);
-	Mod_LoadLighting (&header->lumps[LUMP_LIGHTING]);
-	Mod_LoadPlanes (&header->lumps[LUMP_PLANES]);
-	Mod_LoadTexinfo (&header->lumps[LUMP_TEXINFO]);
-	Mod_LoadFaces (&header->lumps[LUMP_FACES]);
-	Mod_LoadMarksurfaces (&header->lumps[LUMP_LEAFFACES]);
-	Mod_LoadVisibility (&header->lumps[LUMP_VISIBILITY]);
-	Mod_LoadLeafs (&header->lumps[LUMP_LEAFS]);
-	Mod_LoadNodes (&header->lumps[LUMP_NODES]);
-	Mod_LoadSubmodels (&header->lumps[LUMP_MODELS]);
-	mod->numframes = 2;		// regular and alternate animation
+	Mod_LoadVertexes (loadmodel, mod_base, &header->lumps[LUMP_VERTEXES]);
+	Mod_LoadEdges (loadmodel, mod_base, &header->lumps[LUMP_EDGES]);
+	Mod_LoadSurfedges (loadmodel, mod_base, &header->lumps[LUMP_SURFEDGES]);
+	Mod_LoadLighting (loadmodel, mod_base, &header->lumps[LUMP_LIGHTING]);
+	Mod_LoadPlanes (loadmodel, mod_base, &header->lumps[LUMP_PLANES]);
+	Mod_LoadTexinfo (loadmodel, mod_base, &header->lumps[LUMP_TEXINFO]);
+	Mod_LoadFaces (loadmodel, mod_base, &header->lumps[LUMP_FACES]);
+	Mod_LoadMarksurfaces (loadmodel, mod_base, &header->lumps[LUMP_LEAFFACES]);
+	Mod_LoadVisibility (loadmodel, mod_base, &header->lumps[LUMP_VISIBILITY]);
+	Mod_LoadLeafs (loadmodel, mod_base, &header->lumps[LUMP_LEAFS]);
+	Mod_LoadNodes (loadmodel, mod_base, &header->lumps[LUMP_NODES]);
+	Mod_LoadSubmodels (loadmodel, mod_base, &header->lumps[LUMP_MODELS]);
+	loadmodel->numframes = 2;		// regular and alternate animation
 
 	//
 	// set up the submodels
 	//
-	for (i = 0; i < mod->numsubmodels; i++)
+	for (i = 0; i < loadmodel->numsubmodels; i++)
 	{
 		model_t	*starmod;
 
-		bm = &mod->submodels[i];
+		bm = &loadmodel->submodels[i];
 		starmod = &mod_inline[i];
 
 		*starmod = *loadmodel;
@@ -1112,11 +1019,11 @@ static void Mod_LoadAliasModel (model_t *mod, void *buffer, int modfilelen)
 	ofs_end = LittleLong(pinmodel->ofs_end);
 	if (ofs_end < 0 || ofs_end > modfilelen)
 	{
-		ri.Sys_Error(ERR_DROP, "%s: model %s file size(%d) too small, should be %d", mod->name,
-				__func__, modfilelen, ofs_end);
+		ri.Sys_Error(ERR_DROP, "%s: model %s file size(%d) too small, should be %d",
+				__func__, mod->name, modfilelen, ofs_end);
 	}
 
-	loadmodel->extradata = Hunk_Begin(modfilelen);
+	mod->extradata = Hunk_Begin(modfilelen);
 	pheader = Hunk_Alloc(ofs_end);
 
 	// byte swap the header fields and sanity check
@@ -1257,7 +1164,7 @@ static void Mod_LoadSpriteModel (model_t *mod, void *buffer, int modfilelen)
 	int			i;
 
 	sprin = (dsprite_t *)buffer;
-	loadmodel->extradata = Hunk_Begin(modfilelen);
+	mod->extradata = Hunk_Begin(modfilelen);
 	sprout = Hunk_Alloc(modfilelen);
 
 	sprout->ident = LittleLong (sprin->ident);
@@ -1294,6 +1201,111 @@ static void Mod_LoadSpriteModel (model_t *mod, void *buffer, int modfilelen)
 //=============================================================================
 
 /*
+==================
+Mod_ForName
+
+Loads in a model for the given name
+==================
+*/
+static model_t *Mod_ForName (char *name, qboolean crash)
+{
+	model_t	*mod;
+	unsigned *buf;
+	int		i, modfilelen;
+
+	if (!name[0])
+	{
+		ri.Sys_Error(ERR_DROP, "%s: NULL name", __func__);
+	}
+
+	//
+	// inline models are grabbed only from worldmodel
+	//
+	if (name[0] == '*')
+	{
+		i = atoi(name+1);
+		if (i < 1 || !r_worldmodel || i >= r_worldmodel->numsubmodels)
+			ri.Sys_Error (ERR_DROP, "bad inline model number");
+		return &mod_inline[i];
+	}
+
+	//
+	// search the currently loaded models
+	//
+	for (i=0 , mod=mod_known ; i<mod_numknown ; i++, mod++)
+	{
+		if (!mod->name[0])
+			continue;
+		if (!strcmp (mod->name, name) )
+			return mod;
+	}
+
+	//
+	// find a free model slot spot
+	//
+	for (i=0 , mod=mod_known ; i<mod_numknown ; i++, mod++)
+	{
+		if (!mod->name[0])
+			break;	// free spot
+	}
+	if (i == mod_numknown)
+	{
+		if (mod_numknown == MAX_MOD_KNOWN)
+			ri.Sys_Error(ERR_DROP, "%s: mod_numknown == MAX_MOD_KNOWN", __func__);
+		mod_numknown++;
+	}
+	strcpy (mod->name, name);
+
+	//
+	// load the file
+	//
+	modfilelen = ri.FS_LoadFile (mod->name, (void **)&buf);
+	if (!buf)
+	{
+		if (crash)
+		{
+			ri.Sys_Error(ERR_DROP, "%s: %s not found",
+					__func__, mod->name);
+		}
+
+		memset (mod->name, 0, sizeof(mod->name));
+		return NULL;
+	}
+
+	//
+	// fill it in
+	//
+
+	// call the apropriate loader
+
+	switch (LittleLong(*(unsigned *)buf))
+	{
+	case IDALIASHEADER:
+		Mod_LoadAliasModel(mod, buf, modfilelen);
+		break;
+
+	case IDSPRITEHEADER:
+		Mod_LoadSpriteModel(mod, buf, modfilelen);
+		break;
+
+	case IDBSPHEADER:
+		Mod_LoadBrushModel(mod, buf, modfilelen);
+		break;
+
+	default:
+		ri.Sys_Error(ERR_DROP, "%s: unknown fileid for %s",
+				__func__, mod->name);
+		break;
+	}
+
+	mod->extradatasize = Hunk_End ();
+
+	ri.FS_FreeFile(buf);
+
+	return mod;
+}
+
+/*
 =====================
 RE_BeginRegistration
 
@@ -1320,7 +1332,6 @@ RE_BeginRegistration (char *model)
 
 	r_viewcluster = -1;
 }
-
 
 /*
 =====================
@@ -1391,35 +1402,4 @@ void RE_EndRegistration (void)
 	}
 
 	Vk_FreeUnusedImages ();
-}
-
-
-//=============================================================================
-
-
-/*
-================
-Mod_Free
-================
-*/
-static void Mod_Free (model_t *mod)
-{
-	Hunk_Free (mod->extradata);
-	memset (mod, 0, sizeof(*mod));
-}
-
-/*
-================
-Mod_FreeAll
-================
-*/
-void Mod_FreeAll (void)
-{
-	int		i;
-
-	for (i=0 ; i<mod_numknown ; i++)
-	{
-		if (mod_known[i].extradatasize)
-			Mod_Free (&mod_known[i]);
-	}
 }
