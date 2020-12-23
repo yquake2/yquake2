@@ -47,6 +47,7 @@ string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 # Compilation time options.
 option(CURL_SUPPORT "cURL support" ON)
 option(OPENAL_SUPPORT "OpenAL support" ON)
+option(VULKAN_SUPPORT "Vulkan support" ON)
 option(SYSTEMWIDE_SUPPORT "Enable systemwide installation of game assets" OFF)
 
 # These variables will act as our list of include folders and linker flags.
@@ -122,10 +123,12 @@ else()
 	add_definitions(-DHAVE_EXECINFO)
 endif()
 
-# We need an Vulkan implementation.
-find_package(Vulkan REQUIRED)
-list(APPEND yquake2IncludeDirectories ${Vulkan_INCLUDE_DIR})
-list(APPEND yquake2VulkanLinkerFlags ${Vulkan_LIBRARIES})
+if (${VULKAN_SUPPORT})
+    # We need an Vulkan implementation.
+    find_package(Vulkan REQUIRED)
+    list(APPEND yquake2IncludeDirectories ${Vulkan_INCLUDE_DIR})
+    list(APPEND yquake2VulkanLinkerFlags ${Vulkan_LIBRARIES})
+endif()
 
 # cURL support.
 if (${CURL_SUPPORT})
@@ -576,7 +579,8 @@ set(SOFT-Header
 	${COMMON_SRC_DIR}/header/shared.h
 	)
 
-set(VK-Source
+if (${VULKAN_SUPPORT})
+    set(VK-Source
 	${REF_SRC_DIR}/vk/vk_buffer.c
 	${REF_SRC_DIR}/vk/vk_cmd.c
 	${REF_SRC_DIR}/vk/vk_common.c
@@ -604,7 +608,7 @@ set(VK-Source
 	${COMMON_SRC_DIR}/md4.c
 	)
 
-set(VK-Header
+    set(VK-Header
 	${REF_SRC_DIR}/ref_shared.h
 	${REF_SRC_DIR}/files/stb_image.h
 	${REF_SRC_DIR}/files/stb_image_resize.h
@@ -615,6 +619,7 @@ set(VK-Header
 	${REF_SRC_DIR}/vk/header/util.h
 	${COMMON_SRC_DIR}/header/shared.h
 	)
+endif()
 
 # Wrapper for the Windows binary
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -703,12 +708,14 @@ set_target_properties(ref_soft PROPERTIES
 		)
 target_link_libraries(ref_soft ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
 
-# Build the vk renderer dynamic library
-add_library(ref_vk MODULE ${VK-Source} ${VK-Header} ${REF-Platform-Specific-Source})
-set_target_properties(ref_vk PROPERTIES
+if(${VULKAN_SUPPORT})
+    # Build the vk renderer dynamic library
+    add_library(ref_vk MODULE ${VK-Source} ${VK-Header} ${REF-Platform-Specific-Source})
+    set_target_properties(ref_vk PROPERTIES
 		PREFIX ""
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
 		)
-target_link_libraries(ref_vk ${yquake2LinkerFlags} ${yquake2VulkanLinkerFlags} ${yquake2SDLLinkerFlags})
+    target_link_libraries(ref_vk ${yquake2LinkerFlags} ${yquake2VulkanLinkerFlags} ${yquake2SDLLinkerFlags})
+endif()
