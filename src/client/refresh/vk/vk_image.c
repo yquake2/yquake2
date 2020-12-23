@@ -535,6 +535,7 @@ void	Vk_ImageList_f (void)
 {
 	int		i, used, texels;
 	image_t	*image;
+	qboolean	freeup;
 
 	R_Printf(PRINT_ALL, "------------------\n");
 	texels = 0;
@@ -578,7 +579,8 @@ void	Vk_ImageList_f (void)
 			image->width, image->height, in_use);
 	}
 	R_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i in %d images\n", texels, img_loaded);
-	R_Printf(PRINT_ALL, "Used %d of %d images.\n", used, image_max);
+	freeup = Vk_ImageHasFreeSpace();
+	R_Printf(PRINT_ALL, "Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
 }
 
 typedef struct

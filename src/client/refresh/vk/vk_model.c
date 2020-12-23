@@ -25,10 +25,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 YQ2_ALIGNAS_TYPE(int) static byte mod_novis[MAX_MAP_LEAFS/8];
 
 #define	MAX_MOD_KNOWN	512
-static model_t	mod_known[MAX_MOD_KNOWN];
+static model_t	*models_known;
 static int		mod_numknown = 0;
 static int		mod_loaded = 0;
 static int		mod_max = 0;
+static int 	models_known_max = 0;
 
 // the inline * models from the current map are kept seperate
 static model_t	mod_inline[MAX_MOD_KNOWN];
@@ -86,37 +87,36 @@ byte *Mod_ClusterPVS (int cluster, model_t *model)
 //===============================================================================
 
 /*
-================
-Mod_Modellist_f
-================
+===============
+Mod_Reallocate
+===============
 */
-void Mod_Modellist_f (void)
+void Mod_Reallocate (void)
 {
-	int		i, total, used;
-	model_t	*mod;
-
-	total = 0;
-	used = 0;
-
-	R_Printf(PRINT_ALL,"Loaded models:\n");
-	for (i=0, mod=mod_known ; i < mod_numknown ; i++, mod++)
+	if ((models_known_max >= (mod_max * 4)) && (models_known != NULL))
 	{
-		char *in_use = "";
-
-		if (mod->registration_sequence == registration_sequence)
-		{
-			in_use = "*";
-			used ++;
-		}
-
-		if (!mod->name[0])
-			continue;
-		R_Printf(PRINT_ALL, "%8i : %s %s\n",
-			 mod->extradatasize, mod->name, in_use);
-		total += mod->extradatasize;
+		return;
 	}
-	R_Printf(PRINT_ALL, "Total resident: %i in %d models\n", total, mod_loaded);
-	R_Printf(PRINT_ALL, "Used %d of %d models.\n", used, mod_max);
+
+	if (models_known)
+	{
+		// Always up if already allocated
+		models_known_max *= 2;
+		// free up
+		Mod_FreeAll();
+		free(models_known);
+	}
+
+	if (models_known_max < (mod_max * 4))
+	{
+		// double is not enough?
+		models_known_max = ROUNDUP(mod_max * 4, 16);
+	}
+
+	R_Printf(PRINT_ALL, "Reallocate space for %d models.\n", models_known_max);
+
+	models_known = malloc(models_known_max * sizeof(model_t));
+	memset(models_known, 0, models_known_max * sizeof(model_t));
 }
 
 /*
@@ -130,6 +130,10 @@ void Mod_Init (void)
 	mod_numknown = 0;
 	mod_loaded = 0;
 	mod_max = 0;
+	models_known_max = MAX_MOD_KNOWN;
+	models_known = NULL;
+
+	Mod_Reallocate ();
 }
 
 /*
@@ -171,8 +175,8 @@ void Mod_FreeAll (void)
 
 	for (i=0 ; i<mod_numknown ; i++)
 	{
-		if (mod_known[i].extradatasize)
-			Mod_Free (&mod_known[i]);
+		if (models_known[i].extradatasize)
+			Mod_Free (&models_known[i]);
 	}
 }
 
@@ -921,7 +925,7 @@ static void Mod_LoadBrushModel (model_t *loadmodel, void *buffer, int modfilelen
 	mmodel_t 	*bm;
 	byte		*mod_base;
 
-	if (loadmodel != mod_known)
+	if (loadmodel != models_known)
 		ri.Sys_Error(ERR_DROP, "%s: Loaded a brush model after the world", __func__);
 
 	header = (dheader_t *)buffer;
@@ -1259,7 +1263,7 @@ static model_t *Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 	//
 	// search the currently loaded models
 	//
-	for (i=0 , mod=mod_known ; i<mod_numknown ; i++, mod++)
+	for (i=0 , mod=models_known ; i<mod_numknown ; i++, mod++)
 	{
 		if (!mod->name[0])
 			continue;
@@ -1270,15 +1274,15 @@ static model_t *Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 	//
 	// find a free model slot spot
 	//
-	for (i=0 , mod=mod_known ; i<mod_numknown ; i++, mod++)
+	for (i=0 , mod=models_known ; i<mod_numknown ; i++, mod++)
 	{
 		if (!mod->name[0])
 			break;	// free spot
 	}
 	if (i == mod_numknown)
 	{
-		if (mod_numknown == MAX_MOD_KNOWN)
-			ri.Sys_Error(ERR_DROP, "%s: mod_numknown == MAX_MOD_KNOWN", __func__);
+		if (mod_numknown == models_known_max)
+			ri.Sys_Error(ERR_DROP, "%s: mod_numknown == models_known_max", __func__);
 		mod_numknown++;
 	}
 	strcpy (mod->name, name);
@@ -1356,16 +1360,18 @@ RE_BeginRegistration (char *model)
 	char	fullname[MAX_QPATH];
 	cvar_t	*flushmap;
 
+	Mod_Reallocate();
+
 	registration_sequence++;
 	r_oldviewcluster = -1;		// force markleafs
 
 	Com_sprintf (fullname, sizeof(fullname), "maps/%s.bsp", model);
 
 	// explicitly free the old map if different
-	// this guarantees that mod_known[0] is the world map
+	// this guarantees that models_known[0] is the world map
 	flushmap = ri.Cvar_Get ("flushmap", "0", 0);
-	if ( strcmp(mod_known[0].name, fullname) || flushmap->value)
-		Mod_Free (&mod_known[0]);
+	if ( strcmp(models_known[0].name, fullname) || flushmap->value)
+		Mod_Free (&models_known[0]);
 	r_worldmodel = Mod_ForName(fullname, NULL, true);
 
 	r_viewcluster = -1;
@@ -1425,7 +1431,7 @@ Mod_HasFreeSpace(void)
 
 	used = 0;
 
-	for (i=0, mod=mod_known ; i<mod_numknown ; i++, mod++)
+	for (i=0, mod=models_known ; i<mod_numknown ; i++, mod++)
 	{
 		if (!mod->name[0])
 			continue;
@@ -1441,7 +1447,44 @@ Mod_HasFreeSpace(void)
 	}
 
 	// should same size of free slots as currently used
-	return (mod_loaded + mod_max) < MAX_MOD_KNOWN;
+	return (mod_loaded + mod_max) < models_known_max;
+}
+
+/*
+================
+Mod_Modellist_f
+================
+*/
+void Mod_Modellist_f (void)
+{
+	int		i, total, used;
+	model_t	*mod;
+	qboolean	freeup;
+
+	total = 0;
+	used = 0;
+
+	R_Printf(PRINT_ALL,"Loaded models:\n");
+	for (i=0, mod=models_known ; i < mod_numknown ; i++, mod++)
+	{
+		char *in_use = "";
+
+		if (mod->registration_sequence == registration_sequence)
+		{
+			in_use = "*";
+			used ++;
+		}
+
+		if (!mod->name[0])
+			continue;
+		R_Printf(PRINT_ALL, "%8i : %s %s\n",
+			 mod->extradatasize, mod->name, in_use);
+		total += mod->extradatasize;
+	}
+	R_Printf(PRINT_ALL, "Total resident: %i in %d models\n", total, mod_loaded);
+	// update statistics
+	freeup = Mod_HasFreeSpace();
+	R_Printf(PRINT_ALL, "Used %d of %d models%s.\n", used, mod_max, freeup ? ", has free space" : "");
 }
 
 /*
@@ -1461,7 +1504,7 @@ void RE_EndRegistration (void)
 		return;
 	}
 
-	for (i=0, mod=mod_known ; i<mod_numknown ; i++, mod++)
+	for (i=0, mod=models_known ; i<mod_numknown ; i++, mod++)
 	{
 		if (!mod->name[0])
 			continue;
