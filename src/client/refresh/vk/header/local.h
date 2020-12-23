@@ -197,7 +197,7 @@ void R_RenderDlights (void);
 void R_DrawAlphaSurfaces (void);
 void RE_InitParticleTexture (void);
 void Draw_InitLocal (void);
-void Vk_SubdivideSurface (msurface_t *fa);
+void Vk_SubdivideSurface (msurface_t *fa, model_t *loadmodel);
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 void R_RotateForEntity (entity_t *e, float *mvMatrix);
 void R_MarkLeaves (void);
