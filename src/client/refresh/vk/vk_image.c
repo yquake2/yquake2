@@ -21,7 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "header/local.h"
 
 image_t		vktextures[MAX_VKTEXTURES];
-int		numvktextures;
+int		numvktextures = 0;
+static int		img_loaded = 0;
+static int		image_max = 0;
+
 // texture for storing raw image data (cinematics, endscreens, etc.)
 qvktexture_t vk_rawTexture = QVVKTEXTURE_INIT;
 
@@ -530,17 +533,26 @@ Vk_ImageList_f
 */
 void	Vk_ImageList_f (void)
 {
-	int		i;
+	int		i, used, texels;
 	image_t	*image;
-	int		texels;
 
 	R_Printf(PRINT_ALL, "------------------\n");
 	texels = 0;
+	used = 0;
 
 	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
 	{
+		char *in_use = "";
+
 		if (image->vk_texture.resource.image == VK_NULL_HANDLE)
 			continue;
+
+		if (image->registration_sequence == registration_sequence)
+		{
+			in_use = "*";
+			used++;
+		}
+
 		texels += image->upload_width*image->upload_height;
 		switch (image->type)
 		{
@@ -561,11 +573,12 @@ void	Vk_ImageList_f (void)
 			break;
 		}
 
-		R_Printf(PRINT_ALL, " %4i %4i RGB: %s (%dx%d)\n",
+		R_Printf(PRINT_ALL, " %4i %4i RGB: %s (%dx%d) %s\n",
 			image->upload_width, image->upload_height, image->name,
-			image->width, image->height);
+			image->width, image->height, in_use);
 	}
-	R_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i\n", texels);
+	R_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i in %d images\n", texels, img_loaded);
+	R_Printf(PRINT_ALL, "Used %d of %d images.\n", used, image_max);
 }
 
 typedef struct
@@ -978,6 +991,12 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
 	image->width = realwidth;
 	image->height = realheight;
 	image->type = type;
+	// update count of loaded images
+	img_loaded ++;
+	if (vk_validation->value)
+	{
+		R_Printf(PRINT_ALL, "%s: Load %s[%d]\n", __func__, image->name, img_loaded);
+	}
 
 	if (type == it_skin && bits == 8)
 		FloodFillSkin(pic, width, height);
@@ -1310,6 +1329,31 @@ struct image_s *RE_RegisterSkin (char *name)
 	return Vk_FindImage (name, it_skin);
 }
 
+qboolean Vk_ImageHasFreeSpace(void)
+{
+	int		i, used;
+	image_t	*image;
+
+	used = 0;
+
+	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
+	{
+		if (!image->name[0])
+			continue;
+		if (image->registration_sequence == registration_sequence)
+		{
+			used ++;
+		}
+	}
+
+	if (image_max < used)
+	{
+		image_max = used;
+	}
+
+	// should same size of free slots as currently used
+	return (img_loaded + used) < MAX_VKTEXTURES;
+}
 
 /*
 ================
@@ -1324,6 +1368,12 @@ void Vk_FreeUnusedImages (void)
 	int		i;
 	image_t	*image;
 
+	if (Vk_ImageHasFreeSpace())
+	{
+		// should be enough space for load next images
+		return;
+	}
+
 	// never free r_notexture or particle texture
 	r_notexture->registration_sequence = registration_sequence;
 	r_particletexture->registration_sequence = registration_sequence;
@@ -1337,9 +1387,21 @@ void Vk_FreeUnusedImages (void)
 			continue;		// free image_t slot
 		if (image->type == it_pic)
 			continue;		// don't free pics
+
+		if (vk_validation->value)
+		{
+			R_Printf(PRINT_ALL, "%s: Unload %s[%d]\n", __func__, image->name, img_loaded);
+		}
+
 		// free it
 		QVk_ReleaseTexture(&image->vk_texture);
 		memset(image, 0, sizeof(*image));
+
+		img_loaded --;
+		if (img_loaded < 0)
+		{
+			ri.Sys_Error (ERR_DROP, "%s: Broken unload", __func__);
+		}
 	}
 
 	// free all unused blocks
@@ -1396,6 +1458,9 @@ void	Vk_InitImages (void)
 	int	i;
 	float	overbright;
 
+	numvktextures = 0;
+	img_loaded = 0;
+	image_max = 0;
 	registration_sequence = 1;
 
 	// init intensity conversions
@@ -1455,8 +1520,19 @@ void	Vk_ShutdownImages (void)
 		if (!image->registration_sequence)
 			continue;		// free image_t slot
 
+		if (vk_validation->value)
+		{
+			R_Printf(PRINT_ALL, "%s: Unload %s[%d]\n", __func__, image->name, img_loaded);
+		}
+
 		QVk_ReleaseTexture(&image->vk_texture);
 		memset(image, 0, sizeof(*image));
+
+		img_loaded --;
+		if (img_loaded < 0)
+		{
+			ri.Sys_Error (ERR_DROP, "%s: Broken unload", __func__);
+		}
 	}
 
 	QVk_ReleaseTexture(&vk_rawTexture);
