@@ -44,16 +44,6 @@ typedef struct
 	vec3_t		position;
 } mvertex_t;
 
-typedef struct
-{
-	vec3_t		mins, maxs;
-	vec3_t		origin;		// for sounds or lights
-	float		radius;
-	int			headnode;
-	int			visleafs;		// not including the solid leaf 0
-	int			firstface, numfaces;
-} mmodel_t;
-
 
 #define	SIDE_FRONT	0
 #define	SIDE_BACK	1
@@ -200,7 +190,7 @@ typedef struct model_s
 	int			lightmap;		// only for submodels
 
 	int			numsubmodels;
-	mmodel_t	*submodels;
+	struct model_s	*submodels;
 
 	int			numplanes;
 	cplane_t	*planes;
@@ -239,6 +229,9 @@ typedef struct model_s
 
 	int			extradatasize;
 	void		*extradata;
+
+	// submodules
+	vec3_t		origin;	// for sounds or lights
 } model_t;
 
 //============================================================================

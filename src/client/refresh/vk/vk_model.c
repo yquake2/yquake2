@@ -31,9 +31,6 @@ static int		mod_loaded = 0;
 static int		mod_max = 0;
 static int 	models_known_max = 0;
 
-// the inline * models from the current map are kept seperate
-static model_t	mod_inline[MAX_MOD_KNOWN];
-
 int		registration_sequence;
 
 /*
@@ -290,7 +287,7 @@ Mod_LoadSubmodels
 static void Mod_LoadSubmodels (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dmodel_t	*in;
-	mmodel_t	*out;
+	model_t	*out;
 	int			i, j, count;
 
 	in = (void *)(mod_base + l->fileofs);
@@ -308,16 +305,38 @@ static void Mod_LoadSubmodels (model_t *loadmodel, byte *mod_base, lump_t *l)
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
+		if (i == 0)
+		{
+			// copy parent as template for first model
+			memcpy(out, loadmodel, sizeof(*out));
+		}
+		else
+		{
+			// copy first as template for model
+			memcpy(out, loadmodel->submodels, sizeof(*out));
+		}
+
+		Com_sprintf (out->name, sizeof(out->name), "*%d", i);
+
 		for (j=0 ; j<3 ; j++)
 		{	// spread the mins / maxs by a pixel
 			out->mins[j] = LittleFloat (in->mins[j]) - 1;
 			out->maxs[j] = LittleFloat (in->maxs[j]) + 1;
 			out->origin[j] = LittleFloat (in->origin[j]);
 		}
+
 		out->radius = RadiusFromBounds (out->mins, out->maxs);
-		out->headnode = LittleLong (in->headnode);
-		out->firstface = LittleLong (in->firstface);
-		out->numfaces = LittleLong (in->numfaces);
+		out->firstnode = LittleLong (in->headnode);
+		out->firstmodelsurface = LittleLong (in->firstface);
+		out->nummodelsurfaces = LittleLong (in->numfaces);
+		// visleafs
+		out->numleafs = 0;
+		//  check limits
+		if (out->firstnode >= loadmodel->numnodes)
+		{
+			ri.Sys_Error(ERR_DROP, "%s: Inline model %i has bad firstnode",
+					__func__, i);
+		}
 	}
 }
 
@@ -922,11 +941,7 @@ static void Mod_LoadBrushModel (model_t *loadmodel, void *buffer, int modfilelen
 {
 	int			i;
 	dheader_t	*header;
-	mmodel_t 	*bm;
 	byte		*mod_base;
-
-	if (loadmodel != models_known)
-		ri.Sys_Error(ERR_DROP, "%s: Loaded a brush model after the world", __func__);
 
 	header = (dheader_t *)buffer;
 
@@ -961,10 +976,11 @@ static void Mod_LoadBrushModel (model_t *loadmodel, void *buffer, int modfilelen
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VISIBILITY], 1, 1);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFS], sizeof(dleaf_t), sizeof(mleaf_t));
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_NODES], sizeof(dnode_t), sizeof(mnode_t));
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(mmodel_t));
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(model_t));
 
 	loadmodel->extradata = Hunk_Begin(hunkSize);
 	loadmodel->type = mod_brush;
+	loadmodel->numframes = 2;		// regular and alternate animation
 
 	// load into heap
 	Mod_LoadVertexes (loadmodel, mod_base, &header->lumps[LUMP_VERTEXES]);
@@ -979,40 +995,6 @@ static void Mod_LoadBrushModel (model_t *loadmodel, void *buffer, int modfilelen
 	Mod_LoadLeafs (loadmodel, mod_base, &header->lumps[LUMP_LEAFS]);
 	Mod_LoadNodes (loadmodel, mod_base, &header->lumps[LUMP_NODES]);
 	Mod_LoadSubmodels (loadmodel, mod_base, &header->lumps[LUMP_MODELS]);
-	loadmodel->numframes = 2;		// regular and alternate animation
-
-	//
-	// set up the submodels
-	//
-	for (i = 0; i < loadmodel->numsubmodels; i++)
-	{
-		model_t	*starmod;
-
-		bm = &loadmodel->submodels[i];
-		starmod = &mod_inline[i];
-
-		*starmod = *loadmodel;
-
-		starmod->firstmodelsurface = bm->firstface;
-		starmod->nummodelsurfaces = bm->numfaces;
-		starmod->firstnode = bm->headnode;
-		if (starmod->firstnode >= loadmodel->numnodes)
-		{
-			ri.Sys_Error(ERR_DROP, "%s: Inline model %i has bad firstnode",
-					__func__, i);
-		}
-
-		VectorCopy (bm->maxs, starmod->maxs);
-		VectorCopy (bm->mins, starmod->mins);
-		starmod->radius = bm->radius;
-
-		if (i == 0)
-		{
-			*loadmodel = *starmod;
-		}
-
-		starmod->numleafs = bm->visleafs;
-	}
 }
 
 /*
@@ -1252,12 +1234,12 @@ static model_t *Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 	//
 	// inline models are grabbed only from worldmodel
 	//
-	if (name[0] == '*')
+	if (name[0] == '*' && parent_model)
 	{
 		i = atoi(name+1);
-		if (i < 1 || !parent_model || i >= parent_model->numsubmodels)
+		if (i < 1 || i >= parent_model->numsubmodels)
 			ri.Sys_Error (ERR_DROP, "bad inline model number");
-		return &mod_inline[i];
+		return &parent_model->submodels[i];
 	}
 
 	//
@@ -1373,6 +1355,8 @@ RE_BeginRegistration (char *model)
 	if ( strcmp(models_known[0].name, fullname) || flushmap->value)
 		Mod_Free (&models_known[0]);
 	r_worldmodel = Mod_ForName(fullname, NULL, true);
+	if (r_worldmodel != models_known)
+		ri.Sys_Error(ERR_DROP, "%s: Loaded a brush model after the world", __func__);
 
 	r_viewcluster = -1;
 }
