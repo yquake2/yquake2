@@ -948,10 +948,10 @@ static void RE_RenderView (refdef_t *fd)
 	if (vk_state.current_renderpass == RP_WORLD)
 	{
 		const float divisor = (vk_pixel_size->value < 1.0f ? 1.0f : vk_pixel_size->value);
-		scissor.offset.x /= divisor;
-		scissor.offset.y /= divisor;
-		scissor.extent.width /= divisor;
-		scissor.extent.height /= divisor;
+		scissor.offset.x = (int32_t)floorf(scissor.offset.x / divisor);
+		scissor.offset.y = (int32_t)floorf(scissor.offset.y / divisor);
+		scissor.extent.width = (uint32_t)ceilf(scissor.extent.width / divisor);
+		scissor.extent.height = (uint32_t)ceilf(scissor.extent.height / divisor);
 	}
 
 	vkCmdSetScissor(vk_activeCmdbuffer, 0, 1, &scissor);
