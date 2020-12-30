@@ -483,6 +483,7 @@ Sys_GetHomeDir(void)
 	}
 
 	snprintf(gdir, sizeof(gdir), "%s/%s/", home, cfgdir);
+	Sys_Mkdir(gdir);
 
 	return gdir;
 }
