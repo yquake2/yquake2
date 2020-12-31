@@ -456,10 +456,16 @@ Sys_GetGameAPI(void *parms)
 void
 Sys_Mkdir(const char *path)
 {
-	WCHAR wpath[MAX_OSPATH] = {0};
-	MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_OSPATH);
+	if (!Sys_IsDir(path))
+	{
+		WCHAR wpath[MAX_OSPATH] = {0};
+		MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_OSPATH);
 
-	CreateDirectoryW(wpath, NULL);
+		if (CreateDirectoryW(wpath, NULL) == 0)
+		{
+			Com_Error(ERR_FATAL, "Couldn't create dir %s\n", path);
+		}
+	}
 }
 
 qboolean
