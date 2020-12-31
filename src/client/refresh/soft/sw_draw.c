@@ -89,7 +89,7 @@ RE_Draw_CharScaled(int x, int y, int c, float scale)
 
 	c &= 255;
 
-	if (c == 32 || c == 32+128)
+	if ((c&127) == 32)
 		return;
 
 	if (y <= -8)
@@ -208,17 +208,49 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 	}
 	else
 	{
-		int v;
+		int v, pic_height, pic_width;
+		byte *pic_pixels, *image_scaled;
+
+		pic_height = pic->height;
+		pic_width = pic->width;
+		pic_pixels = pic->pixels[0];
+
+		if (sw_retexturing->value)
+		{
+			if (pic_width < (vid.width / 3) || pic_height < (vid.height / 3))
+			{
+				image_scaled = malloc(pic_width * pic_height * 9);
+
+				scale3x(pic_pixels, image_scaled, pic_width, pic_height);
+
+				pic_width = pic_width * 3;
+				pic_height = pic_height * 3;
+			}
+			else
+			{
+				image_scaled = malloc(pic_width * pic_height * 4);
+
+				scale2x(pic_pixels, image_scaled, pic_width, pic_height);
+
+				pic_width = pic_width * 2;
+				pic_height = pic_height * 2;
+			}
+		}
+		else
+		{
+			image_scaled = pic_pixels;
+		}
+
 		// size of screen tile to pic pixel
-		int picupscale = h / pic->height;
+		int picupscale = h / pic_height;
 
 		for (v=0 ; v<height ; v++, dest += vid.width)
 		{
 			int f, fstep, u;
-			int sv = (skip + v)*pic->height/h;
-			source = pic->pixels[0] + sv*pic->width;
+			int sv = (skip + v)*pic_height/h;
+			source = image_scaled + sv*pic_width;
 			f = 0;
-			fstep = (pic->width << SHIFT16XYZ) / w;
+			fstep = (pic_width << SHIFT16XYZ) / w;
 			for (u=0 ; u<w ; u++)
 			{
 				dest[u] = source[f>>16];
@@ -239,6 +271,11 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 				// skip updated lines
 				v += (picupscale - 1);
 			}
+		}
+
+		if (sw_retexturing->value)
+		{
+			free(image_scaled);
 		}
 	}
 }

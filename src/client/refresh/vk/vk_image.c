@@ -21,7 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "header/local.h"
 
 image_t		vktextures[MAX_VKTEXTURES];
-int		numvktextures;
+int		numvktextures = 0;
+static int		img_loaded = 0;
+static int		image_max = 0;
+
 // texture for storing raw image data (cinematics, endscreens, etc.)
 qvktexture_t vk_rawTexture = QVVKTEXTURE_INIT;
 
@@ -530,17 +533,27 @@ Vk_ImageList_f
 */
 void	Vk_ImageList_f (void)
 {
-	int		i;
+	int		i, used, texels;
 	image_t	*image;
-	int		texels;
+	qboolean	freeup;
 
 	R_Printf(PRINT_ALL, "------------------\n");
 	texels = 0;
+	used = 0;
 
 	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
 	{
+		char *in_use = "";
+
 		if (image->vk_texture.resource.image == VK_NULL_HANDLE)
 			continue;
+
+		if (image->registration_sequence == registration_sequence)
+		{
+			in_use = "*";
+			used++;
+		}
+
 		texels += image->upload_width*image->upload_height;
 		switch (image->type)
 		{
@@ -561,11 +574,13 @@ void	Vk_ImageList_f (void)
 			break;
 		}
 
-		R_Printf(PRINT_ALL, " %4i %4i RGB: %s (%dx%d)\n",
+		R_Printf(PRINT_ALL, " %4i %4i RGB: %s (%dx%d) %s\n",
 			image->upload_width, image->upload_height, image->name,
-			image->width, image->height);
+			image->width, image->height, in_use);
 	}
-	R_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i\n", texels);
+	R_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i in %d images\n", texels, img_loaded);
+	freeup = Vk_ImageHasFreeSpace();
+	R_Printf(PRINT_ALL, "Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
 }
 
 typedef struct
@@ -978,6 +993,12 @@ Vk_LoadPic(char *name, byte *pic, int width, int realwidth,
 	image->width = realwidth;
 	image->height = realheight;
 	image->type = type;
+	// update count of loaded images
+	img_loaded ++;
+	if (vk_validation->value)
+	{
+		R_Printf(PRINT_ALL, "%s: Load %s[%d]\n", __func__, image->name, img_loaded);
+	}
 
 	if (type == it_skin && bits == 8)
 		FloodFillSkin(pic, width, height);
@@ -1055,6 +1076,75 @@ static image_t *Vk_LoadWal (char *name, imagetype_t type)
 	return image;
 }
 
+static image_t *
+Vk_LoadM8(char *origname, imagetype_t type)
+{
+	m8tex_t *mt;
+	int width, height, ofs, size;
+	image_t *image;
+	char name[256];
+	unsigned char *image_buffer = NULL;
+
+	Q_strlcpy(name, origname, sizeof(name));
+
+	/* Add the extension */
+	if (strcmp(COM_FileExtension(name), "m8"))
+	{
+		Q_strlcat(name, ".m8", sizeof(name));
+	}
+
+	size = ri.FS_LoadFile(name, (void **)&mt);
+
+	if (!mt)
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
+		return r_notexture;
+	}
+
+	if (size < sizeof(m8tex_t))
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
+		ri.FS_FreeFile((void *)mt);
+		return r_notexture;
+	}
+
+	if (LittleLong (mt->version) != M8_VERSION)
+	{
+		R_Printf(PRINT_ALL, "LoadWal: can't load %s, wrong magic value.\n", name);
+		ri.FS_FreeFile ((void *)mt);
+		return r_notexture;
+	}
+
+	width = LittleLong(mt->width[0]);
+	height = LittleLong(mt->height[0]);
+	ofs = LittleLong(mt->offsets[0]);
+
+	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
+	    (((size - ofs) / height) < width))
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
+		ri.FS_FreeFile((void *)mt);
+		return r_notexture;
+	}
+
+	image_buffer = malloc (width * height * 4);
+	for(int i=0; i<width * height; i++)
+	{
+		unsigned char value = *((byte *)mt + ofs + i);
+		image_buffer[i * 4 + 0] = mt->palette[value].r;
+		image_buffer[i * 4 + 1] = mt->palette[value].g;
+		image_buffer[i * 4 + 2] = mt->palette[value].b;
+		image_buffer[i * 4 + 3] = value == 255 ? 0 : 255;
+	}
+
+	image = Vk_LoadPic(name, image_buffer, width, width, height, height, type, 32);
+	free(image_buffer);
+
+	ri.FS_FreeFile((void *)mt);
+
+	return image;
+}
+
 static image_t*
 Vk_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 {
@@ -1072,6 +1162,11 @@ Vk_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t
 	{
 		/* Get size of the original texture */
 		GetWalInfo(name, &realwidth, &realheight);
+	}
+	else if (strcmp(ext, "m8") == 0)
+	{
+		/* Get size of the original texture */
+		GetM8Info(name, &realwidth, &realheight);
 	}
 
 	/* try to load a tga, png or jpg (in that order/priority) */
@@ -1141,6 +1236,10 @@ Vk_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 		else if (!strcmp(ext, "wal"))
 		{
 			image = Vk_LoadWal (name, type);
+		}
+		else if (!strcmp(ext, "m8"))
+		{
+			image = Vk_LoadM8 (name, type);
 		}
 		else if (!strcmp(ext, "tga"))
 		{
@@ -1232,6 +1331,31 @@ struct image_s *RE_RegisterSkin (char *name)
 	return Vk_FindImage (name, it_skin);
 }
 
+qboolean Vk_ImageHasFreeSpace(void)
+{
+	int		i, used;
+	image_t	*image;
+
+	used = 0;
+
+	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
+	{
+		if (!image->name[0])
+			continue;
+		if (image->registration_sequence == registration_sequence)
+		{
+			used ++;
+		}
+	}
+
+	if (image_max < used)
+	{
+		image_max = used;
+	}
+
+	// should same size of free slots as currently used
+	return (img_loaded + used) < MAX_VKTEXTURES;
+}
 
 /*
 ================
@@ -1246,6 +1370,12 @@ void Vk_FreeUnusedImages (void)
 	int		i;
 	image_t	*image;
 
+	if (Vk_ImageHasFreeSpace())
+	{
+		// should be enough space for load next images
+		return;
+	}
+
 	// never free r_notexture or particle texture
 	r_notexture->registration_sequence = registration_sequence;
 	r_particletexture->registration_sequence = registration_sequence;
@@ -1259,9 +1389,21 @@ void Vk_FreeUnusedImages (void)
 			continue;		// free image_t slot
 		if (image->type == it_pic)
 			continue;		// don't free pics
+
+		if (vk_validation->value)
+		{
+			R_Printf(PRINT_ALL, "%s: Unload %s[%d]\n", __func__, image->name, img_loaded);
+		}
+
 		// free it
 		QVk_ReleaseTexture(&image->vk_texture);
 		memset(image, 0, sizeof(*image));
+
+		img_loaded --;
+		if (img_loaded < 0)
+		{
+			ri.Sys_Error (ERR_DROP, "%s: Broken unload", __func__);
+		}
 	}
 
 	// free all unused blocks
@@ -1318,6 +1460,9 @@ void	Vk_InitImages (void)
 	int	i;
 	float	overbright;
 
+	numvktextures = 0;
+	img_loaded = 0;
+	image_max = 0;
 	registration_sequence = 1;
 
 	// init intensity conversions
@@ -1377,8 +1522,19 @@ void	Vk_ShutdownImages (void)
 		if (!image->registration_sequence)
 			continue;		// free image_t slot
 
+		if (vk_validation->value)
+		{
+			R_Printf(PRINT_ALL, "%s: Unload %s[%d]\n", __func__, image->name, img_loaded);
+		}
+
 		QVk_ReleaseTexture(&image->vk_texture);
 		memset(image, 0, sizeof(*image));
+
+		img_loaded --;
+		if (img_loaded < 0)
+		{
+			ri.Sys_Error (ERR_DROP, "%s: Broken unload", __func__);
+		}
 	}
 
 	QVk_ReleaseTexture(&vk_rawTexture);

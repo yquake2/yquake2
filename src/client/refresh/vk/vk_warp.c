@@ -21,8 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // vk_warp.c -- sky and water polygons
 #include "header/local.h"
 
-extern	model_t	*loadmodel;
-
 static char	skyname[MAX_QPATH];
 static float	skyrotate;
 static vec3_t	skyaxis;
@@ -162,7 +160,7 @@ boundaries so that turbulent and sky warps
 can be done reasonably.
 ================
 */
-void Vk_SubdivideSurface (msurface_t *fa)
+void Vk_SubdivideSurface (msurface_t *fa, model_t *loadmodel)
 {
 	vec3_t		verts[64];
 	int			numverts;
@@ -687,6 +685,11 @@ void RE_SetSky (char *name, float rotate, vec3_t axis)
 		Com_sprintf(pathname, sizeof(pathname), "env/%s%s.tga", skyname, suf[i]);
 
 		sky_images[i] = Vk_FindImage(pathname, it_sky);
+		if (!sky_images[i]) {
+			Com_sprintf(pathname, sizeof(pathname), "pics/Skies/%s%s.m8", skyname, suf[i]);
+			sky_images[i] = Vk_FindImage(pathname, it_sky);
+		}
+
 		if (!sky_images[i])
 			sky_images[i] = r_notexture;
 

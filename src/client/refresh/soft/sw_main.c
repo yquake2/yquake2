@@ -135,6 +135,7 @@ float	se_time1, se_time2, de_time1, de_time2;
 
 cvar_t	*r_lefthand;
 cvar_t	*r_gunfov;
+cvar_t	*r_farsee;
 static cvar_t	*sw_aliasstats;
 cvar_t	*sw_clearcolor;
 cvar_t	*sw_drawflat;
@@ -389,6 +390,7 @@ R_RegisterVariables (void)
 
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
 	r_gunfov = ri.Cvar_Get( "r_gunfov", "80", CVAR_ARCHIVE );
+	r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 	r_speeds = ri.Cvar_Get ("r_speeds", "0", 0);
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", 0);
 	r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0);
@@ -543,7 +545,9 @@ R_ReallocateMapBuffers (void)
 			r_outofsurfaces = false;
 		}
 
-		if (r_cnumsurfs < NUMSTACKSURFACES)
+		if ((r_farsee->value > 0) && (r_cnumsurfs < NUMSTACKSURFACES))
+			r_cnumsurfs = NUMSTACKSURFACES * 2;
+		else if (r_cnumsurfs < NUMSTACKSURFACES)
 			r_cnumsurfs = NUMSTACKSURFACES;
 
 		// edge_t->surf limited size to short
@@ -618,7 +622,9 @@ R_ReallocateMapBuffers (void)
 			r_outofedges = false;
 		}
 
-		if (r_numallocatededges < NUMSTACKEDGES)
+		if ((r_farsee->value > 0) && (r_numallocatededges < NUMSTACKEDGES * 2))
+			r_numallocatededges = NUMSTACKEDGES * 2;
+		else if (r_numallocatededges < NUMSTACKEDGES)
 			r_numallocatededges = NUMSTACKEDGES;
 
 		r_edges = malloc (r_numallocatededges * sizeof(edge_t));
@@ -1077,12 +1083,12 @@ R_DrawBEntitiesOnList (void)
 	{
 		entity_t *currententity = &r_newrefdef.entities[i];
 		const model_t *currentmodel = currententity->model;
+		if ( currententity->flags & RF_BEAM )
+			continue;
 		if (!currentmodel)
 			continue;
 		if (currentmodel->nummodelsurfaces == 0)
 			continue;	// clip brush only
-		if ( currententity->flags & RF_BEAM )
-			continue;
 		if (currentmodel->type != mod_brush)
 			continue;
 		// see if the bounding box lets us trivially reject, also sets
@@ -1293,7 +1299,8 @@ RE_RenderFrame (refdef_t *fd)
 	VectorCopy (fd->viewangles, r_refdef.viewangles);
 
 	// compare current position with old
-	if (!VectorCompareRound(fd->vieworg, lastvieworg) ||
+	if (vid.width <= 640 ||
+	    !VectorCompareRound(fd->vieworg, lastvieworg) ||
 	    !VectorCompare(fd->viewangles, lastviewangles))
 	{
 		fastmoving = true;
@@ -1426,6 +1433,8 @@ RE_BeginFrame( float camera_separation )
 {
 	// pallete without changes
 	palette_changed = false;
+	// run without speed optimization
+	fastmoving = false;
 
 	while (r_mode->modified || vid_fullscreen->modified || r_vsync->modified)
 	{
@@ -1519,7 +1528,7 @@ RE_SetMode(void)
 		}
 
 		/* try setting it back to something safe */
-		if ((err = SWimp_SetMode(&vid.width, &vid.height, sw_state.prev_mode, 0)) != rserr_ok)
+		if (SWimp_SetMode(&vid.width, &vid.height, sw_state.prev_mode, 0) != rserr_ok)
 		{
 			R_Printf(PRINT_ALL, "%s() - could not revert to safe mode\n", __func__);
 			return false;
@@ -1713,6 +1722,11 @@ RE_SetSky (char *name, float rotate, vec3_t axis)
 	{
 		Com_sprintf (pathname, sizeof(pathname), "env/%s%s.pcx", skyname, suf[r_skysideimage[i]]);
 		r_skytexinfo[i].image = R_FindImage (pathname, it_sky);
+		if (!r_skytexinfo[i].image)
+		{
+			Com_sprintf (pathname, sizeof(pathname), "pics/Skies/%s%s.m8", skyname, suf[r_skysideimage[i]]);
+			r_skytexinfo[i].image = R_FindImage (pathname, it_sky);
+		}
 	}
 }
 
@@ -2055,10 +2069,13 @@ RE_CopyFrame (Uint32 * pixels, int pitch, int vmin, int vmax)
 		max_pixels = pixels + vmax;
 		buffer_pos = vid_buffer + vmin;
 
-		for (pixels_pos = pixels + vmin; pixels_pos < max_pixels; pixels_pos++)
+		pixels_pos = pixels + vmin;
+
+		while ( pixels_pos < max_pixels)
 		{
 			*pixels_pos = sdl_palette[*buffer_pos];
 			buffer_pos++;
+			pixels_pos++;
 		}
 	}
 	else
@@ -2128,6 +2145,7 @@ RE_CleanFrame(void)
 		Com_Printf("Can't lock texture: %s\n", SDL_GetError());
 		return;
 	}
+
 	// only cleanup texture without flush texture to screen
 	memset(pixels, 0, pitch * vid.height);
 	SDL_UnlockTexture(texture);
@@ -2157,6 +2175,12 @@ RE_FlushFrame(int vmin, int vmax)
 		// code have to copy a whole screen to the texture
 		RE_CopyFrame (pixels, pitch / sizeof(Uint32), 0, vid.height * vid.width);
 	}
+
+	if (((int)sw_texture_filtering->value & 0x01) && !fastmoving)
+	{
+		SmoothColorImage(pixels + vmin, vmax - vmin, vid.width >> 7);
+	}
+
 	SDL_UnlockTexture(texture);
 
 	SDL_RenderCopy(renderer, texture, NULL, NULL);

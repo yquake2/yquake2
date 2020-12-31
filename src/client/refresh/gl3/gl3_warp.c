@@ -329,6 +329,13 @@ GL3_SetSky(char *name, float rotate, vec3_t axis)
 
 		sky_images[i] = GL3_FindImage(pathname, it_sky);
 
+		if (sky_images[i] == NULL || sky_images[i] == gl3_notexture)
+		{
+			Com_sprintf(pathname, sizeof(pathname), "pics/Skies/%s%s.m8", skyname, suf[i]);
+
+			sky_images[i] = GL3_FindImage(pathname, it_sky);
+		}
+
 		if (sky_images[i] == NULL)
 		{
 			sky_images[i] = gl3_notexture;

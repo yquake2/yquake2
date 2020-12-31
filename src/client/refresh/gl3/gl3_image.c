@@ -608,6 +608,75 @@ LoadWal(char *origname, imagetype_t type)
 	return image;
 }
 
+static gl3image_t *
+LoadM8(char *origname, imagetype_t type)
+{
+	m8tex_t *mt;
+	int width, height, ofs, size;
+	gl3image_t *image;
+	char name[256];
+	unsigned char *image_buffer = NULL;
+
+	Q_strlcpy(name, origname, sizeof(name));
+
+	/* Add the extension */
+	if (strcmp(COM_FileExtension(name), "m8"))
+	{
+		Q_strlcat(name, ".m8", sizeof(name));
+	}
+
+	size = ri.FS_LoadFile(name, (void **)&mt);
+
+	if (!mt)
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
+		return gl3_notexture;
+	}
+
+	if (size < sizeof(m8tex_t))
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
+		ri.FS_FreeFile((void *)mt);
+		return gl3_notexture;
+	}
+
+	if (LittleLong (mt->version) != M8_VERSION)
+	{
+		R_Printf(PRINT_ALL, "LoadWal: can't load %s, wrong magic value.\n", name);
+		ri.FS_FreeFile ((void *)mt);
+		return gl3_notexture;
+	}
+
+	width = LittleLong(mt->width[0]);
+	height = LittleLong(mt->height[0]);
+	ofs = LittleLong(mt->offsets[0]);
+
+	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
+	    (((size - ofs) / height) < width))
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
+		ri.FS_FreeFile((void *)mt);
+		return gl3_notexture;
+	}
+
+	image_buffer = malloc (width * height * 4);
+	for(int i=0; i<width * height; i++)
+	{
+		unsigned char value = *((byte *)mt + ofs + i);
+		image_buffer[i * 4 + 0] = mt->palette[value].r;
+		image_buffer[i * 4 + 1] = mt->palette[value].g;
+		image_buffer[i * 4 + 2] = mt->palette[value].b;
+		image_buffer[i * 4 + 3] = value == 255 ? 0 : 255;
+	}
+
+	image = GL3_LoadPic(name, image_buffer, width, 0, height, 0, type, 32);
+	free(image_buffer);
+
+	ri.FS_FreeFile((void *)mt);
+
+	return image;
+}
+
 /*
  * Finds or loads the given image
  */
@@ -712,12 +781,20 @@ GL3_FindImage(char *name, imagetype_t type)
 			image = GL3_LoadPic(name, pic, width, 0, height, 0, type, 8);
 		}
 	}
-	else if (strcmp(ext, "wal") == 0)
+	else if (strcmp(ext, "wal") == 0 || strcmp(ext, "m8") == 0)
 	{
 		if (gl_retexturing->value)
 		{
 			/* Get size of the original texture */
-			GetWalInfo(name, &realwidth, &realheight);
+			if (strcmp(ext, "m8") == 0)
+			{
+				GetM8Info(name, &realwidth, &realheight);
+			}
+			else
+			{
+				GetWalInfo(name, &realwidth, &realheight);
+			}
+
 			if(realwidth == 0)
 			{
 				/* No texture found */
@@ -732,11 +809,25 @@ GL3_FindImage(char *name, imagetype_t type)
 				/* upload tga or png or jpg */
 				image = GL3_LoadPic(name, pic, width, realwidth, height, realheight, type, 32);
 			}
+			else if (strcmp(ext, "m8") == 0)
+			{
+				image = LoadM8(namewe, type);
+			}
 			else
 			{
 				/* WAL if no TGA/PNG/JPEG available (exists always) */
 				image = LoadWal(namewe, type);
 			}
+
+			if (!image)
+			{
+				/* No texture found */
+				return NULL;
+			}
+		}
+		else if (strcmp(ext, "m8") == 0)
+		{
+			image = LoadM8(name, type);
 
 			if (!image)
 			{
@@ -767,6 +858,12 @@ GL3_FindImage(char *name, imagetype_t type)
 		GetWalInfo(tmp_name, &realwidth, &realheight);
 
 		if (realwidth == 0 || realheight == 0) {
+			strcpy(tmp_name, namewe);
+			strcat(tmp_name, ".m8");
+			GetM8Info(tmp_name, &realwidth, &realheight);
+		}
+
+		if (realwidth == 0 || realheight == 0) {
 			/* It's a sky or model skin. */
 			strcpy(tmp_name, namewe);
 			strcat(tmp_name, ".pcx");
@@ -781,6 +878,8 @@ GL3_FindImage(char *name, imagetype_t type)
 		if(LoadSTB(name, ext, &pic, &width, &height))
 		{
 			image = GL3_LoadPic(name, pic, width, realwidth, height, realheight, type, 32);
+		} else {
+			return NULL;
 		}
 	}
 	else

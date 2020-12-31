@@ -138,32 +138,34 @@ Cvar_FindVar(const char *var_name)
 static qboolean
 Cvar_IsFloat(const char *s)
 {
-    int c, dot = '.';
+	int dot = '.';
 
-    if (*s == '-')
+	if (*s == '-')
 	{
-        s++;
-    }
+		s++;
+	}
 
-    if (!*s)
+	if (!*s)
 	{
-        return false;
-    }
+		return false;
+	}
 
-    do {
-        c = *s++;
+	do {
+		int c;
 
-        if (c == dot)
+		c = *s++;
+
+		if (c == dot)
 		{
-            dot = 0;
-        }
-		else if (!(c >= '0' || c <= '9'))
+			dot = 0;
+		}
+		else if (c < '0' || c > '9')
 		{
-            return false;
-        }
-    } while (*s);
+			return false;
+		}
+	} while (*s);
 
-    return true;
+	return true;
 }
 
 float
@@ -514,7 +516,7 @@ void
 Cvar_Set_f(void)
 {
 	char *firstarg;
-	int c, flags, i;
+	int c, i;
 
 	c = Cmd_Argc();
 
@@ -537,6 +539,8 @@ Cvar_Set_f(void)
 
 	if (c == 4)
 	{
+		int flags;
+
 		if (!strcmp(Cmd_Argv(3), "u"))
 		{
 			flags = CVAR_USERINFO;

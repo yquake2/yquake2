@@ -197,7 +197,7 @@ void R_RenderDlights (void);
 void R_DrawAlphaSurfaces (void);
 void RE_InitParticleTexture (void);
 void Draw_InitLocal (void);
-void Vk_SubdivideSurface (msurface_t *fa);
+void Vk_SubdivideSurface (msurface_t *fa, model_t *loadmodel);
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 void R_RotateForEntity (entity_t *e, float *mvMatrix);
 void R_MarkLeaves (void);
@@ -232,9 +232,15 @@ void	Vk_TextureMode( char *string );
 void	Vk_LmapTextureMode( char *string );
 void	Vk_ImageList_f (void);
 
+void Vk_BuildPolygonFromSurface(msurface_t *fa, model_t *currentmodel);
+void Vk_CreateSurfaceLightmap (msurface_t *surf);
+void Vk_EndBuildingLightmaps (void);
+void Vk_BeginBuildingLightmaps (model_t *m);
+
 void	Vk_InitImages (void);
 void	Vk_ShutdownImages (void);
 void	Vk_FreeUnusedImages (void);
+qboolean Vk_ImageHasFreeSpace(void);
 
 void	RE_BeginRegistration (char *model);
 struct model_s	*RE_RegisterModel (char *name);
