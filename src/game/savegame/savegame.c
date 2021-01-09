@@ -71,7 +71,7 @@
  * load older savegames. This should be bumped if the files
  * in tables/ are changed, otherwise strange things may happen.
  */
-#define SAVEGAMEVER "YQ2-3"
+#define SAVEGAMEVER "YQ2-4"
 
 #ifndef BUILD_DATE
 #define BUILD_DATE __DATE__
@@ -851,7 +851,35 @@ ReadGame(const char *filename)
 	fread(str_os, sizeof(str_os), 1, f);
 	fread(str_arch, sizeof(str_arch), 1, f);
 
+	// for several released versions (up to incl. 7.45), the official Win32 binaries
+	// accidentally had the YQ2ARCH "AMD64" instead of "i386" set due to a bug in the Makefile
+	// so add this workaround for savegames before version 4 (the version was bumped for this fix)
+	qboolean amd64quirk = false;
+#if defined(_WIN32) && (defined(__i386__) || defined(_M_IX86))
+	amd64quirk = (strcmp(str_arch, "AMD64") == 0);
+#endif
+
 	if (!strcmp(str_ver, SAVEGAMEVER))
+	{
+		save_ver = 4;
+
+		if (strcmp(str_game, GAMEVERSION))
+		{
+			fclose(f);
+			gi.error("Savegame from another game.so.\n");
+		}
+		else if (strcmp(str_os, YQ2OSTYPE))
+		{
+			fclose(f);
+			gi.error("Savegame from another os.\n");
+		}
+		else if (strcmp(str_arch, YQ2ARCH))
+		{
+			fclose(f);
+			gi.error("Savegame from another architecture.\n");
+		}
+	}
+	else if (!strcmp(str_ver, "YQ2-3"))
 	{
 		save_ver = 3;
 
@@ -865,7 +893,7 @@ ReadGame(const char *filename)
 			fclose(f);
 			gi.error("Savegame from another os.\n");
 		}
-		else if (strcmp(str_arch, YQ2ARCH))
+		else if (strcmp(str_arch, YQ2ARCH) && !amd64quirk)
 		{
 			fclose(f);
 			gi.error("Savegame from another architecture.\n");
@@ -885,7 +913,7 @@ ReadGame(const char *filename)
 			fclose(f);
 			gi.error("Savegame from another os.\n");
 		}
-		else if (strcmp(str_arch, YQ2ARCH))
+		else if (strcmp(str_arch, YQ2ARCH) && !amd64quirk)
 		{
 			fclose(f);
 			gi.error("Savegame from another architecture.\n");
