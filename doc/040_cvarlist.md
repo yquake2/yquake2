@@ -81,6 +81,11 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   loading. If set to `0` pause mode is never entered, this is the
   Vanilla Quake II behaviour.
 
+* **cl_r1q2_lightstyle**: Since the first release Yamagi Quake II used
+  the R1Q2 colors for the dynamic lights of rockets and hyperblaster
+  projectiles. Set to `0` to get the Vanilla Quake II colors. Defaults
+  to `1`.
+
 * **cl_showfps**: Shows the framecounter. Set to `2` for more and to
   `3` for even more informations.
 

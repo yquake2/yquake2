@@ -445,7 +445,15 @@ CL_AddPacketEntities(frame_t *frame)
 			if (effects & EF_ROCKET)
 			{
 				CL_RocketTrail(cent->lerp_origin, ent.origin, cent);
-				V_AddLight(ent.origin, 200, 1, 0.25f, 0);
+
+				if (cl_r1q2_lightstyle->value)
+				{
+					V_AddLight(ent.origin, 200, 1, 0.23f, 0);
+				}
+				else
+				{
+					V_AddLight(ent.origin, 200, 1, 1, 0);
+				}
 			}
 
 			/* Do not reorder EF_BLASTER and EF_HYPERBLASTER.
@@ -470,10 +478,16 @@ CL_AddPacketEntities(frame_t *frame)
 				{
 					V_AddLight(ent.origin, 200, 0, 1, 0);
 				}
-
 				else
 				{
-					V_AddLight(ent.origin, 200, 1, 1, 0);
+					if (cl_r1q2_lightstyle->value)
+					{
+						V_AddLight(ent.origin, 200, 1, 1, 0);
+					}
+					else
+					{
+						V_AddLight(ent.origin, 200, 1, 1, 1);
+					}
 				}
 			}
 			else if (effects & EF_GIB)
