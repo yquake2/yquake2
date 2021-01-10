@@ -897,7 +897,7 @@ R_SetupVulkan (void)
 	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 }
 
-void R_Flash( void )
+static void R_Flash( void )
 {
 	R_PolyBlend ();
 }

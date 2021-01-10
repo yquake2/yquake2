@@ -124,9 +124,12 @@ qboolean vk_frameStarted = false;
 
 // render pipelines
 qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
-qvkpipeline_t vk_drawColorQuadPipeline[2]  = { QVKPIPELINE_INIT, QVKPIPELINE_INIT };
-qvkpipeline_t vk_drawModelPipelineStrip[2] = { QVKPIPELINE_INIT, QVKPIPELINE_INIT };
-qvkpipeline_t vk_drawModelPipelineFan[2]   = { QVKPIPELINE_INIT, QVKPIPELINE_INIT };
+qvkpipeline_t vk_drawColorQuadPipeline[RP_COUNT]  = {
+	QVKPIPELINE_INIT, QVKPIPELINE_INIT, QVKPIPELINE_INIT };
+qvkpipeline_t vk_drawModelPipelineStrip[RP_COUNT] = {
+	QVKPIPELINE_INIT, QVKPIPELINE_INIT, QVKPIPELINE_INIT };
+qvkpipeline_t vk_drawModelPipelineFan[RP_COUNT]   = {
+	QVKPIPELINE_INIT, QVKPIPELINE_INIT, QVKPIPELINE_INIT };
 qvkpipeline_t vk_drawNoDepthModelPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawNoDepthModelPipelineFan = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawLefthandModelPipelineStrip = QVKPIPELINE_INIT;
@@ -248,6 +251,12 @@ VkDescriptorSetLayout vk_uboDescSetLayout;
 VkDescriptorSetLayout vk_samplerDescSetLayout;
 VkDescriptorSetLayout vk_samplerLightmapDescSetLayout;
 
+static const char *renderpassObjectNames[] = {
+	"RP_WORLD",
+	"RP_UI",
+	"RP_WORLD_WARP"
+};
+
 VkFormat QVk_FindDepthFormat()
 {
 	VkFormat depthFormats[] = {
@@ -348,7 +357,7 @@ static VkResult CreateFramebuffers()
 		vk_framebuffers[i] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
 
 	VkFramebufferCreateInfo fbCreateInfos[] = {
-		// main world view framebuffer
+		// RP_WORLD: main world view framebuffer
 		{
 			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
 			.pNext = NULL,
@@ -359,7 +368,7 @@ static VkResult CreateFramebuffers()
 			.height = vk_swapchain.extent.height,
 			.layers = 1
 		},
-		// UI framebuffer
+		// RP_UI: UI framebuffer
 		{
 			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
 			.pNext = NULL,
@@ -370,7 +379,7 @@ static VkResult CreateFramebuffers()
 			.height = vk_swapchain.extent.height,
 			.layers = 1
 		},
-		// warped main world view (postprocessing) framebuffer
+		// RP_WORLD_WARP: warped main world view (postprocessing) framebuffer
 		{
 			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
 			.pNext = NULL,
@@ -399,7 +408,7 @@ static VkResult CreateFramebuffers()
 			VkResult res = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[j], NULL, &vk_framebuffers[j][i]);
 			QVk_DebugSetObjectName((uint64_t)vk_framebuffers[j][i],
 				VK_OBJECT_TYPE_FRAMEBUFFER, va("Framebuffer #" YQ2_COM_PRIdS "for Render Pass %s",
-					i, j == RP_WORLD ? "RP_WORLD" : j == RP_UI ? "RP_UI" : "RP_WORLD_WARP"));
+					i, renderpassObjectNames[j]));
 
 			if (res != VK_SUCCESS)
 			{
@@ -684,11 +693,9 @@ static VkResult CreateRenderpasses()
 			R_Printf(PRINT_ALL, "%s(): renderpass #%d create error: %s\n", __func__, i, QVk_GetError(res));
 			return res;
 		}
+		QVk_DebugSetObjectName((uint64_t)vk_renderpasses[i].rp, VK_OBJECT_TYPE_RENDER_PASS,
+			va("Render Pass: %s",  renderpassObjectNames[i]));
 	}
-
-	QVk_DebugSetObjectName((uint64_t)vk_renderpasses[RP_WORLD].rp, VK_OBJECT_TYPE_RENDER_PASS, "Render Pass: World");
-	QVk_DebugSetObjectName((uint64_t)vk_renderpasses[RP_WORLD_WARP].rp, VK_OBJECT_TYPE_RENDER_PASS, "Render Pass: UI");
-	QVk_DebugSetObjectName((uint64_t)vk_renderpasses[RP_UI].rp, VK_OBJECT_TYPE_RENDER_PASS, "Render Pass: Warp Postprocess");
 
 	return VK_SUCCESS;
 }
@@ -1248,16 +1255,16 @@ static void CreatePipelines()
 
 	// colored quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic_color_quad, basic_color_quad);
-	for (int i = 0; i < 2; ++i)
+	for (int i = 0; i < RP_COUNT; ++i)
 	{
 		vk_drawColorQuadPipeline[i].depthTestEnable = VK_FALSE;
 		vk_drawColorQuadPipeline[i].blendOpts.blendEnable = VK_TRUE;
 		QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRG, &vk_drawColorQuadPipeline[i], &vk_renderpasses[i], shaders, 2);
+		QVk_DebugSetObjectName((uint64_t)vk_drawColorQuadPipeline[i].layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT,
+			va("Pipeline Layout: colored quad (%s)", renderpassObjectNames[i]));
+		QVk_DebugSetObjectName((uint64_t)vk_drawColorQuadPipeline[i].pl, VK_OBJECT_TYPE_PIPELINE,
+			va("Pipeline: colored quad (%s)", renderpassObjectNames[i]));
 	}
-	QVk_DebugSetObjectName((uint64_t)vk_drawColorQuadPipeline[0].layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: colored quad (RP_WORLD)");
-	QVk_DebugSetObjectName((uint64_t)vk_drawColorQuadPipeline[0].pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: colored quad (RP_WORLD)");
-	QVk_DebugSetObjectName((uint64_t)vk_drawColorQuadPipeline[1].layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: colored quad (RP_UI)");
-	QVk_DebugSetObjectName((uint64_t)vk_drawColorQuadPipeline[1].pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: colored quad (RP_UI)");
 
 	// untextured null model
 	VK_LOAD_VERTFRAG_SHADERS(shaders, nullmodel, basic_color_quad);
@@ -1269,24 +1276,24 @@ static void CreatePipelines()
 
 	// textured model
 	VK_LOAD_VERTFRAG_SHADERS(shaders, model, model);
-	for (int i = 0; i < 2; ++i)
+	for (int i = 0; i < RP_COUNT; ++i)
 	{
 		vk_drawModelPipelineStrip[i].topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 		vk_drawModelPipelineStrip[i].blendOpts.blendEnable = VK_TRUE;
 		QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineStrip[i], &vk_renderpasses[i], shaders, 2);
+		QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineStrip[i].layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT,
+			va("Pipeline Layout: draw model: strip (%s)", renderpassObjectNames[i]));
+		QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineStrip[i].pl, VK_OBJECT_TYPE_PIPELINE,
+			va("Pipeline: draw model: strip (%s)", renderpassObjectNames[i]));
 
 		vk_drawModelPipelineFan[i].topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		vk_drawModelPipelineFan[i].blendOpts.blendEnable = VK_TRUE;
 		QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineFan[i], &vk_renderpasses[i], shaders, 2);
+		QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineFan[i].layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT,
+			va("Pipeline Layout: draw model: fan (%s)", renderpassObjectNames[i]));
+		QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineFan[i].pl, VK_OBJECT_TYPE_PIPELINE,
+			va("Pipeline: draw model: fan (%s)", renderpassObjectNames[i]));
 	}
-	QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineStrip[0].layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: draw model: strip (RP_WORLD)");
-	QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineStrip[0].pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: draw model: strip (RP_WORLD)");
-	QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineStrip[1].layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: draw model: strip (RP_UI)");
-	QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineStrip[1].pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: draw model: strip (RP_UI)");
-	QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineFan[0].layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: draw model: fan (RP_WORLD)");
-	QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineFan[0].pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: draw model: fan (RP_WORLD)");
-	QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineFan[1].layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: draw model: fan (RP_UI)");
-	QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineFan[1].pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: draw model: fan (RP_UI)");
 
 	// dedicated model pipelines for translucent objects with depth write disabled
 	vk_drawNoDepthModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
@@ -1450,7 +1457,7 @@ void QVk_Shutdown( void )
 	{
 		R_Printf(PRINT_ALL, "Shutting down Vulkan\n");
 
-		for (int i = 0; i < 2; ++i)
+		for (int i = 0; i < RP_COUNT; ++i)
 		{
 			QVk_DestroyPipeline(&vk_drawColorQuadPipeline[i]);
 			QVk_DestroyPipeline(&vk_drawModelPipelineStrip[i]);
@@ -2225,7 +2232,7 @@ static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet)
 {
 	// 0x100 alignment is required by Vulkan spec
-	const uint32_t aligned_size = ROUNDUP(size, 256);
+	const uint32_t aligned_size = ROUNDUP(size, 0x100);
 
 	if (vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset + UNIFORM_ALLOC_SIZE > vk_config.uniform_buffer_size)
 	{
