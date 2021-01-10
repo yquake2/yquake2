@@ -10,6 +10,7 @@
 # Base dependencies:                                     #
 #  - SDL 2.0                                             #
 #  - libGL                                               #
+#  - Vulkan headers                                      #
 #                                                        #
 # Optional dependencies:                                 #
 #  - CURL                                                #
@@ -18,10 +19,21 @@
 # Platforms:                                             #
 #  - FreeBSD                                             #
 #  - Linux                                               #
+#  - NetBSD                                              #
 #  - OpenBSD                                             #
 #  - OS X                                                #
 #  - Windows (MinGW)                                     #
 # ------------------------------------------------------ #
+
+# Variables
+# ---------
+
+# - ASAN: Builds with address sanitizer, includes DEBUG.
+# - DEBUG: Builds a debug build, forces -O0 and adds debug symbols.
+# - VERBOSE: Prints full compile, linker and misc commands.
+# - UBSAN: Builds with undefined behavior sanitizer, includes DEBUG.
+
+# ----------
 
 # User configurable options
 # -------------------------
@@ -117,6 +129,11 @@ ifdef ASAN
 DEBUG=1
 endif
 
+# UBSAN includes DEBUG
+ifdef UBSAN
+DEBUG=1
+endif
+
 # ----------
 
 # Base CFLAGS. These may be overridden by the environment.
@@ -126,6 +143,9 @@ ifdef DEBUG
 CFLAGS ?= -O0 -g -Wall -pipe
 ifdef ASAN
 CFLAGS += -fsanitize=address
+endif
+ifdef UBSAN
+CFLAGS += -fsanitize=undefined
 endif
 else
 CFLAGS ?= -O2 -Wall -pipe -fomit-frame-pointer
@@ -286,6 +306,11 @@ endif
 # Link address sanitizer if requested.
 ifdef ASAN
 LDFLAGS += -fsanitize=address
+endif
+
+# Link undefined behavior sanitizer if requested.
+ifdef UBSAN
+LDFLAGS += -fsanitize=undefined
 endif
 
 # Required libraries.
