@@ -1,7 +1,8 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-// Underwater screen warp effect similar to what software renderer provides
+// Underwater screen warp effect similar to what software renderer provides.
+// Pixel size to simulate lower screen resolutions is used to restore world to full screen size.
 
 layout(push_constant) uniform PushConstant
 {
@@ -9,6 +10,7 @@ layout(push_constant) uniform PushConstant
 	layout(offset = 72) float scale;
 	layout(offset = 76) float scrWidth;
 	layout(offset = 80) float scrHeight;
+	layout(offset = 84) float pixelSize;
 } pc;
 
 layout(set = 0, binding = 0) uniform sampler2D sTexture;
@@ -31,6 +33,8 @@ void main()
 
 		uv += distortion;
 	}
+
+	uv /= pc.pixelSize;
 
 	fragmentColor = texture(sTexture, uv);
 }

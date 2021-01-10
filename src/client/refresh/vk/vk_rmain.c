@@ -104,6 +104,7 @@ cvar_t	*r_lockpvs;
 cvar_t	*vk_polyblend;
 cvar_t	*r_modulate;
 cvar_t	*vk_shadows;
+cvar_t	*vk_pixel_size;
 cvar_t	*vk_particle_size;
 cvar_t	*vk_particle_att_a;
 cvar_t	*vk_particle_att_b;
@@ -540,7 +541,9 @@ void R_DrawParticles (void)
 			float att_c;
 		} particleUbo;
 
-		particleUbo.particleSize = vk_particle_size->value;
+		// Particle size needs to be scaled down proportionally to vk_pixel_size.
+		const float divisor = (vk_pixel_size->value < 1.0f ? 1.0f : vk_pixel_size->value);
+		particleUbo.particleSize = vk_particle_size->value / divisor;
 		particleUbo.particleScale = vid.width * ri.Cvar_Get("viewsize", "100", CVAR_ARCHIVE)->value / 102400;
 		particleUbo.minPointSize = vk_particle_min_size->value;
 		particleUbo.maxPointSize = vk_particle_max_size->value;
@@ -871,6 +874,17 @@ R_SetupVulkan (void)
 		.minDepth = 0.f,
 		.maxDepth = 1.f,
 	};
+
+	// When rendering the world, reduce viewport size proportionally to vk_pixel_size.
+	if (vk_state.current_renderpass == RP_WORLD)
+	{
+		const float divisor = (vk_pixel_size->value < 1.0f ? 1.0f : vk_pixel_size->value);
+		viewport.x /= divisor;
+		viewport.y /= divisor;
+		viewport.width /= divisor;
+		viewport.height /= divisor;
+	}
+
 	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &viewport);
 
 	// set up projection matrix
@@ -930,6 +944,16 @@ static void RE_RenderView (refdef_t *fd)
 		.extent = { r_newrefdef.width, r_newrefdef.height }
 	};
 
+	// When rendering the world, scale down scissor proportionally to vk_pixel_size.
+	if (vk_state.current_renderpass == RP_WORLD)
+	{
+		const float divisor = (vk_pixel_size->value < 1.0f ? 1.0f : vk_pixel_size->value);
+		scissor.offset.x = (int32_t)floorf(scissor.offset.x / divisor);
+		scissor.offset.y = (int32_t)floorf(scissor.offset.y / divisor);
+		scissor.extent.width = (uint32_t)ceilf(scissor.extent.width / divisor);
+		scissor.extent.height = (uint32_t)ceilf(scissor.extent.height / divisor);
+	}
+
 	vkCmdSetScissor(vk_activeCmdbuffer, 0, 1, &scissor);
 
 	R_PushDlights();
@@ -986,13 +1010,25 @@ qboolean RE_EndWorldRenderpass(void)
 	// finish rendering world view to offsceen buffer
 	vkCmdEndRenderPass(vk_activeCmdbuffer);
 
-	// apply postprocessing effects (underwater view warp if the player is submerged in liquid) to offscreen buffer
+	// apply postprocessing effects to offscreen buffer:
+	//	* underwater view warp if the player is submerged in liquid
+	//	* restore world view to the full screen size when vk_pixel_size is >1.0
 	QVk_BeginRenderpass(RP_WORLD_WARP);
-	float pushConsts[] = { (r_newrefdef.rdflags & RDF_UNDERWATER) ? r_newrefdef.time : 0.f, viewsize->value / 100, vid.width, vid.height };
+	float pushConsts[] =
+	{
+		(r_newrefdef.rdflags & RDF_UNDERWATER) ? r_newrefdef.time : 0.f,
+		viewsize->value / 100.0f,
+		vid.width,
+		vid.height,
+		(vk_pixel_size->value < 1.0f ? 1.0f : vk_pixel_size->value),
+	};
 	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout,
 		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(pushConsts), pushConsts);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_worldWarpPipeline.layout, 0, 1, &vk_colorbuffer.descriptorSet, 0, NULL);
 	QVk_BindPipeline(&vk_worldWarpPipeline);
+	// Restore full viewport for future steps.
+	vkCmdSetViewport(vk_activeCmdbuffer, 0u, 1u, &vk_viewport);
+	vkCmdSetScissor(vk_activeCmdbuffer, 0u, 1u, &vk_scissor);
 	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
 	vkCmdEndRenderPass(vk_activeCmdbuffer);
 
@@ -1159,6 +1195,7 @@ R_Register( void )
 	vk_polyblend = ri.Cvar_Get("vk_polyblend", "1", 0);
 	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
 	vk_shadows = ri.Cvar_Get("vk_shadows", "0", CVAR_ARCHIVE);
+	vk_pixel_size = ri.Cvar_Get("vk_pixel_size", "1", CVAR_ARCHIVE);
 	vk_particle_size = ri.Cvar_Get("vk_particle_size", "40", CVAR_ARCHIVE);
 	vk_particle_att_a = ri.Cvar_Get("vk_particle_att_a", "0.01", CVAR_ARCHIVE);
 	vk_particle_att_b = ri.Cvar_Get("vk_particle_att_b", "0.0", CVAR_ARCHIVE);

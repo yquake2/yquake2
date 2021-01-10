@@ -1938,6 +1938,7 @@ VkResult QVk_BeginFrame(const VkViewport* viewport, const VkRect2D* scissor)
 {
 	// reset tracking variables
 	vk_state.current_pipeline = VK_NULL_HANDLE;
+	vk_state.current_renderpass = RP_COUNT;
 	vk_config.vertex_buffer_usage  = 0;
 	// triangle fan index buffer data will not be cleared between frames unless the buffer itself is too small
 	vk_config.index_buffer_usage   = vk_triangleFanIboUsage;
@@ -2115,6 +2116,7 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 	}
 
 	vkCmdBeginRenderPass(vk_commandbuffers[vk_activeBufferIdx], &renderBeginInfo[rpType], VK_SUBPASS_CONTENTS_INLINE);
+	vk_state.current_renderpass = rpType;
 }
 
 #if 0
