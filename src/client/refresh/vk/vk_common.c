@@ -1238,7 +1238,7 @@ static void CreatePipelines()
 
 	// draw particles pipeline (using a texture)
 	VK_LOAD_VERTFRAG_SHADERS(shaders, particle, basic);
-	vk_drawParticlesPipeline.depthWriteEnable = VK_FALSE;
+	vk_drawParticlesPipeline.depthWriteEnable = VK_TRUE;
 	vk_drawParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoRGB_RGBA_RG, &vk_drawParticlesPipeline, &vk_renderpasses[RP_WORLD], shaders, 2);
 	QVk_DebugSetObjectName((uint64_t)vk_drawParticlesPipeline.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: textured particles");
@@ -1247,7 +1247,7 @@ static void CreatePipelines()
 	// draw particles pipeline (using point list)
 	VK_LOAD_VERTFRAG_SHADERS(shaders, point_particle, point_particle);
 	vk_drawPointParticlesPipeline.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-	vk_drawPointParticlesPipeline.depthWriteEnable = VK_FALSE;
+	vk_drawPointParticlesPipeline.depthWriteEnable = VK_TRUE;
 	vk_drawPointParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGBA, &vk_drawPointParticlesPipeline, &vk_renderpasses[RP_WORLD], shaders, 2);
 	QVk_DebugSetObjectName((uint64_t)vk_drawPointParticlesPipeline.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: point particles");

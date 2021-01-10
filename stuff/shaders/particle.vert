@@ -22,5 +22,5 @@ void main() {
     gl_Position = pc.mvpMatrix * vec4(inVertex, 1.0);
     texCoord = inTexCoord;
     color = inColor;
-    aTreshold = 0.0;
+    aTreshold = 0.5;
 }
