@@ -480,14 +480,7 @@ CL_AddPacketEntities(frame_t *frame)
 				}
 				else
 				{
-					if (cl_r1q2_lightstyle->value)
-					{
-						V_AddLight(ent.origin, 200, 1, 1, 0);
-					}
-					else
-					{
-						V_AddLight(ent.origin, 200, 1, 1, 1);
-					}
+					V_AddLight(ent.origin, 200, 1, 1, 0);
 				}
 			}
 			else if (effects & EF_GIB)
