@@ -427,12 +427,14 @@ static VkResult CreateRenderpasses()
 			.flags = 0,
 			.format = vk_swapchain.format,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
-			.loadOp = msaaEnabled ? VK_ATTACHMENT_LOAD_OP_DONT_CARE : vk_renderpasses[RP_WORLD].colorLoadOp,
-			// if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
-			.storeOp = msaaEnabled ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE,
+			// The color attachment is loaded from the previous frame and stored
+			// after the frame is drawn to mask geometry errors in the skybox
+			// that may leave some pixels without coverage.
+			.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 		},
 		// depth attachment
@@ -503,7 +505,7 @@ static VkResult CreateRenderpasses()
 			.format = vk_swapchain.format,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
 			.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
@@ -711,7 +713,7 @@ static void CreateDrawBuffers()
 	if (vk_renderpasses[RP_WORLD].sampleCount > 1)
 	{
 		QVk_CreateColorBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_msaaColorbuffer,
-			0);
+			VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
 		R_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n",
 			vk_renderpasses[RP_WORLD].sampleCount);
 	}
