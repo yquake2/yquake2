@@ -1098,7 +1098,7 @@ static void LM_UploadBlock( qboolean dynamic )
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
 			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer,
-				BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler);
+				BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler, false);
 			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].resource.image,
 				VK_OBJECT_TYPE_IMAGE, va("Image: dynamic lightmap #%d", texture));
 			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].imageView,
@@ -1304,7 +1304,7 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[i]);
 			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy,
-				BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler);
+				BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler, false);
 			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].resource.image,
 				VK_OBJECT_TYPE_IMAGE, va("Image: dynamic lightmap #%d", i));
 			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].imageView,
