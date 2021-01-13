@@ -317,7 +317,7 @@ void RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *d
 	{
 		QVVKTEXTURE_CLEAR(vk_rawTexture);
 		QVk_CreateTexture(&vk_rawTexture, (unsigned char*)raw_image32, scaled_size, scaled_size,
-			vk_current_sampler);
+			vk_current_sampler, false);
 		QVk_DebugSetObjectName((uint64_t)vk_rawTexture.resource.image,
 			VK_OBJECT_TYPE_IMAGE, "Image: raw texture");
 		QVk_DebugSetObjectName((uint64_t)vk_rawTexture.imageView,
