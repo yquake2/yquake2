@@ -138,6 +138,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **nextserver**: Used for looping the introduction demos.
 
+
 ## Audio
 
 * **al_device**: OpenAL device to use. In most cases there's no need to
@@ -324,12 +325,14 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **gl3_particle_square**: If set to `1`, particles are rendered as
   squares, like in the old software renderer or Quake 1. Default is `0`.
 
+
 ## Graphics (Software only)
 
 * **sw_gunzposition**: Z offset for the gun. In the original code this
   was always `0`, which will draw the gun too near to the player if a
   custom gun field of few is used. Defaults to `8`, which is more or
   less optimal for the default gun field of view of 80.
+
 
 ## Graphics (Vulkan only)
 
@@ -437,6 +440,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **vk_lmaptexturemode**: Same as `vk_texturemode` but applied to
   lightmap textures.
+
+* **vk_underwater**: Warp the scene if underwater. Set to `0` to disable
+  the effect. Defaults to `1`.
+
 
 ## cvar operations
 

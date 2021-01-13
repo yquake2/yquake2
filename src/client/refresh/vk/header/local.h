@@ -163,6 +163,7 @@ extern	cvar_t	*vk_aniso;
 extern	cvar_t	*vk_sampleshading;
 extern	cvar_t	*vk_device_idx;
 extern	cvar_t	*vk_retexturing;
+extern	cvar_t	*vk_underwater;
 extern	cvar_t	*vk_nolerp_list;
 
 extern	cvar_t	*vid_fullscreen;

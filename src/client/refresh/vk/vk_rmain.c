@@ -124,6 +124,7 @@ cvar_t	*vk_mip_nearfilter;
 cvar_t	*vk_sampleshading;
 cvar_t	*vk_device_idx;
 cvar_t	*vk_retexturing;
+cvar_t	*vk_underwater;
 cvar_t	*vk_nolerp_list;
 
 cvar_t	*vid_fullscreen;
@@ -1014,9 +1015,18 @@ qboolean RE_EndWorldRenderpass(void)
 	//	* underwater view warp if the player is submerged in liquid
 	//	* restore world view to the full screen size when vk_pixel_size is >1.0
 	QVk_BeginRenderpass(RP_WORLD_WARP);
+	float underwaterTime;
+	if (vk_underwater->value)
+	{
+		underwaterTime= r_newrefdef.rdflags & RDF_UNDERWATER ? r_newrefdef.time : 0.f;
+	}
+	else
+	{
+		underwaterTime = 0.f;
+	};
 	float pushConsts[] =
 	{
-		(r_newrefdef.rdflags & RDF_UNDERWATER) ? r_newrefdef.time : 0.f,
+		underwaterTime,
 		viewsize->value / 100.0f,
 		vid.width,
 		vid.height,
@@ -1215,6 +1225,7 @@ R_Register( void )
 	vk_sampleshading = ri.Cvar_Get("vk_sampleshading", "1", CVAR_ARCHIVE);
 	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
 	vk_retexturing = ri.Cvar_Get("vk_retexturing", "1", CVAR_ARCHIVE);
+	vk_underwater = ri.Cvar_Get("vk_underwater", "1", CVAR_ARCHIVE);
 	/* don't bilerp characters and crosshairs */
 	vk_nolerp_list = ri.Cvar_Get("vk_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
 
