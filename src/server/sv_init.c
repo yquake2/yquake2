@@ -333,6 +333,12 @@ SV_InitGame(void)
 
 	svs.initialized = true;
 
+	if (Cvar_VariableValue("singleplayer"))
+	{
+		Cvar_FullSet("coop", "0", CVAR_SERVERINFO | CVAR_LATCH);
+		Cvar_FullSet("deathmatch", "0", CVAR_SERVERINFO | CVAR_LATCH);
+	}
+
 	if (Cvar_VariableValue("coop") && Cvar_VariableValue("deathmatch"))
 	{
 		Com_Printf("Deathmatch and Coop both set, disabling Coop\n");
@@ -343,9 +349,12 @@ SV_InitGame(void)
 	   so unless they explicity set coop, force it to deathmatch */
 	if (dedicated->value)
 	{
-		if (!Cvar_VariableValue("coop"))
+		if (!Cvar_VariableValue("singleplayer"))
 		{
-			Cvar_FullSet("deathmatch", "1", CVAR_SERVERINFO | CVAR_LATCH);
+			if (!Cvar_VariableValue("coop"))
+			{
+				Cvar_FullSet("deathmatch", "1", CVAR_SERVERINFO | CVAR_LATCH);
+			}
 		}
 	}
 
@@ -358,9 +367,10 @@ SV_InitGame(void)
 		}
 		else if (maxclients->value > MAX_CLIENTS)
 		{
-			Cvar_FullSet("maxclients", va("%i",
-						MAX_CLIENTS), CVAR_SERVERINFO | CVAR_LATCH);
+			Cvar_FullSet("maxclients", va("%i", MAX_CLIENTS), CVAR_SERVERINFO | CVAR_LATCH);
 		}
+
+		Cvar_FullSet("singleplayer", "0", 0);
 	}
 	else if (Cvar_VariableValue("coop"))
 	{
@@ -368,20 +378,36 @@ SV_InitGame(void)
 		{
 			Cvar_FullSet("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
 		}
+
+		Cvar_FullSet("singleplayer", "0", 0);
 	}
 	else /* non-deathmatch, non-coop is one player */
 	{
 		Cvar_FullSet("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
+		Cvar_FullSet("singleplayer", "1", 0);
 	}
 
 	svs.spawncount = randk();
 	svs.clients = Z_Malloc(sizeof(client_t) * maxclients->value);
 	svs.num_client_entities = maxclients->value * UPDATE_BACKUP * 64;
-	svs.client_entities =
-		Z_Malloc( sizeof(entity_state_t) * svs.num_client_entities);
+	svs.client_entities = Z_Malloc( sizeof(entity_state_t) * svs.num_client_entities);
 
 	/* init network stuff */
-	NET_Config((maxclients->value > 1));
+	if (dedicated->value)
+	{
+		if (Cvar_VariableValue("singleplayer"))
+		{
+			NET_Config(true);
+		}
+		else
+		{
+			NET_Config((maxclients->value > 1));
+		}
+	}
+	else
+	{
+		NET_Config((maxclients->value > 1));
+	}
 
 	/* heartbeats will always be sent to the id master */
 	svs.last_heartbeat = -99999; /* send immediately */

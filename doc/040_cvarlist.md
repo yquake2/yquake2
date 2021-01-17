@@ -95,6 +95,16 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   during gameplay and released otherwise (in menu, videos, console or if
   game is paused).
 
+* **singleplayer**: Only available in the dedicated server. Vanilla
+  Quake II enforced that either `coop` or `deathmatch` is set to `1`
+  when running the dedicated server. That made it impossible to play
+  single player campaigns over the dedicated server. When set to `1`,
+  both `coop` and `deathmatch` are forced to `0` and `maxclients` is
+  forced to `1`. This can be used to run a dedicated server with an old
+  single player mod, where the source code isn't available, inside a
+  Windows 98 or XP VM and connect over network from an non Windows
+  system.
+
 * **coop_pickup_weapons**: In coop a weapon can be picked up only once.
   For example, if the player already has the shotgun they cannot pickup
   a second shotgun found at a later time, thus not getting the ammo that
