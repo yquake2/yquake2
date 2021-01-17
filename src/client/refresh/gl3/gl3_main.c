@@ -122,6 +122,7 @@ cvar_t *gl_lightmap;
 cvar_t *gl_shadows;
 cvar_t *gl3_debugcontext;
 cvar_t *gl3_usebigvbo;
+cvar_t *r_fixsurfsky;
 
 // Yaw-Pitch-Roll
 // equivalent to R_z * R_y * R_x where R_x is the trans matrix for rotating around X axis for aroundXdeg
@@ -216,6 +217,7 @@ GL3_Register(void)
 	r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
 	r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
 	r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
+	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "1", CVAR_ARCHIVE);
 
 	/* don't bilerp characters and crosshairs */
 	gl_nolerp_list = ri.Cvar_Get("gl_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);

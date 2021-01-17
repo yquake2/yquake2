@@ -164,6 +164,7 @@ static cvar_t  *r_customheight;
 
 static cvar_t	*r_speeds;
 cvar_t	*r_lightlevel;	//FIXME HACK
+cvar_t	*r_fixsurfsky;
 
 static cvar_t	*vid_fullscreen;
 static cvar_t	*vid_gamma;
@@ -403,6 +404,7 @@ R_RegisterVariables (void)
 	r_vsync = ri.Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
 	r_customwidth = ri.Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
 	r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
+	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "1", CVAR_ARCHIVE);
 
 	vid_fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", CVAR_ARCHIVE );
 	vid_gamma = ri.Cvar_Get( "vid_gamma", "1.0", CVAR_ARCHIVE );

@@ -209,6 +209,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   to `1` the limit is increased to 8192 units. This helps with some
   custom maps and is problematic with other custom maps.
 
+* **r_fixsurfsky**: Some maps misuse sky surfaces for interior
+  lightning. The original renderer had a bug that made such surfaces
+  mess up the lightning of entities near them. If set to `0` (the
+  default) the bug is there and maps look like their developers
+  intended. If set to `1` the bug is fixed and the lightning correct.
+
 * **r_vsync**: Enables the vsync: frames are synchronized with
   display refresh rate, should (but doesn't always) prevent tearing.
   Set to `1` for normal vsync and `2` for adaptive vsync.
@@ -246,12 +252,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   dependent on the GPU driver, most of them support `1`, `2`, `4`, `8`
   and `16`. Anisotropic filtering gives a huge improvement to texture
   quality by a negligible performance impact.
-
-* **gl_fixsurfsky**: Some maps misuse sky surfaces for interior
-  lightning. The original renderer had a bug that made such surfaces
-  mess up the lightning of entities near them. If set to `0` (the
-  default) the bug is there and maps look like their developers
-  intended. If set to `1` the bug is fixed and the lightning correct.
 
 * **gl_msaa_samples**: Full scene anti aliasing samples. The number of
   samples depends on the GPU driver, most drivers support at least `2`,

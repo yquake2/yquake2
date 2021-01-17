@@ -98,6 +98,7 @@ cvar_t *gl_lightmap;
 cvar_t *gl_shadows;
 cvar_t *gl1_stencilshadow;
 cvar_t *r_mode;
+cvar_t *r_fixsurfsky;
 
 cvar_t *r_customwidth;
 cvar_t *r_customheight;
@@ -1239,6 +1240,7 @@ R_Register(void)
 	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
 	gl1_polyblend = ri.Cvar_Get("gl1_polyblend", "1", 0);
 	gl1_flashblend = ri.Cvar_Get("gl1_flashblend", "0", 0);
+	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "1", CVAR_ARCHIVE);
 
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl1_texturealphamode = ri.Cvar_Get("gl1_texturealphamode", "default", CVAR_ARCHIVE);

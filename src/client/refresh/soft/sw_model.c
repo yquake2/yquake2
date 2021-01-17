@@ -661,10 +661,14 @@ Mod_LoadFaces (lump_t *l)
 
 		if (!out->texinfo->image)
 			continue;
-		if (out->texinfo->flags & SURF_SKY)
+
+		if (r_fixsurfsky->value)
 		{
-			out->flags |= SURF_DRAWSKY;
-			continue;
+			if (out->texinfo->flags & SURF_SKY)
+			{
+				out->flags |= SURF_DRAWSKY;
+				continue;
+			}
 		}
 
 		if (out->texinfo->flags & SURF_WARP)

@@ -428,6 +428,7 @@ extern cvar_t	*r_drawworld;
 extern cvar_t	*r_lerpmodels;
 extern cvar_t	*r_lightlevel;
 extern cvar_t	*r_modulate;
+extern cvar_t	*r_fixsurfsky;
 
 
 extern clipplane_t	view_clipplanes[4];

@@ -647,9 +647,12 @@ static void Mod_LoadFaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 			Vk_SubdivideSurface(out, loadmodel);	// cut up polygon for warps
 		}
 
-		if (out->texinfo->flags & SURF_SKY)
+		if (r_fixsurfsky->value)
 		{
-			out->flags |= SURF_DRAWSKY;
+			if (out->texinfo->flags & SURF_SKY)
+			{
+				out->flags |= SURF_DRAWSKY;
+			}
 		}
 
 		// create lightmaps and polygons

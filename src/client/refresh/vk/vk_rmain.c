@@ -126,6 +126,7 @@ cvar_t	*vk_device_idx;
 cvar_t	*vk_retexturing;
 cvar_t	*vk_underwater;
 cvar_t	*vk_nolerp_list;
+cvar_t  *r_fixsurfsky;
 
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
@@ -1228,6 +1229,7 @@ R_Register( void )
 	vk_underwater = ri.Cvar_Get("vk_underwater", "1", CVAR_ARCHIVE);
 	/* don't bilerp characters and crosshairs */
 	vk_nolerp_list = ri.Cvar_Get("vk_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
+	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "1", CVAR_ARCHIVE);
 
 	// clamp vk_msaa to accepted range so that video menu doesn't crash on us
 	if (vk_msaa->value < 0)

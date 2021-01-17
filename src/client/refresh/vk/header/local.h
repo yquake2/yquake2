@@ -165,6 +165,7 @@ extern	cvar_t	*vk_device_idx;
 extern	cvar_t	*vk_retexturing;
 extern	cvar_t	*vk_underwater;
 extern	cvar_t	*vk_nolerp_list;
+extern	cvar_t	*r_fixsurfsky;
 
 extern	cvar_t	*vid_fullscreen;
 extern	cvar_t	*vid_gamma;

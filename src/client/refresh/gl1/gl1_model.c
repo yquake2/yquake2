@@ -583,8 +583,6 @@ Mod_LoadFaces(lump_t *l)
 	int planenum, side;
 	int ti;
 
-	cvar_t* gl_fixsurfsky = ri.Cvar_Get("gl_fixsurfsky", "0", CVAR_ARCHIVE);
-
 	in = (void *)(mod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
@@ -663,7 +661,7 @@ Mod_LoadFaces(lump_t *l)
 			R_SubdivideSurface(out); /* cut up polygon for warps */
 		}
 
-		if (gl_fixsurfsky->value)
+		if (r_fixsurfsky->value)
 		{
 			if (out->texinfo->flags & SURF_SKY)
 			{

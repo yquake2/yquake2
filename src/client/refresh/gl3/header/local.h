@@ -516,6 +516,7 @@ extern cvar_t *gl3_particle_square;
 extern cvar_t *r_modulate;
 extern cvar_t *gl_lightmap;
 extern cvar_t *gl_shadows;
+extern cvar_t *r_fixsurfsky;
 
 extern cvar_t *gl3_debugcontext;
 

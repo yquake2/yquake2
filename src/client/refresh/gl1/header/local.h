@@ -173,6 +173,7 @@ extern cvar_t *r_speeds;
 extern cvar_t *r_fullbright;
 extern cvar_t *r_novis;
 extern cvar_t *r_lerpmodels;
+extern cvar_t *r_fixsurfsky;
 
 extern cvar_t *r_lightlevel;
 extern cvar_t *gl1_overbrightbits;
