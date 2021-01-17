@@ -8,7 +8,7 @@ with the defaults and the options that can be set through the menu.
 
 ## Choosing a Renderer
 
-Yamagi Quake II ships with 3 renderers:
+Yamagi Quake II ships with 4 renderers:
 
 * The **OpenGL 3.2** renderer: This renderer was developed for the needs
   of modern graphics hardware and is usually the best choice for OpenGL
@@ -20,16 +20,22 @@ Yamagi Quake II ships with 3 renderers:
 * The **OpenGL 1.4** renderer: This is a slightly enhanced version of
   the original OpenGL renderer shipped in 1997 with the retail release.
   It's provided for older graphics cards, not able to run the OpenGL 3.2
-  renderer. The OpenGL 1.4 renderer has some limitations. The look and
-  feel is highly dependent on the GPU driver and the platforms OpenGL
-  implementation, especially the texture rendering may vary to a wide
-  margin. The global lighting may not be rendered correctly, especially
-  liquids may be too dark or too bright.
+  or Vulkan renderer. The OpenGL 1.4 renderer has some limitations. The
+  look and feel is highly dependent on the GPU driver and the platforms
+  OpenGL implementation, especially the texture rendering may vary to a
+  wide margin. The global lighting may not be rendered correctly,
+  especially liquids may be too dark or too bright.
 * The **Software** renderer: Shipped for historical reasons only.
-  Setting the OpenGL 3.2 renderer to match the software renderers look
-  and feel is often the better choice, since it's faster and provides
-  colored lighting. The software renderer may show some rendering errors
-  on widescreen resolutions.
+  Setting the OpenGL 3.2 or Vulkan renderer to match the software
+  renderers look and feel is often the better choice, since it's faster
+  and provides colored lighting. The software renderer may show some
+  rendering errors on widescreen resolutions.
+* The **Vulkan** renderer: The Vulkan renderer was ported from vkQuake2
+  to support plattform with no or bad OpenGL 3.2 support. Like the
+  OpenGL 3.2 renderer the look and feel is always the same, regardless
+  of the GPU driver. It's lightning rendering matches the OpenGL 1.4
+  renderer. Unlike the OpenGL renderers the underwater warp effect is
+  supported.
 
 
 ## Choosing a Sound System
@@ -77,7 +83,8 @@ have the choice:
 * Keep precise timings and the cost of a less accurate frame rate. With
   this approach the timings are optimal, e.g. movement like strafejumps
   and the clipping against walls are a precise as possible. But the
-  frame rate may be a little off, leading to tearing and missed frames.
+  frame rate may be a little off, leading to slight tearing and missed
+  frames.
 
 The first approach is the default. To switch over to precise timing the
 following console variables must be altered. There's no need to alter
@@ -97,8 +104,8 @@ the GPU driver and the preferences of the player.
   With `r_vsync` set to 1 that's the display refresh rate and otherwise
   the value of `vid_maxfps`. Yamagi Quake II enforces this restriction
   with an margin of 5%. For example, if `r_vsync` is set to 1 on an 60hz
-  display 60 * 0.95 = 57 FPS. if `cl_maxfps` is set too high (above 90)
-  the famous 125hz bug will trigger and the physics will be off. That
+  display 60 * 0.95 = 57 FPS. If `cl_maxfps` is set too high (above 90)
+  the infamous 125hz bug will trigger and the physics will be off. That
   may be desired.
 * `vid_displayrefreshrate` must be set to the framerate of the display.
   The default is `-1` which means autodetect. In most cases that's okay,
@@ -113,7 +120,8 @@ the GPU driver and the preferences of the player.
   desired target frame rate.
 
 Putting it all together we come up with three so to say standard
-configurations that can be used as a baseline for experiments:
+configurations that can be used as a baseline for experiments. For
+a 60hz display:
 
 * Precise frame rate and slightly imprecise timings:
   * `busywait` set to `1`.
@@ -217,8 +225,10 @@ support colored lighting.
 
 General cvars:
 
-* `cl_lights` set to `0` disables the dynamic lightning.
-* `gl_texturemode` set to `GL_NEAREST_MIPMAP_LINEAR` disables the
+* `cl_lights`: Set to `0` to disable the dynamic lightning.
+
+Both OpenGL renderers:
+* `gl_texturemode`: Set to `GL_NEAREST_MIPMAP_LINEAR` to disable the
   texture filtering, giving a classic pixel look.
 
 The OpenGL 1.4 renderer:
@@ -231,6 +241,11 @@ The OpenGL 3.2 renderer:
 
 * `gl3_particle_square`: When set to `1` the particles are rendered as
   squares.
+
+The Vulkanrenderer:
+* `vk_pixelsize`: Pixelates the image, simulating a lower resolution.
+* `vk_texturemode`: Set to `VK_MIPMAP_LINEAR` to disable the texture
+  filtering, giving a classic pixel look.
 
 
 ## Retexturing Packs

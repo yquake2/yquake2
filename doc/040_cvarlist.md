@@ -32,6 +32,7 @@ are prefixed with a `+`, arguments are starting with a `-`. For example
 it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 (setting the `portable` argument).
 
+* **cfgdir**: The name (not the path) of the configuration directory.
 * **datadir**: Directory from which the game data is loaded. Can be used
   in startup scripts, to test binaries, etc. If not set, the directory
   containing the binaries is used.
@@ -97,8 +98,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **coop_pickup_weapons**: In coop a weapon can be picked up only once.
   For example, if the player already has the shotgun they cannot pickup
   a second shotgun found at a later time, thus not getting the ammo that
-  comes with it. This breaks the balacing. If set to `1` a weapon can be
-  picked up if a) the player doesn't have it or b) it wasn't already
+  comes with it. This breaks the balancing. If set to `1` a weapon can
+  be picked up if a) the player doesn't have it or b) it wasn't already
   picked up by another player. Defaults to `1`.
 
 * **coop_elevator_delay**: In coop it's often hard to get on the same
@@ -170,16 +171,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 ## Graphics (all renderers)
 
-* **vid_displayrefreshrate**: Sets the displays refresh rate. The
-  default `-1` let the game determine the refresh rate automatically.
-  Often the default setting is okay, but some graphics drivers report
-  wrong refresh rates. For example 59hz are reported while the display
-  has 59.95hz.
-
-* **vid_renderer**: Selects the renderer library. Possible options are
-  `gl1` (the default) for the old OpenGL 1.4 renderer, `gl3` for the new
-  OpenGL 3.2 renderer and `soft` for the software renderer.
-
 * **cin_force43**: If set to `1` (the default) cinematics are displayed
   with an aspect ratio of 4:3, regardless what the actual windows size
   or resolution is.
@@ -202,14 +193,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   to calculate an optimal horizontal and vertical field of view,
   independent of the window or screen aspect ratio or resolution.
 
-* **vid_gamma**: The value used for gamma correction. Higher values look
-  brighter. The OpenGL 1.4 and software renderers use "Hardware Gamma",
-  setting the Gamma of the whole screen to this value in realtime
-  (except on MacOS where it's applied to textures on load and thus needs
-  a `vid_restart` after changing). The OpenGL 3.2 renderer applies this
-  to the window in realtime via shaders (on all platforms).  This is
-  also set by the brightness slider in the video menu.
-
 * **r_consolescale** / **r_hudscale** / **r_menuscale** and
   **crosshair_scale**: Scale the console, the HUD, the menu and the
   crosshair. The value given is the scale factor, a factor of `1` means
@@ -226,6 +209,24 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   to `1` the limit is increased to 8192 units. This helps with some
   custom maps and is problematic with other custom maps.
 
+* **r_vsync**: Enables the vsync: frames are synchronized with
+  display refresh rate, should (but doesn't always) prevent tearing.
+  Set to `1` for normal vsync and `2` for adaptive vsync.
+
+* **vid_displayrefreshrate**: Sets the displays refresh rate. The
+  default `-1` let the game determine the refresh rate automatically.
+  Often the default setting is okay, but some graphics drivers report
+  wrong refresh rates. For example 59hz are reported while the display
+  has 59.95hz.
+
+* **vid_gamma**: The value used for gamma correction. Higher values look
+  brighter. The OpenGL 1.4 and software renderers use "Hardware Gamma",
+  setting the Gamma of the whole screen to this value in realtime
+  (except on MacOS where it's applied to textures on load and thus needs
+  a `vid_restart` after changing). The OpenGL 3.2 and Vulkan renderers
+  apply this to the window in realtime via shaders (on all platforms).
+  This is also set by the brightness slider in the video menu.
+
 * **vid_maxfps**: The maximum framerate, if `cl_async` is `1`. Otherwise
   `cl_maxfps` is used as maximum framerate. See `cl_async` description
   above for more information.  *Note* that vsync (`r_vsync`) also
@@ -233,9 +234,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   enabled, the game won't render more than frame than the display can
   show.
 
-* **r_vsync**: Enables the vsync: frames are synchronized with
-  display refresh rate, should (but doesn't always) prevent tearing.
-  Set to `1` for normal vsync and `2` for adaptive vsync.
+* **vid_renderer**: Selects the renderer library. Possible options are
+  `gl1` (the default) for the old OpenGL 1.4 renderer, `gl3` for the new
+  OpenGL 3.2 renderer, `soft` for the software renderer and `vk` for the
+  Vulkan renderer.
 
 
 ## Graphics (GL renderers only)

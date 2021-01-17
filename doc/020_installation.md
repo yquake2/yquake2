@@ -25,9 +25,9 @@ missing assets or even crashes.
 
 The easiest way to install Yamagi Quake II is to start with the patch.
 Please note that the patch is **required** for all full versions of the
-game. Without the patch the game won't work correctly!
+game. Without the patch the game will not work correctly!
 
-1. Download the patch from our mirror or somewhere else. Its MD5
+1. Download the patch from our mirror or somewhere else. The MD5
    checksum is `490557d4a90ff346a175d865a2bade87`:
    https://deponie.yamagi.org/quake2/idstuff/q2-3.20-x86-full-ctf.exe
 2. Extract the patch into an empty directory. The patch comes as an
@@ -78,7 +78,7 @@ The MD5 checksums of the pakfiles are:
 
 The retail releases of Quake II and both addons contain up to 11 Audio
 CD tracks as soundtrack. Since modern computers lack the ability for
-direct CD playback Yamagi Quake II reads the music from OGG/Vorbis
+direct CD playback, Yamagi Quake II reads the music from OGG/Vorbis
 files.
 
 Later Quake II releases, for example the one included with Quake IV and
@@ -112,8 +112,9 @@ may be supported in the future.
 An easy way to extract the music on unixoid platforms (BSD, Linux and
 MacOS) is to use *stuff/cdripper.sh*, a simple shellscript. It needs
 *cdparanoia* and *oggenc* (from the *vorbis-tools* package) installed.
-Use the package manager (apt, dnf, homebrew, pkg, ...) to install them.
-Just execute the script and copy the resulting *music/* directory to:
+Use the package manager (apt, dnf, homebrew, pacman, pkg, ...) to
+install them.  Just execute the script and copy the resulting *music/*
+directory to:
   * *baseq2/* for Quake II.
   * *xatrix/* for The Reckoning.
   * *rogue/* for Ground Zero.
@@ -129,7 +130,7 @@ just *music/*, next to *baseq2/*. **Not** inside *baseq2/*.
 ### Alternate Startup Configuration
 
 Yamagi Quake II ships with an alternative startup config that overrides
-some global settings to saner defaults. To use is copy *stuff/yq2.cfg*
+some global settings to saner defaults. To use it copy *stuff/yq2.cfg*
 into the *baseq2/* directory.
 
 
@@ -219,8 +220,9 @@ To compile Yamagi Quake II from source the following dependencies
 * A GCC compatible compiler like *gcc*, *clang* or *mingw*.
 * A LibGL implementation with system headers.
 * An OpenAL implementation, *openal-soft* is highly recommended.
-* SDL 2.0.
 * libcurl.
+* SDL 2.0.
+* Vulkan Headers version 1.2 or higher.
 
 While Yamagi Quake II ships with an CMakeFile.txt using the GNU Makefile
 for release builds is recommended. The GNU Makefile offers more options
@@ -233,7 +235,7 @@ On Windows a MinGW environment is needed. A preconfigured environment
 with all necessary dependencies and compatibles compilers can be found
 at: https://deponie.yamagi.org/quake2/windows/buildenv/
 
-The environment must be extracted into *C:\MSYS2\*. Other directores
+The environment must be extracted into *C:\MSYS2*. Other directores
 will likely work, but are unsupported. So don't complain if you
 experience problems. Either the 32 bit version can be started through
 *C:\MSYS2\msys32.exe* or the 64 bit version through
@@ -247,11 +249,15 @@ Studio.
 
 The build dependencies can be installed with:
 
+* On Arch Linux based distributions: `pacman -S base-devel mesa openal
+  curl sdl2 vulkan-headers`
 * On Debian based distributions: `apt install build-essential
-  libgl1-mesa-dev libsdl2-dev libopenal-dev libcurl4-openssl-dev`
-* On FreeBSD: `pkg install gmake libGL sdl2 openal-soft curl`
+  libgl1-mesa-dev libsdl2-dev libopenal-dev libcurl4-openssl-dev
+  libvulkan-dev`
+* On FreeBSD: `pkg install gmake libGL sdl2 openal-soft curl
+  vulkan-headers`
 * On MacOS the dependencies can be installed with Homebrew (from
-  https://brew.sh): `brew install sdl2 openal-soft`
+  https://brew.sh): `brew install sdl2 openal-soft vulkan-headers`
 
 Other distributions or platforms often have package named similar to the
 Debian or FreeBSD packages.

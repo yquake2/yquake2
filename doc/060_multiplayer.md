@@ -11,7 +11,7 @@ overflows, leading to all kinds of trouble.
 This problem has always existed in Quake II and is not fixable (at least
 not without breaking compatibility with the existing network protocol),
 but back in Win9x days this was less of a problem because Windows
-crashed frequently anyways and  Win9x had the same bug and crashed after
+crashed frequently anyways and Win9x had the same bug and crashed after
 49 days or so...
 
 Apart from this, we'll only document changes/additions here.
