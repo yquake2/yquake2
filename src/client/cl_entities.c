@@ -764,7 +764,7 @@ CL_CalcViewValues(void)
 		}
 	}
 
-	if (cl_anglekicks->value)
+	if (cl_kickangles->value)
 	{
 		for (i = 0; i < 3; i++)
 		{
