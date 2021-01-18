@@ -522,7 +522,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	}
 
 	/* Mkay, now the hard work. Let's create the window. */
-	cvar_t *gl_msaa_samples = Cvar_Get("gl_msaa_samples", "0", CVAR_ARCHIVE);
+	cvar_t *gl_msaa_samples = Cvar_Get("r_msaa_samples", "0", CVAR_ARCHIVE);
 
 	while (1)
 	{
@@ -536,7 +536,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 					        (int) Cvar_VariableValue("r_mode"), width, height);
 
 				/* Try to recover */
-				Cvar_SetValue("gl_msaa_samples", 0);
+				Cvar_SetValue("r_msaa_samples", 0);
 
 				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);

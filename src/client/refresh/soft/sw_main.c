@@ -375,7 +375,7 @@ R_RegisterVariables (void)
 	sw_overbrightbits = ri.Cvar_Get("sw_overbrightbits", "1.0", CVAR_ARCHIVE);
 	sw_custom_particles = ri.Cvar_Get("sw_custom_particles", "0", CVAR_ARCHIVE);
 	sw_texture_filtering = ri.Cvar_Get("sw_texture_filtering", "0", CVAR_ARCHIVE);
-	sw_retexturing = ri.Cvar_Get("sw_retexturing", "0", CVAR_ARCHIVE);
+	sw_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
 	sw_gunzposition = ri.Cvar_Get("sw_gunzposition", "8", CVAR_ARCHIVE);
 
 	// On MacOS texture is cleaned up after render and code have to copy a whole

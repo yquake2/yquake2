@@ -139,11 +139,11 @@ AnisotropicCallback(void *s)
 
 	if (list->curvalue == 0)
 	{
-		Cvar_SetValue("gl_anisotropic", 0);
+		Cvar_SetValue("r_anisotropic", 0);
 	}
 	else
 	{
-		Cvar_SetValue("gl_anisotropic", pow(2, list->curvalue));
+		Cvar_SetValue("r_anisotropic", pow(2, list->curvalue));
 	}
 }
 
@@ -248,7 +248,7 @@ ApplyChanges(void *unused)
 	{
 		if (gl_msaa_samples->value != 0)
 		{
-			Cvar_SetValue("gl_msaa_samples", 0);
+			Cvar_SetValue("r_msaa_samples", 0);
 			restart = true;
 		}
 	}
@@ -256,7 +256,7 @@ ApplyChanges(void *unused)
 	{
 		if (gl_msaa_samples->value != pow(2, s_msaa_list.curvalue))
 		{
-			Cvar_SetValue("gl_msaa_samples", pow(2, s_msaa_list.curvalue));
+			Cvar_SetValue("r_msaa_samples", pow(2, s_msaa_list.curvalue));
 			restart = true;
 		}
 	}
@@ -410,12 +410,12 @@ VID_MenuInit(void)
 
 	if (!gl_anisotropic)
 	{
-		gl_anisotropic = Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
+		gl_anisotropic = Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
 	}
 
 	if (!gl_msaa_samples)
 	{
-		gl_msaa_samples = Cvar_Get("gl_msaa_samples", "0", CVAR_ARCHIVE);
+		gl_msaa_samples = Cvar_Get("r_msaa_samples", "0", CVAR_ARCHIVE);
 	}
 
 	s_opengl_menu.x = viddef.width * 0.50;

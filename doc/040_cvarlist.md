@@ -229,6 +229,32 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   display refresh rate, should (but doesn't always) prevent tearing.
   Set to `1` for normal vsync and `2` for adaptive vsync.
 
+* **r_anisotropic**: Anisotropic filtering. Possible values are
+  dependent on the GPU driver, most of them support `1`, `2`, `4`, `8`
+  and `16`. Anisotropic filtering gives a huge improvement to texture
+  quality by a negligible performance impact.
+  If vulkan render have used, flag is only toggle anisotropic filtering
+  without use specific level.
+
+* **r_msaa_samples**: Full scene anti aliasing samples. The number of
+  samples depends on the GPU driver, most drivers support at least `2`,
+  `4` and `8` samples. If an invalid value is set, the value is reverted
+  to the highest number of samples supported. Especially on OpenGL 3.2
+  anti aliasing is expensive and can lead to a huge performance hit, so
+  try setting it to a lower value if the framerate is too low.
+
+* **r_nolerp_list**: list separate by spaces of textures omitted from
+  bilinear filtering. Used by default to exclude the console and HUD
+  fonts.  Make sure to include the default values when extending the
+  list.
+
+* **r_retexturing**: If set to `1` (the default) and a retexturing pack
+  is installed, the high resolution textures are used.
+  If set to `2` and vulkan render is used, scale up all 8bit textures.
+
+* **r_shadows**: Enables rendering of shadows. Quake IIs shadows are
+  very simple and are prone to render errors.
+
 * **vid_displayrefreshrate**: Sets the displays refresh rate. The
   default `-1` let the game determine the refresh rate automatically.
   Often the default setting is okay, but some graphics drivers report
@@ -257,29 +283,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 
 ## Graphics (GL renderers only)
-
-* **gl_anisotropic**: Anisotropic filtering. Possible values are
-  dependent on the GPU driver, most of them support `1`, `2`, `4`, `8`
-  and `16`. Anisotropic filtering gives a huge improvement to texture
-  quality by a negligible performance impact.
-
-* **gl_msaa_samples**: Full scene anti aliasing samples. The number of
-  samples depends on the GPU driver, most drivers support at least `2`,
-  `4` and `8` samples. If an invalid value is set, the value is reverted
-  to the highest number of samples supported. Especially on OpenGL 3.2
-  anti aliasing is expensive and can lead to a huge performance hit, so
-  try setting it to a lower value if the framerate is too low.
-
-* **gl_nolerp_list**: list separate by spaces of textures omitted from
-  bilinear filtering. Used by default to exclude the console and HUD
-  fonts.  Make sure to include the default values when extending the
-  list.
-
-* **gl_retexturing**: If set to `1` (the default) and a retexturing pack
-  is installed, the high resolution textures are used.
-
-* **gl_shadows**: Enables rendering of shadows. Quake IIs shadows are
-  very simple and are prone to render errors.
 
 * **gl_zfix**: Sometimes two or even more surfaces overlap and flicker.
   If this cvar is set to `1` the renderer inserts a small gap between
@@ -353,18 +356,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   * `1` - only errors and warnings
   * `2` - best-practices validation
 
-* **vk_retexturing**: Apply retexturing:
-  * `0` - dont use retexturing logic and dont load the high resolution
-          textures,
-  * `1` - load the high resolution textures if pack is installed.
-  * `2` - try to load the pack or scale up all 8bit textures if pack is
-          not installed.
-
-* **vk_nolerp_list**: list separate by spaces of textures omitted from
-  bilinear filtering. Used by default to exclude the console and HUD
-  fonts.  Make sure to include the default values when extending the
-  list.
-
 * **vk_strings**: Print some basic Vulkan/GPU information.
 
 * **vk_mem**: Print dynamic vertex/index/uniform/triangle fan buffer
@@ -375,13 +366,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   * `-1` - prefer first DISCRETE_GPU (default)
   * `0..n` - use device #n (full list of devices is returned by
     `vk_strings` command)
-
-* **vk_msaa**: Toggle MSAA:
-  * `0` - off (default)
-  * `1` - MSAAx2
-  * `2` - MSAAx4
-  * `3` - MSAAx8
-  * `4` - MSAAx16
 
 * **vk_sampleshading**: Toggle sample shading for MSAA. (default: `1`)
 
@@ -419,8 +403,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **vk_particle_max_size**: The maximum size of a rendered particle.
   (default: `40`)
-
-* **vk_shadows**: Draw experimental entity shadows. (default: `0`)
 
 * **vk_picmip**: Shrink factor for the textures. (default: `0`)
 

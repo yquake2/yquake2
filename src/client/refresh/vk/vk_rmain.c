@@ -1207,7 +1207,7 @@ R_Register( void )
 	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 	vk_polyblend = ri.Cvar_Get("vk_polyblend", "1", 0);
 	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
-	vk_shadows = ri.Cvar_Get("vk_shadows", "0", CVAR_ARCHIVE);
+	vk_shadows = ri.Cvar_Get("r_shadows", "0", CVAR_ARCHIVE);
 	vk_pixel_size = ri.Cvar_Get("vk_pixel_size", "1", CVAR_ARCHIVE);
 	vk_particle_size = ri.Cvar_Get("vk_particle_size", "40", CVAR_ARCHIVE);
 	vk_particle_att_a = ri.Cvar_Get("vk_particle_att_a", "0.01", CVAR_ARCHIVE);
@@ -1218,24 +1218,24 @@ R_Register( void )
 	vk_custom_particles = ri.Cvar_Get("vk_custom_particles", "1", CVAR_ARCHIVE);
 	vk_postprocess = ri.Cvar_Get("vk_postprocess", "1", CVAR_ARCHIVE);
 	vk_dynamic = ri.Cvar_Get("vk_dynamic", "1", 0);
-	vk_msaa = ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE);
+	vk_msaa = ri.Cvar_Get("r_msaa_samples", "0", CVAR_ARCHIVE);
 	vk_showtris = ri.Cvar_Get("vk_showtris", "0", 0);
 	vk_lightmap = ri.Cvar_Get("vk_lightmap", "0", 0);
 	vk_texturemode = ri.Cvar_Get("vk_texturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE);
 	vk_lmaptexturemode = ri.Cvar_Get("vk_lmaptexturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE);
-	vk_aniso = ri.Cvar_Get("vk_aniso", "1", CVAR_ARCHIVE);
+	vk_aniso = ri.Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
 	vk_mip_nearfilter = ri.Cvar_Get("vk_mip_nearfilter", "0", CVAR_ARCHIVE);
 	vk_sampleshading = ri.Cvar_Get("vk_sampleshading", "1", CVAR_ARCHIVE);
 	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
-	vk_retexturing = ri.Cvar_Get("vk_retexturing", "1", CVAR_ARCHIVE);
+	vk_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
 	vk_underwater = ri.Cvar_Get("vk_underwater", "1", CVAR_ARCHIVE);
 	/* don't bilerp characters and crosshairs */
-	vk_nolerp_list = ri.Cvar_Get("vk_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
+	vk_nolerp_list = ri.Cvar_Get("r_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
 	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "1", CVAR_ARCHIVE);
 
 	// clamp vk_msaa to accepted range so that video menu doesn't crash on us
 	if (vk_msaa->value < 0)
-		ri.Cvar_Set("vk_msaa", "0");
+		ri.Cvar_Set("r_msaa_samples", "0");
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
