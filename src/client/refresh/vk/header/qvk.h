@@ -224,7 +224,6 @@ extern VkViewport vk_viewport;
 extern VkRect2D vk_scissor;
 
 // Vulkan descriptor sets
-extern VkDescriptorSetLayout vk_uboDescSetLayout;
 extern VkDescriptorSetLayout vk_samplerDescSetLayout;
 
 // *** pipelines ***

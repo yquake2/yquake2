@@ -86,9 +86,9 @@ VkCommandPool vk_transferCommandPool = VK_NULL_HANDLE;
 VkDescriptorPool vk_descriptorPool = VK_NULL_HANDLE;
 static VkCommandPool vk_stagingCommandPool[NUM_DYNBUFFERS] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
 // Vulkan image views
-VkImageView *vk_imageviews = NULL;
+static VkImageView *vk_imageviews = NULL;
 // Vulkan framebuffers
-VkFramebuffer *vk_framebuffers[RP_COUNT];
+static VkFramebuffer *vk_framebuffers[RP_COUNT];
 // color buffer containing main game/world view
 qvktexture_t vk_colorbuffer = QVVKTEXTURE_INIT;
 // color buffer with postprocessed game view
@@ -96,29 +96,29 @@ qvktexture_t vk_colorbufferWarp = QVVKTEXTURE_INIT;
 // depth buffer
 qvktexture_t vk_depthbuffer = QVVKTEXTURE_INIT;
 // depth buffer for UI renderpass
-qvktexture_t vk_ui_depthbuffer = QVVKTEXTURE_INIT;
+static qvktexture_t vk_ui_depthbuffer = QVVKTEXTURE_INIT;
 // render target for MSAA resolve
-qvktexture_t vk_msaaColorbuffer = QVVKTEXTURE_INIT;
+static qvktexture_t vk_msaaColorbuffer = QVVKTEXTURE_INIT;
 // viewport and scissor
 VkViewport vk_viewport = { .0f, .0f, .0f, .0f, .0f, .0f };
 VkRect2D vk_scissor = { { 0, 0 }, { 0, 0 } };
 
 // Vulkan command buffers
-VkCommandBuffer *vk_commandbuffers = NULL;
+static VkCommandBuffer *vk_commandbuffers = NULL;
 // command buffer double buffering fences
-VkFence vk_fences[NUM_CMDBUFFERS];
+static VkFence vk_fences[NUM_CMDBUFFERS];
 // semaphore: signal when next image is available for rendering
-VkSemaphore vk_imageAvailableSemaphores[NUM_CMDBUFFERS];
+static VkSemaphore vk_imageAvailableSemaphores[NUM_CMDBUFFERS];
 // semaphore: signal when rendering to current command buffer is complete
-VkSemaphore vk_renderFinishedSemaphores[NUM_CMDBUFFERS];
+static VkSemaphore vk_renderFinishedSemaphores[NUM_CMDBUFFERS];
 // tracker variables
 VkCommandBuffer vk_activeCmdbuffer = VK_NULL_HANDLE;
 // index of active command buffer
 int vk_activeBufferIdx = 0;
 // index of currently acquired image
-uint32_t vk_imageIndex = 0;
+static uint32_t vk_imageIndex = 0;
 // index of currently used staging buffer
-int vk_activeStagingBuffer = 0;
+static int vk_activeStagingBuffer = 0;
 // started rendering frame?
 qboolean vk_frameStarted = false;
 
@@ -209,9 +209,9 @@ PFN_vkCmdInsertDebugUtilsLabelEXT qvkInsertDebugUtilsLabelEXT;
 	QVk_DebugSetObjectName((uint64_t)shaders[1].module, VK_OBJECT_TYPE_SHADER_MODULE, "Shader Module: "#namefrag".frag");
 
 // global static buffers (reused, never changing)
-qvkbuffer_t vk_texRectVbo;
-qvkbuffer_t vk_colorRectVbo;
-qvkbuffer_t vk_rectIbo;
+static qvkbuffer_t vk_texRectVbo;
+static qvkbuffer_t vk_colorRectVbo;
+static qvkbuffer_t vk_rectIbo;
 
 // global dynamic buffers (double buffered)
 static qvkbuffer_t vk_dynVertexBuffers[NUM_DYNBUFFERS];
@@ -247,9 +247,9 @@ static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
 #define TRIANGLE_FAN_INDEX_CNT 200
 
 // Vulkan common descriptor sets for UBO, primary texture sampler and optional lightmap texture
-VkDescriptorSetLayout vk_uboDescSetLayout;
+static VkDescriptorSetLayout vk_uboDescSetLayout;
 VkDescriptorSetLayout vk_samplerDescSetLayout;
-VkDescriptorSetLayout vk_samplerLightmapDescSetLayout;
+static VkDescriptorSetLayout vk_samplerLightmapDescSetLayout;
 
 static const char *renderpassObjectNames[] = {
 	"RP_WORLD",
