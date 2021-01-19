@@ -1234,8 +1234,6 @@ R_Register( void )
 	// clamp vk_msaa to accepted range so that video menu doesn't crash on us
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");
-	else if (vk_msaa->value > 4)
-		ri.Cvar_Set("vk_msaa", "4");
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
@@ -1251,7 +1249,7 @@ R_Register( void )
 static int
 Vkimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen)
 {
-	R_Printf(PRINT_ALL, "setting mode %d:", mode);
+	R_Printf(PRINT_ALL, "Setting mode %d:", mode);
 
 	/* mode -1 is not in the vid mode table - so we keep the values in pwidth
 	   and pheight and don't even try to look up the mode info */
@@ -1271,7 +1269,7 @@ Vkimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen)
 		}
 	}
 
-	R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
+	R_Printf(PRINT_ALL, " %dx%d (vid_fullscreen %i)\n", *pwidth, *pheight, fullscreen);
 
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
 	{

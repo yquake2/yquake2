@@ -280,17 +280,30 @@ VkFormat QVk_FindDepthFormat()
 }
 
 // internal helper
-static VkSampleCountFlagBits GetSampleCount(int msaa)
+static VkSampleCountFlagBits GetSampleCount(int msaa, VkSampleCountFlagBits supportedMsaa)
 {
+	int step = 0, value = 64;
+
 	static VkSampleCountFlagBits msaaModes[] = {
-		VK_SAMPLE_COUNT_1_BIT,
-		VK_SAMPLE_COUNT_2_BIT,
-		VK_SAMPLE_COUNT_4_BIT,
+		VK_SAMPLE_COUNT_64_BIT,
+		VK_SAMPLE_COUNT_32_BIT,
+		VK_SAMPLE_COUNT_16_BIT,
 		VK_SAMPLE_COUNT_8_BIT,
-		VK_SAMPLE_COUNT_16_BIT
+		VK_SAMPLE_COUNT_4_BIT,
+		VK_SAMPLE_COUNT_2_BIT,
+		VK_SAMPLE_COUNT_1_BIT
 	};
 
-	return msaaModes[msaa];
+	while ((msaa < value && value > 1) ||
+		   ((supportedMsaa & msaaModes[step]) != msaaModes[step]))
+	{
+		value >>= 1;
+		step ++;
+	}
+
+	R_Printf(PRINT_ALL, "MSAAx%d is used...\n", value);
+
+	return msaaModes[step];
 }
 
 // internal helper
@@ -1822,16 +1835,8 @@ qboolean QVk_Init(SDL_Window *window)
 		vk_renderpasses[i].colorLoadOp = r_clear->value ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	}
 
-	VkSampleCountFlagBits msaaMode = GetSampleCount((int)vk_msaa->value);
-	VkSampleCountFlagBits supportedMsaa = vk_device.properties.limits.framebufferColorSampleCounts;
-	if (!(supportedMsaa & msaaMode))
-	{
-		R_Printf(PRINT_ALL, "MSAAx%d mode not supported, aborting...\n", msaaMode);
-		ri.Cvar_Set("vk_msaa", "0");
-		msaaMode = VK_SAMPLE_COUNT_1_BIT;
-		// avoid secondary video reload
-		vk_msaa->modified = false;
-	}
+	VkSampleCountFlagBits msaaMode = GetSampleCount((int)vk_msaa->value,
+			vk_device.properties.limits.framebufferColorSampleCounts);
 
 	// MSAA setting will be only relevant for the primary world render pass
 	vk_renderpasses[RP_WORLD].sampleCount = msaaMode;
