@@ -239,7 +239,7 @@ int GL3_PrepareForWindow(void)
 		{
 			R_Printf(PRINT_ALL, "MSAA is unsupported: %s\n", SDL_GetError());
 
-			ri.Cvar_SetValue ("gl_msaa_samples", 0);
+			ri.Cvar_SetValue ("r_msaa_samples", 0);
 
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
@@ -248,7 +248,7 @@ int GL3_PrepareForWindow(void)
 		{
 			R_Printf(PRINT_ALL, "MSAA %ix is unsupported: %s\n", msaa_samples, SDL_GetError());
 
-			ri.Cvar_SetValue("gl_msaa_samples", 0);
+			ri.Cvar_SetValue("r_msaa_samples", 0);
 
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
@@ -298,7 +298,7 @@ int GL3_InitContext(void* win)
 	{
 		if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &msaa_samples) == 0)
 		{
-			ri.Cvar_SetValue("gl_msaa_samples", msaa_samples);
+			ri.Cvar_SetValue("r_msaa_samples", msaa_samples);
 		}
 	}
 

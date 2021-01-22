@@ -47,7 +47,7 @@ int			r_framecount;		// used for dlight push checking
 
 int			c_brush_polys, c_alias_polys;
 
-float		v_blend[4];			// final blending color
+static float		v_blend[4];	// final blending color
 
 void Vk_Strings_f(void);
 void Vk_Mem_f(void);
@@ -76,42 +76,43 @@ refdef_t	r_newrefdef;
 
 int		r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
-cvar_t	*r_norefresh;
-cvar_t	*r_drawentities;
+static cvar_t	*r_norefresh;
+static cvar_t	*r_drawentities;
 cvar_t	*r_drawworld;
-cvar_t	*r_speeds;
-cvar_t	*r_fullbright;
+static cvar_t	*r_speeds;
+static cvar_t	*r_fullbright;
 cvar_t	*r_novis;
-cvar_t	*r_nocull;
+static cvar_t	*r_nocull;
 cvar_t	*r_lerpmodels;
 cvar_t	*r_lefthand;
 cvar_t	*r_vsync;
-cvar_t	*r_mode;
+static cvar_t	*r_mode;
 cvar_t	*r_gunfov;
 cvar_t	*r_farsee;
+static cvar_t	*r_customwidth;
+static cvar_t	*r_customheight;
 
 cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
 cvar_t	*vk_overbrightbits;
 cvar_t	*vk_validation;
-cvar_t	*vk_bitdepth;
 cvar_t	*vk_picmip;
 cvar_t	*vk_skymip;
 cvar_t	*vk_flashblend;
 cvar_t	*vk_finish;
 cvar_t	*r_clear;
 cvar_t	*r_lockpvs;
-cvar_t	*vk_polyblend;
+static cvar_t	*vk_polyblend;
 cvar_t	*r_modulate;
 cvar_t	*vk_shadows;
-cvar_t	*vk_pixel_size;
-cvar_t	*vk_particle_size;
-cvar_t	*vk_particle_att_a;
-cvar_t	*vk_particle_att_b;
-cvar_t	*vk_particle_att_c;
-cvar_t	*vk_particle_min_size;
-cvar_t	*vk_particle_max_size;
-cvar_t	*vk_custom_particles;
+static cvar_t	*vk_pixel_size;
+static cvar_t	*vk_particle_size;
+static cvar_t	*vk_particle_att_a;
+static cvar_t	*vk_particle_att_b;
+static cvar_t	*vk_particle_att_c;
+static cvar_t	*vk_particle_min_size;
+static cvar_t	*vk_particle_max_size;
+static cvar_t	*vk_custom_particles;
 cvar_t	*vk_postprocess;
 cvar_t	*vk_dynamic;
 cvar_t	*vk_msaa;
@@ -124,13 +125,13 @@ cvar_t	*vk_mip_nearfilter;
 cvar_t	*vk_sampleshading;
 cvar_t	*vk_device_idx;
 cvar_t	*vk_retexturing;
-cvar_t	*vk_underwater;
+static cvar_t	*vk_underwater;
 cvar_t	*vk_nolerp_list;
 cvar_t  *r_fixsurfsky;
 
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
-cvar_t	*viewsize;
+static cvar_t	*viewsize;
 
 /*
 =================
@@ -1193,10 +1194,11 @@ R_Register( void )
 	r_vsync = ri.Cvar_Get("r_vsync", "0", CVAR_ARCHIVE);
 	r_gunfov = ri.Cvar_Get("r_gunfov", "80", CVAR_ARCHIVE);
 	r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
+	r_customwidth = ri.Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
+	r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
 
 	vk_overbrightbits = ri.Cvar_Get("vk_overbrightbits", "1.0", CVAR_ARCHIVE);
 	vk_validation = ri.Cvar_Get("vk_validation", "0", CVAR_ARCHIVE);
-	vk_bitdepth = ri.Cvar_Get("vk_bitdepth", "0", 0);
 	vk_picmip = ri.Cvar_Get("vk_picmip", "0", 0);
 	vk_skymip = ri.Cvar_Get("vk_skymip", "0", 0);
 	vk_flashblend = ri.Cvar_Get("vk_flashblend", "0", 0);
@@ -1205,7 +1207,7 @@ R_Register( void )
 	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 	vk_polyblend = ri.Cvar_Get("vk_polyblend", "1", 0);
 	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
-	vk_shadows = ri.Cvar_Get("vk_shadows", "0", CVAR_ARCHIVE);
+	vk_shadows = ri.Cvar_Get("r_shadows", "0", CVAR_ARCHIVE);
 	vk_pixel_size = ri.Cvar_Get("vk_pixel_size", "1", CVAR_ARCHIVE);
 	vk_particle_size = ri.Cvar_Get("vk_particle_size", "40", CVAR_ARCHIVE);
 	vk_particle_att_a = ri.Cvar_Get("vk_particle_att_a", "0.01", CVAR_ARCHIVE);
@@ -1216,26 +1218,24 @@ R_Register( void )
 	vk_custom_particles = ri.Cvar_Get("vk_custom_particles", "1", CVAR_ARCHIVE);
 	vk_postprocess = ri.Cvar_Get("vk_postprocess", "1", CVAR_ARCHIVE);
 	vk_dynamic = ri.Cvar_Get("vk_dynamic", "1", 0);
-	vk_msaa = ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE);
+	vk_msaa = ri.Cvar_Get("r_msaa_samples", "0", CVAR_ARCHIVE);
 	vk_showtris = ri.Cvar_Get("vk_showtris", "0", 0);
 	vk_lightmap = ri.Cvar_Get("vk_lightmap", "0", 0);
 	vk_texturemode = ri.Cvar_Get("vk_texturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE);
 	vk_lmaptexturemode = ri.Cvar_Get("vk_lmaptexturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE);
-	vk_aniso = ri.Cvar_Get("vk_aniso", "1", CVAR_ARCHIVE);
+	vk_aniso = ri.Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
 	vk_mip_nearfilter = ri.Cvar_Get("vk_mip_nearfilter", "0", CVAR_ARCHIVE);
 	vk_sampleshading = ri.Cvar_Get("vk_sampleshading", "1", CVAR_ARCHIVE);
 	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
-	vk_retexturing = ri.Cvar_Get("vk_retexturing", "1", CVAR_ARCHIVE);
+	vk_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
 	vk_underwater = ri.Cvar_Get("vk_underwater", "1", CVAR_ARCHIVE);
 	/* don't bilerp characters and crosshairs */
-	vk_nolerp_list = ri.Cvar_Get("vk_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
+	vk_nolerp_list = ri.Cvar_Get("r_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
 	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "1", CVAR_ARCHIVE);
 
 	// clamp vk_msaa to accepted range so that video menu doesn't crash on us
 	if (vk_msaa->value < 0)
-		ri.Cvar_Set("vk_msaa", "0");
-	else if (vk_msaa->value > 4)
-		ri.Cvar_Set("vk_msaa", "4");
+		ri.Cvar_Set("r_msaa_samples", "0");
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
@@ -1251,7 +1251,7 @@ R_Register( void )
 static int
 Vkimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen)
 {
-	R_Printf(PRINT_ALL, "setting mode %d:", mode);
+	R_Printf(PRINT_ALL, "Setting mode %d:", mode);
 
 	/* mode -1 is not in the vid mode table - so we keep the values in pwidth
 	   and pheight and don't even try to look up the mode info */
@@ -1271,7 +1271,7 @@ Vkimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen)
 		}
 	}
 
-	R_Printf(PRINT_ALL, " %d %d\n", *pwidth, *pheight);
+	R_Printf(PRINT_ALL, " %dx%d (vid_fullscreen %i)\n", *pwidth, *pheight, fullscreen);
 
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
 	{
@@ -1309,6 +1309,11 @@ qboolean R_SetMode (void)
 	// refresh texture samplers
 	vk_texturemode->modified = true;
 	vk_lmaptexturemode->modified = true;
+
+	/* a bit hackish approach to enable custom resolutions:
+	   Glimp_SetMode needs these values set for mode -1 */
+	vid.width = r_customwidth->value;
+	vid.height = r_customheight->value;
 
 	if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, r_mode->value, fullscreen)) == rserr_ok)
 	{

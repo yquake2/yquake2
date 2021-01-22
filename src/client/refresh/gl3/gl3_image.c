@@ -76,16 +76,16 @@ GL3_TextureMode(char *string)
 	{
 		if (gl_anisotropic->value > gl3config.max_anisotropy)
 		{
-			ri.Cvar_SetValue("gl_anisotropic", gl3config.max_anisotropy);
+			ri.Cvar_SetValue("r_anisotropic", gl3config.max_anisotropy);
 		}
 		else if (gl_anisotropic->value < 1.0)
 		{
-			ri.Cvar_SetValue("gl_anisotropic", 1.0);
+			ri.Cvar_SetValue("r_anisotropic", 1.0);
 		}
 	}
 	else
 	{
-		ri.Cvar_SetValue("gl_anisotropic", 0.0);
+		ri.Cvar_SetValue("r_anisotropic", 0.0);
 	}
 
 	gl3image_t *glt;

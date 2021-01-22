@@ -1225,7 +1225,7 @@ R_Register(void)
 	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
 	r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
 	gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
-	gl_shadows = ri.Cvar_Get("gl_shadows", "0", CVAR_ARCHIVE);
+	gl_shadows = ri.Cvar_Get("r_shadows", "0", CVAR_ARCHIVE);
 	gl1_stencilshadow = ri.Cvar_Get("gl1_stencilshadow", "0", CVAR_ARCHIVE);
 	gl1_dynamic = ri.Cvar_Get("gl1_dynamic", "1", 0);
 	gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
@@ -1245,7 +1245,7 @@ R_Register(void)
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
 	gl1_texturealphamode = ri.Cvar_Get("gl1_texturealphamode", "default", CVAR_ARCHIVE);
 	gl1_texturesolidmode = ri.Cvar_Get("gl1_texturesolidmode", "default", CVAR_ARCHIVE);
-	gl_anisotropic = ri.Cvar_Get("gl_anisotropic", "0", CVAR_ARCHIVE);
+	gl_anisotropic = ri.Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
 	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 
 	gl1_palettedtexture = ri.Cvar_Get("gl1_palettedtexture", "0", CVAR_ARCHIVE);
@@ -1261,12 +1261,12 @@ R_Register(void)
 
 	r_customwidth = ri.Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
 	r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
-	gl_msaa_samples = ri.Cvar_Get ( "gl_msaa_samples", "0", CVAR_ARCHIVE );
+	gl_msaa_samples = ri.Cvar_Get ( "r_msaa_samples", "0", CVAR_ARCHIVE );
 
-	gl_retexturing = ri.Cvar_Get("gl_retexturing", "1", CVAR_ARCHIVE);
+	gl_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
 
 	/* don't bilerp characters and crosshairs */
-	gl_nolerp_list = ri.Cvar_Get("gl_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
+	gl_nolerp_list = ri.Cvar_Get("r_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
 
 	gl1_stereo = ri.Cvar_Get( "gl1_stereo", "0", CVAR_ARCHIVE );
 	gl1_stereo_separation = ri.Cvar_Get( "gl1_stereo_separation", "-0.4", CVAR_ARCHIVE );
@@ -1351,7 +1351,7 @@ R_SetMode(void)
 			if (gl_msaa_samples->value != 0.0f)
 			{
 				R_Printf(PRINT_ALL, "gl_msaa_samples was %d - will try again with gl_msaa_samples = 0\n", (int)gl_msaa_samples->value);
-				ri.Cvar_SetValue("gl_msaa_samples", 0.0f);
+				ri.Cvar_SetValue("r_msaa_samples", 0.0f);
 				gl_msaa_samples->modified = false;
 
 				if ((err = SetMode_impl(&vid.width, &vid.height, r_mode->value, 0)) == rserr_ok)

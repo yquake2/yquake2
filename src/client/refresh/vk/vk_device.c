@@ -20,10 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "header/local.h"
 
 // internal helper
-static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice)
+static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice, const char* extensionName)
 {
 	uint32_t availableExtCount = 0;
-	qboolean vk_khr_swapchain_extension_available = false;
+	qboolean vk_extension_available = false;
 	VK_VERIFY(vkEnumerateDeviceExtensionProperties(*physicalDevice, NULL, &availableExtCount, NULL));
 
 	if (availableExtCount > 0)
@@ -33,14 +33,14 @@ static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice
 
 		for (uint32_t i = 0; i < availableExtCount; ++i)
 		{
-			vk_khr_swapchain_extension_available |= strcmp(extensions[i].extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0;
+			vk_extension_available |= strcmp(extensions[i].extensionName, extensionName) == 0;
 		}
 
 		free(extensions);
 	}
 
-	// lack of swapchain extension disqualifies the device
-	return vk_khr_swapchain_extension_available;
+	// lack of extension disqualifies the device
+	return vk_extension_available;
 }
 
 // internal helper
@@ -68,16 +68,11 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferred
 			uint32_t presentModesCount = 0;
 
 			// check if requested device extensions are present
-			qboolean extSupported = deviceExtensionsSupported(&devices[i]);
+			qboolean extSupported = deviceExtensionsSupported(&devices[i], VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
 			// no required extensions? try next device
 			if (!extSupported)
 				continue;
-
-			if (!deviceFeatures.samplerAnisotropy)
-			{
-				R_Printf(PRINT_ALL, "...anisotropy filtering is unsupported.\n");
-			}
 
 			// if extensions are fine, query surface formats and present modes to see if the device can be used
 			VK_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(devices[i], vk_surface, &formatCount, NULL));
@@ -156,6 +151,11 @@ static qboolean selectPhysicalDevice(int preferredDeviceIdx)
 	{
 		R_Printf(PRINT_ALL, "Could not find a suitable physical device!\n");
 		return false;
+	}
+
+	if (!vk_device.features.samplerAnisotropy)
+	{
+		R_Printf(PRINT_ALL, "...anisotropy filtering is unsupported.\n");
 	}
 
 	return true;

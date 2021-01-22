@@ -83,6 +83,11 @@ replacement_t replacements[] = {
 	{"gl_texturealphamode", "gl1_texturealphamode"},
 	{"gl_texturesolidmode", "gl1_texturesolidmode"},
 	{"gl_ztrick", "gl1_ztrick"},
+	{"gl_msaa_samples", "r_msaa_samples"},
+	{"gl_nolerp_list", "r_nolerp_list"},
+	{"gl_retexturing", "r_retexturing"},
+	{"gl_shadows", "r_shadows"},
+	{"gl_anisotropic", "r_anisotropic"},
 	{"intensity", "gl1_intensity"}
 };
 
