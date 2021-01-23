@@ -127,6 +127,35 @@ AL_StreamUpdate(void)
 
 /* ----------------------------------------------------------------- */
 
+static ALenum
+AL_GetFormat(int width, int channels)
+{
+	if (width == 1)
+	{
+		if (channels == 1)
+		{
+			return AL_FORMAT_MONO8;
+		}
+		else if (channels == 2)
+		{
+			return AL_FORMAT_STEREO8;
+		}
+	}
+	else if (width == 2)
+	{
+		if (channels == 1)
+		{
+			return AL_FORMAT_MONO16;
+		}
+		else if (channels == 2)
+		{
+			return AL_FORMAT_STEREO16;
+		}
+	}
+
+	return AL_FORMAT_MONO8;
+}
+
 /*
  * Uploads a sample to OpenAL and places
  * a dummy entry in the frontends cache.
@@ -142,7 +171,9 @@ AL_UploadSfx(sfx_t *s, wavinfo_t *s_info, byte *data)
 	ALuint name;
 
 	size = s_info->samples * s_info->width;
-    format = s_info->width == 2 ? AL_FORMAT_MONO16 : AL_FORMAT_MONO8;
+
+	/* Work out format */
+	format = AL_GetFormat(s_info->width, s_info->channels);
 
 	if (!size)
 	{
@@ -166,6 +197,7 @@ AL_UploadSfx(sfx_t *s, wavinfo_t *s_info, byte *data)
 	sc->width = s_info->width;
 	sc->size = size;
 	sc->bufnum = name;
+	sc->stereo = s_info->channels - 1;
 
 	return sc;
 }
@@ -508,28 +540,7 @@ AL_RawSamples(int samples, int rate, int width, int channels,
 	ALuint format = 0;
 
 	/* Work out format */
-	if (width == 1)
-	{
-		if (channels == 1)
-		{
-			format = AL_FORMAT_MONO8;
-		}
-		else if (channels == 2)
-		{
-			format = AL_FORMAT_STEREO8;
-		}
-	}
-	else if (width == 2)
-	{
-		if (channels == 1)
-		{
-			format = AL_FORMAT_MONO16;
-		}
-		else if (channels == 2)
-		{
-			format = AL_FORMAT_STEREO16;
-		}
-	}
+	format = AL_GetFormat(width, channels);
 
 	/* Create a buffer, and stuff the data into it */
 	qalGenBuffers(1, &buffer);

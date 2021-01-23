@@ -923,13 +923,14 @@ SDL_Cache(sfx_t *sfx, wavinfo_t *info, byte *data)
 	}
 
 	sc->loopstart = info->loopstart;
-    sc->stereo = 0;
+	sc->stereo = info->channels - 1;
 	sc->length = (int)(info->samples / stepscale);
 	sc->speed = sound.speed;
 
 	if ((int)(info->samples / stepscale) == 0)
 	{
-		Com_Printf("ResampleSfx: Invalid sound file '%s' (zero length)\n", sfx->name);
+		Com_Printf("%s: Invalid sound file '%s' (zero length)\n",
+			__func__, sfx->name);
 		Z_Free(sfx->cache);
 		sfx->cache = NULL;
 		return false;

@@ -263,9 +263,9 @@ S_LoadSound(sfx_t *s)
 
 	info = GetWavinfo(s->name, data, size);
 
-	if (info.channels != 1)
+	if (info.channels < 1 || info.channels > 2)
 	{
-		Com_Printf("%s is a stereo sample\n", s->name);
+		Com_Printf("%s has an invalid number of channels\n", s->name);
 		FS_FreeFile(data);
 		return NULL;
 	}
@@ -1139,9 +1139,10 @@ S_SoundList(void)
 		{
 			size = sc->length * sc->width * (sc->stereo + 1);
 			total += size;
-			Com_Printf("%s(%2db) %8i : %s\n",
+			Com_Printf("%s(%2db) %8i(%d ch) : %s\n",
 					sc->loopstart != -1 ? "L" : " ",
-					sc->width * 8, size, sfx->name);
+					sc->width * 8, size,
+					(sc->stereo + 1), sfx->name);
 		}
 		else
 		{
