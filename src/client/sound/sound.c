@@ -58,8 +58,8 @@ vec3_t listener_forward;
 vec3_t listener_right;
 vec3_t listener_up;
 
-playsound_t s_playsounds[MAX_PLAYSOUNDS];
-playsound_t s_freeplays;
+static playsound_t s_playsounds[MAX_PLAYSOUNDS];
+static playsound_t s_freeplays;
 playsound_t s_pendingplays;
 
 cvar_t *s_volume;
@@ -75,14 +75,13 @@ cvar_t* s_doppler;
 cvar_t* s_ps_sorting;
 
 channel_t channels[MAX_CHANNELS];
-int num_sfx;
+static int num_sfx;
 int paintedtime;
 int s_numchannels;
 int s_rawend;
-int s_registration_sequence;
+static int s_registration_sequence = 0;
 portable_samplepair_t s_rawsamples[MAX_RAW_SAMPLES];
-qboolean snd_initialized = false;
-sfx_t known_sfx[MAX_SFX];
+static sfx_t known_sfx[MAX_SFX];
 sndstarted_t sound_started = SS_NOT;
 sound_t sound;
 static qboolean s_registering;
@@ -301,7 +300,7 @@ S_LoadSound(sfx_t *s)
 /*
  * Returns the name of a sound
  */
-sfx_t *
+static sfx_t *
 S_FindName(char *name, qboolean create)
 {
 	int i;
@@ -368,7 +367,7 @@ S_FindName(char *name, qboolean create)
  * Registers an alias name
  * for a sound
  */
-sfx_t *
+static sfx_t *
 S_AliasName(char *aliasname, char *truename)
 {
 	sfx_t *sfx;
@@ -441,7 +440,7 @@ S_RegisterSound(char *name)
 	return sfx;
 }
 
-struct sfx_s *
+static struct sfx_s *
 S_RegisterSexedSound(entity_state_t *ent, char *base)
 {
 	int n;
@@ -627,7 +626,7 @@ S_PickChannel(int entnum, int entchannel)
 /*
  * Picks a free playsound
  */
-playsound_t *
+static playsound_t *
 S_AllocPlaysound(void)
 {
 	playsound_t *ps;
@@ -651,7 +650,7 @@ S_AllocPlaysound(void)
 /*
  * Frees a playsound
  */
-void
+static void
 S_FreePlaysound(playsound_t *ps)
 {
 	/* unlink from channel */
@@ -1078,7 +1077,7 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
  * Plays one sample. Called
  * by the "play" cmd.
  */
-void
+static void
 S_Play(void)
 {
 	int i;
@@ -1114,7 +1113,7 @@ S_Play(void)
 /*
  * List all loaded sounds
  */
-void
+static void
 S_SoundList(void)
 {
 	int i;
@@ -1169,7 +1168,7 @@ S_SoundList(void)
  * Prints information about the
  * active sound backend
  */
-void
+static void
 S_SoundInfo_f(void)
 {
 	if (sound_started == SS_NOT)
@@ -1217,8 +1216,8 @@ S_Init(void)
 	s_show = Cvar_Get("s_show", "0", 0);
 	s_testsound = Cvar_Get("s_testsound", "0", 0);
 	s_ambient = Cvar_Get("s_ambient", "1", 0);
-    s_underwater = Cvar_Get("s_underwater", "1", CVAR_ARCHIVE);
-    s_underwater_gain_hf = Cvar_Get("s_underwater_gain_hf", "0.25", CVAR_ARCHIVE);
+	s_underwater = Cvar_Get("s_underwater", "1", CVAR_ARCHIVE);
+	s_underwater_gain_hf = Cvar_Get("s_underwater_gain_hf", "0.25", CVAR_ARCHIVE);
 	s_doppler = Cvar_Get("s_doppler", "0", CVAR_ARCHIVE);
 	s_ps_sorting = Cvar_Get("s_ps_sorting", "1", CVAR_ARCHIVE);
 

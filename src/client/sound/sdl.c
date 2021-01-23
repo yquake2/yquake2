@@ -46,8 +46,8 @@
 #define SDL_LOOPATTENUATE 0.003
 
 /* Globals */
-cvar_t *s_sdldriver;
-int *snd_p;
+static cvar_t *s_sdldriver;
+static int *snd_p;
 static sound_t *backend;
 static portable_samplepair_t paintbuffer[SDL_PAINTBUFFER_SIZE];
 static int beginofs;
@@ -73,7 +73,8 @@ static const float lpf_default_gain_hf = 0.25F;
 static LpfContext lpf_context;
 static qboolean lpf_is_enabled;
 
-static void lpf_initialize(LpfContext* lpf_context, float gain_hf, int target_frequency)
+static void
+lpf_initialize(LpfContext* lpf_context, float gain_hf, int target_frequency)
 {
 	assert(target_frequency > 0);
 	assert(lpf_context);
@@ -110,7 +111,8 @@ static void lpf_initialize(LpfContext* lpf_context, float gain_hf, int target_fr
 	lpf_context->is_history_initialized = false;
 }
 
-static void lpf_update_samples(LpfContext* lpf_context,int sample_count, portable_samplepair_t* samples)
+static void
+lpf_update_samples(LpfContext* lpf_context,int sample_count, portable_samplepair_t* samples)
 {
 	assert(lpf_context);
 	assert(sample_count >= 0);
@@ -171,7 +173,7 @@ static void lpf_update_samples(LpfContext* lpf_context,int sample_count, portabl
  * the SDL output buffer and places it
  * at the appropriate position.
  */
-void
+static void
 SDL_TransferPaintBuffer(int endtime)
 {
 	int i;
@@ -322,7 +324,7 @@ SDL_TransferPaintBuffer(int endtime)
 /*
  * Mixes an 8 bit sample into a channel.
  */
-void
+static void
 SDL_PaintChannelFrom8(channel_t *ch, sfxcache_t *sc, int count, int offset)
 {
 	int data;
@@ -360,7 +362,7 @@ SDL_PaintChannelFrom8(channel_t *ch, sfxcache_t *sc, int count, int offset)
 /*
  * Mixes an 16 bit sample into a channel
  */
-void
+static void
 SDL_PaintChannelFrom16(channel_t *ch, sfxcache_t *sc, int count, int offset)
 {
 	int data;
@@ -392,7 +394,7 @@ SDL_PaintChannelFrom16(channel_t *ch, sfxcache_t *sc, int count, int offset)
  * Mixes all pending sounds into
  * the available output channels.
  */
-void
+static void
 SDL_PaintChannels(int endtime)
 {
 	int i;
@@ -512,10 +514,14 @@ SDL_PaintChannels(int endtime)
 			}
 		}
 
-        if (lpf_is_enabled && snd_is_underwater)
-            lpf_update_samples(&lpf_context, end - paintedtime, paintbuffer);
-        else
-            lpf_context.is_history_initialized = false;
+		if (lpf_is_enabled && snd_is_underwater)
+		{
+			lpf_update_samples(&lpf_context, end - paintedtime, paintbuffer);
+		}
+		else
+		{
+			lpf_context.is_history_initialized = false;
+		}
 
 		if (s_rawend >= paintedtime)
 		{
@@ -529,7 +535,7 @@ SDL_PaintChannels(int endtime)
 			{
 				s = i & (MAX_RAW_SAMPLES - 1);
 				paintbuffer[i - paintedtime].left += s_rawsamples[s].left;
-                paintbuffer[i - paintedtime].right += s_rawsamples[s].right;
+				paintbuffer[i - paintedtime].right += s_rawsamples[s].right;
 			}
 		}
 
@@ -571,7 +577,7 @@ SDL_DriftBeginofs(float timeofs)
 /*
  * Spatialize a sound effect based on it's origin.
  */
-void
+static void
 SDL_SpatializeOrigin(vec3_t origin, float master_vol, float dist_mult, int *left_vol, int *right_vol)
 {
 	vec_t dot;
@@ -829,7 +835,7 @@ SDL_ClearBuffer(void)
  * Calculates the absolute timecode
  * of current playback.
  */
-void
+static void
 SDL_UpdateSoundtime(void)
 {
 	static int buffers;
@@ -861,7 +867,7 @@ SDL_UpdateSoundtime(void)
  * Updates the volume scale table
  * based on current volume setting.
  */
-void
+static void
 SDL_UpdateScaletable(void)
 {
 	int i, j;
@@ -906,7 +912,7 @@ SDL_Cache(sfx_t *sfx, wavinfo_t *info, byte *data)
 	unsigned int samplefrac = 0;
 
 	stepscale = (float)info->rate / sound.speed;
-    len = (int)(info->samples / stepscale);
+	len = (int)(info->samples / stepscale);
 
 	if ((info->samples == 0) || (len == 0))
 	{
@@ -1087,17 +1093,18 @@ SDL_Update(void)
 	int total;
 	unsigned int endtime;
 
-    if (s_underwater->modified) {
-        s_underwater->modified = false;
-        lpf_is_enabled = ((int)s_underwater->value != 0);
-    }
+	if (s_underwater->modified) {
+		s_underwater->modified = false;
+		lpf_is_enabled = ((int)s_underwater->value != 0);
+	}
 
-    if (s_underwater_gain_hf->modified) {
-        s_underwater_gain_hf->modified = false;
+	if (s_underwater_gain_hf->modified) {
+		s_underwater_gain_hf->modified = false;
 
-        lpf_initialize(
-            &lpf_context, s_underwater_gain_hf->value, backend->speed);
-    }
+		lpf_initialize(
+			&lpf_context, s_underwater_gain_hf->value,
+			backend->speed);
+	}
 
 	/* if the loading plaque is up, clear everything
 	   out to make sure we aren't looping a dirty
@@ -1174,7 +1181,7 @@ SDL_Update(void)
 		return;
 	}
 
-    /* Mix the samples */
+	/* Mix the samples */
 	SDL_LockAudio();
 
 	/* Updates SDL time */
@@ -1275,7 +1282,7 @@ SDL_Callback(void *data, Uint8 *stream, int length)
 		playpos = (length2 / (backend->samplebits / 8));
 	}
 
-    if (playpos >= samplesize)
+	if (playpos >= samplesize)
 	{
 		playpos = 0;
 	}
@@ -1417,9 +1424,9 @@ SDL_BackendInit(void)
 	backend->buffer = calloc(1, samplesize);
 	s_numchannels = MAX_CHANNELS;
 
-    s_underwater->modified = true;
-    s_underwater_gain_hf->modified = true;
-    lpf_initialize(&lpf_context, lpf_default_gain_hf, backend->speed);
+	s_underwater->modified = true;
+	s_underwater_gain_hf->modified = true;
+	lpf_initialize(&lpf_context, lpf_default_gain_hf, backend->speed);
 
 	SDL_UpdateScaletable();
 	SDL_PauseAudio(0);
@@ -1439,13 +1446,13 @@ void
 SDL_BackendShutdown(void)
 {
 	Com_Printf("Closing SDL audio device...\n");
-    SDL_PauseAudio(1);
-    SDL_CloseAudio();
-    SDL_QuitSubSystem(SDL_INIT_AUDIO);
-    free(backend->buffer);
-    backend->buffer = NULL;
-    playpos = samplesize = 0;
-    snd_inited = 0;
-    Com_Printf("SDL audio device shut down.\n");
+	SDL_PauseAudio(1);
+	SDL_CloseAudio();
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
+	free(backend->buffer);
+	backend->buffer = NULL;
+	playpos = samplesize = 0;
+	snd_inited = 0;
+	Com_Printf("SDL audio device shut down.\n");
 }
 
