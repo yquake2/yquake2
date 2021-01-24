@@ -105,7 +105,7 @@ cvar_t	*r_lockpvs;
 static cvar_t	*vk_polyblend;
 cvar_t	*r_modulate;
 cvar_t	*vk_shadows;
-static cvar_t	*vk_pixel_size;
+cvar_t	*vk_pixel_size;
 static cvar_t	*vk_particle_size;
 static cvar_t	*vk_particle_att_a;
 static cvar_t	*vk_particle_att_b;
@@ -1034,6 +1034,10 @@ qboolean RE_EndWorldRenderpass(void)
 		vk_viewport.x,
 		vk_viewport.y,
 		(vk_pixel_size->value < 1.0f ? 1.0f : vk_pixel_size->value),
+		r_newrefdef.x,
+		r_newrefdef.y,
+		r_newrefdef.width,
+		r_newrefdef.height,
 	};
 	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout,
 		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(pushConsts), pushConsts);
@@ -1112,55 +1116,6 @@ R_SetLightLevel (void)
 	}
 }
 
-static void R_CleanupBorders(void)
-{
-	float h_border, v_border;
-	float imgTransform[] = { .0f, .0f, .0f, .0f, .0f, .0f, .0f, 1.f };
-
-	// without any borders
-	if (vid.height == r_newrefdef.height && vid.width == r_newrefdef.width)
-	{
-		return;
-	}
-
-	// not in game
-	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
-	{
-		return;
-	}
-
-	h_border = (float)(vid.height - r_newrefdef.height) / vid.height / 2.0f;
-	v_border = (float)(vid.width - r_newrefdef.width) / vid.width / 2.0f;
-
-	// top
-	imgTransform[0] = 0.0f;
-	imgTransform[1] = 0.0f;
-	imgTransform[2] = 1.0f;
-	imgTransform[3] = h_border;
-	QVk_DrawColorRect(imgTransform, sizeof(imgTransform), RP_UI);
-
-	// bottom
-	imgTransform[0] = 0.0f;
-	imgTransform[1] = 1.0f - h_border;
-	imgTransform[2] = 1.0f;
-	imgTransform[3] = h_border;
-	QVk_DrawColorRect(imgTransform, sizeof(imgTransform), RP_UI);
-
-	// left
-	imgTransform[0] = 0.0f;
-	imgTransform[1] = h_border;
-	imgTransform[2] = v_border;
-	imgTransform[3] = 1.0f - (h_border * 2.0f);
-	QVk_DrawColorRect(imgTransform, sizeof(imgTransform), RP_UI);
-
-	// right
-	imgTransform[0] = 1.0f - v_border;
-	imgTransform[1] = h_border;
-	imgTransform[2] = v_border;
-	imgTransform[3] = 1.0f - (h_border * 2.0f);
-	QVk_DrawColorRect(imgTransform, sizeof(imgTransform), RP_UI);
-}
-
 /*
 =====================
 RE_RenderFrame
@@ -1173,8 +1128,6 @@ RE_RenderFrame (refdef_t *fd)
 	RE_RenderView( fd );
 	R_SetLightLevel ();
 	R_SetVulkan2D (&vk_viewport, &vk_scissor);
-
-	R_CleanupBorders();
 }
 
 

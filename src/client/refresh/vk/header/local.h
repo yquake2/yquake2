@@ -148,6 +148,7 @@ extern	cvar_t	*vk_sampleshading;
 extern	cvar_t	*vk_device_idx;
 extern	cvar_t	*vk_retexturing;
 extern	cvar_t	*vk_nolerp_list;
+extern	cvar_t	*vk_pixel_size;
 extern	cvar_t	*r_fixsurfsky;
 
 extern	cvar_t	*vid_fullscreen;

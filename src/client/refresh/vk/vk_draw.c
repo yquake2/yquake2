@@ -169,9 +169,6 @@ refresh window.
 */
 void RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 {
-	// This is handled in a special way in the Vulkan renderer. Clearing tiles
-	// are skipped and replaced by black bars during the UI render pass.
-#if 0
 	image_t	*image;
 
 	image = RE_Draw_FindPic(name);
@@ -181,12 +178,28 @@ void RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 		return;
 	}
 
-	float imgTransform[] = { (float)x / vid.width,  (float)y / vid.height,
-							 (float)w / vid.width,  (float)h / vid.height,
-							 (float)x / 64.0,		(float)y / 64.0,
-							 (float)w / 64.0,		(float)h / 64.0 };
+	// Change viewport and scissor to draw in the top left corner as the world view.
+	VkViewport tileViewport = vk_viewport;
+	VkRect2D tileScissor = vk_scissor;
+
+	tileViewport.x = 0.f;
+	tileViewport.y = 0.f;
+	tileScissor.offset.x = 0;
+	tileScissor.offset.y = 0;
+
+	vkCmdSetViewport(vk_activeCmdbuffer, 0u, 1u, &tileViewport);
+	vkCmdSetScissor(vk_activeCmdbuffer, 0u, 1u, &tileScissor);
+
+	const float divisor = (vk_pixel_size->value < 1.0f ? 1.0f : vk_pixel_size->value);
+	float imgTransform[] = { (float)x / (vid.width * divisor),	(float)y / (vid.height * divisor),
+							 (float)w / (vid.width * divisor),	(float)h / (vid.height * divisor),
+							 (float)x / (64.0 * divisor),		(float)y / (64.0 * divisor),
+							 (float)w / (64.0 * divisor),		(float)h / (64.0 * divisor) };
 	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &image->vk_texture);
-#endif
+
+	// Restore viewport and scissor.
+	vkCmdSetViewport(vk_activeCmdbuffer, 0u, 1u, &vk_viewport);
+	vkCmdSetScissor(vk_activeCmdbuffer, 0u, 1u, &vk_scissor);
 }
 
 

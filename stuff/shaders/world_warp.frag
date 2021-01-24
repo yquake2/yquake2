@@ -13,6 +13,10 @@ layout(push_constant) uniform PushConstant
 	layout(offset = 84) float offsetX;
 	layout(offset = 88) float offsetY;
 	layout(offset = 92) float pixelSize;
+	layout(offset = 96) float refdefX;
+	layout(offset = 100) float refdefY;
+	layout(offset = 104) float refdefWidth;
+	layout(offset = 108) float refdefHeight;
 } pc;
 
 layout(set = 0, binding = 0) uniform sampler2D sTexture;
@@ -27,7 +31,12 @@ void main()
 	vec2 fragCoord = (gl_FragCoord.xy - vec2(pc.offsetX, pc.offsetY));
 	vec2 uv = fragCoord / scrSize;
 
-	if (pc.time > 0)
+	float xMin = pc.refdefX;
+	float xMax = pc.refdefX + pc.refdefWidth;
+	float yMin = pc.refdefY;
+	float yMax = pc.refdefY + pc.refdefHeight;
+
+	if (pc.time > 0 && fragCoord.x > xMin && fragCoord.x < xMax && fragCoord.y > yMin && fragCoord.y < yMax)
 	{
 		float sx = pc.scale - abs(pc.scrWidth  / 2.0 - fragCoord.x) * 2.0 / pc.scrWidth;
 		float sy = pc.scale - abs(pc.scrHeight / 2.0 - fragCoord.y) * 2.0 / pc.scrHeight;
