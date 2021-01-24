@@ -24,12 +24,13 @@ layout(location = 0) out vec4 fragmentColor;
 void main()
 {
 	vec2 scrSize = vec2(pc.scrWidth, pc.scrHeight);
-	vec2 uv = (gl_FragCoord.xy - vec2(pc.offsetX, pc.offsetY)) / scrSize;
+	vec2 fragCoord = (gl_FragCoord.xy - vec2(pc.offsetX, pc.offsetY));
+	vec2 uv = fragCoord / scrSize;
 
 	if (pc.time > 0)
 	{
-		float sx = pc.scale - abs(pc.scrWidth  / 2.0 - gl_FragCoord.x) * 2.0 / pc.scrWidth;
-		float sy = pc.scale - abs(pc.scrHeight / 2.0 - gl_FragCoord.y) * 2.0 / pc.scrHeight;
+		float sx = pc.scale - abs(pc.scrWidth  / 2.0 - fragCoord.x) * 2.0 / pc.scrWidth;
+		float sy = pc.scale - abs(pc.scrHeight / 2.0 - fragCoord.y) * 2.0 / pc.scrHeight;
 		float xShift = 2.0 * pc.time + uv.y * PI * 10;
 		float yShift = 2.0 * pc.time + uv.x * PI * 10;
 		vec2 distortion = vec2(sin(xShift) * sx, sin(yShift) * sy) * 0.00666;
