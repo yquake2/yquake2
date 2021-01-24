@@ -287,8 +287,6 @@ typedef struct
 
 	VkPipeline current_pipeline;
 	qvkrenderpasstype_t current_renderpass;
-
-	qboolean refdef_changed;
 } vkstate_t;
 
 extern vkconfig_t  vk_config;

@@ -843,48 +843,6 @@ void Mat_Ortho(float *matrix, float left, float right, float bottom, float top,
 	Mat_Mul(proj, r_vulkan_correction, matrix);
 }
 
-static void Scale_Down_World_Scissor (VkRect2D* scissor)
-{
-	// When rendering the world, scale down scissor proportionally to vk_pixel_size.
-	const float divisor = (vk_pixel_size->value < 1.0f ? 1.0f : vk_pixel_size->value);
-	scissor->offset.x = (int32_t)floorf(scissor->offset.x / divisor);
-	scissor->offset.y = (int32_t)floorf(scissor->offset.y / divisor);
-	scissor->extent.width = (uint32_t)ceilf(scissor->extent.width / divisor);
-	scissor->extent.height = (uint32_t)ceilf(scissor->extent.height / divisor);
-}
-
-static void Clear_World_Frame (void)
-{
-	const VkRect2D clearScissor = {
-		.offset = { 0, 0 },
-		.extent = { vk_swapchain.extent.width, vk_swapchain.extent.height },
-	};
-
-	const VkViewport clearViewport = {
-		.x = 0.f,
-		.y = 0.f,
-		.width = vid.width,
-		.height = vid.height,
-		.minDepth = 0.f,
-		.maxDepth = 1.f,
-	};
-
-	vkCmdSetScissor(vk_activeCmdbuffer, 0u, 1u, &clearScissor);
-	vkCmdSetViewport(vk_activeCmdbuffer, 0u, 1u, &clearViewport);
-
-	float polyTransform[] = { 0.f, 0.f, vid.width, vid.height, 0.f, 0.f, 0.f, 1.f };
-	QVk_DrawColorRect(polyTransform, sizeof(polyTransform), RP_WORLD);
-
-	// Restore world scissor.
-	VkRect2D worldScissor = {
-		.offset = { r_newrefdef.x, r_newrefdef.y },
-		.extent = { r_newrefdef.width, r_newrefdef.height }
-	};
-
-	Scale_Down_World_Scissor(&worldScissor);
-	vkCmdSetScissor(vk_activeCmdbuffer, 0u, 1u, &worldScissor);
-}
-
 /*
 =============
 R_SetupVulkan
@@ -922,11 +880,6 @@ R_SetupVulkan (void)
 	// When rendering the world, reduce viewport size proportionally to vk_pixel_size.
 	if (vk_state.current_renderpass == RP_WORLD)
 	{
-		// If the refdef has changed, clear frame so old contents will not
-		// interfere with postprocessing effects.
-		if (vk_state.refdef_changed)
-			Clear_World_Frame();
-
 		const float divisor = (vk_pixel_size->value < 1.0f ? 1.0f : vk_pixel_size->value);
 		viewport.x /= divisor;
 		viewport.y /= divisor;
@@ -977,7 +930,6 @@ static void RE_RenderView (refdef_t *fd)
 	if (r_norefresh->value)
 		return;
 
-	vk_state.refdef_changed = (r_newrefdef.width != fd->width || r_newrefdef.height != fd->height);
 	r_newrefdef = *fd;
 
 	if (!r_worldmodel && !(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
@@ -996,7 +948,14 @@ static void RE_RenderView (refdef_t *fd)
 
 	// When rendering the world, scale down scissor proportionally to vk_pixel_size.
 	if (vk_state.current_renderpass == RP_WORLD)
-		Scale_Down_World_Scissor(&scissor);
+	{
+		// When rendering the world, scale down scissor proportionally to vk_pixel_size.
+		const float divisor = (vk_pixel_size->value < 1.0f ? 1.0f : vk_pixel_size->value);
+		scissor.offset.x = (int32_t)floorf(scissor.offset.x / divisor);
+		scissor.offset.y = (int32_t)floorf(scissor.offset.y / divisor);
+		scissor.extent.width = (uint32_t)ceilf(scissor.extent.width / divisor);
+		scissor.extent.height = (uint32_t)ceilf(scissor.extent.height / divisor);
+	}
 
 	vkCmdSetScissor(vk_activeCmdbuffer, 0, 1, &scissor);
 
