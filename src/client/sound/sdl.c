@@ -176,17 +176,8 @@ lpf_update_samples(LpfContext* lpf_context,int sample_count, portable_samplepair
 static void
 SDL_TransferPaintBuffer(int endtime)
 {
-	int i;
-	int lpos;
-	int ls_paintedtime;
-	int out_idx;
-	int count;
 	int out_mask;
-	int *p;
-	int snd_linear_count;
-	int step;
 	int val;
-	short *snd_out;
 	unsigned char *pbuf;
 
 	pbuf = sound.buffer;
@@ -208,11 +199,18 @@ SDL_TransferPaintBuffer(int endtime)
 
 	if ((sound.samplebits == 16) && (sound.channels == 2))
 	{
+		int ls_paintedtime;
+
 		snd_p = (int *)paintbuffer;
 		ls_paintedtime = paintedtime;
 
 		while (ls_paintedtime < endtime)
 		{
+			int i;
+			short *snd_out;
+			int snd_linear_count;
+			int lpos;
+
 			lpos = ls_paintedtime & ((sound.samples >> 1) - 1);
 
 			snd_out = (short *)pbuf + (lpos << 1);
@@ -265,6 +263,11 @@ SDL_TransferPaintBuffer(int endtime)
 	}
 	else
 	{
+		int count;
+		int step;
+		int *p;
+		int out_idx;
+
 		p = (int *)paintbuffer;
 		count = (endtime - paintedtime) * sound.channels;
 		out_mask = sound.samples - 1;
@@ -327,7 +330,6 @@ SDL_TransferPaintBuffer(int endtime)
 static void
 SDL_PaintChannelFrom8(channel_t *ch, sfxcache_t *sc, int count, int offset)
 {
-	int data;
 	int *lscale, *rscale;
 	unsigned char *sfx;
 	int i;
@@ -351,6 +353,8 @@ SDL_PaintChannelFrom8(channel_t *ch, sfxcache_t *sc, int count, int offset)
 
 	for (i = 0; i < count; i++, samp++)
 	{
+		int data;
+
 		data = sfx[i];
 		samp->left += lscale[data];
 		samp->right += rscale[data];
@@ -365,8 +369,6 @@ SDL_PaintChannelFrom8(channel_t *ch, sfxcache_t *sc, int count, int offset)
 static void
 SDL_PaintChannelFrom16(channel_t *ch, sfxcache_t *sc, int count, int offset)
 {
-	int data;
-	int left, right;
 	int leftvol, rightvol;
 	signed short *sfx;
 	int i;
@@ -380,6 +382,9 @@ SDL_PaintChannelFrom16(channel_t *ch, sfxcache_t *sc, int count, int offset)
 
 	for (i = 0; i < count; i++, samp++)
 	{
+		int data;
+		int left, right;
+
 		data = sfx[i];
 		left = (data * leftvol) >> 8;
 		right = (data * rightvol) >> 8;
@@ -398,7 +403,6 @@ static void
 SDL_PaintChannels(int endtime)
 {
 	int i;
-	int end;
 	channel_t *ch;
 	sfxcache_t *sc;
 	int ltime, count;
@@ -408,6 +412,8 @@ SDL_PaintChannels(int endtime)
 
 	while (paintedtime < endtime)
 	{
+		int end;
+
 		/* if paintbuffer is smaller than SDL buffer */
 		end = endtime;
 
@@ -526,13 +532,14 @@ SDL_PaintChannels(int endtime)
 		if (s_rawend >= paintedtime)
 		{
 			/* add from the streaming sound source */
-			int s;
 			int stop;
 
 			stop = (end < s_rawend) ? end : s_rawend;
 
 			for (i = paintedtime; i < stop; i++)
 			{
+				int s;
+
 				s = i & (MAX_RAW_SAMPLES - 1);
 				paintbuffer[i - paintedtime].left += s_rawsamples[s].left;
 				paintbuffer[i - paintedtime].right += s_rawsamples[s].right;
@@ -796,8 +803,6 @@ void
 SDL_ClearBuffer(void)
 {
 	int clear;
-	int i;
-	unsigned char *ptr = sound.buffer;
 
 	if (sound_started == SS_NOT)
 	{
@@ -819,6 +824,9 @@ SDL_ClearBuffer(void)
 
 	if (sound.buffer)
 	{
+		int i;
+		unsigned char *ptr = sound.buffer;
+
 		i = sound.samples * sound.samplebits / 8;
 
 		while (i--)
@@ -870,8 +878,7 @@ SDL_UpdateSoundtime(void)
 static void
 SDL_UpdateScaletable(void)
 {
-	int i, j;
-	int scale;
+	int i;
 
 	if (s_volume->value > 2.0f)
 	{
@@ -886,6 +893,8 @@ SDL_UpdateScaletable(void)
 
 	for (i = 0; i < 32; i++)
 	{
+		int j, scale;
+
 		scale = (int)(i * 8 * 256 * s_volume->value);
 
 		for (j = 0; j < 256; j++)
@@ -907,7 +916,6 @@ SDL_Cache(sfx_t *sfx, wavinfo_t *info, byte *data)
 	int i;
 	int len;
 	int sample;
-	int srcsample;
 	sfxcache_t *sc;
 	unsigned int samplefrac = 0;
 
@@ -959,6 +967,8 @@ SDL_Cache(sfx_t *sfx, wavinfo_t *info, byte *data)
 	/* resample / decimate to the current source rate */
 	for (i = 0; i < (int)(info->samples / stepscale); i++)
 	{
+		int srcsample;
+
 		srcsample = samplefrac >> 8;
 		samplefrac += (int)(stepscale * 256);
 
@@ -1090,7 +1100,6 @@ SDL_Update(void)
 	channel_t *ch;
 	int i;
 	int samps;
-	int total;
 	unsigned int endtime;
 
 	if (s_underwater->modified) {
@@ -1157,6 +1166,8 @@ SDL_Update(void)
 	/* debugging output */
 	if (s_show->value)
 	{
+		int total;
+
 		total = 0;
 		ch = channels;
 
@@ -1195,7 +1206,7 @@ SDL_Update(void)
 	/* check to make sure that we haven't overshot */
 	if (paintedtime < soundtime)
 	{
-		Com_DPrintf("S_Update_ : overflow\n");
+		Com_DPrintf("%s: overflow\n", __func__);
 		paintedtime = soundtime;
 	}
 

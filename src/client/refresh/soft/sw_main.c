@@ -1509,7 +1509,7 @@ RE_SetMode(void)
 			vid_fullscreen->modified = false;
 			R_Printf(PRINT_ALL, "%s() - fullscreen unavailable in this mode\n", __func__);
 
-			if ((err = SWimp_SetMode(&vid.width, &vid.height, r_mode->value, 0)) == rserr_ok)
+			if (SWimp_SetMode(&vid.width, &vid.height, r_mode->value, 0) == rserr_ok)
 			{
 				return true;
 			}

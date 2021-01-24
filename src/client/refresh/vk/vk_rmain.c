@@ -1019,7 +1019,7 @@ qboolean RE_EndWorldRenderpass(void)
 	float underwaterTime;
 	if (vk_underwater->value)
 	{
-		underwaterTime= r_newrefdef.rdflags & RDF_UNDERWATER ? r_newrefdef.time : 0.f;
+		underwaterTime = (r_newrefdef.rdflags & RDF_UNDERWATER) ? r_newrefdef.time : 0.f;
 	}
 	else
 	{

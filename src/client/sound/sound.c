@@ -447,7 +447,6 @@ S_RegisterSexedSound(entity_state_t *ent, char *base)
 	struct sfx_s *sfx;
 	char model[MAX_QPATH];
 	char sexedFilename[MAX_QPATH];
-	char maleFilename[MAX_QPATH];
 
 	/* determine what model the client is using */
 	model[0] = 0;
@@ -496,6 +495,8 @@ S_RegisterSexedSound(entity_state_t *ent, char *base)
 		}
 		else
 		{
+			char maleFilename[MAX_QPATH];
+
 			/* no, revert to the male sound in the pak0.pak */
 			Com_sprintf(maleFilename, sizeof(maleFilename),
 					"player/male/%s", base + 1);
@@ -977,11 +978,12 @@ void
 S_BuildSoundList(int *sounds)
 {
 	int i;
-	int num;
-	entity_state_t *ent;
 
 	for (i = 0; i < cl.frame.num_entities; i++)
 	{
+		int num;
+		entity_state_t *ent;
+
 		if (i >= MAX_EDICTS)
 		{
 			break;
@@ -1081,13 +1083,14 @@ static void
 S_Play(void)
 {
 	int i;
-	char name[256];
-	sfx_t *sfx;
 
 	i = 1;
 
 	while (i < Cmd_Argc())
 	{
+		char name[256];
+		sfx_t *sfx;
+
 		if (!strrchr(Cmd_Argv(i), '.'))
 		{
 			Q_strlcpy(name, Cmd_Argv(i), sizeof(name) - 4);
