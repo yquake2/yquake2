@@ -10,7 +10,9 @@ layout(push_constant) uniform PushConstant
 	layout(offset = 72) float scale;
 	layout(offset = 76) float scrWidth;
 	layout(offset = 80) float scrHeight;
-	layout(offset = 84) float pixelSize;
+	layout(offset = 84) float offsetX;
+	layout(offset = 88) float offsetY;
+	layout(offset = 92) float pixelSize;
 } pc;
 
 layout(set = 0, binding = 0) uniform sampler2D sTexture;
@@ -21,7 +23,8 @@ layout(location = 0) out vec4 fragmentColor;
 
 void main()
 {
-	vec2 uv = vec2(gl_FragCoord.x / pc.scrWidth, gl_FragCoord.y / pc.scrHeight);
+	vec2 scrSize = vec2(pc.scrWidth, pc.scrHeight);
+	vec2 uv = (gl_FragCoord.xy - vec2(pc.offsetX, pc.offsetY)) / scrSize;
 
 	if (pc.time > 0)
 	{
@@ -35,6 +38,8 @@ void main()
 	}
 
 	uv /= pc.pixelSize;
+
+	uv = clamp(uv * scrSize, vec2(0.0, 0.0), scrSize - vec2(0.5, 0.5));
 
 	fragmentColor = texture(sTexture, uv);
 }

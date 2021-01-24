@@ -169,6 +169,9 @@ refresh window.
 */
 void RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 {
+	// This is handled in a special way in the Vulkan renderer. Clearing tiles
+	// are skipped and replaced by black bars during the UI render pass.
+#if 0
 	image_t	*image;
 
 	image = RE_Draw_FindPic(name);
@@ -183,6 +186,7 @@ void RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 							 (float)x / 64.0,		(float)y / 64.0,
 							 (float)w / 64.0,		(float)h / 64.0 };
 	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &image->vk_texture);
+#endif
 }
 
 

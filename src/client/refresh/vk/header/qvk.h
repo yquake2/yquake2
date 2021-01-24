@@ -72,8 +72,11 @@ typedef enum
 	S_ANISO_LINEAR = 5,
 	S_ANISO_MIPMAP_NEAREST = 6,
 	S_ANISO_MIPMAP_LINEAR = 7,
-	S_SAMPLER_CNT = 8
+	S_NEAREST_UNNORMALIZED = 8,
+	S_SAMPLER_CNT = 9
 } qvksampler_t;
+
+#define NUM_SAMPLERS (S_SAMPLER_CNT * 2)
 
 // texture object
 typedef struct
