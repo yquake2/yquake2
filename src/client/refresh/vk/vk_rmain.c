@@ -949,7 +949,6 @@ static void RE_RenderView (refdef_t *fd)
 	// When rendering the world, scale down scissor proportionally to vk_pixel_size.
 	if (vk_state.current_renderpass == RP_WORLD)
 	{
-		// When rendering the world, scale down scissor proportionally to vk_pixel_size.
 		const float divisor = (vk_pixel_size->value < 1.0f ? 1.0f : vk_pixel_size->value);
 		scissor.offset.x = (int32_t)floorf(scissor.offset.x / divisor);
 		scissor.offset.y = (int32_t)floorf(scissor.offset.y / divisor);
