@@ -121,7 +121,16 @@ void Vk_ScreenShot_f (void)
 
 	buffer = malloc(buffSize);
 
-	QVk_ReadPixels(buffer, vid.width, vid.height);
+	VkExtent2D extent = {
+		.width = (uint32_t)(vid.width),
+		.height = (uint32_t)(vid.height),
+	};
+	VkOffset2D offset = {
+		.x = (int32_t)((vk_swapchain.extent.width - extent.width) / 2u),
+		.y = (int32_t)((vk_swapchain.extent.height - extent.height) / 2u),
+	};
+
+	QVk_ReadPixels(buffer, &offset, &extent);
 
 	// swap rgb to bgr
 	if (vk_swapchain.format == VK_FORMAT_R8G8B8A8_UNORM ||

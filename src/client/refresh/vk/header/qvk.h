@@ -72,8 +72,11 @@ typedef enum
 	S_ANISO_LINEAR = 5,
 	S_ANISO_MIPMAP_NEAREST = 6,
 	S_ANISO_MIPMAP_LINEAR = 7,
-	S_SAMPLER_CNT = 8
+	S_NEAREST_UNNORMALIZED = 8,
+	S_SAMPLER_CNT = 9
 } qvksampler_t;
+
+#define NUM_SAMPLERS (S_SAMPLER_CNT * 2)
 
 // texture object
 typedef struct
@@ -283,7 +286,7 @@ void		QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *col
 void		QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvksampler_t samplerType, qboolean clampToEdge);
 void		QVk_UpdateTextureData(qvktexture_t *texture, const unsigned char *data, uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height);
 VkSampler	QVk_UpdateTextureSampler(qvktexture_t *texture, qvksampler_t samplerType, qboolean clampToEdge);
-void		QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height);
+void		QVk_ReadPixels(uint8_t *dstBuffer, const VkOffset2D *offset, const VkExtent2D *extent);
 VkResult	QVk_BeginCommand(const VkCommandBuffer *commandBuffer);
 void		QVk_SubmitCommand(const VkCommandBuffer *commandBuffer, const VkQueue *queue);
 VkCommandBuffer QVk_CreateCommandBuffer(const VkCommandPool *commandPool, VkCommandBufferLevel level);

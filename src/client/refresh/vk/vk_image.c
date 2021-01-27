@@ -492,7 +492,7 @@ static void QVk_ReleaseTexture(qvktexture_t *texture)
 	texture->descriptorSet = VK_NULL_HANDLE;
 }
 
-void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
+void QVk_ReadPixels(uint8_t *dstBuffer, const VkOffset2D *offset, const VkExtent2D *extent)
 {
 	BufferResource_t buff;
 	uint8_t *pMappedData;
@@ -503,7 +503,7 @@ void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
 		.pNext = NULL,
 		.flags = 0,
-		.size = width * height * 4,
+		.size = extent->width * extent->height * 4,
 		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 		.queueFamilyIndexCount = 0,
@@ -537,14 +537,14 @@ void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 
 	VkBufferImageCopy region = {
 		.bufferOffset = 0,
-		.bufferRowLength = width,
-		.bufferImageHeight = height,
+		.bufferRowLength = extent->width,
+		.bufferImageHeight = extent->height,
 		.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
 		.imageSubresource.mipLevel = 0,
 		.imageSubresource.baseArrayLayer = 0,
 		.imageSubresource.layerCount = 1,
-		.imageOffset = { 0, 0, 0 },
-		.imageExtent = { width, height, 1 }
+		.imageOffset = { offset->x, offset->y, 0 },
+		.imageExtent = { extent->width, extent->height, 1 }
 	};
 
 	// copy the swapchain image
@@ -554,7 +554,7 @@ void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 
 	// store image in destination buffer
 	pMappedData = buffer_map(&buff);
-	memcpy(dstBuffer, pMappedData, width * height * 4);
+	memcpy(dstBuffer, pMappedData, extent->width * extent->height * 4);
 	buffer_unmap(&buff);
 
 	buffer_destroy(&buff);

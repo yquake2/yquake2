@@ -151,7 +151,7 @@ qvkpipeline_t vk_worldWarpPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_postprocessPipeline = QVKPIPELINE_INIT;
 
 // samplers
-static VkSampler vk_samplers[S_SAMPLER_CNT * 2];
+static VkSampler vk_samplers[NUM_SAMPLERS];
 
 // Vulkan function pointers
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
@@ -538,7 +538,7 @@ static VkResult CreateRenderpasses()
 			.flags = 0,
 			.format = vk_swapchain.format,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
-			.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
 			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -600,7 +600,7 @@ static VkResult CreateRenderpasses()
 			.flags = 0,
 			.format = vk_swapchain.format,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
-			.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
 			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -859,6 +859,21 @@ static void CreateSamplersHelper(VkSampler *samplers, VkSamplerAddressMode addre
 	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &samplers[S_NEAREST]));
 	QVk_DebugSetObjectName((uint64_t)samplers[S_NEAREST], VK_OBJECT_TYPE_SAMPLER, "Sampler: S_NEAREST");
 
+	{
+		VkSamplerCreateInfo nuSamplerInfo = samplerInfo;
+
+		// unnormalizedCoordinates set to VK_TRUE forces other parameters to have restricted values.
+		nuSamplerInfo.minLod = 0.f;
+		nuSamplerInfo.maxLod = 0.f;
+		nuSamplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		nuSamplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		nuSamplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		nuSamplerInfo.unnormalizedCoordinates = VK_TRUE;
+
+		VK_VERIFY(vkCreateSampler(vk_device.logical, &nuSamplerInfo, NULL, &samplers[S_NEAREST_UNNORMALIZED]));
+		QVk_DebugSetObjectName((uint64_t)samplers[S_NEAREST_UNNORMALIZED], VK_OBJECT_TYPE_SAMPLER, "Sampler: S_NEAREST_UNNORMALIZED");
+	}
+
 	samplerInfo.maxLod = FLT_MAX;
 	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &samplers[S_MIPMAP_NEAREST]));
 	QVk_DebugSetObjectName((uint64_t)samplers[S_MIPMAP_NEAREST], VK_OBJECT_TYPE_SAMPLER, "Sampler: S_MIPMAP_NEAREST");
@@ -915,7 +930,7 @@ static void CreateSamplers()
 static void DestroySamplers()
 {
 	int i;
-	for (i = 0; i < S_SAMPLER_CNT * 2; ++i)
+	for (i = 0; i < NUM_SAMPLERS; ++i)
 	{
 		if (vk_samplers[i] != VK_NULL_HANDLE)
 			vkDestroySampler(vk_device.logical, vk_samplers[i], NULL);
@@ -1793,8 +1808,8 @@ qboolean QVk_Init(SDL_Window *window)
 	R_Printf(PRINT_ALL, "...created Vulkan swapchain\n");
 
 	// set viewport and scissor
-	vk_viewport.x = 0.f;
-	vk_viewport.y = 0.f;
+	vk_viewport.x = (float)(vk_swapchain.extent.width - (uint32_t)(vid.width)) / 2.0f;
+	vk_viewport.y = (float)(vk_swapchain.extent.height - (uint32_t)(vid.height)) / 2.0f;
 	vk_viewport.minDepth = 0.f;
 	vk_viewport.maxDepth = 1.f;
 	vk_viewport.width = (float)vid.width;
@@ -1944,9 +1959,9 @@ qboolean QVk_Init(SDL_Window *window)
 	};
 
 	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &vk_colorbuffer.descriptorSet));
-	QVk_UpdateTextureSampler(&vk_colorbuffer, S_NEAREST, false);
+	QVk_UpdateTextureSampler(&vk_colorbuffer, S_NEAREST_UNNORMALIZED, false);
 	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &vk_colorbufferWarp.descriptorSet));
-	QVk_UpdateTextureSampler(&vk_colorbufferWarp, S_NEAREST, false);
+	QVk_UpdateTextureSampler(&vk_colorbufferWarp, S_NEAREST_UNNORMALIZED, false);
 
 	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.descriptorSet,
 		VK_OBJECT_TYPE_DESCRIPTOR_SET, "Descriptor Set: World Color Buffer");
@@ -2085,10 +2100,21 @@ VkResult QVk_EndFrame(qboolean force)
 
 void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 {
-	VkClearValue clearColors[3] = {
+	const VkClearValue clearColors[3] = {
 		{.color = {.float32 = { 1.f, .0f, .5f, 1.f } } },
 		{.depthStencil = { 1.f, 0 } },
 		{.color = {.float32 = { 1.f, .0f, .5f, 1.f } } },
+	};
+
+	const VkClearValue warpClearColors[2] = {
+		clearColors[0],
+		{.color = {.float32 = { 0.f, .0f, .0f, 1.f } } },
+	};
+
+	const VkClearValue uiClearColors[3] = {
+		clearColors[0],
+		clearColors[1],
+		{.color = {.float32 = { 0.f, .0f, .0f, 1.f } } },
 	};
 
 	VkRenderPassBeginInfo renderBeginInfo[] = {
@@ -2109,8 +2135,8 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 			.framebuffer = vk_framebuffers[RP_UI][vk_imageIndex],
 			.renderArea.offset = { 0, 0 },
 			.renderArea.extent = vk_swapchain.extent,
-			.clearValueCount = 2,
-			.pClearValues = clearColors
+			.clearValueCount = 3,
+			.pClearValues = uiClearColors
 		},
 		// RP_WORLD_WARP
 		{
@@ -2119,8 +2145,8 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 			.framebuffer = vk_framebuffers[RP_WORLD_WARP][vk_imageIndex],
 			.renderArea.offset = { 0, 0 },
 			.renderArea.extent = vk_swapchain.extent,
-			.clearValueCount = 1,
-			.pClearValues = clearColors
+			.clearValueCount = 2,
+			.pClearValues = warpClearColors
 		}
 	};
 
