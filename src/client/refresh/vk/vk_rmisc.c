@@ -224,7 +224,7 @@ void Vk_Strings_f(void)
 	R_Printf(PRINT_ALL, "   resolution: %dx%d", vid.width, vid.height);
 	if (msaa > 0)
 	{
-		R_Printf(PRINT_ALL, " (MSAAx%d)\n", 2 << (msaa - 1));
+		R_Printf(PRINT_ALL, " (MSAAx%d)\n", msaa);
 	}
 	else
 	{
