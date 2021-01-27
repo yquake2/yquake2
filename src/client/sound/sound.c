@@ -308,17 +308,18 @@ S_FindName(char *name, qboolean create)
 
 	if (!name)
 	{
-		Com_Error(ERR_FATAL, "S_FindName: NULL\n");
+		Com_Error(ERR_FATAL, "%s: NULL\n", __func__);
 	}
 
 	if (!name[0])
 	{
-		Com_Error(ERR_FATAL, "S_FindName: empty name\n");
+		Com_Error(ERR_FATAL, "%s: empty name\n", __func__);
 	}
 
 	if (strlen(name) >= MAX_QPATH)
 	{
-		Com_Error(ERR_FATAL, "Sound name too long: %s", name);
+		Com_Error(ERR_FATAL, "%s :Sound name too long: %s",
+			__func__, name);
 	}
 
 	/* see if already loaded */
@@ -348,7 +349,7 @@ S_FindName(char *name, qboolean create)
 	{
 		if (num_sfx == MAX_SFX)
 		{
-			Com_Error(ERR_FATAL, "S_FindName: out of sfx_t");
+			Com_Error(ERR_FATAL, "%s: out of sfx_t", __func__);
 		}
 
 		num_sfx++;
@@ -390,7 +391,7 @@ S_AliasName(char *aliasname, char *truename)
 	{
 		if (num_sfx == MAX_SFX)
 		{
-			Com_Error(ERR_FATAL, "S_FindName: out of sfx_t");
+			Com_Error(ERR_FATAL, "%s: out of sfx_t", __func__);
 		}
 
 		num_sfx++;
@@ -572,7 +573,7 @@ S_PickChannel(int entnum, int entchannel)
 
 	if (entchannel < 0)
 	{
-		Com_Error(ERR_DROP, "S_PickChannel: entchannel<0");
+		Com_Error(ERR_DROP, "%s: entchannel<0", __func__);
 	}
 
 	/* Check for replacement sound, or find the best one to replace */
@@ -920,7 +921,7 @@ S_StartLocalSound(char *sound)
 
 	if (!sfx)
 	{
-		Com_Printf("S_StartLocalSound: can't cache %s\n", sound);
+		Com_Printf("%s: can't cache %s\n", __func__, sound);
 		return;
 	}
 
