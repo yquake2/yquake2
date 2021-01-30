@@ -75,6 +75,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   If *cl_async* is set to `0` *vid_maxfps* is the same as *cl_maxfps*,
   use *cl_maxfps* to set the framerate.
 
+* **cl_limitsparksounds**: If set to `1` the number of sound generated
+  when shooting into power screen and power shields is limited to 16.
+  This works around global volume drops in some OpenAL implementations
+  if too many sounds are played at the same time. This was the default
+  behavior between Yamagi Quake II 7.10 and 7.45. Defaults to `0`.
+
 * **cl_loadpaused**: If set to `1` (the default) the client is put into
   pause mode during single player savegame load. This prevents monsters
   and the environment from hurting the player while the client is still

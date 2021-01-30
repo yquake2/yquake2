@@ -714,21 +714,32 @@ CL_ParseTEnt(void)
 				CL_ParticleEffect(pos, dir, 0xb0, 40);
 			}
 
-			num_power_sounds++;
-
-			/* If too many of these sounds are started in one frame (for
-			 * example if the player shoots with the super shotgun into
-			 * the power screen of a Brain) things get too loud and OpenAL
-			 * is forced to scale the volume of several other sounds and
-			 * the background music down. That leads to a noticable and
-			 * annoying drop in the overall volume.
-			 *
-			 * Work around that by limiting the number of sounds started.
-			 * 16 was choosen by empirical testing.
-			 */
-			if (sound_started == SS_OAL && num_power_sounds < 16)
+			if (cl_limitsparksounds->value)
 			{
-				S_StartSound(pos, 0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
+				num_power_sounds++;
+
+				/* If too many of these sounds are started in one frame
+				 * (for example if the player shoots with the super
+				 * shotgun into the power screen of a Brain) things get
+				 * too loud and OpenAL is forced to scale the volume of
+				 * several other sounds and the background music down.
+				 * That leads to a noticable and annoying drop in the
+				 * overall volume.
+				 *
+				 * Work around that by limiting the number of sounds
+				 * started.
+				 * 16 was choosen by empirical testing.
+				 *
+				 * This was fixed in openal-soft 0.19.0. We're keeping
+				 * the work around hidden behind a cvar and no longer
+				 * limited to OpenAL because a) some Linux distros may
+				 * still ship older openal-soft versions and b) some
+				 * player may like the changed behavior.
+				 */
+				if (num_power_sounds < 16)
+				{
+					S_StartSound(pos, 0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
+				}
 			}
 
 			break;
