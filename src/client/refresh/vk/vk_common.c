@@ -63,7 +63,7 @@ qvkrenderpass_t vk_renderpasses[RP_COUNT] = {
 	// RP_WORLD
 	{
 		.rp = VK_NULL_HANDLE,
-		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
 		.sampleCount = VK_SAMPLE_COUNT_1_BIT
 	},
 	// RP_UI
@@ -444,16 +444,16 @@ static VkResult CreateRenderpasses()
 	/*
 	 * world view setup
 	 */
+	// The color attachment is loaded from the previous frame and stored
+	// after the frame is drawn to mask geometry errors in the skybox
+	// that may leave some pixels without coverage.
 	VkAttachmentDescription worldAttachments[] = {
-		// color attachment
+		// Single-sample color attachment.
 		{
 			.flags = 0,
 			.format = vk_swapchain.format,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
-			// The color attachment is loaded from the previous frame and stored
-			// after the frame is drawn to mask geometry errors in the skybox
-			// that may leave some pixels without coverage.
-			.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+			.loadOp = (msaaEnabled ? VK_ATTACHMENT_LOAD_OP_DONT_CARE : VK_ATTACHMENT_LOAD_OP_LOAD),
 			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -472,16 +472,16 @@ static VkResult CreateRenderpasses()
 			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 			.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 		},
-		// MSAA resolve attachment
+		// MSAA attachment
 		{
 			.flags = 0,
 			.format = vk_swapchain.format,
 			.samples = vk_renderpasses[RP_WORLD].sampleCount,
-			.loadOp = msaaEnabled ? vk_renderpasses[RP_WORLD].colorLoadOp : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.loadOp = (msaaEnabled ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_DONT_CARE),
+			.storeOp = (msaaEnabled ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE),
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 			.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 		}
 	};
