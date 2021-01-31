@@ -27,13 +27,13 @@
 #include "../header/client.h"
 #include "header/local.h"
 
-byte *data_p;
-byte *iff_end;
-byte *last_chunk;
-byte *iff_data;
-int iff_chunk_len;
+static byte *data_p;
+static byte *iff_end;
+static byte *last_chunk;
+static byte *iff_data;
+static int iff_chunk_len;
 
-short
+static short
 GetLittleShort(void)
 {
 	short val = 0;
@@ -44,7 +44,7 @@ GetLittleShort(void)
 	return val;
 }
 
-int
+static int
 GetLittleLong(void)
 {
 	int val = 0;
@@ -57,7 +57,7 @@ GetLittleLong(void)
 	return val;
 }
 
-void
+static void
 FindNextChunk(char *name)
 {
 	while (1)
@@ -89,7 +89,7 @@ FindNextChunk(char *name)
 	}
 }
 
-void
+static void
 FindChunk(char *name)
 {
 	last_chunk = iff_data;
@@ -195,7 +195,8 @@ GetWavinfo(char *name, byte *wav, int wavlength)
 	{
 		if (samples < info.samples)
 		{
-			Com_Error(ERR_DROP, "Sound %s has a bad loop length", name);
+			Com_Error(ERR_DROP, "%s: Sound %s has a bad loop length",
+				__func__, name);
 		}
 	}
 	else

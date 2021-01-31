@@ -156,10 +156,10 @@ LPALDELETEFILTERS qalDeleteFilters;
 void QAL_SoundInfo()
 {
 	Com_Printf("OpenAL settings:\n");
-    Com_Printf("AL_VENDOR: %s\n", qalGetString(AL_VENDOR));
-    Com_Printf("AL_RENDERER: %s\n", qalGetString(AL_RENDERER));
-    Com_Printf("AL_VERSION: %s\n", qalGetString(AL_VERSION));
-    Com_Printf("AL_EXTENSIONS: %s\n", qalGetString(AL_EXTENSIONS));
+	Com_Printf("AL_VENDOR: %s\n", qalGetString(AL_VENDOR));
+	Com_Printf("AL_RENDERER: %s\n", qalGetString(AL_RENDERER));
+	Com_Printf("AL_VERSION: %s\n", qalGetString(AL_VERSION));
+	Com_Printf("AL_EXTENSIONS: %s\n", qalGetString(AL_EXTENSIONS));
 
 	if (qalcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT"))
 	{
@@ -262,18 +262,18 @@ QAL_RecoverLostDevice()
 void
 QAL_Shutdown()
 {
-    if (context)
-   	{
-        qalcMakeContextCurrent( NULL );
-        qalcDestroyContext( context );
-        context = NULL;
-    }
+	if (context)
+	{
+		qalcMakeContextCurrent( NULL );
+		qalcDestroyContext( context );
+		context = NULL;
+	}
 
 	if (device)
 	{
-        qalcCloseDevice( device );
-        device = NULL;
-    }
+		qalcCloseDevice( device );
+		device = NULL;
+	}
 
 	/* Disconnect function pointers used
 	   for OpenAL management calls */
@@ -510,7 +510,7 @@ QAL_Init()
 	qalDistanceModel = ALSYMBOL(handle, alDistanceModel);
 
 	/* Open the OpenAL device */
-    Com_Printf("...opening OpenAL device: ");
+	Com_Printf("...opening OpenAL device: ");
 
 	device = qalcOpenDevice(al_device->string[0] ? al_device->string : NULL);
 
@@ -547,17 +547,17 @@ QAL_Init()
 		return false;
 	}
 
-    if (qalcIsExtensionPresent(device, "ALC_EXT_EFX") != AL_FALSE) {
-        qalGenFilters = qalGetProcAddress("alGenFilters");
-        qalFilteri = qalGetProcAddress("alFilteri");
-        qalFilterf = qalGetProcAddress("alFilterf");
-        qalDeleteFilters = qalGetProcAddress("alDeleteFilters");
-    } else {
-        qalGenFilters = NULL;
-        qalFilteri = NULL;
-        qalFilterf = NULL;
-        qalDeleteFilters = NULL;
-    }
+	if (qalcIsExtensionPresent(device, "ALC_EXT_EFX") != AL_FALSE) {
+		qalGenFilters = qalGetProcAddress("alGenFilters");
+		qalFilteri = qalGetProcAddress("alFilteri");
+		qalFilterf = qalGetProcAddress("alFilterf");
+		qalDeleteFilters = qalGetProcAddress("alDeleteFilters");
+	} else {
+		qalGenFilters = NULL;
+		qalFilteri = NULL;
+		qalFilterf = NULL;
+		qalDeleteFilters = NULL;
+	}
 
 	Com_Printf("ok\n");
 

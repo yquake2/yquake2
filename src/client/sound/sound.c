@@ -58,8 +58,8 @@ vec3_t listener_forward;
 vec3_t listener_right;
 vec3_t listener_up;
 
-playsound_t s_playsounds[MAX_PLAYSOUNDS];
-playsound_t s_freeplays;
+static playsound_t s_playsounds[MAX_PLAYSOUNDS];
+static playsound_t s_freeplays;
 playsound_t s_pendingplays;
 
 cvar_t *s_volume;
@@ -75,14 +75,13 @@ cvar_t* s_doppler;
 cvar_t* s_ps_sorting;
 
 channel_t channels[MAX_CHANNELS];
-int num_sfx;
+static int num_sfx;
 int paintedtime;
 int s_numchannels;
 int s_rawend;
-int s_registration_sequence;
+static int s_registration_sequence = 0;
 portable_samplepair_t s_rawsamples[MAX_RAW_SAMPLES];
-qboolean snd_initialized = false;
-sfx_t known_sfx[MAX_SFX];
+static sfx_t known_sfx[MAX_SFX];
 sndstarted_t sound_started = SS_NOT;
 sound_t sound;
 static qboolean s_registering;
@@ -263,9 +262,9 @@ S_LoadSound(sfx_t *s)
 
 	info = GetWavinfo(s->name, data, size);
 
-	if (info.channels != 1)
+	if (info.channels < 1 || info.channels > 2)
 	{
-		Com_Printf("%s is a stereo sample\n", s->name);
+		Com_Printf("%s has an invalid number of channels\n", s->name);
 		FS_FreeFile(data);
 		return NULL;
 	}
@@ -301,7 +300,7 @@ S_LoadSound(sfx_t *s)
 /*
  * Returns the name of a sound
  */
-sfx_t *
+static sfx_t *
 S_FindName(char *name, qboolean create)
 {
 	int i;
@@ -309,17 +308,18 @@ S_FindName(char *name, qboolean create)
 
 	if (!name)
 	{
-		Com_Error(ERR_FATAL, "S_FindName: NULL\n");
+		Com_Error(ERR_FATAL, "%s: NULL\n", __func__);
 	}
 
 	if (!name[0])
 	{
-		Com_Error(ERR_FATAL, "S_FindName: empty name\n");
+		Com_Error(ERR_FATAL, "%s: empty name\n", __func__);
 	}
 
 	if (strlen(name) >= MAX_QPATH)
 	{
-		Com_Error(ERR_FATAL, "Sound name too long: %s", name);
+		Com_Error(ERR_FATAL, "%s :Sound name too long: %s",
+			__func__, name);
 	}
 
 	/* see if already loaded */
@@ -349,7 +349,7 @@ S_FindName(char *name, qboolean create)
 	{
 		if (num_sfx == MAX_SFX)
 		{
-			Com_Error(ERR_FATAL, "S_FindName: out of sfx_t");
+			Com_Error(ERR_FATAL, "%s: out of sfx_t", __func__);
 		}
 
 		num_sfx++;
@@ -368,7 +368,7 @@ S_FindName(char *name, qboolean create)
  * Registers an alias name
  * for a sound
  */
-sfx_t *
+static sfx_t *
 S_AliasName(char *aliasname, char *truename)
 {
 	sfx_t *sfx;
@@ -391,7 +391,7 @@ S_AliasName(char *aliasname, char *truename)
 	{
 		if (num_sfx == MAX_SFX)
 		{
-			Com_Error(ERR_FATAL, "S_FindName: out of sfx_t");
+			Com_Error(ERR_FATAL, "%s: out of sfx_t", __func__);
 		}
 
 		num_sfx++;
@@ -441,14 +441,13 @@ S_RegisterSound(char *name)
 	return sfx;
 }
 
-struct sfx_s *
+static struct sfx_s *
 S_RegisterSexedSound(entity_state_t *ent, char *base)
 {
 	int n;
 	struct sfx_s *sfx;
 	char model[MAX_QPATH];
 	char sexedFilename[MAX_QPATH];
-	char maleFilename[MAX_QPATH];
 
 	/* determine what model the client is using */
 	model[0] = 0;
@@ -497,6 +496,8 @@ S_RegisterSexedSound(entity_state_t *ent, char *base)
 		}
 		else
 		{
+			char maleFilename[MAX_QPATH];
+
 			/* no, revert to the male sound in the pak0.pak */
 			Com_sprintf(maleFilename, sizeof(maleFilename),
 					"player/male/%s", base + 1);
@@ -572,7 +573,7 @@ S_PickChannel(int entnum, int entchannel)
 
 	if (entchannel < 0)
 	{
-		Com_Error(ERR_DROP, "S_PickChannel: entchannel<0");
+		Com_Error(ERR_DROP, "%s: entchannel<0", __func__);
 	}
 
 	/* Check for replacement sound, or find the best one to replace */
@@ -627,7 +628,7 @@ S_PickChannel(int entnum, int entchannel)
 /*
  * Picks a free playsound
  */
-playsound_t *
+static playsound_t *
 S_AllocPlaysound(void)
 {
 	playsound_t *ps;
@@ -651,7 +652,7 @@ S_AllocPlaysound(void)
 /*
  * Frees a playsound
  */
-void
+static void
 S_FreePlaysound(playsound_t *ps)
 {
 	/* unlink from channel */
@@ -920,7 +921,7 @@ S_StartLocalSound(char *sound)
 
 	if (!sfx)
 	{
-		Com_Printf("S_StartLocalSound: can't cache %s\n", sound);
+		Com_Printf("%s: can't cache %s\n", __func__, sound);
 		return;
 	}
 
@@ -978,11 +979,12 @@ void
 S_BuildSoundList(int *sounds)
 {
 	int i;
-	int num;
-	entity_state_t *ent;
 
 	for (i = 0; i < cl.frame.num_entities; i++)
 	{
+		int num;
+		entity_state_t *ent;
+
 		if (i >= MAX_EDICTS)
 		{
 			break;
@@ -1078,17 +1080,18 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
  * Plays one sample. Called
  * by the "play" cmd.
  */
-void
+static void
 S_Play(void)
 {
 	int i;
-	char name[256];
-	sfx_t *sfx;
 
 	i = 1;
 
 	while (i < Cmd_Argc())
 	{
+		char name[256];
+		sfx_t *sfx;
+
 		if (!strrchr(Cmd_Argv(i), '.'))
 		{
 			Q_strlcpy(name, Cmd_Argv(i), sizeof(name) - 4);
@@ -1114,7 +1117,7 @@ S_Play(void)
 /*
  * List all loaded sounds
  */
-void
+static void
 S_SoundList(void)
 {
 	int i;
@@ -1139,9 +1142,10 @@ S_SoundList(void)
 		{
 			size = sc->length * sc->width * (sc->stereo + 1);
 			total += size;
-			Com_Printf("%s(%2db) %8i : %s\n",
+			Com_Printf("%s(%2db) %8i(%d ch) : %s\n",
 					sc->loopstart != -1 ? "L" : " ",
-					sc->width * 8, size, sfx->name);
+					sc->width * 8, size,
+					(sc->stereo + 1), sfx->name);
 		}
 		else
 		{
@@ -1168,7 +1172,7 @@ S_SoundList(void)
  * Prints information about the
  * active sound backend
  */
-void
+static void
 S_SoundInfo_f(void)
 {
 	if (sound_started == SS_NOT)
@@ -1216,8 +1220,8 @@ S_Init(void)
 	s_show = Cvar_Get("s_show", "0", 0);
 	s_testsound = Cvar_Get("s_testsound", "0", 0);
 	s_ambient = Cvar_Get("s_ambient", "1", 0);
-    s_underwater = Cvar_Get("s_underwater", "1", CVAR_ARCHIVE);
-    s_underwater_gain_hf = Cvar_Get("s_underwater_gain_hf", "0.25", CVAR_ARCHIVE);
+	s_underwater = Cvar_Get("s_underwater", "1", CVAR_ARCHIVE);
+	s_underwater_gain_hf = Cvar_Get("s_underwater_gain_hf", "0.25", CVAR_ARCHIVE);
 	s_doppler = Cvar_Get("s_doppler", "0", CVAR_ARCHIVE);
 	s_ps_sorting = Cvar_Get("s_ps_sorting", "1", CVAR_ARCHIVE);
 

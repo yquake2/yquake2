@@ -20,7 +20,7 @@
  * This file implements an interface to libvorbis for decoding
  * OGG/Vorbis files. Strongly spoken this file isn't part of the sound
  * system but part of the main client. It justs converts Vorbis streams
- * into normal, raw Wave stream which are injected into the backends as 
+ * into normal, raw Wave stream which are injected into the backends as
  * if they were normal "raw" samples. At this moment only background
  * music playback and in theory .cin movie file playback is supported.
  *
@@ -201,9 +201,8 @@ OGG_InitTrackList(void)
 			}
 
 			// the GOG case: music/Track02.ogg to Track21.ogg
-			int gogTrack = getMappedGOGtrack(8, gameType);
-
-			snprintf(testFileName, MAX_OSPATH, "%sTrack%02i.ogg", fullMusicPath, gogTrack);
+			snprintf(testFileName, MAX_OSPATH, "%sTrack%02i.ogg",
+				fullMusicPath, getMappedGOGtrack(8, gameType));
 
 			if(Sys_IsFile(testFileName))
 			{

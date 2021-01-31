@@ -54,7 +54,7 @@
 
 /* Globals */
 int active_buffers;
-qboolean streamPlaying;
+static qboolean streamPlaying;
 static ALuint s_srcnums[MAX_CHANNELS - 1];
 static ALuint streamSource;
 static int s_framecount;
@@ -127,6 +127,35 @@ AL_StreamUpdate(void)
 
 /* ----------------------------------------------------------------- */
 
+static ALenum
+AL_GetFormat(int width, int channels)
+{
+	if (width == 1)
+	{
+		if (channels == 1)
+		{
+			return AL_FORMAT_MONO8;
+		}
+		else if (channels == 2)
+		{
+			return AL_FORMAT_STEREO8;
+		}
+	}
+	else if (width == 2)
+	{
+		if (channels == 1)
+		{
+			return AL_FORMAT_MONO16;
+		}
+		else if (channels == 2)
+		{
+			return AL_FORMAT_STEREO16;
+		}
+	}
+
+	return AL_FORMAT_MONO8;
+}
+
 /*
  * Uploads a sample to OpenAL and places
  * a dummy entry in the frontends cache.
@@ -142,7 +171,9 @@ AL_UploadSfx(sfx_t *s, wavinfo_t *s_info, byte *data)
 	ALuint name;
 
 	size = s_info->samples * s_info->width;
-    format = s_info->width == 2 ? AL_FORMAT_MONO16 : AL_FORMAT_MONO8;
+
+	/* Work out format */
+	format = AL_GetFormat(s_info->width, s_info->channels);
 
 	if (!size)
 	{
@@ -166,6 +197,7 @@ AL_UploadSfx(sfx_t *s, wavinfo_t *s_info, byte *data)
 	sc->width = s_info->width;
 	sc->size = size;
 	sc->bufnum = name;
+	sc->stereo = s_info->channels - 1;
 
 	return sc;
 }
@@ -204,7 +236,7 @@ static void
 AL_Spatialize(channel_t *ch)
 {
 	vec3_t origin;
-  vec3_t velocity;
+	vec3_t velocity;
 
 	if ((ch->entnum == -1) || (ch->entnum == cl.playernum + 1) || !ch->dist_mult)
 	{
@@ -233,8 +265,6 @@ AL_Spatialize(channel_t *ch)
 
 		return;
 	}
-
-
 }
 
 /*
@@ -508,28 +538,7 @@ AL_RawSamples(int samples, int rate, int width, int channels,
 	ALuint format = 0;
 
 	/* Work out format */
-	if (width == 1)
-	{
-		if (channels == 1)
-		{
-			format = AL_FORMAT_MONO8;
-		}
-		else if (channels == 2)
-		{
-			format = AL_FORMAT_STEREO8;
-		}
-	}
-	else if (width == 2)
-	{
-		if (channels == 1)
-		{
-			format = AL_FORMAT_MONO16;
-		}
-		else if (channels == 2)
-		{
-			format = AL_FORMAT_STEREO16;
-		}
-	}
+	format = AL_GetFormat(width, channels);
 
 	/* Create a buffer, and stuff the data into it */
 	qalGenBuffers(1, &buffer);
@@ -537,7 +546,7 @@ AL_RawSamples(int samples, int rate, int width, int channels,
 			(samples * width * channels), rate);
 	active_buffers++;
 
-    /* set volume */
+	/* set volume */
 	if (volume > 1.0f)
 	{
 		volume = 1.0f;
@@ -563,47 +572,54 @@ AL_UnqueueRawSamples()
 	AL_StreamDie();
 }
 
-void oal_update_underwater()
+static void
+AL_UpdateUnderwater()
 {
-    int i;
-    float gain_hf;
-    qboolean update = false;
-    ALuint filter;
+	int i;
+	float gain_hf;
+	qboolean update = false;
+	ALuint filter;
 
-    if (underwaterFilter == 0)
-        return;
+	if (underwaterFilter == 0) {
+		return;
+	}
 
-    if (s_underwater->modified) {
-        update = true;
-        s_underwater->modified = false;
-        snd_is_underwater_enabled = ((int)s_underwater->value != 0);
-    }
+	if (s_underwater->modified) {
+		update = true;
+		s_underwater->modified = false;
+		snd_is_underwater_enabled = ((int)s_underwater->value != 0);
+	}
 
-    if (s_underwater_gain_hf->modified) {
-        update = true;
-        s_underwater_gain_hf->modified = false;
-    }
+	if (s_underwater_gain_hf->modified) {
+		update = true;
+		s_underwater_gain_hf->modified = false;
+	}
 
-    if (!update)
-        return;
+	if (!update) {
+		return;
+	}
 
-    gain_hf = s_underwater_gain_hf->value;
+	gain_hf = s_underwater_gain_hf->value;
 
-    if (gain_hf < AL_LOWPASS_MIN_GAINHF)
-        gain_hf = AL_LOWPASS_MIN_GAINHF;
+	if (gain_hf < AL_LOWPASS_MIN_GAINHF) {
+		gain_hf = AL_LOWPASS_MIN_GAINHF;
+	}
 
-    if (gain_hf > AL_LOWPASS_MAX_GAINHF)
-        gain_hf = AL_LOWPASS_MAX_GAINHF;
+	if (gain_hf > AL_LOWPASS_MAX_GAINHF) {
+		gain_hf = AL_LOWPASS_MAX_GAINHF;
+	}
 
-    qalFilterf(underwaterFilter, AL_LOWPASS_GAINHF, gain_hf);
+	qalFilterf(underwaterFilter, AL_LOWPASS_GAINHF, gain_hf);
 
-    if (snd_is_underwater_enabled && snd_is_underwater)
-        filter = underwaterFilter;
-    else
-        filter = 0;
+	if (snd_is_underwater_enabled && snd_is_underwater) {
+		filter = underwaterFilter;
+	} else {
+		filter = 0;
+	}
 
-    for (i = 0; i < s_numchannels; ++i)
-        qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, filter);
+	for (i = 0; i < s_numchannels; ++i) {
+		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, filter);
+	}
 }
 
 /*
@@ -626,7 +642,7 @@ AL_Update(void)
 	   Otherwise sound and game will become asynchronous and
 	   the paint buffer may overflow. */
 	if (!QAL_RecoverLostDevice()) {
-         return;
+		return;
 	}
 
 	/* set listener (player) parameters */
@@ -695,7 +711,7 @@ AL_Update(void)
 	AL_StreamUpdate();
 	AL_IssuePlaysounds();
 
-	oal_update_underwater();
+	AL_UpdateUnderwater();
 }
 
 /* ----------------------------------------------------------------- */
@@ -792,10 +808,10 @@ AL_InitUnderwaterFilter()
 		return;
 	}
 
-    qalFilterf(underwaterFilter, AL_LOWPASS_GAIN, AL_LOWPASS_DEFAULT_GAIN);
+	qalFilterf(underwaterFilter, AL_LOWPASS_GAIN, AL_LOWPASS_DEFAULT_GAIN);
 
-    s_underwater->modified = true;
-    s_underwater_gain_hf->modified = true;
+	s_underwater->modified = true;
+	s_underwater_gain_hf->modified = true;
 }
 
 /*

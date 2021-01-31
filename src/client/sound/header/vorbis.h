@@ -34,7 +34,7 @@ typedef enum
 
 void OGG_InitTrackList(void);
 void OGG_Init(void);
-void OGG_PlayTrack(int track);
+void OGG_PlayTrack(int trackNo);
 void OGG_RecoverState(void);
 void OGG_SaveState(void);
 void OGG_Shutdown(void);
