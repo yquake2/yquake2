@@ -230,7 +230,7 @@ extern VkRect2D vk_scissor;
 extern VkDescriptorSetLayout vk_samplerDescSetLayout;
 
 // *** pipelines ***
-extern qvkpipeline_t vk_drawTexQuadPipeline;
+extern qvkpipeline_t vk_drawTexQuadPipeline[RP_COUNT];
 extern qvkpipeline_t vk_drawColorQuadPipeline[RP_COUNT];
 extern qvkpipeline_t vk_drawModelPipelineStrip[RP_COUNT];
 extern qvkpipeline_t vk_drawModelPipelineFan[RP_COUNT];

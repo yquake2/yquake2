@@ -123,7 +123,8 @@ static int vk_activeStagingBuffer = 0;
 qboolean vk_frameStarted = false;
 
 // render pipelines
-qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawTexQuadPipeline[RP_COUNT]    = {
+	QVKPIPELINE_INIT, QVKPIPELINE_INIT, QVKPIPELINE_INIT };
 qvkpipeline_t vk_drawColorQuadPipeline[RP_COUNT]  = {
 	QVKPIPELINE_INIT, QVKPIPELINE_INIT, QVKPIPELINE_INIT };
 qvkpipeline_t vk_drawModelPipelineStrip[RP_COUNT] = {
@@ -1268,10 +1269,15 @@ static void CreatePipelines()
 
 	// textured quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic, basic);
-	vk_drawTexQuadPipeline.depthTestEnable = VK_FALSE;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRG_RG, &vk_drawTexQuadPipeline, &vk_renderpasses[RP_UI], shaders, 2);
-	QVk_DebugSetObjectName((uint64_t)vk_drawTexQuadPipeline.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: textured quad");
-	QVk_DebugSetObjectName((uint64_t)vk_drawTexQuadPipeline.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: textured quad");
+	for (int i = 0; i < RP_COUNT; ++i)
+	{
+		vk_drawTexQuadPipeline[i].depthTestEnable = VK_FALSE;
+		QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRG_RG, &vk_drawTexQuadPipeline[i], &vk_renderpasses[i], shaders, 2);
+		QVk_DebugSetObjectName((uint64_t)vk_drawTexQuadPipeline[i].layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT,
+			va("Pipeline Layout: textured quad (%s)", renderpassObjectNames[i]));
+		QVk_DebugSetObjectName((uint64_t)vk_drawTexQuadPipeline[i].pl, VK_OBJECT_TYPE_PIPELINE,
+			va("Pipeline: textured quad (%s)", renderpassObjectNames[i]));
+	}
 
 	// draw particles pipeline (using a texture)
 	VK_LOAD_VERTFRAG_SHADERS(shaders, particle, basic);
@@ -1499,8 +1505,8 @@ void QVk_Shutdown( void )
 			QVk_DestroyPipeline(&vk_drawColorQuadPipeline[i]);
 			QVk_DestroyPipeline(&vk_drawModelPipelineStrip[i]);
 			QVk_DestroyPipeline(&vk_drawModelPipelineFan[i]);
+			QVk_DestroyPipeline(&vk_drawTexQuadPipeline[i]);
 		}
-		QVk_DestroyPipeline(&vk_drawTexQuadPipeline);
 		QVk_DestroyPipeline(&vk_drawNullModelPipeline);
 		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineFan);
@@ -2469,16 +2475,16 @@ void QVk_DrawTexRect(const float *ubo, VkDeviceSize uboSize, qvktexture_t *textu
 	uint8_t *uboData = QVk_GetUniformBuffer(uboSize, &uboOffset, &uboDescriptorSet);
 	memcpy(uboData, ubo, uboSize);
 
-	QVk_BindPipeline(&vk_drawTexQuadPipeline);
+	QVk_BindPipeline(&vk_drawTexQuadPipeline[vk_state.current_renderpass]);
 	VkDeviceSize offsets = 0;
 	VkDescriptorSet descriptorSets[] = { texture->descriptorSet, uboDescriptorSet };
 
 	float gamma = 2.1F - vid_gamma->value;
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout,
 		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1,
 		&vk_texRectVbo.resource.buffer, &offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer,
