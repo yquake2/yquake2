@@ -2285,6 +2285,21 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 
 	R_Printf(PRINT_ALL, " %dx%d (vid_fullscreen %i)\n", *pwidth, *pheight, fullscreen);
 
+	if (fullscreen == 1)
+	{
+		int real_height, real_width;
+
+		if(ri.GLimp_GetDesktopMode(&real_width, &real_height))
+		{
+			if (real_height)
+			{
+				*pwidth = (*pheight) * real_width / real_height;
+			}
+		}
+
+		R_Printf(PRINT_ALL, " Used corrected %dx%d mode\n", *pwidth, *pheight);
+	}
+
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
 	{
 		// failed to set a valid mode in windowed mode
