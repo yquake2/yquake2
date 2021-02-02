@@ -177,7 +177,9 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 		(x + w > vid.width) ||
 		(y + h > vid.height))
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: bad coordinates", __func__);
+		R_Printf(PRINT_ALL, "%s: bad coordinates %dx%d[%dx%d]",
+			__func__, x, y, w, h);
+		return;
 	}
 
 	VID_DamageBuffer(x, y);

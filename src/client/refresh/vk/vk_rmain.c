@@ -355,8 +355,9 @@ void R_DrawEntitiesOnList (void)
 				R_DrawSpriteModel(currententity, currentmodel);
 				break;
 			default:
-				ri.Sys_Error(ERR_DROP, "%s, Bad modeltype", __func__);
-				break;
+				R_Printf(PRINT_ALL, "%s: Bad modeltype %d\n",
+					__func__, currentmodel->type);
+				return;
 			}
 		}
 	}
@@ -394,8 +395,9 @@ void R_DrawEntitiesOnList (void)
 				R_DrawSpriteModel(currententity, currentmodel);
 				break;
 			default:
-				ri.Sys_Error(ERR_DROP, "%s, Bad modeltype", __func__);
-				break;
+				R_Printf(PRINT_ALL, "%s: Bad modeltype %d\n",
+					__func__, currentmodel->type);
+				return;
 			}
 		}
 	}

@@ -855,8 +855,13 @@ R_DrawEntitiesOnList (void)
 				R_AliasDrawModel(currententity, currentmodel);
 				break;
 
-			default:
+			case mod_brush:
 				break;
+
+			default:
+				R_Printf(PRINT_ALL, "%s: Bad modeltype %d\n",
+					__func__, currentmodel->type);
+				return;
 			}
 		}
 	}
@@ -900,8 +905,13 @@ R_DrawEntitiesOnList (void)
 				R_AliasDrawModel(currententity, currentmodel);
 				break;
 
-			default:
+			case mod_brush:
 				break;
+
+			default:
+				R_Printf(PRINT_ALL, "%s: Bad modeltype %d\n",
+					__func__, currentmodel->type);
+				return;
 			}
 		}
 	}
@@ -1453,7 +1463,8 @@ RE_BeginFrame( float camera_separation )
 		// we need redraw everything
 		VID_WholeDamageBuffer();
 		// and backbuffer should be zeroed
-		memset(swap_buffers + ((swap_current + 1)&1), 0, vid.height * vid.width * sizeof(pixel_t));
+		memset(swap_buffers + ((swap_current + 1)&1), 0,
+			vid.height * vid.width * sizeof(pixel_t));
 
 		vid_gamma->modified = false;
 		sw_overbrightbits->modified = false;
@@ -2140,7 +2151,8 @@ RE_CleanFrame(void)
 	int pitch;
 	Uint32 *pixels;
 
-	memset(swap_buffers, 0, vid.height * vid.width * sizeof(pixel_t) * 2);
+	memset(swap_buffers, 0,
+		vid.height * vid.width * sizeof(pixel_t) * 2);
 
 	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
 	{
@@ -2291,9 +2303,9 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 
 		if(ri.GLimp_GetDesktopMode(&real_width, &real_height))
 		{
-			if (real_height)
+			if (real_height && (real_height != *pheight))
 			{
-				*pwidth = (*pheight) * real_width / real_height;
+				*pwidth = ((*pheight) * real_width) / real_height;
 			}
 		}
 
