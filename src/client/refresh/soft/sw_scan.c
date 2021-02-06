@@ -62,7 +62,7 @@ D_WarpScreen (void)
 			int v2;
 
 			v2 = (int)((float)v/(h + AMP2 * 2) * r_refdef.vrect.height);
-			warp_rowptr[v] = r_warpbuffer + (vid.width * v2);
+			warp_rowptr[v] = r_warpbuffer + (vid_buffer_width * v2);
 		}
 
 		for (u=0 ; u<w+AMP2*2 ; u++)
@@ -75,9 +75,9 @@ D_WarpScreen (void)
 	}
 
 	turb = intsintable + ((int)(r_newrefdef.time*SPEED)&(CYCLE-1));
-	dest = vid_buffer + r_newrefdef.y * vid.width + r_newrefdef.x;
+	dest = vid_buffer + r_newrefdef.y * vid_buffer_width + r_newrefdef.x;
 
-	for (v=0 ; v<h ; v++, dest += vid.width)
+	for (v=0 ; v<h ; v++, dest += vid_buffer_width)
 	{
 		int *col;
 
@@ -127,7 +127,7 @@ D_DrawSpanGetStep(float d_zistepu, float d_zistepv)
 			}
 
 		}
-		while (spanzshift_value < vid.width);
+		while (spanzshift_value < vid_buffer_width);
 	}
 	return spanzshift;
 }
@@ -146,7 +146,7 @@ D_DrawZSpanGetStepValue(zvalue_t izistep)
 	// (both ends have same z value)
 	int	count = 1;
 
-	while ((izistep * count) >> SHIFT16XYZ == 0 && count < vid.width)
+	while ((izistep * count) >> SHIFT16XYZ == 0 && count < vid_buffer_width)
 	{
 		count <<= 1;
 	}
@@ -209,7 +209,7 @@ TurbulentPow2 (espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zistep
 		float sdivz, tdivz, zi, z, du, dv;
 		pixel_t	*r_turb_pdest;
 
-		r_turb_pdest = d_viewbuffer + (vid.width * pspan->v) + pspan->u;
+		r_turb_pdest = d_viewbuffer + (vid_buffer_width * pspan->v) + pspan->u;
 
 		count = pspan->count;
 
@@ -363,7 +363,7 @@ NonTurbulentPow2 (espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zis
 		float sdivz, tdivz, zi, z, dv, du;
 		pixel_t	*r_turb_pdest;
 
-		r_turb_pdest = d_viewbuffer + (vid.width * pspan->v) + pspan->u;
+		r_turb_pdest = d_viewbuffer + (vid_buffer_width * pspan->v) + pspan->u;
 
 		count = pspan->count;
 
@@ -616,7 +616,7 @@ D_DrawSpansPow2 (espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zist
 		int	count, s, t;
 		float	sdivz, tdivz, zi, z, du, dv;
 
-		pdest = d_viewbuffer + (vid.width * pspan->v) + pspan->u;
+		pdest = d_viewbuffer + (vid_buffer_width * pspan->v) + pspan->u;
 
 		count = pspan->count;
 
@@ -769,7 +769,7 @@ D_DrawZSpans (espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zistepv
 		VID_DamageZBuffer(pspan->u, pspan->v);
 		VID_DamageZBuffer(pspan->u + pspan->count, pspan->v);
 
-		pdest = d_pzbuffer + (vid.width * pspan->v) + pspan->u;
+		pdest = d_pzbuffer + (vid_buffer_width * pspan->v) + pspan->u;
 
 		count = pspan->count;
 

@@ -454,7 +454,7 @@ R_PolysetDrawSpans8_33(const entity_t *currententity, spanpackage_t *pspanpackag
 
 		if (lcount > 0)
 		{
-			int	pos_shift = (pspanpackage->v * vid.width) + pspanpackage->u;
+			int	pos_shift = (pspanpackage->v * vid_buffer_width) + pspanpackage->u;
 
 			lpdest = d_viewbuffer + pos_shift;
 			lpz = d_pzbuffer + pos_shift;
@@ -518,7 +518,7 @@ R_PolysetDrawSpansConstant8_33(const entity_t *currententity, spanpackage_t *psp
 
 		if (lcount > 0)
 		{
-			int	pos_shift = (pspanpackage->v * vid.width) + pspanpackage->u;
+			int	pos_shift = (pspanpackage->v * vid_buffer_width) + pspanpackage->u;
 
 			lpdest = d_viewbuffer + pos_shift;
 			lpz = d_pzbuffer + pos_shift;
@@ -568,7 +568,7 @@ R_PolysetDrawSpans8_66(const entity_t *currententity, spanpackage_t *pspanpackag
 
 		if (lcount > 0)
 		{
-			int	pos_shift = (pspanpackage->v * vid.width) + pspanpackage->u;
+			int	pos_shift = (pspanpackage->v * vid_buffer_width) + pspanpackage->u;
 			qboolean	zdamaged = false;
 
 			lpdest = d_viewbuffer + pos_shift;
@@ -644,7 +644,7 @@ R_PolysetDrawSpansConstant8_66(const entity_t *currententity, spanpackage_t *psp
 
 		if (lcount > 0)
 		{
-			int	pos_shift = (pspanpackage->v * vid.width) + pspanpackage->u;
+			int	pos_shift = (pspanpackage->v * vid_buffer_width) + pspanpackage->u;
 			qboolean	zdamaged = false;
 
 			lpdest = d_viewbuffer + pos_shift;
@@ -703,7 +703,7 @@ R_PolysetDrawSpans8_Opaque (const entity_t *currententity, spanpackage_t *pspanp
 			int		llight;
 			zvalue_t	lzi;
 			zvalue_t	*lpz;
-			int		pos_shift = (pspanpackage->v * vid.width) + pspanpackage->u;
+			int		pos_shift = (pspanpackage->v * vid_buffer_width) + pspanpackage->u;
 			qboolean	zdamaged = false;
 
 			lpdest = d_viewbuffer + pos_shift;

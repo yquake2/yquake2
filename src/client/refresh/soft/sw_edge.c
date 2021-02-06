@@ -766,7 +766,7 @@ D_FlatFillSurface (surf_t *surf, pixel_t color)
 	{
 		pixel_t   *pdest;
 
-		pdest = d_viewbuffer + vid.width*span->v + span->u;
+		pdest = d_viewbuffer + vid_buffer_width*span->v + span->u;
 		memset(pdest,  color&0xFF, span->count * sizeof(pixel_t));
 	}
 }

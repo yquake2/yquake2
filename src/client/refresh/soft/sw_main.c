@@ -250,9 +250,9 @@ VID_DamageZBuffer(int u, int v)
 static void
 VID_NoDamageZBuffer(void)
 {
-	vid_zminu = vid.width;
+	vid_zminu = vid_buffer_width;
 	vid_zmaxu = 0;
-	vid_zminv = vid.height;
+	vid_zminv = vid_buffer_height;
 	vid_zmaxv = 0;
 }
 
@@ -284,9 +284,9 @@ static void
 VID_WholeDamageZBuffer(void)
 {
 	vid_zminu = 0;
-	vid_zmaxu = vid.width;
+	vid_zmaxu = vid_buffer_width;
 	vid_zminv = 0;
-	vid_zmaxv = vid.height;
+	vid_zmaxv = vid_buffer_height;
 }
 
 /*
@@ -323,9 +323,9 @@ VID_DamageBuffer(int u, int v)
 static void
 VID_NoDamageBuffer(void)
 {
-	vid_minu = vid.width;
+	vid_minu = vid_buffer_width;
 	vid_maxu = 0;
-	vid_minv = vid.height;
+	vid_minv = vid_buffer_height;
 	vid_maxv = 0;
 }
 
@@ -334,9 +334,9 @@ static void
 VID_WholeDamageBuffer(void)
 {
 	vid_minu = 0;
-	vid_maxu = vid.width;
+	vid_maxu = vid_buffer_width;
 	vid_minv = 0;
-	vid_maxv = vid.height;
+	vid_maxv = vid_buffer_height;
 }
 
 /*
@@ -714,8 +714,8 @@ R_ReallocateMapBuffers (void)
 		}
 
 		// used up to 8 * width spans for render, allocate once  before use
-		if (r_numallocatededgebasespans < vid.width * 8)
-			r_numallocatededgebasespans = vid.width * 8;
+		if (r_numallocatededgebasespans < vid_buffer_width * 8)
+			r_numallocatededgebasespans = vid_buffer_width * 8;
 
 		edge_basespans  = malloc(r_numallocatededgebasespans * sizeof(espan_t));
 		if (!edge_basespans)
@@ -1311,7 +1311,7 @@ RE_RenderFrame (refdef_t *fd)
 	VectorCopy (fd->viewangles, r_refdef.viewangles);
 
 	// compare current position with old
-	if (vid.width <= 640 ||
+	if (vid_buffer_width <= 640 ||
 	    !VectorCompareRound(fd->vieworg, lastvieworg) ||
 	    !VectorCompare(fd->viewangles, lastviewangles))
 	{
@@ -1461,7 +1461,7 @@ RE_BeginFrame( float camera_separation )
 		VID_WholeDamageBuffer();
 		// and backbuffer should be zeroed
 		memset(swap_buffers + ((swap_current + 1)&1), 0,
-			vid.height * vid.width * sizeof(pixel_t));
+			vid_buffer_height * vid_buffer_width * sizeof(pixel_t));
 
 		vid_gamma->modified = false;
 		sw_overbrightbits->modified = false;
@@ -1891,6 +1891,9 @@ static SDL_Window	*window = NULL;
 static SDL_Texture	*texture = NULL;
 static SDL_Renderer	*renderer = NULL;
 
+int vid_buffer_height = 0;
+int vid_buffer_width = 0;
+
 static int
 RE_InitContext(void *win)
 {
@@ -1927,6 +1930,9 @@ RE_InitContext(void *win)
 	   This will show the new, black contents of the window. */
 	SDL_RenderPresent(renderer);
 
+	vid_buffer_height = vid.height;
+	vid_buffer_width = vid.width;
+
 	texture = SDL_CreateTexture(renderer,
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 				    SDL_PIXELFORMAT_BGRA8888,
@@ -1934,10 +1940,10 @@ RE_InitContext(void *win)
 				    SDL_PIXELFORMAT_ARGB8888,
 #endif
 				    SDL_TEXTUREACCESS_STREAMING,
-				    vid.width, vid.height);
+				    vid_buffer_width, vid_buffer_height);
 
-	R_InitGraphics(vid.width, vid.height);
-	SWimp_CreateRender(vid.width, vid.height);
+	R_InitGraphics(vid_buffer_width, vid_buffer_height);
+	SWimp_CreateRender(vid_buffer_width, vid_buffer_height);
 
 	return true;
 }
@@ -2069,7 +2075,7 @@ RE_CopyFrame (Uint32 * pixels, int pitch, int vmin, int vmax)
 	Uint32 *sdl_palette = (Uint32 *)sw_state.currentpalette;
 
 	// no gaps between images rows
-	if (pitch == vid.width)
+	if (pitch == vid_buffer_width)
 	{
 		const Uint32	*max_pixels;
 		Uint32	*pixels_pos;
@@ -2091,19 +2097,19 @@ RE_CopyFrame (Uint32 * pixels, int pitch, int vmin, int vmax)
 	{
 		int y,x, buffer_pos, ymin, ymax;
 
-		ymin = vmin / vid.width;
-		ymax = vmax / vid.width;
+		ymin = vmin / vid_buffer_width;
+		ymax = vmax / vid_buffer_width;
 
-		buffer_pos = ymin * vid.width;
+		buffer_pos = ymin * vid_buffer_width;
 		pixels += ymin * pitch;
 		for (y=ymin; y < ymax;  y++)
 		{
-			for (x=0; x < vid.width; x ++)
+			for (x=0; x < vid_buffer_width; x ++)
 			{
 				pixels[x] = sdl_palette[vid_buffer[buffer_pos + x]];
 			}
 			pixels += pitch;
-			buffer_pos += vid.width;
+			buffer_pos += vid_buffer_width;
 		}
 	}
 }
@@ -2148,7 +2154,7 @@ RE_CleanFrame(void)
 	Uint32 *pixels;
 
 	memset(swap_buffers, 0,
-		vid.height * vid.width * sizeof(pixel_t) * 2);
+		vid_buffer_height * vid_buffer_width * sizeof(pixel_t) * 2);
 
 	if (SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch))
 	{
@@ -2157,7 +2163,7 @@ RE_CleanFrame(void)
 	}
 
 	// only cleanup texture without flush texture to screen
-	memset(pixels, 0, pitch * vid.height);
+	memset(pixels, 0, pitch * vid_buffer_height);
 	SDL_UnlockTexture(texture);
 
 	// All changes flushed
@@ -2183,12 +2189,12 @@ RE_FlushFrame(int vmin, int vmax)
 	{
 		// On MacOS texture is cleaned up after render,
 		// code have to copy a whole screen to the texture
-		RE_CopyFrame (pixels, pitch / sizeof(Uint32), 0, vid.height * vid.width);
+		RE_CopyFrame (pixels, pitch / sizeof(Uint32), 0, vid_buffer_height * vid_buffer_width);
 	}
 
 	if (((int)sw_texture_filtering->value & 0x01) && !fastmoving)
 	{
-		SmoothColorImage(pixels + vmin, vmax - vmin, vid.width >> 7);
+		SmoothColorImage(pixels + vmin, vmax - vmin, vid_buffer_width >> 7);
 	}
 
 	SDL_UnlockTexture(texture);
@@ -2224,22 +2230,22 @@ RE_EndFrame (void)
 	{
 		vid_minv = 0;
 	}
-	if (vid_maxu > vid.width)
+	if (vid_maxu > vid_buffer_width)
 	{
-		vid_maxu = vid.width;
+		vid_maxu = vid_buffer_width;
 	}
-	if (vid_maxv > vid.height)
+	if (vid_maxv > vid_buffer_height)
 	{
-		vid_maxv = vid.height;
+		vid_maxv = vid_buffer_height;
 	}
 
-	vmin = vid_minu + vid_minv  * vid.width;
-	vmax = vid_maxu + vid_maxv  * vid.width;
+	vmin = vid_minu + vid_minv  * vid_buffer_width;
+	vmax = vid_maxu + vid_maxv  * vid_buffer_width;
 
 	// fix to correct limit
-	if (vmax > (vid.height * vid.width))
+	if (vmax > (vid_buffer_height * vid_buffer_width))
 	{
-		vmax = vid.height * vid.width;
+		vmax = vid_buffer_height * vid_buffer_width;
 	}
 
 	// if palette changed need to flush whole buffer
@@ -2256,9 +2262,9 @@ RE_EndFrame (void)
 
 		// search difference end
 		vmax = RE_BufferDifferenceEnd(vmin, vmax);
-		if (vmax > (vid.height * vid.width))
+		if (vmax > (vid_buffer_height * vid_buffer_width))
 		{
-			vmax = vid.height * vid.width;
+			vmax = vid_buffer_height * vid_buffer_width;
 		}
 	}
 
@@ -2436,26 +2442,26 @@ static void
 R_ScreenShot_f(void)
 {
 	int x, y;
-	byte *buffer = malloc(vid.width * vid.height * 3);
+	byte *buffer = malloc(vid_buffer_width * vid_buffer_height * 3);
 	const unsigned char *palette = sw_state.currentpalette;
 
 	if (!buffer)
 	{
-		R_Printf(PRINT_ALL, "R_ScreenShot: Couldn't malloc %d bytes\n", vid.width * vid.height * 3);
+		R_Printf(PRINT_ALL, "R_ScreenShot: Couldn't malloc %d bytes\n", vid_buffer_width * vid_buffer_height * 3);
 		return;
 	}
 
-	for (x=0; x < vid.width; x ++)
+	for (x=0; x < vid_buffer_width; x ++)
 	{
-		for (y=0; y < vid.height; y ++) {
-			int buffer_pos = y * vid.width + x;
+		for (y=0; y < vid_buffer_height; y ++) {
+			int buffer_pos = y * vid_buffer_width + x;
 			buffer[buffer_pos * 3 + 0] = palette[vid_buffer[buffer_pos] * 4 + 2]; // red
 			buffer[buffer_pos * 3 + 1] = palette[vid_buffer[buffer_pos] * 4 + 1]; // green
 			buffer[buffer_pos * 3 + 2] = palette[vid_buffer[buffer_pos] * 4 + 0]; // blue
 		}
 	}
 
-	ri.Vid_WriteScreenshot(vid.width, vid.height, 3, buffer);
+	ri.Vid_WriteScreenshot(vid_buffer_width, vid_buffer_height, 3, buffer);
 
 	free(buffer);
 }

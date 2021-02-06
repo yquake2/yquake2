@@ -95,7 +95,7 @@ RE_Draw_CharScaled(int x, int y, int c, float scale)
 	if (y <= -8)
 		return;	// totally off screen
 
-	if ( ( y + 8 ) > vid.height )	// status text was missing in sw...
+	if ( ( y + 8 ) > vid_buffer_height )	// status text was missing in sw...
 		return;
 
 	row = c>>4;
@@ -111,12 +111,12 @@ RE_Draw_CharScaled(int x, int y, int c, float scale)
 	else
 		drawline = 8;
 
-	dest = vid_buffer + y * vid.width + x;
+	dest = vid_buffer + y * vid_buffer_width + x;
 
 	// clipped last lines
-	if ((y + iscale * (drawline + 1)) > vid.height)
+	if ((y + iscale * (drawline + 1)) > vid_buffer_height)
 	{
-		drawline = (vid.height - y) / iscale;
+		drawline = (vid_buffer_height - y) / iscale;
 	}
 
 	VID_DamageBuffer(x, y);
@@ -134,7 +134,7 @@ RE_Draw_CharScaled(int x, int y, int c, float scale)
 						dest[u * iscale + xpos] = source[u];
 					}
 			}
-			dest += vid.width;
+			dest += vid_buffer_width;
 		}
 		source += 128;
 	}
@@ -174,8 +174,8 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 	int		skip;
 
 	if ((x < 0) ||
-		(x + w > vid.width) ||
-		(y + h > vid.height))
+		(x + w > vid_buffer_width) ||
+		(y + h > vid_buffer_height))
 	{
 		R_Printf(PRINT_ALL, "%s: bad coordinates %dx%d[%dx%d]",
 			__func__, x, y, w, h);
@@ -195,13 +195,13 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 	else
 		skip = 0;
 
-	dest = vid_buffer + y * vid.width + x;
+	dest = vid_buffer + y * vid_buffer_width + x;
 
 	if (w == pic->width)
 	{
 		int v;
 
-		for (v=0 ; v<height ; v++, dest += vid.width)
+		for (v=0 ; v<height ; v++, dest += vid_buffer_width)
 		{
 			int sv = (skip + v)*pic->height/h;
 			source = pic->pixels[0] + sv*pic->width;
@@ -219,7 +219,7 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 
 		if (sw_retexturing->value)
 		{
-			if (pic_width < (vid.width / 3) || pic_height < (vid.height / 3))
+			if (pic_width < (vid_buffer_width / 3) || pic_height < (vid_buffer_height / 3))
 			{
 				image_scaled = malloc(pic_width * pic_height * 9);
 
@@ -246,7 +246,7 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 		// size of screen tile to pic pixel
 		int picupscale = h / pic_height;
 
-		for (v=0 ; v<height ; v++, dest += vid.width)
+		for (v=0 ; v<height ; v++, dest += vid_buffer_width)
 		{
 			int f, fstep, u;
 			int sv = (skip + v)*pic_height/h;
@@ -267,7 +267,7 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 				for (i=1; i < picupscale; i++)
 				{
 					// go to next line
-					dest += vid.width;
+					dest += vid_buffer_width;
 					memcpy (dest, dest_orig, w);
 				}
 				// skip updated lines
@@ -340,8 +340,8 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 	}
 
 	if ((x < 0) ||
-		(x + pic->width * scale > vid.width) ||
-		(y + pic->height * scale > vid.height))
+		(x + pic->width * scale > vid_buffer_width) ||
+		(y + pic->height * scale > vid_buffer_height))
 	{
 		R_Printf(PRINT_ALL, "Draw_Pic: bad coordinates\n");
 		return;
@@ -356,7 +356,7 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 		y = 0;
 	}
 
-	dest = vid_buffer + y * vid.width + x;
+	dest = vid_buffer + y * vid_buffer_width + x;
 
 	VID_DamageBuffer(x, y);
 	VID_DamageBuffer(x + iscale * pic->width, y + iscale * pic->height);
@@ -368,7 +368,7 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 			for (v=0; v<height; v++)
 			{
 				memcpy(dest, source, pic->width);
-				dest += vid.width;
+				dest += vid_buffer_width;
 				source += pic->width;
 			}
 		}
@@ -390,7 +390,7 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 						} while (--xpos > 0);
 						source_u++;
 					} while (--u > 0);
-					dest += vid.width;
+					dest += vid_buffer_width;
 				}
 				source += pic->width;
 			}
@@ -407,7 +407,7 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 					if (source[u] != TRANSPARENT_COLOR)
 						dest[u] = source[u];
 				}
-				dest += vid.width;
+				dest += vid_buffer_width;
 				source += pic->width;
 			}
 		}
@@ -425,7 +425,7 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 								dest[u * iscale + xpos] = source[u];
 							}
 					}
-					dest += vid.width;
+					dest += vid_buffer_width;
 				}
 				source += pic->width;
 			}
@@ -460,10 +460,10 @@ RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 		h += y;
 		y = 0;
 	}
-	if (x + w > vid.width)
-		w = vid.width - x;
-	if (y + h > vid.height)
-		h = vid.height - y;
+	if (x + w > vid_buffer_width)
+		w = vid_buffer_width - x;
+	if (y + h > vid_buffer_height)
+		h = vid_buffer_height - y;
 	if (w <= 0 || h <= 0)
 		return;
 
@@ -477,8 +477,8 @@ RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 		return;
 	}
 	x2 = x + w;
-	pdest = vid_buffer + y * vid.width;
-	for (i=0 ; i<h ; i++, pdest += vid.width)
+	pdest = vid_buffer + y * vid_buffer_width;
+	for (i=0 ; i<h ; i++, pdest += vid_buffer_width)
 	{
 		psrc = pic->pixels[0] + pic->width * ((i+y)&63);
 		for (j=x ; j<x2 ; j++)
@@ -500,10 +500,10 @@ RE_Draw_Fill (int x, int y, int w, int h, int c)
 	pixel_t	*dest;
 	int	v;
 
-	if (x+w > vid.width)
-		w = vid.width - x;
-	if (y+h > vid.height)
-		h = vid.height - y;
+	if (x+w > vid_buffer_width)
+		w = vid_buffer_width - x;
+	if (y+h > vid_buffer_height)
+		h = vid_buffer_height - y;
 
 	if (x < 0)
 	{
@@ -522,8 +522,8 @@ RE_Draw_Fill (int x, int y, int w, int h, int c)
 	VID_DamageBuffer(x, y);
 	VID_DamageBuffer(x + w, y + h);
 
-	dest = vid_buffer + y * vid.width + x;
-	for (v=0 ; v<h ; v++, dest += vid.width)
+	dest = vid_buffer + y * vid_buffer_width + x;
+	for (v=0 ; v<h ; v++, dest += vid_buffer_width)
 		memset(dest, c, w);
 }
 //=============================================================================
@@ -540,17 +540,17 @@ RE_Draw_FadeScreen (void)
 	int x,y;
 
 	VID_DamageBuffer(0, 0);
-	VID_DamageBuffer(vid.width, vid.height);
+	VID_DamageBuffer(vid_buffer_width, vid_buffer_height);
 
-	for (y=0 ; y<vid.height ; y++)
+	for (y=0 ; y<vid_buffer_height ; y++)
 	{
 		int t;
 		pixel_t *pbuf;
 
-		pbuf = vid_buffer + vid.width * y;
+		pbuf = vid_buffer + vid_buffer_width * y;
 		t = (y & 1) << 1;
 
-		for (x=0 ; x<vid.width ; x++)
+		for (x=0 ; x<vid_buffer_width ; x++)
 		{
 			if ((x & 3) != t)
 				pbuf[x] = 0;
