@@ -345,12 +345,12 @@ R_InitTurb
 ================
 */
 static void
-R_InitTurb (void)
+R_InitTurb (int width)
 {
 	int		i;
 
-	memset(blanktable, 0, (vid.width+CYCLE) * sizeof(int));
-	for (i = 0; i < (vid.width+CYCLE); i++)
+	memset(blanktable, 0, (width+CYCLE) * sizeof(int));
+	for (i = 0; i < (width+CYCLE); i++)
 	{
 		sintable[i] = AMP + sin(i*3.14159*2/CYCLE)*AMP;
 		intsintable[i] = AMP2 + sin(i*3.14159*2/CYCLE)*AMP2; // AMP2, not 20
@@ -429,7 +429,7 @@ R_UnRegister (void)
 }
 
 static void RE_ShutdownContext(void);
-static void SWimp_CreateRender(void);
+static void SWimp_CreateRender(int width, int height);
 static int RE_InitContext(void *win);
 static qboolean RE_SetMode(void);
 
@@ -1410,9 +1410,6 @@ RE_RenderFrame (refdef_t *fd)
 static void
 R_InitGraphics( int width, int height )
 {
-	vid.width  = width;
-	vid.height = height;
-
 	// free z buffer
 	if ( d_pzbuffer )
 	{
@@ -1428,7 +1425,7 @@ R_InitGraphics( int width, int height )
 		sc_base = NULL;
 	}
 
-	d_pzbuffer = malloc(vid.width * vid.height * sizeof(zvalue_t));
+	d_pzbuffer = malloc(width * height * sizeof(zvalue_t));
 
 	R_InitCaches();
 
@@ -1499,8 +1496,6 @@ RE_SetMode(void)
 	*/
 	if ((err = SWimp_SetMode(&vid.width, &vid.height, r_mode->value, fullscreen)) == rserr_ok)
 	{
-		R_InitGraphics( vid.width, vid.height );
-
 		if (r_mode->value == -1)
 		{
 			sw_state.prev_mode = 4; /* safe default for custom mode */
@@ -1514,8 +1509,6 @@ RE_SetMode(void)
 	{
 		if (err == rserr_invalid_fullscreen)
 		{
-			R_InitGraphics( vid.width, vid.height );
-
 			ri.Cvar_SetValue("vid_fullscreen", 0);
 			vid_fullscreen->modified = false;
 			R_Printf(PRINT_ALL, "%s() - fullscreen unavailable in this mode\n", __func__);
@@ -1943,6 +1936,9 @@ RE_InitContext(void *win)
 				    SDL_TEXTUREACCESS_STREAMING,
 				    vid.width, vid.height);
 
+	R_InitGraphics(vid.width, vid.height);
+	SWimp_CreateRender(vid.width, vid.height);
+
 	return true;
 }
 
@@ -2303,13 +2299,20 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 
 		if(ri.GLimp_GetDesktopMode(&real_width, &real_height))
 		{
-			if (real_height && (real_height != *pheight))
+			if (real_height)
 			{
-				*pwidth = ((*pheight) * real_width) / real_height;
+				if (real_height != *pheight)
+				{
+					*pwidth = ((*pheight) * real_width) / real_height;
+				}
+				else
+				{
+					*pwidth = real_width;
+				}
 			}
 		}
 
-		R_Printf(PRINT_ALL, " Used corrected %dx%d mode\n", *pwidth, *pheight);
+		R_Printf(PRINT_ALL, "Used corrected %dx%d mode\n", *pwidth, *pheight);
 	}
 
 	if (!ri.GLimp_InitGraphics(fullscreen, pwidth, pheight))
@@ -2318,16 +2321,14 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 		return rserr_invalid_mode;
 	}
 
-	SWimp_CreateRender();
-
 	return retval;
 }
 
 static void
-SWimp_CreateRender(void)
+SWimp_CreateRender(int width, int height)
 {
 	swap_current = 0;
-	swap_buffers = malloc(vid.height * vid.width * sizeof(pixel_t) * 2);
+	swap_buffers = malloc(height * width * sizeof(pixel_t) * 2);
 	if (!swap_buffers)
 	{
 		ri.Sys_Error(ERR_FATAL, "%s: Can't allocate swapbuffer.", __func__);
@@ -2335,20 +2336,20 @@ SWimp_CreateRender(void)
 		return;
 	}
 	swap_frames[0] = swap_buffers;
-	swap_frames[1] = swap_buffers + vid.height * vid.width * sizeof(pixel_t);
+	swap_frames[1] = swap_buffers + height * width * sizeof(pixel_t);
 	vid_buffer = swap_frames[swap_current&1];
 	// Need to rewrite whole frame
 	VID_WholeDamageBuffer();
 
-	sintable = malloc((vid.width+CYCLE) * sizeof(int));
-	intsintable = malloc((vid.width+CYCLE) * sizeof(int));
-	blanktable = malloc((vid.width+CYCLE) * sizeof(int));
+	sintable = malloc((width+CYCLE) * sizeof(int));
+	intsintable = malloc((width+CYCLE) * sizeof(int));
+	blanktable = malloc((width+CYCLE) * sizeof(int));
 
-	newedges = malloc(vid.width * sizeof(edge_t *));
-	removeedges = malloc(vid.width * sizeof(edge_t *));
+	newedges = malloc(width * sizeof(edge_t *));
+	removeedges = malloc(width * sizeof(edge_t *));
 
-	warp_rowptr = malloc((vid.width+AMP2*2) * sizeof(byte*));
-	warp_column = malloc((vid.width+AMP2*2) * sizeof(int));
+	warp_rowptr = malloc((width+AMP2*2) * sizeof(byte*));
+	warp_column = malloc((width+AMP2*2) * sizeof(int));
 
 	// count of "out of items"
 	r_outofsurfaces = false;
@@ -2374,9 +2375,10 @@ SWimp_CreateRender(void)
 
 	R_ReallocateMapBuffers();
 
-	r_warpbuffer = malloc(vid.height * vid.width * sizeof(pixel_t));
+	r_warpbuffer = malloc(height * width * sizeof(pixel_t));
 
-	if ((vid.width >= 2048) && (sizeof(shift20_t) == 4)) // 2k+ resolution and 32 == shift20_t
+	// 2k+ resolution and 32 == shift20_t
+	if ((width >= 2048) && (sizeof(shift20_t) == 4))
 	{
 		shift_size = 18;
 	}
@@ -2385,9 +2387,9 @@ SWimp_CreateRender(void)
 		shift_size = 20;
 	}
 
-	R_InitTurb ();
+	R_InitTurb (width);
 
-	vid_polygon_spans = malloc(sizeof(espan_t) * (vid.height + 1));
+	vid_polygon_spans = malloc(sizeof(espan_t) * (height + 1));
 
 	memset(sw_state.currentpalette, 0, sizeof(sw_state.currentpalette));
 
