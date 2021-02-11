@@ -83,8 +83,8 @@ R_DrawParticle(particle_t *pparticle, int level)
 	** compute addresses of zbuffer, framebuffer, and
 	** compute the Z-buffer reference value.
 	*/
-	pz = d_pzbuffer + (vid.width * v) + u;
-	pdest = d_viewbuffer + vid.width * v + u;
+	pz = d_pzbuffer + (vid_buffer_width * v) + u;
+	pdest = d_viewbuffer + vid_buffer_width * v + u;
 	izi = (int)(zi * 0x8000);
 
 	/*
@@ -101,7 +101,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 	** render the appropriate pixels
 	*/
 	count = pix;
-	if ((pz[(vid.width * count / 2) + (count / 2)]) > izi)
+	if ((pz[(vid_buffer_width * count / 2) + (count / 2)]) > izi)
 	{
 		// looks like under some object
 		return;
@@ -115,7 +115,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 	{
 		switch (level) {
 		case PARTICLE_33 :
-			for ( ; count ; count--, pz += vid.width, pdest += vid.width)
+			for ( ; count ; count--, pz += vid_buffer_width, pdest += vid_buffer_width)
 			{
 				//FIXME--do it in blocks of 8?
 				for (i=0 ; i<pix ; i++)
@@ -132,7 +132,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 		case PARTICLE_66 :
 		{
 			int color_part = (color<<8);
-			for ( ; count ; count--, pz += vid.width, pdest += vid.width)
+			for ( ; count ; count--, pz += vid_buffer_width, pdest += vid_buffer_width)
 			{
 				for (i=0 ; i<pix ; i++)
 				{
@@ -147,7 +147,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 		}
 
 		default:  //100
-			for ( ; count ; count--, pz += vid.width, pdest += vid.width)
+			for ( ; count ; count--, pz += vid_buffer_width, pdest += vid_buffer_width)
 			{
 				for (i=0 ; i<pix ; i++)
 				{
@@ -169,7 +169,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 
 		switch (level) {
 		case PARTICLE_33 :
-			for ( ; count ; count--, pz += vid.width, pdest += vid.width)
+			for ( ; count ; count--, pz += vid_buffer_width, pdest += vid_buffer_width)
 			{
 				//FIXME--do it in blocks of 8?
 				for (i=0 ; i<pix ; i++)
@@ -187,7 +187,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 		case PARTICLE_66 :
 		{
 			int color_part = (color<<8);
-			for ( ; count ; count--, pz += vid.width, pdest += vid.width)
+			for ( ; count ; count--, pz += vid_buffer_width, pdest += vid_buffer_width)
 			{
 				for (i=0 ; i<pix ; i++)
 				{
@@ -203,7 +203,7 @@ R_DrawParticle(particle_t *pparticle, int level)
 		}
 
 		default:  //100
-			for ( ; count ; count--, pz += vid.width, pdest += vid.width)
+			for ( ; count ; count--, pz += vid_buffer_width, pdest += vid_buffer_width)
 			{
 				for (i=0 ; i<pix ; i++)
 				{

@@ -217,7 +217,7 @@ R_InitCaches (void)
 	// surface cache size at 320X240
 	size = 1024*768;
 
-	pix = vid.width*vid.height;
+	pix = vid_buffer_width*vid_buffer_height;
 	if (pix > 64000)
 		size += (pix-64000)*3;
 

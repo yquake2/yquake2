@@ -373,6 +373,10 @@ extern zvalue_t	*d_pzbuffer;
 extern int	d_minmip;
 extern float	d_scalemip[NUM_MIPS-1];
 
+extern int vid_buffer_height;
+extern int vid_buffer_width;
+
+
 //===================================================================
 
 extern int	cachewidth;

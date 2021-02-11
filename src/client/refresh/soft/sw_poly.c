@@ -621,8 +621,8 @@ R_PolygonDrawSpans(espan_t *pspan, int iswater, float d_ziorigin, float d_zistep
 	{
 		int	count;
 
-		s_spanletvars.pdest   = d_viewbuffer + (vid.width * pspan->v) + pspan->u;
-		s_spanletvars.pz      = d_pzbuffer + (vid.width * pspan->v) + pspan->u;
+		s_spanletvars.pdest   = d_viewbuffer + (vid_buffer_width * pspan->v) + pspan->u;
+		s_spanletvars.pz      = d_pzbuffer + (vid_buffer_width * pspan->v) + pspan->u;
 		s_spanletvars.u       = pspan->u;
 		s_spanletvars.v       = pspan->v;
 		count = pspan->count;

@@ -66,7 +66,7 @@ D_ViewChanged (void)
 	*/
 	if ( r_newrefdef.rdflags & RDF_NOWORLDMODEL )
 	{
-		memset( d_pzbuffer, 0xff, vid.width * vid.height * sizeof(zvalue_t) );
+		memset( d_pzbuffer, 0xff, vid_buffer_width * vid_buffer_height * sizeof(zvalue_t) );
 		RE_Draw_Fill( r_newrefdef.x, r_newrefdef.y, r_newrefdef.width, r_newrefdef.height,( int ) sw_clearcolor->value & 0xff );
 	}
 }
