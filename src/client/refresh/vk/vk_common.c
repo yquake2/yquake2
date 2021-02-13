@@ -1158,6 +1158,18 @@ static void CreateStagingBuffers()
 	}
 }
 
+// Records a memory barrier in the given command buffer.
+void Qvk_MemoryBarrier(VkCommandBuffer cmdBuffer, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask)
+{
+	const VkMemoryBarrier memBarrier = {
+		.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+		.pNext = NULL,
+		.srcAccessMask = srcAccessMask,
+		.dstAccessMask = dstAccessMask,
+	};
+	vkCmdPipelineBarrier(cmdBuffer, srcStageMask, dstStageMask, 0u, 1u, &memBarrier, 0u, NULL, 0u, NULL);
+}
+
 // internal helper
 static void SubmitStagingBuffer(int index)
 {
@@ -1167,14 +1179,12 @@ static void SubmitStagingBuffer(int index)
 		return;
 	}
 
-	VkMemoryBarrier memBarrier = {
-		.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-		.pNext = NULL,
-		.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-		.dstAccessMask = VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
-	};
+	Qvk_MemoryBarrier(vk_stagingBuffers[index].cmdBuffer,
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+		VK_ACCESS_TRANSFER_WRITE_BIT,
+		(VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT));
 
-	vkCmdPipelineBarrier(vk_stagingBuffers[index].cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1, &memBarrier, 0, NULL, 0, NULL);
 	VK_VERIFY(vkEndCommandBuffer(vk_stagingBuffers[index].cmdBuffer));
 
 	VkSubmitInfo submitInfo = {
