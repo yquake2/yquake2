@@ -1824,12 +1824,21 @@ qboolean QVk_Init(SDL_Window *window)
 	R_Printf(PRINT_ALL, "...created Vulkan swapchain\n");
 
 	// set viewport and scissor
-	vk_viewport.x = (float)(vk_swapchain.extent.width - (uint32_t)(vid.width)) / 2.0f;
-	vk_viewport.y = (float)(vk_swapchain.extent.height - (uint32_t)(vid.height)) / 2.0f;
+	if (vid_fullscreen->value == 1)
+	{
+		// Center viewport in "keep resolution mode".
+		vk_viewport.x = max(0.f, (float)(vk_swapchain.extent.width - (uint32_t)(vid.width)) / 2.0f);
+		vk_viewport.y = max(0.f, (float)(vk_swapchain.extent.height - (uint32_t)(vid.height)) / 2.0f);
+	}
+	else
+	{
+		vk_viewport.x = 0.f;
+		vk_viewport.y = 0.f;
+	}
 	vk_viewport.minDepth = 0.f;
 	vk_viewport.maxDepth = 1.f;
-	vk_viewport.width = (float)vid.width;
-	vk_viewport.height = (float)vid.height;
+	vk_viewport.width = min((float)vid.width, (float)(vk_swapchain.extent.width) - vk_viewport.x);
+	vk_viewport.height = min((float)vid.height, (float)(vk_swapchain.extent.height) - vk_viewport.y);
 	vk_scissor.offset.x = 0;
 	vk_scissor.offset.y = 0;
 	vk_scissor.extent = vk_swapchain.extent;
