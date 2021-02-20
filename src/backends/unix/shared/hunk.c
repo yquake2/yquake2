@@ -76,7 +76,7 @@ Hunk_Begin(int maxsize)
 #if defined(PROT_MAX)
 	/* For now it is FreeBSD exclusif but could possibly be extended
 	   to other like DFBSD for example */
-	prot = PROT_MAX(prot);
+	prot |= PROT_MAX(prot);
 #endif
 
 	membase = mmap(0, maxhunksize, prot,
