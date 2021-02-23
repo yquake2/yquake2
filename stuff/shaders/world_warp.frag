@@ -51,5 +51,5 @@ void main()
 
 	uv = clamp(uv * scrSize, vec2(0.0, 0.0), scrSize - vec2(0.5, 0.5));
 
-	fragmentColor = texture(sTexture, uv);
+	fragmentColor = textureLod(sTexture, uv, 0.0);
 }
