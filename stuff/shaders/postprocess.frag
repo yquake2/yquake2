@@ -24,10 +24,10 @@ void main()
 	if (pc.postprocess > 0.0)
 	{
 		//gamma + color intensity bump
-		fragmentColor = vec4(pow(texture(sTexture, unnormTexCoord).rgb * 1.5, vec3(pc.gamma)), 1.0);
+		fragmentColor = vec4(pow(textureLod(sTexture, unnormTexCoord, 0.0).rgb * 1.5, vec3(pc.gamma)), 1.0);
 	}
 	else
 	{
-		fragmentColor = texture(sTexture, unnormTexCoord);
+		fragmentColor = textureLod(sTexture, unnormTexCoord, 0.0);
 	}
 }

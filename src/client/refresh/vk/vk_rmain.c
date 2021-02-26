@@ -232,7 +232,7 @@ void R_DrawSpriteModel (entity_t *currententity, model_t *currentmodel)
 
 	float gamma = 2.1F - vid_gamma->value;
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout,
 		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSpritePipeline.layout, 0, 1, &currentmodel->skins[currententity->frame]->vk_texture.descriptorSet, 0, NULL);
@@ -496,7 +496,7 @@ void Vk_DrawParticles(int num_particles, const particle_t particles[], const uns
 
 	float gamma = 2.1F - vid_gamma->value;
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout,
 		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
 	if (vk_custom_particles->value == 2)
@@ -912,7 +912,7 @@ R_SetupVulkan (void)
 	// precalculate view-projection matrix
 	Mat_Mul(r_view_matrix, r_projection_matrix, r_viewproj_matrix);
 	// view-projection matrix will always be stored as the first push constant item, so set no offset
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 }
 
 static void R_Flash( void )

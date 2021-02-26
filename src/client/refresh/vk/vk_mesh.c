@@ -704,13 +704,13 @@ void R_DrawAliasModel (entity_t *currententity, model_t *currentmodel)
 			Mat_Perspective(r_projection_matrix, r_vulkan_correction_dh, r_gunfov->value, r_proj_aspect, 4, dist);
 		}
 		Mat_Mul(r_view_matrix, r_projection_matrix, r_viewproj_matrix);
-		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	}
 
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
 	{
 		Mat_Scale(r_viewproj_matrix, -1.f, 1.f, 1.f);
-		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 		leftHandOffset = 2;
 	}
 
@@ -767,13 +767,13 @@ void R_DrawAliasModel (entity_t *currententity, model_t *currentmodel)
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
 	{
 		Mat_Scale(r_viewproj_matrix, -1.f, 1.f, 1.f);
-		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	}
 
 	if (currententity->flags & RF_DEPTHHACK || r_newrefdef.rdflags & RDF_NOWORLDMODEL)
 	{
 		memcpy(r_viewproj_matrix, prev_viewproj, sizeof(prev_viewproj));
-		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	}
 
 	if (vk_shadows->value && !(currententity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL)))

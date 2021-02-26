@@ -63,7 +63,7 @@ qvkrenderpass_t vk_renderpasses[RP_COUNT] = {
 	// RP_WORLD
 	{
 		.rp = VK_NULL_HANDLE,
-		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
 		.sampleCount = VK_SAMPLE_COUNT_1_BIT
 	},
 	// RP_UI
@@ -123,7 +123,8 @@ static int vk_activeStagingBuffer = 0;
 qboolean vk_frameStarted = false;
 
 // render pipelines
-qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawTexQuadPipeline[RP_COUNT]    = {
+	QVKPIPELINE_INIT, QVKPIPELINE_INIT, QVKPIPELINE_INIT };
 qvkpipeline_t vk_drawColorQuadPipeline[RP_COUNT]  = {
 	QVKPIPELINE_INIT, QVKPIPELINE_INIT, QVKPIPELINE_INIT };
 qvkpipeline_t vk_drawModelPipelineStrip[RP_COUNT] = {
@@ -443,16 +444,16 @@ static VkResult CreateRenderpasses()
 	/*
 	 * world view setup
 	 */
+	// The color attachment is loaded from the previous frame and stored
+	// after the frame is drawn to mask geometry errors in the skybox
+	// that may leave some pixels without coverage.
 	VkAttachmentDescription worldAttachments[] = {
-		// color attachment
+		// Single-sample color attachment.
 		{
 			.flags = 0,
 			.format = vk_swapchain.format,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
-			// The color attachment is loaded from the previous frame and stored
-			// after the frame is drawn to mask geometry errors in the skybox
-			// that may leave some pixels without coverage.
-			.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+			.loadOp = (msaaEnabled ? VK_ATTACHMENT_LOAD_OP_DONT_CARE : VK_ATTACHMENT_LOAD_OP_LOAD),
 			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -471,16 +472,16 @@ static VkResult CreateRenderpasses()
 			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 			.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 		},
-		// MSAA resolve attachment
+		// MSAA attachment
 		{
 			.flags = 0,
 			.format = vk_swapchain.format,
 			.samples = vk_renderpasses[RP_WORLD].sampleCount,
-			.loadOp = msaaEnabled ? vk_renderpasses[RP_WORLD].colorLoadOp : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.loadOp = (msaaEnabled ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_DONT_CARE),
+			.storeOp = (msaaEnabled ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE),
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 			.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 		}
 	};
@@ -647,7 +648,7 @@ static VkResult CreateRenderpasses()
 		.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 		.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 		.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
-		.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		.dstAccessMask = (VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT),
 		.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
 		},
 		{
@@ -1157,6 +1158,18 @@ static void CreateStagingBuffers()
 	}
 }
 
+// Records a memory barrier in the given command buffer.
+void Qvk_MemoryBarrier(VkCommandBuffer cmdBuffer, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask)
+{
+	const VkMemoryBarrier memBarrier = {
+		.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+		.pNext = NULL,
+		.srcAccessMask = srcAccessMask,
+		.dstAccessMask = dstAccessMask,
+	};
+	vkCmdPipelineBarrier(cmdBuffer, srcStageMask, dstStageMask, 0u, 1u, &memBarrier, 0u, NULL, 0u, NULL);
+}
+
 // internal helper
 static void SubmitStagingBuffer(int index)
 {
@@ -1166,14 +1179,12 @@ static void SubmitStagingBuffer(int index)
 		return;
 	}
 
-	VkMemoryBarrier memBarrier = {
-		.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-		.pNext = NULL,
-		.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-		.dstAccessMask = VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
-	};
+	Qvk_MemoryBarrier(vk_stagingBuffers[index].cmdBuffer,
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+		VK_ACCESS_TRANSFER_WRITE_BIT,
+		(VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT));
 
-	vkCmdPipelineBarrier(vk_stagingBuffers[index].cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1, &memBarrier, 0, NULL, 0, NULL);
 	VK_VERIFY(vkEndCommandBuffer(vk_stagingBuffers[index].cmdBuffer));
 
 	VkSubmitInfo submitInfo = {
@@ -1268,10 +1279,15 @@ static void CreatePipelines()
 
 	// textured quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic, basic);
-	vk_drawTexQuadPipeline.depthTestEnable = VK_FALSE;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRG_RG, &vk_drawTexQuadPipeline, &vk_renderpasses[RP_UI], shaders, 2);
-	QVk_DebugSetObjectName((uint64_t)vk_drawTexQuadPipeline.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: textured quad");
-	QVk_DebugSetObjectName((uint64_t)vk_drawTexQuadPipeline.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: textured quad");
+	for (int i = 0; i < RP_COUNT; ++i)
+	{
+		vk_drawTexQuadPipeline[i].depthTestEnable = VK_FALSE;
+		QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRG_RG, &vk_drawTexQuadPipeline[i], &vk_renderpasses[i], shaders, 2);
+		QVk_DebugSetObjectName((uint64_t)vk_drawTexQuadPipeline[i].layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT,
+			va("Pipeline Layout: textured quad (%s)", renderpassObjectNames[i]));
+		QVk_DebugSetObjectName((uint64_t)vk_drawTexQuadPipeline[i].pl, VK_OBJECT_TYPE_PIPELINE,
+			va("Pipeline: textured quad (%s)", renderpassObjectNames[i]));
+	}
 
 	// draw particles pipeline (using a texture)
 	VK_LOAD_VERTFRAG_SHADERS(shaders, particle, basic);
@@ -1499,8 +1515,8 @@ void QVk_Shutdown( void )
 			QVk_DestroyPipeline(&vk_drawColorQuadPipeline[i]);
 			QVk_DestroyPipeline(&vk_drawModelPipelineStrip[i]);
 			QVk_DestroyPipeline(&vk_drawModelPipelineFan[i]);
+			QVk_DestroyPipeline(&vk_drawTexQuadPipeline[i]);
 		}
-		QVk_DestroyPipeline(&vk_drawTexQuadPipeline);
 		QVk_DestroyPipeline(&vk_drawNullModelPipeline);
 		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineFan);
@@ -1808,12 +1824,21 @@ qboolean QVk_Init(SDL_Window *window)
 	R_Printf(PRINT_ALL, "...created Vulkan swapchain\n");
 
 	// set viewport and scissor
-	vk_viewport.x = (float)(vk_swapchain.extent.width - (uint32_t)(vid.width)) / 2.0f;
-	vk_viewport.y = (float)(vk_swapchain.extent.height - (uint32_t)(vid.height)) / 2.0f;
+	if (vid_fullscreen->value == 1)
+	{
+		// Center viewport in "keep resolution mode".
+		vk_viewport.x = max(0.f, (float)(vk_swapchain.extent.width - (uint32_t)(vid.width)) / 2.0f);
+		vk_viewport.y = max(0.f, (float)(vk_swapchain.extent.height - (uint32_t)(vid.height)) / 2.0f);
+	}
+	else
+	{
+		vk_viewport.x = 0.f;
+		vk_viewport.y = 0.f;
+	}
 	vk_viewport.minDepth = 0.f;
 	vk_viewport.maxDepth = 1.f;
-	vk_viewport.width = (float)vid.width;
-	vk_viewport.height = (float)vid.height;
+	vk_viewport.width = min((float)vid.width, (float)(vk_swapchain.extent.width) - vk_viewport.x);
+	vk_viewport.height = min((float)vid.height, (float)(vk_swapchain.extent.height) - vk_viewport.y);
 	vk_scissor.offset.x = 0;
 	vk_scissor.offset.y = 0;
 	vk_scissor.extent = vk_swapchain.extent;
@@ -2469,16 +2494,16 @@ void QVk_DrawTexRect(const float *ubo, VkDeviceSize uboSize, qvktexture_t *textu
 	uint8_t *uboData = QVk_GetUniformBuffer(uboSize, &uboOffset, &uboDescriptorSet);
 	memcpy(uboData, ubo, uboSize);
 
-	QVk_BindPipeline(&vk_drawTexQuadPipeline);
+	QVk_BindPipeline(&vk_drawTexQuadPipeline[vk_state.current_renderpass]);
 	VkDeviceSize offsets = 0;
 	VkDescriptorSet descriptorSets[] = { texture->descriptorSet, uboDescriptorSet };
 
 	float gamma = 2.1F - vid_gamma->value;
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout,
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout,
 		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1,
 		&vk_texRectVbo.resource.buffer, &offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer,

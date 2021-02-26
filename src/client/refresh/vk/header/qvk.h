@@ -230,7 +230,7 @@ extern VkRect2D vk_scissor;
 extern VkDescriptorSetLayout vk_samplerDescSetLayout;
 
 // *** pipelines ***
-extern qvkpipeline_t vk_drawTexQuadPipeline;
+extern qvkpipeline_t vk_drawTexQuadPipeline[RP_COUNT];
 extern qvkpipeline_t vk_drawColorQuadPipeline[RP_COUNT];
 extern qvkpipeline_t vk_drawModelPipelineStrip[RP_COUNT];
 extern qvkpipeline_t vk_drawModelPipelineFan[RP_COUNT];
@@ -312,6 +312,7 @@ void		QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize, qvkrenderpasstype_t rp
 void		QVk_DrawTexRect(const float *ubo, VkDeviceSize uboSize, qvktexture_t *texture);
 void		QVk_BindPipeline(qvkpipeline_t *pipeline);
 void		QVk_SubmitStagingBuffers(void);
+void		Qvk_MemoryBarrier(VkCommandBuffer cmdBuffer, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask);
 
 // debug label related functions
 void		QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objName);

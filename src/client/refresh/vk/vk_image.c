@@ -397,7 +397,14 @@ void QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colo
 	VK_VERIFY(QVk_CreateImage(vk_swapchain.extent.width, vk_swapchain.extent.height, colorBuffer->format, VK_IMAGE_TILING_OPTIMAL, extraFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, colorBuffer));
 	VK_VERIFY(QVk_CreateImageView(&colorBuffer->resource.image, VK_IMAGE_ASPECT_COLOR_BIT, &colorBuffer->imageView, colorBuffer->format, colorBuffer->mipLevels));
 
-	ChangeColorBufferLayout(colorBuffer->resource.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	// The single-sample color attachment ends every frame as
+	// SHADER_READ_ONLY_OPTIMAL as used in the post-processing stage, so its
+	// initial image layout is specified as such.
+	//
+	// The multi-sample color attachment is always COLOR_ATTACHMENT_OPTIMAL.
+	//
+	const VkImageLayout newLayout = ((sampleCount == VK_SAMPLE_COUNT_1_BIT) ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	ChangeColorBufferLayout(colorBuffer->resource.image, VK_IMAGE_LAYOUT_UNDEFINED, newLayout);
 }
 
 void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvksampler_t samplerType, qboolean clampToEdge)
