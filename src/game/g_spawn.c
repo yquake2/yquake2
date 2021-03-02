@@ -586,6 +586,7 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 	float skill_level;
 	static qboolean monster_count_city3 = false;
 	static qboolean monster_count_cool1 = false;
+	static qboolean monster_count_lab = false;
 
 	if (!mapname || !entities || !spawnpoint)
 	{
@@ -687,6 +688,17 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 		{
 			level.total_monsters = level.total_monsters - 1;
 			monster_count_cool1 = true;
+		}
+
+		/*
+		 * Nearly the same problem exists in lab.bsp.
+		 * On medium skill two parasites are spawned
+		 * in a hidden place that never triggers.
+		 */
+		if ((skill->value == 1) && !Q_stricmp(level.mapname, "lab") && !monster_count_lab)
+		{
+			level.total_monsters = level.total_monsters - 2;
+			monster_count_lab = true;
 		}
 
 		/* remove things (except the world) from
