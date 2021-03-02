@@ -585,6 +585,7 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 	int i;
 	float skill_level;
 	static qboolean monster_count_city3 = false;
+	static qboolean monster_count_cool1 = false;
 
 	if (!mapname || !entities || !spawnpoint)
 	{
@@ -671,10 +672,21 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 		 * We need to make sure that this hack is only
 		 * applied once!
 		 */
-		if(!Q_stricmp(level.mapname, "city3") && !monster_count_city3)
+		if (!Q_stricmp(level.mapname, "city3") && !monster_count_city3)
 		{
 			level.total_monsters = level.total_monsters - 2;
 			monster_count_city3 = true;
+		}
+
+		/*
+		 * Nearly the same problem exists in cool1.bsp.
+		 * On medium skill a gladiator is spawned in a
+		 * crate that's never triggered.
+		 */
+		if ((skill->value == 1) && !Q_stricmp(level.mapname, "cool1") && !monster_count_cool1)
+		{
+			level.total_monsters = level.total_monsters - 1;
+			monster_count_cool1 = true;
 		}
 
 		/* remove things (except the world) from
