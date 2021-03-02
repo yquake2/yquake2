@@ -138,6 +138,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   disable it again before playing Ground Zero maps in co-op. By
   default this cvar is disabled (set to 0).
 
+* **g_footsteps**: If set to `1` (the default) footstep sounds are
+  generated when the player faster than 255. This is the behaviour of
+  Vanilla Quake II. If set to `2` footestep sound always generated. If
+  set to `0` footstep sounds are never generated. Cheat protected to
+  `1`.
+
 * **g_disruptor (Ground Zero only)**: This boolean cvar controls the
   availability of the Disruptor weapon to players. The Disruptor is
   a weapon that was cut from Ground Zero during development but all

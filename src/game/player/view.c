@@ -1026,7 +1026,17 @@ G_SetClientEvent(edict_t *ent)
 		return;
 	}
 
-	if (ent->groundentity && (xyspeed > 225))
+	if (g_footsteps->value == 1)
+	{
+		if (ent->groundentity && (xyspeed > 225))
+		{
+			if ((int)(current_client->bobtime + bobmove) != bobcycle)
+			{
+				ent->s.event = EV_FOOTSTEP;
+			}
+		}
+	}
+	if (g_footsteps->value == 2)
 	{
 		if ((int)(current_client->bobtime + bobmove) != bobcycle)
 		{
