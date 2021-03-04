@@ -499,6 +499,13 @@ SCR_DrawLoading(void)
 void
 SCR_RunConsole(void)
 {
+	/* src_conspeed must be a positiv integer,
+	   otherwise things go wrong. Clamp it. */
+	if (scr_conspeed->value < 1)
+	{
+		scr_conspeed->value = 1;
+	}
+
 	/* decide on the height of the console */
 	if (cls.key_dest == key_console)
 	{
