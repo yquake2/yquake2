@@ -501,9 +501,9 @@ SCR_RunConsole(void)
 {
 	/* src_conspeed must be a positiv integer,
 	   otherwise things go wrong. Clamp it. */
-	if (scr_conspeed->value < 1)
+	if (scr_conspeed->value < 0.1f)
 	{
-		scr_conspeed->value = 1;
+		Cvar_Set("scr_conspeed", "0.1");
 	}
 
 	/* decide on the height of the console */
