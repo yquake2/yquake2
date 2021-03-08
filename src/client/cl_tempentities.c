@@ -741,6 +741,10 @@ CL_ParseTEnt(void)
 					S_StartSound(pos, 0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
 				}
 			}
+			else
+			{
+				S_StartSound(pos, 0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
+			}
 
 			break;
 
