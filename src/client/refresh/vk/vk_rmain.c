@@ -1328,10 +1328,7 @@ static qboolean RE_Init( void )
 	// print device information during startup
 	Vk_Strings_f();
 
-	Vk_InitImages();
-	Mod_Init();
-	RE_InitParticleTexture();
-	Draw_InitLocal();
+	QVk_PostInit();
 
 	R_Printf(PRINT_ALL, "Successfully initialized Vulkan!\n");
 
@@ -1347,7 +1344,6 @@ static qboolean RE_Init( void )
 */
 static void RE_ShutdownContext( void )
 {
-
 	// Shutdown Vulkan subsystem
 	QVk_Shutdown();
 }
@@ -1365,14 +1361,7 @@ void RE_Shutdown (void)
 	ri.Cmd_RemoveCommand("screenshot");
 	ri.Cmd_RemoveCommand( "modellist" );
 
-	if (vk_device.logical != VK_NULL_HANDLE)
-	{
-		vkDeviceWaitIdle(vk_device.logical);
-	}
-
-	Mod_FreeAll();
-	Vk_ShutdownImages();
-	RE_ShutdownContext();
+	QVk_WaitAndShutdownAll();
 }
 
 /*
@@ -1388,6 +1377,7 @@ RE_BeginFrame( float camera_separation )
 
 	// if ri.Sys_Error() had been issued mid-frame, we might end up here without properly submitting the image, so call QVk_EndFrame to be safe
 	QVk_EndFrame(true);
+
 	/*
 	** change modes if necessary
 	*/
@@ -1417,18 +1407,21 @@ RE_BeginFrame( float camera_separation )
 		}
 	}
 
-	VkResult swapChainValid = QVk_BeginFrame(&vk_viewport, &vk_scissor);
-	// if the swapchain is invalid, just recreate the video system and revert to safe windowed mode
-	if (swapChainValid != VK_SUCCESS)
+	if (vk_restartNeeded)
 	{
-		vid_fullscreen->value = false;
-		vid_fullscreen->modified = true;
-		ri.Cvar_SetValue("vid_fullscreen", 0);
+		QVk_Restart();
+		vk_restartNeeded = false;
 	}
-	else
+
+	for (;;)
 	{
-		QVk_BeginRenderpass(RP_WORLD);
+		VkResult swapChainValid = QVk_BeginFrame(&vk_viewport, &vk_scissor);
+		if (swapChainValid == VK_SUCCESS)
+			break;
+		QVk_Restart();
 	}
+
+	QVk_BeginRenderpass(RP_WORLD);
 }
 
 /*
@@ -1590,7 +1583,8 @@ RE_InitContext(void *win)
 	SDL_SetWindowTitle(window, title);
 
 	// window is ready, initialize Vulkan now
-	if (!QVk_Init(window))
+	QVk_SetWindow(window);
+	if (!QVk_Init())
 	{
 		R_Printf(PRINT_ALL, "%s() - could not initialize Vulkan!\n", __func__);
 		return false;

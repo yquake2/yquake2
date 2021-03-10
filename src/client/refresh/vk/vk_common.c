@@ -31,6 +31,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <float.h>
 #include "header/local.h"
 
+static SDL_Window *vk_window;
+
 // Vulkan instance, surface and memory allocator
 VkInstance vk_instance  = VK_NULL_HANDLE;
 VkSurfaceKHR vk_surface = VK_NULL_HANDLE;
@@ -121,6 +123,8 @@ static uint32_t vk_imageIndex = 0;
 static int vk_activeStagingBuffer = 0;
 // started rendering frame?
 qboolean vk_frameStarted = false;
+// the renderer needs to be restarted.
+qboolean vk_restartNeeded = false;
 
 // render pipelines
 qvkpipeline_t vk_drawTexQuadPipeline[RP_COUNT]    = {
@@ -1637,13 +1641,46 @@ void QVk_Shutdown( void )
 	}
 }
 
+void QVk_SetWindow(SDL_Window *window)
+{
+	vk_window = window;
+}
+
+void QVk_WaitAndShutdownAll (void)
+{
+	if (vk_device.logical != VK_NULL_HANDLE)
+	{
+		vkDeviceWaitIdle(vk_device.logical);
+	}
+
+	Mod_FreeAll();
+	Vk_ShutdownImages();
+	QVk_Shutdown();
+}
+
+void QVk_Restart(void)
+{
+	QVk_WaitAndShutdownAll();
+	if (!QVk_Init())
+		ri.Sys_Error(ERR_FATAL, "Unable to restart Vulkan renderer");
+	QVk_PostInit();
+}
+
+void QVk_PostInit(void)
+{
+	Vk_InitImages();
+	Mod_Init();
+	RE_InitParticleTexture();
+	Draw_InitLocal();
+}
+
 /*
 ** QVk_Init
 **
 ** This is responsible for initializing Vulkan.
 **
 */
-qboolean QVk_Init(SDL_Window *window)
+qboolean QVk_Init(void)
 {
 	PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion = (PFN_vkEnumerateInstanceVersion)vkGetInstanceProcAddr(NULL, "vkEnumerateInstanceVersion");
 	uint32_t instanceVersion = VK_API_VERSION_1_0;
@@ -1682,7 +1719,7 @@ qboolean QVk_Init(SDL_Window *window)
 	vk_config.triangle_fan_index_max_usage = 0;
 	vk_config.triangle_fan_index_count = TRIANGLE_FAN_INDEX_CNT;
 
-	if (!SDL_Vulkan_GetInstanceExtensions(window, &extCount, NULL))
+	if (!SDL_Vulkan_GetInstanceExtensions(vk_window, &extCount, NULL))
 	{
 		R_Printf(PRINT_ALL, "%s() SDL_Vulkan_GetInstanceExtensions failed: %s",
 				__func__, SDL_GetError());
@@ -1694,7 +1731,7 @@ qboolean QVk_Init(SDL_Window *window)
 		extCount++;
 
 	wantedExtensions = malloc(extCount * sizeof(const char *));
-	if (!SDL_Vulkan_GetInstanceExtensions(window, &extCount, wantedExtensions))
+	if (!SDL_Vulkan_GetInstanceExtensions(vk_window, &extCount, wantedExtensions))
 	{
 		R_Printf(PRINT_ALL, "%s() SDL_Vulkan_GetInstanceExtensions failed: %s",
 				__func__, SDL_GetError());
@@ -1798,7 +1835,7 @@ qboolean QVk_Init(SDL_Window *window)
 	if (vk_validation->value)
 		QVk_CreateValidationLayers();
 
-	if (!Vkimp_CreateSurface(window))
+	if (!Vkimp_CreateSurface(vk_window))
 	{
 		return false;
 	}
@@ -2009,6 +2046,17 @@ VkResult QVk_BeginFrame(const VkViewport* viewport, const VkRect2D* scissor)
 	ReleaseSwapBuffers();
 
 	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR)
+	{
+		// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart Vulkan.
+		R_Printf(PRINT_ALL, "%s(): received %s after vkAcquireNextImageKHR - restarting video!\n", __func__, QVk_GetError(result));
+		return result;
+	}
+	else if (result != VK_SUCCESS)
+	{
+		Sys_Error("%s(): unexpected error after vkAcquireNextImageKHR: %s", __func__, QVk_GetError(result));
+	}
+
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 
 	// swap dynamic buffers
@@ -2020,17 +2068,6 @@ VkResult QVk_BeginFrame(const VkViewport* viewport, const VkRect2D* scissor)
 	VK_VERIFY(buffer_invalidate(&vk_dynUniformBuffers[vk_activeDynBufferIdx].resource));
 	VK_VERIFY(buffer_invalidate(&vk_dynVertexBuffers[vk_activeDynBufferIdx].resource));
 	VK_VERIFY(buffer_invalidate(&vk_dynIndexBuffers[vk_activeDynBufferIdx].resource));
-
-	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR)
-	{
-		R_Printf(PRINT_ALL, "%s(): received %s after vkAcquireNextImageKHR - restarting video!\n", __func__, QVk_GetError(result));
-		return result;
-	}
-	else if (result != VK_SUCCESS)
-	{
-		Sys_Error("%s(): unexpected error after vkAcquireNextImageKHR: %s", __func__, QVk_GetError(result));
-	}
 
 	VK_VERIFY(vkWaitForFences(vk_device.logical, 1, &vk_fences[vk_activeBufferIdx], VK_TRUE, UINT32_MAX));
 	VK_VERIFY(vkResetFences(vk_device.logical, 1, &vk_fences[vk_activeBufferIdx]));
@@ -2109,8 +2146,8 @@ VkResult QVk_EndFrame(qboolean force)
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
 	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || renderResult == VK_ERROR_SURFACE_LOST_KHR)
 	{
-		R_Printf(PRINT_ALL, "%s(): received %s after vkQueuePresentKHR - restarting video!\n", __func__, QVk_GetError(renderResult));
-		vid_fullscreen->modified = true;
+		R_Printf(PRINT_ALL, "%s(): received %s after vkQueuePresentKHR - will restart video!\n", __func__, QVk_GetError(renderResult));
+		vk_restartNeeded = true;
 	}
 	else if (renderResult != VK_SUCCESS)
 	{

@@ -260,6 +260,8 @@ extern qvktexture_t vk_colorbuffer;
 extern qvktexture_t vk_colorbufferWarp;
 // indicator if the frame is currently being rendered
 extern qboolean vk_frameStarted;
+// Indicates if the renderer needs to be restarted.
+extern qboolean vk_restartNeeded;
 
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
@@ -271,8 +273,12 @@ extern PFN_vkCmdEndDebugUtilsLabelEXT qvkCmdEndDebugUtilsLabelEXT;
 extern PFN_vkCmdInsertDebugUtilsLabelEXT qvkInsertDebugUtilsLabelEXT;
 
 // The Interface Functions (tm)
-qboolean	QVk_Init(SDL_Window *window);
+void		QVk_SetWindow(SDL_Window*);
+qboolean	QVk_Init(void);
+void		QVk_PostInit(void);
+void		QVk_WaitAndShutdownAll(void);
 void		QVk_Shutdown(void);
+void		QVk_Restart(void);
 void		QVk_CreateValidationLayers(void);
 void		QVk_DestroyValidationLayers(void);
 qboolean	QVk_CreateDevice(int preferredDeviceIdx);
