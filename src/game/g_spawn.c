@@ -584,6 +584,7 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 	const char *com_token;
 	int i;
 	float skill_level;
+	static qboolean monster_count_city2 = false;
 	static qboolean monster_count_city3 = false;
 	static qboolean monster_count_cool1 = false;
 	static qboolean monster_count_lab = false;
@@ -677,6 +678,16 @@ SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
 		{
 			level.total_monsters = level.total_monsters - 2;
 			monster_count_city3 = true;
+		}
+
+		/* A slightly other problem in city2.bsp. There's a floater
+		 * with missing trigger on the right gallery above the data
+		 * spinner console, right before the door to the staircase.
+		 */
+		if ((skill->value > 0) && !Q_stricmp(level.mapname, "city2") && !monster_count_city2)
+		{
+			level.total_monsters = level.total_monsters - 1;
+			monster_count_city2 = true;
 		}
 
 		/*
