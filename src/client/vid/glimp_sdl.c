@@ -219,11 +219,11 @@ GetFullscreenType()
 {
 	if (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN_DESKTOP)
 	{
-		return 1;
+		return 2;
 	}
 	else if (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN)
 	{
-		return 2;
+		return 1;
 	}
 	else
 	{
@@ -457,11 +457,11 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 
 	if (fullscreen == 1)
 	{
-		fs_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
+		fs_flag = SDL_WINDOW_FULLSCREEN;
 	}
 	else if (fullscreen == 2)
 	{
-		fs_flag = SDL_WINDOW_FULLSCREEN;
+		fs_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
 	}
 
 	/* Only do this if we already have a working window and a fully

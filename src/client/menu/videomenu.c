@@ -236,6 +236,11 @@ ApplyChanges(void *unused)
 	/* Restarts automatically */
 	Cvar_SetValue("vid_fullscreen", s_fs_box.curvalue);
 
+	if (s_fs_box.curvalue == 2)
+	{
+		Cvar_SetValue("r_mode", -2.0f);
+	}
+
 	/* vertical sync */
 	if (r_vsync->value != s_vsync_list.curvalue)
 	{
@@ -344,8 +349,8 @@ VID_MenuInit(void)
 
 	static const char *fullscreen_names[] = {
 			"no",
-			"keep resolution",
-			"switch resolution",
+			"native fullscreen",
+			"fullscreen window",
 			0
 	};
 

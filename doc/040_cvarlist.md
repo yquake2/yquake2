@@ -281,6 +281,14 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   apply this to the window in realtime via shaders (on all platforms).
   This is also set by the brightness slider in the video menu.
 
+* **vid_fullscreen**: Sets the fullscreen mode. When set to `0` (the
+  default) the game runs in window mode. When set to `1` the games
+  switches the display to the requested resolution. That resolution
+  must be supported by the display, otherwise the game tries several
+  steps to recover. When set to `2` a fullscreen window is created.
+  It's recommended to use the displays native resolution with the
+  fullscreen window, use `r_mode -2` to switch to it.
+
 * **vid_maxfps**: The maximum framerate, if `cl_async` is `1`. Otherwise
   `cl_maxfps` is used as maximum framerate. See `cl_async` description
   above for more information.  *Note* that vsync (`r_vsync`) also
