@@ -75,12 +75,12 @@ GetRenderer(void)
 	{
 		return 1;
 	}
-	else if (Q_stricmp(vid_renderer->string, "soft") == 0)
+#ifdef USE_REFVK
+	else if (Q_stricmp(vid_renderer->string, "vk") == 0)
 	{
 		return 2;
 	}
-#ifdef USE_REFVK
-	else if (Q_stricmp(vid_renderer->string, "vk") == 0)
+	else if (Q_stricmp(vid_renderer->string, "soft") == 0)
 	{
 		return 3;
 	}
@@ -89,6 +89,10 @@ GetRenderer(void)
 		return 4;
 	}
 #else
+	else if (Q_stricmp(vid_renderer->string, "soft") == 0)
+	{
+		return 2;
+	}
 	else
 	{
 		return 3;
@@ -177,15 +181,21 @@ ApplyChanges(void *unused)
 			Cvar_Set("vid_renderer", "gl3");
 			restart = true;
 		}
+#ifdef USE_REFVK
 		else if (s_renderer_list.curvalue == 2)
+		{
+			Cvar_Set("vid_renderer", "vk");
+			restart = true;
+		}
+		else if (s_renderer_list.curvalue == 3)
 		{
 			Cvar_Set("vid_renderer", "soft");
 			restart = true;
 		}
-#ifdef USE_REFVK
-		else if (s_renderer_list.curvalue == 3)
+#else
+		else if (s_renderer_list.curvalue == 2)
 		{
-			Cvar_Set("vid_renderer", "vk");
+			Cvar_Set("vid_renderer", "soft");
 			restart = true;
 		}
 #endif
@@ -282,10 +292,10 @@ VID_MenuInit(void)
 	static const char *renderers[] = {
 			"[OpenGL 1.4]",
 			"[OpenGL 3.2]",
-			"[Software  ]",
 #ifdef USE_REFVK
 			"[Vulkan    ]",
 #endif
+			"[Software  ]",
 			CUSTOM_MODE_NAME,
 			0
 	};
