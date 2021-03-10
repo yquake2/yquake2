@@ -677,6 +677,7 @@ build/ref_soft/%.o: %.c
 # ----------
 
 # The vk renderer lib
+ifeq ($(WITH_REFVK),yes)
 ifeq ($(YQ2_OSTYPE), Windows)
 ref_vk:
 	@echo "===> Building ref_vk.dll"
@@ -696,6 +697,7 @@ build/ref_vk/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
+endif # WITH_REFVK
 
 # ----------
 
