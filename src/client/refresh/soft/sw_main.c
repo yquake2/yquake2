@@ -1901,7 +1901,7 @@ RE_InitContext(void *win)
 
 	if(win == NULL)
 	{
-		ri.Sys_Error(ERR_FATAL, "RE_InitContext() must not be called with NULL argument!");
+		ri.Sys_Error(ERR_FATAL, "%s() must not be called with NULL argument!", __func__);
 		return false;
 	}
 
@@ -2299,7 +2299,7 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 
 	R_Printf(PRINT_ALL, " %dx%d (vid_fullscreen %i)\n", *pwidth, *pheight, fullscreen);
 
-	if (fullscreen == 1)
+	if (fullscreen == 2)
 	{
 		int real_height, real_width;
 

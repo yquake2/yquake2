@@ -1861,7 +1861,7 @@ qboolean QVk_Init(void)
 	R_Printf(PRINT_ALL, "...created Vulkan swapchain\n");
 
 	// set viewport and scissor
-	if (vid_fullscreen->value == 1)
+	if (vid_fullscreen->value == 2)
 	{
 		// Center viewport in "keep resolution mode".
 		vk_viewport.x = max(0.f, (float)(vk_swapchain.extent.width - (uint32_t)(vid.width)) / 2.0f);
