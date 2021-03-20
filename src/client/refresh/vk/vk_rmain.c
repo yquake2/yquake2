@@ -130,6 +130,7 @@ cvar_t	*vk_nolerp_list;
 cvar_t  *r_fixsurfsky;
 
 cvar_t	*vid_fullscreen;
+cvar_t	*vid_refresh;
 cvar_t	*vid_gamma;
 static cvar_t	*viewsize;
 
@@ -1194,6 +1195,7 @@ R_Register( void )
 		ri.Cvar_Set("r_msaa_samples", "0");
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+	vid_refresh = ri.Cvar_Get("vid_refresh", "0", CVAR_NOSET);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
 	viewsize = ri.Cvar_Get("viewsize", "100", CVAR_ARCHIVE);
 
@@ -1376,7 +1378,8 @@ RE_BeginFrame( float camera_separation )
 	world_rendered = false;
 
 	// if ri.Sys_Error() had been issued mid-frame, we might end up here without properly submitting the image, so call QVk_EndFrame to be safe
-	QVk_EndFrame(true);
+	if (QVk_EndFrame(true) != VK_SUCCESS)
+		vk_restartNeeded = true;
 
 	/*
 	** change modes if necessary
@@ -1407,21 +1410,10 @@ RE_BeginFrame( float camera_separation )
 		}
 	}
 
-	if (vk_restartNeeded)
-	{
-		QVk_Restart();
-		vk_restartNeeded = false;
-	}
-
-	for (;;)
-	{
-		VkResult swapChainValid = QVk_BeginFrame(&vk_viewport, &vk_scissor);
-		if (swapChainValid == VK_SUCCESS)
-			break;
-		QVk_Restart();
-	}
-
-	QVk_BeginRenderpass(RP_WORLD);
+	if (QVk_BeginFrame(&vk_viewport, &vk_scissor) != VK_SUCCESS)
+		vk_restartNeeded = true;
+	else
+		QVk_BeginRenderpass(RP_WORLD);
 }
 
 /*
@@ -1432,9 +1424,17 @@ RE_EndFrame
 static void
 RE_EndFrame( void )
 {
-	QVk_EndFrame(false);
+	if (QVk_EndFrame(false) != VK_SUCCESS)
+		vk_restartNeeded = true;
+
 	// world has not rendered yet
 	world_rendered = false;
+
+	if (vk_restartNeeded)
+	{
+		QVk_Restart();
+		vk_restartNeeded = false;
+	}
 }
 
 /*

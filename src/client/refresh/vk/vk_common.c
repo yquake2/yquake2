@@ -1664,6 +1664,7 @@ void QVk_Restart(void)
 	if (!QVk_Init())
 		ri.Sys_Error(ERR_FATAL, "Unable to restart Vulkan renderer");
 	QVk_PostInit();
+	vid_refresh->modified = true;
 }
 
 void QVk_PostInit(void)
@@ -2097,7 +2098,8 @@ VkResult QVk_EndFrame(qboolean force)
 {
 	// continue only if QVk_BeginFrame() had been previously issued
 	if (!vk_frameStarted)
-		return VK_NOT_READY;
+		return VK_SUCCESS;
+
 	// this may happen if Sys_Error is issued mid-frame, so we need to properly advance the draw pipeline
 	if (force)
 	{
