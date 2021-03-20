@@ -101,7 +101,7 @@ void Mod_Reallocate (void)
 		models_known_max *= 2;
 		// free up
 		Mod_FreeAll();
-		free(models_known);
+		Mod_FreeModelsKnown();
 	}
 
 	if (models_known_max < (mod_max * 4))
@@ -175,6 +175,17 @@ void Mod_FreeAll (void)
 		if (models_known[i].extradatasize)
 			Mod_Free (&models_known[i]);
 	}
+}
+
+/*
+================
+Mod_FreeModelsKnown
+================
+*/
+void Mod_FreeModelsKnown (void)
+{
+	free(models_known);
+	models_known = NULL;
 }
 
 /*

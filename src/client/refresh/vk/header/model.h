@@ -248,3 +248,4 @@ int		Hunk_End (void);
 void	Hunk_Free (void *base);
 
 void	Mod_FreeAll (void);
+void	Mod_FreeModelsKnown (void);
