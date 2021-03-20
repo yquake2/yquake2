@@ -78,10 +78,6 @@ GL3_TextureMode(char *string)
 		{
 			ri.Cvar_SetValue("r_anisotropic", gl3config.max_anisotropy);
 		}
-		else if (gl_anisotropic->value < 1.0)
-		{
-			ri.Cvar_SetValue("r_anisotropic", 1.0);
-		}
 	}
 	else
 	{
@@ -110,7 +106,7 @@ GL3_TextureMode(char *string)
 			/* Set anisotropic filter if supported and enabled */
 			if (gl3config.anisotropic && gl_anisotropic->value)
 			{
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_anisotropic->value);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max(gl_anisotropic->value, 1.f));
 			}
 		}
 		else /* texture has no mipmaps */
@@ -216,7 +212,7 @@ GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 
 	if (mipmap && gl3config.anisotropic && gl_anisotropic->value)
 	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_anisotropic->value);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max(gl_anisotropic->value, 1.f));
 	}
 
 	return res;
