@@ -438,8 +438,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **vk_lightmap**: Display lightmaps. (default: `0`)
 
-* **vk_aniso**: Toggle anisotropic filtering. (default: `1`)
-
 * **vk_postprocess**: Toggle additional color/gamma correction.
   (default: `1`)
 
