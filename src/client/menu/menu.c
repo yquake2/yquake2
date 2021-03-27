@@ -3331,6 +3331,7 @@ StartServer_MenuInit(void)
     if (mapnames == NULL)
     {
         int i, length;
+        size_t nummapslen;
 
         nummaps = 0;
         s_startmap_list.curvalue = 0;
@@ -3359,11 +3360,12 @@ StartServer_MenuInit(void)
             Com_Error(ERR_DROP, "no maps in maps.lst\n");
         }
 
-        mapnames = malloc(sizeof(char *) * (nummaps + 1));
+        nummapslen = sizeof(char *) * (nummaps + 1);
+        mapnames = malloc(nummapslen);
 
-        YQ2_COM_CHECK_OOM(mapnames, "malloc(sizeof(char *) * (nummaps + 1))", sizeof(char *) * (nummaps + 1))
+        YQ2_COM_CHECK_OOM(mapnames, "malloc(sizeof(char *) * (nummaps + 1))", nummapslen)
 
-        memset(mapnames, 0, sizeof(char *) * (nummaps + 1));
+        memset(mapnames, 0, nummapslen);
 
         s = buffer;
 
@@ -3385,10 +3387,8 @@ StartServer_MenuInit(void)
             strcpy(longname, COM_Parse(&s));
             Com_sprintf(scratch, sizeof(scratch), "%s\n%s", longname, shortname);
 
-            mapnames[i] = malloc(strlen(scratch) + 1);
-            YQ2_COM_CHECK_OOM(mapnames, "malloc()", strlen(scratch)+1)
-
-            strcpy(mapnames[i], scratch);
+            mapnames[i] = strdup(scratch);
+            YQ2_COM_CHECK_OOM(mapnames[i], "strdup(scratch)", strlen(scratch)+1)
         }
 
         mapnames[nummaps] = 0;
