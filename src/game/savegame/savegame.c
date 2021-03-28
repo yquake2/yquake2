@@ -237,6 +237,7 @@ InitGame(void)
 	skill = gi.cvar("skill", "1", CVAR_LATCH);
 	maxentities = gi.cvar("maxentities", "1024", CVAR_LATCH);
 	g_footsteps = gi.cvar("g_footsteps", "1", CVAR_ARCHIVE);
+	g_fix_triggered = gi.cvar ("g_fix_triggered", "0", 0);
 
 	/* change anytime vars */
 	dmflags = gi.cvar("dmflags", "0", CVAR_SERVERINFO);

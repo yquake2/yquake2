@@ -774,6 +774,16 @@ monster_start(edict_t *self)
 		self->spawnflags |= 1;
 	}
 
+	if ((self->spawnflags & 2) && !self->targetname)
+	{
+		if (g_fix_triggered->value)
+		{
+			self->spawnflags &= ~2;
+		}
+
+		gi.dprintf ("triggered %s at %s has no targetname\n", self->classname, vtos (self->s.origin));
+	}
+
 	if (!(self->monsterinfo.aiflags & AI_GOOD_GUY))
 	{
 		level.total_monsters++;
