@@ -861,6 +861,14 @@ static void CreateSamplersHelper(VkSampler *samplers, VkSamplerAddressMode addre
 		.unnormalizedCoordinates = VK_FALSE
 	};
 
+	assert((vk_device.properties.limits.maxSamplerAnisotropy > 1.f) && "maxSamplerAnisotropy is 1");
+	if (vk_device.features.samplerAnisotropy && vk_aniso->value > 0.f)
+	{
+		const float maxAniso = min(max(vk_aniso->value, 1.f), vk_device.properties.limits.maxSamplerAnisotropy);
+		samplerInfo.anisotropyEnable = VK_TRUE;
+		samplerInfo.maxAnisotropy = maxAniso;
+	}
+
 	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &samplers[S_NEAREST]));
 	QVk_DebugSetObjectName((uint64_t)samplers[S_NEAREST], VK_OBJECT_TYPE_SAMPLER, "Sampler: S_NEAREST");
 
@@ -874,6 +882,8 @@ static void CreateSamplersHelper(VkSampler *samplers, VkSamplerAddressMode addre
 		nuSamplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 		nuSamplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 		nuSamplerInfo.unnormalizedCoordinates = VK_TRUE;
+		nuSamplerInfo.anisotropyEnable = VK_FALSE;
+		nuSamplerInfo.maxAnisotropy = 1.f;
 
 		VK_VERIFY(vkCreateSampler(vk_device.logical, &nuSamplerInfo, NULL, &samplers[S_NEAREST_UNNORMALIZED]));
 		QVk_DebugSetObjectName((uint64_t)samplers[S_NEAREST_UNNORMALIZED], VK_OBJECT_TYPE_SAMPLER, "Sampler: S_NEAREST_UNNORMALIZED");
@@ -892,36 +902,6 @@ static void CreateSamplersHelper(VkSampler *samplers, VkSamplerAddressMode addre
 	samplerInfo.maxLod = 1.f;
 	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &samplers[S_LINEAR]));
 	QVk_DebugSetObjectName((uint64_t)samplers[S_LINEAR], VK_OBJECT_TYPE_SAMPLER, "Sampler: S_LINEAR");
-
-	// aniso samplers
-	assert((vk_device.properties.limits.maxSamplerAnisotropy > 1.f) && "maxSamplerAnisotropy is 1");
-
-	samplerInfo.magFilter = VK_FILTER_NEAREST;
-	samplerInfo.minFilter = VK_FILTER_NEAREST;
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-	if (vk_device.features.samplerAnisotropy)
-	{
-		samplerInfo.anisotropyEnable = VK_TRUE;
-		samplerInfo.maxAnisotropy = vk_device.properties.limits.maxSamplerAnisotropy;
-	}
-	samplerInfo.maxLod = 1.f;
-
-	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &samplers[S_ANISO_NEAREST]));
-	QVk_DebugSetObjectName((uint64_t)samplers[S_ANISO_NEAREST], VK_OBJECT_TYPE_SAMPLER, "Sampler: S_ANISO_NEAREST");
-
-	samplerInfo.maxLod = FLT_MAX;
-	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &samplers[S_ANISO_MIPMAP_NEAREST]));
-	QVk_DebugSetObjectName((uint64_t)samplers[S_ANISO_MIPMAP_NEAREST], VK_OBJECT_TYPE_SAMPLER, "Sampler: S_ANISO_MIPMAP_NEAREST");
-
-	samplerInfo.magFilter = VK_FILTER_LINEAR;
-	samplerInfo.minFilter = VK_FILTER_LINEAR;
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &samplers[S_ANISO_MIPMAP_LINEAR]));
-	QVk_DebugSetObjectName((uint64_t)samplers[S_ANISO_MIPMAP_LINEAR], VK_OBJECT_TYPE_SAMPLER, "Sampler: S_ANISO_MIPMAP_LINEAR");
-
-	samplerInfo.maxLod = 1.f;
-	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &samplers[S_ANISO_LINEAR]));
-	QVk_DebugSetObjectName((uint64_t)samplers[S_ANISO_LINEAR], VK_OBJECT_TYPE_SAMPLER, "Sampler: S_ANISO_LINEAR");
 }
 
 // internal helper

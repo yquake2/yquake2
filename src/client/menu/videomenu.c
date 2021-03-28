@@ -137,21 +137,6 @@ FOVCallback(void *s) {
 }
 
 static void
-AnisotropicCallback(void *s)
-{
-	menulist_s *list = (menulist_s *)s;
-
-	if (list->curvalue == 0)
-	{
-		Cvar_SetValue("r_anisotropic", 0);
-	}
-	else
-	{
-		Cvar_SetValue("r_anisotropic", pow(2, list->curvalue));
-	}
-}
-
-static void
 ResetDefaults(void *unused)
 {
 	VID_MenuInit();
@@ -256,6 +241,24 @@ ApplyChanges(void *unused)
 	{
 		Cvar_SetValue("r_vsync", s_vsync_list.curvalue);
 		restart = true;
+	}
+
+	/* anisotropic filtering */
+	if (s_af_list.curvalue == 0)
+	{
+		if (gl_anisotropic->value != 0)
+		{
+			Cvar_SetValue("r_anisotropic", 0);
+			restart = true;
+		}
+	}
+	else
+	{
+		if (gl_anisotropic->value != pow(2, s_af_list.curvalue))
+		{
+			Cvar_SetValue("r_anisotropic", pow(2, s_af_list.curvalue));
+			restart = true;
+		}
 	}
 
 	/* multisample anti-aliasing */
@@ -536,7 +539,6 @@ VID_MenuInit(void)
 	s_af_list.generic.name = "aniso filtering";
 	s_af_list.generic.x = 0;
 	s_af_list.generic.y = (y += 10);
-	s_af_list.generic.callback = AnisotropicCallback;
 	s_af_list.itemnames = pow2_names;
 	s_af_list.curvalue = 0;
 	if (gl_anisotropic->value)

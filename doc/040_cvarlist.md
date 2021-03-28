@@ -245,8 +245,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   dependent on the GPU driver, most of them support `1`, `2`, `4`, `8`
   and `16`. Anisotropic filtering gives a huge improvement to texture
   quality by a negligible performance impact.
-  If vulkan render have used, flag is only toggle anisotropic filtering
-  without use specific level.
 
 * **r_msaa_samples**: Full scene anti aliasing samples. The number of
   samples depends on the GPU driver, most drivers support at least `2`,
@@ -437,8 +435,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **vk_showtris**: Display mesh triangles. (default: `0`)
 
 * **vk_lightmap**: Display lightmaps. (default: `0`)
-
-* **vk_aniso**: Toggle anisotropic filtering. (default: `1`)
 
 * **vk_postprocess**: Toggle additional color/gamma correction.
   (default: `1`)
