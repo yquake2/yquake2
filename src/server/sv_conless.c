@@ -139,7 +139,7 @@ SVC_GetChallenge(void)
 	}
 
 	/* send it back */
-	Netchan_OutOfBandPrint(NS_SERVER, net_from, "challenge %i",
+	Netchan_OutOfBandPrint(NS_SERVER, net_from, "challenge %i p=34",
 			svs.challenges[i].challenge);
 }
 
@@ -168,8 +168,7 @@ SVC_DirectConnect(void)
 
 	if (version != PROTOCOL_VERSION)
 	{
-		Netchan_OutOfBandPrint(NS_SERVER, adr,
-				"print\nServer is version %s.\n", YQ2VERSION);
+		Netchan_OutOfBandPrint(NS_SERVER, adr, "print\nServer is protocol version 34.\n");
 		Com_DPrintf("    rejected connect from version %i\n", version);
 		return;
 	}
