@@ -130,7 +130,7 @@ cvar_t	*vk_nolerp_list;
 cvar_t  *r_fixsurfsky;
 
 cvar_t	*vid_fullscreen;
-cvar_t	*vid_refresh;
+cvar_t	*vid_renderer;
 cvar_t	*vid_gamma;
 static cvar_t	*viewsize;
 
@@ -1195,7 +1195,7 @@ R_Register( void )
 		ri.Cvar_Set("r_msaa_samples", "0");
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
-	vid_refresh = ri.Cvar_Get("vid_refresh", "0", CVAR_NOSET);
+	vid_renderer = ri.Cvar_Get("vid_renderer", "gl1", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
 	viewsize = ri.Cvar_Get("viewsize", "100", CVAR_ARCHIVE);
 

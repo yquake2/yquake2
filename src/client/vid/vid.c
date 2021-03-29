@@ -286,7 +286,6 @@ VID_GetModeInfo(int *width, int *height, int mode)
 // Global console variables.
 cvar_t *vid_gamma;
 cvar_t *vid_fullscreen;
-cvar_t *vid_refresh;
 cvar_t *vid_renderer;
 
 // Global video state, used throughout the client.
@@ -487,13 +486,16 @@ VID_CheckChanges(void)
 			}
 		}
 
+		// Ignore possible changes in vid_renderer above.
+		vid_renderer->modified = false;
+
 		// Unblock the client.
 		cls.disable_screen = false;
 	}
 
-	if (vid_refresh->modified)
+	if (vid_renderer->modified)
 	{
-		vid_refresh->modified = false;
+		vid_renderer->modified = false;
 		cl.refresh_prepped = false;
 	}
 }
@@ -507,7 +509,6 @@ VID_Init(void)
 	// Console variables
 	vid_gamma = Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
 	vid_fullscreen = Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
-	vid_refresh = Cvar_Get("vid_refresh", "0", CVAR_NOSET);
 	vid_renderer = Cvar_Get("vid_renderer", "gl1", CVAR_ARCHIVE);
 
 	// Commands
