@@ -812,6 +812,7 @@ extern void misc_deadsoldier_die ( edict_t * self , edict_t * inflictor , edict_
 extern void SP_misc_banner ( edict_t * ent ) ;
 extern void misc_banner_think ( edict_t * ent ) ;
 extern void SP_monster_commander_body ( edict_t * self ) ;
+extern void commander_body_die ( edict_t * self , edict_t * inflictor , edict_t * attacker , int damage , vec3_t point ) ;
 extern void commander_body_drop ( edict_t * self ) ;
 extern void commander_body_use ( edict_t * self , edict_t * other , edict_t * activator ) ;
 extern void commander_body_think ( edict_t * self ) ;

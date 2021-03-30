@@ -144,6 +144,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   set to `0` footstep sounds are never generated. Cheat protected to
   `1`.
 
+* **g_commanderbody_nogod**: If set to `1` the tank commanders body
+  entity can be destroyed. If the to `0` (the default) it is
+  indestructible.
+
 * **g_disruptor (Ground Zero only)**: This boolean cvar controls the
   availability of the Disruptor weapon to players. The Disruptor is
   a weapon that was cut from Ground Zero during development but all

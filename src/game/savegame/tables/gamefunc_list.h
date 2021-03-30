@@ -812,6 +812,7 @@
 {"SP_misc_banner", (byte *)SP_misc_banner},
 {"misc_banner_think", (byte *)misc_banner_think},
 {"SP_monster_commander_body", (byte *)SP_monster_commander_body},
+{"commander_body_die", (byte *)commander_body_die},
 {"commander_body_drop", (byte *)commander_body_drop},
 {"commander_body_use", (byte *)commander_body_use},
 {"commander_body_think", (byte *)commander_body_think},
