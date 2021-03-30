@@ -56,6 +56,7 @@ cvar_t *g_select_empty;
 cvar_t *dedicated;
 cvar_t *g_footsteps;
 cvar_t *g_fix_triggered;
+cvar_t *g_commanderbody_nogod;
 
 cvar_t *filterban;
 

@@ -138,6 +138,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   disable it again before playing Ground Zero maps in co-op. By
   default this cvar is disabled (set to 0).
 
+* **g_commanderbody_nogod**: If set to `1` the tank commanders body
+  entity can be destroyed. If the to `0` (the default) it is
+  indestructible.
+
 * **g_footsteps**: If set to `1` (the default) footstep sounds are
   generated when the player faster than 255. This is the behaviour of
   Vanilla Quake II. If set to `2` footestep sound always generated. If

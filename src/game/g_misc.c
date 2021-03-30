@@ -1611,6 +1611,40 @@ commander_body_drop(edict_t *self)
 }
 
 void
+commander_body_die(edict_t *self, edict_t *inflictor /* unused */,
+		edict_t *attacker /* unused */, int damage, vec3_t point /* unused */)
+{
+	int n;
+
+	if (!self)
+	{
+		return;
+	}
+
+	/* check for gib */
+	if (self->health <= self->gib_health)
+	{
+		gi.sound(self, CHAN_BODY, gi.soundindex("tank/pain.wav"), 1, ATTN_NORM, 0);
+
+		for (n = 0; n < 1; n++)
+		{
+			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
+		}
+
+		for (n = 0; n < 4; n++)
+		{
+			ThrowGib(self, "models/objects/gibs/sm_metal/tris.md2", damage, GIB_METALLIC);
+		}
+
+		ThrowGib(self, "models/objects/gibs/chest/tris.md2", damage, GIB_ORGANIC);
+		ThrowHead(self, "models/objects/gibs/gear/tris.md2", damage, GIB_METALLIC);
+		self->deadflag = DEAD_DEAD;
+
+		return;
+	}
+}
+
+void
 SP_monster_commander_body(edict_t *self)
 {
 	if (!self)
@@ -1626,8 +1660,19 @@ SP_monster_commander_body(edict_t *self)
 	VectorSet(self->maxs, 32, 32, 48);
 	self->use = commander_body_use;
 	self->takedamage = DAMAGE_YES;
-	self->flags = FL_GODMODE;
 	self->s.renderfx |= RF_FRAMELERP;
+
+	if (g_commanderbody_nogod->value)
+	{
+		self->deadflag = DEAD_DEAD;
+		self->svflags |= SVF_MONSTER | SVF_DEADMONSTER;
+		self->die = commander_body_die;
+	}
+	else
+	{
+		self->flags = FL_GODMODE;
+	}
+
 	gi.linkentity(self);
 
 	gi.soundindex("tank/thud.wav");

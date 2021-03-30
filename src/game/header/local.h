@@ -521,6 +521,7 @@ extern cvar_t *g_select_empty;
 extern cvar_t *dedicated;
 extern cvar_t *g_footsteps;
 extern cvar_t *g_fix_triggered;
+extern cvar_t *g_commanderbody_nogod;
 
 extern cvar_t *filterban;
 
