@@ -38,7 +38,22 @@ static float r_avertexnormals[NUMVERTEXNORMALS][3] = {
 
 typedef float vec4_t[4];
 
-static	vec4_t	s_lerped[MAX_VERTS];
+typedef struct {
+	float vertex[3];
+	float color[4];
+	float texCoord[2];
+} modelvert;
+
+typedef struct {
+	int vertexCount;
+	int firstVertex;
+} drawinfo_t;
+
+static	drawinfo_t	*drawInfo[2] = {NULL, NULL};
+static	modelvert	*vertList[2] = {NULL, NULL};
+static	vec4_t	*s_lerped = NULL;
+static	vec3_t	*shadowverts = NULL;
+static	int	verts_count = 0;
 
 vec3_t	shadevector;
 float	shadelight[3];
@@ -61,6 +76,94 @@ static float r_vulkan_correction_dh[16] = { 1.f,  0.f, 0.f, 0.f,
 											0.f,  0.f, .3f, 0.f,
 											0.f,  0.f, .3f, 1.f
 										  };
+
+static void
+Mesh_VertsRealloc(int count)
+{
+	if (verts_count > count)
+	{
+		return;
+	}
+
+	verts_count = ROUNDUP(count * 2, 256);
+	s_lerped = realloc(s_lerped, verts_count * sizeof(vec4_t));
+	shadowverts = realloc(shadowverts, verts_count * sizeof(vec3_t));
+
+	vertList[0] = realloc(vertList[0], verts_count * sizeof(modelvert));
+	vertList[1] = realloc(vertList[1], verts_count * sizeof(modelvert));
+
+	drawInfo[0] = realloc(drawInfo[0], verts_count * sizeof(drawinfo_t));
+	drawInfo[1] = realloc(drawInfo[1], verts_count * sizeof(drawinfo_t));
+}
+
+/*
+===============
+Mesh_Init
+===============
+*/
+void Mesh_Init (void)
+{
+	s_lerped = NULL;
+	shadowverts = NULL;
+	vertList[0] = NULL;
+	vertList[1] = NULL;
+	drawInfo[0] = NULL;
+	drawInfo[1] = NULL;
+
+	verts_count = 0;
+
+	Mesh_VertsRealloc(MAX_VERTS);
+}
+
+/*
+================
+Mesh_Free
+================
+*/
+void Mesh_Free (void)
+{
+	if (vk_validation->value > 1)
+	{
+		R_Printf(PRINT_ALL, "%s: Deallocated %d mesh verts\n",
+			__func__, verts_count);
+	}
+	verts_count = 0;
+
+	if (shadowverts)
+	{
+		free(shadowverts);
+	}
+	shadowverts = NULL;
+
+	if (s_lerped)
+	{
+		free(s_lerped);
+	}
+	s_lerped = NULL;
+
+	if (vertList[0])
+	{
+		free(vertList[0]);
+	}
+	if (vertList[1])
+	{
+		free(vertList[1]);
+	}
+	vertList[0] = NULL;
+	vertList[1] = NULL;
+
+	if (drawInfo[0])
+	{
+		free(drawInfo[0]);
+	}
+	if (drawInfo[1])
+	{
+		free(drawInfo[1]);
+	}
+	drawInfo[0] = NULL;
+	drawInfo[1] = NULL;
+}
+
 
 static void Vk_LerpVerts( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, float *lerp, float move[3], float frontv[3], float backv[3], entity_t *currententity )
 {
@@ -150,6 +253,8 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 		backv[i] = backlerp*oldframe->scale[i];
 	}
 
+	Mesh_VertsRealloc(paliashdr->num_xyz);
+
 	lerp = s_lerped[0];
 
 	Vk_LerpVerts( paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv, currententity );
@@ -159,21 +264,11 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 		TRIANGLE_FAN = 1
 	} pipelineIdx;
 
-	typedef struct {
-		float vertex[3];
-		float color[4];
-		float texCoord[2];
-	} modelvert;
-
 	int vertCounts[2] = { 0, 0 };
-	static modelvert vertList[2][MAX_VERTS];
 	int pipeCounters[2] = { 0, 0 };
 	VkDeviceSize maxTriangleFanIdxCnt = 0;
 
-	static struct {
-		int vertexCount;
-		int firstVertex;
-	} drawInfo[2][MAX_VERTS];
+	Mesh_VertsRealloc(1);
 
 	drawInfo[0][0].firstVertex = 0;
 	drawInfo[1][0].firstVertex = 0;
@@ -201,6 +296,8 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 			pipelineIdx = TRIANGLE_STRIP;
 		}
 
+		Mesh_VertsRealloc(pipeCounters[pipelineIdx]);
+
 		drawInfo[pipelineIdx][pipeCounters[pipelineIdx]].vertexCount = count;
 		maxTriangleFanIdxCnt = max(maxTriangleFanIdxCnt, ((count - 2) * 3));
 
@@ -210,6 +307,8 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 			do
 			{
 				int vertIdx = vertCounts[pipelineIdx];
+				Mesh_VertsRealloc(vertIdx);
+
 				// unused in this case, since texturing is disabled
 				vertList[pipelineIdx][vertIdx].texCoord[0] = 0.f;
 				vertList[pipelineIdx][vertIdx].texCoord[1] = 0.f;
@@ -220,6 +319,12 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 				vertList[pipelineIdx][vertIdx].color[1] = shadelight[1];
 				vertList[pipelineIdx][vertIdx].color[2] = shadelight[2];
 				vertList[pipelineIdx][vertIdx].color[3] = alpha;
+
+				if (verts_count < index_xyz)
+				{
+					R_Printf(PRINT_ALL, "%s: Model has issues with lerped index\n", __func__);
+					return;
+				}
 
 				vertList[pipelineIdx][vertIdx].vertex[0] = s_lerped[index_xyz][0];
 				vertList[pipelineIdx][vertIdx].vertex[1] = s_lerped[index_xyz][1];
@@ -233,6 +338,8 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 			do
 			{
 				int vertIdx = vertCounts[pipelineIdx];
+				Mesh_VertsRealloc(vertIdx);
+
 				// texture coordinates come from the draw list
 				vertList[pipelineIdx][vertIdx].texCoord[0] = ((float *)order)[0];
 				vertList[pipelineIdx][vertIdx].texCoord[1] = ((float *)order)[1];
@@ -247,12 +354,20 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 				vertList[pipelineIdx][vertIdx].color[2] = l * shadelight[2];
 				vertList[pipelineIdx][vertIdx].color[3] = alpha;
 
+				if (verts_count < index_xyz)
+				{
+					R_Printf(PRINT_ALL, "%s: Model has issues with lerped index\n", __func__);
+					return;
+				}
+
 				vertList[pipelineIdx][vertIdx].vertex[0] = s_lerped[index_xyz][0];
 				vertList[pipelineIdx][vertIdx].vertex[1] = s_lerped[index_xyz][1];
 				vertList[pipelineIdx][vertIdx].vertex[2] = s_lerped[index_xyz][2];
 				vertCounts[pipelineIdx]++;
 			} while (--count);
 		}
+
+		Mesh_VertsRealloc(pipeCounters[pipelineIdx] + 1);
 
 		pipeCounters[pipelineIdx]++;
 		drawInfo[pipelineIdx][pipeCounters[pipelineIdx]].firstVertex = vertCounts[pipelineIdx];
@@ -334,7 +449,6 @@ static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatr
 	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(float) * 16, &uboOffset, &uboDescriptorSet);
 	memcpy(uboData, modelMatrix, sizeof(float) * 16);
 
-	static vec3_t shadowverts[MAX_VERTS];
 	while (1)
 	{
 		int	i;
@@ -355,8 +469,12 @@ static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatr
 			pipelineIdx = TRIANGLE_STRIP;
 		}
 
+		Mesh_VertsRealloc(count);
+
 		do
 		{
+			Mesh_VertsRealloc(order[2]);
+
 			// normals and vertexes come from the frame list
 			memcpy( point, s_lerped[order[2]], sizeof( point ) );
 

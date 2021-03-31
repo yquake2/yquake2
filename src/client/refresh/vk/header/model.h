@@ -249,3 +249,6 @@ void	Hunk_Free (void *base);
 
 void	Mod_FreeAll (void);
 void	Mod_FreeModelsKnown (void);
+
+void	Mesh_Init (void);
+void	Mesh_Free (void);

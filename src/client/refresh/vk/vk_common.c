@@ -1636,6 +1636,7 @@ void QVk_WaitAndShutdownAll (void)
 	Mod_FreeAll();
 	Mod_FreeModelsKnown();
 	Vk_ShutdownImages();
+	Mesh_Free ();
 	QVk_Shutdown();
 }
 
@@ -1650,6 +1651,7 @@ void QVk_Restart(void)
 
 void QVk_PostInit(void)
 {
+	Mesh_Init();
 	Vk_InitImages();
 	Mod_Init();
 	RE_InitParticleTexture();
