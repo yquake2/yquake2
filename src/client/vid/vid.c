@@ -486,8 +486,17 @@ VID_CheckChanges(void)
 			}
 		}
 
+		// Ignore possible changes in vid_renderer above.
+		vid_renderer->modified = false;
+
 		// Unblock the client.
 		cls.disable_screen = false;
+	}
+
+	if (vid_renderer->modified)
+	{
+		vid_renderer->modified = false;
+		cl.refresh_prepped = false;
 	}
 }
 
