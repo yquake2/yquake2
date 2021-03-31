@@ -144,6 +144,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   set to `0` footstep sounds are never generated. Cheat protected to
   `1`.
 
+* **g_fix_triggered**: This cvar, when set to `1`, forces monsters to
+  spawn in normally if they are set to a triggered spawn but do not
+  have a targetname. There are a few cases of this in GroundZero and
+  The Reckoning. This cvar is disabled by default to maintain the
+  original gameplay experience.
+
 * **g_disruptor (Ground Zero only)**: This boolean cvar controls the
   availability of the Disruptor weapon to players. The Disruptor is
   a weapon that was cut from Ground Zero during development but all
