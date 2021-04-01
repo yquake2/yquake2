@@ -62,7 +62,7 @@ int ip6_sockets[2];
 int ipx_sockets[2];
 char *multicast_interface = NULL;
 
-int NET_Socket(char *net_interface, int port, netsrc_t type, int family);
+int NET_Socket(char *net_interface, unsigned short port, netsrc_t type, int family);
 char *NET_ErrorString(void);
 
 void
@@ -733,7 +733,7 @@ NET_OpenIP(void)
 {
 	cvar_t *port, *ip;
 
-	port = Cvar_Get("port", va("%i", PORT_SERVER), CVAR_NOSET);
+	port = Cvar_Get("port", va("%u", PORT_SERVER), CVAR_NOSET);
 	ip = Cvar_Get("ip", "localhost", CVAR_NOSET);
 
 	if (!ip6_sockets[NS_SERVER])
@@ -803,7 +803,7 @@ NET_Config(qboolean multiplayer)
 /* =================================================================== */
 
 int
-NET_Socket(char *net_interface, int port, netsrc_t type, int family)
+NET_Socket(char *net_interface, unsigned short port, netsrc_t type, int family)
 {
 	char Buf[BUFSIZ], *Host, *Service;
 	int newsocket, Error;
@@ -837,7 +837,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 	}
 	else
 	{
-		sprintf(Buf, "%5d", port);
+		sprintf(Buf, "%5u", port);
 		Service = Buf;
 	}
 
