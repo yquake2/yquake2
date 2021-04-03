@@ -199,7 +199,9 @@ EmitWaterPolys
 Does a water warp on the pre-fragmented glpoly_t chain
 =============
 */
-void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float *color)
+void
+EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix,
+			  float *color, qboolean solid_surface)
 {
 	vkpoly_t	*p, *bp;
 	float		*v;
@@ -232,7 +234,16 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float
 		Mat_Identity(polyUbo.model);
 	}
 
-	QVk_BindPipeline(&vk_drawPolyWarpPipeline);
+	if (solid_surface)
+	{
+		// Solid surface
+		QVk_BindPipeline(&vk_drawPolySolidWarpPipeline);
+	}
+	else
+	{
+		// Blend surface
+		QVk_BindPipeline(&vk_drawPolyWarpPipeline);
+	}
 
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
@@ -248,7 +259,22 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float
 	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout,
 		VK_SHADER_STAGE_FRAGMENT_BIT, 17 * sizeof(float), sizeof(gamma), &gamma);
 
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyWarpPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+	if (solid_surface)
+	{
+		// Solid surface
+		vkCmdBindDescriptorSets(
+			vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			vk_drawPolySolidWarpPipeline.layout, 0, 2,
+			descriptorSets, 1, &uboOffset);
+	}
+	else
+	{
+		// Blend surface
+		vkCmdBindDescriptorSets(
+			vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			vk_drawPolyWarpPipeline.layout, 0, 2,
+			descriptorSets, 1, &uboOffset);
+	}
 
 	for (bp = fa->polys; bp; bp = bp->next)
 	{

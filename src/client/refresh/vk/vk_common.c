@@ -146,6 +146,7 @@ qvkpipeline_t vk_drawSpritePipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPolyPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPolyLmapPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPolyWarpPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawPolySolidWarpPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawBeamPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSkyboxPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
@@ -1390,6 +1391,17 @@ static void CreatePipelines()
 	QVk_DebugSetObjectName((uint64_t)vk_drawPolyWarpPipeline.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: warped polygon (liquids)");
 	QVk_DebugSetObjectName((uint64_t)vk_drawPolyWarpPipeline.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: warped polygon (liquids)");
 
+	// draw solid polygon with warp effect (liquid) pipeline
+	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_warp, basic);
+	vk_drawPolySolidWarpPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	QVk_CreatePipeline(samplerUboLmapDsLayouts, 2, &vertInfoRGB_RG,
+		&vk_drawPolySolidWarpPipeline, &vk_renderpasses[RP_WORLD],
+		shaders, 2);
+	QVk_DebugSetObjectName((uint64_t)vk_drawPolySolidWarpPipeline.layout,
+		VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: warped solid polygon (liquids)");
+	QVk_DebugSetObjectName((uint64_t)vk_drawPolySolidWarpPipeline.pl,
+		VK_OBJECT_TYPE_PIPELINE, "Pipeline: warped solid polygon (liquids)");
+
 	// draw beam pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, beam, basic_color_quad);
 	vk_drawBeamPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
@@ -1512,6 +1524,7 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawPolyPipeline);
 		QVk_DestroyPipeline(&vk_drawPolyLmapPipeline);
 		QVk_DestroyPipeline(&vk_drawPolyWarpPipeline);
+		QVk_DestroyPipeline(&vk_drawPolySolidWarpPipeline);
 		QVk_DestroyPipeline(&vk_drawBeamPipeline);
 		QVk_DestroyPipeline(&vk_drawSkyboxPipeline);
 		QVk_DestroyPipeline(&vk_drawDLightPipeline);

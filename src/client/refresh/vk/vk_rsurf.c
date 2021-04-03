@@ -291,7 +291,7 @@ static void R_RenderBrushPoly (msurface_t *fa, float *modelMatrix, float alpha, 
 		color[0] = color[1] = color[2] = vk_state.inverse_intensity;
 		color[3] = 1.f;
 		// warp texture, no lightmaps
-		EmitWaterPolys(fa, image, modelMatrix, color);
+		EmitWaterPolys(fa, image, modelMatrix, color, alpha == 1.f);
 		return;
 	}
 
@@ -386,7 +386,7 @@ void R_DrawAlphaSurfaces (void)
 			color[3] = 0.66f;
 
 		if (s->flags & SURF_DRAWTURB)
-			EmitWaterPolys(s, s->texinfo->image, NULL, color);
+			EmitWaterPolys(s, s->texinfo->image, NULL, color, false);
 		else if (s->texinfo->flags & SURF_FLOWING)			// PGM	9/16/98
 			DrawVkFlowingPoly(s, s->texinfo->image, color);	// PGM
 		else
@@ -399,6 +399,8 @@ void R_DrawAlphaSurfaces (void)
 /*
 ================
 DrawTextureChains
+
+Draw world surfaces (mostly solid with alpha == 1.f)
 ================
 */
 static void DrawTextureChains (entity_t *currententity)

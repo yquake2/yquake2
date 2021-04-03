@@ -183,7 +183,9 @@ qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 void R_RotateForEntity (entity_t *e, float *mvMatrix);
 void R_MarkLeaves (void);
 
-void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float *color);
+void EmitWaterPolys (msurface_t *fa, image_t *texture,
+				   float *modelMatrix, float *color,
+				   qboolean solid_surface);
 void R_AddSkySurface (msurface_t *fa);
 void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
