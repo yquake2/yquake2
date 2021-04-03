@@ -20,15 +20,15 @@
   
   =============================================================================
   
-  To disable SSE intrinsics, you MUST
+  To disable SIMD intrinsics, you MUST
   
-  #define HANDMADE_MATH_NO_SSE
+  #define HANDMADE_MATH_NO_SIMD
   
   in EXACTLY one C or C++ file that includes this header, BEFORE the
   include, like this:
      
      #define HANDMADE_MATH_IMPLEMENTATION
-     #define HANDMADE_MATH_NO_SSE
+     #define HANDMADE_MATH_NO_SIMD
      #include "HandmadeMath.h"
   
   =============================================================================
@@ -197,7 +197,7 @@
 /* let's figure out if SSE is really available (unless disabled anyway)
    (it isn't on non-x86/x86_64 platforms or even x86 without explicit SSE support)
    => only use "#ifdef HANDMADE_MATH__USE_SSE" to check for SSE support below this block! */
-#ifndef HANDMADE_MATH_NO_SSE
+#ifndef HANDMADE_MATH_NO_SIMD
 
 # ifdef _MSC_VER
    /* MSVC supports SSE in amd64 mode or _M_IX86_FP >= 1 (2 means SSE2) */
@@ -208,6 +208,13 @@
 #  ifdef __SSE__ /* they #define __SSE__ if it's supported */
 #   define HANDMADE_MATH__USE_SSE 1
 #  endif /*  __SSE__ */
+#  if defined __ARM_NEON__ || defined __ARM_NEON
+#   include <arm_neon.h>
+#   define HANDMADE_MATH__USE_NEON 1
+    /* vectors aligned to neon instructions */
+#   define HANDMADE_SET_VEC4(a, b, c, d) \
+     float __attribute__((aligned(16))) vec[4] = {(float)a, (float)b, (float)c, (float)d}
+#  endif /* __ARM_NEON__ */
 # endif /* not _MSC_VER */
 
 #endif /* #ifndef HANDMADE_MATH_NO_SSE */
@@ -413,6 +420,9 @@ typedef union hmm_vec4
 #ifdef HANDMADE_MATH__USE_SSE    
     __m128 InternalElementsSSE;
 #endif
+#ifdef HANDMADE_MATH__USE_NEON
+    float32x4_t InternalElementsNEON;
+#endif
 } hmm_vec4;
 
 typedef union hmm_mat4
@@ -421,6 +431,9 @@ typedef union hmm_mat4
         
 #ifdef HANDMADE_MATH__USE_SSE
     __m128 Rows[4];
+#endif
+#ifdef HANDMADE_MATH__USE_NEON
+    float32x4_t Rows[4];
 #endif
 } hmm_mat4;
 
@@ -519,6 +532,11 @@ HMM_INLINE float HMM_SquareRootF(float Float)
     __m128 In = _mm_set_ss(Float);
     __m128 Out = _mm_sqrt_ss(In);
     Result = _mm_cvtss_f32(Out);
+#elif defined HANDMADE_MATH__USE_NEON
+    float32x4_t In = vdupq_n_f32(Float);
+    float32x4_t Recipient = vrecpeq_f32(vrsqrteq_f32(In));
+    float32_t Out = vgetq_lane_f32(Recipient, 0);
+    Result = vgetq_lane_f32(vsetq_lane_f32(Out, In, 0), 0);
 #else
     Result = HMM_SQRTF(Float);
 #endif 
@@ -534,6 +552,10 @@ HMM_INLINE float HMM_RSquareRootF(float Float)
     __m128 In = _mm_set_ss(Float);
     __m128 Out = _mm_rsqrt_ss(In);
     Result = _mm_cvtss_f32(Out);
+#elif defined HANDMADE_MATH__USE_NEON
+    float32x4_t In = vdupq_n_f32(Float);
+    float32x4_t Recipient = vrsqrteq_f32(In);
+    Result = vgetq_lane_f32(Recipient, 0);
 #else
     Result = 1.0f/HMM_SquareRootF(Float);
 #endif
@@ -637,6 +659,9 @@ HMM_INLINE hmm_vec4 HMM_Vec4(float X, float Y, float Z, float W)
 
 #ifdef HANDMADE_MATH__USE_SSE
     Result.InternalElementsSSE = _mm_setr_ps(X, Y, Z, W);
+#elif defined HANDMADE_MATH__USE_NEON
+    HANDMADE_SET_VEC4(X, Y, Z, W);
+    Result.InternalElementsNEON = vld1q_f32(vec);
 #else
     Result.X = X;
     Result.Y = Y;
@@ -653,6 +678,9 @@ HMM_INLINE hmm_vec4 HMM_Vec4i(int X, int Y, int Z, int W)
 
 #ifdef HANDMADE_MATH__USE_SSE
     Result.InternalElementsSSE = _mm_setr_ps((float)X, (float)Y, (float)Z, (float)W);
+#elif defined HANDMADE_MATH__USE_NEON
+    HANDMADE_SET_VEC4(X, Y, Z, W);
+    Result.InternalElementsNEON = vld1q_f32(vec);
 #else
     Result.X = (float)X;
     Result.Y = (float)Y;
@@ -669,6 +697,9 @@ HMM_INLINE hmm_vec4 HMM_Vec4v(hmm_vec3 Vector, float W)
     
 #ifdef HANDMADE_MATH__USE_SSE
     Result.InternalElementsSSE = _mm_setr_ps(Vector.X, Vector.Y, Vector.Z, W);
+#elif defined HANDMADE_MATH__USE_NEON
+    HANDMADE_SET_VEC4(Vector.X, Vector.Y, Vector.Z, W);
+    Result.InternalElementsNEON = vld1q_f32(vec);
 #else
     Result.XYZ = Vector;
     Result.W = W;
@@ -709,6 +740,8 @@ HMM_INLINE hmm_vec4 HMM_AddVec4(hmm_vec4 Left, hmm_vec4 Right)
 
 #ifdef HANDMADE_MATH__USE_SSE
     Result.InternalElementsSSE = _mm_add_ps(Left.InternalElementsSSE, Right.InternalElementsSSE);
+#elif defined HANDMADE_MATH__USE_NEON
+    Result.InternalElementsNEON = vaddq_f32(Left.InternalElementsNEON, Right.InternalElementsNEON);
 #else    
     Result.X = Left.X + Right.X;
     Result.Y = Left.Y + Right.Y;
@@ -746,6 +779,8 @@ HMM_INLINE hmm_vec4 HMM_SubtractVec4(hmm_vec4 Left, hmm_vec4 Right)
     
 #ifdef HANDMADE_MATH__USE_SSE
     Result.InternalElementsSSE = _mm_sub_ps(Left.InternalElementsSSE, Right.InternalElementsSSE);
+#elif defined HANDMADE_MATH__USE_NEON
+    Result.InternalElementsNEON = vsubq_f32(Left.InternalElementsNEON, Right.InternalElementsNEON);
 #else    
     Result.X = Left.X - Right.X;
     Result.Y = Left.Y - Right.Y;
@@ -804,6 +839,8 @@ HMM_INLINE hmm_vec4 HMM_MultiplyVec4(hmm_vec4 Left, hmm_vec4 Right)
 
 #ifdef HANDMADE_MATH__USE_SSE
     Result.InternalElementsSSE = _mm_mul_ps(Left.InternalElementsSSE, Right.InternalElementsSSE);
+#elif defined HANDMADE_MATH__USE_NEON
+    Result.InternalElementsNEON = vmulq_f32(Left.InternalElementsNEON, Right.InternalElementsNEON);
 #else
     Result.X = Left.X * Right.X;
     Result.Y = Left.Y * Right.Y;
@@ -821,6 +858,9 @@ HMM_INLINE hmm_vec4 HMM_MultiplyVec4f(hmm_vec4 Left, float Right)
 #ifdef HANDMADE_MATH__USE_SSE
     __m128 Scalar = _mm_set1_ps(Right);
     Result.InternalElementsSSE = _mm_mul_ps(Left.InternalElementsSSE, Scalar);
+#elif defined HANDMADE_MATH__USE_NEON
+    float32x4_t Scalar = vdupq_n_f32(Right);
+    Result.InternalElementsNEON = vmulq_f32(Left.InternalElementsNEON, Scalar);
 #else    
     Result.X = Left.X * Right;
     Result.Y = Left.Y * Right;
@@ -879,6 +919,8 @@ HMM_INLINE hmm_vec4 HMM_DivideVec4(hmm_vec4 Left, hmm_vec4 Right)
     
 #ifdef HANDMADE_MATH__USE_SSE
     Result.InternalElementsSSE = _mm_div_ps(Left.InternalElementsSSE, Right.InternalElementsSSE);
+#elif defined HANDMADE_MATH__USE_NEON
+    Result.InternalElementsNEON = vdivq_f32(Left.InternalElementsNEON, Right.InternalElementsNEON);
 #else
     Result.X = Left.X / Right.X;
     Result.Y = Left.Y / Right.Y;
@@ -896,6 +938,9 @@ HMM_INLINE hmm_vec4 HMM_DivideVec4f(hmm_vec4 Left, float Right)
 #ifdef HANDMADE_MATH__USE_SSE
     __m128 Scalar = _mm_set1_ps(Right);
     Result.InternalElementsSSE = _mm_div_ps(Left.InternalElementsSSE, Scalar);
+#elif defined HANDMADE_MATH__USE_NEON
+    float32x4_t Scalar = vdupq_n_f32(Right);
+    Result.InternalElementsNEON = vdivq_f32(Left.InternalElementsNEON, Scalar);
 #else    
     Result.X = Left.X / Right;
     Result.Y = Left.Y / Right;
@@ -955,6 +1000,11 @@ HMM_INLINE float HMM_DotVec4(hmm_vec4 VecOne, hmm_vec4 VecTwo)
     SSEResultTwo = _mm_shuffle_ps(SSEResultOne, SSEResultOne, _MM_SHUFFLE(0, 1, 2, 3));
     SSEResultOne = _mm_add_ps(SSEResultOne, SSEResultTwo);       
     _mm_store_ss(&Result, SSEResultOne);
+#elif defined HANDMADE_MATH_USE_NEON
+    float32x4_t NEONResult = vmulq_f32(VecOne.InternalElementsNEON, VecTwo.InternalElementsNEON);
+    NEONResultOne = vaddq_f32(NEONResult, vrev64q_f32(NEONResult));
+    NEONResultTwo = vaddq_f32(NEONResultOne, vcombine_f32(vget_high_f32(NEONResultOne), vget_low_f32(NEONResultOne)));
+    vst1q_lane_f32(&Result, NEONResultTwo, 0);
 #else
     Result = (VecOne.X * VecTwo.X) + (VecOne.Y * VecTwo.Y) + (VecOne.Z * VecTwo.Z) + (VecOne.W * VecTwo.W);
 #endif
@@ -1067,6 +1117,9 @@ HMM_INLINE hmm_vec4 HMM_NormalizeVec4(hmm_vec4 A)
 #ifdef HANDMADE_MATH__USE_SSE
         __m128 SSEMultiplier = _mm_set1_ps(Multiplier);
         Result.InternalElementsSSE = _mm_mul_ps(A.InternalElementsSSE, SSEMultiplier);        
+#elif defined HANDMADE_MATH__USE_NEON
+        float32x4_t NEONMultiplier = vdupq_n_f32(Multiplier);
+        Result.InternalElementsNEON = vmulq_f32(A.InternalElementsNEON, NEONMultiplier);
 #else 
         Result.X = A.X * Multiplier;
         Result.Y = A.Y * Multiplier;
@@ -1096,7 +1149,29 @@ HMM_INLINE __m128 HMM_LinearCombineSSE(__m128 Left, hmm_mat4 Right)
 }
 #endif
 
+#ifdef HANDMADE_MATH__USE_NEON
+HMM_INLINE float32x4_t HMM_Shuffle(float32x4_t x, float32x4_t y, int mode)
+{
+    float __attribute__((aligned(16))) vec[4];
+    vec[0] = x[mode & 0x3];
+    vec[1] = x[(mode >> 2) & 0x3];
+    vec[2] = y[(mode >> 4) & 0x03];
+    vec[3] = y[(mode >> 6) & 0x03];
+    return vld1q_f32(vec);
+}
 
+HMM_INLINE float32x4_t HMM_LinearCombineNEON(float32x4_t Left, hmm_mat4 Right)
+{
+    float32x4_t Result;
+
+    Result = vmulq_f32(HMM_Shuffle(Left, Left, 0x00), Right.Rows[0]);
+    Result = vaddq_f32(Result, vmulq_f32(HMM_Shuffle(Left, Left, 0x55), Right.Rows[1]));
+    Result = vaddq_f32(Result, vmulq_f32(HMM_Shuffle(Left, Left, 0xaa), Right.Rows[2]));
+    Result = vaddq_f32(Result, vmulq_f32(HMM_Shuffle(Left, Left, 0xff), Right.Rows[3]));
+
+    return (Result);
+}
+#endif
 /*
  * Matrix functions
  */
@@ -1129,6 +1204,20 @@ HMM_INLINE hmm_mat4 HMM_Transpose(hmm_mat4 Matrix)
 
     return (Result);
 }
+#elif defined HANDMADE_MATH__USE_NEON
+HMM_INLINE hmm_mat4 HMM_Transpose(hmm_mat4 Matrix)
+{
+    hmm_mat4 Result = Matrix;
+
+    float32x4x2_t OPA = vtrnq_f32(Result.Rows[0], Result.Rows[1]);
+    float32x4x2_t OPB = vtrnq_f32(Result.Rows[2], Result.Rows[3]);
+    Result.Rows[0] = vcombine_f32(vget_low_f32(OPA.val[0]), vget_low_f32(OPB.val[0]));
+    Result.Rows[1] = vcombine_f32(vget_low_f32(OPA.val[1]), vget_low_f32(OPB.val[1]));
+    Result.Rows[2] = vcombine_f32(vget_high_f32(OPA.val[0]), vget_high_f32(OPB.val[0]));
+    Result.Rows[3] = vcombine_f32(vget_high_f32(OPA.val[1]), vget_high_f32(OPB.val[1]));
+
+    return (Result);
+}
 #else
 HMM_EXTERN hmm_mat4 HMM_Transpose(hmm_mat4 Matrix);
 #endif
@@ -1141,7 +1230,19 @@ HMM_INLINE hmm_mat4 HMM_AddMat4(hmm_mat4 Left, hmm_mat4 Right)
     Result.Rows[0] = _mm_add_ps(Left.Rows[0], Right.Rows[0]);
     Result.Rows[1] = _mm_add_ps(Left.Rows[1], Right.Rows[1]);
     Result.Rows[2] = _mm_add_ps(Left.Rows[2], Right.Rows[2]);
-    Result.Rows[3] = _mm_add_ps(Left.Rows[3], Right.Rows[3]);    
+    Result.Rows[3] = _mm_add_ps(Left.Rows[3], Right.Rows[3]);
+
+    return (Result);
+}
+#elif defined HANDMADE_MATH__USE_NEON
+HMM_INLINE hmm_mat4 HMM_AddMat4(hmm_mat4 Left, hmm_mat4 Right)
+{
+    hmm_mat4 Result;
+
+    Result.Rows[0] = vaddq_f32(Left.Rows[0], Right.Rows[0]);
+    Result.Rows[1] = vaddq_f32(Left.Rows[1], Right.Rows[1]);
+    Result.Rows[2] = vaddq_f32(Left.Rows[2], Right.Rows[2]);
+    Result.Rows[3] = vaddq_f32(Left.Rows[3], Right.Rows[3]);
 
     return (Result);
 }
@@ -1158,6 +1259,18 @@ HMM_INLINE hmm_mat4 HMM_SubtractMat4(hmm_mat4 Left, hmm_mat4 Right)
     Result.Rows[1] = _mm_sub_ps(Left.Rows[1], Right.Rows[1]);
     Result.Rows[2] = _mm_sub_ps(Left.Rows[2], Right.Rows[2]);
     Result.Rows[3] = _mm_sub_ps(Left.Rows[3], Right.Rows[3]);
+
+    return (Result);
+}
+#elif defined HANDMADE_MATH__USE_NEON
+HMM_INLINE hmm_mat4 HMM_SubtractMat4(hmm_mat4 Left, hmm_mat4 Right)
+{
+    hmm_mat4 Result;
+
+    Result.Rows[0] = vsubq_f32(Left.Rows[0], Right.Rows[0]);
+    Result.Rows[1] = vsubq_f32(Left.Rows[1], Right.Rows[1]);
+    Result.Rows[2] = vsubq_f32(Left.Rows[2], Right.Rows[2]);
+    Result.Rows[3] = vsubq_f32(Left.Rows[3], Right.Rows[3]);
 
     return (Result);
 }
@@ -1180,6 +1293,19 @@ HMM_INLINE hmm_mat4 HMM_MultiplyMat4f(hmm_mat4 Matrix, float Scalar)
 
     return (Result);
 }
+#elif defined HANDMADE_MATH__USE_NEON
+HMM_INLINE hmm_mat4 HMM_MultiplyMat4f(hmm_mat4 Matrix, float Scalar)
+{
+    hmm_mat4 Result;
+
+    float32x4_t NEONScalar = vdupq_n_f32(Scalar);
+    Result.Rows[0] = vmulq_f32(Matrix.Rows[0], NEONScalar);
+    Result.Rows[1] = vmulq_f32(Matrix.Rows[1], NEONScalar);
+    Result.Rows[2] = vmulq_f32(Matrix.Rows[2], NEONScalar);
+    Result.Rows[3] = vmulq_f32(Matrix.Rows[3], NEONScalar);
+
+    return (Result);
+}
 #else
 HMM_EXTERN hmm_mat4 HMM_MultiplyMat4f(hmm_mat4 Matrix, float Scalar);
 #endif
@@ -1196,6 +1322,19 @@ HMM_INLINE hmm_mat4 HMM_DivideMat4f(hmm_mat4 Matrix, float Scalar)
     Result.Rows[1] = _mm_div_ps(Matrix.Rows[1], SSEScalar);
     Result.Rows[2] = _mm_div_ps(Matrix.Rows[2], SSEScalar);
     Result.Rows[3] = _mm_div_ps(Matrix.Rows[3], SSEScalar);    
+
+    return (Result);
+}
+#elif defined HANDMADE_MATH__USE_NEON
+HMM_INLINE hmm_mat4 HMM_DivideMat4f(hmm_mat4 Matrix, float Scalar)
+{
+    hmm_mat4 Result;
+
+    float32x4_t NEONScalar = vdupq_n_f32(Scalar);
+    Result.Rows[0] = vdivq_f32(Matrix.Rows[0], NEONScalar);
+    Result.Rows[1] = vdivq_f32(Matrix.Rows[1], NEONScalar);
+    Result.Rows[2] = vdivq_f32(Matrix.Rows[2], NEONScalar);
+    Result.Rows[3] = vdivq_f32(Matrix.Rows[3], NEONScalar);
 
     return (Result);
 }
@@ -2147,7 +2286,7 @@ float HMM_Power(float Base, int Exponent)
     return (Result);
 }
 
-#ifndef HANDMADE_MATH__USE_SSE
+#if !defined(HANDMADE_MATH__USE_SSE) && !defined(HANDMADE_MATH__USE_NEON)
 hmm_mat4 HMM_Transpose(hmm_mat4 Matrix)
 {
     hmm_mat4 Result;
@@ -2166,7 +2305,7 @@ hmm_mat4 HMM_Transpose(hmm_mat4 Matrix)
 }
 #endif
 
-#ifndef HANDMADE_MATH__USE_SSE
+#if !defined(HANDMADE_MATH__USE_SSE) && !defined(HANDMADE_MATH__USE_NEON)
 hmm_mat4 HMM_AddMat4(hmm_mat4 Left, hmm_mat4 Right)
 {
     hmm_mat4 Result;
@@ -2185,7 +2324,7 @@ hmm_mat4 HMM_AddMat4(hmm_mat4 Left, hmm_mat4 Right)
 }
 #endif
 
-#ifndef HANDMADE_MATH__USE_SSE
+#if !defined(HANDMADE_MATH__USE_SSE) && !defined(HANDMADE_MATH__USE_NEON)
 hmm_mat4 HMM_SubtractMat4(hmm_mat4 Left, hmm_mat4 Right)
 {
     hmm_mat4 Result;
@@ -2218,6 +2357,16 @@ hmm_mat4 HMM_MultiplyMat4(hmm_mat4 Left, hmm_mat4 Right)
     Result.Rows[3] = HMM_LinearCombineSSE(TransposedLeft.Rows[3], TransposedRight);       
     
     Result = HMM_Transpose(Result);
+#elif defined HANDMADE_MATH__USE_NEON
+    hmm_mat4 TransposedLeft = HMM_Transpose(Left);
+    hmm_mat4 TransposedRight = HMM_Transpose(Right);
+
+    Result.Rows[0] = HMM_LinearCombineNEON(TransposedLeft.Rows[0], TransposedRight);
+    Result.Rows[1] = HMM_LinearCombineNEON(TransposedLeft.Rows[1], TransposedRight);
+    Result.Rows[2] = HMM_LinearCombineNEON(TransposedLeft.Rows[2], TransposedRight);
+    Result.Rows[3] = HMM_LinearCombineNEON(TransposedLeft.Rows[3], TransposedRight);
+
+    Result = HMM_Transpose(Result);
 #else
     int Columns;
     for(Columns = 0; Columns < 4; ++Columns)
@@ -2240,7 +2389,7 @@ hmm_mat4 HMM_MultiplyMat4(hmm_mat4 Left, hmm_mat4 Right)
     return (Result);
 }
 
-#ifndef HANDMADE_MATH__USE_SSE
+#if !defined(HANDMADE_MATH__USE_SSE) && !defined(HANDMADE_MATH__USE_NEON)
 hmm_mat4 HMM_MultiplyMat4f(hmm_mat4 Matrix, float Scalar)
 {
     hmm_mat4 Result;
@@ -2278,7 +2427,7 @@ hmm_vec4 HMM_MultiplyMat4ByVec4(hmm_mat4 Matrix, hmm_vec4 Vector)
     return (Result);
 }
 
-#ifndef HANDMADE_MATH__USE_SSE
+#if !defined(HANDMADE_MATH__USE_SSE) && !defined(HANDMADE_MATH__USE_NEON)
 hmm_mat4 HMM_DivideMat4f(hmm_mat4 Matrix, float Scalar)
 {
     hmm_mat4 Result;
@@ -2333,14 +2482,17 @@ hmm_mat4 HMM_LookAt(hmm_vec3 Eye, hmm_vec3 Center, hmm_vec3 Up)
     Result.Elements[0][0] = S.X;
     Result.Elements[0][1] = U.X;
     Result.Elements[0][2] = -F.X;
+    Result.Elements[0][3] = 0.0f;
 
     Result.Elements[1][0] = S.Y;
     Result.Elements[1][1] = U.Y;
     Result.Elements[1][2] = -F.Y;
+    Result.Elements[1][3] = 0.0f;
 
     Result.Elements[2][0] = S.Z;
     Result.Elements[2][1] = U.Z;
     Result.Elements[2][2] = -F.Z;
+    Result.Elements[2][3] = 0.0f;
 
     Result.Elements[3][0] = -HMM_DotVec3(S, Eye);
     Result.Elements[3][1] = -HMM_DotVec3(U, Eye);
