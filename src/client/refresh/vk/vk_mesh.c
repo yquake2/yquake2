@@ -49,6 +49,8 @@ typedef struct {
 	int firstVertex;
 } drawinfo_t;
 
+polyvert_t 	*verts_buffer = NULL;
+lmappolyvert_t	*lmappolyverts_buffer = NULL;
 static	drawinfo_t	*drawInfo[2] = {NULL, NULL};
 static	modelvert	*vertList[2] = {NULL, NULL};
 static	vec4_t	*s_lerped = NULL;
@@ -77,23 +79,75 @@ static float r_vulkan_correction_dh[16] = { 1.f,  0.f, 0.f, 0.f,
 											0.f,  0.f, .3f, 1.f
 										  };
 
-static void
+int
 Mesh_VertsRealloc(int count)
 {
+	void *ptr;
+
 	if (verts_count > count)
 	{
-		return;
+		return 0;
 	}
 
 	verts_count = ROUNDUP(count * 2, 256);
-	s_lerped = realloc(s_lerped, verts_count * sizeof(vec4_t));
-	shadowverts = realloc(shadowverts, verts_count * sizeof(vec3_t));
 
-	vertList[0] = realloc(vertList[0], verts_count * sizeof(modelvert));
-	vertList[1] = realloc(vertList[1], verts_count * sizeof(modelvert));
+	ptr = realloc(s_lerped, verts_count * sizeof(vec4_t));
+	if (!ptr)
+	{
+		return -1;
+	}
+	s_lerped = ptr;
 
-	drawInfo[0] = realloc(drawInfo[0], verts_count * sizeof(drawinfo_t));
-	drawInfo[1] = realloc(drawInfo[1], verts_count * sizeof(drawinfo_t));
+	ptr = realloc(shadowverts, verts_count * sizeof(vec3_t));
+	if (!ptr)
+	{
+		return -1;
+	}
+	shadowverts = ptr;
+
+	ptr = realloc(verts_buffer, verts_count * sizeof(polyvert_t));
+	if (!ptr)
+	{
+		return -1;
+	}
+	verts_buffer = ptr;
+
+	ptr = realloc(lmappolyverts_buffer, verts_count * sizeof(polyvert_t));
+	if (!ptr)
+	{
+		return -1;
+	}
+	lmappolyverts_buffer = ptr;
+
+	ptr = realloc(vertList[0], verts_count * sizeof(modelvert));
+	if (!ptr)
+	{
+		return -1;
+	}
+	vertList[0] = ptr;
+
+	ptr = realloc(vertList[1], verts_count * sizeof(modelvert));
+	if (!ptr)
+	{
+		return -1;
+	}
+	vertList[1] = ptr;
+
+	ptr = realloc(drawInfo[0], verts_count * sizeof(drawinfo_t));
+	if (!ptr)
+	{
+		return -1;
+	}
+	drawInfo[0] = ptr;
+
+	ptr = realloc(drawInfo[1], verts_count * sizeof(drawinfo_t));
+	if (!ptr)
+	{
+		return -1;
+	}
+	drawInfo[1] = ptr;
+
+	return 0;
 }
 
 /*
@@ -105,6 +159,8 @@ void Mesh_Init (void)
 {
 	s_lerped = NULL;
 	shadowverts = NULL;
+	verts_buffer = NULL;
+	lmappolyverts_buffer = NULL;
 	vertList[0] = NULL;
 	vertList[1] = NULL;
 	drawInfo[0] = NULL;
@@ -112,7 +168,10 @@ void Mesh_Init (void)
 
 	verts_count = 0;
 
-	Mesh_VertsRealloc(MAX_VERTS);
+	if (Mesh_VertsRealloc(MAX_VERTS))
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+	}
 }
 
 /*
@@ -140,6 +199,18 @@ void Mesh_Free (void)
 		free(s_lerped);
 	}
 	s_lerped = NULL;
+
+	if (verts_buffer)
+	{
+		free(verts_buffer);
+	}
+	verts_buffer = NULL;
+
+	if (lmappolyverts_buffer)
+	{
+		free(lmappolyverts_buffer);
+	}
+	lmappolyverts_buffer = NULL;
 
 	if (vertList[0])
 	{
@@ -203,7 +274,6 @@ FIXME: batch lerp all vertexes
 */
 static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, float *modelMatrix, int leftHandOffset, int translucentIdx, entity_t *currententity)
 {
-	float 	l;
 	daliasframe_t	*frame, *oldframe;
 	dtrivertx_t	*v, *ov, *verts;
 	int		*order;
@@ -212,7 +282,6 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 	vec3_t	move, delta, vectors[3];
 	vec3_t	frontv, backv;
 	int		i;
-	int		index_xyz;
 	float	*lerp;
 
 	frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames
@@ -253,7 +322,10 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 		backv[i] = backlerp*oldframe->scale[i];
 	}
 
-	Mesh_VertsRealloc(paliashdr->num_xyz);
+	if (Mesh_VertsRealloc(paliashdr->num_xyz))
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+	}
 
 	lerp = s_lerped[0];
 
@@ -268,7 +340,10 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 	int pipeCounters[2] = { 0, 0 };
 	VkDeviceSize maxTriangleFanIdxCnt = 0;
 
-	Mesh_VertsRealloc(1);
+	if (Mesh_VertsRealloc(1))
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+	}
 
 	drawInfo[0][0].firstVertex = 0;
 	drawInfo[1][0].firstVertex = 0;
@@ -296,7 +371,10 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 			pipelineIdx = TRIANGLE_STRIP;
 		}
 
-		Mesh_VertsRealloc(pipeCounters[pipelineIdx]);
+		if (Mesh_VertsRealloc(pipeCounters[pipelineIdx]))
+		{
+			ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+		}
 
 		drawInfo[pipelineIdx][pipeCounters[pipelineIdx]].vertexCount = count;
 		maxTriangleFanIdxCnt = max(maxTriangleFanIdxCnt, ((count - 2) * 3));
@@ -307,13 +385,16 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 			do
 			{
 				int vertIdx = vertCounts[pipelineIdx];
-				Mesh_VertsRealloc(vertIdx);
+				int index_xyz = order[2];
+
+				if (Mesh_VertsRealloc(vertIdx))
+				{
+					ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+				}
 
 				// unused in this case, since texturing is disabled
 				vertList[pipelineIdx][vertIdx].texCoord[0] = 0.f;
 				vertList[pipelineIdx][vertIdx].texCoord[1] = 0.f;
-				index_xyz = order[2];
-				order += 3;
 
 				vertList[pipelineIdx][vertIdx].color[0] = shadelight[0];
 				vertList[pipelineIdx][vertIdx].color[1] = shadelight[1];
@@ -330,6 +411,7 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 				vertList[pipelineIdx][vertIdx].vertex[1] = s_lerped[index_xyz][1];
 				vertList[pipelineIdx][vertIdx].vertex[2] = s_lerped[index_xyz][2];
 				vertCounts[pipelineIdx]++;
+				order += 3;
 			} while (--count);
 		}
 		else
@@ -338,13 +420,17 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 			do
 			{
 				int vertIdx = vertCounts[pipelineIdx];
-				Mesh_VertsRealloc(vertIdx);
+				int index_xyz = order[2];
+				float l;
+
+				if (Mesh_VertsRealloc(vertIdx))
+				{
+					ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+				}
 
 				// texture coordinates come from the draw list
 				vertList[pipelineIdx][vertIdx].texCoord[0] = ((float *)order)[0];
 				vertList[pipelineIdx][vertIdx].texCoord[1] = ((float *)order)[1];
-				index_xyz = order[2];
-				order += 3;
 
 				// normals and vertexes come from the frame list
 				l = shadedots[verts[index_xyz].lightnormalindex];
@@ -364,10 +450,14 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 				vertList[pipelineIdx][vertIdx].vertex[1] = s_lerped[index_xyz][1];
 				vertList[pipelineIdx][vertIdx].vertex[2] = s_lerped[index_xyz][2];
 				vertCounts[pipelineIdx]++;
+				order += 3;
 			} while (--count);
 		}
 
-		Mesh_VertsRealloc(pipeCounters[pipelineIdx] + 1);
+		if (Mesh_VertsRealloc(pipeCounters[pipelineIdx] + 1))
+		{
+			ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+		}
 
 		pipeCounters[pipelineIdx]++;
 		drawInfo[pipelineIdx][pipeCounters[pipelineIdx]].firstVertex = vertCounts[pipelineIdx];
@@ -469,11 +559,17 @@ static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatr
 			pipelineIdx = TRIANGLE_STRIP;
 		}
 
-		Mesh_VertsRealloc(count);
+		if (Mesh_VertsRealloc(count))
+		{
+			ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+		}
 
 		do
 		{
-			Mesh_VertsRealloc(order[2]);
+			if (Mesh_VertsRealloc(order[2]))
+			{
+				ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+			}
 
 			// normals and vertexes come from the frame list
 			memcpy( point, s_lerped[order[2]], sizeof( point ) );

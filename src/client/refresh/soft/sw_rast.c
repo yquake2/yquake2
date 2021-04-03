@@ -54,7 +54,7 @@ static qboolean		r_lastvertvalid;
 static int		r_skyframe;
 
 static msurface_t	*r_skyfaces;
-static mplane_t		r_skyplanes[6];
+static cplane_t		r_skyplanes[6];
 mtexinfo_t		r_skytexinfo[6];
 static mvertex_t	*r_skyverts;
 static medge_t		*r_skyedges;
@@ -523,7 +523,7 @@ R_RenderFace (entity_t *currententity, const model_t *currentmodel, msurface_t *
 {
 	int		i;
 	unsigned	mask;
-	mplane_t	*pplane;
+	cplane_t	*pplane;
 	float		distinv;
 	vec3_t		p_normal;
 	medge_t		*pedges, tedge;
@@ -748,7 +748,7 @@ R_RenderBmodelFace(entity_t *currententity, bedge_t *pedges, msurface_t *psurf, 
 {
 	int		i;
 	unsigned	mask;
-	mplane_t	*pplane;
+	cplane_t	*pplane;
 	float		distinv;
 	vec3_t		p_normal;
 	medge_t		tedge;

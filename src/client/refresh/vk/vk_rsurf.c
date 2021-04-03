@@ -103,21 +103,19 @@ static void DrawVkPoly (vkpoly_t *p, image_t *texture, float *color)
 	int		i;
 	float	*v;
 
-	typedef struct {
-		float vertex[3];
-		float texCoord[2];
-	} polyvert;
-
-	static polyvert verts[MAX_VERTS];
+	if (Mesh_VertsRealloc(p->numverts))
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+	}
 
 	v = p->verts[0];
 	for (i = 0; i < p->numverts; i++, v += VERTEXSIZE)
 	{
-		verts[i].vertex[0] = v[0];
-		verts[i].vertex[1] = v[1];
-		verts[i].vertex[2] = v[2];
-		verts[i].texCoord[0] = v[3];
-		verts[i].texCoord[1] = v[4];
+		verts_buffer[i].vertex[0] = v[0];
+		verts_buffer[i].vertex[1] = v[1];
+		verts_buffer[i].vertex[2] = v[2];
+		verts_buffer[i].texCoord[0] = v[3];
+		verts_buffer[i].texCoord[1] = v[4];
 	}
 
 	QVk_BindPipeline(&vk_drawPolyPipeline);
@@ -126,9 +124,9 @@ static void DrawVkPoly (vkpoly_t *p, image_t *texture, float *color)
 	VkDeviceSize vboOffset;
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
-	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(polyvert) * p->numverts, &vbo, &vboOffset);
+	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(polyvert_t) * p->numverts, &vbo, &vboOffset);
 	uint8_t *uboData  = QVk_GetUniformBuffer(sizeof(float) * 4, &uboOffset, &uboDescriptorSet);
-	memcpy(vertData, verts, sizeof(polyvert) * p->numverts);
+	memcpy(vertData, verts_buffer, sizeof(polyvert_t) * p->numverts);
 	memcpy(uboData,  color, sizeof(float) * 4);
 
 	VkDescriptorSet descriptorSets[] = { texture->vk_texture.descriptorSet, uboDescriptorSet };
@@ -158,27 +156,25 @@ static void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
 	vkpoly_t *p;
 	float	scroll;
 
-	typedef struct {
-		float vertex[3];
-		float texCoord[2];
-	} polyvert;
-
-	static polyvert verts[MAX_VERTS];
-
 	p = fa->polys;
 
 	scroll = -64 * ((r_newrefdef.time / 40.0) - (int)(r_newrefdef.time / 40.0));
 	if (scroll == 0.0)
 		scroll = -64.0;
 
+	if (Mesh_VertsRealloc(p->numverts))
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+	}
+
 	v = p->verts[0];
 	for (i = 0; i < p->numverts; i++, v += VERTEXSIZE)
 	{
-		verts[i].vertex[0] = v[0];
-		verts[i].vertex[1] = v[1];
-		verts[i].vertex[2] = v[2];
-		verts[i].texCoord[0] = v[3] + scroll;
-		verts[i].texCoord[1] = v[4];
+		verts_buffer[i].vertex[0] = v[0];
+		verts_buffer[i].vertex[1] = v[1];
+		verts_buffer[i].vertex[2] = v[2];
+		verts_buffer[i].texCoord[0] = v[3] + scroll;
+		verts_buffer[i].texCoord[1] = v[4];
 	}
 
 	QVk_BindPipeline(&vk_drawPolyPipeline);
@@ -187,9 +183,9 @@ static void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
 	VkDeviceSize vboOffset;
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
-	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(polyvert) * p->numverts, &vbo, &vboOffset);
+	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(polyvert_t) * p->numverts, &vbo, &vboOffset);
 	uint8_t *uboData  = QVk_GetUniformBuffer(sizeof(float) * 4, &uboOffset, &uboDescriptorSet);
-	memcpy(vertData, verts, sizeof(polyvert) * p->numverts);
+	memcpy(vertData, verts_buffer, sizeof(polyvert_t) * p->numverts);
 	memcpy(uboData,  color, sizeof(float) * 4);
 
 	VkDescriptorSet descriptorSets[] = { texture->vk_texture.descriptorSet, uboDescriptorSet };
@@ -457,14 +453,6 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 	unsigned lmtex = surf->lightmaptexturenum;
 	vkpoly_t *p;
 
-	typedef struct {
-		float vertex[3];
-		float texCoord[2];
-		float texCoordLmap[2];
-	} lmappolyvert;
-
-	static lmappolyvert verts[MAX_VERTS];
-
 	struct {
 		float model[16];
 		float viewLightmaps;
@@ -505,6 +493,11 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 				is_dynamic = true;
 			}
 		}
+	}
+
+	if (Mesh_VertsRealloc(nv))
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
 	}
 
 	if (is_dynamic)
@@ -556,17 +549,17 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 				v = p->verts[0];
 				for (i = 0; i < nv; i++, v += VERTEXSIZE)
 				{
-					verts[i].vertex[0] = v[0];
-					verts[i].vertex[1] = v[1];
-					verts[i].vertex[2] = v[2];
-					verts[i].texCoord[0] = v[3] + scroll;
-					verts[i].texCoord[1] = v[4];
-					verts[i].texCoordLmap[0] = v[5];
-					verts[i].texCoordLmap[1] = v[6];
+					lmappolyverts_buffer[i].vertex[0] = v[0];
+					lmappolyverts_buffer[i].vertex[1] = v[1];
+					lmappolyverts_buffer[i].vertex[2] = v[2];
+					lmappolyverts_buffer[i].texCoord[0] = v[3] + scroll;
+					lmappolyverts_buffer[i].texCoord[1] = v[4];
+					lmappolyverts_buffer[i].texCoordLmap[0] = v[5];
+					lmappolyverts_buffer[i].texCoordLmap[1] = v[6];
 				}
 
-				uint8_t *vertData = QVk_GetVertexBuffer(sizeof(lmappolyvert) * nv, &vbo, &vboOffset);
-				memcpy(vertData, verts, sizeof(lmappolyvert) * nv);
+				uint8_t *vertData = QVk_GetVertexBuffer(sizeof(lmappolyvert_t) * nv, &vbo, &vboOffset);
+				memcpy(vertData, lmappolyverts_buffer, sizeof(lmappolyvert_t) * nv);
 
 				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 				vkCmdBindIndexBuffer(vk_activeCmdbuffer, QVk_GetTriangleFanIbo((nv - 2) * 3), 0, VK_INDEX_TYPE_UINT16);
@@ -585,17 +578,17 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 				v = p->verts[0];
 				for (i = 0; i < nv; i++, v += VERTEXSIZE)
 				{
-					verts[i].vertex[0] = v[0];
-					verts[i].vertex[1] = v[1];
-					verts[i].vertex[2] = v[2];
-					verts[i].texCoord[0] = v[3];
-					verts[i].texCoord[1] = v[4];
-					verts[i].texCoordLmap[0] = v[5];
-					verts[i].texCoordLmap[1] = v[6];
+					lmappolyverts_buffer[i].vertex[0] = v[0];
+					lmappolyverts_buffer[i].vertex[1] = v[1];
+					lmappolyverts_buffer[i].vertex[2] = v[2];
+					lmappolyverts_buffer[i].texCoord[0] = v[3];
+					lmappolyverts_buffer[i].texCoord[1] = v[4];
+					lmappolyverts_buffer[i].texCoordLmap[0] = v[5];
+					lmappolyverts_buffer[i].texCoordLmap[1] = v[6];
 				}
 
-				uint8_t *vertData = QVk_GetVertexBuffer(sizeof(lmappolyvert) * nv, &vbo, &vboOffset);
-				memcpy(vertData, verts, sizeof(lmappolyvert) * nv);
+				uint8_t *vertData = QVk_GetVertexBuffer(sizeof(lmappolyvert_t) * nv, &vbo, &vboOffset);
+				memcpy(vertData, lmappolyverts_buffer, sizeof(lmappolyvert_t) * nv);
 
 				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 				vkCmdBindIndexBuffer(vk_activeCmdbuffer, QVk_GetTriangleFanIbo((nv - 2) * 3), 0, VK_INDEX_TYPE_UINT16);
@@ -624,18 +617,18 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 				v = p->verts[0];
 				for (i = 0; i < nv; i++, v += VERTEXSIZE)
 				{
-					verts[i].vertex[0] = v[0];
-					verts[i].vertex[1] = v[1];
-					verts[i].vertex[2] = v[2];
-					verts[i].texCoord[0] = v[3] + scroll;
-					verts[i].texCoord[1] = v[4];
-					verts[i].texCoordLmap[0] = v[5];
-					verts[i].texCoordLmap[1] = v[6];
+					lmappolyverts_buffer[i].vertex[0] = v[0];
+					lmappolyverts_buffer[i].vertex[1] = v[1];
+					lmappolyverts_buffer[i].vertex[2] = v[2];
+					lmappolyverts_buffer[i].texCoord[0] = v[3] + scroll;
+					lmappolyverts_buffer[i].texCoord[1] = v[4];
+					lmappolyverts_buffer[i].texCoordLmap[0] = v[5];
+					lmappolyverts_buffer[i].texCoordLmap[1] = v[6];
 				}
 				VkBuffer vbo;
 				VkDeviceSize vboOffset;
-				uint8_t *vertData = QVk_GetVertexBuffer(sizeof(lmappolyvert) * nv, &vbo, &vboOffset);
-				memcpy(vertData, verts, sizeof(lmappolyvert) * nv);
+				uint8_t *vertData = QVk_GetVertexBuffer(sizeof(lmappolyvert_t) * nv, &vbo, &vboOffset);
+				memcpy(vertData, lmappolyverts_buffer, sizeof(lmappolyvert_t) * nv);
 
 				VkDescriptorSet descriptorSets[] = { image->vk_texture.descriptorSet, uboDescriptorSet, vk_state.lightmap_textures[lmtex].descriptorSet };
 				vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyLmapPipeline.layout, 0, 3, descriptorSets, 1, &uboOffset);
@@ -653,18 +646,18 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 				v = p->verts[0];
 				for (i = 0; i < nv; i++, v += VERTEXSIZE)
 				{
-					verts[i].vertex[0] = v[0];
-					verts[i].vertex[1] = v[1];
-					verts[i].vertex[2] = v[2];
-					verts[i].texCoord[0] = v[3];
-					verts[i].texCoord[1] = v[4];
-					verts[i].texCoordLmap[0] = v[5];
-					verts[i].texCoordLmap[1] = v[6];
+					lmappolyverts_buffer[i].vertex[0] = v[0];
+					lmappolyverts_buffer[i].vertex[1] = v[1];
+					lmappolyverts_buffer[i].vertex[2] = v[2];
+					lmappolyverts_buffer[i].texCoord[0] = v[3];
+					lmappolyverts_buffer[i].texCoord[1] = v[4];
+					lmappolyverts_buffer[i].texCoordLmap[0] = v[5];
+					lmappolyverts_buffer[i].texCoordLmap[1] = v[6];
 				}
 				VkBuffer vbo;
 				VkDeviceSize vboOffset;
-				uint8_t *vertData = QVk_GetVertexBuffer(sizeof(lmappolyvert) * nv, &vbo, &vboOffset);
-				memcpy(vertData, verts, sizeof(lmappolyvert) * nv);
+				uint8_t *vertData = QVk_GetVertexBuffer(sizeof(lmappolyvert_t) * nv, &vbo, &vboOffset);
+				memcpy(vertData, lmappolyverts_buffer, sizeof(lmappolyvert_t) * nv);
 
 				VkDescriptorSet descriptorSets[] = { image->vk_texture.descriptorSet, uboDescriptorSet, vk_state.lightmap_textures[lmtex].descriptorSet };
 				vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyLmapPipeline.layout, 0, 3, descriptorSets, 1, &uboOffset);

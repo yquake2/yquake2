@@ -37,7 +37,7 @@ R_MarkLights
 static void
 R_MarkLights (dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
 {
-	mplane_t	*splitplane;
+	cplane_t	*splitplane;
 	float		dist;
 	msurface_t	*surf;
 	int			i;
@@ -116,7 +116,7 @@ RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 {
 	float		front, back, frac;
 	qboolean	side;
-	mplane_t	*plane;
+	cplane_t	*plane;
 	vec3_t		mid;
 	msurface_t	*surf;
 	int		s, t, ds, dt;

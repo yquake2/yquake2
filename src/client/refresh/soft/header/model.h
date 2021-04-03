@@ -46,15 +46,6 @@ typedef struct
 	vec3_t		position;
 } mvertex_t;
 
-// plane_t structure
-typedef struct mplane_s
-{
-	vec3_t	normal;
-	float	dist;
-	byte	type;			// for texture axis selection and fast side tests
-	byte	signbits;		// signx + signy<<1 + signz<<1
-} mplane_t;
-
 
 // FIXME: differentiate from texinfo SURF_ flags
 #define	SURF_PLANEBACK		0x02
@@ -88,7 +79,7 @@ typedef struct msurface_s
 	int		dlightframe;
 	int		dlightbits;
 
-	mplane_t	*plane;
+	cplane_t	*plane;
 	int		flags;
 
 	int		firstedge;	// look up in model->surfedges[], negative numbers
@@ -122,7 +113,7 @@ typedef struct mnode_s
 	struct mnode_s	*parent;
 
 	// node specific
-	mplane_t	*plane;
+	cplane_t	*plane;
 	struct mnode_s	*children[2];
 
 	unsigned short	firstsurface;
@@ -186,7 +177,7 @@ typedef struct model_s
 	dmodel_t	*submodels;
 
 	int		numplanes;
-	mplane_t	*planes;
+	cplane_t	*planes;
 
 	int		numleafs;	// number of visible leafs, not counting 0
 	mleaf_t		*leafs;

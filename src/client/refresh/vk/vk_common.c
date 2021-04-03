@@ -1636,7 +1636,7 @@ void QVk_WaitAndShutdownAll (void)
 	Mod_FreeAll();
 	Mod_FreeModelsKnown();
 	Vk_ShutdownImages();
-	Mesh_Free ();
+	Mesh_Free();
 	QVk_Shutdown();
 }
 

@@ -148,6 +148,14 @@ GL3_LoadMD2(gl3model_t *mod, void *buffer, int modfilelen)
 		poutcmd[i] = LittleLong(pincmd[i]);
 	}
 
+	if (poutcmd[pheader->num_glcmds-1] != 0)
+	{
+		R_Printf(PRINT_ALL, "%s: Entity %s has possible last element issues with %d verts.\n",
+			__func__,
+			mod->name,
+			poutcmd[pheader->num_glcmds-1]);
+	}
+
 	/* register all skins */
 	memcpy((char *)pheader + pheader->ofs_skins,
 			(char *)pinmodel + pheader->ofs_skins,

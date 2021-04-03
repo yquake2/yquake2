@@ -445,7 +445,7 @@ void R_RenderWorld(void);
 
 //=============================================================================
 
-extern mplane_t        screenedge[4];
+extern cplane_t        screenedge[4];
 
 extern vec3_t  r_origin;
 
