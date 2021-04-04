@@ -38,6 +38,11 @@ static float r_avertexnormals[NUMVERTEXNORMALS][3] = {
 
 typedef float vec4_t[4];
 
+enum {
+	TRIANGLE_STRIP = 0,
+	TRIANGLE_FAN = 1
+} pipelineIdx;
+
 typedef struct {
 	float vertex[3];
 	float color[4];
@@ -331,11 +336,6 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 
 	Vk_LerpVerts( paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv, currententity );
 
-	enum {
-		TRIANGLE_STRIP = 0,
-		TRIANGLE_FAN = 1
-	} pipelineIdx;
-
 	int vertCounts[2] = { 0, 0 };
 	int pipeCounters[2] = { 0, 0 };
 	VkDeviceSize maxTriangleFanIdxCnt = 0;
@@ -520,11 +520,6 @@ static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatr
 	vec3_t	point;
 	float	height, lheight;
 	qvkpipeline_t pipelines[2] = { vk_shadowsPipelineStrip, vk_shadowsPipelineFan };
-
-	enum {
-		TRIANGLE_STRIP = 0,
-		TRIANGLE_FAN = 1
-	} pipelineIdx;
 
 	lheight = currententity->origin[2] - lightspot[2];
 

@@ -196,7 +196,7 @@ void Vk_SubdivideSurface (msurface_t *fa, model_t *loadmodel)
 =============
 EmitWaterPolys
 
-Does a water warp on the pre-fragmented glpoly_t chain
+Does a water warp on the pre-fragmented vkpoly_t chain
 =============
 */
 void

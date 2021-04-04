@@ -206,13 +206,18 @@ PFN_vkCmdInsertDebugUtilsLabelEXT qvkInsertDebugUtilsLabelEXT;
 	.pVertexAttributeDescriptions = NULL \
 }
 
+enum {
+	SHADER_VERT_INDEX = 0,
+	SHADER_FRAG_INDEX = 1,
+	SHADER_INDEX_SIZE = 2
+};
+
 #define VK_LOAD_VERTFRAG_SHADERS(shaders, namevert, namefrag) \
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL); \
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL); \
-	shaders[0] = QVk_CreateShader(namevert##_vert_spv, namevert##_vert_size, VK_SHADER_STAGE_VERTEX_BIT); \
-	shaders[1] = QVk_CreateShader(namefrag##_frag_spv, namefrag##_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT); \
-	QVk_DebugSetObjectName((uint64_t)shaders[0].module, VK_OBJECT_TYPE_SHADER_MODULE, "Shader Module: "#namevert".vert"); \
-	QVk_DebugSetObjectName((uint64_t)shaders[1].module, VK_OBJECT_TYPE_SHADER_MODULE, "Shader Module: "#namefrag".frag");
+	DestroyShaderModule(shaders); \
+	shaders[SHADER_VERT_INDEX] = QVk_CreateShader(namevert##_vert_spv, namevert##_vert_size, VK_SHADER_STAGE_VERTEX_BIT); \
+	shaders[SHADER_FRAG_INDEX] = QVk_CreateShader(namefrag##_frag_spv, namefrag##_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT); \
+	QVk_DebugSetObjectName((uint64_t)shaders[SHADER_VERT_INDEX].module, VK_OBJECT_TYPE_SHADER_MODULE, "Shader Module: "#namevert".vert"); \
+	QVk_DebugSetObjectName((uint64_t)shaders[SHADER_FRAG_INDEX].module, VK_OBJECT_TYPE_SHADER_MODULE, "Shader Module: "#namefrag".frag");
 
 // global static buffers (reused, never changing)
 static qvkbuffer_t vk_texRectVbo;
@@ -250,7 +255,7 @@ static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
 // staging buffer is constant in size but has a max limit beyond which it will be submitted
 #define STAGING_BUFFER_MAXSIZE (8192 * 1024)
 // initial index count in triangle fan buffer - assuming 200 indices (200*3 = 600 triangles) per object
-#define TRIANGLE_FAN_INDEX_CNT 200
+#define TRIANGLE_INDEX_CNT 200
 
 // Vulkan common descriptor sets for UBO, primary texture sampler and optional lightmap texture
 static VkDescriptorSetLayout vk_uboDescSetLayout;
@@ -1070,12 +1075,12 @@ static void RebuildTriangleFanIndexBuffer()
 {
 	int idx = 0;
 	VkDeviceSize dstOffset = 0;
-	VkDeviceSize bufferSize = 3 * vk_config.triangle_fan_index_count * sizeof(uint16_t);
+	VkDeviceSize bufferSize = 3 * vk_config.triangle_index_count * sizeof(uint16_t);
 	uint16_t *iboData = NULL;
 	uint16_t *fanData = malloc(bufferSize);
 
 	// fill the index buffer so that we can emulate triangle fans via triangle lists
-	for (int i = 0; i < vk_config.triangle_fan_index_count; ++i)
+	for (int i = 0; i < vk_config.triangle_index_count; ++i)
 	{
 		fanData[idx++] = 0;
 		fanData[idx++] = i + 1;
@@ -1225,6 +1230,20 @@ static void CreateStaticBuffers()
 		VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Rectangle IBO");
 }
 
+static void
+DestroyShaderModule(qvkshader_t *shaders)
+{
+	// final shader cleanup
+	for (int i = 0; i < SHADER_INDEX_SIZE; ++i)
+	{
+		if (shaders[i].module)
+		{
+			vkDestroyShaderModule(vk_device.logical, shaders[i].module, NULL);
+			memset(&shaders[i], 0, sizeof(qvkshader_t));
+		}
+	}
+}
+
 // internal helper
 static void CreatePipelines()
 {
@@ -1260,7 +1279,7 @@ static void CreatePipelines()
 	VkDescriptorSetLayout samplerUboLmapDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout, vk_samplerLightmapDescSetLayout };
 
 	// shader array (vertex and fragment, no compute... yet)
-	qvkshader_t shaders[2] = {0};
+	qvkshader_t shaders[SHADER_INDEX_SIZE] = {0};
 
 	// textured quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic, basic);
@@ -1473,9 +1492,7 @@ static void CreatePipelines()
 	QVk_DebugSetObjectName((uint64_t)vk_postprocessPipeline.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: world postprocess");
 	QVk_DebugSetObjectName((uint64_t)vk_postprocessPipeline.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: world postprocess");
 
-	// final shader cleanup
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
+	DestroyShaderModule(shaders);
 }
 
 static void DestroyStagingBuffer(qvkstagingbuffer_t *dstBuffer)
@@ -1712,9 +1729,9 @@ qboolean QVk_Init(void)
 	vk_config.uniform_buffer_usage = 0;
 	vk_config.uniform_buffer_max_usage = 0;
 	vk_config.uniform_buffer_size  = UNIFORM_BUFFER_SIZE;
-	vk_config.triangle_fan_index_usage = 0;
-	vk_config.triangle_fan_index_max_usage = 0;
-	vk_config.triangle_fan_index_count = TRIANGLE_FAN_INDEX_CNT;
+	vk_config.triangle_index_usage = 0;
+	vk_config.triangle_index_max_usage = 0;
+	vk_config.triangle_index_count = TRIANGLE_INDEX_CNT;
 
 	if (!SDL_Vulkan_GetInstanceExtensions(vk_window, &extCount, NULL))
 	{
@@ -2038,7 +2055,7 @@ VkResult QVk_BeginFrame(const VkViewport* viewport, const VkRect2D* scissor)
 	// triangle fan index buffer data will not be cleared between frames unless the buffer itself is too small
 	vk_config.index_buffer_usage   = vk_triangleFanIboUsage;
 	vk_config.uniform_buffer_usage = 0;
-	vk_config.triangle_fan_index_usage = 0;
+	vk_config.triangle_index_usage = 0;
 
 	ReleaseSwapBuffers();
 
@@ -2446,16 +2463,16 @@ uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer 
 
 VkBuffer QVk_GetTriangleFanIbo(VkDeviceSize indexCount)
 {
-	if (indexCount > vk_config.triangle_fan_index_usage)
-		vk_config.triangle_fan_index_usage = indexCount;
+	if (indexCount > vk_config.triangle_index_usage)
+		vk_config.triangle_index_usage = indexCount;
 
-	if (vk_config.triangle_fan_index_usage > vk_config.triangle_fan_index_max_usage)
-		vk_config.triangle_fan_index_max_usage = vk_config.triangle_fan_index_usage;
+	if (vk_config.triangle_index_usage > vk_config.triangle_index_max_usage)
+		vk_config.triangle_index_max_usage = vk_config.triangle_index_usage;
 
-	if (indexCount > vk_config.triangle_fan_index_count)
+	if (indexCount > vk_config.triangle_index_count)
 	{
-		vk_config.triangle_fan_index_count *= BUFFER_RESIZE_FACTOR;
-		R_Printf(PRINT_ALL, "Resizing triangle fan index buffer to %u indices.\n", vk_config.triangle_fan_index_count);
+		vk_config.triangle_index_count *= BUFFER_RESIZE_FACTOR;
+		R_Printf(PRINT_ALL, "Resizing triangle fan index buffer to %u indices.\n", vk_config.triangle_index_count);
 		RebuildTriangleFanIndexBuffer();
 	}
 
