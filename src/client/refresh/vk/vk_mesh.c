@@ -473,9 +473,9 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 	// player configuration screen model is using the UI renderpass
 	int pidx = (r_newrefdef.rdflags & RDF_NOWORLDMODEL) ? RP_UI : RP_WORLD;
 	// non-depth write alias models don't occur with RF_WEAPONMODEL set, so no need for additional left-handed pipelines
-	qvkpipeline_t pipelines[2][4] = {
-		{ vk_drawModelPipelineFan[pidx], vk_drawModelPipelineFan[pidx], vk_drawLefthandModelPipelineFan, vk_drawLefthandModelPipelineFan },
-		{ vk_drawNoDepthModelPipelineFan, vk_drawNoDepthModelPipelineFan, vk_drawLefthandModelPipelineFan, vk_drawLefthandModelPipelineFan } };
+	qvkpipeline_t pipelines[2][2] = {
+		{ vk_drawModelPipelineFan[pidx], vk_drawLefthandModelPipelineFan },
+		{ vk_drawNoDepthModelPipelineFan, vk_drawLefthandModelPipelineFan } };
 	for (int p = 0; p < 2; p++)
 	{
 		VkDeviceSize vaoSize = sizeof(modelvert) * vertCounts[p];
@@ -484,9 +484,9 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 		uint8_t *vertData = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
 		memcpy(vertData, vertList[p], vaoSize);
 
-		QVk_BindPipeline(&pipelines[translucentIdx][p + leftHandOffset]);
+		QVk_BindPipeline(&pipelines[translucentIdx][leftHandOffset]);
 		VkDescriptorSet descriptorSets[] = { skin->vk_texture.descriptorSet, uboDescriptorSet };
-		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[translucentIdx][p + leftHandOffset].layout, 0, 2, descriptorSets, 1, &uboOffset);
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[translucentIdx][leftHandOffset].layout, 0, 2, descriptorSets, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 
 		if (p == TRIANGLE_STRIP)
@@ -924,7 +924,7 @@ void R_DrawAliasModel (entity_t *currententity, model_t *currentmodel)
 	{
 		Mat_Scale(r_viewproj_matrix, -1.f, 1.f, 1.f);
 		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
-		leftHandOffset = 2;
+		leftHandOffset = 1;
 	}
 
 	currententity->angles[PITCH] = -currententity->angles[PITCH];	// sigh.
