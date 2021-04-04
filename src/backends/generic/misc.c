@@ -188,5 +188,21 @@ void Sys_SetupFPU(void) {
 }
 #else
 void Sys_SetupFPU(void) {
+#if defined(__arm__)
+	// Enable RunFast mode if not enabled already
+	static const unsigned int bit = 0x04086060;
+	static const unsigned int fpscr = 0x03000000;
+	int ret;
+
+	asm volatile("fmrx %0, fpscr" : "=r"(ret));
+	if (ret != fpscr) {
+		asm volatile("fmrx %0, fpscr\n\t"
+                             "and  %0, %0, %1\n\t"
+                             "orr  %0, %0, %2\n\t"
+                             "fmxr fpscr, %0"
+		              : "=r"(ret)
+		              : "r"(bit), "r"(fpscr));
+	}
+#endif
 }
 #endif
