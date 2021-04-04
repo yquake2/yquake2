@@ -44,7 +44,7 @@ enum {
 } pipelineIdx;
 
 typedef struct {
-	float vertex[3];
+	vec3_t vertex;
 	float color[4];
 	float texCoord[2];
 } modelvert;
@@ -78,11 +78,12 @@ extern float r_projection_matrix[16];
 extern float r_viewproj_matrix[16];
 
 // correction matrix with "hacked depth" for models with RF_DEPTHHACK flag set
-static float r_vulkan_correction_dh[16] = { 1.f,  0.f, 0.f, 0.f,
-											0.f, -1.f, 0.f, 0.f,
-											0.f,  0.f, .3f, 0.f,
-											0.f,  0.f, .3f, 1.f
-										  };
+static float r_vulkan_correction_dh[16] = {
+	1.f,  0.f, 0.f, 0.f,
+	0.f, -1.f, 0.f, 0.f,
+	0.f,  0.f, .3f, 0.f,
+	0.f,  0.f, .3f, 1.f
+};
 
 int
 Mesh_VertsRealloc(int count)
@@ -472,8 +473,9 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 	// player configuration screen model is using the UI renderpass
 	int pidx = (r_newrefdef.rdflags & RDF_NOWORLDMODEL) ? RP_UI : RP_WORLD;
 	// non-depth write alias models don't occur with RF_WEAPONMODEL set, so no need for additional left-handed pipelines
-	qvkpipeline_t pipelines[2][4] = { { vk_drawModelPipelineStrip[pidx], vk_drawModelPipelineFan[pidx], vk_drawLefthandModelPipelineStrip, vk_drawLefthandModelPipelineFan },
-									  { vk_drawNoDepthModelPipelineStrip, vk_drawNoDepthModelPipelineFan, vk_drawLefthandModelPipelineStrip, vk_drawLefthandModelPipelineFan } };
+	qvkpipeline_t pipelines[2][4] = {
+		{ vk_drawModelPipelineFan[pidx], vk_drawModelPipelineFan[pidx], vk_drawLefthandModelPipelineFan, vk_drawLefthandModelPipelineFan },
+		{ vk_drawNoDepthModelPipelineFan, vk_drawNoDepthModelPipelineFan, vk_drawLefthandModelPipelineFan, vk_drawLefthandModelPipelineFan } };
 	for (int p = 0; p < 2; p++)
 	{
 		VkDeviceSize vaoSize = sizeof(modelvert) * vertCounts[p];
@@ -489,9 +491,11 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 
 		if (p == TRIANGLE_STRIP)
 		{
+			vkCmdBindIndexBuffer(vk_activeCmdbuffer, QVk_GetTriangleStripIbo(maxTriangleFanIdxCnt), 0, VK_INDEX_TYPE_UINT16);
+
 			for (i = 0; i < pipeCounters[p]; i++)
 			{
-				vkCmdDraw(vk_activeCmdbuffer, drawInfo[p][i].vertexCount, 1, drawInfo[p][i].firstVertex, 0);
+				vkCmdDrawIndexed(vk_activeCmdbuffer, (drawInfo[p][i].vertexCount - 2) * 3, 1, 0, drawInfo[p][i].firstVertex, 0);
 			}
 		}
 		else
@@ -519,7 +523,6 @@ static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatr
 	int		*order;
 	vec3_t	point;
 	float	height, lheight;
-	qvkpipeline_t pipelines[2] = { vk_shadowsPipelineStrip, vk_shadowsPipelineFan };
 
 	lheight = currententity->origin[2] - lightspot[2];
 
@@ -589,13 +592,14 @@ static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatr
 			uint8_t *vertData = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
 			memcpy(vertData, shadowverts, vaoSize);
 
-			QVk_BindPipeline(&pipelines[pipelineIdx]);
-			vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelineIdx].layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
+			QVk_BindPipeline(&vk_shadowsPipelineFan);
+			vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_shadowsPipelineFan.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 			vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 
 			if (pipelineIdx == TRIANGLE_STRIP)
 			{
-				vkCmdDraw(vk_activeCmdbuffer, i, 1, 0, 0);
+				vkCmdBindIndexBuffer(vk_activeCmdbuffer, QVk_GetTriangleStripIbo((i - 2) * 3), 0, VK_INDEX_TYPE_UINT16);
+				vkCmdDrawIndexed(vk_activeCmdbuffer, (i - 2) * 3, 1, 0, 0, 0);
 			}
 			else
 			{
