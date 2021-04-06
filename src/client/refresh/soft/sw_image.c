@@ -71,9 +71,9 @@ R_ImageList_f (void)
 			break;
 		}
 
-		R_Printf(PRINT_ALL,  " %3i %3i : %s %s\n",
-			image->width, image->height, image->name,
-			in_use);
+		R_Printf(PRINT_ALL,  " %3i %3i : %s (%dx%d) %s\n",
+			image->asset_width, image->asset_height, image->name,
+			image->width, image->height, in_use);
 	}
 	R_Printf(PRINT_ALL, "Total texel count: %i\n", texels);
 }
@@ -158,6 +158,44 @@ R_RestoreImagePointers(image_t *image, int min_mips)
 		image->pixels[i + 1] = image->pixels[i] + (
 			image->width * image->height / (1 << (i * 2)));
 	}
+	image->mip_levels = NUM_MIPS;
+}
+
+byte *
+Get_BestImageSize(const image_t *image, int *req_width, int *req_height)
+{
+	int width, height, i;
+	width = image->width;
+	height = image->height;
+
+	// return last mip before smaller image size
+	for (i = 0; i < (image->mip_levels - 1); i++)
+	{
+		if (image->pixels[i] &&
+		    ((width / 2) < *req_width ||
+		    (height / 2) < *req_height))
+		{
+			*req_width = width;
+			*req_height = height;
+			return image->pixels[i];
+		}
+
+		width = width / 2;
+		height = height / 2;
+	}
+
+	if (image->pixels[image->mip_levels - 1])
+	{
+		*req_width = image->width >> (image->mip_levels - 1);
+		*req_height = image->height >> (image->mip_levels - 1);
+		return image->pixels[image->mip_levels - 1];
+	}
+	else
+	{
+		*req_width = image->width;
+		*req_height = image->height;
+		return image->pixels[0];
+	}
 }
 
 /*
@@ -167,7 +205,7 @@ R_LoadPic
 ================
 */
 static image_t *
-R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
+R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int realheight, imagetype_t type)
 {
 	image_t	*image;
 	size_t	i, size, full_size;
@@ -183,6 +221,8 @@ R_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type)
 
 	image->width = width;
 	image->height = height;
+	image->asset_width = realwidth;
+	image->asset_height = realheight;
 	image->type = type;
 
 	size = width * height;
@@ -243,6 +283,8 @@ R_LoadWal (char *name, imagetype_t type)
 	strcpy (image->name, name);
 	image->width = LittleLong (mt->width);
 	image->height = LittleLong (mt->height);
+	image->asset_width = image->width;
+	image->asset_height = image->height;
 	image->type = type;
 	image->registration_sequence = registration_sequence;
 	ofs = LittleLong(mt->offsets[0]);
@@ -470,23 +512,49 @@ R_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t 
 				byte* pic32 = NULL;
 				// temporary image memory size
 				size_t size32;
+				int uploadwidth, uploadheight;
+
+				if (type == it_pic)
+				{
+					uploadwidth = realwidth;
+					uploadheight = realheight;
+
+					// search next scale up
+					while ((uploadwidth < width) && (uploadheight < height))
+					{
+						uploadwidth *= 2;
+						uploadheight *= 2;
+					}
+
+					// one step back
+					if ((uploadwidth > width) || (uploadheight > height))
+					{
+						uploadwidth /= 2;
+						uploadheight /= 2;
+					}
+				}
+				else
+				{
+					uploadwidth = realwidth;
+					uploadheight = realheight;
+				}
 
 				// resize image
 				size32 = width * height * 4;
 				pic32 = malloc(size32);
 
 				if (ResizeSTB(pic, width, height,
-					      pic32, realwidth, realheight))
+					      pic32, uploadwidth, uploadheight))
 				{
-					R_Convert32To8bit(pic32, pic8, realwidth * realheight);
-					image = R_LoadPic(name, pic8, realwidth, realheight, type);
+					R_Convert32To8bit(pic32, pic8, uploadwidth * uploadheight);
+					image = R_LoadPic(name, pic8, uploadwidth, realwidth, uploadheight, realheight, type);
 				}
 				free(pic32);
 			}
 			else
 			{
 				R_Convert32To8bit(pic, pic8, width * height);
-				image = R_LoadPic(name, pic8, width, height, type);
+				image = R_LoadPic(name, pic8, width, width, height, height, type);
 			}
 			free(pic8);
 		}
@@ -522,7 +590,31 @@ R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 			LoadPCX (name, &pic, &palette, &width, &height);
 			if (!pic)
 				return NULL;
-			image = R_LoadPic(name, pic, width, height, type);
+
+			if (sw_retexturing->value == 2 && type == it_pic)
+			{
+				byte *scaled = NULL;
+				int realwidth, realheight;
+
+				// save original size
+				realwidth = width;
+				realheight = height;
+
+				scaled = malloc(width * height * 4);
+				if (!scaled)
+					return NULL;
+
+				scale2x(pic, scaled, width, height);
+				width *= 2;
+				height *= 2;
+				image = R_LoadPic(name, scaled, width, realwidth, height, realheight, type);
+				free(scaled);
+			}
+			else
+			{
+				image = R_LoadPic(name, pic, width, width, height, height, type);
+			}
+
 			if (palette)
 			{
 				free(palette);

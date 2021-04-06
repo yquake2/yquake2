@@ -63,9 +63,11 @@ typedef struct image_s
 	char		name[MAX_QPATH];	// game path, including extension
 	imagetype_t	type;
 	int		width, height;
+	int		asset_width, asset_height;	// asset texture size
 	qboolean	transparent;		// true if any 255 pixels in image
 	int		registration_sequence;  // 0 = free
 	byte		*pixels[NUM_MIPS];	// mip levels
+	int		mip_levels; // count of mip levels
 } image_t;
 
 
@@ -583,6 +585,7 @@ void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *heigh
 void	R_InitImages(void);
 void	R_ShutdownImages(void);
 image_t	*R_FindImage(char *name, imagetype_t type);
+byte	*Get_BestImageSize(const image_t *image, int *req_width, int *req_height);
 void	R_FreeUnusedImages(void);
 
 void R_InitSkyBox(void);
