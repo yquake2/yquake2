@@ -217,7 +217,7 @@ Mod_PointInLeaf (vec3_t p, model_t *model)
 	while (node->contents == -1)
 	{
 		float d;
-		mplane_t *plane;
+		cplane_t *plane;
 
 		plane = node->plane;
 		d = DotProduct (p,plane->normal) - plane->dist;
@@ -901,7 +901,7 @@ static void
 Mod_LoadPlanes (lump_t *l)
 {
 	int i;
-	mplane_t	*out;
+	cplane_t	*out;
 	dplane_t 	*in;
 	int			count;
 
@@ -1004,7 +1004,7 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 		hunkSize += size;
 	}
 
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_PLANES], sizeof(dplane_t), sizeof(mplane_t), 6);
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_PLANES], sizeof(dplane_t), sizeof(cplane_t), 6);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_TEXINFO], sizeof(texinfo_t), sizeof(mtexinfo_t), 6);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_FACES], sizeof(dface_t), sizeof(msurface_t), 6);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFFACES], sizeof(short), sizeof(msurface_t *), 0); // yes, out is indeeed a pointer!
@@ -1208,8 +1208,17 @@ Mod_LoadAliasModel(model_t *mod, void *buffer, int modfilelen)
 	pincmd = (int *) ((byte *)pinmodel + pheader->ofs_glcmds);
 	poutcmd = (int *) ((byte *)pheader + pheader->ofs_glcmds);
 	for (i=0 ; i<pheader->num_glcmds ; i++)
+	{
 		poutcmd[i] = LittleLong (pincmd[i]);
+	}
 
+	if (poutcmd[pheader->num_glcmds-1] != 0)
+	{
+		R_Printf(PRINT_ALL, "%s: Entity %s has possible last element issues with %d verts.\n",
+			__func__,
+			mod->name,
+			poutcmd[pheader->num_glcmds-1]);
+	}
 
 	// register all skins
 	memcpy ((char *)pheader + pheader->ofs_skins, (char *)pinmodel + pheader->ofs_skins,

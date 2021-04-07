@@ -169,7 +169,7 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 {
 	bedge_t		*psideedges[2], *pnextedge, *ptedge;
 	int		i, side, lastside;
-	mplane_t	*splitplane, tplane;
+	cplane_t	*splitplane, tplane;
 	mvertex_t	*pvert, *plastvert, *ptvert;
 	mnode_t		*pn;
 	qboolean	makeclippededge;
@@ -356,7 +356,7 @@ R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *curre
 
 	for (i=0 ; i<numsurfaces ; i++, psurf++)
 	{
-		mplane_t *pplane;
+		cplane_t *pplane;
 		bedge_t  *pbedge;
 		medge_t  *pedge;
 		vec_t    dot;
@@ -441,7 +441,7 @@ R_DrawSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, int
 
 	for (i=0 ; i<numsurfaces ; i++, psurf++)
 	{
-		mplane_t *pplane;
+		cplane_t *pplane;
 		// find which side of the node we are on
 		pplane = psurf->plane;
 
@@ -550,7 +550,7 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 	{
 		float dot;
 		int side;
-		mplane_t *plane;
+		cplane_t *plane;
 
 		// node is just a decision point, so go down the apropriate sides
 		// find which side of the node we are on

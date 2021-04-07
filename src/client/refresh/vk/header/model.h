@@ -19,6 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#ifndef __VK_MODEL_H__
+#define __VK_MODEL_H__
+
 /*
 
 d*_t structures are on-disk representations
@@ -38,7 +41,6 @@ BRUSH MODELS
 //
 // in memory representation
 //
-// !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct
 {
 	vec3_t		position;
@@ -52,11 +54,10 @@ typedef struct
 
 #define	SURF_PLANEBACK		2
 #define	SURF_DRAWSKY		4
-#define SURF_DRAWTURB		0x10
-#define SURF_DRAWBACKGROUND	0x40
-#define SURF_UNDERWATER		0x80
+#define	SURF_DRAWTURB		0x10
+#define	SURF_DRAWBACKGROUND	0x40
+#define	SURF_UNDERWATER		0x80
 
-// !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct
 {
 	unsigned short	v[2];
@@ -249,3 +250,5 @@ void	Hunk_Free (void *base);
 
 void	Mod_FreeAll (void);
 void	Mod_FreeModelsKnown (void);
+
+#endif

@@ -115,7 +115,7 @@ float		xscaleinv, yscaleinv;
 float		xscaleshrink, yscaleshrink;
 float		aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
 
-mplane_t	screenedge[4];
+cplane_t	screenedge[4];
 
 //
 // refresh flags
@@ -982,7 +982,7 @@ R_FindTopnode (vec3_t mins, vec3_t maxs)
 
 	while (1)
 	{
-		mplane_t *splitplane;
+		cplane_t *splitplane;
 		int sides;
 
 		if (node->visframe != r_visframecount)

@@ -131,13 +131,9 @@ qvkpipeline_t vk_drawTexQuadPipeline[RP_COUNT]    = {
 	QVKPIPELINE_INIT, QVKPIPELINE_INIT, QVKPIPELINE_INIT };
 qvkpipeline_t vk_drawColorQuadPipeline[RP_COUNT]  = {
 	QVKPIPELINE_INIT, QVKPIPELINE_INIT, QVKPIPELINE_INIT };
-qvkpipeline_t vk_drawModelPipelineStrip[RP_COUNT] = {
-	QVKPIPELINE_INIT, QVKPIPELINE_INIT, QVKPIPELINE_INIT };
 qvkpipeline_t vk_drawModelPipelineFan[RP_COUNT]   = {
 	QVKPIPELINE_INIT, QVKPIPELINE_INIT, QVKPIPELINE_INIT };
-qvkpipeline_t vk_drawNoDepthModelPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawNoDepthModelPipelineFan = QVKPIPELINE_INIT;
-qvkpipeline_t vk_drawLefthandModelPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawLefthandModelPipelineFan = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawNullModelPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawParticlesPipeline = QVKPIPELINE_INIT;
@@ -146,6 +142,7 @@ qvkpipeline_t vk_drawSpritePipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPolyPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPolyLmapPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPolyWarpPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawPolySolidWarpPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawBeamPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSkyboxPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
@@ -205,13 +202,18 @@ PFN_vkCmdInsertDebugUtilsLabelEXT qvkInsertDebugUtilsLabelEXT;
 	.pVertexAttributeDescriptions = NULL \
 }
 
+enum {
+	SHADER_VERT_INDEX = 0,
+	SHADER_FRAG_INDEX = 1,
+	SHADER_INDEX_SIZE = 2
+};
+
 #define VK_LOAD_VERTFRAG_SHADERS(shaders, namevert, namefrag) \
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL); \
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL); \
-	shaders[0] = QVk_CreateShader(namevert##_vert_spv, namevert##_vert_size, VK_SHADER_STAGE_VERTEX_BIT); \
-	shaders[1] = QVk_CreateShader(namefrag##_frag_spv, namefrag##_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT); \
-	QVk_DebugSetObjectName((uint64_t)shaders[0].module, VK_OBJECT_TYPE_SHADER_MODULE, "Shader Module: "#namevert".vert"); \
-	QVk_DebugSetObjectName((uint64_t)shaders[1].module, VK_OBJECT_TYPE_SHADER_MODULE, "Shader Module: "#namefrag".frag");
+	DestroyShaderModule(shaders); \
+	shaders[SHADER_VERT_INDEX] = QVk_CreateShader(namevert##_vert_spv, namevert##_vert_size, VK_SHADER_STAGE_VERTEX_BIT); \
+	shaders[SHADER_FRAG_INDEX] = QVk_CreateShader(namefrag##_frag_spv, namefrag##_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT); \
+	QVk_DebugSetObjectName((uint64_t)shaders[SHADER_VERT_INDEX].module, VK_OBJECT_TYPE_SHADER_MODULE, "Shader Module: "#namevert".vert"); \
+	QVk_DebugSetObjectName((uint64_t)shaders[SHADER_FRAG_INDEX].module, VK_OBJECT_TYPE_SHADER_MODULE, "Shader Module: "#namefrag".frag");
 
 // global static buffers (reused, never changing)
 static qvkbuffer_t vk_texRectVbo;
@@ -227,8 +229,9 @@ static qvkstagingbuffer_t vk_stagingBuffers[NUM_DYNBUFFERS];
 static int vk_activeDynBufferIdx = 0;
 static int vk_activeSwapBufferIdx = 0;
 
-// index buffer for triangle fan emulation - all because Metal/MoltenVK don't support them
+// index buffer for triangle fan/strip emulation - all because Metal/MoltenVK don't support them
 static VkBuffer *vk_triangleFanIbo = NULL;
+static VkBuffer *vk_triangleStripIbo = NULL;
 static uint32_t  vk_triangleFanIboUsage = 0;
 
 // swap buffers used if primary dynamic buffers get full
@@ -249,7 +252,7 @@ static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
 // staging buffer is constant in size but has a max limit beyond which it will be submitted
 #define STAGING_BUFFER_MAXSIZE (8192 * 1024)
 // initial index count in triangle fan buffer - assuming 200 indices (200*3 = 600 triangles) per object
-#define TRIANGLE_FAN_INDEX_CNT 200
+#define TRIANGLE_INDEX_CNT 200
 
 // Vulkan common descriptor sets for UBO, primary texture sampler and optional lightmap texture
 static VkDescriptorSetLayout vk_uboDescSetLayout;
@@ -481,8 +484,8 @@ static VkResult CreateRenderpasses()
 			.flags = 0,
 			.format = vk_swapchain.format,
 			.samples = vk_renderpasses[RP_WORLD].sampleCount,
-			.loadOp = (msaaEnabled ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_DONT_CARE),
-			.storeOp = (msaaEnabled ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE),
+			.loadOp = (msaaEnabled ? VK_ATTACHMENT_LOAD_OP_DONT_CARE : VK_ATTACHMENT_LOAD_OP_LOAD),
+			.storeOp = (msaaEnabled ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE),
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -1064,37 +1067,65 @@ static int NextPow2(int v)
 }
 
 // internal helper
-static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset);
-static void RebuildTriangleFanIndexBuffer()
+static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset, int currentBufferIdx);
+static void RebuildTriangleIndexBuffer()
 {
 	int idx = 0;
 	VkDeviceSize dstOffset = 0;
-	VkDeviceSize bufferSize = 3 * vk_config.triangle_fan_index_count * sizeof(uint16_t);
+	VkDeviceSize bufferSize = 3 * vk_config.triangle_index_count * sizeof(uint16_t);
 	uint16_t *iboData = NULL;
 	uint16_t *fanData = malloc(bufferSize);
+	uint16_t *stripData = malloc(bufferSize);
 
 	// fill the index buffer so that we can emulate triangle fans via triangle lists
-	for (int i = 0; i < vk_config.triangle_fan_index_count; ++i)
+	for (int i = 0; i < vk_config.triangle_index_count; ++i)
 	{
 		fanData[idx++] = 0;
 		fanData[idx++] = i + 1;
 		fanData[idx++] = i + 2;
 	}
 
+	// fill the index buffer so that we can emulate triangle strips via triangle lists
+	idx = 0;
+	for (int i = 2; i < (vk_config.triangle_index_count + 2); ++i)
+	{
+		if ((i%2) == 0)
+		{
+			stripData[idx++] = i - 2;
+			stripData[idx++] = i - 1;
+			stripData[idx++] = i;
+		}
+		else
+		{
+			stripData[idx++] = i;
+			stripData[idx++] = i - 1;
+			stripData[idx++] = i - 2;
+		}
+	}
+
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
-		vk_activeDynBufferIdx = (vk_activeDynBufferIdx + 1) % NUM_DYNBUFFERS;
 		VK_VERIFY(buffer_invalidate(&vk_dynIndexBuffers[i].resource));
 
-		iboData = (uint16_t *)QVk_GetIndexBuffer(bufferSize, &dstOffset);
-		memcpy(iboData, fanData, bufferSize);
+		iboData = (uint16_t *)QVk_GetIndexBuffer(bufferSize, &dstOffset, i);
+		if ((i%2) == 0)
+		{
+			memcpy(iboData, fanData, bufferSize);
+		}
+		else
+		{
+			memcpy(iboData, stripData, bufferSize);
+		}
 
 		VK_VERIFY(buffer_flush(&vk_dynIndexBuffers[i].resource));
 	}
 
-	vk_triangleFanIbo = &vk_dynIndexBuffers[vk_activeDynBufferIdx].resource.buffer;
+	vk_triangleFanIbo = &vk_dynIndexBuffers[0].resource.buffer;
+	vk_triangleStripIbo = &vk_dynIndexBuffers[1].resource.buffer;
 	vk_triangleFanIboUsage = ((bufferSize % 4) == 0) ? bufferSize : (bufferSize + 4 - (bufferSize % 4));
+
 	free(fanData);
+	free(stripData);
 }
 
 static void CreateStagingBuffer(VkDeviceSize size, qvkstagingbuffer_t *dstBuffer, int i)
@@ -1224,6 +1255,20 @@ static void CreateStaticBuffers()
 		VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Rectangle IBO");
 }
 
+static void
+DestroyShaderModule(qvkshader_t *shaders)
+{
+	// final shader cleanup
+	for (int i = 0; i < SHADER_INDEX_SIZE; ++i)
+	{
+		if (shaders[i].module)
+		{
+			vkDestroyShaderModule(vk_device.logical, shaders[i].module, NULL);
+			memset(&shaders[i], 0, sizeof(qvkshader_t));
+		}
+	}
+}
+
 // internal helper
 static void CreatePipelines()
 {
@@ -1259,7 +1304,7 @@ static void CreatePipelines()
 	VkDescriptorSetLayout samplerUboLmapDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout, vk_samplerLightmapDescSetLayout };
 
 	// shader array (vertex and fragment, no compute... yet)
-	qvkshader_t shaders[2] = {0};
+	qvkshader_t shaders[SHADER_INDEX_SIZE] = {0};
 
 	// textured quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic, basic);
@@ -1315,14 +1360,6 @@ static void CreatePipelines()
 	VK_LOAD_VERTFRAG_SHADERS(shaders, model, model);
 	for (int i = 0; i < RP_COUNT; ++i)
 	{
-		vk_drawModelPipelineStrip[i].topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-		vk_drawModelPipelineStrip[i].blendOpts.blendEnable = VK_TRUE;
-		QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineStrip[i], &vk_renderpasses[i], shaders, 2);
-		QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineStrip[i].layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT,
-			va("Pipeline Layout: draw model: strip (%s)", renderpassObjectNames[i]));
-		QVk_DebugSetObjectName((uint64_t)vk_drawModelPipelineStrip[i].pl, VK_OBJECT_TYPE_PIPELINE,
-			va("Pipeline: draw model: strip (%s)", renderpassObjectNames[i]));
-
 		vk_drawModelPipelineFan[i].topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		vk_drawModelPipelineFan[i].blendOpts.blendEnable = VK_TRUE;
 		QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineFan[i], &vk_renderpasses[i], shaders, 2);
@@ -1333,13 +1370,6 @@ static void CreatePipelines()
 	}
 
 	// dedicated model pipelines for translucent objects with depth write disabled
-	vk_drawNoDepthModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-	vk_drawNoDepthModelPipelineStrip.depthWriteEnable = VK_FALSE;
-	vk_drawNoDepthModelPipelineStrip.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawNoDepthModelPipelineStrip, &vk_renderpasses[RP_WORLD], shaders, 2);
-	QVk_DebugSetObjectName((uint64_t)vk_drawNoDepthModelPipelineStrip.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: translucent model: strip");
-	QVk_DebugSetObjectName((uint64_t)vk_drawNoDepthModelPipelineStrip.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: translucent model: strip");
-
 	vk_drawNoDepthModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawNoDepthModelPipelineFan.depthWriteEnable = VK_FALSE;
 	vk_drawNoDepthModelPipelineFan.blendOpts.blendEnable = VK_TRUE;
@@ -1348,12 +1378,6 @@ static void CreatePipelines()
 	QVk_DebugSetObjectName((uint64_t)vk_drawNoDepthModelPipelineFan.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: translucent model: fan");
 
 	// dedicated model pipelines for when left-handed weapon model is drawn
-	vk_drawLefthandModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-	vk_drawLefthandModelPipelineStrip.cullMode = VK_CULL_MODE_FRONT_BIT;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawLefthandModelPipelineStrip, &vk_renderpasses[RP_WORLD], shaders, 2);
-	QVk_DebugSetObjectName((uint64_t)vk_drawLefthandModelPipelineStrip.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: left-handed model: strip");
-	QVk_DebugSetObjectName((uint64_t)vk_drawLefthandModelPipelineStrip.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: left-handed model: strip");
-
 	vk_drawLefthandModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawLefthandModelPipelineFan.cullMode = VK_CULL_MODE_FRONT_BIT;
 	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawLefthandModelPipelineFan, &vk_renderpasses[RP_WORLD], shaders, 2);
@@ -1389,6 +1413,17 @@ static void CreatePipelines()
 	QVk_CreatePipeline(samplerUboLmapDsLayouts, 2, &vertInfoRGB_RG, &vk_drawPolyWarpPipeline, &vk_renderpasses[RP_WORLD], shaders, 2);
 	QVk_DebugSetObjectName((uint64_t)vk_drawPolyWarpPipeline.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: warped polygon (liquids)");
 	QVk_DebugSetObjectName((uint64_t)vk_drawPolyWarpPipeline.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: warped polygon (liquids)");
+
+	// draw solid polygon with warp effect (liquid) pipeline
+	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_warp, basic);
+	vk_drawPolySolidWarpPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	QVk_CreatePipeline(samplerUboLmapDsLayouts, 2, &vertInfoRGB_RG,
+		&vk_drawPolySolidWarpPipeline, &vk_renderpasses[RP_WORLD],
+		shaders, 2);
+	QVk_DebugSetObjectName((uint64_t)vk_drawPolySolidWarpPipeline.layout,
+		VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: warped solid polygon (liquids)");
+	QVk_DebugSetObjectName((uint64_t)vk_drawPolySolidWarpPipeline.pl,
+		VK_OBJECT_TYPE_PIPELINE, "Pipeline: warped solid polygon (liquids)");
 
 	// draw beam pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, beam, basic_color_quad);
@@ -1431,12 +1466,6 @@ static void CreatePipelines()
 
 	//vk_shadows render pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, shadows, basic_color_quad);
-	vk_shadowsPipelineStrip.blendOpts.blendEnable = VK_TRUE;
-	vk_shadowsPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_shadowsPipelineStrip, &vk_renderpasses[RP_WORLD], shaders, 2);
-	QVk_DebugSetObjectName((uint64_t)vk_shadowsPipelineStrip.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: draw shadows: strip");
-	QVk_DebugSetObjectName((uint64_t)vk_shadowsPipelineStrip.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: draw shadows: strip");
-
 	vk_shadowsPipelineFan.blendOpts.blendEnable = VK_TRUE;
 	vk_shadowsPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_shadowsPipelineFan, &vk_renderpasses[RP_WORLD], shaders, 2);
@@ -1461,9 +1490,7 @@ static void CreatePipelines()
 	QVk_DebugSetObjectName((uint64_t)vk_postprocessPipeline.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: world postprocess");
 	QVk_DebugSetObjectName((uint64_t)vk_postprocessPipeline.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: world postprocess");
 
-	// final shader cleanup
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
+	DestroyShaderModule(shaders);
 }
 
 static void DestroyStagingBuffer(qvkstagingbuffer_t *dstBuffer)
@@ -1497,14 +1524,11 @@ void QVk_Shutdown( void )
 		for (int i = 0; i < RP_COUNT; ++i)
 		{
 			QVk_DestroyPipeline(&vk_drawColorQuadPipeline[i]);
-			QVk_DestroyPipeline(&vk_drawModelPipelineStrip[i]);
 			QVk_DestroyPipeline(&vk_drawModelPipelineFan[i]);
 			QVk_DestroyPipeline(&vk_drawTexQuadPipeline[i]);
 		}
 		QVk_DestroyPipeline(&vk_drawNullModelPipeline);
-		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineFan);
-		QVk_DestroyPipeline(&vk_drawLefthandModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawLefthandModelPipelineFan);
 		QVk_DestroyPipeline(&vk_drawParticlesPipeline);
 		QVk_DestroyPipeline(&vk_drawPointParticlesPipeline);
@@ -1512,11 +1536,11 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawPolyPipeline);
 		QVk_DestroyPipeline(&vk_drawPolyLmapPipeline);
 		QVk_DestroyPipeline(&vk_drawPolyWarpPipeline);
+		QVk_DestroyPipeline(&vk_drawPolySolidWarpPipeline);
 		QVk_DestroyPipeline(&vk_drawBeamPipeline);
 		QVk_DestroyPipeline(&vk_drawSkyboxPipeline);
 		QVk_DestroyPipeline(&vk_drawDLightPipeline);
 		QVk_DestroyPipeline(&vk_showTrisPipeline);
-		QVk_DestroyPipeline(&vk_shadowsPipelineStrip);
 		QVk_DestroyPipeline(&vk_shadowsPipelineFan);
 		QVk_DestroyPipeline(&vk_worldWarpPipeline);
 		QVk_DestroyPipeline(&vk_postprocessPipeline);
@@ -1636,6 +1660,7 @@ void QVk_WaitAndShutdownAll (void)
 	Mod_FreeAll();
 	Mod_FreeModelsKnown();
 	Vk_ShutdownImages();
+	Mesh_Free();
 	QVk_Shutdown();
 }
 
@@ -1650,6 +1675,7 @@ void QVk_Restart(void)
 
 void QVk_PostInit(void)
 {
+	Mesh_Init();
 	Vk_InitImages();
 	Mod_Init();
 	RE_InitParticleTexture();
@@ -1697,9 +1723,9 @@ qboolean QVk_Init(void)
 	vk_config.uniform_buffer_usage = 0;
 	vk_config.uniform_buffer_max_usage = 0;
 	vk_config.uniform_buffer_size  = UNIFORM_BUFFER_SIZE;
-	vk_config.triangle_fan_index_usage = 0;
-	vk_config.triangle_fan_index_max_usage = 0;
-	vk_config.triangle_fan_index_count = TRIANGLE_FAN_INDEX_CNT;
+	vk_config.triangle_index_usage = 0;
+	vk_config.triangle_index_max_usage = 0;
+	vk_config.triangle_index_count = TRIANGLE_INDEX_CNT;
 
 	if (!SDL_Vulkan_GetInstanceExtensions(vk_window, &extCount, NULL))
 	{
@@ -1989,7 +2015,7 @@ qboolean QVk_Init(void)
 	// create staging buffers
 	CreateStagingBuffers();
 	// assign a dynamic index buffer for triangle fan emulation
-	RebuildTriangleFanIndexBuffer();
+	RebuildTriangleIndexBuffer();
 	CreatePipelines();
 	CreateSamplers();
 
@@ -2023,7 +2049,7 @@ VkResult QVk_BeginFrame(const VkViewport* viewport, const VkRect2D* scissor)
 	// triangle fan index buffer data will not be cleared between frames unless the buffer itself is too small
 	vk_config.index_buffer_usage   = vk_triangleFanIboUsage;
 	vk_config.uniform_buffer_usage = 0;
-	vk_config.triangle_fan_index_usage = 0;
+	vk_config.triangle_index_usage = 0;
 
 	ReleaseSwapBuffers();
 
@@ -2271,12 +2297,12 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 	return (uint8_t *)vk_dynVertexBuffers[vk_activeDynBufferIdx].pMappedData + (*dstOffset);
 }
 
-static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
+static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset, int currentBufferIdx)
 {
 	// align to 4 bytes, so that we can reuse the buffer for both VK_INDEX_TYPE_UINT16 and VK_INDEX_TYPE_UINT32
 	const uint32_t aligned_size = ROUNDUP(size, 4);
 
-	if (vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset + aligned_size > vk_config.index_buffer_size)
+	if (vk_dynIndexBuffers[currentBufferIdx].currentOffset + aligned_size > vk_config.index_buffer_size)
 	{
 		vk_config.index_buffer_size = max(vk_config.index_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
@@ -2306,14 +2332,14 @@ static uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 		}
 	}
 
-	*dstOffset = vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset;
-	vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset += aligned_size;
+	*dstOffset = vk_dynIndexBuffers[currentBufferIdx].currentOffset;
+	vk_dynIndexBuffers[currentBufferIdx].currentOffset += aligned_size;
 
-	vk_config.index_buffer_usage = vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset;
+	vk_config.index_buffer_usage = vk_dynIndexBuffers[currentBufferIdx].currentOffset;
 	if (vk_config.index_buffer_max_usage < vk_config.index_buffer_usage)
 		vk_config.index_buffer_max_usage = vk_config.index_buffer_usage;
 
-	return (uint8_t *)vk_dynIndexBuffers[vk_activeDynBufferIdx].pMappedData + (*dstOffset);
+	return (uint8_t *)vk_dynIndexBuffers[currentBufferIdx].pMappedData + (*dstOffset);
 }
 
 uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet)
@@ -2429,22 +2455,35 @@ uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer 
 	return data;
 }
 
+static void
+QVk_CheckTriangleIbo(VkDeviceSize indexCount)
+{
+	if (indexCount > vk_config.triangle_index_usage)
+		vk_config.triangle_index_usage = indexCount;
+
+	if (vk_config.triangle_index_usage > vk_config.triangle_index_max_usage)
+		vk_config.triangle_index_max_usage = vk_config.triangle_index_usage;
+
+	if (indexCount > vk_config.triangle_index_count)
+	{
+		vk_config.triangle_index_count *= BUFFER_RESIZE_FACTOR;
+		R_Printf(PRINT_ALL, "Resizing triangle index buffer to %u indices.\n", vk_config.triangle_index_count);
+		RebuildTriangleIndexBuffer();
+	}
+}
+
 VkBuffer QVk_GetTriangleFanIbo(VkDeviceSize indexCount)
 {
-	if (indexCount > vk_config.triangle_fan_index_usage)
-		vk_config.triangle_fan_index_usage = indexCount;
-
-	if (vk_config.triangle_fan_index_usage > vk_config.triangle_fan_index_max_usage)
-		vk_config.triangle_fan_index_max_usage = vk_config.triangle_fan_index_usage;
-
-	if (indexCount > vk_config.triangle_fan_index_count)
-	{
-		vk_config.triangle_fan_index_count *= BUFFER_RESIZE_FACTOR;
-		R_Printf(PRINT_ALL, "Resizing triangle fan index buffer to %u indices.\n", vk_config.triangle_fan_index_count);
-		RebuildTriangleFanIndexBuffer();
-	}
+	QVk_CheckTriangleIbo(indexCount);
 
 	return *vk_triangleFanIbo;
+}
+
+VkBuffer QVk_GetTriangleStripIbo(VkDeviceSize indexCount)
+{
+	QVk_CheckTriangleIbo(indexCount);
+
+	return *vk_triangleStripIbo;
 }
 
 void QVk_SubmitStagingBuffers()

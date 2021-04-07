@@ -183,7 +183,9 @@ qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 void R_RotateForEntity (entity_t *e, float *mvMatrix);
 void R_MarkLeaves (void);
 
-void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float *color);
+void EmitWaterPolys (msurface_t *fa, image_t *texture,
+				   float *modelMatrix, float *color,
+				   qboolean solid_surface);
 void R_AddSkySurface (msurface_t *fa);
 void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
@@ -255,9 +257,9 @@ typedef struct
 	uint32_t    uniform_buffer_usage;
 	uint32_t    uniform_buffer_max_usage;
 	uint32_t    uniform_buffer_size;
-	uint32_t    triangle_fan_index_usage;
-	uint32_t    triangle_fan_index_max_usage;
-	uint32_t    triangle_fan_index_count;
+	uint32_t    triangle_index_usage;
+	uint32_t    triangle_index_max_usage;
+	uint32_t    triangle_index_count;
 } vkconfig_t;
 
 #define MAX_LIGHTMAPS 128
@@ -307,5 +309,24 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 */
 
 qboolean Vkimp_CreateSurface(SDL_Window *window);
+
+// buffers reallocate
+typedef struct {
+	float vertex[3];
+	float texCoord[2];
+} polyvert_t;
+
+typedef struct {
+	float vertex[3];
+	float texCoord[2];
+	float texCoordLmap[2];
+} lmappolyvert_t;
+
+extern polyvert_t	*verts_buffer;
+extern lmappolyvert_t	*lmappolyverts_buffer;
+
+void	Mesh_Init (void);
+void	Mesh_Free (void);
+int Mesh_VertsRealloc(int count);
 
 #endif

@@ -38,7 +38,29 @@ static float r_avertexnormals[NUMVERTEXNORMALS][3] = {
 
 typedef float vec4_t[4];
 
-static	vec4_t	s_lerped[MAX_VERTS];
+enum {
+	TRIANGLE_STRIP = 0,
+	TRIANGLE_FAN = 1
+} pipelineIdx;
+
+typedef struct {
+	vec3_t vertex;
+	float color[4];
+	float texCoord[2];
+} modelvert;
+
+typedef struct {
+	int vertexCount;
+	int firstVertex;
+} drawinfo_t;
+
+polyvert_t 	*verts_buffer = NULL;
+lmappolyvert_t	*lmappolyverts_buffer = NULL;
+static	drawinfo_t	*drawInfo[2] = {NULL, NULL};
+static	modelvert	*vertList[2] = {NULL, NULL};
+static	vec4_t	*s_lerped = NULL;
+static	vec3_t	*shadowverts = NULL;
+static	int	verts_count = 0;
 
 vec3_t	shadevector;
 float	shadelight[3];
@@ -56,11 +78,169 @@ extern float r_projection_matrix[16];
 extern float r_viewproj_matrix[16];
 
 // correction matrix with "hacked depth" for models with RF_DEPTHHACK flag set
-static float r_vulkan_correction_dh[16] = { 1.f,  0.f, 0.f, 0.f,
-											0.f, -1.f, 0.f, 0.f,
-											0.f,  0.f, .3f, 0.f,
-											0.f,  0.f, .3f, 1.f
-										  };
+static float r_vulkan_correction_dh[16] = {
+	1.f,  0.f, 0.f, 0.f,
+	0.f, -1.f, 0.f, 0.f,
+	0.f,  0.f, .3f, 0.f,
+	0.f,  0.f, .3f, 1.f
+};
+
+int
+Mesh_VertsRealloc(int count)
+{
+	void *ptr;
+
+	if (verts_count > count)
+	{
+		return 0;
+	}
+
+	verts_count = ROUNDUP(count * 2, 256);
+
+	ptr = realloc(s_lerped, verts_count * sizeof(vec4_t));
+	if (!ptr)
+	{
+		return -1;
+	}
+	s_lerped = ptr;
+
+	ptr = realloc(shadowverts, verts_count * sizeof(vec3_t));
+	if (!ptr)
+	{
+		return -1;
+	}
+	shadowverts = ptr;
+
+	ptr = realloc(verts_buffer, verts_count * sizeof(polyvert_t));
+	if (!ptr)
+	{
+		return -1;
+	}
+	verts_buffer = ptr;
+
+	ptr = realloc(lmappolyverts_buffer, verts_count * sizeof(polyvert_t));
+	if (!ptr)
+	{
+		return -1;
+	}
+	lmappolyverts_buffer = ptr;
+
+	ptr = realloc(vertList[0], verts_count * sizeof(modelvert));
+	if (!ptr)
+	{
+		return -1;
+	}
+	vertList[0] = ptr;
+
+	ptr = realloc(vertList[1], verts_count * sizeof(modelvert));
+	if (!ptr)
+	{
+		return -1;
+	}
+	vertList[1] = ptr;
+
+	ptr = realloc(drawInfo[0], verts_count * sizeof(drawinfo_t));
+	if (!ptr)
+	{
+		return -1;
+	}
+	drawInfo[0] = ptr;
+
+	ptr = realloc(drawInfo[1], verts_count * sizeof(drawinfo_t));
+	if (!ptr)
+	{
+		return -1;
+	}
+	drawInfo[1] = ptr;
+
+	return 0;
+}
+
+/*
+===============
+Mesh_Init
+===============
+*/
+void Mesh_Init (void)
+{
+	s_lerped = NULL;
+	shadowverts = NULL;
+	verts_buffer = NULL;
+	lmappolyverts_buffer = NULL;
+	vertList[0] = NULL;
+	vertList[1] = NULL;
+	drawInfo[0] = NULL;
+	drawInfo[1] = NULL;
+
+	verts_count = 0;
+
+	if (Mesh_VertsRealloc(MAX_VERTS))
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+	}
+}
+
+/*
+================
+Mesh_Free
+================
+*/
+void Mesh_Free (void)
+{
+	if (vk_validation->value > 1)
+	{
+		R_Printf(PRINT_ALL, "%s: Deallocated %d mesh verts\n",
+			__func__, verts_count);
+	}
+	verts_count = 0;
+
+	if (shadowverts)
+	{
+		free(shadowverts);
+	}
+	shadowverts = NULL;
+
+	if (s_lerped)
+	{
+		free(s_lerped);
+	}
+	s_lerped = NULL;
+
+	if (verts_buffer)
+	{
+		free(verts_buffer);
+	}
+	verts_buffer = NULL;
+
+	if (lmappolyverts_buffer)
+	{
+		free(lmappolyverts_buffer);
+	}
+	lmappolyverts_buffer = NULL;
+
+	if (vertList[0])
+	{
+		free(vertList[0]);
+	}
+	if (vertList[1])
+	{
+		free(vertList[1]);
+	}
+	vertList[0] = NULL;
+	vertList[1] = NULL;
+
+	if (drawInfo[0])
+	{
+		free(drawInfo[0]);
+	}
+	if (drawInfo[1])
+	{
+		free(drawInfo[1]);
+	}
+	drawInfo[0] = NULL;
+	drawInfo[1] = NULL;
+}
+
 
 static void Vk_LerpVerts( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, float *lerp, float move[3], float frontv[3], float backv[3], entity_t *currententity )
 {
@@ -100,7 +280,6 @@ FIXME: batch lerp all vertexes
 */
 static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, float *modelMatrix, int leftHandOffset, int translucentIdx, entity_t *currententity)
 {
-	float 	l;
 	daliasframe_t	*frame, *oldframe;
 	dtrivertx_t	*v, *ov, *verts;
 	int		*order;
@@ -109,7 +288,6 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 	vec3_t	move, delta, vectors[3];
 	vec3_t	frontv, backv;
 	int		i;
-	int		index_xyz;
 	float	*lerp;
 
 	frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames
@@ -150,30 +328,23 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 		backv[i] = backlerp*oldframe->scale[i];
 	}
 
+	if (Mesh_VertsRealloc(paliashdr->num_xyz))
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+	}
+
 	lerp = s_lerped[0];
 
 	Vk_LerpVerts( paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv, currententity );
 
-	enum {
-		TRIANGLE_STRIP = 0,
-		TRIANGLE_FAN = 1
-	} pipelineIdx;
-
-	typedef struct {
-		float vertex[3];
-		float color[4];
-		float texCoord[2];
-	} modelvert;
-
 	int vertCounts[2] = { 0, 0 };
-	static modelvert vertList[2][MAX_VERTS];
 	int pipeCounters[2] = { 0, 0 };
 	VkDeviceSize maxTriangleFanIdxCnt = 0;
 
-	static struct {
-		int vertexCount;
-		int firstVertex;
-	} drawInfo[2][MAX_VERTS];
+	if (Mesh_VertsRealloc(1))
+	{
+		ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+	}
 
 	drawInfo[0][0].firstVertex = 0;
 	drawInfo[1][0].firstVertex = 0;
@@ -201,6 +372,11 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 			pipelineIdx = TRIANGLE_STRIP;
 		}
 
+		if (Mesh_VertsRealloc(pipeCounters[pipelineIdx]))
+		{
+			ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+		}
+
 		drawInfo[pipelineIdx][pipeCounters[pipelineIdx]].vertexCount = count;
 		maxTriangleFanIdxCnt = max(maxTriangleFanIdxCnt, ((count - 2) * 3));
 
@@ -210,21 +386,33 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 			do
 			{
 				int vertIdx = vertCounts[pipelineIdx];
+				int index_xyz = order[2];
+
+				if (Mesh_VertsRealloc(vertIdx))
+				{
+					ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+				}
+
 				// unused in this case, since texturing is disabled
 				vertList[pipelineIdx][vertIdx].texCoord[0] = 0.f;
 				vertList[pipelineIdx][vertIdx].texCoord[1] = 0.f;
-				index_xyz = order[2];
-				order += 3;
 
 				vertList[pipelineIdx][vertIdx].color[0] = shadelight[0];
 				vertList[pipelineIdx][vertIdx].color[1] = shadelight[1];
 				vertList[pipelineIdx][vertIdx].color[2] = shadelight[2];
 				vertList[pipelineIdx][vertIdx].color[3] = alpha;
 
+				if (verts_count < index_xyz)
+				{
+					R_Printf(PRINT_ALL, "%s: Model has issues with lerped index\n", __func__);
+					return;
+				}
+
 				vertList[pipelineIdx][vertIdx].vertex[0] = s_lerped[index_xyz][0];
 				vertList[pipelineIdx][vertIdx].vertex[1] = s_lerped[index_xyz][1];
 				vertList[pipelineIdx][vertIdx].vertex[2] = s_lerped[index_xyz][2];
 				vertCounts[pipelineIdx]++;
+				order += 3;
 			} while (--count);
 		}
 		else
@@ -233,11 +421,17 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 			do
 			{
 				int vertIdx = vertCounts[pipelineIdx];
+				int index_xyz = order[2];
+				float l;
+
+				if (Mesh_VertsRealloc(vertIdx))
+				{
+					ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+				}
+
 				// texture coordinates come from the draw list
 				vertList[pipelineIdx][vertIdx].texCoord[0] = ((float *)order)[0];
 				vertList[pipelineIdx][vertIdx].texCoord[1] = ((float *)order)[1];
-				index_xyz = order[2];
-				order += 3;
 
 				// normals and vertexes come from the frame list
 				l = shadedots[verts[index_xyz].lightnormalindex];
@@ -247,11 +441,23 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 				vertList[pipelineIdx][vertIdx].color[2] = l * shadelight[2];
 				vertList[pipelineIdx][vertIdx].color[3] = alpha;
 
+				if (verts_count < index_xyz)
+				{
+					R_Printf(PRINT_ALL, "%s: Model has issues with lerped index\n", __func__);
+					return;
+				}
+
 				vertList[pipelineIdx][vertIdx].vertex[0] = s_lerped[index_xyz][0];
 				vertList[pipelineIdx][vertIdx].vertex[1] = s_lerped[index_xyz][1];
 				vertList[pipelineIdx][vertIdx].vertex[2] = s_lerped[index_xyz][2];
 				vertCounts[pipelineIdx]++;
+				order += 3;
 			} while (--count);
+		}
+
+		if (Mesh_VertsRealloc(pipeCounters[pipelineIdx] + 1))
+		{
+			ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
 		}
 
 		pipeCounters[pipelineIdx]++;
@@ -267,8 +473,9 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 	// player configuration screen model is using the UI renderpass
 	int pidx = (r_newrefdef.rdflags & RDF_NOWORLDMODEL) ? RP_UI : RP_WORLD;
 	// non-depth write alias models don't occur with RF_WEAPONMODEL set, so no need for additional left-handed pipelines
-	qvkpipeline_t pipelines[2][4] = { { vk_drawModelPipelineStrip[pidx], vk_drawModelPipelineFan[pidx], vk_drawLefthandModelPipelineStrip, vk_drawLefthandModelPipelineFan },
-									  { vk_drawNoDepthModelPipelineStrip, vk_drawNoDepthModelPipelineFan, vk_drawLefthandModelPipelineStrip, vk_drawLefthandModelPipelineFan } };
+	qvkpipeline_t pipelines[2][2] = {
+		{ vk_drawModelPipelineFan[pidx], vk_drawLefthandModelPipelineFan },
+		{ vk_drawNoDepthModelPipelineFan, vk_drawLefthandModelPipelineFan } };
 	for (int p = 0; p < 2; p++)
 	{
 		VkDeviceSize vaoSize = sizeof(modelvert) * vertCounts[p];
@@ -277,16 +484,18 @@ static void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *s
 		uint8_t *vertData = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
 		memcpy(vertData, vertList[p], vaoSize);
 
-		QVk_BindPipeline(&pipelines[translucentIdx][p + leftHandOffset]);
+		QVk_BindPipeline(&pipelines[translucentIdx][leftHandOffset]);
 		VkDescriptorSet descriptorSets[] = { skin->vk_texture.descriptorSet, uboDescriptorSet };
-		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[translucentIdx][p + leftHandOffset].layout, 0, 2, descriptorSets, 1, &uboOffset);
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[translucentIdx][leftHandOffset].layout, 0, 2, descriptorSets, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 
 		if (p == TRIANGLE_STRIP)
 		{
+			vkCmdBindIndexBuffer(vk_activeCmdbuffer, QVk_GetTriangleStripIbo(maxTriangleFanIdxCnt), 0, VK_INDEX_TYPE_UINT16);
+
 			for (i = 0; i < pipeCounters[p]; i++)
 			{
-				vkCmdDraw(vk_activeCmdbuffer, drawInfo[p][i].vertexCount, 1, drawInfo[p][i].firstVertex, 0);
+				vkCmdDrawIndexed(vk_activeCmdbuffer, (drawInfo[p][i].vertexCount - 2) * 3, 1, 0, drawInfo[p][i].firstVertex, 0);
 			}
 		}
 		else
@@ -314,12 +523,6 @@ static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatr
 	int		*order;
 	vec3_t	point;
 	float	height, lheight;
-	qvkpipeline_t pipelines[2] = { vk_shadowsPipelineStrip, vk_shadowsPipelineFan };
-
-	enum {
-		TRIANGLE_STRIP = 0,
-		TRIANGLE_FAN = 1
-	} pipelineIdx;
 
 	lheight = currententity->origin[2] - lightspot[2];
 
@@ -334,7 +537,6 @@ static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatr
 	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(float) * 16, &uboOffset, &uboDescriptorSet);
 	memcpy(uboData, modelMatrix, sizeof(float) * 16);
 
-	static vec3_t shadowverts[MAX_VERTS];
 	while (1)
 	{
 		int	i;
@@ -355,8 +557,18 @@ static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatr
 			pipelineIdx = TRIANGLE_STRIP;
 		}
 
+		if (Mesh_VertsRealloc(count))
+		{
+			ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+		}
+
 		do
 		{
+			if (Mesh_VertsRealloc(order[2]))
+			{
+				ri.Sys_Error(ERR_FATAL, "%s: can't allocate memory", __func__);
+			}
+
 			// normals and vertexes come from the frame list
 			memcpy( point, s_lerped[order[2]], sizeof( point ) );
 
@@ -380,13 +592,14 @@ static void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatr
 			uint8_t *vertData = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
 			memcpy(vertData, shadowverts, vaoSize);
 
-			QVk_BindPipeline(&pipelines[pipelineIdx]);
-			vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelineIdx].layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
+			QVk_BindPipeline(&vk_shadowsPipelineFan);
+			vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_shadowsPipelineFan.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 			vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 
 			if (pipelineIdx == TRIANGLE_STRIP)
 			{
-				vkCmdDraw(vk_activeCmdbuffer, i, 1, 0, 0);
+				vkCmdBindIndexBuffer(vk_activeCmdbuffer, QVk_GetTriangleStripIbo((i - 2) * 3), 0, VK_INDEX_TYPE_UINT16);
+				vkCmdDrawIndexed(vk_activeCmdbuffer, (i - 2) * 3, 1, 0, 0, 0);
 			}
 			else
 			{
@@ -711,7 +924,7 @@ void R_DrawAliasModel (entity_t *currententity, model_t *currentmodel)
 	{
 		Mat_Scale(r_viewproj_matrix, -1.f, 1.f, 1.f);
 		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline[vk_state.current_renderpass].layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
-		leftHandOffset = 2;
+		leftHandOffset = 1;
 	}
 
 	currententity->angles[PITCH] = -currententity->angles[PITCH];	// sigh.
