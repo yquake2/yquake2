@@ -70,6 +70,10 @@ AL_StreamDie(void)
 {
 	int numBuffers;
 
+	/* openal might not be initialised yet */
+	if (!qalSourceStop)
+            return;
+
 	streamPlaying = false;
 	qalSourceStop(streamSource);
 
