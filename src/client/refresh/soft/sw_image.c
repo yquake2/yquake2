@@ -412,6 +412,8 @@ R_LoadM8 (char *name, imagetype_t type)
 	strcpy (image->name, name);
 	image->width = LittleLong (mt->width[0]);
 	image->height = LittleLong (mt->height[0]);
+	image->asset_width = image->width;
+	image->asset_height = image->height;
 	image->type = type;
 	image->registration_sequence = registration_sequence;
 	ofs = LittleLong (mt->offsets[0]);
@@ -744,6 +746,7 @@ R_InitTextures (void)
 	r_notexture_mip = &r_notexture_buffer.image;
 
 	r_notexture_mip->width = r_notexture_mip->height = 16;
+	r_notexture_mip->asset_width = r_notexture_mip->asset_height = 16;
 
 	r_notexture_mip->pixels[0] = r_notexture_buffer.buffer;
 	R_RestoreImagePointers(r_notexture_mip, 0);
