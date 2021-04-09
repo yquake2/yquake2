@@ -831,7 +831,7 @@ NET_Socket(char *net_interface, unsigned short port, netsrc_t type, int family)
 		Host = net_interface;
 	}
 
-	if (port == PORT_ANY)
+	if (port > PORT_MAX)
 	{
 		Service = NULL;
 	}
