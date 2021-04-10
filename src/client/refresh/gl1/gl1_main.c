@@ -1323,9 +1323,6 @@ R_SetMode(void)
 
 	fullscreen = (int)vid_fullscreen->value;
 
-	vid_fullscreen->modified = false;
-	r_mode->modified = false;
-
 	/* a bit hackish approach to enable custom resolutions:
 	   Glimp_SetMode needs these values set for mode -1 */
 	vid.width = r_customwidth->value;
@@ -1581,12 +1578,6 @@ void
 RI_BeginFrame(float camera_separation)
 {
 	gl_state.camera_separation = camera_separation;
-
-	/* change modes if necessary */
-	if (r_mode->modified)
-	{
-		vid_fullscreen->modified = true;
-	}
 
 	// force a vid_restart if gl1_stereo has been modified.
 	if ( gl_state.stereo_mode != gl1_stereo->value ) {
@@ -1932,6 +1923,10 @@ GetRefAPI(refimport_t imp)
 	re.BeginFrame = RI_BeginFrame;
 	re.EndWorldRenderpass = RI_EndWorldRenderpass;
 	re.EndFrame = RI_EndFrame;
+
+    // Tell the client that we're unsing the
+	// new renderer restart API.
+    ri.Vid_RequestRestart(RESTART_NO);
 
 	return re;
 }
