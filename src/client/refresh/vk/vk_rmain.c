@@ -1128,6 +1128,9 @@ RE_RenderFrame
 static void
 RE_RenderFrame (refdef_t *fd)
 {
+	if (!vk_frameStarted)
+		return;
+
 	RE_RenderView( fd );
 	R_SetLightLevel ();
 	R_SetVulkan2D (&vk_viewport, &vk_scissor);

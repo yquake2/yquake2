@@ -54,6 +54,9 @@ void RE_Draw_CharScaled (int x, int y, int num, float scale)
 	int	row, col;
 	float	frow, fcol, size;
 
+	if (!vk_frameStarted)
+		return;
+
 	num &= 255;
 
 	if ((num & 127) == 32)
@@ -126,6 +129,9 @@ void RE_Draw_StretchPic (int x, int y, int w, int h, char *name)
 {
 	image_t *vk;
 
+	if (!vk_frameStarted)
+		return;
+
 	vk = RE_Draw_FindPic(name);
 	if (!vk)
 	{
@@ -170,6 +176,9 @@ refresh window.
 void RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 {
 	image_t	*image;
+
+	if (!vk_frameStarted)
+		return;
 
 	image = RE_Draw_FindPic(name);
 	if (!image)
@@ -218,6 +227,9 @@ void RE_Draw_Fill (int x, int y, int w, int h, int c)
 		byte		v[4];
 	} color;
 
+	if (!vk_frameStarted)
+		return;
+
 	if ((unsigned)c > 255)
 		ri.Sys_Error(ERR_FATAL, "%s: bad color", __func__);
 
@@ -240,6 +252,9 @@ RE_Draw_FadeScreen
 void RE_Draw_FadeScreen (void)
 {
 	float imgTransform[] = { 0.f, 0.f, vid.width, vid.height, 0.f, 0.f, 0.f, .8f };
+
+	if (!vk_frameStarted)
+		return;
 
 	QVk_DrawColorRect(imgTransform, sizeof(imgTransform), RP_UI);
 }
@@ -266,6 +281,9 @@ void RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *d
 	byte *source;
 	byte *image_scaled;
 	unsigned *raw_image32;
+
+	if (!vk_frameStarted)
+		return;
 
 	if (vk_retexturing->value)
 	{
