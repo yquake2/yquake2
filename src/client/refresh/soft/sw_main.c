@@ -1445,7 +1445,7 @@ RE_BeginFrame( float camera_separation )
 	// run without speed optimization
 	fastmoving = false;
 
-	while (r_mode->modified || vid_fullscreen->modified || r_vsync->modified)
+	while (r_vsync->modified)
 	{
 		RE_SetMode();
 	}
@@ -1481,8 +1481,6 @@ RE_SetMode(void)
 
 	fullscreen = (int)vid_fullscreen->value;
 
-	vid_fullscreen->modified = false;
-	r_mode->modified = false;
 	r_vsync->modified = false;
 
 	/* a bit hackish approach to enable custom resolutions:
@@ -1510,7 +1508,6 @@ RE_SetMode(void)
 		if (err == rserr_invalid_fullscreen)
 		{
 			ri.Cvar_SetValue("vid_fullscreen", 0);
-			vid_fullscreen->modified = false;
 			R_Printf(PRINT_ALL, "%s() - fullscreen unavailable in this mode\n", __func__);
 
 			if (SWimp_SetMode(&vid.width, &vid.height, r_mode->value, 0) == rserr_ok)
@@ -1867,6 +1864,10 @@ GetRefAPI(refimport_t imp)
 	refexport.BeginFrame = RE_BeginFrame;
 	refexport.EndWorldRenderpass = RE_EndWorldRenderpass;
 	refexport.EndFrame = RE_EndFrame;
+
+    // Tell the client that we're unsing the
+	// new renderer restart API.
+    ri.Vid_RequestRestart(RESTART_NO);
 
 	Swap_Init ();
 
