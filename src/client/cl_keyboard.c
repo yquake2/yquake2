@@ -1231,12 +1231,12 @@ Key_Event(int key, qboolean down, qboolean special)
 		if (!fullscreen->value)
 		{
 			Cvar_Set("vid_fullscreen", "1");
-			fullscreen->modified = true;
+			Cbuf_AddText("vid_restart\n");
 		}
 		else
 		{
 			Cvar_Set("vid_fullscreen", "0");
-			fullscreen->modified = true;
+			Cbuf_AddText("vid_restart\n");
 		}
 
 		return;

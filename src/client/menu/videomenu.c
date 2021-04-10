@@ -190,19 +190,19 @@ ApplyChanges(void *unused)
 	if (!strcmp(s_mode_list.itemnames[s_mode_list.curvalue],
 		AUTO_MODE_NAME))
 	{
-		/* Restarts automatically */
 		Cvar_SetValue("r_mode", -2);
+		restart = true;
 	}
 	else if (!strcmp(s_mode_list.itemnames[s_mode_list.curvalue],
 		CUSTOM_MODE_NAME))
 	{
-		/* Restarts automatically */
 		Cvar_SetValue("r_mode", -1);
+		restart = true;
 	}
 	else
 	{
-		/* Restarts automatically */
 		Cvar_SetValue("r_mode", s_mode_list.curvalue);
+		restart = true;
 	}
 
 	if (s_display_list.curvalue != GLimp_GetWindowDisplayIndex() )
@@ -229,7 +229,11 @@ ApplyChanges(void *unused)
 	}
 
 	/* Restarts automatically */
-	Cvar_SetValue("vid_fullscreen", s_fs_box.curvalue);
+	if (vid_fullscreen->value != s_fs_box.curvalue)
+	{
+		Cvar_SetValue("vid_fullscreen", s_fs_box.curvalue);
+		restart = true;
+	}
 
 	if (s_fs_box.curvalue == 2)
 	{
