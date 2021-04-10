@@ -1670,7 +1670,7 @@ void QVk_Restart(void)
 	if (!QVk_Init())
 		ri.Sys_Error(ERR_FATAL, "Unable to restart Vulkan renderer");
 	QVk_PostInit();
-	vid_renderer->modified = true;
+	ri.Vid_RequestRestart(RESTART_PARTIAL);
 }
 
 void QVk_PostInit(void)

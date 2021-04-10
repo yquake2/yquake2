@@ -145,7 +145,6 @@ extern	cvar_t	*vk_pixel_size;
 extern	cvar_t	*r_fixsurfsky;
 
 extern	cvar_t	*vid_fullscreen;
-extern	cvar_t	*vid_renderer;
 extern	cvar_t	*vid_gamma;
 
 extern	int		c_visible_lightmaps;

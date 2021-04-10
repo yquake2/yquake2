@@ -130,7 +130,6 @@ cvar_t	*vk_nolerp_list;
 cvar_t  *r_fixsurfsky;
 
 cvar_t	*vid_fullscreen;
-cvar_t	*vid_renderer;
 cvar_t	*vid_gamma;
 static cvar_t	*viewsize;
 
@@ -1198,7 +1197,6 @@ R_Register( void )
 		ri.Cvar_Set("r_msaa_samples", "0");
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
-	vid_renderer = ri.Cvar_Get("vid_renderer", "gl1", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
 	viewsize = ri.Cvar_Get("viewsize", "100", CVAR_ARCHIVE);
 
@@ -1256,7 +1254,6 @@ qboolean R_SetMode (void)
 	r_vsync->modified = false;
 
 	fullscreen = (int)vid_fullscreen->value;
-	vid_fullscreen->modified = false;
 	vid_gamma->modified = false;
 
 	vk_msaa->modified = false;
@@ -1285,7 +1282,6 @@ qboolean R_SetMode (void)
 		if (err == rserr_invalid_fullscreen)
 		{
 			ri.Cvar_SetValue("vid_fullscreen", 0);
-			vid_fullscreen->modified = false;
 			R_Printf(PRINT_ALL, "%s() - fullscreen unavailable in this mode\n", __func__);
 			if (Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, r_mode->value, false) == rserr_ok)
 				return true;
@@ -1387,10 +1383,10 @@ RE_BeginFrame( float camera_separation )
 	/*
 	** change modes if necessary
 	*/
-	if (r_mode->modified || vid_fullscreen->modified || vk_msaa->modified || r_clear->modified || vk_picmip->modified ||
-		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified ||
-		vk_mip_nearfilter->modified || vk_sampleshading->modified || r_vsync->modified || vk_device_idx->modified ||
-		vk_overbrightbits->modified)
+	if (r_mode->modified || vk_msaa->modified || r_clear->modified || vk_picmip->modified ||
+		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified ||
+		vk_aniso->modified || vk_mip_nearfilter->modified || vk_sampleshading->modified ||
+		r_vsync->modified || vk_device_idx->modified || vk_overbrightbits->modified)
 	{
 		if (vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified)
 		{
@@ -1406,10 +1402,6 @@ RE_BeginFrame( float camera_separation )
 			}
 
 			vk_aniso->modified = false;
-		}
-		else
-		{
-			vid_fullscreen->modified = true;
 		}
 	}
 
@@ -1640,11 +1632,8 @@ GetRefAPI
 Q2_DLL_EXPORTED refexport_t
 GetRefAPI(refimport_t imp)
 {
-	// struct for save refexport callbacks, copy of re struct from main file
-	// used different variable name for prevent confusion and cppcheck warnings
-	refexport_t	refexport;
+	refexport_t refexport = {0};
 
-	memset(&refexport, 0, sizeof(refexport_t));
 	ri = imp;
 
 	refexport.api_version = API_VERSION;
@@ -1679,6 +1668,10 @@ GetRefAPI(refimport_t imp)
 	refexport.BeginFrame = RE_BeginFrame;
 	refexport.EndWorldRenderpass = RE_EndWorldRenderpass;
 	refexport.EndFrame = RE_EndFrame;
+
+    // Tell the client that we're unsing the
+	// new renderer restart API.
+    ri.Vid_RequestRestart(RESTART_NO);
 
 	Swap_Init ();
 
