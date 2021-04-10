@@ -300,13 +300,30 @@ void *reflib_handle = NULL;
 // Is a renderer loaded and active?
 qboolean ref_active = false;
 
+// Renderer restart type requested.
+ref_restart_t restart_state = RESTART_UNDEF;
+
+/*
+ * Called by the renderer to request a restart.
+ */
+void
+VID_RequestRestart(ref_restart_t rs)
+{
+	restart_state = rs;
+}
+
 /*
  * Restarts the renderer.
  */
 void
 VID_Restart_f(void)
 {
-	vid_fullscreen->modified = true;
+	if (restart_state == RESTART_UNDEF)
+	{
+		vid_fullscreen->modified = true;
+	} else {
+		restart_state = RESTART_FULL;
+	}
 }
 
 /*
@@ -392,6 +409,8 @@ VID_LoadRenderer(void)
 	ri.Vid_GetModeInfo = VID_GetModeInfo;
 	ri.Vid_MenuInit = VID_MenuInit;
 	ri.Vid_WriteScreenshot = VID_WriteScreenshot;
+	ri.Vid_WriteScreenshot = VID_WriteScreenshot;
+	ri.Vid_RequestRestart = VID_RequestRestart;
 
 	// Exchange our export struct with the renderers import struct.
 	re = GetRefAPI(ri);
@@ -436,11 +455,25 @@ VID_LoadRenderer(void)
 void
 VID_CheckChanges(void)
 {
-	// FIXME: Not with vid_fullscreen, should be a dedicated variable.
-	// Sounds easy but this vid_fullscreen hack is really messy and
-	// interacts with several critical places in both the client and
-	// the renderers...
-	if (vid_fullscreen->modified)
+	// Hack around renderers that still abuse vid_fullscreen
+	// to communicate restart requests to the client.
+	ref_restart_t rs;
+
+	if (restart_state == RESTART_UNDEF)
+	{
+		if (vid_fullscreen->modified)
+		{
+			rs = RESTART_FULL;
+			vid_fullscreen->modified = false;
+		} else {
+			rs = RESTART_NO;
+		}
+	} else {
+		rs = restart_state;
+		restart_state = RESTART_NO;
+	}
+
+	if (rs == RESTART_FULL)
 	{
 		// Stop sound, because the clients blocks while
 		// we're reloading the renderer. The sound system
@@ -486,16 +519,12 @@ VID_CheckChanges(void)
 			}
 		}
 
-		// Ignore possible changes in vid_renderer above.
-		vid_renderer->modified = false;
-
 		// Unblock the client.
 		cls.disable_screen = false;
 	}
 
-	if (vid_renderer->modified)
+	if (rs == RESTART_PARTIAL)
 	{
-		vid_renderer->modified = false;
 		cl.refresh_prepped = false;
 	}
 }

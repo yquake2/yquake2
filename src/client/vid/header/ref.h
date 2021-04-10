@@ -116,6 +116,14 @@ typedef struct {
 	particle_t	*particles;
 } refdef_t;
 
+// Renderer restart type.
+typedef enum {
+	RESTART_UNDEF,
+	RESTART_NO,
+	RESTART_FULL,
+	RESTART_PARTIAL
+} ref_restart_t;
+
 // FIXME: bump API_VERSION?
 #define	API_VERSION		5
 #define EXPORT
@@ -233,6 +241,8 @@ typedef struct
 
 	qboolean	(IMPORT *GLimp_InitGraphics)(int fullscreen, int *pwidth, int *pheight);
 	qboolean	(IMPORT *GLimp_GetDesktopMode)(int *pwidth, int *pheight);
+
+	void		(IMPORT *Vid_RequestRestart)(ref_restart_t rs);
 } refimport_t;
 
 // this is the only function actually exported at the linker level
