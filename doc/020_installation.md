@@ -134,6 +134,45 @@ some global settings to saner defaults. To use it copy *stuff/yq2.cfg*
 into the *baseq2/* directory.
 
 
+### Fixed Map Data Files
+
+As an optional feature, Yamagi Quake II provides fixed map data files
+(.ent files). These files provide a replacement entity list in order
+to fix some map bugs that have been discovered by players over the
+years.
+
+These fixes include fixes for bad  monster counts in some
+maps/difficulty settings, fixing broken spawn chains that made it
+impossible to spawn some monsters, removing DM-only items that spawn
+in unreachable areas in SP/co-op, and so on. You can find detailed
+changelogs for each map by opening the .ent files with a text editor
+and reading the comment section at the top (lines starting with "//").
+
+
+#### Download And Setup
+
+1. Download the .ent files from the yquake2 repositories on GitHub.
+
+   *baseq2*: yquake2/yquake2/stuff/mapfixes/baseq2/
+   *juggernaut*: yquake2/yquake2/stuff/mapfixes/juggernaut/
+   *xatrix*: yquake2/xatrix/stuff/mapfixes/
+   *rogue*: yquake2/rogue/stuff/mapfixes/
+   *zaero*: yquake2/zaero/stuff/mapfixes/
+
+2. Once you have the .ent files you want, put them in the respective
+   */maps* sub-folder. So *xatrix* .ent files should go into your local
+   */xatrix/maps* folder (create this folder if it does not exist).
+3. You will see a notification message in the console if an .ent file
+   was loaded. If you see this message, you know the map fixes are in
+   effect.
+
+
+#### Reporting Map Bugs
+
+If you know of any map bugs that are not addressed here, by all means
+report them to us through our GitHub repositories.
+
+
 ## The Demo Version
 
 A free demo version of Quake II is available and supported by Yamagi
