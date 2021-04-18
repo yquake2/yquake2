@@ -999,11 +999,15 @@ Keys_MenuKey(int key)
     {
     case K_KP_ENTER:
     case K_ENTER:
+    case K_JOY1:
+    case K_JOY3:
         KeyBindingFunc(item);
         return menu_in_sound;
     case K_BACKSPACE: /* delete bindings */
     case K_DEL: /* delete bindings */
     case K_KP_DEL:
+    case K_JOY2:
+    case K_JOY4:
         M_UnbindCommand(bindnames[item->generic.localdata[0]][0]);
         return menu_out_sound;
     default:
