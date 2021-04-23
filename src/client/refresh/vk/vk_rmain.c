@@ -1376,6 +1376,15 @@ RE_BeginFrame( float camera_separation )
 	// world has not rendered yet
 	world_rendered = false;
 
+	/* VK hasn't been initialized yet. I'm pretty sure that
+	   we can't get here without having called QVk_Init(), 
+	   but better save than sorry. */
+	if (!vk_initialized)
+	{
+		vk_frameStarted = false;
+		return;
+	}
+
 	// if ri.Sys_Error() had been issued mid-frame, we might end up here without properly submitting the image, so call QVk_EndFrame to be safe
 	if (QVk_EndFrame(true) != VK_SUCCESS)
 		vk_restartNeeded = true;

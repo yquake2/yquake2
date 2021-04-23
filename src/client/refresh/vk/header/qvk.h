@@ -255,6 +255,8 @@ extern qvktexture_t vk_colorbufferWarp;
 extern qboolean vk_frameStarted;
 // Indicates if the renderer needs to be restarted.
 extern qboolean vk_restartNeeded;
+// is QVk initialized?
+extern qboolean vk_initialized;
 
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
