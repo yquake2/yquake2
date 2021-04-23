@@ -1329,8 +1329,6 @@ static qboolean RE_Init( void )
 	// print device information during startup
 	Vk_Strings_f();
 
-	QVk_PostInit();
-
 	R_Printf(PRINT_ALL, "Successfully initialized Vulkan!\n");
 
 	return true;
@@ -1593,6 +1591,8 @@ RE_InitContext(void *win)
 		R_Printf(PRINT_ALL, "%s() - could not initialize Vulkan!\n", __func__);
 		return false;
 	}
+
+	QVk_PostInit();
 
 	return true;
 }
