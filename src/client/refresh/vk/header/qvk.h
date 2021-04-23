@@ -315,6 +315,7 @@ void		QVk_DrawTexRect(const float *ubo, VkDeviceSize uboSize, qvktexture_t *text
 void		QVk_BindPipeline(qvkpipeline_t *pipeline);
 void		QVk_SubmitStagingBuffers(void);
 void		Qvk_MemoryBarrier(VkCommandBuffer cmdBuffer, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask);
+qboolean	QVk_CheckExtent(void);
 
 // debug label related functions
 void		QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objName);

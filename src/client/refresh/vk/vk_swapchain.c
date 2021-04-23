@@ -127,6 +127,19 @@ static VkCompositeAlphaFlagBitsKHR getSupportedCompositeAlpha(VkCompositeAlphaFl
 	return VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
 }
 
+qboolean QVk_CheckExtent(void)
+{
+	VkSurfaceCapabilitiesKHR surfaceCaps;
+	VK_VERIFY(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vk_device.physical, vk_surface, &surfaceCaps));
+
+	if (surfaceCaps.currentExtent.width == 0 || surfaceCaps.currentExtent.height == 0)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 VkResult QVk_CreateSwapchain()
 {
 	VkSurfaceCapabilitiesKHR surfaceCaps;
