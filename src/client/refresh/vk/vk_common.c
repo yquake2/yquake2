@@ -1675,6 +1675,7 @@ void QVk_WaitAndShutdownAll (void)
 	Mesh_Free();
 	QVk_Shutdown();
 
+	vk_frameStarted = false;
 	vk_initialized = false;
 }
 
@@ -2052,6 +2053,7 @@ qboolean QVk_Init(void)
 	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.descriptorSet,
 		VK_OBJECT_TYPE_DESCRIPTOR_SET, "Descriptor Set: Warp Postprocess Color Buffer");
 
+	vk_frameStarted = false;
 	vk_initialized = true;
 	return true;
 }
