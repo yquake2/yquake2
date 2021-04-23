@@ -1346,7 +1346,7 @@ static qboolean RE_Init( void )
 static void RE_ShutdownContext( void )
 {
 	// Shutdown Vulkan subsystem
-	QVk_Shutdown();
+	QVk_WaitAndShutdownAll();
 }
 
 /*
