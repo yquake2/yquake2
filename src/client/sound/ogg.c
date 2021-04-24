@@ -239,13 +239,13 @@ static OGG_Read(void)
 	short samples[4096] = {0};
 
 	int read_samples = stb_vorbis_get_samples_short_interleaved(ogg_file, ogg_file->channels, samples,
-		sizeof(samples) / ogg_file->channels);
+		sizeof(samples) / sizeof(short));
 
 	if (read_samples > 0)
 	{
 		ogg_numsamples += read_samples;
 
-		S_RawSamples(read_samples, ogg_file->sample_rate, ogg_file->channels, ogg_file->channels,
+		S_RawSamples(read_samples, ogg_file->sample_rate, sizeof(short), ogg_file->channels,
 			(byte *)samples, ogg_volume->value);
 	}
 	else
