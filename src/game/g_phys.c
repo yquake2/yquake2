@@ -924,6 +924,12 @@ SV_Physics_Toss(edict_t *ent)
 	/* regular thinking */
 	SV_RunThink(ent);
 
+	/* entities are very often freed during thinking */
+	if (!ent->inuse)
+	{
+		return;
+	}
+
 	/* if not a team captain, so movement
 	   will be handled elsewhere */
 	if (ent->flags & FL_TEAMSLAVE)
