@@ -82,6 +82,13 @@ P_DamageFeedback(edict_t *player)
 		return;
 	}
 
+	/* death/gib sound is now aggregated and played here */
+	if (player->sounds)
+	{
+		gi.sound (player, CHAN_VOICE, player->sounds, 1, ATTN_NORM, 0);
+		player->sounds = 0;
+	}
+
 	client = player->client;
 
 	/* flash the backgrounds behind the status numbers */
@@ -151,7 +158,8 @@ P_DamageFeedback(edict_t *player)
 	/* play an apropriate pain sound */
 	if ((level.time > player->pain_debounce_time) &&
 		!(player->flags & FL_GODMODE) &&
-		(client->invincible_framenum <= level.framenum))
+		(client->invincible_framenum <= level.framenum) &&
+		player->health > 0)
 	{
 		r = 1 + (randk() & 1);
 		player->pain_debounce_time = level.time + 0.7;
@@ -908,7 +916,8 @@ P_WorldEffects(void)
 		{
 			if ((current_player->health > 0) &&
 				(current_player->pain_debounce_time <= level.time) &&
-				(current_client->invincible_framenum < level.framenum))
+				(current_client->invincible_framenum < level.framenum) &&
+				!(current_player->flags & FL_GODMODE))
 			{
 				if (randk() & 1)
 				{
@@ -1026,6 +1035,11 @@ G_SetClientEvent(edict_t *ent)
 		return;
 	}
 
+	if (ent->health <= 0)
+	{
+		return;
+	}
+
 	if (g_footsteps->value == 1)
 	{
 		if (ent->groundentity && (xyspeed > 225))
@@ -1036,7 +1050,7 @@ G_SetClientEvent(edict_t *ent)
 			}
 		}
 	}
-	if (g_footsteps->value == 2)
+	else if (g_footsteps->value == 2)
 	{
 		if ((int)(current_client->bobtime + bobmove) != bobcycle)
 		{
