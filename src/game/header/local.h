@@ -1048,7 +1048,7 @@ struct edict_s
 	int dmg;
 	int radius_dmg;
 	float dmg_radius;
-	int sounds; /* make this a spawntemp var? */
+	int sounds; /* now also used for player death sound aggregation */
 	int count;
 
 	edict_t *chain;
