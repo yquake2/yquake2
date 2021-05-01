@@ -59,20 +59,24 @@ typedef unsigned char byte;
 	#define YQ2_ALIGNAS_TYPE(TYPE)  _Alignas(TYPE)
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       _Noreturn
+	#define YQ2_ATTR_COLD
 #elif defined(__GNUC__) // GCC and clang should support this attribute
 	#define YQ2_ALIGNAS_SIZE(SIZE)  __attribute__(( __aligned__(SIZE) ))
 	#define YQ2_ALIGNAS_TYPE(TYPE)  __attribute__(( __aligned__(__alignof__(TYPE)) ))
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
+	#define YQ2_ATTR_COLD           __attribute__ ((cold))
 #elif defined(_MSC_VER)
 	#define YQ2_ALIGNAS_SIZE(SIZE)  __declspec( align(SIZE) )
 	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec( align( __alignof(TYPE) ) )
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __declspec(noreturn)
+	#define YQ2_ATTR_COLD
 #else
 	#warning "Please add a case for your compiler here to align correctly"
 	#define YQ2_ALIGNAS_TYPE(TYPE)
 	#define YQ2_ATTR_NORETURN
+	#define YQ2_ATTR_COLD
 #endif
 
 #if defined(__GNUC__)
@@ -366,7 +370,7 @@ char *Sys_FindNext(unsigned musthave, unsigned canthave);
 void Sys_FindClose(void);
 
 /* this is only here so the functions in shared source files can link */
-YQ2_ATTR_NORETURN void Sys_Error(char *error, ...);
+YQ2_ATTR_NORETURN YQ2_ATTR_COLD void Sys_Error(char *error, ...);
 void Com_Printf(char *msg, ...);
 
 /*
