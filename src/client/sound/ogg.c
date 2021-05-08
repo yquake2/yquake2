@@ -17,7 +17,7 @@
  *
  * =======================================================================
  *
- * This file implements an interface to libvorbis for decoding
+ * This file implements an interface to stb_vorbis.c for decoding
  * OGG/Vorbis files. Strongly spoken this file isn't part of the sound
  * system but part of the main client. It justs converts Vorbis streams
  * into normal, raw Wave stream which are injected into the backends as

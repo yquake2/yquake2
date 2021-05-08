@@ -171,7 +171,7 @@ CreateSDLWindow(int flags, int w, int h)
 				SDL_DestroyWindow(window);
 				window = NULL;
 
-				Com_Printf("Can't get display mode: %s\n", SDL_GetError());
+				Com_Printf("Still in wrong display mode: %ix%i instead of %ix%i\n", real_mode.w, real_mode.h, w, h);
 
 				return false;
 			}

@@ -543,6 +543,7 @@ VID_Init(void)
 	// Commands
 	Cmd_AddCommand("vid_restart", VID_Restart_f);
 	Cmd_AddCommand("vid_listmodes", VID_ListModes_f);
+	Cmd_AddCommand("r_listmodes", VID_ListModes_f); // more consistent with r_mode
 
 	// Initializes the video backend. This is NOT the renderer
 	// itself, just the client side support stuff!
