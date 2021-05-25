@@ -303,19 +303,32 @@ qboolean ref_active = false;
 // Renderer restart type requested.
 ref_restart_t restart_state = RESTART_UNDEF;
 
+// Renderer lib extension.
+#ifdef __APPLE__
+const char* lib_ext = "dylib";
+#elif defined(_WIN32)
+const char* lib_ext = "dll";
+#else
+const char* lib_ext = "so";
+#endif
+
+/*
+ * Returns platform specific path to a renderer lib.
+ */
+static void
+VID_GetRendererLibPath(const char *renderer, char *path, size_t len)
+{
+	snprintf(path, len, "%sref_%s.%s", Sys_GetBinaryDir(), renderer, lib_ext);
+}
+
+/*
+ * Checks if a renderer DLL is available.
+ */
 qboolean
 VID_HasRenderer(const char *renderer)
 {
-#ifdef __APPLE__
-	const char* lib_ext = "dylib";
-#elif defined(_WIN32)
-	const char* lib_ext = "dll";
-#else
-	const char* lib_ext = "so";
-#endif
-
 	char reflib_path[MAX_OSPATH] = {0};
-	snprintf(reflib_path, sizeof(reflib_path), "%sref_%s.%s", Sys_GetBinaryDir(), renderer, lib_ext);
+	VID_GetRendererLibPath(renderer, reflib_path, sizeof(reflib_path));
 
 	if (Sys_IsFile(reflib_path))
 	{
@@ -377,14 +390,6 @@ VID_LoadRenderer(void)
 	refimport_t	ri;
 	GetRefAPI_t	GetRefAPI;
 
-#ifdef __APPLE__
-	const char* lib_ext = "dylib";
-#elif defined(_WIN32)
-	const char* lib_ext = "dll";
-#else
-	const char* lib_ext = "so";
-#endif
-
 	char reflib_name[64] = {0};
 	char reflib_path[MAX_OSPATH] = {0};
 
@@ -396,7 +401,7 @@ VID_LoadRenderer(void)
 	Com_Printf("----- refresher initialization -----\n");
 
 	snprintf(reflib_name, sizeof(reflib_name), "ref_%s.%s", vid_renderer->string, lib_ext);
-	snprintf(reflib_path, sizeof(reflib_path), "%s%s", Sys_GetBinaryDir(), reflib_name);
+	VID_GetRendererLibPath(vid_renderer->string, reflib_path, sizeof(reflib_path));
 	Com_Printf("Loading library: %s\n", reflib_name);
 
 	// Mkay, let's load the requested renderer.
