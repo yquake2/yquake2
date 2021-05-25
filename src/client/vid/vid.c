@@ -404,6 +404,14 @@ VID_LoadRenderer(void)
 	VID_GetRendererLibPath(vid_renderer->string, reflib_path, sizeof(reflib_path));
 	Com_Printf("Loading library: %s\n", reflib_name);
 
+	// Check if the renderer libs exists.
+	if (!VID_HasRenderer(vid_renderer->string))
+	{
+        Com_Printf("Library %s cannot be found!\n", reflib_name);
+
+		return false;
+	}
+
 	// Mkay, let's load the requested renderer.
 	GetRefAPI = Sys_LoadLibrary(reflib_path, "GetRefAPI", &reflib_handle);
 
@@ -411,7 +419,7 @@ VID_LoadRenderer(void)
 	// caller to recover from this.
 	if (GetRefAPI == NULL)
 	{
-		Com_Printf("Loading %s as renderer lib failed!", reflib_path);
+		Com_Printf("Loading %s as renderer lib failed!\n", reflib_name);
 
 		return false;
 	}
