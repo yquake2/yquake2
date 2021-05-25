@@ -44,6 +44,7 @@ typedef struct {
 extern viddef_t viddef;
 
 // Generic stuff.
+qboolean VID_HasRenderer(const char *renderer);
 void	VID_Init(void);
 void	VID_Shutdown(void);
 void	VID_CheckChanges(void);

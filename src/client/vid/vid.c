@@ -303,6 +303,28 @@ qboolean ref_active = false;
 // Renderer restart type requested.
 ref_restart_t restart_state = RESTART_UNDEF;
 
+qboolean
+VID_HasRenderer(const char *renderer)
+{
+#ifdef __APPLE__
+	const char* lib_ext = "dylib";
+#elif defined(_WIN32)
+	const char* lib_ext = "dll";
+#else
+	const char* lib_ext = "so";
+#endif
+
+	char reflib_path[MAX_OSPATH] = {0};
+	snprintf(reflib_path, sizeof(reflib_path), "%sref_%s.%s", Sys_GetBinaryDir(), renderer, lib_ext);
+
+	if (Sys_IsFile(reflib_path))
+	{
+		return true;
+	}
+
+	return false;
+}
+
 /*
  * Called by the renderer to request a restart.
  */

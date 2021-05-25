@@ -75,55 +75,33 @@ typedef struct
 renderer rendererlist[MAXRENDERERS];
 int numrenderer;
 
-static qboolean
-Renderer_CheckIfAvailable(const char *renderer)
-{
-#ifdef __APPLE__
-	const char* lib_ext = "dylib";
-#elif defined(_WIN32)
-	const char* lib_ext = "dll";
-#else
-	const char* lib_ext = "so";
-#endif
-
-	char reflib_path[MAX_OSPATH] = {0};
-	snprintf(reflib_path, sizeof(reflib_path), "%sref_%s.%s", Sys_GetBinaryDir(), renderer, lib_ext);
-
-	if (Sys_IsFile(reflib_path))
-	{
-		return true;
-	}
-
-	return false;
-}
-
 static void
 Renderer_FillRenderdef(void)
 {
 	numrenderer = -1;
 
-	if (Renderer_CheckIfAvailable("gl1"))
+	if (VID_HasRenderer("gl1"))
 	{
 		numrenderer++;
 		rendererlist[numrenderer].boxstr = "[OpenGL 1.4]";
 		rendererlist[numrenderer].cvarstr = "gl1";
 	}
 
-	if (Renderer_CheckIfAvailable("gl3"))
+	if (VID_HasRenderer("gl3"))
 	{
 		numrenderer++;
 		rendererlist[numrenderer].boxstr = "[OpenGL 3.2]";
 		rendererlist[numrenderer].cvarstr = "gl3";
 	}
 
-	if (Renderer_CheckIfAvailable("vk"))
+	if (VID_HasRenderer("vk"))
 	{
 		numrenderer++;
 		rendererlist[numrenderer].boxstr = "[Vulkan    ]";
 		rendererlist[numrenderer].cvarstr = "vk";
 	}
 
-	if (Renderer_CheckIfAvailable("soft"))
+	if (VID_HasRenderer("soft"))
 	{
 		numrenderer++;
 		rendererlist[numrenderer].boxstr = "[Software  ]";
