@@ -20,22 +20,16 @@ Yamagi Quake II ships with 4 renderers:
 * The **OpenGL 1.4** renderer: This is a slightly enhanced version of
   the original OpenGL renderer shipped in 1997 with the retail release.
   It's provided for older graphics cards, not able to run the OpenGL 3.2
-  or Vulkan renderer. The OpenGL 1.4 renderer has some limitations. The
-  look and feel is highly dependent on the GPU driver and the platforms
-  OpenGL implementation, especially the texture rendering may vary to a
-  wide margin. The global lighting may not be rendered correctly,
-  especially liquids may be too dark or too bright.
+  renderer. The OpenGL 1.4 renderer has some limitations. The look and
+  feel is highly dependent on the GPU driver and the platforms OpenGL
+  implementation, especially the texture rendering may vary to a wide
+  margin. The global lighting may not be rendered correctly, especially
+  liquids may be too dark or too bright.
 * The **Software** renderer: Shipped for historical reasons only.
-  Setting the OpenGL 3.2 or Vulkan renderer to match the software
-  renderers look and feel is often the better choice, since it's faster
-  and provides colored lighting. The software renderer may show some
-  rendering errors on widescreen resolutions.
-* The **Vulkan** renderer: The Vulkan renderer was ported from vkQuake2
-  to support plattform with no or bad OpenGL 3.2 support. Like the
-  OpenGL 3.2 renderer the look and feel is always the same, regardless
-  of the GPU driver. It's lightning rendering matches the OpenGL 1.4
-  renderer. Unlike the OpenGL renderers the underwater warp effect is
-  supported.
+  Setting the OpenGL 3.2 renderer to match the software renderers look
+  and feel is often the better choice, since it's faster and provides
+  colored lighting. The software renderer may show some rendering errors
+  on widescreen resolutions.
 
 
 ## Choosing a Sound System
@@ -241,11 +235,6 @@ The OpenGL 3.2 renderer:
 
 * `gl3_particle_square`: When set to `1` the particles are rendered as
   squares.
-
-The Vulkanrenderer:
-* `vk_pixelsize`: Pixelates the image, simulating a lower resolution.
-* `vk_texturemode`: Set to `VK_MIPMAP_LINEAR` to disable the texture
-  filtering, giving a classic pixel look.
 
 
 ## Retexturing Packs
