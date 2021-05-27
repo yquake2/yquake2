@@ -68,9 +68,6 @@ WITH_SYSTEMDIR:=""
 # Contents/Resources
 OSX_APP:=yes
 
-# Build vulkan render
-WITH_REFVK:=yes
-
 # This is an optional configuration file, it'll be used in
 # case of presence.
 CONFIG_FILE:=config.mk
@@ -372,12 +369,12 @@ endif
 # ----------
 
 # Phony targets
-.PHONY : all client game icon server ref_gl1 ref_gl3 ref_soft ref_vk
+.PHONY : all client game icon server ref_gl1 ref_gl3 ref_soft
 
 # ----------
 
 # Builds everything
-all: config client server game ref_gl1 ref_gl3 ref_soft ref_vk
+all: config client server game ref_gl1 ref_gl3 ref_soft
 
 # ----------
 
@@ -388,7 +385,6 @@ config:
 	@echo "YQ2_ARCH = $(YQ2_ARCH) COMPILER = $(COMPILER)"
 	@echo "WITH_CURL = $(WITH_CURL)"
 	@echo "WITH_OPENAL = $(WITH_OPENAL)"
-	@echo "WITH_REFVK = $(WITH_REFVK)"
 	@echo "WITH_RPATH = $(WITH_RPATH)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
@@ -438,10 +434,6 @@ ifeq ($(WITH_CURL),yes)
 release/yquake2.exe : CFLAGS += -DUSE_CURL
 endif
 
-ifeq ($(WITH_REFVK),yes)
-release/yquake2.exe : CFLAGS += -DUSE_REFVK
-endif
-
 ifeq ($(WITH_OPENAL),yes)
 release/yquake2.exe : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"openal32.dll"'
 endif
@@ -469,10 +461,6 @@ release/quake2 : CFLAGS += -Wno-unused-result
 
 ifeq ($(WITH_CURL),yes)
 release/quake2 : CFLAGS += -DUSE_CURL
-endif
-
-ifeq ($(WITH_REFVK),yes)
-release/quake2 : CFLAGS += -DUSE_REFVK
 endif
 
 ifeq ($(WITH_OPENAL),yes)
@@ -673,31 +661,6 @@ build/ref_soft/%.o: %.c
 	@echo "===> CC $<"
 	${Q}mkdir -p $(@D)
 	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) $(GLAD_INCLUDE) -o $@ $<
-
-# ----------
-
-# The vk renderer lib
-ifeq ($(WITH_REFVK),yes)
-ifeq ($(YQ2_OSTYPE), Windows)
-ref_vk:
-	@echo "===> Building ref_vk.dll"
-	$(MAKE) release/ref_vk.dll
-
-release/ref_vk.dll : LDFLAGS += -shared
-else
-ref_vk:
-	@echo "===> Building ref_vk.so"
-	$(MAKE) release/ref_vk.so
-
-release/ref_vk.so : CFLAGS += -fPIC
-release/ref_vk.so : LDFLAGS += -shared
-endif
-
-build/ref_vk/%.o: %.c
-	@echo "===> CC $<"
-	${Q}mkdir -p $(@D)
-	${Q}$(CC) -c $(CFLAGS) $(SDLCFLAGS) $(INCLUDE) -o $@ $<
-endif # WITH_REFVK
 
 # ----------
 
@@ -985,43 +948,6 @@ endif
 
 # ----------
 
-REFVK_OBJS_ := \
-	src/client/refresh/vk/vk_buffer.o \
-	src/client/refresh/vk/vk_cmd.o \
-	src/client/refresh/vk/vk_common.o \
-	src/client/refresh/vk/vk_device.o \
-	src/client/refresh/vk/vk_draw.o \
-	src/client/refresh/vk/vk_image.o \
-	src/client/refresh/vk/vk_light.o \
-	src/client/refresh/vk/vk_mesh.o \
-	src/client/refresh/vk/vk_model.o \
-	src/client/refresh/vk/vk_pipeline.o \
-	src/client/refresh/vk/vk_rmain.o \
-	src/client/refresh/vk/vk_rmisc.o \
-	src/client/refresh/vk/vk_rsurf.o \
-	src/client/refresh/vk/vk_shaders.o \
-	src/client/refresh/vk/vk_swapchain.o \
-	src/client/refresh/vk/vk_validation.o \
-	src/client/refresh/vk/vk_warp.o \
-	src/client/refresh/vk/vk_util.o \
-	src/client/refresh/vk/volk/volk.o \
-	src/client/refresh/files/pcx.o \
-	src/client/refresh/files/stb.o \
-	src/client/refresh/files/wal.o \
-	src/client/refresh/files/pvs.o \
-	src/common/shared/shared.o \
-	src/common/md4.o
-
-ifeq ($(YQ2_OSTYPE), Windows)
-REFVK_OBJS_ += \
-	src/backends/windows/shared/hunk.o
-else # not Windows
-REFVK_OBJS_ += \
-	src/backends/unix/shared/hunk.o
-endif
-
-# ----------
-
 # Used by the server
 SERVER_OBJS_ := \
 	src/backends/generic/misc.o \
@@ -1078,7 +1004,6 @@ CLIENT_OBJS = $(patsubst %,build/client/%,$(CLIENT_OBJS_))
 REFGL1_OBJS = $(patsubst %,build/ref_gl1/%,$(REFGL1_OBJS_))
 REFGL3_OBJS = $(patsubst %,build/ref_gl3/%,$(REFGL3_OBJS_))
 REFSOFT_OBJS = $(patsubst %,build/ref_soft/%,$(REFSOFT_OBJS_))
-REFVK_OBJS = $(patsubst %,build/ref_vk/%,$(REFVK_OBJS_))
 SERVER_OBJS = $(patsubst %,build/server/%,$(SERVER_OBJS_))
 GAME_OBJS = $(patsubst %,build/baseq2/%,$(GAME_OBJS_))
 
@@ -1090,7 +1015,6 @@ GAME_DEPS= $(GAME_OBJS:.o=.d)
 REFGL1_DEPS= $(REFGL1_OBJS:.o=.d)
 REFGL3_DEPS= $(REFGL3_OBJS:.o=.d)
 REFSOFT_DEPS= $(REFSOFT_OBJS:.o=.d)
-REFVK_DEPS= $(REFVK_OBJS:.o=.d)
 SERVER_DEPS= $(SERVER_OBJS:.o=.d)
 
 # Suck header dependencies in.
@@ -1098,7 +1022,6 @@ SERVER_DEPS= $(SERVER_OBJS:.o=.d)
 -include $(GAME_DEPS)
 -include $(REFGL1_DEPS)
 -include $(REFGL3_DEPS)
--include $(REFVK_DEPS)
 -include $(SERVER_DEPS)
 
 # ----------
@@ -1176,17 +1099,6 @@ else
 release/ref_soft.so : $(REFSOFT_OBJS)
 	@echo "===> LD $@"
 	${Q}$(CC) $(REFSOFT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
-endif
-
-# release/ref_vk.so
-ifeq ($(YQ2_OSTYPE), Windows)
-release/ref_vk.dll : $(REFVK_OBJS)
-	@echo "===> LD $@"
-	${Q}$(CC) $(REFVK_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
-else
-release/ref_vk.so : $(REFVK_OBJS)
-	@echo "===> LD $@"
-	${Q}$(CC) $(REFVK_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/baseq2/game.so
