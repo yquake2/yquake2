@@ -123,7 +123,7 @@ SV_CreateBaseline(void)
 }
 
 void
-SV_CheckForSavegame(void)
+SV_CheckForSavegame(qboolean isautosave)
 {
 	char name[MAX_OSPATH];
 	FILE *f;
@@ -155,7 +155,7 @@ SV_CheckForSavegame(void)
 	/* get configstrings and areaportals */
 	SV_ReadLevelFile();
 
-	if (!sv.loadgame)
+	if (!sv.loadgame || (sv.loadgame && isautosave))
 	{
 		/* coming back to a level after being in a different
 		   level, so run it for ten seconds */
@@ -179,7 +179,7 @@ SV_CheckForSavegame(void)
  */
 void
 SV_SpawnServer(char *server, char *spawnpoint, server_state_t serverstate,
-		qboolean attractloop, qboolean loadgame)
+		qboolean attractloop, qboolean loadgame, qboolean isautosave)
 {
 	int i;
 	unsigned checksum;
@@ -295,7 +295,7 @@ SV_SpawnServer(char *server, char *spawnpoint, server_state_t serverstate,
 	SV_CreateBaseline();
 
 	/* check for a savegame */
-	SV_CheckForSavegame();
+	SV_CheckForSavegame(isautosave);
 
 	/* set serverinfo variable */
 	Cvar_FullSet("mapname", sv.name, CVAR_SERVERINFO | CVAR_NOSET);
@@ -439,7 +439,7 @@ SV_InitGame(void)
  *  map tram.cin+jail_e3
  */
 void
-SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame)
+SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isautosave)
 {
 	char level[MAX_QPATH];
 	char *ch;
@@ -506,7 +506,7 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame)
 		SCR_BeginLoadingPlaque(); /* for local system */
 #endif
 		SV_BroadcastCommand("changing\n");
-		SV_SpawnServer(level, spawnpoint, ss_cinematic, attractloop, loadgame);
+		SV_SpawnServer(level, spawnpoint, ss_cinematic, attractloop, loadgame, isautosave);
 	}
 	else if ((l > 4) && !strcmp(level + l - 4, ".dm2"))
 	{
@@ -514,7 +514,7 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame)
 		SCR_BeginLoadingPlaque(); /* for local system */
 #endif
 		SV_BroadcastCommand("changing\n");
-		SV_SpawnServer(level, spawnpoint, ss_demo, attractloop, loadgame);
+		SV_SpawnServer(level, spawnpoint, ss_demo, attractloop, loadgame, isautosave);
 	}
 	else if ((l > 4) && !strcmp(level + l - 4, ".pcx"))
 	{
@@ -522,7 +522,7 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame)
 		SCR_BeginLoadingPlaque(); /* for local system */
 #endif
 		SV_BroadcastCommand("changing\n");
-		SV_SpawnServer(level, spawnpoint, ss_pic, attractloop, loadgame);
+		SV_SpawnServer(level, spawnpoint, ss_pic, attractloop, loadgame, isautosave);
 	}
 	else
 	{
@@ -531,7 +531,7 @@ SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame)
 #endif
 		SV_BroadcastCommand("changing\n");
 		SV_SendClientMessages();
-		SV_SpawnServer(level, spawnpoint, ss_game, attractloop, loadgame);
+		SV_SpawnServer(level, spawnpoint, ss_game, attractloop, loadgame, isautosave);
 		Cbuf_CopyToDefer();
 	}
 

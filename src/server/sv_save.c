@@ -417,6 +417,7 @@ SV_Loadgame_f(void)
 	char name[MAX_OSPATH];
 	FILE *f;
 	char *dir;
+	qboolean isautosave;
 
 	if (Cmd_Argc() != 2)
 	{
@@ -444,6 +445,18 @@ SV_Loadgame_f(void)
 		return;
 	}
 
+	Com_Printf("Savegame: %s\n", Cmd_Argv(1));
+
+	if (strcmp(Cmd_Argv(1), "save0") == 0 ||
+		strcmp(Cmd_Argv(1), "current") == 0)
+	{
+		isautosave = true;
+	}
+	else
+	{
+		isautosave = false;
+	}
+
 	fclose(f);
 
 	SV_CopySaveGame(Cmd_Argv(1), "current");
@@ -452,7 +465,7 @@ SV_Loadgame_f(void)
 
 	/* go to the map */
 	sv.state = ss_dead; /* don't save current level when changing */
-	SV_Map(false, svs.mapcmd, true);
+	SV_Map(false, svs.mapcmd, true, isautosave);
 }
 
 void

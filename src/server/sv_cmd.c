@@ -156,7 +156,7 @@ SV_DemoMap_f(void)
 		return;
 	}
 
-	SV_Map(true, Cmd_Argv(1), false);
+	SV_Map(true, Cmd_Argv(1), false, false);
 }
 
 /*
@@ -261,7 +261,7 @@ SV_GameMap_f(void)
 
 
 	/* start up the next map */
-	SV_Map(false, map, false);
+	SV_Map(false, map, false, false);
 
 	/* archive server state */
 	Q_strlcpy(svs.mapcmd, map, sizeof(svs.mapcmd));
