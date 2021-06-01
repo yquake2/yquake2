@@ -205,6 +205,53 @@ S_IsSilencedMuzzleFlash(const wavinfo_t* info, const void* raw_data, const char*
 	return true;
 }
 
+static void
+S_LoadVorbis(char *path, char* name, wavinfo_t *info, void **buffer)
+{
+	int	len;
+	char namewe[256];
+	char filename[MAX_QPATH];
+	const char* ext;
+
+	if (!path)
+	{
+		return;
+	}
+
+	ext = COM_FileExtension(path);
+	if(!ext[0])
+	{
+		/* file has no extension */
+		return;
+	}
+
+	len = strlen(path);
+
+	/* Remove the extension */
+	memset(namewe, 0, 256);
+	memcpy(namewe, path, len - (strlen(ext) + 1));
+
+	if (len < 5)
+	{
+		return;
+	}
+
+	if (strcmp(ext, "wav"))
+	{
+		/* Non wav? */
+		return;
+	}
+
+	/* Combine with ogg */
+	Q_strlcpy(filename, namewe, sizeof(filename));
+
+	/* Add the extension */
+	Q_strlcat(filename, ".", sizeof(filename));
+	Q_strlcat(filename, "ogg", sizeof(filename));
+
+	OGG_LoadAsWav(filename, info, buffer);
+}
+
 /*
  * Loads one sample into memory
  */
@@ -212,10 +259,9 @@ sfxcache_t *
 S_LoadSound(sfx_t *s)
 {
 	char namebuffer[MAX_QPATH];
-	byte *data;
+	byte *data = NULL;
 	wavinfo_t info;
 	sfxcache_t *sc;
-	int size;
 	char *name;
 
 	if (s->name[0] == '*')
@@ -251,7 +297,18 @@ S_LoadSound(sfx_t *s)
 		Com_sprintf(namebuffer, sizeof(namebuffer), "sound/%s", name);
 	}
 
-	size = FS_LoadFile(namebuffer, (void **)&data);
+	S_LoadVorbis(namebuffer, s->name, &info, (void **)&data);
+
+	// can't load ogg file
+	if (!data)
+	{
+		int size = FS_LoadFile(namebuffer, (void **)&data);
+
+		if (data)
+		{
+			info = GetWavinfo(s->name, data, size);
+		}
+	}
 
 	if (!data)
 	{
@@ -260,7 +317,10 @@ S_LoadSound(sfx_t *s)
 		return NULL;
 	}
 
-	info = GetWavinfo(s->name, data, size);
+	/*
+	Com_Printf("%s: rate:%d\n\twidth:%d\n\tchannels:%d\n\tloopstart:%d\n\tsamples:%d\n\tdataofs:%d\n",
+		s->name, info.rate, info.width, info.channels, info.loopstart, info.samples, info.dataofs);
+	*/
 
 	if (info.channels < 1 || info.channels > 2)
 	{
