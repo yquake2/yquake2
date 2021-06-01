@@ -428,12 +428,13 @@ OGG_PlayTrack(int trackNo)
 	}
 
 	int res = 0;
+
+	// fclose is not required on error with close_on_free=true
 	ogg_file = stb_vorbis_open_file(f, true, &res, NULL);
 
 	if (res != 0)
 	{
 		Com_Printf("%s: '%s' is not a valid Ogg Vorbis file (error %i).\n", __func__, ogg_tracks[trackNo], res);
-		fclose(f);
 
 		return;
 	}
