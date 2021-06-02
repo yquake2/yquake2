@@ -229,6 +229,9 @@ Cvar_Get(char *var_name, char *var_value, int flags)
 	{
 		var->flags |= flags;
 
+		if (var->default_string)
+			Z_Free(var->default_string);
+
 		if (!var_value)
 		{
 			var->default_string = CopyString("");
@@ -874,6 +877,7 @@ Cvar_Fini(void)
 		cvar_t *c = var->next;
 		Z_Free(var->string);
 		Z_Free(var->name);
+		Z_Free(var->default_string);
 		Z_Free(var);
         var = c;
 	}

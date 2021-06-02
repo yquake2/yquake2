@@ -355,6 +355,7 @@ void Cbuf_InsertFromDefer(void);
 typedef void (*xcommand_t)(void);
 
 void Cmd_Init(void);
+void Cmd_Shutdown(void);
 
 void Cmd_AddCommand(char *cmd_name, xcommand_t function);
 
@@ -677,6 +678,7 @@ char **FS_ListFiles2(char *findname, int *numfiles,
 void FS_FreeList(char **list, int nfiles);
 
 void FS_InitFilesystem(void);
+void FS_ShutdownFilesystem(void);
 void FS_BuildGameSpecificSearchPath(char *dir);
 char *FS_Gamedir(void);
 char *FS_NextPath(char *prevpath);

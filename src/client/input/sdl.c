@@ -1514,6 +1514,10 @@ IN_Shutdown(void)
 		SDL_JoystickClose(joystick);
 		joystick = NULL;
 	}
+
+	const Uint32 subsystems = SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC;
+	if (SDL_WasInit(subsystems) == subsystems)
+		SDL_QuitSubSystem(subsystems);
 }
 
 /* ------------------------------------------------------------------ */
