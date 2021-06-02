@@ -206,7 +206,7 @@ S_IsSilencedMuzzleFlash(const wavinfo_t* info, const void* raw_data, const char*
 }
 
 static void
-S_LoadVorbis(char *path, char* name, wavinfo_t *info, void **buffer)
+S_LoadVorbis(const char *path, const char* name, wavinfo_t *info, void **buffer)
 {
 	int	len;
 	char namewe[256];
@@ -227,27 +227,20 @@ S_LoadVorbis(char *path, char* name, wavinfo_t *info, void **buffer)
 
 	len = strlen(path);
 
-	/* Remove the extension */
-	memset(namewe, 0, 256);
-	memcpy(namewe, path, len - (strlen(ext) + 1));
-
 	if (len < 5)
 	{
 		return;
 	}
 
-	if (strcmp(ext, "wav"))
-	{
-		/* Non wav? */
-		return;
-	}
+	/* Remove the extension */
+	memset(namewe, 0, sizeof(namewe));
+	memcpy(namewe, path, len - (strlen(ext) + 1));
 
 	/* Combine with ogg */
 	Q_strlcpy(filename, namewe, sizeof(filename));
 
 	/* Add the extension */
-	Q_strlcat(filename, ".", sizeof(filename));
-	Q_strlcat(filename, "ogg", sizeof(filename));
+	Q_strlcat(filename, ".ogg", sizeof(filename));
 
 	OGG_LoadAsWav(filename, info, buffer);
 }
