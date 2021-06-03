@@ -28,11 +28,11 @@ So the binary directory should look somehow like this:
     * game.so
   * ... (the same for other addons)
 
-Yamagi Quake2 will get the directory the `quake2` executable is in from
-the system and then look in that directory (and nowhere else!) for the
-`ref_*.so` renderer libraries. It will look for `game.so` there first,
-but if it's not found in the binary directory, it will look for it in
-all directories that are also searched for game data.  This is for
+Yamagi Quake2 will get the directory, the `quake2` executable is in,
+from the system and then look in that directory (and nowhere else!) for
+the `ref_*.so` renderer libraries. It will look for `game.so` there
+first, but if it's not found in the binary directory, it will look for
+it in all directories that are also searched for game data.  This is for
 better compatibility with mods that might ship their own game.so.
 
 You can **just symlink the executables to a directory in the $PATH**,

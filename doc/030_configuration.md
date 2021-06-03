@@ -13,9 +13,9 @@ Yamagi Quake II ships with 4 renderers:
 * The **OpenGL 3.2** renderer: This renderer was developed for the needs
   of modern graphics hardware and is usually the best choice for OpenGL
   3.2 capable graphics cards. It provides a very detailed look and feel,
-  matching the dark and dirty atmosphere on Stroggos. The texturing
-  renderer looks mostly the same on all GPU drivers. Depending on the
-  display the default lighting may be too bright or too dark, it can be
+  matching the dark and dirty atmosphere on Stroggos. The texture
+  rendering looks mostly the same on all GPU drivers. Depending on the
+  display, the default lighting may be too bright or too dark, it can be
   adjusted through the menu or through the *vid_gamma* cvar.
 * The **OpenGL 1.4** renderer: This is a slightly enhanced version of
   the original OpenGL renderer shipped in 1997 with the retail release.
@@ -202,7 +202,7 @@ one and OpenAL. Additionally some new sound effects were added. We
 recommend to stay with OpenAL, even if the stereo rendering is somewhat
 different to the old sound system. OpenAL is much more distortion free
 and more reliable, especially on modern platforms like Windows 10 or
-Linux with PulseAudio.
+Linux with PulseAudio / Pipewire.
 
 The new sound effects can be disabled with:
 

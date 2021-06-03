@@ -33,6 +33,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 (setting the `portable` argument).
 
 * **cfgdir**: The name (not the path) of the configuration directory.
+
 * **datadir**: Directory from which the game data is loaded. Can be used
   in startup scripts, to test binaries, etc. If not set, the directory
   containing the binaries is used.
@@ -162,7 +163,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   2nd Widow boss' tracker weapon - a black-ish ball of energy.
   When this cvar is set to 1 you can use the "give Disruptor" and
   "give rounds X" commands to give yourself the weapon and its ammo,
-  and its items, weapon_disintegrator and ammo_disruptor, can be
+  and its items, weapon\_disintegrator and ammo\_disruptor, can be
   spawned in maps (in fact, some official Ground Zero maps contain
   these entities). This cvar is set to 0 by default.
 
@@ -372,7 +373,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **sw_gunzposition**: Z offset for the gun. In the original code this
   was always `0`, which will draw the gun too near to the player if a
-  custom gun field of few is used. Defaults to `8`, which is more or
+  custom gun field of view is used. Defaults to `8`, which is more or
   less optimal for the default gun field of view of 80.
 
 

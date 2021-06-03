@@ -275,7 +275,7 @@ level.
 /baseq2/video/idlog.cin
 /baseq2/video/ntro.cin
 
-# OGG files. For standard standard, NOT for the GOG.com release:
+# OGG files. For standard releases, NOT for the GOG.com release:
 /baseq2/music/02.ogg
 /baseq2/music/03.ogg
 /baseq2/music/04.ogg
@@ -316,7 +316,7 @@ level.
 /rogue/video/reu4_.cin
 /rogue/video/rintro.cin
 
-# OGG files. For standard standard, NOT for the GOG.com release:
+# OGG files. For standard releases, NOT for the GOG.com release:
 /rogue/music/02.ogg
 /rogue/music/03.ogg
 /rogue/music/04.ogg
@@ -347,7 +347,7 @@ level.
 /xatrix/video/xu2.cin
 /xatrix/video/xu3.cin
 
-# OGG files. For standard standard, NOT for the GOG.com release:
+# OGG files. For standard releases, NOT for the GOG.com release:
 /xatrix/music/02.ogg
 /xatrix/music/03.ogg
 /xatrix/music/04.ogg
