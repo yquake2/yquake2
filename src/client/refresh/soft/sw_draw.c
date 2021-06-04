@@ -245,10 +245,11 @@ RE_Draw_StretchPicImplementation (int x, int y, int w, int h, const image_t *pic
 				if (picupscale > 1)
 				{
 					int i;
+					int pu = min(height-v, picupscale);
 					pixel_t	*dest_orig = dest;
 
 					// copy first line to fill whole sector
-					for (i=1; i < picupscale; i++)
+					for (i=1; i < pu; i++)
 					{
 						// go to next line
 						dest += vid_buffer_width;
