@@ -1532,7 +1532,7 @@ CMod_LoadBrushSides(lump_t *l)
 			Com_Error(ERR_DROP, "Bad brushside texinfo");
 		}
 
-		out->surface = &map_surfaces[j];
+		out->surface = (j >= 0) ? &map_surfaces[j] : &nullsurface;
 	}
 }
 
