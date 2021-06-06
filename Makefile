@@ -235,6 +235,13 @@ ifeq ($(YQ2_ARCH), x86_64)
 override CFLAGS += -mfpmath=sse
 endif
 
+# Disable floating-point expression contraction. While this shouldn't be
+# a problem for C (only for C++) better be safe than sorry. See
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100839 for details.
+ifeq ($(COMPILER), gcc)
+override CFLAGS += -ffp-contract=off
+endif
+
 # ----------
 
 # Systemwide installation.
