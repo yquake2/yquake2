@@ -339,6 +339,8 @@ else ifeq ($(YQ2_OSTYPE), Darwin)
 override LDFLAGS += -arch $(YQ2_ARCH)
 else ifeq ($(YQ2_OSTYPE), Haiku)
 override LDFLAGS += -lm -lnetwork
+else ifeq ($(YQ2_OSTYPE), SunOS)
+override LDFLAGS += -lm -lsocket -lnsl
 endif
 
 ifneq ($(YQ2_OSTYPE), Darwin)
