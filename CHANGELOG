@@ -1,36 +1,36 @@
 Quake II 7.45 to 8.00:
 - Client side support for the optional Vulkan renderer library.
-- Non existent renderer librarys are now skipped over by the menu.
+- Non existent renderer libraries are now skipped over by the menu.
 - Fix several bugs when loading autosaves.
 - Bump the maximal number of OGG/Vorbis files to 128.
-- Several fixes to the Baracude Shark. (by BjossiAlfreds)
+- Several fixes to the Barracuda Shark. (by BjossiAlfreds)
 - 'vid_fullscreen' and 'r_mode' are no longer special, they require an
   explicit 'vid_restart' like every other cvar.
 - Remove hardcoded map fixes and replace them by optional entity files.
   Add several newly discovered map fixes. (by BjossiAlfreds)
-- Send the network protocol version to the server. This can be used
-  by the server to support clients with different network protocol
-  version. (by Knightmare)
-- Force SDL to minimize the window when it's focus is lost. This fixes
+- Send the network protocol version to the server. This can be used by
+  the server to support clients with different network protocol version.
+  (by Knightmare)
+- Force SDL to minimize the window when its focus is lost. This fixes
   several problem under Windows with SDL 2.0.14 and newer.
-- Switch the semantics of the 'vid'fullscreen' cvar. '1' is now native
-  fullscreen, like it was in Vanilla Quake II. '2' is now desktop
+- Switch the semantics of the 'vid_fullscreen' cvar. '1' is now native
+  fullscreen, like it was in Vanilla Quake II. '2' is desktop
   fullscreen. When desktop fullscreen is selected through the menu,
   'r_mode' is forced to '-2'.
 - Add 'g_footsteps' to control the generation of footstep sound. This
   cvar is cheat protected. '1' is Vanilla Quake II behavior and the
-  default. '0' never generated footstep sound, '2' always generates
+  default. '0' never generates footstep sound, '2' always generates
   them.
 - Support stereo wave files. (by 0lvin)
 - Add 'cl_r1q2_lighstyle'. When set to '1' Yamagi Quake II uses the
   Vanilla Quake II light styles (for example yellow light for the
-  hyperblaster) instead if the r1q2 light styles.
+  Hyperblaster) instead of the default r1q2 light styles.
 - Add a submenu to configure gamepad and joystick sensitivities. (by
   Larry Davis)
-- Ensure that the config is written before changing the active mod.
+- Ensure that the config file is written before changing the active mod.
   This prevents config changes from getting lost.
-- Overhaul the search path logic. Make sure that each directory is
-  added only one.
+- Overhaul the search path logic. Make sure that each directory is added
+  only once.
 
 Quake II 7.44 to 7.45:
 - Fix a crash under windows when opening the games menu with mods
