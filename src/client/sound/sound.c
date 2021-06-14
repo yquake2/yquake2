@@ -245,6 +245,195 @@ S_LoadVorbis(const char *path, const char* name, wavinfo_t *info, void **buffer)
 	OGG_LoadAsWav(filename, info, buffer);
 }
 
+static void
+S_GetVolume(const byte *data, int sound_length, int width, double *sound_volume)
+{
+	/* update sound volume */
+	*sound_volume = 0;
+	if (width == 2)
+	{
+		short *sound_data = (short *)data;
+		short *sound_end = sound_data + sound_length;
+		while (sound_data < sound_end)
+		{
+			short sound_sample = LittleShort(*sound_data);
+			*sound_volume += (sound_sample * sound_sample);
+			sound_data ++;
+		}
+	}
+	else if (width == 1)
+	{
+		byte *sound_data = (byte *)data;
+		byte *sound_end = sound_data + sound_length;
+		while (sound_data < sound_end)
+		{
+			// normilize to 16bit sound;
+			short sound_sample = *sound_data << 8;
+			*sound_volume += (sound_sample * sound_sample);
+			sound_data ++;
+		}
+	}
+	if (sound_length != 0)
+	{
+		*sound_volume /= sound_length;
+		*sound_volume = sqrtf(*sound_volume);
+	}
+}
+
+static void
+S_GetStatistics(const byte *data, int sound_length, int width, int channels,
+	double sound_volume, int *begin_length, int *end_length,
+	int *attack_length, int *fade_length)
+{
+	/* attack length */
+	short sound_max = 0;
+	/* calculate max value*/
+	if (width == 2)
+	{
+		short *sound_data = (short *)data;
+		short *sound_end = sound_data + sound_length;
+		while (sound_data < sound_end)
+		{
+			short sound_sample = LittleShort(*sound_data);
+			if (sound_max < abs(sound_sample))
+			{
+				sound_max = abs(sound_sample);
+			}
+			sound_data ++;
+		}
+	}
+	else if (width == 1)
+	{
+		byte *sound_data = (byte *)data;
+		byte *sound_end = sound_data + sound_length;
+		while (sound_data < sound_end)
+		{
+			// normilize to 16bit sound;
+			short sound_sample = *sound_data << 8;
+			if (sound_max < abs(sound_sample))
+			{
+				sound_max = abs(sound_sample);
+			}
+			sound_data ++;
+		}
+	}
+
+	// use something in middle
+	sound_max = (sound_max + sound_volume) / 2;
+
+	// calculate attack/fade length
+	if (width == 2)
+	{
+		// calculate attack/fade length
+		short *sound_data = (short *)data;
+		short *delay_data = sound_data;
+		short *fade_data = sound_data;
+		short *sound_end = sound_data + sound_length;
+		short sound_sample = 0;
+		short sound_treshold = sound_max / 2;
+
+		/* delay calculate */
+		do
+		{
+			sound_sample = LittleShort(*sound_data);
+			sound_data ++;
+		}
+		while (sound_data < sound_end && abs(sound_sample) < sound_treshold);
+		/* delay_data == (short *)(data + info.dataofs) */
+		*begin_length = (sound_data - delay_data) / channels;
+		delay_data = sound_data;
+		fade_data = sound_data;
+
+		/* attack calculate */
+		do
+		{
+			sound_sample = LittleShort(*sound_data);
+			sound_data ++;
+		}
+		while (sound_data < sound_end && abs(sound_sample) < sound_max);
+		/* fade_data == delay_data */
+		*attack_length = (sound_data - delay_data) / channels;
+		fade_data = sound_data;
+
+		/* end calculate */
+		sound_data = sound_end;
+		do
+		{
+			sound_data --;
+			sound_sample = LittleShort(*sound_data);
+		}
+		while (sound_data > fade_data && abs(sound_sample) < sound_treshold);
+		*end_length = (sound_end -  sound_data) / channels;
+		sound_end = sound_data;
+
+		/* fade calculate */
+		do
+		{
+			sound_data --;
+			sound_sample = LittleShort(*sound_data);
+		}
+		while (sound_data > fade_data && abs(sound_sample) < sound_max);
+		*fade_length = (sound_end - sound_data) / channels;
+	}
+	else if (width == 1)
+	{
+		// calculate attack/fade length
+		byte *sound_data = (byte *)data;
+		byte *delay_data = sound_data;
+		byte *fade_data = sound_data;
+		byte *sound_end = sound_data + sound_length;
+		short sound_sample = 0;
+		short sound_treshold = sound_max / 2;
+
+		/* delay calculate */
+		do
+		{
+			// normilize to 16bit sound;
+			sound_sample = *sound_data << 8;
+			sound_data ++;
+		}
+		while (sound_data < sound_end && abs(sound_sample) < sound_treshold);
+		/* delay_data == (short *)(data + info.dataofs) */
+		*begin_length = (sound_data - delay_data) / channels;
+		delay_data = sound_data;
+		fade_data = sound_data;
+
+		/* attack calculate */
+		do
+		{
+			// normilize to 16bit sound;
+			sound_sample = *sound_data << 8;
+			sound_data ++;
+		}
+		while (sound_data < sound_end && abs(sound_sample) < sound_max);
+		/* fade_data == delay_data */
+		*attack_length = (sound_data - delay_data) / channels;
+		fade_data = sound_data;
+
+		/* end calculate */
+		sound_data = sound_end;
+		do
+		{
+			sound_data --;
+			// normilize to 16bit sound;
+			sound_sample = *sound_data << 8;
+		}
+		while (sound_data > fade_data && abs(sound_sample) < sound_treshold);
+		*end_length = (sound_end -  sound_data) / channels;
+		sound_end = sound_data;
+
+		/* fade calculate */
+		do
+		{
+			sound_data --;
+			// normilize to 16bit sound;
+			sound_sample = *sound_data << 8;
+		}
+		while (sound_data > fade_data && abs(sound_sample) < sound_max);
+		*fade_length = (sound_end - sound_data) / channels;
+	}
+}
+
 /*
  * Loads one sample into memory
  */
@@ -332,190 +521,12 @@ S_LoadSound(sfx_t *s)
 		s->is_silenced_muzzle_flash = true;
 	}
 
-	/* update sound volume */
-	{
-		sound_volume = 0;
-		int sound_length = info.samples * info.channels;
-		if (info.width == 2)
-		{
-			short *sound_data = (short *)(data + info.dataofs);
-			short *sound_end = sound_data + sound_length;
-			while (sound_data < sound_end)
-			{
-				short sound_sample = *sound_data;
-				sound_volume += (sound_sample * sound_sample);
-				sound_data ++;
-			}
-		}
-		else if (info.width == 1)
-		{
-			byte *sound_data = (byte *)(data + info.dataofs);
-			byte *sound_end = sound_data + sound_length;
-			while (sound_data < sound_end)
-			{
-				// normilize to 16bit sound;
-				short sound_sample = *sound_data << 8;
-				sound_volume += (sound_sample * sound_sample);
-				sound_data ++;
-			}
-		}
-		if (sound_length != 0)
-		{
-			sound_volume /= sound_length;
-			sound_volume = sqrtf(sound_volume);
-		}
-	}
+	S_GetVolume(data + info.dataofs, info.samples * info.channels,
+		info.width, &sound_volume);
 
-	/* attack length */
-	{
-		short sound_max = 0;
-		int sound_length = info.samples * info.channels;
-		/* calculate max value*/
-		if (info.width == 2)
-		{
-			short *sound_data = (short *)(data + info.dataofs);
-			short *sound_end = sound_data + sound_length;
-			while (sound_data < sound_end)
-			{
-				short sound_sample = *sound_data;
-				if (sound_max < abs(sound_sample))
-				{
-					sound_max = abs(sound_sample);
-				}
-				sound_data ++;
-			}
-		}
-		else if (info.width == 1)
-		{
-			byte *sound_data = (byte *)(data + info.dataofs);
-			byte *sound_end = sound_data + sound_length;
-			while (sound_data < sound_end)
-			{
-				// normilize to 16bit sound;
-				short sound_sample = *sound_data << 8;
-				if (sound_max < abs(sound_sample))
-				{
-					sound_max = abs(sound_sample);
-				}
-				sound_data ++;
-			}
-		}
-
-		// use something in middle
-		sound_max = (sound_max + sound_volume) / 2;
-
-		// calculate attack/fade length
-		if (info.width == 2)
-		{
-			// calculate attack/fade length
-			short *sound_data = (short *)(data + info.dataofs);
-			short *delay_data = sound_data;
-			short *fade_data = sound_data;
-			short *sound_end = sound_data + sound_length;
-			short sound_sample = 0;
-			short sound_treshold = sound_max / 2;
-
-			/* delay calculate */
-			do
-			{
-				sound_sample = *sound_data;
-				sound_data ++;
-			}
-			while (sound_data < sound_end && abs(sound_sample) < sound_treshold);
-			/* delay_data == (short *)(data + info.dataofs) */
-			begin_length = (sound_data - delay_data) / info.channels;
-			delay_data = sound_data;
-			fade_data = sound_data;
-
-			/* attack calculate */
-			do
-			{
-				sound_sample = *sound_data;
-				sound_data ++;
-			}
-			while (sound_data < sound_end && abs(sound_sample) < sound_max);
-			/* fade_data == delay_data */
-			attack_length = (sound_data - delay_data) / info.channels;
-			fade_data = sound_data;
-
-			/* end calculate */
-			sound_data = sound_end;
-			do
-			{
-				sound_data --;
-				sound_sample = *sound_data;
-			}
-			while (sound_data > fade_data && abs(sound_sample) < sound_treshold);
-			end_length = (sound_end -  sound_data) / info.channels;
-			sound_end = sound_data;
-
-			/* fade calculate */
-			do
-			{
-				sound_data --;
-				sound_sample = *sound_data;
-			}
-			while (sound_data > fade_data && abs(sound_sample) < sound_max);
-			fade_length = (sound_end - sound_data) / info.channels;
-		}
-		else if (info.width == 1)
-		{
-			// calculate attack/fade length
-			byte *sound_data = (byte *)(data + info.dataofs);
-			byte *delay_data = sound_data;
-			byte *fade_data = sound_data;
-			byte *sound_end = sound_data + sound_length;
-			short sound_sample = 0;
-			short sound_treshold = sound_max / 2;
-
-			/* delay calculate */
-			do
-			{
-				// normilize to 16bit sound;
-				sound_sample = *sound_data << 8;
-				sound_data ++;
-			}
-			while (sound_data < sound_end && abs(sound_sample) < sound_treshold);
-			/* delay_data == (short *)(data + info.dataofs) */
-			begin_length = (sound_data - delay_data) / info.channels;
-			delay_data = sound_data;
-			fade_data = sound_data;
-
-			/* attack calculate */
-			do
-			{
-				// normilize to 16bit sound;
-				sound_sample = *sound_data << 8;
-				sound_data ++;
-			}
-			while (sound_data < sound_end && abs(sound_sample) < sound_max);
-			/* fade_data == delay_data */
-			attack_length = (sound_data - delay_data) / info.channels;
-			fade_data = sound_data;
-
-			/* end calculate */
-			sound_data = sound_end;
-			do
-			{
-				sound_data --;
-				// normilize to 16bit sound;
-				sound_sample = *sound_data << 8;
-			}
-			while (sound_data > fade_data && abs(sound_sample) < sound_treshold);
-			end_length = (sound_end -  sound_data) / info.channels;
-			sound_end = sound_data;
-
-			/* fade calculate */
-			do
-			{
-				sound_data --;
-				// normilize to 16bit sound;
-				sound_sample = *sound_data << 8;
-			}
-			while (sound_data > fade_data && abs(sound_sample) < sound_max);
-			fade_length = (sound_end - sound_data) / info.channels;
-		}
-	}
+	S_GetStatistics(data + info.dataofs, info.samples * info.channels,
+		info.width, info.channels, sound_volume, &begin_length, &end_length,
+		&attack_length, &fade_length);
 
 #if USE_OPENAL
 	if (sound_started == SS_OAL)
