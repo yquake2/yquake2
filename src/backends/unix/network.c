@@ -34,6 +34,12 @@
 #include <sys/param.h>
 #include <sys/ioctl.h>
 #include <sys/uio.h>
+#if defined(__sun)
+#include <sys/filio.h>
+#if !defined(MAX)
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif
+#endif
 #include <errno.h>
 #include <arpa/inet.h>
 #include <net/if.h>
