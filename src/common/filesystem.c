@@ -687,6 +687,52 @@ FS_FreeFile(void *buffer)
 	Z_Free(buffer);
 }
 
+fsRawPath_t *FS_FreeRawPaths(fsRawPath_t *start, fsRawPath_t *end)
+{
+	fsRawPath_t *cur = start;
+	fsRawPath_t *next;
+
+	while (cur != end)
+	{
+		next = cur->next;
+		Z_Free(cur);
+		cur = next;
+	}
+
+	return cur;
+}
+
+fsSearchPath_t *FS_FreeSearchPaths(fsSearchPath_t *start, fsSearchPath_t *end)
+{
+	fsSearchPath_t *cur = start;
+	fsSearchPath_t *next;
+
+	while (cur != end)
+	{
+		if (cur->pack)
+		{
+			if (cur->pack->pak)
+			{
+				fclose(cur->pack->pak);
+			}
+
+			if (cur->pack->pk3)
+			{
+				unzClose(cur->pack->pk3);
+			}
+
+			Z_Free(cur->pack->files);
+			Z_Free(cur->pack);
+		}
+
+		next = cur->next;
+		Z_Free(cur);
+		cur = next;
+	}
+
+	return cur;
+}
+
 /*
  * Takes an explicit (not game tree related) path to a pak file.
  *
@@ -1680,7 +1726,6 @@ FS_BuildGameSpecificSearchPath(char *dir)
 	char path[MAX_OSPATH];
 	int i;
 	fsRawPath_t *search;
-	fsSearchPath_t *next;
 
 #ifndef DEDICATED_ONLY
 	// Write the config. Otherwise changes made by the
@@ -1705,28 +1750,7 @@ FS_BuildGameSpecificSearchPath(char *dir)
 	// We may already have specialised directories in our search
 	// path. This can happen if the server changes the mod. Let's
 	// remove them.
-	while (fs_searchPaths != fs_baseSearchPaths)
-	{
-		if (fs_searchPaths->pack)
-		{
-			if (fs_searchPaths->pack->pak)
-			{
-				fclose(fs_searchPaths->pack->pak);
-			}
-
-			if (fs_searchPaths->pack->pk3)
-			{
-				unzClose(fs_searchPaths->pack->pk3);
-			}
-
-			Z_Free(fs_searchPaths->pack->files);
-			Z_Free(fs_searchPaths->pack);
-		}
-
-		next = fs_searchPaths->next;
-		Z_Free(fs_searchPaths);
-		fs_searchPaths = next;
-	}
+	fs_searchPaths = FS_FreeSearchPaths(fs_searchPaths, fs_baseSearchPaths);
 
 	/* Close open files for game dir. */
 	for (i = 0; i < MAX_HANDLES; i++)
@@ -1943,4 +1967,14 @@ FS_InitFilesystem(void)
 
 	// Debug output
 	Com_Printf("Using '%s' for writing.\n", fs_gamedir);
+}
+
+
+void
+FS_ShutdownFilesystem(void)
+{
+	fs_searchPaths = FS_FreeSearchPaths(fs_searchPaths, NULL);
+	fs_rawPath = FS_FreeRawPaths(fs_rawPath, NULL);
+
+	fs_baseSearchPaths = NULL;
 }

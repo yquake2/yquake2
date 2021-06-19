@@ -1129,6 +1129,20 @@ Key_Init(void)
 	Cmd_AddCommand("bindlist", Key_Bindlist_f);
 }
 
+void
+Key_Shutdown(void)
+{
+	int i;
+	for (i = 0; i < K_LAST; ++i)
+	{
+		if (keybindings[i])
+		{
+			Z_Free(keybindings[i]);
+			keybindings[i] = NULL;
+		}
+	}
+}
+
 /*
  * Called every frame for every detected keypress.
  * ASCII input for the console, the menu and the

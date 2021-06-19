@@ -440,7 +440,9 @@ GLimp_Shutdown(void)
 {
 	ShutdownGraphics();
 
-	if (SDL_WasInit(SDL_INIT_EVERYTHING) == SDL_INIT_VIDEO)
+	// SDL_INIT_VIDEO implies SDL_INIT_EVENTS
+	const Uint32 subsystems = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+	if (SDL_WasInit(SDL_INIT_EVERYTHING) == subsystems)
 	{
 		SDL_Quit();
 	}

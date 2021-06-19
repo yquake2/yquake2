@@ -1131,3 +1131,16 @@ Cmd_Init(void)
 	Cmd_AddCommand("wait", Cmd_Wait_f);
 }
 
+void
+Cmd_Shutdown(void)
+{
+	cmdalias_t *next;
+
+	while (cmd_alias != NULL)
+	{
+		next = cmd_alias->next;
+		Z_Free(cmd_alias->value);
+		Z_Free(cmd_alias);
+		cmd_alias = next;
+	}
+}

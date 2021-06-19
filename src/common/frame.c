@@ -67,6 +67,7 @@ int curtime;
 
 #ifndef DEDICATED_ONLY
 void Key_Init(void);
+void Key_Shutdown(void);
 void SCR_EndLoadingPlaque(void);
 #endif
 
@@ -764,5 +765,12 @@ Qcommon_Frame(int usec)
 void
 Qcommon_Shutdown(void)
 {
+	FS_ShutdownFilesystem();
 	Cvar_Fini();
+
+#ifndef DEDICATED_ONLY
+	Key_Shutdown();
+#endif
+
+	Cmd_Shutdown();
 }
