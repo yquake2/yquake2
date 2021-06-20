@@ -593,7 +593,7 @@ Sys_RemoveDir(const char *path)
 	RemoveDirectoryW(wpath);
 }
 
-void
+qboolean
 Sys_Realpath(const char *in, char *out, size_t size)
 {
 	WCHAR win[MAX_OSPATH] = {0};
@@ -604,10 +604,12 @@ Sys_Realpath(const char *in, char *out, size_t size)
 
 	if (wconverted == NULL)
 	{
-		Com_Error(ERR_FATAL, "Couldn't get realpath for %s\n", in);
+		Com_Printf("Couldn't get realpath for %s\n", in);
+		return false;
 	}
 
 	WideCharToMultiByte(CP_UTF8, 0, wconverted, -1, out, size, NULL, NULL);
+	return true
 }
 
 /* ======================================================================= */

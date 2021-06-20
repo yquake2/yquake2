@@ -1836,11 +1836,19 @@ const char* FS_GetFilenameForHandle(fileHandle_t f)
 
 // --------
 
-void FS_AddDirToRawPath (const char *rawdir, qboolean create) {
+static void FS_AddDirToRawPath (const char *rawdir, qboolean create, qboolean required) {
 	char dir[MAX_OSPATH] = {0};
 
 	// Get the realpath.
-	Sys_Realpath(rawdir, dir, sizeof(dir));
+	if (!Sys_Realpath(rawdir, dir, sizeof(dir)))
+	{
+		if (required)
+		{
+			Com_Error(ERR_FATAL, "Couldn't add required directory %s to search path\n", rawdir);
+		}
+
+		return;
+	}
 
 	// Convert backslashes to forward slashes.
 	for (int i = 0; i < strlen(dir); i++)
@@ -1883,36 +1891,43 @@ void FS_AddDirToRawPath (const char *rawdir, qboolean create) {
 
 
 void FS_BuildRawPath(void) {
-	// Add $HOME/.yq2 (MUST be the last dir!)
+	// Add $HOME/.yq2, MUST be the last dir! Required,
+	// otherwise the config cannot be written.
 	if (!is_portable) {
 		const char *homedir = Sys_GetHomeDir();
 
 		if (homedir != NULL) {
-			FS_AddDirToRawPath(homedir, true);
+			FS_AddDirToRawPath(homedir, true, true);
 		}
 	}
 
-	// Add $binarydir
+	// Add binary dir. Required, because the renderer
+	// libraries are loaded from it.
 	const char *binarydir = Sys_GetBinaryDir();
 
 	if(binarydir[0] != '\0')
 	{
-		FS_AddDirToRawPath(binarydir, false);
+		FS_AddDirToRawPath(binarydir, false, true);
 	}
 
-	// Add $basedir/
-	FS_AddDirToRawPath(datadir, false);
+	// Add data dir. Required, when the user gives us
+	// a data dir he expects it in a working state.
+	FS_AddDirToRawPath(datadir, false, true);
 
-	// Add SYSTEMDIR
+	// Add SYSTEMDIR. Optional, the user may have a
+	// binary compiled with SYSTEMWIDE (installed from
+	// packages), but no systemwide game data.
 #ifdef SYSTEMWIDE
-	FS_AddDirToRawPath(SYSTEMDIR, false);
+	FS_AddDirToRawPath(SYSTEMDIR, false, false);
 #endif
 
 	// The CD must be the last directory of the path,
 	// otherwise we cannot be sure that the game won't
-	// stream the videos from the CD.
+	// stream the videos from the CD. Required, if the
+	// user sets a CD path, he expects data getting
+	// read from the CD.
 	if (fs_cddir->string[0] != '\0') {
-		FS_AddDirToRawPath(fs_cddir->string, false);
+		FS_AddDirToRawPath(fs_cddir->string, false, true);
 	}
 }
 

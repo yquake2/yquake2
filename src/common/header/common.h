@@ -825,7 +825,7 @@ void *Sys_GetGameAPI(void *parms);
 void Sys_UnloadGame(void);
 void Sys_GetWorkDir(char *buffer, size_t len);
 qboolean Sys_SetWorkDir(char *path);
-void Sys_Realpath(const char *in, char *out, size_t size);
+qboolean Sys_Realpath(const char *in, char *out, size_t size);
 
 // Windows only (system.c)
 #ifdef _WIN32
