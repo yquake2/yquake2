@@ -147,10 +147,10 @@ endif
 ifdef DEBUG
 CFLAGS ?= -O0 -g -Wall -pipe
 ifdef ASAN
-CFLAGS += -fsanitize=address
+override CFLAGS += -fsanitize=address -DUSE_SANITIZER
 endif
 ifdef UBSAN
-CFLAGS += -fsanitize=undefined
+override CFLAGS += -fsanitize=undefined -DUSE_SANITIZER
 endif
 else
 CFLAGS ?= -O2 -Wall -pipe -fomit-frame-pointer
@@ -316,38 +316,43 @@ endif
 
 # Link address sanitizer if requested.
 ifdef ASAN
-LDFLAGS += -fsanitize=address
+override LDFLAGS += -fsanitize=address
 endif
 
 # Link undefined behavior sanitizer if requested.
 ifdef UBSAN
-LDFLAGS += -fsanitize=undefined
+override LDFLAGS += -fsanitize=undefined
 endif
 
 # Required libraries.
 ifeq ($(YQ2_OSTYPE),Linux)
-override LDFLAGS += -lm -ldl -rdynamic
+LDLIBS ?= -lm -ldl -rdynamic
 else ifeq ($(YQ2_OSTYPE),FreeBSD)
-override LDFLAGS += -lm
+LDLIBS ?= -lm
 else ifeq ($(YQ2_OSTYPE),NetBSD)
-override LDFLAGS += -lm
+LDLIBS ?= -lm
 else ifeq ($(YQ2_OSTYPE),OpenBSD)
-override LDFLAGS += -lm
+LDLIBS ?= -lm
 else ifeq ($(YQ2_OSTYPE),Windows)
-override LDFLAGS += -lws2_32 -lwinmm -static-libgcc
+LDLIBS ?= -lws2_32 -lwinmm -static-libgcc
 else ifeq ($(YQ2_OSTYPE), Darwin)
-override LDFLAGS += -arch $(YQ2_ARCH)
+LDLIBS ?= -arch $(YQ2_ARCH)
 else ifeq ($(YQ2_OSTYPE), Haiku)
-override LDFLAGS += -lm -lnetwork
+LDLIBS ?= -lm -lnetwork
 else ifeq ($(YQ2_OSTYPE), SunOS)
-override LDFLAGS += -lm -lsocket -lnsl
+LDLIBS ?= -lm -lsocket -lnsl
 endif
 
+# ASAN and UBSAN must not be linked
+# with --no-undefined. OSX and OpenBSD
+# don't support it at all.
+ifndef ASAN
+ifndef UBSAN
 ifneq ($(YQ2_OSTYPE), Darwin)
 ifneq ($(YQ2_OSTYPE), OpenBSD)
-# For some reason the OSX & OpenBSD
-# linker doesn't support this...
 override LDFLAGS += -Wl,--no-undefined
+endif
+endif
 endif
 endif
 
@@ -497,22 +502,22 @@ endif
 
 ifeq ($(YQ2_OSTYPE), FreeBSD)
 release/quake2 : CFLAGS += -DHAVE_EXECINFO
-release/quake2 : LDFLAGS += -lexecinfo
+release/quake2 : LDLIBS += -lexecinfo
 endif
 
 ifeq ($(YQ2_OSTYPE), NetBSD)
 release/quake2 : CFLAGS += -DHAVE_EXECINFO
-release/quake2 : LDFLAGS += -lexecinfo
+release/quake2 : LDLIBS += -lexecinfo
 endif
 
 ifeq ($(YQ2_OSTYPE), OpenBSD)
 release/quake2 : CFLAGS += -DHAVE_EXECINFO
-release/quake2 : LDFLAGS += -lexecinfo
+release/quake2 : LDLIBS += -lexecinfo
 endif
 
 ifeq ($(YQ2_OSTYPE), Haiku)
 release/quake2 : CFLAGS += -DHAVE_EXECINFO
-release/quake2 : LDFLAGS += -lexecinfo
+release/quake2 : LDLIBS += -lexecinfo
 endif
 
 ifeq ($(WITH_RPATH),yes)
@@ -555,7 +560,7 @@ build/server/%.o: %.c
 release/q2ded : CFLAGS += -DDEDICATED_ONLY -Wno-unused-result
 
 ifeq ($(YQ2_OSTYPE), FreeBSD)
-release/q2ded : LDFLAGS += -lexecinfo
+release/q2ded : LDLIBS += -lexecinfo
 endif
 endif
 
@@ -569,7 +574,8 @@ ref_gl1:
 	@echo "===> Building ref_gl1.dll"
 	$(MAKE) release/ref_gl1.dll
 
-release/ref_gl1.dll : LDFLAGS += -lopengl32 -shared
+release/ref_gl1.dll : LDFLAGS += -lopengl32
+release/ref_gl1.dll : LDLIBS += -shared
 
 else ifeq ($(YQ2_OSTYPE), Darwin)
 
@@ -588,7 +594,8 @@ ref_gl1:
 
 
 release/ref_gl1.so : CFLAGS += -fPIC
-release/ref_gl1.so : LDFLAGS += -shared -lGL
+release/ref_gl1.so : LDFLAGS += -shared
+release/ref_gl1.so : LDLIBS += -lGL
 
 endif # OS specific ref_gl1 stuff
 
@@ -1039,7 +1046,7 @@ SERVER_DEPS= $(SERVER_OBJS:.o=.d)
 ifeq ($(YQ2_OSTYPE), Windows)
 release/yquake2.exe : $(CLIENT_OBJS) icon
 	@echo "===> LD $@"
-	${Q}$(CC) build/icon/icon.res $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) build/icon/icon.res $(CLIENT_OBJS) $(LDLIBS) $(SDLLDFLAGS) -o $@
 	$(Q)strip $@
 release/quake2.exe : src/win-wrapper/wrapper.c icon
 	$(Q)$(CC) -Wall -mwindows build/icon/icon.res src/win-wrapper/wrapper.c -o $@
@@ -1047,83 +1054,83 @@ release/quake2.exe : src/win-wrapper/wrapper.c icon
 else
 release/quake2 : $(CLIENT_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(CLIENT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(CLIENT_OBJS) $(LDLIBS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/q2ded
 ifeq ($(YQ2_OSTYPE), Windows)
 release/q2ded.exe : $(SERVER_OBJS) icon
 	@echo "===> LD $@"
-	${Q}$(CC) build/icon/icon.res $(SERVER_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) build/icon/icon.res $(SERVER_OBJS) $(LDLIBS) $(SDLLDFLAGS) -o $@
 	$(Q)strip $@
 else
 release/q2ded : $(SERVER_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(SERVER_OBJS) $(LDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(SERVER_OBJS) $(LDLIBS) -o $@
 endif
 
 # release/ref_gl1.so
 ifeq ($(YQ2_OSTYPE), Windows)
 release/ref_gl1.dll : $(REFGL1_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFGL1_OBJS) $(LDFLAGS) $(DLL_SDLLDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(REFGL1_OBJS) $(LDLIBS) $(DLL_SDLLDFLAGS) -o $@
 	$(Q)strip $@
 else ifeq ($(YQ2_OSTYPE), Darwin)
 release/ref_gl1.dylib : $(REFGL1_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFGL1_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(REFGL1_OBJS) $(LDLIBS) $(SDLLDFLAGS) -o $@
 else
 release/ref_gl1.so : $(REFGL1_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFGL1_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(REFGL1_OBJS) $(LDLIBS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/ref_gl3.so
 ifeq ($(YQ2_OSTYPE), Windows)
 release/ref_gl3.dll : $(REFGL3_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFGL3_OBJS) $(LDFLAGS) $(DLL_SDLLDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(REFGL3_OBJS) $(LDLIBS) $(DLL_SDLLDFLAGS) -o $@
 	$(Q)strip $@
 else ifeq ($(YQ2_OSTYPE), Darwin)
 release/ref_gl3.dylib : $(REFGL3_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFGL3_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(REFGL3_OBJS) $(LDLIBS) $(SDLLDFLAGS) -o $@
 else
 release/ref_gl3.so : $(REFGL3_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFGL3_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(REFGL3_OBJS) $(LDLIBS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/ref_soft.so
 ifeq ($(YQ2_OSTYPE), Windows)
 release/ref_soft.dll : $(REFSOFT_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFSOFT_OBJS) $(LDFLAGS) $(DLL_SDLLDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(REFSOFT_OBJS) $(LDLIBS) $(DLL_SDLLDFLAGS) -o $@
 	$(Q)strip $@
 else ifeq ($(YQ2_OSTYPE), Darwin)
 release/ref_soft.dylib : $(REFSOFT_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFSOFT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(REFSOFT_OBJS) $(LDLIBS) $(SDLLDFLAGS) -o $@
 else
 release/ref_soft.so : $(REFSOFT_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(REFSOFT_OBJS) $(LDFLAGS) $(SDLLDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(REFSOFT_OBJS) $(LDLIBS) $(SDLLDFLAGS) -o $@
 endif
 
 # release/baseq2/game.so
 ifeq ($(YQ2_OSTYPE), Windows)
 release/baseq2/game.dll : $(GAME_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(GAME_OBJS) $(LDLIBS) -o $@
 	$(Q)strip $@
 else ifeq ($(YQ2_OSTYPE), Darwin)
 release/baseq2/game.dylib : $(GAME_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(GAME_OBJS) $(LDLIBS) -o $@
 else
 release/baseq2/game.so : $(GAME_OBJS)
 	@echo "===> LD $@"
-	${Q}$(CC) $(GAME_OBJS) $(LDFLAGS) -o $@
+	${Q}$(CC) $(LDFLAGS) $(GAME_OBJS) $(LDLIBS) -o $@
 endif
 
 # ----------

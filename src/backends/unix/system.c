@@ -389,7 +389,11 @@ Sys_GetGameAPI(void *parms)
 
 		fclose(fp);
 
+#ifdef USE_SANITIZER
+		game_library = dlopen(name, RTLD_NOW | RTLD_NODELETE);
+#else
 		game_library = dlopen(name, RTLD_NOW);
+#endif
 
 		if (game_library)
 		{
@@ -581,7 +585,11 @@ Sys_LoadLibrary(const char *path, const char *sym, void **handle)
 
 	*handle = NULL;
 
+#ifdef USE_SANITIZER
+	module = dlopen(path, RTLD_LAZY | RTLD_NODELETE);
+#else
 	module = dlopen(path, RTLD_LAZY);
+#endif
 
 	if (!module)
 	{
