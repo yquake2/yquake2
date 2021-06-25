@@ -4760,6 +4760,8 @@ PlayerConfig_MenuDraw(void)
     {
         entity_t entity;
         char scratch[MAX_QPATH];
+        int w, h;
+        float picscale;
 
         memset(&entity, 0, sizeof(entity));
 
@@ -4804,7 +4806,17 @@ PlayerConfig_MenuDraw(void)
                     s_pmi[s_player_model_box.curvalue].directory,
                     s_pmi[s_player_model_box.curvalue].skindisplaynames[
                         s_player_skin_box.curvalue]);
-        Draw_PicScaled(s_player_config_menu.x - 40*scale, refdef.y, scratch, scale);
+
+		Draw_GetPicSize(&w, &h, scratch);
+		picscale = scale;
+		if (w != -1 && h != -1)
+		{
+			if (h > 32)
+			{
+				picscale = (picscale * 32) / h;
+			}
+			Draw_PicScaled(s_player_config_menu.x - 40*scale, refdef.y, scratch, picscale);
+		}
     }
 }
 

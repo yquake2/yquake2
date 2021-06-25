@@ -387,13 +387,13 @@ OGG_PlayTrack(int trackNo)
 
 	if ((trackNo < 2) || (trackNo > ogg_maxfileindex))
 	{
-		Com_Printf("OGG_PlayTrack: %d out of range.\n", trackNo);
+		Com_Printf("%s: %d out of range.\n", __func__, trackNo);
 		return;
 	}
 
 	if(ogg_tracks[trackNo] == NULL)
 	{
-		Com_Printf("OGG_PlayTrack: Don't have a .ogg file for track %d\n", trackNo);
+		Com_Printf("%s: Don't have a .ogg file for track %d\n", __func__, trackNo);
 	}
 
 	/* Check running music. */
@@ -421,19 +421,20 @@ OGG_PlayTrack(int trackNo)
 
 	if (f == NULL)
 	{
-		Com_Printf("OGG_PlayTrack: could not open file %s for track %d: %s.\n", ogg_tracks[trackNo], trackNo, strerror(errno));
+		Com_Printf("%s: could not open file %s for track %d: %s.\n", __func__, ogg_tracks[trackNo], trackNo, strerror(errno));
 		ogg_tracks[trackNo] = NULL;
 
 		return;
 	}
 
 	int res = 0;
+
+	// fclose is not required on error with close_on_free=true
 	ogg_file = stb_vorbis_open_file(f, true, &res, NULL);
 
 	if (res != 0)
 	{
-		Com_Printf("OGG_PlayTrack: '%s' is not a valid Ogg Vorbis file (error %i).\n", ogg_tracks[trackNo], res);
-		fclose(f);
+		Com_Printf("%s: '%s' is not a valid Ogg Vorbis file (error %i).\n", __func__, ogg_tracks[trackNo], res);
 
 		return;
 	}
@@ -708,4 +709,65 @@ OGG_Shutdown(void)
 	Cmd_RemoveCommand("ogg");
 
 	ogg_started = false;
+}
+
+void
+OGG_LoadAsWav(char *filename, wavinfo_t *info, void **buffer)
+{
+	void * temp_buffer = NULL;
+	int size = FS_LoadFile(filename, &temp_buffer);
+	short *final_buffer = NULL;
+	stb_vorbis * ogg_file = NULL;
+	int res = 0;
+
+	if (!temp_buffer)
+	{
+		/* no such file */
+		return;
+	}
+
+	/* load vorbis file from memory */
+	ogg_file = stb_vorbis_open_memory(temp_buffer, size, &res, NULL);
+	if (!res && ogg_file->channels > 0)
+	{
+		int read_samples = 0;
+
+		/* fill in wav structure */
+		info->rate = ogg_file->sample_rate;
+		info->width = 2;
+		info->channels = ogg_file->channels;
+		info->loopstart = -1;
+		/* return length * channels */
+		info->samples = stb_vorbis_stream_length_in_samples(ogg_file) / ogg_file->channels;
+		info->dataofs = 0;
+
+		/* alloc memory for uncompressed wav */
+		final_buffer = Z_Malloc(info->samples * sizeof(short) * ogg_file->channels);
+
+		/* load sampleas to buffer */
+		read_samples = stb_vorbis_get_samples_short_interleaved(
+			ogg_file, info->channels, final_buffer,
+			info->samples * ogg_file->channels);
+
+		if (read_samples > 0)
+		{
+			/* fix sample list size*/
+			if (read_samples < info->samples)
+			{
+				info->samples = read_samples;
+			}
+
+			/* copy to final result */
+			*buffer = final_buffer;
+		}
+		else
+		{
+			/* something is going wrong */
+			Z_Free(final_buffer);
+			final_buffer = NULL;
+		}
+
+		stb_vorbis_close(ogg_file);
+	}
+	FS_FreeFile(temp_buffer);
 }
