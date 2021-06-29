@@ -260,10 +260,6 @@ To compile Yamagi Quake II from source the following dependencies
 * libcurl.
 * SDL 2.0.
 
-While Yamagi Quake II ships with an CMakeFile.txt using the GNU Makefile
-for release builds is recommended. The GNU Makefile offers more options
-and is well tested.
-
 
 ### Prerequisites on Windows
 
