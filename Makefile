@@ -574,8 +574,8 @@ ref_gl1:
 	@echo "===> Building ref_gl1.dll"
 	$(MAKE) release/ref_gl1.dll
 
-release/ref_gl1.dll : LDFLAGS += -lopengl32
-release/ref_gl1.dll : LDLIBS += -shared
+release/ref_gl1.dll : LDFLAGS += -shared
+release/ref_gl1.dll : LDLIBS += -lopengl32
 
 else ifeq ($(YQ2_OSTYPE), Darwin)
 
