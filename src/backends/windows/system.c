@@ -609,7 +609,7 @@ Sys_Realpath(const char *in, char *out, size_t size)
 	}
 
 	WideCharToMultiByte(CP_UTF8, 0, wconverted, -1, out, size, NULL, NULL);
-	return true
+	return true;
 }
 
 /* ======================================================================= */
