@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
+# Print a message that using the Makefiles is recommended.
+message(NOTICE: " The CMakeLists.txt is unmaintained. Use the Makefile if possible.")
+
 # Enforce "Debug" as standard build type.
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
