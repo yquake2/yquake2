@@ -1715,7 +1715,18 @@ void FS_BuildGenericSearchPath(void) {
 	Sys_Mkdir(path);
 }
 
+// filesystem.c is used by the client and the server,
+// it includes common.h only. Not the client not the
+// server header. The game reset logic messes with
+// client state, so we need some forwar declarations
+// here.
+#ifndef DEDICATED_ONLY
+// Variables
+extern qboolean menu_startdemoloop;
+
+// Functions
 void CL_WriteConfiguration(void);
+#endif
 
 void
 FS_BuildGameSpecificSearchPath(char *dir)
@@ -1818,6 +1829,21 @@ FS_BuildGameSpecificSearchPath(char *dir)
 
 		free(mapnames);
 		mapnames = NULL;
+	}
+
+	// Start the demoloop, if requested. This is kind of hacky: Normaly the
+	// demo loop would be started by the menu, after changeing the 'game'
+	// cvar. However, the demo loop is implemented by aliases. Since the
+	// game isn't changed right after the cvar is set (but when the control
+	// flow enters this function) the aliases evaulate to the wrong game.
+	// Work around that by injection the demo loop into the command buffer
+	// here, right after the game was changed. Do it only when the game was
+	// changed though the menu, otherwise we might break into the demo loop
+	// after we've received a latched cvar from the server.
+	if (menu_startdemoloop)
+	{
+		Cbuf_AddText("d1\n");
+		menu_startdemoloop = false;
 	}
 #endif
 }

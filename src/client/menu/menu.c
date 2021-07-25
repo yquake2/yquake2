@@ -39,6 +39,9 @@ static int m_main_cursor;
 /* Number of the frames of the spinning quake logo */
 #define NUM_CURSOR_FRAMES 15
 
+/* Signals the file system to start the demo loop. */
+qboolean menu_startdemoloop;
+
 static char *menu_in_sound = "misc/menu1.wav";
 static char *menu_move_sound = "misc/menu2.wav";
 static char *menu_out_sound = "misc/menu3.wav";
@@ -2193,7 +2196,7 @@ ModsApplyActionFunc(void *unused)
         Cbuf_AddText(va("game %s\n", modnames[s_mods_list.curvalue]));
 
         // start the demo cycle in the new game directory
-        Cbuf_AddText("d1\n");
+        menu_startdemoloop = true;
 
         M_ForceMenuOff();
     }
