@@ -25,12 +25,13 @@
  * =======================================================================
  */
 
+#include <libgen.h>
+
 #include "header/common.h"
 #include "header/glob.h"
 #include "unzip/unzip.h"
 
 #include "../client/sound/header/vorbis.h"
-
 
 #define MAX_HANDLES 512
 #define MAX_MODS 32
@@ -1563,12 +1564,15 @@ FS_GetNextRawPath(const char* lastRawPath)
 
 void
 FS_AddDirToSearchPath(char *dir, qboolean create) {
+	char *file;
 	char **list;
 	char path[MAX_OSPATH];
-	int i, j;
+	char *tmp;
+	int i, j, k;
 	int nfiles;
 	fsPack_t *pack = NULL;
 	fsSearchPath_t *search;
+	qboolean nextpak;
 	size_t len = strlen(dir);
 
 	// The directory must not end with an /. It would
@@ -1586,7 +1590,8 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 	// be the last directory added to the search path.
 	Q_strlcpy(fs_gamedir, dir, sizeof(fs_gamedir));
 
-	if (create) {
+	if (create)
+	{
 		FS_CreatePath(fs_gamedir);
 	}
 
@@ -1596,11 +1601,15 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 	search->next = fs_searchPaths;
 	fs_searchPaths = search;
 
-	// We need to add numbered paks in the directory in
-	// sequence and all other paks after them. Otherwise
-	// the gamedata may break.
-	for (i = 0; i < sizeof(fs_packtypes) / sizeof(fs_packtypes[0]); i++) {
-		for (j = 0; j < MAX_PAKS; j++) {
+
+	// Numbered paks contain the official game data, they
+	// need to be added first and are marked protected.
+	// Files from protected paks are never offered for
+	// download.
+	for (i = 0; i < sizeof(fs_packtypes) / sizeof(fs_packtypes[0]); i++)
+	{
+		for (j = 0; j < MAX_PAKS; j++)
+		{
 			Com_sprintf(path, sizeof(path), "%s/pak%d.%s", dir, j, fs_packtypes[i].suffix);
 
 			switch (fs_packtypes[i].format)
@@ -1637,8 +1646,13 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 		}
 	}
 
-	// And as said above all other pak files.
-	for (i = 0; i < sizeof(fs_packtypes) / sizeof(fs_packtypes[0]); i++) {
+	// All other pak files are added after the numbered paks.
+	// They aren't sorted in any way, but added in the same
+	// sequence as they're returned by FS_ListFiles. This is
+	// fragile and file system dependend. We cannot change
+	// this, since it might break existing installations.
+	for (i = 0; i < sizeof(fs_packtypes) / sizeof(fs_packtypes[0]); i++)
+	{
 		Com_sprintf(path, sizeof(path), "%s/*.%s", dir, fs_packtypes[i].suffix);
 
 		// Nothing here, next pak type please.
@@ -1647,10 +1661,36 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 			continue;
 		}
 
-		Com_sprintf(path, sizeof(path), "%s/pak*.%s", dir, fs_packtypes[i].suffix);
-
 		for (j = 0; j < nfiles - 1; j++)
 		{
+			// Sort out numbered paks. This is as inefficient as
+			// it can be, but it doesn't matter. This is done only
+			// once at client or game startup.
+			nextpak = false;
+
+			for (k = 0; k < MAX_PAKS; k++)
+			{
+				// basename() may alter the given string.
+				// We need to work around that...
+				tmp = strdup(list[j]);
+				file = basename(tmp);
+
+				Com_sprintf(path, sizeof(path), "pak%d.%s", k, fs_packtypes[i].suffix);
+
+				if (Q_strcasecmp(path, file) == 0)
+				{
+					nextpak = true;
+					break;
+				}
+
+				free(tmp);
+			}
+
+			if (nextpak)
+			{
+				continue;
+			}
+
 			// If the pak starts with the string 'pak' it's ignored.
 			// This is somewhat stupid, it would be better to ignore
 			// just pak%d...
