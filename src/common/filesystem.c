@@ -1691,14 +1691,6 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 				continue;
 			}
 
-			// If the pak starts with the string 'pak' it's ignored.
-			// This is somewhat stupid, it would be better to ignore
-			// just pak%d...
-			if (glob_match(path, list[j]))
-			{
-				continue;
-			}
-
 			switch (fs_packtypes[i].format)
 			{
 				case PAK:
