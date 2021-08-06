@@ -1680,6 +1680,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 				if (Q_strcasecmp(path, file) == 0)
 				{
 					nextpak = true;
+					free(tmp);
 					break;
 				}
 
