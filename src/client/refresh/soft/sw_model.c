@@ -37,9 +37,6 @@ static byte	mod_novis[MAX_MAP_LEAFS/8];
 static model_t	mod_known[MAX_MOD_KNOWN];
 static int	mod_numknown;
 
-// the inline * models from the current map are kept seperate
-static model_t	mod_inline[MAX_MOD_KNOWN];
-
 int	registration_sequence;
 
 //===============================================================================
@@ -96,7 +93,7 @@ Loads in a model for the given name
 ==================
 */
 static model_t *
-Mod_ForName (char *name, qboolean crash)
+Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 {
 	model_t	*mod;
 	unsigned *buf;
@@ -110,16 +107,16 @@ Mod_ForName (char *name, qboolean crash)
 	//
 	// inline models are grabbed only from worldmodel
 	//
-	if (name[0] == '*')
+	if (name[0] == '*' && parent_model)
 	{
 		i = atoi(name+1);
-		if (i < 1 || !r_worldmodel || i >= r_worldmodel->numsubmodels)
+		if (i < 1 || i >= parent_model->numsubmodels)
 		{
 			ri.Sys_Error(ERR_DROP, "%s: bad inline model number",
 					__func__);
 		}
 
-		return &mod_inline[i];
+		return &parent_model->submodels[i];
 	}
 
 	//
@@ -386,18 +383,36 @@ Mod_LoadVertexes (lump_t *l)
 
 /*
 =================
+RadiusFromBounds
+=================
+*/
+static float
+RadiusFromBounds (vec3_t mins, vec3_t maxs)
+{
+	int		i;
+	vec3_t	corner;
+
+	for (i=0 ; i<3 ; i++)
+	{
+		corner[i] = fabs(mins[i]) > fabs(maxs[i]) ? fabs(mins[i]) : fabs(maxs[i]);
+	}
+
+	return VectorLength (corner);
+}
+
+/*
+=================
 Mod_LoadSubmodels
 =================
 */
 static void
-Mod_LoadSubmodels (lump_t *l)
+Mod_LoadSubmodels (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dmodel_t	*in;
-	dmodel_t	*out;
+	model_t	*out;
 	int			i, j, count;
 
 	in = (void *)(mod_base + l->fileofs);
-
 	if (l->filelen % sizeof(*in))
 	{
 		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
@@ -412,15 +427,38 @@ Mod_LoadSubmodels (lump_t *l)
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
+		if (i == 0)
+		{
+			// copy parent as template for first model
+			memcpy(out, loadmodel, sizeof(*out));
+		}
+		else
+		{
+			// copy first as template for model
+			memcpy(out, loadmodel->submodels, sizeof(*out));
+		}
+
+		Com_sprintf (out->name, sizeof(out->name), "*%d", i);
+
 		for (j=0 ; j<3 ; j++)
 		{	// spread the mins / maxs by a pixel
 			out->mins[j] = LittleFloat (in->mins[j]) - 1;
 			out->maxs[j] = LittleFloat (in->maxs[j]) + 1;
 			out->origin[j] = LittleFloat (in->origin[j]);
 		}
-		out->headnode = LittleLong (in->headnode);
-		out->firstface = LittleLong (in->firstface);
-		out->numfaces = LittleLong (in->numfaces);
+
+		out->radius = RadiusFromBounds (out->mins, out->maxs);
+		out->firstnode = LittleLong (in->headnode);
+		out->firstmodelsurface = LittleLong (in->firstface);
+		out->nummodelsurfaces = LittleLong (in->numfaces);
+		// visleafs
+		out->numleafs = 0;
+		//  check limits
+		if (out->firstnode >= loadmodel->numnodes)
+		{
+			ri.Sys_Error(ERR_DROP, "%s: Inline model %i has bad firstnode",
+					__func__, i);
+		}
 	}
 }
 
@@ -969,7 +1007,6 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 {
 	int		i;
 	dheader_t	*header;
-	dmodel_t 	*bm;
 
 	if (loadmodel != mod_known)
 		ri.Sys_Error(ERR_DROP, "%s: Loaded a brush model after the world", __func__);
@@ -1031,37 +1068,10 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	Mod_LoadVisibility (&header->lumps[LUMP_VISIBILITY]);
 	Mod_LoadLeafs (&header->lumps[LUMP_LEAFS]);
 	Mod_LoadNodes (&header->lumps[LUMP_NODES]);
-	Mod_LoadSubmodels (&header->lumps[LUMP_MODELS]);
+	Mod_LoadSubmodels (loadmodel, mod_base, &header->lumps[LUMP_MODELS]);
+
 	r_numvisleafs = 0;
 	R_NumberLeafs (loadmodel->nodes);
-
-	//
-	// set up the submodels
-	//
-	for (i=0 ; i<mod->numsubmodels ; i++)
-	{
-		model_t	*starmod;
-
-		bm = &mod->submodels[i];
-		starmod = &mod_inline[i];
-
-		*starmod = *loadmodel;
-
-		starmod->firstmodelsurface = bm->firstface;
-		starmod->nummodelsurfaces = bm->numfaces;
-		starmod->firstnode = bm->headnode;
-		if (starmod->firstnode >= loadmodel->numnodes)
-		{
-			ri.Sys_Error(ERR_DROP, "%s: Inline model %i has bad firstnode",
-					__func__, i);
-		}
-
-		VectorCopy (bm->maxs, starmod->maxs);
-		VectorCopy (bm->mins, starmod->mins);
-
-		if (i == 0)
-			*loadmodel = *starmod;
-	}
 
 	R_InitSkyBox ();
 }
@@ -1325,7 +1335,7 @@ RE_RegisterModel (char *name)
 {
 	model_t	*mod;
 
-	mod = Mod_ForName (name, false);
+	mod = Mod_ForName (name, r_worldmodel, false);
 	if (mod)
 	{
 		int i;
