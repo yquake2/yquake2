@@ -25,8 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <limits.h>
 #include "header/local.h"
 
-model_t	*loadmodel;
-
 static void Mod_LoadSpriteModel(model_t *mod, void *buffer, int modfilelen);
 static void Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen);
 static void Mod_LoadAliasModel(model_t *mod, void *buffer, int modfilelen);
@@ -158,8 +156,6 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 		return NULL;
 	}
 
-	loadmodel = mod;
-
 	//
 	// fill it in
 	//
@@ -186,7 +182,7 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 		break;
 	}
 
-	loadmodel->extradatasize = Hunk_End();
+	mod->extradatasize = Hunk_End();
 
 	ri.FS_FreeFile(buf);
 
@@ -251,9 +247,6 @@ Mod_ClusterPVS (int cluster, model_t *model)
 ===============================================================================
 */
 
-byte	*mod_base;
-
-
 /*
 =================
 Mod_LoadLighting
@@ -263,7 +256,7 @@ by taking the brightest component
 =================
 */
 static void
-Mod_LoadLighting (lump_t *l)
+Mod_LoadLighting (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int		i, size;
 	byte	*in;
@@ -292,8 +285,8 @@ static int r_leaftovis[MAX_MAP_LEAFS];
 static int r_vistoleaf[MAX_MAP_LEAFS];
 static int r_numvisleafs;
 
-void
-R_NumberLeafs (mnode_t *node)
+static void
+R_NumberLeafs (model_t *loadmodel, mnode_t *node)
 {
 	if (node->contents != -1)
 	{
@@ -310,8 +303,8 @@ R_NumberLeafs (mnode_t *node)
 		return;
 	}
 
-	R_NumberLeafs (node->children[0]);
-	R_NumberLeafs (node->children[1]);
+	R_NumberLeafs (loadmodel, node->children[0]);
+	R_NumberLeafs (loadmodel, node->children[1]);
 }
 
 
@@ -321,7 +314,7 @@ Mod_LoadVisibility
 =================
 */
 static void
-Mod_LoadVisibility (lump_t *l)
+Mod_LoadVisibility (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int		i;
 
@@ -348,7 +341,7 @@ Mod_LoadVertexes
 =================
 */
 static void
-Mod_LoadVertexes (lump_t *l)
+Mod_LoadVertexes (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dvertex_t	*in;
 	mvertex_t	*out;
@@ -468,7 +461,7 @@ Mod_LoadEdges
 =================
 */
 static void
-Mod_LoadEdges (lump_t *l)
+Mod_LoadEdges (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dedge_t *in;
 	medge_t *out;
@@ -500,7 +493,7 @@ Mod_LoadTexinfo
 =================
 */
 static void
-Mod_LoadTexinfo (lump_t *l)
+Mod_LoadTexinfo (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	texinfo_t *in;
 	mtexinfo_t *out, *step;
@@ -583,7 +576,7 @@ Fills in s->texturemins[] and s->extents[]
 ================
 */
 static void
-CalcSurfaceExtents (msurface_t *s)
+CalcSurfaceExtents (model_t *loadmodel, msurface_t *s)
 {
 	float	mins[2], maxs[2], val;
 	int		i;
@@ -642,7 +635,7 @@ Mod_LoadFaces
 =================
 */
 static void
-Mod_LoadFaces (lump_t *l)
+Mod_LoadFaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dface_t		*in;
 	msurface_t 	*out;
@@ -684,7 +677,7 @@ Mod_LoadFaces (lump_t *l)
 
 		out->texinfo = loadmodel->texinfo + LittleShort (in->texinfo);
 
-		CalcSurfaceExtents (out);
+		CalcSurfaceExtents (loadmodel, out);
 
 		// lighting info is converted from 24 bit on disk to 8 bit
 		for (i=0 ; i<MAXLIGHTMAPS ; i++)
@@ -759,7 +752,7 @@ Mod_LoadNodes
 =================
 */
 static void
-Mod_LoadNodes (lump_t *l)
+Mod_LoadNodes (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int		i, count;
 	dnode_t		*in;
@@ -815,7 +808,7 @@ Mod_LoadLeafs
 =================
 */
 static void
-Mod_LoadLeafs (lump_t *l)
+Mod_LoadLeafs (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dleaf_t 	*in;
 	mleaf_t 	*out;
@@ -869,7 +862,7 @@ Mod_LoadMarksurfaces
 =================
 */
 static void
-Mod_LoadMarksurfaces (lump_t *l)
+Mod_LoadMarksurfaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int		i, count;
 	short		*in;
@@ -907,7 +900,7 @@ Mod_LoadSurfedges
 =================
 */
 static void
-Mod_LoadSurfedges (lump_t *l)
+Mod_LoadSurfedges (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int		i, count;
 	int		*in, *out;
@@ -936,7 +929,7 @@ Mod_LoadPlanes
 =================
 */
 static void
-Mod_LoadPlanes (lump_t *l)
+Mod_LoadPlanes (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int i;
 	cplane_t	*out;
@@ -1007,8 +1000,9 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 {
 	int		i;
 	dheader_t	*header;
+	byte	*mod_base;
 
-	if (loadmodel != mod_known)
+	if (mod != mod_known)
 		ri.Sys_Error(ERR_DROP, "%s: Loaded a brush model after the world", __func__);
 
 	header = (dheader_t *)buffer;
@@ -1052,28 +1046,28 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 
 	hunkSize += 1048576; // 1MB extra just in case
 
-	loadmodel->extradata = Hunk_Begin(hunkSize);
+	mod->extradata = Hunk_Begin(hunkSize);
 
-	loadmodel->type = mod_brush;
+	mod->type = mod_brush;
 
 	// load into heap
-	Mod_LoadVertexes (&header->lumps[LUMP_VERTEXES]);
-	Mod_LoadEdges (&header->lumps[LUMP_EDGES]);
-	Mod_LoadSurfedges (&header->lumps[LUMP_SURFEDGES]);
-	Mod_LoadLighting (&header->lumps[LUMP_LIGHTING]);
-	Mod_LoadPlanes (&header->lumps[LUMP_PLANES]);
-	Mod_LoadTexinfo (&header->lumps[LUMP_TEXINFO]);
-	Mod_LoadFaces (&header->lumps[LUMP_FACES]);
-	Mod_LoadMarksurfaces (&header->lumps[LUMP_LEAFFACES]);
-	Mod_LoadVisibility (&header->lumps[LUMP_VISIBILITY]);
-	Mod_LoadLeafs (&header->lumps[LUMP_LEAFS]);
-	Mod_LoadNodes (&header->lumps[LUMP_NODES]);
-	Mod_LoadSubmodels (loadmodel, mod_base, &header->lumps[LUMP_MODELS]);
+	Mod_LoadVertexes (mod, mod_base, &header->lumps[LUMP_VERTEXES]);
+	Mod_LoadEdges (mod, mod_base, &header->lumps[LUMP_EDGES]);
+	Mod_LoadSurfedges (mod, mod_base, &header->lumps[LUMP_SURFEDGES]);
+	Mod_LoadLighting (mod, mod_base, &header->lumps[LUMP_LIGHTING]);
+	Mod_LoadPlanes (mod, mod_base, &header->lumps[LUMP_PLANES]);
+	Mod_LoadTexinfo (mod, mod_base, &header->lumps[LUMP_TEXINFO]);
+	Mod_LoadFaces (mod, mod_base, &header->lumps[LUMP_FACES]);
+	Mod_LoadMarksurfaces (mod, mod_base, &header->lumps[LUMP_LEAFFACES]);
+	Mod_LoadVisibility (mod, mod_base, &header->lumps[LUMP_VISIBILITY]);
+	Mod_LoadLeafs (mod, mod_base, &header->lumps[LUMP_LEAFS]);
+	Mod_LoadNodes (mod, mod_base, &header->lumps[LUMP_NODES]);
+	Mod_LoadSubmodels (mod, mod_base, &header->lumps[LUMP_MODELS]);
 
 	r_numvisleafs = 0;
-	R_NumberLeafs (loadmodel->nodes);
+	R_NumberLeafs (mod, mod->nodes);
 
-	R_InitSkyBox ();
+	R_InitSkyBox (mod);
 }
 
 /*
