@@ -719,7 +719,7 @@ D_DrawSpansPow2 (espan_t *pspan, float d_ziorigin, float d_zistepu, float d_zist
 			}
 
 			// Drawing phrase
-			if ((texture_filtering & 0x02) == 0 || fastmoving)
+			if ((texture_filtering == 0) || fastmoving)
 			{
 				pdest = D_DrawSpan(pdest, pbase, s, t, sstep, tstep,
 						   spancount);
