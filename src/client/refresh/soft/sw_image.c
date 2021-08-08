@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define	MAX_RIMAGES	1024
 static image_t		r_images[MAX_RIMAGES];
 static int		numr_images;
+static int		image_max = 0;
 
 
 /*
@@ -33,12 +34,13 @@ R_ImageList_f
 void
 R_ImageList_f (void)
 {
-	int		i;
+	int		i, used, texels;
 	image_t	*image;
-	int		texels;
+	qboolean	freeup;
 
 	R_Printf(PRINT_ALL, "------------------\n");
 	texels = 0;
+	used = 0;
 
 	for (i=0, image=r_images ; i<numr_images ; i++, image++)
 	{
@@ -47,6 +49,7 @@ R_ImageList_f (void)
 		if (image->registration_sequence == registration_sequence)
 		{
 			in_use = "*";
+			used++;
 		}
 
 		if (image->registration_sequence <= 0)
@@ -76,6 +79,8 @@ R_ImageList_f (void)
 			image->width, image->height, in_use);
 	}
 	R_Printf(PRINT_ALL, "Total texel count: %i\n", texels);
+	freeup = R_ImageHasFreeSpace();
+	R_Printf(PRINT_ALL, "Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
 }
 
 //=======================================================
@@ -725,6 +730,33 @@ R_FreeUnusedImages (void)
 		free (image->pixels[0]); // the other mip levels just follow
 		memset(image, 0, sizeof(*image));
 	}
+}
+
+qboolean
+R_ImageHasFreeSpace(void)
+{
+	int		i, used;
+	image_t	*image;
+
+	used = 0;
+
+	for (i = 0, image = r_images; i < numr_images; i++, image++)
+	{
+		if (!image->name[0])
+			continue;
+		if (image->registration_sequence == registration_sequence)
+		{
+			used ++;
+		}
+	}
+
+	if (image_max < used)
+	{
+		image_max = used;
+	}
+
+	// should same size of free slots as currently used
+	return (numr_images + used) < MAX_RIMAGES;
 }
 
 static struct texture_buffer {

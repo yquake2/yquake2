@@ -34,11 +34,38 @@ static byte	mod_novis[MAX_MAP_LEAFS/8];
 #define	MAX_MOD_KNOWN	512
 static model_t	mod_known[MAX_MOD_KNOWN];
 static int	mod_numknown;
+static int	mod_max = 0;
 
 int	registration_sequence;
 
 //===============================================================================
 
+static qboolean
+Mod_HasFreeSpace(void)
+{
+	int		i, used;
+	model_t	*mod;
+
+	used = 0;
+
+	for (i=0, mod=mod_known ; i < mod_numknown ; i++, mod++)
+	{
+		if (!mod->name[0])
+			continue;
+		if (mod->registration_sequence == registration_sequence)
+		{
+			used ++;
+		}
+	}
+
+	if (mod_max < used)
+	{
+		mod_max = used;
+	}
+
+	// should same size of free slots as currently used
+	return (mod_numknown + mod_max) < MAX_MOD_KNOWN;
+}
 
 /*
 ================
@@ -48,11 +75,13 @@ Mod_Modellist_f
 void
 Mod_Modellist_f (void)
 {
-	int		i;
+	int		i, total, used;
 	model_t	*mod;
-	int		total;
+	qboolean	freeup;
 
 	total = 0;
+	used = 0;
+
 	R_Printf(PRINT_ALL,"Loaded models:\n");
 	for (i=0, mod=mod_known ; i < mod_numknown ; i++, mod++)
 	{
@@ -61,6 +90,7 @@ Mod_Modellist_f (void)
 		if (mod->registration_sequence == registration_sequence)
 		{
 			in_use = "*";
+			used ++;
 		}
 
 		if (!mod->name[0])
@@ -70,6 +100,9 @@ Mod_Modellist_f (void)
 		total += mod->extradatasize;
 	}
 	R_Printf(PRINT_ALL, "Total resident: %i\n", total);
+	// update statistics
+	freeup = Mod_HasFreeSpace();
+	R_Printf(PRINT_ALL, "Used %d of %d models%s.\n", used, mod_max, freeup ? ", has free space" : "");
 }
 
 /*
@@ -80,6 +113,7 @@ Mod_Init
 void
 Mod_Init (void)
 {
+	mod_max = 0;
 	memset (mod_novis, 0xff, sizeof(mod_novis));
 }
 
@@ -1375,14 +1409,20 @@ RE_EndRegistration (void)
 	int	i;
 	model_t	*mod;
 
+	if (Mod_HasFreeSpace() && R_ImageHasFreeSpace())
+	{
+		// should be enough space for load next maps
+		return;
+	}
+
 	for (i=0, mod=mod_known ; i<mod_numknown ; i++, mod++)
 	{
 		if (!mod->name[0])
 			continue;
 		if (mod->registration_sequence != registration_sequence)
-		{	// don't need this model
-			Hunk_Free (mod->extradata);
-			memset (mod, 0, sizeof(*mod));
+		{
+			// don't need this model
+			Mod_Free (mod);
 		}
 	}
 
