@@ -76,6 +76,7 @@ cvar_t* s_ps_sorting;
 
 channel_t channels[MAX_CHANNELS];
 static int num_sfx;
+static int sound_max;
 int paintedtime;
 int s_numchannels;
 int s_rawend;
@@ -766,6 +767,37 @@ S_RegisterSexedSound(entity_state_t *ent, char *base)
 	return sfx;
 }
 
+static qboolean
+S_HasFreeSpace(void)
+{
+	sfx_t *sfx;
+	int i, used;
+
+	used = 0;
+
+	/* check used slots */
+	for (i = 0, sfx = known_sfx; i < num_sfx; i++, sfx++)
+	{
+		if (!sfx->name[0])
+		{
+			continue;
+		}
+
+		if (sfx->registration_sequence == s_registration_sequence)
+		{
+			used ++;
+		}
+	}
+
+	if (sound_max < used)
+	{
+		sound_max = used;
+	}
+
+	// should same size of free slots as currently used
+	return (num_sfx + used) < MAX_SFX;
+}
+
 /*
  * Called after registering of
  * sound has ended
@@ -776,29 +808,32 @@ S_EndRegistration(void)
 	int i;
 	sfx_t *sfx;
 
-	/* free any sounds not from this registration sequence */
-	for (i = 0, sfx = known_sfx; i < num_sfx; i++, sfx++)
+	if (!S_HasFreeSpace())
 	{
-		if (!sfx->name[0])
+		/* free any sounds not from this registration sequence */
+		for (i = 0, sfx = known_sfx; i < num_sfx; i++, sfx++)
 		{
-			continue;
-		}
-
-		if (sfx->registration_sequence != s_registration_sequence)
-		{
-			/* it is possible to have a leftover */
-			if (sfx->cache)
+			if (!sfx->name[0])
 			{
-				Z_Free(sfx->cache); /* from a server that didn't finish loading */
+				continue;
 			}
 
-			if (sfx->truename)
+			if (sfx->registration_sequence != s_registration_sequence)
 			{
-				Z_Free(sfx->truename);
-			}
+				/* it is possible to have a leftover */
+				if (sfx->cache)
+				{
+					Z_Free(sfx->cache); /* from a server that didn't finish loading */
+				}
 
-			sfx->cache = NULL;
-			sfx->name[0] = 0;
+				if (sfx->truename)
+				{
+					Z_Free(sfx->truename);
+				}
+
+				sfx->cache = NULL;
+				sfx->name[0] = 0;
+			}
 		}
 	}
 
@@ -1401,10 +1436,12 @@ S_SoundList(void)
 	int i;
 	sfx_t *sfx;
 	sfxcache_t *sc;
-	int size, total;
+	int size, total, used;
 	int numsounds;
+	qboolean freeup;
 
 	total = 0;
+	used = 0;
 	numsounds = 0;
 
 	for (sfx = known_sfx, i = 0; i < num_sfx; i++, sfx++)
@@ -1412,6 +1449,11 @@ S_SoundList(void)
 		if (!sfx->name[0])
 		{
 			continue;
+		}
+
+		if (sfx->registration_sequence == s_registration_sequence)
+		{
+			used++;
 		}
 
 		sc = sfx->cache;
@@ -1448,6 +1490,8 @@ S_SoundList(void)
 
 	Com_Printf("Total resident: %i bytes (%.2f MB) in %d sounds\n", total,
 			(float)total / 1024 / 1024, numsounds);
+	freeup = S_HasFreeSpace();
+	Com_Printf("Used %d of %d sounds%s.\n", used, sound_max, freeup ? ", has free space" : "");
 }
 
 /* ----------------------------------------------------------------- */
@@ -1537,6 +1581,7 @@ S_Init(void)
 
 	num_sfx = 0;
 	paintedtime = 0;
+	sound_max = 0;
 
 	OGG_Init();
 

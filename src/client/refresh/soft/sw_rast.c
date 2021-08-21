@@ -99,10 +99,9 @@ R_InitSkyBox
 ================
 */
 void
-R_InitSkyBox (void)
+R_InitSkyBox (model_t *loadmodel)
 {
 	int		i;
-	extern model_t *loadmodel;
 
 	r_skyfaces = loadmodel->surfaces + loadmodel->numsurfaces;
 	loadmodel->numsurfaces += 6;

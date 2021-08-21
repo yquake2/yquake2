@@ -587,8 +587,9 @@ void	R_ShutdownImages(void);
 image_t	*R_FindImage(char *name, imagetype_t type);
 byte	*Get_BestImageSize(const image_t *image, int *req_width, int *req_height);
 void	R_FreeUnusedImages(void);
+qboolean R_ImageHasFreeSpace(void);
 
-void R_InitSkyBox(void);
+void R_InitSkyBox(model_t *loadmodel);
 void R_IMFlatShadedQuad( vec3_t a, vec3_t b, vec3_t c, vec3_t d, int color, float alpha );
 
 // VID Buffer damage

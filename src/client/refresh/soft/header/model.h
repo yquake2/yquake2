@@ -161,6 +161,7 @@ typedef struct model_s
 	// volume occupied by the model graphics
 	//
 	vec3_t		mins, maxs;
+	float		radius;
 
 	//
 	// solid volume for clipping (sent from server)
@@ -174,7 +175,7 @@ typedef struct model_s
 	int		firstmodelsurface, nummodelsurfaces;
 
 	int		numsubmodels;
-	dmodel_t	*submodels;
+	struct model_s	*submodels;
 
 	int		numplanes;
 	cplane_t	*planes;
@@ -212,6 +213,9 @@ typedef struct model_s
 	image_t		*skins[MAX_MD2SKINS];
 	void		*extradata;
 	int		extradatasize;
+
+	// submodules
+	vec3_t		origin;	// for sounds or lights
 } model_t;
 
 //============================================================================

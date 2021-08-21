@@ -146,6 +146,7 @@ cvar_t	*sw_surfcacheoverride;
 cvar_t	*sw_waterwarp;
 static cvar_t	*sw_overbrightbits;
 cvar_t	*sw_custom_particles;
+static cvar_t	*sw_anisotropic;
 cvar_t	*sw_texture_filtering;
 cvar_t	*sw_retexturing;
 cvar_t	*sw_gunzposition;
@@ -375,6 +376,7 @@ R_RegisterVariables (void)
 	sw_overbrightbits = ri.Cvar_Get("sw_overbrightbits", "1.0", CVAR_ARCHIVE);
 	sw_custom_particles = ri.Cvar_Get("sw_custom_particles", "0", CVAR_ARCHIVE);
 	sw_texture_filtering = ri.Cvar_Get("sw_texture_filtering", "0", CVAR_ARCHIVE);
+	sw_anisotropic = ri.Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
 	sw_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
 	sw_gunzposition = ri.Cvar_Get("sw_gunzposition", "8", CVAR_ARCHIVE);
 
@@ -2193,9 +2195,9 @@ RE_FlushFrame(int vmin, int vmax)
 		RE_CopyFrame (pixels, pitch / sizeof(Uint32), 0, vid_buffer_height * vid_buffer_width);
 	}
 
-	if (((int)sw_texture_filtering->value & 0x01) && !fastmoving)
+	if ((sw_anisotropic->value > 0) && !fastmoving)
 	{
-		SmoothColorImage(pixels + vmin, vmax - vmin, vid_buffer_width >> 7);
+		SmoothColorImage(pixels + vmin, vmax - vmin, sw_anisotropic->value);
 	}
 
 	SDL_UnlockTexture(texture);
