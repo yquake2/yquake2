@@ -1052,6 +1052,16 @@ G_SetClientEvent(edict_t *ent)
 	}
 	else if (g_footsteps->value == 2)
 	{
+		if (ent->groundentity)
+		{
+			if ((int)(current_client->bobtime + bobmove) != bobcycle)
+			{
+				ent->s.event = EV_FOOTSTEP;
+			}
+		}
+	}
+	else if (g_footsteps->value >= 3)
+	{
 		if ((int)(current_client->bobtime + bobmove) != bobcycle)
 		{
 			ent->s.event = EV_FOOTSTEP;

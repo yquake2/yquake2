@@ -144,10 +144,14 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   indestructible.
 
 * **g_footsteps**: If set to `1` (the default) footstep sounds are
-  generated when the player faster than 255. This is the behaviour of
-  Vanilla Quake II. If set to `2` footestep sound always generated. If
-  set to `0` footstep sounds are never generated. Cheat protected to
-  `1`.
+  generated when the player is on ground and faster than 255. This is
+  the behaviour of Vanilla Quake II. If set to `2` footestep sound
+  always generated as long as the player is on ground. If set to `3`
+  footsteps are always generated. If set to `0` footstep sounds are
+  never generated. Cheat protected to `1`. Note that there isn't a
+  reliable way to figure out if the player is on ground. Footsteps
+  may not be generated in all circumstances, especially when the player
+  is moving over stairs and slopes.
 
 * **g_fix_triggered**: This cvar, when set to `1`, forces monsters to
   spawn in normally if they are set to a triggered spawn but do not
