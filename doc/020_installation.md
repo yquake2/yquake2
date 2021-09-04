@@ -263,14 +263,13 @@ To compile Yamagi Quake II from source the following dependencies
 
 ### Prerequisites on Windows
 
-On Windows a MinGW environment is needed. A preconfigured environment
-with all necessary dependencies and compatibles compilers can be found
-at: https://deponie.yamagi.org/quake2/windows/buildenv/
+To compile theYamagi Quake II under Windows a MinGW environment is
+needed. A preconfigured environment based upon MSYS2 with all necessary
+dependencies and compatibles compilers can be found at:
+https://deponie.yamagi.org/quake2/windows/buildenv/
 
-The environment must be extracted into *C:\MSYS2*. Other directores
-will likely work, but are unsupported. So don't complain if you
-experience problems. Either the 32 bit version can be started through
-*C:\MSYS2\msys32.exe* or the 64 bit version through
+The environment can be extracted anywhere. Either the 32 bit version can
+be started through *C:\MSYS2\msys32.exe* or the 64 bit version through
 *C:\MSYS2\msys64.exe*.
 
 At this time Yamagi Quake II can't be compiled with Microsoft Visual
