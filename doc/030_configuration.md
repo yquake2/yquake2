@@ -243,7 +243,10 @@ Yamagi Quake II has full support for retexturing packs. They just need
 to be installed and should be picked up automatically. To disable the
 retexturing pack at a later time set `gl_retexturing` to `0`.
 
-The most comprehensive retexturing pack can be found here:
-https://deponie.yamagi.org/quake2/texturepack/ It can be installed by
-placing the zip-Files in the *baseq2* directory. Please note that some
-textures are broken, especially the model textures.
+* The most comprehensive build retexturing pack can be found here:
+  https://deponie.yamagi.org/quake2/texturepack/
+* And there's an AI upscale of the original textures:
+  https://github.com/Calinou/quake2-neural-upscale/releases
+
+Retexturing packs can be installed by placing the pak or zip files in
+the *baseq2* directory.
