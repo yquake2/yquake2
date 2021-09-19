@@ -410,25 +410,6 @@ Mod_LoadVertexes (model_t *loadmodel, byte *mod_base, lump_t *l)
 
 /*
 =================
-RadiusFromBounds
-=================
-*/
-static float
-RadiusFromBounds (vec3_t mins, vec3_t maxs)
-{
-	int		i;
-	vec3_t	corner;
-
-	for (i=0 ; i<3 ; i++)
-	{
-		corner[i] = fabs(mins[i]) > fabs(maxs[i]) ? fabs(mins[i]) : fabs(maxs[i]);
-	}
-
-	return VectorLength (corner);
-}
-
-/*
-=================
 Mod_LoadSubmodels
 =================
 */
@@ -474,7 +455,7 @@ Mod_LoadSubmodels (model_t *loadmodel, byte *mod_base, lump_t *l)
 			out->origin[j] = LittleFloat (in->origin[j]);
 		}
 
-		out->radius = RadiusFromBounds (out->mins, out->maxs);
+		out->radius = Mod_RadiusFromBounds (out->mins, out->maxs);
 		out->firstnode = LittleLong (in->headnode);
 		out->firstmodelsurface = LittleLong (in->firstface);
 		out->nummodelsurfaces = LittleLong (in->numfaces);
