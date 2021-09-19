@@ -39,8 +39,6 @@ glstate_t gl_state;
 image_t *r_notexture; /* use for bad textures */
 image_t *r_particletexture; /* little dot for particles */
 
-entity_t *currententity;
-
 cplane_t frustum[4];
 
 int r_visframecount; /* bumped when going to a new PVS */
@@ -175,7 +173,7 @@ R_RotateForEntity(entity_t *e)
 }
 
 void
-R_DrawSpriteModel(entity_t *e, const model_t *currentmodel)
+R_DrawSpriteModel(entity_t *currententity, const model_t *currentmodel)
 {
 	float alpha = 1.0F;
 	vec3_t point[4];
@@ -187,16 +185,16 @@ R_DrawSpriteModel(entity_t *e, const model_t *currentmodel)
 	   a single polygon without a surface cache */
 	psprite = (dsprite_t *)currentmodel->extradata;
 
-	e->frame %= psprite->numframes;
-	frame = &psprite->frames[e->frame];
+	currententity->frame %= psprite->numframes;
+	frame = &psprite->frames[currententity->frame];
 
 	/* normal sprite */
 	up = vup;
 	right = vright;
 
-	if (e->flags & RF_TRANSLUCENT)
+	if (currententity->flags & RF_TRANSLUCENT)
 	{
-		alpha = e->alpha;
+		alpha = currententity->alpha;
 	}
 
 	if (alpha != 1.0F)
@@ -206,7 +204,7 @@ R_DrawSpriteModel(entity_t *e, const model_t *currentmodel)
 
 	glColor4f(1, 1, 1, alpha);
 
-	R_Bind(currentmodel->skins[e->frame]->texnum);
+	R_Bind(currentmodel->skins[currententity->frame]->texnum);
 
 	R_TexEnv(GL_MODULATE);
 
@@ -226,16 +224,16 @@ R_DrawSpriteModel(entity_t *e, const model_t *currentmodel)
 		1, 1
 	};
 
-	VectorMA( e->origin, -frame->origin_y, up, point[0] );
+	VectorMA( currententity->origin, -frame->origin_y, up, point[0] );
 	VectorMA( point[0], -frame->origin_x, right, point[0] );
 
-	VectorMA( e->origin, frame->height - frame->origin_y, up, point[1] );
+	VectorMA( currententity->origin, frame->height - frame->origin_y, up, point[1] );
 	VectorMA( point[1], -frame->origin_x, right, point[1] );
 
-	VectorMA( e->origin, frame->height - frame->origin_y, up, point[2] );
+	VectorMA( currententity->origin, frame->height - frame->origin_y, up, point[2] );
 	VectorMA( point[2], frame->width - frame->origin_x, right, point[2] );
 
-	VectorMA( e->origin, -frame->origin_y, up, point[3] );
+	VectorMA( currententity->origin, -frame->origin_y, up, point[3] );
 	VectorMA( point[3], frame->width - frame->origin_x, right, point[3] );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
@@ -260,7 +258,7 @@ R_DrawSpriteModel(entity_t *e, const model_t *currentmodel)
 }
 
 void
-R_DrawNullModel(void)
+R_DrawNullModel(entity_t *currententity)
 {
 	vec3_t shadelight;
 
@@ -270,7 +268,7 @@ R_DrawNullModel(void)
 	}
 	else
 	{
-		R_LightPoint(currententity->origin, shadelight);
+		R_LightPoint(currententity, currententity->origin, shadelight);
 	}
 
 	glPushMatrix();
@@ -329,7 +327,7 @@ R_DrawEntitiesOnList(void)
 	/* draw non-transparent first */
 	for (i = 0; i < r_newrefdef.num_entities; i++)
 	{
-		currententity = &r_newrefdef.entities[i];
+		entity_t *currententity = &r_newrefdef.entities[i];
 
 		if (currententity->flags & RF_TRANSLUCENT)
 		{
@@ -346,7 +344,7 @@ R_DrawEntitiesOnList(void)
 
 			if (!currentmodel)
 			{
-				R_DrawNullModel();
+				R_DrawNullModel(currententity);
 				continue;
 			}
 
@@ -375,7 +373,7 @@ R_DrawEntitiesOnList(void)
 
 	for (i = 0; i < r_newrefdef.num_entities; i++)
 	{
-		currententity = &r_newrefdef.entities[i];
+		entity_t *currententity = &r_newrefdef.entities[i];
 
 		if (!(currententity->flags & RF_TRANSLUCENT))
 		{
@@ -392,7 +390,7 @@ R_DrawEntitiesOnList(void)
 
 			if (!currentmodel)
 			{
-				R_DrawNullModel();
+				R_DrawNullModel(currententity);
 				continue;
 			}
 
@@ -951,7 +949,7 @@ R_SetGL2D(void)
 /*
  * r_newrefdef must be set before the first call
  */
-void
+static void
 R_RenderView(refdef_t *fd)
 {
 	if ((gl_state.stereo_mode != STEREO_MODE_NONE) && gl_state.camera_separation) {
@@ -1072,7 +1070,7 @@ R_RenderView(refdef_t *fd)
 
 	if (!r_worldmodel && !(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
-		ri.Sys_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
+		ri.Sys_Error(ERR_DROP, "%s: NULL worldmodel", __func__);
 	}
 
 	if (r_speeds->value)
@@ -1149,8 +1147,8 @@ GL_GetSpecialBufferModeForStereoMode(enum stereo_modes stereo_mode) {
 	return OPENGL_SPECIAL_BUFFER_MODE_NONE;
 }
 
-void
-R_SetLightLevel(void)
+static void
+R_SetLightLevel(entity_t *currententity)
 {
 	vec3_t shadelight;
 
@@ -1160,7 +1158,7 @@ R_SetLightLevel(void)
 	}
 
 	/* save off light value for server to look at */
-	R_LightPoint(r_newrefdef.vieworg, shadelight);
+	R_LightPoint(currententity, r_newrefdef.vieworg, shadelight);
 
 	/* pick the greatest component, which should be the
 	 * same as the mono value returned by software */
@@ -1188,11 +1186,11 @@ R_SetLightLevel(void)
 	}
 }
 
-void
+static void
 RI_RenderFrame(refdef_t *fd)
 {
 	R_RenderView(fd);
-	R_SetLightLevel();
+	R_SetLightLevel (NULL);
 	R_SetGL2D();
 }
 

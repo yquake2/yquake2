@@ -145,7 +145,6 @@ extern int numgltextures;
 
 extern image_t *r_notexture;
 extern image_t *r_particletexture;
-extern entity_t *currententity;
 extern int r_visframecount;
 extern int r_framecount;
 extern cplane_t frustum[4];
@@ -243,7 +242,7 @@ void R_Bind(int texnum);
 
 void R_TexEnv(GLenum value);
 
-void R_LightPoint(vec3_t p, vec3_t color);
+void R_LightPoint(entity_t *currententity, vec3_t p, vec3_t color);
 void R_PushDlights(void);
 
 extern model_t *r_worldmodel;
@@ -252,11 +251,10 @@ extern int registration_sequence;
 
 void V_AddBlend(float r, float g, float b, float a, float *v_blend);
 
-void R_RenderView(refdef_t *fd);
 void R_ScreenShot(void);
-void R_DrawAliasModel(entity_t *e, const model_t *currentmodel);
-void R_DrawBrushModel(entity_t *e, const model_t *currentmodel);
-void R_DrawSpriteModel(entity_t *e, const model_t *currentmodel);
+void R_DrawAliasModel(entity_t *currententity, const model_t *currentmodel);
+void R_DrawBrushModel(entity_t *currententity, const model_t *currentmodel);
+void R_DrawSpriteModel(entity_t *currententity, const model_t *currentmodel);
 void R_DrawBeam(entity_t *e);
 void R_DrawWorld(void);
 void R_RenderDlights(void);
