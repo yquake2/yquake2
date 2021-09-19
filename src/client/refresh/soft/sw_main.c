@@ -742,7 +742,7 @@ cluster
 static void
 R_MarkLeaves (void)
 {
-	byte	*vis;
+	const byte	*vis;
 	mnode_t	*node;
 	int		i;
 	mleaf_t	*leaf;

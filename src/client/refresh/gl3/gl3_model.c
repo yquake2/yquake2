@@ -76,8 +76,8 @@ GL3_Mod_PointInLeaf(vec3_t p, gl3model_t *model)
 	return NULL; /* never reached */
 }
 
-byte*
-GL3_Mod_ClusterPVS(int cluster, gl3model_t *model)
+const byte*
+GL3_Mod_ClusterPVS(int cluster, const gl3model_t *model)
 {
 	if ((cluster == -1) || !model->vis)
 	{

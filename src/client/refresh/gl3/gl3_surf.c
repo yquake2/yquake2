@@ -851,7 +851,7 @@ GL3_DrawWorld(void)
 void
 GL3_MarkLeaves(void)
 {
-	byte *vis;
+	const byte *vis;
 	YQ2_ALIGNAS_TYPE(int) byte fatvis[MAX_MAP_LEAFS / 8];
 	mnode_t *node;
 	int i, c;

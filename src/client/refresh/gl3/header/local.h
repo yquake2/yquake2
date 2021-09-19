@@ -381,7 +381,7 @@ extern void GL3_BeginRegistration(char *model);
 extern struct model_s * GL3_RegisterModel(char *name);
 extern void GL3_EndRegistration(void);
 extern void GL3_Mod_Modellist_f(void);
-extern byte* GL3_Mod_ClusterPVS(int cluster, gl3model_t *model);
+extern const byte* GL3_Mod_ClusterPVS(int cluster, const gl3model_t *model);
 extern mleaf_t* GL3_Mod_PointInLeaf(vec3_t p, gl3model_t *model);
 
 // gl3_draw.c

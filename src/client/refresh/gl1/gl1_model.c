@@ -79,8 +79,8 @@ Mod_PointInLeaf(vec3_t p, model_t *model)
 	return NULL; /* never reached */
 }
 
-byte *
-Mod_ClusterPVS(int cluster, model_t *model)
+const byte *
+Mod_ClusterPVS(int cluster, const model_t *model)
 {
 	if ((cluster == -1) || !model->vis)
 	{
