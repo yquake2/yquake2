@@ -31,19 +31,18 @@
 #define ON_EPSILON 0.1 /* point on plane side epsilon */
 #define MAX_CLIP_VERTS 64
 
-extern model_t *loadmodel;
 char skyname[MAX_QPATH];
 float skyrotate;
 vec3_t skyaxis;
 image_t *sky_images[6];
 msurface_t *warpface;
 int skytexorder[6] = {0, 2, 1, 3, 4, 5};
- 
+
 GLfloat vtx_sky[12];
 GLfloat tex_sky[8];
 unsigned int index_vtx = 0;
 unsigned int index_tex = 0;
- 
+
 /* 3dstudio environment map names */
 char *suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 
@@ -243,7 +242,7 @@ R_SubdividePolygon(int numverts, float *verts)
  * can be done reasonably.
  */
 void
-R_SubdivideSurface(msurface_t *fa)
+R_SubdivideSurface(model_t *loadmodel, msurface_t *fa)
 {
 	vec3_t verts[64];
 	int numverts;

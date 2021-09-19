@@ -28,16 +28,14 @@
 
 #define MAX_MOD_KNOWN 512
 
-model_t *loadmodel;
 int modfilelen;
 YQ2_ALIGNAS_TYPE(int) byte mod_novis[MAX_MAP_LEAFS / 8];
 model_t mod_known[MAX_MOD_KNOWN];
 int mod_numknown;
 int registration_sequence;
-byte *mod_base;
 
 void LoadSP2(model_t *mod, void *buffer, int modfilelen);
-void Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen);
+static void Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen);
 void LoadMD2(model_t *mod, void *buffer, int modfilelen);
 void LM_BuildPolygonFromSurface(msurface_t *fa);
 void LM_CreateSurfaceLightmap(msurface_t *surf);
@@ -203,8 +201,6 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 		return NULL;
 	}
 
-	loadmodel = mod;
-
 	/* call the apropriate loader */
 	switch (LittleLong(*(unsigned *)buf))
 	{
@@ -226,15 +222,15 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 			break;
 	}
 
-	loadmodel->extradatasize = Hunk_End();
+	mod->extradatasize = Hunk_End();
 
 	ri.FS_FreeFile(buf);
 
 	return mod;
 }
 
-void
-Mod_LoadLighting(lump_t *l)
+static void
+Mod_LoadLighting(model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	if (!l->filelen)
 	{
@@ -246,8 +242,8 @@ Mod_LoadLighting(lump_t *l)
 	memcpy(loadmodel->lightdata, mod_base + l->fileofs, l->filelen);
 }
 
-void
-Mod_LoadVisibility(lump_t *l)
+static void
+Mod_LoadVisibility(model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int i;
 
@@ -269,8 +265,8 @@ Mod_LoadVisibility(lump_t *l)
 	}
 }
 
-void
-Mod_LoadVertexes(lump_t *l)
+static void
+Mod_LoadVertexes(model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dvertex_t *in;
 	mvertex_t *out;
@@ -298,7 +294,7 @@ Mod_LoadVertexes(lump_t *l)
 	}
 }
 
-void
+static void
 Mod_LoadSubmodels (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dmodel_t *in;
@@ -357,8 +353,8 @@ Mod_LoadSubmodels (model_t *loadmodel, byte *mod_base, lump_t *l)
 	}
 }
 
-void
-Mod_LoadEdges(lump_t *l)
+static void
+Mod_LoadEdges(model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dedge_t *in;
 	medge_t *out;
@@ -385,8 +381,8 @@ Mod_LoadEdges(lump_t *l)
 	}
 }
 
-void
-Mod_LoadTexinfo(lump_t *l)
+static void
+Mod_LoadTexinfo(model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	texinfo_t *in;
 	mtexinfo_t *out, *step;
@@ -461,8 +457,8 @@ Mod_LoadTexinfo(lump_t *l)
 /*
  * Fills in s->texturemins[] and s->extents[]
  */
-void
-Mod_CalcSurfaceExtents(msurface_t *s)
+static void
+Mod_CalcSurfaceExtents(model_t *loadmodel, msurface_t *s)
 {
 	float mins[2], maxs[2], val;
 	int i, j, e;
@@ -517,7 +513,7 @@ Mod_CalcSurfaceExtents(msurface_t *s)
 	}
 }
 
-static int calcTexinfoAndFacesSize(const lump_t *fl, const lump_t *tl)
+static int calcTexinfoAndFacesSize(byte *mod_base, const lump_t *fl, const lump_t *tl)
 {
 	dface_t* face_in = (void *)(mod_base + fl->fileofs);
 	texinfo_t* texinfo_in = (void *)(mod_base + tl->fileofs);
@@ -592,8 +588,8 @@ static int calcTexinfoAndFacesSize(const lump_t *fl, const lump_t *tl)
 	return ret;
 }
 
-void
-Mod_LoadFaces(lump_t *l)
+static void
+Mod_LoadFaces(model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dface_t *in;
 	msurface_t *out;
@@ -646,7 +642,7 @@ Mod_LoadFaces(lump_t *l)
 
 		out->texinfo = loadmodel->texinfo + ti;
 
-		Mod_CalcSurfaceExtents(out);
+		Mod_CalcSurfaceExtents(loadmodel, out);
 
 		/* lighting info */
 		for (i = 0; i < MAXLIGHTMAPS; i++)
@@ -676,7 +672,7 @@ Mod_LoadFaces(lump_t *l)
 				out->texturemins[i] = -8192;
 			}
 
-			R_SubdivideSurface(out); /* cut up polygon for warps */
+			R_SubdivideSurface(loadmodel, out); /* cut up polygon for warps */
 		}
 
 		if (r_fixsurfsky->value)
@@ -702,7 +698,7 @@ Mod_LoadFaces(lump_t *l)
 	LM_EndBuildingLightmaps();
 }
 
-void
+static void
 Mod_SetParent(mnode_t *node, mnode_t *parent)
 {
 	node->parent = parent;
@@ -716,8 +712,8 @@ Mod_SetParent(mnode_t *node, mnode_t *parent)
 	Mod_SetParent(node->children[1], node);
 }
 
-void
-Mod_LoadNodes(lump_t *l)
+static void
+Mod_LoadNodes(model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int i, j, count, p;
 	dnode_t *in;
@@ -770,8 +766,8 @@ Mod_LoadNodes(lump_t *l)
 	Mod_SetParent(loadmodel->nodes, NULL); /* sets nodes and leafs */
 }
 
-void
-Mod_LoadLeafs(lump_t *l)
+static void
+Mod_LoadLeafs(model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dleaf_t *in;
 	mleaf_t *out;
@@ -820,8 +816,8 @@ Mod_LoadLeafs(lump_t *l)
 	}
 }
 
-void
-Mod_LoadMarksurfaces(lump_t *l)
+static void
+Mod_LoadMarksurfaces(model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int i, j, count;
 	short *in;
@@ -855,8 +851,8 @@ Mod_LoadMarksurfaces(lump_t *l)
 	}
 }
 
-void
-Mod_LoadSurfedges(lump_t *l)
+static void
+Mod_LoadSurfedges(model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int i, count;
 	int *in, *out;
@@ -888,8 +884,8 @@ Mod_LoadSurfedges(lump_t *l)
 	}
 }
 
-void
-Mod_LoadPlanes(lump_t *l)
+static void
+Mod_LoadPlanes(model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int i, j;
 	cplane_t *out;
@@ -951,13 +947,14 @@ static int calcLumpHunkSize(const lump_t *l, int inSize, int outSize)
 	return size;
 }
 
-void
+static void
 Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 {
 	int i;
 	dheader_t *header;
+	byte *mod_base;
 
-	if (loadmodel != mod_known)
+	if (mod != mod_known)
 	{
 		ri.Sys_Error(ERR_DROP, "Loaded a brush model after the world");
 	}
@@ -990,29 +987,29 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 		hunkSize += calcLumpHunkSize(&header->lumps[LUMP_SURFEDGES], sizeof(int), sizeof(int));
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LIGHTING], 1, 1);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_PLANES], sizeof(dplane_t), sizeof(cplane_t)*2);
-	hunkSize += calcTexinfoAndFacesSize(&header->lumps[LUMP_FACES], &header->lumps[LUMP_TEXINFO]);
+	hunkSize += calcTexinfoAndFacesSize(mod_base, &header->lumps[LUMP_FACES], &header->lumps[LUMP_TEXINFO]);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFFACES], sizeof(short), sizeof(msurface_t *)); // yes, out is indeeed a pointer!
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VISIBILITY], 1, 1);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFS], sizeof(dleaf_t), sizeof(mleaf_t));
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_NODES], sizeof(dnode_t), sizeof(mnode_t));
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(mmodel_t));
 
-	loadmodel->extradata = Hunk_Begin(hunkSize);
-	loadmodel->type = mod_brush;
+	mod->extradata = Hunk_Begin(hunkSize);
+	mod->type = mod_brush;
 
 	/* load into heap */
-	Mod_LoadVertexes(&header->lumps[LUMP_VERTEXES]);
-	Mod_LoadEdges(&header->lumps[LUMP_EDGES]);
-	Mod_LoadSurfedges(&header->lumps[LUMP_SURFEDGES]);
-	Mod_LoadLighting(&header->lumps[LUMP_LIGHTING]);
-	Mod_LoadPlanes(&header->lumps[LUMP_PLANES]);
-	Mod_LoadTexinfo(&header->lumps[LUMP_TEXINFO]);
-	Mod_LoadFaces(&header->lumps[LUMP_FACES]);
-	Mod_LoadMarksurfaces(&header->lumps[LUMP_LEAFFACES]);
-	Mod_LoadVisibility(&header->lumps[LUMP_VISIBILITY]);
-	Mod_LoadLeafs(&header->lumps[LUMP_LEAFS]);
-	Mod_LoadNodes(&header->lumps[LUMP_NODES]);
-	Mod_LoadSubmodels (loadmodel, mod_base, &header->lumps[LUMP_MODELS]);
+	Mod_LoadVertexes(mod, mod_base, &header->lumps[LUMP_VERTEXES]);
+	Mod_LoadEdges(mod, mod_base, &header->lumps[LUMP_EDGES]);
+	Mod_LoadSurfedges(mod, mod_base, &header->lumps[LUMP_SURFEDGES]);
+	Mod_LoadLighting(mod, mod_base, &header->lumps[LUMP_LIGHTING]);
+	Mod_LoadPlanes(mod, mod_base, &header->lumps[LUMP_PLANES]);
+	Mod_LoadTexinfo(mod, mod_base, &header->lumps[LUMP_TEXINFO]);
+	Mod_LoadFaces(mod, mod_base, &header->lumps[LUMP_FACES]);
+	Mod_LoadMarksurfaces(mod, mod_base, &header->lumps[LUMP_LEAFFACES]);
+	Mod_LoadVisibility(mod, mod_base, &header->lumps[LUMP_VISIBILITY]);
+	Mod_LoadLeafs(mod, mod_base, &header->lumps[LUMP_LEAFS]);
+	Mod_LoadNodes(mod, mod_base, &header->lumps[LUMP_NODES]);
+	Mod_LoadSubmodels (mod, mod_base, &header->lumps[LUMP_MODELS]);
 	mod->numframes = 2; /* regular and alternate animation */
 }
 
