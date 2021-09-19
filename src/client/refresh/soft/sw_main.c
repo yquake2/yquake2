@@ -53,8 +53,6 @@ refimport_t	ri;
 
 static unsigned	d_8to24table[256];
 
-entity_t	r_worldentity;
-
 char		skyname[MAX_QPATH];
 vec3_t		skyaxis;
 
@@ -1163,7 +1161,7 @@ Render the map
 ================
 */
 static void
-R_EdgeDrawing (void)
+R_EdgeDrawing (entity_t *currententity)
 {
 	if ( r_newrefdef.rdflags & RDF_NOWORLDMODEL )
 		return;
@@ -1181,7 +1179,7 @@ R_EdgeDrawing (void)
 
 	// Build the Global Edget Table
 	// Also populate the surface stack and count # surfaces to render (surf_max is the max)
-	R_RenderWorld ();
+	R_RenderWorld (currententity);
 
 	if (r_dspeeds->value)
 	{
@@ -1199,7 +1197,7 @@ R_EdgeDrawing (void)
 
 	// Use the Global Edge Table to maintin the Active Edge Table: Draw the world as scanlines
 	// Write the Z-Buffer (but no read)
-	R_ScanEdges (surface_p);
+	R_ScanEdges (currententity, surface_p);
 }
 
 //=======================================================================
@@ -1300,6 +1298,7 @@ static void
 RE_RenderFrame (refdef_t *fd)
 {
 	r_newrefdef = *fd;
+	entity_t	r_worldentity;
 
 	if (!r_worldmodel && !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
 	{
@@ -1342,7 +1341,7 @@ RE_RenderFrame (refdef_t *fd)
 
 	// Build the Global Edge Table and render it via the Active Edge Table
 	// Render the map
-	R_EdgeDrawing ();
+	R_EdgeDrawing (&r_worldentity);
 
 	if (r_dspeeds->value)
 	{

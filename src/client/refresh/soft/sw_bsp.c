@@ -587,7 +587,7 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 		{
 			msurface_t *surf;
 
-			surf = r_worldmodel->surfaces + node->firstsurface;
+			surf = currentmodel->surfaces + node->firstsurface;
 
 			if (dot < -BACKFACE_EPSILON)
 			{
@@ -631,7 +631,7 @@ R_RenderWorld
 ================
 */
 void
-R_RenderWorld (void)
+R_RenderWorld (entity_t *currententity)
 {
 	const model_t *currentmodel = r_worldmodel;
 
@@ -643,10 +643,10 @@ R_RenderWorld (void)
 	c_drawnode=0;
 
 	// auto cycle the world frame for texture animation
-	r_worldentity.frame = (int)(r_newrefdef.time*2);
+	currententity->frame = (int)(r_newrefdef.time*2);
 
 	VectorCopy (r_origin, modelorg);
 	r_pcurrentvertbase = currentmodel->vertexes;
 
-	R_RecursiveWorldNode (&r_worldentity, currentmodel, currentmodel->nodes, ALIAS_XY_CLIP_MASK, false);
+	R_RecursiveWorldNode (currententity, currentmodel, currentmodel->nodes, ALIAS_XY_CLIP_MASK, false);
 }
