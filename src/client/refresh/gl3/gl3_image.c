@@ -225,7 +225,7 @@ GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 qboolean
 GL3_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 {
-	unsigned trans[512 * 256];
+	unsigned trans[1024 * 1024];
 	int i, s;
 	int p;
 
@@ -233,7 +233,7 @@ GL3_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 
 	if (s > sizeof(trans) / 4)
 	{
-		ri.Sys_Error(ERR_DROP, "GL3_Upload8: too large");
+		ri.Sys_Error(ERR_DROP, "%s: too large", __func__);
 	}
 
 	for (i = 0; i < s; i++)
@@ -429,9 +429,22 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 	if (bits == 8)
 	{
-		image->has_alpha = GL3_Upload8(pic, width, height,
-					(image->type != it_pic && image->type != it_sky),
-					image->type == it_sky);
+		// resize 8bit images only when we forced such logic
+		if (gl_retexturing->value >= 2)
+		{
+			byte *image_converted = malloc(width * height * 4);
+			scale2x(pic, image_converted, width, height);
+			image->has_alpha = GL3_Upload8(image_converted, width * 2, height * 2,
+						(image->type != it_pic && image->type != it_sky),
+						image->type == it_sky);
+			free(image_converted);
+		}
+		else
+		{
+			image->has_alpha = GL3_Upload8(pic, width, height,
+						(image->type != it_pic && image->type != it_sky),
+						image->type == it_sky);
+		}
 	}
 	else
 	{
