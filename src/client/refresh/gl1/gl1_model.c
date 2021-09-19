@@ -44,9 +44,6 @@ void LM_CreateSurfaceLightmap(msurface_t *surf);
 void LM_EndBuildingLightmaps(void);
 void LM_BeginBuildingLightmaps(model_t *m);
 
-/* the inline * models from the current map are kept seperate */
-model_t mod_inline[MAX_MOD_KNOWN];
-
 mleaf_t *
 Mod_PointInLeaf(vec3_t p, model_t *model)
 {
@@ -130,8 +127,8 @@ Mod_Init(void)
 /*
  * Loads in a model for the given name
  */
-model_t *
-Mod_ForName(char *name, qboolean crash)
+static model_t *
+Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 {
 	model_t *mod;
 	unsigned *buf;
@@ -143,17 +140,17 @@ Mod_ForName(char *name, qboolean crash)
 	}
 
 	/* inline models are grabbed only from worldmodel */
-	if (name[0] == '*')
+	if (name[0] == '*' && parent_model)
 	{
 		i = (int)strtol(name + 1, (char **)NULL, 10);
 
-		if ((i < 1) || !r_worldmodel || (i >= r_worldmodel->numsubmodels))
+		if (i < 1 || i >= parent_model->numsubmodels)
 		{
 			ri.Sys_Error(ERR_DROP, "%s: bad inline model number",
 					__func__);
 		}
 
-		return &mod_inline[i];
+		return &parent_model->submodels[i];
 	}
 
 	/* search the currently loaded models */
@@ -302,10 +299,10 @@ Mod_LoadVertexes(lump_t *l)
 }
 
 void
-Mod_LoadSubmodels(lump_t *l)
+Mod_LoadSubmodels (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dmodel_t *in;
-	mmodel_t *out;
+	model_t	*out;
 	int i, j, count;
 
 	in = (void *)(mod_base + l->fileofs);
@@ -324,6 +321,19 @@ Mod_LoadSubmodels(lump_t *l)
 
 	for (i = 0; i < count; i++, in++, out++)
 	{
+		if (i == 0)
+		{
+			// copy parent as template for first model
+			memcpy(out, loadmodel, sizeof(*out));
+		}
+		else
+		{
+			// copy first as template for model
+			memcpy(out, loadmodel->submodels, sizeof(*out));
+		}
+
+		Com_sprintf (out->name, sizeof(out->name), "*%d", i);
+
 		for (j = 0; j < 3; j++)
 		{
 			/* spread the mins / maxs by a pixel */
@@ -333,9 +343,17 @@ Mod_LoadSubmodels(lump_t *l)
 		}
 
 		out->radius = Mod_RadiusFromBounds(out->mins, out->maxs);
-		out->headnode = LittleLong(in->headnode);
-		out->firstface = LittleLong(in->firstface);
-		out->numfaces = LittleLong(in->numfaces);
+		out->firstnode = LittleLong (in->headnode);
+		out->firstmodelsurface = LittleLong (in->firstface);
+		out->nummodelsurfaces = LittleLong (in->numfaces);
+		// visleafs
+		out->numleafs = 0;
+		//  check limits
+		if (out->firstnode >= loadmodel->numnodes)
+		{
+			ri.Sys_Error(ERR_DROP, "%s: Inline model %i has bad firstnode",
+					__func__, i);
+		}
 	}
 }
 
@@ -938,7 +956,6 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 {
 	int i;
 	dheader_t *header;
-	mmodel_t *bm;
 
 	if (loadmodel != mod_known)
 	{
@@ -995,40 +1012,8 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	Mod_LoadVisibility(&header->lumps[LUMP_VISIBILITY]);
 	Mod_LoadLeafs(&header->lumps[LUMP_LEAFS]);
 	Mod_LoadNodes(&header->lumps[LUMP_NODES]);
-	Mod_LoadSubmodels(&header->lumps[LUMP_MODELS]);
+	Mod_LoadSubmodels (loadmodel, mod_base, &header->lumps[LUMP_MODELS]);
 	mod->numframes = 2; /* regular and alternate animation */
-
-	/* set up the submodels */
-	for (i = 0; i < mod->numsubmodels; i++)
-	{
-		model_t *starmod;
-
-		bm = &mod->submodels[i];
-		starmod = &mod_inline[i];
-
-		*starmod = *loadmodel;
-
-		starmod->firstmodelsurface = bm->firstface;
-		starmod->nummodelsurfaces = bm->numfaces;
-		starmod->firstnode = bm->headnode;
-
-		if (starmod->firstnode >= loadmodel->numnodes)
-		{
-			ri.Sys_Error(ERR_DROP, "%s: Inline model %i has bad firstnode",
-					__func__, i);
-		}
-
-		VectorCopy(bm->maxs, starmod->maxs);
-		VectorCopy(bm->mins, starmod->mins);
-		starmod->radius = bm->radius;
-
-		if (i == 0)
-		{
-			*loadmodel = *starmod;
-		}
-
-		starmod->numleafs = bm->visleafs;
-	}
 }
 
 void
@@ -1076,7 +1061,7 @@ RI_BeginRegistration(char *model)
 		Mod_Free(&mod_known[0]);
 	}
 
-	r_worldmodel = Mod_ForName(fullname, true);
+	r_worldmodel = Mod_ForName(fullname, NULL, true);
 
 	r_viewcluster = -1;
 }
@@ -1089,7 +1074,7 @@ RI_RegisterModel(char *name)
 	dsprite_t *sprout;
 	dmdl_t *pheader;
 
-	mod = Mod_ForName(name, false);
+	mod = Mod_ForName(name, r_worldmodel, false);
 
 	if (mod)
 	{
