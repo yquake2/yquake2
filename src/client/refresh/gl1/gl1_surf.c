@@ -45,7 +45,7 @@ void R_BuildLightMap(msurface_t *surf, byte *dest, int stride);
 /*
  * Returns the proper texture for a given time and base texture
  */
-image_t *
+static image_t *
 R_TextureAnimation(mtexinfo_t *tex)
 {
 	int c;
@@ -66,7 +66,7 @@ R_TextureAnimation(mtexinfo_t *tex)
 	return tex->image;
 }
 
-void
+static void
 R_DrawGLPoly(glpoly_t *p)
 {
 	float *v;
@@ -84,7 +84,7 @@ R_DrawGLPoly(glpoly_t *p)
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 }
 
-void
+static void
 R_DrawGLFlowingPoly(msurface_t *fa)
 {
 	int i;
@@ -124,7 +124,7 @@ R_DrawGLFlowingPoly(msurface_t *fa)
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 }
 
-void
+static void
 R_DrawTriangleOutlines(void)
 {
 	int i, j;
@@ -179,7 +179,7 @@ R_DrawTriangleOutlines(void)
 	glEnable(GL_TEXTURE_2D);
 }
 
-void
+static void
 R_DrawGLPolyChain(glpoly_t *p, float soffset, float toffset)
 {
 	if ((soffset == 0) && (toffset == 0))
@@ -238,8 +238,8 @@ R_DrawGLPolyChain(glpoly_t *p, float soffset, float toffset)
  * This routine takes all the given light mapped surfaces
  * in the world and blends them into the framebuffer.
  */
-void
-R_BlendLightmaps(void)
+static void
+R_BlendLightmaps(const model_t *currentmodel)
 {
 	int i;
 	msurface_t *surf, *newdrawsurf = 0;
@@ -420,7 +420,7 @@ R_BlendLightmaps(void)
 	glDepthMask(1);
 }
 
-void
+static void
 R_RenderBrushPoly(msurface_t *fa)
 {
 	int maps;
@@ -604,7 +604,7 @@ R_DrawAlphaSurfaces(void)
 	r_alpha_surfaces = NULL;
 }
 
-void
+static void
 R_DrawTextureChains(void)
 {
 	int i;
@@ -640,8 +640,8 @@ R_DrawTextureChains(void)
 	R_TexEnv(GL_REPLACE);
 }
 
-void
-R_DrawInlineBModel(void)
+static void
+R_DrawInlineBModel(const model_t *currentmodel)
 {
 	int i, k;
 	cplane_t *pplane;
@@ -697,7 +697,7 @@ R_DrawInlineBModel(void)
 	if (!(currententity->flags & RF_TRANSLUCENT))
 	{
 
-		R_BlendLightmaps();
+		R_BlendLightmaps(currentmodel);
 	}
 	else
 	{
@@ -708,7 +708,7 @@ R_DrawInlineBModel(void)
 }
 
 void
-R_DrawBrushModel(entity_t *e)
+R_DrawBrushModel(entity_t *e, const model_t *currentmodel)
 {
 	vec3_t mins, maxs;
 	int i;
@@ -784,7 +784,7 @@ R_DrawBrushModel(entity_t *e)
 		R_TexEnv(GL_MODULATE);
 	}
 
-	R_DrawInlineBModel();
+	R_DrawInlineBModel(currentmodel);
 
 	glPopMatrix();
 
@@ -794,7 +794,7 @@ R_DrawBrushModel(entity_t *e)
 	}
 }
 
-void
+static void
 R_RecursiveWorldNode(mnode_t *node)
 {
 	int c, side, sidebit;
@@ -927,6 +927,7 @@ void
 R_DrawWorld(void)
 {
 	entity_t ent;
+	const model_t *currentmodel;
 
 	if (!r_drawworld->value)
 	{
@@ -955,7 +956,7 @@ R_DrawWorld(void)
 	R_ClearSkyBox();
 	R_RecursiveWorldNode(r_worldmodel->nodes);
 	R_DrawTextureChains();
-	R_BlendLightmaps();
+	R_BlendLightmaps(currentmodel);
 	R_DrawSkyBox();
 	R_DrawTriangleOutlines();
 

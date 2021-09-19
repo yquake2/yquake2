@@ -285,7 +285,7 @@ R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 		if (count < 0)
 		{
 			count = -count;
-			
+
             type = GL_TRIANGLE_FAN;
 		}
 		else
@@ -330,7 +330,7 @@ R_DrawAliasShadow(dmdl_t *paliashdr, int posenum)
 }
 
 static qboolean
-R_CullAliasModel(vec3_t bbox[8], entity_t *e)
+R_CullAliasModel(const model_t *currentmodel, vec3_t bbox[8], entity_t *e)
 {
 	int i;
 	vec3_t mins, maxs;
@@ -482,7 +482,7 @@ R_CullAliasModel(vec3_t bbox[8], entity_t *e)
 }
 
 void
-R_DrawAliasModel(entity_t *e)
+R_DrawAliasModel(entity_t *e, const model_t *currentmodel)
 {
 	int i;
 	dmdl_t *paliashdr;
@@ -492,7 +492,7 @@ R_DrawAliasModel(entity_t *e)
 
 	if (!(e->flags & RF_WEAPONMODEL))
 	{
-		if (R_CullAliasModel(bbox, e))
+		if (R_CullAliasModel(currentmodel, bbox, e))
 		{
 			return;
 		}
@@ -631,7 +631,7 @@ R_DrawAliasModel(entity_t *e)
             shadelight[i] *= gl1_overbrightbits->value;
         }
     }
-    
+
 
 
 	/* ir goggles color override */

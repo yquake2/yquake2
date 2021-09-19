@@ -37,7 +37,7 @@ int registration_sequence;
 void LoadSP2(model_t *mod, void *buffer, int modfilelen);
 static void Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen);
 void LoadMD2(model_t *mod, void *buffer, int modfilelen);
-void LM_BuildPolygonFromSurface(msurface_t *fa);
+void LM_BuildPolygonFromSurface(model_t *currentmodel, msurface_t *fa);
 void LM_CreateSurfaceLightmap(msurface_t *surf);
 void LM_EndBuildingLightmaps(void);
 void LM_BeginBuildingLightmaps(model_t *m);
@@ -611,8 +611,6 @@ Mod_LoadFaces(model_t *loadmodel, byte *mod_base, lump_t *l)
 	loadmodel->surfaces = out;
 	loadmodel->numsurfaces = count;
 
-	currentmodel = loadmodel;
-
 	LM_BeginBuildingLightmaps(loadmodel);
 
 	for (surfnum = 0; surfnum < count; surfnum++, in++, out++)
@@ -691,7 +689,7 @@ Mod_LoadFaces(model_t *loadmodel, byte *mod_base, lump_t *l)
 
 		if (!(out->texinfo->flags & SURF_WARP))
 		{
-			LM_BuildPolygonFromSurface(out);
+			LM_BuildPolygonFromSurface(loadmodel, out);
 		}
 	}
 

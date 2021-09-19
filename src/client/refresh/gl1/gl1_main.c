@@ -40,7 +40,6 @@ image_t *r_notexture; /* use for bad textures */
 image_t *r_particletexture; /* little dot for particles */
 
 entity_t *currententity;
-model_t *currentmodel;
 
 cplane_t frustum[4];
 
@@ -176,7 +175,7 @@ R_RotateForEntity(entity_t *e)
 }
 
 void
-R_DrawSpriteModel(entity_t *e)
+R_DrawSpriteModel(entity_t *e, const model_t *currentmodel)
 {
 	float alpha = 1.0F;
 	vec3_t point[4];
@@ -343,7 +342,7 @@ R_DrawEntitiesOnList(void)
 		}
 		else
 		{
-			currentmodel = currententity->model;
+			const model_t *currentmodel = currententity->model;
 
 			if (!currentmodel)
 			{
@@ -354,13 +353,13 @@ R_DrawEntitiesOnList(void)
 			switch (currentmodel->type)
 			{
 				case mod_alias:
-					R_DrawAliasModel(currententity);
+					R_DrawAliasModel(currententity, currentmodel);
 					break;
 				case mod_brush:
-					R_DrawBrushModel(currententity);
+					R_DrawBrushModel(currententity, currentmodel);
 					break;
 				case mod_sprite:
-					R_DrawSpriteModel(currententity);
+					R_DrawSpriteModel(currententity, currentmodel);
 					break;
 				default:
 					ri.Sys_Error(ERR_DROP, "Bad modeltype");
@@ -389,7 +388,7 @@ R_DrawEntitiesOnList(void)
 		}
 		else
 		{
-			currentmodel = currententity->model;
+			const model_t *currentmodel = currententity->model;
 
 			if (!currentmodel)
 			{
@@ -400,13 +399,13 @@ R_DrawEntitiesOnList(void)
 			switch (currentmodel->type)
 			{
 				case mod_alias:
-					R_DrawAliasModel(currententity);
+					R_DrawAliasModel(currententity, currentmodel);
 					break;
 				case mod_brush:
-					R_DrawBrushModel(currententity);
+					R_DrawBrushModel(currententity, currentmodel);
 					break;
 				case mod_sprite:
-					R_DrawSpriteModel(currententity);
+					R_DrawSpriteModel(currententity, currentmodel);
 					break;
 				default:
 					ri.Sys_Error(ERR_DROP, "Bad modeltype");

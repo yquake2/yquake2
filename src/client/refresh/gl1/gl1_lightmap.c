@@ -137,7 +137,7 @@ LM_AllocBlock(int w, int h, int *x, int *y)
 }
 
 void
-LM_BuildPolygonFromSurface(msurface_t *fa)
+LM_BuildPolygonFromSurface(model_t *currentmodel, msurface_t *fa)
 {
 	int i, lindex, lnumverts;
 	medge_t *pedges, *r_pedge;
