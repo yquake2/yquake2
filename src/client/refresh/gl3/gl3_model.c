@@ -33,11 +33,41 @@ static gl3model_t *loadmodel;
 YQ2_ALIGNAS_TYPE(int) static byte mod_novis[MAX_MAP_LEAFS / 8];
 gl3model_t mod_known[MAX_MOD_KNOWN];
 static int mod_numknown;
+static int mod_max = 0;
 int registration_sequence;
 static byte *mod_base;
 
 /* the inline * models from the current map are kept seperate */
 gl3model_t mod_inline[MAX_MOD_KNOWN];
+
+//===============================================================================
+
+static qboolean
+Mod_HasFreeSpace(void)
+{
+	int		i, used;
+	gl3model_t	*mod;
+
+	used = 0;
+
+	for (i=0, mod=mod_known ; i < mod_numknown ; i++, mod++)
+	{
+		if (!mod->name[0])
+			continue;
+		if (mod->registration_sequence == registration_sequence)
+		{
+			used ++;
+		}
+	}
+
+	if (mod_max < used)
+	{
+		mod_max = used;
+	}
+
+	// should same size of free slots as currently used
+	return (mod_numknown + mod_max) < MAX_MOD_KNOWN;
+}
 
 mleaf_t *
 GL3_Mod_PointInLeaf(vec3_t p, gl3model_t *model)
@@ -92,30 +122,44 @@ GL3_Mod_ClusterPVS(int cluster, const gl3model_t *model)
 void
 GL3_Mod_Modellist_f(void)
 {
-	int i;
+	int i, total, used;
 	gl3model_t *mod;
-	int total;
+	qboolean freeup;
 
 	total = 0;
+	used = 0;
 	R_Printf(PRINT_ALL, "Loaded models:\n");
 
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 	{
+		char *in_use = "";
+
+		if (mod->registration_sequence == registration_sequence)
+		{
+			in_use = "*";
+			used ++;
+		}
+
 		if (!mod->name[0])
 		{
 			continue;
 		}
 
-		R_Printf(PRINT_ALL, "%8i : %s\n", mod->extradatasize, mod->name);
+		R_Printf(PRINT_ALL, "%8i : %s %s\n",
+			mod->extradatasize, mod->name, in_use);
 		total += mod->extradatasize;
 	}
 
 	R_Printf(PRINT_ALL, "Total resident: %i\n", total);
+	// update statistics
+	freeup = Mod_HasFreeSpace();
+	R_Printf(PRINT_ALL, "Used %d of %d models%s.\n", used, mod_max, freeup ? ", has free space" : "");
 }
 
 void
 GL3_Mod_Init(void)
 {
+	mod_max = 0;
 	memset(mod_novis, 0xff, sizeof(mod_novis));
 }
 
@@ -1132,6 +1176,12 @@ GL3_EndRegistration(void)
 {
 	int i;
 	gl3model_t *mod;
+
+	if (Mod_HasFreeSpace() && GL3_ImageHasFreeSpace())
+	{
+		// should be enough space for load next maps
+		return;
+	}
 
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 	{

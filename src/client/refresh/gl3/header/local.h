@@ -421,6 +421,7 @@ extern gl3image_t *GL3_FindImage(char *name, imagetype_t type);
 extern gl3image_t *GL3_RegisterSkin(char *name);
 extern void GL3_ShutdownImages(void);
 extern void GL3_FreeUnusedImages(void);
+extern qboolean GL3_ImageHasFreeSpace(void);
 extern void GL3_ImageList_f(void);
 
 // gl3_light.c

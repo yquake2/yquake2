@@ -46,7 +46,8 @@ int gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int gl_filter_max = GL_LINEAR;
 
 gl3image_t gl3textures[MAX_GL3TEXTURES];
-int numgl3textures;
+int numgl3textures = 0;
+static int image_max = 0;
 
 void
 GL3_TextureMode(char *string)
@@ -948,6 +949,33 @@ GL3_FreeUnusedImages(void)
 	}
 }
 
+qboolean
+GL3_ImageHasFreeSpace(void)
+{
+	int		i, used;
+	gl3image_t	*image;
+
+	used = 0;
+
+	for (i = 0, image = gl3textures; i < numgl3textures; i++, image++)
+	{
+		if (!image->name[0])
+			continue;
+		if (image->registration_sequence == registration_sequence)
+		{
+			used ++;
+		}
+	}
+
+	if (image_max < used)
+	{
+		image_max = used;
+	}
+
+	// should same size of free slots as currently used
+	return (numgl3textures + used) < MAX_GL3TEXTURES;
+}
+
 void
 GL3_ShutdownImages(void)
 {
@@ -986,7 +1014,8 @@ static qboolean IsNPOT(int v)
 void
 GL3_ImageList_f(void)
 {
-	int i, texels=0;
+	int i, used, texels;
+	qboolean	freeup;
 	gl3image_t *image;
 	const char *formatstrings[2] = {
 		"RGB ",
@@ -998,15 +1027,25 @@ GL3_ImageList_f(void)
 	};
 
 	R_Printf(PRINT_ALL, "------------------\n");
+	texels = 0;
+	used = 0;
 
 	for (i = 0, image = gl3textures; i < numgl3textures; i++, image++)
 	{
 		int w, h;
+		char *in_use = "";
 		qboolean isNPOT = false;
 		if (image->texnum == 0)
 		{
 			continue;
 		}
+
+		if (image->registration_sequence == registration_sequence)
+		{
+			in_use = "*";
+			used++;
+		}
+
 		w = image->width;
 		h = image->height;
 
@@ -1036,9 +1075,11 @@ GL3_ImageList_f(void)
 				break;
 		}
 
-		R_Printf(PRINT_ALL, " %3i %3i %s %s: %s\n", w, h,
-		         formatstrings[image->has_alpha], potstrings[isNPOT], image->name);
+		R_Printf(PRINT_ALL, " %3i %3i %s %s: %s %s\n", w, h,
+		         formatstrings[image->has_alpha], potstrings[isNPOT], image->name, in_use);
 	}
 
 	R_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i\n", texels);
+	freeup = GL3_ImageHasFreeSpace();
+	R_Printf(PRINT_ALL, "Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
 }
