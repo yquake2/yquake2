@@ -252,7 +252,7 @@ RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 }
 
 void
-GL3_LightPoint(vec3_t p, vec3_t color)
+GL3_LightPoint(entity_t *currententity, vec3_t p, vec3_t color)
 {
 	vec3_t end;
 	float r;

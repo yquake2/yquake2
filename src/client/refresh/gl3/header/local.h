@@ -300,7 +300,6 @@ typedef struct
 } gl3lightmapstate_t;
 
 extern gl3model_t *gl3_worldmodel;
-extern entity_t *currententity;
 
 extern float gl3depthmin, gl3depthmax;
 
@@ -426,7 +425,7 @@ extern void GL3_ImageList_f(void);
 // gl3_light.c
 extern void GL3_MarkLights(dlight_t *light, int bit, mnode_t *node);
 extern void GL3_PushDlights(void);
-extern void GL3_LightPoint(vec3_t p, vec3_t color);
+extern void GL3_LightPoint(entity_t *currententity, vec3_t p, vec3_t color);
 extern void GL3_BuildLightMap(msurface_t *surf, int offsetInLMbuf, int stride);
 
 // gl3_lightmap.c

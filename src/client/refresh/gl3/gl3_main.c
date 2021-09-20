@@ -50,7 +50,6 @@ refdef_t gl3_newrefdef;
 
 viddef_t vid;
 gl3model_t *gl3_worldmodel;
-entity_t *currententity;
 
 float gl3depthmin=0.0f, gl3depthmax=1.0f;
 
@@ -851,7 +850,7 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 }
 
 static void
-GL3_DrawNullModel(void)
+GL3_DrawNullModel(entity_t *currententity)
 {
 	vec3_t shadelight;
 
@@ -861,7 +860,7 @@ GL3_DrawNullModel(void)
 	}
 	else
 	{
-		GL3_LightPoint(currententity->origin, shadelight);
+		GL3_LightPoint(currententity, currententity->origin, shadelight);
 	}
 
 	hmm_mat4 origModelMat = gl3state.uni3DData.transModelMat4;
@@ -976,7 +975,7 @@ GL3_DrawEntitiesOnList(void)
 	/* draw non-transparent first */
 	for (i = 0; i < gl3_newrefdef.num_entities; i++)
 	{
-		currententity = &gl3_newrefdef.entities[i];
+		entity_t *currententity = &gl3_newrefdef.entities[i];
 
 		if (currententity->flags & RF_TRANSLUCENT)
 		{
@@ -993,7 +992,7 @@ GL3_DrawEntitiesOnList(void)
 
 			if (!currentmodel)
 			{
-				GL3_DrawNullModel();
+				GL3_DrawNullModel(currententity);
 				continue;
 			}
 
@@ -1022,7 +1021,7 @@ GL3_DrawEntitiesOnList(void)
 
 	for (i = 0; i < gl3_newrefdef.num_entities; i++)
 	{
-		currententity = &gl3_newrefdef.entities[i];
+		entity_t *currententity = &gl3_newrefdef.entities[i];
 
 		if (!(currententity->flags & RF_TRANSLUCENT))
 		{
@@ -1039,7 +1038,7 @@ GL3_DrawEntitiesOnList(void)
 
 			if (!currentmodel)
 			{
-				GL3_DrawNullModel();
+				GL3_DrawNullModel(currententity);
 				continue;
 			}
 
@@ -1579,7 +1578,7 @@ GL3_GetSpecialBufferModeForStereoMode(enum stereo_modes stereo_mode) {
 #endif // 0
 
 static void
-GL3_SetLightLevel(void)
+GL3_SetLightLevel(entity_t *currententity)
 {
 	vec3_t shadelight = {0};
 
@@ -1589,7 +1588,7 @@ GL3_SetLightLevel(void)
 	}
 
 	/* save off light value for server to look at */
-	GL3_LightPoint(gl3_newrefdef.vieworg, shadelight);
+	GL3_LightPoint(currententity, gl3_newrefdef.vieworg, shadelight);
 
 	/* pick the greatest component, which should be the
 	 * same as the mono value returned by software */
@@ -1621,7 +1620,7 @@ static void
 GL3_RenderFrame(refdef_t *fd)
 {
 	GL3_RenderView(fd);
-	GL3_SetLightLevel();
+	GL3_SetLightLevel(NULL);
 	GL3_SetGL2D();
 
 	if(v_blend[3] != 0.0f)
