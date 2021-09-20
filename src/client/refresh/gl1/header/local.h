@@ -291,6 +291,7 @@ void R_InitImages(void);
 void R_ShutdownImages(void);
 
 void R_FreeUnusedImages(void);
+qboolean R_ImageHasFreeSpace(void);
 
 void R_TextureAlphaMode(char *string);
 void R_TextureSolidMode(char *string);

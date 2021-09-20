@@ -28,6 +28,7 @@
 
 image_t gltextures[MAX_GLTEXTURES];
 int numgltextures;
+static int image_max = 0;
 int base_textureid; /* gltextures[i] = base_textureid+i */
 extern qboolean scrap_dirty;
 extern byte scrap_texels[MAX_SCRAPS][BLOCK_WIDTH * BLOCK_HEIGHT];
@@ -292,9 +293,9 @@ R_TextureSolidMode(char *string)
 void
 R_ImageList_f(void)
 {
-	int i;
+	int i, used, texels;
 	image_t *image;
-	int texels;
+	qboolean	freeup;
 	const char *palstrings[2] = {
 		"RGB",
 		"PAL"
@@ -302,12 +303,21 @@ R_ImageList_f(void)
 
 	R_Printf(PRINT_ALL, "------------------\n");
 	texels = 0;
+	used = 0;
 
 	for (i = 0, image = gltextures; i < numgltextures; i++, image++)
 	{
+		char *in_use = "";
+
 		if (image->texnum <= 0)
 		{
 			continue;
+		}
+
+		if (image->registration_sequence == registration_sequence)
+		{
+			in_use = "*";
+			used++;
 		}
 
 		texels += image->upload_width * image->upload_height;
@@ -331,14 +341,16 @@ R_ImageList_f(void)
 				break;
 		}
 
-		R_Printf(PRINT_ALL, " %3i %3i %s: %s\n",
+		R_Printf(PRINT_ALL, " %3i %3i %s: %s %s\n",
 				image->upload_width, image->upload_height,
-				palstrings[image->paletted], image->name);
+				palstrings[image->paletted], image->name, in_use);
 	}
 
 	R_Printf(PRINT_ALL,
 			"Total texel count (not counting mipmaps): %i\n",
 			texels);
+	freeup = R_ImageHasFreeSpace();
+	R_Printf(PRINT_ALL, "Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
 }
 
 /*
@@ -1367,12 +1379,40 @@ R_FreeUnusedImages(void)
 	}
 }
 
+qboolean
+R_ImageHasFreeSpace(void)
+{
+	int		i, used;
+	image_t	*image;
+
+	used = 0;
+
+	for (i = 0, image = gltextures; i < numgltextures; i++, image++)
+	{
+		if (!image->name[0])
+			continue;
+		if (image->registration_sequence == registration_sequence)
+		{
+			used ++;
+		}
+	}
+
+	if (image_max < used)
+	{
+		image_max = used;
+	}
+
+	// should same size of free slots as currently used
+	return (numgltextures + used) < MAX_GLTEXTURES;
+}
+
 void
 R_InitImages(void)
 {
 	int i, j;
 
 	registration_sequence = 1;
+	image_max = 0;
 
 	/* init intensity conversions */
 	intensity = ri.Cvar_Get("gl1_intensity", "2", CVAR_ARCHIVE);

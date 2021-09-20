@@ -30,8 +30,9 @@
 
 int modfilelen;
 YQ2_ALIGNAS_TYPE(int) byte mod_novis[MAX_MAP_LEAFS / 8];
-model_t mod_known[MAX_MOD_KNOWN];
-int mod_numknown;
+static model_t mod_known[MAX_MOD_KNOWN];
+static int mod_numknown;
+static int mod_max = 0;
 int registration_sequence;
 
 void LoadSP2(model_t *mod, void *buffer, int modfilelen);
@@ -41,6 +42,35 @@ void LM_BuildPolygonFromSurface(model_t *currentmodel, msurface_t *fa);
 void LM_CreateSurfaceLightmap(msurface_t *surf);
 void LM_EndBuildingLightmaps(void);
 void LM_BeginBuildingLightmaps(model_t *m);
+
+//===============================================================================
+
+static qboolean
+Mod_HasFreeSpace(void)
+{
+	int		i, used;
+	model_t	*mod;
+
+	used = 0;
+
+	for (i=0, mod=mod_known ; i < mod_numknown ; i++, mod++)
+	{
+		if (!mod->name[0])
+			continue;
+		if (mod->registration_sequence == registration_sequence)
+		{
+			used ++;
+		}
+	}
+
+	if (mod_max < used)
+	{
+		mod_max = used;
+	}
+
+	// should same size of free slots as currently used
+	return (mod_numknown + mod_max) < MAX_MOD_KNOWN;
+}
 
 mleaf_t *
 Mod_PointInLeaf(vec3_t p, model_t *model)
@@ -95,30 +125,44 @@ Mod_ClusterPVS(int cluster, const model_t *model)
 void
 Mod_Modellist_f(void)
 {
-	int i;
+	int i, total, used;
 	model_t *mod;
-	int total;
+	qboolean freeup;
 
 	total = 0;
+	used = 0;
 	R_Printf(PRINT_ALL, "Loaded models:\n");
 
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 	{
+		char *in_use = "";
+
+		if (mod->registration_sequence == registration_sequence)
+		{
+			in_use = "*";
+			used ++;
+		}
+
 		if (!mod->name[0])
 		{
 			continue;
 		}
 
-		R_Printf(PRINT_ALL, "%8i : %s\n", mod->extradatasize, mod->name);
+		R_Printf(PRINT_ALL, "%8i : %s %s\n",
+			mod->extradatasize, mod->name, in_use);
 		total += mod->extradatasize;
 	}
 
 	R_Printf(PRINT_ALL, "Total resident: %i\n", total);
+	// update statistics
+	freeup = Mod_HasFreeSpace();
+	R_Printf(PRINT_ALL, "Used %d of %d models%s.\n", used, mod_max, freeup ? ", has free space" : "");
 }
 
 void
 Mod_Init(void)
 {
+	mod_max = 0;
 	memset(mod_novis, 0xff, sizeof(mod_novis));
 }
 
@@ -1115,6 +1159,12 @@ RI_EndRegistration(void)
 {
 	int i;
 	model_t *mod;
+
+	if (Mod_HasFreeSpace() && R_ImageHasFreeSpace())
+	{
+		// should be enough space for load next maps
+		return;
+	}
 
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 	{
