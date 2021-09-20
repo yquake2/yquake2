@@ -543,8 +543,6 @@ Mod_LoadFaces(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	loadmodel->surfaces = out;
 	loadmodel->numsurfaces = count;
 
-	currentmodel = loadmodel;
-
 	GL3_LM_BeginBuildingLightmaps(loadmodel);
 
 	for (surfnum = 0; surfnum < count; surfnum++, in++, out++)
@@ -623,7 +621,7 @@ Mod_LoadFaces(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 
 		if (!(out->texinfo->flags & SURF_WARP))
 		{
-			GL3_LM_BuildPolygonFromSurface(out);
+			GL3_LM_BuildPolygonFromSurface(loadmodel, out);
 		}
 	}
 

@@ -526,7 +526,7 @@ RenderLightmappedPoly(msurface_t *surf)
 }
 
 static void
-DrawInlineBModel(void)
+DrawInlineBModel(gl3model_t *currentmodel)
 {
 	int i, k;
 	cplane_t *pplane;
@@ -590,7 +590,7 @@ DrawInlineBModel(void)
 }
 
 void
-GL3_DrawBrushModel(entity_t *e)
+GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel)
 {
 	vec3_t mins, maxs;
 	int i;
@@ -656,7 +656,7 @@ GL3_DrawBrushModel(entity_t *e)
 	e->angles[0] = -e->angles[0];
 	e->angles[2] = -e->angles[2];
 
-	DrawInlineBModel();
+	DrawInlineBModel(currentmodel);
 
 	// glPopMatrix();
 	gl3state.uni3DData.transModelMat4 = oldMat;
@@ -823,8 +823,6 @@ GL3_DrawWorld(void)
 	{
 		return;
 	}
-
-	currentmodel = gl3_worldmodel;
 
 	VectorCopy(gl3_newrefdef.vieworg, modelorg);
 

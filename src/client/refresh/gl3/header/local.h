@@ -300,7 +300,6 @@ typedef struct
 } gl3lightmapstate_t;
 
 extern gl3model_t *gl3_worldmodel;
-extern gl3model_t *currentmodel;
 extern entity_t *currententity;
 
 extern float gl3depthmin, gl3depthmax;
@@ -436,7 +435,7 @@ extern void GL3_BuildLightMap(msurface_t *surf, int offsetInLMbuf, int stride);
 extern void GL3_LM_InitBlock(void);
 extern void GL3_LM_UploadBlock(void);
 extern qboolean GL3_LM_AllocBlock(int w, int h, int *x, int *y);
-extern void GL3_LM_BuildPolygonFromSurface(msurface_t *fa);
+extern void GL3_LM_BuildPolygonFromSurface(gl3model_t *currentmodel, msurface_t *fa);
 extern void GL3_LM_CreateSurfaceLightmap(msurface_t *surf);
 extern void GL3_LM_BeginBuildingLightmaps(gl3model_t *m);
 extern void GL3_LM_EndBuildingLightmaps(void);
@@ -458,7 +457,7 @@ extern void GL3_DrawGLPoly(msurface_t *fa);
 extern void GL3_DrawGLFlowingPoly(msurface_t *fa);
 extern void GL3_DrawTriangleOutlines(void);
 extern void GL3_DrawAlphaSurfaces(void);
-extern void GL3_DrawBrushModel(entity_t *e);
+extern void GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel);
 extern void GL3_DrawWorld(void);
 extern void GL3_MarkLeaves(void);
 

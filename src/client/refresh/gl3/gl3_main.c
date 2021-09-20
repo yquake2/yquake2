@@ -50,7 +50,6 @@ refdef_t gl3_newrefdef;
 
 viddef_t vid;
 gl3model_t *gl3_worldmodel;
-gl3model_t *currentmodel;
 entity_t *currententity;
 
 float gl3depthmin=0.0f, gl3depthmax=1.0f;
@@ -773,7 +772,7 @@ GL3_DrawBeam(entity_t *e)
 }
 
 static void
-GL3_DrawSpriteModel(entity_t *e)
+GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 {
 	float alpha = 1.0F;
 	gl3_3D_vtx_t verts[4];
@@ -990,7 +989,7 @@ GL3_DrawEntitiesOnList(void)
 		}
 		else
 		{
-			currentmodel = currententity->model;
+			gl3model_t *currentmodel = currententity->model;
 
 			if (!currentmodel)
 			{
@@ -1004,10 +1003,10 @@ GL3_DrawEntitiesOnList(void)
 					GL3_DrawAliasModel(currententity);
 					break;
 				case mod_brush:
-					GL3_DrawBrushModel(currententity);
+					GL3_DrawBrushModel(currententity, currentmodel);
 					break;
 				case mod_sprite:
-					GL3_DrawSpriteModel(currententity);
+					GL3_DrawSpriteModel(currententity, currentmodel);
 					break;
 				default:
 					ri.Sys_Error(ERR_DROP, "Bad modeltype");
@@ -1036,7 +1035,7 @@ GL3_DrawEntitiesOnList(void)
 		}
 		else
 		{
-			currentmodel = currententity->model;
+			gl3model_t *currentmodel = currententity->model;
 
 			if (!currentmodel)
 			{
@@ -1050,10 +1049,10 @@ GL3_DrawEntitiesOnList(void)
 					GL3_DrawAliasModel(currententity);
 					break;
 				case mod_brush:
-					GL3_DrawBrushModel(currententity);
+					GL3_DrawBrushModel(currententity, currentmodel);
 					break;
 				case mod_sprite:
-					GL3_DrawSpriteModel(currententity);
+					GL3_DrawSpriteModel(currententity, currentmodel);
 					break;
 				default:
 					ri.Sys_Error(ERR_DROP, "Bad modeltype");
