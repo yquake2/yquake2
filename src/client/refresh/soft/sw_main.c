@@ -1298,7 +1298,7 @@ static void
 RE_RenderFrame (refdef_t *fd)
 {
 	r_newrefdef = *fd;
-	entity_t	r_worldentity;
+	entity_t	ent;
 
 	if (!r_worldmodel && !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
 	{
@@ -1339,9 +1339,14 @@ RE_RenderFrame (refdef_t *fd)
 	// For each dlight_t* passed via r_newrefdef.dlights, mark polygons affected by a light.
 	R_PushDlights (r_worldmodel);
 
+	// TODO: rearange code same as in GL*_DrawWorld?
+	/* auto cycle the world frame for texture animation */
+	memset(&ent, 0, sizeof(ent));
+	ent.frame = (int)(r_newrefdef.time * 2);
+
 	// Build the Global Edge Table and render it via the Active Edge Table
 	// Render the map
-	R_EdgeDrawing (&r_worldentity);
+	R_EdgeDrawing (&ent);
 
 	if (r_dspeeds->value)
 	{
@@ -1376,10 +1381,10 @@ RE_RenderFrame (refdef_t *fd)
 		dp_time2 = SDL_GetTicks();
 
 	// Perform pixel palette blending ia the pics/colormap.pcx lower part lookup table.
-	R_DrawAlphaSurfaces(&r_worldentity);
+	R_DrawAlphaSurfaces(&ent);
 
 	// Save off light value for server to look at (BIG HACK!)
-	R_SetLightLevel (&r_worldentity);
+	R_SetLightLevel (&ent);
 
 	if (r_dowarp)
 		D_WarpScreen ();
