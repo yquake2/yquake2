@@ -29,13 +29,11 @@
 
 enum { MAX_MOD_KNOWN = 512 };
 
-static gl3model_t *loadmodel;
 YQ2_ALIGNAS_TYPE(int) static byte mod_novis[MAX_MAP_LEAFS / 8];
 gl3model_t mod_known[MAX_MOD_KNOWN];
 static int mod_numknown;
 static int mod_max = 0;
 int registration_sequence;
-static byte *mod_base;
 
 /* the inline * models from the current map are kept seperate */
 gl3model_t mod_inline[MAX_MOD_KNOWN];
@@ -164,7 +162,7 @@ GL3_Mod_Init(void)
 }
 
 static void
-Mod_LoadLighting(lump_t *l)
+Mod_LoadLighting(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	if (!l->filelen)
 	{
@@ -177,7 +175,7 @@ Mod_LoadLighting(lump_t *l)
 }
 
 static void
-Mod_LoadVisibility(lump_t *l)
+Mod_LoadVisibility(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int i;
 
@@ -200,7 +198,7 @@ Mod_LoadVisibility(lump_t *l)
 }
 
 static void
-Mod_LoadVertexes(lump_t *l)
+Mod_LoadVertexes(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dvertex_t *in;
 	mvertex_t *out;
@@ -229,7 +227,7 @@ Mod_LoadVertexes(lump_t *l)
 }
 
 static void
-Mod_LoadSubmodels(lump_t *l)
+Mod_LoadSubmodels(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dmodel_t *in;
 	mmodel_t *out;
@@ -267,7 +265,7 @@ Mod_LoadSubmodels(lump_t *l)
 }
 
 static void
-Mod_LoadEdges(lump_t *l)
+Mod_LoadEdges(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dedge_t *in;
 	medge_t *out;
@@ -295,7 +293,7 @@ Mod_LoadEdges(lump_t *l)
 }
 
 static void
-Mod_LoadTexinfo(lump_t *l)
+Mod_LoadTexinfo(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	texinfo_t *in;
 	mtexinfo_t *out, *step;
@@ -371,7 +369,7 @@ Mod_LoadTexinfo(lump_t *l)
  * Fills in s->texturemins[] and s->extents[]
  */
 static void
-Mod_CalcSurfaceExtents(msurface_t *s)
+Mod_CalcSurfaceExtents(gl3model_t *loadmodel, msurface_t *s)
 {
 	float mins[2], maxs[2], val;
 	int i, j, e;
@@ -429,7 +427,7 @@ Mod_CalcSurfaceExtents(msurface_t *s)
 extern void
 GL3_SubdivideSurface(msurface_t *fa, gl3model_t* loadmodel);
 
-static int calcTexinfoAndFacesSize(const lump_t *fl, const lump_t *tl)
+static int calcTexinfoAndFacesSize(byte *mod_base, const lump_t *fl, const lump_t *tl)
 {
 	dface_t* face_in = (void *)(mod_base + fl->fileofs);
 	texinfo_t* texinfo_in = (void *)(mod_base + tl->fileofs);
@@ -505,7 +503,7 @@ static int calcTexinfoAndFacesSize(const lump_t *fl, const lump_t *tl)
 }
 
 static void
-Mod_LoadFaces(lump_t *l)
+Mod_LoadFaces(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dface_t *in;
 	msurface_t *out;
@@ -558,7 +556,7 @@ Mod_LoadFaces(lump_t *l)
 
 		out->texinfo = loadmodel->texinfo + ti;
 
-		Mod_CalcSurfaceExtents(out);
+		Mod_CalcSurfaceExtents(loadmodel, out);
 
 		/* lighting info */
 		for (i = 0; i < MAX_LIGHTMAPS_PER_SURFACE; i++)
@@ -629,7 +627,7 @@ Mod_SetParent(mnode_t *node, mnode_t *parent)
 }
 
 static void
-Mod_LoadNodes(lump_t *l)
+Mod_LoadNodes(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int i, j, count, p;
 	dnode_t *in;
@@ -683,7 +681,7 @@ Mod_LoadNodes(lump_t *l)
 }
 
 static void
-Mod_LoadLeafs(lump_t *l)
+Mod_LoadLeafs(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dleaf_t *in;
 	mleaf_t *out;
@@ -733,7 +731,7 @@ Mod_LoadLeafs(lump_t *l)
 }
 
 static void
-Mod_LoadMarksurfaces(lump_t *l)
+Mod_LoadMarksurfaces(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int i, j, count;
 	short *in;
@@ -767,7 +765,7 @@ Mod_LoadMarksurfaces(lump_t *l)
 }
 
 static void
-Mod_LoadSurfedges(lump_t *l)
+Mod_LoadSurfedges(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int i, count;
 	int *in, *out;
@@ -800,7 +798,7 @@ Mod_LoadSurfedges(lump_t *l)
 }
 
 static void
-Mod_LoadPlanes(lump_t *l)
+Mod_LoadPlanes(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int i, j;
 	cplane_t *out;
@@ -863,11 +861,12 @@ static int calcLumpHunkSize(const lump_t *l, int inSize, int outSize)
 }
 
 static void
-Mod_LoadBrushModel(gl3model_t *mod, void *buffer, int modfilelen)
+Mod_LoadBrushModel(gl3model_t *loadmodel, void *buffer, int modfilelen)
 {
 	int i;
 	dheader_t *header;
 	mmodel_t *bm;
+	byte *mod_base;
 
 	if (loadmodel != mod_known)
 	{
@@ -881,7 +880,7 @@ Mod_LoadBrushModel(gl3model_t *mod, void *buffer, int modfilelen)
 	if (i != BSPVERSION)
 	{
 		ri.Sys_Error(ERR_DROP, "%s: %s has wrong version number (%i should be %i)",
-				__func__, mod->name, i, BSPVERSION);
+				__func__, loadmodel->name, i, BSPVERSION);
 	}
 
 	/* swap all the lumps */
@@ -902,7 +901,7 @@ Mod_LoadBrushModel(gl3model_t *mod, void *buffer, int modfilelen)
 		hunkSize += calcLumpHunkSize(&header->lumps[LUMP_SURFEDGES], sizeof(int), sizeof(int));
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LIGHTING], 1, 1);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_PLANES], sizeof(dplane_t), sizeof(cplane_t)*2);
-	hunkSize += calcTexinfoAndFacesSize(&header->lumps[LUMP_FACES], &header->lumps[LUMP_TEXINFO]);
+	hunkSize += calcTexinfoAndFacesSize(mod_base, &header->lumps[LUMP_FACES], &header->lumps[LUMP_TEXINFO]);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFFACES], sizeof(short), sizeof(msurface_t *)); // yes, out is indeeed a pointer!
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VISIBILITY], 1, 1);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFS], sizeof(dleaf_t), sizeof(mleaf_t));
@@ -913,26 +912,26 @@ Mod_LoadBrushModel(gl3model_t *mod, void *buffer, int modfilelen)
 	loadmodel->type = mod_brush;
 
 	/* load into heap */
-	Mod_LoadVertexes(&header->lumps[LUMP_VERTEXES]);
-	Mod_LoadEdges(&header->lumps[LUMP_EDGES]);
-	Mod_LoadSurfedges(&header->lumps[LUMP_SURFEDGES]);
-	Mod_LoadLighting(&header->lumps[LUMP_LIGHTING]);
-	Mod_LoadPlanes(&header->lumps[LUMP_PLANES]);
-	Mod_LoadTexinfo(&header->lumps[LUMP_TEXINFO]);
-	Mod_LoadFaces(&header->lumps[LUMP_FACES]);
-	Mod_LoadMarksurfaces(&header->lumps[LUMP_LEAFFACES]);
-	Mod_LoadVisibility(&header->lumps[LUMP_VISIBILITY]);
-	Mod_LoadLeafs(&header->lumps[LUMP_LEAFS]);
-	Mod_LoadNodes(&header->lumps[LUMP_NODES]);
-	Mod_LoadSubmodels(&header->lumps[LUMP_MODELS]);
-	mod->numframes = 2; /* regular and alternate animation */
+	Mod_LoadVertexes(loadmodel, mod_base, &header->lumps[LUMP_VERTEXES]);
+	Mod_LoadEdges(loadmodel, mod_base, &header->lumps[LUMP_EDGES]);
+	Mod_LoadSurfedges(loadmodel, mod_base, &header->lumps[LUMP_SURFEDGES]);
+	Mod_LoadLighting(loadmodel, mod_base, &header->lumps[LUMP_LIGHTING]);
+	Mod_LoadPlanes(loadmodel, mod_base, &header->lumps[LUMP_PLANES]);
+	Mod_LoadTexinfo(loadmodel, mod_base, &header->lumps[LUMP_TEXINFO]);
+	Mod_LoadFaces(loadmodel, mod_base, &header->lumps[LUMP_FACES]);
+	Mod_LoadMarksurfaces(loadmodel, mod_base, &header->lumps[LUMP_LEAFFACES]);
+	Mod_LoadVisibility(loadmodel, mod_base, &header->lumps[LUMP_VISIBILITY]);
+	Mod_LoadLeafs(loadmodel, mod_base, &header->lumps[LUMP_LEAFS]);
+	Mod_LoadNodes(loadmodel, mod_base, &header->lumps[LUMP_NODES]);
+	Mod_LoadSubmodels(loadmodel, mod_base, &header->lumps[LUMP_MODELS]);
+	loadmodel->numframes = 2; /* regular and alternate animation */
 
 	/* set up the submodels */
-	for (i = 0; i < mod->numsubmodels; i++)
+	for (i = 0; i < loadmodel->numsubmodels; i++)
 	{
 		gl3model_t *starmod;
 
-		bm = &mod->submodels[i];
+		bm = &loadmodel->submodels[i];
 		starmod = &mod_inline[i];
 
 		*starmod = *loadmodel;
@@ -1063,8 +1062,6 @@ Mod_ForName(char *name, qboolean crash)
 		return NULL;
 	}
 
-	loadmodel = mod;
-
 	/* call the apropriate loader */
 	switch (LittleLong(*(unsigned *)buf))
 	{
@@ -1086,7 +1083,7 @@ Mod_ForName(char *name, qboolean crash)
 			break;
 	}
 
-	loadmodel->extradatasize = Hunk_End();
+	mod->extradatasize = Hunk_End();
 
 	ri.FS_FreeFile(buf);
 
