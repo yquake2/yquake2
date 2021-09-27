@@ -273,6 +273,7 @@ InitGame(void)
 
 	/* others */
 	aimfix = gi.cvar("aimfix", "0", CVAR_ARCHIVE);
+	machinegun_norecoil = gi.cvar("machinegun_norecoil", "0", CVAR_ARCHIVE);
 
 	/* items */
 	InitItems();
