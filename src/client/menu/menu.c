@@ -1482,7 +1482,7 @@ Options_MenuInit(void)
     s_options_oggshuffle_box.generic.type = MTYPE_SPINCONTROL;
     s_options_oggshuffle_box.generic.x = 0;
     s_options_oggshuffle_box.generic.y = 30;
-    s_options_oggshuffle_box.generic.name = "Shuffle";
+    s_options_oggshuffle_box.generic.name = "OGG shuffle";
     s_options_oggshuffle_box.generic.callback = OGGShuffleFunc;
     s_options_oggshuffle_box.itemnames = ogg_shuffle;
 
