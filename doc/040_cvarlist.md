@@ -49,7 +49,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   slightly inaccurate, bullets and the like have a little drift. When
   set to `1` they hit exactly were the crosshair is.
   
-* **machinegun_norecoil**: Disable machine gun recoil in single player. 
+* **g_machinegun_norecoil**: Disable machine gun recoil in single player. 
   By default this is set to `0`, this keeps the original machine gun 
   recoil in single player. When set to `1` the recoil is disabled in
   single player, the same way as in multiplayer.

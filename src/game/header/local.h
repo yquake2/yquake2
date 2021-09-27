@@ -549,7 +549,7 @@ extern cvar_t *flood_waitdelay;
 extern cvar_t *sv_maplist;
 
 extern cvar_t *aimfix;
-extern cvar_t *machinegun_norecoil;
+extern cvar_t *g_machinegun_norecoil;
 
 #define world (&g_edicts[0])
 
