@@ -667,6 +667,7 @@ cheatvar_t cheatvars[] = {
 	{"gl_saturatelighting", "0"},
 	{"cl_kickangles", "1"},
 	{"g_footsteps", "1"},
+	{"g_machinegun_norecoil", "0"},
 	{NULL, NULL}
 };
 
