@@ -86,6 +86,7 @@ cvar_t *sv_maplist;
 cvar_t *gib_on;
 
 cvar_t *aimfix;
+cvar_t *g_machinegun_norecoil;
 
 void SpawnEntities(char *mapname, char *entities, char *spawnpoint);
 void ClientThink(edict_t *ent, usercmd_t *cmd);
