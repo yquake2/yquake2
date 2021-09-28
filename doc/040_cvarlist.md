@@ -49,12 +49,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   slightly inaccurate, bullets and the like have a little drift. When
   set to `1` they hit exactly were the crosshair is.
   
-* **g_machinegun_norecoil**: Disable machine gun recoil in single player. 
-  By default this is set to `0`, this keeps the original machine gun 
-  recoil in single player. When set to `1` the recoil is disabled in
-  single player, the same way as in multiplayer.
-  This cvar only works if the game.dll implements this behaviour.
-
 * **busywait**: By default this is set to `1`, causing Quake II to spin
   in a very tight loop until it's time to process the next frame. This
   is a very accurate way to determine the internal timing, but comes with
@@ -164,6 +158,12 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   have a targetname. There are a few cases of this in GroundZero and
   The Reckoning. This cvar is disabled by default to maintain the
   original gameplay experience.
+
+* **g_machinegun_norecoil**: Disable machine gun recoil in single player. 
+  By default this is set to `0`, this keeps the original machine gun 
+  recoil in single player. When set to `1` the recoil is disabled in
+  single player, the same way as in multiplayer.
+  This cvar only works if the game.dll implements this behaviour.
 
 * **g_disruptor (Ground Zero only)**: This boolean cvar controls the
   availability of the Disruptor weapon to players. The Disruptor is
