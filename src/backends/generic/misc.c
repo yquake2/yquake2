@@ -192,7 +192,7 @@ void Sys_SetupFPU(void) {
 }
 #else
 void Sys_SetupFPU(void) {
-#if defined(__arm__)
+#if defined(__arm__) && defined(__ARM_PCS_VFP)
 	// Enable RunFast mode if not enabled already
 	static const unsigned int bit = 0x04086060;
 	static const unsigned int fpscr = 0x03000000;
