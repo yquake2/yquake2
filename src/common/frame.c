@@ -560,33 +560,22 @@ Qcommon_Frame(int usec)
 	{
 		if (cl_async->value)
 		{
+			float coefps = 1.0f;
 			if (R_IsVSyncActive())
 			{
-				// Netwwork frames.
-				if (packetdelta < (0.8 * (1000000.0f / pfps)))
-				{
-					packetframe = false;
-				}
-
-				// Render frames.
-				if (renderdelta < (0.8 * (1000000.0f / rfps)))
-				{
-					renderframe = false;
-				}
+				coefps = 0.8f;
 			}
-			else
-			{
-				// Network frames.
-				if (packetdelta < (1000000.0f / pfps))
-				{
-					packetframe = false;
-				}
 
-				// Render frames.
-				if (renderdelta < (1000000.0f ) / rfps)
-				{
-					renderframe = false;
-				}
+			// Netwwork frames.
+			if (packetdelta < (coefps * (1000000.0f / pfps)))
+			{
+				packetframe = false;
+			}
+
+			// Render frames.
+			if (renderdelta < (coefps * (1000000.0f / rfps)))
+			{
+				renderframe = false;
 			}
 		}
 		else

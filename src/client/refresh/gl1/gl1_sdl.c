@@ -30,7 +30,7 @@
 #include <SDL2/SDL.h>
 
 #if defined(__APPLE__)
-#include <OpenGL/gl.h>
+#include <OpenGL/OpenGL.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -130,6 +130,7 @@ int RI_PrepareForWindow(void)
  */
 void RI_SetVsync(void)
 {
+#ifndef __APPLE__
 	// Make sure that the user given
 	// value is SDL compatible...
 	int vsync = 0;
@@ -155,6 +156,33 @@ void RI_SetVsync(void)
 	}
 
 	vsyncActive = SDL_GL_GetSwapInterval() != 0;
+#else
+	CGLContextObj cur;
+	GLint vsync = 0;
+
+	if (r_vsync->value == 1)
+	{
+		vsync = 1;
+	}
+
+	cur = CGLGetCurrentContext();
+
+	if (cur)
+	{
+		CGLError err;
+		if ((err = CGLSetParameter(cur, kCGLCPSwapInterval, &vsync)) != kCGLNoError)
+		{
+			R_Printf(PRINT_ALL, "Failed to set vsync: %s.\n", CGLErrorString(err));
+		}
+
+		CGLGetParameter(cur, kCGLCPSwapInterval, &vsync);
+		vsyncActive = vsync == 1;
+	}
+	else
+	{
+		ri.Sys_Error(ERR_FATAL, "%s no GL context found", __func__);
+	}
+#endif
 }
 
 /*

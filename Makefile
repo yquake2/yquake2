@@ -627,7 +627,7 @@ ref_gl3:
 	$(MAKE) release/ref_gl3.dylib
 
 
-release/ref_gl3.dylib : LDFLAGS += -shared
+release/ref_gl3.dylib : LDFLAGS += -shared -framework OpenGL
 
 else # not Windows or Darwin
 
