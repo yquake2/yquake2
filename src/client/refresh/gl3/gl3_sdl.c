@@ -162,6 +162,11 @@ void GL3_SetVsync(void)
 	{
 		vsync = 1;
 	}
+	else if (r_vsync->value == 2)
+	{
+		R_Printf(PRINT_ALL, "Adaptative vsync unsupported");
+		return;
+	}
 
 	cur = CGLGetCurrentContext();
 
