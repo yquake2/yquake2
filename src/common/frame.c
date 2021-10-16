@@ -602,9 +602,15 @@ Qcommon_Frame(int usec)
 			}
 		}
 	}
-	else if (clienttimedelta < 1000 || servertimedelta < 1000)
+	else
 	{
-		return;
+		/* minimal frame time in timedemo fps * 5 ~ 5000 */
+		int minframetime;
+
+		minframetime = 1000 * 1000 / 5 / vid_maxfps->value;
+
+		if (clienttimedelta < minframetime || servertimedelta < minframetime)
+			return;
 	}
 
 
