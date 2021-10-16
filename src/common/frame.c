@@ -142,33 +142,36 @@ Qcommon_Mainloop(void)
 	while (1)
 	{
 #ifndef DEDICATED_ONLY
-		// Throttle the game a little bit.
-		if (busywait->value)
+		if (!cl_timedemo->value)
 		{
-			long long spintime = Sys_Microseconds();
-
-			while (1)
+			// Throttle the game a little bit.
+			if (busywait->value)
 			{
-				/* Give the CPU a hint that this is a very tight
-				   spinloop. One PAUSE instruction each loop is
-				   enough to reduce power consumption and head
-				   dispersion a lot, it's 95°C against 67°C on
-				   a Kaby Lake laptop. */
+				long long spintime = Sys_Microseconds();
+
+				while (1)
+				{
+					/* Give the CPU a hint that this is a very tight
+					   spinloop. One PAUSE instruction each loop is
+					   enough to reduce power consumption and head
+					   dispersion a lot, it's 95°C against 67°C on
+					   a Kaby Lake laptop. */
 #if defined (__GNUC__) && (__i386 || __x86_64__)
-				asm("pause");
+					asm("pause");
 #elif defined(__aarch64__) || (defined(__ARM_ARCH) && __ARM_ARCH >= 7) || defined(__ARM_ARCH_6K__)
-				asm("yield");
+					asm("yield");
 #endif
 
-				if (Sys_Microseconds() - spintime >= 5)
-				{
-					break;
+					if (Sys_Microseconds() - spintime >= 5)
+					{
+						break;
+					}
 				}
 			}
-		}
-		else
-		{
-			Sys_Nanosleep(5000);
+			else
+			{
+				Sys_Nanosleep(5000);
+			}
 		}
 #else
 		Sys_Nanosleep(850000);
