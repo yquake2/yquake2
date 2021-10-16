@@ -780,7 +780,6 @@ void Z_FreeTags(int tag);
 void Qcommon_Init(int argc, char **argv);
 void Qcommon_ExecConfigs(qboolean addEarlyCmds);
 const char* Qcommon_GetInitialGame(void);
-void Qcommon_Frame(int msec);
 void Qcommon_Shutdown(void);
 
 #define NUMVERTEXNORMALS 162

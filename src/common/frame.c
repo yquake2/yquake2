@@ -81,6 +81,8 @@ char userGivenGame[MAX_QPATH];
 // Hack for the signal handlers.
 qboolean quitnextframe;
 
+static void Qcommon_Frame(int usec);
+
 // ----
 
 static void
@@ -130,7 +132,7 @@ Qcommon_Buildstring(void)
 	printf("Architecture: %s\n", YQ2ARCH);
 }
 
-void
+static void
 Qcommon_Mainloop(void)
 {
 	long long newtime;
@@ -173,6 +175,10 @@ Qcommon_Mainloop(void)
 #endif
 
 		newtime = Sys_Microseconds();
+
+		// Save global time for network- und input code.
+		curtime = (int)(newtime / 1000ll);
+
 		Qcommon_Frame(newtime - oldtime);
 		oldtime = newtime;
 	}
@@ -392,7 +398,7 @@ Qcommon_Init(int argc, char **argv)
 }
 
 #ifndef DEDICATED_ONLY
-void
+static void
 Qcommon_Frame(int usec)
 {
 	// Used for the dedicated server console.
@@ -522,11 +528,6 @@ Qcommon_Frame(int usec)
 	{
 		Cvar_SetValue("cl_maxfps", 60);
 	}
-
-
-	// Save global time for network- und input code.
-	curtime = Sys_Milliseconds();
-
 
 	// Calculate target and renderframerate.
 	if (R_IsVSyncActive())
@@ -668,7 +669,7 @@ Qcommon_Frame(int usec)
 	}
 }
 #else
-void
+static void
 Qcommon_Frame(int usec)
 {
 	// For the dedicated server terminal console.
@@ -718,10 +719,6 @@ Qcommon_Frame(int usec)
 	{
 		usec *= timescale->value;
 	}
-
-
-	// Save global time for network- und input code.
-	curtime = Sys_Milliseconds();
 
 
 	// Target framerate.
