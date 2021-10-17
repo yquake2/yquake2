@@ -191,7 +191,8 @@ extern cvar_t *r_mode;
 extern cvar_t *r_customwidth;
 extern cvar_t *r_customheight;
 
-extern cvar_t *gl_retexturing;
+extern cvar_t *r_retexturing;
+extern cvar_t *r_scale8bittextures;
 
 extern cvar_t *gl_nolerp_list;
 

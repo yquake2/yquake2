@@ -100,7 +100,8 @@ cvar_t *r_fixsurfsky;
 cvar_t *r_customwidth;
 cvar_t *r_customheight;
 
-cvar_t *gl_retexturing;
+cvar_t *r_retexturing;
+cvar_t *r_scale8bittextures;
 
 cvar_t *gl_nolerp_list;
 
@@ -1260,7 +1261,8 @@ R_Register(void)
 	r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
 	gl_msaa_samples = ri.Cvar_Get ( "r_msaa_samples", "0", CVAR_ARCHIVE );
 
-	gl_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+	r_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+	r_scale8bittextures = ri.Cvar_Get("r_scale8bittextures", "0", CVAR_ARCHIVE);
 
 	/* don't bilerp characters and crosshairs */
 	gl_nolerp_list = ri.Cvar_Get("r_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);

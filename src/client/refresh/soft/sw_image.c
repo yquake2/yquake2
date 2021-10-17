@@ -581,7 +581,7 @@ R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 	image_t	*image = NULL;
 
 	// with retexturing and not skin
-	if (sw_retexturing->value)
+	if (r_retexturing->value)
 	{
 		image = R_LoadHiColorImage(name, namewe, ext, type);
 	}
@@ -598,7 +598,7 @@ R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 			if (!pic)
 				return NULL;
 
-			if (sw_retexturing->value == 2 && type == it_pic)
+			if (r_scale8bittextures->value && type == it_pic)
 			{
 				byte *scaled = NULL;
 				int realwidth, realheight;

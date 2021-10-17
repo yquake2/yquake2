@@ -281,7 +281,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **r_retexturing**: If set to `1` (the default) and a retexturing pack
   is installed, the high resolution textures are used.
-  If set to `2` and vulkan render is used, scale up all 8bit textures.
+
+* **r_scale8bittextures**: If set to `1`, scale up all 8bit textures.
 
 * **r_shadows**: Enables rendering of shadows. Quake IIs shadows are
   very simple and are prone to render errors.

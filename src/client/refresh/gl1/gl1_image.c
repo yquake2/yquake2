@@ -939,7 +939,7 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 		if (bits == 8)
 		{
 			// resize 8bit images only when we forced such logic
-			if (gl_retexturing->value >= 2)
+			if (r_scale8bittextures->value)
 			{
 				byte *image_converted = malloc(width * height * 4);
 				scale2x(pic, image_converted, width, height);
@@ -1173,7 +1173,7 @@ R_FindImage(char *name, imagetype_t type)
 
 	if (strcmp(ext, "pcx") == 0)
 	{
-		if (gl_retexturing->value)
+		if (r_retexturing->value)
 		{
 			GetPCXInfo(name, &realwidth, &realheight);
 			if(realwidth == 0)
@@ -1220,7 +1220,7 @@ R_FindImage(char *name, imagetype_t type)
 	}
 	else if (strcmp(ext, "wal") == 0 || strcmp(ext, "m8") == 0)
 	{
-		if (gl_retexturing->value)
+		if (r_retexturing->value)
 		{
 			/* Get size of the original texture */
 			if (strcmp(ext, "m8") == 0)

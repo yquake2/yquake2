@@ -480,7 +480,8 @@ extern void GL3_UpdateUBOLights(void);
 
 extern cvar_t *gl_msaa_samples;
 extern cvar_t *r_vsync;
-extern cvar_t *gl_retexturing;
+extern cvar_t *r_retexturing;
+extern cvar_t *r_scale8bittextures;
 extern cvar_t *vid_fullscreen;
 extern cvar_t *r_mode;
 extern cvar_t *r_customwidth;

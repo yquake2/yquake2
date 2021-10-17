@@ -79,7 +79,8 @@ const hmm_mat4 gl3_identityMat4 = {{
 
 cvar_t *gl_msaa_samples;
 cvar_t *r_vsync;
-cvar_t *gl_retexturing;
+cvar_t *r_retexturing;
+cvar_t *r_scale8bittextures;
 cvar_t *vid_fullscreen;
 cvar_t *r_mode;
 cvar_t *r_customwidth;
@@ -197,7 +198,8 @@ GL3_Register(void)
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
 	r_vsync = ri.Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
 	gl_msaa_samples = ri.Cvar_Get ( "r_msaa_samples", "0", CVAR_ARCHIVE );
-	gl_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+	r_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+	r_scale8bittextures = ri.Cvar_Get("r_scale8bittextures", "0", CVAR_ARCHIVE);
 	gl3_debugcontext = ri.Cvar_Get("gl3_debugcontext", "0", 0);
 	r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
 	r_customwidth = ri.Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
@@ -299,7 +301,7 @@ GL3_Register(void)
 	//r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
 	//gl_msaa_samples = ri.Cvar_Get ( "r_msaa_samples", "0", CVAR_ARCHIVE );
 
-	//gl_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+	//r_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
 
 
 	gl1_stereo = ri.Cvar_Get( "gl1_stereo", "0", CVAR_ARCHIVE );
