@@ -251,7 +251,15 @@ SV_WritePlayerstateToClient(client_frame_t *from, client_frame_t *to,
 		pflags |= PS_RDFLAGS;
 	}
 
-	if (ps->gunframe != ops->gunframe)
+	if ((ps->gunframe != ops->gunframe) ||
+		/* added so weapon angle/offset update during pauseframes */
+		(ps->gunoffset[0] != ops->gunoffset[0]) ||
+		(ps->gunoffset[1] != ops->gunoffset[1]) ||
+		(ps->gunoffset[2] != ops->gunoffset[2]) ||
+
+		(ps->gunangles[0] != ops->gunangles[0]) ||
+		(ps->gunangles[1] != ops->gunangles[1]) ||
+		(ps->gunangles[2] != ops->gunangles[2]))
 	{
 		pflags |= PS_WEAPONFRAME;
 	}
