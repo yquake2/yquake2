@@ -107,6 +107,7 @@ cvar_t *r_norefresh;
 cvar_t *r_drawentities;
 cvar_t *r_drawworld;
 cvar_t *gl_nolerp_list;
+cvar_t *r_2D_unfiltered;
 cvar_t *gl_nobind;
 cvar_t *r_lockpvs;
 cvar_t *r_novis;
@@ -221,6 +222,8 @@ GL3_Register(void)
 
 	/* don't bilerp characters and crosshairs */
 	gl_nolerp_list = ri.Cvar_Get("r_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
+	/* don't bilerp any 2D elements */
+	r_2D_unfiltered = ri.Cvar_Get("r_2D_unfiltered", "0", CVAR_ARCHIVE);
 	gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
 
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
@@ -1766,11 +1769,14 @@ GL3_BeginFrame(float camera_separation)
 	}
 
 	/* texturemode stuff */
-	if (gl_texturemode->modified || (gl3config.anisotropic && gl_anisotropic->modified))
+	if (gl_texturemode->modified || (gl3config.anisotropic && gl_anisotropic->modified)
+	    || gl_nolerp_list->modified || r_2D_unfiltered->modified)
 	{
 		GL3_TextureMode(gl_texturemode->string);
 		gl_texturemode->modified = false;
 		gl_anisotropic->modified = false;
+		gl_nolerp_list->modified = false;
+		r_2D_unfiltered->modified = false;
 	}
 
 	if (r_vsync->modified)

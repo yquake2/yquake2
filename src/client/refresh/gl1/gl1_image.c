@@ -214,13 +214,16 @@ R_TextureMode(char *string)
 	}
 
 	const char* nolerplist = gl_nolerp_list->string;
+	qboolean unfiltered2D = r_2D_unfiltered->value != 0;
 
 	/* change all the existing mipmap texture objects */
 	for (i = 0, glt = gltextures; i < numgltextures; i++, glt++)
 	{
-		if (nolerplist != NULL && strstr(nolerplist, glt->name) != NULL)
+		qboolean nolerp = false;
+		/* r_2D_unfiltered and r_nolerp_list allow rendering stuff unfiltered even if gl_filter_* is filtered */
+		if ( (unfiltered2D && glt->type == it_pic) || (nolerplist != NULL && strstr(nolerplist, glt->name) != NULL) )
 		{
-			continue; /* those (by default: font and crosshairs) always only use GL_NEAREST */
+			nolerp = true;
 		}
 
 		R_Bind(glt->texnum);
@@ -238,10 +241,19 @@ R_TextureMode(char *string)
 		}
 		else /* texture has no mipmaps */
 		{
-			// we can't use gl_filter_min which might be GL_*_MIPMAP_*
-			// also, there's no anisotropic filtering for textures w/o mipmaps
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+			if (nolerp)
+			{
+				// this texture shouldn't be filtered at all (no gl_nolerp_list or r_2D_unfiltered case)
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			}
+			else
+			{
+				// we can't use gl_filter_min which might be GL_*_MIPMAP_*
+				// also, there's no anisotropic filtering for textures w/o mipmaps
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+			}
 		}
 	}
 }
@@ -849,8 +861,11 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 	int i;
 
 	qboolean nolerp = false;
-
-	if(gl_nolerp_list != NULL && gl_nolerp_list->string != NULL)
+	if (r_2D_unfiltered->value && type == it_pic)
+	{
+		nolerp = true;
+	}
+	else if(gl_nolerp_list != NULL && gl_nolerp_list->string != NULL)
 	{
 		nolerp = strstr(gl_nolerp_list->string, name) != NULL;
 	}

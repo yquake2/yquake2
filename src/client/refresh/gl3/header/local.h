@@ -487,6 +487,7 @@ extern cvar_t *r_mode;
 extern cvar_t *r_customwidth;
 extern cvar_t *r_customheight;
 
+extern cvar_t *r_2D_unfiltered;
 extern cvar_t *gl_nolerp_list;
 extern cvar_t *gl_nobind;
 extern cvar_t *r_lockpvs;

@@ -104,6 +104,7 @@ cvar_t *r_retexturing;
 cvar_t *r_scale8bittextures;
 
 cvar_t *gl_nolerp_list;
+cvar_t *r_2D_unfiltered;
 
 cvar_t *gl1_dynamic;
 cvar_t *r_modulate;
@@ -1266,6 +1267,8 @@ R_Register(void)
 
 	/* don't bilerp characters and crosshairs */
 	gl_nolerp_list = ri.Cvar_Get("r_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
+	/* don't bilerp any 2D elements */
+	r_2D_unfiltered = ri.Cvar_Get("r_2D_unfiltered", "0", CVAR_ARCHIVE);
 
 	gl1_stereo = ri.Cvar_Get( "gl1_stereo", "0", CVAR_ARCHIVE );
 	gl1_stereo_separation = ri.Cvar_Get( "gl1_stereo_separation", "-0.4", CVAR_ARCHIVE );
@@ -1689,11 +1692,14 @@ RI_BeginFrame(float camera_separation)
 	}
 
 	/* texturemode stuff */
-	if (gl_texturemode->modified || (gl_config.anisotropic && gl_anisotropic->modified))
+	if (gl_texturemode->modified || (gl_config.anisotropic && gl_anisotropic->modified)
+	    || gl_nolerp_list->modified || r_2D_unfiltered->modified)
 	{
 		R_TextureMode(gl_texturemode->string);
 		gl_texturemode->modified = false;
 		gl_anisotropic->modified = false;
+		gl_nolerp_list->modified = false;
+		r_2D_unfiltered->modified = false;
 	}
 
 	if (gl1_texturealphamode->modified)
