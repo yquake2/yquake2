@@ -298,49 +298,63 @@ Cbuf_AddEarlyCommands(qboolean clear)
 qboolean
 Cbuf_AddLateCommands(void)
 {
+	int i, j;
+	int s;
+	char *text, c;
+	int argc;
 	qboolean has_args = false;
-	char *arg;
-	int i, argc = COM_Argc();
+
+	/* build the combined string to parse from */
+	s = 0;
+	argc = COM_Argc();
 
 	for (i = 1; i < argc; i++)
 	{
-		arg = COM_Argv(i);
+		s += strlen(COM_Argv(i)) + 1;
+	}
 
-		if (*arg != '+')
+	if (!s)
+	{
+		return false;
+	}
+
+	text = Z_Malloc(s + 1);
+	text[0] = 0;
+
+	for (i = 1; i < argc; i++)
+	{
+		strcat(text, COM_Argv(i));
+
+		if (i != argc - 1)
 		{
-			continue;
-		}
-
-		has_args = true;
-		i++;
-
-		Cbuf_AddText(arg + 1);
-		Cbuf_AddText(" ");
-
-		/* add the command parameters if any */
-		while (1)
-		{
-			if (i >= argc)
-			{
-				Cbuf_AddText("\n");
-				break;
-			}
-
-			arg = COM_Argv(i);
-
-			if (*arg == '-' || *arg == '+')
-			{
-				Cbuf_AddText("\n");
-				i--;	/* i gets incremented again by the outer loop */
-				break;
-			}
-
-			Cbuf_AddText(arg);
-			Cbuf_AddText(" ");
-
-			i++;
+			strcat(text, " ");
 		}
 	}
+
+	/* pull out the commands */
+	for (i = 0; i < s - 1; i++)
+	{
+		if (text[i] == '+')
+		{
+			i++;
+
+			for (j = i; (text[j] != '+') && !(text[j] == '-' && text[j-1] == ' ') && (text[j] != 0); j++)
+			{
+			}
+
+			c = text[j];
+			text[j] = 0;
+
+			Cbuf_AddText(text + i);
+			Cbuf_AddText("\n");
+
+			has_args = true;
+			text[j] = c;
+			i = j - 1;
+		}
+	}
+
+	Z_Free(text);
 
 	return has_args;
 }
