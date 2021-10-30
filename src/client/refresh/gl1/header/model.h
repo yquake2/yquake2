@@ -172,7 +172,7 @@ typedef struct model_s
 	int lightmap; /* only for submodels */
 
 	int numsubmodels;
-	mmodel_t *submodels;
+	struct model_s *submodels;
 
 	int numplanes;
 	cplane_t *planes;
@@ -211,13 +211,15 @@ typedef struct model_s
 
 	int extradatasize;
 	void *extradata;
+
+	// submodules
+	vec3_t		origin;	// for sounds or lights
 } model_t;
 
 void Mod_Init(void);
 void Mod_ClearAll(void);
-model_t *Mod_ForName(char *name, qboolean crash);
 mleaf_t *Mod_PointInLeaf(vec3_t p, model_t *model);
-byte *Mod_ClusterPVS(int cluster, model_t *model);
+const byte *Mod_ClusterPVS(int cluster, const model_t *model);
 
 void Mod_Modellist_f(void);
 

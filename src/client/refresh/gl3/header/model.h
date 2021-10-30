@@ -195,7 +195,7 @@ typedef struct model_s
 	int lightmap; /* only for submodels */
 
 	int numsubmodels;
-	mmodel_t *submodels;
+	struct model_s *submodels;
 
 	int numplanes;
 	cplane_t *planes;
@@ -234,6 +234,9 @@ typedef struct model_s
 
 	int extradatasize;
 	void *extradata;
+
+	// submodules
+	vec3_t		origin;	// for sounds or lights
 } gl3model_t;
 
 #endif /* SRC_CLIENT_REFRESH_GL3_HEADER_MODEL_H_ */

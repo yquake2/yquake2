@@ -541,16 +541,26 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 		{
 			if((flags & SDL_WINDOW_OPENGL) && gl_msaa_samples->value)
 			{
+				int msaa_samples = gl_msaa_samples->value;
+
+				if (msaa_samples > 0)
+				{
+					msaa_samples /= 2;
+				}
+
 				Com_Printf("SDL SetVideoMode failed: %s\n", SDL_GetError());
-				Com_Printf("Reverting to %s r_mode %i (%ix%i) without MSAA.\n",
+				Com_Printf("Reverting to %s r_mode %i (%ix%i) with %dx MSAA.\n",
 					        (flags & fs_flag) ? "fullscreen" : "windowed",
-					        (int) Cvar_VariableValue("r_mode"), width, height);
+					        (int) Cvar_VariableValue("r_mode"), width, height,
+					        msaa_samples);
 
 				/* Try to recover */
-				Cvar_SetValue("r_msaa_samples", 0);
+				Cvar_SetValue("r_msaa_samples", msaa_samples);
 
-				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
-				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS,
+					msaa_samples > 0 ? 1 : 0);
+				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,
+					msaa_samples);
 			}
 			else if (width != 640 || height != 480 || (flags & fs_flag))
 			{

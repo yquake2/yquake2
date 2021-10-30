@@ -581,7 +581,7 @@ R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 	image_t	*image = NULL;
 
 	// with retexturing and not skin
-	if (sw_retexturing->value)
+	if (r_retexturing->value)
 	{
 		image = R_LoadHiColorImage(name, namewe, ext, type);
 	}
@@ -598,7 +598,7 @@ R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 			if (!pic)
 				return NULL;
 
-			if (sw_retexturing->value == 2 && type == it_pic)
+			if (r_scale8bittextures->value && type == it_pic)
 			{
 				byte *scaled = NULL;
 				int realwidth, realheight;
@@ -810,6 +810,7 @@ R_InitImages (void)
 {
 	unsigned char * table16to8;
 	registration_sequence = 1;
+	image_max = 0;
 
 	d_16to8table = NULL;
 	ri.FS_LoadFile("pics/16to8.dat", (void **)&table16to8);

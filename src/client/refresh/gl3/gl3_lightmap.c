@@ -118,7 +118,7 @@ GL3_LM_AllocBlock(int w, int h, int *x, int *y)
 }
 
 void
-GL3_LM_BuildPolygonFromSurface(msurface_t *fa)
+GL3_LM_BuildPolygonFromSurface(gl3model_t *currentmodel, msurface_t *fa)
 {
 	int i, lindex, lnumverts;
 	medge_t *pedges, *r_pedge;

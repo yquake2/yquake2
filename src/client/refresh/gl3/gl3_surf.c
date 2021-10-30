@@ -159,7 +159,7 @@ CullBox(vec3_t mins, vec3_t maxs)
  * Returns the proper texture for a given time and base texture
  */
 static gl3image_t *
-TextureAnimation(mtexinfo_t *tex)
+TextureAnimation(entity_t *currententity, mtexinfo_t *tex)
 {
 	int c;
 
@@ -337,14 +337,14 @@ UpdateLMscales(const hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE], gl3ShaderInfo
 }
 
 static void
-RenderBrushPoly(msurface_t *fa)
+RenderBrushPoly(entity_t *currententity, msurface_t *fa)
 {
 	int map;
 	gl3image_t *image;
 
 	c_brush_polys++;
 
-	image = TextureAnimation(fa->texinfo);
+	image = TextureAnimation(currententity, fa->texinfo);
 
 	if (fa->flags & SURF_DRAWTURB)
 	{
@@ -449,7 +449,7 @@ GL3_DrawAlphaSurfaces(void)
 }
 
 static void
-DrawTextureChains(void)
+DrawTextureChains(entity_t *currententity)
 {
 	int i;
 	msurface_t *s;
@@ -476,7 +476,7 @@ DrawTextureChains(void)
 		for ( ; s; s = s->texturechain)
 		{
 			SetLightFlags(s);
-			RenderBrushPoly(s);
+			RenderBrushPoly(currententity, s);
 		}
 
 		image->texturechain = NULL;
@@ -486,10 +486,10 @@ DrawTextureChains(void)
 }
 
 static void
-RenderLightmappedPoly(msurface_t *surf)
+RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
 {
 	int map;
-	gl3image_t *image = TextureAnimation(surf->texinfo);
+	gl3image_t *image = TextureAnimation(currententity, surf->texinfo);
 
 	hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE] = {0};
 	lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -526,7 +526,7 @@ RenderLightmappedPoly(msurface_t *surf)
 }
 
 static void
-DrawInlineBModel(void)
+DrawInlineBModel(entity_t *currententity, gl3model_t *currentmodel)
 {
 	int i, k;
 	cplane_t *pplane;
@@ -574,11 +574,11 @@ DrawInlineBModel(void)
 			else if(!(psurf->flags & SURF_DRAWTURB))
 			{
 				SetAllLightFlags(psurf);
-				RenderLightmappedPoly(psurf);
+				RenderLightmappedPoly(currententity, psurf);
 			}
 			else
 			{
-				RenderBrushPoly(psurf);
+				RenderBrushPoly(currententity, psurf);
 			}
 		}
 	}
@@ -590,7 +590,7 @@ DrawInlineBModel(void)
 }
 
 void
-GL3_DrawBrushModel(entity_t *e)
+GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel)
 {
 	vec3_t mins, maxs;
 	int i;
@@ -601,7 +601,6 @@ GL3_DrawBrushModel(entity_t *e)
 		return;
 	}
 
-	currententity = e;
 	gl3state.currenttexture = -1;
 
 	if (e->angles[0] || e->angles[1] || e->angles[2])
@@ -656,7 +655,7 @@ GL3_DrawBrushModel(entity_t *e)
 	e->angles[0] = -e->angles[0];
 	e->angles[2] = -e->angles[2];
 
-	DrawInlineBModel();
+	DrawInlineBModel(e, currentmodel);
 
 	// glPopMatrix();
 	gl3state.uni3DData.transModelMat4 = oldMat;
@@ -669,7 +668,7 @@ GL3_DrawBrushModel(entity_t *e)
 }
 
 static void
-RecursiveWorldNode(mnode_t *node)
+RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 {
 	int c, side, sidebit;
 	cplane_t *plane;
@@ -755,7 +754,7 @@ RecursiveWorldNode(mnode_t *node)
 	}
 
 	/* recurse down the children, front side first */
-	RecursiveWorldNode(node->children[side]);
+	RecursiveWorldNode(currententity, node->children[side]);
 
 	/* draw stuff */
 	for (c = node->numsurfaces,
@@ -782,7 +781,7 @@ RecursiveWorldNode(mnode_t *node)
 			/* add to the translucent chain */
 			surf->texturechain = gl3_alpha_surfaces;
 			gl3_alpha_surfaces = surf;
-			gl3_alpha_surfaces->texinfo->image = TextureAnimation(surf->texinfo);
+			gl3_alpha_surfaces->texinfo->image = TextureAnimation(currententity, surf->texinfo);
 		}
 		else
 		{
@@ -798,7 +797,7 @@ RecursiveWorldNode(mnode_t *node)
 #endif // 0
 			{
 				/* the polygon is visible, so add it to the texture sorted chain */
-				image = TextureAnimation(surf->texinfo);
+				image = TextureAnimation(currententity, surf->texinfo);
 				surf->texturechain = image->texturechain;
 				image->texturechain = surf;
 			}
@@ -806,7 +805,7 @@ RecursiveWorldNode(mnode_t *node)
 	}
 
 	/* recurse down the back side */
-	RecursiveWorldNode(node->children[!side]);
+	RecursiveWorldNode(currententity, node->children[!side]);
 }
 
 void
@@ -824,24 +823,19 @@ GL3_DrawWorld(void)
 		return;
 	}
 
-	currentmodel = gl3_worldmodel;
-
 	VectorCopy(gl3_newrefdef.vieworg, modelorg);
 
 	/* auto cycle the world frame for texture animation */
 	memset(&ent, 0, sizeof(ent));
 	ent.frame = (int)(gl3_newrefdef.time * 2);
-	currententity = &ent;
 
 	gl3state.currenttexture = -1;
 
 	GL3_ClearSkyBox();
-	RecursiveWorldNode(gl3_worldmodel->nodes);
-	DrawTextureChains();
+	RecursiveWorldNode(&ent, gl3_worldmodel->nodes);
+	DrawTextureChains(&ent);
 	GL3_DrawSkyBox();
 	DrawTriangleOutlines();
-
-	currententity = NULL;
 }
 
 /*
@@ -851,7 +845,7 @@ GL3_DrawWorld(void)
 void
 GL3_MarkLeaves(void)
 {
-	byte *vis;
+	const byte *vis;
 	YQ2_ALIGNAS_TYPE(int) byte fatvis[MAX_MAP_LEAFS / 8];
 	mnode_t *node;
 	int i, c;

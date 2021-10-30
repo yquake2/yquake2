@@ -1422,6 +1422,10 @@ SCR_Framecounter(void) {
 	static int frametimes[60] = {0};
 	static long long oldtime;
 
+	/* skip statistics without show fps */
+	if (cl_showfps->value < 1)
+		return;
+
 	newtime = Sys_Microseconds();
 	frametimes[frame] = (int)(newtime - oldtime);
 

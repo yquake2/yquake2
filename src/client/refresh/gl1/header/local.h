@@ -145,8 +145,6 @@ extern int numgltextures;
 
 extern image_t *r_notexture;
 extern image_t *r_particletexture;
-extern entity_t *currententity;
-extern model_t *currentmodel;
 extern int r_visframecount;
 extern int r_framecount;
 extern cplane_t frustum[4];
@@ -193,7 +191,8 @@ extern cvar_t *r_mode;
 extern cvar_t *r_customwidth;
 extern cvar_t *r_customheight;
 
-extern cvar_t *gl_retexturing;
+extern cvar_t *r_retexturing;
+extern cvar_t *r_scale8bittextures;
 
 extern cvar_t *gl_nolerp_list;
 
@@ -244,7 +243,7 @@ void R_Bind(int texnum);
 
 void R_TexEnv(GLenum value);
 
-void R_LightPoint(vec3_t p, vec3_t color);
+void R_LightPoint(entity_t *currententity, vec3_t p, vec3_t color);
 void R_PushDlights(void);
 
 extern model_t *r_worldmodel;
@@ -253,19 +252,17 @@ extern int registration_sequence;
 
 void V_AddBlend(float r, float g, float b, float a, float *v_blend);
 
-void R_RenderView(refdef_t *fd);
 void R_ScreenShot(void);
-void R_DrawAliasModel(entity_t *e);
-void R_DrawBrushModel(entity_t *e);
-void R_DrawSpriteModel(entity_t *e);
+void R_DrawAliasModel(entity_t *currententity, const model_t *currentmodel);
+void R_DrawBrushModel(entity_t *currententity, const model_t *currentmodel);
+void R_DrawSpriteModel(entity_t *currententity, const model_t *currentmodel);
 void R_DrawBeam(entity_t *e);
 void R_DrawWorld(void);
 void R_RenderDlights(void);
 void R_DrawAlphaSurfaces(void);
-void R_RenderBrushPoly(msurface_t *fa);
 void R_InitParticleTexture(void);
 void Draw_InitLocal(void);
-void R_SubdivideSurface(msurface_t *fa);
+void R_SubdivideSurface(model_t *loadmodel, msurface_t *fa);
 qboolean R_CullBox(vec3_t mins, vec3_t maxs);
 void R_RotateForEntity(entity_t *e);
 void R_MarkLeaves(void);
@@ -295,6 +292,7 @@ void R_InitImages(void);
 void R_ShutdownImages(void);
 
 void R_FreeUnusedImages(void);
+qboolean R_ImageHasFreeSpace(void);
 
 void R_TextureAlphaMode(char *string);
 void R_TextureSolidMode(char *string);

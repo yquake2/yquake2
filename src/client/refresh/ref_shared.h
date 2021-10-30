@@ -74,5 +74,5 @@ extern void GetWalInfo(char *name, int *width, int *height);
 extern void GetM8Info(char *name, int *width, int *height);
 
 extern float Mod_RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
-extern byte* Mod_DecompressVis(byte *in, int row);
+extern const byte* Mod_DecompressVis(const byte *in, int row);
 #endif /* SRC_CLIENT_REFRESH_REF_SHARED_H_ */

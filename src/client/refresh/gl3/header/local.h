@@ -300,8 +300,6 @@ typedef struct
 } gl3lightmapstate_t;
 
 extern gl3model_t *gl3_worldmodel;
-extern gl3model_t *currentmodel;
-extern entity_t *currententity;
 
 extern float gl3depthmin, gl3depthmax;
 
@@ -381,7 +379,7 @@ extern void GL3_BeginRegistration(char *model);
 extern struct model_s * GL3_RegisterModel(char *name);
 extern void GL3_EndRegistration(void);
 extern void GL3_Mod_Modellist_f(void);
-extern byte* GL3_Mod_ClusterPVS(int cluster, gl3model_t *model);
+extern const byte* GL3_Mod_ClusterPVS(int cluster, const gl3model_t *model);
 extern mleaf_t* GL3_Mod_PointInLeaf(vec3_t p, gl3model_t *model);
 
 // gl3_draw.c
@@ -421,12 +419,13 @@ extern gl3image_t *GL3_FindImage(char *name, imagetype_t type);
 extern gl3image_t *GL3_RegisterSkin(char *name);
 extern void GL3_ShutdownImages(void);
 extern void GL3_FreeUnusedImages(void);
+extern qboolean GL3_ImageHasFreeSpace(void);
 extern void GL3_ImageList_f(void);
 
 // gl3_light.c
 extern void GL3_MarkLights(dlight_t *light, int bit, mnode_t *node);
 extern void GL3_PushDlights(void);
-extern void GL3_LightPoint(vec3_t p, vec3_t color);
+extern void GL3_LightPoint(entity_t *currententity, vec3_t p, vec3_t color);
 extern void GL3_BuildLightMap(msurface_t *surf, int offsetInLMbuf, int stride);
 
 // gl3_lightmap.c
@@ -435,7 +434,7 @@ extern void GL3_BuildLightMap(msurface_t *surf, int offsetInLMbuf, int stride);
 extern void GL3_LM_InitBlock(void);
 extern void GL3_LM_UploadBlock(void);
 extern qboolean GL3_LM_AllocBlock(int w, int h, int *x, int *y);
-extern void GL3_LM_BuildPolygonFromSurface(msurface_t *fa);
+extern void GL3_LM_BuildPolygonFromSurface(gl3model_t *currentmodel, msurface_t *fa);
 extern void GL3_LM_CreateSurfaceLightmap(msurface_t *surf);
 extern void GL3_LM_BeginBuildingLightmaps(gl3model_t *m);
 extern void GL3_LM_EndBuildingLightmaps(void);
@@ -457,7 +456,7 @@ extern void GL3_DrawGLPoly(msurface_t *fa);
 extern void GL3_DrawGLFlowingPoly(msurface_t *fa);
 extern void GL3_DrawTriangleOutlines(void);
 extern void GL3_DrawAlphaSurfaces(void);
-extern void GL3_DrawBrushModel(entity_t *e);
+extern void GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel);
 extern void GL3_DrawWorld(void);
 extern void GL3_MarkLeaves(void);
 
@@ -481,7 +480,8 @@ extern void GL3_UpdateUBOLights(void);
 
 extern cvar_t *gl_msaa_samples;
 extern cvar_t *r_vsync;
-extern cvar_t *gl_retexturing;
+extern cvar_t *r_retexturing;
+extern cvar_t *r_scale8bittextures;
 extern cvar_t *vid_fullscreen;
 extern cvar_t *r_mode;
 extern cvar_t *r_customwidth;

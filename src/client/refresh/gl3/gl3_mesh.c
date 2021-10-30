@@ -711,7 +711,7 @@ GL3_DrawAliasModel(entity_t *entity)
 	}
 	else
 	{
-		GL3_LightPoint(entity->origin, shadelight);
+		GL3_LightPoint(entity, entity->origin, shadelight);
 
 		/* player lighting hack for communication back to server */
 		if (entity->flags & RF_WEAPONMODEL)

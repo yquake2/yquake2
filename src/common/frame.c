@@ -81,6 +81,8 @@ char userGivenGame[MAX_QPATH];
 // Hack for the signal handlers.
 qboolean quitnextframe;
 
+static void Qcommon_Frame(int usec);
+
 // ----
 
 static void
@@ -130,7 +132,7 @@ Qcommon_Buildstring(void)
 	printf("Architecture: %s\n", YQ2ARCH);
 }
 
-void
+static void
 Qcommon_Mainloop(void)
 {
 	long long newtime;
@@ -140,39 +142,46 @@ Qcommon_Mainloop(void)
 	while (1)
 	{
 #ifndef DEDICATED_ONLY
-		// Throttle the game a little bit.
-		if (busywait->value)
+		if (!cl_timedemo->value)
 		{
-			long long spintime = Sys_Microseconds();
-
-			while (1)
+			// Throttle the game a little bit.
+			if (busywait->value)
 			{
-				/* Give the CPU a hint that this is a very tight
-				   spinloop. One PAUSE instruction each loop is
-				   enough to reduce power consumption and head
-				   dispersion a lot, it's 95°C against 67°C on
-				   a Kaby Lake laptop. */
+				long long spintime = Sys_Microseconds();
+
+				while (1)
+				{
+					/* Give the CPU a hint that this is a very tight
+					   spinloop. One PAUSE instruction each loop is
+					   enough to reduce power consumption and head
+					   dispersion a lot, it's 95°C against 67°C on
+					   a Kaby Lake laptop. */
 #if defined (__GNUC__) && (__i386 || __x86_64__)
-				asm("pause");
+					asm("pause");
 #elif defined(__aarch64__) || (defined(__ARM_ARCH) && __ARM_ARCH >= 7) || defined(__ARM_ARCH_6K__)
-				asm("yield");
+					asm("yield");
 #endif
 
-				if (Sys_Microseconds() - spintime >= 5)
-				{
-					break;
+					if (Sys_Microseconds() - spintime >= 5)
+					{
+						break;
+					}
 				}
 			}
-		}
-		else
-		{
-			Sys_Nanosleep(5000);
+			else
+			{
+				Sys_Nanosleep(5000);
+			}
 		}
 #else
 		Sys_Nanosleep(850000);
 #endif
 
 		newtime = Sys_Microseconds();
+
+		// Save global time for network- und input code.
+		curtime = (int)(newtime / 1000ll);
+
 		Qcommon_Frame(newtime - oldtime);
 		oldtime = newtime;
 	}
@@ -392,7 +401,7 @@ Qcommon_Init(int argc, char **argv)
 }
 
 #ifndef DEDICATED_ONLY
-void
+static void
 Qcommon_Frame(int usec)
 {
 	// Used for the dedicated server console.
@@ -523,11 +532,6 @@ Qcommon_Frame(int usec)
 		Cvar_SetValue("cl_maxfps", 60);
 	}
 
-
-	// Save global time for network- und input code.
-	curtime = Sys_Milliseconds();
-
-
 	// Calculate target and renderframerate.
 	if (R_IsVSyncActive())
 	{
@@ -598,9 +602,15 @@ Qcommon_Frame(int usec)
 			}
 		}
 	}
-	else if (clienttimedelta < 1000 || servertimedelta < 1000)
+	else
 	{
-		return;
+		/* minimal frame time in timedemo fps * 5 ~ 5000 */
+		int minframetime;
+
+		minframetime = 1000 * 1000 / 5 / vid_maxfps->value;
+
+		if (clienttimedelta < minframetime || servertimedelta < minframetime)
+			return;
 	}
 
 
@@ -668,7 +678,7 @@ Qcommon_Frame(int usec)
 	}
 }
 #else
-void
+static void
 Qcommon_Frame(int usec)
 {
 	// For the dedicated server terminal console.
@@ -718,10 +728,6 @@ Qcommon_Frame(int usec)
 	{
 		usec *= timescale->value;
 	}
-
-
-	// Save global time for network- und input code.
-	curtime = Sys_Milliseconds();
 
 
 	// Target framerate.

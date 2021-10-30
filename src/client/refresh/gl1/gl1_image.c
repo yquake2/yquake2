@@ -28,6 +28,7 @@
 
 image_t gltextures[MAX_GLTEXTURES];
 int numgltextures;
+static int image_max = 0;
 int base_textureid; /* gltextures[i] = base_textureid+i */
 extern qboolean scrap_dirty;
 extern byte scrap_texels[MAX_SCRAPS][BLOCK_WIDTH * BLOCK_HEIGHT];
@@ -292,9 +293,9 @@ R_TextureSolidMode(char *string)
 void
 R_ImageList_f(void)
 {
-	int i;
+	int i, used, texels;
 	image_t *image;
-	int texels;
+	qboolean	freeup;
 	const char *palstrings[2] = {
 		"RGB",
 		"PAL"
@@ -302,12 +303,21 @@ R_ImageList_f(void)
 
 	R_Printf(PRINT_ALL, "------------------\n");
 	texels = 0;
+	used = 0;
 
 	for (i = 0, image = gltextures; i < numgltextures; i++, image++)
 	{
+		char *in_use = "";
+
 		if (image->texnum <= 0)
 		{
 			continue;
+		}
+
+		if (image->registration_sequence == registration_sequence)
+		{
+			in_use = "*";
+			used++;
 		}
 
 		texels += image->upload_width * image->upload_height;
@@ -331,14 +341,16 @@ R_ImageList_f(void)
 				break;
 		}
 
-		R_Printf(PRINT_ALL, " %3i %3i %s: %s\n",
+		R_Printf(PRINT_ALL, " %3i %3i %s: %s %s\n",
 				image->upload_width, image->upload_height,
-				palstrings[image->paletted], image->name);
+				palstrings[image->paletted], image->name, in_use);
 	}
 
 	R_Printf(PRINT_ALL,
 			"Total texel count (not counting mipmaps): %i\n",
 			texels);
+	freeup = R_ImageHasFreeSpace();
+	R_Printf(PRINT_ALL, "Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
 }
 
 /*
@@ -761,7 +773,7 @@ R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 qboolean
 R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 {
-	unsigned trans[512 * 256];
+	unsigned trans[1024 * 1024];
 	int i, s;
 	int p;
 
@@ -769,7 +781,7 @@ R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 
 	if (s > sizeof(trans) / 4)
 	{
-		ri.Sys_Error(ERR_DROP, "R_Upload8: too large");
+		ri.Sys_Error(ERR_DROP, "%s: too large", __func__);
 	}
 
 	if (gl_config.palettedtexture && is_sky)
@@ -926,9 +938,22 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 		if (bits == 8)
 		{
-			image->has_alpha = R_Upload8(pic, width, height,
-						(image->type != it_pic && image->type != it_sky),
-						image->type == it_sky);
+			// resize 8bit images only when we forced such logic
+			if (r_scale8bittextures->value)
+			{
+				byte *image_converted = malloc(width * height * 4);
+				scale2x(pic, image_converted, width, height);
+				image->has_alpha = R_Upload8(image_converted, width * 2, height * 2,
+							(image->type != it_pic && image->type != it_sky),
+							image->type == it_sky);
+				free(image_converted);
+			}
+			else
+			{
+				image->has_alpha = R_Upload8(pic, width, height,
+							(image->type != it_pic && image->type != it_sky),
+							image->type == it_sky);
+			}
 		}
 		else
 		{
@@ -1148,7 +1173,7 @@ R_FindImage(char *name, imagetype_t type)
 
 	if (strcmp(ext, "pcx") == 0)
 	{
-		if (gl_retexturing->value)
+		if (r_retexturing->value)
 		{
 			GetPCXInfo(name, &realwidth, &realheight);
 			if(realwidth == 0)
@@ -1195,7 +1220,7 @@ R_FindImage(char *name, imagetype_t type)
 	}
 	else if (strcmp(ext, "wal") == 0 || strcmp(ext, "m8") == 0)
 	{
-		if (gl_retexturing->value)
+		if (r_retexturing->value)
 		{
 			/* Get size of the original texture */
 			if (strcmp(ext, "m8") == 0)
@@ -1354,12 +1379,40 @@ R_FreeUnusedImages(void)
 	}
 }
 
+qboolean
+R_ImageHasFreeSpace(void)
+{
+	int		i, used;
+	image_t	*image;
+
+	used = 0;
+
+	for (i = 0, image = gltextures; i < numgltextures; i++, image++)
+	{
+		if (!image->name[0])
+			continue;
+		if (image->registration_sequence == registration_sequence)
+		{
+			used ++;
+		}
+	}
+
+	if (image_max < used)
+	{
+		image_max = used;
+	}
+
+	// should same size of free slots as currently used
+	return (numgltextures + used) < MAX_GLTEXTURES;
+}
+
 void
 R_InitImages(void)
 {
 	int i, j;
 
 	registration_sequence = 1;
+	image_max = 0;
 
 	/* init intensity conversions */
 	intensity = ri.Cvar_Get("gl1_intensity", "2", CVAR_ARCHIVE);

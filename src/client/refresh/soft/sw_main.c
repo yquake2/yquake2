@@ -53,8 +53,6 @@ refimport_t	ri;
 
 static unsigned	d_8to24table[256];
 
-entity_t	r_worldentity;
-
 char		skyname[MAX_QPATH];
 vec3_t		skyaxis;
 
@@ -148,7 +146,8 @@ static cvar_t	*sw_overbrightbits;
 cvar_t	*sw_custom_particles;
 static cvar_t	*sw_anisotropic;
 cvar_t	*sw_texture_filtering;
-cvar_t	*sw_retexturing;
+cvar_t	*r_retexturing;
+cvar_t	*r_scale8bittextures;
 cvar_t	*sw_gunzposition;
 static cvar_t	*sw_partialrefresh;
 
@@ -377,7 +376,8 @@ R_RegisterVariables (void)
 	sw_custom_particles = ri.Cvar_Get("sw_custom_particles", "0", CVAR_ARCHIVE);
 	sw_texture_filtering = ri.Cvar_Get("sw_texture_filtering", "0", CVAR_ARCHIVE);
 	sw_anisotropic = ri.Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
-	sw_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+	r_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+	r_scale8bittextures = ri.Cvar_Get("r_scale8bittextures", "0", CVAR_ARCHIVE);
 	sw_gunzposition = ri.Cvar_Get("sw_gunzposition", "8", CVAR_ARCHIVE);
 
 	// On MacOS texture is cleaned up after render and code have to copy a whole
@@ -744,7 +744,7 @@ cluster
 static void
 R_MarkLeaves (void)
 {
-	byte	*vis;
+	const byte	*vis;
 	mnode_t	*node;
 	int		i;
 	mleaf_t	*leaf;
@@ -1163,7 +1163,7 @@ Render the map
 ================
 */
 static void
-R_EdgeDrawing (void)
+R_EdgeDrawing (entity_t *currententity)
 {
 	if ( r_newrefdef.rdflags & RDF_NOWORLDMODEL )
 		return;
@@ -1181,7 +1181,7 @@ R_EdgeDrawing (void)
 
 	// Build the Global Edget Table
 	// Also populate the surface stack and count # surfaces to render (surf_max is the max)
-	R_RenderWorld ();
+	R_RenderWorld (currententity);
 
 	if (r_dspeeds->value)
 	{
@@ -1199,7 +1199,7 @@ R_EdgeDrawing (void)
 
 	// Use the Global Edge Table to maintin the Active Edge Table: Draw the world as scanlines
 	// Write the Z-Buffer (but no read)
-	R_ScanEdges (surface_p);
+	R_ScanEdges (currententity, surface_p);
 }
 
 //=======================================================================
@@ -1300,6 +1300,7 @@ static void
 RE_RenderFrame (refdef_t *fd)
 {
 	r_newrefdef = *fd;
+	entity_t	ent;
 
 	if (!r_worldmodel && !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
 	{
@@ -1340,9 +1341,14 @@ RE_RenderFrame (refdef_t *fd)
 	// For each dlight_t* passed via r_newrefdef.dlights, mark polygons affected by a light.
 	R_PushDlights (r_worldmodel);
 
+	// TODO: rearange code same as in GL*_DrawWorld?
+	/* auto cycle the world frame for texture animation */
+	memset(&ent, 0, sizeof(ent));
+	ent.frame = (int)(r_newrefdef.time * 2);
+
 	// Build the Global Edge Table and render it via the Active Edge Table
 	// Render the map
-	R_EdgeDrawing ();
+	R_EdgeDrawing (&ent);
 
 	if (r_dspeeds->value)
 	{
@@ -1377,10 +1383,10 @@ RE_RenderFrame (refdef_t *fd)
 		dp_time2 = SDL_GetTicks();
 
 	// Perform pixel palette blending ia the pics/colormap.pcx lower part lookup table.
-	R_DrawAlphaSurfaces(&r_worldentity);
+	R_DrawAlphaSurfaces(&ent);
 
 	// Save off light value for server to look at (BIG HACK!)
-	R_SetLightLevel (&r_worldentity);
+	R_SetLightLevel (&ent);
 
 	if (r_dowarp)
 		D_WarpScreen ();

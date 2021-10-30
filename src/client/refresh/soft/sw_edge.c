@@ -581,7 +581,7 @@ R_GenerateSpansBackward (void)
 	R_CleanupSpan ();
 }
 
-static void D_DrawSurfaces (surf_t *surface);
+static void D_DrawSurfaces (entity_t *currententity, surf_t *surface);
 
 /*
 ==============
@@ -597,7 +597,7 @@ Each surface has a linked list of its visible spans
 ==============
 */
 void
-R_ScanEdges (surf_t *surface)
+R_ScanEdges (entity_t *currententity, surf_t *surface)
 {
 	shift20_t	iv, bottom;
 	surf_t		*s;
@@ -672,7 +672,7 @@ R_ScanEdges (surf_t *surface)
 		if (span_p + r_refdef.vrect.width >= max_span_p)
 		{
 			// Draw stuff on screen
-			D_DrawSurfaces (surface);
+			D_DrawSurfaces (currententity, surface);
 
 			// clear the surface span pointers
 			for (s = &surfaces[1] ; s<surface ; s++)
@@ -707,7 +707,7 @@ R_ScanEdges (surf_t *surface)
 	(*pdrawfunc) ();
 
 	// draw whatever's left in the span list
-	D_DrawSurfaces (surface);
+	D_DrawSurfaces (currententity, surface);
 }
 
 
@@ -935,10 +935,8 @@ Normal surface cached, texture mapped surface
 ==============
 */
 static void
-D_SolidSurf (surf_t *s)
+D_SolidSurf (entity_t *currententity, surf_t *s)
 {
-	entity_t *currententity;
-
 	if (s->insubmodel)
 	{
 		vec3_t local_modelorg;
@@ -952,8 +950,6 @@ D_SolidSurf (surf_t *s)
 		R_RotateBmodel(currententity);	// FIXME: don't mess with the frustum,
 					// make entity passed in
 	}
-	else
-		currententity = &r_worldentity;
 
 	pface = s->msurf;
 	miplevel = D_MipLevelForScale(s->nearzi * scale_for_mip * pface->texinfo->mipadjust);
@@ -1022,7 +1018,7 @@ May be called more than once a frame if the surf list overflows (higher res)
 ==============
 */
 static void
-D_DrawSurfaces (surf_t *surface)
+D_DrawSurfaces (entity_t *currententity, surf_t *surface)
 {
 	VectorSubtract (r_origin, vec3_origin, modelorg);
 	TransformVector (modelorg, transformed_modelorg);
@@ -1040,7 +1036,7 @@ D_DrawSurfaces (surf_t *surface)
 			r_drawnpolycount++;
 
 			if (! (s->flags & (SURF_DRAWSKYBOX|SURF_DRAWBACKGROUND|SURF_DRAWTURB) ) )
-				D_SolidSurf (s);
+				D_SolidSurf (currententity, s);
 			else if (s->flags & SURF_DRAWSKYBOX)
 				D_SkySurf (s);
 			else if (s->flags & SURF_DRAWBACKGROUND)

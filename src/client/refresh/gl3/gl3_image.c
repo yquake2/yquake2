@@ -46,7 +46,8 @@ int gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int gl_filter_max = GL_LINEAR;
 
 gl3image_t gl3textures[MAX_GL3TEXTURES];
-int numgl3textures;
+int numgl3textures = 0;
+static int image_max = 0;
 
 void
 GL3_TextureMode(char *string)
@@ -225,7 +226,7 @@ GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 qboolean
 GL3_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 {
-	unsigned trans[512 * 256];
+	unsigned trans[1024 * 1024];
 	int i, s;
 	int p;
 
@@ -233,7 +234,7 @@ GL3_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 
 	if (s > sizeof(trans) / 4)
 	{
-		ri.Sys_Error(ERR_DROP, "GL3_Upload8: too large");
+		ri.Sys_Error(ERR_DROP, "%s: too large", __func__);
 	}
 
 	for (i = 0; i < s; i++)
@@ -429,9 +430,22 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 	if (bits == 8)
 	{
-		image->has_alpha = GL3_Upload8(pic, width, height,
-					(image->type != it_pic && image->type != it_sky),
-					image->type == it_sky);
+		// resize 8bit images only when we forced such logic
+		if (r_scale8bittextures->value)
+		{
+			byte *image_converted = malloc(width * height * 4);
+			scale2x(pic, image_converted, width, height);
+			image->has_alpha = GL3_Upload8(image_converted, width * 2, height * 2,
+						(image->type != it_pic && image->type != it_sky),
+						image->type == it_sky);
+			free(image_converted);
+		}
+		else
+		{
+			image->has_alpha = GL3_Upload8(pic, width, height,
+						(image->type != it_pic && image->type != it_sky),
+						image->type == it_sky);
+		}
 	}
 	else
 	{
@@ -732,7 +746,7 @@ GL3_FindImage(char *name, imagetype_t type)
 
 	if (strcmp(ext, "pcx") == 0)
 	{
-		if (gl_retexturing->value)
+		if (r_retexturing->value)
 		{
 			GetPCXInfo(name, &realwidth, &realheight);
 			if(realwidth == 0)
@@ -779,7 +793,7 @@ GL3_FindImage(char *name, imagetype_t type)
 	}
 	else if (strcmp(ext, "wal") == 0 || strcmp(ext, "m8") == 0)
 	{
-		if (gl_retexturing->value)
+		if (r_retexturing->value)
 		{
 			/* Get size of the original texture */
 			if (strcmp(ext, "m8") == 0)
@@ -935,6 +949,33 @@ GL3_FreeUnusedImages(void)
 	}
 }
 
+qboolean
+GL3_ImageHasFreeSpace(void)
+{
+	int		i, used;
+	gl3image_t	*image;
+
+	used = 0;
+
+	for (i = 0, image = gl3textures; i < numgl3textures; i++, image++)
+	{
+		if (!image->name[0])
+			continue;
+		if (image->registration_sequence == registration_sequence)
+		{
+			used ++;
+		}
+	}
+
+	if (image_max < used)
+	{
+		image_max = used;
+	}
+
+	// should same size of free slots as currently used
+	return (numgl3textures + used) < MAX_GL3TEXTURES;
+}
+
 void
 GL3_ShutdownImages(void)
 {
@@ -973,7 +1014,8 @@ static qboolean IsNPOT(int v)
 void
 GL3_ImageList_f(void)
 {
-	int i, texels=0;
+	int i, used, texels;
+	qboolean	freeup;
 	gl3image_t *image;
 	const char *formatstrings[2] = {
 		"RGB ",
@@ -985,15 +1027,25 @@ GL3_ImageList_f(void)
 	};
 
 	R_Printf(PRINT_ALL, "------------------\n");
+	texels = 0;
+	used = 0;
 
 	for (i = 0, image = gl3textures; i < numgl3textures; i++, image++)
 	{
 		int w, h;
+		char *in_use = "";
 		qboolean isNPOT = false;
 		if (image->texnum == 0)
 		{
 			continue;
 		}
+
+		if (image->registration_sequence == registration_sequence)
+		{
+			in_use = "*";
+			used++;
+		}
+
 		w = image->width;
 		h = image->height;
 
@@ -1023,9 +1075,11 @@ GL3_ImageList_f(void)
 				break;
 		}
 
-		R_Printf(PRINT_ALL, " %3i %3i %s %s: %s\n", w, h,
-		         formatstrings[image->has_alpha], potstrings[isNPOT], image->name);
+		R_Printf(PRINT_ALL, " %3i %3i %s %s: %s %s\n", w, h,
+		         formatstrings[image->has_alpha], potstrings[isNPOT], image->name, in_use);
 	}
 
 	R_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i\n", texels);
+	freeup = GL3_ImageHasFreeSpace();
+	R_Printf(PRINT_ALL, "Used %d of %d images%s.\n", used, image_max, freeup ? ", has free space" : "");
 }

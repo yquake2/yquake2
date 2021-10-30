@@ -50,8 +50,6 @@ refdef_t gl3_newrefdef;
 
 viddef_t vid;
 gl3model_t *gl3_worldmodel;
-gl3model_t *currentmodel;
-entity_t *currententity;
 
 float gl3depthmin=0.0f, gl3depthmax=1.0f;
 
@@ -81,7 +79,8 @@ const hmm_mat4 gl3_identityMat4 = {{
 
 cvar_t *gl_msaa_samples;
 cvar_t *r_vsync;
-cvar_t *gl_retexturing;
+cvar_t *r_retexturing;
+cvar_t *r_scale8bittextures;
 cvar_t *vid_fullscreen;
 cvar_t *r_mode;
 cvar_t *r_customwidth;
@@ -199,7 +198,8 @@ GL3_Register(void)
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
 	r_vsync = ri.Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
 	gl_msaa_samples = ri.Cvar_Get ( "r_msaa_samples", "0", CVAR_ARCHIVE );
-	gl_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+	r_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+	r_scale8bittextures = ri.Cvar_Get("r_scale8bittextures", "0", CVAR_ARCHIVE);
 	gl3_debugcontext = ri.Cvar_Get("gl3_debugcontext", "0", 0);
 	r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
 	r_customwidth = ri.Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
@@ -301,7 +301,7 @@ GL3_Register(void)
 	//r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
 	//gl_msaa_samples = ri.Cvar_Get ( "r_msaa_samples", "0", CVAR_ARCHIVE );
 
-	//gl_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+	//r_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
 
 
 	gl1_stereo = ri.Cvar_Get( "gl1_stereo", "0", CVAR_ARCHIVE );
@@ -773,7 +773,7 @@ GL3_DrawBeam(entity_t *e)
 }
 
 static void
-GL3_DrawSpriteModel(entity_t *e)
+GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 {
 	float alpha = 1.0F;
 	gl3_3D_vtx_t verts[4];
@@ -852,7 +852,7 @@ GL3_DrawSpriteModel(entity_t *e)
 }
 
 static void
-GL3_DrawNullModel(void)
+GL3_DrawNullModel(entity_t *currententity)
 {
 	vec3_t shadelight;
 
@@ -862,7 +862,7 @@ GL3_DrawNullModel(void)
 	}
 	else
 	{
-		GL3_LightPoint(currententity->origin, shadelight);
+		GL3_LightPoint(currententity, currententity->origin, shadelight);
 	}
 
 	hmm_mat4 origModelMat = gl3state.uni3DData.transModelMat4;
@@ -977,7 +977,7 @@ GL3_DrawEntitiesOnList(void)
 	/* draw non-transparent first */
 	for (i = 0; i < gl3_newrefdef.num_entities; i++)
 	{
-		currententity = &gl3_newrefdef.entities[i];
+		entity_t *currententity = &gl3_newrefdef.entities[i];
 
 		if (currententity->flags & RF_TRANSLUCENT)
 		{
@@ -990,11 +990,11 @@ GL3_DrawEntitiesOnList(void)
 		}
 		else
 		{
-			currentmodel = currententity->model;
+			gl3model_t *currentmodel = currententity->model;
 
 			if (!currentmodel)
 			{
-				GL3_DrawNullModel();
+				GL3_DrawNullModel(currententity);
 				continue;
 			}
 
@@ -1004,10 +1004,10 @@ GL3_DrawEntitiesOnList(void)
 					GL3_DrawAliasModel(currententity);
 					break;
 				case mod_brush:
-					GL3_DrawBrushModel(currententity);
+					GL3_DrawBrushModel(currententity, currentmodel);
 					break;
 				case mod_sprite:
-					GL3_DrawSpriteModel(currententity);
+					GL3_DrawSpriteModel(currententity, currentmodel);
 					break;
 				default:
 					ri.Sys_Error(ERR_DROP, "Bad modeltype");
@@ -1023,7 +1023,7 @@ GL3_DrawEntitiesOnList(void)
 
 	for (i = 0; i < gl3_newrefdef.num_entities; i++)
 	{
-		currententity = &gl3_newrefdef.entities[i];
+		entity_t *currententity = &gl3_newrefdef.entities[i];
 
 		if (!(currententity->flags & RF_TRANSLUCENT))
 		{
@@ -1036,11 +1036,11 @@ GL3_DrawEntitiesOnList(void)
 		}
 		else
 		{
-			currentmodel = currententity->model;
+			gl3model_t *currentmodel = currententity->model;
 
 			if (!currentmodel)
 			{
-				GL3_DrawNullModel();
+				GL3_DrawNullModel(currententity);
 				continue;
 			}
 
@@ -1050,10 +1050,10 @@ GL3_DrawEntitiesOnList(void)
 					GL3_DrawAliasModel(currententity);
 					break;
 				case mod_brush:
-					GL3_DrawBrushModel(currententity);
+					GL3_DrawBrushModel(currententity, currentmodel);
 					break;
 				case mod_sprite:
-					GL3_DrawSpriteModel(currententity);
+					GL3_DrawSpriteModel(currententity, currentmodel);
 					break;
 				default:
 					ri.Sys_Error(ERR_DROP, "Bad modeltype");
@@ -1580,7 +1580,7 @@ GL3_GetSpecialBufferModeForStereoMode(enum stereo_modes stereo_mode) {
 #endif // 0
 
 static void
-GL3_SetLightLevel(void)
+GL3_SetLightLevel(entity_t *currententity)
 {
 	vec3_t shadelight = {0};
 
@@ -1590,7 +1590,7 @@ GL3_SetLightLevel(void)
 	}
 
 	/* save off light value for server to look at */
-	GL3_LightPoint(gl3_newrefdef.vieworg, shadelight);
+	GL3_LightPoint(currententity, gl3_newrefdef.vieworg, shadelight);
 
 	/* pick the greatest component, which should be the
 	 * same as the mono value returned by software */
@@ -1622,7 +1622,7 @@ static void
 GL3_RenderFrame(refdef_t *fd)
 {
 	GL3_RenderView(fd);
-	GL3_SetLightLevel();
+	GL3_SetLightLevel(NULL);
 	GL3_SetGL2D();
 
 	if(v_blend[3] != 0.0f)

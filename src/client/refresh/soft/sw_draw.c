@@ -339,7 +339,7 @@ RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
 	// we have only one image size
 	pic.mip_levels = 1;
 
-	if (sw_retexturing->value)
+	if (r_retexturing->value)
 	{
 		if (cols < (w / 3) || rows < (h / 3))
 		{
@@ -373,7 +373,7 @@ RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
 
 	RE_Draw_StretchPicImplementation (x, y, w, h, &pic);
 
-	if (sw_retexturing->value)
+	if (r_retexturing->value)
 	{
 		free(image_scaled);
 	}
