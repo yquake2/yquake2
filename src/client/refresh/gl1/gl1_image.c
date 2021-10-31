@@ -785,16 +785,8 @@ R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 qboolean
 R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 {
-	unsigned trans[1024 * 1024];
-	int i, s;
-	int p;
-
-	s = width * height;
-
-	if (s > sizeof(trans) / 4)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: too large", __func__);
-	}
+	int s = width * height;
+	unsigned *trans = malloc(s * sizeof(unsigned));
 
 	if (gl_config.palettedtexture && is_sky)
 	{
@@ -809,9 +801,9 @@ R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 	}
 	else
 	{
-		for (i = 0; i < s; i++)
+		for (int i = 0; i < s; i++)
 		{
-			p = data[i];
+			int p = data[i];
 			trans[i] = d_8to24table[p];
 
 			/* transparent, so scan around for
@@ -846,7 +838,9 @@ R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 			}
 		}
 
-		return R_Upload32(trans, width, height, mipmap);
+		qboolean ret = R_Upload32(trans, width, height, mipmap);
+		free(trans);
+		return ret;
 	}
 }
 

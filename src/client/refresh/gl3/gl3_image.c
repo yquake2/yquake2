@@ -238,20 +238,12 @@ GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 qboolean
 GL3_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 {
-	unsigned trans[1024 * 1024];
-	int i, s;
-	int p;
+	int s = width * height;
+	unsigned *trans = malloc(s * sizeof(unsigned));
 
-	s = width * height;
-
-	if (s > sizeof(trans) / 4)
+	for (int i = 0; i < s; i++)
 	{
-		ri.Sys_Error(ERR_DROP, "%s: too large", __func__);
-	}
-
-	for (i = 0; i < s; i++)
-	{
-		p = data[i];
+		int p = data[i];
 		trans[i] = d_8to24table[p];
 
 		/* transparent, so scan around for
@@ -286,7 +278,9 @@ GL3_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 		}
 	}
 
-	return GL3_Upload32(trans, width, height, mipmap);
+	qboolean ret = GL3_Upload32(trans, width, height, mipmap);
+	free(trans);
+	return ret;
 }
 
 typedef struct
