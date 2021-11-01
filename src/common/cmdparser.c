@@ -300,9 +300,9 @@ Cbuf_AddLateCommands(void)
 {
 	int i, j;
 	int s;
-	char *text, *build, c;
+	char *text, c;
 	int argc;
-	qboolean ret;
+	qboolean has_args = false;
 
 	/* build the combined string to parse from */
 	s = 0;
@@ -332,9 +332,6 @@ Cbuf_AddLateCommands(void)
 	}
 
 	/* pull out the commands */
-	build = Z_Malloc(s + 1);
-	build[0] = 0;
-
 	for (i = 0; i < s - 1; i++)
 	{
 		if (text[i] == '+')
@@ -348,24 +345,18 @@ Cbuf_AddLateCommands(void)
 			c = text[j];
 			text[j] = 0;
 
-			strcat(build, text + i);
-			strcat(build, "\n");
+			Cbuf_AddText(text + i);
+			Cbuf_AddText("\n");
+
+			has_args = true;
 			text[j] = c;
 			i = j - 1;
 		}
 	}
 
-	ret = (build[0] != 0);
-
-	if (ret)
-	{
-		Cbuf_AddText(build);
-	}
-
 	Z_Free(text);
-	Z_Free(build);
 
-	return ret;
+	return has_args;
 }
 
 /*
