@@ -786,7 +786,6 @@ qboolean
 R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 {
 	int s = width * height;
-	unsigned *trans = malloc(s * sizeof(unsigned));
 
 	if (gl_config.palettedtexture && is_sky)
 	{
@@ -801,6 +800,8 @@ R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 	}
 	else
 	{
+		unsigned *trans = malloc(s * sizeof(unsigned));
+
 		for (int i = 0; i < s; i++)
 		{
 			int p = data[i];
