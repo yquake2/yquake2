@@ -1196,8 +1196,15 @@ ai_run(edict_t *self, float dist)
 		return;
 	}
 
+	tempgoal = G_SpawnOptional();
+
+	if (!tempgoal)
+	{
+		M_MoveToGoal(self, dist);
+		return;
+	}
+
 	save = self->goalentity;
-	tempgoal = G_Spawn();
 	self->goalentity = tempgoal;
 
 	new = false;

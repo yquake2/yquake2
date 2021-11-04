@@ -512,34 +512,58 @@ G_InitEdict(edict_t *e)
  * being removed and recreated, which can
  * cause interpolated angles and bad trails.
  */
-edict_t *
-G_Spawn(void)
+#define POLICY_DEFAULT		0
+#define POLICY_DESPERATE	1
+
+static edict_t *
+G_FindFreeEdict(int policy)
 {
-	int i;
 	edict_t *e;
 
-	e = &g_edicts[(int)maxclients->value + 1];
-
-	for (i = maxclients->value + 1; i < globals.num_edicts; i++, e++)
+	for (e = g_edicts + game.maxclients + 1 ; e < &g_edicts[globals.num_edicts] ; e++)
 	{
-		/* the first couple seconds of
-		   server time can involve a lot of
-		   freeing and allocating, so relax
-		   the replacement policy */
-		if (!e->inuse && ((e->freetime < 2) || (level.time - e->freetime > 0.5)))
+		/* the first couple seconds of server time can involve a lot of
+		   freeing and allocating, so relax the replacement policy
+		*/
+		if (!e->inuse && (policy == POLICY_DESPERATE || e->freetime < 2.0f || (level.time - e->freetime) > 0.5f))
 		{
-			G_InitEdict(e);
+			G_InitEdict (e);
 			return e;
 		}
 	}
 
-	if (i == game.maxentities)
+	return NULL;
+}
+
+edict_t *
+G_SpawnOptional(void)
+{
+	edict_t	*e = G_FindFreeEdict (POLICY_DEFAULT);
+
+	if (e)
 	{
-		gi.error("ED_Alloc: no free edicts");
+		return e;
 	}
 
-	globals.num_edicts++;
-	G_InitEdict(e);
+	if (globals.num_edicts >= game.maxentities)
+	{
+		return G_FindFreeEdict (POLICY_DESPERATE);
+	}
+
+	e = &g_edicts[globals.num_edicts++];
+	G_InitEdict (e);
+
+	return e;
+}
+
+edict_t *
+G_Spawn(void)
+{
+	edict_t *e = G_SpawnOptional();
+
+	if (!e)
+		gi.error ("ED_Alloc: no free edicts");
+
 	return e;
 }
 

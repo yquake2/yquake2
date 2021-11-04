@@ -196,14 +196,19 @@ ThrowGib(edict_t *self, char *gibname, int damage, int type)
 		return;
 	}
 
-	gibsthisframe++;
-
-	if (gibsthisframe > MAX_GIBS)
+	if (gibsthisframe >= MAX_GIBS)
 	{
 		return;
 	}
 
-	gib = G_Spawn();
+	gib = G_SpawnOptional();
+
+	if (!gib)
+	{
+		return;
+	}
+
+	gibsthisframe++;
 
 	VectorScale(self->size, 0.5, size);
 	VectorAdd(self->absmin, size, origin);
@@ -373,14 +378,20 @@ ThrowDebris(edict_t *self, char *modelname, float speed, vec3_t origin)
 		return;
 	}
 
-	debristhisframe++;
-
-	if (debristhisframe > MAX_DEBRIS)
+	if (debristhisframe >= MAX_DEBRIS)
 	{
 		return;
 	}
 
-	chunk = G_Spawn();
+	chunk = G_SpawnOptional();
+
+	if (!chunk)
+	{
+		return;
+	}
+
+	debristhisframe++;
+
 	VectorCopy(origin, chunk->s.origin);
 	gi.setmodel(chunk, modelname);
 	v[0] = 100 * crandom();

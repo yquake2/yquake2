@@ -629,6 +629,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator);
 void G_SetMovedir(vec3_t angles, vec3_t movedir);
 
 void G_InitEdict(edict_t *e);
+edict_t *G_SpawnOptional(void);
 edict_t *G_Spawn(void);
 void G_FreeEdict(edict_t *e);
 
