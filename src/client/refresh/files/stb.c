@@ -37,8 +37,6 @@
 #define STBI_MALLOC(sz)    malloc(sz)
 #define STBI_REALLOC(p,sz) realloc(p,sz)
 #define STBI_FREE(p)       free(p)
-// Switch of the thread local stuff. Breaks mingw under Windows.
-#define STBI_NO_THREAD_LOCALS
 // include implementation part of stb_image into this file
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
