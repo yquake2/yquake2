@@ -27,6 +27,9 @@
 #include "../header/local.h"
 #include "../monster/misc/player.h"
 
+#define PLAYER_NOISE_SELF 0
+#define PLAYER_NOISE_IMPACT 1
+
 #define FRAME_FIRE_FIRST (FRAME_ACTIVATE_LAST + 1)
 #define FRAME_IDLE_FIRST (FRAME_FIRE_LAST + 1)
 #define FRAME_DEACTIVATE_FIRST (FRAME_IDLE_LAST + 1)
@@ -90,12 +93,111 @@ P_ProjectSource(edict_t *ent, vec3_t distance,
  * Monsters that don't directly see the player can move
  * to a noise in hopes of seeing the player from there.
  */
+static edict_t *
+PlayerNoise_Spawn(edict_t *who, int type)
+{
+	edict_t *noise;
+
+	if (!who)
+	{
+		return NULL;
+	}
+
+	noise = G_SpawnOptional();
+	if (!noise)
+	{
+		return NULL;
+	}
+
+	noise->classname = "player_noise";
+	noise->spawnflags = type;
+	VectorSet (noise->mins, -8, -8, -8);
+	VectorSet (noise->maxs, 8, 8, 8);
+	noise->owner = who;
+	noise->svflags = SVF_NOCLIENT;
+
+	return noise;
+}
+
+static void
+PlayerNoise_Verify(edict_t *who)
+{
+	edict_t *e;
+	edict_t *n1;
+	edict_t *n2;
+
+	if (!who)
+	{
+		return;
+	}
+
+	n1 = who->mynoise;
+	n2 = who->mynoise2;
+
+	if (n1 && !n1->inuse)
+	{
+		n1 = NULL;
+	}
+
+	if (n2 && !n2->inuse)
+	{
+		n2 = NULL;
+	}
+
+	if (n1 && n2)
+	{
+		return;
+	}
+
+	for (e = g_edicts + 1 + game.maxclients; e < &g_edicts[globals.num_edicts]; e++)
+	{
+		if (!e->inuse || strcmp(e->classname, "player_noise") != 0)
+		{
+			continue;
+		}
+
+		if (e->owner && e->owner != who)
+		{
+			continue;
+		}
+
+		e->owner = who;
+
+		if (!n2 && (e->spawnflags == PLAYER_NOISE_IMPACT || n1))
+		{
+			n2 = e;
+		}
+		else
+		{
+			n1 = e;
+		}
+
+		if (n1 && n2)
+		{
+			break;
+		}
+	}
+
+	if (!n1)
+	{
+		n1 = PlayerNoise_Spawn(who, PLAYER_NOISE_SELF);
+	}
+
+	if (!n2)
+	{
+		n2 = PlayerNoise_Spawn(who, PLAYER_NOISE_IMPACT);
+	}
+
+	who->mynoise = n1;
+	who->mynoise2 = n2;
+}
+
 void
 PlayerNoise(edict_t *who, vec3_t where, int type)
 {
 	edict_t *noise;
 
-	if (!who)
+	if (!who || !who->client)
 	{
 		return;
 	}
@@ -119,28 +221,16 @@ PlayerNoise(edict_t *who, vec3_t where, int type)
 		return;
 	}
 
-	if (!who->mynoise)
-	{
-		noise = G_Spawn();
-		noise->classname = "player_noise";
-		VectorSet(noise->mins, -8, -8, -8);
-		VectorSet(noise->maxs, 8, 8, 8);
-		noise->owner = who;
-		noise->svflags = SVF_NOCLIENT;
-		who->mynoise = noise;
-
-		noise = G_Spawn();
-		noise->classname = "player_noise";
-		VectorSet(noise->mins, -8, -8, -8);
-		VectorSet(noise->maxs, 8, 8, 8);
-		noise->owner = who;
-		noise->svflags = SVF_NOCLIENT;
-		who->mynoise2 = noise;
-	}
+	PlayerNoise_Verify(who);
 
 	if ((type == PNOISE_SELF) || (type == PNOISE_WEAPON))
 	{
 		if (level.framenum <= (level.sound_entity_framenum + 3))
+		{
+			return;
+		}
+
+		if (!who->mynoise)
 		{
 			return;
 		}
@@ -152,6 +242,11 @@ PlayerNoise(edict_t *who, vec3_t where, int type)
 	else
 	{
 		if (level.framenum <= (level.sound2_entity_framenum + 3))
+		{
+			return;
+		}
+
+		if (!who->mynoise2)
 		{
 			return;
 		}
