@@ -26,6 +26,10 @@
 
 #include "header/server.h"
 
+#define GAMEMODE_SP 0
+#define GAMEMODE_COOP 1
+#define GAMEMODE_DM 2
+
 server_static_t svs; /* persistant server info */
 server_t sv; /* local server */
 
@@ -306,10 +310,78 @@ SV_SpawnServer(char *server, char *spawnpoint, server_state_t serverstate,
 /*
  * A brand new game has been started
  */
+static void
+SV_ClearGamemodeCvar(char *name, char *msg, int flags)
+{
+	Cvar_FullSet(name, "0", flags);
+
+	strcat(msg, name);
+	strcat(msg, " ");
+}
+
+static int
+SV_ChooseGamemode(void)
+{
+	char msg[32], *choice;
+	int gamemode;
+
+	*msg = 0;
+
+	if (Cvar_VariableValue("deathmatch"))
+	{
+		if (Cvar_VariableValue("coop"))
+		{
+			SV_ClearGamemodeCvar("coop", msg, CVAR_SERVERINFO | CVAR_LATCH);
+		}
+
+		if (Cvar_VariableValue("singleplayer"))
+		{
+			SV_ClearGamemodeCvar("singleplayer", msg, 0);
+		}
+
+		choice = "deathmatch";
+		gamemode = GAMEMODE_DM;
+	}
+	else if (Cvar_VariableValue("coop"))
+	{
+		if (Cvar_VariableValue("singleplayer"))
+		{
+			SV_ClearGamemodeCvar("singleplayer", msg, 0);
+		}
+
+		choice = "coop";
+		gamemode = GAMEMODE_COOP;
+	}
+	else
+	{
+		if (dedicated->value && !Cvar_VariableValue("singleplayer"))
+		{
+			Cvar_FullSet("deathmatch", "1", CVAR_SERVERINFO | CVAR_LATCH);
+
+			choice = "deathmatch";
+			gamemode = GAMEMODE_DM;
+		}
+		else
+		{
+			Cvar_FullSet("singleplayer", "1", 0);
+
+			choice = "singleplayer";
+			gamemode = GAMEMODE_SP;
+		}
+	}
+
+	if (*msg)
+	{
+		Com_Printf("Gamemode ambiguity: Chose: %s, ignored: %s\n", choice, msg);
+	}
+
+	return gamemode;
+}
+
 void
 SV_InitGame(void)
 {
-	int i;
+	int i, gamemode;
 	edict_t *ent;
 	char idmaster[32];
 
@@ -333,33 +405,10 @@ SV_InitGame(void)
 
 	svs.initialized = true;
 
-	if (Cvar_VariableValue("singleplayer"))
-	{
-		Cvar_FullSet("coop", "0", CVAR_SERVERINFO | CVAR_LATCH);
-		Cvar_FullSet("deathmatch", "0", CVAR_SERVERINFO | CVAR_LATCH);
-	}
-
-	if (Cvar_VariableValue("coop") && Cvar_VariableValue("deathmatch"))
-	{
-		Com_Printf("Deathmatch and Coop both set, disabling Coop\n");
-		Cvar_FullSet("coop", "0", CVAR_SERVERINFO | CVAR_LATCH);
-	}
-
-	/* dedicated servers can't be single player and are usually DM
-	   so unless they explicity set coop, force it to deathmatch */
-	if (dedicated->value)
-	{
-		if (!Cvar_VariableValue("singleplayer"))
-		{
-			if (!Cvar_VariableValue("coop"))
-			{
-				Cvar_FullSet("deathmatch", "1", CVAR_SERVERINFO | CVAR_LATCH);
-			}
-		}
-	}
+	gamemode = SV_ChooseGamemode();
 
 	/* init clients */
-	if (Cvar_VariableValue("deathmatch"))
+	if (gamemode == GAMEMODE_DM)
 	{
 		if (maxclients->value <= 1)
 		{
@@ -369,22 +418,17 @@ SV_InitGame(void)
 		{
 			Cvar_FullSet("maxclients", va("%i", MAX_CLIENTS), CVAR_SERVERINFO | CVAR_LATCH);
 		}
-
-		Cvar_FullSet("singleplayer", "0", 0);
 	}
-	else if (Cvar_VariableValue("coop"))
+	else if (gamemode == GAMEMODE_COOP)
 	{
 		if ((maxclients->value <= 1) || (maxclients->value > 4))
 		{
 			Cvar_FullSet("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
 		}
-
-		Cvar_FullSet("singleplayer", "0", 0);
 	}
 	else /* non-deathmatch, non-coop is one player */
 	{
 		Cvar_FullSet("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
-		Cvar_FullSet("singleplayer", "1", 0);
 	}
 
 	svs.spawncount = randk();
@@ -395,7 +439,7 @@ SV_InitGame(void)
 	/* init network stuff */
 	if (dedicated->value)
 	{
-		if (Cvar_VariableValue("singleplayer"))
+		if (gamemode == GAMEMODE_SP)
 		{
 			NET_Config(true);
 		}

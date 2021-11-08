@@ -3236,6 +3236,8 @@ StartServerActionFunc(void *self)
     Cvar_SetValue("fraglimit", ClampCvar(0, fraglimit, fraglimit));
     Cvar_Set("hostname", s_hostname_field.buffer);
 
+	Cvar_SetValue("singleplayer", 0);
+
     if ((s_rules_box.curvalue < 2) || M_IsGame("rogue"))
     {
         Cvar_SetValue("deathmatch", (float)!s_rules_box.curvalue);
