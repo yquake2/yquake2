@@ -369,13 +369,65 @@ FS_FCloseFile(fileHandle_t f)
  * for streaming data out of either a pak file or a seperate file.
  */
 int
-FS_FOpenFile(const char *name, fileHandle_t *f, qboolean gamedir_only)
+FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 {
 	char path[MAX_OSPATH], lwrName[MAX_OSPATH];
 	fsHandle_t *handle;
 	fsPack_t *pack;
 	fsSearchPath_t *search;
 	int i;
+
+	// Remove self references and empty dirs from the requested path.
+	// ZIPs and PAKs don't support them, but they may be hardcoded in
+	// some custom maps or models.
+	char name[MAX_QPATH] = {};
+	size_t namelen = strlen(rawname);
+	for (int input = 0, output = 0; input < namelen; input++)
+	{
+		// Remove self reference.
+		if (rawname[input] == '.')
+		{
+			if (output > 0)
+			{
+				// Inside the path.
+				if (name[output - 1] == '/' && rawname[input + 1] == '/')
+				{
+					input++;
+					continue;
+				}
+			}
+			else
+			{
+				// At the beginning. Note: This is save because the Quake II
+				// VFS doesn't have a current working dir. Paths are always
+				// absolute.
+				if (rawname[input + 1] == '/')
+				{
+					continue;
+				}
+			}
+		}
+
+		// Empty dir.
+		if (rawname[input] == '/')
+		{
+			if (rawname[input + 1] == '/')
+			{
+				continue;
+			}
+		}
+
+		// Pathes starting with a /. I'm not sure if this is
+		// a problem. It shouldn't hurt to remove the leading
+		// slash, though.
+		if (rawname[input] == '/' && output == 0)
+		{
+			continue;
+		}
+
+		name[output] = rawname[input];
+		output++;
+	}
 
 	file_from_protected_pak = false;
 	handle = FS_HandleForFile(name, f);
