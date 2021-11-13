@@ -363,7 +363,7 @@ SV_ChooseGamemode(void)
 		}
 		else
 		{
-			Cvar_FullSet("singleplayer", "1", 0);
+			Cvar_FullSet("singleplayer", "1", CVAR_SERVERINFO | CVAR_LATCH);
 
 			choice = "singleplayer";
 			gamemode = GAMEMODE_SP;
