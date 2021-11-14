@@ -55,6 +55,7 @@ static void M_Menu_DownloadOptions_f(void);
 static void M_Menu_Credits_f(void);
 static void M_Menu_Mods_f(void);
 static void M_Menu_Multiplayer_f(void);
+static void M_Menu_Multiplayer_Keys_f(void);
 static void M_Menu_JoinServer_f(void);
 static void M_Menu_AddressBook_f(void);
 static void M_Menu_StartServer_f(void);
@@ -693,6 +694,7 @@ static menuframework_s s_multiplayer_menu;
 static menuaction_s s_join_network_server_action;
 static menuaction_s s_start_network_server_action;
 static menuaction_s s_player_setup_action;
+static menuaction_s s_customize_options_action;
 
 static void
 Multiplayer_MenuDraw(void)
@@ -707,6 +709,12 @@ static void
 PlayerSetupFunc(void *unused)
 {
     M_Menu_PlayerConfig_f();
+}
+
+static void
+MultplayerCustomizeControlsFunc(void *unused)
+{
+    M_Menu_Multiplayer_Keys_f();
 }
 
 static void
@@ -750,9 +758,17 @@ Multiplayer_MenuInit(void)
     s_player_setup_action.generic.name = " player setup";
     s_player_setup_action.generic.callback = PlayerSetupFunc;
 
+    s_customize_options_action.generic.type = MTYPE_ACTION;
+    s_customize_options_action.generic.flags = QMF_LEFT_JUSTIFY;
+    s_customize_options_action.generic.x = 0;
+    s_customize_options_action.generic.y = 30;
+    s_customize_options_action.generic.name = " customize controls";
+    s_customize_options_action.generic.callback = MultplayerCustomizeControlsFunc;
+
     Menu_AddItem(&s_multiplayer_menu, (void *)&s_join_network_server_action);
     Menu_AddItem(&s_multiplayer_menu, (void *)&s_start_network_server_action);
     Menu_AddItem(&s_multiplayer_menu, (void *)&s_player_setup_action);
+    Menu_AddItem(&s_multiplayer_menu, (void *)&s_customize_options_action);
 
     Menu_SetStatusBar(&s_multiplayer_menu, NULL);
 
@@ -1019,6 +1035,159 @@ M_Menu_Keys_f(void)
 {
     Keys_MenuInit();
     M_PushMenu(Keys_MenuDraw, Keys_MenuKey);
+}
+
+/*
+ * MULTIPLAYER KEYS MENU
+ */
+
+char *multiplayer_key_bindnames[][2] =
+{
+    {"score", "score"},
+    {"messagemode", "chat"},
+    {"messagemode2", "team chat"},
+    {"wave 1", "wave 1"},
+    {"wave 2", "wave 2"},
+    {"wave 3", "wave 3"},
+    {"wave 4", "wave 4"},
+};
+#define NUM_MULTIPLAYER_KEY_BINDNAMES (sizeof multiplayer_key_bindnames / sizeof multiplayer_key_bindnames[0])
+
+static int bind_grab;
+
+static menuframework_s s_multiplayer_keys_menu;
+static menuaction_s s_multiplayer_keys_actions[NUM_MULTIPLAYER_KEY_BINDNAMES];
+
+static void
+MultiplayerDrawKeyBindingFunc(void *self)
+{
+    int keys[2];
+    menuaction_s *a = (menuaction_s *)self;
+    float scale = SCR_GetMenuScale();
+
+    M_FindKeysForCommand(multiplayer_key_bindnames[a->generic.localdata[0]][0], keys);
+
+    if (keys[0] == -1)
+    {
+        Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
+                        a->generic.y + a->generic.parent->y, "???");
+    }
+    else
+    {
+        int x;
+        const char *name;
+
+        name = Key_KeynumToString(keys[0]);
+
+        Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
+                        a->generic.y + a->generic.parent->y, name);
+
+        x = strlen(name) * 8;
+
+        if (keys[1] != -1)
+        {
+            Menu_DrawString(a->generic.x + a->generic.parent->x + 24 * scale + (x * scale),
+                            a->generic.y + a->generic.parent->y, "or");
+            Menu_DrawString(a->generic.x + a->generic.parent->x + 48 * scale + (x * scale),
+                            a->generic.y + a->generic.parent->y,
+                            Key_KeynumToString(keys[1]));
+        }
+    }
+}
+
+static void
+MultiplayerKeyBindingFunc(void *self)
+{
+    menuaction_s *a = (menuaction_s *)self;
+    int keys[2];
+
+    M_FindKeysForCommand(multiplayer_key_bindnames[a->generic.localdata[0]][0], keys);
+
+    if (keys[1] != -1)
+    {
+        M_UnbindCommand(multiplayer_key_bindnames[a->generic.localdata[0]][0]);
+    }
+
+    bind_grab = true;
+
+    Menu_SetStatusBar(&s_multiplayer_keys_menu, "press a key or button for this action");
+}
+
+static void
+MultiplayerKeys_MenuInit(void)
+{
+    int i;
+
+    s_multiplayer_keys_menu.x = (int)(viddef.width * 0.50f);
+    s_multiplayer_keys_menu.nitems = 0;
+    s_multiplayer_keys_menu.cursordraw = KeyCursorDrawFunc;
+
+    for (i = 0; i < NUM_MULTIPLAYER_KEY_BINDNAMES; i++)
+    {
+        s_multiplayer_keys_actions[i].generic.type = MTYPE_ACTION;
+        s_multiplayer_keys_actions[i].generic.flags = QMF_GRAYED;
+        s_multiplayer_keys_actions[i].generic.x = 0;
+        s_multiplayer_keys_actions[i].generic.y = (i * 9);
+        s_multiplayer_keys_actions[i].generic.ownerdraw = MultiplayerDrawKeyBindingFunc;
+        s_multiplayer_keys_actions[i].generic.localdata[0] = i;
+        s_multiplayer_keys_actions[i].generic.name = multiplayer_key_bindnames[s_multiplayer_keys_actions[i].generic.localdata[0]][1];
+
+        Menu_AddItem(&s_multiplayer_keys_menu, (void *)&s_multiplayer_keys_actions[i]);
+    }
+
+    Menu_SetStatusBar(&s_multiplayer_keys_menu, "ENTER to change, BACKSPACE to clear");
+    Menu_Center(&s_multiplayer_keys_menu);
+}
+
+static void
+MultiplayerKeys_MenuDraw(void)
+{
+    Menu_AdjustCursor(&s_multiplayer_keys_menu, 1);
+    Menu_Draw(&s_multiplayer_keys_menu);
+}
+
+static const char *
+MultiplayerKeys_MenuKey(int key)
+{
+    menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_multiplayer_keys_menu);
+
+    if (bind_grab)
+    {
+        if ((key != K_ESCAPE) && (key != '`'))
+        {
+            char cmd[1024];
+
+            Com_sprintf(cmd, sizeof(cmd), "bind \"%s\" \"%s\"\n",
+                        Key_KeynumToString(key), multiplayer_key_bindnames[item->generic.localdata[0]][0]);
+            Cbuf_InsertText(cmd);
+        }
+
+        Menu_SetStatusBar(&s_multiplayer_keys_menu, "ENTER to change, BACKSPACE to clear");
+        bind_grab = false;
+        return menu_out_sound;
+    }
+
+    switch (key)
+    {
+    case K_KP_ENTER:
+    case K_ENTER:
+        MultiplayerKeyBindingFunc(item);
+        return menu_in_sound;
+    case K_BACKSPACE: /* delete bindings */
+    case K_DEL: /* delete bindings */
+    case K_KP_DEL:
+        M_UnbindCommand(multiplayer_key_bindnames[item->generic.localdata[0]][0]);
+        return menu_out_sound;
+    default:
+        return Default_MenuKey(&s_multiplayer_keys_menu, key);
+    }
+}
+
+static void
+M_Menu_Multiplayer_Keys_f(void)
+{
+    MultiplayerKeys_MenuInit();
+    M_PushMenu(MultiplayerKeys_MenuDraw, MultiplayerKeys_MenuKey);
 }
 
 /*
@@ -4940,6 +5109,7 @@ M_Init(void)
     Cmd_AddCommand("menu_credits", M_Menu_Credits_f);
     Cmd_AddCommand("menu_mods", M_Menu_Mods_f);
     Cmd_AddCommand("menu_multiplayer", M_Menu_Multiplayer_f);
+    Cmd_AddCommand("menu_multiplayer_keys", M_Menu_Multiplayer_Keys_f);
     Cmd_AddCommand("menu_video", M_Menu_Video_f);
     Cmd_AddCommand("menu_options", M_Menu_Options_f);
     Cmd_AddCommand("menu_keys", M_Menu_Keys_f);
