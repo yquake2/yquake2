@@ -10,6 +10,10 @@ original clients (Vanilla Quake II) commands are still in place.
   skipped if it is not a valid weapon classname, you do not own it in
   your inventory or you do not have enough ammo to use it.
 
+* **gamemode <mode>**: Provides a convenient way to switch the game mode
+  between `coop`, `dm` and `sp` without having to set three cvars the
+  correct way. `?` prints the current mode.
+
 * **listentities <class>**: Lists the coordinates of all entities of a
   given class.  Possible classes are `ammo`, `items`, `keys`, `monsters`
   and `weapons`. Multiple classes can be given, they're separated by
