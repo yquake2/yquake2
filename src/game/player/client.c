@@ -259,22 +259,6 @@ SP_CreateUnnamedSpawn(edict_t *self)
 		}
 	}
 
-	/* waste3 */
-    if (Q_stricmp(level.mapname, "waste3") == 0)
-	{
-		if (Q_stricmp(self->targetname, "waste2") == 0)
-		{
-			spot->classname = self->classname;
-			spot->s.origin[0] = self->s.origin[0];
-			spot->s.origin[1] = self->s.origin[1];
-			spot->s.origin[2] = self->s.origin[2];
-			spot->s.angles[1] = self->s.angles[1];
-			spot->targetname = NULL;
-
-			return;
-		}
-	}
-
 	/* city3 */
     if (Q_stricmp(level.mapname, "city2") == 0)
 	{
