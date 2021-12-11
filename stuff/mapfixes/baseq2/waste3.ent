@@ -20,6 +20,11 @@
 // They had spawnflags 1024 (not hard/nightmare). It is much more likely
 // the intention was 768 (not easy + not medium) and the mapper thought
 // for a moment the spawnflags were inclusive instead of exclusive.
+//
+// 7. Fixed missing pumping sounds in DM (b#7)
+//
+// In DM the big pump has already been activated but is missing its sound
+// effect. Added a trigger_always that starts those sounds
 {
 "sounds" "3"
 "classname" "worldspawn"
@@ -2166,13 +2171,13 @@
 "targetname" "t4"
 "classname" "target_speaker"
 "noise" "world/pump3.wav"
-"spawnflags" "2050" // b#4: was 2
+"spawnflags" "2"
 "origin" "-84 -2012 160"
 }
 {
 "targetname" "t4"
 "origin" "-400 -2016 112"
-"spawnflags" "2050" // b#4: was 2
+"spawnflags" "2"
 "noise" "world/pump1.wav"
 "classname" "target_speaker"
 }
@@ -2180,41 +2185,41 @@
 "targetname" "t4"
 "classname" "target_speaker"
 "noise" "world/pump1.wav"
-"spawnflags" "2050" // b#4: was 2
+"spawnflags" "2"
 "origin" "-236 -2172 112"
 }
 {
 "targetname" "t4"
 "classname" "target_speaker"
 "noise" "world/pump1.wav"
-"spawnflags" "2050" // b#4: was 2
+"spawnflags" "2"
 "origin" "-84 -2012 112"
 }
 {
 "targetname" "t4"
 "classname" "target_speaker"
 "noise" "world/pump1.wav"
-"spawnflags" "2050" // b#4: was 2
+"spawnflags" "2"
 "origin" "-240 -1856 112"
 }
 {
 "targetname" "t4"
 "origin" "-236 -2172 160"
-"spawnflags" "2050" // b#4: was 2
+"spawnflags" "2"
 "noise" "world/pump3.wav"
 "classname" "target_speaker"
 }
 {
 "targetname" "t4"
 "origin" "-240 -2012 200"
-"spawnflags" "2050" // b#4: was 2
+"spawnflags" "2"
 "noise" "world/pump2.wav"
 "classname" "target_speaker"
 }
 {
 "targetname" "t4"
 "origin" "-240 -1856 160"
-"spawnflags" "2050" // b#4: was 2
+"spawnflags" "2"
 "noise" "world/pump3.wav"
 "classname" "target_speaker"
 }
@@ -2228,7 +2233,7 @@
 "targetname" "t4"
 "classname" "target_speaker"
 "noise" "world/pump3.wav"
-"spawnflags" "2050" // b#4: was 2
+"spawnflags" "2"
 "origin" "-400 -2016 160"
 }
 {
@@ -4541,4 +4546,9 @@
 "origin" "-256 -2320 40"
 "classname" "target_explosion"
 "spawnflags" "2048" // b#4: added this
+}
+{ // b#7
+"classname" "trigger_always"
+"spawnflags" "1792"
+"target" "t4"
 }
