@@ -1841,13 +1841,6 @@ SP_func_door(edict_t *ent)
 	{
 		ent->think = Think_SpawnDoorTrigger;
 	}
-
-	/* Map quirk for waste3 (to make that secret armor behind
-	 * the secret wall - this func_door - count, #182) */
-	if (Q_stricmp(level.mapname, "waste3") == 0 && Q_stricmp(ent->model, "*12") == 0)
-	{
-		ent->target = "t117";
-	}
 }
 
 /*
