@@ -8,7 +8,7 @@ with the defaults and the options that can be set through the menu.
 
 ## Choosing a Renderer
 
-Yamagi Quake II ships with 4 renderers:
+Yamagi Quake II ships with 3 renderers:
 
 * The **OpenGL 3.2** renderer: This renderer was developed for the needs
   of modern graphics hardware and is usually the best choice for OpenGL
