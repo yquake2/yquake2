@@ -553,6 +553,7 @@ CL_InitLocal(void)
 	cl_http_filelists = Cvar_Get("cl_http_filelists", "1", 0);
 	cl_http_downloads = Cvar_Get("cl_http_downloads", "1", CVAR_ARCHIVE);
 	cl_http_max_connections = Cvar_Get("cl_http_max_connections", "4", 0);
+	cl_http_show_dw_progress = Cvar_Get("cl_http_show_dw_progress", "0", 0);
 #endif
 
 	/* register our commands */
