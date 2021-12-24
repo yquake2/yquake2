@@ -35,6 +35,7 @@ cvar_t *cl_http_downloads;
 cvar_t *cl_http_filelists;
 cvar_t *cl_http_proxy;
 cvar_t *cl_http_max_connections;
+cvar_t *cl_http_show_dw_progress;
 
 dlquirks_t dlquirks = { .error = false, .filelist = true, .gamedir = {'\0'} };
 
@@ -51,6 +52,16 @@ static int pendingCount = 0;
 static int abortDownloads = HTTPDL_ABORT_NONE;
 static qboolean downloadingPak = false;
 static qboolean	httpDown = false;
+
+#if defined(CURLOPT_XFERINFODATA)
+typedef curl_off_t CL_Progresstype;
+#define PROGRESSDATA CURLOPT_XFERINFODATA
+#define PROGRESSFUNCTION CURLOPT_XFERINFOFUNCTION
+#else
+typedef double CL_Progresstype;
+#define PROGRESSDATA CURLOPT_PROGRESSDATA
+#define PROGRESSFUNCTION CURLOPT_PROGRESSFUNCTION
+#endif
 
 // --------
 
@@ -107,6 +118,15 @@ static size_t CL_HTTP_CurlWriteCB(char* data, size_t size, size_t nmemb, void* u
 {
 	dlhandle_t *dl = (dlhandle_t *)userdata;
 	return fwrite(data, size, nmemb, dl->file);
+}
+
+static int CL_HTTP_CurlProgressCB(void* ptr, CL_Progresstype total /* unused */, CL_Progresstype now,
+                                         CL_Progresstype uptotal /* unused */, CL_Progresstype upnow /* unused */)
+{
+	dlhandle_t *dl = (dlhandle_t *)ptr;
+	dl->fileDownloadedSize = (size_t)now;
+	Com_DPrintf("CL_HTTP_CurlProgressCB: Downloaded %zu/%zu\n", dl->fileDownloadedSize, dl->fileSize);
+	return 0;
 }
 
 // --------
@@ -244,6 +264,7 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 	dl->tempBuffer = NULL;
 	dl->fileSize = 0;
 	dl->position = 0;
+	dl->fileDownloadedSize = 0;
 	dl->queueEntry = entry;
 
 	// Setup and configure the CURL part of our download handle.
@@ -269,7 +290,9 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 	qcurl_easy_setopt(dl->curl, CURLOPT_PROXY, cl_http_proxy->string);
 	qcurl_easy_setopt(dl->curl, CURLOPT_FOLLOWLOCATION, 1);
 	qcurl_easy_setopt(dl->curl, CURLOPT_MAXREDIRS, 5);
-	qcurl_easy_setopt(dl->curl, CURLOPT_PROGRESSDATA, dl);
+	qcurl_easy_setopt(dl->curl, CURLOPT_NOPROGRESS, (cl_http_show_dw_progress->value != 1.0));
+	qcurl_easy_setopt(dl->curl, PROGRESSDATA, dl);
+	qcurl_easy_setopt(dl->curl, PROGRESSFUNCTION, CL_HTTP_CurlProgressCB);
 	qcurl_easy_setopt(dl->curl, CURLOPT_USERAGENT, Cvar_VariableString ("version"));
 	qcurl_easy_setopt(dl->curl, CURLOPT_REFERER, cls.downloadReferer);
 	qcurl_easy_setopt(dl->curl, CURLOPT_URL, dl->URL);
