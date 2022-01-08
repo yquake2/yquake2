@@ -1,3 +1,29 @@
+Quake II 8.00 to 8.01:
+- Fix the game not starting when nonexistent dirs in the search path.
+- Sync haptic joystick effects to the sound. (by 0lvin)
+- Move several map bug fixes to entity files, add some more map bug
+  fixes. Without entity files the maps are the same as in Vanilla Quake
+  II. (by BjossiAlfreds)
+- Play the correct demo loop after changing the current mod.
+- Fix numbered paks with upper case letters added twice to the search
+  path. Only Windows was affected.
+- `g_footsteps 2` now only generate footstep sound when the player is on
+  the ground entity and no longer when in water or air.
+- Add a cvar `g_machinegun_norecoil' which disables the machinegun
+  recoil effect. This is cheat protected. (by De-Deppe)
+- Scale 8 bit textures when `r_scale8bittextures` is set. (by 0lvin)
+- The game is no longer limited to 1000 FPS when running in timedemo
+  mode. (by 0lvin)
+- Optimise command line parser and fix several subtle bugs. (by
+  BjossiAlfreds)
+- Add `r_2D_unfiltered`, when set to `1` 2D elements aren't filtered.
+- Fix soldiers never chowing their pain skin as long as they're alive.
+- Fix relative paths in ZIP files not being found.
+- Add `gamemode` command for changing between singleplayer, deathmach
+  and coop. (by BjossiAlfreds)
+- Show a download progress bar when `cl_http_show_dw_progress` is set to
+  `1`. (by David Carlier)
+
 Quake II 7.45 to 8.00:
 - Client side support for the optional Vulkan renderer library.
 - Non existent renderer libraries are now skipped over by the menu.
