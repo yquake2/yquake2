@@ -125,7 +125,7 @@ static int CL_HTTP_CurlProgressCB(void* ptr, CL_Progresstype total /* unused */,
 {
 	dlhandle_t *dl = (dlhandle_t *)ptr;
 	dl->fileDownloadedSize = (size_t)now;
-	Com_DPrintf("CL_HTTP_CurlProgressCB: Downloaded %zu/%zu\n", dl->fileDownloadedSize, dl->fileSize);
+	Com_DPrintf("CL_HTTP_CurlProgressCB: Downloaded " YQ2_COM_PRIdS "/" YQ2_COM_PRIdS "\n", dl->fileDownloadedSize, dl->fileSize);
 	return 0;
 }
 
