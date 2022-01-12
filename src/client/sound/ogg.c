@@ -717,7 +717,7 @@ OGG_LoadAsWav(char *filename, wavinfo_t *info, void **buffer)
 	void * temp_buffer = NULL;
 	int size = FS_LoadFile(filename, &temp_buffer);
 	short *final_buffer = NULL;
-	stb_vorbis * ogg_file = NULL;
+	stb_vorbis * ogg2wav_file = NULL;
 	int res = 0;
 
 	if (!temp_buffer)
@@ -727,27 +727,27 @@ OGG_LoadAsWav(char *filename, wavinfo_t *info, void **buffer)
 	}
 
 	/* load vorbis file from memory */
-	ogg_file = stb_vorbis_open_memory(temp_buffer, size, &res, NULL);
-	if (!res && ogg_file->channels > 0)
+	ogg2wav_file = stb_vorbis_open_memory(temp_buffer, size, &res, NULL);
+	if (!res && ogg2wav_file->channels > 0)
 	{
 		int read_samples = 0;
 
 		/* fill in wav structure */
-		info->rate = ogg_file->sample_rate;
+		info->rate = ogg2wav_file->sample_rate;
 		info->width = 2;
-		info->channels = ogg_file->channels;
+		info->channels = ogg2wav_file->channels;
 		info->loopstart = -1;
 		/* return length * channels */
-		info->samples = stb_vorbis_stream_length_in_samples(ogg_file) / ogg_file->channels;
+		info->samples = stb_vorbis_stream_length_in_samples(ogg2wav_file) / ogg2wav_file->channels;
 		info->dataofs = 0;
 
 		/* alloc memory for uncompressed wav */
-		final_buffer = Z_Malloc(info->samples * sizeof(short) * ogg_file->channels);
+		final_buffer = Z_Malloc(info->samples * sizeof(short) * ogg2wav_file->channels);
 
 		/* load sampleas to buffer */
 		read_samples = stb_vorbis_get_samples_short_interleaved(
-			ogg_file, info->channels, final_buffer,
-			info->samples * ogg_file->channels);
+			ogg2wav_file, info->channels, final_buffer,
+			info->samples * ogg2wav_file->channels);
 
 		if (read_samples > 0)
 		{
@@ -767,7 +767,7 @@ OGG_LoadAsWav(char *filename, wavinfo_t *info, void **buffer)
 			final_buffer = NULL;
 		}
 
-		stb_vorbis_close(ogg_file);
+		stb_vorbis_close(ogg2wav_file);
 	}
 	FS_FreeFile(temp_buffer);
 }
