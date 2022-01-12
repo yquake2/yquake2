@@ -990,7 +990,7 @@ To allow developers to see the polygon carving of the world
 =============
 */
 static void
-D_DrawflatSurfaces (surf_t *surface)
+D_DrawflatSurfaces (const surf_t *surface)
 {
 	surf_t			*s;
 	int color = 0;

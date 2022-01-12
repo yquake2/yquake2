@@ -325,7 +325,7 @@ R_LoadWal (char *name, imagetype_t type)
 static unsigned char *d_16to8table; // 16 to 8 bit conversion table
 
 static void
-R_Convert32To8bit(unsigned char* pic_in, unsigned char* pic_out, size_t size)
+R_Convert32To8bit(const unsigned char* pic_in, unsigned char* pic_out, size_t size)
 {
 	size_t i;
 

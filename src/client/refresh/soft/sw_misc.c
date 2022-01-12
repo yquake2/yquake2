@@ -166,7 +166,7 @@ TransformVector
 ================
 */
 void
-TransformVector (vec3_t in, vec3_t out)
+TransformVector (const vec3_t in, vec3_t out)
 {
 	out[0] = DotProduct(in,vright);
 	out[1] = DotProduct(in,vup);
@@ -216,7 +216,7 @@ Guaranteed to be called before the first refresh
 ===============
 */
 static void
-R_ViewChanged (vrect_t *vr)
+R_ViewChanged (const vrect_t *vr)
 {
 	int		i;
 	float		xOrigin, yOrigin;
@@ -304,6 +304,39 @@ R_ViewChanged (vrect_t *vr)
 		VectorNormalize (screenedge[i].normal);
 
 	D_ViewChanged ();
+}
+
+/*
+===============
+Mod_PointInLeaf
+===============
+*/
+static mleaf_t *
+Mod_PointInLeaf (const vec3_t p, const model_t *model)
+{
+	mnode_t		*node;
+
+	if (!model || !model->nodes)
+	{
+		ri.Sys_Error(ERR_DROP, "%s: bad model", __func__);
+		return NULL;
+	}
+
+	node = model->nodes;
+	while (node->contents == -1)
+	{
+		float d;
+		cplane_t *plane;
+
+		plane = node->plane;
+		d = DotProduct (p,plane->normal) - plane->dist;
+		if (d > 0)
+			node = node->children[0];
+		else
+			node = node->children[1];
+	}
+
+	return (mleaf_t *)node;
 }
 
 

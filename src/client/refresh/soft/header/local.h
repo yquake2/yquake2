@@ -411,7 +411,7 @@ extern float	xscale, yscale;
 extern float	xscaleinv, yscaleinv;
 extern float	xscaleshrink, yscaleshrink;
 
-extern void TransformVector(vec3_t in, vec3_t out);
+extern void TransformVector(const vec3_t in, vec3_t out);
 
 //===========================================================================
 
@@ -532,7 +532,7 @@ extern qboolean	r_outedgebasespans;
 extern mvertex_t	*r_pcurrentvertbase;
 
 void R_DrawTriangle(const entity_t *currententity, const finalvert_t *a, const finalvert_t *b, const finalvert_t *c);
-void R_AliasClipTriangle(const entity_t *currententity, const finalvert_t *index0, const finalvert_t *index1, finalvert_t *index2);
+void R_AliasClipTriangle(const entity_t *currententity, const finalvert_t *index0, const finalvert_t *index1, const finalvert_t *index2);
 
 
 extern float	r_time1;
@@ -590,7 +590,7 @@ void	R_FreeUnusedImages(void);
 qboolean R_ImageHasFreeSpace(void);
 
 void R_InitSkyBox(model_t *loadmodel);
-void R_IMFlatShadedQuad( vec3_t a, vec3_t b, vec3_t c, vec3_t d, int color, float alpha );
+void R_IMFlatShadedQuad( const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t d, int color, float alpha );
 
 // VID Buffer damage
 void VID_DamageBuffer(int u, int v);

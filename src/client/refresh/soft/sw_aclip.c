@@ -221,7 +221,7 @@ R_AliasClipTriangle
 ================
 */
 void
-R_AliasClipTriangle(const entity_t *currententity, const finalvert_t *index0, const finalvert_t *index1, finalvert_t *index2)
+R_AliasClipTriangle(const entity_t *currententity, const finalvert_t *index0, const finalvert_t *index1, const finalvert_t *index2)
 {
 	int				i, k, pingpong;
 	unsigned		clipflags;
