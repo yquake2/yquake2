@@ -575,9 +575,8 @@ M_Main_Draw(void)
     int ystart;
     int xoffset;
     int widest = -1;
-    int totalheight = 0;
     char litname[80];
-	float scale = SCR_GetMenuScale();
+    float scale = SCR_GetMenuScale();
     char *names[] =
     {
         "m_main_game",
@@ -596,8 +595,6 @@ M_Main_Draw(void)
         {
             widest = w;
         }
-
-        totalheight += (h + 12);
     }
 
     ystart = (viddef.height / (2 * scale) - 110);
@@ -627,8 +624,8 @@ M_Main_Draw(void)
 const char *
 M_Main_Key(int key)
 {
-	const char *sound = menu_move_sound;
-	int menu_key = Key_GetMenuKey(key);
+    const char *sound = menu_move_sound;
+    int menu_key = Key_GetMenuKey(key);
 
     switch (menu_key)
     {
@@ -732,7 +729,7 @@ StartNetworkServerFunc(void *unused)
 static void
 Multiplayer_MenuInit(void)
 {
-	float scale = SCR_GetMenuScale();
+    float scale = SCR_GetMenuScale();
 
     s_multiplayer_menu.x = (int)(viddef.width * 0.50f) - 64 * scale;
     s_multiplayer_menu.nitems = 0;
