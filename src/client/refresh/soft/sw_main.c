@@ -1280,7 +1280,7 @@ R_SetLightLevel (const entity_t *currententity)
 }
 
 static int
-VectorCompareRound(vec3_t v1, vec3_t v2)
+VectorCompareRound(const vec3_t v1, const vec3_t v2)
 {
 	if ((int)(v1[0] - v2[0]) || (int)(v1[1] - v2[1]) || (int)(v1[2] - v2[2]))
 	{
@@ -1580,13 +1580,12 @@ R_GammaCorrectAndSetPalette( const unsigned char *palette )
 static void
 RE_SetPalette(const unsigned char *palette)
 {
-	byte palette32[1024];
-
 	// clear screen to black to avoid any palette flash
 	RE_CleanFrame();
 
 	if (palette)
 	{
+		byte palette32[1024];
 		int i;
 
 		for ( i = 0; i < 256; i++ )

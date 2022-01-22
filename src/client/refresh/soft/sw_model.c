@@ -223,41 +223,6 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 	return mod;
 }
 
-
-/*
-===============
-Mod_PointInLeaf
-===============
-*/
-mleaf_t *
-Mod_PointInLeaf (vec3_t p, const model_t *model)
-{
-	mnode_t		*node;
-
-	if (!model || !model->nodes)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: bad model", __func__);
-		return NULL;
-	}
-
-	node = model->nodes;
-	while (node->contents == -1)
-	{
-		float d;
-		cplane_t *plane;
-
-		plane = node->plane;
-		d = DotProduct (p,plane->normal) - plane->dist;
-		if (d > 0)
-			node = node->children[0];
-		else
-			node = node->children[1];
-	}
-
-	return (mleaf_t *)node;
-}
-
-
 /*
 ==============
 Mod_ClusterPVS

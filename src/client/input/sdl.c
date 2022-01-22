@@ -1167,10 +1167,12 @@ Haptic_Feedback(char *name, int effect_volume, int effect_duration,
 				return;
 			}
 
+			/*
 			Com_Printf("%s: volume %d: %d ms %d:%d:%d ms speed: %.2f\n",
 				name,  effect_volume, effect_duration - effect_end,
 				effect_begin, effect_attack, effect_fade,
 				(float)effect_volume / effect_fade);
+			*/
 
 			// FIFO for effects
 			last_haptic_efffect_pos = (last_haptic_efffect_pos+1) % last_haptic_efffect_size;

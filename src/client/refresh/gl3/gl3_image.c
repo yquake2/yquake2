@@ -442,9 +442,24 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 		// resize 8bit images only when we forced such logic
 		if (r_scale8bittextures->value)
 		{
-			byte *image_converted = malloc(width * height * 4);
-			scale2x(pic, image_converted, width, height);
-			image->has_alpha = GL3_Upload8(image_converted, width * 2, height * 2,
+			byte *image_converted;
+			int scale = 2;
+
+			// scale 3 times if lerp image
+			if (!nolerp && (vid.height >= 240 * 3))
+				scale = 3;
+
+			image_converted = malloc(width * height * scale * scale);
+			if (!image_converted)
+				return NULL;
+
+			if (scale == 3) {
+				scale3x(pic, image_converted, width, height);
+			} else {
+				scale2x(pic, image_converted, width, height);
+			}
+
+			image->has_alpha = GL3_Upload8(image_converted, width * scale, height * scale,
 						(image->type != it_pic && image->type != it_sky),
 						image->type == it_sky);
 			free(image_converted);

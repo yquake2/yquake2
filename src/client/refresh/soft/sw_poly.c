@@ -1248,7 +1248,7 @@ R_DrawAlphaSurfaces(const entity_t *currententity)
 ** R_IMFlatShadedQuad
 */
 void
-R_IMFlatShadedQuad( vec3_t a, vec3_t b, vec3_t c, vec3_t d, int color, float alpha )
+R_IMFlatShadedQuad( const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t d, int color, float alpha )
 {
 	vec3_t s0, s1;
 

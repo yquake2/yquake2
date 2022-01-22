@@ -164,7 +164,7 @@ D_DrawTurbulentSpan (pixel_t *pdest, const pixel_t *pbase,
 			 int s, int t,
 			 int sstep, int tstep,
 			 int spancount,
-			 int *turb)
+			 const int *turb)
 {
 	do
 	{
