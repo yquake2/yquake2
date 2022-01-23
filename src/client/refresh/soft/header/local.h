@@ -211,7 +211,7 @@ typedef struct finalvert_s {
 
 typedef struct
 {
-	void	*pskin;
+	pixel_t	*pskin;
 	int	skinwidth;
 	int	skinheight;
 } affinetridesc_t;
