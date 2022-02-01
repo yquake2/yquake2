@@ -88,6 +88,7 @@ replacement_t replacements[] = {
 	{"gl_retexturing", "r_retexturing"},
 	{"gl_shadows", "r_shadows"},
 	{"gl_anisotropic", "r_anisotropic"},
+	{"gl_lightmap", "r_lighmap"},
 	{"intensity", "gl1_intensity"}
 };
 

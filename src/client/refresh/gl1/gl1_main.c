@@ -1223,7 +1223,7 @@ R_Register(void)
 
 	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
 	r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
-	gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
+	gl_lightmap = ri.Cvar_Get("r_lightmap", "0", 0);
 	gl_shadows = ri.Cvar_Get("r_shadows", "0", CVAR_ARCHIVE);
 	gl1_stencilshadow = ri.Cvar_Get("gl1_stencilshadow", "0", CVAR_ARCHIVE);
 	gl1_dynamic = ri.Cvar_Get("gl1_dynamic", "1", 0);

@@ -664,7 +664,7 @@ cheatvar_t cheatvars[] = {
 	{"paused", "0"},
 	{"fixedtime", "0"},
 	{"sw_draworder", "0"},
-	{"gl_lightmap", "0"},
+	{"r_lightmap", "0"},
 	{"gl_saturatelighting", "0"},
 	{"cl_kickangles", "1"},
 	{"g_footsteps", "1"},
