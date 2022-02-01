@@ -134,6 +134,7 @@ float	se_time1, se_time2, de_time1, de_time2;
 cvar_t	*r_lefthand;
 cvar_t	*r_gunfov;
 cvar_t	*r_farsee;
+cvar_t	*r_lightmap;
 static cvar_t	*sw_aliasstats;
 cvar_t	*sw_clearcolor;
 cvar_t	*sw_drawflat;
@@ -394,6 +395,7 @@ R_RegisterVariables (void)
 	r_lefthand = ri.Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
 	r_gunfov = ri.Cvar_Get( "r_gunfov", "80", CVAR_ARCHIVE );
 	r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
+	r_lightmap = ri.Cvar_Get("r_lightmap", "0", 0);
 	r_speeds = ri.Cvar_Get ("r_speeds", "0", 0);
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", 0);
 	r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0);
@@ -1341,7 +1343,7 @@ RE_RenderFrame (refdef_t *fd)
 	// For each dlight_t* passed via r_newrefdef.dlights, mark polygons affected by a light.
 	R_PushDlights (r_worldmodel);
 
-	// TODO: rearange code same as in GL*_DrawWorld?
+	// TODO: rearrange code same as in GL*_DrawWorld?
 	/* auto cycle the world frame for texture animation */
 	memset(&ent, 0, sizeof(ent));
 	ent.frame = (int)(r_newrefdef.time * 2);

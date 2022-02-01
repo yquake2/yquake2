@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "header/local.h"
 
 #define	MAX_RIMAGES	1024
+static image_t          *r_whitetexture_mip = NULL;
 static image_t		r_images[MAX_RIMAGES];
 static int		numr_images;
 static int		image_max = 0;
@@ -675,6 +676,12 @@ R_FindImage(char *name, imagetype_t type)
 		return NULL;
 	}
 
+	/* just return white image if show lighmap only */
+	if (type == it_wall && r_lightmap->value)
+	{
+		return r_whitetexture_mip;
+	}
+
 	ext = COM_FileExtension(name);
 	if(!ext[0])
 	{
@@ -775,17 +782,12 @@ R_ImageHasFreeSpace(void)
 static struct texture_buffer {
 	image_t	image;
 	byte	buffer[4096];
-} r_notexture_buffer;
+} r_notexture_buffer, r_whitetexture_buffer;
 
-/*
-==================
-R_InitTextures
-==================
-*/
 static void
-R_InitTextures (void)
+R_InitNoTexture(void)
 {
-	int		x,y, m;
+	int	m;
 
 	// create a simple checkerboard texture for the default
 	r_notexture_mip = &r_notexture_buffer.image;
@@ -798,6 +800,7 @@ R_InitTextures (void)
 
 	for (m=0 ; m<NUM_MIPS ; m++)
 	{
+		int		x, y;
 		byte	*dest;
 
 		dest = r_notexture_mip->pixels[m];
@@ -811,6 +814,35 @@ R_InitTextures (void)
 					*dest++ = d_16to8table[0xFFFF];
 			}
 	}
+}
+
+static void
+R_InitWhiteTexture(void)
+{
+	// create a simple white texture for the default
+	r_whitetexture_mip = &r_whitetexture_buffer.image;
+
+	r_whitetexture_mip->width = r_whitetexture_mip->height = 16;
+	r_whitetexture_mip->asset_width = r_whitetexture_mip->asset_height = 16;
+
+	r_whitetexture_mip->pixels[0] = r_whitetexture_buffer.buffer;
+	R_RestoreImagePointers(r_whitetexture_mip, 0);
+
+	memset(r_whitetexture_buffer.buffer, d_16to8table[0xFFFF],
+		sizeof(r_whitetexture_buffer.buffer));
+}
+
+/*
+==================
+R_InitTextures
+==================
+*/
+static void
+R_InitTextures (void)
+{
+	R_InitNoTexture();
+	/* empty white texture for r_lightmap = 1*/
+	R_InitWhiteTexture();
 }
 
 /*
