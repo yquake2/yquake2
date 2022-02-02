@@ -268,6 +268,7 @@ Mod_LoadLighting (model_t *loadmodel, byte *mod_base, lump_t *l)
 
 	size = l->filelen/3;
 	loadmodel->lightdata = Hunk_Alloc(size);
+	loadmodel->colordata = Hunk_Alloc(size * 3);
 	in = mod_base + l->fileofs;
 	for (i=0 ; i<size ; i++, in+=3)
 	{
@@ -277,6 +278,9 @@ Mod_LoadLighting (model_t *loadmodel, byte *mod_base, lump_t *l)
 			loadmodel->lightdata[i] = in[1];
 		else
 			loadmodel->lightdata[i] = in[2];
+		loadmodel->colordata[i*3 + 0] = loadmodel->lightdata[i];
+		loadmodel->colordata[i*3 + 1] = loadmodel->lightdata[i];
+		loadmodel->colordata[i*3 + 2] = loadmodel->lightdata[i];
 	}
 }
 
@@ -665,9 +669,15 @@ Mod_LoadFaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 			out->styles[i] = in->styles[i];
 		i = LittleLong(in->lightofs);
 		if (i == -1)
+		{
 			out->samples = NULL;
+			out->colorsamples = NULL;
+		}
 		else
+		{
 			out->samples = loadmodel->lightdata + i/3;
+			out->colorsamples = loadmodel->colordata + i;
+		}
 
 		// set the drawing flags flag
 
@@ -1015,6 +1025,8 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 		int size = header->lumps[LUMP_LIGHTING].filelen/3;
 		size = (size + 31) & ~31;
 		hunkSize += size;
+		/* save color data */
+		hunkSize += size * 3;
 	}
 
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_PLANES], sizeof(dplane_t), sizeof(cplane_t), 6);
