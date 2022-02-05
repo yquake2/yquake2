@@ -1378,7 +1378,7 @@ door_go_down(edict_t *self)
 void
 door_go_up(edict_t *self, edict_t *activator)
 {
-	if (!self || !activator)
+	if (!self)
 	{
 		return;
 	}
