@@ -963,6 +963,7 @@ SP_func_rotating(edict_t *ent)
 	}
 
 	ent->use = rotating_use;
+	ent->blocked = rotating_blocked;
 
 	if (ent->spawnflags & 1)
 	{
