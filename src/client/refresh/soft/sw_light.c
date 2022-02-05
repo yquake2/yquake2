@@ -285,15 +285,8 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 {
 	msurface_t 	*surf;
 	int		lnum;
-	int		sd, td;
-	float		dist, rad, minlight;
-	vec3_t		impact, local;
-	int		s, t;
-	int		i;
 	int		smax, tmax;
 	mtexinfo_t	*tex;
-	dlight_t	*dl;
-	int		negativeLight;
 
 	surf = drawsurf->surf;
 	smax = (surf->extents[0]>>4)+1;
@@ -308,7 +301,14 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 
 	for (lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++)
 	{
+		vec3_t impact, local;
+		float	dist, rad, minlight;
+		int		t;
+		int		i;
+		dlight_t	*dl;
+		int		negativeLight;
 		light_t *plightdest = blocklights;
+
 		if (!(surf->dlightbits & (1<<lnum)))
 			continue;	// not lit by this light
 
@@ -346,11 +346,15 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 
 		for (t = 0 ; t<tmax ; t++)
 		{
+			int s, td;
+
 			td = local[1] - t*16;
 			if (td < 0)
 				td = -td;
 			for (s=0 ; s<smax ; s++)
 			{
+				int sd;
+
 				sd = local[0] - s*16;
 				if (sd < 0)
 					sd = -sd;
@@ -390,7 +394,7 @@ void
 R_BuildLightMap (drawsurf_t* drawsurf)
 {
 	int			smax, tmax;
-	int			i, size;
+	int			size;
 	byte		*lightmap;
 	msurface_t	*surf;
 
@@ -406,13 +410,13 @@ R_BuildLightMap (drawsurf_t* drawsurf)
 		return;
 	}
 
+	// clear to no light
+	memset(blocklights, 0, size * sizeof(light_t));
+
 	if (r_fullbright->value || !r_worldmodel->lightdata)
 	{
 		return;
 	}
-
-	// clear to no light
-	memset(blocklights, 0, size * sizeof(light_t));
 
 	// add all the lightmaps
 	lightmap = surf->samples;
@@ -452,18 +456,28 @@ R_BuildLightMap (drawsurf_t* drawsurf)
 		R_AddDynamicLights (drawsurf);
 
 	// bound, invert, and shift
-	for (i=0 ; i<size ; i++)
 	{
-		int t;
+		light_t  *curr_light, *max_light;
 
-		t = (int)blocklights[i];
-		if (t < 0)
-			t = 0;
-		t = (255*256 - t) >> (8 - VID_CBITS);
+		curr_light = blocklights;
+		max_light = blocklights + size;
 
-		if (t < (1 << 6))
-			t = (1 << 6);
+		do
+		{
+			int t;
 
-		blocklights[i] = t;
+			t = (int)*curr_light;
+
+			if (t < 0)
+				t = 0;
+			t = (255*256 - t) >> (8 - VID_CBITS);
+
+			if (t < (1 << 6))
+				t = (1 << 6);
+
+			*curr_light = t;
+			curr_light++;
+		}
+		while(curr_light < max_light);
 	}
 }
