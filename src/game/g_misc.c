@@ -278,8 +278,9 @@ ThrowHead(edict_t *self, char *gibname, int damage, int type)
 	self->die = gib_die;
 
 	// The entity still has the monsters clipmaks.
-	// Reset it to 0 to be on the save side.
-	self->clipmask = 0;
+	// Reset it to MASK_SHOT to be on the save side.
+	// (MASK_SHOT is used by xatrix)
+	self->clipmask = MASK_SHOT;
 
 	if (type == GIB_ORGANIC)
 	{
@@ -340,8 +341,9 @@ ThrowClientHead(edict_t *self, int damage)
 	self->flags |= FL_NO_KNOCKBACK;
 
 	// The entity still has the monsters clipmaks.
-	// Reset it to 0 to be on the save side.
-	self->clipmask = 0;
+	// Reset it to MASK_SHOT to be on the save side.
+	// (MASK_SHOT is used by xatrix)
+	self->clipmask = MASK_SHOT;
 
 	self->movetype = MOVETYPE_BOUNCE;
 	VelocityForDamage(damage, vd);
