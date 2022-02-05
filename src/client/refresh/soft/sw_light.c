@@ -122,7 +122,6 @@ RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	int		s, t, ds, dt;
 	int		i;
 	mtexinfo_t	*tex;
-	byte		*lightmap;
 	int		maps;
 	int		r;
 
@@ -158,6 +157,8 @@ RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	surf = r_worldmodel->surfaces + node->firstsurface;
 	for (i=0 ; i<node->numsurfaces ; i++, surf++)
 	{
+		byte		*lightmap;
+
 		if (surf->flags&(SURF_DRAWTURB|SURF_DRAWSKY))
 			continue;	// no lightmaps
 
@@ -181,7 +182,7 @@ RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 		ds >>= 4;
 		dt >>= 4;
 
-		lightmap = surf->colorsamples;
+		lightmap = surf->samples;
 		VectorCopy (vec3_origin, pointcolor);
 
 		lightmap += 3 * (dt * ((surf->extents[0] >> 4) + 1) + ds);
@@ -398,6 +399,7 @@ R_BuildLightMap (drawsurf_t* drawsurf)
 	smax = (surf->extents[0]>>4)+1;
 	tmax = (surf->extents[1]>>4)+1;
 	size = smax*tmax;
+
 	if (blocklight_max <= blocklights + size)
 	{
 		r_outoflights = true;
@@ -406,7 +408,6 @@ R_BuildLightMap (drawsurf_t* drawsurf)
 
 	if (r_fullbright->value || !r_worldmodel->lightdata)
 	{
-		memset(blocklights, 0, size * sizeof(light_t));
 		return;
 	}
 
@@ -423,11 +424,26 @@ R_BuildLightMap (drawsurf_t* drawsurf)
 			 maps++)
 		{
 			unsigned scale;
+			light_t  *curr_light, *max_light;
+
+			curr_light = blocklights;
+			max_light = blocklights + size;
 
 			scale = drawsurf->lightadj[maps];	// 8.8 fraction
-			for (i=0 ; i<size ; i++)
-				blocklights[i] += lightmap[i] * scale;
-			lightmap += size;	// skip to next lightmap
+
+			do
+			{
+				byte light = sqrt((
+					lightmap[0] * lightmap[0] +
+					lightmap[1] * lightmap[1] +
+					lightmap[2] * lightmap[2]
+				) / 3);
+				*curr_light += light * scale;
+				curr_light++;
+
+				lightmap += 3; /* skip to next lightmap */
+			}
+			while(curr_light < max_light);
 		}
 	}
 
