@@ -78,7 +78,7 @@ static zvalue_t	d_ziextrastep, d_zibasestep;
 
 static byte	*skintable[MAX_LBM_HEIGHT];
 int		skinwidth;
-static byte	*skinstart;
+static pixel_t	*skinstart;
 
 void	(*d_pdrawspans)(const entity_t *currententity, spanpackage_t *pspanpackage);
 
@@ -429,8 +429,8 @@ R_PolysetDrawSpans8
 void
 R_PolysetDrawSpans8_33(const entity_t *currententity, spanpackage_t *pspanpackage)
 {
-	byte		*lpdest;
-	byte		*lptex;
+	pixel_t		*lpdest;
+	pixel_t		*lptex;
 	int		lsfrac, ltfrac;
 	int		llight;
 	zvalue_t	lzi;
@@ -470,7 +470,7 @@ R_PolysetDrawSpans8_33(const entity_t *currententity, spanpackage_t *pspanpackag
 				{
 					int temp = vid_colormap[*lptex + ( llight & 0xFF00 )];
 
-					*lpdest = vid_alphamap[temp+ *lpdest*256];
+					*lpdest = vid_alphamap[temp + *lpdest*256];
 				}
 				lpdest++;
 				lzi += r_zistepx;
@@ -719,11 +719,14 @@ R_PolysetDrawSpans8_Opaque (const entity_t *currententity, spanpackage_t *pspanp
 			{
 				if ((lzi >> SHIFT16XYZ) >= *lpz)
 				{
-					if(r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags & RF_IR_VISIBLE)
-						*lpdest = ((byte *)vid_colormap)[irtable[*lptex]];
-					else
-						*lpdest = ((byte *)vid_colormap)[*lptex + (llight & 0xFF00)];
+					int color_value;
 
+					if(r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags & RF_IR_VISIBLE)
+						color_value = irtable[*lptex];
+					else
+						color_value = *lptex + (llight & 0xFF00);
+
+					*lpdest = vid_colormap[color_value];
 					*lpz = lzi >> SHIFT16XYZ;
 					zdamaged = true;
 				}
@@ -798,7 +801,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 	v = plefttop[1];
 	d_aspancount = plefttop[0] - prighttop[0];
 
-	d_ptex = (byte *)r_affinetridesc.pskin + (plefttop[2] >> SHIFT16XYZ) +
+	d_ptex = r_affinetridesc.pskin + (plefttop[2] >> SHIFT16XYZ) +
 			(plefttop[3] >> SHIFT16XYZ) * r_affinetridesc.skinwidth;
 	{
 		d_sfrac = plefttop[2] & 0xFFFF;
@@ -866,7 +869,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		u = plefttop[0];
 		v = plefttop[1];
 		d_aspancount = plefttop[0] - prighttop[0];
-		d_ptex = (byte *)r_affinetridesc.pskin + (plefttop[2] >> SHIFT16XYZ) +
+		d_ptex = r_affinetridesc.pskin + (plefttop[2] >> SHIFT16XYZ) +
 				(plefttop[3] >> SHIFT16XYZ) * r_affinetridesc.skinwidth;
 		d_sfrac = 0;
 		d_tfrac = 0;

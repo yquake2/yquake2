@@ -237,7 +237,7 @@ GL3_Register(void)
 	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
 	gl3_overbrightbits = ri.Cvar_Get("gl3_overbrightbits", "1.3", CVAR_ARCHIVE);
 
-	gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
+	gl_lightmap = ri.Cvar_Get("r_lightmap", "0", 0);
 	gl_shadows = ri.Cvar_Get("r_shadows", "0", CVAR_ARCHIVE);
 
 	r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
@@ -272,7 +272,7 @@ GL3_Register(void)
 
 	//gl_modulate = ri.Cvar_Get("gl_modulate", "1", CVAR_ARCHIVE);
 	//r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
-	//gl_lightmap = ri.Cvar_Get("gl_lightmap", "0", 0);
+	//gl_lightmap = ri.Cvar_Get("r_lightmap", "0", 0);
 	//gl_shadows = ri.Cvar_Get("r_shadows", "0", CVAR_ARCHIVE);
 	//gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
 	gl_showtris = ri.Cvar_Get("gl_showtris", "0", 0);

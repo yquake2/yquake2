@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "header/local.h"
 
 #define	MAX_RIMAGES	1024
+static image_t          *r_whitetexture_mip = NULL;
 static image_t		r_images[MAX_RIMAGES];
 static int		numr_images;
 static int		image_max = 0;
@@ -210,12 +211,15 @@ R_LoadPic
 ================
 */
 static image_t *
-R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int realheight, imagetype_t type)
+R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int realheight,
+	size_t data_size, imagetype_t type)
 {
 	image_t	*image;
 	size_t	i, size, full_size;
 
-	if (!pic)
+	size = width * height;
+
+	if (!pic || data_size <= 0 || width <= 0 || height <= 0 || size <= 0)
 		return NULL;
 
 	image = R_FindFreeImage();
@@ -230,7 +234,6 @@ R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int real
 	image->asset_height = realheight;
 	image->type = type;
 
-	size = width * height;
 	full_size = R_GetImageMipsSize(size);
 	image->pixels[0] = malloc(full_size);
 	if (!image->pixels[0])
@@ -239,21 +242,35 @@ R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int real
 		// code never returns after ERR_FATAL
 		return NULL;
 	}
+
 	image->transparent = false;
-	for (i=0 ; i<size ; i++)
+	if (type != it_wall)
 	{
-		if (pic[i] == 255)
+		for (i=0 ; i<size ; i++)
 		{
-			image->transparent = true;
-			break;
+			if (pic[i] == 255)
+			{
+				image->transparent = true;
+				break;
+			}
 		}
 	}
 
-	memcpy(image->pixels[0], pic, size);
+	if (data_size > full_size)
+	{
+		data_size = full_size;
+	}
+	memcpy(image->pixels[0], pic, data_size);
+
 	// restore mips
 	R_RestoreImagePointers(image, 0);
-	// restore everything from first image
-	R_RestoreMips(image, 0);
+
+	if (full_size > data_size)
+	{
+		// looks short, restore everything from first image
+		R_RestoreMips(image, 0);
+	}
+
 	return image;
 }
 
@@ -268,7 +285,7 @@ R_LoadWal (char *name, imagetype_t type)
 	miptex_t	*mt;
 	int		ofs;
 	image_t		*image;
-	size_t		size, file_size;
+	size_t		file_size, width, height;
 
 	file_size = ri.FS_LoadFile (name, (void **)&mt);
 	if (!mt)
@@ -284,72 +301,57 @@ R_LoadWal (char *name, imagetype_t type)
 		return r_notexture_mip;
 	}
 
-	image = R_FindFreeImage ();
-	strcpy (image->name, name);
-	image->width = LittleLong (mt->width);
-	image->height = LittleLong (mt->height);
-	image->asset_width = image->width;
-	image->asset_height = image->height;
-	image->type = type;
-	image->registration_sequence = registration_sequence;
+	width = LittleLong (mt->width);
+	height = LittleLong (mt->height);
 	ofs = LittleLong(mt->offsets[0]);
-	size = R_GetImageMipsSize(image->width * image->height);
 
-	if ((ofs <= 0) || (image->width <= 0) || (image->height <= 0) ||
-	    ((file_size - ofs) / image->width < image->height))
+	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
+	    ((file_size - ofs) / width < height))
 	{
 		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
 		ri.FS_FreeFile((void *)mt);
 		return r_notexture_mip;
 	}
 
-	image->pixels[0] = malloc (size);
-	R_RestoreImagePointers(image, 0);
-
-	if (size > (file_size - ofs))
-	{
-		memcpy(image->pixels[0], (byte *)mt + ofs, file_size - ofs);
-		// looks short, restore everything from first image
-		R_RestoreMips(image, 0);
-	}
-	else
-	{
-		memcpy(image->pixels[0], (byte *)mt + ofs, size);
-	}
+	image = R_LoadPic(name, (byte *)mt + ofs,
+					width, width,
+					height, height,
+					(file_size - ofs), type);
 
 	ri.FS_FreeFile((void *)mt);
 
 	return image;
 }
 
-static unsigned char *d_16to8table; // 16 to 8 bit conversion table
+static unsigned char *d_16to8table = NULL; // 16 to 8 bit conversion table
 
 static void
-R_Convert32To8bit(const unsigned char* pic_in, unsigned char* pic_out, size_t size)
+R_Convert32To8bit(const unsigned char* pic_in, pixel_t* pic_out, size_t size)
 {
 	size_t i;
 
 	if (!d_16to8table)
 		return;
 
-	for(i=0; i<size; i++)
+	for(i=0; i < size; i++)
 	{
 		unsigned int r, g, b, c;
 
-		r = ( pic_in[i * 4 + 0] >> 3 ) & 31;
-		g = ( pic_in[i * 4 + 1] >> 2 ) & 63;
-		b = ( pic_in[i * 4 + 2] >> 3 ) & 31;
+		r = ( pic_in[0] >> 3 ) & 31;
+		g = ( pic_in[1] >> 2 ) & 63;
+		b = ( pic_in[2] >> 3 ) & 31;
 
 		c = r | ( g << 5 ) | ( b << 11 );
 
 		pic_out[i] = d_16to8table[c & 0xFFFF];
+		pic_in += 4;
 	}
 }
 
 static void
-R_FixPalette(unsigned char* pixels, size_t size, rgb_t* pallette)
+R_FixPalette(pixel_t* pixels, size_t size, const rgb_t* pallette)
 {
-	unsigned char* convert = malloc(256);
+	pixel_t* convert = malloc(256);
 
 	size_t i;
 
@@ -554,14 +556,20 @@ R_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t 
 					      pic32, uploadwidth, uploadheight))
 				{
 					R_Convert32To8bit(pic32, pic8, uploadwidth * uploadheight);
-					image = R_LoadPic(name, pic8, uploadwidth, realwidth, uploadheight, realheight, type);
+					image = R_LoadPic(name, pic8,
+								uploadwidth, realwidth,
+								uploadheight, realheight,
+								uploadwidth * uploadheight, type);
 				}
 				free(pic32);
 			}
 			else
 			{
 				R_Convert32To8bit(pic, pic8, width * height);
-				image = R_LoadPic(name, pic8, width, width, height, height, type);
+				image = R_LoadPic(name, pic8,
+								width, width,
+								height, height,
+								width * height, type);
 			}
 			free(pic8);
 		}
@@ -614,12 +622,18 @@ R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 				scale2x(pic, scaled, width, height);
 				width *= 2;
 				height *= 2;
-				image = R_LoadPic(name, scaled, width, realwidth, height, realheight, type);
+				image = R_LoadPic(name, scaled,
+								width, realwidth,
+								height, realheight,
+								width * height, type);
 				free(scaled);
 			}
 			else
 			{
-				image = R_LoadPic(name, pic, width, width, height, height, type);
+				image = R_LoadPic(name, pic,
+								width, width,
+								height, height,
+								width * height, type);
 			}
 
 			if (palette)
@@ -660,6 +674,12 @@ R_FindImage(char *name, imagetype_t type)
 	if (!name)
 	{
 		return NULL;
+	}
+
+	/* just return white image if show lighmap only */
+	if (type == it_wall && r_lightmap->value)
+	{
+		return r_whitetexture_mip;
 	}
 
 	ext = COM_FileExtension(name);
@@ -762,17 +782,12 @@ R_ImageHasFreeSpace(void)
 static struct texture_buffer {
 	image_t	image;
 	byte	buffer[4096];
-} r_notexture_buffer;
+} r_notexture_buffer, r_whitetexture_buffer;
 
-/*
-==================
-R_InitTextures
-==================
-*/
 static void
-R_InitTextures (void)
+R_InitNoTexture(void)
 {
-	int		x,y, m;
+	int	m;
 
 	// create a simple checkerboard texture for the default
 	r_notexture_mip = &r_notexture_buffer.image;
@@ -785,6 +800,7 @@ R_InitTextures (void)
 
 	for (m=0 ; m<NUM_MIPS ; m++)
 	{
+		int		x, y;
 		byte	*dest;
 
 		dest = r_notexture_mip->pixels[m];
@@ -793,11 +809,40 @@ R_InitTextures (void)
 			{
 				if (  (y< (8>>m) ) ^ (x< (8>>m) ) )
 
-					*dest++ = 0;
+					*dest++ = d_16to8table[0x0000];
 				else
-					*dest++ = 0xff;
+					*dest++ = d_16to8table[0xFFFF];
 			}
 	}
+}
+
+static void
+R_InitWhiteTexture(void)
+{
+	// create a simple white texture for the default
+	r_whitetexture_mip = &r_whitetexture_buffer.image;
+
+	r_whitetexture_mip->width = r_whitetexture_mip->height = 16;
+	r_whitetexture_mip->asset_width = r_whitetexture_mip->asset_height = 16;
+
+	r_whitetexture_mip->pixels[0] = r_whitetexture_buffer.buffer;
+	R_RestoreImagePointers(r_whitetexture_mip, 0);
+
+	memset(r_whitetexture_buffer.buffer, d_16to8table[0xFFFF],
+		sizeof(r_whitetexture_buffer.buffer));
+}
+
+/*
+==================
+R_InitTextures
+==================
+*/
+static void
+R_InitTextures (void)
+{
+	R_InitNoTexture();
+	/* empty white texture for r_lightmap = 1*/
+	R_InitWhiteTexture();
 }
 
 /*

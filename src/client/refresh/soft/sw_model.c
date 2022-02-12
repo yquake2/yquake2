@@ -258,16 +258,17 @@ static void
 Mod_LoadLighting (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	int		i, size;
-	byte	*in;
+	pixel_t	*in;
 
 	if (!l->filelen)
 	{
 		loadmodel->lightdata = NULL;
 		return;
 	}
+
 	size = l->filelen/3;
 	loadmodel->lightdata = Hunk_Alloc(size);
-	in = (void *)(mod_base + l->fileofs);
+	in = mod_base + l->fileofs;
 	for (i=0 ; i<size ; i++, in+=3)
 	{
 		if (in[0] > in[1] && in[0] > in[2])
@@ -1008,7 +1009,8 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	if(surfEdgeCount < MAX_MAP_SURFEDGES) // else it errors out later anyway
 		hunkSize += calcLumpHunkSize(&header->lumps[LUMP_SURFEDGES], sizeof(int), sizeof(int), 24);
 
-	// lighting is a special case, because we keep only 1 byte out of 3 (=> no colored lighting in soft renderer)
+	// lighting is a special case, because we keep only 1 byte out of 3
+	// (=> no colored lighting in soft renderer by default)
 	{
 		int size = header->lumps[LUMP_LIGHTING].filelen/3;
 		size = (size + 31) & ~31;

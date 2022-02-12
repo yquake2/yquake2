@@ -211,7 +211,7 @@ typedef struct finalvert_s {
 
 typedef struct
 {
-	void	*pskin;
+	pixel_t	*pskin;
 	int	skinwidth;
 	int	skinheight;
 } affinetridesc_t;
@@ -431,6 +431,7 @@ extern cvar_t	*r_fullbright;
 extern cvar_t	*r_lefthand;
 extern cvar_t	*r_gunfov;
 extern cvar_t	*r_farsee;
+extern cvar_t	*r_lightmap;
 extern cvar_t	*r_drawworld;
 extern cvar_t	*r_lerpmodels;
 extern cvar_t	*r_lightlevel;

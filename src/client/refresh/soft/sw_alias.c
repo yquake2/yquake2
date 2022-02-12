@@ -578,7 +578,7 @@ R_AliasSetupLighting(entity_t *currententity)
 		}
 	}
 
-	j = (light[0] + light[1] + light[2])*0.3333*255;
+	j = (light[0] + light[1] + light[2]) * 0.3333 * 255;
 
 	lighting.ambientlight = j;
 	lighting.shadelight = j;
