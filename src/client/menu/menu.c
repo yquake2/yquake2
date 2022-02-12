@@ -2848,7 +2848,7 @@ LoadGame_MenuKey(int key)
         menukeyitem_delete = false;
 
         if ( menu_key == K_ENTER || menu_key == 'y' || menu_key == 'Y' ) {
-            
+
             char name[MAX_OSPATH] = { 0 };
 
             Com_sprintf( name, sizeof( name ), "%s/save/save%d/", FS_Gamedir(),
@@ -3020,7 +3020,7 @@ SaveGame_MenuKey(int key)
         menukeyitem_delete = false;
 
         if ( menu_key == K_ENTER || menu_key == 'y' || menu_key == 'Y' ) {
-            
+
             char name[MAX_OSPATH] = { 0 };
 
             Com_sprintf( name, sizeof( name ), "%s/save/save%d/", FS_Gamedir(),
