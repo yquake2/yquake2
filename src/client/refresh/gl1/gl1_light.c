@@ -219,7 +219,6 @@ R_RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 	byte *lightmap;
 	int maps;
 	int r;
-	vec3_t	scale;
 
 	if (node->contents != -1)
 	{

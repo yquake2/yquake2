@@ -189,8 +189,6 @@ RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 
 	for (i = 0; i < node->numsurfaces; i++, surf++)
 	{
-		vec3_t scale;
-
 		if (surf->flags & (SURF_DRAWTURB | SURF_DRAWSKY))
 		{
 			continue; /* no lightmaps */
