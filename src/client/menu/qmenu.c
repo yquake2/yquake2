@@ -39,9 +39,6 @@ static void Slider_Draw(menuslider_s *s);
 static void SpinControl_Draw(menulist_s *s);
 static void SpinControl_DoSlide(menulist_s *s, int dir);
 
-#define RCOLUMN_OFFSET 16
-#define LCOLUMN_OFFSET -16
-
 extern viddef_t viddef;
 
 #define VID_WIDTH viddef.width
