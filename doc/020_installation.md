@@ -288,6 +288,7 @@ The build dependencies can be installed with:
 * On NetBSD: `pkgin install gmake SDL2 openal-soft curl`
 * On OpenBSD: `pkg_add gmake sdl2 openal curl`
 * On Solaris/Illumos: `pkg install sdl2 openal curl`
+* On Haiku: `pkgman libsdl2_devel openal_devel curl_devel`
 * On MacOS the dependencies can be installed with Homebrew (from
   https://brew.sh): `brew install sdl2 openal-soft`
 
@@ -299,7 +300,7 @@ Debian or FreeBSD packages.
 
 Download the latest release from https://www.yamagi.org/quake2 or clone
 the source from https://github.com/yquake2/yquake2.git, change into the
-*yquake2/* source directory and type *make* (Linux, MacOS and Windows)
+*yquake2/* source directory and type *make* (Linux, MacOS, Haiku and Windows)
 or *gmake* (FreeBSD, NetBSD, OpenBSD). Note on Solaris systems, *make*
  or *gmake* can be used, the latter provides in addition parallel build.
 After the build finished, copy everything from the *release/* directory
