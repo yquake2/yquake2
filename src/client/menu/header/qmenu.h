@@ -27,6 +27,9 @@
 #ifndef CL_MENU_QMENU_H
 #define CL_MENU_QMENU_H
 
+#define RCOLUMN_OFFSET  16
+#define LCOLUMN_OFFSET -16
+
 #define MAXMENUITEMS 64
 
 #define MTYPE_SLIDER 0

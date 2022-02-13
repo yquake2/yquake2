@@ -624,8 +624,8 @@ M_Main_Draw(void)
 const char *
 M_Main_Key(int key)
 {
-    const char *sound = menu_move_sound;
-    int menu_key = Key_GetMenuKey(key);
+	const char *sound = menu_move_sound;
+	int menu_key = Key_GetMenuKey(key);
 
     switch (menu_key)
     {
@@ -729,7 +729,7 @@ StartNetworkServerFunc(void *unused)
 static void
 Multiplayer_MenuInit(void)
 {
-    float scale = SCR_GetMenuScale();
+	float scale = SCR_GetMenuScale();
 
     s_multiplayer_menu.x = (int)(viddef.width * 0.50f) - 64 * scale;
     s_multiplayer_menu.nitems = 0;
@@ -820,7 +820,7 @@ char *bindnames[][2] =
 #define NUM_BINDNAMES (sizeof bindnames / sizeof bindnames[0])
 
 int keys_cursor;
-static int bind_grab;
+static int menukeyitem_bind;
 
 static menuframework_s s_keys_menu;
 static menuframework_s s_joy_menu;
@@ -890,11 +890,10 @@ KeyCursorDrawFunc(menuframework_s *menu)
 {
 	float scale = SCR_GetMenuScale();
 
-    if (bind_grab)
+    if (menukeyitem_bind)
     {
         Draw_CharScaled(menu->x, (menu->y + menu->cursor * 9) * scale, '=', scale);
     }
-
     else
     {
         Draw_CharScaled(menu->x, (menu->y + menu->cursor * 9) * scale, 12 +
@@ -913,7 +912,7 @@ DrawKeyBindingFunc(void *self)
 
     if (keys[0] == -1)
     {
-        Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
+        Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
                         a->generic.y + a->generic.parent->y, "???");
     }
     else
@@ -923,7 +922,7 @@ DrawKeyBindingFunc(void *self)
 
         name = Key_KeynumToString(keys[0]);
 
-        Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
+        Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
                         a->generic.y + a->generic.parent->y, name);
 
         x = strlen(name) * 8;
@@ -952,7 +951,7 @@ KeyBindingFunc(void *self)
         M_UnbindCommand(bindnames[a->generic.localdata[0]][0]);
     }
 
-    bind_grab = true;
+    menukeyitem_bind = true;
 
     Menu_SetStatusBar(&s_keys_menu, "press a key or button for this action");
 }
@@ -995,7 +994,7 @@ Keys_MenuKey(int key)
 {
     menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_keys_menu);
 
-    if (bind_grab)
+    if (menukeyitem_bind)
     {
         if ((key != K_ESCAPE) && (key != '`'))
         {
@@ -1007,7 +1006,7 @@ Keys_MenuKey(int key)
         }
 
         Menu_SetStatusBar(&s_keys_menu, "ENTER to change, BACKSPACE to clear");
-        bind_grab = false;
+        menukeyitem_bind = false;
         return menu_out_sound;
     }
 
@@ -1050,8 +1049,6 @@ char *multiplayer_key_bindnames[][2] =
 };
 #define NUM_MULTIPLAYER_KEY_BINDNAMES (sizeof multiplayer_key_bindnames / sizeof multiplayer_key_bindnames[0])
 
-static int bind_grab;
-
 static menuframework_s s_multiplayer_keys_menu;
 static menuaction_s s_multiplayer_keys_actions[NUM_MULTIPLAYER_KEY_BINDNAMES];
 
@@ -1066,7 +1063,7 @@ MultiplayerDrawKeyBindingFunc(void *self)
 
     if (keys[0] == -1)
     {
-        Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
+        Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
                         a->generic.y + a->generic.parent->y, "???");
     }
     else
@@ -1076,7 +1073,7 @@ MultiplayerDrawKeyBindingFunc(void *self)
 
         name = Key_KeynumToString(keys[0]);
 
-        Menu_DrawString(a->generic.x + a->generic.parent->x + 16 * scale,
+        Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
                         a->generic.y + a->generic.parent->y, name);
 
         x = strlen(name) * 8;
@@ -1105,7 +1102,7 @@ MultiplayerKeyBindingFunc(void *self)
         M_UnbindCommand(multiplayer_key_bindnames[a->generic.localdata[0]][0]);
     }
 
-    bind_grab = true;
+    menukeyitem_bind = true;
 
     Menu_SetStatusBar(&s_multiplayer_keys_menu, "press a key or button for this action");
 }
@@ -1148,7 +1145,7 @@ MultiplayerKeys_MenuKey(int key)
 {
     menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_multiplayer_keys_menu);
 
-    if (bind_grab)
+    if (menukeyitem_bind)
     {
         if ((key != K_ESCAPE) && (key != '`'))
         {
@@ -1160,7 +1157,7 @@ MultiplayerKeys_MenuKey(int key)
         }
 
         Menu_SetStatusBar(&s_multiplayer_keys_menu, "ENTER to change, BACKSPACE to clear");
-        bind_grab = false;
+        menukeyitem_bind = false;
         return menu_out_sound;
     }
 
@@ -2626,88 +2623,6 @@ M_Menu_Game_f(void)
     m_game_cursor = 1;
 }
 
-/*
- * CONFIRM DELETE MENU
- */
-
-static void LoadGame_MenuInit(void);
-
-static menuframework_s s_confirmdeletesavegame_menu;
-static menuseparator_s s_deletesavegame_label;
-static menuaction_s s_confirmdeletesavegame_action;
-static menuaction_s s_canceldeletesavegame_action;
-
-void (*ParentInitFunc)(void);
-
-static void
-DeleteSaveGameCallback(void *self)
-{
-	char name[MAX_OSPATH];
-	menuaction_s *item = (menuaction_s *)self;
-
-	Com_sprintf(name, sizeof(name), "%s/save/save%d/", FS_Gamedir(), item->generic.localdata[0]);
-	Sys_RemoveDir(name);
-
-	ParentInitFunc();
-	M_PopMenu();
-}
-
-static void
-CancelDeleteSaveGameCallback(void *unused)
-{
-	M_PopMenu();
-}
-
-static const char *
-DeleteSaveGame_MenuKey(int key)
-{
-    return Default_MenuKey(&s_confirmdeletesavegame_menu, key);
-}
-
-static void
-DeleteSaveGame_MenuDraw(void)
-{
-    Menu_AdjustCursor(&s_confirmdeletesavegame_menu, 1);
-    Menu_Draw(&s_confirmdeletesavegame_menu);
-}
-
-static void
-ConfirmDeleteSaveGame_MenuInit(int i, void (*callback)(void))
-{
-	float scale = SCR_GetMenuScale();
-
-	ParentInitFunc = callback;
-
-	// 32 = strlen("Are you sure...")
-	s_confirmdeletesavegame_menu.x = viddef.width / 2 - (8 * 32 * scale / 2);
-	s_confirmdeletesavegame_menu.y = viddef.height / (2 * scale) - 58;
-	s_confirmdeletesavegame_menu.nitems = 0;
-
-	s_deletesavegame_label.generic.type = MTYPE_SEPARATOR;
-	s_deletesavegame_label.generic.name = "Are you sure you want to delete?";
-	s_deletesavegame_label.generic.x = 8 * scale * 32;
-	s_deletesavegame_label.generic.y = 0;
-	s_deletesavegame_label.generic.flags = QMF_LEFT_JUSTIFY;
-	Menu_AddItem(&s_confirmdeletesavegame_menu, &s_deletesavegame_label);
-
-	s_confirmdeletesavegame_action.generic.type = MTYPE_ACTION;
-	s_confirmdeletesavegame_action.generic.name = "yes";
-	s_confirmdeletesavegame_action.generic.x = scale * 32;
-	s_confirmdeletesavegame_action.generic.y = 20;
-	s_confirmdeletesavegame_action.generic.localdata[0] = i;
-	s_confirmdeletesavegame_action.generic.flags = QMF_LEFT_JUSTIFY;
-	s_confirmdeletesavegame_action.generic.callback = DeleteSaveGameCallback;
-	Menu_AddItem(&s_confirmdeletesavegame_menu, &s_confirmdeletesavegame_action);
-
-	s_canceldeletesavegame_action.generic.type = MTYPE_ACTION;
-	s_canceldeletesavegame_action.generic.name = "no";
-	s_canceldeletesavegame_action.generic.x = scale * 32;
-	s_canceldeletesavegame_action.generic.y = 30;
-	s_canceldeletesavegame_action.generic.flags = QMF_LEFT_JUSTIFY;
-	s_canceldeletesavegame_action.generic.callback = CancelDeleteSaveGameCallback;
-	Menu_AddItem(&s_confirmdeletesavegame_menu, &s_canceldeletesavegame_action);
-}
-
 
 /*
  * LOADGAME MENU
@@ -2733,6 +2648,18 @@ static menuaction_s s_loadgame_actions[MAX_SAVESLOTS + 1]; // One for quick
 
 static menuframework_s s_savegame_menu;
 static menuaction_s s_savegame_actions[MAX_SAVESLOTS + 1]; // One for quick
+
+/* DELETE SAVEGAME */
+
+static qboolean menukeyitem_delete = false;
+
+static void
+DeleteSaveGameFunc(void * self)
+{
+    menuaction_s * a = ( menuaction_s * )self;
+    menukeyitem_delete = true;
+    Menu_SetStatusBar( a->generic.parent, "are you sure you want to delete? y\\n" );
+}
 
 static void
 Create_Savestrings(void)
@@ -2913,7 +2840,28 @@ LoadGame_MenuKey(int key)
 {
     static menuframework_s *m = &s_loadgame_menu;
     int menu_key = Key_GetMenuKey(key);
-    menucommon_s *item;
+    menucommon_s * item = NULL;
+
+    if (menukeyitem_delete) {
+
+        item = Menu_ItemAtCursor( m );
+        menukeyitem_delete = false;
+
+        if ( menu_key == K_ENTER || menu_key == 'y' || menu_key == 'Y' ) {
+
+            char name[MAX_OSPATH] = { 0 };
+
+            Com_sprintf( name, sizeof( name ), "%s/save/save%d/", FS_Gamedir(),
+                item->localdata[0] );
+            Sys_RemoveDir( name );
+            LoadGame_MenuInit();
+
+        } else {
+            Menu_SetStatusBar( &s_loadgame_menu, m_loadsave_statusbar );
+        }
+
+        return menu_move_sound;
+    }
 
     switch (menu_key)
     {
@@ -2950,8 +2898,7 @@ LoadGame_MenuKey(int key)
 		{
 			if (item->type == MTYPE_ACTION)
 			{
-				ConfirmDeleteSaveGame_MenuInit(item->localdata[0], LoadGame_MenuInit);
-				M_PushMenu(DeleteSaveGame_MenuDraw, DeleteSaveGame_MenuKey);
+                DeleteSaveGameFunc( item );
 			}
 		}
 
@@ -3059,12 +3006,33 @@ SaveGame_MenuKey(int key)
 {
     static menuframework_s *m = &s_savegame_menu;
     int menu_key = Key_GetMenuKey(key);
-    menucommon_s *item;
+    menucommon_s * item = NULL;
 
     if (m_popup_string)
     {
         m_popup_string = NULL;
         return NULL;
+    }
+
+    if (menukeyitem_delete) {
+
+        item = Menu_ItemAtCursor( m );
+        menukeyitem_delete = false;
+
+        if ( menu_key == K_ENTER || menu_key == 'y' || menu_key == 'Y' ) {
+
+            char name[MAX_OSPATH] = { 0 };
+
+            Com_sprintf( name, sizeof( name ), "%s/save/save%d/", FS_Gamedir(),
+                item->localdata[0] );
+            Sys_RemoveDir( name );
+            SaveGame_MenuInit();
+
+        } else {
+            Menu_SetStatusBar( &s_savegame_menu, m_loadsave_statusbar );
+        }
+
+        return menu_move_sound;
     }
 
     switch (menu_key)
@@ -3102,8 +3070,7 @@ SaveGame_MenuKey(int key)
 		{
 			if (item->type == MTYPE_ACTION)
 			{
-				ConfirmDeleteSaveGame_MenuInit(item->localdata[0], SaveGame_MenuInit);
-				M_PushMenu(DeleteSaveGame_MenuDraw, DeleteSaveGame_MenuKey);
+                DeleteSaveGameFunc( item );
 			}
 		}
 
