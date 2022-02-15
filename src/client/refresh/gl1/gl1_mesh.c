@@ -176,9 +176,9 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 			}
 
 			total = count;
-			GLfloat vtx[3*total];
-			GLfloat tex[2*total];
-			GLfloat clr[4 * total];
+			GLfloat* vtx = (GLfloat*)calloc(3 * total, sizeof(GLfloat));
+			GLfloat* tex = (GLfloat*)calloc(2 * total, sizeof(GLfloat));
+			GLfloat* clr = (GLfloat*)calloc(4 * total, sizeof(GLfloat));
 			unsigned int index_vtx = 0;
 			unsigned int index_tex = 0;
 			unsigned int index_clr = 0;
@@ -240,6 +240,10 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 			glDisableClientState(GL_COLOR_ARRAY);
+
+			free(vtx);
+			free(tex);
+			free(clr);
 		}
 
 	if (currententity->flags &
@@ -294,7 +298,7 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
 		}
 
         total = count;
-        GLfloat vtx[3*total];
+		GLfloat* vtx = (GLfloat*)calloc(3 * total, sizeof(GLfloat));
         unsigned int index_vtx = 0;
 
 		do
@@ -320,6 +324,8 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
         glDrawArrays( type, 0, total );
 
         glDisableClientState( GL_VERTEX_ARRAY );
+
+		free(vtx);
 	}
 
 	/* stencilbuffer shadows */

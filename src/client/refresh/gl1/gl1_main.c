@@ -427,9 +427,9 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	float scale;
 	YQ2_ALIGNAS_TYPE(unsigned) byte color[4];
 
-	GLfloat vtx[3*num_particles*3];
-	GLfloat tex[2*num_particles*3];
-	GLfloat clr[4*num_particles*3];
+	GLfloat* vtx = (GLfloat*)calloc(3 * num_particles * 3, sizeof(GLfloat));
+	GLfloat* tex = (GLfloat*)calloc(2 * num_particles * 3, sizeof(GLfloat));
+	GLfloat* clr = (GLfloat*)calloc(4 * num_particles * 3, sizeof(GLfloat));
 	unsigned int index_vtx = 0;
 	unsigned int index_tex = 0;
 	unsigned int index_clr = 0;
@@ -511,6 +511,10 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 	glColor4f(1, 1, 1, 1);
 	glDepthMask(1); /* back to normal Z buffering */
 	R_TexEnv(GL_REPLACE);
+
+	free(vtx);
+	free(tex);
+	free(clr);
 }
 
 void
@@ -525,8 +529,8 @@ R_DrawParticles(void)
 		YQ2_ALIGNAS_TYPE(unsigned) byte color[4];
 		const particle_t *p;
 
-		GLfloat vtx[3*r_newrefdef.num_particles];
-		GLfloat clr[4*r_newrefdef.num_particles];
+		GLfloat* vtx = (GLfloat*)calloc(3 * r_newrefdef.num_particles, sizeof(GLfloat));
+		GLfloat* clr = (GLfloat*)calloc(4 * r_newrefdef.num_particles, sizeof(GLfloat));
 		unsigned int index_vtx = 0;
 		unsigned int index_clr = 0;
 
@@ -564,6 +568,9 @@ R_DrawParticles(void)
 		glColor4f( 1, 1, 1, 1 );
 		glDepthMask(GL_TRUE);
 		glEnable(GL_TEXTURE_2D);
+
+		free(vtx);
+		free(clr);
 	}
 	else
 	{

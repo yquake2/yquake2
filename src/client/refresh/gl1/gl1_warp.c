@@ -301,7 +301,7 @@ R_EmitWaterPolys(msurface_t *fa)
 	{
 		p = bp;
 
-        GLfloat tex[2*p->numverts];
+		GLfloat* tex = (GLfloat*)calloc(2 * p->numverts, sizeof(GLfloat));
         unsigned int index_tex = 0;
 
 		for ( i = 0, v = p->verts [ 0 ]; i < p->numverts; i++, v += VERTEXSIZE )
@@ -328,6 +328,8 @@ R_EmitWaterPolys(msurface_t *fa)
 
         glDisableClientState( GL_VERTEX_ARRAY );
         glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
+		free(tex);
 	}
 }
 
