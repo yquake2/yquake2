@@ -9,10 +9,30 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # CMake project configuration.
-project(yquake2)
+project( yquake2 LANGUAGES C )
 
 # Cmake module search path.
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/stuff/cmake/modules ${CMAKE_MODULE_PATH})
+#set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/stuff/cmake/modules ${CMAKE_MODULE_PATH})
+
+
+
+set( YQUAKE2_BUILD_ROOT ${CMAKE_SOURCE_DIR} )
+if( MSVC )
+    set( YQUAKE2_OUTPUT_DIR ${YQUAKE2_BUILD_ROOT}/Build-Windows )
+else()
+    set( YQUAKE2_OUTPUT_DIR ${YQUAKE2_BUILD_ROOT}/Build-Linux )
+endif()
+message( "YQUAKE2_BUILD_ROOT: ${YQUAKE2_BUILD_ROOT}" )
+message( "YQUAKE2_OUTPUT_DIR: ${YQUAKE2_OUTPUT_DIR}" )
+
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${YQUAKE2_OUTPUT_DIR} )
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${YQUAKE2_OUTPUT_DIR} )
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${YQUAKE2_OUTPUT_DIR} )
+
+add_subdirectory( deps/curl )
+add_subdirectory( deps/sdl2-repo )
+
+include_directories(${CURL_SOURCE_DIR}/include)
 
 if(YQUAKE2LIBS)
 	if(CMAKE_CROSSCOMPILING)
@@ -33,7 +53,21 @@ list(APPEND CMAKE_PREFIX_PATH /usr/local)
 #  -fno-strict-aliasing -> Quake 2 is far away from strict aliasing
 #  -fwrapv              -> Make signed integer overflows defined
 #  -fvisibility=hidden	-> Force defaultsymbol visibility to hidden
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrapv -fvisibility=hidden")
+
+if( MSVC )
+    # Disable warnings for time being. W4 to turn them on.
+    add_compile_options( /W0 )
+    add_compile_options( /MP )
+	set_target_properties(SDL2 PROPERTIES
+        COMPILE_FLAGS "/MP" # Adjust as needed
+    )
+else()
+    #add_compile_options( -Wall -Wextra -pedantic -Werror )
+    #add_definitions( -Wfatal-errors )
+    add_compile_options( -w -fmax-errors=1 )
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrapv -fvisibility=hidden")
+
+endif()
 
 # Switch of some annoying warnings
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -62,6 +96,7 @@ set(yquake2OpenGLLinkerFlags)
 set(yquake2VulkanLinkerFlags)
 set(yquake2SDLLinkerFlags)
 set(yquake2ZLibLinkerFlags)
+set(YQUAKE2_RUN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/runDir)
 
 # Set directory locations (allowing us to move directories easily)
 set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
@@ -98,9 +133,9 @@ endif()
 # Required libraries to build the different components of the binaries. Find
 # them and add the include/linker directories and flags (in case the package
 # manager find it in a weird place).
-find_package(SDL2 REQUIRED)
-list(APPEND yquake2IncludeDirectories "${SDL2_INCLUDE_DIR}/..")
-list(APPEND yquake2SDLLinkerFlags ${SDL2_LIBRARY})
+#find_package(SDL2 REQUIRED)
+#list(APPEND yquake2IncludeDirectories "${SDL2_INCLUDE_DIR}/..")
+#list(APPEND yquake2SDLLinkerFlags ${SDL2_LIBRARY})
 
 # We need an OpenGL implementation.
 set(OpenGL_GL_PREFERENCE GLVND)
@@ -127,7 +162,7 @@ endif()
 
 # cURL support.
 if (${CURL_SUPPORT})
-	find_package(CURL REQUIRED)
+	#find_package(CURL REQUIRED)
 	add_definitions(-DUSE_CURL)
 endif()
 
@@ -152,11 +187,11 @@ if(${OPENAL_SUPPORT})
 endif()
 
 # General linker flags.
-list(APPEND yquake2LinkerFlags "-lm")
+#list(APPEND yquake2LinkerFlags "-lm")
 list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	list(APPEND yquake2LinkerFlags "-lws2_32 -lwinmm -static-libgcc")
+	#list(APPEND yquake2LinkerFlags "-lws2_32 -lwinmm -static-libgcc")
 else()
 	if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Haiku")
 		list(APPEND yquake2LinkerFlags "-rdynamic")
@@ -170,7 +205,7 @@ endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
-		list(APPEND yquake2LinkerFlags "-Wl,--no-undefined")
+		#list(APPEND yquake2LinkerFlags "-Wl,--no-undefined")
 	endif()
 endif()
 
@@ -590,23 +625,14 @@ endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	add_executable(yquake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
 			${Backends-Generic-Source})
-	set_target_properties(yquake2 PROPERTIES
-			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-			)
-	target_link_libraries(yquake2 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
+	target_link_libraries(yquake2 SDL2 SDL2main libcurl WSock32 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
 			${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
 
 	# Wrapper for the Windows binary
 	add_executable(quake2 ${Wrapper-Source})
-	set_target_properties(quake2 PROPERTIES
-			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-			)
 else()
 	add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
 			${Backends-Generic-Source})
-	set_target_properties(quake2 PROPERTIES
-			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-			)
 	target_link_libraries(quake2 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
 			${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags})
 endif()
@@ -616,7 +642,7 @@ add_executable(q2ded ${Server-Source} ${Server-Header} ${Platform-Specific-Sourc
 		${Backends-Generic-Source})
 set_target_properties(q2ded PROPERTIES
 	COMPILE_DEFINITIONS "DEDICATED_ONLY"
-	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+	RUNTIME_OUTPUT_DIRECTORY ${YQUAKE2_RUN_DIR}
 	)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_link_libraries(q2ded ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
@@ -626,40 +652,42 @@ endif()
 
 # Build the game dynamic library
 add_library(game MODULE ${Game-Source} ${Game-Header})
-set_target_properties(game PROPERTIES
-		PREFIX ""
-		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
-		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
-		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
-		)
 target_link_libraries(game ${yquake2LinkerFlags})
 
 # Build the GL1 dynamic library
 add_library(ref_gl1 MODULE ${GL1-Source} ${GL1-Header} ${REF-Platform-Specific-Source})
-set_target_properties(ref_gl1 PROPERTIES
-		PREFIX ""
-		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
-		)
-target_link_libraries(ref_gl1 ${yquake2LinkerFlags} ${yquake2OpenGLLinkerFlags} ${yquake2SDLLinkerFlags})
+target_link_libraries(ref_gl1 SDL2 SDL2main ${yquake2LinkerFlags} ${yquake2OpenGLLinkerFlags} ${yquake2SDLLinkerFlags})
 
 # Build the GL3 dynamic library
 add_library(ref_gl3 MODULE ${GL3-Source} ${GL3-Header} ${REF-Platform-Specific-Source})
-set_target_properties(ref_gl3 PROPERTIES
-		PREFIX ""
-		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
-		)
 target_link_libraries(ref_gl3 ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
 
 # Build the soft renderer dynamic library
 add_library(ref_soft MODULE ${SOFT-Source} ${SOFT-Header} ${REF-Platform-Specific-Source})
-set_target_properties(ref_soft PROPERTIES
-		PREFIX ""
-		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
-		)
 target_link_libraries(ref_soft ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
+
+if (MSVC)
+    set_target_properties( yquake2 PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${YQUAKE2_RUN_DIR} )
+
+	add_custom_command(TARGET yquake2
+        PRE_BUILD
+            COMMAND ${CMAKE_COMMAND} --build . --target game
+			COMMAND ${CMAKE_COMMAND} --build . --target ref_gl1
+            )
+
+
+	message( "CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}" )
+	set(CURR_DLL ref_gl1)
+	add_custom_command(TARGET ${CURR_DLL}
+		POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${CURR_DLL}.dll ${YQUAKE2_RUN_DIR}
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${CURR_DLL}.dll ${YQUAKE2_RUN_DIR}
+		)
+
+	set(CURR_DLL game)
+	add_custom_command(TARGET ${CURR_DLL}
+		POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${CURR_DLL}.dll ${YQUAKE2_RUN_DIR}/baseq2/
+		)
+
+endif()
