@@ -25,6 +25,7 @@
  */
 
 #include <ctype.h>
+#include <string.h>
 
 #include "../header/shared.h"
 
@@ -1034,7 +1035,7 @@ Com_PageInMemory(byte *buffer, int size)
 int
 Q_stricmp(const char *s1, const char *s2)
 {
-	return strcasecmp(s1, s2);
+	return stricmp(s1, s2);
 }
 
 int
