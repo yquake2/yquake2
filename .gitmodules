@@ -1,0 +1,3 @@
+[submodule "deps/curl"]
+	path = deps/curl
+	url = git@github.com:curl/curl.git

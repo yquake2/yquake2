@@ -3,3 +3,5 @@
 *.mk
 *.user
 *.d
+
+Build-Windows
