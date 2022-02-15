@@ -34,7 +34,7 @@
  */
 
 /* SDL includes */
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 /* Local includes */
 #include "../../client/header/client.h"

@@ -30,8 +30,8 @@
 #include "../../common/header/common.h"
 #include "header/ref.h"
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_video.h>
+#include <SDL.h>
+#include <SDL_video.h>
 
 int glimp_refreshRate = -1;
 
@@ -135,7 +135,7 @@ CreateSDLWindow(int flags, int w, int h)
 			Com_Printf("Likely SDL bug #4700, trying to work around it\n");
 
 			/* Mkay, try to hack around that. */
-			SDL_DisplayMode wanted_mode = {};
+			SDL_DisplayMode wanted_mode;
 
 			wanted_mode.w = w;
 			wanted_mode.h = h;

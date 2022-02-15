@@ -27,7 +27,7 @@
  * =======================================================================
  */
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include "header/input.h"
 #include "../../client/header/keyboard.h"

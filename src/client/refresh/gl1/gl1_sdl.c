@@ -27,7 +27,7 @@
 
 #include "header/local.h"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>
