@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "[WINDOWS][RUN][DEBUG]",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/Build-Windows/Debug/yquake2.exe",
+            "cwd": "${workspaceRoot}/runDir",
+            "args": [ "-w", "1680", "-h", "900" ],
+            "externalConsole": false,
+            "logging": {
+                "moduleLoad": false,
+                "trace": true,
+            },
+            "preLaunchTask": "[WINDOWS][BUILD][DEBUG]"
+        }
+    ]
+}

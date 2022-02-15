@@ -1,0 +1,64 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "[WINDOWS][CMAKE][CREATE]",
+            "type": "shell",
+            "command": "cd Build-Windows && cmake .. -DCMAKE_BUILD_TYPE=Debug -G \"Visual Studio 16 2019\"",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "runOptions": {},
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            }
+        },
+        {
+            "label": "[WINDOWS][BUILD][DEBUG]",
+            "type": "shell",
+            "command": "cmake --build Build-Windows --target yquake2 --config DEBUG",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "dependsOn": "[WINDOWS][CMAKE][CREATE]"
+        },
+        {
+            "label": "[WINDOWS][BUILD][CLEAN]",
+            "type": "shell",
+            "command": "cmake --build Build-Windows --target clean --config DEBUG",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gradle"
+            ],
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "dependsOn": "[WINDOWS][CMAKE][CREATE]"
+        }
+    ]
+}
