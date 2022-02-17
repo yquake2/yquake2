@@ -1,8 +1,8 @@
-/build/
-/release/
+*.d
 *.mk
 *.user
-*.d
-
+/build/
+/release/
+Build-Linux
 Build-Windows
 runDir/
