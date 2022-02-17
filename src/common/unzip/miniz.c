@@ -3018,8 +3018,8 @@ static FILE *mz_freopen(const char *pPath, const char *pMode, FILE *pStream)
 #define MZ_FCLOSE fclose
 #define MZ_FREAD fread
 #define MZ_FWRITE fwrite
-#define MZ_FTELL64 ftello
-#define MZ_FSEEK64 fseeko
+#define MZ_FTELL64 ftell
+#define MZ_FSEEK64 fseek
 #define MZ_FILE_STAT_STRUCT stat
 #define MZ_FILE_STAT stat
 #define MZ_FFLUSH fflush
@@ -3039,8 +3039,8 @@ static FILE *mz_freopen(const char *pPath, const char *pMode, FILE *pStream)
 #define MZ_FTELL64 ftell
 #define MZ_FSEEK64 fseek
 #else
-#define MZ_FTELL64 ftello
-#define MZ_FSEEK64 fseeko
+#define MZ_FTELL64 ftell
+#define MZ_FSEEK64 fseek
 #endif
 #define MZ_FILE_STAT_STRUCT stat
 #define MZ_FILE_STAT stat
