@@ -25,7 +25,9 @@
  * =======================================================================
  */
 
+#ifndef _WIN32
 #include <libgen.h>
+#endif
 
 #include "header/common.h"
 #include "header/glob.h"
@@ -380,8 +382,8 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 	// Remove self references and empty dirs from the requested path.
 	// ZIPs and PAKs don't support them, but they may be hardcoded in
 	// some custom maps or models.
-	char name[MAX_QPATH] = {};
-	size_t namelen = strlen(rawname);
+	char name[MAX_QPATH];
+	size_t namelen = strlen(rawname) + 1;
 	for (int input = 0, output = 0; input < namelen; input++)
 	{
 		// Remove self reference.
@@ -430,9 +432,13 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 	}
 
 	file_from_protected_pak = false;
-	handle = FS_HandleForFile(name, f);
-	Q_strlcpy(handle->name, name, sizeof(handle->name));
-	handle->mode = FS_READ;
+
+	if (f)
+	{
+		handle = FS_HandleForFile(name, f);
+		strcpy(handle->name, name);
+		handle->mode = FS_READ;
+	}
 
 	/* Search through the path, one element at a time. */
 	for (search = fs_searchPaths; search; search = search->next)
@@ -460,7 +466,11 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 
 			for (i = 0; i < pack->numFiles; i++)
 			{
-				if (Q_stricmp(pack->files[i].name, handle->name) == 0)
+				fsPackFile_t* file = &pack->files[i];
+				const char* fileName = file->name;
+				Com_Printf("FS_FOpenFile: '%s'.\n", file->name);
+				if (Q_stricmp(pack->files[i].name, handle->name) == 0||
+					Q_stricmp(pack->files[i].name, rawname) == 0)
 				{
 					/* Found it! */
 					if (fs_debug->value)
@@ -472,7 +482,7 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 					// save the name with *correct case* in the handle
 					// (relevant for savegames, when starting map with wrong case but it's still found
 					//  because it's from pak, but save/bla/MAPname.sav/sv2 will have wrong case and can't be found then)
-					Q_strlcpy(handle->name, pack->files[i].name, sizeof(handle->name));
+					Q_strlcpy(handle->name, file->name, sizeof(handle->name));
 
 					if (pack->pak)
 					{
@@ -486,8 +496,8 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 
 						if (handle->file)
 						{
-							fseek(handle->file, pack->files[i].offset, SEEK_SET);
-							return pack->files[i].size;
+							fseek(handle->file, file->offset, SEEK_SET);
+							return file->size;
 						}
 					}
 					else if (pack->pk3)
@@ -510,7 +520,7 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 							{
 								if (unzOpenCurrentFile(handle->zip) == UNZ_OK)
 								{
-									return pack->files[i].size;
+									return file->size;
 								}
 							}
 
@@ -1614,6 +1624,8 @@ FS_GetNextRawPath(const char* lastRawPath)
 	return NULL;
 }
 
+char* getBasename(const char* filePath);
+
 void
 FS_AddDirToSearchPath(char *dir, qboolean create) {
 	char *file;
@@ -1725,7 +1737,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 				// basename() may alter the given string.
 				// We need to work around that...
 				tmp = strdup(list[j]);
-				file = basename(tmp);
+				file = getBasename(tmp);
 
 				Com_sprintf(path, sizeof(path), "pak%d.%s", k, fs_packtypes[i].suffix);
 
@@ -1769,6 +1781,31 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 
 		FS_FreeList(list, nfiles);
 	}
+}
+
+char* getBasename(const char* filePath)
+{
+	int filePathLen = strlen(filePath);
+	int positionOfLastSlash = -1;
+
+	for (int i = 0; i < filePathLen; ++i)
+	{
+		if (filePath[i] == '/' || filePath[i] == '\\')
+		{
+			positionOfLastSlash = i;
+		}
+	}
+
+	int newSize = filePathLen - positionOfLastSlash;
+	char* result = calloc(newSize + 1, sizeof(char));
+
+	for (int i = 0; i < newSize; ++i)
+	{
+		result[i] = filePath[positionOfLastSlash + i + 1];
+	}
+	result[newSize] = '\n';
+
+	return result;
 }
 
 void FS_BuildGenericSearchPath(void) {
