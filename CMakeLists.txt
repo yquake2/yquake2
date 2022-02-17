@@ -25,11 +25,16 @@ endif()
 message( "YQUAKE2_BUILD_ROOT: ${YQUAKE2_BUILD_ROOT}" )
 message( "YQUAKE2_OUTPUT_DIR: ${YQUAKE2_OUTPUT_DIR}" )
 
+file(MAKE_DIRECTORY ${YQUAKE2_OUTPUT_DIR})
+
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${YQUAKE2_OUTPUT_DIR} )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${YQUAKE2_OUTPUT_DIR} )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${YQUAKE2_OUTPUT_DIR} )
 
 add_subdirectory( deps/curl )
+option( SDL_STATIC_PIC "PIC for SDL" true )
+option( SDL_LIBC "LIBC FOR SDL" true )
+set(EXTRA_LDFLAGS "-ldl")
 add_subdirectory( deps/sdl2-repo )
 
 include_directories(${CURL_SOURCE_DIR}/include)
@@ -97,6 +102,9 @@ set(yquake2VulkanLinkerFlags)
 set(yquake2SDLLinkerFlags)
 set(yquake2ZLibLinkerFlags)
 set(YQUAKE2_RUN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/runDir)
+
+file(MAKE_DIRECTORY ${YQUAKE2_RUN_DIR})
+file(MAKE_DIRECTORY ${YQUAKE2_RUN_DIR}/baseq2)
 
 # Set directory locations (allowing us to move directories easily)
 set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
@@ -623,6 +631,15 @@ endif()
 # Main Quake 2 executable
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	message( "[yquake2] yquake2LinkerFlags: ${yquake2LinkerFlags}" )
+else()
+	list(APPEND yquake2LinkerFlags "-lm -ldl")
+	message( "[yquake2] yquake2LinkerFlags: ${yquake2LinkerFlags}" )
+endif()
+
+
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	add_executable(yquake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
 			${Backends-Generic-Source})
 	target_link_libraries(yquake2 SDL2 SDL2main libcurl WSock32 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
@@ -631,9 +648,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	# Wrapper for the Windows binary
 	add_executable(quake2 ${Wrapper-Source})
 else()
-	add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
+	add_executable(yquake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
 			${Backends-Generic-Source})
-	target_link_libraries(quake2 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
+	target_link_libraries(yquake2 SDL2 SDL2main libcurl ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
 			${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags})
 endif()
 
