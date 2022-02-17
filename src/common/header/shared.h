@@ -65,10 +65,9 @@ typedef unsigned char byte;
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
 #elif defined(_MSC_VER)
-	#define YQ2_ALIGNAS_SIZE(SIZE)  __declspec( align(SIZE) )
-	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec( align( __alignof(TYPE) ) )
-	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
-	#define YQ2_ATTR_NORETURN       __declspec(noreturn)
+	#define YQ2_ALIGNAS_SIZE(SIZE) 
+	#define YQ2_ALIGNAS_TYPE(TYPE)
+	#define YQ2_ATTR_NORETURN
 #else
 	#warning "Please add a case for your compiler here to align correctly"
 	#define YQ2_ALIGNAS_TYPE(TYPE)
@@ -310,7 +309,12 @@ float BigFloat(float l);
 float LittleFloat(float l);
 
 void Swap_Init(void);
-char *va(char *format, ...)  __attribute__ ((format (printf, 1, 2)));
+
+#if defined _MSC_VER
+#define __attribute__(x)
+#endif
+
+char* va(char* format, ...)  __attribute__((format(printf, 1, 2)));
 
 /* ============================================= */
 
