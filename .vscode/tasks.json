@@ -4,6 +4,43 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "[LINUX][CMAKE][CREATE]",
+            "type": "shell",
+            "command": "cmake ..",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "runOptions": {},
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "options": {"cwd": "${workspaceFolder}/Build-Linux"}
+        },
+        {
+            "label": "[LINUX][BUILD][DEBUG]",
+            "type": "shell",
+            "command": "cmake --build Build-Linux --target yquake2 --config DEBUG -j16",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "dependsOn": "[LINUX][CMAKE][CREATE]"
+        },
+        {
             "label": "[WINDOWS][CMAKE][CREATE]",
             "type": "shell",
             "command": "cd Build-Windows && cmake .. -DCMAKE_BUILD_TYPE=Debug -G \"Visual Studio 16 2019\"",
