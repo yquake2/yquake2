@@ -113,7 +113,7 @@ CL_ParseEntityBits(unsigned *bits)
 	/* count the bits for net profiling */
 	for (i = 0; i < 32; i++)
 	{
-		if (total & (1 << i))
+		if (total & (1u << i))
 		{
 			bitcounts[i]++;
 		}
@@ -648,7 +648,7 @@ CL_ParsePlayerstate(frame_t *oldframe, frame_t *newframe)
 
 	for (i = 0; i < MAX_STATS; i++)
 	{
-		if (statbits & (1 << i))
+		if (statbits & (1u << i))
 		{
 			state->stats[i] = MSG_ReadShort(&net_message);
 		}
