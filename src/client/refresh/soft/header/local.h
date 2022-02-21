@@ -208,6 +208,11 @@ typedef struct finalvert_s {
 	float		xyz[3];         // eye space
 } finalvert_t;
 
+typedef struct compactvert_s {
+	int		u, v, s, t;
+	int		l;
+	zvalue_t	zi;
+} compactvert_t;
 
 typedef struct
 {

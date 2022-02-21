@@ -26,36 +26,36 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 typedef struct {
 	int	isflattop;
 	int	numleftedges;
-	int	*pleftedgevert0;
-	int	*pleftedgevert1;
-	int	*pleftedgevert2;
+	compactvert_t	*pleftedgevert0;
+	compactvert_t	*pleftedgevert1;
+	compactvert_t	*pleftedgevert2;
 	int	numrightedges;
-	int	*prightedgevert0;
-	int	*prightedgevert1;
-	int	*prightedgevert2;
+	compactvert_t	*prightedgevert0;
+	compactvert_t	*prightedgevert1;
+	compactvert_t	*prightedgevert2;
 } edgetable;
 
 static int	ubasestep, errorterm, erroradjustup, erroradjustdown;
 
-static int	r_p0[6], r_p1[6], r_p2[6];
+static compactvert_t r_p0, r_p1, r_p2;
 
 static int	d_xdenom;
 
 static edgetable *pedgetable;
 
 static edgetable edgetables[12] = {
-	{0, 1, r_p0, r_p2, NULL, 2, r_p0, r_p1, r_p2},
-	{0, 2, r_p1, r_p0, r_p2, 1, r_p1, r_p2, NULL},
-	{1, 1, r_p0, r_p2, NULL, 1, r_p1, r_p2, NULL},
-	{0, 1, r_p1, r_p0, NULL, 2, r_p1, r_p2, r_p0},
-	{0, 2, r_p0, r_p2, r_p1, 1, r_p0, r_p1, NULL},
-	{0, 1, r_p2, r_p1, NULL, 1, r_p2, r_p0, NULL},
-	{0, 1, r_p2, r_p1, NULL, 2, r_p2, r_p0, r_p1},
-	{0, 2, r_p2, r_p1, r_p0, 1, r_p2, r_p0, NULL},
-	{0, 1, r_p1, r_p0, NULL, 1, r_p1, r_p2, NULL},
-	{1, 1, r_p2, r_p1, NULL, 1, r_p0, r_p1, NULL},
-	{1, 1, r_p1, r_p0, NULL, 1, r_p2, r_p0, NULL},
-	{0, 1, r_p0, r_p2, NULL, 1, r_p0, r_p1, NULL},
+	{0, 1, &r_p0, &r_p2, NULL, 2, &r_p0, &r_p1, &r_p2},
+	{0, 2, &r_p1, &r_p0, &r_p2, 1, &r_p1, &r_p2, NULL},
+	{1, 1, &r_p0, &r_p2, NULL, 1, &r_p1, &r_p2, NULL},
+	{0, 1, &r_p1, &r_p0, NULL, 2, &r_p1, &r_p2, &r_p0},
+	{0, 2, &r_p0, &r_p2, &r_p1, 1, &r_p0, &r_p1, NULL},
+	{0, 1, &r_p2, &r_p1, NULL, 1, &r_p2, &r_p0, NULL},
+	{0, 1, &r_p2, &r_p1, NULL, 2, &r_p2, &r_p0, &r_p1},
+	{0, 2, &r_p2, &r_p1, &r_p0, 1, &r_p2, &r_p0, NULL},
+	{0, 1, &r_p1, &r_p0, NULL, 1, &r_p1, &r_p2, NULL},
+	{1, 1, &r_p2, &r_p1, NULL, 1, &r_p0, &r_p1, NULL},
+	{1, 1, &r_p1, &r_p0, NULL, 1, &r_p2, &r_p0, NULL},
+	{0, 1, &r_p0, &r_p2, NULL, 1, &r_p0, &r_p1, NULL},
 };
 
 // FIXME: some of these can become statics
@@ -185,26 +185,26 @@ R_DrawTriangle(const entity_t *currententity, const finalvert_t *a, const finalv
 
 	if ( d_xdenom < 0 )
 	{
-		r_p0[0] = a->u;	// u
-		r_p0[1] = a->v;	// v
-		r_p0[2] = a->s;	// s
-		r_p0[3] = a->t;	// t
-		r_p0[4] = a->l;	// light
-		r_p0[5] = a->zi;	// iz
+		r_p0.u = a->u;	// u
+		r_p0.v = a->v;	// v
+		r_p0.s = a->s;	// s
+		r_p0.t = a->t;	// t
+		r_p0.l = a->l;	// light
+		r_p0.zi = a->zi;	// iz
 
-		r_p1[0] = b->u;
-		r_p1[1] = b->v;
-		r_p1[2] = b->s;
-		r_p1[3] = b->t;
-		r_p1[4] = b->l;
-		r_p1[5] = b->zi;
+		r_p1.u = b->u;
+		r_p1.v = b->v;
+		r_p1.s = b->s;
+		r_p1.t = b->t;
+		r_p1.l = b->l;
+		r_p1.zi = b->zi;
 
-		r_p2[0] = c->u;
-		r_p2[1] = c->v;
-		r_p2[2] = c->s;
-		r_p2[3] = c->t;
-		r_p2[4] = c->l;
-		r_p2[5] = c->zi;
+		r_p2.u = c->u;
+		r_p2.v = c->v;
+		r_p2.s = c->s;
+		r_p2.t = c->t;
+		r_p2.l = c->l;
+		r_p2.zi = c->zi;
 
 		R_PolysetSetEdgeTable ();
 		R_RasterizeAliasPolySmooth(currententity);
@@ -372,10 +372,10 @@ R_PolysetCalcGradients (int skinwidth)
 	float	xstepdenominv, ystepdenominv, t0, t1;
 	float	p01_minus_p21, p11_minus_p21, p00_minus_p20, p10_minus_p20;
 
-	p00_minus_p20 = r_p0[0] - r_p2[0];
-	p01_minus_p21 = r_p0[1] - r_p2[1];
-	p10_minus_p20 = r_p1[0] - r_p2[0];
-	p11_minus_p21 = r_p1[1] - r_p2[1];
+	p00_minus_p20 = r_p0.u - r_p2.u;
+	p01_minus_p21 = r_p0.v - r_p2.v;
+	p10_minus_p20 = r_p1.u - r_p2.u;
+	p11_minus_p21 = r_p1.v - r_p2.v;
 
 	xstepdenominv = 1.0 / (float)d_xdenom;
 
@@ -384,29 +384,29 @@ R_PolysetCalcGradients (int skinwidth)
 	// ceil () for light so positive steps are exaggerated, negative steps
 	// diminished,  pushing us away from underflow toward overflow. Underflow is
 	// very visible, overflow is very unlikely, because of ambient lighting
-	t0 = r_p0[4] - r_p2[4];
-	t1 = r_p1[4] - r_p2[4];
+	t0 = r_p0.l - r_p2.l;
+	t1 = r_p1.l - r_p2.l;
 	r_lstepx = (int)
 			ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
 	r_lstepy = (int)
 			ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
 
-	t0 = r_p0[2] - r_p2[2];
-	t1 = r_p1[2] - r_p2[2];
+	t0 = r_p0.s - r_p2.s;
+	t1 = r_p1.s - r_p2.s;
 	r_sstepx = (int)((t1 * p01_minus_p21 - t0 * p11_minus_p21) *
 			xstepdenominv);
 	r_sstepy = (int)((t1 * p00_minus_p20 - t0* p10_minus_p20) *
 			ystepdenominv);
 
-	t0 = r_p0[3] - r_p2[3];
-	t1 = r_p1[3] - r_p2[3];
+	t0 = r_p0.t - r_p2.t;
+	t1 = r_p1.t - r_p2.t;
 	r_tstepx = (int)((t1 * p01_minus_p21 - t0 * p11_minus_p21) *
 			xstepdenominv);
 	r_tstepy = (int)((t1 * p00_minus_p20 - t0 * p10_minus_p20) *
 			ystepdenominv);
 
-	t0 = r_p0[5] - r_p2[5];
-	t1 = r_p1[5] - r_p2[5];
+	t0 = r_p0.zi - r_p2.zi;
+	t1 = r_p1.zi - r_p2.zi;
 	r_zistepx = (int)((t1 * p01_minus_p21 - t0 * p11_minus_p21) *
 			xstepdenominv);
 	r_zistepy = (int)((t1 * p00_minus_p20 - t0 * p10_minus_p20) *
@@ -769,7 +769,7 @@ static void
 R_RasterizeAliasPolySmooth(const entity_t *currententity)
 {
 	int	initialleftheight, initialrightheight;
-	int	*plefttop, *prighttop, *pleftbottom, *prightbottom;
+	compactvert_t	*plefttop, *prighttop, *pleftbottom, *prightbottom;
 	int	working_lstepx, originalcount;
 	int	u, v;
 	pixel_t	*d_ptex;
@@ -780,8 +780,8 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 	pleftbottom = pedgetable->pleftedgevert1;
 	prightbottom = pedgetable->prightedgevert1;
 
-	initialleftheight = pleftbottom[1] - plefttop[1];
-	initialrightheight = prightbottom[1] - prighttop[1];
+	initialleftheight = pleftbottom->v - plefttop->v;
+	initialrightheight = prightbottom->v - prighttop->v;
 
 	//
 	// set the s, t, and light gradients, which are consistent across the triangle
@@ -797,18 +797,18 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 	//
 	d_pedgespanpackage = triangle_spans;
 
-	u = plefttop[0];
-	v = plefttop[1];
-	d_aspancount = plefttop[0] - prighttop[0];
+	u = plefttop->u;
+	v = plefttop->v;
+	d_aspancount = plefttop->u - prighttop->u;
 
-	d_ptex = r_affinetridesc.pskin + (plefttop[2] >> SHIFT16XYZ) +
-			(plefttop[3] >> SHIFT16XYZ) * r_affinetridesc.skinwidth;
+	d_ptex = r_affinetridesc.pskin + (plefttop->s >> SHIFT16XYZ) +
+			(plefttop->t >> SHIFT16XYZ) * r_affinetridesc.skinwidth;
 	{
-		d_sfrac = plefttop[2] & 0xFFFF;
-		d_tfrac = plefttop[3] & 0xFFFF;
+		d_sfrac = plefttop->s & 0xFFFF;
+		d_tfrac = plefttop->t & 0xFFFF;
 	}
-	d_light = plefttop[4];
-	d_zi = plefttop[5];
+	d_light = plefttop->l;
+	d_zi = plefttop->zi;
 
 	if (initialleftheight == 1)
 	{
@@ -817,8 +817,8 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 	}
 	else
 	{
-		R_PolysetSetUpForLineScan(plefttop[0], plefttop[1],
-					  pleftbottom[0], pleftbottom[1]);
+		R_PolysetSetUpForLineScan(plefttop->u, plefttop->v,
+					  pleftbottom->u, pleftbottom->v);
 
 		// TODO: can reuse partial expressions here
 
@@ -863,18 +863,18 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		plefttop = pleftbottom;
 		pleftbottom = pedgetable->pleftedgevert2;
 
-		height = pleftbottom[1] - plefttop[1];
+		height = pleftbottom->v - plefttop->v;
 
 		// TODO: make this a function; modularize this function in general
-		u = plefttop[0];
-		v = plefttop[1];
-		d_aspancount = plefttop[0] - prighttop[0];
-		d_ptex = r_affinetridesc.pskin + (plefttop[2] >> SHIFT16XYZ) +
-				(plefttop[3] >> SHIFT16XYZ) * r_affinetridesc.skinwidth;
+		u = plefttop->u;
+		v = plefttop->v;
+		d_aspancount = plefttop->u - prighttop->u;
+		d_ptex = r_affinetridesc.pskin + (plefttop->s >> SHIFT16XYZ) +
+				(plefttop->t >> SHIFT16XYZ) * r_affinetridesc.skinwidth;
 		d_sfrac = 0;
 		d_tfrac = 0;
-		d_light = plefttop[4];
-		d_zi = plefttop[5];
+		d_light = plefttop->l;
+		d_zi = plefttop->zi;
 
 		if (height == 1)
 		{
@@ -883,8 +883,8 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		}
 		else
 		{
-			R_PolysetSetUpForLineScan(plefttop[0], plefttop[1],
-								  pleftbottom[0], pleftbottom[1]);
+			R_PolysetSetUpForLineScan(plefttop->u, plefttop->v,
+								  pleftbottom->u, pleftbottom->v);
 
 			if (ubasestep < 0)
 				working_lstepx = r_lstepx - 1;
@@ -917,8 +917,8 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 
 	// scan out the top (and possibly only) part of the right edge, updating the
 	// count field
-	R_PolysetSetUpForLineScan(prighttop[0], prighttop[1],
-						  prightbottom[0], prightbottom[1]);
+	R_PolysetSetUpForLineScan(prighttop->u, prighttop->v,
+						  prightbottom->u, prightbottom->v);
 	d_aspancount = 0;
 	if ((triangle_spans + initialrightheight) >= triangles_max)
 	{
@@ -939,15 +939,15 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		pstart = triangle_spans + initialrightheight;
 		pstart->count = originalcount;
 
-		d_aspancount = prightbottom[0] - prighttop[0];
+		d_aspancount = prightbottom->u - prighttop->u;
 
 		prighttop = prightbottom;
 		prightbottom = pedgetable->prightedgevert2;
 
-		height = prightbottom[1] - prighttop[1];
+		height = prightbottom->v - prighttop->v;
 
-		R_PolysetSetUpForLineScan(prighttop[0], prighttop[1],
-							  prightbottom[0], prightbottom[1]);
+		R_PolysetSetUpForLineScan(prighttop->u, prighttop->v,
+							  prightbottom->u, prightbottom->v);
 
 		if ((triangle_spans + initialrightheight + height) >= triangles_max)
 		{
@@ -978,11 +978,11 @@ R_PolysetSetEdgeTable (void)
 	// determine which edges are right & left, and the order in which
 	// to rasterize them
 	//
-	if (r_p0[1] >= r_p1[1])
+	if (r_p0.v >= r_p1.v)
 	{
-		if (r_p0[1] == r_p1[1])
+		if (r_p0.v == r_p1.v)
 		{
-			if (r_p0[1] < r_p2[1])
+			if (r_p0.v < r_p2.v)
 				pedgetable = &edgetables[2];
 			else
 				pedgetable = &edgetables[5];
@@ -995,7 +995,7 @@ R_PolysetSetEdgeTable (void)
 		}
 	}
 
-	if (r_p0[1] == r_p2[1])
+	if (r_p0.v == r_p2.v)
 	{
 		if (edgetableindex)
 			pedgetable = &edgetables[8];
@@ -1004,7 +1004,7 @@ R_PolysetSetEdgeTable (void)
 
 		return;
 	}
-	else if (r_p1[1] == r_p2[1])
+	else if (r_p1.v == r_p2.v)
 	{
 		if (edgetableindex)
 			pedgetable = &edgetables[10];
@@ -1014,10 +1014,10 @@ R_PolysetSetEdgeTable (void)
 		return;
 	}
 
-	if (r_p0[1] > r_p2[1])
+	if (r_p0.v > r_p2.v)
 		edgetableindex += 2;
 
-	if (r_p1[1] > r_p2[1])
+	if (r_p1.v > r_p2.v)
 		edgetableindex += 4;
 
 	pedgetable = &edgetables[edgetableindex];
