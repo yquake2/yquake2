@@ -57,9 +57,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   time for the next frame. The later is more CPU friendly but rather
   inaccurate, especially on Windows. Use with care.
 
-* **cl_kickangles**: If set to `0` angle kicks (weapon recoil, damage
-  hits and the like) are ignored. Cheat-protected. Defaults to `1`.
-
 * **cl_async**: If set to `1` (the default) the client is asynchronous.
   The client framerate is fixed, the renderer framerate is variable.
   This makes it possible to renderer as many frames as desired without
@@ -75,6 +72,24 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
   If *cl_async* is set to `0` *vid_maxfps* is the same as *cl_maxfps*,
   use *cl_maxfps* to set the framerate.
+
+* **cl_http_downloads**: Allow HTTP download. Set to `1` by default, set
+  to `0` to disable.
+
+* **cl_http_filelists**: Allow downloading and processing of filelists.
+  A filelist can contain an arbitrary number of files which are
+  downloaded as soon asthe filelist is found on the server. Set to `1`
+  by default, set to `0` to disable.
+
+* **cl_http_max_connections**: Maximum number of parallel downloads. Set
+  to `4` by default. A higher number may help with slow servers.
+
+* **cl_http_proxy**: Proxy to use, empty by default.
+
+* **cl_http_show_dw_progress**: Show a HTTP download progress bar.
+
+* **cl_kickangles**: If set to `0` angle kicks (weapon recoil, damage
+  hits and the like) are ignored. Cheat-protected. Defaults to `1`.
 
 * **cl_limitsparksounds**: If set to `1` the number of sound generated
   when shooting into power screen and power shields is limited to 16.
