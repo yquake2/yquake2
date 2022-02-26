@@ -624,8 +624,8 @@ M_Main_Draw(void)
 const char *
 M_Main_Key(int key)
 {
-	const char *sound = menu_move_sound;
-	int menu_key = Key_GetMenuKey(key);
+    const char *sound = menu_move_sound;
+    int menu_key = Key_GetMenuKey(key);
 
     switch (menu_key)
     {
@@ -729,7 +729,7 @@ StartNetworkServerFunc(void *unused)
 static void
 Multiplayer_MenuInit(void)
 {
-	float scale = SCR_GetMenuScale();
+    float scale = SCR_GetMenuScale();
 
     s_multiplayer_menu.x = (int)(viddef.width * 0.50f) - 64 * scale;
     s_multiplayer_menu.nitems = 0;
@@ -2898,7 +2898,7 @@ LoadGame_MenuKey(int key)
 		{
 			if (item->type == MTYPE_ACTION)
 			{
-                DeleteSaveGameFunc( item );
+                            DeleteSaveGameFunc( item );
 			}
 		}
 
@@ -3070,7 +3070,7 @@ SaveGame_MenuKey(int key)
 		{
 			if (item->type == MTYPE_ACTION)
 			{
-                DeleteSaveGameFunc( item );
+                            DeleteSaveGameFunc( item );
 			}
 		}
 
