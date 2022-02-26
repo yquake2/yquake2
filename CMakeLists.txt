@@ -76,12 +76,81 @@ set(REF_SRC_DIR ${SOURCE_DIR}/client/refresh)
 set(YQ2OSTYPE "${CMAKE_SYSTEM_NAME}" CACHE STRING "Override operation system type")
 add_definitions(-DYQ2OSTYPE="${YQ2OSTYPE}")
 
-# Architecture string.
-set(YQ2ARCH "${CMAKE_SYSTEM_PROCESSOR}" CACHE STRING "Override CPU architecture")
-string(REGEX REPLACE "amd64" "x86_64" ARCH "${YQ2ARCH}")
-string(REGEX REPLACE "i.86" "i386" ARCH "${ARCH}")
-string(REGEX REPLACE "^arm.*" "arm" ARCH "${ARCH}")
+# Architecture string
+# work around CMake's useless/broken CMAKE_SYSTEM_PROCESSOR (taken from dhewm3)
+
+set(cpu ${CMAKE_SYSTEM_PROCESSOR})
+
+# Originally, ${CMAKE_SYSTEM_PROCESSOR} was supposed to contain the *target* CPU, according to CMake's documentation.
+# As far as I can tell this has always been broken (always returns host CPU) at least on Windows
+# (see e.g. https://cmake.org/pipermail/cmake-developers/2014-September/011405.html) and wasn't reliable on
+# other systems either, for example on Linux with 32bit userland but 64bit kernel it returned the kernel CPU type
+# (e.g. x86_64 instead of i686). Instead of fixing this, CMake eventually updated their documentation in 3.20,
+# now it's officially the same as CMAKE_HOST_SYSTEM_PROCESSOR except when cross-compiling (where it's explicitly set)
+# So we gotta figure out the actual target CPU type ourselves..
+if(NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL CMAKE_HOST_SYSTEM_PROCESSOR))
+	# special case: cross-compiling, here CMAKE_SYSTEM_PROCESSOR should be correct, hopefully
+	# (just leave cpu at ${CMAKE_SYSTEM_PROCESSOR})
+elseif(MSVC)
+	message(DEBUG "CMAKE_GENERATOR_PLATFORM: ${CMAKE_GENERATOR_PLATFORM}")
+	if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
+		set(cpu "i386")
+	elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
+		set(cpu "x86_64")
+	elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "ARM")
+		# at least on RPi 32bit, gcc -dumpmachine outputs "arm-linux-gnueabihf",
+		#  so we'll use "arm" there => use the same for 32bit ARM on MSVC
+		set(cpu "arm")
+	elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+		set(cpu "arm64")
+	else()
+		message(FATAL_ERROR "Unknown Target CPU/platform ${CMAKE_GENERATOR_PLATFORM}")
+	endif()
+	message(DEBUG "  => CPU architecture extracted from that: \"${cpu}\"")
+else() # not MSVC and not cross-compiling, assume GCC or clang (-compatible), seems to work for MinGW as well
+	execute_process(COMMAND ${CMAKE_C_COMPILER} "-dumpmachine"
+	                RESULT_VARIABLE cc_dumpmachine_res
+	                OUTPUT_VARIABLE cc_dumpmachine_out)
+	if(cc_dumpmachine_res EQUAL 0)
+		string(STRIP ${cc_dumpmachine_out} cc_dumpmachine_out) # get rid of trailing newline
+		message(DEBUG "`${CMAKE_C_COMPILER} -dumpmachine` says: \"${cc_dumpmachine_out}\"")
+		# gcc -dumpmachine and clang -dumpmachine seem to print something like "x86_64-linux-gnu" (gcc)
+		# or "x64_64-pc-linux-gnu" (clang) or "i686-w64-mingw32" (32bit mingw-w64) i.e. starting with the CPU,
+		# then "-" and then OS or whatever - so use everything up to first "-"
+		string(REGEX MATCH "^[^-]+" cpu ${cc_dumpmachine_out})
+		message(DEBUG "  => CPU architecture extracted from that: \"${cpu}\"")
+	else()
+		message(WARNING "${CMAKE_C_COMPILER} -dumpmachine failed with error (code) ${cc_dumpmachine_res}")
+		message(WARNING "will use the (sometimes incorrect) CMAKE_SYSTEM_PROCESSOR (${cpu}) to determine YQ2ARCH")
+	endif()
+endif()
+
+if(cpu STREQUAL "powerpc")
+	set(cpu "ppc")
+elseif(cpu STREQUAL "aarch64")
+	# "arm64" is more obvious, and some operating systems (like macOS) use it instead of "aarch64"
+	set(cpu "arm64")
+elseif(cpu MATCHES "i.86" OR cpu MATCHES "[xX]86")
+	set(cpu "i386")
+elseif(cpu MATCHES "[aA][mM][dD]64" OR cpu MATCHES "[xX]64")
+	set(cpu "x86_64")
+elseif(cpu MATCHES "[aA][rR][mM].*") # some kind of arm..
+	# On 32bit Raspbian gcc -dumpmachine returns sth starting with "arm-",
+	# while clang -dumpmachine says "arm6k-..." - try to unify that to "arm"
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8) # sizeof(void*) == 8 => must be arm64
+		set(cpu "arm64")
+	else() # should be 32bit arm then (probably "armv7l" "armv6k" or sth like that)
+		set(cpu "arm")
+	endif()
+endif()
+
+set(ARCH "${cpu}")
+
+# END OF workarounds for CMake's poor choices regarding CPU architecture detection
+
 add_definitions(-DYQ2ARCH="${ARCH}")
+
+message(STATUS "Setting YQ2OSTYPE to \"${YQ2OSTYPE}\" and YQ2ARCH to \"${ARCH}\".")
 
 # Systemwide installation of game assets.
 if(${SYSTEMWIDE_SUPPORT})
