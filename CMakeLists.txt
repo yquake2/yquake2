@@ -29,6 +29,8 @@ endif()
 list(APPEND CMAKE_PREFIX_PATH /usr/local)
 
 if (MSVC)
+	add_compile_options(/MP) # parallel build (use all cores, or as many as configured in VS)
+
 	# ignore some compiler warnings
 	add_compile_options(/wd4244 /wd4305) # possible loss of data/truncation (double to float etc; ignore)
 	add_compile_options(/wd4018) # signed/unsigned missmatch
@@ -670,6 +672,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_link_libraries(yquake2 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
 			${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
 
+	if(MSVC AND CMAKE_MAJOR_VERSION GREATER 3 OR ( CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER_EQUAL 6 ))
+		# CMake >= 3.6 supports setting the default project started for debugging (instead of trying to launch ALL_BUILD ...)
+		set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT yquake2)
+		set_target_properties(yquake2 PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/release)
+	endif()
+
 	# Wrapper for the Windows binary
 	set(Wrapper-Source
 		src/win-wrapper/wrapper.c
@@ -703,13 +711,26 @@ endif()
 
 # Build the game dynamic library
 add_library(game MODULE ${Game-Source} ${Game-Header})
+
 set_target_properties(game PROPERTIES
 		PREFIX ""
-		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
-		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
 		C_STANDARD 11
 		)
+
+get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(isMultiConfig) # multi-config, like Visual Studio solution
+	set_target_properties(game PROPERTIES
+		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/$<CONFIG>/baseq2
+		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/$<CONFIG>/baseq2
+		)
+else() # single-config, like normal Makefiles
+	set_target_properties(game PROPERTIES
+		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
+		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
+		)
+endif()
+
 target_link_libraries(game ${yquake2LinkerFlags})
 
 # Build the GL1 dynamic library
