@@ -1389,7 +1389,7 @@ R_SetMode(void)
 }
 
 qboolean
-RI_Init()
+RI_Init(void)
 {
 	int j;
 	extern float r_turbsin[256];
