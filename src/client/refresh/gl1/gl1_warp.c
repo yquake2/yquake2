@@ -297,11 +297,24 @@ R_EmitWaterPolys(msurface_t *fa)
 		scroll = 0;
 	}
 
+	// workaround for lack of VLAs (=> our workaround uses alloca() which is bad in loops)
+#ifdef _MSC_VER
+	int maxNumVerts = 0;
+	for ( glpoly_t* tmp = fa->polys; tmp; tmp = tmp->next )
+	{
+		if (tmp->numverts > maxNumVerts)
+			maxNumVerts = tmp->numverts;
+	}
+
+	YQ2_VLA( GLfloat, tex, 2 * maxNumVerts );
+#endif
+
 	for (bp = fa->polys; bp; bp = bp->next)
 	{
 		p = bp;
-
-        YQ2_VLA(GLfloat, tex, 2*p->numverts); // FIXME: alloca in loop is bad!
+#ifndef _MSC_VER // we have real VLAs, so it's safe to use one in this loop
+        YQ2_VLA(GLfloat, tex, 2*p->numverts);
+#endif
         unsigned int index_tex = 0;
 
 		for ( i = 0, v = p->verts [ 0 ]; i < p->numverts; i++, v += VERTEXSIZE )
@@ -328,9 +341,9 @@ R_EmitWaterPolys(msurface_t *fa)
 
         glDisableClientState( GL_VERTEX_ARRAY );
         glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-
-		YQ2_VLAFREE(tex);
 	}
+
+	YQ2_VLAFREE( tex );
 }
 
 void
