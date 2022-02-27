@@ -54,7 +54,7 @@ typedef unsigned char byte;
 #endif
 
 // stuff to align variables/arrays and for noreturn
-#if __STDC_VERSION__ >= 201112L // C11 or newer
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L // C11 or newer
 	#define YQ2_ALIGNAS_SIZE(SIZE)  _Alignas(SIZE)
 	#define YQ2_ALIGNAS_TYPE(TYPE)  _Alignas(TYPE)
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
@@ -65,16 +65,24 @@ typedef unsigned char byte;
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
 #elif defined(_MSC_VER)
-	#error "We only support MSVC in C11 mode (/std:c11) or higher, requires Visual Studio 2019 version 16.8 or higher"
-	// in that case, we should've used the #if __STDC_VERSION__ >= 201112L case above
+	// Note: We prefer VS2019 16.8 or newer in C11 mode (/std:c11), 
+	//       then the __STDC_VERSION__ >= 201112L case above is used
 
-	#define YQ2_ALIGNAS_SIZE( SIZE )  __declspec(align(SIZE))
+	#define YQ2_ALIGNAS_SIZE(SIZE)  __declspec(align(SIZE))
 	// FIXME: for some reason, the following line doesn't work, which is why we require C11 support for MSVC
-	#define YQ2_ALIGNAS_TYPE( TYPE )  __declspec(align(__alignof(TYPE)))
+	//#define YQ2_ALIGNAS_TYPE( TYPE )  __declspec(align(__alignof(TYPE)))
+
+  #ifdef _WIN64 // (hopefully) good enough workaround
+	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec(align(8))
+  #else // 32bit
+	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec(align(4))
+  #endif // _WIN64
+
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __declspec(noreturn)
 #else
 	#warning "Please add a case for your compiler here to align correctly"
+	#define YQ2_ALIGNAS_SIZE(SIZE)
 	#define YQ2_ALIGNAS_TYPE(TYPE)
 	#define YQ2_ATTR_NORETURN
 #endif
