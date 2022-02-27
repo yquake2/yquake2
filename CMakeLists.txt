@@ -28,6 +28,14 @@ endif()
 # Add extended path for FreeBSD and Homebrew on OS X.
 list(APPEND CMAKE_PREFIX_PATH /usr/local)
 
+if (MSVC)
+	# ignore some compiler warnings
+	add_compile_options(/wd4244 /wd4305) # possible loss of data/truncation (double to float etc; ignore)
+	add_compile_options(/wd4018) # signed/unsigned missmatch
+	add_compile_options(/wd4996) # 'function': was declared deprecated (like all that secure CRT stuff)
+	# don't show me warnings for system headers, why the fuck isn't this default
+	add_compile_options(/experimental:external /external:W0)
+else() # GCC/clang/mingw
 # Enforce compiler flags:
 #  -Wall                -> More warnings
 #  -fno-strict-aliasing -> Quake 2 is far away from strict aliasing
@@ -35,7 +43,11 @@ list(APPEND CMAKE_PREFIX_PATH /usr/local)
 #  -fvisibility=hidden	-> Force defaultsymbol visibility to hidden
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrapv -fvisibility=hidden")
 
-# Switch of some annoying warnings
+# Use -O2 as maximum optimization level. -O3 has it's problems with yquake2.
+string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+endif() # MSVC'S else-case
+
+# Switch off some annoying warnings
 if (${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-missing-braces")
 elseif (${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
@@ -43,9 +55,6 @@ elseif (${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format-truncation -Wno-format-overflow")
 	endif()
 endif()
-
-# Use -O2 as maximum optimization level. -O3 has it's problems with yquake2.
-string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
 # Compilation time options.
 option(CURL_SUPPORT "cURL support" ON)
@@ -221,11 +230,15 @@ if(${OPENAL_SUPPORT})
 endif()
 
 # General linker flags.
-list(APPEND yquake2LinkerFlags "-lm")
+if(!MSVC)
+	list(APPEND yquake2LinkerFlags "-lm")
+endif()
 list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	list(APPEND yquake2LinkerFlags "-lws2_32 -lwinmm -static-libgcc")
+	if(!MSVC)
+		list(APPEND yquake2LinkerFlags "-static-libgcc")
+	endif()
 else()
 	if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Haiku")
 		list(APPEND yquake2LinkerFlags "-rdynamic")
@@ -238,10 +251,8 @@ else()
 	endif()
 endif()
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
-		list(APPEND yquake2LinkerFlags "-Wl,--no-undefined")
-	endif()
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD" AND NOT WIN32)
+	list(APPEND yquake2LinkerFlags "-Wl,--no-undefined")
 endif()
 
 # With all of those libraries and user defined paths
@@ -647,14 +658,6 @@ set(SOFT-Header
 	${COMMON_SRC_DIR}/header/shared.h
 	)
 
-# Wrapper for the Windows binary
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set(Wrapper-Source
-	src/win-wrapper/wrapper.c
-	${BACKENDS_SRC_DIR}/windows/icon.rc
-	)
-endif()
-
 # Main Quake 2 executable
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -668,6 +671,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 			${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
 
 	# Wrapper for the Windows binary
+	set(Wrapper-Source
+		src/win-wrapper/wrapper.c
+		${BACKENDS_SRC_DIR}/windows/icon.rc
+		)
 	add_executable(quake2 WIN32 ${Wrapper-Source})
 	set_target_properties(quake2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
 else()
