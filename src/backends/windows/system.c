@@ -97,13 +97,13 @@ Sys_Quit(void)
 		FreeConsole();
 	}
 
+	printf( "------------------------------------\n" );
+
 	/* Close stdout and stderr */
 #ifndef DEDICATED_ONLY
 	fclose(stdout);
 	fclose(stderr);
 #endif
-
-	printf("------------------------------------\n");
 
 	exit(0);
 }
