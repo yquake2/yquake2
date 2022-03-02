@@ -69,7 +69,7 @@ typedef unsigned char byte;
 	//       then the __STDC_VERSION__ >= 201112L case above is used
 
 	#define YQ2_ALIGNAS_SIZE(SIZE)  __declspec(align(SIZE))
-	// FIXME: for some reason, the following line doesn't work, which is why we require C11 support for MSVC
+	// FIXME: for some reason, the following line doesn't work
 	//#define YQ2_ALIGNAS_TYPE( TYPE )  __declspec(align(__alignof(TYPE)))
 
   #ifdef _WIN64 // (hopefully) good enough workaround

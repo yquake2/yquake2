@@ -1618,21 +1618,19 @@ FS_GetNextRawPath(const char* lastRawPath)
 
 #ifdef _MSC_VER // looks like MSVC/the Windows CRT doesn't have basename()
 // returns the last part of the given pathname, after last (back)slash
-// NOTE: this is not a fully compliant basename() implementation, as it doesn't
-//       handle trailing (back)slashes at all - because we don't need that.
+// if the last character is a (back)slash, it's removed (set to '\0')
 static char* basename( char* n )
 {
-	char* r1 = strrchr( n, '\\' );
-	char* r2 = strrchr( n, '/' );
-	if (r1 != NULL)
+	size_t l = strlen(n);
+	while (n[l - 1] == '\\' || n[l - 1] == '/') // cut off trailing (back)slashes, if any
 	{
-		if (r2 != NULL)
-		{
-			return (r2 > r1) ? (r2 + 1) : (r1 + 1);
-		}
-		return r1 + 1;
+		--l;
+		n[l] = '\0';
 	}
-
+	char* r1 = strrchr(n, '\\');
+	char* r2 = strrchr(n, '/');
+	if (r1 != NULL)
+		return (r2 == NULL || r1 > r2) ? (r1 + 1) : (r2 + 1);
 	return (r2 != NULL) ? (r2 + 1) : n;
 }
 #endif // _MSC_VER
@@ -1652,11 +1650,8 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 
 	// The directory must not end with an /. It would
 	// f*ck up the logic in other parts of the game...
-	if (dir[len - 1] == '/')
+	if (dir[len - 1] == '/' || dir[len - 1] == '\\')
 	{
-		dir[len - 1] = '\0';
-	}
-	else if (dir[len - 1] == '\\') {
 		dir[len - 1] = '\0';
 	}
 

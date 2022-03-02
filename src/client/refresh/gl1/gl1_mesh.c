@@ -167,9 +167,7 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 		if ( c > maxCount )
 			maxCount = c;
 
-		do {
-			tmpOrder += 3;
-		} while (--c);
+		tmpOrder += 3 * c;
 	}
 
 	YQ2_VLA( GLfloat, vtx, 3 * maxCount );
@@ -315,9 +313,7 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
 		if (c > maxCount)
 			maxCount = c;
 
-		do {
-			tmpOrder += 3;
-		} while (--c);
+		tmpOrder += 3 * c;
 	}
 
 	YQ2_VLA(GLfloat, vtx, 3 * maxCount);
