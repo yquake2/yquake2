@@ -254,26 +254,24 @@ the [Packaging Guide](05_packaging.md).
 To compile Yamagi Quake II from source the following dependencies
 (including development headers) are needed:
 
-* A GCC compatible compiler like *gcc*, *clang* or *mingw*.
+* *MinGW-w64* or *Visual Studio (2015 or newer)* for Windows or a
+  GCC compatible compiler like *gcc* or *clang* for other platforms.
 * A LibGL implementation with system headers.
 * An OpenAL implementation, *openal-soft* is highly recommended.
 * libcurl.
 * SDL 2.0.
 
 
-### Prerequisites on Windows
+### Prerequisites on Windows when using MinGW
 
-To compile theYamagi Quake II under Windows a MinGW environment is
-needed. A preconfigured environment based upon MSYS2 with all necessary
+To compile Yamagi Quake II under Windows, using a MinGW environment is
+recommended. A preconfigured environment based upon MSYS2 with all necessary
 dependencies and compatibles compilers can be found at:
 https://deponie.yamagi.org/quake2/windows/buildenv/
 
 The environment can be extracted anywhere. Either the 32 bit version can
 be started through *C:\MSYS2\msys32.exe* or the 64 bit version through
 *C:\MSYS2\msys64.exe*.
-
-At this time Yamagi Quake II can't be compiled with Microsoft Visual
-Studio.
 
 
 ### Prerequisites on Unixoid Platforms
@@ -296,7 +294,7 @@ Other distributions or platforms often have package named similar to the
 Debian or FreeBSD packages.
 
 
-### Compiling
+### Compiling with GCC, Clang or MinGW
 
 Download the latest release from https://www.yamagi.org/quake2 or clone
 the source from https://github.com/yquake2/yquake2.git, change into the
@@ -310,3 +308,34 @@ For the addons download or clone their source, change into the source
 directory and type *make* (Linux, MacOS and Windows) or *gmake*
 (FreeBSD, NetBSD, OpenBSD). After the compilation finishes the *release/game.so*
 is copied to the corresponding directory in the Quake II installation.
+
+
+### Compiling on Windows with Visual Studio (2015 and newer)
+
+To compile with Visual Studio, CMake is required.  
+We only support VS2015 and newer, though VS2019 version 16.8 or newer is recommended.
+
+Furthermore you'll need **SDL2**, **openal-soft** and **libcurl** to link against.  
+The easiest way to get those dependencies is using the
+[dhewm3-libs](https://github.com/dhewm/dhewm3-libs/) together with the
+`YQUAKE2LIBS` CMake variable.  
+It might also be possible to manually install the dependencies or to use
+[vcpkg](https://vcpkg.io) or similar to install them, but that's untested.
+
+Create a build directory outside the yquake2 directory, open a terminal,
+change to that directory and use CMake to generate a Visual Studio solution.
+
+For Win32 (32bit x86) and VS2019 the commandline should look like:  
+`cmake -G "Visual Studio 16 2019" -A Win32 -DYQUAKE2LIBS="C:/dev/dhewm3-libs/i686-w64-mingw32" path/to/yquake2`  
+Of course you need to adjust `C:/dev/dhewm3-libs/` to the directory you
+put the *dhewm3-libs* in, and `path/to/yquake2` to your Yamagi Quake II
+source checkout (the directory the `CMakeLists.txt` is in).
+
+For x64/Win64 (64bit x86) it should look like:  
+`cmake -G "Visual Studio 16 2019" -A x64 -DYQUAKE2LIBS="C:/dev/dhewm3-libs/x86_64-w64-mingw32" path/to/yquake2`
+
+After successfully running this command, there should be a `yquake2.sln`
+in your build directory, you can open it with Visual Studio to compile.
+
+If you prefer using `cmake-gui`, you can specify the `YQUAKE2LIBS` with the
+`Add Entry` option (Name: `YQUAKE2LIBS`, Type: `PATH`, Value: *see examples above*).
