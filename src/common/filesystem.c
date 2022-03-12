@@ -25,7 +25,9 @@
  * =======================================================================
  */
 
+#ifndef _MSC_VER
 #include <libgen.h>
+#endif
 
 #include "header/common.h"
 #include "header/glob.h"
@@ -380,7 +382,7 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 	// Remove self references and empty dirs from the requested path.
 	// ZIPs and PAKs don't support them, but they may be hardcoded in
 	// some custom maps or models.
-	char name[MAX_QPATH] = {};
+	char name[MAX_QPATH] = {0};
 	size_t namelen = strlen(rawname);
 	for (int input = 0, output = 0; input < namelen; input++)
 	{
@@ -1614,6 +1616,25 @@ FS_GetNextRawPath(const char* lastRawPath)
 	return NULL;
 }
 
+#ifdef _MSC_VER // looks like MSVC/the Windows CRT doesn't have basename()
+// returns the last part of the given pathname, after last (back)slash
+// if the last character is a (back)slash, it's removed (set to '\0')
+static char* basename( char* n )
+{
+	size_t l = strlen(n);
+	while (n[l - 1] == '\\' || n[l - 1] == '/') // cut off trailing (back)slashes, if any
+	{
+		--l;
+		n[l] = '\0';
+	}
+	char* r1 = strrchr(n, '\\');
+	char* r2 = strrchr(n, '/');
+	if (r1 != NULL)
+		return (r2 == NULL || r1 > r2) ? (r1 + 1) : (r2 + 1);
+	return (r2 != NULL) ? (r2 + 1) : n;
+}
+#endif // _MSC_VER
+
 void
 FS_AddDirToSearchPath(char *dir, qboolean create) {
 	char *file;
@@ -1629,11 +1650,8 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 
 	// The directory must not end with an /. It would
 	// f*ck up the logic in other parts of the game...
-	if (dir[len - 1] == '/')
+	if (dir[len - 1] == '/' || dir[len - 1] == '\\')
 	{
-		dir[len - 1] = '\0';
-	}
-	else if (dir[len - 1] == '\\') {
 		dir[len - 1] = '\0';
 	}
 
@@ -1971,7 +1989,7 @@ static void FS_AddDirToRawPath (const char *rawdir, qboolean create, qboolean re
 	}
 
 	// Make sure that the dir doesn't end with a slash.
-	for (size_t s = strlen(dir) - 1; s >= 0; s--)
+	for (size_t s = strlen(dir) - 1; s > 0; s--)
 	{
 		if (dir[s] == '/')
 		{

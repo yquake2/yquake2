@@ -54,7 +54,7 @@ typedef unsigned char byte;
 #endif
 
 // stuff to align variables/arrays and for noreturn
-#if __STDC_VERSION__ >= 201112L // C11 or newer
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L // C11 or newer
 	#define YQ2_ALIGNAS_SIZE(SIZE)  _Alignas(SIZE)
 	#define YQ2_ALIGNAS_TYPE(TYPE)  _Alignas(TYPE)
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
@@ -65,12 +65,24 @@ typedef unsigned char byte;
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
 #elif defined(_MSC_VER)
-	#define YQ2_ALIGNAS_SIZE(SIZE)  __declspec( align(SIZE) )
-	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec( align( __alignof(TYPE) ) )
+	// Note: We prefer VS2019 16.8 or newer in C11 mode (/std:c11), 
+	//       then the __STDC_VERSION__ >= 201112L case above is used
+
+	#define YQ2_ALIGNAS_SIZE(SIZE)  __declspec(align(SIZE))
+	// FIXME: for some reason, the following line doesn't work
+	//#define YQ2_ALIGNAS_TYPE( TYPE )  __declspec(align(__alignof(TYPE)))
+
+  #ifdef _WIN64 // (hopefully) good enough workaround
+	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec(align(8))
+  #else // 32bit
+	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec(align(4))
+  #endif // _WIN64
+
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __declspec(noreturn)
 #else
 	#warning "Please add a case for your compiler here to align correctly"
+	#define YQ2_ALIGNAS_SIZE(SIZE)
 	#define YQ2_ALIGNAS_TYPE(TYPE)
 	#define YQ2_ATTR_NORETURN
 #endif
@@ -131,6 +143,12 @@ typedef unsigned char byte;
  // by default our .so/.dylibs don't export any functions, use this to
  // make a function visible (for GetGameAPI(), GetRefAPI() and similar)
  #define Q2_DLL_EXPORTED  __attribute__((__visibility__("default")))
+#endif
+
+#ifdef _MSC_VER
+ #define PRINTF_ATTR(FMT, VARGS)
+#else // at least GCC/mingw and clang support this
+ #define PRINTF_ATTR(FMT, VARGS) __attribute__((format(printf, FMT , VARGS )));
 #endif
 
 /* per-level limits */
@@ -310,7 +328,7 @@ float BigFloat(float l);
 float LittleFloat(float l);
 
 void Swap_Init(void);
-char *va(char *format, ...)  __attribute__ ((format (printf, 1, 2)));
+char *va(char *format, ...)  PRINTF_ATTR(1, 2);
 
 /* ============================================= */
 

@@ -154,6 +154,27 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 
 	R_LerpVerts(currententity, paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv);
 
+#ifdef _MSC_VER // workaround for lack of VLAs (=> our workaround uses alloca() which is bad in loops)
+	int maxCount = 0;
+	const int* tmpOrder = order;
+	while (1)
+	{
+		int c = *tmpOrder++;
+		if (!c)
+			break;
+		if ( c < 0 )
+			c = -c;
+		if ( c > maxCount )
+			maxCount = c;
+
+		tmpOrder += 3 * c;
+	}
+
+	YQ2_VLA( GLfloat, vtx, 3 * maxCount );
+	YQ2_VLA( GLfloat, tex, 2 * maxCount );
+	YQ2_VLA( GLfloat, clr, 4 * maxCount );
+#endif
+
 		while (1)
 		{
 			/* get the vertex count and primitive type */
@@ -176,9 +197,12 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 			}
 
 			total = count;
-			GLfloat vtx[3*total];
-			GLfloat tex[2*total];
-			GLfloat clr[4 * total];
+
+#ifndef _MSC_VER // we have real VLAs, so it's safe to use one in this loop
+			YQ2_VLA(GLfloat, vtx, 3*total);
+			YQ2_VLA(GLfloat, tex, 2*total);
+			YQ2_VLA(GLfloat, clr, 4*total);
+#endif
 			unsigned int index_vtx = 0;
 			unsigned int index_tex = 0;
 			unsigned int index_clr = 0;
@@ -242,6 +266,10 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 			glDisableClientState(GL_COLOR_ARRAY);
 		}
 
+		YQ2_VLAFREE( vtx );
+		YQ2_VLAFREE( tex );
+		YQ2_VLAFREE( clr )
+
 	if (currententity->flags &
 		(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE |
 		 RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
@@ -272,6 +300,25 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
 		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
 	}
 
+#ifdef _MSC_VER // workaround for lack of VLAs (=> our workaround uses alloca() which is bad in loops)
+	int maxCount = 0;
+	const int* tmpOrder = order;
+	while (1)
+	{
+		int c = *tmpOrder++;
+		if (!c)
+			break;
+		if (c < 0)
+			c = -c;
+		if (c > maxCount)
+			maxCount = c;
+
+		tmpOrder += 3 * c;
+	}
+
+	YQ2_VLA(GLfloat, vtx, 3 * maxCount);
+#endif
+
 	while (1)
 	{
 		/* get the vertex count and primitive type */
@@ -294,7 +341,10 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
 		}
 
         total = count;
-        GLfloat vtx[3*total];
+
+#ifndef _MSC_VER // we have real VLAs, so it's safe to use one in this loop
+        YQ2_VLA(GLfloat, vtx, 3*total);
+#endif
         unsigned int index_vtx = 0;
 
 		do
@@ -321,6 +371,7 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
 
         glDisableClientState( GL_VERTEX_ARRAY );
 	}
+	YQ2_VLAFREE(vtx);
 
 	/* stencilbuffer shadows */
 	if (gl_state.stencil && gl1_stencilshadow->value)

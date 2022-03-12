@@ -101,7 +101,7 @@ R_DrawGLFlowingPoly(msurface_t *fa)
 		scroll = -64.0;
 	}
 
-    GLfloat tex[2*p->numverts];
+    YQ2_VLA(GLfloat, tex, 2*p->numverts);
     unsigned int index_tex = 0;
 
     v = p->verts [ 0 ];
@@ -122,6 +122,8 @@ R_DrawGLFlowingPoly(msurface_t *fa)
 
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	
+	YQ2_VLAFREE(tex);
 }
 
 static void
@@ -203,14 +205,28 @@ R_DrawGLPolyChain(glpoly_t *p, float soffset, float toffset)
 	}
 	else
 	{
+		// workaround for lack of VLAs (=> our workaround uses alloca() which is bad in loops)
+#ifdef _MSC_VER
+		int maxNumVerts = 0;
+		for (glpoly_t* tmp = p; tmp; tmp = tmp->chain)
+		{
+			if ( tmp->numverts > maxNumVerts )
+				maxNumVerts = tmp->numverts;
+		}
+
+		YQ2_VLA( GLfloat, tex, 2 * maxNumVerts );
+#endif
+
 		for ( ; p != 0; p = p->chain)
 		{
 			float *v;
 			int j;
 
 			v = p->verts[0];
+#ifndef _MSC_VER // we have real VLAs, so it's safe to use one in this loop
+            YQ2_VLA(GLfloat, tex, 2*p->numverts);
+#endif
 
-            GLfloat tex[2*p->numverts];
             unsigned int index_tex = 0;
 
 			for ( j = 0; j < p->numverts; j++, v += VERTEXSIZE )
@@ -231,6 +247,8 @@ R_DrawGLPolyChain(glpoly_t *p, float soffset, float toffset)
             glDisableClientState( GL_VERTEX_ARRAY );
             glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 		}
+
+		YQ2_VLAFREE( tex );
 	}
 }
 

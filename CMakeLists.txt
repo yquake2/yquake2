@@ -28,6 +28,16 @@ endif()
 # Add extended path for FreeBSD and Homebrew on OS X.
 list(APPEND CMAKE_PREFIX_PATH /usr/local)
 
+if (MSVC)
+	add_compile_options(/MP) # parallel build (use all cores, or as many as configured in VS)
+
+	# ignore some compiler warnings
+	add_compile_options(/wd4244 /wd4305) # possible loss of data/truncation (double to float etc; ignore)
+	add_compile_options(/wd4018) # signed/unsigned missmatch
+	add_compile_options(/wd4996) # 'function': was declared deprecated (like all that secure CRT stuff)
+	# don't show me warnings for system headers, why the fuck isn't this default
+	add_compile_options(/experimental:external /external:W0)
+else() # GCC/clang/mingw
 # Enforce compiler flags:
 #  -Wall                -> More warnings
 #  -fno-strict-aliasing -> Quake 2 is far away from strict aliasing
@@ -35,7 +45,11 @@ list(APPEND CMAKE_PREFIX_PATH /usr/local)
 #  -fvisibility=hidden	-> Force defaultsymbol visibility to hidden
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrapv -fvisibility=hidden")
 
-# Switch of some annoying warnings
+# Use -O2 as maximum optimization level. -O3 has it's problems with yquake2.
+string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+endif() # MSVC'S else-case
+
+# Switch off some annoying warnings
 if (${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-missing-braces")
 elseif (${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
@@ -43,9 +57,6 @@ elseif (${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format-truncation -Wno-format-overflow")
 	endif()
 endif()
-
-# Use -O2 as maximum optimization level. -O3 has it's problems with yquake2.
-string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
 # Compilation time options.
 option(CURL_SUPPORT "cURL support" ON)
@@ -76,12 +87,81 @@ set(REF_SRC_DIR ${SOURCE_DIR}/client/refresh)
 set(YQ2OSTYPE "${CMAKE_SYSTEM_NAME}" CACHE STRING "Override operation system type")
 add_definitions(-DYQ2OSTYPE="${YQ2OSTYPE}")
 
-# Architecture string.
-set(YQ2ARCH "${CMAKE_SYSTEM_PROCESSOR}" CACHE STRING "Override CPU architecture")
-string(REGEX REPLACE "amd64" "x86_64" ARCH "${YQ2ARCH}")
-string(REGEX REPLACE "i.86" "i386" ARCH "${ARCH}")
-string(REGEX REPLACE "^arm.*" "arm" ARCH "${ARCH}")
+# Architecture string
+# work around CMake's useless/broken CMAKE_SYSTEM_PROCESSOR (taken from dhewm3)
+
+set(cpu ${CMAKE_SYSTEM_PROCESSOR})
+
+# Originally, ${CMAKE_SYSTEM_PROCESSOR} was supposed to contain the *target* CPU, according to CMake's documentation.
+# As far as I can tell this has always been broken (always returns host CPU) at least on Windows
+# (see e.g. https://cmake.org/pipermail/cmake-developers/2014-September/011405.html) and wasn't reliable on
+# other systems either, for example on Linux with 32bit userland but 64bit kernel it returned the kernel CPU type
+# (e.g. x86_64 instead of i686). Instead of fixing this, CMake eventually updated their documentation in 3.20,
+# now it's officially the same as CMAKE_HOST_SYSTEM_PROCESSOR except when cross-compiling (where it's explicitly set)
+# So we gotta figure out the actual target CPU type ourselves..
+if(NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL CMAKE_HOST_SYSTEM_PROCESSOR))
+	# special case: cross-compiling, here CMAKE_SYSTEM_PROCESSOR should be correct, hopefully
+	# (just leave cpu at ${CMAKE_SYSTEM_PROCESSOR})
+elseif(MSVC)
+	message(DEBUG "CMAKE_GENERATOR_PLATFORM: ${CMAKE_GENERATOR_PLATFORM}")
+	if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
+		set(cpu "i386")
+	elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
+		set(cpu "x86_64")
+	elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "ARM")
+		# at least on RPi 32bit, gcc -dumpmachine outputs "arm-linux-gnueabihf",
+		#  so we'll use "arm" there => use the same for 32bit ARM on MSVC
+		set(cpu "arm")
+	elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+		set(cpu "arm64")
+	else()
+		message(FATAL_ERROR "Unknown Target CPU/platform ${CMAKE_GENERATOR_PLATFORM}")
+	endif()
+	message(DEBUG "  => CPU architecture extracted from that: \"${cpu}\"")
+else() # not MSVC and not cross-compiling, assume GCC or clang (-compatible), seems to work for MinGW as well
+	execute_process(COMMAND ${CMAKE_C_COMPILER} "-dumpmachine"
+	                RESULT_VARIABLE cc_dumpmachine_res
+	                OUTPUT_VARIABLE cc_dumpmachine_out)
+	if(cc_dumpmachine_res EQUAL 0)
+		string(STRIP ${cc_dumpmachine_out} cc_dumpmachine_out) # get rid of trailing newline
+		message(DEBUG "`${CMAKE_C_COMPILER} -dumpmachine` says: \"${cc_dumpmachine_out}\"")
+		# gcc -dumpmachine and clang -dumpmachine seem to print something like "x86_64-linux-gnu" (gcc)
+		# or "x64_64-pc-linux-gnu" (clang) or "i686-w64-mingw32" (32bit mingw-w64) i.e. starting with the CPU,
+		# then "-" and then OS or whatever - so use everything up to first "-"
+		string(REGEX MATCH "^[^-]+" cpu ${cc_dumpmachine_out})
+		message(DEBUG "  => CPU architecture extracted from that: \"${cpu}\"")
+	else()
+		message(WARNING "${CMAKE_C_COMPILER} -dumpmachine failed with error (code) ${cc_dumpmachine_res}")
+		message(WARNING "will use the (sometimes incorrect) CMAKE_SYSTEM_PROCESSOR (${cpu}) to determine YQ2ARCH")
+	endif()
+endif()
+
+if(cpu STREQUAL "powerpc")
+	set(cpu "ppc")
+elseif(cpu STREQUAL "aarch64")
+	# "arm64" is more obvious, and some operating systems (like macOS) use it instead of "aarch64"
+	set(cpu "arm64")
+elseif(cpu MATCHES "i.86" OR cpu MATCHES "[xX]86")
+	set(cpu "i386")
+elseif(cpu MATCHES "[aA][mM][dD]64" OR cpu MATCHES "[xX]64")
+	set(cpu "x86_64")
+elseif(cpu MATCHES "[aA][rR][mM].*") # some kind of arm..
+	# On 32bit Raspbian gcc -dumpmachine returns sth starting with "arm-",
+	# while clang -dumpmachine says "arm6k-..." - try to unify that to "arm"
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8) # sizeof(void*) == 8 => must be arm64
+		set(cpu "arm64")
+	else() # should be 32bit arm then (probably "armv7l" "armv6k" or sth like that)
+		set(cpu "arm")
+	endif()
+endif()
+
+set(ARCH "${cpu}")
+
+# END OF workarounds for CMake's poor choices regarding CPU architecture detection
+
 add_definitions(-DYQ2ARCH="${ARCH}")
+
+message(STATUS "Setting YQ2OSTYPE to \"${YQ2OSTYPE}\" and YQ2ARCH to \"${ARCH}\".")
 
 # Systemwide installation of game assets.
 if(${SYSTEMWIDE_SUPPORT})
@@ -91,7 +171,7 @@ endif()
 # We need to pass some options to minizip / unzip.
 add_definitions(-DNOUNCRYPT)
 
-if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux" OR NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+if(NOT (CMAKE_SYSTEM_NAME MATCHES "Linux") AND NOT (CMAKE_SYSTEM_NAME MATCHES "Windows"))
 	add_definitions(-DIOAPI_NO_64)
 endif()
 
@@ -152,11 +232,15 @@ if(${OPENAL_SUPPORT})
 endif()
 
 # General linker flags.
-list(APPEND yquake2LinkerFlags "-lm")
+if(!MSVC)
+	list(APPEND yquake2LinkerFlags "-lm")
+endif()
 list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	list(APPEND yquake2LinkerFlags "-lws2_32 -lwinmm -static-libgcc")
+	if(!MSVC)
+		list(APPEND yquake2LinkerFlags "-static-libgcc")
+	endif()
 else()
 	if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Haiku")
 		list(APPEND yquake2LinkerFlags "-rdynamic")
@@ -169,10 +253,8 @@ else()
 	endif()
 endif()
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
-		list(APPEND yquake2LinkerFlags "-Wl,--no-undefined")
-	endif()
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD" AND NOT WIN32)
+	list(APPEND yquake2LinkerFlags "-Wl,--no-undefined")
 endif()
 
 # With all of those libraries and user defined paths
@@ -578,30 +660,31 @@ set(SOFT-Header
 	${COMMON_SRC_DIR}/header/shared.h
 	)
 
-# Wrapper for the Windows binary
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set(Wrapper-Source
-	src/win-wrapper/wrapper.c
-	${BACKENDS_SRC_DIR}/windows/icon.rc
-	)
-endif()
-
 # Main Quake 2 executable
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	add_executable(yquake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
+	add_executable(yquake2 WIN32 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
 			${Backends-Generic-Source})
 	set_target_properties(yquake2 PROPERTIES
 			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+			C_STANDARD 11
 			)
 	target_link_libraries(yquake2 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
 			${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
 
+	if(MSVC AND CMAKE_MAJOR_VERSION GREATER 3 OR ( CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER_EQUAL 6 ))
+		# CMake >= 3.6 supports setting the default project started for debugging (instead of trying to launch ALL_BUILD ...)
+		set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT yquake2)
+		set_target_properties(yquake2 PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/release)
+	endif()
+
 	# Wrapper for the Windows binary
-	add_executable(quake2 ${Wrapper-Source})
-	set_target_properties(quake2 PROPERTIES
-			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-			)
+	set(Wrapper-Source
+		src/win-wrapper/wrapper.c
+		${BACKENDS_SRC_DIR}/windows/icon.rc
+		)
+	add_executable(quake2 WIN32 ${Wrapper-Source})
+	set_target_properties(quake2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
 else()
 	add_executable(quake2 ${Client-Source} ${Client-Header} ${Platform-Specific-Source}
 			${Backends-Generic-Source})
@@ -618,6 +701,7 @@ add_executable(q2ded ${Server-Source} ${Server-Header} ${Platform-Specific-Sourc
 set_target_properties(q2ded PROPERTIES
 	COMPILE_DEFINITIONS "DEDICATED_ONLY"
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+	C_STANDARD 11
 	)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_link_libraries(q2ded ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
@@ -627,12 +711,26 @@ endif()
 
 # Build the game dynamic library
 add_library(game MODULE ${Game-Source} ${Game-Header})
+
 set_target_properties(game PROPERTIES
 		PREFIX ""
+		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
+		C_STANDARD 11
+		)
+
+get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(isMultiConfig) # multi-config, like Visual Studio solution
+	set_target_properties(game PROPERTIES
+		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/$<CONFIG>/baseq2
+		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/$<CONFIG>/baseq2
+		)
+else() # single-config, like normal Makefiles
+	set_target_properties(game PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release/baseq2
-		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
 		)
+endif()
+
 target_link_libraries(game ${yquake2LinkerFlags})
 
 # Build the GL1 dynamic library
@@ -642,6 +740,7 @@ set_target_properties(ref_gl1 PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
+		C_STANDARD 11
 		)
 target_link_libraries(ref_gl1 ${yquake2LinkerFlags} ${yquake2OpenGLLinkerFlags} ${yquake2SDLLinkerFlags})
 
@@ -652,6 +751,7 @@ set_target_properties(ref_gl3 PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
+		C_STANDARD 11
 		)
 target_link_libraries(ref_gl3 ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
 
@@ -662,5 +762,6 @@ set_target_properties(ref_soft PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
+		C_STANDARD 11
 		)
 target_link_libraries(ref_soft ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
