@@ -9,7 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # CMake project configuration.
-project(yquake2)
+project(yquake2 C)
 
 # Cmake module search path.
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/stuff/cmake/modules ${CMAKE_MODULE_PATH})
@@ -36,10 +36,10 @@ list(APPEND CMAKE_PREFIX_PATH /usr/local)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrapv -fvisibility=hidden")
 
 # Switch of some annoying warnings
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if (${CMAKE_C_COMPILER_ID} STREQUAL "Clang")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-missing-braces")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	if (CMAKE_CXX_COMPILER_VERSION GREATER 7.99)
+elseif (${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
+	if (CMAKE_C_COMPILER_VERSION GREATER 7.99)
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format-truncation -Wno-format-overflow")
 	endif()
 endif()
@@ -184,7 +184,7 @@ link_directories(${yquake2LinkerDirectories})
 # This helps the old and crappy x87 FPU to produce correct values.
 # Would be nice if Clang had something comparable.
 if ("${ARCH}" STREQUAL "i386")
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	if (${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffloat-store")
 	endif()
 endif()
