@@ -1031,11 +1031,8 @@ tank_die(edict_t *self, edict_t *inflictor /* unused */,
 	{
 		gi.sound(self, CHAN_VOICE, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
 
-		for (n = 0; n < 1; n++)
-		{
-			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2",
-					damage, GIB_ORGANIC);
-		}
+		ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2",
+				damage, GIB_ORGANIC);
 
 		for (n = 0; n < 4; n++)
 		{
