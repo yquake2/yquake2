@@ -1034,7 +1034,11 @@ Com_PageInMemory(byte *buffer, int size)
 int
 Q_stricmp(const char *s1, const char *s2)
 {
+#ifdef _MSC_VER
+	return stricmp(s1, s2);
+#else
 	return strcasecmp(s1, s2);
+#endif
 }
 
 int

@@ -25,7 +25,9 @@
  * =======================================================================
  */
 
+#ifndef _MSC_VER
 #include <libgen.h>
+#endif
 
 #include "header/common.h"
 #include "header/glob.h"
@@ -380,7 +382,7 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 	// Remove self references and empty dirs from the requested path.
 	// ZIPs and PAKs don't support them, but they may be hardcoded in
 	// some custom maps or models.
-	char name[MAX_QPATH] = {};
+	char name[MAX_QPATH] = {0};
 	size_t namelen = strlen(rawname);
 	for (int input = 0, output = 0; input < namelen; input++)
 	{
@@ -1614,6 +1616,27 @@ FS_GetNextRawPath(const char* lastRawPath)
 	return NULL;
 }
 
+#ifdef _MSC_VER // looks like MSVC/the Windows CRT doesn't have basename()
+// returns the last part of the given pathname, after last (back)slash
+// NOTE: this is not a fully compliant basename() implementation, as it doesn't
+//       handle trailing (back)slashes at all - because we don't need that.
+static char* basename( char* n )
+{
+	char* r1 = strrchr( n, '\\' );
+	char* r2 = strrchr( n, '/' );
+	if (r1 != NULL)
+	{
+		if (r2 != NULL)
+		{
+			return (r2 > r1) ? (r2 + 1) : (r1 + 1);
+		}
+		return r1 + 1;
+	}
+
+	return (r2 != NULL) ? (r2 + 1) : n;
+}
+#endif // _MSC_VER
+
 void
 FS_AddDirToSearchPath(char *dir, qboolean create) {
 	char *file;
@@ -1971,7 +1994,7 @@ static void FS_AddDirToRawPath (const char *rawdir, qboolean create, qboolean re
 	}
 
 	// Make sure that the dir doesn't end with a slash.
-	for (size_t s = strlen(dir) - 1; s >= 0; s--)
+	for (size_t s = strlen(dir) - 1; s > 0; s--)
 	{
 		if (dir[s] == '/')
 		{

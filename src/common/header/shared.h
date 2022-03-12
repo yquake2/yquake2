@@ -65,8 +65,12 @@ typedef unsigned char byte;
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
 #elif defined(_MSC_VER)
-	#define YQ2_ALIGNAS_SIZE(SIZE)  __declspec( align(SIZE) )
-	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec( align( __alignof(TYPE) ) )
+	#error "We only support MSVC in C11 mode (/std:c11) or higher, requires Visual Studio 2019 version 16.8 or higher"
+	// in that case, we should've used the #if __STDC_VERSION__ >= 201112L case above
+
+	#define YQ2_ALIGNAS_SIZE( SIZE )  __declspec(align(SIZE))
+	// FIXME: for some reason, the following line doesn't work, which is why we require C11 support for MSVC
+	#define YQ2_ALIGNAS_TYPE( TYPE )  __declspec(align(__alignof(TYPE)))
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __declspec(noreturn)
 #else
@@ -131,6 +135,12 @@ typedef unsigned char byte;
  // by default our .so/.dylibs don't export any functions, use this to
  // make a function visible (for GetGameAPI(), GetRefAPI() and similar)
  #define Q2_DLL_EXPORTED  __attribute__((__visibility__("default")))
+#endif
+
+#ifdef _MSC_VER
+ #define PRINTF_ATTR(FMT, VARGS)
+#else // at least GCC/mingw and clang support this
+ #define PRINTF_ATTR(FMT, VARGS) __attribute__((format(printf, FMT , VARGS )));
 #endif
 
 /* per-level limits */
@@ -310,7 +320,7 @@ float BigFloat(float l);
 float LittleFloat(float l);
 
 void Swap_Init(void);
-char *va(char *format, ...)  __attribute__ ((format (printf, 1, 2)));
+char *va(char *format, ...)  PRINTF_ATTR(1, 2);
 
 /* ============================================= */
 

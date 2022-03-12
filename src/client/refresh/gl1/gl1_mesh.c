@@ -176,9 +176,9 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 			}
 
 			total = count;
-			GLfloat vtx[3*total];
-			GLfloat tex[2*total];
-			GLfloat clr[4 * total];
+			YQ2_VLA(GLfloat, vtx, 3*total); // FIXME: alloca in loop is bad!
+			YQ2_VLA(GLfloat, tex, 2*total);
+			YQ2_VLA(GLfloat, clr, 4*total);
 			unsigned int index_vtx = 0;
 			unsigned int index_tex = 0;
 			unsigned int index_clr = 0;
@@ -240,6 +240,10 @@ R_DrawAliasFrameLerp(entity_t *currententity, dmdl_t *paliashdr, float backlerp)
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 			glDisableClientState(GL_COLOR_ARRAY);
+
+			YQ2_VLAFREE(vtx);
+			YQ2_VLAFREE(tex);
+			YQ2_VLAFREE(clr)
 		}
 
 	if (currententity->flags &
@@ -294,7 +298,8 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
 		}
 
         total = count;
-        GLfloat vtx[3*total];
+		
+        YQ2_VLA(GLfloat, vtx, 3*total); // FIXME: alloca in loop is bad!
         unsigned int index_vtx = 0;
 
 		do
@@ -320,6 +325,7 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
         glDrawArrays( type, 0, total );
 
         glDisableClientState( GL_VERTEX_ARRAY );
+		YQ2_VLAFREE(vtx);
 	}
 
 	/* stencilbuffer shadows */

@@ -29,6 +29,23 @@
 
 #include "../vid/header/ref.h"
 
+#ifdef _MSC_VER
+
+  #include <malloc.h>
+
+  #define YQ2_VLA(TYPE, VARNAME, NUMELEMS) \
+	TYPE * VARNAME = (TYPE *) _malloca(sizeof(TYPE) * NUMELEMS)
+  #define YQ2_VLAFREE(VARNAME) \
+	_freea(VARNAME); VARNAME=NULL;
+
+#else // other compilers hopefully support C99 VLAs (gcc/mingw and clang do)
+
+  #define YQ2_VLA(TYPE, VARNAME, NUMELEMS) \
+	TYPE VARNAME[NUMELEMS]
+  #define YQ2_VLAFREE(VARNAME)
+
+#endif
+
 /*
  * skins will be outline flood filled and mip mapped
  * pics and sprites with alpha will be outline flood filled
@@ -58,7 +75,7 @@ typedef enum
 
 #define MAX_LBM_HEIGHT 480
 
-extern void R_Printf(int level, const char* msg, ...) __attribute__ ((format (printf, 2, 3)));
+extern void R_Printf(int level, const char* msg, ...) PRINTF_ATTR(2, 3);
 
 extern void LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height);
 extern void GetPCXInfo(char *filename, int *width, int *height);

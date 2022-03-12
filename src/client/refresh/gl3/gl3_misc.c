@@ -131,7 +131,7 @@ GL3_ScreenShot(void)
 	// so swap bottom rows with top rows
 	{
 		size_t bytesPerRow = 3*w;
-		byte rowBuffer[bytesPerRow];
+		YQ2_VLA(byte, rowBuffer, bytesPerRow);
 		byte *curRowL = buffer; // first byte of first row
 		byte *curRowH = buffer + bytesPerRow*(h-1); // first byte of last row
 		while(curRowL < curRowH)
@@ -143,6 +143,7 @@ GL3_ScreenShot(void)
 			curRowL += bytesPerRow;
 			curRowH -= bytesPerRow;
 		}
+		YQ2_VLAFREE(rowBuffer);
 	}
 
 	ri.Vid_WriteScreenshot(w, h, 3, buffer);

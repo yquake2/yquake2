@@ -135,7 +135,7 @@ CreateSDLWindow(int flags, int w, int h)
 			Com_Printf("Likely SDL bug #4700, trying to work around it\n");
 
 			/* Mkay, try to hack around that. */
-			SDL_DisplayMode wanted_mode = {};
+			SDL_DisplayMode wanted_mode = {0};
 
 			wanted_mode.w = w;
 			wanted_mode.h = h;
