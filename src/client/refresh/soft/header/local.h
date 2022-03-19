@@ -582,12 +582,14 @@ void	RE_Draw_FadeScreen (void);
 
 void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
 
+extern byte d_8to24table[256 * 4];
 void	R_InitImages(void);
 void	R_ShutdownImages(void);
 image_t	*R_FindImage(char *name, imagetype_t type);
 byte	*Get_BestImageSize(const image_t *image, int *req_width, int *req_height);
 void	R_FreeUnusedImages(void);
 qboolean R_ImageHasFreeSpace(void);
+pixel_t	R_ApplyLight(pixel_t pix, const int light[3]);
 
 void R_InitSkyBox(model_t *loadmodel);
 void R_IMFlatShadedQuad( const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t d, int color, float alpha );

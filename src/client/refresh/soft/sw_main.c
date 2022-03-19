@@ -51,7 +51,7 @@ static qboolean	palette_changed;
 
 refimport_t	ri;
 
-static unsigned	d_8to24table[256];
+byte		d_8to24table[256 * 4];
 
 char		skyname[MAX_QPATH];
 vec3_t		skyaxis;
@@ -1230,7 +1230,7 @@ R_CalcPalette (void)
 		if (modified)
 		{	// set back to default
 			modified = false;
-			R_GammaCorrectAndSetPalette( ( const unsigned char * ) d_8to24table );
+			R_GammaCorrectAndSetPalette( d_8to24table );
 			return;
 		}
 		return;
@@ -1246,7 +1246,7 @@ R_CalcPalette (void)
 
 	one_minus_alpha = (1.0 - alpha);
 
-	in = (byte *)d_8to24table;
+	in = d_8to24table;
 	out = palette[0];
 	for (i=0 ; i<256 ; i++, in+=4, out+=4)
 	{
@@ -1439,7 +1439,7 @@ R_InitGraphics( int width, int height )
 
 	R_InitCaches();
 
-	R_GammaCorrectAndSetPalette((const unsigned char *)d_8to24table);
+	R_GammaCorrectAndSetPalette(d_8to24table);
 }
 
 static rserr_t	SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen);
@@ -1466,7 +1466,7 @@ RE_BeginFrame( float camera_separation )
 	if ( vid_gamma->modified || sw_overbrightbits->modified )
 	{
 		Draw_BuildGammaTable();
-		R_GammaCorrectAndSetPalette((const unsigned char * )d_8to24table);
+		R_GammaCorrectAndSetPalette(d_8to24table);
 		// we need redraw everything
 		VID_WholeDamageBuffer();
 		// and backbuffer should be zeroed
@@ -1602,7 +1602,7 @@ RE_SetPalette(const unsigned char *palette)
 	}
 	else
 	{
-		R_GammaCorrectAndSetPalette((const unsigned char *)d_8to24table);
+		R_GammaCorrectAndSetPalette(d_8to24table);
 	}
 }
 
@@ -1759,7 +1759,7 @@ Draw_GetPalette (void)
 		ri.Sys_Error (ERR_FATAL, "Couldn't load pics/colormap.pcx");
 	vid_alphamap = vid_colormap + 64*256;
 
-	out = (byte *)d_8to24table;
+	out = d_8to24table;
 	for (i=0 ; i<256 ; i++, out+=4)
 	{
 		int r, g, b;
@@ -2409,7 +2409,7 @@ SWimp_CreateRender(int width, int height)
 
 	memset(sw_state.currentpalette, 0, sizeof(sw_state.currentpalette));
 
-	R_GammaCorrectAndSetPalette( ( const unsigned char * ) d_8to24table );
+	R_GammaCorrectAndSetPalette( d_8to24table );
 }
 
 // this is only here so the functions in q_shared.c and q_shwin.c can link

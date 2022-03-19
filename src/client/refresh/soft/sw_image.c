@@ -323,7 +323,34 @@ R_LoadWal (char *name, imagetype_t type)
 	return image;
 }
 
-static unsigned char *d_16to8table = NULL; // 16 to 8 bit conversion table
+static byte *d_16to8table = NULL; // 16 to 8 bit conversion table
+
+pixel_t
+R_ApplyLight(pixel_t pix, const int light[3])
+{
+	pixel_t i_r, i_g, i_b;
+	byte b_r, b_g, b_b;
+	int i_c;
+
+	/* get index of color component of each component */
+	i_r = vid_colormap[(light[0] & 0xFF00) + pix];
+	i_g = vid_colormap[(light[1] & 0xFF00) + pix];
+	i_b = vid_colormap[(light[2] & 0xFF00) + pix];
+
+	/* get color component for each component */
+	b_r = d_8to24table[i_r * 4 + 0];
+	b_g = d_8to24table[i_g * 4 + 1];
+	b_b = d_8to24table[i_b * 4 + 2];
+
+	/* convert back to indexed color */
+	b_r = ( b_r >> 3 ) & 31;
+	b_g = ( b_g >> 2 ) & 63;
+	b_b = ( b_b >> 3 ) & 31;
+
+	i_c = b_r | ( b_g << 5 ) | ( b_b << 11 );
+
+	return d_16to8table[i_c & 0xFFFF];
+}
 
 static void
 R_Convert32To8bit(const unsigned char* pic_in, pixel_t* pic_out, size_t size)
