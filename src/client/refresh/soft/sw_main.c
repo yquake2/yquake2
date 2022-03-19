@@ -135,6 +135,7 @@ cvar_t	*r_lefthand;
 cvar_t	*r_gunfov;
 cvar_t	*r_farsee;
 cvar_t	*r_lightmap;
+cvar_t	*r_colorlight;
 static cvar_t	*sw_aliasstats;
 cvar_t	*sw_clearcolor;
 cvar_t	*sw_drawflat;
@@ -396,6 +397,7 @@ R_RegisterVariables (void)
 	r_gunfov = ri.Cvar_Get( "r_gunfov", "80", CVAR_ARCHIVE );
 	r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 	r_lightmap = ri.Cvar_Get("r_lightmap", "0", 0);
+	r_colorlight = ri.Cvar_Get("r_colorlight", "0", CVAR_ARCHIVE);
 	r_speeds = ri.Cvar_Get ("r_speeds", "0", 0);
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", 0);
 	r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0);

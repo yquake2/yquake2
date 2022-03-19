@@ -35,9 +35,9 @@ affinetridesc_t	r_affinetridesc;
 static vec3_t	r_plightvec;
 static vec3_t	r_lerp_frontv, r_lerp_backv, r_lerp_move;
 
-static int	r_ambientlight;
+static int	r_ambientlight[3];
 int		r_aliasblendcolor;
-static float		r_shadelight;
+static float		r_shadelight[3];
 
 
 static daliasframe_t	*r_thisframe, *r_lastframe;
@@ -399,7 +399,7 @@ R_AliasTransformFinalVerts(const entity_t *currententity, int numpoints, finalve
 
 	for ( i = 0; i < numpoints; i++, fv++, oldv++, newv++ )
 	{
-		int		temp;
+		int		j;
 		float	lightcos;
 		const float	*plightnormal;
 		vec3_t  lerped_vert;
@@ -426,19 +426,25 @@ R_AliasTransformFinalVerts(const entity_t *currententity, int numpoints, finalve
 
 		// lighting
 		lightcos = DotProduct (plightnormal, r_plightvec);
-		temp = r_ambientlight;
 
-		if (lightcos < 0)
+		for(j=0; j<3; j++)
 		{
-			temp += (int)(r_shadelight * lightcos);
+			int temp;
 
-			// clamp; because we limited the minimum ambient and shading light, we
-			// don't have to clamp low light, just bright
-			if (temp < 0)
-				temp = 0;
+			temp = r_ambientlight[j];
+
+			if (lightcos < 0)
+			{
+				temp += (int)(r_shadelight[j] * lightcos);
+
+				// clamp; because we limited the minimum ambient and shading light, we
+				// don't have to clamp low light, just bright
+				if (temp < 0)
+					temp = 0;
+			}
+
+			fv->l[j] = temp;
 		}
-
-		fv->l = temp;
 
 		if ( fv->xyz[2] < ALIAS_Z_CLIP_PLANE )
 		{
@@ -536,7 +542,7 @@ R_AliasSetupLighting(entity_t *currententity)
 {
 	float lightvec[3] = {-1, 0, 0};
 	vec3_t light;
-	int i, j;
+	int i;
 
 	// all components of light should be identical in software
 	if ( currententity->flags & RF_FULLBRIGHT )
@@ -577,28 +583,40 @@ R_AliasSetupLighting(entity_t *currententity)
 		}
 	}
 
-	j = (light[0] + light[1] + light[2]) * 0.3333 * 255;
+	if(r_colorlight->value == 0)
+	{
+		float temp = (light[0] + light[1] + light[2]) / 3;
 
-	r_ambientlight = j;
-	r_shadelight = j;
+		light[0] = light[1] = light[2] = temp;
+	}
 
-	// clamp lighting so it doesn't overbright as much
-	if (r_ambientlight > 128)
-		r_ambientlight = 128;
-	if (r_ambientlight + r_shadelight > 192)
-		r_shadelight = 192 - r_ambientlight;
+	for(i=0; i<3; i++)
+	{
+		int j;
 
-	// guarantee that no vertex will ever be lit below LIGHT_MIN, so we don't have
-	// to clamp off the bottom
-	if (r_ambientlight < LIGHT_MIN)
-		r_ambientlight = LIGHT_MIN;
+		j = light[i] * 255;
 
-	r_ambientlight = (255 - r_ambientlight) << VID_CBITS;
+		r_ambientlight[i] = j;
+		r_shadelight[i] = j;
 
-	if (r_shadelight < 0)
-		r_shadelight = 0;
+		// clamp lighting so it doesn't overbright as much
+		if (r_ambientlight[i] > 128)
+			r_ambientlight[i] = 128;
+		if (r_ambientlight[i] + r_shadelight[i] > 192)
+			r_shadelight[i] = 192 - r_ambientlight[i];
 
-	r_shadelight *= VID_GRADES;
+		// guarantee that no vertex will ever be lit below LIGHT_MIN, so we don't have
+		// to clamp off the bottom
+		if (r_ambientlight[i] < LIGHT_MIN)
+			r_ambientlight[i] = LIGHT_MIN;
+
+		r_ambientlight[i] = (255 - r_ambientlight[i]) << VID_CBITS;
+
+		if (r_shadelight[i] < 0)
+			r_shadelight[i] = 0;
+
+		r_shadelight[i] *= VID_GRADES;
+	}
 
 	// rotate the lighting vector into the model's frame of reference
 	r_plightvec[0] =  DotProduct( lightvec, s_alias_forward );

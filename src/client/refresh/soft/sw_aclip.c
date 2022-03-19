@@ -34,6 +34,7 @@ static void
 R_Alias_clip_z (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t *out)
 {
 	float scale;
+	int i;
 
 	scale = (ALIAS_Z_CLIP_PLANE - pfv0->xyz[2]) /
 			(pfv1->xyz[2] - pfv0->xyz[2]);
@@ -44,7 +45,9 @@ R_Alias_clip_z (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t *o
 
 	out->s =	pfv0->s + (pfv1->s - pfv0->s) * scale;
 	out->t =	pfv0->t + (pfv1->t - pfv0->t) * scale;
-	out->l =	pfv0->l + (pfv1->l - pfv0->l) * scale;
+
+	for(i=0; i<3; i++)
+		out->l[i] =	pfv0->l[i] + (pfv1->l[i] - pfv0->l[i]) * scale;
 
 	R_AliasProjectAndClipTestFinalVert (out);
 }
@@ -56,24 +59,34 @@ R_Alias_clip_left (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t
 
 	if (pfv0->v >= pfv1->v )
 	{
+		int i;
+
 		scale = (float)(r_refdef.aliasvrect.x - pfv0->u) /
 				(pfv1->u - pfv0->u);
 		out->u  = pfv0->u  + ( pfv1->u  - pfv0->u ) * scale + 0.5;
 		out->v  = pfv0->v  + ( pfv1->v  - pfv0->v ) * scale + 0.5;
 		out->s  = pfv0->s  + ( pfv1->s  - pfv0->s ) * scale + 0.5;
 		out->t  = pfv0->t  + ( pfv1->t  - pfv0->t ) * scale + 0.5;
-		out->l  = pfv0->l  + ( pfv1->l  - pfv0->l ) * scale + 0.5;
+
+		for(i=0; i<3; i++)
+			out->l[i]  = pfv1->l[i]  + ( pfv0->l[i]  - pfv1->l[i] ) * scale + 0.5;
+
 		out->zi = pfv0->zi + ( pfv1->zi - pfv0->zi) * scale + 0.5;
 	}
 	else
 	{
+		int i;
+
 		scale = (float)(r_refdef.aliasvrect.x - pfv1->u) /
 				(pfv0->u - pfv1->u);
 		out->u  = pfv1->u  + ( pfv0->u  - pfv1->u ) * scale + 0.5;
 		out->v  = pfv1->v  + ( pfv0->v  - pfv1->v ) * scale + 0.5;
 		out->s  = pfv1->s  + ( pfv0->s  - pfv1->s ) * scale + 0.5;
 		out->t  = pfv1->t  + ( pfv0->t  - pfv1->t ) * scale + 0.5;
-		out->l  = pfv1->l  + ( pfv0->l  - pfv1->l ) * scale + 0.5;
+
+		for(i=0; i<3; i++)
+			out->l[i]  = pfv1->l[i]  + ( pfv0->l[i]  - pfv1->l[i] ) * scale + 0.5;
+
 		out->zi = pfv1->zi + ( pfv0->zi - pfv1->zi) * scale + 0.5;
 	}
 }
@@ -85,24 +98,34 @@ R_Alias_clip_right (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_
 
 	if ( pfv0->v >= pfv1->v )
 	{
+		int i;
+
 		scale = (float)(r_refdef.aliasvrectright - pfv0->u ) /
 				(pfv1->u - pfv0->u );
 		out->u  = pfv0->u  + ( pfv1->u  - pfv0->u ) * scale + 0.5;
 		out->v  = pfv0->v  + ( pfv1->v  - pfv0->v ) * scale + 0.5;
 		out->s  = pfv0->s  + ( pfv1->s  - pfv0->s ) * scale + 0.5;
 		out->t  = pfv0->t  + ( pfv1->t  - pfv0->t ) * scale + 0.5;
-		out->l  = pfv0->l  + ( pfv1->l  - pfv0->l ) * scale + 0.5;
+
+		for(i=0; i<3; i++)
+			out->l[i]  = pfv0->l[i]  + ( pfv1->l[i]  - pfv0->l[i] ) * scale + 0.5;
+
 		out->zi = pfv0->zi + ( pfv1->zi - pfv0->zi) * scale + 0.5;
 	}
 	else
 	{
+		int i;
+
 		scale = (float)(r_refdef.aliasvrectright - pfv1->u ) /
 				(pfv0->u - pfv1->u );
 		out->u  = pfv1->u  + ( pfv0->u  - pfv1->u ) * scale + 0.5;
 		out->v  = pfv1->v  + ( pfv0->v  - pfv1->v ) * scale + 0.5;
 		out->s  = pfv1->s  + ( pfv0->s  - pfv1->s ) * scale + 0.5;
 		out->t  = pfv1->t  + ( pfv0->t  - pfv1->t ) * scale + 0.5;
-		out->l  = pfv1->l  + ( pfv0->l  - pfv1->l ) * scale + 0.5;
+
+		for(i=0; i<3; i++)
+			out->l[i]  = pfv1->l[i]  + ( pfv0->l[i]  - pfv1->l[i] ) * scale + 0.5;
+
 		out->zi = pfv1->zi + ( pfv0->zi - pfv1->zi) * scale + 0.5;
 	}
 }
@@ -114,24 +137,34 @@ R_Alias_clip_top (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t 
 
 	if (pfv0->v >= pfv1->v)
 	{
+		int i;
+
 		scale = (float)(r_refdef.aliasvrect.y - pfv0->v) /
 				(pfv1->v - pfv0->v);
 		out->u  = pfv0->u  + ( pfv1->u  - pfv0->u ) * scale + 0.5;
 		out->v  = pfv0->v  + ( pfv1->v  - pfv0->v ) * scale + 0.5;
 		out->s  = pfv0->s  + ( pfv1->s  - pfv0->s ) * scale + 0.5;
 		out->t  = pfv0->t  + ( pfv1->t  - pfv0->t ) * scale + 0.5;
-		out->l  = pfv0->l  + ( pfv1->l  - pfv0->l ) * scale + 0.5;
+
+		for(i=0; i<3; i++)
+			out->l[i]  = pfv0->l[i]  + ( pfv1->l[i]  - pfv0->l[i] ) * scale + 0.5;
+
 		out->zi = pfv0->zi + ( pfv1->zi - pfv0->zi) * scale + 0.5;
 	}
 	else
 	{
+		int i;
+
 		scale = (float)(r_refdef.aliasvrect.y - pfv1->v) /
 				(pfv0->v - pfv1->v);
 		out->u  = pfv1->u  + ( pfv0->u  - pfv1->u ) * scale + 0.5;
 		out->v  = pfv1->v  + ( pfv0->v  - pfv1->v ) * scale + 0.5;
 		out->s  = pfv1->s  + ( pfv0->s  - pfv1->s ) * scale + 0.5;
 		out->t  = pfv1->t  + ( pfv0->t  - pfv1->t ) * scale + 0.5;
-		out->l  = pfv1->l  + ( pfv0->l  - pfv1->l ) * scale + 0.5;
+
+		for(i=0; i<3; i++)
+			out->l[i]  = pfv1->l[i]  + ( pfv0->l[i]  - pfv1->l[i] ) * scale + 0.5;
+
 		out->zi = pfv1->zi + ( pfv0->zi - pfv1->zi) * scale + 0.5;
 	}
 }
@@ -144,6 +177,8 @@ R_Alias_clip_bottom (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert
 
 	if (pfv0->v >= pfv1->v)
 	{
+		int i;
+
 		scale = (float)(r_refdef.aliasvrectbottom - pfv0->v) /
 				(pfv1->v - pfv0->v);
 
@@ -151,11 +186,16 @@ R_Alias_clip_bottom (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert
 		out->v  = pfv0->v  + ( pfv1->v  - pfv0->v ) * scale + 0.5;
 		out->s  = pfv0->s  + ( pfv1->s  - pfv0->s ) * scale + 0.5;
 		out->t  = pfv0->t  + ( pfv1->t  - pfv0->t ) * scale + 0.5;
-		out->l  = pfv0->l  + ( pfv1->l  - pfv0->l ) * scale + 0.5;
+
+		for(i=0; i<3; i++)
+			out->l[i]  = pfv0->l[i]  + ( pfv1->l[i]  - pfv0->l[i] ) * scale + 0.5;
+
 		out->zi = pfv0->zi + ( pfv1->zi - pfv0->zi) * scale + 0.5;
 	}
 	else
 	{
+		int i;
+
 		scale = (float)(r_refdef.aliasvrectbottom - pfv1->v) /
 				(pfv0->v - pfv1->v);
 
@@ -163,7 +203,10 @@ R_Alias_clip_bottom (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert
 		out->v  = pfv1->v  + ( pfv0->v  - pfv1->v ) * scale + 0.5;
 		out->s  = pfv1->s  + ( pfv0->s  - pfv1->s ) * scale + 0.5;
 		out->t  = pfv1->t  + ( pfv0->t  - pfv1->t ) * scale + 0.5;
-		out->l  = pfv1->l  + ( pfv0->l  - pfv1->l ) * scale + 0.5;
+
+		for(i=0; i<3; i++)
+			out->l[i]  = pfv1->l[i]  + ( pfv0->l[i]  - pfv1->l[i] ) * scale + 0.5;
+
 		out->zi = pfv1->zi + ( pfv0->zi - pfv1->zi) * scale + 0.5;
 	}
 }
@@ -225,7 +268,7 @@ R_AliasClipTriangle(const entity_t *currententity, const finalvert_t *index0, co
 {
 	int				i, k, pingpong;
 	unsigned		clipflags;
-        finalvert_t		fv[2][8];
+	finalvert_t		fv[2][8];
 
 	// copy vertexes and fix seam texture coordinates
 	fv[0][0] = *index0;

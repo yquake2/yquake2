@@ -49,7 +49,7 @@ R_MarkLights (dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
 	dist = DotProduct (light->origin, splitplane->normal) - splitplane->dist;
 
 	i = light->intensity;
-	if( i< 0)
+	if (i < 0)
 		i = -i;
 
 	if (dist > i)	// (dist > light->intensity)
@@ -57,6 +57,7 @@ R_MarkLights (dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
 		R_MarkLights (light, bit, node->children[0], r_dlightframecount);
 		return;
 	}
+
 	if (dist < -i)	// (dist < -light->intensity)
 	{
 		R_MarkLights (light, bit, node->children[1], r_dlightframecount);
@@ -288,15 +289,15 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 	tmax = (surf->extents[1]>>4)+1;
 	tex = surf->texinfo;
 
-	if (blocklight_max <= blocklights + smax*tmax)
+	if (blocklight_max <= blocklights + smax*tmax*3)
 	{
 		r_outoflights = true;
 		return;
 	}
 
-	for (lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++)
+	for (lnum=0; lnum < r_newrefdef.num_dlights; lnum++)
 	{
-		vec3_t impact, local;
+		vec3_t impact, local, color;
 		float	dist, rad, minlight;
 		int		t;
 		int		i;
@@ -309,6 +310,17 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 
 		dl = &r_newrefdef.dlights[lnum];
 		rad = dl->intensity;
+
+		if(r_colorlight->value == 0)
+		{
+			for(i=0; i<3; i++)
+				color[i] = 256;
+		}
+		else
+		{
+			for(i=0; i<3; i++)
+				color[i] = 256 * dl->color[i];
+		}
 
 		//=====
 		negativeLight = 0;
@@ -358,21 +370,25 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 				else
 					dist = td + (sd>>1);
 
-				//====
-				if(!negativeLight)
+				for (i=0; i<3; i++)
 				{
-					if (dist < minlight)
-						*plightdest += (rad - dist)*256;
+					//====
+					if(!negativeLight)
+					{
+						if (dist < minlight)
+							*plightdest += (rad - dist) * color[i];
+
+					}
+					else
+					{
+						if (dist < minlight)
+							*plightdest -= (rad - dist) * color[i];
+						if(*plightdest < minlight)
+							*plightdest = minlight;
+					}
+					//====
+					plightdest ++;
 				}
-				else
-				{
-					if (dist < minlight)
-						*plightdest -= (rad - dist)*256;
-					if(*plightdest < minlight)
-						*plightdest = minlight;
-				}
-				//====
-				plightdest ++;
 			}
 		}
 	}
@@ -397,7 +413,7 @@ R_BuildLightMap (drawsurf_t* drawsurf)
 
 	smax = (surf->extents[0]>>4)+1;
 	tmax = (surf->extents[1]>>4)+1;
-	size = smax*tmax;
+	size = smax*tmax*3;
 
 	if (blocklight_max <= blocklights + size)
 	{
@@ -430,19 +446,36 @@ R_BuildLightMap (drawsurf_t* drawsurf)
 
 			scale = drawsurf->lightadj[maps];	// 8.8 fraction
 
-			do
+			if(r_colorlight->value == 0)
 			{
-				byte light = sqrt((
-					lightmap[0] * lightmap[0] +
-					lightmap[1] * lightmap[1] +
-					lightmap[2] * lightmap[2]
-				) / 3);
-				*curr_light += light * scale;
-				curr_light++;
+				do
+				{
+					byte light = sqrt((
+						lightmap[0] * lightmap[0] +
+						lightmap[1] * lightmap[1] +
+						lightmap[2] * lightmap[2]
+					) / 3);
+					*curr_light += light * scale;
+					curr_light++;
+					*curr_light += light * scale;
+					curr_light++;
+					*curr_light += light * scale;
+					curr_light++;
 
-				lightmap += 3; /* skip to next lightmap */
+					lightmap += 3; /* skip to next lightmap */
+				}
+				while(curr_light < max_light);
 			}
-			while(curr_light < max_light);
+			else
+			{
+				do
+				{
+					*curr_light += *lightmap * scale;
+					curr_light++;
+					lightmap ++; /* skip to next lightmap */
+				}
+				while(curr_light < max_light);
+			}
 		}
 	}
 

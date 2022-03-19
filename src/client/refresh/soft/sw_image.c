@@ -704,7 +704,7 @@ R_FindImage(char *name, imagetype_t type)
 	}
 
 	/* just return white image if show lighmap only */
-	if (type == it_wall && r_lightmap->value)
+	if ((type == it_wall || type == it_skin) && r_lightmap->value)
 	{
 		return r_whitetexture_mip;
 	}

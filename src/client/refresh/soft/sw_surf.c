@@ -64,7 +64,6 @@ R_TextureAnimation (const entity_t *currententity, mtexinfo_t *tex)
 	return tex->image;
 }
 
-
 /*
 ================
 R_DrawSurfaceBlock8_anymip
@@ -73,7 +72,7 @@ R_DrawSurfaceBlock8_anymip
 static void
 R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 {
-	int		v, i, b, lightstep, lighttemp, light, size;
+	int		v, i, b, size;
 	unsigned char	pix, *psource, *prowdest;
 
 	size = 1 << level;
@@ -82,34 +81,51 @@ R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 
 	for (v=0 ; v<r_numvblocks ; v++)
 	{
-		int	lightleft, lightright;
-		int	lightleftstep, lightrightstep;
+		int	lightleft[3], lightright[3];
+		int	lightleftstep[3], lightrightstep[3];
 
 		// FIXME: use delta rather than both right and left, like ASM?
-		lightleft = r_lightptr[0];
-		lightright = r_lightptr[1];
-		r_lightptr += r_lightwidth;
-		lightleftstep = (r_lightptr[0] - lightleft) >> level;
-		lightrightstep = (r_lightptr[1] - lightright) >> level;
+		memcpy(lightleft, r_lightptr, sizeof(int) * 3);
+		memcpy(lightright, r_lightptr + 3, sizeof(int) * 3);
+		r_lightptr += r_lightwidth * 3;
+		for(i=0; i<3; i++)
+		{
+			lightleftstep[i] = (r_lightptr[i] - lightleft[i]) >> level;
+			lightrightstep[i] = (r_lightptr[i + 3] - lightright[i]) >> level;
+		}
 
 		for (i=0 ; i<size ; i++)
 		{
-			lighttemp = lightleft - lightright;
-			lightstep = lighttemp >> level;
+			int lightstep[3], light[3];
+			int j;
 
-			light = lightright;
+			for(j=0; j<3; j++)
+			{
+				int lighttemp;
+
+				lighttemp = lightleft[j] - lightright[j];
+				lightstep[j] = lighttemp >> level;
+			}
+
+			memcpy(light, lightright, sizeof(int) * 3);
 
 			for (b=(size-1); b>=0; b--)
 			{
 				pix = psource[b];
-				prowdest[b] = ((unsigned char *)vid_colormap)
-						[(light & 0xFF00) + pix];
-				light += lightstep;
+				prowdest[b] = R_ApplyLight(pix, light);
+
+				for(j=0; j<3; j++)
+					light[j] += lightstep[j];
 			}
 
 			psource += sourcetstep;
-			lightright += lightrightstep;
-			lightleft += lightleftstep;
+
+			for(j=0; j<3; j++)
+			{
+				lightright[j] += lightrightstep[j];
+				lightleft[j] += lightleftstep[j];
+			}
+
 			prowdest += surfrowbytes;
 		}
 
@@ -176,7 +192,7 @@ R_DrawSurface (drawsurf_t *drawsurf)
 
 	for (u=0 ; u<r_numhblocks; u++)
 	{
-		r_lightptr = blocklights + u;
+		r_lightptr = blocklights + u * 3;
 
 		if (r_lightptr >= blocklight_max)
 		{

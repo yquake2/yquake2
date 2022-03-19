@@ -202,15 +202,15 @@ typedef struct
 */
 typedef struct finalvert_s {
 	int		u, v, s, t;
-	int		l;
+	int		l[3];	// full color light
 	zvalue_t	zi;
 	int		flags;
-	float		xyz[3];         // eye space
+	float		xyz[3];	// eye space
 } finalvert_t;
 
 typedef struct compactvert_s {
 	int		u, v, s, t;
-	int		l;
+	int		l[3];	// full color light
 	zvalue_t	zi;
 } compactvert_t;
 
@@ -431,6 +431,7 @@ extern cvar_t	*r_lefthand;
 extern cvar_t	*r_gunfov;
 extern cvar_t	*r_farsee;
 extern cvar_t	*r_lightmap;
+extern cvar_t	*r_colorlight;
 extern cvar_t	*r_drawworld;
 extern cvar_t	*r_lerpmodels;
 extern cvar_t	*r_lightlevel;
@@ -501,7 +502,7 @@ extern edge_t	**removeedges;
 typedef struct {
 	int		u, v, count;
 	pixel_t		*ptex;
-	int		sfrac, tfrac, light;
+	int		sfrac, tfrac, light[3];
 	zvalue_t	zi;
 } spanpackage_t;
 extern spanpackage_t	*triangle_spans, *triangles_max;

@@ -59,8 +59,8 @@ static edgetable edgetables[12] = {
 };
 
 // FIXME: some of these can become statics
-static int	a_sstepxfrac, a_tstepxfrac, r_lstepx, a_ststepxwhole;
-static int	r_sstepx, r_tstepx, r_lstepy, r_sstepy, r_tstepy;
+static int	a_sstepxfrac, a_tstepxfrac, r_lstepx[3], a_ststepxwhole;
+static int	r_sstepx, r_tstepx, r_lstepy[3], r_sstepy, r_tstepy;
 static zvalue_t	r_zistepx, r_zistepy;
 static int	d_aspancount;
 
@@ -68,11 +68,11 @@ static spanpackage_t	*d_pedgespanpackage;
 
 spanpackage_t	*triangle_spans, *triangles_max;
 
-static int	d_sfrac, d_tfrac, d_light;
+static int	d_sfrac, d_tfrac, d_light[3];
 static zvalue_t	d_zi;
 static int	d_ptexextrastep, d_sfracextrastep;
-static int	d_tfracextrastep, d_lightextrastep;
-static int	d_lightbasestep, d_ptexbasestep;
+static int	d_tfracextrastep, d_lightextrastep[3];
+static int	d_lightbasestep[3], d_ptexbasestep;
 static int	d_sfracbasestep, d_tfracbasestep;
 static zvalue_t	d_ziextrastep, d_zibasestep;
 
@@ -189,21 +189,21 @@ R_DrawTriangle(const entity_t *currententity, const finalvert_t *a, const finalv
 		r_p0.v = a->v;	// v
 		r_p0.s = a->s;	// s
 		r_p0.t = a->t;	// t
-		r_p0.l = a->l;	// light
+		memcpy(r_p0.l, a->l, sizeof(int) * 3);	// light
 		r_p0.zi = a->zi;	// iz
 
 		r_p1.u = b->u;
 		r_p1.v = b->v;
 		r_p1.s = b->s;
 		r_p1.t = b->t;
-		r_p1.l = b->l;
+		memcpy(r_p1.l, b->l, sizeof(int) * 3);	// light
 		r_p1.zi = b->zi;
 
 		r_p2.u = c->u;
 		r_p2.v = c->v;
 		r_p2.s = c->s;
 		r_p2.t = c->t;
-		r_p2.l = c->l;
+		memcpy(r_p2.l,  c->l, sizeof(int) * 3);	// light;
 		r_p2.zi = c->zi;
 
 		R_PolysetSetEdgeTable ();
@@ -213,7 +213,7 @@ R_DrawTriangle(const entity_t *currententity, const finalvert_t *a, const finalv
 
 static void
 R_PushEdgesSpan(int u, int v, int count,
-		pixel_t* d_ptex, int d_sfrac, int d_tfrac, int d_light, zvalue_t d_zi)
+		pixel_t* d_ptex, int d_sfrac, int d_tfrac, int d_light[3], zvalue_t d_zi)
 {
 	if (d_pedgespanpackage >= triangles_max)
 	{
@@ -231,7 +231,7 @@ R_PushEdgesSpan(int u, int v, int count,
 	d_pedgespanpackage->tfrac = d_tfrac;
 
 	// FIXME: need to clamp l, s, t, at both ends?
-	d_pedgespanpackage->light = d_light;
+	memcpy(d_pedgespanpackage->light, d_light, sizeof(int) * 3);
 	d_pedgespanpackage->zi = d_zi;
 
 	d_pedgespanpackage++;
@@ -257,6 +257,8 @@ R_PolysetScanLeftEdge_C(int height, pixel_t *d_ptex, int u, int v)
 		errorterm += erroradjustup;
 		if (errorterm >= 0)
 		{
+			int i;
+
 			// addtional step for compensate error
 			u ++;
 			d_aspancount ++;
@@ -272,12 +274,17 @@ R_PolysetScanLeftEdge_C(int height, pixel_t *d_ptex, int u, int v)
 				d_ptex += r_affinetridesc.skinwidth;
 				d_tfrac &= 0xFFFF;
 			}
-			d_light += d_lightextrastep;
+
+			for(i=0; i<3; i++)
+				d_light[i] += d_lightextrastep[i];
+
 			d_zi += d_ziextrastep;
 			errorterm -= erroradjustdown;
 		}
 		else
 		{
+			int i;
+
 			d_ptex += d_ptexbasestep;
 			d_sfrac += d_sfracbasestep;
 			d_ptex += d_sfrac >> SHIFT16XYZ;
@@ -288,7 +295,10 @@ R_PolysetScanLeftEdge_C(int height, pixel_t *d_ptex, int u, int v)
 				d_ptex += r_affinetridesc.skinwidth;
 				d_tfrac &= 0xFFFF;
 			}
-			d_light += d_lightbasestep;
+
+			for(i=0; i<3; i++)
+				d_light[i] += d_lightbasestep[i];
+
 			d_zi += d_zibasestep;
 		}
 	} while (--height);
@@ -371,6 +381,7 @@ R_PolysetCalcGradients (int skinwidth)
 {
 	float	xstepdenominv, ystepdenominv, t0, t1;
 	float	p01_minus_p21, p11_minus_p21, p00_minus_p20, p10_minus_p20;
+	int i;
 
 	p00_minus_p20 = r_p0.u - r_p2.u;
 	p01_minus_p21 = r_p0.v - r_p2.v;
@@ -384,12 +395,15 @@ R_PolysetCalcGradients (int skinwidth)
 	// ceil () for light so positive steps are exaggerated, negative steps
 	// diminished,  pushing us away from underflow toward overflow. Underflow is
 	// very visible, overflow is very unlikely, because of ambient lighting
-	t0 = r_p0.l - r_p2.l;
-	t1 = r_p1.l - r_p2.l;
-	r_lstepx = (int)
-			ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
-	r_lstepy = (int)
-			ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+	for (i=0; i<3; i++)
+	{
+		t0 = r_p0.l[i] - r_p2.l[i];
+		t1 = r_p1.l[i] - r_p2.l[i];
+		r_lstepx[i] = (int)
+				ceil((t1 * p01_minus_p21 - t0 * p11_minus_p21) * xstepdenominv);
+		r_lstepy[i] = (int)
+				ceil((t1 * p00_minus_p20 - t0 * p10_minus_p20) * ystepdenominv);
+	}
 
 	t0 = r_p0.s - r_p2.s;
 	t1 = r_p1.s - r_p2.s;
@@ -432,7 +446,7 @@ R_PolysetDrawSpans8_33(const entity_t *currententity, spanpackage_t *pspanpackag
 	pixel_t		*lpdest;
 	pixel_t		*lptex;
 	int		lsfrac, ltfrac;
-	int		llight;
+	int		llight[3];
 	zvalue_t	lzi;
 	zvalue_t	*lpz;
 
@@ -461,21 +475,24 @@ R_PolysetDrawSpans8_33(const entity_t *currententity, spanpackage_t *pspanpackag
 			lptex = pspanpackage->ptex;
 			lsfrac = pspanpackage->sfrac;
 			ltfrac = pspanpackage->tfrac;
-			llight = pspanpackage->light;
+			memcpy(llight, pspanpackage->light, sizeof(int) * 3);
 			lzi = pspanpackage->zi;
 
 			do
 			{
+				int i;
+
 				if ((lzi >> SHIFT16XYZ) >= *lpz)
 				{
-					int temp = vid_colormap[*lptex + ( llight & 0xFF00 )];
+					int temp = R_ApplyLight(*lptex, llight);
 
 					*lpdest = vid_alphamap[temp + *lpdest*256];
 				}
 				lpdest++;
 				lzi += r_zistepx;
 				lpz++;
-				llight += r_lstepx;
+				for(i=0; i<3; i++)
+					llight[i] += r_lstepx[i];
 				lptex += a_ststepxwhole;
 				lsfrac += a_sstepxfrac;
 				lptex += lsfrac >> SHIFT16XYZ;
@@ -546,7 +563,7 @@ R_PolysetDrawSpans8_66(const entity_t *currententity, spanpackage_t *pspanpackag
 	pixel_t		*lpdest;
 	pixel_t		*lptex;
 	int		lsfrac, ltfrac;
-	int		llight;
+	int		llight[3];
 	zvalue_t	lzi;
 	zvalue_t	*lpz;
 
@@ -576,14 +593,16 @@ R_PolysetDrawSpans8_66(const entity_t *currententity, spanpackage_t *pspanpackag
 			lptex = pspanpackage->ptex;
 			lsfrac = pspanpackage->sfrac;
 			ltfrac = pspanpackage->tfrac;
-			llight = pspanpackage->light;
+			memcpy(llight, pspanpackage->light, sizeof(int) * 3);
 			lzi = pspanpackage->zi;
 
 			do
 			{
+				int i;
+
 				if ((lzi >> SHIFT16XYZ) >= *lpz)
 				{
-					int temp = vid_colormap[*lptex + ( llight & 0xFF00 )];
+					int temp = R_ApplyLight(*lptex, llight);
 
 					*lpdest = vid_alphamap[temp*256 + *lpdest];
 					*lpz = lzi >> SHIFT16XYZ;
@@ -592,7 +611,8 @@ R_PolysetDrawSpans8_66(const entity_t *currententity, spanpackage_t *pspanpackag
 				lpdest++;
 				lzi += r_zistepx;
 				lpz++;
-				llight += r_lstepx;
+				for(i=0; i<3; i++)
+					llight[i] += r_lstepx[i];
 				lptex += a_ststepxwhole;
 				lsfrac += a_sstepxfrac;
 				lptex += lsfrac >> SHIFT16XYZ;
@@ -700,7 +720,7 @@ R_PolysetDrawSpans8_Opaque (const entity_t *currententity, spanpackage_t *pspanp
 			int		lsfrac, ltfrac;
 			pixel_t		*lpdest;
 			pixel_t		*lptex;
-			int		llight;
+			int		llight[3];
 			zvalue_t	lzi;
 			zvalue_t	*lpz;
 			int		pos_shift = (pspanpackage->v * vid_buffer_width) + pspanpackage->u;
@@ -712,28 +732,28 @@ R_PolysetDrawSpans8_Opaque (const entity_t *currententity, spanpackage_t *pspanp
 			lptex = pspanpackage->ptex;
 			lsfrac = pspanpackage->sfrac;
 			ltfrac = pspanpackage->tfrac;
-			llight = pspanpackage->light;
+			memcpy(llight, pspanpackage->light, sizeof(int) * 3);
 			lzi = pspanpackage->zi;
 
 			do
 			{
+				int i;
+
 				if ((lzi >> SHIFT16XYZ) >= *lpz)
 				{
-					int color_value;
-
 					if(r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags & RF_IR_VISIBLE)
-						color_value = irtable[*lptex];
+						*lpdest = vid_colormap[irtable[*lptex]];
 					else
-						color_value = *lptex + (llight & 0xFF00);
+						*lpdest = R_ApplyLight(*lptex, llight);
 
-					*lpdest = vid_colormap[color_value];
 					*lpz = lzi >> SHIFT16XYZ;
 					zdamaged = true;
 				}
 				lpdest++;
 				lzi += r_zistepx;
 				lpz++;
-				llight += r_lstepx;
+				for(i=0; i<3; i++)
+					llight[i] += r_lstepx[i];
 				lptex += a_ststepxwhole;
 				lsfrac += a_sstepxfrac;
 				lptex += lsfrac >> SHIFT16XYZ;
@@ -770,7 +790,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 {
 	int	initialleftheight, initialrightheight;
 	compactvert_t	*plefttop, *prighttop, *pleftbottom, *prightbottom;
-	int	working_lstepx, originalcount;
+	int	working_lstepx[3], originalcount;
 	int	u, v;
 	pixel_t	*d_ptex;
 
@@ -807,7 +827,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		d_sfrac = plefttop->s & 0xFFFF;
 		d_tfrac = plefttop->t & 0xFFFF;
 	}
-	d_light = plefttop->l;
+	memcpy(d_light, plefttop->l, sizeof(int) * 3);
 	d_zi = plefttop->zi;
 
 	if (initialleftheight == 1)
@@ -817,6 +837,8 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 	}
 	else
 	{
+		int i;
+
 		R_PolysetSetUpForLineScan(plefttop->u, plefttop->v,
 					  pleftbottom->u, pleftbottom->v);
 
@@ -826,9 +848,12 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		// underflow (sort of turning the floor () we did in the gradient calcs into
 		// ceil (), but plus a little bit)
 		if (ubasestep < 0)
-			working_lstepx = r_lstepx - 1;
+		{
+			for(i=0; i<3; i++)
+				working_lstepx[i] = r_lstepx[i] - 1;
+		}
 		else
-			working_lstepx = r_lstepx;
+			memcpy(working_lstepx, r_lstepx, sizeof(int) * 3);
 
 		d_ptexbasestep = ((r_sstepy + r_sstepx * ubasestep) >> SHIFT16XYZ) +
 				((r_tstepy + r_tstepx * ubasestep) >> SHIFT16XYZ) *
@@ -837,7 +862,9 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		d_sfracbasestep = (r_sstepy + r_sstepx * ubasestep) & 0xFFFF;
 		d_tfracbasestep = (r_tstepy + r_tstepx * ubasestep) & 0xFFFF;
 
-		d_lightbasestep = r_lstepy + working_lstepx * ubasestep;
+		for(i=0; i<3; i++)
+			d_lightbasestep[i] = r_lstepy[i] + working_lstepx[i] * ubasestep;
+
 		d_zibasestep = r_zistepy + r_zistepx * ubasestep;
 
 		d_ptexextrastep = ((r_sstepy + r_sstepx * (ubasestep + 1)) >> SHIFT16XYZ) +
@@ -847,7 +874,9 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		d_sfracextrastep = (r_sstepy + r_sstepx*(ubasestep + 1)) & 0xFFFF;
 		d_tfracextrastep = (r_tstepy + r_tstepx*(ubasestep + 1)) & 0xFFFF;
 
-		d_lightextrastep = d_lightbasestep + working_lstepx;
+		for(i=0; i<3; i++)
+			d_lightextrastep[i] = d_lightbasestep[i] + working_lstepx[i];
+
 		d_ziextrastep = d_zibasestep + r_zistepx;
 
 		R_PolysetScanLeftEdge_C(initialleftheight, d_ptex, u, v);
@@ -873,7 +902,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 				(plefttop->t >> SHIFT16XYZ) * r_affinetridesc.skinwidth;
 		d_sfrac = 0;
 		d_tfrac = 0;
-		d_light = plefttop->l;
+		memcpy(d_light, plefttop->l, sizeof(int) * 3);
 		d_zi = plefttop->zi;
 
 		if (height == 1)
@@ -883,13 +912,18 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		}
 		else
 		{
+			int i;
+
 			R_PolysetSetUpForLineScan(plefttop->u, plefttop->v,
 								  pleftbottom->u, pleftbottom->v);
 
 			if (ubasestep < 0)
-				working_lstepx = r_lstepx - 1;
+			{
+				for(i=0; i<3; i++)
+					working_lstepx[i] = r_lstepx[i] - 1;
+			}
 			else
-				working_lstepx = r_lstepx;
+				memcpy(working_lstepx, r_lstepx, sizeof(int) * 3);
 
 			d_ptexbasestep = ((r_sstepy + r_sstepx * ubasestep) >> SHIFT16XYZ) +
 					((r_tstepy + r_tstepx * ubasestep) >> SHIFT16XYZ) *
@@ -898,7 +932,9 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 			d_sfracbasestep = (r_sstepy + r_sstepx * ubasestep) & 0xFFFF;
 			d_tfracbasestep = (r_tstepy + r_tstepx * ubasestep) & 0xFFFF;
 
-			d_lightbasestep = r_lstepy + working_lstepx * ubasestep;
+			for(i=0; i<3; i++)
+				d_lightbasestep[i] = r_lstepy[i] + working_lstepx[i] * ubasestep;
+
 			d_zibasestep = r_zistepy + r_zistepx * ubasestep;
 
 			d_ptexextrastep = ((r_sstepy + r_sstepx * (ubasestep + 1)) >> SHIFT16XYZ) +
@@ -908,7 +944,8 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 			d_sfracextrastep = (r_sstepy+r_sstepx*(ubasestep + 1)) & 0xFFFF;
 			d_tfracextrastep = (r_tstepy+r_tstepx*(ubasestep + 1)) & 0xFFFF;
 
-			d_lightextrastep = d_lightbasestep + working_lstepx;
+			for(i=0; i<3; i++)
+				d_lightextrastep[i] = d_lightbasestep[i] + working_lstepx[i];
 			d_ziextrastep = d_zibasestep + r_zistepx;
 
 			R_PolysetScanLeftEdge_C(height, d_ptex, u, v);
