@@ -65,7 +65,7 @@ typedef unsigned char byte;
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
 #elif defined(_MSC_VER)
-	// Note: We prefer VS2019 16.8 or newer in C11 mode (/std:c11), 
+	// Note: We prefer VS2019 16.8 or newer in C11 mode (/std:c11),
 	//       then the __STDC_VERSION__ >= 201112L case above is used
 
 	#define YQ2_ALIGNAS_SIZE(SIZE)  __declspec(align(SIZE))
@@ -148,7 +148,7 @@ typedef unsigned char byte;
 #ifdef _MSC_VER
  #define PRINTF_ATTR(FMT, VARGS)
 #else // at least GCC/mingw and clang support this
- #define PRINTF_ATTR(FMT, VARGS) __attribute__((format(printf, FMT , VARGS )));
+ #define PRINTF_ATTR(FMT, VARGS) __attribute__((format(printf, FMT , VARGS )))
 #endif
 
 /* per-level limits */
