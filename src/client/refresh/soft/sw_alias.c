@@ -399,7 +399,6 @@ R_AliasTransformFinalVerts(const entity_t *currententity, int numpoints, finalve
 
 	for ( i = 0; i < numpoints; i++, fv++, oldv++, newv++ )
 	{
-		int		j;
 		float	lightcos;
 		const float	*plightnormal;
 		vec3_t  lerped_vert;
@@ -427,24 +426,28 @@ R_AliasTransformFinalVerts(const entity_t *currententity, int numpoints, finalve
 		// lighting
 		lightcos = DotProduct (plightnormal, r_plightvec);
 
-		for(j=0; j<3; j++)
+		if (lightcos < 0)
 		{
-			int temp;
+			int		j;
 
-			temp = r_ambientlight[j];
-
-			if (lightcos < 0)
+			for(j=0; j<3; j++)
 			{
-				temp += (int)(r_shadelight[j] * lightcos);
+				int temp;
+
+				temp = r_ambientlight[j];
+
+				temp += (r_shadelight[j] * lightcos);
 
 				// clamp; because we limited the minimum ambient and shading light, we
 				// don't have to clamp low light, just bright
 				if (temp < 0)
 					temp = 0;
-			}
 
-			fv->l[j] = temp;
+				fv->l[j] = temp;
+			}
 		}
+		else
+			memcpy(fv->l, r_ambientlight, sizeof(int) * 3);	// light;
 
 		if ( fv->xyz[2] < ALIAS_Z_CLIP_PLANE )
 		{
@@ -540,7 +543,7 @@ R_AliasSetupLighting
 static void
 R_AliasSetupLighting(entity_t *currententity)
 {
-	float lightvec[3] = {-1, 0, 0};
+	const float lightvec[3] = {-1, 0, 0};
 	vec3_t light;
 	int i;
 

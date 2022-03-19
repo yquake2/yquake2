@@ -215,11 +215,12 @@ R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int real
 	size_t data_size, imagetype_t type)
 {
 	image_t	*image;
-	size_t	i, size, full_size;
+	size_t	size, full_size;
 
 	size = width * height;
 
-	if (!pic || data_size <= 0 || width <= 0 || height <= 0 || size <= 0)
+	/* data_size/size are unsigned */
+	if (!pic || data_size == 0 || width <= 0 || height <= 0 || size == 0)
 		return NULL;
 
 	image = R_FindFreeImage();
@@ -246,6 +247,8 @@ R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int real
 	image->transparent = false;
 	if (type != it_wall)
 	{
+		size_t i;
+
 		for (i=0 ; i<size ; i++)
 		{
 			if (pic[i] == 255)
@@ -305,7 +308,8 @@ R_LoadWal (char *name, imagetype_t type)
 	height = LittleLong (mt->height);
 	ofs = LittleLong(mt->offsets[0]);
 
-	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
+	/* width/height are unsigned */
+	if ((ofs <= 0) || (width == 0) || (height == 0) ||
 	    ((file_size - ofs) / width < height))
 	{
 		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
