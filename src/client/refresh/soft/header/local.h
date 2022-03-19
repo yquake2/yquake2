@@ -233,12 +233,6 @@ typedef struct
 	int		surfheight; // in mipmapped texels
 } drawsurf_t;
 
-typedef struct {
-	int	ambientlight;
-	int	shadelight;
-	float	*plightvec;
-} alight_t;
-
 // clipped bmodel edges
 typedef struct bedge_s
 {

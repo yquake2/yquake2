@@ -534,7 +534,6 @@ R_AliasSetupLighting
 static void
 R_AliasSetupLighting(entity_t *currententity)
 {
-	alight_t lighting;
 	float lightvec[3] = {-1, 0, 0};
 	vec3_t light;
 	int i, j;
@@ -580,27 +579,21 @@ R_AliasSetupLighting(entity_t *currententity)
 
 	j = (light[0] + light[1] + light[2]) * 0.3333 * 255;
 
-	lighting.ambientlight = j;
-	lighting.shadelight = j;
-
-	lighting.plightvec = lightvec;
+	r_ambientlight = j;
+	r_shadelight = j;
 
 	// clamp lighting so it doesn't overbright as much
-	if (lighting.ambientlight > 128)
-		lighting.ambientlight = 128;
-	if (lighting.ambientlight + lighting.shadelight > 192)
-		lighting.shadelight = 192 - lighting.ambientlight;
+	if (r_ambientlight > 128)
+		r_ambientlight = 128;
+	if (r_ambientlight + r_shadelight > 192)
+		r_shadelight = 192 - r_ambientlight;
 
 	// guarantee that no vertex will ever be lit below LIGHT_MIN, so we don't have
 	// to clamp off the bottom
-	r_ambientlight = lighting.ambientlight;
-
 	if (r_ambientlight < LIGHT_MIN)
 		r_ambientlight = LIGHT_MIN;
 
 	r_ambientlight = (255 - r_ambientlight) << VID_CBITS;
-
-	r_shadelight = lighting.shadelight;
 
 	if (r_shadelight < 0)
 		r_shadelight = 0;
@@ -608,9 +601,9 @@ R_AliasSetupLighting(entity_t *currententity)
 	r_shadelight *= VID_GRADES;
 
 	// rotate the lighting vector into the model's frame of reference
-	r_plightvec[0] =  DotProduct( lighting.plightvec, s_alias_forward );
-	r_plightvec[1] = -DotProduct( lighting.plightvec, s_alias_right );
-	r_plightvec[2] =  DotProduct( lighting.plightvec, s_alias_up );
+	r_plightvec[0] =  DotProduct( lightvec, s_alias_forward );
+	r_plightvec[1] = -DotProduct( lightvec, s_alias_right );
+	r_plightvec[2] =  DotProduct( lightvec, s_alias_up );
 }
 
 
