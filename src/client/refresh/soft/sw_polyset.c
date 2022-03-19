@@ -68,7 +68,8 @@ static spanpackage_t	*d_pedgespanpackage;
 
 spanpackage_t	*triangle_spans, *triangles_max;
 
-static int	d_sfrac, d_tfrac, d_light[3];
+static int	d_sfrac, d_tfrac;
+static light3_t d_light;
 static zvalue_t	d_zi;
 static int	d_ptexextrastep, d_sfracextrastep;
 static int	d_tfracextrastep, d_lightextrastep[3];
@@ -189,21 +190,21 @@ R_DrawTriangle(const entity_t *currententity, const finalvert_t *a, const finalv
 		r_p0.v = a->v;	// v
 		r_p0.s = a->s;	// s
 		r_p0.t = a->t;	// t
-		memcpy(r_p0.l, a->l, sizeof(int) * 3);	// light
+		memcpy(r_p0.l, a->l, sizeof(light3_t));	// light
 		r_p0.zi = a->zi;	// iz
 
 		r_p1.u = b->u;
 		r_p1.v = b->v;
 		r_p1.s = b->s;
 		r_p1.t = b->t;
-		memcpy(r_p1.l, b->l, sizeof(int) * 3);	// light
+		memcpy(r_p1.l, b->l, sizeof(light3_t));	// light
 		r_p1.zi = b->zi;
 
 		r_p2.u = c->u;
 		r_p2.v = c->v;
 		r_p2.s = c->s;
 		r_p2.t = c->t;
-		memcpy(r_p2.l,  c->l, sizeof(int) * 3);	// light;
+		memcpy(r_p2.l,  c->l, sizeof(light3_t));	// light;
 		r_p2.zi = c->zi;
 
 		R_PolysetSetEdgeTable ();
@@ -213,7 +214,7 @@ R_DrawTriangle(const entity_t *currententity, const finalvert_t *a, const finalv
 
 static void
 R_PushEdgesSpan(int u, int v, int count,
-		pixel_t* d_ptex, int d_sfrac, int d_tfrac, int d_light[3], zvalue_t d_zi)
+		pixel_t* d_ptex, int d_sfrac, int d_tfrac, light3_t d_light, zvalue_t d_zi)
 {
 	if (d_pedgespanpackage >= triangles_max)
 	{
@@ -231,7 +232,7 @@ R_PushEdgesSpan(int u, int v, int count,
 	d_pedgespanpackage->tfrac = d_tfrac;
 
 	// FIXME: need to clamp l, s, t, at both ends?
-	memcpy(d_pedgespanpackage->light, d_light, sizeof(int) * 3);
+	memcpy(d_pedgespanpackage->light, d_light, sizeof(light3_t));
 	d_pedgespanpackage->zi = d_zi;
 
 	d_pedgespanpackage++;
@@ -446,7 +447,7 @@ R_PolysetDrawSpans8_33(const entity_t *currententity, spanpackage_t *pspanpackag
 	pixel_t		*lpdest;
 	pixel_t		*lptex;
 	int		lsfrac, ltfrac;
-	int		llight[3];
+	light3_t	llight;
 	zvalue_t	lzi;
 	zvalue_t	*lpz;
 
@@ -475,7 +476,7 @@ R_PolysetDrawSpans8_33(const entity_t *currententity, spanpackage_t *pspanpackag
 			lptex = pspanpackage->ptex;
 			lsfrac = pspanpackage->sfrac;
 			ltfrac = pspanpackage->tfrac;
-			memcpy(llight, pspanpackage->light, sizeof(int) * 3);
+			memcpy(llight, pspanpackage->light, sizeof(light3_t));
 			lzi = pspanpackage->zi;
 
 			do
@@ -563,7 +564,7 @@ R_PolysetDrawSpans8_66(const entity_t *currententity, spanpackage_t *pspanpackag
 	pixel_t		*lpdest;
 	pixel_t		*lptex;
 	int		lsfrac, ltfrac;
-	int		llight[3];
+	light3_t	llight;
 	zvalue_t	lzi;
 	zvalue_t	*lpz;
 
@@ -593,7 +594,7 @@ R_PolysetDrawSpans8_66(const entity_t *currententity, spanpackage_t *pspanpackag
 			lptex = pspanpackage->ptex;
 			lsfrac = pspanpackage->sfrac;
 			ltfrac = pspanpackage->tfrac;
-			memcpy(llight, pspanpackage->light, sizeof(int) * 3);
+			memcpy(llight, pspanpackage->light, sizeof(light3_t));
 			lzi = pspanpackage->zi;
 
 			do
@@ -720,7 +721,7 @@ R_PolysetDrawSpans8_Opaque (const entity_t *currententity, spanpackage_t *pspanp
 			int		lsfrac, ltfrac;
 			pixel_t		*lpdest;
 			pixel_t		*lptex;
-			int		llight[3];
+			light3_t	llight;
 			zvalue_t	lzi;
 			zvalue_t	*lpz;
 			int		pos_shift = (pspanpackage->v * vid_buffer_width) + pspanpackage->u;
@@ -732,7 +733,7 @@ R_PolysetDrawSpans8_Opaque (const entity_t *currententity, spanpackage_t *pspanp
 			lptex = pspanpackage->ptex;
 			lsfrac = pspanpackage->sfrac;
 			ltfrac = pspanpackage->tfrac;
-			memcpy(llight, pspanpackage->light, sizeof(int) * 3);
+			memcpy(llight, pspanpackage->light, sizeof(light3_t));
 			lzi = pspanpackage->zi;
 
 			do
@@ -827,7 +828,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 		d_sfrac = plefttop->s & 0xFFFF;
 		d_tfrac = plefttop->t & 0xFFFF;
 	}
-	memcpy(d_light, plefttop->l, sizeof(int) * 3);
+	memcpy(d_light, plefttop->l, sizeof(light3_t));
 	d_zi = plefttop->zi;
 
 	if (initialleftheight == 1)
@@ -853,7 +854,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 				working_lstepx[i] = r_lstepx[i] - 1;
 		}
 		else
-			memcpy(working_lstepx, r_lstepx, sizeof(int) * 3);
+			memcpy(working_lstepx, r_lstepx, sizeof(light3_t));
 
 		d_ptexbasestep = ((r_sstepy + r_sstepx * ubasestep) >> SHIFT16XYZ) +
 				((r_tstepy + r_tstepx * ubasestep) >> SHIFT16XYZ) *
@@ -902,7 +903,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 				(plefttop->t >> SHIFT16XYZ) * r_affinetridesc.skinwidth;
 		d_sfrac = 0;
 		d_tfrac = 0;
-		memcpy(d_light, plefttop->l, sizeof(int) * 3);
+		memcpy(d_light, plefttop->l, sizeof(light3_t));
 		d_zi = plefttop->zi;
 
 		if (height == 1)
@@ -923,7 +924,7 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 					working_lstepx[i] = r_lstepx[i] - 1;
 			}
 			else
-				memcpy(working_lstepx, r_lstepx, sizeof(int) * 3);
+				memcpy(working_lstepx, r_lstepx, sizeof(light3_t));
 
 			d_ptexbasestep = ((r_sstepy + r_sstepx * ubasestep) >> SHIFT16XYZ) +
 					((r_tstepy + r_tstepx * ubasestep) >> SHIFT16XYZ) *

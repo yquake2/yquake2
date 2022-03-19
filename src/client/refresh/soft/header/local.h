@@ -77,6 +77,7 @@ typedef unsigned char pixel_t;
 typedef int	shift20_t;
 typedef int	zvalue_t;
 typedef unsigned int	light_t;
+typedef int	light3_t[3];
 
 // xyz-prescale to 16.16 fixed-point
 #define SHIFT16XYZ 16
@@ -202,7 +203,7 @@ typedef struct
 */
 typedef struct finalvert_s {
 	int		u, v, s, t;
-	int		l[3];	// full color light
+	light3_t	l;	// full color light
 	zvalue_t	zi;
 	int		flags;
 	float		xyz[3];	// eye space
@@ -210,7 +211,7 @@ typedef struct finalvert_s {
 
 typedef struct compactvert_s {
 	int		u, v, s, t;
-	int		l[3];	// full color light
+	light3_t	l;	// full color light
 	zvalue_t	zi;
 } compactvert_t;
 
@@ -502,7 +503,8 @@ extern edge_t	**removeedges;
 typedef struct {
 	int		u, v, count;
 	pixel_t		*ptex;
-	int		sfrac, tfrac, light[3];
+	int		sfrac, tfrac;
+	light3_t	light;
 	zvalue_t	zi;
 } spanpackage_t;
 extern spanpackage_t	*triangle_spans, *triangles_max;
@@ -590,7 +592,7 @@ image_t	*R_FindImage(char *name, imagetype_t type);
 byte	*Get_BestImageSize(const image_t *image, int *req_width, int *req_height);
 void	R_FreeUnusedImages(void);
 qboolean R_ImageHasFreeSpace(void);
-pixel_t	R_ApplyLight(pixel_t pix, const int light[3]);
+pixel_t	R_ApplyLight(pixel_t pix, const light3_t light);
 
 void R_InitSkyBox(model_t *loadmodel);
 void R_IMFlatShadedQuad( const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t d, int color, float alpha );

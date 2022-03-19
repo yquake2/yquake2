@@ -329,8 +329,13 @@ R_LoadWal (char *name, imagetype_t type)
 
 static byte *d_16to8table = NULL; // 16 to 8 bit conversion table
 
+/*
+ * Apply color light to texture pixel
+ *
+ * TODO: -22% fps lost
+ */
 pixel_t
-R_ApplyLight(pixel_t pix, const int light[3])
+R_ApplyLight(pixel_t pix, const light3_t light)
 {
 	pixel_t i_r, i_g, i_b;
 	byte b_r, b_g, b_b;

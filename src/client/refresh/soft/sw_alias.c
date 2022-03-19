@@ -35,7 +35,7 @@ affinetridesc_t	r_affinetridesc;
 static vec3_t	r_plightvec;
 static vec3_t	r_lerp_frontv, r_lerp_backv, r_lerp_move;
 
-static int	r_ambientlight[3];
+static light3_t	r_ambientlight;
 int		r_aliasblendcolor;
 static float		r_shadelight[3];
 
@@ -447,7 +447,7 @@ R_AliasTransformFinalVerts(const entity_t *currententity, int numpoints, finalve
 			}
 		}
 		else
-			memcpy(fv->l, r_ambientlight, sizeof(int) * 3);	// light;
+			memcpy(fv->l, r_ambientlight, sizeof(light3_t));	// light;
 
 		if ( fv->xyz[2] < ALIAS_Z_CLIP_PLANE )
 		{

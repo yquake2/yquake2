@@ -81,12 +81,12 @@ R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 
 	for (v=0 ; v<r_numvblocks ; v++)
 	{
-		int	lightleft[3], lightright[3];
-		int	lightleftstep[3], lightrightstep[3];
+		light3_t	lightleft, lightright;
+		light3_t	lightleftstep, lightrightstep;
 
 		// FIXME: use delta rather than both right and left, like ASM?
-		memcpy(lightleft, r_lightptr, sizeof(int) * 3);
-		memcpy(lightright, r_lightptr + 3, sizeof(int) * 3);
+		memcpy(lightleft, r_lightptr, sizeof(light3_t));
+		memcpy(lightright, r_lightptr + 3, sizeof(light3_t));
 		r_lightptr += r_lightwidth * 3;
 		for(i=0; i<3; i++)
 		{
@@ -96,7 +96,7 @@ R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 
 		for (i=0 ; i<size ; i++)
 		{
-			int lightstep[3], light[3];
+			light3_t lightstep, light;
 			int j;
 
 			for(j=0; j<3; j++)
@@ -107,7 +107,7 @@ R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 				lightstep[j] = lighttemp >> level;
 			}
 
-			memcpy(light, lightright, sizeof(int) * 3);
+			memcpy(light, lightright, sizeof(light3_t));
 
 			for (b=(size-1); b>=0; b--)
 			{
