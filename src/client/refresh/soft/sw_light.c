@@ -107,12 +107,8 @@ LIGHT SAMPLING
 
 =============================================================================
 */
-
-static vec3_t	pointcolor;
-static vec3_t	lightspot;
-
 static int
-RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
+RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end, vec3_t pointcolor)
 {
 	float		front, back, frac;
 	qboolean	side;
@@ -137,7 +133,7 @@ RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	side = front < 0;
 
 	if ( (back < 0) == side)
-		return RecursiveLightPoint (node->children[side], start, end);
+		return RecursiveLightPoint (node->children[side], start, end, pointcolor);
 
 	frac = front / (front-back);
 	mid[0] = start[0] + (end[0] - start[0])*frac;
@@ -147,13 +143,11 @@ RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 		mid[plane->type] = plane->dist;
 
 	// go down front side
-	r = RecursiveLightPoint (node->children[side], start, mid);
+	r = RecursiveLightPoint (node->children[side], start, mid, pointcolor);
 	if (r >= 0)
 		return r;	// hit something
 
 	// check for impact on this node
-	VectorCopy (mid, lightspot);
-
 	surf = r_worldmodel->surfaces + node->firstsurface;
 	for (i=0 ; i<node->numsurfaces ; i++, surf++)
 	{
@@ -212,7 +206,7 @@ RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	}
 
 	// go down back side
-	return RecursiveLightPoint (node->children[!side], mid, end);
+	return RecursiveLightPoint (node->children[!side], mid, end, pointcolor);
 }
 
 /*
@@ -228,6 +222,7 @@ R_LightPoint (const entity_t *currententity, vec3_t p, vec3_t color)
 	int			lnum;
 	dlight_t	*dl;
 	vec3_t		dist;
+	vec3_t		pointcolor;
 
 	if (!r_worldmodel->lightdata)
 	{
@@ -239,7 +234,7 @@ R_LightPoint (const entity_t *currententity, vec3_t p, vec3_t color)
 	end[1] = p[1];
 	end[2] = p[2] - 2048;
 
-	r = RecursiveLightPoint (r_worldmodel->nodes, p, end);
+	r = RecursiveLightPoint (r_worldmodel->nodes, p, end, pointcolor);
 
 	if (r == -1)
 	{
