@@ -170,14 +170,14 @@ R_DrawTriangle(const entity_t *currententity, const finalvert_t *a, const finalv
 			   ( a->v[0] - b->v[0] ) * ( a->v[1] - c->v[1] );
 	*/
 
-	dv0_ab = a->u - b->u;
-	dv1_ab = a->v - b->v;
+	dv0_ab = a->cv.u - b->cv.u;
+	dv1_ab = a->cv.v - b->cv.v;
 
 	if ( !( dv0_ab | dv1_ab ) )
 		return;
 
-	dv0_ac = a->u - c->u;
-	dv1_ac = a->v - c->v;
+	dv0_ac = a->cv.u - c->cv.u;
+	dv1_ac = a->cv.v - c->cv.v;
 
 	if ( !( dv0_ac | dv1_ac ) )
 		return;
@@ -186,26 +186,9 @@ R_DrawTriangle(const entity_t *currententity, const finalvert_t *a, const finalv
 
 	if ( d_xdenom < 0 )
 	{
-		r_p0.u = a->u;	// u
-		r_p0.v = a->v;	// v
-		r_p0.s = a->s;	// s
-		r_p0.t = a->t;	// t
-		memcpy(r_p0.l, a->l, sizeof(light3_t));	// light
-		r_p0.zi = a->zi;	// iz
-
-		r_p1.u = b->u;
-		r_p1.v = b->v;
-		r_p1.s = b->s;
-		r_p1.t = b->t;
-		memcpy(r_p1.l, b->l, sizeof(light3_t));	// light
-		r_p1.zi = b->zi;
-
-		r_p2.u = c->u;
-		r_p2.v = c->v;
-		r_p2.s = c->s;
-		r_p2.t = c->t;
-		memcpy(r_p2.l,  c->l, sizeof(light3_t));	// light;
-		r_p2.zi = c->zi;
+		memcpy(&r_p0, &a->cv, sizeof(compactvert_t));
+		memcpy(&r_p1, &b->cv, sizeof(compactvert_t));
+		memcpy(&r_p2, &c->cv, sizeof(compactvert_t));
 
 		R_PolysetSetEdgeTable ();
 		R_RasterizeAliasPolySmooth(currententity);

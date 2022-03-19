@@ -43,11 +43,11 @@ R_Alias_clip_z (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t *o
 	out->xyz[1] = pfv0->xyz[1] + (pfv1->xyz[1] - pfv0->xyz[1]) * scale;
 	out->xyz[2] = ALIAS_Z_CLIP_PLANE;
 
-	out->s =	pfv0->s + (pfv1->s - pfv0->s) * scale;
-	out->t =	pfv0->t + (pfv1->t - pfv0->t) * scale;
+	out->cv.s =	pfv0->cv.s + (pfv1->cv.s - pfv0->cv.s) * scale;
+	out->cv.t =	pfv0->cv.t + (pfv1->cv.t - pfv0->cv.t) * scale;
 
 	for(i=0; i<3; i++)
-		out->l[i] =	pfv0->l[i] + (pfv1->l[i] - pfv0->l[i]) * scale;
+		out->cv.l[i] =	pfv0->cv.l[i] + (pfv1->cv.l[i] - pfv0->cv.l[i]) * scale;
 
 	R_AliasProjectAndClipTestFinalVert (out);
 }
@@ -57,37 +57,37 @@ R_Alias_clip_left (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t
 {
 	float		scale;
 
-	if (pfv0->v >= pfv1->v )
+	if (pfv0->cv.v >= pfv1->cv.v )
 	{
 		int i;
 
-		scale = (float)(r_refdef.aliasvrect.x - pfv0->u) /
-				(pfv1->u - pfv0->u);
-		out->u  = pfv0->u  + ( pfv1->u  - pfv0->u ) * scale + 0.5;
-		out->v  = pfv0->v  + ( pfv1->v  - pfv0->v ) * scale + 0.5;
-		out->s  = pfv0->s  + ( pfv1->s  - pfv0->s ) * scale + 0.5;
-		out->t  = pfv0->t  + ( pfv1->t  - pfv0->t ) * scale + 0.5;
+		scale = (float)(r_refdef.aliasvrect.x - pfv0->cv.u) /
+				(pfv1->cv.u - pfv0->cv.u);
+		out->cv.u  = pfv0->cv.u  + ( pfv1->cv.u  - pfv0->cv.u ) * scale + 0.5;
+		out->cv.v  = pfv0->cv.v  + ( pfv1->cv.v  - pfv0->cv.v ) * scale + 0.5;
+		out->cv.s  = pfv0->cv.s  + ( pfv1->cv.s  - pfv0->cv.s ) * scale + 0.5;
+		out->cv.t  = pfv0->cv.t  + ( pfv1->cv.t  - pfv0->cv.t ) * scale + 0.5;
 
 		for(i=0; i<3; i++)
-			out->l[i]  = pfv1->l[i]  + ( pfv0->l[i]  - pfv1->l[i] ) * scale + 0.5;
+			out->cv.l[i]  = pfv1->cv.l[i]  + ( pfv0->cv.l[i]  - pfv1->cv.l[i] ) * scale + 0.5;
 
-		out->zi = pfv0->zi + ( pfv1->zi - pfv0->zi) * scale + 0.5;
+		out->cv.zi = pfv0->cv.zi + ( pfv1->cv.zi - pfv0->cv.zi) * scale + 0.5;
 	}
 	else
 	{
 		int i;
 
-		scale = (float)(r_refdef.aliasvrect.x - pfv1->u) /
-				(pfv0->u - pfv1->u);
-		out->u  = pfv1->u  + ( pfv0->u  - pfv1->u ) * scale + 0.5;
-		out->v  = pfv1->v  + ( pfv0->v  - pfv1->v ) * scale + 0.5;
-		out->s  = pfv1->s  + ( pfv0->s  - pfv1->s ) * scale + 0.5;
-		out->t  = pfv1->t  + ( pfv0->t  - pfv1->t ) * scale + 0.5;
+		scale = (float)(r_refdef.aliasvrect.x - pfv1->cv.u) /
+				(pfv0->cv.u - pfv1->cv.u);
+		out->cv.u  = pfv1->cv.u  + ( pfv0->cv.u  - pfv1->cv.u ) * scale + 0.5;
+		out->cv.v  = pfv1->cv.v  + ( pfv0->cv.v  - pfv1->cv.v ) * scale + 0.5;
+		out->cv.s  = pfv1->cv.s  + ( pfv0->cv.s  - pfv1->cv.s ) * scale + 0.5;
+		out->cv.t  = pfv1->cv.t  + ( pfv0->cv.t  - pfv1->cv.t ) * scale + 0.5;
 
 		for(i=0; i<3; i++)
-			out->l[i]  = pfv1->l[i]  + ( pfv0->l[i]  - pfv1->l[i] ) * scale + 0.5;
+			out->cv.l[i]  = pfv1->cv.l[i]  + ( pfv0->cv.l[i]  - pfv1->cv.l[i] ) * scale + 0.5;
 
-		out->zi = pfv1->zi + ( pfv0->zi - pfv1->zi) * scale + 0.5;
+		out->cv.zi = pfv1->cv.zi + ( pfv0->cv.zi - pfv1->cv.zi) * scale + 0.5;
 	}
 }
 
@@ -96,37 +96,37 @@ R_Alias_clip_right (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_
 {
 	float scale;
 
-	if ( pfv0->v >= pfv1->v )
+	if ( pfv0->cv.v >= pfv1->cv.v )
 	{
 		int i;
 
-		scale = (float)(r_refdef.aliasvrectright - pfv0->u ) /
-				(pfv1->u - pfv0->u );
-		out->u  = pfv0->u  + ( pfv1->u  - pfv0->u ) * scale + 0.5;
-		out->v  = pfv0->v  + ( pfv1->v  - pfv0->v ) * scale + 0.5;
-		out->s  = pfv0->s  + ( pfv1->s  - pfv0->s ) * scale + 0.5;
-		out->t  = pfv0->t  + ( pfv1->t  - pfv0->t ) * scale + 0.5;
+		scale = (float)(r_refdef.aliasvrectright - pfv0->cv.u ) /
+				(pfv1->cv.u - pfv0->cv.u );
+		out->cv.u  = pfv0->cv.u  + ( pfv1->cv.u  - pfv0->cv.u ) * scale + 0.5;
+		out->cv.v  = pfv0->cv.v  + ( pfv1->cv.v  - pfv0->cv.v ) * scale + 0.5;
+		out->cv.s  = pfv0->cv.s  + ( pfv1->cv.s  - pfv0->cv.s ) * scale + 0.5;
+		out->cv.t  = pfv0->cv.t  + ( pfv1->cv.t  - pfv0->cv.t ) * scale + 0.5;
 
 		for(i=0; i<3; i++)
-			out->l[i]  = pfv0->l[i]  + ( pfv1->l[i]  - pfv0->l[i] ) * scale + 0.5;
+			out->cv.l[i]  = pfv0->cv.l[i]  + ( pfv1->cv.l[i]  - pfv0->cv.l[i] ) * scale + 0.5;
 
-		out->zi = pfv0->zi + ( pfv1->zi - pfv0->zi) * scale + 0.5;
+		out->cv.zi = pfv0->cv.zi + ( pfv1->cv.zi - pfv0->cv.zi) * scale + 0.5;
 	}
 	else
 	{
 		int i;
 
-		scale = (float)(r_refdef.aliasvrectright - pfv1->u ) /
-				(pfv0->u - pfv1->u );
-		out->u  = pfv1->u  + ( pfv0->u  - pfv1->u ) * scale + 0.5;
-		out->v  = pfv1->v  + ( pfv0->v  - pfv1->v ) * scale + 0.5;
-		out->s  = pfv1->s  + ( pfv0->s  - pfv1->s ) * scale + 0.5;
-		out->t  = pfv1->t  + ( pfv0->t  - pfv1->t ) * scale + 0.5;
+		scale = (float)(r_refdef.aliasvrectright - pfv1->cv.u ) /
+				(pfv0->cv.u - pfv1->cv.u );
+		out->cv.u  = pfv1->cv.u  + ( pfv0->cv.u  - pfv1->cv.u ) * scale + 0.5;
+		out->cv.v  = pfv1->cv.v  + ( pfv0->cv.v  - pfv1->cv.v ) * scale + 0.5;
+		out->cv.s  = pfv1->cv.s  + ( pfv0->cv.s  - pfv1->cv.s ) * scale + 0.5;
+		out->cv.t  = pfv1->cv.t  + ( pfv0->cv.t  - pfv1->cv.t ) * scale + 0.5;
 
 		for(i=0; i<3; i++)
-			out->l[i]  = pfv1->l[i]  + ( pfv0->l[i]  - pfv1->l[i] ) * scale + 0.5;
+			out->cv.l[i]  = pfv1->cv.l[i]  + ( pfv0->cv.l[i]  - pfv1->cv.l[i] ) * scale + 0.5;
 
-		out->zi = pfv1->zi + ( pfv0->zi - pfv1->zi) * scale + 0.5;
+		out->cv.zi = pfv1->cv.zi + ( pfv0->cv.zi - pfv1->cv.zi) * scale + 0.5;
 	}
 }
 
@@ -135,37 +135,37 @@ R_Alias_clip_top (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert_t 
 {
 	float		scale;
 
-	if (pfv0->v >= pfv1->v)
+	if (pfv0->cv.v >= pfv1->cv.v)
 	{
 		int i;
 
-		scale = (float)(r_refdef.aliasvrect.y - pfv0->v) /
-				(pfv1->v - pfv0->v);
-		out->u  = pfv0->u  + ( pfv1->u  - pfv0->u ) * scale + 0.5;
-		out->v  = pfv0->v  + ( pfv1->v  - pfv0->v ) * scale + 0.5;
-		out->s  = pfv0->s  + ( pfv1->s  - pfv0->s ) * scale + 0.5;
-		out->t  = pfv0->t  + ( pfv1->t  - pfv0->t ) * scale + 0.5;
+		scale = (float)(r_refdef.aliasvrect.y - pfv0->cv.v) /
+				(pfv1->cv.v - pfv0->cv.v);
+		out->cv.u  = pfv0->cv.u  + ( pfv1->cv.u  - pfv0->cv.u ) * scale + 0.5;
+		out->cv.v  = pfv0->cv.v  + ( pfv1->cv.v  - pfv0->cv.v ) * scale + 0.5;
+		out->cv.s  = pfv0->cv.s  + ( pfv1->cv.s  - pfv0->cv.s ) * scale + 0.5;
+		out->cv.t  = pfv0->cv.t  + ( pfv1->cv.t  - pfv0->cv.t ) * scale + 0.5;
 
 		for(i=0; i<3; i++)
-			out->l[i]  = pfv0->l[i]  + ( pfv1->l[i]  - pfv0->l[i] ) * scale + 0.5;
+			out->cv.l[i]  = pfv0->cv.l[i]  + ( pfv1->cv.l[i]  - pfv0->cv.l[i] ) * scale + 0.5;
 
-		out->zi = pfv0->zi + ( pfv1->zi - pfv0->zi) * scale + 0.5;
+		out->cv.zi = pfv0->cv.zi + ( pfv1->cv.zi - pfv0->cv.zi) * scale + 0.5;
 	}
 	else
 	{
 		int i;
 
-		scale = (float)(r_refdef.aliasvrect.y - pfv1->v) /
-				(pfv0->v - pfv1->v);
-		out->u  = pfv1->u  + ( pfv0->u  - pfv1->u ) * scale + 0.5;
-		out->v  = pfv1->v  + ( pfv0->v  - pfv1->v ) * scale + 0.5;
-		out->s  = pfv1->s  + ( pfv0->s  - pfv1->s ) * scale + 0.5;
-		out->t  = pfv1->t  + ( pfv0->t  - pfv1->t ) * scale + 0.5;
+		scale = (float)(r_refdef.aliasvrect.y - pfv1->cv.v) /
+				(pfv0->cv.v - pfv1->cv.v);
+		out->cv.u  = pfv1->cv.u  + ( pfv0->cv.u  - pfv1->cv.u ) * scale + 0.5;
+		out->cv.v  = pfv1->cv.v  + ( pfv0->cv.v  - pfv1->cv.v ) * scale + 0.5;
+		out->cv.s  = pfv1->cv.s  + ( pfv0->cv.s  - pfv1->cv.s ) * scale + 0.5;
+		out->cv.t  = pfv1->cv.t  + ( pfv0->cv.t  - pfv1->cv.t ) * scale + 0.5;
 
 		for(i=0; i<3; i++)
-			out->l[i]  = pfv1->l[i]  + ( pfv0->l[i]  - pfv1->l[i] ) * scale + 0.5;
+			out->cv.l[i]  = pfv1->cv.l[i]  + ( pfv0->cv.l[i]  - pfv1->cv.l[i] ) * scale + 0.5;
 
-		out->zi = pfv1->zi + ( pfv0->zi - pfv1->zi) * scale + 0.5;
+		out->cv.zi = pfv1->cv.zi + ( pfv0->cv.zi - pfv1->cv.zi) * scale + 0.5;
 	}
 }
 
@@ -175,39 +175,39 @@ R_Alias_clip_bottom (const finalvert_t *pfv0, const finalvert_t *pfv1, finalvert
 {
 	float		scale;
 
-	if (pfv0->v >= pfv1->v)
+	if (pfv0->cv.v >= pfv1->cv.v)
 	{
 		int i;
 
-		scale = (float)(r_refdef.aliasvrectbottom - pfv0->v) /
-				(pfv1->v - pfv0->v);
+		scale = (float)(r_refdef.aliasvrectbottom - pfv0->cv.v) /
+				(pfv1->cv.v - pfv0->cv.v);
 
-		out->u  = pfv0->u  + ( pfv1->u  - pfv0->u ) * scale + 0.5;
-		out->v  = pfv0->v  + ( pfv1->v  - pfv0->v ) * scale + 0.5;
-		out->s  = pfv0->s  + ( pfv1->s  - pfv0->s ) * scale + 0.5;
-		out->t  = pfv0->t  + ( pfv1->t  - pfv0->t ) * scale + 0.5;
+		out->cv.u  = pfv0->cv.u  + ( pfv1->cv.u  - pfv0->cv.u ) * scale + 0.5;
+		out->cv.v  = pfv0->cv.v  + ( pfv1->cv.v  - pfv0->cv.v ) * scale + 0.5;
+		out->cv.s  = pfv0->cv.s  + ( pfv1->cv.s  - pfv0->cv.s ) * scale + 0.5;
+		out->cv.t  = pfv0->cv.t  + ( pfv1->cv.t  - pfv0->cv.t ) * scale + 0.5;
 
 		for(i=0; i<3; i++)
-			out->l[i]  = pfv0->l[i]  + ( pfv1->l[i]  - pfv0->l[i] ) * scale + 0.5;
+			out->cv.l[i]  = pfv0->cv.l[i]  + ( pfv1->cv.l[i]  - pfv0->cv.l[i] ) * scale + 0.5;
 
-		out->zi = pfv0->zi + ( pfv1->zi - pfv0->zi) * scale + 0.5;
+		out->cv.zi = pfv0->cv.zi + ( pfv1->cv.zi - pfv0->cv.zi) * scale + 0.5;
 	}
 	else
 	{
 		int i;
 
-		scale = (float)(r_refdef.aliasvrectbottom - pfv1->v) /
-				(pfv0->v - pfv1->v);
+		scale = (float)(r_refdef.aliasvrectbottom - pfv1->cv.v) /
+				(pfv0->cv.v - pfv1->cv.v);
 
-		out->u  = pfv1->u  + ( pfv0->u  - pfv1->u ) * scale + 0.5;
-		out->v  = pfv1->v  + ( pfv0->v  - pfv1->v ) * scale + 0.5;
-		out->s  = pfv1->s  + ( pfv0->s  - pfv1->s ) * scale + 0.5;
-		out->t  = pfv1->t  + ( pfv0->t  - pfv1->t ) * scale + 0.5;
+		out->cv.u  = pfv1->cv.u  + ( pfv0->cv.u  - pfv1->cv.u ) * scale + 0.5;
+		out->cv.v  = pfv1->cv.v  + ( pfv0->cv.v  - pfv1->cv.v ) * scale + 0.5;
+		out->cv.s  = pfv1->cv.s  + ( pfv0->cv.s  - pfv1->cv.s ) * scale + 0.5;
+		out->cv.t  = pfv1->cv.t  + ( pfv0->cv.t  - pfv1->cv.t ) * scale + 0.5;
 
 		for(i=0; i<3; i++)
-			out->l[i]  = pfv1->l[i]  + ( pfv0->l[i]  - pfv1->l[i] ) * scale + 0.5;
+			out->cv.l[i]  = pfv1->cv.l[i]  + ( pfv0->cv.l[i]  - pfv1->cv.l[i] ) * scale + 0.5;
 
-		out->zi = pfv1->zi + ( pfv0->zi - pfv1->zi) * scale + 0.5;
+		out->cv.zi = pfv1->cv.zi + ( pfv0->cv.zi - pfv1->cv.zi) * scale + 0.5;
 	}
 }
 
@@ -236,13 +236,13 @@ R_AliasClip (const finalvert_t *in, finalvert_t *out, int flag, int count,
 		{
 			clip (&in[j], &in[i], &out[k]);
 			out[k].flags = 0;
-			if (out[k].u < r_refdef.aliasvrect.x)
+			if (out[k].cv.u < r_refdef.aliasvrect.x)
 				out[k].flags |= ALIAS_LEFT_CLIP;
-			if (out[k].v < r_refdef.aliasvrect.y)
+			if (out[k].cv.v < r_refdef.aliasvrect.y)
 				out[k].flags |= ALIAS_TOP_CLIP;
-			if (out[k].u > r_refdef.aliasvrectright)
+			if (out[k].cv.u > r_refdef.aliasvrectright)
 				out[k].flags |= ALIAS_RIGHT_CLIP;
-			if (out[k].v > r_refdef.aliasvrectbottom)
+			if (out[k].cv.v > r_refdef.aliasvrectbottom)
 				out[k].flags |= ALIAS_BOTTOM_CLIP;
 			k++;
 		}
@@ -335,15 +335,15 @@ R_AliasClipTriangle(const entity_t *currententity, const finalvert_t *index0, co
 
 	for (i=0 ; i<k ; i++)
 	{
-		if (fv[pingpong][i].u < r_refdef.aliasvrect.x)
-			fv[pingpong][i].u = r_refdef.aliasvrect.x;
-		else if (fv[pingpong][i].u > r_refdef.aliasvrectright)
-			fv[pingpong][i].u = r_refdef.aliasvrectright;
+		if (fv[pingpong][i].cv.u < r_refdef.aliasvrect.x)
+			fv[pingpong][i].cv.u = r_refdef.aliasvrect.x;
+		else if (fv[pingpong][i].cv.u > r_refdef.aliasvrectright)
+			fv[pingpong][i].cv.u = r_refdef.aliasvrectright;
 
-		if (fv[pingpong][i].v < r_refdef.aliasvrect.y)
-			fv[pingpong][i].v = r_refdef.aliasvrect.y;
-		else if (fv[pingpong][i].v > r_refdef.aliasvrectbottom)
-			fv[pingpong][i].v = r_refdef.aliasvrectbottom;
+		if (fv[pingpong][i].cv.v < r_refdef.aliasvrect.y)
+			fv[pingpong][i].cv.v = r_refdef.aliasvrect.y;
+		else if (fv[pingpong][i].cv.v > r_refdef.aliasvrectbottom)
+			fv[pingpong][i].cv.v = r_refdef.aliasvrectbottom;
 
 		fv[pingpong][i].flags = 0;
 	}

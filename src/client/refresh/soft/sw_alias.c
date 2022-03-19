@@ -257,14 +257,14 @@ R_AliasPreparePoints (const entity_t *currententity, finalvert_t *verts, const f
 				continue;	// completely clipped
 
 			// insert s/t coordinates
-			pfv[0]->s = pstverts[ptri->index_st[0]].s << SHIFT16XYZ;
-			pfv[0]->t = pstverts[ptri->index_st[0]].t << SHIFT16XYZ;
+			pfv[0]->cv.s = pstverts[ptri->index_st[0]].s << SHIFT16XYZ;
+			pfv[0]->cv.t = pstverts[ptri->index_st[0]].t << SHIFT16XYZ;
 
-			pfv[1]->s = pstverts[ptri->index_st[1]].s << SHIFT16XYZ;
-			pfv[1]->t = pstverts[ptri->index_st[1]].t << SHIFT16XYZ;
+			pfv[1]->cv.s = pstverts[ptri->index_st[1]].s << SHIFT16XYZ;
+			pfv[1]->cv.t = pstverts[ptri->index_st[1]].t << SHIFT16XYZ;
 
-			pfv[2]->s = pstverts[ptri->index_st[2]].s << SHIFT16XYZ;
-			pfv[2]->t = pstverts[ptri->index_st[2]].t << SHIFT16XYZ;
+			pfv[2]->cv.s = pstverts[ptri->index_st[2]].s << SHIFT16XYZ;
+			pfv[2]->cv.t = pstverts[ptri->index_st[2]].t << SHIFT16XYZ;
 
 			if ( ! (pfv[0]->flags | pfv[1]->flags | pfv[2]->flags) )
 			{
@@ -289,14 +289,14 @@ R_AliasPreparePoints (const entity_t *currententity, finalvert_t *verts, const f
 				continue;	// completely clipped
 
 			// insert s/t coordinates
-			pfv[0]->s = pstverts[ptri->index_st[0]].s << SHIFT16XYZ;
-			pfv[0]->t = pstverts[ptri->index_st[0]].t << SHIFT16XYZ;
+			pfv[0]->cv.s = pstverts[ptri->index_st[0]].s << SHIFT16XYZ;
+			pfv[0]->cv.t = pstverts[ptri->index_st[0]].t << SHIFT16XYZ;
 
-			pfv[1]->s = pstverts[ptri->index_st[1]].s << SHIFT16XYZ;
-			pfv[1]->t = pstverts[ptri->index_st[1]].t << SHIFT16XYZ;
+			pfv[1]->cv.s = pstverts[ptri->index_st[1]].s << SHIFT16XYZ;
+			pfv[1]->cv.t = pstverts[ptri->index_st[1]].t << SHIFT16XYZ;
 
-			pfv[2]->s = pstverts[ptri->index_st[2]].s << SHIFT16XYZ;
-			pfv[2]->t = pstverts[ptri->index_st[2]].t << SHIFT16XYZ;
+			pfv[2]->cv.s = pstverts[ptri->index_st[2]].s << SHIFT16XYZ;
+			pfv[2]->cv.t = pstverts[ptri->index_st[2]].t << SHIFT16XYZ;
 
 			if ( ! (pfv[0]->flags | pfv[1]->flags | pfv[2]->flags) )
 			{
@@ -443,11 +443,11 @@ R_AliasTransformFinalVerts(const entity_t *currententity, int numpoints, finalve
 				if (temp < 0)
 					temp = 0;
 
-				fv->l[j] = temp;
+				fv->cv.l[j] = temp;
 			}
 		}
 		else
-			memcpy(fv->l, r_ambientlight, sizeof(light3_t));	// light;
+			memcpy(fv->cv.l, r_ambientlight, sizeof(light3_t));	// light;
 
 		if ( fv->xyz[2] < ALIAS_Z_CLIP_PLANE )
 		{
@@ -478,18 +478,18 @@ R_AliasProjectAndClipTestFinalVert( finalvert_t *fv )
 	z = fv->xyz[2];
 	zi = 1.0 / z;
 
-	fv->zi = zi * s_ziscale;
+	fv->cv.zi = zi * s_ziscale;
 
-	fv->u = (x * aliasxscale * zi) + aliasxcenter;
-	fv->v = (y * aliasyscale * zi) + aliasycenter;
+	fv->cv.u = (x * aliasxscale * zi) + aliasxcenter;
+	fv->cv.v = (y * aliasyscale * zi) + aliasycenter;
 
-	if (fv->u < r_refdef.aliasvrect.x)
+	if (fv->cv.u < r_refdef.aliasvrect.x)
 		fv->flags |= ALIAS_LEFT_CLIP;
-	if (fv->v < r_refdef.aliasvrect.y)
+	if (fv->cv.v < r_refdef.aliasvrect.y)
 		fv->flags |= ALIAS_TOP_CLIP;
-	if (fv->u > r_refdef.aliasvrectright)
+	if (fv->cv.u > r_refdef.aliasvrectright)
 		fv->flags |= ALIAS_RIGHT_CLIP;
-	if (fv->v > r_refdef.aliasvrectbottom)
+	if (fv->cv.v > r_refdef.aliasvrectbottom)
 		fv->flags |= ALIAS_BOTTOM_CLIP;
 }
 

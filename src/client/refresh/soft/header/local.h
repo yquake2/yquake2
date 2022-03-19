@@ -201,19 +201,17 @@ typedef struct
 ** if you change this structure be sure to change the #defines
 ** listed after it!
 */
-typedef struct finalvert_s {
-	int		u, v, s, t;
-	light3_t	l;	// full color light
-	zvalue_t	zi;
-	int		flags;
-	float		xyz[3];	// eye space
-} finalvert_t;
-
 typedef struct compactvert_s {
 	int		u, v, s, t;
 	light3_t	l;	// full color light
 	zvalue_t	zi;
 } compactvert_t;
+
+typedef struct finalvert_s {
+	compactvert_t cv;	// reuse compacted type
+	int		flags;
+	float		xyz[3];	// eye space
+} finalvert_t;
 
 typedef struct
 {
