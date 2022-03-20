@@ -424,6 +424,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   custom gun field of view is used. Defaults to `8`, which is more or
   less optimal for the default gun field of view of 80.
 
+* **sw_colorlight**: enable experimental color lighting.
 
 ## cvar operations
 
