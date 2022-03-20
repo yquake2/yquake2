@@ -63,6 +63,8 @@ option(CURL_SUPPORT "cURL support" ON)
 option(OPENAL_SUPPORT "OpenAL support" ON)
 option(SYSTEMWIDE_SUPPORT "Enable systemwide installation of game assets" OFF)
 
+set(SYSTEMDIR "" CACHE STRING "Override the system default directory")
+
 # These variables will act as our list of include folders and linker flags.
 set(yquake2IncludeDirectories)
 set(yquake2LinkerDirectories)
@@ -166,6 +168,9 @@ message(STATUS "Setting YQ2OSTYPE to \"${YQ2OSTYPE}\" and YQ2ARCH to \"${ARCH}\"
 # Systemwide installation of game assets.
 if(${SYSTEMWIDE_SUPPORT})
     add_definitions(-DSYSTEMWIDE)
+    if(NOT ${SYSTEMDIR} STREQUAL "")
+      add_definitions(-DSYSTEMDIR="${SYSTEMDIR}")
+    endif()
 endif()
 
 # We need to pass some options to minizip / unzip.
