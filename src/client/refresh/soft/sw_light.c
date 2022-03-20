@@ -450,16 +450,14 @@ R_BuildLightMap (drawsurf_t* drawsurf)
 			{
 				do
 				{
-					byte light = sqrt((
-						lightmap[0] * lightmap[0] +
-						lightmap[1] * lightmap[1] +
-						lightmap[2] * lightmap[2]
-					) / 3);
-					*curr_light += light * scale;
+					light_t light = (
+						lightmap[0] + lightmap[1] + lightmap[2]
+					) / 3 * scale;
+					*curr_light += light;
 					curr_light++;
-					*curr_light += light * scale;
+					*curr_light += light;
 					curr_light++;
-					*curr_light += light * scale;
+					*curr_light += light;
 					curr_light++;
 
 					lightmap += 3; /* skip to next lightmap */

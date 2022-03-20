@@ -59,8 +59,9 @@ static edgetable edgetables[12] = {
 };
 
 // FIXME: some of these can become statics
-static int	a_sstepxfrac, a_tstepxfrac, r_lstepx[3], a_ststepxwhole;
-static int	r_sstepx, r_tstepx, r_lstepy[3], r_sstepy, r_tstepy;
+static int	a_sstepxfrac, a_tstepxfrac, a_ststepxwhole;
+static int	r_sstepx, r_tstepx, r_sstepy, r_tstepy;
+static light3_t	r_lstepx, r_lstepy;
 static zvalue_t	r_zistepx, r_zistepy;
 static int	d_aspancount;
 
@@ -72,8 +73,8 @@ static int	d_sfrac, d_tfrac;
 static light3_t d_light;
 static zvalue_t	d_zi;
 static int	d_ptexextrastep, d_sfracextrastep;
-static int	d_tfracextrastep, d_lightextrastep[3];
-static int	d_lightbasestep[3], d_ptexbasestep;
+static int	d_tfracextrastep, d_ptexbasestep;
+static light3_t	d_lightbasestep, d_lightextrastep;
 static int	d_sfracbasestep, d_tfracbasestep;
 static zvalue_t	d_ziextrastep, d_zibasestep;
 
@@ -774,7 +775,8 @@ R_RasterizeAliasPolySmooth(const entity_t *currententity)
 {
 	int	initialleftheight, initialrightheight;
 	compactvert_t	*plefttop, *prighttop, *pleftbottom, *prightbottom;
-	int	working_lstepx[3], originalcount;
+	light3_t	working_lstepx;
+	int originalcount;
 	int	u, v;
 	pixel_t	*d_ptex;
 
