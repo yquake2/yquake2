@@ -104,7 +104,9 @@ cvar_t *r_retexturing;
 cvar_t *r_scale8bittextures;
 
 cvar_t *gl_nolerp_list;
+cvar_t *r_lerp_list;
 cvar_t *r_2D_unfiltered;
+cvar_t *r_videos_unfiltered;
 
 cvar_t *gl1_dynamic;
 cvar_t *r_modulate;
@@ -1275,9 +1277,13 @@ R_Register(void)
 	r_scale8bittextures = ri.Cvar_Get("r_scale8bittextures", "0", CVAR_ARCHIVE);
 
 	/* don't bilerp characters and crosshairs */
-	gl_nolerp_list = ri.Cvar_Get("r_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
+	gl_nolerp_list = ri.Cvar_Get("r_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", CVAR_ARCHIVE);
+	/* textures that should always be filtered, even if r_2D_unfiltered or an unfiltered gl mode is used */
+	r_lerp_list = ri.Cvar_Get("r_lerp_list", "", CVAR_ARCHIVE);
 	/* don't bilerp any 2D elements */
 	r_2D_unfiltered = ri.Cvar_Get("r_2D_unfiltered", "0", CVAR_ARCHIVE);
+	/* don't bilerp videos */
+	r_videos_unfiltered = ri.Cvar_Get("r_videos_unfiltered", "0", CVAR_ARCHIVE);
 
 	gl1_stereo = ri.Cvar_Get( "gl1_stereo", "0", CVAR_ARCHIVE );
 	gl1_stereo_separation = ri.Cvar_Get( "gl1_stereo_separation", "-0.4", CVAR_ARCHIVE );
@@ -1702,13 +1708,16 @@ RI_BeginFrame(float camera_separation)
 
 	/* texturemode stuff */
 	if (gl_texturemode->modified || (gl_config.anisotropic && gl_anisotropic->modified)
-	    || gl_nolerp_list->modified || r_2D_unfiltered->modified)
+	    || gl_nolerp_list->modified || r_lerp_list->modified
+		|| r_2D_unfiltered->modified || r_videos_unfiltered->modified)
 	{
 		R_TextureMode(gl_texturemode->string);
 		gl_texturemode->modified = false;
 		gl_anisotropic->modified = false;
 		gl_nolerp_list->modified = false;
+		r_lerp_list->modified = false;
 		r_2D_unfiltered->modified = false;
+		r_videos_unfiltered->modified = false;
 	}
 
 	if (gl1_texturealphamode->modified)

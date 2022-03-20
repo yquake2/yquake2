@@ -107,7 +107,9 @@ cvar_t *r_norefresh;
 cvar_t *r_drawentities;
 cvar_t *r_drawworld;
 cvar_t *gl_nolerp_list;
+cvar_t *r_lerp_list;
 cvar_t *r_2D_unfiltered;
+cvar_t *r_videos_unfiltered;
 cvar_t *gl_nobind;
 cvar_t *r_lockpvs;
 cvar_t *r_novis;
@@ -221,9 +223,13 @@ GL3_Register(void)
 	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
 
 	/* don't bilerp characters and crosshairs */
-	gl_nolerp_list = ri.Cvar_Get("r_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", 0);
+	gl_nolerp_list = ri.Cvar_Get("r_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", CVAR_ARCHIVE);
+	/* textures that should always be filtered, even if r_2D_unfiltered or an unfiltered gl mode is used */
+	r_lerp_list = ri.Cvar_Get("r_lerp_list", "", CVAR_ARCHIVE);
 	/* don't bilerp any 2D elements */
 	r_2D_unfiltered = ri.Cvar_Get("r_2D_unfiltered", "0", CVAR_ARCHIVE);
+	/* don't bilerp videos */
+	r_videos_unfiltered = ri.Cvar_Get("r_videos_unfiltered", "0", CVAR_ARCHIVE);
 	gl_nobind = ri.Cvar_Get("gl_nobind", "0", 0);
 
 	gl_texturemode = ri.Cvar_Get("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE);
@@ -1772,13 +1778,16 @@ GL3_BeginFrame(float camera_separation)
 
 	/* texturemode stuff */
 	if (gl_texturemode->modified || (gl3config.anisotropic && gl_anisotropic->modified)
-	    || gl_nolerp_list->modified || r_2D_unfiltered->modified)
+	    || gl_nolerp_list->modified || r_lerp_list->modified
+		|| r_2D_unfiltered->modified || r_videos_unfiltered->modified)
 	{
 		GL3_TextureMode(gl_texturemode->string);
 		gl_texturemode->modified = false;
 		gl_anisotropic->modified = false;
 		gl_nolerp_list->modified = false;
+		r_lerp_list->modified = false;
 		r_2D_unfiltered->modified = false;
+		r_videos_unfiltered->modified = false;
 	}
 
 	if (r_vsync->modified)
