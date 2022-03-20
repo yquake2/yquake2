@@ -289,10 +289,19 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   anti aliasing is expensive and can lead to a huge performance hit, so
   try setting it to a lower value if the framerate is too low.
 
-* **r_nolerp_list**: list separate by spaces of textures omitted from
-  bilinear filtering. Used by default to exclude the console and HUD
-  fonts.  Make sure to include the default values when extending the
-  list.
+* **r_videos_unfiltered**: If set to `1`, don't use bilinear texture
+  filtering on videos (defaults to `0`).
+
+* **r_2D_unfiltered**: If set to `1`, don't filter textures of 2D
+  elements like menus and the HUD (defaults to `0`).
+
+* **r_lerp_list**: List separated by spaces of 2D textures that *should*
+  be filtered bilinearly, even if `r_2D_unfiltered` is set to `1`.
+
+* **r_nolerp_list**: List separated by spaces of textures omitted from
+  bilinear filtering (mostly relevant if `r_2D_unfiltered` is `0`).
+  Used by default to exclude the console and HUD font and crosshairs.
+  Make sure to include the default values when extending the list.
 
 * **r_retexturing**: If set to `1` (the default) and a retexturing pack
   is installed, the high resolution textures are used.

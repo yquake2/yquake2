@@ -88,6 +88,7 @@ GL3_TextureMode(char *string)
 	gl3image_t *glt;
 
 	const char* nolerplist = gl_nolerp_list->string;
+	const char* lerplist = r_lerp_list->string;
 	qboolean unfiltered2D = r_2D_unfiltered->value != 0;
 
 	/* change all the existing texture objects */
@@ -95,7 +96,12 @@ GL3_TextureMode(char *string)
 	{
 		qboolean nolerp = false;
 		/* r_2D_unfiltered and gl_nolerp_list allow rendering stuff unfiltered even if gl_filter_* is filtered */
-		if ( (unfiltered2D && glt->type == it_pic) || (nolerplist != NULL && strstr(nolerplist, glt->name) != NULL) )
+		if (unfiltered2D && glt->type == it_pic)
+		{
+			// exception to that exception: stuff on the r_lerp_list
+			nolerp = (lerplist== NULL) || (strstr(lerplist, glt->name) == NULL);
+		}
+		else if(nolerplist != NULL && strstr(nolerplist, glt->name) != NULL)
 		{
 			nolerp = true;
 		}
@@ -383,7 +389,9 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 	qboolean nolerp = false;
 	if (r_2D_unfiltered->value && type == it_pic)
 	{
-		nolerp = true;
+		// if r_2D_unfiltered is true(ish), nolerp should usually be true,
+		// *unless* the texture is on the r_lerp_list
+		nolerp = (r_lerp_list->string == NULL) || (strstr(r_lerp_list->string, name) == NULL);
 	}
 	else if (gl_nolerp_list != NULL && gl_nolerp_list->string != NULL)
 	{
