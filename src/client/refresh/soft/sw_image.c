@@ -337,19 +337,18 @@ static byte *d_16to8table = NULL; // 16 to 8 bit conversion table
 pixel_t
 R_ApplyLight(pixel_t pix, const light3_t light)
 {
-	pixel_t i_r, i_g, i_b;
 	byte b_r, b_g, b_b;
 	int i_c;
 
-	/* get index of color component of each component */
-	i_r = vid_colormap[(light[0] & 0xFF00) + pix];
-	i_g = vid_colormap[(light[1] & 0xFF00) + pix];
-	i_b = vid_colormap[(light[2] & 0xFF00) + pix];
-
 	/* get color component for each component */
-	b_r = d_8to24table[i_r * 4 + 0];
-	b_g = d_8to24table[i_g * 4 + 1];
-	b_b = d_8to24table[i_b * 4 + 2];
+	b_r = d_8to24table[pix * 4 + 0];
+	b_g = d_8to24table[pix * 4 + 1];
+	b_b = d_8to24table[pix * 4 + 2];
+
+	/* scale by light */
+	b_r = vid_lightmap[(light[0] & 0xFF00) + b_r];
+	b_g = vid_lightmap[(light[1] & 0xFF00) + b_g];
+	b_b = vid_lightmap[(light[2] & 0xFF00) + b_b];
 
 	/* convert back to indexed color */
 	b_r = ( b_r >> 3 ) & 31;

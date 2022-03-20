@@ -40,6 +40,7 @@ static int	swap_current = 0;
 espan_t		*vid_polygon_spans = NULL;
 pixel_t		*vid_colormap = NULL;
 pixel_t		*vid_alphamap = NULL;
+byte		*vid_lightmap = NULL;
 static int	vid_minu, vid_minv, vid_maxu, vid_maxv;
 static int	vid_zminu, vid_zminv, vid_zmaxu, vid_zmaxv;
 
@@ -512,6 +513,14 @@ RE_Shutdown (void)
 		free (vid_colormap);
 		vid_colormap = NULL;
 	}
+
+	/* free lightmap */
+	if (vid_lightmap)
+	{
+		free (vid_lightmap);
+		vid_lightmap = NULL;
+	}
+
 	R_UnRegister ();
 	Mod_FreeAll ();
 	R_ShutdownImages ();
@@ -1754,8 +1763,10 @@ Draw_GetPalette (void)
 {
 	byte	*pal, *out;
 	int		i;
+	int white = 0;
 
-	// get the palette and colormap
+
+	/* get the palette and colormap */
 	LoadPCX ("pics/colormap.pcx", &vid_colormap, &pal, NULL, NULL);
 	if (!vid_colormap)
 		ri.Sys_Error (ERR_FATAL, "Couldn't load pics/colormap.pcx");
@@ -1773,9 +1784,30 @@ Draw_GetPalette (void)
 		out[0] = r;
 		out[1] = g;
 		out[2] = b;
+
+		if (r == 255 && g == 255 && b == 255)
+			white = i;
 	}
 
 	free (pal);
+
+	R_Printf(PRINT_ALL,"white color in palete: %d\n", white);
+
+	/* generate lightmap */
+	vid_lightmap = malloc(64 * 256 * sizeof(byte));
+	for (i=0; i < 64; i++)
+	{
+		int j, scale;
+
+		scale = (
+			d_8to24table[vid_colormap[i * 256 + white] * 4 + 0] +
+			d_8to24table[vid_colormap[i * 256 + white] * 4 + 1] +
+			d_8to24table[vid_colormap[i * 256 + white] * 4 + 2]
+		) / 3;
+
+		for(j=0; j < 256; j++)
+			vid_lightmap[i * 256 + j] = (j * scale) / 255;
+	}
 }
 
 /*
