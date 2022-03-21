@@ -65,6 +65,25 @@ R_TextureAnimation (const entity_t *currententity, mtexinfo_t *tex)
 }
 
 /*
+ * Light apply is not required
+ */
+static qboolean
+R_SameLight(size_t size, const light3_t lightstep, const light3_t light)
+{
+	int i;
+
+	if (((light[0] | light[1] | light[2]) & 0xFF00) > vid_lightthreshold)
+		return false;
+
+	for (i=0; i<3; i++)
+	{
+		if (((size * lightstep[i] + light[i]) & 0xFF00) > vid_lightthreshold)
+			return false;
+	}
+	return true;
+}
+
+/*
 ================
 R_DrawSurfaceBlock8_anymip
 ================
@@ -72,7 +91,7 @@ R_DrawSurfaceBlock8_anymip
 static void
 R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 {
-	int		v, i, b, size;
+	int		v, i, size;
 	unsigned char	*psource, *prowdest;
 
 	size = 1 << level;
@@ -109,14 +128,24 @@ R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 
 			memcpy(light, lightright, sizeof(light3_t));
 
-			for (b=(size-1); b>=0; b--)
+			if (R_SameLight(size, lightstep, light))
 			{
-				pixel_t pix;
-				pix = psource[b];
-				prowdest[b] = R_ApplyLight(pix, light);
+				/* just copy without light apply */
+				memcpy(prowdest, psource, size * sizeof(pixel_t));
+			}
+			else
+			{
+				int b;
 
-				for(j=0; j<3; j++)
-					light[j] += lightstep[j];
+				for (b=(size-1); b>=0; b--)
+				{
+					pixel_t pix;
+					pix = psource[b];
+					prowdest[b] = R_ApplyLight(pix, light);
+
+					for(j=0; j<3; j++)
+						light[j] += lightstep[j];
+				}
 			}
 
 			psource += sourcetstep;
