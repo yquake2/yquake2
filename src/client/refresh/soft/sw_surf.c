@@ -73,7 +73,7 @@ static void
 R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 {
 	int		v, i, b, size;
-	unsigned char	pix, *psource, *prowdest;
+	unsigned char	*psource, *prowdest;
 
 	size = 1 << level;
 	psource = pbasesource;
@@ -111,6 +111,7 @@ R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 
 			for (b=(size-1); b>=0; b--)
 			{
+				pixel_t pix;
 				pix = psource[b];
 				prowdest[b] = R_ApplyLight(pix, light);
 

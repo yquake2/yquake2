@@ -41,6 +41,7 @@ espan_t		*vid_polygon_spans = NULL;
 pixel_t		*vid_colormap = NULL;
 pixel_t		*vid_alphamap = NULL;
 byte		*vid_lightmap = NULL;
+light_t		vid_lightthreshold = 0;
 static int	vid_minu, vid_minv, vid_maxu, vid_maxv;
 static int	vid_zminu, vid_zminv, vid_zmaxu, vid_zmaxv;
 
@@ -1804,6 +1805,10 @@ Draw_GetPalette (void)
 			d_8to24table[vid_colormap[i * 256 + white] * 4 + 1] +
 			d_8to24table[vid_colormap[i * 256 + white] * 4 + 2]
 		) / 3;
+
+		/* full light distance maximum */
+		if (scale == 255)
+			vid_lightthreshold = i * 256;
 
 		for(j=0; j < 256; j++)
 			vid_lightmap[i * 256 + j] = (j * scale) / 255;

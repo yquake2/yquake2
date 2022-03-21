@@ -340,6 +340,10 @@ R_ApplyLight(pixel_t pix, const light3_t light)
 	byte b_r, b_g, b_b;
 	int i_c;
 
+	/* full light, code could skip light processing */
+	if (((light[0] | light[1] | light[2]) & 0xFF00) <= vid_lightthreshold)
+		return pix;
+
 	/* get color component for each component */
 	b_r = d_8to24table[pix * 4 + 0];
 	b_g = d_8to24table[pix * 4 + 1];
