@@ -237,8 +237,8 @@ if(${OPENAL_SUPPORT})
 endif()
 
 # General linker flags.
-if(!MSVC)
-	list(APPEND yquake2LinkerFlags "-lm")
+if(NOT MSVC)
+	list(APPEND yquake2LinkerFlags m)
 endif()
 list(APPEND yquake2LinkerFlags ${CMAKE_DL_LIBS})
 
