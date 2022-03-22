@@ -450,9 +450,16 @@ R_BuildLightMap (drawsurf_t* drawsurf)
 			{
 				do
 				{
-					light_t light = (
-						lightmap[0] + lightmap[1] + lightmap[2]
-					) / 3 * scale;
+					light_t light;
+
+					light = lightmap[0];
+					if (light < lightmap[1])
+						light = lightmap[1];
+					if (light < lightmap[2])
+						light = lightmap[2];
+
+					light *= scale;
+
 					*curr_light += light;
 					curr_light++;
 					*curr_light += light;
