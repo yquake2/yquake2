@@ -363,10 +363,13 @@ R_ApplyLight(pixel_t pix, const light3_t light)
 	b_g = vid_lightmap[light_masked[1] + b_g];
 	b_b = vid_lightmap[light_masked[2] + b_b];
 
-	/* convert back to indexed color */
-	b_r = ( b_r >> 3 ) & 31;
-	b_g = ( b_g >> 2 ) & 63;
-	b_b = ( b_b >> 3 ) & 31;
+	/*
+	 * convert back to indexed color (value reshifted >> 2)
+	 * look to R_Convert32To8bit
+	 */
+	b_r = ( b_r >> 1 ); // & 31;
+	b_g = ( b_g >> 0 ); // & 63;
+	b_b = ( b_b >> 1 ); // & 31;
 
 	i_c = b_r | ( b_g << 5 ) | ( b_b << 11 );
 

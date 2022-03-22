@@ -1811,7 +1811,7 @@ Draw_GetPalette (void)
 			vid_lightthreshold = i * 256;
 
 		for(j=0; j < 256; j++)
-			vid_lightmap[i * 256 + j] = (j * scale) / 255;
+			vid_lightmap[i * 256 + j] = ((j * scale / 255) >> 2) & 63;
 	}
 }
 
