@@ -72,12 +72,12 @@ R_SameLight(size_t size, const light3_t lightstep, const light3_t light)
 {
 	int i;
 
-	if (((light[0] | light[1] | light[2]) & 0xFF00) > vid_lightthreshold)
+	if (((light[0] | light[1] | light[2]) & LIGHTMASK) > vid_lightthreshold)
 		return false;
 
 	for (i=0; i<3; i++)
 	{
-		if (((size * lightstep[i] + light[i]) & 0xFF00) > vid_lightthreshold)
+		if (((size * lightstep[i] + light[i]) & LIGHTMASK) > vid_lightthreshold)
 			return false;
 	}
 	return true;

@@ -332,6 +332,8 @@ static byte *d_16to8table = NULL; // 16 to 8 bit conversion table
 /*
  * Apply color light to texture pixel
  *
+ * vid_colormap[pix + ( llight & 0xFF00 )];
+ *
  * TODO: -22% fps lost
  */
 pixel_t
@@ -341,7 +343,7 @@ R_ApplyLight(pixel_t pix, const light3_t light)
 	int i_c;
 
 	/* full light, code could skip light processing */
-	if (((light[0] | light[1] | light[2]) & 0xFF00) <= vid_lightthreshold)
+	if (((light[0] | light[1] | light[2]) & LIGHTMASK) <= vid_lightthreshold)
 		return pix;
 
 	/* get color component for each component */
@@ -350,9 +352,9 @@ R_ApplyLight(pixel_t pix, const light3_t light)
 	b_b = d_8to24table[pix * 4 + 2];
 
 	/* scale by light */
-	b_r = vid_lightmap[(light[0] & 0xFF00) + b_r];
-	b_g = vid_lightmap[(light[1] & 0xFF00) + b_g];
-	b_b = vid_lightmap[(light[2] & 0xFF00) + b_b];
+	b_r = vid_lightmap[(light[0] & LIGHTMASK) + b_r];
+	b_g = vid_lightmap[(light[1] & LIGHTMASK) + b_g];
+	b_b = vid_lightmap[(light[2] & LIGHTMASK) + b_b];
 
 	/* convert back to indexed color */
 	b_r = ( b_r >> 3 ) & 31;

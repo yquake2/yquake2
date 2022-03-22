@@ -93,6 +93,9 @@ typedef enum
 	rserr_unknown
 } rserr_t;
 
+/* 64 light grades available */
+#define LIGHTMASK		0x3F00
+
 extern viddef_t	vid;
 extern pixel_t	*vid_buffer;	// invisible buffer
 extern pixel_t	*vid_colormap;	// 256 * VID_GRADES size
