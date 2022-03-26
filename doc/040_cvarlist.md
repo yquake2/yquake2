@@ -352,6 +352,15 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   the overlapping surfaces to mitigate the flickering. This may make
   things better or worse, depending on the map.
 
+* **gl_texturemode**: How textures are filtered.
+  - `GL_NEAREST`: No filtering (using value of *nearest* source pixel),
+    mipmaps not used
+  - `GL_LINEAR`: Bilinear filtering, mipmaps not used
+  - `GL_LINEAR_MIPMAP_NEAREST`: The default - Bilinear filtering when
+    scaling up, using mipmaps with nearest/no filtering when scaling down
+  
+  Other supported values: `GL_NEAREST_MIPMAP_NEAREST`,
+  `GL_NEAREST_MIPMAP_LINEAR`, `GL_LINEAR_MIPMAP_LINEAR`
 
 ## Graphics (OpenGL 1.4 only)
 
@@ -402,6 +411,10 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **gl3_particle_square**: If set to `1`, particles are rendered as
   squares, like in the old software renderer or Quake 1. Default is `0`.
+
+* **gl3_colorlight**: When set to `0`, the lights and lightmaps are
+  colorless (greyscale-only), like in the original soft renderer.
+  Default is `1`.
 
 
 ## Graphics (Software only)

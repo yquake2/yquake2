@@ -222,8 +222,9 @@ General cvars:
 * `cl_lights`: Set to `0` to disable the dynamic lightning.
 
 Both OpenGL renderers:
-* `gl_texturemode`: Set to `GL_NEAREST_MIPMAP_LINEAR` to disable the
-  texture filtering, giving a classic pixel look.
+* `gl_texturemode`: Set to `GL_NEAREST` to disable the texture
+  filtering, giving a classic pixel look. Additionally disabling
+  anisostropic filtering makes it look even more authentic.
 
 The OpenGL 1.4 renderer:
 
@@ -236,6 +237,8 @@ The OpenGL 3.2 renderer:
 * `gl3_particle_square`: When set to `1` the particles are rendered as
   squares.
 
+* `gl3_colorlight`: When set to `0`, the lights and lightmaps are
+  colorless (greyscale-only), like in the original soft renderer.
 
 ## Retexturing Packs
 
