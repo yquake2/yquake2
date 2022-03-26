@@ -865,13 +865,13 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 	qboolean nolerp = false;
 	if (r_2D_unfiltered->value && type == it_pic)
 	{
-		nolerp = true;
-	}
-	else if(gl_nolerp_list != NULL && gl_nolerp_list->string != NULL)
-	{
 		// if r_2D_unfiltered is true(ish), nolerp should usually be true,
 		// *unless* the texture is on the r_lerp_list
 		nolerp = (r_lerp_list->string == NULL) || (strstr(r_lerp_list->string, name) == NULL);
+	}
+	else if (gl_nolerp_list != NULL && gl_nolerp_list->string != NULL)
+	{
+		nolerp = strstr(gl_nolerp_list->string, name) != NULL;
 	}
 
 	/* find a free image_t */
