@@ -93,6 +93,7 @@ cvar_t *r_clear;
 cvar_t *gl3_particle_size;
 cvar_t *gl3_particle_fade_factor;
 cvar_t *gl3_particle_square;
+cvar_t *gl3_colorlight;
 
 cvar_t *gl_lefthand;
 cvar_t *r_gunfov;
@@ -210,6 +211,8 @@ GL3_Register(void)
 	gl3_particle_size = ri.Cvar_Get("gl3_particle_size", "40", CVAR_ARCHIVE);
 	gl3_particle_fade_factor = ri.Cvar_Get("gl3_particle_fade_factor", "1.2", CVAR_ARCHIVE);
 	gl3_particle_square = ri.Cvar_Get("gl3_particle_square", "0", CVAR_ARCHIVE);
+	// if set to 0, lights (from lightmaps, dynamic lights and on models) are white instead of colored
+	gl3_colorlight = ri.Cvar_Get("gl3_colorlight", "1", CVAR_ARCHIVE);
 
 	//  0: use lots of calls to glBufferData()
 	//  1: reduce calls to glBufferData() with one big VBO (see GL3_BufferAndDraw3D())
@@ -1746,9 +1749,10 @@ GL3_BeginFrame(float camera_separation)
 		GL3_UpdateUBO3D();
 	}
 
-	if(gl3_particle_square->modified)
+	if(gl3_particle_square->modified || gl3_colorlight->modified)
 	{
 		gl3_particle_square->modified = false;
+		gl3_colorlight->modified = false;
 		GL3_RecreateShaders();
 	}
 

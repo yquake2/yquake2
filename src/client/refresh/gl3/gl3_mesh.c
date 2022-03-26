@@ -161,6 +161,12 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, entity_t* entity, vec3_t shadelight)
 		GL3_UseProgram(gl3state.si3Dalias.shaderProgram);
 	}
 
+	if(gl3_colorlight->value == 0.0f)
+	{
+		float avg = 0.333333f * (shadelight[0]+shadelight[1]+shadelight[2]);
+		shadelight[0] = shadelight[1] = shadelight[2] = avg;
+	}
+
 	/* move should be the delta back to the previous frame * backlerp */
 	VectorSubtract(entity->oldorigin, entity->origin, delta);
 	AngleVectors(entity->angles, vectors[0], vectors[1], vectors[2]);
