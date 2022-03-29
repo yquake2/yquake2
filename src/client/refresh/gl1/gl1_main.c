@@ -1668,21 +1668,28 @@ RI_BeginFrame(float camera_separation)
 	glEnable(GL_ALPHA_TEST);
 	glColor4f(1, 1, 1, 1);
 
-	if (gl_config.pointparameters && gl1_particle_square->modified)
+	if (gl1_particle_square->modified)
 	{
-		R_InitParticleTexture();
-
-		/* GL_POINT_SMOOTH is not implemented by some OpenGL
-		   drivers, especially the crappy Mesa3D backends like
-		   i915.so. That the points are squares and not circles
-		   is not a problem by Quake II! */
-		if (gl1_particle_square->value)
+		if (gl_config.pointparameters)
 		{
-			glDisable(GL_POINT_SMOOTH);
+			/* GL_POINT_SMOOTH is not implemented by some OpenGL
+			   drivers, especially the crappy Mesa3D backends like
+			   i915.so. That the points are squares and not circles
+			   is not a problem by Quake II! */
+			if (gl1_particle_square->value)
+			{
+				glDisable(GL_POINT_SMOOTH);
+			}
+			else
+			{
+				glEnable(GL_POINT_SMOOTH);
+			}
 		}
 		else
 		{
-			glEnable(GL_POINT_SMOOTH);
+			// particles aren't drawn as GL_POINTS, but as textured triangles
+			// => update particle texture to look square - or circle-ish
+			R_InitParticleTexture();
 		}
 
 		gl1_particle_square->modified = false;
