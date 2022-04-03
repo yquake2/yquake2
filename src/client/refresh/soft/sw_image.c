@@ -215,11 +215,12 @@ R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int real
 	size_t data_size, imagetype_t type)
 {
 	image_t	*image;
-	size_t	i, size, full_size;
+	size_t	size, full_size;
 
 	size = width * height;
 
-	if (!pic || data_size <= 0 || width <= 0 || height <= 0 || size <= 0)
+	/* data_size/size are unsigned */
+	if (!pic || data_size == 0 || width <= 0 || height <= 0 || size == 0)
 		return NULL;
 
 	image = R_FindFreeImage();
@@ -246,6 +247,8 @@ R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int real
 	image->transparent = false;
 	if (type != it_wall)
 	{
+		size_t i;
+
 		for (i=0 ; i<size ; i++)
 		{
 			if (pic[i] == 255)
@@ -305,7 +308,8 @@ R_LoadWal (char *name, imagetype_t type)
 	height = LittleLong (mt->height);
 	ofs = LittleLong(mt->offsets[0]);
 
-	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
+	/* width/height are unsigned */
+	if ((ofs <= 0) || (width == 0) || (height == 0) ||
 	    ((file_size - ofs) / width < height))
 	{
 		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
@@ -323,7 +327,54 @@ R_LoadWal (char *name, imagetype_t type)
 	return image;
 }
 
-static unsigned char *d_16to8table = NULL; // 16 to 8 bit conversion table
+static byte *d_16to8table = NULL; // 16 to 8 bit conversion table
+
+/*
+ * Apply color light to texture pixel
+ *
+ * TODO: -22% fps lost
+ */
+pixel_t
+R_ApplyLight(pixel_t pix, const light3_t light)
+{
+	byte b_r, b_g, b_b;
+	int i_c;
+	light3_t light_masked;
+
+	light_masked[0] = light[0] & LIGHTMASK;
+	light_masked[1] = light[1] & LIGHTMASK;
+	light_masked[2] = light[2] & LIGHTMASK;
+
+	/* same light or colorlight == 0 */
+	if (light_masked[0] == light_masked[1] && light_masked[0] == light_masked[2])
+		return vid_colormap[pix + light_masked[0]];
+
+	/* full light, code could skip light processing */
+	if ((light_masked[0] | light_masked[1] | light_masked[2]) <= vid_lightthreshold)
+		return pix;
+
+	/* get color component for each component */
+	b_r = d_8to24table[pix * 4 + 0];
+	b_g = d_8to24table[pix * 4 + 1];
+	b_b = d_8to24table[pix * 4 + 2];
+
+	/* scale by light */
+	b_r = vid_lightmap[light_masked[0] + b_r];
+	b_g = vid_lightmap[light_masked[1] + b_g];
+	b_b = vid_lightmap[light_masked[2] + b_b];
+
+	/*
+	 * convert back to indexed color (value reshifted >> 2)
+	 * look to R_Convert32To8bit
+	 */
+	b_r = ( b_r >> 1 ); // & 31;
+	b_g = ( b_g >> 0 ); // & 63;
+	b_b = ( b_b >> 1 ); // & 31;
+
+	i_c = b_r | ( b_g << 5 ) | ( b_b << 11 );
+
+	return d_16to8table[i_c & 0xFFFF];
+}
 
 static void
 R_Convert32To8bit(const unsigned char* pic_in, pixel_t* pic_out, size_t size)
@@ -677,7 +728,7 @@ R_FindImage(char *name, imagetype_t type)
 	}
 
 	/* just return white image if show lighmap only */
-	if (type == it_wall && r_lightmap->value)
+	if ((type == it_wall || type == it_skin) && r_lightmap->value)
 	{
 		return r_whitetexture_mip;
 	}

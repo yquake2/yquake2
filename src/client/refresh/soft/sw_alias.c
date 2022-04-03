@@ -35,9 +35,9 @@ affinetridesc_t	r_affinetridesc;
 static vec3_t	r_plightvec;
 static vec3_t	r_lerp_frontv, r_lerp_backv, r_lerp_move;
 
-static int	r_ambientlight;
+static light3_t	r_ambientlight;
 int		r_aliasblendcolor;
-static float		r_shadelight;
+static vec3_t		r_shadelight;
 
 
 static daliasframe_t	*r_thisframe, *r_lastframe;
@@ -257,14 +257,14 @@ R_AliasPreparePoints (const entity_t *currententity, finalvert_t *verts, const f
 				continue;	// completely clipped
 
 			// insert s/t coordinates
-			pfv[0]->s = pstverts[ptri->index_st[0]].s << SHIFT16XYZ;
-			pfv[0]->t = pstverts[ptri->index_st[0]].t << SHIFT16XYZ;
+			pfv[0]->cv.s = pstverts[ptri->index_st[0]].s << SHIFT16XYZ;
+			pfv[0]->cv.t = pstverts[ptri->index_st[0]].t << SHIFT16XYZ;
 
-			pfv[1]->s = pstverts[ptri->index_st[1]].s << SHIFT16XYZ;
-			pfv[1]->t = pstverts[ptri->index_st[1]].t << SHIFT16XYZ;
+			pfv[1]->cv.s = pstverts[ptri->index_st[1]].s << SHIFT16XYZ;
+			pfv[1]->cv.t = pstverts[ptri->index_st[1]].t << SHIFT16XYZ;
 
-			pfv[2]->s = pstverts[ptri->index_st[2]].s << SHIFT16XYZ;
-			pfv[2]->t = pstverts[ptri->index_st[2]].t << SHIFT16XYZ;
+			pfv[2]->cv.s = pstverts[ptri->index_st[2]].s << SHIFT16XYZ;
+			pfv[2]->cv.t = pstverts[ptri->index_st[2]].t << SHIFT16XYZ;
 
 			if ( ! (pfv[0]->flags | pfv[1]->flags | pfv[2]->flags) )
 			{
@@ -289,14 +289,14 @@ R_AliasPreparePoints (const entity_t *currententity, finalvert_t *verts, const f
 				continue;	// completely clipped
 
 			// insert s/t coordinates
-			pfv[0]->s = pstverts[ptri->index_st[0]].s << SHIFT16XYZ;
-			pfv[0]->t = pstverts[ptri->index_st[0]].t << SHIFT16XYZ;
+			pfv[0]->cv.s = pstverts[ptri->index_st[0]].s << SHIFT16XYZ;
+			pfv[0]->cv.t = pstverts[ptri->index_st[0]].t << SHIFT16XYZ;
 
-			pfv[1]->s = pstverts[ptri->index_st[1]].s << SHIFT16XYZ;
-			pfv[1]->t = pstverts[ptri->index_st[1]].t << SHIFT16XYZ;
+			pfv[1]->cv.s = pstverts[ptri->index_st[1]].s << SHIFT16XYZ;
+			pfv[1]->cv.t = pstverts[ptri->index_st[1]].t << SHIFT16XYZ;
 
-			pfv[2]->s = pstverts[ptri->index_st[2]].s << SHIFT16XYZ;
-			pfv[2]->t = pstverts[ptri->index_st[2]].t << SHIFT16XYZ;
+			pfv[2]->cv.s = pstverts[ptri->index_st[2]].s << SHIFT16XYZ;
+			pfv[2]->cv.t = pstverts[ptri->index_st[2]].t << SHIFT16XYZ;
 
 			if ( ! (pfv[0]->flags | pfv[1]->flags | pfv[2]->flags) )
 			{
@@ -399,7 +399,6 @@ R_AliasTransformFinalVerts(const entity_t *currententity, int numpoints, finalve
 
 	for ( i = 0; i < numpoints; i++, fv++, oldv++, newv++ )
 	{
-		int		temp;
 		float	lightcos;
 		const float	*plightnormal;
 		vec3_t  lerped_vert;
@@ -426,19 +425,29 @@ R_AliasTransformFinalVerts(const entity_t *currententity, int numpoints, finalve
 
 		// lighting
 		lightcos = DotProduct (plightnormal, r_plightvec);
-		temp = r_ambientlight;
 
 		if (lightcos < 0)
 		{
-			temp += (int)(r_shadelight * lightcos);
+			int		j;
 
-			// clamp; because we limited the minimum ambient and shading light, we
-			// don't have to clamp low light, just bright
-			if (temp < 0)
-				temp = 0;
+			for(j=0; j<3; j++)
+			{
+				int temp;
+
+				temp = r_ambientlight[j];
+
+				temp += (r_shadelight[j] * lightcos);
+
+				// clamp; because we limited the minimum ambient and shading light, we
+				// don't have to clamp low light, just bright
+				if (temp < 0)
+					temp = 0;
+
+				fv->cv.l[j] = temp;
+			}
 		}
-
-		fv->l = temp;
+		else
+			memcpy(fv->cv.l, r_ambientlight, sizeof(light3_t));
 
 		if ( fv->xyz[2] < ALIAS_Z_CLIP_PLANE )
 		{
@@ -469,18 +478,18 @@ R_AliasProjectAndClipTestFinalVert( finalvert_t *fv )
 	z = fv->xyz[2];
 	zi = 1.0 / z;
 
-	fv->zi = zi * s_ziscale;
+	fv->cv.zi = zi * s_ziscale;
 
-	fv->u = (x * aliasxscale * zi) + aliasxcenter;
-	fv->v = (y * aliasyscale * zi) + aliasycenter;
+	fv->cv.u = (x * aliasxscale * zi) + aliasxcenter;
+	fv->cv.v = (y * aliasyscale * zi) + aliasycenter;
 
-	if (fv->u < r_refdef.aliasvrect.x)
+	if (fv->cv.u < r_refdef.aliasvrect.x)
 		fv->flags |= ALIAS_LEFT_CLIP;
-	if (fv->v < r_refdef.aliasvrect.y)
+	if (fv->cv.v < r_refdef.aliasvrect.y)
 		fv->flags |= ALIAS_TOP_CLIP;
-	if (fv->u > r_refdef.aliasvrectright)
+	if (fv->cv.u > r_refdef.aliasvrectright)
 		fv->flags |= ALIAS_RIGHT_CLIP;
-	if (fv->v > r_refdef.aliasvrectbottom)
+	if (fv->cv.v > r_refdef.aliasvrectbottom)
 		fv->flags |= ALIAS_BOTTOM_CLIP;
 }
 
@@ -534,10 +543,9 @@ R_AliasSetupLighting
 static void
 R_AliasSetupLighting(entity_t *currententity)
 {
-	alight_t lighting;
-	float lightvec[3] = {-1, 0, 0};
+	const vec3_t lightvec = {-1, 0, 0};
 	vec3_t light;
-	int i, j;
+	int i;
 
 	// all components of light should be identical in software
 	if ( currententity->flags & RF_FULLBRIGHT )
@@ -578,39 +586,45 @@ R_AliasSetupLighting(entity_t *currententity)
 		}
 	}
 
-	j = (light[0] + light[1] + light[2]) * 0.3333 * 255;
+	if(r_colorlight->value < 2)
+	{
+		float temp = (light[0] + light[1] + light[2]) / 3.0;
 
-	lighting.ambientlight = j;
-	lighting.shadelight = j;
+		light[0] = light[1] = light[2] = temp;
+	}
 
-	lighting.plightvec = lightvec;
+	for(i=0; i<3; i++)
+	{
+		int j;
 
-	// clamp lighting so it doesn't overbright as much
-	if (lighting.ambientlight > 128)
-		lighting.ambientlight = 128;
-	if (lighting.ambientlight + lighting.shadelight > 192)
-		lighting.shadelight = 192 - lighting.ambientlight;
+		j = light[i] * 255;
 
-	// guarantee that no vertex will ever be lit below LIGHT_MIN, so we don't have
-	// to clamp off the bottom
-	r_ambientlight = lighting.ambientlight;
+		r_ambientlight[i] = j;
+		r_shadelight[i] = j;
 
-	if (r_ambientlight < LIGHT_MIN)
-		r_ambientlight = LIGHT_MIN;
+		// clamp lighting so it doesn't overbright as much
+		if (r_ambientlight[i] > 128)
+			r_ambientlight[i] = 128;
+		if (r_ambientlight[i] + r_shadelight[i] > 192)
+			r_shadelight[i] = 192 - r_ambientlight[i];
 
-	r_ambientlight = (255 - r_ambientlight) << VID_CBITS;
+		// guarantee that no vertex will ever be lit below LIGHT_MIN, so we don't have
+		// to clamp off the bottom
+		if (r_ambientlight[i] < LIGHT_MIN)
+			r_ambientlight[i] = LIGHT_MIN;
 
-	r_shadelight = lighting.shadelight;
+		r_ambientlight[i] = (255 - r_ambientlight[i]) << VID_CBITS;
 
-	if (r_shadelight < 0)
-		r_shadelight = 0;
+		if (r_shadelight[i] < 0)
+			r_shadelight[i] = 0;
 
-	r_shadelight *= VID_GRADES;
+		r_shadelight[i] *= VID_GRADES;
+	}
 
 	// rotate the lighting vector into the model's frame of reference
-	r_plightvec[0] =  DotProduct( lighting.plightvec, s_alias_forward );
-	r_plightvec[1] = -DotProduct( lighting.plightvec, s_alias_right );
-	r_plightvec[2] =  DotProduct( lighting.plightvec, s_alias_up );
+	r_plightvec[0] =  DotProduct( lightvec, s_alias_forward );
+	r_plightvec[1] = -DotProduct( lightvec, s_alias_right );
+	r_plightvec[2] =  DotProduct( lightvec, s_alias_up );
 }
 
 

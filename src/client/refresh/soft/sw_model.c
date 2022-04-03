@@ -257,8 +257,7 @@ by taking the brightest component
 static void
 Mod_LoadLighting (model_t *loadmodel, byte *mod_base, lump_t *l)
 {
-	int		i, size;
-	pixel_t	*in;
+	int	size;
 
 	if (!l->filelen)
 	{
@@ -266,18 +265,9 @@ Mod_LoadLighting (model_t *loadmodel, byte *mod_base, lump_t *l)
 		return;
 	}
 
-	size = l->filelen/3;
+	size = l->filelen;
 	loadmodel->lightdata = Hunk_Alloc(size);
-	in = mod_base + l->fileofs;
-	for (i=0 ; i<size ; i++, in+=3)
-	{
-		if (in[0] > in[1] && in[0] > in[2])
-			loadmodel->lightdata[i] = in[0];
-		else if (in[1] > in[0] && in[1] > in[2])
-			loadmodel->lightdata[i] = in[1];
-		else
-			loadmodel->lightdata[i] = in[2];
-	}
+	memcpy(loadmodel->lightdata, mod_base + l->fileofs, size);
 }
 
 
@@ -665,9 +655,13 @@ Mod_LoadFaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 			out->styles[i] = in->styles[i];
 		i = LittleLong(in->lightofs);
 		if (i == -1)
+		{
 			out->samples = NULL;
+		}
 		else
-			out->samples = loadmodel->lightdata + i/3;
+		{
+			out->samples = loadmodel->lightdata + i;
+		}
 
 		// set the drawing flags flag
 
@@ -1012,8 +1006,9 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	// lighting is a special case, because we keep only 1 byte out of 3
 	// (=> no colored lighting in soft renderer by default)
 	{
-		int size = header->lumps[LUMP_LIGHTING].filelen/3;
+		int size = header->lumps[LUMP_LIGHTING].filelen;
 		size = (size + 31) & ~31;
+		/* save color data */
 		hunkSize += size;
 	}
 

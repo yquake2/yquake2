@@ -40,6 +40,8 @@ static int	swap_current = 0;
 espan_t		*vid_polygon_spans = NULL;
 pixel_t		*vid_colormap = NULL;
 pixel_t		*vid_alphamap = NULL;
+byte		*vid_lightmap = NULL;
+light_t		vid_lightthreshold = 0;
 static int	vid_minu, vid_minv, vid_maxu, vid_maxv;
 static int	vid_zminu, vid_zminv, vid_zmaxu, vid_zmaxv;
 
@@ -51,7 +53,7 @@ static qboolean	palette_changed;
 
 refimport_t	ri;
 
-static unsigned	d_8to24table[256];
+byte		d_8to24table[256 * 4];
 
 char		skyname[MAX_QPATH];
 vec3_t		skyaxis;
@@ -135,6 +137,7 @@ cvar_t	*r_lefthand;
 cvar_t	*r_gunfov;
 cvar_t	*r_farsee;
 cvar_t	*r_lightmap;
+cvar_t	*r_colorlight;
 static cvar_t	*sw_aliasstats;
 cvar_t	*sw_clearcolor;
 cvar_t	*sw_drawflat;
@@ -396,6 +399,7 @@ R_RegisterVariables (void)
 	r_gunfov = ri.Cvar_Get( "r_gunfov", "80", CVAR_ARCHIVE );
 	r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
 	r_lightmap = ri.Cvar_Get("r_lightmap", "0", 0);
+	r_colorlight = ri.Cvar_Get("sw_colorlight", "0", CVAR_ARCHIVE);
 	r_speeds = ri.Cvar_Get ("r_speeds", "0", 0);
 	r_fullbright = ri.Cvar_Get ("r_fullbright", "0", 0);
 	r_drawentities = ri.Cvar_Get ("r_drawentities", "1", 0);
@@ -510,6 +514,14 @@ RE_Shutdown (void)
 		free (vid_colormap);
 		vid_colormap = NULL;
 	}
+
+	/* free lightmap */
+	if (vid_lightmap)
+	{
+		free (vid_lightmap);
+		vid_lightmap = NULL;
+	}
+
 	R_UnRegister ();
 	Mod_FreeAll ();
 	R_ShutdownImages ();
@@ -1230,7 +1242,7 @@ R_CalcPalette (void)
 		if (modified)
 		{	// set back to default
 			modified = false;
-			R_GammaCorrectAndSetPalette( ( const unsigned char * ) d_8to24table );
+			R_GammaCorrectAndSetPalette( d_8to24table );
 			return;
 		}
 		return;
@@ -1246,7 +1258,7 @@ R_CalcPalette (void)
 
 	one_minus_alpha = (1.0 - alpha);
 
-	in = (byte *)d_8to24table;
+	in = d_8to24table;
 	out = palette[0];
 	for (i=0 ; i<256 ; i++, in+=4, out+=4)
 	{
@@ -1439,7 +1451,7 @@ R_InitGraphics( int width, int height )
 
 	R_InitCaches();
 
-	R_GammaCorrectAndSetPalette((const unsigned char *)d_8to24table);
+	R_GammaCorrectAndSetPalette(d_8to24table);
 }
 
 static rserr_t	SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen);
@@ -1466,7 +1478,7 @@ RE_BeginFrame( float camera_separation )
 	if ( vid_gamma->modified || sw_overbrightbits->modified )
 	{
 		Draw_BuildGammaTable();
-		R_GammaCorrectAndSetPalette((const unsigned char * )d_8to24table);
+		R_GammaCorrectAndSetPalette(d_8to24table);
 		// we need redraw everything
 		VID_WholeDamageBuffer();
 		// and backbuffer should be zeroed
@@ -1602,7 +1614,7 @@ RE_SetPalette(const unsigned char *palette)
 	}
 	else
 	{
-		R_GammaCorrectAndSetPalette((const unsigned char *)d_8to24table);
+		R_GammaCorrectAndSetPalette(d_8to24table);
 	}
 }
 
@@ -1752,14 +1764,16 @@ Draw_GetPalette (void)
 {
 	byte	*pal, *out;
 	int		i;
+	int white = 0;
 
-	// get the palette and colormap
+
+	/* get the palette and colormap */
 	LoadPCX ("pics/colormap.pcx", &vid_colormap, &pal, NULL, NULL);
 	if (!vid_colormap)
 		ri.Sys_Error (ERR_FATAL, "Couldn't load pics/colormap.pcx");
 	vid_alphamap = vid_colormap + 64*256;
 
-	out = (byte *)d_8to24table;
+	out = d_8to24table;
 	for (i=0 ; i<256 ; i++, out+=4)
 	{
 		int r, g, b;
@@ -1771,9 +1785,34 @@ Draw_GetPalette (void)
 		out[0] = r;
 		out[1] = g;
 		out[2] = b;
+
+		if (r == 255 && g == 255 && b == 255)
+			white = i;
 	}
 
 	free (pal);
+
+	R_Printf(PRINT_ALL,"white color in palete: %d\n", white);
+
+	/* generate lightmap */
+	vid_lightmap = malloc(64 * 256 * sizeof(byte));
+	for (i=0; i < 64; i++)
+	{
+		int j, scale;
+
+		scale = (
+			d_8to24table[vid_colormap[i * 256 + white] * 4 + 0] +
+			d_8to24table[vid_colormap[i * 256 + white] * 4 + 1] +
+			d_8to24table[vid_colormap[i * 256 + white] * 4 + 2]
+		) / 3;
+
+		/* full light distance maximum */
+		if (scale == 255)
+			vid_lightthreshold = i * 256;
+
+		for(j=0; j < 256; j++)
+			vid_lightmap[i * 256 + j] = ((j * scale / 255) >> 2) & 63;
+	}
 }
 
 /*
@@ -2409,7 +2448,7 @@ SWimp_CreateRender(int width, int height)
 
 	memset(sw_state.currentpalette, 0, sizeof(sw_state.currentpalette));
 
-	R_GammaCorrectAndSetPalette( ( const unsigned char * ) d_8to24table );
+	R_GammaCorrectAndSetPalette( d_8to24table );
 }
 
 // this is only here so the functions in q_shared.c and q_shwin.c can link

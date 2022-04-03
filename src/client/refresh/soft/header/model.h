@@ -95,7 +95,7 @@ typedef struct msurface_s
 
 	// lighting info
 	byte		styles[MAXLIGHTMAPS];
-	byte		*samples;	// [numstyles*surfsize]
+	byte		*samples;	// [numstyles*surfsize*3]
 
 	struct msurface_s *nextalphasurface;
 } msurface_t;
