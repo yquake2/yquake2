@@ -492,7 +492,11 @@ Sys_GetHomeDir(void)
 		return NULL;
 	}
 
+#ifndef __HAIKU__
 	snprintf(gdir, sizeof(gdir), "%s/%s/", home, cfgdir);
+#else
+	snprintf(gdir, sizeof(gdir), "%s/config/settings/%s", home, cfgdir);
+#endif
 	Sys_Mkdir(gdir);
 
 	return gdir;

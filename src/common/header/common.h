@@ -50,7 +50,11 @@
 #ifdef _WIN32
  #define CFGDIR "YamagiQ2"
 #else
- #define CFGDIR ".yq2"
+ #ifndef __HAIKU__
+   #define CFGDIR ".yq2"
+ #else
+   #define CFGDIR "yq2"
+ #endif
 #endif
 
 /* ================================================================== */
