@@ -10,6 +10,11 @@ original clients (Vanilla Quake II) commands are still in place.
   skipped if it is not a valid weapon classname, you do not own it in
   your inventory or you do not have enough ammo to use it.
 
+* **prefweap <weapons>**: Similar to the previous command, this will
+  select the first weapon available in the priority list given. Useful
+  to set a "panic button". E.g. the following will select your best
+  shotgun: `prefweap weapon_supershotgun weapon_shotgun`.
+
 * **gamemode <mode>**: Provides a convenient way to switch the game mode
   between `coop`, `dm` and `sp` without having to set three cvars the
   correct way. `?` prints the current mode.
