@@ -117,6 +117,13 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   during gameplay and released otherwise (in menu, videos, console or if
   game is paused).
 
+  **in_sdlbackbutton**: Defines which button is used in the gamepad or
+  joystick as the `Esc` key, that is, to be able to access the menu
+  and 'cancel'/'go back' on its options. When set to `0` (the default)
+  the Back/Select/Minus button is used. Set this to `1` to use the
+  Start/Menu/Plus button, and to `2` to use the Guide/Home/PS button.
+  Requires a game restart when changed.
+
 * **singleplayer**: Only available in the dedicated server. Vanilla
   Quake II enforced that either `coop` or `deathmatch` is set to `1`
   when running the dedicated server. That made it impossible to play

@@ -48,6 +48,7 @@
 // actual movement functions called at a later time.
 static float mouse_x, mouse_y;
 static int back_button_id = -1;
+static int sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
 static float joystick_yaw, joystick_pitch;
 static float joystick_forwardmove, joystick_sidemove;
 static float joystick_up;
@@ -586,7 +587,7 @@ IN_Update(void)
 			{
 				qboolean down = (event.type == SDL_CONTROLLERBUTTONDOWN);
 
-				if (event.cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
+				if (event.cbutton.button == sdl_back_button)
 				{
 					Key_Event(K_JOY_BACK, down, true);
 				}
@@ -1200,6 +1201,7 @@ Haptic_Feedback(char *name, int effect_volume, int effect_duration,
 void
 IN_Init(void)
 {
+	static cvar_t *in_sdlbackbutton;
 	Com_Printf("------- input initialization -------\n");
 
 	mouse_x = mouse_y = 0;
@@ -1241,6 +1243,22 @@ IN_Init(void)
 	joy_axis_triggerright_threshold = Cvar_Get("joy_axis_triggerright_threshold", "0.15", CVAR_ARCHIVE);
 
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
+
+	in_sdlbackbutton = Cvar_Get("in_sdlbackbutton", "0", CVAR_ARCHIVE);
+	if (in_sdlbackbutton)
+	{
+		switch ((int)in_sdlbackbutton->value)
+		{
+			case 1:
+				sdl_back_button = SDL_CONTROLLER_BUTTON_START;
+				break;
+			case 2:
+				sdl_back_button = SDL_CONTROLLER_BUTTON_GUIDE;
+				break;
+			default:
+				sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
+		}
+	}
 
 	Cmd_AddCommand("+mlook", IN_MLookDown);
 	Cmd_AddCommand("-mlook", IN_MLookUp);
@@ -1304,7 +1322,7 @@ IN_Init(void)
 						Com_Printf (" * triggerleft = %f\n", joy_axis_triggerleft_threshold->value);
 						Com_Printf (" * triggerright = %f\n", joy_axis_triggerright_threshold->value);
 
-						backBind = SDL_GameControllerGetBindForButton(controller, SDL_CONTROLLER_BUTTON_BACK);
+						backBind = SDL_GameControllerGetBindForButton(controller, sdl_back_button);
 
 						if (backBind.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON)
 						{
