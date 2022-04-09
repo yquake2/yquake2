@@ -351,7 +351,10 @@ R_ApplyLight(pixel_t pix, const light3_t light)
 
 	/* full light, code could skip light processing */
 	if ((light_masked[0] | light_masked[1] | light_masked[2]) <= vid_lightthreshold)
+	{
+		// FIXME: color conversion should be applied and based on vid_colormap
 		return pix;
+	}
 
 	/* get color component for each component */
 	b_r = d_8to24table[pix * 4 + 0];
