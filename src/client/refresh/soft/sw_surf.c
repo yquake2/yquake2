@@ -65,22 +65,21 @@ R_TextureAnimation (const entity_t *currententity, mtexinfo_t *tex)
 }
 
 /*
- * Light apply is not required
+ * Color light apply is not required
  */
 static qboolean
-R_SameLight(size_t size, const light3_t lightstep, const light3_t light)
+R_GreyscaledLight(const light3_t light)
 {
-	int i;
+	light3_t light_masked;
 
-	if (((light[0] | light[1] | light[2]) & LIGHTMASK) > vid_lightthreshold)
-		return false;
+	light_masked[0] = light[0] & LIGHTMASK;
+	light_masked[1] = light[1] & LIGHTMASK;
+	light_masked[2] = light[2] & LIGHTMASK;
 
-	for (i=0; i<3; i++)
-	{
-		if (((size * lightstep[i] + light[i]) & LIGHTMASK) > vid_lightthreshold)
-			return false;
-	}
-	return true;
+	if (light_masked[0] == light_masked[1] && light_masked[0] == light_masked[2])
+		return light_masked[0];
+
+	return LIGHTMASK;
 }
 
 /*
@@ -115,27 +114,32 @@ R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 
 		for (i=0 ; i<size ; i++)
 		{
-			light3_t lightstep, light;
 			int j;
 
-			for(j=0; j<3; j++)
+			int light_masked = R_GreyscaledLight(lightright);
+			if (light_masked != LIGHTMASK && R_GreyscaledLight(lightleft) == light_masked )
 			{
-				int lighttemp;
+				int b;
 
-				lighttemp = lightleft[j] - lightright[j];
-				lightstep[j] = lighttemp >> level;
-			}
-
-			memcpy(light, lightright, sizeof(light3_t));
-
-			if (R_SameLight(size, lightstep, light))
-			{
-				/* just copy without light apply */
-				memcpy(prowdest, psource, size * sizeof(pixel_t));
+				for (b=(size-1); b>=0; b--)
+				{
+					prowdest[b] = vid_colormap[psource[b] + light_masked];
+				}
 			}
 			else
 			{
 				int b;
+				light3_t lightstep, light;
+
+				for(j=0; j<3; j++)
+				{
+					int lighttemp;
+
+					lighttemp = lightleft[j] - lightright[j];
+					lightstep[j] = lighttemp >> level;
+				}
+
+				memcpy(light, lightright, sizeof(light3_t));
 
 				for (b=(size-1); b>=0; b--)
 				{
