@@ -119,11 +119,18 @@ R_DrawSurfaceBlock8_anymip (int level, int surfrowbytes)
 			int light_masked = R_GreyscaledLight(lightright);
 			if (light_masked != LIGHTMASK && R_GreyscaledLight(lightleft) == light_masked )
 			{
-				int b;
+				pixel_t *dest, *dest_max, *src;
 
-				for (b=(size-1); b>=0; b--)
+				dest = prowdest;
+				dest_max = prowdest + size;
+				src = psource;
+
+				while (dest < dest_max)
 				{
-					prowdest[b] = vid_colormap[psource[b] + light_masked];
+					*dest = vid_colormap[*src + light_masked];
+
+					dest++;
+					src++;
 				}
 			}
 			else
