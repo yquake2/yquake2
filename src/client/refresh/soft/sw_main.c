@@ -2332,7 +2332,7 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 
 	if ((mode >= 0) && !ri.Vid_GetModeInfo( pwidth, pheight, mode ) )
 	{
-		R_Printf( PRINT_ALL, " invalid mode\n" );
+		R_Printf(PRINT_ALL, " invalid mode\n");
 		return rserr_invalid_mode;
 	}
 
@@ -2341,7 +2341,7 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 	{
 		if(!ri.GLimp_GetDesktopMode(pwidth, pheight))
 		{
-			R_Printf( PRINT_ALL, " can't detect mode\n" );
+			R_Printf(PRINT_ALL, " can't detect mode\n");
 			return rserr_invalid_mode;
 		}
 	}

@@ -770,7 +770,7 @@ R_AliasDrawModel(entity_t *currententity, const model_t *currentmodel)
 	// set up the skin and verify it exists
 	if ( !R_AliasSetupSkin(currententity, currentmodel) )
 	{
-		R_Printf( PRINT_ALL, "R_AliasDrawModel %s: NULL skin found\n",
+		R_Printf(PRINT_ALL, "R_AliasDrawModel %s: NULL skin found\n",
 			currentmodel->name);
 		aliasxscale = oldAliasxscale;
 		aliasyscale = oldAliasyscale;
