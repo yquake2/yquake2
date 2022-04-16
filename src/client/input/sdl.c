@@ -1285,7 +1285,7 @@ IN_Init(void)
 			{
 				for (const char* rawPath = FS_GetNextRawPath(NULL); rawPath != NULL; rawPath = FS_GetNextRawPath(rawPath))
 				{
-					snprintf(controllerdb, MAX_OSPATH, "%s/%s", rawPath, "gamecontrollerdb.txt");
+					snprintf(controllerdb, MAX_OSPATH, "%s/gamecontrollerdb.txt", rawPath);
 					nummappings = SDL_GameControllerAddMappingsFromFile(controllerdb);
 					if (nummappings > 0)
 						Com_Printf ("%d mappings loaded from gamecontrollerdb.txt\n", nummappings);
