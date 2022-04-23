@@ -1201,7 +1201,9 @@ Haptic_Feedback(char *name, int effect_volume, int effect_duration,
 void
 IN_Init(void)
 {
-	static cvar_t *in_sdlbackbutton;
+	cvar_t *in_sdlbackbutton;
+	int nummappings;
+	char controllerdb[MAX_OSPATH] = {0};
 	Com_Printf("------- input initialization -------\n");
 
 	mouse_x = mouse_y = 0;
@@ -1279,7 +1281,16 @@ IN_Init(void)
 		{
 			Com_Printf ("%i joysticks were found.\n", SDL_NumJoysticks());
 
-			if (SDL_NumJoysticks() > 0) {
+			if (SDL_NumJoysticks() > 0)
+			{
+				for (const char* rawPath = FS_GetNextRawPath(NULL); rawPath != NULL; rawPath = FS_GetNextRawPath(rawPath))
+				{
+					snprintf(controllerdb, MAX_OSPATH, "%s/gamecontrollerdb.txt", rawPath);
+					nummappings = SDL_GameControllerAddMappingsFromFile(controllerdb);
+					if (nummappings > 0)
+						Com_Printf ("%d mappings loaded from gamecontrollerdb.txt\n", nummappings);
+				}
+
 				for (int i = 0; i < SDL_NumJoysticks(); i++) {
 					joystick = SDL_JoystickOpen(i);
 
