@@ -2550,7 +2550,7 @@ Game_MenuInit(void)
     s_hardp_game_action.generic.flags = QMF_LEFT_JUSTIFY;
     s_hardp_game_action.generic.x = 0;
     s_hardp_game_action.generic.y = 30;
-    s_hardp_game_action.generic.name = "nightmare";
+    s_hardp_game_action.generic.name = "hard+";
     s_hardp_game_action.generic.callback = HardpGameFunc;
 
     s_blankline.generic.type = MTYPE_SEPARATOR;
