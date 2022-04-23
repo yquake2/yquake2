@@ -1475,6 +1475,8 @@ SCR_Framecounter(void) {
 		char str[10];
 		snprintf(str, sizeof(str), "%3.2ffps", (1000.0 * 1000.0) / (avg / num));
 		DrawStringScaled(viddef.width - scale*(strlen(str)*8 + 2), 0, str, scale);
+		SCR_AddDirtyPoint(viddef.width - scale*(strlen(str)*8 + 2), 0);
+		SCR_AddDirtyPoint(viddef.width, 0);
 	} else if (cl_showfps->value >= 2) {
 		// Calculate average of frames.
 		int avg = 0;
@@ -1506,12 +1508,16 @@ SCR_Framecounter(void) {
 		snprintf(str, sizeof(str), "Min: %7.2ffps, Max: %7.2ffps, Avg: %7.2ffps",
 		         (1000.0 * 1000.0) / min, (1000.0 * 1000.0) / max, (1000.0 * 1000.0) / (avg / num));
 		DrawStringScaled(viddef.width - scale*(strlen(str)*8 + 2), 0, str, scale);
+		SCR_AddDirtyPoint(viddef.width - scale*(strlen(str)*8 + 2), 0);
+		SCR_AddDirtyPoint(viddef.width, 0);
 
 		if (cl_showfps->value > 2)
 		{
 			snprintf(str, sizeof(str), "Max: %5.2fms, Min: %5.2fms, Avg: %5.2fms",
 			         0.001f*min, 0.001f*max, 0.001f*(avg / num));
 			DrawStringScaled(viddef.width - scale*(strlen(str)*8 + 2), scale*10, str, scale);
+			SCR_AddDirtyPoint(viddef.width - scale*(strlen(str)*8 + 2), scale*10);
+			SCR_AddDirtyPoint(viddef.width, scale+10);
 		}
 	}
 }
