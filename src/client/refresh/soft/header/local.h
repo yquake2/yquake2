@@ -94,13 +94,12 @@ typedef enum
 } rserr_t;
 
 /* 64 light grades available */
-#define LIGHTMASK		0x3F00
+#define LIGHTMASK		0xFF00
 
 extern viddef_t	vid;
 extern pixel_t	*vid_buffer;	// invisible buffer
 extern pixel_t	*vid_colormap;	// 256 * VID_GRADES size
 extern pixel_t	*vid_alphamap;	// 256 * 256 translucency map
-extern byte	*vid_lightmap;	// 64 light grades for 256 colors
 extern light_t	vid_lightthreshold; // full light distance maximum
 extern char	shift_size;	// shift size in fixed-point
 

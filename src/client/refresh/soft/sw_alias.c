@@ -586,7 +586,7 @@ R_AliasSetupLighting(entity_t *currententity)
 		}
 	}
 
-	if(r_colorlight->value < 2)
+	if(r_colorlight->value == 0)
 	{
 		float temp = (light[0] + light[1] + light[2]) / 3.0;
 
@@ -770,7 +770,7 @@ R_AliasDrawModel(entity_t *currententity, const model_t *currentmodel)
 	// set up the skin and verify it exists
 	if ( !R_AliasSetupSkin(currententity, currentmodel) )
 	{
-		R_Printf( PRINT_ALL, "R_AliasDrawModel %s: NULL skin found\n",
+		R_Printf(PRINT_ALL, "R_AliasDrawModel %s: NULL skin found\n",
 			currentmodel->name);
 		aliasxscale = oldAliasxscale;
 		aliasyscale = oldAliasyscale;
