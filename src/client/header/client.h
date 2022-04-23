@@ -314,6 +314,7 @@ extern	cvar_t	*cl_vwep;
 extern	cvar_t  *horplus;
 extern	cvar_t	*cin_force43;
 extern	cvar_t	*vid_fullscreen;
+extern  cvar_t  *vid_renderer;
 extern	cvar_t	*cl_kickangles;
 extern  cvar_t  *cl_r1q2_lightstyle;
 extern  cvar_t  *cl_limitsparksounds;
