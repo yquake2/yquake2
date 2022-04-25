@@ -244,7 +244,7 @@ The OpenGL 3.2 renderer:
 
 Yamagi Quake II has full support for retexturing packs. They just need
 to be installed and should be picked up automatically. To disable the
-retexturing pack at a later time set `gl_retexturing` to `0`.
+retexturing pack at a later time set `r_retexturing` to `0`.
 
 * The most comprehensive build retexturing pack can be found here:
   https://deponie.yamagi.org/quake2/texturepack/
