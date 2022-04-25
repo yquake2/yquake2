@@ -126,6 +126,7 @@ cvar_t *gl_shadows;
 cvar_t *gl3_debugcontext;
 cvar_t *gl3_usebigvbo;
 cvar_t *r_fixsurfsky;
+cvar_t *gl3_usefbo;
 
 // Yaw-Pitch-Roll
 // equivalent to R_z * R_y * R_x where R_x is the trans matrix for rotating around X axis for aroundXdeg
@@ -257,6 +258,8 @@ GL3_Register(void)
 	r_novis = ri.Cvar_Get("r_novis", "0", 0);
 	r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
 	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
+
+	gl3_usefbo = ri.Cvar_Get("gl3_usefbo", "1", CVAR_ARCHIVE); // use framebuffer object for postprocess effects (water)
 
 #if 0 // TODO!
 	//gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
@@ -601,6 +604,11 @@ GL3_Init(void)
 
 	GL3_SurfInit();
 
+	glGenFramebuffers(1, &gl3state.ppFBO);
+	// the rest for the FBO is done dynamically in GL3_RenderView() so it can
+	// take the viewsize into account (enforce that by setting invalid size)
+	gl3state.ppFBtexWidth = gl3state.ppFBtexHeight = -1;
+
 	R_Printf(PRINT_ALL, "\n");
 	return true;
 }
@@ -623,6 +631,17 @@ GL3_Shutdown(void)
 		GL3_SurfShutdown();
 		GL3_Draw_ShutdownLocal();
 		GL3_ShutdownShaders();
+
+		// free the postprocessing FBO and its renderbuffer and texture
+		if(gl3state.ppFBrbo != 0)
+			glDeleteRenderbuffers(1, &gl3state.ppFBrbo);
+		if(gl3state.ppFBtex != 0)
+			glDeleteTextures(1, &gl3state.ppFBtex);
+		if(gl3state.ppFBO != 0)
+			glDeleteFramebuffers(1, &gl3state.ppFBO);
+		gl3state.ppFBrbo = gl3state.ppFBtex = gl3state.ppFBO = 0;
+		gl3state.ppFBObound = false;
+		gl3state.ppFBtexWidth = gl3state.ppFBtexHeight = -1;
 	}
 
 	/* shutdown OS specific OpenGL stuff like contexts, etc.  */
@@ -1302,6 +1321,8 @@ GL3_MYgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zF
 	return ret;
 }
 
+static void GL3_Clear(void);
+
 static void
 SetupGL(void)
 {
@@ -1332,7 +1353,67 @@ SetupGL(void)
 	}
 #endif // 0
 
-	glViewport(x, y2, w, h);
+
+
+	// set up the FBO accordingly, but only if actually rendering the world
+	// (=> don't use FBO when rendering the playermodel in the player menu)
+	if (gl3_usefbo->value && (gl3_newrefdef.rdflags & RDF_NOWORLDMODEL) == 0 && gl3state.ppFBO != 0)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, gl3state.ppFBO);
+		gl3state.ppFBObound = true;
+		if(gl3state.ppFBtex == 0)
+		{
+			gl3state.ppFBtexWidth = -1; // make sure we generate the texture storage below
+			glGenTextures(1, &gl3state.ppFBtex);
+		}
+
+		if(gl3state.ppFBrbo == 0)
+		{
+			gl3state.ppFBtexWidth = -1; // make sure we generate the RBO storage below
+			glGenRenderbuffers(1, &gl3state.ppFBrbo);
+		}
+
+		// even if the FBO already has a texture and RBO, the viewport size
+		// might have changed so they need to be regenerated with the correct sizes
+		if(gl3state.ppFBtexWidth != w || gl3state.ppFBtexHeight != h)
+		{
+			gl3state.ppFBtexWidth = w;
+			gl3state.ppFBtexHeight = h;
+			GL3_Bind(gl3state.ppFBtex);
+			// create texture for FBO with size of the viewport
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			GL3_Bind(0);
+			// attach it to currently bound FBO
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gl3state.ppFBtex, 0);
+
+			// also create a renderbuffer object so the FBO has a stencil- and depth-buffer
+			glBindRenderbuffer(GL_RENDERBUFFER, gl3state.ppFBrbo);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
+			glBindRenderbuffer(GL_RENDERBUFFER, 0);
+			// attach it to the FBO
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+			                          GL_RENDERBUFFER, gl3state.ppFBrbo);
+
+			GLenum fbState = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+			if(fbState != GL_FRAMEBUFFER_COMPLETE)
+			{
+				R_Printf(PRINT_ALL, "GL3 SetupGL(): WARNING: FBO is not complete, status = 0x%x\n", fbState);
+				gl3state.ppFBtexWidth = -1; // to try again next frame; TODO: maybe give up?
+				gl3state.ppFBObound = false;
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			}
+		}
+
+		GL3_Clear(); // clear the FBO that's bound now
+
+		glViewport(0, 0, w, h); // this will be moved to the center later, so no x/y offset
+	}
+	else // rendering directly (not to FBO for postprocessing)
+	{
+		glViewport(x, y2, w, h);
+	}
 
 	/* set up projection matrix (eye coordinates -> clip coordinates) */
 	{
@@ -1637,13 +1718,23 @@ GL3_RenderFrame(refdef_t *fd)
 {
 	GL3_RenderView(fd);
 	GL3_SetLightLevel(NULL);
+	qboolean usedFBO = gl3state.ppFBObound; // if it was/is used this frame
+	if(usedFBO)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); // now render to default framebuffer
+		gl3state.ppFBObound = false;
+	}
 	GL3_SetGL2D();
 
-	if(v_blend[3] != 0.0f)
+	int x = (vid.width - gl3_newrefdef.width)/2;
+	int y = (vid.height - gl3_newrefdef.height)/2;
+	if (usedFBO)
 	{
-		int x = (vid.width - gl3_newrefdef.width)/2;
-		int y = (vid.height - gl3_newrefdef.height)/2;
-
+		// if we're actually drawing the world and using an FBO, render the FBO's texture
+		GL3_DrawFrameBufferObject(x, y, gl3_newrefdef.width, gl3_newrefdef.height, gl3state.ppFBtex, v_blend);
+	}
+	else if(v_blend[3] != 0.0f)
+	{
 		GL3_Draw_Flash(v_blend, x, y, gl3_newrefdef.width, gl3_newrefdef.height);
 	}
 }

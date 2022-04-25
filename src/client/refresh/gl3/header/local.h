@@ -116,7 +116,8 @@ typedef struct
 typedef struct
 {
 	GLuint shaderProgram;
-	GLint uniLmScales;
+	GLint uniVblend;
+	GLint uniLmScalesOrTime; // for 3D it's lmScales, for 2D underwater PP it's time
 	hmm_vec4 lmScales[4];
 } gl3ShaderInfo_t;
 
@@ -196,6 +197,13 @@ typedef struct
 	int currentlightmap; // lightmap_textureIDs[currentlightmap] bound to GL_TEXTURE1
 	GLuint currenttmu; // GL_TEXTURE0 or GL_TEXTURE1
 
+	// FBO for postprocess effects (like under-water-warping)
+	GLuint ppFBO;
+	GLuint ppFBtex; // ppFBO's texture for color buffer
+	int ppFBtexWidth, ppFBtexHeight;
+	GLuint ppFBrbo; // ppFBO's renderbuffer object for depth and stencil buffer
+	qboolean ppFBObound; // is it currently bound (rendered to)?
+
 	//float camera_separation;
 	//enum stereo_modes stereo_mode;
 
@@ -208,6 +216,9 @@ typedef struct
 	// NOTE: make sure si2D is always the first shaderInfo (or adapt GL3_ShutdownShaders())
 	gl3ShaderInfo_t si2D;      // shader for rendering 2D with textures
 	gl3ShaderInfo_t si2Dcolor; // shader for rendering 2D with flat colors
+	gl3ShaderInfo_t si2DpostProcess; // shader to render postprocess FBO, when *not* underwater
+	gl3ShaderInfo_t si2DpostProcessWater; // shader to apply water-warp postprocess effect
+
 	gl3ShaderInfo_t si3Dlm;        // a regular opaque face (e.g. from brush) with lightmap
 	// TODO: lm-only variants for gl_lightmap 1
 	gl3ShaderInfo_t si3Dtrans;     // transparent is always w/o lightmap
@@ -393,6 +404,7 @@ extern void GL3_Draw_PicScaled(int x, int y, char *pic, float factor);
 extern void GL3_Draw_StretchPic(int x, int y, int w, int h, char *pic);
 extern void GL3_Draw_CharScaled(int x, int y, int num, float scale);
 extern void GL3_Draw_TileClear(int x, int y, int w, int h, char *pic);
+extern void GL3_DrawFrameBufferObject(int x, int y, int w, int h, GLuint fboTexture, const float v_blend[4]);
 extern void GL3_Draw_Fill(int x, int y, int w, int h, int c);
 extern void GL3_Draw_FadeScreen(void);
 extern void GL3_Draw_Flash(const float color[4], float x, float y, float w, float h);

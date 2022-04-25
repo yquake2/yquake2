@@ -217,6 +217,87 @@ static const char* fragmentSrc2D = MULTILINE_STRING(#version 150\n
 		}
 );
 
+static const char* fragmentSrc2Dpostprocess = MULTILINE_STRING(#version 150\n
+		in vec2 passTexCoord;
+
+		// for UBO shared between all shaders (incl. 2D)
+		// TODO: not needed here, remove?
+		layout (std140) uniform uniCommon
+		{
+			float gamma;
+			float intensity;
+			float intensity2D; // for HUD, menu etc
+
+			vec4 color;
+		};
+
+		uniform sampler2D tex;
+		uniform vec4 v_blend;
+
+		out vec4 outColor;
+
+		void main()
+		{
+			// no gamma or intensity here, it has been applied before
+			// (this is just for postprocessing)
+			vec4 res = texture(tex, passTexCoord);
+			// apply the v_blend, usually blended as a colored quad with:
+			// glBlendEquation(GL_FUNC_ADD); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			res.rgb = v_blend.a * v_blend.rgb + (1.0 - v_blend.a)*res.rgb;
+			outColor =  res;
+		}
+);
+
+static const char* fragmentSrc2DpostprocessWater = MULTILINE_STRING(#version 150\n
+		in vec2 passTexCoord;
+
+		// for UBO shared between all shaders (incl. 2D)
+		// TODO: not needed here, remove?
+		layout (std140) uniform uniCommon
+		{
+			float gamma;
+			float intensity;
+			float intensity2D; // for HUD, menu etc
+
+			vec4 color;
+		};
+
+		const float PI = 3.14159265358979323846;
+
+		uniform sampler2D tex;
+
+		uniform float time;
+		uniform vec4 v_blend;
+
+		out vec4 outColor;
+
+		void main()
+		{
+			vec2 uv = passTexCoord;
+
+			// warping based on vkquake2
+			// here uv is always between 0 and 1 so ignore all that scrWidth and gl_FragCoord stuff
+			//float sx = pc.scale - abs(pc.scrWidth  / 2.0 - gl_FragCoord.x) * 2.0 / pc.scrWidth;
+			//float sy = pc.scale - abs(pc.scrHeight / 2.0 - gl_FragCoord.y) * 2.0 / pc.scrHeight;
+			float sx = 1.0 - abs(0.5-uv.x)*2.0;
+			float sy = 1.0 - abs(0.5-uv.y)*2.0;
+			float xShift = 2.0 * time + uv.y * PI * 10;
+			float yShift = 2.0 * time + uv.x * PI * 10;
+			vec2 distortion = vec2(sin(xShift) * sx, sin(yShift) * sy) * 0.00666;
+
+			uv += distortion;
+			uv = clamp(uv, vec2(0.0, 0.0), vec2(1.0, 1.0));
+
+			// no gamma or intensity here, it has been applied before
+			// (this is just for postprocessing)
+			vec4 res = texture(tex, uv);
+			// apply the v_blend, usually blended as a colored quad with:
+			// glBlendEquation(GL_FUNC_ADD); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			res.rgb = v_blend.a * v_blend.rgb + (1.0 - v_blend.a)*res.rgb;
+			outColor =  res;
+		}
+);
+
 // 2D color only rendering, GL3_Draw_Fill(), GL3_Draw_FadeScreen()
 static const char* vertexSrc2Dcolor = MULTILINE_STRING(#version 150\n
 
@@ -827,7 +908,8 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 
 	//shaderInfo->uniColor = shaderInfo->uniProjMatrix = shaderInfo->uniModelViewMatrix = -1;
 	shaderInfo->shaderProgram = 0;
-	shaderInfo->uniLmScales = -1;
+	shaderInfo->uniLmScalesOrTime = -1;
+	shaderInfo->uniVblend = -1;
 
 	shaders2D[0] = CompileShader(GL_VERTEX_SHADER, vertSrc, NULL);
 	if(shaders2D[0] == 0)  return false;
@@ -894,6 +976,18 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		goto err_cleanup;
 	}
 
+	shaderInfo->uniLmScalesOrTime = glGetUniformLocation(prog, "time");
+	if(shaderInfo->uniLmScalesOrTime != -1)
+	{
+		glUniform1f(shaderInfo->uniLmScalesOrTime, 0.0f);
+	}
+
+	shaderInfo->uniVblend = glGetUniformLocation(prog, "v_blend");
+	if(shaderInfo->uniVblend != -1)
+	{
+		glUniform4f(shaderInfo->uniVblend, 0, 0, 0, 0);
+	}
+
 	return true;
 
 err_cleanup:
@@ -917,7 +1011,8 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	}
 
 	shaderInfo->shaderProgram = 0;
-	shaderInfo->uniLmScales = -1;
+	shaderInfo->uniLmScalesOrTime = -1;
+	shaderInfo->uniVblend = -1;
 
 	shaders3D[0] = CompileShader(GL_VERTEX_SHADER, vertexCommon3D, vertSrc);
 	if(shaders3D[0] == 0)  return false;
@@ -1017,7 +1112,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	}
 
 	GLint lmScalesLoc = glGetUniformLocation(prog, "lmScales");
-	shaderInfo->uniLmScales = lmScalesLoc;
+	shaderInfo->uniLmScalesOrTime = lmScalesLoc;
 	if(lmScalesLoc != -1)
 	{
 		shaderInfo->lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -1099,6 +1194,17 @@ static qboolean createShaders(void)
 	if(!initShader2D(&gl3state.si2Dcolor, vertexSrc2Dcolor, fragmentSrc2Dcolor))
 	{
 		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program for color-only 2D rendering!\n");
+		return false;
+	}
+
+	if(!initShader2D(&gl3state.si2DpostProcess, vertexSrc2D, fragmentSrc2Dpostprocess))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program to render framebuffer object!\n");
+		return false;
+	}
+	if(!initShader2D(&gl3state.si2DpostProcessWater, vertexSrc2D, fragmentSrc2DpostprocessWater))
+	{
+		R_Printf(PRINT_ALL, "WARNING: Failed to create shader program to render framebuffer object under water!\n");
 		return false;
 	}
 
