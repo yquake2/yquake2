@@ -223,7 +223,7 @@ static const char* fragmentSrc2D = MULTILINE_STRING(
 		}
 );
 
-static const char* fragmentSrc2Dpostprocess = MULTILINE_STRING(#version 150\n
+static const char* fragmentSrc2Dpostprocess = MULTILINE_STRING(
 		in vec2 passTexCoord;
 
 		// for UBO shared between all shaders (incl. 2D)
@@ -254,7 +254,7 @@ static const char* fragmentSrc2Dpostprocess = MULTILINE_STRING(#version 150\n
 		}
 );
 
-static const char* fragmentSrc2DpostprocessWater = MULTILINE_STRING(#version 150\n
+static const char* fragmentSrc2DpostprocessWater = MULTILINE_STRING(
 		in vec2 passTexCoord;
 
 		// for UBO shared between all shaders (incl. 2D)
@@ -287,8 +287,8 @@ static const char* fragmentSrc2DpostprocessWater = MULTILINE_STRING(#version 150
 			//float sy = pc.scale - abs(pc.scrHeight / 2.0 - gl_FragCoord.y) * 2.0 / pc.scrHeight;
 			float sx = 1.0 - abs(0.5-uv.x)*2.0;
 			float sy = 1.0 - abs(0.5-uv.y)*2.0;
-			float xShift = 2.0 * time + uv.y * PI * 10;
-			float yShift = 2.0 * time + uv.x * PI * 10;
+			float xShift = 2.0 * time + uv.y * PI * 10.0;
+			float yShift = 2.0 * time + uv.x * PI * 10.0;
 			vec2 distortion = vec2(sin(xShift) * sx, sin(yShift) * sy) * 0.00666;
 
 			uv += distortion;
@@ -422,7 +422,7 @@ static const char* vertexSrc3Dflow = MULTILINE_STRING(
 
 		void main()
 		{
-			passTexCoord = texCoord + vec2(scroll, 0);
+			passTexCoord = texCoord + vec2(scroll, 0.0);
 			gl_Position = transProjView * transModel * vec4(position, 1.0);
 		}
 );
@@ -461,7 +461,7 @@ static const char* vertexSrc3DlmFlow = MULTILINE_STRING(
 
 		void main()
 		{
-			passTexCoord = texCoord + vec2(scroll, 0);
+			passTexCoord = texCoord + vec2(scroll, 0.0);
 			passLMcoord = lmTexCoord;
 			vec4 worldCoord = transModel * vec4(position, 1.0);
 			passWorldCoord = worldCoord.xyz;
@@ -499,9 +499,9 @@ static const char* fragmentSrc3Dwater = MULTILINE_STRING(
 		void main()
 		{
 			vec2 tc = passTexCoord;
-			tc.s += sin( passTexCoord.t*0.125 + time ) * 4;
+			tc.s += sin( passTexCoord.t*0.125 + time ) * 4.0;
 			tc.s += scroll;
-			tc.t += sin( passTexCoord.s*0.125 + time ) * 4;
+			tc.t += sin( passTexCoord.s*0.125 + time ) * 4.0;
 			tc *= 1.0/64.0; // do this last
 
 			vec4 texel = texture(tex, tc);
@@ -663,7 +663,7 @@ static const char* fragmentSrc3DlmNoColor = MULTILINE_STRING(
 
 					vec3 lightToPos = dynLights[i].lightOrigin - passWorldCoord;
 					float distLightToPos = length(lightToPos);
-					float fact = max(0, intens - distLightToPos - 52);
+					float fact = max(0.0, intens - distLightToPos - 52.0);
 
 					// move the light source a bit further above the surface
 					// => helps if the lightsource is so close to the surface (e.g. grenades, rockets)
@@ -672,7 +672,7 @@ static const char* fragmentSrc3DlmNoColor = MULTILINE_STRING(
 					lightToPos += passNormal*32.0;
 
 					// also factor in angle between light and point on surface
-					fact *= max(0, dot(passNormal, normalize(lightToPos)));
+					fact *= max(0.0, dot(passNormal, normalize(lightToPos)));
 
 
 					lmTex.rgb += dynLights[i].lightColor.rgb * fact * (1.0/256.0);
