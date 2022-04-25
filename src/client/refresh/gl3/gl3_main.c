@@ -965,7 +965,11 @@ GL3_DrawParticles(void)
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
 
-#ifndef YQ2_GL3_GLES
+#ifdef YQ2_GL3_GLES
+		// the RPi4 GLES3 implementation doesn't draw particles if culling is
+		// enabled (at least with GL_FRONT which seems to be default in q2?)
+		glDisable(GL_CULL_FACE);
+#else
 		// GLES doesn't have this, maybe it's always enabled? (https://gamedev.stackexchange.com/a/15528 says it works)
 		// luckily we don't use glPointSize() but set gl_PointSize in shader anyway
 		glEnable(GL_PROGRAM_POINT_SIZE);
@@ -984,7 +988,7 @@ GL3_DrawParticles(void)
 			cur->size = pointSize;
 			cur->dist = VectorLength(offset);
 
-			for(int j=0; j<3; ++j)  cur->color[j] = color[j]/255.0f;
+			for(int j=0; j<3; ++j)  cur->color[j] = color[j]*(1.0f/255.0f);
 
 			cur->color[3] = p->alpha;
 		}
@@ -994,10 +998,12 @@ GL3_DrawParticles(void)
 		glBufferData(GL_ARRAY_BUFFER, sizeof(part_vtx)*numParticles, buf, GL_STREAM_DRAW);
 		glDrawArrays(GL_POINTS, 0, numParticles);
 
-
 		glDisable(GL_BLEND);
 		glDepthMask(GL_TRUE);
-#ifndef YQ2_GL3_GLES
+#ifdef YQ2_GL3_GLES
+		if(gl_cull->value != 0.0f)
+			glEnable(GL_CULL_FACE);
+#else
 		glDisable(GL_PROGRAM_POINT_SIZE);
 #endif
 
