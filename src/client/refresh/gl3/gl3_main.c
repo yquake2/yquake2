@@ -1357,7 +1357,9 @@ SetupGL(void)
 
 	// set up the FBO accordingly, but only if actually rendering the world
 	// (=> don't use FBO when rendering the playermodel in the player menu)
-	if (gl3_usefbo->value && (gl3_newrefdef.rdflags & RDF_NOWORLDMODEL) == 0 && gl3state.ppFBO != 0)
+	// also, only do this when under water, because this has a noticeable overhead on some systems
+	if (gl3_usefbo->value && gl3state.ppFBO != 0
+		&& (gl3_newrefdef.rdflags & (RDF_NOWORLDMODEL|RDF_UNDERWATER)) == RDF_UNDERWATER)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, gl3state.ppFBO);
 		gl3state.ppFBObound = true;
