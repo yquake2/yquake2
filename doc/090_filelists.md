@@ -34,6 +34,7 @@ level.
 # Renderer libraries:
 /ref_gl1.dll
 /ref_gl3.dll
+/ref_gles3.dll
 /ref_soft.dll
 
 # The Executables:
