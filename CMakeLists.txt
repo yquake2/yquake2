@@ -264,7 +264,7 @@ endif()
 
 # With all of those libraries and user defined paths
 # added, lets give them to the compiler and linker.
-include_directories(${yquake2IncludeDirectories} ${CMAKE_SOURCE_DIR}/src/client/refresh/gl3/glad/include)
+include_directories(${yquake2IncludeDirectories})
 link_directories(${yquake2LinkerDirectories})
 
 # If we're building with gcc for i386 let's define -ffloat-store.
@@ -606,7 +606,6 @@ set(GL3-Source
 	${REF_SRC_DIR}/gl3/gl3_shaders.c
 	${REF_SRC_DIR}/gl3/gl3_md2.c
 	${REF_SRC_DIR}/gl3/gl3_sp2.c
-	${REF_SRC_DIR}/gl3/glad/src/glad.c
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
 	${REF_SRC_DIR}/files/wal.c
@@ -615,19 +614,30 @@ set(GL3-Source
 	${COMMON_SRC_DIR}/md4.c
 	)
 
+set(Glad-GL3-Source ${REF_SRC_DIR}/gl3/glad/src/glad.c)
+set(Glad-GLES3-Source ${REF_SRC_DIR}/gl3/glad-gles3/src/glad.c)
+
 set(GL3-Header
 	${REF_SRC_DIR}/ref_shared.h
 	${REF_SRC_DIR}/constants/anorms.h
 	${REF_SRC_DIR}/constants/anormtab.h
 	${REF_SRC_DIR}/constants/warpsin.h
 	${REF_SRC_DIR}/files/stb_image.h
-	${REF_SRC_DIR}/gl3/glad/include/glad/glad.h
-	${REF_SRC_DIR}/gl3/glad/include/KHR/khrplatform.h
 	${REF_SRC_DIR}/gl3/header/DG_dynarr.h
 	${REF_SRC_DIR}/gl3/header/HandmadeMath.h
 	${REF_SRC_DIR}/gl3/header/local.h
 	${REF_SRC_DIR}/gl3/header/model.h
 	${COMMON_SRC_DIR}/header/shared.h
+	)
+
+set(Glad-GL3-Header
+	${REF_SRC_DIR}/gl3/glad/include/glad/glad.h
+	${REF_SRC_DIR}/gl3/glad/include/KHR/khrplatform.h
+	)
+
+set(Glad-GLES3-Header
+	${REF_SRC_DIR}/gl3/glad-gles3/include/glad/glad.h
+	${REF_SRC_DIR}/gl3/glad-gles3/include/KHR/khrplatform.h
 	)
 
 set(SOFT-Source
@@ -750,7 +760,7 @@ set_target_properties(ref_gl1 PROPERTIES
 target_link_libraries(ref_gl1 ${yquake2LinkerFlags} ${yquake2OpenGLLinkerFlags} ${yquake2SDLLinkerFlags})
 
 # Build the GL3 dynamic library
-add_library(ref_gl3 MODULE ${GL3-Source} ${GL3-Header} ${REF-Platform-Specific-Source})
+add_library(ref_gl3 MODULE ${GL3-Source} ${Glad-GL3-Source} ${GL3-Header} ${Glad-GL3-Header} ${REF-Platform-Specific-Source})
 set_target_properties(ref_gl3 PROPERTIES
 		PREFIX ""
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
@@ -758,7 +768,22 @@ set_target_properties(ref_gl3 PROPERTIES
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
 		C_STANDARD 11
 		)
+target_include_directories(ref_gl3 PRIVATE ${CMAKE_SOURCE_DIR}/src/client/refresh/gl3/glad/include)
 target_link_libraries(ref_gl3 ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
+
+# Build the GLES3 dynamic library
+add_library(ref_gles3 MODULE ${GL3-Source} ${Glad-GLES3-Source} ${GL3-Header} ${Glad-GLES3-Header} ${REF-Platform-Specific-Source})
+set_target_properties(ref_gles3 PROPERTIES
+		PREFIX ""
+		#COMPILE_DEFINITIONS "YQ2_GL3_GLES3=1;YQ2_GL3_GLES=1"
+		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
+		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
+		C_STANDARD 11
+		)
+target_include_directories(ref_gles3 PRIVATE ${CMAKE_SOURCE_DIR}/src/client/refresh/gl3/glad-gles3/include)
+target_compile_definitions(ref_gles3 PRIVATE YQ2_GL3_GLES3=1 YQ2_GL3_GLES=1)
+target_link_libraries(ref_gles3 ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
 
 # Build the soft renderer dynamic library
 add_library(ref_soft MODULE ${SOFT-Source} ${SOFT-Header} ${REF-Platform-Specific-Source})
