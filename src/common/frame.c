@@ -81,6 +81,25 @@ char userGivenGame[MAX_QPATH];
 // Hack for the signal handlers.
 qboolean quitnextframe;
 
+static inline void Sys_CpuPause(void)
+{
+#if defined(__GNUC__)
+#if (__i386 || __x86_64__)
+	asm volatile("pause");
+#elif defined(__aarch64__) || (defined(__ARM_ARCH) && __ARM_ARCH >= 7) || defined(__ARM_ARCH_6K__)
+	asm volatile("yield");
+#elif defined(__powerpc__) || defined(__powerpc64__)
+	asm volatile("or 27,27,27");
+#endif
+#elif defined(_MSC_VER)
+#if defined(_M_IX86) || defined(_M_X64)
+	_mm_pause();
+#elif defined(_M_ARM) || defined(_M_ARM64)
+	__yield();
+#endif
+#endif
+}
+
 static void Qcommon_Frame(int usec);
 
 // ----
@@ -156,11 +175,7 @@ Qcommon_Mainloop(void)
 					   enough to reduce power consumption and head
 					   dispersion a lot, it's 95°C against 67°C on
 					   a Kaby Lake laptop. */
-#if defined (__GNUC__) && (__i386 || __x86_64__)
-					asm("pause");
-#elif defined(__aarch64__) || (defined(__ARM_ARCH) && __ARM_ARCH >= 7) || defined(__ARM_ARCH_6K__)
-					asm("yield");
-#endif
+					Sys_CpuPause();
 
 					if (Sys_Microseconds() - spintime >= 5)
 					{
