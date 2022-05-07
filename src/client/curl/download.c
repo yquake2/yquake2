@@ -124,8 +124,10 @@ static int CL_HTTP_CurlProgressCB(void* ptr, CL_Progresstype total /* unused */,
                                          CL_Progresstype uptotal /* unused */, CL_Progresstype upnow /* unused */)
 {
 	dlhandle_t *dl = (dlhandle_t *)ptr;
-	dl->fileDownloadedSize = (size_t)now;
-	Com_DPrintf("CL_HTTP_CurlProgressCB: Downloaded " YQ2_COM_PRIdS "/" YQ2_COM_PRIdS "\n", dl->fileDownloadedSize, dl->fileSize);
+	if (now) {
+		dl->fileDownloadedSize = (size_t)now;
+		Com_DPrintf("CL_HTTP_CurlProgressCB: Downloaded " YQ2_COM_PRIdS "/" YQ2_COM_PRIdS "\n", dl->fileDownloadedSize, dl->fileSize);
+	}
 	return 0;
 }
 
