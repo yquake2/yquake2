@@ -36,8 +36,13 @@ CompileShader(GLenum shaderType, const char* shaderSrc, const char* shaderSrc2)
 {
 	GLuint shader = glCreateShader(shaderType);
 
-	const char* sources[2] = { shaderSrc, shaderSrc2 };
-	int numSources = shaderSrc2 != NULL ? 2 : 1;
+#ifdef YQ2_GL3_GLES3
+	const char* version = "#version 300 es\nprecision mediump float;\n";
+#else // Desktop GL
+	const char* version = "#version 150\n";
+#endif
+	const char* sources[3] = { version, shaderSrc, shaderSrc2 };
+	int numSources = shaderSrc2 != NULL ? 3 : 2;
 
 	glShaderSource(shader, numSources, sources, NULL);
 	glCompileShader(shader);
@@ -69,7 +74,8 @@ CompileShader(GLenum shaderType, const char* shaderSrc, const char* shaderSrc2)
 		{
 			case GL_VERTEX_SHADER:   shaderTypeStr = "Vertex"; break;
 			case GL_FRAGMENT_SHADER: shaderTypeStr = "Fragment"; break;
-			case GL_GEOMETRY_SHADER: shaderTypeStr = "Geometry"; break;
+			// we don't use geometry shaders and GLES3.0 doesn't support them
+			// case GL_GEOMETRY_SHADER: shaderTypeStr = "Geometry"; break;
 			/* not supported in OpenGL3.2 and we're unlikely to need/use them anyway
 			case GL_COMPUTE_SHADER:  shaderTypeStr = "Compute"; break;
 			case GL_TESS_CONTROL_SHADER:    shaderTypeStr = "TessControl"; break;
@@ -163,7 +169,7 @@ CreateShaderProgram(int numShaders, const GLuint* shaders)
 
 // ############## shaders for 2D rendering (HUD, menus, console, videos, ..) #####################
 
-static const char* vertexSrc2D = MULTILINE_STRING(#version 150\n
+static const char* vertexSrc2D = MULTILINE_STRING(
 
 		in vec2 position; // GL3_ATTRIB_POSITION
 		in vec2 texCoord; // GL3_ATTRIB_TEXCOORD
@@ -183,7 +189,7 @@ static const char* vertexSrc2D = MULTILINE_STRING(#version 150\n
 		}
 );
 
-static const char* fragmentSrc2D = MULTILINE_STRING(#version 150\n
+static const char* fragmentSrc2D = MULTILINE_STRING(
 
 		in vec2 passTexCoord;
 
@@ -217,7 +223,7 @@ static const char* fragmentSrc2D = MULTILINE_STRING(#version 150\n
 		}
 );
 
-static const char* fragmentSrc2Dpostprocess = MULTILINE_STRING(#version 150\n
+static const char* fragmentSrc2Dpostprocess = MULTILINE_STRING(
 		in vec2 passTexCoord;
 
 		// for UBO shared between all shaders (incl. 2D)
@@ -248,7 +254,7 @@ static const char* fragmentSrc2Dpostprocess = MULTILINE_STRING(#version 150\n
 		}
 );
 
-static const char* fragmentSrc2DpostprocessWater = MULTILINE_STRING(#version 150\n
+static const char* fragmentSrc2DpostprocessWater = MULTILINE_STRING(
 		in vec2 passTexCoord;
 
 		// for UBO shared between all shaders (incl. 2D)
@@ -281,8 +287,8 @@ static const char* fragmentSrc2DpostprocessWater = MULTILINE_STRING(#version 150
 			//float sy = pc.scale - abs(pc.scrHeight / 2.0 - gl_FragCoord.y) * 2.0 / pc.scrHeight;
 			float sx = 1.0 - abs(0.5-uv.x)*2.0;
 			float sy = 1.0 - abs(0.5-uv.y)*2.0;
-			float xShift = 2.0 * time + uv.y * PI * 10;
-			float yShift = 2.0 * time + uv.x * PI * 10;
+			float xShift = 2.0 * time + uv.y * PI * 10.0;
+			float yShift = 2.0 * time + uv.x * PI * 10.0;
 			vec2 distortion = vec2(sin(xShift) * sx, sin(yShift) * sy) * 0.00666;
 
 			uv += distortion;
@@ -299,7 +305,7 @@ static const char* fragmentSrc2DpostprocessWater = MULTILINE_STRING(#version 150
 );
 
 // 2D color only rendering, GL3_Draw_Fill(), GL3_Draw_FadeScreen()
-static const char* vertexSrc2Dcolor = MULTILINE_STRING(#version 150\n
+static const char* vertexSrc2Dcolor = MULTILINE_STRING(
 
 		in vec2 position; // GL3_ATTRIB_POSITION
 
@@ -315,7 +321,7 @@ static const char* vertexSrc2Dcolor = MULTILINE_STRING(#version 150\n
 		}
 );
 
-static const char* fragmentSrc2Dcolor = MULTILINE_STRING(#version 150\n
+static const char* fragmentSrc2Dcolor = MULTILINE_STRING(
 
 		// for UBO shared between all shaders (incl. 2D)
 		layout (std140) uniform uniCommon
@@ -339,7 +345,7 @@ static const char* fragmentSrc2Dcolor = MULTILINE_STRING(#version 150\n
 
 // ############## shaders for 3D rendering #####################
 
-static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
+static const char* vertexCommon3D = MULTILINE_STRING(
 
 		in vec3 position;   // GL3_ATTRIB_POSITION
 		in vec2 texCoord;   // GL3_ATTRIB_TEXCOORD
@@ -353,8 +359,7 @@ static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
 		// for UBO shared between all 3D shaders
 		layout (std140) uniform uni3D
 		{
-			mat4 transProj;
-			mat4 transView;
+			mat4 transProjView;
 			mat4 transModel;
 
 			float scroll; // for SURF_FLOWING
@@ -368,7 +373,7 @@ static const char* vertexCommon3D = MULTILINE_STRING(#version 150\n
 		};
 );
 
-static const char* fragmentCommon3D = MULTILINE_STRING(#version 150\n
+static const char* fragmentCommon3D = MULTILINE_STRING(
 
 		in vec2 passTexCoord;
 
@@ -382,13 +387,11 @@ static const char* fragmentCommon3D = MULTILINE_STRING(#version 150\n
 			float intensity2D; // for HUD, menus etc
 
 			vec4 color; // really?
-
 		};
 		// for UBO shared between all 3D shaders
 		layout (std140) uniform uni3D
 		{
-			mat4 transProj;
-			mat4 transView;
+			mat4 transProjView;
 			mat4 transModel;
 
 			float scroll; // for SURF_FLOWING
@@ -409,7 +412,7 @@ static const char* vertexSrc3D = MULTILINE_STRING(
 		void main()
 		{
 			passTexCoord = texCoord;
-			gl_Position = transProj * transView * transModel * vec4(position, 1.0);
+			gl_Position = transProjView * transModel * vec4(position, 1.0);
 		}
 );
 
@@ -419,8 +422,8 @@ static const char* vertexSrc3Dflow = MULTILINE_STRING(
 
 		void main()
 		{
-			passTexCoord = texCoord + vec2(scroll, 0);
-			gl_Position = transProj * transView * transModel * vec4(position, 1.0);
+			passTexCoord = texCoord + vec2(scroll, 0.0);
+			gl_Position = transProjView * transModel * vec4(position, 1.0);
 		}
 );
 
@@ -443,7 +446,7 @@ static const char* vertexSrc3Dlm = MULTILINE_STRING(
 			passNormal = normalize(worldNormal.xyz);
 			passLightFlags = lightFlags;
 
-			gl_Position = transProj * transView * worldCoord;
+			gl_Position = transProjView * worldCoord;
 		}
 );
 
@@ -458,7 +461,7 @@ static const char* vertexSrc3DlmFlow = MULTILINE_STRING(
 
 		void main()
 		{
-			passTexCoord = texCoord + vec2(scroll, 0);
+			passTexCoord = texCoord + vec2(scroll, 0.0);
 			passLMcoord = lmTexCoord;
 			vec4 worldCoord = transModel * vec4(position, 1.0);
 			passWorldCoord = worldCoord.xyz;
@@ -466,7 +469,7 @@ static const char* vertexSrc3DlmFlow = MULTILINE_STRING(
 			passNormal = normalize(worldNormal.xyz);
 			passLightFlags = lightFlags;
 
-			gl_Position = transProj * transView * worldCoord;
+			gl_Position = transProjView * worldCoord;
 		}
 );
 
@@ -496,9 +499,9 @@ static const char* fragmentSrc3Dwater = MULTILINE_STRING(
 		void main()
 		{
 			vec2 tc = passTexCoord;
-			tc.s += sin( passTexCoord.t*0.125 + time ) * 4;
+			tc.s += sin( passTexCoord.t*0.125 + time ) * 4.0;
 			tc.s += scroll;
-			tc.t += sin( passTexCoord.s*0.125 + time ) * 4;
+			tc.t += sin( passTexCoord.s*0.125 + time ) * 4.0;
 			tc *= 1.0/64.0; // do this last
 
 			vec4 texel = texture(tex, tc);
@@ -573,7 +576,7 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 
 					vec3 lightToPos = dynLights[i].lightOrigin - passWorldCoord;
 					float distLightToPos = length(lightToPos);
-					float fact = max(0, intens - distLightToPos - 52);
+					float fact = max(0.0, intens - distLightToPos - 52.0);
 
 					// move the light source a bit further above the surface
 					// => helps if the lightsource is so close to the surface (e.g. grenades, rockets)
@@ -582,7 +585,7 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 					lightToPos += passNormal*32.0;
 
 					// also factor in angle between light and point on surface
-					fact *= max(0, dot(passNormal, normalize(lightToPos)));
+					fact *= max(0.0, dot(passNormal, normalize(lightToPos)));
 
 
 					lmTex.rgb += dynLights[i].lightColor.rgb * fact * (1.0/256.0);
@@ -593,7 +596,7 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 			outColor = lmTex*texel;
 			outColor.rgb = pow(outColor.rgb, vec3(gamma)); // apply gamma correction to result
 
-			outColor.a = 1; // lightmaps aren't used with translucent surfaces
+			outColor.a = 1.0; // lightmaps aren't used with translucent surfaces
 		}
 );
 
@@ -660,7 +663,7 @@ static const char* fragmentSrc3DlmNoColor = MULTILINE_STRING(
 
 					vec3 lightToPos = dynLights[i].lightOrigin - passWorldCoord;
 					float distLightToPos = length(lightToPos);
-					float fact = max(0, intens - distLightToPos - 52);
+					float fact = max(0.0, intens - distLightToPos - 52.0);
 
 					// move the light source a bit further above the surface
 					// => helps if the lightsource is so close to the surface (e.g. grenades, rockets)
@@ -669,7 +672,7 @@ static const char* fragmentSrc3DlmNoColor = MULTILINE_STRING(
 					lightToPos += passNormal*32.0;
 
 					// also factor in angle between light and point on surface
-					fact *= max(0, dot(passNormal, normalize(lightToPos)));
+					fact *= max(0.0, dot(passNormal, normalize(lightToPos)));
 
 
 					lmTex.rgb += dynLights[i].lightColor.rgb * fact * (1.0/256.0);
@@ -765,7 +768,7 @@ static const char* vertexSrc3Dwater = MULTILINE_STRING(
 		{
 			passTexCoord = texCoord;
 
-			gl_Position = transProj * transView * transModel * vec4(position, 1.0);
+			gl_Position = transProjView * transModel * vec4(position, 1.0);
 		}
 );
 
@@ -779,7 +782,7 @@ static const char* vertexSrcAlias = MULTILINE_STRING(
 		{
 			passColor = vertColor*overbrightbits;
 			passTexCoord = texCoord;
-			gl_Position = transProj * transView * transModel * vec4(position, 1.0);
+			gl_Position = transProjView* transModel * vec4(position, 1.0);
 		}
 );
 
@@ -832,7 +835,7 @@ static const char* vertexSrcParticles = MULTILINE_STRING(
 		void main()
 		{
 			passColor = vertColor;
-			gl_Position = transProj * transView * transModel * vec4(position, 1.0);
+			gl_Position = transProjView * transModel * vec4(position, 1.0);
 
 			// abusing texCoord for pointSize, pointDist for particles
 			float pointDist = texCoord.y*0.1; // with factor 0.1 it looks good.
@@ -1161,8 +1164,7 @@ static void initUBOs(void)
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(gl3state.uni2DData), &gl3state.uni2DData, GL_DYNAMIC_DRAW);
 
 	// the matrices will be set to something more useful later, before being used
-	gl3state.uni3DData.transProjMat4 = HMM_Mat4();
-	gl3state.uni3DData.transViewMat4 = HMM_Mat4();
+	gl3state.uni3DData.transProjViewMat4 = HMM_Mat4();
 	gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
 	gl3state.uni3DData.scroll = 0.0f;
 	gl3state.uni3DData.time = 0.0f;

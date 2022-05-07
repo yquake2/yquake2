@@ -63,8 +63,8 @@ static menuaction_s s_apply_action;
 
 // --------
 
-// gl1, gl3, vk, soft
-#define MAXRENDERERS 4
+// gl1, gl3, gles3, vk, soft
+#define MAXRENDERERS 5
 
 typedef struct
 {
@@ -92,6 +92,13 @@ Renderer_FillRenderdef(void)
 		numrenderer++;
 		rendererlist[numrenderer].boxstr = "[OpenGL 3.2]";
 		rendererlist[numrenderer].cvarstr = "gl3";
+	}
+
+	if (VID_HasRenderer("gles3"))
+	{
+		numrenderer++;
+		rendererlist[numrenderer].boxstr = "[OpenGL ES3]";
+		rendererlist[numrenderer].cvarstr = "gles3";
 	}
 
 	if (VID_HasRenderer("vk"))

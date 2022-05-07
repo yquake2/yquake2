@@ -217,6 +217,7 @@ CreateSDLWindow(int flags, int w, int h)
 	}
 	else
 	{
+		Com_Printf("Creating window failed: %s\n", SDL_GetError());
 		return false;
 	}
 
@@ -594,7 +595,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	/* Now that we've got a working window print it's mode. */
 	int curdisplay = SDL_GetWindowDisplayIndex(window);
 
-    if (curdisplay < 0) {
+	if (curdisplay < 0) {
 		curdisplay = 0;
 	}
 

@@ -35,8 +35,11 @@
 #define DG_DYNARR_IMPLEMENTATION
 #include "header/DG_dynarr.h"
 
-
-#define REF_VERSION "Yamagi Quake II OpenGL3 Refresher"
+#ifdef YQ2_GL3_GLES3
+  #define REF_VERSION "Yamagi Quake II OpenGL ES3 Refresher"
+#else
+  #define REF_VERSION "Yamagi Quake II OpenGL3 Refresher"
+#endif
 
 refimport_t ri;
 
@@ -961,7 +964,16 @@ GL3_DrawParticles(void)
 
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
+
+#ifdef YQ2_GL3_GLES
+		// the RPi4 GLES3 implementation doesn't draw particles if culling is
+		// enabled (at least with GL_FRONT which seems to be default in q2?)
+		glDisable(GL_CULL_FACE);
+#else
+		// GLES doesn't have this, maybe it's always enabled? (https://gamedev.stackexchange.com/a/15528 says it works)
+		// luckily we don't use glPointSize() but set gl_PointSize in shader anyway
 		glEnable(GL_PROGRAM_POINT_SIZE);
+#endif
 
 		GL3_UseProgram(gl3state.siParticle.shaderProgram);
 
@@ -976,7 +988,7 @@ GL3_DrawParticles(void)
 			cur->size = pointSize;
 			cur->dist = VectorLength(offset);
 
-			for(int j=0; j<3; ++j)  cur->color[j] = color[j]/255.0f;
+			for(int j=0; j<3; ++j)  cur->color[j] = color[j]*(1.0f/255.0f);
 
 			cur->color[3] = p->alpha;
 		}
@@ -986,10 +998,14 @@ GL3_DrawParticles(void)
 		glBufferData(GL_ARRAY_BUFFER, sizeof(part_vtx)*numParticles, buf, GL_STREAM_DRAW);
 		glDrawArrays(GL_POINTS, 0, numParticles);
 
-
 		glDisable(GL_BLEND);
 		glDepthMask(GL_TRUE);
+#ifdef YQ2_GL3_GLES
+		if(gl_cull->value != 0.0f)
+			glEnable(GL_CULL_FACE);
+#else
 		glDisable(GL_PROGRAM_POINT_SIZE);
+#endif
 
 		YQ2_VLAFREE(buf);
 	}
@@ -1306,6 +1322,7 @@ GL3_MYgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zF
 
 	// the following emulates glFrustum(left, right, bottom, top, zNear, zFar)
 	// see https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
+	//  or http://docs.gl/gl2/glFrustum#description (looks better in non-Firefox browsers)
 	A = (right+left)/(right-left);
 	B = (top+bottom)/(top-bottom);
 	C = -(zFar+zNear)/(zFar-zNear);
@@ -1352,8 +1369,6 @@ SetupGL(void)
 		y2 = drawing_left_eye ? (y2 + vid.height) / 2 : (y2 / 2);
 	}
 #endif // 0
-
-
 
 	// set up the FBO accordingly, but only if actually rendering the world
 	// (=> don't use FBO when rendering the playermodel in the player menu)
@@ -1421,7 +1436,7 @@ SetupGL(void)
 	{
 		float screenaspect = (float)gl3_newrefdef.width / gl3_newrefdef.height;
 		float dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
-		gl3state.uni3DData.transProjMat4 = GL3_MYgluPerspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
+		gl3state.projMat3D = GL3_MYgluPerspective(gl3_newrefdef.fov_y, screenaspect, 4, dist);
 	}
 
 	glCullFace(GL_FRONT);
@@ -1430,7 +1445,7 @@ SetupGL(void)
 	{
 		// first put Z axis going up
 		hmm_mat4 viewMat = {{
-			{  0, 0, -1, 0 }, // first *column* (the matrix is colum-major)
+			{  0, 0, -1, 0 }, // first *column* (the matrix is column-major)
 			{ -1, 0,  0, 0 },
 			{  0, 1,  0, 0 },
 			{  0, 0,  0, 1 }
@@ -1445,8 +1460,12 @@ SetupGL(void)
 		hmm_vec3 trans = HMM_Vec3(-gl3_newrefdef.vieworg[0], -gl3_newrefdef.vieworg[1], -gl3_newrefdef.vieworg[2]);
 		viewMat = HMM_MultiplyMat4( viewMat, HMM_Translate(trans) );
 
-		gl3state.uni3DData.transViewMat4 = viewMat;
+		gl3state.viewMat3D = viewMat;
 	}
+
+	// just use one projection-view-matrix (premultiplied here)
+	// so we have one less mat4 multiplication in the 3D shaders
+	gl3state.uni3DData.transProjViewMat4 = HMM_MultiplyMat4(gl3state.projMat3D, gl3state.viewMat3D);
 
 	gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
 
@@ -1859,18 +1878,23 @@ GL3_BeginFrame(float camera_separation)
 	{
 		gl_drawbuffer->modified = false;
 
+
+#ifdef YQ2_GL3_GLES
+		// OpenGL ES3 only supports GL_NONE, GL_BACK and GL_COLOR_ATTACHMENT*
+		// so this doesn't make sense here, see https://docs.gl/es3/glDrawBuffers
+		R_Printf(PRINT_ALL, "NOTE: gl_drawbuffer not supported by OpenGL ES!\n");
+#else // Desktop GL
 		// TODO: stereo stuff
 		//if ((gl3state.camera_separation == 0) || gl3state.stereo_mode != STEREO_MODE_OPENGL)
 		{
+			GLenum drawBuffer = GL_BACK;
 			if (Q_stricmp(gl_drawbuffer->string, "GL_FRONT") == 0)
 			{
-				glDrawBuffer(GL_FRONT);
+				drawBuffer = GL_FRONT;
 			}
-			else
-			{
-				glDrawBuffer(GL_BACK);
-			}
+			glDrawBuffer(drawBuffer);
 		}
+#endif
 	}
 
 	/* texturemode stuff */

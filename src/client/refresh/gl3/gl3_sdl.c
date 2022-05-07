@@ -39,6 +39,7 @@ static qboolean vsyncActive = false;
 
 enum {
 	// Not all GL.h header know about GL_DEBUG_SEVERITY_NOTIFICATION_*.
+	// DG: yes, it's the same value in GLES3.2
 	QGL_DEBUG_SEVERITY_NOTIFICATION = 0x826B
 };
 
@@ -55,17 +56,26 @@ DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei le
 
 	switch (severity)
 	{
-		case QGL_DEBUG_SEVERITY_NOTIFICATION:
-			return;
+#ifdef YQ2_GL3_GLES
+  #define SVRCASE(X, STR)  case GL_DEBUG_SEVERITY_ ## X ## _KHR : severityStr = STR; break;
+#else // Desktop GL
+  #define SVRCASE(X, STR)  case GL_DEBUG_SEVERITY_ ## X ## _ARB : severityStr = STR; break;
+#endif
 
-		case GL_DEBUG_SEVERITY_HIGH_ARB:   severityStr = "Severity: High";   break;
-		case GL_DEBUG_SEVERITY_MEDIUM_ARB: severityStr = "Severity: Medium"; break;
-		case GL_DEBUG_SEVERITY_LOW_ARB:    severityStr = "Severity: Low";    break;
+		case QGL_DEBUG_SEVERITY_NOTIFICATION: return;
+		SVRCASE(HIGH, "Severity: High")
+		SVRCASE(MEDIUM, "Severity: Medium")
+		SVRCASE(LOW, "Severity: Low")
+#undef SVRCASE
 	}
 
 	switch (source)
 	{
-#define SRCCASE(X)  case GL_DEBUG_SOURCE_ ## X ## _ARB: sourceStr = "Source: " #X; break;
+#ifdef YQ2_GL3_GLES
+  #define SRCCASE(X)  case GL_DEBUG_SOURCE_ ## X ## _KHR: sourceStr = "Source: " #X; break;
+#else
+  #define SRCCASE(X)  case GL_DEBUG_SOURCE_ ## X ## _ARB: sourceStr = "Source: " #X; break;
+#endif
 		SRCCASE(API);
 		SRCCASE(WINDOW_SYSTEM);
 		SRCCASE(SHADER_COMPILER);
@@ -77,7 +87,11 @@ DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei le
 
 	switch(type)
 	{
-#define TYPECASE(X)  case GL_DEBUG_TYPE_ ## X ## _ARB: typeStr = "Type: " #X; break;
+#ifdef YQ2_GL3_GLES
+  #define TYPECASE(X)  case GL_DEBUG_TYPE_ ## X ## _KHR: typeStr = "Type: " #X; break;
+#else
+  #define TYPECASE(X)  case GL_DEBUG_TYPE_ ## X ## _ARB: typeStr = "Type: " #X; break;
+#endif
 		TYPECASE(ERROR);
 		TYPECASE(DEPRECATED_BEHAVIOR);
 		TYPECASE(UNDEFINED_BEHAVIOR);
@@ -211,12 +225,22 @@ int GL3_PrepareForWindow(void)
 		gl3config.stencil = false;
 	}
 
+#ifdef YQ2_GL3_GLES3
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else // Desktop GL
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#endif
 
 	// Set GL context flags.
-	int contextFlags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+	int contextFlags = 0;
+
+#ifndef YQ2_GL3_GLES // Desktop GL (at least RPi4 doesn't like this for GLES3)
+	contextFlags |= SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+#endif
 
 	if (gl3_debugcontext && gl3_debugcontext->value)
 	{
@@ -317,13 +341,21 @@ int GL3_InitContext(void* win)
 	GL3_SetVsync();
 
 	// Load GL pointrs through GLAD and check context.
+#ifdef YQ2_GL3_GLES
+	if( !gladLoadGLES2Loader(SDL_GL_GetProcAddress))
+#else // Desktop GL
 	if( !gladLoadGLLoader(SDL_GL_GetProcAddress))
+#endif
 	{
 		R_Printf(PRINT_ALL, "GL3_InitContext(): ERROR: loading OpenGL function pointers failed!\n");
 
 		return false;
 	}
+#ifdef YQ2_GL3_GLES3
+	else if (GLVersion.major < 3)
+#else // Desktop GL
 	else if (GLVersion.major < 3 || (GLVersion.major == 3 && GLVersion.minor < 2))
+#endif
 	{
 		R_Printf(PRINT_ALL, "GL3_InitContext(): ERROR: glad only got GL version %d.%d!\n", GLVersion.major, GLVersion.minor);
 
@@ -334,7 +366,11 @@ int GL3_InitContext(void* win)
 		R_Printf(PRINT_ALL, "Successfully loaded OpenGL function pointers using glad, got version %d.%d!\n", GLVersion.major, GLVersion.minor);
 	}
 
+#ifdef YQ2_GL3_GLES
+	gl3config.debug_output = GLAD_GL_KHR_debug != 0;
+#else // Desktop GL
 	gl3config.debug_output = GLAD_GL_ARB_debug_output != 0;
+#endif
 	gl3config.anisotropic = GLAD_GL_EXT_texture_filter_anisotropic != 0;
 
 	gl3config.major_version = GLVersion.major;
@@ -343,17 +379,25 @@ int GL3_InitContext(void* win)
 	// Debug context setup.
 	if (gl3_debugcontext && gl3_debugcontext->value && gl3config.debug_output)
 	{
-		glDebugMessageCallbackARB(DebugCallback, NULL);
+#ifdef YQ2_GL3_GLES
+		glDebugMessageCallbackKHR(DebugCallback, NULL);
 
 		// Call GL3_DebugCallback() synchronously, i.e. directly when and
 		// where the error happens (so we can get the cause in a backtrace)
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_KHR);
+#else // Desktop GL
+		glDebugMessageCallbackARB(DebugCallback, NULL);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+#endif
 	}
 
 	// Window title - set here so we can display renderer name in it.
 	char title[40] = {0};
-
+#ifdef YQ2_GL3_GLES3
+	snprintf(title, sizeof(title), "Yamagi Quake II %s - OpenGL ES 3.0", YQ2VERSION);
+#else
 	snprintf(title, sizeof(title), "Yamagi Quake II %s - OpenGL 3.2", YQ2VERSION);
+#endif
 	SDL_SetWindowTitle(window, title);
 
 	return true;

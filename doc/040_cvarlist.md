@@ -9,7 +9,7 @@ have been renamed. The prefixes are:
 * `cl_`: Client.
 * `gl_`: Common to all OpenGL renderers.
 * `gl1_`: OpenGL 1.4 renderer.
-* `gl3_`: OpenGL 3.2 renderer.
+* `gl3_`: OpenGL 3.2 and OpenGL ES3 renderers.
 * `ogg_`: Ogg/Vorbis music playback.
 * `r_`: Common to all renderers.
 * `s_`: Sound system.
@@ -349,7 +349,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **vid_renderer**: Selects the renderer library. Possible options are
   `gl1` (the default) for the old OpenGL 1.4 renderer, `gl3` for the
-  OpenGL 3.2 renderer and `soft` for the software renderer.
+  OpenGL 3.2 renderer, `gles3` for the OpenGL ES3 renderer
+  and `soft` for the software renderer.
 
 
 ## Graphics (GL renderers only)
@@ -388,7 +389,7 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   look a bit better (no flickering) by using the stencil buffer.
 
 
-## Graphics (OpenGL 3.2 only)
+## Graphics (OpenGL 3.2 and OpenGL ES3 only)
 
 * **gl3_debugcontext**: Enables the OpenGL 3.2 renderers debug context,
   e.g. prints warnings and errors emitted by the GPU driver.  Not
@@ -422,6 +423,11 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 * **gl3_colorlight**: When set to `0`, the lights and lightmaps are
   colorless (greyscale-only), like in the original soft renderer.
   Default is `1`.
+
+* **gl3_usefbo**: When set to `1` (the default), an OpenGL Framebuffer
+  Object is used to implement a warping underwater-effect (like the
+  software renderer has). Set to `0` to disable this, in case you don't
+  like the effect or it's too slow on your machine.
 
 
 ## Graphics (Software only)

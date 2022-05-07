@@ -34,11 +34,24 @@
   // using system headers for their parsers/indexers but glad for real build
   // (in glad glFoo is just a #define to glad_glFoo or sth, which screws up autocompletion)
   // (you may have to configure your IDE to #define IN_IDE_PARSER, but not for building!)
+#ifdef YQ2_GL3_GLES3
+  #include <GLES3/gl32.h>
+#else // desktop GL3
   #define GL_GLEXT_PROTOTYPES 1
   #include <GL/gl.h>
   #include <GL/glext.h>
+#endif
+
 #else
+
+#ifdef YQ2_GL3_GLES3
+  #include "../glad-gles3/include/glad/glad.h"
+  // yes, this is a bit hacky, but it works :-P
+  #define glDepthRange glDepthRangef
+#else // desktop GL3
   #include "../glad/include/glad/glad.h"
+#endif
+
 #endif
 
 #include "../../ref_shared.h"
@@ -81,10 +94,11 @@ enum {
 	GL3_ATTRIB_LIGHTFLAGS = 5  // uint, each set bit means "dyn light i affects this surface"
 };
 
-// TODO: do we need the following configurable?
-static const int gl3_solid_format = GL_RGB;
+// always using RGBA now, GLES3 on RPi4 doesn't work otherwise
+// and I think all modern GPUs prefer 4byte pixels over 3bytes
+static const int gl3_solid_format = GL_RGBA;
 static const int gl3_alpha_format = GL_RGBA;
-static const int gl3_tex_solid_format = GL_RGB;
+static const int gl3_tex_solid_format = GL_RGBA;
 static const int gl3_tex_alpha_format = GL_RGBA;
 
 extern unsigned gl3_rawpalette[256];
@@ -141,8 +155,7 @@ typedef struct
 
 typedef struct
 {
-	hmm_mat4 transProjMat4;
-	hmm_mat4 transViewMat4;
+	hmm_mat4 transProjViewMat4; // gl3state.projMat3D * gl3state.viewMat3D - so we don't have to do this in the shader
 	hmm_mat4 transModelMat4;
 
 	GLfloat scroll; // for SURF_FLOWING
@@ -255,6 +268,8 @@ typedef struct
 	GLuint uni3DUBO;
 	GLuint uniLightsUBO;
 
+	hmm_mat4 projMat3D;
+	hmm_mat4 viewMat3D;
 } gl3state_t;
 
 extern gl3config_t gl3config;
