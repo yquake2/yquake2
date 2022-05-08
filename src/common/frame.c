@@ -428,10 +428,10 @@ Qcommon_Frame(int usec)
 	int time_after;
 
 	// Target packetframerate.
-	int pfps;
+	float pfps;
 
-	//Target renderframerate.
-	int rfps;
+	// Target renderframerate.
+	float rfps;
 
 	// Time since last packetframe in microsec.
 	static int packetdelta = 1000000;
@@ -553,7 +553,7 @@ Qcommon_Frame(int usec)
 		// use vid_maxfps if it looks like the user really means it to be different from refreshRate
 		if (vid_maxfps->value < refreshrate - 2 )
 		{
-			rfps = (int)vid_maxfps->value;
+			rfps = vid_maxfps->value;
 			// we can't have more packet frames than render frames, so limit pfps to rfps
 			pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
 		}
@@ -574,7 +574,7 @@ Qcommon_Frame(int usec)
 	}
 	else
 	{
-		rfps = (int)vid_maxfps->value;
+		rfps = vid_maxfps->value;
 		// we can't have more packet frames than render frames, so limit pfps to rfps
 		pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
 	}
@@ -586,7 +586,7 @@ Qcommon_Frame(int usec)
 		// packet framerates between about 45 and 90 should be ok,
 		// with other values the game (esp. movement/clipping) can become glitchy
 		// as pfps must be <= rfps, for rfps < 90 just use that as pfps
-		if (rfps < 90)
+		if (rfps < 90.0f)
 		{
 			pfps = rfps;
 		}
