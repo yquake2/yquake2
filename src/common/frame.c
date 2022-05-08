@@ -535,21 +535,38 @@ Qcommon_Frame(int usec)
 	// Calculate target and renderframerate.
 	if (R_IsVSyncActive())
 	{
-		rfps = GLimp_GetRefreshRate();
+		int refreshrate = GLimp_GetRefreshRate();
 
-		if (rfps > vid_maxfps->value)
+		// using refreshRate - 2, because targeting a value slightly below the
+		// (possibly not 100% correctly reported) refreshRate would introduce jittering, so only
+		// use vid_maxfps if it looks like the user really means it to be different from refreshRate
+		if (vid_maxfps->value < refreshrate - 2 )
 		{
 			rfps = (int)vid_maxfps->value;
+			// we can't have more packet frames than render frames, so limit pfps to rfps
+			pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
+		}
+		else // target refresh rate, not vid_maxfps
+		{
+			// if vsync is active, we increase the target framerate a bit for two reasons
+			// 1. On Windows, GLimp_GetFrefreshRate() (or the SDL counterpart, or even
+			//    the underlying WinAPI function) often returns a too small value,
+			//    like 58 or 59 when it's really 59.95 and thus (as integer) should be 60
+			// 2. vsync will throttle us to refreshrate anyway, so there is no harm
+			//    in starting the frame *a bit* earlier, instead of risking starting
+			//    it too late
+			rfps = refreshrate * 1.2f;
+			// we can't have more packet frames than render frames, so limit pfps to rfps
+			// but in this case use tolerance for comparison and assign rfps with tolerance
+			pfps = (cl_maxfps->value < refreshrate - 2) ? cl_maxfps->value : rfps;
 		}
 	}
 	else
 	{
 		rfps = (int)vid_maxfps->value;
+		// we can't have more packet frames than render frames, so limit pfps to rfps
+		pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
 	}
-
-	// we can't have more packet frames than render frames, so limit pfps to rfps
-	pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
-
 
 	// Calculate timings.
 	packetdelta += usec;
@@ -561,34 +578,18 @@ Qcommon_Frame(int usec)
 	{
 		if (cl_async->value)
 		{
-			if (R_IsVSyncActive())
+			// Network frames.
+			if (packetdelta < (1000000.0f / pfps))
 			{
-				// Network frames.
-				if (packetdelta < (0.8 * (1000000.0f / pfps)))
-				{
-					packetframe = false;
-				}
-
-				// Render frames.
-				if (renderdelta < (0.8 * (1000000.0f / rfps)))
-				{
-					renderframe = false;
-				}
+				packetframe = false;
 			}
-			else
+
+			// Render frames.
+			if (renderdelta < (1000000.0f / rfps))
 			{
-				// Network frames.
-				if (packetdelta < (1000000.0f / pfps))
-				{
-					packetframe = false;
-				}
-
-				// Render frames.
-				if (renderdelta < (1000000.0f ) / rfps)
-				{
-					renderframe = false;
-				}
+				renderframe = false;
 			}
+
 			if (!renderframe)
 			{
 				// we must have at least one render frame between two packet frames

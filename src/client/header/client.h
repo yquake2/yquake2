@@ -211,7 +211,7 @@ typedef struct
 	keydest_t	key_dest;
 
 	int			framecount;
-	int			realtime; /* always increasing, no clamping, etc */
+	int			realtime; /* always increasing, no clamping, etc, in MS */
 	float		rframetime; /* seconds since last render frame */
 	float		nframetime; /* network frame time */
 
