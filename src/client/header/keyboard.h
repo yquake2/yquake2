@@ -42,7 +42,7 @@
 
 /*
  * the joystick altselector key is pressed
- * => K_JOYx turns into K_JOYx_ALT
+ * => K_BTN_x turns into K_BTN_x_ALT
  */
 extern qboolean joy_altselector_pressed;
 
@@ -125,98 +125,6 @@ enum QKEYS {
 	K_MWHEELDOWN,
 	K_MWHEELUP,
 
-	K_JOY1,
-	K_JOY2,
-	K_JOY3,
-	K_JOY4,
-	K_JOY5,
-	K_JOY6,
-	K_JOY7,
-	K_JOY8,
-	K_JOY9,
-	K_JOY10,
-	K_JOY11,
-	K_JOY12,
-	K_JOY13,
-	K_JOY14,
-	K_JOY15,
-	K_JOY16,
-	K_JOY17,
-	K_JOY18,
-	K_JOY19,
-	K_JOY20,
-	K_JOY21,
-	K_JOY22,
-	K_JOY23,
-	K_JOY24,
-	K_JOY25,
-	K_JOY26,
-	K_JOY27,
-	K_JOY28,
-	K_JOY29,
-	K_JOY30,
-	K_JOY31,
-	K_JOY32,
-
-	K_HAT_UP,
-	K_HAT_RIGHT,
-	K_HAT_DOWN,
-	K_HAT_LEFT,
-
-	K_TRIG_LEFT,
-	K_TRIG_RIGHT,
-
-	// add other joystick/controller keys before this one
-	// and adjust it accordingly, also remember to add corresponding _ALT key below!
-	K_JOY_LAST_REGULAR = K_TRIG_RIGHT,
-
-	/* Can't be mapped to any action (=> not regular) */
-	K_JOY_BACK,
-
-	K_JOY1_ALT,
-	K_JOY2_ALT,
-	K_JOY3_ALT,
-	K_JOY4_ALT,
-	K_JOY5_ALT,
-	K_JOY6_ALT,
-	K_JOY7_ALT,
-	K_JOY8_ALT,
-	K_JOY9_ALT,
-	K_JOY10_ALT,
-	K_JOY11_ALT,
-	K_JOY12_ALT,
-	K_JOY13_ALT,
-	K_JOY14_ALT,
-	K_JOY15_ALT,
-	K_JOY16_ALT,
-	K_JOY17_ALT,
-	K_JOY18_ALT,
-	K_JOY19_ALT,
-	K_JOY20_ALT,
-	K_JOY21_ALT,
-	K_JOY22_ALT,
-	K_JOY23_ALT,
-	K_JOY24_ALT,
-	K_JOY25_ALT,
-	K_JOY26_ALT,
-	K_JOY27_ALT,
-	K_JOY28_ALT,
-	K_JOY29_ALT,
-	K_JOY30_ALT,
-	K_JOY31_ALT,
-	K_JOY32_ALT,
-
-	K_HAT_UP_ALT,
-	K_HAT_RIGHT_ALT,
-	K_HAT_DOWN_ALT,
-	K_HAT_LEFT_ALT,
-
-	K_TRIG_LEFT_ALT,
-	K_TRIG_RIGHT_ALT,
-
-	// add other joystick/controller keys before this one and adjust it accordingly
-	K_JOY_LAST_REGULAR_ALT = K_TRIG_RIGHT_ALT,
-
 	K_SUPER, // TODO: what is this? SDL doesn't seem to know it..
 	K_COMPOSE,
 	K_MODE,
@@ -295,6 +203,66 @@ enum QKEYS {
 	// have a relevant char there (unlike Brazilian which has quotes there which you
 	// want to be able to type in the console) - the user can't bind this key.
 	K_CONSOLE,
+
+	// Keyboard keys / codes end here. Any new ones should go before this.
+	// From here on, only gamepad controls must be allowed.
+
+	K_BTN_A,
+	K_JOY_FIRST_REGULAR = K_BTN_A,
+	K_BTN_B,
+	K_BTN_X,
+	K_BTN_Y,
+	K_BTN_BACK,
+	K_BTN_GUIDE,
+	K_BTN_START,
+	K_STICK_LEFT,
+	K_STICK_RIGHT,
+	K_SHOULDER_LEFT,
+	K_SHOULDER_RIGHT,
+	K_TRIG_LEFT,
+	K_TRIG_RIGHT,
+	K_DPAD_UP,
+	K_DPAD_DOWN,
+	K_DPAD_LEFT,
+	K_DPAD_RIGHT,
+	K_BTN_MISC1,
+	K_PADDLE_1,
+	K_PADDLE_2,
+	K_PADDLE_3,
+	K_PADDLE_4,
+	K_TOUCHPAD,
+
+	// add other joystick/controller keys before this one
+	// and adjust it accordingly, also remember to add corresponding _ALT key below!
+	K_JOY_LAST_REGULAR = K_TOUCHPAD,
+
+	/* Can't be mapped to any action (=> not regular) */
+	K_JOY_BACK,
+
+	K_BTN_A_ALT,
+	K_JOY_FIRST_REGULAR_ALT = K_BTN_A_ALT,
+	K_BTN_B_ALT,
+	K_BTN_X_ALT,
+	K_BTN_Y_ALT,
+	K_BTN_BACK_ALT,
+	K_BTN_GUIDE_ALT,
+	K_BTN_START_ALT,
+	K_STICK_LEFT_ALT,
+	K_STICK_RIGHT_ALT,
+	K_SHOULDER_LEFT_ALT,
+	K_SHOULDER_RIGHT_ALT,
+	K_TRIG_LEFT_ALT,
+	K_TRIG_RIGHT_ALT,
+	K_DPAD_UP_ALT,
+	K_DPAD_DOWN_ALT,
+	K_DPAD_LEFT_ALT,
+	K_DPAD_RIGHT_ALT,
+	K_BTN_MISC1_ALT,
+	K_PADDLE_1_ALT,
+	K_PADDLE_2_ALT,
+	K_PADDLE_3_ALT,
+	K_PADDLE_4_ALT,
+	K_TOUCHPAD_ALT,
 
 	K_LAST
 };
