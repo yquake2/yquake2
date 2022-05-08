@@ -47,7 +47,6 @@
 // IN_Update() called at the beginning of a frame to the
 // actual movement functions called at a later time.
 static float mouse_x, mouse_y;
-static int back_button_id = -1;
 static int sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
 static float joystick_yaw, joystick_pitch;
 static float joystick_forwardmove, joystick_sidemove;
@@ -58,7 +57,7 @@ static qboolean mlooking;
 // Used throughout the client.
 int sys_frame_time;
 
-// the joystick altselector that turns K_JOYX into K_JOYX_ALT
+// the joystick altselector that turns K_BTN_X into K_BTN_X_ALT
 // is pressed
 qboolean joy_altselector_pressed = false;
 
@@ -95,7 +94,6 @@ struct hapric_effects_cache {
 qboolean show_haptic;
 
 static SDL_Haptic *joystick_haptic = NULL;
-static SDL_Joystick *joystick = NULL;
 static SDL_GameController *controller = NULL;
 
 #define HAPTIC_EFFECT_LIST_SIZE 16
@@ -421,6 +419,45 @@ IN_TranslateScancodeToQ2Key(SDL_Scancode sc)
 	return 0;
 }
 
+static int
+IN_TranslateGamepadBtnToQ2Key(int btn)
+{
+
+#define MY_BTN_CASE(X,Y) case SDL_CONTROLLER_BUTTON_ ## X : return K_ ## Y;
+
+	switch( btn )
+	{
+		// case SDL_CONTROLLER_BUTTON_A : return K_BTN_A;
+		MY_BTN_CASE(A,BTN_A)
+		MY_BTN_CASE(B,BTN_B)
+		MY_BTN_CASE(X,BTN_X)
+		MY_BTN_CASE(Y,BTN_Y)
+		MY_BTN_CASE(LEFTSHOULDER,SHOULDER_LEFT)
+		MY_BTN_CASE(RIGHTSHOULDER,SHOULDER_RIGHT)
+		MY_BTN_CASE(LEFTSTICK,STICK_LEFT)
+		MY_BTN_CASE(RIGHTSTICK,STICK_RIGHT)
+		MY_BTN_CASE(DPAD_UP,DPAD_UP)
+		MY_BTN_CASE(DPAD_DOWN,DPAD_DOWN)
+		MY_BTN_CASE(DPAD_LEFT,DPAD_LEFT)
+		MY_BTN_CASE(DPAD_RIGHT,DPAD_RIGHT)
+#if SDL_VERSION_ATLEAST(2, 0, 14)	// support for newer buttons
+		MY_BTN_CASE(PADDLE1,PADDLE_1)
+		MY_BTN_CASE(PADDLE2,PADDLE_2)
+		MY_BTN_CASE(PADDLE3,PADDLE_3)
+		MY_BTN_CASE(PADDLE4,PADDLE_4)
+		MY_BTN_CASE(MISC1,BTN_MISC1)
+		MY_BTN_CASE(TOUCHPAD,TOUCHPAD)
+#endif
+		MY_BTN_CASE(BACK,BTN_BACK)
+		MY_BTN_CASE(GUIDE,BTN_GUIDE)
+		MY_BTN_CASE(START,BTN_START)
+	}
+
+#undef MY_BTN_CASE
+
+	return 0;
+}
+
 /* ------------------------------------------------------------------ */
 
 /*
@@ -435,7 +472,6 @@ IN_Update(void)
 	SDL_Event event;
 	unsigned int key;
 
-	static char last_hat = SDL_HAT_CENTERED;
 	static qboolean left_trigger = false;
 	static qboolean right_trigger = false;
 
@@ -583,13 +619,22 @@ IN_Update(void)
 				break;
 
 			case SDL_CONTROLLERBUTTONUP:
-			case SDL_CONTROLLERBUTTONDOWN: /* Handle Controller Back button */
+			case SDL_CONTROLLERBUTTONDOWN:
 			{
 				qboolean down = (event.type == SDL_CONTROLLERBUTTONDOWN);
 
+				// Handle Back Button first, to override its original key
 				if (event.cbutton.button == sdl_back_button)
 				{
 					Key_Event(K_JOY_BACK, down, true);
+					break;
+				}
+
+				key = IN_TranslateGamepadBtnToQ2Key(event.cbutton.button);
+				if(key != 0)
+				{
+					Key_Event(key, down, true);
+
 				}
 
 				break;
@@ -722,58 +767,6 @@ IN_Update(void)
 						right_trigger = new_right_trigger;
 						Key_Event(K_TRIG_RIGHT, right_trigger, true);
 					}
-				}
-
-				break;
-			}
-
-			// Joystick can have more buttons than on general game controller
-			// so try to map not free buttons
-			case SDL_JOYBUTTONUP:
-			case SDL_JOYBUTTONDOWN:
-			{
-				qboolean down = (event.type == SDL_JOYBUTTONDOWN);
-
-				// Ignore back button, we don't need event for such button
-				if (back_button_id == event.jbutton.button)
-				{
-					return;
-				}
-
-				if (event.jbutton.button <= (K_JOY32 - K_JOY1))
-				{
-					Key_Event(event.jbutton.button + K_JOY1, down, true);
-				}
-
-				break;
-			}
-
-			case SDL_JOYHATMOTION:
-			{
-				if (last_hat != event.jhat.value)
-				{
-					char diff = last_hat ^event.jhat.value;
-					int i;
-
-					for (i = 0; i < 4; i++)
-					{
-						if (diff & (1 << i))
-						{
-							// check that we have button up for some bit
-							if (last_hat & (1 << i))
-							{
-								Key_Event(i + K_HAT_UP, false, true);
-							}
-
-							/* check that we have button down for some bit */
-							if (event.jhat.value & (1 << i))
-							{
-								Key_Event(i + K_HAT_UP, true, true);
-							}
-						}
-					}
-
-					last_hat = event.jhat.value;
 				}
 
 				break;
@@ -1021,7 +1014,7 @@ IN_Haptic_Effects_Info(void)
 {
 	show_haptic = true;
 
-	Com_Printf ("Joystic/Mouse haptic:\n");
+	Com_Printf ("Joystick/Mouse haptic:\n");
 	Com_Printf (" * %d effects\n", SDL_HapticNumEffects(joystick_haptic));
 	Com_Printf (" * %d effects in same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
 	Com_Printf (" * %d haptic axis\n", SDL_HapticNumAxes(joystick_haptic));
@@ -1196,14 +1189,140 @@ Haptic_Feedback(char *name, int effect_volume, int effect_duration,
 }
 
 /*
+ * Game Controller
+ */
+static void
+IN_Controller_Init(void)
+{
+	cvar_t *in_sdlbackbutton;
+	int nummappings;
+	char controllerdb[MAX_OSPATH] = {0};
+	SDL_Joystick *joystick = NULL;
+	SDL_bool is_controller = SDL_FALSE;
+
+	in_sdlbackbutton = Cvar_Get("in_sdlbackbutton", "0", CVAR_ARCHIVE);
+	if (in_sdlbackbutton)
+	{
+		switch ((int)in_sdlbackbutton->value)
+		{
+			case 1:
+				sdl_back_button = SDL_CONTROLLER_BUTTON_START;
+				break;
+			case 2:
+				sdl_back_button = SDL_CONTROLLER_BUTTON_GUIDE;
+				break;
+			default:
+				sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
+		}
+	}
+
+	if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC))
+	{
+		if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC) == -1)
+		{
+			Com_Printf ("Couldn't init SDL joystick: %s.\n", SDL_GetError ());
+			return;
+		}
+	}
+
+	Com_Printf ("%i joysticks were found.\n", SDL_NumJoysticks());
+
+	if (!SDL_NumJoysticks())
+	{
+		joystick_haptic = SDL_HapticOpenFromMouse();
+
+		if (joystick_haptic == NULL)
+		{
+			Com_Printf("Most likely mouse isn't haptic.\n");
+		}
+		else
+		{
+			IN_Haptic_Effects_Info();
+		}
+
+		return;
+	}
+
+	for (const char* rawPath = FS_GetNextRawPath(NULL); rawPath != NULL; rawPath = FS_GetNextRawPath(rawPath))
+	{
+		snprintf(controllerdb, MAX_OSPATH, "%s/gamecontrollerdb.txt", rawPath);
+		nummappings = SDL_GameControllerAddMappingsFromFile(controllerdb);
+		if (nummappings > 0)
+			Com_Printf ("%d mappings loaded from gamecontrollerdb.txt\n", nummappings);
+	}
+
+	for (int i = 0; i < SDL_NumJoysticks(); i++)
+	{
+		joystick = SDL_JoystickOpen(i);
+		const char* joystick_name = SDL_JoystickName(joystick);
+
+		Com_Printf ("The name of the joystick is '%s'\n", joystick_name);
+		Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
+		Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
+		Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(joystick));
+		Com_Printf ("Number of Hats: %d\n", SDL_JoystickNumHats(joystick));
+
+		is_controller = SDL_IsGameController(i);
+		if (!is_controller)
+		{
+			char joystick_guid[256] = {0};
+
+			SDL_JoystickGUID guid;
+			guid = SDL_JoystickGetDeviceGUID(i);
+
+			SDL_JoystickGetGUIDString(guid, joystick_guid, 255);
+
+			Com_Printf ("To use joystick as game controller please set SDL_GAMECONTROLLERCONFIG:\n");
+			Com_Printf ("e.g.: SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,back:b1,...\n", joystick_guid, joystick_name);
+			Com_Printf ("Or you can put 'gamecontrollerdb.txt' in your game directory.\n");
+		}
+
+		SDL_JoystickClose(joystick);
+		joystick = NULL;
+
+		if (is_controller)
+		{
+			controller = SDL_GameControllerOpen(i);
+
+			Com_Printf ("Controller settings: %s\n", SDL_GameControllerMapping(controller));
+			Com_Printf ("Controller axis: \n");
+			Com_Printf (" * leftx = %s\n", joy_axis_leftx->string);
+			Com_Printf (" * lefty = %s\n", joy_axis_lefty->string);
+			Com_Printf (" * rightx = %s\n", joy_axis_rightx->string);
+			Com_Printf (" * righty = %s\n", joy_axis_righty->string);
+			Com_Printf (" * triggerleft = %s\n", joy_axis_triggerleft->string);
+			Com_Printf (" * triggerright = %s\n", joy_axis_triggerright->string);
+
+			Com_Printf ("Controller thresholds: \n");
+			Com_Printf (" * leftx = %f\n", joy_axis_leftx_threshold->value);
+			Com_Printf (" * lefty = %f\n", joy_axis_lefty_threshold->value);
+			Com_Printf (" * rightx = %f\n", joy_axis_rightx_threshold->value);
+			Com_Printf (" * righty = %f\n", joy_axis_righty_threshold->value);
+			Com_Printf (" * triggerleft = %f\n", joy_axis_triggerleft_threshold->value);
+			Com_Printf (" * triggerright = %f\n", joy_axis_triggerright_threshold->value);
+
+			joystick_haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller));
+
+			if (joystick_haptic == NULL)
+			{
+				Com_Printf("Most likely controller isn't haptic.\n");
+			}
+			else
+			{
+				IN_Haptic_Effects_Info();
+			}
+
+			break;
+		}
+	}
+}
+
+/*
  * Initializes the backend
  */
 void
 IN_Init(void)
 {
-	cvar_t *in_sdlbackbutton;
-	int nummappings;
-	char controllerdb[MAX_OSPATH] = {0};
 	Com_Printf("------- input initialization -------\n");
 
 	mouse_x = mouse_y = 0;
@@ -1246,22 +1365,6 @@ IN_Init(void)
 
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
-	in_sdlbackbutton = Cvar_Get("in_sdlbackbutton", "0", CVAR_ARCHIVE);
-	if (in_sdlbackbutton)
-	{
-		switch ((int)in_sdlbackbutton->value)
-		{
-			case 1:
-				sdl_back_button = SDL_CONTROLLER_BUTTON_START;
-				break;
-			case 2:
-				sdl_back_button = SDL_CONTROLLER_BUTTON_GUIDE;
-				break;
-			default:
-				sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
-		}
-	}
-
 	Cmd_AddCommand("+mlook", IN_MLookDown);
 	Cmd_AddCommand("-mlook", IN_MLookUp);
 
@@ -1270,108 +1373,7 @@ IN_Init(void)
 
 	SDL_StartTextInput();
 
-	/* Joystick init */
-	if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC))
-	{
-		if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC) == -1)
-		{
-			Com_Printf ("Couldn't init SDL joystick: %s.\n", SDL_GetError ());
-		}
-		else
-		{
-			Com_Printf ("%i joysticks were found.\n", SDL_NumJoysticks());
-
-			if (SDL_NumJoysticks() > 0)
-			{
-				for (const char* rawPath = FS_GetNextRawPath(NULL); rawPath != NULL; rawPath = FS_GetNextRawPath(rawPath))
-				{
-					snprintf(controllerdb, MAX_OSPATH, "%s/gamecontrollerdb.txt", rawPath);
-					nummappings = SDL_GameControllerAddMappingsFromFile(controllerdb);
-					if (nummappings > 0)
-						Com_Printf ("%d mappings loaded from gamecontrollerdb.txt\n", nummappings);
-				}
-
-				for (int i = 0; i < SDL_NumJoysticks(); i++) {
-					joystick = SDL_JoystickOpen(i);
-
-					Com_Printf ("The name of the joystick is '%s'\n", SDL_JoystickName(joystick));
-					Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
-					Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
-					Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(joystick));
-					Com_Printf ("Number of Hats: %d\n", SDL_JoystickNumHats(joystick));
-
-					joystick_haptic = SDL_HapticOpenFromJoystick(joystick);
-
-					if (joystick_haptic == NULL)
-					{
-						Com_Printf("Most likely joystick isn't haptic.\n");
-					}
-					else
-					{
-						IN_Haptic_Effects_Info();
-					}
-
-					if(SDL_IsGameController(i))
-					{
-						SDL_GameControllerButtonBind backBind;
-						controller = SDL_GameControllerOpen(i);
-
-						Com_Printf ("Controller settings: %s\n", SDL_GameControllerMapping(controller));
-						Com_Printf ("Controller axis: \n");
-						Com_Printf (" * leftx = %s\n", joy_axis_leftx->string);
-						Com_Printf (" * lefty = %s\n", joy_axis_lefty->string);
-						Com_Printf (" * rightx = %s\n", joy_axis_rightx->string);
-						Com_Printf (" * righty = %s\n", joy_axis_righty->string);
-						Com_Printf (" * triggerleft = %s\n", joy_axis_triggerleft->string);
-						Com_Printf (" * triggerright = %s\n", joy_axis_triggerright->string);
-
-						Com_Printf ("Controller thresholds: \n");
-						Com_Printf (" * leftx = %f\n", joy_axis_leftx_threshold->value);
-						Com_Printf (" * lefty = %f\n", joy_axis_lefty_threshold->value);
-						Com_Printf (" * rightx = %f\n", joy_axis_rightx_threshold->value);
-						Com_Printf (" * righty = %f\n", joy_axis_righty_threshold->value);
-						Com_Printf (" * triggerleft = %f\n", joy_axis_triggerleft_threshold->value);
-						Com_Printf (" * triggerright = %f\n", joy_axis_triggerright_threshold->value);
-
-						backBind = SDL_GameControllerGetBindForButton(controller, sdl_back_button);
-
-						if (backBind.bindType == SDL_CONTROLLER_BINDTYPE_BUTTON)
-						{
-							back_button_id = backBind.value.button;
-							Com_Printf ("\nBack button JOY%d will be unbindable.\n", back_button_id+1);
-						}
-
-						break;
-					}
-					else
-					{
-						char joystick_guid[256] = {0};
-
-						SDL_JoystickGUID guid;
-						guid = SDL_JoystickGetDeviceGUID(i);
-
-						SDL_JoystickGetGUIDString(guid, joystick_guid, 255);
-
-						Com_Printf ("To use joystick as game controller please set SDL_GAMECONTROLLERCONFIG:\n");
-						Com_Printf ("e.g.: SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,back:b1,...\n", joystick_guid, SDL_JoystickName(joystick));
-					}
-				}
-			}
-			else
-			{
-				joystick_haptic = SDL_HapticOpenFromMouse();
-
-				if (joystick_haptic == NULL)
-				{
-					Com_Printf("Most likely mouse isn't haptic.\n");
-				}
-				else
-				{
-					IN_Haptic_Effects_Info();
-				}
-			}
-		}
-	}
+	IN_Controller_Init();
 
 	Com_Printf("------------------------------------\n\n");
 }
@@ -1391,6 +1393,18 @@ IN_Haptic_Shutdown(void)
 	}
 }
 
+static void
+IN_Controller_Shutdown(void)
+{
+	IN_Haptic_Shutdown();
+
+	if (controller)
+	{
+		SDL_GameControllerClose(controller);
+		controller  = NULL;
+	}
+}
+
 void
 IN_Shutdown(void)
 {
@@ -1400,20 +1414,7 @@ IN_Shutdown(void)
 
 	Com_Printf("Shutting down input.\n");
 
-	IN_Haptic_Shutdown();
-
-	if (controller)
-	{
-		back_button_id = -1;
-		SDL_GameControllerClose(controller);
-		controller  = NULL;
-	}
-
-	if (joystick)
-	{
-		SDL_JoystickClose(joystick);
-		joystick = NULL;
-	}
+	IN_Controller_Shutdown();
 
 	const Uint32 subsystems = SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC;
 	if (SDL_WasInit(subsystems) == subsystems)
