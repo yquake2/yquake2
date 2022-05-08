@@ -64,6 +64,7 @@ static void M_Menu_Options_f(void);
 static void M_Menu_Keys_f(void);
 static void M_Menu_Joy_f(void);
 static void M_Menu_ControllerButtons_f(void);
+static void M_Menu_ControllerAltButtons_f(void);
 static void M_Menu_Quit_f(void);
 
 void M_Menu_Credits(void);
@@ -899,6 +900,10 @@ M_UnbindCommand(char *command, int scope)
              break;
         case KEYS_CONTROLLER:
              begin = K_JOY_FIRST_REGULAR;
+             end = K_JOY_LAST_REGULAR + 1;
+             break;
+        case KEYS_CONTROLLER_ALT:
+             begin = K_JOY_FIRST_REGULAR_ALT;
     }
 
     for (j = begin; j < end; j++)
@@ -931,6 +936,10 @@ M_FindKeysForCommand(char *command, int *twokeys, int scope)
              break;
         case KEYS_CONTROLLER:
              begin = K_JOY_FIRST_REGULAR;
+             end = K_JOY_LAST_REGULAR + 1;
+             break;
+        case KEYS_CONTROLLER_ALT:
+             begin = K_JOY_FIRST_REGULAR_ALT;
     }
 
     twokeys[0] = twokeys[1] = -1;
@@ -1419,6 +1428,170 @@ M_Menu_ControllerButtons_f(void)
 }
 
 /*
+ * GAME CONTROLLER ALTERNATE BUTTONS MENU
+ */
+
+char *controller_alt_bindnames[][2] =
+{
+	{"weapnext", "next weapon"},
+	{"weapprev", "previous weapon"},
+	{"cycleweap weapon_chaingun weapon_machinegun weapon_blaster", "long range: quickswitch 1"},
+	{"cycleweap weapon_supershotgun weapon_shotgun", "close range: quickswitch 2"},
+	{"cycleweap weapon_rocketlauncher weapon_grenadelauncher ammo_grenades", "explosives: quickswitch 3"},
+	{"cycleweap weapon_bfg weapon_railgun weapon_hyperblaster", "special: quickswitch 4"},
+	{"prefweap weapon_railgun weapon_hyperblaster weapon_chaingun weapon_supershotgun weapon_machinegun weapon_shotgun weapon_blaster", "best safe weapon"},
+	{"prefweap weapon_bfg weapon_railgun weapon_rocketlauncher weapon_hyperblaster weapon_grenadelauncher weapon_chaingun ammo_grenades weapon_supershotgun", "best unsafe weapon"},
+	{"centerview", "center view"},
+	{"inven", "inventory"},
+	{"invuse", "use item"},
+	{"invdrop", "drop item"},
+	{"invprev", "prev item"},
+	{"invnext", "next item"},
+	{"use invulnerability", "use invulnerability"},
+	{"use rebreather", "use rebreather"},
+	{"use environment suit", "use environment suit"},
+	{"use power shield", "use power shield"},
+	{"use quad damage", "use quad damage"},
+	{"cmd help", "help computer"}
+};
+#define NUM_CONTROLLER_ALT_BINDNAMES (sizeof controller_alt_bindnames / sizeof controller_alt_bindnames[0])
+
+static menuframework_s s_controller_alt_buttons_menu;
+static menuaction_s s_controller_alt_buttons_actions[NUM_CONTROLLER_ALT_BINDNAMES];
+
+static void
+DrawControllerAltButtonBindingFunc(void *self)
+{
+	int keys[2];
+	menuaction_s *a = (menuaction_s *)self;
+	float scale = SCR_GetMenuScale();
+
+	M_FindKeysForCommand(controller_alt_bindnames[a->generic.localdata[0]][0], keys, KEYS_CONTROLLER_ALT);
+
+	if (keys[0] == -1)
+	{
+		Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
+				a->generic.y + a->generic.parent->y, "???");
+	}
+	else
+	{
+		int x;
+		const char *name;
+
+		name = Key_KeynumToString(keys[0]);
+
+		Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
+				a->generic.y + a->generic.parent->y, name);
+
+		x = strlen(name) * 8;
+
+		if (keys[1] != -1)
+		{
+			Menu_DrawString(a->generic.x + a->generic.parent->x + 24 * scale + (x * scale),
+					a->generic.y + a->generic.parent->y, "or");
+			Menu_DrawString(a->generic.x + a->generic.parent->x + 48 * scale + (x * scale),
+					a->generic.y + a->generic.parent->y,
+					Key_KeynumToString(keys[1]));
+		}
+	}
+}
+
+static void
+ControllerAltButtonBindingFunc(void *self)
+{
+	menuaction_s *a = (menuaction_s *)self;
+	int keys[2];
+
+	M_FindKeysForCommand(controller_alt_bindnames[a->generic.localdata[0]][0], keys, KEYS_CONTROLLER_ALT);
+
+	if (keys[1] != -1)
+	{
+		M_UnbindCommand(controller_alt_bindnames[a->generic.localdata[0]][0], KEYS_CONTROLLER_ALT);
+	}
+
+	menukeyitem_bind = true;
+
+	Menu_SetStatusBar(&s_controller_alt_buttons_menu, "press a button for this action");
+}
+
+static void
+ControllerAltButtons_MenuInit(void)
+{
+	int i;
+
+	s_controller_alt_buttons_menu.x = (int)(viddef.width * 0.50f);
+	s_controller_alt_buttons_menu.nitems = 0;
+	s_controller_alt_buttons_menu.cursordraw = KeyCursorDrawFunc;
+
+	for (i = 0; i < NUM_CONTROLLER_ALT_BINDNAMES; i++)
+	{
+		s_controller_alt_buttons_actions[i].generic.type = MTYPE_ACTION;
+		s_controller_alt_buttons_actions[i].generic.flags = QMF_GRAYED;
+		s_controller_alt_buttons_actions[i].generic.x = 0;
+		s_controller_alt_buttons_actions[i].generic.y = (i * 9);
+		s_controller_alt_buttons_actions[i].generic.ownerdraw = DrawControllerAltButtonBindingFunc;
+		s_controller_alt_buttons_actions[i].generic.localdata[0] = i;
+		s_controller_alt_buttons_actions[i].generic.name = controller_alt_bindnames[s_controller_alt_buttons_actions[i].generic.localdata[0]][1];
+
+		Menu_AddItem(&s_controller_alt_buttons_menu, (void *)&s_controller_alt_buttons_actions[i]);
+	}
+
+	Menu_SetStatusBar(&s_controller_alt_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+	Menu_Center(&s_controller_alt_buttons_menu);
+}
+
+static void
+ControllerAltButtons_MenuDraw(void)
+{
+	Menu_AdjustCursor(&s_controller_alt_buttons_menu, 1);
+	Menu_Draw(&s_controller_alt_buttons_menu);
+}
+
+static const char *
+ControllerAltButtons_MenuKey(int key)
+{
+	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_controller_alt_buttons_menu);
+
+	if (menukeyitem_bind)
+	{
+		// Only controller buttons allowed, different from the alt buttons modifier
+		if (key >= K_JOY_FIRST_REGULAR && key != K_JOY_BACK && (keybindings[key] == NULL || strcmp(keybindings[key], "+joyaltselector") != 0))
+		{
+			char cmd[1024];
+			key = key + (K_JOY_FIRST_REGULAR_ALT - K_JOY_FIRST_REGULAR);   // change input to its ALT mode
+
+			Com_sprintf(cmd, sizeof(cmd), "bind \"%s\" \"%s\"\n",
+					Key_KeynumToString(key), controller_alt_bindnames[item->generic.localdata[0]][0]);
+			Cbuf_InsertText(cmd);
+		}
+
+		Menu_SetStatusBar(&s_controller_alt_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+		menukeyitem_bind = false;
+		return menu_out_sound;
+	}
+
+	key = Key_GetMenuKey(key);
+	switch (key)
+	{
+		case K_ENTER:
+			ControllerAltButtonBindingFunc(item);
+			return menu_in_sound;
+		case K_BACKSPACE:
+			M_UnbindCommand(controller_alt_bindnames[item->generic.localdata[0]][0], KEYS_CONTROLLER_ALT);
+			return menu_out_sound;
+		default:
+			return Default_MenuKey(&s_controller_alt_buttons_menu, key);
+	}
+}
+
+static void
+M_Menu_ControllerAltButtons_f(void)
+{
+	ControllerAltButtons_MenuInit();
+	M_PushMenu(ControllerAltButtons_MenuDraw, ControllerAltButtons_MenuKey);
+}
+
+/*
  * JOY MENU
  */
 static menuslider_s s_joy_expo_slider;
@@ -1429,11 +1602,18 @@ static menuslider_s s_joy_sidesensitivity_slider;
 static menuslider_s s_joy_upsensitivity_slider;
 static menuslider_s s_joy_haptic_slider;
 static menuaction_s s_joy_customize_buttons_action;
+static menuaction_s s_joy_customize_alt_buttons_action;
 
 static void
 CustomizeControllerButtonsFunc(void *unused)
 {
     M_Menu_ControllerButtons_f();
+}
+
+static void
+CustomizeControllerAltButtonsFunc(void *unused)
+{
+    M_Menu_ControllerAltButtons_f();
 }
 
 static void
@@ -1583,6 +1763,14 @@ Joy_MenuInit(void)
     s_joy_customize_buttons_action.generic.name = "customize buttons";
     s_joy_customize_buttons_action.generic.callback = CustomizeControllerButtonsFunc;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_customize_buttons_action);
+
+    s_joy_customize_alt_buttons_action.generic.type = MTYPE_ACTION;
+    s_joy_customize_alt_buttons_action.generic.x = 0;
+    s_joy_customize_alt_buttons_action.generic.y = y;
+    y += 10;
+    s_joy_customize_alt_buttons_action.generic.name = "customize alt buttons";
+    s_joy_customize_alt_buttons_action.generic.callback = CustomizeControllerAltButtonsFunc;
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_customize_alt_buttons_action);
 
     Menu_Center(&s_joy_menu);
 }
@@ -5332,6 +5520,7 @@ M_Init(void)
     Cmd_AddCommand("menu_keys", M_Menu_Keys_f);
     Cmd_AddCommand("menu_joy", M_Menu_Joy_f);
     Cmd_AddCommand("menu_buttons", M_Menu_ControllerButtons_f);
+    Cmd_AddCommand("menu_altbuttons", M_Menu_ControllerAltButtons_f);
     Cmd_AddCommand("menu_quit", M_Menu_Quit_f);
 
     /* initialize the server address book cvars (adr0, adr1, ...)

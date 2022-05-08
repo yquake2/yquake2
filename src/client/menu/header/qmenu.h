@@ -48,7 +48,8 @@
 enum {
 	KEYS_ALL	= 0,
 	KEYS_KEYBOARD_MOUSE,
-	KEYS_CONTROLLER
+	KEYS_CONTROLLER,
+	KEYS_CONTROLLER_ALT
 };
 
 typedef struct _tag_menuframework
