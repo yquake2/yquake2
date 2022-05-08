@@ -264,6 +264,12 @@ Key_GetMenuKey(int key)
 		case K_JOY_BACK:
 		case K_BTN_B:
 			return K_ESCAPE;
+
+		case K_BACKSPACE:
+		case K_DEL:
+		case K_KP_DEL:
+		case K_BTN_Y:
+			return K_BACKSPACE;
 	}
 
 	return key;
@@ -885,9 +891,6 @@ static void
 M_UnbindCommand(char *command)
 {
     int j;
-    int l;
-
-    l = strlen(command);
 
     for (j = 0; j < K_LAST; j++)
     {
@@ -899,7 +902,7 @@ M_UnbindCommand(char *command)
             continue;
         }
 
-        if (!strncmp(b, command, l))
+        if (!strcmp(b, command))
         {
             Key_SetBinding(j, "");
         }
@@ -911,10 +914,8 @@ M_FindKeysForCommand(char *command, int *twokeys)
 {
     int count;
     int j;
-    int l;
 
     twokeys[0] = twokeys[1] = -1;
-    l = strlen(command);
     count = 0;
 
     for (j = 0; j < K_LAST; j++)
@@ -927,7 +928,7 @@ M_FindKeysForCommand(char *command, int *twokeys)
             continue;
         }
 
-        if (!strncmp(b, command, l))
+        if (!strcmp(b, command))
         {
             twokeys[count] = j;
             count++;
@@ -1065,15 +1066,13 @@ Keys_MenuKey(int key)
         return menu_out_sound;
     }
 
+    key = Key_GetMenuKey(key);
     switch (key)
     {
-    case K_KP_ENTER:
     case K_ENTER:
         KeyBindingFunc(item);
         return menu_in_sound;
     case K_BACKSPACE: /* delete bindings */
-    case K_DEL: /* delete bindings */
-    case K_KP_DEL:
         M_UnbindCommand(bindnames[item->generic.localdata[0]][0]);
         return menu_out_sound;
     default:
@@ -1216,15 +1215,13 @@ MultiplayerKeys_MenuKey(int key)
         return menu_out_sound;
     }
 
+    key = Key_GetMenuKey(key);
     switch (key)
     {
-    case K_KP_ENTER:
     case K_ENTER:
         MultiplayerKeyBindingFunc(item);
         return menu_in_sound;
     case K_BACKSPACE: /* delete bindings */
-    case K_DEL: /* delete bindings */
-    case K_KP_DEL:
         M_UnbindCommand(multiplayer_key_bindnames[item->generic.localdata[0]][0]);
         return menu_out_sound;
     default:
@@ -2950,8 +2947,6 @@ LoadGame_MenuKey(int key)
         return menu_move_sound;
 
     case K_BACKSPACE:
-    case K_DEL:
-    case K_KP_DEL:
 		if ((item = Menu_ItemAtCursor(m)) != NULL)
 		{
 			if (item->type == MTYPE_ACTION)
@@ -3122,8 +3117,6 @@ SaveGame_MenuKey(int key)
         return menu_move_sound;
 
     case K_BACKSPACE:
-    case K_DEL:
-    case K_KP_DEL:
 		if ((item = Menu_ItemAtCursor(m)) != NULL)
 		{
 			if (item->type == MTYPE_ACTION)
