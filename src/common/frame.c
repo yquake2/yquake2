@@ -562,11 +562,8 @@ Qcommon_Frame(int usec)
 		rfps = (int)vid_maxfps->value;
 	}
 
-	/* The target render frame rate may be too high. The current
-	   scene may be more complex then the previous one and SDL
-	   may give us a 1 or 2 frames too low display refresh rate.
-	   Add a security magin of 5%, e.g. 60fps * 0.95 = 57fps. */
-	pfps = (cl_maxfps->value > (rfps * 0.95)) ? floor(rfps * 0.95) : cl_maxfps->value;
+	// we can't have more packet frames than render frames, so limit pfps to rfps
+	pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
 
 
 	// Calculate timings.
@@ -581,7 +578,7 @@ Qcommon_Frame(int usec)
 		{
 			if (R_IsVSyncActive())
 			{
-				// Netwwork frames.
+				// Network frames.
 				if (packetdelta < (0.8 * (1000000.0f / pfps)))
 				{
 					packetframe = false;
@@ -606,6 +603,12 @@ Qcommon_Frame(int usec)
 				{
 					renderframe = false;
 				}
+			}
+			if (!renderframe)
+			{
+				// we must have at least one render frame between two packet frames
+				// => no packet frame without render frame
+				packetframe = false;
 			}
 		}
 		else
