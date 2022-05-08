@@ -206,6 +206,7 @@ enum QKEYS {
 
 	// Keyboard keys / codes end here. Any new ones should go before this.
 	// From here on, only gamepad controls must be allowed.
+	// Otherwise, separate bindings (keyboard / controller) menu options will not work.
 
 	K_BTN_A,
 	K_JOY_FIRST_REGULAR = K_BTN_A,
