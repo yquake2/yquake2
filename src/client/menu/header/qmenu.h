@@ -45,6 +45,12 @@
 #define QMF_NUMBERSONLY         0x00000004
 #define QMF_HIGHLIGHT_IF_FOCUS  0x00000008
 
+enum {
+	KEYS_ALL	= 0,
+	KEYS_KEYBOARD_MOUSE,
+	KEYS_CONTROLLER
+};
+
 typedef struct _tag_menuframework
 {
 	int x, y;
