@@ -130,6 +130,10 @@ static cvar_t *joy_axis_triggerright_threshold;
 // Joystick haptic
 static cvar_t *joy_haptic_magnitude;
 
+// Support for hot plugging of game controller
+static qboolean first_init = true;
+static int init_delay = 30;
+
 /* ------------------------------------------------------------------ */
 
 /*
@@ -458,6 +462,9 @@ IN_TranslateGamepadBtnToQ2Key(int btn)
 	return 0;
 }
 
+static void IN_Controller_Init(qboolean notify_user);
+static void IN_Controller_Shutdown(qboolean notify_user);
+
 /* ------------------------------------------------------------------ */
 
 /*
@@ -634,7 +641,6 @@ IN_Update(void)
 				if(key != 0)
 				{
 					Key_Event(key, down, true);
-
 				}
 
 				break;
@@ -772,6 +778,25 @@ IN_Update(void)
 				break;
 			}
 
+			case SDL_CONTROLLERDEVICEREMOVED:
+				if (!controller)
+				{
+					break;
+				}
+				if (event.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))) {
+					IN_Controller_Shutdown(true);
+					IN_Controller_Init(false);
+				}
+				break;
+
+			case SDL_JOYDEVICEADDED:
+				if (!controller)
+				{
+					// This should be lower, but some controllers just don't want to get detected by the OS
+					init_delay = 100;
+				}
+				break;
+
 			case SDL_QUIT:
 				Com_Quit();
 				break;
@@ -796,6 +821,26 @@ IN_Update(void)
 	// We need to save the frame time so other subsystems
 	// know the exact time of the last input events.
 	sys_frame_time = Sys_Milliseconds();
+
+	// Hot plugging delay handling, to not be "overwhelmed" because some controllers
+	// present themselves as two different devices, triggering SDL_JOYDEVICEADDED
+	// too many times. They could trigger it even at game initialization.
+	if (init_delay)
+	{
+		init_delay--;
+		if (!init_delay)
+		{
+			if (!first_init)
+			{
+				IN_Controller_Shutdown(false);
+				IN_Controller_Init(true);
+			}
+			else
+			{
+				first_init = false;
+			}
+		}
+	}
 }
 
 /*
@@ -1192,7 +1237,7 @@ Haptic_Feedback(char *name, int effect_volume, int effect_duration,
  * Game Controller
  */
 static void
-IN_Controller_Init(void)
+IN_Controller_Init(qboolean notify_user)
 {
 	cvar_t *in_sdlbackbutton;
 	int nummappings;
@@ -1214,6 +1259,11 @@ IN_Controller_Init(void)
 			default:
 				sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
 		}
+	}
+
+	if (notify_user)
+	{
+		Com_Printf("- Game Controller init attempt -\n");
 	}
 
 	if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC))
@@ -1255,8 +1305,19 @@ IN_Controller_Init(void)
 	{
 		joystick = SDL_JoystickOpen(i);
 		const char* joystick_name = SDL_JoystickName(joystick);
+		const int name_len = strlen(joystick_name);
 
 		Com_Printf ("The name of the joystick is '%s'\n", joystick_name);
+
+		// Ugly hack to detect IMU-only devices - works for Switch Pro Controller at least
+		if (name_len > 4 && !strncmp(joystick_name + name_len - 4, " IMU", 4))
+		{
+			Com_Printf ("Skipping IMU device.\n");
+			SDL_JoystickClose(joystick);
+			joystick = NULL;
+			continue;
+		}
+
 		Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
 		Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
 		Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(joystick));
@@ -1373,7 +1434,7 @@ IN_Init(void)
 
 	SDL_StartTextInput();
 
-	IN_Controller_Init();
+	IN_Controller_Init(false);
 
 	Com_Printf("------------------------------------\n\n");
 }
@@ -1394,8 +1455,13 @@ IN_Haptic_Shutdown(void)
 }
 
 static void
-IN_Controller_Shutdown(void)
+IN_Controller_Shutdown(qboolean notify_user)
 {
+	if (notify_user)
+	{
+		Com_Printf("- Game Controller disconnected -\n");
+	}
+
 	IN_Haptic_Shutdown();
 
 	if (controller)
@@ -1414,7 +1480,7 @@ IN_Shutdown(void)
 
 	Com_Printf("Shutting down input.\n");
 
-	IN_Controller_Shutdown();
+	IN_Controller_Shutdown(false);
 
 	const Uint32 subsystems = SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC;
 	if (SDL_WasInit(subsystems) == subsystems)
