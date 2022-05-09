@@ -602,7 +602,6 @@ Qcommon_Frame(int usec)
 			   - etc, the higher the rfps, the closer the pfps-range will be to 60
 			     (and you probably get the very best results by running at a
 			      render framerate that's a multiple of 60) */
-			// TODO: what happens if we can't reach rfps? probably a suboptimal pfps?
 			float div = round(rfps/60);
 			pfps = rfps/div;
 		}
@@ -618,22 +617,23 @@ Qcommon_Frame(int usec)
 	{
 		if (cl_async->value)
 		{
-			// Network frames.
-			if (packetdelta < (1000000.0f / pfps))
-			{
-				packetframe = false;
-			}
-
 			// Render frames.
 			if (renderdelta < (1000000.0f / rfps))
 			{
 				renderframe = false;
 			}
 
-			if (!renderframe)
+			// Network frames.
+			float packettargetdelta = 1000000.0f / pfps;
+			// "packetdelta + renderdelta/2 >= packettargetdelta" if now we're
+			// closer to when we want to run the next packetframe than we'd
+			// (probably) be after the next render frame
+			// also, we only run packetframes together with renderframes,
+			// because we must have at least one render frame between two packet frames
+			// TODO: does it make sense to use the average renderdelta of the last X frames
+			//       instead of just the last renderdelta?
+			if (!renderframe || packetdelta + renderdelta/2 < packettargetdelta)
 			{
-				// we must have at least one render frame between two packet frames
-				// => no packet frame without render frame
 				packetframe = false;
 			}
 		}
