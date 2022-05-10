@@ -57,22 +57,44 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   time for the next frame. The later is more CPU friendly but rather
   inaccurate, especially on Windows. Use with care.
 
-* **cl_async**: If set to `1` (the default) the client is asynchronous.
-  The client framerate is fixed, the renderer framerate is variable.
-  This makes it possible to renderer as many frames as desired without
-  any physics and movement problems. The client framerate is controlled
-  by *cl_maxfps*, set to `60` by default. The renderer framerate is
-  controlled by *vid_maxfps*. There are two constraints:
+* **cl_maxfps**: The approximate framerate for client/server ("packet")
+  frames if *cl_async* is `1`. If set to `-1` (the default), the engine
+  will choose a packet framerate appropriate for the render framerate.  
+  See `cl_async` for more information.
 
-  * *vid_maxfps* must be the same or greater than *cl_maxfps*.
-  * In case that the vsync is active, *vid_maxfps* must not be lower
-	than the display refresh rate.
-
-  Both constraints are enforced.
-
-  If *cl_async* is set to `0` *vid_maxfps* is the same as *cl_maxfps*,
-  use *cl_maxfps* to set the framerate.
-
+* **cl_async**: Run render frames independently of client/server frames.  
+  If set to `0`, client, server (gamecode) and the renderer run synchronous,
+  (like Quake2 originally did) which means that for every rendered frame
+  a client- and server-frame is executed, which includes the gamecode and
+  physics/movement-simulation etc. At higher framerates (above 95 or so)
+  this leads to movement bugs, like being able to jump higher than expected
+  (kind of like the infamous Quake 3 125Hz bug).  
+  For `cl_async 0`, *vid_maxfps* (or, if vsync is enabled, the display
+  refresh rate) is used and *cl_maxfps* is ignored.
+  
+  If *cl_async* is set to `1` (the default) the client is asynchronous,
+  which means that there can be multiple render frames between client-
+  and server-frames. This makes it possible to renderer as many frames
+  as desired without physics and movement problems. 
+  The client framerate is controlled by *cl_maxfps*,
+  the renderer framerate is controlled by *vid_maxfps*.  
+  
+  As client/server frames ("packet frames") are only run together with
+  a render frame, the *real* client/server framerate is always rounded to
+  a fraction of the renderframerate that's closest to *cl_maxfps*.  
+  So if for example *vid_maxfps* is `60` and *cl_maxfps* is `50`, it will
+  be rounded to `60` and every renderframe is also a packet frame.  
+  If *vid_maxfps* is `60` and *cl_maxfps* is `40`, it will be rounded to
+  `30` and every second render frame is also a packet frame.
+  
+  It seems like the best working packet framerate is `60` (which means that
+  the render framerate should be a multiple of that), otherwise values
+  between `45` and `90` seem to work ok, lower and higher values can lead
+  to buggy movement, jittering and other issues.  
+  Setting *cl_maxfps* to `-1` (the default since 8.02) will automatically
+  choose a packet framerate that's *both* a fraction of *vid_maxfps*
+  (or display refreshrate if vsync is on) *and* between 45 and 90.
+  
 * **cl_http_downloads**: Allow HTTP download. Set to `1` by default, set
   to `0` to disable.
 
@@ -340,12 +362,11 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   It's recommended to use the displays native resolution with the
   fullscreen window, use `r_mode -2` to switch to it.
 
-* **vid_maxfps**: The maximum framerate, if `cl_async` is `1`. Otherwise
-  `cl_maxfps` is used as maximum framerate. See `cl_async` description
-  above for more information.  *Note* that vsync (`r_vsync`) also
-  restricts the framerate to the monitor refresh rate, so if vsync is
-  enabled, the game won't render more than frame than the display can
-  show.
+* **vid_maxfps**: The maximum framerate. *Note* that vsync (`r_vsync`) 
+  also restricts the framerate to the monitor refresh rate, so if vsync
+  is enabled, the game won't render more than frame than the display can
+  show. Defaults to `300`.  
+  Related to this: *cl_maxfps* and *cl_async*.
 
 * **vid_renderer**: Selects the renderer library. Possible options are
   `gl1` (the default) for the old OpenGL 1.4 renderer, `gl3` for the
