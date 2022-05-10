@@ -342,7 +342,7 @@ Qcommon_Init(int argc, char **argv)
 
 	// cvars
 
-	cl_maxfps = Cvar_Get("cl_maxfps", "60", CVAR_ARCHIVE);
+	cl_maxfps = Cvar_Get("cl_maxfps", "-1", CVAR_ARCHIVE);
 
 	developer = Cvar_Get("developer", "0", 0);
 	fixedtime = Cvar_Get("fixedtime", "0", 0);
@@ -428,10 +428,10 @@ Qcommon_Frame(int usec)
 	int time_after;
 
 	// Target packetframerate.
-	int pfps;
+	float pfps;
 
-	//Target renderframerate.
-	int rfps;
+	// Target renderframerate.
+	float rfps;
 
 	// Time since last packetframe in microsec.
 	static int packetdelta = 1000000;
@@ -542,32 +542,70 @@ Qcommon_Frame(int usec)
 	{
 		Cvar_SetValue("cl_maxfps", 250);
 	}
-	else if (cl_maxfps->value < 1)
-	{
-		Cvar_SetValue("cl_maxfps", 60);
-	}
 
 	// Calculate target and renderframerate.
 	if (R_IsVSyncActive())
 	{
-		rfps = GLimp_GetRefreshRate();
+		int refreshrate = GLimp_GetRefreshRate();
 
-		if (rfps > vid_maxfps->value)
+		// using refreshRate - 2, because targeting a value slightly below the
+		// (possibly not 100% correctly reported) refreshRate would introduce jittering, so only
+		// use vid_maxfps if it looks like the user really means it to be different from refreshRate
+		if (vid_maxfps->value < refreshrate - 2 )
 		{
-			rfps = (int)vid_maxfps->value;
+			rfps = vid_maxfps->value;
+			// we can't have more packet frames than render frames, so limit pfps to rfps
+			pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
+		}
+		else // target refresh rate, not vid_maxfps
+		{
+			/* if vsync is active, we increase the target framerate a bit for two reasons
+			   1. On Windows, GLimp_GetFrefreshRate() (or the SDL counterpart, or even
+			      the underlying WinAPI function) often returns a too small value,
+			      like 58 or 59 when it's really 59.95 and thus (as integer) should be 60
+			   2. vsync will throttle us to refreshrate anyway, so there is no harm
+			      in starting the frame *a bit* earlier, instead of risking starting
+			      it too late */
+			rfps = refreshrate * 1.2f;
+			// we can't have more packet frames than render frames, so limit pfps to rfps
+			// but in this case use tolerance for comparison and assign rfps with tolerance
+			pfps = (cl_maxfps->value < refreshrate - 2) ? cl_maxfps->value : rfps;
 		}
 	}
 	else
 	{
-		rfps = (int)vid_maxfps->value;
+		rfps = vid_maxfps->value;
+		// we can't have more packet frames than render frames, so limit pfps to rfps
+		pfps = (cl_maxfps->value > rfps) ? rfps : cl_maxfps->value;
 	}
 
-	/* The target render frame rate may be too high. The current
-	   scene may be more complex then the previous one and SDL
-	   may give us a 1 or 2 frames too low display refresh rate.
-	   Add a security magin of 5%, e.g. 60fps * 0.95 = 57fps. */
-	pfps = (cl_maxfps->value > (rfps * 0.95)) ? floor(rfps * 0.95) : cl_maxfps->value;
-
+	// cl_maxfps <= 0 means: automatically choose a packet framerate that should work
+	// well with the render framerate, which is the case if rfps is a multiple of pfps
+	if (cl_maxfps->value <= 0.0f && cl_async->value != 0.0f)
+	{
+		// packet framerates between about 45 and 90 should be ok,
+		// with other values the game (esp. movement/clipping) can become glitchy
+		// as pfps must be <= rfps, for rfps < 90 just use that as pfps
+		if (rfps < 90.0f)
+		{
+			pfps = rfps;
+		}
+		else
+		{
+			/* we want an integer divider, so every div-th renderframe is a packetframe.
+			   this formula gives nice dividers that keep pfps as close as possible
+			   to 60 (which seems to be ideal):
+			   - for < 150 rfps div will be 2, so pfps will be between 45 and ~75
+			     => exactly every second renderframe we also run a packetframe
+			   - for < 210 rfps div will be 3, so pfps will be between 50 and ~70
+			     => exactly every third renderframe we also run a packetframe
+			   - etc, the higher the rfps, the closer the pfps-range will be to 60
+			     (and you probably get the very best results by running at a
+			      render framerate that's a multiple of 60) */
+			float div = round(rfps/60);
+			pfps = rfps/div;
+		}
+	}
 
 	// Calculate timings.
 	packetdelta += usec;
@@ -579,33 +617,24 @@ Qcommon_Frame(int usec)
 	{
 		if (cl_async->value)
 		{
-			if (R_IsVSyncActive())
+			// Render frames.
+			if (renderdelta < (1000000.0f / rfps))
 			{
-				// Netwwork frames.
-				if (packetdelta < (0.8 * (1000000.0f / pfps)))
-				{
-					packetframe = false;
-				}
-
-				// Render frames.
-				if (renderdelta < (0.8 * (1000000.0f / rfps)))
-				{
-					renderframe = false;
-				}
+				renderframe = false;
 			}
-			else
-			{
-				// Network frames.
-				if (packetdelta < (1000000.0f / pfps))
-				{
-					packetframe = false;
-				}
 
-				// Render frames.
-				if (renderdelta < (1000000.0f ) / rfps)
-				{
-					renderframe = false;
-				}
+			// Network frames.
+			float packettargetdelta = 1000000.0f / pfps;
+			// "packetdelta + renderdelta/2 >= packettargetdelta" if now we're
+			// closer to when we want to run the next packetframe than we'd
+			// (probably) be after the next render frame
+			// also, we only run packetframes together with renderframes,
+			// because we must have at least one render frame between two packet frames
+			// TODO: does it make sense to use the average renderdelta of the last X frames
+			//       instead of just the last renderdelta?
+			if (!renderframe || packetdelta + renderdelta/2 < packettargetdelta)
+			{
+				packetframe = false;
 			}
 		}
 		else
