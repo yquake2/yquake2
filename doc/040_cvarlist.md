@@ -54,8 +54,8 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   is a very accurate way to determine the internal timing, but comes with
   a relatively high CPU usage. If set to `0` Quake II lays itself to
   sleep and tells the operating system to send a wakeup signal when it's
-  time for the next frame. The later is more CPU friendly but rather
-  inaccurate, especially on Windows. Use with care.
+  time for the next frame. The latter is more CPU friendly but can be
+  rather inaccurate, especially on Windows. Use with care.
 
 * **cl_maxfps**: The approximate framerate for client/server ("packet")
   frames if *cl_async* is `1`. If set to `-1` (the default), the engine
