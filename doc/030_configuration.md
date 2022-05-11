@@ -73,9 +73,9 @@ If your computer is **fast enough** to reach at least 60fps in Yamagi Quake II
 the following settings should give you the best results:
 
 * Make sure that `busywait` is set to `1`. That's the default. Setting
-  it to `0` saves some CPU time but is plain deadly for the timings.
-  You'll never get precise timing and tearing- and / or micro stuttering
-  free gameplay with busy waits switched off!
+  it to `0` saves some CPU time (and thus increase battery life and
+  reduce heat), but can mess up the timings, especially on Windows,
+  which can lead to tearing- and / or micro stuttering.
 * Set `cl_async` to `1` (the default) to avoid glitches especially in
   physics/movement when rendering at high framerates (>90fps).
 * `cl_maxfps` should usually be set to `-1` (the **new** default) so
