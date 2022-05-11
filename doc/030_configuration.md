@@ -60,99 +60,49 @@ the default settings are usually good, some players may want to tune for
 more precise timing or better vertical synchronization accuracy.
 
 Quake II was never meant to run on todays hardware. Modern hardware is
-hundred times faster than the hardware of 1997. With faster hardware
-inaccuracies scattered all over the code become visible and a problem.
-We're unable to fix those inaccuracies, because the game data, the
+hundred times faster than the hardware of 1997. Faster hardware brings
+higher framerates, which make inaccuracies scattered all over the code
+visible and a problem.
+We're unable to fix all those inaccuracies, because the game data, the
 network protocol and the whole look and feel depends on them. We can
 just try work around them.
 
-Additionally modern high resolution LCD displays are much more prone to
-tearing and missed frames than the low resolution CRT displays of the
-late 1990th. This is a big problem, because precise timings and keeping
-the frame rate constant are at least partly mutual exclusive. So players
-have the choice:
-
-* Keep an accurate frame rate, rendering exactly as many frames as the
-  display can show. For example on a common 59.95hz display the game
-  should try to render about 60 frames per second and rely on vertical
-  synchronization (vsync) to slow itself down to 59.95 frames per
-  second. With this approach tearing and missed frames (perceivable as
-  micro stuttering) are minimized, but on the other hand the timings may
-  be a little bit off.
-* Keep precise timings and the cost of a less accurate frame rate. With
-  this approach the timings are optimal, e.g. movement like strafejumps
-  and the clipping against walls are a precise as possible. But the
-  frame rate may be a little off, leading to slight tearing and missed
-  frames.
-
-The first approach is the default. To switch over to precise timing the
-following console variables must be altered. There's no need to alter
-all of them for good results, it depends on the display, the hardware,
-the GPU driver and the preferences of the player.
+If your computer is **fast enough** to reach at least 60fps in Yamagi Quake II
+(this should be the case for most machines these days, including Laptops
+ with integrated GPUs; a notable exception are Raspberry PIs),
+the following settings should give you the best results:
 
 * Make sure that `busywait` is set to `1`. That's the default. Setting
   it to `0` saves some CPU time but is plain deadly for the timings.
   You'll never get precise timing and tearing- and / or micro stuttering
   free gameplay with busy waits switched off!
-* `r_vsync` can be set to `0`. Enabling the  vertical synchronization
-  allows the GPU driver to wait for the display, thus "stealing" time
-  from Yamagi Quake II. This stolen time may add some variance to the
-  internal timing. Disabling vertical synchronization will always cause
-  tearing!
-* `cl_maxfps` must be set to a value lower than the renderer frame rate.
-  With `r_vsync` set to 1 that's the display refresh rate and otherwise
-  the value of `vid_maxfps`. Yamagi Quake II enforces this restriction
-  with an margin of 5%. For example, if `r_vsync` is set to 1 on an 60hz
-  display 60 * 0.95 = 57 FPS. If `cl_maxfps` is set too high (above 90)
-  the infamous 125hz bug will trigger and the physics will be off. That
-  may be desired.
-* `vid_displayrefreshrate` must be set to the framerate of the display.
-  The default is `-1` which means autodetect. In most cases that's okay,
-  but for precise timings it's a good idea to override the autodetected
-  value and set the display refresh rate by hand. The displays EDID info
-  or the GPU driver may be lying. Only full numbers can be given, e.g.
-  59 or 60 for a 59.95hz display. If round up there's a small risk for
-  imprecise timing. If round down micro stuttering may occure.
-* When running with vertical synchronisation enabled, `vid_maxfps` can
-  be set to any value higher than the display refresh rate. If the
-  vertical synchronisation is disabled `vid_maxfps` should be set to the
-  desired target frame rate.
+* Set `cl_async` to `1` (the default) to avoid glitches especially in
+  physics/movement when rendering at high framerates (>90fps).
+* `cl_maxfps` should usually be set to `-1` (the **new** default) so
+  the engine can choose a packet framerate that should be ideal.
+* If your display's refreshrate isn't detected correctly, set
+  `vid_displayrefreshrate`.
+* If your display has a vertical refreshrate of 60Hz, just enable vsync
+  (`r_vsync 1`) and make sure `vid_maxfps` is at least `60`, which
+  by default is the case.
+* If you have a display that runs at more than 60Hz, enabling vsync should
+  still make the game run well, but you get best results by running it at
+  a render framerate that's a multiple of 60fps, for example by setting
+  `vid_maxfps` to `120` (for 144Hz displays).
+* If you have vsync disabled, you should set `vid_maxfps` to a framerate
+  that your computer can reach.
 
-Putting it all together we come up with three so to say standard
-configurations that can be used as a baseline for experiments. For
-a 60hz display:
+For **slower machines** (that can't consistently reach 60fps) it makes
+sense to disable the asynchronous client all together by setting
+`cl_async` to `0` and limiting the framerate to a value <= 90, to avoid
+the aforementioned glitches in parts of the game where your machine
+reaches more than 90fps after all.  
+This is done by setting `vid_maxfps` (to `80`, for example). 
+`cl_maxfps` is ignored with `cl_async 0`, and every render frame is
+also a client/server frame.
 
-* Precise frame rate and slightly imprecise timings:
-  * `busywait` set to `1`.
-  * `r_vsync` set to `1`.
-  * `cl_maxfps` set to `60`.
-  * `vid_displayrefreshrate` set to `-1`.
-  * `vid_maxfps` set to `300`.
-* Somewhat precise timing and some micro stuttering:
-  * `busywait` set to `1`.
-  * `r_vsync` set to `1`.
-  * `cl_maxfps` set to `60`.
-  * `vid_displayrefreshrate` set to the displays refresh rate minus 1.
-  * `vid_maxfps` set to `300`.
-* Precise timing at the cost of tearing:
-  * `busywait` set to `1`.
-  * `r_vsync` set to `0`.
-  * `cl_maxfps` set to `60`.
-  * `vid_displayrefreshrate` set to the displays refresh rate plus 1.
-  * `vid_maxfps` set to the desired frame rate.
-
-And there's always the option to disable the asynchronous client all
-together by setting `cl_async` to `0`. In that case `cl_maxfps` and
-`vid_maxfps` are tied together, just like with the original client each
-renderframe is also a clientframe. With that both precise timings and
-tearing / micro stuttering free rendering can be archieved by setting
-`cl_maxfps` to a value higher then the displays refresh rate and
-activating the vertical synrchonization by setting `r_vsync` to `1`.
-But if `cl_maxfps` is set too high (about 90) second the 125hz bug will
-trigger and the physics will be off. Additionally it will flood servers
-with packages, at least one package per frame. That may be considered
-abuse.
-
+The [cl_async entry in the cvar documentation](040_cvarlist.md#general)
+has some more information on the asynchronous client.
 
 ## Getting a classic look and feel
 
