@@ -753,12 +753,12 @@ M_Menu_Main_f(void)
 
     InitMainMenu();
 
-    /* force first available item to have focus */
+    // force first available item to have focus 
     while (s_main.cursor >= 0 && s_main.cursor < s_main.nitems) {
 
         item = ( menucommon_s * )s_main.items[s_main.cursor];
         
-        if ((item->flags & ( QMF_GRAYED ))) {
+        if ((item->flags & (QMF_GRAYED))) {
             s_main.cursor++;
         } else {
             break;
@@ -5177,7 +5177,7 @@ M_Init(void)
         Cvar_Get(buffer, "", CVAR_ARCHIVE);
     }
 
-    /* cache the spinning logo width */
+    // cache the spinning logo width 
     Draw_GetPicSize(&w, &h, "m_cursor0");
     m_cursor_width = w;
 }

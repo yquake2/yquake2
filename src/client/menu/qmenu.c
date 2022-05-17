@@ -45,10 +45,10 @@ extern viddef_t viddef;
 
 /*
 =================
-DrawBitmap
+Bitmap_Draw
 =================
 */
-void DrawBitmap(menubitmap_s * item)
+void Bitmap_Draw(menubitmap_s * item)
 {
 	float scale = SCR_GetMenuScale();
 	float x = 0.0f;
@@ -417,7 +417,7 @@ Menu_Draw(menuframework_s *menu)
 				break;
 			case MTYPE_BITMAP:
 			{
-				DrawBitmap(( menubitmap_s * )menu->items[i]);
+				Bitmap_Draw(( menubitmap_s * )menu->items[i]);
 			} break;
 			case MTYPE_ACTION:
 				Action_Draw((menuaction_s *)menu->items[i]);
