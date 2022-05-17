@@ -135,89 +135,59 @@ keyname_t keynames[] = {
 	{"MWHEELUP", K_MWHEELUP},
 	{"MWHEELDOWN", K_MWHEELDOWN},
 
-	{"JOY1", K_JOY1},
-	{"JOY2", K_JOY2},
-	{"JOY3", K_JOY3},
-	{"JOY4", K_JOY4},
-	{"JOY5", K_JOY5},
-	{"JOY6", K_JOY6},
-	{"JOY7", K_JOY7},
-	{"JOY8", K_JOY8},
-	{"JOY9", K_JOY9},
-	{"JOY10", K_JOY10},
-	{"JOY11", K_JOY11},
-	{"JOY12", K_JOY12},
-	{"JOY13", K_JOY13},
-	{"JOY14", K_JOY14},
-	{"JOY15", K_JOY15},
-	{"JOY16", K_JOY16},
-	{"JOY17", K_JOY17},
-	{"JOY18", K_JOY18},
-	{"JOY19", K_JOY19},
-	{"JOY20", K_JOY20},
-	{"JOY21", K_JOY21},
-	{"JOY22", K_JOY22},
-	{"JOY23", K_JOY23},
-	{"JOY24", K_JOY24},
-	{"JOY25", K_JOY25},
-	{"JOY26", K_JOY26},
-	{"JOY27", K_JOY27},
-	{"JOY28", K_JOY28},
-	{"JOY29", K_JOY29},
-	{"JOY30", K_JOY30},
-	{"JOY31", K_JOY31},
-	{"JOY32", K_JOY32},
-
-	{"HAT_UP", K_HAT_UP},
-	{"HAT_RIGHT", K_HAT_RIGHT},
-	{"HAT_DOWN", K_HAT_DOWN},
-	{"HAT_LEFT", K_HAT_LEFT},
-
+	{"BTN_A", K_BTN_A},
+	{"BTN_B", K_BTN_B},
+	{"BTN_X", K_BTN_X},
+	{"BTN_Y", K_BTN_Y},
+	{"STICK_LEFT", K_STICK_LEFT},
+	{"STICK_RIGHT", K_STICK_RIGHT},
+	{"SHOULDR_LEFT", K_SHOULDER_LEFT},
+	{"SHOULDR_RIGHT", K_SHOULDER_RIGHT},
 	{"TRIG_LEFT", K_TRIG_LEFT},
 	{"TRIG_RIGHT", K_TRIG_RIGHT},
 
+	{"DP_UP", K_DPAD_UP},
+	{"DP_DOWN", K_DPAD_DOWN},
+	{"DP_LEFT", K_DPAD_LEFT},
+	{"DP_RIGHT", K_DPAD_RIGHT},
+
+	{"PADDLE_1", K_PADDLE_1},
+	{"PADDLE_2", K_PADDLE_2},
+	{"PADDLE_3", K_PADDLE_3},
+	{"PADDLE_4", K_PADDLE_4},
+	{"BTN_MISC1", K_BTN_MISC1},
+	{"TOUCHPAD", K_TOUCHPAD},
+	{"BTN_BACK", K_BTN_BACK},
+	{"BTN_GUIDE", K_BTN_GUIDE},
+	{"BTN_START", K_BTN_START},
+
 	// virtual keys you get by pressing the corresponding normal joy key
 	// and the altselector key
-	{"JOY1_ALT", K_JOY1_ALT},
-	{"JOY2_ALT", K_JOY2_ALT},
-	{"JOY3_ALT", K_JOY3_ALT},
-	{"JOY4_ALT", K_JOY4_ALT},
-	{"JOY5_ALT", K_JOY5_ALT},
-	{"JOY6_ALT", K_JOY6_ALT},
-	{"JOY7_ALT", K_JOY7_ALT},
-	{"JOY8_ALT", K_JOY8_ALT},
-	{"JOY9_ALT", K_JOY9_ALT},
-	{"JOY10_ALT", K_JOY10_ALT},
-	{"JOY11_ALT", K_JOY11_ALT},
-	{"JOY12_ALT", K_JOY12_ALT},
-	{"JOY13_ALT", K_JOY13_ALT},
-	{"JOY14_ALT", K_JOY14_ALT},
-	{"JOY15_ALT", K_JOY15_ALT},
-	{"JOY16_ALT", K_JOY16_ALT},
-	{"JOY17_ALT", K_JOY17_ALT},
-	{"JOY18_ALT", K_JOY18_ALT},
-	{"JOY19_ALT", K_JOY19_ALT},
-	{"JOY20_ALT", K_JOY20_ALT},
-	{"JOY21_ALT", K_JOY21_ALT},
-	{"JOY22_ALT", K_JOY22_ALT},
-	{"JOY23_ALT", K_JOY23_ALT},
-	{"JOY24_ALT", K_JOY24_ALT},
-	{"JOY25_ALT", K_JOY25_ALT},
-	{"JOY26_ALT", K_JOY26_ALT},
-	{"JOY27_ALT", K_JOY27_ALT},
-	{"JOY28_ALT", K_JOY28_ALT},
-	{"JOY29_ALT", K_JOY29_ALT},
-	{"JOY30_ALT", K_JOY30_ALT},
-	{"JOY31_ALT", K_JOY31_ALT},
-	{"JOY32_ALT", K_JOY32_ALT},
+	{"BTN_A_ALT", K_BTN_A_ALT},
+	{"BTN_B_ALT", K_BTN_B_ALT},
+	{"BTN_X_ALT", K_BTN_X_ALT},
+	{"BTN_Y_ALT", K_BTN_Y_ALT},
+	{"STICK_LEFT_ALT", K_STICK_LEFT_ALT},
+	{"STICK_RIGHT_ALT", K_STICK_RIGHT_ALT},
+	{"SHOULDR_LEFT_ALT", K_SHOULDER_LEFT_ALT},
+	{"SHOULDR_RIGHT_ALT", K_SHOULDER_RIGHT_ALT},
+	{"TRIG_LEFT_ALT", K_TRIG_LEFT_ALT},
+	{"TRIG_RIGHT_ALT", K_TRIG_RIGHT_ALT},
 
-	{"HAT_UP_ALT", K_HAT_UP_ALT},
-	{"HAT_RIGHT_ALT", K_HAT_RIGHT_ALT},
-	{"HAT_DOWN_ALT", K_HAT_DOWN_ALT},
-	{"HAT_LEFT_ALT", K_HAT_LEFT_ALT},
+	{"DP_UP_ALT", K_DPAD_UP_ALT},
+	{"DP_DOWN_ALT", K_DPAD_DOWN_ALT},
+	{"DP_LEFT_ALT", K_DPAD_LEFT_ALT},
+	{"DP_RIGHT_ALT", K_DPAD_RIGHT_ALT},
 
-	{"TRIG_LEFT", K_TRIG_LEFT_ALT},
-	{"TRIG_RIGHT", K_TRIG_RIGHT_ALT},
+	{"PADDLE_1_ALT", K_PADDLE_1_ALT},
+	{"PADDLE_2_ALT", K_PADDLE_2_ALT},
+	{"PADDLE_3_ALT", K_PADDLE_3_ALT},
+	{"PADDLE_4_ALT", K_PADDLE_4_ALT},
+	{"BTN_MISC1_ALT", K_BTN_MISC1_ALT},
+	{"TOUCHPAD_ALT", K_TOUCHPAD_ALT},
+	{"BTN_BACK_ALT", K_BTN_BACK_ALT},
+	{"BTN_GUIDE_ALT", K_BTN_GUIDE_ALT},
+	{"BTN_START_ALT", K_BTN_START_ALT},
 
 	{"JOY_BACK", K_JOY_BACK},
 
@@ -1194,13 +1164,13 @@ Key_Event(int key, qboolean down, qboolean special)
 	cvar_t *fullscreen;
 	unsigned int time = Sys_Milliseconds();
 
-	// evil hack for the joystick key altselector, which turns K_JOYx into K_JOYx_ALT
-	if(joy_altselector_pressed && key >= K_JOY1 && key <= K_JOY_LAST_REGULAR)
+	// evil hack for the joystick key altselector, which turns K_BTN_x into K_BTN_x_ALT
+	if(joy_altselector_pressed && key >= K_JOY_FIRST_REGULAR && key <= K_JOY_LAST_REGULAR)
 	{
 		// make sure key is not the altselector itself (which we won't turn into *_ALT)
 		if(keybindings[key] == NULL || strcmp(keybindings[key], "+joyaltselector") != 0)
 		{
-			int altkey = key + (K_JOY1_ALT - K_JOY1);
+			int altkey = key + (K_JOY_FIRST_REGULAR_ALT - K_JOY_FIRST_REGULAR);
 			// allow fallback to binding with non-alt key
 			if(keybindings[altkey] != NULL || keybindings[key] == NULL)
 				key = altkey;

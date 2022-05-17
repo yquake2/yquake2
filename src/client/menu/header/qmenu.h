@@ -43,6 +43,13 @@
 #define QMF_GRAYED 0x00000002
 #define QMF_NUMBERSONLY 0x00000004
 
+enum {
+	KEYS_ALL	= 0,
+	KEYS_KEYBOARD_MOUSE,
+	KEYS_CONTROLLER,
+	KEYS_CONTROLLER_ALT
+};
+
 typedef struct _tag_menuframework
 {
 	int x, y;

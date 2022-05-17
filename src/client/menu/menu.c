@@ -64,6 +64,8 @@ static void M_Menu_Video_f(void);
 static void M_Menu_Options_f(void);
 static void M_Menu_Keys_f(void);
 static void M_Menu_Joy_f(void);
+static void M_Menu_ControllerButtons_f(void);
+static void M_Menu_ControllerAltButtons_f(void);
 static void M_Menu_Quit_f(void);
 
 void M_Menu_Credits(void);
@@ -229,25 +231,25 @@ Key_GetMenuKey(int key)
 	{
 		case K_KP_UPARROW:
 		case K_UPARROW:
-		case K_HAT_UP:
+		case K_DPAD_UP:
 			return K_UPARROW;
 
 		case K_TAB:
 		case K_KP_DOWNARROW:
 		case K_DOWNARROW:
-		case K_HAT_DOWN:
+		case K_DPAD_DOWN:
 			return K_DOWNARROW;
 
 		case K_KP_LEFTARROW:
 		case K_LEFTARROW:
-		case K_HAT_LEFT:
-		case K_TRIG_LEFT:
+		case K_DPAD_LEFT:
+		case K_SHOULDER_LEFT:
 			return K_LEFTARROW;
 
 		case K_KP_RIGHTARROW:
 		case K_RIGHTARROW:
-		case K_HAT_RIGHT:
-		case K_TRIG_RIGHT:
+		case K_DPAD_RIGHT:
+		case K_SHOULDER_RIGHT:
 			return K_RIGHTARROW;
 
 		case K_MOUSE1:
@@ -256,45 +258,21 @@ Key_GetMenuKey(int key)
 		case K_MOUSE4:
 		case K_MOUSE5:
 
-		case K_JOY1:
-		case K_JOY2:
-		case K_JOY3:
-		case K_JOY4:
-		case K_JOY5:
-		case K_JOY6:
-		case K_JOY7:
-		case K_JOY8:
-		case K_JOY9:
-		case K_JOY10:
-		case K_JOY11:
-		case K_JOY12:
-		case K_JOY13:
-		case K_JOY14:
-		case K_JOY15:
-		case K_JOY16:
-		case K_JOY17:
-		case K_JOY18:
-		case K_JOY19:
-		case K_JOY20:
-		case K_JOY21:
-		case K_JOY22:
-		case K_JOY23:
-		case K_JOY24:
-		case K_JOY25:
-		case K_JOY26:
-		case K_JOY27:
-		case K_JOY28:
-		case K_JOY29:
-		case K_JOY30:
-		case K_JOY31:
-
 		case K_KP_ENTER:
 		case K_ENTER:
+		case K_BTN_A:
 			return K_ENTER;
 
 		case K_ESCAPE:
 		case K_JOY_BACK:
+		case K_BTN_B:
 			return K_ESCAPE;
+
+		case K_BACKSPACE:
+		case K_DEL:
+		case K_KP_DEL:
+		case K_BTN_Y:
+			return K_BACKSPACE;
 	}
 
 	return key;
@@ -814,8 +792,7 @@ char *bindnames[][2] =
     {"invdrop", "drop item"},
     {"invprev", "prev item"},
     {"invnext", "next item"},
-    {"cmd help", "help computer"},
-    {"+joyaltselector", "enable alt joy keys"}
+    {"cmd help", "help computer"}
 };
 #define NUM_BINDNAMES (sizeof bindnames / sizeof bindnames[0])
 
@@ -827,14 +804,24 @@ static menuframework_s s_joy_menu;
 static menuaction_s s_keys_actions[NUM_BINDNAMES];
 
 static void
-M_UnbindCommand(char *command)
+M_UnbindCommand(char *command, int scope)
 {
     int j;
-    int l;
+    int begin = 0, end = K_LAST;
+    switch (scope)
+    {
+        case KEYS_KEYBOARD_MOUSE:
+             end = K_JOY_FIRST_REGULAR;
+             break;
+        case KEYS_CONTROLLER:
+             begin = K_JOY_FIRST_REGULAR;
+             end = K_JOY_LAST_REGULAR + 1;
+             break;
+        case KEYS_CONTROLLER_ALT:
+             begin = K_JOY_FIRST_REGULAR_ALT;
+    }
 
-    l = strlen(command);
-
-    for (j = 0; j < K_LAST; j++)
+    for (j = begin; j < end; j++)
     {
         char *b;
         b = keybindings[j];
@@ -844,7 +831,7 @@ M_UnbindCommand(char *command)
             continue;
         }
 
-        if (!strncmp(b, command, l))
+        if (!strcmp(b, command))
         {
             Key_SetBinding(j, "");
         }
@@ -852,17 +839,28 @@ M_UnbindCommand(char *command)
 }
 
 static void
-M_FindKeysForCommand(char *command, int *twokeys)
+M_FindKeysForCommand(char *command, int *twokeys, int scope)
 {
     int count;
     int j;
-    int l;
+    int begin = 0, end = K_LAST;
+    switch (scope)
+    {
+        case KEYS_KEYBOARD_MOUSE:
+             end = K_JOY_FIRST_REGULAR;
+             break;
+        case KEYS_CONTROLLER:
+             begin = K_JOY_FIRST_REGULAR;
+             end = K_JOY_LAST_REGULAR + 1;
+             break;
+        case KEYS_CONTROLLER_ALT:
+             begin = K_JOY_FIRST_REGULAR_ALT;
+    }
 
     twokeys[0] = twokeys[1] = -1;
-    l = strlen(command);
     count = 0;
 
-    for (j = 0; j < K_LAST; j++)
+    for (j = begin; j < end; j++)
     {
         char *b;
         b = keybindings[j];
@@ -872,7 +870,7 @@ M_FindKeysForCommand(char *command, int *twokeys)
             continue;
         }
 
-        if (!strncmp(b, command, l))
+        if (!strcmp(b, command))
         {
             twokeys[count] = j;
             count++;
@@ -908,7 +906,7 @@ DrawKeyBindingFunc(void *self)
     menuaction_s *a = (menuaction_s *)self;
     float scale = SCR_GetMenuScale();
 
-    M_FindKeysForCommand(bindnames[a->generic.localdata[0]][0], keys);
+    M_FindKeysForCommand(bindnames[a->generic.localdata[0]][0], keys, KEYS_KEYBOARD_MOUSE);
 
     if (keys[0] == -1)
     {
@@ -944,11 +942,11 @@ KeyBindingFunc(void *self)
     menuaction_s *a = (menuaction_s *)self;
     int keys[2];
 
-    M_FindKeysForCommand(bindnames[a->generic.localdata[0]][0], keys);
+    M_FindKeysForCommand(bindnames[a->generic.localdata[0]][0], keys, KEYS_KEYBOARD_MOUSE);
 
     if (keys[1] != -1)
     {
-        M_UnbindCommand(bindnames[a->generic.localdata[0]][0]);
+        M_UnbindCommand(bindnames[a->generic.localdata[0]][0], KEYS_KEYBOARD_MOUSE);
     }
 
     menukeyitem_bind = true;
@@ -996,7 +994,8 @@ Keys_MenuKey(int key)
 
     if (menukeyitem_bind)
     {
-        if ((key != K_ESCAPE) && (key != '`'))
+        // Any key/button except from the game controller and escape keys
+        if ((key != K_ESCAPE) && (key != '`') && (key < K_JOY_FIRST_REGULAR))
         {
             char cmd[1024];
 
@@ -1010,16 +1009,14 @@ Keys_MenuKey(int key)
         return menu_out_sound;
     }
 
+    key = Key_GetMenuKey(key);
     switch (key)
     {
-    case K_KP_ENTER:
     case K_ENTER:
         KeyBindingFunc(item);
         return menu_in_sound;
     case K_BACKSPACE: /* delete bindings */
-    case K_DEL: /* delete bindings */
-    case K_KP_DEL:
-        M_UnbindCommand(bindnames[item->generic.localdata[0]][0]);
+        M_UnbindCommand(bindnames[item->generic.localdata[0]][0], KEYS_KEYBOARD_MOUSE);
         return menu_out_sound;
     default:
         return Default_MenuKey(&s_keys_menu, key);
@@ -1059,7 +1056,7 @@ MultiplayerDrawKeyBindingFunc(void *self)
     menuaction_s *a = (menuaction_s *)self;
     float scale = SCR_GetMenuScale();
 
-    M_FindKeysForCommand(multiplayer_key_bindnames[a->generic.localdata[0]][0], keys);
+    M_FindKeysForCommand(multiplayer_key_bindnames[a->generic.localdata[0]][0], keys, KEYS_ALL);
 
     if (keys[0] == -1)
     {
@@ -1095,11 +1092,11 @@ MultiplayerKeyBindingFunc(void *self)
     menuaction_s *a = (menuaction_s *)self;
     int keys[2];
 
-    M_FindKeysForCommand(multiplayer_key_bindnames[a->generic.localdata[0]][0], keys);
+    M_FindKeysForCommand(multiplayer_key_bindnames[a->generic.localdata[0]][0], keys, KEYS_ALL);
 
     if (keys[1] != -1)
     {
-        M_UnbindCommand(multiplayer_key_bindnames[a->generic.localdata[0]][0]);
+        M_UnbindCommand(multiplayer_key_bindnames[a->generic.localdata[0]][0], KEYS_ALL);
     }
 
     menukeyitem_bind = true;
@@ -1147,7 +1144,8 @@ MultiplayerKeys_MenuKey(int key)
 
     if (menukeyitem_bind)
     {
-        if ((key != K_ESCAPE) && (key != '`'))
+        // Any key/button but the escape ones
+        if ((key != K_ESCAPE) && (key != '`') && (key != K_JOY_BACK))
         {
             char cmd[1024];
 
@@ -1161,16 +1159,14 @@ MultiplayerKeys_MenuKey(int key)
         return menu_out_sound;
     }
 
+    key = Key_GetMenuKey(key);
     switch (key)
     {
-    case K_KP_ENTER:
     case K_ENTER:
         MultiplayerKeyBindingFunc(item);
         return menu_in_sound;
     case K_BACKSPACE: /* delete bindings */
-    case K_DEL: /* delete bindings */
-    case K_KP_DEL:
-        M_UnbindCommand(multiplayer_key_bindnames[item->generic.localdata[0]][0]);
+        M_UnbindCommand(multiplayer_key_bindnames[item->generic.localdata[0]][0], KEYS_ALL);
         return menu_out_sound;
     default:
         return Default_MenuKey(&s_multiplayer_keys_menu, key);
@@ -1185,6 +1181,332 @@ M_Menu_Multiplayer_Keys_f(void)
 }
 
 /*
+ * GAME CONTROLLER ( GAMEPAD / JOYSTICK ) BUTTONS MENU
+ */
+
+char *controller_bindnames[][2] =
+{
+	{"+attack", "attack"},
+	{"+moveup", "up / jump"},
+	{"+movedown", "down / crouch"},
+	{"weapnext", "next weapon"},
+	{"weapprev", "previous weapon"},
+	{"cycleweap weapon_chaingun weapon_machinegun weapon_blaster", "long range: quickswitch 1"},
+	{"cycleweap weapon_supershotgun weapon_shotgun", "close range: quickswitch 2"},
+	{"cycleweap weapon_rocketlauncher weapon_grenadelauncher ammo_grenades", "explosives: quickswitch 3"},
+	{"cycleweap weapon_bfg weapon_railgun weapon_hyperblaster", "special: quickswitch 4"},
+	{"prefweap weapon_railgun weapon_hyperblaster weapon_chaingun weapon_supershotgun weapon_machinegun weapon_shotgun weapon_blaster", "best safe weapon"},
+	{"prefweap weapon_bfg weapon_railgun weapon_rocketlauncher weapon_hyperblaster weapon_grenadelauncher weapon_chaingun ammo_grenades weapon_supershotgun", "best unsafe weapon"},
+	{"centerview", "center view"},
+	{"inven", "inventory"},
+	{"invuse", "use item"},
+	{"invdrop", "drop item"},
+	{"invprev", "prev item"},
+	{"invnext", "next item"},
+	{"cmd help", "help computer"},
+	{"+joyaltselector", "alt buttons modifier"}
+};
+#define NUM_CONTROLLER_BINDNAMES (sizeof controller_bindnames / sizeof controller_bindnames[0])
+
+static menuframework_s s_controller_buttons_menu;
+static menuaction_s s_controller_buttons_actions[NUM_CONTROLLER_BINDNAMES];
+
+static void
+DrawControllerButtonBindingFunc(void *self)
+{
+	int keys[2];
+	menuaction_s *a = (menuaction_s *)self;
+	float scale = SCR_GetMenuScale();
+
+	M_FindKeysForCommand(controller_bindnames[a->generic.localdata[0]][0], keys, KEYS_CONTROLLER);
+
+	if (keys[0] == -1)
+	{
+		Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
+				a->generic.y + a->generic.parent->y, "???");
+	}
+	else
+	{
+		int x;
+		const char *name;
+
+		name = Key_KeynumToString(keys[0]);
+
+		Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
+			a->generic.y + a->generic.parent->y, name);
+
+		x = strlen(name) * 8;
+
+		if (keys[1] != -1)
+		{
+			Menu_DrawString(a->generic.x + a->generic.parent->x + 24 * scale + (x * scale),
+					a->generic.y + a->generic.parent->y, "or");
+			Menu_DrawString(a->generic.x + a->generic.parent->x + 48 * scale + (x * scale),
+					a->generic.y + a->generic.parent->y,
+					Key_KeynumToString(keys[1]));
+		}
+	}
+}
+
+static void
+ControllerButtonBindingFunc(void *self)
+{
+	menuaction_s *a = (menuaction_s *)self;
+	int keys[2];
+
+	M_FindKeysForCommand(controller_bindnames[a->generic.localdata[0]][0], keys, KEYS_CONTROLLER);
+
+	if (keys[1] != -1)
+	{
+		M_UnbindCommand(controller_bindnames[a->generic.localdata[0]][0], KEYS_CONTROLLER);
+	}
+
+	menukeyitem_bind = true;
+
+	Menu_SetStatusBar(&s_controller_buttons_menu, "press a button for this action");
+}
+
+static void
+ControllerButtons_MenuInit(void)
+{
+	int i;
+
+	s_controller_buttons_menu.x = (int)(viddef.width * 0.50f);
+	s_controller_buttons_menu.nitems = 0;
+	s_controller_buttons_menu.cursordraw = KeyCursorDrawFunc;
+
+	for (i = 0; i < NUM_CONTROLLER_BINDNAMES; i++)
+	{
+		s_controller_buttons_actions[i].generic.type = MTYPE_ACTION;
+		s_controller_buttons_actions[i].generic.flags = QMF_GRAYED;
+		s_controller_buttons_actions[i].generic.x = 0;
+		s_controller_buttons_actions[i].generic.y = (i * 9);
+		s_controller_buttons_actions[i].generic.ownerdraw = DrawControllerButtonBindingFunc;
+		s_controller_buttons_actions[i].generic.localdata[0] = i;
+		s_controller_buttons_actions[i].generic.name = controller_bindnames[s_controller_buttons_actions[i].generic.localdata[0]][1];
+
+		Menu_AddItem(&s_controller_buttons_menu, (void *)&s_controller_buttons_actions[i]);
+	}
+
+	Menu_SetStatusBar(&s_controller_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+	Menu_Center(&s_controller_buttons_menu);
+}
+
+static void
+ControllerButtons_MenuDraw(void)
+{
+	Menu_AdjustCursor(&s_controller_buttons_menu, 1);
+	Menu_Draw(&s_controller_buttons_menu);
+}
+
+static const char *
+ControllerButtons_MenuKey(int key)
+{
+	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_controller_buttons_menu);
+
+	if (menukeyitem_bind)
+	{
+		// Only controller buttons allowed
+		if (key >= K_JOY_FIRST_REGULAR && key != K_JOY_BACK)
+		{
+			char cmd[1024];
+
+			Com_sprintf(cmd, sizeof(cmd), "bind \"%s\" \"%s\"\n",
+					Key_KeynumToString(key), controller_bindnames[item->generic.localdata[0]][0]);
+			Cbuf_InsertText(cmd);
+		}
+
+		Menu_SetStatusBar(&s_controller_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+		menukeyitem_bind = false;
+		return menu_out_sound;
+	}
+
+	key = Key_GetMenuKey(key);
+	switch (key)
+	{
+		case K_ENTER:
+			ControllerButtonBindingFunc(item);
+			return menu_in_sound;
+		case K_BACKSPACE:
+			M_UnbindCommand(controller_bindnames[item->generic.localdata[0]][0], KEYS_CONTROLLER);
+			return menu_out_sound;
+		default:
+			return Default_MenuKey(&s_controller_buttons_menu, key);
+	}
+}
+
+static void
+M_Menu_ControllerButtons_f(void)
+{
+	ControllerButtons_MenuInit();
+	M_PushMenu(ControllerButtons_MenuDraw, ControllerButtons_MenuKey);
+}
+
+/*
+ * GAME CONTROLLER ALTERNATE BUTTONS MENU
+ */
+
+char *controller_alt_bindnames[][2] =
+{
+	{"weapnext", "next weapon"},
+	{"weapprev", "previous weapon"},
+	{"cycleweap weapon_chaingun weapon_machinegun weapon_blaster", "long range: quickswitch 1"},
+	{"cycleweap weapon_supershotgun weapon_shotgun", "close range: quickswitch 2"},
+	{"cycleweap weapon_rocketlauncher weapon_grenadelauncher ammo_grenades", "explosives: quickswitch 3"},
+	{"cycleweap weapon_bfg weapon_railgun weapon_hyperblaster", "special: quickswitch 4"},
+	{"prefweap weapon_railgun weapon_hyperblaster weapon_chaingun weapon_supershotgun weapon_machinegun weapon_shotgun weapon_blaster", "best safe weapon"},
+	{"prefweap weapon_bfg weapon_railgun weapon_rocketlauncher weapon_hyperblaster weapon_grenadelauncher weapon_chaingun ammo_grenades weapon_supershotgun", "best unsafe weapon"},
+	{"centerview", "center view"},
+	{"inven", "inventory"},
+	{"invuse", "use item"},
+	{"invdrop", "drop item"},
+	{"invprev", "prev item"},
+	{"invnext", "next item"},
+	{"use invulnerability", "use invulnerability"},
+	{"use rebreather", "use rebreather"},
+	{"use environment suit", "use environment suit"},
+	{"use power shield", "use power shield"},
+	{"use quad damage", "use quad damage"},
+	{"cmd help", "help computer"}
+};
+#define NUM_CONTROLLER_ALT_BINDNAMES (sizeof controller_alt_bindnames / sizeof controller_alt_bindnames[0])
+
+static menuframework_s s_controller_alt_buttons_menu;
+static menuaction_s s_controller_alt_buttons_actions[NUM_CONTROLLER_ALT_BINDNAMES];
+
+static void
+DrawControllerAltButtonBindingFunc(void *self)
+{
+	int keys[2];
+	menuaction_s *a = (menuaction_s *)self;
+	float scale = SCR_GetMenuScale();
+
+	M_FindKeysForCommand(controller_alt_bindnames[a->generic.localdata[0]][0], keys, KEYS_CONTROLLER_ALT);
+
+	if (keys[0] == -1)
+	{
+		Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
+				a->generic.y + a->generic.parent->y, "???");
+	}
+	else
+	{
+		int x;
+		const char *name;
+
+		name = Key_KeynumToString(keys[0]);
+
+		Menu_DrawString(a->generic.x + a->generic.parent->x + RCOLUMN_OFFSET * scale,
+				a->generic.y + a->generic.parent->y, name);
+
+		x = strlen(name) * 8;
+
+		if (keys[1] != -1)
+		{
+			Menu_DrawString(a->generic.x + a->generic.parent->x + 24 * scale + (x * scale),
+					a->generic.y + a->generic.parent->y, "or");
+			Menu_DrawString(a->generic.x + a->generic.parent->x + 48 * scale + (x * scale),
+					a->generic.y + a->generic.parent->y,
+					Key_KeynumToString(keys[1]));
+		}
+	}
+}
+
+static void
+ControllerAltButtonBindingFunc(void *self)
+{
+	menuaction_s *a = (menuaction_s *)self;
+	int keys[2];
+
+	M_FindKeysForCommand(controller_alt_bindnames[a->generic.localdata[0]][0], keys, KEYS_CONTROLLER_ALT);
+
+	if (keys[1] != -1)
+	{
+		M_UnbindCommand(controller_alt_bindnames[a->generic.localdata[0]][0], KEYS_CONTROLLER_ALT);
+	}
+
+	menukeyitem_bind = true;
+
+	Menu_SetStatusBar(&s_controller_alt_buttons_menu, "press a button for this action");
+}
+
+static void
+ControllerAltButtons_MenuInit(void)
+{
+	int i;
+
+	s_controller_alt_buttons_menu.x = (int)(viddef.width * 0.50f);
+	s_controller_alt_buttons_menu.nitems = 0;
+	s_controller_alt_buttons_menu.cursordraw = KeyCursorDrawFunc;
+
+	for (i = 0; i < NUM_CONTROLLER_ALT_BINDNAMES; i++)
+	{
+		s_controller_alt_buttons_actions[i].generic.type = MTYPE_ACTION;
+		s_controller_alt_buttons_actions[i].generic.flags = QMF_GRAYED;
+		s_controller_alt_buttons_actions[i].generic.x = 0;
+		s_controller_alt_buttons_actions[i].generic.y = (i * 9);
+		s_controller_alt_buttons_actions[i].generic.ownerdraw = DrawControllerAltButtonBindingFunc;
+		s_controller_alt_buttons_actions[i].generic.localdata[0] = i;
+		s_controller_alt_buttons_actions[i].generic.name = controller_alt_bindnames[s_controller_alt_buttons_actions[i].generic.localdata[0]][1];
+
+		Menu_AddItem(&s_controller_alt_buttons_menu, (void *)&s_controller_alt_buttons_actions[i]);
+	}
+
+	Menu_SetStatusBar(&s_controller_alt_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+	Menu_Center(&s_controller_alt_buttons_menu);
+}
+
+static void
+ControllerAltButtons_MenuDraw(void)
+{
+	Menu_AdjustCursor(&s_controller_alt_buttons_menu, 1);
+	Menu_Draw(&s_controller_alt_buttons_menu);
+}
+
+static const char *
+ControllerAltButtons_MenuKey(int key)
+{
+	menuaction_s *item = (menuaction_s *)Menu_ItemAtCursor(&s_controller_alt_buttons_menu);
+
+	if (menukeyitem_bind)
+	{
+		// Only controller buttons allowed, different from the alt buttons modifier
+		if (key >= K_JOY_FIRST_REGULAR && key != K_JOY_BACK && (keybindings[key] == NULL || strcmp(keybindings[key], "+joyaltselector") != 0))
+		{
+			char cmd[1024];
+			key = key + (K_JOY_FIRST_REGULAR_ALT - K_JOY_FIRST_REGULAR);   // change input to its ALT mode
+
+			Com_sprintf(cmd, sizeof(cmd), "bind \"%s\" \"%s\"\n",
+					Key_KeynumToString(key), controller_alt_bindnames[item->generic.localdata[0]][0]);
+			Cbuf_InsertText(cmd);
+		}
+
+		Menu_SetStatusBar(&s_controller_alt_buttons_menu, "BTN_A assigns, BTN_Y clears, BTN_B exits");
+		menukeyitem_bind = false;
+		return menu_out_sound;
+	}
+
+	key = Key_GetMenuKey(key);
+	switch (key)
+	{
+		case K_ENTER:
+			ControllerAltButtonBindingFunc(item);
+			return menu_in_sound;
+		case K_BACKSPACE:
+			M_UnbindCommand(controller_alt_bindnames[item->generic.localdata[0]][0], KEYS_CONTROLLER_ALT);
+			return menu_out_sound;
+		default:
+			return Default_MenuKey(&s_controller_alt_buttons_menu, key);
+	}
+}
+
+static void
+M_Menu_ControllerAltButtons_f(void)
+{
+	ControllerAltButtons_MenuInit();
+	M_PushMenu(ControllerAltButtons_MenuDraw, ControllerAltButtons_MenuKey);
+}
+
+/*
  * JOY MENU
  */
 static menuslider_s s_joy_expo_slider;
@@ -1194,6 +1516,20 @@ static menuslider_s s_joy_forwardsensitivity_slider;
 static menuslider_s s_joy_sidesensitivity_slider;
 static menuslider_s s_joy_upsensitivity_slider;
 static menuslider_s s_joy_haptic_slider;
+static menuaction_s s_joy_customize_buttons_action;
+static menuaction_s s_joy_customize_alt_buttons_action;
+
+static void
+CustomizeControllerButtonsFunc(void *unused)
+{
+    M_Menu_ControllerButtons_f();
+}
+
+static void
+CustomizeControllerAltButtonsFunc(void *unused)
+{
+    M_Menu_ControllerAltButtons_f();
+}
 
 static void
 HapticMagnitudeFunc(void *unused)
@@ -1332,6 +1668,24 @@ Joy_MenuInit(void)
         s_joy_haptic_slider.maxvalue = 22;
         Menu_AddItem(&s_joy_menu, (void *)&s_joy_haptic_slider);
     }
+
+    y += 10;
+
+    s_joy_customize_buttons_action.generic.type = MTYPE_ACTION;
+    s_joy_customize_buttons_action.generic.x = 0;
+    s_joy_customize_buttons_action.generic.y = y;
+    y += 10;
+    s_joy_customize_buttons_action.generic.name = "customize buttons";
+    s_joy_customize_buttons_action.generic.callback = CustomizeControllerButtonsFunc;
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_customize_buttons_action);
+
+    s_joy_customize_alt_buttons_action.generic.type = MTYPE_ACTION;
+    s_joy_customize_alt_buttons_action.generic.x = 0;
+    s_joy_customize_alt_buttons_action.generic.y = y;
+    y += 10;
+    s_joy_customize_alt_buttons_action.generic.name = "customize alt buttons";
+    s_joy_customize_alt_buttons_action.generic.callback = CustomizeControllerAltButtonsFunc;
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_customize_alt_buttons_action);
 
     Menu_Center(&s_joy_menu);
 }
@@ -1702,7 +2056,7 @@ Options_MenuInit(void)
     s_options_customize_joy_action.generic.type = MTYPE_ACTION;
     s_options_customize_joy_action.generic.x = 0;
     s_options_customize_joy_action.generic.y = 130;
-    s_options_customize_joy_action.generic.name = "customize joystick";
+    s_options_customize_joy_action.generic.name = "customize gamepad";
     s_options_customize_joy_action.generic.callback = CustomizeJoyFunc;
 
     s_options_customize_options_action.generic.type = MTYPE_ACTION;
@@ -2892,8 +3246,6 @@ LoadGame_MenuKey(int key)
         return menu_move_sound;
 
     case K_BACKSPACE:
-    case K_DEL:
-    case K_KP_DEL:
 		if ((item = Menu_ItemAtCursor(m)) != NULL)
 		{
 			if (item->type == MTYPE_ACTION)
@@ -3064,8 +3416,6 @@ SaveGame_MenuKey(int key)
         return menu_move_sound;
 
     case K_BACKSPACE:
-    case K_DEL:
-    case K_KP_DEL:
 		if ((item = Menu_ItemAtCursor(m)) != NULL)
 		{
 			if (item->type == MTYPE_ACTION)
@@ -5078,6 +5428,8 @@ M_Init(void)
     Cmd_AddCommand("menu_options", M_Menu_Options_f);
     Cmd_AddCommand("menu_keys", M_Menu_Keys_f);
     Cmd_AddCommand("menu_joy", M_Menu_Joy_f);
+    Cmd_AddCommand("menu_buttons", M_Menu_ControllerButtons_f);
+    Cmd_AddCommand("menu_altbuttons", M_Menu_ControllerAltButtons_f);
     Cmd_AddCommand("menu_quit", M_Menu_Quit_f);
 
     /* initialize the server address book cvars (adr0, adr1, ...)
