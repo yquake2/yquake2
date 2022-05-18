@@ -539,6 +539,7 @@ extern cvar_t *bob_pitch;
 extern cvar_t *bob_roll;
 
 extern cvar_t *sv_cheats;
+extern cvar_t *sv_custom_settings;
 extern cvar_t *maxclients;
 extern cvar_t *maxspectators;
 
@@ -550,6 +551,16 @@ extern cvar_t *sv_maplist;
 
 extern cvar_t *aimfix;
 extern cvar_t *g_machinegun_norecoil;
+
+extern cvar_t *cs_player_health_start;
+extern cvar_t *cs_player_health_max;
+
+extern cvar_t *cs_player_ammo_shells;
+extern cvar_t *cs_player_ammo_bullets;
+extern cvar_t *cs_player_ammo_grenades;
+extern cvar_t *cs_player_ammo_rockets;
+extern cvar_t *cs_player_ammo_slugs;
+extern cvar_t *cs_player_ammo_cells;
 
 #define world (&g_edicts[0])
 
