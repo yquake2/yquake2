@@ -76,6 +76,7 @@ cvar_t *bob_pitch;
 cvar_t *bob_roll;
 
 cvar_t *sv_cheats;
+cvar_t *sv_custom_settings;
 
 cvar_t *flood_msgs;
 cvar_t *flood_persecond;
@@ -87,6 +88,16 @@ cvar_t *gib_on;
 
 cvar_t *aimfix;
 cvar_t *g_machinegun_norecoil;
+
+cvar_t *cs_player_health_start;
+cvar_t *cs_player_health_max;
+
+cvar_t *cs_player_ammo_shells;
+cvar_t *cs_player_ammo_bullets;
+cvar_t *cs_player_ammo_grenades;
+cvar_t *cs_player_ammo_rockets;
+cvar_t *cs_player_ammo_slugs;
+cvar_t *cs_player_ammo_cells;
 
 void SpawnEntities(char *mapname, char *entities, char *spawnpoint);
 void ClientThink(edict_t *ent, usercmd_t *cmd);
