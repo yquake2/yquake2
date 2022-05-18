@@ -2454,6 +2454,8 @@ static void
 Mods_MenuInit(void)
 {
     int currentmod;
+    int x = 0;
+    int y = 0;
 
     Mods_NamesInit();
 
@@ -2471,17 +2473,18 @@ Mods_MenuInit(void)
 
     s_mods_list.generic.type = MTYPE_SPINCONTROL;
     s_mods_list.generic.name = "mod";
-    s_mods_list.generic.x = 0;
-    s_mods_list.generic.y = 0;
+    s_mods_list.generic.x = x;
+    s_mods_list.generic.y = y;
     s_mods_list.generic.callback = ModsListFunc;
     s_mods_list.itemnames = (const char **)modnames;
     s_mods_list.curvalue = currentmod < nummods ? currentmod : 0;
 
+    y += 20;
+
     s_mods_apply_action.generic.type = MTYPE_ACTION;
-    s_mods_apply_action.generic.flags = QMF_LEFT_JUSTIFY;
-    s_mods_apply_action.generic.name = " apply";
-    s_mods_apply_action.generic.x = 49;
-    s_mods_apply_action.generic.y = 20;
+    s_mods_apply_action.generic.name = "apply";
+    s_mods_apply_action.generic.x = x;
+    s_mods_apply_action.generic.y = y;
     s_mods_apply_action.generic.callback = ModsApplyActionFunc;
 
     Menu_AddItem(&s_mods_menu, (void *)&s_mods_list);
