@@ -234,6 +234,7 @@ InitGame(void)
 
 	/* latched vars */
 	sv_cheats = gi.cvar("cheats", "0", CVAR_SERVERINFO | CVAR_LATCH);
+	sv_custom_settings = gi.cvar("custom_settings", "0", CVAR_SERVERINFO | CVAR_LATCH);
 	gi.cvar("gamename", GAMEVERSION, CVAR_SERVERINFO | CVAR_LATCH);
 	gi.cvar("gamedate", BUILD_DATE, CVAR_SERVERINFO | CVAR_LATCH);
 	maxclients = gi.cvar("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
@@ -274,6 +275,17 @@ InitGame(void)
 	/* others */
 	aimfix = gi.cvar("aimfix", "0", CVAR_ARCHIVE);
 	g_machinegun_norecoil = gi.cvar("g_machinegun_norecoil", "0", CVAR_ARCHIVE);
+	
+	/* custom settings */
+	cs_player_health_start = gi.cvar("cs_player_health_start", "100", CVAR_ARCHIVE);
+	cs_player_health_max = gi.cvar("cs_player_health_max", "100", CVAR_ARCHIVE);
+	
+	cs_player_ammo_shells = gi.cvar("cs_player_ammo_shells", "100", CVAR_ARCHIVE);
+	cs_player_ammo_bullets = gi.cvar("cs_player_ammo_bullets", "200", CVAR_ARCHIVE);
+	cs_player_ammo_grenades = gi.cvar("cs_player_ammo_grenades", "50", CVAR_ARCHIVE);
+	cs_player_ammo_rockets = gi.cvar("cs_player_ammo_rockets", "50", CVAR_ARCHIVE);
+	cs_player_ammo_slugs = gi.cvar("cs_player_ammo_slugs", "50", CVAR_ARCHIVE);
+	cs_player_ammo_cells = gi.cvar("cs_player_ammo_cells", "200", CVAR_ARCHIVE);	
 
 	/* items */
 	InitItems();
