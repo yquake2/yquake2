@@ -554,8 +554,8 @@ CalcSurfaceExtents (model_t *loadmodel, msurface_t *s)
 	mtexinfo_t	*tex;
 	int		bmins[2], bmaxs[2];
 
-	mins[0] = mins[1] = INT_MAX; // Set maximum values for world range
-	maxs[0] = maxs[1] = INT_MIN; // Set minimal values for world range
+	mins[0] = mins[1] = (float)INT_MAX; // Set maximum values for world range
+	maxs[0] = maxs[1] = (float)INT_MIN; // Set minimal values for world range
 
 	tex = s->texinfo;
 
