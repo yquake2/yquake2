@@ -607,7 +607,8 @@ InitMainMenu(void)
     {
         Draw_GetPicSize(&w, &h, names[i]);
 
-        if (w > widest) {
+        if (w > widest)
+        {
             widest = w;
         }
     }
