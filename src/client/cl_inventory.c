@@ -139,7 +139,7 @@ CL_DrawInventory(void)
 			}
 		}
 
-		Com_sprintf(string, sizeof(string), "%6s %3i %s", bind,
+		Com_sprintf(string, sizeof(string), "%6.6s %3i %s", bind,
 				cl.inventory[item], cl.configstrings[CS_ITEMS + item]);
 
 		if (item != selected)
