@@ -1,3 +1,28 @@
+Quake II 8.01 to 8.10:
+- The OpenGL 3.2 renderer now supports the classic underwater effect.
+  Until now it was only available in the Software renderer.
+- Add 'ref_gles3', an OpenGL ES 3.0 renderer lib. This is an variant
+  of the OpenGL 3.2 renderer, using OpenGL ES instead of desktop OpenGL.
+  It greatly enhances support for embedded GPUs like the RaspberryPI 4.
+- The Software renderer now supports colored lightning. It can be
+  enabled through `sw_colorlight`. (by 0lvin)
+- Another round of timing fixes. Implement `cl_maxfps -1` (the new
+  default, existing configs are not altered) to automatically select
+  a known to be good packet framerate depending on the current renderer
+  framerate. This solves some subtile problems with stuttering entities.
+- Greatly improved support for joysticks and controllers. Devices can
+  now be hotplugged at runtime, binding should be portable between
+  differend controllers and there's a new menu for controller bindings.
+  (by Jaime Moreira)
+- Add the `r_2D_unfiltered` and `r_videos_unfiltered` cvars. When
+  enabled 2D elements like the HUD and videos are not filtered, they
+  appear pixeled.
+- Support building with Microsoft Visual Studio 2015 and newer.
+- Several game code fixes, mostly for stuck mechanics in fact2. (by
+  BjossiAlfreds and maraakate)
+- Fix two stuck monsters in hangar1. (by Dremor8484)
+- Fix the `viewsize` cvar.
+
 Quake II 8.00 to 8.01:
 - Fix the game not starting when nonexistent dirs in the search path.
 - Sync haptic joystick effects to the sound. (by 0lvin)
