@@ -17,10 +17,13 @@ Quake II 8.01 to 8.10:
 - Add the `r_2D_unfiltered` and `r_videos_unfiltered` cvars. When
   enabled 2D elements like the HUD and videos are not filtered, they
   appear pixeled.
+- Add 'prefweap' command to select weapon by priority. (by Jaime
+  Moreira)
 - Support building with Microsoft Visual Studio 2015 and newer.
 - Several game code fixes, mostly for stuck mechanics in fact2. (by
   BjossiAlfreds and maraakate)
-- Fix two stuck monsters in hangar1. (by Dremor8484)
+- Fix two stuck monsters in hangar1 and jail5. (by Dremor8484 and
+  BjossiAlfreds)
 - Fix the `viewsize` cvar.
 
 Quake II 8.00 to 8.01:
