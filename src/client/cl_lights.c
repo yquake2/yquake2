@@ -181,7 +181,13 @@ CL_RunDLights(void)
 			continue;
 		}
 
-		if (dl->die < cl.time)
+		/* Vanilla Quake II had just cl.time. This worked in 1997
+		   when computers were slow and the game reached ~30 FPS
+		   on beefy hardware. Nowadays with 1000 FPS the dlights
+		   are often rendered just a fraction of a frame. Work
+		   around that by adding 32 ms, e.g. each dlight is shown
+		   for at least 32 ms. */
+		if (dl->die < cl.time - 32)
 		{
 			dl->radius = 0;
 			continue;
