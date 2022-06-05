@@ -59,9 +59,12 @@ void Bitmap_Draw(menubitmap_s * item)
 	y = item->generic.y;
 
 	if (((item->generic.flags & QMF_HIGHLIGHT_IF_FOCUS) &&
-		(Menu_ItemAtCursor(item->generic.parent) == item))) {
+		(Menu_ItemAtCursor(item->generic.parent) == item)))
+	{
 		Draw_PicScaled(x * scale, y * scale, item->focuspic, scale);
-	} else if (item->generic.name) {
+	}
+	else if (item->generic.name)
+	{
 		Draw_PicScaled(x * scale, y * scale, ( char * )item->generic.name, scale);
 	}
 }

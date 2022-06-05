@@ -711,7 +711,8 @@ M_Main_Draw(void)
 
     item = ( menucommon_s * )s_main.items[s_main.cursor];
 
-    if (item) {
+    if (item)
+    {
         x = item->x;
         y = item->y;
     }
@@ -5501,6 +5502,10 @@ M_Menu_Quit_f(void)
 void
 M_Init(void)
 {
+    char cursorname[MAX_QPATH];
+    int w = 0;
+    int h = 0;
+
     Cmd_AddCommand("menu_main", M_Menu_Main_f);
     Cmd_AddCommand("menu_game", M_Menu_Game_f);
     Cmd_AddCommand("menu_loadgame", M_Menu_LoadGame_f);
@@ -5530,6 +5535,19 @@ M_Init(void)
         char buffer[20];
         Com_sprintf(buffer, sizeof(buffer), "adr%d", index);
         Cvar_Get(buffer, "", CVAR_ARCHIVE);
+    }
+
+    // cache the cursor frames
+    for (int i = 0; i < NUM_CURSOR_FRAMES; i++)
+    {
+        Com_sprintf(cursorname, sizeof(cursorname), "m_cursor%d", i);
+        Draw_FindPic(cursorname);
+        Draw_GetPicSize(&w, &h, cursorname);
+
+        if (w > m_cursor_width)
+        {
+            m_cursor_width = w;
+        }
     }
 }
 
