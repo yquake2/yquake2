@@ -1689,6 +1689,18 @@ weapon_supershotgun_fire(edict_t *ent)
 			DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
 	v[YAW] = ent->client->v_angle[YAW] + 5;
 	AngleVectors(v, forward, NULL, NULL);
+	
+	if (aimfix->value)
+	{	
+		AngleVectors(v, forward, right, NULL);
+
+		VectorScale(forward, -2, ent->client->kick_origin);
+		ent->client->kick_angles[0] = -2;
+
+		VectorSet(offset, 0, 8, ent->viewheight - 8);
+		P_ProjectSource(ent, offset, forward, right, start);
+	}	
+	
 	fire_shotgun(ent, start, forward, damage, kick,
 			DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD,
 			DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
