@@ -30,8 +30,8 @@
 #include <SDL2/SDL.h>
 
 #include "header/input.h"
-#include "../../client/header/keyboard.h"
-#include "../../client/header/client.h"
+#include "../header/keyboard.h"
+#include "../header/client.h"
 
 // ----
 
@@ -51,6 +51,7 @@ static int sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
 static float joystick_yaw, joystick_pitch;
 static float joystick_forwardmove, joystick_sidemove;
 static float joystick_up;
+static float gyro_yaw, gyro_pitch;
 static qboolean mlooking;
 
 // The last time input events were processed.
@@ -130,9 +131,33 @@ static cvar_t *joy_axis_triggerright_threshold;
 // Joystick haptic
 static cvar_t *joy_haptic_magnitude;
 
+// Gyro mode (0=off, 3=on, 1-2=uses button to enable/disable)
+cvar_t *gyro_mode;
+
+// Gyro availability
+qboolean gyro_hardware = false;
+
+// Gyro is being used in this very moment
+static qboolean gyro_active = false;
+
+// Gyro calibration
+static qboolean calibrating_gyro = false;
+static float gyro_accum[3];
+static unsigned int num_samples;
+
+static cvar_t *gyro_calibration_x;
+static cvar_t *gyro_calibration_y;
+static cvar_t *gyro_calibration_z;
+
 // Support for hot plugging of game controller
 static qboolean first_init = true;
-static int init_delay = 30;
+static int in_delay = 30;
+
+// Factors used to transform from SDL input to Q2 "view angle" change
+#define NORMALIZE_SDL_AXIS (1.0f/32768.0f)
+static float normalize_sdl_gyro = 1.0f/3.1f;	// can change depending on hardware
+
+extern void CalibrationFinishedCallback(void);
 
 /* ------------------------------------------------------------------ */
 
@@ -778,6 +803,32 @@ IN_Update(void)
 				break;
 			}
 
+#if SDL_VERSION_ATLEAST(2, 0, 16)	// support for controller sensors (gyro, accelerometer)
+			case SDL_CONTROLLERSENSORUPDATE:
+				if (event.csensor.sensor != SDL_SENSOR_GYRO)
+				{
+					break;
+				}
+				if (calibrating_gyro)
+				{
+					gyro_accum[0] += event.csensor.data[0];
+					gyro_accum[1] += event.csensor.data[1];
+					gyro_accum[2] += event.csensor.data[2];
+					num_samples++;
+					break;
+				}
+				if (!gyro_active || !gyro_mode->value)
+				{
+					gyro_yaw = gyro_pitch = 0;
+				}
+				else
+				{
+					gyro_yaw = (event.csensor.data[1] - gyro_calibration_y->value) * cl_yawspeed->value;
+					gyro_pitch = (event.csensor.data[0] - gyro_calibration_x->value) * cl_pitchspeed->value;
+				}
+				break;
+#endif	// SDL_VERSION_ATLEAST(2, 0, 16)
+
 			case SDL_CONTROLLERDEVICEREMOVED:
 				if (!controller)
 				{
@@ -793,7 +844,7 @@ IN_Update(void)
 				if (!controller)
 				{
 					// This should be lower, but some controllers just don't want to get detected by the OS
-					init_delay = 100;
+					in_delay = 100;
 				}
 				break;
 
@@ -825,12 +876,23 @@ IN_Update(void)
 	// Hot plugging delay handling, to not be "overwhelmed" because some controllers
 	// present themselves as two different devices, triggering SDL_JOYDEVICEADDED
 	// too many times. They could trigger it even at game initialization.
-	if (init_delay)
+	// Also used to keep time of the 'controller gyro calibration' pause.
+	if (in_delay)
 	{
-		init_delay--;
-		if (!init_delay)
+		in_delay--;
+		if (!in_delay)
 		{
-			if (!first_init)
+			if (calibrating_gyro)
+			{
+				const float inverseSamples = 1.f / num_samples;
+				Cvar_SetValue("gyro_calibration_x", gyro_accum[0] * inverseSamples);
+				Cvar_SetValue("gyro_calibration_y", gyro_accum[1] * inverseSamples);
+				Cvar_SetValue("gyro_calibration_z", gyro_accum[2] * inverseSamples);
+				calibrating_gyro = false;
+				Com_Printf("Calibration results:\n X=%f Y=%f Z=%f\n", gyro_calibration_x->value, gyro_calibration_y->value, gyro_calibration_z->value);
+				CalibrationFinishedCallback();
+			}
+			else if (!first_init)
 			{
 				IN_Controller_Shutdown(false);
 				IN_Controller_Init(true);
@@ -841,6 +903,7 @@ IN_Update(void)
 			}
 		}
 	}
+
 }
 
 /*
@@ -931,7 +994,9 @@ IN_Move(usercmd_t *cmd)
 	// 1/32768 is to normalize the input values from SDL (they're between -32768 and
 	// 32768 and we want -1 to 1) for movement this is not needed, as those are
 	// absolute values independent of framerate
-	float joyViewFactor = (1.0f/32768.0f) * (cls.rframetime/0.01666f);
+	float frametime_ratio = cls.rframetime/0.01666f;
+	float joyViewFactor = NORMALIZE_SDL_AXIS * frametime_ratio;
+	float gyroViewFactor = normalize_sdl_gyro * frametime_ratio;
 
 	if (joystick_yaw)
 	{
@@ -956,6 +1021,16 @@ IN_Move(usercmd_t *cmd)
 	if (joystick_up)
 	{
 		cmd->upmove -= (m_up->value * joystick_up) / 32768;
+	}
+
+	if (gyro_yaw)
+	{
+		cl.viewangles[YAW] += (m_yaw->value * gyro_yaw) * gyroViewFactor;
+	}
+
+	if (gyro_pitch)
+	{
+		cl.viewangles[PITCH] -= (m_pitch->value * gyro_pitch) * gyroViewFactor;
 	}
 }
 
@@ -990,6 +1065,32 @@ static void
 IN_JoyAltSelectorUp(void)
 {
 	joy_altselector_pressed = false;
+}
+
+static void
+IN_GyroActionDown(void)
+{
+	switch ((int)gyro_mode->value)
+	{
+		case 1:
+			gyro_active = true;
+			return;
+		case 2:
+			gyro_active = false;
+	}
+}
+
+static void
+IN_GyroActionUp(void)
+{
+	switch ((int)gyro_mode->value)
+	{
+		case 1:
+			gyro_active = false;
+			return;
+		case 2:
+			gyro_active = true;
+	}
 }
 
 /*
@@ -1234,6 +1335,26 @@ Haptic_Feedback(char *name, int effect_volume, int effect_duration,
 }
 
 /*
+ * Gyro calibration functions, called from menu
+ */
+void
+StartCalibration(void)
+{
+	gyro_accum[0] = 0.0;
+	gyro_accum[1] = 0.0;
+	gyro_accum[2] = 0.0;
+	num_samples = 0;
+	calibrating_gyro = true;
+	in_delay = 290;
+}
+
+qboolean
+IsCalibrationZero(void)
+{
+	return (!gyro_calibration_x->value && !gyro_calibration_y->value && !gyro_calibration_z->value);
+}
+
+/*
  * Game Controller
  */
 static void
@@ -1373,6 +1494,20 @@ IN_Controller_Init(qboolean notify_user)
 				IN_Haptic_Effects_Info();
 			}
 
+#if SDL_VERSION_ATLEAST(2, 0, 16)	// support for controller sensors
+			if ( SDL_GameControllerHasSensor(controller, SDL_SENSOR_GYRO)
+				&& !SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_GYRO, SDL_TRUE) )
+			{
+				float gyro_data_rate = SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_GYRO);
+				if (gyro_data_rate <= 200.0f)
+				{
+					normalize_sdl_gyro = 1.0f/4.5f;
+				}
+				gyro_hardware = true;
+				Com_Printf("Gyro sensor enabled at %.2f Hz\n", gyro_data_rate);
+			}
+#endif
+
 			break;
 		}
 	}
@@ -1388,6 +1523,7 @@ IN_Init(void)
 
 	mouse_x = mouse_y = 0;
 	joystick_yaw = joystick_pitch = joystick_forwardmove = joystick_sidemove = 0;
+	gyro_yaw = gyro_pitch = 0;
 
 	exponential_speedup = Cvar_Get("exponential_speedup", "0", CVAR_ARCHIVE);
 	freelook = Cvar_Get("freelook", "1", CVAR_ARCHIVE);
@@ -1424,6 +1560,16 @@ IN_Init(void)
 	joy_axis_triggerleft_threshold = Cvar_Get("joy_axis_triggerleft_threshold", "0.15", CVAR_ARCHIVE);
 	joy_axis_triggerright_threshold = Cvar_Get("joy_axis_triggerright_threshold", "0.15", CVAR_ARCHIVE);
 
+	gyro_calibration_x = Cvar_Get("gyro_calibration_x", "0.0", CVAR_ARCHIVE);
+	gyro_calibration_y = Cvar_Get("gyro_calibration_y", "0.0", CVAR_ARCHIVE);
+	gyro_calibration_z = Cvar_Get("gyro_calibration_z", "0.0", CVAR_ARCHIVE);
+
+	gyro_mode = Cvar_Get("gyro_mode", "2", CVAR_ARCHIVE);
+	if ((int)gyro_mode->value == 2)
+	{
+		gyro_active = true;
+	}
+
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
 	Cmd_AddCommand("+mlook", IN_MLookDown);
@@ -1431,6 +1577,8 @@ IN_Init(void)
 
 	Cmd_AddCommand("+joyaltselector", IN_JoyAltSelectorDown);
 	Cmd_AddCommand("-joyaltselector", IN_JoyAltSelectorUp);
+	Cmd_AddCommand("+gyroaction", IN_GyroActionDown);
+	Cmd_AddCommand("-gyroaction", IN_GyroActionUp);
 
 	SDL_StartTextInput();
 
@@ -1467,7 +1615,10 @@ IN_Controller_Shutdown(qboolean notify_user)
 	if (controller)
 	{
 		SDL_GameControllerClose(controller);
-		controller  = NULL;
+		controller = NULL;
+		gyro_hardware = false;
+		gyro_yaw = gyro_pitch = 0;
+		normalize_sdl_gyro = 1.0f/3.1f;
 	}
 }
 
@@ -1477,6 +1628,11 @@ IN_Shutdown(void)
 	Cmd_RemoveCommand("force_centerview");
 	Cmd_RemoveCommand("+mlook");
 	Cmd_RemoveCommand("-mlook");
+
+	Cmd_RemoveCommand("+joyaltselector");
+	Cmd_RemoveCommand("-joyaltselector");
+	Cmd_RemoveCommand("+gyroaction");
+	Cmd_RemoveCommand("-gyroaction");
 
 	Com_Printf("Shutting down input.\n");
 

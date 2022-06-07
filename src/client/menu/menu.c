@@ -1293,6 +1293,7 @@ char *controller_bindnames[][2] =
 	{"invprev", "prev item"},
 	{"invnext", "next item"},
 	{"cmd help", "help computer"},
+	{"+gyroaction", "gyro off / on"},
 	{"+joyaltselector", "alt buttons modifier"}
 };
 #define NUM_CONTROLLER_BINDNAMES (sizeof controller_bindnames / sizeof controller_bindnames[0])
@@ -1596,6 +1597,102 @@ M_Menu_ControllerAltButtons_f(void)
 }
 
 /*
+ * GYRO OPTIONS MENU
+ */
+
+static menuframework_s s_gyro_menu;
+
+static menuseparator_s s_calibrating_text[2];
+static menuaction_s s_calibrate_gyro;
+
+extern qboolean gyro_hardware;
+extern void StartCalibration(void);
+extern qboolean IsCalibrationZero(void);
+
+static void
+CalibrateGyroFunc(void *unused)
+{
+	if (!gyro_hardware)
+	{
+		return;
+	}
+
+	m_popup_string = "Calibrating, please wait...";
+	m_popup_endtime = cls.realtime + 4650;
+	M_Popup();
+	R_EndFrame();
+	StartCalibration();
+}
+
+void
+CalibrationFinishedCallback(void)
+{
+	Menu_SetStatusBar(&s_gyro_menu, NULL);
+	m_popup_string = "Calibration complete!";
+	m_popup_endtime = cls.realtime + 1900;
+	M_Popup();
+	R_EndFrame();
+}
+
+static void
+Gyro_MenuInit(void)
+{
+	int y = 0;
+	float scale = SCR_GetMenuScale();
+
+	s_gyro_menu.x = (int)(viddef.width * 0.50f);
+	s_gyro_menu.nitems = 0;
+
+	s_calibrating_text[0].generic.type = MTYPE_SEPARATOR;
+	s_calibrating_text[0].generic.x = 48 * scale + 30;
+	s_calibrating_text[0].generic.y = y;
+	s_calibrating_text[0].generic.name = "place the controller on a flat,";
+
+	s_calibrating_text[1].generic.type = MTYPE_SEPARATOR;
+	s_calibrating_text[1].generic.x = 48 * scale + 30;
+	s_calibrating_text[1].generic.y = (y += 10);
+	s_calibrating_text[1].generic.name = "stable surface to...";
+
+	s_calibrate_gyro.generic.type = MTYPE_ACTION;
+	s_calibrate_gyro.generic.x = 0;
+	s_calibrate_gyro.generic.y = (y += 15);
+	s_calibrate_gyro.generic.name = "calibrate";
+	s_calibrate_gyro.generic.callback = CalibrateGyroFunc;
+
+	Menu_AddItem(&s_gyro_menu, (void *)&s_calibrating_text[0]);
+	Menu_AddItem(&s_gyro_menu, (void *)&s_calibrating_text[1]);
+	Menu_AddItem(&s_gyro_menu, (void *)&s_calibrate_gyro);
+
+	if (IsCalibrationZero())
+	{
+		Menu_SetStatusBar(&s_gyro_menu, "Calibration required");
+	}
+
+	Menu_Center(&s_gyro_menu);
+}
+
+static void
+Gyro_MenuDraw(void)
+{
+	Menu_AdjustCursor(&s_gyro_menu, 1);
+	Menu_Draw(&s_gyro_menu);
+	M_Popup();
+}
+
+static const char *
+Gyro_MenuKey(int key)
+{
+	return Default_MenuKey(&s_gyro_menu, key);
+}
+
+static void
+M_Menu_Gyro_f(void)
+{
+	Gyro_MenuInit();
+	M_PushMenu(Gyro_MenuDraw, Gyro_MenuKey);
+}
+
+/*
  * JOY MENU
  */
 static menuslider_s s_joy_expo_slider;
@@ -1605,6 +1702,7 @@ static menuslider_s s_joy_forwardsensitivity_slider;
 static menuslider_s s_joy_sidesensitivity_slider;
 static menuslider_s s_joy_upsensitivity_slider;
 static menuslider_s s_joy_haptic_slider;
+static menuaction_s s_joy_gyro_action;
 static menuaction_s s_joy_customize_buttons_action;
 static menuaction_s s_joy_customize_alt_buttons_action;
 
@@ -1618,6 +1716,12 @@ static void
 CustomizeControllerAltButtonsFunc(void *unused)
 {
     M_Menu_ControllerAltButtons_f();
+}
+
+static void
+ConfigGyroFunc(void *unused)
+{
+    M_Menu_Gyro_f();
 }
 
 static void
@@ -1756,6 +1860,19 @@ Joy_MenuInit(void)
         s_joy_haptic_slider.minvalue = 0;
         s_joy_haptic_slider.maxvalue = 22;
         Menu_AddItem(&s_joy_menu, (void *)&s_joy_haptic_slider);
+    }
+
+    if (gyro_hardware)
+    {
+        y += 10;
+
+        s_joy_gyro_action.generic.type = MTYPE_ACTION;
+        s_joy_gyro_action.generic.x = 0;
+        s_joy_gyro_action.generic.y = y;
+        y += 10;
+        s_joy_gyro_action.generic.name = "gyro calibration";
+        s_joy_gyro_action.generic.callback = ConfigGyroFunc;
+        Menu_AddItem(&s_joy_menu, (void *)&s_joy_gyro_action);
     }
 
     y += 10;
