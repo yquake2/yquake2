@@ -81,6 +81,7 @@ char userGivenGame[MAX_QPATH];
 // Hack for the signal handlers.
 qboolean quitnextframe;
 
+#ifndef DEDICATED_ONLY
 static inline void Sys_CpuPause(void)
 {
 #if defined(__GNUC__)
@@ -99,6 +100,7 @@ static inline void Sys_CpuPause(void)
 #endif
 #endif
 }
+#endif
 
 static void Qcommon_Frame(int usec);
 

@@ -1172,8 +1172,8 @@ R_DrawPoly(int iswater, espan_t *spans)
 
 	// find the top and bottom vertices, and make sure there's at least one scan to
 	// draw
-	ymin = INT_MAX; // Set maximum values for world range
-	ymax = INT_MIN; // Set minimal values for world range
+	ymin = (float)INT_MAX; // Set maximum values for world range
+	ymax = (float)INT_MIN; // Set minimal values for world range
 	pverts = r_polydesc.pverts;
 
 	for (i=0 ; i<r_polydesc.nump ; i++)

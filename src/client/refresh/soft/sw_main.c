@@ -1042,8 +1042,8 @@ RotatedBBox (const vec3_t mins, const vec3_t maxs, vec3_t angles, vec3_t tmins, 
 
 	for (i=0 ; i<3 ; i++)
 	{
-		tmins[i] = INT_MAX; // Set maximum values for world range
-		tmaxs[i] = INT_MIN;  // Set minimal values for world range
+		tmins[i] = (vec_t)INT_MAX; // Set maximum values for world range
+		tmaxs[i] = (vec_t)INT_MIN;  // Set minimal values for world range
 	}
 
 	AngleVectors (angles, forward, right, up);
