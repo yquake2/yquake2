@@ -139,13 +139,6 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   during gameplay and released otherwise (in menu, videos, console or if
   game is paused).
 
-* **in_sdlbackbutton**: Defines which button is used in the gamepad or
-  joystick as the `Esc` key, that is, to be able to access the menu
-  and 'cancel'/'go back' on its options. When set to `0` (the default)
-  the Back/Select/Minus button is used. Set this to `1` to use the
-  Start/Menu/Plus button, and to `2` to use the Guide/Home/PS button.
-  Requires a game restart when changed.
-
 * **singleplayer**: Only available in the dedicated server. Vanilla
   Quake II enforced that either `coop` or `deathmatch` is set to `1`
   when running the dedicated server. That made it impossible to play
@@ -459,6 +452,34 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   less optimal for the default gun field of view of 80.
 
 * **sw_colorlight**: enable experimental color lighting.
+
+
+## Game Controller
+
+* **in_sdlbackbutton**: Defines which button is used in the gamepad or
+  joystick as the `Esc` key, to access the main menu and 'cancel' /
+  'go back' on its options. Default is `0`, which corresponds to the
+  Back/Select/Minus button. Set to `1` to use Start/Menu/Plus, and to
+  `2` to use the Guide/Home/PS button. Requires a game restart
+  (or controller replug) when changed.
+
+* **gyro_mode**: Operation mode for the gyroscope sensor of the game
+  controller. Options are `0` = always off, `1` = off with the
+  `+gyroaction` bind to enable, `2` = on with `+gyroaction` to
+  disable (default), `3` = always on.
+
+* **gyro_turning_axis**: Sets which gyro axis will be used for turning.
+  The default `0` is "yaw" (turn), for people who prefer to hold their
+  controller flat, like using a pointing device. `1` is "roll" (lean),
+  for people who hold the controller upright, or use a device with the
+  controller attached to the screen, e.g. Steam Deck.
+
+* **gyro_calibration_(x/y/z)**: Offset values on each axis of the gyro
+  which helps it reach true "zero movement", complete stillness. These
+  values are wrong if you see your in-game view "drift" when leaving
+  the controller alone. As these vary by device, it's better to use
+  'calibrate' in the 'gamepad' -> 'gyro' menu to set them.
+
 
 ## cvar operations
 

@@ -133,6 +133,11 @@ static cvar_t *joy_haptic_magnitude;
 
 // Gyro mode (0=off, 3=on, 1-2=uses button to enable/disable)
 cvar_t *gyro_mode;
+cvar_t *gyro_turning_axis;	// yaw or roll
+
+// Gyro sensitivity
+cvar_t *gyro_yawsensitivity;
+cvar_t *gyro_pitchsensitivity;
 
 // Gyro availability
 qboolean gyro_hardware = false;
@@ -823,8 +828,17 @@ IN_Update(void)
 				}
 				else
 				{
-					gyro_yaw = (event.csensor.data[1] - gyro_calibration_y->value) * cl_yawspeed->value;
-					gyro_pitch = (event.csensor.data[0] - gyro_calibration_x->value) * cl_pitchspeed->value;
+					if (!gyro_turning_axis->value)
+					{
+						gyro_yaw = event.csensor.data[1] - gyro_calibration_y->value;		// yaw
+					}
+					else
+					{
+						gyro_yaw = -(event.csensor.data[2] - gyro_calibration_z->value);	// roll
+					}
+					gyro_yaw *= gyro_yawsensitivity->value * cl_yawspeed->value;
+					gyro_pitch = (event.csensor.data[0] - gyro_calibration_x->value)
+							* gyro_pitchsensitivity->value * cl_pitchspeed->value;
 				}
 				break;
 #endif	// SDL_VERSION_ATLEAST(2, 0, 16)
@@ -1563,6 +1577,10 @@ IN_Init(void)
 	gyro_calibration_x = Cvar_Get("gyro_calibration_x", "0.0", CVAR_ARCHIVE);
 	gyro_calibration_y = Cvar_Get("gyro_calibration_y", "0.0", CVAR_ARCHIVE);
 	gyro_calibration_z = Cvar_Get("gyro_calibration_z", "0.0", CVAR_ARCHIVE);
+
+	gyro_yawsensitivity = Cvar_Get("gyro_yawsensitivity", "1.0", CVAR_ARCHIVE);
+	gyro_pitchsensitivity = Cvar_Get("gyro_pitchsensitivity", "1.0", CVAR_ARCHIVE);
+	gyro_turning_axis = Cvar_Get("gyro_turning_axis", "0", CVAR_ARCHIVE);
 
 	gyro_mode = Cvar_Get("gyro_mode", "2", CVAR_ARCHIVE);
 	if ((int)gyro_mode->value == 2)
