@@ -338,7 +338,7 @@ Menu_AdjustCursor(menuframework_s *m, int dir)
 		if ((citem = Menu_ItemAtCursor(m)) != 0)
 		{
 			if (citem->type != MTYPE_SEPARATOR &&
-				(citem->flags & QMF_GRAYED) != QMF_GRAYED)
+				(citem->flags & QMF_INACTIVE) != QMF_INACTIVE)
 			{
 				return;
 			}
@@ -356,7 +356,7 @@ Menu_AdjustCursor(menuframework_s *m, int dir)
 			if (citem)
 			{
 				if (citem->type != MTYPE_SEPARATOR &&
-				(citem->flags & QMF_GRAYED) != QMF_GRAYED)
+				(citem->flags & QMF_INACTIVE) != QMF_INACTIVE)
 				{
 					break;
 				}
@@ -379,7 +379,7 @@ Menu_AdjustCursor(menuframework_s *m, int dir)
 			if (citem)
 			{
 				if (citem->type != MTYPE_SEPARATOR &&
-				(citem->flags & QMF_GRAYED) != QMF_GRAYED)
+				(citem->flags & QMF_INACTIVE) != QMF_INACTIVE)
 				{
 					break;
 				}

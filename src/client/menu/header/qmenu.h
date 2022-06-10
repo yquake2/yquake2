@@ -44,6 +44,7 @@
 #define QMF_GRAYED              0x00000002
 #define QMF_NUMBERSONLY         0x00000004
 #define QMF_HIGHLIGHT_IF_FOCUS  0x00000008
+#define QMF_INACTIVE            0x00000010
 
 enum {
 	KEYS_ALL	= 0,
