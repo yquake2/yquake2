@@ -621,7 +621,7 @@ InitMainMenu(void)
     Draw_GetPicSize(&w, &h, "m_main_plaque");
 
     s_plaque.generic.type = MTYPE_BITMAP;
-    s_plaque.generic.flags = QMF_LEFT_JUSTIFY | QMF_GRAYED;
+    s_plaque.generic.flags = QMF_LEFT_JUSTIFY | QMF_INACTIVE;
     s_plaque.generic.x = (x - (m_cursor_width + 5) - w);
     s_plaque.generic.y = y;
     s_plaque.generic.name = "m_main_plaque";
@@ -629,7 +629,7 @@ InitMainMenu(void)
     s_plaque.focuspic = 0;
 
     s_logo.generic.type = MTYPE_BITMAP;
-    s_logo.generic.flags = QMF_LEFT_JUSTIFY | QMF_GRAYED;
+    s_logo.generic.flags = QMF_LEFT_JUSTIFY | QMF_INACTIVE;
     s_logo.generic.x = (x - (m_cursor_width + 5) - w);
     s_logo.generic.y = y + h + 5;
     s_logo.generic.name = "m_main_logo";
@@ -736,13 +736,16 @@ M_Menu_Main_f(void)
     InitMainMenu();
 
     // force first available item to have focus 
-    while (s_main.cursor >= 0 && s_main.cursor < s_main.nitems) {
-
+    while (s_main.cursor >= 0 && s_main.cursor < s_main.nitems)
+    {
         item = ( menucommon_s * )s_main.items[s_main.cursor];
         
-        if ((item->flags & (QMF_GRAYED))) {
+        if ((item->flags & (QMF_INACTIVE)))
+        {
             s_main.cursor++;
-        } else {
+        }
+        else
+        {
             break;
         }
     }
