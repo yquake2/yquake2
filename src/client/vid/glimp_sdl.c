@@ -580,7 +580,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 			}
 			else
 			{
-				Com_Error(ERR_FATAL, "Failed to revert to r_mode 4. Exiting...\n");
+				Com_Printf("Failed to revert to r_mode 4. Will try another render backend...\n");
 				return false;
 			}
 		}

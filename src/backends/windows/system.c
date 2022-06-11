@@ -69,6 +69,7 @@ Sys_Error(char *error, ...)
 	vsnprintf(text, sizeof(text), error, argptr);
 	va_end(argptr);
 	fprintf(stderr, "Error: %s\n", text);
+	fprintf(stdout, "Error: %s\n", text);
 
 	MessageBox(NULL, text, "Error", 0 /* MB_OK */);
 
