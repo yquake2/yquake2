@@ -526,6 +526,11 @@ R_DrawParticles(void)
 	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
 	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
 
+	if (r_newrefdef.num_particles <= 0) /* avoiding VLA with no size and vertexes built on it */
+	{
+		return;
+	}
+
 	if (gl_config.pointparameters && !(stereo_split_tb || stereo_split_lr))
 	{
 		int i;
@@ -533,7 +538,7 @@ R_DrawParticles(void)
 		const particle_t *p;
  
 		YQ2_VLA(GLfloat, vtx, 3 * r_newrefdef.num_particles);
-		YQ2_VLA(GLfloat, clr, 4*r_newrefdef.num_particles);
+		YQ2_VLA(GLfloat, clr, 4 * r_newrefdef.num_particles);
 
 		unsigned int index_vtx = 0;
 		unsigned int index_clr = 0;
