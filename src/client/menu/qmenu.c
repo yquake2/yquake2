@@ -29,7 +29,6 @@
 #include "../header/client.h"
 #include "header/qmenu.h"
 
-static void Action_DoEnter(menuaction_s *a);
 static void Action_Draw(menuaction_s *a);
 static void Menu_DrawStatusBar(const char *string);
 static void MenuList_Draw(menulist_s *l);

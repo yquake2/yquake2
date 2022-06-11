@@ -34,8 +34,6 @@
 #include "../sound/header/local.h"
 #include "header/qmenu.h"
 
-static int m_main_cursor;
-
 /* Number of the frames of the spinning quake logo */
 #define NUM_CURSOR_FRAMES 15
 static int m_cursor_width = 0;
