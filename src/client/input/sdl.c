@@ -160,7 +160,7 @@ static int in_delay = 30;
 
 // Factors used to transform from SDL input to Q2 "view angle" change
 #define NORMALIZE_SDL_AXIS (1.0f/32768.0f)
-static float normalize_sdl_gyro = 1.0f/3.1f;	// can change depending on hardware
+static float normalize_sdl_gyro = 1.0f / M_PI;	// can change depending on hardware
 
 extern void CalibrationFinishedCallback(void);
 
@@ -1509,18 +1509,31 @@ IN_Controller_Init(qboolean notify_user)
 			}
 
 #if SDL_VERSION_ATLEAST(2, 0, 16)	// support for controller sensors
+
 			if ( SDL_GameControllerHasSensor(controller, SDL_SENSOR_GYRO)
 				&& !SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_GYRO, SDL_TRUE) )
 			{
 				float gyro_data_rate = SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_GYRO);
+#ifndef _WIN32
 				if (gyro_data_rate <= 200.0f)
 				{
-					normalize_sdl_gyro = 1.0f/4.5f;
+					normalize_sdl_gyro = 1.0f / 4.5f;
 				}
+#endif	// _WIN32
 				gyro_hardware = true;
 				Com_Printf("Gyro sensor enabled at %.2f Hz\n", gyro_data_rate);
 			}
-#endif
+			else
+			{
+				Com_Printf("Gyro sensor not found.\n");
+			}
+
+			if ( SDL_GameControllerHasLED(controller) )
+			{
+				SDL_GameControllerSetLED(controller, 0, 80, 0);	// green light
+			}
+
+#endif	// SDL_VERSION_ATLEAST(2, 0, 16)
 
 			break;
 		}
@@ -1636,7 +1649,7 @@ IN_Controller_Shutdown(qboolean notify_user)
 		controller = NULL;
 		gyro_hardware = false;
 		gyro_yaw = gyro_pitch = 0;
-		normalize_sdl_gyro = 1.0f/3.1f;
+		normalize_sdl_gyro = 1.0f / M_PI;
 	}
 }
 
