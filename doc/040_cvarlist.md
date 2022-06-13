@@ -110,6 +110,13 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
 
 * **cl_http_show_dw_progress**: Show a HTTP download progress bar.
 
+* **cl_http_bw_limit_rate**: Average speed transfer threshold for
+`cl_http_bw_limit_tmout` variable. Set `0` by default.
+
+* **cl_http_bw_limit_tmout**: Seconds before the download is aborted
+when the speed transfer is below the var set by `cl_http_bw_limit_rate`.
+Set `0` by default.
+
 * **cl_kickangles**: If set to `0` angle kicks (weapon recoil, damage
   hits and the like) are ignored. Cheat-protected. Defaults to `1`.
 

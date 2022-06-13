@@ -75,6 +75,8 @@ extern cvar_t *cl_http_filelists;
 extern cvar_t *cl_http_proxy;
 extern cvar_t *cl_http_max_connections;
 extern cvar_t *cl_http_show_dw_progress;
+extern cvar_t *cl_http_bw_limit_rate;
+extern cvar_t *cl_http_bw_limit_tmout;
 
 void CL_CancelHTTPDownloads(qboolean permKill);
 void CL_InitHTTPDownloads(void);
