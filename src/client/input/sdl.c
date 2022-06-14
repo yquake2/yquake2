@@ -43,6 +43,15 @@
 
 // ----
 
+typedef enum
+{
+	REASON_NONE,
+	REASON_CONTROLLERINIT,
+	REASON_GYROCALIBRATION
+} updates_countdown_reasons;
+
+// ----
+
 // These are used to communicate the events collected by
 // IN_Update() called at the beginning of a frame to the
 // actual movement functions called at a later time.
@@ -146,7 +155,6 @@ qboolean gyro_hardware = false;
 static qboolean gyro_active = false;
 
 // Gyro calibration
-static qboolean calibrating_gyro = false;
 static float gyro_accum[3];
 static unsigned int num_samples;
 
@@ -154,9 +162,14 @@ static cvar_t *gyro_calibration_x;
 static cvar_t *gyro_calibration_y;
 static cvar_t *gyro_calibration_z;
 
-// Support for hot plugging of game controller
+// To ignore SDL_JOYDEVICEADDED at game init. Allows for hot plugging of game controller afterwards.
 static qboolean first_init = true;
-static int in_delay = 30;
+
+// Countdown of calls to IN_Update(), needed for controller init and gyro calibration
+static unsigned int updates_countdown = 30;
+
+// Reason for the countdown
+static updates_countdown_reasons countdown_reason = REASON_CONTROLLERINIT;
 
 // Factors used to transform from SDL input to Q2 "view angle" change
 #define NORMALIZE_SDL_AXIS (1.0f/32768.0f)
@@ -216,7 +229,6 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 		case SDLK_RIGHT:
 			key = K_RIGHTARROW;
 			break;
-
 
 		case SDLK_RALT:
 		case SDLK_LALT:
@@ -294,7 +306,6 @@ IN_TranslateSDLtoQ2Key(unsigned int keysym)
 		case SDLK_F15:
 			key = K_F15;
 			break;
-
 
 		case SDLK_KP_7:
 			key = K_KP_HOME;
@@ -814,7 +825,7 @@ IN_Update(void)
 				{
 					break;
 				}
-				if (calibrating_gyro)
+				if (countdown_reason == REASON_GYROCALIBRATION && updates_countdown)
 				{
 					gyro_accum[0] += event.csensor.data[0];
 					gyro_accum[1] += event.csensor.data[1];
@@ -858,7 +869,8 @@ IN_Update(void)
 				if (!controller)
 				{
 					// This should be lower, but some controllers just don't want to get detected by the OS
-					in_delay = 100;
+					updates_countdown = 100;
+					countdown_reason = REASON_CONTROLLERINIT;
 				}
 				break;
 
@@ -891,33 +903,43 @@ IN_Update(void)
 	// present themselves as two different devices, triggering SDL_JOYDEVICEADDED
 	// too many times. They could trigger it even at game initialization.
 	// Also used to keep time of the 'controller gyro calibration' pause.
-	if (in_delay)
+	if (updates_countdown)
 	{
-		in_delay--;
-		if (!in_delay)
+		updates_countdown--;
+		if (!updates_countdown)		// Countdown finished, apply needed action by reason
 		{
-			if (calibrating_gyro)
+			switch (countdown_reason)
 			{
-				const float inverseSamples = 1.f / num_samples;
-				Cvar_SetValue("gyro_calibration_x", gyro_accum[0] * inverseSamples);
-				Cvar_SetValue("gyro_calibration_y", gyro_accum[1] * inverseSamples);
-				Cvar_SetValue("gyro_calibration_z", gyro_accum[2] * inverseSamples);
-				calibrating_gyro = false;
-				Com_Printf("Calibration results:\n X=%f Y=%f Z=%f\n", gyro_calibration_x->value, gyro_calibration_y->value, gyro_calibration_z->value);
-				CalibrationFinishedCallback();
+				case REASON_CONTROLLERINIT:
+					if (!first_init)
+					{
+						IN_Controller_Shutdown(false);
+						IN_Controller_Init(true);
+					}
+					else
+					{
+						first_init = false;
+					}
+					break;
+
+				case REASON_GYROCALIBRATION:	// finish and save calibration
+					{
+						const float inverseSamples = 1.f / num_samples;
+						Cvar_SetValue("gyro_calibration_x", gyro_accum[0] * inverseSamples);
+						Cvar_SetValue("gyro_calibration_y", gyro_accum[1] * inverseSamples);
+						Cvar_SetValue("gyro_calibration_z", gyro_accum[2] * inverseSamples);
+						Com_Printf("Calibration results:\n X=%f Y=%f Z=%f\n",
+							gyro_calibration_x->value, gyro_calibration_y->value, gyro_calibration_z->value);
+						CalibrationFinishedCallback();
+						break;
+					}
+
+				default:
+					break;	// avoiding compiler warning
 			}
-			else if (!first_init)
-			{
-				IN_Controller_Shutdown(false);
-				IN_Controller_Init(true);
-			}
-			else
-			{
-				first_init = false;
-			}
+			countdown_reason = REASON_NONE;
 		}
 	}
-
 }
 
 /*
@@ -1358,8 +1380,8 @@ StartCalibration(void)
 	gyro_accum[1] = 0.0;
 	gyro_accum[2] = 0.0;
 	num_samples = 0;
-	calibrating_gyro = true;
-	in_delay = 290;
+	updates_countdown = 300;
+	countdown_reason = REASON_GYROCALIBRATION;
 }
 
 qboolean
@@ -1514,12 +1536,14 @@ IN_Controller_Init(qboolean notify_user)
 				&& !SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_GYRO, SDL_TRUE) )
 			{
 				float gyro_data_rate = SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_GYRO);
-#ifndef _WIN32
+
+#ifndef _WIN32	// Switch controllers behave differently on Linux & Mac, so sensitivity has to be readjusted
 				if (gyro_data_rate <= 200.0f)
 				{
 					normalize_sdl_gyro = 1.0f / 4.5f;
 				}
 #endif	// _WIN32
+
 				gyro_hardware = true;
 				Com_Printf("Gyro sensor enabled at %.2f Hz\n", gyro_data_rate);
 			}
