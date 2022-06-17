@@ -86,6 +86,22 @@ typedef struct
 menulayer_t m_layers[MAX_MENU_DEPTH];
 int m_menudepth;
 
+static float
+ClampCvar(float min, float max, float value)
+{
+	if (value < min)
+	{
+		return min;
+	}
+
+	if (value > max)
+	{
+		return max;
+	}
+
+	return value;
+}
+
 static qboolean
 M_IsGame(const char *gamename)
 {
@@ -1294,6 +1310,7 @@ char *controller_bindnames[][2] =
 	{"invprev", "prev item"},
 	{"invnext", "next item"},
 	{"cmd help", "help computer"},
+	{"+gyroaction", "gyro off / on"},
 	{"+joyaltselector", "alt buttons modifier"}
 };
 #define NUM_CONTROLLER_BINDNAMES (sizeof controller_bindnames / sizeof controller_bindnames[0])
@@ -1597,6 +1614,184 @@ M_Menu_ControllerAltButtons_f(void)
 }
 
 /*
+ * GYRO OPTIONS MENU
+ */
+
+static menuframework_s s_gyro_menu;
+
+static menulist_s s_gyro_mode_box;
+static menulist_s s_turning_axis_box;
+static menuslider_s s_gyro_yawsensitivity_slider;
+static menuslider_s s_gyro_pitchsensitivity_slider;
+static menuseparator_s s_calibrating_text[2];
+static menuaction_s s_calibrate_gyro;
+
+extern qboolean gyro_hardware;
+extern void StartCalibration(void);
+extern qboolean IsCalibrationZero(void);
+
+static void
+CalibrateGyroFunc(void *unused)
+{
+	if (!gyro_hardware)
+	{
+		return;
+	}
+
+	m_popup_string = "Calibrating, please wait...";
+	m_popup_endtime = cls.realtime + 4650;
+	M_Popup();
+	R_EndFrame();
+	StartCalibration();
+}
+
+void
+CalibrationFinishedCallback(void)
+{
+	Menu_SetStatusBar(&s_gyro_menu, NULL);
+	m_popup_string = "Calibration complete!";
+	m_popup_endtime = cls.realtime + 1900;
+	M_Popup();
+	R_EndFrame();
+}
+
+static void
+GyroModeFunc(void *unused)
+{
+	Cvar_SetValue("gyro_mode", (int)s_gyro_mode_box.curvalue);
+}
+
+static void
+TurningAxisFunc(void *unused)
+{
+	Cvar_SetValue("gyro_turning_axis", (int)s_turning_axis_box.curvalue);
+}
+
+static void
+GyroYawSensitivityFunc(void *unused)
+{
+	Cvar_SetValue("gyro_yawsensitivity", s_gyro_yawsensitivity_slider.curvalue / 10.0F);
+}
+
+static void
+GyroPitchSensitivityFunc(void *unused)
+{
+	Cvar_SetValue("gyro_pitchsensitivity", s_gyro_pitchsensitivity_slider.curvalue / 10.0F);
+}
+
+static void
+Gyro_MenuInit(void)
+{
+	static const char *gyro_modes[] =
+	{
+		"always off",
+		"off, button enables",
+		"on, button disables",
+		"always on",
+		0
+	};
+
+	static const char *axis_choices[] =
+	{
+		"yaw (turn)",
+		"roll (lean)",
+		0
+	};
+
+	int y = 0;
+	float scale = SCR_GetMenuScale();
+
+	s_gyro_menu.x = (int)(viddef.width * 0.50f);
+	s_gyro_menu.nitems = 0;
+
+	s_gyro_mode_box.generic.type = MTYPE_SPINCONTROL;
+	s_gyro_mode_box.generic.x = 0;
+	s_gyro_mode_box.generic.y = y;
+	s_gyro_mode_box.generic.name = "gyro mode";
+	s_gyro_mode_box.generic.callback = GyroModeFunc;
+	s_gyro_mode_box.itemnames = gyro_modes;
+	s_gyro_mode_box.curvalue = ClampCvar(0, 3, gyro_mode->value);
+
+	s_turning_axis_box.generic.type = MTYPE_SPINCONTROL;
+	s_turning_axis_box.generic.x = 0;
+	s_turning_axis_box.generic.y = (y += 10);
+	s_turning_axis_box.generic.name = "turning axis";
+	s_turning_axis_box.generic.callback = TurningAxisFunc;
+	s_turning_axis_box.itemnames = axis_choices;
+	s_turning_axis_box.curvalue = ClampCvar(0, 1, gyro_turning_axis->value);
+
+	s_gyro_yawsensitivity_slider.generic.type = MTYPE_SLIDER;
+	s_gyro_yawsensitivity_slider.generic.x = 0;
+	s_gyro_yawsensitivity_slider.generic.y = (y += 20);
+	s_gyro_yawsensitivity_slider.generic.name = "yaw sensitivity";
+	s_gyro_yawsensitivity_slider.generic.callback = GyroYawSensitivityFunc;
+	s_gyro_yawsensitivity_slider.minvalue = 1;
+	s_gyro_yawsensitivity_slider.maxvalue = 80;
+	s_gyro_yawsensitivity_slider.curvalue = gyro_yawsensitivity->value * 10;
+
+	s_gyro_pitchsensitivity_slider.generic.type = MTYPE_SLIDER;
+	s_gyro_pitchsensitivity_slider.generic.x = 0;
+	s_gyro_pitchsensitivity_slider.generic.y = (y += 10);
+	s_gyro_pitchsensitivity_slider.generic.name = "pitch sensitivity";
+	s_gyro_pitchsensitivity_slider.generic.callback = GyroPitchSensitivityFunc;
+	s_gyro_pitchsensitivity_slider.minvalue = 1;
+	s_gyro_pitchsensitivity_slider.maxvalue = 80;
+	s_gyro_pitchsensitivity_slider.curvalue = gyro_pitchsensitivity->value * 10;
+
+	s_calibrating_text[0].generic.type = MTYPE_SEPARATOR;
+	s_calibrating_text[0].generic.x = 48 * scale + 30;
+	s_calibrating_text[0].generic.y = (y += 20);
+	s_calibrating_text[0].generic.name = "place the controller on a flat,";
+
+	s_calibrating_text[1].generic.type = MTYPE_SEPARATOR;
+	s_calibrating_text[1].generic.x = 48 * scale + 30;
+	s_calibrating_text[1].generic.y = (y += 10);
+	s_calibrating_text[1].generic.name = "stable surface to...";
+
+	s_calibrate_gyro.generic.type = MTYPE_ACTION;
+	s_calibrate_gyro.generic.x = 0;
+	s_calibrate_gyro.generic.y = (y += 15);
+	s_calibrate_gyro.generic.name = "calibrate";
+	s_calibrate_gyro.generic.callback = CalibrateGyroFunc;
+
+	Menu_AddItem(&s_gyro_menu, (void *)&s_gyro_mode_box);
+	Menu_AddItem(&s_gyro_menu, (void *)&s_turning_axis_box);
+	Menu_AddItem(&s_gyro_menu, (void *)&s_gyro_yawsensitivity_slider);
+	Menu_AddItem(&s_gyro_menu, (void *)&s_gyro_pitchsensitivity_slider);
+	Menu_AddItem(&s_gyro_menu, (void *)&s_calibrating_text[0]);
+	Menu_AddItem(&s_gyro_menu, (void *)&s_calibrating_text[1]);
+	Menu_AddItem(&s_gyro_menu, (void *)&s_calibrate_gyro);
+
+	if (IsCalibrationZero())
+	{
+		Menu_SetStatusBar(&s_gyro_menu, "Calibration required");
+	}
+
+	Menu_Center(&s_gyro_menu);
+}
+
+static void
+Gyro_MenuDraw(void)
+{
+	Menu_AdjustCursor(&s_gyro_menu, 1);
+	Menu_Draw(&s_gyro_menu);
+	M_Popup();
+}
+
+static const char *
+Gyro_MenuKey(int key)
+{
+	return Default_MenuKey(&s_gyro_menu, key);
+}
+
+static void
+M_Menu_Gyro_f(void)
+{
+	Gyro_MenuInit();
+	M_PushMenu(Gyro_MenuDraw, Gyro_MenuKey);
+}
+
+/*
  * JOY MENU
  */
 static menuslider_s s_joy_expo_slider;
@@ -1606,6 +1801,7 @@ static menuslider_s s_joy_forwardsensitivity_slider;
 static menuslider_s s_joy_sidesensitivity_slider;
 static menuslider_s s_joy_upsensitivity_slider;
 static menuslider_s s_joy_haptic_slider;
+static menuaction_s s_joy_gyro_action;
 static menuaction_s s_joy_customize_buttons_action;
 static menuaction_s s_joy_customize_alt_buttons_action;
 
@@ -1619,6 +1815,12 @@ static void
 CustomizeControllerAltButtonsFunc(void *unused)
 {
     M_Menu_ControllerAltButtons_f();
+}
+
+static void
+ConfigGyroFunc(void *unused)
+{
+    M_Menu_Gyro_f();
 }
 
 static void
@@ -1759,6 +1961,19 @@ Joy_MenuInit(void)
         Menu_AddItem(&s_joy_menu, (void *)&s_joy_haptic_slider);
     }
 
+    if (gyro_hardware)
+    {
+        y += 10;
+
+        s_joy_gyro_action.generic.type = MTYPE_ACTION;
+        s_joy_gyro_action.generic.x = 0;
+        s_joy_gyro_action.generic.y = y;
+        y += 10;
+        s_joy_gyro_action.generic.name = "gyro options";
+        s_joy_gyro_action.generic.callback = ConfigGyroFunc;
+        Menu_AddItem(&s_joy_menu, (void *)&s_joy_gyro_action);
+    }
+
     y += 10;
 
     s_joy_customize_buttons_action.generic.type = MTYPE_ACTION;
@@ -1855,22 +2070,6 @@ static void
 MouseSpeedFunc(void *unused)
 {
     Cvar_SetValue("sensitivity", s_options_sensitivity_slider.curvalue / 2.0F);
-}
-
-static float
-ClampCvar(float min, float max, float value)
-{
-    if (value < min)
-    {
-        return min;
-    }
-
-    if (value > max)
-    {
-        return max;
-    }
-
-    return value;
 }
 
 static void
@@ -5525,6 +5724,7 @@ M_Init(void)
     Cmd_AddCommand("menu_options", M_Menu_Options_f);
     Cmd_AddCommand("menu_keys", M_Menu_Keys_f);
     Cmd_AddCommand("menu_joy", M_Menu_Joy_f);
+    Cmd_AddCommand("menu_gyro", M_Menu_Gyro_f);
     Cmd_AddCommand("menu_buttons", M_Menu_ControllerButtons_f);
     Cmd_AddCommand("menu_altbuttons", M_Menu_ControllerAltButtons_f);
     Cmd_AddCommand("menu_quit", M_Menu_Quit_f);
