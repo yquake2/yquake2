@@ -294,6 +294,7 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 	qcurl_easy_setopt(dl->curl, CURLOPT_PROXY, cl_http_proxy->string);
 	qcurl_easy_setopt(dl->curl, CURLOPT_LOW_SPEED_TIME, (long)cl_http_bw_limit_tmout->value);
 	qcurl_easy_setopt(dl->curl, CURLOPT_LOW_SPEED_LIMIT, (long)cl_http_bw_limit_rate->value);
+	qcurl_easy_setopt(dl->curl, CURLOPT_CONNECTTIMEOUT, 30);
 	qcurl_easy_setopt(dl->curl, CURLOPT_FOLLOWLOCATION, 1);
 	qcurl_easy_setopt(dl->curl, CURLOPT_MAXREDIRS, 5);
 	qcurl_easy_setopt(dl->curl, CURLOPT_NOPROGRESS, (cl_http_show_dw_progress->value != 1.0));
