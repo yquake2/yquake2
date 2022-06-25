@@ -329,7 +329,7 @@ Menu_AddItem(menuframework_s *menu, void *item)
 void
 Menu_AdjustCursor(menuframework_s *m, int dir)
 {
-	menucommon_s *citem;
+	menucommon_s *citem = NULL;
 
 	/* see if it's in a valid spot */
 	if ((m->cursor >= 0) && (m->cursor < m->nitems))
@@ -346,50 +346,31 @@ Menu_AdjustCursor(menuframework_s *m, int dir)
 
 	/* it's not in a valid spot, so crawl in the direction
 	   indicated until we find a valid spot */
-	if (dir == 1)
-	{
-		while (1)
+    int cursor = m->nitems;
+
+    while (cursor-- > 0)
+    {
+		citem = Menu_ItemAtCursor(m);
+
+		if (citem)
 		{
-			citem = Menu_ItemAtCursor(m);
-
-			if (citem)
+			if (citem->type != MTYPE_SEPARATOR &&
+			(citem->flags & QMF_INACTIVE) != QMF_INACTIVE)
 			{
-				if (citem->type != MTYPE_SEPARATOR &&
-				(citem->flags & QMF_INACTIVE) != QMF_INACTIVE)
-				{
-					break;
-				}
-			}
-
-			m->cursor += dir;
-
-			if (m->cursor >= m->nitems)
-			{
-				m->cursor = 0;
+				break;
 			}
 		}
-	}
-	else
-	{
-		while (1)
+
+		m->cursor += dir;
+
+		if (m->cursor >= m->nitems)
 		{
-			citem = Menu_ItemAtCursor(m);
+			m->cursor = 0;
+		}
 
-			if (citem)
-			{
-				if (citem->type != MTYPE_SEPARATOR &&
-				(citem->flags & QMF_INACTIVE) != QMF_INACTIVE)
-				{
-					break;
-				}
-			}
-
-			m->cursor += dir;
-
-			if (m->cursor < 0)
-			{
-				m->cursor = m->nitems - 1;
-			}
+		if (m->cursor < 0)
+		{
+			m->cursor = m->nitems - 1;
 		}
 	}
 }
@@ -431,9 +412,8 @@ Menu_Draw(menuframework_s *menu)
 				SpinControl_Draw((menulist_s *)menu->items[i]);
 				break;
 			case MTYPE_BITMAP:
-			{
 				Bitmap_Draw(( menubitmap_s * )menu->items[i]);
-			} break;
+				break;
 			case MTYPE_ACTION:
 				Action_Draw((menuaction_s *)menu->items[i]);
 				break;
