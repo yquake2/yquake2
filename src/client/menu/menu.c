@@ -1882,7 +1882,7 @@ Joy_MenuInit(void)
     s_joy_yawsensitivity_slider.generic.name = "yaw sensitivity";
     s_joy_yawsensitivity_slider.generic.callback = JoyYawSensitivityFunc;
     s_joy_yawsensitivity_slider.minvalue = 0;
-    s_joy_yawsensitivity_slider.maxvalue = 20;
+    s_joy_yawsensitivity_slider.maxvalue = 70;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_yawsensitivity_slider);
 
     s_joy_pitchsensitivity_slider.curvalue = joy_pitchsensitivity->value * 10;
@@ -1893,7 +1893,7 @@ Joy_MenuInit(void)
     s_joy_pitchsensitivity_slider.generic.name = "pitch sensitivity";
     s_joy_pitchsensitivity_slider.generic.callback = JoyPitchSensitivityFunc;
     s_joy_pitchsensitivity_slider.minvalue = 0;
-    s_joy_pitchsensitivity_slider.maxvalue = 20;
+    s_joy_pitchsensitivity_slider.maxvalue = 70;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_pitchsensitivity_slider);
 
     y += 10;
