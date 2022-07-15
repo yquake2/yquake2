@@ -317,19 +317,12 @@ Field_Key(menufield_s *f, int key)
 void
 Menu_AddItem(menuframework_s *menu, void *item)
 {
-	if (menu->nitems == 0)
-	{
-		menu->nslots = 0;
-	}
-
 	if (menu->nitems < MAXMENUITEMS)
 	{
 		menu->items[menu->nitems] = item;
 		((menucommon_s *)menu->items[menu->nitems])->parent = menu;
 		menu->nitems++;
 	}
-
-	menu->nslots = Menu_TallySlots(menu);
 }
 
 /*
@@ -600,35 +593,6 @@ Menu_SlideItem(menuframework_s *s, int dir)
 				break;
 		}
 	}
-}
-
-int
-Menu_TallySlots(menuframework_s *menu)
-{
-	int i;
-	int total = 0;
-
-	for (i = 0; i < menu->nitems; i++)
-	{
-		if (((menucommon_s *)menu->items[i])->type == MTYPE_LIST)
-		{
-			int nitems = 0;
-			const char **n = ((menulist_s *)menu->items[i])->itemnames;
-
-			while (*n)
-			{
-				nitems++, n++;
-			}
-
-			total += nitems;
-		}
-		else
-		{
-			total++;
-		}
-	}
-
-	return total;
 }
 
 void

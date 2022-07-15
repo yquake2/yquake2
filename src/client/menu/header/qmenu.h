@@ -59,7 +59,6 @@ typedef struct _tag_menuframework
 	int cursor;
 
 	int nitems;
-	int nslots;
 	void *items[64];
 
 	const char *statusbar;
