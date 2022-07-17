@@ -508,6 +508,7 @@ CL_PingServers_f(void)
 	cvar_t *noudp;
 	cvar_t *noipx;
 
+	memset(&adr, 0, sizeof(adr));
 	NET_Config(true);  /* allow remote but do we even need lokal pings? */
 
 	/* send a broadcast packet */
