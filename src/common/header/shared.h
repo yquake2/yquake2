@@ -64,6 +64,7 @@ typedef unsigned char byte;
 	#define YQ2_ALIGNAS_TYPE(TYPE)  __attribute__(( __aligned__(__alignof__(TYPE)) ))
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
+	#define YQ2_ATTR_MALLOC         __attribute__ ((__malloc__))
 #elif defined(_MSC_VER)
 	// Note: We prefer VS2019 16.8 or newer in C11 mode (/std:c11),
 	//       then the __STDC_VERSION__ >= 201112L case above is used
@@ -80,11 +81,13 @@ typedef unsigned char byte;
 
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __declspec(noreturn)
+   	#define YQ2_ATTR_MALLOC         __declspec(restrict)
 #else
 	#warning "Please add a case for your compiler here to align correctly"
 	#define YQ2_ALIGNAS_SIZE(SIZE)
 	#define YQ2_ALIGNAS_TYPE(TYPE)
 	#define YQ2_ATTR_NORETURN
+   	#define YQ2_ATTR_MALLOC
 #endif
 
 #if defined(__GNUC__)
@@ -366,8 +369,8 @@ qboolean Sys_IsDir(const char *path);
 qboolean Sys_IsFile(const char *path);
 
 /* large block stack allocation routines */
-void *Hunk_Begin(int maxsize);
-void *Hunk_Alloc(int size);
+YQ2_ATTR_MALLOC void *Hunk_Begin(int maxsize);
+YQ2_ATTR_MALLOC void *Hunk_Alloc(int size);
 void Hunk_Free(void *buf);
 int Hunk_End(void);
 
