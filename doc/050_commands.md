@@ -9,6 +9,7 @@ original clients (Vanilla Quake II) commands are still in place.
   weapon classnames separated by whitespaces. A weapon in the list is
   skipped if it is not a valid weapon classname, you do not own it in
   your inventory or you do not have enough ammo to use it.
+  By quickly tapping the bound key, you can navigate the list faster.
 
 * **prefweap <weapons>**: Similar to the previous command, this will
   select the first weapon available in the priority list given. Useful
