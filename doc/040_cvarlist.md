@@ -266,6 +266,10 @@ Set `0` by default.
 
 * **s_underwater**: Dampen sounds if submerged. Enabled by default.
 
+* **s_occlusion**: If set to `1` sound occusion effects are enabled. This is only
+  supported by the OpenAL sound backend. By default this cvar is disabled (set to 0).
+
+* **s_occlusion_strength**: Occlusion strength, higher values are actually less occlusion.
 
 ## Graphics (all renderers)
 

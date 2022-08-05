@@ -274,6 +274,37 @@ AL_Spatialize(channel_t *ch)
 			qalSource3f(ch->srcnum, AL_VELOCITY, AL_UnpackVector(velocity));
 		}
 
+		if (s_occlusion->value)
+		{
+			trace_t trace;
+			vec3_t mins = { 0, 0, 0 }, maxs = { 0, 0, 0 };
+
+			trace = CM_BoxTrace(origin, listener_origin, mins, maxs, 0, MASK_PLAYERSOLID);
+			if (trace.fraction < 1.0 &&
+				!(ch->entnum == -1 || ch->entnum == cl.playernum + 1 || !ch->dist_mult)
+			)
+			{
+				vec3_t distance;
+				float dist;
+				float final;
+
+				VectorSubtract(origin, listener_origin, distance);
+				dist = VectorLength(distance);
+
+				final = 1.0 - ((dist / 1000) * s_occlusion_strength->value);
+
+				qalSourcef(ch->srcnum, AL_GAIN, min(max(final, 0), 1));
+
+				if (!snd_is_underwater)
+					qalSourcei(ch->srcnum, AL_DIRECT_FILTER, underwaterFilter);
+			}
+			else
+			{
+				if (!snd_is_underwater)
+					qalSourcei(ch->srcnum, AL_DIRECT_FILTER, 0) ;
+			}
+		}
+
 		return;
 	}
 }
