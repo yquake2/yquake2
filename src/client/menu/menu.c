@@ -5066,6 +5066,7 @@ M_Menu_AddressBook_f(void)
 
 static menuframework_s s_player_config_menu;
 static menufield_s s_player_name_field;
+static menubitmap_s s_player_icon_bitmap;
 static menulist_s s_player_model_box;
 static menulist_s s_player_skin_box;
 static menulist_s s_player_handedness_box;
@@ -5427,6 +5428,14 @@ PlayerConfig_MenuInit(void)
     strcpy(s_player_name_field.buffer, name->string);
     s_player_name_field.cursor = strlen(name->string);
 
+    s_player_icon_bitmap.generic.type = MTYPE_BITMAP;
+    s_player_icon_bitmap.generic.flags = QMF_INACTIVE;
+    s_player_icon_bitmap.generic.x = ((viddef.width / scale - 95) / 2) - 87;
+    s_player_icon_bitmap.generic.y = ((viddef.height / (2 * scale))) - 72;
+    s_player_icon_bitmap.generic.name = 0;
+    s_player_icon_bitmap.generic.callback = 0;
+    s_player_icon_bitmap.focuspic = 0;
+
     s_player_model_title.generic.type = MTYPE_SEPARATOR;
     s_player_model_title.generic.name = "model";
     s_player_model_title.generic.x = -8 * scale;
@@ -5500,6 +5509,7 @@ PlayerConfig_MenuInit(void)
     s_player_download_action.generic.callback = DownloadOptionsFunc;
 
     Menu_AddItem(&s_player_config_menu, &s_player_name_field);
+    Menu_AddItem(&s_player_config_menu, &s_player_icon_bitmap);
     Menu_AddItem(&s_player_config_menu, &s_player_model_title);
     Menu_AddItem(&s_player_config_menu, &s_player_model_box);
 
@@ -5536,22 +5546,22 @@ PlayerConfig_MenuDraw(void)
     refdef.fov_y = CalcFov(refdef.fov_x, (float)refdef.width, (float)refdef.height);
     refdef.time = cls.realtime * 0.001f;
 
-    if (s_pmi[s_player_model_box.curvalue].skindisplaynames)
+    if (s_pmi[s_player_model_box.curvalue].skindisplaynames &&
+        s_player_skin_box.curvalue > 0 &&
+        s_player_skin_box.curvalue < s_pmi[s_player_model_box.curvalue].nskins)
     {
         entity_t entity;
         char scratch[MAX_QPATH];
-        int w, h;
-        float picscale;
+        playermodelinfo_s * info = &s_pmi[s_player_model_box.curvalue];
+        char * directory = info->directory;
+        char * skindisplayname = info->skindisplaynames[s_player_skin_box.curvalue];
 
         memset(&entity, 0, sizeof(entity));
 
-        Com_sprintf(scratch, sizeof(scratch), "players/%s/tris.md2",
-                    s_pmi[s_player_model_box.curvalue].directory);
+        Com_sprintf(scratch, sizeof(scratch), "players/%s/tris.md2", directory);
         entity.model = R_RegisterModel(scratch);
-        Com_sprintf(scratch, sizeof(scratch), "players/%s/%s.pcx",
-                    s_pmi[s_player_model_box.curvalue].directory,
-                    s_pmi[s_player_model_box.curvalue].skindisplaynames[
-                        s_player_skin_box.curvalue]);
+        Com_sprintf(scratch, sizeof(scratch), "players/%s/%s.pcx", directory,
+            skindisplayname);
         entity.skin = R_RegisterSkin(scratch);
         entity.flags = RF_FULLBRIGHT;
         entity.origin[0] = 80;
@@ -5573,6 +5583,12 @@ PlayerConfig_MenuDraw(void)
         refdef.lightstyles = 0;
         refdef.rdflags = RDF_NOWORLDMODEL;
 
+        Com_sprintf(scratch, sizeof(scratch), "/players/%s/%s_i.pcx", directory,
+            skindisplayname);
+
+        // icon bitmap to draw
+        s_player_icon_bitmap.generic.name = scratch;
+
         Menu_Draw(&s_player_config_menu);
 
         M_DrawTextBox(((int)(refdef.x) * (320.0F / viddef.width) - 8),
@@ -5581,22 +5597,6 @@ PlayerConfig_MenuDraw(void)
         refdef.height += 4 * scale;
 
         R_RenderFrame(&refdef);
-
-        Com_sprintf(scratch, sizeof(scratch), "/players/%s/%s_i.pcx",
-                    s_pmi[s_player_model_box.curvalue].directory,
-                    s_pmi[s_player_model_box.curvalue].skindisplaynames[
-                        s_player_skin_box.curvalue]);
-
-		Draw_GetPicSize(&w, &h, scratch);
-		picscale = scale;
-		if (w != -1 && h != -1)
-		{
-			if (h > 32)
-			{
-				picscale = (picscale * 32) / h;
-			}
-			Draw_PicScaled(s_player_config_menu.x - 40*scale, refdef.y, scratch, picscale);
-		}
     }
 }
 
