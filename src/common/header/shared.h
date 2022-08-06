@@ -59,12 +59,23 @@ typedef unsigned char byte;
 	#define YQ2_ALIGNAS_TYPE(TYPE)  _Alignas(TYPE)
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       _Noreturn
+#  if defined(__GNUC__)
+	#define YQ2_ATTR_MALLOC         __attribute__ ((__malloc__))
+	#define YQ2_ATTR_INLINE         __attribute__((always_inline))
+#  elif defined(_MSC_VER)
+   	#define YQ2_ATTR_MALLOC         __declspec(restrict)
+#  else
+	// no equivalent per see
+	#define YQ2_ATTR_MALLOC
+	#define YQ2_ATTR_INLINE         inline
+#  endif
 #elif defined(__GNUC__) // GCC and clang should support this attribute
 	#define YQ2_ALIGNAS_SIZE(SIZE)  __attribute__(( __aligned__(SIZE) ))
 	#define YQ2_ALIGNAS_TYPE(TYPE)  __attribute__(( __aligned__(__alignof__(TYPE)) ))
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
 	#define YQ2_ATTR_MALLOC         __attribute__ ((__malloc__))
+	#define YQ2_ATTR_INLINE         __attribute__((always_inline))
 #elif defined(_MSC_VER)
 	// Note: We prefer VS2019 16.8 or newer in C11 mode (/std:c11),
 	//       then the __STDC_VERSION__ >= 201112L case above is used
@@ -82,12 +93,14 @@ typedef unsigned char byte;
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __declspec(noreturn)
    	#define YQ2_ATTR_MALLOC         __declspec(restrict)
+	#define YQ2_ATTR_INLINE         __forceinline
 #else
 	#warning "Please add a case for your compiler here to align correctly"
 	#define YQ2_ALIGNAS_SIZE(SIZE)
 	#define YQ2_ALIGNAS_TYPE(TYPE)
 	#define YQ2_ATTR_NORETURN
    	#define YQ2_ATTR_MALLOC
+	#define YQ2_ATTR_INLINE         inline
 #endif
 
 #if defined(__GNUC__)
