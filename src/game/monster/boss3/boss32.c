@@ -264,7 +264,7 @@ mmove_t makron_move_walk =
 {
 	FRAME_walk204,
 	FRAME_walk213,
-	makron_frames_run,
+	makron_frames_walk,
 	NULL
 };
 
