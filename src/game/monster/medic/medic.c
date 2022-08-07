@@ -43,7 +43,7 @@ static int sound_hook_retract;
 static int  sound_step;
 static int  sound_step2;
 
-static void
+void
 medic_footstep(edict_t *self)
 {
 	if (!g_monsterfootsteps->value)
@@ -189,7 +189,7 @@ medic_sight(edict_t *self, edict_t *other /* unused */)
 	gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
 }
 
-mframe_t medic_frames_stand[] = {
+static mframe_t medic_frames_stand[] = {
 	{ai_stand, 0, medic_idle},
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
@@ -301,7 +301,7 @@ medic_stand(edict_t *self)
 	self->monsterinfo.currentmove = &medic_move_stand;
 }
 
-mframe_t medic_frames_walk[] = {
+static mframe_t medic_frames_walk[] = {
 	{ai_walk, 6.2, NULL},
 	{ai_walk, 18.1, medic_footstep},
 	{ai_walk, 1, NULL},
@@ -335,7 +335,7 @@ medic_walk(edict_t *self)
 	self->monsterinfo.currentmove = &medic_move_walk;
 }
 
-mframe_t medic_frames_run[] = {
+static mframe_t medic_frames_run[] = {
 	{ai_run, 18, medic_footstep},
 	{ai_run, 22.5, NULL},
 	{ai_run, 25.4, NULL},
@@ -387,7 +387,7 @@ medic_run(edict_t *self)
 	}
 }
 
-mframe_t medic_frames_pain1[] = {
+static mframe_t medic_frames_pain1[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -406,7 +406,7 @@ mmove_t medic_move_pain1 =
    	medic_run
 };
 
-mframe_t medic_frames_pain2[] = {
+static mframe_t medic_frames_pain2[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -527,7 +527,7 @@ medic_dead(edict_t *self)
 	gi.linkentity(self);
 }
 
-mframe_t medic_frames_death[] = {
+static mframe_t medic_frames_death[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -674,7 +674,7 @@ medic_duck_up(edict_t *self)
 	gi.linkentity(self);
 }
 
-mframe_t medic_frames_duck[] = {
+static mframe_t medic_frames_duck[] = {
 	{ai_move, -1, NULL},
 	{ai_move, -1, NULL},
 	{ai_move, -1, medic_duck_down},
@@ -723,7 +723,7 @@ medic_dodge(edict_t *self, edict_t *attacker, float eta)
 	self->monsterinfo.currentmove = &medic_move_duck;
 }
 
-mframe_t medic_frames_attackHyperBlaster[] = {
+static mframe_t medic_frames_attackHyperBlaster[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -767,7 +767,7 @@ medic_continue(edict_t *self)
 	}
 }
 
-mframe_t medic_frames_attackBlaster[] = {
+static mframe_t medic_frames_attackBlaster[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 5, NULL},
 	{ai_charge, 5, NULL},
@@ -929,7 +929,7 @@ medic_hook_retract(edict_t *self)
 	self->enemy->monsterinfo.aiflags &= ~AI_RESURRECTING;
 }
 
-mframe_t medic_frames_attackCable[] = {
+static mframe_t medic_frames_attackCable[] = {
 	{ai_move, 2, NULL},
 	{ai_move, 3, NULL},
 	{ai_move, 5, NULL},

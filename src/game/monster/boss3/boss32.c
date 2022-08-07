@@ -78,7 +78,7 @@ makron_taunt(edict_t *self)
 	}
 }
 
-mframe_t makron_frames_stand[] = {
+static mframe_t makron_frames_stand[] = {
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
@@ -160,7 +160,7 @@ makron_stand(edict_t *self)
 	self->monsterinfo.currentmove = &makron_move_stand;
 }
 
-mframe_t makron_frames_run[] = {
+static mframe_t makron_frames_run[] = {
 	{ai_run, 3, makron_step_left},
 	{ai_run, 12, NULL},
 	{ai_run, 8, NULL},
@@ -247,7 +247,7 @@ makron_prerailgun(edict_t *self)
 	gi.sound(self, CHAN_WEAPON, sound_prerailgun, 1, ATTN_NORM, 0);
 }
 
-mframe_t makron_frames_walk[] = {
+static mframe_t makron_frames_walk[] = {
 	{ai_walk, 3, makron_step_left},
 	{ai_walk, 12, NULL},
 	{ai_walk, 8, NULL},
@@ -297,7 +297,7 @@ makron_run(edict_t *self)
 	}
 }
 
-mframe_t makron_frames_pain6[] = {
+static mframe_t makron_frames_pain6[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -335,7 +335,7 @@ mmove_t makron_move_pain6 =
    	makron_run
 };
 
-mframe_t makron_frames_pain5[] = {
+static mframe_t makron_frames_pain5[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -350,7 +350,7 @@ mmove_t makron_move_pain5 =
 	makron_run
 };
 
-mframe_t makron_frames_pain4[] = {
+static mframe_t makron_frames_pain4[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -365,7 +365,7 @@ mmove_t makron_move_pain4 =
 	makron_run
 };
 
-mframe_t makron_frames_death2[] = {
+static mframe_t makron_frames_death2[] = {
 	{ai_move, -15, NULL},
 	{ai_move, 3, NULL},
 	{ai_move, -12, NULL},
@@ -471,7 +471,7 @@ mmove_t makron_move_death2 =
    	makron_dead
 };
 
-mframe_t makron_frames_death3[] = {
+static mframe_t makron_frames_death3[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -502,7 +502,7 @@ mmove_t makron_move_death3 =
 	NULL
 };
 
-mframe_t makron_frames_sight[] = {
+static mframe_t makron_frames_sight[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -551,7 +551,7 @@ makronBFG(edict_t *self)
 	monster_fire_bfg(self, start, dir, 50, 300, 100, 300, MZ2_MAKRON_BFG);
 }
 
-mframe_t makron_frames_attack3[] = {
+static mframe_t makron_frames_attack3[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -570,7 +570,7 @@ mmove_t makron_move_attack3 =
 	makron_run
 };
 
-mframe_t makron_frames_attack4[] = {
+static mframe_t makron_frames_attack4[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -607,7 +607,7 @@ mmove_t makron_move_attack4 =
    	makron_run
 };
 
-mframe_t makron_frames_attack5[] = {
+static mframe_t makron_frames_attack5[] = {
 	{ai_charge, 0, makron_prerailgun},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},

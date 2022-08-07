@@ -39,7 +39,7 @@ static int  sound_step2;
 static int  sound_step3;
 static int  sound_step4;
 
-static void
+void
 insane_footstep(edict_t *self)
 {
 	if (!g_monsterfootsteps->value)
@@ -132,7 +132,7 @@ void insane_checkdown(edict_t *self);
 void insane_checkup(edict_t *self);
 void insane_onground(edict_t *self);
 
-mframe_t insane_frames_stand_normal[] = {
+static mframe_t insane_frames_stand_normal[] = {
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
@@ -149,7 +149,7 @@ mmove_t insane_move_stand_normal =
    	insane_stand
 };
 
-mframe_t insane_frames_stand_insane[] = {
+static mframe_t insane_frames_stand_insane[] = {
 	{ai_stand, 0, insane_shake},
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
@@ -190,7 +190,7 @@ mmove_t insane_move_stand_insane =
    	insane_stand
 };
 
-mframe_t insane_frames_uptodown[] = {
+static mframe_t insane_frames_uptodown[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -244,7 +244,7 @@ mmove_t insane_move_uptodown =
    	insane_onground
 };
 
-mframe_t insane_frames_downtoup[] = {
+static mframe_t insane_frames_downtoup[] = {
 	{ai_move, -0.7, NULL}, /* 41 */
 	{ai_move, -1.2, NULL}, /* 42 */
 	{ai_move, -1.5, NULL}, /* 43 */
@@ -274,7 +274,7 @@ mmove_t insane_move_downtoup =
 	insane_stand
 };
 
-mframe_t insane_frames_jumpdown[] = {
+static mframe_t insane_frames_jumpdown[] = {
 	{ai_move, 0.2, NULL},
 	{ai_move, 11.5, NULL},
 	{ai_move, 5.1, NULL},
@@ -290,7 +290,7 @@ mmove_t insane_move_jumpdown =
    	insane_onground
 };
 
-mframe_t insane_frames_down[] = {
+static mframe_t insane_frames_down[] = {
 	{ai_move, 0, NULL}, /* 100 */
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -362,7 +362,7 @@ mmove_t insane_move_down =
    	insane_onground
 };
 
-mframe_t insane_frames_walk_normal[] = {
+static mframe_t insane_frames_walk_normal[] = {
 	{ai_walk, 0, insane_scream},
 	{ai_walk, 2.5, NULL},
 	{ai_walk, 3.5, NULL},
@@ -393,7 +393,7 @@ mmove_t insane_move_run_normal =
 	insane_run
 };
 
-mframe_t insane_frames_walk_insane[] = {
+static mframe_t insane_frames_walk_insane[] = {
 	{ai_walk, 0, insane_scream}, /* walk 1 */
 	{ai_walk, 3.4, NULL}, /* walk 2 */
 	{ai_walk, 3.6, NULL}, /* 3 */
@@ -438,7 +438,7 @@ mmove_t insane_move_run_insane =
    	insane_run
 };
 
-mframe_t insane_frames_stand_pain[] = {
+static mframe_t insane_frames_stand_pain[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -460,7 +460,7 @@ mmove_t insane_move_stand_pain =
    	insane_run
 };
 
-mframe_t insane_frames_stand_death[] = {
+static mframe_t insane_frames_stand_death[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -488,7 +488,7 @@ mmove_t insane_move_stand_death =
 	insane_dead
 };
 
-mframe_t insane_frames_crawl[] = {
+static mframe_t insane_frames_crawl[] = {
 	{ai_walk, 0, insane_scream},
 	{ai_walk, 1.5, NULL},
 	{ai_walk, 2.1, NULL},
@@ -516,7 +516,7 @@ mmove_t insane_move_runcrawl =
    	NULL
 };
 
-mframe_t insane_frames_crawl_pain[] = {
+static mframe_t insane_frames_crawl_pain[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -536,7 +536,7 @@ mmove_t insane_move_crawl_pain =
    	insane_run
 };
 
-mframe_t insane_frames_crawl_death[] = {
+static mframe_t insane_frames_crawl_death[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -554,7 +554,7 @@ mmove_t insane_move_crawl_death =
    	insane_dead
 };
 
-mframe_t insane_frames_cross[] = {
+static mframe_t insane_frames_cross[] = {
 	{ai_move, 0, insane_moan},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -580,7 +580,7 @@ mmove_t insane_move_cross =
    	insane_cross
 };
 
-mframe_t insane_frames_struggle_cross[] = {
+static mframe_t insane_frames_struggle_cross[] = {
 	{ai_move, 0, insane_scream},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},

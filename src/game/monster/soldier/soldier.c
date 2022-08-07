@@ -107,7 +107,7 @@ soldier_cock(edict_t *self)
 
 void soldier_stand(edict_t *self);
 
-mframe_t soldier_frames_stand1[] = {
+static mframe_t soldier_frames_stand1[] = {
 	{ai_stand, 0, soldier_idle},
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
@@ -150,7 +150,7 @@ mmove_t soldier_move_stand1 =
 	soldier_stand
 };
 
-mframe_t soldier_frames_stand3[] = {
+static mframe_t soldier_frames_stand3[] = {
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
@@ -236,7 +236,7 @@ soldier_walk1_random(edict_t *self)
 	}
 }
 
-mframe_t soldier_frames_walk1[] = {
+static mframe_t soldier_frames_walk1[] = {
 	{ai_walk, 3, NULL},
 	{ai_walk, 6, NULL},
 	{ai_walk, 2, NULL},
@@ -280,7 +280,7 @@ mmove_t soldier_move_walk1 =
 	NULL
 };
 
-mframe_t soldier_frames_walk2[] = {
+static mframe_t soldier_frames_walk2[] = {
 	{ai_walk, 4, soldier_footstep},
 	{ai_walk, 4, NULL},
 	{ai_walk, 9, NULL},
@@ -321,7 +321,7 @@ soldier_walk(edict_t *self)
 
 void soldier_run(edict_t *self);
 
-mframe_t soldier_frames_start_run[] = {
+static mframe_t soldier_frames_start_run[] = {
 	{ai_run, 7, NULL},
 	{ai_run, 5, NULL}
 };
@@ -334,7 +334,7 @@ mmove_t soldier_move_start_run =
    	soldier_run
 };
 
-mframe_t soldier_frames_run[] = {
+static mframe_t soldier_frames_run[] = {
 	{ai_run, 10, NULL},
 	{ai_run, 11, soldier_footstep},
 	{ai_run, 11, NULL},
@@ -377,7 +377,7 @@ soldier_run(edict_t *self)
 	}
 }
 
-mframe_t soldier_frames_pain1[] = {
+static mframe_t soldier_frames_pain1[] = {
 	{ai_move, -3, NULL},
 	{ai_move, 4, NULL},
 	{ai_move, 1, NULL},
@@ -393,7 +393,7 @@ mmove_t soldier_move_pain1 =
    	soldier_run
 };
 
-mframe_t soldier_frames_pain2[] = {
+static mframe_t soldier_frames_pain2[] = {
 	{ai_move, -13, NULL},
 	{ai_move, -1, NULL},
 	{ai_move, 2, NULL},
@@ -411,7 +411,7 @@ mmove_t soldier_move_pain2 =
    	soldier_run
 };
 
-mframe_t soldier_frames_pain3[] = {
+static mframe_t soldier_frames_pain3[] = {
 	{ai_move, -8, NULL},
 	{ai_move, 10, NULL},
 	{ai_move, -4, soldier_footstep},
@@ -440,7 +440,7 @@ mmove_t soldier_move_pain3 =
    	soldier_run
 };
 
-mframe_t soldier_frames_pain4[] = {
+static mframe_t soldier_frames_pain4[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -731,7 +731,7 @@ soldier_attack1_refire2(edict_t *self)
 	}
 }
 
-mframe_t soldier_frames_attack1[] = {
+static mframe_t soldier_frames_attack1[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, soldier_fire1},
@@ -820,7 +820,7 @@ soldier_attack2_refire2(edict_t *self)
 	}
 }
 
-mframe_t soldier_frames_attack2[] = {
+static mframe_t soldier_frames_attack2[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -910,7 +910,7 @@ soldier_attack3_refire(edict_t *self)
 	}
 }
 
-mframe_t soldier_frames_attack3[] = {
+static mframe_t soldier_frames_attack3[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, soldier_fire3},
@@ -942,7 +942,7 @@ soldier_fire4(edict_t *self)
 	soldier_fire(self, 3);
 }
 
-mframe_t soldier_frames_attack4[] = {
+static mframe_t soldier_frames_attack4[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, soldier_footstep},
 	{ai_charge, 0, soldier_fire4},
@@ -995,7 +995,7 @@ soldier_attack6_refire(edict_t *self)
 	}
 }
 
-mframe_t soldier_frames_attack6[] = {
+static mframe_t soldier_frames_attack6[] = {
 	{ai_charge, 10, NULL},
 	{ai_charge, 4, NULL},
 	{ai_charge, 12, soldier_footstep},
@@ -1089,7 +1089,7 @@ soldier_duck_hold(edict_t *self)
 	}
 }
 
-mframe_t soldier_frames_duck[] = {
+static mframe_t soldier_frames_duck[] = {
 	{ai_move, 5, soldier_duck_down},
 	{ai_move, -1, soldier_duck_hold},
 	{ai_move, 1, NULL},
@@ -1206,7 +1206,7 @@ soldier_dead(edict_t *self)
 	gi.linkentity(self);
 }
 
-mframe_t soldier_frames_death1[] = {
+static mframe_t soldier_frames_death1[] = {
 	{ai_move, 0, NULL},
 	{ai_move, -10, NULL},
 	{ai_move, -10, NULL},
@@ -1256,7 +1256,7 @@ mmove_t soldier_move_death1 =
 	soldier_dead
 };
 
-mframe_t soldier_frames_death2[] = {
+static mframe_t soldier_frames_death2[] = {
 	{ai_move, -5, NULL},
 	{ai_move, -5, NULL},
 	{ai_move, -5, NULL},
@@ -1305,7 +1305,7 @@ mmove_t soldier_move_death2 =
    	soldier_dead
 };
 
-mframe_t soldier_frames_death3[] = {
+static mframe_t soldier_frames_death3[] = {
 	{ai_move, -5, NULL},
 	{ai_move, -5, NULL},
 	{ai_move, -5, NULL},
@@ -1365,7 +1365,7 @@ mmove_t soldier_move_death3 =
    	soldier_dead
 };
 
-mframe_t soldier_frames_death4[] = {
+static mframe_t soldier_frames_death4[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -1434,7 +1434,7 @@ mmove_t soldier_move_death4 =
 	soldier_dead
 };
 
-mframe_t soldier_frames_death5[] = {
+static mframe_t soldier_frames_death5[] = {
 	{ai_move, -5, NULL},
 	{ai_move, -5, NULL},
 	{ai_move, -5, NULL},
@@ -1471,7 +1471,7 @@ mmove_t soldier_move_death5 =
    	soldier_dead
 };
 
-mframe_t soldier_frames_death6[] = {
+static mframe_t soldier_frames_death6[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},

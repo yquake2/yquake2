@@ -55,7 +55,8 @@ static int  sound_step;
 static int  sound_step2;
 
 
-void chick_footstep(edict_t *self)
+void
+chick_footstep(edict_t *self)
 {
 	if (!g_monsterfootsteps->value)
 		return;
@@ -92,7 +93,7 @@ ChickMoan(edict_t *self)
 	}
 }
 
-mframe_t chick_frames_fidget[] = {
+static mframe_t chick_frames_fidget[] = {
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
@@ -152,7 +153,7 @@ chick_fidget(edict_t *self)
 	}
 }
 
-mframe_t chick_frames_stand[] = {
+static mframe_t chick_frames_stand[] = {
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
@@ -204,7 +205,7 @@ chick_stand(edict_t *self)
 	self->monsterinfo.currentmove = &chick_move_stand;
 }
 
-mframe_t chick_frames_start_run[] = {
+static mframe_t chick_frames_start_run[] = {
 	{ai_run, 1, NULL},
 	{ai_run, 0, NULL},
 	{ai_run, 0, NULL},
@@ -225,7 +226,7 @@ mmove_t chick_move_start_run =
    	chick_run
 };
 
-mframe_t chick_frames_run[] = {
+static mframe_t chick_frames_run[] = {
 	{ai_run, 6, NULL},
 	{ai_run, 8, chick_footstep},
 	{ai_run, 13, NULL},
@@ -246,7 +247,7 @@ mmove_t chick_move_run =
    	NULL
 };
 
-mframe_t chick_frames_walk[] = {
+static mframe_t chick_frames_walk[] = {
 	{ai_walk, 6, NULL},
 	{ai_walk, 8, chick_footstep},
 	{ai_walk, 13, NULL},
@@ -303,7 +304,7 @@ chick_run(edict_t *self)
 	}
 }
 
-mframe_t chick_frames_pain1[] = {
+static mframe_t chick_frames_pain1[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -319,7 +320,7 @@ mmove_t chick_move_pain1 =
    	chick_run
 };
 
-mframe_t chick_frames_pain2[] = {
+static mframe_t chick_frames_pain2[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -335,7 +336,7 @@ mmove_t chick_move_pain2 =
    	chick_run
 };
 
-mframe_t chick_frames_pain3[] = {
+static mframe_t chick_frames_pain3[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, -6, NULL},
@@ -440,7 +441,7 @@ chick_dead(edict_t *self)
 	gi.linkentity(self);
 }
 
-mframe_t chick_frames_death2[] = {
+static mframe_t chick_frames_death2[] = {
 	{ai_move, -6, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, -1, NULL},
@@ -474,7 +475,7 @@ mmove_t chick_move_death2 =
    	chick_dead
 };
 
-mframe_t chick_frames_death1[] = {
+static mframe_t chick_frames_death1[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, -7, NULL},
@@ -607,7 +608,7 @@ chick_duck_up(edict_t *self)
 	gi.linkentity(self);
 }
 
-mframe_t chick_frames_duck[] = {
+static mframe_t chick_frames_duck[] = {
 	{ai_move, 0, chick_duck_down},
 	{ai_move, 1, NULL},
 	{ai_move, 4, chick_duck_hold},
@@ -709,7 +710,7 @@ ChickReload(edict_t *self)
 	gi.sound(self, CHAN_VOICE, sound_missile_reload, 1, ATTN_NORM, 0);
 }
 
-mframe_t chick_frames_start_attack1[] = {
+static mframe_t chick_frames_start_attack1[] = {
 	{ai_charge, 0, Chick_PreAttack1},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -732,7 +733,7 @@ mmove_t chick_move_start_attack1 =
 	chick_frames_start_attack1,
    	NULL};
 
-mframe_t chick_frames_attack1[] = {
+static mframe_t chick_frames_attack1[] = {
 	{ai_charge, 19, ChickRocket},
 	{ai_charge, -6, NULL},
 	{ai_charge, -5, chick_footstep},
@@ -757,7 +758,7 @@ mmove_t chick_move_attack1 =
 	NULL
 };
 
-mframe_t chick_frames_end_attack1[] = {
+static mframe_t chick_frames_end_attack1[] = {
 	{ai_charge, -3, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, -6, NULL},
@@ -810,7 +811,7 @@ chick_attack1(edict_t *self)
 	self->monsterinfo.currentmove = &chick_move_attack1;
 }
 
-mframe_t chick_frames_slash[] = {
+static mframe_t chick_frames_slash[] = {
 	{ai_charge, 1, NULL},
 	{ai_charge, 7, ChickSlash},
 	{ai_charge, -7, NULL},
@@ -830,7 +831,7 @@ mmove_t chick_move_slash =
 	NULL
 };
 
-mframe_t chick_frames_end_slash[] = {
+static mframe_t chick_frames_end_slash[] = {
 	{ai_charge, -6, NULL},
 	{ai_charge, -1, NULL},
 	{ai_charge, -6, NULL},
@@ -884,7 +885,7 @@ chick_slash(edict_t *self)
 	self->monsterinfo.currentmove = &chick_move_slash;
 }
 
-mframe_t chick_frames_start_slash[] = {
+static mframe_t chick_frames_start_slash[] = {
 	{ai_charge, 1, NULL},
 	{ai_charge, 8, NULL},
 	{ai_charge, 3, chick_footstep}

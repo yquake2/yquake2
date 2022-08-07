@@ -769,7 +769,7 @@ AL_Overwater()
 	/* Apply to all sources */
 	for (i = 0; i < s_numchannels; i++)
 	{
-		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, 0);
+		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, AL_FILTER_NULL);
 	}
 }
 
