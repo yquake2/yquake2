@@ -51,14 +51,11 @@ infantry_footstep(edict_t *self)
 	if (!g_monsterfootsteps->value)
 		return;
 
-	int     i;
-	i = rand() % (1 + 1 - 0) + 0;
-
-	if (i == 0)
+	if (randk() % 2 == 0)
 	{
 		gi.sound(self, CHAN_BODY, sound_step, 1, ATTN_NORM, 0);
 	}
-	else if (i == 1)
+	else
 	{
 		gi.sound(self, CHAN_BODY, sound_step2, 1, ATTN_NORM, 0);
 	}
@@ -293,8 +290,6 @@ void
 infantry_pain(edict_t *self, edict_t *other /* unused */,
 	   	float kick /* unused */, int damage)
 {
-	int n;
-
 	if (!self)
 	{
 		return;
@@ -317,9 +312,7 @@ infantry_pain(edict_t *self, edict_t *other /* unused */,
 		return; /* no pain anims in nightmare */
 	}
 
-	n = randk() % 2;
-
-	if (n == 0)
+	if (randk() % 2 == 0)
 	{
 		self->monsterinfo.currentmove = &infantry_move_pain1;
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);

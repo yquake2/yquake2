@@ -52,7 +52,7 @@ soldier_footstep(edict_t *self)
 		return;
 
 	int i;
-	i = rand() % (3 + 1 - 0) + 0;
+	i = randk() % 4;
 
 	if (i == 0)
 	{

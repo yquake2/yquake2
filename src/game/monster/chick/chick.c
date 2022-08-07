@@ -61,14 +61,11 @@ chick_footstep(edict_t *self)
 	if (!g_monsterfootsteps->value)
 		return;
 
-	int     i;
-	i = rand() % (1 + 1 - 0) + 0;
-
-	if (i == 0)
+	if (randk() % 2 == 0)
 	{
 		gi.sound(self, CHAN_BODY, sound_step, 1, ATTN_NORM, 0);
 	}
-	else if (i == 1)
+	else
 	{
 		gi.sound(self, CHAN_BODY, sound_step2, 1, ATTN_NORM, 0);
 	}
@@ -542,9 +539,7 @@ chick_die(edict_t *self, edict_t *inflictor /* unused */,
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
 
-	n = randk() % 2;
-
-	if (n == 0)
+	if (randk() % 2 == 0)
 	{
 		self->monsterinfo.currentmove = &chick_move_death1;
 		gi.sound(self, CHAN_VOICE, sound_death1, 1, ATTN_NORM, 0);
