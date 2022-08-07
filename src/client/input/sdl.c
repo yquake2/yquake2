@@ -79,7 +79,7 @@ cvar_t *m_pitch;
 cvar_t *m_side;
 cvar_t *m_up;
 cvar_t *m_yaw;
-cvar_t *sensitivity;
+static cvar_t *sensitivity;
 
 static cvar_t *exponential_speedup;
 static cvar_t *in_grab;
@@ -114,12 +114,12 @@ static int last_haptic_efffect_pos = 0;
 static struct hapric_effects_cache last_haptic_efffect[HAPTIC_EFFECT_LIST_SIZE];
 
 // Joystick sensitivity
-cvar_t *joy_yawsensitivity;
-cvar_t *joy_pitchsensitivity;
-cvar_t *joy_forwardsensitivity;
-cvar_t *joy_sidesensitivity;
-cvar_t *joy_upsensitivity;
-cvar_t *joy_expo;
+static cvar_t *joy_yawsensitivity;
+static cvar_t *joy_pitchsensitivity;
+static cvar_t *joy_forwardsensitivity;
+static cvar_t *joy_sidesensitivity;
+static cvar_t *joy_upsensitivity;
+static cvar_t *joy_expo;
 
 // Joystick direction settings
 static cvar_t *joy_axis_leftx;
@@ -145,8 +145,8 @@ cvar_t *gyro_mode;
 cvar_t *gyro_turning_axis;	// yaw or roll
 
 // Gyro sensitivity
-cvar_t *gyro_yawsensitivity;
-cvar_t *gyro_pitchsensitivity;
+static cvar_t *gyro_yawsensitivity;
+static cvar_t *gyro_pitchsensitivity;
 
 // Gyro availability
 qboolean gyro_hardware = false;

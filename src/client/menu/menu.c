@@ -86,22 +86,6 @@ typedef struct
 menulayer_t m_layers[MAX_MENU_DEPTH];
 int m_menudepth;
 
-static float
-ClampCvar(float min, float max, float value)
-{
-	if (value < min)
-	{
-		return min;
-	}
-
-	if (value > max)
-	{
-		return max;
-	}
-
-	return value;
-}
-
 static qboolean
 M_IsGame(const char *gamename)
 {
@@ -1668,18 +1652,6 @@ TurningAxisFunc(void *unused)
 }
 
 static void
-GyroYawSensitivityFunc(void *unused)
-{
-	Cvar_SetValue("gyro_yawsensitivity", s_gyro_yawsensitivity_slider.curvalue / 10.0F);
-}
-
-static void
-GyroPitchSensitivityFunc(void *unused)
-{
-	Cvar_SetValue("gyro_pitchsensitivity", s_gyro_pitchsensitivity_slider.curvalue / 10.0F);
-}
-
-static void
 Gyro_MenuInit(void)
 {
 	static const char *gyro_modes[] =
@@ -1724,19 +1696,17 @@ Gyro_MenuInit(void)
 	s_gyro_yawsensitivity_slider.generic.x = 0;
 	s_gyro_yawsensitivity_slider.generic.y = (y += 20);
 	s_gyro_yawsensitivity_slider.generic.name = "yaw sensitivity";
-	s_gyro_yawsensitivity_slider.generic.callback = GyroYawSensitivityFunc;
-	s_gyro_yawsensitivity_slider.minvalue = 1;
-	s_gyro_yawsensitivity_slider.maxvalue = 80;
-	s_gyro_yawsensitivity_slider.curvalue = gyro_yawsensitivity->value * 10;
+	s_gyro_yawsensitivity_slider.cvar = "gyro_yawsensitivity";
+	s_gyro_yawsensitivity_slider.minvalue = 0.1f;
+	s_gyro_yawsensitivity_slider.maxvalue = 8.0f;
 
 	s_gyro_pitchsensitivity_slider.generic.type = MTYPE_SLIDER;
 	s_gyro_pitchsensitivity_slider.generic.x = 0;
 	s_gyro_pitchsensitivity_slider.generic.y = (y += 10);
 	s_gyro_pitchsensitivity_slider.generic.name = "pitch sensitivity";
-	s_gyro_pitchsensitivity_slider.generic.callback = GyroPitchSensitivityFunc;
-	s_gyro_pitchsensitivity_slider.minvalue = 1;
-	s_gyro_pitchsensitivity_slider.maxvalue = 80;
-	s_gyro_pitchsensitivity_slider.curvalue = gyro_pitchsensitivity->value * 10;
+	s_gyro_pitchsensitivity_slider.cvar = "gyro_pitchsensitivity";
+	s_gyro_pitchsensitivity_slider.minvalue = 0.1f;
+	s_gyro_pitchsensitivity_slider.maxvalue = 8.0f;
 
 	s_calibrating_text[0].generic.type = MTYPE_SEPARATOR;
 	s_calibrating_text[0].generic.x = 48 * scale + 30;
@@ -1824,48 +1794,6 @@ ConfigGyroFunc(void *unused)
 }
 
 static void
-HapticMagnitudeFunc(void *unused)
-{
-    Cvar_SetValue("joy_haptic_magnitude", s_joy_haptic_slider.curvalue / 10.0F);
-}
-
-static void
-JoyExpoFunc(void *unused)
-{
-    Cvar_SetValue("joy_expo", s_joy_expo_slider.curvalue / 10.0F);
-}
-
-static void
-JoyYawSensitivityFunc(void *unused)
-{
-    Cvar_SetValue("joy_yawsensitivity", s_joy_yawsensitivity_slider.curvalue / 10.0F);
-}
-
-static void
-JoyPitchSensitivityFunc(void *unused)
-{
-    Cvar_SetValue("joy_pitchsensitivity", s_joy_pitchsensitivity_slider.curvalue / 10.0F);
-}
-
-static void
-JoyForwardSensitivityFunc(void *unused)
-{
-    Cvar_SetValue("joy_forwardsensitivity", s_joy_forwardsensitivity_slider.curvalue / 10.0F);
-}
-
-static void
-JoySideSensitivityFunc(void *unused)
-{
-    Cvar_SetValue("joy_sidesensitivity", s_joy_sidesensitivity_slider.curvalue / 10.0F);
-}
-
-static void
-JoyUpSensitivityFunc(void *unused)
-{
-    Cvar_SetValue("joy_upsensitivity", s_joy_upsensitivity_slider.curvalue / 10.0F);
-}
-
-static void
 Joy_MenuInit(void)
 {
     extern qboolean show_haptic;
@@ -1874,90 +1802,83 @@ Joy_MenuInit(void)
     s_joy_menu.x = (int)(viddef.width * 0.50f);
     s_joy_menu.nitems = 0;
 
-    s_joy_yawsensitivity_slider.curvalue = joy_yawsensitivity->value * 10;
     s_joy_yawsensitivity_slider.generic.type = MTYPE_SLIDER;
     s_joy_yawsensitivity_slider.generic.x = 0;
     s_joy_yawsensitivity_slider.generic.y = y;
     y += 10;
     s_joy_yawsensitivity_slider.generic.name = "yaw sensitivity";
-    s_joy_yawsensitivity_slider.generic.callback = JoyYawSensitivityFunc;
-    s_joy_yawsensitivity_slider.minvalue = 0;
-    s_joy_yawsensitivity_slider.maxvalue = 70;
+    s_joy_yawsensitivity_slider.cvar = "joy_yawsensitivity";
+    s_joy_yawsensitivity_slider.minvalue = 0.0f;
+    s_joy_yawsensitivity_slider.maxvalue = 7.0f;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_yawsensitivity_slider);
 
-    s_joy_pitchsensitivity_slider.curvalue = joy_pitchsensitivity->value * 10;
     s_joy_pitchsensitivity_slider.generic.type = MTYPE_SLIDER;
     s_joy_pitchsensitivity_slider.generic.x = 0;
     s_joy_pitchsensitivity_slider.generic.y = y;
     y += 10;
     s_joy_pitchsensitivity_slider.generic.name = "pitch sensitivity";
-    s_joy_pitchsensitivity_slider.generic.callback = JoyPitchSensitivityFunc;
-    s_joy_pitchsensitivity_slider.minvalue = 0;
-    s_joy_pitchsensitivity_slider.maxvalue = 70;
+    s_joy_pitchsensitivity_slider.cvar = "joy_pitchsensitivity";
+    s_joy_pitchsensitivity_slider.minvalue = 0.0f;
+    s_joy_pitchsensitivity_slider.maxvalue = 7.0f;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_pitchsensitivity_slider);
 
     y += 10;
 
-    s_joy_forwardsensitivity_slider.curvalue = joy_forwardsensitivity->value * 10;
     s_joy_forwardsensitivity_slider.generic.type = MTYPE_SLIDER;
     s_joy_forwardsensitivity_slider.generic.x = 0;
     s_joy_forwardsensitivity_slider.generic.y = y;
     y += 10;
     s_joy_forwardsensitivity_slider.generic.name = "forward sensitivity";
-    s_joy_forwardsensitivity_slider.generic.callback = JoyForwardSensitivityFunc;
-    s_joy_forwardsensitivity_slider.minvalue = 0;
-    s_joy_forwardsensitivity_slider.maxvalue = 20;
+    s_joy_forwardsensitivity_slider.cvar = "joy_forwardsensitivity";
+    s_joy_forwardsensitivity_slider.minvalue = 0.0f;
+    s_joy_forwardsensitivity_slider.maxvalue = 2.0f;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_forwardsensitivity_slider);
 
-    s_joy_sidesensitivity_slider.curvalue = joy_sidesensitivity->value * 10;
     s_joy_sidesensitivity_slider.generic.type = MTYPE_SLIDER;
     s_joy_sidesensitivity_slider.generic.x = 0;
     s_joy_sidesensitivity_slider.generic.y = y;
     y += 10;
     s_joy_sidesensitivity_slider.generic.name = "side sensitivity";
-    s_joy_sidesensitivity_slider.generic.callback = JoySideSensitivityFunc;
-    s_joy_sidesensitivity_slider.minvalue = 0;
-    s_joy_sidesensitivity_slider.maxvalue = 20;
+    s_joy_sidesensitivity_slider.cvar = "joy_sidesensitivity";
+    s_joy_sidesensitivity_slider.minvalue = 0.0f;
+    s_joy_sidesensitivity_slider.maxvalue = 2.0f;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_sidesensitivity_slider);
 
     y += 10;
 
-    s_joy_upsensitivity_slider.curvalue = joy_upsensitivity->value * 10;
     s_joy_upsensitivity_slider.generic.type = MTYPE_SLIDER;
     s_joy_upsensitivity_slider.generic.x = 0;
     s_joy_upsensitivity_slider.generic.y = y;
     y += 10;
     s_joy_upsensitivity_slider.generic.name = "up sensitivity";
-    s_joy_upsensitivity_slider.generic.callback = JoyUpSensitivityFunc;
-    s_joy_upsensitivity_slider.minvalue = 0;
-    s_joy_upsensitivity_slider.maxvalue = 20;
+    s_joy_upsensitivity_slider.cvar = "joy_upsensitivity";
+    s_joy_upsensitivity_slider.minvalue = 0.0f;
+    s_joy_upsensitivity_slider.maxvalue = 2.0f;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_upsensitivity_slider);
 
     y += 10;
 
-    s_joy_expo_slider.curvalue = joy_expo->value * 10;
     s_joy_expo_slider.generic.type = MTYPE_SLIDER;
     s_joy_expo_slider.generic.x = 0;
     s_joy_expo_slider.generic.y = y;
     y += 10;
     s_joy_expo_slider.generic.name = "expo";
-    s_joy_expo_slider.generic.callback = JoyExpoFunc;
-    s_joy_expo_slider.minvalue = 10;
-    s_joy_expo_slider.maxvalue = 50;
+    s_joy_expo_slider.cvar = "joy_expo";
+    s_joy_expo_slider.minvalue = 1;
+    s_joy_expo_slider.maxvalue = 5;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_expo_slider);
 
     if (show_haptic) {
         y += 10;
 
-        s_joy_haptic_slider.curvalue = Cvar_VariableValue("joy_haptic_magnitude") * 10.0F;
         s_joy_haptic_slider.generic.type = MTYPE_SLIDER;
         s_joy_haptic_slider.generic.x = 0;
         s_joy_haptic_slider.generic.y = y;
         y += 10;
         s_joy_haptic_slider.generic.name = "haptic magnitude";
-        s_joy_haptic_slider.generic.callback = HapticMagnitudeFunc;
-        s_joy_haptic_slider.minvalue = 0;
-        s_joy_haptic_slider.maxvalue = 22;
+        s_joy_haptic_slider.cvar = "joy_haptic_magnitude";
+        s_joy_haptic_slider.minvalue = 0.0f;
+        s_joy_haptic_slider.maxvalue = 2.2f;
         Menu_AddItem(&s_joy_menu, (void *)&s_joy_haptic_slider);
     }
 
@@ -2067,20 +1988,11 @@ FreeLookFunc(void *unused)
 }
 
 static void
-MouseSpeedFunc(void *unused)
-{
-    Cvar_SetValue("sensitivity", s_options_sensitivity_slider.curvalue / 2.0F);
-}
-
-static void
 ControlsSetMenuItemValues(void)
 {
-    s_options_sfxvolume_slider.curvalue = Cvar_VariableValue("s_volume") * 10;
     s_options_oggshuffle_box.curvalue = (Cvar_VariableValue("ogg_shuffle") != 0);
-    s_options_oggvolume_slider.curvalue = Cvar_VariableValue("ogg_volume") * 10;
     s_options_oggenable_box.curvalue = (Cvar_VariableValue("ogg_enable") != 0);
     s_options_quality_list.curvalue = (Cvar_VariableValue("s_loadas8bit") == 0);
-    s_options_sensitivity_slider.curvalue = sensitivity->value * 2;
     s_options_alwaysrun_box.curvalue = (cl_run->value != 0);
     s_options_invertmouse_box.curvalue = (m_pitch->value < 0);
     s_options_lookstrafe_box.curvalue = (lookstrafe->value != 0);
@@ -2111,12 +2023,6 @@ LookstrafeFunc(void *unused)
 }
 
 static void
-UpdateVolumeFunc(void *unused)
-{
-    Cvar_SetValue("s_volume", s_options_sfxvolume_slider.curvalue / 10);
-}
-
-static void
 OGGShuffleFunc(void *unused)
 {
     Cvar_SetValue("ogg_shuffle", s_options_oggshuffle_box.curvalue);
@@ -2137,12 +2043,6 @@ OGGShuffleFunc(void *unused)
 	{
 		OGG_PlayTrack(track);
 	}
-}
-
-static void
-UpdateOggVolumeFunc(void *unused)
-{
-    Cvar_SetValue("ogg_volume", s_options_oggvolume_slider.curvalue / 10);
 }
 
 static void
@@ -2266,17 +2166,17 @@ Options_MenuInit(void)
     s_options_sfxvolume_slider.generic.x = 0;
     s_options_sfxvolume_slider.generic.y = 0;
     s_options_sfxvolume_slider.generic.name = "effects volume";
-    s_options_sfxvolume_slider.generic.callback = UpdateVolumeFunc;
-    s_options_sfxvolume_slider.minvalue = 0;
-    s_options_sfxvolume_slider.maxvalue = 10;
+    s_options_sfxvolume_slider.cvar = "s_volume";
+    s_options_sfxvolume_slider.minvalue = 0.0f;
+    s_options_sfxvolume_slider.maxvalue = 1.0f;
 
     s_options_oggvolume_slider.generic.type = MTYPE_SLIDER;
     s_options_oggvolume_slider.generic.x = 0;
     s_options_oggvolume_slider.generic.y = 10;
     s_options_oggvolume_slider.generic.name = "OGG volume";
-    s_options_oggvolume_slider.generic.callback = UpdateOggVolumeFunc;
-    s_options_oggvolume_slider.minvalue = 0;
-    s_options_oggvolume_slider.maxvalue = 10;
+    s_options_oggvolume_slider.cvar = "ogg_volume";
+    s_options_oggvolume_slider.minvalue = 0.0f;
+    s_options_oggvolume_slider.maxvalue = 1.0f;
 
     s_options_oggenable_box.generic.type = MTYPE_SPINCONTROL;
     s_options_oggenable_box.generic.x = 0;
@@ -2303,9 +2203,10 @@ Options_MenuInit(void)
     s_options_sensitivity_slider.generic.x = 0;
     s_options_sensitivity_slider.generic.y = 60;
     s_options_sensitivity_slider.generic.name = "mouse speed";
-    s_options_sensitivity_slider.generic.callback = MouseSpeedFunc;
+    s_options_sensitivity_slider.cvar = "sensitivity";
     s_options_sensitivity_slider.minvalue = 0;
-    s_options_sensitivity_slider.maxvalue = 22;
+    s_options_sensitivity_slider.maxvalue = 11;
+    s_options_sensitivity_slider.slidestep = 0.5f;
 
     s_options_alwaysrun_box.generic.type = MTYPE_SPINCONTROL;
     s_options_alwaysrun_box.generic.x = 0;

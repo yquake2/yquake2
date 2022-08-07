@@ -37,9 +37,7 @@ static cvar_t *r_hudscale;
 static cvar_t *r_consolescale;
 static cvar_t *r_menuscale;
 static cvar_t *crosshair_scale;
-static cvar_t *fov;
 extern cvar_t *scr_viewsize;
-extern cvar_t *vid_gamma;
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_renderer;
 static cvar_t *r_vsync;
@@ -157,21 +155,6 @@ GetCustomValue(menulist_s *list)
 	}
 
 	return i;
-}
-
-static void
-BrightnessCallback(void *s)
-{
-	menuslider_s *slider = (menuslider_s *)s;
-
-	float gamma = slider->curvalue / 10.0;
-	Cvar_SetValue("vid_gamma", gamma);
-}
-
-static void
-FOVCallback(void *s) {
-	menuslider_s *slider = (menuslider_s *)s;
-	Cvar_SetValue("fov", slider->curvalue);
 }
 
 static void
@@ -426,16 +409,6 @@ VID_MenuInit(void)
 		crosshair_scale = Cvar_Get("crosshair_scale", "-1", CVAR_ARCHIVE);
 	}
 
-	if (!fov)
-	{
-		fov = Cvar_Get("fov", "90",  CVAR_USERINFO | CVAR_ARCHIVE);
-	}
-
-	if (!vid_gamma)
-	{
-		vid_gamma = Cvar_Get("vid_gamma", "1.2", CVAR_ARCHIVE);
-	}
-
 	if (!vid_renderer)
 	{
 		vid_renderer = Cvar_Get("vid_renderer", "gl1", CVAR_ARCHIVE);
@@ -501,19 +474,19 @@ VID_MenuInit(void)
 	s_brightness_slider.generic.name = "brightness";
 	s_brightness_slider.generic.x = 0;
 	s_brightness_slider.generic.y = (y += 20);
-	s_brightness_slider.generic.callback = BrightnessCallback;
-	s_brightness_slider.minvalue = 1;
-	s_brightness_slider.maxvalue = 20;
-	s_brightness_slider.curvalue = vid_gamma->value * 10;
+	s_brightness_slider.cvar = "vid_gamma";
+	s_brightness_slider.minvalue = 0.1f;
+	s_brightness_slider.maxvalue = 2.0f;
 
 	s_fov_slider.generic.type = MTYPE_SLIDER;
+	s_fov_slider.generic.name = "field of view";
 	s_fov_slider.generic.x = 0;
 	s_fov_slider.generic.y = (y += 10);
-	s_fov_slider.generic.name = "field of view";
-	s_fov_slider.generic.callback = FOVCallback;
+	s_fov_slider.cvar = "fov";
 	s_fov_slider.minvalue = 60;
 	s_fov_slider.maxvalue = 120;
-	s_fov_slider.curvalue = fov->value;
+	s_fov_slider.slidestep = 1;
+	s_fov_slider.printformat = "%.0f";
 
 	s_uiscale_list.generic.type = MTYPE_SPINCONTROL;
 	s_uiscale_list.generic.name = "ui scale";
