@@ -65,7 +65,7 @@
  */
 
 #include "../header/local.h"
-
+#include "savegame.h"
 /*
  * When ever the savegame version is changed, q2 will refuse to
  * load older savegames. This should be bumped if the files
@@ -120,36 +120,6 @@
  #define ARCH_1 "unknown"
 #endif
 
-/*
- * Connects a human readable
- * function signature with
- * the corresponding pointer
- */
-typedef struct
-{
-	char *funcStr;
-	byte *funcPtr;
-} functionList_t;
-
-/*
- * Connects a human readable
- * mmove_t string with the
- * corresponding pointer
- * */
-typedef struct
-{
-	char	*mmoveStr;
-	mmove_t *mmovePtr;
-} mmoveList_t;
-
-typedef struct
-{
-    char ver[32];
-    char game[32];
-    char os[32];
-    char arch[32];
-} savegameHeader_t;
-
 /* ========================================================= */
 
 /*
@@ -164,7 +134,7 @@ typedef struct
  * to each of the functions
  * prototyped above.
  */
-functionList_t functionList[] = {
+static functionList_t functionList[] = {
 	#include "tables/gamefunc_list.h"
 };
 
@@ -181,12 +151,12 @@ functionList_t functionList[] = {
  * functions prototyped
  * above.
  */
-mmoveList_t mmoveList[] = {
+static mmoveList_t mmoveList[] = {
 	#include "tables/gamemmove_list.h"
 };
 
 /*
- * Fields to be saved
+ * Fields to be saved (used in g_spawn.c)
  */
 field_t fields[] = {
 	#include "tables/fields.h"
@@ -196,7 +166,7 @@ field_t fields[] = {
  * Level fields to
  * be saved
  */
-field_t levelfields[] = {
+static field_t levelfields[] = {
 	#include "tables/levelfields.h"
 };
 
@@ -204,7 +174,7 @@ field_t levelfields[] = {
  * Client fields to
  * be saved
  */
-field_t clientfields[] = {
+static field_t clientfields[] = {
 	#include "tables/clientfields.h"
 };
 

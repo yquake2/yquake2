@@ -1226,7 +1226,7 @@ Cmd_PlayerList_f(edict_t *ent)
 	gi.cprintf(ent, PRINT_HIGH, "%s", text);
 }
 
-void
+static void
 Cmd_Teleport_f(edict_t *ent)
 {
 	if (!ent)
@@ -1275,9 +1275,6 @@ Cmd_Teleport_f(edict_t *ent)
 	/* And link it back in. */
 	gi.linkentity(ent);
 }
-
-edict_t* G_Spawn(void);
-void ED_CallSpawn(edict_t* ent);
 
 static void
 Cmd_SpawnEntity_f(edict_t *ent)
@@ -1647,7 +1644,7 @@ cycle_weapon(edict_t *ent)
 	return noweap_fallback;
 }
 
-void
+static void
 Cmd_CycleWeap_f(edict_t *ent)
 {
 	gitem_t *weap;
@@ -1753,7 +1750,7 @@ preferred_weapon(edict_t *ent)
 	return noweap_fallback;
 }
 
-void
+static void
 Cmd_PrefWeap_f(edict_t *ent)
 {
 	gitem_t *weap;

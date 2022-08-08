@@ -40,9 +40,9 @@
 #define NEXT(n) (((n) + 1) & (TRAIL_LENGTH - 1))
 #define PREV(n) (((n) - 1) & (TRAIL_LENGTH - 1))
 
-edict_t *trail[TRAIL_LENGTH];
-int trail_head;
-qboolean trail_active = false;
+static edict_t *trail[TRAIL_LENGTH];
+static int trail_head;
+static qboolean trail_active = false;
 
 void
 PlayerTrail_Init(void)

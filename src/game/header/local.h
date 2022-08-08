@@ -596,8 +596,16 @@ typedef struct
 extern field_t fields[];
 extern gitem_t itemlist[];
 
+/* player/client.c */
+void ClientBegin(edict_t *ent);
+void ClientDisconnect(edict_t *ent);
+void ClientUserinfoChanged(edict_t *ent, char *userinfo);
+qboolean ClientConnect(edict_t *ent, char *userinfo);
+void ClientThink(edict_t *ent, usercmd_t *cmd);
+
 /* g_cmds.c */
 void Cmd_Help_f(edict_t *ent);
+void ClientCommand(edict_t *ent);
 
 /* g_items.c */
 void PrecacheItem(gitem_t *it);
@@ -644,6 +652,9 @@ char *vtos(vec3_t v);
 
 float vectoyaw(vec3_t vec);
 void vectoangles(vec3_t vec, vec3_t angles);
+
+/* g_spawn.c */
+void ED_CallSpawn(edict_t *ent);
 
 /* g_combat.c */
 qboolean OnSameTeam(edict_t *ent1, edict_t *ent2);
@@ -801,6 +812,14 @@ void UpdateChaseCam(edict_t *ent);
 void ChaseNext(edict_t *ent);
 void ChasePrev(edict_t *ent);
 void GetChaseTarget(edict_t *ent);
+
+/* savegame */
+void InitGame(void);
+void ReadLevel(const char *filename);
+void WriteLevel(const char *filename);
+void ReadGame(const char *filename);
+void WriteGame(const char *filename, qboolean autosave);
+void SpawnEntities(const char *mapname, char *entities, const char *spawnpoint);
 
 /* ============================================================================ */
 
@@ -1095,5 +1114,15 @@ struct edict_s
 	moveinfo_t moveinfo;
 	monsterinfo_t monsterinfo;
 };
+
+/*
+ * Uncomment for check that exported functions declarations are same as in
+ * implementation. (-Wmissing-prototypes )
+ *
+ */
+#if 0
+#include "../savegame/savegame.h"
+#include "../savegame/tables/gamefunc_decs.h"
+#endif
 
 #endif /* GAME_LOCAL_H */
