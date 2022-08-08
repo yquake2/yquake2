@@ -28,6 +28,9 @@ original clients (Vanilla Quake II) commands are still in place.
 
 * **teleport <x y z>**: Teleports the player to the given coordinates.
 
+* **spawnentity classname x y z <angle_x angle_y angle_z> <flags>**:
+  Spawn new entity of `classname` at `x y z` coordinates.
+
 * **listmaps**: Lists available maps for the player to load. Maps from
   loaded pak files will be listed first followed by maps placed in 
   the current game's maps folder.

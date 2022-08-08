@@ -249,7 +249,7 @@ Cmd_Give_f(edict_t *ent)
 		if (gi.argc() == 3)
 		{
 			ent->health = (int)strtol(gi.argv(2), (char **)NULL, 10);
-		    ent->health = ent->health < 1 ? 1 : ent->health; 
+			ent->health = ent->health < 1 ? 1 : ent->health;
 		}
 		else
 		{
@@ -1276,6 +1276,55 @@ Cmd_Teleport_f(edict_t *ent)
 	gi.linkentity(ent);
 }
 
+edict_t* G_Spawn(void);
+void ED_CallSpawn(edict_t* ent);
+
+static void
+Cmd_SpawnEntity_f(edict_t *ent)
+{
+	if (!ent)
+	{
+		return;
+	}
+
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
+	{
+		gi.cprintf(ent, PRINT_HIGH,
+			"You must run the server with '+set cheats 1' to enable this command.\n");
+		return;
+	}
+
+	if (gi.argc() < 5 || gi.argc() > 9)
+	{
+		gi.cprintf(ent, PRINT_HIGH,
+			"Usage: spawnentity classname x y z <angle_x angle_y angle_z> <flags>\n");
+		return;
+	}
+
+	ent = G_Spawn();
+
+	// set position
+	ent->s.origin[0] = atof(gi.argv(2));
+	ent->s.origin[1] = atof(gi.argv(3));
+	ent->s.origin[2] = atof(gi.argv(4));
+	// angles
+	if (gi.argc() >= 8)
+	{
+		ent->s.angles[0] = atof(gi.argv(5));
+		ent->s.angles[1] = atof(gi.argv(6));
+		ent->s.angles[2] = atof(gi.argv(7));
+	}
+	// flags
+	if (gi.argc() >= 9)
+	{
+		ent->spawnflags = atoi(gi.argv(8));
+	}
+
+	ent->classname = strdup(gi.argv(1));
+
+	ED_CallSpawn(ent);
+}
+
 void
 Cmd_ListEntities_f(edict_t *ent)
 {
@@ -1817,6 +1866,10 @@ ClientCommand(edict_t *ent)
 	else if (Q_stricmp(cmd, "teleport") == 0)
 	{
 		Cmd_Teleport_f(ent);
+	}
+	else if (Q_stricmp(cmd, "spawnentity") == 0)
+	{
+		Cmd_SpawnEntity_f(ent);
 	}
 	else if (Q_stricmp(cmd, "listentities") == 0)
 	{

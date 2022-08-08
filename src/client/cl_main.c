@@ -612,6 +612,7 @@ CL_InitLocal(void)
 	Cmd_AddCommand("weapprev", NULL);
 	Cmd_AddCommand("listentities", NULL);
 	Cmd_AddCommand("teleport", NULL);
+	Cmd_AddCommand("spawnentity", NULL);
 	Cmd_AddCommand("cycleweap", NULL);
 }
 
