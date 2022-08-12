@@ -61,7 +61,7 @@ static int s_framecount;
 static ALuint underwaterFilter;
 static ALuint ReverbEffect;
 static ALuint ReverbEffectSlot;
-static int lastreverbtreshold = 0;
+static int lastreverteffect = -1; /* just some invalid index value */
 
 /* ----------------------------------------------------------------- */
 
@@ -474,12 +474,22 @@ static char ReverbPresetsNames[113][31] = {
 };
 
 static void
-SetReverb(int index, int concalled)
+SetReverb(int index)
 {
 	EFXEAXREVERBPROPERTIES reverb = ReverbPresets[index];
 
-	if(concalled)
-		Com_Printf("Reverb set to: %s\n", ReverbPresetsNames[index]);
+	if (index == lastreverteffect && index < 0)
+	{
+		return;
+	}
+
+	/* We have only 113 effects */
+	if (reverb_effect > 112)
+	{
+		reverb_effect = 112;
+	}
+
+	lastreverteffect = index;
 
 	qalEffectf(ReverbEffect, AL_REVERB_DENSITY, reverb.flDensity);
 	qalEffectf(ReverbEffect, AL_REVERB_DIFFUSION, reverb.flDiffusion);
@@ -504,74 +514,62 @@ SetReverb(int index, int concalled)
 static void
 UpdateReverb(void)
 {
-	vec3_t mins = { 0, 0, 0 }, maxs = { 0, 0, 0 };
-	vec3_t forward = { 1000000, 0, 0 };
-	vec3_t backward = { -1000000, 0, 0 };
-	vec3_t left = { 0, 1000000, 0 };
-	vec3_t right = { 0, -1000000, 0 };
-	vec3_t up = { 0, 0, 1000000 };
-	trace_t trace1, trace2, trace3, trace4, trace5;
-	vec3_t length1, length2, length3, length4, length5;
-	float dist1, dist2, dist3, dist4, dist5;
-	float average;
+	vec3_t mins = {0, 0, 0}, maxs = {0, 0, 0};
+	vec3_t direction[6] = {
+		{1000000, 0, 0}, /* forward */
+		{-1000000, 0, 0}, /* backward */
+		{0, 1000000, 0}, /* left */
+		{0, -1000000, 0}, /* right */
+		{ 0, 0, 1000000 }, /* up */
+		{ 0, 0, -1000000 }, /* down */
+	};
+	float average = 0;
+	int i;
 
 	if (ReverbEffect == 0)
 		return;
 
-	trace1 = CM_BoxTrace(listener_origin, up, mins, maxs, 0, MASK_DEADSOLID);
-	trace2 = CM_BoxTrace(listener_origin, forward, mins, maxs, 0, MASK_DEADSOLID);
-	trace3 = CM_BoxTrace(listener_origin, backward, mins, maxs, 0, MASK_DEADSOLID);
-	trace4 = CM_BoxTrace(listener_origin, left, mins, maxs, 0, MASK_DEADSOLID);
-	trace5 = CM_BoxTrace(listener_origin, right, mins, maxs, 0, MASK_DEADSOLID);
-
-	VectorSubtract(trace1.endpos, listener_origin, length1);
-	VectorSubtract(trace2.endpos, listener_origin, length2);
-	VectorSubtract(trace3.endpos, listener_origin, length3);
-	VectorSubtract(trace4.endpos, listener_origin, length4);
-	VectorSubtract(trace5.endpos, listener_origin, length5);
-
-	dist1 = VectorLength(length1);
-	dist2 = VectorLength(length2);
-	dist3 = VectorLength(length3);
-	dist4 = VectorLength(length4);
-	dist5 = VectorLength(length5);
-
-	average = (dist1 + dist2 + dist3 + dist4 + dist5) / 5;
-
-	if (average < 100 && lastreverbtreshold != 0)
+	for (i=0; i < 6; i++)
 	{
-		SetReverb(41, 0);
-		lastreverbtreshold = 0;
+		trace_t trace;
+		vec3_t length;
+
+		trace = CM_BoxTrace(listener_origin, direction[i], mins, maxs, 0, MASK_DEADSOLID);
+		VectorSubtract(trace.endpos, listener_origin, length);
+		average += VectorLength(length);
 	}
 
-	if (average >= 100 && average < 200 && lastreverbtreshold != 1)
+	/* Use five as down is near to us */
+	average /= 5;
+
+	if (average < 100)
 	{
-		SetReverb(26, 0);
-		lastreverbtreshold = 1;
+		SetReverb(41);
 	}
 
-	if (average >= 200 && average < 330 && lastreverbtreshold != 2)
+	if (average >= 100 && average < 200)
 	{
-		SetReverb(5, 0);
-		lastreverbtreshold = 2;
+		SetReverb(26);
 	}
 
-	if (average >= 330 && average < 450 && lastreverbtreshold != 3)
+	if (average >= 200 && average < 330)
 	{
-		SetReverb(12, 0);
-		lastreverbtreshold = 3;
+		SetReverb(5);
 	}
 
-	if (average >= 450 && average < 650 && lastreverbtreshold != 4)
+	if (average >= 330 && average < 450)
 	{
-		SetReverb(18, 0);
-		lastreverbtreshold = 4;
+		SetReverb(12);
 	}
 
-	if (average >= 650 && lastreverbtreshold != 5)
+	if (average >= 450 && average < 650)
 	{
-		SetReverb(17, 0);
-		lastreverbtreshold = 5;
+		SetReverb(18);
+	}
+
+	if (average >= 650)
+	{
+		SetReverb(17);
 	}
 }
 
@@ -973,6 +971,8 @@ AL_UnqueueRawSamples()
 static void
 AL_UpdateReverb()
 {
+	int reverb_effect;
+
 	if (!s_reverb_preset->modified)
 	{
 		return;
@@ -980,19 +980,20 @@ AL_UpdateReverb()
 
 	s_reverb_preset->modified = false;
 
+	reverb_effect = s_reverb_preset->value;
+
 	if (s_reverb_preset_autopick->value)
 	{
 		Com_Printf("This will not have effect while s_reverb_preset_autopick is 1!");
 		return;
 	}
 
-	if (s_reverb_preset->value < 0)
-		s_reverb_preset->value = 0;
+	if (reverb_effect < 0)
+		reverb_effect = 0;
 
-	if (s_reverb_preset->value > 112)
-		s_reverb_preset->value = 112;
-	SetReverb(s_reverb_preset->value, 1);
-	lastreverbtreshold = -1;
+	SetReverb(reverb_effect);
+
+	Com_Printf("Reverb set to: %s\n", ReverbPresetsNames[reverb_effect]);
 }
 
 static void
@@ -1160,7 +1161,7 @@ AL_Underwater()
 	for (i = 0; i < s_numchannels; i++)
 	{
 		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, underwaterFilter);
-		SetReverb(22, 0);
+		SetReverb(22);
 	}
 }
 
@@ -1184,9 +1185,8 @@ AL_Overwater()
 	for (i = 0; i < s_numchannels; i++)
 	{
 		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, AL_FILTER_NULL);
-		SetReverb(s_reverb_preset->value, 0);
+		SetReverb(s_reverb_preset->value);
 	}
-	lastreverbtreshold = -1;
 }
 
 /* ----------------------------------------------------------------- */
@@ -1259,8 +1259,7 @@ AL_InitReverbEffect(void)
 	ReverbEffectSlot = 0;
 	qalGenAuxiliaryEffectSlots(1, &ReverbEffectSlot);
 	qalEffecti(ReverbEffect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
-	SetReverb(s_reverb_preset->value, 0);
-	lastreverbtreshold = -1;
+	SetReverb(s_reverb_preset->value);
 }
 
 /*
