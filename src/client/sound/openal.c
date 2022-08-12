@@ -246,7 +246,7 @@ AL_DeleteSfx(sfx_t *s)
 
 /* ----------------------------------------------------------------- */
 
-static EFXEAXREVERBPROPERTIES ReverbPresets[113] = {
+static EFXEAXREVERBPROPERTIES ReverbPresets[] = {
 	EFX_REVERB_PRESET_GENERIC,
 	EFX_REVERB_PRESET_PADDEDCELL,
 	EFX_REVERB_PRESET_ROOM,
@@ -362,139 +362,137 @@ static EFXEAXREVERBPROPERTIES ReverbPresets[113] = {
 	EFX_REVERB_PRESET_SMALLWATERROOM
 };
 
-static char ReverbPresetsNames[113][31] = {
-	"GENERIC",
-	"PADDEDCELL",
-	"ROOM",
-	"BATHROOM",
-	"LIVINGROOM",
-	"STONEROOM",
-	"AUDITORIUM",
-	"CONCERTHALL",
-	"CAVE",
-	"ARENA",
-	"HANGAR",
-	"CARPETEDHALLWAY",
-	"HALLWAY",
-	"STONECORRIDOR",
-	"ALLEY",
-	"FOREST",
-	"CITY",
-	"MOUNTAINS",
-	"QUARRY",
-	"PLAIN",
-	"PARKINGLOT",
-	"SEWERPIPE",
-	"UNDERWATER",
-	"DRUGGED",
-	"DIZZY",
-	"PSYCHOTIC",
-	"CASTLE_SMALLROOM",
-	"CASTLE_SHORTPASSAGE",
-	"CASTLE_MEDIUMROOM",
-	"CASTLE_LARGEROOM",
-	"CASTLE_LONGPASSAGE",
-	"CASTLE_HALL",
-	"CASTLE_CUPBOARD",
-	"CASTLE_COURTYARD",
-	"CASTLE_ALCOVE",
-	"FACTORY_SMALLROOM",
-	"FACTORY_SHORTPASSAGE",
-	"FACTORY_MEDIUMROOM",
-	"FACTORY_LARGEROOM",
-	"FACTORY_LONGPASSAGE",
-	"FACTORY_HALL",
-	"FACTORY_CUPBOARD",
-	"FACTORY_COURTYARD",
-	"FACTORY_ALCOVE",
-	"ICEPALACE_SMALLROOM",
-	"ICEPALACE_SHORTPASSAGE",
-	"ICEPALACE_MEDIUMROOM",
-	"ICEPALACE_LARGEROOM",
-	"ICEPALACE_LONGPASSAGE",
-	"ICEPALACE_HALL",
-	"ICEPALACE_CUPBOARD",
-	"ICEPALACE_COURTYARD",
-	"ICEPALACE_ALCOVE",
-	"SPACESTATION_SMALLROOM",
-	"SPACESTATION_SHORTPASSAGE",
-	"SPACESTATION_MEDIUMROOM",
-	"SPACESTATION_LARGEROOM",
-	"SPACESTATION_LONGPASSAGE",
-	"SPACESTATION_HALL",
-	"SPACESTATION_CUPBOARD",
-	"SPACESTATION_ALCOVE",
-	"WOODEN_SMALLROOM",
-	"WOODEN_SHORTPASSAGE",
-	"WOODEN_MEDIUMROOM",
-	"WOODEN_LARGEROOM",
-	"WOODEN_LONGPASSAGE",
-	"WOODEN_HALL",
-	"WOODEN_CUPBOARD",
-	"WOODEN_COURTYARD",
-	"WOODEN_ALCOVE",
-	"SPORT_EMPTYSTADIUM",
-	"SPORT_SQUASHCOURT",
-	"SPORT_SMALLSWIMMINGPOOL",
-	"SPORT_LARGESWIMMINGPOOL",
-	"SPORT_GYMNASIUM",
-	"SPORT_FULLSTADIUM",
-	"SPORT_STADIUMTANNOY",
-	"PREFAB_WORKSHOP",
-	"PREFAB_SCHOOLROOM",
-	"PREFAB_PRACTISEROOM",
-	"PREFAB_OUTHOUSE",
-	"PREFAB_CARAVAN",
-	"DOME_TOMB",
-	"PIPE_SMALL",
-	"DOME_SAINTPAULS",
-	"PIPE_LONGTHIN",
-	"PIPE_LARGE",
-	"PIPE_RESONANT",
-	"OUTDOORS_BACKYARD",
-	"OUTDOORS_ROLLINGPLAINS",
-	"OUTDOORS_DEEPCANYON",
-	"OUTDOORS_CREEK",
-	"OUTDOORS_VALLEY",
-	"MOOD_HEAVEN",
-	"MOOD_HELL",
-	"MOOD_MEMORY",
-	"DRIVING_COMMENTATOR",
-	"DRIVING_PITGARAGE",
-	"DRIVING_INCAR_RACER",
-	"DRIVING_INCAR_SPORTS",
-	"DRIVING_INCAR_LUXURY",
-	"DRIVING_FULLGRANDSTAND",
-	"DRIVING_EMPTYGRANDSTAND",
-	"DRIVING_TUNNEL",
-	"CITY_STREETS",
-	"CITY_SUBWAY",
-	"CITY_MUSEUM",
-	"CITY_LIBRARY",
-	"CITY_UNDERPASS",
-	"CITY_ABANDONED",
-	"DUSTYROOM",
-	"CHAPEL",
-	"SMALLWATERROOM"
+#define EFX_REVERB_SIZE (sizeof(ReverbPresets) / sizeof(*ReverbPresets))
+
+static char ReverbPresetsNames[][32] = {
+	"Generic",
+	"Padded Cell",
+	"Room",
+	"Bathroom",
+	"LivingRoom",
+	"StoneRoom",
+	"Auditorium",
+	"ConcertHall",
+	"Cave",
+	"Arena",
+	"Hangar",
+	"Carpeted Hallway",
+	"Hallway",
+	"Stone Corridor",
+	"Alley",
+	"Forest",
+	"City",
+	"Mountains",
+	"Quarry",
+	"Plain",
+	"Parking Lot",
+	"Sewer Pipe",
+	"Underwater",
+	"Drugged",
+	"Dizzy",
+	"Psychotic",
+	"Castle Small Room",
+	"Castle Short Passage",
+	"Castle Medium Room",
+	"Castle Large Room",
+	"Castle Long Passage",
+	"Castle Hall",
+	"Castle Cupboard",
+	"Castle Courtyard",
+	"Castle Alcove",
+	"Factory Small Room",
+	"Factory Short Passage",
+	"Factory Medium Room",
+	"Factory Large Room",
+	"Factory Long Passage",
+	"Factory Hall",
+	"Factory Cupboard",
+	"Factory Courtyard",
+	"Factory Alcove",
+	"Icepalace Small Room",
+	"Icepalace Short Passage",
+	"Icepalace Medium Room",
+	"Icepalace Large Room",
+	"Icepalace Long Passage",
+	"Icepalace Hall",
+	"Icepalace Cupboard",
+	"Icepalace Courtyard",
+	"Icepalace Alcove",
+	"Spacestation Small Room",
+	"Spacestation Short Passage",
+	"Spacestation Medium Room",
+	"Spacestation Large Room",
+	"Spacestation Long Passage",
+	"Spacestation Hall",
+	"Spacestation Cupboard",
+	"Spacestation Alcove",
+	"Wooden Small Room",
+	"Wooden Short Passage",
+	"Wooden Medium Room",
+	"Wooden Large Room",
+	"Wooden Long Passage",
+	"Wooden Hall",
+	"Wooden Cupboard",
+	"Wooden CourtYard",
+	"Wooden Alcove",
+	"Sport Empty Stadium",
+	"Sport Squash Court",
+	"Sport Small Swimming Pool",
+	"Sport Large Swimming Pool",
+	"Sport Gymnasium",
+	"Sport Full Stadium",
+	"Sport Stadium Tannoy",
+	"Prefab Workshop",
+	"Prefab School Room",
+	"Prefab Practise Room",
+	"Prefab Outhouse",
+	"Prefab Caravan",
+	"Dome Tomb",
+	"Pipe Small",
+	"Dome Saintpauls",
+	"Pipe Longthin",
+	"Pipe Large",
+	"Pipe Resonant",
+	"Outdoors Backyard",
+	"Outdoors Rolling Plains",
+	"Outdoors Deep Canyon",
+	"Outdoors Creek",
+	"Outdoors Valley",
+	"Mood Heaven",
+	"Mood Hell",
+	"Mood Memory",
+	"Driving Commentator",
+	"Driving Pit Garage",
+	"Driving Incar Racer",
+	"Driving Incar Sports",
+	"Driving Incar Luxury",
+	"Driving Full Grandstand",
+	"Driving Empty Grandstand",
+	"Driving Tunnel",
+	"City Streets",
+	"City Subway",
+	"City Museum",
+	"City Library",
+	"City Underpass",
+	"City Abandoned",
+	"Dusty Room",
+	"Chapel",
+	"Smallwater Room"
 };
 
 static void
-SetReverb(int index)
+AL_SetReverb(int reverb_effect)
 {
-	EFXEAXREVERBPROPERTIES reverb = ReverbPresets[index];
+	EFXEAXREVERBPROPERTIES reverb = ReverbPresets[reverb_effect];
 
-	if (index == lastreverteffect && index < 0)
+	if (reverb_effect == lastreverteffect ||
+		reverb_effect < 0 ||
+		reverb_effect >= EFX_REVERB_SIZE)
 	{
 		return;
 	}
 
-	/* We have only 113 effects */
-	if (index > 112)
-	{
-		index = 112;
-	}
-
-	lastreverteffect = index;
+	lastreverteffect = reverb_effect;
 
 	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_DENSITY, reverb.flDensity);
 	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_DIFFUSION, reverb.flDiffusion);
@@ -517,7 +515,7 @@ SetReverb(int index)
  * Apply Reverb effect
  */
 static void
-UpdateReverb(void)
+AL_ApplyReverb(void)
 {
 	vec3_t mins = {0, 0, 0}, maxs = {0, 0, 0};
 	vec3_t direction[6] = {
@@ -549,32 +547,32 @@ UpdateReverb(void)
 
 	if (average < 100)
 	{
-		SetReverb(41);
+		AL_SetReverb(41);
 	}
 
 	if (average >= 100 && average < 200)
 	{
-		SetReverb(26);
+		AL_SetReverb(26);
 	}
 
 	if (average >= 200 && average < 330)
 	{
-		SetReverb(5);
+		AL_SetReverb(5);
 	}
 
 	if (average >= 330 && average < 450)
 	{
-		SetReverb(12);
+		AL_SetReverb(12);
 	}
 
 	if (average >= 450 && average < 650)
 	{
-		SetReverb(18);
+		AL_SetReverb(18);
 	}
 
 	if (average >= 650)
 	{
-		SetReverb(17);
+		AL_SetReverb(17);
 	}
 }
 
@@ -605,6 +603,8 @@ AL_Spatialize(channel_t *ch)
 	}
 	else
 	{
+		qboolean sourceoccluded = false;
+
 		CL_GetEntitySoundOrigin(ch->entnum, origin);
 		qalSource3f(ch->srcnum, AL_POSITION, AL_UnpackVector(origin));
 
@@ -614,11 +614,10 @@ AL_Spatialize(channel_t *ch)
 			qalSource3f(ch->srcnum, AL_VELOCITY, AL_UnpackVector(velocity));
 		}
 
-		if (s_occlusion->value && underwaterFilter != 0)
+		if (s_occlusion_strength->value && underwaterFilter != 0)
 		{
 			trace_t trace;
 			vec3_t mins = { 0, 0, 0 }, maxs = { 0, 0, 0 };
-			qboolean sourceoccluded = false;
 
 			trace = CM_BoxTrace(origin, listener_origin, mins, maxs, 0, MASK_PLAYERSOLID);
 			if (trace.fraction < 1.0 &&
@@ -632,7 +631,7 @@ AL_Spatialize(channel_t *ch)
 				VectorSubtract(origin, listener_origin, distance);
 				dist = VectorLength(distance);
 
-				final = 1.0 - ((dist / 1000) * s_occlusion_strength->value);
+				final = 1.0 - ((dist / 1000) * (1.0 - s_occlusion_strength->value));
 
 				qalSourcef(ch->srcnum, AL_GAIN, min(max(final, 0), 1));
 
@@ -648,22 +647,29 @@ AL_Spatialize(channel_t *ch)
 				if (!snd_is_underwater)
 					qalSourcei(ch->srcnum, AL_DIRECT_FILTER, 0) ;
 			}
+		}
 
-			if(!snd_is_underwater && s_reverb_preset->value == -2)
-			{
-				UpdateReverb();
-			}
+		if(!snd_is_underwater && s_reverb_preset->value == -2)
+		{
+			AL_ApplyReverb();
+		}
+		else if (s_reverb_preset->value >= 0)
+		{
+			AL_SetReverb(s_reverb_preset->value);
+		}
 
-			if(s_reverb->value && ReverbEffect[QAL_REVERB_EFFECT] &&
-				ReverbEffectSlot[QAL_REVERB_EFFECT] && !sourceoccluded)
-			{
-				qalSource3i(ch->srcnum, AL_AUXILIARY_SEND_FILTER,
-					ReverbEffectSlot[QAL_REVERB_EFFECT], 0, AL_FILTER_NULL);
-			}
-			else
-			{
-				qalSource3i(ch->srcnum, AL_AUXILIARY_SEND_FILTER, 0, 0, AL_FILTER_NULL);
-			}
+		if(s_reverb_preset->value != -1 && /* Non Disabled reverb */
+			!sourceoccluded)
+		{
+			/* Apply reverb effect */
+			qalSource3i(ch->srcnum, AL_AUXILIARY_SEND_FILTER,
+				ReverbEffectSlot[QAL_REVERB_EFFECT], 0, AL_FILTER_NULL);
+		}
+		else
+		{
+			/* Disable filtering */
+			qalSource3i(ch->srcnum, AL_AUXILIARY_SEND_FILTER,
+				0, 0, AL_FILTER_NULL);
 		}
 
 		return;
@@ -999,13 +1005,22 @@ AL_UpdateReverb()
 		Com_Printf("Reverb set to: Disabled\n");
 		return;
 	}
+	/* We have only EFX_REVERB_SIZE(113) effects */
+	else if (reverb_effect >= 0 && reverb_effect < EFX_REVERB_SIZE)
+	{
+		Com_Printf("Reverb set to: %s\n", ReverbPresetsNames[reverb_effect]);
 
-	if (reverb_effect < 0)
-		reverb_effect = 0;
-
-	Com_Printf("Reverb set to: %s\n", ReverbPresetsNames[reverb_effect]);
-
-	SetReverb(reverb_effect);
+		AL_SetReverb(reverb_effect);
+	}
+	else
+	{
+		int i;
+		Com_Printf("Uknown reverb effect, supported:\n-2: Auto\n-1: Disabled\n");
+		for (i = 0; i < EFX_REVERB_SIZE; i++)
+		{
+			Com_Printf("%d: %s\n", i, ReverbPresetsNames[i]);
+		}
+	}
 }
 
 static void
@@ -1173,7 +1188,7 @@ AL_Underwater()
 	for (i = 0; i < s_numchannels; i++)
 	{
 		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, underwaterFilter);
-		SetReverb(22);
+		AL_SetReverb(22);
 	}
 }
 
@@ -1197,7 +1212,7 @@ AL_Overwater()
 	for (i = 0; i < s_numchannels; i++)
 	{
 		qalSourcei(s_srcnums[i], AL_DIRECT_FILTER, AL_FILTER_NULL);
-		SetReverb(s_reverb_preset->value);
+		AL_SetReverb(s_reverb_preset->value);
 	}
 }
 
@@ -1218,6 +1233,24 @@ AL_InitStreamSource()
 	qalSourcei(streamSource, AL_SOURCE_RELATIVE, AL_TRUE);
 }
 
+static qboolean
+AL_Efx_Enabled()
+{
+	if (qalAuxiliaryEffectSloti &&
+		qalDeleteAuxiliaryEffectSlots &&
+		qalDeleteEffects &&
+		qalDeleteFilters &&
+		qalEffectf &&
+		qalEffecti &&
+		qalFilterf &&
+		qalFilteri &&
+		qalGenAuxiliaryEffectSlots &&
+		qalGenEffects &&
+		qalGenFilters)
+		return true;
+	return false;
+}
+
 /*
  * Set up the underwater filter
  */
@@ -1226,7 +1259,7 @@ AL_InitUnderwaterFilter()
 {
 	underwaterFilter = 0;
 
-	if (!(qalGenFilters && qalFilteri && qalFilterf && qalDeleteFilters))
+	if (!AL_Efx_Enabled())
 		return;
 
 	/* Generate a filter */
@@ -1256,9 +1289,7 @@ AL_InitUnderwaterFilter()
 static void
 AL_InitReverbEffect(void)
 {
-	if (!(qalGenEffects && qalEffecti && qalEffectf && qalDeleteEffects &&
-		qalGenAuxiliaryEffectSlots && qalAuxiliaryEffectSloti)
-	)
+	if (!AL_Efx_Enabled())
 		return;
 
 	qalGenEffects(QAL_EFX_MAX, ReverbEffect);
@@ -1271,7 +1302,7 @@ AL_InitReverbEffect(void)
 
 	qalGenAuxiliaryEffectSlots(QAL_EFX_MAX, ReverbEffectSlot);
 	qalEffecti(ReverbEffect[QAL_REVERB_EFFECT], AL_EFFECT_TYPE, AL_EFFECT_REVERB);
-	SetReverb(s_reverb_preset->value);
+	AL_SetReverb(s_reverb_preset->value);
 }
 
 /*

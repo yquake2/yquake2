@@ -72,10 +72,8 @@ cvar_t *s_ambient;
 cvar_t* s_underwater;
 cvar_t* s_underwater_gain_hf;
 cvar_t* s_doppler;
-cvar_t* s_occlusion;
 cvar_t* s_occlusion_strength;
 cvar_t* s_reverb_preset;
-cvar_t* s_reverb;
 cvar_t* s_ps_sorting;
 
 channel_t channels[MAX_CHANNELS];
@@ -1555,11 +1553,10 @@ S_Init(void)
 	s_underwater = Cvar_Get("s_underwater", "1", CVAR_ARCHIVE);
 	s_underwater_gain_hf = Cvar_Get("s_underwater_gain_hf", "0.25", CVAR_ARCHIVE);
 	s_doppler = Cvar_Get("s_doppler", "0", CVAR_ARCHIVE);
-	s_occlusion = Cvar_Get("s_occlusion", "0", CVAR_ARCHIVE);
-	s_occlusion_strength = Cvar_Get("s_occlusion_strength", "0", CVAR_ARCHIVE);
-	s_reverb_preset = Cvar_Get("s_reverb_preset", "0", CVAR_ARCHIVE);
-	s_reverb = Cvar_Get("s_reverb", "1", CVAR_ARCHIVE);
 	s_ps_sorting = Cvar_Get("s_ps_sorting", "1", CVAR_ARCHIVE);
+	/* Reverb and occlusion is fully disabled by default */
+	s_reverb_preset = Cvar_Get("s_reverb_preset", "-1", CVAR_ARCHIVE);
+	s_occlusion_strength = Cvar_Get("s_occlusion_strength", "0", CVAR_ARCHIVE);
 
 	Cmd_AddCommand("play", S_Play);
 	Cmd_AddCommand("stopsound", S_StopAllSounds);
