@@ -52,15 +52,20 @@
    at least this number of sources */
 #define MIN_CHANNELS 16
 
+#define QAL_EFX_MAX 1
+#define QAL_REVERB_EFFECT 0
+
 /* Globals */
 int active_buffers;
+
+/* Locals */
 static qboolean streamPlaying;
 static ALuint s_srcnums[MAX_CHANNELS - 1];
 static ALuint streamSource;
 static int s_framecount;
 static ALuint underwaterFilter;
-static ALuint ReverbEffect;
-static ALuint ReverbEffectSlot;
+static ALuint ReverbEffect[QAL_EFX_MAX] = {0};
+static ALuint ReverbEffectSlot[QAL_EFX_MAX] = {0};
 static int lastreverteffect = -1; /* just some invalid index value */
 
 /* ----------------------------------------------------------------- */
@@ -484,28 +489,28 @@ SetReverb(int index)
 	}
 
 	/* We have only 113 effects */
-	if (reverb_effect > 112)
+	if (index > 112)
 	{
-		reverb_effect = 112;
+		index = 112;
 	}
 
 	lastreverteffect = index;
 
-	qalEffectf(ReverbEffect, AL_REVERB_DENSITY, reverb.flDensity);
-	qalEffectf(ReverbEffect, AL_REVERB_DIFFUSION, reverb.flDiffusion);
-	qalEffectf(ReverbEffect, AL_REVERB_GAIN, reverb.flGain);
-	qalEffectf(ReverbEffect, AL_REVERB_GAINHF, reverb.flGainHF);
-	qalEffectf(ReverbEffect, AL_REVERB_DECAY_TIME, reverb.flDecayTime);
-	qalEffectf(ReverbEffect, AL_REVERB_DECAY_HFRATIO, reverb.flDecayHFRatio);
-	qalEffectf(ReverbEffect, AL_REVERB_REFLECTIONS_GAIN, reverb.flReflectionsGain);
-	qalEffectf(ReverbEffect, AL_REVERB_REFLECTIONS_DELAY, reverb.flReflectionsDelay);
-	qalEffectf(ReverbEffect, AL_REVERB_LATE_REVERB_GAIN, reverb.flLateReverbGain);
-	qalEffectf(ReverbEffect, AL_REVERB_LATE_REVERB_DELAY, reverb.flLateReverbDelay);
-	qalEffectf(ReverbEffect, AL_REVERB_AIR_ABSORPTION_GAINHF, reverb.flAirAbsorptionGainHF);
-	qalEffectf(ReverbEffect, AL_REVERB_ROOM_ROLLOFF_FACTOR, reverb.flRoomRolloffFactor);
-	qalEffecti(ReverbEffect, AL_REVERB_DECAY_HFLIMIT, reverb.iDecayHFLimit);
+	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_DENSITY, reverb.flDensity);
+	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_DIFFUSION, reverb.flDiffusion);
+	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_GAIN, reverb.flGain);
+	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_GAINHF, reverb.flGainHF);
+	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_DECAY_TIME, reverb.flDecayTime);
+	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_DECAY_HFRATIO, reverb.flDecayHFRatio);
+	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_REFLECTIONS_GAIN, reverb.flReflectionsGain);
+	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_REFLECTIONS_DELAY, reverb.flReflectionsDelay);
+	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_LATE_REVERB_GAIN, reverb.flLateReverbGain);
+	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_LATE_REVERB_DELAY, reverb.flLateReverbDelay);
+	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_AIR_ABSORPTION_GAINHF, reverb.flAirAbsorptionGainHF);
+	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_ROOM_ROLLOFF_FACTOR, reverb.flRoomRolloffFactor);
+	qalEffecti(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_DECAY_HFLIMIT, reverb.iDecayHFLimit);
 
-	qalAuxiliaryEffectSloti(ReverbEffectSlot, AL_EFFECTSLOT_EFFECT, ReverbEffect);
+	qalAuxiliaryEffectSloti(QAL_REVERB_EFFECT, AL_EFFECTSLOT_EFFECT, ReverbEffect[QAL_REVERB_EFFECT]);
 }
 
 /*
@@ -526,7 +531,7 @@ UpdateReverb(void)
 	float average = 0;
 	int i;
 
-	if (ReverbEffect == 0)
+	if (ReverbEffect[QAL_REVERB_EFFECT] == 0)
 		return;
 
 	for (i=0; i < 6; i++)
@@ -644,14 +649,16 @@ AL_Spatialize(channel_t *ch)
 					qalSourcei(ch->srcnum, AL_DIRECT_FILTER, 0) ;
 			}
 
-			if(!snd_is_underwater && s_reverb_preset_autopick->value && s_reverb->value)
+			if(!snd_is_underwater && s_reverb_preset->value == -2)
 			{
 				UpdateReverb();
 			}
 
-			if(s_reverb->value && !ReverbEffect && !sourceoccluded)
+			if(s_reverb->value && ReverbEffect[QAL_REVERB_EFFECT] &&
+				ReverbEffectSlot[QAL_REVERB_EFFECT] && !sourceoccluded)
 			{
-				qalSource3i(ch->srcnum, AL_AUXILIARY_SEND_FILTER, ReverbEffectSlot, 0, AL_FILTER_NULL);
+				qalSource3i(ch->srcnum, AL_AUXILIARY_SEND_FILTER,
+					ReverbEffectSlot[QAL_REVERB_EFFECT], 0, AL_FILTER_NULL);
 			}
 			else
 			{
@@ -982,18 +989,23 @@ AL_UpdateReverb()
 
 	reverb_effect = s_reverb_preset->value;
 
-	if (s_reverb_preset_autopick->value)
+	if (reverb_effect == -2)
 	{
-		Com_Printf("This will not have effect while s_reverb_preset_autopick is 1!");
+		Com_Printf("Reverb set to: AUTO\n");
+		return;
+	}
+	else if (reverb_effect == -1)
+	{
+		Com_Printf("Reverb set to: Disabled\n");
 		return;
 	}
 
 	if (reverb_effect < 0)
 		reverb_effect = 0;
 
-	SetReverb(reverb_effect);
-
 	Com_Printf("Reverb set to: %s\n", ReverbPresetsNames[reverb_effect]);
+
+	SetReverb(reverb_effect);
 }
 
 static void
@@ -1244,11 +1256,12 @@ AL_InitUnderwaterFilter()
 static void
 AL_InitReverbEffect(void)
 {
-	if (!(qalGenEffects && qalEffecti && qalEffectf && qalDeleteEffects &&qalGenAuxiliaryEffectSlots && qalAuxiliaryEffectSloti))
+	if (!(qalGenEffects && qalEffecti && qalEffectf && qalDeleteEffects &&
+		qalGenAuxiliaryEffectSlots && qalAuxiliaryEffectSloti)
+	)
 		return;
 
-	ReverbEffect = 0;
-	qalGenEffects(1, &ReverbEffect);
+	qalGenEffects(QAL_EFX_MAX, ReverbEffect);
 
 	if (qalGetError() != AL_NO_ERROR)
 	{
@@ -1256,9 +1269,8 @@ AL_InitReverbEffect(void)
 		return;
 	}
 
-	ReverbEffectSlot = 0;
-	qalGenAuxiliaryEffectSlots(1, &ReverbEffectSlot);
-	qalEffecti(ReverbEffect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+	qalGenAuxiliaryEffectSlots(QAL_EFX_MAX, ReverbEffectSlot);
+	qalEffecti(ReverbEffect[QAL_REVERB_EFFECT], AL_EFFECT_TYPE, AL_EFFECT_REVERB);
 	SetReverb(s_reverb_preset->value);
 }
 
@@ -1343,7 +1355,8 @@ AL_Shutdown(void)
 
 	qalDeleteSources(1, &streamSource);
 	qalDeleteFilters(1, &underwaterFilter);
-	qalDeleteEffects(1, &ReverbEffect);
+	qalDeleteAuxiliaryEffectSlots(QAL_EFX_MAX, ReverbEffectSlot);
+	qalDeleteEffects(QAL_EFX_MAX, ReverbEffect);
 
 	if (s_numchannels)
 	{
