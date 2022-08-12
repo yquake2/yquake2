@@ -104,7 +104,7 @@ ShutdownGame(void)
 
 /*
  * convert function declarations to correct one
- * (waring like from incompatible pointer type)
+ * (warning like from incompatible pointer type)
  * little bit better than cust function before set
  */
 static void

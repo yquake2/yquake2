@@ -480,6 +480,9 @@ static char ReverbPresetsNames[][32] = {
 	"Smallwater Room"
 };
 
+/*
+ * Update reverb setting without apply
+ */
 static void
 AL_SetReverb(int reverb_effect)
 {
@@ -603,7 +606,8 @@ AL_Spatialize(channel_t *ch)
 	}
 	else
 	{
-		qboolean sourceoccluded = false;
+		qboolean source_occluded = false;
+		qboolean reverb_enabled = false;
 
 		CL_GetEntitySoundOrigin(ch->entnum, origin);
 		qalSource3f(ch->srcnum, AL_POSITION, AL_UnpackVector(origin));
@@ -614,7 +618,9 @@ AL_Spatialize(channel_t *ch)
 			qalSource3f(ch->srcnum, AL_VELOCITY, AL_UnpackVector(velocity));
 		}
 
-		if (s_occlusion_strength->value && underwaterFilter != 0)
+		if (!snd_is_underwater &&
+			s_occlusion_strength->value &&
+			underwaterFilter != 0)
 		{
 			trace_t trace;
 			vec3_t mins = { 0, 0, 0 }, maxs = { 0, 0, 0 };
@@ -635,37 +641,39 @@ AL_Spatialize(channel_t *ch)
 
 				qalSourcef(ch->srcnum, AL_GAIN, min(max(final, 0), 1));
 
-				VectorCopy(trace.endpos, origin);
+				qalSourcei(ch->srcnum, AL_DIRECT_FILTER, underwaterFilter);
 
-				if (!snd_is_underwater)
-					qalSourcei(ch->srcnum, AL_DIRECT_FILTER, underwaterFilter);
-
-				sourceoccluded = true;
+				source_occluded = true;
 			}
-			else
+		}
+
+		if (!source_occluded)
+		{
+			/* Remove filter */
+			if (!snd_is_underwater)
+				qalSourcei(ch->srcnum, AL_DIRECT_FILTER, 0) ;
+
+			/* Auto reverb */
+			if(s_reverb_preset->value == -2)
 			{
-				if (!snd_is_underwater)
-					qalSourcei(ch->srcnum, AL_DIRECT_FILTER, 0) ;
+				AL_ApplyReverb();
+			}
+			/* Forsed reverb effect */
+			else if (s_reverb_preset->value >= 0)
+			{
+				AL_SetReverb(s_reverb_preset->value);
+			}
+
+			if(s_reverb_preset->value != -1) /* Non Disabled reverb */
+			{
+				/* Apply reverb effect */
+				qalSource3i(ch->srcnum, AL_AUXILIARY_SEND_FILTER,
+					ReverbEffectSlot[QAL_REVERB_EFFECT], 0, AL_FILTER_NULL);
+				reverb_enabled = true;
 			}
 		}
 
-		if(!snd_is_underwater && s_reverb_preset->value == -2)
-		{
-			AL_ApplyReverb();
-		}
-		else if (s_reverb_preset->value >= 0)
-		{
-			AL_SetReverb(s_reverb_preset->value);
-		}
-
-		if(s_reverb_preset->value != -1 && /* Non Disabled reverb */
-			!sourceoccluded)
-		{
-			/* Apply reverb effect */
-			qalSource3i(ch->srcnum, AL_AUXILIARY_SEND_FILTER,
-				ReverbEffectSlot[QAL_REVERB_EFFECT], 0, AL_FILTER_NULL);
-		}
-		else
+		if (!reverb_enabled)
 		{
 			/* Disable filtering */
 			qalSource3i(ch->srcnum, AL_AUXILIARY_SEND_FILTER,
