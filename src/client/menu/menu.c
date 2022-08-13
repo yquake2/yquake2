@@ -5447,9 +5447,7 @@ PlayerConfig_MenuDraw(void)
     refdef.fov_y = CalcFov(refdef.fov_x, (float)refdef.width, (float)refdef.height);
     refdef.time = cls.realtime * 0.001f;
 
-    if (s_pmi[s_player_model_box.curvalue].skindisplaynames &&
-        s_player_skin_box.curvalue > 0 &&
-        s_player_skin_box.curvalue < s_pmi[s_player_model_box.curvalue].nskins)
+    if (s_pmi[s_player_model_box.curvalue].skindisplaynames)
     {
         entity_t entity;
         char scratch[MAX_QPATH];
