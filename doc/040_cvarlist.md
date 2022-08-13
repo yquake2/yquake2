@@ -140,6 +140,14 @@ Set `0` by default.
 * **cl_showfps**: Shows the framecounter. Set to `2` for more and to
   `3` for even more informations.
 
+* **cl_model_preview_start**: start frame value in multiplayer model preview.
+  As example 84 for `male` model for show salute animation.
+  Defaults to `-1` (don't show animation).
+
+* **cl_model_preview_end**: end frame value in multiplayer model preview.
+  As example 94 for `male` model for show salute animation.
+  Defaults to `-1` (don't show animation).
+
 * **in_grab**: Defines how the mouse is grabbed by Yamagi Quake IIs
   window. If set to `0` the mouse is never grabbed and if set to `1`
   it's always grabbed. If set to `2` (the default) the mouse is grabbed
