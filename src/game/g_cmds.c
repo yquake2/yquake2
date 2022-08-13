@@ -1325,7 +1325,67 @@ Cmd_SpawnEntity_f(edict_t *ent)
 	ED_CallSpawn(ent);
 }
 
-void
+static void
+Cmd_SpawnOnStartByClass(const char *classname, const vec3_t origin)
+{
+	edict_t *opponent = G_Spawn();
+
+	// set position
+	opponent->s.origin[0] = origin[0];
+	opponent->s.origin[1] = origin[1];
+	opponent->s.origin[2] = origin[2];
+	// and class
+	opponent->classname = strdup(classname);
+
+	ED_CallSpawn(opponent);
+
+	gi.dprintf("Spawned entity at %f %f %f\n",
+		origin[0], origin[1], origin[2]);
+}
+
+static void
+Cmd_SpawnOnStart_f(edict_t *ent)
+{
+	edict_t *cur = NULL;
+
+	if (!ent)
+	{
+		return;
+	}
+
+	if ((deathmatch->value || coop->value) && !sv_cheats->value)
+	{
+		gi.cprintf(ent, PRINT_HIGH,
+			"You must run the server with '+set cheats 1' to enable this command.\n");
+		return;
+	}
+
+	if (gi.argc() != 2)
+	{
+		gi.cprintf(ent, PRINT_HIGH, "Usage: spawnonstart classname\n");
+		return;
+	}
+
+	while ((cur = G_Find(cur, FOFS(classname),
+		"info_player_deathmatch")) != NULL)
+	{
+		Cmd_SpawnOnStartByClass(gi.argv(1), cur->s.origin);
+	}
+
+	while ((cur = G_Find(cur, FOFS(classname),
+		"info_player_coop")) != NULL)
+	{
+		Cmd_SpawnOnStartByClass(gi.argv(1), cur->s.origin);
+	}
+
+	while ((cur = G_Find(cur, FOFS(classname),
+		"info_player_start")) != NULL)
+	{
+		Cmd_SpawnOnStartByClass(gi.argv(1), cur->s.origin);
+	}
+}
+
+static void
 Cmd_ListEntities_f(edict_t *ent)
 {
 	if ((deathmatch->value || coop->value) && !sv_cheats->value)
@@ -1870,6 +1930,10 @@ ClientCommand(edict_t *ent)
 	else if (Q_stricmp(cmd, "spawnentity") == 0)
 	{
 		Cmd_SpawnEntity_f(ent);
+	}
+	else if (Q_stricmp(cmd, "spawnonstart") == 0)
+	{
+		Cmd_SpawnOnStart_f(ent);
 	}
 	else if (Q_stricmp(cmd, "listentities") == 0)
 	{
