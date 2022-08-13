@@ -1430,6 +1430,7 @@ cycle_weapon(edict_t *ent)
 	int i;
 	int start;
 	int num_weaps;
+	const char *weapname = NULL;
 
 	if (!ent)
 	{
@@ -1446,11 +1447,20 @@ cycle_weapon(edict_t *ent)
 	num_weaps = gi.argc();
 
 	/* find where we want to start the search for the next eligible weapon */
-	if (cl->pers.weapon)
+	if (cl->newweapon)
+	{
+		weapname = cl->newweapon->classname;
+	}
+	else if (cl->pers.weapon)
+	{
+		weapname = cl->pers.weapon->classname;
+	}
+
+	if (weapname)
 	{
 		for (i = 1; i < num_weaps; i++)
 		{
-			if (Q_stricmp(cl->pers.weapon->classname, gi.argv(i)) == 0)
+			if (Q_stricmp(weapname, gi.argv(i)) == 0)
 			{
 				break;
 			}
