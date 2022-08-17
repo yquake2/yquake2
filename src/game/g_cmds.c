@@ -1320,13 +1320,13 @@ Cmd_SpawnEntity_f(edict_t *ent)
 		ent->spawnflags = atoi(gi.argv(8));
 	}
 
-	ent->classname = strdup(gi.argv(1));
+	ent->classname = G_CopyString(gi.argv(1));
 
 	ED_CallSpawn(ent);
 }
 
 static void
-Cmd_SpawnOnStartByClass(const char *classname, const vec3_t origin)
+Cmd_SpawnOnStartByClass(char *classname, const vec3_t origin)
 {
 	edict_t *opponent = G_Spawn();
 
@@ -1335,7 +1335,7 @@ Cmd_SpawnOnStartByClass(const char *classname, const vec3_t origin)
 	opponent->s.origin[1] = origin[1];
 	opponent->s.origin[2] = origin[2];
 	// and class
-	opponent->classname = strdup(classname);
+	opponent->classname = G_CopyString(classname);
 
 	ED_CallSpawn(opponent);
 
