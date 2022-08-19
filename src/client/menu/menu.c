@@ -5254,9 +5254,9 @@ PlayerDirectoryList(void)
     }
 
     // malloc directories
-    char** data = (char**)malloc((s_directory.num + 1) * sizeof(char*));
-    YQ2_COM_CHECK_OOM(data, "malloc()", (s_directory.num + 1) * sizeof(char*))
-    memset(data, 0, (s_directory.num + 1) * sizeof(char*));
+    char** data = (char**)malloc(s_directory.num * sizeof(char*));
+    YQ2_COM_CHECK_OOM(data, "malloc()", s_directory.num * sizeof(char*))
+    memset(data, 0, s_directory.num * sizeof(char*));
 
     s_directory.data = data;
     s_directory.num = 0;
@@ -5361,9 +5361,9 @@ PlayerModelList(void)
         }
 
         // malloc skinnames
-        data = (char**)malloc((s_skinnames[mdl].num + 1) * sizeof(char*));
-        YQ2_COM_CHECK_OOM(data, "malloc()", (s_skinnames[mdl].num + 1) * sizeof(char*))
-        memset(data, 0, (s_skinnames[mdl].num + 1) * sizeof(char*));
+        data = (char**)malloc(s_skinnames[mdl].num * sizeof(char*));
+        YQ2_COM_CHECK_OOM(data, "malloc()", s_skinnames[mdl].num * sizeof(char*))
+        memset(data, 0, s_skinnames[mdl].num * sizeof(char*));
         
         s_skinnames[mdl].data = data;
         s_skinnames[mdl].num = 0;
