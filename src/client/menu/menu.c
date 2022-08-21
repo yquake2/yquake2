@@ -5228,6 +5228,7 @@ PlayerDirectoryList(void)
     char* findname = "players/*";
     char** list = 0;
     int num = 0;
+    int n = 0;
 
     // get a list of "players" subdirectories
     if ((list = FS_ListFiles2(findname, &num, 0, 0)) == 0)
@@ -5235,14 +5236,16 @@ PlayerDirectoryList(void)
         return false;
     }
 
-    if (num > MAX_PLAYERMODELS)
+    n = num;
+
+    if (n > MAX_PLAYERMODELS)
     {
-        num = MAX_PLAYERMODELS;
+        n = MAX_PLAYERMODELS - 1;
     }
     
     s_directory.num = 0;
 
-    for (int i = 0; i < num; ++i)
+    for (int i = 0; i < n; ++i)
     {
         // last element of FS_FileList maybe null
         if (list[i] == 0)
@@ -5261,7 +5264,7 @@ PlayerDirectoryList(void)
     s_directory.data = data;
     s_directory.num = 0;
 
-    for (int i = 0; i < num; ++i)
+    for (int i = 0; i < n; ++i)
     {
         // last element of FS_FileList maybe null
         if (list[i] == 0)
@@ -5316,6 +5319,11 @@ PlayerModelList(void)
     // verify the existence of at least one pcx skin
     for (int i = 0; i < s_directory.num; ++i)
     {
+        if (s_directory.data[i] == 0)
+        {
+            continue;
+        }
+
         strcpy(findname, s_directory.data[i]);
         strcat(findname, "/*.pcx");
 
