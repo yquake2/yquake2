@@ -166,7 +166,7 @@ static cvar_t *gyro_calibration_z;
 static qboolean first_init = true;
 
 // Countdown of calls to IN_Update(), needed for controller init and gyro calibration
-static unsigned int updates_countdown = 30;
+static unsigned short int updates_countdown = 30;
 
 // Reason for the countdown
 static updates_countdown_reasons countdown_reason = REASON_CONTROLLERINIT;
@@ -833,11 +833,9 @@ IN_Update(void)
 					num_samples++;
 					break;
 				}
-				if (!gyro_active || !gyro_mode->value)
-				{
-					gyro_yaw = gyro_pitch = 0;
-				}
-				else
+
+				if (gyro_active && gyro_mode->value &&
+					!cl_paused->value && cls.key_dest == key_game)
 				{
 					if (!gyro_turning_axis->value)
 					{
@@ -850,6 +848,10 @@ IN_Update(void)
 					gyro_yaw *= gyro_yawsensitivity->value * cl_yawspeed->value;
 					gyro_pitch = (event.csensor.data[0] - gyro_calibration_x->value)
 							* gyro_pitchsensitivity->value * cl_pitchspeed->value;
+				}
+				else
+				{
+					gyro_yaw = gyro_pitch = 0;
 				}
 				break;
 #endif	// SDL_VERSION_ATLEAST(2, 0, 16)
@@ -1474,7 +1476,7 @@ IN_Controller_Init(qboolean notify_user)
 
 		Com_Printf ("The name of the joystick is '%s'\n", joystick_name);
 
-		// Ugly hack to detect IMU-only devices - works for Switch Pro Controller at least
+		// Ugly hack to detect IMU-only devices - works for Switch controllers at least
 		if (name_len > 4 && !strncmp(joystick_name + name_len - 4, " IMU", 4))
 		{
 			Com_Printf ("Skipping IMU device.\n");

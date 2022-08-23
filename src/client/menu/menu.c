@@ -1709,12 +1709,12 @@ Gyro_MenuInit(void)
 	s_gyro_pitchsensitivity_slider.maxvalue = 8.0f;
 
 	s_calibrating_text[0].generic.type = MTYPE_SEPARATOR;
-	s_calibrating_text[0].generic.x = 48 * scale + 30;
+	s_calibrating_text[0].generic.x = 48 * scale + 32;
 	s_calibrating_text[0].generic.y = (y += 20);
 	s_calibrating_text[0].generic.name = "place the controller on a flat,";
 
 	s_calibrating_text[1].generic.type = MTYPE_SEPARATOR;
-	s_calibrating_text[1].generic.x = 48 * scale + 30;
+	s_calibrating_text[1].generic.x = 48 * scale + 32;
 	s_calibrating_text[1].generic.y = (y += 10);
 	s_calibrating_text[1].generic.name = "stable surface to...";
 
@@ -1909,7 +1909,7 @@ Joy_MenuInit(void)
     s_joy_customize_alt_buttons_action.generic.x = 0;
     s_joy_customize_alt_buttons_action.generic.y = y;
     y += 10;
-    s_joy_customize_alt_buttons_action.generic.name = "customize alt buttons";
+    s_joy_customize_alt_buttons_action.generic.name = "custom. alt buttons";
     s_joy_customize_alt_buttons_action.generic.callback = CustomizeControllerAltButtonsFunc;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_customize_alt_buttons_action);
 
