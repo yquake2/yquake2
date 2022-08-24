@@ -148,6 +148,7 @@ static cvar_t *joy_right_expo;
 static cvar_t *joy_right_snapaxis;
 static cvar_t *joy_right_deadzone;
 static cvar_t *joy_flick_threshold;
+static cvar_t *joy_flick_smoothed;
 
 // Joystick haptic
 static cvar_t *joy_haptic_magnitude;
@@ -190,6 +191,11 @@ static float normalize_sdl_gyro = 1.0f / M_PI;	// can change depending on hardwa
 #define FLICK_TIME 6		// number of frames it takes for a flick to execute
 static float target_angle;	// angle to end up facing at the end of a flick
 static unsigned short int flick_progress = FLICK_TIME;
+
+// Flick Stick's rotation input samples to smooth out
+#define MAX_SMOOTH_SAMPLES 8
+static float flick_samples[MAX_SMOOTH_SAMPLES];
+static unsigned short int front_sample = 0;
 
 extern void CalibrationFinishedCallback(void);
 
@@ -964,6 +970,60 @@ IN_ApplyExpo(thumbstick_t stick, float exponent)
 }
 
 /*
+ * Delete flick stick's buffer of angle samples for smoothing
+ */
+static void
+IN_ResetSmoothSamples()
+{
+	front_sample = 0;
+	for (int i = 0; i < MAX_SMOOTH_SAMPLES; i++)
+	{
+		flick_samples[i] = 0.0f;
+	}
+}
+
+/*
+ * Soft tiered smoothing for angle rotations with Flick Stick
+ * http://gyrowiki.jibbsmart.com/blog:tight-and-smooth:soft-tiered-smoothing
+ */
+static float
+IN_SmoothedStickRotation(float value)
+{
+	float top_threshold = joy_flick_smoothed->value;
+	float bottom_threshold = top_threshold / 2.0f;
+	if (top_threshold == 0)
+	{
+		return value;
+	}
+
+	// sample in the circular smoothing buffer we want to write over
+	front_sample = (front_sample + 1) % MAX_SMOOTH_SAMPLES;
+
+	// if input > top threshold, it'll all be consumed immediately
+	//				0 gets put into the smoothing buffer
+	// if input < bottom threshold, it'll all be put in the smoothing buffer
+	//				0 for immediate consumption
+	float immediate_weight = (fabsf(value) - bottom_threshold)
+					/ (top_threshold - bottom_threshold);
+	immediate_weight = min( max(immediate_weight, 0.0f), 1.0f ); // clamp to [0, 1] range
+
+	// now we can push the smooth sample
+	float smooth_weight = 1.0f - immediate_weight;
+	flick_samples[front_sample] = value * smooth_weight;
+
+	// calculate smoothed result
+	float average = 0;
+	for (int i = 0; i < MAX_SMOOTH_SAMPLES; i++)
+	{
+		average += flick_samples[i];
+	}
+	average /= MAX_SMOOTH_SAMPLES;
+
+	// finally, add immediate portion (original input)
+	return average + value * immediate_weight;
+}
+
+/*
  * Flick Stick handling: detect if the player just started one, or return the
  * player rotation if stick was already flicked
  */
@@ -991,6 +1051,7 @@ IN_FlickStick(thumbstick_t stick, float axial_deadzone)
 			is_flicking = true;
 			flick_progress = 0;
 			target_angle = stick_angle;
+			IN_ResetSmoothSamples();
 		}
 		else
 		{
@@ -1004,6 +1065,7 @@ IN_FlickStick(thumbstick_t stick, float axial_deadzone)
 				angle_change += 360.0f;
 			}
 			angle_change -= 180.0f;
+			angle_change = IN_SmoothedStickRotation(angle_change);
 		}
 
 		last_stick_angle = stick_angle;
@@ -1764,6 +1826,7 @@ IN_Init(void)
 	joy_right_snapaxis = Cvar_Get("joy_right_snapaxis", "0.15", CVAR_ARCHIVE);
 	joy_right_deadzone = Cvar_Get("joy_right_deadzone", "0.16", CVAR_ARCHIVE);
 	joy_flick_threshold = Cvar_Get("joy_flick_threshold", "0.65", CVAR_ARCHIVE);
+	joy_flick_smoothed = Cvar_Get("joy_flick_smoothed", "8.0", CVAR_ARCHIVE);
 
 	gyro_calibration_x = Cvar_Get("gyro_calibration_x", "0.0", CVAR_ARCHIVE);
 	gyro_calibration_y = Cvar_Get("gyro_calibration_y", "0.0", CVAR_ARCHIVE);

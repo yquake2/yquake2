@@ -501,6 +501,11 @@ Set `0` by default.
   distance from the center of the stick that will make the player flick
   or rotate. Default `0.65` (65%).
 
+* **joy_flick_smoothed**: Flick Stick only, rotations below this angle
+  (in degrees) will be smoothed. Reducing this will increase
+  responsiveness at the cost of jittery movement. Most gamepads will work
+  nicely with a value between 4.0 and 8.0. Default `8.0`.
+
 * **gyro_mode**: Operation mode for the gyroscope sensor of the game
   controller. Options are `0` = always off, `1` = off with the
   `+gyroaction` bind to enable, `2` = on with `+gyroaction` to
