@@ -294,6 +294,7 @@ extern	cvar_t	*cl_shownet;
 extern	cvar_t	*cl_showmiss;
 extern	cvar_t	*cl_showclamp;
 extern	cvar_t	*lookstrafe;
+extern	cvar_t	*joy_layout;
 extern	cvar_t	*gyro_mode;
 extern	cvar_t	*gyro_turning_axis;
 extern	cvar_t	*m_pitch;

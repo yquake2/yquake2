@@ -1764,12 +1764,13 @@ M_Menu_Gyro_f(void)
 /*
  * JOY MENU
  */
-static menuslider_s s_joy_expo_slider;
+static menulist_s s_joy_layout_box;
 static menuslider_s s_joy_yawsensitivity_slider;
 static menuslider_s s_joy_pitchsensitivity_slider;
 static menuslider_s s_joy_forwardsensitivity_slider;
 static menuslider_s s_joy_sidesensitivity_slider;
-static menuslider_s s_joy_upsensitivity_slider;
+static menuslider_s s_joy_left_expo_slider;
+static menuslider_s s_joy_right_expo_slider;
 static menuslider_s s_joy_haptic_slider;
 static menuaction_s s_joy_gyro_action;
 static menuaction_s s_joy_customize_buttons_action;
@@ -1794,9 +1795,25 @@ ConfigGyroFunc(void *unused)
 }
 
 static void
+StickLayoutFunc(void *unused)
+{
+	Cvar_SetValue("joy_layout", (int)s_joy_layout_box.curvalue);
+}
+
+static void
 Joy_MenuInit(void)
 {
     extern qboolean show_haptic;
+
+    static const char *stick_layouts[] =
+    {
+        "default",
+        "southpaw",
+        "legacy",
+        "legacy southpaw",
+        0
+    };
+
     int y = 0;
 
     s_joy_menu.x = (int)(viddef.width * 0.50f);
@@ -1846,27 +1863,25 @@ Joy_MenuInit(void)
 
     y += 10;
 
-    s_joy_upsensitivity_slider.generic.type = MTYPE_SLIDER;
-    s_joy_upsensitivity_slider.generic.x = 0;
-    s_joy_upsensitivity_slider.generic.y = y;
+    s_joy_left_expo_slider.generic.type = MTYPE_SLIDER;
+    s_joy_left_expo_slider.generic.x = 0;
+    s_joy_left_expo_slider.generic.y = y;
     y += 10;
-    s_joy_upsensitivity_slider.generic.name = "up sensitivity";
-    s_joy_upsensitivity_slider.cvar = "joy_upsensitivity";
-    s_joy_upsensitivity_slider.minvalue = 0.0f;
-    s_joy_upsensitivity_slider.maxvalue = 2.0f;
-    Menu_AddItem(&s_joy_menu, (void *)&s_joy_upsensitivity_slider);
+    s_joy_left_expo_slider.generic.name = "left expo";
+    s_joy_left_expo_slider.cvar = "joy_left_expo";
+    s_joy_left_expo_slider.minvalue = 1;
+    s_joy_left_expo_slider.maxvalue = 5;
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_left_expo_slider);
 
+    s_joy_right_expo_slider.generic.type = MTYPE_SLIDER;
+    s_joy_right_expo_slider.generic.x = 0;
+    s_joy_right_expo_slider.generic.y = y;
     y += 10;
-
-    s_joy_expo_slider.generic.type = MTYPE_SLIDER;
-    s_joy_expo_slider.generic.x = 0;
-    s_joy_expo_slider.generic.y = y;
-    y += 10;
-    s_joy_expo_slider.generic.name = "expo";
-    s_joy_expo_slider.cvar = "joy_expo";
-    s_joy_expo_slider.minvalue = 1;
-    s_joy_expo_slider.maxvalue = 5;
-    Menu_AddItem(&s_joy_menu, (void *)&s_joy_expo_slider);
+    s_joy_right_expo_slider.generic.name = "right expo";
+    s_joy_right_expo_slider.cvar = "joy_right_expo";
+    s_joy_right_expo_slider.minvalue = 1;
+    s_joy_right_expo_slider.maxvalue = 5;
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_right_expo_slider);
 
     if (show_haptic) {
         y += 10;
@@ -1881,6 +1896,18 @@ Joy_MenuInit(void)
         s_joy_haptic_slider.maxvalue = 2.2f;
         Menu_AddItem(&s_joy_menu, (void *)&s_joy_haptic_slider);
     }
+
+    y += 10;
+
+    s_joy_layout_box.generic.type = MTYPE_SPINCONTROL;
+    s_joy_layout_box.generic.x = 0;
+    s_joy_layout_box.generic.y = y;
+    y += 10;
+    s_joy_layout_box.generic.name = "stick layout";
+    s_joy_layout_box.generic.callback = StickLayoutFunc;
+    s_joy_layout_box.itemnames = stick_layouts;
+    s_joy_layout_box.curvalue = ClampCvar(0, 3, joy_layout->value);
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_layout_box);
 
     if (gyro_hardware)
     {

@@ -470,6 +470,22 @@ Set `0` by default.
   `2` to use the Guide/Home/PS button. Requires a game restart
   (or controller replug) when changed.
 
+* **joy_layout**: Allows to select the stick layout of the gamepad.
+  - `0`: *Default*, left stick moves, right aims
+  - `1`: *Southpaw*, same as previous one with inverted sticks
+  - `2`: *Legacy*, left moves forward/backward and turns, right strafes
+    and looks up/down
+  - `3`: *Legacy Southpaw*, inverted sticks version of previous one
+
+* **joy_left_deadzone** / **joy_right_deadzone**: Inner, circular
+  deadzone for each stick, where inputs below this radius will be
+  ignored. Default is `0.16` (16% of possible stick travel).
+
+* **joy_left_expo** / **joy_right_expo**: Exponents on the response
+  curve on each stick. Increasing this will make small movements to
+  represent much smaller inputs, which helps precision with the sticks.
+  `1.0` is linear. Default `2.0` (quadratic curve).
+
 * **gyro_mode**: Operation mode for the gyroscope sensor of the game
   controller. Options are `0` = always off, `1` = off with the
   `+gyroaction` bind to enable, `2` = on with `+gyroaction` to
