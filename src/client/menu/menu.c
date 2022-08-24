@@ -1814,6 +1814,17 @@ Joy_MenuInit(void)
         0
     };
 
+    static const char *stick_layouts_fs[] =
+    {
+        "default",
+        "southpaw",
+        "legacy",
+        "legacy southpaw",
+        "flick stick",
+        "flick stick spaw",
+        0
+    };
+
     int y = 0;
 
     s_joy_menu.x = (int)(viddef.width * 0.50f);
@@ -1905,8 +1916,16 @@ Joy_MenuInit(void)
     y += 10;
     s_joy_layout_box.generic.name = "stick layout";
     s_joy_layout_box.generic.callback = StickLayoutFunc;
-    s_joy_layout_box.itemnames = stick_layouts;
-    s_joy_layout_box.curvalue = ClampCvar(0, 3, joy_layout->value);
+    if (gyro_hardware || joy_layout->value > 3)
+    {
+        s_joy_layout_box.itemnames = stick_layouts_fs;
+        s_joy_layout_box.curvalue = ClampCvar(0, 5, joy_layout->value);
+    }
+    else
+    {
+        s_joy_layout_box.itemnames = stick_layouts;
+        s_joy_layout_box.curvalue = ClampCvar(0, 3, joy_layout->value);
+    }
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_layout_box);
 
     if (gyro_hardware)

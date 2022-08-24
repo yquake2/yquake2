@@ -476,6 +476,9 @@ Set `0` by default.
   - `2`: *Legacy*, left moves forward/backward and turns, right strafes
     and looks up/down
   - `3`: *Legacy Southpaw*, inverted sticks version of previous one
+  - `4`: *Flick Stick*, left stick moves, right checks your surroundings
+    in 360º, gyro required for looking up/down
+  - `5`: *Flick Stick Southpaw*, swapped sticks version of last one
 
 * **joy_left_deadzone** / **joy_right_deadzone**: Inner, circular
   deadzone for each stick, where inputs below this radius will be
@@ -486,12 +489,17 @@ Set `0` by default.
   deadzone with the shape of a "bowtie", which will help you to do
   perfectly horizontal or vertical movements the more you mark a
   direction with the stick. Increasing this too much will reduce speed
-  for the diagonals. Default `0.15`.
+  for the diagonals, but will help you to mark 90º/180º turns with Flick
+  Stick. Default `0.15`.
 
 * **joy_left_expo** / **joy_right_expo**: Exponents on the response
   curve on each stick. Increasing this will make small movements to
   represent much smaller inputs, which helps precision with the sticks.
   `1.0` is linear. Default `2.0` (quadratic curve).
+
+* **joy_flick_threshold**: Used only with Flick Stick, specifies the
+  distance from the center of the stick that will make the player flick
+  or rotate. Default `0.65` (65%).
 
 * **gyro_mode**: Operation mode for the gyroscope sensor of the game
   controller. Options are `0` = always off, `1` = off with the

@@ -24,6 +24,9 @@
  * - http://quakespasm.sourceforge.net
  * - https://github.com/Minimuino/thumbstick-deadzones
  *
+ * Flick Stick handling is based on:
+ * http://gyrowiki.jibbsmart.com/blog:good-gyro-controls-part-2:the-flick-stick
+ *
  * =======================================================================
  *
  * This is the Quake II input system backend, implemented with SDL.
@@ -51,7 +54,9 @@ enum {
 	LAYOUT_DEFAULT			= 0,
 	LAYOUT_SOUTHPAW,
 	LAYOUT_LEGACY,
-	LAYOUT_LEGACY_SOUTHPAW
+	LAYOUT_LEGACY_SOUTHPAW,
+	LAYOUT_FLICK_STICK,
+	LAYOUT_FLICK_STICK_SOUTHPAW
 };
 
 typedef struct
@@ -142,6 +147,7 @@ static cvar_t *joy_left_deadzone;
 static cvar_t *joy_right_expo;
 static cvar_t *joy_right_snapaxis;
 static cvar_t *joy_right_deadzone;
+static cvar_t *joy_flick_threshold;
 
 // Joystick haptic
 static cvar_t *joy_haptic_magnitude;
@@ -179,6 +185,11 @@ static updates_countdown_reasons countdown_reason = REASON_CONTROLLERINIT;
 
 // Factor used to transform from SDL input to Q2 "view angle" change
 static float normalize_sdl_gyro = 1.0f / M_PI;	// can change depending on hardware
+
+// Flick Stick
+#define FLICK_TIME 6		// number of frames it takes for a flick to execute
+static float target_angle;	// angle to end up facing at the end of a flick
+static unsigned short int flick_progress = FLICK_TIME;
 
 extern void CalibrationFinishedCallback(void);
 
@@ -953,6 +964,59 @@ IN_ApplyExpo(thumbstick_t stick, float exponent)
 }
 
 /*
+ * Flick Stick handling: detect if the player just started one, or return the
+ * player rotation if stick was already flicked
+ */
+static float
+IN_FlickStick(thumbstick_t stick, float axial_deadzone)
+{
+	static qboolean is_flicking;
+	static float last_stick_angle;
+	thumbstick_t processed = stick;
+	float angle_change = 0;
+
+	if (IN_StickMagnitude(stick) > min(joy_flick_threshold->value, 1.0f))	// flick!
+	{
+		// Make snap-to-axis only if player wasn't already flicking
+		if (!is_flicking || flick_progress < FLICK_TIME)
+		{
+			processed = IN_SlopedAxialDeadzone(stick, axial_deadzone);
+		}
+
+		const float stick_angle = (180 / M_PI) * atan2f(-processed.x, -processed.y);
+
+		if (!is_flicking)
+		{
+			// Flicking begins now, with a new target
+			is_flicking = true;
+			flick_progress = 0;
+			target_angle = stick_angle;
+		}
+		else
+		{
+			// Was already flicking, just turning now
+			angle_change = stick_angle - last_stick_angle;
+
+			// angle wrap: https://stackoverflow.com/a/11498248/1130520
+			angle_change = fmod(angle_change + 180.0f, 360.0f);
+			if (angle_change < 0)
+			{
+				angle_change += 360.0f;
+			}
+			angle_change -= 180.0f;
+		}
+
+		last_stick_angle = stick_angle;
+	}
+	else
+	{
+		is_flicking = false;
+	}
+
+	return angle_change;
+}
+
+/*
  * Move handling
  */
 void
@@ -960,6 +1024,12 @@ IN_Move(usercmd_t *cmd)
 {
 	// Factor used to transform from SDL joystick input ([-32768, 32767])  to [-1, 1] range
 	static const float normalize_sdl_axis = 1.0f / 32768.0f;
+
+	// Flick Stick's factors to change to the target angle with a feeling of "ease out"
+	static const float rotation_factor[FLICK_TIME] =
+	{
+		0.305555556f, 0.249999999f, 0.194444445f, 0.138888889f, 0.083333333f, 0.027777778f
+	};
 
 	static float old_mouse_x;
 	static float old_mouse_y;
@@ -1049,15 +1119,29 @@ IN_Move(usercmd_t *cmd)
 	if (left_stick.x || left_stick.y)
 	{
 		left_stick = IN_RadialDeadzone(left_stick, joy_left_deadzone->value);
-		left_stick = IN_SlopedAxialDeadzone(left_stick, joy_left_snapaxis->value);
-		left_stick = IN_ApplyExpo(left_stick, joy_left_expo->value);
+		if ((int)joy_layout->value == LAYOUT_FLICK_STICK_SOUTHPAW)
+		{
+			cl.viewangles[YAW] += IN_FlickStick(left_stick, joy_left_snapaxis->value);
+		}
+		else
+		{
+			left_stick = IN_SlopedAxialDeadzone(left_stick, joy_left_snapaxis->value);
+			left_stick = IN_ApplyExpo(left_stick, joy_left_expo->value);
+		}
 	}
 
 	if (right_stick.x || right_stick.y)
 	{
 		right_stick = IN_RadialDeadzone(right_stick, joy_right_deadzone->value);
-		right_stick = IN_SlopedAxialDeadzone(right_stick, joy_right_snapaxis->value);
-		right_stick = IN_ApplyExpo(right_stick, joy_right_expo->value);
+		if ((int)joy_layout->value == LAYOUT_FLICK_STICK)
+		{
+			cl.viewangles[YAW] += IN_FlickStick(right_stick, joy_right_snapaxis->value);
+		}
+		else
+		{
+			right_stick = IN_SlopedAxialDeadzone(right_stick, joy_right_snapaxis->value);
+			right_stick = IN_ApplyExpo(right_stick, joy_right_expo->value);
+		}
 	}
 
 	switch((int)joy_layout->value)
@@ -1079,6 +1163,14 @@ IN_Move(usercmd_t *cmd)
 			joystick_sidemove = left_stick.x;
 			joystick_yaw = right_stick.x;
 			joystick_pitch = left_stick.y;
+			break;
+		case LAYOUT_FLICK_STICK:	// yaw already set by now
+			joystick_forwardmove = left_stick.y;
+			joystick_sidemove = left_stick.x;
+			break;
+		case LAYOUT_FLICK_STICK_SOUTHPAW:
+			joystick_forwardmove = right_stick.y;
+			joystick_sidemove = right_stick.x;
 			break;
 		default:	// LAYOUT_DEFAULT
 			joystick_forwardmove = left_stick.y;
@@ -1128,6 +1220,13 @@ IN_Move(usercmd_t *cmd)
 	if (gyro_pitch)
 	{
 		cl.viewangles[PITCH] -= (m_pitch->value * gyro_pitch) * gyroViewFactor;
+	}
+
+	// Flick Stick: flick in progress, changing the yaw angle to the target progressively
+	if (flick_progress < FLICK_TIME)
+	{
+		cl.viewangles[YAW] += target_angle * rotation_factor[flick_progress];
+		flick_progress++;
 	}
 }
 
@@ -1664,6 +1763,7 @@ IN_Init(void)
 	joy_right_expo = Cvar_Get("joy_right_expo", "2.0", CVAR_ARCHIVE);
 	joy_right_snapaxis = Cvar_Get("joy_right_snapaxis", "0.15", CVAR_ARCHIVE);
 	joy_right_deadzone = Cvar_Get("joy_right_deadzone", "0.16", CVAR_ARCHIVE);
+	joy_flick_threshold = Cvar_Get("joy_flick_threshold", "0.65", CVAR_ARCHIVE);
 
 	gyro_calibration_x = Cvar_Get("gyro_calibration_x", "0.0", CVAR_ARCHIVE);
 	gyro_calibration_y = Cvar_Get("gyro_calibration_y", "0.0", CVAR_ARCHIVE);
