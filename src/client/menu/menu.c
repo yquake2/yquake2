@@ -2961,8 +2961,36 @@ Mods_MenuInit(void)
     int currentmod;
     int x = 0;
     int y = 0;
+    char modname[MAX_QPATH]; //TG626
 
     Mods_NamesInit();
+
+    // create array of bracketed display names from folder names - TG626
+    char **displaynames=malloc(sizeof(*displaynames) * (nummods+1));
+
+    for (int i=0; i < nummods; i++)
+    {
+        strcpy(modname, "[");
+        if (strlen(modnames[i]) < 16)
+        {
+            strcat(modname, modnames[i]);
+            for (int j=0; j < 15 - strlen(modnames[i]); j++)
+            {
+                strcat(modname, " ");
+            }
+        }
+        else
+        {
+            strncat(modname, modnames[i], 12);
+            strcat(modname, "...");
+        }
+        strcat(modname, "]");
+
+        displaynames[i] = malloc(strlen(modname) + 1);
+        strcpy(displaynames[i], modname);
+    }
+    displaynames[nummods] = NULL;
+    //end TG626
 
     // pre-select the current mod for display in the list
     for (currentmod = 0; currentmod < nummods; currentmod++)
@@ -2973,7 +3001,7 @@ Mods_MenuInit(void)
         }
     }
 
-    s_mods_menu.x = (int)(viddef.width * 0.50f);
+    s_mods_menu.x = viddef.width * 0.50;
     s_mods_menu.nitems = 0;
 
     s_mods_list.generic.type = MTYPE_SPINCONTROL;
@@ -2981,7 +3009,7 @@ Mods_MenuInit(void)
     s_mods_list.generic.x = x;
     s_mods_list.generic.y = y;
     s_mods_list.generic.callback = ModsListFunc;
-    s_mods_list.itemnames = (const char **)modnames;
+    s_mods_list.itemnames = (const char **)displaynames;
     s_mods_list.curvalue = currentmod < nummods ? currentmod : 0;
 
     y += 20;
