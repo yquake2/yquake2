@@ -481,6 +481,13 @@ Set `0` by default.
   deadzone for each stick, where inputs below this radius will be
   ignored. Default is `0.16` (16% of possible stick travel).
 
+* **joy_left_snapaxis** / **joy_right_snapaxis**: Ratio on the value of
+  one axis (X or Y) to snap you to the other. It creates an axial
+  deadzone with the shape of a "bowtie", which will help you to do
+  perfectly horizontal or vertical movements the more you mark a
+  direction with the stick. Increasing this too much will reduce speed
+  for the diagonals. Default `0.15`.
+
 * **joy_left_expo** / **joy_right_expo**: Exponents on the response
   curve on each stick. Increasing this will make small movements to
   represent much smaller inputs, which helps precision with the sticks.

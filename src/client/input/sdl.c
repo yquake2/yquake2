@@ -22,6 +22,7 @@
  * http://joshsutphin.com/2013/04/12/doing-thumbstick-dead-zones-right.html
  * ...and implementation is partially based on code from:
  * - http://quakespasm.sourceforge.net
+ * - https://github.com/Minimuino/thumbstick-deadzones
  *
  * =======================================================================
  *
@@ -136,8 +137,10 @@ static cvar_t *joy_sidesensitivity;
 // Joystick's analog sticks configuration
 cvar_t *joy_layout;
 static cvar_t *joy_left_expo;
+static cvar_t *joy_left_snapaxis;
 static cvar_t *joy_left_deadzone;
 static cvar_t *joy_right_expo;
+static cvar_t *joy_right_snapaxis;
 static cvar_t *joy_right_deadzone;
 
 // Joystick haptic
@@ -874,6 +877,15 @@ IN_StickMagnitude(thumbstick_t stick)
 }
 
 /*
+ * Scaling to represent a value in a certain input range, on a different output range
+ */
+static float
+IN_MapRange(float v, float old_min, float old_max, float new_min, float new_max)
+{
+	return new_min + ((new_max - new_min) * (v - old_min) / (old_max - old_min));
+}
+
+/*
  * Radial deadzone based on github.com/jeremiah-sypult/Quakespasm-Rift
  */
 static thumbstick_t
@@ -888,6 +900,34 @@ IN_RadialDeadzone(thumbstick_t stick, float deadzone)
 		const float scale = ((magnitude - deadzone) / (1.0 - deadzone)) / magnitude;
 		result.x = stick.x * scale;
 		result.y = stick.y * scale;
+	}
+
+	return result;
+}
+
+/*
+ * Sloped axial deadzone based on github.com/Minimuino/thumbstick-deadzones
+ * Provides a "snap-to-axis" feeling, without losing precision near the center of the stick
+ */
+static thumbstick_t
+IN_SlopedAxialDeadzone(thumbstick_t stick, float deadzone)
+{
+	thumbstick_t result = {0};
+	float abs_x = fabsf(stick.x);
+	float abs_y = fabsf(stick.y);
+	float sign_x = copysignf(1.0f, stick.x);
+	float sign_y = copysignf(1.0f, stick.y);
+	deadzone = min(deadzone, 0.5f);
+	float deadzone_x = deadzone * abs_y;	// deadzone of one axis depends...
+	float deadzone_y = deadzone * abs_x;	// ...on the value of the other axis
+
+	if (abs_x > deadzone_x)
+	{
+		result.x = sign_x * IN_MapRange(abs_x, deadzone_x, 1, 0, 1);
+	}
+	if (abs_y > deadzone_y)
+	{
+		result.y = sign_y * IN_MapRange(abs_y, deadzone_y, 1, 0, 1);
 	}
 
 	return result;
@@ -1009,12 +1049,14 @@ IN_Move(usercmd_t *cmd)
 	if (left_stick.x || left_stick.y)
 	{
 		left_stick = IN_RadialDeadzone(left_stick, joy_left_deadzone->value);
+		left_stick = IN_SlopedAxialDeadzone(left_stick, joy_left_snapaxis->value);
 		left_stick = IN_ApplyExpo(left_stick, joy_left_expo->value);
 	}
 
 	if (right_stick.x || right_stick.y)
 	{
 		right_stick = IN_RadialDeadzone(right_stick, joy_right_deadzone->value);
+		right_stick = IN_SlopedAxialDeadzone(right_stick, joy_right_snapaxis->value);
 		right_stick = IN_ApplyExpo(right_stick, joy_right_expo->value);
 	}
 
@@ -1532,9 +1574,11 @@ IN_Controller_Init(qboolean notify_user)
 			Com_Printf ("Controller settings: %s\n", SDL_GameControllerMapping(controller));
 			Com_Printf ("Left stick config:\n");
 			Com_Printf (" * response curve exponent = %.3f\n", joy_left_expo->value);
+			Com_Printf (" * snap-to-axis ratio = %.3f\n", joy_left_snapaxis->value);
 			Com_Printf (" * inner deadzone = %.3f\n", joy_left_deadzone->value);
 			Com_Printf ("Right stick config:\n");
 			Com_Printf (" * response curve exponent = %.3f\n", joy_right_expo->value);
+			Com_Printf (" * snap-to-axis ratio = %.3f\n", joy_right_snapaxis->value);
 			Com_Printf (" * inner deadzone = %.3f\n", joy_right_deadzone->value);
 
 			joystick_haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller));
@@ -1615,8 +1659,10 @@ IN_Init(void)
 
 	joy_layout = Cvar_Get("joy_layout", "0", CVAR_ARCHIVE);
 	joy_left_expo = Cvar_Get("joy_left_expo", "2.0", CVAR_ARCHIVE);
+	joy_left_snapaxis = Cvar_Get("joy_left_snapaxis", "0.15", CVAR_ARCHIVE);
 	joy_left_deadzone = Cvar_Get("joy_left_deadzone", "0.16", CVAR_ARCHIVE);
 	joy_right_expo = Cvar_Get("joy_right_expo", "2.0", CVAR_ARCHIVE);
+	joy_right_snapaxis = Cvar_Get("joy_right_snapaxis", "0.15", CVAR_ARCHIVE);
 	joy_right_deadzone = Cvar_Get("joy_right_deadzone", "0.16", CVAR_ARCHIVE);
 
 	gyro_calibration_x = Cvar_Get("gyro_calibration_x", "0.0", CVAR_ARCHIVE);
