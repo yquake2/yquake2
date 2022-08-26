@@ -894,12 +894,12 @@ IN_StickMagnitude(thumbstick_t stick)
 }
 
 /*
- * Scaling to represent a value in a certain input range, on a different output range
+ * Scales "v" from [deadzone, 1] range to [0, 1] range, then inherits sign
  */
 static float
-IN_MapRange(float v, float old_min, float old_max, float new_min, float new_max)
+IN_MapRange(float v, float deadzone, float sign)
 {
-	return new_min + ((new_max - new_min) * (v - old_min) / (old_max - old_min));
+	return ((v - deadzone) / (1 - deadzone)) * sign;
 }
 
 /*
@@ -940,11 +940,11 @@ IN_SlopedAxialDeadzone(thumbstick_t stick, float deadzone)
 
 	if (abs_x > deadzone_x)
 	{
-		result.x = sign_x * IN_MapRange(abs_x, deadzone_x, 1, 0, 1);
+		result.x = IN_MapRange(abs_x, deadzone_x, sign_x);
 	}
 	if (abs_y > deadzone_y)
 	{
-		result.y = sign_y * IN_MapRange(abs_y, deadzone_y, 1, 0, 1);
+		result.y = IN_MapRange(abs_y, deadzone_y, sign_y);
 	}
 
 	return result;
