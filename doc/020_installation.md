@@ -62,7 +62,9 @@ If the optional addons are available their gamedata must be copied too:
   subdirectory.
 * For Ground Zero (also known as "rogue") copy the *pak0.pak* and the
   *video/* subdirectory from the addon distribution into the *rogue/*
-  subdirectory.
+  subdirectory. You also need to recompile the game library with:
+  https://github.com/yquake2/rogue
+  https://github.com/yquake2/yquake2/issues/885
 
 The MD5 checksums of the pakfiles are:
 
