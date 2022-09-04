@@ -956,6 +956,12 @@ GL3_DrawParticles(void)
 		} part_vtx;
 		assert(sizeof(part_vtx)==9*sizeof(float)); // remember to update GL3_SurfInit() if this changes!
 
+		// Don't try to draw particles if there aren't any.
+		if (numParticles == 0)
+		{
+			return;
+		}
+
 		YQ2_VLA(part_vtx, buf, numParticles);
 
 		// TODO: viewOrg could be in UBO

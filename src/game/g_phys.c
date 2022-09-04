@@ -579,7 +579,6 @@ typedef struct
 	edict_t *ent;
 	vec3_t origin;
 	vec3_t angles;
-	float deltayaw;
 } pushed_t;
 
 pushed_t pushed[MAX_EDICTS], *pushed_p;
@@ -630,12 +629,6 @@ SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
 	pushed_p->ent = pusher;
 	VectorCopy(pusher->s.origin, pushed_p->origin);
 	VectorCopy(pusher->s.angles, pushed_p->angles);
-
-	if (pusher->client)
-	{
-		pushed_p->deltayaw = pusher->client->ps.pmove.delta_angles[YAW];
-	}
-
 	pushed_p++;
 
 	/* move the pusher to it's final position */
@@ -706,11 +699,6 @@ SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
 			/* try moving the contacted entity */
 			VectorAdd(check->s.origin, move, check->s.origin);
 
-			if (check->client)
-			{
-				check->client->ps.pmove.delta_angles[YAW] += amove[YAW];
-			}
-
 			/* figure movement due to the pusher's amove */
 			VectorSubtract(check->s.origin, pusher->s.origin, org);
 			org2[0] = DotProduct(org, forward);
@@ -758,11 +746,6 @@ SV_Push(edict_t *pusher, vec3_t move, vec3_t amove)
 		{
 			VectorCopy(p->origin, p->ent->s.origin);
 			VectorCopy(p->angles, p->ent->s.angles);
-
-			if (p->ent->client)
-			{
-				p->ent->client->ps.pmove.delta_angles[YAW] = p->deltayaw;
-			}
 
 			gi.linkentity(p->ent);
 		}

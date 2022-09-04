@@ -1350,9 +1350,11 @@ FS_FreeList(char **list, int nfiles)
 	for (i = 0; i < nfiles - 1; i++)
 	{
 		free(list[i]);
+		list[i] = 0;
 	}
 
 	free(list);
+	list = 0;
 }
 
 /*

@@ -33,3 +33,5 @@ original clients (Vanilla Quake II) commands are still in place.
   the current game's maps folder.
 
 * **vstr**: Inserts the current value of a variable as command text.
+
+* **playermodels**: Lists available multiplayer models.

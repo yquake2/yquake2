@@ -729,10 +729,12 @@ SpinControl_DoSlide(menulist_s *s, int dir)
 	if (s->curvalue < 0)
 	{
 		s->curvalue = 0;
+		return;
 	}
 	else if (s->itemnames[s->curvalue] == 0)
 	{
 		s->curvalue--;
+		return;
 	}
 
 	if (s->generic.callback)
