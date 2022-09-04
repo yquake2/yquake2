@@ -2915,36 +2915,36 @@ Mods_MenuInit(void)
     int currentmod;
     int x = 0;
     int y = 0;
-	char modname[MAX_QPATH]; //TG626
+    char modname[MAX_QPATH]; //TG626
 
     Mods_NamesInit();
 	
-	// create array of bracketed display names from folder names - TG626
-	char **displaynames=malloc(sizeof(*displaynames) * nummods);
-	
-	for (int i=0; i < nummods; i++)
-	{
-		strcpy(modname, "[");
-		if (strlen(modnames[i]) < 16)
-		{
-			strcat(modname, modnames[i]);
-			for (int j=0; j < 15 - strlen(modnames[i]); j++)
-			{
-				strcat(modname, " ");
-			}
-		}
-		else
-		{
-			strncat(modname, modnames[i], 12);
-			strcat(modname, "...");
-		}	
-		strcat(modname, "]");
+    // create array of bracketed display names from folder names - TG626
+    char **displaynames=malloc(sizeof(*displaynames) * nummods);
+
+    for (int i=0; i < nummods; i++)
+    {
+        strcpy(modname, "[");
+	if (strlen(modnames[i]) < 16)
+        {
+	    strcat(modname, modnames[i]);
+	    for (int j=0; j < 15 - strlen(modnames[i]); j++)
+	    {
+	        strcat(modname, " ");
+	    }
+        }
+        else
+        {
+            strncat(modname, modnames[i], 12);
+            strcat(modname, "...");
+        }	
+        strcat(modname, "]");
 		
-		displaynames[i] = malloc(strlen(modname) + 1);
-		strcpy(displaynames[i], modname);
-	}
-	displaynames[nummods] = 0;
-	//end TG626
+	displaynames[i] = malloc(strlen(modname) + 1);
+	strcpy(displaynames[i], modname);
+    }
+    displaynames[nummods] = 0;
+    //end TG626
 		
     // pre-select the current mod for display in the list
     for (currentmod = 0; currentmod < nummods; currentmod++)
