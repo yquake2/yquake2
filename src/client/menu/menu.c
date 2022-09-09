@@ -5228,7 +5228,6 @@ PlayerDirectoryList(void)
     char* findname = "players/*";
     char** list = 0;
     int num = 0;
-    int n = 0;
 
     // get a list of "players" subdirectories
     if ((list = FS_ListFiles2(findname, &num, 0, 0)) == 0)
@@ -5236,35 +5235,20 @@ PlayerDirectoryList(void)
         return false;
     }
 
-    n = num;
-
-    if (n > MAX_PLAYERMODELS)
+    if (num > MAX_PLAYERMODELS)
     {
-        n = MAX_PLAYERMODELS - 1;
-    }
-    
-    s_directory.num = 0;
-
-    for (int i = 0; i < n; ++i)
-    {
-        // last element of FS_FileList maybe null
-        if (list[i] == 0)
-        {
-            break;
-        }
-
-        s_directory.num++;
+        num = MAX_PLAYERMODELS - 1;
     }
 
     // malloc directories
-    char** data = (char**)malloc(s_directory.num * sizeof(char*));
-    YQ2_COM_CHECK_OOM(data, "malloc()", s_directory.num * sizeof(char*))
-    memset(data, 0, s_directory.num * sizeof(char*));
+    char** data = (char**)malloc(num * sizeof(char*));
+    YQ2_COM_CHECK_OOM(data, "malloc()", num * sizeof(char*))
+    memset(data, 0, num * sizeof(char*));
 
     s_directory.data = data;
-    s_directory.num = 0;
+    s_directory.num = num;
 
-    for (int i = 0; i < n; ++i)
+    for (int i = 0; i < num; ++i)
     {
         // last element of FS_FileList maybe null
         if (list[i] == 0)
@@ -5282,14 +5266,14 @@ PlayerDirectoryList(void)
         strncpy(s, t, MAX_QPATH - 1);         // MAX_QPATH - 1, gcc warns about truncation
         s[strlen(s)] = 0;
 
-        data[s_directory.num++] = s;
+        data[i] = s;
     }
     
     // free file list
     FS_FreeList(list, num);
 
     // sort them male, female, alphabetical
-    qsort(s_directory.data, s_directory.num, sizeof(char**), dircmp_func);
+    qsort(s_directory.data, s_directory.num - 1, sizeof(char**), dircmp_func);
 
     return true;
 }
@@ -5369,9 +5353,9 @@ PlayerModelList(void)
         }
 
         // malloc skinnames
-        data = (char**)malloc(s_skinnames[mdl].num * sizeof(char*));
-        YQ2_COM_CHECK_OOM(data, "malloc()", s_skinnames[mdl].num * sizeof(char*))
-        memset(data, 0, s_skinnames[mdl].num * sizeof(char*));
+        data = (char**)malloc((s_skinnames[mdl].num + 1) * sizeof(char*));
+        YQ2_COM_CHECK_OOM(data, "malloc()", (s_skinnames[mdl].num + 1) * sizeof(char*))
+        memset(data, 0, (s_skinnames[mdl].num + 1) * sizeof(char*));
         
         s_skinnames[mdl].data = data;
         s_skinnames[mdl].num = 0;
@@ -5405,6 +5389,8 @@ PlayerModelList(void)
                 }
             }
         }
+
+        s_skinnames[mdl].num++;         // guard pointer
 
         // at this point we have a valid player model
         s = (char*)malloc(MAX_DISPLAYNAME);
