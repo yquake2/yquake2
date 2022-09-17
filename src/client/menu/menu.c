@@ -733,11 +733,11 @@ M_Menu_Main_f(void)
 
     InitMainMenu();
 
-    // force first available item to have focus 
+    // force first available item to have focus
     while (s_main.cursor >= 0 && s_main.cursor < s_main.nitems)
     {
         item = ( menucommon_s * )s_main.items[s_main.cursor];
-        
+
         if ((item->flags & (QMF_INACTIVE)))
         {
             s_main.cursor++;
@@ -5702,6 +5702,27 @@ PlayerConfig_MenuInit(void)
 
 extern float CalcFov(float fov_x, float w, float h);
 
+/*
+ * Model animation
+ */
+static void
+PlayerConfig_AnimateModel(entity_t *entity, int curTime)
+{
+    cvar_t *cl_start_frame, *cl_end_frame;
+    int startFrame, endFrame;
+
+    cl_start_frame = Cvar_Get("cl_model_preview_start", "-1", CVAR_ARCHIVE);
+    cl_end_frame = Cvar_Get("cl_model_preview_end", "-1", CVAR_ARCHIVE);
+    startFrame = cl_start_frame->value;
+    endFrame = cl_end_frame->value;
+
+    if (startFrame >= 0 && endFrame > startFrame)
+    {
+        /* salute male 84..94 frame */
+        entity->frame = (curTime / 100) % (endFrame - startFrame) + startFrame;
+    }
+}
+
 static void
 PlayerConfig_MenuDraw(void)
 {
@@ -5745,6 +5766,7 @@ PlayerConfig_MenuDraw(void)
         entity.backlerp = 0.0;
 
         int curTime = Sys_Milliseconds();
+        PlayerConfig_AnimateModel(&entity, curTime);
         // one full turn is 3s = 3000ms => 3000/360 deg per millisecond
         curTime = curTime % 3000;
         entity.angles[1] = (float)curTime/(3000.0f/360.0f);

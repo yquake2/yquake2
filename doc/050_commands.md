@@ -26,7 +26,14 @@ original clients (Vanilla Quake II) commands are still in place.
   whitespaces. The special class `all` lists the coordinates of all
   entities.
 
+* **viewpos**: Show player position.
+
 * **teleport <x y z>**: Teleports the player to the given coordinates.
+
+* **spawnentity classname x y z <angle_x angle_y angle_z> <flags>**:
+  Spawn new entity of `classname` at `x y z` coordinates.
+
+* **spawnonstart classname**: Spawn new entity of `classname` at start point.
 
 * **listmaps**: Lists available maps for the player to load. Maps from
   loaded pak files will be listed first followed by maps placed in 
