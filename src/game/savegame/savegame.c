@@ -71,7 +71,7 @@
  * load older savegames. This should be bumped if the files
  * in tables/ are changed, otherwise strange things may happen.
  */
-#define SAVEGAMEVER "YQ2-4"
+#define SAVEGAMEVER "YQ2-5"
 
 #ifndef BUILD_DATE
 #define BUILD_DATE __DATE__
@@ -827,6 +827,7 @@ ReadGame(const char *filename)
 		{"YQ2-2", 2},
 		{"YQ2-3", 3},
 		{"YQ2-4", 4},
+		{"YQ2-5", 5},
 	};
 
 	for (i=0; i < sizeof(version_mappings)/sizeof(version_mappings[0]); ++i)

@@ -105,7 +105,7 @@ ShutdownGame(void)
 /*
  * convert function declarations to correct one
  * (warning like from incompatible pointer type)
- * little bit better than cust function before set
+ * little bit better than cast function before set
  */
 static void
 ReadLevel_f(char *filename)

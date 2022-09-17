@@ -486,7 +486,7 @@ static char ReverbPresetsNames[][32] = {
 static void
 AL_SetReverb(int reverb_effect)
 {
-	EFXEAXREVERBPROPERTIES reverb = ReverbPresets[reverb_effect];
+	EFXEAXREVERBPROPERTIES reverb;
 
 	if (reverb_effect == lastreverteffect ||
 		reverb_effect < 0 ||
@@ -495,6 +495,7 @@ AL_SetReverb(int reverb_effect)
 		return;
 	}
 
+	reverb = ReverbPresets[reverb_effect];
 	lastreverteffect = reverb_effect;
 
 	qalEffectf(ReverbEffect[QAL_REVERB_EFFECT], AL_REVERB_DENSITY, reverb.flDensity);
