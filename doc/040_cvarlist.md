@@ -470,6 +470,42 @@ Set `0` by default.
   `2` to use the Guide/Home/PS button. Requires a game restart
   (or controller replug) when changed.
 
+* **joy_layout**: Allows to select the stick layout of the gamepad.
+  - `0`: *Default*, left stick moves, right aims
+  - `1`: *Southpaw*, same as previous one with inverted sticks
+  - `2`: *Legacy*, left moves forward/backward and turns, right strafes
+    and looks up/down
+  - `3`: *Legacy Southpaw*, inverted sticks version of previous one
+  - `4`: *Flick Stick*, left stick moves, right checks your surroundings
+    in 360º, gyro required for looking up/down
+  - `5`: *Flick Stick Southpaw*, swapped sticks version of last one
+
+* **joy_left_deadzone** / **joy_right_deadzone**: Inner, circular
+  deadzone for each stick, where inputs below this radius will be
+  ignored. Default is `0.16` (16% of possible stick travel).
+
+* **joy_left_snapaxis** / **joy_right_snapaxis**: Ratio on the value of
+  one axis (X or Y) to snap you to the other. It creates an axial
+  deadzone with the shape of a "bowtie", which will help you to do
+  perfectly horizontal or vertical movements the more you mark a
+  direction with the stick. Increasing this too much will reduce speed
+  for the diagonals, but will help you to mark 90º/180º turns with Flick
+  Stick. Default `0.15`.
+
+* **joy_left_expo** / **joy_right_expo**: Exponents on the response
+  curve on each stick. Increasing this will make small movements to
+  represent much smaller inputs, which helps precision with the sticks.
+  `1.0` is linear. Default `2.0` (quadratic curve).
+
+* **joy_flick_threshold**: Used only with Flick Stick, specifies the
+  distance from the center of the stick that will make the player flick
+  or rotate. Default `0.65` (65%).
+
+* **joy_flick_smoothed**: Flick Stick only, rotations below this angle
+  (in degrees) will be smoothed. Reducing this will increase
+  responsiveness at the cost of jittery movement. Most gamepads will work
+  nicely with a value between 4.0 and 8.0. Default `8.0`.
+
 * **gyro_mode**: Operation mode for the gyroscope sensor of the game
   controller. Options are `0` = always off, `1` = off with the
   `+gyroaction` bind to enable, `2` = on with `+gyroaction` to
