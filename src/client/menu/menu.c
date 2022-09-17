@@ -5725,8 +5725,8 @@ PlayerConfig_AnimateModel(entity_t *entity, int curTime)
     cvar_t *cl_start_frame, *cl_end_frame;
     int startFrame, endFrame;
 
-    cl_start_frame = Cvar_Get("cl_model_preview_start", "-1", CVAR_ARCHIVE);
-    cl_end_frame = Cvar_Get("cl_model_preview_end", "-1", CVAR_ARCHIVE);
+    cl_start_frame = Cvar_Get("cl_model_preview_start", "84", CVAR_ARCHIVE);
+    cl_end_frame = Cvar_Get("cl_model_preview_end", "94", CVAR_ARCHIVE);
     startFrame = cl_start_frame->value;
     endFrame = cl_end_frame->value;
 
