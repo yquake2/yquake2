@@ -82,7 +82,7 @@ char userGivenGame[MAX_QPATH];
 qboolean quitnextframe;
 
 #ifndef DEDICATED_ONLY
-static inline void Sys_CpuPause(void)
+static YQ2_ATTR_INLINE void Sys_CpuPause(void)
 {
 #if defined(__GNUC__)
 #if (__i386 || __x86_64__)

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 # Print a message that using the Makefiles is recommended.
 message(NOTICE: " The CMakeLists.txt is unmaintained. Use the Makefile if possible.")
@@ -13,6 +13,8 @@ project(yquake2 C)
 
 # Cmake module search path.
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/stuff/cmake/modules ${CMAKE_MODULE_PATH})
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED OFF)
 
 if(YQUAKE2LIBS)
 	if(CMAKE_CROSSCOMPILING)
@@ -43,7 +45,7 @@ else() # GCC/clang/mingw
 #  -fno-strict-aliasing -> Quake 2 is far away from strict aliasing
 #  -fwrapv              -> Make signed integer overflows defined
 #  -fvisibility=hidden	-> Force defaultsymbol visibility to hidden
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -fno-strict-aliasing -fwrapv -fvisibility=hidden")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fno-strict-aliasing -fwrapv -fvisibility=hidden")
 
 # Use -O2 as maximum optimization level. -O3 has it's problems with yquake2.
 string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
@@ -682,7 +684,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 			${Backends-Generic-Source})
 	set_target_properties(yquake2 PROPERTIES
 			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-			C_STANDARD 11
 			)
 	target_link_libraries(yquake2 ${yquake2LinkerFlags} ${yquake2ClientLinkerFlags}
 			${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
@@ -716,7 +717,6 @@ add_executable(q2ded ${Server-Source} ${Server-Header} ${Platform-Specific-Sourc
 set_target_properties(q2ded PROPERTIES
 	COMPILE_DEFINITIONS "DEDICATED_ONLY"
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
-	C_STANDARD 11
 	)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_link_libraries(q2ded ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags} ${yquake2ZLibLinkerFlags} ws2_32 winmm)
@@ -730,7 +730,6 @@ add_library(game MODULE ${Game-Source} ${Game-Header})
 set_target_properties(game PROPERTIES
 		PREFIX ""
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
-		C_STANDARD 11
 		)
 
 get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -755,7 +754,6 @@ set_target_properties(ref_gl1 PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
-		C_STANDARD 11
 		)
 target_link_libraries(ref_gl1 ${yquake2LinkerFlags} ${yquake2OpenGLLinkerFlags} ${yquake2SDLLinkerFlags})
 
@@ -766,7 +764,6 @@ set_target_properties(ref_gl3 PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
-		C_STANDARD 11
 		)
 target_include_directories(ref_gl3 PRIVATE ${CMAKE_SOURCE_DIR}/src/client/refresh/gl3/glad/include)
 target_link_libraries(ref_gl3 ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
@@ -779,7 +776,6 @@ set_target_properties(ref_gles3 PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
-		C_STANDARD 11
 		)
 target_include_directories(ref_gles3 PRIVATE ${CMAKE_SOURCE_DIR}/src/client/refresh/gl3/glad-gles3/include)
 target_compile_definitions(ref_gles3 PRIVATE YQ2_GL3_GLES3=1 YQ2_GL3_GLES=1)
@@ -792,6 +788,5 @@ set_target_properties(ref_soft PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release
 		SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX}
-		C_STANDARD 11
 		)
 target_link_libraries(ref_soft ${yquake2LinkerFlags} ${yquake2SDLLinkerFlags})
