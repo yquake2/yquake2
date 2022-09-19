@@ -1607,6 +1607,8 @@ static menulist_s s_gyro_mode_box;
 static menulist_s s_turning_axis_box;
 static menuslider_s s_gyro_yawsensitivity_slider;
 static menuslider_s s_gyro_pitchsensitivity_slider;
+static menulist_s s_gyro_invertyaw_box;
+static menulist_s s_gyro_invertpitch_box;
 static menuseparator_s s_calibrating_text[2];
 static menuaction_s s_calibrate_gyro;
 
@@ -1652,6 +1654,18 @@ TurningAxisFunc(void *unused)
 }
 
 static void
+InvertGyroYawFunc(void *unused)
+{
+	Cvar_SetValue("gyro_yawsensitivity", -Cvar_VariableValue("gyro_yawsensitivity"));
+}
+
+static void
+InvertGyroPitchFunc(void *unused)
+{
+	Cvar_SetValue("gyro_pitchsensitivity", -Cvar_VariableValue("gyro_pitchsensitivity"));
+}
+
+static void
 Gyro_MenuInit(void)
 {
 	static const char *gyro_modes[] =
@@ -1667,6 +1681,13 @@ Gyro_MenuInit(void)
 	{
 		"yaw (turn)",
 		"roll (lean)",
+		0
+	};
+
+	static const char *yesno_names[] =
+	{
+		"no",
+		"yes",
 		0
 	};
 
@@ -1710,6 +1731,22 @@ Gyro_MenuInit(void)
 	s_gyro_pitchsensitivity_slider.maxvalue = 8.0f;
 	s_gyro_pitchsensitivity_slider.abs = true;
 
+	s_gyro_invertyaw_box.generic.type = MTYPE_SPINCONTROL;
+	s_gyro_invertyaw_box.generic.x = 0;
+	s_gyro_invertyaw_box.generic.y = (y += 10);
+	s_gyro_invertyaw_box.generic.name = "invert yaw";
+	s_gyro_invertyaw_box.generic.callback = InvertGyroYawFunc;
+	s_gyro_invertyaw_box.itemnames = yesno_names;
+	s_gyro_invertyaw_box.curvalue = (Cvar_VariableValue("gyro_yawsensitivity") < 0);
+
+	s_gyro_invertpitch_box.generic.type = MTYPE_SPINCONTROL;
+	s_gyro_invertpitch_box.generic.x = 0;
+	s_gyro_invertpitch_box.generic.y = (y += 10);
+	s_gyro_invertpitch_box.generic.name = "invert pitch";
+	s_gyro_invertpitch_box.generic.callback = InvertGyroPitchFunc;
+	s_gyro_invertpitch_box.itemnames = yesno_names;
+	s_gyro_invertpitch_box.curvalue = (Cvar_VariableValue("gyro_pitchsensitivity") < 0);
+
 	s_calibrating_text[0].generic.type = MTYPE_SEPARATOR;
 	s_calibrating_text[0].generic.x = 48 * scale + 32;
 	s_calibrating_text[0].generic.y = (y += 20);
@@ -1730,6 +1767,8 @@ Gyro_MenuInit(void)
 	Menu_AddItem(&s_gyro_menu, (void *)&s_turning_axis_box);
 	Menu_AddItem(&s_gyro_menu, (void *)&s_gyro_yawsensitivity_slider);
 	Menu_AddItem(&s_gyro_menu, (void *)&s_gyro_pitchsensitivity_slider);
+	Menu_AddItem(&s_gyro_menu, (void *)&s_gyro_invertyaw_box);
+	Menu_AddItem(&s_gyro_menu, (void *)&s_gyro_invertpitch_box);
 	Menu_AddItem(&s_gyro_menu, (void *)&s_calibrating_text[0]);
 	Menu_AddItem(&s_gyro_menu, (void *)&s_calibrating_text[1]);
 	Menu_AddItem(&s_gyro_menu, (void *)&s_calibrate_gyro);
