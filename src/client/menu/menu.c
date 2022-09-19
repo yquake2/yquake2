@@ -1699,6 +1699,7 @@ Gyro_MenuInit(void)
 	s_gyro_yawsensitivity_slider.cvar = "gyro_yawsensitivity";
 	s_gyro_yawsensitivity_slider.minvalue = 0.1f;
 	s_gyro_yawsensitivity_slider.maxvalue = 8.0f;
+	s_gyro_yawsensitivity_slider.abs = true;
 
 	s_gyro_pitchsensitivity_slider.generic.type = MTYPE_SLIDER;
 	s_gyro_pitchsensitivity_slider.generic.x = 0;
@@ -1707,6 +1708,7 @@ Gyro_MenuInit(void)
 	s_gyro_pitchsensitivity_slider.cvar = "gyro_pitchsensitivity";
 	s_gyro_pitchsensitivity_slider.minvalue = 0.1f;
 	s_gyro_pitchsensitivity_slider.maxvalue = 8.0f;
+	s_gyro_pitchsensitivity_slider.abs = true;
 
 	s_calibrating_text[0].generic.type = MTYPE_SEPARATOR;
 	s_calibrating_text[0].generic.x = 48 * scale + 32;

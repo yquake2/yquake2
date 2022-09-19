@@ -661,13 +661,20 @@ Slider_DoSlide(menuslider_s *s, int dir)
 {
 	float value = Cvar_VariableValue(s->cvar);
 	float step = 0.1f;
+	float sign = 1.0f;
 
 	if (s->slidestep)
 	{
 		step = s->slidestep;
 	}
+	if (s->abs && value < 0)	// absolute value treatment
+	{
+		value = -value;
+		sign = -1.0f;
+	}
+
 	value += dir * step;
-	Cvar_SetValue(s->cvar, ClampCvar(s->minvalue, s->maxvalue, value));
+	Cvar_SetValue(s->cvar, ClampCvar(s->minvalue, s->maxvalue, value) * sign);
 
 	if (s->generic.callback)
 	{
@@ -688,6 +695,10 @@ Slider_Draw(menuslider_s *s)
 	int y = s->generic.parent->y + s->generic.y;
 
 	float value = Cvar_VariableValue(s->cvar);
+	if (s->abs && value < 0)	// absolute value
+	{
+		value = -value;
+	}
 	float range = (ClampCvar(s->minvalue, s->maxvalue, value) - s->minvalue) /
 			(s->maxvalue - s->minvalue);
 
