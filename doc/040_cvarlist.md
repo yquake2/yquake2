@@ -471,6 +471,10 @@ Set `0` by default.
 
 ## Game Controller
 
+* **in_initjoy**: Toggles initialization of game controller. Default is
+  `1`, which enables gamepad usage; `0` disables its detection at
+  startup. Can only be set from command line.
+
 * **in_sdlbackbutton**: Defines which button is used in the gamepad or
   joystick as the `Esc` key, to access the main menu and 'cancel' /
   'go back' on its options. Default is `0`, which corresponds to the

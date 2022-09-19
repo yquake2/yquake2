@@ -2508,6 +2508,7 @@ static const char *idcredits[] = {
 	"Sander van Dijk",
 	"Denis Pauk",
 	"Bjorn Alfredsson",
+	"Jaime Moreira",
 	"",
 	"Quake II(tm) (C)1997 Id Software, Inc.",
 	"All Rights Reserved.  Distributed by",
