@@ -1382,6 +1382,11 @@ CMod_LoadLeafs(lump_t *l)
 		}
 	}
 
+	if ((numclusters + 7) > MAX_MAP_LEAFS)
+	{
+		Com_Error(ERR_DROP, "Map too many numclusters");
+	}
+
 	if (map_leafs[0].contents != CONTENTS_SOLID)
 	{
 		Com_Error(ERR_DROP, "Map leaf 0 is not CONTENTS_SOLID");
