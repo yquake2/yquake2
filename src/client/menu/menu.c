@@ -3275,11 +3275,58 @@ static menuaction_s s_savegame_actions[MAX_SAVESLOTS + 1]; // One for quick
 static qboolean menukeyitem_delete = false;
 
 static void
-DeleteSaveGameFunc(void * self)
+PromptDeleteSaveFunc(menuframework_s *m)
 {
-    menuaction_s * a = ( menuaction_s * )self;
-    menukeyitem_delete = true;
-    Menu_SetStatusBar( a->generic.parent, "are you sure you want to delete? y\\n" );
+	menucommon_s *item = Menu_ItemAtCursor(m);
+	if (item == NULL || item->type != MTYPE_ACTION)
+	{
+		return;
+	}
+
+	if (item->localdata[0] == -1)
+	{
+		if (m_quicksavevalid)
+		{
+			menukeyitem_delete = true;
+		}
+	}
+	else
+	{
+		if (m_savevalid[item->localdata[0] - m_loadsave_page * MAX_SAVESLOTS])
+		{
+			menukeyitem_delete = true;
+		}
+	}
+
+	if (menukeyitem_delete)
+	{
+		Menu_SetStatusBar( m, "are you sure you want to delete? y\\n" );
+	}
+}
+
+static qboolean
+ExecDeleteSaveFunc(menuframework_s *m, int menu_key)
+{
+	menucommon_s *item = Menu_ItemAtCursor(m);
+	menukeyitem_delete = false;
+
+	if (menu_key == K_ENTER || menu_key == 'y' || menu_key == 'Y')
+	{
+		char name[MAX_OSPATH] = {0};
+		if (item->localdata[0] == -1)	// quicksave
+		{
+			Com_sprintf(name, sizeof(name), "%s/save/quick/", FS_Gamedir());
+		}
+		else
+		{
+			Com_sprintf(name, sizeof(name), "%s/save/save%d/", FS_Gamedir(),
+						item->localdata[0]);
+		}
+		Sys_RemoveDir(name);
+		return true;
+	}
+	Menu_SetStatusBar( m, m_loadsave_statusbar );
+	return false;
 }
 
 static void
@@ -3461,26 +3508,13 @@ LoadGame_MenuKey(int key)
 {
     static menuframework_s *m = &s_loadgame_menu;
     int menu_key = Key_GetMenuKey(key);
-    menucommon_s * item = NULL;
 
-    if (menukeyitem_delete) {
-
-        item = Menu_ItemAtCursor( m );
-        menukeyitem_delete = false;
-
-        if ( menu_key == K_ENTER || menu_key == 'y' || menu_key == 'Y' ) {
-
-            char name[MAX_OSPATH] = { 0 };
-
-            Com_sprintf( name, sizeof( name ), "%s/save/save%d/", FS_Gamedir(),
-                item->localdata[0] );
-            Sys_RemoveDir( name );
-            LoadGame_MenuInit();
-
-        } else {
-            Menu_SetStatusBar( &s_loadgame_menu, m_loadsave_statusbar );
+    if (menukeyitem_delete)
+    {
+        if (ExecDeleteSaveFunc(m, menu_key))
+        {
+             LoadGame_MenuInit();
         }
-
         return menu_move_sound;
     }
 
@@ -3513,14 +3547,7 @@ LoadGame_MenuKey(int key)
         return menu_move_sound;
 
     case K_BACKSPACE:
-		if ((item = Menu_ItemAtCursor(m)) != NULL)
-		{
-			if (item->type == MTYPE_ACTION)
-			{
-                            DeleteSaveGameFunc( item );
-			}
-		}
-
+		PromptDeleteSaveFunc(m);
 		return menu_move_sound;
 
     default:
@@ -3625,7 +3652,6 @@ SaveGame_MenuKey(int key)
 {
     static menuframework_s *m = &s_savegame_menu;
     int menu_key = Key_GetMenuKey(key);
-    menucommon_s * item = NULL;
 
     if (m_popup_string)
     {
@@ -3633,24 +3659,12 @@ SaveGame_MenuKey(int key)
         return NULL;
     }
 
-    if (menukeyitem_delete) {
-
-        item = Menu_ItemAtCursor( m );
-        menukeyitem_delete = false;
-
-        if ( menu_key == K_ENTER || menu_key == 'y' || menu_key == 'Y' ) {
-
-            char name[MAX_OSPATH] = { 0 };
-
-            Com_sprintf( name, sizeof( name ), "%s/save/save%d/", FS_Gamedir(),
-                item->localdata[0] );
-            Sys_RemoveDir( name );
+    if (menukeyitem_delete)
+    {
+        if (ExecDeleteSaveFunc(m, menu_key))
+        {
             SaveGame_MenuInit();
-
-        } else {
-            Menu_SetStatusBar( &s_savegame_menu, m_loadsave_statusbar );
         }
-
         return menu_move_sound;
     }
 
@@ -3683,15 +3697,9 @@ SaveGame_MenuKey(int key)
         return menu_move_sound;
 
     case K_BACKSPACE:
-		if ((item = Menu_ItemAtCursor(m)) != NULL)
-		{
-			if (item->type == MTYPE_ACTION)
-			{
-                            DeleteSaveGameFunc( item );
-			}
-		}
-
+		PromptDeleteSaveFunc(m);
 		return menu_move_sound;
+
     default:
         s_loadgame_menu.cursor = s_savegame_menu.cursor;
         break;
