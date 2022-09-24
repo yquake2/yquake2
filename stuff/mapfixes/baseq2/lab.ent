@@ -1,17 +1,44 @@
 // FIXED ENTITY STRING (by BjossiAlfreds)
 //
-// 1. Removed inaccessible monster_medic (1781) from Easy
+// 1. Fixed inaccessible monster_medic on easy (b#1)
 //
-// A trigger_once that releases this guy into the level only spawns
-// on Medium and above and unleashes this guy on the player after
-// activating the bridge. I set his spawnflags from 0 to 256 so that
-// he doesn't spawn on Easy.
+// He spawns on all difficulties but the trigger_once that releases him is
+// medium+. Changed his spawnflags from 0 to 256 (not-easy).
 //
-// 2. Removed 2x inaccessible monster_parasite (1443, 1449) from Easy/Medium
+// 2. Fixed 2x inaccessible monster_parasite on easy/medium (b#2)
 //
-// These guys fall from the ceiling by the 3 Brains past the medic.
-// The trigger_once that drops them down only spawns on Hard/Nightmare so
-// I set both guys to spawnflags 768.
+// These guys spawn on all difficulties but the trigger_once that releases
+// them only spawns on hard+.
+// Changed their spawnflags to 768 (not-easy + not-medium).
+//
+// 3. Added missing targetnames to info_player_coop (b#3)
+//
+// 4. Activated 4x target_speaker (b#4)
+//
+// These are ambient sounds so should be spawnflags 1.
+//
+// 5. Fixed insane marine screams in DM (b#5)
+//
+// In DM, a numbr of func_timer and target_speaker play
+// random insane marine screams. I fixed some broken
+// targeting and added 1792 spawnflags to the DM-only
+// speaker entities.
+//
+// 6. Removed thud sound when triggered monsters are activated (b#6)
+//
+// 7. Removed unused entities + cleanup (b#7)
+//
+// 8. Fixed glitchy medic (b#8)
+//
+// This medic has a combat target but is not
+// set to ambush. The AI was not designed for
+// combat and sound targets co-operation so I
+// set him to ambush mode and gave him
+// a targetname so he is angered by the trigger
+//
+// 9. Fixed no-sound console button at the start
+//
+// 10. Removed leftover forcefield disable button from deathmatch mode
 {
 "message" "Research Lab"
 "classname" "worldspawn"
@@ -91,11 +118,12 @@
 "targetname" "killmenow"
 "delay" "2"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "model" "*2"
 "targetname" "makeitstop"
-"spawnflags" "4"
+"spawnflags" "3840" // b#7: 4 -> 3840
 "classname" "trigger_once"
 }
 {
@@ -111,12 +139,14 @@
 "delay" "1"
 "targetname" "killmenow"
 "classname" "trigger_relay"
+"spawnflags" "3840" // b#7: now unnecessary trigger
 }
 {
 "origin" "-1676 1632 -412"
 "killtarget" "dead"
 "targetname" "killmenow"
 "classname" "trigger_relay"
+"spawnflags" "3840" // b#7: added this
 }
 {
 "model" "*4"
@@ -132,42 +162,42 @@
 "targetname" "t190"
 "classname" "target_speaker"
 "noise" "world/klaxon1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "origin" "-320 1216 72"
 }
 {
 "targetname" "t190"
 "classname" "target_speaker"
 "noise" "world/klaxon1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "origin" "-320 976 72"
 }
 {
 "targetname" "t190"
 "classname" "target_speaker"
 "noise" "world/klaxon1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "origin" "-368 776 72"
 }
 {
 "targetname" "t190"
 "classname" "target_speaker"
 "noise" "world/klaxon1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "origin" "-640 760 72"
 }
 {
 "targetname" "t190"
 "classname" "target_speaker"
 "noise" "world/klaxon1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "origin" "-640 464 72"
 }
 {
 "targetname" "t190"
 "classname" "target_speaker"
 "noise" "world/klaxon1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "origin" "-640 256 72"
 }
 {
@@ -235,6 +265,7 @@
 {
 "model" "*11"
 "classname" "func_button"
+"spawnflags" "2048" // b#10: this was missing
 "wait" "-1"
 "angle" "90"
 "target" "t229"
@@ -254,6 +285,7 @@
 "targetname" "t373"
 "noise" "world/brkglas.wav"
 "classname" "target_speaker"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "model" "*13"
@@ -264,11 +296,13 @@
 }
 {
 "classname" "info_player_coop"
+"targetname" "lstart" // b#3: added this
 "angle" "90"
 "origin" "92 436 16"
 }
 {
 "classname" "info_player_coop"
+"targetname" "lstart" // b#3: added this
 "angle" "90"
 "origin" "36 436 16"
 }
@@ -276,6 +310,7 @@
 "origin" "64 368 16"
 "angle" "90"
 "classname" "info_player_coop"
+"targetname" "lstart" // b#3: added this
 }
 {
 "origin" "-2092 144 8"
@@ -291,54 +326,63 @@
 "model" "*14"
 "classname" "trigger_counter"
 "count" "20"
-"spawnflags" "1"
+"spawnflags" "2049" // b#7: 1 -> 2049
 "targetname" "marduk"
 "target" "killmenow"
+"killtarget" "dead" // b#7: added this
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t371"
 "target" "t372"
 "origin" "-140 464 8"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t370"
 "target" "t371"
 "origin" "-140 636 8"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t369"
 "target" "t370"
 "origin" "-112 632 8"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t368"
 "target" "t369"
 "origin" "-112 432 8"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t367"
 "target" "t368"
 "origin" "-272 432 8"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t366"
 "target" "t367"
 "origin" "-324 376 8"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t365"
 "target" "t366"
 "origin" "-324 508 8"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t372"
 "target" "t365"
 "origin" "-276 464 8"
@@ -594,6 +638,7 @@
 "target" "t364"
 "targetname" "t190"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "model" "*18"
@@ -1043,46 +1088,46 @@
 "target" "t356"
 "targetname" "t355"
 "classname" "path_corner"
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 }
 {
 "origin" "-2908 1408 -336"
 "target" "t355"
 "targetname" "t354"
 "classname" "path_corner"
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 }
 {
 "origin" "-3072 1408 -336"
 "target" "t354"
 "targetname" "t353"
 "classname" "path_corner"
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 }
 {
 "origin" "-3236 1408 -336"
 "target" "t353"
 "targetname" "t352"
 "classname" "path_corner"
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 }
 {
 "origin" "-3236 1280 -336"
 "target" "t352"
 "targetname" "t351"
 "classname" "path_corner"
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 }
 {
 "origin" "-3236 1152 -336"
 "target" "t351"
 "targetname" "t350"
 "classname" "path_corner"
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 }
 {
 "targetname" "t357"
-"spawnflags" "1"
+"spawnflags" "2049" // b#7: 1 -> 2049
 "origin" "-3236 988 -336"
 "target" "t350"
 "classname" "path_corner"
@@ -1091,7 +1136,7 @@
 "target" "t357"
 "origin" "-2648 1408 -336"
 "targetname" "t356"
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 "classname" "path_corner"
 }
 {
@@ -1157,12 +1202,14 @@
 "dmg" "40"
 "targetname" "t258"
 "classname" "target_explosion"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-640 352 8"
 "dmg" "40"
 "targetname" "t257"
 "classname" "target_explosion"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "classname" "point_combat"
@@ -1246,12 +1293,14 @@
 "wait" "-1"
 "origin" "-956 704 -480"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "e4"
 }
 {
 "wait" "-1"
 "origin" "-956 704 -32"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "e3"
 }
 {
@@ -1334,28 +1383,28 @@
 }
 {
 "noise" "world/klaxon1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "classname" "target_speaker"
 "targetname" "t190"
 "origin" "-2352 344 -404"
 }
 {
 "noise" "world/klaxon1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "classname" "target_speaker"
 "targetname" "t190"
 "origin" "-2412 668 -404"
 }
 {
 "noise" "world/klaxon1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "classname" "target_speaker"
 "targetname" "t190"
 "origin" "-1924 660 -404"
 }
 {
 "classname" "target_speaker"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "noise" "world/klaxon1.wav"
 "targetname" "t190"
 "origin" "-2408 1100 -404"
@@ -1372,7 +1421,7 @@
 "target" "t338"
 "spawnflags" "2"
 "targetname" "t190"
-"origin" "128 768 32"
+"origin" "128 768 -7"	// b#6: 32 -> -7
 }
 {
 "classname" "point_combat"
@@ -1386,7 +1435,7 @@
 "target" "t337"
 "spawnflags" "2"
 "targetname" "t190"
-"origin" "20 644 32"
+"origin" "20 644 -7" // b#6: 32 -> -7
 }
 {
 "classname" "point_combat"
@@ -1395,11 +1444,13 @@
 }
 {
 "classname" "trigger_relay"
+"spawnflags" "3840" // b#7: added this
 "targetname" "t198"
 "origin" "-1928 560 24"
 }
 {
 "classname" "trigger_relay"
+"spawnflags" "3840" // b#7: added this
 "target" "t190"
 "targetname" "t198"
 "origin" "-1924 536 100"
@@ -1408,34 +1459,38 @@
 "model" "*30"
 "spawnflags" "2048"
 "classname" "trigger_once"
-"target" "t198"
+"target" "t190" // b#7: t198 -> t190
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t334"
 "target" "t335"
 "origin" "-2428 468 -436"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "target" "t333"
 "targetname" "t335"
 "origin" "-2404 656 -436"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t333"
 "target" "t334"
 "origin" "-2436 836 -436"
 }
 {
 "classname" "target_explosion"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t332"
 "origin" "-2428 616 -340"
 }
 {
 "model" "*31"
-"spawnflags" "768"
+"spawnflags" "2816" // b#7: 768 -> 2816
 "classname" "trigger_once"
 "target" "t331"
 }
@@ -1449,11 +1504,11 @@
 "angle" "90"
 "origin" "-2408 536 -272"
 "classname" "monster_parasite"
-"spawnflags" "768"
+"spawnflags" "768" // b#2: 0 -> 768
 }
 {
 "classname" "monster_parasite"
-"spawnflags" "768"
+"spawnflags" "768" // b#2: 0 -> 768
 "origin" "-2408 588 -272"
 "angle" "90"
 }
@@ -1508,7 +1563,7 @@
 "targetname" "t324"
 "target" "t330"
 "origin" "-1788 176 -112"
-"spawnflags" "1"
+"spawnflags" "2049" // b#7: 1 -> 2049
 }
 {
 "classname" "func_group"
@@ -1524,6 +1579,7 @@
 }
 {
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 "delay" "1.5"
 "targetname" "t328"
 "target" "t329"
@@ -1591,11 +1647,13 @@
 {
 "origin" "-1248 384 -112"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t326"
 "target" "t327"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "origin" "-1248 240 -112"
 "targetname" "t327"
 "target" "t324"
@@ -1608,6 +1666,7 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t325"
 "target" "t321"
 "origin" "-1648 288 -112"
@@ -1632,12 +1691,14 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "origin" "-1496 384 -112"
 "targetname" "t322"
 "target" "t323"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "origin" "-1496 288 -112"
 "targetname" "t321"
 "target" "t322"
@@ -1645,13 +1706,13 @@
 {
 "classname" "path_corner"
 "origin" "-1792 288 -112"
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 "target" "t325"
 "targetname" "t330"
 }
 {
 "classname" "path_corner"
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 "origin" "-1332 384 -112"
 "targetname" "t323"
 "target" "t326"
@@ -1693,12 +1754,14 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t316"
 "target" "t317"
 "origin" "-660 -216 12"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t317"
 "target" "t316"
 "origin" "-228 -216 12"
@@ -1712,30 +1775,35 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t314"
 "target" "t304"
 "origin" "-2676 776 -416"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t304"
 "target" "t311"
 "origin" "-2356 776 -416"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t313"
 "target" "t314"
 "origin" "-2356 776 -416"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t311"
 "target" "t312"
 "origin" "-2356 1064 -416"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t312"
 "target" "t313"
 "origin" "-2356 1064 -416"
@@ -1749,6 +1817,7 @@
 {
 "model" "*41"
 "classname" "trigger_once"
+"spawnflags" "2048" // b#7: added this
 "target" "t310"
 }
 {
@@ -1775,6 +1844,7 @@
 {
 "target" "t375"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t308"
 "delay" "1.2"
 "origin" "-2928 1020 -412"
@@ -1782,19 +1852,21 @@
 {
 "model" "*42"
 "classname" "trigger_once"
-"spawnflags" "260"
+"spawnflags" "2308" // b#7: 260 -> 2308
 "targetname" "t267"
 "target" "t308"
 }
 {
 "classname" "monster_medic"
-"spawnflags" "256"
+"spawnflags" "257" // b#1: 0 -> 256, b#8: 256 -> 257
 "angle" "315"
 "origin" "-3044 1212 -488"
 "target" "t379"
+"targetname" "t375" // b#8: make a trigger anger him
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t303"
 "target" "t304"
 "origin" "-2664 776 -416"
@@ -1809,12 +1881,14 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t301"
 "target" "t302"
 "origin" "-2408 1176 -448"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t302"
 "target" "t301"
 "origin" "-2408 344 -448"
@@ -1865,12 +1939,13 @@
 {
 "model" "*43"
 "classname" "trigger_once"
+"spawnflags" "2048" // b#7: added this
 "target" "t299"
 }
 {
 "model" "*44"
 "target" "t238"
-"spawnflags" "4"
+"spawnflags" "2052" // b#7: added this
 "classname" "trigger_once"
 "targetname" "t328"
 }
@@ -1878,21 +1953,21 @@
 "classname" "func_group"
 }
 {
-"origin" "-1424 -448 72"
+"origin" "-1424 -448 48" // b#6: 72 -> 48
 "targetname" "t211"
 "classname" "monster_brain"
 "angle" "270"
 "spawnflags" "259"
 }
 {
-"origin" "-1240 -592 32"
+"origin" "-1240 -592 16" // b#6: 32 -> 16
 "targetname" "t211"
 "classname" "monster_brain"
 "angle" "270"
 "spawnflags" "3"
 }
 {
-"origin" "-1296 -656 48"
+"origin" "-1296 -656 16" // b#6: 48 -> 16
 "targetname" "t211"
 "spawnflags" "3"
 "angle" "360"
@@ -1908,23 +1983,25 @@
 "target" "t297"
 "origin" "-544 -376 56"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-560 -416 56"
 "target" "t296"
 "delay" ".5"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t297"
 }
 {
-"origin" "-1028 -376 32"
+"origin" "-1028 -376 16" // b#6: 32 -> 16
 "targetname" "t67"
 "spawnflags" "3"
 "angle" "90"
 "classname" "monster_parasite"
 }
 {
-"origin" "-972 -408 24"
+"origin" "-972 -408 16" // b#6: 24 -> 16
 "targetname" "t67"
 "spawnflags" "3"
 "angle" "90"
@@ -1943,6 +2020,7 @@
 "delay" "3.3"
 "targetname" "t289"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-352 64 24"
@@ -1950,6 +2028,7 @@
 "delay" "3.2"
 "targetname" "t289"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-352 96 24"
@@ -1957,6 +2036,7 @@
 "delay" "3"
 "targetname" "t289"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "model" "*46"
@@ -2033,13 +2113,13 @@
 {
 "item" "ammo_rockets"
 "targetname" "t291"
-"origin" "16 -144 -56"
+"origin" "16 -144 -95" // b#6: -56 -> -95
 "angle" "225"
 "spawnflags" "2"
 "classname" "monster_chick"
 }
 {
-"origin" "-504 64 16"
+"origin" "-504 64 -8"	// b#6: 16 -> -8
 "target" "t284"
 "classname" "monster_chick"
 "spawnflags" "2"
@@ -2059,7 +2139,7 @@
 "classname" "point_combat"
 }
 {
-"origin" "-764 64 16"
+"origin" "-764 64 -8"	// b#6: 16 -> -8
 "target" "t283"
 "angle" "45"
 "spawnflags" "2"
@@ -2069,6 +2149,7 @@
 {
 "model" "*51"
 "classname" "trigger_once"
+"spawnflags" "2048" // b#7: added this
 "target" "t315"
 }
 {
@@ -2089,12 +2170,14 @@
 "target" "t280"
 "targetname" "t281"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "target" "t281"
 "targetname" "t280"
 "origin" "80 1368 0"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "target" "t280"
@@ -2107,7 +2190,7 @@
 {
 "model" "*52"
 "target" "t221"
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 "classname" "trigger_once"
 }
 {
@@ -2136,6 +2219,9 @@
 "target" "t279"
 "targetname" "t278"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
+"message" "Access granted to\nResearch Lab." // b#9: moved here from button
+"delay" "0.6" // b#9: added this
 }
 {
 "origin" "24 -344 88"
@@ -2172,6 +2258,7 @@
 "origin" "-1692 692 -320"
 "targetname" "t117"
 "classname" "target_speaker"
+"spawnflags" "2048" // b#7: added this
 "noise" "world/brkglas.wav"
 }
 {
@@ -2179,6 +2266,7 @@
 "targetname" "t115"
 "noise" "world/brkglas.wav"
 "classname" "target_speaker"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "spawnflags" "1"
@@ -2215,7 +2303,7 @@
 "origin" "-304 -488 184"
 "targetname" "t64"
 "classname" "light"
-"spawnflags" "1"
+"spawnflags" "2049" // b#7: 1 -> 2049
 "light" "300"
 "_color" "1.000000 0.016949 0.016949"
 }
@@ -2225,7 +2313,7 @@
 "targetname" "t64"
 "_color" "1.000000 0.016949 0.016949"
 "light" "300"
-"spawnflags" "1"
+"spawnflags" "2049" // b#7: 1 -> 2049
 "classname" "light"
 }
 {
@@ -2233,7 +2321,7 @@
 "origin" "8 -344 184"
 "targetname" "t62"
 "classname" "light"
-"spawnflags" "1"
+"spawnflags" "2049" // b#7: 1 -> 2049
 "light" "300"
 "_color" "1.000000 0.016949 0.016949"
 }
@@ -2243,23 +2331,26 @@
 "targetname" "t62"
 "_color" "1.000000 0.016949 0.016949"
 "light" "300"
-"spawnflags" "1"
+"spawnflags" "2049" // b#7: 1 -> 2049
 "classname" "light"
 }
 {
 "origin" "-1568 1608 -392"
 "classname" "target_speaker"
 "noise" "world/amb23.wav"
+"spawnflags" "1" // b#4: added this
 }
 {
 "origin" "-1816 1616 -392"
 "classname" "target_speaker"
 "noise" "world/amb23.wav"
+"spawnflags" "1" // b#4: added this
 }
 {
 "origin" "-1296 1608 -392"
 "noise" "world/amb23.wav"
 "classname" "target_speaker"
+"spawnflags" "1" // b#4: added this
 }
 {
 "origin" "-2768 1288 -312"
@@ -2279,6 +2370,7 @@
 }
 {
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t58"
 "delay" "5.5"
 "killtarget" "t276"
@@ -2286,6 +2378,7 @@
 }
 {
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t58"
 "delay" "5.5"
 "killtarget" "t277"
@@ -2293,6 +2386,7 @@
 }
 {
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t58"
 "delay" ".5"
 "target" "t277"
@@ -2300,6 +2394,7 @@
 }
 {
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t58"
 "delay" "5"
 "target" "t276"
@@ -2308,7 +2403,7 @@
 {
 "model" "*56"
 "classname" "trigger_hurt"
-"spawnflags" "3"
+"spawnflags" "2051" // b#7: 3 -> 2051
 "dmg" "500"
 "targetname" "t276"
 }
@@ -2380,36 +2475,42 @@
 "target" "t273"
 "targetname" "t272"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-2840 1224 -424"
 "target" "t272"
 "targetname" "t271"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-2848 1304 -424"
 "target" "t271"
 "targetname" "t270"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-3108 1304 -424"
 "target" "t270"
 "targetname" "t269"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-3104 1064 -424"
 "target" "t269"
 "targetname" "t268"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-2968 1108 -424"
 "target" "t268"
 "targetname" "t273"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-3104 1024 -408"
@@ -2599,16 +2700,22 @@
 "targetname" "t266"
 "classname" "target_speaker"
 "noise" "insane/insane7.wav"
+"spawnflags" "1792" // added this
 }
 {
 "origin" "-196 60 104"
 "classname" "func_timer"
-"spawnflags" "1"
+"spawnflags" "1793" // b#5: 1 -> 1793
+"target" "_fix1"  // b#5: added this
+"random" "5.5"    //
+"wait" "8"        //
 }
 {
 "origin" "-196 40 104"
+"targetname" "_fix1" // b#5: added this
 "classname" "target_speaker"
 "noise" "insane/insane7.wav"
+"spawnflags" "1792" // b#5: added this
 }
 {
 "origin" "24 -308 104"
@@ -2623,6 +2730,7 @@
 "targetname" "t261"
 "classname" "target_speaker"
 "noise" "insane/insane5.wav"
+"spawnflags" "1792" // b#5: added this
 }
 {
 "origin" "-4 -308 104"
@@ -2637,18 +2745,21 @@
 "targetname" "t262"
 "noise" "insane/insane7.wav"
 "classname" "target_speaker"
+"spawnflags" "1792" // b#5: added this
 }
 {
 "origin" "-320 -476 104"
 "targetname" "t264"
 "classname" "target_speaker"
 "noise" "insane/insane7.wav"
+"spawnflags" "1792" // b#5: added this
 }
 {
 "origin" "-292 -476 104"
 "targetname" "t263"
 "noise" "insane/insane5.wav"
 "classname" "target_speaker"
+"spawnflags" "1792" // b#5: added this
 }
 {
 "origin" "-320 -456 104"
@@ -2661,6 +2772,7 @@
 {
 "origin" "-168 40 104"
 "classname" "target_speaker"
+"spawnflags" "3840" // b#7: added this
 "noise" "insane/insane5.wav"
 }
 {
@@ -2668,6 +2780,7 @@
 "targetname" "t265"
 "noise" "insane/insane5.wav"
 "classname" "target_speaker"
+"spawnflags" "1792" // b#5: added this
 }
 {
 "origin" "-292 -456 104"
@@ -2703,7 +2816,7 @@
 {
 "origin" "-1496 1672 -400"
 "target" "t32"
-"spawnflags" "1792"
+"spawnflags" "3840" // b#7: 1792 -> 3840
 "classname" "trigger_always"
 }
 {
@@ -2714,49 +2827,49 @@
 }
 {
 "origin" "-640 624 72"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "noise" "world/klaxon1.wav"
 "classname" "target_speaker"
 "targetname" "t190"
 }
 {
 "origin" "-152 1336 72"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "noise" "world/klaxon1.wav"
 "classname" "target_speaker"
 "targetname" "t190"
 }
 {
 "origin" "-792 64 72"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "noise" "world/klaxon1.wav"
 "classname" "target_speaker"
 "targetname" "t190"
 }
 {
 "origin" "-1128 88 72"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "noise" "world/klaxon1.wav"
 "classname" "target_speaker"
 "targetname" "t190"
 }
 {
 "origin" "-1128 376 72"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "noise" "world/klaxon1.wav"
 "classname" "target_speaker"
 "targetname" "t190"
 }
 {
 "origin" "-1312 576 72"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "noise" "world/klaxon1.wav"
 "classname" "target_speaker"
 "targetname" "t190"
 }
 {
 "origin" "-1600 536 72"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "noise" "world/klaxon1.wav"
 "classname" "target_speaker"
 "targetname" "t190"
@@ -2764,13 +2877,13 @@
 {
 "classname" "target_speaker"
 "noise" "world/klaxon1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "origin" "-1792 536 72"
 "targetname" "t190"
 }
 {
 "origin" "-1600 344 72"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "noise" "world/klaxon1.wav"
 "classname" "target_speaker"
 "targetname" "t190"
@@ -2800,7 +2913,7 @@
 {
 "classname" "target_speaker"
 "noise" "world/klaxon1.wav"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "targetname" "t190"
 "origin" "-1880 624 72"
 }
@@ -2942,12 +3055,14 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t241"
 "target" "t242"
 "origin" "-96 904 0"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t242"
 "target" "t241"
 "origin" "-96 760 0"
@@ -2976,6 +3091,7 @@
 }
 {
 "classname" "target_speaker"
+"spawnflags" "2048" // b#7: added this
 "noise" "world/lite_out.wav"
 "targetname" "t32"
 "origin" "-1568 1640 -400"
@@ -2990,6 +3106,7 @@
 "model" "*70"
 "target" "t240"
 "classname" "trigger_once"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-640 64 -88"
@@ -3441,6 +3558,7 @@
 "killtarget" "tr1"
 "targetname" "t228"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "spawnflags" "1"
@@ -3683,7 +3801,7 @@
 {
 "origin" "-368 -504 116"
 "targetname" "t65"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "noise" "world/l_hum1.wav"
 "attenuation" "3"
 "volume" "1"
@@ -3694,7 +3812,7 @@
 "targetname" "t63"
 "volume" "1"
 "attenuation" "3"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "noise" "world/l_hum1.wav"
 "classname" "target_speaker"
 }
@@ -3703,7 +3821,7 @@
 "volume" ".8"
 "origin" "-1388 -332 100"
 "attenuation" "2"
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 "noise" "world/spark1.wav"
 "classname" "target_speaker"
 }
@@ -3765,7 +3883,7 @@
 {
 "origin" "-2096 424 128"
 "targetname" "mac2"
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 "classname" "target_speaker"
 "volume" ".8"
 "attenuation" "2"
@@ -3778,6 +3896,7 @@
 "attenuation" "2"
 "volume" ".8"
 "classname" "target_speaker"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-2144 424 144"
@@ -3786,6 +3905,7 @@
 "attenuation" "2"
 "noise" "world/spark2.wav"
 "classname" "target_speaker"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "volume" ".2"
@@ -3872,7 +3992,7 @@
 {
 "classname" "target_speaker"
 "volume" ".7"
-"spawnflags" "2048"
+"spawnflags" "1" // b#4: 2048 -> 1
 "noise" "world/amb22.wav"
 "origin" "-832 1232 -456"
 }
@@ -3947,7 +4067,7 @@
 "spawnflags" "2071"
 }
 {
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 "noise" "world/l_hum1.wav"
 "classname" "target_speaker"
 "targetname" "t44"
@@ -3956,7 +4076,7 @@
 "attenuation" "3"
 }
 {
-"spawnflags" "0"
+"spawnflags" "2048" // b#7: 0 -> 2048
 "noise" "world/l_hum1.wav"
 "classname" "target_speaker"
 "targetname" "t43"
@@ -4129,18 +4249,21 @@
 "target" "t214"
 "targetname" "t213"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-856 -216 0"
 "target" "t213"
 "targetname" "t212"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-1000 -464 0"
 "target" "t213"
 "targetname" "t214"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-824 -216 16"
@@ -5165,12 +5288,14 @@
 "targetname" "t173"
 "target" "t172"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-688 408 12"
 "target" "t173"
 "targetname" "t172"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "468 896 40"
@@ -5214,12 +5339,14 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t138"
 "target" "t139"
 "origin" "-2048 656 -456"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t139"
 "origin" "-1656 664 -456"
 "target" "t335"
@@ -5232,12 +5359,14 @@
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t135"
 "target" "t136"
 "origin" "-156 696 0"
 }
 {
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 "targetname" "t136"
 "target" "t135"
 "origin" "-156 912 0"
@@ -5309,6 +5438,7 @@
 "target" "t134"
 "targetname" "t28"
 "classname" "trigger_relay"
+"spawnflags" "3840" // b#7: added this
 }
 {
 "classname" "light"
@@ -5359,18 +5489,21 @@
 }
 {
 "classname" "target_explosion"
+"spawnflags" "2048" // b#7: added this
 "dmg" "120"
 "targetname" "t118"
 "origin" "-1884 664 -228"
 }
 {
 "classname" "target_explosion"
+"spawnflags" "2048" // b#7: added this
 "dmg" "50"
 "targetname" "t117"
 "origin" "-1664 660 -228"
 }
 {
 "classname" "target_explosion"
+"spawnflags" "2048" // b#7: added this
 "dmg" "120"
 "targetname" "t116"
 "origin" "-1664 868 -228"
@@ -5448,7 +5581,7 @@
 {
 "spawnflags" "2048"
 "classname" "item_armor_body"
-"target" "t97"
+//"target" "t97" // never used
 "origin" "-1248 -272 48"
 }
 {
@@ -5462,12 +5595,14 @@
 "target" "t77"
 "targetname" "t78"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "68 872 20"
 "target" "t78"
 "targetname" "t77"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "64 644 28"
@@ -5520,6 +5655,7 @@
 "message" "Forcefields deactivated."
 "targetname" "t32"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "style" "9"
@@ -5553,6 +5689,7 @@
 "target" "t66"
 "targetname" "t63"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "spawnflags" "2048"
@@ -5566,6 +5703,7 @@
 "target" "t63"
 "targetname" "t62"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "model" "*88"
@@ -5582,6 +5720,7 @@
 "targetname" "t54"
 "delay" ".6"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-1656 624 -436"
@@ -5589,6 +5728,7 @@
 "targetname" "t28"
 "delay" ".6"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-1732 624 -436"
@@ -5596,6 +5736,7 @@
 "targetname" "t55"
 "delay" ".6"
 "classname" "trigger_relay"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "light" "82"
@@ -5696,6 +5837,7 @@
 "targetname" "t51"
 "sounds" "1"
 "classname" "target_splash"
+"spawnflags" "3840" // b#7: never used
 }
 {
 "origin" "-368 -504 166"
@@ -5703,18 +5845,19 @@
 "targetname" "t52"
 "sounds" "1"
 "classname" "target_splash"
+"spawnflags" "3840" // b#7: never used
 }
 {
 "dmg" "7"
 "origin" "-368 -504 168"
 "targetname" "t65"
-"spawnflags" "2"
+"spawnflags" "2050" // b#7: 2 -> 2050
 "target" "t50"
 "classname" "target_laser"
 }
 {
 "model" "*89"
-"spawnflags" "1"
+"spawnflags" "2049" // b#7: 1 -> 2049
 "targetname" "t50"
 "target" "t48"
 "classname" "func_train"
@@ -5724,12 +5867,14 @@
 "target" "t49"
 "targetname" "t48"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-304 -570 48"
 "target" "t48"
 "targetname" "t49"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "light" "74"
@@ -6142,7 +6287,7 @@
 "model" "*98"
 "targetname" "t35"
 "target" "t34"
-"spawnflags" "1"
+"spawnflags" "2049" // b#7: 1 -> 2049
 "speed" "100"
 "classname" "func_train"
 }
@@ -6151,12 +6296,14 @@
 "target" "t34"
 "targetname" "t33"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "88 -344 48"
 "target" "t33"
 "targetname" "t34"
 "classname" "path_corner"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "targetname" "t63"
@@ -7852,6 +7999,7 @@
 "sounds" "1"
 "targetname" "mac2"
 "classname" "target_splash"
+"spawnflags" "2048" // b#7: added this
 }
 {
 "origin" "-1848 600 220"
@@ -9102,8 +9250,7 @@
 "angle" "0"
 "speed" "75"
 "wait" "-1"
-"sounds" "1"
-"message" "Access granted to\nResearch Lab."
+//"sounds" "0" // b#9: was 1
 }
 {
 "model" "*112"
