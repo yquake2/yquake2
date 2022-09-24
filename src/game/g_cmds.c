@@ -1061,14 +1061,81 @@ Cmd_Wave_f(edict_t *ent)
 	}
 }
 
+static qboolean
+flooded(edict_t *ent)
+{
+	gclient_t *cl;
+	int i;
+	int num_msgs;
+	int mx;
+
+	if (!ent)
+	{
+		return false;
+	}
+
+	if (!deathmatch->value && !coop->value)
+	{
+		return false;
+	}
+
+	num_msgs = flood_msgs->value;
+	if (num_msgs <= 0)
+	{
+		return false;
+	}
+
+	cl = ent->client;
+	mx = sizeof(cl->flood_when) / sizeof(cl->flood_when[0]);
+
+	if (num_msgs > mx)
+	{
+		gi.dprintf("flood_msgs lowered to max: 10\n");
+
+		num_msgs = mx;
+		gi.cvar_forceset("flood_msgs", "10");
+	}
+
+	if (level.time < cl->flood_locktill)
+	{
+		gi.cprintf(ent, PRINT_HIGH, "You can't talk for %d more seconds\n",
+			(int)(cl->flood_locktill - level.time));
+
+		return true;
+	}
+
+	i = (cl->flood_whenhead - num_msgs) + 1;
+
+	if (i < 0)
+	{
+		i += mx;
+	}
+
+	if (cl->flood_when[i] &&
+		(level.time - cl->flood_when[i]) < flood_persecond->value)
+	{
+		cl->flood_locktill = level.time + flood_waitdelay->value;
+
+		gi.cprintf(ent, PRINT_CHAT,
+			"Flood protection: You can't talk for %d seconds.\n",
+			(int)flood_waitdelay->value);
+
+		return true;
+	}
+
+	cl->flood_whenhead = (cl->flood_whenhead + 1) % mx;
+	cl->flood_when[cl->flood_whenhead] = level.time;
+
+	return false;
+}
+
 void
 Cmd_Say_f(edict_t *ent, qboolean team, qboolean arg0)
 {
-	int i, j;
+	int j;
 	edict_t *other;
 	char *p;
 	char text[2048];
-	gclient_t *cl;
 
 	if (!ent)
 	{
@@ -1076,6 +1143,11 @@ Cmd_Say_f(edict_t *ent, qboolean team, qboolean arg0)
 	}
 
 	if ((gi.argc() < 2) && !arg0)
+	{
+		return;
+	}
+
+	if (flooded(ent))
 	{
 		return;
 	}
@@ -1120,36 +1192,6 @@ Cmd_Say_f(edict_t *ent, qboolean team, qboolean arg0)
 	}
 
 	strcat(text, "\n");
-
-	if (flood_msgs->value)
-	{
-		cl = ent->client;
-
-		if (level.time < cl->flood_locktill)
-		{
-			gi.cprintf(ent, PRINT_HIGH, "You can't talk for %d more seconds\n",
-					(int)(cl->flood_locktill - level.time));
-			return;
-		}
-
-		i = cl->flood_whenhead - flood_msgs->value + 1;
-
-		if (i < 0)
-		{
-			i = (sizeof(cl->flood_when) / sizeof(cl->flood_when[0])) + i;
-		}
-
-		if (cl->flood_when[i] && (level.time - cl->flood_when[i] < flood_persecond->value))
-		{
-			cl->flood_locktill = level.time + flood_waitdelay->value;
-			gi.cprintf(ent, PRINT_CHAT, "Flood protection:  You can't talk for %d seconds.\n",
-					(int)flood_waitdelay->value);
-			return;
-		}
-
-		cl->flood_whenhead = (cl->flood_whenhead + 1) % (sizeof(cl->flood_when) / sizeof(cl->flood_when[0]));
-		cl->flood_when[cl->flood_whenhead] = level.time;
-	}
 
 	if (dedicated->value)
 	{
