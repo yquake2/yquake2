@@ -25,9 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <limits.h>
 #include "header/local.h"
 
-static void Mod_LoadSpriteModel(model_t *mod, void *buffer, int modfilelen);
 static void Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen);
-static void Mod_LoadAliasModel(model_t *mod, void *buffer, int modfilelen);
 
 static byte	mod_novis[MAX_MAP_LEAFS/8];
 
@@ -118,6 +116,66 @@ Mod_Init (void)
 }
 
 /*
+==============================================================================
+
+ALIAS MODELS
+
+==============================================================================
+*/
+
+/*
+=================
+Mod_AliasModelFixup
+=================
+*/
+static void
+Mod_AliasModelFixup(model_t *mod, const dmdl_t *pheader)
+{
+	mod->type = mod_alias;
+
+	if (pheader)
+	{
+		int i;
+
+		for (i=0 ; i<pheader->num_skins ; i++)
+		{
+			mod->skins[i] = R_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME,
+				it_skin);
+		}
+	}
+
+	mod->mins[0] = -32;
+	mod->mins[1] = -32;
+	mod->mins[2] = -32;
+	mod->maxs[0] = 32;
+	mod->maxs[1] = 32;
+	mod->maxs[2] = 32;
+}
+
+/*
+=================
+Mod_SP2Fixup
+=================
+*/
+static void
+Mod_SP2Fixup(model_t *mod, const dsprite_t *sprout)
+{
+	mod->type = mod_sprite;
+
+	if (sprout)
+	{
+		int i;
+
+		/* byte swap everything */
+		for (i = 0; i < sprout->numframes; i++)
+		{
+			mod->skins[i] = R_FindImage (sprout->frames[i].name,
+					it_sprite);
+		}
+	}
+}
+
+/*
 ==================
 Mod_ForName
 
@@ -128,7 +186,7 @@ static model_t *
 Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 {
 	model_t	*mod;
-	unsigned *buf;
+	void	*buf;
 	int	i, modfilelen;
 
 	if (!name[0])
@@ -199,11 +257,32 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 	switch (LittleLong(*(unsigned *)buf))
 	{
 	case IDALIASHEADER:
-		Mod_LoadAliasModel(mod, buf, modfilelen);
+		{
+			const dmdl_t *pheader;
+
+			pheader = Mod_LoadMD2(mod->name, buf, modfilelen, &(mod->extradata));
+			if (!pheader)
+			{
+				ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",
+					__func__, mod->name);
+			}
+
+			Mod_AliasModelFixup(mod, pheader);
+		};
 		break;
 
 	case IDSPRITEHEADER:
-		Mod_LoadSpriteModel(mod, buf, modfilelen);
+		{
+			const dsprite_t *pheader;
+			pheader = Mod_LoadSP2(mod->name, buf, modfilelen, &(mod->extradata));
+			if (!pheader)
+			{
+				ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",
+					__func__, mod->name);
+			}
+
+			Mod_SP2Fixup(mod, pheader);
+		}
 		break;
 
 	case IDBSPHEADER:
@@ -1045,224 +1124,6 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	R_NumberLeafs (mod, mod->nodes);
 
 	R_InitSkyBox (mod);
-}
-
-/*
-==============================================================================
-
-ALIAS MODELS
-
-==============================================================================
-*/
-
-/*
-=================
-Mod_LoadAliasModel
-=================
-*/
-static void
-Mod_LoadAliasModel(model_t *mod, void *buffer, int modfilelen)
-{
-	int		i, j;
-	dmdl_t		*pinmodel, *pheader;
-	dstvert_t	*pinst, *poutst;
-	dtriangle_t	*pintri, *pouttri;
-	int		*pincmd, *poutcmd;
-	int		version;
-	int		ofs_end;
-
-	pinmodel = (dmdl_t *)buffer;
-
-	version = LittleLong (pinmodel->version);
-	if (version != ALIAS_VERSION)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: %s has wrong version number (%i should be %i)",
-				__func__, mod->name, version, ALIAS_VERSION);
-	}
-
-	ofs_end = LittleLong(pinmodel->ofs_end);
-	if (ofs_end < 0 || ofs_end > modfilelen)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: model %s file size(%d) too small, should be %d", mod->name,
-				__func__, modfilelen, ofs_end);
-	}
-
-	mod->extradata = Hunk_Begin(modfilelen);
-	pheader = Hunk_Alloc(ofs_end);
-
-	// byte swap the header fields and sanity check
-	for (i=0 ; i<sizeof(dmdl_t)/4 ; i++)
-		((int *)pheader)[i] = LittleLong (((int *)buffer)[i]);
-
-	if (pheader->skinheight > MAX_LBM_HEIGHT)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: model %s has a skin taller than %d", mod->name,
-				__func__, MAX_LBM_HEIGHT);
-	}
-
-	if (pheader->num_xyz <= 0)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: model %s has no vertices",
-				__func__, mod->name);
-	}
-
-	if (pheader->num_xyz > MAX_VERTS)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: model %s has too many vertices",
-				__func__, mod->name);
-	}
-
-	if (pheader->num_st <= 0)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: model %s has no st vertices",
-				__func__, mod->name);
-	}
-
-	if (pheader->num_tris <= 0)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: model %s has no triangles",
-				__func__, mod->name);
-	}
-
-	if (pheader->num_frames <= 0)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: model %s has no frames",
-				__func__, mod->name);
-	}
-
-	//
-	// load base s and t vertices (not used in gl version)
-	//
-	pinst = (dstvert_t *) ((byte *)pinmodel + pheader->ofs_st);
-	poutst = (dstvert_t *) ((byte *)pheader + pheader->ofs_st);
-
-	for (i=0 ; i<pheader->num_st ; i++)
-	{
-		poutst[i].s = LittleShort (pinst[i].s);
-		poutst[i].t = LittleShort (pinst[i].t);
-	}
-
-	//
-	// load triangle lists
-	//
-	pintri = (dtriangle_t *) ((byte *)pinmodel + pheader->ofs_tris);
-	pouttri = (dtriangle_t *) ((byte *)pheader + pheader->ofs_tris);
-
-	for (i=0 ; i<pheader->num_tris ; i++)
-	{
-		for (j=0 ; j<3 ; j++)
-		{
-			pouttri[i].index_xyz[j] = LittleShort (pintri[i].index_xyz[j]);
-			pouttri[i].index_st[j] = LittleShort (pintri[i].index_st[j]);
-		}
-	}
-
-	//
-	// load the frames
-	//
-	for (i=0 ; i<pheader->num_frames ; i++)
-	{
-		daliasframe_t *pinframe, *poutframe;
-
-		pinframe = (daliasframe_t *) ((byte *)pinmodel
-			+ pheader->ofs_frames + i * pheader->framesize);
-		poutframe = (daliasframe_t *) ((byte *)pheader
-			+ pheader->ofs_frames + i * pheader->framesize);
-
-		memcpy (poutframe->name, pinframe->name, sizeof(poutframe->name));
-		for (j=0 ; j<3 ; j++)
-		{
-			poutframe->scale[j] = LittleFloat (pinframe->scale[j]);
-			poutframe->translate[j] = LittleFloat (pinframe->translate[j]);
-		}
-		// verts are all 8 bit, so no swapping needed
-		memcpy (poutframe->verts, pinframe->verts,
-			pheader->num_xyz*sizeof(dtrivertx_t));
-
-	}
-
-	mod->type = mod_alias;
-
-	//
-	// load the glcmds
-	//
-	pincmd = (int *) ((byte *)pinmodel + pheader->ofs_glcmds);
-	poutcmd = (int *) ((byte *)pheader + pheader->ofs_glcmds);
-	for (i=0 ; i<pheader->num_glcmds ; i++)
-	{
-		poutcmd[i] = LittleLong (pincmd[i]);
-	}
-
-	if (poutcmd[pheader->num_glcmds-1] != 0)
-	{
-		R_Printf(PRINT_ALL, "%s: Entity %s has possible last element issues with %d verts.\n",
-			__func__,
-			mod->name,
-			poutcmd[pheader->num_glcmds-1]);
-	}
-
-	// register all skins
-	memcpy ((char *)pheader + pheader->ofs_skins, (char *)pinmodel + pheader->ofs_skins,
-		pheader->num_skins*MAX_SKINNAME);
-	for (i=0 ; i<pheader->num_skins ; i++)
-	{
-		mod->skins[i] = R_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME, it_skin);
-	}
-}
-
-/*
-==============================================================================
-
-SPRITE MODELS
-
-==============================================================================
-*/
-
-/*
-=================
-Mod_LoadSpriteModel
-
-support for .sp2 sprites
-=================
-*/
-static void
-Mod_LoadSpriteModel(model_t *mod, void *buffer, int modfilelen)
-{
-	dsprite_t	*sprin, *sprout;
-	int			i;
-
-	sprin = (dsprite_t *)buffer;
-	mod->extradata = Hunk_Begin(modfilelen);
-	sprout = Hunk_Alloc(modfilelen);
-
-	sprout->ident = LittleLong (sprin->ident);
-	sprout->version = LittleLong (sprin->version);
-	sprout->numframes = LittleLong (sprin->numframes);
-
-	if (sprout->version != SPRITE_VERSION)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: %s has wrong version number (%i should be %i)",
-				__func__, mod->name, sprout->version, SPRITE_VERSION);
-	}
-
-	if (sprout->numframes > MAX_MD2SKINS)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: %s has too many frames (%i > %i)",
-				__func__, mod->name, sprout->numframes, MAX_MD2SKINS);
-	}
-
-	// byte swap everything
-	for (i=0 ; i<sprout->numframes ; i++)
-	{
-		sprout->frames[i].width = LittleLong (sprin->frames[i].width);
-		sprout->frames[i].height = LittleLong (sprin->frames[i].height);
-		sprout->frames[i].origin_x = LittleLong (sprin->frames[i].origin_x);
-		sprout->frames[i].origin_y = LittleLong (sprin->frames[i].origin_y);
-		memcpy (sprout->frames[i].name, sprin->frames[i].name, MAX_SKINNAME);
-		mod->skins[i] = R_FindImage (sprout->frames[i].name, it_sprite);
-	}
-
-	mod->type = mod_sprite;
 }
 
 //=============================================================================

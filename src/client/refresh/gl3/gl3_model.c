@@ -963,8 +963,57 @@ GL3_Mod_FreeAll(void)
 	}
 }
 
-extern void GL3_LoadMD2(gl3model_t *mod, void *buffer, int modfilelen);
-extern void GL3_LoadSP2(gl3model_t *mod, void *buffer, int modfilelen);
+/*
+=================
+Mod_AliasModelFixup
+=================
+*/
+static void
+Mod_AliasModelFixup(gl3model_t *mod, const dmdl_t *pheader)
+{
+	mod->type = mod_alias;
+
+	if (pheader)
+	{
+		int i;
+
+		for (i=0 ; i<pheader->num_skins ; i++)
+		{
+			mod->skins[i] = GL3_FindImage((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME,
+				it_skin);
+		}
+	}
+
+	mod->mins[0] = -32;
+	mod->mins[1] = -32;
+	mod->mins[2] = -32;
+	mod->maxs[0] = 32;
+	mod->maxs[1] = 32;
+	mod->maxs[2] = 32;
+}
+
+/*
+=================
+Mod_SP2Fixup
+=================
+*/
+static void
+Mod_SP2Fixup(gl3model_t *mod, const dsprite_t *sprout)
+{
+	mod->type = mod_sprite;
+
+	if (sprout)
+	{
+		int i;
+
+		/* byte swap everything */
+		for (i = 0; i < sprout->numframes; i++)
+		{
+			mod->skins[i] = GL3_FindImage(sprout->frames[i].name,
+					it_sprite);
+		}
+	}
+}
 
 /*
  * Loads in a model for the given name
@@ -973,8 +1022,8 @@ static gl3model_t *
 Mod_ForName (char *name, gl3model_t *parent_model, qboolean crash)
 {
 	gl3model_t *mod;
-	unsigned *buf;
-	int i;
+	void *buf;
+	int i, modfilelen;
 
 	if (!name[0])
 	{
@@ -1031,7 +1080,7 @@ Mod_ForName (char *name, gl3model_t *parent_model, qboolean crash)
 	strcpy(mod->name, name);
 
 	/* load the file */
-	int modfilelen = ri.FS_LoadFile(mod->name, (void **)&buf);
+	modfilelen = ri.FS_LoadFile(mod->name, (void **)&buf);
 
 	if (!buf)
 	{
@@ -1049,11 +1098,32 @@ Mod_ForName (char *name, gl3model_t *parent_model, qboolean crash)
 	switch (LittleLong(*(unsigned *)buf))
 	{
 		case IDALIASHEADER:
-			GL3_LoadMD2(mod, buf, modfilelen);
+			{
+				const dmdl_t *pheader;
+
+				pheader = Mod_LoadMD2(mod->name, buf, modfilelen, &(mod->extradata));
+				if (!pheader)
+				{
+					ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",
+						__func__, mod->name);
+				}
+
+				Mod_AliasModelFixup(mod, pheader);
+			};
 			break;
 
 		case IDSPRITEHEADER:
-			GL3_LoadSP2(mod, buf, modfilelen);
+			{
+				const dsprite_t *pheader;
+				pheader = Mod_LoadSP2(mod->name, buf, modfilelen, &(mod->extradata));
+				if (!pheader)
+				{
+					ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",
+						__func__, mod->name);
+				}
+
+				Mod_SP2Fixup(mod, pheader);
+			}
 			break;
 
 		case IDBSPHEADER:

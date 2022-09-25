@@ -92,4 +92,11 @@ extern void GetM8Info(char *name, int *width, int *height);
 
 extern float Mod_RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
 extern const byte* Mod_DecompressVis(const byte *in, int row);
+
+/* Shared models load */
+dmdl_t * Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
+	void **extradata);
+dsprite_t *Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen,
+	void **extradata);
+
 #endif /* SRC_CLIENT_REFRESH_REF_SHARED_H_ */

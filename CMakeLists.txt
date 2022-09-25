@@ -571,8 +571,7 @@ set(GL1-Source
 	${REF_SRC_DIR}/gl1/gl1_surf.c
 	${REF_SRC_DIR}/gl1/gl1_warp.c
 	${REF_SRC_DIR}/gl1/gl1_sdl.c
-	${REF_SRC_DIR}/gl1/gl1_md2.c
-	${REF_SRC_DIR}/gl1/gl1_sp2.c
+	${REF_SRC_DIR}/files/models.c
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
 	${REF_SRC_DIR}/files/wal.c
@@ -606,8 +605,7 @@ set(GL3-Source
 	${REF_SRC_DIR}/gl3/gl3_surf.c
 	${REF_SRC_DIR}/gl3/gl3_warp.c
 	${REF_SRC_DIR}/gl3/gl3_shaders.c
-	${REF_SRC_DIR}/gl3/gl3_md2.c
-	${REF_SRC_DIR}/gl3/gl3_sp2.c
+	${REF_SRC_DIR}/files/models.c
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
 	${REF_SRC_DIR}/files/wal.c
@@ -660,6 +658,7 @@ set(SOFT-Source
 	${REF_SRC_DIR}/soft/sw_scan.c
 	${REF_SRC_DIR}/soft/sw_sprite.c
 	${REF_SRC_DIR}/soft/sw_surf.c
+	${REF_SRC_DIR}/files/models.c
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
 	${REF_SRC_DIR}/files/wal.c
