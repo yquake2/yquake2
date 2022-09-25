@@ -1009,7 +1009,7 @@ Mod_SP2Fixup(gl3model_t *mod, const dsprite_t *sprout)
 		/* byte swap everything */
 		for (i = 0; i < sprout->numframes; i++)
 		{
-			mod->skins[i] = GL3_FindImage(sprout->frames[i].name,
+			mod->skins[i] = GL3_FindImage((char *)sprout->frames[i].name,
 					it_sprite);
 		}
 	}
