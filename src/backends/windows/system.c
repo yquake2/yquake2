@@ -236,6 +236,12 @@ Sys_ConsoleOutput(char *string)
 	char text[256];
 	DWORD dummy;
 
+	if ((string[0] == 0x01) || (string[0] == 0x02))
+	{
+		// remove color marker
+		string[0] = ' ';
+	}
+
 	if (!dedicated || !dedicated->value)
 	{
 		fputs(string, stdout);

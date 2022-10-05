@@ -34,6 +34,7 @@ FILE *logfile;
 cvar_t *logfile_active;  /* 1 = buffer log, 2 = flush after each print */
 jmp_buf abortframe; /* an ERR_DROP occured, exit the entire frame */
 int server_state;
+cvar_t *color_terminal;
 
 static int rd_target;
 static char *rd_buffer;
@@ -105,10 +106,22 @@ Com_VPrintf(int print_level, const char *fmt, va_list argptr)
 		Con_Print(msg);
 	#endif
 
+		if ((msg[0] == 0x01 || msg[0] == 0x02) &&
+		    color_terminal && color_terminal->value)
+		{
+			// skip color marker
+			i = 1;
+		}
+		else
+		{
+			i = 0;
+		}
+
 		// remove unprintable characters
-		for(i=0; i<msgLen; ++i)
+		for(; i<msgLen; ++i)
 		{
 			char c = msg[i];
+
 			if(c < ' ' && (c < '\t' || c > '\r'))
 			{
 				switch(c)
@@ -142,6 +155,12 @@ Com_VPrintf(int print_level, const char *fmt, va_list argptr)
 		if (logfile_active && logfile_active->value)
 		{
 			char name[MAX_OSPATH];
+
+			if ((msg[0] == 0x01) || (msg[0] == 0x02))
+			{
+				// remove color marker
+				msg[0] = ' ';
+			}
 
 			if (!logfile)
 			{

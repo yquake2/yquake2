@@ -53,6 +53,9 @@ static void *game_library;
 // Evil hack to determine if stdin is available
 qboolean stdin_active = true;
 
+// Terminal supports colors
+static qboolean color_active = false;
+
 // Config dir
 char cfgdir[MAX_OSPATH] = CFGDIR;
 
@@ -107,6 +110,37 @@ Sys_Quit(void)
 void
 Sys_Init(void)
 {
+	char *envvar;
+
+	envvar = getenv("TERM");
+	if (envvar && strstr(envvar, "color"))
+	{
+		char buf[256];
+
+		color_active = true;
+
+		snprintf(buf, sizeof(buf),
+			"\2Terminal supports colors: TERM='%s'\n", envvar);
+
+		Sys_ConsoleOutput(buf);
+		return;
+	}
+
+	envvar = getenv("COLORTERM");
+	if (envvar && strlen(envvar))
+	{
+		char buf[256];
+		color_active = true;
+
+		snprintf(buf, sizeof(buf),
+			"\2Terminal supports colors: COLORTERM='%s'\n", envvar);
+
+		Sys_ConsoleOutput(buf);
+		return;
+	}
+
+	Sys_ConsoleOutput("Terminal has no colors support.\n");
+
 }
 
 /* ================================================================ */
@@ -160,6 +194,29 @@ Sys_ConsoleInput(void)
 void
 Sys_ConsoleOutput(char *string)
 {
+	if ((string[0] == 0x01) || (string[0] == 0x02))
+	{
+		if (color_active)
+		{
+			if (string[0] == 0x01)
+			{
+				/* red */
+				fputs("\033[40m\033[31;1m", stdout);
+			}
+			else
+			{
+				/* green */
+				fputs("\033[40m\033[32;1m", stdout);
+			}
+
+			fputs(string + 1, stdout);
+
+			/* back to black */
+			fputs("\033[40m\033[37;1m", stdout);
+			return;
+		}
+	}
+
 	fputs(string, stdout);
 }
 
