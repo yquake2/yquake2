@@ -31,17 +31,19 @@
 Mod_LoadAliasModel/Mod_LoadMD2
 =================
 */
-dmdl_t *
+void *
 Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
-	vec3_t mins, vec3_t maxs, void **extradata)
+	vec3_t mins, vec3_t maxs, struct image_s **skins, findImage_t findImage,
+	modtype_t *type)
 {
-	int		i, j;
 	dmdl_t		*pinmodel, *pheader;
-	dstvert_t	*pinst, *poutst;
 	dtriangle_t	*pintri, *pouttri;
+	dstvert_t	*pinst, *poutst;
 	int		*pincmd, *poutcmd;
+	void	*extradata;
 	int		version;
 	int		ofs_end;
+	int		i, j;
 
 	pinmodel = (dmdl_t *)buffer;
 
@@ -61,7 +63,7 @@ Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
 		return NULL;
 	}
 
-	*extradata = Hunk_Begin(modfilelen);
+	extradata = Hunk_Begin(modfilelen);
 	pheader = Hunk_Alloc(ofs_end);
 
 	// byte swap the header fields and sanity check
@@ -179,6 +181,13 @@ Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
 	// register all skins
 	memcpy ((char *)pheader + pheader->ofs_skins, (char *)pinmodel + pheader->ofs_skins,
 		pheader->num_skins*MAX_SKINNAME);
+	for (i=0 ; i<pheader->num_skins ; i++)
+	{
+		skins[i] = findImage((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME,
+			it_skin);
+	}
+
+	*type = mod_alias;
 
 	mins[0] = -32;
 	mins[1] = -32;
@@ -187,7 +196,7 @@ Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
 	maxs[1] = 32;
 	maxs[2] = 32;
 
-	return pheader;
+	return extradata;
 }
 
 /*
@@ -205,14 +214,16 @@ Mod_LoadSP2
 support for .sp2 sprites
 ====
 */
-dsprite_t*
-Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen, void **extradata)
+void *
+Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen,
+	struct image_s **skins, findImage_t findImage, modtype_t *type)
 {
 	dsprite_t *sprin, *sprout;
+	void	*extradata;
 	int i;
 
 	sprin = (dsprite_t *)buffer;
-	*extradata = Hunk_Begin(modfilelen);
+	extradata = Hunk_Begin(modfilelen);
 	sprout = Hunk_Alloc(modfilelen);
 
 	sprout->ident = LittleLong(sprin->ident);
@@ -241,7 +252,11 @@ Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen, void **ex
 		sprout->frames[i].origin_x = LittleLong(sprin->frames[i].origin_x);
 		sprout->frames[i].origin_y = LittleLong(sprin->frames[i].origin_y);
 		memcpy(sprout->frames[i].name, sprin->frames[i].name, MAX_SKINNAME);
+
+		skins[i] = findImage((char *)sprout->frames[i].name, it_sprite);
 	}
 
-	return sprout;
+	*type = mod_sprite;
+
+	return extradata;
 }

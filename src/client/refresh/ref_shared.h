@@ -94,9 +94,11 @@ extern float Mod_RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
 extern const byte* Mod_DecompressVis(const byte *in, int row);
 
 /* Shared models load */
-dmdl_t * Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
-	vec3_t mins, vec3_t maxs, void **extradata);
-dsprite_t *Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen,
-	void **extradata);
+typedef struct image_s* (*findImage_t)(char *name, imagetype_t type);
+void *Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
+	vec3_t mins, vec3_t maxs, struct image_s **skins,
+	findImage_t findImage, modtype_t *type);
+void *Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen,
+	struct image_s **skins, findImage_t findImage, modtype_t *type);
 
 #endif /* SRC_CLIENT_REFRESH_REF_SHARED_H_ */

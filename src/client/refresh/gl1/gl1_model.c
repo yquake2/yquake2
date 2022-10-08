@@ -165,50 +165,6 @@ Mod_Init(void)
 }
 
 /*
-=================
-Mod_AliasModelFixup
-=================
-*/
-static void
-Mod_AliasModelFixup(model_t *mod, const dmdl_t *pheader)
-{
-	mod->type = mod_alias;
-
-	if (pheader)
-	{
-		int i;
-
-		for (i=0 ; i<pheader->num_skins ; i++)
-		{
-			mod->skins[i] = R_FindImage((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME,
-				it_skin);
-		}
-	}
-}
-
-/*
-=================
-Mod_SP2Fixup
-=================
-*/
-static void
-Mod_SP2Fixup(model_t *mod, const dsprite_t *sprout)
-{
-	mod->type = mod_sprite;
-
-	if (sprout)
-	{
-		int i;
-
-		for (i = 0; i < sprout->numframes; i++)
-		{
-			mod->skins[i] = R_FindImage((char *)sprout->frames[i].name,
-					it_sprite);
-		}
-	}
-}
-
-/*
  * Loads in a model for the given name
  */
 static model_t *
@@ -292,31 +248,28 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 	{
 		case IDALIASHEADER:
 			{
-				const dmdl_t *pheader;
-
-				pheader = Mod_LoadMD2(mod->name, buf, modfilelen,
-					mod->mins, mod->maxs, &(mod->extradata));
-				if (!pheader)
+				mod->extradata = Mod_LoadMD2(mod->name, buf, modfilelen,
+					mod->mins, mod->maxs,
+					(struct image_s **)mod->skins, (findImage_t)R_FindImage,
+					&(mod->type));
+				if (!mod->extradata)
 				{
 					ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",
 						__func__, mod->name);
 				}
-
-				Mod_AliasModelFixup(mod, pheader);
 			};
 			break;
 
 		case IDSPRITEHEADER:
 			{
-				const dsprite_t *pheader;
-				pheader = Mod_LoadSP2(mod->name, buf, modfilelen, &(mod->extradata));
-				if (!pheader)
+				mod->extradata = Mod_LoadSP2(mod->name, buf, modfilelen,
+					(struct image_s **)mod->skins, (findImage_t)R_FindImage,
+					&(mod->type));
+				if (!mod->extradata)
 				{
 					ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",
 						__func__, mod->name);
 				}
-
-				Mod_SP2Fixup(mod, pheader);
 			}
 			break;
 
