@@ -983,13 +983,6 @@ Mod_AliasModelFixup(gl3model_t *mod, const dmdl_t *pheader)
 				it_skin);
 		}
 	}
-
-	mod->mins[0] = -32;
-	mod->mins[1] = -32;
-	mod->mins[2] = -32;
-	mod->maxs[0] = 32;
-	mod->maxs[1] = 32;
-	mod->maxs[2] = 32;
 }
 
 /*
@@ -1006,7 +999,6 @@ Mod_SP2Fixup(gl3model_t *mod, const dsprite_t *sprout)
 	{
 		int i;
 
-		/* byte swap everything */
 		for (i = 0; i < sprout->numframes; i++)
 		{
 			mod->skins[i] = GL3_FindImage((char *)sprout->frames[i].name,
@@ -1101,7 +1093,8 @@ Mod_ForName (char *name, gl3model_t *parent_model, qboolean crash)
 			{
 				const dmdl_t *pheader;
 
-				pheader = Mod_LoadMD2(mod->name, buf, modfilelen, &(mod->extradata));
+				pheader = Mod_LoadMD2(mod->name, buf, modfilelen,
+					mod->mins, mod->maxs, &(mod->extradata));
 				if (!pheader)
 				{
 					ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",

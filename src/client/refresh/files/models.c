@@ -32,7 +32,8 @@ Mod_LoadAliasModel/Mod_LoadMD2
 =================
 */
 dmdl_t *
-Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen, void **extradata)
+Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
+	vec3_t mins, vec3_t maxs, void **extradata)
 {
 	int		i, j;
 	dmdl_t		*pinmodel, *pheader;
@@ -178,6 +179,13 @@ Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen, void **ex
 	// register all skins
 	memcpy ((char *)pheader + pheader->ofs_skins, (char *)pinmodel + pheader->ofs_skins,
 		pheader->num_skins*MAX_SKINNAME);
+
+	mins[0] = -32;
+	mins[1] = -32;
+	mins[2] = -32;
+	maxs[0] = 32;
+	maxs[1] = 32;
+	maxs[2] = 32;
 
 	return pheader;
 }

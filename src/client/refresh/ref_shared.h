@@ -95,7 +95,7 @@ extern const byte* Mod_DecompressVis(const byte *in, int row);
 
 /* Shared models load */
 dmdl_t * Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
-	void **extradata);
+	vec3_t mins, vec3_t maxs, void **extradata);
 dsprite_t *Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen,
 	void **extradata);
 
