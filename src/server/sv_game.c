@@ -293,7 +293,10 @@ PF_inPVS(vec3_t p1, vec3_t p2)
 	cluster = CM_LeafCluster(leafnum);
 	area2 = CM_LeafArea(leafnum);
 
-	if (mask && (!(mask[cluster >> 3] & (1 << (cluster & 7)))))
+	// cluster -1 means "not in a visible leaf" or something like that (void?)
+	// so p1 and p2 probably don't "see" each other.
+	// either way, we must avoid using a negative index into mask[]!
+	if (cluster < 0 || (!(mask[cluster >> 3] & (1 << (cluster & 7)))))
 	{
 		return false;
 	}
@@ -326,7 +329,10 @@ PF_inPHS(vec3_t p1, vec3_t p2)
 	cluster = CM_LeafCluster(leafnum);
 	area2 = CM_LeafArea(leafnum);
 
-	if (mask && (!(mask[cluster >> 3] & (1 << (cluster & 7)))))
+	// cluster -1 means "not in a visible leaf" or something like that (void?)
+	// so p1 and p2 probably don't "hear" each other.
+	// either way, we must avoid using a negative index into mask[]!
+	if (cluster < 0 || (!(mask[cluster >> 3] & (1 << (cluster & 7)))))
 	{
 		return false; /* more than one bounce away */
 	}

@@ -227,7 +227,9 @@ SV_Multicast(vec3_t origin, multicast_t to)
 				continue;
 			}
 
-			if (!(mask[cluster >> 3] & (1 << (cluster & 7))))
+			// cluster can be -1 if we're in the void (or sometime just at a wall)
+			// and using a negative index into mask[] would be invalid
+			if (cluster < 0 || !(mask[cluster >> 3] & (1 << (cluster & 7))))
 			{
 				continue;
 			}
