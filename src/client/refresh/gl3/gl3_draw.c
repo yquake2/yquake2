@@ -435,7 +435,7 @@ GL3_Draw_GetPalette(void)
 		g = pal[i * 3 + 1];
 		b = pal[i * 3 + 2];
 
-		v = (255 << 24) + (r << 0) + (g << 8) + (b << 16);
+		v = (255u << 24) + (r << 0) + (g << 8) + (b << 16);
 		d_8to24table[i] = LittleLong(v);
 	}
 

@@ -219,7 +219,7 @@ static qboolean CL_RemoveFromQueue(dlqueue_t *entry)
 static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 {
 	char tempFile[MAX_OSPATH];
-	char escapedFilePath[MAX_QPATH*4];
+	char escapedFilePath[MAX_QPATH*4] = {0};
 
 	size_t len = strlen(entry->quakePath);
 
