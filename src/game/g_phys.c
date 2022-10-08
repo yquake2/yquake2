@@ -1005,8 +1005,12 @@ SV_Physics_Toss(edict_t *ent)
 
 	if (!wasinwater && isinwater)
 	{
-		gi.positioned_sound(old_origin, g_edicts, CHAN_AUTO,
-				gi.soundindex("misc/h2ohit1.wav"), 1, 1, 0);
+		/* don't play splash sound for entities already in water on level start */
+		if (level.framenum > 3)
+		{
+			gi.positioned_sound(old_origin, g_edicts, CHAN_AUTO,
+					gi.soundindex("misc/h2ohit1.wav"), 1, 1, 0);
+		}
 	}
 	else if (wasinwater && !isinwater)
 	{
