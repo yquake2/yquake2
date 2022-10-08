@@ -1638,7 +1638,7 @@ SpawnItem(edict_t *ent, gitem_t *item)
 		}
 	}
 
-	if (coop->value && (strcmp(ent->classname, "key_power_cube") == 0))
+	if (coop->value && !(ent->spawnflags & ITEM_NO_TOUCH) && (strcmp(ent->classname, "key_power_cube") == 0))
 	{
 		ent->spawnflags |= (1 << (8 + level.power_cubes));
 		level.power_cubes++;
