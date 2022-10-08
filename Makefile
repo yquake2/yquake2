@@ -117,11 +117,6 @@ YQ2_ARCH ?= $(shell uname -m)
 endif
 endif
 
-# On Windows / MinGW $(CC) is undefined by default.
-ifeq ($(YQ2_OSTYPE),Windows)
-CC ?= gcc
-endif
-
 # Detect the compiler
 ifeq ($(shell $(CC) -v 2>&1 | grep -c "clang version"), 1)
 COMPILER := clang
