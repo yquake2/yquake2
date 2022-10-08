@@ -95,7 +95,7 @@ tank_idle(edict_t *self)
 	gi.sound(self, CHAN_VOICE, sound_idle, 1, ATTN_IDLE, 0);
 }
 
-mframe_t tank_frames_stand[] = {
+static mframe_t tank_frames_stand[] = {
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
@@ -149,7 +149,7 @@ tank_stand(edict_t *self)
 
 void tank_walk(edict_t *self);
 
-mframe_t tank_frames_start_walk[] = {
+static mframe_t tank_frames_start_walk[] = {
 	{ai_walk, 0, NULL},
 	{ai_walk, 6, NULL},
 	{ai_walk, 6, NULL},
@@ -164,7 +164,7 @@ mmove_t tank_move_start_walk =
    	tank_walk
 };
 
-mframe_t tank_frames_walk[] = {
+static mframe_t tank_frames_walk[] = {
 	{ai_walk, 4, NULL},
 	{ai_walk, 5, NULL},
 	{ai_walk, 3, NULL},
@@ -191,7 +191,7 @@ mmove_t tank_move_walk =
    	NULL
 };
 
-mframe_t tank_frames_stop_walk[] = {
+static mframe_t tank_frames_stop_walk[] = {
 	{ai_walk, 3, NULL},
 	{ai_walk, 3, NULL},
 	{ai_walk, 2, NULL},
@@ -220,7 +220,7 @@ tank_walk(edict_t *self)
 
 void tank_run(edict_t *self);
 
-mframe_t tank_frames_start_run[] = {
+static mframe_t tank_frames_start_run[] = {
 	{ai_run, 0, NULL},
 	{ai_run, 6, NULL},
 	{ai_run, 6, NULL},
@@ -235,7 +235,7 @@ mmove_t tank_move_start_run =
 	tank_run
 };
 
-mframe_t tank_frames_run[] = {
+static mframe_t tank_frames_run[] = {
 	{ai_run, 4, NULL},
 	{ai_run, 5, NULL},
 	{ai_run, 3, NULL},
@@ -262,7 +262,7 @@ mmove_t tank_move_run =
    	NULL
 };
 
-mframe_t tank_frames_stop_run[] = {
+static mframe_t tank_frames_stop_run[] = {
 	{ai_run, 3, NULL},
 	{ai_run, 3, NULL},
 	{ai_run, 2, NULL},
@@ -312,7 +312,7 @@ tank_run(edict_t *self)
 	}
 }
 
-mframe_t tank_frames_pain1[] = {
+static mframe_t tank_frames_pain1[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -327,7 +327,7 @@ mmove_t tank_move_pain1 =
    	tank_run
 };
 
-mframe_t tank_frames_pain2[] = {
+static mframe_t tank_frames_pain2[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -343,7 +343,7 @@ mmove_t tank_move_pain2 =
    	tank_run
 };
 
-mframe_t tank_frames_pain3[] = {
+static mframe_t tank_frames_pain3[] = {
 	{ai_move, -7, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -574,7 +574,7 @@ TankMachineGun(edict_t *self)
 			flash_number);
 }
 
-mframe_t tank_frames_attack_blast[] = {
+static mframe_t tank_frames_attack_blast[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -601,7 +601,7 @@ mmove_t tank_move_attack_blast =
 	tank_reattack_blaster
 };
 
-mframe_t tank_frames_reattack_blast[] = {
+static mframe_t tank_frames_reattack_blast[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, TankBlaster},
@@ -618,7 +618,7 @@ mmove_t tank_move_reattack_blast =
 	tank_reattack_blaster
 };
 
-mframe_t tank_frames_attack_post_blast[] = {
+static mframe_t tank_frames_attack_post_blast[] = {
 	{ai_move, 0, NULL}, /* 17 */
 	{ai_move, 0, NULL},
 	{ai_move, 2, NULL},
@@ -673,7 +673,7 @@ tank_poststrike(edict_t *self)
 	tank_run(self);
 }
 
-mframe_t tank_frames_attack_strike[] = {
+static mframe_t tank_frames_attack_strike[] = {
 	{ai_move, 3, NULL},
 	{ai_move, 2, NULL},
 	{ai_move, 2, NULL},
@@ -722,7 +722,7 @@ mmove_t tank_move_attack_strike =
    	tank_poststrike
 };
 
-mframe_t tank_frames_attack_pre_rocket[] = {
+static mframe_t tank_frames_attack_pre_rocket[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -756,7 +756,7 @@ mmove_t tank_move_attack_pre_rocket =
 	tank_doattack_rocket
 };
 
-mframe_t tank_frames_attack_fire_rocket[] = {
+static mframe_t tank_frames_attack_fire_rocket[] = {
 	{ai_charge, -3, NULL}, /* Loop Start 22 */
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, TankRocket}, /* 24 */
@@ -776,7 +776,7 @@ mmove_t tank_move_attack_fire_rocket =
 	tank_refire_rocket
 };
 
-mframe_t tank_frames_attack_post_rocket[] = {
+static mframe_t tank_frames_attack_post_rocket[] = {
 	{ai_charge, 0, NULL}, /* 31 */
 	{ai_charge, -1, NULL},
 	{ai_charge, -1, NULL},
@@ -812,7 +812,7 @@ mmove_t tank_move_attack_post_rocket =
    	tank_run
 };
 
-mframe_t tank_frames_attack_chain[] = {
+static mframe_t tank_frames_attack_chain[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -971,7 +971,7 @@ tank_dead(edict_t *self)
 	gi.linkentity(self);
 }
 
-mframe_t tank_frames_death1[] = {
+static mframe_t tank_frames_death1[] = {
 	{ai_move, -7, NULL},
 	{ai_move, -2, NULL},
 	{ai_move, -2, NULL},

@@ -2129,7 +2129,7 @@ ClientDisconnect(edict_t *ent)
 
 /* ============================================================== */
 
-edict_t *pm_passent;
+static edict_t *pm_passent;
 
 /*
  * pmove doesn't need to know

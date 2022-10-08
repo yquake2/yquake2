@@ -581,8 +581,8 @@ typedef struct
 	vec3_t angles;
 } pushed_t;
 
-pushed_t pushed[MAX_EDICTS], *pushed_p;
-edict_t *obstacle;
+static pushed_t pushed[MAX_EDICTS], *pushed_p;
+static edict_t *obstacle;
 
 /*
  * Objects need to be moved back on a failed push,

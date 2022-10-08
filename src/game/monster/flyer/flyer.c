@@ -79,7 +79,7 @@ flyer_pop_blades(edict_t *self)
 	gi.sound(self, CHAN_VOICE, sound_sproing, 1, ATTN_NORM, 0);
 }
 
-mframe_t flyer_frames_stand[] = {
+static mframe_t flyer_frames_stand[] = {
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
@@ -135,7 +135,7 @@ mmove_t flyer_move_stand =
    	NULL
 };
 
-mframe_t flyer_frames_walk[] = {
+static mframe_t flyer_frames_walk[] = {
 	{ai_walk, 5, NULL},
 	{ai_walk, 5, NULL},
 	{ai_walk, 5, NULL},
@@ -191,7 +191,7 @@ mmove_t flyer_move_walk =
    	NULL
 };
 
-mframe_t flyer_frames_run[] = {
+static mframe_t flyer_frames_run[] = {
 	{ai_run, 10, NULL},
 	{ai_run, 10, NULL},
 	{ai_run, 10, NULL},
@@ -287,7 +287,7 @@ flyer_stand(edict_t *self)
 	self->monsterinfo.currentmove = &flyer_move_stand;
 }
 
-mframe_t flyer_frames_start[] = {
+static mframe_t flyer_frames_start[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -304,7 +304,7 @@ mmove_t flyer_move_start =
 	NULL
 };
 
-mframe_t flyer_frames_stop[] = {
+static mframe_t flyer_frames_stop[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -344,7 +344,7 @@ flyer_start(edict_t *self)
 	self->monsterinfo.currentmove = &flyer_move_start;
 }
 
-mframe_t flyer_frames_rollright[] = {
+static mframe_t flyer_frames_rollright[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -364,7 +364,7 @@ mmove_t flyer_move_rollright =
    	NULL
 };
 
-mframe_t flyer_frames_rollleft[] = {
+static mframe_t flyer_frames_rollleft[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -384,7 +384,7 @@ mmove_t flyer_move_rollleft =
 	NULL
 };
 
-mframe_t flyer_frames_pain3[] = {
+static mframe_t flyer_frames_pain3[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -399,7 +399,7 @@ mmove_t flyer_move_pain3 =
 	flyer_run
 };
 
-mframe_t flyer_frames_pain2[] = {
+static mframe_t flyer_frames_pain2[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -414,7 +414,7 @@ mmove_t flyer_move_pain2 =
 	flyer_run
 };
 
-mframe_t flyer_frames_pain1[] = {
+static mframe_t flyer_frames_pain1[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -434,7 +434,7 @@ mmove_t flyer_move_pain1 =
 	flyer_run
 };
 
-mframe_t flyer_frames_defense[] = {
+static mframe_t flyer_frames_defense[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL}, /* Hold this frame */
@@ -451,7 +451,7 @@ mmove_t flyer_move_defense =
 	NULL
 };
 
-mframe_t flyer_frames_bankright[] = {
+static mframe_t flyer_frames_bankright[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -469,7 +469,7 @@ mmove_t flyer_move_bankright =
 	NULL
 };
 
-mframe_t flyer_frames_bankleft[] = {
+static mframe_t flyer_frames_bankleft[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -545,7 +545,7 @@ flyer_fireright(edict_t *self)
 	flyer_fire(self, MZ2_FLYER_BLASTER_2);
 }
 
-mframe_t flyer_frames_attack2[] = {
+static mframe_t flyer_frames_attack2[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -603,7 +603,7 @@ flyer_slash_right(edict_t *self)
 	gi.sound(self, CHAN_WEAPON, sound_slash, 1, ATTN_NORM, 0);
 }
 
-mframe_t flyer_frames_start_melee[] = {
+static mframe_t flyer_frames_start_melee[] = {
 	{ai_charge, 0, flyer_pop_blades},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -620,7 +620,7 @@ mmove_t flyer_move_start_melee =
 	flyer_loop_melee
 };
 
-mframe_t flyer_frames_end_melee[] = {
+static mframe_t flyer_frames_end_melee[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL}
@@ -634,7 +634,7 @@ mmove_t flyer_move_end_melee =
 	flyer_run
 };
 
-mframe_t flyer_frames_loop_melee[] = {
+static mframe_t flyer_frames_loop_melee[] = {
 	{ai_charge, 0, NULL}, /* Loop Start */
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, flyer_slash_left}, /* Left Wing Strike */

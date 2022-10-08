@@ -33,6 +33,7 @@
 
  #include <AL/al.h>
  #include <AL/efx.h>
+ #include "AL/efx-presets.h"
 
 /* Function pointers used to tie
 *  the qal API to the OpenAL API */
@@ -113,6 +114,14 @@ extern LPALGENFILTERS qalGenFilters;
 extern LPALFILTERI qalFilteri;
 extern LPALFILTERF qalFilterf;
 extern LPALDELETEFILTERS qalDeleteFilters;
+extern LPALGENEFFECTS qalGenEffects;
+extern LPALEFFECTF qalEffectf;
+extern LPALEFFECTI qalEffecti;
+extern LPALEFFECTFV qalEffectfv;
+extern LPALAUXILIARYEFFECTSLOTI qalAuxiliaryEffectSloti;
+extern LPALGENAUXILIARYEFFECTSLOTS qalGenAuxiliaryEffectSlots;
+extern LPALDELETEAUXILIARYEFFECTSLOTS qalDeleteAuxiliaryEffectSlots;
+extern LPALDELETEEFFECTS qalDeleteEffects;
 
 /*
  * Gives information over the OpenAL

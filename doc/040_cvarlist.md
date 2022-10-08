@@ -141,12 +141,10 @@ Set `0` by default.
   `3` for even more informations.
 
 * **cl_model_preview_start**: start frame value in multiplayer model preview.
-  As example 84 for `male` model for show salute animation.
-  Defaults to `-1` (don't show animation).
+  `-1` - don't show animation. Defaults to `84` for show salute animation.
 
 * **cl_model_preview_end**: end frame value in multiplayer model preview.
-  As example 94 for `male` model for show salute animation.
-  Defaults to `-1` (don't show animation).
+  `-1` - don't show animation. Defaults to `94` for show salute animation.
 
 * **in_grab**: Defines how the mouse is grabbed by Yamagi Quake IIs
   window. If set to `0` the mouse is never grabbed and if set to `1`
@@ -204,6 +202,9 @@ Set `0` by default.
   reliable way to figure out if the player is on ground. Footsteps
   may not be generated in all circumstances, especially when the player
   is moving over stairs and slopes.
+
+* **g_monsterfootsteps**: If set to `1` monster footstep are generated.
+  By default this cvar is disabled (set to 0).
 
 * **g_fix_triggered**: This cvar, when set to `1`, forces monsters to
   spawn in normally if they are set to a triggered spawn but do not
@@ -263,6 +264,15 @@ Set `0` by default.
 
 * **s_underwater**: Dampen sounds if submerged. Enabled by default.
 
+* **s_occlusion_strength**: If set bigger than `0` sound occlusion effects
+  are enabled. This is only supported by the OpenAL sound backend. By
+  default this cvar is disabled (set to 0).
+
+* **s_reverb_preset**: Enable reverb effect. By default this cvar is disabled
+  (set to `-1`). Possibe values:
+  `-2`: Auto reverb effect select,
+  `-1`: Disable reverb effect,
+  `>=0`: select predefined effect.
 
 ## Graphics (all renderers)
 

@@ -77,10 +77,10 @@ typedef struct
 	unsigned compare;
 } ipfilter_t;
 
-ipfilter_t ipfilters[MAX_IPFILTERS];
-int numipfilters;
+static ipfilter_t ipfilters[MAX_IPFILTERS];
+static int numipfilters;
 
-qboolean
+static qboolean
 StringToFilter(char *s, ipfilter_t *f)
 {
 	char num[128];

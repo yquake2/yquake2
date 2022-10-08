@@ -25,8 +25,8 @@ static int j;
 static uint64_t carry;
 static uint64_t xs;
 static uint64_t cng;
-  
-uint64_t
+
+static uint64_t
 B64MWC(void)
 {
 	uint64_t t, x;
@@ -36,11 +36,11 @@ B64MWC(void)
 	t = (x << 28) + carry;
 	carry = (x >> 36) - (t < x);
 	return QARY[j] = t - x;
-} 
+}
 
-/* 
- * Generate a pseudorandom 
- * integer >0. 
+/*
+ * Generate a pseudorandom
+ * integer >0.
  */
 int
 randk(void)
@@ -55,7 +55,7 @@ randk(void)
 
 /*
  * Generate a pseudorandom
- * signed float between 
+ * signed float between
  * 0 and 1.
  */
 float
@@ -87,7 +87,7 @@ randk_seed(void)
 		QARY[i] = CNG + XS;
 	}
 
-	/* Run through several rounds 
+	/* Run through several rounds
 	   to warm up the state */
 	for (i = 0; i < 256; i++)
 	{

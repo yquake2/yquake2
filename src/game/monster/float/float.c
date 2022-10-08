@@ -98,7 +98,7 @@ floater_fire_blaster(edict_t *self)
 	monster_fire_blaster(self, start, dir, 1, 1000, MZ2_FLOAT_BLASTER_1, effect);
 }
 
-mframe_t floater_frames_stand1[] = {
+static mframe_t floater_frames_stand1[] = {
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
@@ -161,7 +161,7 @@ mmove_t floater_move_stand1 =
    	NULL
 };
 
-mframe_t floater_frames_stand2[] = {
+static mframe_t floater_frames_stand2[] = {
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
 	{ai_stand, 0, NULL},
@@ -242,7 +242,7 @@ floater_stand(edict_t *self)
 	}
 }
 
-mframe_t floater_frames_activate[] = {
+static mframe_t floater_frames_activate[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -283,7 +283,7 @@ mmove_t floater_move_activate =
 	NULL
 };
 
-mframe_t floater_frames_attack1[] = {
+static mframe_t floater_frames_attack1[] = {
 	{ai_charge, 0, NULL}, /* Blaster attack */
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -308,7 +308,7 @@ mmove_t floater_move_attack1 =
 	floater_run
 };
 
-mframe_t floater_frames_attack2[] = {
+static mframe_t floater_frames_attack2[] = {
 	{ai_charge, 0, NULL}, /* Claws */
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -344,7 +344,7 @@ mmove_t floater_move_attack2 =
 	floater_run
 };
 
-mframe_t floater_frames_attack3[] = {
+static mframe_t floater_frames_attack3[] = {
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
 	{ai_charge, 0, NULL},
@@ -388,7 +388,7 @@ mmove_t floater_move_attack3 =
    	floater_frames_attack3,
    	floater_run};
 
-mframe_t floater_frames_death[] = {
+static mframe_t floater_frames_death[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -412,7 +412,7 @@ mmove_t floater_move_death =
 	floater_dead
 };
 
-mframe_t floater_frames_pain1[] = {
+static mframe_t floater_frames_pain1[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -430,7 +430,7 @@ mmove_t floater_move_pain1 =
 	floater_run
 };
 
-mframe_t floater_frames_pain2[] = {
+static mframe_t floater_frames_pain2[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -449,7 +449,7 @@ mmove_t floater_move_pain2 =
 	floater_run
 };
 
-mframe_t floater_frames_pain3[] = {
+static mframe_t floater_frames_pain3[] = {
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
 	{ai_move, 0, NULL},
@@ -472,7 +472,7 @@ mmove_t floater_move_pain3 =
 	floater_run
 };
 
-mframe_t floater_frames_walk[] = {
+static mframe_t floater_frames_walk[] = {
 	{ai_walk, 5, NULL},
 	{ai_walk, 5, NULL},
 	{ai_walk, 5, NULL},
@@ -535,7 +535,7 @@ mmove_t floater_move_walk =
 	NULL
 };
 
-mframe_t floater_frames_run[] = {
+static mframe_t floater_frames_run[] = {
 	{ai_run, 13, NULL},
 	{ai_run, 13, NULL},
 	{ai_run, 13, NULL},
