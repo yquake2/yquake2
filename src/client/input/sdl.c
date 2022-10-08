@@ -686,6 +686,10 @@ IN_Update(void)
 					// be on another display now!
 					glimp_refreshRate = -1;
 				}
+				else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED)
+				{
+					Cvar_SetValue("paused", 1);
+				}
 				break;
 
 			case SDL_CONTROLLERBUTTONUP:
