@@ -82,6 +82,9 @@ char userGivenGame[MAX_QPATH];
 qboolean quitnextframe;
 
 #ifndef DEDICATED_ONLY
+#ifdef SDL_CPUPauseInstruction
+#  define Sys_CpuPause() SDL_CPUPauseInstruction()
+#else
 static YQ2_ATTR_INLINE void Sys_CpuPause(void)
 {
 #if defined(__GNUC__)
@@ -100,6 +103,7 @@ static YQ2_ATTR_INLINE void Sys_CpuPause(void)
 #endif
 #endif
 }
+#endif
 #endif
 
 static void Qcommon_Frame(int usec);
