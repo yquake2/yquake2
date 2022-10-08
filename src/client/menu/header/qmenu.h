@@ -113,6 +113,7 @@ typedef struct
 	float	maxvalue;
 	float	slidestep;
 	char *	printformat;
+	qboolean	abs;
 } menuslider_s;
 
 typedef struct

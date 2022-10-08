@@ -1618,16 +1618,16 @@ IsCalibrationZero(void)
 static void
 IN_Controller_Init(qboolean notify_user)
 {
-	cvar_t *in_sdlbackbutton;
+	cvar_t *cvar;
 	int nummappings;
 	char controllerdb[MAX_OSPATH] = {0};
 	SDL_Joystick *joystick = NULL;
 	SDL_bool is_controller = SDL_FALSE;
 
-	in_sdlbackbutton = Cvar_Get("in_sdlbackbutton", "0", CVAR_ARCHIVE);
-	if (in_sdlbackbutton)
+	cvar = Cvar_Get("in_sdlbackbutton", "0", CVAR_ARCHIVE);
+	if (cvar)
 	{
-		switch ((int)in_sdlbackbutton->value)
+		switch ((int)cvar->value)
 		{
 			case 1:
 				sdl_back_button = SDL_CONTROLLER_BUTTON_START;
@@ -1638,6 +1638,12 @@ IN_Controller_Init(qboolean notify_user)
 			default:
 				sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
 		}
+	}
+
+	cvar = Cvar_Get("in_initjoy", "1", CVAR_NOSET);
+	if (!cvar->value)
+	{
+		return;
 	}
 
 	if (notify_user)
