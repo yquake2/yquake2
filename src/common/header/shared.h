@@ -61,7 +61,7 @@ typedef unsigned char byte;
 	#define YQ2_ATTR_NORETURN       _Noreturn
 #  if defined(__GNUC__)
 	#define YQ2_ATTR_MALLOC         __attribute__ ((__malloc__))
-	#define YQ2_ATTR_INLINE         __attribute__((always_inline))
+	#define YQ2_ATTR_INLINE         __attribute__((always_inline)) inline
 #  elif defined(_MSC_VER)
    	#define YQ2_ATTR_MALLOC         __declspec(restrict)
 #  else
@@ -75,7 +75,7 @@ typedef unsigned char byte;
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
 	#define YQ2_ATTR_MALLOC         __attribute__ ((__malloc__))
-	#define YQ2_ATTR_INLINE         __attribute__((always_inline))
+	#define YQ2_ATTR_INLINE         __attribute__((always_inline)) inline
 #elif defined(_MSC_VER)
 	// Note: We prefer VS2019 16.8 or newer in C11 mode (/std:c11),
 	//       then the __STDC_VERSION__ >= 201112L case above is used
