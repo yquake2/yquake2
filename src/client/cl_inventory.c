@@ -64,13 +64,14 @@ CL_DrawInventory(void)
 {
 	int i, j;
 	int num, selected_num, item;
-	int index[MAX_ITEMS];
 	char string[1024];
 	int x, y;
 	char binding[1024];
 	const char *bind;
 	int selected;
 	int top;
+
+	int index[MAX_ITEMS] = {0};
 
 	selected = cl.frame.playerstate.stats[STAT_SELECTED_ITEM];
 
