@@ -126,6 +126,9 @@ The Quake II distributed by GOG.com contains the soundtrack, it just
 needs to be copied into the game data directory. The target directory is
 just *music/*, next to *baseq2/*. **Not** inside *baseq2/*.
 
+Unixoid systems are case sensitive. On them the files should be named
+*TrackXX.ogg* with a capital T. Otherwise the game won't find them.
+
 
 ### Alternate Startup Configuration
 
