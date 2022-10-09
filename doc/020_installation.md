@@ -208,6 +208,11 @@ platform:
   packages. Theses packages may be outdated, see below for compiling
   the executables.
 
+**Please note:** The addons needs their own game library. The libraries
+are included with the official Windows release. Linux distributions
+often package them in a distinced package. If you want to compile from
+source, have a look at the README files supplied with the addons.
+
 
 ### Windows
 
