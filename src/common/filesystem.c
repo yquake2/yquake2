@@ -1358,6 +1358,32 @@ FS_FreeList(char **list, int nfiles)
 }
 
 /*
+ * Comparator for mod sorting
+ */
+static int
+Q_sort_modcmp(const void *p1, const void *p2)
+{
+	static const char *first_mods[] = {BASEDIRNAME, "xatrix", "rogue", "ctf"};
+	static const unsigned short int first_mods_qty = 4;
+
+	const char * s1 = * (char * const *)p1;
+	const char * s2 = * (char * const *)p2;
+
+	for (unsigned short int i = 0; i < first_mods_qty; i++)
+	{
+		if (!strcmp(first_mods[i], s1))
+		{
+			return -1;
+		}
+		if (!strcmp(first_mods[i], s2))
+		{
+			return 1;
+		}
+	}
+	return strcmp(s1, s2);
+}
+
+/*
  * Combs all Raw search paths to find game dirs containing PAK/PK2/PK3 files.
  * Returns an alphabetized array of unique relative dir names.
  */
@@ -1452,7 +1478,7 @@ FS_ListMods(int *nummods)
 
 	modnames[nmods] = 0;
 
-	qsort(modnames, nmods, sizeof(modnames[0]), Q_sort_strcomp);
+	qsort(modnames, nmods, sizeof(modnames[0]), Q_sort_modcmp);
 
 	*nummods = nmods;
 	return modnames;

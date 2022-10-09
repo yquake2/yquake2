@@ -5514,6 +5514,9 @@ PlayerModelList(void)
             }
         }
 
+        // sort skin names alphabetically
+        qsort(s_skinnames[mdl].data, s_skinnames[mdl].num, sizeof(char**), Q_sort_strcomp);
+
         s_skinnames[mdl].num++;         // guard pointer
 
         // at this point we have a valid player model
