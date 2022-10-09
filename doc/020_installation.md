@@ -152,6 +152,16 @@ changelogs for each map by opening the .ent files with a text editor and
 reading the comment section at the top (lines starting with "//").
 
 
+### Monster Footstep Sounds
+
+Yamagi Quake II has optional support for monster footstep sounds. These
+require some custom audio files. Download the pak file with the sounds
+from https://deponie.yamagi.org/quake2/assets/footsteps.pkz and copy
+the file into the *baseq2/* directory.
+
+The footstep sounds are included with the official Windows release.
+
+
 #### Download And Setup
 
 1. Download the .ent files from the yquake2 repositories on GitHub.

@@ -204,7 +204,8 @@ Set `0` by default.
   is moving over stairs and slopes.
 
 * **g_monsterfootsteps**: If set to `1` monster footstep are generated.
-  By default this cvar is disabled (set to 0).
+  By default this cvar is disabled (set to 0). Additional footstep
+  sounds are required. See the installation guide for details.
 
 * **g_fix_triggered**: This cvar, when set to `1`, forces monsters to
   spawn in normally if they are set to a triggered spawn but do not
