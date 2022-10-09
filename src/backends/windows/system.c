@@ -601,9 +601,8 @@ Sys_Realpath(const char *in, char *out, size_t size)
 	WCHAR wconverted[MAX_OSPATH] = {0};
 
 	MultiByteToWideChar(CP_UTF8, 0, in, -1, win, sizeof(win)/sizeof(win[0]));
-	_wfullpath(wconverted, win, size);
 
-	if (wconverted == NULL)
+	if (_wfullpath(wconverted, win, size) == NULL)
 	{
 		Com_Printf("Couldn't get realpath for %s\n", in);
 		return false;
@@ -731,7 +730,7 @@ Sys_RedirectStdout(void)
 		Q_strlcpy(dir, tmp, sizeof(dir));
 	}
 
-	if (dir == NULL)
+	if (dir[0] == '\0')
 	{
 		return;
 	}
