@@ -202,7 +202,7 @@ to be installed and should be picked up automatically. To disable the
 retexturing pack at a later time set `r_retexturing` to `0`.
 
 * The most comprehensive build retexturing pack can be found here:
-  https://deponie.yamagi.org/quake2/texturepack/
+  https://deponie.yamagi.org/quake2/assets/texturepack/
 * And there's an AI upscale of the original textures:
   https://github.com/Calinou/quake2-neural-upscale/releases
 
