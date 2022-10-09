@@ -218,20 +218,41 @@ SV_Multicast(vec3_t origin, multicast_t to)
 
 		if (mask)
 		{
-			leafnum = CM_PointLeafnum(client->edict->s.origin);
-			cluster = CM_LeafCluster(leafnum);
-			area2 = CM_LeafArea(leafnum);
+			vec3_t origin;
+			VectorCopy(client->edict->s.origin, origin);
 
-			if (!CM_AreasConnected(area1, area2))
+			qboolean wereConnected = false;
+			for(int i=0; i<2; ++i)
 			{
-				continue;
+				leafnum = CM_PointLeafnum(origin);
+				cluster = CM_LeafCluster(leafnum);
+				area2 = CM_LeafArea(leafnum);
+
+				// cluster can be -1 if we're in the void (or sometimes just at a wall)
+				// and using a negative index into mask[] would be invalid
+				if (cluster >= 0 && CM_AreasConnected(area1, area2) && (mask[cluster >> 3] & (1 << (cluster & 7))))
+				{
+					wereConnected = true;
+					break;
+				}
+
+				// if the client is currently *not* in water, do *not* do a second check
+				if((CM_PointContents(origin, 0) & MASK_WATER) == 0)
+				{
+					break; // wereConnected remains false
+				}
+
+				// if the client is half-submerged in opaque water so its origin
+				// is below the water, but the head/camera is still above the water
+				// and thus should be able to see/hear explosions or similar
+				// that are above the water.
+				// so try again at a slightly higher position
+				origin[2] += 32.0f;
+				// FIXME: OTOH, we have a similar problem if we're over water and shoot under water (near water level) => can't see explosion
 			}
-
-			// cluster can be -1 if we're in the void (or sometime just at a wall)
-			// and using a negative index into mask[] would be invalid
-			if (cluster < 0 || !(mask[cluster >> 3] & (1 << (cluster & 7))))
+			if (!wereConnected)
 			{
-				continue;
+				continue; // don't send message to this client, continue with next client
 			}
 		}
 
