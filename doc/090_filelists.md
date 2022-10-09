@@ -45,6 +45,9 @@ level.
 # baseq2/ (Main game)
 # -------------------
 
+# Optional monster footstep sounds:
+/baseq2/footsteps.pkg
+
 # Game library:
 /baseq2/game.dll
 
