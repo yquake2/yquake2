@@ -5517,8 +5517,6 @@ PlayerModelList(void)
         // sort skin names alphabetically
         qsort(s_skinnames[mdl].data, s_skinnames[mdl].num, sizeof(char**), Q_sort_strcomp);
 
-        s_skinnames[mdl].num++;         // guard pointer
-
         // at this point we have a valid player model
         s = (char*)malloc(MAX_DISPLAYNAME);
         t = strrchr(s_directory.data[i], '/');
@@ -5590,10 +5588,10 @@ PlayerConfig_MenuInit(void)
     extern cvar_t *skin;
     cvar_t *hand = Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
     static const char *handedness[] = { "right", "left", "center", 0 };
-    char mdlname[MAX_DISPLAYNAME];
+    char mdlname[MAX_DISPLAYNAME * 2];
     char imgname[MAX_DISPLAYNAME];
-    int mdlindex = -1;
-    int imgindex = -1;
+    int mdlindex = 0;
+    int imgindex = 0;
     int i = 0;
     float scale = SCR_GetMenuScale();
 
@@ -5602,7 +5600,7 @@ PlayerConfig_MenuInit(void)
         return false;
     }
 
-    strcpy(mdlname, skin->string);
+    strncpy(mdlname, skin->string, (MAX_DISPLAYNAME * 2) - 1);
     ReplaceCharacters(mdlname, '\\', '/' );
 
     // MAX_DISPLAYNAME - 1, gcc warns about truncation
@@ -5613,11 +5611,8 @@ PlayerConfig_MenuInit(void)
     }
     else
     {
-        strncpy(mdlname, "male", MAX_DISPLAYNAME - 1);
-        mdlname[strlen("male")] = 0;
-
-        strncpy(imgname, "grunt", MAX_DISPLAYNAME - 1);
-        imgname[strlen("grunt")] = 0;
+        strcpy(mdlname, "male\0");
+        strcpy(imgname, "grunt\0");
     }
 
     for (i = 0; i < s_modelname.num; i++)
@@ -5629,11 +5624,6 @@ PlayerConfig_MenuInit(void)
         }
     }
 
-    if (mdlindex == -1)
-    {
-        mdlindex = 0;
-    }
-
     for (i = 0; i < s_skinnames[mdlindex].num; i++)
     {
         char* names = s_skinnames[mdlindex].data[i];
@@ -5642,11 +5632,6 @@ PlayerConfig_MenuInit(void)
             imgindex = i;
             break;
         }
-    }
-
-    if (imgindex == -1)
-    {
-        imgindex = 0;
     }
 
     if (hand->value < 0 || hand->value > 2)
