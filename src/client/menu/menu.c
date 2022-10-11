@@ -5849,6 +5849,7 @@ PlayerConfig_MenuDraw(void)
 static const char *
 PlayerConfig_MenuKey(int key)
 {
+    key = Key_GetMenuKey(key);
     if (key == K_ESCAPE)
     {
         char skin[MAX_QPATH];
