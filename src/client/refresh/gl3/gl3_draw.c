@@ -411,38 +411,3 @@ GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 
 	GL3_Bind(0);
 }
-
-int
-GL3_Draw_GetPalette(void)
-{
-	int i;
-	int r, g, b;
-	unsigned v;
-	byte *pic, *pal;
-	int width, height;
-
-	/* get the palette */
-	LoadPCX("pics/colormap.pcx", &pic, &pal, &width, &height);
-
-	if (!pal)
-	{
-		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/colormap.pcx");
-	}
-
-	for (i = 0; i < 256; i++)
-	{
-		r = pal[i * 3 + 0];
-		g = pal[i * 3 + 1];
-		b = pal[i * 3 + 2];
-
-		v = (255u << 24) + (r << 0) + (g << 8) + (b << 16);
-		d_8to24table[i] = LittleLong(v);
-	}
-
-	d_8to24table[255] &= LittleLong(0xffffff); /* 255 is transparent */
-
-	free(pic);
-	free(pal);
-
-	return 0;
-}

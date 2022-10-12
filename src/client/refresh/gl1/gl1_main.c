@@ -536,7 +536,7 @@ R_DrawParticles(void)
 		int i;
 		YQ2_ALIGNAS_TYPE(unsigned) byte color[4];
 		const particle_t *p;
- 
+
 		YQ2_VLA(GLfloat, vtx, 3 * r_newrefdef.num_particles);
 		YQ2_VLA(GLfloat, clr, 4 * r_newrefdef.num_particles);
 
@@ -1403,6 +1403,7 @@ qboolean
 RI_Init(void)
 {
 	int j;
+	byte *colormap;
 	extern float r_turbsin[256];
 
 	Swap_Init();
@@ -1415,7 +1416,8 @@ RI_Init(void)
 	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
 	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
 
-	Draw_GetPalette();
+	GetPCXPalette (&colormap, d_8to24table);
+	free(colormap);
 
 	R_Register();
 

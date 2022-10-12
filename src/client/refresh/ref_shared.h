@@ -77,6 +77,8 @@ typedef enum
 
 extern void R_Printf(int level, const char* msg, ...) PRINTF_ATTR(2, 3);
 
+/* Shared images load */
+extern void GetPCXPalette (byte **colormap, unsigned *d_8to24table);
 extern void LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height);
 extern void GetPCXInfo(char *filename, int *width, int *height);
 

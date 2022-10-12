@@ -315,3 +315,38 @@ GetPCXInfo(char *filename, int *width, int *height)
 	return;
 }
 
+/*
+===============
+GetPCXPalette
+===============
+*/
+void
+GetPCXPalette (byte **colormap, unsigned *d_8to24table)
+{
+	byte	*pal;
+	int		i;
+
+	/* get the palette and colormap */
+	LoadPCX ("pics/colormap.pcx", colormap, &pal, NULL, NULL);
+	if (!colormap)
+	{
+		ri.Sys_Error (ERR_FATAL, "Couldn't load pics/colormap.pcx");
+	}
+
+	for (i=0 ; i<256 ; i++)
+	{
+		unsigned	v;
+		int	r, g, b;
+
+		r = pal[i*3+0];
+		g = pal[i*3+1];
+		b = pal[i*3+2];
+
+		v = (255<<24) + (r<<0) + (g<<8) + (b<<16);
+		d_8to24table[i] = LittleLong(v);
+	}
+
+	d_8to24table[255] &= LittleLong(0xffffff);	// 255 is transparent
+
+	free (pal);
+}

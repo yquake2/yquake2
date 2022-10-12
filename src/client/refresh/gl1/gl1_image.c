@@ -53,8 +53,6 @@ int gl_tex_alpha_format = GL_RGBA;
 int gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int gl_filter_max = GL_LINEAR;
 
-int Draw_GetPalette(void);
-
 typedef struct
 {
 	char *name;
@@ -1443,6 +1441,7 @@ R_ImageHasFreeSpace(void)
 void
 R_InitImages(void)
 {
+	byte *colormap;
 	int i, j;
 
 	registration_sequence = 1;
@@ -1458,7 +1457,9 @@ R_InitImages(void)
 
 	gl_state.inverse_intensity = 1 / intensity->value;
 
-	Draw_GetPalette(); // FIXME: I think this is redundant - RI_Init() already calls that!
+	// FIXME: I think this is redundant - RI_Init() already calls that!
+	GetPCXPalette (&colormap, d_8to24table);
+	free(colormap);
 
 	if (gl_config.palettedtexture)
 	{

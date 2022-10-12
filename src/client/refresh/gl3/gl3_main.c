@@ -452,6 +452,8 @@ enum { QGL_POINT_SPRITE = 0x8861 };
 static qboolean
 GL3_Init(void)
 {
+	byte *colormap;
+
 	Swap_Init(); // FIXME: for fucks sake, this doesn't have to be done at runtime!
 
 	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
@@ -466,7 +468,8 @@ GL3_Init(void)
 		return false;
 	}
 
-	GL3_Draw_GetPalette();
+	GetPCXPalette (&colormap, d_8to24table);
+	free(colormap);
 
 	GL3_Register();
 

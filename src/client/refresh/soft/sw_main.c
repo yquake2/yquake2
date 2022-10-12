@@ -210,7 +210,6 @@ int		cachewidth;
 pixel_t		*d_viewbuffer;
 zvalue_t	*d_pzbuffer;
 
-static void Draw_GetPalette (void);
 static void RE_BeginFrame( float camera_separation );
 static void Draw_BuildGammaTable(void);
 static void RE_FlushFrame(int vmin, int vmax);
@@ -465,7 +464,8 @@ RE_Init(void)
 
 	r_aliasuvscale = 1.0;
 
-	Draw_GetPalette ();
+	GetPCXPalette (&vid_colormap, (unsigned *)d_8to24table);
+	vid_alphamap = vid_colormap + 64*256;
 
 	/* set our "safe" mode */
 	sw_state.prev_mode = 4;
@@ -1744,40 +1744,6 @@ RE_SetSky (char *name, float rotate, vec3_t axis)
 			r_skytexinfo[i].image = R_FindImage (pathname, it_sky);
 		}
 	}
-}
-
-/*
-===============
-Draw_GetPalette
-===============
-*/
-static void
-Draw_GetPalette (void)
-{
-	byte	*pal, *out;
-	int		i;
-
-	/* get the palette and colormap */
-	LoadPCX ("pics/colormap.pcx", &vid_colormap, &pal, NULL, NULL);
-	if (!vid_colormap)
-		ri.Sys_Error (ERR_FATAL, "Couldn't load pics/colormap.pcx");
-	vid_alphamap = vid_colormap + 64*256;
-
-	out = d_8to24table;
-	for (i=0 ; i<256 ; i++, out+=4)
-	{
-		int r, g, b;
-
-		r = pal[i*3+0];
-		g = pal[i*3+1];
-		b = pal[i*3+2];
-
-		out[0] = r;
-		out[1] = g;
-		out[2] = b;
-	}
-
-	free (pal);
 }
 
 /*
