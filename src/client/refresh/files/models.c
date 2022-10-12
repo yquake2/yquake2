@@ -33,7 +33,7 @@ Mod_LoadAliasModel/Mod_LoadMD2
 */
 void *
 Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
-	vec3_t mins, vec3_t maxs, struct image_s **skins, findImage_t findImage,
+	vec3_t mins, vec3_t maxs, struct image_s **skins, findimage_t find_image,
 	modtype_t *type)
 {
 	dmdl_t		*pinmodel, *pheader;
@@ -183,7 +183,7 @@ Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
 		pheader->num_skins*MAX_SKINNAME);
 	for (i=0 ; i<pheader->num_skins ; i++)
 	{
-		skins[i] = findImage((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME,
+		skins[i] = find_image((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME,
 			it_skin);
 	}
 
@@ -216,7 +216,7 @@ support for .sp2 sprites
 */
 void *
 Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen,
-	struct image_s **skins, findImage_t findImage, modtype_t *type)
+	struct image_s **skins, findimage_t find_image, modtype_t *type)
 {
 	dsprite_t *sprin, *sprout;
 	void	*extradata;
@@ -253,7 +253,7 @@ Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen,
 		sprout->frames[i].origin_y = LittleLong(sprin->frames[i].origin_y);
 		memcpy(sprout->frames[i].name, sprin->frames[i].name, MAX_SKINNAME);
 
-		skins[i] = findImage((char *)sprout->frames[i].name, it_sprite);
+		skins[i] = find_image((char *)sprout->frames[i].name, it_sprite);
 	}
 
 	*type = mod_sprite;
