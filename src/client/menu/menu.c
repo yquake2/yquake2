@@ -5387,7 +5387,7 @@ PlayerDirectoryList(void)
 
         YQ2_COM_CHECK_OOM(s, "malloc()", MAX_QPATH * sizeof(char))
         
-        strncpy(s, t, MAX_QPATH - 1);         // MAX_QPATH - 1, gcc warns about truncation
+        Q_strlcpy(s, t, MAX_QPATH);
         s[strlen(s)] = 0;
 
         data[i] = s;
@@ -5506,7 +5506,7 @@ PlayerModelList(void)
 
                     StripExtension(t);
 
-                    strncpy(s, t + 1, MAX_DISPLAYNAME - 1);         // MAX_DISPLAYNAME - 1, gcc warns about truncation
+                    Q_strlcpy(s, t + 1, MAX_DISPLAYNAME);
                     s[strlen(s)] = 0;
 
                     data[s_skinnames[mdl].num++] = s;
@@ -5523,7 +5523,7 @@ PlayerModelList(void)
 
         YQ2_COM_CHECK_OOM(s, "malloc()", MAX_DISPLAYNAME * sizeof(char))
 
-        strncpy(s, t + 1, MAX_DISPLAYNAME - 1);         // MAX_DISPLAYNAME - 1, gcc warns about truncation
+        Q_strlcpy(s, t + 1, MAX_DISPLAYNAME);
         s[strlen(s)] = 0;
 
         s_modelname.data[s_modelname.num++] = s;
@@ -5600,13 +5600,12 @@ PlayerConfig_MenuInit(void)
         return false;
     }
 
-    strncpy(mdlname, skin->string, (MAX_DISPLAYNAME * 2) - 1);
+    Q_strlcpy(mdlname, skin->string, MAX_DISPLAYNAME * 2);
     ReplaceCharacters(mdlname, '\\', '/' );
 
-    // MAX_DISPLAYNAME - 1, gcc warns about truncation
     if (strchr(mdlname, '/'))
     {
-        strncpy(imgname, strchr(mdlname, '/') + 1, MAX_DISPLAYNAME -1);
+        Q_strlcpy(imgname, strchr(mdlname, '/') + 1, MAX_DISPLAYNAME);
         *strchr(mdlname, '/') = 0;
     }
     else
@@ -5617,7 +5616,7 @@ PlayerConfig_MenuInit(void)
 
     for (i = 0; i < s_modelname.num; i++)
     {
-        if (strcmp(s_modelname.data[i], mdlname) == 0)
+        if (Q_stricmp(s_modelname.data[i], mdlname) == 0)
         {
             mdlindex = i;
             break;
