@@ -2113,23 +2113,6 @@ static void
 OGGShuffleFunc(void *unused)
 {
     Cvar_SetValue("ogg_shuffle", s_options_oggshuffle_box.curvalue);
-
-    cvar_t *ogg_enable= Cvar_Get("ogg_enable", "1", CVAR_ARCHIVE);
-	int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
-
-    if (s_options_oggshuffle_box.curvalue)
-    {
-        Cvar_Set("ogg_shuffle", "1");
-    }
-    else
-    {
-        Cvar_Set("ogg_shuffle", "0");
-    }
-
-	if (ogg_enable->value)
-	{
-		OGG_PlayTrack(track);
-	}
 }
 
 static void
@@ -2143,8 +2126,11 @@ EnableOGGMusic(void *unused)
         OGG_InitTrackList();
         OGG_Stop();
 
-        int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
-        OGG_PlayTrack(track);
+		if (cls.state == ca_active)
+		{
+	        int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
+	        OGG_PlayTrack(track);
+		}
     }
     else
     {
