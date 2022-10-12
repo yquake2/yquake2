@@ -440,7 +440,8 @@ extern void GL3_TextureMode(char *string);
 extern void GL3_Bind(GLuint texnum);
 extern void GL3_BindLightmap(int lightmapnum);
 extern gl3image_t *GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
-                               int height, int realheight, imagetype_t type, int bits);
+                               int height, int realheight, size_t data_size,
+                               imagetype_t type, int bits);
 extern gl3image_t *GL3_FindImage(char *name, imagetype_t type);
 extern gl3image_t *GL3_RegisterSkin(char *name);
 extern void GL3_ShutdownImages(void);

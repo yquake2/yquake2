@@ -212,7 +212,7 @@ R_LoadPic
 */
 static image_t *
 R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int realheight,
-	size_t data_size, imagetype_t type)
+	size_t data_size, imagetype_t type, int bits)
 {
 	image_t	*image;
 	size_t	size, full_size;
@@ -273,56 +273,6 @@ R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int real
 		// looks short, restore everything from first image
 		R_RestoreMips(image, 0);
 	}
-
-	return image;
-}
-
-/*
-================
-R_LoadWal
-================
-*/
-static image_t *
-R_LoadWal (char *name, imagetype_t type)
-{
-	miptex_t	*mt;
-	int		ofs;
-	image_t		*image;
-	size_t		file_size, width, height;
-
-	file_size = ri.FS_LoadFile (name, (void **)&mt);
-	if (!mt)
-	{
-		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
-		return r_notexture_mip;
-	}
-
-	if (file_size < sizeof(miptex_t))
-	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
-		ri.FS_FreeFile((void *)mt);
-		return r_notexture_mip;
-	}
-
-	width = LittleLong (mt->width);
-	height = LittleLong (mt->height);
-	ofs = LittleLong(mt->offsets[0]);
-
-	/* width/height are unsigned */
-	if ((ofs <= 0) || (width == 0) || (height == 0) ||
-	    ((file_size - ofs) / width < height))
-	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
-		ri.FS_FreeFile((void *)mt);
-		return r_notexture_mip;
-	}
-
-	image = R_LoadPic(name, (byte *)mt + ofs,
-					width, width,
-					height, height,
-					(file_size - ofs), type);
-
-	ri.FS_FreeFile((void *)mt);
 
 	return image;
 }
@@ -604,7 +554,7 @@ R_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t 
 					image = R_LoadPic(name, pic8,
 								uploadwidth, realwidth,
 								uploadheight, realheight,
-								uploadwidth * uploadheight, type);
+								uploadwidth * uploadheight, type, 8);
 				}
 				free(pic32);
 			}
@@ -614,7 +564,7 @@ R_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t 
 				image = R_LoadPic(name, pic8,
 								width, width,
 								height, height,
-								width * height, type);
+								width * height, type, 8);
 			}
 			free(pic8);
 		}
@@ -670,7 +620,7 @@ R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 				image = R_LoadPic(name, scaled,
 								width, realwidth,
 								height, realheight,
-								width * height, type);
+								width * height, type, 8);
 				free(scaled);
 			}
 			else
@@ -678,7 +628,7 @@ R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 				image = R_LoadPic(name, pic,
 								width, width,
 								height, height,
-								width * height, type);
+								width * height, type, 8);
 			}
 
 			if (palette)
@@ -689,12 +639,17 @@ R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 		}
 		else if (strcmp(ext, "wal") == 0)
 		{
-			image = R_LoadWal(name, type);
+			image = (image_t *)LoadWal(namewe, type, (load_image_t)R_LoadPic);
 		}
 		else if (strcmp(ext, "m8") == 0)
 		{
 			image = R_LoadM8 (name, type);
 		}
+	}
+
+	if (!image)
+	{
+		image = r_notexture_mip;
 	}
 
 	return image;

@@ -99,7 +99,7 @@ R_InitParticleTexture(void)
 	}
 
 	r_particletexture = R_LoadPic("***particle***", (byte *)partData,
-	                              16, 0, 16, 0, it_sprite, 32);
+	                              16, 0, 16, 0, 16 * 16, it_sprite, 32);
 
 	/* also use this for bad textures, but without alpha */
 	for (x = 0; x < 8; x++)
@@ -114,7 +114,7 @@ R_InitParticleTexture(void)
 	}
 
 	r_notexture = R_LoadPic("***r_notexture***", (byte *)notexData,
-	                        8, 0, 8, 0, it_wall, 32);
+	                        8, 0, 8, 0, 8 * 8, it_wall, 32);
 }
 
 void

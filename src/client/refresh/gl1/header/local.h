@@ -282,7 +282,7 @@ void COM_StripExtension(char *in, char *out);
 void R_SwapBuffers(int);
 
 image_t *R_LoadPic(char *name, byte *pic, int width, int realwidth,
-		int height, int realheight, imagetype_t type, int bits);
+		int height, int realheight, size_t data_size, imagetype_t type, int bits);
 image_t *R_FindImage(char *name, imagetype_t type);
 void R_TextureMode(char *string);
 void R_ImageList_f(void);

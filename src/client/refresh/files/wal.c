@@ -26,9 +26,52 @@
 
 #include "../ref_shared.h"
 
-/*
- * NOTE: LoadWal() is in *_image.c because it needs the renderer-specific image_t
- */
+struct image_s*
+LoadWal(const char *origname, imagetype_t type, load_image_t loadImage)
+{
+	int	width, height, ofs, size;
+	struct image_s	*image;
+	char	name[256];
+	miptex_t	*mt;
+
+	FixFileExt(origname, "wal", name, sizeof(name));
+
+	size = ri.FS_LoadFile(name, (void **)&mt);
+
+	if (!mt)
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
+		return NULL;
+	}
+
+	if (size < sizeof(miptex_t))
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
+		ri.FS_FreeFile((void *)mt);
+		return NULL;
+	}
+
+	width = LittleLong(mt->width);
+	height = LittleLong(mt->height);
+	ofs = LittleLong(mt->offsets[0]);
+
+	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
+	    (((size - ofs) / height) < width))
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
+		ri.FS_FreeFile((void *)mt);
+		return NULL;
+	}
+
+	image = loadImage(name, (byte *)mt + ofs,
+		width, 0,
+		height, 0,
+		(size - ofs), type, 8);
+
+	ri.FS_FreeFile((void *)mt);
+
+	return image;
+}
 
 void
 GetWalInfo(const char *origname, int *width, int *height)

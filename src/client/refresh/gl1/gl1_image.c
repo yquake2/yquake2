@@ -855,7 +855,7 @@ R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
  */
 image_t *
 R_LoadPic(char *name, byte *pic, int width, int realwidth,
-		int height, int realheight, imagetype_t type, int bits)
+		int height, int realheight, size_t data_size, imagetype_t type, int bits)
 {
 	image_t *image;
 	int i;
@@ -895,7 +895,7 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 	if (strlen(name) >= sizeof(image->name))
 	{
-		ri.Sys_Error(ERR_DROP, "Draw_LoadPic: \"%s\" is too long", name);
+		ri.Sys_Error(ERR_DROP, "%s: \"%s\" is too long", __func__, name);
 	}
 
 	strcpy(image->name, name);
@@ -1028,50 +1028,6 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 }
 
 static image_t *
-LoadWal(char *origname, imagetype_t type)
-{
-	miptex_t *mt;
-	int width, height, ofs, size;
-	image_t *image;
-	char name[256];
-
-	FixFileExt(origname, "wal", name, sizeof(name));
-
-	size = ri.FS_LoadFile(name, (void **)&mt);
-
-	if (!mt)
-	{
-		R_Printf(PRINT_ALL, "LoadWal: can't load %s\n", name);
-		return r_notexture;
-	}
-
-	if (size < sizeof(miptex_t))
-	{
-		R_Printf(PRINT_ALL, "LoadWal: can't load %s, small header\n", name);
-		ri.FS_FreeFile((void *)mt);
-		return r_notexture;
-	}
-
-	width = LittleLong(mt->width);
-	height = LittleLong(mt->height);
-	ofs = LittleLong(mt->offsets[0]);
-
-	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
-	    (((size - ofs) / height) < width))
-	{
-		R_Printf(PRINT_ALL, "LoadWal: can't load %s, small body\n", name);
-		ri.FS_FreeFile((void *)mt);
-		return r_notexture;
-	}
-
-	image = R_LoadPic(name, (byte *)mt + ofs, width, 0, height, 0, type, 8);
-
-	ri.FS_FreeFile((void *)mt);
-
-	return image;
-}
-
-static image_t *
 LoadM8(const char *origname, imagetype_t type)
 {
 	m8tex_t *mt;
@@ -1126,7 +1082,10 @@ LoadM8(const char *origname, imagetype_t type)
 		image_buffer[i * 4 + 3] = value == 255 ? 0 : 255;
 	}
 
-	image = R_LoadPic(name, image_buffer, width, 0, height, 0, type, 32);
+	image = R_LoadPic(name, image_buffer,
+		width, 0,
+		height, 0,
+		width * height, type, 32);
 	free(image_buffer);
 
 	ri.FS_FreeFile((void *)mt);
@@ -1208,8 +1167,10 @@ R_FindImage(char *name, imagetype_t type)
 			   || LoadSTB(namewe, "jpg", &pic, &width, &height) )
 			{
 				/* upload tga or png or jpg */
-				image = R_LoadPic(name, pic, width, realwidth, height,
-						realheight, type, 32);
+				image = R_LoadPic(name, pic,
+					width, realwidth,
+					height, realheight,
+					width * height, type, 32);
 			}
 			else
 			{
@@ -1223,7 +1184,10 @@ R_FindImage(char *name, imagetype_t type)
 				}
 
 				/* Upload the PCX */
-				image = R_LoadPic(name, pic, width, 0, height, 0, type, 8);
+				image = R_LoadPic(name, pic,
+					width, 0,
+					height, 0,
+					width * height, type, 8);
 			}
 		}
 		else /* gl_retexture is not set */
@@ -1235,7 +1199,10 @@ R_FindImage(char *name, imagetype_t type)
 				return NULL;
 			}
 
-			image = R_LoadPic(name, pic, width, 0, height, 0, type, 8);
+			image = R_LoadPic(name, pic,
+				width, 0,
+				height, 0,
+				width * height, type, 8);
 		}
 	}
 	else if (strcmp(ext, "wal") == 0 || strcmp(ext, "m8") == 0)
@@ -1264,8 +1231,10 @@ R_FindImage(char *name, imagetype_t type)
 			   || LoadSTB(namewe, "jpg", &pic, &width, &height) )
 			{
 				/* upload tga or png or jpg */
-				image = R_LoadPic(name, pic, width, realwidth, height,
-						realheight, type, 32);
+				image = R_LoadPic(name, pic,
+					width, realwidth,
+					height, realheight,
+					width * height, type, 32);
 			}
 			else if (strcmp(ext, "m8") == 0)
 			{
@@ -1274,7 +1243,7 @@ R_FindImage(char *name, imagetype_t type)
 			else
 			{
 				/* WAL if no TGA/PNG/JPEG available (exists always) */
-				image = LoadWal(namewe, type);
+				image = (image_t *)LoadWal(namewe, type, (load_image_t)R_LoadPic);
 			}
 
 			if (!image)
@@ -1295,7 +1264,7 @@ R_FindImage(char *name, imagetype_t type)
 		}
 		else /* gl_retexture is not set */
 		{
-			image = LoadWal(name, type);
+			image = (image_t *)LoadWal(name, type, (load_image_t)R_LoadPic);
 
 			if (!image)
 			{
@@ -1335,7 +1304,10 @@ R_FindImage(char *name, imagetype_t type)
 
 		if(LoadSTB(name, ext, &pic, &width, &height))
 		{
-			image = R_LoadPic(name, pic, width, realwidth, height, realheight, type, 32);
+			image = R_LoadPic(name, pic,
+				width, realwidth,
+				height, realheight,
+				width * height, type, 32);
 		}
 		else
 		{
