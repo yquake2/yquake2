@@ -117,7 +117,7 @@ fixQuitScreen(byte* px)
 }
 
 void
-LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
+LoadPCX(const char *origname, byte **pic, byte **palette, int *width, int *height)
 {
 	byte *raw;
 	pcx_t *pcx;
@@ -129,13 +129,7 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	byte *out, *pix;
 	char filename[256];
 
-	Q_strlcpy(filename, origname, sizeof(filename));
-
-	/* Add the extension */
-	if (strcmp(COM_FileExtension(filename), "pcx"))
-	{
-		Q_strlcat(filename, ".pcx", sizeof(filename));
-	}
+	FixFileExt(origname, "pcx", filename, sizeof(filename));
 
 	*pic = NULL;
 
@@ -276,7 +270,7 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 		*pic = NULL;
 	}
 	else if(pcx_width == 319 && pcx_height == 239
-			&& Q_strcasecmp(origname, "pics/quit.pcx") == 0
+			&& Q_strcasecmp(filename, "pics/quit.pcx") == 0
 			&& Com_BlockChecksum(pcx, len) == 3329419434u)
 	{
 		// it's the quit screen, and the baseq2 one (identified by checksum)
@@ -293,10 +287,13 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 }
 
 void
-GetPCXInfo(char *filename, int *width, int *height)
+GetPCXInfo(const char *origname, int *width, int *height)
 {
 	pcx_t *pcx;
 	byte *raw;
+	char filename[256];
+
+	FixFileExt(origname, "pcx", filename, sizeof(filename));
 
 	ri.FS_LoadFile(filename, (void **)&raw);
 

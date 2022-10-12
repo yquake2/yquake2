@@ -585,8 +585,6 @@ void	RE_Draw_TileClear (int x, int y, int w, int h, char *name);
 void	RE_Draw_Fill (int x, int y, int w, int h, int c);
 void	RE_Draw_FadeScreen (void);
 
-void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
-
 extern byte d_8to24table[256 * 4];
 void	R_InitImages(void);
 void	R_ShutdownImages(void);

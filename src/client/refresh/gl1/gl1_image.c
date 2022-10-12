@@ -1035,13 +1035,7 @@ LoadWal(char *origname, imagetype_t type)
 	image_t *image;
 	char name[256];
 
-	Q_strlcpy(name, origname, sizeof(name));
-
-	/* Add the extension */
-	if (strcmp(COM_FileExtension(name), "wal"))
-	{
-		Q_strlcat(name, ".wal", sizeof(name));
-	}
+	FixFileExt(origname, "wal", name, sizeof(name));
 
 	size = ri.FS_LoadFile(name, (void **)&mt);
 
@@ -1078,7 +1072,7 @@ LoadWal(char *origname, imagetype_t type)
 }
 
 static image_t *
-LoadM8(char *origname, imagetype_t type)
+LoadM8(const char *origname, imagetype_t type)
 {
 	m8tex_t *mt;
 	int width, height, ofs, size;
@@ -1086,13 +1080,7 @@ LoadM8(char *origname, imagetype_t type)
 	char name[256];
 	unsigned char *image_buffer = NULL;
 
-	Q_strlcpy(name, origname, sizeof(name));
-
-	/* Add the extension */
-	if (strcmp(COM_FileExtension(name), "m8"))
-	{
-		Q_strlcat(name, ".m8", sizeof(name));
-	}
+	FixFileExt(origname, "m8", name, sizeof(name));
 
 	size = ri.FS_LoadFile(name, (void **)&mt);
 

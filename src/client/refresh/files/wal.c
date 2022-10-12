@@ -31,12 +31,15 @@
  */
 
 void
-GetWalInfo(char *name, int *width, int *height)
+GetWalInfo(const char *origname, int *width, int *height)
 {
 	miptex_t *mt;
 	int size;
+	char filename[256];
 
-	size = ri.FS_LoadFile(name, (void **)&mt);
+	FixFileExt(origname, "wal", filename, sizeof(filename));
+
+	size = ri.FS_LoadFile(filename, (void **)&mt);
 
 	if (!mt)
 	{
@@ -58,18 +61,20 @@ GetWalInfo(char *name, int *width, int *height)
 }
 
 void
-GetM8Info(char *name, int *width, int *height)
+GetM8Info(const char *origname, int *width, int *height)
 {
 	m8tex_t *mt;
 	int size;
+	char filename[256];
 
-	size = ri.FS_LoadFile(name, (void **)&mt);
+	FixFileExt(origname, "m8", filename, sizeof(filename));
+
+	size = ri.FS_LoadFile(filename, (void **)&mt);
 
 	if (!mt)
 	{
 		return;
 	}
-
 
 	if (size < sizeof(m8tex_t) || LittleLong (mt->version) != M8_VERSION)
 	{

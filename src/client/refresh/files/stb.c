@@ -48,6 +48,22 @@
 #include "stb_image_resize.h"
 
 /*
+ * Add extension to file name
+ */
+void
+FixFileExt(const char *origname, const char *ext, char *filename, size_t size)
+{
+	Q_strlcpy(filename, origname, size);
+
+	/* Add the extension */
+	if (strcmp(COM_FileExtension(filename), ext))
+	{
+		Q_strlcat(filename, ".", size);
+		Q_strlcat(filename, ext, size);
+	}
+}
+
+/*
  * origname: the filename to be opened, might be without extension
  * type: extension of the type we wanna open ("jpg", "png" or "tga")
  * pic: pointer RGBA pixel data will be assigned to
@@ -57,14 +73,7 @@ LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *hei
 {
 	char filename[256];
 
-	Q_strlcpy(filename, origname, sizeof(filename));
-
-	/* Add the extension */
-	if (strcmp(COM_FileExtension(filename), type) != 0)
-	{
-		Q_strlcat(filename, ".", sizeof(filename));
-		Q_strlcat(filename, type, sizeof(filename));
-	}
+	FixFileExt(origname, type, filename, sizeof(filename));
 
 	*pic = NULL;
 

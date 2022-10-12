@@ -78,9 +78,12 @@ typedef enum
 extern void R_Printf(int level, const char* msg, ...) PRINTF_ATTR(2, 3);
 
 /* Shared images load */
-extern void GetPCXPalette (byte **colormap, unsigned *d_8to24table);
-extern void LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height);
-extern void GetPCXInfo(char *filename, int *width, int *height);
+extern void FixFileExt(const char *origname, const char *ext, char *filename, size_t size);
+extern void GetPCXPalette(byte **colormap, unsigned *d_8to24table);
+extern void LoadPCX(const char *origname, byte **pic, byte **palette, int *width, int *height);
+extern void GetPCXInfo(const char *origname, int *width, int *height);
+extern void GetWalInfo(const char *name, int *width, int *height);
+extern void GetM8Info(const char *name, int *width, int *height);
 
 extern qboolean LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *height);
 extern qboolean ResizeSTB(const byte *input_pixels, int input_width, int input_height,
@@ -88,9 +91,6 @@ extern qboolean ResizeSTB(const byte *input_pixels, int input_width, int input_h
 extern void SmoothColorImage(unsigned *dst, size_t size, size_t rstep);
 extern void scale2x(const byte *src, byte *dst, int width, int height);
 extern void scale3x(const byte *src, byte *dst, int width, int height);
-
-extern void GetWalInfo(char *name, int *width, int *height);
-extern void GetM8Info(char *name, int *width, int *height);
 
 extern float Mod_RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
 extern const byte* Mod_DecompressVis(const byte *in, int row);
