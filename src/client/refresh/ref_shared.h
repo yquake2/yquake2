@@ -78,9 +78,10 @@ typedef enum
 extern void R_Printf(int level, const char* msg, ...) PRINTF_ATTR(2, 3);
 
 /* Shared images load */
-typedef struct image_s* (*load_image_t)(const char *name, byte *pic, int width, int realwidth,
+typedef struct image_s* (*loadimage_t)(const char *name, byte *pic, int width, int realwidth,
 	int height, int realheight, size_t data_size, imagetype_t type, int bits);
-extern struct image_s* LoadWal(const char *origname, imagetype_t type, load_image_t loadImage);
+extern struct image_s* LoadWal(const char *origname, imagetype_t type, loadimage_t load_image);
+struct image_s* LoadM8(const char *origname, imagetype_t type, loadimage_t load_image);
 extern void FixFileExt(const char *origname, const char *ext, char *filename, size_t size);
 extern void GetPCXPalette(byte **colormap, unsigned *d_8to24table);
 extern void LoadPCX(const char *origname, byte **pic, byte **palette, int *width, int *height);

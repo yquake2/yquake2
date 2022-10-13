@@ -597,71 +597,6 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 	return image;
 }
 
-static gl3image_t *
-LoadM8(const char *origname, imagetype_t type)
-{
-	m8tex_t *mt;
-	int width, height, ofs, size;
-	gl3image_t *image;
-	char name[256];
-	unsigned char *image_buffer = NULL;
-
-	FixFileExt(origname, "m8", name, sizeof(name));
-
-	size = ri.FS_LoadFile(name, (void **)&mt);
-
-	if (!mt)
-	{
-		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
-		return gl3_notexture;
-	}
-
-	if (size < sizeof(m8tex_t))
-	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
-		ri.FS_FreeFile((void *)mt);
-		return gl3_notexture;
-	}
-
-	if (LittleLong (mt->version) != M8_VERSION)
-	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, wrong magic value.\n", __func__, name);
-		ri.FS_FreeFile ((void *)mt);
-		return gl3_notexture;
-	}
-
-	width = LittleLong(mt->width[0]);
-	height = LittleLong(mt->height[0]);
-	ofs = LittleLong(mt->offsets[0]);
-
-	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
-	    (((size - ofs) / height) < width))
-	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
-		ri.FS_FreeFile((void *)mt);
-		return gl3_notexture;
-	}
-
-	image_buffer = malloc (width * height * 4);
-	for(int i=0; i<width * height; i++)
-	{
-		unsigned char value = *((byte *)mt + ofs + i);
-		image_buffer[i * 4 + 0] = mt->palette[value].r;
-		image_buffer[i * 4 + 1] = mt->palette[value].g;
-		image_buffer[i * 4 + 2] = mt->palette[value].b;
-		image_buffer[i * 4 + 3] = value == 255 ? 0 : 255;
-	}
-
-	image = GL3_LoadPic(name, image_buffer,
-		width, 0, height, 0,
-		width * height, type, 32);
-	free(image_buffer);
-
-	ri.FS_FreeFile((void *)mt);
-
-	return image;
-}
-
 /*
  * Finds or loads the given image
  */
@@ -807,12 +742,12 @@ GL3_FindImage(char *name, imagetype_t type)
 			}
 			else if (strcmp(ext, "m8") == 0)
 			{
-				image = LoadM8(namewe, type);
+				image = (gl3image_t *)LoadM8(namewe, type, (loadimage_t)GL3_LoadPic);
 			}
 			else
 			{
 				/* WAL if no TGA/PNG/JPEG available (exists always) */
-				image = (gl3image_t *)LoadWal(namewe, type, (load_image_t)GL3_LoadPic);
+				image = (gl3image_t *)LoadWal(namewe, type, (loadimage_t)GL3_LoadPic);
 			}
 
 			if (!image)
@@ -823,7 +758,7 @@ GL3_FindImage(char *name, imagetype_t type)
 		}
 		else if (strcmp(ext, "m8") == 0)
 		{
-			image = LoadM8(name, type);
+			image = (gl3image_t *)LoadM8(name, type, (loadimage_t)GL3_LoadPic);
 
 			if (!image)
 			{
@@ -833,7 +768,7 @@ GL3_FindImage(char *name, imagetype_t type)
 		}
 		else /* gl_retexture is not set */
 		{
-			image = (gl3image_t *)LoadWal(name, type, (load_image_t)GL3_LoadPic);
+			image = (gl3image_t *)LoadWal(name, type, (loadimage_t)GL3_LoadPic);
 
 			if (!image)
 			{

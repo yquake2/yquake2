@@ -26,8 +26,8 @@
 
 #include "../ref_shared.h"
 
-struct image_s*
-LoadWal(const char *origname, imagetype_t type, load_image_t loadImage)
+struct image_s *
+LoadWal(const char *origname, imagetype_t type, loadimage_t load_image)
 {
 	int	width, height, ofs, size;
 	struct image_s	*image;
@@ -63,10 +63,76 @@ LoadWal(const char *origname, imagetype_t type, load_image_t loadImage)
 		return NULL;
 	}
 
-	image = loadImage(name, (byte *)mt + ofs,
+	image = load_image(name, (byte *)mt + ofs,
 		width, 0,
 		height, 0,
 		(size - ofs), type, 8);
+
+	ri.FS_FreeFile((void *)mt);
+
+	return image;
+}
+
+struct image_s *
+LoadM8(const char *origname, imagetype_t type, loadimage_t load_image)
+{
+	m8tex_t *mt;
+	int width, height, ofs, size, i;
+	struct image_s *image;
+	char name[256];
+	unsigned char *image_buffer = NULL;
+
+	FixFileExt(origname, "m8", name, sizeof(name));
+
+	size = ri.FS_LoadFile(name, (void **)&mt);
+
+	if (!mt)
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
+		return NULL;
+	}
+
+	if (size < sizeof(m8tex_t))
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
+		ri.FS_FreeFile((void *)mt);
+		return NULL;
+	}
+
+	if (LittleLong (mt->version) != M8_VERSION)
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s, wrong magic value.\n", __func__, name);
+		ri.FS_FreeFile ((void *)mt);
+		return NULL;
+	}
+
+	width = LittleLong(mt->width[0]);
+	height = LittleLong(mt->height[0]);
+	ofs = LittleLong(mt->offsets[0]);
+
+	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
+	    (((size - ofs) / height) < width))
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
+		ri.FS_FreeFile((void *)mt);
+		return NULL;
+	}
+
+	image_buffer = malloc ((size - ofs) * 4);
+	for(i=0; i<(size - ofs); i++)
+	{
+		unsigned char value = *((byte *)mt + ofs + i);
+		image_buffer[i * 4 + 0] = mt->palette[value].r;
+		image_buffer[i * 4 + 1] = mt->palette[value].g;
+		image_buffer[i * 4 + 2] = mt->palette[value].b;
+		image_buffer[i * 4 + 3] = value == 255 ? 0 : 255;
+	}
+
+	image = load_image(name, image_buffer,
+		width, 0,
+		height, 0,
+		(size - ofs), type, 32);
+	free(image_buffer);
 
 	ri.FS_FreeFile((void *)mt);
 
