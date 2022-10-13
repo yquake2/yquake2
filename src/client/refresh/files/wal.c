@@ -139,6 +139,59 @@ LoadM8(const char *origname, imagetype_t type, loadimage_t load_image)
 	return image;
 }
 
+struct image_s *
+LoadM32(const char *origname, imagetype_t type, loadimage_t load_image)
+{
+	m32tex_t	*mt;
+	int		width, height, ofs, size;
+	struct image_s	*image;
+	char name[256];
+
+	FixFileExt(origname, "m32", name, sizeof(name));
+
+	size = ri.FS_LoadFile(name, (void **)&mt);
+
+	if (!mt)
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
+		return NULL;
+	}
+
+	if (size < sizeof(m8tex_t))
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
+		ri.FS_FreeFile((void *)mt);
+		return NULL;
+	}
+
+	if (LittleLong (mt->version) != M32_VERSION)
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s, wrong magic value.\n", __func__, name);
+		ri.FS_FreeFile ((void *)mt);
+		return NULL;
+	}
+
+	width = LittleLong (mt->width[0]);
+	height = LittleLong (mt->height[0]);
+	ofs = LittleLong (mt->offsets[0]);
+
+	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
+	    (((size - ofs) / height) < (width * 4)))
+	{
+		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
+		ri.FS_FreeFile((void *)mt);
+		return NULL;
+	}
+
+	image = load_image(name, (byte *)mt + ofs,
+		width, 0,
+		height, 0,
+		(size - ofs) / 4, type, 32);
+	ri.FS_FreeFile ((void *)mt);
+
+	return image;
+}
+
 void
 GetWalInfo(const char *origname, int *width, int *height)
 {
@@ -186,6 +239,36 @@ GetM8Info(const char *origname, int *width, int *height)
 	}
 
 	if (size < sizeof(m8tex_t) || LittleLong (mt->version) != M8_VERSION)
+	{
+		ri.FS_FreeFile((void *)mt);
+		return;
+	}
+
+	*width = LittleLong(mt->width[0]);
+	*height = LittleLong(mt->height[0]);
+
+	ri.FS_FreeFile((void *)mt);
+
+	return;
+}
+
+void
+GetM32Info(const char *origname, int *width, int *height)
+{
+	m32tex_t *mt;
+	int size;
+	char filename[256];
+
+	FixFileExt(origname, "m32", filename, sizeof(filename));
+
+	size = ri.FS_LoadFile(filename, (void **)&mt);
+
+	if (!mt)
+	{
+		return;
+	}
+
+	if (size < sizeof(m32tex_t) || LittleLong (mt->version) != M32_VERSION)
 	{
 		ri.FS_FreeFile((void *)mt);
 		return;
