@@ -245,8 +245,8 @@ R_LoadPic
 ================
 */
 static image_t *
-R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int realheight,
-	size_t data_size, imagetype_t type, int bits)
+R_LoadPic8 (char *name, byte *pic, int width, int realwidth, int height, int realheight,
+	size_t data_size, imagetype_t type)
 {
 	image_t	*image;
 	size_t	size, full_size;
@@ -285,14 +285,7 @@ R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int real
 	}
 
 	image->transparent = false;
-	if (bits == 32)
-	{
-		R_Convert32To8bit(pic, image->pixels[0], data_size, type != it_wall);
-	}
-	else
-	{
-		memcpy(image->pixels[0], pic, data_size);
-	}
+	memcpy(image->pixels[0], pic, data_size);
 
 	if (type != it_wall)
 	{
@@ -318,6 +311,87 @@ R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int real
 	}
 
 	return image;
+}
+
+static image_t *
+R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int realheight,
+	size_t data_size, imagetype_t type, int bits)
+{
+	if (bits == 32 && data_size > 0)
+	{
+		image_t	*image;
+		byte	*pic8;
+
+		pic8 = malloc(data_size);
+		if (!pic8)
+		{
+			ri.Sys_Error(ERR_FATAL, "%s: Can't allocate image.", __func__);
+			// code never returns after ERR_FATAL
+			return NULL;
+		}
+
+		if (width != realwidth || height != realheight)
+		{
+			// temporary place for shrinked image
+			byte* pic32 = NULL;
+			// temporary image memory size
+			int uploadwidth, uploadheight;
+
+			if (type == it_pic)
+			{
+				uploadwidth = realwidth;
+				uploadheight = realheight;
+
+				// search next scale up
+				while ((uploadwidth < width) && (uploadheight < height))
+				{
+					uploadwidth *= 2;
+					uploadheight *= 2;
+				}
+
+				// one step back
+				if ((uploadwidth > width) || (uploadheight > height))
+				{
+					uploadwidth /= 2;
+					uploadheight /= 2;
+				}
+			}
+			else
+			{
+				uploadwidth = realwidth;
+				uploadheight = realheight;
+			}
+
+			// resize image
+			pic32 = malloc(uploadwidth * uploadheight * 4);
+			printf("%s: %dx%d -> %dx%d\n", name, width, height, uploadwidth, uploadheight);
+			if (ResizeSTB(pic, width, height,
+				      pic32, uploadwidth, uploadheight))
+			{
+				R_Convert32To8bit(pic32, pic8, uploadwidth * uploadheight, type != it_wall);
+				image = R_LoadPic8(name, pic8,
+							uploadwidth, realwidth,
+							uploadheight, realheight,
+							uploadwidth * uploadheight, type);
+			}
+			free(pic32);
+		}
+		else
+		{
+			R_Convert32To8bit(pic, pic8, data_size, type != it_wall);
+			image = R_LoadPic8 (name, pic8,
+				width, realwidth,
+				height, realheight,
+				data_size, type);
+		}
+		free(pic8);
+
+		return image;
+	}
+	else
+	{
+		return R_LoadPic8 (name, pic, width, realwidth, height, realheight, data_size, type);
+	}
 }
 
 /*
@@ -362,126 +436,6 @@ R_ApplyLight(pixel_t pix, const light3_t light)
 }
 
 static image_t	*
-R_LoadHiColorImage(char *name, const char* namewe, const char *ext, imagetype_t type)
-{
-	image_t	*image = NULL;
-	byte *pic = NULL;
-	int realwidth = 0, realheight = 0;
-	int width = 0, height = 0;
-
-	if (strcmp(ext, "pcx") == 0)
-	{
-		/* Get size of the original texture */
-		GetPCXInfo(name, &realwidth, &realheight);
-	}
-	else if (strcmp(ext, "wal") == 0)
-	{
-		/* Get size of the original texture */
-		GetWalInfo(name, &realwidth, &realheight);
-	}
-	else if (strcmp(ext, "m8") == 0)
-	{
-		/* Get size of the original texture */
-		GetM8Info(name, &realwidth, &realheight);
-	}
-
-	/* try to load a tga, png or jpg (in that order/priority) */
-	if (  LoadSTB(namewe, "tga", &pic, &width, &height)
-	   || LoadSTB(namewe, "png", &pic, &width, &height)
-	   || LoadSTB(namewe, "jpg", &pic, &width, &height) )
-	{
-		if (width >= realwidth && height >= realheight)
-		{
-			// resulted image
-			byte* pic8 = NULL;
-			// resulted image memory size
-			size_t size8;
-
-			if (realheight == 0 || realwidth == 0)
-			{
-				realheight = height;
-				realwidth = width;
-			}
-
-			size8 = R_GetImageMipsSize(width * height);
-			pic8 = malloc(size8);
-
-			if (!pic8)
-			{
-				ri.Sys_Error(ERR_FATAL, "%s: Can't allocate image.", __func__);
-				// code never returns after ERR_FATAL
-				return NULL;
-			}
-
-			if (width != realwidth || height != realheight)
-			{
-				// temporary place for shrinked image
-				byte* pic32 = NULL;
-				// temporary image memory size
-				size_t size32;
-				int uploadwidth, uploadheight;
-
-				if (type == it_pic)
-				{
-					uploadwidth = realwidth;
-					uploadheight = realheight;
-
-					// search next scale up
-					while ((uploadwidth < width) && (uploadheight < height))
-					{
-						uploadwidth *= 2;
-						uploadheight *= 2;
-					}
-
-					// one step back
-					if ((uploadwidth > width) || (uploadheight > height))
-					{
-						uploadwidth /= 2;
-						uploadheight /= 2;
-					}
-				}
-				else
-				{
-					uploadwidth = realwidth;
-					uploadheight = realheight;
-				}
-
-				// resize image
-				size32 = width * height * 4;
-				pic32 = malloc(size32);
-
-				if (ResizeSTB(pic, width, height,
-					      pic32, uploadwidth, uploadheight))
-				{
-					R_Convert32To8bit(pic32, pic8, uploadwidth * uploadheight, type != it_wall);
-					image = R_LoadPic(name, pic8,
-								uploadwidth, realwidth,
-								uploadheight, realheight,
-								uploadwidth * uploadheight, type, 8);
-				}
-				free(pic32);
-			}
-			else
-			{
-				R_Convert32To8bit(pic, pic8, width * height, type != it_wall);
-				image = R_LoadPic(name, pic8,
-								width, width,
-								height, height,
-								width * height, type, 8);
-			}
-			free(pic8);
-		}
-	}
-
-	if (pic)
-	{
-		free(pic);
-	}
-
-	return image;
-}
-
-static image_t	*
 R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 {
 	image_t	*image = NULL;
@@ -489,7 +443,8 @@ R_LoadImage(char *name, const char* namewe, const char *ext, imagetype_t type)
 	// with retexturing and not skin
 	if (r_retexturing->value)
 	{
-		image = R_LoadHiColorImage(name, namewe, ext, type);
+		image = (image_t *)LoadHiColorImage(name, namewe, ext, type,
+			(loadimage_t)R_LoadPic);
 	}
 
 	if (!image)

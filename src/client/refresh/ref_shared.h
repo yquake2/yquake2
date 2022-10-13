@@ -83,6 +83,8 @@ typedef struct image_s* (*loadimage_t)(const char *name, byte *pic, int width, i
 extern struct image_s* LoadWal(const char *origname, imagetype_t type, loadimage_t load_image);
 extern struct image_s* LoadM8(const char *origname, imagetype_t type, loadimage_t load_image);
 extern struct image_s* LoadM32(const char *origname, imagetype_t type, loadimage_t load_image);
+extern struct image_s* LoadHiColorImage(char *name, const char* namewe, const char *ext,
+	imagetype_t type, loadimage_t load_image);
 extern void FixFileExt(const char *origname, const char *ext, char *filename, size_t size);
 extern void GetPCXPalette(byte **colormap, unsigned *d_8to24table);
 extern void LoadPCX(const char *origname, byte **pic, byte **palette, int *width, int *height);

@@ -434,3 +434,59 @@ scale3x(const byte *src, byte *dst, int width, int height)
 		}
 	}
 }
+
+struct image_s *
+LoadHiColorImage(char *name, const char* namewe, const char *ext,
+	imagetype_t type, loadimage_t load_image)
+{
+	int realwidth = 0, realheight = 0;
+	int width = 0, height = 0;
+	struct image_s	*image = NULL;
+	byte *pic = NULL;
+
+	/* Get size of the original texture */
+	if (strcmp(ext, "pcx") == 0)
+	{
+		GetPCXInfo(name, &realwidth, &realheight);
+	}
+	else if (strcmp(ext, "wal") == 0)
+	{
+		GetWalInfo(name, &realwidth, &realheight);
+	}
+	else if (strcmp(ext, "m8") == 0)
+	{
+		GetM8Info(name, &realwidth, &realheight);
+	}
+	else if (strcmp(ext, "m32") == 0)
+	{
+		GetM32Info(name, &realwidth, &realheight);
+	}
+
+	/* try to load a tga, png or jpg (in that order/priority) */
+	if (  LoadSTB(namewe, "tga", &pic, &width, &height)
+	   || LoadSTB(namewe, "png", &pic, &width, &height)
+	   || LoadSTB(namewe, "jpg", &pic, &width, &height) )
+	{
+		if (width >= realwidth && height >= realheight)
+		{
+			if (realheight == 0 || realwidth == 0)
+			{
+				realheight = height;
+				realwidth = width;
+			}
+
+			image = load_image(name, pic,
+				width, realwidth,
+				height, realheight,
+				width * height,
+				type, 32);
+		}
+	}
+
+	if (pic)
+	{
+		free(pic);
+	}
+
+	return image;
+}
