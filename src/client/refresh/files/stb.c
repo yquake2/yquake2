@@ -435,8 +435,8 @@ scale3x(const byte *src, byte *dst, int width, int height)
 	}
 }
 
-struct image_s *
-LoadHiColorImage(char *name, const char* namewe, const char *ext,
+static struct image_s *
+LoadHiColorImage(const char *name, const char* namewe, const char *ext,
 	imagetype_t type, loadimage_t load_image)
 {
 	int realwidth = 0, realheight = 0;
@@ -486,6 +486,76 @@ LoadHiColorImage(char *name, const char* namewe, const char *ext,
 	if (pic)
 	{
 		free(pic);
+	}
+
+	return image;
+}
+
+struct image_s *
+LoadImage(const char *name, const char* namewe, const char *ext, imagetype_t type,
+	qboolean r_retexturing, loadimage_t load_image)
+{
+	struct image_s	*image = NULL;
+
+	// with retexturing and not skin
+	if (r_retexturing)
+	{
+		image = LoadHiColorImage(name, namewe, ext, type, load_image);
+	}
+
+	if (!image)
+	{
+		if (!strcmp(ext, "pcx"))
+		{
+			byte *pic = NULL;
+			byte	*palette = NULL;
+			int width = 0, height = 0;
+
+			LoadPCX (namewe, &pic, &palette, &width, &height);
+			if (!pic)
+				return NULL;
+
+			image = load_image(name, pic,
+				width, width,
+				height, height,
+				width * height, type, 8);
+
+			if (palette)
+			{
+				free(palette);
+			}
+			free(pic);
+		}
+		else if (!strcmp(ext, "wal"))
+		{
+			image = LoadWal(namewe, type, load_image);
+		}
+		else if (!strcmp(ext, "m8"))
+		{
+			image = LoadM8(namewe, type, load_image);
+		}
+		else if (!strcmp(ext, "m32"))
+		{
+			image = LoadM32(namewe, type, load_image);
+		}
+		else if (!strcmp(ext, "tga") ||
+		         !strcmp(ext, "png") ||
+		         !strcmp(ext, "jpg"))
+		{
+			byte *pic = NULL;
+			int width = 0, height = 0;
+
+			if (LoadSTB (namewe, ext, &pic, &width, &height) && pic)
+			{
+				image = load_image(name, pic,
+					width, width,
+					height, height,
+					width * height,
+					type, 32);
+
+				free(pic);
+			}
+		}
 	}
 
 	return image;

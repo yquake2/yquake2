@@ -40,7 +40,6 @@ LoadWal(const char *origname, imagetype_t type, loadimage_t load_image)
 
 	if (!mt)
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
 		return NULL;
 	}
 
@@ -88,7 +87,6 @@ LoadM8(const char *origname, imagetype_t type, loadimage_t load_image)
 
 	if (!mt)
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
 		return NULL;
 	}
 
@@ -153,7 +151,6 @@ LoadM32(const char *origname, imagetype_t type, loadimage_t load_image)
 
 	if (!mt)
 	{
-		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
 		return NULL;
 	}
 
