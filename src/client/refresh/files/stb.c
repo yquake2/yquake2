@@ -560,3 +560,41 @@ LoadImage(const char *name, const char* namewe, const char *ext, imagetype_t typ
 
 	return image;
 }
+
+struct image_s*
+GetSkyImage(const char *skyname, const char* surfname, qboolean palettedtexture,
+	findimage_t find_image)
+{
+	struct image_s	*image = NULL;
+	char	pathname[MAX_QPATH];
+
+	if (palettedtexture)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "env/%s%s.pcx",
+				skyname, surfname);
+		image = find_image(pathname, it_sky);
+	}
+
+	if (!image)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "env/%s%s.tga",
+				skyname, surfname);
+		image = find_image(pathname, it_sky);
+	}
+
+	if (!image)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "pics/Skies/%s%s.m32",
+			skyname, surfname);
+		image = find_image(pathname, it_sky);
+	}
+
+	if (!image)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "pics/Skies/%s%s.m8",
+			skyname, surfname);
+		image = find_image(pathname, it_sky);
+	}
+
+	return image;
+}

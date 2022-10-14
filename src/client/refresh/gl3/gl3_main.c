@@ -129,6 +129,7 @@ cvar_t *gl_shadows;
 cvar_t *gl3_debugcontext;
 cvar_t *gl3_usebigvbo;
 cvar_t *r_fixsurfsky;
+cvar_t *r_palettedtexture;
 cvar_t *gl3_usefbo;
 
 // Yaw-Pitch-Roll
@@ -228,6 +229,7 @@ GL3_Register(void)
 	r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
 	r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
 	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
+	r_palettedtexture = ri.Cvar_Get("r_palettedtexture", "0", 0);
 
 	/* don't bilerp characters and crosshairs */
 	gl_nolerp_list = ri.Cvar_Get("r_nolerp_list", "pics/conchars.pcx pics/ch1.pcx pics/ch2.pcx pics/ch3.pcx", CVAR_ARCHIVE);

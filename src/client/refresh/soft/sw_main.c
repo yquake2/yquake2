@@ -54,7 +54,6 @@ refimport_t	ri;
 
 byte		d_8to24table[256 * 4];
 
-char		skyname[MAX_QPATH];
 vec3_t		skyaxis;
 
 refdef_t	r_newrefdef;
@@ -173,6 +172,7 @@ static cvar_t	*vid_fullscreen;
 static cvar_t	*vid_gamma;
 
 static cvar_t	*r_lockpvs;
+static cvar_t	*r_palettedtexture;
 
 // sw_vars.c
 
@@ -411,6 +411,7 @@ R_RegisterVariables (void)
 	r_customwidth = ri.Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
 	r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
 	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
+	r_palettedtexture = ri.Cvar_Get("r_palettedtexture", "0", 0);
 
 	vid_fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", CVAR_ARCHIVE );
 	vid_gamma = ri.Cvar_Get( "vid_gamma", "1.0", CVAR_ARCHIVE );
@@ -1723,26 +1724,32 @@ RE_SetSky
 // 3dstudio environment map names
 static const char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 static const int	r_skysideimage[6] = {5, 2, 4, 1, 0, 3};
-extern	mtexinfo_t		r_skytexinfo[6];
+extern mtexinfo_t		r_skytexinfo[6];
 
 static void
 RE_SetSky (char *name, float rotate, vec3_t axis)
 {
+	char	skyname[MAX_QPATH];
 	int		i;
-	char	pathname[MAX_QPATH];
 
 	Q_strlcpy (skyname, name, sizeof(skyname));
 	VectorCopy (axis, skyaxis);
 
 	for (i=0 ; i<6 ; i++)
 	{
-		Com_sprintf (pathname, sizeof(pathname), "env/%s%s.pcx", skyname, suf[r_skysideimage[i]]);
-		r_skytexinfo[i].image = R_FindImage (pathname, it_sky);
-		if (!r_skytexinfo[i].image)
+		image_t	*image;
+
+		image = (image_t *)GetSkyImage(skyname, suf[r_skysideimage[i]],
+			r_palettedtexture->value, (findimage_t)R_FindImageUnsafe);
+
+		if (!image)
 		{
-			Com_sprintf (pathname, sizeof(pathname), "pics/Skies/%s%s.m8", skyname, suf[r_skysideimage[i]]);
-			r_skytexinfo[i].image = R_FindImage (pathname, it_sky);
+			R_Printf(PRINT_ALL, "%s: can't load %s:%s sky\n",
+				__func__, skyname, suf[r_skysideimage[i]]);
+			image = r_notexture_mip;
 		}
+
+		r_skytexinfo[i].image = image;
 	}
 }
 

@@ -598,10 +598,10 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 }
 
 /*
- * Finds or loads the given image
+ * Finds or loads the given image or NULL
  */
 gl3image_t *
-GL3_FindImage(char *name, imagetype_t type)
+GL3_FindImageUnsafe(const char *name, imagetype_t type)
 {
 	gl3image_t *image;
 	int i, len;
@@ -654,6 +654,18 @@ GL3_FindImage(char *name, imagetype_t type)
 	image = (gl3image_t *)LoadImage(name, namewe, ext, type,
 		r_retexturing->value, (loadimage_t)GL3_LoadPic);
 
+	return image;
+}
+
+/*
+ * Finds or loads the given image or notexture
+ */
+gl3image_t *
+GL3_FindImage(const char *name, imagetype_t type)
+{
+	gl3image_t *image;
+
+	image = GL3_FindImageUnsafe(name, type);
 	if (!image)
 	{
 		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);

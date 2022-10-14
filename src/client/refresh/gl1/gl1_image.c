@@ -854,7 +854,7 @@ R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
  * This is also used as an entry point for the generated r_notexture
  */
 image_t *
-R_LoadPic(char *name, byte *pic, int width, int realwidth,
+R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 		int height, int realheight, size_t data_size, imagetype_t type, int bits)
 {
 	image_t *image;
@@ -1028,10 +1028,10 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 }
 
 /*
- * Finds or loads the given image
+ * Finds or loads the given image or null
  */
 image_t *
-R_FindImage(char *name, imagetype_t type)
+R_FindImageUnsafe(const char *name, imagetype_t type)
 {
 	image_t *image;
 	int i, len;
@@ -1083,6 +1083,19 @@ R_FindImage(char *name, imagetype_t type)
 	//
 	image = (image_t *)LoadImage(name, namewe, ext, type,
 		r_retexturing->value, (loadimage_t)R_LoadPic);
+
+	return image;
+}
+
+/*
+ * Finds or loads the given image or notexture
+ */
+image_t *
+R_FindImage(const char *name, imagetype_t type)
+{
+	image_t *image;
+
+	image = R_FindImageUnsafe(name, type);
 
 	if (!image)
 	{

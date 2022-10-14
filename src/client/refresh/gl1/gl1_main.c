@@ -1263,7 +1263,7 @@ R_Register(void)
 	gl_anisotropic = ri.Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
 	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 
-	gl1_palettedtexture = ri.Cvar_Get("gl1_palettedtexture", "0", CVAR_ARCHIVE);
+	gl1_palettedtexture = ri.Cvar_Get("r_palettedtextures", "0", CVAR_ARCHIVE);
 	gl1_pointparameters = ri.Cvar_Get("gl1_pointparameters", "1", CVAR_ARCHIVE);
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
