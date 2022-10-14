@@ -598,3 +598,26 @@ GetSkyImage(const char *skyname, const char* surfname, qboolean palettedtexture,
 
 	return image;
 }
+
+struct image_s *GetTexImage(const char *name, findimage_t find_image)
+{
+	struct image_s	*image = NULL;
+	char	pathname[MAX_QPATH];
+
+	Com_sprintf(pathname, sizeof(pathname), "textures/%s.wal", name);
+	image = find_image(pathname, it_wall);
+
+	if (!image)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "textures/%s.m32", name);
+		image = find_image(pathname, it_wall);
+	}
+
+	if (!image)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "textures/%s.m8", name);
+		image = find_image(pathname, it_wall);
+	}
+
+	return image;
+}

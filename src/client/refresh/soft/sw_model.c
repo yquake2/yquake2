@@ -486,7 +486,6 @@ Mod_LoadTexinfo (model_t *loadmodel, byte *mod_base, lump_t *l)
 	texinfo_t *in;
 	mtexinfo_t *out, *step;
 	int 	i, count;
-	char	name[MAX_QPATH];
 
 	in = (void *)(mod_base + l->fileofs);
 
@@ -504,6 +503,7 @@ Mod_LoadTexinfo (model_t *loadmodel, byte *mod_base, lump_t *l)
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
+		image_t	*image;
 		int j, next;
 		float len1, len2;
 
@@ -531,19 +531,15 @@ Mod_LoadTexinfo (model_t *loadmodel, byte *mod_base, lump_t *l)
 			out->next = NULL;
 		}
 
-		Com_sprintf (name, sizeof(name), "textures/%s.wal", in->texture);
-		out->image = R_FindImage (name, it_wall);
-		if (!out->image || out->image == r_notexture_mip)
+		image = GetTexImage(in->texture, (findimage_t)R_FindImageUnsafe);
+		if (!image)
 		{
-			Com_sprintf (name, sizeof(name), "textures/%s.m8", in->texture);
-			out->image = R_FindImage (name, it_wall);
-		}
-
-		if (!out->image)
-		{
-			out->image = r_notexture_mip; // texture not found
+			R_Printf(PRINT_ALL, "Couldn't load %s\n", in->texture);
+			image = r_notexture_mip;
 			out->flags = 0;
 		}
+
+		out->image = image;
 	}
 
 	// count animation frames

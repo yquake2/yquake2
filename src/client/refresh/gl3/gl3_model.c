@@ -316,7 +316,6 @@ Mod_LoadTexinfo(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	texinfo_t *in;
 	mtexinfo_t *out, *step;
 	int i, j, count;
-	char name[MAX_QPATH];
 	int next;
 
 	in = (void *)(mod_base + l->fileofs);
@@ -335,6 +334,8 @@ Mod_LoadTexinfo(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 
 	for (i = 0; i < count; i++, in++, out++)
 	{
+		gl3image_t	*image;
+
 		for (j = 0; j < 4; j++)
 		{
 			out->vecs[0][j] = LittleFloat(in->vecs[0][j]);
@@ -353,21 +354,14 @@ Mod_LoadTexinfo(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 			out->next = NULL;
 		}
 
-		Com_sprintf(name, sizeof(name), "textures/%s.wal", in->texture);
-
-		out->image = GL3_FindImage(name, it_wall);
-
-		if (!out->image || out->image == gl3_notexture)
+		image = GetTexImage(in->texture, (findimage_t)GL3_FindImageUnsafe);
+		if (!image)
 		{
-			Com_sprintf(name, sizeof(name), "textures/%s.m8", in->texture);
-			out->image = GL3_FindImage(name, it_wall);
+			R_Printf(PRINT_ALL, "Couldn't load %s\n", in->texture);
+			image = gl3_notexture;
 		}
 
-		if (!out->image)
-		{
-			R_Printf(PRINT_ALL, "Couldn't load %s\n", name);
-			out->image = gl3_notexture;
-		}
+		out->image = image;
 	}
 
 	/* count animation frames */

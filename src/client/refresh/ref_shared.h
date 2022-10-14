@@ -114,5 +114,6 @@ extern int Mod_ReLoadSkins(struct image_s **skins, findimage_t find_image,
 	void *extradata, modtype_t type);
 extern struct image_s *GetSkyImage(const char *skyname, const char* surfname,
 	qboolean palettedtexture, findimage_t find_image);
+extern struct image_s *GetTexImage(const char *name, findimage_t find_image);
 
 #endif /* SRC_CLIENT_REFRESH_REF_SHARED_H_ */
