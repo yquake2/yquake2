@@ -5388,8 +5388,6 @@ PlayerDirectoryList(void)
         YQ2_COM_CHECK_OOM(s, "malloc()", MAX_QPATH * sizeof(char))
         
         Q_strlcpy(s, t, MAX_QPATH);
-        s[strlen(s)] = 0;
-
         data[i] = s;
     }
     
@@ -5505,9 +5503,7 @@ PlayerModelList(void)
                     YQ2_COM_CHECK_OOM(s, "malloc()", MAX_DISPLAYNAME * sizeof(char))
 
                     StripExtension(t);
-
                     Q_strlcpy(s, t + 1, MAX_DISPLAYNAME);
-                    s[strlen(s)] = 0;
 
                     data[s_skinnames[mdl].num++] = s;
                 }
@@ -5524,7 +5520,6 @@ PlayerModelList(void)
         YQ2_COM_CHECK_OOM(s, "malloc()", MAX_DISPLAYNAME * sizeof(char))
 
         Q_strlcpy(s, t + 1, MAX_DISPLAYNAME);
-        s[strlen(s)] = 0;
 
         s_modelname.data[s_modelname.num++] = s;
         mdl = s_modelname.num;
