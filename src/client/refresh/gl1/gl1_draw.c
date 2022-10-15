@@ -37,7 +37,7 @@ void
 Draw_InitLocal(void)
 {
 	/* load console characters */
-	draw_chars = R_FindImage("pics/conchars.pcx", it_pic);
+	draw_chars = FindPic("conchars", (findimage_t)R_FindImageUnsafe);
 	if (!draw_chars)
 	{
 		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/conchars.pcx");
@@ -106,20 +106,7 @@ RDraw_CharScaled(int x, int y, int num, float scale)
 image_t *
 RDraw_FindPic(char *name)
 {
-	image_t *gl;
-	char fullname[MAX_QPATH];
-
-	if ((name[0] != '/') && (name[0] != '\\'))
-	{
-		Com_sprintf(fullname, sizeof(fullname), "pics/%s.pcx", name);
-		gl = R_FindImage(fullname, it_pic);
-	}
-	else
-	{
-		gl = R_FindImage(name + 1, it_pic);
-	}
-
-	return gl;
+	return FindPic(name, (findimage_t)R_FindImageUnsafe);
 }
 
 void
@@ -127,7 +114,7 @@ RDraw_GetPicSize(int *w, int *h, char *pic)
 {
 	image_t *gl;
 
-	gl = RDraw_FindPic(pic);
+	gl = FindPic(pic, (findimage_t)R_FindImageUnsafe);
 
 	if (!gl)
 	{
@@ -144,7 +131,7 @@ RDraw_StretchPic(int x, int y, int w, int h, char *pic)
 {
 	image_t *gl;
 
-	gl = RDraw_FindPic(pic);
+	gl = FindPic(pic, (findimage_t)R_FindImageUnsafe);
 
 	if (!gl)
 	{
@@ -189,7 +176,7 @@ RDraw_PicScaled(int x, int y, char *pic, float factor)
 {
 	image_t *gl;
 
-	gl = RDraw_FindPic(pic);
+	gl = FindPic(pic, (findimage_t)R_FindImageUnsafe);
 
 	if (!gl)
 	{
@@ -239,7 +226,7 @@ RDraw_TileClear(int x, int y, int w, int h, char *pic)
 {
 	image_t *image;
 
-	image = RDraw_FindPic(pic);
+	image = FindPic(pic, (findimage_t)R_FindImageUnsafe);
 
 	if (!image)
 	{

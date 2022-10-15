@@ -35,15 +35,7 @@ RE_Draw_FindPic
 image_t *
 RE_Draw_FindPic (char *name)
 {
-	if (name[0] != '/' && name[0] != '\\')
-	{
-		char fullname[MAX_QPATH];
-
-		Com_sprintf (fullname, sizeof(fullname), "pics/%s.pcx", name);
-		return R_FindImage (fullname, it_pic);
-	}
-	else
-		return R_FindImage (name+1, it_pic);
+	return FindPic(name, (findimage_t)R_FindImageUnsafe);
 }
 
 
@@ -56,14 +48,12 @@ Draw_InitLocal
 void
 Draw_InitLocal (void)
 {
-	draw_chars = RE_Draw_FindPic ("conchars");
+	draw_chars = FindPic ("conchars", (findimage_t)R_FindImageUnsafe);
 	if (!draw_chars)
 	{
 		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx", __func__);
 	}
 }
-
-
 
 /*
 ================
@@ -156,16 +146,16 @@ RE_Draw_GetPicSize
 void
 RE_Draw_GetPicSize (int *w, int *h, char *name)
 {
-	image_t *gl;
+	image_t *image;
 
-	gl = RE_Draw_FindPic (name);
-	if (!gl)
+	image = FindPic (name, (findimage_t)R_FindImageUnsafe);
+	if (!image)
 	{
 		*w = *h = -1;
 		return;
 	}
-	*w = gl->asset_width;
-	*h = gl->asset_height;
+	*w = image->asset_width;
+	*h = image->asset_height;
 }
 
 /*
@@ -316,7 +306,7 @@ RE_Draw_StretchPic (int x, int y, int w, int h, char *name)
 {
 	image_t	*pic;
 
-	pic = RE_Draw_FindPic (name);
+	pic = FindPic (name, (findimage_t)R_FindImageUnsafe);
 	if (!pic)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", name);
@@ -389,7 +379,7 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 {
 	image_t		*pic;
 
-	pic = RE_Draw_FindPic (name);
+	pic = FindPic (name, (findimage_t)R_FindImageUnsafe);
 	if (!pic)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", name);
@@ -439,7 +429,7 @@ RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 	VID_DamageBuffer(x, y);
 	VID_DamageBuffer(x + w, y + h);
 
-	pic = RE_Draw_FindPic (name);
+	pic = FindPic (name, (findimage_t)R_FindImageUnsafe);
 	if (!pic)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", name);

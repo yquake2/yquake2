@@ -568,6 +568,7 @@ GetSkyImage(const char *skyname, const char* surfname, qboolean palettedtexture,
 	struct image_s	*image = NULL;
 	char	pathname[MAX_QPATH];
 
+	/* Quake 2 */
 	if (palettedtexture)
 	{
 		Com_sprintf(pathname, sizeof(pathname), "env/%s%s.pcx",
@@ -582,6 +583,7 @@ GetSkyImage(const char *skyname, const char* surfname, qboolean palettedtexture,
 		image = find_image(pathname, it_sky);
 	}
 
+	/* Heretic 2 */
 	if (!image)
 	{
 		Com_sprintf(pathname, sizeof(pathname), "pics/Skies/%s%s.m32",
@@ -599,14 +601,17 @@ GetSkyImage(const char *skyname, const char* surfname, qboolean palettedtexture,
 	return image;
 }
 
-struct image_s *GetTexImage(const char *name, findimage_t find_image)
+struct image_s *
+GetTexImage(const char *name, findimage_t find_image)
 {
 	struct image_s	*image = NULL;
 	char	pathname[MAX_QPATH];
 
+	/* Quake 2 */
 	Com_sprintf(pathname, sizeof(pathname), "textures/%s.wal", name);
 	image = find_image(pathname, it_wall);
 
+	/* Heretic 2 */
 	if (!image)
 	{
 		Com_sprintf(pathname, sizeof(pathname), "textures/%s.m32", name);
@@ -617,6 +622,40 @@ struct image_s *GetTexImage(const char *name, findimage_t find_image)
 	{
 		Com_sprintf(pathname, sizeof(pathname), "textures/%s.m8", name);
 		image = find_image(pathname, it_wall);
+	}
+
+	return image;
+}
+
+struct image_s *
+FindPic(const char *name, findimage_t find_image)
+{
+	struct image_s	*image = NULL;
+
+	if ((name[0] != '/') && (name[0] != '\\'))
+	{
+		char	pathname[MAX_QPATH];
+
+		/* Quake 2 */
+		Com_sprintf(pathname, sizeof(pathname), "pics/%s.pcx", name);
+		image = find_image(pathname, it_pic);
+
+		/* Heretic 2 */
+		if (!image)
+		{
+			Com_sprintf(pathname, sizeof(pathname), "pics/misc/%s.m32", name);
+			image = find_image(pathname, it_pic);
+		}
+
+		if (!image)
+		{
+			Com_sprintf(pathname, sizeof(pathname), "pics/misc/%s.m8", name);
+			image = find_image(pathname, it_pic);
+		}
+	}
+	else
+	{
+		image = find_image(name + 1, it_pic);
 	}
 
 	return image;
