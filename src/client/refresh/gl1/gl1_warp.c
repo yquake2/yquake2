@@ -751,7 +751,7 @@ RI_SetSky(char *name, float rotate, vec3_t axis)
 		image_t	*image;
 
 		image = (image_t *)GetSkyImage(skyname, suf[i],
-			gl_config.palettedtexture, (findimage_t)R_FindImageUnsafe);
+			gl_config.palettedtexture, (findimage_t)R_FindImage);
 
 		if (!image)
 		{

@@ -325,7 +325,7 @@ GL3_SetSky(char *name, float rotate, vec3_t axis)
 		gl3image_t	*image;
 
 		image = (gl3image_t *)GetSkyImage(skyname, suf[i],
-			r_palettedtexture->value, (findimage_t)GL3_FindImageUnsafe);
+			r_palettedtexture->value, (findimage_t)GL3_FindImage);
 
 		if (!image)
 		{

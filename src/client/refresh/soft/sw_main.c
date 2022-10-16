@@ -151,6 +151,7 @@ cvar_t	*sw_texture_filtering;
 cvar_t	*r_retexturing;
 cvar_t	*r_scale8bittextures;
 cvar_t	*sw_gunzposition;
+cvar_t	*r_validation;
 static cvar_t	*sw_partialrefresh;
 
 cvar_t	*r_drawworld;
@@ -381,6 +382,7 @@ R_RegisterVariables (void)
 	r_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
 	r_scale8bittextures = ri.Cvar_Get("r_scale8bittextures", "0", CVAR_ARCHIVE);
 	sw_gunzposition = ri.Cvar_Get("sw_gunzposition", "8", CVAR_ARCHIVE);
+	r_validation = ri.Cvar_Get("r_validation", "0", CVAR_ARCHIVE);
 
 	// On MacOS texture is cleaned up after render and code have to copy a whole
 	// screen to texture, other platforms save previous texture content and can be
@@ -1740,7 +1742,7 @@ RE_SetSky (char *name, float rotate, vec3_t axis)
 		image_t	*image;
 
 		image = (image_t *)GetSkyImage(skyname, suf[r_skysideimage[i]],
-			r_palettedtexture->value, (findimage_t)R_FindImageUnsafe);
+			r_palettedtexture->value, (findimage_t)R_FindImage);
 
 		if (!image)
 		{

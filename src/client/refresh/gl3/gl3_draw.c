@@ -37,7 +37,7 @@ void
 GL3_Draw_InitLocal(void)
 {
 	/* load console characters */
-	draw_chars = FindPic("conchars", (findimage_t)GL3_FindImageUnsafe);
+	draw_chars = FindPic("conchars", (findimage_t)GL3_FindImage);
 	if (!draw_chars)
 	{
 		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
@@ -163,7 +163,7 @@ GL3_Draw_CharScaled(int x, int y, int num, float scale)
 gl3image_t *
 GL3_Draw_FindPic(char *name)
 {
-	return FindPic(name, (findimage_t)GL3_FindImageUnsafe);
+	return FindPic(name, (findimage_t)GL3_FindImage);
 }
 
 void
@@ -171,7 +171,7 @@ GL3_Draw_GetPicSize(int *w, int *h, char *pic)
 {
 	gl3image_t *gl;
 
-	gl = FindPic(pic, (findimage_t)GL3_FindImageUnsafe);
+	gl = FindPic(pic, (findimage_t)GL3_FindImage);
 
 	if (!gl)
 	{
@@ -186,7 +186,7 @@ GL3_Draw_GetPicSize(int *w, int *h, char *pic)
 void
 GL3_Draw_StretchPic(int x, int y, int w, int h, char *pic)
 {
-	gl3image_t *gl = FindPic(pic, (findimage_t)GL3_FindImageUnsafe);
+	gl3image_t *gl = FindPic(pic, (findimage_t)GL3_FindImage);
 
 	if (!gl)
 	{
@@ -203,7 +203,7 @@ GL3_Draw_StretchPic(int x, int y, int w, int h, char *pic)
 void
 GL3_Draw_PicScaled(int x, int y, char *pic, float factor)
 {
-	gl3image_t *gl = FindPic(pic, (findimage_t)GL3_FindImageUnsafe);
+	gl3image_t *gl = FindPic(pic, (findimage_t)GL3_FindImage);
 	if (!gl)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
@@ -224,7 +224,7 @@ GL3_Draw_PicScaled(int x, int y, char *pic, float factor)
 void
 GL3_Draw_TileClear(int x, int y, int w, int h, char *pic)
 {
-	gl3image_t *image = FindPic(pic, (findimage_t)GL3_FindImageUnsafe);
+	gl3image_t *image = FindPic(pic, (findimage_t)GL3_FindImage);
 	if (!image)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);

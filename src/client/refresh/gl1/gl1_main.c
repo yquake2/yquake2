@@ -75,6 +75,7 @@ cvar_t *r_lerpmodels;
 cvar_t *gl_lefthand;
 cvar_t *r_gunfov;
 cvar_t *r_farsee;
+cvar_t *r_validation;
 
 cvar_t *r_lightlevel;
 cvar_t *gl1_overbrightbits;
@@ -1286,6 +1287,7 @@ R_Register(void)
 	gl_msaa_samples = ri.Cvar_Get ( "r_msaa_samples", "0", CVAR_ARCHIVE );
 
 	r_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+	r_validation = ri.Cvar_Get("r_validation", "0", CVAR_ARCHIVE);
 	r_scale8bittextures = ri.Cvar_Get("r_scale8bittextures", "0", CVAR_ARCHIVE);
 
 	/* don't bilerp characters and crosshairs */

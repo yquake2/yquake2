@@ -200,7 +200,7 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 		{
 			mod->extradata = Mod_LoadMD2(mod->name, buf, modfilelen,
 				mod->mins, mod->maxs,
-				(struct image_s **)mod->skins, (findimage_t)R_FindImageUnsafe,
+				(struct image_s **)mod->skins, (findimage_t)R_FindImage,
 				&(mod->type));
 			if (!mod->extradata)
 			{
@@ -213,7 +213,7 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 	case IDSPRITEHEADER:
 		{
 			mod->extradata = Mod_LoadSP2(mod->name, buf, modfilelen,
-				(struct image_s **)mod->skins, (findimage_t)R_FindImageUnsafe,
+				(struct image_s **)mod->skins, (findimage_t)R_FindImage,
 				&(mod->type));
 			if (!mod->extradata)
 			{
@@ -531,10 +531,11 @@ Mod_LoadTexinfo (model_t *loadmodel, byte *mod_base, lump_t *l)
 			out->next = NULL;
 		}
 
-		image = GetTexImage(in->texture, (findimage_t)R_FindImageUnsafe);
+		image = GetTexImage(in->texture, (findimage_t)R_FindImage);
 		if (!image)
 		{
-			R_Printf(PRINT_ALL, "%s: Couldn't load %s\n", __func__, in->texture);
+			R_Printf(PRINT_ALL, "%s: Couldn't load %s\n",
+				__func__, in->texture);
 			image = r_notexture_mip;
 		}
 

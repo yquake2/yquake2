@@ -193,6 +193,7 @@ extern cvar_t *r_customheight;
 
 extern cvar_t *r_retexturing;
 extern cvar_t *r_scale8bittextures;
+extern cvar_t *r_validation;
 
 extern cvar_t *gl_nolerp_list;
 extern cvar_t *r_lerp_list;
@@ -283,7 +284,6 @@ void R_SwapBuffers(int);
 
 image_t *R_LoadPic(const char *name, byte *pic, int width, int realwidth,
 		int height, int realheight, size_t data_size, imagetype_t type, int bits);
-image_t *R_FindImageUnsafe(const char *name, imagetype_t type);
 image_t *R_FindImage(const char *name, imagetype_t type);
 void R_TextureMode(char *string);
 void R_ImageList_f(void);

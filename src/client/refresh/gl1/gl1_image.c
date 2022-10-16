@@ -1031,7 +1031,7 @@ R_LoadPic(const char *name, byte *pic, int width, int realwidth,
  * Finds or loads the given image or null
  */
 image_t *
-R_FindImageUnsafe(const char *name, imagetype_t type)
+R_FindImage(const char *name, imagetype_t type)
 {
 	image_t *image;
 	int i, len;
@@ -1084,23 +1084,9 @@ R_FindImageUnsafe(const char *name, imagetype_t type)
 	image = (image_t *)LoadImage(name, namewe, ext, type,
 		r_retexturing->value, (loadimage_t)R_LoadPic);
 
-	return image;
-}
-
-/*
- * Finds or loads the given image or notexture
- */
-image_t *
-R_FindImage(const char *name, imagetype_t type)
-{
-	image_t *image;
-
-	image = R_FindImageUnsafe(name, type);
-
-	if (!image)
+	if (!image && r_validation->value)
 	{
 		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
-		image = r_notexture;
 	}
 
 	return image;
