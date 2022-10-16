@@ -40,7 +40,8 @@ GL3_Draw_InitLocal(void)
 	draw_chars = FindPic("conchars", (findimage_t)GL3_FindImageUnsafe);
 	if (!draw_chars)
 	{
-		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/conchars.pcx");
+		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
+			__func__);
 	}
 
 	// set up attribute layout for 2D textured rendering

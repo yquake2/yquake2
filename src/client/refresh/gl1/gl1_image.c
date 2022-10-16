@@ -1206,7 +1206,8 @@ R_InitImages(void)
 
 		if (!gl_state.d_16to8table)
 		{
-			ri.Sys_Error(ERR_FATAL, "Couldn't load pics/16to8.pcx");
+			ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/16to8.pcx",
+				__func__);
 		}
 	}
 

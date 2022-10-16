@@ -184,6 +184,7 @@ R_DrawSpriteModel(entity_t *currententity, const model_t *currentmodel)
 	dsprframe_t *frame;
 	float *up, *right;
 	dsprite_t *psprite;
+	image_t *skin;
 
 	/* don't even bother culling, because it's just
 	   a single polygon without a surface cache */
@@ -208,7 +209,13 @@ R_DrawSpriteModel(entity_t *currententity, const model_t *currentmodel)
 
 	glColor4f(1, 1, 1, alpha);
 
-	R_Bind(currentmodel->skins[currententity->frame]->texnum);
+	skin = currentmodel->skins[currententity->frame];
+	if (!skin)
+	{
+		skin = r_notexture; /* fallback... */
+	}
+
+	R_Bind(skin->texnum);
 
 	R_TexEnv(GL_MODULATE);
 

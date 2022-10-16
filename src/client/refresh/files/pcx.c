@@ -327,7 +327,8 @@ GetPCXPalette (byte **colormap, unsigned *d_8to24table)
 	LoadPCX ("pics/colormap.pcx", colormap, &pal, NULL, NULL);
 	if (!*colormap || !pal)
 	{
-		ri.Sys_Error (ERR_FATAL, "Couldn't load pics/colormap.pcx");
+		ri.Sys_Error (ERR_FATAL, "%s: Couldn't load pics/colormap.pcx",
+			__func__);
 	}
 
 	for (i=0 ; i<256 ; i++)

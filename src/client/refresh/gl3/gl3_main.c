@@ -819,6 +819,7 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 	dsprframe_t *frame;
 	float *up, *right;
 	dsprite_t *psprite;
+	gl3image_t *skin;
 
 	/* don't even bother culling, because it's just
 	   a single polygon without a surface cache */
@@ -842,7 +843,13 @@ GL3_DrawSpriteModel(entity_t *e, gl3model_t *currentmodel)
 		GL3_UpdateUBO3D();
 	}
 
-	GL3_Bind(currentmodel->skins[e->frame]->texnum);
+	skin = currentmodel->skins[e->frame];
+	if (!skin)
+	{
+		skin = gl3_notexture; /* fallback... */
+	}
+
+	GL3_Bind(skin->texnum);
 
 	if (alpha == 1.0)
 	{

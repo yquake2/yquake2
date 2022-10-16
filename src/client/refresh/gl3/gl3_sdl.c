@@ -190,13 +190,15 @@ int GL3_PrepareForWindow(void)
 		{
 			if (libgl == NULL)
 			{
-				ri.Sys_Error(ERR_FATAL, "Couldn't load libGL: %s!", SDL_GetError());
+				ri.Sys_Error(ERR_FATAL, "%s: Couldn't load libGL: %s!",
+					__func__, SDL_GetError());
 
 				return -1;
 			}
 			else
 			{
-				R_Printf(PRINT_ALL, "Couldn't load libGL: %s!\n", SDL_GetError());
+				R_Printf(PRINT_ALL, "%s: Couldn't load libGL: %s!\n",
+					__func__, SDL_GetError());
 				R_Printf(PRINT_ALL, "Retrying with default...\n");
 
 				ri.Cvar_Set("gl3_libgl", "");

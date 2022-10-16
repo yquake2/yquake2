@@ -357,7 +357,8 @@ Mod_LoadTexinfo(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 		image = GetTexImage(in->texture, (findimage_t)GL3_FindImageUnsafe);
 		if (!image)
 		{
-			R_Printf(PRINT_ALL, "Couldn't load %s\n", in->texture);
+			R_Printf(PRINT_ALL, "%s: Couldn't load %s\n",
+				__func__, in->texture);
 			image = gl3_notexture;
 		}
 
@@ -1043,7 +1044,7 @@ Mod_ForName (char *name, gl3model_t *parent_model, qboolean crash)
 			{
 				mod->extradata = Mod_LoadMD2(mod->name, buf, modfilelen,
 					mod->mins, mod->maxs,
-					(struct image_s **)mod->skins, (findimage_t)GL3_FindImage,
+					(struct image_s **)mod->skins, (findimage_t)GL3_FindImageUnsafe,
 					&(mod->type));
 				if (!mod->extradata)
 				{
@@ -1056,7 +1057,7 @@ Mod_ForName (char *name, gl3model_t *parent_model, qboolean crash)
 		case IDSPRITEHEADER:
 			{
 				mod->extradata = Mod_LoadSP2(mod->name, buf, modfilelen,
-					(struct image_s **)mod->skins, (findimage_t)GL3_FindImage,
+					(struct image_s **)mod->skins, (findimage_t)GL3_FindImageUnsafe,
 					&(mod->type));
 				if (!mod->extradata)
 				{
