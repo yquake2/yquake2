@@ -1124,9 +1124,6 @@ struct model_s *
 GL3_RegisterModel(char *name)
 {
 	gl3model_t *mod;
-	int i;
-	dsprite_t *sprout;
-	dmdl_t *pheader;
 
 	mod = Mod_ForName(name, gl3_worldmodel, false);
 
@@ -1135,32 +1132,20 @@ GL3_RegisterModel(char *name)
 		mod->registration_sequence = registration_sequence;
 
 		/* register any images used by the models */
-		if (mod->type == mod_sprite)
+		if (mod->type == mod_brush)
 		{
-			sprout = (dsprite_t *)mod->extradata;
+			int i;
 
-			for (i = 0; i < sprout->numframes; i++)
-			{
-				mod->skins[i] = GL3_FindImage(sprout->frames[i].name, it_sprite);
-			}
-		}
-		else if (mod->type == mod_alias)
-		{
-			pheader = (dmdl_t *)mod->extradata;
-
-			for (i = 0; i < pheader->num_skins; i++)
-			{
-				mod->skins[i] = GL3_FindImage((char *)pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
-			}
-
-			mod->numframes = pheader->num_frames;
-		}
-		else if (mod->type == mod_brush)
-		{
 			for (i = 0; i < mod->numtexinfo; i++)
 			{
 				mod->texinfo[i].image->registration_sequence = registration_sequence;
 			}
+		}
+		else
+		{
+			/* numframes is unused for SP2 but lets set it also  */
+			mod->numframes = Mod_ReLoadSkins((struct image_s **)mod->skins,
+				(findimage_t)GL3_FindImage, mod->extradata, mod->type);
 		}
 	}
 

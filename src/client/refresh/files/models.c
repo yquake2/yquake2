@@ -260,3 +260,38 @@ Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen,
 
 	return extradata;
 }
+
+/*
+=================
+Mod_ReLoad
+
+Reload images in SP2/MD2 (mark registration_sequence)
+=================
+*/
+int
+Mod_ReLoadSkins(struct image_s **skins, findimage_t find_image, void *extradata,
+	modtype_t type)
+{
+	if (type == mod_sprite)
+	{
+		dsprite_t	*sprout;
+		int	i;
+
+		sprout = (dsprite_t *)extradata;
+		for (i=0 ; i<sprout->numframes ; i++)
+			skins[i] = find_image (sprout->frames[i].name, it_sprite);
+		return sprout->numframes;
+	}
+	else if (type == mod_alias)
+	{
+		dmdl_t *pheader;
+		int	i;
+
+		pheader = (dmdl_t *)extradata;
+		for (i=0 ; i<pheader->num_skins ; i++)
+			skins[i] = find_image ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME, it_skin);
+		return  pheader->num_frames;
+	}
+	// Unknow format, no images associated with it
+	return 0;
+}

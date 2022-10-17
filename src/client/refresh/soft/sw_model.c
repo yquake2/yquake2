@@ -1108,32 +1108,21 @@ RE_RegisterModel (char *name)
 	mod = Mod_ForName (name, r_worldmodel, false);
 	if (mod)
 	{
-		int i;
-
 		mod->registration_sequence = registration_sequence;
 
 		// register any images used by the models
-		if (mod->type == mod_sprite)
+		if (mod->type == mod_brush)
 		{
-			dsprite_t	*sprout;
+			int i;
 
-			sprout = (dsprite_t *)mod->extradata;
-			for (i=0 ; i<sprout->numframes ; i++)
-				mod->skins[i] = R_FindImage (sprout->frames[i].name, it_sprite);
-		}
-		else if (mod->type == mod_alias)
-		{
-			dmdl_t *pheader;
-
-			pheader = (dmdl_t *)mod->extradata;
-			for (i=0 ; i<pheader->num_skins ; i++)
-				mod->skins[i] = R_FindImage ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME, it_skin);
-			mod->numframes = pheader->num_frames;
-		}
-		else if (mod->type == mod_brush)
-		{
 			for (i=0 ; i<mod->numtexinfo ; i++)
 				mod->texinfo[i].image->registration_sequence = registration_sequence;
+		}
+		else
+		{
+			/* numframes is unused for SP2 but lets set it also  */
+			mod->numframes = Mod_ReLoadSkins((struct image_s **)mod->skins,
+				(findimage_t)R_FindImage, mod->extradata, mod->type);
 		}
 	}
 	return mod;
