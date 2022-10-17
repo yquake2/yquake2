@@ -51,6 +51,13 @@ infantry_footstep(edict_t *self)
 	if (!g_monsterfootsteps->value)
 		return;
 
+	// Lazy loading for savegame compatibility.
+	if (sound_step == 0 || sound_step2 == 0)
+	{
+		sound_step = gi.soundindex("infantry/step1.wav");
+		sound_step2 = gi.soundindex("infantry/step2.wav");
+	}
+
 	if (randk() % 2 == 0)
 	{
 		gi.sound(self, CHAN_BODY, sound_step, 1, ATTN_NORM, 0);
@@ -803,6 +810,11 @@ SP_monster_infantry(edict_t *self)
 		return;
 	}
 
+	// Force recaching at next footstep to ensure
+	// that the sound indices are correct.
+	sound_step = 0;
+	sound_step2 = 0;
+
 	sound_pain1 = gi.soundindex("infantry/infpain1.wav");
 	sound_pain2 = gi.soundindex("infantry/infpain2.wav");
 	sound_die1 = gi.soundindex("infantry/infdeth1.wav");
@@ -816,9 +828,6 @@ SP_monster_infantry(edict_t *self)
 	sound_sight = gi.soundindex("infantry/infsght1.wav");
 	sound_search = gi.soundindex("infantry/infsrch1.wav");
 	sound_idle = gi.soundindex("infantry/infidle1.wav");
-
-	sound_step = gi.soundindex("infantry/step1.wav");
-	sound_step2 = gi.soundindex("infantry/step2.wav");
 
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;

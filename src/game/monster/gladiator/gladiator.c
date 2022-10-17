@@ -47,6 +47,13 @@ gladiator_footstep(edict_t *self)
 	if (!g_monsterfootsteps->value)
 		return;
 
+	// Lazy loading for savegame compatibility.
+	if (sound_step == 0 || sound_step2 == 0)
+	{
+		sound_step = gi.soundindex("gladiator/step1.wav");
+		sound_step2 = gi.soundindex("gladiator/step2.wav");
+	}
+
 	if (randk() % 2 == 0)
 	{
 		gi.sound(self, CHAN_BODY, sound_step, 1, ATTN_NORM, 0);
@@ -534,6 +541,11 @@ SP_monster_gladiator(edict_t *self)
 		return;
 	}
 
+	// Force recaching at next footstep to ensure
+	// that the sound indices are correct.
+	sound_step = 0;
+	sound_step2 = 0;
+
 	sound_pain1 = gi.soundindex("gladiator/pain.wav");
 	sound_pain2 = gi.soundindex("gladiator/gldpain2.wav");
 	sound_die = gi.soundindex("gladiator/glddeth2.wav");
@@ -544,9 +556,6 @@ SP_monster_gladiator(edict_t *self)
 	sound_idle = gi.soundindex("gladiator/gldidle1.wav");
 	sound_search = gi.soundindex("gladiator/gldsrch1.wav");
 	sound_sight = gi.soundindex("gladiator/sight.wav");
-
-	sound_step = gi.soundindex("gladiator/step1.wav");
-	sound_step2 = gi.soundindex("gladiator/step2.wav");
 
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;

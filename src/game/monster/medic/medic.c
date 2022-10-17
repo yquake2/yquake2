@@ -49,6 +49,13 @@ medic_footstep(edict_t *self)
 	if (!g_monsterfootsteps->value)
 		return;
 
+	// Lazy loading for savegame compatibility.
+	if (sound_step == 0 || sound_step2 == 0)
+	{
+		sound_step = gi.soundindex("medic/step1.wav");
+		sound_step2 = gi.soundindex("medic/step2.wav");
+	}
+
 	if (randk() % 2 == 0)
 	{
 		gi.sound(self, CHAN_BODY, sound_step, 1, ATTN_NORM, 0);
@@ -1015,6 +1022,11 @@ SP_monster_medic(edict_t *self)
 		return;
 	}
 
+	// Force recaching at next footstep to ensure
+	// that the sound indices are correct.
+	sound_step = 0;
+	sound_step2 = 0;
+
 	sound_idle1 = gi.soundindex("medic/idle.wav");
 	sound_pain1 = gi.soundindex("medic/medpain1.wav");
 	sound_pain2 = gi.soundindex("medic/medpain2.wav");
@@ -1025,9 +1037,6 @@ SP_monster_medic(edict_t *self)
 	sound_hook_hit = gi.soundindex("medic/medatck3.wav");
 	sound_hook_heal = gi.soundindex("medic/medatck4.wav");
 	sound_hook_retract = gi.soundindex("medic/medatck5.wav");
-
-	sound_step = gi.soundindex("medic/step1.wav");
-	sound_step2 = gi.soundindex("medic/step2.wav");
 
 	gi.soundindex("medic/medatck1.wav");
 

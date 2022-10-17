@@ -51,6 +51,15 @@ soldier_footstep(edict_t *self)
 	if (!g_monsterfootsteps->value)
 		return;
 
+	// Lazy loading for savegame compatibility.
+	if (sound_step == 0 || sound_step2 == 0 || sound_step3 == 0 || sound_step4 == 0)
+	{
+		sound_step = gi.soundindex("player/step1.wav");
+		sound_step2 = gi.soundindex("player/step2.wav");
+		sound_step3 = gi.soundindex("player/step3.wav");
+		sound_step4 = gi.soundindex("player/step4.wav");
+	}
+
 	int i;
 	i = randk() % 4;
 
@@ -1580,6 +1589,13 @@ SP_monster_soldier_x(edict_t *self)
 		return;
 	}
 
+	// Force recaching at next footstep to ensure
+	// that the sound indices are correct.
+	sound_step = 0;
+	sound_step2 = 0;
+	sound_step3 = 0;
+	sound_step4 = 0;
+
 	self->s.modelindex = gi.modelindex("models/monsters/soldier/tris.md2");
 	self->monsterinfo.scale = MODEL_SCALE;
 	VectorSet(self->mins, -16, -16, -24);
@@ -1591,10 +1607,6 @@ SP_monster_soldier_x(edict_t *self)
 	sound_sight1 = gi.soundindex("soldier/solsght1.wav");
 	sound_sight2 = gi.soundindex("soldier/solsrch1.wav");
 	sound_cock = gi.soundindex("infantry/infatck3.wav");
-	sound_step = gi.soundindex("player/step1.wav");
-	sound_step2 = gi.soundindex("player/step2.wav");
-	sound_step3 = gi.soundindex("player/step3.wav");
-	sound_step4 = gi.soundindex("player/step4.wav");
 
 	self->mass = 100;
 

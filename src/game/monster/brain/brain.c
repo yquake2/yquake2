@@ -51,6 +51,13 @@ brain_footstep(edict_t *self)
 	if (!g_monsterfootsteps->value)
 		return;
 
+	// Lazy loading for savegame compatibility.
+	if (sound_step == 0 || sound_step2 == 0)
+	{
+		sound_step = gi.soundindex("brain/step1.wav");
+		sound_step2 = gi.soundindex("brain/step2.wav");
+	}
+
 	if (randk() % 2 == 0)
 	{
 		gi.sound(self, CHAN_BODY, sound_step, 1, ATTN_NORM, 0);
@@ -817,6 +824,11 @@ SP_monster_brain(edict_t *self)
 		return;
 	}
 
+	// Force recaching at next footstep to ensure
+	// that the sound indices are correct.
+	sound_step = 0;
+	sound_step2 = 0;
+
 	sound_chest_open = gi.soundindex("brain/brnatck1.wav");
 	sound_tentacles_extend = gi.soundindex("brain/brnatck2.wav");
 	sound_tentacles_retract = gi.soundindex("brain/brnatck3.wav");
@@ -831,9 +843,6 @@ SP_monster_brain(edict_t *self)
 	sound_melee1 = gi.soundindex("brain/melee1.wav");
 	sound_melee2 = gi.soundindex("brain/melee2.wav");
 	sound_melee3 = gi.soundindex("brain/melee3.wav");
-
-	sound_step = gi.soundindex("brain/step1.wav");
-	sound_step2 = gi.soundindex("brain/step2.wav");
 
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;

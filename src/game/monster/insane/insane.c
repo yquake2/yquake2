@@ -45,6 +45,15 @@ insane_footstep(edict_t *self)
 	if (!g_monsterfootsteps->value)
 		return;
 
+	// Lazy loading for savegame compatibility.
+	if (sound_step == 0 || sound_step2 == 0 || sound_step3 == 0 || sound_step4 == 0)
+	{
+		sound_step = gi.soundindex("player/step1.wav");
+		sound_step2 = gi.soundindex("player/step2.wav");
+		sound_step3 = gi.soundindex("player/step3.wav");
+		sound_step4 = gi.soundindex("player/step4.wav");
+	}
+
 	int     i;
 	i = randk() % 4;
 
@@ -947,6 +956,13 @@ SP_misc_insane(edict_t *self)
 		return;
 	}
 
+	// Force recaching at next footstep to ensure
+	// that the sound indices are correct.
+	sound_step = 0;
+	sound_step2 = 0;
+	sound_step3 = 0;
+	sound_step4 = 0;
+
 	sound_fist = gi.soundindex("insane/insane11.wav");
 	sound_shake = gi.soundindex("insane/insane5.wav");
 	sound_moan = gi.soundindex("insane/insane7.wav");
@@ -958,11 +974,6 @@ SP_misc_insane(edict_t *self)
 	sound_scream[5] = gi.soundindex("insane/insane8.wav");
 	sound_scream[6] = gi.soundindex("insane/insane9.wav");
 	sound_scream[7] = gi.soundindex("insane/insane10.wav");
-
-	sound_step = gi.soundindex("player/step1.wav");
-	sound_step2 = gi.soundindex("player/step2.wav");
-	sound_step3 = gi.soundindex("player/step3.wav");
-	sound_step4 = gi.soundindex("player/step4.wav");
 
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;

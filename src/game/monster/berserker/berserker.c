@@ -43,6 +43,13 @@ berserk_footstep(edict_t *self)
 	if (!g_monsterfootsteps->value)
 		return;
 
+	// Lazy loading for savegame compatibility.
+	if (sound_step == 0 || sound_step2 == 0)
+	{
+		sound_step = gi.soundindex("berserk/step1.wav");
+		sound_step2 = gi.soundindex("berserk/step2.wav");
+	}
+
 	if (randk() % 2 == 0)
 	{
 		gi.sound(self, CHAN_BODY, sound_step, 1, ATTN_NORM, 0);
@@ -570,6 +577,11 @@ SP_monster_berserk(edict_t *self)
 		return;
 	}
 
+	// Force recaching at next footstep to ensure
+	// that the sound indices are correct.
+	sound_step = 0;
+	sound_step2 = 0;
+
 	/* pre-caches */
 	sound_pain = gi.soundindex("berserk/berpain2.wav");
 	sound_die = gi.soundindex("berserk/berdeth2.wav");
@@ -577,9 +589,6 @@ SP_monster_berserk(edict_t *self)
 	sound_punch = gi.soundindex("berserk/attack.wav");
 	sound_search = gi.soundindex("berserk/bersrch1.wav");
 	sound_sight = gi.soundindex("berserk/sight.wav");
-
-	sound_step = gi.soundindex("berserk/step1.wav");
-	sound_step2 = gi.soundindex("berserk/step2.wav");
 
 	self->s.modelindex = gi.modelindex("models/monsters/berserk/tris.md2");
 	VectorSet(self->mins, -16, -16, -24);
