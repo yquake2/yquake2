@@ -61,6 +61,13 @@ chick_footstep(edict_t *self)
 	if (!g_monsterfootsteps->value)
 		return;
 
+	// Lazy loading for savegame compatibility.
+	if (sound_step == 0 || sound_step2 == 0)
+	{
+		sound_step = gi.soundindex("bitch/step1.wav");
+		sound_step2 = gi.soundindex("bitch/step2.wav");
+	}
+
 	if (randk() % 2 == 0)
 	{
 		gi.sound(self, CHAN_BODY, sound_step, 1, ATTN_NORM, 0);
@@ -944,6 +951,11 @@ SP_monster_chick(edict_t *self)
 		return;
 	}
 
+	// Force recaching at next footstep to ensure
+	// that the sound indices are correct.
+	sound_step = 0;
+	sound_step2 = 0;
+
 	sound_missile_prelaunch = gi.soundindex("chick/chkatck1.wav");
 	sound_missile_launch = gi.soundindex("chick/chkatck2.wav");
 	sound_melee_swing = gi.soundindex("chick/chkatck3.wav");
@@ -959,9 +971,6 @@ SP_monster_chick(edict_t *self)
 	sound_pain3 = gi.soundindex("chick/chkpain3.wav");
 	sound_sight = gi.soundindex("chick/chksght1.wav");
 	sound_search = gi.soundindex("chick/chksrch1.wav");
-
-	sound_step = gi.soundindex("bitch/step1.wav");
-	sound_step2 = gi.soundindex("bitch/step2.wav");
 
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
