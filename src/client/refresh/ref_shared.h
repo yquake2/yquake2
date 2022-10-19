@@ -81,15 +81,26 @@ extern void LoadPCX(char *origname, byte **pic, byte **palette, int *width, int 
 extern void GetPCXInfo(char *filename, int *width, int *height);
 
 extern qboolean LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *height);
-extern qboolean ResizeSTB(byte *input_pixels, int input_width, int input_height,
+extern qboolean ResizeSTB(const byte *input_pixels, int input_width, int input_height,
 			  byte *output_pixels, int output_width, int output_height);
 extern void SmoothColorImage(unsigned *dst, size_t size, size_t rstep);
-extern void scale2x(byte *src, byte *dst, int width, int height);
-extern void scale3x(byte *src, byte *dst, int width, int height);
+extern void scale2x(const byte *src, byte *dst, int width, int height);
+extern void scale3x(const byte *src, byte *dst, int width, int height);
 
 extern void GetWalInfo(char *name, int *width, int *height);
 extern void GetM8Info(char *name, int *width, int *height);
 
 extern float Mod_RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
 extern const byte* Mod_DecompressVis(const byte *in, int row);
+
+/* Shared models load */
+typedef struct image_s* (*findimage_t)(char *name, imagetype_t type);
+void *Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
+	vec3_t mins, vec3_t maxs, struct image_s **skins,
+	findimage_t find_image, modtype_t *type);
+extern void *Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen,
+	struct image_s **skins, findimage_t find_image, modtype_t *type);
+extern int Mod_ReLoadSkins(struct image_s **skins, findimage_t find_image,
+	void *extradata, modtype_t type);
+
 #endif /* SRC_CLIENT_REFRESH_REF_SHARED_H_ */

@@ -35,9 +35,7 @@ static int mod_numknown;
 static int mod_max = 0;
 int registration_sequence;
 
-void LoadSP2(model_t *mod, void *buffer, int modfilelen);
 static void Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen);
-void LoadMD2(model_t *mod, void *buffer, int modfilelen);
 void LM_BuildPolygonFromSurface(model_t *currentmodel, msurface_t *fa);
 void LM_CreateSurfaceLightmap(msurface_t *surf);
 void LM_EndBuildingLightmaps(void);
@@ -173,7 +171,7 @@ static model_t *
 Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 {
 	model_t *mod;
-	unsigned *buf;
+	void *buf;
 	int i;
 
 	if (!name[0])
@@ -249,11 +247,30 @@ Mod_ForName (char *name, model_t *parent_model, qboolean crash)
 	switch (LittleLong(*(unsigned *)buf))
 	{
 		case IDALIASHEADER:
-			LoadMD2(mod, buf, modfilelen);
+			{
+				mod->extradata = Mod_LoadMD2(mod->name, buf, modfilelen,
+					mod->mins, mod->maxs,
+					(struct image_s **)mod->skins, (findimage_t)R_FindImage,
+					&(mod->type));
+				if (!mod->extradata)
+				{
+					ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",
+						__func__, mod->name);
+				}
+			};
 			break;
 
 		case IDSPRITEHEADER:
-			LoadSP2(mod, buf, modfilelen);
+			{
+				mod->extradata = Mod_LoadSP2(mod->name, buf, modfilelen,
+					(struct image_s **)mod->skins, (findimage_t)R_FindImage,
+					&(mod->type));
+				if (!mod->extradata)
+				{
+					ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",
+						__func__, mod->name);
+				}
+			}
 			break;
 
 		case IDBSPHEADER:
@@ -1109,9 +1126,6 @@ struct model_s *
 RI_RegisterModel(char *name)
 {
 	model_t *mod;
-	int i;
-	dsprite_t *sprout;
-	dmdl_t *pheader;
 
 	mod = Mod_ForName(name, r_worldmodel, false);
 
@@ -1120,34 +1134,21 @@ RI_RegisterModel(char *name)
 		mod->registration_sequence = registration_sequence;
 
 		/* register any images used by the models */
-		if (mod->type == mod_sprite)
+		if (mod->type == mod_brush)
 		{
-			sprout = (dsprite_t *)mod->extradata;
+			int i;
 
-			for (i = 0; i < sprout->numframes; i++)
-			{
-				mod->skins[i] = R_FindImage(sprout->frames[i].name, it_sprite);
-			}
-		}
-		else if (mod->type == mod_alias)
-		{
-			pheader = (dmdl_t *)mod->extradata;
-
-			for (i = 0; i < pheader->num_skins; i++)
-			{
-				mod->skins[i] = R_FindImage((char *)pheader + pheader->ofs_skins +
-					   	i * MAX_SKINNAME, it_skin);
-			}
-
-			mod->numframes = pheader->num_frames;
-		}
-		else if (mod->type == mod_brush)
-		{
 			for (i = 0; i < mod->numtexinfo; i++)
 			{
 				mod->texinfo[i].image->registration_sequence =
 					registration_sequence;
 			}
+		}
+		else
+		{
+			/* numframes is unused for SP2 but lets set it also  */
+			mod->numframes = Mod_ReLoadSkins((struct image_s **)mod->skins,
+				(findimage_t)R_FindImage, mod->extradata, mod->type);
 		}
 	}
 

@@ -963,9 +963,6 @@ GL3_Mod_FreeAll(void)
 	}
 }
 
-extern void GL3_LoadMD2(gl3model_t *mod, void *buffer, int modfilelen);
-extern void GL3_LoadSP2(gl3model_t *mod, void *buffer, int modfilelen);
-
 /*
  * Loads in a model for the given name
  */
@@ -973,8 +970,8 @@ static gl3model_t *
 Mod_ForName (char *name, gl3model_t *parent_model, qboolean crash)
 {
 	gl3model_t *mod;
-	unsigned *buf;
-	int i;
+	void *buf;
+	int i, modfilelen;
 
 	if (!name[0])
 	{
@@ -1031,7 +1028,7 @@ Mod_ForName (char *name, gl3model_t *parent_model, qboolean crash)
 	strcpy(mod->name, name);
 
 	/* load the file */
-	int modfilelen = ri.FS_LoadFile(mod->name, (void **)&buf);
+	modfilelen = ri.FS_LoadFile(mod->name, (void **)&buf);
 
 	if (!buf)
 	{
@@ -1049,11 +1046,30 @@ Mod_ForName (char *name, gl3model_t *parent_model, qboolean crash)
 	switch (LittleLong(*(unsigned *)buf))
 	{
 		case IDALIASHEADER:
-			GL3_LoadMD2(mod, buf, modfilelen);
+			{
+				mod->extradata = Mod_LoadMD2(mod->name, buf, modfilelen,
+					mod->mins, mod->maxs,
+					(struct image_s **)mod->skins, (findimage_t)GL3_FindImage,
+					&(mod->type));
+				if (!mod->extradata)
+				{
+					ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",
+						__func__, mod->name);
+				}
+			};
 			break;
 
 		case IDSPRITEHEADER:
-			GL3_LoadSP2(mod, buf, modfilelen);
+			{
+				mod->extradata = Mod_LoadSP2(mod->name, buf, modfilelen,
+					(struct image_s **)mod->skins, (findimage_t)GL3_FindImage,
+					&(mod->type));
+				if (!mod->extradata)
+				{
+					ri.Sys_Error(ERR_DROP, "%s: Failed to load %s",
+						__func__, mod->name);
+				}
+			}
 			break;
 
 		case IDBSPHEADER:
@@ -1108,9 +1124,6 @@ struct model_s *
 GL3_RegisterModel(char *name)
 {
 	gl3model_t *mod;
-	int i;
-	dsprite_t *sprout;
-	dmdl_t *pheader;
 
 	mod = Mod_ForName(name, gl3_worldmodel, false);
 
@@ -1119,32 +1132,20 @@ GL3_RegisterModel(char *name)
 		mod->registration_sequence = registration_sequence;
 
 		/* register any images used by the models */
-		if (mod->type == mod_sprite)
+		if (mod->type == mod_brush)
 		{
-			sprout = (dsprite_t *)mod->extradata;
+			int i;
 
-			for (i = 0; i < sprout->numframes; i++)
-			{
-				mod->skins[i] = GL3_FindImage(sprout->frames[i].name, it_sprite);
-			}
-		}
-		else if (mod->type == mod_alias)
-		{
-			pheader = (dmdl_t *)mod->extradata;
-
-			for (i = 0; i < pheader->num_skins; i++)
-			{
-				mod->skins[i] = GL3_FindImage((char *)pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
-			}
-
-			mod->numframes = pheader->num_frames;
-		}
-		else if (mod->type == mod_brush)
-		{
 			for (i = 0; i < mod->numtexinfo; i++)
 			{
 				mod->texinfo[i].image->registration_sequence = registration_sequence;
 			}
+		}
+		else
+		{
+			/* numframes is unused for SP2 but lets set it also  */
+			mod->numframes = Mod_ReLoadSkins((struct image_s **)mod->skins,
+				(findimage_t)GL3_FindImage, mod->extradata, mod->type);
 		}
 	}
 

@@ -96,7 +96,7 @@ LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *hei
 }
 
 qboolean
-ResizeSTB(byte *input_pixels, int input_width, int input_height,
+ResizeSTB(const byte *input_pixels, int input_width, int input_height,
 			  byte *output_pixels, int output_width, int output_height)
 {
 	if (stbir_resize_uint8(input_pixels, input_width, input_height, 0,
@@ -223,7 +223,7 @@ SmoothColorImage(unsigned *dst, size_t size, size_t rstep)
 /* https://en.wikipedia.org/wiki/Pixel-art_scaling_algorithms */
 
 void
-scale2x(byte *src, byte *dst, int width, int height)
+scale2x(const byte *src, byte *dst, int width, int height)
 {
 	/*
 		EPX/Scale2×/AdvMAME2×
@@ -239,7 +239,7 @@ scale2x(byte *src, byte *dst, int width, int height)
 		IF B==D AND B!=A AND D!=C => 4=D
 	*/
 	{
-		byte *in_buff = src;
+		const byte *in_buff = src;
 		byte *out_buff = dst;
 		byte *out_buff_full = dst + ((width * height) << 2);
 		while (out_buff < out_buff_full)
@@ -304,7 +304,7 @@ scale2x(byte *src, byte *dst, int width, int height)
 }
 
 void
-scale3x(byte *src, byte *dst, int width, int height)
+scale3x(const byte *src, byte *dst, int width, int height)
 {
 	/*
 		Scale3×/AdvMAME3× and ScaleFX
@@ -326,7 +326,7 @@ scale3x(byte *src, byte *dst, int width, int height)
 		IF F==H AND F!=B AND H!=D => 9=F
 	*/
 	{
-		byte *in_buff = src;
+		const byte *in_buff = src;
 		byte *out_buff = dst;
 		byte *out_buff_full = dst + ((width * height) * 9);
 		while (out_buff < out_buff_full)
