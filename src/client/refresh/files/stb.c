@@ -68,7 +68,7 @@ FixFileExt(const char *origname, const char *ext, char *filename, size_t size)
  * type: extension of the type we wanna open ("jpg", "png" or "tga")
  * pic: pointer RGBA pixel data will be assigned to
  */
-qboolean
+static qboolean
 LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *height)
 {
 	char filename[256];
@@ -492,7 +492,7 @@ LoadHiColorImage(const char *name, const char* namewe, const char *ext,
 }
 
 struct image_s *
-LoadImage(const char *name, const char* namewe, const char *ext, imagetype_t type,
+R_LoadImage(const char *name, const char* namewe, const char *ext, imagetype_t type,
 	qboolean r_retexturing, loadimage_t load_image)
 {
 	struct image_s	*image = NULL;
@@ -628,7 +628,7 @@ GetTexImage(const char *name, findimage_t find_image)
 }
 
 struct image_s *
-FindPic(const char *name, findimage_t find_image)
+R_FindPic(const char *name, findimage_t find_image)
 {
 	struct image_s	*image = NULL;
 

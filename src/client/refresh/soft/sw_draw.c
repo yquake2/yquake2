@@ -35,7 +35,7 @@ RE_Draw_FindPic
 image_t *
 RE_Draw_FindPic (char *name)
 {
-	return FindPic(name, (findimage_t)R_FindImage);
+	return R_FindPic(name, (findimage_t)R_FindImage);
 }
 
 
@@ -48,7 +48,7 @@ Draw_InitLocal
 void
 Draw_InitLocal (void)
 {
-	draw_chars = FindPic ("conchars", (findimage_t)R_FindImage);
+	draw_chars = R_FindPic ("conchars", (findimage_t)R_FindImage);
 	if (!draw_chars)
 	{
 		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx", __func__);
@@ -148,7 +148,7 @@ RE_Draw_GetPicSize (int *w, int *h, char *name)
 {
 	image_t *image;
 
-	image = FindPic (name, (findimage_t)R_FindImage);
+	image = R_FindPic (name, (findimage_t)R_FindImage);
 	if (!image)
 	{
 		*w = *h = -1;
@@ -306,7 +306,7 @@ RE_Draw_StretchPic (int x, int y, int w, int h, char *name)
 {
 	image_t	*pic;
 
-	pic = FindPic (name, (findimage_t)R_FindImage);
+	pic = R_FindPic (name, (findimage_t)R_FindImage);
 	if (!pic)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", name);
@@ -379,7 +379,7 @@ RE_Draw_PicScaled(int x, int y, char *name, float scale)
 {
 	image_t		*pic;
 
-	pic = FindPic (name, (findimage_t)R_FindImage);
+	pic = R_FindPic (name, (findimage_t)R_FindImage);
 	if (!pic)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", name);
@@ -429,7 +429,7 @@ RE_Draw_TileClear (int x, int y, int w, int h, char *name)
 	VID_DamageBuffer(x, y);
 	VID_DamageBuffer(x + w, y + h);
 
-	pic = FindPic (name, (findimage_t)R_FindImage);
+	pic = R_FindPic (name, (findimage_t)R_FindImage);
 	if (!pic)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", name);

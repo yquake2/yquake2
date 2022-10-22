@@ -39,35 +39,6 @@
 #define VERTEXSIZE 7
 
 /* in memory representation */
-typedef struct
-{
-	vec3_t position;
-} mvertex_t;
-
-typedef struct
-{
-	vec3_t mins, maxs;
-	vec3_t origin; /* for sounds or lights */
-	float radius;
-	int headnode;
-	int visleafs; /* not including the solid leaf 0 */
-	int firstface, numfaces;
-} mmodel_t;
-
-typedef struct
-{
-	unsigned short v[2];
-	unsigned int cachededgeoffset;
-} medge_t;
-
-typedef struct mtexinfo_s
-{
-	float vecs[2][4];
-	int flags;
-	int numframes;
-	struct mtexinfo_s *next; /* animation chain */
-	image_t *image;
-} mtexinfo_t;
 
 typedef struct glpoly_s
 {

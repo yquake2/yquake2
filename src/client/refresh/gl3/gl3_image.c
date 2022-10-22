@@ -651,7 +651,7 @@ GL3_FindImage(const char *name, imagetype_t type)
 	//
 	// load the pic from disk
 	//
-	image = (gl3image_t *)LoadImage(name, namewe, ext, type,
+	image = (gl3image_t *)R_LoadImage(name, namewe, ext, type,
 		r_retexturing->value, (loadimage_t)GL3_LoadPic);
 
 	if (!image && r_validation->value)

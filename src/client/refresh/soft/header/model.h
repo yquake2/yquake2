@@ -37,15 +37,9 @@ BRUSH MODELS
 ==============================================================================
 */
 
-
 //
 // in memory representation
 //
-typedef struct
-{
-	vec3_t		position;
-} mvertex_t;
-
 
 // FIXME: differentiate from texinfo SURF_ flags
 #define	SURF_PLANEBACK		0x02
@@ -55,22 +49,6 @@ typedef struct
 #define SURF_DRAWSKYBOX		0x80	// sky box
 
 #define SURF_FLOW		0x100
-
-typedef struct
-{
-	unsigned short	v[2];
-	unsigned int	cachededgeoffset;
-} medge_t;
-
-typedef struct mtexinfo_s
-{
-	float		vecs[2][4];
-	float		mipadjust;
-	image_t		*image;
-	int		flags;
-	int		numframes;
-	struct mtexinfo_s	*next;		// animation chain
-} mtexinfo_t;
 
 typedef struct msurface_s
 {
@@ -108,6 +86,7 @@ typedef struct mnode_s
 	int		contents;	// CONTENTS_NODE, to differentiate from leafs
 	int		visframe;	// node needs to be traversed if current
 
+	/* FIXME: is different type in other renders */
 	short		minmaxs[6];	// for bounding box culling
 
 	struct mnode_s	*parent;

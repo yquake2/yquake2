@@ -1081,7 +1081,7 @@ R_FindImage(const char *name, imagetype_t type)
 	//
 	// load the pic from disk
 	//
-	image = (image_t *)LoadImage(name, namewe, ext, type,
+	image = (image_t *)R_LoadImage(name, namewe, ext, type,
 		r_retexturing->value, (loadimage_t)R_LoadPic);
 
 	if (!image && r_validation->value)

@@ -1032,7 +1032,7 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VISIBILITY], 1, 1, 0);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFS], sizeof(dleaf_t), sizeof(mleaf_t), 0);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_NODES], sizeof(dnode_t), sizeof(mnode_t), 0);
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(dmodel_t), 0);
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(model_t), 0);
 
 	hunkSize += 1048576; // 1MB extra just in case
 

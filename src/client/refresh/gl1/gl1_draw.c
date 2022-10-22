@@ -37,7 +37,7 @@ void
 Draw_InitLocal(void)
 {
 	/* load console characters */
-	draw_chars = FindPic("conchars", (findimage_t)R_FindImage);
+	draw_chars = R_FindPic("conchars", (findimage_t)R_FindImage);
 	if (!draw_chars)
 	{
 		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
@@ -107,7 +107,7 @@ RDraw_CharScaled(int x, int y, int num, float scale)
 image_t *
 RDraw_FindPic(char *name)
 {
-	return FindPic(name, (findimage_t)R_FindImage);
+	return R_FindPic(name, (findimage_t)R_FindImage);
 }
 
 void
@@ -115,7 +115,7 @@ RDraw_GetPicSize(int *w, int *h, char *pic)
 {
 	image_t *gl;
 
-	gl = FindPic(pic, (findimage_t)R_FindImage);
+	gl = R_FindPic(pic, (findimage_t)R_FindImage);
 
 	if (!gl)
 	{
@@ -132,7 +132,7 @@ RDraw_StretchPic(int x, int y, int w, int h, char *pic)
 {
 	image_t *gl;
 
-	gl = FindPic(pic, (findimage_t)R_FindImage);
+	gl = R_FindPic(pic, (findimage_t)R_FindImage);
 
 	if (!gl)
 	{
@@ -177,7 +177,7 @@ RDraw_PicScaled(int x, int y, char *pic, float factor)
 {
 	image_t *gl;
 
-	gl = FindPic(pic, (findimage_t)R_FindImage);
+	gl = R_FindPic(pic, (findimage_t)R_FindImage);
 
 	if (!gl)
 	{
@@ -227,7 +227,7 @@ RDraw_TileClear(int x, int y, int w, int h, char *pic)
 {
 	image_t *image;
 
-	image = FindPic(pic, (findimage_t)R_FindImage);
+	image = R_FindPic(pic, (findimage_t)R_FindImage);
 
 	if (!image)
 	{

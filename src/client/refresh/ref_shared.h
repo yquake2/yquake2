@@ -83,8 +83,6 @@ typedef struct image_s* (*loadimage_t)(const char *name, byte *pic, int width, i
 extern struct image_s* LoadWal(const char *origname, imagetype_t type, loadimage_t load_image);
 extern struct image_s* LoadM8(const char *origname, imagetype_t type, loadimage_t load_image);
 extern struct image_s* LoadM32(const char *origname, imagetype_t type, loadimage_t load_image);
-extern struct image_s* LoadImage(const char *name, const char* namewe, const char *ext, imagetype_t type,
-	qboolean r_retexturing, loadimage_t load_image);
 extern void FixFileExt(const char *origname, const char *ext, char *filename, size_t size);
 extern void GetPCXPalette(byte **colormap, unsigned *d_8to24table);
 extern void LoadPCX(const char *origname, byte **pic, byte **palette, int *width, int *height);
@@ -93,7 +91,6 @@ extern void GetWalInfo(const char *name, int *width, int *height);
 extern void GetM8Info(const char *name, int *width, int *height);
 extern void GetM32Info(const char *name, int *width, int *height);
 
-extern qboolean LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *height);
 extern qboolean ResizeSTB(const byte *input_pixels, int input_width, int input_height,
 			  byte *output_pixels, int output_width, int output_height);
 extern void SmoothColorImage(unsigned *dst, size_t size, size_t rstep);
@@ -103,7 +100,30 @@ extern void scale3x(const byte *src, byte *dst, int width, int height);
 extern float Mod_RadiusFromBounds(const vec3_t mins, const vec3_t maxs);
 extern const byte* Mod_DecompressVis(const byte *in, int row);
 
-/* Shared models load */
+/* Shared models struct */
+
+typedef struct mvertex_s
+{
+	vec3_t		position;
+} mvertex_t;
+
+typedef struct medge_s
+{
+	unsigned short	v[2];
+	unsigned int	cachededgeoffset;
+} medge_t;
+
+typedef struct mtexinfo_s
+{
+	float	vecs[2][4];
+	float	mipadjust;	/* FIXME: Used only by soft render */
+	int	flags;
+	int	numframes;
+	struct mtexinfo_s	*next; /* animation chain */
+	struct image_s	*image;
+} mtexinfo_t;
+
+/* Shared models func */
 typedef struct image_s* (*findimage_t)(const char *name, imagetype_t type);
 extern void *Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
 	vec3_t mins, vec3_t maxs, struct image_s **skins,
@@ -115,6 +135,8 @@ extern int Mod_ReLoadSkins(struct image_s **skins, findimage_t find_image,
 extern struct image_s *GetSkyImage(const char *skyname, const char* surfname,
 	qboolean palettedtexture, findimage_t find_image);
 extern struct image_s *GetTexImage(const char *name, findimage_t find_image);
-extern struct image_s *FindPic(const char *name, findimage_t find_image);
+extern struct image_s *R_FindPic(const char *name, findimage_t find_image);
+extern struct image_s* R_LoadImage(const char *name, const char* namewe, const char *ext, imagetype_t type,
+	qboolean r_retexturing, loadimage_t load_image);
 
 #endif /* SRC_CLIENT_REFRESH_REF_SHARED_H_ */
