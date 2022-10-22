@@ -292,10 +292,12 @@ CL_PredictMovement(void)
 		VectorCopy(pm.s.origin, cl.predicted_origins[frame]);
 	}
 
+	// step is used for movement prediction on stairs
+	// (so moving up/down stairs is smooth)
 	step = pm.s.origin[2] - (int)(cl.predicted_origin[2] * 8);
 	VectorCopy(pm.s.velocity, tmp);
 
-	if (((step > 126 && step < 130))
+	if (((step > 62 && step < 66) || (step > 94 && step < 98) || (step > 126 && step < 130))
 		&& !VectorCompare(tmp, vec3_origin)
 		&& (pm.s.pm_flags & PMF_ON_GROUND))
 	{
