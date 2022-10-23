@@ -1130,6 +1130,14 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 				effect_duration /= 2;
 			}
 
+			// The following may be ugly: cache length in SDL is much, much bigger
+			// than the one in OpenAL, so much that it's definitely not in ms.
+			// If that changes in the future, this must be removed.
+			if (sound_started == SS_SDL)
+			{
+				effect_duration /= 45;
+			}
+
 			effect_volume = sfx->cache->volume;
 		}
 
