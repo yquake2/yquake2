@@ -1109,33 +1109,17 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 
 	if (sfx->name[0])
 	{
-		vec3_t orientation, direction;
-		vec_t distance_direction;
-		int dir_x, dir_y, dir_z;
-		int effect_duration = 0;
-		int effect_volume = -1;
+		vec3_t direction = {0};
+		unsigned int effect_duration = 0;
+		unsigned short int effect_volume = 0;
 
-		VectorSubtract(listener_forward, listener_up, orientation);
-
-		// with !fixed we have all sounds related directly to player,
+		// with !ps->fixed we have all sounds related directly to player,
 		// e.g. players fire, pain, menu
-		if (!ps->fixed_origin)
-		{
-			VectorCopy(orientation, direction);
-			distance_direction = 0;
-		}
-		else
+		// else, they come from the environment
+		if (ps->fixed_origin)
 		{
 			VectorSubtract(listener_origin, ps->origin, direction);
-			distance_direction = VectorLength(direction);
 		}
-
-		VectorNormalize(direction);
-		VectorNormalize(orientation);
-
-		dir_x = 16 * orientation[0] * direction[0];
-		dir_y = 16 * orientation[1] * direction[1];
-		dir_z = 16 * orientation[2] * direction[2];
 
 		if (sfx->cache)
 		{
@@ -1146,16 +1130,11 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 				effect_duration /= 2;
 			}
 
-			/* sound near player has 16 points */
-			effect_volume = sfx->cache->volume / 16;
+			effect_volume = sfx->cache->volume;
 		}
 
-		Haptic_Feedback(
-			sfx->name, (16 - distance_direction / 32) * effect_volume,
-			effect_duration,
-			sfx->cache->begin, sfx->cache->end,
-			sfx->cache->attack, sfx->cache->fade,
-			dir_x, dir_y, dir_z);
+		Controller_Rumble(sfx->name, direction, !ps->fixed_origin,
+			effect_duration, effect_volume);
 	}
 
 	ps->entnum = entnum;

@@ -1942,10 +1942,10 @@ Joy_MenuInit(void)
         s_joy_haptic_slider.generic.x = 0;
         s_joy_haptic_slider.generic.y = y;
         y += 10;
-        s_joy_haptic_slider.generic.name = "haptic magnitude";
+        s_joy_haptic_slider.generic.name = "rumble intensity";
         s_joy_haptic_slider.cvar = "joy_haptic_magnitude";
         s_joy_haptic_slider.minvalue = 0.0f;
-        s_joy_haptic_slider.maxvalue = 2.2f;
+        s_joy_haptic_slider.maxvalue = 2.0f;
         Menu_AddItem(&s_joy_menu, (void *)&s_joy_haptic_slider);
     }
 
