@@ -301,7 +301,7 @@ ApplyChanges(void *unused)
 void
 VID_MenuInit(void)
 {
-	int y = 0;
+	int y = 30;
 
 	// Renderer selection box.
 	// MAXRENDERERS + Custom + NULL.
@@ -444,7 +444,7 @@ VID_MenuInit(void)
 	s_renderer_list.generic.type = MTYPE_SPINCONTROL;
 	s_renderer_list.generic.name = "renderer";
 	s_renderer_list.generic.x = 0;
-	s_renderer_list.generic.y = (y = 0);
+	s_renderer_list.generic.y = y;
 	s_renderer_list.itemnames = renderers;
 	s_renderer_list.curvalue = Renderer_GetRenderer();
 
