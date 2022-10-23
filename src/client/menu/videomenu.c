@@ -43,6 +43,7 @@ extern cvar_t *vid_renderer;
 static cvar_t *r_vsync;
 static cvar_t *gl_anisotropic;
 static cvar_t *gl_msaa_samples;
+static cvar_t *gl3_colorlight;
 
 static menuframework_s s_opengl_menu;
 
@@ -52,6 +53,9 @@ static menulist_s s_display_list;
 static menulist_s s_uiscale_list;
 static menuslider_s s_brightness_slider;
 static menuslider_s s_fov_slider;
+static menuslider_s s_intensity_slider;
+static menuslider_s s_overbrightbits_slider;
+static menulist_s s_colorlight_list;
 static menulist_s s_fs_box;
 static menulist_s s_vsync_list;
 static menulist_s s_af_list;
@@ -245,6 +249,11 @@ ApplyChanges(void *unused)
 		restart = true;
 	}
 
+	if (gl3_colorlight && gl3_colorlight->value != s_colorlight_list.curvalue)
+	{
+		Cvar_SetValue("gl3_colorlight", s_colorlight_list.curvalue);
+	}
+
 	/* anisotropic filtering */
 	if (s_af_list.curvalue == 0)
 	{
@@ -294,10 +303,10 @@ VID_MenuInit(void)
 {
 	int y = 0;
 
-    // Renderer selection box.
+	// Renderer selection box.
 	// MAXRENDERERS + Custom + NULL.
 	static const char *renderers[MAXRENDERERS + 2] = { NULL };
-    Renderer_FillRenderdef();
+	Renderer_FillRenderdef();
 
 	for (int i = 0; i < numrenderer; i++)
 	{
@@ -473,7 +482,7 @@ VID_MenuInit(void)
 	s_brightness_slider.generic.type = MTYPE_SLIDER;
 	s_brightness_slider.generic.name = "brightness";
 	s_brightness_slider.generic.x = 0;
-	s_brightness_slider.generic.y = (y += 20);
+	s_brightness_slider.generic.y = (y += 10);
 	s_brightness_slider.cvar = "vid_gamma";
 	s_brightness_slider.minvalue = 0.1f;
 	s_brightness_slider.maxvalue = 2.0f;
@@ -487,6 +496,37 @@ VID_MenuInit(void)
 	s_fov_slider.maxvalue = 120;
 	s_fov_slider.slidestep = 1;
 	s_fov_slider.printformat = "%.0f";
+
+	if (strcmp(vid_renderer->string, "gl3") == 0 || strcmp(vid_renderer->string, "gles3") == 0)
+	{
+		s_intensity_slider.generic.type = MTYPE_SLIDER;
+		s_intensity_slider.generic.name = "color intensity";
+		s_intensity_slider.generic.x = 0;
+		s_intensity_slider.generic.y = (y += 10);
+		s_intensity_slider.cvar = "gl3_intensity";
+		s_intensity_slider.minvalue = 0.1f;
+		s_intensity_slider.maxvalue = 256.0f;
+
+		s_overbrightbits_slider.generic.type = MTYPE_SLIDER;
+		s_overbrightbits_slider.generic.name = "overbrights";
+		s_overbrightbits_slider.generic.x = 0;
+		s_overbrightbits_slider.generic.y = (y += 10);
+		s_overbrightbits_slider.cvar = "gl3_overbrightbits";
+		s_overbrightbits_slider.minvalue = 0.1f;
+		s_overbrightbits_slider.maxvalue = 256.0f;
+
+		gl3_colorlight = Cvar_Get("gl3_colorlight", "1", CVAR_ARCHIVE);
+		s_colorlight_list.generic.type = MTYPE_SPINCONTROL;
+		s_colorlight_list.generic.name = "color light";
+		s_colorlight_list.generic.x = 0;
+		s_colorlight_list.generic.y = (y += 10);
+		s_colorlight_list.itemnames = yesno_names;
+		s_colorlight_list.curvalue = (gl3_colorlight->value != 0);
+	}
+	else
+	{
+		gl3_colorlight = 0;
+	}
 
 	s_uiscale_list.generic.type = MTYPE_SPINCONTROL;
 	s_uiscale_list.generic.name = "ui scale";
@@ -583,6 +623,12 @@ VID_MenuInit(void)
 
 	Menu_AddItem(&s_opengl_menu, (void *)&s_brightness_slider);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_fov_slider);
+	if (strcmp(vid_renderer->string, "gl3") == 0 || strcmp(vid_renderer->string, "gles3") == 0)
+	{
+		Menu_AddItem(&s_opengl_menu, (void *)&s_intensity_slider);
+		Menu_AddItem(&s_opengl_menu, (void *)&s_overbrightbits_slider);
+		Menu_AddItem(&s_opengl_menu, (void *)&s_colorlight_list);
+	}
 	Menu_AddItem(&s_opengl_menu, (void *)&s_uiscale_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_fs_box);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_vsync_list);
