@@ -806,6 +806,7 @@ IN_Update(void)
 					break;
 				}
 				if (event.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))) {
+					Cvar_SetValue("paused", 1);
 					IN_Controller_Shutdown(true);
 					IN_Controller_Init(false);
 				}
@@ -819,6 +820,23 @@ IN_Update(void)
 					countdown_reason = REASON_CONTROLLERINIT;
 				}
 				break;
+
+#if SDL_VERSION_ATLEAST(2, 24, 0)	// support for battery status changes
+			case SDL_JOYBATTERYUPDATED:
+				if (!controller || event.jbattery.which != SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller)))
+				{
+					break;
+				}
+				if (event.jbattery.level == SDL_JOYSTICK_POWER_LOW)
+				{
+					Com_Printf("WARNING: Gamepad battery Low, it is recommended to connect it by cable.\n");
+				}
+				else if (event.jbattery.level == SDL_JOYSTICK_POWER_EMPTY)
+				{
+					SCR_CenterPrint("ALERT: Gamepad battery almost Empty, will disconnect anytime.\n");
+				}
+				break;
+#endif	// SDL_VERSION_ATLEAST(2, 24, 0)
 
 			case SDL_QUIT:
 				Com_Quit();
