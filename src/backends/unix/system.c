@@ -201,18 +201,18 @@ Sys_ConsoleOutput(char *string)
 			if (string[0] == 0x01)
 			{
 				/* red */
-				fputs("\033[40m\033[31;1m", stdout);
+				fputs("\033[31;1m", stdout);
 			}
 			else
 			{
 				/* green */
-				fputs("\033[40m\033[32;1m", stdout);
+				fputs("\033[32;1m", stdout);
 			}
 
 			fputs(string + 1, stdout);
 
-			/* back to black */
-			fputs("\033[40m\033[37;1m", stdout);
+			/* reset to default terminal settings */
+			fputs("\033[0m", stdout);
 			return;
 		}
 	}
