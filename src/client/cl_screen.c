@@ -584,6 +584,16 @@ SCR_BeginLoadingPlaque(void)
 
 	if (developer->value)
 	{
+		/* Hack: When we are returning here (not drawing
+		   the loading plaque) we don't reset the palette
+		   later on. We might end up with the cinematic
+		   palette applied to the world. Enforce the world
+		   palette. */
+		if (cl.cinematictime > 0)
+		{
+			R_SetPalette(NULL);
+		}
+
 		return;
 	}
 
