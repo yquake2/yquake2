@@ -42,7 +42,7 @@ R_MarkLights (dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
 	msurface_t	*surf;
 	int			i;
 
-	if (node->contents != -1)
+	if (node->contents != CONTENTS_NODE)
 		return;
 
 	splitplane = node->plane;
@@ -122,7 +122,7 @@ RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end, vec3_t pointcolor)
 	int		maps;
 	int		r;
 
-	if (node->contents != -1)
+	if (node->contents != CONTENTS_NODE)
 		return -1; // didn't hit anything
 
 	// calculate mid point

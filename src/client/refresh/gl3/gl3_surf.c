@@ -694,7 +694,7 @@ RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 	}
 
 	/* if a leaf node, draw stuff */
-	if (node->contents != -1)
+	if (node->contents != CONTENTS_NODE)
 	{
 		pleaf = (mleaf_t *)node;
 

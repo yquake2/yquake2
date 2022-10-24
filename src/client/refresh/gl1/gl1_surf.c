@@ -122,7 +122,7 @@ R_DrawGLFlowingPoly(msurface_t *fa)
 
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-	
+
 	YQ2_VLAFREE(tex);
 }
 
@@ -837,7 +837,7 @@ R_RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 	}
 
 	/* if a leaf node, draw stuff */
-	if (node->contents != -1)
+	if (node->contents != CONTENTS_NODE)
 	{
 		pleaf = (mleaf_t *)node;
 

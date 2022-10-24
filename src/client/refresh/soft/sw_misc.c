@@ -323,7 +323,7 @@ Mod_PointInLeaf (const vec3_t p, const model_t *model)
 	}
 
 	node = model->nodes;
-	while (node->contents == -1)
+	while (node->contents == CONTENTS_NODE)
 	{
 		float d;
 		cplane_t *plane;

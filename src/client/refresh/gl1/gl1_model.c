@@ -86,7 +86,7 @@ Mod_PointInLeaf(vec3_t p, model_t *model)
 
 	while (1)
 	{
-		if (node->contents != -1)
+		if (node->contents != CONTENTS_NODE)
 		{
 			return (mleaf_t *)node;
 		}
@@ -754,74 +754,6 @@ Mod_LoadFaces(model_t *loadmodel, byte *mod_base, lump_t *l)
 }
 
 static void
-Mod_SetParent(mnode_t *node, mnode_t *parent)
-{
-	node->parent = parent;
-
-	if (node->contents != -1)
-	{
-		return;
-	}
-
-	Mod_SetParent(node->children[0], node);
-	Mod_SetParent(node->children[1], node);
-}
-
-static void
-Mod_LoadNodes(model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	int i, j, count, p;
-	dnode_t *in;
-	mnode_t *out;
-
-	in = (void *)(mod_base + l->fileofs);
-
-	if (l->filelen % sizeof(*in))
-	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
-				__func__, loadmodel->name);
-	}
-
-	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc(count * sizeof(*out));
-
-	loadmodel->nodes = out;
-	loadmodel->numnodes = count;
-
-	for (i = 0; i < count; i++, in++, out++)
-	{
-		for (j = 0; j < 3; j++)
-		{
-			out->minmaxs[j] = LittleShort(in->mins[j]);
-			out->minmaxs[3 + j] = LittleShort(in->maxs[j]);
-		}
-
-		p = LittleLong(in->planenum);
-		out->plane = loadmodel->planes + p;
-
-		out->firstsurface = LittleShort(in->firstface);
-		out->numsurfaces = LittleShort(in->numfaces);
-		out->contents = -1; /* differentiate from leafs */
-
-		for (j = 0; j < 2; j++)
-		{
-			p = LittleLong(in->children[j]);
-
-			if (p >= 0)
-			{
-				out->children[j] = loadmodel->nodes + p;
-			}
-			else
-			{
-				out->children[j] = (mnode_t *)(loadmodel->leafs + (-1 - p));
-			}
-		}
-	}
-
-	Mod_SetParent(loadmodel->nodes, NULL); /* sets nodes and leafs */
-}
-
-static void
 Mod_LoadLeafs(model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dleaf_t *in;
@@ -1063,7 +995,8 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	Mod_LoadMarksurfaces(mod, mod_base, &header->lumps[LUMP_LEAFFACES]);
 	Mod_LoadVisibility(mod, mod_base, &header->lumps[LUMP_VISIBILITY]);
 	Mod_LoadLeafs(mod, mod_base, &header->lumps[LUMP_LEAFS]);
-	Mod_LoadNodes(mod, mod_base, &header->lumps[LUMP_NODES]);
+	Mod_LoadNodes(mod->name, mod->planes, mod->leafs, &mod->nodes,
+		&mod->numnodes, mod_base, &header->lumps[LUMP_NODES]);
 	Mod_LoadSubmodels (mod, mod_base, &header->lumps[LUMP_MODELS]);
 	mod->numframes = 2; /* regular and alternate animation */
 }

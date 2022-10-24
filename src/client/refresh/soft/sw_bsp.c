@@ -518,9 +518,9 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 			d -= view_clipplanes[i].dist;
 			if (d <= 0)
 				return;
-			acceptpt[0] = (float)node->minmaxs[pindex[3+0]];
-			acceptpt[1] = (float)node->minmaxs[pindex[3+1]];
-			acceptpt[2] = (float)node->minmaxs[pindex[3+2]];
+			acceptpt[0] = node->minmaxs[pindex[3+0]];
+			acceptpt[1] = node->minmaxs[pindex[3+1]];
+			acceptpt[2] = node->minmaxs[pindex[3+2]];
 
 			d = DotProduct (acceptpt, view_clipplanes[i].normal);
 			d -= view_clipplanes[i].dist;
@@ -533,7 +533,7 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 	c_drawnode++;
 
 	// if a leaf node, draw stuff
-	if (node->contents != -1)
+	if (node->contents != CONTENTS_NODE)
 	{
 		msurface_t **mark;
 		pleaf = (mleaf_t *)node;

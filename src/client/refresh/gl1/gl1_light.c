@@ -129,7 +129,7 @@ R_MarkLights(dlight_t *light, int bit, mnode_t *node)
 	int i;
 	int sidebit;
 
-	if (node->contents != -1)
+	if (node->contents != CONTENTS_NODE)
 	{
 		return;
 	}
@@ -220,7 +220,7 @@ R_RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 	int maps;
 	int r;
 
-	if (node->contents != -1)
+	if (node->contents != CONTENTS_NODE)
 	{
 		return -1;     /* didn't hit anything */
 	}

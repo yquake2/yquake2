@@ -295,3 +295,83 @@ Mod_ReLoadSkins(struct image_s **skins, findimage_t find_image, void *extradata,
 	// Unknow format, no images associated with it
 	return 0;
 }
+
+/*
+=================
+Mod_SetParent
+=================
+*/
+static void
+Mod_SetParent(mnode_t *node, mnode_t *parent)
+{
+	node->parent = parent;
+	if (node->contents != CONTENTS_NODE)
+	{
+		return;
+	}
+
+	Mod_SetParent (node->children[0], node);
+	Mod_SetParent (node->children[1], node);
+}
+
+/*
+=================
+Mod_LoadNodes
+=================
+*/
+void
+Mod_LoadNodes(const char *name, cplane_t *planes, struct mleaf_s *leafs,
+	mnode_t **nodes, int *numnodes, const byte *mod_base, const lump_t *l)
+{
+	int		i, count;
+	dnode_t		*in;
+	mnode_t 	*out;
+
+	in = (void *)(mod_base + l->fileofs);
+
+	if (l->filelen % sizeof(*in))
+	{
+		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+				__func__, name);
+	}
+
+	count = l->filelen / sizeof(*in);
+	out = Hunk_Alloc(count * sizeof(*out));
+
+	*nodes = out;
+	*numnodes = count;
+
+	for (i = 0; i < count; i++, in++, out++)
+	{
+		int j, p;
+
+		for (j = 0; j < 3; j++)
+		{
+			out->minmaxs[j] = LittleShort(in->mins[j]);
+			out->minmaxs[3 + j] = LittleShort(in->maxs[j]);
+		}
+
+		p = LittleLong(in->planenum);
+		out->plane = planes + p;
+
+		out->firstsurface = LittleShort(in->firstface);
+		out->numsurfaces = LittleShort(in->numfaces);
+		out->contents = CONTENTS_NODE; /* differentiate from leafs */
+
+		for (j = 0; j < 2; j++)
+		{
+			p = LittleLong(in->children[j]);
+
+			if (p >= 0)
+			{
+				out->children[j] = *nodes + p;
+			}
+			else
+			{
+				out->children[j] = (mnode_t *)(leafs + (-1 - p));
+			}
+		}
+	}
+
+	Mod_SetParent(*nodes, NULL); /* sets nodes and leafs */
+}
