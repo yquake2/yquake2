@@ -102,6 +102,21 @@ extern const byte* Mod_DecompressVis(const byte *in, int row);
 
 /* Shared models struct */
 
+enum {
+	SIDE_FRONT = 0,
+	SIDE_BACK = 1,
+	SIDE_ON = 2
+};
+
+// FIXME: differentiate from texinfo SURF_ flags
+enum {
+	SURF_PLANEBACK = 0x02,
+	SURF_DRAWSKY = 0x04, // sky brush face
+	SURF_DRAWTURB = 0x10,
+	SURF_DRAWBACKGROUND = 0x40,
+	SURF_UNDERWATER = 0x80
+};
+
 typedef struct mvertex_s
 {
 	vec3_t		position;
@@ -116,7 +131,6 @@ typedef struct medge_s
 typedef struct mtexinfo_s
 {
 	float	vecs[2][4];
-	float	mipadjust;	/* FIXME: Used only by soft render */
 	int	flags;
 	int	numframes;
 	struct mtexinfo_s	*next; /* animation chain */

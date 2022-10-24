@@ -27,15 +27,6 @@
 #ifndef REF_MODEL_H
 #define REF_MODEL_H
 
-#define SIDE_FRONT 0
-#define SIDE_BACK 1
-#define SIDE_ON 2
-
-#define SURF_PLANEBACK 2
-#define SURF_DRAWSKY 4
-#define SURF_DRAWTURB 0x10
-#define SURF_DRAWBACKGROUND 0x40
-#define SURF_UNDERWATER 0x80
 #define VERTEXSIZE 7
 
 /* in memory representation */

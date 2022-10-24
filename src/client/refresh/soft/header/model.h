@@ -41,15 +41,6 @@ BRUSH MODELS
 // in memory representation
 //
 
-// FIXME: differentiate from texinfo SURF_ flags
-#define	SURF_PLANEBACK		0x02
-#define	SURF_DRAWSKY		0x04	// sky brush face
-#define SURF_DRAWTURB		0x10
-#define SURF_DRAWBACKGROUND	0x40
-#define SURF_DRAWSKYBOX		0x80	// sky box
-
-#define SURF_FLOW		0x100
-
 typedef struct msurface_s
 {
 	int		visframe;		// should be drawn when node is crossed

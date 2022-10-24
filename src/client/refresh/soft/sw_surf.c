@@ -55,7 +55,7 @@ R_TextureAnimation (const entity_t *currententity, mtexinfo_t *tex)
 		return tex->image;
 
 	c = currententity->frame % tex->numframes;
-	while (c)
+	while (c && tex)
 	{
 		tex = tex->next;
 		c--;

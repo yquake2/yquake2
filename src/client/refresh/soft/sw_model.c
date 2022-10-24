@@ -505,18 +505,12 @@ Mod_LoadTexinfo (model_t *loadmodel, byte *mod_base, lump_t *l)
 	{
 		image_t	*image;
 		int j, next;
-		float len1, len2;
 
 		for (j = 0; j < 4; j++)
 		{
 			out->vecs[0][j] = LittleFloat(in->vecs[0][j]);
 			out->vecs[1][j] = LittleFloat(in->vecs[1][j]);
 		}
-		len1 = VectorLength (out->vecs[0]);
-		len2 = VectorLength (out->vecs[1]);
-		out->mipadjust = sqrt(len1*len1 + len2*len2);
-		if (out->mipadjust < 0.01)
-			out->mipadjust = 0.01;
 
 		out->flags = LittleLong (in->flags);
 
@@ -663,9 +657,12 @@ Mod_LoadFaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 
 		CalcSurfaceExtents (loadmodel, out);
 
-		// lighting info is converted from 24 bit on disk to 8 bit
+		// lighting is saved as its with 24 bit color
 		for (i=0 ; i<MAXLIGHTMAPS ; i++)
+		{
 			out->styles[i] = in->styles[i];
+		}
+
 		i = LittleLong(in->lightofs);
 		if (i == -1)
 		{
@@ -702,11 +699,10 @@ Mod_LoadFaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 		}
 
 		//==============
-		// this marks flowing surfaces as turbulent, but with the new
-		// SURF_FLOW flag.
+		// this marks flowing surfaces as turbulent.
 		if (out->texinfo->flags & SURF_FLOWING)
 		{
-			out->flags |= SURF_DRAWTURB | SURF_FLOW;
+			out->flags |= SURF_DRAWTURB;
 			for (i=0 ; i<2 ; i++)
 			{
 				out->extents[i] = 16384;

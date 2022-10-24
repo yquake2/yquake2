@@ -27,20 +27,6 @@
 #ifndef SRC_CLIENT_REFRESH_GL3_HEADER_MODEL_H_
 #define SRC_CLIENT_REFRESH_GL3_HEADER_MODEL_H_
 
-enum {
-	SIDE_FRONT = 0,
-	SIDE_BACK = 1,
-	SIDE_ON = 2
-};
-
-enum {
-	SURF_PLANEBACK = 2,
-	SURF_DRAWSKY = 4,
-	SURF_DRAWTURB = 0x10,
-	SURF_DRAWBACKGROUND = 0x40,
-	SURF_UNDERWATER = 0x80
-};
-
 // used for vertex array elements when drawing brushes, sprites, sky and more
 // (ok, it has the layout used for rendering brushes, but is not used there)
 typedef struct gl3_3D_vtx_s {
