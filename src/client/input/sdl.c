@@ -812,7 +812,7 @@ IN_Update(void)
 				}
 				else if (event.jbattery.level == SDL_JOYSTICK_POWER_EMPTY)
 				{
-					SCR_CenterPrint("ALERT: Gamepad battery almost Empty, will disconnect anytime.\n");
+					SCR_CenterPrint("ALERT: Gamepad battery almost Empty.\n");
 				}
 				break;
 #endif	// SDL_VERSION_ATLEAST(2, 24, 0)
@@ -1779,6 +1779,7 @@ IN_Controller_Shutdown(qboolean notify_user)
 		SDL_GameControllerClose(controller);
 		controller = NULL;
 		gyro_hardware = false;
+		show_haptic = false;
 		joystick_left_x = joystick_left_y = joystick_right_x = joystick_right_y = 0;
 		gyro_yaw = gyro_pitch = 0;
 		normalize_sdl_gyro = 1.0f / M_PI;
