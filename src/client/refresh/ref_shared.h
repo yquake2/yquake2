@@ -190,6 +190,22 @@ extern struct image_s *GetTexImage(const char *name, findimage_t find_image);
 extern struct image_s *R_FindPic(const char *name, findimage_t find_image);
 extern struct image_s* R_LoadImage(const char *name, const char* namewe, const char *ext,
 	imagetype_t type, qboolean r_retexturing, loadimage_t load_image);
-extern void Mod_LoadNodes(const char *name, cplane_t *planes, struct mleaf_s *leafs,
-	mnode_t **nodes, int *numnodes, const byte *mod_base, const lump_t *l);
+extern void Mod_LoadNodes(const char *name, cplane_t *planes, int numplanes,
+	mleaf_t *leafs, int numleafs, mnode_t **nodes, int *numnodes,
+	const byte *mod_base, const lump_t *l);
+extern void Mod_LoadVertexes(const char *name, mvertex_t **vertexes, int *numvertexes,
+	const byte *mod_base, const lump_t *l, int extra);
+extern void Mod_LoadVisibility(dvis_t **vis, const byte *mod_base, const lump_t *l);
+extern void Mod_LoadLighting(byte **lightdata, const byte *mod_base, const lump_t *l);
+extern void Mod_LoadTexinfo(const char *name, mtexinfo_t **texinfo, int *numtexinfo,
+	const byte *mod_base, const lump_t *l, findimage_t find_image,
+	struct image_s *notexture, int extra);
+extern void Mod_LoadEdges(const char *name, medge_t **edges, int *numedges,
+	const byte *mod_base, const lump_t *l, int extra);
+extern void Mod_LoadPlanes (const char *name, cplane_t **planes, int *numplanes,
+	const byte *mod_base, const lump_t *l, int extra);
+extern void Mod_LoadSurfedges (const char *name, int **surfedges, int *numsurfedges,
+	const byte *mod_base, const lump_t *l, int extra);
+extern int Mod_CalcLumpHunkSize(const lump_t *l, int inSize, int outSize, int extra);
+
 #endif /* SRC_CLIENT_REFRESH_REF_SHARED_H_ */

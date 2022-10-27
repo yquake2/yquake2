@@ -159,71 +159,6 @@ GL3_Mod_Init(void)
 }
 
 static void
-Mod_LoadLighting(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	if (!l->filelen)
-	{
-		loadmodel->lightdata = NULL;
-		return;
-	}
-
-	loadmodel->lightdata = Hunk_Alloc(l->filelen);
-	memcpy(loadmodel->lightdata, mod_base + l->fileofs, l->filelen);
-}
-
-static void
-Mod_LoadVisibility(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	int i;
-
-	if (!l->filelen)
-	{
-		loadmodel->vis = NULL;
-		return;
-	}
-
-	loadmodel->vis = Hunk_Alloc(l->filelen);
-	memcpy(loadmodel->vis, mod_base + l->fileofs, l->filelen);
-
-	loadmodel->vis->numclusters = LittleLong(loadmodel->vis->numclusters);
-
-	for (i = 0; i < loadmodel->vis->numclusters; i++)
-	{
-		loadmodel->vis->bitofs[i][0] = LittleLong(loadmodel->vis->bitofs[i][0]);
-		loadmodel->vis->bitofs[i][1] = LittleLong(loadmodel->vis->bitofs[i][1]);
-	}
-}
-
-static void
-Mod_LoadVertexes(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	dvertex_t *in;
-	mvertex_t *out;
-	int i, count;
-
-	in = (void *)(mod_base + l->fileofs);
-
-	if (l->filelen % sizeof(*in))
-	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
-				__func__, loadmodel->name);
-	}
-
-	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc(count * sizeof(*out));
-
-	loadmodel->vertexes = out;
-	loadmodel->numvertexes = count;
-
-	for (i = 0; i < count; i++, in++, out++)
-	{
-		out->position[0] = LittleFloat(in->point[0]);
-		out->position[1] = LittleFloat(in->point[1]);
-		out->position[2] = LittleFloat(in->point[2]);
-	}
-}
-
-static void
 Mod_LoadSubmodels(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 {
 	dmodel_t *in;
@@ -278,102 +213,6 @@ Mod_LoadSubmodels(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 		{
 			ri.Sys_Error(ERR_DROP, "%s: Inline model %i has bad firstnode",
 					__func__, i);
-		}
-	}
-}
-
-static void
-Mod_LoadEdges(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	dedge_t *in;
-	medge_t *out;
-	int i, count;
-
-	in = (void *)(mod_base + l->fileofs);
-
-	if (l->filelen % sizeof(*in))
-	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
-				__func__, loadmodel->name);
-	}
-
-	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc((count + 1) * sizeof(*out));
-
-	loadmodel->edges = out;
-	loadmodel->numedges = count;
-
-	for (i = 0; i < count; i++, in++, out++)
-	{
-		out->v[0] = (unsigned short)LittleShort(in->v[0]);
-		out->v[1] = (unsigned short)LittleShort(in->v[1]);
-	}
-}
-
-static void
-Mod_LoadTexinfo(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	texinfo_t *in;
-	mtexinfo_t *out, *step;
-	int i, j, count;
-	int next;
-
-	in = (void *)(mod_base + l->fileofs);
-
-	if (l->filelen % sizeof(*in))
-	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
-				__func__, loadmodel->name);
-	}
-
-	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc(count * sizeof(*out));
-
-	loadmodel->texinfo = out;
-	loadmodel->numtexinfo = count;
-
-	for (i = 0; i < count; i++, in++, out++)
-	{
-		gl3image_t	*image;
-
-		for (j = 0; j < 4; j++)
-		{
-			out->vecs[0][j] = LittleFloat(in->vecs[0][j]);
-			out->vecs[1][j] = LittleFloat(in->vecs[1][j]);
-		}
-
-		out->flags = LittleLong(in->flags);
-		next = LittleLong(in->nexttexinfo);
-
-		if (next > 0)
-		{
-			out->next = loadmodel->texinfo + next;
-		}
-		else
-		{
-			out->next = NULL;
-		}
-
-		image = GetTexImage(in->texture, (findimage_t)GL3_FindImage);
-		if (!image)
-		{
-			R_Printf(PRINT_ALL, "%s: Couldn't load %s\n",
-				__func__, in->texture);
-			image = gl3_notexture;
-		}
-
-		out->image = image;
-	}
-
-	/* count animation frames */
-	for (i = 0; i < count; i++)
-	{
-		out = &loadmodel->texinfo[i];
-		out->numframes = 1;
-
-		for (step = out->next; step && step != out; step = step->next)
-		{
-			out->numframes++;
 		}
 	}
 }
@@ -555,6 +394,11 @@ Mod_LoadFaces(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 			out->flags |= SURF_PLANEBACK;
 		}
 
+		if (planenum < 0 || planenum >= loadmodel->numplanes)
+		{
+			ri.Sys_Error(ERR_DROP, "%s: Incorrect %d planenum.",
+					__func__, planenum);
+		}
 		out->plane = loadmodel->planes + planenum;
 
 		ti = LittleShort(in->texinfo);
@@ -708,102 +552,6 @@ Mod_LoadMarksurfaces(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 }
 
 static void
-Mod_LoadSurfedges(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	int i, count;
-	int *in, *out;
-
-	in = (void *)(mod_base + l->fileofs);
-
-	if (l->filelen % sizeof(*in))
-	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
-				__func__, loadmodel->name);
-	}
-
-	count = l->filelen / sizeof(*in);
-
-	if ((count < 1) || (count >= MAX_MAP_SURFEDGES))
-	{
-		ri.Sys_Error(ERR_DROP, "%s: bad surfedges count in %s: %i",
-				__func__, loadmodel->name, count);
-	}
-
-	out = Hunk_Alloc(count * sizeof(*out));
-
-	loadmodel->surfedges = out;
-	loadmodel->numsurfedges = count;
-
-	for (i = 0; i < count; i++)
-	{
-		out[i] = LittleLong(in[i]);
-	}
-}
-
-static void
-Mod_LoadPlanes(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	int i, j;
-	cplane_t *out;
-	dplane_t *in;
-	int count;
-	int bits;
-
-	in = (void *)(mod_base + l->fileofs);
-
-	if (l->filelen % sizeof(*in))
-	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
-				__func__, loadmodel->name);
-	}
-
-	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc(count * 2 * sizeof(*out));
-
-	loadmodel->planes = out;
-	loadmodel->numplanes = count;
-
-	for (i = 0; i < count; i++, in++, out++)
-	{
-		bits = 0;
-
-		for (j = 0; j < 3; j++)
-		{
-			out->normal[j] = LittleFloat(in->normal[j]);
-
-			if (out->normal[j] < 0)
-			{
-				bits |= 1 << j;
-			}
-		}
-
-		out->dist = LittleFloat(in->dist);
-		out->type = LittleLong(in->type);
-		out->signbits = bits;
-	}
-}
-
-// calculate the size that Hunk_Alloc(), called by Mod_Load*() from Mod_LoadBrushModel(),
-// will use (=> includes its padding), so we'll know how big the hunk needs to be
-static int calcLumpHunkSize(const lump_t *l, int inSize, int outSize)
-{
-	if (l->filelen % inSize)
-	{
-		// Mod_Load*() will error out on this because of "funny size"
-		// don't error out here because in Mod_Load*() it can print the functionname
-		// (=> tells us what kind of lump) before shutting down the game
-		return 0;
-	}
-
-	int count = l->filelen / inSize;
-	int size = count * outSize;
-
-	// round to cacheline, like Hunk_Alloc() does
-	size = (size + 31) & ~31;
-	return size;
-}
-
-static void
 Mod_LoadBrushModel(gl3model_t *mod, void *buffer, int modfilelen)
 {
 	int i;
@@ -835,37 +583,44 @@ Mod_LoadBrushModel(gl3model_t *mod, void *buffer, int modfilelen)
 
 	// calculate the needed hunksize from the lumps
 	int hunkSize = 0;
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VERTEXES], sizeof(dvertex_t), sizeof(mvertex_t));
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_EDGES], sizeof(dedge_t), sizeof(medge_t));
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_VERTEXES], sizeof(dvertex_t), sizeof(mvertex_t), 0);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_EDGES], sizeof(dedge_t), sizeof(medge_t), 0);
 	hunkSize += sizeof(medge_t) + 31; // for count+1 in Mod_LoadEdges()
 	int surfEdgeCount = (header->lumps[LUMP_SURFEDGES].filelen+sizeof(int)-1)/sizeof(int);
 	if(surfEdgeCount < MAX_MAP_SURFEDGES) // else it errors out later anyway
-		hunkSize += calcLumpHunkSize(&header->lumps[LUMP_SURFEDGES], sizeof(int), sizeof(int));
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LIGHTING], 1, 1);
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_PLANES], sizeof(dplane_t), sizeof(cplane_t)*2);
+		hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_SURFEDGES], sizeof(int), sizeof(int), 0);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_LIGHTING], 1, 1, 0);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_PLANES], sizeof(dplane_t), sizeof(cplane_t)*2, 0);
 	hunkSize += calcTexinfoAndFacesSize(mod_base, &header->lumps[LUMP_FACES], &header->lumps[LUMP_TEXINFO]);
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFFACES], sizeof(short), sizeof(msurface_t *)); // yes, out is indeeed a pointer!
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VISIBILITY], 1, 1);
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFS], sizeof(dleaf_t), sizeof(mleaf_t));
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_NODES], sizeof(dnode_t), sizeof(mnode_t));
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(gl3model_t));
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_LEAFFACES], sizeof(short), sizeof(msurface_t *), 0); // yes, out is indeeed a pointer!
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_VISIBILITY], 1, 1, 0);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_LEAFS], sizeof(dleaf_t), sizeof(mleaf_t), 0);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_NODES], sizeof(dnode_t), sizeof(mnode_t), 0);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(gl3model_t), 0);
 
 	mod->extradata = Hunk_Begin(hunkSize);
 	mod->type = mod_brush;
 
 	/* load into heap */
-	Mod_LoadVertexes(mod, mod_base, &header->lumps[LUMP_VERTEXES]);
-	Mod_LoadEdges(mod, mod_base, &header->lumps[LUMP_EDGES]);
-	Mod_LoadSurfedges(mod, mod_base, &header->lumps[LUMP_SURFEDGES]);
-	Mod_LoadLighting(mod, mod_base, &header->lumps[LUMP_LIGHTING]);
-	Mod_LoadPlanes(mod, mod_base, &header->lumps[LUMP_PLANES]);
-	Mod_LoadTexinfo(mod, mod_base, &header->lumps[LUMP_TEXINFO]);
+	Mod_LoadVertexes(mod->name, &mod->vertexes, &mod->numvertexes, mod_base,
+		&header->lumps[LUMP_VERTEXES], 0);
+	Mod_LoadEdges(mod->name, &mod->edges, &mod->numedges,
+		mod_base, &header->lumps[LUMP_EDGES], 1);
+	Mod_LoadSurfedges(mod->name, &mod->surfedges, &mod->numsurfedges,
+		mod_base, &header->lumps[LUMP_SURFEDGES], 0);
+	Mod_LoadLighting(&mod->lightdata, mod_base, &header->lumps[LUMP_LIGHTING]);
+	Mod_LoadPlanes (mod->name, &mod->planes, &mod->numplanes,
+		mod_base, &header->lumps[LUMP_PLANES], 0);
+	Mod_LoadTexinfo (mod->name, &mod->texinfo, &mod->numtexinfo,
+		mod_base, &header->lumps[LUMP_TEXINFO], (findimage_t)GL3_FindImage,
+		gl3_notexture, 0);
 	Mod_LoadFaces(mod, mod_base, &header->lumps[LUMP_FACES]);
 	Mod_LoadMarksurfaces(mod, mod_base, &header->lumps[LUMP_LEAFFACES]);
-	Mod_LoadVisibility(mod, mod_base, &header->lumps[LUMP_VISIBILITY]);
+	Mod_LoadVisibility(&mod->vis, mod_base, &header->lumps[LUMP_VISIBILITY]);
 	Mod_LoadLeafs(mod, mod_base, &header->lumps[LUMP_LEAFS]);
-	Mod_LoadNodes(mod->name, mod->planes, mod->leafs, &mod->nodes,
-		&mod->numnodes, mod_base, &header->lumps[LUMP_NODES]);
+	Mod_LoadNodes(mod->name, mod->planes, mod->numplanes, mod->leafs,
+		mod->numleafs, &mod->nodes, &mod->numnodes, mod_base,
+		&header->lumps[LUMP_NODES]);
 	Mod_LoadSubmodels (mod, mod_base, &header->lumps[LUMP_MODELS]);
 	mod->numframes = 2; /* regular and alternate animation */
 }

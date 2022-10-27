@@ -510,9 +510,9 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 
 			pindex = pfrustum_indexes[i];
 
-			rejectpt[0] = (float)node->minmaxs[pindex[0]];
-			rejectpt[1] = (float)node->minmaxs[pindex[1]];
-			rejectpt[2] = (float)node->minmaxs[pindex[2]];
+			rejectpt[0] = node->minmaxs[pindex[0]];
+			rejectpt[1] = node->minmaxs[pindex[1]];
+			rejectpt[2] = node->minmaxs[pindex[2]];
 
 			d = DotProduct (rejectpt, view_clipplanes[i].normal);
 			d -= view_clipplanes[i].dist;

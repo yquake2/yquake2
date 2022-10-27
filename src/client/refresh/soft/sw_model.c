@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static void Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen);
 
-static byte	mod_novis[MAX_MAP_LEAFS/8];
+static YQ2_ALIGNAS_TYPE(int) byte	mod_novis[MAX_MAP_LEAFS/8];
 
 #define	MAX_MOD_KNOWN	512
 static model_t	mod_known[MAX_MOD_KNOWN];
@@ -265,124 +265,6 @@ Mod_ClusterPVS (int cluster, const model_t *model)
 
 /*
 =================
-Mod_LoadLighting
-
-Converts the 24 bit lighting down to 8 bit
-by taking the brightest component
-=================
-*/
-static void
-Mod_LoadLighting (model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	int	size;
-
-	if (!l->filelen)
-	{
-		loadmodel->lightdata = NULL;
-		return;
-	}
-
-	size = l->filelen;
-	loadmodel->lightdata = Hunk_Alloc(size);
-	memcpy(loadmodel->lightdata, mod_base + l->fileofs, size);
-}
-
-
-static int r_leaftovis[MAX_MAP_LEAFS];
-static int r_vistoleaf[MAX_MAP_LEAFS];
-static int r_numvisleafs;
-
-static void
-R_NumberLeafs (model_t *loadmodel, mnode_t *node)
-{
-	if (node->contents != CONTENTS_NODE)
-	{
-		mleaf_t *leaf;
-		int leafnum;
-
-		leaf = (mleaf_t *)node;
-		leafnum = leaf - loadmodel->leafs;
-		if (leaf->contents & CONTENTS_SOLID)
-			return;
-		r_leaftovis[leafnum] = r_numvisleafs;
-		r_vistoleaf[r_numvisleafs] = leafnum;
-		r_numvisleafs++;
-		return;
-	}
-
-	R_NumberLeafs (loadmodel, node->children[0]);
-	R_NumberLeafs (loadmodel, node->children[1]);
-}
-
-
-/*
-=================
-Mod_LoadVisibility
-=================
-*/
-static void
-Mod_LoadVisibility (model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	int		i;
-
-	if (!l->filelen)
-	{
-		loadmodel->vis = NULL;
-		return;
-	}
-	loadmodel->vis = Hunk_Alloc(l->filelen);
-	memcpy (loadmodel->vis, mod_base + l->fileofs, l->filelen);
-
-	loadmodel->vis->numclusters = LittleLong (loadmodel->vis->numclusters);
-	for (i=0 ; i<loadmodel->vis->numclusters ; i++)
-	{
-		loadmodel->vis->bitofs[i][0] = LittleLong (loadmodel->vis->bitofs[i][0]);
-		loadmodel->vis->bitofs[i][1] = LittleLong (loadmodel->vis->bitofs[i][1]);
-	}
-}
-
-
-/*
-=================
-Mod_LoadVertexes
-=================
-*/
-static void
-Mod_LoadVertexes (model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	dvertex_t	*in;
-	mvertex_t	*out;
-	int			i, count;
-
-	in = (void *)(mod_base + l->fileofs);
-
-	if (l->filelen % sizeof(*in))
-	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
-				__func__, loadmodel->name);
-	}
-
-	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc((count+8)*sizeof(*out));		// extra for skybox
-	/*
-	 * Fix for the problem where the games dumped core
-	 * when changing levels.
-	 */
-	memset( out, 0, (count + 6) * sizeof( *out ) );
-
-	loadmodel->vertexes = out;
-	loadmodel->numvertexes = count;
-
-	for ( i=0 ; i<count ; i++, in++, out++)
-	{
-		out->position[0] = LittleFloat (in->point[0]);
-		out->position[1] = LittleFloat (in->point[1]);
-		out->position[2] = LittleFloat (in->point[2]);
-	}
-}
-
-/*
-=================
 Mod_LoadSubmodels
 =================
 */
@@ -444,109 +326,6 @@ Mod_LoadSubmodels (model_t *loadmodel, byte *mod_base, lump_t *l)
 }
 
 /*
-=================
-Mod_LoadEdges
-=================
-*/
-static void
-Mod_LoadEdges (model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	dedge_t *in;
-	medge_t *out;
-	int 	i, count;
-
-	in = (void *)(mod_base + l->fileofs);
-	if (l->filelen % sizeof(*in))
-	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
-				__func__, loadmodel->name);
-	}
-
-	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc((count + 13) * sizeof(*out));	// extra for skybox
-
-	loadmodel->edges = out;
-	loadmodel->numedges = count;
-
-	for ( i=0 ; i<count ; i++, in++, out++)
-	{
-		out->v[0] = (unsigned short)LittleShort(in->v[0]);
-		out->v[1] = (unsigned short)LittleShort(in->v[1]);
-	}
-}
-
-/*
-=================
-Mod_LoadTexinfo
-=================
-*/
-static void
-Mod_LoadTexinfo (model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	texinfo_t *in;
-	mtexinfo_t *out, *step;
-	int 	i, count;
-
-	in = (void *)(mod_base + l->fileofs);
-
-	if (l->filelen % sizeof(*in))
-	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
-				__func__, loadmodel->name);
-	}
-
-	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc((count+6)*sizeof(*out));	// extra for skybox
-
-	loadmodel->texinfo = out;
-	loadmodel->numtexinfo = count;
-
-	for ( i=0 ; i<count ; i++, in++, out++)
-	{
-		image_t	*image;
-		int j, next;
-
-		for (j = 0; j < 4; j++)
-		{
-			out->vecs[0][j] = LittleFloat(in->vecs[0][j]);
-			out->vecs[1][j] = LittleFloat(in->vecs[1][j]);
-		}
-
-		out->flags = LittleLong (in->flags);
-
-		next = LittleLong (in->nexttexinfo);
-		if (next > 0)
-			out->next = loadmodel->texinfo + next;
-		/*
-		 * Fix for the problem where the game
-		 * domed core when loading a new level.
-		 */
-		else {
-			out->next = NULL;
-		}
-
-		image = GetTexImage(in->texture, (findimage_t)R_FindImage);
-		if (!image)
-		{
-			R_Printf(PRINT_ALL, "%s: Couldn't load %s\n",
-				__func__, in->texture);
-			image = r_notexture_mip;
-		}
-
-		out->image = image;
-	}
-
-	// count animation frames
-	for (i=0 ; i<count ; i++)
-	{
-		out = &loadmodel->texinfo[i];
-		out->numframes = 1;
-		for (step = out->next ; step && step != out ; step=step->next)
-			out->numframes++;
-	}
-}
-
-/*
 ================
 CalcSurfaceExtents
 
@@ -572,11 +351,15 @@ CalcSurfaceExtents (model_t *loadmodel, msurface_t *s)
 		mvertex_t *v;
 
 		e = loadmodel->surfedges[s->firstedge+i];
-		if (e >= 0)
-			v = &loadmodel->vertexes[loadmodel->edges[e].v[0]];
-		else
-			v = &loadmodel->vertexes[loadmodel->edges[-e].v[1]];
 
+		if (e >= 0)
+		{
+			v = &loadmodel->vertexes[loadmodel->edges[e].v[0]];
+		}
+		else
+		{
+			v = &loadmodel->vertexes[loadmodel->edges[-e].v[1]];
+		}
 		for (j=0 ; j<2 ; j++)
 		{
 			val = v->position[0] * tex->vecs[j][0] +
@@ -635,7 +418,7 @@ Mod_LoadFaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 
 	for ( surfnum=0 ; surfnum<count ; surfnum++, in++, out++)
 	{
-		int planenum, side;
+		int planenum, side, ti;
 
 		out->firstedge = LittleLong(in->firstedge);
 		out->numedges = LittleShort(in->numedges);
@@ -651,9 +434,19 @@ Mod_LoadFaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 		if (side)
 			out->flags |= SURF_PLANEBACK;
 
+		if (planenum < 0 || planenum >= loadmodel->numplanes)
+		{
+			ri.Sys_Error(ERR_DROP, "%s: Incorrect %d planenum.",
+					__func__, planenum);
+		}
 		out->plane = loadmodel->planes + planenum;
 
-		out->texinfo = loadmodel->texinfo + LittleShort (in->texinfo);
+		ti = LittleShort(in->texinfo);
+		if (ti < 0 || ti >= loadmodel->numtexinfo)
+		{
+			ri.Sys_Error(ERR_DROP, "%s: bad texinfo number", __func__);
+		}
+		out->texinfo = loadmodel->texinfo + ti;
 
 		CalcSurfaceExtents (loadmodel, out);
 
@@ -664,6 +457,7 @@ Mod_LoadFaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 		}
 
 		i = LittleLong(in->lightofs);
+
 		if (i == -1)
 		{
 			out->samples = NULL;
@@ -808,102 +602,6 @@ Mod_LoadMarksurfaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 
 /*
 =================
-Mod_LoadSurfedges
-=================
-*/
-static void
-Mod_LoadSurfedges (model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	int		i, count;
-	int		*in, *out;
-
-	in = (void *)(mod_base + l->fileofs);
-
-	if (l->filelen % sizeof(*in))
-	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
-				__func__, loadmodel->name);
-	}
-
-	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc((count+24)*sizeof(*out));	// extra for skybox
-
-	loadmodel->surfedges = out;
-	loadmodel->numsurfedges = count;
-
-	for ( i=0 ; i<count ; i++)
-		out[i] = LittleLong (in[i]);
-}
-
-/*
-=================
-Mod_LoadPlanes
-=================
-*/
-static void
-Mod_LoadPlanes (model_t *loadmodel, byte *mod_base, lump_t *l)
-{
-	int i;
-	cplane_t	*out;
-	dplane_t 	*in;
-	int			count;
-
-	in = (void *)(mod_base + l->fileofs);
-
-	if (l->filelen % sizeof(*in))
-	{
-		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
-				__func__, loadmodel->name);
-	}
-
-	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc((count+6)*sizeof(*out));		// extra for skybox
-
-	loadmodel->planes = out;
-	loadmodel->numplanes = count;
-
-	for ( i=0 ; i<count ; i++, in++, out++)
-	{
-		int bits, j;
-
-		bits = 0;
-		for (j=0 ; j<3 ; j++)
-		{
-			out->normal[j] = LittleFloat (in->normal[j]);
-			if (out->normal[j] < 0)
-				bits |= 1<<j;
-		}
-
-		out->dist = LittleFloat (in->dist);
-		out->type = LittleLong (in->type);
-		out->signbits = bits;
-	}
-}
-
-
-// calculate the size that Hunk_Alloc(), called by Mod_Load*() from Mod_LoadBrushModel(),
-// will use (=> includes its padding), so we'll know how big the hunk needs to be
-// extra is used for skybox, which adds 6 surfaces
-static int calcLumpHunkSize(const lump_t *l, int inSize, int outSize, int extra)
-{
-	if (l->filelen % inSize)
-	{
-		// Mod_Load*() will error out on this because of "funny size"
-		// don't error out here because in Mod_Load*() it can print the functionname
-		// (=> tells us what kind of lump) before shutting down the game
-		return 0;
-	}
-
-	int count = l->filelen / inSize + extra;
-	int size = count * outSize;
-
-	// round to cacheline, like Hunk_Alloc() does
-	size = (size + 31) & ~31;
-	return size;
-}
-
-/*
-=================
 Mod_LoadBrushModel
 =================
 */
@@ -934,11 +632,11 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 
 	// calculate the needed hunksize from the lumps
 	int hunkSize = 0;
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VERTEXES], sizeof(dvertex_t), sizeof(mvertex_t), 8);
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_EDGES], sizeof(dedge_t), sizeof(medge_t), 13);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_VERTEXES], sizeof(dvertex_t), sizeof(mvertex_t), 8);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_EDGES], sizeof(dedge_t), sizeof(medge_t), 13);
 	float surfEdgeCount = (float)header->lumps[LUMP_SURFEDGES].filelen / sizeof(int);
 	if(surfEdgeCount < MAX_MAP_SURFEDGES) // else it errors out later anyway
-		hunkSize += calcLumpHunkSize(&header->lumps[LUMP_SURFEDGES], sizeof(int), sizeof(int), 24);
+		hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_SURFEDGES], sizeof(int), sizeof(int), 24);
 
 	// lighting is a special case, because we keep only 1 byte out of 3
 	// (=> no colored lighting in soft renderer by default)
@@ -949,14 +647,14 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 		hunkSize += size;
 	}
 
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_PLANES], sizeof(dplane_t), sizeof(cplane_t), 6);
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_TEXINFO], sizeof(texinfo_t), sizeof(mtexinfo_t), 6);
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_FACES], sizeof(dface_t), sizeof(msurface_t), 6);
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFFACES], sizeof(short), sizeof(msurface_t *), 0); // yes, out is indeeed a pointer!
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VISIBILITY], 1, 1, 0);
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFS], sizeof(dleaf_t), sizeof(mleaf_t), 0);
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_NODES], sizeof(dnode_t), sizeof(mnode_t), 0);
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(model_t), 0);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_PLANES], sizeof(dplane_t), sizeof(cplane_t)*2, 6);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_TEXINFO], sizeof(texinfo_t), sizeof(mtexinfo_t), 6);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_FACES], sizeof(dface_t), sizeof(msurface_t), 6);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_LEAFFACES], sizeof(short), sizeof(msurface_t *), 0); // yes, out is indeeed a pointer!
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_VISIBILITY], 1, 1, 0);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_LEAFS], sizeof(dleaf_t), sizeof(mleaf_t), 0);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_NODES], sizeof(dnode_t), sizeof(mnode_t), 0);
+	hunkSize += Mod_CalcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(model_t), 0);
 
 	hunkSize += 1048576; // 1MB extra just in case
 
@@ -965,22 +663,26 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	mod->type = mod_brush;
 
 	// load into heap
-	Mod_LoadVertexes (mod, mod_base, &header->lumps[LUMP_VERTEXES]);
-	Mod_LoadEdges (mod, mod_base, &header->lumps[LUMP_EDGES]);
-	Mod_LoadSurfedges (mod, mod_base, &header->lumps[LUMP_SURFEDGES]);
-	Mod_LoadLighting (mod, mod_base, &header->lumps[LUMP_LIGHTING]);
-	Mod_LoadPlanes (mod, mod_base, &header->lumps[LUMP_PLANES]);
-	Mod_LoadTexinfo (mod, mod_base, &header->lumps[LUMP_TEXINFO]);
+	Mod_LoadVertexes (mod->name, &mod->vertexes, &mod->numvertexes, mod_base,
+		&header->lumps[LUMP_VERTEXES], 8);
+	Mod_LoadEdges (mod->name, &mod->edges, &mod->numedges,
+		mod_base, &header->lumps[LUMP_EDGES], 13);
+	Mod_LoadSurfedges (mod->name, &mod->surfedges, &mod->numsurfedges,
+		mod_base, &header->lumps[LUMP_SURFEDGES], 24);
+	Mod_LoadLighting (&mod->lightdata, mod_base, &header->lumps[LUMP_LIGHTING]);
+	Mod_LoadPlanes (mod->name, &mod->planes, &mod->numplanes,
+		mod_base, &header->lumps[LUMP_PLANES], 6);
+	Mod_LoadTexinfo (mod->name, &mod->texinfo, &mod->numtexinfo,
+		mod_base, &header->lumps[LUMP_TEXINFO], (findimage_t)R_FindImage,
+		r_notexture_mip, 6);
 	Mod_LoadFaces (mod, mod_base, &header->lumps[LUMP_FACES]);
 	Mod_LoadMarksurfaces (mod, mod_base, &header->lumps[LUMP_LEAFFACES]);
-	Mod_LoadVisibility (mod, mod_base, &header->lumps[LUMP_VISIBILITY]);
+	Mod_LoadVisibility (&mod->vis, mod_base, &header->lumps[LUMP_VISIBILITY]);
 	Mod_LoadLeafs (mod, mod_base, &header->lumps[LUMP_LEAFS]);
-	Mod_LoadNodes (mod->name, mod->planes, mod->leafs, &mod->nodes,
-		&mod->numnodes, mod_base, &header->lumps[LUMP_NODES]);
+	Mod_LoadNodes (mod->name, mod->planes, mod->numplanes, mod->leafs,
+		mod->numleafs, &mod->nodes, &mod->numnodes, mod_base,
+		&header->lumps[LUMP_NODES]);
 	Mod_LoadSubmodels (mod, mod_base, &header->lumps[LUMP_MODELS]);
-
-	r_numvisleafs = 0;
-	R_NumberLeafs (mod, mod->nodes);
 
 	R_InitSkyBox (mod);
 }
