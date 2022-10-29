@@ -207,5 +207,6 @@ extern void Mod_LoadPlanes (const char *name, cplane_t **planes, int *numplanes,
 extern void Mod_LoadSurfedges (const char *name, int **surfedges, int *numsurfedges,
 	const byte *mod_base, const lump_t *l, int extra);
 extern int Mod_CalcLumpHunkSize(const lump_t *l, int inSize, int outSize, int extra);
+extern mleaf_t *Mod_PointInLeaf(const vec3_t p, mnode_t *node);
 
 #endif /* SRC_CLIENT_REFRESH_REF_SHARED_H_ */

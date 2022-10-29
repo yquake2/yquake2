@@ -750,3 +750,43 @@ Mod_CalcLumpHunkSize(const lump_t *l, int inSize, int outSize, int extra)
 	size = (size + 31) & ~31;
 	return size;
 }
+
+/*
+===============
+Mod_PointInLeaf
+===============
+*/
+mleaf_t *
+Mod_PointInLeaf(const vec3_t p, mnode_t *node)
+{
+	if (!node)
+	{
+		ri.Sys_Error(ERR_DROP, "%s: bad node.", __func__);
+		return NULL;
+	}
+
+	while (1)
+	{
+		float d;
+		cplane_t *plane;
+
+		if (node->contents != CONTENTS_NODE)
+		{
+			return (mleaf_t *)node;
+		}
+
+		plane = node->plane;
+		d = DotProduct(p, plane->normal) - plane->dist;
+
+		if (d > 0)
+		{
+			node = node->children[0];
+		}
+		else
+		{
+			node = node->children[1];
+		}
+	}
+
+	return NULL; /* never reached */
+}

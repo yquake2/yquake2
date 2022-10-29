@@ -64,43 +64,6 @@ Mod_HasFreeSpace(void)
 	return (mod_numknown + mod_max) < MAX_MOD_KNOWN;
 }
 
-mleaf_t *
-GL3_Mod_PointInLeaf(vec3_t p, gl3model_t *model)
-{
-	mnode_t *node;
-	float d;
-	cplane_t *plane;
-
-	if (!model || !model->nodes)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: bad model", __func__);
-	}
-
-	node = model->nodes;
-
-	while (1)
-	{
-		if (node->contents != CONTENTS_NODE)
-		{
-			return (mleaf_t *)node;
-		}
-
-		plane = node->plane;
-		d = DotProduct(p, plane->normal) - plane->dist;
-
-		if (d > 0)
-		{
-			node = node->children[0];
-		}
-		else
-		{
-			node = node->children[1];
-		}
-	}
-
-	return NULL; /* never reached */
-}
-
 const byte*
 GL3_Mod_ClusterPVS(int cluster, const gl3model_t *model)
 {

@@ -1200,9 +1200,15 @@ SetupFrame(void)
 	/* current viewcluster */
 	if (!(gl3_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
+		if (!gl3_worldmodel)
+		{
+			ri.Sys_Error(ERR_DROP, "%s: bad world model", __func__);
+			return;
+		}
+
 		gl3_oldviewcluster = gl3_viewcluster;
 		gl3_oldviewcluster2 = gl3_viewcluster2;
-		leaf = GL3_Mod_PointInLeaf(gl3_origin, gl3_worldmodel);
+		leaf = Mod_PointInLeaf(gl3_origin, gl3_worldmodel->nodes);
 		gl3_viewcluster = gl3_viewcluster2 = leaf->cluster;
 
 		/* check above and below so crossing solid water doesn't draw wrong */
@@ -1213,7 +1219,7 @@ SetupFrame(void)
 
 			VectorCopy(gl3_origin, temp);
 			temp[2] -= 16;
-			leaf = GL3_Mod_PointInLeaf(temp, gl3_worldmodel);
+			leaf = Mod_PointInLeaf(temp, gl3_worldmodel->nodes);
 
 			if (!(leaf->contents & CONTENTS_SOLID) &&
 				(leaf->cluster != gl3_viewcluster2))
@@ -1228,7 +1234,7 @@ SetupFrame(void)
 
 			VectorCopy(gl3_origin, temp);
 			temp[2] += 16;
-			leaf = GL3_Mod_PointInLeaf(temp, gl3_worldmodel);
+			leaf = Mod_PointInLeaf(temp, gl3_worldmodel->nodes);
 
 			if (!(leaf->contents & CONTENTS_SOLID) &&
 				(leaf->cluster != gl3_viewcluster2))
