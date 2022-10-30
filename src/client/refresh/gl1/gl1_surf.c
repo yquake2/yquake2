@@ -42,30 +42,6 @@ qboolean LM_AllocBlock(int w, int h, int *x, int *y);
 void R_SetCacheState(msurface_t *surf);
 void R_BuildLightMap(msurface_t *surf, byte *dest, int stride);
 
-/*
- * Returns the proper texture for a given time and base texture
- */
-static image_t *
-R_TextureAnimation(entity_t *currententity, mtexinfo_t *tex)
-{
-	int c;
-
-	if (!tex->next)
-	{
-		return tex->image;
-	}
-
-	c = currententity->frame % tex->numframes;
-
-	while (c)
-	{
-		tex = tex->next;
-		c--;
-	}
-
-	return tex->image;
-}
-
 static void
 R_DrawGLPoly(glpoly_t *p)
 {

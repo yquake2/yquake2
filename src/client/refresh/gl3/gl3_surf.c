@@ -156,31 +156,6 @@ CullBox(vec3_t mins, vec3_t maxs)
 	return false;
 }
 
-/*
- * Returns the proper texture for a given time and base texture
- */
-static gl3image_t *
-TextureAnimation(entity_t *currententity, mtexinfo_t *tex)
-{
-	int c;
-
-	if (!tex->next)
-	{
-		return tex->image;
-	}
-
-	c = currententity->frame % tex->numframes;
-
-	while (c)
-	{
-		tex = tex->next;
-		c--;
-	}
-
-	return tex->image;
-}
-
-
 static void
 SetLightFlags(msurface_t *surf)
 {
@@ -345,7 +320,7 @@ RenderBrushPoly(entity_t *currententity, msurface_t *fa)
 
 	c_brush_polys++;
 
-	image = TextureAnimation(currententity, fa->texinfo);
+	image = R_TextureAnimation(currententity, fa->texinfo);
 
 	if (fa->flags & SURF_DRAWTURB)
 	{
@@ -490,7 +465,7 @@ static void
 RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
 {
 	int map;
-	gl3image_t *image = TextureAnimation(currententity, surf->texinfo);
+	gl3image_t *image = R_TextureAnimation(currententity, surf->texinfo);
 
 	hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE] = {0};
 	lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -782,7 +757,7 @@ RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 			/* add to the translucent chain */
 			surf->texturechain = gl3_alpha_surfaces;
 			gl3_alpha_surfaces = surf;
-			gl3_alpha_surfaces->texinfo->image = TextureAnimation(currententity, surf->texinfo);
+			gl3_alpha_surfaces->texinfo->image = R_TextureAnimation(currententity, surf->texinfo);
 		}
 		else
 		{
@@ -798,7 +773,7 @@ RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 #endif // 0
 			{
 				/* the polygon is visible, so add it to the texture sorted chain */
-				image = TextureAnimation(currententity, surf->texinfo);
+				image = R_TextureAnimation(currententity, surf->texinfo);
 				surf->texturechain = image->texturechain;
 				image->texturechain = surf;
 			}
