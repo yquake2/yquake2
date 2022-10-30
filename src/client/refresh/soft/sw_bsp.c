@@ -138,25 +138,6 @@ R_RotateBmodel(const entity_t *currententity)
 	R_TransformFrustum ();
 }
 
-
-static qboolean
-R_AreaVisible(mleaf_t *pleaf)
-{
-	int area;
-
-	// check for door connected areas
-	if (!r_newrefdef.areabits)
-		return true;
-
-	area = pleaf->area;
-
-	if ((r_newrefdef.areabits[area>>3] & (1<<(area&7))))
-		return true;
-
-	return false; // not visible
-}
-
-
 /*
 ================
 R_RecursiveClipBPoly
@@ -320,7 +301,7 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 					{
 						int r_currentbkey;
 
-						if (!R_AreaVisible((mleaf_t *)pn))
+						if (!R_AreaVisible(r_newrefdef.areabits, (mleaf_t *)pn))
 							continue;
 
 						r_currentbkey = ((mleaf_t *)pn)->key;
@@ -538,7 +519,7 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 		msurface_t **mark;
 		pleaf = (mleaf_t *)node;
 
-		if (!R_AreaVisible(pleaf))
+		if (!R_AreaVisible(r_newrefdef.areabits, pleaf))
 			return;	// not visible
 
 		mark = pleaf->firstmarksurface;

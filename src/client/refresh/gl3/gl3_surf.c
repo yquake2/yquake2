@@ -674,13 +674,9 @@ RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 		pleaf = (mleaf_t *)node;
 
 		/* check for door connected areas */
-		if (gl3_newrefdef.areabits)
-		{
-			if (!(gl3_newrefdef.areabits[pleaf->area >> 3] & (1 << (pleaf->area & 7))))
-			{
-				return; /* not visible */
-			}
-		}
+		// check for door connected areas
+		if (!R_AreaVisible(gl3_newrefdef.areabits, pleaf))
+			return;	// not visible
 
 		mark = pleaf->firstmarksurface;
 		c = pleaf->nummarksurfaces;

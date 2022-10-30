@@ -208,6 +208,8 @@ extern void Mod_LoadSurfedges (const char *name, int **surfedges, int *numsurfed
 	const byte *mod_base, const lump_t *l, int extra);
 extern int Mod_CalcLumpHunkSize(const lump_t *l, int inSize, int outSize, int extra);
 extern mleaf_t *Mod_PointInLeaf(const vec3_t p, mnode_t *node);
-extern struct image_s *R_TextureAnimation(const entity_t *currententity, const mtexinfo_t *tex);
+extern struct image_s *R_TextureAnimation(const entity_t *currententity,
+	const mtexinfo_t *tex);
+extern qboolean R_AreaVisible(const byte *areabits, mleaf_t *pleaf);
 
 #endif /* SRC_CLIENT_REFRESH_REF_SHARED_H_ */

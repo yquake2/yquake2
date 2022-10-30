@@ -53,3 +53,20 @@ R_TextureAnimation(const entity_t *currententity, const mtexinfo_t *tex)
 
 	return tex->image;
 }
+
+qboolean
+R_AreaVisible(const byte *areabits, mleaf_t *pleaf)
+{
+	int area;
+
+	// check for door connected areas
+	if (!areabits)
+		return true;
+
+	area = pleaf->area;
+
+	if ((areabits[area >> 3] & (1 << (area & 7))))
+		return true;
+
+	return false; // not visible
+}
