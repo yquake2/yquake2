@@ -271,12 +271,14 @@ qboolean R_CullBox(vec3_t mins, vec3_t maxs);
 void R_RotateForEntity(entity_t *e);
 void R_MarkLeaves(void);
 
+extern int r_dlightframecount;
 glpoly_t *WaterWarpPolyVerts(glpoly_t *p);
 void R_EmitWaterPolys(msurface_t *fa);
 void R_AddSkySurface(msurface_t *fa);
 void R_ClearSkyBox(void);
 void R_DrawSkyBox(void);
-void R_MarkLights(dlight_t *light, int bit, mnode_t *node);
+void R_MarkSurfaceLights(dlight_t *light, int bit, mnode_t *node,
+	int r_dlightframecount);
 
 void COM_StripExtension(char *in, char *out);
 

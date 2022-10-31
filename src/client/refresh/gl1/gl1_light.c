@@ -26,8 +26,6 @@
 
 #include "header/local.h"
 
-#define DLIGHT_CUTOFF 64
-
 int r_dlightframecount;
 vec3_t pointcolor;
 cplane_t *lightplane; /* used as shadow plane */
@@ -121,39 +119,19 @@ R_RenderDlights(void)
 }
 
 void
-R_MarkLights(dlight_t *light, int bit, mnode_t *node)
+R_MarkSurfaceLights(dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
 {
-	cplane_t *splitplane;
-	float dist;
-	msurface_t *surf;
-	int i;
-	int sidebit;
-
-	if (node->contents != CONTENTS_NODE)
-	{
-		return;
-	}
-
-	splitplane = node->plane;
-	dist = DotProduct(light->origin, splitplane->normal) - splitplane->dist;
-
-	if (dist > light->intensity - DLIGHT_CUTOFF)
-	{
-		R_MarkLights(light, bit, node->children[0]);
-		return;
-	}
-
-	if (dist < -light->intensity + DLIGHT_CUTOFF)
-	{
-		R_MarkLights(light, bit, node->children[1]);
-		return;
-	}
+	msurface_t	*surf;
+	int			i;
 
 	/* mark the polygons */
 	surf = r_worldmodel->surfaces + node->firstsurface;
 
 	for (i = 0; i < node->numsurfaces; i++, surf++)
 	{
+		int sidebit;
+		float dist;
+
 		dist = DotProduct(light->origin, surf->plane->normal) - surf->plane->dist;
 
 		if (dist >= 0)
@@ -178,9 +156,6 @@ R_MarkLights(dlight_t *light, int bit, mnode_t *node)
 
 		surf->dlightbits |= bit;
 	}
-
-	R_MarkLights(light, bit, node->children[0]);
-	R_MarkLights(light, bit, node->children[1]);
 }
 
 void
@@ -201,7 +176,8 @@ R_PushDlights(void)
 
 	for (i = 0; i < r_newrefdef.num_dlights; i++, l++)
 	{
-		R_MarkLights(l, 1 << i, r_worldmodel->nodes);
+		R_MarkLights(l, 1 << i, r_worldmodel->nodes, r_dlightframecount,
+			R_MarkSurfaceLights);
 	}
 }
 

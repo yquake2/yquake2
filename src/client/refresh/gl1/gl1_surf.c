@@ -650,7 +650,9 @@ R_DrawInlineBModel(entity_t *currententity, const model_t *currentmodel)
 
 		for (k = 0; k < r_newrefdef.num_dlights; k++, lt++)
 		{
-			R_MarkLights(lt, 1 << k, currentmodel->nodes + currentmodel->firstnode);
+			R_MarkLights(lt, 1 << k,
+				currentmodel->nodes + currentmodel->firstnode,
+				r_dlightframecount, R_MarkSurfaceLights);
 		}
 	}
 

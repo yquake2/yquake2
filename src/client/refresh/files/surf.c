@@ -70,3 +70,49 @@ R_AreaVisible(const byte *areabits, mleaf_t *pleaf)
 
 	return false; // not visible
 }
+
+/*
+=============
+R_MarkLights
+
+bit: 1 << i for light number i, will be or'ed into msurface_t::dlightbits
+if surface is affected by this light
+=============
+*/
+void
+R_MarkLights(dlight_t *light, int bit, mnode_t *node, int r_dlightframecount,
+	marksurfacelights_t mark_surface_lights)
+{
+	cplane_t	*splitplane;
+	float		dist;
+	int			intensity;
+
+	if (node->contents != CONTENTS_NODE)
+		return;
+
+	splitplane = node->plane;
+	dist = DotProduct(light->origin, splitplane->normal) - splitplane->dist;
+
+	intensity = light->intensity;
+
+	if (dist > intensity - DLIGHT_CUTOFF)	// (dist > light->intensity)
+	{
+		R_MarkLights (light, bit, node->children[0], r_dlightframecount,
+			mark_surface_lights);
+		return;
+	}
+
+	if (dist < -intensity + DLIGHT_CUTOFF)	// (dist < -light->intensity)
+	{
+		R_MarkLights(light, bit, node->children[1], r_dlightframecount,
+			mark_surface_lights);
+		return;
+	}
+
+	mark_surface_lights(light, bit, node, r_dlightframecount);
+
+	R_MarkLights(light, bit, node->children[0], r_dlightframecount,
+		mark_surface_lights);
+	R_MarkLights(light, bit, node->children[1], r_dlightframecount,
+		mark_surface_lights);
+}

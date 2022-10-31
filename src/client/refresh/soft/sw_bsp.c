@@ -450,9 +450,6 @@ R_DrawSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, int
 	}
 }
 
-
-static int c_drawnode;
-
 /*
 ================
 R_RecursiveWorldNode
@@ -510,8 +507,6 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 				clipflags &= ~(1<<i);	// node is entirely on screen
 		}
 	}
-
-	c_drawnode++;
 
 	// if a leaf node, draw stuff
 	if (node->contents != CONTENTS_NODE)
@@ -630,8 +625,6 @@ R_RenderWorld (entity_t *currententity)
 		return;
 	if ( r_newrefdef.rdflags & RDF_NOWORLDMODEL )
 		return;
-
-	c_drawnode=0;
 
 	// auto cycle the world frame for texture animation
 	currententity->frame = (int)(r_newrefdef.time*2);
