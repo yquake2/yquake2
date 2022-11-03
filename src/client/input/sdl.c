@@ -1436,12 +1436,12 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 	else if ( (strstr(name, "player/") || strstr(name, "players/")) &&
 		(strstr(name, "/death") || strstr(name, "/fall") || strstr(name, "/pain")) )
 	{
-		intens = 3.5f;	// exaggerate player damage
+		intens = 3.2f;	// exaggerate player damage
 		low_freq = 1.1f;
 	}
 	else if (strstr(name, "player/land"))
 	{
-		intens = 2.5f;	// fall without injury
+		intens = 2.3f;	// fall without injury
 	}
 	else if (strstr(name, "doors/"))
 	{
@@ -1456,16 +1456,17 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 	}
 	else if (strstr(name, "world/"))
 	{
-		max_distance = 3000;	// ambient events
+		max_distance = 3500;	// ambient events
 		if (strstr(name, "/dish") || strstr(name, "/drill2a") || strstr(name, "/dr_")
-			|| strstr(name, "/explod1") || strstr(name, "/rocks") || strstr(name, "/rumble"))
+			|| strstr(name, "/explod1") || strstr(name, "/rocks")
+			|| strstr(name, "/rumble") || strstr(name, "/train2"))
 		{
-			intens = 0.25f;
+			intens = 0.28f;
 			low_freq = 0.7f;
 		}
 		else if (strstr(name, "/quake"))
 		{
-			intens = 0.625f;	// (earth)quakes are more evident
+			intens = 0.67f;		// (earth)quakes are more evident
 			low_freq = 1.2f;
 		}
 	}
@@ -1493,7 +1494,7 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 	low_freq = min(effect_volume * low_freq, USHRT_MAX);
 	hi_freq = min(effect_volume * hi_freq, USHRT_MAX);
 
-	// Com_Printf("%s: vol %d | %d ms | prop:%.3f | l:%.0f h:%.0f\n",
+	// Com_Printf("%-29s: vol %5u - %4u ms - dp %.3f l %5.0f h %5.0f\n",
 	//	name, effect_volume, duration, dist_prop, low_freq, hi_freq);
 
 	SDL_GameControllerRumble(controller, low_freq, hi_freq, duration);
