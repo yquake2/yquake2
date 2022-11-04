@@ -1433,15 +1433,26 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 			hi_freq = 0.6f;
 		}
 	}
-	else if ( (strstr(name, "player/") || strstr(name, "players/")) &&
-		(strstr(name, "/death") || strstr(name, "/fall") || strstr(name, "/pain")) )
-	{
-		intens = 3.2f;	// exaggerate player damage
-		low_freq = 1.1f;
-	}
 	else if (strstr(name, "player/land"))
 	{
-		intens = 2.3f;	// fall without injury
+		intens = 2.2f;	// fall without injury
+		low_freq = 1.1f;
+	}
+	else if (strstr(name, "player/") || strstr(name, "players/"))
+	{
+		low_freq = 1.2f;	// exaggerate player damage
+		if (strstr(name, "/burn") || strstr(name, "/pain100") || strstr(name, "/pain75"))
+		{
+			intens = 2.4f;
+		}
+		else if (strstr(name, "/fall") || strstr(name, "/pain50") || strstr(name, "/pain25"))
+		{
+			intens = 2.7f;
+		}
+		else if (strstr(name, "/death"))
+		{
+			intens = 2.9f;
+		}
 	}
 	else if (strstr(name, "doors/"))
 	{
@@ -1459,7 +1470,7 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 		max_distance = 3500;	// ambient events
 		if (strstr(name, "/dish") || strstr(name, "/drill2a") || strstr(name, "/dr_")
 			|| strstr(name, "/explod1") || strstr(name, "/rocks")
-			|| strstr(name, "/rumble") || strstr(name, "/train2"))
+			|| strstr(name, "/rumble"))
 		{
 			intens = 0.28f;
 			low_freq = 0.7f;
@@ -1468,6 +1479,11 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 		{
 			intens = 0.67f;		// (earth)quakes are more evident
 			low_freq = 1.2f;
+		}
+		else if (strstr(name, "/train2"))
+		{
+			intens = 0.28f;
+			max_distance = 290;	// just machinery
 		}
 	}
 
