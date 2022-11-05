@@ -344,7 +344,7 @@ float BigFloat(float l);
 float LittleFloat(float l);
 
 void Swap_Init(void);
-char *va(char *format, ...)  PRINTF_ATTR(1, 2);
+char *va(const char *format, ...)  PRINTF_ATTR(1, 2);
 
 /* ============================================= */
 
