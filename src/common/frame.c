@@ -35,6 +35,7 @@ cvar_t *fixedtime;
 cvar_t *cl_maxfps;
 cvar_t *dedicated;
 
+extern cvar_t *color_terminal;
 extern cvar_t *logfile_active;
 extern jmp_buf abortframe; /* an ERR_DROP occured, exit the entire frame */
 extern zhead_t z_chain;
@@ -353,6 +354,7 @@ Qcommon_Init(int argc, char **argv)
 	developer = Cvar_Get("developer", "0", 0);
 	fixedtime = Cvar_Get("fixedtime", "0", 0);
 
+	color_terminal = Cvar_Get("colorterminal", "1", CVAR_ARCHIVE);
 	logfile_active = Cvar_Get("logfile", "1", CVAR_ARCHIVE);
 	modder = Cvar_Get("modder", "0", 0);
 	timescale = Cvar_Get("timescale", "1", 0);
