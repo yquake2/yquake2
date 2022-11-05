@@ -219,5 +219,8 @@ extern void R_MarkLights (dlight_t *light, int bit, mnode_t *node, int r_dlightf
 extern struct image_s *R_TextureAnimation(const entity_t *currententity,
 	const mtexinfo_t *tex);
 extern qboolean R_AreaVisible(const byte *areabits, mleaf_t *pleaf);
+extern qboolean R_CullBox(vec3_t mins, vec3_t maxs, cplane_t *frustum);
+extern void R_SetFrustum(vec3_t vup, vec3_t vpn, vec3_t vright, vec3_t r_origin,
+	float fov_x, float fov_y, cplane_t *frustum);
 
 #endif /* SRC_CLIENT_REFRESH_REF_SHARED_H_ */

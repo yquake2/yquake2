@@ -132,30 +132,6 @@ void GL3_SurfShutdown(void)
 	gl3state.vaoAlias = 0;
 }
 
-/*
- * Returns true if the box is completely outside the frustom
- */
-static qboolean
-CullBox(vec3_t mins, vec3_t maxs)
-{
-	int i;
-
-	if (!gl_cull->value)
-	{
-		return false;
-	}
-
-	for (i = 0; i < 4; i++)
-	{
-		if (BOX_ON_PLANE_SIDE(mins, maxs, &frustum[i]) == 2)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 static void
 SetLightFlags(msurface_t *surf)
 {
@@ -597,7 +573,7 @@ GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel)
 		VectorAdd(e->origin, currentmodel->maxs, maxs);
 	}
 
-	if (CullBox(mins, maxs))
+	if (r_cull->value && R_CullBox(mins, maxs, frustum))
 	{
 		return;
 	}
@@ -664,7 +640,7 @@ RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 		return;
 	}
 
-	if (CullBox(node->minmaxs, node->minmaxs + 3))
+	if (r_cull->value && R_CullBox(node->minmaxs, node->minmaxs + 3, frustum))
 	{
 		return;
 	}

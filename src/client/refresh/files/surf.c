@@ -116,3 +116,68 @@ R_MarkLights(dlight_t *light, int bit, mnode_t *node, int r_dlightframecount,
 	R_MarkLights(light, bit, node->children[1], r_dlightframecount,
 		mark_surface_lights);
 }
+
+/*
+ * Returns true if the box is completely outside the frustom
+ */
+qboolean
+R_CullBox(vec3_t mins, vec3_t maxs, cplane_t *frustum)
+{
+	int i;
+
+	for (i = 0; i < 4; i++)
+	{
+		if (BOX_ON_PLANE_SIDE(mins, maxs, frustum + i) == 2)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static int
+R_SignbitsForPlane(cplane_t *out)
+{
+	int bits, j;
+
+	/* for fast box on planeside test */
+	bits = 0;
+
+	for (j = 0; j < 3; j++)
+	{
+		if (out->normal[j] < 0)
+		{
+			bits |= 1 << j;
+		}
+	}
+
+	return bits;
+}
+
+void
+R_SetFrustum(vec3_t vup, vec3_t vpn, vec3_t vright, vec3_t r_origin,
+	float fov_x, float fov_y, cplane_t *frustum)
+{
+	int i;
+
+	/* rotate VPN right by FOV_X/2 degrees */
+	RotatePointAroundVector(frustum[0].normal, vup, vpn,
+			-(90 - fov_x / 2));
+	/* rotate VPN left by FOV_X/2 degrees */
+	RotatePointAroundVector(frustum[1].normal,
+			vup, vpn, 90 - fov_x / 2);
+	/* rotate VPN up by FOV_X/2 degrees */
+	RotatePointAroundVector(frustum[2].normal,
+			vright, vpn, 90 - fov_y / 2);
+	/* rotate VPN down by FOV_X/2 degrees */
+	RotatePointAroundVector(frustum[3].normal, vright, vpn,
+			-(90 - fov_y / 2));
+
+	for (i = 0; i < 4; i++)
+	{
+		frustum[i].type = PLANE_ANYZ;
+		frustum[i].dist = DotProduct(r_origin, frustum[i].normal);
+		frustum[i].signbits = R_SignbitsForPlane(&frustum[i]);
+	}
+}

@@ -120,7 +120,7 @@ cvar_t *gl1_ztrick;
 cvar_t *gl_zfix;
 cvar_t *gl_finish;
 cvar_t *r_clear;
-cvar_t *gl_cull;
+cvar_t *r_cull;
 cvar_t *gl_polyblend;
 cvar_t *gl1_flashblend;
 cvar_t *gl1_saturatelighting;
@@ -142,30 +142,6 @@ cvar_t *gl1_stereo_convergence;
 
 
 refimport_t ri;
-
-/*
- * Returns true if the box is completely outside the frustom
- */
-qboolean
-R_CullBox(vec3_t mins, vec3_t maxs)
-{
-	int i;
-
-	if (!gl_cull->value)
-	{
-		return false;
-	}
-
-	for (i = 0; i < 4; i++)
-	{
-		if (BOX_ON_PLANE_SIDE(mins, maxs, &frustum[i]) == 2)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
 
 void
 R_RotateForEntity(entity_t *e)
@@ -642,51 +618,6 @@ R_PolyBlend(void)
 	glColor4f(1, 1, 1, 1);
 }
 
-int
-R_SignbitsForPlane(cplane_t *out)
-{
-	int bits, j;
-
-	/* for fast box on planeside test */
-	bits = 0;
-
-	for (j = 0; j < 3; j++)
-	{
-		if (out->normal[j] < 0)
-		{
-			bits |= 1 << j;
-		}
-	}
-
-	return bits;
-}
-
-void
-R_SetFrustum(void)
-{
-	int i;
-
-	/* rotate VPN right by FOV_X/2 degrees */
-	RotatePointAroundVector(frustum[0].normal, vup, vpn,
-			-(90 - r_newrefdef.fov_x / 2));
-	/* rotate VPN left by FOV_X/2 degrees */
-	RotatePointAroundVector(frustum[1].normal,
-			vup, vpn, 90 - r_newrefdef.fov_x / 2);
-	/* rotate VPN up by FOV_X/2 degrees */
-	RotatePointAroundVector(frustum[2].normal,
-			vright, vpn, 90 - r_newrefdef.fov_y / 2);
-	/* rotate VPN down by FOV_X/2 degrees */
-	RotatePointAroundVector(frustum[3].normal, vright, vpn,
-			-(90 - r_newrefdef.fov_y / 2));
-
-	for (i = 0; i < 4; i++)
-	{
-		frustum[i].type = PLANE_ANYZ;
-		frustum[i].dist = DotProduct(r_origin, frustum[i].normal);
-		frustum[i].signbits = R_SignbitsForPlane(&frustum[i]);
-	}
-}
-
 void
 R_SetupFrame(void)
 {
@@ -849,7 +780,7 @@ R_SetupGL(void)
 	glGetFloatv(GL_MODELVIEW_MATRIX, r_world_matrix);
 
 	/* set drawing parms */
-	if (gl_cull->value)
+	if (r_cull->value)
 	{
 		glEnable(GL_CULL_FACE);
 	}
@@ -1120,7 +1051,8 @@ R_RenderView(refdef_t *fd)
 
 	R_SetupFrame();
 
-	R_SetFrustum();
+	R_SetFrustum(vup, vpn, vright, r_origin, r_newrefdef.fov_x, r_newrefdef.fov_y,
+		frustum);
 
 	R_SetupGL();
 
@@ -1266,7 +1198,7 @@ R_Register(void)
 	gl_zfix = ri.Cvar_Get("gl_zfix", "0", 0);
 	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
 	r_clear = ri.Cvar_Get("r_clear", "0", 0);
-	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
+	r_cull = ri.Cvar_Get("r_cull", "1", 0);
 	gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", 0);
 	gl1_flashblend = ri.Cvar_Get("gl1_flashblend", "0", 0);
 	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);

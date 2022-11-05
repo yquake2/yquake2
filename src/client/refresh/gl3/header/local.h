@@ -381,7 +381,6 @@ GL3_BindEBO(GLuint ebo)
 
 extern void GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode);
 
-extern qboolean GL3_CullBox(vec3_t mins, vec3_t maxs);
 extern void GL3_RotateForEntity(entity_t *e);
 
 // gl3_sdl.c
@@ -523,7 +522,7 @@ extern cvar_t *gl_nobind;
 extern cvar_t *r_lockpvs;
 extern cvar_t *r_novis;
 
-extern cvar_t *gl_cull;
+extern cvar_t *r_cull;
 extern cvar_t *gl_zfix;
 extern cvar_t *r_fullbright;
 

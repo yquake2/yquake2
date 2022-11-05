@@ -464,10 +464,19 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 	mleaf_t *pleaf;
 
 	if (node->contents == CONTENTS_SOLID)
+	{
 		return;		// solid
+	}
 
 	if (node->visframe != r_visframecount)
+	{
 		return;
+	}
+
+	if (r_cull->value && R_CullBox(node->minmaxs, node->minmaxs + 3, frustum))
+	{
+		return;
+	}
 
 	// cull the clipping planes if not trivial accept
 	// FIXME: the compiler is doing a lousy job of optimizing here; it could be

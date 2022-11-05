@@ -213,7 +213,7 @@ extern cvar_t *gl_finish;
 extern cvar_t *gl1_ztrick;
 extern cvar_t *gl_zfix;
 extern cvar_t *r_clear;
-extern cvar_t *gl_cull;
+extern cvar_t *r_cull;
 extern cvar_t *gl1_polyblend;
 extern cvar_t *gl1_flashblend;
 extern cvar_t *r_modulate;
@@ -267,7 +267,6 @@ void R_DrawAlphaSurfaces(void);
 void R_InitParticleTexture(void);
 void Draw_InitLocal(void);
 void R_SubdivideSurface(model_t *loadmodel, msurface_t *fa);
-qboolean R_CullBox(vec3_t mins, vec3_t maxs);
 void R_RotateForEntity(entity_t *e);
 void R_MarkLeaves(void);
 
