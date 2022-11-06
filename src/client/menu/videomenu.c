@@ -551,6 +551,8 @@ VID_MenuInit(void)
 		s_gl1_overbrightbits_slider.cvar = "gl1_overbrightbits";
 		s_gl1_overbrightbits_slider.minvalue = 0;
 		s_gl1_overbrightbits_slider.maxvalue = 3;
+		s_gl1_overbrightbits_slider.slidestep = 1;
+		s_gl1_overbrightbits_slider.printformat = "%.0f";
 
 		gl1_colorlight = Cvar_Get("gl1_colorlight", "1", CVAR_ARCHIVE);
 		s_gl1_colorlight_list.generic.type = MTYPE_SPINCONTROL;
