@@ -108,7 +108,7 @@ static cvar_t *windowed_mouse;
 
 // ----
 
-qboolean show_haptic = false;
+qboolean show_gamepad = false, show_haptic = false, show_gyro = false;
 
 static SDL_GameController *controller = NULL;
 
@@ -139,9 +139,6 @@ cvar_t *gyro_turning_axis;	// yaw or roll
 // Gyro sensitivity
 static cvar_t *gyro_yawsensitivity;
 static cvar_t *gyro_pitchsensitivity;
-
-// Gyro availability
-qboolean gyro_hardware = false;
 
 // Gyro is being used in this very moment
 static qboolean gyro_active = false;
@@ -1650,7 +1647,13 @@ IN_Controller_Init(qboolean notify_user)
 		if (is_controller)
 		{
 			controller = SDL_GameControllerOpen(i);
+			if (!controller)
+			{
+				Com_Printf ("Couldn't open SDL controller: %s.\n", SDL_GetError());
+				continue;	// try next joystick
+			}
 
+			show_gamepad = true;
 			Com_Printf ("Controller settings: %s\n", SDL_GameControllerMapping(controller));
 			Com_Printf ("Left stick config:\n");
 			Com_Printf (" * response curve exponent = %.3f\n", joy_left_expo->value);
@@ -1675,7 +1678,7 @@ IN_Controller_Init(qboolean notify_user)
 				}
 #endif	// _WIN32
 
-				gyro_hardware = true;
+				show_gyro = true;
 				Com_Printf("Gyro sensor enabled at %.2f Hz\n", gyro_data_rate);
 			}
 			else
@@ -1698,7 +1701,6 @@ IN_Controller_Init(qboolean notify_user)
 			}
 			else
 			{
-				show_haptic = false;
 				Com_Printf("Controller doesn't support rumble.\n");
 			}
 #else
@@ -1795,12 +1797,11 @@ IN_Controller_Shutdown(qboolean notify_user)
 	{
 		SDL_GameControllerClose(controller);
 		controller = NULL;
-		gyro_hardware = false;
-		show_haptic = false;
-		joystick_left_x = joystick_left_y = joystick_right_x = joystick_right_y = 0;
-		gyro_yaw = gyro_pitch = 0;
-		normalize_sdl_gyro = 1.0f / M_PI;
 	}
+	show_gamepad = show_gyro = show_haptic = false;
+	joystick_left_x = joystick_left_y = joystick_right_x = joystick_right_y = 0;
+	gyro_yaw = gyro_pitch = 0;
+	normalize_sdl_gyro = 1.0f / M_PI;
 }
 
 /*

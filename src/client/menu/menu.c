@@ -1609,7 +1609,7 @@ static menuslider_s s_stk_expo_slider[2];
 static menuslider_s s_stk_snap_slider[2];
 static menuslider_s s_stk_dz_slider[2];
 
-extern qboolean gyro_hardware;
+extern qboolean show_gyro;
 
 static void
 StickLayoutFunc(void *unused)
@@ -1640,7 +1640,7 @@ Stick_MenuInit(void)
 		0
 	};
 
-	int y = 0;
+	unsigned short int y = 0;
 	float scale = SCR_GetMenuScale();
 
 	s_sticks_config_menu.x = (int)(viddef.width * 0.50f);
@@ -1651,7 +1651,7 @@ Stick_MenuInit(void)
 	s_stk_layout_box.generic.y = y;
 	s_stk_layout_box.generic.name = "layout";
 	s_stk_layout_box.generic.callback = StickLayoutFunc;
-	if (gyro_hardware || joy_layout->value > 3)
+	if (show_gyro || joy_layout->value > 3)
 	{
 		s_stk_layout_box.itemnames = stick_layouts_fs;
 		s_stk_layout_box.curvalue = ClampCvar(0, 5, joy_layout->value);
@@ -1782,7 +1782,7 @@ extern qboolean IsCalibrationZero(void);
 static void
 CalibrateGyroFunc(void *unused)
 {
-	if (!gyro_hardware)
+	if (!show_gyro)
 	{
 		return;
 	}
@@ -1854,7 +1854,7 @@ Gyro_MenuInit(void)
 		0
 	};
 
-	int y = 0;
+	unsigned short int y = 0;
 	float scale = SCR_GetMenuScale();
 
 	s_gyro_menu.x = (int)(viddef.width * 0.50f);
@@ -2006,7 +2006,7 @@ static void
 Joy_MenuInit(void)
 {
     extern qboolean show_haptic;
-    int y = 0;
+    unsigned short int y = 0;
 
     s_joy_menu.x = (int)(viddef.width * 0.50f);
     s_joy_menu.nitems = 0;
@@ -2065,7 +2065,7 @@ Joy_MenuInit(void)
     s_joy_stickcfg_action.generic.callback = ConfigStickFunc;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_stickcfg_action);
 
-    if (gyro_hardware)
+    if (show_gyro)
     {
         s_joy_gyro_action.generic.type = MTYPE_ACTION;
         s_joy_gyro_action.generic.x = 0;
@@ -2282,14 +2282,9 @@ UpdateSoundQualityFunc(void *unused)
 static void
 Options_MenuInit(void)
 {
-    static const char *ogg_music_items[] =
-    {
-        "disabled",
-        "enabled",
-        0
-    };
+    extern qboolean show_gamepad;
 
-    static const char *ogg_shuffle[] =
+    static const char *able_items[] =
     {
         "disabled",
         "enabled",
@@ -2318,6 +2313,7 @@ Options_MenuInit(void)
     };
 
     float scale = SCR_GetMenuScale();
+    unsigned short int y = 0;
 
     /* configure controls menu and menu items */
     s_options_menu.x = viddef.width / 2;
@@ -2326,7 +2322,7 @@ Options_MenuInit(void)
 
     s_options_sfxvolume_slider.generic.type = MTYPE_SLIDER;
     s_options_sfxvolume_slider.generic.x = 0;
-    s_options_sfxvolume_slider.generic.y = 0;
+    s_options_sfxvolume_slider.generic.y = y;
     s_options_sfxvolume_slider.generic.name = "effects volume";
     s_options_sfxvolume_slider.cvar = "s_volume";
     s_options_sfxvolume_slider.minvalue = 0.0f;
@@ -2334,7 +2330,7 @@ Options_MenuInit(void)
 
     s_options_oggvolume_slider.generic.type = MTYPE_SLIDER;
     s_options_oggvolume_slider.generic.x = 0;
-    s_options_oggvolume_slider.generic.y = 10;
+    s_options_oggvolume_slider.generic.y = (y += 10);
     s_options_oggvolume_slider.generic.name = "OGG volume";
     s_options_oggvolume_slider.cvar = "ogg_volume";
     s_options_oggvolume_slider.minvalue = 0.0f;
@@ -2342,28 +2338,28 @@ Options_MenuInit(void)
 
     s_options_oggenable_box.generic.type = MTYPE_SPINCONTROL;
     s_options_oggenable_box.generic.x = 0;
-    s_options_oggenable_box.generic.y = 20;
+    s_options_oggenable_box.generic.y = (y += 10);
     s_options_oggenable_box.generic.name = "OGG music";
     s_options_oggenable_box.generic.callback = EnableOGGMusic;
-    s_options_oggenable_box.itemnames = ogg_music_items;
+    s_options_oggenable_box.itemnames = able_items;
 
     s_options_oggshuffle_box.generic.type = MTYPE_SPINCONTROL;
     s_options_oggshuffle_box.generic.x = 0;
-    s_options_oggshuffle_box.generic.y = 30;
+    s_options_oggshuffle_box.generic.y = (y += 10);
     s_options_oggshuffle_box.generic.name = "OGG shuffle";
     s_options_oggshuffle_box.generic.callback = OGGShuffleFunc;
-    s_options_oggshuffle_box.itemnames = ogg_shuffle;
+    s_options_oggshuffle_box.itemnames = able_items;
 
     s_options_quality_list.generic.type = MTYPE_SPINCONTROL;
     s_options_quality_list.generic.x = 0;
-    s_options_quality_list.generic.y = 40;
+    s_options_quality_list.generic.y = (y += 10);
     s_options_quality_list.generic.name = "sound quality";
     s_options_quality_list.generic.callback = UpdateSoundQualityFunc;
     s_options_quality_list.itemnames = quality_items;
 
     s_options_sensitivity_slider.generic.type = MTYPE_SLIDER;
     s_options_sensitivity_slider.generic.x = 0;
-    s_options_sensitivity_slider.generic.y = 60;
+    s_options_sensitivity_slider.generic.y = (y += 20);
     s_options_sensitivity_slider.generic.name = "mouse speed";
     s_options_sensitivity_slider.cvar = "sensitivity";
     s_options_sensitivity_slider.minvalue = 0;
@@ -2372,60 +2368,64 @@ Options_MenuInit(void)
 
     s_options_alwaysrun_box.generic.type = MTYPE_SPINCONTROL;
     s_options_alwaysrun_box.generic.x = 0;
-    s_options_alwaysrun_box.generic.y = 70;
+    s_options_alwaysrun_box.generic.y = (y += 10);
     s_options_alwaysrun_box.generic.name = "always run";
     s_options_alwaysrun_box.generic.callback = AlwaysRunFunc;
     s_options_alwaysrun_box.itemnames = yesno_names;
 
     s_options_invertmouse_box.generic.type = MTYPE_SPINCONTROL;
     s_options_invertmouse_box.generic.x = 0;
-    s_options_invertmouse_box.generic.y = 80;
+    s_options_invertmouse_box.generic.y = (y += 10);
     s_options_invertmouse_box.generic.name = "invert mouse";
     s_options_invertmouse_box.generic.callback = InvertMouseFunc;
     s_options_invertmouse_box.itemnames = yesno_names;
 
     s_options_lookstrafe_box.generic.type = MTYPE_SPINCONTROL;
     s_options_lookstrafe_box.generic.x = 0;
-    s_options_lookstrafe_box.generic.y = 90;
+    s_options_lookstrafe_box.generic.y = (y += 10);
     s_options_lookstrafe_box.generic.name = "lookstrafe";
     s_options_lookstrafe_box.generic.callback = LookstrafeFunc;
     s_options_lookstrafe_box.itemnames = yesno_names;
 
     s_options_freelook_box.generic.type = MTYPE_SPINCONTROL;
     s_options_freelook_box.generic.x = 0;
-    s_options_freelook_box.generic.y = 100;
+    s_options_freelook_box.generic.y = (y += 10);
     s_options_freelook_box.generic.name = "free look";
     s_options_freelook_box.generic.callback = FreeLookFunc;
     s_options_freelook_box.itemnames = yesno_names;
 
     s_options_crosshair_box.generic.type = MTYPE_SPINCONTROL;
     s_options_crosshair_box.generic.x = 0;
-    s_options_crosshair_box.generic.y = 110;
+    s_options_crosshair_box.generic.y = (y += 10);
     s_options_crosshair_box.generic.name = "crosshair";
     s_options_crosshair_box.generic.callback = CrosshairFunc;
     s_options_crosshair_box.itemnames = crosshair_names;
 
-    s_options_customize_joy_action.generic.type = MTYPE_ACTION;
-    s_options_customize_joy_action.generic.x = 0;
-    s_options_customize_joy_action.generic.y = 130;
-    s_options_customize_joy_action.generic.name = "customize gamepad";
-    s_options_customize_joy_action.generic.callback = CustomizeJoyFunc;
+    y += 10;
+    if (show_gamepad)
+    {
+        s_options_customize_joy_action.generic.type = MTYPE_ACTION;
+        s_options_customize_joy_action.generic.x = 0;
+        s_options_customize_joy_action.generic.y = (y += 10);
+        s_options_customize_joy_action.generic.name = "customize gamepad";
+        s_options_customize_joy_action.generic.callback = CustomizeJoyFunc;
+    }
 
     s_options_customize_options_action.generic.type = MTYPE_ACTION;
     s_options_customize_options_action.generic.x = 0;
-    s_options_customize_options_action.generic.y = 140;
+    s_options_customize_options_action.generic.y = (y += 10);
     s_options_customize_options_action.generic.name = "customize controls";
     s_options_customize_options_action.generic.callback = CustomizeControlsFunc;
 
     s_options_defaults_action.generic.type = MTYPE_ACTION;
     s_options_defaults_action.generic.x = 0;
-    s_options_defaults_action.generic.y = 150;
+    s_options_defaults_action.generic.y = (y += 10);
     s_options_defaults_action.generic.name = "reset defaults";
     s_options_defaults_action.generic.callback = ControlsResetDefaultsFunc;
 
     s_options_console_action.generic.type = MTYPE_ACTION;
     s_options_console_action.generic.x = 0;
-    s_options_console_action.generic.y = 160;
+    s_options_console_action.generic.y = (y += 10);
     s_options_console_action.generic.name = "go to console";
     s_options_console_action.generic.callback = ConsoleFunc;
 
@@ -2444,7 +2444,10 @@ Options_MenuInit(void)
     Menu_AddItem(&s_options_menu, (void *)&s_options_freelook_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_crosshair_box);
 
-    Menu_AddItem(&s_options_menu, (void *)&s_options_customize_joy_action);
+    if (show_gamepad)
+    {
+        Menu_AddItem(&s_options_menu, (void *)&s_options_customize_joy_action);
+    }
     Menu_AddItem(&s_options_menu, (void *)&s_options_customize_options_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_defaults_action);
     Menu_AddItem(&s_options_menu, (void *)&s_options_console_action);
@@ -4667,7 +4670,7 @@ DMOptions_MenuInit(void)
         "disabled", "by skin", "by model", 0
     };
     int dmflags = Cvar_VariableValue("dmflags");
-    int y = 0;
+    unsigned short int y = 0;
 
     s_dmoptions_menu.x = (int)(viddef.width * 0.50f);
     s_dmoptions_menu.nitems = 0;
@@ -4977,7 +4980,7 @@ DownloadOptions_MenuInit(void)
     {
         "no", "yes", 0
     };
-    int y = 0;
+    unsigned short int y = 0;
     float scale = SCR_GetMenuScale();
 
     s_downloadoptions_menu.x = (int)(viddef.width * 0.50f);
