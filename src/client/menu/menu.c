@@ -1606,8 +1606,7 @@ static menuframework_s s_sticks_config_menu;
 static menulist_s s_stk_layout_box;
 static menuseparator_s s_stk_title_text[2];
 static menuslider_s s_stk_expo_slider[2];
-static menuslider_s s_stk_snap_slider[2];
-static menuslider_s s_stk_dz_slider[2];
+static menuslider_s s_stk_deadzone_slider[4];
 
 extern qboolean show_gyro;
 
@@ -1640,7 +1639,7 @@ Stick_MenuInit(void)
 		0
 	};
 
-	unsigned short int y = 0;
+	unsigned short int y = 0, i;
 	float scale = SCR_GetMenuScale();
 
 	s_sticks_config_menu.x = (int)(viddef.width * 0.50f);
@@ -1663,79 +1662,65 @@ Stick_MenuInit(void)
 	}
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_layout_box);
 
-	s_stk_title_text[0].generic.type = MTYPE_SEPARATOR;
-	s_stk_title_text[0].generic.x = 48 * scale + 30;
-	s_stk_title_text[0].generic.y = (y += 20);
 	s_stk_title_text[0].generic.name = "left stick";
-	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_title_text[0]);
+	s_stk_title_text[0].generic.y = (y += 22);
 
-	s_stk_expo_slider[0].generic.type = MTYPE_SLIDER;
-	s_stk_expo_slider[0].generic.x = 0;
-	s_stk_expo_slider[0].generic.y = (y += 20);
 	s_stk_expo_slider[0].generic.name = "expo";
+	s_stk_expo_slider[0].generic.y = (y += 14);
 	s_stk_expo_slider[0].cvar = "joy_left_expo";
-	s_stk_expo_slider[0].minvalue = 1;
-	s_stk_expo_slider[0].maxvalue = 5;
-	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_expo_slider[0]);
 
-	s_stk_snap_slider[0].generic.type = MTYPE_SLIDER;
-	s_stk_snap_slider[0].generic.x = 0;
-	s_stk_snap_slider[0].generic.y = (y += 10);
-	s_stk_snap_slider[0].generic.name = "snap to axis";
-	s_stk_snap_slider[0].cvar = "joy_left_snapaxis";
-	s_stk_snap_slider[0].minvalue = 0.0f;
-	s_stk_snap_slider[0].maxvalue = 0.24f;
-	s_stk_snap_slider[0].slidestep = 0.01f;
-	s_stk_snap_slider[0].printformat = "%.2f";
-	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_snap_slider[0]);
+	s_stk_deadzone_slider[0].generic.name = "snap to axis";
+	s_stk_deadzone_slider[0].generic.y = (y += 10);
+	s_stk_deadzone_slider[0].cvar = "joy_left_snapaxis";
 
-	s_stk_dz_slider[0].generic.type = MTYPE_SLIDER;
-	s_stk_dz_slider[0].generic.x = 0;
-	s_stk_dz_slider[0].generic.y = (y += 10);
-	s_stk_dz_slider[0].generic.name = "deadzone";
-	s_stk_dz_slider[0].cvar = "joy_left_deadzone";
-	s_stk_dz_slider[0].minvalue = 0.0f;
-	s_stk_dz_slider[0].maxvalue = 0.24f;
-	s_stk_dz_slider[0].slidestep = 0.01f;
-	s_stk_dz_slider[0].printformat = "%.2f";
-	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_dz_slider[0]);
+	s_stk_deadzone_slider[1].generic.name = "deadzone";
+	s_stk_deadzone_slider[1].generic.y = (y += 10);
+	s_stk_deadzone_slider[1].cvar = "joy_left_deadzone";
 
-	s_stk_title_text[1].generic.type = MTYPE_SEPARATOR;
-	s_stk_title_text[1].generic.x = 48 * scale + 30;
-	s_stk_title_text[1].generic.y = (y += 20);
 	s_stk_title_text[1].generic.name = "right stick";
-	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_title_text[1]);
+	s_stk_title_text[1].generic.y = (y += 22);
 
-	s_stk_expo_slider[1].generic.type = MTYPE_SLIDER;
-	s_stk_expo_slider[1].generic.x = 0;
-	s_stk_expo_slider[1].generic.y = (y += 20);
 	s_stk_expo_slider[1].generic.name = "expo";
+	s_stk_expo_slider[1].generic.y = (y += 14);
 	s_stk_expo_slider[1].cvar = "joy_right_expo";
-	s_stk_expo_slider[1].minvalue = 1;
-	s_stk_expo_slider[1].maxvalue = 5;
+
+	s_stk_deadzone_slider[2].generic.name = "snap to axis";
+	s_stk_deadzone_slider[2].generic.y = (y += 10);
+	s_stk_deadzone_slider[2].cvar = "joy_right_snapaxis";
+
+	s_stk_deadzone_slider[3].generic.name = "deadzone";
+	s_stk_deadzone_slider[3].generic.y = (y += 10);
+	s_stk_deadzone_slider[3].cvar = "joy_right_deadzone";
+
+	for (i = 0; i < 2; i++)
+	{
+		s_stk_title_text[i].generic.type = MTYPE_SEPARATOR;
+		s_stk_title_text[i].generic.x = 48 * scale;
+
+		s_stk_expo_slider[i].generic.type = MTYPE_SLIDER;
+		s_stk_expo_slider[i].generic.x = 0;
+		s_stk_expo_slider[i].minvalue = 1;
+		s_stk_expo_slider[i].maxvalue = 5;
+	}
+
+	for (i = 0; i < 4; i++)
+	{
+		s_stk_deadzone_slider[i].generic.type = MTYPE_SLIDER;
+		s_stk_deadzone_slider[i].generic.x = 0;
+		s_stk_deadzone_slider[i].minvalue = 0.0f;
+		s_stk_deadzone_slider[i].maxvalue = 0.30f;
+		s_stk_deadzone_slider[i].slidestep = 0.01f;
+		s_stk_deadzone_slider[i].printformat = "%.2f";
+	}
+
+	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_title_text[0]);
+	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_expo_slider[0]);
+	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_deadzone_slider[0]);
+	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_deadzone_slider[1]);
+	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_title_text[1]);
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_expo_slider[1]);
-
-	s_stk_snap_slider[1].generic.type = MTYPE_SLIDER;
-	s_stk_snap_slider[1].generic.x = 0;
-	s_stk_snap_slider[1].generic.y = (y += 10);
-	s_stk_snap_slider[1].generic.name = "snap to axis";
-	s_stk_snap_slider[1].cvar = "joy_right_snapaxis";
-	s_stk_snap_slider[1].minvalue = 0.0f;
-	s_stk_snap_slider[1].maxvalue = 0.24f;
-	s_stk_snap_slider[1].slidestep = 0.01f;
-	s_stk_snap_slider[1].printformat = "%.2f";
-	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_snap_slider[1]);
-
-	s_stk_dz_slider[1].generic.type = MTYPE_SLIDER;
-	s_stk_dz_slider[1].generic.x = 0;
-	s_stk_dz_slider[1].generic.y = (y += 10);
-	s_stk_dz_slider[1].generic.name = "deadzone";
-	s_stk_dz_slider[1].cvar = "joy_right_deadzone";
-	s_stk_dz_slider[1].minvalue = 0.0f;
-	s_stk_dz_slider[1].maxvalue = 0.24f;
-	s_stk_dz_slider[1].slidestep = 0.01f;
-	s_stk_dz_slider[1].printformat = "%.2f";
-	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_dz_slider[1]);
+	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_deadzone_slider[2]);
+	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_deadzone_slider[3]);
 
 	Menu_Center(&s_sticks_config_menu);
 }
