@@ -1660,7 +1660,6 @@ Stick_MenuInit(void)
 		s_stk_layout_box.itemnames = stick_layouts;
 		s_stk_layout_box.curvalue = ClampCvar(0, 3, joy_layout->value);
 	}
-	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_layout_box);
 
 	s_stk_title_text[0].generic.name = "left stick";
 	s_stk_title_text[0].generic.y = (y += 22);
@@ -1713,6 +1712,7 @@ Stick_MenuInit(void)
 		s_stk_deadzone_slider[i].printformat = "%.2f";
 	}
 
+	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_layout_box);
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_title_text[0]);
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_expo_slider[0]);
 	Menu_AddItem(&s_sticks_config_menu, (void *)&s_stk_deadzone_slider[0]);
@@ -1730,7 +1730,6 @@ Stick_MenuDraw(void)
 {
 	Menu_AdjustCursor(&s_sticks_config_menu, 1);
 	Menu_Draw(&s_sticks_config_menu);
-	M_Popup();
 }
 
 static const char *
@@ -1953,6 +1952,7 @@ M_Menu_Gyro_f(void)
 /*
  * JOY MENU
  */
+static menulist_s s_joy_invertpitch_box;
 static menuslider_s s_joy_yawsensitivity_slider;
 static menuslider_s s_joy_pitchsensitivity_slider;
 static menuslider_s s_joy_forwardsensitivity_slider;
@@ -1988,8 +1988,21 @@ ConfigGyroFunc(void *unused)
 }
 
 static void
+InvertJoyPitchFunc(void *unused)
+{
+	Cvar_SetValue("joy_pitchsensitivity", -Cvar_VariableValue("joy_pitchsensitivity"));
+}
+
+static void
 Joy_MenuInit(void)
 {
+    static const char *yesno_names[] =
+    {
+        "no",
+        "yes",
+        0
+    };
+
     extern qboolean show_haptic;
     unsigned short int y = 0;
 
@@ -2012,7 +2025,17 @@ Joy_MenuInit(void)
     s_joy_pitchsensitivity_slider.cvar = "joy_pitchsensitivity";
     s_joy_pitchsensitivity_slider.minvalue = 0.0f;
     s_joy_pitchsensitivity_slider.maxvalue = 7.0f;
+    s_joy_pitchsensitivity_slider.abs = true;
     Menu_AddItem(&s_joy_menu, (void *)&s_joy_pitchsensitivity_slider);
+
+    s_joy_invertpitch_box.generic.type = MTYPE_SPINCONTROL;
+    s_joy_invertpitch_box.generic.x = 0;
+    s_joy_invertpitch_box.generic.y = (y += 10);
+    s_joy_invertpitch_box.generic.name = "invert pitch";
+    s_joy_invertpitch_box.generic.callback = InvertJoyPitchFunc;
+    s_joy_invertpitch_box.itemnames = yesno_names;
+    s_joy_invertpitch_box.curvalue = (Cvar_VariableValue("joy_pitchsensitivity") < 0);
+    Menu_AddItem(&s_joy_menu, (void *)&s_joy_invertpitch_box);
 
     s_joy_forwardsensitivity_slider.generic.type = MTYPE_SLIDER;
     s_joy_forwardsensitivity_slider.generic.x = 0;
