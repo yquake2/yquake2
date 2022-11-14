@@ -109,6 +109,7 @@ signalhandler(int sig)
 	signal(SIGILL, SIG_DFL);
 	signal(SIGFPE, SIG_DFL);
 	signal(SIGABRT, SIG_DFL);
+	signal(SIGBUS, SIG_DFL);
 
 	/* pass signal to the os */
 	raise(sig);
@@ -130,6 +131,7 @@ registerHandler(void)
 	signal(SIGILL, signalhandler);
 	signal(SIGFPE, signalhandler);
 	signal(SIGABRT, signalhandler);
+	signal(SIGBUS, signalhandler);
 
 	/* User abort */
 	signal(SIGINT, terminate);
