@@ -768,7 +768,12 @@ OGG_LoadAsWav(char *filename, wavinfo_t *info, void **buffer)
 			final_buffer = NULL;
 		}
 
-		stb_vorbis_close(ogg2wav_file);
 	}
+
+	if (ogg2wav_file)
+	{
+                stb_vorbis_close(ogg2wav_file);
+	}
+
 	FS_FreeFile(temp_buffer);
 }
