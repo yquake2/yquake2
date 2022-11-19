@@ -34,6 +34,8 @@
 
 #ifdef USE_OPENAL
 
+#include <stdint.h>
+
 #include "../header/client.h"
 #include "header/local.h"
 #include "header/qal.h"
@@ -206,7 +208,7 @@ AL_UploadSfx(sfx_t *s, wavinfo_t *s_info, byte *data, short volume,
 
 	/* allocate placeholder sfxcache */
 	sc = s->cache = Z_TagMalloc(sizeof(*sc), 0);
-	sc->length = s_info->samples * 1000 / s_info->rate;
+	sc->length = ((uint64_t)s_info->samples * 1000) / s_info->rate;
 	sc->loopstart = s_info->loopstart;
 	sc->width = s_info->width;
 	sc->size = size;
