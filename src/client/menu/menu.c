@@ -2923,17 +2923,14 @@ M_Credits_MenuDraw(void)
 const char *
 M_Credits_Key(int key)
 {
-    switch (key)
+    key = Key_GetMenuKey(key);
+    if (key == K_ESCAPE)
     {
-    case K_ESCAPE:
-
         if (creditsBuffer)
         {
             FS_FreeFile(creditsBuffer);
         }
-
         M_PopMenu();
-        break;
     }
 
     return menu_out_sound;

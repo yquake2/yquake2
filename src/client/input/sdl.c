@@ -1623,7 +1623,6 @@ IN_Controller_Init(qboolean notify_user)
 
 		Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
 		Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
-		Com_Printf ("Number of Balls: %d\n", SDL_JoystickNumBalls(joystick));
 		Com_Printf ("Number of Hats: %d\n", SDL_JoystickNumHats(joystick));
 
 		is_controller = SDL_IsGameController(i);
@@ -1655,14 +1654,6 @@ IN_Controller_Init(qboolean notify_user)
 
 			show_gamepad = true;
 			Com_Printf ("Controller settings: %s\n", SDL_GameControllerMapping(controller));
-			Com_Printf ("Left stick config:\n");
-			Com_Printf (" * response curve exponent = %.3f\n", joy_left_expo->value);
-			Com_Printf (" * snap-to-axis ratio = %.3f\n", joy_left_snapaxis->value);
-			Com_Printf (" * inner deadzone = %.3f\n", joy_left_deadzone->value);
-			Com_Printf ("Right stick config:\n");
-			Com_Printf (" * response curve exponent = %.3f\n", joy_right_expo->value);
-			Com_Printf (" * snap-to-axis ratio = %.3f\n", joy_right_snapaxis->value);
-			Com_Printf (" * inner deadzone = %.3f\n", joy_right_deadzone->value);
 
 #if SDL_VERSION_ATLEAST(2, 0, 16)	// support for controller sensors
 
