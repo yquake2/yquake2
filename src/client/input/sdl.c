@@ -1507,7 +1507,9 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 	// Com_Printf("%-29s: vol %5u - %4u ms - dp %.3f l %5.0f h %5.0f\n",
 	//	name, effect_volume, duration, dist_prop, low_freq, hi_freq);
 
+#if SDL_VERSION_ATLEAST(2, 0, 9)
 	SDL_GameControllerRumble(controller, low_freq, hi_freq, duration);
+#endif
 }
 
 /*
@@ -1624,7 +1626,7 @@ IN_Controller_Init(qboolean notify_user)
 			continue;
 		}
 
-		Com_Printf (" Buttons = %d, Axes = %d, Hats = %d\n", SDL_JoystickNumButtons(joystick),
+		Com_Printf ("Buttons = %d, Axes = %d, Hats = %d\n", SDL_JoystickNumButtons(joystick),
 			SDL_JoystickNumAxes(joystick), SDL_JoystickNumHats(joystick));
 		is_controller = SDL_IsGameController(i);
 
@@ -1649,21 +1651,21 @@ IN_Controller_Init(qboolean notify_user)
 			controller = SDL_GameControllerOpen(i);
 			if (!controller)
 			{
-				Com_Printf ("SDL controller error: %s.\n", SDL_GetError());
+				Com_Printf("SDL Controller error: %s.\n", SDL_GetError());
 				continue;	// try next joystick
 			}
 
 			show_gamepad = true;
-			Com_Printf ("Enabled as Game Controller, settings:\n %s\n", SDL_GameControllerMapping(controller));
+			Com_Printf("Enabled as Game Controller, settings:\n%s\n", SDL_GameControllerMapping(controller));
 
 #if SDL_VERSION_ATLEAST(2, 0, 16)	// support for controller sensors
 
 			if ( SDL_GameControllerHasSensor(controller, SDL_SENSOR_GYRO)
 				&& !SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_GYRO, SDL_TRUE) )
 			{
-				float gyro_data_rate = SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_GYRO);
 				show_gyro = true;
-				Com_Printf("Gyro sensor enabled at %.2f Hz\n", gyro_data_rate);
+				Com_Printf( "Gyro sensor enabled at %.2f Hz\n",
+					SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_GYRO) );
 			}
 			else
 			{
@@ -1687,7 +1689,7 @@ IN_Controller_Init(qboolean notify_user)
 			{
 				Com_Printf("Controller doesn't support rumble.\n");
 			}
-#else
+#elif SDL_VERSION_ATLEAST(2, 0, 9)
 			show_haptic = true;		// when in doubt, say yes
 			Com_Printf("Controller might support rumble.\n");
 #endif	// SDL_VERSION_ATLEAST(2, 0, 18)
