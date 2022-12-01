@@ -1681,6 +1681,11 @@ IN_Controller_Init(qboolean notify_user)
 
 #if SDL_VERSION_ATLEAST(2, 0, 18)	// support for query on features from controller
 			if (SDL_GameControllerHasRumble(controller))
+#elif SDL_VERSION_ATLEAST(2, 0, 9)	// support for rumble
+			if (SDL_GameControllerRumble(controller, 1, 1, 1) == 0)
+#else					// no rumble support on SDL < 2.0.9
+			if (false)
+#endif
 			{
 				show_haptic = true;
 				Com_Printf("Rumble support available.\n");
@@ -1689,10 +1694,6 @@ IN_Controller_Init(qboolean notify_user)
 			{
 				Com_Printf("Controller doesn't support rumble.\n");
 			}
-#elif SDL_VERSION_ATLEAST(2, 0, 9)
-			show_haptic = true;		// when in doubt, say yes
-			Com_Printf("Controller might support rumble.\n");
-#endif	// SDL_VERSION_ATLEAST(2, 0, 18)
 
 			break;
 		}
