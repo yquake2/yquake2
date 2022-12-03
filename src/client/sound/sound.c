@@ -1113,7 +1113,6 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 		vec3_t orientation, direction;
 		vec_t distance_direction;
 		int dir_x, dir_y, dir_z;
-		int effect_duration = 0;
 		int effect_volume = -1;
 
 		VectorSubtract(listener_forward, listener_up, orientation);
@@ -1140,6 +1139,8 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 
 		if (sfx->cache)
 		{
+			int effect_duration;
+
 			effect_duration = sfx->cache->length;
 
 			if (sfx->cache->stereo)
@@ -1149,17 +1150,18 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 
 			/* sound near player has 16 points */
 			effect_volume = sfx->cache->volume / 16;
+
+			/* remove silence duration in the end of sound effect */
+			effect_duration -= sfx->cache->end;
+
+			Haptic_Feedback(
+				sfx->name, (16 - distance_direction / 32) * effect_volume,
+				effect_duration,
+				sfx->cache->begin, sfx->cache->attack, sfx->cache->fade,
+				dir_x, dir_y, dir_z);
 		}
-
-		Haptic_Feedback(
-			sfx->name, (16 - distance_direction / 32) * effect_volume,
-			effect_duration,
-			sfx->cache->begin, sfx->cache->end,
-			sfx->cache->attack, sfx->cache->fade,
-			dir_x, dir_y, dir_z);
 	}
-
-	if (sfx->name[0] && s_feedback_kind->value == 0)
+	else if (sfx->name[0] && s_feedback_kind->value == 0)
 	{
 		vec3_t direction = {0};
 		unsigned int effect_duration = 0;
