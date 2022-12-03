@@ -160,9 +160,6 @@ static unsigned short int updates_countdown = 30;
 // Reason for the countdown
 static updates_countdown_reasons countdown_reason = REASON_CONTROLLERINIT;
 
-// Factor used to transform from SDL input to Q2 "view angle" change
-static float normalize_sdl_gyro = 1.0f / M_PI;	// can change depending on hardware
-
 // Flick Stick
 #define FLICK_TIME 6		// number of frames it takes for a flick to execute
 static float target_angle;	// angle to end up facing at the end of a flick
@@ -766,9 +763,7 @@ IN_Update(void)
 					{
 						gyro_yaw = -(event.csensor.data[2] - gyro_calibration_z->value);	// roll
 					}
-					gyro_yaw *= gyro_yawsensitivity->value * cl_yawspeed->value;
-					gyro_pitch = (event.csensor.data[0] - gyro_calibration_x->value)
-							* gyro_pitchsensitivity->value * cl_pitchspeed->value;
+					gyro_pitch = event.csensor.data[0] - gyro_calibration_x->value;
 				}
 				else
 				{
@@ -1245,7 +1240,7 @@ IN_Move(usercmd_t *cmd)
 	//
 	// For movement this is not needed, as those are absolute values independent of framerate
 	float joyViewFactor = cls.rframetime/0.01666f;
-	float gyroViewFactor = normalize_sdl_gyro * joyViewFactor;
+	float gyroViewFactor = (1.0f / M_PI) * joyViewFactor;
 
 	if (joystick_yaw)
 	{
@@ -1275,12 +1270,14 @@ IN_Move(usercmd_t *cmd)
 
 	if (gyro_yaw)
 	{
-		cl.viewangles[YAW] += (m_yaw->value * gyro_yaw) * gyroViewFactor;
+		cl.viewangles[YAW] += m_yaw->value * gyro_yawsensitivity->value
+					* cl_yawspeed->value * gyro_yaw * gyroViewFactor;
 	}
 
 	if (gyro_pitch)
 	{
-		cl.viewangles[PITCH] -= (m_pitch->value * gyro_pitch) * gyroViewFactor;
+		cl.viewangles[PITCH] -= m_pitch->value * gyro_pitchsensitivity->value
+					* cl_pitchspeed->value * gyro_pitch * gyroViewFactor;
 	}
 
 	// Flick Stick: flick in progress, changing the yaw angle to the target progressively
@@ -1511,7 +1508,9 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 	// Com_Printf("%-29s: vol %5u - %4u ms - dp %.3f l %5.0f h %5.0f\n",
 	//	name, effect_volume, duration, dist_prop, low_freq, hi_freq);
 
+#if SDL_VERSION_ATLEAST(2, 0, 9)
 	SDL_GameControllerRumble(controller, low_freq, hi_freq, duration);
+#endif
 }
 
 /*
@@ -1585,7 +1584,7 @@ IN_Controller_Init(qboolean notify_user)
 
 		if (SDL_Init(SDL_INIT_GAMECONTROLLER) == -1)
 		{
-			Com_Printf ("Couldn't init SDL joystick: %s.\n", SDL_GetError ());
+			Com_Printf ("Couldn't init SDL Game Controller: %s.\n", SDL_GetError());
 			return;
 		}
 	}
@@ -1608,10 +1607,16 @@ IN_Controller_Init(qboolean notify_user)
 	for (int i = 0; i < SDL_NumJoysticks(); i++)
 	{
 		joystick = SDL_JoystickOpen(i);
+		if (!joystick)
+		{
+			Com_Printf ("Couldn't open joystick %d: %s.\n", i+1, SDL_GetError());
+			continue;	// try next joystick
+		}
+
 		const char* joystick_name = SDL_JoystickName(joystick);
 		const int name_len = strlen(joystick_name);
 
-		Com_Printf ("The name of the joystick is '%s'\n", joystick_name);
+		Com_Printf ("Trying joystick %d, '%s'\n", i+1, joystick_name);
 
 		// Ugly hack to detect IMU-only devices - works for Switch controllers at least
 		if (name_len > 4 && !strncmp(joystick_name + name_len - 4, " IMU", 4))
@@ -1622,23 +1627,21 @@ IN_Controller_Init(qboolean notify_user)
 			continue;
 		}
 
-		Com_Printf ("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
-		Com_Printf ("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
-		Com_Printf ("Number of Hats: %d\n", SDL_JoystickNumHats(joystick));
-
+		Com_Printf ("Buttons = %d, Axes = %d, Hats = %d\n", SDL_JoystickNumButtons(joystick),
+			SDL_JoystickNumAxes(joystick), SDL_JoystickNumHats(joystick));
 		is_controller = SDL_IsGameController(i);
+
 		if (!is_controller)
 		{
-			char joystick_guid[256] = {0};
+			char joystick_guid[65] = {0};
+			SDL_JoystickGUID guid = SDL_JoystickGetDeviceGUID(i);
 
-			SDL_JoystickGUID guid;
-			guid = SDL_JoystickGetDeviceGUID(i);
+			SDL_JoystickGetGUIDString(guid, joystick_guid, 64);
 
-			SDL_JoystickGetGUIDString(guid, joystick_guid, 255);
-
-			Com_Printf ("To use joystick as game controller please set SDL_GAMECONTROLLERCONFIG:\n");
-			Com_Printf ("e.g.: SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,back:b1,...\n", joystick_guid, joystick_name);
-			Com_Printf ("Or you can put 'gamecontrollerdb.txt' in your game directory.\n");
+			Com_Printf ("To use joystick as game controller, provide its config by either:\n"
+				" * Putting 'gamecontrollerdb.txt' file in your game directory.\n"
+				" * Or setting SDL_GAMECONTROLLERCONFIG environment variable. E.g.:\n");
+			Com_Printf ("SDL_GAMECONTROLLERCONFIG='%s,%s,leftx:a0,lefty:a1,rightx:a2,righty:a3,back:b1,...'\n", joystick_guid, joystick_name);
 		}
 
 		SDL_JoystickClose(joystick);
@@ -1649,29 +1652,21 @@ IN_Controller_Init(qboolean notify_user)
 			controller = SDL_GameControllerOpen(i);
 			if (!controller)
 			{
-				Com_Printf ("Couldn't open SDL controller: %s.\n", SDL_GetError());
+				Com_Printf("SDL Controller error: %s.\n", SDL_GetError());
 				continue;	// try next joystick
 			}
 
 			show_gamepad = true;
-			Com_Printf ("Controller settings: %s\n", SDL_GameControllerMapping(controller));
+			Com_Printf("Enabled as Game Controller, settings:\n%s\n", SDL_GameControllerMapping(controller));
 
 #if SDL_VERSION_ATLEAST(2, 0, 16)	// support for controller sensors
 
 			if ( SDL_GameControllerHasSensor(controller, SDL_SENSOR_GYRO)
 				&& !SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_GYRO, SDL_TRUE) )
 			{
-				float gyro_data_rate = SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_GYRO);
-
-#ifndef _WIN32	// Switch controllers behave differently on Linux & Mac, so sensitivity has to be readjusted
-				if (gyro_data_rate <= 200.0f)
-				{
-					normalize_sdl_gyro = 1.0f / 4.5f;
-				}
-#endif	// _WIN32
-
 				show_gyro = true;
-				Com_Printf("Gyro sensor enabled at %.2f Hz\n", gyro_data_rate);
+				Com_Printf( "Gyro sensor enabled at %.2f Hz\n",
+					SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_GYRO) );
 			}
 			else
 			{
@@ -1687,6 +1682,11 @@ IN_Controller_Init(qboolean notify_user)
 
 #if SDL_VERSION_ATLEAST(2, 0, 18)	// support for query on features from controller
 			if (SDL_GameControllerHasRumble(controller))
+#elif SDL_VERSION_ATLEAST(2, 0, 9)	// support for rumble
+			if (SDL_GameControllerRumble(controller, 1, 1, 1) == 0)
+#else					// no rumble support on SDL < 2.0.9
+			if (false)
+#endif
 			{
 				show_haptic = true;
 				Com_Printf("Rumble support available.\n");
@@ -1695,10 +1695,6 @@ IN_Controller_Init(qboolean notify_user)
 			{
 				Com_Printf("Controller doesn't support rumble.\n");
 			}
-#else
-			show_haptic = true;		// when in doubt, say yes
-			Com_Printf("Controller might support rumble.\n");
-#endif	// SDL_VERSION_ATLEAST(2, 0, 18)
 
 			break;
 		}
@@ -1793,7 +1789,6 @@ IN_Controller_Shutdown(qboolean notify_user)
 	show_gamepad = show_gyro = show_haptic = false;
 	joystick_left_x = joystick_left_y = joystick_right_x = joystick_right_y = 0;
 	gyro_yaw = gyro_pitch = 0;
-	normalize_sdl_gyro = 1.0f / M_PI;
 }
 
 /*
