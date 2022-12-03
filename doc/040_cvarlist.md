@@ -275,6 +275,11 @@ Set `0` by default.
   `-1`: Disable reverb effect,
   `>=0`: select predefined effect.
 
+* **s_feedback_kind**: Select kind of controller feedback to use. By default
+  this cvar is `0`. Possibe values:
+  `0`: Rumble feedback,
+  `1`: Haptic feedback.
+
 ## Graphics (all renderers)
 
 * **cin_force43**: If set to `1` (the default) cinematics are displayed

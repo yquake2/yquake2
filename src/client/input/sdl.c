@@ -108,9 +108,30 @@ static cvar_t *windowed_mouse;
 
 // ----
 
+struct hapric_effects_cache {
+	int effect_volume;
+	int effect_duration;
+	int effect_begin;
+	int effect_end;
+	int effect_attack;
+	int effect_fade;
+	int effect_id;
+	int effect_x;
+	int effect_y;
+	int effect_z;
+};
+
 qboolean show_gamepad = false, show_haptic = false, show_gyro = false;
 
+static SDL_Haptic *joystick_haptic = NULL;
 static SDL_GameController *controller = NULL;
+
+#define HAPTIC_EFFECT_LIST_SIZE 16
+
+static int last_haptic_volume = 0;
+static int last_haptic_efffect_size = HAPTIC_EFFECT_LIST_SIZE;
+static int last_haptic_efffect_pos = 0;
+static struct hapric_effects_cache last_haptic_efffect[HAPTIC_EFFECT_LIST_SIZE];
 
 // Joystick sensitivity
 static cvar_t *joy_yawsensitivity;
@@ -1360,6 +1381,233 @@ In_FlushQueue(void)
 
 /* ------------------------------------------------------------------ */
 
+static void IN_Haptic_Shutdown(void);
+
+/*
+ * Init haptic effects
+ */
+static int
+IN_Haptic_Effect_Init(int effect_x, int effect_y, int effect_z,
+				 int period, int magnitude,
+				 int delay, int attack, int fade)
+{
+	static SDL_HapticEffect haptic_effect;
+
+	/* limit magnitude */
+	if (magnitude > SHRT_MAX)
+	{
+		magnitude = SHRT_MAX;
+	}
+	else if (magnitude < 0)
+	{
+		magnitude = 0;
+	}
+
+	SDL_memset(&haptic_effect, 0, sizeof(SDL_HapticEffect)); // 0 is safe default
+
+	haptic_effect.type = SDL_HAPTIC_SINE;
+	haptic_effect.periodic.direction.type = SDL_HAPTIC_CARTESIAN; // Cartesian/3d coordinates
+	haptic_effect.periodic.direction.dir[0] = effect_x;
+	haptic_effect.periodic.direction.dir[1] = effect_y;
+	haptic_effect.periodic.direction.dir[2] = effect_z;
+	haptic_effect.periodic.period = period;
+	haptic_effect.periodic.magnitude = magnitude;
+	haptic_effect.periodic.length = period;
+	haptic_effect.periodic.delay = delay;
+	haptic_effect.periodic.attack_length = attack;
+	haptic_effect.periodic.fade_length = fade;
+
+	int effect_id = SDL_HapticNewEffect(joystick_haptic, &haptic_effect);
+
+	if (effect_id < 0)
+	{
+		Com_Printf ("SDL_HapticNewEffect failed: %s\n", SDL_GetError());
+		Com_Printf ("Please try to rerun game. Effects will be disabled for now.\n");
+
+		IN_Haptic_Shutdown();
+	}
+
+	return effect_id;
+}
+
+static void
+IN_Haptic_Effects_Info(void)
+{
+	Com_Printf ("Joystick/Mouse haptic:\n");
+	Com_Printf (" * %d effects\n", SDL_HapticNumEffects(joystick_haptic));
+	Com_Printf (" * %d effects in same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
+	Com_Printf (" * %d haptic axis\n", SDL_HapticNumAxes(joystick_haptic));
+}
+
+static void
+IN_Haptic_Effects_Init(void)
+{
+	last_haptic_efffect_size = SDL_HapticNumEffectsPlaying(joystick_haptic);
+
+	if (last_haptic_efffect_size > HAPTIC_EFFECT_LIST_SIZE)
+	{
+		last_haptic_efffect_size = HAPTIC_EFFECT_LIST_SIZE;
+	}
+
+	for (int i=0; i<HAPTIC_EFFECT_LIST_SIZE; i++)
+	{
+		last_haptic_efffect[i].effect_id = -1;
+		last_haptic_efffect[i].effect_volume = 0;
+		last_haptic_efffect[i].effect_duration = 0;
+		last_haptic_efffect[i].effect_begin = 0;
+		last_haptic_efffect[i].effect_end = 0;
+		last_haptic_efffect[i].effect_attack = 0;
+		last_haptic_efffect[i].effect_fade = 0;
+		last_haptic_efffect[i].effect_x = 0;
+		last_haptic_efffect[i].effect_y = 0;
+		last_haptic_efffect[i].effect_z = 0;
+	}
+}
+
+/*
+ * Shuts the backend down
+ */
+static void
+IN_Haptic_Effect_Shutdown(int * effect_id)
+{
+	if (!effect_id)
+	{
+		return;
+	}
+
+	if (*effect_id >= 0)
+	{
+		SDL_HapticDestroyEffect(joystick_haptic, *effect_id);
+	}
+
+	*effect_id = -1;
+}
+
+static void
+IN_Haptic_Effects_Shutdown(void)
+{
+	for (int i=0; i<HAPTIC_EFFECT_LIST_SIZE; i++)
+	{
+		last_haptic_efffect[i].effect_volume = 0;
+		last_haptic_efffect[i].effect_duration = 0;
+		last_haptic_efffect[i].effect_begin = 0;
+		last_haptic_efffect[i].effect_end = 0;
+		last_haptic_efffect[i].effect_attack = 0;
+		last_haptic_efffect[i].effect_fade = 0;
+		last_haptic_efffect[i].effect_x = 0;
+		last_haptic_efffect[i].effect_y = 0;
+		last_haptic_efffect[i].effect_z = 0;
+
+		IN_Haptic_Effect_Shutdown(&last_haptic_efffect[i].effect_id);
+	}
+}
+
+/*
+ * Haptic Feedback:
+ *    effect_volume=0..SHRT_MAX
+ *    effect{x,y,z} - effect direction
+ *    effect{begin,end,attack,fade} - effect durations
+ *    name - sound file name
+ */
+void
+Haptic_Feedback(char *name, int effect_volume, int effect_duration,
+				int effect_begin, int effect_end,
+				int effect_attack, int effect_fade,
+				int effect_x, int effect_y, int effect_z)
+{
+	if (!joystick_haptic)
+	{
+		return;
+	}
+
+	if (joy_haptic_magnitude->value <= 0)
+	{
+		return;
+	}
+
+	if (effect_volume <= 0)
+	{
+		return;
+	}
+
+	if (effect_duration <= 0)
+	{
+		return;
+	}
+
+	if (last_haptic_volume != (int)(joy_haptic_magnitude->value * 255))
+	{
+		IN_Haptic_Effects_Shutdown();
+		IN_Haptic_Effects_Init();
+	}
+
+	last_haptic_volume = joy_haptic_magnitude->value * 255;
+
+	if (
+		strstr(name, "misc/menu") ||
+		strstr(name, "weapons/") ||
+		/* detect pain for any player model */
+		((
+			strstr(name, "player/") ||
+			strstr(name, "players/")
+		) && (
+			strstr(name, "/pain")
+		)) ||
+		strstr(name, "player/step") ||
+		strstr(name, "player/land")
+	)
+	{
+		// check last effect for reuse
+		if (
+			last_haptic_efffect[last_haptic_efffect_pos].effect_volume != effect_volume ||
+			last_haptic_efffect[last_haptic_efffect_pos].effect_duration != effect_duration ||
+			last_haptic_efffect[last_haptic_efffect_pos].effect_begin != effect_begin ||
+			last_haptic_efffect[last_haptic_efffect_pos].effect_end != effect_end ||
+			last_haptic_efffect[last_haptic_efffect_pos].effect_attack != effect_attack ||
+			last_haptic_efffect[last_haptic_efffect_pos].effect_fade != effect_fade ||
+			last_haptic_efffect[last_haptic_efffect_pos].effect_x != effect_x ||
+			last_haptic_efffect[last_haptic_efffect_pos].effect_y != effect_y ||
+			last_haptic_efffect[last_haptic_efffect_pos].effect_z != effect_z)
+		{
+			if ((SDL_HapticQuery(joystick_haptic) & SDL_HAPTIC_SINE)==0)
+			{
+				return;
+			}
+
+			int hapric_volume = joy_haptic_magnitude->value * effect_volume; // 32767 max strength;
+
+			if (effect_duration <= 0)
+			{
+				return;
+			}
+
+			/*
+			Com_Printf("%s: volume %d: %d ms %d:%d:%d ms speed: %.2f\n",
+				name,  effect_volume, effect_duration - effect_end,
+				effect_begin, effect_attack, effect_fade,
+				(float)effect_volume / effect_fade);
+			*/
+
+			// FIFO for effects
+			last_haptic_efffect_pos = (last_haptic_efffect_pos+1) % last_haptic_efffect_size;
+			IN_Haptic_Effect_Shutdown(&last_haptic_efffect[last_haptic_efffect_pos].effect_id);
+			last_haptic_efffect[last_haptic_efffect_pos].effect_volume = effect_volume;
+			last_haptic_efffect[last_haptic_efffect_pos].effect_duration = effect_duration;
+			last_haptic_efffect[last_haptic_efffect_pos].effect_attack = effect_attack;
+			last_haptic_efffect[last_haptic_efffect_pos].effect_fade = effect_fade;
+			last_haptic_efffect[last_haptic_efffect_pos].effect_x = effect_x;
+			last_haptic_efffect[last_haptic_efffect_pos].effect_y = effect_y;
+			last_haptic_efffect[last_haptic_efffect_pos].effect_z = effect_z;
+			last_haptic_efffect[last_haptic_efffect_pos].effect_id = IN_Haptic_Effect_Init(
+				effect_x, effect_y, effect_z,
+				effect_duration - effect_end, hapric_volume,
+				effect_begin, effect_attack, effect_fade);
+		}
+
+		SDL_HapticRunEffect(joystick_haptic, last_haptic_efffect[last_haptic_efffect_pos].effect_id, 1);
+	}
+}
+
 /*
  * Controller_Rumble:
  *	name = sound file name
@@ -1582,7 +1830,7 @@ IN_Controller_Init(qboolean notify_user)
 		SDL_SetHint( SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE, "1" );
 #endif
 
-		if (SDL_Init(SDL_INIT_GAMECONTROLLER) == -1)
+		if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC) == -1)
 		{
 			Com_Printf ("Couldn't init SDL Game Controller: %s.\n", SDL_GetError());
 			return;
@@ -1593,6 +1841,14 @@ IN_Controller_Init(qboolean notify_user)
 
 	if (!SDL_NumJoysticks())
 	{
+		joystick_haptic = SDL_HapticOpenFromMouse();
+
+		if (joystick_haptic)
+		{
+			IN_Haptic_Effects_Info();
+			show_haptic = true;
+		}
+
 		return;
 	}
 
@@ -1654,6 +1910,13 @@ IN_Controller_Init(qboolean notify_user)
 			{
 				Com_Printf("SDL Controller error: %s.\n", SDL_GetError());
 				continue;	// try next joystick
+			}
+
+			joystick_haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller));
+			if (joystick_haptic)
+			{
+				IN_Haptic_Effects_Info();
+				show_haptic = true;
 			}
 
 			show_gamepad = true;
@@ -1773,6 +2036,21 @@ IN_Init(void)
 	Com_Printf("------------------------------------\n\n");
 }
 
+/*
+ * Shuts the backend down
+ */
+static void
+IN_Haptic_Shutdown(void)
+{
+	if (joystick_haptic)
+	{
+		IN_Haptic_Effects_Shutdown();
+
+		SDL_HapticClose(joystick_haptic);
+		joystick_haptic = NULL;
+	}
+}
+
 static void
 IN_Controller_Shutdown(qboolean notify_user)
 {
@@ -1780,6 +2058,8 @@ IN_Controller_Shutdown(qboolean notify_user)
 	{
 		Com_Printf("- Game Controller disconnected -\n");
 	}
+
+	IN_Haptic_Shutdown();
 
 	if (controller)
 	{
@@ -1810,7 +2090,7 @@ IN_Shutdown(void)
 
 	IN_Controller_Shutdown(false);
 
-	const Uint32 subsystems = SDL_INIT_GAMECONTROLLER;
+	const Uint32 subsystems = SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC;
 	if (SDL_WasInit(subsystems) == subsystems)
 		SDL_QuitSubSystem(subsystems);
 }
