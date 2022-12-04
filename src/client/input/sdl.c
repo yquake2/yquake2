@@ -1768,6 +1768,12 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 #if SDL_VERSION_ATLEAST(2, 0, 9)
 	if (SDL_GameControllerRumble(controller, low_freq, hi_freq, duration) == -1)
 	{
+		if (!joystick_haptic)
+		{
+			/* no haptic, some other reason of error */
+			return;
+		}
+
 		/* All haptic/force feedback slots are busy, try to clean up little bit. */
 		IN_Haptic_Effects_Shutdown();
 	}
