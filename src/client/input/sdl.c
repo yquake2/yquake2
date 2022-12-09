@@ -105,6 +105,7 @@ static cvar_t *exponential_speedup;
 static cvar_t *in_grab;
 static cvar_t *m_filter;
 static cvar_t *windowed_mouse;
+static cvar_t *haptic_feedback_filter;
 
 // ----
 
@@ -1537,6 +1538,165 @@ IN_Haptic_GetEffectId(int effect_volume, int effect_duration,
 	return last_haptic_effect[last_haptic_effect_pos].effect_id;
 }
 
+// Keep it same with rumble rules
+static char *default_haptic_filter = (
+	// skipped files should be before wider rule
+	"!weapons/*grenlb "     // bouncing grenades don't have feedback
+	"!weapons/*hgrenb "     // bouncing grenades don't have feedback
+	"!weapons/*open "       // bouncing grenades don't have feedback
+	"!weapons/*warn "       // rogue's items don't have feedback
+	"weapons/ "             // any weapons that are not in previous list
+	// covered by previous rule
+	// "weapons/*plasshot " // phalanx cannon fire
+	// "weapons/*x "        // explosions...
+	// "weapons/*r "        // reloads & ion ripper fire
+	// "weapons/*blastf "   // dampen blasters
+	// "weapons/*hyprbf "   // dampen blasters
+	// "weapons/*nail "     // nailgun's fire
+	// "weapons/*shotgf "   // shotgun
+	// "weapons/*rocklf "   // RL
+	// "weapons/*sshotf "   // for super shotgun
+	// "weapons/*machgf "   // machine gun & disruptor fire
+	// "weapons/*disint "   // machine gun & disruptor fire
+	"player/*land "         // fall without injury
+	"player/*burn "
+	"player/*pain100 "
+	"player/*pain75 "
+	"player/*pain50 "
+	"player/*pain25 "
+	"player/*pain25 "
+	"player/*fall "
+	"player/*death "
+	"players/*burn "
+	"players/*pain100 "
+	"players/*pain75 "
+	"players/*pain50 "
+	"players/*pain25 "
+	"players/*pain25 "
+	"players/*fall "
+	"players/*death "
+	"doors/ "
+	"plats/ "
+	"world/*dish  "
+	"world/*drill2a "
+	"world/*dr_ "
+	"world/*explod1 "
+	"world/*rocks "
+	"world/*rumble  "
+	"world/*quake  "
+	"world/*train2 "
+);
+
+/*
+ * name: sound name
+ * filter: sound name rule with '*'
+ * return false for empty filter
+ */
+static qboolean
+Haptic_Feedback_Filtered_Line(const char *name, const char *filter)
+{
+	const char *current_filter = filter;
+
+	// skip empty filter
+	if (!*current_filter)
+	{
+		return false;
+	}
+
+	while (*current_filter)
+	{
+		char part_filter[MAX_QPATH];
+		const char *name_part;
+		const char *str_end;
+
+		str_end = strchr(current_filter, '*');
+		if (!str_end)
+		{
+			if (!strstr(name, current_filter))
+			{
+				// no such part in string
+				return false;
+			}
+			// have such part
+			break;
+		}
+		// copy filter line
+		if ((str_end - current_filter) >= MAX_QPATH)
+		{
+			return false;
+		}
+		memcpy(part_filter, current_filter, str_end - current_filter);
+		part_filter[str_end - current_filter] = 0;
+		// place part in name
+		name_part = strstr(name, part_filter);
+		if (!name_part)
+		{
+			// no such part in string
+			return false;
+		}
+		// have such part
+		name = name_part + strlen(part_filter);
+		// move to next filter
+		current_filter = str_end + 1;
+	}
+
+	return true;
+}
+
+/*
+ * name: sound name
+ * filter: sound names separated by space, and '!' for skip file
+ */
+static qboolean
+Haptic_Feedback_Filtered(const char *name, const char *filter)
+{
+	const char *current_filter = filter;
+
+	while (*current_filter)
+	{
+		char line_filter[MAX_QPATH];
+		const char *str_end;
+
+		str_end = strchr(current_filter, ' ');
+		// its end of filter
+		if (!str_end)
+		{
+			// check rules inside line
+			if (Haptic_Feedback_Filtered_Line(name, current_filter))
+			{
+				return true;
+			}
+			return false;
+		}
+		// copy filter line
+		if ((str_end - current_filter) >= MAX_QPATH)
+		{
+			return false;
+		}
+		memcpy(line_filter, current_filter, str_end - current_filter);
+		line_filter[str_end - current_filter] = 0;
+		// check rules inside line
+		if (*line_filter == '!')
+		{
+			// has invert rule
+			if (Haptic_Feedback_Filtered_Line(name, line_filter + 1))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if (Haptic_Feedback_Filtered_Line(name, line_filter))
+			{
+				return true;
+			}
+		}
+		// move to next filter
+		current_filter = str_end + 1;
+	}
+	return false;
+}
+
 /*
  * Haptic Feedback:
  *    effect_volume=0..SHRT_MAX
@@ -1583,19 +1743,7 @@ Haptic_Feedback(const char *name, int effect_volume, int effect_duration,
 
 	last_haptic_volume = joy_haptic_magnitude->value * 255;
 
-	if (
-		strstr(name, "misc/menu") ||
-		strstr(name, "weapons/") ||
-		/* detect pain for any player model */
-		((
-			strstr(name, "player/") ||
-			strstr(name, "players/")
-		) && (
-			strstr(name, "/pain")
-		)) ||
-		strstr(name, "player/step") ||
-		strstr(name, "player/land")
-	)
+	if (Haptic_Feedback_Filtered(name, haptic_feedback_filter->string))
 	{
 		int effect_id;
 
@@ -2025,6 +2173,7 @@ IN_Init(void)
 	sensitivity = Cvar_Get("sensitivity", "3", CVAR_ARCHIVE);
 
 	joy_haptic_magnitude = Cvar_Get("joy_haptic_magnitude", "0.0", CVAR_ARCHIVE);
+	haptic_feedback_filter = Cvar_Get("joy_haptic_filter", default_haptic_filter, CVAR_ARCHIVE);
 
 	joy_yawsensitivity = Cvar_Get("joy_yawsensitivity", "1.0", CVAR_ARCHIVE);
 	joy_pitchsensitivity = Cvar_Get("joy_pitchsensitivity", "1.0", CVAR_ARCHIVE);
