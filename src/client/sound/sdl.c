@@ -687,17 +687,8 @@ SDL_AddLoopSounds(void)
 	int num;
 	entity_state_t *ent;
 
-	if (cl_paused->value)
-	{
-		return;
-	}
-
-	if (cls.state != ca_active)
-	{
-		return;
-	}
-
-	if (!cl.sound_prepped || !s_ambient->value)
+	if ((cls.state != ca_active) || (cl_paused->value && cl_audiopaused->value) ||
+	    !cl.sound_prepped || !s_ambient->value)
 	{
 		return;
 	}

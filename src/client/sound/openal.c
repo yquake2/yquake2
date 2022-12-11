@@ -854,11 +854,12 @@ AL_AddLoopSounds(void)
 	int num;
 	entity_state_t *ent;
 
-	if ((cls.state != ca_active) || cl_paused->value || !s_ambient->value)
+	if ((cls.state != ca_active) || (cl_paused->value && cl_audiopaused->value) || !s_ambient->value)
 	{
 		return;
 	}
 
+	memset(&sounds, 0, sizeof(int) * MAX_EDICTS);
 	S_BuildSoundList(sounds);
 
 	for (i = 0; i < cl.frame.num_entities; i++)

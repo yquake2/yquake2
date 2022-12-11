@@ -305,6 +305,7 @@ extern	cvar_t	*freelook;
 extern	cvar_t	*cl_lightlevel;
 extern	cvar_t	*cl_paused;
 extern	cvar_t	*cl_loadpaused;
+extern  cvar_t  *cl_audiopaused;
 extern	cvar_t	*cl_timedemo;
 extern	cvar_t	*cl_vwep;
 extern	cvar_t  *horplus;

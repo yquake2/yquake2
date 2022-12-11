@@ -275,6 +275,8 @@ Set `0` by default.
   `-1`: Disable reverb effect,
   `>=0`: select predefined effect.
 
+* **cl_audiopaused**: If set to `1` the sounds pause when the game does.
+
 ## Graphics (all renderers)
 
 * **cin_force43**: If set to `1` (the default) cinematics are displayed
