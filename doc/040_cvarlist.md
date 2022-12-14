@@ -270,15 +270,10 @@ Set `0` by default.
   default this cvar is disabled (set to 0).
 
 * **s_reverb_preset**: Enable reverb effect. By default this cvar is disabled
-  (set to `-1`). Possibe values:
+  (set to `-1`). Possible values:
   `-2`: Auto reverb effect select,
   `-1`: Disable reverb effect,
   `>=0`: select predefined effect.
-
-* **s_feedback_kind**: Select kind of controller feedback to use. By default
-  this cvar is `0`. Possibe values:
-  `0`: Rumble feedback,
-  `1`: Haptic feedback.
 
 ## Graphics (all renderers)
 
@@ -551,6 +546,13 @@ Set `0` by default.
   the controller alone. As these vary by device, it's better to use
   'calibrate' in the 'gamepad' -> 'gyro' menu to set them.
 
+* **joy_haptic_magnitude**: Haptic magnitude value, By default this cvar
+  is `0.0` or disabled. Valid values are 0..1.0;
+
+* **s_feedback_kind**: Select kind of controller feedback to use. By default
+  this cvar is `0`. Possible values:
+  `0`: Rumble feedback,
+  `1`: Haptic feedback.
 
 ## cvar operations
 

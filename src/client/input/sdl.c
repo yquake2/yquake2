@@ -1425,7 +1425,7 @@ IN_Haptic_Effects_Info(void)
 {
 	Com_Printf ("Joystick/Mouse haptic:\n");
 	Com_Printf (" * %d effects\n", SDL_HapticNumEffects(joystick_haptic));
-	Com_Printf (" * %d haptic effects in same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
+	Com_Printf (" * %d haptic effects in the same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
 	Com_Printf (" * %d haptic axis\n", SDL_HapticNumAxes(joystick_haptic));
 }
 
@@ -1709,28 +1709,9 @@ Haptic_Feedback(const char *name, int effect_volume, int effect_duration,
 				int effect_delay, int effect_attack, int effect_fade,
 				int effect_x, int effect_y, int effect_z)
 {
-	if (!joystick_haptic)
-	{
-		return;
-	}
-
-	if (last_haptic_effect_size <= 0)
-	{
-		/* haptic but without slots? */
-		return;
-	}
-
-	if (joy_haptic_magnitude->value <= 0)
-	{
-		return;
-	}
-
-	if (effect_volume <= 0)
-	{
-		return;
-	}
-
-	if (effect_duration <= 0)
+	if (!joystick_haptic || joy_haptic_magnitude->value <= 0 ||
+		effect_volume <= 0 || effect_duration <= 0 ||
+		last_haptic_effect_size <= 0) /* haptic but without slots? */
 	{
 		return;
 	}
@@ -1754,10 +1735,10 @@ Haptic_Feedback(const char *name, int effect_volume, int effect_duration,
 		if (effect_id == -1)
 		{
 			/* have rumble used some slots in haptic effect list?,
-			 * ok, use little bit less haptic effects in same time*/
+			 * ok, use little bit less haptic effects in the same time*/
 			IN_Haptic_Effects_Shutdown();
 			last_haptic_effect_size --;
-			Com_Printf("%d haptic effects in same time\n", last_haptic_effect_size);
+			Com_Printf("%d haptic effects in the same time\n", last_haptic_effect_size);
 			return;
 		}
 
@@ -2087,22 +2068,6 @@ IN_Controller_Init(qboolean notify_user)
 				continue;	// try next joystick
 			}
 
-			joystick_haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller));
-
-			if (joystick_haptic &&
-				(SDL_HapticQuery(joystick_haptic) & SDL_HAPTIC_SINE) == 0)
-			{
-				/* Disable haptic for joysticks without SINE */
-				SDL_HapticClose(joystick_haptic);
-				joystick_haptic = NULL;
-			}
-
-			if (joystick_haptic)
-			{
-				IN_Haptic_Effects_Info();
-				show_haptic = true;
-			}
-
 			show_gamepad = true;
 			Com_Printf("Enabled as Game Controller, settings:\n%s\n", SDL_GameControllerMapping(controller));
 
@@ -2126,6 +2091,22 @@ IN_Controller_Init(qboolean notify_user)
 			}
 
 #endif	// SDL_VERSION_ATLEAST(2, 0, 16)
+
+			joystick_haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller));
+
+			if (joystick_haptic &&
+				(SDL_HapticQuery(joystick_haptic) & SDL_HAPTIC_SINE) == 0)
+			{
+				/* Disable haptic for joysticks without SINE */
+				SDL_HapticClose(joystick_haptic);
+				joystick_haptic = NULL;
+			}
+
+			if (joystick_haptic)
+			{
+				IN_Haptic_Effects_Info();
+				show_haptic = true;
+			}
 
 #if SDL_VERSION_ATLEAST(2, 0, 18)	// support for query on features from controller
 			if (SDL_GameControllerHasRumble(controller))
