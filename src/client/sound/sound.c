@@ -1149,16 +1149,16 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 			}
 
 			/* sound near player has 16 points */
-			effect_volume = sfx->cache->volume / 16;
+			effect_volume = sfx->cache->volume;
 
 			/* remove silence duration in the end of sound effect */
 			effect_duration -= sfx->cache->end;
 
 			Haptic_Feedback(
-				sfx->name, (16 - distance_direction / 32) * effect_volume,
+				sfx->name, effect_volume,
 				effect_duration,
 				sfx->cache->begin, sfx->cache->attack, sfx->cache->fade,
-				dir_x, dir_y, dir_z);
+				dir_x, dir_y, dir_z, distance_direction);
 		}
 	}
 	else if (sfx->name[0] && s_feedback_kind->value == 0)

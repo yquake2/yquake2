@@ -152,6 +152,7 @@ static cvar_t *joy_flick_smoothed;
 
 // Joystick haptic
 static cvar_t *joy_haptic_magnitude;
+static cvar_t *joy_haptic_distance;
 
 // Gyro mode (0=off, 3=on, 1-2=uses button to enable/disable)
 cvar_t *gyro_mode;
@@ -1702,27 +1703,35 @@ Haptic_Feedback_Filtered(const char *name, const char *filter)
  *    effect_volume=0..SHRT_MAX
  *    effect{x,y,z} - effect direction
  *    effect{delay,attack,fade} - effect durations
+ *    effect_distance - distance to sound source
  *    name - sound file name
  */
 void
 Haptic_Feedback(const char *name, int effect_volume, int effect_duration,
 				int effect_delay, int effect_attack, int effect_fade,
-				int effect_x, int effect_y, int effect_z)
+				int effect_x, int effect_y, int effect_z, float effect_distance)
 {
+	float max_distance = joy_haptic_distance->value;
+
 	if (!joystick_haptic || joy_haptic_magnitude->value <= 0 ||
+		max_distance <= 0 || /* skip haptic if distance is negative */
+		effect_distance > max_distance ||
 		effect_volume <= 0 || effect_duration <= 0 ||
 		last_haptic_effect_size <= 0) /* haptic but without slots? */
 	{
 		return;
 	}
 
-	if (last_haptic_volume != (int)(joy_haptic_magnitude->value * 255))
+	/* combine distance and volume */
+	effect_volume *= (max_distance - effect_distance) / max_distance;
+
+	if (last_haptic_volume != (int)(joy_haptic_magnitude->value * 16))
 	{
 		IN_Haptic_Effects_Shutdown();
 		IN_Haptic_Effects_Init();
 	}
 
-	last_haptic_volume = joy_haptic_magnitude->value * 255;
+	last_haptic_volume = joy_haptic_magnitude->value * 16;
 
 	if (Haptic_Feedback_Filtered(name, haptic_feedback_filter->string))
 	{
@@ -2154,6 +2163,7 @@ IN_Init(void)
 	sensitivity = Cvar_Get("sensitivity", "3", CVAR_ARCHIVE);
 
 	joy_haptic_magnitude = Cvar_Get("joy_haptic_magnitude", "0.0", CVAR_ARCHIVE);
+	joy_haptic_distance = Cvar_Get("joy_haptic_distance", "100.0", CVAR_ARCHIVE);
 	haptic_feedback_filter = Cvar_Get("joy_haptic_filter", default_haptic_filter, CVAR_ARCHIVE);
 
 	joy_yawsensitivity = Cvar_Get("joy_yawsensitivity", "1.0", CVAR_ARCHIVE);

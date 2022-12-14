@@ -289,7 +289,7 @@ void Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 				unsigned int duration, unsigned short int volume);
 void Haptic_Feedback(const char *name, int effect_volume, int effect_duration,
 				int effect_delay, int effect_attack, int effect_fade,
-				int effect_x, int effect_y, int effect_z);
+				int effect_x, int effect_y, int effect_z, float effect_distance);
 int Key_GetMenuKey(int key);
 
 #endif
