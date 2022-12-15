@@ -547,11 +547,11 @@ Set `0` by default.
   'calibrate' in the 'gamepad' -> 'gyro' menu to set them.
 
 * **joy_haptic_magnitude**: Haptic magnitude value, By default this cvar
-  is `0.0` or disabled. Valid values are 0..1.0.
+  is `0.0` or disabled. Valid values are positive, e.g. 0..2.0.
 
 * **joy_haptic_distance**: Haptic maximum effect distance value, By default
-  this cvar is `100.0`. Any positive value is valid. E.g. effect of shot
-  near barrel to barrel has 58 points.
+  this cvar is `100.0`. Any positive value is valid. E.g. effect of shoot
+  to a barrel has 58 points when player stay near the barrel.
 
 * **s_feedback_kind**: Select kind of controller feedback to use. By default
   this cvar is `0`. Possible values:

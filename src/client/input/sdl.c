@@ -1426,7 +1426,7 @@ IN_Haptic_Effects_Info(void)
 {
 	Com_Printf ("Joystick/Mouse haptic:\n");
 	Com_Printf (" * %d effects\n", SDL_HapticNumEffects(joystick_haptic));
-	Com_Printf (" * %d haptic effects in the same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
+	Com_Printf (" * %d haptic effects at the same time\n", SDL_HapticNumEffectsPlaying(joystick_haptic));
 	Com_Printf (" * %d haptic axis\n", SDL_HapticNumAxes(joystick_haptic));
 }
 
@@ -1539,43 +1539,27 @@ IN_Haptic_GetEffectId(int effect_volume, int effect_duration,
 	return last_haptic_effect[last_haptic_effect_pos].effect_id;
 }
 
-// Keep it same with rumble rules
+// Keep it same with rumble rules, look for descriptions to rumble
+// filtering in Controller_Rumble
 static char *default_haptic_filter = (
 	// skipped files should be before wider rule
 	"!weapons/*grenlb "     // bouncing grenades don't have feedback
 	"!weapons/*hgrenb "     // bouncing grenades don't have feedback
-	"!weapons/*open "       // bouncing grenades don't have feedback
+	"!weapons/*open "       // rogue's items don't have feedback
 	"!weapons/*warn "       // rogue's items don't have feedback
-	"weapons/ "             // any weapons that are not in previous list
-	// covered by previous rule
-	// "weapons/*plasshot " // phalanx cannon fire
-	// "weapons/*x "        // explosions...
-	// "weapons/*r "        // reloads & ion ripper fire
-	// "weapons/*blastf "   // dampen blasters
-	// "weapons/*hyprbf "   // dampen blasters
-	// "weapons/*nail "     // nailgun's fire
-	// "weapons/*shotgf "   // shotgun
-	// "weapons/*rocklf "   // RL
-	// "weapons/*sshotf "   // for super shotgun
-	// "weapons/*machgf "   // machine gun & disruptor fire
-	// "weapons/*disint "   // machine gun & disruptor fire
+	// any weapons that are not in previous list
+	"weapons/ "
+	// player{,s} effects
 	"player/*land "         // fall without injury
 	"player/*burn "
-	"player/*pain100 "
-	"player/*pain75 "
-	"player/*pain50 "
-	"player/*pain25 "
-	"player/*pain25 "
+	"player/*pain "
 	"player/*fall "
 	"player/*death "
 	"players/*burn "
-	"players/*pain100 "
-	"players/*pain75 "
-	"players/*pain50 "
-	"players/*pain25 "
-	"players/*pain25 "
+	"players/*pain "
 	"players/*fall "
 	"players/*death "
+	// environment effects
 	"doors/ "
 	"plats/ "
 	"world/*dish  "
@@ -1744,10 +1728,10 @@ Haptic_Feedback(const char *name, int effect_volume, int effect_duration,
 		if (effect_id == -1)
 		{
 			/* have rumble used some slots in haptic effect list?,
-			 * ok, use little bit less haptic effects in the same time*/
+			 * ok, use little bit less haptic effects at the same time*/
 			IN_Haptic_Effects_Shutdown();
 			last_haptic_effect_size --;
-			Com_Printf("%d haptic effects in the same time\n", last_haptic_effect_size);
+			Com_Printf("%d haptic effects at the same time\n", last_haptic_effect_size);
 			return;
 		}
 
