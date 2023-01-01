@@ -376,7 +376,8 @@ FloodFillSkin(byte *skin, int skinwidth, int skinheight)
  */
 gl3image_t *
 GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
-            int height, int realheight, imagetype_t type, int bits)
+            int height, int realheight, size_t data_size,
+            imagetype_t type, int bits)
 {
 	gl3image_t *image = NULL;
 	GLuint texNum=0;
@@ -416,7 +417,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 
 	if (strlen(name) >= sizeof(image->name))
 	{
-		ri.Sys_Error(ERR_DROP, "GL3_LoadPic: \"%s\" is too long", name);
+		ri.Sys_Error(ERR_DROP, "%s: \"%s\" is too long", __func__, name);
 	}
 
 	strcpy(image->name, name);
@@ -596,138 +597,16 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 	return image;
 }
 
-static gl3image_t *
-LoadWal(char *origname, imagetype_t type)
-{
-	miptex_t *mt;
-	int width, height, ofs, size;
-	gl3image_t *image;
-	char name[256];
-
-	Q_strlcpy(name, origname, sizeof(name));
-
-	/* Add the extension */
-	if (strcmp(COM_FileExtension(name), "wal"))
-	{
-		Q_strlcat(name, ".wal", sizeof(name));
-	}
-
-	size = ri.FS_LoadFile(name, (void **)&mt);
-
-	if (!mt)
-	{
-		R_Printf(PRINT_ALL, "LoadWal: can't load %s\n", name);
-		return gl3_notexture;
-	}
-
-	if (size < sizeof(miptex_t))
-	{
-		R_Printf(PRINT_ALL, "LoadWal: can't load %s, small header\n", name);
-		ri.FS_FreeFile((void *)mt);
-		return gl3_notexture;
-	}
-
-	width = LittleLong(mt->width);
-	height = LittleLong(mt->height);
-	ofs = LittleLong(mt->offsets[0]);
-
-	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
-	    (((size - ofs) / height) < width))
-	{
-		R_Printf(PRINT_ALL, "LoadWal: can't load %s, small body\n", name);
-		ri.FS_FreeFile((void *)mt);
-		return gl3_notexture;
-	}
-
-	image = GL3_LoadPic(name, (byte *)mt + ofs, width, 0, height, 0, type, 8);
-
-	ri.FS_FreeFile((void *)mt);
-
-	return image;
-}
-
-static gl3image_t *
-LoadM8(char *origname, imagetype_t type)
-{
-	m8tex_t *mt;
-	int width, height, ofs, size;
-	gl3image_t *image;
-	char name[256];
-	unsigned char *image_buffer = NULL;
-
-	Q_strlcpy(name, origname, sizeof(name));
-
-	/* Add the extension */
-	if (strcmp(COM_FileExtension(name), "m8"))
-	{
-		Q_strlcat(name, ".m8", sizeof(name));
-	}
-
-	size = ri.FS_LoadFile(name, (void **)&mt);
-
-	if (!mt)
-	{
-		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
-		return gl3_notexture;
-	}
-
-	if (size < sizeof(m8tex_t))
-	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
-		ri.FS_FreeFile((void *)mt);
-		return gl3_notexture;
-	}
-
-	if (LittleLong (mt->version) != M8_VERSION)
-	{
-		R_Printf(PRINT_ALL, "LoadWal: can't load %s, wrong magic value.\n", name);
-		ri.FS_FreeFile ((void *)mt);
-		return gl3_notexture;
-	}
-
-	width = LittleLong(mt->width[0]);
-	height = LittleLong(mt->height[0]);
-	ofs = LittleLong(mt->offsets[0]);
-
-	if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
-	    (((size - ofs) / height) < width))
-	{
-		R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
-		ri.FS_FreeFile((void *)mt);
-		return gl3_notexture;
-	}
-
-	image_buffer = malloc (width * height * 4);
-	for(int i=0; i<width * height; i++)
-	{
-		unsigned char value = *((byte *)mt + ofs + i);
-		image_buffer[i * 4 + 0] = mt->palette[value].r;
-		image_buffer[i * 4 + 1] = mt->palette[value].g;
-		image_buffer[i * 4 + 2] = mt->palette[value].b;
-		image_buffer[i * 4 + 3] = value == 255 ? 0 : 255;
-	}
-
-	image = GL3_LoadPic(name, image_buffer, width, 0, height, 0, type, 32);
-	free(image_buffer);
-
-	ri.FS_FreeFile((void *)mt);
-
-	return image;
-}
-
 /*
- * Finds or loads the given image
+ * Finds or loads the given image or NULL
  */
 gl3image_t *
-GL3_FindImage(char *name, imagetype_t type)
+GL3_FindImage(const char *name, imagetype_t type)
 {
 	gl3image_t *image;
 	int i, len;
-	byte *pic;
-	int width, height;
 	char *ptr;
 	char namewe[256];
-	int realwidth = 0, realheight = 0;
 	const char* ext;
 
 	if (!name)
@@ -769,165 +648,15 @@ GL3_FindImage(char *name, imagetype_t type)
 		}
 	}
 
-	/* load the pic from disk */
-	pic = NULL;
+	//
+	// load the pic from disk
+	//
+	image = (gl3image_t *)R_LoadImage(name, namewe, ext, type,
+		r_retexturing->value, (loadimage_t)GL3_LoadPic);
 
-	if (strcmp(ext, "pcx") == 0)
+	if (!image && r_validation->value)
 	{
-		if (r_retexturing->value)
-		{
-			GetPCXInfo(name, &realwidth, &realheight);
-			if(realwidth == 0)
-			{
-				/* No texture found */
-				return NULL;
-			}
-
-			/* try to load a tga, png or jpg (in that order/priority) */
-			if (  LoadSTB(namewe, "tga", &pic, &width, &height)
-			   || LoadSTB(namewe, "png", &pic, &width, &height)
-			   || LoadSTB(namewe, "jpg", &pic, &width, &height) )
-			{
-				/* upload tga or png or jpg */
-				image = GL3_LoadPic(name, pic, width, realwidth, height,
-						realheight, type, 32);
-			}
-			else
-			{
-				/* PCX if no TGA/PNG/JPEG available (exists always) */
-				LoadPCX(name, &pic, NULL, &width, &height);
-
-				if (!pic)
-				{
-					/* No texture found */
-					return NULL;
-				}
-
-				/* Upload the PCX */
-				image = GL3_LoadPic(name, pic, width, 0, height, 0, type, 8);
-			}
-		}
-		else /* gl_retexture is not set */
-		{
-			LoadPCX(name, &pic, NULL, &width, &height);
-
-			if (!pic)
-			{
-				return NULL;
-			}
-
-			image = GL3_LoadPic(name, pic, width, 0, height, 0, type, 8);
-		}
-	}
-	else if (strcmp(ext, "wal") == 0 || strcmp(ext, "m8") == 0)
-	{
-		if (r_retexturing->value)
-		{
-			/* Get size of the original texture */
-			if (strcmp(ext, "m8") == 0)
-			{
-				GetM8Info(name, &realwidth, &realheight);
-			}
-			else
-			{
-				GetWalInfo(name, &realwidth, &realheight);
-			}
-
-			if(realwidth == 0)
-			{
-				/* No texture found */
-				return NULL;
-			}
-
-			/* try to load a tga, png or jpg (in that order/priority) */
-			if (  LoadSTB(namewe, "tga", &pic, &width, &height)
-			   || LoadSTB(namewe, "png", &pic, &width, &height)
-			   || LoadSTB(namewe, "jpg", &pic, &width, &height) )
-			{
-				/* upload tga or png or jpg */
-				image = GL3_LoadPic(name, pic, width, realwidth, height, realheight, type, 32);
-			}
-			else if (strcmp(ext, "m8") == 0)
-			{
-				image = LoadM8(namewe, type);
-			}
-			else
-			{
-				/* WAL if no TGA/PNG/JPEG available (exists always) */
-				image = LoadWal(namewe, type);
-			}
-
-			if (!image)
-			{
-				/* No texture found */
-				return NULL;
-			}
-		}
-		else if (strcmp(ext, "m8") == 0)
-		{
-			image = LoadM8(name, type);
-
-			if (!image)
-			{
-				/* No texture found */
-				return NULL;
-			}
-		}
-		else /* gl_retexture is not set */
-		{
-			image = LoadWal(name, type);
-
-			if (!image)
-			{
-				/* No texture found */
-				return NULL;
-			}
-		}
-	}
-	else if (strcmp(ext, "tga") == 0 || strcmp(ext, "png") == 0 || strcmp(ext, "jpg") == 0)
-	{
-		char tmp_name[256];
-
-		realwidth = 0;
-		realheight = 0;
-
-		strcpy(tmp_name, namewe);
-		strcat(tmp_name, ".wal");
-		GetWalInfo(tmp_name, &realwidth, &realheight);
-
-		if (realwidth == 0 || realheight == 0) {
-			strcpy(tmp_name, namewe);
-			strcat(tmp_name, ".m8");
-			GetM8Info(tmp_name, &realwidth, &realheight);
-		}
-
-		if (realwidth == 0 || realheight == 0) {
-			/* It's a sky or model skin. */
-			strcpy(tmp_name, namewe);
-			strcat(tmp_name, ".pcx");
-			GetPCXInfo(tmp_name, &realwidth, &realheight);
-		}
-
-		/* TODO: not sure if not having realwidth/heigth is bad - a tga/png/jpg
-		 * was requested, after all, so there might be no corresponding wal/pcx?
-		 * if (realwidth == 0 || realheight == 0) return NULL;
-		 */
-
-		if(LoadSTB(name, ext, &pic, &width, &height))
-		{
-			image = GL3_LoadPic(name, pic, width, realwidth, height, realheight, type, 32);
-		} else {
-			return NULL;
-		}
-	}
-	else
-	{
-		return NULL;
-	}
-
-	if (pic)
-	{
-		free(pic);
+		R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
 	}
 
 	return image;

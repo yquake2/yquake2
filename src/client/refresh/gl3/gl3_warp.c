@@ -313,9 +313,8 @@ int vec_to_st[6][3] = {
 void
 GL3_SetSky(char *name, float rotate, vec3_t axis)
 {
-	int i;
-	char pathname[MAX_QPATH];
-	char skyname[MAX_QPATH];
+	char	skyname[MAX_QPATH];
+	int		i;
 
 	Q_strlcpy(skyname, name, sizeof(skyname));
 	skyrotate = rotate;
@@ -323,27 +322,23 @@ GL3_SetSky(char *name, float rotate, vec3_t axis)
 
 	for (i = 0; i < 6; i++)
 	{
-		// NOTE: there might be a paletted .pcx version, which was only used
-		//       if gl_config.palettedtexture so it *shouldn't* be relevant for he GL3 renderer
-		Com_sprintf(pathname, sizeof(pathname), "env/%s%s.tga", skyname, suf[i]);
+		gl3image_t	*image;
 
-		sky_images[i] = GL3_FindImage(pathname, it_sky);
+		image = (gl3image_t *)GetSkyImage(skyname, suf[i],
+			r_palettedtexture->value, (findimage_t)GL3_FindImage);
 
-		if (sky_images[i] == NULL || sky_images[i] == gl3_notexture)
+		if (!image)
 		{
-			Com_sprintf(pathname, sizeof(pathname), "pics/Skies/%s%s.m8", skyname, suf[i]);
-
-			sky_images[i] = GL3_FindImage(pathname, it_sky);
+			R_Printf(PRINT_ALL, "%s: can't load %s:%s sky\n",
+				__func__, skyname, suf[i]);
+			image = gl3_notexture;
 		}
 
-		if (sky_images[i] == NULL)
-		{
-			sky_images[i] = gl3_notexture;
-		}
-
-		sky_min = 1.0 / 512;
-		sky_max = 511.0 / 512;
+		sky_images[i] = image;
 	}
+
+	sky_min = 1.0 / 512;
+	sky_max = 511.0 / 512;
 }
 
 static void

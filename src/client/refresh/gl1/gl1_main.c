@@ -75,6 +75,7 @@ cvar_t *r_lerpmodels;
 cvar_t *gl_lefthand;
 cvar_t *r_gunfov;
 cvar_t *r_farsee;
+cvar_t *r_validation;
 
 cvar_t *r_lightlevel;
 cvar_t *gl1_overbrightbits;
@@ -184,6 +185,7 @@ R_DrawSpriteModel(entity_t *currententity, const model_t *currentmodel)
 	dsprframe_t *frame;
 	float *up, *right;
 	dsprite_t *psprite;
+	image_t *skin;
 
 	/* don't even bother culling, because it's just
 	   a single polygon without a surface cache */
@@ -208,7 +210,13 @@ R_DrawSpriteModel(entity_t *currententity, const model_t *currentmodel)
 
 	glColor4f(1, 1, 1, alpha);
 
-	R_Bind(currentmodel->skins[currententity->frame]->texnum);
+	skin = currentmodel->skins[currententity->frame];
+	if (!skin)
+	{
+		skin = r_notexture; /* fallback... */
+	}
+
+	R_Bind(skin->texnum);
 
 	R_TexEnv(GL_MODULATE);
 
@@ -536,7 +544,7 @@ R_DrawParticles(void)
 		int i;
 		YQ2_ALIGNAS_TYPE(unsigned) byte color[4];
 		const particle_t *p;
- 
+
 		YQ2_VLA(GLfloat, vtx, 3 * r_newrefdef.num_particles);
 		YQ2_VLA(GLfloat, clr, 4 * r_newrefdef.num_particles);
 
@@ -1263,7 +1271,7 @@ R_Register(void)
 	gl_anisotropic = ri.Cvar_Get("r_anisotropic", "0", CVAR_ARCHIVE);
 	r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
 
-	gl1_palettedtexture = ri.Cvar_Get("gl1_palettedtexture", "0", CVAR_ARCHIVE);
+	gl1_palettedtexture = ri.Cvar_Get("r_palettedtextures", "0", CVAR_ARCHIVE);
 	gl1_pointparameters = ri.Cvar_Get("gl1_pointparameters", "1", CVAR_ARCHIVE);
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
@@ -1279,6 +1287,7 @@ R_Register(void)
 	gl_msaa_samples = ri.Cvar_Get ( "r_msaa_samples", "0", CVAR_ARCHIVE );
 
 	r_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+	r_validation = ri.Cvar_Get("r_validation", "0", CVAR_ARCHIVE);
 	r_scale8bittextures = ri.Cvar_Get("r_scale8bittextures", "0", CVAR_ARCHIVE);
 
 	/* don't bilerp characters and crosshairs */
@@ -1403,6 +1412,7 @@ qboolean
 RI_Init(void)
 {
 	int j;
+	byte *colormap;
 	extern float r_turbsin[256];
 
 	Swap_Init();
@@ -1415,7 +1425,8 @@ RI_Init(void)
 	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
 	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
 
-	Draw_GetPalette();
+	GetPCXPalette (&colormap, d_8to24table);
+	free(colormap);
 
 	R_Register();
 
@@ -1890,16 +1901,6 @@ extern void RI_SetSky(char *name, float rotate, vec3_t axis);
 extern void RI_EndRegistration(void);
 
 extern void RI_RenderFrame(refdef_t *fd);
-
-extern image_t * RDraw_FindPic(char *name);
-extern void RDraw_GetPicSize(int *w, int *h, char *pic);
-extern void RDraw_PicScaled(int x, int y, char *pic, float factor);
-extern void RDraw_StretchPic(int x, int y, int w, int h, char *pic);
-extern void RDraw_CharScaled(int x, int y, int num, float scale);
-extern void RDraw_TileClear(int x, int y, int w, int h, char *pic);
-extern void RDraw_Fill(int x, int y, int w, int h, int c);
-extern void RDraw_FadeScreen(void);
-extern void RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
 
 extern void RI_SetPalette(const unsigned char *palette);
 extern qboolean RI_IsVSyncActive(void);

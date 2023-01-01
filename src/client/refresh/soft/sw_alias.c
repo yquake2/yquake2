@@ -504,7 +504,9 @@ R_AliasSetupSkin(const entity_t *currententity, const model_t *currentmodel)
 	image_t *pskindesc;
 
 	if (currententity->skin)
+	{
 		pskindesc = currententity->skin;
+	}
 	else
 	{
 		int skinnum;

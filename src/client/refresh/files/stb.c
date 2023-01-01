@@ -48,23 +48,32 @@
 #include "stb_image_resize.h"
 
 /*
+ * Add extension to file name
+ */
+void
+FixFileExt(const char *origname, const char *ext, char *filename, size_t size)
+{
+	Q_strlcpy(filename, origname, size);
+
+	/* Add the extension */
+	if (strcmp(COM_FileExtension(filename), ext))
+	{
+		Q_strlcat(filename, ".", size);
+		Q_strlcat(filename, ext, size);
+	}
+}
+
+/*
  * origname: the filename to be opened, might be without extension
  * type: extension of the type we wanna open ("jpg", "png" or "tga")
  * pic: pointer RGBA pixel data will be assigned to
  */
-qboolean
+static qboolean
 LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *height)
 {
 	char filename[256];
 
-	Q_strlcpy(filename, origname, sizeof(filename));
-
-	/* Add the extension */
-	if (strcmp(COM_FileExtension(filename), type) != 0)
-	{
-		Q_strlcat(filename, ".", sizeof(filename));
-		Q_strlcat(filename, type, sizeof(filename));
-	}
+	FixFileExt(origname, type, filename, sizeof(filename));
 
 	*pic = NULL;
 
@@ -424,4 +433,230 @@ scale3x(const byte *src, byte *dst, int width, int height)
 			}
 		}
 	}
+}
+
+static struct image_s *
+LoadHiColorImage(const char *name, const char* namewe, const char *ext,
+	imagetype_t type, loadimage_t load_image)
+{
+	int realwidth = 0, realheight = 0;
+	int width = 0, height = 0;
+	struct image_s	*image = NULL;
+	byte *pic = NULL;
+
+	/* Get size of the original texture */
+	if (strcmp(ext, "pcx") == 0)
+	{
+		GetPCXInfo(name, &realwidth, &realheight);
+	}
+	else if (strcmp(ext, "wal") == 0)
+	{
+		GetWalInfo(name, &realwidth, &realheight);
+	}
+	else if (strcmp(ext, "m8") == 0)
+	{
+		GetM8Info(name, &realwidth, &realheight);
+	}
+	else if (strcmp(ext, "m32") == 0)
+	{
+		GetM32Info(name, &realwidth, &realheight);
+	}
+
+	/* try to load a tga, png or jpg (in that order/priority) */
+	if (  LoadSTB(namewe, "tga", &pic, &width, &height)
+	   || LoadSTB(namewe, "png", &pic, &width, &height)
+	   || LoadSTB(namewe, "jpg", &pic, &width, &height) )
+	{
+		if (width >= realwidth && height >= realheight)
+		{
+			if (realheight == 0 || realwidth == 0)
+			{
+				realheight = height;
+				realwidth = width;
+			}
+
+			image = load_image(name, pic,
+				width, realwidth,
+				height, realheight,
+				width * height,
+				type, 32);
+		}
+	}
+
+	if (pic)
+	{
+		free(pic);
+	}
+
+	return image;
+}
+
+struct image_s *
+R_LoadImage(const char *name, const char* namewe, const char *ext, imagetype_t type,
+	qboolean r_retexturing, loadimage_t load_image)
+{
+	struct image_s	*image = NULL;
+
+	// with retexturing and not skin
+	if (r_retexturing)
+	{
+		image = LoadHiColorImage(name, namewe, ext, type, load_image);
+	}
+
+	if (!image)
+	{
+		if (!strcmp(ext, "pcx"))
+		{
+			byte *pic = NULL;
+			byte	*palette = NULL;
+			int width = 0, height = 0;
+
+			LoadPCX (namewe, &pic, &palette, &width, &height);
+			if (!pic)
+				return NULL;
+
+			image = load_image(name, pic,
+				width, width,
+				height, height,
+				width * height, type, 8);
+
+			if (palette)
+			{
+				free(palette);
+			}
+			free(pic);
+		}
+		else if (!strcmp(ext, "wal"))
+		{
+			image = LoadWal(namewe, type, load_image);
+		}
+		else if (!strcmp(ext, "m8"))
+		{
+			image = LoadM8(namewe, type, load_image);
+		}
+		else if (!strcmp(ext, "m32"))
+		{
+			image = LoadM32(namewe, type, load_image);
+		}
+		else if (!strcmp(ext, "tga") ||
+		         !strcmp(ext, "png") ||
+		         !strcmp(ext, "jpg"))
+		{
+			byte *pic = NULL;
+			int width = 0, height = 0;
+
+			if (LoadSTB (namewe, ext, &pic, &width, &height) && pic)
+			{
+				image = load_image(name, pic,
+					width, width,
+					height, height,
+					width * height,
+					type, 32);
+
+				free(pic);
+			}
+		}
+	}
+
+	return image;
+}
+
+struct image_s*
+GetSkyImage(const char *skyname, const char* surfname, qboolean palettedtexture,
+	findimage_t find_image)
+{
+	struct image_s	*image = NULL;
+	char	pathname[MAX_QPATH];
+
+	/* Quake 2 */
+	if (palettedtexture)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "env/%s%s.pcx",
+				skyname, surfname);
+		image = find_image(pathname, it_sky);
+	}
+
+	if (!image)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "env/%s%s.tga",
+				skyname, surfname);
+		image = find_image(pathname, it_sky);
+	}
+
+	/* Heretic 2 */
+	if (!image)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "pics/Skies/%s%s.m32",
+			skyname, surfname);
+		image = find_image(pathname, it_sky);
+	}
+
+	if (!image)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "pics/Skies/%s%s.m8",
+			skyname, surfname);
+		image = find_image(pathname, it_sky);
+	}
+
+	return image;
+}
+
+struct image_s *
+GetTexImage(const char *name, findimage_t find_image)
+{
+	struct image_s	*image = NULL;
+	char	pathname[MAX_QPATH];
+
+	/* Quake 2 */
+	Com_sprintf(pathname, sizeof(pathname), "textures/%s.wal", name);
+	image = find_image(pathname, it_wall);
+
+	/* Heretic 2 */
+	if (!image)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "textures/%s.m32", name);
+		image = find_image(pathname, it_wall);
+	}
+
+	if (!image)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "textures/%s.m8", name);
+		image = find_image(pathname, it_wall);
+	}
+
+	return image;
+}
+
+struct image_s *
+R_FindPic(const char *name, findimage_t find_image)
+{
+	struct image_s	*image = NULL;
+
+	if ((name[0] != '/') && (name[0] != '\\'))
+	{
+		char	pathname[MAX_QPATH];
+
+		/* Quake 2 */
+		Com_sprintf(pathname, sizeof(pathname), "pics/%s.pcx", name);
+		image = find_image(pathname, it_pic);
+
+		/* Heretic 2 */
+		if (!image)
+		{
+			Com_sprintf(pathname, sizeof(pathname), "pics/misc/%s.m32", name);
+			image = find_image(pathname, it_pic);
+		}
+
+		if (!image)
+		{
+			Com_sprintf(pathname, sizeof(pathname), "pics/misc/%s.m8", name);
+			image = find_image(pathname, it_pic);
+		}
+	}
+	else
+	{
+		image = find_image(name + 1, it_pic);
+	}
+
+	return image;
 }

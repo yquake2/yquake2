@@ -27,20 +27,6 @@
 #ifndef SRC_CLIENT_REFRESH_GL3_HEADER_MODEL_H_
 #define SRC_CLIENT_REFRESH_GL3_HEADER_MODEL_H_
 
-enum {
-	SIDE_FRONT = 0,
-	SIDE_BACK = 1,
-	SIDE_ON = 2
-};
-
-enum {
-	SURF_PLANEBACK = 2,
-	SURF_DRAWSKY = 4,
-	SURF_DRAWTURB = 0x10,
-	SURF_DRAWBACKGROUND = 0x40,
-	SURF_UNDERWATER = 0x80
-};
-
 // used for vertex array elements when drawing brushes, sprites, sky and more
 // (ok, it has the layout used for rendering brushes, but is not used there)
 typedef struct gl3_3D_vtx_s {
@@ -59,35 +45,6 @@ typedef struct gl3_alias_vtx_s {
 } gl3_alias_vtx_t;
 
 /* in memory representation */
-typedef struct
-{
-	vec3_t position;
-} mvertex_t;
-
-typedef struct
-{
-	vec3_t mins, maxs;
-	vec3_t origin; /* for sounds or lights */
-	float radius;
-	int headnode;
-	int visleafs; /* not including the solid leaf 0 */
-	int firstface, numfaces;
-} mmodel_t;
-
-typedef struct
-{
-	unsigned short v[2];
-	unsigned int cachededgeoffset;
-} medge_t;
-
-typedef struct mtexinfo_s
-{
-	float vecs[2][4];
-	int flags;
-	int numframes;
-	struct mtexinfo_s *next; /* animation chain */
-	gl3image_t *image;
-} mtexinfo_t;
 
 typedef struct glpoly_s
 {

@@ -448,7 +448,6 @@ Mod_LoadTexinfo(model_t *loadmodel, byte *mod_base, lump_t *l)
 	texinfo_t *in;
 	mtexinfo_t *out, *step;
 	int i, j, count;
-	char name[MAX_QPATH];
 	int next;
 
 	in = (void *)(mod_base + l->fileofs);
@@ -467,6 +466,8 @@ Mod_LoadTexinfo(model_t *loadmodel, byte *mod_base, lump_t *l)
 
 	for (i = 0; i < count; i++, in++, out++)
 	{
+		image_t	*image;
+
 		for (j = 0; j < 4; j++)
 		{
 			out->vecs[0][j] = LittleFloat(in->vecs[0][j]);
@@ -485,21 +486,16 @@ Mod_LoadTexinfo(model_t *loadmodel, byte *mod_base, lump_t *l)
 			out->next = NULL;
 		}
 
-		Com_sprintf(name, sizeof(name), "textures/%s.wal", in->texture);
+		image = GetTexImage(in->texture, (findimage_t)R_FindImage);
 
-		out->image = R_FindImage(name, it_wall);
-
-		if (!out->image || out->image == r_notexture)
+		if (!image)
 		{
-			Com_sprintf(name, sizeof(name), "textures/%s.m8", in->texture);
-			out->image = R_FindImage(name, it_wall);
+			R_Printf(PRINT_ALL, "%s: Couldn't load %s\n",
+				__func__, in->texture);
+			image = r_notexture;
 		}
 
-		if (!out->image)
-		{
-			R_Printf(PRINT_ALL, "Couldn't load %s\n", name);
-			out->image = r_notexture;
-		}
+		out->image = image;
 	}
 
 	/* count animation frames */
@@ -1051,7 +1047,7 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VISIBILITY], 1, 1);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFS], sizeof(dleaf_t), sizeof(mleaf_t));
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_NODES], sizeof(dnode_t), sizeof(mnode_t));
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(mmodel_t));
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(model_t));
 
 	mod->extradata = Hunk_Begin(hunkSize);
 	mod->type = mod_brush;

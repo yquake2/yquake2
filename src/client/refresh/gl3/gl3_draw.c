@@ -37,10 +37,11 @@ void
 GL3_Draw_InitLocal(void)
 {
 	/* load console characters */
-	draw_chars = GL3_FindImage("pics/conchars.pcx", it_pic);
+	draw_chars = R_FindPic("conchars", (findimage_t)GL3_FindImage);
 	if (!draw_chars)
 	{
-		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/conchars.pcx");
+		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
+			__func__);
 	}
 
 	// set up attribute layout for 2D textured rendering
@@ -162,20 +163,7 @@ GL3_Draw_CharScaled(int x, int y, int num, float scale)
 gl3image_t *
 GL3_Draw_FindPic(char *name)
 {
-	gl3image_t *gl;
-	char fullname[MAX_QPATH];
-
-	if ((name[0] != '/') && (name[0] != '\\'))
-	{
-		Com_sprintf(fullname, sizeof(fullname), "pics/%s.pcx", name);
-		gl = GL3_FindImage(fullname, it_pic);
-	}
-	else
-	{
-		gl = GL3_FindImage(name + 1, it_pic);
-	}
-
-	return gl;
+	return R_FindPic(name, (findimage_t)GL3_FindImage);
 }
 
 void
@@ -183,7 +171,7 @@ GL3_Draw_GetPicSize(int *w, int *h, char *pic)
 {
 	gl3image_t *gl;
 
-	gl = GL3_Draw_FindPic(pic);
+	gl = R_FindPic(pic, (findimage_t)GL3_FindImage);
 
 	if (!gl)
 	{
@@ -198,7 +186,7 @@ GL3_Draw_GetPicSize(int *w, int *h, char *pic)
 void
 GL3_Draw_StretchPic(int x, int y, int w, int h, char *pic)
 {
-	gl3image_t *gl = GL3_Draw_FindPic(pic);
+	gl3image_t *gl = R_FindPic(pic, (findimage_t)GL3_FindImage);
 
 	if (!gl)
 	{
@@ -215,7 +203,7 @@ GL3_Draw_StretchPic(int x, int y, int w, int h, char *pic)
 void
 GL3_Draw_PicScaled(int x, int y, char *pic, float factor)
 {
-	gl3image_t *gl = GL3_Draw_FindPic(pic);
+	gl3image_t *gl = R_FindPic(pic, (findimage_t)GL3_FindImage);
 	if (!gl)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
@@ -236,7 +224,7 @@ GL3_Draw_PicScaled(int x, int y, char *pic, float factor)
 void
 GL3_Draw_TileClear(int x, int y, int w, int h, char *pic)
 {
-	gl3image_t *image = GL3_Draw_FindPic(pic);
+	gl3image_t *image = R_FindPic(pic, (findimage_t)GL3_FindImage);
 	if (!image)
 	{
 		R_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
@@ -410,39 +398,4 @@ GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 	glDeleteTextures(1, &glTex);
 
 	GL3_Bind(0);
-}
-
-int
-GL3_Draw_GetPalette(void)
-{
-	int i;
-	int r, g, b;
-	unsigned v;
-	byte *pic, *pal;
-	int width, height;
-
-	/* get the palette */
-	LoadPCX("pics/colormap.pcx", &pic, &pal, &width, &height);
-
-	if (!pal)
-	{
-		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/colormap.pcx");
-	}
-
-	for (i = 0; i < 256; i++)
-	{
-		r = pal[i * 3 + 0];
-		g = pal[i * 3 + 1];
-		b = pal[i * 3 + 2];
-
-		v = (255u << 24) + (r << 0) + (g << 8) + (b << 16);
-		d_8to24table[i] = LittleLong(v);
-	}
-
-	d_8to24table[255] &= LittleLong(0xffffff); /* 255 is transparent */
-
-	free(pic);
-	free(pal);
-
-	return 0;
 }

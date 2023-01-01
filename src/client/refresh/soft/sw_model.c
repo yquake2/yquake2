@@ -486,7 +486,6 @@ Mod_LoadTexinfo (model_t *loadmodel, byte *mod_base, lump_t *l)
 	texinfo_t *in;
 	mtexinfo_t *out, *step;
 	int 	i, count;
-	char	name[MAX_QPATH];
 
 	in = (void *)(mod_base + l->fileofs);
 
@@ -504,19 +503,14 @@ Mod_LoadTexinfo (model_t *loadmodel, byte *mod_base, lump_t *l)
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
+		image_t	*image;
 		int j, next;
-		float len1, len2;
 
 		for (j = 0; j < 4; j++)
 		{
 			out->vecs[0][j] = LittleFloat(in->vecs[0][j]);
 			out->vecs[1][j] = LittleFloat(in->vecs[1][j]);
 		}
-		len1 = VectorLength (out->vecs[0]);
-		len2 = VectorLength (out->vecs[1]);
-		out->mipadjust = sqrt(len1*len1 + len2*len2);
-		if (out->mipadjust < 0.01)
-			out->mipadjust = 0.01;
 
 		out->flags = LittleLong (in->flags);
 
@@ -531,19 +525,15 @@ Mod_LoadTexinfo (model_t *loadmodel, byte *mod_base, lump_t *l)
 			out->next = NULL;
 		}
 
-		Com_sprintf (name, sizeof(name), "textures/%s.wal", in->texture);
-		out->image = R_FindImage (name, it_wall);
-		if (!out->image || out->image == r_notexture_mip)
+		image = GetTexImage(in->texture, (findimage_t)R_FindImage);
+		if (!image)
 		{
-			Com_sprintf (name, sizeof(name), "textures/%s.m8", in->texture);
-			out->image = R_FindImage (name, it_wall);
+			R_Printf(PRINT_ALL, "%s: Couldn't load %s\n",
+				__func__, in->texture);
+			image = r_notexture_mip;
 		}
 
-		if (!out->image)
-		{
-			out->image = r_notexture_mip; // texture not found
-			out->flags = 0;
-		}
+		out->image = image;
 	}
 
 	// count animation frames
@@ -667,9 +657,12 @@ Mod_LoadFaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 
 		CalcSurfaceExtents (loadmodel, out);
 
-		// lighting info is converted from 24 bit on disk to 8 bit
+		// lighting is saved as its with 24 bit color
 		for (i=0 ; i<MAXLIGHTMAPS ; i++)
+		{
 			out->styles[i] = in->styles[i];
+		}
+
 		i = LittleLong(in->lightofs);
 		if (i == -1)
 		{
@@ -706,11 +699,10 @@ Mod_LoadFaces (model_t *loadmodel, byte *mod_base, lump_t *l)
 		}
 
 		//==============
-		// this marks flowing surfaces as turbulent, but with the new
-		// SURF_FLOW flag.
+		// this marks flowing surfaces as turbulent.
 		if (out->texinfo->flags & SURF_FLOWING)
 		{
-			out->flags |= SURF_DRAWTURB | SURF_FLOW;
+			out->flags |= SURF_DRAWTURB;
 			for (i=0 ; i<2 ; i++)
 			{
 				out->extents[i] = 16384;
@@ -1036,7 +1028,7 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_VISIBILITY], 1, 1, 0);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_LEAFS], sizeof(dleaf_t), sizeof(mleaf_t), 0);
 	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_NODES], sizeof(dnode_t), sizeof(mnode_t), 0);
-	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(dmodel_t), 0);
+	hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(model_t), 0);
 
 	hunkSize += 1048576; // 1MB extra just in case
 

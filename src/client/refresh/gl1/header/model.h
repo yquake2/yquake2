@@ -27,47 +27,9 @@
 #ifndef REF_MODEL_H
 #define REF_MODEL_H
 
-#define SIDE_FRONT 0
-#define SIDE_BACK 1
-#define SIDE_ON 2
-
-#define SURF_PLANEBACK 2
-#define SURF_DRAWSKY 4
-#define SURF_DRAWTURB 0x10
-#define SURF_DRAWBACKGROUND 0x40
-#define SURF_UNDERWATER 0x80
 #define VERTEXSIZE 7
 
 /* in memory representation */
-typedef struct
-{
-	vec3_t position;
-} mvertex_t;
-
-typedef struct
-{
-	vec3_t mins, maxs;
-	vec3_t origin; /* for sounds or lights */
-	float radius;
-	int headnode;
-	int visleafs; /* not including the solid leaf 0 */
-	int firstface, numfaces;
-} mmodel_t;
-
-typedef struct
-{
-	unsigned short v[2];
-	unsigned int cachededgeoffset;
-} medge_t;
-
-typedef struct mtexinfo_s
-{
-	float vecs[2][4];
-	int flags;
-	int numframes;
-	struct mtexinfo_s *next; /* animation chain */
-	image_t *image;
-} mtexinfo_t;
 
 typedef struct glpoly_s
 {

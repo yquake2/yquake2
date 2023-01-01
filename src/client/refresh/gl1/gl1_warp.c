@@ -31,7 +31,6 @@
 #define ON_EPSILON 0.1 /* point on plane side epsilon */
 #define MAX_CLIP_VERTS 64
 
-char skyname[MAX_QPATH];
 float skyrotate;
 vec3_t skyaxis;
 image_t *sky_images[6];
@@ -740,8 +739,8 @@ R_DrawSkyBox(void)
 void
 RI_SetSky(char *name, float rotate, vec3_t axis)
 {
-	int i;
-	char pathname[MAX_QPATH];
+	char	skyname[MAX_QPATH];
+	int		i;
 
 	Q_strlcpy(skyname, name, sizeof(skyname));
 	skyrotate = rotate;
@@ -749,33 +748,22 @@ RI_SetSky(char *name, float rotate, vec3_t axis)
 
 	for (i = 0; i < 6; i++)
 	{
-		if (gl_config.palettedtexture)
-		{
-			Com_sprintf(pathname, sizeof(pathname), "env/%s%s.pcx",
-					skyname, suf[i]);
-		}
-		else
-		{
-			Com_sprintf(pathname, sizeof(pathname), "env/%s%s.tga",
-					skyname, suf[i]);
-		}
+		image_t	*image;
 
-		sky_images[i] = R_FindImage(pathname, it_sky);
+		image = (image_t *)GetSkyImage(skyname, suf[i],
+			gl_config.palettedtexture, (findimage_t)R_FindImage);
 
-		if (!sky_images[i] || sky_images[i] == r_notexture)
+		if (!image)
 		{
-			Com_sprintf(pathname, sizeof(pathname), "pics/Skies/%s%s.m8",
-					skyname, suf[i]);
-			sky_images[i] = R_FindImage(pathname, it_sky);
+			R_Printf(PRINT_ALL, "%s: can't load %s:%s sky\n",
+				__func__, skyname, suf[i]);
+			image = r_notexture;
 		}
 
-		if (!sky_images[i])
-		{
-			sky_images[i] = r_notexture;
-		}
-
-		sky_min = 1.0 / 512;
-		sky_max = 511.0 / 512;
+		sky_images[i] = image;
 	}
+
+	sky_min = 1.0 / 512;
+	sky_max = 511.0 / 512;
 }
 

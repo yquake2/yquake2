@@ -54,7 +54,6 @@ refimport_t	ri;
 
 byte		d_8to24table[256 * 4];
 
-char		skyname[MAX_QPATH];
 vec3_t		skyaxis;
 
 refdef_t	r_newrefdef;
@@ -152,6 +151,7 @@ cvar_t	*sw_texture_filtering;
 cvar_t	*r_retexturing;
 cvar_t	*r_scale8bittextures;
 cvar_t	*sw_gunzposition;
+cvar_t	*r_validation;
 static cvar_t	*sw_partialrefresh;
 
 cvar_t	*r_drawworld;
@@ -173,6 +173,7 @@ static cvar_t	*vid_fullscreen;
 static cvar_t	*vid_gamma;
 
 static cvar_t	*r_lockpvs;
+static cvar_t	*r_palettedtexture;
 
 // sw_vars.c
 
@@ -210,7 +211,6 @@ int		cachewidth;
 pixel_t		*d_viewbuffer;
 zvalue_t	*d_pzbuffer;
 
-static void Draw_GetPalette (void);
 static void RE_BeginFrame( float camera_separation );
 static void Draw_BuildGammaTable(void);
 static void RE_FlushFrame(int vmin, int vmax);
@@ -382,6 +382,7 @@ R_RegisterVariables (void)
 	r_retexturing = ri.Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
 	r_scale8bittextures = ri.Cvar_Get("r_scale8bittextures", "0", CVAR_ARCHIVE);
 	sw_gunzposition = ri.Cvar_Get("sw_gunzposition", "8", CVAR_ARCHIVE);
+	r_validation = ri.Cvar_Get("r_validation", "0", CVAR_ARCHIVE);
 
 	// On MacOS texture is cleaned up after render and code have to copy a whole
 	// screen to texture, other platforms save previous texture content and can be
@@ -412,6 +413,7 @@ R_RegisterVariables (void)
 	r_customwidth = ri.Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
 	r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
 	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
+	r_palettedtexture = ri.Cvar_Get("r_palettedtexture", "0", 0);
 
 	vid_fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", CVAR_ARCHIVE );
 	vid_gamma = ri.Cvar_Get( "vid_gamma", "1.0", CVAR_ARCHIVE );
@@ -465,7 +467,8 @@ RE_Init(void)
 
 	r_aliasuvscale = 1.0;
 
-	Draw_GetPalette ();
+	GetPCXPalette (&vid_colormap, (unsigned *)d_8to24table);
+	vid_alphamap = vid_colormap + 64*256;
 
 	/* set our "safe" mode */
 	sw_state.prev_mode = 4;
@@ -1723,61 +1726,33 @@ RE_SetSky
 // 3dstudio environment map names
 static const char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 static const int	r_skysideimage[6] = {5, 2, 4, 1, 0, 3};
-extern	mtexinfo_t		r_skytexinfo[6];
+extern mtexinfo_t		r_skytexinfo[6];
 
 static void
 RE_SetSky (char *name, float rotate, vec3_t axis)
 {
+	char	skyname[MAX_QPATH];
 	int		i;
-	char	pathname[MAX_QPATH];
 
 	Q_strlcpy (skyname, name, sizeof(skyname));
 	VectorCopy (axis, skyaxis);
 
 	for (i=0 ; i<6 ; i++)
 	{
-		Com_sprintf (pathname, sizeof(pathname), "env/%s%s.pcx", skyname, suf[r_skysideimage[i]]);
-		r_skytexinfo[i].image = R_FindImage (pathname, it_sky);
-		if (!r_skytexinfo[i].image)
+		image_t	*image;
+
+		image = (image_t *)GetSkyImage(skyname, suf[r_skysideimage[i]],
+			r_palettedtexture->value, (findimage_t)R_FindImage);
+
+		if (!image)
 		{
-			Com_sprintf (pathname, sizeof(pathname), "pics/Skies/%s%s.m8", skyname, suf[r_skysideimage[i]]);
-			r_skytexinfo[i].image = R_FindImage (pathname, it_sky);
+			R_Printf(PRINT_ALL, "%s: can't load %s:%s sky\n",
+				__func__, skyname, suf[r_skysideimage[i]]);
+			image = r_notexture_mip;
 		}
+
+		r_skytexinfo[i].image = image;
 	}
-}
-
-/*
-===============
-Draw_GetPalette
-===============
-*/
-static void
-Draw_GetPalette (void)
-{
-	byte	*pal, *out;
-	int		i;
-
-	/* get the palette and colormap */
-	LoadPCX ("pics/colormap.pcx", &vid_colormap, &pal, NULL, NULL);
-	if (!vid_colormap)
-		ri.Sys_Error (ERR_FATAL, "Couldn't load pics/colormap.pcx");
-	vid_alphamap = vid_colormap + 64*256;
-
-	out = d_8to24table;
-	for (i=0 ; i<256 ; i++, out+=4)
-	{
-		int r, g, b;
-
-		r = pal[i*3+0];
-		g = pal[i*3+1];
-		b = pal[i*3+2];
-
-		out[0] = r;
-		out[1] = g;
-		out[2] = b;
-	}
-
-	free (pal);
 }
 
 /*

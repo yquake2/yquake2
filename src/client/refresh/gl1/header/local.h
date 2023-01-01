@@ -193,6 +193,7 @@ extern cvar_t *r_customheight;
 
 extern cvar_t *r_retexturing;
 extern cvar_t *r_scale8bittextures;
+extern cvar_t *r_validation;
 
 extern cvar_t *gl_nolerp_list;
 extern cvar_t *r_lerp_list;
@@ -281,11 +282,9 @@ void COM_StripExtension(char *in, char *out);
 
 void R_SwapBuffers(int);
 
-int Draw_GetPalette(void);
-
-image_t *R_LoadPic(char *name, byte *pic, int width, int realwidth,
-		int height, int realheight, imagetype_t type, int bits);
-image_t *R_FindImage(char *name, imagetype_t type);
+image_t *R_LoadPic(const char *name, byte *pic, int width, int realwidth,
+		int height, int realheight, size_t data_size, imagetype_t type, int bits);
+image_t *R_FindImage(const char *name, imagetype_t type);
 void R_TextureMode(char *string);
 void R_ImageList_f(void);
 
@@ -390,5 +389,16 @@ void RI_ShutdownContext(void);
  * or NULL if the function is not found.
  */
 void *RI_GetProcAddress (const char* proc);
+
+/* g11_draw */
+extern image_t * RDraw_FindPic(char *name);
+extern void RDraw_GetPicSize(int *w, int *h, char *pic);
+extern void RDraw_PicScaled(int x, int y, char *pic, float factor);
+extern void RDraw_StretchPic(int x, int y, int w, int h, char *pic);
+extern void RDraw_CharScaled(int x, int y, int num, float scale);
+extern void RDraw_TileClear(int x, int y, int w, int h, char *pic);
+extern void RDraw_Fill(int x, int y, int w, int h, int c);
+extern void RDraw_FadeScreen(void);
+extern void RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
 
 #endif

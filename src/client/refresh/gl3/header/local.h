@@ -413,7 +413,6 @@ extern void GL3_Draw_InitLocal(void);
 extern void GL3_Draw_ShutdownLocal(void);
 extern gl3image_t * GL3_Draw_FindPic(char *name);
 extern void GL3_Draw_GetPicSize(int *w, int *h, char *pic);
-extern int GL3_Draw_GetPalette(void);
 
 extern void GL3_Draw_PicScaled(int x, int y, char *pic, float factor);
 extern void GL3_Draw_StretchPic(int x, int y, int w, int h, char *pic);
@@ -441,8 +440,9 @@ extern void GL3_TextureMode(char *string);
 extern void GL3_Bind(GLuint texnum);
 extern void GL3_BindLightmap(int lightmapnum);
 extern gl3image_t *GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
-                               int height, int realheight, imagetype_t type, int bits);
-extern gl3image_t *GL3_FindImage(char *name, imagetype_t type);
+                               int height, int realheight, size_t data_size,
+                               imagetype_t type, int bits);
+extern gl3image_t *GL3_FindImage(const char *name, imagetype_t type);
 extern gl3image_t *GL3_RegisterSkin(char *name);
 extern void GL3_ShutdownImages(void);
 extern void GL3_FreeUnusedImages(void);
@@ -548,6 +548,8 @@ extern cvar_t *r_modulate;
 extern cvar_t *gl_lightmap;
 extern cvar_t *gl_shadows;
 extern cvar_t *r_fixsurfsky;
+extern cvar_t *r_palettedtexture;
+extern cvar_t *r_validation;
 
 extern cvar_t *gl3_debugcontext;
 

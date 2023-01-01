@@ -937,6 +937,8 @@ Normal surface cached, texture mapped surface
 static void
 D_SolidSurf (entity_t *currententity, surf_t *s)
 {
+	float len1, len2, mipadjust;
+
 	if (s->insubmodel)
 	{
 		vec3_t local_modelorg;
@@ -952,7 +954,15 @@ D_SolidSurf (entity_t *currententity, surf_t *s)
 	}
 
 	pface = s->msurf;
-	miplevel = D_MipLevelForScale(s->nearzi * scale_for_mip * pface->texinfo->mipadjust);
+
+	len1 = VectorLength (pface->texinfo->vecs[0]);
+	len2 = VectorLength (pface->texinfo->vecs[1]);
+	mipadjust = sqrt(len1*len1 + len2*len2);
+	if (mipadjust < 0.01)
+	{
+		mipadjust = 0.01;
+	}
+	miplevel = D_MipLevelForScale(s->nearzi * scale_for_mip * mipadjust);
 
 	// FIXME: make this passed in to D_CacheSurface
 	pcurrentcache = D_CacheSurface (currententity, pface, miplevel);
@@ -1035,9 +1045,9 @@ D_DrawSurfaces (entity_t *currententity, surf_t *surface)
 
 			r_drawnpolycount++;
 
-			if (! (s->flags & (SURF_DRAWSKYBOX|SURF_DRAWBACKGROUND|SURF_DRAWTURB) ) )
+			if (! (s->flags & (SURF_DRAWSKY|SURF_DRAWBACKGROUND|SURF_DRAWTURB) ) )
 				D_SolidSurf (currententity, s);
-			else if (s->flags & SURF_DRAWSKYBOX)
+			else if (s->flags & SURF_DRAWSKY)
 				D_SkySurf (s);
 			else if (s->flags & SURF_DRAWBACKGROUND)
 				D_BackgroundSurf (s);

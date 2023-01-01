@@ -67,7 +67,11 @@ static const int	box_surfedges[24] = { 1,2,3,4,  -1,5,6,7,  8,9,-6,10,  -2,-7,-9
   12,-3,-11,-8,  -12,-10,-5,-4};
 static const int	box_edges[24] = { 1,2, 2,3, 3,4, 4,1, 1,5, 5,6, 6,2, 7,8, 8,6, 5,7, 8,3, 7,4};
 
-static const int	box_faces[6] = {0,0,2,2,2,0};
+static const int	box_faces[6] = {
+	0, 0,
+	SURF_PLANEBACK, SURF_PLANEBACK,
+	SURF_PLANEBACK, 0
+};
 
 static const vec3_t	box_vecs[6][2] = {
 	{	{0,-1,0}, {-1,0,0} },
@@ -127,7 +131,7 @@ R_InitSkyBox (model_t *loadmodel)
 
 		r_skyfaces[i].plane = &r_skyplanes[i];
 		r_skyfaces[i].numedges = 4;
-		r_skyfaces[i].flags = box_faces[i] | SURF_DRAWSKYBOX;
+		r_skyfaces[i].flags = box_faces[i] | SURF_DRAWSKY;
 		r_skyfaces[i].firstedge = loadmodel->numsurfedges-24+i*4;
 		r_skyfaces[i].texinfo = &r_skytexinfo[i];
 		r_skyfaces[i].texturemins[0] = -128;

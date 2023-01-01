@@ -37,10 +37,11 @@ void
 Draw_InitLocal(void)
 {
 	/* load console characters */
-	draw_chars = R_FindImage("pics/conchars.pcx", it_pic);
+	draw_chars = R_FindPic("conchars", (findimage_t)R_FindImage);
 	if (!draw_chars)
 	{
-		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/conchars.pcx");
+		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/conchars.pcx",
+			__func__);
 	}
 }
 
@@ -106,20 +107,7 @@ RDraw_CharScaled(int x, int y, int num, float scale)
 image_t *
 RDraw_FindPic(char *name)
 {
-	image_t *gl;
-	char fullname[MAX_QPATH];
-
-	if ((name[0] != '/') && (name[0] != '\\'))
-	{
-		Com_sprintf(fullname, sizeof(fullname), "pics/%s.pcx", name);
-		gl = R_FindImage(fullname, it_pic);
-	}
-	else
-	{
-		gl = R_FindImage(name + 1, it_pic);
-	}
-
-	return gl;
+	return R_FindPic(name, (findimage_t)R_FindImage);
 }
 
 void
@@ -127,7 +115,7 @@ RDraw_GetPicSize(int *w, int *h, char *pic)
 {
 	image_t *gl;
 
-	gl = RDraw_FindPic(pic);
+	gl = R_FindPic(pic, (findimage_t)R_FindImage);
 
 	if (!gl)
 	{
@@ -144,7 +132,7 @@ RDraw_StretchPic(int x, int y, int w, int h, char *pic)
 {
 	image_t *gl;
 
-	gl = RDraw_FindPic(pic);
+	gl = R_FindPic(pic, (findimage_t)R_FindImage);
 
 	if (!gl)
 	{
@@ -189,7 +177,7 @@ RDraw_PicScaled(int x, int y, char *pic, float factor)
 {
 	image_t *gl;
 
-	gl = RDraw_FindPic(pic);
+	gl = R_FindPic(pic, (findimage_t)R_FindImage);
 
 	if (!gl)
 	{
@@ -239,7 +227,7 @@ RDraw_TileClear(int x, int y, int w, int h, char *pic)
 {
 	image_t *image;
 
-	image = RDraw_FindPic(pic);
+	image = R_FindPic(pic, (findimage_t)R_FindImage);
 
 	if (!image)
 	{
@@ -517,39 +505,3 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 	glDisableClientState( GL_VERTEX_ARRAY );
 	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 }
-
-int
-Draw_GetPalette(void)
-{
-	int i;
-	int r, g, b;
-	unsigned v;
-	byte *pic, *pal;
-	int width, height;
-
-	/* get the palette */
-	LoadPCX("pics/colormap.pcx", &pic, &pal, &width, &height);
-
-	if (!pal)
-	{
-		ri.Sys_Error(ERR_FATAL, "Couldn't load pics/colormap.pcx");
-	}
-
-	for (i = 0; i < 256; i++)
-	{
-		r = pal[i * 3 + 0];
-		g = pal[i * 3 + 1];
-		b = pal[i * 3 + 2];
-
-		v = (255u << 24) + (r << 0) + (g << 8) + (b << 16);
-		d_8to24table[i] = LittleLong(v);
-	}
-
-	d_8to24table[255] &= LittleLong(0xffffff); /* 255 is transparent */
-
-	free(pic);
-	free(pal);
-
-	return 0;
-}
-

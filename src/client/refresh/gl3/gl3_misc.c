@@ -103,7 +103,7 @@ GL3_InitParticleTexture(void)
 	}
 
 	gl3_particletexture = GL3_LoadPic("***particle***", (byte *)data,
-	                                  8, 0, 8, 0, it_sprite, 32);
+	                                  8, 0, 8, 0, 8 * 8, it_sprite, 32);
 
 	/* also use this for bad textures, but without alpha */
 	for (x = 0; x < 8; x++)
@@ -118,7 +118,7 @@ GL3_InitParticleTexture(void)
 	}
 
 	gl3_notexture = GL3_LoadPic("***r_notexture***", (byte *)data,
-	                            8, 0, 8, 0, it_wall, 32);
+	                            8, 0, 8, 0, 8 * 8, it_wall, 32);
 }
 
 void
