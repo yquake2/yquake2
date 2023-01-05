@@ -52,11 +52,6 @@ SV_ClientPrintf(client_t *cl, int level, char *fmt, ...)
 	va_list argptr;
 	char string[1024];
 
-	if (level < cl->messagelevel)
-	{
-		return;
-	}
-
 	va_start(argptr, fmt);
 	vsnprintf(string, sizeof(string), fmt, argptr);
 	va_end(argptr);
@@ -99,11 +94,6 @@ SV_BroadcastPrintf(int level, char *fmt, ...)
 
 	for (i = 0, cl = svs.clients; i < maxclients->value; i++, cl++)
 	{
-		if (level < cl->messagelevel)
-		{
-			continue;
-		}
-
 		if (cl->state != cs_spawned)
 		{
 			continue;
