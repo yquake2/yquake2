@@ -154,7 +154,7 @@ LoadM32(const char *origname, imagetype_t type, loadimage_t load_image)
 		return NULL;
 	}
 
-	if (size < sizeof(m8tex_t))
+	if (size < sizeof(m32tex_t))
 	{
 		R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
 		ri.FS_FreeFile((void *)mt);
