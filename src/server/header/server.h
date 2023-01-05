@@ -126,7 +126,6 @@ typedef struct client_s
 
 	edict_t *edict;                     /* EDICT_NUM(clientnum+1) */
 	char name[32];                      /* extracted from userinfo, high bits masked */
-	int messagelevel;                   /* for filtering printed messages */
 
 	/* The datagram is written to by sound calls, prints, 
 	   temp ents, etc. It can be harmlessly overflowed. */

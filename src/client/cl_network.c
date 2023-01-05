@@ -29,7 +29,6 @@
 
 void CL_ParseStatusMessage(void);
 
-extern cvar_t *msg;
 extern cvar_t *rcon_client_password;
 extern cvar_t *rcon_address;
 extern cvar_t *cl_timeout;

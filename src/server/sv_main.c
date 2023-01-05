@@ -564,14 +564,6 @@ SV_UserinfoChanged(client_t *cl)
 	{
 		cl->rate = 5000;
 	}
-
-	/* msg command */
-	val = Info_ValueForKey(cl->userinfo, "msg");
-
-	if (strlen(val))
-	{
-		cl->messagelevel = (int)strtol(val, (char **)NULL, 10);
-	}
 }
 
 /*
