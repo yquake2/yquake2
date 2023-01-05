@@ -1234,6 +1234,25 @@ SHOWNET(char *s)
 	}
 }
 
+static qboolean
+startswithstring(const char* needle, const char *hay)
+{
+    if (strlen(hay) < strlen(needle))
+	{
+		return false;
+	}
+
+	for (int i = 0; needle[i]; i++)
+	{
+		if (needle[i] != hay[i])
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void
 CL_ParseServerMessage(void)
 {
@@ -1330,7 +1349,64 @@ CL_ParseServerMessage(void)
 			case svc_stufftext:
 				s = MSG_ReadString(&net_message);
 				Com_DPrintf("stufftext: %s\n", s);
-				Cbuf_AddText(s);
+
+				if (cl_stufftext->value == 1)
+				{
+					// Vanilla Quake II behavior. Process everything.
+					Cbuf_AddText(s);
+				}
+				else
+				{
+					// Process only necessary strings and strings
+					// send by baseq2, rogue and xatrix.
+
+					// First check if there are any newline chars besides
+					// exactly one (at the end). More than one newline
+					// indicates concatenated commands which are evil.
+					int newlines = 0;
+
+					for (int i = 0; s[i]; i++)
+					{
+						if (s[i] == '\n')
+						{
+							newlines++;
+						}
+					}
+
+					if (newlines != 1)
+					{
+						Com_DPrintf("stufftext filter: Too many newlines -> discarded\n");
+					}
+					else
+					{
+						// Now filter for known strings.
+						if (startswithstring("cmd baselines ", s)) // "cmd baselines %i 0\n"
+						{
+							Com_DPrintf("stufftext filter: Starts with 'cmd baselines ' -> may pass\n");
+							Cbuf_AddText(s);
+						}
+						else if (startswithstring("cmd configstrings ", s)) // "cmd configstrings %i %i\n"
+						{
+							Com_DPrintf("stufftext filter: Starts with 'cmd baselines ' -> may pass\n");
+							Cbuf_AddText(s);
+						}
+						else if (startswithstring("precache ", s)) // "precache %i\n"
+						{
+							Com_DPrintf("stufftext filter: Starts with 'precache ' -> may pass\n");
+							Cbuf_AddText(s);
+						}
+						else if (strcmp(s, "spectator 0\n") == 0 || strcmp(s, "spectator 1\n") == 0) // Spectator commands from baseq2, rogue and xatrix
+						{
+							Com_DPrintf("stufftext filter: 'spectator' -> may pass\n");
+							Cbuf_AddText(s);
+						}
+						else // In all other cases the stufftext is discarded.
+						{
+							Com_DPrintf("stufftext filter: Didn't match -> discarded\n");
+						}
+					}
+				}
+
 				break;
 
 			case svc_serverdata:

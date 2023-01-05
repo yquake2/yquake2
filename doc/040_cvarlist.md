@@ -146,6 +146,16 @@ Set `0` by default.
 * **cl_model_preview_end**: end frame value in multiplayer model preview.
   `-1` - don't show animation. Defaults to `94` for show salute animation.
 
+* **cl_stufftext**: If set to `1` (the default) any stufftext is
+  allowed. Since stufftext can inject arbitrary data into the client
+  command buffer this can be harmful. A malicious server may execute
+  any console command, alter any cvar or even hijack the client with
+  potentially grave consequences. If set to `0` only known to be good
+  messages are allowed. This reduces the attack surface significantly.
+  However this will break compatibility with any server and mod which
+  requires non-standard stufftext. And there is no guarantee that an
+  attacker can't bypass the filter.
+
 * **in_grab**: Defines how the mouse is grabbed by Yamagi Quake IIs
   window. If set to `0` the mouse is never grabbed and if set to `1`
   it's always grabbed. If set to `2` (the default) the mouse is grabbed

@@ -60,6 +60,7 @@ cvar_t *cl_loadpaused;
 cvar_t *cl_lightlevel;
 cvar_t *cl_r1q2_lightstyle;
 cvar_t *cl_limitsparksounds;
+cvar_t *cl_stufftext;
 
 /* userinfo */
 cvar_t *name;
@@ -527,6 +528,7 @@ CL_InitLocal(void)
 	cl_lightlevel = Cvar_Get("r_lightlevel", "0", 0);
 	cl_r1q2_lightstyle = Cvar_Get("cl_r1q2_lightstyle", "1", CVAR_ARCHIVE);
 	cl_limitsparksounds = Cvar_Get("cl_limitsparksounds", "0", CVAR_ARCHIVE);
+	cl_stufftext = Cvar_Get("cl_stufftext", "1", CVAR_ARCHIVE);
 
 	/* userinfo */
 	name = Cvar_Get("name", "unnamed", CVAR_USERINFO | CVAR_ARCHIVE);

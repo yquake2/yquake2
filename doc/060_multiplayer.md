@@ -110,3 +110,22 @@ Quake II patch 3.15. The map list must be enclosed in quotation marks
 and all maps must exist. Start the game with the first map.
 
 For example: `q2ded +set sv_maplist '"q2dm1 q2dm2 q2dm3"' +map q2dm1`
+
+
+
+## Stufftext filter
+
+Stufftexts are messages which are send from the server to the client and
+executed as commands. Vanilla Quake II hasn't any protecting regarding
+the commands send to the client. A malicious server may execute any
+console command and alter any cvar.
+
+To prevent this Yamagi Quake II supports a 'filtered stuff text mode'.
+When `cl_stufftext` is set to `0` only known to be good stufftext is
+executed, everything else is discarded. This lowers the attack surface
+significantly, however it will break any server and mod which required
+random stufftext.
+
+Nevertheless, when connecting to servers which aren't trustworthy - this
+is any server not controlled by the player itself - it is a very good
+idea to set `cl_stufftext 0`.
