@@ -18,6 +18,18 @@ Apart from this, we'll only document changes/additions here.
 
 
 
+## Security considerations
+
+Quake II was released in 1997 into a world where security didn't matter.
+The most important thing when connecting to random servers is: **Quake
+II allows the server to do anything on the client!** The server may
+execute any console command, it may overwrite any cvar and given the
+rather fragile state of the command parsers chances are high that there
+are remote code execution vulnerabilities. Only connect to trustworthy
+servers!
+
+
+
 ## HTTP Downloads
 
 Like r1q2 and some other Quake II source ports, we allow downloading
