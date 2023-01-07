@@ -681,6 +681,13 @@ IN_Update(void)
 					// be on another display now!
 					glimp_refreshRate = -1;
 				}
+				else if (event.window.event == SDL_WINDOWEVENT_SHOWN)
+				{
+					if (cl_unpaused_scvis->value > 0)
+					{
+						Cvar_SetValue("paused", 0);
+					}
+				}
 				else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED ||
 					event.window.event == SDL_WINDOWEVENT_HIDDEN)
 				{
