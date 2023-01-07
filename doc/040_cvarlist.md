@@ -549,6 +549,11 @@ Set `0` by default.
 * **joy_haptic_magnitude**: Haptic magnitude value, By default this cvar
   is `0.0` or disabled. Valid values are positive, e.g. 0..2.0.
 
+* **joy_haptic_filter**: List of sound file names produced haptic feedback
+  separated by space. `*` could be used for replace part of file name as
+  regular expression. `!` at the beginning of value could be used for skip
+  file name equal to value.
+
 * **joy_haptic_distance**: Haptic maximum effect distance value, By default
   this cvar is `100.0`. Any positive value is valid. E.g. effect of shoot
   to a barrel has 58 points when player stay near the barrel.
