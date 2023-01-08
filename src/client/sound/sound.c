@@ -74,7 +74,8 @@ cvar_t* s_underwater_gain_hf;
 cvar_t* s_doppler;
 cvar_t* s_occlusion_strength;
 cvar_t* s_reverb_preset;
-cvar_t* s_ps_sorting;
+static cvar_t* s_ps_sorting;
+static cvar_t* s_feedback_kind;
 
 channel_t channels[MAX_CHANNELS];
 static int num_sfx;
@@ -1107,7 +1108,60 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 		ps->fixed_origin = false;
 	}
 
-	if (sfx->name[0])
+	if (sfx->name[0] && s_feedback_kind->value == 1)
+	{
+		vec3_t orientation, direction;
+		vec_t distance_direction;
+		int dir_x, dir_y, dir_z;
+		int effect_volume = -1;
+
+		VectorSubtract(listener_forward, listener_up, orientation);
+
+		// with !fixed we have all sounds related directly to player,
+		// e.g. players fire, pain, menu
+		if (!ps->fixed_origin)
+		{
+			VectorCopy(orientation, direction);
+			distance_direction = 0;
+		}
+		else
+		{
+			VectorSubtract(listener_origin, ps->origin, direction);
+			distance_direction = VectorLength(direction);
+		}
+
+		VectorNormalize(direction);
+		VectorNormalize(orientation);
+
+		dir_x = 16 * orientation[0] * direction[0];
+		dir_y = 16 * orientation[1] * direction[1];
+		dir_z = 16 * orientation[2] * direction[2];
+
+		if (sfx->cache)
+		{
+			int effect_duration;
+
+			effect_duration = sfx->cache->length;
+
+			if (sfx->cache->stereo)
+			{
+				effect_duration /= 2;
+			}
+
+			/* sound near player has 16 points */
+			effect_volume = sfx->cache->volume;
+
+			/* remove silence duration in the end of sound effect */
+			effect_duration -= sfx->cache->end;
+
+			Haptic_Feedback(
+				sfx->name, effect_volume,
+				effect_duration,
+				sfx->cache->begin, sfx->cache->attack, sfx->cache->fade,
+				dir_x, dir_y, dir_z, distance_direction);
+		}
+	}
+	else if (sfx->name[0] && s_feedback_kind->value == 0)
 	{
 		vec3_t direction = {0};
 		unsigned int effect_duration = 0;
@@ -1544,6 +1598,8 @@ S_Init(void)
 	/* Reverb and occlusion is fully disabled by default */
 	s_reverb_preset = Cvar_Get("s_reverb_preset", "-1", CVAR_ARCHIVE);
 	s_occlusion_strength = Cvar_Get("s_occlusion_strength", "0", CVAR_ARCHIVE);
+	/* Feedback kind: 0 - rumble, 1 - haptic */
+	s_feedback_kind = Cvar_Get("s_feedback_kind", "0", CVAR_ARCHIVE);
 
 	Cmd_AddCommand("play", S_Play);
 	Cmd_AddCommand("stopsound", S_StopAllSounds);

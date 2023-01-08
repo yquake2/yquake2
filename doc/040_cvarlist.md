@@ -270,7 +270,7 @@ Set `0` by default.
   default this cvar is disabled (set to 0).
 
 * **s_reverb_preset**: Enable reverb effect. By default this cvar is disabled
-  (set to `-1`). Possibe values:
+  (set to `-1`). Possible values:
   `-2`: Auto reverb effect select,
   `-1`: Disable reverb effect,
   `>=0`: select predefined effect.
@@ -546,6 +546,22 @@ Set `0` by default.
   the controller alone. As these vary by device, it's better to use
   'calibrate' in the 'gamepad' -> 'gyro' menu to set them.
 
+* **joy_haptic_magnitude**: Haptic magnitude value, By default this cvar
+  is `0.0` or disabled. Valid values are positive, e.g. 0..2.0.
+
+* **joy_haptic_filter**: List of sound file names produced haptic feedback
+  separated by space. `*` could be used for replace part of file name as
+  regular expression. `!` at the beginning of value could be used for skip
+  file name equal to value.
+
+* **joy_haptic_distance**: Haptic maximum effect distance value, By default
+  this cvar is `100.0`. Any positive value is valid. E.g. effect of shoot
+  to a barrel has 58 points when player stay near the barrel.
+
+* **s_feedback_kind**: Select kind of controller feedback to use. By default
+  this cvar is `0`. Possible values:
+  `0`: Rumble feedback,
+  `1`: Haptic feedback.
 
 ## cvar operations
 
