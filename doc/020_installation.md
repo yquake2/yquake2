@@ -167,10 +167,13 @@ reading the comment section at the top (lines starting with "//").
    was loaded. If you see this message, you know the map fixes are in
    effect.
 
+
 #### Reporting Map Bugs
 
 If you know of any map bugs that are not addressed here, by all means
 report them to us through our GitHub repositories.
+
+
 ### Monster Footstep Sounds
 
 Yamagi Quake II has optional support for monster footstep sounds. These
