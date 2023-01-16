@@ -107,21 +107,9 @@ if(NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL CMAKE_HOST_SYSTEM_PROCESSOR))
 	# special case: cross-compiling, here CMAKE_SYSTEM_PROCESSOR should be correct, hopefully
 	# (just leave cpu at ${CMAKE_SYSTEM_PROCESSOR})
 elseif(MSVC)
-	message(DEBUG "CMAKE_GENERATOR_PLATFORM: ${CMAKE_GENERATOR_PLATFORM}")
-	if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
-		set(cpu "i386")
-	elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
-		set(cpu "x86_64")
-	elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "ARM")
-		# at least on RPi 32bit, gcc -dumpmachine outputs "arm-linux-gnueabihf",
-		#  so we'll use "arm" there => use the same for 32bit ARM on MSVC
-		set(cpu "arm")
-	elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
-		set(cpu "arm64")
-	else()
-		message(FATAL_ERROR "Unknown Target CPU/platform ${CMAKE_GENERATOR_PLATFORM}")
-	endif()
-	message(DEBUG "  => CPU architecture extracted from that: \"${cpu}\"")
+	# because all this wasn't ugly enough, it turned out that, unlike standalone CMake, Visual Studio's
+	# integrated CMake doesn't set CMAKE_GENERATOR_PLATFORM, so I gave up on guessing the CPU arch here
+	# and moved the CPU detection to MSVC-specific code in neo/sys/platform.h
 else() # not MSVC and not cross-compiling, assume GCC or clang (-compatible), seems to work for MinGW as well
 	execute_process(COMMAND ${CMAKE_C_COMPILER} "-dumpmachine"
 	                RESULT_VARIABLE cc_dumpmachine_res
@@ -159,13 +147,19 @@ elseif(cpu MATCHES "[aA][rR][mM].*") # some kind of arm..
 	endif()
 endif()
 
-set(ARCH "${cpu}")
+if(MSVC)
+	# for MSVC YQ2ARCH is set in code (in src/common/header/common.h)
+	message(STATUS "Setting YQ2OSTYPE to \"${YQ2OSTYPE}\" - NOT setting YQ2ARCH, because we're targeting MSVC (VisualC++)")
+else()
+	set(ARCH "${cpu}")
+	add_definitions(-DYQ2ARCH="${ARCH}")
+	message(STATUS "Setting YQ2OSTYPE to \"${YQ2OSTYPE}\" and YQ2ARCH to \"${ARCH}\".")
+endif()
+# make sure that ${cpu} isn't used below - if at all use ${ARCH}, but not when compiling with MSVC!
+unset(cpu)
 
 # END OF workarounds for CMake's poor choices regarding CPU architecture detection
 
-add_definitions(-DYQ2ARCH="${ARCH}")
-
-message(STATUS "Setting YQ2OSTYPE to \"${YQ2OSTYPE}\" and YQ2ARCH to \"${ARCH}\".")
 
 # Systemwide installation of game assets.
 if(${SYSTEMWIDE_SUPPORT})
@@ -269,25 +263,26 @@ endif()
 include_directories(${yquake2IncludeDirectories})
 link_directories(${yquake2LinkerDirectories})
 
-# If we're building with gcc for i386 let's define -ffloat-store.
-# This helps the old and crappy x87 FPU to produce correct values.
-# Would be nice if Clang had something comparable.
-if ("${ARCH}" STREQUAL "i386")
-	if (${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
+# these settings only work for GCC and clang
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+	# If we're building with gcc for i386 let's define -ffloat-store.
+	# This helps the old and crappy x87 FPU to produce correct values.
+	# Would be nice if Clang had something comparable.
+	if ("${ARCH}" STREQUAL "i386" AND ${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffloat-store")
 	endif()
-endif()
 
-# Force SSE math on x86_64. All sane compilers should do this
-# anyway, just to protect us from broken Linux distros.
-if ("${ARCH}" STREQUAL "x86_64")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse")
-endif()
+	# Force SSE math on x86_64. All sane compilers should do this
+	# anyway, just to protect us from broken Linux distros.
+	if ("${ARCH}" STREQUAL "x86_64")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse")
+	endif()
 
-if ("${ARCH}" STREQUAL "arm")
-    if (CMAKE_SIZEOF_VOID_P EQUAL 4)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv6k")
-    endif()
+	if ("${ARCH}" STREQUAL "arm")
+		if (CMAKE_SIZEOF_VOID_P EQUAL 4)
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv6k")
+		endif()
+	endif()
 endif()
 
 set(Backends-Generic-Source

@@ -64,6 +64,7 @@
  * system and architecture are in the hands of the user.
  */
 
+#include "../../common/header/common.h" // YQ2ARCH
 #include "../header/local.h"
 #include "savegame.h"
 /*
