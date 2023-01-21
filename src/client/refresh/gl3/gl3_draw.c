@@ -309,6 +309,11 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 void
 GL3_Draw_Flash(const float color[4], float x, float y, float w, float h)
 {
+	if (gl_polyblend->value == 0)
+	{
+		return;
+	}
+
 	int i=0;
 
 	GLfloat vBuf[8] = {

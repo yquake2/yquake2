@@ -97,6 +97,7 @@ cvar_t *gl3_particle_size;
 cvar_t *gl3_particle_fade_factor;
 cvar_t *gl3_particle_square;
 cvar_t *gl3_colorlight;
+cvar_t *gl_polyblend;
 
 cvar_t *gl_lefthand;
 cvar_t *r_gunfov;
@@ -219,6 +220,7 @@ GL3_Register(void)
 	gl3_particle_square = ri.Cvar_Get("gl3_particle_square", "0", CVAR_ARCHIVE);
 	// if set to 0, lights (from lightmaps, dynamic lights and on models) are white instead of colored
 	gl3_colorlight = ri.Cvar_Get("gl3_colorlight", "1", CVAR_ARCHIVE);
+	gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", CVAR_ARCHIVE);
 
 	//  0: use lots of calls to glBufferData()
 	//  1: reduce calls to glBufferData() with one big VBO (see GL3_BufferAndDraw3D())
