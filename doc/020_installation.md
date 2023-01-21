@@ -17,7 +17,7 @@ Over the years Quake II was distributed in a myriad of ways:
 Yamagi Quake II is compatible with all of these versions. While some of
 these versions come with all patches applied, it's highly recommended to
 follow this guide step by step and to reapply the patch by hand. Not all
-distributors patched the game correctly, leading to serve problems like
+distributors patched the game correctly, leading to severe problems like
 missing assets or even crashes.
 
 
@@ -152,16 +152,6 @@ changelogs for each map by opening the .ent files with a text editor and
 reading the comment section at the top (lines starting with "//").
 
 
-### Monster Footstep Sounds
-
-Yamagi Quake II has optional support for monster footstep sounds. These
-require some custom audio files. Download the pak file with the sounds
-from https://deponie.yamagi.org/quake2/assets/footsteps.pkz and copy
-the file into the *baseq2/* directory.
-
-The footstep sounds are included with the official Windows release.
-
-
 #### Download And Setup
 
 1. Download the .ent files from the yquake2 repositories on GitHub.
@@ -182,6 +172,16 @@ The footstep sounds are included with the official Windows release.
 
 If you know of any map bugs that are not addressed here, by all means
 report them to us through our GitHub repositories.
+
+
+### Monster Footstep Sounds
+
+Yamagi Quake II has optional support for monster footstep sounds. These
+require some custom audio files. Download the pak file with the sounds
+from https://deponie.yamagi.org/quake2/assets/footsteps.pkz and copy
+the file into the *baseq2/* directory.
+
+The footstep sounds are included with the official Windows release.
 
 
 ## The Demo Version
