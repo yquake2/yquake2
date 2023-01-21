@@ -42,30 +42,6 @@ qboolean LM_AllocBlock(int w, int h, int *x, int *y);
 void R_SetCacheState(msurface_t *surf);
 void R_BuildLightMap(msurface_t *surf, byte *dest, int stride);
 
-/*
- * Returns the proper texture for a given time and base texture
- */
-static image_t *
-R_TextureAnimation(entity_t *currententity, mtexinfo_t *tex)
-{
-	int c;
-
-	if (!tex->next)
-	{
-		return tex->image;
-	}
-
-	c = currententity->frame % tex->numframes;
-
-	while (c)
-	{
-		tex = tex->next;
-		c--;
-	}
-
-	return tex->image;
-}
-
 static void
 R_DrawGLPoly(glpoly_t *p)
 {
@@ -122,7 +98,7 @@ R_DrawGLFlowingPoly(msurface_t *fa)
 
     glDisableClientState( GL_VERTEX_ARRAY );
     glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-	
+
 	YQ2_VLAFREE(tex);
 }
 
@@ -674,7 +650,9 @@ R_DrawInlineBModel(entity_t *currententity, const model_t *currentmodel)
 
 		for (k = 0; k < r_newrefdef.num_dlights; k++, lt++)
 		{
-			R_MarkLights(lt, 1 << k, currentmodel->nodes + currentmodel->firstnode);
+			R_MarkLights(lt, 1 << k,
+				currentmodel->nodes + currentmodel->firstnode,
+				r_dlightframecount, R_MarkSurfaceLights);
 		}
 	}
 
@@ -756,7 +734,7 @@ R_DrawBrushModel(entity_t *currententity, const model_t *currentmodel)
 		VectorAdd(currententity->origin, currentmodel->maxs, maxs);
 	}
 
-	if (R_CullBox(mins, maxs))
+	if (r_cull->value && R_CullBox(mins, maxs, frustum))
 	{
 		return;
 	}
@@ -831,24 +809,19 @@ R_RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 		return;
 	}
 
-	if (R_CullBox(node->minmaxs, node->minmaxs + 3))
+	if (r_cull->value && R_CullBox(node->minmaxs, node->minmaxs + 3, frustum))
 	{
 		return;
 	}
 
 	/* if a leaf node, draw stuff */
-	if (node->contents != -1)
+	if (node->contents != CONTENTS_NODE)
 	{
 		pleaf = (mleaf_t *)node;
 
 		/* check for door connected areas */
-		if (r_newrefdef.areabits)
-		{
-			if (!(r_newrefdef.areabits[pleaf->area >> 3] & (1 << (pleaf->area & 7))))
-			{
-				return; /* not visible */
-			}
-		}
+		if (!R_AreaVisible(r_newrefdef.areabits, pleaf))
+			return;	// not visible
 
 		mark = pleaf->firstmarksurface;
 		c = pleaf->nummarksurfaces;

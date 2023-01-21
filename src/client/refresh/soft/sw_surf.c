@@ -37,34 +37,6 @@ static surfcache_t	*sc_rover;
 surfcache_t	*sc_base;
 
 /*
-===============
-R_TextureAnimation
-
-Returns the proper texture for a given time and base texture
-===============
-*/
-static image_t *
-R_TextureAnimation (const entity_t *currententity, mtexinfo_t *tex)
-{
-	int c;
-
-	if (!tex->next)
-		return tex->image;
-
-	if (!currententity)
-		return tex->image;
-
-	c = currententity->frame % tex->numframes;
-	while (c && tex)
-	{
-		tex = tex->next;
-		c--;
-	}
-
-	return tex->image;
-}
-
-/*
  * Color light apply is not required
  */
 static qboolean

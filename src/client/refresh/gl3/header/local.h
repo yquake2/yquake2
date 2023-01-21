@@ -381,7 +381,6 @@ GL3_BindEBO(GLuint ebo)
 
 extern void GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode);
 
-extern qboolean GL3_CullBox(vec3_t mins, vec3_t maxs);
 extern void GL3_RotateForEntity(entity_t *e);
 
 // gl3_sdl.c
@@ -406,7 +405,6 @@ extern struct model_s * GL3_RegisterModel(char *name);
 extern void GL3_EndRegistration(void);
 extern void GL3_Mod_Modellist_f(void);
 extern const byte* GL3_Mod_ClusterPVS(int cluster, const gl3model_t *model);
-extern mleaf_t* GL3_Mod_PointInLeaf(vec3_t p, gl3model_t *model);
 
 // gl3_draw.c
 extern void GL3_Draw_InitLocal(void);
@@ -450,7 +448,9 @@ extern qboolean GL3_ImageHasFreeSpace(void);
 extern void GL3_ImageList_f(void);
 
 // gl3_light.c
-extern void GL3_MarkLights(dlight_t *light, int bit, mnode_t *node);
+extern int r_dlightframecount;
+extern void GL3_MarkSurfaceLights(dlight_t *light, int bit, mnode_t *node,
+	int r_dlightframecount);
 extern void GL3_PushDlights(void);
 extern void GL3_LightPoint(entity_t *currententity, vec3_t p, vec3_t color);
 extern void GL3_BuildLightMap(msurface_t *surf, int offsetInLMbuf, int stride);
@@ -522,7 +522,7 @@ extern cvar_t *gl_nobind;
 extern cvar_t *r_lockpvs;
 extern cvar_t *r_novis;
 
-extern cvar_t *gl_cull;
+extern cvar_t *r_cull;
 extern cvar_t *gl_zfix;
 extern cvar_t *r_fullbright;
 

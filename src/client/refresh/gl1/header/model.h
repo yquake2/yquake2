@@ -72,42 +72,6 @@ typedef struct msurface_s
 	byte *samples;                          /* [numstyles*surfsize] */
 } msurface_t;
 
-typedef struct mnode_s
-{
-	/* common with leaf */
-	int contents;               /* -1, to differentiate from leafs */
-	int visframe;               /* node needs to be traversed if current */
-
-	float minmaxs[6];           /* for bounding box culling */
-
-	struct mnode_s *parent;
-
-	/* node specific */
-	cplane_t *plane;
-	struct mnode_s *children[2];
-
-	unsigned short firstsurface;
-	unsigned short numsurfaces;
-} mnode_t;
-
-typedef struct mleaf_s
-{
-	/* common with node */
-	int contents;               /* wil be a negative contents number */
-	int visframe;               /* node needs to be traversed if current */
-
-	float minmaxs[6];           /* for bounding box culling */
-
-	struct mnode_s *parent;
-
-	/* leaf specific */
-	int cluster;
-	int area;
-
-	msurface_t **firstmarksurface;
-	int nummarksurfaces;
-} mleaf_t;
-
 /* Whole model */
 
 typedef struct model_s
@@ -180,7 +144,6 @@ typedef struct model_s
 
 void Mod_Init(void);
 void Mod_ClearAll(void);
-mleaf_t *Mod_PointInLeaf(vec3_t p, model_t *model);
 const byte *Mod_ClusterPVS(int cluster, const model_t *model);
 
 void Mod_Modellist_f(void);

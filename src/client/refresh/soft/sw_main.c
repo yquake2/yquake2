@@ -174,6 +174,7 @@ static cvar_t	*vid_gamma;
 
 static cvar_t	*r_lockpvs;
 static cvar_t	*r_palettedtexture;
+cvar_t	*r_cull;
 
 // sw_vars.c
 
@@ -414,6 +415,7 @@ R_RegisterVariables (void)
 	r_customheight = ri.Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
 	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
 	r_palettedtexture = ri.Cvar_Get("r_palettedtexture", "0", 0);
+	r_cull = ri.Cvar_Get("r_cull", "1", 0);
 
 	vid_fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", CVAR_ARCHIVE );
 	vid_gamma = ri.Cvar_Get( "vid_gamma", "1.0", CVAR_ARCHIVE );
@@ -1008,7 +1010,7 @@ R_FindTopnode (vec3_t mins, vec3_t maxs)
 		}
 
 		splitplane = node->plane;
-		sides = BOX_ON_PLANE_SIDE(mins, maxs, (cplane_t *)splitplane);
+		sides = BOX_ON_PLANE_SIDE(mins, maxs, splitplane);
 
 		if (sides == 3)
 			return node;	// this is the splitter
@@ -1299,6 +1301,9 @@ VectorCompareRound(const vec3_t v1, const vec3_t v2)
 	return 1;
 }
 
+cplane_t frustum[4];
+
+
 /*
 ================
 RE_RenderFrame
@@ -1342,6 +1347,9 @@ RE_RenderFrame (refdef_t *fd)
 		r_time1 = SDL_GetTicks();
 
 	R_SetupFrame ();
+
+	R_SetFrustum(vup, vpn, vright, r_origin, r_newrefdef.fov_x, r_newrefdef.fov_y,
+		frustum);
 
 	// Using the current view cluster (r_viewcluster), retrieve and decompress
 	// the PVS (Potentially Visible Set)

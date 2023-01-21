@@ -27,7 +27,6 @@ cvar_t	*sw_mipscale;
 float		verticalFieldOfView;
 int		d_minmip;
 float		d_scalemip[NUM_MIPS-1];
-static mleaf_t	*r_viewleaf;
 
 static int	r_frustum_indexes[4*6];
 static const float	basemip[NUM_MIPS-1] = {1.0, 0.5*0.8, 0.25*0.8};
@@ -308,40 +307,6 @@ R_ViewChanged (const vrect_t *vr)
 
 /*
 ===============
-Mod_PointInLeaf
-===============
-*/
-static mleaf_t *
-Mod_PointInLeaf (const vec3_t p, const model_t *model)
-{
-	mnode_t		*node;
-
-	if (!model || !model->nodes)
-	{
-		ri.Sys_Error(ERR_DROP, "%s: bad model", __func__);
-		return NULL;
-	}
-
-	node = model->nodes;
-	while (node->contents == -1)
-	{
-		float d;
-		cplane_t *plane;
-
-		plane = node->plane;
-		d = DotProduct (p,plane->normal) - plane->dist;
-		if (d > 0)
-			node = node->children[0];
-		else
-			node = node->children[1];
-	}
-
-	return (mleaf_t *)node;
-}
-
-
-/*
-===============
 R_SetupFrame
 ===============
 */
@@ -369,9 +334,17 @@ R_SetupFrame (void)
 	// current viewleaf
 	if ( !( r_newrefdef.rdflags & RDF_NOWORLDMODEL ) )
 	{
+		mleaf_t	*r_viewleaf;
+
+		if (!r_worldmodel)
+		{
+			ri.Sys_Error(ERR_DROP, "%s: bad world model", __func__);
+			return;
+		}
+
 		// Determine what is the current view cluster (walking the BSP tree)
 		// and store it in r_viewcluster
-		r_viewleaf = Mod_PointInLeaf (r_origin, r_worldmodel);
+		r_viewleaf = Mod_PointInLeaf (r_origin, r_worldmodel->nodes);
 		r_viewcluster = r_viewleaf->cluster;
 	}
 

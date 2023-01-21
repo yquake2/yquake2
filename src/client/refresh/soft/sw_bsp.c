@@ -138,25 +138,6 @@ R_RotateBmodel(const entity_t *currententity)
 	R_TransformFrustum ();
 }
 
-
-static qboolean
-R_AreaVisible(mleaf_t *pleaf)
-{
-	int area;
-
-	// check for door connected areas
-	if (!r_newrefdef.areabits)
-		return true;
-
-	area = pleaf->area;
-
-	if ((r_newrefdef.areabits[area>>3] & (1<<(area&7))))
-		return true;
-
-	return false; // not visible
-}
-
-
 /*
 ================
 R_RecursiveClipBPoly
@@ -320,7 +301,7 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 					{
 						int r_currentbkey;
 
-						if (!R_AreaVisible((mleaf_t *)pn))
+						if (!R_AreaVisible(r_newrefdef.areabits, (mleaf_t *)pn))
 							continue;
 
 						r_currentbkey = ((mleaf_t *)pn)->key;
@@ -469,9 +450,6 @@ R_DrawSubmodelPolygons(entity_t *currententity, const model_t *currentmodel, int
 	}
 }
 
-
-static int c_drawnode;
-
 /*
 ================
 R_RecursiveWorldNode
@@ -486,10 +464,19 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 	mleaf_t *pleaf;
 
 	if (node->contents == CONTENTS_SOLID)
+	{
 		return;		// solid
+	}
 
 	if (node->visframe != r_visframecount)
+	{
 		return;
+	}
+
+	if (r_cull->value && R_CullBox(node->minmaxs, node->minmaxs + 3, frustum))
+	{
+		return;
+	}
 
 	// cull the clipping planes if not trivial accept
 	// FIXME: the compiler is doing a lousy job of optimizing here; it could be
@@ -510,17 +497,17 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 
 			pindex = pfrustum_indexes[i];
 
-			rejectpt[0] = (float)node->minmaxs[pindex[0]];
-			rejectpt[1] = (float)node->minmaxs[pindex[1]];
-			rejectpt[2] = (float)node->minmaxs[pindex[2]];
+			rejectpt[0] = node->minmaxs[pindex[0]];
+			rejectpt[1] = node->minmaxs[pindex[1]];
+			rejectpt[2] = node->minmaxs[pindex[2]];
 
 			d = DotProduct (rejectpt, view_clipplanes[i].normal);
 			d -= view_clipplanes[i].dist;
 			if (d <= 0)
 				return;
-			acceptpt[0] = (float)node->minmaxs[pindex[3+0]];
-			acceptpt[1] = (float)node->minmaxs[pindex[3+1]];
-			acceptpt[2] = (float)node->minmaxs[pindex[3+2]];
+			acceptpt[0] = node->minmaxs[pindex[3+0]];
+			acceptpt[1] = node->minmaxs[pindex[3+1]];
+			acceptpt[2] = node->minmaxs[pindex[3+2]];
 
 			d = DotProduct (acceptpt, view_clipplanes[i].normal);
 			d -= view_clipplanes[i].dist;
@@ -530,15 +517,13 @@ R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnod
 		}
 	}
 
-	c_drawnode++;
-
 	// if a leaf node, draw stuff
-	if (node->contents != -1)
+	if (node->contents != CONTENTS_NODE)
 	{
 		msurface_t **mark;
 		pleaf = (mleaf_t *)node;
 
-		if (!R_AreaVisible(pleaf))
+		if (!R_AreaVisible(r_newrefdef.areabits, pleaf))
 			return;	// not visible
 
 		mark = pleaf->firstmarksurface;
@@ -649,8 +634,6 @@ R_RenderWorld (entity_t *currententity)
 		return;
 	if ( r_newrefdef.rdflags & RDF_NOWORLDMODEL )
 		return;
-
-	c_drawnode=0;
 
 	// auto cycle the world frame for texture animation
 	currententity->frame = (int)(r_newrefdef.time*2);

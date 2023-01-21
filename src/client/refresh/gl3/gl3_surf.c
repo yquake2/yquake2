@@ -132,55 +132,6 @@ void GL3_SurfShutdown(void)
 	gl3state.vaoAlias = 0;
 }
 
-/*
- * Returns true if the box is completely outside the frustom
- */
-static qboolean
-CullBox(vec3_t mins, vec3_t maxs)
-{
-	int i;
-
-	if (!gl_cull->value)
-	{
-		return false;
-	}
-
-	for (i = 0; i < 4; i++)
-	{
-		if (BOX_ON_PLANE_SIDE(mins, maxs, &frustum[i]) == 2)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-/*
- * Returns the proper texture for a given time and base texture
- */
-static gl3image_t *
-TextureAnimation(entity_t *currententity, mtexinfo_t *tex)
-{
-	int c;
-
-	if (!tex->next)
-	{
-		return tex->image;
-	}
-
-	c = currententity->frame % tex->numframes;
-
-	while (c)
-	{
-		tex = tex->next;
-		c--;
-	}
-
-	return tex->image;
-}
-
-
 static void
 SetLightFlags(msurface_t *surf)
 {
@@ -345,7 +296,7 @@ RenderBrushPoly(entity_t *currententity, msurface_t *fa)
 
 	c_brush_polys++;
 
-	image = TextureAnimation(currententity, fa->texinfo);
+	image = R_TextureAnimation(currententity, fa->texinfo);
 
 	if (fa->flags & SURF_DRAWTURB)
 	{
@@ -490,7 +441,7 @@ static void
 RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
 {
 	int map;
-	gl3image_t *image = TextureAnimation(currententity, surf->texinfo);
+	gl3image_t *image = R_TextureAnimation(currententity, surf->texinfo);
 
 	hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE] = {0};
 	lmScales[0] = HMM_Vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -540,7 +491,8 @@ DrawInlineBModel(entity_t *currententity, gl3model_t *currentmodel)
 
 	for (k = 0; k < gl3_newrefdef.num_dlights; k++, lt++)
 	{
-		GL3_MarkLights(lt, 1 << k, currentmodel->nodes + currentmodel->firstnode);
+		R_MarkLights(lt, 1 << k, currentmodel->nodes + currentmodel->firstnode,
+			r_dlightframecount, GL3_MarkSurfaceLights);
 	}
 
 	psurf = &currentmodel->surfaces[currentmodel->firstmodelsurface];
@@ -621,7 +573,7 @@ GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel)
 		VectorAdd(e->origin, currentmodel->maxs, maxs);
 	}
 
-	if (CullBox(mins, maxs))
+	if (r_cull->value && R_CullBox(mins, maxs, frustum))
 	{
 		return;
 	}
@@ -688,24 +640,20 @@ RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 		return;
 	}
 
-	if (CullBox(node->minmaxs, node->minmaxs + 3))
+	if (r_cull->value && R_CullBox(node->minmaxs, node->minmaxs + 3, frustum))
 	{
 		return;
 	}
 
 	/* if a leaf node, draw stuff */
-	if (node->contents != -1)
+	if (node->contents != CONTENTS_NODE)
 	{
 		pleaf = (mleaf_t *)node;
 
 		/* check for door connected areas */
-		if (gl3_newrefdef.areabits)
-		{
-			if (!(gl3_newrefdef.areabits[pleaf->area >> 3] & (1 << (pleaf->area & 7))))
-			{
-				return; /* not visible */
-			}
-		}
+		// check for door connected areas
+		if (!R_AreaVisible(gl3_newrefdef.areabits, pleaf))
+			return;	// not visible
 
 		mark = pleaf->firstmarksurface;
 		c = pleaf->nummarksurfaces;
@@ -782,7 +730,7 @@ RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 			/* add to the translucent chain */
 			surf->texturechain = gl3_alpha_surfaces;
 			gl3_alpha_surfaces = surf;
-			gl3_alpha_surfaces->texinfo->image = TextureAnimation(currententity, surf->texinfo);
+			gl3_alpha_surfaces->texinfo->image = R_TextureAnimation(currententity, surf->texinfo);
 		}
 		else
 		{
@@ -798,7 +746,7 @@ RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 #endif // 0
 			{
 				/* the polygon is visible, so add it to the texture sorted chain */
-				image = TextureAnimation(currententity, surf->texinfo);
+				image = R_TextureAnimation(currententity, surf->texinfo);
 				surf->texturechain = image->texturechain;
 				image->texturechain = surf;
 			}

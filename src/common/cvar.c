@@ -90,6 +90,7 @@ replacement_t replacements[] = {
 	{"gl_anisotropic", "r_anisotropic"},
 	{"gl_lightmap", "r_lighmap"},
 	{"gl1_polyblend", "gl_polyblend"},
+	{"gl_cull", "r_cull"},
 	{"intensity", "gl1_intensity"}
 };
 

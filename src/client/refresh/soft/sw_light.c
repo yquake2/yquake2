@@ -29,44 +29,15 @@ DYNAMIC LIGHTS
 =============================================================================
 */
 
-/*
-=============
-R_MarkLights
-=============
-*/
 static void
-R_MarkLights (dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
+R_MarkSurfaceLights(dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
 {
-	cplane_t	*splitplane;
-	float		dist;
 	msurface_t	*surf;
 	int			i;
 
-	if (node->contents != -1)
-		return;
-
-	splitplane = node->plane;
-	dist = DotProduct (light->origin, splitplane->normal) - splitplane->dist;
-
-	i = light->intensity;
-	if (i < 0)
-		i = -i;
-
-	if (dist > i)	// (dist > light->intensity)
-	{
-		R_MarkLights (light, bit, node->children[0], r_dlightframecount);
-		return;
-	}
-
-	if (dist < -i)	// (dist < -light->intensity)
-	{
-		R_MarkLights (light, bit, node->children[1], r_dlightframecount);
-		return;
-	}
-
 	// mark the polygons
 	surf = r_worldmodel->surfaces + node->firstsurface;
-	for (i=0 ; i<node->numsurfaces ; i++, surf++)
+	for (i = 0; i < node->numsurfaces; i++, surf++)
 	{
 		if (surf->dlightframe != r_dlightframecount)
 		{
@@ -75,11 +46,7 @@ R_MarkLights (dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
 		}
 		surf->dlightbits |= bit;
 	}
-
-	R_MarkLights (light, bit, node->children[0], r_dlightframecount);
-	R_MarkLights (light, bit, node->children[1], r_dlightframecount);
 }
-
 
 /*
 =============
@@ -96,7 +63,7 @@ R_PushDlights (const model_t *model)
 	{
 		R_MarkLights ( l, 1<<i,
 			model->nodes + model->firstnode,
-			r_framecount);
+			r_framecount, R_MarkSurfaceLights);
 	}
 }
 
@@ -122,7 +89,7 @@ RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end, vec3_t pointcolor)
 	int		maps;
 	int		r;
 
-	if (node->contents != -1)
+	if (node->contents != CONTENTS_NODE)
 		return -1; // didn't hit anything
 
 	// calculate mid point
@@ -334,7 +301,7 @@ R_AddDynamicLights (drawsurf_t* drawsurf)
 		dist = DotProduct (dl->origin, surf->plane->normal) -
 				surf->plane->dist;
 		rad -= fabs(dist);
-		minlight = 32;	// dl->minlight;
+		minlight = DLIGHT_CUTOFF;	// dl->minlight;
 		if (rad < minlight)
 			continue;
 		minlight = rad - minlight;

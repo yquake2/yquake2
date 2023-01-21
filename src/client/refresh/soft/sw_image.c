@@ -331,7 +331,7 @@ R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int real
 	/* Code used with HIColor calls */
 	if (bits == 32)
 	{
-		image_t	*image;
+		image_t	*image = NULL;
 		byte	*pic8;
 
 		pic8 = malloc(data_size);

@@ -29,47 +29,25 @@
 
 extern gl3lightmapstate_t gl3_lms;
 
-#define DLIGHT_CUTOFF 64
-
-static int r_dlightframecount;
+int r_dlightframecount;
 static vec3_t pointcolor;
 static cplane_t *lightplane; /* used as shadow plane */
 vec3_t lightspot;
 
-void // bit: 1 << i for light number i, will be or'ed into msurface_t::dlightbits if surface is affected by this light
-GL3_MarkLights(dlight_t *light, int bit, mnode_t *node)
+void
+GL3_MarkSurfaceLights(dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
 {
-	cplane_t *splitplane;
-	float dist;
-	msurface_t *surf;
-	int i;
-	int sidebit;
-
-	if (node->contents != -1)
-	{
-		return;
-	}
-
-	splitplane = node->plane;
-	dist = DotProduct(light->origin, splitplane->normal) - splitplane->dist;
-
-	if (dist > light->intensity - DLIGHT_CUTOFF)
-	{
-		GL3_MarkLights(light, bit, node->children[0]);
-		return;
-	}
-
-	if (dist < -light->intensity + DLIGHT_CUTOFF)
-	{
-		GL3_MarkLights(light, bit, node->children[1]);
-		return;
-	}
+	msurface_t	*surf;
+	int			i;
 
 	/* mark the polygons */
 	surf = gl3_worldmodel->surfaces + node->firstsurface;
 
 	for (i = 0; i < node->numsurfaces; i++, surf++)
 	{
+		int sidebit;
+		float dist;
+
 		if (surf->dlightframe != r_dlightframecount)
 		{
 			surf->dlightbits = 0;
@@ -94,9 +72,6 @@ GL3_MarkLights(dlight_t *light, int bit, mnode_t *node)
 
 		surf->dlightbits |= bit;
 	}
-
-	GL3_MarkLights(light, bit, node->children[0]);
-	GL3_MarkLights(light, bit, node->children[1]);
 }
 
 void
@@ -115,7 +90,7 @@ GL3_PushDlights(void)
 	for (i = 0; i < gl3_newrefdef.num_dlights; i++, l++)
 	{
 		gl3UniDynLight* udl = &gl3state.uniLightsData.dynLights[i];
-		GL3_MarkLights(l, 1 << i, gl3_worldmodel->nodes);
+		R_MarkLights(l, 1 << i, gl3_worldmodel->nodes, r_dlightframecount, GL3_MarkSurfaceLights);
 
 		VectorCopy(l->origin, udl->origin);
 		VectorCopy(l->color, udl->color);
@@ -147,7 +122,7 @@ RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 	int maps;
 	int r;
 
-	if (node->contents != -1)
+	if (node->contents != CONTENTS_NODE)
 	{
 		return -1;     /* didn't hit anything */
 	}
