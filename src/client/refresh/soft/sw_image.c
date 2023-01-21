@@ -376,14 +376,21 @@ R_LoadPic (char *name, byte *pic, int width, int realwidth, int height, int real
 
 			// resize image
 			pic32 = malloc(uploadwidth * uploadheight * 4);
-			if (ResizeSTB(pic, width, height,
-				      pic32, uploadwidth, uploadheight))
+			if (ResizeSTB(pic, width, height, pic32, uploadwidth, uploadheight))
 			{
 				R_Convert32To8bit(pic32, pic8, uploadwidth * uploadheight, type != it_wall);
 				image = R_LoadPic8(name, pic8,
 							uploadwidth, realwidth,
 							uploadheight, realheight,
 							uploadwidth * uploadheight, type);
+			}
+			else
+			{
+				R_Convert32To8bit(pic, pic8, data_size, type != it_wall);
+				image = R_LoadPic8 (name, pic8,
+						width, realwidth,
+						height, realheight,
+						data_size, type);
 			}
 			free(pic32);
 		}
