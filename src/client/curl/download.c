@@ -62,7 +62,7 @@ typedef curl_off_t CL_Progresstype;
 #else
 typedef double CL_Progresstype;
 #define PROGRESSDATA CURLOPT_PROGRESSDATA
-#define PROGRESSFUNCTION CURLOPT_PROGRESSFUNCTION
+#define PROGRESSFUNCTION CURLOPT_XFERINFOFUNCTION
 #endif
 
 // --------
@@ -83,7 +83,7 @@ static size_t CL_HTTP_Recv(void *ptr, size_t size, size_t nmemb, void *stream)
 	{
 		double length = 0;
 
-		qcurl_easy_getinfo(dl->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &length);
+		qcurl_easy_getinfo(dl->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &length);
 
 		// Mkay, the remote file should be at least one byte long.
 		// Since this is used for paclists only we assume that the
