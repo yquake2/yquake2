@@ -133,6 +133,9 @@ Set `0` by default.
   loading. If set to `0` pause mode is never entered, this is the
   Vanilla Quake II behaviour.
 
+* **cl_unpaused_scvis**: If set to `1` (the default) the client unpause
+  when the screen becomes visible.
+
 * **cl_r1q2_lightstyle**: Since the first release Yamagi Quake II used
   the R1Q2 colors for the dynamic lights of rockets. Set to `0` to get
   the Vanilla Quake II colors. Defaults to `1`.

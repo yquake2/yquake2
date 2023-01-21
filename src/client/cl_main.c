@@ -57,6 +57,7 @@ cvar_t *cl_showclamp;
 cvar_t *cl_paused;
 cvar_t *cl_loadpaused;
 cvar_t *cl_audiopaused;
+cvar_t *cl_unpaused_scvis;
 
 cvar_t *cl_lightlevel;
 cvar_t *cl_r1q2_lightstyle;
@@ -518,6 +519,7 @@ CL_InitLocal(void)
 	cl_paused = Cvar_Get("paused", "0", 0);
 	cl_loadpaused = Cvar_Get("cl_loadpaused", "1", CVAR_ARCHIVE);
 	cl_audiopaused = Cvar_Get("cl_audiopaused", "1", CVAR_ARCHIVE);
+	cl_unpaused_scvis = Cvar_Get("cl_unpaused_scvis", "1", CVAR_ARCHIVE);
 
 	gl1_stereo = Cvar_Get( "gl1_stereo", "0", CVAR_ARCHIVE );
 	gl1_stereo_separation = Cvar_Get( "gl1_stereo_separation", "1", CVAR_ARCHIVE );
