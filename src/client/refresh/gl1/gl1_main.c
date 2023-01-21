@@ -121,7 +121,7 @@ cvar_t *gl_zfix;
 cvar_t *gl_finish;
 cvar_t *r_clear;
 cvar_t *gl_cull;
-cvar_t *gl1_polyblend;
+cvar_t *gl_polyblend;
 cvar_t *gl1_flashblend;
 cvar_t *gl1_saturatelighting;
 cvar_t *r_vsync;
@@ -599,7 +599,7 @@ R_DrawParticles(void)
 void
 R_PolyBlend(void)
 {
-	if (!gl1_polyblend->value)
+	if (!gl_polyblend->value)
 	{
 		return;
 	}
@@ -1261,7 +1261,7 @@ R_Register(void)
 	gl_finish = ri.Cvar_Get("gl_finish", "0", CVAR_ARCHIVE);
 	r_clear = ri.Cvar_Get("r_clear", "0", 0);
 	gl_cull = ri.Cvar_Get("gl_cull", "1", 0);
-	gl1_polyblend = ri.Cvar_Get("gl1_polyblend", "1", 0);
+	gl_polyblend = ri.Cvar_Get("gl_polyblend", "1", 0);
 	gl1_flashblend = ri.Cvar_Get("gl1_flashblend", "0", 0);
 	r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
 

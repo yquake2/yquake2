@@ -72,7 +72,6 @@ replacement_t replacements[] = {
 	{"gl_particle_att_c", "gl1_particle_att_c"},
 	{"gl_picmip", "gl1_picmip"},
 	{"gl_pointparameters", "gl1_pointparameters"},
-	{"gl_polyblend", "gl1_polyblend"},
 	{"gl_round_down", "gl1_round_down"},
 	{"gl_saturatelightning", "gl1_saturatelightning"},
 	{"gl_stencilshadows", "gl1_stencilshadows"},
@@ -90,6 +89,7 @@ replacement_t replacements[] = {
 	{"gl_shadows", "r_shadows"},
 	{"gl_anisotropic", "r_anisotropic"},
 	{"gl_lightmap", "r_lighmap"},
+	{"gl1_polyblend", "gl_polyblend"},
 	{"intensity", "gl1_intensity"}
 };
 
