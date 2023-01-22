@@ -95,6 +95,8 @@ static YQ2_ATTR_INLINE void Sys_CpuPause(void)
 	asm volatile("yield");
 #elif defined(__powerpc__) || defined(__powerpc64__)
 	asm volatile("or 27,27,27");
+#elif defined(__riscv) && __riscv_xlen == 64
+	asm volatile(".insn i 0x0F, 0, x0, x0, 0x010");
 #endif
 #elif defined(_MSC_VER)
 #if defined(_M_IX86) || defined(_M_X64)
