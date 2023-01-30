@@ -250,10 +250,10 @@ Netchan_Transmit(netchan_t *chan, int length, byte *data)
 	/* write the packet header */
 	SZ_Init(&send, send_buf, sizeof(send_buf));
 
-	w1 = (chan->outgoing_sequence & ~(1 << 31)) | (send_reliable << 31);
+	w1 = (chan->outgoing_sequence & ~(1U << 31)) | (send_reliable << 31);
 	w2 =
 		(chan->incoming_sequence &
-	~(1 << 31)) | (chan->incoming_reliable_sequence << 31);
+	~(1U << 31)) | (chan->incoming_reliable_sequence << 31);
 
 	chan->outgoing_sequence++;
 	chan->last_sent = curtime;
@@ -330,8 +330,8 @@ Netchan_Process(netchan_t *chan, sizebuf_t *msg)
 	reliable_message = sequence >> 31;
 	reliable_ack = sequence_ack >> 31;
 
-	sequence &= ~(1 << 31);
-	sequence_ack &= ~(1 << 31);
+	sequence &= ~(1U << 31);
+	sequence_ack &= ~(1U << 31);
 
 	if (showpackets->value)
 	{
