@@ -1006,6 +1006,14 @@ FS_Path_f(void)
 
 	Com_Printf("\n");
 
+	Com_Printf("Raw search paths:\n");
+	for (fsRawPath_t* raw = fs_rawPath; raw != NULL; raw = raw->next)
+	{
+		Com_Printf("%s\n", raw->path);
+	}
+
+	Com_Printf("\n");
+
 	for (i = 0, handle = fs_handles; i < MAX_HANDLES; i++, handle++)
 	{
 		if ((handle->file != NULL) || (handle->zip != NULL))
@@ -1865,7 +1873,7 @@ FS_BuildGameSpecificSearchPath(char *dir)
 	// We may not use the va() function from shared.c
 	// since it's buffersize is 1024 while most OS have
 	// a maximum path size of 4096...
-	char path[MAX_OSPATH];
+	char path[MAX_OSPATH] = {0};
 	int i;
 	fsRawPath_t *search;
 
@@ -1918,7 +1926,8 @@ FS_BuildGameSpecificSearchPath(char *dir)
 
 		// fs_gamedir must be reset to the last
 		// dir of the generic search path.
-		Q_strlcpy(fs_gamedir, fs_baseSearchPaths->path, sizeof(fs_gamedir));
+		Com_sprintf(path, sizeof(path), "%s/%s", fs_rawPath->path, BASEDIRNAME);
+		Q_strlcpy(fs_gamedir, path, sizeof(fs_gamedir));
 	} else {
 		Cvar_FullSet("gamedir", dir, CVAR_SERVERINFO | CVAR_NOSET);
 		search = fs_rawPath;
