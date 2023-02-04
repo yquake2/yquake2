@@ -518,9 +518,9 @@ static int
 R_ClipPolyFace (int nump, clipplane_t *pclipplane)
 {
 	int		i, outcount;
-	float	dists[MAXWORKINGVERTS+3];
 	float	frac, clipdist, *pclipnormal;
 	float	*in, *instep, *outstep, *vert2;
+	float	dists[MAXWORKINGVERTS+3] = {0};
 
 	clipdist = pclipplane->dist;
 	pclipnormal = pclipplane->normal;
