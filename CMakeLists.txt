@@ -569,6 +569,7 @@ set(GL1-Source
 	${REF_SRC_DIR}/files/models.c
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
+	${REF_SRC_DIR}/files/surf.c
 	${REF_SRC_DIR}/files/wal.c
 	${REF_SRC_DIR}/files/pvs.c
 	${COMMON_SRC_DIR}/shared/shared.c
@@ -581,6 +582,7 @@ set(GL1-Header
 	${REF_SRC_DIR}/constants/anormtab.h
 	${REF_SRC_DIR}/constants/warpsin.h
 	${REF_SRC_DIR}/files/stb_image.h
+	${REF_SRC_DIR}/files/surf.c
 	${REF_SRC_DIR}/gl1/header/local.h
 	${REF_SRC_DIR}/gl1/header/model.h
 	${REF_SRC_DIR}/gl1/header/qgl.h
@@ -603,6 +605,7 @@ set(GL3-Source
 	${REF_SRC_DIR}/files/models.c
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
+	${REF_SRC_DIR}/files/surf.c
 	${REF_SRC_DIR}/files/wal.c
 	${REF_SRC_DIR}/files/pvs.c
 	${COMMON_SRC_DIR}/shared/shared.c
@@ -656,6 +659,7 @@ set(SOFT-Source
 	${REF_SRC_DIR}/files/models.c
 	${REF_SRC_DIR}/files/pcx.c
 	${REF_SRC_DIR}/files/stb.c
+	${REF_SRC_DIR}/files/surf.c
 	${REF_SRC_DIR}/files/wal.c
 	${REF_SRC_DIR}/files/pvs.c
 	${COMMON_SRC_DIR}/shared/shared.c
