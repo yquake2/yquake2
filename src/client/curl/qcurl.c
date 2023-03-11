@@ -60,6 +60,7 @@ CURLMsg *(*qcurl_multi_info_read)(CURLM *multi_handle, int *msgs_in_queue);
 CURLM *(*qcurl_multi_init)(void);
 CURLMcode (*qcurl_multi_perform)(CURLM *multi_handle, int *running_handles);
 CURLMcode (*qcurl_multi_remove_handle)(CURLM *multi_handle, CURL *curl_handle);
+const char *(*qcurl_multi_strerror)(CURLMcode);
 
 // --------
 
@@ -160,6 +161,7 @@ qboolean qcurlInit(void)
 	CONCURL(qcurl_multi_init, "curl_multi_init");
 	CONCURL(qcurl_multi_perform, "curl_multi_perform");
 	CONCURL(qcurl_multi_remove_handle, "curl_multi_remove_handle");
+	CONCURL(qcurl_multi_strerror, "curl_multi_strerror");
 
 	#undef CONCURL
 

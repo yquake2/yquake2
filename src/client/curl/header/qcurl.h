@@ -55,6 +55,7 @@ extern CURLMsg *(*qcurl_multi_info_read)(CURLM *multi_handle, int *msgs_in_queue
 extern CURLM *(*qcurl_multi_init)(void);
 extern CURLMcode (*qcurl_multi_perform)(CURLM *multi_handle, int *running_handles);
 extern CURLMcode (*qcurl_multi_remove_handle)(CURLM *multi_handle, CURL *curl_handle);
+extern const char *(*qcurl_multi_strerror)(CURLMcode);
 
 // --------
 
