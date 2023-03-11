@@ -1206,7 +1206,7 @@ void CL_RunHTTPDownloads(void)
 	// Somethings gone very wrong.
 	if (ret != CURLM_OK)
 	{
-		Com_Printf("HTTP download: cURL error - %s\n", qcurl_easy_strerror(ret));
+		Com_Printf("HTTP download: cURL error - %s\n", qcurl_multi_strerror(ret));
 		CL_CancelHTTPDownloads(true);
 	}
 
