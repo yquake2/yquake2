@@ -46,9 +46,9 @@ else() # GCC/clang/mingw
 #  -fwrapv              -> Make signed integer overflows defined
 #  -fvisibility=hidden	-> Force defaultsymbol visibility to hidden
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fno-strict-aliasing -fwrapv -fvisibility=hidden")
-
 # Use -O2 as maximum optimization level. -O3 has it's problems with yquake2.
 string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+set(CMAKE_C_STANDARD 99)
 endif() # MSVC'S else-case
 
 # Switch off some annoying warnings
