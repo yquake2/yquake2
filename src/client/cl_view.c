@@ -363,8 +363,8 @@ CL_PrepRefresh(void)
 
 	/* start the cd track */
 	int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
-
-	OGG_PlayTrack(track);
+	
+	OGG_PlayTrack(track, true, true);
 }
 
 float

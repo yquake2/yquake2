@@ -1095,7 +1095,9 @@ CL_ParseConfigString(void)
 	{
 		if (cl.refresh_prepped)
 		{
-			OGG_PlayTrack((int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10));
+			int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
+			
+			OGG_PlayTrack(track, true, true);
 		}
 	}
 	else if ((i >= CS_MODELS) && (i < CS_MODELS + MAX_MODELS))
