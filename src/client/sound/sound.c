@@ -525,10 +525,10 @@ S_LoadSound(sfx_t *s)
 		s->is_silenced_muzzle_flash = true;
 	}
 
-	S_GetVolume(data + info.dataofs, info.samples * info.channels,
+	S_GetVolume(data + info.dataofs, info.samples,
 		info.width, &sound_volume);
 
-	S_GetStatistics(data + info.dataofs, info.samples * info.channels,
+	S_GetStatistics(data + info.dataofs, info.samples,
 		info.width, info.channels, sound_volume, &begin_length, &end_length,
 		&attack_length, &fade_length);
 
