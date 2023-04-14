@@ -174,7 +174,7 @@ static cvar_t *gyro_calibration_z;
 #if SDL_VERSION_ATLEAST(2, 0, 14)	// support for controller sensors (gyro, accelerometer)
 
 static unsigned int num_samples;
-#define NATIVE_SDL_GYRO 1	// uses SDL_CONTROLLERSENSORUPDATE to read gyro
+#define NATIVE_SDL_GYRO	// uses SDL_CONTROLLERSENSORUPDATE to read gyro
 
 #else	// for SDL < 2.0.14, gyro can be read as a "secondary joystick" exposed by dkms-hid-nintendo
 
