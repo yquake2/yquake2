@@ -739,23 +739,26 @@ OGG_LoadAsWav(char *filename, wavinfo_t *info, void **buffer)
 		info->channels = ogg2wav_file->channels;
 		info->loopstart = -1;
 		/* return length * channels */
-		info->samples = stb_vorbis_stream_length_in_samples(ogg2wav_file) / ogg2wav_file->channels;
+		info->samples = stb_vorbis_stream_length_in_samples(ogg2wav_file) * info->channels;
 		info->dataofs = 0;
 
 		/* alloc memory for uncompressed wav */
-		final_buffer = Z_Malloc(info->samples * sizeof(short) * ogg2wav_file->channels);
+		final_buffer = Z_Malloc(info->samples * sizeof(short));
 
 		/* load sampleas to buffer */
 		read_samples = stb_vorbis_get_samples_short_interleaved(
 			ogg2wav_file, info->channels, final_buffer,
-			info->samples * ogg2wav_file->channels);
+			info->samples);
 
 		if (read_samples > 0)
 		{
 			/* fix sample list size*/
-			if (read_samples < info->samples)
+			if ((read_samples * info->channels) != info->samples)
 			{
-				info->samples = read_samples;
+				Com_DPrintf("%s: incorrect size: %d != %d\n",
+					filename, info->samples, read_samples * info->channels);
+
+				info->samples = read_samples * info->channels;
 			}
 
 			/* copy to final result */
@@ -772,7 +775,7 @@ OGG_LoadAsWav(char *filename, wavinfo_t *info, void **buffer)
 
 	if (ogg2wav_file)
 	{
-                stb_vorbis_close(ogg2wav_file);
+		stb_vorbis_close(ogg2wav_file);
 	}
 
 	FS_FreeFile(temp_buffer);
