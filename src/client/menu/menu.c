@@ -2174,7 +2174,7 @@ FreeLookFunc(void *unused)
 static void
 ControlsSetMenuItemValues(void)
 {
-    s_options_oggshuffle_box.curvalue = (Cvar_VariableValue("ogg_shuffle") != 0);
+    s_options_oggshuffle_box.curvalue = Cvar_VariableValue("ogg_shuffle");
     s_options_oggenable_box.curvalue = (Cvar_VariableValue("ogg_enable") != 0);
     s_options_quality_list.curvalue = (Cvar_VariableValue("s_loadas8bit") == 0);
     s_options_alwaysrun_box.curvalue = (cl_run->value != 0);
@@ -2192,6 +2192,7 @@ ControlsResetDefaultsFunc(void *unused)
     Cbuf_Execute();
 
     ControlsSetMenuItemValues();
+    s_options_oggshuffle_box.curvalue = 0;
 }
 
 static void
@@ -2226,7 +2227,7 @@ EnableOGGMusic(void *unused)
 		if (cls.state == ca_active)
 		{
 	        int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
-	        OGG_PlayTrack(track);
+	        OGG_PlayTrack(track, true, true);
 		}
     }
     else
@@ -2292,6 +2293,15 @@ Options_MenuInit(void)
 {
     extern qboolean show_gamepad;
 
+    static const char *ogg_shuffle_items[] =
+    {
+        "default",
+        "play once",
+        "sequential",
+        "random",
+        0
+    };
+
     static const char *able_items[] =
     {
         "disabled",
@@ -2356,7 +2366,7 @@ Options_MenuInit(void)
     s_options_oggshuffle_box.generic.y = (y += 10);
     s_options_oggshuffle_box.generic.name = "OGG shuffle";
     s_options_oggshuffle_box.generic.callback = OGGShuffleFunc;
-    s_options_oggshuffle_box.itemnames = able_items;
+    s_options_oggshuffle_box.itemnames = ogg_shuffle_items;
 
     s_options_quality_list.generic.type = MTYPE_SPINCONTROL;
     s_options_quality_list.generic.x = 0;

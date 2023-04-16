@@ -47,6 +47,7 @@ static cvar_t *ogg_volume;        /* Music volume. */
 static int ogg_curfile;           /* Index of currently played file. */
 static int ogg_numbufs;           /* Number of buffers for OpenAL */
 static int ogg_numsamples;        /* Number of sambles read from the current file */
+static int ogg_mapcdtrack;        /* Index of current map cdtrack */
 static ogg_status_t ogg_status;   /* Status indicator. */
 static stb_vorbis *ogg_file;      /* Ogg Vorbis file. */
 static qboolean ogg_started;      /* Initialization flag. */
@@ -260,7 +261,7 @@ static OGG_Read(void)
 		ogg_numbufs = 0;
 		ogg_numsamples = 0;
 
-		OGG_PlayTrack(ogg_curfile);
+		OGG_PlayTrack(ogg_curfile, false, false);
 	}
 }
 
@@ -323,6 +324,24 @@ OGG_Stream(void)
 			}
 		}
 	}
+
+	if (ogg_status == PLAY && ogg_shuffle->modified)
+	{
+		// Shuffle was modified before last track finished.
+		ogg_shuffle->modified = false;
+	}
+	else if (ogg_status == STOP && ogg_shuffle->modified)
+	{
+		// If fullscreen console, clear the map cdtrack.
+		if (cls.state == ca_disconnected)
+		{
+			ogg_mapcdtrack = 0;			// Track 0 means "stop music".
+		}
+
+		// Ogg playback has stopped and shuffle was modified, play the map cdtrack.
+		ogg_shuffle->modified = false;
+		OGG_PlayTrack(ogg_mapcdtrack, true, true);
+	}
 }
 
 // --------
@@ -331,7 +350,7 @@ OGG_Stream(void)
  * play the ogg file that corresponds to the CD track with the given number
  */
 void
-OGG_PlayTrack(int trackNo)
+OGG_PlayTrack(int trackNo, qboolean cdtrack, qboolean immediate)
 {
 	if (sound_started == SS_NOT)
 	{
@@ -344,7 +363,7 @@ OGG_PlayTrack(int trackNo)
 	}
 
 	// Track 0 means "stop music".
-	if(trackNo == 0)
+	if (trackNo == 0)
 	{
 		if(ogg_ignoretrack0->value == 0)
 		{
@@ -367,21 +386,65 @@ OGG_PlayTrack(int trackNo)
 		}
 	}
 
-	// Player has requested shuffle playback.
-	if((trackNo == 0) || ogg_shuffle->value)
+	if (cdtrack == true)			// the map cdtrack.
 	{
-		if(ogg_maxfileindex >= 0)
-		{
-			trackNo = randk() % (ogg_maxfileindex+1);
-			int retries = 100;
-			while(ogg_tracks[trackNo] == NULL && retries-- > 0)
-			{
-				trackNo = randk() % (ogg_maxfileindex+1);
-			}
-		}
+		ogg_mapcdtrack = trackNo;
 	}
 
-	if(ogg_maxfileindex == -1)
+	int playback = ogg_shuffle->value;
+	int curtrack = 0;
+
+	// If loading a map, restarting sound or video, the ogg backend or console issued
+	// a playtrack or no tracks have been played, apply shuffle parameters to the next
+	// track.
+	if ((immediate == false && (cls.state == ca_connecting || cls.state == ca_connected)) ||
+		 immediate == true || ogg_curfile == -1)
+	{
+		curtrack = trackNo;
+		playback = 0;
+	}
+	else
+	{
+		curtrack = ogg_curfile;
+	}
+
+	int newtrack = 0;
+
+	// These must match those in menu.c - Options_MenuInit().
+	switch (playback)
+	{
+	case 0:			// default
+	{		
+		newtrack = curtrack;
+	} break;
+	case 1:			// play once
+	{
+		return;
+	} break;
+	case 2:			// sequential
+	{		
+		newtrack = (curtrack + 1) % (ogg_maxfileindex + 1) != 0 ? (curtrack + 1) : 2;
+	} break;
+	case 3:			// random
+	{
+		int retries = 100;
+		newtrack = 0;
+
+		while (retries-- > 0 && newtrack < 2)
+		{
+			newtrack = randk() % (ogg_maxfileindex + 1);
+
+			if (newtrack == curtrack)
+			{
+				newtrack = 0;
+			}
+		}
+	} break;
+	}
+
+	trackNo = newtrack;
+
+	if (ogg_maxfileindex == -1)
 	{
 		return; // no ogg files at all, ignore this silently instead of printing warnings all the time
 	}
@@ -392,7 +455,7 @@ OGG_PlayTrack(int trackNo)
 		return;
 	}
 
-	if(ogg_tracks[trackNo] == NULL)
+	if (ogg_tracks[trackNo] == NULL)
 	{
 		Com_Printf("%s: Don't have a .ogg file for track %d\n", __func__, trackNo);
 	}
@@ -592,7 +655,7 @@ OGG_Cmd(void)
 		}
 		else
 		{
-			OGG_PlayTrack(track);
+			OGG_PlayTrack(track, false, true);
 		}
 	}
 	else if (Q_stricmp(Cmd_Argv(1), "stop") == 0)
@@ -644,7 +707,7 @@ OGG_RecoverState(void)
 	int shuffle_state = ogg_shuffle->value;
 	Cvar_SetValue("ogg_shuffle", 0);
 
-	OGG_PlayTrack(ogg_saved_state.curfile);
+	OGG_PlayTrack(ogg_saved_state.curfile, false, true);
 	stb_vorbis_seek_frame(ogg_file, ogg_saved_state.numsamples);
 	ogg_numsamples = ogg_saved_state.numsamples;
 
@@ -677,6 +740,8 @@ OGG_Init(void)
 	ogg_curfile = -1;
 	ogg_numsamples = 0;
 	ogg_status = STOP;
+
+	ogg_mapcdtrack = 0;
 
 	ogg_started = true;
 }
