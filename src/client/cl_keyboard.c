@@ -399,9 +399,10 @@ Key_Console(int key)
 
 		Cbuf_AddText("\n");
 		Com_Printf("%s\n", key_lines[edit_line]);
-		edit_line = (edit_line + 1) & (NUM_KEY_LINES-1);
+		edit_line = (edit_line + 1) & (NUM_KEY_LINES - 1);
 		history_line = edit_line;
 		key_lines[edit_line][0] = ']';
+		key_lines[edit_line][1] = '\0';
 		key_linepos = 1;
 
 		if (cls.state == ca_disconnected)
