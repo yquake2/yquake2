@@ -1096,7 +1096,7 @@ CL_ParseConfigString(void)
 		if (cl.refresh_prepped)
 		{
 			int track = (int)strtol(cl.configstrings[CS_CDTRACK], (char **)NULL, 10);
-			
+
 			OGG_PlayTrack(track, true, true);
 		}
 	}

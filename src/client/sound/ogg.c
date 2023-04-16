@@ -414,7 +414,7 @@ OGG_PlayTrack(int trackNo, qboolean cdtrack, qboolean immediate)
 	switch (playback)
 	{
 	case 0:			// default
-	{		
+	{
 		newtrack = curtrack;
 	} break;
 	case 1:			// play once
