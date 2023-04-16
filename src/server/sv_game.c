@@ -149,7 +149,7 @@ PF_centerprintf(edict_t *ent, char *fmt, ...)
 /*
  * Abort the server with a game error
  */
-YQ2_ATTR_NORETURN void
+YQ2_ATTR_NORETURN_FUNCPTR void
 PF_error(char *fmt, ...)
 {
 	char msg[1024];
