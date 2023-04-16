@@ -455,14 +455,12 @@ static void
 OGG_Info(void)
 {
 	Com_Printf("Tracks:\n");
-	int numFiles = 0;
 
 	for (int i = 2; i <= ogg_maxfileindex; i++)
 	{
 		if(ogg_tracks[i])
 		{
 			Com_Printf(" - %02d %s\n", i, ogg_tracks[i]);
-			++numFiles;
 		}
 		else
 		{
