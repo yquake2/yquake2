@@ -594,9 +594,15 @@ Sys_RemoveDir(const char *path)
 	{
 		do
 		{
+			if (wcslen(wpath) + wcslen(fd.cFileName) >= MAX_QPATH)
+			{
+				// Same as above.
+				continue;
+			}
+
 			wmemset(wpathwithfilename, 0, MAX_OSPATH);
-			wcscat_s(wpathwithfilename, MAX_OSPATH, wpath);
-			wcscat_s(wpathwithfilename, MAX_OSPATH, fd.cFileName);
+			wcscat(wpathwithfilename, wpath);
+			wcscat(wpathwithfilename, fd.cFileName);
 			
 			DeleteFileW(wpathwithfilename);
 		}
