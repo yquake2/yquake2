@@ -577,10 +577,17 @@ Sys_RemoveDir(const char *path)
 	WCHAR wpathwithfilename[MAX_OSPATH] = {0};
 	WIN32_FIND_DATAW fd;
 	
-	MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_OSPATH);
+	if (MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_OSPATH) >= MAX_QPATH)
+	{
+		/* This is hopefully never reached, because in a good
+		   world path has a maximum length of MAX_QPATH. Since
+		   we can't use wcscat_s() below because it would break
+		   compat with Win XP, nevertheless do this check. */
+		return;
+	}
 
-	wcscat_s(wpathwithwildcard, MAX_OSPATH, wpath);
-	wcscat_s(wpathwithwildcard, MAX_OSPATH, L"\\*.*");
+	wcsncpy(wpathwithwildcard, wpath, MAX_OSPATH);
+	wcscat(wpathwithwildcard, L"\\*.*");
 	
 	HANDLE hFind = FindFirstFileW(wpathwithwildcard, &fd);
 	if (hFind != INVALID_HANDLE_VALUE)
