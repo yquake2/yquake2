@@ -171,12 +171,12 @@ static cvar_t *gyro_calibration_x;
 static cvar_t *gyro_calibration_y;
 static cvar_t *gyro_calibration_z;
 
-#if SDL_VERSION_ATLEAST(2, 0, 16)	// support for controller sensors (gyro, accelerometer)
+#if SDL_VERSION_ATLEAST(2, 0, 14)	// support for controller sensors (gyro, accelerometer)
 
 static unsigned int num_samples;
 #define NATIVE_SDL_GYRO	// uses SDL_CONTROLLERSENSORUPDATE to read gyro
 
-#else	// for SDL < 2.0.16, gyro can be read as a "secondary joystick" exposed by dkms-hid-nintendo
+#else	// for SDL < 2.0.14, gyro can be read as a "secondary joystick" exposed by dkms-hid-nintendo
 
 static unsigned int num_samples[3];
 static SDL_Joystick *imu_joystick = NULL;	// gyro "joystick"
@@ -2176,8 +2176,12 @@ IN_Controller_Init(qboolean notify_user)
 				&& !SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_GYRO, SDL_TRUE) )
 			{
 				show_gyro = true;
+#if SDL_VERSION_ATLEAST(2, 0, 16)
 				Com_Printf( "Gyro sensor enabled at %.2f Hz\n",
 					SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_GYRO) );
+#else
+				Com_Printf( "Gyro sensor enabled.\n" );
+#endif	// #if SDL_VERSION_ATLEAST(2, 0, 16)
 			}
 			else
 			{
