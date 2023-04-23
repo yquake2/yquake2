@@ -5458,9 +5458,8 @@ PlayerDirectoryList(void)
     }
 
     // malloc directories
-    char** data = (char**)malloc(num * sizeof(char*));
-    YQ2_COM_CHECK_OOM(data, "malloc()", num * sizeof(char*))
-    memset(data, 0, num * sizeof(char*));
+    char** data = (char**)calloc(num, sizeof(char*));
+    YQ2_COM_CHECK_OOM(data, "calloc()", num * sizeof(char*))
 
     s_directory.data = data;
     s_directory.num = num;
@@ -5509,8 +5508,8 @@ PlayerModelList(void)
     qboolean result = true;
 
     // malloc models
-    data = (char**)malloc(MAX_PLAYERMODELS * sizeof(char*));
-    memset(data, 0, MAX_PLAYERMODELS * sizeof(char*));
+    data = (char**)calloc(MAX_PLAYERMODELS, sizeof(char*));
+    YQ2_COM_CHECK_OOM(data, "calloc()", MAX_PLAYERMODELS * sizeof(char*))
 
     s_modelname.data = data;
     s_modelname.num = 0;
