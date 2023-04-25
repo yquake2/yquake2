@@ -553,15 +553,11 @@ FindTarget(edict_t *self)
 	else
 	{
 		client = level.sight_client;
-
-		if (!client)
-		{
-			return false; /* no clients to get mad at */
-		}
 	}
 
 	/* if the entity went away, forget it */
-	if (!client->inuse)
+	if (!client || !client->inuse ||
+		(client->client && level.intermissiontime))
 	{
 		return false;
 	}
@@ -938,11 +934,38 @@ ai_run_slide(edict_t *self, float distance)
  * or do something else used by
  * ai_run and ai_stand
  */
+static qboolean
+hesDeadJim(const edict_t *self)
+{
+	const edict_t *enemy = self->enemy;
+
+	if (!enemy || !enemy->inuse)
+	{
+		return true;
+	}
+
+	if (self->monsterinfo.aiflags & AI_MEDIC)
+	{
+		return (enemy->health > 0);
+	}
+
+	if (enemy->client && level.intermissiontime)
+	{
+		return true;
+	}
+
+	if (self->monsterinfo.aiflags & AI_BRUTAL)
+	{
+		return (enemy->health <= -80);
+	}
+
+	return (enemy->health <= 0);
+}
+
 qboolean
 ai_checkattack(edict_t *self)
 {
 	vec3_t temp;
-	qboolean hesDeadJim;
 
 	if (!self)
 	{
@@ -995,41 +1018,10 @@ ai_checkattack(edict_t *self)
 	enemy_vis = false;
 
 	/* see if the enemy is dead */
-	hesDeadJim = false;
-
-	if ((!self->enemy) || (!self->enemy->inuse))
-	{
-		hesDeadJim = true;
-	}
-	else if (self->monsterinfo.aiflags & AI_MEDIC)
-	{
-		if (self->enemy->health > 0)
-		{
-			hesDeadJim = true;
-			self->monsterinfo.aiflags &= ~AI_MEDIC;
-		}
-	}
-	else
-	{
-		if (self->monsterinfo.aiflags & AI_BRUTAL)
-		{
-			if (self->enemy->health <= -80)
-			{
-				hesDeadJim = true;
-			}
-		}
-		else
-		{
-			if (self->enemy->health <= 0)
-			{
-				hesDeadJim = true;
-			}
-		}
-	}
-
-	if (hesDeadJim)
+	if (hesDeadJim(self))
 	{
 		self->enemy = NULL;
+		self->monsterinfo.aiflags &= ~AI_MEDIC;
 
 		if (self->oldenemy && (self->oldenemy->health > 0))
 		{
