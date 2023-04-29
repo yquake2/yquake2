@@ -89,6 +89,7 @@ static sfx_t known_sfx[MAX_SFX];
 sndstarted_t sound_started = SS_NOT;
 sound_t sound;
 static qboolean s_registering;
+qboolean s_active;
 
 qboolean snd_is_underwater;
 qboolean snd_is_underwater_enabled;
@@ -1066,6 +1067,13 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 		return;
 	}
 
+	/* A hack to prevent temporary entities generating sounds when the sound
+	   backend is not active and the game is not paused */
+	if (s_active == false)
+	{
+	    return;
+	}
+
 	if (!sfx)
 	{
 		return;
@@ -1412,6 +1420,11 @@ S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 		return;
 	}
 
+	if (s_active == false)
+	{
+	    return;
+	}
+
 	VectorCopy(origin, listener_origin);
 	VectorCopy(forward, listener_forward);
 	VectorCopy(right, listener_right);
@@ -1565,6 +1578,19 @@ S_SoundInfo_f(void)
 }
 
 /*
+ * Activate or deactivate sound backend
+ */
+void S_Activate(qboolean active)
+{
+	s_active = active;
+
+	if (active == false)
+	{
+	    S_StopAllSounds();
+	}
+}
+
+/*
  * Initializes the sound system
  * and it's requested backend
  */
@@ -1630,6 +1656,7 @@ S_Init(void)
 	num_sfx = 0;
 	paintedtime = 0;
 	sound_max = 0;
+	s_active = true;
 
 	OGG_Init();
 

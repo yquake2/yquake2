@@ -40,6 +40,7 @@
 #define STB_VORBIS_NO_PUSHDATA_API
 #include "header/stb_vorbis.h"
 
+static cvar_t *ogg_pausewithgame;       /* Pause music when the game is paused */
 static cvar_t *ogg_enabled;       /* Backend is enabled */
 static cvar_t *ogg_shuffle;       /* Shuffle playback */
 static cvar_t *ogg_ignoretrack0;  /* Toggle track 0 playing */
@@ -51,6 +52,7 @@ static int ogg_mapcdtrack;        /* Index of current map cdtrack */
 static ogg_status_t ogg_status;   /* Status indicator. */
 static stb_vorbis *ogg_file;      /* Ogg Vorbis file. */
 static qboolean ogg_started;      /* Initialization flag. */
+static qboolean ogg_mutemusic;    /* Mute music */
 
 enum { MAX_NUM_OGGTRACKS = 128 };
 static char* ogg_tracks[MAX_NUM_OGGTRACKS];
@@ -67,6 +69,9 @@ struct {
 	int curfile;
 	int numsamples;
 } ogg_saved_state;
+
+static void
+OGG_TogglePlayback(void);
 
 // --------
 
@@ -238,6 +243,7 @@ void
 static OGG_Read(void)
 {
 	short samples[4096] = {0};
+	float volume = (ogg_mutemusic == true) ? 0.0f : ogg_volume->value;
 
 	int read_samples = stb_vorbis_get_samples_short_interleaved(ogg_file, ogg_file->channels, samples,
 		sizeof(samples) / sizeof(short));
@@ -247,7 +253,7 @@ static OGG_Read(void)
 		ogg_numsamples += read_samples;
 
 		S_RawSamples(read_samples, ogg_file->sample_rate, sizeof(short), ogg_file->channels,
-			(byte *)samples, ogg_volume->value);
+			(byte *)samples, volume);
 	}
 	else
 	{
@@ -283,6 +289,17 @@ OGG_Stream(void)
 	{
 		OGG_Shutdown();
 		return;
+	}
+
+	if (ogg_pausewithgame->modified)
+	{
+		if ((ogg_pausewithgame->value == 0 && ogg_status == PAUSE) ||
+		    (ogg_pausewithgame->value == 1 && ogg_status == PLAY))
+		{
+			OGG_TogglePlayback();
+		}
+
+		ogg_pausewithgame->modified = false;
 	}
 
 	if (ogg_status == PLAY)
@@ -618,6 +635,7 @@ OGG_HelpMsg(void)
 	Com_Printf(" - play <track>: Play track number <track>\n");
 	Com_Printf(" - stop: Stop playback\n");
 	Com_Printf(" - toggle: Toggle pause\n");
+	Com_Printf(" - mute: Mute playback\n");
 }
 
 /*
@@ -663,6 +681,10 @@ OGG_Cmd(void)
 	else if (Q_stricmp(Cmd_Argv(1), "toggle") == 0)
 	{
 		OGG_TogglePlayback();
+	}
+	else if (Q_stricmp(Cmd_Argv(1), "mute") == 0)
+	{
+	    ogg_mutemusic = !ogg_mutemusic;
 	}
 	else
 	{
@@ -712,6 +734,14 @@ OGG_RecoverState(void)
 	Cvar_SetValue("ogg_shuffle", shuffle_state);
 }
 
+/*
+ * Returns ogg status.
+ */
+int
+OGG_Status(void)
+{
+	return ogg_status;
+}
 // --------
 
 /*
@@ -721,6 +751,7 @@ void
 OGG_Init(void)
 {
 	// Cvars
+	ogg_pausewithgame = Cvar_Get("ogg_pausewithgame", "0", CVAR_ARCHIVE);
 	ogg_shuffle = Cvar_Get("ogg_shuffle", "0", CVAR_ARCHIVE);
 	ogg_ignoretrack0 = Cvar_Get("ogg_ignoretrack0", "0", CVAR_ARCHIVE);
 	ogg_volume = Cvar_Get("ogg_volume", "0.7", CVAR_ARCHIVE);
@@ -741,6 +772,7 @@ OGG_Init(void)
 
 	ogg_mapcdtrack = 0;
 
+	ogg_mutemusic = false;
 	ogg_started = true;
 }
 
