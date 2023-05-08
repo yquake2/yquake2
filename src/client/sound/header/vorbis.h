@@ -34,6 +34,7 @@ typedef enum
 	STOP
 } ogg_status_t;
 
+int OGG_Status(void);
 void OGG_InitTrackList(void);
 void OGG_Init(void);
 void OGG_PlayTrack(int trackNo, qboolean cdtrack, qboolean immediate);

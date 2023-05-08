@@ -30,6 +30,7 @@
 
 struct sfx_s;
 
+void S_Activate(qboolean active);
 void S_Init(void);
 void S_Shutdown(void);
 

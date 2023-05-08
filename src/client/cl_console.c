@@ -96,6 +96,13 @@ Con_ToggleConsole_f(void)
 	{
 		M_ForceMenuOff();
 		Cvar_Set("paused", "0");
+
+		/* play music */
+		if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
+		    OGG_Status() == PAUSE)
+		{
+		    Cbuf_AddText("ogg toggle\n");
+		}
 	}
 	else
 	{
@@ -106,6 +113,13 @@ Con_ToggleConsole_f(void)
 			Com_ServerState())
 		{
 			Cvar_Set("paused", "1");
+
+			/* pause music */
+			if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
+			    OGG_Status() == PLAY)
+			{
+			    Cbuf_AddText("ogg toggle\n");
+			}
 		}
 	}
 }

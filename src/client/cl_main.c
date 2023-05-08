@@ -309,6 +309,17 @@ CL_Pause_f(void)
 	}
 
 	Cvar_SetValue("paused", !cl_paused->value);
+
+	if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
+	    OGG_Status() == PAUSE && cl_paused->value == 0)			/* play music */
+	{
+	    Cbuf_AddText("ogg toggle\n");
+	}
+	else if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
+	    OGG_Status() == PLAY && cl_paused->value == 1)			/* pause music */
+	{
+	    Cbuf_AddText("ogg toggle\n");
+	}
 }
 
 void
