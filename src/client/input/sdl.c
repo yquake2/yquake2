@@ -2176,8 +2176,12 @@ IN_Controller_Init(qboolean notify_user)
 				&& !SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_GYRO, SDL_TRUE) )
 			{
 				show_gyro = true;
+#if SDL_VERSION_ATLEAST(2, 0, 16)
 				Com_Printf( "Gyro sensor enabled at %.2f Hz\n",
 					SDL_GameControllerGetSensorDataRate(controller, SDL_SENSOR_GYRO) );
+#else
+				Com_Printf( "Gyro sensor enabled.\n" );
+#endif	// #if SDL_VERSION_ATLEAST(2, 0, 16)
 			}
 			else
 			{
