@@ -78,7 +78,7 @@ parasite_sight(edict_t *self, edict_t *other /* unused */)
 		return;
 	}
 
-	gi.sound(self, CHAN_WEAPON, sound_sight, 1, ATTN_NORM, 0);
+	gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
 }
 
 void
@@ -89,7 +89,16 @@ parasite_tap(edict_t *self)
 		return;
 	}
 
-	gi.sound(self, CHAN_WEAPON, sound_tap, 1, ATTN_IDLE, 0);
+	gi.sound(self, CHAN_BODY, sound_tap, 1, ATTN_IDLE, 0);
+}
+
+void
+parasite_footstep(edict_t *self)
+{
+	if (g_monsterfootsteps->value)
+	{
+		parasite_tap(self);
+	}
 }
 
 void
@@ -100,7 +109,7 @@ parasite_scratch(edict_t *self)
 		return;
 	}
 
-	gi.sound(self, CHAN_WEAPON, sound_scratch, 1, ATTN_IDLE, 0);
+	gi.sound(self, CHAN_BODY, sound_scratch, 1, ATTN_IDLE, 0);
 }
 
 void
@@ -111,7 +120,7 @@ parasite_search(edict_t *self)
 		return;
 	}
 
-	gi.sound(self, CHAN_WEAPON, sound_search, 1, ATTN_IDLE, 0);
+	gi.sound(self, CHAN_VOICE, sound_search, 1, ATTN_IDLE, 0);
 }
 
 static mframe_t parasite_frames_start_fidget[] = {
@@ -258,10 +267,10 @@ parasite_stand(edict_t *self)
 static mframe_t parasite_frames_run[] = {
 	{ai_run, 30, NULL},
 	{ai_run, 30, NULL},
-	{ai_run, 22, parasite_tap},
-	{ai_run, 19, parasite_tap},
+	{ai_run, 22, parasite_footstep},
+	{ai_run, 19, parasite_footstep},
 	{ai_run, 24, NULL},
-	{ai_run, 28, parasite_tap},
+	{ai_run, 28, parasite_footstep},
 	{ai_run, 25, NULL}
 };
 
@@ -289,7 +298,7 @@ mmove_t parasite_move_start_run =
 static mframe_t parasite_frames_stop_run[] = {
 	{ai_run, 20, NULL},
 	{ai_run, 20, NULL},
-	{ai_run, 12, parasite_tap},
+	{ai_run, 12, parasite_footstep},
 	{ai_run, 10, NULL},
 	{ai_run, 0, NULL},
 	{ai_run, 0, NULL}
@@ -342,10 +351,10 @@ parasite_run(edict_t *self)
 static mframe_t parasite_frames_walk[] = {
 	{ai_walk, 30, NULL},
 	{ai_walk, 30, NULL},
-	{ai_walk, 22, NULL},
+	{ai_walk, 22, parasite_footstep},
 	{ai_walk, 19, NULL},
-	{ai_walk, 24, NULL},
-	{ai_walk, 28, NULL},
+	{ai_walk, 24, parasite_footstep},
+	{ai_walk, 28, parasite_footstep},
 	{ai_walk, 25, NULL}
 };
 
@@ -373,7 +382,7 @@ mmove_t parasite_move_start_walk =
 static mframe_t parasite_frames_stop_walk[] = {
 	{ai_walk, 20, NULL},
 	{ai_walk, 20, NULL},
-	{ai_walk, 12, NULL},
+	{ai_walk, 12, parasite_footstep},
 	{ai_walk, 10, NULL},
 	{ai_walk, 0, NULL},
 	{ai_walk, 0, NULL}
