@@ -43,6 +43,7 @@ pixel_t		*vid_alphamap = NULL;
 light_t		vid_lightthreshold = 0;
 static int	vid_minu, vid_minv, vid_maxu, vid_maxv;
 static int	vid_zminu, vid_zminv, vid_zmaxu, vid_zmaxv;
+static qboolean IsHighDPIaware;
 
 // last position  on map
 static vec3_t	lastvieworg;
@@ -442,6 +443,7 @@ R_UnRegister (void)
 static void RE_ShutdownContext(void);
 static void SWimp_CreateRender(int width, int height);
 static int RE_InitContext(void *win);
+static void RE_GetDrawableSize(int* width, int* height);
 static qboolean RE_SetMode(void);
 
 /*
@@ -1853,6 +1855,7 @@ GetRefAPI(refimport_t imp)
 	refexport.IsVSyncActive = RE_IsVsyncActive;
 	refexport.Shutdown = RE_Shutdown;
 	refexport.InitContext = RE_InitContext;
+	refexport.GetDrawableSize = RE_GetDrawableSize;
 	refexport.ShutdownContext = RE_ShutdownContext;
 	refexport.PrepareForWindow = RE_PrepareForWindow;
 
@@ -1927,8 +1930,24 @@ RE_InitContext(void *win)
 	   This will show the new, black contents of the window. */
 	SDL_RenderPresent(renderer);
 
-	vid_buffer_height = vid.height;
-	vid_buffer_width = vid.width;
+#if SDL_VERSION_ATLEAST(2, 26, 0)
+	// Figure out if we are high dpi aware.
+	int flags = SDL_GetWindowFlags(win);
+	IsHighDPIaware = (flags & SDL_WINDOW_ALLOW_HIGHDPI) ? true : false;
+#endif
+
+	/* We can't rely on vid, because the context is created
+	   before we had a chance to overwrite it with the drawable
+	   size. */
+	if (IsHighDPIaware)
+	{
+		RE_GetDrawableSize(&vid_buffer_width, &vid_buffer_height);
+	}
+	else
+	{
+		vid_buffer_height = vid.height;
+		vid_buffer_width = vid.width;
+	}
 
 	texture = SDL_CreateTexture(renderer,
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -1944,6 +1963,15 @@ RE_InitContext(void *win)
 
 	return true;
 }
+
+/*
+ * Fills the actual size of the drawable into width and height.
+ */
+void RE_GetDrawableSize(int* width, int* height)
+{
+	SDL_GetRendererOutputSize(renderer, width, height);
+}
+
 
 static void
 RE_ShutdownContext(void)
@@ -2324,6 +2352,48 @@ SWimp_SetMode(int *pwidth, int *pheight, int mode, int fullscreen )
 		return rserr_invalid_mode;
 	}
 
+	/* This is totaly obscure: For some strange reasons the renderer
+	   maintains three(!) repesentations of the resolution. One comes
+	   from the client and is saved in r_newrefdef. The other one
+	   is determined here and saved in vid. The third one is used by
+	   the backbuffer. Some calculations take all three representations
+	   into account.
+
+	   The values will always be the same. The GLimp_InitGraphics()
+	   call above communicates the requested resolution to the client
+	   where it ends up in the vid subsystem and the vid system writes
+	   it into r_newrefdef. The backbuffer is derived from vid.
+
+	   We can't avoid the client roundtrip, because we can get the
+	   real size of the drawable (which can differ from the resolution
+	   due to high dpi awareness) only after the render context was
+	   created by GLimp_InitGraphics() and need to communicate it
+	   somehow to the client. So we just overwrite the values saved
+	   in vid with a call to RE_GetDrawableSize(), just like the
+	   client does. This makes sure that both values are the same
+	   and everything is okay.
+
+	   We also need to take the special case fullscreen window into
+	   account. With the fullscreen windows we cannot use the
+	   drawable size, it would scale all cases to the size of the
+	   window. Instead use the drawable size when the user wants
+	   native resolution (the fullscreen window fills the screen)
+	   and use the requested resolution in all other cases. */
+	if (IsHighDPIaware)
+	{
+		if (vid_fullscreen->value != 2)
+		{
+			RE_GetDrawableSize(pwidth, pheight);
+		}
+		else
+		{
+			if (r_mode->value == -2)
+			{
+				/* User requested native resolution. */
+				RE_GetDrawableSize(pwidth, pheight);
+			}
+		}
+	}
 	return retval;
 }
 

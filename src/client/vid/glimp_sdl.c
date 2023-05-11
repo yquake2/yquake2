@@ -37,6 +37,7 @@ int glimp_refreshRate = -1;
 
 static cvar_t *vid_displayrefreshrate;
 static cvar_t *vid_displayindex;
+static cvar_t *vid_highdpiaware;
 static cvar_t *vid_rate;
 
 static int last_flags = 0;
@@ -401,6 +402,7 @@ GLimp_Init(void)
 {
 	vid_displayrefreshrate = Cvar_Get("vid_displayrefreshrate", "-1", CVAR_ARCHIVE);
 	vid_displayindex = Cvar_Get("vid_displayindex", "0", CVAR_ARCHIVE);
+	vid_highdpiaware = Cvar_Get("vid_highdpiaware", "0", CVAR_ARCHIVE);
 	vid_rate = Cvar_Get("vid_rate", "-1", CVAR_ARCHIVE);
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
@@ -456,6 +458,35 @@ GLimp_Shutdown(void)
 }
 
 /*
+ * Determine if we want to be high dpi aware. If
+ * we are we must scale ourself. If we are not the
+ * compositor might scale us.
+ */
+static int
+Glimp_DetermineHighDPISupport(int flags)
+{
+#if SDL_VERSION_ATLEAST(2, 26, 0)
+	/* Make sure that high dpi is never set when we don't want it. */
+	flags &= ~SDL_WINDOW_ALLOW_HIGHDPI;
+
+	if (vid_highdpiaware->value == 0)
+	{
+		return flags;
+	}
+
+	/* Handle high dpi awareness based on the render backend.
+	   SDL doesn't support high dpi awareness for all backends
+	   and the quality and behavior differs between them. */
+	if ((strcmp(SDL_GetCurrentVideoDriver(), "wayland") == 0))
+	{
+		flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+	}
+
+	return flags;
+#endif
+}
+
+/*
  * (Re)initializes the actual window.
  */
 qboolean
@@ -506,10 +537,6 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 		window = NULL;
 	}
 
-	/* We need the window size for the menu, the HUD, etc. */
-	viddef.width = width;
-	viddef.height = height;
-
 	if(last_flags != -1 && (last_flags & SDL_WINDOW_OPENGL))
 	{
 		/* Reset SDL. */
@@ -532,6 +559,9 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	{
 		flags |= fs_flag;
 	}
+
+	/* Check for high dpi support. */
+	flags = Glimp_DetermineHighDPISupport(flags);
 
 	/* Mkay, now the hard work. Let's create the window. */
 	cvar_t *gl_msaa_samples = Cvar_Get("r_msaa_samples", "0", CVAR_ARCHIVE);
@@ -617,6 +647,51 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 		/* InitContext() should have logged an error. */
 		return false;
 	}
+
+	/* We need the actual drawable size for things like the
+	   console, the menus, etc. This might be different to
+	   the resolution due to high dpi awareness.
+
+	   The fullscreen window is special. We want it to fill
+	   the screen when native resolution is requestes, all
+	   other cases should look broken. */
+	if (flags & SDL_WINDOW_ALLOW_HIGHDPI)
+	{
+		if (fullscreen != 2)
+		{
+			re.GetDrawableSize(&viddef.width, &viddef.height);
+		}
+		else
+		{
+			cvar_t *r_mode = Cvar_Get("r_mode", "4", 0);
+
+			if (r_mode->value == -2 )
+			{
+				re.GetDrawableSize(&viddef.width, &viddef.height);
+			}
+			else
+			{
+				/* User likes it broken. */
+				viddef.width = *pwidth;
+				viddef.height = *pheight;
+			}
+		}
+	}
+	else
+	{
+		/* Another bug or design failure in SDL: When we are
+		   not high dpi aware the drawable size returned by
+		   SDL may be too small. It seems like the window
+		   decoration are taken into account when they shouldn't.
+		   It can be seen when creating a fullscreen window.
+
+		   Work around that by always using the resolution and
+		   not the drawable size when we are not high dpi aware. */
+		viddef.width = *pwidth;
+		viddef.height = *pheight;
+	}
+
+	Com_Printf("Drawable size: %ix%i\n", viddef.width, viddef.height);
 
 	/* Set the window icon - For SDL2, this must be done after creating the window */
 	SetSDLIcon();
@@ -731,7 +806,7 @@ GLimp_GetDesktopMode(int *pwidth, int *pheight)
 	}
 
 	// We can't get desktop where we start, so use first desktop
-	if(SDL_GetDesktopDisplayMode(last_display, &mode) != 0)
+	if(SDL_GetCurrentDisplayMode(last_display, &mode) != 0)
 	{
 		// In case of error...
 		Com_Printf("Can't detect default desktop mode: %s\n",

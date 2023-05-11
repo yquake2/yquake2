@@ -161,6 +161,8 @@ extern vec3_t r_origin;
 extern refdef_t r_newrefdef;
 extern int r_viewcluster, r_viewcluster2, r_oldviewcluster, r_oldviewcluster2;
 
+extern qboolean IsHighDPIaware;
+
 extern cvar_t *r_norefresh;
 extern cvar_t *gl_lefthand;
 extern cvar_t *r_gunfov;
@@ -390,6 +392,11 @@ void RI_ShutdownContext(void);
  * or NULL if the function is not found.
  */
 void *RI_GetProcAddress (const char* proc);
+
+/*
+ * Fills the actual size of the drawable into width and height.
+ */
+void RI_GetDrawableSize(int* width, int* height);
 
 /* g11_draw */
 extern image_t * RDraw_FindPic(char *name);

@@ -286,6 +286,8 @@ extern int gl3_viewcluster, gl3_viewcluster2, gl3_oldviewcluster, gl3_oldviewclu
 
 extern int c_brush_polys, c_alias_polys;
 
+extern qboolean IsHighDPIaware;
+
 /* NOTE: struct image_s* is what re.RegisterSkin() etc return so no gl3image_s!
  *       (I think the client only passes the pointer around and doesn't know the
  *        definition of this struct, so this being different from struct image_s
@@ -385,6 +387,7 @@ extern void GL3_RotateForEntity(entity_t *e);
 
 // gl3_sdl.c
 extern int GL3_InitContext(void* win);
+extern void GL3_GetDrawableSize(int* width, int* height);
 extern int GL3_PrepareForWindow(void);
 extern qboolean GL3_IsVsyncActive(void);
 extern void GL3_EndFrame(void);

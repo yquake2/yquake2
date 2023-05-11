@@ -34,6 +34,7 @@
 static SDL_Window* window = NULL;
 static SDL_GLContext context = NULL;
 static qboolean vsyncActive = false;
+qboolean IsHighDPIaware = false;
 
 // --------
 
@@ -402,7 +403,21 @@ int GL3_InitContext(void* win)
 #endif
 	SDL_SetWindowTitle(window, title);
 
+#if SDL_VERSION_ATLEAST(2, 26, 0)
+	// Figure out if we are high dpi aware.
+	int flags = SDL_GetWindowFlags(win);
+	IsHighDPIaware = (flags & SDL_WINDOW_ALLOW_HIGHDPI) ? true : false;
+#endif
+
 	return true;
+}
+
+/*
+ * Fills the actual size of the drawable into width and height.
+ */
+void GL3_GetDrawableSize(int* width, int* height)
+{
+	SDL_GL_GetDrawableSize(window, width, height);
 }
 
 /*

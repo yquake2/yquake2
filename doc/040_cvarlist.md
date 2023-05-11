@@ -386,6 +386,16 @@ Set `0` by default.
   It's recommended to use the displays native resolution with the
   fullscreen window, use `r_mode -2` to switch to it.
 
+* **vid_highdpiaware**: When set to `1` the client is high DPI aware
+  and scales the window (and thus the requested resolution) by the
+  scaling factor of the underlying display. Example: The displays
+  scaling factor is 1.25 and the user requests 1920x1080. The client
+  will render at 1920\*1.25x1080\*1.25=2400x1350.  
+  When set to `0` (the default) the client leaves the decision if the
+  window should be scaled to the underlying compositor. Scaling applied
+  by the compositor may introduce blur and sluggishness.  
+  Currently high dpi awareness is only supported under Wayland.
+
 * **vid_maxfps**: The maximum framerate. *Note* that vsync (`r_vsync`) 
   also restricts the framerate to the monitor refresh rate, so if vsync
   is enabled, the game won't render more than frame than the display can

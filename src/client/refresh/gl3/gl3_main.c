@@ -385,6 +385,48 @@ SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 		return rserr_invalid_mode;
 	}
 
+	/* This is totaly obscure: For some strange reasons the renderer
+	   maintains two(!) repesentations of the resolution. One comes
+	   from the client and is saved in gl3_newrefdef. The other one
+	   is determined here and saved in vid. Several calculations take
+	   both representations into account.
+
+	   The values will always be the same. The GLimp_InitGraphics()
+	   call above communicates the requested resolution to the client
+	   where it ends up in the vid subsystem and the vid system writes
+	   it into gl3_newrefdef.
+
+	   We can't avoid the client roundtrip, because we can get the
+	   real size of the drawable (which can differ from the resolution
+	   due to high dpi awareness) only after the render context was
+	   created by GLimp_InitGraphics() and need to communicate it
+	   somehow to the client. So we just overwrite the values saved
+	   in vid with a call to GL3_GetDrawableSize(), just like the
+	   client does. This makes sure that both values are the same
+	   and everything is okay.
+
+	   We also need to take the special case fullscreen window into
+	   account. With the fullscreen windows we cannot use the
+	   drawable size, it would scale all cases to the size of the
+	   window. Instead use the drawable size when the user wants
+	   native resolution (the fullscreen window fills the screen)
+	   and use the requested resolution in all other cases. */
+	if (IsHighDPIaware)
+	{
+		if (vid_fullscreen->value != 2)
+		{
+			GL3_GetDrawableSize(pwidth, pheight);
+		}
+		else
+		{
+			if (r_mode->value == -2)
+			{
+				/* User requested native resolution. */
+				GL3_GetDrawableSize(pwidth, pheight);
+			}
+		}
+	}
+
 	return rserr_ok;
 }
 
@@ -1960,6 +2002,7 @@ GetRefAPI(refimport_t imp)
 	re.Shutdown = GL3_Shutdown;
 	re.PrepareForWindow = GL3_PrepareForWindow;
 	re.InitContext = GL3_InitContext;
+	re.GetDrawableSize = GL3_GetDrawableSize;
 	re.ShutdownContext = GL3_ShutdownContext;
 	re.IsVSyncActive = GL3_IsVsyncActive;
 

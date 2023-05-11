@@ -37,6 +37,7 @@
 
 static SDL_Window* window = NULL;
 static SDL_GLContext context = NULL;
+qboolean IsHighDPIaware = false;
 static qboolean vsyncActive = false;
 
 // ----
@@ -247,7 +248,21 @@ int RI_InitContext(void* win)
 	snprintf(title, sizeof(title), "Yamagi Quake II %s - OpenGL 1.4", YQ2VERSION);
 	SDL_SetWindowTitle(window, title);
 
+#if SDL_VERSION_ATLEAST(2, 26, 0)
+	// Figure out if we are high dpi aware.
+	int flags = SDL_GetWindowFlags(win);
+	IsHighDPIaware = (flags & SDL_WINDOW_ALLOW_HIGHDPI) ? true : false;
+#endif
+
 	return true;
+}
+
+/*
+ * Fills the actual size of the drawable into width and height.
+ */
+void RI_GetDrawableSize(int* width, int* height)
+{
+	SDL_GL_GetDrawableSize(window, width, height);
 }
 
 /*

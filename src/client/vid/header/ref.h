@@ -125,7 +125,7 @@ typedef enum {
 } ref_restart_t;
 
 // FIXME: bump API_VERSION?
-#define	API_VERSION		5
+#define	API_VERSION		6
 #define EXPORT
 #define IMPORT
 
@@ -152,6 +152,12 @@ typedef struct
 	// (or SDL_Surface* for SDL1.2, another reason to use void*)
 	// returns true (1) on success
 	int		(EXPORT *InitContext)(void* sdl_window);
+
+	// called by GLimp_InitGraphics() *after* creating render
+	// context. Returns the actual drawable size in the width
+	// and height variables. This may be differend from the
+	// window size due to high dpi awareness.
+	void	(EXPORT *GetDrawableSize)(int* width, int* height);
 
 	// shuts down rendering (OpenGL) context.
 	void	(EXPORT *ShutdownContext)(void);
