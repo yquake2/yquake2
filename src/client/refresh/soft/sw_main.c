@@ -1516,8 +1516,7 @@ RE_SetMode(void)
 	vid.height = r_customheight->value;
 
 	/*
-	** if this returns rserr_invalid_fullscreen then it set the mode but not as a
-	** fullscreen mode, e.g. 320x200 on a system that doesn't support that res
+	** if this returns rserr_invalid_mode then it set previous resolution
 	*/
 	if ((err = SWimp_SetMode(&vid.width, &vid.height, r_mode->value, fullscreen)) == rserr_ok)
 	{
@@ -1532,17 +1531,7 @@ RE_SetMode(void)
 	}
 	else
 	{
-		if (err == rserr_invalid_fullscreen)
-		{
-			ri.Cvar_SetValue("vid_fullscreen", 0);
-			R_Printf(PRINT_ALL, "%s() - fullscreen unavailable in this mode\n", __func__);
-
-			if (SWimp_SetMode(&vid.width, &vid.height, r_mode->value, 0) == rserr_ok)
-			{
-				return true;
-			}
-		}
-		else if (err == rserr_invalid_mode)
+		if (err == rserr_invalid_mode)
 		{
 			R_Printf(PRINT_ALL, "%s() - invalid mode\n", __func__);
 
