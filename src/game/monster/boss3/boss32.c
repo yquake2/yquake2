@@ -833,7 +833,14 @@ makron_torso_think(edict_t *self)
 		return;
 	}
 
-	if (self->owner && self->owner->inuse && self->owner->deadflag != DEAD_DEAD)
+	/* detach from the makron if the legs are gone completely */
+	if (self->owner && (!self->owner->inuse || (self->owner->health <= self->owner->gib_health)))
+	{
+		self->owner = NULL;
+	}
+
+	/* if the makron is revived the torso was put back on him */
+	if (self->owner && self->owner->deadflag != DEAD_DEAD)
 	{
 		G_FreeEdict(self);
 		return;
