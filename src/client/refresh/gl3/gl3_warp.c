@@ -242,9 +242,25 @@ GL3_EmitWaterPolys(msurface_t *fa)
 		}
 	}
 
+	qboolean updateUni3D = false;
 	if(gl3state.uni3DData.scroll != scroll)
 	{
 		gl3state.uni3DData.scroll = scroll;
+		updateUni3D = true;
+	}
+	// these surfaces (mostly water and lava, I think?) don't have a lightmap.
+	// rendering water at full brightness looks bad (esp. for water in dark environments)
+	// so default use a factor of 0.5 (ontop of intensity)
+	// but lava should be bright and glowing, so use full brightness there
+	float lightScale = fa->texinfo->image->is_lava ? 1.0f : 0.5f;
+	if(lightScale != gl3state.uni3DData.lightScaleForTurb)
+	{
+		gl3state.uni3DData.lightScaleForTurb = lightScale;
+		updateUni3D = true;
+	}
+
+	if(updateUni3D)
+	{
 		GL3_UpdateUBO3D();
 	}
 

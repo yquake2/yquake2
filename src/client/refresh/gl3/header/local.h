@@ -164,7 +164,8 @@ typedef struct
 	GLfloat overbrightbits; // gl3_overbrightbits, applied to lightmaps (and elsewhere to models)
 	GLfloat particleFadeFactor; // gl3_particle_fade_factor, higher => less fading out towards edges
 
-		GLfloat _padding[3]; // again, some padding to ensure this has right size
+	GLfloat lightScaleForTurb; // surfaces with SURF_DRAWTURB (water, lava) don't have lightmaps, use this instead
+		GLfloat _padding[2]; // again, some padding to ensure this has right size
 } gl3Uni3D_t;
 
 extern const hmm_mat4 gl3_identityMat4;
@@ -305,6 +306,7 @@ typedef struct image_s
 	float sl, tl, sh, th;               /* 0,0 - 1,1 unless part of the scrap */
 	// qboolean scrap; // currently unused
 	qboolean has_alpha;
+	qboolean is_lava; // DG: added for lava brightness hack
 
 } gl3image_t;
 

@@ -367,9 +367,9 @@ static const char* vertexCommon3D = MULTILINE_STRING(
 			float alpha;
 			float overbrightbits;
 			float particleFadeFactor;
+			float lightScaleForTurb; // surfaces with SURF_DRAWTURB (water, lava) don't have lightmaps, use this instead
 			float _pad_1; // AMDs legacy windows driver needs this, otherwise uni3D has wrong size
 			float _pad_2;
-			float _pad_3;
 		};
 );
 
@@ -399,9 +399,9 @@ static const char* fragmentCommon3D = MULTILINE_STRING(
 			float alpha;
 			float overbrightbits;
 			float particleFadeFactor;
+			float lightScaleForTurb; // surfaces with SURF_DRAWTURB (water, lava) don't have lightmaps, use this instead
 			float _pad_1; // AMDs legacy windows driver needs this, otherwise uni3D has wrong size
 			float _pad_2;
-			float _pad_3;
 		};
 );
 
@@ -507,7 +507,7 @@ static const char* fragmentSrc3Dwater = MULTILINE_STRING(
 			vec4 texel = texture(tex, tc);
 
 			// apply intensity and gamma
-			texel.rgb *= intensity*0.5;
+			texel.rgb *= intensity * lightScaleForTurb;
 			outColor.rgb = pow(texel.rgb, vec3(gamma));
 			outColor.a = texel.a*alpha; // I think alpha shouldn't be modified by gamma and intensity
 		}
@@ -1172,6 +1172,7 @@ static void initUBOs(void)
 	// gl3_overbrightbits 0 means "no scaling" which is equivalent to multiplying with 1
 	gl3state.uni3DData.overbrightbits = (gl3_overbrightbits->value <= 0.0f) ? 1.0f : gl3_overbrightbits->value;
 	gl3state.uni3DData.particleFadeFactor = gl3_particle_fade_factor->value;
+	gl3state.uni3DData.lightScaleForTurb = 1.0f;
 
 	glGenBuffers(1, &gl3state.uni3DUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, gl3state.uni3DUBO);

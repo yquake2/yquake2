@@ -430,8 +430,9 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 	if ((type == it_skin) && (bits == 8))
 	{
 		FloodFillSkin(pic, width, height);
-
 	}
+
+	image->is_lava = (strstr(name, "lava") != NULL);
 
 	// image->scrap = false; // TODO: reintroduce scrap? would allow optimizations in 2D rendering..
 
@@ -810,29 +811,31 @@ GL3_ImageList_f(void)
 
 		texels += w*h;
 
+		char imageType = '?';
 		switch (image->type)
 		{
 			case it_skin:
-				R_Printf(PRINT_ALL, "M");
+				imageType = 'M';
 				break;
 			case it_sprite:
-				R_Printf(PRINT_ALL, "S");
+				imageType = 'S';
 				break;
 			case it_wall:
-				R_Printf(PRINT_ALL, "W");
+				imageType = 'W';
 				break;
 			case it_pic:
-				R_Printf(PRINT_ALL, "P");
+				imageType = 'P';
 				break;
 			case it_sky:
-				R_Printf(PRINT_ALL, "Y");
+				imageType = 'Y';
 				break;
 			default:
-				R_Printf(PRINT_ALL, "?");
+				imageType = '?';
 				break;
 		}
+		char isLava = image->is_lava ? 'L' : ' ';
 
-		R_Printf(PRINT_ALL, " %3i %3i %s %s: %s %s\n", w, h,
+		R_Printf(PRINT_ALL, "%c%c %3i %3i %s %s: %s %s\n", imageType, isLava, w, h,
 		         formatstrings[image->has_alpha], potstrings[isNPOT], image->name, in_use);
 	}
 
