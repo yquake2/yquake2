@@ -481,9 +481,9 @@ Glimp_DetermineHighDPISupport(int flags)
 	{
 		flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 	}
+#endif
 
 	return flags;
-#endif
 }
 
 /*
