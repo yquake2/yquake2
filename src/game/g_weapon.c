@@ -1042,26 +1042,28 @@ bfg_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 	/* core explosion - prevents firing it into the wall/floor */
 	if (other->takedamage)
 	{
-		if (plane)
-		{
-			T_Damage(other, self, self->owner, self->velocity, self->s.origin,
-					plane->normal, 200, 0, 0, MOD_BFG_BLAST);
-		}
-		else
-		{
-			T_Damage(other, self, self->owner, self->velocity, self->s.origin,
-					vec3_origin, 200, 0, 0, MOD_BFG_BLAST);
-		}
+		T_Damage(other, self, self->owner, self->velocity, self->s.origin,
+				(plane) ? plane->normal : vec3_origin,
+				200, 0, 0, MOD_BFG_BLAST);
 	}
 
 	T_RadiusDamage(self, self->owner, 200, other, 100, MOD_BFG_BLAST);
 
 	gi.sound(self, CHAN_VOICE, gi.soundindex(
 					"weapons/bfg__x1b.wav"), 1, ATTN_NORM, 0);
+
 	self->solid = SOLID_NOT;
 	self->touch = NULL;
-	VectorMA(self->s.origin, -1 * FRAMETIME, self->velocity, self->s.origin);
+
+	/* move it back a bit from walls so the effects aren't cut off */
+	if (!other->takedamage)
+	{
+		VectorNormalize(self->velocity);
+		VectorMA(self->s.origin, -40.0f, self->velocity, self->s.origin);
+	}
+
 	VectorClear(self->velocity);
+
 	self->s.modelindex = gi.modelindex("sprites/s_bfg3.sp2");
 	self->s.frame = 0;
 	self->s.sound = 0;
@@ -1069,6 +1071,8 @@ bfg_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 	self->think = bfg_explode;
 	self->nextthink = level.time + FRAMETIME;
 	self->enemy = other;
+
+	gi.linkentity(self);
 
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_BFG_BIGEXPLOSION);
