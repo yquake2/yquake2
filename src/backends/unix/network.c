@@ -864,6 +864,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 		if (ioctl(newsocket, FIONBIO, (char *)&_true) == -1)
 		{
 			Com_Printf("NET_Socket: ioctl FIONBIO: %s\n", strerror(errno));
+			close(newsocket);
 			continue;
 		}
 
@@ -876,6 +877,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 				Com_Printf("ERROR: NET_Socket: setsockopt SO_BROADCAST:%s\n",
 						NET_ErrorString());
 				freeaddrinfo(res);
+				close(newsocket);
 				return 0;
 			}
 		}
@@ -887,6 +889,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 			Com_Printf("ERROR: NET_Socket: setsockopt SO_REUSEADDR:%s\n",
 					NET_ErrorString());
 			freeaddrinfo(res);
+			close(newsocket);
 			return 0;
 		}
 
@@ -908,6 +911,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 
 	if (ai == NULL)
 	{
+		close(newsocket);
 		return 0;
 	}
 
