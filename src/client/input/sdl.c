@@ -732,8 +732,8 @@ IN_Update(void)
 						Cvar_SetValue("paused", 0);
 					}
 				}
-				else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED ||
-					event.window.event == SDL_WINDOWEVENT_HIDDEN)
+				else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED && windowed_pauseonfocuslost->value > 0 ||
+					event.window.event == SDL_WINDOWEVENT_HIDDEN && windowed_pauseonfocuslost->value > 0)
 				{
 					Cvar_SetValue("paused", 1);
 				}
@@ -2322,7 +2322,7 @@ IN_Init(void)
 		gyro_active = true;
 	}
 
-	windowed_pauseonfocuslost = Cvar_Get("windowed_pauseonfocuslost", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+	windowed_pauseonfocuslost = Cvar_Get("w_pauseonfocuslost", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
 	Cmd_AddCommand("+mlook", IN_MLookDown);

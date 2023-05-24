@@ -2154,11 +2154,18 @@ static menuslider_s s_options_oggvolume_slider;
 static menulist_s s_options_oggenable_box;
 static menulist_s s_options_quality_list;
 static menulist_s s_options_console_action;
+static menulist_s s_options_pauseonfocus_box;
 
 static void
 CrosshairFunc(void *unused)
 {
     Cvar_SetValue("crosshair", (float)s_options_crosshair_box.curvalue);
+}
+
+static void
+PauseFocusFunc()
+{
+    Cvar_SetValue("w_pauseonfocuslost", (float)s_options_pauseonfocus_box.curvalue);
 }
 
 static void
@@ -2432,6 +2439,13 @@ Options_MenuInit(void)
     s_options_crosshair_box.generic.name = "crosshair";
     s_options_crosshair_box.generic.callback = CrosshairFunc;
     s_options_crosshair_box.itemnames = crosshair_names;
+	
+	s_options_pauseonfocus_box.generic.type = MTYPE_SPINCONTROL;
+    s_options_pauseonfocus_box.generic.x = 0;
+    s_options_pauseonfocus_box.generic.y = (y += 10);
+    s_options_pauseonfocus_box.generic.name = "pause on minimized";
+    s_options_pauseonfocus_box.generic.callback = PauseFocusFunc;
+    s_options_pauseonfocus_box.itemnames = yesno_names;
 
     y += 10;
     if (show_gamepad)
@@ -2475,6 +2489,7 @@ Options_MenuInit(void)
     Menu_AddItem(&s_options_menu, (void *)&s_options_lookstrafe_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_freelook_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_crosshair_box);
+	Menu_AddItem(&s_options_menu, (void*)&s_options_pauseonfocus_box);
 
     if (show_gamepad)
     {
