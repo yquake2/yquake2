@@ -693,7 +693,7 @@ IN_Update(void)
 					{
 						S_Activate(false);
 
-						if (windowed_pauseonfocuslost->value != 2)
+						if (windowed_pauseonfocuslost->value != 1)
 						{
 						    Cvar_SetValue("paused", 1);
 						}
@@ -710,7 +710,7 @@ IN_Update(void)
 					{
 						S_Activate(true);
 
-						if (windowed_pauseonfocuslost->value == 0)
+						if (windowed_pauseonfocuslost->value == 2)
 						{
 						    Cvar_SetValue("paused", 0);
 						}
@@ -744,12 +744,6 @@ IN_Update(void)
 					{
 					    Cbuf_AddText("ogg toggle\n");
 					}
-
-				}
-				else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED ||
-					event.window.event == SDL_WINDOWEVENT_HIDDEN)
-				{
-					Cvar_SetValue("paused", 1);
 				}
 				break;
 
@@ -2336,7 +2330,7 @@ IN_Init(void)
 		gyro_active = true;
 	}
 
-	windowed_pauseonfocuslost = Cvar_Get("w_pauseonfocuslost", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+	windowed_pauseonfocuslost = Cvar_Get("vid_pauseonfocuslost", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
 	Cmd_AddCommand("+mlook", IN_MLookDown);

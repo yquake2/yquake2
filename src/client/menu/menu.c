@@ -2164,7 +2164,7 @@ CrosshairFunc(void *unused)
 static void
 PauseFocusFunc()
 {
-    Cvar_SetValue("w_pauseonfocuslost", (float)s_options_pauseonfocus_box.curvalue);
+    Cvar_SetValue("vid_pauseonfocuslost", (float)s_options_pauseonfocus_box.curvalue);
 }
 
 static void
@@ -2202,6 +2202,7 @@ ControlsSetMenuItemValues(void)
     s_options_lookstrafe_box.curvalue = (lookstrafe->value != 0);
     s_options_freelook_box.curvalue = (freelook->value != 0);
     s_options_crosshair_box.curvalue = ClampCvar(0, 3, crosshair->value);
+    s_options_pauseonfocus_box.curvalue = ClampCvar(0, 2, Cvar_VariableValue("vid_pauseonfocuslost"));
 }
 
 static void
@@ -2341,6 +2342,14 @@ Options_MenuInit(void)
         0
     };
 
+    static const char* pause_names[] =
+    {
+        "yes",
+        "no",
+        "unpause on re-focus",
+        0
+    };
+
     static const char *crosshair_names[] =
     {
         "none",
@@ -2444,7 +2453,7 @@ Options_MenuInit(void)
     s_options_pauseonfocus_box.generic.y = (y += 10);
     s_options_pauseonfocus_box.generic.name = "pause on minimized";
     s_options_pauseonfocus_box.generic.callback = PauseFocusFunc;
-    s_options_pauseonfocus_box.itemnames = yesno_names;
+    s_options_pauseonfocus_box.itemnames = pause_names;
 
     y += 10;
     if (show_gamepad)
