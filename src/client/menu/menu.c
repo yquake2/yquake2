@@ -124,13 +124,6 @@ M_ForceMenuOff(void)
 void
 M_PopMenu(void)
 {
-    /* play music */
-    if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
-        OGG_Status() == PAUSE && cl.attractloop == false)
-    {
-        Cbuf_AddText("ogg toggle\n");
-    }
-
     S_StartLocalSound(menu_out_sound);
 
     if (m_menudepth < 1)
@@ -146,6 +139,12 @@ M_PopMenu(void)
     if (!m_menudepth)
     {
         M_ForceMenuOff();
+	    /* play music */
+	    if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
+	        OGG_Status() == PAUSE && cl.attractloop == false)
+	    {
+	        Cbuf_AddText("ogg toggle\n");
+	    }
     }
 }
 

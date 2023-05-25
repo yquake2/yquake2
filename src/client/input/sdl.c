@@ -693,7 +693,7 @@ IN_Update(void)
 					{
 						S_Activate(false);
 
-						if (windowed_pauseonfocuslost->value == 1)
+						if (windowed_pauseonfocuslost->value != 2)
 						{
 						    Cvar_SetValue("paused", 1);
 						}
@@ -709,6 +709,11 @@ IN_Update(void)
 					if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
 					{
 						S_Activate(true);
+
+						if (windowed_pauseonfocuslost->value == 0)
+						{
+						    Cvar_SetValue("paused", 0);
+						}
 
 						/* play music */
 						if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
@@ -731,9 +736,18 @@ IN_Update(void)
 					{
 						Cvar_SetValue("paused", 0);
 					}
+
+					/* play music */
+					if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
+					    OGG_Status() == PAUSE && cl.attractloop == false &&
+					    cl_paused->value == 0)
+					{
+					    Cbuf_AddText("ogg toggle\n");
+					}
+
 				}
-				else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED && windowed_pauseonfocuslost->value > 0 ||
-					event.window.event == SDL_WINDOWEVENT_HIDDEN && windowed_pauseonfocuslost->value > 0)
+				else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED ||
+					event.window.event == SDL_WINDOWEVENT_HIDDEN)
 				{
 					Cvar_SetValue("paused", 1);
 				}
