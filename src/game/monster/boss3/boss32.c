@@ -788,12 +788,6 @@ makron_pain(edict_t *self, edict_t *other /* unused */,
 void
 makron_sight(edict_t *self, edict_t *other /* unused */)
 {
-	if (!self)
-	{
-		return;
-	}
-
-	self->monsterinfo.currentmove = &makron_move_sight;
 }
 
 void
@@ -1170,7 +1164,7 @@ SP_monster_makron(edict_t *self)
 	self->monsterinfo.dodge = NULL;
 	self->monsterinfo.attack = makron_attack;
 	self->monsterinfo.melee = NULL;
-	self->monsterinfo.sight = makron_sight;
+	self->monsterinfo.sight = NULL;
 	self->monsterinfo.checkattack = Makron_CheckAttack;
 
 	gi.linkentity(self);
@@ -1185,29 +1179,43 @@ void
 MakronSpawn(edict_t *self)
 {
 	vec3_t vec;
-	edict_t *player;
+	edict_t *enemy;
 
 	if (!self)
 	{
 		return;
 	}
 
+	enemy = self->enemy;
+
 	SP_monster_makron(self);
+	if (self->think)
+		self->think(self);
 
-	/* jump at player */
-	player = level.sight_client;
-
-	if (!player)
+	if (enemy && enemy->inuse &&
+		enemy->deadflag != DEAD_DEAD && visible(self, enemy))
 	{
-		return;
-	}
+		self->enemy = enemy;
+		FoundTarget(self);
 
-	VectorSubtract(player->s.origin, self->s.origin, vec);
-	self->s.angles[YAW] = vectoyaw(vec);
-	VectorNormalize(vec);
-	VectorMA(vec3_origin, 400, vec, self->velocity);
-	self->velocity[2] = 200;
+		VectorSubtract(enemy->s.origin, self->s.origin, vec);
+		self->s.angles[YAW] = vectoyaw(vec);
+		VectorNormalize(vec);
+	}
+	else
+		AngleVectors(self->s.angles, vec, NULL, NULL);
+
+	VectorScale(vec, 400, self->velocity);
+	/* the jump frames are fixed length so best to normalize the up speed */
+	self->velocity[2] = 200.0f * (sv_gravity->value / 800.0f);
+
 	self->groundentity = NULL;
+	self->s.origin[2] += 1;
+	gi.linkentity(self);
+
+	self->pain_debounce_time = level.time + 1;
+
+	self->monsterinfo.currentmove = &makron_move_sight;
 }
 
 /*
@@ -1230,4 +1238,8 @@ MakronToss(edict_t *self)
 	ent->think = MakronSpawn;
 	ent->target = self->target;
 	VectorCopy(self->s.origin, ent->s.origin);
+	VectorCopy(self->s.angles, ent->s.angles);
+
+	ent->enemy = self->enemy;
+	ent->oldenemy = self->oldenemy;
 }
