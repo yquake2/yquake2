@@ -174,6 +174,9 @@ R_SetFrustum(vec3_t vup, vec3_t vpn, vec3_t vright, vec3_t r_origin,
 	RotatePointAroundVector(frustum[3].normal, vright, vpn,
 			-(90 - fov_y / 2));
 
+#if defined(__GNUC__)
+#       pragma GCC unroll 4
+#endif
 	for (i = 0; i < 4; i++)
 	{
 		frustum[i].type = PLANE_ANYZ;
