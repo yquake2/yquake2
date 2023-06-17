@@ -1180,30 +1180,61 @@ MakronSpawn(edict_t *self)
 {
 	vec3_t vec;
 	edict_t *enemy;
+	edict_t *oldenemy;
 
 	if (!self)
 	{
 		return;
 	}
 
+	/* spawning can mess with enemy state so clear it temporarily */
 	enemy = self->enemy;
+	self->enemy = NULL;
+
+	oldenemy = self->oldenemy;
+	self->oldenemy = NULL;
 
 	SP_monster_makron(self);
 	if (self->think)
+	{
 		self->think(self);
+	}
 
-	if (enemy && enemy->inuse &&
-		enemy->deadflag != DEAD_DEAD && visible(self, enemy))
+	/* and re-link enemy state now that he's spawned */
+	if (enemy && enemy->inuse && enemy->deadflag != DEAD_DEAD)
 	{
 		self->enemy = enemy;
-		FoundTarget(self);
+	}
 
+	if (oldenemy && oldenemy->inuse && oldenemy->deadflag != DEAD_DEAD)
+	{
+		self->oldenemy = oldenemy;
+	}
+
+	if (!self->enemy)
+	{
+		self->enemy = self->oldenemy;
+		self->oldenemy = NULL;
+	}
+
+	enemy = self->enemy;
+
+	if (enemy)
+	{
+		FoundTarget(self);
+		VectorCopy(self->pos1, self->monsterinfo.last_sighting);
+	}
+
+	if (enemy && visible(self, enemy))
+	{
 		VectorSubtract(enemy->s.origin, self->s.origin, vec);
 		self->s.angles[YAW] = vectoyaw(vec);
 		VectorNormalize(vec);
 	}
 	else
+	{
 		AngleVectors(self->s.angles, vec, NULL, NULL);
+	}
 
 	VectorScale(vec, 400, self->velocity);
 	/* the jump frames are fixed length so best to normalize the up speed */
@@ -1219,8 +1250,7 @@ MakronSpawn(edict_t *self)
 }
 
 /*
- * Jorg is just about dead, so
- * set up to launch Makron out
+ * Jorg is just about dead, so set up to launch Makron out
  */
 void
 MakronToss(edict_t *self)
@@ -1239,6 +1269,7 @@ MakronToss(edict_t *self)
 	ent->target = self->target;
 	VectorCopy(self->s.origin, ent->s.origin);
 	VectorCopy(self->s.angles, ent->s.angles);
+	VectorCopy(self->monsterinfo.last_sighting, ent->pos1);
 
 	ent->enemy = self->enemy;
 	ent->oldenemy = self->oldenemy;
