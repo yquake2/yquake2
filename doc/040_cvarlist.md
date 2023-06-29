@@ -224,7 +224,7 @@ Set `0` by default.
 
 * **g_swap_speed**: Sets the speed of the "changing weapon" animation.
   Default is `1`. If set to `2`, it will be double the speed, `3` is
-  the triple... up until the max of `8`, since there are at least 4
+  the triple... up until the max of `8`, since there are at least 2
   frames of animation that will be played compulsorily, on every weapon.
   Cheat-protected, has to be a positive integer. As with the last one,
   will only work if the game.dll implements this behaviour.
