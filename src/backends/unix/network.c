@@ -812,7 +812,8 @@ int
 NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 {
 	char Buf[BUFSIZ], *Host, *Service;
-	int newsocket, Error;
+	int newsocket = 0;
+	int Error = 0;
 	struct sockaddr_storage ss;
 	struct addrinfo hints, *res, *ai;
 	qboolean _true = true;
