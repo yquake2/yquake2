@@ -686,6 +686,7 @@ cheatvar_t cheatvars[] = {
 	{"cl_kickangles", "1"},
 	{"g_footsteps", "1"},
 	{"g_machinegun_norecoil", "0"},
+	{"g_swap_speed", "1"},
 	{NULL, NULL}
 };
 

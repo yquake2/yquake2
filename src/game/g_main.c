@@ -88,6 +88,7 @@ cvar_t *gib_on;
 
 cvar_t *aimfix;
 cvar_t *g_machinegun_norecoil;
+cvar_t *g_swap_speed;
 
 void G_RunFrame(void);
 
