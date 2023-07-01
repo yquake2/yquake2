@@ -197,8 +197,11 @@ typedef struct
 	void	(EXPORT *DrawFill) (int x, int y, int w, int h, int c);
 	void	(EXPORT *DrawFadeScreen) (void);
 
-	// Draw images for cinematic rendering (which can have a different palette). Note that calls
-	void	(EXPORT *DrawStretchRaw) (int x, int y, int w, int h, int cols, int rows, byte *data);
+	/*
+	 * Draw images for cinematic rendering (which can have a different palette if bits equals to 8).
+	 * Note that calls
+	 */
+	void	(EXPORT *DrawStretchRaw) (int x, int y, int w, int h, int cols, int rows, const byte *data, int bits);
 
 	/*
 	** video mode and refresh state management entry points
@@ -278,7 +281,7 @@ void Draw_CharScaled(int x, int y, int num, float scale);
 void Draw_TileClear(int x, int y, int w, int h, char *name);
 void Draw_Fill(int x, int y, int w, int h, int c);
 void Draw_FadeScreen(void);
-void Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
+void Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *data, int bits);
 //int R_Init(void *hinstance, void *hWnd);
 //void R_Shutdown(void);
 void R_SetPalette(const unsigned char *palette);

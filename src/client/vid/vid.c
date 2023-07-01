@@ -735,11 +735,11 @@ Draw_FadeScreen(void)
 }
 
 void
-Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
+Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *data, int bits)
 {
 	if (ref_active)
 	{
-		re.DrawStretchRaw(x, y, w, h, cols, rows, data);
+		re.DrawStretchRaw(x, y, w, h, cols, rows, data, bits);
 	}
 }
 

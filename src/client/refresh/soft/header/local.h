@@ -581,7 +581,7 @@ struct image_s	*RE_Draw_FindPic (char *name);
 void	RE_Draw_GetPicSize (int *w, int *h, char *name);
 void	RE_Draw_PicScaled (int x, int y, char *name, float scale);
 void	RE_Draw_StretchPic (int x, int y, int w, int h, char *name);
-void	RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data);
+void	RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *data, int bits);
 void	RE_Draw_CharScaled (int x, int y, int c, float scale);
 void	RE_Draw_TileClear (int x, int y, int w, int h, char *name);
 void	RE_Draw_Fill (int x, int y, int w, int h, int c);
@@ -595,6 +595,7 @@ byte	*Get_BestImageSize(const image_t *image, int *req_width, int *req_height);
 void	R_FreeUnusedImages(void);
 qboolean R_ImageHasFreeSpace(void);
 pixel_t	R_ApplyLight(pixel_t pix, const light3_t light);
+void	R_Convert32To8bit(const unsigned char* pic_in, pixel_t* pic_out, size_t size, qboolean transparent);
 
 void R_InitSkyBox(model_t *loadmodel);
 void R_IMFlatShadedQuad( const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t d, int color, float alpha );
