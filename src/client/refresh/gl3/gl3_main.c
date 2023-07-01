@@ -1011,7 +1011,7 @@ GL3_DrawParticles(void)
 			GLfloat dist;
 			GLfloat color[4];
 		} part_vtx;
-		assert(sizeof(part_vtx)==9*sizeof(float)); // remember to update GL3_SurfInit() if this changes!
+		YQ2_STATIC_ASSERT(sizeof(part_vtx)==9*sizeof(float), "invalid part_vtx size"); // remember to update GL3_SurfInit() if this changes!
 
 		// Don't try to draw particles if there aren't any.
 		if (numParticles == 0)

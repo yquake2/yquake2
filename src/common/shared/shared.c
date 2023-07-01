@@ -868,7 +868,7 @@ Swap_Init(void)
 {
 	byte swaptest[2] = {1, 0};
 	short swapTestShort;
-	assert(sizeof(short) == 2);
+	YQ2_STATIC_ASSERT(sizeof(short) == 2, "invalid short size");
 	memcpy(&swapTestShort, swaptest, 2);
 
 	/* set the byte swapping variables in a portable manner */

@@ -59,6 +59,7 @@ typedef unsigned char byte;
 	#define YQ2_ALIGNAS_TYPE(TYPE)  _Alignas(TYPE)
 	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
 	#define YQ2_ATTR_NORETURN       _Noreturn
+	#define YQ2_STATIC_ASSERT(C, M) _Static_assert((C), M)
   #if defined(__GNUC__)
 	#define YQ2_ATTR_MALLOC         __attribute__ ((__malloc__))
 	#define YQ2_ATTR_INLINE         __attribute__((always_inline)) inline
@@ -77,6 +78,8 @@ typedef unsigned char byte;
 	#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
 	#define YQ2_ATTR_MALLOC         __attribute__ ((__malloc__))
 	#define YQ2_ATTR_INLINE         __attribute__((always_inline)) inline
+	// GCC supports this extension since 4.6
+	#define YQ2_STATIC_ASSERT(C, M) _Static_assert((C), M)
 #elif defined(_MSC_VER)
 	// Note: We prefer VS2019 16.8 or newer in C11 mode (/std:c11),
 	//       then the __STDC_VERSION__ >= 201112L case above is used
@@ -95,6 +98,7 @@ typedef unsigned char byte;
 	#define YQ2_ATTR_NORETURN       __declspec(noreturn)
 	#define YQ2_ATTR_MALLOC         __declspec(restrict)
 	#define YQ2_ATTR_INLINE         __forceinline
+	#define YQ2_STATIC_ASSERT(C, M) assert((C) && M)
 #else
 	#warning "Please add a case for your compiler here to align correctly"
 	#define YQ2_ALIGNAS_SIZE(SIZE)
@@ -102,6 +106,7 @@ typedef unsigned char byte;
 	#define YQ2_ATTR_NORETURN
 	#define YQ2_ATTR_MALLOC
 	#define YQ2_ATTR_INLINE         inline
+	#define YQ2_STATIC_ASSERT(C, M) assert((C) && M)
 #endif
 
 #if defined(__GNUC__)
