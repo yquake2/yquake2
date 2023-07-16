@@ -112,6 +112,14 @@ Mod_LoadMD2 (const char *mod_name, const void *buffer, int modfilelen,
 		return NULL;
 	}
 
+	if (pheader->num_skins > MAX_MD2SKINS)
+	{
+		R_Printf(PRINT_ALL, "%s has too many skins (%i > %i), "
+				"extra sprites will be ignored\n",
+				mod_name, pheader->num_skins, MAX_MD2SKINS);
+		pheader->num_skins = MAX_MD2SKINS;
+	}
+
 	//
 	// load base s and t vertices (not used in gl version)
 	//
@@ -212,7 +220,7 @@ SPRITE MODELS
 Mod_LoadSP2
 
 support for .sp2 sprites
-====
+=================
 */
 void *
 Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen,
@@ -239,9 +247,10 @@ Mod_LoadSP2 (const char *mod_name, const void *buffer, int modfilelen,
 
 	if (sprout->numframes > MAX_MD2SKINS)
 	{
-		R_Printf(PRINT_ALL, "%s has too many frames (%i > %i)",
+		R_Printf(PRINT_ALL, "%s has too many frames (%i > %i), "
+				"extra frames will be ignored\n",
 				mod_name, sprout->numframes, MAX_MD2SKINS);
-		return NULL;
+		sprout->numframes = MAX_MD2SKINS;
 	}
 
 	/* byte swap everything */
@@ -278,8 +287,10 @@ Mod_ReLoadSkins(struct image_s **skins, findimage_t find_image, void *extradata,
 		int	i;
 
 		sprout = (dsprite_t *)extradata;
-		for (i=0 ; i<sprout->numframes ; i++)
-			skins[i] = find_image (sprout->frames[i].name, it_sprite);
+		for (i=0; i < sprout->numframes; i++)
+		{
+			skins[i] = find_image(sprout->frames[i].name, it_sprite);
+		}
 		return sprout->numframes;
 	}
 	else if (type == mod_alias)
@@ -288,8 +299,10 @@ Mod_ReLoadSkins(struct image_s **skins, findimage_t find_image, void *extradata,
 		int	i;
 
 		pheader = (dmdl_t *)extradata;
-		for (i=0 ; i<pheader->num_skins ; i++)
+		for (i=0; i < pheader->num_skins; i++)
+		{
 			skins[i] = find_image ((char *)pheader + pheader->ofs_skins + i*MAX_SKINNAME, it_skin);
+		}
 		return  pheader->num_frames;
 	}
 	/* Unknow format, no images associated with it */

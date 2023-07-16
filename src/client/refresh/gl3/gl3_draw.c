@@ -350,7 +350,7 @@ GL3_Draw_FadeScreen(void)
 }
 
 void
-GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
+GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *data, int bits)
 {
 	int i, j;
 
@@ -360,20 +360,27 @@ GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 
 	unsigned* img = image32;
 
-	if(cols*rows > 320*240)
+	if (bits == 32)
 	{
-		/* in case there is a bigger video after all,
-		 * malloc enough space to hold the frame */
-		img = (unsigned*)malloc(cols*rows*4);
+		img = (unsigned *)data;
 	}
-
-	for(i=0; i<rows; ++i)
+	else
 	{
-		int rowOffset = i*cols;
-		for(j=0; j<cols; ++j)
+		if(cols*rows > 320*240)
 		{
-			byte palIdx = data[rowOffset+j];
-			img[rowOffset+j] = gl3_rawpalette[palIdx];
+			/* in case there is a bigger video after all,
+			 * malloc enough space to hold the frame */
+			img = (unsigned*)malloc(cols*rows*4);
+		}
+
+		for(i=0; i<rows; ++i)
+		{
+			int rowOffset = i*cols;
+			for(j=0; j<cols; ++j)
+			{
+				byte palIdx = data[rowOffset+j];
+				img[rowOffset+j] = gl3_rawpalette[palIdx];
+			}
 		}
 	}
 
@@ -387,7 +394,7 @@ GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 	glTexImage2D(GL_TEXTURE_2D, 0, gl3_tex_solid_format,
 	             cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
 
-	if(img != image32)
+	if(img != image32 && img != (unsigned *)data)
 	{
 		free(img);
 	}

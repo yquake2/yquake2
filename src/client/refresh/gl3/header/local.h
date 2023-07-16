@@ -425,7 +425,7 @@ extern void GL3_DrawFrameBufferObject(int x, int y, int w, int h, GLuint fboText
 extern void GL3_Draw_Fill(int x, int y, int w, int h, int c);
 extern void GL3_Draw_FadeScreen(void);
 extern void GL3_Draw_Flash(const float color[4], float x, float y, float w, float h);
-extern void GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
+extern void GL3_Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *data, int bits);
 
 // gl3_image.c
 

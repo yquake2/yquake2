@@ -206,7 +206,7 @@ Get_BestImageSize(const image_t *image, int *req_width, int *req_height)
 
 static byte *d_16to8table = NULL; // 16 to 8 bit conversion table
 
-static void
+void
 R_Convert32To8bit(const unsigned char* pic_in, pixel_t* pic_out, size_t size,
 	qboolean transparent)
 {

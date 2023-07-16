@@ -330,10 +330,9 @@ RDraw_FadeScreen(void)
 }
 
 void
-RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
+RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, const byte *data, int bits)
 {
 	GLfloat tex[8];
-	byte *source;
 	float hscale = 1.0f;
 	int frac, fracstep;
 	int i, j, trows;
@@ -341,7 +340,7 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 
 	R_Bind(0);
 
-	if(gl_config.npottextures || rows <= 256)
+	if(gl_config.npottextures || rows <= 256 || bits == 32)
 	{
 		// X, X
 		tex[0] = 0;
@@ -389,7 +388,7 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 			x, y + h
 	};
 
-	if (!gl_config.palettedtexture)
+	if (!gl_config.palettedtexture || bits == 32)
 	{
 		unsigned image32[320*240]; /* was 256 * 256, but we want a bit more space */
 
@@ -398,7 +397,13 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 		 * pixels to fit into a 256x256 texture.
 		 * This causes text in videos (which are 320x240) to not look broken anymore.
 		 */
-		if(gl_config.npottextures || rows <= 256)
+		if (bits == 32)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, gl_tex_solid_format,
+					cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+					data);
+		}
+		else if(gl_config.npottextures || rows <= 256)
 		{
 			unsigned* img = image32;
 
@@ -435,6 +440,8 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 
 			for (i = 0; i < trows; i++)
 			{
+				const byte *source;
+
 				row = (int)(i * hscale);
 
 				if (row > rows)
@@ -466,6 +473,8 @@ RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 
 		for (i = 0; i < trows; i++)
 		{
+			const byte *source;
+
 			row = (int)(i * hscale);
 
 			if (row > rows)

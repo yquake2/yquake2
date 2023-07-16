@@ -30,6 +30,20 @@
 #include "header/client.h"
 #include "input/header/input.h"
 
+// don't need HDR stuff
+#define STBI_NO_LINEAR
+#define STBI_NO_HDR
+// make sure STB_image uses standard malloc(), as we'll use standard free() to deallocate
+#define STBI_MALLOC(sz)    malloc(sz)
+#define STBI_REALLOC(p,sz) realloc(p,sz)
+#define STBI_FREE(p)       free(p)
+// Switch of the thread local stuff. Breaks mingw under Windows.
+#define STBI_NO_THREAD_LOCALS
+// include implementation part of stb_image into this file
+#define STB_IMAGE_IMPLEMENTATION
+#include "refresh/files/stb_image.h"
+
+
 extern cvar_t *vid_renderer;
 
 cvar_t *cin_force43;
@@ -50,6 +64,7 @@ typedef struct
 
 	int width;
 	int height;
+	int color_bits;
 	byte *pic;
 	byte *pic_pending;
 
@@ -598,6 +613,12 @@ SCR_DrawCinematic(void)
 	if (Q_stricmp(vid_renderer->string, "soft") == 0)
 	{
 		color = SCR_MinimalColor();
+
+		/* Soft render requires to reset palette before show RGBA image */
+		if (cin.color_bits == 32)
+		{
+			R_SetPalette(NULL);
+		}
 	}
 	else
 	{
@@ -621,16 +642,51 @@ SCR_DrawCinematic(void)
 		Draw_Fill(x, y + h, w, viddef.height - (y + h), color);
 	}
 
-	Draw_StretchRaw(x, y, w, h, cin.width, cin.height, cin.pic);
+	Draw_StretchRaw(x, y, w, h, cin.width, cin.height, cin.pic, cin.color_bits);
 
 	return true;
+}
+
+byte *
+SCR_LoadHiColor(const char* namewe, const char *ext, int *width, int *height)
+{
+	char filename[256];
+	int bytesPerPixel;
+	byte *pic, *data = NULL;
+	void *rawdata;
+	size_t len;
+
+	Q_strlcpy(filename, namewe, sizeof(filename));
+	Q_strlcat(filename, ".", sizeof(filename));
+	Q_strlcat(filename, ext, sizeof(filename));
+
+	len = FS_LoadFile(filename, &rawdata);
+
+	if (!rawdata || len <=0)
+	{
+			return NULL;
+	}
+
+	data = stbi_load_from_memory(rawdata, len, width, height,
+		&bytesPerPixel, STBI_rgb_alpha);
+	if (data == NULL)
+	{
+		FS_FreeFile(rawdata);
+		return NULL;
+	}
+
+	pic = Z_Malloc(cin.height * cin.width * 4);
+	memcpy(pic, data, cin.height * cin.width * 4);
+	free(data);
+
+	return pic;
 }
 
 void
 SCR_PlayCinematic(char *arg)
 {
 	int width, height;
-	byte *palette;
+	byte *palette = NULL;
 	char name[MAX_OSPATH], *dot;
 
 	In_FlushQueue();
@@ -645,11 +701,43 @@ SCR_PlayCinematic(char *arg)
 	/* static pcx image */
 	if (dot && !strcmp(dot, ".pcx"))
 	{
+		cvar_t	*r_retexturing;
+
 		Com_sprintf(name, sizeof(name), "pics/%s", arg);
-		SCR_LoadPCX(name, &cin.pic, &palette, &cin.width, &cin.height);
+		r_retexturing = Cvar_Get("r_retexturing", "1", CVAR_ARCHIVE);
+
+		if (r_retexturing->value)
+		{
+			char namewe[256];
+
+			cin.color_bits = 32;
+
+			/* Remove the extension */
+			memset(namewe, 0, 256);
+			memcpy(namewe, name, strlen(name) - strlen(dot));
+			cin.pic = SCR_LoadHiColor(namewe, "tga", &cin.width, &cin.height);
+
+			if (!cin.pic)
+			{
+				cin.pic = SCR_LoadHiColor(namewe, "png", &cin.width, &cin.height);
+			}
+
+			if (!cin.pic)
+			{
+				cin.pic = SCR_LoadHiColor(namewe, "jpg", &cin.width, &cin.height);
+			}
+		}
+
+		if (!cin.pic)
+		{
+			SCR_LoadPCX(name, &cin.pic, &palette, &cin.width, &cin.height);
+			cin.color_bits = 8;
+		}
+
 		cl.cinematicframe = -1;
 		cl.cinematictime = 1;
 		SCR_EndLoadingPlaque();
+
 		cls.state = ca_active;
 
 		if (!cin.pic)
@@ -657,7 +745,7 @@ SCR_PlayCinematic(char *arg)
 			Com_Printf("%s not found.\n", name);
 			cl.cinematictime = 0;
 		}
-		else
+		else if (palette)
 		{
 			memcpy(cl.cinematicpalette, palette, sizeof(cl.cinematicpalette));
 			Z_Free(palette);
@@ -678,6 +766,7 @@ SCR_PlayCinematic(char *arg)
 
 	SCR_EndLoadingPlaque();
 
+	cin.color_bits = 8;
 	cls.state = ca_active;
 
 	FS_Read(&width, 4, cl.cinematic_file);

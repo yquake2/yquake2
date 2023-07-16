@@ -321,7 +321,7 @@ RE_Draw_StretchRaw
 =============
 */
 void
-RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
+RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *data, int bits)
 {
 	image_t	pic;
 	byte	*image_scaled;
@@ -329,7 +329,12 @@ RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
 	// we have only one image size
 	pic.mip_levels = 1;
 
-	if (r_retexturing->value)
+	if (bits == 32)
+	{
+		image_scaled = malloc(cols * rows);
+		R_Convert32To8bit(data, image_scaled, cols * rows, false);
+	}
+	else if (r_retexturing->value)
 	{
 		if (cols < (w / 3) || rows < (h / 3))
 		{
@@ -352,7 +357,7 @@ RE_Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
 	}
 	else
 	{
-		image_scaled = data;
+		image_scaled = (byte *)data;
 	}
 
 	pic.pixels[0] = image_scaled;
