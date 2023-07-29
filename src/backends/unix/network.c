@@ -897,6 +897,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 		if (bind(newsocket, ai->ai_addr, ai->ai_addrlen) < 0)
 		{
 			Com_Printf("NET_Socket: bind: %s\n", strerror(errno));
+			close(newsocket);
 		}
 		else
 		{
