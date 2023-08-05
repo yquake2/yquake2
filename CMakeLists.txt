@@ -133,10 +133,10 @@ if(cpu STREQUAL "powerpc")
 elseif(cpu STREQUAL "aarch64")
 	# "arm64" is more obvious, and some operating systems (like macOS) use it instead of "aarch64"
 	set(cpu "arm64")
+elseif(cpu MATCHES "[aA][mM][dD]64" OR cpu MATCHES "[xX].*64")
+	set(cpu "x86_64")
 elseif(cpu MATCHES "i.86" OR cpu MATCHES "[xX]86")
 	set(cpu "i386")
-elseif(cpu MATCHES "[aA][mM][dD]64" OR cpu MATCHES "[xX]64")
-	set(cpu "x86_64")
 elseif(cpu MATCHES "[aA][rR][mM].*") # some kind of arm..
 	# On 32bit Raspbian gcc -dumpmachine returns sth starting with "arm-",
 	# while clang -dumpmachine says "arm6k-..." - try to unify that to "arm"
