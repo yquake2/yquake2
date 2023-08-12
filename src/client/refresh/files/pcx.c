@@ -312,6 +312,76 @@ GetPCXInfo(const char *origname, int *width, int *height)
 	return;
 }
 
+static byte
+Convert24to8(const byte *d_8to24table, const int rgb[3])
+{
+	int i, best, diff;
+
+	best = 255;
+	diff = 1 << 20;
+
+	for (i = 0; i < 256; i ++)
+	{
+		int j, curr_diff;
+
+		curr_diff = 0;
+
+		for (j = 0; j < 3; j++)
+		{
+			int v;
+
+			v = d_8to24table[i * 4 + j] - rgb[j];
+			curr_diff += v * v;
+		}
+
+		if (curr_diff < diff)
+		{
+			diff = curr_diff;
+			best = i;
+		}
+	}
+
+	return best;
+}
+
+static void
+GenerateColormap(const byte *palette, byte *out_colormap)
+{
+	// https://quakewiki.org/wiki/Quake_palette
+	int num_fullbrights = 32; /* the last 32 colours will be full bright */
+	int x;
+
+	for (x = 0; x < 256; x++)
+	{
+		int y;
+
+		for (y = 0; y < 64; y++)
+		{
+			if (x < 256 - num_fullbrights)
+			{
+				int rgb[3], i;
+
+				for (i = 0; i < 3; i++)
+				{
+					/* divide by 32, rounding to nearest integer */
+					rgb[i] = (palette[x * 4 + i] * (63 - y) + 16) >> 5;
+					if (rgb[i] > 255)
+					{
+						rgb[i] = 255;
+					}
+				}
+
+				out_colormap[y*256+x] = Convert24to8(palette, rgb);
+			}
+			else
+			{
+				/* this colour is a fullbright, just keep the original colour */
+				out_colormap[y*256+x] = x;
+			}
+		}
+	}
+}
+
 void
 GetPCXPalette24to8(byte *d_8to24table, byte** d_16to8table)
 {
@@ -343,43 +413,30 @@ GetPCXPalette24to8(byte *d_8to24table, byte** d_16to8table)
 	else
 	{
 		// create new one
-		unsigned int r, g, b, i;
+		unsigned int r;
 
 		R_Printf(PRINT_ALL, "%s: Generate 16 to 8 bit table\n", __func__);
 
 		for (r = 0; r < 32; r++)
 		{
+			int g;
+
 			for (g = 0; g < 64; g++)
 			{
+				int b;
+
 				for (b = 0; b < 32; b++)
 				{
-					float diff = 1024;
+					int c, rgb[3];
 
-					for (i = 0; i < 256; i ++)
-					{
-						int r_c, g_c, b_c;
-						float curr_diff;
+					rgb[0] = r << 3;
+					rgb[1] = g << 2;
+					rgb[2] = b << 3;
 
-						r_c = d_8to24table[i * 4 + 0] - (r << 3);
-						g_c = d_8to24table[i * 4 + 1] - (g << 2);
-						b_c = d_8to24table[i * 4 + 2] - (b << 3);
+					c = r | ( g << 5 ) | ( b << 11 );
 
-						curr_diff = sqrt((r_c * r_c) +
-										 (g_c * g_c) +
-										 (b_c * b_c));
-
-						if (curr_diff < diff)
-						{
-							int c;
-
-							diff = curr_diff;
-
-							c = r | ( g << 5 ) | ( b << 11 );
-
-							// set color with minimal difference
-							(*d_16to8table)[c & 0xFFFF] = i;
-						}
-					}
+					// set color with minimal difference
+					(*d_16to8table)[c & 0xFFFF] = Convert24to8(d_8to24table, rgb);
 				}
 			}
 		}
@@ -394,15 +451,41 @@ GetPCXPalette
 void
 GetPCXPalette(byte **colormap, unsigned *d_8to24table)
 {
+	char	filename[] = "pics/colormap.pcx";
 	byte	*pal;
 	int		i;
 
 	/* get the palette and colormap */
-	LoadPCX ("pics/colormap.pcx", colormap, &pal, NULL, NULL);
+	LoadPCX(filename, colormap, &pal, NULL, NULL);
 	if (!*colormap || !pal)
 	{
-		ri.Sys_Error (ERR_FATAL, "%s: Couldn't load pics/colormap.pcx",
-			__func__);
+		R_Printf(PRINT_ALL, "%s: Couldn't load %s, use generated palette\n",
+			__func__, filename);
+
+		/* palette r:2bit, g:3bit, b:3bit */
+		for (i=0 ; i < 256; i++)
+		{
+			unsigned v;
+
+			v = (255U<<24) + (((i >> 0) & 0x3) << (6 + 0)) +
+							 (((i >> 2) & 0x7) << (5 + 8)) +
+							 (((i >> 5) & 0x7) << (5 + 16));
+			d_8to24table[i] = LittleLong(v);
+		}
+
+		d_8to24table[255] &= LittleLong(0xffffff);	// 255 is transparent
+
+		/* generate colormap */
+		*colormap = malloc(256 * 320);
+		if (!(*colormap))
+		{
+			ri.Sys_Error(ERR_FATAL, "%s: Couldn't allocate memory for colormap", __func__);
+			// code never returns after ERR_FATAL
+			return;
+		}
+
+		GenerateColormap((const byte *)d_8to24table, *colormap);
+		return;
 	}
 
 	for (i=0 ; i<256 ; i++)
