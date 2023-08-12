@@ -640,6 +640,13 @@ R_FindPic(const char *name, findimage_t find_image)
 		Com_sprintf(pathname, sizeof(pathname), "pics/%s.pcx", name);
 		image = find_image(pathname, it_pic);
 
+		/* Quake 2 Re Release*/
+		if (!image)
+		{
+			Com_sprintf(pathname, sizeof(pathname), "pics/%s.png", name);
+			image = find_image(pathname, it_pic);
+		}
+
 		/* Heretic 2 */
 		if (!image)
 		{
