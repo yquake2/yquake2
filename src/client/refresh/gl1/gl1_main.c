@@ -1405,7 +1405,8 @@ RI_Init(void)
 	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
 	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
 
-	GetPCXPalette (&colormap, d_8to24table);
+	GetPCXPalette(&colormap, d_8to24table);
+	GetPCXPalette24to8((byte *)d_8to24table, &gl_state.d_16to8table);
 	free(colormap);
 
 	R_Register();

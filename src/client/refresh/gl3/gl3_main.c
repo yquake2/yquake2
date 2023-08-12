@@ -515,7 +515,7 @@ GL3_Init(void)
 		return false;
 	}
 
-	GetPCXPalette (&colormap, d_8to24table);
+	GetPCXPalette(&colormap, d_8to24table);
 	free(colormap);
 
 	GL3_Register();
