@@ -471,9 +471,6 @@ RE_Init(void)
 
 	r_aliasuvscale = 1.0;
 
-	GetPCXPalette (&vid_colormap, (unsigned *)d_8to24table);
-	vid_alphamap = vid_colormap + 64*256;
-
 	/* set our "safe" mode */
 	sw_state.prev_mode = 4;
 

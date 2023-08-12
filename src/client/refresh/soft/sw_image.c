@@ -691,14 +691,17 @@ R_InitImages (void)
 	registration_sequence = 1;
 	image_max = 0;
 
+	R_Printf(PRINT_ALL, "%s() Load colormap\n", __func__);
+
+	GetPCXPalette (&vid_colormap, (unsigned *)d_8to24table);
+	vid_alphamap = vid_colormap + 64*256;
+
 	d_16to8table = NULL;
 	ri.FS_LoadFile("pics/16to8.dat", (void **)&table16to8);
 
 	if ( !table16to8 )
 	{
-		ri.Sys_Error(ERR_FATAL, "%s: Couldn't load pics/16to8.dat", __func__);
-		// code never returns after ERR_FATAL
-		return;
+		R_Printf(PRINT_ALL, "%s: Couldn't load pics/16to8.dat", __func__);
 	}
 
 	d_16to8table = malloc(0x10000);
@@ -708,8 +711,57 @@ R_InitImages (void)
 		// code never returns after ERR_FATAL
 		return;
 	}
-	memcpy(d_16to8table, table16to8, 0x10000);
-	ri.FS_FreeFile((void *)table16to8);
+
+	if (table16to8)
+	{
+		// Use predefined convert map
+		memcpy(d_16to8table, table16to8, 0x10000);
+		ri.FS_FreeFile((void *)table16to8);
+	}
+	else
+	{
+		// create new one
+		unsigned int r, g, b, i;
+
+		for (r = 0; r < 32; r++)
+		{
+			for (g = 0; g < 64; g++)
+			{
+				for (b = 0; b < 32; b++)
+				{
+					float diff = 1024;
+
+					for (i = 0; i < 256; i ++)
+					{
+						int r_c, g_c, b_c;
+						float curr_diff;
+
+						r_c = d_8to24table[i * 4 + 0] - (r << 3);
+						g_c = d_8to24table[i * 4 + 1] - (g << 2);
+						b_c = d_8to24table[i * 4 + 2] - (b << 3);
+
+						curr_diff = sqrt(
+							(r_c * r_c) +
+							(g_c * g_c) +
+							(b_c * b_c)
+						);
+
+						if (curr_diff < diff)
+						{
+							int c;
+
+							diff = curr_diff;
+
+							c = r | ( g << 5 ) | ( b << 11 );
+
+							// set color with minimal difference
+							d_16to8table[c & 0xFFFF] = i;
+						}
+					}
+				}
+			}
+		}
+	}
 
 	R_InitTextures ();
 }
