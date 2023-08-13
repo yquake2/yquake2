@@ -460,6 +460,7 @@ set(Client-Source
 	${COMMON_SRC_DIR}/shared/flash.c
 	${COMMON_SRC_DIR}/shared/rand.c
 	${COMMON_SRC_DIR}/shared/shared.c
+	${COMMON_SRC_DIR}/shared/utils.c
 	${COMMON_SRC_DIR}/unzip/ioapi.c
 	${COMMON_SRC_DIR}/unzip/miniz.c
 	${COMMON_SRC_DIR}/unzip/unzip.c
@@ -523,6 +524,7 @@ set(Server-Source
 	${COMMON_SRC_DIR}/zone.c
 	${COMMON_SRC_DIR}/shared/rand.c
 	${COMMON_SRC_DIR}/shared/shared.c
+	${COMMON_SRC_DIR}/shared/utils.c
 	${COMMON_SRC_DIR}/unzip/ioapi.c
 	${COMMON_SRC_DIR}/unzip/miniz.c
 	${COMMON_SRC_DIR}/unzip/unzip.c
@@ -573,6 +575,7 @@ set(GL1-Source
 	${REF_SRC_DIR}/files/wal.c
 	${REF_SRC_DIR}/files/pvs.c
 	${COMMON_SRC_DIR}/shared/shared.c
+	${COMMON_SRC_DIR}/shared/utils.c
 	${COMMON_SRC_DIR}/md4.c
 	)
 
@@ -609,6 +612,7 @@ set(GL3-Source
 	${REF_SRC_DIR}/files/wal.c
 	${REF_SRC_DIR}/files/pvs.c
 	${COMMON_SRC_DIR}/shared/shared.c
+	${COMMON_SRC_DIR}/shared/utils.c
 	${COMMON_SRC_DIR}/md4.c
 	)
 
@@ -663,6 +667,7 @@ set(SOFT-Source
 	${REF_SRC_DIR}/files/wal.c
 	${REF_SRC_DIR}/files/pvs.c
 	${COMMON_SRC_DIR}/shared/shared.c
+	${COMMON_SRC_DIR}/shared/utils.c
 	${COMMON_SRC_DIR}/md4.c
 	)
 

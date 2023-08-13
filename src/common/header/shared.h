@@ -372,6 +372,9 @@ float frandk(void);
 float crandk(void);
 void randk_seed(void);
 
+/* Addition code utilities */
+qboolean Utils_FilenameFiltered(const char *name, const char *filter, char sepator);
+
 /*
  * ==============================================================
  *

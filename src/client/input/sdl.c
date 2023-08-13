@@ -688,7 +688,7 @@ IN_Update(void)
 					event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
 				{
 					Key_MarkAllUp();
-					
+
 					if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
 					{
 						S_Activate(false);
@@ -1689,116 +1689,6 @@ static char *default_haptic_filter = (
 );
 
 /*
- * name: sound name
- * filter: sound name rule with '*'
- * return false for empty filter
- */
-static qboolean
-Haptic_Feedback_Filtered_Line(const char *name, const char *filter)
-{
-	const char *current_filter = filter;
-
-	// skip empty filter
-	if (!*current_filter)
-	{
-		return false;
-	}
-
-	while (*current_filter)
-	{
-		char part_filter[MAX_QPATH];
-		const char *name_part;
-		const char *str_end;
-
-		str_end = strchr(current_filter, '*');
-		if (!str_end)
-		{
-			if (!strstr(name, current_filter))
-			{
-				// no such part in string
-				return false;
-			}
-			// have such part
-			break;
-		}
-		// copy filter line
-		if ((str_end - current_filter) >= MAX_QPATH)
-		{
-			return false;
-		}
-		memcpy(part_filter, current_filter, str_end - current_filter);
-		part_filter[str_end - current_filter] = 0;
-		// place part in name
-		name_part = strstr(name, part_filter);
-		if (!name_part)
-		{
-			// no such part in string
-			return false;
-		}
-		// have such part
-		name = name_part + strlen(part_filter);
-		// move to next filter
-		current_filter = str_end + 1;
-	}
-
-	return true;
-}
-
-/*
- * name: sound name
- * filter: sound names separated by space, and '!' for skip file
- */
-static qboolean
-Haptic_Feedback_Filtered(const char *name, const char *filter)
-{
-	const char *current_filter = filter;
-
-	while (*current_filter)
-	{
-		char line_filter[MAX_QPATH];
-		const char *str_end;
-
-		str_end = strchr(current_filter, ' ');
-		// its end of filter
-		if (!str_end)
-		{
-			// check rules inside line
-			if (Haptic_Feedback_Filtered_Line(name, current_filter))
-			{
-				return true;
-			}
-			return false;
-		}
-		// copy filter line
-		if ((str_end - current_filter) >= MAX_QPATH)
-		{
-			return false;
-		}
-		memcpy(line_filter, current_filter, str_end - current_filter);
-		line_filter[str_end - current_filter] = 0;
-		// check rules inside line
-		if (*line_filter == '!')
-		{
-			// has invert rule
-			if (Haptic_Feedback_Filtered_Line(name, line_filter + 1))
-			{
-				return false;
-			}
-		}
-		else
-		{
-			if (Haptic_Feedback_Filtered_Line(name, line_filter))
-			{
-				return true;
-			}
-		}
-		// move to next filter
-		current_filter = str_end + 1;
-	}
-	return false;
-}
-
-/*
  * Haptic Feedback:
  *    effect_volume=0..SHRT_MAX
  *    effect{x,y,z} - effect direction
@@ -1833,7 +1723,7 @@ Haptic_Feedback(const char *name, int effect_volume, int effect_duration,
 
 	last_haptic_volume = joy_haptic_magnitude->value * 16;
 
-	if (Haptic_Feedback_Filtered(name, haptic_feedback_filter->string))
+	if (Utils_FilenameFiltered(name, haptic_feedback_filter->string, ' '))
 	{
 		int effect_id;
 

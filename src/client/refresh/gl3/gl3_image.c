@@ -99,9 +99,9 @@ GL3_TextureMode(char *string)
 		if (unfiltered2D && glt->type == it_pic)
 		{
 			// exception to that exception: stuff on the r_lerp_list
-			nolerp = (lerplist== NULL) || (strstr(lerplist, glt->name) == NULL);
+			nolerp = (lerplist == NULL) || Utils_FilenameFiltered(glt->name, lerplist, ' ');
 		}
-		else if(nolerplist != NULL && strstr(nolerplist, glt->name) != NULL)
+		else if (nolerplist != NULL && Utils_FilenameFiltered(glt->name, nolerplist, ' '))
 		{
 			nolerp = true;
 		}

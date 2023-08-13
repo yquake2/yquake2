@@ -74,7 +74,7 @@ typedef enum
 } modtype_t;
 
 #define MAX_LBM_HEIGHT 480
-
+#define DEFAULT_NOLERP_LIST "pics/conchars.* pics/ch1.* pics/ch2. pics/ch3.*"
 extern void R_Printf(int level, const char* msg, ...) PRINTF_ATTR(2, 3);
 
 /* Shared images load */
