@@ -611,6 +611,13 @@ GetTexImage(const char *name, findimage_t find_image)
 	Com_sprintf(pathname, sizeof(pathname), "textures/%s.wal", name);
 	image = find_image(pathname, it_wall);
 
+	/* Quake2 Re-Release Nintendo 64 */
+	if (!image)
+	{
+		Com_sprintf(pathname, sizeof(pathname), "textures/%s.tga", name);
+		image = find_image(pathname, it_wall);
+	}
+
 	/* Heretic 2 */
 	if (!image)
 	{
