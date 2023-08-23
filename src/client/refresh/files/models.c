@@ -805,7 +805,7 @@ Mod_PointInLeaf(const vec3_t p, mnode_t *node)
 }
 
 const void *
-Mod_LoadBSPXFindLump(bspx_header_t *bspx_header, const char *lumpname,
+Mod_LoadBSPXFindLump(const bspx_header_t *bspx_header, const char *lumpname,
 	int *plumpsize, const byte *mod_base)
 {
 	bspx_lump_t *lump;

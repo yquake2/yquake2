@@ -267,16 +267,15 @@ R_RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 			return 0;
 		}
 
-		ds >>= 4;
-		dt >>= 4;
+		ds >>= surf->lmshift;
+		dt >>= surf->lmshift;
 
 		lightmap = surf->samples;
 		VectorCopy(vec3_origin, pointcolor);
 
-		lightmap += 3 * (dt * ((surf->extents[0] >> 4) + 1) + ds);
+		lightmap += 3 * (dt * ((surf->extents[0] >> surf->lmshift) + 1) + ds);
 
-		for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255;
-			 maps++)
+		for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255; maps++)
 		{
 			const float *rgb;
 			int j;
@@ -292,8 +291,8 @@ R_RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end)
 				pointcolor[j] += lightmap[j] * scale * (1.0 / 255);
 			}
 
-			lightmap += 3 * ((surf->extents[0] >> 4) + 1) *
-						((surf->extents[1] >> 4) + 1);
+			lightmap += 3 * ((surf->extents[0] >> surf->lmshift) + 1) *
+						((surf->extents[1] >> surf->lmshift) + 1);
 		}
 
 		return 1;
@@ -311,7 +310,6 @@ R_LightPoint(entity_t *currententity, vec3_t p, vec3_t color)
 	int lnum;
 	dlight_t *dl;
 	vec3_t dist;
-	float add;
 
 	if (!r_worldmodel->lightdata || !currententity)
 	{
@@ -339,6 +337,8 @@ R_LightPoint(entity_t *currententity, vec3_t p, vec3_t color)
 
 	for (lnum = 0; lnum < r_newrefdef.num_dlights; lnum++, dl++)
 	{
+		float	add;
+
 		VectorSubtract(currententity->origin,
 				dl->origin, dist);
 		add = dl->intensity - VectorLength(dist);
@@ -368,8 +368,8 @@ R_AddDynamicLights(msurface_t *surf)
 	float *pfBL;
 	float fsacc, ftacc;
 
-	smax = (surf->extents[0] >> 4) + 1;
-	tmax = (surf->extents[1] >> 4) + 1;
+	smax = (surf->extents[0] >> surf->lmshift) + 1;
+	tmax = (surf->extents[1] >> surf->lmshift) + 1;
 	tex = surf->texinfo;
 
 	for (lnum = 0; lnum < r_newrefdef.num_dlights; lnum++)
@@ -408,7 +408,7 @@ R_AddDynamicLights(msurface_t *surf)
 
 		pfBL = s_blocklights;
 
-		for (t = 0, ftacc = 0; t < tmax; t++, ftacc += 16)
+		for (t = 0, ftacc = 0; t < tmax; t++, ftacc += (1 << surf->lmshift))
 		{
 			td = local[1] - ftacc;
 
@@ -417,7 +417,7 @@ R_AddDynamicLights(msurface_t *surf)
 				td = -td;
 			}
 
-			for (s = 0, fsacc = 0; s < smax; s++, fsacc += 16, pfBL += 3)
+			for (s = 0, fsacc = 0; s < smax; s++, fsacc += (1 << surf->lmshift), pfBL += 3)
 			{
 				sd = Q_ftol(local[0] - fsacc);
 
@@ -437,9 +437,11 @@ R_AddDynamicLights(msurface_t *surf)
 
 				if (fdist < fminlight)
 				{
-					pfBL[0] += (frad - fdist) * dl->color[0];
-					pfBL[1] += (frad - fdist) * dl->color[1];
-					pfBL[2] += (frad - fdist) * dl->color[2];
+					float diff = frad - fdist;
+
+					pfBL[0] += diff * dl->color[0];
+					pfBL[1] += diff * dl->color[1];
+					pfBL[2] += diff * dl->color[2];
 				}
 			}
 		}
@@ -479,8 +481,8 @@ R_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 		ri.Sys_Error(ERR_DROP, "R_BuildLightMap called for non-lit surface");
 	}
 
-	smax = (surf->extents[0] >> 4) + 1;
-	tmax = (surf->extents[1] >> 4) + 1;
+	smax = (surf->extents[0] >> surf->lmshift) + 1;
+	tmax = (surf->extents[1] >> surf->lmshift) + 1;
 	size = smax * tmax;
 
 	if (size > (sizeof(s_blocklights) >> 4))
@@ -665,4 +667,3 @@ store:
 		}
 	}
 }
-

@@ -325,8 +325,8 @@ R_BlendLightmaps(const model_t *currentmodel)
 			int smax, tmax;
 			byte *base;
 
-			smax = (surf->extents[0] >> 4) + 1;
-			tmax = (surf->extents[1] >> 4) + 1;
+			smax = (surf->extents[0] >> surf->lmshift) + 1;
+			tmax = (surf->extents[1] >> surf->lmshift) + 1;
 
 			if (LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
 			{
@@ -511,8 +511,8 @@ R_RenderBrushPoly(entity_t *currententity, msurface_t *fa)
 			unsigned temp[34 * 34];
 			int smax, tmax;
 
-			smax = (fa->extents[0] >> 4) + 1;
-			tmax = (fa->extents[1] >> 4) + 1;
+			smax = (fa->extents[0] >> fa->lmshift) + 1;
+			tmax = (fa->extents[1] >> fa->lmshift) + 1;
 
 			R_BuildLightMap(fa, (void *)temp, smax * 4);
 			R_SetCacheState(fa);

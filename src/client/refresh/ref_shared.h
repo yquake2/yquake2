@@ -209,7 +209,7 @@ extern void Mod_LoadSurfedges (const char *name, int **surfedges, int *numsurfed
 	const byte *mod_base, const lump_t *l, int extra);
 extern int Mod_CalcLumpHunkSize(const lump_t *l, int inSize, int outSize, int extra);
 extern mleaf_t *Mod_PointInLeaf(const vec3_t p, mnode_t *node);
-extern const void *Mod_LoadBSPXFindLump(bspx_header_t *bspx_header,
+extern const void *Mod_LoadBSPXFindLump(const bspx_header_t *bspx_header,
 	const char *lumpname, int *plumpsize, const byte *mod_base);
 extern const bspx_header_t *Mod_LoadBSPX(int filesize, const byte *mod_base);
 

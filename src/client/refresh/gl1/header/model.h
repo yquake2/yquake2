@@ -27,7 +27,8 @@
 #ifndef REF_MODEL_H
 #define REF_MODEL_H
 
-#define VERTEXSIZE 7
+#define	VERTEXSIZE	7
+#define	DEFAULT_LMSHIFT		4
 
 /* in memory representation */
 
@@ -52,6 +53,8 @@ typedef struct msurface_s
 
 	short texturemins[2];
 	short extents[2];
+
+	short lmshift;
 
 	int light_s, light_t;           /* gl lightmap coordinates */
 	int dlight_s, dlight_t;         /* gl lightmap coordinates for dynamic lightmaps */

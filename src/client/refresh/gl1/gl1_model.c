@@ -502,6 +502,7 @@ Mod_LoadFaces(model_t *loadmodel, byte *mod_base, lump_t *l)
 		}
 
 		out->texinfo = loadmodel->texinfo + ti;
+		out->lmshift = DEFAULT_LMSHIFT;
 
 		Mod_CalcSurfaceExtents(loadmodel, out);
 
@@ -702,14 +703,14 @@ Mod_LoadBrushModel(model_t *mod, void *buffer, int modfilelen)
 	Mod_LoadSurfedges(mod->name, &mod->surfedges, &mod->numsurfedges,
 		mod_base, &header->lumps[LUMP_SURFEDGES], 0);
 	Mod_LoadLighting(&mod->lightdata, mod_base, &header->lumps[LUMP_LIGHTING]);
-	Mod_LoadPlanes (mod->name, &mod->planes, &mod->numplanes,
+	Mod_LoadPlanes(mod->name, &mod->planes, &mod->numplanes,
 		mod_base, &header->lumps[LUMP_PLANES], 0);
 	Mod_LoadTexinfo(mod->name, &mod->texinfo, &mod->numtexinfo,
 		mod_base, &header->lumps[LUMP_TEXINFO], (findimage_t)R_FindImage,
 		r_notexture, 0);
 	Mod_LoadFaces(mod, mod_base, &header->lumps[LUMP_FACES]);
 	Mod_LoadMarksurfaces(mod, mod_base, &header->lumps[LUMP_LEAFFACES]);
-	Mod_LoadVisibility (&mod->vis, mod_base, &header->lumps[LUMP_VISIBILITY]);
+	Mod_LoadVisibility(&mod->vis, mod_base, &header->lumps[LUMP_VISIBILITY]);
 	Mod_LoadLeafs(mod, mod_base, &header->lumps[LUMP_LEAFS]);
 	Mod_LoadNodes(mod->name, mod->planes, mod->numplanes, mod->leafs,
 		mod->numleafs, &mod->nodes, &mod->numnodes, mod_base,
@@ -829,4 +830,3 @@ RI_EndRegistration(void)
 
 	R_FreeUnusedImages();
 }
-
