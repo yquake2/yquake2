@@ -803,3 +803,81 @@ Mod_PointInLeaf(const vec3_t p, mnode_t *node)
 
 	return NULL; /* never reached */
 }
+
+const void *
+Mod_LoadBSPXFindLump(bspx_header_t *bspx_header, const char *lumpname,
+	int *plumpsize, const byte *mod_base)
+{
+	bspx_lump_t *lump;
+	int i, numlumps;
+
+	if (!bspx_header) {
+		return NULL;
+	}
+
+	numlumps = LittleLong(bspx_header->numlumps);
+
+	lump = (bspx_lump_t*)(bspx_header + 1);
+	for (i = 0; i < numlumps; i++, lump++) {
+		if (!strncmp(lump->lumpname, lumpname, sizeof(lump->lumpname))) {
+			if (plumpsize) {
+				*plumpsize = LittleLong(lump->filelen);
+			}
+			return mod_base + LittleLong(lump->fileofs);
+		}
+	}
+
+	return NULL;
+}
+
+const bspx_header_t *
+Mod_LoadBSPX(int filesize, const byte *mod_base)
+{
+	const bspx_header_t *xheader;
+	const dheader_t *header;
+	int i, numlumps, xofs;
+	bspx_lump_t *lump;
+
+	// find end of last lump
+	header = (dheader_t*)mod_base;
+	xofs = 0;
+	for (i = 0; i < HEADER_LUMPS; i++) {
+		xofs = max(xofs,
+			(header->lumps[i].fileofs + header->lumps[i].filelen + 3) & ~3);
+	}
+
+	if (xofs + sizeof(bspx_header_t) > filesize) {
+		return NULL;
+	}
+
+	xheader = (bspx_header_t*)(mod_base + xofs);
+	if (LittleLong(xheader->ident) != BSPXHEADER)
+	{
+		R_Printf(PRINT_ALL, "%s: Incorrect header ident.\n", __func__);
+		return NULL;
+	}
+
+	numlumps = LittleLong(xheader->numlumps);
+
+	if (numlumps < 0 ||
+		(xofs + sizeof(bspx_header_t) + numlumps * sizeof(bspx_lump_t)) > filesize)
+	{
+		return NULL;
+	}
+
+	// byte-swap and check sanity
+	lump = (bspx_lump_t*)(xheader + 1); // lumps immediately follow the header
+	for (i = 0; i < numlumps; i++, lump++)
+	{
+		int fileofs, filelen;
+
+		fileofs = LittleLong(lump->fileofs);
+		filelen = LittleLong(lump->filelen);
+		if (fileofs < 0 || filelen < 0 || (fileofs + filelen) > filesize) {
+			return NULL;
+		}
+	}
+
+	// success
+	return xheader;
+}

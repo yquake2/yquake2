@@ -232,6 +232,7 @@ typedef struct m32tex_s
 /* .BSP file format */
 
 #define IDBSPHEADER (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') /* little-endian "IBSP" */
+#define BSPXHEADER  (('X' << 24) + ('P' << 16) + ('S' << 8) + 'B') /* little-endian "BSPX" */
 #define BSPVERSION 38
 
 /* upper design bounds: leaffaces, leafbrushes, planes, and 
@@ -297,6 +298,17 @@ typedef struct
 	int version;
 	lump_t lumps[HEADER_LUMPS];
 } dheader_t;
+
+typedef struct bspx_header_s {
+	int ident;  // 'BSPX'
+	int numlumps;
+} bspx_header_t;
+
+typedef struct {
+	char lumpname[24];
+	int fileofs;
+	int filelen;
+} bspx_lump_t;
 
 typedef struct
 {
