@@ -1379,7 +1379,7 @@ S_BuildSoundList(int *sounds)
  */
 void
 S_RawSamples(int samples, int rate, int width,
-		int channels, byte *data, float volume)
+		int channels, const byte *data, float volume)
 {
 	if (sound_started == SS_NOT)
 	{
