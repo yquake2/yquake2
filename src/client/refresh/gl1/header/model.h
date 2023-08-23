@@ -65,6 +65,10 @@ typedef struct msurface_s
 
 	mtexinfo_t *texinfo;
 
+	/* decoupled lm */
+	float	lmvecs[2][4];
+	float	lmvlen[2];
+
 	/* lighting info */
 	int dlightframe;
 	int dlightbits;

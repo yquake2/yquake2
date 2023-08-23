@@ -432,6 +432,13 @@ typedef struct
 	int lightofs; /* start of [numstyles*surfsize] samples */
 } dface_t;
 
+typedef struct {
+	unsigned short	lmwidth;
+	unsigned short	lmheight;
+	int	lightofs;
+	float	vecs[2][4];
+} dlminfo_t;
+
 typedef struct
 {
 	int contents; /* OR of all brushes (not needed?) */

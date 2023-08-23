@@ -187,13 +187,13 @@ LM_BuildPolygonFromSurface(model_t *currentmodel, msurface_t *fa)
 		poly->verts[i][4] = t;
 
 		/* lightmap texture coordinates */
-		s = DotProduct(vec, fa->texinfo->vecs[0]) + fa->texinfo->vecs[0][3];
+		s = DotProduct(vec, fa->lmvecs[0]) + fa->lmvecs[0][3];
 		s -= fa->texturemins[0];
 		s += fa->light_s * (1 << fa->lmshift);
 		s += (1 << fa->lmshift) * 0.5;
 		s /= BLOCK_WIDTH * (1 << fa->lmshift);
 
-		t = DotProduct(vec, fa->texinfo->vecs[1]) + fa->texinfo->vecs[1][3];
+		t = DotProduct(vec, fa->lmvecs[1]) + fa->lmvecs[1][3];
 		t -= fa->texturemins[1];
 		t += fa->light_t * (1 << fa->lmshift);
 		t += (1 << fa->lmshift) * 0.5;

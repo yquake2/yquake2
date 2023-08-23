@@ -30,7 +30,7 @@ int r_dlightframecount;
 vec3_t pointcolor;
 cplane_t *lightplane; /* used as shadow plane */
 vec3_t lightspot;
-static float s_blocklights[34 * 34 * 3];
+static float s_blocklights[256 * 256 * 3];
 
 void
 R_RenderDlight(dlight_t *light)
@@ -363,14 +363,12 @@ R_AddDynamicLights(msurface_t *surf)
 	int s, t;
 	int i;
 	int smax, tmax;
-	mtexinfo_t *tex;
 	dlight_t *dl;
 	float *pfBL;
 	float fsacc, ftacc;
 
 	smax = (surf->extents[0] >> surf->lmshift) + 1;
 	tmax = (surf->extents[1] >> surf->lmshift) + 1;
-	tex = surf->texinfo;
 
 	for (lnum = 0; lnum < r_newrefdef.num_dlights; lnum++)
 	{
@@ -401,10 +399,10 @@ R_AddDynamicLights(msurface_t *surf)
 						surf->plane->normal[i] * fdist;
 		}
 
-		local[0] = DotProduct(impact,
-				   tex->vecs[0]) + tex->vecs[0][3] - surf->texturemins[0];
-		local[1] = DotProduct(impact,
-				   tex->vecs[1]) + tex->vecs[1][3] - surf->texturemins[1];
+		local[0] = DotProduct(impact, surf->lmvecs[0]) +
+			surf->lmvecs[0][3] - surf->texturemins[0];
+		local[1] = DotProduct(impact, surf->lmvecs[1]) +
+			surf->lmvecs[1][3] - surf->texturemins[1];
 
 		pfBL = s_blocklights;
 
@@ -417,6 +415,8 @@ R_AddDynamicLights(msurface_t *surf)
 				td = -td;
 			}
 
+			td *= surf->lmvlen[1];
+
 			for (s = 0, fsacc = 0; s < smax; s++, fsacc += (1 << surf->lmshift), pfBL += 3)
 			{
 				sd = Q_ftol(local[0] - fsacc);
@@ -425,6 +425,8 @@ R_AddDynamicLights(msurface_t *surf)
 				{
 					sd = -sd;
 				}
+
+				sd *= surf->lmvlen[0];
 
 				if (sd > td)
 				{
