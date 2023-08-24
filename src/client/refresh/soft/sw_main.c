@@ -1725,7 +1725,7 @@ static const int	r_skysideimage[6] = {5, 2, 4, 1, 0, 3};
 extern mtexinfo_t		r_skytexinfo[6];
 
 static void
-RE_SetSky (char *name, float rotate, vec3_t axis)
+RE_SetSky(const char *name, float rotate, int autorotate, const vec3_t axis)
 {
 	char	skyname[MAX_QPATH];
 	int		i;

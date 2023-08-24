@@ -182,7 +182,7 @@ typedef struct
 	struct model_s * (EXPORT *RegisterModel) (char *name);
 	struct image_s * (EXPORT *RegisterSkin) (char *name);
 
-	void	(EXPORT *SetSky) (char *name, float rotate, vec3_t axis);
+	void	(EXPORT *SetSky) (const char *name, float rotate, int autorotate, const vec3_t axis);
 	void	(EXPORT *EndRegistration) (void);
 
 	void	(EXPORT *RenderFrame) (refdef_t *fd);
@@ -268,7 +268,7 @@ void R_BeginRegistration(char *map);
 void R_Clear(void);
 struct model_s *R_RegisterModel(char *name);
 struct image_s *R_RegisterSkin(char *name);
-void R_SetSky(char *name, float rotate, vec3_t axis);
+void R_SetSky(const char *name, float rotate, int autorotate, const vec3_t axis);
 void R_EndRegistration(void);
 struct image_s *Draw_FindPic(char *name);
 void R_RenderFrame(refdef_t *fd);

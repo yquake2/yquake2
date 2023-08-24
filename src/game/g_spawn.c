@@ -450,6 +450,7 @@ ED_ParseEdict(char *data, edict_t *ent)
 
 	init = false;
 	memset(&st, 0, sizeof(st));
+	st.skyautorotate = 1;
 
 	/* go through all the dictionary pairs */
 	while (1)
@@ -903,7 +904,7 @@ SP_worldspawn(edict_t *ent)
 		gi.configstring(CS_SKY, "unit1_");
 	}
 
-	gi.configstring(CS_SKYROTATE, va("%f", st.skyrotate));
+	gi.configstring(CS_SKYROTATE, va("%f %d", st.skyrotate, st.skyautorotate));
 
 	gi.configstring(CS_SKYAXIS, va("%f %f %f",
 				st.skyaxis[0], st.skyaxis[1], st.skyaxis[2]));

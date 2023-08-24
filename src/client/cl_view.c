@@ -239,7 +239,8 @@ CL_PrepRefresh(void)
 	char mapname[MAX_QPATH];
 	int i;
 	char name[MAX_QPATH];
-	float rotate;
+	float rotate = 0;
+	int autorotate = 1;
 	vec3_t axis;
 
 	if (!cl.configstrings[CS_MODELS + 1][0])
@@ -346,9 +347,9 @@ CL_PrepRefresh(void)
 	/* set sky textures and speed */
 	Com_Printf("sky\r");
 	SCR_UpdateScreen();
-	rotate = (float)strtod(cl.configstrings[CS_SKYROTATE], (char **)NULL);
+	sscanf(cl.configstrings[CS_SKYROTATE], "%f %d", &rotate, &autorotate);
 	sscanf(cl.configstrings[CS_SKYAXIS], "%f %f %f", &axis[0], &axis[1], &axis[2]);
-	R_SetSky(cl.configstrings[CS_SKY], rotate, axis);
+	R_SetSky(cl.configstrings[CS_SKY], rotate, autorotate, axis);
 	Com_Printf("                                     \r");
 
 	/* the renderer can now free unneeded stuff */

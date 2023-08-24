@@ -475,7 +475,7 @@ extern void GL3_LM_EndBuildingLightmaps(void);
 extern void GL3_EmitWaterPolys(msurface_t *fa);
 extern void GL3_SubdivideSurface(msurface_t *fa, gl3model_t* loadmodel);
 
-extern void GL3_SetSky(char *name, float rotate, vec3_t axis);
+extern void GL3_SetSky(const char *name, float rotate, int autorotate, const vec3_t axis);
 extern void GL3_DrawSkyBox(void);
 extern void GL3_ClearSkyBox(void);
 extern void GL3_AddSkySurface(msurface_t *fa);

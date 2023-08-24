@@ -31,8 +31,9 @@
 #define ON_EPSILON 0.1 /* point on plane side epsilon */
 #define MAX_CLIP_VERTS 64
 
-float skyrotate;
-vec3_t skyaxis;
+static float skyrotate;
+static int skyautorotate;
+static vec3_t skyaxis;
 image_t *sky_images[6];
 msurface_t *warpface;
 int skytexorder[6] = {0, 2, 1, 3, 4, 5};
@@ -693,7 +694,8 @@ R_DrawSkyBox(void)
 
 	glPushMatrix();
 	glTranslatef(r_origin[0], r_origin[1], r_origin[2]);
-	glRotatef(r_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
+	glRotatef((skyautorotate ? r_newrefdef.time : 1.f) * skyrotate,
+		skyaxis[0], skyaxis[1], skyaxis[2]);
 
 	for (i = 0; i < 6; i++)
 	{
@@ -713,12 +715,11 @@ R_DrawSkyBox(void)
 
 		R_Bind(sky_images[skytexorder[i]]->texnum);
 
-        glEnableClientState( GL_VERTEX_ARRAY );
-        glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+		glEnableClientState( GL_VERTEX_ARRAY );
+		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
-
-        index_vtx = 0;
-        index_tex = 0;
+		index_vtx = 0;
+		index_tex = 0;
 
 		R_MakeSkyVec( skymins [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
 		R_MakeSkyVec( skymins [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
@@ -737,13 +738,14 @@ R_DrawSkyBox(void)
 }
 
 void
-RI_SetSky(char *name, float rotate, vec3_t axis)
+RI_SetSky(const char *name, float rotate, int autorotate, const vec3_t axis)
 {
 	char	skyname[MAX_QPATH];
 	int		i;
 
 	Q_strlcpy(skyname, name, sizeof(skyname));
 	skyrotate = rotate;
+	skyautorotate = autorotate;
 	VectorCopy(axis, skyaxis);
 
 	for (i = 0; i < 6; i++)

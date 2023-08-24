@@ -1878,7 +1878,7 @@ extern void RI_BeginRegistration(char *model);
 extern struct model_s * RI_RegisterModel(char *name);
 extern struct image_s * RI_RegisterSkin(char *name);
 
-extern void RI_SetSky(char *name, float rotate, vec3_t axis);
+extern void RI_SetSky(const char *name, float rotate, int autorotate, const vec3_t axis);
 extern void RI_EndRegistration(void);
 
 extern void RI_RenderFrame(refdef_t *fd);

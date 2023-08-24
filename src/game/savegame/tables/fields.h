@@ -99,6 +99,7 @@
 {"gravity", STOFS(gravity), F_LSTRING, FFL_SPAWNTEMP},
 {"sky", STOFS(sky), F_LSTRING, FFL_SPAWNTEMP},
 {"skyrotate", STOFS(skyrotate), F_FLOAT, FFL_SPAWNTEMP},
+{"skyautorotate", STOFS(skyautorotate), F_INT, FFL_SPAWNTEMP},
 {"skyaxis", STOFS(skyaxis), F_VECTOR, FFL_SPAWNTEMP},
 {"minyaw", STOFS(minyaw), F_FLOAT, FFL_SPAWNTEMP},
 {"maxyaw", STOFS(maxyaw), F_FLOAT, FFL_SPAWNTEMP},

@@ -381,12 +381,13 @@ SCR_SizeDown_f(void)
 void
 SCR_Sky_f(void)
 {
-	float rotate;
+	int autorotate = 1;
+	float rotate = 0;
 	vec3_t axis;
 
 	if (Cmd_Argc() < 2)
 	{
-		Com_Printf("Usage: sky <basename> <rotate> <axis x y z>\n");
+		Com_Printf("Usage: sky <basename> <rotate> <axis x y z> <autorotate>\n");
 		return;
 	}
 
@@ -395,12 +396,7 @@ SCR_Sky_f(void)
 		rotate = (float)strtod(Cmd_Argv(2), (char **)NULL);
 	}
 
-	else
-	{
-		rotate = 0;
-	}
-
-	if (Cmd_Argc() == 6)
+	if (Cmd_Argc() > 5)
 	{
 		axis[0] = (float)strtod(Cmd_Argv(3), (char **)NULL);
 		axis[1] = (float)strtod(Cmd_Argv(4), (char **)NULL);
@@ -413,7 +409,12 @@ SCR_Sky_f(void)
 		axis[2] = 1;
 	}
 
-	R_SetSky(Cmd_Argv(1), rotate, axis);
+	if (Cmd_Argc() == 7)
+	{
+		autorotate = (float)strtod(Cmd_Argv(6), (char **)NULL);
+	}
+
+	R_SetSky(Cmd_Argv(1), rotate, autorotate, axis);
 }
 
 void

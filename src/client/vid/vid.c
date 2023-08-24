@@ -633,11 +633,11 @@ R_RegisterSkin(char *name)
 }
 
 void
-R_SetSky(char *name, float rotate, vec3_t axis)
+R_SetSky(const char *name, float rotate, int autorotate, const vec3_t axis)
 {
 	if (ref_active)
 	{
-		re.SetSky(name, rotate, axis);
+		re.SetSky(name, rotate, autorotate, axis);
 	}
 }
 

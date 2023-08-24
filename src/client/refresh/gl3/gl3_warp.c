@@ -287,6 +287,7 @@ static float skymins[2][6], skymaxs[2][6];
 static float sky_min, sky_max;
 
 static float skyrotate;
+static int skyautorotate;
 static vec3_t skyaxis;
 static gl3image_t* sky_images[6];
 
@@ -327,13 +328,14 @@ int vec_to_st[6][3] = {
 
 
 void
-GL3_SetSky(char *name, float rotate, vec3_t axis)
+GL3_SetSky(const char *name, float rotate, int autorotate, const vec3_t axis)
 {
 	char	skyname[MAX_QPATH];
 	int		i;
 
 	Q_strlcpy(skyname, name, sizeof(skyname));
 	skyrotate = rotate;
+	skyautorotate = autorotate;
 	VectorCopy(axis, skyaxis);
 
 	for (i = 0; i < 6; i++)
@@ -706,7 +708,8 @@ GL3_DrawSkyBox(void)
 	{
 		// glRotatef(gl3_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
 		hmm_vec3 rotAxis = HMM_Vec3(skyaxis[0], skyaxis[1], skyaxis[2]);
-		modMVmat = HMM_MultiplyMat4(modMVmat, HMM_Rotate(gl3_newrefdef.time * skyrotate, rotAxis));
+		modMVmat = HMM_MultiplyMat4(modMVmat, HMM_Rotate(
+			(skyautorotate ? gl3_newrefdef.time : 1.f) * skyrotate, rotAxis));
 	}
 	gl3state.uni3DData.transModelMat4 = modMVmat;
 	GL3_UpdateUBO3D();
