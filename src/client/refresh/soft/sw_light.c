@@ -450,6 +450,29 @@ R_BuildLightMap (drawsurf_t* drawsurf)
 			}
 		}
 	}
+	else
+	{
+		int maps;
+
+		for (maps = 0 ; maps < MAXLIGHTMAPS && surf->styles[maps] != 255 ;
+			 maps++)
+		{
+			unsigned scale;
+			light_t  *curr_light, *max_light;
+
+			curr_light = blocklights;
+			max_light = blocklights + size;
+
+			scale = drawsurf->lightadj[maps];	// 8.8 fraction
+
+			do
+			{
+				*curr_light += 255 * scale;
+				curr_light++;
+			}
+			while(curr_light < max_light);
+		}
+	}
 
 	// add all the dynamic lights
 	if (surf->dlightframe == r_framecount)
