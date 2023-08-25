@@ -513,12 +513,40 @@ R_LoadImage(const char *name, const char* namewe, const char *ext, imagetype_t t
 
 			LoadPCX (namewe, &pic, &palette, &width, &height);
 			if (!pic)
+			{
 				return NULL;
+			}
 
-			image = load_image(name, pic,
-				width, width,
-				height, height,
-				width * height, type, 8);
+			if (r_retexturing && palette)
+			{
+				byte *image_buffer = NULL;
+				int i, size;
+
+				size = width * height;
+
+				image_buffer = malloc (size * 4);
+				for(i = 0; i < size; i++)
+				{
+					unsigned char value = pic[i];
+					image_buffer[i * 4 + 0] = palette[value * 3 + 0];
+					image_buffer[i * 4 + 1] = palette[value * 3 + 1];
+					image_buffer[i * 4 + 2] = palette[value * 3 + 2];
+					image_buffer[i * 4 + 3] = value == 255 ? 0 : 255;
+				}
+
+				image = load_image(name, image_buffer,
+					width, width,
+					height, height,
+					size, type, 32);
+				free (image_buffer);
+			}
+			else
+			{
+				image = load_image(name, pic,
+					width, width,
+					height, height,
+					width * height, type, 8);
+			}
 
 			if (palette)
 			{
