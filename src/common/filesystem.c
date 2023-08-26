@@ -419,7 +419,7 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 			}
 		}
 
-		// Pathes starting with a /. I'm not sure if this is
+		// Paths starting with a /. I'm not sure if this is
 		// a problem. It shouldn't hurt to remove the leading
 		// slash, though.
 		if (rawname[input] == '/' && output == 0)

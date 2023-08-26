@@ -328,7 +328,7 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 static void CL_CheckAndQueueDownload(char *path)
 {
 	// NOTE: The original r1q2 download code in r1q2 allowed
-	// only // pathes made of plain ASCII chars. YQ2 is more
+	// only // paths made of plain ASCII chars. YQ2 is more
 	// or less UTF-8 clean, so we're allowing all characters.
 
 	// Malicious filelists may have very long lines.
@@ -407,7 +407,7 @@ static void CL_CheckAndQueueDownload(char *path)
 		length--;
 	}
 
-	// Make sure that there're no evil pathes in the filelist. Most
+	// Make sure that there're no evil paths in the filelist. Most
 	// of these should be pretty okay with YQ2 since we've got a much
 	// better filesystem as other clients but let's stay consistent.
 	//

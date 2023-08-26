@@ -155,7 +155,7 @@ typedef struct
 
 	// called by GLimp_InitGraphics() *after* creating render
 	// context. Returns the actual drawable size in the width
-	// and height variables. This may be differend from the
+	// and height variables. This may be different from the
 	// window size due to high dpi awareness.
 	void	(EXPORT *GetDrawableSize)(int* width, int* height);
 

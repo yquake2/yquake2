@@ -63,7 +63,7 @@ int time_after_game;
 int time_before_ref;
 int time_after_ref;
 
-// Used in the network- and input pathes.
+// Used in the network- and input paths.
 int curtime;
 
 #ifndef DEDICATED_ONLY

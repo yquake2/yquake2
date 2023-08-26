@@ -502,7 +502,7 @@ R_FindImage(const char *name, imagetype_t type)
 		return NULL;
 	}
 
-	/* just return white image if show lighmap only */
+	/* just return white image if show lightmap only */
 	if ((type == it_wall || type == it_skin) && r_lightmap->value)
 	{
 		return r_whitetexture_mip;

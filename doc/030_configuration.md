@@ -174,7 +174,7 @@ support colored lighting.
 
 General cvars:
 
-* `cl_lights`: Set to `0` to disable the dynamic lightning.
+* `cl_lights`: Set to `0` to disable the dynamic lighting.
 
 Both OpenGL renderers:
 * `gl_texturemode`: Set to `GL_NEAREST` to disable the texture

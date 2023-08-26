@@ -212,7 +212,7 @@ Set `0` by default.
 
 * **g_fix_triggered**: This cvar, when set to `1`, forces monsters to
   spawn in normally if they are set to a triggered spawn but do not
-  have a targetname. There are a few cases of this in GroundZero and
+  have a targetname. There are a few cases of this in Ground Zero and
   The Reckoning. This cvar is disabled by default to maintain the
   original gameplay experience.
 
@@ -328,10 +328,10 @@ Set `0` by default.
   custom maps and is problematic with other custom maps.
 
 * **r_fixsurfsky**: Some maps misuse sky surfaces for interior
-  lightning. The original renderer had a bug that made such surfaces
-  mess up the lightning of entities near them. If set to `0` (the
+  lighting. The original renderer had a bug that made such surfaces
+  mess up the lighting of entities near them. If set to `0` (the
   default) the bug is there and maps look like their developers
-  intended. If set to `1` the bug is fixed and the lightning correct.
+  intended. If set to `1` the bug is fixed and the lighting correct.
 
 * **r_vsync**: Enables the vsync: frames are synchronized with
   display refresh rate, should (but doesn't always) prevent tearing.

@@ -127,7 +127,7 @@ int RI_PrepareForWindow(void)
 }
 
 /*
- * Enables or disabes the vsync.
+ * Enables or disables the vsync.
  */
 void RI_SetVsync(void)
 {
