@@ -187,16 +187,16 @@ static void CL_EscapeHTTPPath(const char *filePath, char *escaped)
 /*
  * Removes an entry from the download queue.
  */
-static qboolean CL_RemoveFromQueue(dlqueue_t *entry)
+static qboolean CL_RemoveFromQueue(dlqueue_t **entry)
 {
 	dlqueue_t *last = &cls.downloadQueue;
 	dlqueue_t *cur = last->next;
 
 	while (cur)
 	{
-		if (last->next == entry)
+		if (last->next == *entry)
 		{
-			last->next = cur->next;
+			last->next = *entry = cur->next;
 			free(cur);
 			cur = NULL;
 
@@ -257,7 +257,7 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 		if (!dl->file)
 		{
 			Com_Printf("HTTP download: Couldn't open %s for writing\n", dl->filePath);
-			CL_RemoveFromQueue(entry);
+			CL_RemoveFromQueue(&entry);
 			pendingCount--;
 
 			return;
@@ -309,7 +309,7 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 	if ((ret = qcurl_multi_add_handle(multi, dl->curl)) != CURLM_OK)
 	{
 		Com_Printf("HTTP download: cURL error - %s\n", qcurl_easy_strerror(ret));
-		CL_RemoveFromQueue(entry);
+		CL_RemoveFromQueue(&entry);
 
 		return;
 	}
@@ -529,7 +529,7 @@ static void CL_ReVerifyHTTPQueue (void)
 		{
 			if (FS_LoadFile (q->quakePath, NULL) != -1)
 			{
-				CL_RemoveFromQueue(q);
+				CL_RemoveFromQueue(&q);
 			}
 			else
 			{
@@ -648,7 +648,7 @@ static void CL_FinishHTTPDownload(void)
 
 					// ...remove it from the CURL multihandle...
 					qcurl_multi_remove_handle(multi, dl->curl);
-					CL_RemoveFromQueue(dl->queueEntry);
+					CL_RemoveFromQueue(&dl->queueEntry);
 					dl->queueEntry = NULL;
 
 					// ...and communicate the error.
@@ -669,7 +669,7 @@ static void CL_FinishHTTPDownload(void)
 					if (!isFile && !abortDownloads)
 					{
 						CL_ParseFileList(dl);
-						CL_RemoveFromQueue(dl->queueEntry);
+						CL_RemoveFromQueue(&dl->queueEntry);
 						dl->queueEntry = NULL;
 					}
 
@@ -709,13 +709,13 @@ static void CL_FinishHTTPDownload(void)
 				// stuck.
 				if (abortDownloads)
 				{
-					CL_RemoveFromQueue(dl->queueEntry);
+					CL_RemoveFromQueue(&dl->queueEntry);
 					dl->queueEntry = NULL;
 				}
 
 				// Abort all HTTP downloads.
 				CL_CancelHTTPDownloads (true);
-				CL_RemoveFromQueue(dl->queueEntry);
+				CL_RemoveFromQueue(&dl->queueEntry);
 				dl->queueEntry = NULL;
 
 				break;
@@ -732,7 +732,7 @@ static void CL_FinishHTTPDownload(void)
 
 				// ...and the handle from CURLs mutihandle.
 				qcurl_multi_remove_handle (multi, dl->curl);
-				CL_RemoveFromQueue(dl->queueEntry);
+				CL_RemoveFromQueue(&dl->queueEntry);
 				dl->queueEntry = NULL;
 
 				break;
@@ -757,7 +757,7 @@ static void CL_FinishHTTPDownload(void)
 				downloadingPak = false;
 			}
 
-			CL_RemoveFromQueue(dl->queueEntry);
+			CL_RemoveFromQueue(&dl->queueEntry);
 			dl->queueEntry = NULL;
 		}
 
@@ -1045,7 +1045,7 @@ void CL_CancelHTTPDownloads(qboolean permKill)
 
 		if (q->state == DLQ_STATE_NOT_STARTED)
 		{
-			CL_RemoveFromQueue(q);
+			CL_RemoveFromQueue(&q);
 		}
 	}
 
