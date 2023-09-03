@@ -125,7 +125,7 @@ typedef struct mvertex_s
 
 typedef struct medge_s
 {
-	unsigned short	v[2];
+	unsigned int	v[2];
 	unsigned int	cachededgeoffset;
 } medge_t;
 
@@ -153,8 +153,8 @@ typedef struct mnode_s
 	cplane_t	*plane;
 	struct mnode_s	*children[2];
 
-	unsigned short	firstsurface;
-	unsigned short	numsurfaces;
+	unsigned int	firstsurface;
+	unsigned int	numsurfaces;
 } mnode_t;
 
 typedef struct mleaf_s
@@ -194,6 +194,9 @@ extern struct image_s* R_LoadImage(const char *name, const char* namewe, const c
 extern void Mod_LoadNodes(const char *name, cplane_t *planes, int numplanes,
 	mleaf_t *leafs, int numleafs, mnode_t **nodes, int *numnodes,
 	const byte *mod_base, const lump_t *l);
+extern void Mod_LoadQNodes(const char *name, cplane_t *planes, int numplanes,
+	mleaf_t *leafs, int numleafs, mnode_t **nodes, int *numnodes,
+	const byte *mod_base, const lump_t *l);
 extern void Mod_LoadVertexes(const char *name, mvertex_t **vertexes, int *numvertexes,
 	const byte *mod_base, const lump_t *l, int extra);
 extern void Mod_LoadVisibility(dvis_t **vis, const byte *mod_base, const lump_t *l);
@@ -202,6 +205,8 @@ extern void Mod_LoadTexinfo(const char *name, mtexinfo_t **texinfo, int *numtexi
 	const byte *mod_base, const lump_t *l, findimage_t find_image,
 	struct image_s *notexture, int extra);
 extern void Mod_LoadEdges(const char *name, medge_t **edges, int *numedges,
+	const byte *mod_base, const lump_t *l, int extra);
+extern void Mod_LoadQEdges(const char *name, medge_t **edges, int *numedges,
 	const byte *mod_base, const lump_t *l, int extra);
 extern void Mod_LoadPlanes (const char *name, cplane_t **planes, int *numplanes,
 	const byte *mod_base, const lump_t *l, int extra);

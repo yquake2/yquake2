@@ -449,6 +449,93 @@ Mod_LoadNodes(const char *name, cplane_t *planes, int numplanes, mleaf_t *leafs,
 
 /*
 =================
+Mod_LoadQNodes
+=================
+*/
+void
+Mod_LoadQNodes(const char *name, cplane_t *planes, int numplanes, mleaf_t *leafs,
+	int numleafs, mnode_t **nodes, int *numnodes, const byte *mod_base,
+	const lump_t *l)
+{
+	int	r_leaftovis[MAX_MAP_LEAFS], r_vistoleaf[MAX_MAP_LEAFS];
+	int	i, count, numvisleafs;
+	dqnode_t	*in;
+	mnode_t	*out;
+
+	in = (void *)(mod_base + l->fileofs);
+
+	if (l->filelen % sizeof(*in))
+	{
+		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+				__func__, name);
+	}
+
+	count = l->filelen / sizeof(*in);
+	out = Hunk_Alloc(count * sizeof(*out));
+
+	*nodes = out;
+	*numnodes = count;
+
+	for (i = 0; i < count; i++, in++, out++)
+	{
+		int j, planenum;
+
+		for (j = 0; j < 3; j++)
+		{
+			out->minmaxs[j] = LittleFloat(in->mins[j]);
+			out->minmaxs[3 + j] = LittleFloat(in->maxs[j]);
+		}
+
+		planenum = LittleLong(in->planenum);
+		if (planenum  < 0 || planenum >= numplanes)
+		{
+			ri.Sys_Error(ERR_DROP, "%s: Incorrect %d < %d planenum.",
+					__func__, planenum, numplanes);
+		}
+		out->plane = planes + planenum;
+
+		out->firstsurface = LittleLong(in->firstface);
+		out->numsurfaces = LittleLong(in->numfaces);
+		out->contents = CONTENTS_NODE; /* differentiate from leafs */
+
+		for (j = 0; j < 2; j++)
+		{
+			int leafnum;
+
+			leafnum = LittleLong(in->children[j]);
+
+			if (leafnum >= 0)
+			{
+				if (leafnum  < 0 || leafnum >= *numnodes)
+				{
+					ri.Sys_Error(ERR_DROP, "%s: Incorrect %d nodenum as leaf.",
+							__func__, leafnum);
+				}
+
+				out->children[j] = *nodes + leafnum;
+			}
+			else
+			{
+				leafnum = -1 - leafnum;
+				if (leafnum  < 0 || leafnum >= numleafs)
+				{
+					ri.Sys_Error(ERR_DROP, "%s: Incorrect %d leafnum.",
+							__func__, leafnum);
+				}
+
+				out->children[j] = (mnode_t *)(leafs + leafnum);
+			}
+		}
+	}
+
+	Mod_SetParent(*nodes, NULL); /* sets nodes and leafs */
+
+	numvisleafs = 0;
+	Mod_NumberLeafs (leafs, *nodes, r_leaftovis, r_vistoleaf, &numvisleafs);
+}
+
+/*
+=================
 Mod_LoadVisibility
 =================
 */
@@ -654,6 +741,41 @@ Mod_LoadEdges(const char *name, medge_t **edges, int *numedges,
 	{
 		out->v[0] = (unsigned short)LittleShort(in->v[0]);
 		out->v[1] = (unsigned short)LittleShort(in->v[1]);
+	}
+}
+
+/*
+=================
+Mod_LoadQEdges
+
+extra is used for skybox, which adds 6 surfaces
+=================
+*/
+void
+Mod_LoadQEdges(const char *name, medge_t **edges, int *numedges,
+	const byte *mod_base, const lump_t *l, int extra)
+{
+	dqedge_t *in;
+	medge_t *out;
+	int 	i, count;
+
+	in = (void *)(mod_base + l->fileofs);
+	if (l->filelen % sizeof(*in))
+	{
+		ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+				__func__, name);
+	}
+
+	count = l->filelen / sizeof(*in);
+	out = Hunk_Alloc((count + extra) * sizeof(*out));
+
+	*edges = out;
+	*numedges = count;
+
+	for ( i=0 ; i<count ; i++, in++, out++)
+	{
+		out->v[0] = (unsigned int)LittleLong(in->v[0]);
+		out->v[1] = (unsigned int)LittleLong(in->v[1]);
 	}
 }
 
