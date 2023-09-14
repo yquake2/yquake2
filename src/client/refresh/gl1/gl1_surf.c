@@ -438,7 +438,7 @@ R_RenderBrushPoly(entity_t *currententity, msurface_t *fa)
 		   gl1_overbrightbits the result is different:
 
 		    0: Old behaviour.
-		    1: No overbright bits on the global scene but correct lightning on
+		    1: No overbright bits on the global scene but correct lighting on
 		       warping surfaces.
 		    2: Overbright bits on the global scene but not on warping surfaces.
 		        They oversaturate otherwise. */

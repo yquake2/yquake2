@@ -134,7 +134,7 @@ qboolean GL3_IsVsyncActive(void)
 }
 
 /*
- * Enables or disabes the vsync.
+ * Enables or disables the vsync.
  */
 void GL3_SetVsync(void)
 {

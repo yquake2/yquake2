@@ -88,7 +88,7 @@ replacement_t replacements[] = {
 	{"gl_retexturing", "r_retexturing"},
 	{"gl_shadows", "r_shadows"},
 	{"gl_anisotropic", "r_anisotropic"},
-	{"gl_lightmap", "r_lighmap"},
+	{"gl_lightmap", "r_lightmap"},
 	{"gl1_polyblend", "gl_polyblend"},
 	{"gl_cull", "r_cull"},
 	{"intensity", "gl1_intensity"}
@@ -127,7 +127,7 @@ Cvar_FindVar(const char *var_name)
 	{
 		if (!strcmp(var_name, replacements[i].old))
 		{
-			Com_Printf("cvar %s ist deprecated, use %s instead\n", replacements[i].old, replacements[i].new);
+			Com_Printf("cvar %s is deprecated, use %s instead\n", replacements[i].old, replacements[i].new);
 
 			var_name = replacements[i].new;
 		}

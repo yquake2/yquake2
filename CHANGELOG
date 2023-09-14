@@ -19,7 +19,7 @@ Quake II 8.10 to 8.20:
   0lvin)
 - Ported reverb effects from SkacikPLs Q2RTX fork. (by 0lvin)
 - Fix several coop related bugs with the powercubes. (by BjossiAlfreds)
-- A way better fix for dead bodys obstructing elevators or falling
+- A way better fix for dead bodies obstructing elevators or falling
   through the worldmodel. (by BjossiAlfreds)
 - Fix items already in water playing a splash sound at level start. (by
   BjossiAlfreds)
@@ -35,7 +35,7 @@ Quake II 8.01 to 8.10:
 - Add 'ref_gles3', an OpenGL ES 3.0 renderer lib. This is an variant
   of the OpenGL 3.2 renderer, using OpenGL ES instead of desktop OpenGL.
   It greatly enhances support for embedded GPUs like the RaspberryPI 4.
-- The Software renderer now supports colored lightning. It can be
+- The Software renderer now supports colored lighting. It can be
   enabled through `sw_colorlight`. (by 0lvin)
 - Another round of timing fixes. Implement `cl_maxfps -1` (the new
   default, existing configs are not altered) to automatically select
@@ -43,7 +43,7 @@ Quake II 8.01 to 8.10:
   framerate. This solves some subtile problems with stuttering entities.
 - Greatly improved support for joysticks and controllers. Devices can
   now be hotplugged at runtime, binding should be portable between
-  differend controllers and there's a new menu for controller bindings.
+  different controllers and there's a new menu for controller bindings.
   (by Jaime Moreira)
 - Add the `r_2D_unfiltered` and `r_videos_unfiltered` cvars. When
   enabled 2D elements like the HUD and videos are not filtered, they
@@ -76,9 +76,9 @@ Quake II 8.00 to 8.01:
 - Optimise command line parser and fix several subtle bugs. (by
   BjossiAlfreds)
 - Add `r_2D_unfiltered`, when set to `1` 2D elements aren't filtered.
-- Fix soldiers never chowing their pain skin as long as they're alive.
+- Fix soldiers never showing their pain skin as long as they're alive.
 - Fix relative paths in ZIP files not being found.
-- Add `gamemode` command for changing between singleplayer, deathmach
+- Add `gamemode` command for changing between singleplayer, deathmatch
   and coop. (by BjossiAlfreds)
 - Show a download progress bar when `cl_http_show_dw_progress` is set to
   `1`. (by David Carlier)
@@ -212,8 +212,8 @@ Quake II 7.30 to 7.40:
   And the display refresh rate detection no longer cripple working GPU
   drivers in an efford to work around bugs in older version of AMDs.
 - A lot of fixes to the internal memory management. The game is now
-  much more memory efficient, this allows playing of extremly big maps
-  without crashes. This is largly based upon work done by Denis Pauk.
+  much more memory efficient, this allows playing of extremely big maps
+  without crashes. This is largely based upon work done by Denis Pauk.
 - New and much more detailed documentation.
 - Enhancements to the software renderer. Retexturing packs are now
   supported, general cleanup and bugfixes. (by Denis Pauk)
@@ -244,7 +244,7 @@ Quake II 7.10 to 7.20:
   The configuration file will be converted at the first start, when an
   old cvar name is used a message is printed.
 - Make the client unicode compatible. Yamagi Quake II can now be 
-  installed into pathes with unicode characters in it. On Windows the
+  installed into paths with unicode characters in it. On Windows the
   user name of the current account may contain unicode characters.
   As a side effect the game can run on ReFS volumes. While '+set
   basedir' is still supported, the unicode compatible '-datadir'
@@ -292,7 +292,7 @@ Quake II 7.01 to 7.02:
   vsync or the gl_maxfps cvar) with an accuracy of about +/- 1% as long
   as the hardware is fast enough.  The framecounter was reimplemented
   to be much more precise.
-- Fix misspredictions if an original client running on Win32 connects
+- Fix mispredictions if an original client running on Win32 connects
   to a Yamagi Quake II server running on Linux/i386.
 
 Quake II 7.00 to 7.01:
@@ -331,7 +331,7 @@ Quake II 5.34 to 6.00:
 
 Quake II 5.33 to 5.34:
 - Add support for stereo 3D (by Valery Guskov)
-- Make gibt solid so they move with conveyor belts.
+- Make gibs solid so they move with conveyor belts.
 - Disable gl_ext_multitexturing by default.
 - Switch from an arch whitelist to an "all archs are supported"
   approach.
@@ -345,7 +345,7 @@ Quake II 5.32 to 5.33:
 - Better support for keyboards with AZERTY layout
 
 Quake II 5.31 to 5.32:
-- Fix problems with never openal-soft versions.
+- Fix problems with newer openal-soft versions.
 - Fix overbright bits not applied to regular meshes. (by David Reid)
 - Several improvements to GUI / HUD scaling. (by David Reid)
 - Don't stop generating gibs after map change.
@@ -391,7 +391,7 @@ Quake II 5.21 to 5.22:
 - Add support for MSAA through the gl_msaa_samples cvar.
 
 Quake II 5.20 to 5.21:
-- Fix a bug regaring mouse key handling (reported by phenixia2003)
+- Fix a bug regarding mouse key handling (reported by phenixia2003)
 - Correct MS Windows builds. Add official support for Win64. This
   still needs some testing.
 - Allow to shutdown the client by pressing ctrl-c or sending SIGTERM.
@@ -539,9 +539,9 @@ Quake II 2.10RC to 2.10RC2:
 - Slightly better game performance (~10 FPS)
 
 Quake II 2.00 to 2.10RC:
-- Automagical releases the mouse when the console is opened
+- Automagically releases the mouse when the console is opened
 - Increased the maximal amount of file descriptores from 64 to 256.
-  This should fix some very rare crashes with 'The Reconing' and
+  This should fix some very rare crashes with 'The Reckoning' and
   possible similar problems with mods.  (reported by E. Müller)
 - Support for custom resolutions (by caedes and Yamagi)
 

@@ -35,7 +35,7 @@ if (MSVC)
 
 	# ignore some compiler warnings
 	add_compile_options(/wd4244 /wd4305) # possible loss of data/truncation (double to float etc; ignore)
-	add_compile_options(/wd4018) # signed/unsigned missmatch
+	add_compile_options(/wd4018) # signed/unsigned mismatch
 	add_compile_options(/wd4996) # 'function': was declared deprecated (like all that secure CRT stuff)
 	# don't show me warnings for system headers, why the fuck isn't this default
 	add_compile_options(/experimental:external /external:W0)
