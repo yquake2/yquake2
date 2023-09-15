@@ -2460,7 +2460,7 @@ SWimp_CreateRender(int width, int height)
 
 // this is only here so the functions in q_shared.c and q_shwin.c can link
 void
-Sys_Error (char *error, ...)
+Sys_Error (const char *error, ...)
 {
 	va_list		argptr;
 	char		text[4096]; // MAXPRINTMSG == 4096
@@ -2473,7 +2473,7 @@ Sys_Error (char *error, ...)
 }
 
 void
-Com_Printf(char *msg, ...)
+Com_Printf(const char *msg, ...)
 {
 	va_list	argptr;
 	va_start(argptr, msg);

@@ -167,7 +167,7 @@ void COM_AddParm(char *parm);
 void COM_Init(void);
 void COM_InitArgv(int argc, char **argv);
 
-char *CopyString(char *in);
+char *CopyString(const char *in);
 
 /* ================================================================== */
 
@@ -448,27 +448,27 @@ void Cmd_ForwardToServer(void);
 
 extern cvar_t *cvar_vars;
 
-cvar_t *Cvar_Get(char *var_name, char *value, int flags);
+cvar_t *Cvar_Get(const char *var_name, char *value, int flags);
 
 /* creates the variable if it doesn't exist, or returns the existing one */
 /* if it exists, the value will not be changed, but flags will be ORed in */
 /* that allows variables to be unarchived without needing bitflags */
 
-cvar_t *Cvar_Set(char *var_name, char *value);
+cvar_t *Cvar_Set(const char *var_name, char *value);
 
 /* will create the variable if it doesn't exist */
 
-cvar_t *Cvar_ForceSet(char *var_name, char *value);
+cvar_t *Cvar_ForceSet(const char *var_name, char *value);
 
 /* will set the variable even if NOSET or LATCH */
 
-cvar_t *Cvar_FullSet(char *var_name, char *value, int flags);
+cvar_t *Cvar_FullSet(const char *var_name, char *value, int flags);
 
-void Cvar_SetValue(char *var_name, float value);
+void Cvar_SetValue(const char *var_name, float value);
 
 /* expands value to a string and calls Cvar_Set */
 
-float Cvar_VariableValue(char *var_name);
+float Cvar_VariableValue(const char *var_name);
 
 /* returns 0 if not defined or non numeric */
 
@@ -491,7 +491,7 @@ qboolean Cvar_Command(void);
 /* command.  Returns true if the command was a variable reference that */
 /* was handled. (print or change) */
 
-void Cvar_WriteVariables(char *path);
+void Cvar_WriteVariables(const char *path);
 
 /* appends lines containing "set variable value" for all variables */
 /* with the archive flag set to true. */
@@ -741,11 +741,11 @@ void FS_CreatePath(char *path);
 
 void Com_BeginRedirect(int target, char *buffer, int buffersize, void (*flush)(int, char *));
 void Com_EndRedirect(void);
-void Com_Printf(char *fmt, ...) PRINTF_ATTR(1, 2);
-void Com_DPrintf(char *fmt, ...) PRINTF_ATTR(1, 2);
+void Com_Printf(const char *fmt, ...) PRINTF_ATTR(1, 2);
+void Com_DPrintf(const char *fmt, ...) PRINTF_ATTR(1, 2);
 void Com_VPrintf(int print_level, const char *fmt, va_list argptr); /* print_level is PRINT_ALL or PRINT_DEVELOPER */
-void Com_MDPrintf(char *fmt, ...) PRINTF_ATTR(1, 2);
-YQ2_ATTR_NORETURN_FUNCPTR void Com_Error(int code, char *fmt, ...) PRINTF_ATTR(2, 3);
+void Com_MDPrintf(const char *fmt, ...) PRINTF_ATTR(1, 2);
+YQ2_ATTR_NORETURN_FUNCPTR void Com_Error(int code, const char *fmt, ...) PRINTF_ATTR(2, 3);
 YQ2_ATTR_NORETURN void Com_Quit(void);
 
 /* Ugly work around for unsupported
@@ -838,7 +838,7 @@ void SV_Frame(int usec);
 // system.c
 char *Sys_ConsoleInput(void);
 void Sys_ConsoleOutput(char *string);
-YQ2_ATTR_NORETURN void Sys_Error(char *error, ...);
+YQ2_ATTR_NORETURN void Sys_Error(const char *error, ...);
 YQ2_ATTR_NORETURN void Sys_Quit(void);
 void Sys_Init(void);
 char *Sys_GetHomeDir(void);

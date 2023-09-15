@@ -96,7 +96,7 @@ replacement_t replacements[] = {
 
 
 static qboolean
-Cvar_InfoValidate(char *s)
+Cvar_InfoValidate(const char *s)
 {
 	if (strstr(s, "\\"))
 	{
@@ -178,7 +178,7 @@ Cvar_IsFloat(const char *s)
 }
 
 float
-Cvar_VariableValue(char *var_name)
+Cvar_VariableValue(const char *var_name)
 {
 	cvar_t *var;
 
@@ -212,7 +212,7 @@ Cvar_VariableString(const char *var_name)
  * The flags will be or'ed in if the variable exists.
  */
 cvar_t *
-Cvar_Get(char *var_name, char *var_value, int flags)
+Cvar_Get(const char *var_name, char *var_value, int flags)
 {
 	cvar_t *var;
 	cvar_t **pos;
@@ -290,7 +290,7 @@ Cvar_Get(char *var_name, char *var_value, int flags)
 }
 
 cvar_t *
-Cvar_Set2(char *var_name, char *value, qboolean force)
+Cvar_Set2(const char *var_name, char *value, qboolean force)
 {
 	cvar_t *var;
 
@@ -394,19 +394,19 @@ Cvar_Set2(char *var_name, char *value, qboolean force)
 }
 
 cvar_t *
-Cvar_ForceSet(char *var_name, char *value)
+Cvar_ForceSet(const char *var_name, char *value)
 {
 	return Cvar_Set2(var_name, value, true);
 }
 
 cvar_t *
-Cvar_Set(char *var_name, char *value)
+Cvar_Set(const char *var_name, char *value)
 {
 	return Cvar_Set2(var_name, value, false);
 }
 
 cvar_t *
-Cvar_FullSet(char *var_name, char *value, int flags)
+Cvar_FullSet(const char *var_name, char *value, int flags)
 {
 	cvar_t *var;
 
@@ -442,7 +442,7 @@ Cvar_FullSet(char *var_name, char *value, int flags)
 }
 
 void
-Cvar_SetValue(char *var_name, float value)
+Cvar_SetValue(const char *var_name, float value)
 {
 	char val[32];
 
@@ -582,7 +582,7 @@ Cvar_Set_f(void)
  * with the archive flag set to true.
  */
 void
-Cvar_WriteVariables(char *path)
+Cvar_WriteVariables(const char *path)
 {
 	cvar_t *var;
 	char buffer[1024];
