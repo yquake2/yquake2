@@ -24,9 +24,7 @@
  * =======================================================================
  */
 
-#ifdef __APPLE__
 #include <limits.h>
-#endif
 
 #include "../header/local.h"
 #include "../monster/misc/player.h"
