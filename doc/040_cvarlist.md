@@ -409,6 +409,10 @@ Set `0` by default.
   show. Defaults to `300`.  
   Related to this: *cl_maxfps* and *cl_async*.
 
+* **vid_pauseonfocuslost**: When set to `1` the game is paused as soon
+  as it's window looses focus. It will work only in situation were the
+  game can be paused, e.g. not in multiplayer games. Defaults to `0`.
+
 * **vid_renderer**: Selects the renderer library. Possible options are
   `gl1` (the default) for the old OpenGL 1.4 renderer, `gl3` for the
   OpenGL 3.2 renderer, `gles3` for the OpenGL ES3 renderer
