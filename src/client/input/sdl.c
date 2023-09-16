@@ -693,7 +693,7 @@ IN_Update(void)
 					{
 						S_Activate(false);
 
-						if (windowed_pauseonfocuslost->value == 1)
+						if (windowed_pauseonfocuslost->value != 1)
 						{
 						    Cvar_SetValue("paused", 1);
 						}
@@ -709,6 +709,11 @@ IN_Update(void)
 					if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
 					{
 						S_Activate(true);
+
+						if (windowed_pauseonfocuslost->value == 2)
+						{
+						    Cvar_SetValue("paused", 0);
+						}
 
 						/* play music */
 						if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
@@ -731,11 +736,14 @@ IN_Update(void)
 					{
 						Cvar_SetValue("paused", 0);
 					}
-				}
-				else if (event.window.event == SDL_WINDOWEVENT_MINIMIZED ||
-					event.window.event == SDL_WINDOWEVENT_HIDDEN)
-				{
-					Cvar_SetValue("paused", 1);
+
+					/* play music */
+					if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
+					    OGG_Status() == PAUSE && cl.attractloop == false &&
+					    cl_paused->value == 0)
+					{
+					    Cbuf_AddText("ogg toggle\n");
+					}
 				}
 				break;
 
@@ -2322,7 +2330,7 @@ IN_Init(void)
 		gyro_active = true;
 	}
 
-	windowed_pauseonfocuslost = Cvar_Get("windowed_pauseonfocuslost", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+	windowed_pauseonfocuslost = Cvar_Get("vid_pauseonfocuslost", "0", CVAR_USERINFO | CVAR_ARCHIVE);
 	windowed_mouse = Cvar_Get("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 
 	Cmd_AddCommand("+mlook", IN_MLookDown);
