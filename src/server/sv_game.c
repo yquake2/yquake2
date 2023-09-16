@@ -72,7 +72,7 @@ PF_Unicast(edict_t *ent, qboolean reliable)
  * Debug print to server console
  */
 void
-PF_dprintf(char *fmt, ...)
+PF_dprintf(const char *fmt, ...)
 {
 	char msg[1024];
 	va_list argptr;
@@ -88,7 +88,7 @@ PF_dprintf(char *fmt, ...)
  * Print to a single client
  */
 void
-PF_cprintf(edict_t *ent, int level, char *fmt, ...)
+PF_cprintf(edict_t *ent, int level, const char *fmt, ...)
 {
 	char msg[1024];
 	va_list argptr;
@@ -124,7 +124,7 @@ PF_cprintf(edict_t *ent, int level, char *fmt, ...)
  * centerprint to a single client
  */
 void
-PF_centerprintf(edict_t *ent, char *fmt, ...)
+PF_centerprintf(edict_t *ent, const char *fmt, ...)
 {
 	char msg[1024];
 	va_list argptr;
@@ -150,7 +150,7 @@ PF_centerprintf(edict_t *ent, char *fmt, ...)
  * Abort the server with a game error
  */
 YQ2_ATTR_NORETURN_FUNCPTR void
-PF_error(char *fmt, ...)
+PF_error(const char *fmt, ...)
 {
 	char msg[1024];
 	va_list argptr;

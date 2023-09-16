@@ -406,8 +406,8 @@ char *Sys_FindNext(unsigned musthave, unsigned canthave);
 void Sys_FindClose(void);
 
 /* this is only here so the functions in shared source files can link */
-YQ2_ATTR_NORETURN void Sys_Error(char *error, ...);
-void Com_Printf(char *msg, ...);
+YQ2_ATTR_NORETURN void Sys_Error(const char *error, ...);
+void Com_Printf(const char *msg, ...);
 
 /*
  * ==========================================================

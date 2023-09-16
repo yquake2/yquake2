@@ -47,7 +47,7 @@ SV_FlushRedirect(int sv_redirected, char *outputbuf)
  * Sends text across to be displayed if the level passes
  */
 void
-SV_ClientPrintf(client_t *cl, int level, char *fmt, ...)
+SV_ClientPrintf(client_t *cl, int level, const char *fmt, ...)
 {
 	va_list argptr;
 	char string[1024];
@@ -65,7 +65,7 @@ SV_ClientPrintf(client_t *cl, int level, char *fmt, ...)
  * Sends text to all active clients
  */
 void
-SV_BroadcastPrintf(int level, char *fmt, ...)
+SV_BroadcastPrintf(int level, const char *fmt, ...)
 {
 	va_list argptr;
 	char string[2048];
@@ -109,7 +109,7 @@ SV_BroadcastPrintf(int level, char *fmt, ...)
  * Sends text to all active clients
  */
 void
-SV_BroadcastCommand(char *fmt, ...)
+SV_BroadcastCommand(const char *fmt, ...)
 {
 	va_list argptr;
 	char string[1024];

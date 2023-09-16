@@ -216,7 +216,7 @@ typedef struct
 
 typedef struct
 {
-	YQ2_ATTR_NORETURN_FUNCPTR void	(IMPORT *Sys_Error) (int err_level, char *str, ...) PRINTF_ATTR(2, 3);
+	YQ2_ATTR_NORETURN_FUNCPTR void	(IMPORT *Sys_Error) (int err_level, const char *str, ...) PRINTF_ATTR(2, 3);
 
 	void	(IMPORT *Cmd_AddCommand) (char *name, void(*cmd)(void));
 	void	(IMPORT *Cmd_RemoveCommand) (char *name);
@@ -238,9 +238,9 @@ typedef struct
 	// files should be stored to, ie: "f:\quake\id1"
 	char	*(IMPORT *FS_Gamedir) (void);
 
-	cvar_t	*(IMPORT *Cvar_Get) (char *name, char *value, int flags);
-	cvar_t	*(IMPORT *Cvar_Set) (char *name, char *value);
-	void	 (IMPORT *Cvar_SetValue) (char *name, float value);
+	cvar_t	*(IMPORT *Cvar_Get) (const char *name, char *value, int flags);
+	cvar_t	*(IMPORT *Cvar_Set) (const char *name, char *value);
+	void	 (IMPORT *Cvar_SetValue) (const char *name, float value);
 
 	qboolean	(IMPORT *Vid_GetModeInfo)(int *width, int *height, int mode);
 	void		(IMPORT *Vid_MenuInit)( void );
