@@ -121,7 +121,7 @@ M_ForceMenuOff(void)
     Cvar_Set("paused", "0");
 }
 
-void
+    void
 M_PopMenu(void)
 {
     S_StartLocalSound(menu_out_sound);
@@ -139,12 +139,12 @@ M_PopMenu(void)
     if (!m_menudepth)
     {
         M_ForceMenuOff();
-	    /* play music */
-	    if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
-	        OGG_Status() == PAUSE && cl.attractloop == false)
-	    {
-	        Cbuf_AddText("ogg toggle\n");
-	    }
+        /* play music */
+        if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
+                OGG_Status() == PAUSE && cl.attractloop == false)
+        {
+            Cbuf_AddText("ogg toggle\n");
+        }
     }
 }
 
@@ -2448,7 +2448,7 @@ Options_MenuInit(void)
     s_options_crosshair_box.generic.callback = CrosshairFunc;
     s_options_crosshair_box.itemnames = crosshair_names;
 	
-	s_options_pauseonfocus_box.generic.type = MTYPE_SPINCONTROL;
+    s_options_pauseonfocus_box.generic.type = MTYPE_SPINCONTROL;
     s_options_pauseonfocus_box.generic.x = 0;
     s_options_pauseonfocus_box.generic.y = (y += 10);
     s_options_pauseonfocus_box.generic.name = "pause on minimized";
@@ -2497,7 +2497,7 @@ Options_MenuInit(void)
     Menu_AddItem(&s_options_menu, (void *)&s_options_lookstrafe_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_freelook_box);
     Menu_AddItem(&s_options_menu, (void *)&s_options_crosshair_box);
-	Menu_AddItem(&s_options_menu, (void*)&s_options_pauseonfocus_box);
+    Menu_AddItem(&s_options_menu, (void*)&s_options_pauseonfocus_box);
 
     if (show_gamepad)
     {
