@@ -194,7 +194,7 @@ static qboolean CL_RemoveFromQueue(dlqueue_t *entry)
 
 	while (cur)
 	{
-		if (last->next == entry)
+		if (cur == entry)
 		{
 			last->next = cur->next;
 			free(cur);
@@ -206,7 +206,6 @@ static qboolean CL_RemoveFromQueue(dlqueue_t *entry)
 		last = cur;
 		cur = cur->next;
 	}
-
 
 	return false;
 }
@@ -517,14 +516,13 @@ static void CL_ParseFileList(dlhandle_t *dl)
  */
 static void CL_ReVerifyHTTPQueue (void)
 {
-	dlqueue_t *q = &cls.downloadQueue;
+	dlqueue_t *q = &cls.downloadQueue.next;
 
 	pendingCount = 0;
 
-	while (q->next)
+	while (q)
 	{
-		q = q->next;
-
+		dlqueue_t *next = q->next;
 		if (q->state == DLQ_STATE_NOT_STARTED)
 		{
 			if (FS_LoadFile (q->quakePath, NULL) != -1)
@@ -536,6 +534,7 @@ static void CL_ReVerifyHTTPQueue (void)
 				pendingCount++;
 			}
 		}
+		q = next;
 	}
 }
 
@@ -1037,16 +1036,15 @@ void CL_CancelHTTPDownloads(qboolean permKill)
 		abortDownloads = HTTPDL_ABORT_SOFT;
 	}
 
-	dlqueue_t *q = &cls.downloadQueue;
-
-	while (q->next)
+	dlqueue_t *q = &cls.downloadQueue.next;
+	while (q)
 	{
-		q = q->next;
-
+		dlqueue_t *next = q->next;
 		if (q->state == DLQ_STATE_NOT_STARTED)
 		{
 			CL_RemoveFromQueue(q);
 		}
+		q = next;
 	}
 
 	if (!pendingCount && !handleCount && abortDownloads == HTTPDL_ABORT_HARD)
