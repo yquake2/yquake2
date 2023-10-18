@@ -287,6 +287,7 @@ Set `0` by default.
 
 * **cl_audiopaused**: If set to `1` the sounds pause when the game does.
 
+
 ## Graphics (all renderers)
 
 * **cin_force43**: If set to `1` (the default) cinematics are displayed
@@ -436,6 +437,7 @@ Set `0` by default.
   Other supported values: `GL_NEAREST_MIPMAP_NEAREST`,
   `GL_NEAREST_MIPMAP_LINEAR`, `GL_LINEAR_MIPMAP_LINEAR`
 
+
 ## Graphics (OpenGL 1.4 only)
 
 * **gl1_intensity**: Sets the color intensity. Must be a floating point
@@ -445,8 +447,9 @@ Set `0` by default.
 * **gl1_overbrightbits**: Enables overbright bits, brightness scaling of
   lightmaps and models. Higher values make shadows less dark. Possible
   values are `0` (no overbright bits), `1` (more correct lighting for
-  water), `2` (scale by factor 2) and `3` (scale by factor 3). Applied
-  in realtime, does not need `vid_restart`.
+  water), `2` (scale by factor 2), `3` (scale lighting by 3 only for the
+  dynamic meshes, like enemies and items), and `4` (scale lighting of
+  everything by 4). Applied in realtime, does not need `vid_restart`.
 
 * **gl1_particle_square**: If set to `1` particles are rendered as
   squares.
@@ -588,6 +591,7 @@ Set `0` by default.
   this cvar is `0`. Possible values:
   `0`: Rumble feedback,
   `1`: Haptic feedback.
+
 
 ## cvar operations
 
