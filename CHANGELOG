@@ -3,7 +3,7 @@ Quake II 8.20 to 8.30:
 - Use the same model loading code in all renderers. (by 0lvin)
 - Remove the unused `msg` cvar and the corresponding server side
   infrastructure. The cvar was never implemented in Quake II, but
-  existing bits clould be used for attacks against the client.
+  existing bits could be used for attacks against the client.
 - Add `cl_audiopaused`. When set to `1` the audio stops when the
   game is paused. (by David Carlier)
 - Add `ogg_pausewithgame`. When set to `1` the background music stops
@@ -11,16 +11,16 @@ Quake II 8.20 to 8.30:
 - New logo files, matching the original Quake II logo. (by SirYodaJedi)
 - Support for RISCV64 (by David Carlier)
 - Fix resetting Mods back to baseq2 when running with `-portable`.
-- Alternative playback modes for OGG/Vorbis backgrounf music: once,
+- Alternative playback modes for OGG/Vorbis background music: once,
   sequential, random. (by apartfromtime)
 - Support gyro aiming for Switch controllers with SDL < 2.0.14. (by
   protocultor)
 - Fixed stand-ground gladiators not attacking within a certain range.
   (by BjossiAlfreds)
 - Fixed monsters seeing players during intermissions. (by BjossiAlfreds)
-- Several fixes to Macron. (by BjossiAlfreds)
+- Several fixes to Makron. (by BjossiAlfreds)
 - Optional high dpi awareness when running under Wayland. Requires a
-  Wayland compistor supporting fractional-scale-v1 and at least SDL
+  Wayland compositor supporting fractional-scale-v1 and at least SDL
   2.26. Set `vid_highdpiawareness 1` to enable.
 - Fix lava surfaces not glowing.
 - Add a cheat protected cvar `g_swap_speed`. Allows to skip frames of
