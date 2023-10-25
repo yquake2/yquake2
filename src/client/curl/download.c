@@ -516,7 +516,7 @@ static void CL_ParseFileList(dlhandle_t *dl)
  */
 static void CL_ReVerifyHTTPQueue (void)
 {
-	dlqueue_t *q = &cls.downloadQueue.next;
+	dlqueue_t *q = cls.downloadQueue.next;
 
 	pendingCount = 0;
 
@@ -1036,7 +1036,7 @@ void CL_CancelHTTPDownloads(qboolean permKill)
 		abortDownloads = HTTPDL_ABORT_SOFT;
 	}
 
-	dlqueue_t *q = &cls.downloadQueue.next;
+	dlqueue_t *q = cls.downloadQueue.next;
 	while (q)
 	{
 		dlqueue_t *next = q->next;
