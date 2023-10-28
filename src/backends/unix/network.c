@@ -850,6 +850,8 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 
 	if ((Error = getaddrinfo(Host, Service, &hints, &res)))
 	{
+		Com_Printf("ERROR: NET_Socket: getaddrinfo:%s\n",
+				gai_strerror(Error));
 		return 0;
 	}
 
