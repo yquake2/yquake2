@@ -108,6 +108,7 @@ int	numplanes;
 int	numtexinfo;
 int	numvisibility;
 int trace_contents;
+int leafs[1024];
 mapsurface_t map_surfaces[MAX_MAP_TEXINFO];
 mapsurface_t nullsurface;
 qboolean portalopen[MAX_MAP_AREAPORTALS];
@@ -117,6 +118,7 @@ unsigned short	map_leafbrushes[MAX_MAP_LEAFBRUSHES];
 vec3_t trace_start, trace_end;
 vec3_t trace_mins, trace_maxs;
 vec3_t trace_extents;
+vec3_t c1, c2;
 
 #ifndef DEDICATED_ONLY
 int		c_pointcontents;
@@ -1044,9 +1046,7 @@ CM_BoxTrace(vec3_t start, vec3_t end, vec3_t mins, vec3_t maxs,
 	/* check for position test special case */
 	if ((start[0] == end[0]) && (start[1] == end[1]) && (start[2] == end[2]))
 	{
-		int leafs[1024];
 		int i, numleafs;
-		vec3_t c1, c2;
 		int topnode;
 
 		VectorAdd(start, mins, c1);
