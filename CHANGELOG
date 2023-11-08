@@ -75,12 +75,11 @@ Quake II 8.01 to 8.10:
 - Greatly improved support for joysticks and controllers. Devices can
   now be hotplugged at runtime, binding should be portable between
   different controllers and there's a new menu for controller bindings.
-  (by Jaime Moreira)
+  (by protocultor)
 - Add the `r_2D_unfiltered` and `r_videos_unfiltered` cvars. When
   enabled 2D elements like the HUD and videos are not filtered, they
   appear pixeled.
-- Add 'prefweap' command to select weapon by priority. (by Jaime
-  Moreira)
+- Add 'prefweap' command to select weapon by priority. (by protocultor)
 - Support building with Microsoft Visual Studio 2015 and newer.
 - Several game code fixes, mostly for stuck mechanics in fact2. (by
   BjossiAlfreds and maraakate)
