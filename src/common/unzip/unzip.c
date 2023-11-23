@@ -72,8 +72,8 @@
         #define NOUNCRYPT
 #endif
 
-#include "miniz.h"
-#include "minizconf.h"
+#include "miniz/miniz.h"
+#include "miniz/minizconf.h"
 #include "unzip.h"
 
 #ifdef STDC

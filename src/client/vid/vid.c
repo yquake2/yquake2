@@ -35,7 +35,7 @@
 // Screenshots
 // -----------
 
-#include "../../common/unzip/miniz.h"
+#include "../../common/unzip/miniz/miniz.h"
 
 static unsigned char*
 compress_for_stbiw(unsigned char *data, int data_len, int *out_len, int quality)
