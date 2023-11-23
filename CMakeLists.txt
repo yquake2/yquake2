@@ -463,6 +463,8 @@ set(Client-Source
 	${COMMON_SRC_DIR}/unzip/ioapi.c
 	${COMMON_SRC_DIR}/unzip/unzip.c
 	${COMMON_SRC_DIR}/unzip/miniz/miniz.c
+	${COMMON_SRC_DIR}/unzip/miniz/miniz_tdef.c
+	${COMMON_SRC_DIR}/unzip/miniz/miniz_tinfl.c
 	${SERVER_SRC_DIR}/sv_cmd.c
 	${SERVER_SRC_DIR}/sv_conless.c
 	${SERVER_SRC_DIR}/sv_entities.c
@@ -501,6 +503,8 @@ set(Client-Header
 	${COMMON_SRC_DIR}/unzip/ioapi.h
 	${COMMON_SRC_DIR}/unzip/unzip.h
 	${COMMON_SRC_DIR}/unzip/miniz/miniz.h
+	${COMMON_SRC_DIR}/unzip/miniz/miniz_tdef.h
+	${COMMON_SRC_DIR}/unzip/miniz/miniz_tinfl.h
 	${COMMON_SRC_DIR}/unzip/miniz/minizconf.h
 	${SERVER_SRC_DIR}/header/server.h
 	)
@@ -526,6 +530,8 @@ set(Server-Source
 	${COMMON_SRC_DIR}/unzip/ioapi.c
 	${COMMON_SRC_DIR}/unzip/unzip.c
 	${COMMON_SRC_DIR}/unzip/miniz/miniz.c
+	${COMMON_SRC_DIR}/unzip/miniz/miniz_tdef.c
+	${COMMON_SRC_DIR}/unzip/miniz/miniz_tinfl.c
 	${SERVER_SRC_DIR}/sv_cmd.c
 	${SERVER_SRC_DIR}/sv_conless.c
 	${SERVER_SRC_DIR}/sv_entities.c
@@ -548,6 +554,8 @@ set(Server-Header
 	${COMMON_SRC_DIR}/unzip/ioapi.h
 	${COMMON_SRC_DIR}/unzip/unzip.h
 	${COMMON_SRC_DIR}/unzip/miniz/miniz.h
+	${COMMON_SRC_DIR}/unzip/miniz/miniz_tdef.h
+	${COMMON_SRC_DIR}/unzip/miniz/miniz_tinfl.h
 	${COMMON_SRC_DIR}/unzip/miniz/minizconf.h
 	${SERVER_SRC_DIR}/header/server.h
 	)
