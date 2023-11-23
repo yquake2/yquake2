@@ -46,4 +46,14 @@
  #define z_off_t long
 #endif
 
+#if !defined(_WIN32) && defined(Z_LARGE64)
+#  define z_off64_t off64_t
+#else
+#  if defined(_WIN32) && !defined(__GNUC__)
+#    define z_off64_t __int64
+#  else
+#    define z_off64_t z_off_t
+#  endif
+#endif
+
 #endif
