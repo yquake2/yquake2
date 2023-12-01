@@ -53,8 +53,8 @@ R_DrawSprite(entity_t *currententity, const model_t *currentmodel)
 	}
 
 	r_polydesc.pixels       = skin->pixels[0];
-	r_polydesc.pixel_width  = min(s_psprframe->width, skin->width);
-	r_polydesc.pixel_height = min(s_psprframe->height, skin->height);
+	r_polydesc.pixel_width  = Q_min(s_psprframe->width, skin->width);
+	r_polydesc.pixel_height = Q_min(s_psprframe->height, skin->height);
 	r_polydesc.dist         = 0;
 
 	// generate the sprite's axes, completely parallel to the viewplane.
