@@ -576,7 +576,7 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 
 					vec3 lightToPos = dynLights[i].lightOrigin - passWorldCoord;
 					float distLightToPos = length(lightToPos);
-					float fact = max(0.0, intens - distLightToPos - 52.0);
+					float fact = Q_max(0.0, intens - distLightToPos - 52.0);
 
 					// move the light source a bit further above the surface
 					// => helps if the lightsource is so close to the surface (e.g. grenades, rockets)
@@ -585,7 +585,7 @@ static const char* fragmentSrc3Dlm = MULTILINE_STRING(
 					lightToPos += passNormal*32.0;
 
 					// also factor in angle between light and point on surface
-					fact *= max(0.0, dot(passNormal, normalize(lightToPos)));
+					fact *= Q_max(0.0, dot(passNormal, normalize(lightToPos)));
 
 
 					lmTex.rgb += dynLights[i].lightColor.rgb * fact * (1.0/256.0);
@@ -663,7 +663,7 @@ static const char* fragmentSrc3DlmNoColor = MULTILINE_STRING(
 
 					vec3 lightToPos = dynLights[i].lightOrigin - passWorldCoord;
 					float distLightToPos = length(lightToPos);
-					float fact = max(0.0, intens - distLightToPos - 52.0);
+					float fact = Q_max(0.0, intens - distLightToPos - 52.0);
 
 					// move the light source a bit further above the surface
 					// => helps if the lightsource is so close to the surface (e.g. grenades, rockets)
@@ -672,7 +672,7 @@ static const char* fragmentSrc3DlmNoColor = MULTILINE_STRING(
 					lightToPos += passNormal*32.0;
 
 					// also factor in angle between light and point on surface
-					fact *= max(0.0, dot(passNormal, normalize(lightToPos)));
+					fact *= Q_max(0.0, dot(passNormal, normalize(lightToPos)));
 
 
 					lmTex.rgb += dynLights[i].lightColor.rgb * fact * (1.0/256.0);
@@ -801,7 +801,7 @@ static const char* fragmentSrcAlias = MULTILINE_STRING(
 			// apply gamma correction and intensity
 			texel.rgb *= intensity;
 			texel.a *= alpha; // is alpha even used here?
-			texel *= min(vec4(1.5), passColor);
+			texel *= Q_min(vec4(1.5), passColor);
 
 			outColor.rgb = pow(texel.rgb, vec3(gamma));
 			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
@@ -864,7 +864,7 @@ static const char* fragmentSrcParticles = MULTILINE_STRING(
 			outColor.rgb = pow(texel.rgb, vec3(gamma));
 
 			// I want the particles to fade out towards the edge, the following seems to look nice
-			texel.a *= min(1.0, particleFadeFactor*(1.0 - distSquared));
+			texel.a *= Q_min(1.0, particleFadeFactor*(1.0 - distSquared));
 
 			outColor.a = texel.a; // I think alpha shouldn't be modified by gamma and intensity
 		}

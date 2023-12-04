@@ -240,7 +240,7 @@ R_TextureMode(char *string)
 			if (gl_config.anisotropic && gl_anisotropic->value)
 			{
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-						max(gl_anisotropic->value, 1.f));
+						Q_max(gl_anisotropic->value, 1.f));
 			}
 		}
 		else /* texture has no mipmaps */
@@ -778,7 +778,7 @@ R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 	if (mipmap && gl_config.anisotropic && gl_anisotropic->value)
 	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-				max(gl_anisotropic->value, 1.f));
+				Q_max(gl_anisotropic->value, 1.f));
 	}
 	return res;
 }

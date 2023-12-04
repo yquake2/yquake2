@@ -1255,8 +1255,8 @@ NET_Sleep(int msec)
 
 	timeout.tv_sec = msec / 1000;
 	timeout.tv_usec = (msec % 1000) * 1000;
-	i = max(ip_sockets[NS_SERVER], ip6_sockets[NS_SERVER]);
-	i = max(i, ipx_sockets[NS_SERVER]);
+	i = Q_max(ip_sockets[NS_SERVER], ip6_sockets[NS_SERVER]);
+	i = Q_max(i, ipx_sockets[NS_SERVER]);
 	select(i + 1, &fdset, NULL, NULL, &timeout);
 }
 

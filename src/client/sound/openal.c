@@ -643,7 +643,7 @@ AL_Spatialize(channel_t *ch)
 
 				final = 1.0 - ((dist / 1000) * (1.0 - s_occlusion_strength->value));
 
-				qalSourcef(ch->srcnum, AL_GAIN, min(max(final, 0), 1));
+				qalSourcef(ch->srcnum, AL_GAIN, Q_min(Q_max(final, 0), 1));
 
 				qalSourcei(ch->srcnum, AL_DIRECT_FILTER, underwaterFilter);
 
