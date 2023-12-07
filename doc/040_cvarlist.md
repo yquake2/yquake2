@@ -222,6 +222,12 @@ Set `0` by default.
   single player, the same way as in multiplayer.
   This cvar only works if the game.dll implements this behaviour.
 
+* **g_quick_weap**: If set to `1`, both *weapprev* and *weapnext*
+  commands will "count" how many times they have been called, making
+  possible to skip weapons by quickly tapping one of these keys.
+  By default this cvar is set to `0`, and will only work if the
+  game.dll implements this behaviour.
+
 * **g_swap_speed**: Sets the speed of the "changing weapon" animation.
   Default is `1`. If set to `2`, it will be double the speed, `3` is
   the triple... up until the max of `8`, since there are at least 2

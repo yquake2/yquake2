@@ -551,6 +551,7 @@ extern cvar_t *sv_maplist;
 
 extern cvar_t *aimfix;
 extern cvar_t *g_machinegun_norecoil;
+extern cvar_t *g_quick_weap;
 extern cvar_t *g_swap_speed;
 
 #define world (&g_edicts[0])
