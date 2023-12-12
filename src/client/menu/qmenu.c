@@ -223,109 +223,79 @@ extern int keydown[];
 qboolean
 Field_Key(menufield_s *f, int key)
 {
+    /*
+     * Ignore keypad in field to prevent duplicate
+     * entries through key presses processed as a
+     * normal char event and additionally as key
+     * event.
+     */
 	switch (key)
 	{
 		case K_KP_SLASH:
-			key = '/';
-			break;
 		case K_KP_MINUS:
-			key = '-';
-			break;
 		case K_KP_PLUS:
-			key = '+';
-			break;
 		case K_KP_HOME:
-			key = '7';
-			break;
 		case K_KP_UPARROW:
-			key = '8';
-			break;
 		case K_KP_PGUP:
-			key = '9';
-			break;
-		case K_KP_LEFTARROW:
-			key = '4';
-			break;
 		case K_KP_5:
-			key = '5';
-			break;
 		case K_KP_RIGHTARROW:
-			key = '6';
-			break;
 		case K_KP_END:
-			key = '1';
-			break;
 		case K_KP_DOWNARROW:
-			key = '2';
-			break;
 		case K_KP_PGDN:
-			key = '3';
-			break;
 		case K_KP_INS:
-			key = '0';
-			break;
 		case K_KP_DEL:
-			key = '.';
 			break;
 	}
 
-	if (key > 127)
-	{
-		return false;
-	}
+    if ((key == K_BACKSPACE) || (key == K_LEFTARROW) || (key == K_KP_LEFTARROW))
+    {
+        if (f->cursor > 0)
+        {
+            memmove(&f->buffer[f->cursor - 1], &f->buffer[f->cursor],
+                strlen(&f->buffer[f->cursor]) + 1);
+            f->cursor--;
 
-	switch (key)
-	{
-		case K_KP_LEFTARROW:
-		case K_LEFTARROW:
-		case K_BACKSPACE:
+            if (f->visible_offset)
+            {
+                f->visible_offset--;
+            }
+        }
 
-			if (f->cursor > 0)
-			{
-				memmove(&f->buffer[f->cursor - 1],
-						&f->buffer[f->cursor],
-						strlen(&f->buffer[f->cursor]) + 1);
-				f->cursor--;
+        return true;
+    }
 
-				if (f->visible_offset)
-				{
-					f->visible_offset--;
-				}
-			}
+    if ((key == K_DEL) || (key == K_KP_DEL))
+    {
+        memmove(&f->buffer[f->cursor], &f->buffer[f->cursor + 1],
+            strlen(&f->buffer[f->cursor + 1]) + 1);
+        return true;
+    }
 
-			break;
+    if (key == K_ENTER || key == K_KP_ENTER || key == K_ESCAPE || key == K_TAB)
+    {
+        return false;
+    }
 
-		case K_KP_DEL:
-		case K_DEL:
-			memmove(&f->buffer[f->cursor], &f->buffer[f->cursor + 1],
-				strlen(&f->buffer[f->cursor + 1]) + 1);
-			break;
+    if ((key < 32) || (key > 127))
+    {
+        return false;           /* non printable character */
+    }
 
-		case K_KP_ENTER:
-		case K_ENTER:
-		case K_ESCAPE:
-		case K_TAB:
-			return false;
+    if (!isdigit(key) && (f->generic.flags & QMF_NUMBERSONLY))
+    {
+        return false;
+    }
 
-		case K_SPACE:
-		default:
+    if (f->cursor < f->length)
+    {
+        f->buffer[f->cursor++] = key;
+        f->buffer[f->cursor] = 0;
 
-			if (!isdigit(key) && (f->generic.flags & QMF_NUMBERSONLY))
-			{
-				return false;
-			}
-
-			if (f->cursor < f->length)
-			{
-				f->buffer[f->cursor++] = key;
-				f->buffer[f->cursor] = 0;
-
-				if (f->cursor > f->visible_length)
-				{
-					f->visible_offset++;
-				}
-			}
-	}
+        if (f->cursor > f->visible_length)
+        {
+            f->visible_offset++;
+        }
+    }
 
 	return true;
 }

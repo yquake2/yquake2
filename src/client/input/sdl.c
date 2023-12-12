@@ -664,19 +664,41 @@ IN_Update(void)
 					else
 					{
 						int key = IN_TranslateSDLtoQ2Key(kc);
-						if(key == 0)
+						if (key == 0)
 						{
 							// fallback to scancodes if we don't know the keycode
 							key = IN_TranslateScancodeToQ2Key(sc);
 						}
-						if(key != 0)
-						{
-							Key_Event(key, down, true);
-						}
-						else
-						{
-							Com_DPrintf("Pressed unknown key with SDL_Keycode %d, SDL_Scancode %d.\n", kc, (int)sc);
-						}
+
+                        // normal character events
+                        if ((event.key.keysym.mod & KMOD_NUM) == KMOD_NUM)
+                        {
+                            switch (key)
+                            {
+                            case K_KP_HOME:
+                            case K_KP_UPARROW:
+                            case K_KP_PGUP:
+                            case K_KP_LEFTARROW:
+                            case K_KP_5:
+                            case K_KP_RIGHTARROW:
+                            case K_KP_END:
+                            case K_KP_DOWNARROW:
+                            case K_KP_PGDN:
+                            case K_KP_INS:
+                            case K_KP_DEL:
+                                key = 0;
+                                break;
+                            }
+                        }
+
+                        if (key != 0)
+                        {
+                            Key_Event(key, down, true);
+                        }
+                        else
+                        {
+                            Com_DPrintf("Pressed unknown key with SDL_Keycode %d, SDL_Scancode %d.\n", kc, (int)sc);
+                        }
 					}
 				}
 
