@@ -242,23 +242,27 @@ Key_GetMenuKey(int key)
 	switch (key)
 	{
 		case K_KP_UPARROW:
+                    if (IN_NumpadIsOn() == true) { break; }
 		case K_UPARROW:
 		case K_DPAD_UP:
 			return K_UPARROW;
 
 		case K_TAB:
 		case K_KP_DOWNARROW:
+                    if (IN_NumpadIsOn() == true) { break; }
 		case K_DOWNARROW:
 		case K_DPAD_DOWN:
 			return K_DOWNARROW;
 
 		case K_KP_LEFTARROW:
+                    if (IN_NumpadIsOn() == true) { break; }
 		case K_LEFTARROW:
 		case K_DPAD_LEFT:
 		case K_SHOULDER_LEFT:
 			return K_LEFTARROW;
 
 		case K_KP_RIGHTARROW:
+                    if (IN_NumpadIsOn() == true) { break; }
 		case K_RIGHTARROW:
 		case K_DPAD_RIGHT:
 		case K_SHOULDER_RIGHT:
@@ -283,12 +287,18 @@ Key_GetMenuKey(int key)
 		case K_BACKSPACE:
 		case K_DEL:
 		case K_KP_DEL:
+                    if (IN_NumpadIsOn() == true) { break; }
 		case K_BTN_Y:
 			return K_BACKSPACE;
+                case K_KP_INS:
+                    if (IN_NumpadIsOn() == true) { break; }
+                case K_INS:
+                    return K_INS;
 	}
 
 	return key;
 }
+
 const char *
 Default_MenuKey(menuframework_s *m, int key)
 {
