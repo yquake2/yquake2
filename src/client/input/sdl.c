@@ -1045,8 +1045,8 @@ static thumbstick_t
 IN_RadialDeadzone(thumbstick_t stick, float deadzone)
 {
 	thumbstick_t result = {0};
-	float magnitude = min(IN_StickMagnitude(stick), 1.0f);
-	deadzone = min( max(deadzone, 0.0f), 0.9f);		// clamp to [0.0, 0.9]
+	float magnitude = Q_min(IN_StickMagnitude(stick), 1.0f);
+	deadzone = Q_min( Q_max(deadzone, 0.0f), 0.9f);		// clamp to [0.0, 0.9]
 
 	if ( magnitude > deadzone )
 	{
@@ -1070,7 +1070,7 @@ IN_SlopedAxialDeadzone(thumbstick_t stick, float deadzone)
 	float abs_y = fabsf(stick.y);
 	float sign_x = copysignf(1.0f, stick.x);
 	float sign_y = copysignf(1.0f, stick.y);
-	deadzone = min(deadzone, 0.5f);
+	deadzone = Q_min(deadzone, 0.5f);
 	float deadzone_x = deadzone * abs_y;	// deadzone of one axis depends...
 	float deadzone_y = deadzone * abs_x;	// ...on the value of the other axis
 
@@ -1141,7 +1141,7 @@ IN_SmoothedStickRotation(float value)
 	//				0 for immediate consumption
 	float immediate_weight = (fabsf(value) - bottom_threshold)
 					/ (top_threshold - bottom_threshold);
-	immediate_weight = min( max(immediate_weight, 0.0f), 1.0f ); // clamp to [0, 1] range
+	immediate_weight = Q_min( Q_max(immediate_weight, 0.0f), 1.0f ); // clamp to [0, 1] range
 
 	// now we can push the smooth sample
 	float smooth_weight = 1.0f - immediate_weight;
@@ -1171,7 +1171,7 @@ IN_FlickStick(thumbstick_t stick, float axial_deadzone)
 	thumbstick_t processed = stick;
 	float angle_change = 0;
 
-	if (IN_StickMagnitude(stick) > min(joy_flick_threshold->value, 1.0f))	// flick!
+	if (IN_StickMagnitude(stick) > Q_min(joy_flick_threshold->value, 1.0f))	// flick!
 	{
 		// Make snap-to-axis only if player wasn't already flicking
 		if (!is_flicking || flick_progress < FLICK_TIME)
@@ -2005,8 +2005,8 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 	}
 
 	effect_volume = joy_haptic_magnitude->value * intens * dist_prop * volume;
-	low_freq = min(effect_volume * low_freq, USHRT_MAX);
-	hi_freq = min(effect_volume * hi_freq, USHRT_MAX);
+	low_freq = Q_min(effect_volume * low_freq, USHRT_MAX);
+	hi_freq = Q_min(effect_volume * hi_freq, USHRT_MAX);
 
 	// Com_Printf("%-29s: vol %5u - %4u ms - dp %.3f l %5.0f h %5.0f\n",
 	//	name, effect_volume, duration, dist_prop, low_freq, hi_freq);
