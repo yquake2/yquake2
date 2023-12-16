@@ -7,6 +7,12 @@
 // This makes the earthquake last 15 seconds instead of just 5.
 // If you want the earthquake length to go back to the way it was,
 // simply remove this field line (1384) entirely.
+//
+// 3. Set "ambush" spawnflag on monster_boss2.
+//
+// Targeted monsters must  spawn in ambsuh mode, otherwise the AI messes
+// up. Additionally this may fix a corner case with the monster slipping
+// into the void while pushed out of it's compartment.
 {
 "message" "Big Gun"
 "nextmap" "hangar1"
@@ -1589,7 +1595,7 @@
 "classname" "monster_boss2"
 "angle" "0"
 "origin" "1352 96 -360"
-"spawnflags" "0"
+"spawnflags" "1"
 "targetname" "t131"
 }
 {
