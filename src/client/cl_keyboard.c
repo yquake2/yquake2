@@ -360,6 +360,7 @@ Key_Console(int key)
 		case K_KP_HOME:
 		case K_KP_UPARROW:
 		case K_KP_PGUP:
+		case K_KP_LEFTARROW:
 		case K_KP_5:
 		case K_KP_RIGHTARROW:
 		case K_KP_END:
