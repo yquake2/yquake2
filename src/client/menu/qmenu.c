@@ -223,32 +223,6 @@ extern int keydown[];
 qboolean
 Field_Key(menufield_s *f, int key)
 {
-    /*
-     * Ignore keypad in field to prevent duplicate
-     * entries through key presses processed as a
-     * normal char event and additionally as key
-     * event.
-     */
-    switch (key)
-    {
-        case K_KP_SLASH:
-        case K_KP_MINUS:
-        case K_KP_PLUS:
-        case K_KP_HOME:
-        case K_KP_UPARROW:
-        case K_KP_PGUP:
-        case K_KP_LEFTARROW:
-        case K_KP_5:
-        case K_KP_RIGHTARROW:
-        case K_KP_END:
-        case K_KP_DOWNARROW:
-        case K_KP_PGDN:
-        case K_KP_INS:
-        case K_KP_DEL:
-        default:
-            break;
-    }
-
 	if (key > 127)
 	{
 		return false;
