@@ -537,6 +537,18 @@ IN_TranslateGamepadBtnToQ2Key(int btn)
 static void IN_Controller_Init(qboolean notify_user);
 static void IN_Controller_Shutdown(qboolean notify_user);
 
+qboolean IN_NumpadIsOn()
+{
+    SDL_Keymod mod = SDL_GetModState();
+
+    if ((mod & KMOD_NUM) == KMOD_NUM)
+    {
+        return true;
+    }
+
+    return false;
+}
+
 /* ------------------------------------------------------------------ */
 
 /*

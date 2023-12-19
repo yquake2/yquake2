@@ -223,52 +223,6 @@ extern int keydown[];
 qboolean
 Field_Key(menufield_s *f, int key)
 {
-	switch (key)
-	{
-		case K_KP_SLASH:
-			key = '/';
-			break;
-		case K_KP_MINUS:
-			key = '-';
-			break;
-		case K_KP_PLUS:
-			key = '+';
-			break;
-		case K_KP_HOME:
-			key = '7';
-			break;
-		case K_KP_UPARROW:
-			key = '8';
-			break;
-		case K_KP_PGUP:
-			key = '9';
-			break;
-		case K_KP_LEFTARROW:
-			key = '4';
-			break;
-		case K_KP_5:
-			key = '5';
-			break;
-		case K_KP_RIGHTARROW:
-			key = '6';
-			break;
-		case K_KP_END:
-			key = '1';
-			break;
-		case K_KP_DOWNARROW:
-			key = '2';
-			break;
-		case K_KP_PGDN:
-			key = '3';
-			break;
-		case K_KP_INS:
-			key = '0';
-			break;
-		case K_KP_DEL:
-			key = '.';
-			break;
-	}
-
 	if (key > 127)
 	{
 		return false;
