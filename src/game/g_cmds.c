@@ -970,6 +970,7 @@ Cmd_Players_f(edict_t *ent)
 	}
 
 	count = 0;
+	memset(index, 0, sizeof(index));
 
 	for (i = 0; i < maxclients->value; i++)
 	{
