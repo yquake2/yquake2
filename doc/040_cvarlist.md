@@ -453,9 +453,8 @@ Set `0` by default.
 * **gl1_overbrightbits**: Enables overbright bits, brightness scaling of
   lightmaps and models. Higher values make shadows less dark. Possible
   values are `0` (no overbright bits), `1` (more correct lighting for
-  water), `2` (scale by factor 2), `3` (scale lighting by 3 only for the
-  dynamic meshes, like enemies and items), and `4` (scale lighting of
-  everything by 4). Applied in realtime, does not need `vid_restart`.
+  liquids), `2` (scale lighting by factor 2), and `4` (scale by factor
+  4). Applied in realtime, does not need `vid_restart`.
 
 * **gl1_particle_square**: If set to `1` particles are rendered as
   squares.

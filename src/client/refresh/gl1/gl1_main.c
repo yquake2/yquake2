@@ -1620,15 +1620,22 @@ RI_BeginFrame(float camera_separation)
 	// Clamp overbrightbits
 	if (gl1_overbrightbits->modified)
 	{
-		if (gl1_overbrightbits->value < 0)
+		int obb_val = (int)gl1_overbrightbits->value;
+
+		if (obb_val < 0)
 		{
-			ri.Cvar_Set("gl1_overbrightbits", "0");
+			obb_val = 0;
 		}
-		else if (gl1_overbrightbits->value > 4)
+		else if (obb_val == 3)
 		{
-			ri.Cvar_Set("gl1_overbrightbits", "4");
+			obb_val = 2;
+		}
+		else if (obb_val > 4)
+		{
+			obb_val = 4;
 		}
 
+		ri.Cvar_SetValue("gl1_overbrightbits", obb_val);
 		gl1_overbrightbits->modified = false;
 	}
 
