@@ -78,7 +78,7 @@ typedef enum
 // IN_Update() called at the beginning of a frame to the
 // actual movement functions called at a later time.
 static float mouse_x, mouse_y;
-static int sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
+static unsigned char sdl_back_button = SDL_CONTROLLER_BUTTON_BACK;
 static int joystick_left_x, joystick_left_y, joystick_right_x, joystick_right_y;
 static float gyro_yaw, gyro_pitch;
 static qboolean mlooking;
@@ -495,45 +495,6 @@ IN_TranslateScancodeToQ2Key(SDL_Scancode sc)
 	return 0;
 }
 
-static int
-IN_TranslateGamepadBtnToQ2Key(int btn)
-{
-
-#define MY_BTN_CASE(X,Y) case SDL_CONTROLLER_BUTTON_ ## X : return K_ ## Y;
-
-	switch( btn )
-	{
-		// case SDL_CONTROLLER_BUTTON_A : return K_BTN_A;
-		MY_BTN_CASE(A,BTN_A)
-		MY_BTN_CASE(B,BTN_B)
-		MY_BTN_CASE(X,BTN_X)
-		MY_BTN_CASE(Y,BTN_Y)
-		MY_BTN_CASE(LEFTSHOULDER,SHOULDER_LEFT)
-		MY_BTN_CASE(RIGHTSHOULDER,SHOULDER_RIGHT)
-		MY_BTN_CASE(LEFTSTICK,STICK_LEFT)
-		MY_BTN_CASE(RIGHTSTICK,STICK_RIGHT)
-		MY_BTN_CASE(DPAD_UP,DPAD_UP)
-		MY_BTN_CASE(DPAD_DOWN,DPAD_DOWN)
-		MY_BTN_CASE(DPAD_LEFT,DPAD_LEFT)
-		MY_BTN_CASE(DPAD_RIGHT,DPAD_RIGHT)
-#if SDL_VERSION_ATLEAST(2, 0, 14)	// support for newer buttons
-		MY_BTN_CASE(PADDLE1,PADDLE_1)
-		MY_BTN_CASE(PADDLE2,PADDLE_2)
-		MY_BTN_CASE(PADDLE3,PADDLE_3)
-		MY_BTN_CASE(PADDLE4,PADDLE_4)
-		MY_BTN_CASE(MISC1,BTN_MISC1)
-		MY_BTN_CASE(TOUCHPAD,TOUCHPAD)
-#endif
-		MY_BTN_CASE(BACK,BTN_BACK)
-		MY_BTN_CASE(GUIDE,BTN_GUIDE)
-		MY_BTN_CASE(START,BTN_START)
-	}
-
-#undef MY_BTN_CASE
-
-	return 0;
-}
-
 static void IN_Controller_Init(qboolean notify_user);
 static void IN_Controller_Shutdown(qboolean notify_user);
 
@@ -763,20 +724,16 @@ IN_Update(void)
 			case SDL_CONTROLLERBUTTONDOWN:
 			{
 				qboolean down = (event.type == SDL_CONTROLLERBUTTONDOWN);
+				unsigned char btn = event.cbutton.button;
 
 				// Handle Back Button first, to override its original key
-				if (event.cbutton.button == sdl_back_button)
+				if (btn == sdl_back_button)
 				{
 					Key_Event(K_JOY_BACK, down, true);
 					break;
 				}
 
-				key = IN_TranslateGamepadBtnToQ2Key(event.cbutton.button);
-				if(key != 0)
-				{
-					Key_Event(key, down, true);
-				}
-
+				Key_Event(K_BTN_A + btn, down, true);
 				break;
 			}
 

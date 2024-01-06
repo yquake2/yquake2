@@ -220,8 +220,6 @@ enum QKEYS {
 	K_STICK_RIGHT,
 	K_SHOULDER_LEFT,
 	K_SHOULDER_RIGHT,
-	K_TRIG_LEFT,
-	K_TRIG_RIGHT,
 	K_DPAD_UP,
 	K_DPAD_DOWN,
 	K_DPAD_LEFT,
@@ -231,11 +229,13 @@ enum QKEYS {
 	K_PADDLE_2,
 	K_PADDLE_3,
 	K_PADDLE_4,
-	K_TOUCHPAD,
+	K_TOUCHPAD,	// SDL_CONTROLLER_BUTTON_MAX - 1
+	K_TRIG_LEFT,	// buttons for triggers (axes)
+	K_TRIG_RIGHT,
 
 	// add other joystick/controller keys before this one
 	// and adjust it accordingly, also remember to add corresponding _ALT key below!
-	K_JOY_LAST_REGULAR = K_TOUCHPAD,
+	K_JOY_LAST_REGULAR = K_TRIG_RIGHT,
 
 	/* Can't be mapped to any action (=> not regular) */
 	K_JOY_BACK,
@@ -252,8 +252,6 @@ enum QKEYS {
 	K_STICK_RIGHT_ALT,
 	K_SHOULDER_LEFT_ALT,
 	K_SHOULDER_RIGHT_ALT,
-	K_TRIG_LEFT_ALT,
-	K_TRIG_RIGHT_ALT,
 	K_DPAD_UP_ALT,
 	K_DPAD_DOWN_ALT,
 	K_DPAD_LEFT_ALT,
@@ -264,6 +262,8 @@ enum QKEYS {
 	K_PADDLE_3_ALT,
 	K_PADDLE_4_ALT,
 	K_TOUCHPAD_ALT,
+	K_TRIG_LEFT_ALT,
+	K_TRIG_RIGHT_ALT,
 
 	K_LAST
 };
