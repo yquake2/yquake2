@@ -303,6 +303,55 @@ void R_TextureAlphaMode(char *string);
 void R_TextureSolidMode(char *string);
 int Scrap_AllocBlock(int w, int h, int *x, int *y);
 
+#ifdef DEBUG
+void glCheckError_(const char *file, const char *function, int line);
+// Ideally, the following list should contain all OpenGL calls.
+// Either way, errors are caught, since error flags are persisted until the next glGetError() call.
+// So they show, even if the location of the error is inaccurate.
+#define glDrawArrays(...) glDrawArrays(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glTexImage2D(...) glTexImage2D(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glTexSubImage2D(...) glTexSubImage2D(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glTexEnvf(...) glTexEnvf(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glTexEnvi(...) glTexEnvi(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glVertexPointer(...) glVertexPointer(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glTexCoordPointer(...) glTexCoordPointer(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glColorPointer(...) glColorPointer(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glTexParameteri(...) glTexParameteri(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glBindTexture(...) glBindTexture(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glFrustum(...) glFrustum(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glTranslatef(...) glTranslatef(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glRotatef(...) glRotatef(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glScalef(...) glScalef(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glScissor(...) glScissor(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glBlendFunc(...) glBlendFunc(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glDepthFunc(...) glDepthFunc(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glDepthMask(...) glDepthMask(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glDepthRange(...) glDepthRange(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glEnable(...) glEnable(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glDisable(...) glDisable(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glEnableClientState(...) glEnableClientState(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glDisableClientState(...) glDisableClientState(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glPushMatrix(...) glPushMatrix(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glPopMatrix(...) glPopMatrix(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glMatrixMode(...) glMatrixMode(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glOrtho(...) glOrtho(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glColorMask(...) glColorMask(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glStencilOp(...) glStencilOp(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glStencilFunc(...) glStencilFunc(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glDrawBuffer(...) glDrawBuffer(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glReadPixels(...) glReadPixels(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glClear(...) glClear(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glClearColor(...) glClearColor(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glClearStencil(...) glClearStencil(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glDeleteTextures(...) glDeleteTextures(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glFinish() glFinish(); glCheckError_(__FILE__, __func__, __LINE__)
+#define glAlphaFunc(...) glAlphaFunc(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glHint(...) glHint(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glLoadIdentity() glLoadIdentity(); glCheckError_(__FILE__, __func__, __LINE__)
+#define glBegin(...) glBegin(__VA_ARGS__); glCheckError_(__FILE__, __func__, __LINE__)
+#define glEnd() glEnd(); glCheckError_(__FILE__, __func__, __LINE__)
+#endif
+
 /* GL extension emulation functions */
 void R_DrawParticles2(int n,
 		const particle_t particles[],

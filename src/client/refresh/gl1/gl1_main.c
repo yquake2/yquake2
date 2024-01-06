@@ -1405,6 +1405,10 @@ RI_Init(void)
 	R_Printf(PRINT_ALL, "Refresh: " REF_VERSION "\n");
 	R_Printf(PRINT_ALL, "Client: " YQ2VERSION "\n\n");
 
+#ifdef DEBUG
+	R_Printf(PRINT_ALL, "ref_gl1::R_Init() - DEBUG mode enabled\n");
+#endif
+
 	GetPCXPalette (&colormap, d_8to24table);
 	free(colormap);
 
@@ -1981,3 +1985,32 @@ Com_Printf(const char *msg, ...)
 	ri.Com_VPrintf(PRINT_ALL, msg, argptr);
 	va_end(argptr);
 }
+
+#ifdef DEBUG
+void
+glCheckError_(const char *file, const char *function, int line)
+{
+	GLenum errorCode;
+	const char * msg;
+
+#define MY_ERROR_CASE(X) case X : msg = #X; break;
+
+	while ((errorCode = glGetError()) != GL_NO_ERROR)
+	{
+		switch(errorCode)
+		{
+			MY_ERROR_CASE(GL_INVALID_ENUM);
+			MY_ERROR_CASE(GL_INVALID_VALUE);
+			MY_ERROR_CASE(GL_INVALID_OPERATION);
+			MY_ERROR_CASE(GL_STACK_OVERFLOW);
+			MY_ERROR_CASE(GL_STACK_UNDERFLOW);
+			MY_ERROR_CASE(GL_OUT_OF_MEMORY);
+			default: msg = "UNKNOWN";
+		}
+		R_Printf(PRINT_ALL, "glError: %s in %s (%s, %d)\n", msg, function, file, line);
+	}
+
+#undef MY_ERROR_CASE
+
+}
+#endif
