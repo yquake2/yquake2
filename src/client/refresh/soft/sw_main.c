@@ -594,7 +594,7 @@ R_ReallocateMapBuffers (void)
 		surface_p = &surfaces[2];	// background is surface 1,
 						//  surface 0 is a dummy
 
-		R_Printf(PRINT_ALL, "Allocated %d surfaces.\n", r_cnumsurfs);
+		Com_DPrintf("Allocated %d surfaces.\n", r_cnumsurfs);
 	}
 
 	if (!r_numallocatedlights || r_outoflights)
@@ -621,7 +621,7 @@ R_ReallocateMapBuffers (void)
 		// set limits
 		blocklight_max = &blocklights[r_numallocatedlights];
 
-		R_Printf(PRINT_ALL, "Allocated %d lights.\n", r_numallocatedlights);
+		Com_DPrintf("Allocated %d lights.\n", r_numallocatedlights);
 	}
 
 	if (!r_numallocatededges || r_outofedges)
@@ -651,7 +651,7 @@ R_ReallocateMapBuffers (void)
 		edge_max = &r_edges[r_numallocatededges];
 		edge_p = r_edges;
 
-		R_Printf(PRINT_ALL, "Allocated %d edges.\n", r_numallocatededges);
+		Com_DPrintf("Allocated %d edges.\n", r_numallocatededges);
 	}
 
 	if (!r_numallocatedverts || r_outofverts)
@@ -679,7 +679,7 @@ R_ReallocateMapBuffers (void)
 		}
 		finalverts_max = &finalverts[r_numallocatedverts];
 
-		R_Printf(PRINT_ALL, "Allocated %d verts.\n", r_numallocatedverts);
+		Com_DPrintf("Allocated %d verts.\n", r_numallocatedverts);
 	}
 
 	if (!r_numallocatedtriangles || r_outoftriangles)
@@ -739,7 +739,7 @@ R_ReallocateMapBuffers (void)
 		}
 		max_span_p = &edge_basespans[r_numallocatededgebasespans];
 
-		R_Printf(PRINT_ALL, "Allocated %d edgespans.\n", r_numallocatededgebasespans);
+		Com_DPrintf("Allocated %d edgespans.\n", r_numallocatededgebasespans);
 	}
 }
 
