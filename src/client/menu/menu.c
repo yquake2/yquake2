@@ -5650,7 +5650,7 @@ PlayerModelList(void)
         }
 
         // sort skin names alphabetically
-        qsort(s_skinnames[mdl].data, s_skinnames[mdl].num, sizeof(char**), Q_sort_strcomp);
+        qsort(s_skinnames[mdl].data, s_skinnames[mdl].num, sizeof(char**), Q_sort_stricmp);
 
         // at this point we have a valid player model
         s = (char*)malloc(MAX_DISPLAYNAME);
