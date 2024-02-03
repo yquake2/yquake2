@@ -1379,16 +1379,16 @@ Q_sort_modcmp(const void *p1, const void *p2)
 
 	for (unsigned short int i = 0; i < first_mods_qty; i++)
 	{
-		if (!strcmp(first_mods[i], s1))
+		if (!Q_stricmp(first_mods[i], s1))
 		{
 			return -1;
 		}
-		if (!strcmp(first_mods[i], s2))
+		if (!Q_stricmp(first_mods[i], s2))
 		{
 			return 1;
 		}
 	}
-	return strcmp(s1, s2);
+	return Q_stricmp(s1, s2);
 }
 
 /*
