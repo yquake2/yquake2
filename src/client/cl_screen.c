@@ -66,6 +66,8 @@ int crosshair_width, crosshair_height;
 
 extern cvar_t *cl_showfps;
 extern cvar_t *crosshair_scale;
+extern cvar_t *cl_showspeed;
+extern float GetPlayerSpeed(); 
 
 void SCR_TimeRefresh_f(void);
 void SCR_Loading_f(void);
@@ -1447,6 +1449,32 @@ SCR_DrawLayout(void)
 
 // ----
 
+void 
+SCR_DrawSpeed(void) {
+	if (cl_showspeed->value < 1)
+		return;
+	float speed, speedxy;  // speed, horizontal ground speed
+	GetPlayerSpeed(&speed, &speedxy);
+
+	// Assuming viddef.width is the width of the screen
+	float scale = SCR_GetConsoleScale();
+	char str[64]; 
+	snprintf(str, sizeof(str), "Speed: %7.2f (%7.2f) QU/s", speed, speedxy);
+
+	int yPos = 0;
+	// If showfps is on, position the speedometer underneath it
+	if (cl_showfps->value == 1 || cl_showfps->value == 2)
+		yPos = scale * 10;
+	if (cl_showfps->value > 2)
+		yPos = scale * 20;
+
+	DrawStringScaled(viddef.width - scale * (strlen(str) * 8 + 2), yPos, str, scale);
+	//Unsure if these are necessary
+	SCR_AddDirtyPoint(viddef.width - scale * (strlen(str) * 8 + 2), yPos); 
+	SCR_AddDirtyPoint(viddef.width, yPos);
+}
+
+
 void
 SCR_Framecounter(void) {
 	long long newtime;
@@ -1684,6 +1712,7 @@ SCR_UpdateScreen(void)
 	}
 
 	SCR_Framecounter();
+	SCR_DrawSpeed();
 	R_EndFrame();
 }
 
