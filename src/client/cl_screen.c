@@ -1456,10 +1456,9 @@ SCR_DrawSpeed(void) {
 	float speed, speedxy;  // speed, horizontal ground speed
 	GetPlayerSpeed(&speed, &speedxy);
 
-	// Assuming viddef.width is the width of the screen
 	float scale = SCR_GetConsoleScale();
 	char str[64]; 
-	snprintf(str, sizeof(str), "Speed: %7.2f (%7.2f) QU/s", speed, speedxy);
+	snprintf(str, sizeof(str), "%6.2f (%6.2f) QU/s", speed, speedxy);
 
 	int yPos = 0;
 	// If showfps is on, position the speedometer underneath it
@@ -1469,7 +1468,6 @@ SCR_DrawSpeed(void) {
 		yPos = scale * 20;
 
 	DrawStringScaled(viddef.width - scale * (strlen(str) * 8 + 2), yPos, str, scale);
-	//Unsure if these are necessary
 	SCR_AddDirtyPoint(viddef.width - scale * (strlen(str) * 8 + 2), yPos); 
 	SCR_AddDirtyPoint(viddef.width, yPos);
 }
