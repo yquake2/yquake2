@@ -1450,28 +1450,55 @@ SCR_DrawLayout(void)
 // ----
 
 void 
-SCR_DrawSpeed(void) {
-	if (cl_showspeed->value < 1)
+SCR_DrawSpeed(void) 
+{
+	if (cl_showspeed->value < 1)  //Disabled, do nothing
 		return;
-	float speed, speedxy;  // speed, horizontal ground speed
-	GetPlayerSpeed(&speed, &speedxy);
 
+	char spd_str[32];
+	float speed, speedxy;
 	float scale = SCR_GetConsoleScale();
-	char str[64]; 
-	snprintf(str, sizeof(str), "%6.2f (%6.2f) QU/s", speed, speedxy);
+	int str_len, xPos, yPos = 0;
+	
+	GetPlayerSpeed(&speed, &speedxy);
+	snprintf(spd_str, sizeof(spd_str), "%6.2f (%6.2f) QU/s", speed, speedxy);
+	str_len = scale * (strlen(spd_str) * 8 + 2);
+	
+	if (cl_showspeed->value == 1) //Draw speed and xy speed at top right
+	{
+		xPos = viddef.width - str_len;
 
-	int yPos = 0;
-	// If showfps is on, position the speedometer underneath it
-	if (cl_showfps->value == 1 || cl_showfps->value == 2)
-		yPos = scale * 10;
-	if (cl_showfps->value > 2)
-		yPos = scale * 20;
+		if (cl_showfps->value == 1 || cl_showfps->value == 2)  // If showfps is enabled, draw it underneath
+		{
+			yPos = scale * 10;
+		}
+		else if (cl_showfps->value > 2)
+		{
+			yPos = scale * 20;
+		}
 
-	DrawStringScaled(viddef.width - scale * (strlen(str) * 8 + 2), yPos, str, scale);
-	SCR_AddDirtyPoint(viddef.width - scale * (strlen(str) * 8 + 2), yPos); 
-	SCR_AddDirtyPoint(viddef.width, yPos);
+		DrawStringScaled(xPos, yPos, spd_str, scale);
+		SCR_AddDirtyPoint(xPos, yPos);
+		SCR_AddDirtyPoint(viddef.width, yPos);
+	}
+
+	else if (cl_showspeed->value > 1) //Draw only xy speed under the crosshair
+	{
+		if (scale != 1)  // Check if low resolution
+		{
+			scale -= 1;
+		}
+
+		snprintf(spd_str, sizeof(spd_str), "%6.2f", speedxy);
+		str_len = scale * (strlen(spd_str) * 8 + 2);
+		yPos = scr_vrect.y + (scr_vrect.height / 2) + (scale * 10);
+		xPos = scr_vrect.x + (scr_vrect.width / 2) - (str_len / 2);
+		
+		DrawStringScaled(xPos, yPos, spd_str, scale);
+		SCR_AddDirtyPoint(xPos, yPos);
+		SCR_AddDirtyPoint(xPos + str_len, yPos);
+	}
 }
-
 
 void
 SCR_Framecounter(void) {
@@ -1674,6 +1701,7 @@ SCR_UpdateScreen(void)
 			V_RenderView(separation[i]);
 
 			SCR_DrawStats();
+			SCR_DrawSpeed();
 
 			if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 1)
 			{
@@ -1710,7 +1738,6 @@ SCR_UpdateScreen(void)
 	}
 
 	SCR_Framecounter();
-	SCR_DrawSpeed();
 	R_EndFrame();
 }
 
