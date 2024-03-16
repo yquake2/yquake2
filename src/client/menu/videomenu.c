@@ -68,6 +68,7 @@ static menulist_s s_fs_box;
 static menulist_s s_vsync_list;
 static menulist_s s_af_list;
 static menulist_s s_msaa_list;
+static menulist_s s_filter_list;
 static menuaction_s s_defaults_action;
 static menuaction_s s_apply_action;
 
@@ -184,6 +185,23 @@ ResetDefaults(void *unused)
 
 #define CUSTOM_MODE_NAME "[Custom    ]"
 #define AUTO_MODE_NAME   "[Auto      ]"
+
+static void
+ApplyFilter(void* unused)
+{
+	if (s_filter_list.curvalue == 0)
+	{
+		Cvar_Set("gl_texturemode", "GL_NEAREST");
+	}
+	else if (s_filter_list.curvalue == 1)
+	{
+		Cvar_Set("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST");
+	}
+	else if (s_filter_list.curvalue == 2)
+	{
+		Cvar_Set("gl_texturemode", "GL_LINEAR_MIPMAP_LINEAR");
+	}
+}
 
 static void
 ApplyChanges(void *unused)
@@ -405,6 +423,14 @@ VID_MenuInit(void)
 		"4x",
 		"8x",
 		"16x",
+		0
+	};
+
+	static const char *filter_names[] = {
+		"pixelated",
+		"standard",
+		"trilinear",
+		"custom",
 		0
 	};
 
@@ -674,6 +700,32 @@ VID_MenuInit(void)
 		s_msaa_list.curvalue--;
 	}
 
+	s_filter_list.generic.type = MTYPE_SPINCONTROL;
+	s_filter_list.generic.name = "texture filter";
+	s_filter_list.generic.x = 0;
+	s_filter_list.generic.y = (y += 10);
+	s_filter_list.itemnames = filter_names;
+	s_filter_list.curvalue = 0;
+	s_filter_list.generic.callback = ApplyFilter;
+
+	const char* filter = Cvar_VariableString("gl_texturemode");
+	int mode = 3;
+
+	if (Q_stricmp(filter, "GL_NEAREST") == 0)
+	{
+		mode = 0;
+	}
+	else if (Q_stricmp(filter, "GL_LINEAR_MIPMAP_NEAREST") == 0)
+	{
+		mode = 1;
+	}
+	else if (Q_stricmp(filter, "GL_LINEAR_MIPMAP_LINEAR") == 0)
+	{
+		mode = 2;
+	}
+
+	s_filter_list.curvalue = mode;
+
 	s_defaults_action.generic.type = MTYPE_ACTION;
 	s_defaults_action.generic.name = "reset to default";
 	s_defaults_action.generic.x = 0;
@@ -720,6 +772,7 @@ VID_MenuInit(void)
 	Menu_AddItem(&s_opengl_menu, (void *)&s_vsync_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_af_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_msaa_list);
+	Menu_AddItem(&s_opengl_menu, (void *)&s_filter_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_defaults_action);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_apply_action);
 
