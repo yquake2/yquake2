@@ -1332,7 +1332,7 @@ RE_RenderFrame (refdef_t *fd)
 	// compare current position with old
 	if (vid_buffer_width <= 640 ||
 	    !VectorCompareRound(fd->vieworg, lastvieworg) ||
-	    !VectorCompare(fd->viewangles, lastviewangles))
+	    !VectorCompareRound(fd->viewangles, lastviewangles))
 	{
 		fastmoving = true;
 	}

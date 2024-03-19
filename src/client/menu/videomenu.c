@@ -189,17 +189,33 @@ ResetDefaults(void *unused)
 static void
 ApplyFilter(void* unused)
 {
-	if (s_filter_list.curvalue == 0)
+	if (Q_stricmp(vid_renderer->string, "gl3") == 0 || Q_stricmp(vid_renderer->string, "gles3") == 0 ||
+		Q_stricmp(vid_renderer->string, "gl1") == 0)
 	{
-		Cvar_Set("gl_texturemode", "GL_NEAREST");
+		if (s_filter_list.curvalue == 0)
+		{
+			Cvar_Set("gl_texturemode", "GL_NEAREST");
+		}
+		else if (s_filter_list.curvalue == 1)
+		{
+			Cvar_Set("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST");
+		}
+		else if (s_filter_list.curvalue == 2)
+		{
+			Cvar_Set("gl_texturemode", "GL_LINEAR_MIPMAP_LINEAR");
+		}
 	}
-	else if (s_filter_list.curvalue == 1)
+
+	if (Q_stricmp(vid_renderer->string, "soft") == 0)
 	{
-		Cvar_Set("gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST");
-	}
-	else if (s_filter_list.curvalue == 2)
-	{
-		Cvar_Set("gl_texturemode", "GL_LINEAR_MIPMAP_LINEAR");
+		if (s_filter_list.curvalue == 0)
+		{
+			Cvar_Set("sw_texture_filtering", "0");
+		}
+		else if (s_filter_list.curvalue == 1)
+		{
+			Cvar_Set("sw_texture_filtering", "1");
+		}
 	}
 }
 
@@ -404,6 +420,12 @@ VID_MenuInit(void)
 		0
 	};
 
+	static const char *onoff_names[] = {
+		"off",
+		"on",
+		0
+	};
+	
 	static const char *yesno_names[] = {
 		"no",
 		"yes",
@@ -699,29 +721,51 @@ VID_MenuInit(void)
 				pow(2, s_msaa_list.curvalue) <= gl_msaa_samples->value);
 		s_msaa_list.curvalue--;
 	}
-
+	
 	s_filter_list.generic.type = MTYPE_SPINCONTROL;
 	s_filter_list.generic.name = "texture filter";
-	s_filter_list.generic.x = 0;
-	s_filter_list.generic.y = (y += 10);
-	s_filter_list.itemnames = filter_names;
 	s_filter_list.curvalue = 0;
 	s_filter_list.generic.callback = ApplyFilter;
 
-	const char* filter = Cvar_VariableString("gl_texturemode");
-	int mode = 3;
+	const char* filter = NULL;
+	int mode = 0;
+	
+	if (Q_stricmp(vid_renderer->string, "gl3") == 0 || Q_stricmp(vid_renderer->string, "gles3") == 0 ||
+		Q_stricmp(vid_renderer->string, "gl1") == 0)
+	{	
+		s_filter_list.generic.x = 0;
+		s_filter_list.generic.y = (y += 10);
+		s_filter_list.itemnames = filter_names;
+		
+		filter = Cvar_VariableString("gl_texturemode");
+		mode = 3;
 
-	if (Q_stricmp(filter, "GL_NEAREST") == 0)
+		if (Q_stricmp(filter, "GL_NEAREST") == 0)
+		{
+			mode = 0;
+		}
+		else if (Q_stricmp(filter, "GL_LINEAR_MIPMAP_NEAREST") == 0)
+		{
+			mode = 1;
+		}
+		else if (Q_stricmp(filter, "GL_LINEAR_MIPMAP_LINEAR") == 0)
+		{
+			mode = 2;
+		}
+	}
+	else if (Q_stricmp(vid_renderer->string, "soft") == 0)
 	{
+		s_filter_list.generic.x = 0;
+		s_filter_list.generic.y = (y += 10);
+		s_filter_list.itemnames = onoff_names;
+
+		filter = Cvar_VariableString("sw_texture_filtering");
 		mode = 0;
-	}
-	else if (Q_stricmp(filter, "GL_LINEAR_MIPMAP_NEAREST") == 0)
-	{
-		mode = 1;
-	}
-	else if (Q_stricmp(filter, "GL_LINEAR_MIPMAP_LINEAR") == 0)
-	{
-		mode = 2;
+
+		if (Q_stricmp(filter, "1") == 0)
+		{
+			mode = 1;
+		}	
 	}
 
 	s_filter_list.curvalue = mode;
@@ -772,7 +816,11 @@ VID_MenuInit(void)
 	Menu_AddItem(&s_opengl_menu, (void *)&s_vsync_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_af_list);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_msaa_list);
-	Menu_AddItem(&s_opengl_menu, (void *)&s_filter_list);
+	if (Q_stricmp(vid_renderer->string, "gl3") == 0 || Q_stricmp(vid_renderer->string, "gles3") == 0 ||
+		Q_stricmp(vid_renderer->string, "gl1") == 0 || Q_stricmp(vid_renderer->string, "soft") == 0)
+	{
+		Menu_AddItem(&s_opengl_menu, (void *)&s_filter_list);
+	}
 	Menu_AddItem(&s_opengl_menu, (void *)&s_defaults_action);
 	Menu_AddItem(&s_opengl_menu, (void *)&s_apply_action);
 
