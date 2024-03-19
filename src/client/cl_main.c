@@ -43,6 +43,7 @@ cvar_t *cl_footsteps;
 cvar_t *cl_timeout;
 cvar_t *cl_predict;
 cvar_t *cl_showfps;
+cvar_t *cl_showspeed;
 cvar_t *cl_gun;
 cvar_t *cl_add_particles;
 cvar_t *cl_add_lights;
@@ -513,6 +514,7 @@ CL_InitLocal(void)
 	cl_noskins = Cvar_Get("cl_noskins", "0", 0);
 	cl_predict = Cvar_Get("cl_predict", "1", 0);
 	cl_showfps = Cvar_Get("cl_showfps", "0", CVAR_ARCHIVE);
+	cl_showspeed = Cvar_Get("cl_showspeed", "0", CVAR_ARCHIVE);	
 
 	cl_upspeed = Cvar_Get("cl_upspeed", "200", 0);
 	cl_forwardspeed = Cvar_Get("cl_forwardspeed", "200", 0);
