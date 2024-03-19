@@ -142,7 +142,12 @@ Set `0` by default.
 
 * **cl_showfps**: Shows the framecounter. Set to `2` for more and to
   `3` for even more informations.
-
+  
+* **cl_showspeed**:  Shows the players speed.  Set to `1` to display both
+  overall speed and (horizontal speed) in Quake Units (QU) respectfully at
+  the top right corner of the screen.  Set to `2` to show only the horizontal 
+  speed under the crosshair.
+  
 * **cl_model_preview_start**: start frame value in multiplayer model preview.
   `-1` - don't show animation. Defaults to `84` for show salute animation.
 
