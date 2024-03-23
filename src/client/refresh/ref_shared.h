@@ -213,8 +213,8 @@ extern mleaf_t *Mod_PointInLeaf(const vec3_t p, mnode_t *node);
 #define DLIGHT_CUTOFF 64
 
 typedef void (*marksurfacelights_t)(dlight_t *light, int bit, mnode_t *node,
-	int r_dlightframecount);
-extern void R_MarkLights (dlight_t *light, int bit, mnode_t *node, int r_dlightframecount,
+	int lightframecount);
+extern void R_MarkLights(dlight_t *light, int bit, mnode_t *node, int lightframecount,
 	marksurfacelights_t mark_surface_lights);
 extern struct image_s *R_TextureAnimation(const entity_t *currententity,
 	const mtexinfo_t *tex);

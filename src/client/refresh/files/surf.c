@@ -80,7 +80,7 @@ if surface is affected by this light
 =============
 */
 void
-R_MarkLights(dlight_t *light, int bit, mnode_t *node, int r_dlightframecount,
+R_MarkLights(dlight_t *light, int bit, mnode_t *node, int lightframecount,
 	marksurfacelights_t mark_surface_lights)
 {
 	cplane_t	*splitplane;
@@ -97,23 +97,23 @@ R_MarkLights(dlight_t *light, int bit, mnode_t *node, int r_dlightframecount,
 
 	if (dist > intensity - DLIGHT_CUTOFF)	// (dist > light->intensity)
 	{
-		R_MarkLights (light, bit, node->children[0], r_dlightframecount,
+		R_MarkLights (light, bit, node->children[0], lightframecount,
 			mark_surface_lights);
 		return;
 	}
 
 	if (dist < -intensity + DLIGHT_CUTOFF)	// (dist < -light->intensity)
 	{
-		R_MarkLights(light, bit, node->children[1], r_dlightframecount,
+		R_MarkLights(light, bit, node->children[1], lightframecount,
 			mark_surface_lights);
 		return;
 	}
 
-	mark_surface_lights(light, bit, node, r_dlightframecount);
+	mark_surface_lights(light, bit, node, lightframecount);
 
-	R_MarkLights(light, bit, node->children[0], r_dlightframecount,
+	R_MarkLights(light, bit, node->children[0], lightframecount,
 		mark_surface_lights);
-	R_MarkLights(light, bit, node->children[1], r_dlightframecount,
+	R_MarkLights(light, bit, node->children[1], lightframecount,
 		mark_surface_lights);
 }
 
