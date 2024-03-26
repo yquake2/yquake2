@@ -30,8 +30,8 @@
 #include "../../common/header/common.h"
 #include "header/ref.h"
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_video.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_video.h>
 
 int glimp_refreshRate = -1;
 
@@ -99,24 +99,25 @@ CreateSDLWindow(int flags, int w, int h)
 	 *  * https://github.com/libsdl-org/SDL/issues/3656 */
 	SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
 
-	window = SDL_CreateWindow("Yamagi Quake II", last_position_x, last_position_y, w, h, flags);
+	window = SDL_CreateWindow("Yamagi Quake II", w, h, flags);
 
 	if (window)
 	{
 
 		/* save current display as default */
-		last_display = SDL_GetWindowDisplayIndex(window);
+		last_display = SDL_GetDisplayForWindow(window);
 		SDL_GetWindowPosition(window, &last_position_x, &last_position_y);
 
+#if 0
 		/* Check if we're really in the requested diplay mode. There is
 		   (or was) an SDL bug were SDL switched into the wrong mode
 		   without giving an error code. See the bug report for details:
 		   https://bugzilla.libsdl.org/show_bug.cgi?id=4700 */
 		SDL_DisplayMode real_mode;
 
-		if ((flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)) == SDL_WINDOW_FULLSCREEN)
+		if ((flags & (SDL_WINDOW_FULLSCREEN)) == SDL_WINDOW_FULLSCREEN)
 		{
-			if (SDL_GetWindowDisplayMode(window, &real_mode) != 0)
+			if (SDL_GetWindowFullscreenMode(window, &real_mode) != 0)
 			{
 				SDL_DestroyWindow(window);
 				window = NULL;
@@ -126,9 +127,11 @@ CreateSDLWindow(int flags, int w, int h)
 				return false;
 			}
 		}
+#endif
 
+#if 0
 		/* SDL_WINDOW_FULLSCREEN_DESKTOP implies SDL_WINDOW_FULLSCREEN! */
-		if (((flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)) == SDL_WINDOW_FULLSCREEN)
+		if (((flags & (SDL_WINDOW_FULLSCREEN)) == SDL_WINDOW_FULLSCREEN)
 				&& ((real_mode.w != w) || (real_mode.h != h)))
 		{
 
@@ -141,7 +144,7 @@ CreateSDLWindow(int flags, int w, int h)
 			wanted_mode.w = w;
 			wanted_mode.h = h;
 
-			if (SDL_SetWindowDisplayMode(window, &wanted_mode) != 0)
+			if (SDL_SetWindowFullscreenMode(window, &wanted_mode) != 0)
 			{
 				SDL_DestroyWindow(window);
 				window = NULL;
@@ -157,7 +160,7 @@ CreateSDLWindow(int flags, int w, int h)
 			   if I don't call it. */
 			SDL_SetWindowSize(window, wanted_mode.w, wanted_mode.h);
 
-			if (SDL_GetWindowDisplayMode(window, &real_mode) != 0)
+			if (SDL_GetWindowFullscreenMode(window) != 0)
 			{
 				SDL_DestroyWindow(window);
 				window = NULL;
@@ -167,6 +170,7 @@ CreateSDLWindow(int flags, int w, int h)
 				return false;
 			}
 
+#if 0
 			if ((real_mode.w != w) || (real_mode.h != h))
 			{
 				SDL_DestroyWindow(window);
@@ -176,14 +180,17 @@ CreateSDLWindow(int flags, int w, int h)
 
 				return false;
 			}
+#endif
 		}
+#endif
 
 		/* Normally SDL stays at desktop refresh rate or chooses something
 		   sane. Some player may want to override that.
 
 		   Reminder: SDL_WINDOW_FULLSCREEN_DESKTOP implies SDL_WINDOW_FULLSCREEN! */
-		if ((flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)) == SDL_WINDOW_FULLSCREEN)
+		if ((flags & (SDL_WINDOW_FULLSCREEN)) == SDL_WINDOW_FULLSCREEN)
 		{
+#if 0
 			if (vid_rate->value > 0)
 			{
 				SDL_DisplayMode closest_mode;
@@ -191,7 +198,7 @@ CreateSDLWindow(int flags, int w, int h)
 
 				requested_mode.refresh_rate = (int)vid_rate->value;
 
-				if (SDL_GetClosestDisplayMode(last_display, &requested_mode, &closest_mode) == NULL)
+				if (SDL_GetClosestFullscreenDisplayMode(last_display, &requested_mode, &closest_mode) == NULL)
 				{
 					Com_Printf("SDL was unable to find a mode close to %ix%i@%i\n", w, h, requested_mode.refresh_rate);
 					Cvar_SetValue("vid_rate", -1);
@@ -201,7 +208,7 @@ CreateSDLWindow(int flags, int w, int h)
 					Com_Printf("User requested %ix%i@%i, setting closest mode %ix%i@%i\n",
 							w, h, requested_mode.refresh_rate, w, h, closest_mode.refresh_rate);
 
-					if (SDL_SetWindowDisplayMode(window, &closest_mode) != 0)
+					if (SDL_SetWindowFullscreenMode(window, &closest_mode) != 0)
 					{
 						Com_Printf("Couldn't switch to mode %ix%i@%i, staying at current mode\n",
 								w, h, closest_mode.refresh_rate);
@@ -212,8 +219,8 @@ CreateSDLWindow(int flags, int w, int h)
 						Cvar_SetValue("vid_rate", closest_mode.refresh_rate);
 					}
 				}
-
 			}
+#endif
 		}
 	}
 	else
@@ -228,11 +235,7 @@ CreateSDLWindow(int flags, int w, int h)
 static int
 GetFullscreenType()
 {
-	if (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN_DESKTOP)
-	{
-		return 2;
-	}
-	else if (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN)
+	if (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN)
 	{
 		return 1;
 	}
@@ -252,7 +255,7 @@ GetWindowSize(int* w, int* h)
 
 	SDL_DisplayMode m;
 
-	if (SDL_GetWindowDisplayMode(window, &m) != 0)
+	if (SDL_GetWindowFullscreenMode(window) != 0)
 	{
 		Com_Printf("Can't get Displaymode: %s\n", SDL_GetError());
 
@@ -289,7 +292,8 @@ InitDisplayIndices()
 static void
 PrintDisplayModes(void)
 {
-	int curdisplay = window ? SDL_GetWindowDisplayIndex(window) : 0;
+#if 0
+	int curdisplay = window ? SDL_GetDisplayForWindow(window) : 0;
 
 	// On X11 (at least for me)
 	// curdisplay is always -1.
@@ -318,6 +322,7 @@ PrintDisplayModes(void)
 
 		Com_Printf(" - Mode %2i: %ix%i@%i\n", i, mode.w, mode.h, mode.refresh_rate);
 	}
+#endif
 }
 
 /*
@@ -345,11 +350,13 @@ SetSDLIcon()
 	amask = (q2icon64.bytes_per_pixel == 3) ? 0 : 0xff000000;
 #endif
 
-	SDL_Surface* icon = SDL_CreateRGBSurfaceFrom((void*)q2icon64.pixel_data, q2icon64.width,
-		q2icon64.height, q2icon64.bytes_per_pixel*8, q2icon64.bytes_per_pixel*q2icon64.width,
-		rmask, gmask, bmask, amask);
+	SDL_Surface* icon = SDL_CreateSurfaceFrom((void *)q2icon64.pixel_data,
+						  q2icon64.width,
+						  q2icon64.height,
+						  q2icon64.bytes_per_pixel * q2icon64.width,
+						  SDL_GetPixelFormatEnumForMasks(q2icon64.bytes_per_pixel * 8, rmask, gmask, bmask, amask));
 	SDL_SetWindowIcon(window, icon);
-	SDL_FreeSurface(icon);
+	SDL_DestroySurface(icon);
 }
 
 // FIXME: We need a header for this.
@@ -367,7 +374,7 @@ ShutdownGraphics(void)
 	if (window)
 	{
 		/* save current display as default */
-		last_display = SDL_GetWindowDisplayIndex(window);
+		last_display = SDL_GetDisplayForWindow(window);
 
 		/* or if current display isn't the desired default */
 		if (last_display != vid_displayindex->value) {
@@ -414,19 +421,21 @@ GLimp_Init(void)
 			return false;
 		}
 
-		SDL_version version;
+		SDL_Version version;
 
 		SDL_GetVersion(&version);
 		Com_Printf("-------- vid initialization --------\n");
 		Com_Printf("SDL version is: %i.%i.%i\n", (int)version.major, (int)version.minor, (int)version.patch);
 		Com_Printf("SDL video driver is \"%s\".\n", SDL_GetCurrentVideoDriver());
 
+#if 0
 		num_displays = SDL_GetNumVideoDisplays();
 		InitDisplayIndices();
 		ClampDisplayIndexCvar();
 		Com_Printf("SDL display modes:\n");
 
 		PrintDisplayModes();
+#endif
 		Com_Printf("------------------------------------\n\n");
 	}
 
@@ -445,11 +454,13 @@ GLimp_Shutdown(void)
 
 	// SDL_INIT_VIDEO implies SDL_INIT_EVENTS
 	const Uint32 subsystems = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+#if 0
 	if (SDL_WasInit(SDL_INIT_EVERYTHING) == subsystems)
 	{
 		SDL_Quit();
 	}
 	else
+#endif
 	{
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	}
@@ -467,7 +478,7 @@ Glimp_DetermineHighDPISupport(int flags)
 {
 #if SDL_VERSION_ATLEAST(2, 26, 0)
 	/* Make sure that high dpi is never set when we don't want it. */
-	flags &= ~SDL_WINDOW_ALLOW_HIGHDPI;
+	flags &= ~SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
 	if (vid_highdpiaware->value == 0)
 	{
@@ -479,7 +490,7 @@ Glimp_DetermineHighDPISupport(int flags)
 	   and the quality and behavior differs between them. */
 	if ((strcmp(SDL_GetCurrentVideoDriver(), "wayland") == 0))
 	{
-		flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+		flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
 	}
 #endif
 
@@ -501,10 +512,6 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	if (fullscreen == 1)
 	{
 		fs_flag = SDL_WINDOW_FULLSCREEN;
-	}
-	else if (fullscreen == 2)
-	{
-		fs_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
 	}
 
 	/* Only do this if we already have a working window and a fully
@@ -623,7 +630,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	last_flags = flags;
 
 	/* Now that we've got a working window print it's mode. */
-	int curdisplay = SDL_GetWindowDisplayIndex(window);
+	int curdisplay = SDL_GetDisplayForWindow(window);
 
 	if (curdisplay < 0) {
 		curdisplay = 0;
@@ -631,6 +638,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 
 	SDL_DisplayMode mode;
 
+#if 0
 	if (SDL_GetCurrentDisplayMode(curdisplay, &mode) != 0)
 	{
 		Com_Printf("Can't get current display mode: %s\n", SDL_GetError());
@@ -639,6 +647,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	{
 		Com_Printf("Real display mode: %ix%i@%i\n", mode.w, mode.h, mode.refresh_rate);
 	}
+#endif
 
 
     /* Initialize rendering context. */
@@ -655,7 +664,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	   The fullscreen window is special. We want it to fill
 	   the screen when native resolution is requestes, all
 	   other cases should look broken. */
-	if (flags & SDL_WINDOW_ALLOW_HIGHDPI)
+	if (flags & SDL_WINDOW_HIGH_PIXEL_DENSITY)
 	{
 		if (fullscreen != 2)
 		{
@@ -697,7 +706,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	SetSDLIcon();
 
 	/* No cursor */
-	SDL_ShowCursor(0);
+	SDL_HideCursor();
 
 	initSuccessful = true;
 
@@ -753,7 +762,7 @@ GLimp_GrabInput(qboolean grab)
 int
 GLimp_GetRefreshRate(void)
 {
-
+#if 0
 	if (vid_displayrefreshrate->value > -1 ||
 			vid_displayrefreshrate->modified)
 	{
@@ -765,7 +774,7 @@ GLimp_GetRefreshRate(void)
 	{
 		SDL_DisplayMode mode;
 
-		int i = SDL_GetWindowDisplayIndex(window);
+		int i = SDL_GetDisplayForWindow(window);
 
 		if (i >= 0 && SDL_GetCurrentDisplayMode(i, &mode) == 0)
 		{
@@ -780,6 +789,7 @@ GLimp_GetRefreshRate(void)
 	}
 
 	return glimp_refreshRate;
+#endif
 }
 
 /*
@@ -788,13 +798,14 @@ GLimp_GetRefreshRate(void)
 qboolean
 GLimp_GetDesktopMode(int *pwidth, int *pheight)
 {
+# if 0
 	// Declare display mode structure to be filled in.
-	SDL_DisplayMode mode;
+	SDL_DisplayMode *mode;
 
 	if (window)
 	{
 		/* save current display as default */
-		last_display = SDL_GetWindowDisplayIndex(window);
+		last_display = SDL_GetDisplayForWindow(window);
 		SDL_GetWindowPosition(window, &last_position_x, &last_position_y);
 	}
 
@@ -806,7 +817,7 @@ GLimp_GetDesktopMode(int *pwidth, int *pheight)
 	}
 
 	// We can't get desktop where we start, so use first desktop
-	if(SDL_GetCurrentDisplayMode(last_display, &mode) != 0)
+	if(mode = SDL_GetCurrentDisplayMode(last_display) != 0)
 	{
 		// In case of error...
 		Com_Printf("Can't detect default desktop mode: %s\n",
@@ -815,6 +826,7 @@ GLimp_GetDesktopMode(int *pwidth, int *pheight)
 	}
 	*pwidth = mode.w;
 	*pheight = mode.h;
+#endif 
 	return true;
 }
 

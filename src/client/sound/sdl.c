@@ -34,7 +34,7 @@
  */
 
 /* SDL includes */
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 /* Local includes */
 #include "../../client/header/client.h"
@@ -811,7 +811,7 @@ SDL_ClearBuffer(void)
 		clear = 0;
 	}
 
-	SDL_LockAudio();
+	//SDL_LockAudioDevice(g_audio_id);
 
 	if (sound.buffer)
 	{
@@ -827,7 +827,7 @@ SDL_ClearBuffer(void)
 		}
 	}
 
-	SDL_UnlockAudio();
+	//SDL_UnlockAudioDevice(g_audio_id);
 }
 
 /*
@@ -1191,7 +1191,7 @@ SDL_Update(void)
 	}
 
 	/* Mix the samples */
-	SDL_LockAudio();
+	//SDL_LockAudioDevice(g_audio_id);
 
 	/* Updates SDL time */
 	SDL_UpdateSoundtime();
@@ -1221,7 +1221,7 @@ SDL_Update(void)
 	}
 
 	SDL_PaintChannels(endtime);
-	SDL_UnlockAudio();
+	//SDL_UnlockAudioDevice(g_audio_id);
 }
 
 /* ------------------------------------------------------------------ */
@@ -1304,10 +1304,12 @@ SDL_Callback(void *data, Uint8 *stream, int length)
 qboolean
 SDL_BackendInit(void)
 {
+	/* FIXME MIGRATION: maybe move this to a global scope ? */
+	SDL_AudioDeviceID g_audio_id = -1;
 	char reqdriver[128];
 	SDL_AudioSpec desired;
 	SDL_AudioSpec obtained;
-	int tmp, val;
+	//int tmp, val;
 
 	/* This should never happen,
 	   but this is Quake 2 ... */
@@ -1377,8 +1379,9 @@ SDL_BackendInit(void)
 		desired.freq = 11025;
 	}
 
-	desired.format = ((sndbits == 16) ? AUDIO_S16SYS : AUDIO_U8);
+	desired.format = ((sndbits == 16) ? SDL_AUDIO_S16 : SDL_AUDIO_U8);
 
+# if 0
 	if (desired.freq <= 11025)
 	{
 		desired.samples = 256;
@@ -1395,12 +1398,13 @@ SDL_BackendInit(void)
 	{
 		desired.samples = 2048;
 	}
+#endif
 
 	desired.channels = sndchans;
-	desired.callback = SDL_Callback;
+	//desired.callback = SDL_Callback;
 
 	/* Okay, let's try our luck */
-	if (SDL_OpenAudio(&desired, &obtained) == -1)
+	if ((g_audio_id = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_OUTPUT, &desired)) > 0 ? 0 : -1 == -1)
 	{
 		Com_Printf("SDL_OpenAudio() failed: %s\n", SDL_GetError());
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);
@@ -1414,6 +1418,7 @@ SDL_BackendInit(void)
 	backend->samplebits = obtained.format & 0xFF;
 	backend->channels = obtained.channels;
 
+#if 0
 	tmp = (obtained.samples * obtained.channels) * 10;
 
 	if (tmp & (tmp - 1))
@@ -1426,6 +1431,7 @@ SDL_BackendInit(void)
 	}
 
 	backend->samples = tmp;
+#endif
 
 	backend->submission_chunk = 1;
 	backend->speed = obtained.freq;
@@ -1438,7 +1444,7 @@ SDL_BackendInit(void)
 	lpf_initialize(&lpf_context, lpf_default_gain_hf, backend->speed);
 
 	SDL_UpdateScaletable();
-	SDL_PauseAudio(0);
+	0 == SDL_TRUE ? SDL_PauseAudioDevice(g_audio_id) : SDL_ResumeAudioDevice(g_audio_id);
 
 	Com_Printf("SDL audio initialized.\n");
 
@@ -1455,8 +1461,8 @@ void
 SDL_BackendShutdown(void)
 {
 	Com_Printf("Closing SDL audio device...\n");
-	SDL_PauseAudio(1);
-	SDL_CloseAudio();
+	//1 == SDL_TRUE ? SDL_PauseAudioDevice(g_audio_id) : SDL_ResumeAudioDevice(g_audio_id);
+	//SDL_CloseAudio();
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 	free(backend->buffer);
 	backend->buffer = NULL;

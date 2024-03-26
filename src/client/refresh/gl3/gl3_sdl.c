@@ -29,7 +29,8 @@
 
 #include "header/local.h"
 
-#include <SDL2/SDL.h>
+#define SDL_FUNCTION_POINTER_IS_VOID_POINTER 1
+#include <SDL3/SDL.h>
 
 static SDL_Window* window = NULL;
 static SDL_GLContext context = NULL;
@@ -162,7 +163,7 @@ void GL3_SetVsync(void)
 		}
 	}
 
-	vsyncActive = SDL_GL_GetSwapInterval() != 0;
+	//vsyncActive = SDL_GL_GetSwapInterval() != 0;
 }
 
 /*
@@ -406,7 +407,7 @@ int GL3_InitContext(void* win)
 #if SDL_VERSION_ATLEAST(2, 26, 0)
 	// Figure out if we are high dpi aware.
 	int flags = SDL_GetWindowFlags(win);
-	IsHighDPIaware = (flags & SDL_WINDOW_ALLOW_HIGHDPI) ? true : false;
+	IsHighDPIaware = (flags & SDL_WINDOW_HIGH_PIXEL_DENSITY) ? true : false;
 #endif
 
 	return true;
@@ -417,7 +418,7 @@ int GL3_InitContext(void* win)
  */
 void GL3_GetDrawableSize(int* width, int* height)
 {
-	SDL_GL_GetDrawableSize(window, width, height);
+	SDL_GetWindowSizeInPixels(window, width, height);
 }
 
 /*
