@@ -32,7 +32,6 @@
 
 #ifdef USE_SDL3
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_video.h>
 #else
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
@@ -104,7 +103,16 @@ CreateSDLWindow(int flags, int w, int h)
 	 *  * https://github.com/libsdl-org/SDL/issues/3656 */
 	SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
 
-	window = SDL_CreateWindowWithPosition("Yamagi Quake II", last_position_x, last_position_y, w, h, flags);
+	SDL_PropertiesID props = SDL_CreateProperties();
+	SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, "Yamagi Quake II");
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, last_position_x);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, last_position_y);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, w);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, h);
+	SDL_SetNumberProperty(props, "flags", flags);
+
+	window = SDL_CreateWindowWithProperties (props);
+	SDL_DestroyProperties(props);
 
 	if (window)
 	{
