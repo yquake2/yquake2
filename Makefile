@@ -276,7 +276,7 @@ endif
 # ----------
 
 # Extra CFLAGS for SDL.
-SDLCFLAGS := $(shell PKG_CONFIG_PATH=/home/yamagi/temp/q2_sdl3/sdl3/lib/pkgconfig pkgconf --cflags sdl3)
+SDLCFLAGS := $(shell pkgconf --cflags sdl3)
 
 # ----------
 
@@ -356,7 +356,7 @@ endif
 ifeq ($(YQ2_OSTYPE), Darwin)
 SDLLDFLAGS := -lSDL2
 else # not Darwin
-SDLLDFLAGS := $(shell PKG_CONFIG_PATH=/home/yamagi/temp/q2_sdl3/sdl3/lib/pkgconfig pkgconf --libs sdl3)
+SDLLDFLAGS := $(shell pkgconf --libs sdl3)
 endif # Darwin
 
 # The renderer libs don't need libSDL2main, libmingw32 or -mwindows.
