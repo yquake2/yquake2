@@ -875,6 +875,7 @@ CLIENT_OBJS_ := \
 	src/client/sound/ogg.o \
 	src/client/sound/openal.o \
 	src/client/sound/qal.o \
+	src/client/sound/sdl.o \
 	src/client/sound/sound.o \
 	src/client/sound/wave.o \
 	src/client/vid/vid.o \
@@ -915,12 +916,10 @@ CLIENT_OBJS_ := \
 ifeq ($(WITH_SDL3),yes)
 CLIENT_OBJS_ += \
 	src/client/input/sdl3.o \
-	src/client/sound/sdl3.o \
 	src/client/vid/glimp_sdl3.o
 else
 CLIENT_OBJS_ += \
 	src/client/input/sdl2.o \
-	src/client/sound/sdl2.o \
 	src/client/vid/glimp_sdl2.o
 endif
 
