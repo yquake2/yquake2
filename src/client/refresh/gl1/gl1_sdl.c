@@ -27,7 +27,11 @@
 
 #include "header/local.h"
 
+#ifdef USE_SDL3
+#include <SDL3/SDL.h>
+#else
 #include <SDL2/SDL.h>
+#endif
 
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>
@@ -155,7 +159,20 @@ void RI_SetVsync(void)
 		}
 	}
 
+#ifdef USE_SDL3
+	int vsyncState;
+	if (SDL_GL_GetSwapInterval(&vsyncState) != 0)
+	{
+		R_Printf(PRINT_ALL, "Failed to get vsync state, assuming vsync inactive.\n");
+		vsyncActive = false;
+	}
+	else
+	{
+		vsyncActive = vsyncState ? true : false;
+	}
+#else
 	vsyncActive = SDL_GL_GetSwapInterval() != 0;
+#endif
 }
 
 /*
@@ -164,6 +181,10 @@ void RI_SetVsync(void)
 void
 RI_UpdateGamma(void)
 {
+// TODO SDL3: Hardware gamma / gamma ramps are no longer supported with
+// SDL3. There's no replacement and sdl2-compat won't support it either.
+// See https://github.com/libsdl-org/SDL/pull/6617 for the rational.
+#ifndef USE_SDL3
 	float gamma = (vid_gamma->value);
 
 	Uint16 ramp[256];
@@ -173,6 +194,7 @@ RI_UpdateGamma(void)
 	{
 		R_Printf(PRINT_ALL, "Setting gamma failed: %s\n", SDL_GetError());
 	}
+#endif
 }
 
 /*
@@ -251,7 +273,11 @@ int RI_InitContext(void* win)
 #if SDL_VERSION_ATLEAST(2, 26, 0)
 	// Figure out if we are high dpi aware.
 	int flags = SDL_GetWindowFlags(win);
+#ifdef USE_SDL3
+	IsHighDPIaware = (flags & SDL_WINDOW_HIGH_PIXEL_DENSITY) ? true : false;
+#else
 	IsHighDPIaware = (flags & SDL_WINDOW_ALLOW_HIGHDPI) ? true : false;
+#endif
 #endif
 
 	return true;
@@ -262,7 +288,11 @@ int RI_InitContext(void* win)
  */
 void RI_GetDrawableSize(int* width, int* height)
 {
+#ifdef USE_SDL3
+	SDL_GetWindowSizeInPixels(window, width, height);
+#else
 	SDL_GL_GetDrawableSize(window, width, height);
+#endif
 }
 
 /*
