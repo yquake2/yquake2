@@ -277,6 +277,7 @@ endif
 
 # Extra CFLAGS for SDL.
 SDLCFLAGS := $(shell pkgconf --cflags sdl3)
+SDLCFLAGS += -DUSE_SDL3
 
 # ----------
 
