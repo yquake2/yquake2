@@ -53,6 +53,9 @@ WITH_OPENAL:=yes
 # or libopenal.so. Not supported on Windows.
 WITH_RPATH:=yes
 
+# Builds with SDL 3 instead of SDL 2.
+WITH_SDL3:=no
+
 # Enable systemwide installation of game assets.
 WITH_SYSTEMWIDE:=no
 
@@ -276,7 +279,12 @@ endif
 # ----------
 
 # Extra CFLAGS for SDL.
+ifeq ($(WITH_SDL3),yes)
+SDLCFLAGS := $(shell pkgconf --cflags sdl3)
+SDLCFLAGS += -DUSE_SDL3
+else
 SDLCFLAGS := $(shell sdl2-config --cflags)
+endif
 
 # ----------
 
@@ -353,11 +361,19 @@ endif
 # ----------
 
 # Extra LDFLAGS for SDL
+ifeq ($(WITH_SDL3),yes)
+ifeq ($(YQ2_OSTYPE), Darwin)
+SDLLDFLAGS := -lSDL3
+else
+SDLLDFLAGS := $(shell pkgconf --libs sdl3)
+endif
+else
 ifeq ($(YQ2_OSTYPE), Darwin)
 SDLLDFLAGS := -lSDL2
-else # not Darwin
+else
 SDLLDFLAGS := $(shell sdl2-config --libs)
-endif # Darwin
+endif
+endif
 
 # The renderer libs don't need libSDL2main, libmingw32 or -mwindows.
 ifeq ($(YQ2_OSTYPE), Windows)
@@ -394,6 +410,7 @@ config:
 	@echo "WITH_CURL = $(WITH_CURL)"
 	@echo "WITH_OPENAL = $(WITH_OPENAL)"
 	@echo "WITH_RPATH = $(WITH_RPATH)"
+	@echo "WITH_SDL3 = $(WITH_SDL3)"
 	@echo "WITH_SYSTEMWIDE = $(WITH_SYSTEMWIDE)"
 	@echo "WITH_SYSTEMDIR = $(WITH_SYSTEMDIR)"
 	@echo "============================"
@@ -852,17 +869,14 @@ CLIENT_OBJS_ := \
 	src/client/cl_view.o \
 	src/client/curl/download.o \
 	src/client/curl/qcurl.o \
-	src/client/input/sdl.o \
 	src/client/menu/menu.o \
 	src/client/menu/qmenu.o \
 	src/client/menu/videomenu.o \
-	src/client/sound/sdl.o \
 	src/client/sound/ogg.o \
 	src/client/sound/openal.o \
 	src/client/sound/qal.o \
 	src/client/sound/sound.o \
 	src/client/sound/wave.o \
-	src/client/vid/glimp_sdl.o \
 	src/client/vid/vid.o \
 	src/common/argproc.o \
 	src/common/clientserver.o \
@@ -897,6 +911,18 @@ CLIENT_OBJS_ := \
 	src/server/sv_send.o \
 	src/server/sv_user.o \
 	src/server/sv_world.o
+
+ifeq ($(WITH_SDL3),yes)
+CLIENT_OBJS_ += \
+	src/client/input/sdl3.o \
+	src/client/sound/sdl3.o \
+	src/client/vid/glimp_sdl3.o
+else
+CLIENT_OBJS_ += \
+	src/client/input/sdl2.o \
+	src/client/sound/sdl2.o \
+	src/client/vid/glimp_sdl2.o
+endif
 
 ifeq ($(YQ2_OSTYPE), Windows)
 CLIENT_OBJS_ += \
