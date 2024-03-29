@@ -658,69 +658,68 @@ IN_Update(void)
 				break;
 			}
 
-			case SDL_WINDOWEVENT:
-				if (event.window.event == SDL_EVENT_WINDOW_FOCUS_LOST ||
-					event.window.event == SDL_EVENT_WINDOW_FOCUS_GAINED)
+			case SDL_EVENT_WINDOW_FOCUS_LOST:
+			{
+				Key_MarkAllUp();
+				S_Activate(false);
+
+				if (windowed_pauseonfocuslost->value != 1)
 				{
-					Key_MarkAllUp();
-					
-					if (event.window.event == SDL_EVENT_WINDOW_FOCUS_LOST)
-					{
-						S_Activate(false);
-
-						if (windowed_pauseonfocuslost->value != 1)
-						{
-						    Cvar_SetValue("paused", 1);
-						}
-
-						/* pause music */
-						if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
-						    OGG_Status() == PLAY && cl.attractloop == false)
-						{
-						    Cbuf_AddText("ogg toggle\n");
-						}
-					}
-
-					if (event.window.event == SDL_EVENT_WINDOW_FOCUS_GAINED)
-					{
-						S_Activate(true);
-
-						if (windowed_pauseonfocuslost->value == 2)
-						{
-						    Cvar_SetValue("paused", 0);
-						}
-
-						/* play music */
-						if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
-						    OGG_Status() == PAUSE && cl.attractloop == false &&
-						    cl_paused->value == 0)
-						{
-						    Cbuf_AddText("ogg toggle\n");
-						}
-					}
+					Cvar_SetValue("paused", 1);
 				}
-				else if (event.window.event == SDL_EVENT_WINDOW_MOVED)
-				{
-					// make sure GLimp_GetRefreshRate() will query from SDL again - the window might
-					// be on another display now!
-					glimp_refreshRate = -1.0;
-				}
-				else if (event.window.event == SDL_EVENT_WINDOW_SHOWN)
-				{
-					if (cl_unpaused_scvis->value > 0)
-					{
-						Cvar_SetValue("paused", 0);
-					}
 
-					/* play music */
-					if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
-					    OGG_Status() == PAUSE && cl.attractloop == false &&
-					    cl_paused->value == 0)
-					{
-					    Cbuf_AddText("ogg toggle\n");
-					}
+				/* pause music */
+				if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
+						OGG_Status() == PLAY && cl.attractloop == false)
+				{
+					Cbuf_AddText("ogg toggle\n");
 				}
 				break;
+			}
+
+			case SDL_EVENT_WINDOW_FOCUS_GAINED:
+			{
+				S_Activate(true);
+
+				if (windowed_pauseonfocuslost->value == 2)
+				{
+					Cvar_SetValue("paused", 0);
+				}
+
+				/* play music */
+				if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
+						OGG_Status() == PAUSE && cl.attractloop == false &&
+						cl_paused->value == 0)
+				{
+					Cbuf_AddText("ogg toggle\n");
+				}
+				break;
+			}
+
+			case SDL_EVENT_WINDOW_MOVED:
+			{
+				// make sure GLimp_GetRefreshRate() will query from SDL again - the window might
+				// be on another display now!
+				glimp_refreshRate = -1.0;
+				break;
+			}
+
+			case SDL_EVENT_WINDOW_SHOWN:
+			{
+				if (cl_unpaused_scvis->value > 0)
+				{
+					Cvar_SetValue("paused", 0);
+				}
+
+				/* play music */
+				if (Cvar_VariableValue("ogg_pausewithgame") == 1 &&
+					OGG_Status() == PAUSE && cl.attractloop == false &&
+					cl_paused->value == 0)
+				{
+					Cbuf_AddText("ogg toggle\n");
+				}
+				break;
+			}
 
 			case SDL_EVENT_GAMEPAD_BUTTON_UP :
 			case SDL_EVENT_GAMEPAD_BUTTON_DOWN :
