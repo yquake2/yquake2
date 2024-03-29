@@ -33,6 +33,7 @@
  *  * `fullscreen` should be an enum to make the code more readable.
  *  * Debug fullscreen handling, maybe refactor it further.
  *  * Check if window size handling is correct.
+ *  * Check pointers returned by SDL functions for memory leaks.
  */
 
 #include "../../common/header/common.h"
@@ -272,32 +273,27 @@ PrintDisplayModes(void)
 {
 	int curdisplay = window ? SDL_GetDisplayForWindow(window) : 0;
 
-	// On X11 (at least for me)
-	// curdisplay is always -1.
-	// DG: probably because window was NULL?
+	/* Might get called without a window */
 	if (curdisplay < 0) {
 		curdisplay = 0;
 	}
 
-	int nummodes = SDL_GetNumDisplayModes(curdisplay);
+	int nummodes = 0;
+	const SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(curdisplay, &nummodes);
 
-	if (nummodes < 1)
+	if (modes)
 	{
-		Com_Printf("Can't get display modes: %s\n", SDL_GetError());
-		return;
-	}
-
-	for (int i = 0; i < nummodes; i++)
-	{
-		SDL_DisplayMode mode;
-
-		if (SDL_GetDisplayMode(curdisplay, i, &mode) != 0)
+        for (int i = 0; i < nummodes; ++i)
 		{
-			Com_Printf("Can't get display mode: %s\n", SDL_GetError());
-			return;
+            const SDL_DisplayMode *mode = modes[i];
+			Com_Printf(" - Mode %2i: %ix%i@%f\n", i, mode->w, mode->h, mode->refresh_rate);
 		}
 
-		Com_Printf(" - Mode %2i: %ix%i@%i\n", i, mode.w, mode.h, mode.refresh_rate);
+		SDL_free(modes);
+	}
+	else
+	{
+		Com_Printf("Couldn't get display modes: %s\n", SDL_GetError());
 	}
 }
 
