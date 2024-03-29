@@ -121,10 +121,6 @@ CreateSDLWindow(int flags, int w, int h)
 		last_display = SDL_GetDisplayForWindow(window);
 		SDL_GetWindowPosition(window, &last_position_x, &last_position_y);
 
-		/* Check if we're really in the requested diplay mode. There is
-		   (or was) an SDL bug were SDL switched into the wrong mode
-		   without giving an error code. See the bug report for details:
-		   https://bugzilla.libsdl.org/show_bug.cgi?id=4700 */
 		SDL_DisplayMode real_mode;
 
 		if ((flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)) == SDL_WINDOW_FULLSCREEN)
@@ -135,57 +131,6 @@ CreateSDLWindow(int flags, int w, int h)
 				window = NULL;
 
 				Com_Printf("Can't get display mode: %s\n", SDL_GetError());
-
-				return false;
-			}
-		}
-
-		/* SDL_WINDOW_FULLSCREEN_DESKTOP implies SDL_WINDOW_FULLSCREEN! */
-		if (((flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)) == SDL_WINDOW_FULLSCREEN)
-				&& ((real_mode.w != w) || (real_mode.h != h)))
-		{
-
-			Com_Printf("Current display mode isn't requested display mode\n");
-			Com_Printf("Likely SDL bug #4700, trying to work around it\n");
-
-			/* Mkay, try to hack around that. */
-			SDL_DisplayMode wanted_mode = {0};
-
-			wanted_mode.w = w;
-			wanted_mode.h = h;
-
-			if (SDL_SetWindowFullscreenMode(window, &wanted_mode) != 0)
-			{
-				SDL_DestroyWindow(window);
-				window = NULL;
-
-				Com_Printf("Can't force resolution to %ix%i: %s\n", w, h, SDL_GetError());
-
-				return false;
-			}
-
-			/* The SDL doku says, that SDL_SetWindowSize() shouldn't be
-			   used on fullscreen windows. But at least in my test with
-			   SDL 2.0.9 the subsequent SDL_GetWindowDisplayMode() fails
-			   if I don't call it. */
-			SDL_SetWindowSize(window, wanted_mode.w, wanted_mode.h);
-
-			if (SDL_GetWindowFullscreenMode(window, &real_mode) != 0)
-			{
-				SDL_DestroyWindow(window);
-				window = NULL;
-
-				Com_Printf("Can't get display mode: %s\n", SDL_GetError());
-
-				return false;
-			}
-
-			if ((real_mode.w != w) || (real_mode.h != h))
-			{
-				SDL_DestroyWindow(window);
-				window = NULL;
-
-				Com_Printf("Still in wrong display mode: %ix%i instead of %ix%i\n", real_mode.w, real_mode.h, w, h);
 
 				return false;
 			}
