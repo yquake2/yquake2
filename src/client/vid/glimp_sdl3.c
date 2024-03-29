@@ -396,7 +396,16 @@ GLimp_Init(void)
 		Com_Printf("SDL version is: %i.%i.%i\n", (int)version.major, (int)version.minor, (int)version.patch);
 		Com_Printf("SDL video driver is \"%s\".\n", SDL_GetCurrentVideoDriver());
 
-		num_displays = SDL_GetNumVideoDisplays();
+		SDL_DisplayID *displays;
+		if ((displays = SDL_GetDisplays(&num_displays)) == NULL)
+		{
+			Com_Printf("Couldn't get number of displays: %s\n", SDL_GetError());
+		}
+		else
+		{
+			SDL_free(displays);
+		}
+
 		InitDisplayIndices();
 		ClampDisplayIndexCvar();
 		Com_Printf("SDL display modes:\n");
@@ -418,17 +427,11 @@ GLimp_Shutdown(void)
 {
 	ShutdownGraphics();
 
-	// SDL_INIT_VIDEO implies SDL_INIT_EVENTS
-	const Uint32 subsystems = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
-	if (SDL_WasInit(SDL_INIT_EVERYTHING) == subsystems)
-	{
-		SDL_Quit();
-	}
-	else
-	{
-		SDL_QuitSubSystem(SDL_INIT_VIDEO);
-	}
-
+	// TODO SDL3: SDL_INIT_VIDEO implies SDL_INIT_EVENTS
+	// in SDL 2 this was handled by SDL_INIT_EVERYTHING
+	// which is unavailable in SDL 3. Handle SDL_INIT_EVENTS
+	// in the input backend?
+	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	ClearDisplayIndices();
 }
 
@@ -440,7 +443,6 @@ GLimp_Shutdown(void)
 static int
 Glimp_DetermineHighDPISupport(int flags)
 {
-#if SDL_VERSION_ATLEAST(2, 26, 0)
 	/* Make sure that high dpi is never set when we don't want it. */
 	flags &= ~SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
@@ -456,7 +458,6 @@ Glimp_DetermineHighDPISupport(int flags)
 	{
 		flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
 	}
-#endif
 
 	return flags;
 }
@@ -485,12 +486,12 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	if (initSuccessful && GetWindowSize(&curWidth, &curHeight)
 			&& (curWidth == width) && (curHeight == height))
 	{
+		/* TODO SDL3: Leak? */
+		const SDL_DisplayMode *closestMode = NULL;
+
 		/* If we want fullscreen, but aren't */
 		if (GetFullscreenType())
 		{
-			/* TODO SDL3: Leak? */
-			const SDL_DisplayMode *closestMode;
-
 			if (fullscreen == 1)
 			{
 				closestMode = SDL_GetClosestFullscreenDisplayMode(last_display, width, height, vid_rate->value, false);
@@ -662,15 +663,16 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 		curdisplay = 0;
 	}
 
-	SDL_DisplayMode mode;
-
-	if (SDL_GetCurrentDisplayMode(curdisplay, &mode) != 0)
+	const SDL_DisplayMode *mode;
+	if ((mode = SDL_GetCurrentDisplayMode(curdisplay)) == NULL)
 	{
 		Com_Printf("Can't get current display mode: %s\n", SDL_GetError());
 	}
 	else
 	{
-		Com_Printf("Real display mode: %ix%i@%i\n", mode.w, mode.h, mode.refresh_rate);
+		Com_Printf("Real display mode: %ix%i@%f\n", mode->w, mode->h, mode->refresh_rate);
+		// TODO SDL3: Games crashes with double free().
+		//SDL_free((void *)mode);
 	}
 
 
@@ -730,7 +732,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	SetSDLIcon();
 
 	/* No cursor */
-	SDL_ShowCursor(0);
+	SDL_ShowCursor();
 
 	initSuccessful = true;
 
@@ -782,6 +784,8 @@ GLimp_GrabInput(qboolean grab)
  *   some small and nard to notice timing problems. If the value
  *   is rounded down frames will be missed. Both is only relevant
  *   if the vsync is enabled.
+ *
+ * TODO SDL 3: Refactor this to floats?
  */
 int
 GLimp_GetRefreshRate(void)
@@ -796,19 +800,16 @@ GLimp_GetRefreshRate(void)
 
 	if (glimp_refreshRate == -1)
 	{
-		SDL_DisplayMode mode;
-
+		const SDL_DisplayMode *mode;
 		int i = SDL_GetDisplayForWindow(window);
 
-		if (i >= 0 && SDL_GetCurrentDisplayMode(i, &mode) == 0)
+		if (i >= 0)
 		{
-			glimp_refreshRate = mode.refresh_rate;
-		}
-
-		// Something went wrong, use default.
-		if (glimp_refreshRate <= 0)
-		{
-			glimp_refreshRate = 60;
+			if ((mode = SDL_GetCurrentDisplayMode(i)) != NULL)
+			{
+				glimp_refreshRate = mode->refresh_rate;
+				SDL_free((void *)mode);
+			}
 		}
 	}
 
@@ -821,9 +822,6 @@ GLimp_GetRefreshRate(void)
 qboolean
 GLimp_GetDesktopMode(int *pwidth, int *pheight)
 {
-	// Declare display mode structure to be filled in.
-	SDL_DisplayMode mode;
-
 	if (window)
 	{
 		/* save current display as default */
@@ -839,15 +837,19 @@ GLimp_GetDesktopMode(int *pwidth, int *pheight)
 	}
 
 	// We can't get desktop where we start, so use first desktop
-	if(SDL_GetCurrentDisplayMode(last_display, &mode) != 0)
+	const SDL_DisplayMode *mode;
+	if ((mode = SDL_GetCurrentDisplayMode(last_display)) == NULL)
 	{
 		// In case of error...
-		Com_Printf("Can't detect default desktop mode: %s\n",
-				SDL_GetError());
+		Com_Printf("Can't detect default desktop mode: %s\n", SDL_GetError());
 		return false;
 	}
-	*pwidth = mode.w;
-	*pheight = mode.h;
+
+	*pwidth = mode->w;
+	*pheight = mode->h;
+
+	SDL_free((void *) mode);
+
 	return true;
 }
 
