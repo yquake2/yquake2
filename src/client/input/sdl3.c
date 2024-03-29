@@ -36,6 +36,9 @@
 
 #include <SDL3/SDL.h>
 
+#include "SDL3/SDL_gamepad.h"
+#include "SDL3/SDL_properties.h"
+#include "SDL3/SDL_stdinc.h"
 #include "header/input.h"
 #include "../header/keyboard.h"
 #include "../header/client.h"
@@ -2062,7 +2065,7 @@ IN_Controller_Init(qboolean notify_user)
 		Com_Printf("- Game Controller init attempt -\n");
 	}
 
-	if (!SDL_WasInit(SDL_INIT_GAMEPAD))
+	if (!SDL_WasInit(SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC))
 	{
 
 #ifdef SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE	// extended input reports on PS controllers (enables gyro thru bluetooth)
@@ -2079,9 +2082,16 @@ IN_Controller_Init(qboolean notify_user)
 		}
 	}
 
-	Com_Printf ("%i joysticks were found.\n", SDL_NumJoysticks());
+	int numjoysticks;
+	const SDL_JoystickID *joysticks = SDL_GetJoysticks(&numjoysticks);
 
-	if (!SDL_NumJoysticks())
+	if (joysticks != NULL)
+	{
+		Com_Printf ("%i joysticks were found.\n", numjoysticks);
+	}
+
+
+	if (numjoysticks == 0)
 	{
 		joystick_haptic = SDL_OpenHapticFromMouse();
 
@@ -2110,9 +2120,9 @@ IN_Controller_Init(qboolean notify_user)
 			Com_Printf ("%d mappings loaded from gamecontrollerdb.txt\n", nummappings);
 	}
 
-	for (int i = 0; i < SDL_NumJoysticks(); i++)
+	for (int i = 0; i < numjoysticks; i++)
 	{
-		joystick = SDL_OpenJoystick(i);
+		joystick = SDL_OpenJoystick(joysticks[i]);
 		if (!joystick)
 		{
 			Com_Printf ("Couldn't open joystick %d: %s.\n", i+1, SDL_GetError());
@@ -2135,7 +2145,7 @@ IN_Controller_Init(qboolean notify_user)
 			Com_Printf ("IMU device found.\n");
 			if ( !imu_joystick && name_len > 16 && strncmp(joystick_name + name_len - 16, "Left Joy-Con IMU", 16) != 0 )
 			{
-				imu_joystick = SDL_OpenJoystick(i);
+				imu_joystick = SDL_OpenJoystick(joysticks[i]);
 				if (imu_joystick)
 				{
 					show_gyro = true;
@@ -2150,17 +2160,14 @@ IN_Controller_Init(qboolean notify_user)
 			continue;
 		}
 
-		Com_Printf ("Buttons = %d, Axes = %d, Hats = %d\n",
-			    SDL_GetNumJoystickButtons(joystick),
-			    SDL_GetNumJoystickAxes(joystick),
-			    SDL_GetNumJoystickHats(joystick));
-		is_controller = /* FIXME MIGRATION: check for valid instance */
-			SDL_IsGamepad(GetJoystickInstanceFromIndex(i));
+		Com_Printf ("Buttons = %d, Axes = %d, Hats = %d\n", SDL_GetNumJoystickButtons(joystick),
+			    SDL_GetNumJoystickAxes(joystick), SDL_GetNumJoystickHats(joystick));
+		is_controller = SDL_IsGamepad(joysticks[i]);
 
 		if (!is_controller)
 		{
 			char joystick_guid[65] = {0};
-			SDL_JoystickGUID guid = SDL_JoystickGetDeviceGUID(i);
+			SDL_JoystickGUID guid = SDL_GetJoystickInstanceGUID(joysticks[i]);
 
 			SDL_GetJoystickGUIDString(guid, joystick_guid, 64);
 
@@ -2175,7 +2182,7 @@ IN_Controller_Init(qboolean notify_user)
 
 		if (is_controller && !controller)
 		{
-			controller = SDL_OpenGamepad(i);
+			controller = SDL_OpenGamepad(joysticks[i]);
 			if (!controller)
 			{
 				Com_Printf("SDL Controller error: %s.\n", SDL_GetError());
@@ -2204,7 +2211,8 @@ IN_Controller_Init(qboolean notify_user)
 				Com_Printf("Gyro sensor not found.\n");
 			}
 
-			if ( SDL_GameControllerHasLED(controller) )
+			SDL_bool hasLED = SDL_GetBooleanProperty(SDL_GetGamepadProperties(controller), SDL_PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN, SDL_FALSE);
+			if (hasLED)
 			{
 				SDL_SetGamepadLED(controller, 0, 80, 0);	// green light
 			}
@@ -2228,7 +2236,8 @@ IN_Controller_Init(qboolean notify_user)
 			}
 
 #if SDL_VERSION_ATLEAST(2, 0, 18)	// support for query on features from controller
-			if (SDL_GameControllerHasRumble(controller))
+			SDL_bool hasRumble = SDL_GetBooleanProperty(SDL_GetGamepadProperties(controller), SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, SDL_FALSE);
+			if (hasRumble)
 #elif SDL_VERSION_ATLEAST(2, 0, 9)	// support for rumble
 			if (SDL_GameControllerRumble(controller, 1, 1, 1) == 0)
 #else					// no rumble support on SDL < 2.0.9
@@ -2248,6 +2257,8 @@ IN_Controller_Init(qboolean notify_user)
 #endif
 		}
 	}
+
+	SDL_free((void *)joysticks);
 }
 
 /*
@@ -2395,7 +2406,7 @@ IN_Shutdown(void)
 
 	IN_Controller_Shutdown(false);
 
-	const Uint32 subsystems = SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC | SDL_INIT_EVENTS;
+	const Uint32 subsystems = SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_EVENTS;
 	if (SDL_WasInit(subsystems) == subsystems)
 	{
 		SDL_QuitSubSystem(subsystems);
