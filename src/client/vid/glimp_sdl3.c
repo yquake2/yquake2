@@ -32,6 +32,7 @@
  *  * Do we need to request High DPI modes when vid_highdpiaware > 0?
  *  * `fullscreen` should be an enum to make the code more readable.
  *  * Debug fullscreen handling, maybe refactor it further.
+ *  * Check if window size handling is correct.
  */
 
 #include "../../common/header/common.h"
@@ -236,17 +237,11 @@ GetWindowSize(int* w, int* h)
 		return false;
 	}
 
-	SDL_DisplayMode m;
-
-	if (SDL_GetWindowFullscreenMode(window, &m) != 0)
+	if (SDL_GetWindowSize(window, w, h) < 0)
 	{
-		Com_Printf("Can't get Displaymode: %s\n", SDL_GetError());
-
+		Com_Printf("Couldn't get window size: %s\n", SDL_GetError());
 		return false;
 	}
-
-	*w = m.w;
-	*h = m.h;
 
 	return true;
 }
