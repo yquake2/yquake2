@@ -279,11 +279,27 @@ InitDisplayIndices()
 static void
 PrintDisplayModes(void)
 {
-	int curdisplay = window ? SDL_GetDisplayForWindow(window) : 0;
+	int curdisplay;
 
-	/* Might get called without a window */
-	if (curdisplay < 0) {
-		curdisplay = 0;
+	if (window == NULL)
+	{
+		/* Called without a windows, list modes
+		   from the first display. This is the
+		   primary display and likely the one the
+		   game will run on. */
+		curdisplay = 1;
+	}
+	else
+	{
+		/* Otherwise use the window were the window
+		   is displayed. There are some obscure
+		   setups were this can fail - one X11 server
+		   with several screen is one of these - so
+		   add a fallback to the first display. */
+		if ((curdisplay = SDL_GetDisplayForWindow(window)) == 0)
+		{
+			curdisplay = 1;
+		}
 	}
 
 	int nummodes = 0;
@@ -294,7 +310,7 @@ PrintDisplayModes(void)
         for (int i = 0; i < nummodes; ++i)
 		{
             const SDL_DisplayMode *mode = modes[i];
-			Com_Printf(" - Mode %2i: %ix%i@%f\n", i, mode->w, mode->h, mode->refresh_rate);
+			Com_Printf(" - Mode %2i: %ix%i@%.2f\n", i, mode->w, mode->h, mode->refresh_rate);
 		}
 
 		SDL_free(modes);
@@ -665,22 +681,24 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	last_flags = flags;
 
 	/* Now that we've got a working window print it's mode. */
-	int curdisplay = SDL_GetDisplayForWindow(window);
-
-	if (curdisplay < 0) {
-		curdisplay = 0;
+	int curdisplay;
+	if ((curdisplay = SDL_GetDisplayForWindow(window)) == 0)
+	{
+		/* There are some obscure setups were SDL is
+		   unable to get the current display,one X11
+		   server with several screen is one of these,
+		   so add a fallback to the first display. */
+		curdisplay = 1;
 	}
 
 	const SDL_DisplayMode *mode;
 	if ((mode = SDL_GetCurrentDisplayMode(curdisplay)) == NULL)
 	{
-		Com_Printf("Can't get current display mode: %s\n", SDL_GetError());
+		Com_Printf("Couldn't get current display mode: %s\n", SDL_GetError());
 	}
 	else
 	{
-		Com_Printf("Real display mode: %ix%i@%f\n", mode->w, mode->h, mode->refresh_rate);
-		// TODO SDL3: Games crashes with double free().
-		//SDL_free((void *)mode);
+		Com_Printf("Real display mode: %ix%i@%.2f\n", mode->w, mode->h, mode->refresh_rate);
 	}
 
 
