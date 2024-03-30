@@ -39,12 +39,7 @@
 #include "../../common/header/common.h"
 #include "header/ref.h"
 
-#ifdef USE_SDL3
 #include <SDL3/SDL.h>
-#else
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_video.h>
-#endif
 
 int glimp_refreshRate = -1;
 
@@ -134,8 +129,14 @@ CreateSDLWindow(int flags, int fullscreen, int w, int h)
 	if (window)
 	{
 		/* save current display as default */
-		last_display = SDL_GetDisplayForWindow(window);
-		SDL_GetWindowPosition(window, &last_position_x, &last_position_y);
+		if ((last_display = SDL_GetDisplayForWindow(window)) == 0)
+		{
+			/* There are some obscure setups were SDL is
+			   unable to get the current display,one X11
+			   server with several screen is one of these,
+			   so add a fallback to the first display. */
+			last_display = 1;
+		}
 
 		/* Set requested fullscreen mode. */
 		if (flags & SDL_WINDOW_FULLSCREEN)
@@ -827,15 +828,36 @@ GLimp_GetRefreshRate(void)
 	if (glimp_refreshRate == -1)
 	{
 		const SDL_DisplayMode *mode;
-		int i = SDL_GetDisplayForWindow(window);
+		int curdisplay;
 
-		if (i >= 0)
+		if (window == NULL)
 		{
-			if ((mode = SDL_GetCurrentDisplayMode(i)) != NULL)
+			/* This is paranoia. This function should only be
+			   called if there is a working window. Otherwise
+			   things will likely break somewhere else in the
+			   client. */
+			curdisplay = 1;
+		}
+		else
+		{
+			if ((curdisplay = SDL_GetDisplayForWindow(window)) == 0)
 			{
-				glimp_refreshRate = mode->refresh_rate;
-				SDL_free((void *)mode);
+				/* There are some obscure setups were SDL is
+				   unable to get the current display,one X11
+				   server with several screen is one of these,
+				   so add a fallback to the first display. */
+				curdisplay = 1;
 			}
+
+		}
+
+		if ((mode = SDL_GetCurrentDisplayMode(curdisplay)) == NULL)
+		{
+			printf("Couldn't get display refresh rate: %s\n", SDL_GetError());
+		}
+		else
+		{
+			glimp_refreshRate = mode->refresh_rate;
 		}
 	}
 
@@ -848,33 +870,40 @@ GLimp_GetRefreshRate(void)
 qboolean
 GLimp_GetDesktopMode(int *pwidth, int *pheight)
 {
-	if (window)
+	if (window == NULL)
+	{
+		/* Renderers call into this function before the
+		   window is created. This could be refactored
+		   by passing the mode and not the geometry from
+		   the renderer to GLimp_InitGraphics(), however
+		   that would break the renderer API. */
+		last_display = 1;
+	}
+	else
 	{
 		/* save current display as default */
-		last_display = SDL_GetDisplayForWindow(window);
+		if ((last_display = SDL_GetDisplayForWindow(window)) == 0)
+		{
+			/* There are some obscure setups were SDL is
+			   unable to get the current display,one X11
+			   server with several screen is one of these,
+			   so add a fallback to the first display. */
+			last_display = 1;
+		}
+
 		SDL_GetWindowPosition(window, &last_position_x, &last_position_y);
 	}
 
-	if (last_display < 0)
-	{
-		// In case of error...
-		Com_Printf("Can't detect current desktop.\n");
-		last_display = 0;
-	}
-
-	// We can't get desktop where we start, so use first desktop
 	const SDL_DisplayMode *mode;
+
 	if ((mode = SDL_GetCurrentDisplayMode(last_display)) == NULL)
 	{
-		// In case of error...
-		Com_Printf("Can't detect default desktop mode: %s\n", SDL_GetError());
+		Com_Printf("Couldn't detect default desktop mode: %s\n", SDL_GetError());
 		return false;
 	}
 
 	*pwidth = mode->w;
 	*pheight = mode->h;
-
-	SDL_free((void *) mode);
 
 	return true;
 }
