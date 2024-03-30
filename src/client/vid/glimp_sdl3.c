@@ -62,6 +62,14 @@ static qboolean initSuccessful = false;
 static char **displayindices = NULL;
 static int num_displays = 0;
 
+/* Fullscreen modes */
+enum
+{
+	FULLSCREEN_OFF = 0,
+	FULLSCREEN_EXCLUSIVE = 1,
+	FULLSCREEN_DESKTOP = 2
+};
+
 /*
  * Resets the display index Cvar if out of bounds
  */
@@ -136,8 +144,8 @@ CreateSDLWindow(int flags, int fullscreen, int w, int h)
 			   the fullscreen window could be set with whatever mode
 			   was requested. In SDL 3 the fullscreen window is always
 			   created at desktop resolution. If a fullscreen window
-			   is requested, we can't do anything else are done here. */
-			if (fullscreen == 2)
+			   is requested, we can't do anything else and are done here. */
+			if (fullscreen == FULLSCREEN_DESKTOP)
 			{
 				return true;
 			}
@@ -219,15 +227,15 @@ GetFullscreenType()
 
 		if (fsmode != NULL)
 		{
-			return 1;
+			return FULLSCREEN_EXCLUSIVE;
 		}
 		else
 		{
-			return 2;
+			return FULLSCREEN_DESKTOP;
 		}
 	}
 
-	return 0;
+	return FULLSCREEN_OFF;
 }
 
 static qboolean
@@ -474,7 +482,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	int height = *pheight;
 	unsigned int fs_flag = 0;
 
-	if (fullscreen == 1 || fullscreen == 2)
+	if (fullscreen == FULLSCREEN_EXCLUSIVE || fullscreen == FULLSCREEN_DESKTOP)
 	{
 		fs_flag = SDL_WINDOW_FULLSCREEN;
 	}
@@ -492,7 +500,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 		/* If we want fullscreen, but aren't */
 		if (GetFullscreenType())
 		{
-			if (fullscreen == 1)
+			if (fullscreen == FULLSCREEN_EXCLUSIVE)
 			{
 				closestMode = SDL_GetClosestFullscreenDisplayMode(last_display, width, height, vid_rate->value, false);
 
@@ -517,7 +525,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 					}
 				}
 			}
-			else if (fullscreen == 2)
+			else if (fullscreen == FULLSCREEN_DESKTOP)
 			{
 				/* Fullscreen window */
 				closestMode = NULL;
@@ -637,7 +645,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 				Cvar_SetValue("vid_fullscreen", 0);
 				Cvar_SetValue("vid_rate", -1);
 
-				fullscreen = 0;
+				fullscreen = FULLSCREEN_OFF;
 				*pwidth = width = 640;
 				*pheight = height = 480;
 				flags &= ~fs_flag;
@@ -692,7 +700,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	   other cases should look broken. */
 	if (flags & SDL_WINDOW_HIGH_PIXEL_DENSITY)
 	{
-		if (fullscreen != 2)
+		if (fullscreen != FULLSCREEN_DESKTOP)
 		{
 			re.GetDrawableSize(&viddef.width, &viddef.height);
 		}
