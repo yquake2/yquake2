@@ -139,8 +139,17 @@ CL_AddPacketEntities(frame_t *frame)
 		/* tweak the color of beams */
 		if (renderfx & RF_BEAM)
 		{
+			ent.alpha = cl_laseralpha->value;
+			if (ent.alpha < 0.0f)
+			{
+				ent.alpha = 0.0f;
+			}
+			else if (ent.alpha > 1.0f)
+			{
+				ent.alpha = 1.0f;
+			}
+
 			/* the four beam colors are encoded in 32 bits of skinnum (hack) */
-			ent.alpha = 0.30f;
 			ent.skinnum = (s1->skinnum >> ((randk() % 4) * 8)) & 0xff;
 			ent.model = NULL;
 		}

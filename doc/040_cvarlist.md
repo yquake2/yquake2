@@ -120,6 +120,11 @@ Set `0` by default.
 * **cl_kickangles**: If set to `0` angle kicks (weapon recoil, damage
   hits and the like) are ignored. Cheat-protected. Defaults to `1`.
 
+* **cl_laseralpha**: Controls how see-through laserbeams are.
+  The value ranges from 0.0 to 1.0, from completely invisible to
+  completely opaque. So higher value means better visibility.
+  Defaults to `0.3`.
+
 * **cl_limitsparksounds**: If set to `1` the number of sound generated
   when shooting into power screen and power shields is limited to 16.
   This works around global volume drops in some OpenAL implementations
