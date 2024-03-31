@@ -58,7 +58,6 @@ R_EntityRotate (vec3_t vec)
 	vec[2] = DotProduct (entity_rotation[2], tvec);
 }
 
-
 /*
 ================
 R_RotateBmodel
@@ -153,12 +152,9 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 	cplane_t	*splitplane, tplane;
 	mvertex_t	*pvert, *plastvert, *ptvert;
 	mnode_t		*pn;
-	qboolean	makeclippededge;
-	mvertex_t	*pfrontenter = bverts, *pfrontexit = bverts;
+	mvertex_t	*prevclipvert = NULL;
 
 	psideedges[0] = psideedges[1] = NULL;
-
-	makeclippededge = false;
 
 	// transform the BSP plane into model space
 	// FIXME: cache these?
@@ -180,19 +176,15 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 		// set the status for the last point as the previous point
 		// FIXME: cache this stuff somehow?
 		plastvert = pedges->v[0];
-		lastdist = DotProduct (plastvert->position, tplane.normal) -
-				   tplane.dist;
-
-		if (lastdist > 0)
+		lastdist = DotProduct (plastvert->position, tplane.normal) - tplane.dist;
+		if (lastdist >= 0)
 			lastside = 0;
 		else
 			lastside = 1;
 
 		pvert = pedges->v[1];
-
 		dist = DotProduct (pvert->position, tplane.normal) - tplane.dist;
-
-		if (dist > 0)
+		if (dist >= 0)
 			side = 0;
 		else
 			side = 1;
@@ -221,65 +213,54 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 			// split into two edges, one on each side, and remember entering
 			// and exiting points
 			// FIXME: share the clip edge by having a winding direction flag?
+			if (numbedges + 4 > MAX_BMODEL_EDGES)
+			{
+				R_Printf(PRINT_ALL,"Out of edges for bmodel\n");
+				return;
+			}
+
+			// outside: last vert, clip vert
 			ptedge = &bedges[numbedges++];
 			ptedge->pnext = psideedges[lastside];
 			psideedges[lastside] = ptedge;
 			ptedge->v[0] = plastvert;
 			ptedge->v[1] = ptvert;
 
+			// each two clipped verts we get a clipped-off contour;
+			// connect the verts by two edges (one per side)
+			// going in opposite directions
+			// this fixes surface 0 of model *50 (fan) in mine2:
+			// teleport 1231 770 -579
+			if (prevclipvert)
+			{
+				ptedge = &bedges[numbedges++];
+				ptedge->pnext = psideedges[lastside];
+				psideedges[lastside] = ptedge;
+				ptedge->v[0] = ptvert;
+				ptedge->v[1] = prevclipvert;
+
+				ptedge = &bedges[numbedges++];
+				ptedge->pnext = psideedges[side];
+				psideedges[side] = ptedge;
+				ptedge->v[0] = prevclipvert;
+				ptedge->v[1] = ptvert;
+
+				prevclipvert = NULL;
+			} else
+				prevclipvert = ptvert;
+
+			// inside: clip vert, current vert
 			ptedge = &bedges[numbedges++];
 			ptedge->pnext = psideedges[side];
 			psideedges[side] = ptedge;
 			ptedge->v[0] = ptvert;
 			ptedge->v[1] = pvert;
-
-			if (numbedges >= MAX_BMODEL_EDGES)
-			{
-				R_Printf(PRINT_ALL,"Out of edges for bmodel\n");
-				return;
-			}
-
-			if (side == 0)
-			{
-				// entering for front, exiting for back
-				pfrontenter = ptvert;
-			}
-			else
-			{
-				pfrontexit = ptvert;
-			}
-			makeclippededge = true;
 		}
 		else
 		{
 			// add the edge to the appropriate side
 			pedges->pnext = psideedges[side];
 			psideedges[side] = pedges;
-		}
-	}
-
-	// if anything was clipped, reconstitute and add the edges along the clip
-	// plane to both sides (but in opposite directions)
-	if (makeclippededge && pfrontexit != pfrontenter)
-	{
-		bedge_t *ptedge;
-
-		ptedge = &bedges[numbedges++];
-		ptedge->pnext = psideedges[0];
-		psideedges[0] = ptedge;
-		ptedge->v[0] = pfrontexit;
-		ptedge->v[1] = pfrontenter;
-
-		ptedge = &bedges[numbedges++];
-		ptedge->pnext = psideedges[1];
-		psideedges[1] = ptedge;
-		ptedge->v[0] = pfrontenter;
-		ptedge->v[1] = pfrontexit;
-
-		if (numbedges >= MAX_BMODEL_EDGES)
-		{
-			R_Printf(PRINT_ALL,"Out of edges for bmodel\n");
-			return;
 		}
 	}
 
@@ -396,10 +377,6 @@ R_DrawSolidClippedSubmodelPolygons(entity_t *currententity, const model_t *curre
 
 		if ( !( psurf->texinfo->flags & ( SURF_TRANS66 | SURF_TRANS33 ) ))
 		{
-			// FIXME: Fan broken in borehole
-			// teleport: 1231.000000 770.250000 -579.375000
-			// map: maps/mine2.bsp
-			// model texture: textures/e2u1/metal6_1.wal
 			R_RecursiveClipBPoly(currententity, pbedge, topnode, psurf);
 		}
 		else
