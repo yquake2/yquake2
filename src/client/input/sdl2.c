@@ -701,7 +701,7 @@ IN_Update(void)
 				{
 					// make sure GLimp_GetRefreshRate() will query from SDL again - the window might
 					// be on another display now!
-					glimp_refreshRate = -1;
+					glimp_refreshRate = -1.0f;
 				}
 				else if (event.window.event == SDL_WINDOWEVENT_SHOWN)
 				{

@@ -54,7 +54,7 @@ void	VID_MenuDraw(void);
 const char *VID_MenuKey(int);
 
 // Stuff provided by platform backend.
-extern int glimp_refreshRate;
+extern float glimp_refreshRate;
 
 const char **GLimp_GetDisplayIndices(void);
 int GLimp_GetWindowDisplayIndex(void);
@@ -64,7 +64,7 @@ void GLimp_Shutdown(void);
 qboolean GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight);
 void GLimp_ShutdownGraphics(void);
 void GLimp_GrabInput(qboolean grab);
-int GLimp_GetRefreshRate(void);
+float GLimp_GetRefreshRate(void);
 qboolean GLimp_GetDesktopMode(int *pwidth, int *pheight);
 
 #endif

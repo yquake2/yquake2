@@ -27,7 +27,6 @@
  * =======================================================================
  */
 
-#include "SDL3/SDL_video.h"
 #include "header/local.h"
 
 #ifdef USE_SDL3
