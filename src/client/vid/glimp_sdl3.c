@@ -451,11 +451,6 @@ void
 GLimp_Shutdown(void)
 {
 	ShutdownGraphics();
-
-	// TODO SDL3: SDL_INIT_VIDEO implies SDL_INIT_EVENTS
-	// in SDL 2 this was handled by SDL_INIT_EVERYTHING
-	// which is unavailable in SDL 3. Handle SDL_INIT_EVENTS
-	// in the input backend?
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	ClearDisplayIndices();
 }

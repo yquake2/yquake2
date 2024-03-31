@@ -2310,6 +2310,14 @@ IN_Init(void)
 	Cmd_AddCommand("+gyroaction", IN_GyroActionDown);
 	Cmd_AddCommand("-gyroaction", IN_GyroActionUp);
 
+	if (!SDL_WasInit(SDL_INIT_EVENTS))
+	{
+		if ((SDL_InitSubSystem(SDL_INIT_EVENTS)) != 0)
+		{
+			Com_Error(ERR_FATAL, "Couldn't initialize SDL event subsystem:%s\n", SDL_GetError());
+		}
+	}
+
 	SDL_StartTextInput();
 
 	IN_Controller_Init(false);
@@ -2379,9 +2387,11 @@ IN_Shutdown(void)
 
 	IN_Controller_Shutdown(false);
 
-	const Uint32 subsystems = SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC;
+	const Uint32 subsystems = SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC | SDL_INIT_EVENTS;
 	if (SDL_WasInit(subsystems) == subsystems)
+	{
 		SDL_QuitSubSystem(subsystems);
+	}
 }
 
 /* ------------------------------------------------------------------ */
