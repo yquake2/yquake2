@@ -291,13 +291,13 @@ quotient must fit in 32 bits.
 FIXME: GET RID OF THIS! (FloorDivMod)
 ====================
 */
-#if defined(__i386__) || defined(__amd64__)
-// just exclude ARM32 with FPU, e.g. Pi 1
 static void
 FloorDivMod(int numer, int denom, int *quo, int *rem)
 {
 	int q, r;
 
+// just exclude ARM32 with FPU, e.g. Pi 1
+#if defined(__i386__) || defined(__amd64__)
 	q = numer / denom;
 	r = numer - q * denom;
 	if (-1/2 || 1/-2 || -1/-2) {
@@ -313,7 +313,6 @@ FloorDivMod(int numer, int denom, int *quo, int *rem)
 			r += denom;
 		}
 	}
-	assert(r == numer - q * denom);
 	if ((numer < 0) ^ (denom < 0))
 		assert(q <= 0);
 	else
@@ -322,43 +321,35 @@ FloorDivMod(int numer, int denom, int *quo, int *rem)
 		assert(r > denom && r <= 0);
 	else
 		assert(r >= 0 && r < denom);
-	*quo = q;
-	*rem = r;
-}
 #else
-static void
-FloorDivMod (float numer, float denom, int *quotient,
-		int *rem)
-{
-	int		q, r;
+	float num = numer, den = denom;
 	float	x;
 
-	if (numer >= 0.0)
+	if (numer >= 0)
 	{
 
-		x = floor(numer / denom);
+		x = floor(num / den);
 		q = (int)x;
-		r = (int)floor(numer - (x * denom));
+		r = (int)floor(num - (x * den));
 	}
 	else
 	{
 		//
 		// perform operations with positive values, and fix mod to make floor-based
 		//
-		x = floor(-numer / denom);
+		x = floor(-num / den);
 		q = -(int)x;
-		r = (int)floor(-numer - (x * denom));
+		r = (int)floor(-num - (x * den));
 		if (r != 0)
 		{
 			q--;
-			r = (int)denom - r;
+			r = denom - r;
 		}
 	}
-
-	*quotient = q;
+#endif
+	*quo = q;
 	*rem = r;
 }
-#endif
 
 /*
 ===================
