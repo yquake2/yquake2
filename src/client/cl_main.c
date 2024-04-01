@@ -50,6 +50,7 @@ cvar_t *cl_add_lights;
 cvar_t *cl_add_entities;
 cvar_t *cl_add_blend;
 cvar_t *cl_kickangles;
+cvar_t *cl_laseralpha;
 
 cvar_t *cl_shownet;
 cvar_t *cl_showmiss;
@@ -515,6 +516,7 @@ CL_InitLocal(void)
 	cl_predict = Cvar_Get("cl_predict", "1", 0);
 	cl_showfps = Cvar_Get("cl_showfps", "0", CVAR_ARCHIVE);
 	cl_showspeed = Cvar_Get("cl_showspeed", "0", CVAR_ARCHIVE);	
+	cl_laseralpha = Cvar_Get("cl_laseralpha", "0.3", 0);
 
 	cl_upspeed = Cvar_Get("cl_upspeed", "200", 0);
 	cl_forwardspeed = Cvar_Get("cl_forwardspeed", "200", 0);
