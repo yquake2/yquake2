@@ -119,7 +119,7 @@ R_RenderDlights(void)
 }
 
 void
-R_MarkSurfaceLights(dlight_t *light, int bit, mnode_t *node, int r_dlightframecount)
+R_MarkSurfaceLights(dlight_t *light, int bit, mnode_t *node, int lightframecount)
 {
 	msurface_t	*surf;
 	int			i;
@@ -148,10 +148,10 @@ R_MarkSurfaceLights(dlight_t *light, int bit, mnode_t *node, int r_dlightframeco
 			continue;
 		}
 
-		if (surf->dlightframe != r_dlightframecount)
+		if (surf->dlightframe != lightframecount)
 		{
 			surf->dlightbits = 0;
-			surf->dlightframe = r_dlightframecount;
+			surf->dlightframe = lightframecount;
 		}
 
 		surf->dlightbits |= bit;

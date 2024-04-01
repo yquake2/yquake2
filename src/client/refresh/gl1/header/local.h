@@ -279,7 +279,7 @@ void R_AddSkySurface(msurface_t *fa);
 void R_ClearSkyBox(void);
 void R_DrawSkyBox(void);
 void R_MarkSurfaceLights(dlight_t *light, int bit, mnode_t *node,
-	int r_dlightframecount);
+	int lightframecount);
 
 void COM_StripExtension(char *in, char *out);
 
