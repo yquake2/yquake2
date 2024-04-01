@@ -577,19 +577,9 @@ double sqrt(double x);
 vec_t
 VectorLength(vec3_t v)
 {
-	int i;
-	float length;
-
-	length = 0;
-
-	for (i = 0; i < 3; i++)
-	{
-		length += v[i] * v[i];
-	}
-
-	length = (float)sqrt(length);
-
-	return length;
+	return sqrtf((v[0] * v[0]) +
+               (v[1] * v[1]) +
+	       (v[2] * v[2]));
 }
 
 void
