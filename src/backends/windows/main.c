@@ -26,8 +26,16 @@
  */
 
 #include <windows.h>
+
+#ifndef DEDICATED_ONLY
+#ifdef USE_SDL3
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+#else
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_main.h>
+#endif
+#endif
 
 #include "../../common/header/common.h"
 
