@@ -402,7 +402,7 @@ GLimp_Init(void)
 {
 	vid_displayrefreshrate = Cvar_Get("vid_displayrefreshrate", "-1", CVAR_ARCHIVE);
 	vid_displayindex = Cvar_Get("vid_displayindex", "0", CVAR_ARCHIVE);
-	vid_highdpiaware = Cvar_Get("vid_highdpiaware", "0", CVAR_ARCHIVE);
+	vid_highdpiaware = Cvar_Get("vid_highdpiaware", "1", CVAR_ARCHIVE);
 	vid_rate = Cvar_Get("vid_rate", "-1", CVAR_ARCHIVE);
 
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
