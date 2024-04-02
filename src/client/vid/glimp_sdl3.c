@@ -288,7 +288,7 @@ PrintDisplayModes(void)
 		   from the first display. This is the
 		   primary display and likely the one the
 		   game will run on. */
-		curdisplay = 1;
+		curdisplay = SDL_GetPrimaryDisplay();
 	}
 	else
 	{
@@ -299,7 +299,7 @@ PrintDisplayModes(void)
 		   add a fallback to the first display. */
 		if ((curdisplay = SDL_GetDisplayForWindow(window)) == 0)
 		{
-			curdisplay = 1;
+			curdisplay = SDL_GetPrimaryDisplay();
 		}
 	}
 
@@ -689,7 +689,7 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 		   unable to get the current display,one X11
 		   server with several screen is one of these,
 		   so add a fallback to the first display. */
-		curdisplay = 1;
+		curdisplay = SDL_GetPrimaryDisplay();
 	}
 
 	const SDL_DisplayMode *mode;
@@ -836,7 +836,7 @@ GLimp_GetRefreshRate(void)
 			   called if there is a working window. Otherwise
 			   things will likely break somewhere else in the
 			   client. */
-			curdisplay = 1;
+			curdisplay = SDL_GetPrimaryDisplay();
 		}
 		else
 		{
@@ -846,7 +846,7 @@ GLimp_GetRefreshRate(void)
 				   unable to get the current display,one X11
 				   server with several screen is one of these,
 				   so add a fallback to the first display. */
-				curdisplay = 1;
+				curdisplay = SDL_GetPrimaryDisplay();
 			}
 
 		}
@@ -877,7 +877,7 @@ GLimp_GetDesktopMode(int *pwidth, int *pheight)
 		   by passing the mode and not the geometry from
 		   the renderer to GLimp_InitGraphics(), however
 		   that would break the renderer API. */
-		last_display = 1;
+		last_display = SDL_GetPrimaryDisplay();
 	}
 	else
 	{
@@ -888,7 +888,7 @@ GLimp_GetDesktopMode(int *pwidth, int *pheight)
 			   unable to get the current display,one X11
 			   server with several screen is one of these,
 			   so add a fallback to the first display. */
-			last_display = 1;
+			last_display = SDL_GetPrimaryDisplay();
 		}
 
 		SDL_GetWindowPosition(window, &last_position_x, &last_position_y);
