@@ -174,21 +174,8 @@ static float gyro_accum[3];
 static cvar_t *gyro_calibration_x;
 static cvar_t *gyro_calibration_y;
 static cvar_t *gyro_calibration_z;
-
-#if SDL_VERSION_ATLEAST(2, 0, 14)	// support for controller sensors (gyro, accelerometer)
-
 static unsigned int num_samples;
 #define NATIVE_SDL_GYRO	// uses SDL_CONTROLLERSENSORUPDATE to read gyro
-
-#else	// for SDL < 2.0.14, gyro can be read as a "secondary joystick" exposed by dkms-hid-nintendo
-
-static unsigned int num_samples[3];
-static SDL_Joystick *imu_joystick = NULL;	// gyro "joystick"
-#define IMU_JOY_AXIS_GYRO_ROLL 3
-#define IMU_JOY_AXIS_GYRO_PITCH 4
-#define IMU_JOY_AXIS_GYRO_YAW 5
-
-#endif
 
 // To ignore SDL_JOYDEVICEADDED at game init. Allows for hot plugging of game controller afterwards.
 static qboolean first_init = true;
@@ -895,7 +882,6 @@ IN_Update(void)
 				}
 				break;
 
-#if SDL_VERSION_ATLEAST(2, 24, 0)	// support for battery status changes
 			case SDL_EVENT_JOYSTICK_BATTERY_UPDATED :
 				if (!controller || event.jbattery.which != SDL_GetJoystickInstanceID(SDL_GetGamepadJoystick(controller)))
 				{
@@ -910,7 +896,6 @@ IN_Update(void)
 					SCR_CenterPrint("ALERT: Gamepad battery almost Empty.\n");
 				}
 				break;
-#endif	// SDL_VERSION_ATLEAST(2, 24, 0)
 
 			case SDL_EVENT_QUIT :
 				Com_Quit();
@@ -1987,7 +1972,6 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 	// Com_Printf("%-29s: vol %5u - %4u ms - dp %.3f l %5.0f h %5.0f\n",
 	//	name, effect_volume, duration, dist_prop, low_freq, hi_freq);
 
-#if SDL_VERSION_ATLEAST(2, 0, 9)
 	if (SDL_RumbleGamepad(controller, low_freq, hi_freq, duration) == -1)
 	{
 		if (!joystick_haptic)
@@ -1999,7 +1983,6 @@ Controller_Rumble(const char *name, vec3_t source, qboolean from_player,
 		/* All haptic/force feedback slots are busy, try to clean up little bit. */
 		IN_Haptic_Effects_Shutdown();
 	}
-#endif
 }
 
 /*
@@ -2199,12 +2182,8 @@ IN_Controller_Init(qboolean notify_user)
 				&& !SDL_SetGamepadSensorEnabled(controller, SDL_SENSOR_GYRO, SDL_TRUE) )
 			{
 				show_gyro = true;
-#if SDL_VERSION_ATLEAST(2, 0, 16)
 				Com_Printf( "Gyro sensor enabled at %.2f Hz\n",
 					SDL_GetGamepadSensorDataRate(controller, SDL_SENSOR_GYRO) );
-#else
-				Com_Printf( "Gyro sensor enabled.\n" );
-#endif	// #if SDL_VERSION_ATLEAST(2, 0, 16)
 			}
 			else
 			{
@@ -2235,14 +2214,8 @@ IN_Controller_Init(qboolean notify_user)
 				show_haptic = true;
 			}
 
-#if SDL_VERSION_ATLEAST(2, 0, 18)	// support for query on features from controller
 			SDL_bool hasRumble = SDL_GetBooleanProperty(SDL_GetGamepadProperties(controller), SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, SDL_FALSE);
 			if (hasRumble)
-#elif SDL_VERSION_ATLEAST(2, 0, 9)	// support for rumble
-			if (SDL_GameControllerRumble(controller, 1, 1, 1) == 0)
-#else					// no rumble support on SDL < 2.0.9
-			if (false)
-#endif
 			{
 				show_haptic = true;
 				Com_Printf("Rumble support available.\n");
