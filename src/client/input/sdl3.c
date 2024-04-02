@@ -887,11 +887,11 @@ IN_Update(void)
 				{
 					break;
 				}
-				if (event.jbattery.level == SDL_JOYSTICK_POWER_LOW)
+				if (event.jbattery.percent <= 20)
 				{
 					Com_Printf("WARNING: Gamepad battery Low, it is recommended to connect it by cable.\n");
 				}
-				else if (event.jbattery.level == SDL_JOYSTICK_POWER_EMPTY)
+				else if (event.jbattery.percent <= 1)
 				{
 					SCR_CenterPrint("ALERT: Gamepad battery almost Empty.\n");
 				}

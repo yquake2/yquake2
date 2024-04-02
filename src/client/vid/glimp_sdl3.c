@@ -779,7 +779,7 @@ GLimp_GrabInput(qboolean grab)
 {
 	if(window != NULL)
 	{
-		SDL_SetWindowGrab(window, grab ? SDL_TRUE : SDL_FALSE);
+		SDL_SetWindowMouseGrab(window, grab ? SDL_TRUE : SDL_FALSE);
 	}
 
 	if(SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE) < 0)
