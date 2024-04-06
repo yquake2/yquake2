@@ -459,3 +459,21 @@ void GL3_ShutdownContext()
 		}
 	}
 }
+
+/*
+ * Returns the SDL major version. Implemented
+ * here to not polute gl3_main.c with the SDL
+ * headers.
+ */
+int GL3_GetSDLVersion()
+{
+#ifdef USE_SDL3
+	SDL_Version ver;
+#else
+	SDL_version ver;
+#endif
+
+	SDL_VERSION(&ver);
+
+	return ver.major;
+}

@@ -447,6 +447,13 @@ void *RI_GetProcAddress (const char* proc);
  */
 void RI_GetDrawableSize(int* width, int* height);
 
+/*
+ * Returns the SDL major version. Implemented
+ * here to not polute gl1_main.c with the SDL
+ * headers.
+ */
+int RI_GetSDLVersion();
+
 /* g11_draw */
 extern image_t * RDraw_FindPic(char *name);
 extern void RDraw_GetPicSize(int *w, int *h, char *pic);

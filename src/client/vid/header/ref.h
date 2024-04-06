@@ -125,7 +125,7 @@ typedef enum {
 } ref_restart_t;
 
 // FIXME: bump API_VERSION?
-#define	API_VERSION		6
+#define	API_VERSION		7
 #define EXPORT
 #define IMPORT
 
@@ -136,6 +136,11 @@ typedef struct
 {
 	// if api_version is different, the dll cannot be used
 	int		api_version;
+
+	// if framework_version is different, the dll cannot be used
+	// necessary because differend SDL major version cannot be
+	// mixed.
+	int		framework_version;
 
 	// called when the library is loaded
 	qboolean (EXPORT *Init) (void);

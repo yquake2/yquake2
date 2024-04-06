@@ -1813,10 +1813,19 @@ GetRefAPI(refimport_t imp)
 	// used different variable name for prevent confusion and cppcheck warnings
 	refexport_t	refexport;
 
+	// Need to communicate the SDL major version to the client.
+#ifdef USE_SDL3
+	SDL_Version ver;
+#else
+	SDL_version ver;
+#endif
+	SDL_VERSION(&ver);
+
 	memset(&refexport, 0, sizeof(refexport_t));
 	ri = imp;
 
 	refexport.api_version = API_VERSION;
+	refexport.framework_version = ver.major;
 
 	refexport.BeginRegistration = RE_BeginRegistration;
 	refexport.RegisterModel = RE_RegisterModel;

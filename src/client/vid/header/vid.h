@@ -66,5 +66,6 @@ void GLimp_ShutdownGraphics(void);
 void GLimp_GrabInput(qboolean grab);
 float GLimp_GetRefreshRate(void);
 qboolean GLimp_GetDesktopMode(int *pwidth, int *pheight);
+int GLimp_GetFrameworkVersion(void);
 
 #endif

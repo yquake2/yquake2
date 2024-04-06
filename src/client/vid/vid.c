@@ -455,9 +455,17 @@ VID_LoadRenderer(void)
 	// Let's check if we've got a compatible renderer.
 	if (re.api_version != API_VERSION)
 	{
+		Com_Printf("%s has incompatible api_version %d!\n", reflib_name, re.api_version);
+
 		VID_ShutdownRenderer();
 
-		Com_Printf("%s has incompatible api_version %d!\n", reflib_name, re.api_version);
+		return false;
+	}
+	else if (re.framework_version != GLimp_GetFrameworkVersion())
+	{
+		Com_Printf("%s has incompatible sdl_version %d!\n", reflib_name, re.framework_version);
+
+		VID_ShutdownRenderer();
 
 		return false;
 	}

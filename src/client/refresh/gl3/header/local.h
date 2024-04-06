@@ -395,6 +395,7 @@ extern qboolean GL3_IsVsyncActive(void);
 extern void GL3_EndFrame(void);
 extern void GL3_SetVsync(void);
 extern void GL3_ShutdownContext(void);
+extern int GL3_GetSDLVersion(void);
 
 // gl3_misc.c
 extern void GL3_InitParticleTexture(void);

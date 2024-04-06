@@ -310,3 +310,21 @@ RI_ShutdownContext(void)
 		}
 	}
 }
+
+/*
+ * Returns the SDL major version. Implemented
+ * here to not polute gl1_main.c with the SDL
+ * headers.
+ */
+int RI_GetSDLVersion()
+{
+#ifdef USE_SDL3
+	SDL_Version ver;
+#else
+	SDL_version ver;
+#endif
+
+	SDL_VERSION(&ver);
+
+	return ver.major;
+}

@@ -1997,6 +1997,7 @@ GetRefAPI(refimport_t imp)
 	ri = imp;
 
 	re.api_version = API_VERSION;
+	re.framework_version = GL3_GetSDLVersion();
 
 	re.Init = GL3_Init;
 	re.Shutdown = GL3_Shutdown;

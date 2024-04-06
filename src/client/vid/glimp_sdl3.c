@@ -902,3 +902,12 @@ GLimp_GetWindowDisplayIndex(void)
 {
 	return last_display;
 }
+
+int
+GLimp_GetFrameworkVersion(void)
+{
+	SDL_Version ver;
+	SDL_VERSION(&ver);
+
+	return ver.major;
+}
