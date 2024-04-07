@@ -395,12 +395,14 @@ Set `0` by default.
   has 59.95hz.
 
 * **vid_gamma**: The value used for gamma correction. Higher values look
-  brighter. The OpenGL 1.4 and software renderers use "Hardware Gamma",
-  setting the Gamma of the whole screen to this value in realtime
-  (except on MacOS where it's applied to textures on load and thus needs
-  a `vid_restart` after changing). The OpenGL 3.2 and Vulkan renderers
-  apply this to the window in realtime via shaders (on all platforms).
-  This is also set by the brightness slider in the video menu.
+  brighter. The OpenGL 3.2 OpenGL ES3 and Vulkan renderers apply this to
+  the window in realtime via shaders (on all platforms). When the game
+  is build against SDL2, the OpenGL 1.4 renderer uses "hardware gamma"
+  when available, increasing the brightness of the whole screen. On
+  MacOS the gamma is applied only at renderer start, so a `vid_restart`
+  is required. When the game is build against SDL3, the OpenGL 1.4
+  renderer doesn't support gamma. Have a look at `gl1_overbrightbits`
+  instead. This is also set by the brightness slider in the video menu.
 
 * **vid_fullscreen**: Sets the fullscreen mode. When set to `0` (the
   default) the game runs in window mode. When set to `1` the games
