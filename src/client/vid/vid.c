@@ -544,7 +544,7 @@ VID_CheckChanges(void)
 			else if (strcmp(vid_renderer->string, "gl3") == 0)
 			{
 				Com_Printf("Retrying with gles3...\n");
-				Cvar_Set("vid_renderer", "gles");
+				Cvar_Set("vid_renderer", "gles3");
 			}
 			else if (strcmp(vid_renderer->string, "gles3") == 0)
 			{
