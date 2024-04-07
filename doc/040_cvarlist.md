@@ -433,9 +433,9 @@ Set `0` by default.
   game can be paused, e.g. not in multiplayer games. Defaults to `0`.
 
 * **vid_renderer**: Selects the renderer library. Possible options are
-  `gl1` (the default) for the old OpenGL 1.4 renderer, `gl3` for the
-  OpenGL 3.2 renderer, `gles3` for the OpenGL ES3 renderer
-  and `soft` for the software renderer.
+  `gl3` (the default) for the OpenGL 3.2 renderer, `gles3` for the
+  OpenGL ES3 renderer, gl1 for the original OpenGL 1.4 renderer and
+  `soft` for the software renderer.
 
 
 ## Graphics (GL renderers only)
