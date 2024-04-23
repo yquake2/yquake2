@@ -52,6 +52,8 @@
 #endif
 
 #ifndef GL_VERSION_1_3
+#define GL_TEXTURE0                       0x84C0
+#define GL_TEXTURE1                       0x84C1
 #define GL_MULTISAMPLE                    0x809D
 #define GL_COMBINE                        0x8570
 #define GL_COMBINE_RGB                    0x8571
@@ -95,5 +97,7 @@ extern void ( APIENTRY *qglPointParameterfv ) ( GLenum param,
 		const GLfloat *value );
 extern void ( APIENTRY *qglColorTableEXT ) ( GLenum, GLenum, GLsizei, GLenum,
 		GLenum, const GLvoid * );
+extern void ( APIENTRY *qglActiveTexture ) ( GLenum texture );
+extern void ( APIENTRY *qglClientActiveTexture ) ( GLenum texture );
 
 #endif

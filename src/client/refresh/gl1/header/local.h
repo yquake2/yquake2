@@ -162,6 +162,7 @@ extern cvar_t *gl1_overbrightbits;
 
 extern cvar_t *gl1_palettedtexture;
 extern cvar_t *gl1_pointparameters;
+extern cvar_t *gl1_multitexture;
 
 extern cvar_t *gl1_particle_min_size;
 extern cvar_t *gl1_particle_max_size;
@@ -230,6 +231,9 @@ void R_TranslatePlayerSkin(int playernum);
 void R_Bind(int texnum);
 
 void R_TexEnv(GLenum value);
+void R_SelectTexture(GLenum);
+void R_MBind(GLenum target, int texnum);
+void R_EnableMultitexture(qboolean enable);
 
 void R_LightPoint(entity_t *currententity, vec3_t p, vec3_t color);
 void R_PushDlights(void);
@@ -359,6 +363,8 @@ typedef struct
 	qboolean npottextures;
 	qboolean palettedtexture;
 	qboolean pointparameters;
+	qboolean multitexture;
+	qboolean mtexcombine;
 
 	// ----
 

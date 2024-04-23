@@ -90,6 +90,7 @@ cvar_t *gl1_particle_square;
 
 cvar_t *gl1_palettedtexture;
 cvar_t *gl1_pointparameters;
+cvar_t *gl1_multitexture;
 
 cvar_t *gl_drawbuffer;
 cvar_t *gl_lightmap;
@@ -1211,6 +1212,7 @@ R_Register(void)
 
 	gl1_palettedtexture = ri.Cvar_Get("r_palettedtextures", "0", CVAR_ARCHIVE);
 	gl1_pointparameters = ri.Cvar_Get("gl1_pointparameters", "1", CVAR_ARCHIVE);
+	gl1_multitexture = ri.Cvar_Get("gl1_multitexture", "2", CVAR_ARCHIVE);
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
 	r_vsync = ri.Cvar_Get("r_vsync", "1", CVAR_ARCHIVE);
@@ -1569,6 +1571,65 @@ RI_Init(void)
 	else
 	{
 		gl_config.npottextures = false;
+		R_Printf(PRINT_ALL, "Failed\n");
+	}
+
+	// ----
+
+	/* Multitexturing */
+	gl_config.multitexture = gl_config.mtexcombine = false;
+
+	R_Printf(PRINT_ALL, " - Multitexturing: ");
+
+	if (strstr(gl_config.extensions_string, "GL_ARB_multitexture"))
+	{
+		qglActiveTexture = (void (APIENTRY *)(GLenum))RI_GetProcAddress ("glActiveTexture");
+		qglClientActiveTexture = (void (APIENTRY *)(GLenum))RI_GetProcAddress ("glClientActiveTexture");
+
+		if (!qglActiveTexture || !qglClientActiveTexture)
+		{
+			qglActiveTexture = (void (APIENTRY *)(GLenum))RI_GetProcAddress ("glActiveTextureARB");
+			qglClientActiveTexture = (void (APIENTRY *)(GLenum))RI_GetProcAddress ("glClientActiveTextureARB");
+		}
+	}
+
+	if (gl1_multitexture->value)
+	{
+		if (qglActiveTexture && qglClientActiveTexture)
+		{
+			gl_config.multitexture = true;
+			R_Printf(PRINT_ALL, "Okay\n");
+		}
+		else
+		{
+			R_Printf(PRINT_ALL, "Failed\n");
+		}
+	}
+	else
+	{
+		R_Printf(PRINT_ALL, "Disabled\n");
+	}
+
+	// ----
+
+	/* Multi texturing combine */
+	R_Printf(PRINT_ALL, " - Multitexturing combine: ");
+
+	if ( ( strstr(gl_config.extensions_string, "GL_ARB_texture_env_combine")
+		|| strstr(gl_config.extensions_string, "GL_EXT_texture_env_combine") ) )
+	{
+		if (gl_config.multitexture && gl1_multitexture->value > 1)
+		{
+			gl_config.mtexcombine = true;
+			R_Printf(PRINT_ALL, "Okay\n");
+		}
+		else
+		{
+			R_Printf(PRINT_ALL, "Disabled\n");
+		}
+	}
+	else
+	{
 		R_Printf(PRINT_ALL, "Failed\n");
 	}
 

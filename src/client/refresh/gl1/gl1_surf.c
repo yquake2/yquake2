@@ -762,8 +762,6 @@ R_DrawBrushModel(entity_t *currententity, const model_t *currentmodel)
 	currententity->angles[0] = -currententity->angles[0];
 	currententity->angles[2] = -currententity->angles[2];
 
-	R_TexEnv(GL_REPLACE);
-
 	if (gl_lightmap->value)
 	{
 		R_TexEnv(GL_REPLACE);

@@ -42,6 +42,8 @@ void (APIENTRY *qglPointParameterf)(GLenum param, GLfloat value);
 void (APIENTRY *qglPointParameterfv)(GLenum param, const GLfloat *value);
 void (APIENTRY *qglColorTableEXT)(GLenum, GLenum, GLsizei, GLenum, GLenum,
 		const GLvoid *);
+void (APIENTRY *qglActiveTexture) (GLenum texture);
+void (APIENTRY *qglClientActiveTexture) (GLenum texture);
 
 /* ========================================================================= */
 
@@ -50,6 +52,8 @@ void QGL_EXT_Reset ( void )
 	qglPointParameterf     = NULL;
 	qglPointParameterfv    = NULL;
 	qglColorTableEXT       = NULL;
+	qglActiveTexture       = NULL;
+	qglClientActiveTexture = NULL;
 }
 
 /* ========================================================================= */
