@@ -294,8 +294,8 @@ R_BlendLightmaps(const model_t *currentmodel)
 					// Apply overbright bits to the static lightmaps
 					if (gl1_overbrightbits->value)
 					{
-						R_TexEnv(GL_COMBINE_EXT);
-						glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl1_overbrightbits->value);
+						R_TexEnv(GL_COMBINE);
+						glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, gl1_overbrightbits->value);
 					}
 
 					R_DrawGLPolyChain(surf->polys, 0, 0);
@@ -353,8 +353,8 @@ R_BlendLightmaps(const model_t *currentmodel)
 						// Apply overbright bits to the dynamic lightmaps
 						if (gl1_overbrightbits->value)
 						{
-							R_TexEnv(GL_COMBINE_EXT);
-							glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl1_overbrightbits->value);
+							R_TexEnv(GL_COMBINE);
+							glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, gl1_overbrightbits->value);
 						}
 
 						R_DrawGLPolyChain(drawsurf->polys,
@@ -397,8 +397,8 @@ R_BlendLightmaps(const model_t *currentmodel)
 				// Apply overbright bits to the remainder lightmaps
 				if (gl1_overbrightbits->value)
 				{
-					R_TexEnv(GL_COMBINE_EXT);
-					glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, gl1_overbrightbits->value);
+					R_TexEnv(GL_COMBINE);
+					glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, gl1_overbrightbits->value);
 				}
 
 				R_DrawGLPolyChain(surf->polys,
@@ -439,8 +439,8 @@ R_RenderBrushPoly(entity_t *currententity, msurface_t *fa)
 		        They oversaturate otherwise. */
 		if (gl1_overbrightbits->value)
 		{
-			R_TexEnv(GL_COMBINE_EXT);
-			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, 1);
+			R_TexEnv(GL_COMBINE);
+			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, 1);
 		}
 		else
 		{

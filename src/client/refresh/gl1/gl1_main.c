@@ -1468,17 +1468,29 @@ RI_Init(void)
 	/* Point parameters */
 	R_Printf(PRINT_ALL, " - Point parameters: ");
 
-	if (strstr(gl_config.extensions_string, "GL_ARB_point_parameters"))
+	if ( strstr(gl_config.extensions_string, "GL_ARB_point_parameters") ||
+		strstr(gl_config.extensions_string, "GL_EXT_point_parameters") )	// should exist for all OGL 1.4 hw...
 	{
-			qglPointParameterfARB = (void (APIENTRY *)(GLenum, GLfloat))RI_GetProcAddress ( "glPointParameterfARB" );
-			qglPointParameterfvARB = (void (APIENTRY *)(GLenum, const GLfloat *))RI_GetProcAddress ( "glPointParameterfvARB" );
+		qglPointParameterf = (void (APIENTRY *)(GLenum, GLfloat))RI_GetProcAddress ( "glPointParameterf" );
+		qglPointParameterfv = (void (APIENTRY *)(GLenum, const GLfloat *))RI_GetProcAddress ( "glPointParameterfv" );
+
+		if (!qglPointParameterf || !qglPointParameterfv)
+		{
+			qglPointParameterf = (void (APIENTRY *)(GLenum, GLfloat))RI_GetProcAddress ( "glPointParameterfARB" );
+			qglPointParameterfv = (void (APIENTRY *)(GLenum, const GLfloat *))RI_GetProcAddress ( "glPointParameterfvARB" );
+		}
+		if (!qglPointParameterf || !qglPointParameterfv)
+		{
+			qglPointParameterf = (void (APIENTRY *)(GLenum, GLfloat))RI_GetProcAddress ( "glPointParameterfEXT" );
+			qglPointParameterfv = (void (APIENTRY *)(GLenum, const GLfloat *))RI_GetProcAddress ( "glPointParameterfvEXT" );
+		}
 	}
 
 	gl_config.pointparameters = false;
 
 	if (gl1_pointparameters->value)
 	{
-		if (qglPointParameterfARB && qglPointParameterfvARB)
+		if (qglPointParameterf && qglPointParameterfv)
 		{
 			gl_config.pointparameters = true;
 			R_Printf(PRINT_ALL, "Okay\n");
