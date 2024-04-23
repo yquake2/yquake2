@@ -238,13 +238,8 @@ R_BlendLightmaps(const model_t *currentmodel)
 	int i;
 	msurface_t *surf, *newdrawsurf = 0;
 
-	/* don't bother if we're set to fullbright */
-	if (r_fullbright->value)
-	{
-		return;
-	}
-
-	if (!r_worldmodel->lightdata)
+	/* don't bother if we're set to fullbright or multitexture is enabled */
+	if (gl_config.multitexture || r_fullbright->value || !r_worldmodel->lightdata)
 	{
 		return;
 	}
@@ -466,6 +461,11 @@ R_RenderBrushPoly(entity_t *currententity, msurface_t *fa)
 		R_DrawGLPoly(fa->polys);
 	}
 
+	if (gl_config.multitexture)
+	{
+		return;	// lighting already done at this point for mtex
+	}
+
 	/* check for lightmap modification */
 	for (maps = 0; maps < MAXLIGHTMAPS && fa->styles[maps] != 255; maps++)
 	{
@@ -589,6 +589,149 @@ R_DrawAlphaSurfaces(void)
 	r_alpha_surfaces = NULL;
 }
 
+static qboolean
+R_HasDynamicLights(msurface_t *surf, int *mapNum)
+{
+	int map;
+	qboolean is_dynamic = false;
+
+	if ( r_fullbright->value || !gl1_dynamic->value ||
+		(surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)) )
+	{
+		return false;
+	}
+
+	// Any dynamic lights on this surface?
+	for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
+	{
+		if (r_newrefdef.lightstyles[surf->styles[map]].white != surf->cached_light[map])
+		{
+			is_dynamic = true;
+			break;
+		}
+	}
+
+	if ( !is_dynamic && surf->dlightframe == r_framecount )
+	{
+		is_dynamic = true;
+	}
+
+	if (mapNum)
+	{
+		*mapNum = map;
+	}
+	return is_dynamic;
+}
+
+static void
+R_RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
+{
+	int i, map, smax, tmax;
+	int nv = surf->polys->numverts;
+	float scroll;
+	float *v;
+	unsigned lmtex = surf->lightmaptexturenum;
+	unsigned temp[128 * 128];
+
+	if ( R_HasDynamicLights(surf, &map) )
+	{
+		smax = (surf->extents[0] >> 4) + 1;
+		tmax = (surf->extents[1] >> 4) + 1;
+		R_BuildLightMap(surf, (void *) temp, smax * 4);
+
+		// Dynamic lights on a surface
+		if (((surf->styles[map] >= 32) || (surf->styles[map] == 0)) && (surf->dlightframe != r_framecount))
+		{
+			R_SetCacheState(surf);
+		}
+		else // Normal dynamic lights
+		{
+			lmtex = 0;
+		}
+
+		R_MBind(GL_TEXTURE1, gl_state.lightmap_textures + lmtex);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t, smax,
+						tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
+	}
+	else
+	{
+		R_MBind(GL_TEXTURE1, gl_state.lightmap_textures + lmtex);
+	}
+
+	// Apply overbrightbits to TMU 1 (lightmap)
+	if (gl1_overbrightbits->value)
+	{
+		R_TexEnv(GL_COMBINE);
+		glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, gl1_overbrightbits->value);
+	}
+
+	c_brush_polys++;
+	v = surf->polys->verts[0];
+
+	if (surf->texinfo->flags & SURF_FLOWING)
+	{
+		scroll = -64 * ((r_newrefdef.time / 40.0) - (int) (r_newrefdef.time / 40.0));
+
+		if (scroll == 0.0)
+		{
+			scroll = -64.0;
+		}
+
+		YQ2_VLA(GLfloat, tex, 4 * nv);
+		unsigned int index_tex = 0;
+
+		for (i = 0; i < nv; i++, v += VERTEXSIZE)
+		{
+			tex[index_tex++] = v[3] + scroll;
+			tex[index_tex++] = v[4];
+			tex[index_tex++] = v[5];
+			tex[index_tex++] = v[6];
+		}
+		v = surf->polys->verts[0];
+
+		// Polygon
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, VERTEXSIZE * sizeof(GLfloat), v);
+
+		// Texture
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		qglClientActiveTexture(GL_TEXTURE0);
+		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(GLfloat), tex);
+
+		// Lightmap
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		qglClientActiveTexture(GL_TEXTURE1);
+		glTexCoordPointer(2, GL_FLOAT, 4 * sizeof(GLfloat), tex + 2);
+
+		// Draw the thing
+		glDrawArrays(GL_TRIANGLE_FAN, 0, nv);
+
+		YQ2_VLAFREE(tex);
+	}
+	else
+	{
+		// Polygon
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, VERTEXSIZE * sizeof(GLfloat), v);
+
+		// Texture
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		qglClientActiveTexture(GL_TEXTURE0);
+		glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE * sizeof(GLfloat), v + 3);
+
+		// Lightmap
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		qglClientActiveTexture(GL_TEXTURE1);
+		glTexCoordPointer(2, GL_FLOAT, VERTEXSIZE * sizeof(GLfloat), v + 5);
+
+		// Draw it
+		glDrawArrays(GL_TRIANGLE_FAN, 0, nv);
+	}
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
 static void
 R_DrawTextureChains(entity_t *currententity)
 {
@@ -598,32 +741,78 @@ R_DrawTextureChains(entity_t *currententity)
 
 	c_visible_textures = 0;
 
-	for (i = 0, image = gltextures; i < numgltextures; i++, image++)
+	if (!gl_config.multitexture)	// classic path
 	{
-		if (!image->registration_sequence)
+		for (i = 0, image = gltextures; i < numgltextures; i++, image++)
 		{
-			continue;
+			if (!image->registration_sequence)
+			{
+				continue;
+			}
+
+			s = image->texturechain;
+
+			if (!s)
+			{
+				continue;
+			}
+
+			c_visible_textures++;
+
+			for ( ; s; s = s->texturechain)
+			{
+				R_Bind(image->texnum);  // may reset because of dynamic lighting in R_RenderBrushPoly
+				R_RenderBrushPoly(currententity, s);
+			}
+
+			image->texturechain = NULL;
 		}
-
-		s = image->texturechain;
-
-		if (!s)
-		{
-			continue;
-		}
-
-		c_visible_textures++;
-
-		for ( ; s; s = s->texturechain)
-		{
-			R_Bind(image->texnum);  // may reset because of dynamic lighting in R_RenderBrushPoly
-			R_RenderBrushPoly(currententity, s);
-		}
-
-		image->texturechain = NULL;
 	}
+	else	// multitexture
+	{
+		R_EnableMultitexture(true);
 
-	R_TexEnv(GL_REPLACE);
+		for (i = 0, image = gltextures; i < numgltextures; i++, image++)
+		{
+			if (!image->registration_sequence || !image->texturechain)
+			{
+				continue;
+			}
+
+			R_MBind(GL_TEXTURE0, image->texnum);	// setting it only once
+			c_visible_textures++;
+
+			for (s = image->texturechain; s; s = s->texturechain)
+			{
+				if (!(s->flags & SURF_DRAWTURB))
+				{
+					R_RenderLightmappedPoly(currententity, s);
+				}
+			}
+		}
+
+		R_EnableMultitexture(false);
+
+		for (i = 0, image = gltextures; i < numgltextures; i++, image++)
+		{
+			if (!image->registration_sequence || !image->texturechain)
+			{
+				continue;
+			}
+
+			R_Bind(image->texnum);	// no danger of resetting in R_RenderBrushPoly
+
+			for (s = image->texturechain; s; s = s->texturechain)
+			{
+				if (s->flags & SURF_DRAWTURB)
+				{
+					R_RenderBrushPoly(currententity, s);
+				}
+			}
+
+			image->texturechain = NULL;
+		}
+	}
 }
 
 static void
@@ -679,8 +868,19 @@ R_DrawInlineBModel(entity_t *currententity, const model_t *currentmodel)
 			else
 			{
 				image = R_TextureAnimation(currententity, psurf->texinfo);
-				R_Bind(image->texnum);
-				R_RenderBrushPoly(currententity, psurf);
+
+				if (gl_config.multitexture && !(psurf->flags & SURF_DRAWTURB))
+				{
+					R_EnableMultitexture(true);
+					R_MBind(GL_TEXTURE0, image->texnum);
+					R_RenderLightmappedPoly(currententity, psurf);
+				}
+				else
+				{
+					R_EnableMultitexture(false);
+					R_Bind(image->texnum);
+					R_RenderBrushPoly(currententity, psurf);
+				}
 			}
 		}
 	}

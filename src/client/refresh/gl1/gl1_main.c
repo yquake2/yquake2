@@ -164,6 +164,7 @@ R_DrawSpriteModel(entity_t *currententity, const model_t *currentmodel)
 	dsprite_t *psprite;
 	image_t *skin;
 
+	R_EnableMultitexture(false);
 	/* don't even bother culling, because it's just
 	   a single polygon without a surface cache */
 	psprite = (dsprite_t *)currentmodel->extradata;
