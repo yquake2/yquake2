@@ -325,7 +325,7 @@ R_BlendLightmaps(const model_t *currentmodel)
 
 			if (LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
 			{
-				base = gl_lms.lightmap_buffer;
+				base = gl_lms.lightmap_buffer[0];
 				base += (surf->dlight_t * BLOCK_WIDTH +
 						surf->dlight_s) * LIGHTMAP_BYTES;
 
@@ -371,7 +371,7 @@ R_BlendLightmaps(const model_t *currentmodel)
 							smax, tmax);
 				}
 
-				base = gl_lms.lightmap_buffer;
+				base = gl_lms.lightmap_buffer[0];
 				base += (surf->dlight_t * BLOCK_WIDTH +
 						surf->dlight_s) * LIGHTMAP_BYTES;
 
@@ -611,7 +611,8 @@ R_HasDynamicLights(msurface_t *surf, int *mapNum)
 		}
 	}
 
-	if ( !is_dynamic && surf->dlightframe == r_framecount )
+	// No matter if it is this frame or was in the previous one: has dynamic lights
+	if ( !is_dynamic && (surf->dlightframe == r_framecount || surf->dirty_lightmap) )
 	{
 		is_dynamic = true;
 	}
@@ -624,39 +625,25 @@ R_HasDynamicLights(msurface_t *surf, int *mapNum)
 }
 
 static void
+R_UpdateSurfCache(msurface_t *surf, int map)
+{
+	if ( ((surf->styles[map] >= 32) || (surf->styles[map] == 0))
+		&& (surf->dlightframe != r_framecount) )
+	{
+		R_SetCacheState(surf);
+	}
+	surf->dirty_lightmap = (surf->dlightframe == r_framecount);
+}
+
+static void
 R_RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
 {
-	int i, map, smax, tmax;
+	int i;
 	int nv = surf->polys->numverts;
 	float scroll;
 	float *v;
-	unsigned lmtex = surf->lightmaptexturenum;
-	unsigned temp[128 * 128];
 
-	if ( R_HasDynamicLights(surf, &map) )
-	{
-		smax = (surf->extents[0] >> 4) + 1;
-		tmax = (surf->extents[1] >> 4) + 1;
-		R_BuildLightMap(surf, (void *) temp, smax * 4);
-
-		// Dynamic lights on a surface
-		if (((surf->styles[map] >= 32) || (surf->styles[map] == 0)) && (surf->dlightframe != r_framecount))
-		{
-			R_SetCacheState(surf);
-		}
-		else // Normal dynamic lights
-		{
-			lmtex = 0;
-		}
-
-		R_MBind(GL_TEXTURE1, gl_state.lightmap_textures + lmtex);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t, smax,
-						tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
-	}
-	else
-	{
-		R_MBind(GL_TEXTURE1, gl_state.lightmap_textures + lmtex);
-	}
+	R_MBind(GL_TEXTURE1, gl_state.lightmap_textures + surf->lightmaptexturenum);
 
 	// Apply overbrightbits to TMU 1 (lightmap)
 	if (gl1_overbrightbits->value)
@@ -730,6 +717,114 @@ R_RenderLightmappedPoly(entity_t *currententity, msurface_t *surf)
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
+static void
+R_UploadDynamicLights(msurface_t *surf)
+{
+	int map, smax, tmax;
+	byte temp[BLOCK_WIDTH * BLOCK_HEIGHT];
+
+	if ( !gl_config.multitexture || !R_HasDynamicLights(surf, &map) )
+	{
+		return;
+	}
+
+	smax = (surf->extents[0] >> 4) + 1;
+	tmax = (surf->extents[1] >> 4) + 1;
+	R_BuildLightMap(surf, (void *) temp, smax * LIGHTMAP_BYTES);
+	R_UpdateSurfCache(surf, map);
+
+	R_Bind(gl_state.lightmap_textures + surf->lightmaptexturenum);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t, smax,
+					tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
+}
+
+/* Upload dynamic lights to each lightmap texture (multitexture path only) */
+static void
+R_RegenAllLightmaps()
+{
+	int i, map, smax, tmax, top, bottom, left, right, bt, bb, bl, br;
+	qboolean affected_lightmap;
+	msurface_t *surf;
+	byte *base;
+
+	if ( !gl_config.multitexture )
+	{
+		return;
+	}
+
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, BLOCK_WIDTH);
+
+	for (i = 1; i < MAX_LIGHTMAPS; i++)
+	{
+		if (!gl_lms.lightmap_surfaces[i] || !gl_lms.lightmap_buffer[i])
+		{
+			continue;
+		}
+
+		affected_lightmap = false;
+		bt = BLOCK_HEIGHT;
+		bl = BLOCK_WIDTH;
+		bb = br = 0;
+
+		for (surf = gl_lms.lightmap_surfaces[i];
+			 surf != 0;
+			 surf = surf->lightmapchain)
+		{
+			if ( !R_HasDynamicLights(surf, &map) )
+			{
+				continue;
+			}
+
+			affected_lightmap = true;
+			smax = (surf->extents[0] >> 4) + 1;
+			tmax = (surf->extents[1] >> 4) + 1;
+
+			left = surf->light_s;
+			right = surf->light_s + smax;
+			top = surf->light_t;
+			bottom = surf->light_t + tmax;
+
+			base = gl_lms.lightmap_buffer[i];
+			base += (top * BLOCK_WIDTH + left) * LIGHTMAP_BYTES;
+
+			R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
+			R_UpdateSurfCache(surf, map);
+
+			if (left < bl)
+			{
+				bl = left;
+			}
+			if (right > br)
+			{
+				br = right;
+			}
+			if (top < bt)
+			{
+				bt = top;
+			}
+			if (bottom > bb)
+			{
+				bb = bottom;
+			}
+		}
+
+		if (!affected_lightmap)
+		{
+			continue;
+		}
+
+		base = gl_lms.lightmap_buffer[i];
+		base += (bt * BLOCK_WIDTH + bl) * LIGHTMAP_BYTES;
+
+		// upload changes
+		R_Bind(gl_state.lightmap_textures + i);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, bl, bt, br - bl, bb - bt,
+						GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, base);
+	}
+
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 
 static void
@@ -871,6 +966,7 @@ R_DrawInlineBModel(entity_t *currententity, const model_t *currentmodel)
 
 				if (gl_config.multitexture && !(psurf->flags & SURF_DRAWTURB))
 				{
+					R_UploadDynamicLights(psurf);
 					R_EnableMultitexture(true);
 					R_MBind(GL_TEXTURE0, image->texnum);
 					R_RenderLightmappedPoly(currententity, psurf);
@@ -1098,6 +1194,12 @@ R_RecursiveWorldNode(entity_t *currententity, mnode_t *node)
 			image = R_TextureAnimation(currententity, surf->texinfo);
 			surf->texturechain = image->texturechain;
 			image->texturechain = surf;
+
+			if (gl_config.multitexture && !(surf->texinfo->flags & SURF_WARP))	// needed for R_RegenAllLightmaps()
+			{
+				surf->lightmapchain = gl_lms.lightmap_surfaces[surf->lightmaptexturenum];
+				gl_lms.lightmap_surfaces[surf->lightmaptexturenum] = surf;
+			}
 		}
 	}
 
@@ -1133,6 +1235,7 @@ R_DrawWorld(void)
 
 	R_ClearSkyBox();
 	R_RecursiveWorldNode(&ent, r_worldmodel->nodes);
+	R_RegenAllLightmaps();
 	R_DrawTextureChains(&ent);
 	R_BlendLightmaps(r_worldmodel);
 	R_DrawSkyBox();

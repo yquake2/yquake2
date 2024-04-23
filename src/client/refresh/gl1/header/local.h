@@ -403,7 +403,7 @@ typedef struct
 
 	/* the lightmap texture data needs to be kept in
 	   main memory so texsubimage can update properly */
-	byte lightmap_buffer[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
+	byte *lightmap_buffer[MAX_LIGHTMAPS];
 } gllightmapstate_t;
 
 extern glconfig_t gl_config;
