@@ -32,12 +32,47 @@ void R_SetCacheState(msurface_t *surf);
 void R_BuildLightMap(msurface_t *surf, byte *dest, int stride);
 
 void
+LM_FreeLightmapBuffers(void)
+{
+	for (int i=0; i<MAX_LIGHTMAPS; i++)
+	{
+		if (gl_lms.lightmap_buffer[i])
+		{
+			free(gl_lms.lightmap_buffer[i]);
+		}
+		gl_lms.lightmap_buffer[i] = NULL;
+	}
+}
+
+static void
+LM_AllocLightmapBuffer(int buffer, qboolean clean)
+{
+	static const unsigned int lightmap_size =
+		BLOCK_WIDTH * BLOCK_HEIGHT * LIGHTMAP_BYTES;
+
+	if (!gl_lms.lightmap_buffer[buffer])
+	{
+		gl_lms.lightmap_buffer[buffer] = malloc (lightmap_size);
+	}
+	if (!gl_lms.lightmap_buffer[buffer])
+	{
+		ri.Sys_Error(ERR_FATAL, "Could not allocate lightmap buffer %d\n",
+			buffer);
+	}
+	if (clean)
+	{
+		memset (gl_lms.lightmap_buffer[buffer], 0, lightmap_size);
+	}
+}
+
+void
 LM_InitBlock(void)
 {
 	memset(gl_lms.allocated, 0, sizeof(gl_lms.allocated));
 
-	if (gl_config.multitexture && !gl_lms.lightmap_buffer[gl_lms.current_lightmap_texture]) {
-		gl_lms.lightmap_buffer[gl_lms.current_lightmap_texture] = malloc (BLOCK_WIDTH*BLOCK_HEIGHT*LIGHTMAP_BYTES);
+	if (gl_config.multitexture)
+	{
+		LM_AllocLightmapBuffer(gl_lms.current_lightmap_texture, false);
 	}
 }
 
@@ -239,21 +274,11 @@ LM_CreateSurfaceLightmap(msurface_t *surf)
 void
 LM_BeginBuildingLightmaps(model_t *m)
 {
-	static const unsigned int lightmap_size = BLOCK_WIDTH*BLOCK_HEIGHT*LIGHTMAP_BYTES;
 	static lightstyle_t lightstyles[MAX_LIGHTSTYLES];
 	int i;
 
 	memset(gl_lms.allocated, 0, sizeof(gl_lms.allocated));
-
-	// free lightmap update buffers
-	for (i=0; i<MAX_LIGHTMAPS; i++)
-	{
-		if (gl_lms.lightmap_buffer[i])
-		{
-			free(gl_lms.lightmap_buffer[i]);
-		}
-		gl_lms.lightmap_buffer[i] = NULL;
-	}
+	LM_FreeLightmapBuffers();
 
 	r_framecount = 1; /* no dlightcache */
 
@@ -280,18 +305,12 @@ LM_BeginBuildingLightmaps(model_t *m)
 
 	if (gl_config.multitexture)
 	{
-		// alloc lightmap update buffer if needed
-		if (!gl_lms.lightmap_buffer[gl_lms.current_lightmap_texture]) {
-			gl_lms.lightmap_buffer[gl_lms.current_lightmap_texture] = malloc (lightmap_size);
-		}
+		LM_AllocLightmapBuffer(gl_lms.current_lightmap_texture, false);
 		return;
 	}
 
 	// dynamic lightmap for classic rendering path (no multitexture)
-	if (!gl_lms.lightmap_buffer[0]) {
-		gl_lms.lightmap_buffer[0] = malloc (lightmap_size);
-		memset (gl_lms.lightmap_buffer[0], 0, lightmap_size);
-	}
+	LM_AllocLightmapBuffer(0, true);
 
 	/* initialize the dynamic lightmap texture */
 	R_Bind(gl_state.lightmap_textures + 0);

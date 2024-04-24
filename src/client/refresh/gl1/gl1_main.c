@@ -144,6 +144,8 @@ cvar_t *gl1_stereo_convergence;
 
 refimport_t ri;
 
+void LM_FreeLightmapBuffers(void);
+
 void
 R_RotateForEntity(entity_t *e)
 {
@@ -261,6 +263,7 @@ R_DrawNullModel(entity_t *currententity)
 		R_LightPoint(currententity, currententity->origin, shadelight);
 	}
 
+	R_EnableMultitexture(false);
 	glPushMatrix();
 	R_RotateForEntity(currententity);
 
@@ -1654,6 +1657,7 @@ RI_Shutdown(void)
 	ri.Cmd_RemoveCommand("imagelist");
 	ri.Cmd_RemoveCommand("gl_strings");
 
+	LM_FreeLightmapBuffers();
 	Mod_FreeAll();
 
 	R_ShutdownImages();
@@ -1909,6 +1913,7 @@ R_DrawBeam(entity_t *e)
 		VectorAdd(start_points[i], direction, end_points[i]);
 	}
 
+	R_EnableMultitexture(false);
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
 	glDepthMask(GL_FALSE);
