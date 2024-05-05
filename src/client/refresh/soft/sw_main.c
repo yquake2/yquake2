@@ -1910,7 +1910,7 @@ RE_InitContext(void *win)
 	if (r_vsync->value)
 	{
 #ifdef USE_SDL3
-		renderer = SDL_CreateRenderer(window, NULL, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+		renderer = SDL_CreateRenderer(window, NULL, SDL_RENDERER_PRESENTVSYNC);
 #else
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 #endif
@@ -1918,7 +1918,7 @@ RE_InitContext(void *win)
 	else
 	{
 #ifdef USE_SDL3
-		renderer = SDL_CreateRenderer(window, NULL, SDL_RENDERER_ACCELERATED);
+		renderer = SDL_CreateRenderer(window, NULL, 0);
 #else
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 #endif
