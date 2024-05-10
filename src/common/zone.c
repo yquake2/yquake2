@@ -30,7 +30,7 @@
 #define Z_MAGIC 0x1d1d
 
 zhead_t z_chain;
-int z_count, z_bytes;
+unsigned int z_count, z_bytes;
 
 void
 Z_Free(void *ptr)
@@ -39,7 +39,7 @@ Z_Free(void *ptr)
 
 	z = ((zhead_t *)ptr) - 1;
 
-	if (z->magic != Z_MAGIC)
+	if (YQ2_UNLIKELY(z->magic != Z_MAGIC))
 	{
 		Com_Printf("ERROR: Z_free(%p) failed: bad magic\n", ptr);
 		abort();
@@ -76,21 +76,27 @@ Z_FreeTags(int tag)
 }
 
 void *
-Z_TagMalloc(int size, int tag)
+Z_TagMalloc(unsigned int size, int tag)
 {
 	zhead_t *z;
 
 	size = size + sizeof(zhead_t);
-	z = malloc(size);
+	unsigned int r = z_bytes + size;
 
-	if (!z)
+	if (YQ2_UNLIKELY(r < z_bytes))
+	{
+		Com_Error(ERR_FATAL, "Z_Malloc: failed on allocation bookeeping tag %i with %i bytes", tag, size);
+	}
+
+	z = calloc(1, size);
+
+	if (YQ2_UNLIKELY(!z))
 	{
 		Com_Error(ERR_FATAL, "Z_Malloc: failed on allocation of %i bytes", size);
 	}
 
-	memset(z, 0, size);
 	z_count++;
-	z_bytes += size;
+	z_bytes = r;
 	z->magic = Z_MAGIC;
 	z->tag = tag;
 	z->size = size;
@@ -104,7 +110,7 @@ Z_TagMalloc(int size, int tag)
 }
 
 void *
-Z_Malloc(int size)
+Z_Malloc(unsigned int size)
 {
 	return Z_TagMalloc(size, 0);
 }

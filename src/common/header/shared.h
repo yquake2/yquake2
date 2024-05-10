@@ -63,13 +63,16 @@ typedef unsigned char byte;
   #if defined(__GNUC__)
 	#define YQ2_ATTR_MALLOC         __attribute__ ((__malloc__))
 	#define YQ2_ATTR_INLINE         __attribute__((always_inline)) inline
+	#define YQ2_UNLIKELY(C)         __builtin_expect(!!(C), false)
   #elif defined(_MSC_VER)
 	#define YQ2_ATTR_MALLOC         __declspec(restrict)
 	#define YQ2_ATTR_INLINE         __forceinline
+	#define YQ2_UNLIKELY(C)         (C)
   #else
 	// no equivalent per see
 	#define YQ2_ATTR_MALLOC
 	#define YQ2_ATTR_INLINE         inline
+	#define YQ2_UNLIKELY(C)         (C)
   #endif
 #elif defined(__GNUC__) // GCC and clang should support this attribute
 	#define YQ2_ALIGNAS_SIZE(SIZE)  __attribute__(( __aligned__(SIZE) ))
@@ -80,6 +83,7 @@ typedef unsigned char byte;
 	#define YQ2_ATTR_INLINE         __attribute__((always_inline)) inline
 	// GCC supports this extension since 4.6
 	#define YQ2_STATIC_ASSERT(C, M) _Static_assert((C), M)
+	#define YQ2_UNLIKELY(C)         __builtin_expect(!!(C), false)
 #elif defined(_MSC_VER)
 	// Note: We prefer VS2019 16.8 or newer in C11 mode (/std:c11),
 	//       then the __STDC_VERSION__ >= 201112L case above is used
@@ -99,6 +103,7 @@ typedef unsigned char byte;
 	#define YQ2_ATTR_MALLOC         __declspec(restrict)
 	#define YQ2_ATTR_INLINE         __forceinline
 	#define YQ2_STATIC_ASSERT(C, M) assert((C) && M)
+	#define YQ2_UNLIKELY(C)         (C)
 #else
 	#warning "Please add a case for your compiler here to align correctly"
 	#define YQ2_ALIGNAS_SIZE(SIZE)
@@ -107,6 +112,7 @@ typedef unsigned char byte;
 	#define YQ2_ATTR_MALLOC
 	#define YQ2_ATTR_INLINE         inline
 	#define YQ2_STATIC_ASSERT(C, M) assert((C) && M)
+	#define YQ2_UNLIKELY(C)         (C)
 #endif
 
 #if defined(__GNUC__)

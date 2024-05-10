@@ -803,8 +803,8 @@ extern int time_before_ref;
 extern int time_after_ref;
 
 void Z_Free(void *ptr);
-void *Z_Malloc(int size);           /* returns 0 filled memory */
-void *Z_TagMalloc(int size, int tag);
+void *Z_Malloc(unsigned int size);           /* returns 0 filled memory */
+void *Z_TagMalloc(unsigned int size, int tag);
 void Z_FreeTags(int tag);
 
 void Qcommon_Init(int argc, char **argv);

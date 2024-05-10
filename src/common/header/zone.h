@@ -32,7 +32,7 @@ typedef struct zhead_s
 	struct zhead_s	*prev, *next;
 	short	magic;
 	short	tag; /* for group free */
-	int		size;
+	unsigned int size;
 } zhead_t;
 
 void Z_Stats_f (void);

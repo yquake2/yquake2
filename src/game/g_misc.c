@@ -2389,7 +2389,7 @@ typedef struct zhead_s
    struct zhead_s *prev, *next;
    short magic;
    short tag;
-   int size;
+   unsigned int size;
 } zhead_t;
 
 void
