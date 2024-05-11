@@ -85,6 +85,7 @@ Sys_Error(const char *error, ...)
 void
 Sys_Quit(void)
 {
+	const qboolean free_console = (dedicated && dedicated->value);
 	timeEndPeriod(1);
 
 #ifndef DEDICATED_ONLY
@@ -93,7 +94,7 @@ Sys_Quit(void)
 
 	Qcommon_Shutdown();
 
-	if (dedicated && dedicated->value)
+	if (free_console)
 	{
 		FreeConsole();
 	}

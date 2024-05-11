@@ -19,7 +19,7 @@
  *
  * =======================================================================
  *
- * Allocate all the little status bar obejcts into a single texture
+ * Allocate all the little status bar objects into a single texture
  * to crutch up inefficient hardware / drivers.
  *
  * =======================================================================
@@ -30,7 +30,6 @@
 int scrap_allocated[MAX_SCRAPS][BLOCK_WIDTH];
 byte scrap_texels[MAX_SCRAPS][BLOCK_WIDTH * BLOCK_HEIGHT];
 qboolean scrap_dirty;
-int scrap_uploads;
 
 qboolean R_Upload8(byte *data,
 		int width,
@@ -93,7 +92,6 @@ Scrap_AllocBlock(int w, int h, int *x, int *y)
 void
 Scrap_Upload(void)
 {
-	scrap_uploads++;
 	R_Bind(TEXNUM_SCRAPS);
 	R_Upload8(scrap_texels[0], BLOCK_WIDTH, BLOCK_HEIGHT, false, false);
 	scrap_dirty = false;
