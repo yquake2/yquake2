@@ -146,6 +146,8 @@ cvar_t *gl1_stereo_convergence;
 refimport_t ri;
 
 void LM_FreeLightmapBuffers(void);
+void Scrap_Free(void);
+void Scrap_Init(void);
 
 void
 R_RotateForEntity(entity_t *e)
@@ -1647,6 +1649,8 @@ RI_Init(void)
 	gl_state.block_width = BLOCK_WIDTH;
 	gl_state.block_height = BLOCK_HEIGHT;
 	gl_state.max_lightmaps = MAX_LIGHTMAPS;
+	gl_state.scrap_width = BLOCK_WIDTH;
+	gl_state.scrap_height = BLOCK_HEIGHT;
 	glGetIntegerv (GL_MAX_TEXTURE_SIZE, &max_tex_size);
 	if (max_tex_size > BLOCK_WIDTH)
 	{
@@ -1655,6 +1659,8 @@ RI_Init(void)
 			gl_state.block_width = gl_state.block_height = Q_min(max_tex_size, 512);
 			gl_state.max_lightmaps = (BLOCK_WIDTH * BLOCK_HEIGHT * MAX_LIGHTMAPS)
 					/ (gl_state.block_width * gl_state.block_height);
+			gl_state.scrap_width = gl_state.scrap_height =
+					(gl_config.npottextures)? Q_min(max_tex_size, 384) : Q_min(max_tex_size, 256);
 			R_Printf(PRINT_ALL, "Okay\n");
 		}
 		else
@@ -1671,6 +1677,7 @@ RI_Init(void)
 
 	R_SetDefaultState();
 
+	Scrap_Init();
 	R_InitImages();
 	Mod_Init();
 	R_InitParticleTexture();
@@ -1688,6 +1695,7 @@ RI_Shutdown(void)
 	ri.Cmd_RemoveCommand("gl_strings");
 
 	LM_FreeLightmapBuffers();
+	Scrap_Free();
 	Mod_FreeAll();
 
 	R_ShutdownImages();

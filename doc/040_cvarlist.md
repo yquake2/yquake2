@@ -460,7 +460,7 @@ Set `0` by default.
 
 ## Graphics (OpenGL 1.4 only)
 
-* **gl1_biglightmaps**: Enables lightmaps to use a bigger
+* **gl1_biglightmaps**: Enables lightmaps and scrap to use a bigger
   texture size, which means fewer texture switches, improving
   performance. Default is `1` (enabled). Requires a `vid_restart`.
 

@@ -394,7 +394,9 @@ typedef struct
 
 	int	block_width,	// replaces BLOCK_WIDTH
 		block_height,	// replaces BLOCK_HEIGHT
-		max_lightmaps;	// the larger the lightmaps, the fewer the max lightmaps
+		max_lightmaps,	// the larger the lightmaps, the fewer the max lightmaps
+		scrap_width,	// size for scrap (atlas of 2D elements)
+		scrap_height;
 } glstate_t;
 
 typedef struct
