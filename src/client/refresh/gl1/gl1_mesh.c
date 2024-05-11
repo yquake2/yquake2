@@ -557,6 +557,7 @@ R_DrawAliasModel(entity_t *currententity, const model_t *currentmodel)
 		}
 	}
 
+	R_EnableMultitexture(false);
 	paliashdr = (dmdl_t *)currentmodel->extradata;
 
 	/* get lighting information */

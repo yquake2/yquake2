@@ -32,25 +32,56 @@ void R_SetCacheState(msurface_t *surf);
 void R_BuildLightMap(msurface_t *surf, byte *dest, int stride);
 
 void
+LM_FreeLightmapBuffers(void)
+{
+	for (int i=0; i<MAX_LIGHTMAPS; i++)
+	{
+		if (gl_lms.lightmap_buffer[i])
+		{
+			free(gl_lms.lightmap_buffer[i]);
+		}
+		gl_lms.lightmap_buffer[i] = NULL;
+	}
+}
+
+static void
+LM_AllocLightmapBuffer(int buffer, qboolean clean)
+{
+	static const unsigned int lightmap_size =
+		BLOCK_WIDTH * BLOCK_HEIGHT * LIGHTMAP_BYTES;
+
+	if (!gl_lms.lightmap_buffer[buffer])
+	{
+		gl_lms.lightmap_buffer[buffer] = malloc (lightmap_size);
+	}
+	if (!gl_lms.lightmap_buffer[buffer])
+	{
+		ri.Sys_Error(ERR_FATAL, "Could not allocate lightmap buffer %d\n",
+			buffer);
+	}
+	if (clean)
+	{
+		memset (gl_lms.lightmap_buffer[buffer], 0, lightmap_size);
+	}
+}
+
+void
 LM_InitBlock(void)
 {
 	memset(gl_lms.allocated, 0, sizeof(gl_lms.allocated));
+
+	if (gl_config.multitexture)
+	{
+		LM_AllocLightmapBuffer(gl_lms.current_lightmap_texture, false);
+	}
 }
 
 void
 LM_UploadBlock(qboolean dynamic)
 {
-	int texture;
+	const int texture = (dynamic)? 0 : gl_lms.current_lightmap_texture;
+	const int buffer = (gl_config.multitexture)? gl_lms.current_lightmap_texture : 0;
 	int height = 0;
-
-	if (dynamic)
-	{
-		texture = 0;
-	}
-	else
-	{
-		texture = gl_lms.current_lightmap_texture;
-	}
 
 	R_Bind(gl_state.lightmap_textures + texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -70,14 +101,14 @@ LM_UploadBlock(qboolean dynamic)
 
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, BLOCK_WIDTH,
 				height, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE,
-				gl_lms.lightmap_buffer);
+				gl_lms.lightmap_buffer[buffer]);
 	}
 	else
 	{
 		gl_lms.internal_format = GL_LIGHTMAP_FORMAT;
 		glTexImage2D(GL_TEXTURE_2D, 0, gl_lms.internal_format,
 				BLOCK_WIDTH, BLOCK_HEIGHT, 0, GL_LIGHTMAP_FORMAT,
-				GL_UNSIGNED_BYTE, gl_lms.lightmap_buffer);
+				GL_UNSIGNED_BYTE, gl_lms.lightmap_buffer[buffer]);
 
 		if (++gl_lms.current_lightmap_texture == MAX_LIGHTMAPS)
 		{
@@ -207,7 +238,7 @@ LM_BuildPolygonFromSurface(model_t *currentmodel, msurface_t *fa)
 void
 LM_CreateSurfaceLightmap(msurface_t *surf)
 {
-	int smax, tmax;
+	int smax, tmax, buffer;
 	byte *base;
 
 	if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB))
@@ -231,8 +262,9 @@ LM_CreateSurfaceLightmap(msurface_t *surf)
 	}
 
 	surf->lightmaptexturenum = gl_lms.current_lightmap_texture;
+	buffer = (gl_config.multitexture)? surf->lightmaptexturenum : 0;
 
-	base = gl_lms.lightmap_buffer;
+	base = gl_lms.lightmap_buffer[buffer];
 	base += (surf->light_t * BLOCK_WIDTH + surf->light_s) * LIGHTMAP_BYTES;
 
 	R_SetCacheState(surf);
@@ -244,9 +276,9 @@ LM_BeginBuildingLightmaps(model_t *m)
 {
 	static lightstyle_t lightstyles[MAX_LIGHTSTYLES];
 	int i;
-	unsigned dummy[128 * 128] = {0};
 
 	memset(gl_lms.allocated, 0, sizeof(gl_lms.allocated));
+	LM_FreeLightmapBuffers();
 
 	r_framecount = 1; /* no dlightcache */
 
@@ -271,13 +303,22 @@ LM_BeginBuildingLightmaps(model_t *m)
 	gl_lms.current_lightmap_texture = 1;
 	gl_lms.internal_format = GL_LIGHTMAP_FORMAT;
 
+	if (gl_config.multitexture)
+	{
+		LM_AllocLightmapBuffer(gl_lms.current_lightmap_texture, false);
+		return;
+	}
+
+	// dynamic lightmap for classic rendering path (no multitexture)
+	LM_AllocLightmapBuffer(0, true);
+
 	/* initialize the dynamic lightmap texture */
 	R_Bind(gl_state.lightmap_textures + 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, gl_lms.internal_format,
 			BLOCK_WIDTH, BLOCK_HEIGHT, 0, GL_LIGHTMAP_FORMAT,
-			GL_UNSIGNED_BYTE, dummy);
+			GL_UNSIGNED_BYTE, gl_lms.lightmap_buffer[0]);
 }
 
 void

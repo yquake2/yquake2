@@ -39,24 +39,6 @@
  #define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX
 #endif
 
-#ifndef GL_EXT_texture_filter_anisotropic
- #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
- #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
-#endif
-
-#ifndef GL_VERSION_1_3
- #define GL_TEXTURE0 0x84C0
- #define GL_TEXTURE1 0x84C1
-#endif
-
-#ifndef GL_MULTISAMPLE
-#define GL_MULTISAMPLE 0x809D
-#endif
-
-#ifndef GL_MULTISAMPLE_FILTER_HINT_NV
-#define GL_MULTISAMPLE_FILTER_HINT_NV 0x8534
-#endif
-
 #define TEXNUM_LIGHTMAPS 1024
 #define TEXNUM_SCRAPS 1152
 #define TEXNUM_IMAGES 1153
@@ -180,6 +162,7 @@ extern cvar_t *gl1_overbrightbits;
 
 extern cvar_t *gl1_palettedtexture;
 extern cvar_t *gl1_pointparameters;
+extern cvar_t *gl1_multitexture;
 
 extern cvar_t *gl1_particle_min_size;
 extern cvar_t *gl1_particle_max_size;
@@ -248,6 +231,9 @@ void R_TranslatePlayerSkin(int playernum);
 void R_Bind(int texnum);
 
 void R_TexEnv(GLenum value);
+void R_SelectTexture(GLenum);
+void R_MBind(GLenum target, int texnum);
+void R_EnableMultitexture(qboolean enable);
 
 void R_LightPoint(entity_t *currententity, vec3_t p, vec3_t color);
 void R_PushDlights(void);
@@ -377,6 +363,8 @@ typedef struct
 	qboolean npottextures;
 	qboolean palettedtexture;
 	qboolean pointparameters;
+	qboolean multitexture;
+	qboolean mtexcombine;
 
 	// ----
 
@@ -415,7 +403,7 @@ typedef struct
 
 	/* the lightmap texture data needs to be kept in
 	   main memory so texsubimage can update properly */
-	byte lightmap_buffer[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
+	byte *lightmap_buffer[MAX_LIGHTMAPS];
 } gllightmapstate_t;
 
 extern glconfig_t gl_config;

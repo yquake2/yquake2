@@ -38,18 +38,22 @@
 /*
  * GL extensions
  */
-void (APIENTRY *qglPointParameterfARB)(GLenum param, GLfloat value);
-void (APIENTRY *qglPointParameterfvARB)(GLenum param, const GLfloat *value);
+void (APIENTRY *qglPointParameterf)(GLenum param, GLfloat value);
+void (APIENTRY *qglPointParameterfv)(GLenum param, const GLfloat *value);
 void (APIENTRY *qglColorTableEXT)(GLenum, GLenum, GLsizei, GLenum, GLenum,
 		const GLvoid *);
+void (APIENTRY *qglActiveTexture) (GLenum texture);
+void (APIENTRY *qglClientActiveTexture) (GLenum texture);
 
 /* ========================================================================= */
 
 void QGL_EXT_Reset ( void )
 {
-	qglPointParameterfARB     = NULL;
-	qglPointParameterfvARB    = NULL;
-	qglColorTableEXT          = NULL;
+	qglPointParameterf     = NULL;
+	qglPointParameterfv    = NULL;
+	qglColorTableEXT       = NULL;
+	qglActiveTexture       = NULL;
+	qglClientActiveTexture = NULL;
 }
 
 /* ========================================================================= */
@@ -63,11 +67,10 @@ QGL_Shutdown ( void )
 
 /* ========================================================================= */
 
-qboolean
+void
 QGL_Init (void)
 {
 	// Reset GL extension pointers
 	QGL_EXT_Reset();
-	return true;
 }
 

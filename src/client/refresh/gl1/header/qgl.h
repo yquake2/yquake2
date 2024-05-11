@@ -44,54 +44,39 @@
 #define APIENTRY
 #endif
 
-#define GL_SHARED_TEXTURE_PALETTE_EXT 0x81FB
+// Extracted from <glext.h>
+#ifndef GL_VERSION_1_4
+#define GL_POINT_SIZE_MIN                 0x8126
+#define GL_POINT_SIZE_MAX                 0x8127
+#define GL_POINT_DISTANCE_ATTENUATION     0x8129
+#endif
 
-#define GL_POINT_SIZE_MIN_EXT 0x8126
-#define GL_POINT_SIZE_MAX_EXT 0x8127
-#define GL_DISTANCE_ATTENUATION_EXT 0x8129
+#ifndef GL_VERSION_1_3
+#define GL_TEXTURE0                       0x84C0
+#define GL_TEXTURE1                       0x84C1
+#define GL_MULTISAMPLE                    0x809D
+#define GL_COMBINE                        0x8570
+#define GL_COMBINE_RGB                    0x8571
+#define GL_COMBINE_ALPHA                  0x8572
+#define GL_SOURCE0_RGB                    0x8580
+#define GL_SOURCE1_RGB                    0x8581
+#define GL_SOURCE0_ALPHA                  0x8588
+#define GL_SOURCE1_ALPHA                  0x8589
+#define GL_RGB_SCALE                      0x8573
+#define GL_PREVIOUS                       0x8578
+#endif
 
-#ifndef GL_EXT_texture_env_combine
-#define GL_COMBINE_EXT 0x8570
-#define GL_COMBINE_RGB_EXT 0x8571
-#define GL_COMBINE_ALPHA_EXT 0x8572
-#define GL_RGB_SCALE_EXT 0x8573
-#define GL_ADD_SIGNED_EXT 0x8574
-#define GL_INTERPOLATE_EXT 0x8575
-#define GL_CONSTANT_EXT 0x8576
-#define GL_PRIMARY_COLOR_EXT 0x8577
-#define GL_PREVIOUS_EXT 0x8578
-#define GL_SOURCE0_RGB_EXT 0x8580
-#define GL_SOURCE1_RGB_EXT 0x8581
-#define GL_SOURCE2_RGB_EXT 0x8582
-#define GL_SOURCE3_RGB_EXT 0x8583
-#define GL_SOURCE4_RGB_EXT 0x8584
-#define GL_SOURCE5_RGB_EXT 0x8585
-#define GL_SOURCE6_RGB_EXT 0x8586
-#define GL_SOURCE7_RGB_EXT 0x8587
-#define GL_SOURCE0_ALPHA_EXT 0x8588
-#define GL_SOURCE1_ALPHA_EXT 0x8589
-#define GL_SOURCE2_ALPHA_EXT 0x858A
-#define GL_SOURCE3_ALPHA_EXT 0x858B
-#define GL_SOURCE4_ALPHA_EXT 0x858C
-#define GL_SOURCE5_ALPHA_EXT 0x858D
-#define GL_SOURCE6_ALPHA_EXT 0x858E
-#define GL_SOURCE7_ALPHA_EXT 0x858F
-#define GL_OPERAND0_RGB_EXT 0x8590
-#define GL_OPERAND1_RGB_EXT 0x8591
-#define GL_OPERAND2_RGB_EXT 0x8592
-#define GL_OPERAND3_RGB_EXT 0x8593
-#define GL_OPERAND4_RGB_EXT 0x8594
-#define GL_OPERAND5_RGB_EXT 0x8595
-#define GL_OPERAND6_RGB_EXT 0x8596
-#define GL_OPERAND7_RGB_EXT 0x8597
-#define GL_OPERAND0_ALPHA_EXT 0x8598
-#define GL_OPERAND1_ALPHA_EXT 0x8599
-#define GL_OPERAND2_ALPHA_EXT 0x859A
-#define GL_OPERAND3_ALPHA_EXT 0x859B
-#define GL_OPERAND4_ALPHA_EXT 0x859C
-#define GL_OPERAND5_ALPHA_EXT 0x859D
-#define GL_OPERAND6_ALPHA_EXT 0x859E
-#define GL_OPERAND7_ALPHA_EXT 0x859F
+#ifndef GL_EXT_shared_texture_palette
+#define GL_SHARED_TEXTURE_PALETTE_EXT     0x81FB
+#endif
+
+#ifndef GL_EXT_texture_filter_anisotropic
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT     0x84FE
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+#endif
+
+#ifndef GL_NV_multisample_filter_hint
+#define GL_MULTISAMPLE_FILTER_HINT_NV     0x8534
 #endif
 
 // =======================================================================
@@ -99,7 +84,7 @@
 /*
  * This is responsible for setting up our QGL extension pointers
  */
-qboolean QGL_Init ( void );
+void QGL_Init ( void );
 
 /*
  * Unloads the specified DLL then nulls out all the proc pointers.
@@ -107,10 +92,12 @@ qboolean QGL_Init ( void );
 void QGL_Shutdown ( void );
 
 /* GL extensions */
-extern void ( APIENTRY *qglPointParameterfARB ) ( GLenum param, GLfloat value );
-extern void ( APIENTRY *qglPointParameterfvARB ) ( GLenum param,
+extern void ( APIENTRY *qglPointParameterf ) ( GLenum param, GLfloat value );
+extern void ( APIENTRY *qglPointParameterfv ) ( GLenum param,
 		const GLfloat *value );
 extern void ( APIENTRY *qglColorTableEXT ) ( GLenum, GLenum, GLsizei, GLenum,
 		GLenum, const GLvoid * );
+extern void ( APIENTRY *qglActiveTexture ) ( GLenum texture );
+extern void ( APIENTRY *qglClientActiveTexture ) ( GLenum texture );
 
 #endif

@@ -464,6 +464,12 @@ Set `0` by default.
   value, at least `1.0` - default is `2.0`. Applied when textures are
   loaded, so it needs a `vid_restart`.
 
+* **gl1_multitexture**: Enables (`1`) the blending of color and light
+  textures on a single drawing pass; disabling this (`0`) does one pass
+  for color and another for light. Default is `2`, which also enables
+  texture combine mode (`GL_ARB_texture_env_combine`) when supported.
+  Requires a `vid_restart` when changed.
+
 * **gl1_overbrightbits**: Enables overbright bits, brightness scaling of
   lightmaps and models. Higher values make shadows less dark. Possible
   values are `0` (no overbright bits), `1` (more correct lighting for
