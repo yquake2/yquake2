@@ -460,6 +460,10 @@ Set `0` by default.
 
 ## Graphics (OpenGL 1.4 only)
 
+* **gl1_biglightmaps**: Enables lightmaps to use a bigger
+  texture size, which means fewer texture switches, improving
+  performance. Default is `1` (enabled). Requires a `vid_restart`.
+
 * **gl1_intensity**: Sets the color intensity. Must be a floating point
   value, at least `1.0` - default is `2.0`. Applied when textures are
   loaded, so it needs a `vid_restart`.
