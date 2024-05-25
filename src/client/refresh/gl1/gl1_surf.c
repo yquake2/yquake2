@@ -117,7 +117,7 @@ R_DrawTriangleOutlines(void)
 	glDisable(GL_DEPTH_TEST);
 	glColor4f(1, 1, 1, 1);
 
-	for (i = 0; i < MAX_LIGHTMAPS; i++)
+	for (i = 0; i < gl_state.max_lightmaps; i++)
 	{
 		msurface_t *surf;
 
@@ -269,7 +269,7 @@ R_BlendLightmaps(const model_t *currentmodel)
 	}
 
 	/* render static lightmaps first */
-	for (i = 1; i < MAX_LIGHTMAPS; i++)
+	for (i = 1; i < gl_state.max_lightmaps; i++)
 	{
 		if (gl_lms.lightmap_surfaces[i])
 		{
@@ -326,10 +326,10 @@ R_BlendLightmaps(const model_t *currentmodel)
 			if (LM_AllocBlock(smax, tmax, &surf->dlight_s, &surf->dlight_t))
 			{
 				base = gl_lms.lightmap_buffer[0];
-				base += (surf->dlight_t * BLOCK_WIDTH +
+				base += (surf->dlight_t * gl_state.block_width +
 						surf->dlight_s) * LIGHTMAP_BYTES;
 
-				R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
+				R_BuildLightMap(surf, base, gl_state.block_width * LIGHTMAP_BYTES);
 			}
 			else
 			{
@@ -353,8 +353,8 @@ R_BlendLightmaps(const model_t *currentmodel)
 						}
 
 						R_DrawGLPolyChain(drawsurf->polys,
-								(drawsurf->light_s - drawsurf->dlight_s) * (1.0 / 128.0),
-								(drawsurf->light_t - drawsurf->dlight_t) * (1.0 / 128.0));
+								(drawsurf->light_s - drawsurf->dlight_s) * (1.0 / (float)gl_state.block_width),
+								(drawsurf->light_t - drawsurf->dlight_t) * (1.0 / (float)gl_state.block_height));
 					}
 				}
 
@@ -372,10 +372,10 @@ R_BlendLightmaps(const model_t *currentmodel)
 				}
 
 				base = gl_lms.lightmap_buffer[0];
-				base += (surf->dlight_t * BLOCK_WIDTH +
+				base += (surf->dlight_t * gl_state.block_width +
 						surf->dlight_s) * LIGHTMAP_BYTES;
 
-				R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
+				R_BuildLightMap(surf, base, gl_state.block_width * LIGHTMAP_BYTES);
 			}
 		}
 
@@ -397,8 +397,8 @@ R_BlendLightmaps(const model_t *currentmodel)
 				}
 
 				R_DrawGLPolyChain(surf->polys,
-						(surf->light_s - surf->dlight_s) * (1.0 / 128.0),
-						(surf->light_t - surf->dlight_t) * (1.0 / 128.0));
+						(surf->light_s - surf->dlight_s) * (1.0 / (float)gl_state.block_width),
+						(surf->light_t - surf->dlight_t) * (1.0 / (float)gl_state.block_height));
 			}
 		}
 	}
@@ -723,12 +723,12 @@ static void
 R_UploadDynamicLights(msurface_t *surf)
 {
 	int map, smax, tmax;
-	byte temp[BLOCK_WIDTH * BLOCK_HEIGHT];
 
 	if ( !gl_config.multitexture || !R_HasDynamicLights(surf, &map) )
 	{
 		return;
 	}
+	YQ2_VLA(byte, temp, gl_state.block_width * gl_state.block_height);
 
 	smax = (surf->extents[0] >> 4) + 1;
 	tmax = (surf->extents[1] >> 4) + 1;
@@ -738,6 +738,7 @@ R_UploadDynamicLights(msurface_t *surf)
 	R_Bind(gl_state.lightmap_textures + surf->lightmaptexturenum);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, surf->light_s, surf->light_t, smax,
 					tmax, GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, temp);
+	YQ2_VLAFREE(temp);
 }
 
 /* Upload dynamic lights to each lightmap texture (multitexture path only) */
@@ -754,9 +755,9 @@ R_RegenAllLightmaps()
 		return;
 	}
 
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, BLOCK_WIDTH);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, gl_state.block_width);
 
-	for (i = 1; i < MAX_LIGHTMAPS; i++)
+	for (i = 1; i < gl_state.max_lightmaps; i++)
 	{
 		if (!gl_lms.lightmap_surfaces[i] || !gl_lms.lightmap_buffer[i])
 		{
@@ -764,8 +765,8 @@ R_RegenAllLightmaps()
 		}
 
 		affected_lightmap = false;
-		bt = BLOCK_HEIGHT;
-		bl = BLOCK_WIDTH;
+		bt = gl_state.block_height;
+		bl = gl_state.block_width;
 		bb = br = 0;
 
 		for (surf = gl_lms.lightmap_surfaces[i];
@@ -787,9 +788,9 @@ R_RegenAllLightmaps()
 			bottom = surf->light_t + tmax;
 
 			base = gl_lms.lightmap_buffer[i];
-			base += (top * BLOCK_WIDTH + left) * LIGHTMAP_BYTES;
+			base += (top * gl_state.block_width + left) * LIGHTMAP_BYTES;
 
-			R_BuildLightMap(surf, base, BLOCK_WIDTH * LIGHTMAP_BYTES);
+			R_BuildLightMap(surf, base, gl_state.block_width * LIGHTMAP_BYTES);
 			R_UpdateSurfCache(surf, map);
 
 			if (left < bl)
@@ -816,7 +817,7 @@ R_RegenAllLightmaps()
 		}
 
 		base = gl_lms.lightmap_buffer[i];
-		base += (bt * BLOCK_WIDTH + bl) * LIGHTMAP_BYTES;
+		base += (bt * gl_state.block_width + bl) * LIGHTMAP_BYTES;
 
 		// upload changes
 		R_Bind(gl_state.lightmap_textures + i);

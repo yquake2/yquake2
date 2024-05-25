@@ -49,6 +49,7 @@
 #define GL_POINT_SIZE_MIN                 0x8126
 #define GL_POINT_SIZE_MAX                 0x8127
 #define GL_POINT_DISTANCE_ATTENUATION     0x8129
+#define GL_GENERATE_MIPMAP                0x8191
 #endif
 
 #ifndef GL_VERSION_1_3
