@@ -1220,7 +1220,7 @@ R_Register(void)
 
 	gl1_palettedtexture = ri.Cvar_Get("r_palettedtextures", "0", CVAR_ARCHIVE);
 	gl1_pointparameters = ri.Cvar_Get("gl1_pointparameters", "1", CVAR_ARCHIVE);
-	gl1_multitexture = ri.Cvar_Get("gl1_multitexture", "2", CVAR_ARCHIVE);
+	gl1_multitexture = ri.Cvar_Get("gl1_multitexture", "1", CVAR_ARCHIVE);
 	gl1_biglightmaps = ri.Cvar_Get("gl1_biglightmaps", "1", CVAR_ARCHIVE);
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
@@ -1586,7 +1586,7 @@ RI_Init(void)
 	// ----
 
 	/* Multitexturing */
-	gl_config.multitexture = gl_config.mtexcombine = false;
+	gl_config.multitexture = false;
 
 	R_Printf(PRINT_ALL, " - Multitexturing: ");
 
@@ -1617,29 +1617,6 @@ RI_Init(void)
 	else
 	{
 		R_Printf(PRINT_ALL, "Disabled\n");
-	}
-
-	// ----
-
-	/* Multi texturing combine */
-	R_Printf(PRINT_ALL, " - Multitexturing combine: ");
-
-	if ( ( strstr(gl_config.extensions_string, "GL_ARB_texture_env_combine")
-		|| strstr(gl_config.extensions_string, "GL_EXT_texture_env_combine") ) )
-	{
-		if (gl_config.multitexture && gl1_multitexture->value > 1)
-		{
-			gl_config.mtexcombine = true;
-			R_Printf(PRINT_ALL, "Okay\n");
-		}
-		else
-		{
-			R_Printf(PRINT_ALL, "Disabled\n");
-		}
-	}
-	else
-	{
-		R_Printf(PRINT_ALL, "Failed\n");
 	}
 
 	// ----

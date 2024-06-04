@@ -746,7 +746,7 @@ static void
 R_RegenAllLightmaps()
 {
 	int i, map, smax, tmax, top, bottom, left, right, bt, bb, bl, br;
-	qboolean affected_lightmap;
+	qboolean affected_lightmap, pixelstore_set = false;
 	msurface_t *surf;
 	byte *base;
 
@@ -754,8 +754,6 @@ R_RegenAllLightmaps()
 	{
 		return;
 	}
-
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, gl_state.block_width);
 
 	for (i = 1; i < gl_state.max_lightmaps; i++)
 	{
@@ -816,6 +814,12 @@ R_RegenAllLightmaps()
 			continue;
 		}
 
+		if (!pixelstore_set)
+		{
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, gl_state.block_width);
+			pixelstore_set = true;
+		}
+
 		base = gl_lms.lightmap_buffer[i];
 		base += (bt * gl_state.block_width + bl) * LIGHTMAP_BYTES;
 
@@ -825,7 +829,10 @@ R_RegenAllLightmaps()
 						GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, base);
 	}
 
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+	if (pixelstore_set)
+	{
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+	}
 }
 
 static void
