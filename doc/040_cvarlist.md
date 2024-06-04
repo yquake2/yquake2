@@ -598,6 +598,10 @@ Set `0` by default.
   for people who hold the controller upright, or use a device with the
   controller attached to the screen, e.g. Steam Deck.
 
+* **gyro_tightening**: Threshold of rotation in degrees per second,
+  where gyro inputs below it will be dampened. Meant to counter a
+  noisy gyro and involuntary hand movements. Default `3.5`.
+
 * **gyro_calibration_(x/y/z)**: Offset values on each axis of the gyro
   which helps it reach true "zero movement", complete stillness. These
   values are wrong if you see your in-game view "drift" when leaving
