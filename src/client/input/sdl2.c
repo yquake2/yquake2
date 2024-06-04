@@ -726,14 +726,9 @@ IN_Update(void)
 				qboolean down = (event.type == SDL_CONTROLLERBUTTONDOWN);
 				unsigned char btn = event.cbutton.button;
 
-				// Handle Back Button first, to override its original key
-				if (btn == sdl_back_button)
-				{
-					Key_Event(K_JOY_BACK, down, true);
-					break;
-				}
-
-				Key_Event(K_BTN_A + btn, down, true);
+				// Handle Back Button, to override its original key
+				Key_Event( (btn == sdl_back_button)? K_JOY_BACK : K_BTN_A + btn,
+					down, true );
 				break;
 			}
 
