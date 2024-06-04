@@ -825,14 +825,12 @@ R_DrawAliasModel(entity_t *currententity, const model_t *currentmodel)
 		glDisable(GL_CULL_FACE);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glDisable(GL_TEXTURE_2D);
-		glBegin(GL_TRIANGLE_STRIP);
 
-		for (i = 0; i < 8; i++)
-		{
-			glVertex3fv(bbox[i]);
-		}
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, bbox);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
+		glDisableClientState(GL_VERTEX_ARRAY);
 
-		glEnd();
 		glEnable(GL_TEXTURE_2D);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glEnable(GL_CULL_FACE);

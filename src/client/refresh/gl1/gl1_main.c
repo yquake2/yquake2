@@ -409,6 +409,7 @@ R_DrawEntitiesOnList(void)
 	}
 
 	glDepthMask(1); /* back to writing */
+	R_EnableMultitexture(false);
 }
 
 void
