@@ -903,12 +903,11 @@ R_DrawTextureChains(entity_t *currententity)
 				continue;
 			}
 
-			R_Bind(image->texnum);	// no danger of resetting in R_RenderBrushPoly
-
 			for (s = image->texturechain; s; s = s->texturechain)
 			{
 				if (s->flags & SURF_DRAWTURB)
 				{
+					R_Bind(image->texnum);
 					R_RenderBrushPoly(currententity, s);
 				}
 			}
