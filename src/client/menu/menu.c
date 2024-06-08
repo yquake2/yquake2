@@ -2468,7 +2468,7 @@ Options_MenuInit(void)
     s_options_crosshair_box.generic.name = "crosshair";
     s_options_crosshair_box.generic.callback = CrosshairFunc;
     s_options_crosshair_box.itemnames = crosshair_names;
-	
+
     s_options_pauseonfocus_box.generic.type = MTYPE_SPINCONTROL;
     s_options_pauseonfocus_box.generic.x = 0;
     s_options_pauseonfocus_box.generic.y = (y += 10);
@@ -2988,7 +2988,7 @@ M_Credits_MenuDraw(void)
     }
 }
 
-const char *
+static const char *
 M_Credits_Key(int key)
 {
     key = Key_GetMenuKey(key);
@@ -5253,7 +5253,6 @@ static menuseparator_s s_player_hand_title;
 static menuseparator_s s_player_rate_title;
 static menuaction_s s_player_download_action;
 
-#define MAX_DISPLAYNAME 16
 #define MAX_PLAYERMODELS 1024
 
 typedef struct _stringlist
@@ -5321,7 +5320,8 @@ static qboolean IconOfSkinExists(char* skin, char** pcxfiles, int npcxfiles)
 }
 
 // strip file extension
-void StripExtension(char* path)
+static void
+StripExtension(char* path)
 {
     int length;
 
@@ -5370,7 +5370,8 @@ ContainsFile(char* path, char* file)
 }
 
 // replace characters in string
-void ReplaceCharacters(char* s, char r, char c)
+static void
+ReplaceCharacters(char* s, char r, char c)
 {
     char* p = s;
 
@@ -5423,7 +5424,7 @@ dircmp_func(const void* _a, const void* _b)
 static void
 PlayerModelFree()
 {
-    char* s = 0;
+    char* s = NULL;
 
     // there should be no valid skin names if there is no valid model
     if (s_modelname.num != 0)
@@ -5505,13 +5506,14 @@ PlayerDirectoryList(void)
     int num = 0;
 
     // get a list of "players" subdirectories
-    if ((list = FS_ListFiles2(findname, &num, 0, 0)) == 0)
+    if ((list = FS_ListFiles2(findname, &num, 0, 0)) == NULL)
     {
         return false;
     }
 
     if (num > MAX_PLAYERMODELS)
     {
+        Com_Printf("Too many player models (%d)!\n", num);
         num = MAX_PLAYERMODELS - 1;
     }
 
@@ -5536,11 +5538,11 @@ PlayerDirectoryList(void)
         char* t = list[i];
 
         YQ2_COM_CHECK_OOM(s, "malloc()", MAX_QPATH * sizeof(char))
-        
+
         Q_strlcpy(s, t, MAX_QPATH);
         data[i] = s;
     }
-    
+
     // free file list
     FS_FreeList(list, num);
 
@@ -5559,8 +5561,6 @@ PlayerModelList(void)
     char findname[MAX_QPATH];
     char** list = 0;
     char** data = 0;
-    char* s = 0;
-    char* t = 0;
     int num = 0;
     int mdl = 0;
     qboolean result = true;
@@ -5575,6 +5575,10 @@ PlayerModelList(void)
     // verify the existence of at least one pcx skin
     for (int i = 0; i < s_directory.num; ++i)
     {
+        char* s = NULL;
+        char* t = NULL;
+        int l;
+
         if (s_directory.data[i] == 0)
         {
             continue;
@@ -5591,7 +5595,7 @@ PlayerModelList(void)
 
         // contains triangle .md2 model
         s = s_directory.data[i];
-        
+
         if (ContainsFile(s, "tris.md2") == false)
         {
             continue;            // invalid player model
@@ -5628,7 +5632,7 @@ PlayerModelList(void)
         data = (char**)malloc((s_skinnames[mdl].num + 1) * sizeof(char*));
         YQ2_COM_CHECK_OOM(data, "malloc()", (s_skinnames[mdl].num + 1) * sizeof(char*))
         memset(data, 0, (s_skinnames[mdl].num + 1) * sizeof(char*));
-        
+
         s_skinnames[mdl].data = data;
         s_skinnames[mdl].num = 0;
 
@@ -5647,13 +5651,14 @@ PlayerModelList(void)
                 {
                     ReplaceCharacters(list[k], '\\', '/');
 
-                    s = (char*)malloc(MAX_DISPLAYNAME);
                     t = strrchr(list[k], '/');
 
-                    YQ2_COM_CHECK_OOM(s, "malloc()", MAX_DISPLAYNAME * sizeof(char))
+                    l = strlen(t) + 1;
+                    s = (char*)malloc(l);
+                    YQ2_COM_CHECK_OOM(s, "malloc()", l * sizeof(char))
 
                     StripExtension(t);
-                    Q_strlcpy(s, t + 1, MAX_DISPLAYNAME);
+                    Q_strlcpy(s, t + 1, l);
 
                     data[s_skinnames[mdl].num++] = s;
                 }
@@ -5664,12 +5669,13 @@ PlayerModelList(void)
         qsort(s_skinnames[mdl].data, s_skinnames[mdl].num, sizeof(char**), Q_sort_stricmp);
 
         // at this point we have a valid player model
-        s = (char*)malloc(MAX_DISPLAYNAME);
         t = strrchr(s_directory.data[i], '/');
+        l = strlen(t) + 1;
+        s = (char*)malloc(l);
 
-        YQ2_COM_CHECK_OOM(s, "malloc()", MAX_DISPLAYNAME * sizeof(char))
+        YQ2_COM_CHECK_OOM(s, "malloc()", l * sizeof(char))
 
-        Q_strlcpy(s, t + 1, MAX_DISPLAYNAME);
+        Q_strlcpy(s, t + 1, l);
 
         s_modelname.data[s_modelname.num++] = s;
         mdl = s_modelname.num;
@@ -5733,8 +5739,8 @@ PlayerConfig_MenuInit(void)
     extern cvar_t *skin;
     cvar_t *hand = Cvar_Get( "hand", "0", CVAR_USERINFO | CVAR_ARCHIVE );
     static const char *handedness[] = { "right", "left", "center", 0 };
-    char mdlname[MAX_DISPLAYNAME * 2];
-    char imgname[MAX_DISPLAYNAME];
+    char mdlname[MAX_QPATH];
+    char imgname[MAX_QPATH];
     int mdlindex = 0;
     int imgindex = 0;
     int i = 0;
@@ -5745,12 +5751,12 @@ PlayerConfig_MenuInit(void)
         return false;
     }
 
-    Q_strlcpy(mdlname, skin->string, MAX_DISPLAYNAME * 2);
+    Q_strlcpy(mdlname, skin->string, sizeof(mdlname));
     ReplaceCharacters(mdlname, '\\', '/' );
 
     if (strchr(mdlname, '/'))
     {
-        Q_strlcpy(imgname, strchr(mdlname, '/') + 1, MAX_DISPLAYNAME);
+        Q_strlcpy(imgname, strchr(mdlname, '/') + 1, sizeof(imgname));
         *strchr(mdlname, '/') = 0;
     }
     else
