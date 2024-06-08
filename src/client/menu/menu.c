@@ -5908,92 +5908,128 @@ extern float CalcFov(float fov_x, float w, float h);
  * Model animation
  */
 static void
-PlayerConfig_AnimateModel(entity_t *entity, int curTime)
+PlayerConfig_AnimateModel(entity_t *entity, int count, int curTime)
 {
-    cvar_t *cl_start_frame, *cl_end_frame;
-    int startFrame, endFrame;
+	const cvar_t *cl_start_frame, *cl_end_frame;
+	int startFrame, endFrame;
 
-    cl_start_frame = Cvar_Get("cl_model_preview_start", "84", CVAR_ARCHIVE);
-    cl_end_frame = Cvar_Get("cl_model_preview_end", "94", CVAR_ARCHIVE);
-    startFrame = cl_start_frame->value;
-    endFrame = cl_end_frame->value;
+	cl_start_frame = Cvar_Get("cl_model_preview_start", "84", CVAR_ARCHIVE);
+	cl_end_frame = Cvar_Get("cl_model_preview_end", "94", CVAR_ARCHIVE);
+	startFrame = cl_start_frame->value;
+	endFrame = cl_end_frame->value;
 
-    if (startFrame >= 0 && endFrame > startFrame)
-    {
-        /* salute male 84..94 frame */
-        entity->frame = (curTime / 100) % (endFrame - startFrame) + startFrame;
-    }
+	if (startFrame >= 0 && endFrame > startFrame)
+	{
+		int i;
+
+		for (i = 0; i < count; i ++)
+		{
+			/* salute male 84..94 frame */
+			entity[i].frame = (curTime / 100) % (endFrame - startFrame) + startFrame;
+		}
+	}
 }
 
 static void
 PlayerConfig_MenuDraw(void)
 {
-    refdef_t refdef;
-    float scale = SCR_GetMenuScale();
+	refdef_t refdef;
+	float scale = SCR_GetMenuScale();
 
-    memset(&refdef, 0, sizeof(refdef));
+	memset(&refdef, 0, sizeof(refdef));
 
-    refdef.x = viddef.width / 2;
-    refdef.y = viddef.height / 2 - 72 * scale;
-    refdef.width = 144 * scale;
-    refdef.height = 168 * scale;
-    refdef.fov_x = 40;
-    refdef.fov_y = CalcFov(refdef.fov_x, (float)refdef.width, (float)refdef.height);
-    refdef.time = cls.realtime * 0.001f;
+	refdef.x = viddef.width / 2;
+	refdef.y = viddef.height / 2 - 72 * scale;
+	refdef.width = 144 * scale;
+	refdef.height = 168 * scale;
+	refdef.fov_x = 40;
+	refdef.fov_y = CalcFov(refdef.fov_x, (float)refdef.width, (float)refdef.height);
+	refdef.time = cls.realtime * 0.001f;
 
-    // could remove this, there should be a valid set of models
-    if ((s_player_model_box.curvalue >= 0 && s_player_model_box.curvalue < s_modelname.num)
-        && (s_player_skin_box.curvalue >= 0
-        && s_player_skin_box.curvalue < s_skinnames[s_player_model_box.curvalue].num))
-    {
-        entity_t entity;
-        char scratch[MAX_QPATH];
-        char* mdlname = s_modelname.data[s_player_model_box.curvalue];
-        char* imgname = s_skinnames[s_player_model_box.curvalue].data[s_player_skin_box.curvalue];
+	// could remove this, there should be a valid set of models
+	if ((s_player_model_box.curvalue >= 0 && s_player_model_box.curvalue < s_modelname.num)
+		&& (s_player_skin_box.curvalue >= 0
+		&& s_player_skin_box.curvalue < s_skinnames[s_player_model_box.curvalue].num))
+	{
+		entity_t entities[2];
+		char scratch[MAX_QPATH];
+		char* mdlname = s_modelname.data[s_player_model_box.curvalue];
+		char* imgname = s_skinnames[s_player_model_box.curvalue].data[s_player_skin_box.curvalue];
+		int i, curTime;
 
-        memset(&entity, 0, sizeof(entity));
+		memset(&entities, 0, sizeof(entities));
 
-        Com_sprintf(scratch, sizeof(scratch), "players/%s/tris.md2", mdlname);
-        entity.model = R_RegisterModel(scratch);
-        Com_sprintf(scratch, sizeof(scratch), "players/%s/%s.pcx", mdlname,
-            imgname);
-        entity.skin = R_RegisterSkin(scratch);
-        entity.flags = RF_FULLBRIGHT;
-        entity.origin[0] = 80;
-        entity.origin[1] = 0;
-        entity.origin[2] = 0;
-        VectorCopy(entity.origin, entity.oldorigin);
-        entity.frame = 0;
-        entity.oldframe = 0;
-        entity.backlerp = 0.0;
+		Com_sprintf(scratch, sizeof(scratch), "players/%s/tris.md2", mdlname);
+		entities[0].model = R_RegisterModel(scratch);
 
-        int curTime = Sys_Milliseconds();
-        PlayerConfig_AnimateModel(&entity, curTime);
-        // one full turn is 3s = 3000ms => 3000/360 deg per millisecond
-        curTime = curTime % 3000;
-        entity.angles[1] = (float)curTime/(3000.0f/360.0f);
+		Com_sprintf(scratch, sizeof(scratch), "players/%s/%s.pcx", mdlname,
+			imgname);
+		entities[0].skin = R_RegisterSkin(scratch);
 
-        refdef.areabits = 0;
-        refdef.num_entities = 1;
-        refdef.entities = &entity;
-        refdef.lightstyles = 0;
-        refdef.rdflags = RDF_NOWORLDMODEL;
+		curTime = Sys_Milliseconds();
 
-        Com_sprintf(scratch, sizeof(scratch), "/players/%s/%s_i.pcx", mdlname,
-            imgname);
+		/* multiplayer weapons loaded */
+		if (num_cl_weaponmodels)
+		{
+			int weapon_id;
 
-        // icon bitmap to draw
-        s_player_icon_bitmap.generic.name = scratch;
+			/* change weapon every 3 rounds */
+			weapon_id = curTime / 9000;
 
-        Menu_Draw(&s_player_config_menu);
+			weapon_id = weapon_id % num_cl_weaponmodels;
+			/* show weapon also */
+			Com_sprintf(scratch, sizeof(scratch),
+				"players/%s/%s", mdlname, cl_weaponmodels[weapon_id]);
+			entities[1].model = R_RegisterModel(scratch);
+		}
 
-        M_DrawTextBox(((int)(refdef.x) * (320.0F / viddef.width) - 8),
-                      (int)((viddef.height / 2) * (240.0F / viddef.height) - 77),
-                      refdef.width / (8 * scale), refdef.height / (8 * scale));
-        refdef.height += 4 * scale;
+		/* no such weapon model */
+		if (!entities[1].model)
+		{
+			/* show weapon also */
+			Com_sprintf(scratch, sizeof(scratch),
+				"players/%s/weapon.md2", mdlname);
+			entities[1].model = R_RegisterModel(scratch);
+		}
 
-        R_RenderFrame(&refdef);
-    }
+		curTime = curTime % 3000;
+		for (i = 0; i < 2; i++)
+		{
+			entities[i].flags = RF_FULLBRIGHT;
+			entities[i].origin[0] = 80;
+			entities[i].origin[1] = 0;
+			entities[i].origin[2] = 0;
+			VectorCopy(entities[i].origin, entities[i].oldorigin);
+			entities[i].frame = 0;
+			entities[i].oldframe = 0;
+			entities[i].backlerp = 0.0;
+			// one full turn is 3s = 3000ms => 3000/360 deg per millisecond
+			entities[i].angles[1] = (float)curTime/(3000.0f/360.0f);
+		}
+
+		PlayerConfig_AnimateModel(entities, 2, curTime);
+
+		refdef.areabits = 0;
+		refdef.num_entities = (entities[1].model) ? 2 : 1;
+		refdef.entities = entities;
+		refdef.lightstyles = 0;
+		refdef.rdflags = RDF_NOWORLDMODEL;
+
+		Com_sprintf(scratch, sizeof(scratch), "/players/%s/%s_i.pcx", mdlname,
+			imgname);
+
+		// icon bitmap to draw
+		s_player_icon_bitmap.generic.name = scratch;
+
+		Menu_Draw(&s_player_config_menu);
+
+		M_DrawTextBox(((int)(refdef.x) * (320.0F / viddef.width) - 8),
+					  (int)((viddef.height / 2) * (240.0F / viddef.height) - 77),
+					  refdef.width / (8 * scale), refdef.height / (8 * scale));
+		refdef.height += 4 * scale;
+
+		R_RenderFrame(&refdef);
+	}
 }
 
 static const char *
@@ -6003,9 +6039,9 @@ PlayerConfig_MenuKey(int key)
     if (key == K_ESCAPE)
     {
         char skin[MAX_QPATH];
-        char* name = 0;
-        char* mdl = 0;
-        char* img = 0;
+        char* name = NULL;
+        char* mdl = NULL;
+        char* img = NULL;
 
         name = s_player_name_field.buffer;
         mdl = s_modelname.data[s_player_model_box.curvalue];
