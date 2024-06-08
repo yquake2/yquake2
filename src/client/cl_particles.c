@@ -33,6 +33,9 @@ int cl_numparticles = MAX_PARTICLES;
 void
 CL_ClearParticles(void)
 {
+	if (cl_numparticles == 0)
+		return;
+		
 	int i;
 
 	free_particles = &particles[0];
