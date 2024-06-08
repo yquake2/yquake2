@@ -1780,6 +1780,7 @@ static menuslider_s s_gyro_yawsensitivity_slider;
 static menuslider_s s_gyro_pitchsensitivity_slider;
 static menulist_s s_gyro_invertyaw_box;
 static menulist_s s_gyro_invertpitch_box;
+static menuslider_s s_gyro_tightening_slider;
 static menuseparator_s s_calibrating_text[2];
 static menuaction_s s_calibrate_gyro;
 
@@ -1917,6 +1918,15 @@ Gyro_MenuInit(void)
 	s_gyro_invertpitch_box.itemnames = yesno_names;
 	s_gyro_invertpitch_box.curvalue = (Cvar_VariableValue("gyro_pitchsensitivity") < 0);
 
+	s_gyro_tightening_slider.generic.type = MTYPE_SLIDER;
+	s_gyro_tightening_slider.generic.x = 0;
+	s_gyro_tightening_slider.generic.y = (y += 20);
+	s_gyro_tightening_slider.generic.name = "tightening thresh";
+	s_gyro_tightening_slider.cvar = "gyro_tightening";
+	s_gyro_tightening_slider.minvalue = 0.0f;
+	s_gyro_tightening_slider.maxvalue = 12.0f;
+	s_gyro_tightening_slider.slidestep = 0.5f;
+
 	s_calibrating_text[0].generic.type = MTYPE_SEPARATOR;
 	s_calibrating_text[0].generic.x = 48 * scale + 32;
 	s_calibrating_text[0].generic.y = (y += 20);
@@ -1939,6 +1949,7 @@ Gyro_MenuInit(void)
 	Menu_AddItem(&s_gyro_menu, (void *)&s_gyro_pitchsensitivity_slider);
 	Menu_AddItem(&s_gyro_menu, (void *)&s_gyro_invertyaw_box);
 	Menu_AddItem(&s_gyro_menu, (void *)&s_gyro_invertpitch_box);
+	Menu_AddItem(&s_gyro_menu, (void *)&s_gyro_tightening_slider);
 	Menu_AddItem(&s_gyro_menu, (void *)&s_calibrating_text[0]);
 	Menu_AddItem(&s_gyro_menu, (void *)&s_calibrating_text[1]);
 	Menu_AddItem(&s_gyro_menu, (void *)&s_calibrate_gyro);

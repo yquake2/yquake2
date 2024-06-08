@@ -613,14 +613,10 @@ Separator_Draw(menuseparator_s *s)
 void
 Slider_DoSlide(menuslider_s *s, int dir)
 {
+	const float step = (s->slidestep)? s->slidestep : 0.1f;
 	float value = Cvar_VariableValue(s->cvar);
-	float step = 0.1f;
 	float sign = 1.0f;
 
-	if (s->slidestep)
-	{
-		step = s->slidestep;
-	}
 	if (s->abs && value < 0)	// absolute value treatment
 	{
 		value = -value;
@@ -641,48 +637,40 @@ Slider_DoSlide(menuslider_s *s, int dir)
 void
 Slider_Draw(menuslider_s *s)
 {
+	const float scale = SCR_GetMenuScale();
+	const int x = s->generic.parent->x + s->generic.x;
+	const int y = s->generic.parent->y + s->generic.y;
+	const int x_rcol = x + (RCOLUMN_OFFSET * scale);
 	int i;
 	char buffer[5];
-	const char * format;
-	float scale = SCR_GetMenuScale();
-	int x = s->generic.parent->x + s->generic.x;
-	int y = s->generic.parent->y + s->generic.y;
 
 	float value = Cvar_VariableValue(s->cvar);
 	if (s->abs && value < 0)	// absolute value
 	{
 		value = -value;
 	}
-	float range = (ClampCvar(s->minvalue, s->maxvalue, value) - s->minvalue) /
+	const float range = (ClampCvar(s->minvalue, s->maxvalue, value) - s->minvalue) /
 			(s->maxvalue - s->minvalue);
 
 	Menu_DrawStringR2LDark(x + (LCOLUMN_OFFSET * scale),
 		y, s->generic.name);
 
-	Draw_CharScaled(x + (RCOLUMN_OFFSET * scale),
+	Draw_CharScaled(x_rcol,
 		y * scale, 128, scale);
 
 	for (i = 0; i < SLIDER_RANGE * scale; i++)
 	{
-		Draw_CharScaled(x + (RCOLUMN_OFFSET * scale) + (i * 8) + 8,
+		Draw_CharScaled(x_rcol + (i * 8) + 8,
 			y * scale, 129, scale);
 	}
 
-	Draw_CharScaled(x + (RCOLUMN_OFFSET * scale) + (i * 8) + 8,
+	Draw_CharScaled(x_rcol + (i * 8) + 8,
 		y * scale, 130, scale);
-	Draw_CharScaled(x + ((int)((RCOLUMN_OFFSET * scale) + (SLIDER_RANGE * scale - 1) * 8 * range)) + 8,
+	Draw_CharScaled(x_rcol + (int)((SLIDER_RANGE * scale - 1) * 8 * range) + 8,
 		y * scale, 131, scale);
 
-	if (!s->printformat)
-	{
-		format = "%.1f";
-	}
-	else
-	{
-		format = s->printformat;
-	}
-	snprintf(buffer, 5, format, value);
-	Menu_DrawString(x + (RCOLUMN_OFFSET * scale) + ((SLIDER_RANGE + 2) * scale * 8),
+	snprintf(buffer, 5, (s->printformat)? s->printformat : "%.1f", value);
+	Menu_DrawString(x_rcol + ((SLIDER_RANGE + 2) * scale * 8),
 		y, buffer);
 }
 

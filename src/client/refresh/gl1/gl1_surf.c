@@ -245,7 +245,7 @@ R_BlendLightmaps(const model_t *currentmodel)
 	}
 
 	/* don't bother writing Z */
-	glDepthMask(0);
+	glDepthMask(GL_FALSE);
 
 	/* set the appropriate blending mode unless
 	   we're only looking at the lightmaps. */
@@ -406,7 +406,7 @@ R_BlendLightmaps(const model_t *currentmodel)
 	/* restore state */
 	glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthMask(1);
+	glDepthMask(GL_TRUE);
 }
 
 static void
@@ -746,7 +746,7 @@ static void
 R_RegenAllLightmaps()
 {
 	int i, map, smax, tmax, top, bottom, left, right, bt, bb, bl, br;
-	qboolean affected_lightmap;
+	qboolean affected_lightmap, pixelstore_set = false;
 	msurface_t *surf;
 	byte *base;
 
@@ -754,8 +754,6 @@ R_RegenAllLightmaps()
 	{
 		return;
 	}
-
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, gl_state.block_width);
 
 	for (i = 1; i < gl_state.max_lightmaps; i++)
 	{
@@ -816,6 +814,12 @@ R_RegenAllLightmaps()
 			continue;
 		}
 
+		if (!pixelstore_set)
+		{
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, gl_state.block_width);
+			pixelstore_set = true;
+		}
+
 		base = gl_lms.lightmap_buffer[i];
 		base += (bt * gl_state.block_width + bl) * LIGHTMAP_BYTES;
 
@@ -825,7 +829,10 @@ R_RegenAllLightmaps()
 						GL_LIGHTMAP_FORMAT, GL_UNSIGNED_BYTE, base);
 	}
 
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+	if (pixelstore_set)
+	{
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+	}
 }
 
 static void
@@ -896,12 +903,11 @@ R_DrawTextureChains(entity_t *currententity)
 				continue;
 			}
 
-			R_Bind(image->texnum);	// no danger of resetting in R_RenderBrushPoly
-
 			for (s = image->texturechain; s; s = s->texturechain)
 			{
 				if (s->flags & SURF_DRAWTURB)
 				{
+					R_Bind(image->texnum);
 					R_RenderBrushPoly(currententity, s);
 				}
 			}

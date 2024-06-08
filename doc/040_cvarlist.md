@@ -468,11 +468,10 @@ Set `0` by default.
   value, at least `1.0` - default is `2.0`. Applied when textures are
   loaded, so it needs a `vid_restart`.
 
-* **gl1_multitexture**: Enables (`1`) the blending of color and light
-  textures on a single drawing pass; disabling this (`0`) does one pass
-  for color and another for light. Default is `2`, which also enables
-  texture combine mode (`GL_ARB_texture_env_combine`) when supported.
-  Requires a `vid_restart` when changed.
+* **gl1_multitexture**: Enables (`1`, default) the blending of color and
+  light textures on a single drawing pass; disabling this (`0`) does one
+  pass for color and another for light. Requires a `vid_restart` when
+  changed.
 
 * **gl1_overbrightbits**: Enables overbright bits, brightness scaling of
   lightmaps and models. Higher values make shadows less dark. Possible
@@ -597,6 +596,10 @@ Set `0` by default.
   controller flat, like using a pointing device. `1` is "roll" (lean),
   for people who hold the controller upright, or use a device with the
   controller attached to the screen, e.g. Steam Deck.
+
+* **gyro_tightening**: Threshold of rotation in degrees per second,
+  where gyro inputs below it will be dampened. Meant to counter a
+  noisy gyro and involuntary hand movements. Default `3.5`.
 
 * **gyro_calibration_(x/y/z)**: Offset values on each axis of the gyro
   which helps it reach true "zero movement", complete stillness. These

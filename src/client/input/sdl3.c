@@ -165,6 +165,7 @@ cvar_t *gyro_turning_axis;	// yaw or roll
 // Gyro sensitivity
 static cvar_t *gyro_yawsensitivity;
 static cvar_t *gyro_pitchsensitivity;
+static cvar_t *gyro_tightening;
 
 // Gyro is being used in this very moment
 static qboolean gyro_active = false;
@@ -717,14 +718,9 @@ IN_Update(void)
 				qboolean down = (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN);
 				unsigned char btn = event.gbutton.button;
 
-				// Handle Back Button first, to override its original key
-				if (btn == sdl_back_button)
-				{
-					Key_Event(K_JOY_BACK, down, true);
-					break;
-				}
-
-				Key_Event(K_BTN_A + btn, down, true);
+				// Handle Back Button, to override its original key
+				Key_Event( (btn == sdl_back_button)? K_JOY_BACK : K_BTN_A + btn,
+					down, true );
 				break;
 			}
 
@@ -1064,6 +1060,26 @@ IN_ApplyExpo(thumbstick_t stick, float exponent)
 }
 
 /*
+ * Minimize gyro movement when under a small threshold.
+ * http://gyrowiki.jibbsmart.com/blog:good-gyro-controls-part-1:the-gyro-is-a-mouse#toc9
+ */
+static thumbstick_t
+IN_TightenInput(float yaw, float pitch)
+{
+	thumbstick_t input = { yaw, pitch };
+	const float magnitude = IN_StickMagnitude(input);
+	const float threshold = (M_PI / 180.0f) * gyro_tightening->value;
+
+	if (magnitude < threshold)
+	{
+		const float scale = magnitude / threshold;
+		input.x *= scale;
+		input.y *= scale;
+	}
+	return input;
+}
+
+/*
  * Delete flick stick's buffer of angle samples for smoothing
  */
 static void
@@ -1192,6 +1208,7 @@ IN_Move(usercmd_t *cmd)
 	static float joystick_yaw, joystick_pitch;
 	static float joystick_forwardmove, joystick_sidemove;
 	static thumbstick_t left_stick = {0}, right_stick = {0};
+	thumbstick_t gyro_in = {0};
 
 	if (m_filter->value)
 	{
@@ -1372,16 +1389,21 @@ IN_Move(usercmd_t *cmd)
 					* cl_sidespeed->value * 2.0f * joystick_sidemove;
 	}
 
-	if (gyro_yaw)
+	if (gyro_yaw || gyro_pitch)
 	{
-		cl.viewangles[YAW] += m_yaw->value * gyro_yawsensitivity->value
-					* cl_yawspeed->value * gyro_yaw * gyroViewFactor;
+		gyro_in = IN_TightenInput(gyro_yaw, gyro_pitch);
 	}
 
-	if (gyro_pitch)
+	if (gyro_in.x)
+	{
+		cl.viewangles[YAW] += m_yaw->value * gyro_yawsensitivity->value
+					* cl_yawspeed->value * gyro_in.x * gyroViewFactor;
+	}
+
+	if (gyro_in.y)
 	{
 		cl.viewangles[PITCH] -= m_pitch->value * gyro_pitchsensitivity->value
-					* cl_pitchspeed->value * gyro_pitch * gyroViewFactor;
+					* cl_pitchspeed->value * gyro_in.y * gyroViewFactor;
 	}
 
 	// Flick Stick: flick in progress, changing the yaw angle to the target progressively
@@ -2283,6 +2305,7 @@ IN_Init(void)
 
 	gyro_yawsensitivity = Cvar_Get("gyro_yawsensitivity", "1.0", CVAR_ARCHIVE);
 	gyro_pitchsensitivity = Cvar_Get("gyro_pitchsensitivity", "1.0", CVAR_ARCHIVE);
+	gyro_tightening = Cvar_Get("gyro_tightening", "3.5", CVAR_ARCHIVE);
 	gyro_turning_axis = Cvar_Get("gyro_turning_axis", "0", CVAR_ARCHIVE);
 
 	gyro_mode = Cvar_Get("gyro_mode", "2", CVAR_ARCHIVE);

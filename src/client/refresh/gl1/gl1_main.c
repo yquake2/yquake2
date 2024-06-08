@@ -365,7 +365,7 @@ R_DrawEntitiesOnList(void)
 	/* draw transparent entities
 	   we could sort these if it ever
 	   becomes a problem... */
-	glDepthMask(0);
+	glDepthMask(GL_FALSE);
 
 	for (i = 0; i < r_newrefdef.num_entities; i++)
 	{
@@ -408,7 +408,8 @@ R_DrawEntitiesOnList(void)
 		}
 	}
 
-	glDepthMask(1); /* back to writing */
+	glDepthMask(GL_TRUE); /* back to writing */
+	R_EnableMultitexture(false);
 }
 
 void
@@ -504,7 +505,7 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 
 	glDisable(GL_BLEND);
 	glColor4f(1, 1, 1, 1);
-	glDepthMask(1); /* back to normal Z buffering */
+	glDepthMask(GL_TRUE); /* back to normal Z buffering */
 	R_TexEnv(GL_REPLACE);
 
 	YQ2_VLAFREE(vtx);
@@ -808,7 +809,7 @@ R_Clear(void)
 	// Check whether the stencil buffer needs clearing, and do so if need be.
 	GLbitfield stencilFlags = 0;
 	if (gl_state.stereo_mode >= STEREO_MODE_ROW_INTERLEAVED && gl_state.stereo_mode <= STEREO_MODE_PIXEL_INTERLEAVED) {
-		glClearStencil(0);
+		glClearStencil(GL_FALSE);
 		stencilFlags |= GL_STENCIL_BUFFER_BIT;
 	}
 
@@ -869,7 +870,7 @@ R_Clear(void)
 	/* stencilbuffer shadows */
 	if (gl_shadows->value && gl_state.stencil && gl1_stencilshadow->value)
 	{
-		glClearStencil(1);
+		glClearStencil(GL_TRUE);
 		glClear(GL_STENCIL_BUFFER_BIT);
 	}
 }
@@ -1219,7 +1220,7 @@ R_Register(void)
 
 	gl1_palettedtexture = ri.Cvar_Get("r_palettedtextures", "0", CVAR_ARCHIVE);
 	gl1_pointparameters = ri.Cvar_Get("gl1_pointparameters", "1", CVAR_ARCHIVE);
-	gl1_multitexture = ri.Cvar_Get("gl1_multitexture", "2", CVAR_ARCHIVE);
+	gl1_multitexture = ri.Cvar_Get("gl1_multitexture", "1", CVAR_ARCHIVE);
 	gl1_biglightmaps = ri.Cvar_Get("gl1_biglightmaps", "1", CVAR_ARCHIVE);
 
 	gl_drawbuffer = ri.Cvar_Get("gl_drawbuffer", "GL_BACK", 0);
@@ -1585,7 +1586,7 @@ RI_Init(void)
 	// ----
 
 	/* Multitexturing */
-	gl_config.multitexture = gl_config.mtexcombine = false;
+	gl_config.multitexture = false;
 
 	R_Printf(PRINT_ALL, " - Multitexturing: ");
 
@@ -1616,29 +1617,6 @@ RI_Init(void)
 	else
 	{
 		R_Printf(PRINT_ALL, "Disabled\n");
-	}
-
-	// ----
-
-	/* Multi texturing combine */
-	R_Printf(PRINT_ALL, " - Multitexturing combine: ");
-
-	if ( ( strstr(gl_config.extensions_string, "GL_ARB_texture_env_combine")
-		|| strstr(gl_config.extensions_string, "GL_EXT_texture_env_combine") ) )
-	{
-		if (gl_config.multitexture && gl1_multitexture->value > 1)
-		{
-			gl_config.mtexcombine = true;
-			R_Printf(PRINT_ALL, "Okay\n");
-		}
-		else
-		{
-			R_Printf(PRINT_ALL, "Disabled\n");
-		}
-	}
-	else
-	{
-		R_Printf(PRINT_ALL, "Failed\n");
 	}
 
 	// ----

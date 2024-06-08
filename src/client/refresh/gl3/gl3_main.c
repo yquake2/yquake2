@@ -1131,7 +1131,7 @@ GL3_DrawEntitiesOnList(void)
 	/* draw transparent entities
 	   we could sort these if it ever
 	   becomes a problem... */
-	glDepthMask(0);
+	glDepthMask(GL_FALSE);
 
 	for (i = 0; i < gl3_newrefdef.num_entities; i++)
 	{
@@ -1176,7 +1176,7 @@ GL3_DrawEntitiesOnList(void)
 
 	GL3_DrawAliasShadows();
 
-	glDepthMask(1); /* back to writing */
+	glDepthMask(GL_TRUE); /* back to writing */
 
 }
 

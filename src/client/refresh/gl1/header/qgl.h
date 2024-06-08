@@ -57,14 +57,7 @@
 #define GL_TEXTURE1                       0x84C1
 #define GL_MULTISAMPLE                    0x809D
 #define GL_COMBINE                        0x8570
-#define GL_COMBINE_RGB                    0x8571
-#define GL_COMBINE_ALPHA                  0x8572
-#define GL_SOURCE0_RGB                    0x8580
-#define GL_SOURCE1_RGB                    0x8581
-#define GL_SOURCE0_ALPHA                  0x8588
-#define GL_SOURCE1_ALPHA                  0x8589
 #define GL_RGB_SCALE                      0x8573
-#define GL_PREVIOUS                       0x8578
 #endif
 
 #ifndef GL_EXT_shared_texture_palette
