@@ -121,7 +121,7 @@ M_ForceMenuOff(void)
     Cvar_Set("paused", "0");
 }
 
-    void
+void
 M_PopMenu(void)
 {
     S_StartLocalSound(menu_out_sound);
@@ -726,7 +726,7 @@ InitMainMenu(void)
 static void
 M_Main_Draw(void)
 {
-    menucommon_s * item = 0;
+    menucommon_s * item = NULL;
     int x = 0;
     int y = 0;
 
@@ -752,7 +752,7 @@ M_Main_Key(int key)
 void
 M_Menu_Main_f(void)
 {
-    menucommon_s * item = 0;
+    menucommon_s * item = NULL;
 
     InitMainMenu();
 
@@ -5502,7 +5502,7 @@ static qboolean
 PlayerDirectoryList(void)
 {
     char* findname = "players/*";
-    char** list = 0;
+    char** list = NULL;
     int num = 0;
 
     // get a list of "players" subdirectories
@@ -5559,8 +5559,8 @@ static qboolean
 PlayerModelList(void)
 {
     char findname[MAX_QPATH];
-    char** list = 0;
-    char** data = 0;
+    char** list = NULL;
+    char** data = NULL;
     int num = 0;
     int mdl = 0;
     qboolean result = true;
@@ -5588,7 +5588,7 @@ PlayerModelList(void)
         strcat(findname, "/*.pcx");
 
         // get a list of pcx files
-        if ((list = FS_ListFiles2(findname, &num, 0, 0)) == 0)
+        if ((list = FS_ListFiles2(findname, &num, 0, 0)) == NULL)
         {
             continue;
         }
