@@ -73,6 +73,7 @@ SET(SDL2_SEARCH_PATHS
 	/usr/local
 	/usr
 	/sw # Fink
+	/opt/homebrew # Homebrew
 	/opt/local # DarwinPorts
 	/opt/csw # Blastwave
 	/opt
@@ -87,11 +88,11 @@ FIND_PATH(SDL2_INCLUDE_DIR SDL.h
 	PATHS ${SDL2_SEARCH_PATHS}
 )
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8) 
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	set(PATH_SUFFIXES lib64 lib/x64 lib)
-else() 
+else()
 	set(PATH_SUFFIXES lib/x86 lib)
-endif() 
+endif()
 
 FIND_LIBRARY(SDL2_LIBRARY_TEMP
 	NAMES SDL2
