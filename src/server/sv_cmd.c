@@ -321,7 +321,7 @@ void SV_ListMaps_f(void)
 
 	Com_Printf("\n");
 
-	if ((userMapNames = FS_ListFiles2("maps/*.bsp", &nUserMaps, 0, 0)) != 0)
+	if ((userMapNames = FS_ListFiles2("maps/*.bsp", &nUserMaps, 0, 0)) != NULL)
 	{
 		for (i = 0; i < nUserMaps - 1; i++)
 		{
@@ -371,7 +371,7 @@ SV_Kick_f(void)
 		SV_BroadcastPrintf(PRINT_HIGH, "%s was kicked\n", sv_client->name);
 	}
 
-	/* print directly, because the dropped client 
+	/* print directly, because the dropped client
 	   won't get the SV_BroadcastPrintf message */
 	SV_ClientPrintf(sv_client, PRINT_HIGH, "You were kicked from the game\n");
 	SV_DropClient(sv_client);
@@ -564,8 +564,8 @@ SV_ServerRecord_f(void)
 		return;
 	}
 
-	if (strstr(Cmd_Argv(1), "..") || 
-		strstr(Cmd_Argv(1), "/") || 
+	if (strstr(Cmd_Argv(1), "..") ||
+		strstr(Cmd_Argv(1), "/") ||
 		strstr(Cmd_Argv(1), "\\"))
 	{
 		Com_Printf("Illegal filename.\n");
