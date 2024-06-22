@@ -101,6 +101,11 @@ qboolean qcurlInit(void)
 
 	// Mkay, let's try to find a working libcurl.
 	cl_libcurl = Cvar_Get("cl_libcurl", (char *)libcurl[0], CVAR_ARCHIVE);
+	if (strstr(cl_libcurl->string, "..") || strstr(cl_libcurl->string, ":") || strstr(cl_libcurl->string,         "/") || strstr(cl_libcurl->string, "\\"))
+	{
+		Com_Printf("cl_libcurl must not contain '..', ':', '/' or '\': %s\n", cl_libcurl->string);
+		goto error;
+	}
 
 	Com_Printf("Loading library: %s\n", cl_libcurl->string);
 	Sys_LoadLibrary(cl_libcurl->string, NULL, &curlhandle);
