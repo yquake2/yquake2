@@ -317,6 +317,7 @@ extern	cvar_t	*cl_kickangles;
 extern  cvar_t  *cl_r1q2_lightstyle;
 extern  cvar_t  *cl_limitsparksounds;
 extern	cvar_t	*cl_laseralpha;
+extern	cvar_t	*cl_nodownload_list;
 
 typedef struct
 {

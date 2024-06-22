@@ -571,6 +571,17 @@ CL_CheckOrDownloadFile(char *filename)
 		return true;
 	}
 
+	char *nodownload = strtok(cl_nodownload_list->string, " ");
+	while (nodownload != NULL)
+	{
+		if (Q_strcasestr(filename, nodownload))
+		{
+			Com_Printf("Filename is filtered by cl_nodownload_list: %s\n", filename);
+			return true;
+		}
+		nodownload = strtok(NULL, " ");
+	}
+
 #ifdef USE_CURL
 	if (!forceudp)
 	{

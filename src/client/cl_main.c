@@ -51,6 +51,7 @@ cvar_t *cl_add_entities;
 cvar_t *cl_add_blend;
 cvar_t *cl_kickangles;
 cvar_t *cl_laseralpha;
+cvar_t *cl_nodownload_list;
 
 cvar_t *cl_shownet;
 cvar_t *cl_showmiss;
@@ -517,6 +518,7 @@ CL_InitLocal(void)
 	cl_showfps = Cvar_Get("cl_showfps", "0", CVAR_ARCHIVE);
 	cl_showspeed = Cvar_Get("cl_showspeed", "0", CVAR_ARCHIVE);	
 	cl_laseralpha = Cvar_Get("cl_laseralpha", "0.3", 0);
+	cl_nodownload_list = Cvar_Get("cl_nodownload_list", ".dll .dylib .so", 0);
 
 	cl_upspeed = Cvar_Get("cl_upspeed", "200", 0);
 	cl_forwardspeed = Cvar_Get("cl_forwardspeed", "200", 0);

@@ -138,13 +138,17 @@ it's `+set busywait 0` (setting the `busywait` cvar) and `-portable`
   loading. If set to `0` pause mode is never entered, this is the
   Vanilla Quake II behaviour.
 
-* **cl_model_preview_start**: start frame value in multiplayer model
+* **cl_model_preview_start**: Start frame value in multiplayer model
   preview.  `-1` - don't show animation. Defaults to `84` for show
   salute animation.
 
-* **cl_model_preview_end**: end frame value in multiplayer model
+* **cl_model_preview_end**: End frame value in multiplayer model
   preview.  `-1` - don't show animation. Defaults to `94` for show
   salute animation.
+
+* **cl_nodownload_list**: Whitespace seperated list of strings, files
+  having one these strings in their name are never downloaded. Set to
+  `.dll .dylib .so` by default.
 
 * **cl_r1q2_lightstyle**: Since the first release Yamagi Quake II used
   the R1Q2 colors for the dynamic lights of rockets. Set to `0` to get
